@@ -14,3 +14,30 @@ export_credentials.cfg
 .mono/
 data_*/
 mono_crash.*.json
+
+# Godot local/editor generated files
+*.tmp
+*.temp
+
+# Build and export outputs
+build/
+dist/
+exports/
+release/
+
+# Logs and local runtime files
+*.log
+logs/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor and IDE local settings
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates

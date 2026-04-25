@@ -1,0 +1,32 @@
+# RadishCatalyst Documentation
+
+本目录收纳 RadishCatalyst / 异星催化 的策划、架构、参考资料与归档材料。
+
+## Structure
+
+- `product/`：当前项目方向、产品定义、玩法支柱与开发准备总纲。
+- `design/`：玩法系统、资源链、地图、角色成长等后续执行设计文档。
+- `architecture/`：会影响工程结构、数据边界、联机与存档设计的前置架构文档。
+- `reference/`：早期方案、外部建议、同类方向分析等可参考资料。
+- `archive/`：对话整理、完整历史、灵感原始材料等归档内容。
+
+## Core Documents
+
+- [Creative Development Brief](product/creative-development-brief.md)
+- [Multiplayer and Save Architecture](architecture/multiplayer-and-save-architecture.md)
+
+## Design Documents
+
+- [Design Documents](design/README.md)
+
+## Reference Documents
+
+- [Chemical Automation Game Outline](reference/chemical-automation-game-outline.md)
+- [Cultivation Game Outline](reference/cultivation-game-outline.md)
+- [Community Advice](reference/community-advice.md)
+- [Deepseek Advice](reference/deepseek-advice.md)
+
+## Archive
+
+- [Conversation Summary and Ideas](archive/conversation-summary-and-ideas.md)
+- [Full Conversation History](archive/full-conversation-history.md)

@@ -1,0 +1,60 @@
+# Normalize text files to LF in the repository and working tree.
+* text=auto eol=lf
+
+# Source and configuration files.
+*.gd text eol=lf
+*.cs text eol=lf
+*.ts text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.csv text eol=lf
+
+# Godot text resources.
+*.godot text eol=lf
+*.tscn text eol=lf
+*.tres text eol=lf
+*.res binary
+*.scn binary
+*.import text eol=lf
+*.gdshader text eol=lf
+
+# Scripts.
+*.sh text eol=lf
+*.ps1 text eol=lf
+*.bat text eol=lf
+*.cmd text eol=lf
+
+# Binary assets.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.bmp binary
+*.svg text eol=lf
+*.aseprite binary
+*.kra binary
+*.psd binary
+*.blend binary
+*.fbx binary
+*.glb binary
+*.gltf text eol=lf
+*.wav binary
+*.mp3 binary
+*.ogg binary
+*.flac binary
+*.mp4 binary
+*.mov binary
+*.avi binary
+*.zip binary
+*.7z binary
+*.rar binary
+*.pdf binary
