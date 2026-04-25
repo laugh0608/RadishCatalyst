@@ -7,6 +7,9 @@
 - `product/`：当前项目方向、产品定义、玩法支柱与开发准备总纲。
 - `design/`：玩法系统、资源链、地图、角色成长等后续执行设计文档。
 - `architecture/`：会影响工程结构、数据边界、联机与存档设计的前置架构文档。
+- `planning/`：当前阶段、优先级、范围边界和短期计划。
+- `adr/`：长期影响仓库治理、架构或流程的决策记录。
+- `devlogs/`：按周记录开发推进、关键决策、验证和风险。
 - `reference/`：早期方案、外部建议、同类方向分析等可参考资料。
 - `archive/`：对话整理、完整历史、灵感原始材料等归档内容。
 
@@ -18,6 +21,12 @@
 ## Design Documents
 
 - [Design Documents](design/README.md)
+
+## Planning And Governance
+
+- [Current Plan](planning/current.md)
+- [Architecture Decision Records](adr/README.md)
+- [Development Logs](devlogs/README.md)
 
 ## Reference Documents
 
