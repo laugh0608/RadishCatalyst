@@ -9,3 +9,10 @@
 - `resources-and-process-chain.md`
 - `character-progression-and-equipment.md`
 - `maps-and-regions.md`
+
+## Current Documents
+
+- [Core Gameplay Loop](core-gameplay-loop.md)
+- [Character Progression And Equipment](character-progression-and-equipment.md)
+- [Maps And Regions](maps-and-regions.md)
+- [Resources And Process Chain](resources-and-process-chain.md)

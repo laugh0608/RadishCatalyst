@@ -25,15 +25,16 @@ RadishCatalyst 当前处于“仓库初始化与项目方向定稿”阶段。
 6. 视觉与 UI 风格方向。
 7. 世界观前提、玩家身份、异星生态和主线基调。
 8. 平台、离线单机、本地存档和兼容原则。
-9. 首版 MVP 功能清单。
-10. 核心玩法循环图与文字说明。
-11. 首版资源与工艺链设计。
+9. 核心玩法循环、地图区域、资源链和角色成长桥接文档。
+10. 首版 MVP 功能清单。
+11. 首版战斗与交互原型边界。
 12. Godot 4.x 原型工程初始化。
 
 ## 当前不做
 
-- 不做 MMO 大世界。
+- 首版和首个存档 + 联机版本不做 MMO 大世界，但保留更远期大型多人在线的演进口子。
 - 不把联机作为首版前置条件。
+- 联机方向按 2~5 人协作作为首版设计基准，长期只预留 2~10 人专服或高性能房间扩展。
 - 不提前实现官方账号、交易、公会、排行榜或云存档。
 - 不引入复杂服务端框架。
 - 不大规模生产美术资产。
@@ -52,11 +53,8 @@ pwsh ./scripts/check-text-files.ps1
 ## 下一批建议文档
 
 - 复核 `product/project-definition.md`、`product/visual-and-ui-direction.md`、`product/worldbuilding-premise.md`、`product/player-wiki-and-official-tools.md` 和 `architecture/platform-and-compatibility.md` 是否已经形成一致的上位方向。
+- 复核 `design/core-gameplay-loop.md`、`design/maps-and-regions.md`、`design/resources-and-process-chain.md` 和 `design/character-progression-and-equipment.md` 是否足以支撑首版 MVP 拆分。
 - `product/mvp-feature-list.md`
-- `design/core-gameplay-loop.md`
-- `design/resources-and-process-chain.md`
-- `design/character-progression-and-equipment.md`
-- `design/maps-and-regions.md`
 - `architecture/multiplayer-roadmap.md`
 
 ## 阶段退出条件
