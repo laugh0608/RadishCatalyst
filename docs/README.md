@@ -22,7 +22,10 @@
 - [Project Definition](product/project-definition.md)
 - [Creative Development Brief](product/creative-development-brief.md)
 - [Player Wiki And Official Tools](product/player-wiki-and-official-tools.md)
+- [Visual And UI Direction](product/visual-and-ui-direction.md)
+- [Worldbuilding Premise](product/worldbuilding-premise.md)
 - [Multiplayer and Save Architecture](architecture/multiplayer-and-save-architecture.md)
+- [Platform And Compatibility](architecture/platform-and-compatibility.md)
 
 ## Design Documents
 

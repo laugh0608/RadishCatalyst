@@ -4,16 +4,16 @@
 
 ## 当前阶段
 
-RadishCatalyst 当前处于“仓库初始化与原型准备”阶段。
+RadishCatalyst 当前处于“仓库初始化与项目方向定稿”阶段。
 
 阶段重点：
 
 - 完成仓库基础治理。
 - 固定文档目录结构。
 - 明确 AI 协作规则和分支治理规则。
-- 收束产品方向、故事基调、视觉 UI、发布形态、首版范围和联机架构边界。
+- 收束产品方向、故事基调、视觉 UI、发布形态和联机架构边界。
 - 建立玩家 Wiki 与官方工具的长期内容边界。
-- 为后续 Godot 原型工程初始化做准备。
+- 在上述方向稳定后，再进入首版 MVP 和 Godot 原型准备。
 
 ## 当前最高优先级
 
@@ -23,10 +23,12 @@ RadishCatalyst 当前处于“仓库初始化与原型准备”阶段。
 4. 项目定义、核心元素、故事方向和客户端形态。
 5. 玩家 Wiki 与官方工具目录边界。
 6. 视觉与 UI 风格方向。
-7. 首版 MVP 功能清单。
-8. 核心玩法循环图与文字说明。
-9. 首版资源与工艺链设计。
-10. Godot 4.x 原型工程初始化。
+7. 世界观前提、玩家身份、异星生态和主线基调。
+8. 平台、离线单机、本地存档和兼容原则。
+9. 首版 MVP 功能清单。
+10. 核心玩法循环图与文字说明。
+11. 首版资源与工艺链设计。
+12. Godot 4.x 原型工程初始化。
 
 ## 当前不做
 
@@ -49,11 +51,7 @@ pwsh ./scripts/check-text-files.ps1
 
 ## 下一批建议文档
 
-- `product/project-definition.md`
-- `product/player-wiki-and-official-tools.md`
-- `product/visual-and-ui-direction.md`
-- `product/worldbuilding-premise.md`
-- `architecture/platform-and-compatibility.md`
+- 复核 `product/project-definition.md`、`product/visual-and-ui-direction.md`、`product/worldbuilding-premise.md`、`product/player-wiki-and-official-tools.md` 和 `architecture/platform-and-compatibility.md` 是否已经形成一致的上位方向。
 - `product/mvp-feature-list.md`
 - `design/core-gameplay-loop.md`
 - `design/resources-and-process-chain.md`
