@@ -54,6 +54,8 @@ pwsh ./scripts/check-text-files.ps1
 - 参考资料放在 `docs/reference/`，归档材料放在 `docs/archive/`。
 - `docs/archive/full-conversation-history.md` 保留历史原貌，不作为当前规范。
 - 重大架构、阶段边界、协作规则、验证基线或目录职责变化，必须同步更新 `docs/`。
+- 玩家可见知识库内容放在 `wiki/`，不要混入开发者内部规划。
+- 面向玩家的官方辅助工具放在 `official-tools/`，不要和仓库脚本目录 `tools/` 混淆。
 
 ## 协作流程
 
@@ -125,6 +127,8 @@ pwsh ./scripts/check-text-files.ps1
 - `tools/`：项目脚本、数据处理、构建或导出辅助工具。
 - `scripts/`：仓库检查与自动化脚本。
 - `docs/`：策划、设计、架构、参考与归档文档。
+- `wiki/`：未来面向玩家的 Wiki 源内容。
+- `official-tools/`：未来面向玩家的官方辅助工具。
 - `.github/`：PR 模板、GitHub Actions 和 ruleset 模板。
 
 ## Git 提交规范

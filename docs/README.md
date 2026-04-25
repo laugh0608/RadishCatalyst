@@ -1,6 +1,10 @@
 # RadishCatalyst Documentation
 
-本目录收纳 RadishCatalyst / 异星催化 的策划、架构、参考资料与归档材料。
+本目录收纳 RadishCatalyst / 异星催化 的开发者文档：策划、设计、架构、规划、参考资料与归档材料。
+
+玩家可见知识库源内容放在仓库根目录 `wiki/`。
+
+面向玩家的官方辅助工具放在仓库根目录 `official-tools/`。
 
 ## Structure
 
@@ -15,7 +19,9 @@
 
 ## Core Documents
 
+- [Project Definition](product/project-definition.md)
 - [Creative Development Brief](product/creative-development-brief.md)
+- [Player Wiki And Official Tools](product/player-wiki-and-official-tools.md)
 - [Multiplayer and Save Architecture](architecture/multiplayer-and-save-architecture.md)
 
 ## Design Documents
