@@ -11,3 +11,11 @@ RadishCatalyst! 萝卜异星催化！
 - `server/`：未来可选服务端或联机实验工程。
 - `assets/`：可提交的源资产与资产说明。
 - `tools/`：项目脚本和自动化工具。
+- `scripts/`：仓库检查与自动化脚本。
+- `.github/`：PR 模板、GitHub Actions 和 ruleset 模板。
+
+## Repository Checks
+
+```powershell
+pwsh ./scripts/check-text-files.ps1
+```
