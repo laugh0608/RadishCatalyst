@@ -12,6 +12,7 @@ RadishCatalyst 当前处于“仓库初始化、项目方向定稿与首版 MVP 
 - 固定文档目录结构。
 - 明确 AI 协作规则和分支治理规则。
 - 收束产品方向、故事基调、视觉 UI、发布形态、联机架构边界和首版 MVP 范围。
+- 明确参考作品口径、差异化边界和时间 / 天气系统的首版位置。
 - 建立玩家 Wiki 与官方工具的长期内容边界。
 - 在首版 MVP 范围稳定后，再进入 Godot 原型准备。
 
@@ -26,7 +27,7 @@ RadishCatalyst 当前处于“仓库初始化、项目方向定稿与首版 MVP 
 7. 世界观前提、玩家身份、异星生态和主线基调。
 8. 平台、离线单机、本地存档和兼容原则。
 9. 核心玩法循环、地图区域、资源链和角色成长桥接文档。
-10. 本地存档和稳定 ID 的首版数据模型。
+10. 本地存档、稳定 ID、时间 / 天气和地图对象状态的首版数据模型。
 11. Godot 4.x 原型工程初始化。
 
 ## 当前不做
@@ -53,6 +54,7 @@ pwsh ./scripts/check-text-files.ps1
 
 - 复核 `design/combat-and-interaction-prototype.md` 是否足以支撑 Godot 外勤原型、建造前置条件和地图交互实现。
 - `architecture/save-data-model.md`
+- `design/time-and-weather-system.md`
 - `architecture/multiplayer-roadmap.md`
 
 ## 阶段退出条件
@@ -66,4 +68,5 @@ pwsh ./scripts/check-text-files.ps1
 - 核心循环已能用一张图或一段流程描述清楚。
 - 第一条资源 / 工艺 / 角色成长联动链路已确定。
 - 首版战斗、外勤交互、可破坏对象和地基 / 平整边界已明确。
+- 参考作品与差异化边界已明确，时间 / 天气系统已确定首版轻量预留原则。
 - 客户端工程目录可以初始化且不会反向污染文档结构。

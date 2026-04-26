@@ -21,6 +21,7 @@
 
 - [Project Definition](product/project-definition.md)
 - [Creative Development Brief](product/creative-development-brief.md)
+- [Reference Positioning](product/reference-positioning.md)
 - [Player Wiki And Official Tools](product/player-wiki-and-official-tools.md)
 - [Visual And UI Direction](product/visual-and-ui-direction.md)
 - [Worldbuilding Premise](product/worldbuilding-premise.md)
