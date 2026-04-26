@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-RadishCatalyst 当前处于“仓库初始化、项目方向定稿与首版 MVP 收束”阶段。
+RadishCatalyst 当前处于“仓库初始化、项目方向定稿与 Godot 可玩原型准备”阶段。
 
 阶段重点：
 
@@ -16,7 +16,7 @@ RadishCatalyst 当前处于“仓库初始化、项目方向定稿与首版 MVP 
 - 明确第一可玩切片、首版叙事任务框架和首小时引导节奏。
 - 明确 Windows、Web 试玩、Android、WebApp 与 GDScript / .NET 的兼容边界。
 - 建立玩家 Wiki 与官方工具的长期内容边界。
-- 在首版 MVP 范围稳定后，再进入 Godot 原型准备。
+- Godot 客户端工程已在 `client/` 初始化，下一步进入第一可玩切片的工程地基和最小玩法系统实现。
 
 ## 当前最高优先级
 
@@ -29,7 +29,7 @@ RadishCatalyst 当前处于“仓库初始化、项目方向定稿与首版 MVP 
 7. 世界观前提、玩家身份、异星生态和主线基调。
 8. 平台、离线单机、本地存档和兼容原则。
 9. 核心玩法循环、地图区域、资源链和角色成长桥接文档。
-10. Godot 4.x 原型工程初始化。
+10. Godot 客户端工程地基整理与第一可玩切片实现准备。
 
 ## 当前不做
 
@@ -51,13 +51,13 @@ RadishCatalyst 当前处于“仓库初始化、项目方向定稿与首版 MVP 
 pwsh ./scripts/check-text-files.ps1
 ```
 
-如果未来加入 Godot 工程，应在本文件中补充对应的导入、构建、导出或测试基线。
+Godot 工程已初始化，当前仍先以仓库文本卫生作为默认门禁。进入脚本和场景实现后，应补充 Godot 导入、脚本检查、场景加载或导出验证入口。
 
 ## 下一批建议文档
 
 - 复核 `planning/vertical-slice.md` 是否足以拆成 Godot 首个原型任务。
 - 复核 `design/narrative-and-quest-framework.md` 和 `design/onboarding-and-first-hour.md` 是否足以支撑首版任务系统、目标提示和新手引导。
-- 复核 `architecture/static-data-schema.md` 和 `architecture/godot-project-structure.md` 是否足以支撑 Godot 工程初始化。
+- 依据 `architecture/static-data-schema.md` 和 `architecture/godot-project-structure.md` 建立首批静态数据、状态对象和 `GameRoot`。
 - 复核 `planning/milestone-review-checklist.md` 是否足以支撑每个阶段的兼容与范围检查。
 - `design/time-and-weather-system.md`
 - `architecture/multiplayer-roadmap.md`
@@ -79,4 +79,4 @@ pwsh ./scripts/check-text-files.ps1
 - 静态数据 schema 和 Godot 工程目录结构已明确。
 - Windows 主平台、Web 可选试玩、Android 远期评估、WebApp 工具定位和 GDScript / .NET 边界已明确。
 - 里程碑复核清单已明确。
-- 客户端工程目录可以初始化且不会反向污染文档结构。
+- 客户端工程已在 `client/` 初始化且未反向污染文档结构。
