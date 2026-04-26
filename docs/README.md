@@ -33,6 +33,7 @@
 - [Design Documents](design/README.md)
 - [Core Gameplay Loop](design/core-gameplay-loop.md)
 - [Character Progression And Equipment](design/character-progression-and-equipment.md)
+- [Combat And Interaction Prototype](design/combat-and-interaction-prototype.md)
 - [Maps And Regions](design/maps-and-regions.md)
 - [Resources And Process Chain](design/resources-and-process-chain.md)
 

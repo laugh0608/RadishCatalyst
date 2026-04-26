@@ -26,7 +26,7 @@ RadishCatalyst 当前处于“仓库初始化、项目方向定稿与首版 MVP 
 7. 世界观前提、玩家身份、异星生态和主线基调。
 8. 平台、离线单机、本地存档和兼容原则。
 9. 核心玩法循环、地图区域、资源链和角色成长桥接文档。
-10. 首版战斗与交互原型边界。
+10. 本地存档和稳定 ID 的首版数据模型。
 11. Godot 4.x 原型工程初始化。
 
 ## 当前不做
@@ -51,8 +51,7 @@ pwsh ./scripts/check-text-files.ps1
 
 ## 下一批建议文档
 
-- 复核 `product/mvp-feature-list.md` 是否足以支撑 Godot 原型切片、数据结构和战斗交互边界。
-- `design/combat-and-interaction-prototype.md`
+- 复核 `design/combat-and-interaction-prototype.md` 是否足以支撑 Godot 外勤原型、建造前置条件和地图交互实现。
 - `architecture/save-data-model.md`
 - `architecture/multiplayer-roadmap.md`
 
@@ -66,4 +65,5 @@ pwsh ./scripts/check-text-files.ps1
 - 首版 MVP 范围已通过 `product/mvp-feature-list.md` 明确。
 - 核心循环已能用一张图或一段流程描述清楚。
 - 第一条资源 / 工艺 / 角色成长联动链路已确定。
+- 首版战斗、外勤交互、可破坏对象和地基 / 平整边界已明确。
 - 客户端工程目录可以初始化且不会反向污染文档结构。
