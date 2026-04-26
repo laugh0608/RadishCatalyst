@@ -53,12 +53,14 @@ pwsh ./scripts/check-text-files.ps1
 
 Godot 工程已初始化，当前仍先以仓库文本卫生作为默认门禁。进入脚本和场景实现后，应补充 Godot 导入、脚本检查、场景加载或导出验证入口。
 
-## 下一批建议文档
+## 下一步建议
 
-- 复核 `planning/vertical-slice.md` 是否足以拆成 Godot 首个原型任务。
-- 复核 `design/narrative-and-quest-framework.md` 和 `design/onboarding-and-first-hour.md` 是否足以支撑首版任务系统、目标提示和新手引导。
-- 依据 `architecture/static-data-schema.md` 和 `architecture/godot-project-structure.md` 建立首批静态数据、状态对象和 `GameRoot`。
-- 复核 `planning/milestone-review-checklist.md` 是否足以支撑每个阶段的兼容与范围检查。
+- 先建立首批静态数据文件和 `DataRegistry`，只覆盖第一切片需要的物品、配方、建筑、敌人、区域、地图对象、污染、天气和任务。
+- 建立最小 `WorldState`、`CharacterState`、`InventoryState` 和 `QuestState`，先保证状态对象能被保存和加载。
+- 建立 `GameRoot`、`Boot` 和一张临时切片地图，先跑通启动、进入游戏和基础 UI 框架。
+- 把 `planning/vertical-slice.md` 拆成首批 Godot 实现任务，避免一开始扩张到完整 MVP。
+- 以 `design/onboarding-and-first-hour.md` 作为任务提示和系统解锁顺序基准，先做最短引导链。
+- 每完成一个小阶段，都按 `planning/milestone-review-checklist.md` 做兼容、存档、数据和范围复核。
 - `design/time-and-weather-system.md`
 - `architecture/multiplayer-roadmap.md`
 
