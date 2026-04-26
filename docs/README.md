@@ -37,11 +37,14 @@
 - [Character Progression And Equipment](design/character-progression-and-equipment.md)
 - [Combat And Interaction Prototype](design/combat-and-interaction-prototype.md)
 - [Maps And Regions](design/maps-and-regions.md)
+- [Narrative And Quest Framework](design/narrative-and-quest-framework.md)
+- [Onboarding And First Hour](design/onboarding-and-first-hour.md)
 - [Resources And Process Chain](design/resources-and-process-chain.md)
 
 ## Planning And Governance
 
 - [Current Plan](planning/current.md)
+- [Vertical Slice](planning/vertical-slice.md)
 - [Architecture Decision Records](adr/README.md)
 - [Development Logs](devlogs/README.md)
 

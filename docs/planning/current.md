@@ -13,6 +13,7 @@ RadishCatalyst 当前处于“仓库初始化、项目方向定稿与首版 MVP 
 - 明确 AI 协作规则和分支治理规则。
 - 收束产品方向、故事基调、视觉 UI、发布形态、联机架构边界和首版 MVP 范围。
 - 明确参考作品口径、差异化边界和时间 / 天气系统的首版位置。
+- 明确第一可玩切片、首版叙事任务框架和首小时引导节奏。
 - 建立玩家 Wiki 与官方工具的长期内容边界。
 - 在首版 MVP 范围稳定后，再进入 Godot 原型准备。
 
@@ -51,9 +52,11 @@ pwsh ./scripts/check-text-files.ps1
 
 ## 下一批建议文档
 
-- 复核 `design/combat-and-interaction-prototype.md` 是否足以支撑 Godot 外勤原型、建造前置条件和地图交互实现。
-- 复核 `architecture/save-data-model.md` 是否足以支撑 Godot 状态对象、存档服务和静态数据目录设计。
+- 复核 `planning/vertical-slice.md` 是否足以拆成 Godot 首个原型任务。
+- 复核 `design/narrative-and-quest-framework.md` 和 `design/onboarding-and-first-hour.md` 是否足以支撑首版任务系统、目标提示和新手引导。
 - `design/time-and-weather-system.md`
+- `architecture/static-data-schema.md`
+- `architecture/godot-project-structure.md`
 - `architecture/multiplayer-roadmap.md`
 
 ## 阶段退出条件
@@ -69,4 +72,5 @@ pwsh ./scripts/check-text-files.ps1
 - 首版战斗、外勤交互、可破坏对象和地基 / 平整边界已明确。
 - 参考作品与差异化边界已明确，时间 / 天气系统已确定首版轻量预留原则。
 - 本地存档、稳定 ID、地图对象、时间天气和基地状态边界已明确。
+- 第一可玩切片、叙事任务框架和首小时引导节奏已明确。
 - 客户端工程目录可以初始化且不会反向污染文档结构。
