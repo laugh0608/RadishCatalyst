@@ -7,3 +7,4 @@
 - [Player Wiki And Official Tools](player-wiki-and-official-tools.md)
 - [Visual And UI Direction](visual-and-ui-direction.md)
 - [Worldbuilding Premise](worldbuilding-premise.md)
+- [MVP Feature List](mvp-feature-list.md)

@@ -24,6 +24,7 @@
 - [Player Wiki And Official Tools](product/player-wiki-and-official-tools.md)
 - [Visual And UI Direction](product/visual-and-ui-direction.md)
 - [Worldbuilding Premise](product/worldbuilding-premise.md)
+- [MVP Feature List](product/mvp-feature-list.md)
 - [Multiplayer and Save Architecture](architecture/multiplayer-and-save-architecture.md)
 - [Platform And Compatibility](architecture/platform-and-compatibility.md)
 
