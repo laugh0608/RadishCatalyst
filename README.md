@@ -4,6 +4,10 @@ RadishCatalyst! 萝卜异星催化！
 
 项目文档入口：[docs/README.md](docs/README.md)
 
+## License
+
+本仓库采用 source-available 许可证。代码和资料可在授权平台上查看和学习，但默认不授予复制、修改、再分发、商用或衍生作品权利。详见 [LICENSE](LICENSE)。
+
 ## Repository Layout
 
 - `docs/`：策划、设计、架构、参考资料与归档。

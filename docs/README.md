@@ -6,6 +6,8 @@
 
 面向玩家的官方辅助工具放在仓库根目录 `official-tools/`。
 
+仓库许可条款以根目录 [LICENSE](../LICENSE) 为准。
+
 ## Structure
 
 - `product/`：当前项目方向、产品定义、玩法支柱与开发准备总纲。
