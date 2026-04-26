@@ -47,6 +47,7 @@
 
 - [Current Plan](planning/current.md)
 - [Vertical Slice](planning/vertical-slice.md)
+- [Milestone Review Checklist](planning/milestone-review-checklist.md)
 - [Architecture Decision Records](adr/README.md)
 - [Development Logs](devlogs/README.md)
 

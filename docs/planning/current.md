@@ -14,6 +14,7 @@ RadishCatalyst 当前处于“仓库初始化、项目方向定稿与首版 MVP 
 - 收束产品方向、故事基调、视觉 UI、发布形态、联机架构边界和首版 MVP 范围。
 - 明确参考作品口径、差异化边界和时间 / 天气系统的首版位置。
 - 明确第一可玩切片、首版叙事任务框架和首小时引导节奏。
+- 明确 Windows、Web 试玩、Android、WebApp 与 GDScript / .NET 的兼容边界。
 - 建立玩家 Wiki 与官方工具的长期内容边界。
 - 在首版 MVP 范围稳定后，再进入 Godot 原型准备。
 
@@ -37,6 +38,8 @@ RadishCatalyst 当前处于“仓库初始化、项目方向定稿与首版 MVP 
 - 联机方向按 2~5 人协作作为首版设计基准，长期只预留 2~10 人专服或高性能房间扩展。
 - 不提前实现官方账号、交易、公会、排行榜或云存档。
 - 不引入复杂服务端框架。
+- 不把完整游戏 Web 客户端作为 MVP 必须交付项。
+- 不把 Godot 客户端核心逻辑押到 C# / .NET。
 - 不大规模生产美术资产。
 - 不提前批量编写玩家 Wiki 百科条目。
 - 不立即实现完整官方工具。
@@ -55,6 +58,7 @@ pwsh ./scripts/check-text-files.ps1
 - 复核 `planning/vertical-slice.md` 是否足以拆成 Godot 首个原型任务。
 - 复核 `design/narrative-and-quest-framework.md` 和 `design/onboarding-and-first-hour.md` 是否足以支撑首版任务系统、目标提示和新手引导。
 - 复核 `architecture/static-data-schema.md` 和 `architecture/godot-project-structure.md` 是否足以支撑 Godot 工程初始化。
+- 复核 `planning/milestone-review-checklist.md` 是否足以支撑每个阶段的兼容与范围检查。
 - `design/time-and-weather-system.md`
 - `architecture/multiplayer-roadmap.md`
 
@@ -73,4 +77,6 @@ pwsh ./scripts/check-text-files.ps1
 - 本地存档、稳定 ID、地图对象、时间天气和基地状态边界已明确。
 - 第一可玩切片、叙事任务框架和首小时引导节奏已明确。
 - 静态数据 schema 和 Godot 工程目录结构已明确。
+- Windows 主平台、Web 可选试玩、Android 远期评估、WebApp 工具定位和 GDScript / .NET 边界已明确。
+- 里程碑复核清单已明确。
 - 客户端工程目录可以初始化且不会反向污染文档结构。
