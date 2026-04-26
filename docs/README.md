@@ -29,6 +29,8 @@
 - [Multiplayer and Save Architecture](architecture/multiplayer-and-save-architecture.md)
 - [Platform And Compatibility](architecture/platform-and-compatibility.md)
 - [Save Data Model](architecture/save-data-model.md)
+- [Static Data Schema](architecture/static-data-schema.md)
+- [Godot Project Structure](architecture/godot-project-structure.md)
 
 ## Design Documents
 

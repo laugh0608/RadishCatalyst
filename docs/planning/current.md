@@ -54,9 +54,8 @@ pwsh ./scripts/check-text-files.ps1
 
 - 复核 `planning/vertical-slice.md` 是否足以拆成 Godot 首个原型任务。
 - 复核 `design/narrative-and-quest-framework.md` 和 `design/onboarding-and-first-hour.md` 是否足以支撑首版任务系统、目标提示和新手引导。
+- 复核 `architecture/static-data-schema.md` 和 `architecture/godot-project-structure.md` 是否足以支撑 Godot 工程初始化。
 - `design/time-and-weather-system.md`
-- `architecture/static-data-schema.md`
-- `architecture/godot-project-structure.md`
 - `architecture/multiplayer-roadmap.md`
 
 ## 阶段退出条件
@@ -73,4 +72,5 @@ pwsh ./scripts/check-text-files.ps1
 - 参考作品与差异化边界已明确，时间 / 天气系统已确定首版轻量预留原则。
 - 本地存档、稳定 ID、地图对象、时间天气和基地状态边界已明确。
 - 第一可玩切片、叙事任务框架和首小时引导节奏已明确。
+- 静态数据 schema 和 Godot 工程目录结构已明确。
 - 客户端工程目录可以初始化且不会反向污染文档结构。
