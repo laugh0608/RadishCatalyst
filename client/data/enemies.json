@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "id": "enemy.native_skitter",
+      "display_name_key": "enemy.native_skitter.name",
+      "description_key": "enemy.native_skitter.desc",
+      "category": "basic",
+      "faction": "native_ecology",
+      "base_stats": {"max_health": 20, "attack": 4, "move_speed": 90},
+      "behaviors": ["wander", "melee_chase"],
+      "damage_types": ["physical"],
+      "resistances": {},
+      "drop_table_id": "drop.native_skitter",
+      "spawn_regions": ["region.crystal_vein_field"],
+      "public_level": "public"
+    },
+    {
+      "id": "enemy.polluted_skitter",
+      "display_name_key": "enemy.polluted_skitter.name",
+      "description_key": "enemy.polluted_skitter.desc",
+      "category": "polluted",
+      "faction": "disturbed_ecology",
+      "base_stats": {"max_health": 30, "attack": 6, "move_speed": 95},
+      "behaviors": ["guard_pollution", "melee_chase"],
+      "damage_types": ["physical", "pollution"],
+      "resistances": {"pollution": 0.5},
+      "drop_table_id": "drop.polluted_skitter",
+      "spawn_regions": ["region.pollution_edge"],
+      "public_level": "public"
+    },
+    {
+      "id": "enemy.elite_residue_node",
+      "display_name_key": "enemy.elite_residue_node.name",
+      "description_key": "enemy.elite_residue_node.desc",
+      "category": "elite_node",
+      "faction": "pollution_node",
+      "base_stats": {"max_health": 120, "attack": 10, "move_speed": 0},
+      "behaviors": ["stationary_guard", "summon_pressure"],
+      "damage_types": ["pollution"],
+      "resistances": {"pollution": 0.8},
+      "drop_table_id": "drop.elite_residue_node",
+      "spawn_regions": ["region.pollution_edge"],
+      "public_level": "spoiler"
+    }
+  ]
+}

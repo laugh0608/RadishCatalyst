@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "id": "weather.clear",
+      "display_name_key": "weather.clear.name",
+      "description_key": "weather.clear.desc",
+      "visual_profile": "clear_day",
+      "duration_range": [240, 480],
+      "visibility_modifier": 1.0,
+      "pollution_modifier": 1.0,
+      "energy_modifier": 1.0,
+      "protection_drain_modifier": 1.0,
+      "enemy_activity_modifier": 1.0,
+      "public_level": "public"
+    },
+    {
+      "id": "weather.night",
+      "display_name_key": "weather.night.name",
+      "description_key": "weather.night.desc",
+      "visual_profile": "cool_night",
+      "duration_range": [180, 360],
+      "visibility_modifier": 0.75,
+      "pollution_modifier": 1.0,
+      "energy_modifier": 1.0,
+      "protection_drain_modifier": 1.0,
+      "enemy_activity_modifier": 1.1,
+      "public_level": "public"
+    },
+    {
+      "id": "weather.acid_mist",
+      "display_name_key": "weather.acid_mist.name",
+      "description_key": "weather.acid_mist.desc",
+      "visual_profile": "acid_mist",
+      "duration_range": [120, 240],
+      "visibility_modifier": 0.65,
+      "pollution_modifier": 1.25,
+      "energy_modifier": 0.95,
+      "protection_drain_modifier": 1.35,
+      "enemy_activity_modifier": 1.2,
+      "public_level": "public"
+    }
+  ]
+}

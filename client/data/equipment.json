@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "id": "equipment.basic_tool",
+      "display_name_key": "equipment.basic_tool.name",
+      "description_key": "equipment.basic_tool.desc",
+      "slot": "tool",
+      "category": "tool",
+      "stat_modifiers": {"gather_power": 1.0, "attack_power": 1.0},
+      "effects": ["effect.gather_basic", "effect.attack_basic"],
+      "crafting_recipe_id": "",
+      "durability": 100,
+      "unlock_conditions": ["quest.restore_outpost"],
+      "public_level": "public"
+    },
+    {
+      "id": "equipment.basic_suit",
+      "display_name_key": "equipment.basic_suit.name",
+      "description_key": "equipment.basic_suit.desc",
+      "slot": "suit",
+      "category": "protective_suit",
+      "stat_modifiers": {"max_protection": 100.0, "pollution_drain_mult": 1.0},
+      "effects": ["effect.basic_protection"],
+      "crafting_recipe_id": "",
+      "durability": 100,
+      "unlock_conditions": ["quest.restore_outpost"],
+      "public_level": "public"
+    },
+    {
+      "id": "equipment.filter_module_t1",
+      "display_name_key": "equipment.filter_module_t1.name",
+      "description_key": "equipment.filter_module_t1.desc",
+      "slot": "suit_module",
+      "category": "pollution_filter",
+      "stat_modifiers": {"pollution_drain_mult": 0.65},
+      "effects": ["effect.reduce_pollution_drain_t1"],
+      "crafting_recipe_id": "recipe.basic_filter_module",
+      "durability": 80,
+      "unlock_conditions": ["quest.make_filter_module"],
+      "public_level": "public"
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/map/vertical_slice_map.gd" id="1_map"]
+[ext_resource type="PackedScene" path="res://scenes/actors/Player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/maps/PrototypeInteractable.tscn" id="3_interactable"]
+[ext_resource type="PackedScene" path="res://scenes/actors/PrototypeEnemy.tscn" id="4_enemy"]
+
+[node name="VerticalSliceMap" type="Node2D"]
+script = ExtResource("1_map")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_left = -420.0
+offset_top = -260.0
+offset_right = 420.0
+offset_bottom = 260.0
+color = Color(0.101961, 0.133333, 0.141176, 1)
+
+[node name="RegionBase" type="ColorRect" parent="."]
+offset_left = -360.0
+offset_top = -200.0
+offset_right = -80.0
+offset_bottom = 200.0
+color = Color(0.176471, 0.258824, 0.278431, 1)
+
+[node name="RegionCrystal" type="ColorRect" parent="."]
+offset_left = -60.0
+offset_top = -200.0
+offset_right = 180.0
+offset_bottom = 200.0
+color = Color(0.14902, 0.211765, 0.301961, 1)
+
+[node name="RegionPollution" type="ColorRect" parent="."]
+offset_left = 200.0
+offset_top = -200.0
+offset_right = 360.0
+offset_bottom = 200.0
+color = Color(0.258824, 0.247059, 0.12549, 1)
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(-260, 0)
+
+[node name="Interactables" type="Node2D" parent="."]
+
+[node name="OutpostCore" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-300, -80)
+definition_id = "building.outpost_core"
+interaction_type = "outpost_core"
+reward_id = "item.basic_parts"
+reward_amount = 2
+
+[node name="CrystalCluster" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(30, -70)
+definition_id = "map_object.crystal_cluster"
+interaction_type = "gather"
+reward_id = "item.crystal_ore"
+reward_amount = 3
+
+[node name="AnomalyCrystal" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(110, 80)
+definition_id = "map_object.anomaly_crystal"
+interaction_type = "sample"
+reward_id = "item.anomaly_sample"
+reward_amount = 1
+
+[node name="PollutionResidue" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(270, 20)
+definition_id = "map_object.pollution_residue_patch"
+interaction_type = "gather"
+reward_id = "item.polluted_residue"
+reward_amount = 2
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="NativeSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(70, 20)
+definition_id = "enemy.native_skitter"

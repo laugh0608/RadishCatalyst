@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "id": "region.outpost_platform",
+      "display_name_key": "region.outpost_platform.name",
+      "description_key": "region.outpost_platform.desc",
+      "planet_or_world": "world.slice_01",
+      "biome_type": "base_platform",
+      "danger_level": 0,
+      "resources": ["item.basic_parts", "fluid.basic_solvent"],
+      "pollution_types": [],
+      "weather_pool": ["weather.clear"],
+      "recommended_equipment": ["equipment.basic_tool", "equipment.basic_suit"],
+      "quest_refs": ["quest.restore_outpost", "quest.make_filter_module"],
+      "public_level": "public"
+    },
+    {
+      "id": "region.crystal_vein_field",
+      "display_name_key": "region.crystal_vein_field.name",
+      "description_key": "region.crystal_vein_field.desc",
+      "planet_or_world": "world.slice_01",
+      "biome_type": "crystal_field",
+      "danger_level": 1,
+      "resources": ["item.crystal_ore", "item.anomaly_sample"],
+      "pollution_types": [],
+      "weather_pool": ["weather.clear", "weather.night"],
+      "recommended_equipment": ["equipment.basic_tool", "equipment.basic_suit"],
+      "quest_refs": ["quest.scout_crystal_field", "quest.bring_back_sample"],
+      "public_level": "public"
+    },
+    {
+      "id": "region.pollution_edge",
+      "display_name_key": "region.pollution_edge.name",
+      "description_key": "region.pollution_edge.desc",
+      "planet_or_world": "world.slice_01",
+      "biome_type": "pollution_edge",
+      "danger_level": 2,
+      "resources": ["item.polluted_residue", "item.anomaly_sample"],
+      "pollution_types": ["pollution.yellow_residue"],
+      "weather_pool": ["weather.clear", "weather.acid_mist"],
+      "recommended_equipment": ["equipment.filter_module_t1"],
+      "quest_refs": ["quest.enter_pollution_edge", "quest.defeat_elite_node"],
+      "public_level": "public"
+    },
+    {
+      "id": "region.locked_ruin_gate",
+      "display_name_key": "region.locked_ruin_gate.name",
+      "description_key": "region.locked_ruin_gate.desc",
+      "planet_or_world": "world.slice_01",
+      "biome_type": "ruin_gate",
+      "danger_level": 3,
+      "resources": [],
+      "pollution_types": ["pollution.yellow_residue"],
+      "weather_pool": ["weather.acid_mist"],
+      "recommended_equipment": ["equipment.filter_module_t1"],
+      "quest_refs": ["quest.unlock_ruin_signal"],
+      "public_level": "spoiler"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/prototype_hud.gd" id="1_hud"]
+
+[node name="PrototypeHud" type="CanvasLayer"]
+script = ExtResource("1_hud")
+
+[node name="StatusLabel" type="Label" parent="."]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 820.0
+offset_bottom = 170.0
+text = "Loading..."
+
+[node name="PromptLabel" type="Label" parent="."]
+offset_left = 24.0
+offset_top = 190.0
+offset_right = 820.0
+offset_bottom = 224.0
+text = ""
+
+[node name="LogLabel" type="Label" parent="."]
+offset_left = 24.0
+offset_top = 232.0
+offset_right = 820.0
+offset_bottom = 270.0
+text = ""

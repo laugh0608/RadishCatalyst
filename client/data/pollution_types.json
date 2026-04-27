@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "id": "pollution.yellow_residue",
+      "display_name_key": "pollution.yellow_residue.name",
+      "description_key": "pollution.yellow_residue.desc",
+      "color": "#C0B34A",
+      "hazard_effects": [{"effect": "protection_drain", "amount": 1.0}],
+      "build_restrictions": ["blocks_unprotected_building"],
+      "enemy_modifiers": [{"stat": "attack", "multiplier": 1.1}],
+      "treatment_refs": ["building.pollution_filter", "recipe.cleanse_residue"],
+      "public_level": "public"
+    }
+  ]
+}
