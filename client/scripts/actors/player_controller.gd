@@ -8,8 +8,27 @@ signal interaction_requested
 
 func _physics_process(_delta: float) -> void:
 	var input_vector := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	if input_vector == Vector2.ZERO:
+		input_vector = _get_keyboard_fallback_vector()
+
 	velocity = input_vector * move_speed
 	move_and_slide()
 
 	if Input.is_action_just_pressed("interact"):
 		interaction_requested.emit()
+
+
+func _get_keyboard_fallback_vector() -> Vector2:
+	var x_axis := 0.0
+	var y_axis := 0.0
+
+	if Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT):
+		x_axis -= 1.0
+	if Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT):
+		x_axis += 1.0
+	if Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP):
+		y_axis -= 1.0
+	if Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN):
+		y_axis += 1.0
+
+	return Vector2(x_axis, y_axis).normalized()

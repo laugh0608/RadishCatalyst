@@ -8,20 +8,20 @@ script = ExtResource("1_hud")
 [node name="StatusLabel" type="Label" parent="."]
 offset_left = 24.0
 offset_top = 24.0
-offset_right = 820.0
+offset_right = 520.0
 offset_bottom = 170.0
 text = "Loading..."
 
 [node name="PromptLabel" type="Label" parent="."]
 offset_left = 24.0
 offset_top = 190.0
-offset_right = 820.0
+offset_right = 520.0
 offset_bottom = 224.0
 text = ""
 
 [node name="LogLabel" type="Label" parent="."]
 offset_left = 24.0
 offset_top = 232.0
-offset_right = 820.0
+offset_right = 520.0
 offset_bottom = 270.0
 text = ""

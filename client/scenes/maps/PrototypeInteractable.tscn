@@ -20,8 +20,8 @@ color = Color(0.862745, 0.737255, 0.266667, 1)
 
 [node name="Label" type="Label" parent="."]
 offset_left = -72.0
-offset_top = -46.0
+offset_top = 20.0
 offset_right = 72.0
-offset_bottom = -22.0
+offset_bottom = 44.0
 horizontal_alignment = 1
 text = "Interactable"
