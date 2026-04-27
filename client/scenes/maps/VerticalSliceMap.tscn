@@ -45,29 +45,21 @@ position = Vector2(-260, 0)
 position = Vector2(-300, -80)
 definition_id = "building.outpost_core"
 interaction_type = "outpost_core"
-reward_id = "item.basic_parts"
-reward_amount = 2
 
 [node name="CrystalCluster" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(30, -70)
 definition_id = "map_object.crystal_cluster"
 interaction_type = "gather"
-reward_id = "item.crystal_ore"
-reward_amount = 3
 
 [node name="AnomalyCrystal" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(110, 80)
 definition_id = "map_object.anomaly_crystal"
 interaction_type = "sample"
-reward_id = "item.anomaly_sample"
-reward_amount = 1
 
 [node name="PollutionResidue" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(270, 20)
 definition_id = "map_object.pollution_residue_patch"
 interaction_type = "gather"
-reward_id = "item.polluted_residue"
-reward_amount = 2
 
 [node name="Enemies" type="Node2D" parent="."]
 

@@ -10,10 +10,12 @@ signal interaction_cleared(interactable: PrototypeInteractable)
 
 var data_registry: DataRegistry
 var current_interactable: PrototypeInteractable
+var gather_system: GatherSystem
 
 
 func setup(registry: DataRegistry) -> void:
 	data_registry = registry
+	gather_system = GatherSystem.new(data_registry)
 	_setup_interactable_labels()
 	_setup_enemy_labels()
 
@@ -33,7 +35,15 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		}
 
 	var interacted := current_interactable
-	var result := interacted.apply_interaction(character_state, world_state)
+	var result := gather_system.interact_with_object(
+		interacted.instance_id,
+		interacted.definition_id,
+		interacted.interaction_type,
+		character_state,
+		world_state
+	)
+	if bool(result.get("success", false)):
+		interacted.mark_consumed()
 	if not interacted.can_interact():
 		current_interactable = null
 		interaction_cleared.emit(interacted)
@@ -47,6 +57,7 @@ func _setup_interactable_labels() -> void:
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
 			continue
+		interactable.instance_id = "map_object_instance.%s" % String(interactable.name).to_snake_case()
 		interactable.setup(_get_display_name(interactable.definition_id))
 
 

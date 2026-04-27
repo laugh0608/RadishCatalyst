@@ -27,6 +27,18 @@ foreach ($file in $sceneFiles) {
             Add-Error "${relativePath}: missing resource ${resourcePath}"
         }
     }
+
+    if ($content -match "(?m)^(reward_id|reward_amount) = ") {
+        Add-Error "${relativePath}: contains obsolete prototype reward properties"
+    }
+}
+
+$scriptFiles = Get-ChildItem -LiteralPath (Join-Path $clientRoot "scripts") -Recurse -File -Filter *.gd
+foreach ($scriptFile in $scriptFiles) {
+    $uidPath = "$($scriptFile.FullName).uid"
+    if (-not (Test-Path -LiteralPath $uidPath -PathType Leaf)) {
+        Add-Error "$([System.IO.Path]::GetRelativePath($RepoRoot, $scriptFile.FullName)): missing Godot script uid file"
+    }
 }
 
 if ($errors.Count -gt 0) {

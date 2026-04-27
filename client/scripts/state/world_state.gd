@@ -32,6 +32,28 @@ func unlock_region(region_id: String) -> void:
 		unlocked_region_ids.append(region_id)
 
 
+func ensure_map_object(instance_id: String, definition_id: String, region_id: String = "") -> Dictionary:
+	if not map_objects.has(instance_id):
+		map_objects[instance_id] = {
+			"definition_id": definition_id,
+			"region_id": region_id,
+			"is_gathered": false,
+			"is_sampled": false,
+			"is_cleared": false
+		}
+	return map_objects[instance_id]
+
+
+func get_map_object(instance_id: String) -> Dictionary:
+	return map_objects.get(instance_id, {})
+
+
+func set_map_object_flag(instance_id: String, flag_name: String, value: bool) -> void:
+	if not map_objects.has(instance_id):
+		return
+	map_objects[instance_id][flag_name] = value
+
+
 func to_dict() -> Dictionary:
 	return {
 		"schema_version": schema_version,
