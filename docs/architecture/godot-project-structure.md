@@ -1,6 +1,6 @@
 # Godot Project Structure
 
-更新时间：2026-04-26
+更新时间：2026-04-27
 
 ## 文档目的
 
@@ -28,7 +28,7 @@ client/
 - 渲染器：`Forward+`
 - Godot 版本线：Godot 4.x 普通版
 - 首版脚本语言：GDScript
-- 当前提交范围：保留 `project.godot`、Godot 默认图标、导入描述和基础目录，不提交 `.godot/` 编辑器缓存。
+- 当前提交范围：保留 `project.godot`、Godot 默认图标、首批静态数据、脚本、场景和 Godot 生成的 `.gd.uid`，不提交 `.godot/` 编辑器缓存。
 
 仓库根目录仍保留：
 
@@ -326,11 +326,11 @@ Godot `Autoload` 应少而清楚。
 
 建议顺序：
 
-1. 建立 `DataRegistry`，加载最小静态数据。
-2. 建立 `WorldState`、`CharacterState`、`InventoryState`。
-3. 建立 `GameRoot` 和玩家移动。
-4. 建立基础地图和地块数据。
-5. 建立采集和库存。
+1. 建立 `DataRegistry`，加载最小静态数据。已完成。
+2. 建立 `WorldState`、`CharacterState`、`InventoryState`。已完成，并补充 `QuestState`。
+3. 建立 `GameRoot` 和玩家移动。已完成。
+4. 建立基础地图和地块数据。已完成临时地图和地图对象实例状态雏形。
+5. 建立采集和库存。已完成采集 / 采样规则层雏形。
 6. 建立基础战斗和敌人。
 7. 建立基地设备和一条配方。
 8. 建立任务目标和 HUD。
@@ -347,6 +347,19 @@ Godot `Autoload` 应少而清楚。
 - 复杂天气。
 - 多武器和技能树。
 - 联机入口。
+
+## 当前验证入口
+
+当前客户端原型的最小验证入口：
+
+```powershell
+pwsh ./scripts/check-client-data.ps1
+pwsh ./scripts/check-client-scenes.ps1
+pwsh ./scripts/check-godot-client.ps1
+pwsh ./scripts/check-text-files.ps1
+```
+
+`check-godot-client.ps1` 当前使用 Godot 4.6.2 console 的 `--import --quit` 完成项目导入和全局类注册验证。`--headless --path ... --quit` 和 `--check-only --script` 在当前 Windows / Godot 4.6.2 环境会触发引擎层崩溃，因此暂不作为门禁。
 
 ## GDScript 与 C# 边界
 
