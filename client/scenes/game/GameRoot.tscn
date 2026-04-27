@@ -8,5 +8,6 @@
 script = ExtResource("1_game_root")
 
 [node name="VerticalSliceMap" parent="." instance=ExtResource("2_map")]
+position = Vector2(250, 0)
 
 [node name="PrototypeHud" parent="." instance=ExtResource("3_hud")]

@@ -1,27 +1,50 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/prototype_hud.gd" id="1_hud"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_status"]
+font_size = 18
+font_color = Color(0.92549, 0.956863, 0.937255, 1)
+line_spacing = 5.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_prompt"]
+font_size = 20
+font_color = Color(1, 0.882353, 0.501961, 1)
+line_spacing = 4.0
 
 [node name="PrototypeHud" type="CanvasLayer"]
 script = ExtResource("1_hud")
 
-[node name="StatusLabel" type="Label" parent="."]
-offset_left = 24.0
-offset_top = 24.0
-offset_right = 520.0
-offset_bottom = 170.0
+[node name="PanelBackground" type="ColorRect" parent="."]
+offset_left = 18.0
+offset_top = 18.0
+offset_right = 390.0
+offset_bottom = 318.0
+color = Color(0.0352941, 0.054902, 0.0588235, 0.88)
+
+[node name="StatusLabel" type="Label" parent="PanelBackground"]
+offset_left = 18.0
+offset_top = 18.0
+offset_right = 350.0
+offset_bottom = 190.0
 text = "Loading..."
+label_settings = SubResource("LabelSettings_status")
+autowrap_mode = 3
 
-[node name="PromptLabel" type="Label" parent="."]
-offset_left = 24.0
-offset_top = 190.0
-offset_right = 520.0
-offset_bottom = 224.0
+[node name="PromptLabel" type="Label" parent="PanelBackground"]
+offset_left = 18.0
+offset_top = 206.0
+offset_right = 350.0
+offset_bottom = 242.0
 text = ""
+label_settings = SubResource("LabelSettings_prompt")
+autowrap_mode = 3
 
-[node name="LogLabel" type="Label" parent="."]
-offset_left = 24.0
-offset_top = 232.0
-offset_right = 520.0
-offset_bottom = 270.0
+[node name="LogLabel" type="Label" parent="PanelBackground"]
+offset_left = 18.0
+offset_top = 252.0
+offset_right = 350.0
+offset_bottom = 286.0
 text = ""
+label_settings = SubResource("LabelSettings_status")
+autowrap_mode = 3

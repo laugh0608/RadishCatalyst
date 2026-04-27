@@ -1,9 +1,9 @@
 extends CanvasLayer
 class_name PrototypeHud
 
-@onready var status_label: Label = $StatusLabel
-@onready var prompt_label: Label = $PromptLabel
-@onready var log_label: Label = $LogLabel
+@onready var status_label: Label = $PanelBackground/StatusLabel
+@onready var prompt_label: Label = $PanelBackground/PromptLabel
+@onready var log_label: Label = $PanelBackground/LogLabel
 
 
 func update_status(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> void:
