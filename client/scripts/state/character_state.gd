@@ -20,6 +20,26 @@ static func create_default() -> CharacterState:
 	return CharacterState.new()
 
 
+func equip_suit_module(module_id: String) -> bool:
+	if module_id.is_empty() or not inventory.has_ref(module_id, 1):
+		return false
+
+	equipment["suit_module"] = module_id
+	return true
+
+
+func get_pollution_drain_multiplier(data_registry: DataRegistry) -> float:
+	var multiplier := 1.0
+	for equipment_id in [equipment.get("suit", ""), equipment.get("suit_module", "")]:
+		var definition := data_registry.get_definition(String(equipment_id))
+		if definition.is_empty():
+			continue
+
+		var stat_modifiers: Dictionary = definition.get("stat_modifiers", {})
+		multiplier *= float(stat_modifiers.get("pollution_drain_mult", 1.0))
+	return multiplier
+
+
 func to_dict() -> Dictionary:
 	return {
 		"stable_id": stable_id,

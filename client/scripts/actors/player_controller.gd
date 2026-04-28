@@ -6,6 +6,7 @@ class_name PlayerController
 signal interaction_requested
 signal attack_requested
 signal recipe_cycle_requested
+signal module_toggle_requested
 
 
 func _physics_process(_delta: float) -> void:
@@ -22,6 +23,8 @@ func _physics_process(_delta: float) -> void:
 		attack_requested.emit()
 	if Input.is_action_just_pressed("cycle_recipe"):
 		recipe_cycle_requested.emit()
+	if Input.is_action_just_pressed("toggle_module"):
+		module_toggle_requested.emit()
 
 
 func _get_keyboard_fallback_vector() -> Vector2:

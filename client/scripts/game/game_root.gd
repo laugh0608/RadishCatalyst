@@ -20,10 +20,11 @@ func _ready() -> void:
 	vertical_slice_map.player.interaction_requested.connect(_on_player_interaction_requested)
 	vertical_slice_map.player.attack_requested.connect(_on_player_attack_requested)
 	vertical_slice_map.player.recipe_cycle_requested.connect(_on_player_recipe_cycle_requested)
+	vertical_slice_map.player.module_toggle_requested.connect(_on_player_module_toggle_requested)
 	vertical_slice_map.interaction_available.connect(_on_interaction_available)
 	vertical_slice_map.interaction_cleared.connect(_on_interaction_cleared)
 
-	hud.append_log("前哨原型已启动。WASD 移动，E 交互，J 攻击，R 切换设备配方。")
+	hud.append_log("前哨原型已启动。WASD 移动，E 交互，J 攻击，R 切换设备配方，F 启用过滤模块。")
 	_update_hud()
 
 
@@ -44,6 +45,22 @@ func _on_player_recipe_cycle_requested() -> void:
 	hud.append_log(String(result.get("message", "")))
 	if bool(result.get("success", false)) and vertical_slice_map.current_interactable != null:
 		_on_interaction_available(vertical_slice_map.current_interactable)
+	_update_hud()
+
+
+func _on_player_module_toggle_requested() -> void:
+	var module_id := "equipment.filter_module_t1"
+	if String(character_state.equipment.get("suit_module", "")) == module_id:
+		hud.append_log("基础过滤模块已启用。")
+		_update_hud()
+		return
+	if not character_state.equip_suit_module(module_id):
+		hud.append_log("背包中没有基础过滤模块，无法启用。")
+		_update_hud()
+		return
+
+	world_state.unlock_region("region.pollution_edge")
+	hud.append_log("已启用基础过滤模块，污染边界区已标记，污染防护消耗降低。")
 	_update_hud()
 
 

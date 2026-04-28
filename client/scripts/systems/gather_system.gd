@@ -1,6 +1,8 @@
 extends RefCounted
 class_name GatherSystem
 
+const PROTOTYPE_POLLUTION_PRESSURE_MULT := 15.0
+
 var data_registry: DataRegistry
 var processing_system: ProcessingSystem
 
@@ -55,11 +57,18 @@ func _interact_with_outpost_core(_character_state: CharacterState, world_state: 
 
 func _gather(instance_id: String, definition: Dictionary, character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var rewards := _grant_refs(definition.get("drops", []), character_state)
+	var protection_drain := _apply_pollution_pressure(definition, character_state)
 	world_state.set_map_object_flag(instance_id, "is_gathered", true)
 
+	var result_parts: Array[String] = []
 	if rewards.is_empty():
-		return _success("采集完成。")
-	return _success("采集完成：%s" % ", ".join(rewards))
+		result_parts.append("采集完成")
+	else:
+		result_parts.append("采集完成：%s" % ", ".join(rewards))
+	if protection_drain > 0.0:
+		result_parts.append("污染压力消耗防护 %s" % _format_amount(protection_drain))
+
+	return _success("%s。" % "；".join(result_parts))
 
 
 func _sample(instance_id: String, definition: Dictionary, character_state: CharacterState, world_state: WorldState) -> Dictionary:
@@ -95,6 +104,34 @@ func _grant_refs(refs: Array, character_state: CharacterState) -> Array[String]:
 
 		rewards.append("%s x%d" % [reward_id, amount])
 	return rewards
+
+
+func _apply_pollution_pressure(definition: Dictionary, character_state: CharacterState) -> float:
+	var pollution_id := String(definition.get("pollution_effect", ""))
+	if pollution_id.is_empty():
+		return 0.0
+
+	var pollution_definition := data_registry.get_definition(pollution_id)
+	var base_drain := 0.0
+	for hazard_effect in pollution_definition.get("hazard_effects", []):
+		if not hazard_effect is Dictionary:
+			continue
+		if String(hazard_effect.get("effect", "")) != "protection_drain":
+			continue
+		base_drain += float(hazard_effect.get("amount", 0.0)) * PROTOTYPE_POLLUTION_PRESSURE_MULT
+
+	if base_drain <= 0.0:
+		return 0.0
+
+	var actual_drain := base_drain * character_state.get_pollution_drain_multiplier(data_registry)
+	character_state.protection = maxf(0.0, character_state.protection - actual_drain)
+	return actual_drain
+
+
+func _format_amount(amount: float) -> String:
+	if is_equal_approx(amount, roundf(amount)):
+		return str(int(amount))
+	return "%.1f" % amount
 
 
 func _supports_interaction(definition: Dictionary, interaction_type: String) -> bool:

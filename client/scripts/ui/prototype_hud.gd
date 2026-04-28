@@ -17,6 +17,10 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 		"目标：%s" % _get_display_name(data_registry, active_quest_id),
 		"生命：%.0f / %.0f" % [character_state.health, character_state.max_health],
 		"防护：%.0f / %.0f" % [character_state.protection, character_state.max_protection],
+		"模块：%s（污染消耗 x%.2f）" % [
+			_get_equipped_module_name(data_registry, character_state),
+			character_state.get_pollution_drain_multiplier(data_registry)
+		],
 		"背包：%s" % _format_inventory(data_registry, character_state.inventory)
 	])
 
@@ -52,3 +56,10 @@ func _format_inventory(data_registry: DataRegistry, inventory: InventoryState) -
 	for fluid_id in inventory.fluids:
 		parts.append("%s x%s" % [_get_display_name(data_registry, fluid_id), inventory.fluids[fluid_id]])
 	return ", ".join(parts)
+
+
+func _get_equipped_module_name(data_registry: DataRegistry, character_state: CharacterState) -> String:
+	var module_id := String(character_state.equipment.get("suit_module", ""))
+	if module_id.is_empty():
+		return "未启用"
+	return _get_display_name(data_registry, module_id)
