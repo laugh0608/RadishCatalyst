@@ -102,11 +102,15 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 		if target.definition_id == "enemy.polluted_skitter":
 			return {
 				"success": true,
-				"message": "击败：%s。污染处理点周边暂时安全。" % target.display_name
+				"message": "击败：%s。污染处理点周边暂时安全。" % target.display_name,
+				"enemy_definition_id": target.definition_id,
+				"enemy_defeated": true
 			}
 		return {
 			"success": true,
-			"message": "击败：%s。" % target.display_name
+			"message": "击败：%s。" % target.display_name,
+			"enemy_definition_id": target.definition_id,
+			"enemy_defeated": true
 		}
 
 	return {
@@ -115,7 +119,9 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 			target.display_name,
 			damage,
 			float(result.get("health", 0.0))
-		]
+		],
+		"enemy_definition_id": target.definition_id,
+		"enemy_defeated": false
 	}
 
 

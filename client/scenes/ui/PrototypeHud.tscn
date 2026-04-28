@@ -21,32 +21,32 @@ anchor_right = 1.0
 offset_left = -384.0
 offset_top = 24.0
 offset_right = -24.0
-offset_bottom = 430.0
+offset_bottom = 454.0
 color = Color(0.0352941, 0.054902, 0.0588235, 0.88)
 
 [node name="StatusLabel" type="Label" parent="PanelBackground"]
 offset_left = 18.0
 offset_top = 18.0
 offset_right = 342.0
-offset_bottom = 248.0
+offset_bottom = 280.0
 text = "Loading..."
 label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3
 
 [node name="PromptLabel" type="Label" parent="PanelBackground"]
 offset_left = 18.0
-offset_top = 272.0
+offset_top = 304.0
 offset_right = 342.0
-offset_bottom = 312.0
+offset_bottom = 344.0
 text = ""
 label_settings = SubResource("LabelSettings_prompt")
 autowrap_mode = 3
 
 [node name="LogLabel" type="Label" parent="PanelBackground"]
 offset_left = 18.0
-offset_top = 334.0
+offset_top = 366.0
 offset_right = 342.0
-offset_bottom = 390.0
+offset_bottom = 414.0
 text = ""
 label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3

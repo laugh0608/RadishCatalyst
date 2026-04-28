@@ -49,8 +49,8 @@
       "objectives": [{"type": "craft_item", "target_id": "equipment.filter_module_t1", "amount": 1}],
       "prerequisites": ["quest.bring_back_sample"],
       "rewards": [],
-      "unlock_effects": ["region.pollution_edge"],
-      "next_quest_ids": ["quest.expand_treatment_point"],
+      "unlock_effects": ["region.pollution_edge", "recipe.cleanse_residue"],
+      "next_quest_ids": ["quest.enter_pollution_edge"],
       "public_level": "public"
     },
     {
@@ -72,8 +72,13 @@
       "description_key": "quest.enter_pollution_edge.desc",
       "quest_type": "main",
       "stage": 6,
-      "objectives": [{"type": "visit_region", "target_id": "region.pollution_edge", "amount": 1}, {"type": "gather_item", "target_id": "item.polluted_residue", "amount": 2}],
-      "prerequisites": ["quest.expand_treatment_point"],
+      "objectives": [
+        {"type": "visit_region", "target_id": "region.pollution_edge", "amount": 1},
+        {"type": "gather_item", "target_id": "item.polluted_residue", "amount": 2},
+        {"type": "craft_item", "target_id": "item.resistance_vial_t1", "amount": 1},
+        {"type": "defeat_enemy", "target_id": "enemy.polluted_skitter", "amount": 1}
+      ],
+      "prerequisites": ["quest.make_filter_module"],
       "rewards": [{"id": "item.resistance_vial_t1", "amount": 1}],
       "unlock_effects": [],
       "next_quest_ids": ["quest.defeat_elite_node"],

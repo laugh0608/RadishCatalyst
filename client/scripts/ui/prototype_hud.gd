@@ -15,6 +15,7 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 		"RadishCatalyst Prototype",
 		"区域：%s" % _get_display_name(data_registry, world_state.current_region_id),
 		"目标：%s" % _get_display_name(data_registry, active_quest_id),
+		"进度：%s" % _format_active_quest_progress(data_registry, world_state, active_quest_id),
 		"生命：%.0f / %.0f" % [character_state.health, character_state.max_health],
 		"防护：%.0f / %.0f" % [character_state.protection, character_state.max_protection],
 		"模块：%s（污染消耗 x%.2f）" % [
@@ -63,3 +64,63 @@ func _get_equipped_module_name(data_registry: DataRegistry, character_state: Cha
 	if module_id.is_empty():
 		return "未启用"
 	return _get_display_name(data_registry, module_id)
+
+
+func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
+	if quest_id.is_empty():
+		return "无"
+
+	var quest := data_registry.get_definition(quest_id)
+	if quest.is_empty():
+		return "无"
+
+	var parts: Array[String] = []
+	for objective in quest.get("objectives", []):
+		if not objective is Dictionary:
+			continue
+
+		var objective_type := String(objective.get("type", ""))
+		var target_id := String(objective.get("target_id", ""))
+		var required_amount := float(objective.get("amount", 1.0))
+		var current_amount := minf(
+			world_state.quest_state.get_objective_progress(quest_id, objective_type, target_id),
+			required_amount
+		)
+		parts.append("%s%s %s/%s" % [
+			_get_objective_verb(objective_type),
+			_get_display_name(data_registry, target_id),
+			_format_amount(current_amount),
+			_format_amount(required_amount)
+		])
+
+	if parts.is_empty():
+		return "无"
+	return "；".join(parts)
+
+
+func _get_objective_verb(objective_type: String) -> String:
+	match objective_type:
+		"interact":
+			return "交互 "
+		"visit_region":
+			return "进入 "
+		"return_region":
+			return "返回 "
+		"gather_item":
+			return "收集 "
+		"sample_object":
+			return "采样 "
+		"craft_item":
+			return "制造 "
+		"build":
+			return "建造 "
+		"defeat_enemy":
+			return "击败 "
+		_:
+			return ""
+
+
+func _format_amount(amount: float) -> String:
+	if is_equal_approx(amount, roundf(amount)):
+		return str(int(amount))
+	return "%.1f" % amount
