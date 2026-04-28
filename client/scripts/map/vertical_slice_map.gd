@@ -99,6 +99,11 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 	)
 
 	if bool(result.get("defeated", false)):
+		if target.definition_id == "enemy.polluted_skitter":
+			return {
+				"success": true,
+				"message": "击败：%s。污染处理点周边暂时安全。" % target.display_name
+			}
 		return {
 			"success": true,
 			"message": "击败：%s。" % target.display_name
@@ -138,7 +143,7 @@ func _setup_enemy_labels() -> void:
 		var definition := data_registry.get_definition(enemy.definition_id)
 		var max_health := float(definition.get("base_stats", {}).get("max_health", 20.0))
 		enemy.instance_id = _get_enemy_instance_id(enemy)
-		enemy.setup(_get_display_name(enemy.definition_id), max_health)
+		enemy.setup(_get_display_name(enemy.definition_id), max_health, String(definition.get("category", "basic")))
 
 
 func sync_enemy_states(world_state: WorldState) -> void:
@@ -149,7 +154,12 @@ func sync_enemy_states(world_state: WorldState) -> void:
 		var definition := data_registry.get_definition(enemy.definition_id)
 		var max_health := float(definition.get("base_stats", {}).get("max_health", 20.0))
 		enemy.instance_id = _get_enemy_instance_id(enemy)
-		var enemy_state := world_state.ensure_enemy(enemy.instance_id, enemy.definition_id, "", max_health)
+		var enemy_state := world_state.ensure_enemy(
+			enemy.instance_id,
+			enemy.definition_id,
+			_get_enemy_region_id(definition),
+			max_health
+		)
 		enemy.apply_saved_state(enemy_state)
 
 
@@ -158,6 +168,13 @@ func _get_display_name(definition_id: String) -> String:
 	if definition.is_empty():
 		return definition_id
 	return data_registry.get_text(String(definition.get("display_name_key", definition_id)))
+
+
+func _get_enemy_region_id(definition: Dictionary) -> String:
+	var spawn_regions: Array = definition.get("spawn_regions", [])
+	if spawn_regions.is_empty():
+		return ""
+	return String(spawn_regions[0])
 
 
 func _get_recipes_for_building(building_id: String) -> Array[String]:

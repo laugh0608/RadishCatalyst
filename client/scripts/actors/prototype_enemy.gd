@@ -14,13 +14,13 @@ var defeated: bool = false
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
 
-func setup(display_name: String, max_health: float) -> void:
+func setup(display_name: String, max_health: float, category: String = "basic") -> void:
 	self.display_name = display_name
 	self.max_health = max_health
 	health = max_health
 	defeated = false
 	collision_shape.disabled = false
-	sprite.color = Color(0.8, 0.313726, 0.215686, 1)
+	sprite.color = _get_active_color(category)
 	_update_label()
 
 
@@ -66,3 +66,13 @@ func mark_defeated() -> void:
 
 func _update_label() -> void:
 	label.text = "%s\nHP %.0f / %.0f" % [display_name, health, max_health]
+
+
+func _get_active_color(category: String) -> Color:
+	match category:
+		"polluted":
+			return Color(0.78, 0.68, 0.22, 1)
+		"elite_node":
+			return Color(0.66, 0.48, 0.18, 1)
+		_:
+			return Color(0.8, 0.313726, 0.215686, 1)

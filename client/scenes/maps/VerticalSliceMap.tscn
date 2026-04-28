@@ -85,3 +85,7 @@ single_use = false
 [node name="NativeSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(70, 20)
 definition_id = "enemy.native_skitter"
+
+[node name="PollutedSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(302, 94)
+definition_id = "enemy.polluted_skitter"
