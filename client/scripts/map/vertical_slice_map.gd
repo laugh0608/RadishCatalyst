@@ -6,6 +6,7 @@ signal interaction_cleared(interactable: PrototypeInteractable)
 
 const ATTACK_RANGE := 90.0
 const BASE_ATTACK_DAMAGE := 10.0
+const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
 
 @onready var player: PlayerController = $Player
 @onready var interactables_root: Node2D = $Interactables
@@ -113,12 +114,14 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 			"enemy_defeated": true
 		}
 
+	var counter_message := _apply_enemy_counterattack(target, character_state)
 	return {
 		"success": true,
-		"message": "命中：%s，造成 %.0f 伤害，剩余 HP %.0f。" % [
+		"message": "命中：%s，造成 %.0f 伤害，剩余 HP %.0f。%s" % [
 			target.display_name,
 			damage,
-			float(result.get("health", 0.0))
+			float(result.get("health", 0.0)),
+			counter_message
 		],
 		"enemy_definition_id": target.definition_id,
 		"enemy_defeated": false
@@ -236,6 +239,34 @@ func _get_attack_damage(character_state: CharacterState) -> float:
 	var stat_modifiers: Dictionary = tool_definition.get("stat_modifiers", {})
 	var attack_power := float(stat_modifiers.get("attack_power", 1.0))
 	return BASE_ATTACK_DAMAGE * attack_power
+
+
+func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: CharacterState) -> String:
+	var definition := data_registry.get_definition(enemy.definition_id)
+	var base_stats: Dictionary = definition.get("base_stats", {})
+	var attack_damage := float(base_stats.get("attack", 0.0))
+	var health_damage := character_state.apply_health_damage(attack_damage)
+	var protection_damage := 0.0
+	var damage_types: Array = definition.get("damage_types", [])
+
+	if damage_types.has("pollution"):
+		protection_damage = character_state.apply_protection_damage(
+			attack_damage * POLLUTION_COUNTER_PRESSURE_MULT * character_state.get_pollution_drain_multiplier(data_registry)
+		)
+
+	if protection_damage > 0.0:
+		return "%s 反击，生命 -%s，防护 -%s。" % [
+			enemy.display_name,
+			_format_amount(health_damage),
+			_format_amount(protection_damage)
+		]
+	return "%s 反击，生命 -%s。" % [enemy.display_name, _format_amount(health_damage)]
+
+
+func _format_amount(amount: float) -> String:
+	if is_equal_approx(amount, roundf(amount)):
+		return str(int(amount))
+	return "%.1f" % amount
 
 
 func _get_enemy_instance_id(enemy: PrototypeEnemy) -> String:

@@ -40,6 +40,18 @@ func get_pollution_drain_multiplier(data_registry: DataRegistry) -> float:
 	return multiplier
 
 
+func apply_health_damage(amount: float) -> float:
+	var actual_amount := maxf(0.0, amount)
+	health = maxf(0.0, health - actual_amount)
+	return actual_amount
+
+
+func apply_protection_damage(amount: float) -> float:
+	var actual_amount := maxf(0.0, amount)
+	protection = maxf(0.0, protection - actual_amount)
+	return actual_amount
+
+
 func to_dict() -> Dictionary:
 	return {
 		"stable_id": stable_id,
