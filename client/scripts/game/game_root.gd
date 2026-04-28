@@ -16,16 +16,24 @@ func _ready() -> void:
 	world_state = WorldState.create_default()
 	character_state = CharacterState.create_default()
 	vertical_slice_map.setup(data_registry)
+	vertical_slice_map.sync_enemy_states(world_state)
 	vertical_slice_map.player.interaction_requested.connect(_on_player_interaction_requested)
+	vertical_slice_map.player.attack_requested.connect(_on_player_attack_requested)
 	vertical_slice_map.interaction_available.connect(_on_interaction_available)
 	vertical_slice_map.interaction_cleared.connect(_on_interaction_cleared)
 
-	hud.append_log("前哨原型已启动。WASD 移动，E 交互。")
+	hud.append_log("前哨原型已启动。WASD 移动，E 交互，J 攻击。")
 	_update_hud()
 
 
 func _on_player_interaction_requested() -> void:
 	var result := vertical_slice_map.try_interact(character_state, world_state)
+	hud.append_log(String(result.get("message", "")))
+	_update_hud()
+
+
+func _on_player_attack_requested() -> void:
+	var result := vertical_slice_map.try_attack(character_state, world_state)
 	hud.append_log(String(result.get("message", "")))
 	_update_hud()
 

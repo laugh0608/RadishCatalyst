@@ -4,6 +4,7 @@ class_name PlayerController
 @export var move_speed: float = 180.0
 
 signal interaction_requested
+signal attack_requested
 
 
 func _physics_process(_delta: float) -> void:
@@ -16,6 +17,8 @@ func _physics_process(_delta: float) -> void:
 
 	if Input.is_action_just_pressed("interact"):
 		interaction_requested.emit()
+	if Input.is_action_just_pressed("attack"):
+		attack_requested.emit()
 
 
 func _get_keyboard_fallback_vector() -> Vector2:

@@ -13,6 +13,7 @@ var pollution_levels: Dictionary = {
 	"region.pollution_edge": 1.0
 }
 var map_objects: Dictionary = {}
+var enemies: Dictionary = {}
 var base_structures: Dictionary = {
 	"structure.outpost_core": {
 		"definition_id": "building.outpost_core",
@@ -48,6 +49,29 @@ func get_map_object(instance_id: String) -> Dictionary:
 	return map_objects.get(instance_id, {})
 
 
+func ensure_enemy(instance_id: String, definition_id: String, region_id: String = "", max_health: float = 1.0) -> Dictionary:
+	if not enemies.has(instance_id):
+		enemies[instance_id] = {
+			"definition_id": definition_id,
+			"region_id": region_id,
+			"health": max_health,
+			"max_health": max_health,
+			"is_defeated": false
+		}
+	return enemies[instance_id]
+
+
+func get_enemy(instance_id: String) -> Dictionary:
+	return enemies.get(instance_id, {})
+
+
+func update_enemy_health(instance_id: String, health: float, is_defeated: bool) -> void:
+	if not enemies.has(instance_id):
+		return
+	enemies[instance_id]["health"] = health
+	enemies[instance_id]["is_defeated"] = is_defeated
+
+
 func set_map_object_flag(instance_id: String, flag_name: String, value: bool) -> void:
 	if not map_objects.has(instance_id):
 		return
@@ -64,6 +88,7 @@ func to_dict() -> Dictionary:
 		"current_weather_id": current_weather_id,
 		"pollution_levels": pollution_levels.duplicate(true),
 		"map_objects": map_objects.duplicate(true),
+		"enemies": enemies.duplicate(true),
 		"base_structures": base_structures.duplicate(true),
 		"quest_state": quest_state.to_dict()
 	}
@@ -79,6 +104,7 @@ static func from_dict(data: Dictionary) -> WorldState:
 	state.current_weather_id = String(data.get("current_weather_id", "weather.clear"))
 	state.pollution_levels = data.get("pollution_levels", state.pollution_levels).duplicate(true)
 	state.map_objects = data.get("map_objects", {}).duplicate(true)
+	state.enemies = data.get("enemies", {}).duplicate(true)
 	state.base_structures = data.get("base_structures", state.base_structures).duplicate(true)
 	state.quest_state = QuestState.from_dict(data.get("quest_state", {}))
 	return state

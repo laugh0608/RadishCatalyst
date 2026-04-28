@@ -4,6 +4,9 @@ class_name VerticalSliceMap
 signal interaction_available(interactable: PrototypeInteractable)
 signal interaction_cleared(interactable: PrototypeInteractable)
 
+const ATTACK_RANGE := 90.0
+const BASE_ATTACK_DAMAGE := 10.0
+
 @onready var player: PlayerController = $Player
 @onready var interactables_root: Node2D = $Interactables
 @onready var enemies_root: Node2D = $Enemies
@@ -50,6 +53,38 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 	return result
 
 
+func try_attack(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	var target := _get_nearest_attack_target()
+	if target == null:
+		return {
+			"success": false,
+			"message": "攻击挥空：附近没有敌人。"
+		}
+
+	var damage := _get_attack_damage(character_state)
+	var result := target.apply_hit(damage)
+	world_state.update_enemy_health(
+		target.instance_id,
+		float(result.get("health", 0.0)),
+		bool(result.get("defeated", false))
+	)
+
+	if bool(result.get("defeated", false)):
+		return {
+			"success": true,
+			"message": "击败：%s。" % target.display_name
+		}
+
+	return {
+		"success": true,
+		"message": "命中：%s，造成 %.0f 伤害，剩余 HP %.0f。" % [
+			target.display_name,
+			damage,
+			float(result.get("health", 0.0))
+		]
+	}
+
+
 func _setup_interactable_labels() -> void:
 	if data_registry == null:
 		return
@@ -71,7 +106,20 @@ func _setup_enemy_labels() -> void:
 
 		var definition := data_registry.get_definition(enemy.definition_id)
 		var max_health := float(definition.get("base_stats", {}).get("max_health", 20.0))
+		enemy.instance_id = _get_enemy_instance_id(enemy)
 		enemy.setup(_get_display_name(enemy.definition_id), max_health)
+
+
+func sync_enemy_states(world_state: WorldState) -> void:
+	for enemy in enemies_root.get_children():
+		if not enemy is PrototypeEnemy:
+			continue
+
+		var definition := data_registry.get_definition(enemy.definition_id)
+		var max_health := float(definition.get("base_stats", {}).get("max_health", 20.0))
+		enemy.instance_id = _get_enemy_instance_id(enemy)
+		var enemy_state := world_state.ensure_enemy(enemy.instance_id, enemy.definition_id, "", max_health)
+		enemy.apply_saved_state(enemy_state)
 
 
 func _get_display_name(definition_id: String) -> String:
@@ -93,3 +141,33 @@ func _on_interactable_body_exited(body: Node2D, interactable: PrototypeInteracta
 		return
 	current_interactable = null
 	interaction_cleared.emit(interactable)
+
+
+func _get_nearest_attack_target() -> PrototypeEnemy:
+	var nearest_enemy: PrototypeEnemy = null
+	var nearest_distance := INF
+
+	for enemy in enemies_root.get_children():
+		if not enemy is PrototypeEnemy or not enemy.can_be_attacked():
+			continue
+
+		var distance := player.global_position.distance_to(enemy.global_position)
+		if distance > ATTACK_RANGE or distance >= nearest_distance:
+			continue
+
+		nearest_enemy = enemy
+		nearest_distance = distance
+
+	return nearest_enemy
+
+
+func _get_attack_damage(character_state: CharacterState) -> float:
+	var tool_id := String(character_state.equipment.get("tool", ""))
+	var tool_definition := data_registry.get_definition(tool_id)
+	var stat_modifiers: Dictionary = tool_definition.get("stat_modifiers", {})
+	var attack_power := float(stat_modifiers.get("attack_power", 1.0))
+	return BASE_ATTACK_DAMAGE * attack_power
+
+
+func _get_enemy_instance_id(enemy: PrototypeEnemy) -> String:
+	return "enemy_instance.%s" % String(enemy.name).to_snake_case()
