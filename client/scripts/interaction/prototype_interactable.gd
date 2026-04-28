@@ -3,6 +3,7 @@ class_name PrototypeInteractable
 
 @export var definition_id: String = ""
 @export var interaction_type: String = "inspect"
+@export var recipe_id: String = ""
 @export var single_use: bool = true
 
 var consumed: bool = false

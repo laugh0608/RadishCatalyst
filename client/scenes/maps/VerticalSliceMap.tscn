@@ -46,6 +46,13 @@ position = Vector2(-300, -92)
 definition_id = "building.outpost_core"
 interaction_type = "outpost_core"
 
+[node name="BasicReactor" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-190, -52)
+definition_id = "building.basic_reactor"
+interaction_type = "process_recipe"
+recipe_id = "recipe.process_crystal_ore"
+single_use = false
+
 [node name="CrystalCluster" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(30, -70)
 definition_id = "map_object.crystal_cluster"

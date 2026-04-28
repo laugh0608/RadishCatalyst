@@ -2,10 +2,12 @@ extends RefCounted
 class_name GatherSystem
 
 var data_registry: DataRegistry
+var processing_system: ProcessingSystem
 
 
 func _init(registry: DataRegistry) -> void:
 	data_registry = registry
+	processing_system = ProcessingSystem.new(data_registry)
 
 
 func interact_with_object(
@@ -13,10 +15,13 @@ func interact_with_object(
 	definition_id: String,
 	interaction_type: String,
 	character_state: CharacterState,
-	world_state: WorldState
+	world_state: WorldState,
+	recipe_id: String = ""
 ) -> Dictionary:
 	if interaction_type == "outpost_core":
 		return _interact_with_outpost_core(character_state, world_state)
+	if interaction_type == "process_recipe":
+		return processing_system.process_recipe(recipe_id, character_state, world_state)
 
 	var definition := data_registry.get_definition(definition_id)
 	if definition.is_empty():

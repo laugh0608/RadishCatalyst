@@ -19,6 +19,11 @@ var base_structures: Dictionary = {
 		"definition_id": "building.outpost_core",
 		"region_id": "region.outpost_platform",
 		"status": "idle"
+	},
+	"structure.basic_reactor": {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "idle"
 	}
 }
 var quest_state: QuestState = QuestState.create_default()
@@ -70,6 +75,26 @@ func update_enemy_health(instance_id: String, health: float, is_defeated: bool) 
 		return
 	enemies[instance_id]["health"] = health
 	enemies[instance_id]["is_defeated"] = is_defeated
+
+
+func ensure_base_structure(structure_id: String, definition_id: String, region_id: String = "") -> Dictionary:
+	if not base_structures.has(structure_id):
+		base_structures[structure_id] = {
+			"definition_id": definition_id,
+			"region_id": region_id,
+			"status": "idle"
+		}
+	return base_structures[structure_id]
+
+
+func set_base_structure_status(structure_id: String, status: String, recipe_id: String = "") -> void:
+	if not base_structures.has(structure_id):
+		return
+
+	base_structures[structure_id]["status"] = status
+	if not recipe_id.is_empty():
+		base_structures[structure_id]["last_recipe_id"] = recipe_id
+	base_structures[structure_id]["completed_runs"] = int(base_structures[structure_id].get("completed_runs", 0)) + 1
 
 
 func set_map_object_flag(instance_id: String, flag_name: String, value: bool) -> void:

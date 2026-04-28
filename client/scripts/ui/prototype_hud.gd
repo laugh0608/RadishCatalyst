@@ -17,7 +17,7 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 		"目标：%s" % _get_display_name(data_registry, active_quest_id),
 		"生命：%.0f / %.0f" % [character_state.health, character_state.max_health],
 		"防护：%.0f / %.0f" % [character_state.protection, character_state.max_protection],
-		"背包：%s" % _format_inventory(character_state.inventory.items)
+		"背包：%s" % _format_inventory(data_registry, character_state.inventory)
 	])
 
 
@@ -42,11 +42,13 @@ func _get_display_name(data_registry: DataRegistry, definition_id: String) -> St
 	return data_registry.get_text(String(definition.get("display_name_key", definition_id)))
 
 
-func _format_inventory(items: Dictionary) -> String:
-	if items.is_empty():
+func _format_inventory(data_registry: DataRegistry, inventory: InventoryState) -> String:
+	if inventory.items.is_empty() and inventory.fluids.is_empty():
 		return "空"
 
 	var parts: Array[String] = []
-	for item_id in items:
-		parts.append("%s x%s" % [item_id, items[item_id]])
+	for item_id in inventory.items:
+		parts.append("%s x%s" % [_get_display_name(data_registry, item_id), inventory.items[item_id]])
+	for fluid_id in inventory.fluids:
+		parts.append("%s x%s" % [_get_display_name(data_registry, fluid_id), inventory.fluids[fluid_id]])
 	return ", ".join(parts)

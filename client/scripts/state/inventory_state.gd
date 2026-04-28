@@ -26,6 +26,28 @@ func add_fluid(definition_id: String, amount: float) -> void:
 	fluids[definition_id] = float(fluids.get(definition_id, 0.0)) + amount
 
 
+func has_ref(definition_id: String, amount: float) -> bool:
+	if definition_id.begins_with("fluid."):
+		return float(fluids.get(definition_id, 0.0)) >= amount
+	return int(items.get(definition_id, 0)) >= int(amount)
+
+
+func consume_ref(definition_id: String, amount: float) -> void:
+	if definition_id.begins_with("fluid."):
+		fluids[definition_id] = maxf(0.0, float(fluids.get(definition_id, 0.0)) - amount)
+		return
+
+	items[definition_id] = maxi(0, int(items.get(definition_id, 0)) - int(amount))
+
+
+func add_ref(definition_id: String, amount: float) -> void:
+	if definition_id.begins_with("fluid."):
+		add_fluid(definition_id, amount)
+		return
+
+	add_item(definition_id, int(amount))
+
+
 func to_dict() -> Dictionary:
 	return {
 		"items": items.duplicate(true),

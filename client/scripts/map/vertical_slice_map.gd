@@ -43,7 +43,8 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		interacted.definition_id,
 		interacted.interaction_type,
 		character_state,
-		world_state
+		world_state,
+		interacted.recipe_id
 	)
 	if bool(result.get("success", false)):
 		interacted.mark_consumed()
