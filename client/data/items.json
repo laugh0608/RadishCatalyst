@@ -11,7 +11,7 @@
       "mass": 0.4,
       "rarity": "common",
       "source_refs": ["map_object.crystal_cluster"],
-      "used_by_refs": ["recipe.process_crystal_ore", "recipe.basic_filter_module"],
+      "used_by_refs": ["recipe.process_crystal_ore", "recipe.make_filter_media", "recipe.foundation_t1"],
       "public_level": "public"
     },
     {
@@ -24,7 +24,7 @@
       "mass": 0.2,
       "rarity": "common",
       "source_refs": ["building.outpost_core"],
-      "used_by_refs": ["recipe.basic_filter_module", "recipe.foundation_t1"],
+      "used_by_refs": ["recipe.basic_filter_module", "recipe.foundation_t1", "recipe.repair_gel"],
       "public_level": "public"
     },
     {

@@ -58,6 +58,11 @@ position = Vector2(30, -70)
 definition_id = "map_object.crystal_cluster"
 interaction_type = "gather"
 
+[node name="CrystalClusterEast" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(125, -95)
+definition_id = "map_object.crystal_cluster"
+interaction_type = "gather"
+
 [node name="AnomalyCrystal" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(110, 80)
 definition_id = "map_object.anomaly_crystal"

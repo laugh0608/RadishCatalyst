@@ -44,7 +44,7 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		interacted.interaction_type,
 		character_state,
 		world_state,
-		interacted.recipe_id
+		interacted.get_current_recipe_id()
 	)
 	if bool(result.get("success", false)):
 		interacted.mark_consumed()
@@ -52,6 +52,34 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		current_interactable = null
 		interaction_cleared.emit(interacted)
 	return result
+
+
+func try_cycle_recipe() -> Dictionary:
+	if current_interactable == null:
+		return {
+			"success": false,
+			"message": "附近没有可切换配方的设备。"
+		}
+	if current_interactable.interaction_type != "process_recipe":
+		return {
+			"success": false,
+			"message": "当前目标不是加工设备。"
+		}
+	if current_interactable.get_recipe_count() <= 1:
+		return {
+			"success": false,
+			"message": "当前设备没有可轮换配方。"
+		}
+
+	var recipe_id := current_interactable.select_next_recipe()
+	return {
+		"success": true,
+		"message": "当前配方：%s（%d/%d）。" % [
+			_get_display_name(recipe_id),
+			current_interactable.get_recipe_position(),
+			current_interactable.get_recipe_count()
+		]
+	}
 
 
 func try_attack(character_state: CharacterState, world_state: WorldState) -> Dictionary:
@@ -93,6 +121,8 @@ func _setup_interactable_labels() -> void:
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
 			continue
+		if interactable.interaction_type == "process_recipe":
+			interactable.set_recipe_cycle(_get_recipes_for_building(interactable.definition_id))
 		interactable.instance_id = "map_object_instance.%s" % String(interactable.name).to_snake_case()
 		interactable.setup(_get_display_name(interactable.definition_id))
 
@@ -128,6 +158,21 @@ func _get_display_name(definition_id: String) -> String:
 	if definition.is_empty():
 		return definition_id
 	return data_registry.get_text(String(definition.get("display_name_key", definition_id)))
+
+
+func _get_recipes_for_building(building_id: String) -> Array[String]:
+	var recipe_ids: Array[String] = []
+	if data_registry == null:
+		return recipe_ids
+
+	for recipe in data_registry.get_table("recipes"):
+		if not recipe is Dictionary:
+			continue
+		if String(recipe.get("required_building_id", "")) != building_id:
+			continue
+		recipe_ids.append(String(recipe.get("id", "")))
+
+	return recipe_ids
 
 
 func _on_interactable_body_entered(body: Node2D, interactable: PrototypeInteractable) -> void:
