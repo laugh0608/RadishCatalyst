@@ -73,6 +73,13 @@ position = Vector2(270, 20)
 definition_id = "map_object.pollution_residue_patch"
 interaction_type = "gather"
 
+[node name="PollutionFilter" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(292, -72)
+definition_id = "building.pollution_filter"
+interaction_type = "process_recipe"
+recipe_id = "recipe.cleanse_residue"
+single_use = false
+
 [node name="Enemies" type="Node2D" parent="."]
 
 [node name="NativeSkitter" parent="Enemies" instance=ExtResource("4_enemy")]

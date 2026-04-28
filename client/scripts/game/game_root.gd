@@ -66,11 +66,7 @@ func _on_player_module_toggle_requested() -> void:
 
 func _on_interaction_available(interactable: PrototypeInteractable) -> void:
 	if interactable.interaction_type == "process_recipe":
-		hud.show_prompt("按 E 加工：%s；按 R 切换配方（%d/%d）" % [
-			_get_display_name(interactable.get_current_recipe_id()),
-			interactable.get_recipe_position(),
-			interactable.get_recipe_count()
-		])
+		hud.show_prompt(_format_processing_prompt(interactable))
 		return
 
 	hud.show_prompt("按 E 交互：%s" % _get_display_name(interactable.definition_id))
@@ -93,3 +89,14 @@ func _get_display_name(definition_id: String) -> String:
 		return definition_id
 
 	return data_registry.get_text(String(definition.get("display_name_key", definition_id)))
+
+
+func _format_processing_prompt(interactable: PrototypeInteractable) -> String:
+	if interactable.get_recipe_count() <= 1:
+		return "按 E 加工：%s" % _get_display_name(interactable.get_current_recipe_id())
+
+	return "按 E 加工：%s；按 R 切换配方（%d/%d）" % [
+		_get_display_name(interactable.get_current_recipe_id()),
+		interactable.get_recipe_position(),
+		interactable.get_recipe_count()
+	]
