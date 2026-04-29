@@ -35,6 +35,24 @@ pwsh ./scripts/check-text-files.ps1
 - 非 Markdown / CSV 文本文件不保留行尾空白。
 - 源码类文件原则上不超过 1500 行。
 
+### 客户端聚合验证
+
+```powershell
+pwsh ./scripts/check-client.ps1
+```
+
+聚合脚本会按顺序执行：
+
+```powershell
+pwsh ./scripts/check-client-data.ps1
+pwsh ./scripts/check-client-scenes.ps1
+pwsh ./scripts/check-client-save.ps1
+pwsh ./scripts/check-client-flow.ps1
+pwsh ./scripts/check-godot-client.ps1
+```
+
+涉及客户端状态、任务、存档、场景或脚本时，优先执行聚合验证；提交前仍需按范围执行 `pwsh ./scripts/check-text-files.ps1` 和 `git diff --check`。
+
 ## 文档真相源
 
 `docs/` 是本仓库正式文档源。当前优先阅读顺序：
@@ -84,6 +102,7 @@ pwsh ./scripts/check-text-files.ps1
 - 读取和修改仓库内代码、文档、配置。
 - `git status`、`git diff`、`git log` 等只读 Git 操作。
 - `pwsh ./scripts/check-text-files.ps1`、`./scripts/check-text-files.sh`。
+- `pwsh ./scripts/check-client.ps1` 及其单项客户端检查脚本。
 - 简洁明确的提交操作。
 
 ### 需要先告知用户再执行

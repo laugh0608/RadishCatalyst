@@ -64,9 +64,9 @@
 
 ## 当前验证基线
 
-当前仓库尚未初始化正式 Godot 工程，默认验证以仓库卫生和文档一致性为主。
+当前仓库已初始化 Godot 原型工程。默认验证以仓库文本卫生、客户端静态数据、场景引用、存档运行时、第一切片关键流程和 Godot 导入为主。
 
-优先执行：
+仓库文本卫生仍需执行：
 
 ```powershell
 pwsh ./scripts/check-text-files.ps1
@@ -87,7 +87,25 @@ Linux/macOS 或 Git Bash 环境可执行：
 - 非 Markdown / CSV 文本文件不保留行尾空白。
 - 源码类文件原则上不超过 1500 行。
 
-如果未来加入 Godot 工程，应补充 Godot 导入、脚本静态检查、导出配置或自动化测试入口，并同步更新本文件、`CLAUDE.md`、`docs/planning/current.md` 和 CI。
+客户端聚合验证可执行：
+
+```powershell
+pwsh ./scripts/check-client.ps1
+```
+
+该聚合脚本会按顺序执行：
+
+```powershell
+pwsh ./scripts/check-client-data.ps1
+pwsh ./scripts/check-client-scenes.ps1
+pwsh ./scripts/check-client-save.ps1
+pwsh ./scripts/check-client-flow.ps1
+pwsh ./scripts/check-godot-client.ps1
+```
+
+提交前按改动范围至少执行匹配的单项验证；涉及客户端状态、任务、存档、场景或脚本时，优先执行聚合验证，再执行 `pwsh ./scripts/check-text-files.ps1` 和 `git diff --check`。
+
+如果未来加入 Godot 导出配置、脚本静态检查或更多自动化测试入口，应同步更新本文件、`CLAUDE.md`、`docs/planning/current.md` 和 CI。
 
 ## AI 执行边界
 
@@ -96,6 +114,7 @@ Linux/macOS 或 Git Bash 环境可执行：
 - 读取和修改仓库内代码、文档、配置。
 - `git status`、`git diff`、`git log` 等只读 Git 操作。
 - `pwsh ./scripts/check-text-files.ps1`、`./scripts/check-text-files.sh`。
+- `pwsh ./scripts/check-client.ps1` 及其单项客户端检查脚本。
 - 简洁明确的提交操作。
 
 ### 需要先告知用户再执行
