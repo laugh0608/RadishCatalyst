@@ -36,6 +36,30 @@ offset_right = 360.0
 offset_bottom = 200.0
 color = Color(0.258824, 0.247059, 0.12549, 1)
 
+[node name="BaseDirectionLabel" type="Label" parent="."]
+offset_left = -342.0
+offset_top = 166.0
+offset_right = -134.0
+offset_bottom = 192.0
+text = "基地平台 / 返回补给"
+horizontal_alignment = 1
+
+[node name="CrystalDirectionLabel" type="Label" parent="."]
+offset_left = -48.0
+offset_top = 166.0
+offset_right = 168.0
+offset_bottom = 192.0
+text = "→ 晶体矿脉区"
+horizontal_alignment = 1
+
+[node name="PollutionDirectionLabel" type="Label" parent="."]
+offset_left = 204.0
+offset_top = 166.0
+offset_right = 356.0
+offset_bottom = 192.0
+text = "→ 污染边界"
+horizontal_alignment = 1
+
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(-300, -42)
 

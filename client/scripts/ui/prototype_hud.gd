@@ -16,6 +16,7 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 		"区域：%s" % _get_display_name(data_registry, world_state.current_region_id),
 		"目标：%s" % _get_display_name(data_registry, active_quest_id),
 		"进度：%s" % _format_active_quest_progress(data_registry, world_state, active_quest_id),
+		"方向：%s" % _format_direction_hint(world_state, character_state, active_quest_id),
 		"生命：%.0f / %.0f" % [character_state.health, character_state.max_health],
 		"防护：%.0f / %.0f" % [character_state.protection, character_state.max_protection],
 		"模块：%s（污染消耗 x%.2f）" % [
@@ -115,6 +116,34 @@ func _format_active_quest_progress(data_registry: DataRegistry, world_state: Wor
 	if parts.is_empty():
 		return "无"
 	return "；".join(parts)
+
+
+func _format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
+	match quest_id:
+		"quest.restore_outpost":
+			return "检查左侧前哨核心，解锁晶体矿脉导航。"
+		"quest.scout_crystal_field":
+			return "向东进入蓝色晶体矿脉区，采集晶体矿物。"
+		"quest.bring_back_sample":
+			if world_state.quest_state.get_objective_progress(quest_id, "sample_object", "map_object.anomaly_crystal") <= 0.0:
+				return "向东南采样异常晶体；采样后返回基地平台。"
+			return "向西返回基地平台，完成样本回收。"
+		"quest.make_filter_module":
+			return "回基地使用基础反应器，组装基础过滤模块。"
+		"quest.expand_treatment_point":
+			return "前往污染边界北缘，清理地块、铺设地基并建造过滤器。"
+		"quest.enter_pollution_edge":
+			if not world_state.unlocked_region_ids.has("region.pollution_edge"):
+				return "按 F 启用过滤模块，再向东进入黄色污染边界。"
+			if character_state.protection < character_state.max_protection * 0.5:
+				return "防护偏低，先用 2 补充或回基地再深入污染边界。"
+			return "向东南进入黄色污染边界，采集沉积物并处理药剂。"
+		"quest.defeat_elite_node":
+			return "污染深处仍有精英节点，携带补给后继续向东推进。"
+		"quest.unlock_ruin_signal":
+			return "检查后续入口信号。"
+		_:
+			return "按当前目标推进。"
 
 
 func _get_objective_verb(objective_type: String) -> String:

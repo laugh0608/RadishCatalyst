@@ -28,9 +28,17 @@ func _ready() -> void:
 	vertical_slice_map.player.load_requested.connect(_on_player_load_requested)
 	vertical_slice_map.interaction_available.connect(_on_interaction_available)
 	vertical_slice_map.interaction_cleared.connect(_on_interaction_cleared)
+	vertical_slice_map.region_changed.connect(_on_region_changed)
+	vertical_slice_map.region_gate_blocked.connect(_on_region_gate_blocked)
 
-	hud.append_log("前哨原型已启动。WASD 移动，E 交互，J 攻击，R 切换设备配方，F 启用过滤模块，1/2 使用快捷栏，K 保存，L 读取。")
+	hud.append_log("前哨原型已启动。WASD 移动，E 交互，J 攻击，R 切换设备配方，F 启用过滤模块，1/2 使用快捷栏，K 保存，L 读取。先检查前哨核心。")
 	_update_hud()
+
+
+func _process(_delta: float) -> void:
+	if world_state == null or character_state == null:
+		return
+	vertical_slice_map.update_region_presence(world_state, character_state)
 
 
 func _on_player_interaction_requested() -> void:
@@ -124,6 +132,18 @@ func _on_interaction_cleared(_interactable: PrototypeInteractable) -> void:
 	hud.clear_prompt()
 
 
+func _on_region_changed(region_id: String) -> void:
+	var log_messages: Array[String] = ["已进入：%s。" % _get_display_name(region_id)]
+	log_messages.append_array(_advance_quest_for_region(region_id))
+	hud.append_log(_join_log_messages(log_messages))
+	_update_hud()
+
+
+func _on_region_gate_blocked(message: String) -> void:
+	hud.append_log(message)
+	_update_hud()
+
+
 func _update_hud() -> void:
 	hud.update_status(data_registry, world_state, character_state)
 
@@ -171,12 +191,11 @@ func _advance_quest_for_interaction(context: Dictionary, result: Dictionary) -> 
 		world_state.quest_state.set_objective_progress("quest.restore_outpost", "interact", "building.outpost_core", 1)
 		return _try_complete_quest("quest.restore_outpost")
 	if interaction_type == "gather" and definition_id == "map_object.crystal_cluster":
-		_add_drop_objective_progress("quest.scout_crystal_field", "gather_item", "item.crystal_ore", definition_id)
 		world_state.quest_state.set_objective_progress("quest.scout_crystal_field", "visit_region", "region.crystal_vein_field", 1)
+		_add_drop_objective_progress("quest.scout_crystal_field", "gather_item", "item.crystal_ore", definition_id)
 		return _try_complete_quest("quest.scout_crystal_field")
 	if interaction_type == "sample" and definition_id == "map_object.anomaly_crystal":
 		world_state.quest_state.set_objective_progress("quest.bring_back_sample", "sample_object", "map_object.anomaly_crystal", 1)
-		world_state.quest_state.set_objective_progress("quest.bring_back_sample", "return_region", "region.outpost_platform", 1)
 		return _try_complete_quest("quest.bring_back_sample")
 	if interaction_type == "gather" and definition_id == "map_object.pollution_residue_patch":
 		world_state.quest_state.set_objective_progress("quest.enter_pollution_edge", "visit_region", "region.pollution_edge", 1)
@@ -186,6 +205,20 @@ func _advance_quest_for_interaction(context: Dictionary, result: Dictionary) -> 
 		return _advance_quest_for_recipe(recipe_id)
 	if interaction_type == "build":
 		return _advance_quest_for_build(String(result.get("built_definition_id", definition_id)))
+	return []
+
+
+func _advance_quest_for_region(region_id: String) -> Array[String]:
+	if region_id == "region.crystal_vein_field":
+		world_state.quest_state.set_objective_progress("quest.scout_crystal_field", "visit_region", region_id, 1)
+		return _try_complete_quest("quest.scout_crystal_field")
+	if region_id == "region.outpost_platform":
+		if world_state.quest_state.get_objective_progress("quest.bring_back_sample", "sample_object", "map_object.anomaly_crystal") > 0.0:
+			world_state.quest_state.set_objective_progress("quest.bring_back_sample", "return_region", region_id, 1)
+			return _try_complete_quest("quest.bring_back_sample")
+	if region_id == "region.pollution_edge":
+		world_state.quest_state.set_objective_progress("quest.enter_pollution_edge", "visit_region", region_id, 1)
+		return _try_complete_quest("quest.enter_pollution_edge")
 	return []
 
 

@@ -3,11 +3,18 @@ class_name VerticalSliceMap
 
 signal interaction_available(interactable: PrototypeInteractable)
 signal interaction_cleared(interactable: PrototypeInteractable)
+signal region_changed(region_id: String)
+signal region_gate_blocked(message: String)
 
 const ATTACK_RANGE := 90.0
 const BASE_ATTACK_DAMAGE := 10.0
 const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
 const OUTPOST_RESPAWN_POSITION := Vector2(-300, -42)
+const CRYSTAL_REGION_X := -70.0
+const CRYSTAL_GATE_RETURN_X := -85.0
+const POLLUTION_GATE_X := 220.0
+const POLLUTION_DEEP_Y := -40.0
+const POLLUTION_GATE_RETURN_X := 205.0
 
 @onready var player: PlayerController = $Player
 @onready var interactables_root: Node2D = $Interactables
@@ -16,6 +23,8 @@ const OUTPOST_RESPAWN_POSITION := Vector2(-300, -42)
 var data_registry: DataRegistry
 var current_interactable: PrototypeInteractable
 var gather_system: GatherSystem
+var last_reported_region_id := "region.outpost_platform"
+var last_gate_message := ""
 
 
 func setup(registry: DataRegistry) -> void:
@@ -214,12 +223,42 @@ func sync_enemy_states(world_state: WorldState) -> void:
 func apply_runtime_state(world_state: WorldState, character_state: CharacterState) -> void:
 	current_interactable = null
 	player.global_position = character_state.position
+	last_reported_region_id = world_state.current_region_id
+	last_gate_message = ""
 	sync_enemy_states(world_state)
 	refresh_world_interactables(world_state)
 
 
 func get_player_position() -> Vector2:
 	return player.global_position
+
+
+func update_region_presence(world_state: WorldState, character_state: CharacterState) -> void:
+	var region_id := _get_region_id_for_position(player.global_position)
+	if region_id == "region.crystal_vein_field" and not world_state.unlocked_region_ids.has(region_id):
+		player.global_position.x = CRYSTAL_GATE_RETURN_X
+		var message := "晶体矿脉区尚未标记：先检查前哨核心，恢复基础导航。"
+		if message != last_gate_message:
+			last_gate_message = message
+			region_gate_blocked.emit(message)
+		return
+
+	if region_id == "region.pollution_edge" and not world_state.unlocked_region_ids.has(region_id):
+		player.global_position.x = POLLUTION_GATE_RETURN_X
+		var message := "污染边界尚未稳定：先扩建处理点并启用基础过滤模块。"
+		if message != last_gate_message:
+			last_gate_message = message
+			region_gate_blocked.emit(message)
+		return
+
+	last_gate_message = ""
+	if region_id == last_reported_region_id:
+		return
+
+	last_reported_region_id = region_id
+	world_state.current_region_id = region_id
+	character_state.current_region_id = region_id
+	region_changed.emit(region_id)
 
 
 func _get_display_name(definition_id: String) -> String:
@@ -366,3 +405,11 @@ func _format_amount(amount: float) -> String:
 
 func _get_enemy_instance_id(enemy: PrototypeEnemy) -> String:
 	return "enemy_instance.%s" % String(enemy.name).to_snake_case()
+
+
+func _get_region_id_for_position(position: Vector2) -> String:
+	if position.x >= POLLUTION_GATE_X and position.y >= POLLUTION_DEEP_Y:
+		return "region.pollution_edge"
+	if position.x >= CRYSTAL_REGION_X:
+		return "region.crystal_vein_field"
+	return "region.outpost_platform"
