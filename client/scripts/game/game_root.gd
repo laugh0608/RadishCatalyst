@@ -17,6 +17,7 @@ func _ready() -> void:
 	character_state = CharacterState.create_default()
 	vertical_slice_map.setup(data_registry)
 	vertical_slice_map.sync_enemy_states(world_state)
+	vertical_slice_map.refresh_world_interactables(world_state)
 	vertical_slice_map.player.interaction_requested.connect(_on_player_interaction_requested)
 	vertical_slice_map.player.attack_requested.connect(_on_player_attack_requested)
 	vertical_slice_map.player.recipe_cycle_requested.connect(_on_player_recipe_cycle_requested)
@@ -32,7 +33,8 @@ func _on_player_interaction_requested() -> void:
 	var context := _get_current_interaction_context()
 	var result := vertical_slice_map.try_interact(character_state, world_state)
 	if bool(result.get("success", false)):
-		_advance_quest_for_interaction(context)
+		_advance_quest_for_interaction(context, result)
+	vertical_slice_map.refresh_world_interactables(world_state)
 	hud.append_log(String(result.get("message", "")))
 	_update_hud()
 
@@ -56,7 +58,10 @@ func _on_player_recipe_cycle_requested() -> void:
 func _on_player_module_toggle_requested() -> void:
 	var module_id := "equipment.filter_module_t1"
 	if String(character_state.equipment.get("suit_module", "")) == module_id:
-		hud.append_log("基础过滤模块已启用。")
+		if _mark_pollution_edge_ready():
+			hud.append_log("基础过滤模块已启用，污染边界区已标记。")
+		else:
+			hud.append_log("基础过滤模块已启用。")
 		_update_hud()
 		return
 	if not character_state.equip_suit_module(module_id):
@@ -64,16 +69,19 @@ func _on_player_module_toggle_requested() -> void:
 		_update_hud()
 		return
 
-	world_state.unlock_region("region.pollution_edge")
-	world_state.quest_state.set_objective_progress("quest.enter_pollution_edge", "visit_region", "region.pollution_edge", 1)
-	_try_complete_quest("quest.enter_pollution_edge")
-	hud.append_log("已启用基础过滤模块，污染边界区已标记，污染防护消耗降低。")
+	if _mark_pollution_edge_ready():
+		hud.append_log("已启用基础过滤模块，污染边界区已标记，污染防护消耗降低。")
+	else:
+		hud.append_log("已启用基础过滤模块。还需要先扩建污染处理点，才能稳定推进污染边界。")
 	_update_hud()
 
 
 func _on_interaction_available(interactable: PrototypeInteractable) -> void:
 	if interactable.interaction_type == "process_recipe":
 		hud.show_prompt(_format_processing_prompt(interactable))
+		return
+	if interactable.interaction_type == "build":
+		hud.show_prompt("按 E 建造：%s" % _get_display_name(interactable.definition_id))
 		return
 
 	hud.show_prompt("按 E 交互：%s" % _get_display_name(interactable.definition_id))
@@ -121,7 +129,7 @@ func _get_current_interaction_context() -> Dictionary:
 	}
 
 
-func _advance_quest_for_interaction(context: Dictionary) -> void:
+func _advance_quest_for_interaction(context: Dictionary, result: Dictionary) -> void:
 	var definition_id := String(context.get("definition_id", ""))
 	var interaction_type := String(context.get("interaction_type", ""))
 	var recipe_id := String(context.get("recipe_id", ""))
@@ -146,6 +154,9 @@ func _advance_quest_for_interaction(context: Dictionary) -> void:
 		return
 	if interaction_type == "process_recipe":
 		_advance_quest_for_recipe(recipe_id)
+		return
+	if interaction_type == "build":
+		_advance_quest_for_build(String(result.get("built_definition_id", definition_id)))
 
 
 func _advance_quest_for_recipe(recipe_id: String) -> void:
@@ -156,15 +167,35 @@ func _advance_quest_for_recipe(recipe_id: String) -> void:
 		"recipe.cleanse_residue":
 			world_state.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1)
 			_try_complete_quest("quest.enter_pollution_edge")
-			world_state.quest_state.set_objective_progress("quest.expand_treatment_point", "build", "building.pollution_filter", 1)
 		_:
 			pass
+
+
+func _advance_quest_for_build(building_id: String) -> void:
+	if building_id == "building.foundation_t1":
+		world_state.quest_state.add_objective_progress("quest.expand_treatment_point", "build", building_id, 1)
+		_try_complete_quest("quest.expand_treatment_point")
+		return
+	if building_id == "building.pollution_filter":
+		world_state.quest_state.set_objective_progress("quest.expand_treatment_point", "build", building_id, 1)
+		_try_complete_quest("quest.expand_treatment_point")
 
 
 func _advance_quest_for_defeated_enemy(enemy_definition_id: String) -> void:
 	if enemy_definition_id == "enemy.polluted_skitter":
 		world_state.quest_state.set_objective_progress("quest.enter_pollution_edge", "defeat_enemy", enemy_definition_id, 1)
 		_try_complete_quest("quest.enter_pollution_edge")
+
+
+func _mark_pollution_edge_ready() -> bool:
+	if not world_state.quest_state.has_active_quest("quest.enter_pollution_edge") and not world_state.quest_state.has_completed_quest("quest.expand_treatment_point"):
+		return false
+
+	world_state.unlock_region("region.pollution_edge")
+	if world_state.quest_state.has_active_quest("quest.enter_pollution_edge"):
+		world_state.quest_state.set_objective_progress("quest.enter_pollution_edge", "visit_region", "region.pollution_edge", 1)
+		_try_complete_quest("quest.enter_pollution_edge")
+	return true
 
 
 func _add_drop_objective_progress(quest_id: String, objective_type: String, target_id: String, source_definition_id: String) -> void:

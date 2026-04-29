@@ -63,6 +63,11 @@ position = Vector2(125, -95)
 definition_id = "map_object.crystal_cluster"
 interaction_type = "gather"
 
+[node name="CrystalClusterSouth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(135, -10)
+definition_id = "map_object.crystal_cluster"
+interaction_type = "gather"
+
 [node name="AnomalyCrystal" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(110, 80)
 definition_id = "map_object.anomaly_crystal"
@@ -72,6 +77,36 @@ interaction_type = "sample"
 position = Vector2(270, 20)
 definition_id = "map_object.pollution_residue_patch"
 interaction_type = "gather"
+
+[node name="RoughGroundNorth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(225, -130)
+definition_id = "map_object.rough_ground"
+interaction_type = "clear"
+
+[node name="RoughGroundSouth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(260, -130)
+definition_id = "map_object.rough_ground"
+interaction_type = "clear"
+
+[node name="FoundationSiteNorth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(225, -92)
+definition_id = "building.foundation_t1"
+interaction_type = "build"
+recipe_id = ""
+prerequisite_instance_id = "map_object_instance.rough_ground_north"
+
+[node name="FoundationSiteSouth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(260, -92)
+definition_id = "building.foundation_t1"
+interaction_type = "build"
+recipe_id = ""
+prerequisite_instance_id = "map_object_instance.rough_ground_south"
+
+[node name="PollutionFilterBuildSite" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(292, -112)
+definition_id = "building.pollution_filter"
+interaction_type = "build"
+recipe_id = ""
 
 [node name="PollutionFilter" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(292, -72)

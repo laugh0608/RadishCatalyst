@@ -16,6 +16,8 @@ func process_recipe(recipe_id: String, character_state: CharacterState, world_st
 	var missing_inputs := _get_missing_inputs(recipe, character_state.inventory)
 	if not missing_inputs.is_empty():
 		return _failure("缺少原料：%s。" % ", ".join(missing_inputs))
+	if not _has_required_structure(recipe, world_state):
+		return _failure("需要先建造：%s。" % _get_display_name(String(recipe.get("required_building_id", ""))))
 
 	_consume_refs(recipe.get("inputs", []), character_state.inventory)
 	_grant_refs(recipe.get("outputs", []), character_state.inventory)
@@ -42,6 +44,13 @@ func _get_missing_inputs(recipe: Dictionary, inventory: InventoryState) -> Array
 			missing_inputs.append("%s x%s" % [_get_display_name(definition_id), _format_amount(amount)])
 
 	return missing_inputs
+
+
+func _has_required_structure(recipe: Dictionary, world_state: WorldState) -> bool:
+	var building_id := String(recipe.get("required_building_id", ""))
+	if building_id.is_empty():
+		return true
+	return world_state.has_base_structure_definition(building_id)
 
 
 func _consume_refs(refs: Array, inventory: InventoryState) -> void:

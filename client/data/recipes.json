@@ -66,7 +66,7 @@
       "display_name_key": "recipe.foundation_t1.name",
       "description_key": "recipe.foundation_t1.desc",
       "category": "construction",
-      "required_building_id": "building.outpost_core",
+      "required_building_id": "building.basic_reactor",
       "inputs": [{"id": "item.basic_parts", "amount": 1}, {"id": "item.crystal_ore", "amount": 1}],
       "outputs": [{"id": "item.foundation_material", "amount": 2}],
       "byproducts": [],

@@ -87,6 +87,27 @@ func ensure_base_structure(structure_id: String, definition_id: String, region_i
 	return base_structures[structure_id]
 
 
+func add_base_structure(structure_id: String, definition_id: String, region_id: String = "", site_instance_id: String = "") -> Dictionary:
+	var structure := ensure_base_structure(structure_id, definition_id, region_id)
+	if not site_instance_id.is_empty():
+		structure["site_instance_id"] = site_instance_id
+	return structure
+
+
+func has_base_structure_definition(definition_id: String) -> bool:
+	return count_base_structures(definition_id) > 0
+
+
+func count_base_structures(definition_id: String) -> int:
+	var count := 0
+	for structure in base_structures.values():
+		if not structure is Dictionary:
+			continue
+		if String(structure.get("definition_id", "")) == definition_id:
+			count += 1
+	return count
+
+
 func set_base_structure_status(structure_id: String, status: String, recipe_id: String = "") -> void:
 	if not base_structures.has(structure_id):
 		return

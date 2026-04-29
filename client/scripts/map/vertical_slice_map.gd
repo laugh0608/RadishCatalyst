@@ -39,13 +39,16 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		}
 
 	var interacted := current_interactable
+	var action_id := interacted.get_current_recipe_id()
+	if interacted.interaction_type == "build":
+		action_id = interacted.prerequisite_instance_id
 	var result := gather_system.interact_with_object(
 		interacted.instance_id,
 		interacted.definition_id,
 		interacted.interaction_type,
 		character_state,
 		world_state,
-		interacted.get_current_recipe_id()
+		action_id
 	)
 	if bool(result.get("success", false)):
 		interacted.mark_consumed()
@@ -53,6 +56,24 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		current_interactable = null
 		interaction_cleared.emit(interacted)
 	return result
+
+
+func refresh_world_interactables(world_state: WorldState) -> void:
+	for interactable in interactables_root.get_children():
+		if not interactable is PrototypeInteractable:
+			continue
+
+		var should_enable := not interactable.consumed
+		if interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter":
+			should_enable = should_enable and world_state.has_base_structure_definition("building.pollution_filter")
+		if interactable.interaction_type == "build":
+			var site_state := world_state.get_map_object(interactable.instance_id)
+			should_enable = should_enable and not bool(site_state.get("is_built", false))
+
+		interactable.set_interaction_enabled(should_enable)
+		if current_interactable == interactable and not should_enable:
+			current_interactable = null
+			interaction_cleared.emit(interactable)
 
 
 func try_cycle_recipe() -> Dictionary:

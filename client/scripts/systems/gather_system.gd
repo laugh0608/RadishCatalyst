@@ -5,11 +5,13 @@ const PROTOTYPE_POLLUTION_PRESSURE_MULT := 15.0
 
 var data_registry: DataRegistry
 var processing_system: ProcessingSystem
+var build_system: BuildSystem
 
 
 func _init(registry: DataRegistry) -> void:
 	data_registry = registry
 	processing_system = ProcessingSystem.new(data_registry)
+	build_system = BuildSystem.new(data_registry)
 
 
 func interact_with_object(
@@ -24,6 +26,14 @@ func interact_with_object(
 		return _interact_with_outpost_core(character_state, world_state)
 	if interaction_type == "process_recipe":
 		return processing_system.process_recipe(recipe_id, character_state, world_state)
+	if interaction_type == "build":
+		return build_system.build_structure(
+			instance_id,
+			definition_id,
+			character_state,
+			world_state,
+			recipe_id
+		)
 
 	var definition := data_registry.get_definition(definition_id)
 	if definition.is_empty():
@@ -35,6 +45,10 @@ func interact_with_object(
 
 	if not _supports_interaction(definition, interaction_type):
 		return _failure("当前目标不支持该交互。")
+
+	var tool_error := _get_tool_requirement_error(definition, character_state)
+	if not tool_error.is_empty():
+		return _failure(tool_error)
 
 	match interaction_type:
 		"gather":
@@ -137,6 +151,27 @@ func _format_amount(amount: float) -> String:
 func _supports_interaction(definition: Dictionary, interaction_type: String) -> bool:
 	var interaction_types: Array = definition.get("interaction_types", [])
 	return interaction_types.has(interaction_type)
+
+
+func _get_tool_requirement_error(definition: Dictionary, character_state: CharacterState) -> String:
+	var required_tool_tags: Array = definition.get("required_tool_tags", [])
+	if required_tool_tags.is_empty():
+		return ""
+
+	var tool_id := String(character_state.equipment.get("tool", ""))
+	var tool_definition := data_registry.get_definition(tool_id)
+	var tool_effects: Array = tool_definition.get("effects", [])
+	var missing_tags: Array[String] = []
+
+	for required_tool_tag in required_tool_tags:
+		var tag := String(required_tool_tag)
+		if tool_effects.has("effect.%s" % tag) or tool_effects.has(tag):
+			continue
+		missing_tags.append(tag)
+
+	if missing_tags.is_empty():
+		return ""
+	return "当前工具缺少能力：%s。" % ", ".join(missing_tags)
 
 
 func _is_already_processed(object_state: Dictionary, interaction_type: String) -> bool:

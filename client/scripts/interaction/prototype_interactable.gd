@@ -4,6 +4,7 @@ class_name PrototypeInteractable
 @export var definition_id: String = ""
 @export var interaction_type: String = "inspect"
 @export var recipe_id: String = ""
+@export var prerequisite_instance_id: String = ""
 @export var single_use: bool = true
 
 var consumed: bool = false
@@ -69,3 +70,8 @@ func mark_consumed() -> void:
 		consumed = true
 		visible = false
 		monitoring = false
+
+
+func set_interaction_enabled(enabled: bool) -> void:
+	visible = enabled
+	monitoring = enabled

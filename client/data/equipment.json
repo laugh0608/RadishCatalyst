@@ -8,7 +8,7 @@
       "slot": "tool",
       "category": "tool",
       "stat_modifiers": {"gather_power": 1.0, "attack_power": 1.0},
-      "effects": ["effect.gather_basic", "effect.attack_basic"],
+      "effects": ["effect.gather_basic", "effect.sample_basic", "effect.construct_basic", "effect.attack_basic"],
       "crafting_recipe_id": "",
       "durability": 100,
       "unlock_conditions": ["quest.restore_outpost"],
