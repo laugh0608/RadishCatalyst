@@ -14,7 +14,7 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 	status_label.text = "\n".join([
 		"RadishCatalyst Prototype",
 		"区域：%s" % _get_display_name(data_registry, world_state.current_region_id),
-		"目标：%s" % _get_display_name(data_registry, active_quest_id),
+		"目标：%s" % _format_goal_name(data_registry, world_state, active_quest_id),
 		"进度：%s" % _format_active_quest_progress(data_registry, world_state, active_quest_id),
 		"方向：%s" % _format_direction_hint(world_state, character_state, active_quest_id),
 		"生命：%.0f / %.0f" % [character_state.health, character_state.max_health],
@@ -47,6 +47,14 @@ func _get_display_name(data_registry: DataRegistry, definition_id: String) -> St
 	if definition.is_empty():
 		return definition_id
 	return data_registry.get_text(String(definition.get("display_name_key", definition_id)))
+
+
+func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
+	if not quest_id.is_empty():
+		return _get_display_name(data_registry, quest_id)
+	if _is_slice_complete(world_state):
+		return "第一切片已完成"
+	return "无"
 
 
 func _format_inventory(data_registry: DataRegistry, inventory: InventoryState) -> String:
@@ -88,6 +96,8 @@ func _format_quick_slots(data_registry: DataRegistry, character_state: Character
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _is_slice_complete(world_state):
+			return "更深区域信号已确认"
 		return "无"
 
 	var quest := data_registry.get_definition(quest_id)
@@ -119,6 +129,11 @@ func _format_active_quest_progress(data_registry: DataRegistry, world_state: Wor
 
 
 func _format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
+	if quest_id.is_empty():
+		if _is_slice_complete(world_state):
+			return "第一切片原型已收束；返回基地整理补给，后续区域待开放。"
+		return "按当前目标推进。"
+
 	match quest_id:
 		"quest.restore_outpost":
 			return "检查左侧前哨核心，解锁晶体矿脉导航。"
@@ -174,3 +189,7 @@ func _format_amount(amount: float) -> String:
 	if is_equal_approx(amount, roundf(amount)):
 		return str(int(amount))
 	return "%.1f" % amount
+
+
+func _is_slice_complete(world_state: WorldState) -> bool:
+	return world_state.quest_state.unlocked_effects.has("slice_01_complete")
