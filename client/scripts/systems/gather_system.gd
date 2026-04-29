@@ -62,10 +62,7 @@ func interact_with_object(
 			return _success("交互完成。")
 
 
-func _interact_with_outpost_core(_character_state: CharacterState, world_state: WorldState) -> Dictionary:
-	world_state.quest_state.complete_quest("quest.restore_outpost")
-	world_state.quest_state.activate_quest("quest.scout_crystal_field")
-	world_state.unlock_region("region.crystal_vein_field")
+func _interact_with_outpost_core(_character_state: CharacterState, _world_state: WorldState) -> Dictionary:
 	return _success("前哨核心已恢复，晶体矿脉区已标记。")
 
 

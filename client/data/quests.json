@@ -10,7 +10,7 @@
       "objectives": [{"type": "interact", "target_id": "building.outpost_core", "amount": 1}],
       "prerequisites": [],
       "rewards": [{"id": "item.basic_parts", "amount": 4}],
-      "unlock_effects": ["region.outpost_platform", "recipe.process_crystal_ore"],
+      "unlock_effects": ["region.outpost_platform", "region.crystal_vein_field", "recipe.process_crystal_ore"],
       "next_quest_ids": ["quest.scout_crystal_field"],
       "public_level": "public"
     },

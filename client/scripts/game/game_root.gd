@@ -36,18 +36,20 @@ func _ready() -> void:
 func _on_player_interaction_requested() -> void:
 	var context := _get_current_interaction_context()
 	var result := vertical_slice_map.try_interact(character_state, world_state)
+	var log_messages: Array[String] = [String(result.get("message", ""))]
 	if bool(result.get("success", false)):
-		_advance_quest_for_interaction(context, result)
+		log_messages.append_array(_advance_quest_for_interaction(context, result))
 	vertical_slice_map.refresh_world_interactables(world_state)
-	hud.append_log(String(result.get("message", "")))
+	hud.append_log(_join_log_messages(log_messages))
 	_update_hud()
 
 
 func _on_player_attack_requested() -> void:
 	var result := vertical_slice_map.try_attack(character_state, world_state)
+	var log_messages: Array[String] = [String(result.get("message", ""))]
 	if bool(result.get("success", false)) and bool(result.get("enemy_defeated", false)):
-		_advance_quest_for_defeated_enemy(String(result.get("enemy_definition_id", "")))
-	hud.append_log(String(result.get("message", "")))
+		log_messages.append_array(_advance_quest_for_defeated_enemy(String(result.get("enemy_definition_id", ""))))
+	hud.append_log(_join_log_messages(log_messages))
 	_update_hud()
 
 
@@ -160,62 +162,60 @@ func _get_current_interaction_context() -> Dictionary:
 	}
 
 
-func _advance_quest_for_interaction(context: Dictionary, result: Dictionary) -> void:
+func _advance_quest_for_interaction(context: Dictionary, result: Dictionary) -> Array[String]:
 	var definition_id := String(context.get("definition_id", ""))
 	var interaction_type := String(context.get("interaction_type", ""))
 	var recipe_id := String(context.get("recipe_id", ""))
 
 	if interaction_type == "outpost_core":
 		world_state.quest_state.set_objective_progress("quest.restore_outpost", "interact", "building.outpost_core", 1)
-		return
+		return _try_complete_quest("quest.restore_outpost")
 	if interaction_type == "gather" and definition_id == "map_object.crystal_cluster":
 		_add_drop_objective_progress("quest.scout_crystal_field", "gather_item", "item.crystal_ore", definition_id)
 		world_state.quest_state.set_objective_progress("quest.scout_crystal_field", "visit_region", "region.crystal_vein_field", 1)
-		_try_complete_quest("quest.scout_crystal_field")
-		return
+		return _try_complete_quest("quest.scout_crystal_field")
 	if interaction_type == "sample" and definition_id == "map_object.anomaly_crystal":
 		world_state.quest_state.set_objective_progress("quest.bring_back_sample", "sample_object", "map_object.anomaly_crystal", 1)
 		world_state.quest_state.set_objective_progress("quest.bring_back_sample", "return_region", "region.outpost_platform", 1)
-		_try_complete_quest("quest.bring_back_sample")
-		return
+		return _try_complete_quest("quest.bring_back_sample")
 	if interaction_type == "gather" and definition_id == "map_object.pollution_residue_patch":
 		world_state.quest_state.set_objective_progress("quest.enter_pollution_edge", "visit_region", "region.pollution_edge", 1)
 		_add_drop_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", definition_id)
-		_try_complete_quest("quest.enter_pollution_edge")
-		return
+		return _try_complete_quest("quest.enter_pollution_edge")
 	if interaction_type == "process_recipe":
-		_advance_quest_for_recipe(recipe_id)
-		return
+		return _advance_quest_for_recipe(recipe_id)
 	if interaction_type == "build":
-		_advance_quest_for_build(String(result.get("built_definition_id", definition_id)))
+		return _advance_quest_for_build(String(result.get("built_definition_id", definition_id)))
+	return []
 
 
-func _advance_quest_for_recipe(recipe_id: String) -> void:
+func _advance_quest_for_recipe(recipe_id: String) -> Array[String]:
 	match recipe_id:
 		"recipe.basic_filter_module":
 			world_state.quest_state.set_objective_progress("quest.make_filter_module", "craft_item", "equipment.filter_module_t1", 1)
-			_try_complete_quest("quest.make_filter_module")
+			return _try_complete_quest("quest.make_filter_module")
 		"recipe.cleanse_residue":
 			world_state.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1)
-			_try_complete_quest("quest.enter_pollution_edge")
+			return _try_complete_quest("quest.enter_pollution_edge")
 		_:
-			pass
+			return []
 
 
-func _advance_quest_for_build(building_id: String) -> void:
+func _advance_quest_for_build(building_id: String) -> Array[String]:
 	if building_id == "building.foundation_t1":
 		world_state.quest_state.add_objective_progress("quest.expand_treatment_point", "build", building_id, 1)
-		_try_complete_quest("quest.expand_treatment_point")
-		return
+		return _try_complete_quest("quest.expand_treatment_point")
 	if building_id == "building.pollution_filter":
 		world_state.quest_state.set_objective_progress("quest.expand_treatment_point", "build", building_id, 1)
-		_try_complete_quest("quest.expand_treatment_point")
+		return _try_complete_quest("quest.expand_treatment_point")
+	return []
 
 
-func _advance_quest_for_defeated_enemy(enemy_definition_id: String) -> void:
+func _advance_quest_for_defeated_enemy(enemy_definition_id: String) -> Array[String]:
 	if enemy_definition_id == "enemy.polluted_skitter":
 		world_state.quest_state.set_objective_progress("quest.enter_pollution_edge", "defeat_enemy", enemy_definition_id, 1)
-		_try_complete_quest("quest.enter_pollution_edge")
+		return _try_complete_quest("quest.enter_pollution_edge")
+	return []
 
 
 func _mark_pollution_edge_ready() -> bool:
@@ -246,19 +246,23 @@ func _add_drop_objective_progress(quest_id: String, objective_type: String, targ
 		return
 
 
-func _try_complete_quest(quest_id: String) -> void:
+func _try_complete_quest(quest_id: String) -> Array[String]:
 	if not world_state.quest_state.has_active_quest(quest_id):
-		return
+		return []
 	if not _are_quest_objectives_complete(quest_id):
-		return
+		return []
 
 	var quest := data_registry.get_definition(quest_id)
 	world_state.quest_state.complete_quest(quest_id)
-	_grant_refs(quest.get("rewards", []))
+	var reward_messages := _grant_refs(quest.get("rewards", []))
 	for effect_id in quest.get("unlock_effects", []):
 		_apply_quest_unlock(String(effect_id))
+	var next_quest_names: Array[String] = []
 	for next_quest_id in quest.get("next_quest_ids", []):
-		world_state.quest_state.activate_quest(String(next_quest_id))
+		var next_id := String(next_quest_id)
+		world_state.quest_state.activate_quest(next_id)
+		next_quest_names.append(_get_display_name(next_id))
+	return [_format_quest_completion_message(quest_id, reward_messages, quest.get("unlock_effects", []), next_quest_names)]
 
 
 func _are_quest_objectives_complete(quest_id: String) -> bool:
@@ -277,7 +281,8 @@ func _are_quest_objectives_complete(quest_id: String) -> bool:
 	return true
 
 
-func _grant_refs(refs: Array) -> void:
+func _grant_refs(refs: Array) -> Array[String]:
+	var reward_messages: Array[String] = []
 	for ref in refs:
 		if not ref is Dictionary:
 			continue
@@ -288,9 +293,59 @@ func _grant_refs(refs: Array) -> void:
 			continue
 
 		character_state.inventory.add_ref(definition_id, amount)
+		reward_messages.append("%s x%s" % [_get_display_name(definition_id), _format_amount(amount)])
+	return reward_messages
 
 
 func _apply_quest_unlock(effect_id: String) -> void:
 	if effect_id.begins_with("region."):
 		world_state.unlock_region(effect_id)
 	world_state.quest_state.unlock_effect(effect_id)
+
+
+func _format_quest_completion_message(
+	quest_id: String,
+	reward_messages: Array[String],
+	unlock_effects: Array,
+	next_quest_names: Array[String]
+) -> String:
+	var parts: Array[String] = ["任务完成：%s。" % _get_display_name(quest_id)]
+	if reward_messages.is_empty():
+		parts.append("奖励：无直接物资。")
+	else:
+		parts.append("奖励：%s。" % ", ".join(reward_messages))
+
+	var unlock_messages := _format_unlock_effects(unlock_effects)
+	if not unlock_messages.is_empty():
+		parts.append("解锁：%s。" % ", ".join(unlock_messages))
+	if not next_quest_names.is_empty():
+		parts.append("新目标：%s。" % ", ".join(next_quest_names))
+	return " ".join(parts)
+
+
+func _format_unlock_effects(unlock_effects: Array) -> Array[String]:
+	var unlock_messages: Array[String] = []
+	for effect_id in unlock_effects:
+		var id := String(effect_id)
+		if id.begins_with("quest."):
+			continue
+		if id.begins_with("region.") or id.begins_with("recipe.") or id.begins_with("building.") or id.begins_with("equipment.") or id.begins_with("item."):
+			unlock_messages.append(_get_display_name(id))
+		else:
+			unlock_messages.append(id)
+	return unlock_messages
+
+
+func _join_log_messages(messages: Array[String]) -> String:
+	var clean_messages: Array[String] = []
+	for message in messages:
+		if message.strip_edges().is_empty():
+			continue
+		clean_messages.append(message)
+	return " ".join(clean_messages)
+
+
+func _format_amount(amount: float) -> String:
+	if is_equal_approx(amount, roundf(amount)):
+		return str(int(amount))
+	return "%.1f" % amount
