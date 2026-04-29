@@ -139,6 +139,12 @@ interaction_type = "process_recipe"
 recipe_id = "recipe.cleanse_residue"
 single_use = false
 
+[node name="RuinGate" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(342, -20)
+definition_id = "map_object.ruin_gate"
+interaction_type = "inspect"
+single_use = false
+
 [node name="Enemies" type="Node2D" parent="."]
 
 [node name="NativeSkitter" parent="Enemies" instance=ExtResource("4_enemy")]

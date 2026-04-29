@@ -50,6 +50,8 @@ func _on_player_interaction_requested() -> void:
 	if bool(result.get("success", false)):
 		log_messages.append_array(_advance_quest_for_interaction(context, result))
 	vertical_slice_map.refresh_world_interactables(world_state)
+	if vertical_slice_map.current_interactable != null:
+		_on_interaction_available(vertical_slice_map.current_interactable)
 	hud.append_log(_join_log_messages(log_messages))
 	_update_hud()
 
@@ -122,6 +124,9 @@ func _on_player_load_requested() -> void:
 
 
 func _on_interaction_available(interactable: PrototypeInteractable) -> void:
+	if interactable.definition_id == "map_object.ruin_gate":
+		hud.show_prompt(_format_ruin_gate_prompt())
+		return
 	if interactable.interaction_type == "process_recipe":
 		hud.show_prompt(_format_processing_prompt(interactable))
 		return
@@ -197,6 +202,14 @@ func _format_processing_log(recipe_id: String) -> String:
 	]
 
 
+func _format_ruin_gate_prompt() -> String:
+	if not world_state.quest_state.has_completed_quest("quest.enter_pollution_edge"):
+		return "封锁遗迹入口：先治理污染边界，再确认更深区域信号。"
+	if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):
+		return "切片结尾：更深区域信号已确认，后续内容待开放。"
+	return "按 E 确认：封锁遗迹入口信号。"
+
+
 func _get_pollution_entry_warning() -> String:
 	var warnings: Array[String] = []
 	if character_state.protection < character_state.max_protection * 0.5:
@@ -239,6 +252,9 @@ func _advance_quest_for_interaction(context: Dictionary, result: Dictionary) -> 
 		world_state.quest_state.set_objective_progress("quest.enter_pollution_edge", "visit_region", "region.pollution_edge", 1)
 		_add_drop_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", definition_id)
 		return _try_complete_quest("quest.enter_pollution_edge")
+	if interaction_type == "inspect" and definition_id == "map_object.ruin_gate":
+		world_state.quest_state.set_objective_progress("quest.unlock_ruin_signal", "inspect", "map_object.ruin_gate", 1)
+		return _try_complete_quest("quest.unlock_ruin_signal")
 	if interaction_type == "process_recipe":
 		return _advance_quest_for_recipe(recipe_id)
 	if interaction_type == "build":
@@ -389,6 +405,10 @@ func _format_quest_completion_message(
 	var unlock_messages := _format_unlock_effects(unlock_effects)
 	if not unlock_messages.is_empty():
 		parts.append("解锁：%s。" % ", ".join(unlock_messages))
+	if quest_id == "quest.enter_pollution_edge":
+		parts.append("污染深处 / 遗迹入口信号已标记。")
+	if quest_id == "quest.unlock_ruin_signal":
+		parts.append("切片结尾：更深区域信号已确认，后续内容待开放。")
 	if not next_quest_names.is_empty():
 		parts.append("新目标：%s。" % ", ".join(next_quest_names))
 	return " ".join(parts)
@@ -399,6 +419,9 @@ func _format_unlock_effects(unlock_effects: Array) -> Array[String]:
 	for effect_id in unlock_effects:
 		var id := String(effect_id)
 		if id.begins_with("quest."):
+			continue
+		if id == "slice_01_complete":
+			unlock_messages.append("第一切片完成标记")
 			continue
 		if id.begins_with("region.") or id.begins_with("recipe.") or id.begins_with("building.") or id.begins_with("equipment.") or id.begins_with("item."):
 			unlock_messages.append(_get_display_name(id))

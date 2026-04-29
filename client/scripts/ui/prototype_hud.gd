@@ -141,7 +141,7 @@ func _format_direction_hint(world_state: WorldState, character_state: CharacterS
 		"quest.defeat_elite_node":
 			return "污染深处仍有精英节点，携带补给后继续向东推进。"
 		"quest.unlock_ruin_signal":
-			return "检查后续入口信号。"
+			return "向污染边界东侧检查封锁遗迹入口；此处仅确认后续信号。"
 		_:
 			return "按当前目标推进。"
 
@@ -164,6 +164,8 @@ func _get_objective_verb(objective_type: String) -> String:
 			return "建造 "
 		"defeat_enemy":
 			return "击败 "
+		"inspect":
+			return "检查 "
 		_:
 			return ""
 

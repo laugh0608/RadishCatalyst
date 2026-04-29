@@ -49,6 +49,9 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		}
 
 	var interacted := current_interactable
+	if interacted.definition_id == "map_object.ruin_gate" and interacted.interaction_type == "inspect":
+		return _inspect_ruin_gate(world_state)
+
 	var action_id := interacted.get_current_recipe_id()
 	if interacted.interaction_type == "build":
 		action_id = interacted.prerequisite_instance_id
@@ -382,6 +385,25 @@ func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, 
 	if parts.is_empty():
 		return ""
 	return "获得：%s。" % ", ".join(parts)
+
+
+func _inspect_ruin_gate(world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.enter_pollution_edge"):
+		return {
+			"success": false,
+			"message": "封锁遗迹入口仍被污染信号干扰：先治理污染边界，采集沉积物、处理药剂并击退受扰掠行体。"
+		}
+
+	if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):
+		return {
+			"success": true,
+			"message": "切片结尾：更深区域信号已确认，后续内容待开放。"
+		}
+
+	return {
+		"success": true,
+		"message": "封锁遗迹入口信号已确认：污染深处仍有稳定异常回波。"
+	}
 
 
 func _evacuate_if_needed(character_state: CharacterState, world_state: WorldState, reason: String) -> String:
