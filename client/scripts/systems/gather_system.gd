@@ -77,7 +77,10 @@ func _gather(instance_id: String, definition: Dictionary, character_state: Chara
 	else:
 		result_parts.append("采集完成：%s" % ", ".join(rewards))
 	if protection_drain > 0.0:
-		result_parts.append("污染压力消耗防护 %s" % _format_amount(protection_drain))
+		result_parts.append("污染压力消耗防护 %s%s" % [
+			_format_amount(protection_drain),
+			_get_pollution_protection_hint(character_state)
+		])
 
 	return _success("%s。" % "；".join(result_parts))
 
@@ -137,6 +140,13 @@ func _apply_pollution_pressure(definition: Dictionary, character_state: Characte
 	var actual_drain := base_drain * character_state.get_pollution_drain_multiplier(data_registry)
 	character_state.protection = maxf(0.0, character_state.protection - actual_drain)
 	return actual_drain
+
+
+func _get_pollution_protection_hint(character_state: CharacterState) -> String:
+	var module_id := String(character_state.equipment.get("suit_module", ""))
+	if module_id.is_empty():
+		return "，未启用过滤模块"
+	return "，过滤模块已降低消耗"
 
 
 func _format_amount(amount: float) -> String:

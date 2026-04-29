@@ -138,6 +138,10 @@ func _on_interaction_cleared(_interactable: PrototypeInteractable) -> void:
 
 func _on_region_changed(region_id: String) -> void:
 	var log_messages: Array[String] = ["已进入：%s。" % _get_display_name(region_id)]
+	if region_id == "region.pollution_edge":
+		var warning := _get_pollution_entry_warning()
+		if not warning.is_empty():
+			log_messages.append(warning)
 	log_messages.append_array(_advance_quest_for_region(region_id))
 	hud.append_log(_join_log_messages(log_messages))
 	_update_hud()
@@ -191,6 +195,17 @@ func _format_processing_log(recipe_id: String) -> String:
 		String(status.get("inputs", "无")),
 		String(status.get("outputs", "无"))
 	]
+
+
+func _get_pollution_entry_warning() -> String:
+	var warnings: Array[String] = []
+	if character_state.protection < character_state.max_protection * 0.5:
+		warnings.append("防护偏低，建议先按 2 使用抗污染药剂或返回基地补给。")
+	if String(character_state.equipment.get("suit_module", "")).is_empty():
+		warnings.append("未启用过滤模块，按 F 启用后污染消耗会降低。")
+	if warnings.is_empty():
+		return ""
+	return "污染边界警告：%s" % " ".join(warnings)
 
 
 func _get_current_interaction_context() -> Dictionary:

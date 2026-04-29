@@ -65,6 +65,9 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 	if not interacted.can_interact():
 		current_interactable = null
 		interaction_cleared.emit(interacted)
+	var evacuation_message := _evacuate_if_needed(character_state, world_state, "pollution")
+	if not evacuation_message.is_empty():
+		result["message"] = "%s%s" % [String(result.get("message", "")), evacuation_message]
 	return result
 
 
@@ -161,7 +164,7 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 		}
 
 	var counter_message := _apply_enemy_counterattack(target, character_state)
-	var evacuation_message := _evacuate_if_needed(character_state, world_state)
+	var evacuation_message := _evacuate_if_needed(character_state, world_state, "combat")
 	return {
 		"success": true,
 		"message": "命中：%s，造成 %.0f 伤害，剩余 HP %.0f。%s%s" % [
@@ -381,20 +384,44 @@ func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, 
 	return "获得：%s。" % ", ".join(parts)
 
 
-func _evacuate_if_needed(character_state: CharacterState, world_state: WorldState) -> String:
+func _evacuate_if_needed(character_state: CharacterState, world_state: WorldState, reason: String) -> String:
 	if character_state.health > 0.0 and character_state.protection > 0.0:
 		return ""
 
+	var health_depleted := character_state.health <= 0.0
+	var protection_depleted := character_state.protection <= 0.0
 	character_state.current_region_id = "region.outpost_platform"
 	world_state.current_region_id = "region.outpost_platform"
 	character_state.health = maxf(character_state.health, character_state.max_health * 0.6)
 	character_state.protection = maxf(character_state.protection, character_state.max_protection * 0.4)
 	player.global_position = OUTPOST_RESPAWN_POSITION
 
-	return " 生命或防护耗尽，已撤回前哨；生命恢复到 %s，防护恢复到 %s。" % [
+	return " %s已撤回前哨；生命恢复到 %s，防护恢复到 %s。%s" % [
+		_get_evacuation_reason(health_depleted, protection_depleted),
 		_format_amount(character_state.health),
-		_format_amount(character_state.protection)
+		_format_amount(character_state.protection),
+		_get_retry_hint(reason, health_depleted, protection_depleted)
 	]
+
+
+func _get_evacuation_reason(health_depleted: bool, protection_depleted: bool) -> String:
+	if health_depleted and protection_depleted:
+		return "生命和防护耗尽，"
+	if health_depleted:
+		return "生命耗尽，"
+	if protection_depleted:
+		return "防护耗尽，"
+	return "状态过低，"
+
+
+func _get_retry_hint(reason: String, health_depleted: bool, protection_depleted: bool) -> String:
+	if protection_depleted:
+		return "再尝试前：启用过滤模块，按 2 使用抗污染药剂，或回基地处理污染沉积物补充药剂。"
+	if health_depleted:
+		return "再尝试前：按 1 使用修复凝胶，或回基地用基础反应器调制补给。"
+	if reason == "pollution":
+		return "再尝试前：检查防护和抗污染药剂。"
+	return "再尝试前：补充快捷栏物品。"
 
 
 func _format_amount(amount: float) -> String:
