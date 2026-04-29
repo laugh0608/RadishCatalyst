@@ -119,6 +119,8 @@ func _run_checks() -> void:
 		_expect_equal(loaded_world.world_id, "world.slice_01.prototype", "loaded world id")
 		_expect_equal(loaded_character.stable_id, "character.player", "loaded character id")
 
+	_check_slice_end_hook_state_persists()
+	_check_slice_complete_state_persists()
 	_check_save_backup()
 	_check_bad_existing_save_does_not_block_save()
 
@@ -193,6 +195,102 @@ func _check_bad_existing_save_does_not_block_save() -> void:
 		failures.append("save over bad existing save should still create backup")
 
 
+func _check_slice_end_hook_state_persists() -> void:
+	var world_state := WorldState.create_default()
+	world_state.unlock_region("region.crystal_vein_field")
+	world_state.unlock_region("region.pollution_edge")
+	world_state.unlock_region("region.locked_ruin_gate")
+	world_state.current_region_id = "region.pollution_edge"
+	world_state.quest_state.active_quest_ids = ["quest.unlock_ruin_signal"]
+	world_state.quest_state.completed_quest_ids = [
+		"quest.restore_outpost",
+		"quest.scout_crystal_field",
+		"quest.bring_back_sample",
+		"quest.make_filter_module",
+		"quest.expand_treatment_point",
+		"quest.enter_pollution_edge"
+	]
+	world_state.quest_state.objective_progress = {
+		"quest.enter_pollution_edge|visit_region|region.pollution_edge": 1,
+		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 2,
+		"quest.enter_pollution_edge|craft_item|item.resistance_vial_t1": 1,
+		"quest.enter_pollution_edge|defeat_enemy|enemy.polluted_skitter": 1
+	}
+	world_state.quest_state.unlocked_effects = [
+		"region.outpost_platform",
+		"region.crystal_vein_field",
+		"region.pollution_edge",
+		"region.locked_ruin_gate"
+	]
+
+	_expect_success(save_service.save_game(world_state, CharacterState.create_default()), "save slice end hook state")
+	var load_result := save_service.load_game()
+	_expect_success(load_result, "load slice end hook state")
+	if not bool(load_result.get("success", false)):
+		return
+
+	var loaded_world: WorldState = load_result["world_state"]
+	_expect_array_has(loaded_world.unlocked_region_ids, "region.locked_ruin_gate", "slice hook unlocked ruin gate region")
+	_expect_array_has(loaded_world.quest_state.active_quest_ids, "quest.unlock_ruin_signal", "slice hook active ruin signal quest")
+	_expect_array_has(loaded_world.quest_state.completed_quest_ids, "quest.enter_pollution_edge", "slice hook completed pollution edge quest")
+	_expect_array_has(loaded_world.quest_state.unlocked_effects, "region.locked_ruin_gate", "slice hook persisted ruin gate unlock")
+	_expect_equal(
+		loaded_world.quest_state.get_objective_progress("quest.enter_pollution_edge", "defeat_enemy", "enemy.polluted_skitter"),
+		1.0,
+		"slice hook polluted enemy objective"
+	)
+
+
+func _check_slice_complete_state_persists() -> void:
+	var world_state := WorldState.create_default()
+	world_state.unlock_region("region.crystal_vein_field")
+	world_state.unlock_region("region.pollution_edge")
+	world_state.unlock_region("region.locked_ruin_gate")
+	world_state.current_region_id = "region.locked_ruin_gate"
+	world_state.quest_state.active_quest_ids = []
+	world_state.quest_state.completed_quest_ids = [
+		"quest.restore_outpost",
+		"quest.scout_crystal_field",
+		"quest.bring_back_sample",
+		"quest.make_filter_module",
+		"quest.expand_treatment_point",
+		"quest.enter_pollution_edge",
+		"quest.unlock_ruin_signal"
+	]
+	world_state.quest_state.objective_progress = {
+		"quest.unlock_ruin_signal|inspect|map_object.ruin_gate": 1
+	}
+	world_state.quest_state.unlocked_effects = [
+		"region.outpost_platform",
+		"region.crystal_vein_field",
+		"region.pollution_edge",
+		"region.locked_ruin_gate",
+		"slice_01_complete"
+	]
+
+	var character_state := CharacterState.create_default()
+	character_state.current_region_id = "region.locked_ruin_gate"
+	character_state.position = Vector2(342, -20)
+	_expect_success(save_service.save_game(world_state, character_state), "save slice complete state")
+	var load_result := save_service.load_game()
+	_expect_success(load_result, "load slice complete state")
+	if not bool(load_result.get("success", false)):
+		return
+
+	var loaded_world: WorldState = load_result["world_state"]
+	var loaded_character: CharacterState = load_result["character_state"]
+	_expect_array_has(loaded_world.quest_state.completed_quest_ids, "quest.unlock_ruin_signal", "slice complete ruin signal quest")
+	_expect_array_has(loaded_world.quest_state.unlocked_effects, "slice_01_complete", "slice complete unlock effect")
+	_expect_equal(
+		loaded_world.quest_state.get_objective_progress("quest.unlock_ruin_signal", "inspect", "map_object.ruin_gate"),
+		1.0,
+		"slice complete inspect objective"
+	)
+	_expect_equal(loaded_world.current_region_id, "region.locked_ruin_gate", "slice complete world region")
+	_expect_equal(loaded_character.current_region_id, "region.locked_ruin_gate", "slice complete character region")
+	_expect_equal(loaded_character.position, Vector2(342, -20), "slice complete character position")
+
+
 func _read_json_file(save_path: String) -> Dictionary:
 	var file := FileAccess.open(save_path, FileAccess.READ)
 	if file == null:
@@ -229,3 +327,8 @@ func _expect_failure_message(result: Dictionary, expected_message: String, label
 func _expect_equal(actual, expected, label: String) -> void:
 	if actual != expected:
 		failures.append("%s expected %s, got %s" % [label, var_to_str(expected), var_to_str(actual)])
+
+
+func _expect_array_has(values: Array, expected_value: String, label: String) -> void:
+	if not values.has(expected_value):
+		failures.append("%s should contain %s, got %s" % [label, expected_value, var_to_str(values)])
