@@ -4,6 +4,7 @@ var data_registry: DataRegistry
 var world_state: WorldState
 var character_state: CharacterState
 var save_service := SaveService.new()
+var processing_system: ProcessingSystem
 
 @onready var vertical_slice_map: VerticalSliceMap = $VerticalSliceMap
 @onready var hud: PrototypeHud = $PrototypeHud
@@ -16,6 +17,7 @@ func _ready() -> void:
 
 	world_state = WorldState.create_default()
 	character_state = CharacterState.create_default()
+	processing_system = ProcessingSystem.new(data_registry)
 	vertical_slice_map.setup(data_registry)
 	vertical_slice_map.sync_enemy_states(world_state)
 	vertical_slice_map.refresh_world_interactables(world_state)
@@ -63,9 +65,11 @@ func _on_player_attack_requested() -> void:
 
 func _on_player_recipe_cycle_requested() -> void:
 	var result := vertical_slice_map.try_cycle_recipe()
-	hud.append_log(String(result.get("message", "")))
 	if bool(result.get("success", false)) and vertical_slice_map.current_interactable != null:
+		hud.append_log(_format_processing_log(vertical_slice_map.current_interactable.get_current_recipe_id()))
 		_on_interaction_available(vertical_slice_map.current_interactable)
+	else:
+		hud.append_log(String(result.get("message", "")))
 	_update_hud()
 
 
@@ -160,13 +164,32 @@ func _get_display_name(definition_id: String) -> String:
 
 
 func _format_processing_prompt(interactable: PrototypeInteractable) -> String:
-	if interactable.get_recipe_count() <= 1:
-		return "按 E 加工：%s" % _get_display_name(interactable.get_current_recipe_id())
+	var recipe_id := interactable.get_current_recipe_id()
+	var status := processing_system.get_recipe_status(recipe_id, character_state, world_state)
+	var parts: Array[String] = ["按 E 加工：%s" % _get_display_name(recipe_id)]
+	if interactable.get_recipe_count() > 1:
+		parts[0] = "%s；按 R 切换配方（%d/%d）" % [
+			parts[0],
+			interactable.get_recipe_position(),
+			interactable.get_recipe_count()
+		]
 
-	return "按 E 加工：%s；按 R 切换配方（%d/%d）" % [
-		_get_display_name(interactable.get_current_recipe_id()),
-		interactable.get_recipe_position(),
-		interactable.get_recipe_count()
+	parts.append("输入：%s" % String(status.get("inputs", "无")))
+	parts.append("产出：%s" % String(status.get("outputs", "无")))
+	var byproducts := String(status.get("byproducts", ""))
+	if not byproducts.is_empty():
+		parts.append("副产：%s" % byproducts)
+	parts.append("状态：%s" % String(status.get("message", "")))
+	return "\n".join(parts)
+
+
+func _format_processing_log(recipe_id: String) -> String:
+	var status := processing_system.get_recipe_status(recipe_id, character_state, world_state)
+	return "%s：%s 输入：%s；产出：%s。" % [
+		_get_display_name(recipe_id),
+		String(status.get("message", "")),
+		String(status.get("inputs", "无")),
+		String(status.get("outputs", "无"))
 	]
 
 
