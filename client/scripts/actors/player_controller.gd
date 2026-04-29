@@ -7,6 +7,7 @@ signal interaction_requested
 signal attack_requested
 signal recipe_cycle_requested
 signal module_toggle_requested
+signal quick_slot_requested(slot_index: int)
 
 
 func _physics_process(_delta: float) -> void:
@@ -25,6 +26,10 @@ func _physics_process(_delta: float) -> void:
 		recipe_cycle_requested.emit()
 	if Input.is_action_just_pressed("toggle_module"):
 		module_toggle_requested.emit()
+	if Input.is_action_just_pressed("use_quick_slot_1"):
+		quick_slot_requested.emit(0)
+	if Input.is_action_just_pressed("use_quick_slot_2"):
+		quick_slot_requested.emit(1)
 
 
 func _get_keyboard_fallback_vector() -> Vector2:

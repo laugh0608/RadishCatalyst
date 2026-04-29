@@ -22,10 +22,11 @@ func _ready() -> void:
 	vertical_slice_map.player.attack_requested.connect(_on_player_attack_requested)
 	vertical_slice_map.player.recipe_cycle_requested.connect(_on_player_recipe_cycle_requested)
 	vertical_slice_map.player.module_toggle_requested.connect(_on_player_module_toggle_requested)
+	vertical_slice_map.player.quick_slot_requested.connect(_on_player_quick_slot_requested)
 	vertical_slice_map.interaction_available.connect(_on_interaction_available)
 	vertical_slice_map.interaction_cleared.connect(_on_interaction_cleared)
 
-	hud.append_log("前哨原型已启动。WASD 移动，E 交互，J 攻击，R 切换设备配方，F 启用过滤模块。")
+	hud.append_log("前哨原型已启动。WASD 移动，E 交互，J 攻击，R 切换设备配方，F 启用过滤模块，1/2 使用快捷栏。")
 	_update_hud()
 
 
@@ -73,6 +74,12 @@ func _on_player_module_toggle_requested() -> void:
 		hud.append_log("已启用基础过滤模块，污染边界区已标记，污染防护消耗降低。")
 	else:
 		hud.append_log("已启用基础过滤模块。还需要先扩建污染处理点，才能稳定推进污染边界。")
+	_update_hud()
+
+
+func _on_player_quick_slot_requested(slot_index: int) -> void:
+	var result := character_state.use_quick_slot(slot_index, data_registry)
+	hud.append_log(String(result.get("message", "")))
 	_update_hud()
 
 

@@ -22,6 +22,7 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 			_get_equipped_module_name(data_registry, character_state),
 			character_state.get_pollution_drain_multiplier(data_registry)
 		],
+		"快捷栏：%s" % _format_quick_slots(data_registry, character_state),
 		"背包：%s" % _format_inventory(data_registry, character_state.inventory)
 	])
 
@@ -64,6 +65,24 @@ func _get_equipped_module_name(data_registry: DataRegistry, character_state: Cha
 	if module_id.is_empty():
 		return "未启用"
 	return _get_display_name(data_registry, module_id)
+
+
+func _format_quick_slots(data_registry: DataRegistry, character_state: CharacterState) -> String:
+	var parts: Array[String] = []
+	for slot_index in range(character_state.quick_slots.size()):
+		var item_id := character_state.quick_slots[slot_index]
+		if item_id.is_empty():
+			parts.append("%d 空" % (slot_index + 1))
+			continue
+
+		parts.append("%d %s x%s" % [
+			slot_index + 1,
+			_get_display_name(data_registry, item_id),
+			int(character_state.inventory.items.get(item_id, 0))
+		])
+	if parts.is_empty():
+		return "无"
+	return "；".join(parts)
 
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
