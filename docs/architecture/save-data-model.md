@@ -564,6 +564,7 @@ saves/
 - 当前保存 `save_schema_version`、`game_version`、`created_at`、`updated_at`、`WorldState.to_dict()` 和 `CharacterState.to_dict()`，覆盖任务、区域解锁、地图对象、敌人、建筑、污染、天气、生命、防护、位置、装备、快捷栏和背包。
 - 当前读取会先校验 `save_schema_version`、`world` 和 `character` 是否存在且类型正确；文件不存在、JSON 解析失败、版本不兼容、关键块缺失或关键块类型错误时，会返回清楚的中文失败提示，并避免替换当前运行中的世界和角色状态。
 - 当前 `WorldState`、`CharacterState`、`InventoryState` 和 `QuestState` 的 `from_dict()` 会对缺失或类型不符的非关键嵌套字段保留默认值，服务旧原型存档和轻度坏档兜底。
+- 当前新增 `scripts/check-client-save.ps1` 和 `client/scripts/checks/save_service_check.gd`，用隔离的 Godot 用户目录复验文件缺失、坏 JSON、版本错误、关键块缺失 / 类型错误、非关键字段默认值兜底，以及默认状态保存后读取。
 - 该实现用于验证第一可玩切片状态可落盘，不代表最终存档槽、备份、迁移或导入导出设计。
 
 ## 迁移与校验
@@ -591,7 +592,7 @@ saves/
 - 默认值填充。
 - 失败时清楚提示，而不是静默损坏。
 
-当前原型已完成最小读取校验：`save_schema_version`、`world` 和 `character` 为关键块，必须存在且类型正确；其余嵌套字段暂按默认值兜底。后续进入多槽位、备份或正式迁移前，应继续补充静态定义 ID、库存数量、坐标和实例 ID 的复验。
+当前原型已完成最小读取校验和运行时复验入口：`save_schema_version`、`world` 和 `character` 为关键块，必须存在且类型正确；其余嵌套字段暂按默认值兜底。后续进入多槽位、备份或正式迁移前，应继续补充静态定义 ID、库存数量、坐标和实例 ID 的复验。
 
 ## 首版必须保存的最小集合
 

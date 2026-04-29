@@ -139,7 +139,7 @@ static func from_dict(data: Dictionary) -> CharacterState:
 	var quick_slots_data = data.get("quick_slots", state.quick_slots)
 	if quick_slots_data is Array:
 		state.quick_slots.assign(quick_slots_data)
-	var inventory_data = data.get("inventory", {})
+	var inventory_data = data.get("inventory", null)
 	if inventory_data is Dictionary:
 		state.inventory = InventoryState.from_dict(inventory_data)
 	return state

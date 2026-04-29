@@ -337,7 +337,8 @@ Godot `Autoload` 应少而清楚。
 9. 建立建造、地基和建造失败提示。
 10. 建立污染边界和防护消耗。已完成污染沉积斑防护消耗、过滤模块减免、污染敌人防护压力和污染处理点雏形。
 11. 建立存档保存 / 读取。已完成原型单文件 `SaveService`，支持 `K` 保存、`L` 读取。
-12. 串起第一可玩切片。
+12. 建立存档运行时复验。已完成 `check-client-save.ps1`，覆盖原型坏档、旧档兜底和默认状态保存 / 读取。
+13. 串起第一可玩切片。
 
 不要先做：
 
@@ -355,11 +356,14 @@ Godot `Autoload` 应少而清楚。
 ```powershell
 pwsh ./scripts/check-client-data.ps1
 pwsh ./scripts/check-client-scenes.ps1
+pwsh ./scripts/check-client-save.ps1
 pwsh ./scripts/check-godot-client.ps1
 pwsh ./scripts/check-text-files.ps1
 ```
 
 `check-godot-client.ps1` 当前使用 Godot 4.6.2 console 的 `--import --quit` 完成项目导入和全局类注册验证。`--headless --path ... --quit` 和 `--check-only --script` 在当前 Windows / Godot 4.6.2 环境会触发引擎层崩溃，因此暂不作为门禁。
+
+`check-client-save.ps1` 当前会先执行一次 Godot 导入，再通过 `client/scripts/checks/save_service_check.gd` 运行 `SaveService` 读写校验，并将 Godot 配置、数据、缓存和 `user://` 存档目录隔离到 `.godot-check-home/save-service/` 下。
 
 ## GDScript 与 C# 边界
 
