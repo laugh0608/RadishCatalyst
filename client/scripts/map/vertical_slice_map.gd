@@ -7,6 +7,7 @@ signal interaction_cleared(interactable: PrototypeInteractable)
 const ATTACK_RANGE := 90.0
 const BASE_ATTACK_DAMAGE := 10.0
 const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
+const OUTPOST_RESPAWN_POSITION := Vector2(-300, -42)
 
 @onready var player: PlayerController = $Player
 @onready var interactables_root: Node2D = $Interactables
@@ -121,28 +122,34 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 	)
 
 	if bool(result.get("defeated", false)):
+		var drops_message := _grant_enemy_drops(target, character_state, world_state)
 		if target.definition_id == "enemy.polluted_skitter":
 			return {
 				"success": true,
-				"message": "击败：%s。污染处理点周边暂时安全。" % target.display_name,
+				"message": "击败：%s。%s污染处理点周边暂时安全。" % [
+					target.display_name,
+					drops_message
+				],
 				"enemy_definition_id": target.definition_id,
 				"enemy_defeated": true
 			}
 		return {
 			"success": true,
-			"message": "击败：%s。" % target.display_name,
+			"message": "击败：%s。%s" % [target.display_name, drops_message],
 			"enemy_definition_id": target.definition_id,
 			"enemy_defeated": true
 		}
 
 	var counter_message := _apply_enemy_counterattack(target, character_state)
+	var evacuation_message := _evacuate_if_needed(character_state, world_state)
 	return {
 		"success": true,
-		"message": "命中：%s，造成 %.0f 伤害，剩余 HP %.0f。%s" % [
+		"message": "命中：%s，造成 %.0f 伤害，剩余 HP %.0f。%s%s" % [
 			target.display_name,
 			damage,
 			float(result.get("health", 0.0)),
-			counter_message
+			counter_message,
+			evacuation_message
 		],
 		"enemy_definition_id": target.definition_id,
 		"enemy_defeated": false
@@ -282,6 +289,51 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 			_format_amount(protection_damage)
 		]
 	return "%s 反击，生命 -%s。" % [enemy.display_name, _format_amount(health_damage)]
+
+
+func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, world_state: WorldState) -> String:
+	if world_state.has_enemy_drops_granted(enemy.instance_id):
+		return ""
+
+	var definition := data_registry.get_definition(enemy.definition_id)
+	var drops: Array = definition.get("drops", [])
+	if drops.is_empty():
+		world_state.set_enemy_drops_granted(enemy.instance_id, true)
+		return ""
+
+	var parts: Array[String] = []
+	for drop in drops:
+		if not drop is Dictionary:
+			continue
+
+		var definition_id := String(drop.get("id", ""))
+		var amount := float(drop.get("amount", 0.0))
+		if definition_id.is_empty() or amount <= 0.0:
+			continue
+
+		character_state.inventory.add_ref(definition_id, amount)
+		parts.append("%s x%s" % [_get_display_name(definition_id), _format_amount(amount)])
+
+	world_state.set_enemy_drops_granted(enemy.instance_id, true)
+	if parts.is_empty():
+		return ""
+	return "获得：%s。" % ", ".join(parts)
+
+
+func _evacuate_if_needed(character_state: CharacterState, world_state: WorldState) -> String:
+	if character_state.health > 0.0 and character_state.protection > 0.0:
+		return ""
+
+	character_state.current_region_id = "region.outpost_platform"
+	world_state.current_region_id = "region.outpost_platform"
+	character_state.health = maxf(character_state.health, character_state.max_health * 0.6)
+	character_state.protection = maxf(character_state.protection, character_state.max_protection * 0.4)
+	player.global_position = OUTPOST_RESPAWN_POSITION
+
+	return " 生命或防护耗尽，已撤回前哨；生命恢复到 %s，防护恢复到 %s。" % [
+		_format_amount(character_state.health),
+		_format_amount(character_state.protection)
+	]
 
 
 func _format_amount(amount: float) -> String:

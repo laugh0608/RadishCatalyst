@@ -1,6 +1,6 @@
 # Static Data Schema
 
-更新时间：2026-04-26
+更新时间：2026-04-29
 
 ## 文档目的
 
@@ -333,6 +333,7 @@ behaviors
 damage_types
 resistances
 drop_table_id
+drops
 spawn_regions
 public_level
 ```
@@ -347,6 +348,7 @@ public_level
 
 - 具体敌人位置、生命、是否死亡属于存档运行时状态。
 - 掉落表应独立配置，便于 Wiki 和工具反查。
+- 当前原型阶段允许在敌人定义中临时保留 `drops`，用于先验证击败反馈和库存闭环；后续进入更完整掉落系统时再拆为独立掉落表。
 
 ## 区域与地图对象数据
 

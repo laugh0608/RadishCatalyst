@@ -77,6 +77,18 @@ func update_enemy_health(instance_id: String, health: float, is_defeated: bool) 
 	enemies[instance_id]["is_defeated"] = is_defeated
 
 
+func has_enemy_drops_granted(instance_id: String) -> bool:
+	if not enemies.has(instance_id):
+		return false
+	return bool(enemies[instance_id].get("drops_granted", false))
+
+
+func set_enemy_drops_granted(instance_id: String, drops_granted: bool) -> void:
+	if not enemies.has(instance_id):
+		return
+	enemies[instance_id]["drops_granted"] = drops_granted
+
+
 func ensure_base_structure(structure_id: String, definition_id: String, region_id: String = "") -> Dictionary:
 	if not base_structures.has(structure_id):
 		base_structures[structure_id] = {

@@ -12,6 +12,7 @@
       "damage_types": ["physical"],
       "resistances": {},
       "drop_table_id": "drop.native_skitter",
+      "drops": [{"id": "item.repair_gel", "amount": 1}],
       "spawn_regions": ["region.crystal_vein_field"],
       "public_level": "public"
     },
@@ -26,6 +27,7 @@
       "damage_types": ["physical", "pollution"],
       "resistances": {"pollution": 0.5},
       "drop_table_id": "drop.polluted_skitter",
+      "drops": [{"id": "item.polluted_residue", "amount": 1}],
       "spawn_regions": ["region.pollution_edge"],
       "public_level": "public"
     },
@@ -40,6 +42,7 @@
       "damage_types": ["pollution"],
       "resistances": {"pollution": 0.8},
       "drop_table_id": "drop.elite_residue_node",
+      "drops": [{"id": "item.anomaly_sample", "amount": 1}],
       "spawn_regions": ["region.pollution_edge"],
       "public_level": "spoiler"
     }
