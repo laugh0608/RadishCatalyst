@@ -14,10 +14,10 @@ var defeated: bool = false
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
 
-func setup(display_name: String, max_health: float, category: String = "basic") -> void:
-	self.display_name = display_name
-	self.max_health = max_health
-	health = max_health
+func setup(enemy_display_name: String, enemy_max_health: float, category: String = "basic") -> void:
+	display_name = enemy_display_name
+	max_health = enemy_max_health
+	health = enemy_max_health
 	defeated = false
 	collision_shape.disabled = false
 	sprite.color = _get_active_color(category)

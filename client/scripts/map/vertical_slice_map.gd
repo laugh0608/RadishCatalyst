@@ -8,8 +8,11 @@ signal region_gate_blocked(message: String)
 
 const ATTACK_RANGE := 90.0
 const BASE_ATTACK_DAMAGE := 10.0
+const PLAYER_INTERACTION_RANGE := 96.0
 const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
-const OUTPOST_RESPAWN_POSITION := Vector2(-300, -42)
+const OUTPOST_RESPAWN_POSITION := Vector2(-250, -48)
+const PLAY_BOUNDS_MIN := Vector2(-360, -200)
+const PLAY_BOUNDS_MAX := Vector2(360, 200)
 const CRYSTAL_REGION_X := -70.0
 const CRYSTAL_GATE_RETURN_X := -85.0
 const POLLUTION_GATE_X := 220.0
@@ -93,7 +96,7 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 		if interactable.single_use:
 			interactable.consumed = is_processed
 
-		var should_enable := not interactable.consumed
+		var should_enable: bool = not interactable.consumed
 		if interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter":
 			should_enable = should_enable and world_state.has_base_structure_definition("building.pollution_filter")
 
@@ -101,6 +104,20 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 		if current_interactable == interactable and not should_enable:
 			current_interactable = null
 			interaction_cleared.emit(interactable)
+	update_current_interactable()
+
+
+func update_current_interactable() -> void:
+	var nearest_interactable := _get_nearest_interactable()
+	if nearest_interactable == current_interactable:
+		return
+
+	var previous_interactable := current_interactable
+	current_interactable = nearest_interactable
+	if previous_interactable != null:
+		interaction_cleared.emit(previous_interactable)
+	if current_interactable != null:
+		interaction_available.emit(current_interactable)
 
 
 func try_cycle_recipe() -> Dictionary:
@@ -228,7 +245,7 @@ func sync_enemy_states(world_state: WorldState) -> void:
 
 func apply_runtime_state(world_state: WorldState, character_state: CharacterState) -> void:
 	current_interactable = null
-	player.global_position = character_state.position
+	player.position = character_state.position
 	last_reported_region_id = world_state.current_region_id
 	last_gate_message = ""
 	sync_enemy_states(world_state)
@@ -236,13 +253,17 @@ func apply_runtime_state(world_state: WorldState, character_state: CharacterStat
 
 
 func get_player_position() -> Vector2:
-	return player.global_position
+	return player.position
 
 
 func update_region_presence(world_state: WorldState, character_state: CharacterState) -> void:
-	var region_id := _get_region_id_for_position(player.global_position)
+	player.clamp_to_play_bounds(PLAY_BOUNDS_MIN, PLAY_BOUNDS_MAX)
+	apply_region_gate_bounds(world_state)
+
+	var region_id := _get_region_id_for_position(player.position)
 	if region_id == "region.crystal_vein_field" and not world_state.unlocked_region_ids.has(region_id):
-		player.global_position.x = CRYSTAL_GATE_RETURN_X
+		player.position.x = CRYSTAL_GATE_RETURN_X
+		player.stop_positive_x_until_release()
 		var message := "晶体矿脉区尚未标记：先检查前哨核心，恢复基础导航。"
 		if message != last_gate_message:
 			last_gate_message = message
@@ -250,7 +271,8 @@ func update_region_presence(world_state: WorldState, character_state: CharacterS
 		return
 
 	if region_id == "region.pollution_edge" and not world_state.unlocked_region_ids.has(region_id):
-		player.global_position.x = POLLUTION_GATE_RETURN_X
+		player.position.x = POLLUTION_GATE_RETURN_X
+		player.stop_positive_x_until_release()
 		var message := "污染边界尚未稳定：先扩建处理点并启用基础过滤模块。"
 		if message != last_gate_message:
 			last_gate_message = message
@@ -265,6 +287,21 @@ func update_region_presence(world_state: WorldState, character_state: CharacterS
 	world_state.current_region_id = region_id
 	character_state.current_region_id = region_id
 	region_changed.emit(region_id)
+
+
+func apply_region_gate_bounds(world_state: WorldState) -> void:
+	if not world_state.unlocked_region_ids.has("region.crystal_vein_field") and player.position.x > CRYSTAL_GATE_RETURN_X:
+		player.position.x = CRYSTAL_GATE_RETURN_X
+		player.stop_positive_x_until_release()
+		return
+
+	if (
+		not world_state.unlocked_region_ids.has("region.pollution_edge")
+		and player.position.x > POLLUTION_GATE_RETURN_X
+		and player.position.y >= POLLUTION_DEEP_Y
+	):
+		player.position.x = POLLUTION_GATE_RETURN_X
+		player.stop_positive_x_until_release()
 
 
 func _get_display_name(definition_id: String) -> String:
@@ -299,15 +336,31 @@ func _get_recipes_for_building(building_id: String) -> Array[String]:
 func _on_interactable_body_entered(body: Node2D, interactable: PrototypeInteractable) -> void:
 	if body != player or not interactable.can_interact():
 		return
-	current_interactable = interactable
-	interaction_available.emit(interactable)
+	update_current_interactable()
 
 
 func _on_interactable_body_exited(body: Node2D, interactable: PrototypeInteractable) -> void:
 	if body != player or current_interactable != interactable:
 		return
-	current_interactable = null
-	interaction_cleared.emit(interactable)
+	update_current_interactable()
+
+
+func _get_nearest_interactable() -> PrototypeInteractable:
+	var nearest_interactable: PrototypeInteractable = null
+	var nearest_distance := INF
+
+	for interactable in interactables_root.get_children():
+		if not interactable is PrototypeInteractable or not interactable.can_interact():
+			continue
+
+		var distance := player.position.distance_to(interactable.position)
+		if distance > PLAYER_INTERACTION_RANGE or distance >= nearest_distance:
+			continue
+
+		nearest_interactable = interactable
+		nearest_distance = distance
+
+	return nearest_interactable
 
 
 func _get_nearest_attack_target() -> PrototypeEnemy:
@@ -318,7 +371,7 @@ func _get_nearest_attack_target() -> PrototypeEnemy:
 		if not enemy is PrototypeEnemy or not enemy.can_be_attacked():
 			continue
 
-		var distance := player.global_position.distance_to(enemy.global_position)
+		var distance := player.position.distance_to(enemy.position)
 		if distance > ATTACK_RANGE or distance >= nearest_distance:
 			continue
 
@@ -416,7 +469,7 @@ func _evacuate_if_needed(character_state: CharacterState, world_state: WorldStat
 	world_state.current_region_id = "region.outpost_platform"
 	character_state.health = maxf(character_state.health, character_state.max_health * 0.6)
 	character_state.protection = maxf(character_state.protection, character_state.max_protection * 0.4)
-	player.global_position = OUTPOST_RESPAWN_POSITION
+	player.position = OUTPOST_RESPAWN_POSITION
 
 	return " %s已撤回前哨；生命恢复到 %s，防护恢复到 %s。%s" % [
 		_get_evacuation_reason(health_depleted, protection_depleted),
@@ -456,9 +509,9 @@ func _get_enemy_instance_id(enemy: PrototypeEnemy) -> String:
 	return "enemy_instance.%s" % String(enemy.name).to_snake_case()
 
 
-func _get_region_id_for_position(position: Vector2) -> String:
-	if position.x >= POLLUTION_GATE_X and position.y >= POLLUTION_DEEP_Y:
+func _get_region_id_for_position(map_position: Vector2) -> String:
+	if map_position.x >= POLLUTION_GATE_X and map_position.y >= POLLUTION_DEEP_Y:
 		return "region.pollution_edge"
-	if position.x >= CRYSTAL_REGION_X:
+	if map_position.x >= CRYSTAL_REGION_X:
 		return "region.crystal_vein_field"
 	return "region.outpost_platform"

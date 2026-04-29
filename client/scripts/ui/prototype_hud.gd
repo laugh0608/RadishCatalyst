@@ -1,9 +1,9 @@
 extends CanvasLayer
 class_name PrototypeHud
 
-@onready var status_label: Label = $PanelBackground/StatusLabel
-@onready var prompt_label: Label = $PanelBackground/PromptLabel
-@onready var log_label: Label = $PanelBackground/LogLabel
+@onready var status_label: Label = $StatusPanel/StatusLabel
+@onready var prompt_label: Label = $PromptPanel/PromptLabel
+@onready var log_label: Label = $LogPanel/LogLabel
 
 
 func update_status(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> void:
@@ -17,6 +17,7 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 		"目标：%s" % _format_goal_name(data_registry, world_state, active_quest_id),
 		"进度：%s" % _format_active_quest_progress(data_registry, world_state, active_quest_id),
 		"方向：%s" % _format_direction_hint(world_state, character_state, active_quest_id),
+		"坐标：x %.1f，y %.1f" % [character_state.position.x, character_state.position.y],
 		"生命：%.0f / %.0f" % [character_state.health, character_state.max_health],
 		"防护：%.0f / %.0f" % [character_state.protection, character_state.max_protection],
 		"模块：%s（污染消耗 x%.2f）" % [

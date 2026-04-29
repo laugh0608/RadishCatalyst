@@ -40,7 +40,10 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if world_state == null or character_state == null:
 		return
+	vertical_slice_map.update_current_interactable()
 	vertical_slice_map.update_region_presence(world_state, character_state)
+	character_state.position = vertical_slice_map.get_player_position()
+	_update_hud()
 
 
 func _on_player_interaction_requested() -> void:

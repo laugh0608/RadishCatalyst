@@ -11,7 +11,7 @@ var max_health: float = 100.0
 var protection: float = 100.0
 var max_protection: float = 100.0
 var current_region_id: String = "region.outpost_platform"
-var position: Vector2 = Vector2(-300, -42)
+var position: Vector2 = Vector2(-250, -48)
 var equipment: Dictionary = {
 	"tool": "equipment.basic_tool",
 	"suit": "equipment.basic_suit",
@@ -127,11 +127,11 @@ static func from_dict(data: Dictionary) -> CharacterState:
 	state.protection = float(data.get("protection", 100.0))
 	state.max_protection = float(data.get("max_protection", 100.0))
 	state.current_region_id = String(data.get("current_region_id", "region.outpost_platform"))
-	var position_data = data.get("position", {"x": -300.0, "y": -42.0})
+	var position_data = data.get("position", {"x": -250.0, "y": -48.0})
 	if position_data is Dictionary:
 		state.position = Vector2(
-			float(position_data.get("x", -300.0)),
-			float(position_data.get("y", -42.0))
+			float(position_data.get("x", -250.0)),
+			float(position_data.get("y", -48.0))
 		)
 	var equipment_data = data.get("equipment", state.equipment)
 	if equipment_data is Dictionary:
