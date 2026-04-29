@@ -133,9 +133,15 @@ static func from_dict(data: Dictionary) -> CharacterState:
 			float(position_data.get("x", -300.0)),
 			float(position_data.get("y", -42.0))
 		)
-	state.equipment = data.get("equipment", state.equipment).duplicate(true)
-	state.quick_slots.assign(data.get("quick_slots", state.quick_slots))
-	state.inventory = InventoryState.from_dict(data.get("inventory", {}))
+	var equipment_data = data.get("equipment", state.equipment)
+	if equipment_data is Dictionary:
+		state.equipment = equipment_data.duplicate(true)
+	var quick_slots_data = data.get("quick_slots", state.quick_slots)
+	if quick_slots_data is Array:
+		state.quick_slots.assign(quick_slots_data)
+	var inventory_data = data.get("inventory", {})
+	if inventory_data is Dictionary:
+		state.inventory = InventoryState.from_dict(inventory_data)
 	return state
 
 

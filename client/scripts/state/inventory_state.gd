@@ -58,7 +58,11 @@ func to_dict() -> Dictionary:
 
 static func from_dict(data: Dictionary) -> InventoryState:
 	var state := InventoryState.new()
-	state.items = data.get("items", {}).duplicate(true)
-	state.fluids = data.get("fluids", {}).duplicate(true)
+	var items_data = data.get("items", {})
+	if items_data is Dictionary:
+		state.items = items_data.duplicate(true)
+	var fluids_data = data.get("fluids", {})
+	if fluids_data is Dictionary:
+		state.fluids = fluids_data.duplicate(true)
 	state.capacity_slots = int(data.get("capacity_slots", 24))
 	return state

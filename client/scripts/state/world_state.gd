@@ -157,12 +157,24 @@ static func from_dict(data: Dictionary) -> WorldState:
 	state.schema_version = int(data.get("schema_version", 1))
 	state.world_id = String(data.get("world_id", "world.slice_01.prototype"))
 	state.current_region_id = String(data.get("current_region_id", "region.outpost_platform"))
-	state.unlocked_region_ids.assign(data.get("unlocked_region_ids", ["region.outpost_platform"]))
+	var unlocked_region_ids_data = data.get("unlocked_region_ids", state.unlocked_region_ids)
+	if unlocked_region_ids_data is Array:
+		state.unlocked_region_ids.assign(unlocked_region_ids_data)
 	state.time_minutes = int(data.get("time_minutes", 480))
 	state.current_weather_id = String(data.get("current_weather_id", "weather.clear"))
-	state.pollution_levels = data.get("pollution_levels", state.pollution_levels).duplicate(true)
-	state.map_objects = data.get("map_objects", {}).duplicate(true)
-	state.enemies = data.get("enemies", {}).duplicate(true)
-	state.base_structures = data.get("base_structures", state.base_structures).duplicate(true)
-	state.quest_state = QuestState.from_dict(data.get("quest_state", {}))
+	var pollution_levels_data = data.get("pollution_levels", state.pollution_levels)
+	if pollution_levels_data is Dictionary:
+		state.pollution_levels = pollution_levels_data.duplicate(true)
+	var map_objects_data = data.get("map_objects", {})
+	if map_objects_data is Dictionary:
+		state.map_objects = map_objects_data.duplicate(true)
+	var enemies_data = data.get("enemies", {})
+	if enemies_data is Dictionary:
+		state.enemies = enemies_data.duplicate(true)
+	var base_structures_data = data.get("base_structures", state.base_structures)
+	if base_structures_data is Dictionary:
+		state.base_structures = base_structures_data.duplicate(true)
+	var quest_state_data = data.get("quest_state", {})
+	if quest_state_data is Dictionary:
+		state.quest_state = QuestState.from_dict(quest_state_data)
 	return state

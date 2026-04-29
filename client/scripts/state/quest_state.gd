@@ -60,10 +60,18 @@ func to_dict() -> Dictionary:
 
 static func from_dict(data: Dictionary) -> QuestState:
 	var state := QuestState.new()
-	state.active_quest_ids.assign(data.get("active_quest_ids", ["quest.restore_outpost"]))
-	state.completed_quest_ids.assign(data.get("completed_quest_ids", []))
-	state.objective_progress = data.get("objective_progress", {}).duplicate(true)
-	state.unlocked_effects.assign(data.get("unlocked_effects", ["region.outpost_platform"]))
+	var active_quest_ids_data = data.get("active_quest_ids", state.active_quest_ids)
+	if active_quest_ids_data is Array:
+		state.active_quest_ids.assign(active_quest_ids_data)
+	var completed_quest_ids_data = data.get("completed_quest_ids", [])
+	if completed_quest_ids_data is Array:
+		state.completed_quest_ids.assign(completed_quest_ids_data)
+	var objective_progress_data = data.get("objective_progress", {})
+	if objective_progress_data is Dictionary:
+		state.objective_progress = objective_progress_data.duplicate(true)
+	var unlocked_effects_data = data.get("unlocked_effects", state.unlocked_effects)
+	if unlocked_effects_data is Array:
+		state.unlocked_effects.assign(unlocked_effects_data)
 	return state
 
 
