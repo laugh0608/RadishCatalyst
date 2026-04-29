@@ -1,5 +1,7 @@
 extends SceneTree
 
+const LEGACY_SAVE_BACKUP_FILE := "user://saves/slice_01_autosave.bak.json"
+
 var failures: Array[String] = []
 var save_service := SaveService.new()
 
@@ -18,7 +20,7 @@ func _init() -> void:
 
 func _run_checks() -> void:
 	_remove_save_file()
-	_remove_backup_file()
+	_remove_backup_files()
 	_expect_failure_message(save_service.load_game(), "未找到原型存档文件", "missing file")
 
 	_write_save_text("{")
@@ -155,36 +157,69 @@ func _remove_save_file() -> void:
 			failures.append("could not remove save file: %s" % error_string(remove_error))
 
 
-func _remove_backup_file() -> void:
-	if FileAccess.file_exists(SaveService.SAVE_BACKUP_FILE):
-		var remove_error := DirAccess.remove_absolute(ProjectSettings.globalize_path(SaveService.SAVE_BACKUP_FILE))
-		if remove_error != OK:
-			failures.append("could not remove backup file: %s" % error_string(remove_error))
+func _remove_backup_files() -> void:
+	for backup_path in SaveService.SAVE_BACKUP_FILES:
+		var backup_file := String(backup_path)
+		if FileAccess.file_exists(backup_file):
+			var remove_error := DirAccess.remove_absolute(ProjectSettings.globalize_path(backup_file))
+			if remove_error != OK:
+				failures.append("could not remove backup file %s: %s" % [backup_file, error_string(remove_error)])
+
+	if FileAccess.file_exists(LEGACY_SAVE_BACKUP_FILE):
+		var legacy_remove_error := DirAccess.remove_absolute(ProjectSettings.globalize_path(LEGACY_SAVE_BACKUP_FILE))
+		if legacy_remove_error != OK:
+			failures.append("could not remove legacy backup file: %s" % error_string(legacy_remove_error))
 
 
 func _check_save_backup() -> void:
 	_remove_save_file()
-	_remove_backup_file()
+	_remove_backup_files()
 
-	var previous_world := WorldState.create_default()
-	previous_world.world_id = "world.backup.previous"
-	_expect_success(save_service.save_game(previous_world, CharacterState.create_default()), "save previous backup source")
-	if FileAccess.file_exists(SaveService.SAVE_BACKUP_FILE):
-		failures.append("first save should not create backup")
+	_save_world_with_id("world.backup.first", "save first backup source")
+	_expect_no_backup_files("first save")
 
-	var current_world := WorldState.create_default()
-	current_world.world_id = "world.backup.current"
-	_expect_success(save_service.save_game(current_world, CharacterState.create_default()), "save current with backup")
-	if not FileAccess.file_exists(SaveService.SAVE_BACKUP_FILE):
-		failures.append("second save should create backup")
+	_save_world_with_id("world.backup.second", "save second with backup")
+	_expect_backup_world_id(String(SaveService.SAVE_BACKUP_FILES[0]), "world.backup.first", "second save bak1")
+
+	_save_world_with_id("world.backup.third", "save third with backup rotation")
+	_expect_backup_world_id(String(SaveService.SAVE_BACKUP_FILES[0]), "world.backup.second", "third save bak1")
+	_expect_backup_world_id(String(SaveService.SAVE_BACKUP_FILES[1]), "world.backup.first", "third save bak2")
+
+	_save_world_with_id("world.backup.fourth", "save fourth with backup rotation")
+	_expect_backup_world_id(String(SaveService.SAVE_BACKUP_FILES[0]), "world.backup.third", "fourth save bak1")
+	_expect_backup_world_id(String(SaveService.SAVE_BACKUP_FILES[1]), "world.backup.second", "fourth save bak2")
+	_expect_backup_world_id(String(SaveService.SAVE_BACKUP_FILES[2]), "world.backup.first", "fourth save bak3")
+
+	_save_world_with_id("world.backup.fifth", "save fifth with backup rotation")
+	_expect_backup_world_id(String(SaveService.SAVE_BACKUP_FILES[0]), "world.backup.fourth", "fifth save bak1")
+	_expect_backup_world_id(String(SaveService.SAVE_BACKUP_FILES[1]), "world.backup.third", "fifth save bak2")
+	_expect_backup_world_id(String(SaveService.SAVE_BACKUP_FILES[2]), "world.backup.second", "fifth save bak3")
+
+
+func _save_world_with_id(world_id: String, label: String) -> void:
+	var world_state := WorldState.create_default()
+	world_state.world_id = world_id
+	_expect_success(save_service.save_game(world_state, CharacterState.create_default()), label)
+
+
+func _expect_backup_world_id(backup_path: String, expected_world_id: String, label: String) -> void:
+	if not FileAccess.file_exists(backup_path):
+		failures.append("%s should create backup file: %s" % [label, backup_path])
 		return
 
-	var backup_data := _read_json_file(SaveService.SAVE_BACKUP_FILE)
+	var backup_data := _read_json_file(backup_path)
 	var backup_world = backup_data.get("world", {})
 	if backup_world is Dictionary:
-		_expect_equal(String(backup_world.get("world_id", "")), "world.backup.previous", "backup world id")
+		_expect_equal(String(backup_world.get("world_id", "")), expected_world_id, label)
 	else:
-		failures.append("backup world block should be dictionary")
+		failures.append("%s world block should be dictionary" % label)
+
+
+func _expect_no_backup_files(label: String) -> void:
+	for backup_path in SaveService.SAVE_BACKUP_FILES:
+		var backup_file := String(backup_path)
+		if FileAccess.file_exists(backup_file):
+			failures.append("%s should not create backup file: %s" % [label, backup_file])
 
 
 func _check_bad_existing_save_does_not_block_save() -> void:

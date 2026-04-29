@@ -5,7 +5,12 @@ const SAVE_SCHEMA_VERSION := 1
 const GAME_VERSION := "prototype-slice-01"
 const SAVE_DIR := "user://saves"
 const SAVE_FILE := "user://saves/slice_01_autosave.json"
-const SAVE_BACKUP_FILE := "user://saves/slice_01_autosave.bak.json"
+const SAVE_BACKUP_FILE := "user://saves/slice_01_autosave.bak.1.json"
+const SAVE_BACKUP_FILES := [
+	"user://saves/slice_01_autosave.bak.1.json",
+	"user://saves/slice_01_autosave.bak.2.json",
+	"user://saves/slice_01_autosave.bak.3.json"
+]
 
 
 func save_game(world_state: WorldState, character_state: CharacterState) -> Dictionary:
@@ -38,7 +43,7 @@ func save_game(world_state: WorldState, character_state: CharacterState) -> Dict
 	file.store_string(JSON.stringify(save_data, "\t"))
 	file.close()
 	if bool(backup_result.get("backup_created", false)):
-		return _success("已保存原型存档，并更新上一份备份。")
+		return _success("已保存原型存档，并轮转最近 3 份备份。")
 	return _success("已保存原型存档。")
 
 
@@ -133,6 +138,10 @@ func _backup_existing_save() -> Dictionary:
 			"backup_created": false
 		}
 
+	var rotation_error := _rotate_backup_files()
+	if rotation_error != OK:
+		return _failure("保存失败：轮转存档备份失败：%s。当前存档未被覆盖。" % error_string(rotation_error))
+
 	var copy_error := DirAccess.copy_absolute(
 		ProjectSettings.globalize_path(SAVE_FILE),
 		ProjectSettings.globalize_path(SAVE_BACKUP_FILE)
@@ -144,6 +153,27 @@ func _backup_existing_save() -> Dictionary:
 		"success": true,
 		"backup_created": true
 	}
+
+
+func _rotate_backup_files() -> Error:
+	for index in range(SAVE_BACKUP_FILES.size() - 1, 0, -1):
+		var source_path := String(SAVE_BACKUP_FILES[index - 1])
+		var target_path := String(SAVE_BACKUP_FILES[index])
+		if FileAccess.file_exists(target_path):
+			var remove_error := DirAccess.remove_absolute(ProjectSettings.globalize_path(target_path))
+			if remove_error != OK:
+				return remove_error
+		if not FileAccess.file_exists(source_path):
+			continue
+
+		var rename_error := DirAccess.rename_absolute(
+			ProjectSettings.globalize_path(source_path),
+			ProjectSettings.globalize_path(target_path)
+		)
+		if rename_error != OK:
+			return rename_error
+
+	return OK
 
 
 func _is_number(value) -> bool:
