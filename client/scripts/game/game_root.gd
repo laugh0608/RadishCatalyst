@@ -3,6 +3,7 @@ extends Node2D
 var data_registry: DataRegistry
 var world_state: WorldState
 var character_state: CharacterState
+var save_service := SaveService.new()
 
 @onready var vertical_slice_map: VerticalSliceMap = $VerticalSliceMap
 @onready var hud: PrototypeHud = $PrototypeHud
@@ -23,10 +24,12 @@ func _ready() -> void:
 	vertical_slice_map.player.recipe_cycle_requested.connect(_on_player_recipe_cycle_requested)
 	vertical_slice_map.player.module_toggle_requested.connect(_on_player_module_toggle_requested)
 	vertical_slice_map.player.quick_slot_requested.connect(_on_player_quick_slot_requested)
+	vertical_slice_map.player.save_requested.connect(_on_player_save_requested)
+	vertical_slice_map.player.load_requested.connect(_on_player_load_requested)
 	vertical_slice_map.interaction_available.connect(_on_interaction_available)
 	vertical_slice_map.interaction_cleared.connect(_on_interaction_cleared)
 
-	hud.append_log("前哨原型已启动。WASD 移动，E 交互，J 攻击，R 切换设备配方，F 启用过滤模块，1/2 使用快捷栏。")
+	hud.append_log("前哨原型已启动。WASD 移动，E 交互，J 攻击，R 切换设备配方，F 启用过滤模块，1/2 使用快捷栏，K 保存，L 读取。")
 	_update_hud()
 
 
@@ -79,6 +82,27 @@ func _on_player_module_toggle_requested() -> void:
 
 func _on_player_quick_slot_requested(slot_index: int) -> void:
 	var result := character_state.use_quick_slot(slot_index, data_registry)
+	hud.append_log(String(result.get("message", "")))
+	_update_hud()
+
+
+func _on_player_save_requested() -> void:
+	character_state.position = vertical_slice_map.get_player_position()
+	var result := save_service.save_game(world_state, character_state)
+	hud.append_log(String(result.get("message", "")))
+	_update_hud()
+
+
+func _on_player_load_requested() -> void:
+	var result := save_service.load_game()
+	if not bool(result.get("success", false)):
+		hud.append_log(String(result.get("message", "")))
+		_update_hud()
+		return
+
+	world_state = result.get("world_state", WorldState.create_default())
+	character_state = result.get("character_state", CharacterState.create_default())
+	vertical_slice_map.apply_runtime_state(world_state, character_state)
 	hud.append_log(String(result.get("message", "")))
 	_update_hud()
 

@@ -64,12 +64,23 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 		if not interactable is PrototypeInteractable:
 			continue
 
+		var object_state := world_state.get_map_object(interactable.instance_id)
+		var is_processed := false
+		if interactable.interaction_type == "gather":
+			is_processed = bool(object_state.get("is_gathered", false))
+		if interactable.interaction_type == "sample":
+			is_processed = bool(object_state.get("is_sampled", false))
+		if interactable.interaction_type == "clear":
+			is_processed = bool(object_state.get("is_cleared", false))
+		if interactable.interaction_type == "build":
+			is_processed = bool(object_state.get("is_built", false))
+
+		if interactable.single_use:
+			interactable.consumed = is_processed
+
 		var should_enable := not interactable.consumed
 		if interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter":
 			should_enable = should_enable and world_state.has_base_structure_definition("building.pollution_filter")
-		if interactable.interaction_type == "build":
-			var site_state := world_state.get_map_object(interactable.instance_id)
-			should_enable = should_enable and not bool(site_state.get("is_built", false))
 
 		interactable.set_interaction_enabled(should_enable)
 		if current_interactable == interactable and not should_enable:
@@ -198,6 +209,17 @@ func sync_enemy_states(world_state: WorldState) -> void:
 			max_health
 		)
 		enemy.apply_saved_state(enemy_state)
+
+
+func apply_runtime_state(world_state: WorldState, character_state: CharacterState) -> void:
+	current_interactable = null
+	player.global_position = character_state.position
+	sync_enemy_states(world_state)
+	refresh_world_interactables(world_state)
+
+
+func get_player_position() -> Vector2:
+	return player.global_position
 
 
 func _get_display_name(definition_id: String) -> String:

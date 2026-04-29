@@ -11,6 +11,7 @@ var max_health: float = 100.0
 var protection: float = 100.0
 var max_protection: float = 100.0
 var current_region_id: String = "region.outpost_platform"
+var position: Vector2 = Vector2(-300, -42)
 var equipment: Dictionary = {
 	"tool": "equipment.basic_tool",
 	"suit": "equipment.basic_suit",
@@ -110,6 +111,7 @@ func to_dict() -> Dictionary:
 		"protection": protection,
 		"max_protection": max_protection,
 		"current_region_id": current_region_id,
+		"position": {"x": position.x, "y": position.y},
 		"equipment": equipment.duplicate(true),
 		"quick_slots": quick_slots.duplicate(true),
 		"inventory": inventory.to_dict()
@@ -125,6 +127,12 @@ static func from_dict(data: Dictionary) -> CharacterState:
 	state.protection = float(data.get("protection", 100.0))
 	state.max_protection = float(data.get("max_protection", 100.0))
 	state.current_region_id = String(data.get("current_region_id", "region.outpost_platform"))
+	var position_data = data.get("position", {"x": -300.0, "y": -42.0})
+	if position_data is Dictionary:
+		state.position = Vector2(
+			float(position_data.get("x", -300.0)),
+			float(position_data.get("y", -42.0))
+		)
 	state.equipment = data.get("equipment", state.equipment).duplicate(true)
 	state.quick_slots.assign(data.get("quick_slots", state.quick_slots))
 	state.inventory = InventoryState.from_dict(data.get("inventory", {}))
