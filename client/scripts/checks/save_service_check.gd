@@ -18,6 +18,7 @@ func _init() -> void:
 
 func _run_checks() -> void:
 	_remove_save_file()
+	_remove_backup_file()
 	_expect_failure_message(save_service.load_game(), "未找到原型存档文件", "missing file")
 
 	_write_save_text("{")
@@ -118,6 +119,9 @@ func _run_checks() -> void:
 		_expect_equal(loaded_world.world_id, "world.slice_01.prototype", "loaded world id")
 		_expect_equal(loaded_character.stable_id, "character.player", "loaded character id")
 
+	_check_save_backup()
+	_check_bad_existing_save_does_not_block_save()
+
 
 func _write_save_json(data: Dictionary) -> void:
 	_write_save_text(JSON.stringify(data, "\t"))
@@ -147,6 +151,64 @@ func _remove_save_file() -> void:
 		var remove_error := DirAccess.remove_absolute(ProjectSettings.globalize_path(SaveService.SAVE_FILE))
 		if remove_error != OK:
 			failures.append("could not remove save file: %s" % error_string(remove_error))
+
+
+func _remove_backup_file() -> void:
+	if FileAccess.file_exists(SaveService.SAVE_BACKUP_FILE):
+		var remove_error := DirAccess.remove_absolute(ProjectSettings.globalize_path(SaveService.SAVE_BACKUP_FILE))
+		if remove_error != OK:
+			failures.append("could not remove backup file: %s" % error_string(remove_error))
+
+
+func _check_save_backup() -> void:
+	_remove_save_file()
+	_remove_backup_file()
+
+	var previous_world := WorldState.create_default()
+	previous_world.world_id = "world.backup.previous"
+	_expect_success(save_service.save_game(previous_world, CharacterState.create_default()), "save previous backup source")
+	if FileAccess.file_exists(SaveService.SAVE_BACKUP_FILE):
+		failures.append("first save should not create backup")
+
+	var current_world := WorldState.create_default()
+	current_world.world_id = "world.backup.current"
+	_expect_success(save_service.save_game(current_world, CharacterState.create_default()), "save current with backup")
+	if not FileAccess.file_exists(SaveService.SAVE_BACKUP_FILE):
+		failures.append("second save should create backup")
+		return
+
+	var backup_data := _read_json_file(SaveService.SAVE_BACKUP_FILE)
+	var backup_world = backup_data.get("world", {})
+	if backup_world is Dictionary:
+		_expect_equal(String(backup_world.get("world_id", "")), "world.backup.previous", "backup world id")
+	else:
+		failures.append("backup world block should be dictionary")
+
+
+func _check_bad_existing_save_does_not_block_save() -> void:
+	_write_save_text("{")
+	var result := save_service.save_game(WorldState.create_default(), CharacterState.create_default())
+	_expect_success(result, "save over bad existing save")
+	if not FileAccess.file_exists(SaveService.SAVE_BACKUP_FILE):
+		failures.append("save over bad existing save should still create backup")
+
+
+func _read_json_file(save_path: String) -> Dictionary:
+	var file := FileAccess.open(save_path, FileAccess.READ)
+	if file == null:
+		failures.append("could not read json file: %s" % save_path)
+		return {}
+
+	var content := file.get_as_text()
+	file.close()
+	var json := JSON.new()
+	if json.parse(content) != OK:
+		failures.append("could not parse json file: %s" % save_path)
+		return {}
+	if not (json.data is Dictionary):
+		failures.append("json file root should be dictionary: %s" % save_path)
+		return {}
+	return json.data
 
 
 func _expect_success(result: Dictionary, label: String) -> void:

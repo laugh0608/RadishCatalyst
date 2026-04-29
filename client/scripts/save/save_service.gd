@@ -5,6 +5,7 @@ const SAVE_SCHEMA_VERSION := 1
 const GAME_VERSION := "prototype-slice-01"
 const SAVE_DIR := "user://saves"
 const SAVE_FILE := "user://saves/slice_01_autosave.json"
+const SAVE_BACKUP_FILE := "user://saves/slice_01_autosave.bak.json"
 
 
 func save_game(world_state: WorldState, character_state: CharacterState) -> Dictionary:
@@ -26,12 +27,18 @@ func save_game(world_state: WorldState, character_state: CharacterState) -> Dict
 		"character": character_state.to_dict()
 	}
 
+	var backup_result := _backup_existing_save()
+	if not bool(backup_result.get("success", false)):
+		return backup_result
+
 	var file := FileAccess.open(SAVE_FILE, FileAccess.WRITE)
 	if file == null:
 		return _failure("打开存档文件失败：%s。" % error_string(FileAccess.get_open_error()))
 
 	file.store_string(JSON.stringify(save_data, "\t"))
 	file.close()
+	if bool(backup_result.get("backup_created", false)):
+		return _success("已保存原型存档，并更新上一份备份。")
 	return _success("已保存原型存档。")
 
 
@@ -117,6 +124,26 @@ func _read_existing_created_at(default_created_at: String) -> String:
 	if created_at is String and not created_at.strip_edges().is_empty():
 		return created_at
 	return default_created_at
+
+
+func _backup_existing_save() -> Dictionary:
+	if not FileAccess.file_exists(SAVE_FILE):
+		return {
+			"success": true,
+			"backup_created": false
+		}
+
+	var copy_error := DirAccess.copy_absolute(
+		ProjectSettings.globalize_path(SAVE_FILE),
+		ProjectSettings.globalize_path(SAVE_BACKUP_FILE)
+	)
+	if copy_error != OK:
+		return _failure("保存失败：备份现有存档失败：%s。当前存档未被覆盖。" % error_string(copy_error))
+
+	return {
+		"success": true,
+		"backup_created": true
+	}
 
 
 func _is_number(value) -> bool:
