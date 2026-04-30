@@ -3,22 +3,32 @@ class_name SaveService
 
 const SAVE_SCHEMA_VERSION := 1
 const GAME_VERSION := "prototype-slice-01"
-const SAVE_DIR := "user://saves"
-const SAVE_FILE := "user://saves/slice_01_autosave.json"
-const SAVE_BACKUP_FILE := "user://saves/slice_01_autosave.bak.1.json"
+const SAVE_ROOT_DIR := "user://saves"
+const SAVE_SLOT_ROOT_DIR := "user://saves/slots"
+const DEFAULT_SLOT_ID := "slot_01"
+const SAVE_FILE_NAME := "slice_01_autosave.json"
+const SAVE_DIR := "user://saves/slots/slot_01"
+const SAVE_FILE := "user://saves/slots/slot_01/slice_01_autosave.json"
+const SAVE_BACKUP_FILE := "user://saves/slots/slot_01/slice_01_autosave.bak.1.json"
 const SAVE_BACKUP_FILES := [
-	"user://saves/slice_01_autosave.bak.1.json",
-	"user://saves/slice_01_autosave.bak.2.json",
-	"user://saves/slice_01_autosave.bak.3.json"
+	"user://saves/slots/slot_01/slice_01_autosave.bak.1.json",
+	"user://saves/slots/slot_01/slice_01_autosave.bak.2.json",
+	"user://saves/slots/slot_01/slice_01_autosave.bak.3.json"
 ]
 
 
 func save_game(world_state: WorldState, character_state: CharacterState) -> Dictionary:
+	return save_game_for_slot(DEFAULT_SLOT_ID, world_state, character_state)
+
+
+func save_game_for_slot(slot_id: String, world_state: WorldState, character_state: CharacterState) -> Dictionary:
+	var paths := _get_slot_paths(slot_id)
+	var save_file := String(paths.get("save_file", SAVE_FILE))
 	var dir := DirAccess.open("user://")
 	if dir == null:
 		return _failure("打开用户存档目录失败。")
 
-	var dir_error := dir.make_dir_recursive("saves")
+	var dir_error := dir.make_dir_recursive(String(paths.get("save_dir_relative", "saves/slots/%s" % DEFAULT_SLOT_ID)))
 	if dir_error != OK:
 		return _failure("创建存档目录失败：%s。" % error_string(dir_error))
 
@@ -26,17 +36,17 @@ func save_game(world_state: WorldState, character_state: CharacterState) -> Dict
 	var save_data := {
 		"save_schema_version": SAVE_SCHEMA_VERSION,
 		"game_version": GAME_VERSION,
-		"created_at": _read_existing_created_at(now),
+		"created_at": _read_existing_created_at(now, save_file),
 		"updated_at": now,
 		"world": world_state.to_dict(),
 		"character": character_state.to_dict()
 	}
 
-	var backup_result := _backup_existing_save()
+	var backup_result := _backup_existing_save(paths)
 	if not bool(backup_result.get("success", false)):
 		return backup_result
 
-	var file := FileAccess.open(SAVE_FILE, FileAccess.WRITE)
+	var file := FileAccess.open(save_file, FileAccess.WRITE)
 	if file == null:
 		return _failure("打开存档文件失败：%s。" % error_string(FileAccess.get_open_error()))
 
@@ -48,10 +58,53 @@ func save_game(world_state: WorldState, character_state: CharacterState) -> Dict
 
 
 func load_game() -> Dictionary:
-	if not FileAccess.file_exists(SAVE_FILE):
+	return load_game_for_slot(DEFAULT_SLOT_ID)
+
+
+func load_game_for_slot(slot_id: String) -> Dictionary:
+	var paths := _get_slot_paths(slot_id)
+	var candidates: Array[String] = [String(paths.get("save_file", SAVE_FILE))]
+	for backup_path in paths.get("backup_files", SAVE_BACKUP_FILES):
+		candidates.append(String(backup_path))
+
+	var first_failure_message := ""
+	var attempted_file_count := 0
+	for index in range(candidates.size()):
+		var save_file := candidates[index]
+		if not FileAccess.file_exists(save_file):
+			continue
+
+		attempted_file_count += 1
+		var read_result := _read_save_file(save_file)
+		if bool(read_result.get("success", false)):
+			var save_data: Dictionary = read_result.get("save_data", {})
+			var message := "已读取原型存档。"
+			if index > 0:
+				message = "主存档不可用，已从最近备份 %d 恢复原型存档。" % index
+			return {
+				"success": true,
+				"message": message,
+				"world_state": WorldState.from_dict(save_data.get("world", {})),
+				"character_state": CharacterState.from_dict(save_data.get("character", {})),
+				"slot_id": String(paths.get("slot_id", DEFAULT_SLOT_ID)),
+				"recovered_from_backup": index > 0,
+				"source_file": save_file
+			}
+
+		if first_failure_message.is_empty():
+			first_failure_message = String(read_result.get("message", "读取存档失败，当前运行状态已保留。"))
+
+	if attempted_file_count > 0:
+		return _failure(first_failure_message)
+
+	return _failure("读取存档失败：未找到原型存档文件或可用备份，当前运行状态已保留。")
+
+
+func _read_save_file(save_file: String) -> Dictionary:
+	if not FileAccess.file_exists(save_file):
 		return _failure("读取存档失败：未找到原型存档文件，当前运行状态已保留。")
 
-	var file := FileAccess.open(SAVE_FILE, FileAccess.READ)
+	var file := FileAccess.open(save_file, FileAccess.READ)
 	if file == null:
 		return _failure("读取存档失败：打开存档文件失败：%s。当前运行状态已保留。" % error_string(FileAccess.get_open_error()))
 
@@ -77,8 +130,7 @@ func load_game() -> Dictionary:
 	return {
 		"success": true,
 		"message": "已读取原型存档。",
-		"world_state": WorldState.from_dict(save_data.get("world", {})),
-		"character_state": CharacterState.from_dict(save_data.get("character", {}))
+		"save_data": save_data
 	}
 
 
@@ -108,11 +160,11 @@ func _validate_save_data(save_data: Dictionary) -> String:
 	return ""
 
 
-func _read_existing_created_at(default_created_at: String) -> String:
-	if not FileAccess.file_exists(SAVE_FILE):
+func _read_existing_created_at(default_created_at: String, save_file: String) -> String:
+	if not FileAccess.file_exists(save_file):
 		return default_created_at
 
-	var file := FileAccess.open(SAVE_FILE, FileAccess.READ)
+	var file := FileAccess.open(save_file, FileAccess.READ)
 	if file == null:
 		return default_created_at
 
@@ -131,20 +183,23 @@ func _read_existing_created_at(default_created_at: String) -> String:
 	return default_created_at
 
 
-func _backup_existing_save() -> Dictionary:
-	if not FileAccess.file_exists(SAVE_FILE):
+func _backup_existing_save(paths: Dictionary) -> Dictionary:
+	var save_file := String(paths.get("save_file", SAVE_FILE))
+	var backup_file := String(paths.get("backup_file", SAVE_BACKUP_FILE))
+	var backup_files: Array = paths.get("backup_files", SAVE_BACKUP_FILES)
+	if not FileAccess.file_exists(save_file):
 		return {
 			"success": true,
 			"backup_created": false
 		}
 
-	var rotation_error := _rotate_backup_files()
+	var rotation_error := _rotate_backup_files(backup_files)
 	if rotation_error != OK:
 		return _failure("保存失败：轮转存档备份失败：%s。当前存档未被覆盖。" % error_string(rotation_error))
 
 	var copy_error := DirAccess.copy_absolute(
-		ProjectSettings.globalize_path(SAVE_FILE),
-		ProjectSettings.globalize_path(SAVE_BACKUP_FILE)
+		ProjectSettings.globalize_path(save_file),
+		ProjectSettings.globalize_path(backup_file)
 	)
 	if copy_error != OK:
 		return _failure("保存失败：备份现有存档失败：%s。当前存档未被覆盖。" % error_string(copy_error))
@@ -155,10 +210,10 @@ func _backup_existing_save() -> Dictionary:
 	}
 
 
-func _rotate_backup_files() -> Error:
-	for index in range(SAVE_BACKUP_FILES.size() - 1, 0, -1):
-		var source_path := String(SAVE_BACKUP_FILES[index - 1])
-		var target_path := String(SAVE_BACKUP_FILES[index])
+func _rotate_backup_files(backup_files: Array) -> Error:
+	for index in range(backup_files.size() - 1, 0, -1):
+		var source_path := String(backup_files[index - 1])
+		var target_path := String(backup_files[index])
 		if FileAccess.file_exists(target_path):
 			var remove_error := DirAccess.remove_absolute(ProjectSettings.globalize_path(target_path))
 			if remove_error != OK:
@@ -174,6 +229,44 @@ func _rotate_backup_files() -> Error:
 			return rename_error
 
 	return OK
+
+
+func _get_slot_paths(slot_id: String) -> Dictionary:
+	var clean_slot_id := _sanitize_slot_id(slot_id)
+	var save_dir_relative := "saves/slots/%s" % clean_slot_id
+	var save_dir := "%s/%s" % [SAVE_SLOT_ROOT_DIR, clean_slot_id]
+	var save_file := "%s/%s" % [save_dir, SAVE_FILE_NAME]
+	var backup_files: Array[String] = []
+	for backup_index in range(1, 4):
+		backup_files.append("%s/slice_01_autosave.bak.%d.json" % [save_dir, backup_index])
+
+	return {
+		"slot_id": clean_slot_id,
+		"save_dir": save_dir,
+		"save_dir_relative": save_dir_relative,
+		"save_file": save_file,
+		"backup_file": backup_files[0],
+		"backup_files": backup_files
+	}
+
+
+func _sanitize_slot_id(slot_id: String) -> String:
+	var raw_slot_id := slot_id.strip_edges()
+	if raw_slot_id.is_empty():
+		return DEFAULT_SLOT_ID
+
+	var allowed := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
+	var clean_slot_id := ""
+	for index in range(raw_slot_id.length()):
+		var character := raw_slot_id.substr(index, 1)
+		if allowed.contains(character):
+			clean_slot_id += character
+		else:
+			clean_slot_id += "_"
+
+	if clean_slot_id.strip_edges().is_empty():
+		return DEFAULT_SLOT_ID
+	return clean_slot_id
 
 
 func _is_number(value) -> bool:

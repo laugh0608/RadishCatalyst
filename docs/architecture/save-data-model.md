@@ -1,6 +1,6 @@
 # Save Data Model
 
-更新时间：2026-04-29
+更新时间：2026-04-30
 
 ## 文档目的
 
@@ -556,17 +556,17 @@ saves/
 
 ## 当前原型实现
 
-截至 2026-04-29，Godot 客户端已接入最小 `SaveService`：
+截至 2026-04-30，Godot 客户端已接入最小 `SaveService`：
 
 - 存档脚本位于 `client/scripts/save/save_service.gd`。
-- 当前使用 `user://saves/slice_01_autosave.json` 作为原型单文件存档。
-- 当前使用 `user://saves/slice_01_autosave.bak.1.json`、`slice_01_autosave.bak.2.json` 和 `slice_01_autosave.bak.3.json` 保留最近 3 份备份；保存时如果已有旧存档，会先轮转备份再复制当前主存档到 `bak.1`，轮转或备份失败则不覆盖当前存档。
+- 当前使用 `user://saves/slots/slot_01/slice_01_autosave.json` 作为默认槽位原型单文件存档；`save_game()` / `load_game()` 默认读写 `slot_01`，内部已预留 `save_game_for_slot()` / `load_game_for_slot()` 供后续多槽位入口使用。
+- 当前使用 `user://saves/slots/slot_01/slice_01_autosave.bak.1.json`、`slice_01_autosave.bak.2.json` 和 `slice_01_autosave.bak.3.json` 保留最近 3 份备份；保存时如果已有旧存档，会先轮转备份再复制当前主存档到 `bak.1`，轮转或备份失败则不覆盖当前存档。
 - `K` 保存当前世界和角色状态，`L` 读取并恢复。
 - 当前保存 `save_schema_version`、`game_version`、`created_at`、`updated_at`、`WorldState.to_dict()` 和 `CharacterState.to_dict()`，覆盖任务、区域解锁、地图对象、敌人、建筑、污染、天气、生命、防护、位置、装备、快捷栏和背包。
-- 当前读取会先校验 `save_schema_version`、`world` 和 `character` 是否存在且类型正确；文件不存在、JSON 解析失败、版本不兼容、关键块缺失或关键块类型错误时，会返回清楚的中文失败提示，并避免替换当前运行中的世界和角色状态。
+- 当前读取会按主存档、`bak.1`、`bak.2`、`bak.3` 顺序尝试读取可用文件，并先校验 `save_schema_version`、`world` 和 `character` 是否存在且类型正确；文件不存在、JSON 解析失败、版本不兼容、关键块缺失或关键块类型错误且没有可用备份时，会返回清楚的中文失败提示，并避免替换当前运行中的世界和角色状态。
 - 当前 `WorldState`、`CharacterState`、`InventoryState` 和 `QuestState` 的 `from_dict()` 会对缺失或类型不符的非关键嵌套字段保留默认值，服务旧原型存档和轻度坏档兜底。
-- 当前新增 `scripts/check-client-save.ps1` 和 `client/scripts/checks/save_service_check.gd`，用隔离的 Godot 用户目录复验文件缺失、坏 JSON、版本错误、关键块缺失 / 类型错误、非关键字段默认值兜底、默认状态保存后读取、切片结尾状态，以及保存前备份轮转。
-- 该实现用于验证第一可玩切片状态可落盘，不代表最终存档槽、多槽位目录、迁移或导入导出设计。
+- 当前新增 `scripts/check-client-save.ps1` 和 `client/scripts/checks/save_service_check.gd`，用隔离的 Godot 用户目录复验文件缺失、坏 JSON、版本错误、关键块缺失 / 类型错误、非关键字段默认值兜底、默认状态保存后读取、切片结尾状态、保存前备份轮转、坏主档备份读取恢复、全坏档不替换状态和命名槽位保存 / 读取。
+- 该实现用于验证第一可玩切片状态可落盘，并提供默认槽位目录骨架；它仍不代表最终多槽位 UI、正式迁移或导入导出设计。
 
 ## 迁移与校验
 
@@ -593,7 +593,7 @@ saves/
 - 默认值填充。
 - 失败时清楚提示，而不是静默损坏。
 
-当前原型已完成最小读取校验、最近 3 份备份轮转和运行时复验入口：`save_schema_version`、`world` 和 `character` 为关键块，必须存在且类型正确；其余嵌套字段暂按默认值兜底；保存前会轮转 `.bak.1` / `.bak.2` / `.bak.3`。后续进入多槽位、坏档备份读取恢复或正式迁移前，应继续补充静态定义 ID、库存数量、坐标和实例 ID 的复验。
+当前原型已完成最小读取校验、最近 3 份备份轮转、坏档备份读取恢复和运行时复验入口：`save_schema_version`、`world` 和 `character` 为关键块，必须存在且类型正确；其余嵌套字段暂按默认值兜底；保存前会轮转 `.bak.1` / `.bak.2` / `.bak.3`；主存档损坏时会依次尝试读取最近 3 份备份。后续进入正式迁移或完整多槽位 UI 前，应继续补充静态定义 ID、库存数量、坐标和实例 ID 的复验。
 
 ## 首版必须保存的最小集合
 

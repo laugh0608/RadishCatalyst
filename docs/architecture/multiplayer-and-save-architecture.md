@@ -278,17 +278,18 @@
 
 ### 7.7 本地存档阶段策略
 
-当前原型已经具备单文件存档和最近 3 份 `.bak.1` / `.bak.2` / `.bak.3` 备份轮转。后续不要直接跳到复杂云存档或正式多角色 UI，应按以下阶段推进。
+当前原型已经具备默认槽位单文件存档、最近 3 份 `.bak.1` / `.bak.2` / `.bak.3` 备份轮转和坏主档备份读取恢复。后续不要直接跳到复杂云存档或正式多角色 UI，应按以下阶段推进。
 
 #### 阶段 0：第一切片原型
 
 当前阶段保持简单：
 
-- 存档目录使用 Godot `user://saves/`。
-- 主存档文件为 `slice_01_autosave.json`。
-- 覆盖保存前轮转 `slice_01_autosave.bak.1.json`、`slice_01_autosave.bak.2.json` 和 `slice_01_autosave.bak.3.json`。
+- 存档目录使用 Godot `user://saves/slots/slot_01/` 作为当前默认槽位。
+- 主存档文件为 `slot_01/slice_01_autosave.json`。
+- 覆盖保存前轮转 `slot_01/slice_01_autosave.bak.1.json`、`slot_01/slice_01_autosave.bak.2.json` 和 `slot_01/slice_01_autosave.bak.3.json`。
 - 存档内容同时包含 `world` 与 `character`，方便原型闭环和运行时复验。
-- 读取失败时必须保留当前运行状态，不用坏档覆盖内存中的可玩状态。
+- 读取时按主存档、`bak.1`、`bak.2`、`bak.3` 依次寻找可用档；全部失败时必须保留当前运行状态，不用坏档覆盖内存中的可玩状态。
+- 代码层已预留命名槽位读写入口，但当前原型 UI 仍只使用默认 `slot_01`。
 
 这个阶段只服务第一切片验证，不代表正式存档布局。
 

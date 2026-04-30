@@ -113,6 +113,10 @@ func _run_checks() -> void:
 
 	var save_result := save_service.save_game(WorldState.create_default(), CharacterState.create_default())
 	_expect_success(save_result, "save default game")
+	if not FileAccess.file_exists(SaveService.SAVE_FILE):
+		failures.append("default save should use slot_01 save path")
+	if not SaveService.SAVE_FILE.contains("/slots/slot_01/"):
+		failures.append("default save path should include slots/slot_01")
 	var load_result := save_service.load_game()
 	_expect_success(load_result, "load saved default game")
 	if bool(load_result.get("success", false)):
@@ -124,6 +128,10 @@ func _run_checks() -> void:
 	_check_slice_end_hook_state_persists()
 	_check_slice_complete_state_persists()
 	_check_save_backup()
+	_check_loads_recent_backup_when_primary_is_bad()
+	_check_loads_older_backup_when_recent_backup_is_bad()
+	_check_all_bad_saves_fail_without_replacing_state()
+	_check_named_slot_save_load()
 	_check_bad_existing_save_does_not_block_save()
 
 
@@ -132,19 +140,27 @@ func _write_save_json(data: Dictionary) -> void:
 
 
 func _write_save_text(content: String) -> void:
+	_write_text_file(SaveService.SAVE_FILE, content)
+
+
+func _write_save_json_to_path(save_path: String, data: Dictionary) -> void:
+	_write_text_file(save_path, JSON.stringify(data, "\t"))
+
+
+func _write_text_file(save_path: String, content: String) -> void:
 	var dir := DirAccess.open("user://")
 	if dir == null:
 		failures.append("could not open user://")
 		return
 
-	var dir_error := dir.make_dir_recursive("saves")
+	var dir_error := dir.make_dir_recursive("saves/slots/%s" % SaveService.DEFAULT_SLOT_ID)
 	if dir_error != OK:
-		failures.append("could not create saves dir: %s" % error_string(dir_error))
+		failures.append("could not create default slot save dir: %s" % error_string(dir_error))
 		return
 
-	var file := FileAccess.open(SaveService.SAVE_FILE, FileAccess.WRITE)
+	var file := FileAccess.open(save_path, FileAccess.WRITE)
 	if file == null:
-		failures.append("could not write save file: %s" % error_string(FileAccess.get_open_error()))
+		failures.append("could not write save file %s: %s" % [save_path, error_string(FileAccess.get_open_error())])
 		return
 	file.store_string(content)
 	file.close()
@@ -228,6 +244,95 @@ func _check_bad_existing_save_does_not_block_save() -> void:
 	_expect_success(result, "save over bad existing save")
 	if not FileAccess.file_exists(SaveService.SAVE_BACKUP_FILE):
 		failures.append("save over bad existing save should still create backup")
+
+
+func _check_loads_recent_backup_when_primary_is_bad() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	_write_save_text("{")
+	_write_save_json_to_path(String(SaveService.SAVE_BACKUP_FILES[0]), _make_save_data("world.recovered.bak1"))
+
+	var result := save_service.load_game()
+	_expect_success(result, "load bak1 after bad primary")
+	if not bool(result.get("success", false)):
+		return
+
+	_expect_equal(bool(result.get("recovered_from_backup", false)), true, "bak1 load should mark recovery")
+	_expect_equal(String(result.get("source_file", "")), String(SaveService.SAVE_BACKUP_FILES[0]), "bak1 source file")
+	_expect_recovered_world_id(result, "world.recovered.bak1", "bak1 recovered world")
+	var message := String(result.get("message", ""))
+	if not message.contains("备份 1"):
+		failures.append("bak1 recovery message should mention backup 1, got: %s" % message)
+
+
+func _check_loads_older_backup_when_recent_backup_is_bad() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	_write_save_text("{")
+	_write_text_file(String(SaveService.SAVE_BACKUP_FILES[0]), "{")
+	_write_save_json_to_path(String(SaveService.SAVE_BACKUP_FILES[1]), _make_save_data("world.recovered.bak2"))
+
+	var result := save_service.load_game()
+	_expect_success(result, "load bak2 after bad primary and bak1")
+	if not bool(result.get("success", false)):
+		return
+
+	_expect_equal(bool(result.get("recovered_from_backup", false)), true, "bak2 load should mark recovery")
+	_expect_equal(String(result.get("source_file", "")), String(SaveService.SAVE_BACKUP_FILES[1]), "bak2 source file")
+	_expect_recovered_world_id(result, "world.recovered.bak2", "bak2 recovered world")
+	var message := String(result.get("message", ""))
+	if not message.contains("备份 2"):
+		failures.append("bak2 recovery message should mention backup 2, got: %s" % message)
+
+
+func _check_all_bad_saves_fail_without_replacing_state() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	_write_save_text("{")
+	for backup_path in SaveService.SAVE_BACKUP_FILES:
+		_write_text_file(String(backup_path), "{")
+
+	var result := save_service.load_game()
+	_expect_failure_message(result, "JSON 解析失败", "all bad saves")
+	if result.has("world_state") or result.has("character_state"):
+		failures.append("all bad saves should not return replacement state")
+
+
+func _check_named_slot_save_load() -> void:
+	var slot_id := "slot_02"
+	var world_state := WorldState.create_default()
+	world_state.world_id = "world.slot.02"
+	var save_result := save_service.save_game_for_slot(slot_id, world_state, CharacterState.create_default())
+	_expect_success(save_result, "save named slot")
+
+	var load_result := save_service.load_game_for_slot(slot_id)
+	_expect_success(load_result, "load named slot")
+	if not bool(load_result.get("success", false)):
+		return
+
+	_expect_equal(String(load_result.get("slot_id", "")), slot_id, "named slot id")
+	_expect_recovered_world_id(load_result, "world.slot.02", "named slot world")
+
+
+func _make_save_data(world_id: String) -> Dictionary:
+	var world_state := WorldState.create_default()
+	world_state.world_id = world_id
+	return {
+		"save_schema_version": SaveService.SAVE_SCHEMA_VERSION,
+		"game_version": SaveService.GAME_VERSION,
+		"created_at": "2026-04-30T00:00:00",
+		"updated_at": "2026-04-30T00:00:00",
+		"world": world_state.to_dict(),
+		"character": CharacterState.create_default().to_dict()
+	}
+
+
+func _expect_recovered_world_id(result: Dictionary, expected_world_id: String, label: String) -> void:
+	var world_state: WorldState = result.get("world_state", null)
+	if world_state == null:
+		failures.append("%s should return world state" % label)
+		return
+	_expect_equal(world_state.world_id, expected_world_id, label)
 
 
 func _check_slice_end_hook_state_persists() -> void:
