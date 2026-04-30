@@ -239,6 +239,9 @@ func _validate_save_content(save_data: Dictionary) -> String:
 	var character_error := _validate_character_content(character_data)
 	if not character_error.is_empty():
 		return character_error
+	var cross_block_error := _validate_cross_block_content(world_data, character_data)
+	if not cross_block_error.is_empty():
+		return cross_block_error
 	return ""
 
 
@@ -273,13 +276,13 @@ func _validate_world_content(world_data: Dictionary) -> String:
 			if not _is_number(pollution_value) or float(pollution_value) < 0.0:
 				return "读取存档失败：world.pollution_levels 中存在无效污染值，当前运行状态已保留。"
 
-	var map_objects_error := _validate_runtime_object_map(world_data.get("map_objects", {}), "map_object.", "world.map_objects")
+	var map_objects_error := _validate_runtime_object_map(world_data.get("map_objects", {}), ["map_object.", "building."], "map_object_instance.", "world.map_objects")
 	if not map_objects_error.is_empty():
 		return map_objects_error
-	var enemies_error := _validate_runtime_object_map(world_data.get("enemies", {}), "enemy.", "world.enemies")
+	var enemies_error := _validate_runtime_object_map(world_data.get("enemies", {}), ["enemy."], "enemy_instance.", "world.enemies")
 	if not enemies_error.is_empty():
 		return enemies_error
-	var structures_error := _validate_runtime_object_map(world_data.get("base_structures", {}), "building.", "world.base_structures")
+	var structures_error := _validate_runtime_object_map(world_data.get("base_structures", {}), ["building."], "structure.", "world.base_structures")
 	if not structures_error.is_empty():
 		return structures_error
 
@@ -347,16 +350,20 @@ func _validate_character_content(character_data: Dictionary) -> String:
 	return ""
 
 
-func _validate_runtime_object_map(value, expected_definition_prefix: String, label: String) -> String:
+func _validate_runtime_object_map(value, expected_definition_prefixes: Array, expected_instance_prefix: String, label: String) -> String:
 	if not (value is Dictionary):
 		return ""
 
 	for instance_id in value:
+		var instance_id_string := String(instance_id)
+		if instance_id_string.is_empty() or not instance_id_string.begins_with(expected_instance_prefix):
+			return "读取存档失败：%s 中存在无效实例 ID：%s，当前运行状态已保留。" % [label, instance_id_string]
+
 		var entry = value[instance_id]
 		if not (entry is Dictionary):
 			return "读取存档失败：%s 中存在无效对象状态，当前运行状态已保留。" % label
 
-		var definition_error := _validate_definition_ref(String(entry.get("definition_id", "")), expected_definition_prefix, "%s.%s.definition_id" % [label, String(instance_id)])
+		var definition_error := _validate_definition_ref_any(String(entry.get("definition_id", "")), expected_definition_prefixes, "%s.%s.definition_id" % [label, String(instance_id)])
 		if not definition_error.is_empty():
 			return definition_error
 
@@ -366,13 +373,118 @@ func _validate_runtime_object_map(value, expected_definition_prefix: String, lab
 			if not region_error.is_empty():
 				return region_error
 
-		if expected_definition_prefix == "enemy.":
+		if expected_definition_prefixes.has("enemy."):
 			var max_health = entry.get("max_health", 1.0)
 			var health = entry.get("health", max_health)
 			if not _is_number(max_health) or not _is_number(health):
 				return "读取存档失败：%s 中存在无效敌人生命值，当前运行状态已保留。" % label
 			if float(max_health) <= 0.0 or float(health) < 0.0 or float(health) > float(max_health):
 				return "读取存档失败：%s 中敌人生命值超出有效范围，当前运行状态已保留。" % label
+
+	return ""
+
+
+func _validate_cross_block_content(world_data: Dictionary, character_data: Dictionary) -> String:
+	var default_unlocked_region_ids: Array[String] = ["region.outpost_platform"]
+	var unlocked_region_ids := _get_string_array(world_data.get("unlocked_region_ids", default_unlocked_region_ids), default_unlocked_region_ids)
+	var world_region_id := String(world_data.get("current_region_id", "region.outpost_platform"))
+	var character_region_id := String(character_data.get("current_region_id", "region.outpost_platform"))
+	if not unlocked_region_ids.has(world_region_id):
+		return "读取存档失败：世界当前区域尚未解锁，当前运行状态已保留。"
+	if not unlocked_region_ids.has(character_region_id):
+		return "读取存档失败：角色当前区域尚未解锁，当前运行状态已保留。"
+	if world_region_id != character_region_id:
+		return "读取存档失败：世界区域与角色区域不一致，当前运行状态已保留。"
+
+	var world_error := _validate_world_region_links(world_data, unlocked_region_ids)
+	if not world_error.is_empty():
+		return world_error
+	var structure_error := _validate_structure_site_links(world_data)
+	if not structure_error.is_empty():
+		return structure_error
+	var quest_error := _validate_quest_relationships(world_data.get("quest_state", {}), unlocked_region_ids)
+	if not quest_error.is_empty():
+		return quest_error
+	return ""
+
+
+func _validate_world_region_links(world_data: Dictionary, unlocked_region_ids: Array[String]) -> String:
+	for collection_ref in [
+		{"label": "world.map_objects", "value": world_data.get("map_objects", {})},
+		{"label": "world.enemies", "value": world_data.get("enemies", {})},
+		{"label": "world.base_structures", "value": world_data.get("base_structures", {})}
+	]:
+		var value = collection_ref.get("value", {})
+		if not (value is Dictionary):
+			continue
+		for instance_id in value:
+			var entry = value[instance_id]
+			if not (entry is Dictionary):
+				continue
+			var region_id := String(entry.get("region_id", ""))
+			if region_id.is_empty():
+				continue
+			if not unlocked_region_ids.has(region_id):
+				return "读取存档失败：%s.%s 指向未解锁区域，当前运行状态已保留。" % [
+					String(collection_ref.get("label", "")),
+					String(instance_id)
+				]
+	return ""
+
+
+func _validate_structure_site_links(world_data: Dictionary) -> String:
+	var map_objects = world_data.get("map_objects", {})
+	var base_structures = world_data.get("base_structures", {})
+	if not (map_objects is Dictionary) or not (base_structures is Dictionary):
+		return ""
+
+	for structure_id in base_structures:
+		var structure = base_structures[structure_id]
+		if not (structure is Dictionary):
+			continue
+		var site_instance_id := String(structure.get("site_instance_id", ""))
+		if site_instance_id.is_empty():
+			continue
+		if not map_objects.has(site_instance_id):
+			return "读取存档失败：world.base_structures.%s 引用了不存在的建造点，当前运行状态已保留。" % String(structure_id)
+		var site = map_objects[site_instance_id]
+		if not (site is Dictionary):
+			return "读取存档失败：world.base_structures.%s 引用了无效建造点，当前运行状态已保留。" % String(structure_id)
+		if not bool(site.get("is_built", false)):
+			return "读取存档失败：world.base_structures.%s 引用了未完成建造点，当前运行状态已保留。" % String(structure_id)
+		var built_definition_id := String(site.get("built_definition_id", site.get("definition_id", "")))
+		if built_definition_id != String(structure.get("definition_id", "")):
+			return "读取存档失败：world.base_structures.%s 与建造点定义不一致，当前运行状态已保留。" % String(structure_id)
+	return ""
+
+
+func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[String]) -> String:
+	if not (quest_state is Dictionary):
+		return ""
+
+	var active_quest_ids := _get_string_array(quest_state.get("active_quest_ids", []))
+	var completed_quest_ids := _get_string_array(quest_state.get("completed_quest_ids", []))
+	for quest_id in active_quest_ids:
+		if completed_quest_ids.has(quest_id):
+			return "读取存档失败：任务同时处于进行中和已完成状态，当前运行状态已保留。"
+
+	for quest_id in active_quest_ids + completed_quest_ids:
+		var quest := data_registry.get_definition(quest_id)
+		for prerequisite_id in quest.get("prerequisites", []):
+			if not completed_quest_ids.has(String(prerequisite_id)):
+				return "读取存档失败：任务前置关系不完整，当前运行状态已保留。"
+
+	var unlocked_effects := _get_string_array(quest_state.get("unlocked_effects", []))
+	for effect_id in unlocked_effects:
+		if effect_id.begins_with("region.") and not unlocked_region_ids.has(effect_id):
+			return "读取存档失败：任务解锁区域与世界区域解锁不一致，当前运行状态已保留。"
+
+	for quest_id in completed_quest_ids:
+		var quest := data_registry.get_definition(quest_id)
+		for effect_id in quest.get("unlock_effects", []):
+			var id := String(effect_id)
+			if id.begins_with("region.") and not unlocked_region_ids.has(id):
+				return "读取存档失败：已完成任务缺少区域解锁结果，当前运行状态已保留。"
 
 	return ""
 
@@ -462,6 +574,31 @@ func _validate_definition_ref(definition_id: String, expected_prefix: String, la
 	if not data_registry.has_definition(definition_id):
 		return "读取存档失败：%s 引用了未知定义 ID：%s，当前运行状态已保留。" % [label, definition_id]
 	return ""
+
+
+func _validate_definition_ref_any(definition_id: String, expected_prefixes: Array, label: String) -> String:
+	if definition_id.is_empty():
+		return "读取存档失败：%s 缺少定义 ID，当前运行状态已保留。" % label
+	var has_expected_prefix := false
+	for prefix in expected_prefixes:
+		if definition_id.begins_with(String(prefix)):
+			has_expected_prefix = true
+			break
+	if not has_expected_prefix:
+		return "读取存档失败：%s 使用了错误类型的定义 ID：%s，当前运行状态已保留。" % [label, definition_id]
+	if not data_registry.has_definition(definition_id):
+		return "读取存档失败：%s 引用了未知定义 ID：%s，当前运行状态已保留。" % [label, definition_id]
+	return ""
+
+
+func _get_string_array(value, default_values: Array[String] = []) -> Array[String]:
+	var result: Array[String] = []
+	if not (value is Array):
+		result.assign(default_values)
+		return result
+	for item in value:
+		result.append(String(item))
+	return result
 
 
 func _read_existing_created_at(default_created_at: String, save_file: String) -> String:

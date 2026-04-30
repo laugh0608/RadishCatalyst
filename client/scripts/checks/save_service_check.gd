@@ -148,6 +148,13 @@ func _run_checks() -> void:
 	_check_rejects_unknown_region_id()
 	_check_rejects_invalid_character_position()
 	_check_rejects_invalid_enemy_health()
+	_check_loads_valid_build_site_links()
+	_check_rejects_invalid_instance_id()
+	_check_rejects_locked_current_region()
+	_check_rejects_region_mismatch()
+	_check_rejects_quest_state_overlap()
+	_check_rejects_missing_quest_prerequisite()
+	_check_rejects_missing_structure_site()
 	_check_bad_existing_save_does_not_block_save()
 
 
@@ -456,6 +463,97 @@ func _check_rejects_invalid_enemy_health() -> void:
 	_expect_failure_message(save_service.load_game(), "敌人生命值超出有效范围", "invalid enemy health")
 
 
+func _check_loads_valid_build_site_links() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.valid.build_site")
+	save_data["world"]["map_objects"] = {
+		"map_object_instance.foundation_north": {
+			"definition_id": "building.foundation_t1",
+			"region_id": "region.outpost_platform",
+			"is_built": true,
+			"built_definition_id": "building.foundation_t1"
+		}
+	}
+	save_data["world"]["base_structures"]["structure.foundation_north"] = {
+		"definition_id": "building.foundation_t1",
+		"region_id": "region.outpost_platform",
+		"status": "idle",
+		"site_instance_id": "map_object_instance.foundation_north"
+	}
+	_write_save_json(save_data)
+	_expect_success(save_service.load_game(), "valid build site links")
+
+
+func _check_rejects_invalid_instance_id() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.instance_id")
+	save_data["world"]["map_objects"] = {
+		"bad_instance.crystal": {
+			"definition_id": "map_object.crystal_cluster",
+			"region_id": "region.outpost_platform"
+		}
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "无效实例 ID", "invalid map object instance id")
+
+
+func _check_rejects_locked_current_region() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.locked_region")
+	save_data["world"]["current_region_id"] = "region.pollution_edge"
+	save_data["character"]["current_region_id"] = "region.pollution_edge"
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "世界当前区域尚未解锁", "locked current region")
+
+
+func _check_rejects_region_mismatch() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.region_mismatch")
+	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
+	save_data["world"]["current_region_id"] = "region.crystal_vein_field"
+	save_data["character"]["current_region_id"] = "region.outpost_platform"
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "世界区域与角色区域不一致", "world character region mismatch")
+
+
+func _check_rejects_quest_state_overlap() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.quest_overlap")
+	save_data["world"]["quest_state"]["active_quest_ids"] = ["quest.restore_outpost"]
+	save_data["world"]["quest_state"]["completed_quest_ids"] = ["quest.restore_outpost"]
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "任务同时处于进行中和已完成状态", "quest overlap")
+
+
+func _check_rejects_missing_quest_prerequisite() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.quest_prerequisite")
+	save_data["world"]["quest_state"]["active_quest_ids"] = ["quest.make_filter_module"]
+	save_data["world"]["quest_state"]["completed_quest_ids"] = []
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "任务前置关系不完整", "missing quest prerequisite")
+
+
+func _check_rejects_missing_structure_site() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_site")
+	save_data["world"]["base_structures"]["structure.foundation_missing_site"] = {
+		"definition_id": "building.foundation_t1",
+		"region_id": "region.outpost_platform",
+		"status": "idle",
+		"site_instance_id": "map_object_instance.missing_site"
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "引用了不存在的建造点", "missing structure site")
+
+
 func _make_save_data(world_id: String) -> Dictionary:
 	var world_state := WorldState.create_default()
 	world_state.world_id = world_id
@@ -505,7 +603,9 @@ func _check_slice_end_hook_state_persists() -> void:
 		"region.locked_ruin_gate"
 	]
 
-	_expect_success(save_service.save_game(world_state, CharacterState.create_default()), "save slice end hook state")
+	var character_state := CharacterState.create_default()
+	character_state.current_region_id = "region.pollution_edge"
+	_expect_success(save_service.save_game(world_state, character_state), "save slice end hook state")
 	var load_result := save_service.load_game()
 	_expect_success(load_result, "load slice end hook state")
 	if not bool(load_result.get("success", false)):
