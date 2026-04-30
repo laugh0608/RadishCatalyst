@@ -481,10 +481,33 @@ func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[Strin
 
 	for quest_id in completed_quest_ids:
 		var quest := data_registry.get_definition(quest_id)
+		var objective_error := _validate_completed_quest_objectives(quest_id, quest, quest_state)
+		if not objective_error.is_empty():
+			return objective_error
 		for effect_id in quest.get("unlock_effects", []):
 			var id := String(effect_id)
 			if id.begins_with("region.") and not unlocked_region_ids.has(id):
 				return "读取存档失败：已完成任务缺少区域解锁结果，当前运行状态已保留。"
+
+	return ""
+
+
+func _validate_completed_quest_objectives(quest_id: String, quest: Dictionary, quest_state: Dictionary) -> String:
+	var objective_progress = quest_state.get("objective_progress", {})
+	if not (objective_progress is Dictionary):
+		return "读取存档失败：已完成任务缺少目标进度，当前运行状态已保留。"
+
+	for objective in quest.get("objectives", []):
+		if not (objective is Dictionary):
+			continue
+
+		var objective_type := String(objective.get("type", ""))
+		var target_id := String(objective.get("target_id", ""))
+		var required_amount := float(objective.get("amount", 1.0))
+		var objective_key := "%s|%s|%s" % [quest_id, objective_type, target_id]
+		var current_amount := float(objective_progress.get(objective_key, 0.0))
+		if current_amount < required_amount:
+			return "读取存档失败：已完成任务目标进度不足，当前运行状态已保留。"
 
 	return ""
 

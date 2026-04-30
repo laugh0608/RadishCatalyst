@@ -155,6 +155,9 @@ func _run_checks() -> void:
 	_check_rejects_quest_state_overlap()
 	_check_rejects_missing_quest_prerequisite()
 	_check_rejects_missing_structure_site()
+	_check_loads_completed_quest_with_objectives()
+	_check_rejects_completed_quest_without_objective_progress()
+	_check_rejects_completed_quest_with_partial_objective_progress()
 	_check_bad_existing_save_does_not_block_save()
 
 
@@ -524,6 +527,7 @@ func _check_rejects_quest_state_overlap() -> void:
 	_remove_save_file()
 	_remove_backup_files()
 	var save_data := _make_save_data("world.invalid.quest_overlap")
+	_mark_restore_outpost_completed(save_data)
 	save_data["world"]["quest_state"]["active_quest_ids"] = ["quest.restore_outpost"]
 	save_data["world"]["quest_state"]["completed_quest_ids"] = ["quest.restore_outpost"]
 	_write_save_json(save_data)
@@ -534,6 +538,9 @@ func _check_rejects_missing_quest_prerequisite() -> void:
 	_remove_save_file()
 	_remove_backup_files()
 	var save_data := _make_save_data("world.invalid.quest_prerequisite")
+	save_data["world"]["quest_state"]["objective_progress"] = {
+		"quest.make_filter_module|craft_item|equipment.filter_module_t1": 1
+	}
 	save_data["world"]["quest_state"]["active_quest_ids"] = ["quest.make_filter_module"]
 	save_data["world"]["quest_state"]["completed_quest_ids"] = []
 	_write_save_json(save_data)
@@ -552,6 +559,64 @@ func _check_rejects_missing_structure_site() -> void:
 	}
 	_write_save_json(save_data)
 	_expect_failure_message(save_service.load_game(), "引用了不存在的建造点", "missing structure site")
+
+
+func _check_loads_completed_quest_with_objectives() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.valid.completed_objectives")
+	_mark_restore_outpost_completed(save_data)
+	_write_save_json(save_data)
+	_expect_success(save_service.load_game(), "completed quest with objective progress")
+
+
+func _check_rejects_completed_quest_without_objective_progress() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.completed_without_objectives")
+	save_data["world"]["quest_state"]["active_quest_ids"] = []
+	save_data["world"]["quest_state"]["completed_quest_ids"] = ["quest.restore_outpost"]
+	save_data["world"]["quest_state"]["objective_progress"] = {}
+	save_data["world"]["quest_state"]["unlocked_effects"] = ["region.outpost_platform", "region.crystal_vein_field", "recipe.process_crystal_ore"]
+	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "已完成任务目标进度不足", "completed quest without objective progress")
+
+
+func _check_rejects_completed_quest_with_partial_objective_progress() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.completed_partial_objectives")
+	save_data["world"]["quest_state"]["active_quest_ids"] = []
+	save_data["world"]["quest_state"]["completed_quest_ids"] = ["quest.restore_outpost", "quest.scout_crystal_field"]
+	save_data["world"]["quest_state"]["objective_progress"] = {
+		"quest.restore_outpost|interact|building.outpost_core": 1,
+		"quest.scout_crystal_field|visit_region|region.crystal_vein_field": 1,
+		"quest.scout_crystal_field|gather_item|item.crystal_ore": 3
+	}
+	save_data["world"]["quest_state"]["unlocked_effects"] = [
+		"region.outpost_platform",
+		"region.crystal_vein_field",
+		"recipe.process_crystal_ore",
+		"recipe.repair_gel"
+	]
+	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "已完成任务目标进度不足", "completed quest with partial objective progress")
+
+
+func _mark_restore_outpost_completed(save_data: Dictionary) -> void:
+	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
+	save_data["world"]["quest_state"]["active_quest_ids"] = []
+	save_data["world"]["quest_state"]["completed_quest_ids"] = ["quest.restore_outpost"]
+	save_data["world"]["quest_state"]["objective_progress"] = {
+		"quest.restore_outpost|interact|building.outpost_core": 1
+	}
+	save_data["world"]["quest_state"]["unlocked_effects"] = [
+		"region.outpost_platform",
+		"region.crystal_vein_field",
+		"recipe.process_crystal_ore"
+	]
 
 
 func _make_save_data(world_id: String) -> Dictionary:
@@ -591,6 +656,14 @@ func _check_slice_end_hook_state_persists() -> void:
 		"quest.enter_pollution_edge"
 	]
 	world_state.quest_state.objective_progress = {
+		"quest.restore_outpost|interact|building.outpost_core": 1,
+		"quest.scout_crystal_field|visit_region|region.crystal_vein_field": 1,
+		"quest.scout_crystal_field|gather_item|item.crystal_ore": 6,
+		"quest.bring_back_sample|sample_object|map_object.anomaly_crystal": 1,
+		"quest.bring_back_sample|return_region|region.outpost_platform": 1,
+		"quest.make_filter_module|craft_item|equipment.filter_module_t1": 1,
+		"quest.expand_treatment_point|build|building.foundation_t1": 2,
+		"quest.expand_treatment_point|build|building.pollution_filter": 1,
 		"quest.enter_pollution_edge|visit_region|region.pollution_edge": 1,
 		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 2,
 		"quest.enter_pollution_edge|craft_item|item.resistance_vial_t1": 1,
@@ -640,6 +713,18 @@ func _check_slice_complete_state_persists() -> void:
 		"quest.unlock_ruin_signal"
 	]
 	world_state.quest_state.objective_progress = {
+		"quest.restore_outpost|interact|building.outpost_core": 1,
+		"quest.scout_crystal_field|visit_region|region.crystal_vein_field": 1,
+		"quest.scout_crystal_field|gather_item|item.crystal_ore": 6,
+		"quest.bring_back_sample|sample_object|map_object.anomaly_crystal": 1,
+		"quest.bring_back_sample|return_region|region.outpost_platform": 1,
+		"quest.make_filter_module|craft_item|equipment.filter_module_t1": 1,
+		"quest.expand_treatment_point|build|building.foundation_t1": 2,
+		"quest.expand_treatment_point|build|building.pollution_filter": 1,
+		"quest.enter_pollution_edge|visit_region|region.pollution_edge": 1,
+		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 2,
+		"quest.enter_pollution_edge|craft_item|item.resistance_vial_t1": 1,
+		"quest.enter_pollution_edge|defeat_enemy|enemy.polluted_skitter": 1,
 		"quest.unlock_ruin_signal|inspect|map_object.ruin_gate": 1
 	}
 	world_state.quest_state.unlocked_effects = [
