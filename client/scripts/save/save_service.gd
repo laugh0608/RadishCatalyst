@@ -15,6 +15,12 @@ const SAVE_BACKUP_FILES := [
 	"user://saves/slots/slot_01/slice_01_autosave.bak.2.json",
 	"user://saves/slots/slot_01/slice_01_autosave.bak.3.json"
 ]
+const LEGACY_SAVE_FILE := "user://saves/slice_01_autosave.json"
+const LEGACY_SAVE_BACKUP_FILES := [
+	"user://saves/slice_01_autosave.bak.1.json",
+	"user://saves/slice_01_autosave.bak.2.json",
+	"user://saves/slice_01_autosave.bak.3.json"
+]
 
 
 func save_game(world_state: WorldState, character_state: CharacterState) -> Dictionary:
@@ -24,13 +30,9 @@ func save_game(world_state: WorldState, character_state: CharacterState) -> Dict
 func save_game_for_slot(slot_id: String, world_state: WorldState, character_state: CharacterState) -> Dictionary:
 	var paths := _get_slot_paths(slot_id)
 	var save_file := String(paths.get("save_file", SAVE_FILE))
-	var dir := DirAccess.open("user://")
-	if dir == null:
-		return _failure("打开用户存档目录失败。")
-
-	var dir_error := dir.make_dir_recursive(String(paths.get("save_dir_relative", "saves/slots/%s" % DEFAULT_SLOT_ID)))
-	if dir_error != OK:
-		return _failure("创建存档目录失败：%s。" % error_string(dir_error))
+	var dir_result := _ensure_slot_dir(paths)
+	if not bool(dir_result.get("success", false)):
+		return dir_result
 
 	var now := Time.get_datetime_string_from_system(true, true)
 	var save_data := {
@@ -46,12 +48,10 @@ func save_game_for_slot(slot_id: String, world_state: WorldState, character_stat
 	if not bool(backup_result.get("success", false)):
 		return backup_result
 
-	var file := FileAccess.open(save_file, FileAccess.WRITE)
-	if file == null:
-		return _failure("打开存档文件失败：%s。" % error_string(FileAccess.get_open_error()))
+	var write_result := _write_save_data(save_file, save_data)
+	if not bool(write_result.get("success", false)):
+		return write_result
 
-	file.store_string(JSON.stringify(save_data, "\t"))
-	file.close()
 	if bool(backup_result.get("backup_created", false)):
 		return _success("已保存原型存档，并轮转最近 3 份备份。")
 	return _success("已保存原型存档。")
@@ -97,7 +97,65 @@ func load_game_for_slot(slot_id: String) -> Dictionary:
 	if attempted_file_count > 0:
 		return _failure(first_failure_message)
 
+	if String(paths.get("slot_id", DEFAULT_SLOT_ID)) == DEFAULT_SLOT_ID:
+		return _load_legacy_save_into_slot(paths)
+
 	return _failure("读取存档失败：未找到原型存档文件或可用备份，当前运行状态已保留。")
+
+
+func _load_legacy_save_into_slot(paths: Dictionary) -> Dictionary:
+	var legacy_candidates: Array[String] = [LEGACY_SAVE_FILE]
+	for backup_path in LEGACY_SAVE_BACKUP_FILES:
+		legacy_candidates.append(String(backup_path))
+
+	var first_failure_message := ""
+	var attempted_file_count := 0
+	for index in range(legacy_candidates.size()):
+		var legacy_file := legacy_candidates[index]
+		if not FileAccess.file_exists(legacy_file):
+			continue
+
+		attempted_file_count += 1
+		var read_result := _read_save_file(legacy_file)
+		if bool(read_result.get("success", false)):
+			var save_data: Dictionary = read_result.get("save_data", {})
+			var migration_result := _migrate_save_data_to_slot(paths, save_data)
+			if not bool(migration_result.get("success", false)):
+				return migration_result
+
+			var message := "已从旧原型存档迁移到默认槽位。"
+			if index > 0:
+				message = "已从旧原型备份 %d 迁移到默认槽位。" % index
+			return {
+				"success": true,
+				"message": message,
+				"world_state": WorldState.from_dict(save_data.get("world", {})),
+				"character_state": CharacterState.from_dict(save_data.get("character", {})),
+				"slot_id": String(paths.get("slot_id", DEFAULT_SLOT_ID)),
+				"migrated_from_legacy": true,
+				"source_file": legacy_file
+			}
+
+		if first_failure_message.is_empty():
+			first_failure_message = String(read_result.get("message", "读取旧原型存档失败，当前运行状态已保留。"))
+
+	if attempted_file_count > 0:
+		return _failure("读取旧原型存档失败：%s" % first_failure_message)
+
+	return _failure("读取存档失败：未找到原型存档文件或可用备份，当前运行状态已保留。")
+
+
+func _migrate_save_data_to_slot(paths: Dictionary, save_data: Dictionary) -> Dictionary:
+	var dir_result := _ensure_slot_dir(paths)
+	if not bool(dir_result.get("success", false)):
+		return _failure("旧原型存档可读取，但迁移到默认槽位失败：%s" % String(dir_result.get("message", "")))
+
+	var save_file := String(paths.get("save_file", SAVE_FILE))
+	var write_result := _write_save_data(save_file, save_data)
+	if not bool(write_result.get("success", false)):
+		return _failure("旧原型存档可读取，但迁移到默认槽位失败：%s" % String(write_result.get("message", "")))
+
+	return _success("已迁移旧原型存档。")
 
 
 func _read_save_file(save_file: String) -> Dictionary:
@@ -181,6 +239,28 @@ func _read_existing_created_at(default_created_at: String, save_file: String) ->
 	if created_at is String and not created_at.strip_edges().is_empty():
 		return created_at
 	return default_created_at
+
+
+func _ensure_slot_dir(paths: Dictionary) -> Dictionary:
+	var dir := DirAccess.open("user://")
+	if dir == null:
+		return _failure("打开用户存档目录失败。")
+
+	var dir_error := dir.make_dir_recursive(String(paths.get("save_dir_relative", "saves/slots/%s" % DEFAULT_SLOT_ID)))
+	if dir_error != OK:
+		return _failure("创建存档目录失败：%s。" % error_string(dir_error))
+
+	return _success("存档目录已准备。")
+
+
+func _write_save_data(save_file: String, save_data: Dictionary) -> Dictionary:
+	var file := FileAccess.open(save_file, FileAccess.WRITE)
+	if file == null:
+		return _failure("打开存档文件失败：%s。" % error_string(FileAccess.get_open_error()))
+
+	file.store_string(JSON.stringify(save_data, "\t"))
+	file.close()
+	return _success("已写入存档文件。")
 
 
 func _backup_existing_save(paths: Dictionary) -> Dictionary:

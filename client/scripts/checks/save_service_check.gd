@@ -132,6 +132,9 @@ func _run_checks() -> void:
 	_check_loads_older_backup_when_recent_backup_is_bad()
 	_check_all_bad_saves_fail_without_replacing_state()
 	_check_named_slot_save_load()
+	_check_migrates_legacy_primary_save()
+	_check_migrates_legacy_backup_when_legacy_primary_is_bad()
+	_check_existing_slot_blocks_legacy_migration()
 	_check_bad_existing_save_does_not_block_save()
 
 
@@ -145,6 +148,10 @@ func _write_save_text(content: String) -> void:
 
 func _write_save_json_to_path(save_path: String, data: Dictionary) -> void:
 	_write_text_file(save_path, JSON.stringify(data, "\t"))
+
+
+func _write_legacy_save_json(data: Dictionary) -> void:
+	_write_text_file(SaveService.LEGACY_SAVE_FILE, JSON.stringify(data, "\t"))
 
 
 func _write_text_file(save_path: String, content: String) -> void:
@@ -172,6 +179,11 @@ func _remove_save_file() -> void:
 		if remove_error != OK:
 			failures.append("could not remove save file: %s" % error_string(remove_error))
 
+	if FileAccess.file_exists(SaveService.LEGACY_SAVE_FILE):
+		var legacy_remove_error := DirAccess.remove_absolute(ProjectSettings.globalize_path(SaveService.LEGACY_SAVE_FILE))
+		if legacy_remove_error != OK:
+			failures.append("could not remove legacy save file: %s" % error_string(legacy_remove_error))
+
 
 func _remove_backup_files() -> void:
 	for backup_path in SaveService.SAVE_BACKUP_FILES:
@@ -180,6 +192,13 @@ func _remove_backup_files() -> void:
 			var remove_error := DirAccess.remove_absolute(ProjectSettings.globalize_path(backup_file))
 			if remove_error != OK:
 				failures.append("could not remove backup file %s: %s" % [backup_file, error_string(remove_error)])
+
+	for backup_path in SaveService.LEGACY_SAVE_BACKUP_FILES:
+		var legacy_backup_file := String(backup_path)
+		if FileAccess.file_exists(legacy_backup_file):
+			var legacy_backup_remove_error := DirAccess.remove_absolute(ProjectSettings.globalize_path(legacy_backup_file))
+			if legacy_backup_remove_error != OK:
+				failures.append("could not remove legacy backup file %s: %s" % [legacy_backup_file, error_string(legacy_backup_remove_error)])
 
 	if FileAccess.file_exists(LEGACY_SAVE_BACKUP_FILE):
 		var legacy_remove_error := DirAccess.remove_absolute(ProjectSettings.globalize_path(LEGACY_SAVE_BACKUP_FILE))
@@ -312,6 +331,61 @@ func _check_named_slot_save_load() -> void:
 
 	_expect_equal(String(load_result.get("slot_id", "")), slot_id, "named slot id")
 	_expect_recovered_world_id(load_result, "world.slot.02", "named slot world")
+
+
+func _check_migrates_legacy_primary_save() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	_write_legacy_save_json(_make_save_data("world.legacy.primary"))
+
+	var result := save_service.load_game()
+	_expect_success(result, "migrate legacy primary")
+	if not bool(result.get("success", false)):
+		return
+
+	_expect_equal(bool(result.get("migrated_from_legacy", false)), true, "legacy primary should mark migration")
+	_expect_equal(String(result.get("source_file", "")), SaveService.LEGACY_SAVE_FILE, "legacy primary source file")
+	_expect_recovered_world_id(result, "world.legacy.primary", "legacy primary migrated world")
+	if not FileAccess.file_exists(SaveService.SAVE_FILE):
+		failures.append("legacy migration should write default slot save")
+	if not FileAccess.file_exists(SaveService.LEGACY_SAVE_FILE):
+		failures.append("legacy migration should keep original legacy file")
+	var message := String(result.get("message", ""))
+	if not message.contains("旧原型存档"):
+		failures.append("legacy primary migration message should mention old prototype save, got: %s" % message)
+
+
+func _check_migrates_legacy_backup_when_legacy_primary_is_bad() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	_write_text_file(SaveService.LEGACY_SAVE_FILE, "{")
+	_write_save_json_to_path(String(SaveService.LEGACY_SAVE_BACKUP_FILES[0]), _make_save_data("world.legacy.bak1"))
+
+	var result := save_service.load_game()
+	_expect_success(result, "migrate legacy bak1 after bad legacy primary")
+	if not bool(result.get("success", false)):
+		return
+
+	_expect_equal(bool(result.get("migrated_from_legacy", false)), true, "legacy bak1 should mark migration")
+	_expect_equal(String(result.get("source_file", "")), String(SaveService.LEGACY_SAVE_BACKUP_FILES[0]), "legacy bak1 source file")
+	_expect_recovered_world_id(result, "world.legacy.bak1", "legacy bak1 migrated world")
+	if not FileAccess.file_exists(SaveService.SAVE_FILE):
+		failures.append("legacy backup migration should write default slot save")
+	var message := String(result.get("message", ""))
+	if not message.contains("旧原型备份 1"):
+		failures.append("legacy backup migration message should mention backup 1, got: %s" % message)
+
+
+func _check_existing_slot_blocks_legacy_migration() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	_write_save_text("{")
+	_write_legacy_save_json(_make_save_data("world.legacy.should_not_load"))
+
+	var result := save_service.load_game()
+	_expect_failure_message(result, "JSON 解析失败", "bad slot should not fall back to legacy")
+	if result.has("world_state") or result.has("character_state"):
+		failures.append("bad existing slot should not return legacy state")
 
 
 func _make_save_data(world_id: String) -> Dictionary:
