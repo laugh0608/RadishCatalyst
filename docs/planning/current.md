@@ -81,7 +81,7 @@ git diff --check
 - 继续扩展第一切片关键流程复验，让任务链、存档状态和后续 UI 表现逐步覆盖更多真实游玩路径。
 - 继续保持污染过滤器为最小加工点，不展开完整设备 UI、自动化、电网或管线。
 - 补齐更清楚的交互反馈、正式教程提示和更正式的任务完成界面表现。
-- 在 `WorldState.map_objects` 已记录采集 / 采样状态的基础上，继续补齐地图对象持久化和后续存档入口。
+- 在 `WorldState.map_objects` 已记录采集 / 采样 / 建造状态并完成实例来源复验的基础上，继续补齐敌人、建筑和设备运行时状态的来源约束与字段边界。
 - 以 `design/onboarding-and-first-hour.md` 作为任务提示和系统解锁顺序基准，先做最短引导链。
 - 每完成一个小阶段，都按 `planning/milestone-review-checklist.md` 做兼容、存档、数据和范围复核。
 - `design/time-and-weather-system.md`
