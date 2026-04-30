@@ -150,6 +150,10 @@ func _run_checks() -> void:
 	_check_rejects_invalid_enemy_health()
 	_check_loads_valid_build_site_links()
 	_check_rejects_invalid_instance_id()
+	_check_loads_known_map_object_source()
+	_check_rejects_unknown_map_object_source()
+	_check_rejects_map_object_source_definition_mismatch()
+	_check_rejects_built_definition_mismatch()
 	_check_rejects_locked_current_region()
 	_check_rejects_region_mismatch()
 	_check_rejects_quest_state_overlap()
@@ -474,18 +478,18 @@ func _check_loads_valid_build_site_links() -> void:
 	_remove_backup_files()
 	var save_data := _make_save_data("world.valid.build_site")
 	save_data["world"]["map_objects"] = {
-		"map_object_instance.foundation_north": {
+		"map_object_instance.foundation_site_north": {
 			"definition_id": "building.foundation_t1",
 			"region_id": "region.outpost_platform",
 			"is_built": true,
 			"built_definition_id": "building.foundation_t1"
 		}
 	}
-	save_data["world"]["base_structures"]["structure.foundation_north"] = {
+	save_data["world"]["base_structures"]["structure.foundation_site_north"] = {
 		"definition_id": "building.foundation_t1",
 		"region_id": "region.outpost_platform",
 		"status": "idle",
-		"site_instance_id": "map_object_instance.foundation_north"
+		"site_instance_id": "map_object_instance.foundation_site_north"
 	}
 	_write_save_json(save_data)
 	_expect_success(save_service.load_game(), "valid build site links")
@@ -503,6 +507,72 @@ func _check_rejects_invalid_instance_id() -> void:
 	}
 	_write_save_json(save_data)
 	_expect_failure_message(save_service.load_game(), "无效实例 ID", "invalid map object instance id")
+
+
+func _check_loads_known_map_object_source() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.valid.map_object_source")
+	save_data["world"]["map_objects"] = {
+		"map_object_instance.crystal_cluster_east": {
+			"definition_id": "map_object.crystal_cluster",
+			"region_id": "region.crystal_vein_field",
+			"is_gathered": true
+		},
+		"map_object_instance.rough_ground_north": {
+			"definition_id": "map_object.rough_ground",
+			"region_id": "region.crystal_vein_field",
+			"is_cleared": true
+		}
+	}
+	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
+	_write_save_json(save_data)
+	_expect_success(save_service.load_game(), "known map object source")
+
+
+func _check_rejects_unknown_map_object_source() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.unknown_map_object_source")
+	save_data["world"]["map_objects"] = {
+		"map_object_instance.debug_extra": {
+			"definition_id": "map_object.crystal_cluster",
+			"region_id": "region.outpost_platform"
+		}
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "没有匹配的原型地图对象来源", "unknown map object source")
+
+
+func _check_rejects_map_object_source_definition_mismatch() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.map_object_source_mismatch")
+	save_data["world"]["map_objects"] = {
+		"map_object_instance.ruin_gate": {
+			"definition_id": "map_object.crystal_cluster",
+			"region_id": "region.locked_ruin_gate"
+		}
+	}
+	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.locked_ruin_gate"]
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "原型地图对象定义不一致", "map object source definition mismatch")
+
+
+func _check_rejects_built_definition_mismatch() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.built_definition_mismatch")
+	save_data["world"]["map_objects"] = {
+		"map_object_instance.foundation_site_north": {
+			"definition_id": "building.foundation_t1",
+			"region_id": "region.outpost_platform",
+			"is_built": true,
+			"built_definition_id": "building.pollution_filter"
+		}
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "建成定义与原型地图对象定义不一致", "built definition mismatch")
 
 
 func _check_rejects_locked_current_region() -> void:

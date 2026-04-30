@@ -21,6 +21,22 @@ const LEGACY_SAVE_BACKUP_FILES := [
 	"user://saves/slice_01_autosave.bak.2.json",
 	"user://saves/slice_01_autosave.bak.3.json"
 ]
+const PROTOTYPE_MAP_OBJECT_SOURCES := {
+	"map_object_instance.outpost_core": "building.outpost_core",
+	"map_object_instance.basic_reactor": "building.basic_reactor",
+	"map_object_instance.crystal_cluster": "map_object.crystal_cluster",
+	"map_object_instance.crystal_cluster_east": "map_object.crystal_cluster",
+	"map_object_instance.crystal_cluster_south": "map_object.crystal_cluster",
+	"map_object_instance.anomaly_crystal": "map_object.anomaly_crystal",
+	"map_object_instance.pollution_residue": "map_object.pollution_residue_patch",
+	"map_object_instance.rough_ground_north": "map_object.rough_ground",
+	"map_object_instance.rough_ground_south": "map_object.rough_ground",
+	"map_object_instance.foundation_site_north": "building.foundation_t1",
+	"map_object_instance.foundation_site_south": "building.foundation_t1",
+	"map_object_instance.pollution_filter_build_site": "building.pollution_filter",
+	"map_object_instance.pollution_filter": "building.pollution_filter",
+	"map_object_instance.ruin_gate": "map_object.ruin_gate"
+}
 
 var data_registry: DataRegistry
 
@@ -279,6 +295,9 @@ func _validate_world_content(world_data: Dictionary) -> String:
 	var map_objects_error := _validate_runtime_object_map(world_data.get("map_objects", {}), ["map_object.", "building."], "map_object_instance.", "world.map_objects")
 	if not map_objects_error.is_empty():
 		return map_objects_error
+	var map_object_source_error := _validate_map_object_sources(world_data.get("map_objects", {}))
+	if not map_object_source_error.is_empty():
+		return map_object_source_error
 	var enemies_error := _validate_runtime_object_map(world_data.get("enemies", {}), ["enemy."], "enemy_instance.", "world.enemies")
 	if not enemies_error.is_empty():
 		return enemies_error
@@ -380,6 +399,31 @@ func _validate_runtime_object_map(value, expected_definition_prefixes: Array, ex
 				return "读取存档失败：%s 中存在无效敌人生命值，当前运行状态已保留。" % label
 			if float(max_health) <= 0.0 or float(health) < 0.0 or float(health) > float(max_health):
 				return "读取存档失败：%s 中敌人生命值超出有效范围，当前运行状态已保留。" % label
+
+	return ""
+
+
+func _validate_map_object_sources(value) -> String:
+	if not (value is Dictionary):
+		return ""
+
+	for instance_id in value:
+		var instance_id_string := String(instance_id)
+		if not PROTOTYPE_MAP_OBJECT_SOURCES.has(instance_id_string):
+			return "读取存档失败：world.map_objects.%s 没有匹配的原型地图对象来源，当前运行状态已保留。" % instance_id_string
+
+		var entry = value[instance_id]
+		if not (entry is Dictionary):
+			continue
+
+		var expected_definition_id := String(PROTOTYPE_MAP_OBJECT_SOURCES[instance_id_string])
+		var definition_id := String(entry.get("definition_id", ""))
+		if definition_id != expected_definition_id:
+			return "读取存档失败：world.map_objects.%s 与原型地图对象定义不一致，当前运行状态已保留。" % instance_id_string
+
+		var built_definition_id := String(entry.get("built_definition_id", ""))
+		if expected_definition_id.begins_with("building.") and not built_definition_id.is_empty() and built_definition_id != expected_definition_id:
+			return "读取存档失败：world.map_objects.%s 的建成定义与原型地图对象定义不一致，当前运行状态已保留。" % instance_id_string
 
 	return ""
 
