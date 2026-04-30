@@ -155,6 +155,9 @@ func _run_checks() -> void:
 	_check_rejects_quest_state_overlap()
 	_check_rejects_missing_quest_prerequisite()
 	_check_rejects_missing_structure_site()
+	_check_loads_active_quest_with_partial_defined_objective_progress()
+	_check_rejects_quest_progress_with_undefined_objective_type()
+	_check_rejects_quest_progress_with_undefined_objective_target()
 	_check_loads_completed_quest_with_objectives()
 	_check_rejects_completed_quest_without_objective_progress()
 	_check_rejects_completed_quest_with_partial_objective_progress()
@@ -559,6 +562,39 @@ func _check_rejects_missing_structure_site() -> void:
 	}
 	_write_save_json(save_data)
 	_expect_failure_message(save_service.load_game(), "引用了不存在的建造点", "missing structure site")
+
+
+func _check_loads_active_quest_with_partial_defined_objective_progress() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.valid.active_partial_objective")
+	_mark_restore_outpost_completed(save_data)
+	save_data["world"]["quest_state"]["active_quest_ids"] = ["quest.scout_crystal_field"]
+	save_data["world"]["quest_state"]["objective_progress"]["quest.scout_crystal_field|visit_region|region.crystal_vein_field"] = 1
+	_write_save_json(save_data)
+	_expect_success(save_service.load_game(), "active quest with partial defined objective progress")
+
+
+func _check_rejects_quest_progress_with_undefined_objective_type() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.undefined_objective_type")
+	_mark_restore_outpost_completed(save_data)
+	save_data["world"]["quest_state"]["active_quest_ids"] = ["quest.scout_crystal_field"]
+	save_data["world"]["quest_state"]["objective_progress"]["quest.scout_crystal_field|inspect|region.crystal_vein_field"] = 1
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "任务未定义的目标", "undefined quest objective type")
+
+
+func _check_rejects_quest_progress_with_undefined_objective_target() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.undefined_objective_target")
+	_mark_restore_outpost_completed(save_data)
+	save_data["world"]["quest_state"]["active_quest_ids"] = ["quest.scout_crystal_field"]
+	save_data["world"]["quest_state"]["objective_progress"]["quest.scout_crystal_field|gather_item|item.basic_parts"] = 1
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "任务未定义的目标", "undefined quest objective target")
 
 
 func _check_loads_completed_quest_with_objectives() -> void:
