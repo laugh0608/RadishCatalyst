@@ -4,21 +4,29 @@ const LEGACY_SAVE_BACKUP_FILE := "user://saves/slice_01_autosave.bak.json"
 
 var failures: Array[String] = []
 var save_service := SaveService.new()
+var data_registry := DataRegistry.new()
 
 
 func _init() -> void:
 	_run_checks()
 	if failures.is_empty():
 		print("Save service runtime checks passed.")
+		_cleanup()
 		quit(0)
 		return
 
 	for failure in failures:
 		push_error(failure)
+	_cleanup()
 	quit(1)
 
 
 func _run_checks() -> void:
+	if not data_registry.load_all():
+		failures.append("data registry should load all static data")
+		return
+	save_service.setup(data_registry)
+
 	_remove_save_file()
 	_remove_backup_files()
 	_expect_failure_message(save_service.load_game(), "未找到原型存档文件", "missing file")
@@ -135,6 +143,11 @@ func _run_checks() -> void:
 	_check_migrates_legacy_primary_save()
 	_check_migrates_legacy_backup_when_legacy_primary_is_bad()
 	_check_existing_slot_blocks_legacy_migration()
+	_check_rejects_unknown_inventory_id()
+	_check_rejects_negative_inventory_amount()
+	_check_rejects_unknown_region_id()
+	_check_rejects_invalid_character_position()
+	_check_rejects_invalid_enemy_health()
 	_check_bad_existing_save_does_not_block_save()
 
 
@@ -388,6 +401,61 @@ func _check_existing_slot_blocks_legacy_migration() -> void:
 		failures.append("bad existing slot should not return legacy state")
 
 
+func _check_rejects_unknown_inventory_id() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.unknown_item")
+	save_data["character"]["inventory"]["items"]["item.missing_debug"] = 1
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "未知定义 ID", "unknown inventory item")
+
+
+func _check_rejects_negative_inventory_amount() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.negative_item")
+	save_data["character"]["inventory"]["items"]["item.basic_parts"] = -1
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "无效数量", "negative inventory amount")
+
+
+func _check_rejects_unknown_region_id() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.region")
+	save_data["world"]["current_region_id"] = "region.missing_debug"
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "未知定义 ID", "unknown world region")
+
+
+func _check_rejects_invalid_character_position() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.position")
+	save_data["character"]["position"] = {
+		"x": "bad",
+		"y": 0
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "character.position", "invalid character position")
+
+
+func _check_rejects_invalid_enemy_health() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.enemy_health")
+	save_data["world"]["enemies"] = {
+		"enemy_instance.invalid": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge",
+			"health": 10,
+			"max_health": 5
+		}
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "敌人生命值超出有效范围", "invalid enemy health")
+
+
 func _make_save_data(world_id: String) -> Dictionary:
 	var world_state := WorldState.create_default()
 	world_state.world_id = world_id
@@ -546,3 +614,7 @@ func _expect_equal(actual, expected, label: String) -> void:
 func _expect_array_has(values: Array, expected_value: String, label: String) -> void:
 	if not values.has(expected_value):
 		failures.append("%s should contain %s, got %s" % [label, expected_value, var_to_str(values)])
+
+
+func _cleanup() -> void:
+	data_registry.free()

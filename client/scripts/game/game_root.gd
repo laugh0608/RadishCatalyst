@@ -17,6 +17,7 @@ func _ready() -> void:
 
 	world_state = WorldState.create_default()
 	character_state = CharacterState.create_default()
+	save_service.setup(data_registry)
 	processing_system = ProcessingSystem.new(data_registry)
 	vertical_slice_map.setup(data_registry)
 	vertical_slice_map.sync_enemy_states(world_state)
