@@ -77,11 +77,14 @@ const BASE_STRUCTURE_ALLOWED_FIELDS := [
 	"status",
 	"site_instance_id",
 	"last_recipe_id",
-	"completed_runs"
+	"completed_runs",
+	"active_recipe_id",
+	"progress_seconds"
 ]
 
 const BASE_STRUCTURE_ALLOWED_STATUSES := [
 	"idle",
+	"in_progress",
 	"completed"
 ]
 
@@ -388,16 +391,48 @@ func _validate_base_structure_runtime_state(value) -> String:
 			return "读取存档失败：world.base_structures.%s.completed_runs 必须是非负整数，当前运行状态已保留。" % String(structure_id)
 
 		var last_recipe_id := String(entry.get("last_recipe_id", ""))
-		if last_recipe_id.is_empty():
-			continue
-		var recipe_error := _validate_definition_ref(last_recipe_id, "recipe.", "world.base_structures.%s.last_recipe_id" % String(structure_id))
-		if not recipe_error.is_empty():
-			return recipe_error
-		var recipe := data_registry.get_definition(last_recipe_id)
-		var required_building_id := String(recipe.get("required_building_id", ""))
-		if not required_building_id.is_empty() and required_building_id != String(entry.get("definition_id", "")):
-			return "读取存档失败：world.base_structures.%s.last_recipe_id 与建筑定义不一致，当前运行状态已保留。" % String(structure_id)
+		if not last_recipe_id.is_empty():
+			var last_recipe_error := _validate_structure_recipe_ref(last_recipe_id, String(structure_id), entry, "last_recipe_id")
+			if not last_recipe_error.is_empty():
+				return last_recipe_error
 
+		var active_recipe_id := String(entry.get("active_recipe_id", ""))
+		var has_progress_seconds: bool = entry.has("progress_seconds")
+		if status != "in_progress":
+			if not active_recipe_id.is_empty():
+				return "读取存档失败：world.base_structures.%s 非加工中状态不应记录 active_recipe_id，当前运行状态已保留。" % String(structure_id)
+			if has_progress_seconds:
+				return "读取存档失败：world.base_structures.%s 非加工中状态不应记录 progress_seconds，当前运行状态已保留。" % String(structure_id)
+			continue
+
+		if active_recipe_id.is_empty():
+			return "读取存档失败：world.base_structures.%s 加工中状态缺少 active_recipe_id，当前运行状态已保留。" % String(structure_id)
+		if not has_progress_seconds:
+			return "读取存档失败：world.base_structures.%s 加工中状态缺少 progress_seconds，当前运行状态已保留。" % String(structure_id)
+		var active_recipe_error := _validate_structure_recipe_ref(active_recipe_id, String(structure_id), entry, "active_recipe_id")
+		if not active_recipe_error.is_empty():
+			return active_recipe_error
+
+		var progress_seconds = entry.get("progress_seconds", 0.0)
+		if not _is_number(progress_seconds) or float(progress_seconds) < 0.0:
+			return "读取存档失败：world.base_structures.%s.progress_seconds 必须是非负数字，当前运行状态已保留。" % String(structure_id)
+		var active_recipe := data_registry.get_definition(active_recipe_id)
+		var duration = active_recipe.get("duration", 0.0)
+		if _is_number(duration) and float(duration) > 0.0 and float(progress_seconds) > float(duration):
+			return "读取存档失败：world.base_structures.%s.progress_seconds 超出配方时长，当前运行状态已保留。" % String(structure_id)
+
+	return ""
+
+
+func _validate_structure_recipe_ref(recipe_id: String, structure_id: String, entry: Dictionary, field_name: String) -> String:
+	var recipe_error := _validate_definition_ref(recipe_id, "recipe.", "world.base_structures.%s.%s" % [structure_id, field_name])
+	if not recipe_error.is_empty():
+		return recipe_error
+
+	var recipe := data_registry.get_definition(recipe_id)
+	var required_building_id := String(recipe.get("required_building_id", ""))
+	if not required_building_id.is_empty() and required_building_id != String(entry.get("definition_id", "")):
+		return "读取存档失败：world.base_structures.%s.%s 与建筑定义不一致，当前运行状态已保留。" % [structure_id, field_name]
 	return ""
 
 

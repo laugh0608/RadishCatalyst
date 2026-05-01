@@ -170,6 +170,13 @@ func _run_checks() -> void:
 	_check_rejects_structure_invalid_completed_runs()
 	_check_rejects_structure_unknown_last_recipe()
 	_check_rejects_structure_last_recipe_mismatch()
+	_check_loads_valid_structure_in_progress_state()
+	_check_rejects_in_progress_without_active_recipe()
+	_check_rejects_in_progress_without_progress()
+	_check_rejects_structure_invalid_progress()
+	_check_rejects_structure_progress_exceeds_duration()
+	_check_rejects_structure_active_recipe_mismatch()
+	_check_rejects_idle_structure_with_active_recipe()
 	_check_rejects_locked_current_region()
 	_check_rejects_region_mismatch()
 	_check_rejects_quest_state_overlap()
@@ -876,6 +883,117 @@ func _check_rejects_structure_last_recipe_mismatch() -> void:
 	}
 	_write_save_json(save_data)
 	_expect_failure_message(save_service.load_game(), "last_recipe_id 与建筑定义不一致", "structure last recipe mismatch")
+
+
+func _check_loads_valid_structure_in_progress_state() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.valid.structure_in_progress")
+	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "in_progress",
+		"active_recipe_id": "recipe.make_filter_media",
+		"progress_seconds": 4.0,
+		"completed_runs": 1,
+		"last_recipe_id": "recipe.process_crystal_ore"
+	}
+	_write_save_json(save_data)
+	_expect_success(save_service.load_game(), "valid structure in progress state")
+
+
+func _check_rejects_in_progress_without_active_recipe() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_missing_active_recipe")
+	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "in_progress",
+		"progress_seconds": 1.0
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "加工中状态缺少 active_recipe_id", "missing active recipe")
+
+
+func _check_rejects_in_progress_without_progress() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_missing_progress")
+	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "in_progress",
+		"active_recipe_id": "recipe.make_filter_media"
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "加工中状态缺少 progress_seconds", "missing progress seconds")
+
+
+func _check_rejects_structure_invalid_progress() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_progress")
+	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "in_progress",
+		"active_recipe_id": "recipe.make_filter_media",
+		"progress_seconds": -0.5
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "progress_seconds 必须是非负数字", "invalid progress seconds")
+
+
+func _check_rejects_structure_progress_exceeds_duration() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_progress_duration")
+	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "in_progress",
+		"active_recipe_id": "recipe.make_filter_media",
+		"progress_seconds": 9.0
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "progress_seconds 超出配方时长", "progress exceeds recipe duration")
+
+
+func _check_rejects_structure_active_recipe_mismatch() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_active_recipe_mismatch")
+	save_data["world"]["base_structures"]["structure.pollution_filter_build_site"] = {
+		"definition_id": "building.pollution_filter",
+		"region_id": "region.outpost_platform",
+		"status": "in_progress",
+		"site_instance_id": "map_object_instance.pollution_filter_build_site",
+		"active_recipe_id": "recipe.process_crystal_ore",
+		"progress_seconds": 1.0
+	}
+	save_data["world"]["map_objects"]["map_object_instance.pollution_filter_build_site"] = {
+		"definition_id": "building.pollution_filter",
+		"region_id": "region.outpost_platform",
+		"is_built": true,
+		"built_definition_id": "building.pollution_filter"
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "active_recipe_id 与建筑定义不一致", "structure active recipe mismatch")
+
+
+func _check_rejects_idle_structure_with_active_recipe() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_idle_active_recipe")
+	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "idle",
+		"active_recipe_id": "recipe.process_crystal_ore"
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "非加工中状态不应记录 active_recipe_id", "idle with active recipe")
 
 
 func _check_rejects_locked_current_region() -> void:
