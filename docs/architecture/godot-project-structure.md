@@ -367,6 +367,8 @@ Godot `Autoload` 应少而清楚。
 pwsh ./scripts/check-client-data.ps1
 pwsh ./scripts/check-client-scenes.ps1
 pwsh ./scripts/check-client-save.ps1
+pwsh ./scripts/check-client-quests.ps1
+pwsh ./scripts/check-client-flow.ps1
 pwsh ./scripts/check-godot-client.ps1
 pwsh ./scripts/check-text-files.ps1
 ```
@@ -374,6 +376,8 @@ pwsh ./scripts/check-text-files.ps1
 `check-godot-client.ps1` 当前使用 Godot 4.6.2 console 的 `--import --quit` 完成项目导入和全局类注册验证。`--headless --path ... --quit` 和 `--check-only --script` 在当前 Windows / Godot 4.6.2 环境会触发引擎层崩溃，因此暂不作为门禁。
 
 `check-client-save.ps1` 当前会先执行一次 Godot 导入，再通过 `client/scripts/checks/save_service_check.gd` 运行 `SaveService` 读写和备份校验，并将 Godot 配置、数据、缓存和 `user://` 存档目录隔离到 `.godot-check-home/save-service/` 下。
+
+`check-client-quests.ps1` 当前会先执行一次 Godot 导入，再通过 `client/scripts/checks/quest_rules_check.gd` 直接复验 `QuestProgressRules` 和 `QuestCompletionRules`，并将 Godot 配置、数据和缓存隔离到 `.godot-check-home/quest-rules/` 下。
 
 ## GDScript 与 C# 边界
 

@@ -1,0 +1,157 @@
+extends SceneTree
+
+var failures: Array[String] = []
+var data_registry := DataRegistry.new()
+var progress_rules: QuestProgressRules
+var completion_rules: QuestCompletionRules
+
+
+func _init() -> void:
+	_run_checks()
+	if failures.is_empty():
+		print("Quest rules checks passed.")
+		_cleanup()
+		quit(0)
+		return
+
+	for failure in failures:
+		push_error(failure)
+	_cleanup()
+	quit(1)
+
+
+func _run_checks() -> void:
+	if not data_registry.load_all():
+		failures.append("data registry should load all static data")
+		return
+
+	progress_rules = QuestProgressRules.new(data_registry)
+	completion_rules = QuestCompletionRules.new(data_registry, progress_rules)
+
+	_check_non_active_quest_does_not_complete()
+	_check_incomplete_active_quest_does_not_complete()
+	_check_completed_quest_returns_structured_result()
+	_check_active_objective_progress_is_capped()
+	_check_inactive_objective_progress_is_ignored()
+
+
+func _check_non_active_quest_does_not_complete() -> void:
+	var quest_state := QuestState.create_default()
+	var result := completion_rules.try_complete_quest(quest_state, "quest.scout_crystal_field")
+	_expect_equal(bool(result.get("completed", true)), false, "non active quest completion")
+	_expect_array_missing(quest_state.completed_quest_ids, "quest.scout_crystal_field", "non active quest completed list")
+	_expect_array_missing(quest_state.active_quest_ids, "quest.bring_back_sample", "non active next quest")
+
+
+func _check_incomplete_active_quest_does_not_complete() -> void:
+	var quest_state := QuestState.create_default()
+	var result := completion_rules.try_complete_quest(quest_state, "quest.restore_outpost")
+	_expect_equal(bool(result.get("completed", true)), false, "incomplete active quest completion")
+	_expect_array_has(quest_state.active_quest_ids, "quest.restore_outpost", "incomplete active quest remains active")
+	_expect_array_missing(quest_state.completed_quest_ids, "quest.restore_outpost", "incomplete active quest completed list")
+
+
+func _check_completed_quest_returns_structured_result() -> void:
+	var quest_state := QuestState.create_default()
+	progress_rules.set_active_objective_progress(
+		quest_state,
+		"quest.restore_outpost",
+		"interact",
+		"building.outpost_core",
+		1
+	)
+
+	var result := completion_rules.try_complete_quest(quest_state, "quest.restore_outpost")
+	_expect_equal(bool(result.get("completed", false)), true, "restore completion result")
+	_expect_equal(String(result.get("quest_id", "")), "quest.restore_outpost", "restore completion quest id")
+	_expect_array_has(quest_state.completed_quest_ids, "quest.restore_outpost", "restore completed list")
+	_expect_array_missing(quest_state.active_quest_ids, "quest.restore_outpost", "restore removed from active")
+	_expect_array_has(quest_state.active_quest_ids, "quest.scout_crystal_field", "restore activates scout quest")
+	_expect_array_has(quest_state.unlocked_effects, "region.crystal_vein_field", "restore quest state region unlock")
+	_expect_array_has(quest_state.unlocked_effects, "recipe.process_crystal_ore", "restore quest state recipe unlock")
+	_expect_result_ref(result.get("rewards", []), "item.basic_parts", 4.0, "restore reward refs")
+	_expect_result_value(result.get("unlock_effects", []), "recipe.process_crystal_ore", "restore unlock result")
+	_expect_result_value(result.get("next_quest_ids", []), "quest.scout_crystal_field", "restore next quest result")
+
+
+func _check_active_objective_progress_is_capped() -> void:
+	var quest_state := QuestState.create_default()
+	_mark_restore_outpost_completed(quest_state)
+	progress_rules.add_active_objective_progress(
+		quest_state,
+		"quest.scout_crystal_field",
+		"gather_item",
+		"item.crystal_ore",
+		10
+	)
+	_expect_equal(
+		quest_state.get_objective_progress("quest.scout_crystal_field", "gather_item", "item.crystal_ore"),
+		6.0,
+		"active objective progress capped"
+	)
+
+
+func _check_inactive_objective_progress_is_ignored() -> void:
+	var quest_state := QuestState.create_default()
+	progress_rules.set_active_objective_progress(
+		quest_state,
+		"quest.scout_crystal_field",
+		"visit_region",
+		"region.crystal_vein_field",
+		1
+	)
+	_expect_equal(
+		quest_state.get_objective_progress("quest.scout_crystal_field", "visit_region", "region.crystal_vein_field"),
+		0.0,
+		"inactive objective progress ignored"
+	)
+
+
+func _mark_restore_outpost_completed(quest_state: QuestState) -> void:
+	progress_rules.set_active_objective_progress(
+		quest_state,
+		"quest.restore_outpost",
+		"interact",
+		"building.outpost_core",
+		1
+	)
+	completion_rules.try_complete_quest(quest_state, "quest.restore_outpost")
+
+
+func _expect_result_ref(refs, expected_id: String, expected_amount: float, label: String) -> void:
+	if not (refs is Array):
+		failures.append("%s should be an array, got %s" % [label, var_to_str(refs)])
+		return
+	for ref in refs:
+		if not (ref is Dictionary):
+			continue
+		if String(ref.get("id", "")) == expected_id and is_equal_approx(float(ref.get("amount", 0.0)), expected_amount):
+			return
+	failures.append("%s should contain %s x%s, got %s" % [label, expected_id, expected_amount, var_to_str(refs)])
+
+
+func _expect_result_value(values, expected_value: String, label: String) -> void:
+	if not (values is Array):
+		failures.append("%s should be an array, got %s" % [label, var_to_str(values)])
+		return
+	if not values.has(expected_value):
+		failures.append("%s should contain %s, got %s" % [label, expected_value, var_to_str(values)])
+
+
+func _expect_equal(actual, expected, label: String) -> void:
+	if actual != expected:
+		failures.append("%s expected %s, got %s" % [label, var_to_str(expected), var_to_str(actual)])
+
+
+func _expect_array_has(values: Array, expected_value: String, label: String) -> void:
+	if not values.has(expected_value):
+		failures.append("%s should contain %s, got %s" % [label, expected_value, var_to_str(values)])
+
+
+func _expect_array_missing(values: Array, unexpected_value: String, label: String) -> void:
+	if values.has(unexpected_value):
+		failures.append("%s should not contain %s, got %s" % [label, unexpected_value, var_to_str(values)])
+
+
+func _cleanup() -> void:
+	data_registry.free()

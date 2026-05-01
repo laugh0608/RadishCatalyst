@@ -47,6 +47,7 @@ pwsh ./scripts/check-client.ps1
 pwsh ./scripts/check-client-data.ps1
 pwsh ./scripts/check-client-scenes.ps1
 pwsh ./scripts/check-client-save.ps1
+pwsh ./scripts/check-client-quests.ps1
 pwsh ./scripts/check-client-flow.ps1
 pwsh ./scripts/check-godot-client.ps1
 ```

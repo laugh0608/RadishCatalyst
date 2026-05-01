@@ -30,6 +30,14 @@ $checks = @(
         }
     },
     @{
+        Name = "client quest rules"
+        Script = "check-client-quests.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+            GodotExe = $GodotExe
+        }
+    },
+    @{
         Name = "vertical slice flow"
         Script = "check-client-flow.ps1"
         Parameters = @{

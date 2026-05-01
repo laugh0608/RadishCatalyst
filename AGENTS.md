@@ -64,7 +64,7 @@
 
 ## 当前验证基线
 
-当前仓库已初始化 Godot 原型工程。默认验证以仓库文本卫生、客户端静态数据、场景引用、存档运行时、第一切片关键流程和 Godot 导入为主。
+当前仓库已初始化 Godot 原型工程。默认验证以仓库文本卫生、客户端静态数据、场景引用、存档运行时、任务规则、第一切片关键流程和 Godot 导入为主。
 
 仓库文本卫生仍需执行：
 
@@ -99,6 +99,7 @@ pwsh ./scripts/check-client.ps1
 pwsh ./scripts/check-client-data.ps1
 pwsh ./scripts/check-client-scenes.ps1
 pwsh ./scripts/check-client-save.ps1
+pwsh ./scripts/check-client-quests.ps1
 pwsh ./scripts/check-client-flow.ps1
 pwsh ./scripts/check-godot-client.ps1
 ```
