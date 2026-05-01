@@ -687,6 +687,8 @@ func _validate_completed_quest_objectives(quest_id: String, quest: Dictionary, q
 
 
 func _validate_quest_content(quest_state: Dictionary) -> String:
+	var active_quest_ids := _get_string_array(quest_state.get("active_quest_ids", []))
+	var completed_quest_ids := _get_string_array(quest_state.get("completed_quest_ids", []))
 	for field_name in ["active_quest_ids", "completed_quest_ids"]:
 		var quest_ids = quest_state.get(field_name, [])
 		if not (quest_ids is Array):
@@ -709,6 +711,8 @@ func _validate_quest_content(quest_state: Dictionary) -> String:
 			var quest_error := _validate_definition_ref(parts[0], "quest.", "quest_state.objective_progress")
 			if not quest_error.is_empty():
 				return quest_error
+			if not active_quest_ids.has(parts[0]) and not completed_quest_ids.has(parts[0]):
+				return "读取存档失败：quest_state.objective_progress 记录了未处于进行中或已完成状态的任务，当前运行状态已保留。"
 			var target_error := _validate_known_or_special_ref(parts[2], "quest_state.objective_progress")
 			if not target_error.is_empty():
 				return target_error
