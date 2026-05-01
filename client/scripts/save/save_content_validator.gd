@@ -594,6 +594,8 @@ func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[Strin
 	for effect_id in unlocked_effects:
 		if effect_id.begins_with("region.") and not unlocked_region_ids.has(effect_id):
 			return "读取存档失败：任务解锁区域与世界区域解锁不一致，当前运行状态已保留。"
+		if effect_id.begins_with("recipe.") and not _is_effect_unlocked_by_completed_quest(effect_id, completed_quest_ids):
+			return "读取存档失败：任务解锁配方缺少已完成任务来源，当前运行状态已保留。"
 
 	for quest_id in completed_quest_ids:
 		var quest := data_registry.get_definition(quest_id)
@@ -606,6 +608,15 @@ func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[Strin
 				return "读取存档失败：已完成任务缺少区域解锁结果，当前运行状态已保留。"
 
 	return ""
+
+
+func _is_effect_unlocked_by_completed_quest(effect_id: String, completed_quest_ids: Array[String]) -> bool:
+	for quest_id in completed_quest_ids:
+		var quest := data_registry.get_definition(quest_id)
+		for quest_effect in quest.get("unlock_effects", []):
+			if String(quest_effect) == effect_id:
+				return true
+	return false
 
 
 func _validate_completed_quest_objectives(quest_id: String, quest: Dictionary, quest_state: Dictionary) -> String:
