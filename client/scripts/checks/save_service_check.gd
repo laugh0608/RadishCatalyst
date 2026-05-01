@@ -2,6 +2,7 @@ extends SceneTree
 
 const EntitySourceChecks := preload("res://scripts/checks/save_entity_source_check.gd")
 const LEGACY_SAVE_BACKUP_FILE := "user://saves/slice_01_autosave.bak.json"
+const QuestObjectiveChecks := preload("res://scripts/checks/save_quest_objective_check.gd")
 const QuestUnlockChecks := preload("res://scripts/checks/save_quest_unlock_check.gd")
 const StructureRuntimeChecks := preload("res://scripts/checks/save_structure_runtime_check.gd")
 
@@ -159,12 +160,7 @@ func _run_checks() -> void:
 	_check_rejects_quest_state_overlap()
 	_check_rejects_missing_quest_prerequisite()
 	_check_rejects_missing_structure_site()
-	_check_loads_active_quest_with_partial_defined_objective_progress()
-	_check_rejects_quest_progress_with_undefined_objective_type()
-	_check_rejects_quest_progress_with_undefined_objective_target()
-	_check_loads_completed_quest_with_objectives()
-	_check_rejects_completed_quest_without_objective_progress()
-	_check_rejects_completed_quest_with_partial_objective_progress()
+	QuestObjectiveChecks.new(self).run()
 	QuestUnlockChecks.new(self).run()
 	_check_bad_existing_save_does_not_block_save()
 
@@ -580,78 +576,6 @@ func _check_rejects_missing_structure_site() -> void:
 	}
 	_write_save_json(save_data)
 	_expect_failure_message(save_service.load_game(), "引用了不存在的建造点", "missing structure site")
-
-
-func _check_loads_active_quest_with_partial_defined_objective_progress() -> void:
-	_remove_save_file()
-	_remove_backup_files()
-	var save_data := _make_save_data("world.valid.active_partial_objective")
-	_mark_restore_outpost_completed(save_data)
-	save_data["world"]["quest_state"]["active_quest_ids"] = ["quest.scout_crystal_field"]
-	save_data["world"]["quest_state"]["objective_progress"]["quest.scout_crystal_field|visit_region|region.crystal_vein_field"] = 1
-	_write_save_json(save_data)
-	_expect_success(save_service.load_game(), "active quest with partial defined objective progress")
-
-
-func _check_rejects_quest_progress_with_undefined_objective_type() -> void:
-	_remove_save_file()
-	_remove_backup_files()
-	var save_data := _make_save_data("world.invalid.undefined_objective_type")
-	_mark_restore_outpost_completed(save_data)
-	save_data["world"]["quest_state"]["active_quest_ids"] = ["quest.scout_crystal_field"]
-	save_data["world"]["quest_state"]["objective_progress"]["quest.scout_crystal_field|inspect|region.crystal_vein_field"] = 1
-	_write_save_json(save_data)
-	_expect_failure_message(save_service.load_game(), "任务未定义的目标", "undefined quest objective type")
-
-
-func _check_rejects_quest_progress_with_undefined_objective_target() -> void:
-	_remove_save_file()
-	_remove_backup_files()
-	var save_data := _make_save_data("world.invalid.undefined_objective_target")
-	_mark_restore_outpost_completed(save_data)
-	save_data["world"]["quest_state"]["active_quest_ids"] = ["quest.scout_crystal_field"]
-	save_data["world"]["quest_state"]["objective_progress"]["quest.scout_crystal_field|gather_item|item.basic_parts"] = 1
-	_write_save_json(save_data)
-	_expect_failure_message(save_service.load_game(), "任务未定义的目标", "undefined quest objective target")
-
-
-func _check_loads_completed_quest_with_objectives() -> void:
-	_remove_save_file()
-	_remove_backup_files()
-	var save_data := _make_save_data("world.valid.completed_objectives")
-	_mark_restore_outpost_completed(save_data)
-	_write_save_json(save_data)
-	_expect_success(save_service.load_game(), "completed quest with objective progress")
-
-
-func _check_rejects_completed_quest_without_objective_progress() -> void:
-	_remove_save_file()
-	_remove_backup_files()
-	var save_data := _make_save_data("world.invalid.completed_without_objectives")
-	save_data["world"]["quest_state"]["active_quest_ids"] = []
-	save_data["world"]["quest_state"]["completed_quest_ids"] = ["quest.restore_outpost"]
-	save_data["world"]["quest_state"]["objective_progress"] = {}
-	save_data["world"]["quest_state"]["unlocked_effects"] = ["region.outpost_platform", "region.crystal_vein_field", "recipe.process_crystal_ore"]
-	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
-	_write_save_json(save_data)
-	_expect_failure_message(save_service.load_game(), "已完成任务目标进度不足", "completed quest without objective progress")
-
-
-func _check_rejects_completed_quest_with_partial_objective_progress() -> void:
-	_remove_save_file()
-	_remove_backup_files()
-	var save_data := _make_save_data("world.invalid.completed_partial_objectives")
-	save_data["world"]["quest_state"]["active_quest_ids"] = []
-	save_data["world"]["quest_state"]["completed_quest_ids"] = ["quest.restore_outpost", "quest.scout_crystal_field"]
-	save_data["world"]["quest_state"]["objective_progress"] = {
-		"quest.restore_outpost|interact|building.outpost_core": 1,
-		"quest.scout_crystal_field|visit_region|region.crystal_vein_field": 1,
-		"quest.scout_crystal_field|gather_item|item.crystal_ore": 3
-	}
-	save_data["world"]["quest_state"]["unlocked_effects"] = ["region.outpost_platform", "region.crystal_vein_field", "recipe.process_crystal_ore", "recipe.repair_gel"]
-	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
-	_write_save_json(save_data)
-	_expect_failure_message(save_service.load_game(), "已完成任务目标进度不足", "completed quest with partial objective progress")
 
 
 func _mark_restore_outpost_completed(save_data: Dictionary) -> void:
