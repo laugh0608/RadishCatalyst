@@ -155,13 +155,16 @@ func _run_checks() -> void:
 	_check_rejects_unknown_map_object_source()
 	_check_rejects_map_object_source_definition_mismatch()
 	_check_rejects_built_definition_mismatch()
+	_check_rejects_map_object_unknown_field()
 	_check_loads_known_enemy_source()
 	_check_rejects_unknown_enemy_source()
 	_check_rejects_enemy_source_definition_mismatch()
 	_check_rejects_enemy_source_region_mismatch()
+	_check_rejects_enemy_unknown_field()
 	_check_rejects_unknown_structure_source()
 	_check_rejects_structure_source_definition_mismatch()
 	_check_rejects_structure_source_site_mismatch()
+	_check_rejects_structure_unknown_field()
 	_check_rejects_locked_current_region()
 	_check_rejects_region_mismatch()
 	_check_rejects_quest_state_overlap()
@@ -632,6 +635,23 @@ func _check_rejects_built_definition_mismatch() -> void:
 	_expect_failure_message(save_service.load_game(), "建成定义与原型地图对象定义不一致", "built definition mismatch")
 
 
+func _check_rejects_map_object_unknown_field() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.map_object_unknown_field")
+	save_data["world"]["map_objects"] = {
+		"map_object_instance.crystal_cluster": {
+			"definition_id": "map_object.crystal_cluster",
+			"region_id": "region.crystal_vein_field",
+			"is_gathered": false,
+			"debug_spawn_note": "should not be saved"
+		}
+	}
+	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "包含不允许的字段", "map object unknown field")
+
+
 func _check_loads_known_enemy_source() -> void:
 	_remove_save_file()
 	_remove_backup_files()
@@ -701,6 +721,24 @@ func _check_rejects_enemy_source_region_mismatch() -> void:
 	_expect_failure_message(save_service.load_game(), "原型敌人区域不一致", "enemy source region mismatch")
 
 
+func _check_rejects_enemy_unknown_field() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.enemy_unknown_field")
+	save_data["world"]["enemies"] = {
+		"enemy_instance.native_skitter": {
+			"definition_id": "enemy.native_skitter",
+			"region_id": "region.crystal_vein_field",
+			"health": 20,
+			"max_health": 20,
+			"aggro_target_id": "character.player"
+		}
+	}
+	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "包含不允许的字段", "enemy unknown field")
+
+
 func _check_rejects_unknown_structure_source() -> void:
 	_remove_save_file()
 	_remove_backup_files()
@@ -739,6 +777,20 @@ func _check_rejects_structure_source_site_mismatch() -> void:
 	}
 	_write_save_json(save_data)
 	_expect_failure_message(save_service.load_game(), "原型建筑建造点来源不一致", "structure source site mismatch")
+
+
+func _check_rejects_structure_unknown_field() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_unknown_field")
+	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "idle",
+		"temporary_power_draw": 10
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "包含不允许的字段", "structure unknown field")
 
 
 func _check_rejects_locked_current_region() -> void:

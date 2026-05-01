@@ -52,6 +52,34 @@ const PROTOTYPE_BASE_STRUCTURE_SOURCES := {
 	}
 }
 
+const MAP_OBJECT_ALLOWED_FIELDS := [
+	"definition_id",
+	"region_id",
+	"is_gathered",
+	"is_sampled",
+	"is_cleared",
+	"is_built",
+	"built_definition_id"
+]
+
+const ENEMY_ALLOWED_FIELDS := [
+	"definition_id",
+	"region_id",
+	"health",
+	"max_health",
+	"is_defeated",
+	"drops_granted"
+]
+
+const BASE_STRUCTURE_ALLOWED_FIELDS := [
+	"definition_id",
+	"region_id",
+	"status",
+	"site_instance_id",
+	"last_recipe_id",
+	"completed_runs"
+]
+
 var data_registry: DataRegistry
 
 
@@ -111,18 +139,27 @@ func _validate_world_content(world_data: Dictionary) -> String:
 	var map_objects_error := _validate_runtime_object_map(world_data.get("map_objects", {}), ["map_object.", "building."], "map_object_instance.", "world.map_objects")
 	if not map_objects_error.is_empty():
 		return map_objects_error
+	var map_object_fields_error := _validate_runtime_object_fields(world_data.get("map_objects", {}), MAP_OBJECT_ALLOWED_FIELDS, "world.map_objects")
+	if not map_object_fields_error.is_empty():
+		return map_object_fields_error
 	var map_object_source_error := _validate_map_object_sources(world_data.get("map_objects", {}))
 	if not map_object_source_error.is_empty():
 		return map_object_source_error
 	var enemies_error := _validate_runtime_object_map(world_data.get("enemies", {}), ["enemy."], "enemy_instance.", "world.enemies")
 	if not enemies_error.is_empty():
 		return enemies_error
+	var enemy_fields_error := _validate_runtime_object_fields(world_data.get("enemies", {}), ENEMY_ALLOWED_FIELDS, "world.enemies")
+	if not enemy_fields_error.is_empty():
+		return enemy_fields_error
 	var enemy_source_error := _validate_enemy_sources(world_data.get("enemies", {}))
 	if not enemy_source_error.is_empty():
 		return enemy_source_error
 	var structures_error := _validate_runtime_object_map(world_data.get("base_structures", {}), ["building."], "structure.", "world.base_structures")
 	if not structures_error.is_empty():
 		return structures_error
+	var structure_fields_error := _validate_runtime_object_fields(world_data.get("base_structures", {}), BASE_STRUCTURE_ALLOWED_FIELDS, "world.base_structures")
+	if not structure_fields_error.is_empty():
+		return structure_fields_error
 	var structure_source_error := _validate_base_structure_sources(world_data.get("base_structures", {}))
 	if not structure_source_error.is_empty():
 		return structure_source_error
@@ -222,6 +259,25 @@ func _validate_runtime_object_map(value, expected_definition_prefixes: Array, ex
 			if float(max_health) <= 0.0 or float(health) < 0.0 or float(health) > float(max_health):
 				return "读取存档失败：%s 中敌人生命值超出有效范围，当前运行状态已保留。" % label
 
+	return ""
+
+
+func _validate_runtime_object_fields(value, allowed_fields: Array, label: String) -> String:
+	if not (value is Dictionary):
+		return ""
+
+	for instance_id in value:
+		var entry = value[instance_id]
+		if not (entry is Dictionary):
+			continue
+		for field_name in entry:
+			var field_name_string := String(field_name)
+			if not allowed_fields.has(field_name_string):
+				return "读取存档失败：%s.%s 包含不允许的字段：%s，当前运行状态已保留。" % [
+					label,
+					String(instance_id),
+					field_name_string
+				]
 	return ""
 
 
