@@ -96,6 +96,8 @@ const STRUCTURE_BUFFER_ALLOWED_FIELDS := [
 	"capacity_slots"
 ]
 
+const DEFAULT_UNLOCKED_REGION_IDS: Array[String] = ["region.outpost_platform"]
+
 var data_registry: DataRegistry
 
 
@@ -501,8 +503,7 @@ func _is_recipe_unlocked(recipe_id: String, recipe: Dictionary, unlocked_effects
 
 
 func _validate_cross_block_content(world_data: Dictionary, character_data: Dictionary) -> String:
-	var default_unlocked_region_ids: Array[String] = ["region.outpost_platform"]
-	var unlocked_region_ids := _get_string_array(world_data.get("unlocked_region_ids", default_unlocked_region_ids), default_unlocked_region_ids)
+	var unlocked_region_ids := _get_string_array(world_data.get("unlocked_region_ids", DEFAULT_UNLOCKED_REGION_IDS), DEFAULT_UNLOCKED_REGION_IDS)
 	var world_region_id := String(world_data.get("current_region_id", "region.outpost_platform"))
 	var character_region_id := String(character_data.get("current_region_id", "region.outpost_platform"))
 	if not unlocked_region_ids.has(world_region_id):
@@ -592,10 +593,17 @@ func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[Strin
 
 	var unlocked_effects := _get_string_array(quest_state.get("unlocked_effects", []))
 	for effect_id in unlocked_effects:
-		if effect_id.begins_with("region.") and not unlocked_region_ids.has(effect_id):
-			return "读取存档失败：任务解锁区域与世界区域解锁不一致，当前运行状态已保留。"
+		if effect_id.begins_with("region."):
+			if not unlocked_region_ids.has(effect_id):
+				return "读取存档失败：任务解锁区域与世界区域解锁不一致，当前运行状态已保留。"
+			if not _is_default_unlocked_region(effect_id) and not _is_effect_unlocked_by_completed_quest(effect_id, completed_quest_ids):
+				return "读取存档失败：任务解锁区域缺少已完成任务来源，当前运行状态已保留。"
 		if effect_id.begins_with("recipe.") and not _is_effect_unlocked_by_completed_quest(effect_id, completed_quest_ids):
 			return "读取存档失败：任务解锁配方缺少已完成任务来源，当前运行状态已保留。"
+
+	for region_id in unlocked_region_ids:
+		if not _is_default_unlocked_region(region_id) and not _is_effect_unlocked_by_completed_quest(region_id, completed_quest_ids):
+			return "读取存档失败：世界解锁区域缺少已完成任务来源，当前运行状态已保留。"
 
 	for quest_id in completed_quest_ids:
 		var quest := data_registry.get_definition(quest_id)
@@ -608,6 +616,10 @@ func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[Strin
 				return "读取存档失败：已完成任务缺少区域解锁结果，当前运行状态已保留。"
 
 	return ""
+
+
+func _is_default_unlocked_region(region_id: String) -> bool:
+	return DEFAULT_UNLOCKED_REGION_IDS.has(region_id)
 
 
 func _is_effect_unlocked_by_completed_quest(effect_id: String, completed_quest_ids: Array[String]) -> bool:

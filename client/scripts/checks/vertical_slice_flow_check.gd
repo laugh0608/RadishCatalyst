@@ -58,6 +58,7 @@ func _run_checks() -> void:
 		{"type": "build", "target_id": "building.pollution_filter", "amount": 1}
 	])
 	_expect_active_quest("quest.enter_pollution_edge", "after expand treatment point")
+	_expect_array_has(world_state.unlocked_region_ids, "region.pollution_edge", "treatment point unlocks pollution edge region")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.cleanse_residue", "treatment point unlocks residue recipe")
 
 	_complete_active_quest("quest.enter_pollution_edge", [

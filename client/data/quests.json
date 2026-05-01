@@ -62,7 +62,7 @@
       "objectives": [{"type": "build", "target_id": "building.foundation_t1", "amount": 2}, {"type": "build", "target_id": "building.pollution_filter", "amount": 1}],
       "prerequisites": ["quest.make_filter_module"],
       "rewards": [],
-      "unlock_effects": ["recipe.cleanse_residue"],
+      "unlock_effects": ["region.pollution_edge", "recipe.cleanse_residue"],
       "next_quest_ids": ["quest.enter_pollution_edge"],
       "public_level": "public"
     },

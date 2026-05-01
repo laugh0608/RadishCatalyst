@@ -189,6 +189,7 @@ func _run_checks() -> void:
 	_check_rejects_quest_state_overlap()
 	_check_rejects_missing_quest_prerequisite()
 	_check_rejects_recipe_unlock_without_completed_quest_source()
+	_check_rejects_region_unlock_sources_without_completed_quest()
 	_check_rejects_missing_structure_site()
 	_check_loads_active_quest_with_partial_defined_objective_progress()
 	_check_rejects_quest_progress_with_undefined_objective_type()
@@ -593,6 +594,7 @@ func _check_loads_known_map_object_source() -> void:
 	_remove_save_file()
 	_remove_backup_files()
 	var save_data := _make_save_data("world.valid.map_object_source")
+	_mark_restore_outpost_completed(save_data)
 	save_data["world"]["map_objects"] = {
 		"map_object_instance.crystal_cluster_east": {
 			"definition_id": "map_object.crystal_cluster",
@@ -605,7 +607,6 @@ func _check_loads_known_map_object_source() -> void:
 			"is_cleared": true
 		}
 	}
-	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
 	_write_save_json(save_data)
 	_expect_success(save_service.load_game(), "known map object source")
 
@@ -676,6 +677,7 @@ func _check_loads_known_enemy_source() -> void:
 	_remove_save_file()
 	_remove_backup_files()
 	var save_data := _make_save_data("world.valid.enemy_source")
+	_mark_restore_outpost_completed(save_data)
 	save_data["world"]["enemies"] = {
 		"enemy_instance.native_skitter": {
 			"definition_id": "enemy.native_skitter",
@@ -685,7 +687,6 @@ func _check_loads_known_enemy_source() -> void:
 			"is_defeated": false
 		}
 	}
-	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
 	_write_save_json(save_data)
 	_expect_success(save_service.load_game(), "known enemy source")
 
@@ -1196,6 +1197,21 @@ func _check_rejects_recipe_unlock_without_completed_quest_source() -> void:
 	_expect_failure_message(save_service.load_game(), "任务解锁配方缺少已完成任务来源", "recipe unlock without completed quest source")
 
 
+func _check_rejects_region_unlock_sources_without_completed_quest() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.region_unlock_source")
+	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "世界解锁区域缺少已完成任务来源", "region unlock without completed quest source")
+	_remove_save_file()
+	_remove_backup_files()
+	save_data = _make_save_data("world.invalid.region_effect_source")
+	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
+	save_data["world"]["quest_state"]["unlocked_effects"].append("region.crystal_vein_field")
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "任务解锁区域缺少已完成任务来源", "region effect without completed quest source")
+
 func _check_rejects_missing_structure_site() -> void:
 	_remove_save_file()
 	_remove_backup_files()
@@ -1276,12 +1292,7 @@ func _check_rejects_completed_quest_with_partial_objective_progress() -> void:
 		"quest.scout_crystal_field|visit_region|region.crystal_vein_field": 1,
 		"quest.scout_crystal_field|gather_item|item.crystal_ore": 3
 	}
-	save_data["world"]["quest_state"]["unlocked_effects"] = [
-		"region.outpost_platform",
-		"region.crystal_vein_field",
-		"recipe.process_crystal_ore",
-		"recipe.repair_gel"
-	]
+	save_data["world"]["quest_state"]["unlocked_effects"] = ["region.outpost_platform", "region.crystal_vein_field", "recipe.process_crystal_ore", "recipe.repair_gel"]
 	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
 	_write_save_json(save_data)
 	_expect_failure_message(save_service.load_game(), "已完成任务目标进度不足", "completed quest with partial objective progress")
@@ -1291,15 +1302,8 @@ func _mark_restore_outpost_completed(save_data: Dictionary) -> void:
 	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
 	save_data["world"]["quest_state"]["active_quest_ids"] = []
 	save_data["world"]["quest_state"]["completed_quest_ids"] = ["quest.restore_outpost"]
-	save_data["world"]["quest_state"]["objective_progress"] = {
-		"quest.restore_outpost|interact|building.outpost_core": 1
-	}
-	save_data["world"]["quest_state"]["unlocked_effects"] = [
-		"region.outpost_platform",
-		"region.crystal_vein_field",
-		"recipe.process_crystal_ore"
-	]
-
+	save_data["world"]["quest_state"]["objective_progress"] = {"quest.restore_outpost|interact|building.outpost_core": 1}
+	save_data["world"]["quest_state"]["unlocked_effects"] = ["region.outpost_platform", "region.crystal_vein_field", "recipe.process_crystal_ore"]
 
 func _make_save_data(world_id: String) -> Dictionary:
 	var world_state := WorldState.create_default()
