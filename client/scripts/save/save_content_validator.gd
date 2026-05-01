@@ -79,13 +79,21 @@ const BASE_STRUCTURE_ALLOWED_FIELDS := [
 	"last_recipe_id",
 	"completed_runs",
 	"active_recipe_id",
-	"progress_seconds"
+	"progress_seconds",
+	"input_buffer",
+	"output_buffer"
 ]
 
 const BASE_STRUCTURE_ALLOWED_STATUSES := [
 	"idle",
 	"in_progress",
 	"completed"
+]
+
+const STRUCTURE_BUFFER_ALLOWED_FIELDS := [
+	"items",
+	"fluids",
+	"capacity_slots"
 ]
 
 var data_registry: DataRegistry
@@ -386,6 +394,10 @@ func _validate_base_structure_runtime_state(value) -> String:
 		if not BASE_STRUCTURE_ALLOWED_STATUSES.has(status):
 			return "读取存档失败：world.base_structures.%s 使用了无效建筑状态，当前运行状态已保留。" % String(structure_id)
 
+		var buffer_error := _validate_structure_buffers(String(structure_id), entry)
+		if not buffer_error.is_empty():
+			return buffer_error
+
 		var completed_runs = entry.get("completed_runs", 0)
 		if not _is_whole_number(completed_runs) or int(completed_runs) < 0:
 			return "读取存档失败：world.base_structures.%s.completed_runs 必须是非负整数，当前运行状态已保留。" % String(structure_id)
@@ -420,6 +432,39 @@ func _validate_base_structure_runtime_state(value) -> String:
 		var duration = active_recipe.get("duration", 0.0)
 		if _is_number(duration) and float(duration) > 0.0 and float(progress_seconds) > float(duration):
 			return "读取存档失败：world.base_structures.%s.progress_seconds 超出配方时长，当前运行状态已保留。" % String(structure_id)
+
+	return ""
+
+
+func _validate_structure_buffers(structure_id: String, entry: Dictionary) -> String:
+	var definition_id := String(entry.get("definition_id", ""))
+	var structure_definition := data_registry.get_definition(definition_id)
+	var storage_slots = structure_definition.get("storage_slots", 0)
+	for buffer_field in ["input_buffer", "output_buffer"]:
+		if not entry.has(buffer_field):
+			continue
+
+		var buffer_label := "world.base_structures.%s.%s" % [structure_id, String(buffer_field)]
+		var buffer = entry[buffer_field]
+		if not (buffer is Dictionary):
+			return "读取存档失败：%s 必须是库存缓冲对象，当前运行状态已保留。" % buffer_label
+		if _is_number(storage_slots) and int(storage_slots) <= 0:
+			return "读取存档失败：%s 所属建筑不应记录库存缓冲，当前运行状态已保留。" % buffer_label
+
+		for field_name in buffer:
+			var field_name_string := String(field_name)
+			if not STRUCTURE_BUFFER_ALLOWED_FIELDS.has(field_name_string):
+				return "读取存档失败：%s 包含不允许的字段：%s，当前运行状态已保留。" % [
+					buffer_label,
+					field_name_string
+				]
+
+		var inventory_error := _validate_inventory_content(buffer, buffer_label)
+		if not inventory_error.is_empty():
+			return inventory_error
+
+		if buffer.has("capacity_slots") and _is_number(storage_slots) and int(buffer.get("capacity_slots", 0)) > int(storage_slots):
+			return "读取存档失败：%s.capacity_slots 超出建筑储存槽位，当前运行状态已保留。" % buffer_label
 
 	return ""
 

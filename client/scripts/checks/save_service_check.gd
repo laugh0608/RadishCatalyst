@@ -177,6 +177,11 @@ func _run_checks() -> void:
 	_check_rejects_structure_progress_exceeds_duration()
 	_check_rejects_structure_active_recipe_mismatch()
 	_check_rejects_idle_structure_with_active_recipe()
+	_check_loads_valid_structure_buffers()
+	_check_rejects_structure_buffer_unknown_item()
+	_check_rejects_structure_buffer_negative_amount()
+	_check_rejects_structure_buffer_unknown_field()
+	_check_rejects_structure_buffer_capacity_exceeds_storage()
 	_check_rejects_locked_current_region()
 	_check_rejects_region_mismatch()
 	_check_rejects_quest_state_overlap()
@@ -994,6 +999,104 @@ func _check_rejects_idle_structure_with_active_recipe() -> void:
 	}
 	_write_save_json(save_data)
 	_expect_failure_message(save_service.load_game(), "非加工中状态不应记录 active_recipe_id", "idle with active recipe")
+
+
+func _check_loads_valid_structure_buffers() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.valid.structure_buffers")
+	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "in_progress",
+		"active_recipe_id": "recipe.process_crystal_ore",
+		"progress_seconds": 2.0,
+		"input_buffer": {
+			"items": {
+				"item.crystal_ore": 3
+			},
+			"fluids": {},
+			"capacity_slots": 6
+		},
+		"output_buffer": {
+			"items": {
+				"item.basic_parts": 1
+			},
+			"capacity_slots": 6
+		}
+	}
+	_write_save_json(save_data)
+	_expect_success(save_service.load_game(), "valid structure buffers")
+
+
+func _check_rejects_structure_buffer_unknown_item() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_buffer_unknown_item")
+	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "idle",
+		"input_buffer": {
+			"items": {
+				"item.debug_unknown": 1
+			}
+		}
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "引用了未知定义 ID", "structure buffer unknown item")
+
+
+func _check_rejects_structure_buffer_negative_amount() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_buffer_negative_amount")
+	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "idle",
+		"output_buffer": {
+			"items": {
+				"item.basic_parts": -1
+			}
+		}
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "items 中存在无效数量", "structure buffer negative item")
+
+
+func _check_rejects_structure_buffer_unknown_field() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_buffer_unknown_field")
+	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "idle",
+		"input_buffer": {
+			"items": {},
+			"temperature": 120
+		}
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "包含不允许的字段", "structure buffer unknown field")
+
+
+func _check_rejects_structure_buffer_capacity_exceeds_storage() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_buffer_capacity")
+	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "idle",
+		"input_buffer": {
+			"items": {},
+			"capacity_slots": 7
+		}
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "capacity_slots 超出建筑储存槽位", "structure buffer capacity")
 
 
 func _check_rejects_locked_current_region() -> void:
