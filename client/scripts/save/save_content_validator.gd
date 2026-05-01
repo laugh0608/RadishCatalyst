@@ -599,6 +599,13 @@ func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[Strin
 		):
 			return "读取存档失败：进行中任务缺少已完成任务来源，当前运行状态已保留。"
 
+	for quest_id in completed_quest_ids:
+		if (
+			not DEFAULT_ACTIVE_QUEST_IDS.has(quest_id)
+			and not _is_quest_activated_by_completed_quest(quest_id, completed_quest_ids)
+		):
+			return "读取存档失败：已完成任务缺少任务链来源，当前运行状态已保留。"
+
 	var unlocked_effects := _get_string_array(quest_state.get("unlocked_effects", []))
 	for effect_id in unlocked_effects:
 		if effect_id.begins_with("region."):

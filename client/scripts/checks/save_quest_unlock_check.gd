@@ -9,8 +9,10 @@ func _init(check_host) -> void:
 
 func run() -> void:
 	_check_loads_completed_quest_with_full_unlock_effects()
+	_check_loads_completed_quest_chain_sources()
 	_check_loads_active_quest_from_completed_quest()
 	_check_rejects_active_quest_without_completed_quest_source()
+	_check_rejects_completed_quest_without_chain_source()
 	_check_rejects_completed_quest_missing_recipe_unlock_effect()
 	_check_rejects_completed_quest_missing_quest_unlock_effect()
 	_check_rejects_completed_quest_missing_slice_unlock_effect()
@@ -25,6 +27,15 @@ func _check_loads_completed_quest_with_full_unlock_effects() -> void:
 	_mark_bring_back_sample_completed(save_data)
 	host._write_save_json(save_data)
 	host._expect_success(host.save_service.load_game(), "completed quest with full unlock effects")
+
+
+func _check_loads_completed_quest_chain_sources() -> void:
+	host._remove_save_file()
+	host._remove_backup_files()
+	var save_data: Dictionary = host._make_save_data("world.valid.completed_quest_chain_sources")
+	_mark_slice_complete(save_data)
+	host._write_save_json(save_data)
+	host._expect_success(host.save_service.load_game(), "completed quest chain sources")
 
 
 func _check_loads_active_quest_from_completed_quest() -> void:
@@ -85,6 +96,17 @@ func _check_rejects_active_quest_without_completed_quest_source() -> void:
 	]
 	host._write_save_json(save_data)
 	host._expect_failure_message(host.save_service.load_game(), "进行中任务缺少已完成任务来源", "active quest without completed quest source")
+
+
+func _check_rejects_completed_quest_without_chain_source() -> void:
+	host._remove_save_file()
+	host._remove_backup_files()
+	var save_data: Dictionary = host._make_save_data("world.invalid.completed_quest_chain_source")
+	_mark_slice_complete(save_data)
+	save_data["world"]["quest_state"]["completed_quest_ids"].append("quest.defeat_elite_node")
+	save_data["world"]["quest_state"]["objective_progress"]["quest.defeat_elite_node|defeat_enemy|enemy.elite_residue_node"] = 1
+	host._write_save_json(save_data)
+	host._expect_failure_message(host.save_service.load_game(), "已完成任务缺少任务链来源", "completed quest without chain source")
 
 
 func _check_rejects_completed_quest_missing_recipe_unlock_effect() -> void:
