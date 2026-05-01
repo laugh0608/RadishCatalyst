@@ -179,7 +179,7 @@ func _validate_world_content(world_data: Dictionary) -> String:
 	var structure_source_error := _validate_base_structure_sources(world_data.get("base_structures", {}))
 	if not structure_source_error.is_empty():
 		return structure_source_error
-	var structure_state_error := _validate_base_structure_runtime_state(world_data.get("base_structures", {}))
+	var structure_state_error := _validate_base_structure_runtime_state(world_data.get("base_structures", {}), world_data.get("quest_state", {}))
 	if not structure_state_error.is_empty():
 		return structure_state_error
 
@@ -381,10 +381,11 @@ func _validate_base_structure_sources(value) -> String:
 	return ""
 
 
-func _validate_base_structure_runtime_state(value) -> String:
+func _validate_base_structure_runtime_state(value, quest_state) -> String:
 	if not (value is Dictionary):
 		return ""
 
+	var unlocked_effects := _get_unlocked_effects(quest_state)
 	for structure_id in value:
 		var entry = value[structure_id]
 		if not (entry is Dictionary):
@@ -404,7 +405,7 @@ func _validate_base_structure_runtime_state(value) -> String:
 
 		var last_recipe_id := String(entry.get("last_recipe_id", ""))
 		if not last_recipe_id.is_empty():
-			var last_recipe_error := _validate_structure_recipe_ref(last_recipe_id, String(structure_id), entry, "last_recipe_id")
+			var last_recipe_error := _validate_structure_recipe_ref(last_recipe_id, String(structure_id), entry, "last_recipe_id", unlocked_effects)
 			if not last_recipe_error.is_empty():
 				return last_recipe_error
 
@@ -421,7 +422,7 @@ func _validate_base_structure_runtime_state(value) -> String:
 			return "读取存档失败：world.base_structures.%s 加工中状态缺少 active_recipe_id，当前运行状态已保留。" % String(structure_id)
 		if not has_progress_seconds:
 			return "读取存档失败：world.base_structures.%s 加工中状态缺少 progress_seconds，当前运行状态已保留。" % String(structure_id)
-		var active_recipe_error := _validate_structure_recipe_ref(active_recipe_id, String(structure_id), entry, "active_recipe_id")
+		var active_recipe_error := _validate_structure_recipe_ref(active_recipe_id, String(structure_id), entry, "active_recipe_id", unlocked_effects)
 		if not active_recipe_error.is_empty():
 			return active_recipe_error
 
@@ -469,7 +470,13 @@ func _validate_structure_buffers(structure_id: String, entry: Dictionary) -> Str
 	return ""
 
 
-func _validate_structure_recipe_ref(recipe_id: String, structure_id: String, entry: Dictionary, field_name: String) -> String:
+func _validate_structure_recipe_ref(
+	recipe_id: String,
+	structure_id: String,
+	entry: Dictionary,
+	field_name: String,
+	unlocked_effects: Array[String]
+) -> String:
 	var recipe_error := _validate_definition_ref(recipe_id, "recipe.", "world.base_structures.%s.%s" % [structure_id, field_name])
 	if not recipe_error.is_empty():
 		return recipe_error
@@ -478,7 +485,19 @@ func _validate_structure_recipe_ref(recipe_id: String, structure_id: String, ent
 	var required_building_id := String(recipe.get("required_building_id", ""))
 	if not required_building_id.is_empty() and required_building_id != String(entry.get("definition_id", "")):
 		return "读取存档失败：world.base_structures.%s.%s 与建筑定义不一致，当前运行状态已保留。" % [structure_id, field_name]
+	if not _is_recipe_unlocked(recipe_id, recipe, unlocked_effects):
+		return "读取存档失败：world.base_structures.%s.%s 引用了尚未解锁的配方，当前运行状态已保留。" % [structure_id, field_name]
 	return ""
+
+
+func _is_recipe_unlocked(recipe_id: String, recipe: Dictionary, unlocked_effects: Array[String]) -> bool:
+	if unlocked_effects.has(recipe_id):
+		return true
+
+	var unlock_conditions = recipe.get("unlock_conditions", [])
+	if not (unlock_conditions is Array) or unlock_conditions.is_empty():
+		return true
+	return false
 
 
 func _validate_cross_block_content(world_data: Dictionary, character_data: Dictionary) -> String:
@@ -733,6 +752,12 @@ func _get_string_array(value, default_values: Array[String] = []) -> Array[Strin
 	for item in value:
 		result.append(String(item))
 	return result
+
+
+func _get_unlocked_effects(quest_state) -> Array[String]:
+	if not (quest_state is Dictionary):
+		return ["region.outpost_platform"]
+	return _get_string_array(quest_state.get("unlocked_effects", ["region.outpost_platform"]))
 
 
 func _is_number(value) -> bool:

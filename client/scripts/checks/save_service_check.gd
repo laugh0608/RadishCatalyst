@@ -170,12 +170,14 @@ func _run_checks() -> void:
 	_check_rejects_structure_invalid_completed_runs()
 	_check_rejects_structure_unknown_last_recipe()
 	_check_rejects_structure_last_recipe_mismatch()
+	_check_rejects_structure_locked_last_recipe()
 	_check_loads_valid_structure_in_progress_state()
 	_check_rejects_in_progress_without_active_recipe()
 	_check_rejects_in_progress_without_progress()
 	_check_rejects_structure_invalid_progress()
 	_check_rejects_structure_progress_exceeds_duration()
 	_check_rejects_structure_active_recipe_mismatch()
+	_check_rejects_structure_locked_active_recipe()
 	_check_rejects_idle_structure_with_active_recipe()
 	_check_loads_valid_structure_buffers()
 	_check_rejects_structure_buffer_unknown_item()
@@ -814,6 +816,7 @@ func _check_loads_valid_structure_runtime_state() -> void:
 	_remove_save_file()
 	_remove_backup_files()
 	var save_data := _make_save_data("world.valid.structure_runtime_state")
+	_mark_restore_outpost_completed(save_data)
 	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
 		"definition_id": "building.basic_reactor",
 		"region_id": "region.outpost_platform",
@@ -872,6 +875,7 @@ func _check_rejects_structure_last_recipe_mismatch() -> void:
 	_remove_save_file()
 	_remove_backup_files()
 	var save_data := _make_save_data("world.invalid.structure_recipe_mismatch")
+	_mark_restore_outpost_completed(save_data)
 	save_data["world"]["base_structures"]["structure.pollution_filter_build_site"] = {
 		"definition_id": "building.pollution_filter",
 		"region_id": "region.outpost_platform",
@@ -890,15 +894,32 @@ func _check_rejects_structure_last_recipe_mismatch() -> void:
 	_expect_failure_message(save_service.load_game(), "last_recipe_id 与建筑定义不一致", "structure last recipe mismatch")
 
 
+func _check_rejects_structure_locked_last_recipe() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_locked_last_recipe")
+	_mark_restore_outpost_completed(save_data)
+	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "completed",
+		"last_recipe_id": "recipe.basic_filter_module",
+		"completed_runs": 1
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "尚未解锁的配方", "locked structure last recipe")
+
+
 func _check_loads_valid_structure_in_progress_state() -> void:
 	_remove_save_file()
 	_remove_backup_files()
 	var save_data := _make_save_data("world.valid.structure_in_progress")
+	_mark_restore_outpost_completed(save_data)
 	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
 		"definition_id": "building.basic_reactor",
 		"region_id": "region.outpost_platform",
 		"status": "in_progress",
-		"active_recipe_id": "recipe.make_filter_media",
+		"active_recipe_id": "recipe.process_crystal_ore",
 		"progress_seconds": 4.0,
 		"completed_runs": 1,
 		"last_recipe_id": "recipe.process_crystal_ore"
@@ -939,11 +960,12 @@ func _check_rejects_structure_invalid_progress() -> void:
 	_remove_save_file()
 	_remove_backup_files()
 	var save_data := _make_save_data("world.invalid.structure_progress")
+	_mark_restore_outpost_completed(save_data)
 	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
 		"definition_id": "building.basic_reactor",
 		"region_id": "region.outpost_platform",
 		"status": "in_progress",
-		"active_recipe_id": "recipe.make_filter_media",
+		"active_recipe_id": "recipe.process_crystal_ore",
 		"progress_seconds": -0.5
 	}
 	_write_save_json(save_data)
@@ -954,12 +976,13 @@ func _check_rejects_structure_progress_exceeds_duration() -> void:
 	_remove_save_file()
 	_remove_backup_files()
 	var save_data := _make_save_data("world.invalid.structure_progress_duration")
+	_mark_restore_outpost_completed(save_data)
 	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
 		"definition_id": "building.basic_reactor",
 		"region_id": "region.outpost_platform",
 		"status": "in_progress",
-		"active_recipe_id": "recipe.make_filter_media",
-		"progress_seconds": 9.0
+		"active_recipe_id": "recipe.process_crystal_ore",
+		"progress_seconds": 7.0
 	}
 	_write_save_json(save_data)
 	_expect_failure_message(save_service.load_game(), "progress_seconds 超出配方时长", "progress exceeds recipe duration")
@@ -969,6 +992,7 @@ func _check_rejects_structure_active_recipe_mismatch() -> void:
 	_remove_save_file()
 	_remove_backup_files()
 	var save_data := _make_save_data("world.invalid.structure_active_recipe_mismatch")
+	_mark_restore_outpost_completed(save_data)
 	save_data["world"]["base_structures"]["structure.pollution_filter_build_site"] = {
 		"definition_id": "building.pollution_filter",
 		"region_id": "region.outpost_platform",
@@ -985,6 +1009,22 @@ func _check_rejects_structure_active_recipe_mismatch() -> void:
 	}
 	_write_save_json(save_data)
 	_expect_failure_message(save_service.load_game(), "active_recipe_id 与建筑定义不一致", "structure active recipe mismatch")
+
+
+func _check_rejects_structure_locked_active_recipe() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_locked_active_recipe")
+	_mark_restore_outpost_completed(save_data)
+	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "in_progress",
+		"active_recipe_id": "recipe.basic_filter_module",
+		"progress_seconds": 1.0
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "尚未解锁的配方", "locked structure active recipe")
 
 
 func _check_rejects_idle_structure_with_active_recipe() -> void:
@@ -1005,6 +1045,7 @@ func _check_loads_valid_structure_buffers() -> void:
 	_remove_save_file()
 	_remove_backup_files()
 	var save_data := _make_save_data("world.valid.structure_buffers")
+	_mark_restore_outpost_completed(save_data)
 	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
 		"definition_id": "building.basic_reactor",
 		"region_id": "region.outpost_platform",
