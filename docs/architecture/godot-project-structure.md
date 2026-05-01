@@ -378,7 +378,7 @@ pwsh ./scripts/check-text-files.ps1
 
 `check-client-save.ps1` 当前会先执行一次 Godot 导入，再通过 `client/scripts/checks/save_service_check.gd` 运行 `SaveService` 读写和备份校验，并将 Godot 配置、数据、缓存和 `user://` 存档目录隔离到 `.godot-check-home/save-service/` 下。
 
-`check-client-quests.ps1` 当前会先执行一次 Godot 导入，再通过 `client/scripts/checks/quest_rules_check.gd` 直接复验 `QuestProgressRules` 和 `QuestCompletionRules`，并将 Godot 配置、数据和缓存隔离到 `.godot-check-home/quest-rules/` 下。
+`check-client-quests.ps1` 当前会先执行一次 Godot 导入，再通过 `client/scripts/checks/quest_rules_check.gd` 直接复验 `QuestEventRules`、`QuestProgressRules` 和 `QuestCompletionRules`，并将 Godot 配置、数据和缓存隔离到 `.godot-check-home/quest-rules/` 下。
 
 ## GDScript 与 C# 边界
 
