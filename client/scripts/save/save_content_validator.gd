@@ -600,6 +600,12 @@ func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[Strin
 				return "读取存档失败：任务解锁区域缺少已完成任务来源，当前运行状态已保留。"
 		if effect_id.begins_with("recipe.") and not _is_effect_unlocked_by_completed_quest(effect_id, completed_quest_ids):
 			return "读取存档失败：任务解锁配方缺少已完成任务来源，当前运行状态已保留。"
+		if (
+			not effect_id.begins_with("region.")
+			and not effect_id.begins_with("recipe.")
+			and not _is_effect_unlocked_by_completed_quest(effect_id, completed_quest_ids)
+		):
+			return "读取存档失败：任务解锁效果缺少已完成任务来源，当前运行状态已保留。"
 
 	for region_id in unlocked_region_ids:
 		if not _is_default_unlocked_region(region_id) and not _is_effect_unlocked_by_completed_quest(region_id, completed_quest_ids):
@@ -612,6 +618,8 @@ func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[Strin
 			return objective_error
 		for effect_id in quest.get("unlock_effects", []):
 			var id := String(effect_id)
+			if not unlocked_effects.has(id):
+				return "读取存档失败：已完成任务缺少解锁效果，当前运行状态已保留。"
 			if id.begins_with("region.") and not unlocked_region_ids.has(id):
 				return "读取存档失败：已完成任务缺少区域解锁结果，当前运行状态已保留。"
 

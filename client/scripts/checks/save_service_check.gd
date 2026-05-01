@@ -2,6 +2,7 @@ extends SceneTree
 
 const EntitySourceChecks := preload("res://scripts/checks/save_entity_source_check.gd")
 const LEGACY_SAVE_BACKUP_FILE := "user://saves/slice_01_autosave.bak.json"
+const QuestUnlockChecks := preload("res://scripts/checks/save_quest_unlock_check.gd")
 const StructureRuntimeChecks := preload("res://scripts/checks/save_structure_runtime_check.gd")
 
 var failures: Array[String] = []
@@ -166,6 +167,7 @@ func _run_checks() -> void:
 	_check_loads_completed_quest_with_objectives()
 	_check_rejects_completed_quest_without_objective_progress()
 	_check_rejects_completed_quest_with_partial_objective_progress()
+	QuestUnlockChecks.new(self).run()
 	_check_bad_existing_save_does_not_block_save()
 
 
@@ -739,7 +741,14 @@ func _check_slice_end_hook_state_persists() -> void:
 	world_state.quest_state.unlocked_effects = [
 		"region.outpost_platform",
 		"region.crystal_vein_field",
+		"recipe.process_crystal_ore",
+		"recipe.repair_gel",
+		"recipe.make_filter_media",
+		"quest.make_filter_module",
+		"quest.expand_treatment_point",
+		"recipe.foundation_t1",
 		"region.pollution_edge",
+		"recipe.cleanse_residue",
 		"region.locked_ruin_gate"
 	]
 
@@ -797,7 +806,14 @@ func _check_slice_complete_state_persists() -> void:
 	world_state.quest_state.unlocked_effects = [
 		"region.outpost_platform",
 		"region.crystal_vein_field",
+		"recipe.process_crystal_ore",
+		"recipe.repair_gel",
+		"recipe.make_filter_media",
+		"quest.make_filter_module",
+		"quest.expand_treatment_point",
+		"recipe.foundation_t1",
 		"region.pollution_edge",
+		"recipe.cleanse_residue",
 		"region.locked_ruin_gate",
 		"slice_01_complete"
 	]
