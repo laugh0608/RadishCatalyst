@@ -125,6 +125,63 @@ func load_game_for_slot(slot_id: String) -> Dictionary:
 	return _failure("读取存档失败：未找到原型存档文件或可用备份，当前运行状态已保留。")
 
 
+func get_save_slot_summaries(slot_ids: Array[String]) -> Array[Dictionary]:
+	var summaries: Array[Dictionary] = []
+	for slot_id in slot_ids:
+		summaries.append(get_save_slot_summary(slot_id))
+	return summaries
+
+
+func get_save_slot_summary(slot_id: String) -> Dictionary:
+	var paths := _get_slot_paths(slot_id)
+	var candidates: Array[String] = [String(paths.get("save_file", SAVE_FILE))]
+	for backup_path in paths.get("backup_files", SAVE_BACKUP_FILES):
+		candidates.append(String(backup_path))
+
+	var first_failure_message := ""
+	var attempted_file_count := 0
+	for index in range(candidates.size()):
+		var save_file := candidates[index]
+		if not FileAccess.file_exists(save_file):
+			continue
+
+		attempted_file_count += 1
+		var read_result := _read_save_file(save_file)
+		if bool(read_result.get("success", false)):
+			return _format_slot_summary(
+				String(paths.get("slot_id", DEFAULT_SLOT_ID)),
+				read_result.get("save_data", {}),
+				index,
+				false,
+				save_file
+			)
+
+		if first_failure_message.is_empty():
+			first_failure_message = String(read_result.get("message", "存档不可读取。"))
+
+	if attempted_file_count > 0:
+		return {
+			"slot_id": String(paths.get("slot_id", DEFAULT_SLOT_ID)),
+			"display_name": _format_slot_display_name(String(paths.get("slot_id", DEFAULT_SLOT_ID))),
+			"status": "存档不可读取",
+			"details": first_failure_message,
+			"has_loadable_save": false
+		}
+
+	if String(paths.get("slot_id", DEFAULT_SLOT_ID)) == DEFAULT_SLOT_ID:
+		var legacy_summary := _get_legacy_slot_summary(paths)
+		if bool(legacy_summary.get("has_loadable_save", false)):
+			return legacy_summary
+
+	return {
+		"slot_id": String(paths.get("slot_id", DEFAULT_SLOT_ID)),
+		"display_name": _format_slot_display_name(String(paths.get("slot_id", DEFAULT_SLOT_ID))),
+		"status": "空槽位",
+		"details": "尚未保存原型进度。",
+		"has_loadable_save": false
+	}
+
+
 func _load_legacy_save_into_slot(paths: Dictionary) -> Dictionary:
 	var legacy_candidates: Array[String] = [LEGACY_SAVE_FILE]
 	for backup_path in LEGACY_SAVE_BACKUP_FILES:
@@ -165,6 +222,35 @@ func _load_legacy_save_into_slot(paths: Dictionary) -> Dictionary:
 		return _failure("读取旧原型存档失败：%s" % first_failure_message)
 
 	return _failure("读取存档失败：未找到原型存档文件或可用备份，当前运行状态已保留。")
+
+
+func _get_legacy_slot_summary(paths: Dictionary) -> Dictionary:
+	var legacy_candidates: Array[String] = [LEGACY_SAVE_FILE]
+	for backup_path in LEGACY_SAVE_BACKUP_FILES:
+		legacy_candidates.append(String(backup_path))
+
+	for index in range(legacy_candidates.size()):
+		var legacy_file := legacy_candidates[index]
+		if not FileAccess.file_exists(legacy_file):
+			continue
+
+		var read_result := _read_save_file(legacy_file)
+		if bool(read_result.get("success", false)):
+			return _format_slot_summary(
+				String(paths.get("slot_id", DEFAULT_SLOT_ID)),
+				read_result.get("save_data", {}),
+				index,
+				true,
+				legacy_file
+			)
+
+	return {
+		"slot_id": String(paths.get("slot_id", DEFAULT_SLOT_ID)),
+		"display_name": _format_slot_display_name(String(paths.get("slot_id", DEFAULT_SLOT_ID))),
+		"status": "空槽位",
+		"details": "尚未保存原型进度。",
+		"has_loadable_save": false
+	}
 
 
 func _migrate_save_data_to_slot(paths: Dictionary, save_data: Dictionary) -> Dictionary:
@@ -215,6 +301,72 @@ func _read_save_file(save_file: String) -> Dictionary:
 		"message": "已读取原型存档。",
 		"save_data": save_data
 	}
+
+
+func _format_slot_summary(
+	slot_id: String,
+	save_data: Dictionary,
+	source_index: int,
+	is_legacy_source: bool,
+	source_file: String
+) -> Dictionary:
+	var status := "可读取"
+	if is_legacy_source:
+		status = "旧原型存档可导入"
+	elif source_index > 0:
+		status = "主档不可用，可从备份 %d 恢复" % source_index
+
+	return {
+		"slot_id": slot_id,
+		"display_name": _format_slot_display_name(slot_id),
+		"status": status,
+		"details": _format_slot_details(save_data),
+		"has_loadable_save": true,
+		"source_file": source_file,
+		"recovered_from_backup": source_index > 0,
+		"migrated_from_legacy": is_legacy_source
+	}
+
+
+func _format_slot_details(save_data: Dictionary) -> String:
+	var parts: Array[String] = []
+	var updated_at := String(save_data.get("updated_at", ""))
+	if updated_at.is_empty():
+		updated_at = String(save_data.get("created_at", "未知时间"))
+	parts.append("最近保存：%s" % updated_at)
+
+	var world_data = save_data.get("world", {})
+	if world_data is Dictionary:
+		var region_id := String(world_data.get("current_region_id", ""))
+		if not region_id.is_empty():
+			parts.append("区域：%s" % _get_display_name(region_id))
+
+		var quest_state = world_data.get("quest_state", {})
+		if quest_state is Dictionary:
+			var active_quest_ids = quest_state.get("active_quest_ids", [])
+			if active_quest_ids is Array and not active_quest_ids.is_empty():
+				parts.append("目标：%s" % _get_display_name(String(active_quest_ids[0])))
+			elif _get_string_array(quest_state.get("unlocked_effects", [])).has("slice_01_complete"):
+				parts.append("目标：第一切片已完成")
+
+	return "；".join(parts)
+
+
+func _format_slot_display_name(slot_id: String) -> String:
+	if slot_id.begins_with("slot_"):
+		var suffix := slot_id.trim_prefix("slot_")
+		if suffix.is_valid_int():
+			return "槽位 %02d" % int(suffix)
+	return slot_id
+
+
+func _get_display_name(definition_id: String) -> String:
+	if data_registry == null or definition_id.is_empty():
+		return definition_id
+	var definition := data_registry.get_definition(definition_id)
+	if definition.is_empty():
+		return definition_id
+	return data_registry.get_text(String(definition.get("display_name_key", definition_id)))
 
 
 func _validate_save_data(save_data: Dictionary) -> String:

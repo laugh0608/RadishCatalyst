@@ -1,9 +1,35 @@
 extends CanvasLayer
 class_name PrototypeHud
 
+const SAVE_SLOT_IDS: Array[String] = ["slot_01", "slot_02", "slot_03"]
+
 @onready var status_label: Label = $StatusPanel/StatusLabel
 @onready var prompt_label: Label = $PromptPanel/PromptLabel
 @onready var log_label: Label = $LogPanel/LogLabel
+@onready var save_slot_labels: Array[Label] = [
+	$SavePanel/Slot01Label,
+	$SavePanel/Slot02Label,
+	$SavePanel/Slot03Label
+]
+@onready var save_slot_buttons: Array[Button] = [
+	$SavePanel/Slot01SaveButton,
+	$SavePanel/Slot02SaveButton,
+	$SavePanel/Slot03SaveButton
+]
+@onready var load_slot_buttons: Array[Button] = [
+	$SavePanel/Slot01LoadButton,
+	$SavePanel/Slot02LoadButton,
+	$SavePanel/Slot03LoadButton
+]
+
+signal save_slot_requested(slot_id: String)
+signal load_slot_requested(slot_id: String)
+
+
+func _ready() -> void:
+	for index in range(SAVE_SLOT_IDS.size()):
+		save_slot_buttons[index].pressed.connect(_on_save_slot_pressed.bind(index))
+		load_slot_buttons[index].pressed.connect(_on_load_slot_pressed.bind(index))
 
 
 func update_status(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> void:
@@ -39,6 +65,29 @@ func clear_prompt() -> void:
 
 func append_log(text: String) -> void:
 	log_label.text = text
+
+
+func update_save_slot_summaries(summaries: Array[Dictionary]) -> void:
+	for index in range(save_slot_labels.size()):
+		if index >= summaries.size():
+			continue
+
+		var summary := summaries[index]
+		var label_text := "%s：%s\n%s" % [
+			String(summary.get("display_name", SAVE_SLOT_IDS[index])),
+			String(summary.get("status", "未知")),
+			String(summary.get("details", ""))
+		]
+		save_slot_labels[index].text = label_text
+		load_slot_buttons[index].disabled = not bool(summary.get("has_loadable_save", false))
+
+
+func _on_save_slot_pressed(slot_index: int) -> void:
+	save_slot_requested.emit(SAVE_SLOT_IDS[slot_index])
+
+
+func _on_load_slot_pressed(slot_index: int) -> void:
+	load_slot_requested.emit(SAVE_SLOT_IDS[slot_index])
 
 
 func _get_display_name(data_registry: DataRegistry, definition_id: String) -> String:

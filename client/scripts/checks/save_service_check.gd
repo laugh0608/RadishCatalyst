@@ -140,6 +140,7 @@ func _run_checks() -> void:
 	_check_loads_older_backup_when_recent_backup_is_bad()
 	_check_all_bad_saves_fail_without_replacing_state()
 	_check_named_slot_save_load()
+	_check_save_slot_summaries()
 	_check_migrates_legacy_primary_save()
 	_check_migrates_legacy_backup_when_legacy_primary_is_bad()
 	_check_existing_slot_blocks_legacy_migration()
@@ -234,6 +235,19 @@ func _remove_backup_files() -> void:
 		var legacy_remove_error := DirAccess.remove_absolute(ProjectSettings.globalize_path(LEGACY_SAVE_BACKUP_FILE))
 		if legacy_remove_error != OK:
 			failures.append("could not remove legacy backup file: %s" % error_string(legacy_remove_error))
+
+
+func _remove_slot_files(slot_id: String) -> void:
+	var paths: Array[String] = [_get_slot_save_file(slot_id)]
+	for backup_index in range(1, 4):
+		paths.append(_get_slot_backup_file(slot_id, backup_index))
+
+	for save_path in paths:
+		if not FileAccess.file_exists(save_path):
+			continue
+		var remove_error := DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))
+		if remove_error != OK:
+			failures.append("could not remove slot save file %s: %s" % [save_path, error_string(remove_error)])
 
 
 func _check_save_backup() -> void:
@@ -361,6 +375,41 @@ func _check_named_slot_save_load() -> void:
 
 	_expect_equal(String(load_result.get("slot_id", "")), slot_id, "named slot id")
 	_expect_recovered_world_id(load_result, "world.slot.02", "named slot world")
+
+
+func _check_save_slot_summaries() -> void:
+	var slot_id := "slot_03"
+	_remove_slot_files(slot_id)
+
+	var empty_summary := save_service.get_save_slot_summary(slot_id)
+	_expect_equal(bool(empty_summary.get("has_loadable_save", true)), false, "empty slot should not be loadable")
+	_expect_equal(String(empty_summary.get("status", "")), "空槽位", "empty slot status")
+
+	var world_state := WorldState.create_default()
+	world_state.world_id = "world.slot.summary"
+	_expect_success(save_service.save_game_for_slot(slot_id, world_state, CharacterState.create_default()), "save slot summary")
+
+	var saved_summary := save_service.get_save_slot_summary(slot_id)
+	_expect_equal(bool(saved_summary.get("has_loadable_save", false)), true, "saved slot should be loadable")
+	_expect_equal(String(saved_summary.get("status", "")), "可读取", "saved slot status")
+	var saved_details := String(saved_summary.get("details", ""))
+	if not saved_details.contains("最近保存"):
+		failures.append("saved slot summary should mention update time, got: %s" % saved_details)
+
+	var summaries := save_service.get_save_slot_summaries(["slot_01", slot_id])
+	_expect_equal(summaries.size(), 2, "slot summary list size")
+	_expect_equal(String(summaries[1].get("slot_id", "")), slot_id, "slot summary list order")
+
+	var later_world_state := WorldState.create_default()
+	later_world_state.world_id = "world.slot.summary.latest"
+	_expect_success(save_service.save_game_for_slot(slot_id, later_world_state, CharacterState.create_default()), "save slot summary with backup")
+	_write_text_file(_get_slot_save_file(slot_id), "{")
+
+	var backup_summary := save_service.get_save_slot_summary(slot_id)
+	_expect_equal(bool(backup_summary.get("has_loadable_save", false)), true, "bad primary summary should still be loadable from backup")
+	_expect_equal(bool(backup_summary.get("recovered_from_backup", false)), true, "bad primary summary should mark backup")
+	if not String(backup_summary.get("status", "")).contains("备份 1"):
+		failures.append("bad primary summary should mention backup 1, got: %s" % String(backup_summary.get("status", "")))
 
 
 func _check_migrates_legacy_primary_save() -> void:
@@ -880,6 +929,14 @@ func _read_json_file(save_path: String) -> Dictionary:
 		failures.append("json file root should be dictionary: %s" % save_path)
 		return {}
 	return json.data
+
+
+func _get_slot_save_file(slot_id: String) -> String:
+	return "user://saves/slots/%s/%s" % [slot_id, SaveService.SAVE_FILE_NAME]
+
+
+func _get_slot_backup_file(slot_id: String, backup_index: int) -> String:
+	return "user://saves/slots/%s/slice_01_autosave.bak.%d.json" % [slot_id, backup_index]
 
 
 func _expect_success(result: Dictionary, label: String) -> void:

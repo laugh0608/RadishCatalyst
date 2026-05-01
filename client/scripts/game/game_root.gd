@@ -29,12 +29,15 @@ func _ready() -> void:
 	vertical_slice_map.player.quick_slot_requested.connect(_on_player_quick_slot_requested)
 	vertical_slice_map.player.save_requested.connect(_on_player_save_requested)
 	vertical_slice_map.player.load_requested.connect(_on_player_load_requested)
+	hud.save_slot_requested.connect(_on_hud_save_slot_requested)
+	hud.load_slot_requested.connect(_on_hud_load_slot_requested)
 	vertical_slice_map.interaction_available.connect(_on_interaction_available)
 	vertical_slice_map.interaction_cleared.connect(_on_interaction_cleared)
 	vertical_slice_map.region_changed.connect(_on_region_changed)
 	vertical_slice_map.region_gate_blocked.connect(_on_region_gate_blocked)
 
-	hud.append_log("前哨原型已启动。WASD 移动，E 交互，J 攻击，R 切换设备配方，F 启用过滤模块，1/2 使用快捷栏，K 保存，L 读取。先检查前哨核心。")
+	hud.append_log("前哨原型已启动。WASD 移动，E 交互，J 攻击，R 切换设备配方，F 启用过滤模块，1/2 使用快捷栏；左侧面板可保存 / 读取 3 个原型槽位，K / L 仍操作默认槽位。先检查前哨核心。")
+	_refresh_save_slot_summaries()
 	_update_hud()
 
 
@@ -107,23 +110,42 @@ func _on_player_quick_slot_requested(slot_index: int) -> void:
 
 
 func _on_player_save_requested() -> void:
-	character_state.position = vertical_slice_map.get_player_position()
-	var result := save_service.save_game(world_state, character_state)
-	hud.append_log(String(result.get("message", "")))
-	_update_hud()
+	_save_to_slot(SaveService.DEFAULT_SLOT_ID)
 
 
 func _on_player_load_requested() -> void:
-	var result := save_service.load_game()
+	_load_from_slot(SaveService.DEFAULT_SLOT_ID)
+
+
+func _on_hud_save_slot_requested(slot_id: String) -> void:
+	_save_to_slot(slot_id)
+
+
+func _on_hud_load_slot_requested(slot_id: String) -> void:
+	_load_from_slot(slot_id)
+
+
+func _save_to_slot(slot_id: String) -> void:
+	character_state.position = vertical_slice_map.get_player_position()
+	var result := save_service.save_game_for_slot(slot_id, world_state, character_state)
+	hud.append_log("%s：%s" % [_format_slot_name(slot_id), String(result.get("message", ""))])
+	_refresh_save_slot_summaries()
+	_update_hud()
+
+
+func _load_from_slot(slot_id: String) -> void:
+	var result := save_service.load_game_for_slot(slot_id)
 	if not bool(result.get("success", false)):
-		hud.append_log(String(result.get("message", "")))
+		hud.append_log("%s：%s" % [_format_slot_name(slot_id), String(result.get("message", ""))])
+		_refresh_save_slot_summaries()
 		_update_hud()
 		return
 
 	world_state = result.get("world_state", WorldState.create_default())
 	character_state = result.get("character_state", CharacterState.create_default())
 	vertical_slice_map.apply_runtime_state(world_state, character_state)
-	hud.append_log(String(result.get("message", "")))
+	hud.append_log("%s：%s" % [_format_slot_name(slot_id), String(result.get("message", ""))])
+	_refresh_save_slot_summaries()
 	_update_hud()
 
 
@@ -163,6 +185,18 @@ func _on_region_gate_blocked(message: String) -> void:
 
 func _update_hud() -> void:
 	hud.update_status(data_registry, world_state, character_state)
+
+
+func _refresh_save_slot_summaries() -> void:
+	hud.update_save_slot_summaries(save_service.get_save_slot_summaries(PrototypeHud.SAVE_SLOT_IDS))
+
+
+func _format_slot_name(slot_id: String) -> String:
+	if slot_id.begins_with("slot_"):
+		var suffix := slot_id.trim_prefix("slot_")
+		if suffix.is_valid_int():
+			return "槽位 %02d" % int(suffix)
+	return slot_id
 
 
 func _get_display_name(definition_id: String) -> String:
