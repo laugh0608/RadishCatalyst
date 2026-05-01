@@ -9,6 +9,8 @@ func _init(check_host) -> void:
 
 func run() -> void:
 	_check_loads_completed_quest_with_full_unlock_effects()
+	_check_loads_active_quest_from_completed_quest()
+	_check_rejects_active_quest_without_completed_quest_source()
 	_check_rejects_completed_quest_missing_recipe_unlock_effect()
 	_check_rejects_completed_quest_missing_quest_unlock_effect()
 	_check_rejects_completed_quest_missing_slice_unlock_effect()
@@ -23,6 +25,66 @@ func _check_loads_completed_quest_with_full_unlock_effects() -> void:
 	_mark_bring_back_sample_completed(save_data)
 	host._write_save_json(save_data)
 	host._expect_success(host.save_service.load_game(), "completed quest with full unlock effects")
+
+
+func _check_loads_active_quest_from_completed_quest() -> void:
+	host._remove_save_file()
+	host._remove_backup_files()
+	var save_data: Dictionary = host._make_save_data("world.valid.active_quest_source")
+	_mark_bring_back_sample_completed(save_data)
+	host._write_save_json(save_data)
+	host._expect_success(host.save_service.load_game(), "active quest from completed quest")
+
+
+func _check_rejects_active_quest_without_completed_quest_source() -> void:
+	host._remove_save_file()
+	host._remove_backup_files()
+	var save_data: Dictionary = host._make_save_data("world.invalid.active_quest_source")
+	host._mark_restore_outpost_completed(save_data)
+	save_data["world"]["quest_state"]["active_quest_ids"] = ["quest.defeat_elite_node"]
+	save_data["world"]["quest_state"]["completed_quest_ids"] = [
+		"quest.restore_outpost",
+		"quest.scout_crystal_field",
+		"quest.bring_back_sample",
+		"quest.make_filter_module",
+		"quest.expand_treatment_point",
+		"quest.enter_pollution_edge"
+	]
+	save_data["world"]["quest_state"]["objective_progress"] = {
+		"quest.restore_outpost|interact|building.outpost_core": 1,
+		"quest.scout_crystal_field|visit_region|region.crystal_vein_field": 1,
+		"quest.scout_crystal_field|gather_item|item.crystal_ore": 6,
+		"quest.bring_back_sample|sample_object|map_object.anomaly_crystal": 1,
+		"quest.bring_back_sample|return_region|region.outpost_platform": 1,
+		"quest.make_filter_module|craft_item|equipment.filter_module_t1": 1,
+		"quest.expand_treatment_point|build|building.foundation_t1": 2,
+		"quest.expand_treatment_point|build|building.pollution_filter": 1,
+		"quest.enter_pollution_edge|visit_region|region.pollution_edge": 1,
+		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 2,
+		"quest.enter_pollution_edge|craft_item|item.resistance_vial_t1": 1,
+		"quest.enter_pollution_edge|defeat_enemy|enemy.polluted_skitter": 1
+	}
+	save_data["world"]["quest_state"]["unlocked_effects"] = [
+		"region.outpost_platform",
+		"region.crystal_vein_field",
+		"recipe.process_crystal_ore",
+		"recipe.repair_gel",
+		"recipe.make_filter_media",
+		"quest.make_filter_module",
+		"quest.expand_treatment_point",
+		"recipe.foundation_t1",
+		"region.pollution_edge",
+		"recipe.cleanse_residue",
+		"region.locked_ruin_gate"
+	]
+	save_data["world"]["unlocked_region_ids"] = [
+		"region.outpost_platform",
+		"region.crystal_vein_field",
+		"region.pollution_edge",
+		"region.locked_ruin_gate"
+	]
+	host._write_save_json(save_data)
+	host._expect_failure_message(host.save_service.load_game(), "进行中任务缺少已完成任务来源", "active quest without completed quest source")
 
 
 func _check_rejects_completed_quest_missing_recipe_unlock_effect() -> void:

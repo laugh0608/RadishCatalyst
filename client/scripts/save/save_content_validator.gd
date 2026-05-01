@@ -96,6 +96,7 @@ const STRUCTURE_BUFFER_ALLOWED_FIELDS := [
 	"capacity_slots"
 ]
 
+const DEFAULT_ACTIVE_QUEST_IDS: Array[String] = ["quest.restore_outpost"]
 const DEFAULT_UNLOCKED_REGION_IDS: Array[String] = ["region.outpost_platform"]
 
 var data_registry: DataRegistry
@@ -591,6 +592,13 @@ func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[Strin
 			if not completed_quest_ids.has(String(prerequisite_id)):
 				return "读取存档失败：任务前置关系不完整，当前运行状态已保留。"
 
+	for quest_id in active_quest_ids:
+		if (
+			not DEFAULT_ACTIVE_QUEST_IDS.has(quest_id)
+			and not _is_quest_activated_by_completed_quest(quest_id, completed_quest_ids)
+		):
+			return "读取存档失败：进行中任务缺少已完成任务来源，当前运行状态已保留。"
+
 	var unlocked_effects := _get_string_array(quest_state.get("unlocked_effects", []))
 	for effect_id in unlocked_effects:
 		if effect_id.begins_with("region."):
@@ -635,6 +643,18 @@ func _is_effect_unlocked_by_completed_quest(effect_id: String, completed_quest_i
 		var quest := data_registry.get_definition(quest_id)
 		for quest_effect in quest.get("unlock_effects", []):
 			if String(quest_effect) == effect_id:
+				return true
+	return false
+
+
+func _is_quest_activated_by_completed_quest(active_quest_id: String, completed_quest_ids: Array[String]) -> bool:
+	for quest_id in completed_quest_ids:
+		var quest := data_registry.get_definition(quest_id)
+		for next_quest_id in quest.get("next_quest_ids", []):
+			if String(next_quest_id) == active_quest_id:
+				return true
+		for quest_effect in quest.get("unlock_effects", []):
+			if String(quest_effect) == active_quest_id:
 				return true
 	return false
 
