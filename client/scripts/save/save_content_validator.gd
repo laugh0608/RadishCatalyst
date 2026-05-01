@@ -80,6 +80,11 @@ const BASE_STRUCTURE_ALLOWED_FIELDS := [
 	"completed_runs"
 ]
 
+const BASE_STRUCTURE_ALLOWED_STATUSES := [
+	"idle",
+	"completed"
+]
+
 var data_registry: DataRegistry
 
 
@@ -163,6 +168,9 @@ func _validate_world_content(world_data: Dictionary) -> String:
 	var structure_source_error := _validate_base_structure_sources(world_data.get("base_structures", {}))
 	if not structure_source_error.is_empty():
 		return structure_source_error
+	var structure_state_error := _validate_base_structure_runtime_state(world_data.get("base_structures", {}))
+	if not structure_state_error.is_empty():
+		return structure_state_error
 
 	var quest_state = world_data.get("quest_state", {})
 	if quest_state is Dictionary:
@@ -358,6 +366,37 @@ func _validate_base_structure_sources(value) -> String:
 			continue
 		if site_id != expected_site_id:
 			return "读取存档失败：world.base_structures.%s 与原型建筑建造点来源不一致，当前运行状态已保留。" % structure_id_string
+
+	return ""
+
+
+func _validate_base_structure_runtime_state(value) -> String:
+	if not (value is Dictionary):
+		return ""
+
+	for structure_id in value:
+		var entry = value[structure_id]
+		if not (entry is Dictionary):
+			continue
+
+		var status := String(entry.get("status", "idle"))
+		if not BASE_STRUCTURE_ALLOWED_STATUSES.has(status):
+			return "读取存档失败：world.base_structures.%s 使用了无效建筑状态，当前运行状态已保留。" % String(structure_id)
+
+		var completed_runs = entry.get("completed_runs", 0)
+		if not _is_whole_number(completed_runs) or int(completed_runs) < 0:
+			return "读取存档失败：world.base_structures.%s.completed_runs 必须是非负整数，当前运行状态已保留。" % String(structure_id)
+
+		var last_recipe_id := String(entry.get("last_recipe_id", ""))
+		if last_recipe_id.is_empty():
+			continue
+		var recipe_error := _validate_definition_ref(last_recipe_id, "recipe.", "world.base_structures.%s.last_recipe_id" % String(structure_id))
+		if not recipe_error.is_empty():
+			return recipe_error
+		var recipe := data_registry.get_definition(last_recipe_id)
+		var required_building_id := String(recipe.get("required_building_id", ""))
+		if not required_building_id.is_empty() and required_building_id != String(entry.get("definition_id", "")):
+			return "读取存档失败：world.base_structures.%s.last_recipe_id 与建筑定义不一致，当前运行状态已保留。" % String(structure_id)
 
 	return ""
 

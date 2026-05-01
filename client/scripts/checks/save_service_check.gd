@@ -165,6 +165,11 @@ func _run_checks() -> void:
 	_check_rejects_structure_source_definition_mismatch()
 	_check_rejects_structure_source_site_mismatch()
 	_check_rejects_structure_unknown_field()
+	_check_loads_valid_structure_runtime_state()
+	_check_rejects_structure_invalid_status()
+	_check_rejects_structure_invalid_completed_runs()
+	_check_rejects_structure_unknown_last_recipe()
+	_check_rejects_structure_last_recipe_mismatch()
 	_check_rejects_locked_current_region()
 	_check_rejects_region_mismatch()
 	_check_rejects_quest_state_overlap()
@@ -791,6 +796,86 @@ func _check_rejects_structure_unknown_field() -> void:
 	}
 	_write_save_json(save_data)
 	_expect_failure_message(save_service.load_game(), "包含不允许的字段", "structure unknown field")
+
+
+func _check_loads_valid_structure_runtime_state() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.valid.structure_runtime_state")
+	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "completed",
+		"last_recipe_id": "recipe.process_crystal_ore",
+		"completed_runs": 2
+	}
+	_write_save_json(save_data)
+	_expect_success(save_service.load_game(), "valid structure runtime state")
+
+
+func _check_rejects_structure_invalid_status() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_status")
+	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "running"
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "无效建筑状态", "invalid structure status")
+
+
+func _check_rejects_structure_invalid_completed_runs() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_completed_runs")
+	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "completed",
+		"last_recipe_id": "recipe.process_crystal_ore",
+		"completed_runs": -1
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "completed_runs 必须是非负整数", "invalid structure completed runs")
+
+
+func _check_rejects_structure_unknown_last_recipe() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_unknown_recipe")
+	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "completed",
+		"last_recipe_id": "recipe.debug_unknown",
+		"completed_runs": 1
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "引用了未知定义 ID", "unknown structure last recipe")
+
+
+func _check_rejects_structure_last_recipe_mismatch() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_recipe_mismatch")
+	save_data["world"]["base_structures"]["structure.pollution_filter_build_site"] = {
+		"definition_id": "building.pollution_filter",
+		"region_id": "region.outpost_platform",
+		"status": "completed",
+		"site_instance_id": "map_object_instance.pollution_filter_build_site",
+		"last_recipe_id": "recipe.process_crystal_ore",
+		"completed_runs": 1
+	}
+	save_data["world"]["map_objects"]["map_object_instance.pollution_filter_build_site"] = {
+		"definition_id": "building.pollution_filter",
+		"region_id": "region.outpost_platform",
+		"is_built": true,
+		"built_definition_id": "building.pollution_filter"
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "last_recipe_id 与建筑定义不一致", "structure last recipe mismatch")
 
 
 func _check_rejects_locked_current_region() -> void:
