@@ -13,6 +13,10 @@ func run() -> void:
 	_check_loads_active_quest_from_completed_quest()
 	_check_rejects_active_quest_without_completed_quest_source()
 	_check_rejects_completed_quest_without_chain_source()
+	_check_rejects_recipe_unlock_effect_without_completed_quest_source()
+	_check_rejects_world_region_unlock_without_completed_quest_source()
+	_check_rejects_region_unlock_effect_without_world_region()
+	_check_rejects_region_unlock_effect_without_completed_quest_source()
 	_check_rejects_completed_quest_missing_recipe_unlock_effect()
 	_check_rejects_completed_quest_missing_quest_unlock_effect()
 	_check_rejects_completed_quest_missing_slice_unlock_effect()
@@ -95,7 +99,11 @@ func _check_rejects_active_quest_without_completed_quest_source() -> void:
 		"region.locked_ruin_gate"
 	]
 	host._write_save_json(save_data)
-	host._expect_failure_message(host.save_service.load_game(), "进行中任务缺少已完成任务来源", "active quest without completed quest source")
+	host._expect_failure_message(
+		host.save_service.load_game(),
+		"quest_state.active_quest_ids 中存在未由默认任务或已完成任务链解锁的任务",
+		"active quest without completed quest source"
+	)
 
 
 func _check_rejects_completed_quest_without_chain_source() -> void:
@@ -106,7 +114,65 @@ func _check_rejects_completed_quest_without_chain_source() -> void:
 	save_data["world"]["quest_state"]["completed_quest_ids"].append("quest.defeat_elite_node")
 	save_data["world"]["quest_state"]["objective_progress"]["quest.defeat_elite_node|defeat_enemy|enemy.elite_residue_node"] = 1
 	host._write_save_json(save_data)
-	host._expect_failure_message(host.save_service.load_game(), "已完成任务缺少任务链来源", "completed quest without chain source")
+	host._expect_failure_message(
+		host.save_service.load_game(),
+		"quest_state.completed_quest_ids 中存在未由默认任务或已完成任务链解锁的任务",
+		"completed quest without chain source"
+	)
+
+
+func _check_rejects_recipe_unlock_effect_without_completed_quest_source() -> void:
+	host._remove_save_file()
+	host._remove_backup_files()
+	var save_data: Dictionary = host._make_save_data("world.invalid.unlocked_effect_recipe_source")
+	host._mark_restore_outpost_completed(save_data)
+	save_data["world"]["quest_state"]["unlocked_effects"].append("recipe.basic_filter_module")
+	host._write_save_json(save_data)
+	host._expect_failure_message(
+		host.save_service.load_game(),
+		"quest_state.unlocked_effects 中的配方解锁缺少已完成任务 unlock_effects 来源",
+		"unlocked_effects recipe without completed quest source"
+	)
+
+
+func _check_rejects_world_region_unlock_without_completed_quest_source() -> void:
+	host._remove_save_file()
+	host._remove_backup_files()
+	var save_data: Dictionary = host._make_save_data("world.invalid.world_region_unlock_source")
+	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
+	host._write_save_json(save_data)
+	host._expect_failure_message(
+		host.save_service.load_game(),
+		"world.unlocked_region_ids 中的非默认区域缺少已完成任务 unlock_effects 来源",
+		"world unlocked region without completed quest source"
+	)
+
+
+func _check_rejects_region_unlock_effect_without_world_region() -> void:
+	host._remove_save_file()
+	host._remove_backup_files()
+	var save_data: Dictionary = host._make_save_data("world.invalid.unlocked_effect_region_not_in_world")
+	save_data["world"]["quest_state"]["unlocked_effects"].append("region.crystal_vein_field")
+	host._write_save_json(save_data)
+	host._expect_failure_message(
+		host.save_service.load_game(),
+		"quest_state.unlocked_effects 中的区域解锁未同步到 world.unlocked_region_ids",
+		"unlocked_effects region missing world region"
+	)
+
+
+func _check_rejects_region_unlock_effect_without_completed_quest_source() -> void:
+	host._remove_save_file()
+	host._remove_backup_files()
+	var save_data: Dictionary = host._make_save_data("world.invalid.unlocked_effect_region_source")
+	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
+	save_data["world"]["quest_state"]["unlocked_effects"].append("region.crystal_vein_field")
+	host._write_save_json(save_data)
+	host._expect_failure_message(
+		host.save_service.load_game(),
+		"quest_state.unlocked_effects 中的区域解锁缺少已完成任务 unlock_effects 来源",
+		"unlocked_effects region without completed quest source"
+	)
 
 
 func _check_rejects_completed_quest_missing_recipe_unlock_effect() -> void:
@@ -116,7 +182,11 @@ func _check_rejects_completed_quest_missing_recipe_unlock_effect() -> void:
 	host._mark_restore_outpost_completed(save_data)
 	save_data["world"]["quest_state"]["unlocked_effects"].erase("recipe.process_crystal_ore")
 	host._write_save_json(save_data)
-	host._expect_failure_message(host.save_service.load_game(), "已完成任务缺少解锁效果", "completed quest missing recipe unlock")
+	host._expect_failure_message(
+		host.save_service.load_game(),
+		"quest_state.unlocked_effects 缺少已完成任务声明的解锁效果",
+		"completed quest missing recipe unlock"
+	)
 
 
 func _check_rejects_completed_quest_missing_quest_unlock_effect() -> void:
@@ -126,7 +196,11 @@ func _check_rejects_completed_quest_missing_quest_unlock_effect() -> void:
 	_mark_bring_back_sample_completed(save_data)
 	save_data["world"]["quest_state"]["unlocked_effects"].erase("quest.make_filter_module")
 	host._write_save_json(save_data)
-	host._expect_failure_message(host.save_service.load_game(), "已完成任务缺少解锁效果", "completed quest missing quest unlock")
+	host._expect_failure_message(
+		host.save_service.load_game(),
+		"quest_state.unlocked_effects 缺少已完成任务声明的解锁效果",
+		"completed quest missing quest unlock"
+	)
 
 
 func _check_rejects_completed_quest_missing_slice_unlock_effect() -> void:
@@ -136,7 +210,11 @@ func _check_rejects_completed_quest_missing_slice_unlock_effect() -> void:
 	_mark_slice_complete(save_data)
 	save_data["world"]["quest_state"]["unlocked_effects"].erase("slice_01_complete")
 	host._write_save_json(save_data)
-	host._expect_failure_message(host.save_service.load_game(), "已完成任务缺少解锁效果", "completed quest missing slice unlock")
+	host._expect_failure_message(
+		host.save_service.load_game(),
+		"quest_state.unlocked_effects 缺少已完成任务声明的解锁效果",
+		"completed quest missing slice unlock"
+	)
 
 
 func _check_rejects_quest_unlock_without_completed_quest_source() -> void:
@@ -146,7 +224,11 @@ func _check_rejects_quest_unlock_without_completed_quest_source() -> void:
 	host._mark_restore_outpost_completed(save_data)
 	save_data["world"]["quest_state"]["unlocked_effects"].append("quest.make_filter_module")
 	host._write_save_json(save_data)
-	host._expect_failure_message(host.save_service.load_game(), "任务解锁效果缺少已完成任务来源", "quest unlock without completed quest source")
+	host._expect_failure_message(
+		host.save_service.load_game(),
+		"quest_state.unlocked_effects 中的非区域 / 配方解锁缺少已完成任务 unlock_effects 来源",
+		"quest unlock without completed quest source"
+	)
 
 
 func _check_rejects_slice_unlock_without_completed_quest_source() -> void:
@@ -156,7 +238,11 @@ func _check_rejects_slice_unlock_without_completed_quest_source() -> void:
 	host._mark_restore_outpost_completed(save_data)
 	save_data["world"]["quest_state"]["unlocked_effects"].append("slice_01_complete")
 	host._write_save_json(save_data)
-	host._expect_failure_message(host.save_service.load_game(), "任务解锁效果缺少已完成任务来源", "slice unlock without completed quest source")
+	host._expect_failure_message(
+		host.save_service.load_game(),
+		"quest_state.unlocked_effects 中的非区域 / 配方解锁缺少已完成任务 unlock_effects 来源",
+		"slice unlock without completed quest source"
+	)
 
 
 func _mark_bring_back_sample_completed(save_data: Dictionary) -> void:

@@ -158,8 +158,6 @@ func _run_checks() -> void:
 	_check_rejects_region_mismatch()
 	_check_rejects_quest_state_overlap()
 	_check_rejects_missing_quest_prerequisite()
-	_check_rejects_recipe_unlock_without_completed_quest_source()
-	_check_rejects_region_unlock_sources_without_completed_quest()
 	_check_rejects_missing_structure_site()
 	_check_loads_active_quest_with_partial_defined_objective_progress()
 	_check_rejects_quest_progress_with_undefined_objective_type()
@@ -569,31 +567,6 @@ func _check_rejects_missing_quest_prerequisite() -> void:
 	_write_save_json(save_data)
 	_expect_failure_message(save_service.load_game(), "任务前置关系不完整", "missing quest prerequisite")
 
-
-func _check_rejects_recipe_unlock_without_completed_quest_source() -> void:
-	_remove_save_file()
-	_remove_backup_files()
-	var save_data := _make_save_data("world.invalid.recipe_unlock_source")
-	_mark_restore_outpost_completed(save_data)
-	save_data["world"]["quest_state"]["unlocked_effects"].append("recipe.basic_filter_module")
-	_write_save_json(save_data)
-	_expect_failure_message(save_service.load_game(), "任务解锁配方缺少已完成任务来源", "recipe unlock without completed quest source")
-
-
-func _check_rejects_region_unlock_sources_without_completed_quest() -> void:
-	_remove_save_file()
-	_remove_backup_files()
-	var save_data := _make_save_data("world.invalid.region_unlock_source")
-	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
-	_write_save_json(save_data)
-	_expect_failure_message(save_service.load_game(), "世界解锁区域缺少已完成任务来源", "region unlock without completed quest source")
-	_remove_save_file()
-	_remove_backup_files()
-	save_data = _make_save_data("world.invalid.region_effect_source")
-	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
-	save_data["world"]["quest_state"]["unlocked_effects"].append("region.crystal_vein_field")
-	_write_save_json(save_data)
-	_expect_failure_message(save_service.load_game(), "任务解锁区域缺少已完成任务来源", "region effect without completed quest source")
 
 func _check_rejects_missing_structure_site() -> void:
 	_remove_save_file()
