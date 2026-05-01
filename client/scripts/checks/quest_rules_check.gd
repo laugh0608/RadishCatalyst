@@ -2,6 +2,7 @@ extends SceneTree
 
 var failures: Array[String] = []
 var data_registry := DataRegistry.new()
+var event_rules: QuestEventRules
 var progress_rules: QuestProgressRules
 var completion_rules: QuestCompletionRules
 
@@ -25,14 +26,86 @@ func _run_checks() -> void:
 		failures.append("data registry should load all static data")
 		return
 
+	event_rules = QuestEventRules.new(data_registry)
 	progress_rules = QuestProgressRules.new(data_registry)
 	completion_rules = QuestCompletionRules.new(data_registry, progress_rules)
 
+	_check_interaction_event_objective_updates()
+	_check_region_event_objective_updates()
+	_check_recipe_build_and_enemy_event_objective_updates()
 	_check_non_active_quest_does_not_complete()
 	_check_incomplete_active_quest_does_not_complete()
 	_check_completed_quest_returns_structured_result()
 	_check_active_objective_progress_is_capped()
 	_check_inactive_objective_progress_is_ignored()
+
+
+func _check_interaction_event_objective_updates() -> void:
+	var quest_state := QuestState.create_default()
+	_mark_restore_outpost_completed(quest_state)
+	var updates := event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.crystal_cluster",
+			"interaction_type": "gather"
+		},
+		{},
+		quest_state
+	)
+	_expect_update(updates, "set", "quest.scout_crystal_field", "visit_region", "region.crystal_vein_field", 1.0, "crystal gather visit update")
+	_expect_update(updates, "add", "quest.scout_crystal_field", "gather_item", "item.crystal_ore", 3.0, "crystal gather item update")
+
+	updates = event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.ruin_gate",
+			"interaction_type": "inspect"
+		},
+		{},
+		quest_state
+	)
+	_expect_update(updates, "set", "quest.unlock_ruin_signal", "inspect", "map_object.ruin_gate", 1.0, "ruin inspect update")
+
+
+func _check_region_event_objective_updates() -> void:
+	var quest_state := QuestState.create_default()
+	_mark_restore_outpost_completed(quest_state)
+	var updates := event_rules.get_region_objective_updates("region.crystal_vein_field", quest_state)
+	_expect_update(updates, "set", "quest.scout_crystal_field", "visit_region", "region.crystal_vein_field", 1.0, "crystal region visit update")
+
+	updates = event_rules.get_region_objective_updates("region.outpost_platform", quest_state)
+	_expect_equal(updates.size(), 0, "outpost return before sample update count")
+	quest_state.set_objective_progress("quest.bring_back_sample", "sample_object", "map_object.anomaly_crystal", 1)
+	updates = event_rules.get_region_objective_updates("region.outpost_platform", quest_state)
+	_expect_update(updates, "set", "quest.bring_back_sample", "return_region", "region.outpost_platform", 1.0, "outpost return update")
+
+
+func _check_recipe_build_and_enemy_event_objective_updates() -> void:
+	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.basic_filter_module"),
+		"set",
+		"quest.make_filter_module",
+		"craft_item",
+		"equipment.filter_module_t1",
+		1.0,
+		"filter module recipe update"
+	)
+	_expect_update(
+		event_rules.get_build_objective_updates("building.foundation_t1"),
+		"add",
+		"quest.expand_treatment_point",
+		"build",
+		"building.foundation_t1",
+		1.0,
+		"foundation build update"
+	)
+	_expect_update(
+		event_rules.get_defeated_enemy_objective_updates("enemy.polluted_skitter"),
+		"set",
+		"quest.enter_pollution_edge",
+		"defeat_enemy",
+		"enemy.polluted_skitter",
+		1.0,
+		"polluted enemy defeat update"
+	)
 
 
 func _check_non_active_quest_does_not_complete() -> void:
@@ -136,6 +209,37 @@ func _expect_result_value(values, expected_value: String, label: String) -> void
 		return
 	if not values.has(expected_value):
 		failures.append("%s should contain %s, got %s" % [label, expected_value, var_to_str(values)])
+
+
+func _expect_update(
+	updates: Array,
+	expected_mode: String,
+	expected_quest_id: String,
+	expected_objective_type: String,
+	expected_target_id: String,
+	expected_amount: float,
+	label: String
+) -> void:
+	for update in updates:
+		if not (update is Dictionary):
+			continue
+		if (
+			String(update.get("mode", "")) == expected_mode
+			and String(update.get("quest_id", "")) == expected_quest_id
+			and String(update.get("objective_type", "")) == expected_objective_type
+			and String(update.get("target_id", "")) == expected_target_id
+			and is_equal_approx(float(update.get("amount", 0.0)), expected_amount)
+		):
+			return
+	failures.append("%s should contain %s update for %s|%s|%s x%s, got %s" % [
+		label,
+		expected_mode,
+		expected_quest_id,
+		expected_objective_type,
+		expected_target_id,
+		expected_amount,
+		var_to_str(updates)
+	])
 
 
 func _expect_equal(actual, expected, label: String) -> void:

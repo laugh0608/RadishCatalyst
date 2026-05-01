@@ -5,6 +5,7 @@ var world_state: WorldState
 var character_state: CharacterState
 var save_service := SaveService.new()
 var processing_system: ProcessingSystem
+var quest_event_rules: QuestEventRules
 var quest_progress_rules: QuestProgressRules
 var quest_completion_rules: QuestCompletionRules
 
@@ -21,6 +22,7 @@ func _ready() -> void:
 	character_state = CharacterState.create_default()
 	save_service.setup(data_registry)
 	processing_system = ProcessingSystem.new(data_registry)
+	quest_event_rules = QuestEventRules.new(data_registry)
 	quest_progress_rules = QuestProgressRules.new(data_registry)
 	quest_completion_rules = QuestCompletionRules.new(data_registry, quest_progress_rules)
 	vertical_slice_map.setup(data_registry)
@@ -276,75 +278,21 @@ func _get_current_interaction_context() -> Dictionary:
 
 
 func _advance_quest_for_interaction(context: Dictionary, result: Dictionary) -> Array[String]:
-	var definition_id := String(context.get("definition_id", ""))
-	var interaction_type := String(context.get("interaction_type", ""))
-	var recipe_id := String(context.get("recipe_id", ""))
-
-	if interaction_type == "outpost_core":
-		quest_progress_rules.set_active_objective_progress(world_state.quest_state, "quest.restore_outpost", "interact", "building.outpost_core", 1)
-		return _try_complete_quest("quest.restore_outpost")
-	if interaction_type == "gather" and definition_id == "map_object.crystal_cluster":
-		quest_progress_rules.set_active_objective_progress(world_state.quest_state, "quest.scout_crystal_field", "visit_region", "region.crystal_vein_field", 1)
-		_add_drop_objective_progress("quest.scout_crystal_field", "gather_item", "item.crystal_ore", definition_id)
-		return _try_complete_quest("quest.scout_crystal_field")
-	if interaction_type == "sample" and definition_id == "map_object.anomaly_crystal":
-		quest_progress_rules.set_active_objective_progress(world_state.quest_state, "quest.bring_back_sample", "sample_object", "map_object.anomaly_crystal", 1)
-		return _try_complete_quest("quest.bring_back_sample")
-	if interaction_type == "gather" and definition_id == "map_object.pollution_residue_patch":
-		quest_progress_rules.set_active_objective_progress(world_state.quest_state, "quest.enter_pollution_edge", "visit_region", "region.pollution_edge", 1)
-		_add_drop_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", definition_id)
-		return _try_complete_quest("quest.enter_pollution_edge")
-	if interaction_type == "inspect" and definition_id == "map_object.ruin_gate":
-		quest_progress_rules.set_active_objective_progress(world_state.quest_state, "quest.unlock_ruin_signal", "inspect", "map_object.ruin_gate", 1)
-		return _try_complete_quest("quest.unlock_ruin_signal")
-	if interaction_type == "process_recipe":
-		return _advance_quest_for_recipe(recipe_id)
-	if interaction_type == "build":
-		return _advance_quest_for_build(String(result.get("built_definition_id", definition_id)))
-	return []
+	return _apply_quest_objective_updates(
+		quest_event_rules.get_interaction_objective_updates(context, result, world_state.quest_state)
+	)
 
 
 func _advance_quest_for_region(region_id: String) -> Array[String]:
-	if region_id == "region.crystal_vein_field":
-		quest_progress_rules.set_active_objective_progress(world_state.quest_state, "quest.scout_crystal_field", "visit_region", region_id, 1)
-		return _try_complete_quest("quest.scout_crystal_field")
-	if region_id == "region.outpost_platform":
-		if world_state.quest_state.get_objective_progress("quest.bring_back_sample", "sample_object", "map_object.anomaly_crystal") > 0.0:
-			quest_progress_rules.set_active_objective_progress(world_state.quest_state, "quest.bring_back_sample", "return_region", region_id, 1)
-			return _try_complete_quest("quest.bring_back_sample")
-	if region_id == "region.pollution_edge":
-		quest_progress_rules.set_active_objective_progress(world_state.quest_state, "quest.enter_pollution_edge", "visit_region", region_id, 1)
-		return _try_complete_quest("quest.enter_pollution_edge")
-	return []
-
-
-func _advance_quest_for_recipe(recipe_id: String) -> Array[String]:
-	match recipe_id:
-		"recipe.basic_filter_module":
-			quest_progress_rules.set_active_objective_progress(world_state.quest_state, "quest.make_filter_module", "craft_item", "equipment.filter_module_t1", 1)
-			return _try_complete_quest("quest.make_filter_module")
-		"recipe.cleanse_residue":
-			quest_progress_rules.set_active_objective_progress(world_state.quest_state, "quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1)
-			return _try_complete_quest("quest.enter_pollution_edge")
-		_:
-			return []
-
-
-func _advance_quest_for_build(building_id: String) -> Array[String]:
-	if building_id == "building.foundation_t1":
-		quest_progress_rules.add_active_objective_progress(world_state.quest_state, "quest.expand_treatment_point", "build", building_id, 1)
-		return _try_complete_quest("quest.expand_treatment_point")
-	if building_id == "building.pollution_filter":
-		quest_progress_rules.set_active_objective_progress(world_state.quest_state, "quest.expand_treatment_point", "build", building_id, 1)
-		return _try_complete_quest("quest.expand_treatment_point")
-	return []
+	return _apply_quest_objective_updates(
+		quest_event_rules.get_region_objective_updates(region_id, world_state.quest_state)
+	)
 
 
 func _advance_quest_for_defeated_enemy(enemy_definition_id: String) -> Array[String]:
-	if enemy_definition_id == "enemy.polluted_skitter":
-		quest_progress_rules.set_active_objective_progress(world_state.quest_state, "quest.enter_pollution_edge", "defeat_enemy", enemy_definition_id, 1)
-		return _try_complete_quest("quest.enter_pollution_edge")
-	return []
+	return _apply_quest_objective_updates(
+		quest_event_rules.get_defeated_enemy_objective_updates(enemy_definition_id)
+	)
 
 
 func _mark_pollution_edge_ready() -> bool:
@@ -352,28 +300,28 @@ func _mark_pollution_edge_ready() -> bool:
 		return false
 
 	world_state.unlock_region("region.pollution_edge")
-	if world_state.quest_state.has_active_quest("quest.enter_pollution_edge"):
-		quest_progress_rules.set_active_objective_progress(world_state.quest_state, "quest.enter_pollution_edge", "visit_region", "region.pollution_edge", 1)
-		_try_complete_quest("quest.enter_pollution_edge")
+	_apply_quest_objective_updates(quest_event_rules.get_pollution_edge_ready_updates(world_state.quest_state))
 	return true
 
 
-func _add_drop_objective_progress(quest_id: String, objective_type: String, target_id: String, source_definition_id: String) -> void:
-	var source_definition := data_registry.get_definition(source_definition_id)
-	for drop in source_definition.get("drops", []):
-		if not drop is Dictionary:
-			continue
-		if String(drop.get("id", "")) != target_id:
-			continue
+func _apply_quest_objective_updates(updates: Array[Dictionary]) -> Array[String]:
+	var completion_messages: Array[String] = []
+	var changed_quest_ids: Array[String] = []
+	for update in updates:
+		var quest_id := String(update.get("quest_id", ""))
+		var objective_type := String(update.get("objective_type", ""))
+		var target_id := String(update.get("target_id", ""))
+		var amount := float(update.get("amount", 0.0))
+		if String(update.get("mode", "set")) == "add":
+			quest_progress_rules.add_active_objective_progress(world_state.quest_state, quest_id, objective_type, target_id, amount)
+		else:
+			quest_progress_rules.set_active_objective_progress(world_state.quest_state, quest_id, objective_type, target_id, amount)
+		if not changed_quest_ids.has(quest_id):
+			changed_quest_ids.append(quest_id)
 
-		quest_progress_rules.add_active_objective_progress(
-			world_state.quest_state,
-			quest_id,
-			objective_type,
-			target_id,
-			float(drop.get("amount", 0.0))
-		)
-		return
+	for quest_id in changed_quest_ids:
+		completion_messages.append_array(_try_complete_quest(quest_id))
+	return completion_messages
 
 
 func _try_complete_quest(quest_id: String) -> Array[String]:
