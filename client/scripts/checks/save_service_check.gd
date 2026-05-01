@@ -155,6 +155,13 @@ func _run_checks() -> void:
 	_check_rejects_unknown_map_object_source()
 	_check_rejects_map_object_source_definition_mismatch()
 	_check_rejects_built_definition_mismatch()
+	_check_loads_known_enemy_source()
+	_check_rejects_unknown_enemy_source()
+	_check_rejects_enemy_source_definition_mismatch()
+	_check_rejects_enemy_source_region_mismatch()
+	_check_rejects_unknown_structure_source()
+	_check_rejects_structure_source_definition_mismatch()
+	_check_rejects_structure_source_site_mismatch()
 	_check_rejects_locked_current_region()
 	_check_rejects_region_mismatch()
 	_check_rejects_quest_state_overlap()
@@ -511,13 +518,14 @@ func _check_rejects_invalid_enemy_health() -> void:
 	_remove_backup_files()
 	var save_data := _make_save_data("world.invalid.enemy_health")
 	save_data["world"]["enemies"] = {
-		"enemy_instance.invalid": {
+		"enemy_instance.polluted_skitter": {
 			"definition_id": "enemy.polluted_skitter",
 			"region_id": "region.pollution_edge",
 			"health": 10,
 			"max_health": 5
 		}
 	}
+	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.pollution_edge"]
 	_write_save_json(save_data)
 	_expect_failure_message(save_service.load_game(), "敌人生命值超出有效范围", "invalid enemy health")
 
@@ -624,6 +632,115 @@ func _check_rejects_built_definition_mismatch() -> void:
 	_expect_failure_message(save_service.load_game(), "建成定义与原型地图对象定义不一致", "built definition mismatch")
 
 
+func _check_loads_known_enemy_source() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.valid.enemy_source")
+	save_data["world"]["enemies"] = {
+		"enemy_instance.native_skitter": {
+			"definition_id": "enemy.native_skitter",
+			"region_id": "region.crystal_vein_field",
+			"health": 20,
+			"max_health": 20,
+			"is_defeated": false
+		}
+	}
+	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
+	_write_save_json(save_data)
+	_expect_success(save_service.load_game(), "known enemy source")
+
+
+func _check_rejects_unknown_enemy_source() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.unknown_enemy_source")
+	save_data["world"]["enemies"] = {
+		"enemy_instance.debug_extra": {
+			"definition_id": "enemy.native_skitter",
+			"region_id": "region.crystal_vein_field",
+			"health": 20,
+			"max_health": 20
+		}
+	}
+	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "没有匹配的原型敌人来源", "unknown enemy source")
+
+
+func _check_rejects_enemy_source_definition_mismatch() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.enemy_source_definition")
+	save_data["world"]["enemies"] = {
+		"enemy_instance.native_skitter": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.crystal_vein_field",
+			"health": 20,
+			"max_health": 20
+		}
+	}
+	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "原型敌人定义不一致", "enemy source definition mismatch")
+
+
+func _check_rejects_enemy_source_region_mismatch() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.enemy_source_region")
+	save_data["world"]["enemies"] = {
+		"enemy_instance.polluted_skitter": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.crystal_vein_field",
+			"health": 30,
+			"max_health": 30
+		}
+	}
+	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "原型敌人区域不一致", "enemy source region mismatch")
+
+
+func _check_rejects_unknown_structure_source() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.unknown_structure_source")
+	save_data["world"]["base_structures"]["structure.debug_extra"] = {
+		"definition_id": "building.basic_reactor",
+		"region_id": "region.outpost_platform",
+		"status": "idle"
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "没有匹配的原型建筑来源", "unknown structure source")
+
+
+func _check_rejects_structure_source_definition_mismatch() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_source_definition")
+	save_data["world"]["base_structures"]["structure.basic_reactor"] = {
+		"definition_id": "building.pollution_filter",
+		"region_id": "region.outpost_platform",
+		"status": "idle"
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "原型建筑定义不一致", "structure source definition mismatch")
+
+
+func _check_rejects_structure_source_site_mismatch() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var save_data := _make_save_data("world.invalid.structure_source_site")
+	save_data["world"]["base_structures"]["structure.foundation_site_north"] = {
+		"definition_id": "building.foundation_t1",
+		"region_id": "region.outpost_platform",
+		"status": "idle",
+		"site_instance_id": "map_object_instance.foundation_site_south"
+	}
+	_write_save_json(save_data)
+	_expect_failure_message(save_service.load_game(), "原型建筑建造点来源不一致", "structure source site mismatch")
+
+
 func _check_rejects_locked_current_region() -> void:
 	_remove_save_file()
 	_remove_backup_files()
@@ -673,11 +790,11 @@ func _check_rejects_missing_structure_site() -> void:
 	_remove_save_file()
 	_remove_backup_files()
 	var save_data := _make_save_data("world.invalid.structure_site")
-	save_data["world"]["base_structures"]["structure.foundation_missing_site"] = {
+	save_data["world"]["base_structures"]["structure.foundation_site_north"] = {
 		"definition_id": "building.foundation_t1",
 		"region_id": "region.outpost_platform",
 		"status": "idle",
-		"site_instance_id": "map_object_instance.missing_site"
+		"site_instance_id": "map_object_instance.foundation_site_north"
 	}
 	_write_save_json(save_data)
 	_expect_failure_message(save_service.load_game(), "引用了不存在的建造点", "missing structure site")

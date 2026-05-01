@@ -286,7 +286,8 @@ Godot `Autoload` 应少而清楚。
 
 - `DataRegistry`：加载静态配置。
 - `GameSession`：持有当前世界和角色状态引用。
-- `SaveService`：保存、加载、校验。
+- `SaveService`：保存、加载、槽位、备份和迁移协调。
+- `SaveContentValidator`：存档内容一致性、运行时来源和跨块关系校验。
 - `EventBus`：跨系统信号协调。
 
 不建议：
