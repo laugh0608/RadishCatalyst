@@ -719,6 +719,9 @@ func _validate_quest_content(quest_state: Dictionary) -> String:
 			var objective_error := _validate_defined_quest_objective(parts[0], parts[1], parts[2])
 			if not objective_error.is_empty():
 				return objective_error
+			var required_amount := _get_defined_quest_objective_amount(parts[0], parts[1], parts[2])
+			if required_amount >= 0.0 and float(progress) > required_amount:
+				return "读取存档失败：quest_state.objective_progress 中存在超过任务目标上限的进度值，当前运行状态已保留。"
 
 	var unlocked_effects = quest_state.get("unlocked_effects", [])
 	if unlocked_effects is Array:
@@ -739,6 +742,16 @@ func _validate_defined_quest_objective(quest_id: String, objective_type: String,
 			return ""
 
 	return "读取存档失败：quest_state.objective_progress 记录了任务未定义的目标，当前运行状态已保留。"
+
+
+func _get_defined_quest_objective_amount(quest_id: String, objective_type: String, target_id: String) -> float:
+	var quest := data_registry.get_definition(quest_id)
+	for objective in quest.get("objectives", []):
+		if not (objective is Dictionary):
+			continue
+		if String(objective.get("type", "")) == objective_type and String(objective.get("target_id", "")) == target_id:
+			return float(objective.get("amount", 1.0))
+	return -1.0
 
 
 func _validate_inventory_content(value, label: String) -> String:
