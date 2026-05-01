@@ -154,6 +154,7 @@ client/
 放任务规则和任务推进 helper：
 
 - `QuestProgressRules`：根据静态任务定义写入目标进度、按目标上限封顶，并判断任务目标是否满足。
+- `QuestCompletionRules`：根据目标满足度完成 active 任务，写入任务解锁效果，激活后续任务，并返回奖励、解锁和后续任务结果。
 
 `QuestState` 只保存 active / completed / objective progress / unlock effects 等状态，不直接读取静态数据。
 
@@ -426,7 +427,7 @@ Godot 初始工程不做：
 - 静态数据和存档混在一起。
 - 所有系统都挂在 `GameRoot` 一个脚本里。
 
-当前 `GameRoot` 仍承担原型任务事件编排，但任务目标进度写入、目标上限封顶和目标满足度判断已下沉到 `scripts/quests/quest_progress_rules.gd`。后续进入更完整任务系统、存档或联机命令化之前，应继续把目标检测、奖励发放和解锁触发逐步下沉到 `scripts/quests/` 或系统层，避免场景根脚本继续膨胀。
+当前 `GameRoot` 仍承担原型任务事件编排和 HUD 文案拼装，但任务目标进度写入、目标上限封顶、目标满足度判断、任务完成状态变更、任务解锁效果写入和后续任务激活已下沉到 `scripts/quests/`。后续进入更完整任务系统、存档或联机命令化之前，应继续把目标检测、奖励发放和解锁触发逐步下沉到 `scripts/quests/` 或系统层，避免场景根脚本继续膨胀。
 
 ## 与仓库结构的关系
 

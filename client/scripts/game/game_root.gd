@@ -6,6 +6,7 @@ var character_state: CharacterState
 var save_service := SaveService.new()
 var processing_system: ProcessingSystem
 var quest_progress_rules: QuestProgressRules
+var quest_completion_rules: QuestCompletionRules
 
 @onready var vertical_slice_map: VerticalSliceMap = $VerticalSliceMap
 @onready var hud: PrototypeHud = $PrototypeHud
@@ -21,6 +22,7 @@ func _ready() -> void:
 	save_service.setup(data_registry)
 	processing_system = ProcessingSystem.new(data_registry)
 	quest_progress_rules = QuestProgressRules.new(data_registry)
+	quest_completion_rules = QuestCompletionRules.new(data_registry, quest_progress_rules)
 	vertical_slice_map.setup(data_registry)
 	vertical_slice_map.sync_enemy_states(world_state)
 	vertical_slice_map.refresh_world_interactables(world_state)
@@ -375,22 +377,18 @@ func _add_drop_objective_progress(quest_id: String, objective_type: String, targ
 
 
 func _try_complete_quest(quest_id: String) -> Array[String]:
-	if not world_state.quest_state.has_active_quest(quest_id):
-		return []
-	if not quest_progress_rules.are_objectives_complete(world_state.quest_state, quest_id):
+	var completion_result := quest_completion_rules.try_complete_quest(world_state.quest_state, quest_id)
+	if not bool(completion_result.get("completed", false)):
 		return []
 
-	var quest := data_registry.get_definition(quest_id)
-	world_state.quest_state.complete_quest(quest_id)
-	var reward_messages := _grant_refs(quest.get("rewards", []))
-	for effect_id in quest.get("unlock_effects", []):
-		_apply_quest_unlock(String(effect_id))
+	var reward_messages := _grant_refs(completion_result.get("rewards", []))
+	for effect_id in completion_result.get("unlock_effects", []):
+		_apply_world_unlock_effect(String(effect_id))
 	var next_quest_names: Array[String] = []
-	for next_quest_id in quest.get("next_quest_ids", []):
+	for next_quest_id in completion_result.get("next_quest_ids", []):
 		var next_id := String(next_quest_id)
-		world_state.quest_state.activate_quest(next_id)
 		next_quest_names.append(_get_display_name(next_id))
-	return [_format_quest_completion_message(quest_id, reward_messages, quest.get("unlock_effects", []), next_quest_names)]
+	return [_format_quest_completion_message(quest_id, reward_messages, completion_result.get("unlock_effects", []), next_quest_names)]
 
 
 func _grant_refs(refs: Array) -> Array[String]:
@@ -409,10 +407,9 @@ func _grant_refs(refs: Array) -> Array[String]:
 	return reward_messages
 
 
-func _apply_quest_unlock(effect_id: String) -> void:
+func _apply_world_unlock_effect(effect_id: String) -> void:
 	if effect_id.begins_with("region."):
 		world_state.unlock_region(effect_id)
-	world_state.quest_state.unlock_effect(effect_id)
 
 
 func _format_quest_completion_message(
