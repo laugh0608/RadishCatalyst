@@ -44,12 +44,14 @@ func _ready() -> void:
 	_update_hud()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if world_state == null or character_state == null:
 		return
+	_apply_processing_progress(delta)
 	vertical_slice_map.update_current_interactable()
 	vertical_slice_map.update_region_presence(world_state, character_state)
 	character_state.position = vertical_slice_map.get_player_position()
+	_refresh_current_processing_prompt()
 	_update_hud()
 
 
@@ -57,7 +59,7 @@ func _on_player_interaction_requested() -> void:
 	var context := _get_current_interaction_context()
 	var result := vertical_slice_map.try_interact(character_state, world_state)
 	var log_messages: Array[String] = [String(result.get("message", ""))]
-	if bool(result.get("success", false)):
+	if bool(result.get("success", false)) and _should_advance_interaction(context, result):
 		_append_quest_runtime_result(log_messages, quest_runtime.advance_for_interaction(world_state, character_state, context, result))
 	_show_evacuation_feedback(result)
 	vertical_slice_map.refresh_world_interactables(world_state)
@@ -227,10 +229,13 @@ func _get_display_name(definition_id: String) -> String:
 func _format_processing_prompt(interactable: PrototypeInteractable) -> String:
 	var recipe_id := interactable.get_current_recipe_id()
 	var status := processing_system.get_recipe_status(recipe_id, character_state, world_state)
-	var parts: Array[String] = ["按 E 加工：%s" % _get_display_name(recipe_id)]
+	var parts: Array[String] = [
+		"设备：%s" % _get_display_name(interactable.definition_id),
+		"配方：%s" % _get_display_name(recipe_id)
+	]
 	if interactable.get_recipe_count() > 1:
-		parts[0] = "%s；按 R 切换配方（%d/%d）" % [
-			parts[0],
+		parts[1] = "%s；R 切换（%d/%d）" % [
+			parts[1],
 			interactable.get_recipe_position(),
 			interactable.get_recipe_count()
 		]
@@ -240,17 +245,24 @@ func _format_processing_prompt(interactable: PrototypeInteractable) -> String:
 	var byproducts := String(status.get("byproducts", ""))
 	if not byproducts.is_empty():
 		parts.append("副产：%s" % byproducts)
+	parts.append("耗时：%s 秒" % String(status.get("duration", "0")))
+	var progress := String(status.get("progress", ""))
+	if not progress.is_empty():
+		parts.append("进度：%s" % progress)
 	parts.append("状态：%s" % String(status.get("message", "")))
+	if bool(status.get("can_process", false)):
+		parts.append("按 E 启动加工")
 	return "\n".join(parts)
 
 
 func _format_processing_log(recipe_id: String) -> String:
 	var status := processing_system.get_recipe_status(recipe_id, character_state, world_state)
-	return "%s：%s 输入：%s；产出：%s。" % [
+	return "%s：%s 输入：%s；产出：%s；耗时：%s 秒。" % [
 		_get_display_name(recipe_id),
 		String(status.get("message", "")),
 		String(status.get("inputs", "无")),
-		String(status.get("outputs", "无"))
+		String(status.get("outputs", "无")),
+		String(status.get("duration", "0"))
 	]
 
 
@@ -283,6 +295,40 @@ func _get_current_interaction_context() -> Dictionary:
 		"interaction_type": interactable.interaction_type,
 		"recipe_id": interactable.get_current_recipe_id()
 	}
+
+
+func _apply_processing_progress(delta: float) -> void:
+	var completed_results := processing_system.advance_processing(delta, character_state, world_state)
+	for result in completed_results:
+		var recipe_id := String(result.get("completed_recipe_id", ""))
+		var log_messages: Array[String] = [String(result.get("message", ""))]
+		_append_quest_runtime_result(
+			log_messages,
+			quest_runtime.advance_for_interaction(
+				world_state,
+				character_state,
+				{
+					"definition_id": String(data_registry.get_definition(recipe_id).get("required_building_id", "")),
+					"interaction_type": "process_recipe",
+					"recipe_id": recipe_id
+				},
+				result
+			)
+		)
+		hud.append_log(_join_log_messages(log_messages))
+
+
+func _refresh_current_processing_prompt() -> void:
+	var interactable := vertical_slice_map.current_interactable
+	if interactable == null or interactable.interaction_type != "process_recipe":
+		return
+	hud.show_prompt(_format_processing_prompt(interactable))
+
+
+func _should_advance_interaction(context: Dictionary, result: Dictionary) -> bool:
+	if String(context.get("interaction_type", "")) == "process_recipe":
+		return result.has("completed_recipe_id")
+	return true
 
 
 func _mark_pollution_edge_ready() -> bool:

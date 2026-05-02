@@ -79,6 +79,7 @@ func _run_checks() -> void:
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.unlock_ruin_signal", "ruin signal completed")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "slice completion unlock")
 
+	_check_processing_runtime()
 	_check_evacuation_feedback()
 
 
@@ -144,6 +145,61 @@ func _apply_unlock(effect_id: String) -> void:
 	if effect_id.begins_with("region."):
 		world_state.unlock_region(effect_id)
 	world_state.quest_state.unlock_effect(effect_id)
+
+
+func _check_processing_runtime() -> void:
+	var processing := ProcessingSystem.new(data_registry)
+	var processing_world := WorldState.create_default()
+	var processing_character := CharacterState.create_default()
+	processing_world.quest_state.unlock_effect("recipe.process_crystal_ore")
+	processing_character.inventory.add_item("item.crystal_ore", 3)
+
+	var start_result := processing.process_recipe("recipe.process_crystal_ore", processing_character, processing_world)
+	_expect_equal(bool(start_result.get("success", false)), true, "processing should start")
+	_expect_equal(int(processing_character.inventory.items.get("item.crystal_ore", 0)), 0, "processing consumes inputs on start")
+	_expect_equal(int(processing_character.inventory.items.get("item.basic_parts", 0)), 4, "processing should not grant outputs on start")
+
+	var reactor: Dictionary = processing_world.base_structures.get("structure.basic_reactor", {})
+	_expect_equal(String(reactor.get("status", "")), "in_progress", "reactor status after start")
+	_expect_equal(String(reactor.get("active_recipe_id", "")), "recipe.process_crystal_ore", "reactor active recipe")
+
+	var partial_results := processing.advance_processing(3.0, processing_character, processing_world)
+	_expect_equal(partial_results.size(), 0, "processing should not complete early")
+	reactor = processing_world.base_structures.get("structure.basic_reactor", {})
+	_expect_equal(float(reactor.get("progress_seconds", 0.0)), 3.0, "reactor partial progress")
+
+	var status := processing.get_recipe_status("recipe.process_crystal_ore", processing_character, processing_world)
+	if String(status.get("message", "")).find("加工中") < 0:
+		failures.append("processing status should show in progress, got %s" % var_to_str(status))
+
+	var completed_results := processing.advance_processing(10.0, processing_character, processing_world)
+	_expect_equal(completed_results.size(), 1, "processing should complete after duration")
+	_expect_equal(int(processing_character.inventory.items.get("item.basic_parts", 0)), 6, "processing grants outputs on completion")
+	reactor = processing_world.base_structures.get("structure.basic_reactor", {})
+	_expect_equal(String(reactor.get("status", "")), "completed", "reactor status after completion")
+	_expect_equal(String(reactor.get("active_recipe_id", "")), "", "reactor clears active recipe after completion")
+	_expect_equal(String(reactor.get("last_recipe_id", "")), "recipe.process_crystal_ore", "reactor last recipe after completion")
+	_expect_equal(int(reactor.get("completed_runs", 0)), 1, "reactor completed runs")
+
+	var filter_world := WorldState.create_default()
+	var filter_character := CharacterState.create_default()
+	filter_world.quest_state.unlock_effect("recipe.cleanse_residue")
+	filter_world.add_base_structure(
+		"structure.pollution_filter_build_site",
+		"building.pollution_filter",
+		"region.pollution_edge",
+		"map_object_instance.pollution_filter_build_site"
+	)
+	filter_character.inventory.add_item("item.polluted_residue", 2)
+	filter_character.inventory.add_fluid("fluid.basic_solvent", 1.0)
+
+	var filter_start := processing.process_recipe("recipe.cleanse_residue", filter_character, filter_world)
+	_expect_equal(bool(filter_start.get("success", false)), true, "pollution filter should start")
+	_expect_equal(filter_world.base_structures.has("structure.pollution_filter"), false, "processing should reuse built pollution filter structure")
+	var filter_completed := processing.advance_processing(20.0, filter_character, filter_world)
+	_expect_equal(filter_completed.size(), 1, "pollution filter should complete")
+	_expect_equal(int(filter_character.inventory.items.get("item.resistance_vial_t1", 0)), 1, "pollution filter grants vial")
+	_expect_equal(float(filter_character.inventory.fluids.get("fluid.polluted_slurry", 0.0)), 1.0, "pollution filter grants byproduct")
 
 
 func _check_evacuation_feedback() -> void:
