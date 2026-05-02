@@ -534,8 +534,40 @@ func _check_processing_runtime() -> void:
 	_expect_equal(filter_world.base_structures.has("structure.pollution_filter"), false, "processing should reuse built pollution filter structure")
 	var filter_completed := processing.advance_processing(20.0, filter_character, filter_world)
 	_expect_equal(filter_completed.size(), 1, "pollution filter should complete")
+	if not filter_completed.is_empty():
+		_expect_text_contains(
+			String(filter_completed[0].get("message", "")),
+			"产物已放入背包：抗污染药剂 I x1",
+			"pollution filter completion log output destination"
+		)
+		_expect_text_contains(
+			String(filter_completed[0].get("message", "")),
+			"副产已放入背包：污染浆液 x1",
+			"pollution filter completion log byproduct destination"
+		)
+		_expect_text_contains(
+			String(filter_completed[0].get("message", "")),
+			"继续采集沉积物并清理受扰敌人",
+			"pollution filter completion log next step"
+		)
 	_expect_equal(int(filter_character.inventory.items.get("item.resistance_vial_t1", 0)), 1, "pollution filter grants vial")
 	_expect_equal(float(filter_character.inventory.fluids.get("fluid.polluted_slurry", 0.0)), 1.0, "pollution filter grants byproduct")
+	var filter_status := processing.get_recipe_status("recipe.cleanse_residue", filter_character, filter_world)
+	_expect_text_contains(
+		String(filter_status.get("last_completion", "")),
+		"刚完成：处理污染沉积物",
+		"pollution filter panel last completion"
+	)
+	_expect_text_contains(
+		String(filter_status.get("last_destination", "")),
+		"副产已放入背包：污染浆液 x1",
+		"pollution filter panel byproduct destination"
+	)
+	_expect_text_contains(
+		String(filter_status.get("last_next_step", "")),
+		"抗污染药剂",
+		"pollution filter panel next step"
+	)
 
 
 func _check_evacuation_feedback() -> void:
