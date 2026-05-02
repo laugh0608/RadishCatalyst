@@ -201,7 +201,10 @@ func _on_region_changed(region_id: String) -> void:
 
 
 func _on_region_gate_blocked(message: String) -> void:
-	hud.append_log(message)
+	if message.find("污染边界") >= 0:
+		hud.append_log("%s %s" % [message, _get_pollution_gate_hint()])
+	else:
+		hud.append_log(message)
 	_update_hud()
 
 
@@ -327,6 +330,19 @@ func _get_pollution_entry_warning() -> String:
 	if warnings.is_empty():
 		return ""
 	return "污染边界警告：%s" % " ".join(warnings)
+
+
+func _get_pollution_gate_hint() -> String:
+	var missing_steps: Array[String] = []
+	if not world_state.quest_state.has_completed_quest("quest.expand_treatment_point"):
+		missing_steps.append("先完成处理点扩建")
+	if String(character_state.equipment.get("suit_module", "")).is_empty():
+		missing_steps.append("按 F 启用基础过滤模块")
+	if character_state.protection < character_state.max_protection * 0.5:
+		missing_steps.append("按 2 使用抗污染药剂或回基地补给")
+	if missing_steps.is_empty():
+		return "重新靠近边界后会再次检查通行状态。"
+	return "需要：%s。" % "；".join(missing_steps)
 
 
 func _get_current_interaction_context() -> Dictionary:

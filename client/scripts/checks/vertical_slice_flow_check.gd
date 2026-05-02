@@ -31,6 +31,7 @@ func _run_checks() -> void:
 	_check_onboarding_hints()
 	_check_build_prompts()
 	_check_supply_feedback()
+	_check_pollution_status_hints()
 
 	_complete_active_quest("quest.restore_outpost", [
 		{"type": "interact", "target_id": "building.outpost_core", "amount": 1}
@@ -201,6 +202,55 @@ func _check_supply_feedback() -> void:
 	var missing_vial_result := missing_vial_character.use_quick_slot(1, data_registry)
 	_expect_equal(bool(missing_vial_result.get("success", true)), false, "missing vial should fail")
 	_expect_feedback_contains(missing_vial_result, "污染过滤器", "missing vial refill hint")
+
+
+func _check_pollution_status_hints() -> void:
+	var hud := PrototypeHud.new()
+	var pollution_world := WorldState.create_default()
+	var pollution_character := CharacterState.create_default()
+	_expect_text_contains(
+		hud._format_pollution_status(data_registry, pollution_world, pollution_character),
+		"无持续污染压力",
+		"stable region pollution status"
+	)
+
+	pollution_world.current_region_id = "region.pollution_edge"
+	pollution_character.current_region_id = "region.pollution_edge"
+	_expect_text_contains(
+		hud._format_pollution_status(data_registry, pollution_world, pollution_character),
+		"未启用过滤模块",
+		"pollution status without module"
+	)
+
+	pollution_character.equipment["suit_module"] = "equipment.filter_module_t1"
+	_expect_text_contains(
+		hud._format_pollution_status(data_registry, pollution_world, pollution_character),
+		"消耗 x0.65",
+		"pollution status with module"
+	)
+
+	pollution_character.protection = 30.0
+	_expect_text_contains(
+		hud._format_pollution_status(data_registry, pollution_world, pollution_character),
+		"防护危险",
+		"low protection pollution status"
+	)
+	hud.free()
+
+	var game_root = GameRootScript.new()
+	game_root.world_state = WorldState.create_default()
+	game_root.character_state = CharacterState.create_default()
+	_expect_text_contains(
+		game_root._get_pollution_gate_hint(),
+		"处理点扩建",
+		"pollution gate requires treatment point"
+	)
+	_expect_text_contains(
+		game_root._get_pollution_gate_hint(),
+		"启用基础过滤模块",
+		"pollution gate requires module"
+	)
+	game_root.free()
 
 
 func _complete_active_quest(quest_id: String, progress_refs: Array) -> void:

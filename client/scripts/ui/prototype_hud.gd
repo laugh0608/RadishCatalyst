@@ -82,6 +82,7 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 		"坐标：x %.1f，y %.1f" % [character_state.position.x, character_state.position.y],
 		"生命：%.0f / %.0f" % [character_state.health, character_state.max_health],
 		"防护：%.0f / %.0f" % [character_state.protection, character_state.max_protection],
+		"污染：%s" % _format_pollution_status(data_registry, world_state, character_state),
 		"模块：%s（污染消耗 x%.2f）" % [
 			_get_equipped_module_name(data_registry, character_state),
 			character_state.get_pollution_drain_multiplier(data_registry)
@@ -363,6 +364,36 @@ func _format_onboarding_hint(world_state: WorldState, character_state: Character
 			return "检查封锁遗迹入口即可结束本切片，不会进入新区域。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
+
+
+func _format_pollution_status(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> String:
+	var region_id := world_state.current_region_id
+	var pollution_level := float(world_state.pollution_levels.get(region_id, 0.0))
+	if pollution_level <= 0.0:
+		return "当前区域稳定，无持续污染压力。"
+
+	var parts: Array[String] = [
+		"%s 污染 %.0f%%" % [
+			_get_display_name(data_registry, region_id),
+			pollution_level * 100.0
+		]
+	]
+	var module_id := String(character_state.equipment.get("suit_module", ""))
+	if module_id.is_empty():
+		parts.append("未启用过滤模块")
+	else:
+		parts.append("%s 生效，消耗 x%.2f" % [
+			_get_display_name(data_registry, module_id),
+			character_state.get_pollution_drain_multiplier(data_registry)
+		])
+
+	if character_state.protection < character_state.max_protection * 0.35:
+		parts.append("防护危险，先用抗污染药剂或撤回基地")
+	elif character_state.protection < character_state.max_protection * 0.5:
+		parts.append("防护偏低，建议先补给")
+	else:
+		parts.append("防护可继续尝试")
+	return "；".join(parts)
 
 
 func _get_objective_verb(objective_type: String) -> String:
