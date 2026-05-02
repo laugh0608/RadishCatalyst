@@ -1,0 +1,14 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/game/game_root.gd" id="1_game_root"]
+[ext_resource type="PackedScene" path="res://scenes/maps/VerticalSliceMap.tscn" id="2_map"]
+[ext_resource type="PackedScene" path="res://scenes/ui/PrototypeHud.tscn" id="3_hud"]
+
+[node name="GameRoot" type="Node2D"]
+script = ExtResource("1_game_root")
+
+[node name="VerticalSliceMap" parent="." instance=ExtResource("2_map")]
+position = Vector2(610, 450)
+scale = Vector2(1.4, 1.4)
+
+[node name="PrototypeHud" parent="." instance=ExtResource("3_hud")]

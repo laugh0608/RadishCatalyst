@@ -1,0 +1,176 @@
+extends RefCounted
+class_name ProcessingSystem
+
+var data_registry: DataRegistry
+
+
+func _init(registry: DataRegistry) -> void:
+	data_registry = registry
+
+
+func process_recipe(recipe_id: String, character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	var recipe := data_registry.get_definition(recipe_id)
+	if recipe.is_empty():
+		return _failure("未知配方：%s" % recipe_id)
+
+	if not _has_required_structure(recipe, world_state):
+		return _failure("需要先建造：%s。" % _get_display_name(String(recipe.get("required_building_id", ""))))
+	var missing_inputs := _get_missing_inputs(recipe, character_state.inventory)
+	if not missing_inputs.is_empty():
+		return _failure("缺少原料：%s。" % ", ".join(missing_inputs))
+
+	_consume_refs(recipe.get("inputs", []), character_state.inventory)
+	_grant_refs(recipe.get("outputs", []), character_state.inventory)
+	_grant_refs(recipe.get("byproducts", []), character_state.inventory)
+	_record_structure_run(recipe, world_state)
+
+	return _success("加工完成：%s -> %s。" % [
+		_get_display_name(recipe_id),
+		_format_refs(recipe.get("outputs", []), "无产物")
+	])
+
+
+func get_recipe_status(recipe_id: String, character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	var recipe := data_registry.get_definition(recipe_id)
+	if recipe.is_empty():
+		return {
+			"can_process": false,
+			"message": "未知配方：%s" % recipe_id,
+			"inputs": "无",
+			"outputs": "无",
+			"byproducts": ""
+		}
+
+	var missing_inputs := _get_missing_inputs(recipe, character_state.inventory)
+	var missing_structure := ""
+	if not _has_required_structure(recipe, world_state):
+		missing_structure = "需要先建造：%s。" % _get_display_name(String(recipe.get("required_building_id", "")))
+
+	if not missing_structure.is_empty():
+		return _recipe_status(recipe, false, missing_structure, missing_inputs)
+	if not missing_inputs.is_empty():
+		return _recipe_status(recipe, false, "缺少原料：%s。" % ", ".join(missing_inputs), missing_inputs)
+
+	return _recipe_status(recipe, true, "可加工。", [])
+
+
+func _get_missing_inputs(recipe: Dictionary, inventory: InventoryState) -> Array[String]:
+	var missing_inputs: Array[String] = []
+	for input_ref in recipe.get("inputs", []):
+		if not input_ref is Dictionary:
+			continue
+
+		var definition_id := String(input_ref.get("id", ""))
+		var amount := float(input_ref.get("amount", 0.0))
+		if definition_id.is_empty() or amount <= 0.0:
+			continue
+		var current_amount := _get_inventory_ref_amount(definition_id, inventory)
+		if current_amount < amount:
+			missing_inputs.append("%s x%s" % [_get_display_name(definition_id), _format_amount(amount - current_amount)])
+
+	return missing_inputs
+
+
+func _has_required_structure(recipe: Dictionary, world_state: WorldState) -> bool:
+	var building_id := String(recipe.get("required_building_id", ""))
+	if building_id.is_empty():
+		return true
+	return world_state.has_base_structure_definition(building_id)
+
+
+func _consume_refs(refs: Array, inventory: InventoryState) -> void:
+	for ref in refs:
+		if not ref is Dictionary:
+			continue
+
+		var definition_id := String(ref.get("id", ""))
+		var amount := float(ref.get("amount", 0.0))
+		if definition_id.is_empty() or amount <= 0.0:
+			continue
+
+		inventory.consume_ref(definition_id, amount)
+
+
+func _grant_refs(refs: Array, inventory: InventoryState) -> void:
+	for ref in refs:
+		if not ref is Dictionary:
+			continue
+
+		var definition_id := String(ref.get("id", ""))
+		var amount := float(ref.get("amount", 0.0))
+		if definition_id.is_empty() or amount <= 0.0:
+			continue
+
+		inventory.add_ref(definition_id, amount)
+
+
+func _record_structure_run(recipe: Dictionary, world_state: WorldState) -> void:
+	var building_id := String(recipe.get("required_building_id", ""))
+	if building_id.is_empty():
+		return
+
+	var structure_id := "structure.%s" % building_id.get_slice(".", 1)
+	world_state.ensure_base_structure(structure_id, building_id, "region.outpost_platform")
+	world_state.set_base_structure_status(structure_id, "completed", String(recipe.get("id", "")))
+
+
+func _format_refs(refs: Array, empty_text: String = "无") -> String:
+	var parts: Array[String] = []
+	for ref in refs:
+		if not ref is Dictionary:
+			continue
+
+		var definition_id := String(ref.get("id", ""))
+		var amount := float(ref.get("amount", 0.0))
+		if definition_id.is_empty() or amount <= 0.0:
+			continue
+
+		parts.append("%s x%s" % [_get_display_name(definition_id), _format_amount(amount)])
+
+	if parts.is_empty():
+		return empty_text
+	return ", ".join(parts)
+
+
+func _recipe_status(recipe: Dictionary, can_process: bool, message: String, missing_inputs: Array[String]) -> Dictionary:
+	return {
+		"can_process": can_process,
+		"message": message,
+		"inputs": _format_refs(recipe.get("inputs", [])),
+		"outputs": _format_refs(recipe.get("outputs", [])),
+		"byproducts": _format_refs(recipe.get("byproducts", []), ""),
+		"missing_inputs": missing_inputs
+	}
+
+
+func _get_inventory_ref_amount(definition_id: String, inventory: InventoryState) -> float:
+	if definition_id.begins_with("fluid."):
+		return float(inventory.fluids.get(definition_id, 0.0))
+	return float(inventory.items.get(definition_id, 0))
+
+
+func _format_amount(amount: float) -> String:
+	if is_equal_approx(amount, roundf(amount)):
+		return str(int(amount))
+	return "%.1f" % amount
+
+
+func _get_display_name(definition_id: String) -> String:
+	var definition := data_registry.get_definition(definition_id)
+	if definition.is_empty():
+		return definition_id
+	return data_registry.get_text(String(definition.get("display_name_key", definition_id)))
+
+
+func _success(message: String) -> Dictionary:
+	return {
+		"success": true,
+		"message": message
+	}
+
+
+func _failure(message: String) -> Dictionary:
+	return {
+		"success": false,
+		"message": message
+	}

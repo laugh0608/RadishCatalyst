@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "id": "item.crystal_ore",
+      "display_name_key": "item.crystal_ore.name",
+      "description_key": "item.crystal_ore.desc",
+      "category": "resource",
+      "tags": ["crystal", "ore", "slice_01"],
+      "stack_size": 99,
+      "mass": 0.4,
+      "rarity": "common",
+      "source_refs": ["map_object.crystal_cluster"],
+      "used_by_refs": ["recipe.process_crystal_ore", "recipe.make_filter_media", "recipe.foundation_t1"],
+      "public_level": "public"
+    },
+    {
+      "id": "item.basic_parts",
+      "display_name_key": "item.basic_parts.name",
+      "description_key": "item.basic_parts.desc",
+      "category": "component",
+      "tags": ["parts", "base", "slice_01"],
+      "stack_size": 99,
+      "mass": 0.2,
+      "rarity": "common",
+      "source_refs": ["building.outpost_core"],
+      "used_by_refs": ["recipe.basic_filter_module", "recipe.foundation_t1", "recipe.repair_gel"],
+      "public_level": "public"
+    },
+    {
+      "id": "item.polluted_residue",
+      "display_name_key": "item.polluted_residue.name",
+      "description_key": "item.polluted_residue.desc",
+      "category": "hazard_resource",
+      "tags": ["pollution", "residue", "slice_01"],
+      "stack_size": 50,
+      "mass": 0.6,
+      "rarity": "uncommon",
+      "source_refs": ["map_object.pollution_residue_patch"],
+      "used_by_refs": ["recipe.cleanse_residue"],
+      "public_level": "public"
+    },
+    {
+      "id": "item.anomaly_sample",
+      "display_name_key": "item.anomaly_sample.name",
+      "description_key": "item.anomaly_sample.desc",
+      "category": "sample",
+      "tags": ["sample", "anomaly", "quest"],
+      "stack_size": 10,
+      "mass": 0.1,
+      "rarity": "quest",
+      "source_refs": ["map_object.anomaly_crystal"],
+      "used_by_refs": ["quest.bring_back_sample"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.filter_media",
+      "display_name_key": "item.filter_media.name",
+      "description_key": "item.filter_media.desc",
+      "category": "component",
+      "tags": ["filter", "component", "slice_01"],
+      "stack_size": 50,
+      "mass": 0.3,
+      "rarity": "common",
+      "source_refs": ["recipe.make_filter_media"],
+      "used_by_refs": ["recipe.basic_filter_module"],
+      "public_level": "public"
+    },
+    {
+      "id": "item.foundation_material",
+      "display_name_key": "item.foundation_material.name",
+      "description_key": "item.foundation_material.desc",
+      "category": "building_material",
+      "tags": ["foundation", "construction", "slice_01"],
+      "stack_size": 99,
+      "mass": 0.5,
+      "rarity": "common",
+      "source_refs": ["recipe.foundation_t1"],
+      "used_by_refs": ["building.foundation_t1"],
+      "public_level": "public"
+    },
+    {
+      "id": "item.resistance_vial_t1",
+      "display_name_key": "item.resistance_vial_t1.name",
+      "description_key": "item.resistance_vial_t1.desc",
+      "category": "consumable",
+      "tags": ["consumable", "pollution_resistance", "slice_01"],
+      "stack_size": 10,
+      "mass": 0.1,
+      "rarity": "uncommon",
+      "source_refs": ["recipe.cleanse_residue"],
+      "used_by_refs": ["quest.enter_pollution_edge"],
+      "public_level": "public"
+    },
+    {
+      "id": "item.repair_gel",
+      "display_name_key": "item.repair_gel.name",
+      "description_key": "item.repair_gel.desc",
+      "category": "consumable",
+      "tags": ["consumable", "healing", "slice_01"],
+      "stack_size": 10,
+      "mass": 0.1,
+      "rarity": "common",
+      "source_refs": ["recipe.repair_gel"],
+      "used_by_refs": ["quest.defeat_elite_node"],
+      "public_level": "public"
+    }
+  ]
+}

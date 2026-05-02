@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "id": "building.outpost_core",
+      "display_name_key": "building.outpost_core.name",
+      "description_key": "building.outpost_core.desc",
+      "category": "base_core",
+      "footprint": [3, 3],
+      "build_cost": [],
+      "foundation_requirement": "none",
+      "allowed_terrain": ["platform"],
+      "power_requirement": 0.0,
+      "storage_slots": 8,
+      "recipe_categories": ["construction"],
+      "placement_rules": {"requires_flat": true, "allows_pollution": false, "blocks_movement": true},
+      "public_level": "public"
+    },
+    {
+      "id": "building.basic_storage",
+      "display_name_key": "building.basic_storage.name",
+      "description_key": "building.basic_storage.desc",
+      "category": "storage",
+      "footprint": [2, 2],
+      "build_cost": [{"id": "item.basic_parts", "amount": 2}],
+      "foundation_requirement": "foundation_or_platform",
+      "allowed_terrain": ["platform", "foundation"],
+      "power_requirement": 0.0,
+      "storage_slots": 16,
+      "recipe_categories": [],
+      "placement_rules": {"requires_flat": true, "allows_pollution": false, "blocks_movement": true},
+      "public_level": "public"
+    },
+    {
+      "id": "building.basic_reactor",
+      "display_name_key": "building.basic_reactor.name",
+      "description_key": "building.basic_reactor.desc",
+      "category": "processor",
+      "footprint": [2, 2],
+      "build_cost": [{"id": "item.basic_parts", "amount": 4}],
+      "foundation_requirement": "foundation_or_platform",
+      "allowed_terrain": ["platform", "foundation"],
+      "power_requirement": 2.0,
+      "storage_slots": 6,
+      "recipe_categories": ["refining", "assembly", "field_supply"],
+      "placement_rules": {"requires_flat": true, "allows_pollution": false, "blocks_movement": true},
+      "public_level": "public"
+    },
+    {
+      "id": "building.pollution_filter",
+      "display_name_key": "building.pollution_filter.name",
+      "description_key": "building.pollution_filter.desc",
+      "category": "pollution_treatment",
+      "footprint": [2, 2],
+      "build_cost": [{"id": "item.basic_parts", "amount": 3}, {"id": "item.filter_media", "amount": 1}],
+      "foundation_requirement": "foundation",
+      "allowed_terrain": ["foundation"],
+      "power_requirement": 3.0,
+      "storage_slots": 6,
+      "recipe_categories": ["pollution_treatment"],
+      "placement_rules": {"requires_flat": true, "allows_pollution": true, "blocks_movement": true},
+      "public_level": "public"
+    },
+    {
+      "id": "building.foundation_t1",
+      "display_name_key": "building.foundation_t1.name",
+      "description_key": "building.foundation_t1.desc",
+      "category": "foundation",
+      "footprint": [1, 1],
+      "build_cost": [{"id": "item.foundation_material", "amount": 1}],
+      "foundation_requirement": "none",
+      "allowed_terrain": ["rough_ground", "cleared_ground"],
+      "power_requirement": 0.0,
+      "storage_slots": 0,
+      "recipe_categories": [],
+      "placement_rules": {"requires_flat": true, "allows_pollution": false, "blocks_movement": false},
+      "public_level": "public"
+    }
+  ]
+}

@@ -35,6 +35,25 @@ pwsh ./scripts/check-text-files.ps1
 - 非 Markdown / CSV 文本文件不保留行尾空白。
 - 源码类文件原则上不超过 1500 行。
 
+### 客户端聚合验证
+
+```powershell
+pwsh ./scripts/check-client.ps1
+```
+
+聚合脚本会按顺序执行：
+
+```powershell
+pwsh ./scripts/check-client-data.ps1
+pwsh ./scripts/check-client-scenes.ps1
+pwsh ./scripts/check-client-save.ps1
+pwsh ./scripts/check-client-quests.ps1
+pwsh ./scripts/check-client-flow.ps1
+pwsh ./scripts/check-godot-client.ps1
+```
+
+涉及客户端状态、任务、存档、场景或脚本时，优先执行聚合验证；提交前仍需按范围执行 `pwsh ./scripts/check-text-files.ps1` 和 `git diff --check`。
+
 ## 文档真相源
 
 `docs/` 是本仓库正式文档源。当前优先阅读顺序：
@@ -54,6 +73,8 @@ pwsh ./scripts/check-text-files.ps1
 - 参考资料放在 `docs/reference/`，归档材料放在 `docs/archive/`。
 - `docs/archive/full-conversation-history.md` 保留历史原貌，不作为当前规范。
 - 重大架构、阶段边界、协作规则、验证基线或目录职责变化，必须同步更新 `docs/`。
+- 玩家可见知识库内容放在 `wiki/`，不要混入开发者内部规划。
+- 面向玩家的官方辅助工具放在 `official-tools/`，不要和仓库脚本目录 `tools/` 混淆。
 
 ## 协作流程
 
@@ -61,6 +82,7 @@ pwsh ./scripts/check-text-files.ps1
 - 若用户明确要求直接修改，且范围清晰、风险可控，则直接实施。
 - 若用户没有明确要求直接修改，编写代码前应先说明方案。
 - 若需求不明确，或改动会影响架构、阶段边界、接口口径、验证基线，则先说明判断并做必要澄清。
+- 每次新增/修改功能、修复 bug 或处理其他任务时，优先从根因、长期维护性和系统一致性出发，选择更完整、更稳妥的治理方案；不要把“最小修复”当作默认优先级，也不要无节制地层层增加兜底来掩盖问题。
 - 每做完一个可分割子步骤，应进行匹配的最小验证。
 - 重要阶段性推进除了修改文件，还应同步追加到本周周志。
 
@@ -81,6 +103,7 @@ pwsh ./scripts/check-text-files.ps1
 - 读取和修改仓库内代码、文档、配置。
 - `git status`、`git diff`、`git log` 等只读 Git 操作。
 - `pwsh ./scripts/check-text-files.ps1`、`./scripts/check-text-files.sh`。
+- `pwsh ./scripts/check-client.ps1` 及其单项客户端检查脚本。
 - 简洁明确的提交操作。
 
 ### 需要先告知用户再执行
@@ -125,6 +148,8 @@ pwsh ./scripts/check-text-files.ps1
 - `tools/`：项目脚本、数据处理、构建或导出辅助工具。
 - `scripts/`：仓库检查与自动化脚本。
 - `docs/`：策划、设计、架构、参考与归档文档。
+- `wiki/`：未来面向玩家的 Wiki 源内容。
+- `official-tools/`：未来面向玩家的官方辅助工具。
 - `.github/`：PR 模板、GitHub Actions 和 ruleset 模板。
 
 ## Git 提交规范

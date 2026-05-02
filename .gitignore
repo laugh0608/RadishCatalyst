@@ -28,6 +28,7 @@ release/
 # Logs and local runtime files
 *.log
 logs/
+.godot-check-home/
 
 # OS metadata
 .DS_Store

@@ -1,6 +1,12 @@
 # RadishCatalyst Documentation
 
-本目录收纳 RadishCatalyst / 异星催化 的策划、架构、参考资料与归档材料。
+本目录收纳 RadishCatalyst / 异星催化 的开发者文档：策划、设计、架构、规划、参考资料与归档材料。
+
+玩家可见知识库源内容放在仓库根目录 `wiki/`。
+
+面向玩家的官方辅助工具放在仓库根目录 `official-tools/`。
+
+仓库许可条款以根目录 [LICENSE](../LICENSE) 为准。
 
 ## Structure
 
@@ -15,16 +21,35 @@
 
 ## Core Documents
 
+- [Project Definition](product/project-definition.md)
 - [Creative Development Brief](product/creative-development-brief.md)
+- [Reference Positioning](product/reference-positioning.md)
+- [Player Wiki And Official Tools](product/player-wiki-and-official-tools.md)
+- [Visual And UI Direction](product/visual-and-ui-direction.md)
+- [Worldbuilding Premise](product/worldbuilding-premise.md)
+- [MVP Feature List](product/mvp-feature-list.md)
 - [Multiplayer and Save Architecture](architecture/multiplayer-and-save-architecture.md)
+- [Platform And Compatibility](architecture/platform-and-compatibility.md)
+- [Save Data Model](architecture/save-data-model.md)
+- [Static Data Schema](architecture/static-data-schema.md)
+- [Godot Project Structure](architecture/godot-project-structure.md)
 
 ## Design Documents
 
 - [Design Documents](design/README.md)
+- [Core Gameplay Loop](design/core-gameplay-loop.md)
+- [Character Progression And Equipment](design/character-progression-and-equipment.md)
+- [Combat And Interaction Prototype](design/combat-and-interaction-prototype.md)
+- [Maps And Regions](design/maps-and-regions.md)
+- [Narrative And Quest Framework](design/narrative-and-quest-framework.md)
+- [Onboarding And First Hour](design/onboarding-and-first-hour.md)
+- [Resources And Process Chain](design/resources-and-process-chain.md)
 
 ## Planning And Governance
 
 - [Current Plan](planning/current.md)
+- [Vertical Slice](planning/vertical-slice.md)
+- [Milestone Review Checklist](planning/milestone-review-checklist.md)
 - [Architecture Decision Records](adr/README.md)
 - [Development Logs](devlogs/README.md)
 

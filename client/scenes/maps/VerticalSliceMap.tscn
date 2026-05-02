@@ -1,0 +1,156 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/map/vertical_slice_map.gd" id="1_map"]
+[ext_resource type="PackedScene" path="res://scenes/actors/Player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/maps/PrototypeInteractable.tscn" id="3_interactable"]
+[ext_resource type="PackedScene" path="res://scenes/actors/PrototypeEnemy.tscn" id="4_enemy"]
+
+[node name="VerticalSliceMap" type="Node2D"]
+script = ExtResource("1_map")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_left = -420.0
+offset_top = -260.0
+offset_right = 420.0
+offset_bottom = 260.0
+color = Color(0.101961, 0.133333, 0.141176, 1)
+
+[node name="RegionBase" type="ColorRect" parent="."]
+offset_left = -360.0
+offset_top = -200.0
+offset_right = -80.0
+offset_bottom = 200.0
+color = Color(0.176471, 0.258824, 0.278431, 1)
+
+[node name="RegionCrystal" type="ColorRect" parent="."]
+offset_left = -60.0
+offset_top = -200.0
+offset_right = 180.0
+offset_bottom = 200.0
+color = Color(0.14902, 0.211765, 0.301961, 1)
+
+[node name="RegionPollution" type="ColorRect" parent="."]
+offset_left = 200.0
+offset_top = -200.0
+offset_right = 360.0
+offset_bottom = 200.0
+color = Color(0.258824, 0.247059, 0.12549, 1)
+
+[node name="BaseDirectionLabel" type="Label" parent="."]
+offset_left = -342.0
+offset_top = 166.0
+offset_right = -134.0
+offset_bottom = 192.0
+text = "基地平台 / 返回补给"
+horizontal_alignment = 1
+
+[node name="CrystalDirectionLabel" type="Label" parent="."]
+offset_left = -48.0
+offset_top = 166.0
+offset_right = 168.0
+offset_bottom = 192.0
+text = "→ 晶体矿脉区"
+horizontal_alignment = 1
+
+[node name="PollutionDirectionLabel" type="Label" parent="."]
+offset_left = 204.0
+offset_top = 166.0
+offset_right = 356.0
+offset_bottom = 192.0
+text = "→ 污染边界"
+horizontal_alignment = 1
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(-250, -48)
+
+[node name="Interactables" type="Node2D" parent="."]
+
+[node name="OutpostCore" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-300, -92)
+definition_id = "building.outpost_core"
+interaction_type = "outpost_core"
+
+[node name="BasicReactor" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-190, -52)
+definition_id = "building.basic_reactor"
+interaction_type = "process_recipe"
+recipe_id = "recipe.process_crystal_ore"
+single_use = false
+
+[node name="CrystalCluster" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(30, -70)
+definition_id = "map_object.crystal_cluster"
+interaction_type = "gather"
+
+[node name="CrystalClusterEast" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(125, -95)
+definition_id = "map_object.crystal_cluster"
+interaction_type = "gather"
+
+[node name="CrystalClusterSouth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(135, -10)
+definition_id = "map_object.crystal_cluster"
+interaction_type = "gather"
+
+[node name="AnomalyCrystal" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(110, 80)
+definition_id = "map_object.anomaly_crystal"
+interaction_type = "sample"
+
+[node name="PollutionResidue" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(270, 20)
+definition_id = "map_object.pollution_residue_patch"
+interaction_type = "gather"
+
+[node name="RoughGroundNorth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(225, -130)
+definition_id = "map_object.rough_ground"
+interaction_type = "clear"
+
+[node name="RoughGroundSouth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(260, -130)
+definition_id = "map_object.rough_ground"
+interaction_type = "clear"
+
+[node name="FoundationSiteNorth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(225, -92)
+definition_id = "building.foundation_t1"
+interaction_type = "build"
+recipe_id = ""
+prerequisite_instance_id = "map_object_instance.rough_ground_north"
+
+[node name="FoundationSiteSouth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(260, -92)
+definition_id = "building.foundation_t1"
+interaction_type = "build"
+recipe_id = ""
+prerequisite_instance_id = "map_object_instance.rough_ground_south"
+
+[node name="PollutionFilterBuildSite" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(292, -112)
+definition_id = "building.pollution_filter"
+interaction_type = "build"
+recipe_id = ""
+
+[node name="PollutionFilter" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(292, -72)
+definition_id = "building.pollution_filter"
+interaction_type = "process_recipe"
+recipe_id = "recipe.cleanse_residue"
+single_use = false
+
+[node name="RuinGate" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(342, -20)
+definition_id = "map_object.ruin_gate"
+interaction_type = "inspect"
+single_use = false
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="NativeSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(70, 20)
+definition_id = "enemy.native_skitter"
+
+[node name="PollutedSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(302, 94)
+definition_id = "enemy.polluted_skitter"

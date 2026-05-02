@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "id": "fluid.basic_solvent",
+      "display_name_key": "fluid.basic_solvent.name",
+      "description_key": "fluid.basic_solvent.desc",
+      "category": "solvent",
+      "tags": ["solvent", "base", "slice_01"],
+      "storage_unit": "liter",
+      "default_color": "#8EC6D8",
+      "hazard_type": "none",
+      "public_level": "public"
+    },
+    {
+      "id": "fluid.polluted_slurry",
+      "display_name_key": "fluid.polluted_slurry.name",
+      "description_key": "fluid.polluted_slurry.desc",
+      "category": "pollution",
+      "tags": ["pollution", "slurry", "slice_01"],
+      "storage_unit": "liter",
+      "default_color": "#B5B05A",
+      "hazard_type": "corrosive",
+      "public_level": "public"
+    }
+  ]
+}
