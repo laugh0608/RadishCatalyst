@@ -5,10 +5,7 @@ var world_state: WorldState
 var character_state: CharacterState
 var save_service := SaveService.new()
 var processing_system: ProcessingSystem
-var quest_event_rules: QuestEventRules
-var quest_progress_rules: QuestProgressRules
-var quest_completion_rules: QuestCompletionRules
-var quest_completion_applier: QuestCompletionApplier
+var quest_runtime: QuestRuntime
 
 @onready var vertical_slice_map: VerticalSliceMap = $VerticalSliceMap
 @onready var hud: PrototypeHud = $PrototypeHud
@@ -23,10 +20,7 @@ func _ready() -> void:
 	character_state = CharacterState.create_default()
 	save_service.setup(data_registry)
 	processing_system = ProcessingSystem.new(data_registry)
-	quest_event_rules = QuestEventRules.new(data_registry)
-	quest_progress_rules = QuestProgressRules.new(data_registry)
-	quest_completion_rules = QuestCompletionRules.new(data_registry, quest_progress_rules)
-	quest_completion_applier = QuestCompletionApplier.new(data_registry)
+	quest_runtime = QuestRuntime.new(data_registry)
 	vertical_slice_map.setup(data_registry)
 	vertical_slice_map.sync_enemy_states(world_state)
 	vertical_slice_map.refresh_world_interactables(world_state)
@@ -63,7 +57,7 @@ func _on_player_interaction_requested() -> void:
 	var result := vertical_slice_map.try_interact(character_state, world_state)
 	var log_messages: Array[String] = [String(result.get("message", ""))]
 	if bool(result.get("success", false)):
-		log_messages.append_array(_advance_quest_for_interaction(context, result))
+		_append_quest_runtime_result(log_messages, quest_runtime.advance_for_interaction(world_state, character_state, context, result))
 	vertical_slice_map.refresh_world_interactables(world_state)
 	if vertical_slice_map.current_interactable != null:
 		_on_interaction_available(vertical_slice_map.current_interactable)
@@ -75,7 +69,10 @@ func _on_player_attack_requested() -> void:
 	var result := vertical_slice_map.try_attack(character_state, world_state)
 	var log_messages: Array[String] = [String(result.get("message", ""))]
 	if bool(result.get("success", false)) and bool(result.get("enemy_defeated", false)):
-		log_messages.append_array(_advance_quest_for_defeated_enemy(String(result.get("enemy_definition_id", ""))))
+		_append_quest_runtime_result(
+			log_messages,
+			quest_runtime.advance_for_defeated_enemy(world_state, character_state, String(result.get("enemy_definition_id", "")))
+		)
 	hud.append_log(_join_log_messages(log_messages))
 	_update_hud()
 
@@ -181,7 +178,7 @@ func _on_region_changed(region_id: String) -> void:
 		var warning := _get_pollution_entry_warning()
 		if not warning.is_empty():
 			log_messages.append(warning)
-	log_messages.append_array(_advance_quest_for_region(region_id))
+	_append_quest_runtime_result(log_messages, quest_runtime.advance_for_region(world_state, character_state, region_id))
 	hud.append_log(_join_log_messages(log_messages))
 	_update_hud()
 
@@ -279,61 +276,26 @@ func _get_current_interaction_context() -> Dictionary:
 	}
 
 
-func _advance_quest_for_interaction(context: Dictionary, result: Dictionary) -> Array[String]:
-	return _apply_quest_objective_updates(
-		quest_event_rules.get_interaction_objective_updates(context, result, world_state.quest_state)
-	)
-
-
-func _advance_quest_for_region(region_id: String) -> Array[String]:
-	return _apply_quest_objective_updates(
-		quest_event_rules.get_region_objective_updates(region_id, world_state.quest_state)
-	)
-
-
-func _advance_quest_for_defeated_enemy(enemy_definition_id: String) -> Array[String]:
-	return _apply_quest_objective_updates(
-		quest_event_rules.get_defeated_enemy_objective_updates(enemy_definition_id)
-	)
-
-
 func _mark_pollution_edge_ready() -> bool:
-	if not world_state.quest_state.has_active_quest("quest.enter_pollution_edge") and not world_state.quest_state.has_completed_quest("quest.expand_treatment_point"):
-		return false
-
-	world_state.unlock_region("region.pollution_edge")
-	_apply_quest_objective_updates(quest_event_rules.get_pollution_edge_ready_updates(world_state.quest_state))
-	return true
+	var result := quest_runtime.advance_pollution_edge_ready(world_state, character_state)
+	_show_quest_completion_feedbacks(result)
+	return bool(result.get("accepted", false))
 
 
-func _apply_quest_objective_updates(updates: Array[Dictionary]) -> Array[String]:
-	var completion_messages: Array[String] = []
-	var changed_quest_ids: Array[String] = []
-	for update in updates:
-		var quest_id := String(update.get("quest_id", ""))
-		var objective_type := String(update.get("objective_type", ""))
-		var target_id := String(update.get("target_id", ""))
-		var amount := float(update.get("amount", 0.0))
-		if String(update.get("mode", "set")) == "add":
-			quest_progress_rules.add_active_objective_progress(world_state.quest_state, quest_id, objective_type, target_id, amount)
-		else:
-			quest_progress_rules.set_active_objective_progress(world_state.quest_state, quest_id, objective_type, target_id, amount)
-		if not changed_quest_ids.has(quest_id):
-			changed_quest_ids.append(quest_id)
-
-	for quest_id in changed_quest_ids:
-		completion_messages.append_array(_try_complete_quest(quest_id))
-	return completion_messages
+func _append_quest_runtime_result(log_messages: Array[String], result: Dictionary) -> void:
+	_show_quest_completion_feedbacks(result)
+	for message in result.get("log_messages", []):
+		var text := String(message)
+		if text.strip_edges().is_empty():
+			continue
+		log_messages.append(text)
 
 
-func _try_complete_quest(quest_id: String) -> Array[String]:
-	var completion_result := quest_completion_rules.try_complete_quest(world_state.quest_state, quest_id)
-	if not bool(completion_result.get("completed", false)):
-		return []
-
-	var feedback := quest_completion_applier.apply_completion(world_state, character_state, completion_result)
-	hud.show_quest_completion(feedback)
-	return [String(feedback.get("log_message", ""))]
+func _show_quest_completion_feedbacks(result: Dictionary) -> void:
+	for feedback in result.get("completion_feedbacks", []):
+		if not feedback is Dictionary:
+			continue
+		hud.show_quest_completion(feedback)
 
 
 func _join_log_messages(messages: Array[String]) -> String:

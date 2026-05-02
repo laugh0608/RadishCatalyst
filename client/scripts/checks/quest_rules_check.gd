@@ -6,6 +6,7 @@ var event_rules: QuestEventRules
 var progress_rules: QuestProgressRules
 var completion_rules: QuestCompletionRules
 var completion_applier: QuestCompletionApplier
+var quest_runtime: QuestRuntime
 
 
 func _init() -> void:
@@ -31,6 +32,7 @@ func _run_checks() -> void:
 	progress_rules = QuestProgressRules.new(data_registry)
 	completion_rules = QuestCompletionRules.new(data_registry, progress_rules)
 	completion_applier = QuestCompletionApplier.new(data_registry)
+	quest_runtime = QuestRuntime.new(data_registry)
 
 	_check_interaction_event_objective_updates()
 	_check_region_event_objective_updates()
@@ -39,6 +41,7 @@ func _run_checks() -> void:
 	_check_incomplete_active_quest_does_not_complete()
 	_check_completed_quest_returns_structured_result()
 	_check_completion_applier_grants_rewards_unlocks_and_feedback()
+	_check_quest_runtime_applies_updates_and_completion_feedback()
 	_check_active_objective_progress_is_capped()
 	_check_inactive_objective_progress_is_ignored()
 
@@ -172,6 +175,26 @@ func _check_completion_applier_grants_rewards_unlocks_and_feedback() -> void:
 		failures.append("applier log message should include unlock text, got %s" % var_to_str(feedback))
 
 
+func _check_quest_runtime_applies_updates_and_completion_feedback() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	var result := quest_runtime.apply_objective_updates(world_state, character_state, [
+		{
+			"mode": "set",
+			"quest_id": "quest.restore_outpost",
+			"objective_type": "interact",
+			"target_id": "building.outpost_core",
+			"amount": 1
+		}
+	])
+	_expect_equal(bool(result.get("accepted", false)), true, "runtime accepts objective updates")
+	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.restore_outpost", "runtime completes restore quest")
+	_expect_array_has(world_state.unlocked_region_ids, "region.crystal_vein_field", "runtime applies world unlock")
+	_expect_equal(character_state.inventory.items.get("item.basic_parts", 0), 8, "runtime applies reward")
+	_expect_equal(_result_array_size(result, "completion_feedbacks"), 1, "runtime completion feedback count")
+	_expect_equal(_result_array_size(result, "log_messages"), 1, "runtime log message count")
+
+
 func _check_active_objective_progress_is_capped() -> void:
 	var quest_state := QuestState.create_default()
 	_mark_restore_outpost_completed(quest_state)
@@ -280,6 +303,14 @@ func _expect_array_has(values: Array, expected_value: String, label: String) -> 
 func _expect_array_missing(values: Array, unexpected_value: String, label: String) -> void:
 	if values.has(unexpected_value):
 		failures.append("%s should not contain %s, got %s" % [label, unexpected_value, var_to_str(values)])
+
+
+func _result_array_size(result: Dictionary, key: String) -> int:
+	var values = result.get(key, [])
+	if not values is Array:
+		failures.append("%s should be an array, got %s" % [key, var_to_str(values)])
+		return 0
+	return values.size()
 
 
 func _cleanup() -> void:
