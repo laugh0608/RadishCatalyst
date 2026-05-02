@@ -118,6 +118,7 @@ func _on_player_module_toggle_requested() -> void:
 func _on_player_quick_slot_requested(slot_index: int) -> void:
 	var result := character_state.use_quick_slot(slot_index, data_registry)
 	hud.append_log(String(result.get("message", "")))
+	_show_supply_feedback(result)
 	_update_hud()
 
 
@@ -405,6 +406,12 @@ func _show_evacuation_feedback(result: Dictionary) -> void:
 	var feedback = result.get("evacuation_feedback", {})
 	if feedback is Dictionary and not feedback.is_empty():
 		hud.show_evacuation_feedback(feedback)
+
+
+func _show_supply_feedback(result: Dictionary) -> void:
+	var feedback = result.get("supply_feedback", {})
+	if feedback is Dictionary and not feedback.is_empty():
+		hud.show_supply_feedback(feedback)
 
 
 func _get_interaction_tool_status(definition_id: String) -> String:

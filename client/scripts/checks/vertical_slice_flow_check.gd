@@ -30,6 +30,7 @@ func _run_checks() -> void:
 	_expect_equal(world_state.quest_state.active_quest_ids, ["quest.restore_outpost"], "initial active quest")
 	_check_onboarding_hints()
 	_check_build_prompts()
+	_check_supply_feedback()
 
 	_complete_active_quest("quest.restore_outpost", [
 		{"type": "interact", "target_id": "building.outpost_core", "amount": 1}
@@ -174,6 +175,32 @@ func _check_build_prompts() -> void:
 	foundation_site.free()
 	filter_site.free()
 	game_root.free()
+
+
+func _check_supply_feedback() -> void:
+	var supply_character := CharacterState.create_default()
+	supply_character.health = 45.0
+	var repair_result := supply_character.use_quick_slot(0, data_registry)
+	_expect_equal(bool(repair_result.get("success", false)), true, "repair gel should be usable")
+	_expect_equal(supply_character.health, 80.0, "repair gel health recovery")
+	_expect_feedback_contains(repair_result, "生命 +35", "repair gel feedback")
+	_expect_feedback_contains(repair_result, "当前 80 / 100", "repair gel current health feedback")
+
+	var full_health_character := CharacterState.create_default()
+	var full_health_blocked := full_health_character.use_quick_slot(0, data_registry)
+	_expect_equal(bool(full_health_blocked.get("success", true)), false, "full health should block repair gel")
+	_expect_feedback_contains(full_health_blocked, "生命已满", "full health supply feedback")
+
+	var missing_repair_result := supply_character.use_quick_slot(0, data_registry)
+	_expect_equal(bool(missing_repair_result.get("success", true)), false, "missing repair gel should fail")
+	_expect_feedback_contains(missing_repair_result, "基础反应器", "missing repair gel refill hint")
+
+	var missing_vial_character := CharacterState.create_default()
+	missing_vial_character.protection = 30.0
+	missing_vial_character.inventory.items.erase("item.resistance_vial_t1")
+	var missing_vial_result := missing_vial_character.use_quick_slot(1, data_registry)
+	_expect_equal(bool(missing_vial_result.get("success", true)), false, "missing vial should fail")
+	_expect_feedback_contains(missing_vial_result, "污染过滤器", "missing vial refill hint")
 
 
 func _complete_active_quest(quest_id: String, progress_refs: Array) -> void:
@@ -345,6 +372,19 @@ func _expect_hint_contains(hud: PrototypeHud, hint_world: WorldState, hint_chara
 func _expect_text_contains(text: String, expected_text: String, label: String) -> void:
 	if text.find(expected_text) < 0:
 		failures.append("%s should contain %s, got %s" % [label, expected_text, text])
+
+
+func _expect_feedback_contains(result: Dictionary, expected_text: String, label: String) -> void:
+	var feedback = result.get("supply_feedback", {})
+	if not feedback is Dictionary:
+		failures.append("%s should include supply feedback, got %s" % [label, var_to_str(result)])
+		return
+
+	var text := "%s %s" % [
+		String(feedback.get("title", "")),
+		String(feedback.get("detail", ""))
+	]
+	_expect_text_contains(text, expected_text, label)
 
 
 func _cleanup() -> void:

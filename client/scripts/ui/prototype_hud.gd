@@ -3,8 +3,10 @@ class_name PrototypeHud
 
 const SAVE_SLOT_IDS: Array[String] = ["slot_01", "slot_02", "slot_03"]
 const QUICK_SLOT_BIND_CANDIDATES: Array[String] = ["item.repair_gel", "item.resistance_vial_t1", ""]
+const SUPPLY_FEEDBACK_SECONDS := 4.0
 
 var last_quick_slots: Array[String] = []
+var supply_feedback_remaining_seconds := 0.0
 
 @onready var status_label: Label = $StatusPanel/StatusLabel
 @onready var prompt_label: Label = $PromptPanel/PromptLabel
@@ -23,6 +25,9 @@ var last_quick_slots: Array[String] = []
 @onready var evacuation_title_label: Label = $EvacuationPanel/EvacuationTitleLabel
 @onready var evacuation_detail_label: Label = $EvacuationPanel/EvacuationDetailLabel
 @onready var evacuation_close_button: Button = $EvacuationPanel/EvacuationCloseButton
+@onready var supply_feedback_panel: ColorRect = $SupplyFeedbackPanel
+@onready var supply_feedback_title_label: Label = $SupplyFeedbackPanel/SupplyFeedbackTitleLabel
+@onready var supply_feedback_detail_label: Label = $SupplyFeedbackPanel/SupplyFeedbackDetailLabel
 @onready var save_slot_labels: Array[Label] = [
 	$SavePanel/Slot01Label,
 	$SavePanel/Slot02Label,
@@ -51,6 +56,15 @@ func _ready() -> void:
 	for index in range(quick_slot_binding_buttons.size()):
 		quick_slot_binding_buttons[index].pressed.connect(_on_quick_slot_binding_pressed.bind(index))
 	evacuation_close_button.pressed.connect(_on_evacuation_close_pressed)
+
+
+func _process(delta: float) -> void:
+	if supply_feedback_remaining_seconds <= 0.0:
+		return
+
+	supply_feedback_remaining_seconds = maxf(0.0, supply_feedback_remaining_seconds - delta)
+	if supply_feedback_remaining_seconds <= 0.0:
+		supply_feedback_panel.visible = false
 
 
 func update_status(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> void:
@@ -114,6 +128,16 @@ func show_evacuation_feedback(feedback: Dictionary) -> void:
 	_append_detail(details, String(feedback.get("retry_text", "")))
 	evacuation_detail_label.text = "\n".join(details)
 	evacuation_panel.visible = true
+
+
+func show_supply_feedback(feedback: Dictionary) -> void:
+	if feedback.is_empty():
+		return
+
+	supply_feedback_title_label.text = String(feedback.get("title", "补给反馈"))
+	supply_feedback_detail_label.text = String(feedback.get("detail", ""))
+	supply_feedback_panel.visible = true
+	supply_feedback_remaining_seconds = SUPPLY_FEEDBACK_SECONDS
 
 
 func update_save_slot_summaries(summaries: Array[Dictionary]) -> void:
