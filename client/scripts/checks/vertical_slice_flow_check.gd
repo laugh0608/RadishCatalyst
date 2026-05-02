@@ -34,6 +34,7 @@ func _run_checks() -> void:
 	_check_build_prompts()
 	_check_supply_feedback()
 	_check_pollution_status_hints()
+	_check_failure_feedback_logs()
 
 	_complete_active_quest("quest.restore_outpost", [
 		{"type": "interact", "target_id": "building.outpost_core", "amount": 1}
@@ -335,6 +336,62 @@ func _check_pollution_status_hints() -> void:
 	game_root.free()
 
 
+func _check_failure_feedback_logs() -> void:
+	var game_root = GameRootScript.new()
+	var no_target_map := VerticalSliceMap.new()
+	var no_target := no_target_map.try_interact(CharacterState.create_default(), WorldState.create_default())
+	_expect_failure_feedback(no_target, "交互未执行", "no target interaction feedback")
+	_expect_text_contains(
+		game_root._format_failure_result_log(no_target),
+		"下一步：靠近带名称的目标",
+		"no target failure log"
+	)
+	no_target_map.free()
+
+	var no_enemy_map := VerticalSliceMap.new()
+	no_enemy_map.enemies_root = Node2D.new()
+	var no_enemy := no_enemy_map.try_attack(CharacterState.create_default(), WorldState.create_default())
+	_expect_failure_feedback(no_enemy, "攻击未命中", "no enemy attack feedback")
+	no_enemy_map.enemies_root.free()
+	no_enemy_map.free()
+
+	var processing := ProcessingSystem.new(data_registry)
+	var processing_world := WorldState.create_default()
+	var processing_character := CharacterState.create_default()
+	processing_world.quest_state.unlock_effect("recipe.process_crystal_ore")
+	var missing_inputs := processing.process_recipe("recipe.process_crystal_ore", processing_character, processing_world)
+	_expect_failure_feedback(missing_inputs, "原料不足", "processing missing inputs feedback")
+
+	processing_character.inventory.add_item("item.crystal_ore", 3)
+	var started := processing.process_recipe("recipe.process_crystal_ore", processing_character, processing_world)
+	_expect_equal(bool(started.get("success", false)), true, "processing starts before in-progress failure")
+	var in_progress := processing.process_recipe("recipe.process_crystal_ore", processing_character, processing_world)
+	_expect_failure_feedback(in_progress, "设备加工中", "processing in progress feedback")
+
+	var build_system := BuildSystem.new(data_registry)
+	var build_world := WorldState.create_default()
+	var build_character := CharacterState.create_default()
+	var blocked_build := build_system.build_structure(
+		"map_object_instance.pollution_filter_build_site",
+		"building.pollution_filter",
+		build_character,
+		build_world
+	)
+	_expect_failure_feedback(blocked_build, "建造前置不足", "build prerequisite feedback")
+
+	_expect_text_contains(
+		game_root._format_region_gate_blocked_log("污染边界尚未稳定。", "需要：先完成处理点扩建。"),
+		"通行受阻：污染边界",
+		"region gate blocked log title"
+	)
+	_expect_text_contains(
+		game_root._format_region_gate_blocked_log("污染边界尚未稳定。", "需要：先完成处理点扩建。"),
+		"下一步：需要：先完成处理点扩建。",
+		"region gate blocked next step"
+	)
+	game_root.free()
+
+
 func _complete_active_quest(quest_id: String, progress_refs: Array) -> void:
 	if not world_state.quest_state.has_active_quest(quest_id):
 		failures.append("%s should be active before completion" % quest_id)
@@ -517,6 +574,17 @@ func _expect_feedback_contains(result: Dictionary, expected_text: String, label:
 		String(feedback.get("detail", ""))
 	]
 	_expect_text_contains(text, expected_text, label)
+
+
+func _expect_failure_feedback(result: Dictionary, expected_title: String, label: String) -> void:
+	_expect_equal(bool(result.get("success", true)), false, "%s success state" % label)
+	var feedback = result.get("failure_feedback", {})
+	if not feedback is Dictionary:
+		failures.append("%s should include failure feedback, got %s" % [label, var_to_str(result)])
+		return
+	_expect_equal(String(feedback.get("title", "")), expected_title, label)
+	if String(feedback.get("detail", "")).strip_edges().is_empty():
+		failures.append("%s should include next-step detail, got %s" % [label, var_to_str(feedback)])
 
 
 func _cleanup() -> void:

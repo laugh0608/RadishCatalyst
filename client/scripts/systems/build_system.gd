@@ -17,19 +17,19 @@ func build_structure(
 ) -> Dictionary:
 	var building := data_registry.get_definition(building_id)
 	if building.is_empty():
-		return _failure("未知建筑：%s" % building_id)
+		return _failure("未知建筑：%s。" % building_id, "建造未完成", "检查建造点配置或切换到已知建筑。")
 
 	var site_state := world_state.ensure_map_object(site_instance_id, building_id, character_state.current_region_id)
 	if bool(site_state.get("is_built", false)):
-		return _failure("该建造点已完成。")
+		return _failure("该建造点已完成。", "建造未执行", "前往下一个建造点或查看当前任务目标。")
 
 	var requirement_error := _get_requirement_error(building_id, prerequisite_instance_id, world_state)
 	if not requirement_error.is_empty():
-		return _failure(requirement_error)
+		return _failure(requirement_error, "建造前置不足", _get_requirement_hint(building_id))
 
 	var missing_costs := _get_missing_costs(building, character_state.inventory)
 	if not missing_costs.is_empty():
-		return _failure("缺少建造材料：%s。" % ", ".join(missing_costs))
+		return _failure("缺少建造材料：%s。" % ", ".join(missing_costs), "建造材料不足", _get_cost_hint(building_id))
 
 	_consume_refs(building.get("build_cost", []), character_state.inventory)
 	world_state.set_map_object_flag(site_instance_id, "is_built", true)
@@ -112,6 +112,24 @@ func _get_requirement_error(building_id: String, prerequisite_instance_id: Strin
 	return ""
 
 
+func _get_requirement_hint(building_id: String) -> String:
+	match building_id:
+		"building.foundation_t1":
+			return "先清理粗糙地块，再铺设基础地基。"
+		"building.pollution_filter":
+			return "先铺设 2 块基础地基，再建造污染过滤器。"
+		_:
+			return "先完成该建筑的前置条件。"
+
+
+func _get_cost_hint(building_id: String) -> String:
+	match building_id:
+		"building.foundation_t1", "building.pollution_filter":
+			return "回晶体区采集资源，并用基础反应器补齐建造材料。"
+		_:
+			return "先补齐该建筑所需材料。"
+
+
 func _get_missing_costs(building: Dictionary, inventory: InventoryState) -> Array[String]:
 	var missing_costs: Array[String] = []
 	for cost in building.get("build_cost", []):
@@ -190,8 +208,12 @@ func _success(message: String, building_id: String) -> Dictionary:
 	}
 
 
-func _failure(message: String) -> Dictionary:
+func _failure(message: String, title: String = "建造未完成", detail: String = "") -> Dictionary:
 	return {
 		"success": false,
-		"message": message
+		"message": message,
+		"failure_feedback": {
+			"title": title,
+			"detail": detail
+		}
 	}

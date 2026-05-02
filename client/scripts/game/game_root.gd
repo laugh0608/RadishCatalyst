@@ -60,7 +60,7 @@ func _process(delta: float) -> void:
 func _on_player_interaction_requested() -> void:
 	var context := _get_current_interaction_context()
 	var result := vertical_slice_map.try_interact(character_state, world_state)
-	var log_messages: Array[String] = [String(result.get("message", ""))]
+	var log_messages: Array[String] = [_format_result_log(result)]
 	if bool(result.get("success", false)) and _should_advance_interaction(context, result):
 		_append_quest_runtime_result(log_messages, quest_runtime.advance_for_interaction(world_state, character_state, context, result))
 	_show_evacuation_feedback(result)
@@ -73,7 +73,7 @@ func _on_player_interaction_requested() -> void:
 
 func _on_player_attack_requested() -> void:
 	var result := vertical_slice_map.try_attack(character_state, world_state)
-	var log_messages: Array[String] = [String(result.get("message", ""))]
+	var log_messages: Array[String] = [_format_result_log(result)]
 	if bool(result.get("success", false)) and bool(result.get("enemy_defeated", false)):
 		_append_quest_runtime_result(
 			log_messages,
@@ -90,7 +90,7 @@ func _on_player_recipe_cycle_requested() -> void:
 		hud.append_log(_format_processing_log(vertical_slice_map.current_interactable.get_current_recipe_id()))
 		_on_interaction_available(vertical_slice_map.current_interactable)
 	else:
-		hud.append_log(String(result.get("message", "")))
+		hud.append_log(_format_result_log(result))
 	_update_hud()
 
 
@@ -202,9 +202,9 @@ func _on_region_changed(region_id: String) -> void:
 
 func _on_region_gate_blocked(message: String) -> void:
 	if message.find("污染边界") >= 0:
-		hud.append_log("%s %s" % [message, _get_pollution_gate_hint()])
+		hud.append_log(_format_region_gate_blocked_log(message, _get_pollution_gate_hint()))
 	else:
-		hud.append_log(message)
+		hud.append_log(_format_region_gate_blocked_log(message, "需要：先检查前哨核心。"))
 	_update_hud()
 
 
@@ -343,6 +343,31 @@ func _get_pollution_gate_hint() -> String:
 	if missing_steps.is_empty():
 		return "重新靠近边界后会再次检查通行状态。"
 	return "需要：%s。" % "；".join(missing_steps)
+
+
+func _format_result_log(result: Dictionary) -> String:
+	if bool(result.get("success", false)):
+		return String(result.get("message", ""))
+	return _format_failure_result_log(result)
+
+
+func _format_failure_result_log(result: Dictionary) -> String:
+	var message := String(result.get("message", "操作未完成。"))
+	var feedback = result.get("failure_feedback", {})
+	if not feedback is Dictionary or feedback.is_empty():
+		return message
+
+	var title := String(feedback.get("title", "操作未完成"))
+	var detail := String(feedback.get("detail", ""))
+	if detail.strip_edges().is_empty():
+		return "%s：%s" % [title, message]
+	return "%s：%s 下一步：%s" % [title, message, detail]
+
+
+func _format_region_gate_blocked_log(message: String, next_step: String) -> String:
+	if next_step.strip_edges().is_empty():
+		return "通行受阻：%s" % message
+	return "通行受阻：%s 下一步：%s" % [message, next_step]
 
 
 func _get_current_interaction_context() -> Dictionary:

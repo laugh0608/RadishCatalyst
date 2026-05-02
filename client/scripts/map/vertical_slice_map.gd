@@ -46,10 +46,7 @@ func _ready() -> void:
 
 func try_interact(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if current_interactable == null:
-		return {
-			"success": false,
-			"message": "附近没有可交互目标。"
-		}
+		return _failure("附近没有可交互目标。", "交互未执行", "靠近带名称的目标，等待交互提示出现后再按 E。")
 
 	var interacted := current_interactable
 	if interacted.definition_id == "map_object.ruin_gate" and interacted.interaction_type == "inspect":
@@ -123,20 +120,11 @@ func update_current_interactable() -> void:
 
 func try_cycle_recipe() -> Dictionary:
 	if current_interactable == null:
-		return {
-			"success": false,
-			"message": "附近没有可切换配方的设备。"
-		}
+		return _failure("附近没有可切换配方的设备。", "配方未切换", "靠近基础反应器等加工设备后再按 R。")
 	if current_interactable.interaction_type != "process_recipe":
-		return {
-			"success": false,
-			"message": "当前目标不是加工设备。"
-		}
+		return _failure("当前目标不是加工设备。", "配方未切换", "靠近基础反应器或污染过滤器后再切换配方。")
 	if current_interactable.get_recipe_count() <= 1:
-		return {
-			"success": false,
-			"message": "当前设备没有可轮换配方。"
-		}
+		return _failure("当前设备没有可轮换配方。", "配方未切换", "该设备只有一个配方，直接按 E 尝试加工。")
 
 	var recipe_id := current_interactable.select_next_recipe()
 	return {
@@ -152,10 +140,7 @@ func try_cycle_recipe() -> Dictionary:
 func try_attack(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var target := _get_nearest_attack_target()
 	if target == null:
-		return {
-			"success": false,
-			"message": "攻击挥空：附近没有敌人。"
-		}
+		return _failure("攻击挥空：附近没有敌人。", "攻击未命中", "靠近敌人后再攻击，或回到当前目标区域。")
 
 	var damage := _get_attack_damage(character_state)
 	var result := target.apply_hit(damage)
@@ -444,10 +429,11 @@ func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, 
 
 func _inspect_ruin_gate(world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.enter_pollution_edge"):
-		return {
-			"success": false,
-			"message": "封锁遗迹入口仍被污染信号干扰：先治理污染边界，采集沉积物、处理药剂并击退受扰掠行体。"
-		}
+		return _failure(
+			"封锁遗迹入口仍被污染信号干扰。",
+			"入口未解锁",
+			"先治理污染边界：采集沉积物、处理药剂并击退受扰掠行体。"
+		)
 
 	if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):
 		return {
@@ -512,6 +498,17 @@ func _format_amount(amount: float) -> String:
 	if is_equal_approx(amount, roundf(amount)):
 		return str(int(amount))
 	return "%.1f" % amount
+
+
+func _failure(message: String, title: String, detail: String) -> Dictionary:
+	return {
+		"success": false,
+		"message": message,
+		"failure_feedback": {
+			"title": title,
+			"detail": detail
+		}
+	}
 
 
 func _get_enemy_instance_id(enemy: PrototypeEnemy) -> String:

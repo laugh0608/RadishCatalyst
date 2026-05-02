@@ -11,22 +11,26 @@ func _init(registry: DataRegistry) -> void:
 func process_recipe(recipe_id: String, character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var recipe := data_registry.get_definition(recipe_id)
 	if recipe.is_empty():
-		return _failure("未知配方：%s" % recipe_id)
+		return _failure("未知配方：%s。" % recipe_id, "加工未完成", "切换到已知配方，或检查静态数据定义。")
 
 	var lock_message := _get_recipe_lock_message(recipe, world_state)
 	if not lock_message.is_empty():
-		return _failure(lock_message)
+		return _failure(lock_message, "配方未解锁", "先完成当前任务目标，解锁该配方后再启动加工。")
 
 	var structure_id := _get_required_structure_id(recipe, world_state)
 	if structure_id.is_empty():
-		return _failure("需要先建造：%s。" % _get_display_name(String(recipe.get("required_building_id", ""))))
+		return _failure(
+			"需要先建造：%s。" % _get_display_name(String(recipe.get("required_building_id", ""))),
+			"设备未就绪",
+			"先完成建造点或处理点扩建，再回到设备启动加工。"
+		)
 	var structure: Dictionary = world_state.base_structures.get(structure_id, {})
 	if String(structure.get("status", "idle")) == "in_progress":
-		return _failure(_format_in_progress_message(structure))
+		return _failure(_format_in_progress_message(structure), "设备加工中", "等待进度完成；靠近设备可查看当前进度。")
 
 	var missing_inputs := _get_missing_inputs(recipe, character_state.inventory)
 	if not missing_inputs.is_empty():
-		return _failure("缺少原料：%s。" % ", ".join(missing_inputs))
+		return _failure("缺少原料：%s。" % ", ".join(missing_inputs), "原料不足", "先采集资源或切换到输入已满足的配方。")
 
 	_consume_refs(recipe.get("inputs", []), character_state.inventory)
 	world_state.set_base_structure_status(structure_id, "in_progress", recipe_id)
@@ -303,8 +307,12 @@ func _success(message: String) -> Dictionary:
 	}
 
 
-func _failure(message: String) -> Dictionary:
+func _failure(message: String, title: String = "加工未完成", detail: String = "") -> Dictionary:
 	return {
 		"success": false,
-		"message": message
+		"message": message,
+		"failure_feedback": {
+			"title": title,
+			"detail": detail
+		}
 	}

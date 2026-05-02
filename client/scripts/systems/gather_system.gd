@@ -37,18 +37,18 @@ func interact_with_object(
 
 	var definition := data_registry.get_definition(definition_id)
 	if definition.is_empty():
-		return _failure("未知交互对象：%s" % definition_id)
+		return _failure("未知交互对象：%s。" % definition_id, "交互未完成", "换一个可交互目标，或检查地图对象定义。")
 
 	var object_state := world_state.ensure_map_object(instance_id, definition_id, character_state.current_region_id)
 	if _is_already_processed(object_state, interaction_type):
-		return _failure("目标已处理。")
+		return _failure("目标已处理。", "交互未执行", "前往当前目标标记，寻找下一个可交互对象。")
 
 	if not _supports_interaction(definition, interaction_type):
-		return _failure("当前目标不支持该交互。")
+		return _failure("当前目标不支持该交互。", "交互不可用", "换一个可交互目标，或查看附近提示。")
 
 	var tool_error := _get_tool_requirement_error(definition, character_state)
 	if not tool_error.is_empty():
-		return _failure(tool_error)
+		return _failure(tool_error, "工具能力不足", "检查当前工具能力，或先推进任务解锁合适工具。")
 
 	match interaction_type:
 		"gather":
@@ -200,8 +200,12 @@ func _success(message: String) -> Dictionary:
 	}
 
 
-func _failure(message: String) -> Dictionary:
+func _failure(message: String, title: String = "交互未完成", detail: String = "") -> Dictionary:
 	return {
 		"success": false,
-		"message": message
+		"message": message,
+		"failure_feedback": {
+			"title": title,
+			"detail": detail
+		}
 	}
