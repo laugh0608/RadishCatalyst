@@ -34,6 +34,7 @@ func _run_checks() -> void:
 	_check_build_prompts()
 	_check_supply_feedback()
 	_check_pollution_status_hints()
+	_check_region_prompt_formatter()
 	_check_failure_feedback_logs()
 
 	_complete_active_quest("quest.restore_outpost", [
@@ -321,20 +322,60 @@ func _check_pollution_status_hints() -> void:
 	)
 	hud.free()
 
-	var game_root = GameRootScript.new()
-	game_root.world_state = WorldState.create_default()
-	game_root.character_state = CharacterState.create_default()
+
+func _check_region_prompt_formatter() -> void:
+	var formatter := InteractionPromptFormatter.new(
+		data_registry,
+		ProcessingSystem.new(data_registry),
+		BuildSystem.new(data_registry)
+	)
+	var gate_world := WorldState.create_default()
+	var gate_character := CharacterState.create_default()
 	_expect_text_contains(
-		game_root._get_pollution_gate_hint(),
+		formatter.format_pollution_gate_hint(gate_world, gate_character),
 		"处理点扩建",
 		"pollution gate requires treatment point"
 	)
 	_expect_text_contains(
-		game_root._get_pollution_gate_hint(),
+		formatter.format_pollution_gate_hint(gate_world, gate_character),
 		"启用基础过滤模块",
 		"pollution gate requires module"
 	)
-	game_root.free()
+	gate_character.protection = 30.0
+	_expect_text_contains(
+		formatter.format_pollution_entry_warning(gate_character),
+		"污染边界警告",
+		"pollution entry warning title"
+	)
+	_expect_text_contains(
+		formatter.format_region_gate_blocked_log("污染边界尚未稳定。", "需要：先完成处理点扩建。"),
+		"通行受阻：污染边界",
+		"region gate blocked log title"
+	)
+	_expect_text_contains(
+		formatter.format_region_gate_blocked_log("污染边界尚未稳定。", "需要：先完成处理点扩建。"),
+		"下一步：需要：先完成处理点扩建。",
+		"region gate blocked next step"
+	)
+
+	var ruin_world := WorldState.create_default()
+	_expect_text_contains(
+		formatter.format_ruin_gate_prompt(ruin_world),
+		"先治理污染边界",
+		"ruin gate blocked prompt"
+	)
+	ruin_world.quest_state.completed_quest_ids.append("quest.enter_pollution_edge")
+	_expect_text_contains(
+		formatter.format_ruin_gate_prompt(ruin_world),
+		"按 E 确认",
+		"ruin gate ready prompt"
+	)
+	ruin_world.quest_state.completed_quest_ids.append("quest.unlock_ruin_signal")
+	_expect_text_contains(
+		formatter.format_ruin_gate_prompt(ruin_world),
+		"后续内容待开放",
+		"ruin gate completed prompt"
+	)
 
 
 func _check_failure_feedback_logs() -> void:
@@ -380,16 +421,6 @@ func _check_failure_feedback_logs() -> void:
 	)
 	_expect_failure_feedback(blocked_build, "建造前置不足", "build prerequisite feedback")
 
-	_expect_text_contains(
-		game_root._format_region_gate_blocked_log("污染边界尚未稳定。", "需要：先完成处理点扩建。"),
-		"通行受阻：污染边界",
-		"region gate blocked log title"
-	)
-	_expect_text_contains(
-		game_root._format_region_gate_blocked_log("污染边界尚未稳定。", "需要：先完成处理点扩建。"),
-		"下一步：需要：先完成处理点扩建。",
-		"region gate blocked next step"
-	)
 	game_root.free()
 
 

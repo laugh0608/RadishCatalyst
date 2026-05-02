@@ -176,7 +176,7 @@ func _load_from_slot(slot_id: String) -> void:
 
 func _on_interaction_available(interactable: PrototypeInteractable) -> void:
 	if interactable.definition_id == "map_object.ruin_gate":
-		hud.show_prompt(_format_ruin_gate_prompt())
+		hud.show_prompt(interaction_prompt_formatter.format_ruin_gate_prompt(world_state))
 		return
 	if interactable.interaction_type == "process_recipe":
 		hud.show_prompt(interaction_prompt_formatter.format_processing_prompt(interactable, character_state, world_state))
@@ -198,7 +198,7 @@ func _on_interaction_cleared(_interactable: PrototypeInteractable) -> void:
 func _on_region_changed(region_id: String) -> void:
 	var log_messages: Array[String] = ["已进入：%s。" % _get_display_name(region_id)]
 	if region_id == "region.pollution_edge":
-		var warning := _get_pollution_entry_warning()
+		var warning := interaction_prompt_formatter.format_pollution_entry_warning(character_state)
 		if not warning.is_empty():
 			log_messages.append(warning)
 	_append_quest_runtime_result(log_messages, quest_runtime.advance_for_region(world_state, character_state, region_id))
@@ -208,9 +208,12 @@ func _on_region_changed(region_id: String) -> void:
 
 func _on_region_gate_blocked(message: String) -> void:
 	if message.find("污染边界") >= 0:
-		hud.append_log(_format_region_gate_blocked_log(message, _get_pollution_gate_hint()))
+		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(
+			message,
+			interaction_prompt_formatter.format_pollution_gate_hint(world_state, character_state)
+		))
 	else:
-		hud.append_log(_format_region_gate_blocked_log(message, "需要：先检查前哨核心。"))
+		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(message, "需要：先检查前哨核心。"))
 	_update_hud()
 
 
@@ -241,38 +244,6 @@ func _get_display_name(definition_id: String) -> String:
 	return data_registry.get_text(String(definition.get("display_name_key", definition_id)))
 
 
-func _format_ruin_gate_prompt() -> String:
-	if not world_state.quest_state.has_completed_quest("quest.enter_pollution_edge"):
-		return "封锁遗迹入口：先治理污染边界，再确认更深区域信号。"
-	if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):
-		return "切片结尾：更深区域信号已确认，后续内容待开放。"
-	return "按 E 确认：封锁遗迹入口信号。"
-
-
-func _get_pollution_entry_warning() -> String:
-	var warnings: Array[String] = []
-	if character_state.protection < character_state.max_protection * 0.5:
-		warnings.append("防护偏低，建议先按 2 使用抗污染药剂或返回基地补给。")
-	if String(character_state.equipment.get("suit_module", "")).is_empty():
-		warnings.append("未启用过滤模块，按 F 启用后污染消耗会降低。")
-	if warnings.is_empty():
-		return ""
-	return "污染边界警告：%s" % " ".join(warnings)
-
-
-func _get_pollution_gate_hint() -> String:
-	var missing_steps: Array[String] = []
-	if not world_state.quest_state.has_completed_quest("quest.expand_treatment_point"):
-		missing_steps.append("先完成处理点扩建")
-	if String(character_state.equipment.get("suit_module", "")).is_empty():
-		missing_steps.append("按 F 启用基础过滤模块")
-	if character_state.protection < character_state.max_protection * 0.5:
-		missing_steps.append("按 2 使用抗污染药剂或回基地补给")
-	if missing_steps.is_empty():
-		return "重新靠近边界后会再次检查通行状态。"
-	return "需要：%s。" % "；".join(missing_steps)
-
-
 func _format_result_log(result: Dictionary) -> String:
 	if bool(result.get("success", false)):
 		return String(result.get("message", ""))
@@ -290,12 +261,6 @@ func _format_failure_result_log(result: Dictionary) -> String:
 	if detail.strip_edges().is_empty():
 		return "%s：%s" % [title, message]
 	return "%s：%s 下一步：%s" % [title, message, detail]
-
-
-func _format_region_gate_blocked_log(message: String, next_step: String) -> String:
-	if next_step.strip_edges().is_empty():
-		return "通行受阻：%s" % message
-	return "通行受阻：%s 下一步：%s" % [message, next_step]
 
 
 func _get_current_interaction_context() -> Dictionary:
