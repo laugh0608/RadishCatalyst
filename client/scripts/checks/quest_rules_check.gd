@@ -5,6 +5,7 @@ var data_registry := DataRegistry.new()
 var event_rules: QuestEventRules
 var progress_rules: QuestProgressRules
 var completion_rules: QuestCompletionRules
+var completion_applier: QuestCompletionApplier
 
 
 func _init() -> void:
@@ -29,6 +30,7 @@ func _run_checks() -> void:
 	event_rules = QuestEventRules.new(data_registry)
 	progress_rules = QuestProgressRules.new(data_registry)
 	completion_rules = QuestCompletionRules.new(data_registry, progress_rules)
+	completion_applier = QuestCompletionApplier.new(data_registry)
 
 	_check_interaction_event_objective_updates()
 	_check_region_event_objective_updates()
@@ -36,6 +38,7 @@ func _run_checks() -> void:
 	_check_non_active_quest_does_not_complete()
 	_check_incomplete_active_quest_does_not_complete()
 	_check_completed_quest_returns_structured_result()
+	_check_completion_applier_grants_rewards_unlocks_and_feedback()
 	_check_active_objective_progress_is_capped()
 	_check_inactive_objective_progress_is_ignored()
 
@@ -145,6 +148,28 @@ func _check_completed_quest_returns_structured_result() -> void:
 	_expect_result_ref(result.get("rewards", []), "item.basic_parts", 4.0, "restore reward refs")
 	_expect_result_value(result.get("unlock_effects", []), "recipe.process_crystal_ore", "restore unlock result")
 	_expect_result_value(result.get("next_quest_ids", []), "quest.scout_crystal_field", "restore next quest result")
+
+
+func _check_completion_applier_grants_rewards_unlocks_and_feedback() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	progress_rules.set_active_objective_progress(
+		world_state.quest_state,
+		"quest.restore_outpost",
+		"interact",
+		"building.outpost_core",
+		1
+	)
+
+	var result := completion_rules.try_complete_quest(world_state.quest_state, "quest.restore_outpost")
+	var feedback := completion_applier.apply_completion(world_state, character_state, result)
+	_expect_equal(character_state.inventory.items.get("item.basic_parts", 0), 8, "applier grants item rewards")
+	_expect_array_has(world_state.unlocked_region_ids, "region.crystal_vein_field", "applier unlocks world region")
+	_expect_equal(String(feedback.get("title", "")), "任务完成：恢复前哨", "applier feedback title")
+	_expect_equal(String(feedback.get("reward_text", "")), "奖励：基础零件 x4", "applier reward text")
+	_expect_equal(String(feedback.get("next_goal_text", "")), "新目标：勘探晶体矿脉", "applier next goal text")
+	if String(feedback.get("log_message", "")).find("解锁：") < 0:
+		failures.append("applier log message should include unlock text, got %s" % var_to_str(feedback))
 
 
 func _check_active_objective_progress_is_capped() -> void:

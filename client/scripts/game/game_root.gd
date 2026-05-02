@@ -8,6 +8,7 @@ var processing_system: ProcessingSystem
 var quest_event_rules: QuestEventRules
 var quest_progress_rules: QuestProgressRules
 var quest_completion_rules: QuestCompletionRules
+var quest_completion_applier: QuestCompletionApplier
 
 @onready var vertical_slice_map: VerticalSliceMap = $VerticalSliceMap
 @onready var hud: PrototypeHud = $PrototypeHud
@@ -25,6 +26,7 @@ func _ready() -> void:
 	quest_event_rules = QuestEventRules.new(data_registry)
 	quest_progress_rules = QuestProgressRules.new(data_registry)
 	quest_completion_rules = QuestCompletionRules.new(data_registry, quest_progress_rules)
+	quest_completion_applier = QuestCompletionApplier.new(data_registry)
 	vertical_slice_map.setup(data_registry)
 	vertical_slice_map.sync_enemy_states(world_state)
 	vertical_slice_map.refresh_world_interactables(world_state)
@@ -329,75 +331,9 @@ func _try_complete_quest(quest_id: String) -> Array[String]:
 	if not bool(completion_result.get("completed", false)):
 		return []
 
-	var reward_messages := _grant_refs(completion_result.get("rewards", []))
-	for effect_id in completion_result.get("unlock_effects", []):
-		_apply_world_unlock_effect(String(effect_id))
-	var next_quest_names: Array[String] = []
-	for next_quest_id in completion_result.get("next_quest_ids", []):
-		var next_id := String(next_quest_id)
-		next_quest_names.append(_get_display_name(next_id))
-	return [_format_quest_completion_message(quest_id, reward_messages, completion_result.get("unlock_effects", []), next_quest_names)]
-
-
-func _grant_refs(refs: Array) -> Array[String]:
-	var reward_messages: Array[String] = []
-	for ref in refs:
-		if not ref is Dictionary:
-			continue
-
-		var definition_id := String(ref.get("id", ""))
-		var amount := float(ref.get("amount", 0.0))
-		if definition_id.is_empty() or amount <= 0.0:
-			continue
-
-		character_state.inventory.add_ref(definition_id, amount)
-		reward_messages.append("%s x%s" % [_get_display_name(definition_id), _format_amount(amount)])
-	return reward_messages
-
-
-func _apply_world_unlock_effect(effect_id: String) -> void:
-	if effect_id.begins_with("region."):
-		world_state.unlock_region(effect_id)
-
-
-func _format_quest_completion_message(
-	quest_id: String,
-	reward_messages: Array[String],
-	unlock_effects: Array,
-	next_quest_names: Array[String]
-) -> String:
-	var parts: Array[String] = ["任务完成：%s。" % _get_display_name(quest_id)]
-	if reward_messages.is_empty():
-		parts.append("奖励：无直接物资。")
-	else:
-		parts.append("奖励：%s。" % ", ".join(reward_messages))
-
-	var unlock_messages := _format_unlock_effects(unlock_effects)
-	if not unlock_messages.is_empty():
-		parts.append("解锁：%s。" % ", ".join(unlock_messages))
-	if quest_id == "quest.enter_pollution_edge":
-		parts.append("污染深处 / 遗迹入口信号已标记。")
-	if quest_id == "quest.unlock_ruin_signal":
-		parts.append("切片结尾：更深区域信号已确认，后续内容待开放。")
-	if not next_quest_names.is_empty():
-		parts.append("新目标：%s。" % ", ".join(next_quest_names))
-	return " ".join(parts)
-
-
-func _format_unlock_effects(unlock_effects: Array) -> Array[String]:
-	var unlock_messages: Array[String] = []
-	for effect_id in unlock_effects:
-		var id := String(effect_id)
-		if id.begins_with("quest."):
-			continue
-		if id == "slice_01_complete":
-			unlock_messages.append("第一切片完成标记")
-			continue
-		if id.begins_with("region.") or id.begins_with("recipe.") or id.begins_with("building.") or id.begins_with("equipment.") or id.begins_with("item."):
-			unlock_messages.append(_get_display_name(id))
-		else:
-			unlock_messages.append(id)
-	return unlock_messages
+	var feedback := quest_completion_applier.apply_completion(world_state, character_state, completion_result)
+	hud.show_quest_completion(feedback)
+	return [String(feedback.get("log_message", ""))]
 
 
 func _join_log_messages(messages: Array[String]) -> String:
@@ -407,9 +343,3 @@ func _join_log_messages(messages: Array[String]) -> String:
 			continue
 		clean_messages.append(message)
 	return " ".join(clean_messages)
-
-
-func _format_amount(amount: float) -> String:
-	if is_equal_approx(amount, roundf(amount)):
-		return str(int(amount))
-	return "%.1f" % amount

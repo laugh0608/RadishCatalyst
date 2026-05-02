@@ -6,6 +6,8 @@ const SAVE_SLOT_IDS: Array[String] = ["slot_01", "slot_02", "slot_03"]
 @onready var status_label: Label = $StatusPanel/StatusLabel
 @onready var prompt_label: Label = $PromptPanel/PromptLabel
 @onready var log_label: Label = $LogPanel/LogLabel
+@onready var completion_title_label: Label = $CompletionPanel/CompletionTitleLabel
+@onready var completion_detail_label: Label = $CompletionPanel/CompletionDetailLabel
 @onready var save_slot_labels: Array[Label] = [
 	$SavePanel/Slot01Label,
 	$SavePanel/Slot02Label,
@@ -67,6 +69,19 @@ func append_log(text: String) -> void:
 	log_label.text = text
 
 
+func show_quest_completion(feedback: Dictionary) -> void:
+	if feedback.is_empty():
+		return
+
+	completion_title_label.text = String(feedback.get("title", "任务完成"))
+	var details: Array[String] = []
+	_append_detail(details, String(feedback.get("reward_text", "")))
+	_append_detail(details, String(feedback.get("unlock_text", "")))
+	_append_detail(details, String(feedback.get("note_text", "")))
+	_append_detail(details, String(feedback.get("next_goal_text", "")))
+	completion_detail_label.text = "\n".join(details)
+
+
 func update_save_slot_summaries(summaries: Array[Dictionary]) -> void:
 	for index in range(save_slot_labels.size()):
 		if index >= summaries.size():
@@ -88,6 +103,12 @@ func _on_save_slot_pressed(slot_index: int) -> void:
 
 func _on_load_slot_pressed(slot_index: int) -> void:
 	load_slot_requested.emit(SAVE_SLOT_IDS[slot_index])
+
+
+func _append_detail(details: Array[String], text: String) -> void:
+	if text.strip_edges().is_empty():
+		return
+	details.append(text)
 
 
 func _get_display_name(data_registry: DataRegistry, definition_id: String) -> String:

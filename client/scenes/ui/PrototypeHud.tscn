@@ -100,6 +100,32 @@ offset_right = 356.0
 offset_bottom = 234.0
 text = "读取"
 
+[node name="CompletionPanel" type="ColorRect" parent="."]
+offset_left = 24.0
+offset_top = 322.0
+offset_right = 392.0
+offset_bottom = 554.0
+color = Color(0.0352941, 0.054902, 0.0588235, 0.88)
+clip_contents = true
+
+[node name="CompletionTitleLabel" type="Label" parent="CompletionPanel"]
+offset_left = 18.0
+offset_top = 14.0
+offset_right = 350.0
+offset_bottom = 44.0
+text = "任务反馈"
+label_settings = SubResource("LabelSettings_prompt")
+autowrap_mode = 3
+
+[node name="CompletionDetailLabel" type="Label" parent="CompletionPanel"]
+offset_left = 18.0
+offset_top = 56.0
+offset_right = 350.0
+offset_bottom = 212.0
+text = "暂无任务完成反馈"
+label_settings = SubResource("LabelSettings_status")
+autowrap_mode = 3
+
 [node name="StatusPanel" type="ColorRect" parent="."]
 anchor_left = 1.0
 anchor_right = 1.0
