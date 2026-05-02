@@ -197,18 +197,20 @@ func _check_quest_completion_panel_text() -> void:
 
 
 func _check_build_prompts() -> void:
-	var game_root = GameRootScript.new()
-	game_root.data_registry = data_registry
-	game_root.build_system = BuildSystem.new(data_registry)
-	game_root.world_state = WorldState.create_default()
-	game_root.character_state = CharacterState.create_default()
+	var build_world := WorldState.create_default()
+	var build_character := CharacterState.create_default()
+	var formatter := InteractionPromptFormatter.new(
+		data_registry,
+		ProcessingSystem.new(data_registry),
+		BuildSystem.new(data_registry)
+	)
 
 	var rough_ground := PrototypeInteractable.new()
 	rough_ground.definition_id = "map_object.rough_ground"
 	rough_ground.interaction_type = "clear"
 	rough_ground.instance_id = "map_object_instance.rough_ground_north"
 	_expect_text_contains(
-		game_root._format_clear_prompt(rough_ground),
+		formatter.format_clear_prompt(rough_ground, build_character, build_world),
 		"阻挡建造",
 		"rough ground prompt"
 	)
@@ -219,22 +221,22 @@ func _check_build_prompts() -> void:
 	foundation_site.instance_id = "map_object_instance.foundation_site_north"
 	foundation_site.prerequisite_instance_id = "map_object_instance.rough_ground_north"
 	_expect_text_contains(
-		game_root._format_build_prompt(foundation_site),
+		formatter.format_build_prompt(foundation_site, build_character, build_world),
 		"地面仍然粗糙",
 		"foundation blocked prompt"
 	)
 
-	game_root.world_state.ensure_map_object("map_object_instance.rough_ground_north", "map_object.rough_ground", "region.pollution_edge")
-	game_root.world_state.set_map_object_flag("map_object_instance.rough_ground_north", "is_cleared", true)
+	build_world.ensure_map_object("map_object_instance.rough_ground_north", "map_object.rough_ground", "region.pollution_edge")
+	build_world.set_map_object_flag("map_object_instance.rough_ground_north", "is_cleared", true)
 	_expect_text_contains(
-		game_root._format_build_prompt(foundation_site),
+		formatter.format_build_prompt(foundation_site, build_character, build_world),
 		"缺少建造材料",
 		"foundation missing material prompt"
 	)
 
-	game_root.character_state.inventory.add_item("item.foundation_material", 1)
+	build_character.inventory.add_item("item.foundation_material", 1)
 	_expect_text_contains(
-		game_root._format_build_prompt(foundation_site),
+		formatter.format_build_prompt(foundation_site, build_character, build_world),
 		"按 E 建造",
 		"foundation ready prompt"
 	)
@@ -244,21 +246,20 @@ func _check_build_prompts() -> void:
 	filter_site.interaction_type = "build"
 	filter_site.instance_id = "map_object_instance.pollution_filter_build_site"
 	_expect_text_contains(
-		game_root._format_build_prompt(filter_site),
+		formatter.format_build_prompt(filter_site, build_character, build_world),
 		"基础地基：0 / 2",
 		"pollution filter foundation status"
 	)
-	game_root.world_state.add_base_structure("structure.foundation_site_north", "building.foundation_t1", "region.pollution_edge")
-	game_root.world_state.add_base_structure("structure.foundation_site_south", "building.foundation_t1", "region.pollution_edge")
+	build_world.add_base_structure("structure.foundation_site_north", "building.foundation_t1", "region.pollution_edge")
+	build_world.add_base_structure("structure.foundation_site_south", "building.foundation_t1", "region.pollution_edge")
 	_expect_text_contains(
-		game_root._format_build_prompt(filter_site),
+		formatter.format_build_prompt(filter_site, build_character, build_world),
 		"缺少建造材料",
 		"pollution filter missing material prompt"
 	)
 	rough_ground.free()
 	foundation_site.free()
 	filter_site.free()
-	game_root.free()
 
 
 func _check_supply_feedback() -> void:
