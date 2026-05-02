@@ -30,6 +30,7 @@ func _run_checks() -> void:
 	_expect_equal(world_state.quest_state.active_quest_ids, ["quest.restore_outpost"], "initial active quest")
 	_check_onboarding_hints()
 	_check_region_markers()
+	_check_quest_completion_panel_text()
 	_check_build_prompts()
 	_check_supply_feedback()
 	_check_pollution_status_hints()
@@ -152,6 +153,44 @@ func _check_region_markers() -> void:
 		hud._format_region_markers(marker_world, "quest.unlock_ruin_signal"),
 		"遗迹：东端，目标",
 		"ruin gate marker as objective"
+	)
+	hud.free()
+
+
+func _check_quest_completion_panel_text() -> void:
+	var hud := PrototypeHud.new()
+	var details := hud._format_quest_completion_details({
+		"panel_title": "任务完成",
+		"completed_text": "完成：恢复前哨",
+		"reward_text": "奖励：基础零件 x4",
+		"unlock_text": "解锁：晶体矿脉区",
+		"note_text": "",
+		"next_goal_text": "新目标：勘探晶体矿脉"
+	})
+	_expect_text_contains(details, "完成：恢复前哨", "completion details completed row")
+	_expect_text_contains(details, "奖励：基础零件 x4", "completion details reward row")
+	_expect_text_contains(details, "解锁：晶体矿脉区", "completion details unlock row")
+	_expect_text_contains(details, "新目标：勘探晶体矿脉", "completion details next row")
+	_expect_text_contains(
+		hud._format_quest_completion_details({
+			"title": "任务完成：带回样本",
+			"reward_text": "奖励：无直接物资"
+		}),
+		"完成：带回样本",
+		"completion details title fallback"
+	)
+	_expect_equal(
+		hud._format_quest_completion_panel_title({"panel_title": "切片完成"}),
+		"切片完成",
+		"completion panel title"
+	)
+	_expect_text_contains(
+		hud._format_quest_completion_details({
+			"completed_text": "完成：解锁后续入口",
+			"note_text": "切片结尾：更深区域信号已确认，后续内容待开放"
+		}),
+		"提示：切片结尾",
+		"completion note prefix"
 	)
 	hud.free()
 

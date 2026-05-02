@@ -169,6 +169,8 @@ func _check_completion_applier_grants_rewards_unlocks_and_feedback() -> void:
 	_expect_equal(character_state.inventory.items.get("item.basic_parts", 0), 8, "applier grants item rewards")
 	_expect_array_has(world_state.unlocked_region_ids, "region.crystal_vein_field", "applier unlocks world region")
 	_expect_equal(String(feedback.get("title", "")), "任务完成：恢复前哨", "applier feedback title")
+	_expect_equal(String(feedback.get("panel_title", "")), "任务完成", "applier panel title")
+	_expect_equal(String(feedback.get("completed_text", "")), "完成：恢复前哨", "applier completed text")
 	_expect_equal(String(feedback.get("reward_text", "")), "奖励：基础零件 x4", "applier reward text")
 	_expect_equal(String(feedback.get("next_goal_text", "")), "新目标：勘探晶体矿脉", "applier next goal text")
 	if String(feedback.get("log_message", "")).find("解锁：") < 0:

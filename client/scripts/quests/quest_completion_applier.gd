@@ -23,7 +23,12 @@ func apply_completion(world_state: WorldState, character_state: CharacterState, 
 	var next_quest_names := _format_next_quest_names(next_quest_ids)
 	var unlock_messages := _format_unlock_effects(unlock_effects)
 	var note_text := _format_completion_note(quest_id)
-	var title := "任务完成：%s" % _get_display_name(quest_id)
+	var quest_name := _get_display_name(quest_id)
+	var title := "任务完成：%s" % quest_name
+	var panel_title := "任务完成"
+	if quest_id == "quest.unlock_ruin_signal":
+		panel_title = "切片完成"
+	var completed_text := "完成：%s" % quest_name
 	var reward_text := "奖励：无直接物资"
 	if not reward_messages.is_empty():
 		reward_text = "奖励：%s" % ", ".join(reward_messages)
@@ -39,6 +44,8 @@ func apply_completion(world_state: WorldState, character_state: CharacterState, 
 	return {
 		"quest_id": quest_id,
 		"title": title,
+		"panel_title": panel_title,
+		"completed_text": completed_text,
 		"reward_text": reward_text,
 		"unlock_text": unlock_text,
 		"note_text": note_text,
