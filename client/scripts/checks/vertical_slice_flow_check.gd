@@ -33,6 +33,7 @@ func _run_checks() -> void:
 	_check_quest_completion_panel_text()
 	_check_build_prompts()
 	_check_supply_feedback()
+	_check_hud_feedback_presenter()
 	_check_pollution_status_hints()
 	_check_region_prompt_formatter()
 	_check_failure_feedback_logs()
@@ -287,6 +288,39 @@ func _check_supply_feedback() -> void:
 	var missing_vial_result := missing_vial_character.use_quick_slot(1, data_registry)
 	_expect_equal(bool(missing_vial_result.get("success", true)), false, "missing vial should fail")
 	_expect_feedback_contains(missing_vial_result, "污染过滤器", "missing vial refill hint")
+
+
+func _check_hud_feedback_presenter() -> void:
+	var presenter := HudFeedbackPresenter.new()
+	var supply_feedback := {
+		"title": "补给已使用",
+		"detail": "生命 +35"
+	}
+	var evacuation_feedback := {
+		"title": "撤离前哨",
+		"reason_text": "生命耗尽"
+	}
+
+	_expect_equal(
+		presenter.get_supply_feedback({"supply_feedback": supply_feedback}),
+		supply_feedback,
+		"presenter extracts supply feedback"
+	)
+	_expect_equal(
+		presenter.get_evacuation_feedback({"evacuation_feedback": evacuation_feedback}),
+		evacuation_feedback,
+		"presenter extracts evacuation feedback"
+	)
+	_expect_equal(
+		presenter.get_supply_feedback({"supply_feedback": "invalid"}),
+		{},
+		"presenter ignores invalid supply feedback"
+	)
+	_expect_equal(
+		presenter.get_evacuation_feedback({}),
+		{},
+		"presenter ignores missing evacuation feedback"
+	)
 
 
 func _check_pollution_status_hints() -> void:

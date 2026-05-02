@@ -8,6 +8,7 @@ var processing_system: ProcessingSystem
 var build_system: BuildSystem
 var quest_runtime: QuestRuntime
 var interaction_prompt_formatter: InteractionPromptFormatter
+var hud_feedback_presenter: HudFeedbackPresenter
 
 @onready var vertical_slice_map: VerticalSliceMap = $VerticalSliceMap
 @onready var hud: PrototypeHud = $PrototypeHud
@@ -25,6 +26,7 @@ func _ready() -> void:
 	build_system = BuildSystem.new(data_registry)
 	quest_runtime = QuestRuntime.new(data_registry)
 	interaction_prompt_formatter = InteractionPromptFormatter.new(data_registry, processing_system, build_system)
+	hud_feedback_presenter = HudFeedbackPresenter.new()
 	vertical_slice_map.setup(data_registry)
 	vertical_slice_map.sync_enemy_states(world_state)
 	vertical_slice_map.refresh_world_interactables(world_state)
@@ -65,7 +67,7 @@ func _on_player_interaction_requested() -> void:
 	var log_messages: Array[String] = [_format_result_log(result)]
 	if bool(result.get("success", false)) and _should_advance_interaction(context, result):
 		_append_quest_runtime_result(log_messages, quest_runtime.advance_for_interaction(world_state, character_state, context, result))
-	_show_evacuation_feedback(result)
+	hud_feedback_presenter.show_evacuation_feedback(result, hud)
 	vertical_slice_map.refresh_world_interactables(world_state)
 	if vertical_slice_map.current_interactable != null:
 		_on_interaction_available(vertical_slice_map.current_interactable)
@@ -81,7 +83,7 @@ func _on_player_attack_requested() -> void:
 			log_messages,
 			quest_runtime.advance_for_defeated_enemy(world_state, character_state, String(result.get("enemy_definition_id", "")))
 		)
-	_show_evacuation_feedback(result)
+	hud_feedback_presenter.show_evacuation_feedback(result, hud)
 	hud.append_log(_join_log_messages(log_messages))
 	_update_hud()
 
@@ -124,7 +126,7 @@ func _on_player_module_toggle_requested() -> void:
 func _on_player_quick_slot_requested(slot_index: int) -> void:
 	var result := character_state.use_quick_slot(slot_index, data_registry)
 	hud.append_log(String(result.get("message", "")))
-	_show_supply_feedback(result)
+	hud_feedback_presenter.show_supply_feedback(result, hud)
 	_update_hud()
 
 
@@ -334,18 +336,6 @@ func _show_quest_completion_feedbacks(result: Dictionary) -> void:
 		if not feedback is Dictionary:
 			continue
 		hud.show_quest_completion(feedback)
-
-
-func _show_evacuation_feedback(result: Dictionary) -> void:
-	var feedback = result.get("evacuation_feedback", {})
-	if feedback is Dictionary and not feedback.is_empty():
-		hud.show_evacuation_feedback(feedback)
-
-
-func _show_supply_feedback(result: Dictionary) -> void:
-	var feedback = result.get("supply_feedback", {})
-	if feedback is Dictionary and not feedback.is_empty():
-		hud.show_supply_feedback(feedback)
 
 
 func _join_log_messages(messages: Array[String]) -> String:
