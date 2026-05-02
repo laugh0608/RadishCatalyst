@@ -44,6 +44,56 @@ func build_structure(
 	return _success("建造完成：%s。" % _get_display_name(building_id), building_id)
 
 
+func get_build_status(
+	site_instance_id: String,
+	building_id: String,
+	character_state: CharacterState,
+	world_state: WorldState,
+	prerequisite_instance_id: String = ""
+) -> Dictionary:
+	var building := data_registry.get_definition(building_id)
+	if building.is_empty():
+		return {
+			"can_build": false,
+			"costs": "无",
+			"message": "未知建筑：%s。" % building_id
+		}
+
+	var site_state := world_state.get_map_object(site_instance_id)
+	if bool(site_state.get("is_built", false)):
+		return {
+			"can_build": false,
+			"costs": _format_refs(building.get("build_cost", [])),
+			"message": "已建成。"
+		}
+
+	var requirement_error := _get_requirement_error(building_id, prerequisite_instance_id, world_state)
+	if not requirement_error.is_empty():
+		return {
+			"can_build": false,
+			"costs": _format_refs(building.get("build_cost", [])),
+			"message": requirement_error,
+			"foundation_status": _format_foundation_status(building_id, world_state)
+		}
+
+	var missing_costs := _get_missing_costs(building, character_state.inventory)
+	if not missing_costs.is_empty():
+		return {
+			"can_build": false,
+			"costs": _format_refs(building.get("build_cost", [])),
+			"message": "缺少建造材料：%s。" % ", ".join(missing_costs),
+			"missing_costs": missing_costs,
+			"foundation_status": _format_foundation_status(building_id, world_state)
+		}
+
+	return {
+		"can_build": true,
+		"costs": _format_refs(building.get("build_cost", [])),
+		"message": "可建造。",
+		"foundation_status": _format_foundation_status(building_id, world_state)
+	}
+
+
 func _get_requirement_error(building_id: String, prerequisite_instance_id: String, world_state: WorldState) -> String:
 	if building_id == "building.foundation_t1":
 		if prerequisite_instance_id.is_empty():
@@ -76,6 +126,30 @@ func _get_missing_costs(building: Dictionary, inventory: InventoryState) -> Arra
 			missing_costs.append("%s x%s" % [_get_display_name(definition_id), _format_amount(amount)])
 
 	return missing_costs
+
+
+func _format_foundation_status(building_id: String, world_state: WorldState) -> String:
+	if building_id != "building.pollution_filter":
+		return ""
+	return "基础地基：%d / 2" % mini(world_state.count_base_structures("building.foundation_t1"), 2)
+
+
+func _format_refs(refs: Array, empty_text: String = "无") -> String:
+	var parts: Array[String] = []
+	for ref in refs:
+		if not ref is Dictionary:
+			continue
+
+		var definition_id := String(ref.get("id", ""))
+		var amount := float(ref.get("amount", 0.0))
+		if definition_id.is_empty() or amount <= 0.0:
+			continue
+
+		parts.append("%s x%s" % [_get_display_name(definition_id), _format_amount(amount)])
+
+	if parts.is_empty():
+		return empty_text
+	return ", ".join(parts)
 
 
 func _consume_refs(refs: Array, inventory: InventoryState) -> void:

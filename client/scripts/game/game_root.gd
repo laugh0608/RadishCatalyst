@@ -5,6 +5,7 @@ var world_state: WorldState
 var character_state: CharacterState
 var save_service := SaveService.new()
 var processing_system: ProcessingSystem
+var build_system: BuildSystem
 var quest_runtime: QuestRuntime
 
 @onready var vertical_slice_map: VerticalSliceMap = $VerticalSliceMap
@@ -20,6 +21,7 @@ func _ready() -> void:
 	character_state = CharacterState.create_default()
 	save_service.setup(data_registry)
 	processing_system = ProcessingSystem.new(data_registry)
+	build_system = BuildSystem.new(data_registry)
 	quest_runtime = QuestRuntime.new(data_registry)
 	vertical_slice_map.setup(data_registry)
 	vertical_slice_map.sync_enemy_states(world_state)
@@ -51,7 +53,7 @@ func _process(delta: float) -> void:
 	vertical_slice_map.update_current_interactable()
 	vertical_slice_map.update_region_presence(world_state, character_state)
 	character_state.position = vertical_slice_map.get_player_position()
-	_refresh_current_processing_prompt()
+	_refresh_current_context_prompt()
 	_update_hud()
 
 
@@ -173,7 +175,10 @@ func _on_interaction_available(interactable: PrototypeInteractable) -> void:
 		hud.show_prompt(_format_processing_prompt(interactable))
 		return
 	if interactable.interaction_type == "build":
-		hud.show_prompt("按 E 建造：%s" % _get_display_name(interactable.definition_id))
+		hud.show_prompt(_format_build_prompt(interactable))
+		return
+	if interactable.interaction_type == "clear":
+		hud.show_prompt(_format_clear_prompt(interactable))
 		return
 
 	hud.show_prompt("按 E 交互：%s" % _get_display_name(interactable.definition_id))
@@ -266,6 +271,44 @@ func _format_processing_log(recipe_id: String) -> String:
 	]
 
 
+func _format_build_prompt(interactable: PrototypeInteractable) -> String:
+	var status := build_system.get_build_status(
+		interactable.instance_id,
+		interactable.definition_id,
+		character_state,
+		world_state,
+		interactable.prerequisite_instance_id
+	)
+	var parts: Array[String] = [
+		"建造点：%s" % _get_display_name(interactable.definition_id),
+		"材料：%s" % String(status.get("costs", "无"))
+	]
+	var foundation_status := String(status.get("foundation_status", ""))
+	if not foundation_status.is_empty():
+		parts.append(foundation_status)
+	parts.append("状态：%s" % String(status.get("message", "")))
+	if bool(status.get("can_build", false)):
+		parts.append("按 E 建造")
+	return "\n".join(parts)
+
+
+func _format_clear_prompt(interactable: PrototypeInteractable) -> String:
+	var object_state := world_state.get_map_object(interactable.instance_id)
+	if bool(object_state.get("is_cleared", false)):
+		return "地块：%s\n状态：已清理，可用于铺设基础地基。" % _get_display_name(interactable.definition_id)
+
+	var tool_status := _get_interaction_tool_status(interactable.definition_id)
+	var parts: Array[String] = [
+		"地块：%s" % _get_display_name(interactable.definition_id),
+		"状态：未清理，阻挡建造。",
+		"后续：清理后可铺设基础地基。",
+		"工具：%s" % tool_status
+	]
+	if tool_status == "可清理":
+		parts.append("按 E 清理地块")
+	return "\n".join(parts)
+
+
 func _format_ruin_gate_prompt() -> String:
 	if not world_state.quest_state.has_completed_quest("quest.enter_pollution_edge"):
 		return "封锁遗迹入口：先治理污染边界，再确认更深区域信号。"
@@ -318,11 +361,16 @@ func _apply_processing_progress(delta: float) -> void:
 		hud.append_log(_join_log_messages(log_messages))
 
 
-func _refresh_current_processing_prompt() -> void:
+func _refresh_current_context_prompt() -> void:
 	var interactable := vertical_slice_map.current_interactable
-	if interactable == null or interactable.interaction_type != "process_recipe":
+	if interactable == null:
 		return
-	hud.show_prompt(_format_processing_prompt(interactable))
+	if interactable.interaction_type == "process_recipe":
+		hud.show_prompt(_format_processing_prompt(interactable))
+	if interactable.interaction_type == "build":
+		hud.show_prompt(_format_build_prompt(interactable))
+	if interactable.interaction_type == "clear":
+		hud.show_prompt(_format_clear_prompt(interactable))
 
 
 func _should_advance_interaction(context: Dictionary, result: Dictionary) -> bool:
@@ -357,6 +405,27 @@ func _show_evacuation_feedback(result: Dictionary) -> void:
 	var feedback = result.get("evacuation_feedback", {})
 	if feedback is Dictionary and not feedback.is_empty():
 		hud.show_evacuation_feedback(feedback)
+
+
+func _get_interaction_tool_status(definition_id: String) -> String:
+	var definition := data_registry.get_definition(definition_id)
+	var required_tool_tags: Array = definition.get("required_tool_tags", [])
+	if required_tool_tags.is_empty():
+		return "无特殊要求"
+
+	var tool_id := String(character_state.equipment.get("tool", ""))
+	var tool_definition := data_registry.get_definition(tool_id)
+	var tool_effects: Array = tool_definition.get("effects", [])
+	var missing_tags: Array[String] = []
+	for required_tool_tag in required_tool_tags:
+		var tag := String(required_tool_tag)
+		if tool_effects.has("effect.%s" % tag) or tool_effects.has(tag):
+			continue
+		missing_tags.append(tag)
+
+	if missing_tags.is_empty():
+		return "可清理"
+	return "缺少能力：%s" % ", ".join(missing_tags)
 
 
 func _join_log_messages(messages: Array[String]) -> String:

@@ -1,5 +1,7 @@
 extends SceneTree
 
+const GameRootScript := preload("res://scripts/game/game_root.gd")
+
 var failures: Array[String] = []
 var data_registry := DataRegistry.new()
 var world_state := WorldState.create_default()
@@ -27,6 +29,7 @@ func _run_checks() -> void:
 
 	_expect_equal(world_state.quest_state.active_quest_ids, ["quest.restore_outpost"], "initial active quest")
 	_check_onboarding_hints()
+	_check_build_prompts()
 
 	_complete_active_quest("quest.restore_outpost", [
 		{"type": "interact", "target_id": "building.outpost_core", "amount": 1}
@@ -106,6 +109,71 @@ func _check_onboarding_hints() -> void:
 	hint_world.quest_state.unlocked_effects.append("slice_01_complete")
 	_expect_hint_contains(hud, hint_world, hint_character, "", "更深区域信号", "slice complete onboarding hint")
 	hud.free()
+
+
+func _check_build_prompts() -> void:
+	var game_root = GameRootScript.new()
+	game_root.data_registry = data_registry
+	game_root.build_system = BuildSystem.new(data_registry)
+	game_root.world_state = WorldState.create_default()
+	game_root.character_state = CharacterState.create_default()
+
+	var rough_ground := PrototypeInteractable.new()
+	rough_ground.definition_id = "map_object.rough_ground"
+	rough_ground.interaction_type = "clear"
+	rough_ground.instance_id = "map_object_instance.rough_ground_north"
+	_expect_text_contains(
+		game_root._format_clear_prompt(rough_ground),
+		"阻挡建造",
+		"rough ground prompt"
+	)
+
+	var foundation_site := PrototypeInteractable.new()
+	foundation_site.definition_id = "building.foundation_t1"
+	foundation_site.interaction_type = "build"
+	foundation_site.instance_id = "map_object_instance.foundation_site_north"
+	foundation_site.prerequisite_instance_id = "map_object_instance.rough_ground_north"
+	_expect_text_contains(
+		game_root._format_build_prompt(foundation_site),
+		"地面仍然粗糙",
+		"foundation blocked prompt"
+	)
+
+	game_root.world_state.ensure_map_object("map_object_instance.rough_ground_north", "map_object.rough_ground", "region.pollution_edge")
+	game_root.world_state.set_map_object_flag("map_object_instance.rough_ground_north", "is_cleared", true)
+	_expect_text_contains(
+		game_root._format_build_prompt(foundation_site),
+		"缺少建造材料",
+		"foundation missing material prompt"
+	)
+
+	game_root.character_state.inventory.add_item("item.foundation_material", 1)
+	_expect_text_contains(
+		game_root._format_build_prompt(foundation_site),
+		"按 E 建造",
+		"foundation ready prompt"
+	)
+
+	var filter_site := PrototypeInteractable.new()
+	filter_site.definition_id = "building.pollution_filter"
+	filter_site.interaction_type = "build"
+	filter_site.instance_id = "map_object_instance.pollution_filter_build_site"
+	_expect_text_contains(
+		game_root._format_build_prompt(filter_site),
+		"基础地基：0 / 2",
+		"pollution filter foundation status"
+	)
+	game_root.world_state.add_base_structure("structure.foundation_site_north", "building.foundation_t1", "region.pollution_edge")
+	game_root.world_state.add_base_structure("structure.foundation_site_south", "building.foundation_t1", "region.pollution_edge")
+	_expect_text_contains(
+		game_root._format_build_prompt(filter_site),
+		"缺少建造材料",
+		"pollution filter missing material prompt"
+	)
+	rough_ground.free()
+	foundation_site.free()
+	filter_site.free()
+	game_root.free()
 
 
 func _complete_active_quest(quest_id: String, progress_refs: Array) -> void:
@@ -272,6 +340,11 @@ func _expect_hint_contains(hud: PrototypeHud, hint_world: WorldState, hint_chara
 	var hint := hud._format_onboarding_hint(hint_world, hint_character, quest_id)
 	if hint.find(expected_text) < 0:
 		failures.append("%s should contain %s, got %s" % [label, expected_text, hint])
+
+
+func _expect_text_contains(text: String, expected_text: String, label: String) -> void:
+	if text.find(expected_text) < 0:
+		failures.append("%s should contain %s, got %s" % [label, expected_text, text])
 
 
 func _cleanup() -> void:
