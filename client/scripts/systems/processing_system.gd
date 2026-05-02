@@ -77,6 +77,8 @@ func advance_processing(delta_seconds: float, character_state: CharacterState, w
 			"success": true,
 			"completed_recipe_id": recipe_id,
 			"structure_id": String(structure_id),
+			"destination_text": _format_completion_destination(recipe),
+			"next_step_text": _get_completion_next_step(recipe_id),
 			"message": _format_completion_message(recipe)
 		})
 
@@ -103,32 +105,75 @@ func get_recipe_status(recipe_id: String, character_state: CharacterState, world
 	var missing_structure := ""
 	if structure_id.is_empty():
 		missing_structure = "需要先建造：%s。" % _get_display_name(String(recipe.get("required_building_id", "")))
+	var required_structure: Dictionary = {}
+	if not structure_id.is_empty():
+		required_structure = world_state.base_structures.get(structure_id, {})
 
 	var active_structure := _get_active_structure_for_building(String(recipe.get("required_building_id", "")), world_state)
 	if not active_structure.is_empty():
-		return _recipe_status(recipe, false, _format_in_progress_message(active_structure), missing_inputs, active_structure)
+		return _recipe_status(recipe, false, _format_in_progress_message(active_structure), missing_inputs, active_structure, required_structure)
 
 	if not lock_message.is_empty():
-		return _recipe_status(recipe, false, lock_message, missing_inputs)
+		return _recipe_status(recipe, false, lock_message, missing_inputs, {}, required_structure)
 	if not missing_structure.is_empty():
-		return _recipe_status(recipe, false, missing_structure, missing_inputs)
+		return _recipe_status(recipe, false, missing_structure, missing_inputs, {}, required_structure)
 	if not missing_inputs.is_empty():
-		return _recipe_status(recipe, false, "缺少原料：%s。" % ", ".join(missing_inputs), missing_inputs)
+		return _recipe_status(recipe, false, "缺少原料：%s。" % ", ".join(missing_inputs), missing_inputs, {}, required_structure)
 
-	return _recipe_status(recipe, true, "可加工。", [])
+	return _recipe_status(recipe, true, "可加工。", [], {}, required_structure)
 
 
 func _format_completion_message(recipe: Dictionary) -> String:
-	var parts: Array[String] = [
-		"加工完成：%s -> %s" % [
-			_get_display_name(String(recipe.get("id", ""))),
-			_format_refs(recipe.get("outputs", []), "无产物")
-		]
-	]
+	var recipe_id := String(recipe.get("id", ""))
+	var parts: Array[String] = ["加工完成：%s。" % _get_display_name(recipe_id)]
+	var destination := _format_completion_destination(recipe)
+	if not destination.is_empty():
+		parts.append(destination)
+	var next_step := _get_completion_next_step(recipe_id)
+	if not next_step.is_empty():
+		parts.append("下一步：%s" % next_step)
+	return " ".join(parts)
+
+
+func _format_completion_destination(recipe: Dictionary) -> String:
+	var parts: Array[String] = []
+	var outputs := _format_refs(recipe.get("outputs", []), "")
+	if not outputs.is_empty():
+		parts.append("产物已放入背包：%s。" % outputs)
 	var byproducts := _format_refs(recipe.get("byproducts", []), "")
 	if not byproducts.is_empty():
-		parts.append("副产：%s" % byproducts)
-	return "%s。" % "；".join(parts)
+		parts.append("副产已放入背包：%s。" % byproducts)
+	if parts.is_empty():
+		return "本次无新增产物。"
+	return " ".join(parts)
+
+
+func _format_last_completion_status(structure: Dictionary) -> String:
+	var last_recipe_id := String(structure.get("last_recipe_id", ""))
+	if last_recipe_id.is_empty():
+		return ""
+	var completed_runs := int(structure.get("completed_runs", 0))
+	if completed_runs > 0:
+		return "刚完成：%s（累计 %d 次）。" % [_get_display_name(last_recipe_id), completed_runs]
+	return "刚完成：%s。" % _get_display_name(last_recipe_id)
+
+
+func _get_completion_next_step(recipe_id: String) -> String:
+	match recipe_id:
+		"recipe.process_crystal_ore":
+			return "基础零件已可用于过滤模块、地基材料或修复凝胶；按 R 切换需要的配方。"
+		"recipe.make_filter_media":
+			return "切换到基础过滤模块配方，把过滤介质和基础零件组装成远征模块。"
+		"recipe.basic_filter_module":
+			return "按 F 启用基础过滤模块，再准备污染处理点的地基。"
+		"recipe.foundation_t1":
+			return "前往污染边界北缘清理地块并铺设基础地基。"
+		"recipe.cleanse_residue":
+			return "把抗污染药剂留在快捷栏，继续采集沉积物并清理受扰敌人。"
+		"recipe.repair_gel":
+			return "把修复凝胶留在快捷栏，生命偏低时按 1 使用。"
+		_:
+			return "查看当前任务目标，选择下一次加工或外出行动。"
 
 
 func _format_in_progress_message(structure: Dictionary) -> String:
@@ -230,7 +275,8 @@ func _recipe_status(
 	can_process: bool,
 	message: String,
 	missing_inputs: Array[String],
-	active_structure: Dictionary = {}
+	active_structure: Dictionary = {},
+	required_structure: Dictionary = {}
 ) -> Dictionary:
 	var active_recipe_id := String(active_structure.get("active_recipe_id", ""))
 	var active_recipe := data_registry.get_definition(active_recipe_id)
@@ -245,7 +291,7 @@ func _recipe_status(
 		if duration > 0.0:
 			progress_ratio = clampf(progress_seconds / duration, 0.0, 1.0)
 
-	return {
+	var result := {
 		"can_process": can_process,
 		"message": message,
 		"inputs": _format_refs(recipe.get("inputs", [])),
@@ -256,6 +302,15 @@ func _recipe_status(
 		"progress": progress,
 		"progress_ratio": progress_ratio
 	}
+	if not required_structure.is_empty() and String(required_structure.get("status", "")) == "completed":
+		var last_recipe_id := String(required_structure.get("last_recipe_id", ""))
+		var last_recipe := data_registry.get_definition(last_recipe_id)
+		if not last_recipe.is_empty():
+			result["last_completed_recipe_id"] = last_recipe_id
+			result["last_completion"] = _format_last_completion_status(required_structure)
+			result["last_destination"] = _format_completion_destination(last_recipe)
+			result["last_next_step"] = _get_completion_next_step(last_recipe_id)
+	return result
 
 
 func _get_recipe_lock_message(recipe: Dictionary, world_state: WorldState) -> String:

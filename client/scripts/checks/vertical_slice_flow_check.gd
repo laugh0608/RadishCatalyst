@@ -483,12 +483,39 @@ func _check_processing_runtime() -> void:
 
 	var completed_results := processing.advance_processing(10.0, processing_character, processing_world)
 	_expect_equal(completed_results.size(), 1, "processing should complete after duration")
+	if not completed_results.is_empty():
+		_expect_text_contains(
+			String(completed_results[0].get("message", "")),
+			"产物已放入背包：基础零件 x2",
+			"processing completion log destination"
+		)
+		_expect_text_contains(
+			String(completed_results[0].get("message", "")),
+			"下一步：",
+			"processing completion log next step"
+		)
 	_expect_equal(int(processing_character.inventory.items.get("item.basic_parts", 0)), 6, "processing grants outputs on completion")
 	reactor = processing_world.base_structures.get("structure.basic_reactor", {})
 	_expect_equal(String(reactor.get("status", "")), "completed", "reactor status after completion")
 	_expect_equal(String(reactor.get("active_recipe_id", "")), "", "reactor clears active recipe after completion")
 	_expect_equal(String(reactor.get("last_recipe_id", "")), "recipe.process_crystal_ore", "reactor last recipe after completion")
 	_expect_equal(int(reactor.get("completed_runs", 0)), 1, "reactor completed runs")
+	var completed_status := processing.get_recipe_status("recipe.process_crystal_ore", processing_character, processing_world)
+	_expect_text_contains(
+		String(completed_status.get("last_completion", "")),
+		"刚完成：处理晶体矿物",
+		"processing panel last completion"
+	)
+	_expect_text_contains(
+		String(completed_status.get("last_destination", "")),
+		"产物已放入背包：基础零件 x2",
+		"processing panel destination"
+	)
+	_expect_text_contains(
+		String(completed_status.get("last_next_step", "")),
+		"按 R 切换",
+		"processing panel next step"
+	)
 
 	var filter_world := WorldState.create_default()
 	var filter_character := CharacterState.create_default()

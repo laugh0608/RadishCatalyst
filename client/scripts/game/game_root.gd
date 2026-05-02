@@ -258,6 +258,15 @@ func _format_processing_prompt(interactable: PrototypeInteractable) -> String:
 	var progress := String(status.get("progress", ""))
 	if not progress.is_empty():
 		parts.append("进度：%s" % progress)
+	var last_completion := String(status.get("last_completion", ""))
+	if not last_completion.is_empty():
+		parts.append(last_completion)
+	var last_destination := String(status.get("last_destination", ""))
+	if not last_destination.is_empty():
+		parts.append("入库：%s" % last_destination)
+	var last_next_step := String(status.get("last_next_step", ""))
+	if not last_next_step.is_empty():
+		parts.append("下一步：%s" % last_next_step)
 	parts.append("状态：%s" % String(status.get("message", "")))
 	if bool(status.get("can_process", false)):
 		parts.append("按 E 启动加工")
