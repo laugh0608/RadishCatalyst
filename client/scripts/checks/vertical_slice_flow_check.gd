@@ -26,6 +26,7 @@ func _run_checks() -> void:
 		return
 
 	_expect_equal(world_state.quest_state.active_quest_ids, ["quest.restore_outpost"], "initial active quest")
+	_check_onboarding_hints()
 
 	_complete_active_quest("quest.restore_outpost", [
 		{"type": "interact", "target_id": "building.outpost_core", "amount": 1}
@@ -81,6 +82,30 @@ func _run_checks() -> void:
 
 	_check_processing_runtime()
 	_check_evacuation_feedback()
+
+
+func _check_onboarding_hints() -> void:
+	var hud := PrototypeHud.new()
+	var hint_world := WorldState.create_default()
+	var hint_character := CharacterState.create_default()
+
+	_expect_hint_contains(hud, hint_world, hint_character, "quest.restore_outpost", "前哨核心", "restore outpost onboarding hint")
+
+	hint_world.current_region_id = "region.crystal_vein_field"
+	_expect_hint_contains(hud, hint_world, hint_character, "quest.scout_crystal_field", "采集晶体簇", "crystal field onboarding hint")
+
+	_expect_hint_contains(hud, hint_world, hint_character, "quest.expand_treatment_point", "2 块地基", "foundation onboarding hint")
+	hint_world.add_base_structure("structure.foundation_site_north", "building.foundation_t1", "region.pollution_edge")
+	hint_world.add_base_structure("structure.foundation_site_south", "building.foundation_t1", "region.pollution_edge")
+	_expect_hint_contains(hud, hint_world, hint_character, "quest.expand_treatment_point", "污染过滤器", "pollution filter onboarding hint")
+
+	hint_character.protection = 30.0
+	hint_character.equipment["suit_module"] = "equipment.filter_module_t1"
+	_expect_hint_contains(hud, hint_world, hint_character, "quest.enter_pollution_edge", "防护偏低", "low protection onboarding hint")
+
+	hint_world.quest_state.unlocked_effects.append("slice_01_complete")
+	_expect_hint_contains(hud, hint_world, hint_character, "", "更深区域信号", "slice complete onboarding hint")
+	hud.free()
 
 
 func _complete_active_quest(quest_id: String, progress_refs: Array) -> void:
@@ -241,6 +266,12 @@ func _expect_array_has(values: Array, expected_value: String, label: String) -> 
 func _expect_array_missing(values: Array, unexpected_value: String, label: String) -> void:
 	if values.has(unexpected_value):
 		failures.append("%s should not contain %s, got %s" % [label, unexpected_value, var_to_str(values)])
+
+
+func _expect_hint_contains(hud: PrototypeHud, hint_world: WorldState, hint_character: CharacterState, quest_id: String, expected_text: String, label: String) -> void:
+	var hint := hud._format_onboarding_hint(hint_world, hint_character, quest_id)
+	if hint.find(expected_text) < 0:
+		failures.append("%s should contain %s, got %s" % [label, expected_text, hint])
 
 
 func _cleanup() -> void:

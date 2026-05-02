@@ -64,6 +64,7 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 		"目标：%s" % _format_goal_name(data_registry, world_state, active_quest_id),
 		"进度：%s" % _format_active_quest_progress(data_registry, world_state, active_quest_id),
 		"方向：%s" % _format_direction_hint(world_state, character_state, active_quest_id),
+		"提示：%s" % _format_onboarding_hint(world_state, character_state, active_quest_id),
 		"坐标：x %.1f，y %.1f" % [character_state.position.x, character_state.position.y],
 		"生命：%.0f / %.0f" % [character_state.health, character_state.max_health],
 		"防护：%.0f / %.0f" % [character_state.protection, character_state.max_protection],
@@ -303,6 +304,41 @@ func _format_direction_hint(world_state: WorldState, character_state: CharacterS
 			return "向污染边界东侧检查封锁遗迹入口；此处仅确认后续信号。"
 		_:
 			return "按当前目标推进。"
+
+
+func _format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
+	if quest_id.is_empty():
+		if _is_slice_complete(world_state):
+			return "更深区域信号已确认，整理补给后等待后续内容。"
+		return "查看当前目标和附近交互提示，按顺序推进。"
+
+	match quest_id:
+		"quest.restore_outpost":
+			return "先恢复前哨核心；基地设备会告诉你缺什么资源。"
+		"quest.scout_crystal_field":
+			if world_state.current_region_id != "region.crystal_vein_field":
+				return "晶体矿物是第一批加工输入，先去蓝色晶体区。"
+			return "采集晶体簇；遇到掠行体时先用基础攻击处理威胁。"
+		"quest.bring_back_sample":
+			if world_state.quest_state.get_objective_progress(quest_id, "sample_object", "map_object.anomaly_crystal") <= 0.0:
+				return "采样异常晶体；样本会解锁过滤介质配方。"
+			return "带样本回基地，分析结果会打开制造过滤模块的链路。"
+		"quest.make_filter_module":
+			return "基础反应器负责制造远征产物；先补齐配方输入，再等待加工完成。"
+		"quest.expand_treatment_point":
+			if world_state.count_base_structures("building.foundation_t1") < 2:
+				return "污染过滤器不能直接落地，先清理地块并铺设 2 块地基。"
+			return "地基已满足要求，建造污染过滤器来处理沉积物。"
+		"quest.enter_pollution_edge":
+			if String(character_state.equipment.get("suit_module", "")).is_empty():
+				return "启用基础过滤模块后再深入污染区，防护消耗会降低。"
+			if character_state.protection < character_state.max_protection * 0.5:
+				return "防护偏低，先使用抗污染药剂或回基地补给。"
+			return "收集污染沉积物，用过滤器处理药剂，再清理受扰敌人。"
+		"quest.unlock_ruin_signal":
+			return "检查封锁遗迹入口即可结束本切片，不会进入新区域。"
+		_:
+			return "按当前目标推进；失败时查看日志和撤离反馈。"
 
 
 func _get_objective_verb(objective_type: String) -> String:
