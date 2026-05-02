@@ -29,6 +29,7 @@ func _run_checks() -> void:
 
 	_expect_equal(world_state.quest_state.active_quest_ids, ["quest.restore_outpost"], "initial active quest")
 	_check_onboarding_hints()
+	_check_region_markers()
 	_check_build_prompts()
 	_check_supply_feedback()
 	_check_pollution_status_hints()
@@ -110,6 +111,48 @@ func _check_onboarding_hints() -> void:
 
 	hint_world.quest_state.unlocked_effects.append("slice_01_complete")
 	_expect_hint_contains(hud, hint_world, hint_character, "", "更深区域信号", "slice complete onboarding hint")
+	hud.free()
+
+
+func _check_region_markers() -> void:
+	var hud := PrototypeHud.new()
+	var marker_world := WorldState.create_default()
+	_expect_text_contains(
+		hud._format_region_markers(marker_world, "quest.restore_outpost"),
+		"基地：当前位置，目标",
+		"outpost marker as current objective"
+	)
+	_expect_text_contains(
+		hud._format_region_markers(marker_world, "quest.restore_outpost"),
+		"晶体：东侧，未解锁",
+		"locked crystal marker"
+	)
+
+	marker_world.unlock_region("region.crystal_vein_field")
+	_expect_text_contains(
+		hud._format_region_markers(marker_world, "quest.scout_crystal_field"),
+		"晶体：东侧，目标",
+		"crystal marker as objective"
+	)
+
+	marker_world.quest_state.set_objective_progress(
+		"quest.bring_back_sample",
+		"sample_object",
+		"map_object.anomaly_crystal",
+		1.0
+	)
+	_expect_text_contains(
+		hud._format_region_markers(marker_world, "quest.bring_back_sample"),
+		"基地：当前位置，目标",
+		"sample return marker as objective"
+	)
+
+	marker_world.unlock_region("region.locked_ruin_gate")
+	_expect_text_contains(
+		hud._format_region_markers(marker_world, "quest.unlock_ruin_signal"),
+		"遗迹：东端，目标",
+		"ruin gate marker as objective"
+	)
 	hud.free()
 
 

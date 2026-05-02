@@ -78,6 +78,7 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 		"目标：%s" % _format_goal_name(data_registry, world_state, active_quest_id),
 		"进度：%s" % _format_active_quest_progress(data_registry, world_state, active_quest_id),
 		"方向：%s" % _format_direction_hint(world_state, character_state, active_quest_id),
+		"区域标记：%s" % _format_region_markers(world_state, active_quest_id),
 		"提示：%s" % _format_onboarding_hint(world_state, character_state, active_quest_id),
 		"坐标：x %.1f，y %.1f" % [character_state.position.x, character_state.position.y],
 		"生命：%.0f / %.0f" % [character_state.health, character_state.max_health],
@@ -329,6 +330,73 @@ func _format_direction_hint(world_state: WorldState, character_state: CharacterS
 			return "向污染边界东侧检查封锁遗迹入口；此处仅确认后续信号。"
 		_:
 			return "按当前目标推进。"
+
+
+func _format_region_markers(world_state: WorldState, quest_id: String) -> String:
+	var target_region_id := _get_quest_target_region_id(world_state, quest_id)
+	var markers: Array[Dictionary] = [
+		{
+			"region_id": "region.outpost_platform",
+			"label": "基地",
+			"direction": "西侧"
+		},
+		{
+			"region_id": "region.crystal_vein_field",
+			"label": "晶体",
+			"direction": "东侧"
+		},
+		{
+			"region_id": "region.pollution_edge",
+			"label": "污染",
+			"direction": "东南"
+		},
+		{
+			"region_id": "region.locked_ruin_gate",
+			"label": "遗迹",
+			"direction": "东端"
+		}
+	]
+	var parts: Array[String] = []
+	for marker in markers:
+		var region_id := String(marker.get("region_id", ""))
+		var marker_parts: Array[String] = []
+		if world_state.current_region_id == region_id:
+			marker_parts.append("当前位置")
+		else:
+			marker_parts.append(String(marker.get("direction", "")))
+
+		if target_region_id == region_id:
+			marker_parts.append("目标")
+		elif world_state.unlocked_region_ids.has(region_id):
+			marker_parts.append("已解锁")
+		else:
+			marker_parts.append("未解锁")
+
+		parts.append("%s：%s" % [
+			String(marker.get("label", region_id)),
+			"，".join(marker_parts)
+		])
+	return "；".join(parts)
+
+
+func _get_quest_target_region_id(world_state: WorldState, quest_id: String) -> String:
+	match quest_id:
+		"quest.restore_outpost":
+			return "region.outpost_platform"
+		"quest.scout_crystal_field":
+			return "region.crystal_vein_field"
+		"quest.bring_back_sample":
+			if world_state.quest_state.get_objective_progress(quest_id, "sample_object", "map_object.anomaly_crystal") <= 0.0:
+				return "region.crystal_vein_field"
+			return "region.outpost_platform"
+		"quest.make_filter_module":
+			return "region.outpost_platform"
+		"quest.expand_treatment_point", "quest.enter_pollution_edge", "quest.defeat_elite_node":
+			return "region.pollution_edge"
+		"quest.unlock_ruin_signal":
+			return "region.locked_ruin_gate"
+		_:
+			return ""
 
 
 func _format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
