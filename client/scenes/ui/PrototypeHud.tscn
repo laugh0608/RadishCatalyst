@@ -230,3 +230,37 @@ offset_bottom = 122.0
 text = ""
 label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3
+
+[node name="EvacuationPanel" type="ColorRect" parent="."]
+visible = false
+offset_left = 424.0
+offset_top = 176.0
+offset_right = 856.0
+offset_bottom = 376.0
+color = Color(0.0352941, 0.054902, 0.0588235, 0.94)
+clip_contents = true
+
+[node name="EvacuationTitleLabel" type="Label" parent="EvacuationPanel"]
+offset_left = 22.0
+offset_top = 18.0
+offset_right = 410.0
+offset_bottom = 48.0
+text = "撤离前哨"
+label_settings = SubResource("LabelSettings_prompt")
+autowrap_mode = 3
+
+[node name="EvacuationDetailLabel" type="Label" parent="EvacuationPanel"]
+offset_left = 22.0
+offset_top = 62.0
+offset_right = 410.0
+offset_bottom = 142.0
+text = ""
+label_settings = SubResource("LabelSettings_status")
+autowrap_mode = 3
+
+[node name="EvacuationCloseButton" type="Button" parent="EvacuationPanel"]
+offset_left = 302.0
+offset_top = 152.0
+offset_right = 410.0
+offset_bottom = 184.0
+text = "知道了"

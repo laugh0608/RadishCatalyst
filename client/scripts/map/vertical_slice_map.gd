@@ -71,9 +71,10 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 	if not interacted.can_interact():
 		current_interactable = null
 		interaction_cleared.emit(interacted)
-	var evacuation_message := _evacuate_if_needed(character_state, world_state, "pollution")
-	if not evacuation_message.is_empty():
-		result["message"] = "%s%s" % [String(result.get("message", "")), evacuation_message]
+	var evacuation_feedback := _evacuate_if_needed(character_state, world_state, "pollution")
+	if not evacuation_feedback.is_empty():
+		result["message"] = "%s%s" % [String(result.get("message", "")), String(evacuation_feedback.get("log_message", ""))]
+		result["evacuation_feedback"] = evacuation_feedback
 	return result
 
 
@@ -184,7 +185,7 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 		}
 
 	var counter_message := _apply_enemy_counterattack(target, character_state)
-	var evacuation_message := _evacuate_if_needed(character_state, world_state, "combat")
+	var evacuation_feedback := _evacuate_if_needed(character_state, world_state, "combat")
 	return {
 		"success": true,
 		"message": "命中：%s，造成 %.0f 伤害，剩余 HP %.0f。%s%s" % [
@@ -192,10 +193,11 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 			damage,
 			float(result.get("health", 0.0)),
 			counter_message,
-			evacuation_message
+			String(evacuation_feedback.get("log_message", ""))
 		],
 		"enemy_definition_id": target.definition_id,
-		"enemy_defeated": false
+		"enemy_defeated": false,
+		"evacuation_feedback": evacuation_feedback
 	}
 
 
@@ -459,24 +461,31 @@ func _inspect_ruin_gate(world_state: WorldState) -> Dictionary:
 	}
 
 
-func _evacuate_if_needed(character_state: CharacterState, world_state: WorldState, reason: String) -> String:
+func _evacuate_if_needed(character_state: CharacterState, world_state: WorldState, reason: String) -> Dictionary:
 	if character_state.health > 0.0 and character_state.protection > 0.0:
-		return ""
+		return {}
 
 	var health_depleted := character_state.health <= 0.0
 	var protection_depleted := character_state.protection <= 0.0
+	var reason_text := _get_evacuation_reason(health_depleted, protection_depleted)
 	character_state.current_region_id = "region.outpost_platform"
 	world_state.current_region_id = "region.outpost_platform"
 	character_state.health = maxf(character_state.health, character_state.max_health * 0.6)
 	character_state.protection = maxf(character_state.protection, character_state.max_protection * 0.4)
 	player.position = OUTPOST_RESPAWN_POSITION
-
-	return " %s已撤回前哨；生命恢复到 %s，防护恢复到 %s。%s" % [
-		_get_evacuation_reason(health_depleted, protection_depleted),
+	var recovery_text := "已撤回前哨；生命恢复到 %s，防护恢复到 %s" % [
 		_format_amount(character_state.health),
-		_format_amount(character_state.protection),
-		_get_retry_hint(reason, health_depleted, protection_depleted)
+		_format_amount(character_state.protection)
 	]
+	var retry_text := _get_retry_hint(reason, health_depleted, protection_depleted)
+
+	return {
+		"title": "撤离前哨",
+		"reason_text": reason_text.trim_suffix("，"),
+		"recovery_text": recovery_text,
+		"retry_text": retry_text,
+		"log_message": " %s%s。%s" % [reason_text, recovery_text, retry_text]
+	}
 
 
 func _get_evacuation_reason(health_depleted: bool, protection_depleted: bool) -> String:

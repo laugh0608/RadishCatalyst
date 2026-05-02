@@ -59,6 +59,7 @@ func _on_player_interaction_requested() -> void:
 	var log_messages: Array[String] = [String(result.get("message", ""))]
 	if bool(result.get("success", false)):
 		_append_quest_runtime_result(log_messages, quest_runtime.advance_for_interaction(world_state, character_state, context, result))
+	_show_evacuation_feedback(result)
 	vertical_slice_map.refresh_world_interactables(world_state)
 	if vertical_slice_map.current_interactable != null:
 		_on_interaction_available(vertical_slice_map.current_interactable)
@@ -74,6 +75,7 @@ func _on_player_attack_requested() -> void:
 			log_messages,
 			quest_runtime.advance_for_defeated_enemy(world_state, character_state, String(result.get("enemy_definition_id", "")))
 		)
+	_show_evacuation_feedback(result)
 	hud.append_log(_join_log_messages(log_messages))
 	_update_hud()
 
@@ -303,6 +305,12 @@ func _show_quest_completion_feedbacks(result: Dictionary) -> void:
 		if not feedback is Dictionary:
 			continue
 		hud.show_quest_completion(feedback)
+
+
+func _show_evacuation_feedback(result: Dictionary) -> void:
+	var feedback = result.get("evacuation_feedback", {})
+	if feedback is Dictionary and not feedback.is_empty():
+		hud.show_evacuation_feedback(feedback)
 
 
 func _join_log_messages(messages: Array[String]) -> String:

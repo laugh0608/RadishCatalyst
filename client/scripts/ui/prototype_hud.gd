@@ -19,6 +19,10 @@ var last_quick_slots: Array[String] = []
 	$QuickSlotPanel/Slot01BindingButton,
 	$QuickSlotPanel/Slot02BindingButton
 ]
+@onready var evacuation_panel: ColorRect = $EvacuationPanel
+@onready var evacuation_title_label: Label = $EvacuationPanel/EvacuationTitleLabel
+@onready var evacuation_detail_label: Label = $EvacuationPanel/EvacuationDetailLabel
+@onready var evacuation_close_button: Button = $EvacuationPanel/EvacuationCloseButton
 @onready var save_slot_labels: Array[Label] = [
 	$SavePanel/Slot01Label,
 	$SavePanel/Slot02Label,
@@ -46,6 +50,7 @@ func _ready() -> void:
 		load_slot_buttons[index].pressed.connect(_on_load_slot_pressed.bind(index))
 	for index in range(quick_slot_binding_buttons.size()):
 		quick_slot_binding_buttons[index].pressed.connect(_on_quick_slot_binding_pressed.bind(index))
+	evacuation_close_button.pressed.connect(_on_evacuation_close_pressed)
 
 
 func update_status(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> void:
@@ -97,6 +102,19 @@ func show_quest_completion(feedback: Dictionary) -> void:
 	completion_detail_label.text = "\n".join(details)
 
 
+func show_evacuation_feedback(feedback: Dictionary) -> void:
+	if feedback.is_empty():
+		return
+
+	evacuation_title_label.text = String(feedback.get("title", "撤离前哨"))
+	var details: Array[String] = []
+	_append_detail(details, "原因：%s" % String(feedback.get("reason_text", "")))
+	_append_detail(details, String(feedback.get("recovery_text", "")))
+	_append_detail(details, String(feedback.get("retry_text", "")))
+	evacuation_detail_label.text = "\n".join(details)
+	evacuation_panel.visible = true
+
+
 func update_save_slot_summaries(summaries: Array[Dictionary]) -> void:
 	for index in range(save_slot_labels.size()):
 		if index >= summaries.size():
@@ -126,6 +144,10 @@ func _on_quick_slot_binding_pressed(slot_index: int) -> void:
 		current_item_id = last_quick_slots[slot_index]
 	var next_item_id := _get_next_quick_slot_candidate(current_item_id)
 	quick_slot_binding_requested.emit(slot_index, next_item_id)
+
+
+func _on_evacuation_close_pressed() -> void:
+	evacuation_panel.visible = false
 
 
 func _append_detail(details: Array[String], text: String) -> void:

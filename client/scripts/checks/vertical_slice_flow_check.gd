@@ -79,6 +79,8 @@ func _run_checks() -> void:
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.unlock_ruin_signal", "ruin signal completed")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "slice completion unlock")
 
+	_check_evacuation_feedback()
+
 
 func _complete_active_quest(quest_id: String, progress_refs: Array) -> void:
 	if not world_state.quest_state.has_active_quest(quest_id):
@@ -142,6 +144,28 @@ func _apply_unlock(effect_id: String) -> void:
 	if effect_id.begins_with("region."):
 		world_state.unlock_region(effect_id)
 	world_state.quest_state.unlock_effect(effect_id)
+
+
+func _check_evacuation_feedback() -> void:
+	var map := VerticalSliceMap.new()
+	map.player = PlayerController.new()
+	var evacuation_world := WorldState.create_default()
+	var evacuation_character := CharacterState.create_default()
+	evacuation_character.health = 0.0
+	evacuation_character.protection = 80.0
+	evacuation_character.current_region_id = "region.pollution_edge"
+	evacuation_world.current_region_id = "region.pollution_edge"
+
+	var feedback := map._evacuate_if_needed(evacuation_character, evacuation_world, "combat")
+	_expect_equal(String(feedback.get("title", "")), "撤离前哨", "evacuation feedback title")
+	_expect_equal(String(feedback.get("reason_text", "")), "生命耗尽", "evacuation reason")
+	_expect_equal(evacuation_world.current_region_id, "region.outpost_platform", "evacuation world region")
+	_expect_equal(evacuation_character.current_region_id, "region.outpost_platform", "evacuation character region")
+	_expect_equal(evacuation_character.health, 60.0, "evacuation health recovery")
+	if String(feedback.get("retry_text", "")).find("修复凝胶") < 0:
+		failures.append("evacuation retry text should mention repair gel, got %s" % var_to_str(feedback))
+	map.player.free()
+	map.free()
 
 
 func _expect_active_quest(quest_id: String, label: String) -> void:
