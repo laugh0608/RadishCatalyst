@@ -2,12 +2,23 @@ extends CanvasLayer
 class_name PrototypeHud
 
 const SAVE_SLOT_IDS: Array[String] = ["slot_01", "slot_02", "slot_03"]
+const QUICK_SLOT_BIND_CANDIDATES: Array[String] = ["item.repair_gel", "item.resistance_vial_t1", ""]
+
+var last_quick_slots: Array[String] = []
 
 @onready var status_label: Label = $StatusPanel/StatusLabel
 @onready var prompt_label: Label = $PromptPanel/PromptLabel
 @onready var log_label: Label = $LogPanel/LogLabel
 @onready var completion_title_label: Label = $CompletionPanel/CompletionTitleLabel
 @onready var completion_detail_label: Label = $CompletionPanel/CompletionDetailLabel
+@onready var quick_slot_binding_labels: Array[Label] = [
+	$QuickSlotPanel/Slot01BindingLabel,
+	$QuickSlotPanel/Slot02BindingLabel
+]
+@onready var quick_slot_binding_buttons: Array[Button] = [
+	$QuickSlotPanel/Slot01BindingButton,
+	$QuickSlotPanel/Slot02BindingButton
+]
 @onready var save_slot_labels: Array[Label] = [
 	$SavePanel/Slot01Label,
 	$SavePanel/Slot02Label,
@@ -26,12 +37,15 @@ const SAVE_SLOT_IDS: Array[String] = ["slot_01", "slot_02", "slot_03"]
 
 signal save_slot_requested(slot_id: String)
 signal load_slot_requested(slot_id: String)
+signal quick_slot_binding_requested(slot_index: int, item_id: String)
 
 
 func _ready() -> void:
 	for index in range(SAVE_SLOT_IDS.size()):
 		save_slot_buttons[index].pressed.connect(_on_save_slot_pressed.bind(index))
 		load_slot_buttons[index].pressed.connect(_on_load_slot_pressed.bind(index))
+	for index in range(quick_slot_binding_buttons.size()):
+		quick_slot_binding_buttons[index].pressed.connect(_on_quick_slot_binding_pressed.bind(index))
 
 
 func update_status(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> void:
@@ -55,6 +69,7 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 		"快捷栏：%s" % _format_quick_slots(data_registry, character_state),
 		"背包：%s" % _format_inventory(data_registry, character_state.inventory)
 	])
+	_update_quick_slot_binding_panel(data_registry, character_state)
 
 
 func show_prompt(text: String) -> void:
@@ -105,10 +120,46 @@ func _on_load_slot_pressed(slot_index: int) -> void:
 	load_slot_requested.emit(SAVE_SLOT_IDS[slot_index])
 
 
+func _on_quick_slot_binding_pressed(slot_index: int) -> void:
+	var current_item_id := ""
+	if slot_index < last_quick_slots.size():
+		current_item_id = last_quick_slots[slot_index]
+	var next_item_id := _get_next_quick_slot_candidate(current_item_id)
+	quick_slot_binding_requested.emit(slot_index, next_item_id)
+
+
 func _append_detail(details: Array[String], text: String) -> void:
 	if text.strip_edges().is_empty():
 		return
 	details.append(text)
+
+
+func _update_quick_slot_binding_panel(data_registry: DataRegistry, character_state: CharacterState) -> void:
+	last_quick_slots = character_state.quick_slots.duplicate()
+	for slot_index in range(quick_slot_binding_labels.size()):
+		var item_id := ""
+		if slot_index < character_state.quick_slots.size():
+			item_id = character_state.quick_slots[slot_index]
+		quick_slot_binding_labels[slot_index].text = "%d：%s" % [
+			slot_index + 1,
+			_format_quick_slot_binding(data_registry, character_state, item_id)
+		]
+
+
+func _format_quick_slot_binding(data_registry: DataRegistry, character_state: CharacterState, item_id: String) -> String:
+	if item_id.is_empty():
+		return "空"
+	return "%s x%s" % [
+		_get_display_name(data_registry, item_id),
+		int(character_state.inventory.items.get(item_id, 0))
+	]
+
+
+func _get_next_quick_slot_candidate(current_item_id: String) -> String:
+	var current_index := QUICK_SLOT_BIND_CANDIDATES.find(current_item_id)
+	if current_index < 0:
+		return QUICK_SLOT_BIND_CANDIDATES[0]
+	return QUICK_SLOT_BIND_CANDIDATES[(current_index + 1) % QUICK_SLOT_BIND_CANDIDATES.size()]
 
 
 func _get_display_name(data_registry: DataRegistry, definition_id: String) -> String:

@@ -76,6 +76,25 @@ func use_quick_slot(slot_index: int, data_registry: DataRegistry) -> Dictionary:
 			return _failure("%s 暂未接入使用效果。" % _get_display_name(item_id, data_registry))
 
 
+func bind_quick_slot(slot_index: int, item_id: String, data_registry: DataRegistry) -> Dictionary:
+	if slot_index < 0 or slot_index >= quick_slots.size():
+		return _failure("该快捷栏槽位不存在。")
+	if item_id.is_empty():
+		quick_slots[slot_index] = ""
+		return _success("快捷栏 %d 已清空。" % (slot_index + 1))
+
+	if not _is_supported_quick_slot_item(item_id):
+		return _failure("%s 暂不能绑定到快捷栏。" % _get_display_name(item_id, data_registry))
+	if data_registry.get_definition(item_id).is_empty():
+		return _failure("未知快捷栏物品：%s。" % item_id)
+
+	quick_slots[slot_index] = item_id
+	return _success("快捷栏 %d 已绑定：%s。" % [
+		slot_index + 1,
+		_get_display_name(item_id, data_registry)
+	])
+
+
 func _use_repair_gel(item_id: String, data_registry: DataRegistry) -> Dictionary:
 	if health >= max_health:
 		return _failure("生命已满。")
@@ -100,6 +119,10 @@ func _use_resistance_vial(item_id: String, data_registry: DataRegistry) -> Dicti
 		_get_display_name(item_id, data_registry),
 		_format_amount(protection - before)
 	])
+
+
+func _is_supported_quick_slot_item(item_id: String) -> bool:
+	return item_id == "item.repair_gel" or item_id == "item.resistance_vial_t1"
 
 
 func to_dict() -> Dictionary:

@@ -144,6 +144,7 @@ func _run_checks() -> void:
 	_check_loads_older_backup_when_recent_backup_is_bad()
 	_check_all_bad_saves_fail_without_replacing_state()
 	_check_named_slot_save_load()
+	_check_quick_slot_binding_persists()
 	_check_save_slot_summaries()
 	_check_migrates_legacy_primary_save()
 	_check_migrates_legacy_backup_when_legacy_primary_is_bad()
@@ -371,6 +372,31 @@ func _check_named_slot_save_load() -> void:
 
 	_expect_equal(String(load_result.get("slot_id", "")), slot_id, "named slot id")
 	_expect_recovered_world_id(load_result, "world.slot.02", "named slot world")
+
+
+func _check_quick_slot_binding_persists() -> void:
+	var slot_id := "slot_02"
+	var character_state := CharacterState.create_default()
+	_expect_success(
+		character_state.bind_quick_slot(0, "item.resistance_vial_t1", data_registry),
+		"bind resistance vial to slot 1"
+	)
+	_expect_success(character_state.bind_quick_slot(1, "", data_registry), "clear quick slot 2")
+	_expect_failure_message(
+		character_state.bind_quick_slot(0, "item.basic_parts", data_registry),
+		"暂不能绑定到快捷栏",
+		"reject unsupported quick slot item"
+	)
+
+	var save_result := save_service.save_game_for_slot(slot_id, WorldState.create_default(), character_state)
+	_expect_success(save_result, "save quick slot bindings")
+	var load_result := save_service.load_game_for_slot(slot_id)
+	_expect_success(load_result, "load quick slot bindings")
+	if not bool(load_result.get("success", false)):
+		return
+
+	var loaded_character: CharacterState = load_result["character_state"]
+	_expect_equal(loaded_character.quick_slots, ["item.resistance_vial_t1", ""], "quick slot bindings persist")
 
 
 func _check_save_slot_summaries() -> void:

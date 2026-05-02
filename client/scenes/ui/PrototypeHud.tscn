@@ -126,6 +126,54 @@ text = "暂无任务完成反馈"
 label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3
 
+[node name="QuickSlotPanel" type="ColorRect" parent="."]
+offset_left = 24.0
+offset_top = 570.0
+offset_right = 392.0
+offset_bottom = 704.0
+color = Color(0.0352941, 0.054902, 0.0588235, 0.88)
+clip_contents = true
+
+[node name="QuickSlotTitleLabel" type="Label" parent="QuickSlotPanel"]
+offset_left = 18.0
+offset_top = 10.0
+offset_right = 350.0
+offset_bottom = 38.0
+text = "快捷栏绑定"
+label_settings = SubResource("LabelSettings_prompt")
+
+[node name="Slot01BindingLabel" type="Label" parent="QuickSlotPanel"]
+offset_left = 18.0
+offset_top = 48.0
+offset_right = 232.0
+offset_bottom = 78.0
+text = "1：读取中..."
+label_settings = SubResource("LabelSettings_status")
+autowrap_mode = 3
+
+[node name="Slot01BindingButton" type="Button" parent="QuickSlotPanel"]
+offset_left = 254.0
+offset_top = 47.0
+offset_right = 342.0
+offset_bottom = 79.0
+text = "切换"
+
+[node name="Slot02BindingLabel" type="Label" parent="QuickSlotPanel"]
+offset_left = 18.0
+offset_top = 88.0
+offset_right = 232.0
+offset_bottom = 118.0
+text = "2：读取中..."
+label_settings = SubResource("LabelSettings_status")
+autowrap_mode = 3
+
+[node name="Slot02BindingButton" type="Button" parent="QuickSlotPanel"]
+offset_left = 254.0
+offset_top = 87.0
+offset_right = 342.0
+offset_bottom = 119.0
+text = "切换"
+
 [node name="StatusPanel" type="ColorRect" parent="."]
 anchor_left = 1.0
 anchor_right = 1.0
