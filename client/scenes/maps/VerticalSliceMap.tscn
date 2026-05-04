@@ -136,20 +136,20 @@ label_offset = Vector2(-96, 22)
 label_size = Vector2(192, 24)
 
 [node name="PollutionFilterBuildSite" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(330, -126)
+position = Vector2(253, -104)
 definition_id = "building.pollution_filter"
 interaction_type = "build"
 recipe_id = ""
-label_offset = Vector2(-88, -52)
+label_offset = Vector2(-88, -54)
 label_size = Vector2(176, 24)
 
 [node name="PollutionFilter" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(330, -68)
+position = Vector2(253, -104)
 definition_id = "building.pollution_filter"
 interaction_type = "process_recipe"
 recipe_id = "recipe.cleanse_residue"
 single_use = false
-label_offset = Vector2(-88, 22)
+label_offset = Vector2(-88, -54)
 label_size = Vector2(176, 24)
 
 [node name="RuinGate" parent="Interactables" instance=ExtResource("3_interactable")]

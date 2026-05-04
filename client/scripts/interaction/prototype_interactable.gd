@@ -1,6 +1,10 @@
 extends Area2D
 class_name PrototypeInteractable
 
+const DEFAULT_MARKER_COLOR := Color(0.862745, 0.737255, 0.266667, 1)
+const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
+const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
+
 @export var definition_id: String = ""
 @export var interaction_type: String = "inspect"
 @export var recipe_id: String = ""
@@ -15,6 +19,7 @@ var recipe_ids: Array[String] = []
 var recipe_index: int = 0
 
 @onready var label: Label = $Label
+@onready var marker: ColorRect = $Marker
 
 
 func setup(display_name: String) -> void:
@@ -72,6 +77,9 @@ func get_recipe_position() -> int:
 
 
 func mark_consumed() -> void:
+	if interaction_type == "build":
+		set_built_visual(definition_id)
+		return
 	if single_use:
 		consumed = true
 		visible = false
@@ -81,3 +89,17 @@ func mark_consumed() -> void:
 func set_interaction_enabled(enabled: bool) -> void:
 	visible = enabled
 	monitoring = enabled
+
+
+func set_built_visual(built_definition_id: String) -> void:
+	consumed = true
+	visible = true
+	monitoring = false
+	if built_definition_id == "building.foundation_t1":
+		marker.color = BUILT_FOUNDATION_COLOR
+		label.text = "基础地基"
+	elif built_definition_id == "building.pollution_filter":
+		marker.color = BUILT_FILTER_COLOR
+		label.text = ""
+	else:
+		marker.color = DEFAULT_MARKER_COLOR

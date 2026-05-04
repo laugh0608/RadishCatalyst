@@ -90,6 +90,12 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			is_processed = bool(object_state.get("is_cleared", false))
 		if interactable.interaction_type == "build":
 			is_processed = bool(object_state.get("is_built", false))
+			if is_processed:
+				interactable.set_built_visual(String(object_state.get("built_definition_id", interactable.definition_id)))
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
 
 		if interactable.single_use:
 			interactable.consumed = is_processed
