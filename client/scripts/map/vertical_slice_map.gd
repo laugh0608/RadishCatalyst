@@ -15,6 +15,7 @@ const PLAY_BOUNDS_MIN := Vector2(-360, -200)
 const PLAY_BOUNDS_MAX := Vector2(360, 200)
 const CRYSTAL_REGION_X := -70.0
 const CRYSTAL_GATE_RETURN_X := -85.0
+const POLLUTION_REGION_X := 200.0
 const POLLUTION_GATE_X := 220.0
 const POLLUTION_DEEP_Y := -40.0
 const POLLUTION_GATE_RETURN_X := 205.0
@@ -253,7 +254,10 @@ func update_region_presence(world_state: WorldState, character_state: CharacterS
 	player.clamp_to_play_bounds(PLAY_BOUNDS_MIN, PLAY_BOUNDS_MAX)
 	apply_region_gate_bounds(world_state)
 
-	var region_id := _get_region_id_for_position(player.position)
+	var region_id := _get_region_id_for_position(
+		player.position,
+		world_state.unlocked_region_ids.has("region.pollution_edge")
+	)
 	if region_id == "region.crystal_vein_field" and not world_state.unlocked_region_ids.has(region_id):
 		player.position.x = CRYSTAL_GATE_RETURN_X
 		player.stop_positive_x_until_release()
@@ -521,8 +525,8 @@ func _get_enemy_instance_id(enemy: PrototypeEnemy) -> String:
 	return "enemy_instance.%s" % String(enemy.name).to_snake_case()
 
 
-func _get_region_id_for_position(map_position: Vector2) -> String:
-	if map_position.x >= POLLUTION_GATE_X and map_position.y >= POLLUTION_DEEP_Y:
+func _get_region_id_for_position(map_position: Vector2, is_pollution_unlocked: bool = false) -> String:
+	if map_position.x >= POLLUTION_REGION_X and (is_pollution_unlocked or map_position.y >= POLLUTION_DEEP_Y):
 		return "region.pollution_edge"
 	if map_position.x >= CRYSTAL_REGION_X:
 		return "region.crystal_vein_field"

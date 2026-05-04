@@ -31,6 +31,7 @@ func _run_checks() -> void:
 	_check_onboarding_hints()
 	_check_status_panel_summary()
 	_check_region_markers()
+	_check_region_presence_bounds()
 	_check_quest_completion_panel_text()
 	_check_build_prompts()
 	_check_supply_feedback()
@@ -194,6 +195,31 @@ func _check_region_markers() -> void:
 		"ruin gate minimap objective marker"
 	)
 	hud.free()
+
+
+func _check_region_presence_bounds() -> void:
+	var map := VerticalSliceMap.new()
+	_expect_equal(
+		map._get_region_id_for_position(Vector2(253, -104), false),
+		"region.crystal_vein_field",
+		"pollution treatment point should not count as pollution before unlock"
+	)
+	_expect_equal(
+		map._get_region_id_for_position(Vector2(253, -104), true),
+		"region.pollution_edge",
+		"pollution treatment point should count as pollution after unlock"
+	)
+	_expect_equal(
+		map._get_region_id_for_position(Vector2(253, 30), false),
+		"region.pollution_edge",
+		"pollution lower area should remain gate region before unlock"
+	)
+	_expect_equal(
+		map._get_region_id_for_position(Vector2(190, -104), true),
+		"region.crystal_vein_field",
+		"gap before pollution visual edge should remain crystal"
+	)
+	map.free()
 
 
 func _check_quest_completion_panel_text() -> void:
