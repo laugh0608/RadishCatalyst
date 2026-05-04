@@ -49,6 +49,7 @@ func format_processing_prompt(
 	if not last_next_step.is_empty():
 		parts.append("下一步：%s" % last_next_step)
 	parts.append("状态：%s" % String(status.get("message", "")))
+	parts.append("按 Q 打开设备面板")
 	if bool(status.get("can_process", false)):
 		parts.append("按 E 启动加工")
 	return "\n".join(parts)

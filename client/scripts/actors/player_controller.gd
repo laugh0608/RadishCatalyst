@@ -13,6 +13,7 @@ var block_positive_x_until_release := false
 signal interaction_requested
 signal attack_requested
 signal recipe_cycle_requested
+signal device_panel_toggle_requested
 signal module_toggle_requested
 signal quick_slot_requested(slot_index: int)
 signal save_requested
@@ -48,6 +49,8 @@ func _physics_process(_delta: float) -> void:
 		attack_requested.emit()
 	if Input.is_action_just_pressed("cycle_recipe"):
 		recipe_cycle_requested.emit()
+	if Input.is_action_just_pressed("toggle_device_panel"):
+		device_panel_toggle_requested.emit()
 	if Input.is_action_just_pressed("toggle_module"):
 		module_toggle_requested.emit()
 	if Input.is_action_just_pressed("use_quick_slot_1"):

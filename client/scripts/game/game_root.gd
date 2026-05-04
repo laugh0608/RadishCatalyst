@@ -33,6 +33,7 @@ func _ready() -> void:
 	vertical_slice_map.player.interaction_requested.connect(_on_player_interaction_requested)
 	vertical_slice_map.player.attack_requested.connect(_on_player_attack_requested)
 	vertical_slice_map.player.recipe_cycle_requested.connect(_on_player_recipe_cycle_requested)
+	vertical_slice_map.player.device_panel_toggle_requested.connect(_on_player_device_panel_toggle_requested)
 	vertical_slice_map.player.module_toggle_requested.connect(_on_player_module_toggle_requested)
 	vertical_slice_map.player.quick_slot_requested.connect(_on_player_quick_slot_requested)
 	vertical_slice_map.player.save_requested.connect(_on_player_save_requested)
@@ -46,7 +47,7 @@ func _ready() -> void:
 	vertical_slice_map.region_changed.connect(_on_region_changed)
 	vertical_slice_map.region_gate_blocked.connect(_on_region_gate_blocked)
 
-	hud.append_log("前哨原型已启动。WASD 移动，E 交互，J 攻击，R 切换设备配方，F 启用过滤模块，1/2 使用快捷栏；K / L 操作默认槽位，Tab 显示或隐藏存档 / 快捷栏调试面板。先检查前哨核心。")
+	hud.append_log("前哨原型已启动。WASD 移动，E 交互，J 攻击，R 切换设备配方，Q 打开或关闭设备面板，F 启用过滤模块，1/2 使用快捷栏；K / L 操作默认槽位，Tab 显示或隐藏存档 / 快捷栏调试面板。先检查前哨核心。")
 	_refresh_save_slot_summaries()
 	_update_hud()
 
@@ -100,6 +101,21 @@ func _on_player_recipe_cycle_requested() -> void:
 		_on_interaction_available(vertical_slice_map.current_interactable)
 	else:
 		hud.append_log(_format_result_log(result))
+	_update_hud()
+
+
+func _on_player_device_panel_toggle_requested() -> void:
+	var interactable := vertical_slice_map.current_interactable
+	if hud.is_device_panel_visible():
+		hud.hide_device_panel()
+		return
+	if interactable == null or interactable.interaction_type != "process_recipe":
+		hud.append_log("附近没有可查看的加工设备；靠近基础反应器或污染过滤器后按 Q。")
+		_update_hud()
+		return
+
+	hud.show_device_panel(data_registry, processing_system, interactable, character_state, world_state)
+	hud.append_log("已打开设备面板：%s。" % _get_display_name(interactable.definition_id))
 	_update_hud()
 
 
@@ -190,6 +206,7 @@ func _on_interaction_available(interactable: PrototypeInteractable) -> void:
 		return
 	if interactable.interaction_type == "process_recipe":
 		hud.show_prompt(interaction_prompt_formatter.format_processing_prompt(interactable, character_state, world_state))
+		hud.refresh_device_panel(data_registry, processing_system, interactable, character_state, world_state)
 		return
 	if interactable.interaction_type == "build":
 		hud.show_prompt(interaction_prompt_formatter.format_build_prompt(interactable, character_state, world_state))
@@ -203,6 +220,7 @@ func _on_interaction_available(interactable: PrototypeInteractable) -> void:
 
 func _on_interaction_cleared(_interactable: PrototypeInteractable) -> void:
 	hud.clear_prompt()
+	hud.hide_device_panel()
 
 
 func _on_region_changed(region_id: String) -> void:
@@ -229,6 +247,13 @@ func _on_region_gate_blocked(message: String) -> void:
 
 func _update_hud() -> void:
 	hud.update_status(data_registry, world_state, character_state)
+	hud.refresh_device_panel(
+		data_registry,
+		processing_system,
+		vertical_slice_map.current_interactable,
+		character_state,
+		world_state
+	)
 
 
 func _refresh_save_slot_summaries() -> void:
@@ -312,6 +337,7 @@ func _refresh_current_context_prompt() -> void:
 		return
 	if interactable.interaction_type == "process_recipe":
 		hud.show_prompt(interaction_prompt_formatter.format_processing_prompt(interactable, character_state, world_state))
+		hud.refresh_device_panel(data_registry, processing_system, interactable, character_state, world_state)
 	if interactable.interaction_type == "build":
 		hud.show_prompt(interaction_prompt_formatter.format_build_prompt(interactable, character_state, world_state))
 	if interactable.interaction_type == "clear":

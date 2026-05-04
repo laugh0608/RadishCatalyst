@@ -37,6 +37,7 @@ func _run_checks() -> void:
 	_check_pollution_status_hints()
 	_check_region_prompt_formatter()
 	_check_failure_feedback_logs()
+	_check_device_panel_formatting()
 
 	_complete_active_quest("quest.restore_outpost", [
 		{"type": "interact", "target_id": "building.outpost_core", "amount": 1}
@@ -457,6 +458,57 @@ func _check_failure_feedback_logs() -> void:
 	_expect_failure_feedback(blocked_build, "建造前置不足", "build prerequisite feedback")
 
 	game_root.free()
+
+
+func _check_device_panel_formatting() -> void:
+	var hud := PrototypeHud.new()
+	var processing := ProcessingSystem.new(data_registry)
+	var device_world := WorldState.create_default()
+	var device_character := CharacterState.create_default()
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.process_crystal_ore"
+	reactor.set_recipe_cycle([
+		"recipe.process_crystal_ore",
+		"recipe.make_filter_media",
+		"recipe.basic_filter_module",
+		"recipe.foundation_t1",
+		"recipe.repair_gel"
+	])
+	device_world.quest_state.unlock_effect("recipe.process_crystal_ore")
+	device_character.inventory.add_item("item.crystal_ore", 3)
+
+	var texts := hud.format_device_panel_texts(data_registry, processing, reactor, device_character, device_world)
+	_expect_text_contains(String(texts.get("title", "")), "基础反应器", "device panel title")
+	_expect_text_contains(String(texts.get("status", "")), "当前配方：处理晶体矿物", "device panel current recipe")
+	_expect_text_contains(String(texts.get("recipes", "")), "> 1. 处理晶体矿物：可加工", "device panel recipe list")
+	_expect_text_contains(String(texts.get("operations", "")), "E 启动当前配方", "device panel process operation")
+	_expect_text_contains(String(texts.get("operations", "")), "R 切换配方", "device panel cycle operation")
+	_expect_text_contains(String(texts.get("operations", "")), "Q 关闭面板", "device panel close operation")
+
+	var filter := PrototypeInteractable.new()
+	filter.definition_id = "building.pollution_filter"
+	filter.interaction_type = "process_recipe"
+	filter.recipe_id = "recipe.cleanse_residue"
+	filter.set_recipe_cycle(["recipe.cleanse_residue"])
+	var filter_world := WorldState.create_default()
+	var filter_character := CharacterState.create_default()
+	filter_world.quest_state.unlock_effect("recipe.cleanse_residue")
+	filter_world.add_base_structure(
+		"structure.pollution_filter_build_site",
+		"building.pollution_filter",
+		"region.pollution_edge",
+		"map_object_instance.pollution_filter_build_site"
+	)
+	var filter_texts := hud.format_device_panel_texts(data_registry, processing, filter, filter_character, filter_world)
+	_expect_text_contains(String(filter_texts.get("title", "")), "污染过滤器", "filter device panel title")
+	_expect_text_contains(String(filter_texts.get("recipes", "")), "缺 污染沉积物 x2", "filter device panel missing input")
+	_expect_text_contains(String(filter_texts.get("operations", "")), "E 尝试当前配方", "filter device panel blocked operation")
+
+	reactor.free()
+	filter.free()
+	hud.free()
 
 
 func _complete_active_quest(quest_id: String, progress_refs: Array) -> void:
