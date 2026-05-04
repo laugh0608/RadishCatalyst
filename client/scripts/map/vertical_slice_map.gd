@@ -100,6 +100,11 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 
 		if interactable.single_use:
 			interactable.consumed = is_processed
+		if interactable.interaction_type == "outpost_core":
+			if world_state.quest_state.has_completed_quest("quest.restore_outpost"):
+				interactable.set_restored_outpost_core_visual()
+				continue
+			interactable.set_default_visual()
 
 		var should_enable: bool = not interactable.consumed
 		if interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter":

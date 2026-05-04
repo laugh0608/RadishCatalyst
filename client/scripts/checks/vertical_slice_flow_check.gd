@@ -1,6 +1,7 @@
 extends SceneTree
 
 const GameRootScript := preload("res://scripts/game/game_root.gd")
+const InteractableScene := preload("res://scenes/maps/PrototypeInteractable.tscn")
 
 var failures: Array[String] = []
 var data_registry := DataRegistry.new()
@@ -34,6 +35,7 @@ func _run_checks() -> void:
 	_check_region_presence_bounds()
 	_check_pollution_gate_runtime_bounds()
 	_check_new_game_state_reset()
+	_check_outpost_core_restored_visual()
 	_check_quest_completion_panel_text()
 	_check_build_prompts()
 	_check_supply_feedback()
@@ -260,6 +262,24 @@ func _check_new_game_state_reset() -> void:
 	_expect_equal(int(reset_character.inventory.items.get("item.basic_parts", 0)), 4, "new game resets starting parts")
 	_expect_equal(String(reset_character.equipment.get("suit_module", "")), "", "new game clears suit module")
 	game_root.free()
+
+
+func _check_outpost_core_restored_visual() -> void:
+	var outpost_core: PrototypeInteractable = InteractableScene.instantiate()
+	root.add_child(outpost_core)
+	outpost_core.definition_id = "building.outpost_core"
+	outpost_core.interaction_type = "outpost_core"
+	outpost_core.setup("前哨核心")
+	var default_color := outpost_core.marker.color
+	outpost_core.set_restored_outpost_core_visual()
+	_expect_equal(outpost_core.visible, true, "restored outpost core remains visible")
+	_expect_equal(outpost_core.monitoring, false, "restored outpost core disables repeat interaction")
+	_expect_equal(outpost_core.marker.color == default_color, false, "restored outpost core changes color")
+	_expect_text_contains(outpost_core.label.text, "已恢复", "restored outpost core label")
+	outpost_core.set_default_visual()
+	_expect_equal(outpost_core.monitoring, true, "new game outpost core enables interaction")
+	_expect_equal(outpost_core.marker.color, default_color, "new game outpost core restores default color")
+	outpost_core.queue_free()
 
 
 func _check_quest_completion_panel_text() -> void:

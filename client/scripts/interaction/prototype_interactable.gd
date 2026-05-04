@@ -2,6 +2,7 @@ extends Area2D
 class_name PrototypeInteractable
 
 const DEFAULT_MARKER_COLOR := Color(0.862745, 0.737255, 0.266667, 1)
+const RESTORED_OUTPOST_CORE_COLOR := Color(0.18, 0.86, 0.93, 1)
 const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
 const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
 
@@ -17,12 +18,14 @@ var consumed: bool = false
 var instance_id: String = ""
 var recipe_ids: Array[String] = []
 var recipe_index: int = 0
+var display_name_text: String = ""
 
 @onready var label: Label = $Label
 @onready var marker: ColorRect = $Marker
 
 
 func setup(display_name: String) -> void:
+	display_name_text = display_name
 	label.text = display_name
 	label.offset_left = label_offset.x
 	label.offset_top = label_offset.y
@@ -89,6 +92,22 @@ func mark_consumed() -> void:
 func set_interaction_enabled(enabled: bool) -> void:
 	visible = enabled
 	monitoring = enabled
+
+
+func set_default_visual() -> void:
+	consumed = false
+	visible = true
+	monitoring = true
+	marker.color = DEFAULT_MARKER_COLOR
+	label.text = display_name_text
+
+
+func set_restored_outpost_core_visual() -> void:
+	consumed = true
+	visible = true
+	monitoring = false
+	marker.color = RESTORED_OUTPOST_CORE_COLOR
+	label.text = "%s\n已恢复" % display_name_text
 
 
 func set_built_visual(built_definition_id: String) -> void:
