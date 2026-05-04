@@ -64,6 +64,7 @@ var debug_panels_visible := false
 @onready var supply_feedback_panel: ColorRect = $SupplyFeedbackPanel
 @onready var supply_feedback_title_label: Label = $SupplyFeedbackPanel/SupplyFeedbackTitleLabel
 @onready var supply_feedback_detail_label: Label = $SupplyFeedbackPanel/SupplyFeedbackDetailLabel
+@onready var new_game_button: Button = $SavePanel/NewGameButton
 @onready var save_slot_labels: Array[Label] = [
 	$SavePanel/Slot01Label,
 	$SavePanel/Slot02Label,
@@ -88,10 +89,12 @@ var debug_panels_visible := false
 signal save_slot_requested(slot_id: String)
 signal load_slot_requested(slot_id: String)
 signal delete_slot_requested(slot_id: String)
+signal new_game_requested
 signal quick_slot_binding_requested(slot_index: int, item_id: String)
 
 
 func _ready() -> void:
+	new_game_button.pressed.connect(_on_new_game_pressed)
 	for index in range(SAVE_SLOT_IDS.size()):
 		save_slot_buttons[index].pressed.connect(_on_save_slot_pressed.bind(index))
 		load_slot_buttons[index].pressed.connect(_on_load_slot_pressed.bind(index))
@@ -178,6 +181,16 @@ func clear_prompt() -> void:
 
 func append_log(text: String) -> void:
 	log_label.text = text
+
+
+func clear_runtime_feedback() -> void:
+	clear_prompt()
+	hide_device_panel()
+	completion_panel.visible = false
+	evacuation_panel.visible = false
+	supply_feedback_panel.visible = false
+	quest_completion_feedback_remaining_seconds = 0.0
+	supply_feedback_remaining_seconds = 0.0
 
 
 func show_quest_completion(feedback: Dictionary) -> void:
@@ -300,6 +313,10 @@ func _on_load_slot_pressed(slot_index: int) -> void:
 
 func _on_delete_slot_pressed(slot_index: int) -> void:
 	delete_slot_requested.emit(SAVE_SLOT_IDS[slot_index])
+
+
+func _on_new_game_pressed() -> void:
+	new_game_requested.emit()
 
 
 func _on_quick_slot_binding_pressed(slot_index: int) -> void:

@@ -41,6 +41,7 @@ func _ready() -> void:
 	hud.save_slot_requested.connect(_on_hud_save_slot_requested)
 	hud.load_slot_requested.connect(_on_hud_load_slot_requested)
 	hud.delete_slot_requested.connect(_on_hud_delete_slot_requested)
+	hud.new_game_requested.connect(_on_hud_new_game_requested)
 	hud.quick_slot_binding_requested.connect(_on_hud_quick_slot_binding_requested)
 	vertical_slice_map.interaction_available.connect(_on_interaction_available)
 	vertical_slice_map.interaction_cleared.connect(_on_interaction_cleared)
@@ -170,6 +171,10 @@ func _on_hud_delete_slot_requested(slot_id: String) -> void:
 	_update_hud()
 
 
+func _on_hud_new_game_requested() -> void:
+	_start_new_game()
+
+
 func _on_hud_quick_slot_binding_requested(slot_index: int, item_id: String) -> void:
 	var result := character_state.bind_quick_slot(slot_index, item_id, data_registry)
 	hud.append_log(String(result.get("message", "")))
@@ -198,6 +203,24 @@ func _load_from_slot(slot_id: String) -> void:
 	hud.append_log("%s：%s" % [_format_slot_name(slot_id), String(result.get("message", ""))])
 	_refresh_save_slot_summaries()
 	_update_hud()
+
+
+func _start_new_game() -> void:
+	var new_state := create_new_game_state()
+	world_state = new_state.get("world_state", WorldState.create_default())
+	character_state = new_state.get("character_state", CharacterState.create_default())
+	vertical_slice_map.apply_runtime_state(world_state, character_state)
+	hud.clear_runtime_feedback()
+	hud.append_log("已从头开始新原型进度；当前进度尚未保存。")
+	_refresh_save_slot_summaries()
+	_update_hud()
+
+
+func create_new_game_state() -> Dictionary:
+	return {
+		"world_state": WorldState.create_default(),
+		"character_state": CharacterState.create_default()
+	}
 
 
 func _on_interaction_available(interactable: PrototypeInteractable) -> void:

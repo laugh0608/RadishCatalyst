@@ -27,10 +27,17 @@ clip_contents = true
 [node name="SaveTitleLabel" type="Label" parent="SavePanel"]
 offset_left = 18.0
 offset_top = 14.0
-offset_right = 524.0
+offset_right = 402.0
 offset_bottom = 42.0
 text = "原型存档"
 label_settings = SubResource("LabelSettings_prompt")
+
+[node name="NewGameButton" type="Button" parent="SavePanel"]
+offset_left = 420.0
+offset_top = 14.0
+offset_right = 526.0
+offset_bottom = 46.0
+text = "新档"
 
 [node name="Slot01Label" type="Label" parent="SavePanel"]
 offset_left = 18.0

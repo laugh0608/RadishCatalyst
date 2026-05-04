@@ -33,6 +33,7 @@ func _run_checks() -> void:
 	_check_region_markers()
 	_check_region_presence_bounds()
 	_check_pollution_gate_runtime_bounds()
+	_check_new_game_state_reset()
 	_check_quest_completion_panel_text()
 	_check_build_prompts()
 	_check_supply_feedback()
@@ -240,6 +241,25 @@ func _check_pollution_gate_runtime_bounds() -> void:
 	_expect_equal(unlocked_character.current_region_id, "region.pollution_edge", "unlocked pollution edge should update character region")
 	map.player.free()
 	map.free()
+
+
+func _check_new_game_state_reset() -> void:
+	var game_root = GameRootScript.new()
+	var new_state := game_root.create_new_game_state()
+	var reset_world: WorldState = new_state.get("world_state", null)
+	var reset_character: CharacterState = new_state.get("character_state", null)
+	if reset_world == null or reset_character == null:
+		failures.append("new game state should include world and character")
+		game_root.free()
+		return
+
+	_expect_equal(reset_world.current_region_id, "region.outpost_platform", "new game resets world region")
+	_expect_equal(reset_character.current_region_id, "region.outpost_platform", "new game resets character region")
+	_expect_equal(reset_world.quest_state.active_quest_ids, ["quest.restore_outpost"], "new game resets active quest")
+	_expect_array_missing(reset_world.unlocked_region_ids, "region.crystal_vein_field", "new game should not keep crystal unlock")
+	_expect_equal(int(reset_character.inventory.items.get("item.basic_parts", 0)), 4, "new game resets starting parts")
+	_expect_equal(String(reset_character.equipment.get("suit_module", "")), "", "new game clears suit module")
+	game_root.free()
 
 
 func _check_quest_completion_panel_text() -> void:
