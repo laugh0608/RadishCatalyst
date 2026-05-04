@@ -85,6 +85,7 @@ func _check_rejects_active_quest_without_completed_quest_source() -> void:
 		"recipe.process_crystal_ore",
 		"recipe.repair_gel",
 		"recipe.make_filter_media",
+		"recipe.basic_filter_module",
 		"quest.make_filter_module",
 		"quest.expand_treatment_point",
 		"recipe.foundation_t1",
@@ -266,6 +267,7 @@ func _mark_bring_back_sample_completed(save_data: Dictionary) -> void:
 		"recipe.process_crystal_ore",
 		"recipe.repair_gel",
 		"recipe.make_filter_media",
+		"recipe.basic_filter_module",
 		"quest.make_filter_module"
 	]
 
@@ -310,6 +312,7 @@ func _mark_slice_complete(save_data: Dictionary) -> void:
 		"recipe.process_crystal_ore",
 		"recipe.repair_gel",
 		"recipe.make_filter_media",
+		"recipe.basic_filter_module",
 		"quest.make_filter_module",
 		"quest.expand_treatment_point",
 		"recipe.foundation_t1",

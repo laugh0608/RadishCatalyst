@@ -159,7 +159,7 @@ func update_save_slot_summaries(summaries: Array[Dictionary]) -> void:
 		var label_text := "%s：%s\n%s" % [
 			String(summary.get("display_name", SAVE_SLOT_IDS[index])),
 			String(summary.get("status", "未知")),
-			String(summary.get("details", ""))
+			_format_save_slot_details(summary)
 		]
 		save_slot_labels[index].text = label_text
 		load_slot_buttons[index].disabled = not bool(summary.get("has_loadable_save", false))
@@ -190,6 +190,16 @@ func _set_debug_panels_visible(is_visible: bool) -> void:
 	save_panel.visible = is_visible
 	completion_panel.visible = is_visible
 	quick_slot_panel.visible = is_visible
+
+
+func _format_save_slot_details(summary: Dictionary) -> String:
+	var status := String(summary.get("status", ""))
+	var details := String(summary.get("details", ""))
+	if status == "存档不可读取":
+		return "存档损坏或内容已过期；可覆盖保存。"
+	if details.length() > 44:
+		return "%s..." % details.substr(0, 44)
+	return details
 
 
 func _append_detail(details: Array[String], text: String) -> void:

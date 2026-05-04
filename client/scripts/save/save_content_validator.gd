@@ -527,26 +527,8 @@ func _validate_cross_block_content(world_data: Dictionary, character_data: Dicti
 
 
 func _validate_world_region_links(world_data: Dictionary, unlocked_region_ids: Array[String]) -> String:
-	for collection_ref in [
-		{"label": "world.map_objects", "value": world_data.get("map_objects", {})},
-		{"label": "world.enemies", "value": world_data.get("enemies", {})},
-		{"label": "world.base_structures", "value": world_data.get("base_structures", {})}
-	]:
-		var value = collection_ref.get("value", {})
-		if not (value is Dictionary):
-			continue
-		for instance_id in value:
-			var entry = value[instance_id]
-			if not (entry is Dictionary):
-				continue
-			var region_id := String(entry.get("region_id", ""))
-			if region_id.is_empty():
-				continue
-			if not unlocked_region_ids.has(region_id):
-				return "读取存档失败：%s.%s 指向未解锁区域，当前运行状态已保留。" % [
-					String(collection_ref.get("label", "")),
-					String(instance_id)
-				]
+	# 固定切片地图会提前记录后续区域的对象、敌人和建造点状态。
+	# 当前区域仍由 _validate_cross_block_content() 校验必须已解锁。
 	return ""
 
 

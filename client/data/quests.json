@@ -36,7 +36,7 @@
       "objectives": [{"type": "sample_object", "target_id": "map_object.anomaly_crystal", "amount": 1}, {"type": "return_region", "target_id": "region.outpost_platform", "amount": 1}],
       "prerequisites": ["quest.scout_crystal_field"],
       "rewards": [],
-      "unlock_effects": ["recipe.make_filter_media", "quest.make_filter_module"],
+      "unlock_effects": ["recipe.make_filter_media", "recipe.basic_filter_module", "quest.make_filter_module"],
       "next_quest_ids": ["quest.make_filter_module"],
       "public_level": "public"
     },

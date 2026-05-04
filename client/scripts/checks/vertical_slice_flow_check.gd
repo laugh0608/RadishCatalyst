@@ -57,6 +57,7 @@ func _run_checks() -> void:
 	])
 	_expect_active_quest("quest.make_filter_module", "after bring back sample")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.make_filter_media", "sample unlocks filter media recipe")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.basic_filter_module", "sample unlocks filter module recipe")
 
 	_complete_active_quest("quest.make_filter_module", [
 		{"type": "craft_item", "target_id": "equipment.filter_module_t1", "amount": 1}
