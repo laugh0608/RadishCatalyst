@@ -217,6 +217,106 @@ text = "Loading..."
 label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3
 
+[node name="MapPanel" type="ColorRect" parent="."]
+offset_left = 1152.0
+offset_top = 32.0
+offset_right = 1648.0
+offset_bottom = 254.0
+color = Color(0.0352941, 0.054902, 0.0588235, 0.88)
+clip_contents = true
+
+[node name="MapTitleLabel" type="Label" parent="MapPanel"]
+offset_left = 18.0
+offset_top = 14.0
+offset_right = 478.0
+offset_bottom = 42.0
+text = "区域地图"
+label_settings = SubResource("LabelSettings_prompt")
+
+[node name="MapHintLabel" type="Label" parent="MapPanel"]
+offset_left = 18.0
+offset_top = 46.0
+offset_right = 478.0
+offset_bottom = 74.0
+text = "当前位置 / 目标 / 解锁状态"
+label_settings = SubResource("LabelSettings_status")
+autowrap_mode = 3
+
+[node name="MapTrack" type="ColorRect" parent="MapPanel"]
+offset_left = 42.0
+offset_top = 108.0
+offset_right = 436.0
+offset_bottom = 114.0
+color = Color(0.309804, 0.360784, 0.333333, 1)
+
+[node name="OutpostMarker" type="ColorRect" parent="MapPanel"]
+offset_left = 38.0
+offset_top = 98.0
+offset_right = 62.0
+offset_bottom = 122.0
+color = Color(0.55, 0.72, 0.66, 1)
+
+[node name="OutpostLabel" type="Label" parent="MapPanel"]
+offset_left = 20.0
+offset_top = 130.0
+offset_right = 126.0
+offset_bottom = 210.0
+text = "基地"
+label_settings = SubResource("LabelSettings_status")
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="CrystalMarker" type="ColorRect" parent="MapPanel"]
+offset_left = 160.0
+offset_top = 98.0
+offset_right = 184.0
+offset_bottom = 122.0
+color = Color(0.35, 0.62, 0.95, 1)
+
+[node name="CrystalLabel" type="Label" parent="MapPanel"]
+offset_left = 132.0
+offset_top = 130.0
+offset_right = 238.0
+offset_bottom = 210.0
+text = "晶体"
+label_settings = SubResource("LabelSettings_status")
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="PollutionMarker" type="ColorRect" parent="MapPanel"]
+offset_left = 282.0
+offset_top = 98.0
+offset_right = 306.0
+offset_bottom = 122.0
+color = Color(0.86, 0.74, 0.27, 1)
+
+[node name="PollutionLabel" type="Label" parent="MapPanel"]
+offset_left = 254.0
+offset_top = 130.0
+offset_right = 360.0
+offset_bottom = 210.0
+text = "污染"
+label_settings = SubResource("LabelSettings_status")
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="RuinMarker" type="ColorRect" parent="MapPanel"]
+offset_left = 414.0
+offset_top = 98.0
+offset_right = 438.0
+offset_bottom = 122.0
+color = Color(0.8, 0.52, 0.92, 1)
+
+[node name="RuinLabel" type="Label" parent="MapPanel"]
+offset_left = 374.0
+offset_top = 130.0
+offset_right = 480.0
+offset_bottom = 210.0
+text = "遗迹"
+label_settings = SubResource("LabelSettings_status")
+horizontal_alignment = 1
+autowrap_mode = 3
+
 [node name="PromptPanel" type="ColorRect" parent="."]
 anchor_left = 1.0
 anchor_right = 1.0

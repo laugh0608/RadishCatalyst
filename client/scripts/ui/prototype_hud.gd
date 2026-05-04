@@ -4,6 +4,10 @@ class_name PrototypeHud
 const SAVE_SLOT_IDS: Array[String] = ["slot_01", "slot_02", "slot_03"]
 const QUICK_SLOT_BIND_CANDIDATES: Array[String] = ["item.repair_gel", "item.resistance_vial_t1", ""]
 const SUPPLY_FEEDBACK_SECONDS := 4.0
+const MAP_MARKER_CURRENT_COLOR := Color(0.18, 0.86, 0.93, 1.0)
+const MAP_MARKER_TARGET_COLOR := Color(1.0, 0.78, 0.28, 1.0)
+const MAP_MARKER_UNLOCKED_COLOR := Color(0.55, 0.72, 0.66, 1.0)
+const MAP_MARKER_LOCKED_COLOR := Color(0.28, 0.32, 0.32, 1.0)
 
 var last_quick_slots: Array[String] = []
 var supply_feedback_remaining_seconds := 0.0
@@ -16,6 +20,18 @@ var debug_panels_visible := false
 @onready var status_label: Label = $StatusPanel/StatusLabel
 @onready var prompt_label: Label = $PromptPanel/PromptLabel
 @onready var log_label: Label = $LogPanel/LogLabel
+@onready var map_marker_rects: Array[ColorRect] = [
+	$MapPanel/OutpostMarker,
+	$MapPanel/CrystalMarker,
+	$MapPanel/PollutionMarker,
+	$MapPanel/RuinMarker
+]
+@onready var map_marker_labels: Array[Label] = [
+	$MapPanel/OutpostLabel,
+	$MapPanel/CrystalLabel,
+	$MapPanel/PollutionLabel,
+	$MapPanel/RuinLabel
+]
 @onready var device_title_label: Label = $DevicePanel/DeviceTitleLabel
 @onready var device_status_label: Label = $DevicePanel/DeviceStatusLabel
 @onready var device_recipe_label: Label = $DevicePanel/DeviceRecipeLabel
@@ -105,7 +121,6 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 		"目标：%s" % _format_goal_name(data_registry, world_state, active_quest_id),
 		"进度：%s" % _format_active_quest_progress(data_registry, world_state, active_quest_id),
 		"方向：%s" % _format_direction_hint(world_state, character_state, active_quest_id),
-		"区域标记：%s" % _format_region_markers(world_state, active_quest_id),
 		"提示：%s" % _format_onboarding_hint(world_state, character_state, active_quest_id),
 		"坐标：x %.1f，y %.1f" % [character_state.position.x, character_state.position.y],
 		"生命：%.0f / %.0f" % [character_state.health, character_state.max_health],
@@ -118,6 +133,7 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 		"快捷栏：%s" % _format_quick_slots(data_registry, character_state),
 		"背包：%s" % _format_inventory(data_registry, character_state.inventory)
 	])
+	_update_map_panel(world_state, active_quest_id)
 	_update_quick_slot_binding_panel(data_registry, character_state)
 
 
@@ -591,7 +607,49 @@ func _format_direction_hint(world_state: WorldState, character_state: CharacterS
 
 func _format_region_markers(world_state: WorldState, quest_id: String) -> String:
 	var target_region_id := _get_quest_target_region_id(world_state, quest_id)
-	var markers: Array[Dictionary] = [
+	var parts: Array[String] = []
+	for marker in _get_region_marker_data():
+		var region_id := String(marker.get("region_id", ""))
+		var marker_parts: Array[String] = []
+		if world_state.current_region_id == region_id:
+			marker_parts.append("当前位置")
+		else:
+			marker_parts.append(String(marker.get("direction", "")))
+
+		if target_region_id == region_id:
+			marker_parts.append("目标")
+		elif world_state.unlocked_region_ids.has(region_id):
+			marker_parts.append("已解锁")
+		else:
+			marker_parts.append("未解锁")
+
+		parts.append("%s：%s" % [
+			String(marker.get("label", region_id)),
+			"，".join(marker_parts)
+		])
+	return "；".join(parts)
+
+
+func format_map_marker_labels(world_state: WorldState, quest_id: String) -> Array[String]:
+	var labels: Array[String] = []
+	var target_region_id := _get_quest_target_region_id(world_state, quest_id)
+	for marker in _get_region_marker_data():
+		labels.append(_format_map_marker_label(marker, world_state, target_region_id))
+	return labels
+
+
+func _update_map_panel(world_state: WorldState, quest_id: String) -> void:
+	var target_region_id := _get_quest_target_region_id(world_state, quest_id)
+	var markers := _get_region_marker_data()
+	for index in range(mini(markers.size(), map_marker_rects.size())):
+		var marker := markers[index]
+		var region_id := String(marker.get("region_id", ""))
+		map_marker_rects[index].color = _get_map_marker_color(region_id, world_state, target_region_id)
+		map_marker_labels[index].text = _format_map_marker_label(marker, world_state, target_region_id)
+
+
+func _get_region_marker_data() -> Array[Dictionary]:
+	return [
 		{
 			"region_id": "region.outpost_platform",
 			"label": "基地",
@@ -613,27 +671,30 @@ func _format_region_markers(world_state: WorldState, quest_id: String) -> String
 			"direction": "东端"
 		}
 	]
-	var parts: Array[String] = []
-	for marker in markers:
-		var region_id := String(marker.get("region_id", ""))
-		var marker_parts: Array[String] = []
-		if world_state.current_region_id == region_id:
-			marker_parts.append("当前位置")
-		else:
-			marker_parts.append(String(marker.get("direction", "")))
 
-		if target_region_id == region_id:
-			marker_parts.append("目标")
-		elif world_state.unlocked_region_ids.has(region_id):
-			marker_parts.append("已解锁")
-		else:
-			marker_parts.append("未解锁")
 
-		parts.append("%s：%s" % [
-			String(marker.get("label", region_id)),
-			"，".join(marker_parts)
-		])
-	return "；".join(parts)
+func _format_map_marker_label(marker: Dictionary, world_state: WorldState, target_region_id: String) -> String:
+	var region_id := String(marker.get("region_id", ""))
+	var rows: Array[String] = [String(marker.get("label", region_id))]
+	if world_state.current_region_id == region_id:
+		rows.append("当前")
+	if target_region_id == region_id:
+		rows.append("目标")
+	elif world_state.unlocked_region_ids.has(region_id):
+		rows.append("已解锁")
+	else:
+		rows.append("未解锁")
+	return "\n".join(rows)
+
+
+func _get_map_marker_color(region_id: String, world_state: WorldState, target_region_id: String) -> Color:
+	if world_state.current_region_id == region_id:
+		return MAP_MARKER_CURRENT_COLOR
+	if target_region_id == region_id:
+		return MAP_MARKER_TARGET_COLOR
+	if world_state.unlocked_region_ids.has(region_id):
+		return MAP_MARKER_UNLOCKED_COLOR
+	return MAP_MARKER_LOCKED_COLOR
 
 
 func _get_quest_target_region_id(world_state: WorldState, quest_id: String) -> String:

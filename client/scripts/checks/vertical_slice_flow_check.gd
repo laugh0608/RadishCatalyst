@@ -133,12 +133,20 @@ func _check_region_markers() -> void:
 		"晶体：东侧，未解锁",
 		"locked crystal marker"
 	)
+	var initial_map_labels := hud.format_map_marker_labels(marker_world, "quest.restore_outpost")
+	_expect_array_has(initial_map_labels, "基地\n当前\n目标", "outpost minimap current target marker")
+	_expect_array_has(initial_map_labels, "晶体\n未解锁", "crystal minimap locked marker")
 
 	marker_world.unlock_region("region.crystal_vein_field")
 	_expect_text_contains(
 		hud._format_region_markers(marker_world, "quest.scout_crystal_field"),
 		"晶体：东侧，目标",
 		"crystal marker as objective"
+	)
+	_expect_array_has(
+		hud.format_map_marker_labels(marker_world, "quest.scout_crystal_field"),
+		"晶体\n目标",
+		"crystal minimap objective marker"
 	)
 
 	marker_world.quest_state.set_objective_progress(
@@ -158,6 +166,11 @@ func _check_region_markers() -> void:
 		hud._format_region_markers(marker_world, "quest.unlock_ruin_signal"),
 		"遗迹：东端，目标",
 		"ruin gate marker as objective"
+	)
+	_expect_array_has(
+		hud.format_map_marker_labels(marker_world, "quest.unlock_ruin_signal"),
+		"遗迹\n目标",
+		"ruin gate minimap objective marker"
 	)
 	hud.free()
 
