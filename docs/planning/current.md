@@ -87,7 +87,7 @@ pwsh ./scripts/check-client-flow.ps1
 pwsh ./scripts/check-godot-client.ps1
 ```
 
-其中 `check-client-quests.ps1` 用于直接复验任务事件映射、任务目标进度和任务完成规则；`check-client-flow.ps1` 用于复验主线任务链从恢复前哨推进到 `slice_01_complete` 的关键状态，不等同于完整 UI 自动试玩。
+其中 `check-client-scenes.ps1` 会校验场景资源引用、Godot 脚本 UID 和原型 HUD 关键面板默认布局，避免状态、地图、设备、任务完成、撤离、补给、提示和日志面板互相遮挡；`check-client-quests.ps1` 用于直接复验任务事件映射、任务目标进度和任务完成规则；`check-client-flow.ps1` 用于复验主线任务链从恢复前哨推进到 `slice_01_complete` 的关键状态，不等同于完整 UI 自动试玩。
 
 提交前仍需执行仓库文本卫生和 diff 检查：
 

@@ -64,7 +64,7 @@
 
 ## 当前验证基线
 
-当前仓库已初始化 Godot 原型工程。默认验证以仓库文本卫生、客户端静态数据、场景引用、存档运行时、任务规则、第一切片关键流程和 Godot 导入为主。
+当前仓库已初始化 Godot 原型工程。默认验证以仓库文本卫生、客户端静态数据、场景引用、HUD 关键面板布局、存档运行时、任务规则、第一切片关键流程和 Godot 导入为主。
 
 仓库文本卫生仍需执行：
 
@@ -103,6 +103,8 @@ pwsh ./scripts/check-client-quests.ps1
 pwsh ./scripts/check-client-flow.ps1
 pwsh ./scripts/check-godot-client.ps1
 ```
+
+其中 `check-client-scenes.ps1` 会校验场景资源引用、Godot 脚本 UID 和原型 HUD 关键面板默认布局，避免状态、地图、设备、任务完成、撤离、补给、提示和日志面板互相遮挡。
 
 提交前按改动范围至少执行匹配的单项验证；涉及客户端状态、任务、存档、场景或脚本时，优先执行聚合验证，再执行 `pwsh ./scripts/check-text-files.ps1` 和 `git diff --check`。
 
