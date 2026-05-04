@@ -29,6 +29,7 @@ func _run_checks() -> void:
 
 	_expect_equal(world_state.quest_state.active_quest_ids, ["quest.restore_outpost"], "initial active quest")
 	_check_onboarding_hints()
+	_check_status_panel_summary()
 	_check_region_markers()
 	_check_quest_completion_panel_text()
 	_check_build_prompts()
@@ -117,6 +118,26 @@ func _check_onboarding_hints() -> void:
 
 	hint_world.quest_state.unlocked_effects.append("slice_01_complete")
 	_expect_hint_contains(hud, hint_world, hint_character, "", "更深区域信号", "slice complete onboarding hint")
+	hud.free()
+
+
+func _check_status_panel_summary() -> void:
+	var hud := PrototypeHud.new()
+	var status_world := WorldState.create_default()
+	var status_character := CharacterState.create_default()
+	var status_text := hud.format_status_text(data_registry, status_world, status_character)
+	_expect_text_contains(status_text, "目标：恢复前哨", "status keeps current goal")
+	_expect_text_contains(status_text, "进度：交互 前哨核心 0/1", "status keeps objective progress")
+	_expect_text_contains(status_text, "状态：生命 100 / 100；防护 100 / 100", "status keeps health and protection")
+	_expect_text_contains(status_text, "快捷栏：1 修复凝胶 x1", "status keeps quick slots")
+	_expect_text_contains(status_text, "关键物资：基础零件 x4", "status keeps key resources")
+	_expect_text_missing(status_text, "区域：", "status removes minimap region duplicate")
+	_expect_text_missing(status_text, "方向：", "status removes minimap direction duplicate")
+	_expect_text_missing(status_text, "提示：", "status removes onboarding duplicate")
+	_expect_text_missing(status_text, "坐标：", "status removes debug coordinate duplicate")
+	_expect_text_missing(status_text, "背包：", "status removes full inventory duplicate")
+	if status_text.split("\n").size() > 8:
+		failures.append("status panel should stay compact, got %d lines: %s" % [status_text.split("\n").size(), status_text])
 	hud.free()
 
 
@@ -759,6 +780,11 @@ func _expect_hint_contains(hud: PrototypeHud, hint_world: WorldState, hint_chara
 func _expect_text_contains(text: String, expected_text: String, label: String) -> void:
 	if text.find(expected_text) < 0:
 		failures.append("%s should contain %s, got %s" % [label, expected_text, text])
+
+
+func _expect_text_missing(text: String, unexpected_text: String, label: String) -> void:
+	if text.find(unexpected_text) >= 0:
+		failures.append("%s should not contain %s, got %s" % [label, unexpected_text, text])
 
 
 func _expect_feedback_contains(result: Dictionary, expected_text: String, label: String) -> void:

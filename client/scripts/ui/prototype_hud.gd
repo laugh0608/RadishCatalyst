@@ -9,6 +9,14 @@ const MAP_MARKER_CURRENT_COLOR := Color(0.18, 0.86, 0.93, 1.0)
 const MAP_MARKER_TARGET_COLOR := Color(1.0, 0.78, 0.28, 1.0)
 const MAP_MARKER_UNLOCKED_COLOR := Color(0.55, 0.72, 0.66, 1.0)
 const MAP_MARKER_LOCKED_COLOR := Color(0.28, 0.32, 0.32, 1.0)
+const STATUS_KEY_RESOURCE_IDS: Array[String] = [
+	"item.crystal_ore",
+	"item.basic_parts",
+	"item.polluted_residue",
+	"item.filter_media",
+	"item.foundation_material",
+	"fluid.basic_solvent"
+]
 
 var last_quick_slots: Array[String] = []
 var supply_feedback_remaining_seconds := 0.0
@@ -117,30 +125,47 @@ func _update_timed_panel_visibility(delta: float) -> void:
 
 
 func update_status(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> void:
+	status_label.text = format_status_text(data_registry, world_state, character_state)
+	_update_map_panel(world_state, _get_active_quest_id(world_state))
+	_update_quick_slot_binding_panel(data_registry, character_state)
+
+
+func format_status_text(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> String:
+	var active_quest_id := _get_active_quest_id(world_state)
+	return "\n".join(_format_status_lines(data_registry, world_state, character_state, active_quest_id))
+
+
+func _get_active_quest_id(world_state: WorldState) -> String:
 	var active_quest_id := ""
 	if not world_state.quest_state.active_quest_ids.is_empty():
 		active_quest_id = world_state.quest_state.active_quest_ids[0]
+	return active_quest_id
 
-	status_label.text = "\n".join([
+
+func _format_status_lines(
+	data_registry: DataRegistry,
+	world_state: WorldState,
+	character_state: CharacterState,
+	active_quest_id: String
+) -> Array[String]:
+	return [
 		"RadishCatalyst Prototype",
-		"区域：%s" % _get_display_name(data_registry, world_state.current_region_id),
 		"目标：%s" % _format_goal_name(data_registry, world_state, active_quest_id),
 		"进度：%s" % _format_active_quest_progress(data_registry, world_state, active_quest_id),
-		"方向：%s" % _format_direction_hint(world_state, character_state, active_quest_id),
-		"提示：%s" % _format_onboarding_hint(world_state, character_state, active_quest_id),
-		"坐标：x %.1f，y %.1f" % [character_state.position.x, character_state.position.y],
-		"生命：%.0f / %.0f" % [character_state.health, character_state.max_health],
-		"防护：%.0f / %.0f" % [character_state.protection, character_state.max_protection],
+		"状态：生命 %.0f / %.0f；防护 %.0f / %.0f" % [
+			character_state.health,
+			character_state.max_health,
+			character_state.protection,
+			character_state.max_protection
+		],
 		"污染：%s" % _format_pollution_status(data_registry, world_state, character_state),
-		"模块：%s（污染消耗 x%.2f）" % [
+		"模块：%s，污染消耗 x%.2f" % [
 			_get_equipped_module_name(data_registry, character_state),
 			character_state.get_pollution_drain_multiplier(data_registry)
 		],
 		"快捷栏：%s" % _format_quick_slots(data_registry, character_state),
-		"背包：%s" % _format_inventory(data_registry, character_state.inventory)
-	])
-	_update_map_panel(world_state, active_quest_id)
-	_update_quick_slot_binding_panel(data_registry, character_state)
+		"关键物资：%s" % _format_key_resources(data_registry, character_state.inventory)
+	]
 
 
 func show_prompt(text: String) -> void:
@@ -537,6 +562,24 @@ func _format_inventory(data_registry: DataRegistry, inventory: InventoryState) -
 	if parts.size() <= 7:
 		return "；".join(parts)
 	return "%s；另 %d 类" % ["；".join(parts.slice(0, 7)), parts.size() - 7]
+
+
+func _format_key_resources(data_registry: DataRegistry, inventory: InventoryState) -> String:
+	var parts: Array[String] = []
+	for definition_id in STATUS_KEY_RESOURCE_IDS:
+		var amount := _get_inventory_amount(inventory, definition_id)
+		if amount <= 0.0:
+			continue
+		parts.append("%s x%s" % [_get_display_name(data_registry, definition_id), _format_amount(amount)])
+	if parts.is_empty():
+		return "暂无"
+	return "；".join(parts)
+
+
+func _get_inventory_amount(inventory: InventoryState, definition_id: String) -> float:
+	if definition_id.begins_with("fluid."):
+		return float(inventory.fluids.get(definition_id, 0.0))
+	return float(inventory.items.get(definition_id, 0))
 
 
 func _get_equipped_module_name(data_registry: DataRegistry, character_state: CharacterState) -> String:
