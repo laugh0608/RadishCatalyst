@@ -1,7 +1,6 @@
 extends SceneTree
 
 const GameRootScript := preload("res://scripts/game/game_root.gd")
-const InteractableScene := preload("res://scenes/maps/PrototypeInteractable.tscn")
 
 var failures: Array[String] = []
 var data_registry := DataRegistry.new()
@@ -36,6 +35,7 @@ func _run_checks() -> void:
 	_check_pollution_gate_runtime_bounds()
 	_check_new_game_state_reset()
 	_check_outpost_core_restored_visual()
+	_check_early_interaction_processed_visuals()
 	_check_quest_completion_panel_text()
 	_check_build_prompts()
 	_check_supply_feedback()
@@ -265,11 +265,14 @@ func _check_new_game_state_reset() -> void:
 
 
 func _check_outpost_core_restored_visual() -> void:
-	var outpost_core: PrototypeInteractable = InteractableScene.instantiate()
-	root.add_child(outpost_core)
-	outpost_core.definition_id = "building.outpost_core"
-	outpost_core.interaction_type = "outpost_core"
-	outpost_core.setup("前哨核心")
+	var temp_root := Node.new()
+	var outpost_core := _create_visual_check_interactable(
+		temp_root,
+		"map_object_instance.outpost_core",
+		"building.outpost_core",
+		"outpost_core",
+		"前哨核心"
+	)
 	var default_color := outpost_core.marker.color
 	outpost_core.set_restored_outpost_core_visual()
 	_expect_equal(outpost_core.visible, true, "restored outpost core remains visible")
@@ -279,7 +282,66 @@ func _check_outpost_core_restored_visual() -> void:
 	outpost_core.set_default_visual()
 	_expect_equal(outpost_core.monitoring, true, "new game outpost core enables interaction")
 	_expect_equal(outpost_core.marker.color, default_color, "new game outpost core restores default color")
-	outpost_core.queue_free()
+	temp_root.free()
+
+
+func _check_early_interaction_processed_visuals() -> void:
+	var map := VerticalSliceMap.new()
+	map.player = PlayerController.new()
+	map.interactables_root = Node2D.new()
+	map.add_child(map.player)
+	map.add_child(map.interactables_root)
+
+	var crystal := _create_visual_check_interactable(
+		map.interactables_root,
+		"map_object_instance.crystal_cluster",
+		"map_object.crystal_cluster",
+		"gather",
+		"晶体簇"
+	)
+	var anomaly := _create_visual_check_interactable(
+		map.interactables_root,
+		"map_object_instance.anomaly_crystal",
+		"map_object.anomaly_crystal",
+		"sample",
+		"异常晶体"
+	)
+	var rough_ground := _create_visual_check_interactable(
+		map.interactables_root,
+		"map_object_instance.rough_ground_north",
+		"map_object.rough_ground",
+		"clear",
+		"粗糙地面"
+	)
+	var default_crystal_color := crystal.marker.color
+
+	var visual_world := WorldState.create_default()
+	visual_world.ensure_map_object(crystal.instance_id, crystal.definition_id, "region.crystal_vein_field")
+	visual_world.set_map_object_flag(crystal.instance_id, "is_gathered", true)
+	visual_world.ensure_map_object(anomaly.instance_id, anomaly.definition_id, "region.crystal_vein_field")
+	visual_world.set_map_object_flag(anomaly.instance_id, "is_sampled", true)
+	visual_world.ensure_map_object(rough_ground.instance_id, rough_ground.definition_id, "region.pollution_edge")
+	visual_world.set_map_object_flag(rough_ground.instance_id, "is_cleared", true)
+	map.refresh_world_interactables(visual_world)
+
+	_expect_equal(crystal.visible, true, "gathered crystal remains visible")
+	_expect_equal(crystal.monitoring, false, "gathered crystal disables repeat interaction")
+	_expect_equal(crystal.marker.color == default_crystal_color, false, "gathered crystal changes color")
+	_expect_text_contains(crystal.label.text, "已采集", "gathered crystal label")
+	_expect_equal(anomaly.visible, true, "sampled anomaly remains visible")
+	_expect_equal(anomaly.monitoring, false, "sampled anomaly disables repeat interaction")
+	_expect_text_contains(anomaly.label.text, "已采样", "sampled anomaly label")
+	_expect_equal(rough_ground.visible, true, "cleared rough ground remains visible")
+	_expect_equal(rough_ground.monitoring, false, "cleared rough ground disables repeat interaction")
+	_expect_text_contains(rough_ground.label.text, "已清理", "cleared rough ground label")
+
+	var reset_world := WorldState.create_default()
+	map.refresh_world_interactables(reset_world)
+	_expect_equal(crystal.monitoring, true, "new game crystal enables interaction")
+	_expect_equal(crystal.marker.color, default_crystal_color, "new game crystal restores default color")
+	_expect_equal(crystal.label.text, "晶体簇", "new game crystal restores label")
+
+	map.free()
 
 
 func _check_quest_completion_panel_text() -> void:
@@ -884,6 +946,36 @@ func _expect_feedback_contains(result: Dictionary, expected_text: String, label:
 		String(feedback.get("detail", ""))
 	]
 	_expect_text_contains(text, expected_text, label)
+
+
+func _create_visual_check_interactable(
+	parent: Node,
+	instance_id: String,
+	definition_id: String,
+	interaction_type: String,
+	display_name: String
+) -> PrototypeInteractable:
+	var interactable := PrototypeInteractable.new()
+	var marker := ColorRect.new()
+	marker.name = "Marker"
+	marker.offset_left = -16.0
+	marker.offset_top = -16.0
+	marker.offset_right = 16.0
+	marker.offset_bottom = 16.0
+	marker.color = PrototypeInteractable.DEFAULT_MARKER_COLOR
+	interactable.add_child(marker)
+	interactable.marker = marker
+	var label := Label.new()
+	label.name = "Label"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	interactable.add_child(label)
+	interactable.label = label
+	parent.add_child(interactable)
+	interactable.instance_id = instance_id
+	interactable.definition_id = definition_id
+	interactable.interaction_type = interaction_type
+	interactable.setup(display_name)
+	return interactable
 
 
 func _expect_failure_feedback(result: Dictionary, expected_title: String, label: String) -> void:

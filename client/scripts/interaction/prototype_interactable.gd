@@ -3,6 +3,9 @@ class_name PrototypeInteractable
 
 const DEFAULT_MARKER_COLOR := Color(0.862745, 0.737255, 0.266667, 1)
 const RESTORED_OUTPOST_CORE_COLOR := Color(0.18, 0.86, 0.93, 1)
+const GATHERED_CRYSTAL_COLOR := Color(0.22, 0.42, 0.58, 1)
+const SAMPLED_ANOMALY_COLOR := Color(0.7, 0.38, 0.82, 1)
+const CLEARED_GROUND_COLOR := Color(0.42, 0.5, 0.42, 1)
 const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
 const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
 
@@ -26,11 +29,10 @@ var display_name_text: String = ""
 
 func setup(display_name: String) -> void:
 	display_name_text = display_name
-	label.text = display_name
 	label.offset_left = label_offset.x
 	label.offset_top = label_offset.y
 	label.offset_right = label_offset.x + label_size.x
-	label.offset_bottom = label_offset.y + label_size.y
+	_set_label_text(display_name)
 
 
 func can_interact() -> bool:
@@ -83,6 +85,8 @@ func mark_consumed() -> void:
 	if interaction_type == "build":
 		set_built_visual(definition_id)
 		return
+	if set_processed_visual():
+		return
 	if single_use:
 		consumed = true
 		visible = false
@@ -99,7 +103,7 @@ func set_default_visual() -> void:
 	visible = true
 	monitoring = true
 	marker.color = DEFAULT_MARKER_COLOR
-	label.text = display_name_text
+	_set_label_text(display_name_text)
 
 
 func set_restored_outpost_core_visual() -> void:
@@ -107,7 +111,32 @@ func set_restored_outpost_core_visual() -> void:
 	visible = true
 	monitoring = false
 	marker.color = RESTORED_OUTPOST_CORE_COLOR
-	label.text = "%s\n已恢复" % display_name_text
+	_set_label_text("%s\n已恢复" % display_name_text, 2)
+
+
+func set_processed_visual() -> bool:
+	if interaction_type == "gather" and definition_id == "map_object.crystal_cluster":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = GATHERED_CRYSTAL_COLOR
+		_set_label_text("%s\n已采集" % display_name_text, 2)
+		return true
+	if interaction_type == "sample" and definition_id == "map_object.anomaly_crystal":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = SAMPLED_ANOMALY_COLOR
+		_set_label_text("%s\n已采样" % display_name_text, 2)
+		return true
+	if interaction_type == "clear" and definition_id == "map_object.rough_ground":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = CLEARED_GROUND_COLOR
+		_set_label_text("%s\n已清理" % display_name_text, 2)
+		return true
+	return false
 
 
 func set_built_visual(built_definition_id: String) -> void:
@@ -116,9 +145,14 @@ func set_built_visual(built_definition_id: String) -> void:
 	monitoring = false
 	if built_definition_id == "building.foundation_t1":
 		marker.color = BUILT_FOUNDATION_COLOR
-		label.text = "基础地基"
+		_set_label_text("基础地基")
 	elif built_definition_id == "building.pollution_filter":
 		marker.color = BUILT_FILTER_COLOR
-		label.text = ""
+		_set_label_text("")
 	else:
 		marker.color = DEFAULT_MARKER_COLOR
+
+
+func _set_label_text(text: String, min_lines: int = 1) -> void:
+	label.text = text
+	label.offset_bottom = label_offset.y + label_size.y * maxi(min_lines, 1)

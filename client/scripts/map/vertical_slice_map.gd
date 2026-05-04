@@ -105,6 +105,13 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				interactable.set_restored_outpost_core_visual()
 				continue
 			interactable.set_default_visual()
+		elif is_processed and interactable.set_processed_visual():
+			if current_interactable == interactable:
+				current_interactable = null
+				interaction_cleared.emit(interactable)
+			continue
+		elif not is_processed:
+			interactable.set_default_visual()
 
 		var should_enable: bool = not interactable.consumed
 		if interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter":
