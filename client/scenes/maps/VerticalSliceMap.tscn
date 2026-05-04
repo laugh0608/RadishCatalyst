@@ -31,7 +31,7 @@ color = Color(0.14902, 0.211765, 0.301961, 1)
 
 [node name="RegionPollution" type="ColorRect" parent="."]
 offset_left = 200.0
-offset_top = -200.0
+offset_top = -40.0
 offset_right = 360.0
 offset_bottom = 200.0
 color = Color(0.258824, 0.247059, 0.12549, 1)

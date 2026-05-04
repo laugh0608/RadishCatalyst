@@ -32,6 +32,7 @@ func _run_checks() -> void:
 	_check_status_panel_summary()
 	_check_region_markers()
 	_check_region_presence_bounds()
+	_check_pollution_gate_runtime_bounds()
 	_check_quest_completion_panel_text()
 	_check_build_prompts()
 	_check_supply_feedback()
@@ -200,25 +201,44 @@ func _check_region_markers() -> void:
 func _check_region_presence_bounds() -> void:
 	var map := VerticalSliceMap.new()
 	_expect_equal(
-		map._get_region_id_for_position(Vector2(253, -104), false),
+		map._get_region_id_for_position(Vector2(253, -104)),
 		"region.crystal_vein_field",
-		"pollution treatment point should not count as pollution before unlock"
+		"pollution treatment point should not count as pollution"
 	)
 	_expect_equal(
-		map._get_region_id_for_position(Vector2(253, -104), true),
+		map._get_region_id_for_position(Vector2(253, 30)),
 		"region.pollution_edge",
-		"pollution treatment point should count as pollution after unlock"
+		"pollution lower area should count as pollution"
 	)
 	_expect_equal(
-		map._get_region_id_for_position(Vector2(253, 30), false),
-		"region.pollution_edge",
-		"pollution lower area should remain gate region before unlock"
-	)
-	_expect_equal(
-		map._get_region_id_for_position(Vector2(190, -104), true),
+		map._get_region_id_for_position(Vector2(190, -104)),
 		"region.crystal_vein_field",
 		"gap before pollution visual edge should remain crystal"
 	)
+	map.free()
+
+
+func _check_pollution_gate_runtime_bounds() -> void:
+	var map := VerticalSliceMap.new()
+	map.player = PlayerController.new()
+	var gate_world := WorldState.create_default()
+	gate_world.unlock_region("region.crystal_vein_field")
+	var gate_character := CharacterState.create_default()
+	map.player.position = Vector2(253, 30)
+	map.update_region_presence(gate_world, gate_character)
+	_expect_equal(map.player.position.x, 195.0, "locked pollution edge should push player before visual region")
+	_expect_equal(gate_world.current_region_id, "region.crystal_vein_field", "locked pollution edge should return to crystal side")
+
+	var unlocked_world := WorldState.create_default()
+	unlocked_world.unlock_region("region.crystal_vein_field")
+	unlocked_world.unlock_region("region.pollution_edge")
+	var unlocked_character := CharacterState.create_default()
+	map.last_reported_region_id = unlocked_world.current_region_id
+	map.player.position = Vector2(253, 30)
+	map.update_region_presence(unlocked_world, unlocked_character)
+	_expect_equal(unlocked_world.current_region_id, "region.pollution_edge", "unlocked pollution edge should update current region")
+	_expect_equal(unlocked_character.current_region_id, "region.pollution_edge", "unlocked pollution edge should update character region")
+	map.player.free()
 	map.free()
 
 
