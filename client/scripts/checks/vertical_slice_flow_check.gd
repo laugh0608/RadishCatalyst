@@ -36,6 +36,7 @@ func _run_checks() -> void:
 	_check_new_game_state_reset()
 	_check_outpost_core_restored_visual()
 	_check_early_interaction_processed_visuals()
+	_check_pollution_enemy_defeated_visual()
 	_check_quest_completion_panel_text()
 	_check_build_prompts()
 	_check_supply_feedback()
@@ -313,7 +314,22 @@ func _check_early_interaction_processed_visuals() -> void:
 		"clear",
 		"粗糙地面"
 	)
+	var residue := _create_visual_check_interactable(
+		map.interactables_root,
+		"map_object_instance.pollution_residue",
+		"map_object.pollution_residue_patch",
+		"gather",
+		"污染沉积斑"
+	)
+	var ruin_gate := _create_visual_check_interactable(
+		map.interactables_root,
+		"map_object_instance.ruin_gate",
+		"map_object.ruin_gate",
+		"inspect",
+		"封锁遗迹入口"
+	)
 	var default_crystal_color := crystal.marker.color
+	var default_ruin_color := ruin_gate.marker.color
 
 	var visual_world := WorldState.create_default()
 	visual_world.ensure_map_object(crystal.instance_id, crystal.definition_id, "region.crystal_vein_field")
@@ -322,6 +338,9 @@ func _check_early_interaction_processed_visuals() -> void:
 	visual_world.set_map_object_flag(anomaly.instance_id, "is_sampled", true)
 	visual_world.ensure_map_object(rough_ground.instance_id, rough_ground.definition_id, "region.pollution_edge")
 	visual_world.set_map_object_flag(rough_ground.instance_id, "is_cleared", true)
+	visual_world.ensure_map_object(residue.instance_id, residue.definition_id, "region.pollution_edge")
+	visual_world.set_map_object_flag(residue.instance_id, "is_gathered", true)
+	visual_world.quest_state.completed_quest_ids.append("quest.unlock_ruin_signal")
 	map.refresh_world_interactables(visual_world)
 
 	_expect_equal(crystal.visible, true, "gathered crystal remains visible")
@@ -334,14 +353,37 @@ func _check_early_interaction_processed_visuals() -> void:
 	_expect_equal(rough_ground.visible, true, "cleared rough ground remains visible")
 	_expect_equal(rough_ground.monitoring, false, "cleared rough ground disables repeat interaction")
 	_expect_text_contains(rough_ground.label.text, "已清理", "cleared rough ground label")
+	_expect_equal(residue.visible, true, "gathered residue remains visible")
+	_expect_equal(residue.monitoring, false, "gathered residue disables repeat interaction")
+	_expect_text_contains(residue.label.text, "已回收", "gathered residue label")
+	_expect_equal(ruin_gate.visible, true, "confirmed ruin gate remains visible")
+	_expect_equal(ruin_gate.monitoring, false, "confirmed ruin gate disables repeat interaction")
+	_expect_equal(ruin_gate.marker.color == default_ruin_color, false, "confirmed ruin gate changes color")
+	_expect_text_contains(ruin_gate.label.text, "信号已确认", "confirmed ruin gate label")
 
 	var reset_world := WorldState.create_default()
 	map.refresh_world_interactables(reset_world)
 	_expect_equal(crystal.monitoring, true, "new game crystal enables interaction")
 	_expect_equal(crystal.marker.color, default_crystal_color, "new game crystal restores default color")
 	_expect_equal(crystal.label.text, "晶体簇", "new game crystal restores label")
+	_expect_equal(ruin_gate.monitoring, true, "new game ruin gate enables interaction")
+	_expect_equal(ruin_gate.marker.color, default_ruin_color, "new game ruin gate restores default color")
 
 	map.free()
+
+
+func _check_pollution_enemy_defeated_visual() -> void:
+	var enemy := _create_visual_check_enemy("enemy.polluted_skitter", "受扰掠行体", 40.0, "polluted")
+	var default_polluted_color := enemy.sprite.color
+	enemy.apply_saved_state({
+		"health": 0.0,
+		"is_defeated": true
+	})
+	_expect_equal(enemy.defeated, true, "polluted enemy restored defeated state")
+	_expect_equal(enemy.can_be_attacked(), false, "polluted enemy disables repeat attack")
+	_expect_equal(enemy.sprite.color == default_polluted_color, false, "polluted enemy defeated changes color")
+	_expect_text_contains(enemy.label.text, "污染已压制", "polluted enemy defeated label")
+	enemy.free()
 
 
 func _check_quest_completion_panel_text() -> void:
@@ -976,6 +1018,33 @@ func _create_visual_check_interactable(
 	interactable.interaction_type = interaction_type
 	interactable.setup(display_name)
 	return interactable
+
+
+func _create_visual_check_enemy(
+	definition_id: String,
+	display_name: String,
+	max_health: float,
+	category: String
+) -> PrototypeEnemy:
+	var enemy := PrototypeEnemy.new()
+	var collision_shape := CollisionShape2D.new()
+	collision_shape.name = "CollisionShape2D"
+	collision_shape.shape = CircleShape2D.new()
+	enemy.add_child(collision_shape)
+	enemy.collision_shape = collision_shape
+	var sprite := ColorRect.new()
+	sprite.name = "Sprite"
+	sprite.color = Color(0.8, 0.313726, 0.215686, 1)
+	enemy.add_child(sprite)
+	enemy.sprite = sprite
+	var label := Label.new()
+	label.name = "Label"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	enemy.add_child(label)
+	enemy.label = label
+	enemy.definition_id = definition_id
+	enemy.setup(display_name, max_health, category)
+	return enemy
 
 
 func _expect_failure_feedback(result: Dictionary, expected_title: String, label: String) -> void:

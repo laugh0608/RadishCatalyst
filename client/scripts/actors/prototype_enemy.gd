@@ -3,11 +3,15 @@ class_name PrototypeEnemy
 
 @export var definition_id: String = "enemy.native_skitter"
 
+const DEFEATED_COLOR := Color(0.2, 0.2, 0.2, 1)
+const DEFEATED_POLLUTED_COLOR := Color(0.34, 0.32, 0.16, 1)
+
 var health: float = 20.0
 var max_health: float = 20.0
 var display_name: String = ""
 var instance_id: String = ""
 var defeated: bool = false
+var enemy_category: String = "basic"
 
 @onready var label: Label = $Label
 @onready var sprite: ColorRect = $Sprite
@@ -19,6 +23,7 @@ func setup(enemy_display_name: String, enemy_max_health: float, category: String
 	max_health = enemy_max_health
 	health = enemy_max_health
 	defeated = false
+	enemy_category = category
 	collision_shape.disabled = false
 	sprite.color = _get_active_color(category)
 	_update_label()
@@ -60,7 +65,11 @@ func mark_defeated() -> void:
 	defeated = true
 	health = 0.0
 	collision_shape.set_deferred("disabled", true)
-	sprite.color = Color(0.2, 0.2, 0.2, 1)
+	if enemy_category == "polluted":
+		sprite.color = DEFEATED_POLLUTED_COLOR
+		label.text = "%s\n污染已压制" % display_name
+		return
+	sprite.color = DEFEATED_COLOR
 	label.text = "%s\n已击败" % display_name
 
 

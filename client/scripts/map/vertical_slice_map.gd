@@ -105,6 +105,14 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				interactable.set_restored_outpost_core_visual()
 				continue
 			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.ruin_gate":
+			if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):
+				interactable.set_confirmed_ruin_signal_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
 		elif is_processed and interactable.set_processed_visual():
 			if current_interactable == interactable:
 				current_interactable = null
