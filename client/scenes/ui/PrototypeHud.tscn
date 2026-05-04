@@ -19,7 +19,7 @@ script = ExtResource("1_hud")
 visible = false
 offset_left = 24.0
 offset_top = 24.0
-offset_right = 500.0
+offset_right = 568.0
 offset_bottom = 342.0
 color = Color(0.0352941, 0.054902, 0.0588235, 0.88)
 clip_contents = true
@@ -27,7 +27,7 @@ clip_contents = true
 [node name="SaveTitleLabel" type="Label" parent="SavePanel"]
 offset_left = 18.0
 offset_top = 14.0
-offset_right = 456.0
+offset_right = 524.0
 offset_bottom = 42.0
 text = "原型存档"
 label_settings = SubResource("LabelSettings_prompt")
@@ -35,71 +35,92 @@ label_settings = SubResource("LabelSettings_prompt")
 [node name="Slot01Label" type="Label" parent="SavePanel"]
 offset_left = 18.0
 offset_top = 54.0
-offset_right = 324.0
+offset_right = 318.0
 offset_bottom = 122.0
 text = "槽位 01：读取中..."
 label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3
 
 [node name="Slot01SaveButton" type="Button" parent="SavePanel"]
-offset_left = 346.0
+offset_left = 330.0
 offset_top = 58.0
-offset_right = 398.0
+offset_right = 382.0
 offset_bottom = 90.0
 text = "保存"
 
 [node name="Slot01LoadButton" type="Button" parent="SavePanel"]
-offset_left = 410.0
+offset_left = 394.0
 offset_top = 58.0
-offset_right = 462.0
+offset_right = 446.0
 offset_bottom = 90.0
 text = "读取"
+
+[node name="Slot01DeleteButton" type="Button" parent="SavePanel"]
+offset_left = 458.0
+offset_top = 58.0
+offset_right = 526.0
+offset_bottom = 90.0
+text = "清空"
 
 [node name="Slot02Label" type="Label" parent="SavePanel"]
 offset_left = 18.0
 offset_top = 142.0
-offset_right = 324.0
+offset_right = 318.0
 offset_bottom = 210.0
 text = "槽位 02：读取中..."
 label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3
 
 [node name="Slot02SaveButton" type="Button" parent="SavePanel"]
-offset_left = 346.0
+offset_left = 330.0
 offset_top = 146.0
-offset_right = 398.0
+offset_right = 382.0
 offset_bottom = 178.0
 text = "保存"
 
 [node name="Slot02LoadButton" type="Button" parent="SavePanel"]
-offset_left = 410.0
+offset_left = 394.0
 offset_top = 146.0
-offset_right = 462.0
+offset_right = 446.0
 offset_bottom = 178.0
 text = "读取"
+
+[node name="Slot02DeleteButton" type="Button" parent="SavePanel"]
+offset_left = 458.0
+offset_top = 146.0
+offset_right = 526.0
+offset_bottom = 178.0
+text = "清空"
 
 [node name="Slot03Label" type="Label" parent="SavePanel"]
 offset_left = 18.0
 offset_top = 230.0
-offset_right = 324.0
+offset_right = 318.0
 offset_bottom = 298.0
 text = "槽位 03：读取中..."
 label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3
 
 [node name="Slot03SaveButton" type="Button" parent="SavePanel"]
-offset_left = 346.0
+offset_left = 330.0
 offset_top = 234.0
-offset_right = 398.0
+offset_right = 382.0
 offset_bottom = 266.0
 text = "保存"
 
 [node name="Slot03LoadButton" type="Button" parent="SavePanel"]
-offset_left = 410.0
+offset_left = 394.0
 offset_top = 234.0
-offset_right = 462.0
+offset_right = 446.0
 offset_bottom = 266.0
 text = "读取"
+
+[node name="Slot03DeleteButton" type="Button" parent="SavePanel"]
+offset_left = 458.0
+offset_top = 234.0
+offset_right = 526.0
+offset_bottom = 266.0
+text = "清空"
 
 [node name="CompletionPanel" type="ColorRect" parent="."]
 visible = false

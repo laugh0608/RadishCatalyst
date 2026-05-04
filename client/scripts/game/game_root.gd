@@ -39,6 +39,7 @@ func _ready() -> void:
 	vertical_slice_map.player.load_requested.connect(_on_player_load_requested)
 	hud.save_slot_requested.connect(_on_hud_save_slot_requested)
 	hud.load_slot_requested.connect(_on_hud_load_slot_requested)
+	hud.delete_slot_requested.connect(_on_hud_delete_slot_requested)
 	hud.quick_slot_binding_requested.connect(_on_hud_quick_slot_binding_requested)
 	vertical_slice_map.interaction_available.connect(_on_interaction_available)
 	vertical_slice_map.interaction_cleared.connect(_on_interaction_cleared)
@@ -144,6 +145,13 @@ func _on_hud_save_slot_requested(slot_id: String) -> void:
 
 func _on_hud_load_slot_requested(slot_id: String) -> void:
 	_load_from_slot(slot_id)
+
+
+func _on_hud_delete_slot_requested(slot_id: String) -> void:
+	var result := save_service.delete_game_for_slot(slot_id)
+	hud.append_log("%s：%s" % [_format_slot_name(slot_id), String(result.get("message", ""))])
+	_refresh_save_slot_summaries()
+	_update_hud()
 
 
 func _on_hud_quick_slot_binding_requested(slot_index: int, item_id: String) -> void:

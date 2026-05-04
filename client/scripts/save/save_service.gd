@@ -110,6 +110,30 @@ func load_game_for_slot(slot_id: String) -> Dictionary:
 	return _failure("读取存档失败：未找到原型存档文件或可用备份，当前运行状态已保留。")
 
 
+func delete_game_for_slot(slot_id: String) -> Dictionary:
+	var paths := _get_slot_paths(slot_id)
+	var candidates: Array[String] = [String(paths.get("save_file", SAVE_FILE))]
+	for backup_path in paths.get("backup_files", SAVE_BACKUP_FILES):
+		candidates.append(String(backup_path))
+	if String(paths.get("slot_id", DEFAULT_SLOT_ID)) == DEFAULT_SLOT_ID:
+		candidates.append(LEGACY_SAVE_FILE)
+		for legacy_backup_path in LEGACY_SAVE_BACKUP_FILES:
+			candidates.append(String(legacy_backup_path))
+
+	var deleted_count := 0
+	for save_file in candidates:
+		if not FileAccess.file_exists(save_file):
+			continue
+		var remove_error := DirAccess.remove_absolute(ProjectSettings.globalize_path(save_file))
+		if remove_error != OK:
+			return _failure("清空槽位失败：删除存档文件失败：%s。" % error_string(remove_error))
+		deleted_count += 1
+
+	if deleted_count <= 0:
+		return _success("槽位已是空槽。")
+	return _success("已清空槽位存档和备份。")
+
+
 func get_save_slot_summaries(slot_ids: Array[String]) -> Array[Dictionary]:
 	var summaries: Array[Dictionary] = []
 	for slot_id in slot_ids:

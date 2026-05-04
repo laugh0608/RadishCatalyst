@@ -144,6 +144,7 @@ func _run_checks() -> void:
 	_check_loads_older_backup_when_recent_backup_is_bad()
 	_check_all_bad_saves_fail_without_replacing_state()
 	_check_named_slot_save_load()
+	_check_delete_slot_clears_save_and_backups()
 	_check_quick_slot_binding_persists()
 	_check_save_slot_summaries()
 	_check_migrates_legacy_primary_save()
@@ -372,6 +373,33 @@ func _check_named_slot_save_load() -> void:
 
 	_expect_equal(String(load_result.get("slot_id", "")), slot_id, "named slot id")
 	_expect_recovered_world_id(load_result, "world.slot.02", "named slot world")
+
+
+func _check_delete_slot_clears_save_and_backups() -> void:
+	var slot_id := "slot_03"
+	_remove_slot_files(slot_id)
+	var first_world := WorldState.create_default()
+	first_world.world_id = "world.delete.first"
+	_expect_success(save_service.save_game_for_slot(slot_id, first_world, CharacterState.create_default()), "save delete slot first")
+	var second_world := WorldState.create_default()
+	second_world.world_id = "world.delete.second"
+	_expect_success(save_service.save_game_for_slot(slot_id, second_world, CharacterState.create_default()), "save delete slot second")
+	if not FileAccess.file_exists(_get_slot_save_file(slot_id)):
+		failures.append("delete slot setup should create primary save")
+	if not FileAccess.file_exists(_get_slot_backup_file(slot_id, 1)):
+		failures.append("delete slot setup should create backup")
+
+	var delete_result := save_service.delete_game_for_slot(slot_id)
+	_expect_success(delete_result, "delete slot")
+	if FileAccess.file_exists(_get_slot_save_file(slot_id)):
+		failures.append("delete slot should remove primary save")
+	for backup_index in range(1, 4):
+		if FileAccess.file_exists(_get_slot_backup_file(slot_id, backup_index)):
+			failures.append("delete slot should remove backup %d" % backup_index)
+
+	var empty_summary := save_service.get_save_slot_summary(slot_id)
+	_expect_equal(String(empty_summary.get("status", "")), "空槽位", "deleted slot summary status")
+	_expect_equal(bool(empty_summary.get("has_loadable_save", true)), false, "deleted slot should not be loadable")
 
 
 func _check_quick_slot_binding_persists() -> void:

@@ -47,9 +47,15 @@ var debug_panels_visible := false
 	$SavePanel/Slot02LoadButton,
 	$SavePanel/Slot03LoadButton
 ]
+@onready var delete_slot_buttons: Array[Button] = [
+	$SavePanel/Slot01DeleteButton,
+	$SavePanel/Slot02DeleteButton,
+	$SavePanel/Slot03DeleteButton
+]
 
 signal save_slot_requested(slot_id: String)
 signal load_slot_requested(slot_id: String)
+signal delete_slot_requested(slot_id: String)
 signal quick_slot_binding_requested(slot_index: int, item_id: String)
 
 
@@ -57,6 +63,7 @@ func _ready() -> void:
 	for index in range(SAVE_SLOT_IDS.size()):
 		save_slot_buttons[index].pressed.connect(_on_save_slot_pressed.bind(index))
 		load_slot_buttons[index].pressed.connect(_on_load_slot_pressed.bind(index))
+		delete_slot_buttons[index].pressed.connect(_on_delete_slot_pressed.bind(index))
 	for index in range(quick_slot_binding_buttons.size()):
 		quick_slot_binding_buttons[index].pressed.connect(_on_quick_slot_binding_pressed.bind(index))
 	evacuation_close_button.pressed.connect(_on_evacuation_close_pressed)
@@ -171,6 +178,10 @@ func _on_save_slot_pressed(slot_index: int) -> void:
 
 func _on_load_slot_pressed(slot_index: int) -> void:
 	load_slot_requested.emit(SAVE_SLOT_IDS[slot_index])
+
+
+func _on_delete_slot_pressed(slot_index: int) -> void:
+	delete_slot_requested.emit(SAVE_SLOT_IDS[slot_index])
 
 
 func _on_quick_slot_binding_pressed(slot_index: int) -> void:
