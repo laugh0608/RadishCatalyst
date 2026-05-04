@@ -4,6 +4,7 @@ class_name PrototypeHud
 const SAVE_SLOT_IDS: Array[String] = ["slot_01", "slot_02", "slot_03"]
 const QUICK_SLOT_BIND_CANDIDATES: Array[String] = ["item.repair_gel", "item.resistance_vial_t1", ""]
 const SUPPLY_FEEDBACK_SECONDS := 4.0
+const QUEST_COMPLETION_FEEDBACK_SECONDS := 7.0
 const MAP_MARKER_CURRENT_COLOR := Color(0.18, 0.86, 0.93, 1.0)
 const MAP_MARKER_TARGET_COLOR := Color(1.0, 0.78, 0.28, 1.0)
 const MAP_MARKER_UNLOCKED_COLOR := Color(0.55, 0.72, 0.66, 1.0)
@@ -11,6 +12,7 @@ const MAP_MARKER_LOCKED_COLOR := Color(0.28, 0.32, 0.32, 1.0)
 
 var last_quick_slots: Array[String] = []
 var supply_feedback_remaining_seconds := 0.0
+var quest_completion_feedback_remaining_seconds := 0.0
 var debug_panels_visible := false
 
 @onready var save_panel: ColorRect = $SavePanel
@@ -102,12 +104,16 @@ func _input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	if supply_feedback_remaining_seconds <= 0.0:
-		return
+	_update_timed_panel_visibility(delta)
 
+
+func _update_timed_panel_visibility(delta: float) -> void:
 	supply_feedback_remaining_seconds = maxf(0.0, supply_feedback_remaining_seconds - delta)
 	if supply_feedback_remaining_seconds <= 0.0:
 		supply_feedback_panel.visible = false
+	quest_completion_feedback_remaining_seconds = maxf(0.0, quest_completion_feedback_remaining_seconds - delta)
+	if quest_completion_feedback_remaining_seconds <= 0.0:
+		completion_panel.visible = false
 
 
 func update_status(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> void:
@@ -155,6 +161,8 @@ func show_quest_completion(feedback: Dictionary) -> void:
 
 	completion_title_label.text = _format_quest_completion_panel_title(feedback)
 	completion_detail_label.text = _format_quest_completion_details(feedback)
+	completion_panel.visible = true
+	quest_completion_feedback_remaining_seconds = QUEST_COMPLETION_FEEDBACK_SECONDS
 
 
 func show_evacuation_feedback(feedback: Dictionary) -> void:
@@ -364,7 +372,6 @@ func _format_device_operations(interactable: PrototypeInteractable, status: Dict
 func _set_debug_panels_visible(is_visible: bool) -> void:
 	debug_panels_visible = is_visible
 	save_panel.visible = is_visible
-	completion_panel.visible = is_visible
 	quick_slot_panel.visible = is_visible
 
 
