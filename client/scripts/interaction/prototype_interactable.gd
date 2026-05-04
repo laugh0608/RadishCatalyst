@@ -6,6 +6,8 @@ class_name PrototypeInteractable
 @export var recipe_id: String = ""
 @export var prerequisite_instance_id: String = ""
 @export var single_use: bool = true
+@export var label_offset := Vector2(-72.0, 20.0)
+@export var label_size := Vector2(144.0, 24.0)
 
 var consumed: bool = false
 var instance_id: String = ""
@@ -17,6 +19,10 @@ var recipe_index: int = 0
 
 func setup(display_name: String) -> void:
 	label.text = display_name
+	label.offset_left = label_offset.x
+	label.offset_top = label_offset.y
+	label.offset_right = label_offset.x + label_size.x
+	label.offset_bottom = label_offset.y + label_size.y
 
 
 func can_interact() -> bool:

@@ -45,7 +45,7 @@ func _ready() -> void:
 	vertical_slice_map.region_changed.connect(_on_region_changed)
 	vertical_slice_map.region_gate_blocked.connect(_on_region_gate_blocked)
 
-	hud.append_log("前哨原型已启动。WASD 移动，E 交互，J 攻击，R 切换设备配方，F 启用过滤模块，1/2 使用快捷栏；左侧面板可保存 / 读取 3 个原型槽位，K / L 仍操作默认槽位。先检查前哨核心。")
+	hud.append_log("前哨原型已启动。WASD 移动，E 交互，J 攻击，R 切换设备配方，F 启用过滤模块，1/2 使用快捷栏；K / L 操作默认槽位，Tab 显示或隐藏存档 / 快捷栏调试面板。先检查前哨核心。")
 	_refresh_save_slot_summaries()
 	_update_hud()
 

@@ -16,6 +16,7 @@ line_spacing = 4.0
 script = ExtResource("1_hud")
 
 [node name="SavePanel" type="ColorRect" parent="."]
+visible = false
 offset_left = 24.0
 offset_top = 24.0
 offset_right = 392.0
@@ -101,6 +102,7 @@ offset_bottom = 234.0
 text = "读取"
 
 [node name="CompletionPanel" type="ColorRect" parent="."]
+visible = false
 offset_left = 24.0
 offset_top = 322.0
 offset_right = 392.0
@@ -127,6 +129,7 @@ label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3
 
 [node name="QuickSlotPanel" type="ColorRect" parent="."]
+visible = false
 offset_left = 24.0
 offset_top = 570.0
 offset_right = 392.0
@@ -177,18 +180,18 @@ text = "切换"
 [node name="StatusPanel" type="ColorRect" parent="."]
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -384.0
-offset_top = 24.0
-offset_right = -24.0
-offset_bottom = 416.0
+offset_left = -470.0
+offset_top = 32.0
+offset_right = -32.0
+offset_bottom = 640.0
 color = Color(0.0352941, 0.054902, 0.0588235, 0.88)
 clip_contents = true
 
 [node name="StatusLabel" type="Label" parent="StatusPanel"]
-offset_left = 18.0
-offset_top = 18.0
-offset_right = 342.0
-offset_bottom = 370.0
+offset_left = 22.0
+offset_top = 22.0
+offset_right = 416.0
+offset_bottom = 584.0
 text = "Loading..."
 label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3
@@ -196,18 +199,18 @@ autowrap_mode = 3
 [node name="PromptPanel" type="ColorRect" parent="."]
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -384.0
-offset_top = 432.0
-offset_right = -24.0
-offset_bottom = 662.0
+offset_left = -470.0
+offset_top = 664.0
+offset_right = -32.0
+offset_bottom = 1048.0
 color = Color(0.0352941, 0.054902, 0.0588235, 0.88)
 clip_contents = true
 
 [node name="PromptLabel" type="Label" parent="PromptPanel"]
-offset_left = 18.0
-offset_top = 14.0
-offset_right = 342.0
-offset_bottom = 214.0
+offset_left = 22.0
+offset_top = 18.0
+offset_right = 416.0
+offset_bottom = 360.0
 text = ""
 label_settings = SubResource("LabelSettings_prompt")
 autowrap_mode = 3
@@ -215,18 +218,18 @@ autowrap_mode = 3
 [node name="LogPanel" type="ColorRect" parent="."]
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -384.0
-offset_top = 678.0
-offset_right = -24.0
-offset_bottom = 760.0
+offset_left = -470.0
+offset_top = 1072.0
+offset_right = -32.0
+offset_bottom = 1368.0
 color = Color(0.0352941, 0.054902, 0.0588235, 0.88)
 clip_contents = true
 
 [node name="LogLabel" type="Label" parent="LogPanel"]
-offset_left = 18.0
-offset_top = 14.0
-offset_right = 342.0
-offset_bottom = 122.0
+offset_left = 22.0
+offset_top = 18.0
+offset_right = 416.0
+offset_bottom = 272.0
 text = ""
 label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3

@@ -7,7 +7,11 @@ const SUPPLY_FEEDBACK_SECONDS := 4.0
 
 var last_quick_slots: Array[String] = []
 var supply_feedback_remaining_seconds := 0.0
+var debug_panels_visible := false
 
+@onready var save_panel: ColorRect = $SavePanel
+@onready var completion_panel: ColorRect = $CompletionPanel
+@onready var quick_slot_panel: ColorRect = $QuickSlotPanel
 @onready var status_label: Label = $StatusPanel/StatusLabel
 @onready var prompt_label: Label = $PromptPanel/PromptLabel
 @onready var log_label: Label = $LogPanel/LogLabel
@@ -56,6 +60,15 @@ func _ready() -> void:
 	for index in range(quick_slot_binding_buttons.size()):
 		quick_slot_binding_buttons[index].pressed.connect(_on_quick_slot_binding_pressed.bind(index))
 	evacuation_close_button.pressed.connect(_on_evacuation_close_pressed)
+	_set_debug_panels_visible(false)
+
+
+func _input(event: InputEvent) -> void:
+	if not event is InputEventKey:
+		return
+	if event.pressed and not event.echo and event.keycode == KEY_TAB:
+		_set_debug_panels_visible(not debug_panels_visible)
+		get_viewport().set_input_as_handled()
 
 
 func _process(delta: float) -> void:
@@ -170,6 +183,13 @@ func _on_quick_slot_binding_pressed(slot_index: int) -> void:
 
 func _on_evacuation_close_pressed() -> void:
 	evacuation_panel.visible = false
+
+
+func _set_debug_panels_visible(is_visible: bool) -> void:
+	debug_panels_visible = is_visible
+	save_panel.visible = is_visible
+	completion_panel.visible = is_visible
+	quick_slot_panel.visible = is_visible
 
 
 func _append_detail(details: Array[String], text: String) -> void:

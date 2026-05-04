@@ -98,52 +98,67 @@ definition_id = "map_object.anomaly_crystal"
 interaction_type = "sample"
 
 [node name="PollutionResidue" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(270, 20)
+position = Vector2(265, 30)
 definition_id = "map_object.pollution_residue_patch"
 interaction_type = "gather"
+label_offset = Vector2(-68, 22)
 
 [node name="RoughGroundNorth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(225, -130)
+position = Vector2(220, -150)
 definition_id = "map_object.rough_ground"
 interaction_type = "clear"
+label_offset = Vector2(-92, -52)
+label_size = Vector2(184, 24)
 
 [node name="RoughGroundSouth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(260, -130)
+position = Vector2(286, -150)
 definition_id = "map_object.rough_ground"
 interaction_type = "clear"
+label_offset = Vector2(-92, -52)
+label_size = Vector2(184, 24)
 
 [node name="FoundationSiteNorth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(225, -92)
+position = Vector2(220, -104)
 definition_id = "building.foundation_t1"
 interaction_type = "build"
 recipe_id = ""
 prerequisite_instance_id = "map_object_instance.rough_ground_north"
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
 
 [node name="FoundationSiteSouth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(260, -92)
+position = Vector2(286, -104)
 definition_id = "building.foundation_t1"
 interaction_type = "build"
 recipe_id = ""
 prerequisite_instance_id = "map_object_instance.rough_ground_south"
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
 
 [node name="PollutionFilterBuildSite" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(292, -112)
+position = Vector2(330, -126)
 definition_id = "building.pollution_filter"
 interaction_type = "build"
 recipe_id = ""
+label_offset = Vector2(-88, -52)
+label_size = Vector2(176, 24)
 
 [node name="PollutionFilter" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(292, -72)
+position = Vector2(330, -68)
 definition_id = "building.pollution_filter"
 interaction_type = "process_recipe"
 recipe_id = "recipe.cleanse_residue"
 single_use = false
+label_offset = Vector2(-88, 22)
+label_size = Vector2(176, 24)
 
 [node name="RuinGate" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(342, -20)
+position = Vector2(342, -10)
 definition_id = "map_object.ruin_gate"
 interaction_type = "inspect"
 single_use = false
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
 
 [node name="Enemies" type="Node2D" parent="."]
 
@@ -152,5 +167,5 @@ position = Vector2(70, 20)
 definition_id = "enemy.native_skitter"
 
 [node name="PollutedSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
-position = Vector2(302, 94)
+position = Vector2(302, 112)
 definition_id = "enemy.polluted_skitter"
