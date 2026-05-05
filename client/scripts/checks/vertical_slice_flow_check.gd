@@ -77,8 +77,14 @@ func _run_checks() -> void:
 	_complete_active_quest("quest.make_filter_module", [
 		{"type": "craft_item", "target_id": "equipment.filter_module_t1", "amount": 1}
 	])
-	_expect_active_quest("quest.expand_treatment_point", "after make filter module")
-	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.foundation_t1", "filter module unlocks foundation recipe")
+	_expect_active_quest("quest.prepare_treatment_supplies", "after make filter module")
+
+	_complete_active_quest("quest.prepare_treatment_supplies", [
+		{"type": "craft_item", "target_id": "item.repair_gel", "amount": 1},
+		{"type": "defeat_enemy", "target_id": "enemy.native_skitter", "amount": 1}
+	])
+	_expect_active_quest("quest.expand_treatment_point", "after prepare treatment supplies")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.foundation_t1", "supplies unlock foundation recipe")
 
 	_complete_active_quest("quest.expand_treatment_point", [
 		{"type": "build", "target_id": "building.foundation_t1", "amount": 2},
@@ -120,6 +126,7 @@ func _check_onboarding_hints() -> void:
 	hint_world.current_region_id = "region.crystal_vein_field"
 	_expect_hint_contains(hud, hint_world, hint_character, "quest.scout_crystal_field", "采集晶体簇", "crystal field onboarding hint")
 	_expect_hint_contains(hud, hint_world, hint_character, "quest.calibrate_reactor", "外勤残骸", "calibration onboarding hint")
+	_expect_hint_contains(hud, hint_world, hint_character, "quest.prepare_treatment_supplies", "修复凝胶", "supply prep onboarding hint")
 
 	_expect_hint_contains(hud, hint_world, hint_character, "quest.expand_treatment_point", "2 块地基", "foundation onboarding hint")
 	hint_world.add_base_structure("structure.foundation_site_north", "building.foundation_t1", "region.pollution_edge")

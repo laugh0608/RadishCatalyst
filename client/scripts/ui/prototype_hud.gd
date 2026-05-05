@@ -681,6 +681,10 @@ func _format_direction_hint(world_state: WorldState, character_state: CharacterS
 			return "向西返回基地平台，完成样本回收。"
 		"quest.make_filter_module":
 			return "回基地使用基础反应器，组装基础过滤模块。"
+		"quest.prepare_treatment_supplies":
+			if world_state.quest_state.get_objective_progress(quest_id, "craft_item", "item.repair_gel") <= 0.0:
+				return "回基地用基础反应器调制修复凝胶，给处理点施工做准备。"
+			return "前往处理点北缘，清理徘徊的原生掠行体。"
 		"quest.expand_treatment_point":
 			return "前往污染边界北缘，清理地块、铺设地基并建造过滤器。"
 		"quest.enter_pollution_edge":
@@ -805,6 +809,10 @@ func _get_quest_target_region_id(world_state: WorldState, quest_id: String) -> S
 			return "region.outpost_platform"
 		"quest.make_filter_module":
 			return "region.outpost_platform"
+		"quest.prepare_treatment_supplies":
+			if world_state.quest_state.get_objective_progress(quest_id, "craft_item", "item.repair_gel") <= 0.0:
+				return "region.outpost_platform"
+			return "region.crystal_vein_field"
 		"quest.expand_treatment_point", "quest.enter_pollution_edge", "quest.defeat_elite_node":
 			return "region.pollution_edge"
 		"quest.unlock_ruin_signal":
@@ -836,6 +844,10 @@ func _format_onboarding_hint(world_state: WorldState, character_state: Character
 			return "带样本回基地，分析结果会打开制造过滤模块的链路。"
 		"quest.make_filter_module":
 			return "基础反应器负责制造远征产物；先补齐配方输入，再等待加工完成。"
+		"quest.prepare_treatment_supplies":
+			if world_state.quest_state.get_objective_progress(quest_id, "craft_item", "item.repair_gel") <= 0.0:
+				return "先调制 1 份修复凝胶；后续处理点施工会经过敌人巡游区。"
+			return "带上修复凝胶，清理处理点北缘的原生掠行体。"
 		"quest.expand_treatment_point":
 			if world_state.count_base_structures("building.foundation_t1") < 2:
 				return "污染过滤器不能直接落地，先清理地块并铺设 2 块地基。"

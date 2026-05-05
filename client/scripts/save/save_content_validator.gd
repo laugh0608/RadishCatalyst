@@ -25,6 +25,10 @@ const PROTOTYPE_ENEMY_SOURCES := {
 		"definition_id": "enemy.native_skitter",
 		"region_id": "region.crystal_vein_field"
 	},
+	"enemy_instance.treatment_skitter": {
+		"definition_id": "enemy.native_skitter",
+		"region_id": "region.crystal_vein_field"
+	},
 	"enemy_instance.polluted_skitter": {
 		"definition_id": "enemy.polluted_skitter",
 		"region_id": "region.pollution_edge"

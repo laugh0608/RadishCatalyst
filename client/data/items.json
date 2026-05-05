@@ -128,7 +128,7 @@
       "mass": 0.1,
       "rarity": "common",
       "source_refs": ["recipe.repair_gel"],
-      "used_by_refs": ["quest.defeat_elite_node"],
+      "used_by_refs": ["quest.prepare_treatment_supplies", "quest.defeat_elite_node"],
       "public_level": "public"
     }
   ]

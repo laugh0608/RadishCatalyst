@@ -181,6 +181,10 @@ label_size = Vector2(192, 24)
 position = Vector2(70, 20)
 definition_id = "enemy.native_skitter"
 
+[node name="TreatmentSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(210, -58)
+definition_id = "enemy.native_skitter"
+
 [node name="PollutedSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(302, 112)
 definition_id = "enemy.polluted_skitter"

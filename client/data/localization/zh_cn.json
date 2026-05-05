@@ -41,6 +41,8 @@
     "quest.bring_back_sample.desc": "采样异常晶体并返回基地分析。",
     "quest.make_filter_module.name": "制造过滤模块",
     "quest.make_filter_module.desc": "用基地加工产物制造基础过滤模块。",
+    "quest.prepare_treatment_supplies.name": "准备处理点补给",
+    "quest.prepare_treatment_supplies.desc": "调制修复凝胶，并清理处理点北缘的基础威胁。",
     "quest.expand_treatment_point.name": "扩建处理点",
     "quest.expand_treatment_point.desc": "铺设地基并启用污染处理设备。",
     "quest.enter_pollution_edge.name": "进入污染边界",

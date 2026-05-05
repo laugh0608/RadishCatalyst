@@ -105,6 +105,15 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		"reactor calibrator recipe update"
 	)
 	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.repair_gel"),
+		"set",
+		"quest.prepare_treatment_supplies",
+		"craft_item",
+		"item.repair_gel",
+		1.0,
+		"repair gel recipe update"
+	)
+	_expect_update(
 		event_rules.get_recipe_objective_updates("recipe.basic_filter_module"),
 		"set",
 		"quest.make_filter_module",
@@ -121,6 +130,15 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		"building.foundation_t1",
 		1.0,
 		"foundation build update"
+	)
+	_expect_update(
+		event_rules.get_defeated_enemy_objective_updates("enemy.native_skitter"),
+		"set",
+		"quest.prepare_treatment_supplies",
+		"defeat_enemy",
+		"enemy.native_skitter",
+		1.0,
+		"native enemy defeat update"
 	)
 	_expect_update(
 		event_rules.get_defeated_enemy_objective_updates("enemy.polluted_skitter"),

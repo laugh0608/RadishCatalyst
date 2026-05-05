@@ -57,6 +57,8 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 	match recipe_id:
 		"recipe.reactor_calibrator":
 			return [_set_update("quest.calibrate_reactor", "craft_item", "item.reactor_calibrator", 1)]
+		"recipe.repair_gel":
+			return [_set_update("quest.prepare_treatment_supplies", "craft_item", "item.repair_gel", 1)]
 		"recipe.basic_filter_module":
 			return [_set_update("quest.make_filter_module", "craft_item", "equipment.filter_module_t1", 1)]
 		"recipe.cleanse_residue":
@@ -74,6 +76,8 @@ func get_build_objective_updates(building_id: String) -> Array[Dictionary]:
 
 
 func get_defeated_enemy_objective_updates(enemy_definition_id: String) -> Array[Dictionary]:
+	if enemy_definition_id == "enemy.native_skitter":
+		return [_set_update("quest.prepare_treatment_supplies", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.polluted_skitter":
 		return [_set_update("quest.enter_pollution_edge", "defeat_enemy", enemy_definition_id, 1)]
 	return []
