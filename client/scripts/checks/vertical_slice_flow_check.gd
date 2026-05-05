@@ -125,29 +125,28 @@ func _run_checks() -> void:
 
 
 func _check_onboarding_hints() -> void:
-	var hud := PrototypeHud.new()
+	var presenter := HudHintPresenter.new()
 	var hint_world := WorldState.create_default()
 	var hint_character := CharacterState.create_default()
 
-	_expect_hint_contains(hud, hint_world, hint_character, "quest.restore_outpost", "前哨核心", "restore outpost onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.restore_outpost", "前哨核心", "restore outpost onboarding hint")
 
 	hint_world.current_region_id = "region.crystal_vein_field"
-	_expect_hint_contains(hud, hint_world, hint_character, "quest.scout_crystal_field", "采集晶体簇", "crystal field onboarding hint")
-	_expect_hint_contains(hud, hint_world, hint_character, "quest.calibrate_reactor", "外勤残骸", "calibration onboarding hint")
-	_expect_hint_contains(hud, hint_world, hint_character, "quest.prepare_treatment_supplies", "修复凝胶", "supply prep onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.scout_crystal_field", "采集晶体簇", "crystal field onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.calibrate_reactor", "外勤残骸", "calibration onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.prepare_treatment_supplies", "修复凝胶", "supply prep onboarding hint")
 
-	_expect_hint_contains(hud, hint_world, hint_character, "quest.expand_treatment_point", "2 块地基", "foundation onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.expand_treatment_point", "2 块地基", "foundation onboarding hint")
 	hint_world.add_base_structure("structure.foundation_site_north", "building.foundation_t1", "region.pollution_edge")
 	hint_world.add_base_structure("structure.foundation_site_south", "building.foundation_t1", "region.pollution_edge")
-	_expect_hint_contains(hud, hint_world, hint_character, "quest.expand_treatment_point", "污染过滤器", "pollution filter onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.expand_treatment_point", "污染过滤器", "pollution filter onboarding hint")
 
 	hint_character.protection = 30.0
 	hint_character.equipment["suit_module"] = "equipment.filter_module_t1"
-	_expect_hint_contains(hud, hint_world, hint_character, "quest.enter_pollution_edge", "防护偏低", "low protection onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.enter_pollution_edge", "防护偏低", "low protection onboarding hint")
 
 	hint_world.quest_state.unlocked_effects.append("slice_01_complete")
-	_expect_hint_contains(hud, hint_world, hint_character, "", "更深区域信号", "slice complete onboarding hint")
-	hud.free()
+	_expect_hint_contains(presenter, hint_world, hint_character, "", "更深区域信号", "slice complete onboarding hint")
 
 
 func _check_status_panel_summary() -> void:
@@ -1092,8 +1091,15 @@ func _expect_array_missing(values: Array, unexpected_value: String, label: Strin
 		failures.append("%s should not contain %s, got %s" % [label, unexpected_value, var_to_str(values)])
 
 
-func _expect_hint_contains(hud: PrototypeHud, hint_world: WorldState, hint_character: CharacterState, quest_id: String, expected_text: String, label: String) -> void:
-	var hint := hud._format_onboarding_hint(hint_world, hint_character, quest_id)
+func _expect_hint_contains(
+	presenter: HudHintPresenter,
+	hint_world: WorldState,
+	hint_character: CharacterState,
+	quest_id: String,
+	expected_text: String,
+	label: String
+) -> void:
+	var hint := presenter.format_onboarding_hint(hint_world, hint_character, quest_id)
 	if hint.find(expected_text) < 0:
 		failures.append("%s should contain %s, got %s" % [label, expected_text, hint])
 
