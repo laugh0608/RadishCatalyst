@@ -123,6 +123,46 @@ func get_recipe_status(recipe_id: String, character_state: CharacterState, world
 	return _recipe_status(recipe, true, "可加工。", [], {}, required_structure)
 
 
+func get_recommended_recipe_id(
+	interactable: PrototypeInteractable,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
+	if interactable == null or interactable.interaction_type != "process_recipe":
+		return ""
+
+	var active_quest_id := ""
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		active_quest_id = String(world_state.quest_state.active_quest_ids[0])
+	match active_quest_id:
+		"quest.scout_crystal_field":
+			return _select_if_available(interactable, "recipe.process_crystal_ore")
+		"quest.calibrate_reactor":
+			if world_state.quest_state.get_objective_progress(active_quest_id, "gather_item", "item.salvage_scrap") >= 4.0:
+				return _select_if_available(interactable, "recipe.reactor_calibrator")
+			return ""
+		"quest.analyze_anomaly_sample":
+			if world_state.quest_state.get_objective_progress(active_quest_id, "gather_item", "item.anomaly_residue") >= 2.0:
+				return _select_if_available(interactable, "recipe.analyze_anomaly_sample")
+			return ""
+		"quest.make_filter_module":
+			if not character_state.inventory.has_ref("item.filter_media", 1):
+				return _select_if_available(interactable, "recipe.make_filter_media")
+			return _select_if_available(interactable, "recipe.basic_filter_module")
+		"quest.prepare_treatment_supplies":
+			if world_state.quest_state.get_objective_progress(active_quest_id, "craft_item", "item.repair_gel") < 1.0:
+				return _select_if_available(interactable, "recipe.repair_gel")
+			return ""
+		"quest.expand_treatment_point":
+			if character_state.inventory.has_ref("item.foundation_material", 2):
+				return ""
+			return _select_if_available(interactable, "recipe.foundation_t1")
+		"quest.enter_pollution_edge":
+			return _select_if_available(interactable, "recipe.cleanse_residue")
+		_:
+			return ""
+
+
 func _format_completion_message(recipe: Dictionary) -> String:
 	var recipe_id := String(recipe.get("id", ""))
 	var parts: Array[String] = ["加工完成：%s。" % _get_display_name(recipe_id)]
@@ -214,6 +254,12 @@ func _get_required_structure_id(recipe: Dictionary, world_state: WorldState) -> 
 	if building_id.is_empty():
 		return ""
 	return world_state.get_base_structure_id_for_definition(building_id)
+
+
+func _select_if_available(interactable: PrototypeInteractable, recipe_id: String) -> String:
+	if interactable.has_recipe(recipe_id):
+		return recipe_id
+	return ""
 
 
 func _get_active_structure_for_building(building_id: String, world_state: WorldState) -> Dictionary:

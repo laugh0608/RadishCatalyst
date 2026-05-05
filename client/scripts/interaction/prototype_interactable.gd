@@ -73,6 +73,30 @@ func select_next_recipe() -> String:
 	return recipe_id
 
 
+func select_recipe(target_recipe_id: String) -> bool:
+	if target_recipe_id.is_empty():
+		return false
+	if recipe_ids.is_empty():
+		if recipe_id != target_recipe_id:
+			return false
+		return true
+
+	var target_index := recipe_ids.find(target_recipe_id)
+	if target_index < 0:
+		return false
+	recipe_index = target_index
+	recipe_id = recipe_ids[recipe_index]
+	return true
+
+
+func has_recipe(target_recipe_id: String) -> bool:
+	if target_recipe_id.is_empty():
+		return false
+	if recipe_ids.is_empty():
+		return recipe_id == target_recipe_id
+	return recipe_ids.has(target_recipe_id)
+
+
 func get_recipe_count() -> int:
 	if recipe_ids.is_empty() and not recipe_id.is_empty():
 		return 1

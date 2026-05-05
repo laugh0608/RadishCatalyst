@@ -230,8 +230,11 @@ func _on_interaction_available(interactable: PrototypeInteractable) -> void:
 		hud.show_prompt(interaction_prompt_formatter.format_ruin_gate_prompt(world_state))
 		return
 	if interactable.interaction_type == "process_recipe":
+		var auto_selected_recipe := _select_recommended_recipe(interactable)
 		hud.show_prompt(interaction_prompt_formatter.format_processing_prompt(interactable, character_state, world_state))
 		hud.refresh_device_panel(data_registry, processing_system, interactable, character_state, world_state)
+		if not auto_selected_recipe.is_empty():
+			hud.append_log("已为当前目标选中配方：%s。" % _get_display_name(auto_selected_recipe))
 		return
 	if interactable.interaction_type == "build":
 		hud.show_prompt(interaction_prompt_formatter.format_build_prompt(interactable, character_state, world_state))
@@ -390,6 +393,19 @@ func _mark_pollution_edge_ready() -> bool:
 	var result := quest_runtime.advance_pollution_edge_ready(world_state, character_state)
 	_show_quest_completion_feedbacks(result)
 	return bool(result.get("accepted", false))
+
+
+func _select_recommended_recipe(interactable: PrototypeInteractable) -> String:
+	if interactable == null or interactable.interaction_type != "process_recipe":
+		return ""
+	var recipe_id := processing_system.get_recommended_recipe_id(interactable, character_state, world_state)
+	if recipe_id.is_empty():
+		return ""
+	if recipe_id == interactable.get_current_recipe_id():
+		return ""
+	if not interactable.select_recipe(recipe_id):
+		return ""
+	return recipe_id
 
 
 func _append_quest_runtime_result(log_messages: Array[String], result: Dictionary) -> void:

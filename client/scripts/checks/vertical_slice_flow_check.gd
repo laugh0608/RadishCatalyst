@@ -285,6 +285,8 @@ func _check_new_game_state_reset() -> void:
 	_expect_array_missing(reset_world.unlocked_region_ids, "region.crystal_vein_field", "new game should not keep crystal unlock")
 	_expect_equal(int(reset_character.inventory.items.get("item.basic_parts", 0)), 4, "new game resets starting parts")
 	_expect_equal(String(reset_character.equipment.get("suit_module", "")), "", "new game clears suit module")
+	game_root.world_state = null
+	game_root.character_state = null
 	game_root.free()
 
 
@@ -786,6 +788,7 @@ func _check_device_panel_formatting() -> void:
 	reactor.set_recipe_cycle([
 		"recipe.process_crystal_ore",
 		"recipe.reactor_calibrator",
+		"recipe.analyze_anomaly_sample",
 		"recipe.make_filter_media",
 		"recipe.basic_filter_module",
 		"recipe.foundation_t1",
@@ -801,6 +804,7 @@ func _check_device_panel_formatting() -> void:
 	_expect_text_contains(String(texts.get("operations", "")), "E 启动当前配方", "device panel process operation")
 	_expect_text_contains(String(texts.get("operations", "")), "R 切换配方", "device panel cycle operation")
 	_expect_text_contains(String(texts.get("operations", "")), "Q 关闭面板", "device panel close operation")
+	_check_task_recipe_selection(reactor, processing)
 
 	var filter := PrototypeInteractable.new()
 	filter.definition_id = "building.pollution_filter"
@@ -824,6 +828,32 @@ func _check_device_panel_formatting() -> void:
 	reactor.free()
 	filter.free()
 	hud.free()
+
+
+func _check_task_recipe_selection(reactor: PrototypeInteractable, processing: ProcessingSystem) -> void:
+	var recipe_world := WorldState.create_default()
+	var recipe_character := CharacterState.create_default()
+
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_anomaly_sample"]
+	recipe_world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 2)
+	_expect_equal(
+		processing.get_recommended_recipe_id(reactor, recipe_character, recipe_world),
+		"recipe.analyze_anomaly_sample",
+		"sample analysis task recipe selection"
+	)
+
+	recipe_world.quest_state.active_quest_ids = ["quest.make_filter_module"]
+	_expect_equal(
+		processing.get_recommended_recipe_id(reactor, recipe_character, recipe_world),
+		"recipe.make_filter_media",
+		"filter module task first selects media recipe"
+	)
+	recipe_character.inventory.add_item("item.filter_media", 1)
+	_expect_equal(
+		processing.get_recommended_recipe_id(reactor, recipe_character, recipe_world),
+		"recipe.basic_filter_module",
+		"filter module task selects module recipe after media"
+	)
 
 
 func _complete_active_quest(quest_id: String, progress_refs: Array) -> void:
