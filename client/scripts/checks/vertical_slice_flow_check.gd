@@ -37,6 +37,7 @@ func _run_checks() -> void:
 	_check_outpost_core_restored_visual()
 	_check_early_interaction_processed_visuals()
 	_check_pollution_enemy_defeated_visual()
+	_check_treatment_enemy_spawn_gate()
 	_check_quest_completion_panel_text()
 	_check_build_prompts()
 	_check_supply_feedback()
@@ -70,9 +71,16 @@ func _run_checks() -> void:
 		{"type": "sample_object", "target_id": "map_object.anomaly_crystal", "amount": 1},
 		{"type": "return_region", "target_id": "region.outpost_platform", "amount": 1}
 	])
-	_expect_active_quest("quest.make_filter_module", "after bring back sample")
-	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.make_filter_media", "sample unlocks filter media recipe")
-	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.basic_filter_module", "sample unlocks filter module recipe")
+	_expect_active_quest("quest.analyze_anomaly_sample", "after bring back sample")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.analyze_anomaly_sample", "sample unlocks analysis recipe")
+
+	_complete_active_quest("quest.analyze_anomaly_sample", [
+		{"type": "gather_item", "target_id": "item.anomaly_residue", "amount": 2},
+		{"type": "craft_item", "target_id": "item.sample_analysis", "amount": 1}
+	])
+	_expect_active_quest("quest.make_filter_module", "after sample analysis")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.make_filter_media", "analysis unlocks filter media recipe")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.basic_filter_module", "analysis unlocks filter module recipe")
 
 	_complete_active_quest("quest.make_filter_module", [
 		{"type": "craft_item", "target_id": "equipment.filter_module_t1", "amount": 1}
@@ -81,7 +89,7 @@ func _run_checks() -> void:
 
 	_complete_active_quest("quest.prepare_treatment_supplies", [
 		{"type": "craft_item", "target_id": "item.repair_gel", "amount": 1},
-		{"type": "defeat_enemy", "target_id": "enemy.native_skitter", "amount": 1}
+		{"type": "defeat_enemy", "target_id": "enemy.treatment_skitter", "amount": 1}
 	])
 	_expect_active_quest("quest.expand_treatment_point", "after prepare treatment supplies")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.foundation_t1", "supplies unlock foundation recipe")
@@ -329,6 +337,13 @@ func _check_early_interaction_processed_visuals() -> void:
 		"sample",
 		"异常晶体"
 	)
+	var anomaly_residue := _create_visual_check_interactable(
+		map.interactables_root,
+		"map_object_instance.anomaly_residue_north",
+		"map_object.anomaly_residue_patch",
+		"gather",
+		"异常残留点"
+	)
 	var rough_ground := _create_visual_check_interactable(
 		map.interactables_root,
 		"map_object_instance.rough_ground_north",
@@ -352,6 +367,7 @@ func _check_early_interaction_processed_visuals() -> void:
 	)
 	var default_crystal_color := crystal.marker.color
 	var default_salvage_color := salvage.marker.color
+	var default_anomaly_residue_color := anomaly_residue.marker.color
 	var default_ruin_color := ruin_gate.marker.color
 
 	var visual_world := WorldState.create_default()
@@ -361,6 +377,8 @@ func _check_early_interaction_processed_visuals() -> void:
 	visual_world.set_map_object_flag(salvage.instance_id, "is_gathered", true)
 	visual_world.ensure_map_object(anomaly.instance_id, anomaly.definition_id, "region.crystal_vein_field")
 	visual_world.set_map_object_flag(anomaly.instance_id, "is_sampled", true)
+	visual_world.ensure_map_object(anomaly_residue.instance_id, anomaly_residue.definition_id, "region.crystal_vein_field")
+	visual_world.set_map_object_flag(anomaly_residue.instance_id, "is_gathered", true)
 	visual_world.ensure_map_object(rough_ground.instance_id, rough_ground.definition_id, "region.pollution_edge")
 	visual_world.set_map_object_flag(rough_ground.instance_id, "is_cleared", true)
 	visual_world.ensure_map_object(residue.instance_id, residue.definition_id, "region.pollution_edge")
@@ -379,6 +397,10 @@ func _check_early_interaction_processed_visuals() -> void:
 	_expect_equal(anomaly.visible, true, "sampled anomaly remains visible")
 	_expect_equal(anomaly.monitoring, false, "sampled anomaly disables repeat interaction")
 	_expect_text_contains(anomaly.label.text, "已采样", "sampled anomaly label")
+	_expect_equal(anomaly_residue.visible, true, "gathered anomaly residue remains visible")
+	_expect_equal(anomaly_residue.monitoring, false, "gathered anomaly residue disables repeat interaction")
+	_expect_equal(anomaly_residue.marker.color == default_anomaly_residue_color, false, "gathered anomaly residue changes color")
+	_expect_text_contains(anomaly_residue.label.text, "已回收", "gathered anomaly residue label")
 	_expect_equal(rough_ground.visible, true, "cleared rough ground remains visible")
 	_expect_equal(rough_ground.monitoring, false, "cleared rough ground disables repeat interaction")
 	_expect_text_contains(rough_ground.label.text, "已清理", "cleared rough ground label")
@@ -398,6 +420,9 @@ func _check_early_interaction_processed_visuals() -> void:
 	_expect_equal(salvage.monitoring, true, "new game salvage enables interaction")
 	_expect_equal(salvage.marker.color, default_salvage_color, "new game salvage restores default color")
 	_expect_equal(salvage.label.text, "外勤残骸", "new game salvage restores label")
+	_expect_equal(anomaly_residue.monitoring, true, "new game anomaly residue enables interaction")
+	_expect_equal(anomaly_residue.marker.color, default_anomaly_residue_color, "new game anomaly residue restores default color")
+	_expect_equal(anomaly_residue.label.text, "异常残留点", "new game anomaly residue restores label")
 	_expect_equal(ruin_gate.monitoring, true, "new game ruin gate enables interaction")
 	_expect_equal(ruin_gate.marker.color, default_ruin_color, "new game ruin gate restores default color")
 
@@ -416,6 +441,20 @@ func _check_pollution_enemy_defeated_visual() -> void:
 	_expect_equal(enemy.sprite.color == default_polluted_color, false, "polluted enemy defeated changes color")
 	_expect_text_contains(enemy.label.text, "污染已压制", "polluted enemy defeated label")
 	enemy.free()
+
+
+func _check_treatment_enemy_spawn_gate() -> void:
+	var map := VerticalSliceMap.new()
+	var treatment_enemy := _create_visual_check_enemy("enemy.treatment_skitter", "处理点掠行体", 35.0, "basic")
+	treatment_enemy.name = "TreatmentSkitter"
+	var gate_world := WorldState.create_default()
+	_expect_equal(map._should_enemy_spawn(treatment_enemy, gate_world), false, "treatment enemy hidden before quest")
+	gate_world.quest_state.active_quest_ids = ["quest.prepare_treatment_supplies"]
+	_expect_equal(map._should_enemy_spawn(treatment_enemy, gate_world), false, "treatment enemy hidden before repair gel")
+	gate_world.quest_state.set_objective_progress("quest.prepare_treatment_supplies", "craft_item", "item.repair_gel", 1)
+	_expect_equal(map._should_enemy_spawn(treatment_enemy, gate_world), true, "treatment enemy spawns after repair gel")
+	treatment_enemy.free()
+	map.free()
 
 
 func _check_quest_completion_panel_text() -> void:
@@ -721,7 +760,16 @@ func _check_failure_feedback_logs() -> void:
 		CharacterState.create_default(),
 		WorldState.create_default()
 	)
-	_expect_failure_feedback(blocked_sample, "采样前置不足", "anomaly sample quest gate feedback")
+	_expect_failure_feedback(blocked_sample, "交互前置不足", "anomaly sample quest gate feedback")
+
+	var blocked_residue := gather_system.interact_with_object(
+		"map_object_instance.anomaly_residue_north",
+		"map_object.anomaly_residue_patch",
+		"gather",
+		CharacterState.create_default(),
+		WorldState.create_default()
+	)
+	_expect_failure_feedback(blocked_residue, "交互前置不足", "anomaly residue quest gate feedback")
 
 	game_root.free()
 

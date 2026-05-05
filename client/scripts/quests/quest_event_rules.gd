@@ -25,6 +25,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		return _get_drop_objective_updates("quest.calibrate_reactor", "gather_item", "item.salvage_scrap", definition_id)
 	if interaction_type == "sample" and definition_id == "map_object.anomaly_crystal":
 		return [_set_update("quest.bring_back_sample", "sample_object", "map_object.anomaly_crystal", 1)]
+	if interaction_type == "gather" and definition_id == "map_object.anomaly_residue_patch":
+		return _get_drop_objective_updates("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", definition_id)
 	if interaction_type == "gather" and definition_id == "map_object.pollution_residue_patch":
 		var updates: Array[Dictionary] = [
 			_set_update("quest.enter_pollution_edge", "visit_region", "region.pollution_edge", 1)
@@ -57,6 +59,8 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 	match recipe_id:
 		"recipe.reactor_calibrator":
 			return [_set_update("quest.calibrate_reactor", "craft_item", "item.reactor_calibrator", 1)]
+		"recipe.analyze_anomaly_sample":
+			return [_set_update("quest.analyze_anomaly_sample", "craft_item", "item.sample_analysis", 1)]
 		"recipe.repair_gel":
 			return [_set_update("quest.prepare_treatment_supplies", "craft_item", "item.repair_gel", 1)]
 		"recipe.basic_filter_module":
@@ -76,7 +80,7 @@ func get_build_objective_updates(building_id: String) -> Array[Dictionary]:
 
 
 func get_defeated_enemy_objective_updates(enemy_definition_id: String) -> Array[Dictionary]:
-	if enemy_definition_id == "enemy.native_skitter":
+	if enemy_definition_id == "enemy.treatment_skitter":
 		return [_set_update("quest.prepare_treatment_supplies", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.polluted_skitter":
 		return [_set_update("quest.enter_pollution_edge", "defeat_enemy", enemy_definition_id, 1)]

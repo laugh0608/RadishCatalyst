@@ -80,6 +80,32 @@
       "public_level": "spoiler"
     },
     {
+      "id": "item.anomaly_residue",
+      "display_name_key": "item.anomaly_residue.name",
+      "description_key": "item.anomaly_residue.desc",
+      "category": "sample",
+      "tags": ["sample", "anomaly", "slice_01"],
+      "stack_size": 20,
+      "mass": 0.2,
+      "rarity": "common",
+      "source_refs": ["map_object.anomaly_residue_patch"],
+      "used_by_refs": ["recipe.analyze_anomaly_sample"],
+      "public_level": "public"
+    },
+    {
+      "id": "item.sample_analysis",
+      "display_name_key": "item.sample_analysis.name",
+      "description_key": "item.sample_analysis.desc",
+      "category": "component",
+      "tags": ["analysis", "filter", "slice_01"],
+      "stack_size": 10,
+      "mass": 0.2,
+      "rarity": "common",
+      "source_refs": ["recipe.analyze_anomaly_sample"],
+      "used_by_refs": ["quest.analyze_anomaly_sample"],
+      "public_level": "public"
+    },
+    {
       "id": "item.filter_media",
       "display_name_key": "item.filter_media.name",
       "description_key": "item.filter_media.desc",

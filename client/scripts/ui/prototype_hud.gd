@@ -679,6 +679,10 @@ func _format_direction_hint(world_state: WorldState, character_state: CharacterS
 			if world_state.quest_state.get_objective_progress(quest_id, "sample_object", "map_object.anomaly_crystal") <= 0.0:
 				return "向东南采样异常晶体；采样后返回基地平台。"
 			return "向西返回基地平台，完成样本回收。"
+		"quest.analyze_anomaly_sample":
+			if world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.anomaly_residue") < 2.0:
+				return "回到异常晶体周边，回收两处异常残留点。"
+			return "回基地使用基础反应器，分析异常样本。"
 		"quest.make_filter_module":
 			return "回基地使用基础反应器，组装基础过滤模块。"
 		"quest.prepare_treatment_supplies":
@@ -807,6 +811,10 @@ func _get_quest_target_region_id(world_state: WorldState, quest_id: String) -> S
 			if world_state.quest_state.get_objective_progress(quest_id, "sample_object", "map_object.anomaly_crystal") <= 0.0:
 				return "region.crystal_vein_field"
 			return "region.outpost_platform"
+		"quest.analyze_anomaly_sample":
+			if world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.anomaly_residue") < 2.0:
+				return "region.crystal_vein_field"
+			return "region.outpost_platform"
 		"quest.make_filter_module":
 			return "region.outpost_platform"
 		"quest.prepare_treatment_supplies":
@@ -840,8 +848,12 @@ func _format_onboarding_hint(world_state: WorldState, character_state: Character
 			return "靠近基础反应器，切换到反应器校准件配方并等待加工完成。"
 		"quest.bring_back_sample":
 			if world_state.quest_state.get_objective_progress(quest_id, "sample_object", "map_object.anomaly_crystal") <= 0.0:
-				return "采样异常晶体；样本会解锁过滤介质配方。"
-			return "带样本回基地，分析结果会打开制造过滤模块的链路。"
+				return "采样异常晶体；样本需要带回基地确认。"
+			return "带样本回基地，下一步会去周边回收残留物做分析。"
+		"quest.analyze_anomaly_sample":
+			if world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.anomaly_residue") < 2.0:
+				return "异常残留物用于校验样本，回收两处后再回基地加工分析。"
+			return "靠近基础反应器，切换到异常样本分析配方并等待完成。"
 		"quest.make_filter_module":
 			return "基础反应器负责制造远征产物；先补齐配方输入，再等待加工完成。"
 		"quest.prepare_treatment_supplies":

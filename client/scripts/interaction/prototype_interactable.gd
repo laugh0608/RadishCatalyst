@@ -6,6 +6,7 @@ const RESTORED_OUTPOST_CORE_COLOR := Color(0.18, 0.86, 0.93, 1)
 const GATHERED_CRYSTAL_COLOR := Color(0.22, 0.42, 0.58, 1)
 const GATHERED_SALVAGE_COLOR := Color(0.48, 0.56, 0.58, 1)
 const SAMPLED_ANOMALY_COLOR := Color(0.7, 0.38, 0.82, 1)
+const GATHERED_ANOMALY_RESIDUE_COLOR := Color(0.42, 0.52, 0.72, 1)
 const GATHERED_RESIDUE_COLOR := Color(0.44, 0.42, 0.2, 1)
 const CLEARED_GROUND_COLOR := Color(0.42, 0.5, 0.42, 1)
 const CONFIRMED_RUIN_SIGNAL_COLOR := Color(0.36, 0.5, 0.68, 1)
@@ -130,6 +131,13 @@ func set_processed_visual() -> bool:
 		visible = true
 		monitoring = false
 		marker.color = GATHERED_SALVAGE_COLOR
+		_set_label_text("%s\n已回收" % display_name_text, 2)
+		return true
+	if interaction_type == "gather" and definition_id == "map_object.anomaly_residue_patch":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = GATHERED_ANOMALY_RESIDUE_COLOR
 		_set_label_text("%s\n已回收" % display_name_text, 2)
 		return true
 	if interaction_type == "gather" and definition_id == "map_object.pollution_residue_patch":

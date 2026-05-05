@@ -255,6 +255,14 @@ func sync_enemy_states(world_state: WorldState) -> void:
 			max_health
 		)
 		enemy.apply_saved_state(enemy_state)
+		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state))
+
+
+func refresh_enemy_spawns(world_state: WorldState) -> void:
+	for enemy in enemies_root.get_children():
+		if not enemy is PrototypeEnemy:
+			continue
+		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state))
 
 
 func apply_runtime_state(world_state: WorldState, character_state: CharacterState) -> void:
@@ -393,6 +401,18 @@ func _get_nearest_attack_target() -> PrototypeEnemy:
 		nearest_distance = distance
 
 	return nearest_enemy
+
+
+func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool:
+	if enemy.definition_id != "enemy.treatment_skitter":
+		return true
+	var quest_state := world_state.quest_state
+	var quest_id := "quest.prepare_treatment_supplies"
+	if quest_state.has_completed_quest(quest_id):
+		return true
+	if not quest_state.has_active_quest(quest_id):
+		return false
+	return quest_state.get_objective_progress(quest_id, "craft_item", "item.repair_gel") >= 1.0
 
 
 func _get_attack_damage(character_state: CharacterState) -> float:

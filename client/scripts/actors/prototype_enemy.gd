@@ -58,7 +58,7 @@ func apply_saved_state(enemy_state: Dictionary) -> void:
 
 
 func can_be_attacked() -> bool:
-	return not defeated
+	return not defeated and visible
 
 
 func mark_defeated() -> void:
@@ -75,6 +75,14 @@ func mark_defeated() -> void:
 
 func _update_label() -> void:
 	label.text = "%s\nHP %.0f / %.0f" % [display_name, health, max_health]
+
+
+func set_spawn_enabled(enabled: bool) -> void:
+	visible = enabled
+	if defeated:
+		collision_shape.set_deferred("disabled", true)
+		return
+	collision_shape.set_deferred("disabled", not enabled)
 
 
 func _get_active_color(category: String) -> Color:

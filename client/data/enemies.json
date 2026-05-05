@@ -17,6 +17,21 @@
       "public_level": "public"
     },
     {
+      "id": "enemy.treatment_skitter",
+      "display_name_key": "enemy.treatment_skitter.name",
+      "description_key": "enemy.treatment_skitter.desc",
+      "category": "basic",
+      "faction": "native_ecology",
+      "base_stats": {"max_health": 35, "attack": 5, "move_speed": 90},
+      "behaviors": ["task_guard", "melee_chase"],
+      "damage_types": ["physical"],
+      "resistances": {},
+      "drop_table_id": "drop.treatment_skitter",
+      "drops": [{"id": "item.repair_gel", "amount": 1}],
+      "spawn_regions": ["region.crystal_vein_field"],
+      "public_level": "public"
+    },
+    {
       "id": "enemy.polluted_skitter",
       "display_name_key": "enemy.polluted_skitter.name",
       "description_key": "enemy.polluted_skitter.desc",

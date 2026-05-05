@@ -62,6 +62,21 @@
       "public_level": "public"
     },
     {
+      "id": "recipe.analyze_anomaly_sample",
+      "display_name_key": "recipe.analyze_anomaly_sample.name",
+      "description_key": "recipe.analyze_anomaly_sample.desc",
+      "category": "analysis",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.anomaly_sample", "amount": 1}, {"id": "item.anomaly_residue", "amount": 2}, {"id": "fluid.basic_solvent", "amount": 1}],
+      "outputs": [{"id": "item.sample_analysis", "amount": 1}],
+      "byproducts": [],
+      "duration": 12.0,
+      "energy_cost": 3.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.bring_back_sample"],
+      "public_level": "public"
+    },
+    {
       "id": "recipe.cleanse_residue",
       "display_name_key": "recipe.cleanse_residue.name",
       "description_key": "recipe.cleanse_residue.desc",

@@ -81,6 +81,16 @@ func _check_interaction_event_objective_updates() -> void:
 	)
 	_expect_update(updates, "set", "quest.unlock_ruin_signal", "inspect", "map_object.ruin_gate", 1.0, "ruin inspect update")
 
+	updates = event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.anomaly_residue_patch",
+			"interaction_type": "gather"
+		},
+		{},
+		quest_state
+	)
+	_expect_update(updates, "add", "quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 1.0, "anomaly residue gather update")
+
 
 func _check_region_event_objective_updates() -> void:
 	var quest_state := QuestState.create_default()
@@ -115,6 +125,15 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		"repair gel recipe update"
 	)
 	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.analyze_anomaly_sample"),
+		"set",
+		"quest.analyze_anomaly_sample",
+		"craft_item",
+		"item.sample_analysis",
+		1.0,
+		"sample analysis recipe update"
+	)
+	_expect_update(
 		event_rules.get_recipe_objective_updates("recipe.basic_filter_module"),
 		"set",
 		"quest.make_filter_module",
@@ -133,14 +152,15 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		"foundation build update"
 	)
 	_expect_update(
-		event_rules.get_defeated_enemy_objective_updates("enemy.native_skitter"),
+		event_rules.get_defeated_enemy_objective_updates("enemy.treatment_skitter"),
 		"set",
 		"quest.prepare_treatment_supplies",
 		"defeat_enemy",
-		"enemy.native_skitter",
+		"enemy.treatment_skitter",
 		1.0,
-		"native enemy defeat update"
+		"treatment enemy defeat update"
 	)
+	_expect_equal(event_rules.get_defeated_enemy_objective_updates("enemy.native_skitter").size(), 0, "ordinary native enemy should not complete treatment prep")
 	_expect_update(
 		event_rules.get_defeated_enemy_objective_updates("enemy.polluted_skitter"),
 		"set",
@@ -253,7 +273,7 @@ func _check_quest_runtime_recovers_pre_sampled_anomaly() -> void:
 		"pre-sampled anomaly return objective"
 	)
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.bring_back_sample", "pre-sampled anomaly completes sample quest")
-	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.make_filter_module", "pre-sampled anomaly activates filter module quest")
+	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_anomaly_sample", "pre-sampled anomaly activates sample analysis quest")
 
 
 func _check_active_objective_progress_is_capped() -> void:

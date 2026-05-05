@@ -164,6 +164,8 @@ func _get_completion_next_step(recipe_id: String) -> String:
 			return "基础零件已可用于过滤模块、地基材料或修复凝胶；按 R 切换需要的配方。"
 		"recipe.reactor_calibrator":
 			return "反应器采样通道已校准；前往异常晶体采样后返回基地分析。"
+		"recipe.analyze_anomaly_sample":
+			return "样本过滤参数已确认；切换到过滤介质和基础过滤模块配方。"
 		"recipe.make_filter_media":
 			return "切换到基础过滤模块配方，把过滤介质和基础零件组装成远征模块。"
 		"recipe.basic_filter_module":

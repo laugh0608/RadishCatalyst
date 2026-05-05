@@ -58,6 +58,7 @@ func _process(delta: float) -> void:
 		return
 	_apply_processing_progress(delta)
 	_reconcile_active_quest_state()
+	vertical_slice_map.refresh_enemy_spawns(world_state)
 	vertical_slice_map.update_current_interactable()
 	vertical_slice_map.update_region_presence(world_state, character_state)
 	character_state.position = vertical_slice_map.get_player_position()

@@ -44,7 +44,7 @@ func interact_with_object(
 		return _failure("目标已处理。", "交互未执行", "前往当前目标标记，寻找下一个可交互对象。")
 	var quest_gate_error := _get_quest_gate_error(definition_id, interaction_type, world_state)
 	if not quest_gate_error.is_empty():
-		return _failure(quest_gate_error, "采样前置不足", "先完成反应器校准件，再按任务目标采样异常晶体。")
+		return _failure(quest_gate_error, "交互前置不足", _get_quest_gate_detail(definition_id, interaction_type))
 
 	if not _supports_interaction(definition, interaction_type):
 		return _failure("当前目标不支持该交互。", "交互不可用", "换一个可交互目标，或查看附近提示。")
@@ -186,12 +186,26 @@ func _get_tool_requirement_error(definition: Dictionary, character_state: Charac
 
 func _get_quest_gate_error(definition_id: String, interaction_type: String, world_state: WorldState) -> String:
 	if definition_id != "map_object.anomaly_crystal" or interaction_type != "sample":
-		return ""
+		if definition_id != "map_object.anomaly_residue_patch" or interaction_type != "gather":
+			return ""
+		if world_state.quest_state.has_active_quest("quest.analyze_anomaly_sample"):
+			return ""
+		if world_state.quest_state.has_completed_quest("quest.analyze_anomaly_sample"):
+			return ""
+		return "异常残留点尚未纳入分析目标。"
 	if world_state.quest_state.has_active_quest("quest.bring_back_sample"):
 		return ""
 	if world_state.quest_state.has_completed_quest("quest.bring_back_sample"):
 		return ""
 	return "异常晶体采样通道尚未校准。"
+
+
+func _get_quest_gate_detail(definition_id: String, interaction_type: String) -> String:
+	if definition_id == "map_object.anomaly_crystal" and interaction_type == "sample":
+		return "先完成反应器校准件，再按任务目标采样异常晶体。"
+	if definition_id == "map_object.anomaly_residue_patch" and interaction_type == "gather":
+		return "先带回异常晶体样本，再按分析任务回收周边残留物。"
+	return "先完成当前前置目标，再回来处理这个目标。"
 
 
 func _is_already_processed(object_state: Dictionary, interaction_type: String) -> bool:
