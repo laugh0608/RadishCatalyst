@@ -62,6 +62,16 @@ func _check_interaction_event_objective_updates() -> void:
 
 	updates = event_rules.get_interaction_objective_updates(
 		{
+			"definition_id": "map_object.field_wreckage",
+			"interaction_type": "gather"
+		},
+		{},
+		quest_state
+	)
+	_expect_update(updates, "add", "quest.calibrate_reactor", "gather_item", "item.salvage_scrap", 2.0, "field wreckage gather update")
+
+	updates = event_rules.get_interaction_objective_updates(
+		{
 			"definition_id": "map_object.ruin_gate",
 			"interaction_type": "inspect"
 		},
@@ -85,6 +95,15 @@ func _check_region_event_objective_updates() -> void:
 
 
 func _check_recipe_build_and_enemy_event_objective_updates() -> void:
+	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.reactor_calibrator"),
+		"set",
+		"quest.calibrate_reactor",
+		"craft_item",
+		"item.reactor_calibrator",
+		1.0,
+		"reactor calibrator recipe update"
+	)
 	_expect_update(
 		event_rules.get_recipe_objective_updates("recipe.basic_filter_module"),
 		"set",
@@ -119,7 +138,7 @@ func _check_non_active_quest_does_not_complete() -> void:
 	var result := completion_rules.try_complete_quest(quest_state, "quest.scout_crystal_field")
 	_expect_equal(bool(result.get("completed", true)), false, "non active quest completion")
 	_expect_array_missing(quest_state.completed_quest_ids, "quest.scout_crystal_field", "non active quest completed list")
-	_expect_array_missing(quest_state.active_quest_ids, "quest.bring_back_sample", "non active next quest")
+	_expect_array_missing(quest_state.active_quest_ids, "quest.calibrate_reactor", "non active next quest")
 
 
 func _check_incomplete_active_quest_does_not_complete() -> void:

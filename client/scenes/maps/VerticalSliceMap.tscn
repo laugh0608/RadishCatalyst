@@ -92,10 +92,25 @@ position = Vector2(135, -10)
 definition_id = "map_object.crystal_cluster"
 interaction_type = "gather"
 
+[node name="FieldWreckageNorth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(20, 88)
+definition_id = "map_object.field_wreckage"
+interaction_type = "gather"
+label_offset = Vector2(-82, 22)
+label_size = Vector2(164, 24)
+
+[node name="FieldWreckageEast" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(164, 74)
+definition_id = "map_object.field_wreckage"
+interaction_type = "gather"
+label_offset = Vector2(-82, 22)
+label_size = Vector2(164, 24)
+
 [node name="AnomalyCrystal" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(110, 80)
 definition_id = "map_object.anomaly_crystal"
 interaction_type = "sample"
+label_offset = Vector2(-72, -48)
 
 [node name="PollutionResidue" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(265, 30)

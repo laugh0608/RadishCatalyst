@@ -11,7 +11,33 @@
       "mass": 0.4,
       "rarity": "common",
       "source_refs": ["map_object.crystal_cluster"],
-      "used_by_refs": ["recipe.process_crystal_ore", "recipe.make_filter_media", "recipe.foundation_t1"],
+      "used_by_refs": ["recipe.process_crystal_ore", "recipe.make_filter_media", "recipe.reactor_calibrator", "recipe.foundation_t1"],
+      "public_level": "public"
+    },
+    {
+      "id": "item.salvage_scrap",
+      "display_name_key": "item.salvage_scrap.name",
+      "description_key": "item.salvage_scrap.desc",
+      "category": "resource",
+      "tags": ["salvage", "metal", "slice_01"],
+      "stack_size": 99,
+      "mass": 0.5,
+      "rarity": "common",
+      "source_refs": ["map_object.field_wreckage"],
+      "used_by_refs": ["recipe.reactor_calibrator"],
+      "public_level": "public"
+    },
+    {
+      "id": "item.reactor_calibrator",
+      "display_name_key": "item.reactor_calibrator.name",
+      "description_key": "item.reactor_calibrator.desc",
+      "category": "component",
+      "tags": ["calibration", "reactor", "slice_01"],
+      "stack_size": 10,
+      "mass": 0.3,
+      "rarity": "common",
+      "source_refs": ["recipe.reactor_calibrator"],
+      "used_by_refs": ["quest.calibrate_reactor"],
       "public_level": "public"
     },
     {

@@ -60,6 +60,7 @@ func _check_rejects_active_quest_without_completed_quest_source() -> void:
 	save_data["world"]["quest_state"]["completed_quest_ids"] = [
 		"quest.restore_outpost",
 		"quest.scout_crystal_field",
+		"quest.calibrate_reactor",
 		"quest.bring_back_sample",
 		"quest.make_filter_module",
 		"quest.expand_treatment_point",
@@ -69,6 +70,8 @@ func _check_rejects_active_quest_without_completed_quest_source() -> void:
 		"quest.restore_outpost|interact|building.outpost_core": 1,
 		"quest.scout_crystal_field|visit_region|region.crystal_vein_field": 1,
 		"quest.scout_crystal_field|gather_item|item.crystal_ore": 6,
+		"quest.calibrate_reactor|gather_item|item.salvage_scrap": 4,
+		"quest.calibrate_reactor|craft_item|item.reactor_calibrator": 1,
 		"quest.bring_back_sample|sample_object|map_object.anomaly_crystal": 1,
 		"quest.bring_back_sample|return_region|region.outpost_platform": 1,
 		"quest.make_filter_module|craft_item|equipment.filter_module_t1": 1,
@@ -84,6 +87,7 @@ func _check_rejects_active_quest_without_completed_quest_source() -> void:
 		"region.crystal_vein_field",
 		"recipe.process_crystal_ore",
 		"recipe.repair_gel",
+		"recipe.reactor_calibrator",
 		"recipe.make_filter_media",
 		"recipe.basic_filter_module",
 		"quest.make_filter_module",
@@ -252,12 +256,15 @@ func _mark_bring_back_sample_completed(save_data: Dictionary) -> void:
 	save_data["world"]["quest_state"]["completed_quest_ids"] = [
 		"quest.restore_outpost",
 		"quest.scout_crystal_field",
+		"quest.calibrate_reactor",
 		"quest.bring_back_sample"
 	]
 	save_data["world"]["quest_state"]["objective_progress"] = {
 		"quest.restore_outpost|interact|building.outpost_core": 1,
 		"quest.scout_crystal_field|visit_region|region.crystal_vein_field": 1,
 		"quest.scout_crystal_field|gather_item|item.crystal_ore": 6,
+		"quest.calibrate_reactor|gather_item|item.salvage_scrap": 4,
+		"quest.calibrate_reactor|craft_item|item.reactor_calibrator": 1,
 		"quest.bring_back_sample|sample_object|map_object.anomaly_crystal": 1,
 		"quest.bring_back_sample|return_region|region.outpost_platform": 1
 	}
@@ -266,6 +273,7 @@ func _mark_bring_back_sample_completed(save_data: Dictionary) -> void:
 		"region.crystal_vein_field",
 		"recipe.process_crystal_ore",
 		"recipe.repair_gel",
+		"recipe.reactor_calibrator",
 		"recipe.make_filter_media",
 		"recipe.basic_filter_module",
 		"quest.make_filter_module"
@@ -285,6 +293,7 @@ func _mark_slice_complete(save_data: Dictionary) -> void:
 	save_data["world"]["quest_state"]["completed_quest_ids"] = [
 		"quest.restore_outpost",
 		"quest.scout_crystal_field",
+		"quest.calibrate_reactor",
 		"quest.bring_back_sample",
 		"quest.make_filter_module",
 		"quest.expand_treatment_point",
@@ -295,6 +304,8 @@ func _mark_slice_complete(save_data: Dictionary) -> void:
 		"quest.restore_outpost|interact|building.outpost_core": 1,
 		"quest.scout_crystal_field|visit_region|region.crystal_vein_field": 1,
 		"quest.scout_crystal_field|gather_item|item.crystal_ore": 6,
+		"quest.calibrate_reactor|gather_item|item.salvage_scrap": 4,
+		"quest.calibrate_reactor|craft_item|item.reactor_calibrator": 1,
 		"quest.bring_back_sample|sample_object|map_object.anomaly_crystal": 1,
 		"quest.bring_back_sample|return_region|region.outpost_platform": 1,
 		"quest.make_filter_module|craft_item|equipment.filter_module_t1": 1,
@@ -311,6 +322,7 @@ func _mark_slice_complete(save_data: Dictionary) -> void:
 		"region.crystal_vein_field",
 		"recipe.process_crystal_ore",
 		"recipe.repair_gel",
+		"recipe.reactor_calibrator",
 		"recipe.make_filter_media",
 		"recipe.basic_filter_module",
 		"quest.make_filter_module",

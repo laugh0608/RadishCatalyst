@@ -11,6 +11,8 @@ const MAP_MARKER_UNLOCKED_COLOR := Color(0.55, 0.72, 0.66, 1.0)
 const MAP_MARKER_LOCKED_COLOR := Color(0.28, 0.32, 0.32, 1.0)
 const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 	"item.crystal_ore",
+	"item.salvage_scrap",
+	"item.reactor_calibrator",
 	"item.basic_parts",
 	"item.polluted_residue",
 	"item.filter_media",
@@ -669,6 +671,10 @@ func _format_direction_hint(world_state: WorldState, character_state: CharacterS
 			return "检查左侧前哨核心，解锁晶体矿脉导航。"
 		"quest.scout_crystal_field":
 			return "向东进入蓝色晶体矿脉区，采集晶体矿物。"
+		"quest.calibrate_reactor":
+			if world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.salvage_scrap") < 4.0:
+				return "在晶体矿脉区回收外勤残骸，凑齐导电废件后回基地。"
+			return "回基地使用基础反应器，组装反应器校准件。"
 		"quest.bring_back_sample":
 			if world_state.quest_state.get_objective_progress(quest_id, "sample_object", "map_object.anomaly_crystal") <= 0.0:
 				return "向东南采样异常晶体；采样后返回基地平台。"
@@ -789,6 +795,10 @@ func _get_quest_target_region_id(world_state: WorldState, quest_id: String) -> S
 			return "region.outpost_platform"
 		"quest.scout_crystal_field":
 			return "region.crystal_vein_field"
+		"quest.calibrate_reactor":
+			if world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.salvage_scrap") < 4.0:
+				return "region.crystal_vein_field"
+			return "region.outpost_platform"
 		"quest.bring_back_sample":
 			if world_state.quest_state.get_objective_progress(quest_id, "sample_object", "map_object.anomaly_crystal") <= 0.0:
 				return "region.crystal_vein_field"
@@ -816,6 +826,10 @@ func _format_onboarding_hint(world_state: WorldState, character_state: Character
 			if world_state.current_region_id != "region.crystal_vein_field":
 				return "晶体矿物是第一批加工输入，先去蓝色晶体区。"
 			return "采集晶体簇；遇到掠行体时先用基础攻击处理威胁。"
+		"quest.calibrate_reactor":
+			if world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.salvage_scrap") < 4.0:
+				return "外勤残骸提供导电废件；回收两处残骸后回基地加工校准件。"
+			return "靠近基础反应器，切换到反应器校准件配方并等待加工完成。"
 		"quest.bring_back_sample":
 			if world_state.quest_state.get_objective_progress(quest_id, "sample_object", "map_object.anomaly_crystal") <= 0.0:
 				return "采样异常晶体；样本会解锁过滤介质配方。"

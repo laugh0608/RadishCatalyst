@@ -21,6 +21,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		]
 		updates.append_array(_get_drop_objective_updates("quest.scout_crystal_field", "gather_item", "item.crystal_ore", definition_id))
 		return updates
+	if interaction_type == "gather" and definition_id == "map_object.field_wreckage":
+		return _get_drop_objective_updates("quest.calibrate_reactor", "gather_item", "item.salvage_scrap", definition_id)
 	if interaction_type == "sample" and definition_id == "map_object.anomaly_crystal":
 		return [_set_update("quest.bring_back_sample", "sample_object", "map_object.anomaly_crystal", 1)]
 	if interaction_type == "gather" and definition_id == "map_object.pollution_residue_patch":
@@ -53,6 +55,8 @@ func get_region_objective_updates(region_id: String, quest_state: QuestState) ->
 
 func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 	match recipe_id:
+		"recipe.reactor_calibrator":
+			return [_set_update("quest.calibrate_reactor", "craft_item", "item.reactor_calibrator", 1)]
 		"recipe.basic_filter_module":
 			return [_set_update("quest.make_filter_module", "craft_item", "equipment.filter_module_t1", 1)]
 		"recipe.cleanse_residue":

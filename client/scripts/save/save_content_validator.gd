@@ -7,6 +7,8 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.crystal_cluster": "map_object.crystal_cluster",
 	"map_object_instance.crystal_cluster_east": "map_object.crystal_cluster",
 	"map_object_instance.crystal_cluster_south": "map_object.crystal_cluster",
+	"map_object_instance.field_wreckage_north": "map_object.field_wreckage",
+	"map_object_instance.field_wreckage_east": "map_object.field_wreckage",
 	"map_object_instance.anomaly_crystal": "map_object.anomaly_crystal",
 	"map_object_instance.pollution_residue": "map_object.pollution_residue_patch",
 	"map_object_instance.rough_ground_north": "map_object.rough_ground",

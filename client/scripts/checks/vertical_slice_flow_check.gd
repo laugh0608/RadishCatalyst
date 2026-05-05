@@ -57,7 +57,14 @@ func _run_checks() -> void:
 		{"type": "visit_region", "target_id": "region.crystal_vein_field", "amount": 1},
 		{"type": "gather_item", "target_id": "item.crystal_ore", "amount": 6}
 	])
-	_expect_active_quest("quest.bring_back_sample", "after scout crystal field")
+	_expect_active_quest("quest.calibrate_reactor", "after scout crystal field")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.reactor_calibrator", "scout unlocks reactor calibrator recipe")
+
+	_complete_active_quest("quest.calibrate_reactor", [
+		{"type": "gather_item", "target_id": "item.salvage_scrap", "amount": 4},
+		{"type": "craft_item", "target_id": "item.reactor_calibrator", "amount": 1}
+	])
+	_expect_active_quest("quest.bring_back_sample", "after calibrate reactor")
 
 	_complete_active_quest("quest.bring_back_sample", [
 		{"type": "sample_object", "target_id": "map_object.anomaly_crystal", "amount": 1},
@@ -112,6 +119,7 @@ func _check_onboarding_hints() -> void:
 
 	hint_world.current_region_id = "region.crystal_vein_field"
 	_expect_hint_contains(hud, hint_world, hint_character, "quest.scout_crystal_field", "采集晶体簇", "crystal field onboarding hint")
+	_expect_hint_contains(hud, hint_world, hint_character, "quest.calibrate_reactor", "外勤残骸", "calibration onboarding hint")
 
 	_expect_hint_contains(hud, hint_world, hint_character, "quest.expand_treatment_point", "2 块地基", "foundation onboarding hint")
 	hint_world.add_base_structure("structure.foundation_site_north", "building.foundation_t1", "region.pollution_edge")
@@ -300,6 +308,13 @@ func _check_early_interaction_processed_visuals() -> void:
 		"gather",
 		"晶体簇"
 	)
+	var salvage := _create_visual_check_interactable(
+		map.interactables_root,
+		"map_object_instance.field_wreckage_north",
+		"map_object.field_wreckage",
+		"gather",
+		"外勤残骸"
+	)
 	var anomaly := _create_visual_check_interactable(
 		map.interactables_root,
 		"map_object_instance.anomaly_crystal",
@@ -329,11 +344,14 @@ func _check_early_interaction_processed_visuals() -> void:
 		"封锁遗迹入口"
 	)
 	var default_crystal_color := crystal.marker.color
+	var default_salvage_color := salvage.marker.color
 	var default_ruin_color := ruin_gate.marker.color
 
 	var visual_world := WorldState.create_default()
 	visual_world.ensure_map_object(crystal.instance_id, crystal.definition_id, "region.crystal_vein_field")
 	visual_world.set_map_object_flag(crystal.instance_id, "is_gathered", true)
+	visual_world.ensure_map_object(salvage.instance_id, salvage.definition_id, "region.crystal_vein_field")
+	visual_world.set_map_object_flag(salvage.instance_id, "is_gathered", true)
 	visual_world.ensure_map_object(anomaly.instance_id, anomaly.definition_id, "region.crystal_vein_field")
 	visual_world.set_map_object_flag(anomaly.instance_id, "is_sampled", true)
 	visual_world.ensure_map_object(rough_ground.instance_id, rough_ground.definition_id, "region.pollution_edge")
@@ -347,6 +365,10 @@ func _check_early_interaction_processed_visuals() -> void:
 	_expect_equal(crystal.monitoring, false, "gathered crystal disables repeat interaction")
 	_expect_equal(crystal.marker.color == default_crystal_color, false, "gathered crystal changes color")
 	_expect_text_contains(crystal.label.text, "已采集", "gathered crystal label")
+	_expect_equal(salvage.visible, true, "gathered salvage remains visible")
+	_expect_equal(salvage.monitoring, false, "gathered salvage disables repeat interaction")
+	_expect_equal(salvage.marker.color == default_salvage_color, false, "gathered salvage changes color")
+	_expect_text_contains(salvage.label.text, "已回收", "gathered salvage label")
 	_expect_equal(anomaly.visible, true, "sampled anomaly remains visible")
 	_expect_equal(anomaly.monitoring, false, "sampled anomaly disables repeat interaction")
 	_expect_text_contains(anomaly.label.text, "已采样", "sampled anomaly label")
@@ -366,6 +388,9 @@ func _check_early_interaction_processed_visuals() -> void:
 	_expect_equal(crystal.monitoring, true, "new game crystal enables interaction")
 	_expect_equal(crystal.marker.color, default_crystal_color, "new game crystal restores default color")
 	_expect_equal(crystal.label.text, "晶体簇", "new game crystal restores label")
+	_expect_equal(salvage.monitoring, true, "new game salvage enables interaction")
+	_expect_equal(salvage.marker.color, default_salvage_color, "new game salvage restores default color")
+	_expect_equal(salvage.label.text, "外勤残骸", "new game salvage restores label")
 	_expect_equal(ruin_gate.monitoring, true, "new game ruin gate enables interaction")
 	_expect_equal(ruin_gate.marker.color, default_ruin_color, "new game ruin gate restores default color")
 
@@ -695,6 +720,7 @@ func _check_device_panel_formatting() -> void:
 	reactor.recipe_id = "recipe.process_crystal_ore"
 	reactor.set_recipe_cycle([
 		"recipe.process_crystal_ore",
+		"recipe.reactor_calibrator",
 		"recipe.make_filter_media",
 		"recipe.basic_filter_module",
 		"recipe.foundation_t1",

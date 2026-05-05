@@ -32,6 +32,21 @@
       "public_level": "public"
     },
     {
+      "id": "recipe.reactor_calibrator",
+      "display_name_key": "recipe.reactor_calibrator.name",
+      "description_key": "recipe.reactor_calibrator.desc",
+      "category": "assembly",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.salvage_scrap", "amount": 4}, {"id": "item.crystal_ore", "amount": 1}],
+      "outputs": [{"id": "item.reactor_calibrator", "amount": 1}],
+      "byproducts": [],
+      "duration": 9.0,
+      "energy_cost": 2.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.scout_crystal_field"],
+      "public_level": "public"
+    },
+    {
       "id": "recipe.basic_filter_module",
       "display_name_key": "recipe.basic_filter_module.name",
       "description_key": "recipe.basic_filter_module.desc",

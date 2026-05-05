@@ -22,11 +22,11 @@
       "planet_or_world": "world.slice_01",
       "biome_type": "crystal_field",
       "danger_level": 1,
-      "resources": ["item.crystal_ore", "item.anomaly_sample"],
+      "resources": ["item.crystal_ore", "item.salvage_scrap", "item.anomaly_sample"],
       "pollution_types": [],
       "weather_pool": ["weather.clear", "weather.night"],
       "recommended_equipment": ["equipment.basic_tool", "equipment.basic_suit"],
-      "quest_refs": ["quest.scout_crystal_field", "quest.bring_back_sample"],
+      "quest_refs": ["quest.scout_crystal_field", "quest.calibrate_reactor", "quest.bring_back_sample"],
       "public_level": "public"
     },
     {
