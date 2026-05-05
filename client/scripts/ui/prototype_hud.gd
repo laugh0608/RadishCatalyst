@@ -24,6 +24,7 @@ var last_quick_slots: Array[String] = []
 var supply_feedback_remaining_seconds := 0.0
 var quest_completion_feedback_remaining_seconds := 0.0
 var debug_panels_visible := false
+var debug_panel_presenter := HudDebugPanelPresenter.new()
 
 @onready var save_panel: ColorRect = $SavePanel
 @onready var completion_panel: ColorRect = $CompletionPanel
@@ -132,7 +133,11 @@ func _update_timed_panel_visibility(delta: float) -> void:
 func update_status(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> void:
 	status_label.text = format_status_text(data_registry, world_state, character_state)
 	_update_map_panel(world_state, _get_active_quest_id(world_state))
-	_update_quick_slot_binding_panel(data_registry, character_state)
+	last_quick_slots = debug_panel_presenter.update_quick_slot_binding_panel(
+		data_registry,
+		character_state,
+		quick_slot_binding_labels
+	)
 
 
 func format_status_text(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> String:
@@ -291,18 +296,12 @@ func format_device_panel_texts(
 
 
 func update_save_slot_summaries(summaries: Array[Dictionary]) -> void:
-	for index in range(save_slot_labels.size()):
-		if index >= summaries.size():
-			continue
-
-		var summary := summaries[index]
-		var label_text := "%s：%s\n%s" % [
-			String(summary.get("display_name", SAVE_SLOT_IDS[index])),
-			String(summary.get("status", "未知")),
-			_format_save_slot_details(summary)
-		]
-		save_slot_labels[index].text = label_text
-		load_slot_buttons[index].disabled = not bool(summary.get("has_loadable_save", false))
+	debug_panel_presenter.update_save_slot_summaries(
+		summaries,
+		save_slot_labels,
+		load_slot_buttons,
+		SAVE_SLOT_IDS
+	)
 
 
 func _on_save_slot_pressed(slot_index: int) -> void:
@@ -325,7 +324,10 @@ func _on_quick_slot_binding_pressed(slot_index: int) -> void:
 	var current_item_id := ""
 	if slot_index < last_quick_slots.size():
 		current_item_id = last_quick_slots[slot_index]
-	var next_item_id := _get_next_quick_slot_candidate(current_item_id)
+	var next_item_id := debug_panel_presenter.get_next_quick_slot_candidate(
+		current_item_id,
+		QUICK_SLOT_BIND_CANDIDATES
+	)
 	quick_slot_binding_requested.emit(slot_index, next_item_id)
 
 
@@ -438,39 +440,6 @@ func _set_debug_panels_visible(should_show: bool) -> void:
 	quick_slot_panel.visible = should_show
 
 
-func _format_save_slot_details(summary: Dictionary) -> String:
-	var status := String(summary.get("status", ""))
-	var details := String(summary.get("details", ""))
-	if status == "存档不可读取":
-		return "存档损坏或内容已过期；可覆盖保存。"
-	if bool(summary.get("has_loadable_save", false)):
-		return _format_loadable_slot_details(details)
-	if details.length() > 28:
-		return "%s..." % details.substr(0, 28)
-	return details
-
-
-func _format_loadable_slot_details(details: String) -> String:
-	var parts := details.split("；", false)
-	var saved_at := ""
-	var region := ""
-	for part in parts:
-		var text := String(part)
-		if text.begins_with("最近保存："):
-			saved_at = text.trim_prefix("最近保存：")
-		if text.begins_with("区域："):
-			region = text.trim_prefix("区域：")
-	if saved_at.length() >= 16:
-		saved_at = "%s %s" % [saved_at.substr(5, 5), saved_at.substr(11, 5)]
-	if not saved_at.is_empty() and not region.is_empty():
-		return "最近：%s；区域：%s" % [saved_at, region]
-	if not saved_at.is_empty():
-		return "最近：%s" % saved_at
-	if details.length() > 28:
-		return "%s..." % details.substr(0, 28)
-	return details
-
-
 func _append_detail(details: Array[String], text: String) -> void:
 	if text.strip_edges().is_empty():
 		return
@@ -514,34 +483,6 @@ func _format_note_detail(note_text: String) -> String:
 	if note_text.strip_edges().is_empty() or note_text.begins_with("提示："):
 		return note_text
 	return "提示：%s" % note_text
-
-
-func _update_quick_slot_binding_panel(data_registry: DataRegistry, character_state: CharacterState) -> void:
-	last_quick_slots = character_state.quick_slots.duplicate()
-	for slot_index in range(quick_slot_binding_labels.size()):
-		var item_id := ""
-		if slot_index < character_state.quick_slots.size():
-			item_id = character_state.quick_slots[slot_index]
-		quick_slot_binding_labels[slot_index].text = "%d：%s" % [
-			slot_index + 1,
-			_format_quick_slot_binding(data_registry, character_state, item_id)
-		]
-
-
-func _format_quick_slot_binding(data_registry: DataRegistry, character_state: CharacterState, item_id: String) -> String:
-	if item_id.is_empty():
-		return "空"
-	return "%s x%s" % [
-		_get_display_name(data_registry, item_id),
-		int(character_state.inventory.items.get(item_id, 0))
-	]
-
-
-func _get_next_quick_slot_candidate(current_item_id: String) -> String:
-	var current_index := QUICK_SLOT_BIND_CANDIDATES.find(current_item_id)
-	if current_index < 0:
-		return QUICK_SLOT_BIND_CANDIDATES[0]
-	return QUICK_SLOT_BIND_CANDIDATES[(current_index + 1) % QUICK_SLOT_BIND_CANDIDATES.size()]
 
 
 func _get_display_name(data_registry: DataRegistry, definition_id: String) -> String:
