@@ -42,3 +42,9 @@ desktop.ini
 *.user
 *.userosscache
 *.sln.docstates
+
+# Agents
+.claude
+.claude/
+.codex
+.codex/
