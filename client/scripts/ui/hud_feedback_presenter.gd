@@ -25,6 +25,31 @@ func format_quest_completion_panel_texts(feedback: Dictionary) -> Dictionary:
 	}
 
 
+func format_evacuation_panel_texts(feedback: Dictionary) -> Dictionary:
+	if feedback.is_empty():
+		return {}
+	var reason_text := String(feedback.get("reason_text", "状态过低"))
+	var recovery_text := String(feedback.get("recovery_text", "已撤回前哨。"))
+	var retry_text := String(feedback.get("retry_text", "再尝试前：补充快捷栏物品。"))
+	var details: Array[String] = []
+	_append_detail(details, "原因：%s" % reason_text)
+	_append_detail(details, "恢复：%s" % recovery_text)
+	_append_detail(details, _format_retry_detail(retry_text))
+	return {
+		"title": "撤离结果：%s" % reason_text,
+		"detail": "\n".join(details)
+	}
+
+
+func format_supply_feedback_panel_texts(feedback: Dictionary) -> Dictionary:
+	if feedback.is_empty():
+		return {}
+	return {
+		"title": String(feedback.get("title", "补给反馈")),
+		"detail": String(feedback.get("detail", ""))
+	}
+
+
 func get_evacuation_feedback(result: Dictionary) -> Dictionary:
 	var feedback = result.get("evacuation_feedback", {})
 	if feedback is Dictionary:
@@ -76,6 +101,14 @@ func _format_note_detail(note_text: String) -> String:
 	if note_text.strip_edges().is_empty() or note_text.begins_with("提示："):
 		return note_text
 	return "提示：%s" % note_text
+
+
+func _format_retry_detail(retry_text: String) -> String:
+	if retry_text.strip_edges().is_empty():
+		return ""
+	if retry_text.begins_with("再尝试前："):
+		return retry_text
+	return "再尝试前：%s" % retry_text
 
 
 func _append_detail(details: Array[String], text: String) -> void:

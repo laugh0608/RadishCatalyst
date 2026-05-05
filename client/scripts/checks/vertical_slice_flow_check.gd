@@ -618,6 +618,9 @@ func _check_hud_feedback_presenter() -> void:
 		{},
 		"presenter ignores missing evacuation feedback"
 	)
+	var supply_panel_texts := presenter.format_supply_feedback_panel_texts(supply_feedback)
+	_expect_equal(String(supply_panel_texts.get("title", "")), "补给已使用", "presenter formats supply title")
+	_expect_equal(String(supply_panel_texts.get("detail", "")), "生命 +35", "presenter formats supply detail")
 
 
 func _check_pollution_status_hints() -> void:
@@ -1060,13 +1063,12 @@ func _check_evacuation_feedback() -> void:
 	_expect_equal(evacuation_character.health, 60.0, "evacuation health recovery")
 	if String(feedback.get("retry_text", "")).find("修复凝胶") < 0:
 		failures.append("evacuation retry text should mention repair gel, got %s" % var_to_str(feedback))
-	var hud := PrototypeHud.new()
-	var panel_texts := hud.format_evacuation_panel_texts(feedback)
+	var presenter := HudFeedbackPresenter.new()
+	var panel_texts := presenter.format_evacuation_panel_texts(feedback)
 	_expect_equal(String(panel_texts.get("title", "")), "撤离结果：生命耗尽", "evacuation panel title")
 	_expect_text_contains(String(panel_texts.get("detail", "")), "原因：生命耗尽", "evacuation panel reason")
 	_expect_text_contains(String(panel_texts.get("detail", "")), "恢复：已撤回前哨", "evacuation panel recovery")
 	_expect_text_contains(String(panel_texts.get("detail", "")), "再尝试前：按 1 使用修复凝胶", "evacuation panel retry")
-	hud.free()
 	map.player.free()
 	map.free()
 

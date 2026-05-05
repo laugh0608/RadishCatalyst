@@ -173,7 +173,7 @@ func show_evacuation_feedback(feedback: Dictionary) -> void:
 	if feedback.is_empty():
 		return
 
-	var texts := format_evacuation_panel_texts(feedback)
+	var texts := feedback_presenter.format_evacuation_panel_texts(feedback)
 	evacuation_title_label.text = String(texts.get("title", "撤离结果"))
 	evacuation_detail_label.text = String(texts.get("detail", ""))
 	evacuation_panel.visible = true
@@ -183,8 +183,9 @@ func show_supply_feedback(feedback: Dictionary) -> void:
 	if feedback.is_empty():
 		return
 
-	supply_feedback_title_label.text = String(feedback.get("title", "补给反馈"))
-	supply_feedback_detail_label.text = String(feedback.get("detail", ""))
+	var texts := feedback_presenter.format_supply_feedback_panel_texts(feedback)
+	supply_feedback_title_label.text = String(texts.get("title", "补给反馈"))
+	supply_feedback_detail_label.text = String(texts.get("detail", ""))
 	supply_feedback_panel.visible = true
 	supply_feedback_remaining_seconds = SUPPLY_FEEDBACK_SECONDS
 
@@ -272,28 +273,6 @@ func _on_quick_slot_binding_pressed(slot_index: int) -> void:
 
 func _on_evacuation_close_pressed() -> void:
 	evacuation_panel.visible = false
-
-
-func format_evacuation_panel_texts(feedback: Dictionary) -> Dictionary:
-	var reason_text := String(feedback.get("reason_text", "状态过低"))
-	var recovery_text := String(feedback.get("recovery_text", "已撤回前哨。"))
-	var retry_text := String(feedback.get("retry_text", "再尝试前：补充快捷栏物品。"))
-	var details: Array[String] = []
-	_append_detail(details, "原因：%s" % reason_text)
-	_append_detail(details, "恢复：%s" % recovery_text)
-	_append_detail(details, _format_retry_detail(retry_text))
-	return {
-		"title": "撤离结果：%s" % reason_text,
-		"detail": "\n".join(details)
-	}
-
-
-func _format_retry_detail(retry_text: String) -> String:
-	if retry_text.strip_edges().is_empty():
-		return ""
-	if retry_text.begins_with("再尝试前："):
-		return retry_text
-	return "再尝试前：%s" % retry_text
 
 
 func _set_debug_panels_visible(should_show: bool) -> void:
