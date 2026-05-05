@@ -170,30 +170,30 @@ func _check_status_panel_summary() -> void:
 
 
 func _check_region_markers() -> void:
-	var hud := PrototypeHud.new()
+	var presenter := HudMapPresenter.new()
 	var marker_world := WorldState.create_default()
 	_expect_text_contains(
-		hud._format_region_markers(marker_world, "quest.restore_outpost"),
+		presenter.format_region_markers(marker_world, "quest.restore_outpost"),
 		"基地：当前位置，目标",
 		"outpost marker as current objective"
 	)
 	_expect_text_contains(
-		hud._format_region_markers(marker_world, "quest.restore_outpost"),
+		presenter.format_region_markers(marker_world, "quest.restore_outpost"),
 		"晶体：东侧，未解锁",
 		"locked crystal marker"
 	)
-	var initial_map_labels := hud.format_map_marker_labels(marker_world, "quest.restore_outpost")
+	var initial_map_labels := presenter.format_map_marker_labels(marker_world, "quest.restore_outpost")
 	_expect_array_has(initial_map_labels, "基地\n当前\n目标", "outpost minimap current target marker")
 	_expect_array_has(initial_map_labels, "晶体\n未解锁", "crystal minimap locked marker")
 
 	marker_world.unlock_region("region.crystal_vein_field")
 	_expect_text_contains(
-		hud._format_region_markers(marker_world, "quest.scout_crystal_field"),
+		presenter.format_region_markers(marker_world, "quest.scout_crystal_field"),
 		"晶体：东侧，目标",
 		"crystal marker as objective"
 	)
 	_expect_array_has(
-		hud.format_map_marker_labels(marker_world, "quest.scout_crystal_field"),
+		presenter.format_map_marker_labels(marker_world, "quest.scout_crystal_field"),
 		"晶体\n目标",
 		"crystal minimap objective marker"
 	)
@@ -205,23 +205,22 @@ func _check_region_markers() -> void:
 		1.0
 	)
 	_expect_text_contains(
-		hud._format_region_markers(marker_world, "quest.bring_back_sample"),
+		presenter.format_region_markers(marker_world, "quest.bring_back_sample"),
 		"基地：当前位置，目标",
 		"sample return marker as objective"
 	)
 
 	marker_world.unlock_region("region.locked_ruin_gate")
 	_expect_text_contains(
-		hud._format_region_markers(marker_world, "quest.unlock_ruin_signal"),
+		presenter.format_region_markers(marker_world, "quest.unlock_ruin_signal"),
 		"遗迹：东端，目标",
 		"ruin gate marker as objective"
 	)
 	_expect_array_has(
-		hud.format_map_marker_labels(marker_world, "quest.unlock_ruin_signal"),
+		presenter.format_map_marker_labels(marker_world, "quest.unlock_ruin_signal"),
 		"遗迹\n目标",
 		"ruin gate minimap objective marker"
 	)
-	hud.free()
 
 
 func _check_region_presence_bounds() -> void:
