@@ -151,10 +151,10 @@ func _check_onboarding_hints() -> void:
 
 
 func _check_status_panel_summary() -> void:
-	var hud := PrototypeHud.new()
+	var presenter := HudStatusPresenter.new()
 	var status_world := WorldState.create_default()
 	var status_character := CharacterState.create_default()
-	var status_text := hud.format_status_text(data_registry, status_world, status_character)
+	var status_text := presenter.format_status_text(data_registry, status_world, status_character)
 	_expect_text_contains(status_text, "目标：恢复前哨", "status keeps current goal")
 	_expect_text_contains(status_text, "进度：交互 前哨核心 0/1", "status keeps objective progress")
 	_expect_text_contains(status_text, "状态：生命 100 / 100；防护 100 / 100", "status keeps health and protection")
@@ -167,7 +167,6 @@ func _check_status_panel_summary() -> void:
 	_expect_text_missing(status_text, "背包：", "status removes full inventory duplicate")
 	if status_text.split("\n").size() > 8:
 		failures.append("status panel should stay compact, got %d lines: %s" % [status_text.split("\n").size(), status_text])
-	hud.free()
 
 
 func _check_region_markers() -> void:
@@ -623,11 +622,11 @@ func _check_hud_feedback_presenter() -> void:
 
 
 func _check_pollution_status_hints() -> void:
-	var hud := PrototypeHud.new()
+	var presenter := HudStatusPresenter.new()
 	var pollution_world := WorldState.create_default()
 	var pollution_character := CharacterState.create_default()
 	_expect_text_contains(
-		hud._format_pollution_status(data_registry, pollution_world, pollution_character),
+		presenter.format_pollution_status(data_registry, pollution_world, pollution_character),
 		"无持续污染压力",
 		"stable region pollution status"
 	)
@@ -635,25 +634,24 @@ func _check_pollution_status_hints() -> void:
 	pollution_world.current_region_id = "region.pollution_edge"
 	pollution_character.current_region_id = "region.pollution_edge"
 	_expect_text_contains(
-		hud._format_pollution_status(data_registry, pollution_world, pollution_character),
+		presenter.format_pollution_status(data_registry, pollution_world, pollution_character),
 		"未启用过滤模块",
 		"pollution status without module"
 	)
 
 	pollution_character.equipment["suit_module"] = "equipment.filter_module_t1"
 	_expect_text_contains(
-		hud._format_pollution_status(data_registry, pollution_world, pollution_character),
+		presenter.format_pollution_status(data_registry, pollution_world, pollution_character),
 		"消耗 x0.65",
 		"pollution status with module"
 	)
 
 	pollution_character.protection = 30.0
 	_expect_text_contains(
-		hud._format_pollution_status(data_registry, pollution_world, pollution_character),
+		presenter.format_pollution_status(data_registry, pollution_world, pollution_character),
 		"防护危险",
 		"low protection pollution status"
 	)
-	hud.free()
 
 
 func _check_region_prompt_formatter() -> void:
