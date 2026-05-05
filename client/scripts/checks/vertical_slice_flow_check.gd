@@ -460,8 +460,8 @@ func _check_treatment_enemy_spawn_gate() -> void:
 
 
 func _check_quest_completion_panel_text() -> void:
-	var hud := PrototypeHud.new()
-	var details := hud._format_quest_completion_details({
+	var presenter := HudFeedbackPresenter.new()
+	var panel_texts := presenter.format_quest_completion_panel_texts({
 		"panel_title": "任务完成",
 		"completed_text": "完成：恢复前哨",
 		"reward_text": "奖励：基础零件 x4",
@@ -469,32 +469,32 @@ func _check_quest_completion_panel_text() -> void:
 		"note_text": "",
 		"next_goal_text": "新目标：勘探晶体矿脉"
 	})
+	var details := String(panel_texts.get("detail", ""))
 	_expect_text_contains(details, "完成：恢复前哨", "completion details completed row")
 	_expect_text_contains(details, "奖励：基础零件 x4", "completion details reward row")
 	_expect_text_contains(details, "解锁：晶体矿脉区", "completion details unlock row")
 	_expect_text_contains(details, "新目标：勘探晶体矿脉", "completion details next row")
 	_expect_text_contains(
-		hud._format_quest_completion_details({
+		String(presenter.format_quest_completion_panel_texts({
 			"title": "任务完成：带回样本",
 			"reward_text": "奖励：无直接物资"
-		}),
+		}).get("detail", "")),
 		"完成：带回样本",
 		"completion details title fallback"
 	)
 	_expect_equal(
-		hud._format_quest_completion_panel_title({"panel_title": "切片完成"}),
+		String(presenter.format_quest_completion_panel_texts({"panel_title": "切片完成"}).get("title", "")),
 		"切片完成",
 		"completion panel title"
 	)
 	_expect_text_contains(
-		hud._format_quest_completion_details({
+		String(presenter.format_quest_completion_panel_texts({
 			"completed_text": "完成：解锁后续入口",
 			"note_text": "切片结尾：更深区域信号已确认，后续内容待开放"
-		}),
+		}).get("detail", "")),
 		"提示：切片结尾",
 		"completion note prefix"
 	)
-	hud.free()
 
 
 func _check_build_prompts() -> void:
