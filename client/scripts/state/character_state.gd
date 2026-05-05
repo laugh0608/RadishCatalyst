@@ -115,11 +115,11 @@ func _use_repair_gel(item_id: String, data_registry: DataRegistry) -> Dictionary
 	inventory.consume_ref(item_id, 1)
 	health = minf(max_health, health + REPAIR_GEL_HEAL_AMOUNT)
 	var recovered := health - before
-	var display_name := _get_display_name(item_id, data_registry)
+	var item_display_name := _get_display_name(item_id, data_registry)
 	return _supply_success("使用%s，生命 +%s。" % [
-		display_name,
+		item_display_name,
 		_format_amount(recovered)
-	], "补给生效：%s" % display_name, "生命 +%s，当前 %s / %s；剩余 %d。" % [
+	], "补给生效：%s" % item_display_name, "生命 +%s，当前 %s / %s；剩余 %d。" % [
 		_format_amount(recovered),
 		_format_amount(health),
 		_format_amount(max_health),
@@ -139,11 +139,11 @@ func _use_resistance_vial(item_id: String, data_registry: DataRegistry) -> Dicti
 	inventory.consume_ref(item_id, 1)
 	protection = minf(max_protection, protection + RESISTANCE_VIAL_PROTECTION_AMOUNT)
 	var recovered := protection - before
-	var display_name := _get_display_name(item_id, data_registry)
+	var item_display_name := _get_display_name(item_id, data_registry)
 	return _supply_success("使用%s，防护 +%s。" % [
-		display_name,
+		item_display_name,
 		_format_amount(recovered)
-	], "补给生效：%s" % display_name, "防护 +%s，当前 %s / %s；剩余 %d。" % [
+	], "补给生效：%s" % item_display_name, "防护 +%s，当前 %s / %s；剩余 %d。" % [
 		_format_amount(recovered),
 		_format_amount(protection),
 		_format_amount(max_protection),

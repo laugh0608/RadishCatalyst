@@ -432,10 +432,10 @@ func _format_device_operations(interactable: PrototypeInteractable, status: Dict
 	return "操作：%s" % "；".join(operations)
 
 
-func _set_debug_panels_visible(is_visible: bool) -> void:
-	debug_panels_visible = is_visible
-	save_panel.visible = is_visible
-	quick_slot_panel.visible = is_visible
+func _set_debug_panels_visible(should_show: bool) -> void:
+	debug_panels_visible = should_show
+	save_panel.visible = should_show
+	quick_slot_panel.visible = should_show
 
 
 func _format_save_slot_details(summary: Dictionary) -> String:

@@ -8,7 +8,7 @@ func _init(registry: DataRegistry) -> void:
 	data_registry = registry
 
 
-func get_interaction_objective_updates(context: Dictionary, result: Dictionary, quest_state: QuestState) -> Array[Dictionary]:
+func get_interaction_objective_updates(context: Dictionary, result: Dictionary, _quest_state: QuestState) -> Array[Dictionary]:
 	var definition_id := String(context.get("definition_id", ""))
 	var interaction_type := String(context.get("interaction_type", ""))
 	var recipe_id := String(context.get("recipe_id", ""))

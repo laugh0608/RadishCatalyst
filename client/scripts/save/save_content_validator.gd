@@ -532,7 +532,7 @@ func _validate_cross_block_content(world_data: Dictionary, character_data: Dicti
 	return ""
 
 
-func _validate_world_region_links(world_data: Dictionary, unlocked_region_ids: Array[String]) -> String:
+func _validate_world_region_links(_world_data: Dictionary, _unlocked_region_ids: Array[String]) -> String:
 	# 固定切片地图会提前记录后续区域的对象、敌人和建造点状态。
 	# 当前区域仍由 _validate_cross_block_content() 校验必须已解锁。
 	return ""
