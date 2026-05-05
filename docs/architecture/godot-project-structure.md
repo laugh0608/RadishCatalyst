@@ -432,7 +432,9 @@ Godot 初始工程不做：
 - 静态数据和存档混在一起。
 - 所有系统都挂在 `GameRoot` 一个脚本里。
 
-当前 `GameRoot` 仍承担原型事件入口和地图 / HUD 调用编排，但任务事件映射、任务目标进度写入、目标上限封顶、目标满足度判断、任务完成状态变更、任务解锁效果写入和后续任务激活已下沉到 `scripts/quests/`；加工设备、建造点、清理地块、污染边界门槛和遗迹入口提示文本已下沉到 `scripts/ui/interaction_prompt_formatter.gd`；补给反馈和撤离反馈的显示判断已下沉到 `scripts/ui/hud_feedback_presenter.gd`。后续进入更完整任务系统、存档或联机命令化之前，应继续把任务完成反馈、日志拼装和剩余 HUD 编排边界逐步下沉到系统层或 UI presenter，避免场景根脚本继续膨胀。
+当前 `GameRoot` 仍承担原型事件入口和地图 / HUD 调用编排，但任务事件映射、任务目标进度写入、目标上限封顶、目标满足度判断、任务完成状态变更、任务解锁效果写入和后续任务激活已下沉到 `scripts/quests/`；加工设备、建造点、清理地块、污染边界门槛和遗迹入口提示文本已下沉到 `scripts/ui/interaction_prompt_formatter.gd`。
+
+HUD 侧已将可复用文本和视图数据拆入 presenter：`HudDebugPanelPresenter` 负责存档槽与快捷栏调试面板刷新，`HudDevicePanelPresenter` 负责设备面板文本、配方列表和操作提示，`HudFeedbackPresenter` 负责任务完成、撤离和补给反馈文本，`HudStatusPresenter` 负责右侧状态摘要，`HudMapPresenter` 负责小地图 / 区域标记视图数据，`HudHintPresenter` 负责任务方向和首小时引导短提示。`PrototypeHud` 当前主要保留控件引用、Label 赋值、面板显示 / 隐藏、计时和日志入口；后续应优先避免重新把业务文案、任务判断或状态拼装堆回 HUD 主脚本，只有当日志或计时胶水继续膨胀时再拆新的 presenter。
 
 ## 与仓库结构的关系
 
