@@ -61,6 +61,15 @@ func advance_pollution_edge_ready(world_state: WorldState, character_state: Char
 	return result
 
 
+func reconcile_active_objectives(world_state: WorldState, character_state: CharacterState) -> Dictionary:
+	var updates: Array[Dictionary] = []
+	if world_state.quest_state.has_active_quest("quest.bring_back_sample"):
+		updates.append_array(_get_bring_back_sample_recovery_updates(world_state, character_state))
+	if updates.is_empty():
+		return _empty_result(false)
+	return apply_objective_updates(world_state, character_state, updates)
+
+
 func apply_objective_updates(
 	world_state: WorldState,
 	character_state: CharacterState,
@@ -96,6 +105,31 @@ func _try_complete_quest(world_state: WorldState, character_state: CharacterStat
 		return {}
 
 	return completion_applier.apply_completion(world_state, character_state, completion_result)
+
+
+func _get_bring_back_sample_recovery_updates(world_state: WorldState, character_state: CharacterState) -> Array[Dictionary]:
+	var updates: Array[Dictionary] = []
+	var quest_id := "quest.bring_back_sample"
+	var sample_progress := world_state.quest_state.get_objective_progress(quest_id, "sample_object", "map_object.anomaly_crystal")
+	var anomaly_state := world_state.get_map_object("map_object_instance.anomaly_crystal")
+	var has_sample := bool(anomaly_state.get("is_sampled", false)) or character_state.inventory.has_ref("item.anomaly_sample", 1)
+	if sample_progress < 1.0 and has_sample:
+		updates.append(_objective_set_update(quest_id, "sample_object", "map_object.anomaly_crystal", 1))
+
+	var return_progress := world_state.quest_state.get_objective_progress(quest_id, "return_region", "region.outpost_platform")
+	if return_progress < 1.0 and has_sample and world_state.current_region_id == "region.outpost_platform":
+		updates.append(_objective_set_update(quest_id, "return_region", "region.outpost_platform", 1))
+	return updates
+
+
+func _objective_set_update(quest_id: String, objective_type: String, target_id: String, amount: float) -> Dictionary:
+	return {
+		"mode": "set",
+		"quest_id": quest_id,
+		"objective_type": objective_type,
+		"target_id": target_id,
+		"amount": amount
+	}
 
 
 func _empty_result(accepted: bool) -> Dictionary:

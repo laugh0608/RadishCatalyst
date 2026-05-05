@@ -42,6 +42,7 @@ func _run_checks() -> void:
 	_check_completed_quest_returns_structured_result()
 	_check_completion_applier_grants_rewards_unlocks_and_feedback()
 	_check_quest_runtime_applies_updates_and_completion_feedback()
+	_check_quest_runtime_recovers_pre_sampled_anomaly()
 	_check_active_objective_progress_is_capped()
 	_check_inactive_objective_progress_is_ignored()
 
@@ -234,6 +235,27 @@ func _check_quest_runtime_applies_updates_and_completion_feedback() -> void:
 	_expect_equal(_result_array_size(result, "log_messages"), 1, "runtime log message count")
 
 
+func _check_quest_runtime_recovers_pre_sampled_anomaly() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	_mark_bring_back_sample_active_with_pre_sampled_anomaly(world_state, character_state)
+
+	var result := quest_runtime.reconcile_active_objectives(world_state, character_state)
+	_expect_equal(bool(result.get("accepted", false)), true, "runtime accepts pre-sampled anomaly recovery")
+	_expect_equal(
+		world_state.quest_state.get_objective_progress("quest.bring_back_sample", "sample_object", "map_object.anomaly_crystal"),
+		1.0,
+		"pre-sampled anomaly sample objective"
+	)
+	_expect_equal(
+		world_state.quest_state.get_objective_progress("quest.bring_back_sample", "return_region", "region.outpost_platform"),
+		1.0,
+		"pre-sampled anomaly return objective"
+	)
+	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.bring_back_sample", "pre-sampled anomaly completes sample quest")
+	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.make_filter_module", "pre-sampled anomaly activates filter module quest")
+
+
 func _check_active_objective_progress_is_capped() -> void:
 	var quest_state := QuestState.create_default()
 	_mark_restore_outpost_completed(quest_state)
@@ -276,6 +298,33 @@ func _mark_restore_outpost_completed(quest_state: QuestState) -> void:
 		1
 	)
 	completion_rules.try_complete_quest(quest_state, "quest.restore_outpost")
+
+
+func _mark_bring_back_sample_active_with_pre_sampled_anomaly(world_state: WorldState, character_state: CharacterState) -> void:
+	world_state.unlock_region("region.crystal_vein_field")
+	world_state.quest_state.active_quest_ids = ["quest.bring_back_sample"]
+	world_state.quest_state.completed_quest_ids = [
+		"quest.restore_outpost",
+		"quest.scout_crystal_field",
+		"quest.calibrate_reactor"
+	]
+	world_state.quest_state.objective_progress = {
+		"quest.restore_outpost|interact|building.outpost_core": 1,
+		"quest.scout_crystal_field|visit_region|region.crystal_vein_field": 1,
+		"quest.scout_crystal_field|gather_item|item.crystal_ore": 6,
+		"quest.calibrate_reactor|gather_item|item.salvage_scrap": 4,
+		"quest.calibrate_reactor|craft_item|item.reactor_calibrator": 1
+	}
+	world_state.quest_state.unlocked_effects = [
+		"region.outpost_platform",
+		"region.crystal_vein_field",
+		"recipe.process_crystal_ore",
+		"recipe.repair_gel",
+		"recipe.reactor_calibrator"
+	]
+	world_state.ensure_map_object("map_object_instance.anomaly_crystal", "map_object.anomaly_crystal", "region.crystal_vein_field")
+	world_state.set_map_object_flag("map_object_instance.anomaly_crystal", "is_sampled", true)
+	character_state.inventory.add_item("item.anomaly_sample", 1)
 
 
 func _expect_result_ref(refs, expected_id: String, expected_amount: float, label: String) -> void:

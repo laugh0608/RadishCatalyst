@@ -57,6 +57,7 @@ func _process(delta: float) -> void:
 	if world_state == null or character_state == null:
 		return
 	_apply_processing_progress(delta)
+	_reconcile_active_quest_state()
 	vertical_slice_map.update_current_interactable()
 	vertical_slice_map.update_region_presence(world_state, character_state)
 	character_state.position = vertical_slice_map.get_player_position()
@@ -352,6 +353,17 @@ func _apply_processing_progress(delta: float) -> void:
 			)
 		)
 		hud.append_log(_join_log_messages(log_messages))
+
+
+func _reconcile_active_quest_state() -> void:
+	var result := quest_runtime.reconcile_active_objectives(world_state, character_state)
+	if not bool(result.get("accepted", false)):
+		return
+	var log_messages: Array[String] = []
+	_append_quest_runtime_result(log_messages, result)
+	if log_messages.is_empty():
+		return
+	hud.append_log(_join_log_messages(log_messages))
 
 
 func _refresh_current_context_prompt() -> void:

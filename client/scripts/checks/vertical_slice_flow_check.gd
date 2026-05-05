@@ -713,6 +713,16 @@ func _check_failure_feedback_logs() -> void:
 	)
 	_expect_failure_feedback(blocked_build, "建造前置不足", "build prerequisite feedback")
 
+	var gather_system := GatherSystem.new(data_registry)
+	var blocked_sample := gather_system.interact_with_object(
+		"map_object_instance.anomaly_crystal",
+		"map_object.anomaly_crystal",
+		"sample",
+		CharacterState.create_default(),
+		WorldState.create_default()
+	)
+	_expect_failure_feedback(blocked_sample, "采样前置不足", "anomaly sample quest gate feedback")
+
 	game_root.free()
 
 
