@@ -777,7 +777,7 @@ func _check_failure_feedback_logs() -> void:
 
 
 func _check_device_panel_formatting() -> void:
-	var hud := PrototypeHud.new()
+	var device_panel_presenter := HudDevicePanelPresenter.new()
 	var processing := ProcessingSystem.new(data_registry)
 	var device_world := WorldState.create_default()
 	var device_character := CharacterState.create_default()
@@ -797,7 +797,13 @@ func _check_device_panel_formatting() -> void:
 	device_world.quest_state.unlock_effect("recipe.process_crystal_ore")
 	device_character.inventory.add_item("item.crystal_ore", 3)
 
-	var texts := hud.format_device_panel_texts(data_registry, processing, reactor, device_character, device_world)
+	var texts := device_panel_presenter.format_device_panel_texts(
+		data_registry,
+		processing,
+		reactor,
+		device_character,
+		device_world
+	)
 	_expect_text_contains(String(texts.get("title", "")), "基础反应器", "device panel title")
 	_expect_text_contains(String(texts.get("status", "")), "当前配方：处理晶体矿物", "device panel current recipe")
 	_expect_text_contains(String(texts.get("recipes", "")), "> 1. 处理晶体矿物：可加工", "device panel recipe list")
@@ -820,14 +826,19 @@ func _check_device_panel_formatting() -> void:
 		"region.pollution_edge",
 		"map_object_instance.pollution_filter_build_site"
 	)
-	var filter_texts := hud.format_device_panel_texts(data_registry, processing, filter, filter_character, filter_world)
+	var filter_texts := device_panel_presenter.format_device_panel_texts(
+		data_registry,
+		processing,
+		filter,
+		filter_character,
+		filter_world
+	)
 	_expect_text_contains(String(filter_texts.get("title", "")), "污染过滤器", "filter device panel title")
 	_expect_text_contains(String(filter_texts.get("recipes", "")), "缺 污染沉积物 x2", "filter device panel missing input")
 	_expect_text_contains(String(filter_texts.get("operations", "")), "E 尝试当前配方", "filter device panel blocked operation")
 
 	reactor.free()
 	filter.free()
-	hud.free()
 
 
 func _check_task_recipe_selection(reactor: PrototypeInteractable, processing: ProcessingSystem) -> void:
