@@ -58,20 +58,26 @@ pwsh ./scripts/check-godot-client.ps1
 
 ## 文档真相源
 
-`docs/` 是本仓库正式文档源。当前优先阅读顺序：
+`docs/` 是本仓库正式文档源。日常推进类提示（例如“根据项目规划和开发进度，今天要来做什么以推进开发”）优先阅读：
 
-1. `docs/README.md`
+1. `docs/planning/daily-start.md`
 2. `docs/planning/current.md`
-3. `docs/product/creative-development-brief.md`
-4. `docs/architecture/multiplayer-and-save-architecture.md`
-5. `docs/design/README.md`
-6. `docs/devlogs/README.md`
-7. `docs/adr/0001-branch-and-pr-governance.md`
+3. 最新周志的“风险与未完成项”和“下周建议”（当前为 `docs/devlogs/2026-W19.md`）
+
+按任务选读：
+
+- 项目方向：`docs/product/creative-development-brief.md`
+- 首小时体验：`docs/design/onboarding-and-first-hour.md`
+- 联机、存档或边界：`docs/architecture/multiplayer-and-save-architecture.md`
+- 代码结构和重构：`docs/architecture/code-style-and-language-practices.md`
+- 阶段复核：`docs/planning/milestone-review-checklist.md`
+- 协作治理：`docs/adr/0001-branch-and-pr-governance.md`
 
 规则：
 
 - 若文档、代码和阶段目标冲突，先判断哪一方过期，再统一修正。
 - 优先更新已有文档，不为一次性讨论创建大量散文档。
+- `docs/planning/daily-start.md`、`docs/planning/current.md`、`docs/README.md`、各目录 `README.md` 等关键入口文档应保持简约，只描述当前阶段、最近进度、下一步重点和必要索引；历史过程、长清单和背景材料应放入周志、专题文档、`docs/reference/` 或 `docs/archive/`，避免新会话读取入口时浪费上下文。
 - 参考资料放在 `docs/reference/`，归档材料放在 `docs/archive/`。
 - `docs/archive/full-conversation-history.md` 保留历史原貌，不作为当前规范。
 - 重大架构、阶段边界、协作规则、验证基线或目录职责变化，必须同步更新 `docs/`。
@@ -117,7 +123,7 @@ pwsh ./scripts/check-godot-client.ps1
 
 ### 当前默认不做
 
-- 跨工作区编辑 `D:\Code\Radish`、`D:\Code\RadishFlow` 或其他项目。
+- 跨工作区编辑历史旧仓库、兄弟仓库、参考仓库或其他项目；确需跨仓库操作时必须先获得明确授权。
 - 把旧仓库代码整包迁入当前仓库。
 - 在首版前实现 MMO 级账号、交易、公会、官方大世界或复杂专用服务器。
 - 未经明确要求执行破坏性 Git 操作。
@@ -141,6 +147,10 @@ pwsh ./scripts/check-godot-client.ps1
 - 文件接近 1000 行时，后续新增实现应优先拆分职责、提取子模块或测试 helper。
 - 不以单文件承载全部状态、全部 UI 或全部玩法逻辑。
 - 避免为了“整齐”堆出过深目录树，优先按职责做浅层分组。
+- 编写代码时遵循对应语言和框架的惯用实践，例如 GDScript 优先使用 Godot 4.x 的节点、资源、信号和类型习惯，PowerShell 脚本使用清晰的参数、管道和错误处理方式。
+- 禁止为了显得“高级”而编写不明意义的方法名、晦涩抽象、空泛 `Manager` / `Helper` / `Service` 包装或多层转发；抽象必须有明确职责、真实复用价值或清晰边界收益。
+- 优先使用标准库、引擎 API、结构化数据和明确类型表达意图，不用脆弱的字符串拼接、隐式约定或注释解释一段本可以写清楚的代码。
+- 详细代码语言实践规范见 `docs/architecture/code-style-and-language-practices.md`。
 
 ## 仓库结构
 
