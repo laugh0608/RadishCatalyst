@@ -38,6 +38,7 @@ func _run_checks() -> void:
 	_check_early_interaction_processed_visuals()
 	_check_pollution_enemy_defeated_visual()
 	_check_treatment_enemy_spawn_gate()
+	_check_treatment_enemy_combat_pressure()
 	_check_quest_completion_panel_text()
 	_check_build_prompts()
 	_check_supply_feedback()
@@ -140,6 +141,13 @@ func _check_onboarding_hints() -> void:
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.scout_crystal_field", "采集晶体簇", "crystal field onboarding hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.calibrate_reactor", "外勤残骸", "calibration onboarding hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.prepare_treatment_supplies", "修复凝胶", "supply prep onboarding hint")
+	hint_world.quest_state.set_objective_progress("quest.prepare_treatment_supplies", "craft_item", "item.repair_gel", 1)
+	_expect_text_contains(
+		presenter.format_direction_hint(hint_world, hint_character, "quest.prepare_treatment_supplies"),
+		"快捷栏 1",
+		"supply prep direction mentions quick slot"
+	)
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.prepare_treatment_supplies", "生命偏低", "supply prep combat use hint")
 
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.expand_treatment_point", "2 块地基", "foundation onboarding hint")
 	hint_world.add_base_structure("structure.foundation_site_north", "building.foundation_t1", "region.pollution_edge")
@@ -467,6 +475,18 @@ func _check_treatment_enemy_spawn_gate() -> void:
 	_expect_equal(map._should_enemy_spawn(treatment_enemy, gate_world), false, "treatment enemy hidden before repair gel")
 	gate_world.quest_state.set_objective_progress("quest.prepare_treatment_supplies", "craft_item", "item.repair_gel", 1)
 	_expect_equal(map._should_enemy_spawn(treatment_enemy, gate_world), true, "treatment enemy spawns after repair gel")
+	treatment_enemy.free()
+	map.free()
+
+
+func _check_treatment_enemy_combat_pressure() -> void:
+	var map := VerticalSliceMap.new()
+	map.data_registry = data_registry
+	var treatment_enemy := _create_visual_check_enemy("enemy.treatment_skitter", "处理点掠行体", 35.0, "basic")
+	var combat_character := CharacterState.create_default()
+	var counter_message := map._apply_enemy_counterattack(treatment_enemy, combat_character)
+	_expect_equal(combat_character.health, 91.0, "treatment enemy counterattack pressure")
+	_expect_text_contains(counter_message, "修复凝胶", "treatment enemy counterattack supply hint")
 	treatment_enemy.free()
 	map.free()
 

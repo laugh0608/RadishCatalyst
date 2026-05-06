@@ -22,7 +22,7 @@
       "description_key": "enemy.treatment_skitter.desc",
       "category": "basic",
       "faction": "native_ecology",
-      "base_stats": {"max_health": 35, "attack": 5, "move_speed": 90},
+      "base_stats": {"max_health": 35, "attack": 9, "move_speed": 90},
       "behaviors": ["task_guard", "melee_chase"],
       "damage_types": ["physical"],
       "resistances": {},

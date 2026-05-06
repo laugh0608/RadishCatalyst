@@ -447,7 +447,10 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 			_format_amount(health_damage),
 			_format_amount(protection_damage)
 		]
-	return "%s 反击，生命 -%s。" % [enemy.display_name, _format_amount(health_damage)]
+	var message := "%s 反击，生命 -%s。" % [enemy.display_name, _format_amount(health_damage)]
+	if enemy.definition_id == "enemy.treatment_skitter":
+		message = "%s生命偏低时按 1 使用修复凝胶，或回基地再调制补给。" % message
+	return message
 
 
 func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, world_state: WorldState) -> String:
