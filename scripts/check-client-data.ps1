@@ -328,6 +328,105 @@ if ($filesByName.ContainsKey("quests.json")) {
     }
 }
 
+if ($filesByName.ContainsKey("quests.json")) {
+    $gatherSourcesById = @{}
+    $craftSourcesById = @{}
+
+    function Add-Source([hashtable]$SourcesById, [string]$DefinitionId, [string]$Source) {
+        if ([string]::IsNullOrWhiteSpace($DefinitionId)) {
+            return
+        }
+        if (-not $SourcesById.ContainsKey($DefinitionId)) {
+            $SourcesById[$DefinitionId] = [System.Collections.Generic.List[string]]::new()
+        }
+        $SourcesById[$DefinitionId].Add($Source)
+    }
+
+    function Test-HasSource([hashtable]$SourcesById, [string]$DefinitionId) {
+        return $SourcesById.ContainsKey($DefinitionId) -and $SourcesById[$DefinitionId].Count -gt 0
+    }
+
+    if ($filesByName.ContainsKey("map_objects.json")) {
+        foreach ($mapObject in $filesByName["map_objects.json"].entries) {
+            $mapObjectId = [string]$mapObject.id
+            foreach ($drop in @($mapObject.drops)) {
+                Add-Source $gatherSourcesById ([string]$drop.id) "map_object:${mapObjectId}.drops"
+            }
+            foreach ($sampleResultId in @($mapObject.sample_result_refs)) {
+                Add-Source $gatherSourcesById ([string]$sampleResultId) "map_object:${mapObjectId}.sample_result_refs"
+            }
+        }
+    }
+
+    if ($filesByName.ContainsKey("enemies.json")) {
+        foreach ($enemy in $filesByName["enemies.json"].entries) {
+            $enemyId = [string]$enemy.id
+            foreach ($drop in @($enemy.drops)) {
+                Add-Source $gatherSourcesById ([string]$drop.id) "enemy:${enemyId}.drops"
+            }
+        }
+    }
+
+    if ($filesByName.ContainsKey("recipes.json")) {
+        foreach ($recipe in $filesByName["recipes.json"].entries) {
+            $recipeId = [string]$recipe.id
+            foreach ($output in @($recipe.outputs)) {
+                Add-Source $craftSourcesById ([string]$output.id) "recipe:${recipeId}.outputs"
+            }
+            foreach ($byproduct in @($recipe.byproducts)) {
+                Add-Source $craftSourcesById ([string]$byproduct.id) "recipe:${recipeId}.byproducts"
+            }
+        }
+    }
+
+    foreach ($quest in $filesByName["quests.json"].entries) {
+        $questId = [string]$quest.id
+        foreach ($reward in @($quest.rewards)) {
+            Add-Source $gatherSourcesById ([string]$reward.id) "quest:${questId}.rewards"
+        }
+    }
+
+    foreach ($craftedId in $craftSourcesById.Keys) {
+        foreach ($source in $craftSourcesById[$craftedId]) {
+            Add-Source $gatherSourcesById $craftedId $source
+        }
+    }
+
+    $enemiesById = @{}
+    if ($filesByName.ContainsKey("enemies.json")) {
+        foreach ($enemy in $filesByName["enemies.json"].entries) {
+            $enemiesById[[string]$enemy.id] = $enemy
+        }
+    }
+
+    foreach ($quest in $filesByName["quests.json"].entries) {
+        $questId = [string]$quest.id
+        foreach ($objective in @($quest.objectives)) {
+            $objectiveType = [string]$objective.type
+            $targetId = [string]$objective.target_id
+
+            if ($objectiveType -eq "gather_item" -and -not (Test-HasSource $gatherSourcesById $targetId)) {
+                Add-Error "client/data/quests.json:${questId}.objectives target '${targetId}' has no gatherable source from map objects, enemies, recipes, byproducts, or quest rewards"
+            }
+
+            if ($objectiveType -eq "craft_item" -and -not (Test-HasSource $craftSourcesById $targetId)) {
+                Add-Error "client/data/quests.json:${questId}.objectives target '${targetId}' has no recipe output or byproduct source"
+            }
+
+            if ($objectiveType -eq "defeat_enemy") {
+                if (-not $enemiesById.ContainsKey($targetId)) {
+                    continue
+                }
+                $enemy = $enemiesById[$targetId]
+                $spawnRegions = @($enemy.spawn_regions) | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+                if ($spawnRegions.Count -eq 0) {
+                    Add-Error "client/data/quests.json:${questId}.objectives target '${targetId}' has no spawn_regions or explicit task-stage spawn source"
+                }
+            }
+        }
+    }
+}
+
 $localizationPath = Join-Path $dataRoot "localization/zh_cn.json"
 $localization = Read-JsonFile $localizationPath
 if ($null -ne $localization -and $null -ne $localization.entries) {
