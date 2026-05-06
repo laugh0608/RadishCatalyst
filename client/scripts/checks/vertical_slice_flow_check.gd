@@ -815,6 +815,34 @@ func _check_device_panel_formatting() -> void:
 	_expect_text_contains(String(texts.get("operations", "")), "E 启动当前配方", "device panel process operation")
 	_expect_text_contains(String(texts.get("operations", "")), "R 切换配方", "device panel cycle operation")
 	_expect_text_contains(String(texts.get("operations", "")), "Q 关闭面板", "device panel close operation")
+
+	var recommended_world := WorldState.create_default()
+	var recommended_character := CharacterState.create_default()
+	recommended_world.quest_state.active_quest_ids = ["quest.analyze_anomaly_sample"]
+	recommended_world.quest_state.unlock_effect("recipe.analyze_anomaly_sample")
+	recommended_world.quest_state.set_objective_progress(
+		"quest.analyze_anomaly_sample",
+		"gather_item",
+		"item.anomaly_residue",
+		2
+	)
+	var recommended_texts := device_panel_presenter.format_device_panel_texts(
+		data_registry,
+		processing,
+		reactor,
+		recommended_character,
+		recommended_world
+	)
+	_expect_text_contains(
+		String(recommended_texts.get("status", "")),
+		"推荐：当前目标建议使用 分析异常样本",
+		"device panel recommended recipe status"
+	)
+	_expect_text_contains(
+		String(recommended_texts.get("recipes", "")),
+		"分析异常样本（当前目标）",
+		"device panel recommended recipe marker"
+	)
 	_check_task_recipe_selection(reactor, processing)
 
 	var filter := PrototypeInteractable.new()
