@@ -126,6 +126,47 @@ foreach ($fileName in $filesByName.Keys) {
     }
 }
 
+if ($filesByName.ContainsKey("quests.json") -and $filesByName.ContainsKey("recipes.json")) {
+    $recipeUnlockSources = @{}
+    foreach ($quest in $filesByName["quests.json"].entries) {
+        foreach ($effectId in @($quest.unlock_effects)) {
+            $effectId = [string]$effectId
+            if ($effectId -notlike "recipe.*") {
+                continue
+            }
+            if (-not $recipeUnlockSources.ContainsKey($effectId)) {
+                $recipeUnlockSources[$effectId] = [System.Collections.Generic.List[string]]::new()
+            }
+            $recipeUnlockSources[$effectId].Add([string]$quest.id)
+        }
+    }
+
+    foreach ($recipe in $filesByName["recipes.json"].entries) {
+        $recipeId = [string]$recipe.id
+        $conditions = @($recipe.unlock_conditions) | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+        if ($conditions.Count -eq 0) {
+            continue
+        }
+
+        if (-not $recipeUnlockSources.ContainsKey($recipeId)) {
+            Add-Error "client/data/recipes.json:${recipeId}.unlock_conditions declares quest gates but no quest unlock_effects contains '${recipeId}'"
+            continue
+        }
+
+        $sources = @($recipeUnlockSources[$recipeId])
+        foreach ($condition in $conditions) {
+            if ($sources -notcontains $condition) {
+                Add-Error "client/data/recipes.json:${recipeId}.unlock_conditions contains '${condition}', but that quest does not unlock '${recipeId}'"
+            }
+        }
+        foreach ($source in $sources) {
+            if ($conditions -notcontains $source) {
+                Add-Error "client/data/recipes.json:${recipeId}.unlock_conditions is missing quest unlock source '${source}'"
+            }
+        }
+    }
+}
+
 $localizationPath = Join-Path $dataRoot "localization/zh_cn.json"
 $localization = Read-JsonFile $localizationPath
 if ($null -ne $localization -and $null -ne $localization.entries) {

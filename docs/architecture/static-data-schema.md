@@ -230,6 +230,8 @@ public_level
 
 `inputs`、`outputs`、`byproducts` 应引用物品或流体 ID。
 
+`unlock_conditions` 当前用于说明配方由哪些任务解锁，并必须与任务定义中的 `unlock_effects` 保持一致；`scripts/check-client-data.ps1` 会校验这种对应关系，避免配方显示条件、任务奖励和运行时解锁来源分叉。
+
 首版配方至少包括：
 
 - 晶体矿物加工。

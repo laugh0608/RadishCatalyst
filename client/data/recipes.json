@@ -28,7 +28,7 @@
       "duration": 8.0,
       "energy_cost": 3.0,
       "pollution_delta": 0.1,
-      "unlock_conditions": ["quest.bring_back_sample"],
+      "unlock_conditions": ["quest.analyze_anomaly_sample"],
       "public_level": "public"
     },
     {
@@ -58,7 +58,7 @@
       "duration": 10.0,
       "energy_cost": 5.0,
       "pollution_delta": 0.0,
-      "unlock_conditions": ["quest.make_filter_module"],
+      "unlock_conditions": ["quest.analyze_anomaly_sample"],
       "public_level": "public"
     },
     {
@@ -103,7 +103,7 @@
       "duration": 4.0,
       "energy_cost": 1.0,
       "pollution_delta": 0.0,
-      "unlock_conditions": ["quest.expand_treatment_point"],
+      "unlock_conditions": ["quest.prepare_treatment_supplies"],
       "public_level": "public"
     },
     {
