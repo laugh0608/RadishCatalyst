@@ -1,6 +1,6 @@
 # Godot Project Structure
 
-更新时间：2026-05-02
+更新时间：2026-05-06
 
 ## 文档目的
 
@@ -379,6 +379,8 @@ pwsh ./scripts/check-text-files.ps1
 `check-client-save.ps1` 当前会先执行一次 Godot 导入，再通过 `client/scripts/checks/save_service_check.gd` 运行 `SaveService` 读写和备份校验，并将 Godot 配置、数据、缓存和 `user://` 存档目录隔离到 `.godot-check-home/save-service/` 下。
 
 `check-client-quests.ps1` 当前会先执行一次 Godot 导入，再通过 `client/scripts/checks/quest_rules_check.gd` 直接复验 `QuestEventRules`、`QuestProgressRules` 和 `QuestCompletionRules`，并将 Godot 配置、数据和缓存隔离到 `.godot-check-home/quest-rules/` 下。
+
+`check-client-data.ps1` 当前除了基础 JSON、引用和本地化键，还会校验配方解锁来源、任务激活来源、区域任务索引、主线任务图、任务目标来源和切片完成终点。`check-client-scenes.ps1` 当前除了资源引用、脚本 UID 和 HUD 面板布局，还会校验 `VerticalSliceMap.tscn` 中任务目标对应的交互点、建造点、加工设备、敌人实例和地图对象掉落数量。
 
 ## GDScript 与 C# 边界
 
