@@ -143,7 +143,7 @@ func _use_resistance_vial(item_id: String, data_registry: DataRegistry) -> Dicti
 	return _supply_success("使用%s，防护 +%s。" % [
 		item_display_name,
 		_format_amount(recovered)
-	], "补给生效：%s" % item_display_name, "防护 +%s，当前 %s / %s；剩余 %d。" % [
+	], "补给生效：%s" % item_display_name, "防护 +%s，当前 %s / %s；剩余 %d。继续深入污染边界或压制污染残核。" % [
 		_format_amount(recovered),
 		_format_amount(protection),
 		_format_amount(max_protection),

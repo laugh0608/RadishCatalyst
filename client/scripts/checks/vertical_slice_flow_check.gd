@@ -156,8 +156,8 @@ func _check_onboarding_hints() -> void:
 
 	hint_character.protection = 30.0
 	hint_character.equipment["suit_module"] = "equipment.filter_module_t1"
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.enter_pollution_edge", "防护偏低", "low protection onboarding hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.defeat_elite_node", "精英节点", "elite node onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.enter_pollution_edge", "过滤器处理沉积物", "low protection onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.defeat_elite_node", "维持防护", "elite node supply hint")
 
 	hint_world.quest_state.unlocked_effects.append("slice_01_complete")
 	_expect_hint_contains(presenter, hint_world, hint_character, "", "更深区域信号", "slice complete onboarding hint")
@@ -619,6 +619,13 @@ func _check_supply_feedback() -> void:
 	var missing_vial_result := missing_vial_character.use_quick_slot(1, data_registry)
 	_expect_equal(bool(missing_vial_result.get("success", true)), false, "missing vial should fail")
 	_expect_feedback_contains(missing_vial_result, "污染过滤器", "missing vial refill hint")
+
+	var vial_character := CharacterState.create_default()
+	vial_character.protection = 40.0
+	vial_character.inventory.add_item("item.resistance_vial_t1", 1)
+	var vial_result := vial_character.use_quick_slot(1, data_registry)
+	_expect_equal(bool(vial_result.get("success", false)), true, "resistance vial should be usable")
+	_expect_feedback_contains(vial_result, "继续深入污染边界", "resistance vial next step feedback")
 
 
 func _check_hud_feedback_presenter() -> void:

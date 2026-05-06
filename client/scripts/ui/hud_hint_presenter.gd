@@ -37,10 +37,10 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			if not world_state.unlocked_region_ids.has("region.pollution_edge"):
 				return "按 F 启用过滤模块，再向东进入黄色污染边界。"
 			if character_state.protection < character_state.max_protection * 0.5:
-				return "防护偏低，先用 2 补充或回基地再深入污染边界。"
+				return "防护偏低，按 2 使用抗污染药剂；药剂来自过滤器处理沉积物。"
 			return "向东南进入黄色污染边界，采集沉积物并处理药剂。"
 		"quest.defeat_elite_node":
-			return "污染深处仍有精英节点，携带补给后继续向东推进。"
+			return "污染残核会持续压低防护，带抗污染药剂后继续向东推进。"
 		"quest.unlock_ruin_signal":
 			return "向污染边界东侧检查封锁遗迹入口；此处仅确认后续信号。"
 		_:
@@ -86,10 +86,10 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			if String(character_state.equipment.get("suit_module", "")).is_empty():
 				return "启用基础过滤模块后再深入污染区，防护消耗会降低。"
 			if character_state.protection < character_state.max_protection * 0.5:
-				return "防护偏低，先使用抗污染药剂或回基地补给。"
+				return "防护偏低，先使用抗污染药剂；缺药剂就回污染过滤器处理沉积物。"
 			return "收集污染沉积物，用过滤器处理药剂，再清理受扰敌人。"
 		"quest.defeat_elite_node":
-			return "污染残核是本轮危险区域挑战；带好修复凝胶和抗污染药剂再压制精英节点。"
+			return "污染残核是本轮危险区域挑战；抗污染药剂用于维持防护，修复凝胶用于保命。"
 		"quest.unlock_ruin_signal":
 			return "检查封锁遗迹入口即可结束本切片，不会进入新区域。"
 		_:
