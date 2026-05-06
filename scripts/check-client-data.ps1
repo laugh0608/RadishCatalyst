@@ -126,6 +126,27 @@ foreach ($fileName in $filesByName.Keys) {
     }
 }
 
+if ($filesByName.ContainsKey("quests.json") -and $filesByName.ContainsKey("regions.json")) {
+    $questRefsByRegion = @{}
+    foreach ($region in $filesByName["regions.json"].entries) {
+        $regionId = [string]$region.id
+        $questRefsByRegion[$regionId] = @($region.quest_refs) | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    }
+
+    foreach ($quest in $filesByName["quests.json"].entries) {
+        $questId = [string]$quest.id
+        foreach ($objective in @($quest.objectives)) {
+            $targetId = [string]$objective.target_id
+            if ($targetId -notlike "region.*" -or -not $questRefsByRegion.ContainsKey($targetId)) {
+                continue
+            }
+            if ($questRefsByRegion[$targetId] -notcontains $questId) {
+                Add-Error "client/data/regions.json:${targetId}.quest_refs is missing quest '${questId}' required by direct region objective"
+            }
+        }
+    }
+}
+
 if ($filesByName.ContainsKey("quests.json") -and $filesByName.ContainsKey("recipes.json")) {
     $recipeUnlockSources = @{}
     foreach ($quest in $filesByName["quests.json"].entries) {

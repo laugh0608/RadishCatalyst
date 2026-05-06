@@ -373,6 +373,8 @@ quest_refs
 public_level
 ```
 
+`quest_refs` 表示该区域承载或强关联的任务，用于地图、HUD 和玩家指引反查。多地点任务应写入每个关键地点，例如先在野外采样、再回基地加工的任务，需要同时出现在野外区域和基地区域中。`scripts/check-client-data.ps1` 会校验任务中直接指向 `region.*` 的目标已被对应区域的 `quest_refs` 收录；其他采集、制造、战斗等间接地点关系仍由内容作者按任务节奏维护。
+
 地图对象定义描述可交互对象类型。
 
 建议字段：
@@ -459,6 +461,8 @@ public_level
 ```
 
 线性任务推进使用 `next_quest_ids`。`unlock_effects` 用于区域、配方、切片标记或非线性任务解锁；同一个任务不应同时写入 `next_quest_ids` 和 `unlock_effects`，避免任务激活来源出现双口径。`scripts/check-client-data.ps1` 会拦截这种重复声明。
+
+当任务目标直接引用 `region.*` 时，对应区域的 `quest_refs` 必须包含该任务，避免任务目标、区域数据和 HUD / 地图提示出现分叉。
 
 目标类型限制在首版可实现范围：
 
