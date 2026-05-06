@@ -62,7 +62,7 @@
       "objectives": [{"type": "gather_item", "target_id": "item.anomaly_residue", "amount": 2}, {"type": "craft_item", "target_id": "item.sample_analysis", "amount": 1}],
       "prerequisites": ["quest.bring_back_sample"],
       "rewards": [],
-      "unlock_effects": ["recipe.make_filter_media", "recipe.basic_filter_module", "quest.make_filter_module"],
+      "unlock_effects": ["recipe.make_filter_media", "recipe.basic_filter_module"],
       "next_quest_ids": ["quest.make_filter_module"],
       "public_level": "public"
     },
@@ -75,7 +75,7 @@
       "objectives": [{"type": "craft_item", "target_id": "equipment.filter_module_t1", "amount": 1}],
       "prerequisites": ["quest.analyze_anomaly_sample"],
       "rewards": [],
-      "unlock_effects": ["quest.prepare_treatment_supplies"],
+      "unlock_effects": [],
       "next_quest_ids": ["quest.prepare_treatment_supplies"],
       "public_level": "public"
     },
@@ -88,7 +88,7 @@
       "objectives": [{"type": "craft_item", "target_id": "item.repair_gel", "amount": 1}, {"type": "defeat_enemy", "target_id": "enemy.treatment_skitter", "amount": 1}],
       "prerequisites": ["quest.make_filter_module"],
       "rewards": [{"id": "item.basic_parts", "amount": 1}],
-      "unlock_effects": ["quest.expand_treatment_point", "recipe.foundation_t1"],
+      "unlock_effects": ["recipe.foundation_t1"],
       "next_quest_ids": ["quest.expand_treatment_point"],
       "public_level": "public"
     },

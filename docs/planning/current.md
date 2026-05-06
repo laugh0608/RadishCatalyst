@@ -73,7 +73,7 @@ pwsh ./scripts/check-client-flow.ps1
 pwsh ./scripts/check-godot-client.ps1
 ```
 
-其中 `check-client-data.ps1` 已覆盖静态数据引用、本地化键和配方解锁来源一致性，避免 `unlock_conditions` 与任务 `unlock_effects` 脱节。
+其中 `check-client-data.ps1` 已覆盖静态数据引用、本地化键、配方解锁来源一致性和任务激活重复声明，避免 `unlock_conditions`、`next_quest_ids` 与任务 `unlock_effects` 脱节。
 
 提交前仍需执行仓库文本卫生和 diff 检查：
 

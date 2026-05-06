@@ -167,6 +167,18 @@ if ($filesByName.ContainsKey("quests.json") -and $filesByName.ContainsKey("recip
     }
 }
 
+if ($filesByName.ContainsKey("quests.json")) {
+    foreach ($quest in $filesByName["quests.json"].entries) {
+        $nextQuestIds = @($quest.next_quest_ids) | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+        $questUnlockEffects = @($quest.unlock_effects) | ForEach-Object { [string]$_ } | Where-Object { $_ -like "quest.*" }
+        foreach ($nextQuestId in $nextQuestIds) {
+            if ($questUnlockEffects -contains $nextQuestId) {
+                Add-Error "client/data/quests.json:$($quest.id) lists '${nextQuestId}' in both next_quest_ids and unlock_effects"
+            }
+        }
+    }
+}
+
 $localizationPath = Join-Path $dataRoot "localization/zh_cn.json"
 $localization = Read-JsonFile $localizationPath
 if ($null -ne $localization -and $null -ne $localization.entries) {

@@ -18,7 +18,6 @@ func run() -> void:
 	_check_rejects_region_unlock_effect_without_world_region()
 	_check_rejects_region_unlock_effect_without_completed_quest_source()
 	_check_rejects_completed_quest_missing_recipe_unlock_effect()
-	_check_rejects_completed_quest_missing_quest_unlock_effect()
 	_check_rejects_completed_quest_missing_slice_unlock_effect()
 	_check_rejects_quest_unlock_without_completed_quest_source()
 	_check_rejects_slice_unlock_without_completed_quest_source()
@@ -96,9 +95,6 @@ func _check_rejects_active_quest_without_completed_quest_source() -> void:
 		"recipe.analyze_anomaly_sample",
 		"recipe.make_filter_media",
 		"recipe.basic_filter_module",
-		"quest.make_filter_module",
-		"quest.prepare_treatment_supplies",
-		"quest.expand_treatment_point",
 		"recipe.foundation_t1",
 		"region.pollution_edge",
 		"recipe.cleanse_residue",
@@ -198,27 +194,6 @@ func _check_rejects_completed_quest_missing_recipe_unlock_effect() -> void:
 		host.save_service.load_game(),
 		"quest_state.unlocked_effects 缺少已完成任务声明的解锁效果",
 		"completed quest missing recipe unlock"
-	)
-
-
-func _check_rejects_completed_quest_missing_quest_unlock_effect() -> void:
-	host._remove_save_file()
-	host._remove_backup_files()
-	var save_data: Dictionary = host._make_save_data("world.invalid.missing_quest_unlock")
-	_mark_bring_back_sample_completed(save_data)
-	save_data["world"]["quest_state"]["active_quest_ids"] = ["quest.make_filter_module"]
-	save_data["world"]["quest_state"]["completed_quest_ids"].append("quest.analyze_anomaly_sample")
-	save_data["world"]["quest_state"]["objective_progress"]["quest.analyze_anomaly_sample|gather_item|item.anomaly_residue"] = 2
-	save_data["world"]["quest_state"]["objective_progress"]["quest.analyze_anomaly_sample|craft_item|item.sample_analysis"] = 1
-	save_data["world"]["quest_state"]["unlocked_effects"].append("recipe.make_filter_media")
-	save_data["world"]["quest_state"]["unlocked_effects"].append("recipe.basic_filter_module")
-	save_data["world"]["quest_state"]["unlocked_effects"].append("quest.make_filter_module")
-	save_data["world"]["quest_state"]["unlocked_effects"].erase("quest.make_filter_module")
-	host._write_save_json(save_data)
-	host._expect_failure_message(
-		host.save_service.load_game(),
-		"quest_state.unlocked_effects 缺少已完成任务声明的解锁效果",
-		"completed quest missing quest unlock"
 	)
 
 
@@ -342,9 +317,6 @@ func _mark_slice_complete(save_data: Dictionary) -> void:
 		"recipe.analyze_anomaly_sample",
 		"recipe.make_filter_media",
 		"recipe.basic_filter_module",
-		"quest.make_filter_module",
-		"quest.prepare_treatment_supplies",
-		"quest.expand_treatment_point",
 		"recipe.foundation_t1",
 		"region.pollution_edge",
 		"recipe.cleanse_residue",

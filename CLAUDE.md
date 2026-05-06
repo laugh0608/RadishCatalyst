@@ -52,7 +52,7 @@ pwsh ./scripts/check-client-flow.ps1
 pwsh ./scripts/check-godot-client.ps1
 ```
 
-其中 `check-client-data.ps1` 会校验客户端静态数据 JSON、稳定 ID、引用、本地化键，以及配方 `unlock_conditions` 与任务 `unlock_effects` 的来源一致性；`check-client-scenes.ps1` 会校验场景资源引用、Godot 脚本 UID 和原型 HUD 关键面板默认布局，避免状态、地图、设备、任务完成、撤离、补给、提示和日志面板互相遮挡。
+其中 `check-client-data.ps1` 会校验客户端静态数据 JSON、稳定 ID、引用、本地化键、配方 `unlock_conditions` 与任务 `unlock_effects` 的来源一致性，以及任务不要同时出现在 `next_quest_ids` 和 `unlock_effects`；`check-client-scenes.ps1` 会校验场景资源引用、Godot 脚本 UID 和原型 HUD 关键面板默认布局，避免状态、地图、设备、任务完成、撤离、补给、提示和日志面板互相遮挡。
 
 涉及客户端状态、任务、存档、场景或脚本时，优先执行聚合验证；提交前仍需按范围执行 `pwsh ./scripts/check-text-files.ps1` 和 `git diff --check`。
 

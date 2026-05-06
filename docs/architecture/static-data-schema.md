@@ -458,6 +458,8 @@ next_quest_ids
 public_level
 ```
 
+线性任务推进使用 `next_quest_ids`。`unlock_effects` 用于区域、配方、切片标记或非线性任务解锁；同一个任务不应同时写入 `next_quest_ids` 和 `unlock_effects`，避免任务激活来源出现双口径。`scripts/check-client-data.ps1` 会拦截这种重复声明。
+
 目标类型限制在首版可实现范围：
 
 - 前往地点。
