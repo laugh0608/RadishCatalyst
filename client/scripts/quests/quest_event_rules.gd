@@ -42,7 +42,7 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 	return []
 
 
-func get_region_objective_updates(region_id: String, quest_state: QuestState) -> Array[Dictionary]:
+func get_region_objective_updates(region_id: String, _quest_state: QuestState) -> Array[Dictionary]:
 	if region_id == "region.crystal_vein_field":
 		return [_set_update("quest.scout_crystal_field", "visit_region", region_id, 1)]
 	if region_id == "region.pollution_edge":

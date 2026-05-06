@@ -46,6 +46,7 @@ func _run_checks() -> void:
 	_check_region_prompt_formatter()
 	_check_failure_feedback_logs()
 	_check_device_panel_formatting()
+	_check_manual_recipe_cycle_keeps_player_choice()
 
 	_complete_active_quest("quest.restore_outpost", [
 		{"type": "interact", "target_id": "building.outpost_core", "amount": 1}
@@ -898,6 +899,55 @@ func _check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pr
 		"recipe.basic_filter_module",
 		"filter module task selects module recipe after media"
 	)
+
+
+func _check_manual_recipe_cycle_keeps_player_choice() -> void:
+	var game_root = GameRootScript.new()
+	var recipe_world := WorldState.create_default()
+	var recipe_character := CharacterState.create_default()
+	var processing := ProcessingSystem.new(data_registry)
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.process_crystal_ore"
+	reactor.set_recipe_cycle([
+		"recipe.process_crystal_ore",
+		"recipe.analyze_anomaly_sample"
+	])
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_anomaly_sample"]
+	recipe_world.quest_state.set_objective_progress(
+		"quest.analyze_anomaly_sample",
+		"gather_item",
+		"item.anomaly_residue",
+		2
+	)
+	game_root.processing_system = processing
+	game_root.world_state = recipe_world
+	game_root.character_state = recipe_character
+
+	_expect_equal(
+		game_root._maybe_select_recommended_recipe(reactor, false),
+		"",
+		"manual recipe cycle should not auto select recommendation"
+	)
+	_expect_equal(
+		reactor.get_current_recipe_id(),
+		"recipe.process_crystal_ore",
+		"manual recipe cycle keeps current recipe after prompt refresh"
+	)
+	_expect_equal(
+		game_root._maybe_select_recommended_recipe(reactor, true),
+		"recipe.analyze_anomaly_sample",
+		"device approach can still auto select recommendation"
+	)
+	_expect_equal(
+		reactor.get_current_recipe_id(),
+		"recipe.analyze_anomaly_sample",
+		"device approach changes to recommended recipe"
+	)
+
+	reactor.free()
+	game_root.free()
 
 
 func _complete_active_quest(quest_id: String, progress_refs: Array) -> void:

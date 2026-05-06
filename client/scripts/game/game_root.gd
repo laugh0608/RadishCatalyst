@@ -101,7 +101,7 @@ func _on_player_recipe_cycle_requested() -> void:
 			character_state,
 			world_state
 		))
-		_on_interaction_available(vertical_slice_map.current_interactable)
+		_on_interaction_available(vertical_slice_map.current_interactable, false)
 	else:
 		hud.append_log(_format_result_log(result))
 	_update_hud()
@@ -225,12 +225,12 @@ func create_new_game_state() -> Dictionary:
 	}
 
 
-func _on_interaction_available(interactable: PrototypeInteractable) -> void:
+func _on_interaction_available(interactable: PrototypeInteractable, should_auto_select_recipe: bool = true) -> void:
 	if interactable.definition_id == "map_object.ruin_gate":
 		hud.show_prompt(interaction_prompt_formatter.format_ruin_gate_prompt(world_state))
 		return
 	if interactable.interaction_type == "process_recipe":
-		var auto_selected_recipe := _select_recommended_recipe(interactable)
+		var auto_selected_recipe := _maybe_select_recommended_recipe(interactable, should_auto_select_recipe)
 		hud.show_prompt(interaction_prompt_formatter.format_processing_prompt(interactable, character_state, world_state))
 		hud.refresh_device_panel(data_registry, processing_system, interactable, character_state, world_state)
 		if not auto_selected_recipe.is_empty():
@@ -406,6 +406,12 @@ func _select_recommended_recipe(interactable: PrototypeInteractable) -> String:
 	if not interactable.select_recipe(recipe_id):
 		return ""
 	return recipe_id
+
+
+func _maybe_select_recommended_recipe(interactable: PrototypeInteractable, should_auto_select_recipe: bool) -> String:
+	if not should_auto_select_recipe:
+		return ""
+	return _select_recommended_recipe(interactable)
 
 
 func _append_quest_runtime_result(log_messages: Array[String], result: Dictionary) -> void:
