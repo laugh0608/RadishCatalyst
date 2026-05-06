@@ -200,6 +200,134 @@ if ($filesByName.ContainsKey("quests.json")) {
     }
 }
 
+if ($filesByName.ContainsKey("quests.json")) {
+    $questsById = @{}
+    $mainQuestIds = [System.Collections.Generic.List[string]]::new()
+    foreach ($quest in $filesByName["quests.json"].entries) {
+        $questId = [string]$quest.id
+        $questsById[$questId] = $quest
+        if ([string]$quest.quest_type -eq "main") {
+            $mainQuestIds.Add($questId)
+        }
+    }
+
+    $mainRoots = [System.Collections.Generic.List[string]]::new()
+    foreach ($questId in $mainQuestIds) {
+        $quest = $questsById[$questId]
+        $prerequisites = @($quest.prerequisites) | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+        if ($prerequisites.Count -eq 0) {
+            $mainRoots.Add($questId)
+        }
+
+        foreach ($prerequisiteId in $prerequisites) {
+            if (-not $questsById.ContainsKey($prerequisiteId)) {
+                continue
+            }
+            $prerequisite = $questsById[$prerequisiteId]
+            if ([string]$prerequisite.quest_type -ne "main") {
+                continue
+            }
+            $prerequisiteNextIds = @($prerequisite.next_quest_ids) | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+            if ($prerequisiteNextIds -notcontains $questId) {
+                Add-Error "client/data/quests.json:${questId}.prerequisites lists '${prerequisiteId}', but that quest does not include '${questId}' in next_quest_ids"
+            }
+        }
+
+        $nextQuestIds = @($quest.next_quest_ids) | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+        foreach ($nextQuestId in $nextQuestIds) {
+            if (-not $questsById.ContainsKey($nextQuestId)) {
+                continue
+            }
+            $nextQuest = $questsById[$nextQuestId]
+            if ([string]$nextQuest.quest_type -ne "main") {
+                continue
+            }
+
+            $nextPrerequisites = @($nextQuest.prerequisites) | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+            if ($nextPrerequisites -notcontains $questId) {
+                Add-Error "client/data/quests.json:${questId}.next_quest_ids lists '${nextQuestId}', but that quest prerequisites do not include '${questId}'"
+            }
+
+            if ([int]$nextQuest.stage -le [int]$quest.stage) {
+                Add-Error "client/data/quests.json:${questId}.next_quest_ids points to '${nextQuestId}' with non-increasing stage $($nextQuest.stage)"
+            }
+        }
+    }
+
+    if ($mainRoots.Count -ne 1) {
+        Add-Error "client/data/quests.json: main quest graph should have exactly one root with no prerequisites, got $($mainRoots.Count): $($mainRoots -join ', ')"
+    }
+
+    if ($mainRoots.Count -gt 0) {
+        $visitedMainQuestIds = @{}
+        $visitingMainQuestIds = @{}
+        $stack = [System.Collections.Generic.Stack[string]]::new()
+        $stack.Push($mainRoots[0])
+
+        while ($stack.Count -gt 0) {
+            $questId = $stack.Peek()
+            if ($visitedMainQuestIds.ContainsKey($questId)) {
+                [void]$stack.Pop()
+                continue
+            }
+            if ($visitingMainQuestIds.ContainsKey($questId)) {
+                $visitedMainQuestIds[$questId] = $true
+                $visitingMainQuestIds.Remove($questId)
+                [void]$stack.Pop()
+                continue
+            }
+
+            $visitingMainQuestIds[$questId] = $true
+            $quest = $questsById[$questId]
+            foreach ($nextQuestId in @($quest.next_quest_ids)) {
+                $nextQuestId = [string]$nextQuestId
+                if (-not $questsById.ContainsKey($nextQuestId)) {
+                    continue
+                }
+                if ([string]$questsById[$nextQuestId].quest_type -ne "main") {
+                    continue
+                }
+                if ($visitedMainQuestIds.ContainsKey($nextQuestId)) {
+                    continue
+                }
+                if ($visitingMainQuestIds.ContainsKey($nextQuestId)) {
+                    Add-Error "client/data/quests.json: main quest graph has a cycle involving '${nextQuestId}'"
+                    continue
+                }
+                $stack.Push($nextQuestId)
+            }
+        }
+
+        foreach ($questId in $mainQuestIds) {
+            if (-not $visitedMainQuestIds.ContainsKey($questId)) {
+                Add-Error "client/data/quests.json:${questId} is not reachable from main quest root '$($mainRoots[0])' through next_quest_ids"
+            }
+        }
+    }
+
+    $terminalMainQuestIds = [System.Collections.Generic.List[string]]::new()
+    foreach ($questId in $mainQuestIds) {
+        $quest = $questsById[$questId]
+        $nextMainQuestIds = @($quest.next_quest_ids) | ForEach-Object { [string]$_ } | Where-Object {
+            -not [string]::IsNullOrWhiteSpace($_) -and $questsById.ContainsKey($_) -and [string]$questsById[$_].quest_type -eq "main"
+        }
+        if ($nextMainQuestIds.Count -eq 0) {
+            $terminalMainQuestIds.Add($questId)
+        }
+    }
+
+    $sliceCompletionTerminalCount = 0
+    foreach ($questId in $terminalMainQuestIds) {
+        $questUnlockEffects = @($questsById[$questId].unlock_effects) | ForEach-Object { [string]$_ }
+        if ($questUnlockEffects -contains "slice_01_complete") {
+            $sliceCompletionTerminalCount += 1
+        }
+    }
+    if ($sliceCompletionTerminalCount -ne 1) {
+        Add-Error "client/data/quests.json: main quest graph should have exactly one terminal quest unlocking slice_01_complete, got $sliceCompletionTerminalCount"
+    }
+}
+
 $localizationPath = Join-Path $dataRoot "localization/zh_cn.json"
 $localization = Read-JsonFile $localizationPath
 if ($null -ne $localization -and $null -ne $localization.entries) {
