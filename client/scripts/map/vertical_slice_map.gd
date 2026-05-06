@@ -404,6 +404,11 @@ func _get_nearest_attack_target() -> PrototypeEnemy:
 
 
 func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool:
+	if enemy.definition_id == "enemy.elite_residue_node":
+		return (
+			world_state.quest_state.has_active_quest("quest.defeat_elite_node")
+			or world_state.quest_state.has_completed_quest("quest.defeat_elite_node")
+		)
 	if enemy.definition_id != "enemy.treatment_skitter":
 		return true
 	var quest_state := world_state.quest_state
@@ -475,11 +480,11 @@ func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, 
 
 
 func _inspect_ruin_gate(world_state: WorldState) -> Dictionary:
-	if not world_state.quest_state.has_completed_quest("quest.enter_pollution_edge"):
+	if not world_state.quest_state.has_completed_quest("quest.defeat_elite_node"):
 		return _failure(
 			"封锁遗迹入口仍被污染信号干扰。",
 			"入口未解锁",
-			"先治理污染边界：采集沉积物、处理药剂并击退受扰掠行体。"
+			"先治理污染源点：采集沉积物、处理药剂并压制污染残核。"
 		)
 
 	if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):

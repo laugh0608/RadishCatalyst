@@ -34,6 +34,10 @@ const PROTOTYPE_ENEMY_SOURCES := {
 	"enemy_instance.polluted_skitter": {
 		"definition_id": "enemy.polluted_skitter",
 		"region_id": "region.pollution_edge"
+	},
+	"enemy_instance.elite_residue_node": {
+		"definition_id": "enemy.elite_residue_node",
+		"region_id": "region.pollution_edge"
 	}
 }
 

@@ -113,8 +113,8 @@ func format_clear_prompt(
 
 
 func format_ruin_gate_prompt(world_state: WorldState) -> String:
-	if not world_state.quest_state.has_completed_quest("quest.enter_pollution_edge"):
-		return "封锁遗迹入口：先治理污染边界，再确认更深区域信号。"
+	if not world_state.quest_state.has_completed_quest("quest.defeat_elite_node"):
+		return "封锁遗迹入口：先压制污染残核，再确认更深区域信号。"
 	if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):
 		return "切片结尾：更深区域信号已确认，后续内容待开放。"
 	return "按 E 确认：封锁遗迹入口信号。"

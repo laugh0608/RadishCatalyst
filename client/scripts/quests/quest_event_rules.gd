@@ -79,6 +79,8 @@ func get_defeated_enemy_objective_updates(enemy_definition_id: String) -> Array[
 		return [_set_update("quest.prepare_treatment_supplies", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.polluted_skitter":
 		return [_set_update("quest.enter_pollution_edge", "defeat_enemy", enemy_definition_id, 1)]
+	if enemy_definition_id == "enemy.elite_residue_node":
+		return [_set_update("quest.defeat_elite_node", "defeat_enemy", enemy_definition_id, 1)]
 	return []
 
 

@@ -101,7 +101,9 @@ func _format_unlock_effects(unlock_effects: Array) -> Array[String]:
 func _format_completion_note(quest_id: String) -> String:
 	match quest_id:
 		"quest.enter_pollution_edge":
-			return "污染深处 / 遗迹入口信号已标记"
+			return "污染深处出现稳定源点反应"
+		"quest.defeat_elite_node":
+			return "污染源点已压制，封锁遗迹入口信号可确认"
 		"quest.unlock_ruin_signal":
 			return "切片结尾：更深区域信号已确认，后续内容待开放"
 		_:

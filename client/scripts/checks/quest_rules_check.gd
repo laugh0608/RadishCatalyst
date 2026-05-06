@@ -170,6 +170,15 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		1.0,
 		"polluted enemy defeat update"
 	)
+	_expect_update(
+		event_rules.get_defeated_enemy_objective_updates("enemy.elite_residue_node"),
+		"set",
+		"quest.defeat_elite_node",
+		"defeat_enemy",
+		"enemy.elite_residue_node",
+		1.0,
+		"elite node defeat update"
+	)
 
 
 func _check_non_active_quest_does_not_complete() -> void:

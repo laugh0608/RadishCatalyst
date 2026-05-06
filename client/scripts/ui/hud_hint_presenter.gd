@@ -88,6 +88,8 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			if character_state.protection < character_state.max_protection * 0.5:
 				return "防护偏低，先使用抗污染药剂或回基地补给。"
 			return "收集污染沉积物，用过滤器处理药剂，再清理受扰敌人。"
+		"quest.defeat_elite_node":
+			return "污染残核是本轮危险区域挑战；带好修复凝胶和抗污染药剂再压制精英节点。"
 		"quest.unlock_ruin_signal":
 			return "检查封锁遗迹入口即可结束本切片，不会进入新区域。"
 		_:

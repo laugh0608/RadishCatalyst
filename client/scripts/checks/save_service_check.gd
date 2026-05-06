@@ -676,7 +676,8 @@ func _check_slice_end_hook_state_persists() -> void:
 		"quest.make_filter_module",
 		"quest.prepare_treatment_supplies",
 		"quest.expand_treatment_point",
-		"quest.enter_pollution_edge"
+		"quest.enter_pollution_edge",
+		"quest.defeat_elite_node"
 	]
 	world_state.quest_state.objective_progress = {
 		"quest.restore_outpost|interact|building.outpost_core": 1,
@@ -695,7 +696,8 @@ func _check_slice_end_hook_state_persists() -> void:
 		"quest.enter_pollution_edge|visit_region|region.pollution_edge": 1,
 		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 2,
 		"quest.enter_pollution_edge|craft_item|item.resistance_vial_t1": 1,
-		"quest.enter_pollution_edge|defeat_enemy|enemy.polluted_skitter": 1
+		"quest.enter_pollution_edge|defeat_enemy|enemy.polluted_skitter": 1,
+		"quest.defeat_elite_node|defeat_enemy|enemy.elite_residue_node": 1
 	}
 	world_state.quest_state.unlocked_effects = [
 		"region.outpost_platform",
@@ -724,11 +726,17 @@ func _check_slice_end_hook_state_persists() -> void:
 	_expect_array_has(loaded_world.unlocked_region_ids, "region.locked_ruin_gate", "slice hook unlocked ruin gate region")
 	_expect_array_has(loaded_world.quest_state.active_quest_ids, "quest.unlock_ruin_signal", "slice hook active ruin signal quest")
 	_expect_array_has(loaded_world.quest_state.completed_quest_ids, "quest.enter_pollution_edge", "slice hook completed pollution edge quest")
+	_expect_array_has(loaded_world.quest_state.completed_quest_ids, "quest.defeat_elite_node", "slice hook completed elite node quest")
 	_expect_array_has(loaded_world.quest_state.unlocked_effects, "region.locked_ruin_gate", "slice hook persisted ruin gate unlock")
 	_expect_equal(
 		loaded_world.quest_state.get_objective_progress("quest.enter_pollution_edge", "defeat_enemy", "enemy.polluted_skitter"),
 		1.0,
 		"slice hook polluted enemy objective"
+	)
+	_expect_equal(
+		loaded_world.quest_state.get_objective_progress("quest.defeat_elite_node", "defeat_enemy", "enemy.elite_residue_node"),
+		1.0,
+		"slice hook elite node objective"
 	)
 
 
@@ -749,6 +757,7 @@ func _check_slice_complete_state_persists() -> void:
 		"quest.prepare_treatment_supplies",
 		"quest.expand_treatment_point",
 		"quest.enter_pollution_edge",
+		"quest.defeat_elite_node",
 		"quest.unlock_ruin_signal"
 	]
 	world_state.quest_state.objective_progress = {
@@ -769,6 +778,7 @@ func _check_slice_complete_state_persists() -> void:
 		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 2,
 		"quest.enter_pollution_edge|craft_item|item.resistance_vial_t1": 1,
 		"quest.enter_pollution_edge|defeat_enemy|enemy.polluted_skitter": 1,
+		"quest.defeat_elite_node|defeat_enemy|enemy.elite_residue_node": 1,
 		"quest.unlock_ruin_signal|inspect|map_object.ruin_gate": 1
 	}
 	world_state.quest_state.unlocked_effects = [
@@ -799,6 +809,7 @@ func _check_slice_complete_state_persists() -> void:
 	var loaded_world: WorldState = load_result["world_state"]
 	var loaded_character: CharacterState = load_result["character_state"]
 	_expect_array_has(loaded_world.quest_state.completed_quest_ids, "quest.unlock_ruin_signal", "slice complete ruin signal quest")
+	_expect_array_has(loaded_world.quest_state.completed_quest_ids, "quest.defeat_elite_node", "slice complete elite node quest")
 	_expect_array_has(loaded_world.quest_state.unlocked_effects, "slice_01_complete", "slice complete unlock effect")
 	_expect_equal(
 		loaded_world.quest_state.get_objective_progress("quest.unlock_ruin_signal", "inspect", "map_object.ruin_gate"),

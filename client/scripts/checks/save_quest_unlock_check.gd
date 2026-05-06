@@ -55,7 +55,7 @@ func _check_rejects_active_quest_without_completed_quest_source() -> void:
 	host._remove_backup_files()
 	var save_data: Dictionary = host._make_save_data("world.invalid.active_quest_source")
 	host._mark_restore_outpost_completed(save_data)
-	save_data["world"]["quest_state"]["active_quest_ids"] = ["quest.defeat_elite_node"]
+	save_data["world"]["quest_state"]["active_quest_ids"] = ["quest.unlock_ruin_signal"]
 	save_data["world"]["quest_state"]["completed_quest_ids"] = [
 		"quest.restore_outpost",
 		"quest.scout_crystal_field",
@@ -97,19 +97,17 @@ func _check_rejects_active_quest_without_completed_quest_source() -> void:
 		"recipe.basic_filter_module",
 		"recipe.foundation_t1",
 		"region.pollution_edge",
-		"recipe.cleanse_residue",
-		"region.locked_ruin_gate"
+		"recipe.cleanse_residue"
 	]
 	save_data["world"]["unlocked_region_ids"] = [
 		"region.outpost_platform",
 		"region.crystal_vein_field",
-		"region.pollution_edge",
-		"region.locked_ruin_gate"
+		"region.pollution_edge"
 	]
 	host._write_save_json(save_data)
 	host._expect_failure_message(
 		host.save_service.load_game(),
-		"quest_state.active_quest_ids 中存在未由默认任务或已完成任务链解锁的任务",
+		"任务前置关系不完整",
 		"active quest without completed quest source"
 	)
 
@@ -119,12 +117,12 @@ func _check_rejects_completed_quest_without_chain_source() -> void:
 	host._remove_backup_files()
 	var save_data: Dictionary = host._make_save_data("world.invalid.completed_quest_chain_source")
 	_mark_slice_complete(save_data)
-	save_data["world"]["quest_state"]["completed_quest_ids"].append("quest.defeat_elite_node")
-	save_data["world"]["quest_state"]["objective_progress"]["quest.defeat_elite_node|defeat_enemy|enemy.elite_residue_node"] = 1
+	save_data["world"]["quest_state"]["completed_quest_ids"].erase("quest.defeat_elite_node")
+	save_data["world"]["quest_state"]["objective_progress"].erase("quest.defeat_elite_node|defeat_enemy|enemy.elite_residue_node")
 	host._write_save_json(save_data)
 	host._expect_failure_message(
 		host.save_service.load_game(),
-		"quest_state.completed_quest_ids 中存在未由默认任务或已完成任务链解锁的任务",
+		"任务前置关系不完整",
 		"completed quest without chain source"
 	)
 
@@ -286,6 +284,7 @@ func _mark_slice_complete(save_data: Dictionary) -> void:
 		"quest.prepare_treatment_supplies",
 		"quest.expand_treatment_point",
 		"quest.enter_pollution_edge",
+		"quest.defeat_elite_node",
 		"quest.unlock_ruin_signal"
 	]
 	save_data["world"]["quest_state"]["objective_progress"] = {
@@ -306,6 +305,7 @@ func _mark_slice_complete(save_data: Dictionary) -> void:
 		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 2,
 		"quest.enter_pollution_edge|craft_item|item.resistance_vial_t1": 1,
 		"quest.enter_pollution_edge|defeat_enemy|enemy.polluted_skitter": 1,
+		"quest.defeat_elite_node|defeat_enemy|enemy.elite_residue_node": 1,
 		"quest.unlock_ruin_signal|inspect|map_object.ruin_gate": 1
 	}
 	save_data["world"]["quest_state"]["unlocked_effects"] = [

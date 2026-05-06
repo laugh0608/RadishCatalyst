@@ -119,8 +119,8 @@
       ],
       "prerequisites": ["quest.expand_treatment_point"],
       "rewards": [{"id": "item.resistance_vial_t1", "amount": 1}],
-      "unlock_effects": ["region.locked_ruin_gate"],
-      "next_quest_ids": ["quest.unlock_ruin_signal"],
+      "unlock_effects": [],
+      "next_quest_ids": ["quest.defeat_elite_node"],
       "public_level": "public"
     },
     {
@@ -134,16 +134,16 @@
       "rewards": [{"id": "item.anomaly_sample", "amount": 1}],
       "unlock_effects": ["region.locked_ruin_gate"],
       "next_quest_ids": ["quest.unlock_ruin_signal"],
-      "public_level": "spoiler"
+      "public_level": "public"
     },
     {
       "id": "quest.unlock_ruin_signal",
       "display_name_key": "quest.unlock_ruin_signal.name",
       "description_key": "quest.unlock_ruin_signal.desc",
       "quest_type": "main",
-      "stage": 10,
+      "stage": 11,
       "objectives": [{"type": "inspect", "target_id": "map_object.ruin_gate", "amount": 1}],
-      "prerequisites": ["quest.enter_pollution_edge"],
+      "prerequisites": ["quest.defeat_elite_node"],
       "rewards": [],
       "unlock_effects": ["slice_01_complete"],
       "next_quest_ids": [],

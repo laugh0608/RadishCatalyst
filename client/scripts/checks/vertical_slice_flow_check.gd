@@ -107,10 +107,15 @@ func _run_checks() -> void:
 		{"type": "craft_item", "target_id": "item.resistance_vial_t1", "amount": 1},
 		{"type": "defeat_enemy", "target_id": "enemy.polluted_skitter", "amount": 1}
 	])
-	_expect_active_quest("quest.unlock_ruin_signal", "after enter pollution edge")
-	_expect_array_has(world_state.unlocked_region_ids, "region.locked_ruin_gate", "pollution edge unlocks ruin gate region")
+	_expect_active_quest("quest.defeat_elite_node", "after enter pollution edge")
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.enter_pollution_edge", "pollution edge completed")
-	_expect_array_missing(world_state.quest_state.active_quest_ids, "quest.defeat_elite_node", "prototype should not activate unimplemented elite node")
+
+	_complete_active_quest("quest.defeat_elite_node", [
+		{"type": "defeat_enemy", "target_id": "enemy.elite_residue_node", "amount": 1}
+	])
+	_expect_active_quest("quest.unlock_ruin_signal", "after defeat elite node")
+	_expect_array_has(world_state.unlocked_region_ids, "region.locked_ruin_gate", "elite node unlocks ruin gate region")
+	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.defeat_elite_node", "elite node completed")
 
 	_complete_active_quest("quest.unlock_ruin_signal", [
 		{"type": "inspect", "target_id": "map_object.ruin_gate", "amount": 1}
@@ -143,6 +148,7 @@ func _check_onboarding_hints() -> void:
 	hint_character.protection = 30.0
 	hint_character.equipment["suit_module"] = "equipment.filter_module_t1"
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.enter_pollution_edge", "防护偏低", "low protection onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.defeat_elite_node", "精英节点", "elite node onboarding hint")
 
 	hint_world.quest_state.unlocked_effects.append("slice_01_complete")
 	_expect_hint_contains(presenter, hint_world, hint_character, "", "更深区域信号", "slice complete onboarding hint")
@@ -692,10 +698,11 @@ func _check_region_prompt_formatter() -> void:
 	var ruin_world := WorldState.create_default()
 	_expect_text_contains(
 		formatter.format_ruin_gate_prompt(ruin_world),
-		"先治理污染边界",
+		"先压制污染残核",
 		"ruin gate blocked prompt"
 	)
 	ruin_world.quest_state.completed_quest_ids.append("quest.enter_pollution_edge")
+	ruin_world.quest_state.completed_quest_ids.append("quest.defeat_elite_node")
 	_expect_text_contains(
 		formatter.format_ruin_gate_prompt(ruin_world),
 		"按 E 确认",
