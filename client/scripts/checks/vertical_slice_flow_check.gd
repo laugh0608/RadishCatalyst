@@ -45,6 +45,7 @@ func _run_checks() -> void:
 	_check_hud_feedback_presenter()
 	_check_pollution_status_hints()
 	_check_region_prompt_formatter()
+	_check_hud_log_presenter()
 	_check_failure_feedback_logs()
 	_check_device_panel_formatting()
 	_check_manual_recipe_cycle_keeps_player_choice()
@@ -754,12 +755,12 @@ func _check_region_prompt_formatter() -> void:
 
 
 func _check_failure_feedback_logs() -> void:
-	var game_root = GameRootScript.new()
+	var log_presenter := HudLogPresenter.new(data_registry)
 	var no_target_map := VerticalSliceMap.new()
 	var no_target := no_target_map.try_interact(CharacterState.create_default(), WorldState.create_default())
 	_expect_failure_feedback(no_target, "交互未执行", "no target interaction feedback")
 	_expect_text_contains(
-		game_root._format_failure_result_log(no_target),
+		log_presenter.format_failure_result_log(no_target),
 		"下一步：靠近带名称的目标",
 		"no target failure log"
 	)
@@ -815,7 +816,34 @@ func _check_failure_feedback_logs() -> void:
 	)
 	_expect_failure_feedback(blocked_residue, "交互前置不足", "anomaly residue quest gate feedback")
 
-	game_root.free()
+
+func _check_hud_log_presenter() -> void:
+	var presenter := HudLogPresenter.new(data_registry)
+	_expect_text_contains(
+		presenter.format_startup_log(),
+		"Tab 显示或隐藏存档 / 快捷栏调试面板",
+		"startup log keeps debug boundary hint"
+	)
+	_expect_equal(
+		presenter.format_slot_result_log("slot_02", {"message": "保存完成。"}),
+		"槽位 02：保存完成。",
+		"log presenter formats save slot names"
+	)
+	_expect_equal(
+		presenter.join_messages(["", "已进入：晶体矿脉区。", "  ", "任务完成：恢复前哨。"]),
+		"已进入：晶体矿脉区。 任务完成：恢复前哨。",
+		"log presenter joins non-empty messages"
+	)
+	_expect_text_contains(
+		presenter.format_device_panel_opened_log("building.basic_reactor"),
+		"基础反应器",
+		"log presenter resolves device display names"
+	)
+	_expect_text_contains(
+		presenter.format_recommended_recipe_selected_log("recipe.analyze_anomaly_sample"),
+		"分析异常样本",
+		"log presenter resolves recipe display names"
+	)
 
 
 func _check_device_panel_formatting() -> void:
