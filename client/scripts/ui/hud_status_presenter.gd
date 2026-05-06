@@ -159,7 +159,7 @@ func _format_active_quest_progress(data_registry: DataRegistry, world_state: Wor
 		)
 		parts.append("%s%s %s/%s" % [
 			_get_objective_verb(objective_type),
-			_get_display_name(data_registry, target_id),
+			_format_objective_target_name(data_registry, quest_id, objective_type, target_id),
 			_format_amount(current_amount),
 			_format_amount(required_amount)
 		])
@@ -191,6 +191,29 @@ func _get_objective_verb(objective_type: String) -> String:
 			return "检查 "
 		_:
 			return ""
+
+
+func _format_objective_target_name(
+	data_registry: DataRegistry,
+	quest_id: String,
+	objective_type: String,
+	target_id: String
+) -> String:
+	var target_name := _get_display_name(data_registry, target_id)
+	var source_hint := _get_objective_source_hint(quest_id, objective_type, target_id)
+	if source_hint.is_empty():
+		return target_name
+	return "%s（%s）" % [target_name, source_hint]
+
+
+func _get_objective_source_hint(quest_id: String, objective_type: String, target_id: String) -> String:
+	if (
+		quest_id == "quest.calibrate_reactor"
+		and objective_type == "gather_item"
+		and target_id == "item.salvage_scrap"
+	):
+		return "外勤残骸"
+	return ""
 
 
 func _format_amount(amount: float) -> String:

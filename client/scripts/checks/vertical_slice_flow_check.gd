@@ -173,6 +173,15 @@ func _check_status_panel_summary() -> void:
 	if status_text.split("\n").size() > 8:
 		failures.append("status panel should stay compact, got %d lines: %s" % [status_text.split("\n").size(), status_text])
 
+	var calibration_world := WorldState.create_default()
+	calibration_world.quest_state.active_quest_ids = ["quest.calibrate_reactor"]
+	var calibration_status_text := presenter.format_status_text(data_registry, calibration_world, status_character)
+	_expect_text_contains(
+		calibration_status_text,
+		"收集 导电废件（外勤残骸） 0/4",
+		"status shows conductive scrap source"
+	)
+
 
 func _check_region_markers() -> void:
 	var presenter := HudMapPresenter.new()
