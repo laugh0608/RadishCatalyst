@@ -46,7 +46,7 @@
       "description_key": "quest.bring_back_sample.desc",
       "quest_type": "main",
       "stage": 4,
-      "objectives": [{"type": "sample_object", "target_id": "map_object.anomaly_crystal", "amount": 1}, {"type": "return_region", "target_id": "region.outpost_platform", "amount": 1}],
+      "objectives": [{"type": "sample_object", "target_id": "map_object.anomaly_crystal", "amount": 1}],
       "prerequisites": ["quest.calibrate_reactor"],
       "rewards": [],
       "unlock_effects": ["recipe.analyze_anomaly_sample"],

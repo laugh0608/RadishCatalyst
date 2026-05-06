@@ -75,7 +75,6 @@ func _check_rejects_active_quest_without_completed_quest_source() -> void:
 		"quest.calibrate_reactor|gather_item|item.salvage_scrap": 4,
 		"quest.calibrate_reactor|craft_item|item.reactor_calibrator": 1,
 		"quest.bring_back_sample|sample_object|map_object.anomaly_crystal": 1,
-		"quest.bring_back_sample|return_region|region.outpost_platform": 1,
 		"quest.analyze_anomaly_sample|gather_item|item.anomaly_residue": 2,
 		"quest.analyze_anomaly_sample|craft_item|item.sample_analysis": 1,
 		"quest.make_filter_module|craft_item|equipment.filter_module_t1": 1,
@@ -280,8 +279,7 @@ func _mark_bring_back_sample_completed(save_data: Dictionary) -> void:
 		"quest.scout_crystal_field|gather_item|item.crystal_ore": 6,
 		"quest.calibrate_reactor|gather_item|item.salvage_scrap": 4,
 		"quest.calibrate_reactor|craft_item|item.reactor_calibrator": 1,
-		"quest.bring_back_sample|sample_object|map_object.anomaly_crystal": 1,
-		"quest.bring_back_sample|return_region|region.outpost_platform": 1
+		"quest.bring_back_sample|sample_object|map_object.anomaly_crystal": 1
 	}
 	save_data["world"]["quest_state"]["unlocked_effects"] = [
 		"region.outpost_platform",
@@ -322,7 +320,6 @@ func _mark_slice_complete(save_data: Dictionary) -> void:
 		"quest.calibrate_reactor|gather_item|item.salvage_scrap": 4,
 		"quest.calibrate_reactor|craft_item|item.reactor_calibrator": 1,
 		"quest.bring_back_sample|sample_object|map_object.anomaly_crystal": 1,
-		"quest.bring_back_sample|return_region|region.outpost_platform": 1,
 		"quest.analyze_anomaly_sample|gather_item|item.anomaly_residue": 2,
 		"quest.analyze_anomaly_sample|craft_item|item.sample_analysis": 1,
 		"quest.make_filter_module|craft_item|equipment.filter_module_t1": 1,

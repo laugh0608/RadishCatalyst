@@ -68,8 +68,7 @@ func _run_checks() -> void:
 	_expect_active_quest("quest.bring_back_sample", "after calibrate reactor")
 
 	_complete_active_quest("quest.bring_back_sample", [
-		{"type": "sample_object", "target_id": "map_object.anomaly_crystal", "amount": 1},
-		{"type": "return_region", "target_id": "region.outpost_platform", "amount": 1}
+		{"type": "sample_object", "target_id": "map_object.anomaly_crystal", "amount": 1}
 	])
 	_expect_active_quest("quest.analyze_anomaly_sample", "after bring back sample")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.analyze_anomaly_sample", "sample unlocks analysis recipe")
@@ -205,8 +204,8 @@ func _check_region_markers() -> void:
 	)
 	_expect_text_contains(
 		presenter.format_region_markers(marker_world, "quest.bring_back_sample"),
-		"基地：当前位置，目标",
-		"sample return marker as objective"
+		"晶体：东侧，目标",
+		"sample marker remains in crystal field"
 	)
 
 	marker_world.unlock_region("region.locked_ruin_gate")
@@ -473,10 +472,10 @@ func _check_quest_completion_panel_text() -> void:
 	_expect_text_contains(details, "新目标：勘探晶体矿脉", "completion details next row")
 	_expect_text_contains(
 		String(presenter.format_quest_completion_panel_texts({
-			"title": "任务完成：带回样本",
+			"title": "任务完成：采样异常晶体",
 			"reward_text": "奖励：无直接物资"
 		}).get("detail", "")),
-		"完成：带回样本",
+		"完成：采样异常晶体",
 		"completion details title fallback"
 	)
 	_expect_equal(

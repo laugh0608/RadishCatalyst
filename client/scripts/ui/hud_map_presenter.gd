@@ -111,9 +111,7 @@ func _get_quest_target_region_id(world_state: WorldState, quest_id: String) -> S
 				return "region.crystal_vein_field"
 			return "region.outpost_platform"
 		"quest.bring_back_sample":
-			if world_state.quest_state.get_objective_progress(quest_id, "sample_object", "map_object.anomaly_crystal") <= 0.0:
-				return "region.crystal_vein_field"
-			return "region.outpost_platform"
+			return "region.crystal_vein_field"
 		"quest.analyze_anomaly_sample":
 			if world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.anomaly_residue") < 2.0:
 				return "region.crystal_vein_field"

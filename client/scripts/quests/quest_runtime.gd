@@ -115,10 +115,6 @@ func _get_bring_back_sample_recovery_updates(world_state: WorldState, character_
 	var has_sample := bool(anomaly_state.get("is_sampled", false)) or character_state.inventory.has_ref("item.anomaly_sample", 1)
 	if sample_progress < 1.0 and has_sample:
 		updates.append(_objective_set_update(quest_id, "sample_object", "map_object.anomaly_crystal", 1))
-
-	var return_progress := world_state.quest_state.get_objective_progress(quest_id, "return_region", "region.outpost_platform")
-	if return_progress < 1.0 and has_sample and world_state.current_region_id == "region.outpost_platform":
-		updates.append(_objective_set_update(quest_id, "return_region", "region.outpost_platform", 1))
 	return updates
 
 

@@ -102,7 +102,7 @@ func _check_region_event_objective_updates() -> void:
 	_expect_equal(updates.size(), 0, "outpost return before sample update count")
 	quest_state.set_objective_progress("quest.bring_back_sample", "sample_object", "map_object.anomaly_crystal", 1)
 	updates = event_rules.get_region_objective_updates("region.outpost_platform", quest_state)
-	_expect_update(updates, "set", "quest.bring_back_sample", "return_region", "region.outpost_platform", 1.0, "outpost return update")
+	_expect_equal(updates.size(), 0, "outpost return after sample should not update sample quest")
 
 
 func _check_recipe_build_and_enemy_event_objective_updates() -> void:
@@ -266,11 +266,6 @@ func _check_quest_runtime_recovers_pre_sampled_anomaly() -> void:
 		world_state.quest_state.get_objective_progress("quest.bring_back_sample", "sample_object", "map_object.anomaly_crystal"),
 		1.0,
 		"pre-sampled anomaly sample objective"
-	)
-	_expect_equal(
-		world_state.quest_state.get_objective_progress("quest.bring_back_sample", "return_region", "region.outpost_platform"),
-		1.0,
-		"pre-sampled anomaly return objective"
 	)
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.bring_back_sample", "pre-sampled anomaly completes sample quest")
 	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_anomaly_sample", "pre-sampled anomaly activates sample analysis quest")

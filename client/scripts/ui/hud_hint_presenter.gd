@@ -19,8 +19,8 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "回基地使用基础反应器，组装反应器校准件。"
 		"quest.bring_back_sample":
 			if world_state.quest_state.get_objective_progress(quest_id, "sample_object", "map_object.anomaly_crystal") <= 0.0:
-				return "向东南采样异常晶体；采样后返回基地平台。"
-			return "向西返回基地平台，完成样本回收。"
+				return "向东南采样异常晶体；采样后就近确认周边残留。"
+			return "采样完成，继续回收异常晶体周边残留点。"
 		"quest.analyze_anomaly_sample":
 			if world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.anomaly_residue") < 2.0:
 				return "回到异常晶体周边，回收两处异常残留点。"
@@ -66,8 +66,8 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "靠近基础反应器，切换到反应器校准件配方并等待加工完成。"
 		"quest.bring_back_sample":
 			if world_state.quest_state.get_objective_progress(quest_id, "sample_object", "map_object.anomaly_crystal") <= 0.0:
-				return "采样异常晶体；样本需要带回基地确认。"
-			return "带样本回基地，下一步会去周边回收残留物做分析。"
+				return "采样异常晶体；样本分析还需要周边残留物校验。"
+			return "采样已完成，先在周边回收残留物，再回基地加工分析。"
 		"quest.analyze_anomaly_sample":
 			if world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.anomaly_residue") < 2.0:
 				return "异常残留物用于校验样本，回收两处后再回基地加工分析。"

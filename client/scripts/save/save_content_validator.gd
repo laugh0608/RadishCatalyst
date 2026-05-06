@@ -106,6 +106,9 @@ const STRUCTURE_BUFFER_ALLOWED_FIELDS := [
 
 const DEFAULT_ACTIVE_QUEST_IDS: Array[String] = ["quest.restore_outpost"]
 const DEFAULT_UNLOCKED_REGION_IDS: Array[String] = ["region.outpost_platform"]
+const LEGACY_OBJECTIVE_PROGRESS_KEYS: Array[String] = [
+	"quest.bring_back_sample|return_region|region.outpost_platform"
+]
 
 var data_registry: DataRegistry
 
@@ -706,7 +709,7 @@ func _validate_quest_content(quest_state: Dictionary) -> String:
 			var target_error := _validate_known_or_special_ref(parts[2], "quest_state.objective_progress")
 			if not target_error.is_empty():
 				return target_error
-			var objective_error := _validate_defined_quest_objective(parts[0], parts[1], parts[2])
+			var objective_error := _validate_defined_quest_objective(parts[0], parts[1], parts[2], String(objective_key))
 			if not objective_error.is_empty():
 				return objective_error
 			var required_amount := _get_defined_quest_objective_amount(parts[0], parts[1], parts[2])
@@ -723,7 +726,9 @@ func _validate_quest_content(quest_state: Dictionary) -> String:
 	return ""
 
 
-func _validate_defined_quest_objective(quest_id: String, objective_type: String, target_id: String) -> String:
+func _validate_defined_quest_objective(quest_id: String, objective_type: String, target_id: String, objective_key: String) -> String:
+	if LEGACY_OBJECTIVE_PROGRESS_KEYS.has(objective_key):
+		return ""
 	var quest := data_registry.get_definition(quest_id)
 	for objective in quest.get("objectives", []):
 		if not (objective is Dictionary):
