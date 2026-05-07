@@ -12,6 +12,16 @@ func configure(data_registry: DataRegistry, map: VerticalSliceMap) -> void:
 	target_region_resolver.configure_from_map(map)
 
 
+func format_runtime_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
+	var direction_hint := format_direction_hint(world_state, character_state, quest_id)
+	var onboarding_hint := format_onboarding_hint(world_state, character_state, quest_id)
+	var lines: Array[String] = []
+	_append_runtime_hint_line(lines, "方向", direction_hint)
+	if onboarding_hint != direction_hint:
+		_append_runtime_hint_line(lines, "提示", onboarding_hint)
+	return "\n".join(lines)
+
+
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
 		if _is_slice_complete(world_state):
@@ -120,3 +130,10 @@ func _get_target_region_id(world_state: WorldState, quest_id: String) -> String:
 	if target_region_resolver == null:
 		return ""
 	return target_region_resolver.resolve_target_region_id(world_state, quest_id)
+
+
+func _append_runtime_hint_line(lines: Array[String], label: String, text: String) -> void:
+	var stripped_text := text.strip_edges()
+	if stripped_text.is_empty():
+		return
+	lines.append("%s：%s" % [label, stripped_text])

@@ -14,6 +14,9 @@ var debug_panel_presenter := HudDebugPanelPresenter.new()
 var feedback_presenter := HudFeedbackPresenter.new()
 var map_presenter := HudMapPresenter.new()
 var status_presenter := HudStatusPresenter.new()
+var hint_presenter := HudHintPresenter.new()
+var context_prompt_text := ""
+var runtime_hint_text := ""
 
 @onready var save_panel: ColorRect = $SavePanel
 @onready var completion_panel: ColorRect = $CompletionPanel
@@ -112,6 +115,7 @@ func _process(delta: float) -> void:
 
 func configure_map_presenter(data_registry: DataRegistry, map: VerticalSliceMap) -> void:
 	map_presenter.configure(data_registry, map)
+	hint_presenter.configure(data_registry, map)
 
 
 func _update_timed_panel_visibility(delta: float) -> void:
@@ -124,8 +128,10 @@ func _update_timed_panel_visibility(delta: float) -> void:
 
 
 func update_status(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> void:
+	var active_quest_id := _get_active_quest_id(world_state)
 	status_label.text = status_presenter.format_status_text(data_registry, world_state, character_state)
-	_update_map_panel(world_state, _get_active_quest_id(world_state))
+	_update_runtime_hint(world_state, character_state, active_quest_id)
+	_update_map_panel(world_state, active_quest_id)
 	last_quick_slots = debug_panel_presenter.update_quick_slot_binding_panel(
 		data_registry,
 		character_state,
@@ -141,11 +147,13 @@ func _get_active_quest_id(world_state: WorldState) -> String:
 
 
 func show_prompt(text: String) -> void:
-	prompt_label.text = text
+	context_prompt_text = text
+	_refresh_prompt_label()
 
 
 func clear_prompt() -> void:
-	prompt_label.text = ""
+	context_prompt_text = ""
+	_refresh_prompt_label()
 
 
 func append_log(text: String) -> void:
@@ -153,7 +161,9 @@ func append_log(text: String) -> void:
 
 
 func clear_runtime_feedback() -> void:
-	clear_prompt()
+	context_prompt_text = ""
+	runtime_hint_text = ""
+	_refresh_prompt_label()
 	hide_device_panel()
 	completion_panel.visible = false
 	evacuation_panel.visible = false
@@ -306,3 +316,15 @@ func _update_map_panel(world_state: WorldState, quest_id: String) -> void:
 		var marker_view := marker_view_data[index]
 		map_marker_rects[index].color = marker_view.get("color", Color.WHITE)
 		map_marker_labels[index].text = String(marker_view.get("label", ""))
+
+
+func _update_runtime_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> void:
+	runtime_hint_text = hint_presenter.format_runtime_hint(world_state, character_state, quest_id)
+	_refresh_prompt_label()
+
+
+func _refresh_prompt_label() -> void:
+	if not context_prompt_text.strip_edges().is_empty():
+		prompt_label.text = context_prompt_text
+		return
+	prompt_label.text = runtime_hint_text

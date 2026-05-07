@@ -1,6 +1,7 @@
 extends SceneTree
 
 const GameRootScript := preload("res://scripts/game/game_root.gd")
+const HudRuntimeHintFlowCheckScript := preload("res://scripts/checks/hud_runtime_hint_flow_check.gd")
 const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
 
 var failures: Array[String] = []
@@ -30,6 +31,7 @@ func _run_checks() -> void:
 
 	_expect_equal(world_state.quest_state.active_quest_ids, ["quest.restore_outpost"], "initial active quest")
 	_check_onboarding_hints()
+	_check_runtime_hint_prompt_flow()
 	_check_status_panel_summary()
 	_check_region_markers()
 	_check_region_presence_bounds()
@@ -194,6 +196,10 @@ func _check_onboarding_hints() -> void:
 	hint_world.quest_state.unlocked_effects.append("slice_01_complete")
 	_expect_hint_contains(presenter, hint_world, hint_character, "", "更深区域信号", "slice complete onboarding hint")
 	map.free()
+
+
+func _check_runtime_hint_prompt_flow() -> void:
+	HudRuntimeHintFlowCheckScript.new().run(root, failures, data_registry)
 
 
 func _check_status_panel_summary() -> void:
