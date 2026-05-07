@@ -134,6 +134,9 @@ func _run_checks() -> void:
 
 func _check_onboarding_hints() -> void:
 	var presenter := HudHintPresenter.new()
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	presenter.configure(data_registry, map)
 	var hint_world := WorldState.create_default()
 	var hint_character := CharacterState.create_default()
 
@@ -150,19 +153,47 @@ func _check_onboarding_hints() -> void:
 		"supply prep direction mentions quick slot"
 	)
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.prepare_treatment_supplies", "生命偏低", "supply prep combat use hint")
+	_expect_text_contains(
+		presenter.format_direction_hint(hint_world, hint_character, "quest.prepare_treatment_supplies"),
+		"处理点北缘",
+		"supply prep direction follows treatment point combat region"
+	)
 
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.expand_treatment_point", "2 块地基", "foundation onboarding hint")
+	_expect_text_contains(
+		presenter.format_direction_hint(hint_world, hint_character, "quest.expand_treatment_point"),
+		"处理点北缘",
+		"expand treatment point direction uses treatment point wording"
+	)
 	hint_world.add_base_structure("structure.foundation_site_north", "building.foundation_t1", "region.pollution_edge")
 	hint_world.add_base_structure("structure.foundation_site_south", "building.foundation_t1", "region.pollution_edge")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.expand_treatment_point", "污染过滤器", "pollution filter onboarding hint")
 
-	hint_character.protection = 30.0
 	hint_character.equipment["suit_module"] = "equipment.filter_module_t1"
+	hint_world.unlock_region("region.pollution_edge")
+	hint_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "visit_region", "region.pollution_edge", 1)
+	hint_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", 2)
+	_expect_text_contains(
+		presenter.format_direction_hint(hint_world, hint_character, "quest.enter_pollution_edge"),
+		"处理点过滤器",
+		"enter pollution direction returns to filter when vial crafting is next"
+	)
+	_expect_hint_contains(
+		presenter,
+		hint_world,
+		hint_character,
+		"quest.enter_pollution_edge",
+		"抗污染药剂",
+		"enter pollution onboarding returns to filter before pushing deeper"
+	)
+	hint_character.protection = 30.0
+	hint_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1)
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.enter_pollution_edge", "过滤器处理沉积物", "low protection onboarding hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.defeat_elite_node", "维持防护", "elite node supply hint")
 
 	hint_world.quest_state.unlocked_effects.append("slice_01_complete")
 	_expect_hint_contains(presenter, hint_world, hint_character, "", "更深区域信号", "slice complete onboarding hint")
+	map.free()
 
 
 func _check_status_panel_summary() -> void:
