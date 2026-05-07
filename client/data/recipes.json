@@ -120,6 +120,21 @@
       "pollution_delta": 0.0,
       "unlock_conditions": ["quest.scout_crystal_field"],
       "public_level": "public"
+    },
+    {
+      "id": "recipe.phase_anchor",
+      "display_name_key": "recipe.phase_anchor.name",
+      "description_key": "recipe.phase_anchor.desc",
+      "category": "assembly",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.relay_shard", "amount": 2}, {"id": "fluid.polluted_slurry", "amount": 1}, {"id": "item.basic_parts", "amount": 1}],
+      "outputs": [{"id": "item.phase_anchor", "amount": 1}],
+      "byproducts": [],
+      "duration": 11.0,
+      "energy_cost": 4.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.scout_ruin_outer_ring"],
+      "public_level": "spoiler"
     }
   ]
 }

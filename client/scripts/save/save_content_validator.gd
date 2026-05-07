@@ -19,7 +19,11 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.foundation_site_south": "building.foundation_t1",
 	"map_object_instance.pollution_filter_build_site": "building.pollution_filter",
 	"map_object_instance.pollution_filter": "building.pollution_filter",
-	"map_object_instance.ruin_gate": "map_object.ruin_gate"
+	"map_object_instance.ruin_gate": "map_object.ruin_gate",
+	"map_object_instance.relay_shard_cache_north": "map_object.relay_shard_cache",
+	"map_object_instance.relay_shard_cache_south": "map_object.relay_shard_cache",
+	"map_object_instance.outer_ring_barrier": "map_object.outer_ring_barrier",
+	"map_object_instance.outer_ring_console": "map_object.outer_ring_console"
 }
 
 const PROTOTYPE_ENEMY_SOURCES := {

@@ -89,6 +89,7 @@ signal quick_slot_binding_requested(slot_index: int, item_id: String)
 
 
 func _ready() -> void:
+	_ensure_runtime_nodes()
 	new_game_button.pressed.connect(_on_new_game_pressed)
 	for index in range(SAVE_SLOT_IDS.size()):
 		save_slot_buttons[index].pressed.connect(_on_save_slot_pressed.bind(index))
@@ -128,8 +129,10 @@ func _update_timed_panel_visibility(delta: float) -> void:
 
 
 func update_status(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> void:
+	_ensure_runtime_nodes()
 	var active_quest_id := _get_active_quest_id(world_state)
-	status_label.text = status_presenter.format_status_text(data_registry, world_state, character_state)
+	if status_label != null:
+		status_label.text = status_presenter.format_status_text(data_registry, world_state, character_state)
 	_update_runtime_hint(world_state, character_state, active_quest_id)
 	_update_map_panel(world_state, active_quest_id)
 	last_quick_slots = debug_panel_presenter.update_quick_slot_binding_panel(
@@ -147,17 +150,21 @@ func _get_active_quest_id(world_state: WorldState) -> String:
 
 
 func show_prompt(text: String) -> void:
+	_ensure_runtime_nodes()
 	context_prompt_text = text
 	_refresh_prompt_label()
 
 
 func clear_prompt() -> void:
+	_ensure_runtime_nodes()
 	context_prompt_text = ""
 	_refresh_prompt_label()
 
 
 func append_log(text: String) -> void:
-	log_label.text = text
+	_ensure_runtime_nodes()
+	if log_label != null:
+		log_label.text = text
 
 
 func clear_runtime_feedback() -> void:
@@ -173,6 +180,7 @@ func clear_runtime_feedback() -> void:
 
 
 func show_quest_completion(feedback: Dictionary) -> void:
+	_ensure_runtime_nodes()
 	if feedback.is_empty():
 		return
 
@@ -184,6 +192,7 @@ func show_quest_completion(feedback: Dictionary) -> void:
 
 
 func show_evacuation_feedback(feedback: Dictionary) -> void:
+	_ensure_runtime_nodes()
 	if feedback.is_empty():
 		return
 
@@ -194,6 +203,7 @@ func show_evacuation_feedback(feedback: Dictionary) -> void:
 
 
 func show_supply_feedback(feedback: Dictionary) -> void:
+	_ensure_runtime_nodes()
 	if feedback.is_empty():
 		return
 
@@ -211,6 +221,7 @@ func show_device_panel(
 	character_state: CharacterState,
 	world_state: WorldState
 ) -> void:
+	_ensure_runtime_nodes()
 	if interactable == null or interactable.interaction_type != "process_recipe":
 		hide_device_panel()
 		return
@@ -250,6 +261,7 @@ func is_device_panel_visible() -> bool:
 
 
 func update_save_slot_summaries(summaries: Array[Dictionary]) -> void:
+	_ensure_runtime_nodes()
 	debug_panel_presenter.update_save_slot_summaries(
 		summaries,
 		save_slot_labels,
@@ -290,6 +302,7 @@ func _on_evacuation_close_pressed() -> void:
 
 
 func _set_debug_panels_visible(should_show: bool) -> void:
+	_ensure_runtime_nodes()
 	debug_panels_visible = should_show
 	save_panel.visible = should_show
 	quick_slot_panel.visible = should_show
@@ -311,8 +324,11 @@ func _get_display_name(data_registry: DataRegistry, definition_id: String) -> St
 
 
 func _update_map_panel(world_state: WorldState, quest_id: String) -> void:
+	_ensure_runtime_nodes()
 	var marker_view_data := map_presenter.get_marker_view_data(world_state, quest_id)
 	for index in range(mini(marker_view_data.size(), map_marker_rects.size())):
+		if map_marker_rects[index] == null or map_marker_labels[index] == null:
+			continue
 		var marker_view := marker_view_data[index]
 		map_marker_rects[index].color = marker_view.get("color", Color.WHITE)
 		map_marker_labels[index].text = String(marker_view.get("label", ""))
@@ -324,7 +340,105 @@ func _update_runtime_hint(world_state: WorldState, character_state: CharacterSta
 
 
 func _refresh_prompt_label() -> void:
+	_ensure_runtime_nodes()
+	if prompt_label == null:
+		return
 	if not context_prompt_text.strip_edges().is_empty():
 		prompt_label.text = context_prompt_text
 		return
 	prompt_label.text = runtime_hint_text
+
+
+func _ensure_runtime_nodes() -> void:
+	if save_panel == null:
+		save_panel = get_node_or_null("SavePanel")
+	if completion_panel == null:
+		completion_panel = get_node_or_null("CompletionPanel")
+	if quick_slot_panel == null:
+		quick_slot_panel = get_node_or_null("QuickSlotPanel")
+	if device_panel == null:
+		device_panel = get_node_or_null("DevicePanel")
+	if status_label == null:
+		status_label = get_node_or_null("StatusPanel/StatusLabel")
+	if prompt_label == null:
+		prompt_label = get_node_or_null("PromptPanel/PromptLabel")
+	if log_label == null:
+		log_label = get_node_or_null("LogPanel/LogLabel")
+	if map_marker_rects.is_empty() or map_marker_rects[0] == null:
+		map_marker_rects = [
+			get_node_or_null("MapPanel/OutpostMarker"),
+			get_node_or_null("MapPanel/CrystalMarker"),
+			get_node_or_null("MapPanel/PollutionMarker"),
+			get_node_or_null("MapPanel/RuinMarker")
+		]
+	if map_marker_labels.is_empty() or map_marker_labels[0] == null:
+		map_marker_labels = [
+			get_node_or_null("MapPanel/OutpostLabel"),
+			get_node_or_null("MapPanel/CrystalLabel"),
+			get_node_or_null("MapPanel/PollutionLabel"),
+			get_node_or_null("MapPanel/RuinLabel")
+		]
+	if device_title_label == null:
+		device_title_label = get_node_or_null("DevicePanel/DeviceTitleLabel")
+	if device_status_label == null:
+		device_status_label = get_node_or_null("DevicePanel/DeviceStatusLabel")
+	if device_recipe_label == null:
+		device_recipe_label = get_node_or_null("DevicePanel/DeviceRecipeLabel")
+	if device_operation_label == null:
+		device_operation_label = get_node_or_null("DevicePanel/DeviceOperationLabel")
+	if device_close_button == null:
+		device_close_button = get_node_or_null("DevicePanel/DeviceCloseButton")
+	if completion_title_label == null:
+		completion_title_label = get_node_or_null("CompletionPanel/CompletionTitleLabel")
+	if completion_detail_label == null:
+		completion_detail_label = get_node_or_null("CompletionPanel/CompletionDetailLabel")
+	if quick_slot_binding_labels.is_empty() or quick_slot_binding_labels[0] == null:
+		quick_slot_binding_labels = [
+			get_node_or_null("QuickSlotPanel/Slot01BindingLabel"),
+			get_node_or_null("QuickSlotPanel/Slot02BindingLabel")
+		]
+	if quick_slot_binding_buttons.is_empty() or quick_slot_binding_buttons[0] == null:
+		quick_slot_binding_buttons = [
+			get_node_or_null("QuickSlotPanel/Slot01BindingButton"),
+			get_node_or_null("QuickSlotPanel/Slot02BindingButton")
+		]
+	if evacuation_panel == null:
+		evacuation_panel = get_node_or_null("EvacuationPanel")
+	if evacuation_title_label == null:
+		evacuation_title_label = get_node_or_null("EvacuationPanel/EvacuationTitleLabel")
+	if evacuation_detail_label == null:
+		evacuation_detail_label = get_node_or_null("EvacuationPanel/EvacuationDetailLabel")
+	if evacuation_close_button == null:
+		evacuation_close_button = get_node_or_null("EvacuationPanel/EvacuationCloseButton")
+	if supply_feedback_panel == null:
+		supply_feedback_panel = get_node_or_null("SupplyFeedbackPanel")
+	if supply_feedback_title_label == null:
+		supply_feedback_title_label = get_node_or_null("SupplyFeedbackPanel/SupplyFeedbackTitleLabel")
+	if supply_feedback_detail_label == null:
+		supply_feedback_detail_label = get_node_or_null("SupplyFeedbackPanel/SupplyFeedbackDetailLabel")
+	if new_game_button == null:
+		new_game_button = get_node_or_null("SavePanel/NewGameButton")
+	if save_slot_labels.is_empty() or save_slot_labels[0] == null:
+		save_slot_labels = [
+			get_node_or_null("SavePanel/Slot01Label"),
+			get_node_or_null("SavePanel/Slot02Label"),
+			get_node_or_null("SavePanel/Slot03Label")
+		]
+	if save_slot_buttons.is_empty() or save_slot_buttons[0] == null:
+		save_slot_buttons = [
+			get_node_or_null("SavePanel/Slot01SaveButton"),
+			get_node_or_null("SavePanel/Slot02SaveButton"),
+			get_node_or_null("SavePanel/Slot03SaveButton")
+		]
+	if load_slot_buttons.is_empty() or load_slot_buttons[0] == null:
+		load_slot_buttons = [
+			get_node_or_null("SavePanel/Slot01LoadButton"),
+			get_node_or_null("SavePanel/Slot02LoadButton"),
+			get_node_or_null("SavePanel/Slot03LoadButton")
+		]
+	if delete_slot_buttons.is_empty() or delete_slot_buttons[0] == null:
+		delete_slot_buttons = [
+			get_node_or_null("SavePanel/Slot01DeleteButton"),
+			get_node_or_null("SavePanel/Slot02DeleteButton"),
+			get_node_or_null("SavePanel/Slot03DeleteButton")
+		]

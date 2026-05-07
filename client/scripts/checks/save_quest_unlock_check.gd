@@ -269,10 +269,11 @@ func _mark_slice_complete(save_data: Dictionary) -> void:
 		"region.outpost_platform",
 		"region.crystal_vein_field",
 		"region.pollution_edge",
-		"region.locked_ruin_gate"
+		"region.locked_ruin_gate",
+		"region.ruin_outer_ring"
 	]
-	save_data["world"]["current_region_id"] = "region.locked_ruin_gate"
-	save_data["character"]["current_region_id"] = "region.locked_ruin_gate"
+	save_data["world"]["current_region_id"] = "region.ruin_outer_ring"
+	save_data["character"]["current_region_id"] = "region.ruin_outer_ring"
 	save_data["world"]["quest_state"]["active_quest_ids"] = []
 	save_data["world"]["quest_state"]["completed_quest_ids"] = [
 		"quest.restore_outpost",
@@ -285,7 +286,11 @@ func _mark_slice_complete(save_data: Dictionary) -> void:
 		"quest.expand_treatment_point",
 		"quest.enter_pollution_edge",
 		"quest.defeat_elite_node",
-		"quest.unlock_ruin_signal"
+		"quest.unlock_ruin_signal",
+		"quest.scout_ruin_outer_ring",
+		"quest.assemble_phase_anchor",
+		"quest.stabilize_outer_ring_barrier",
+		"quest.secure_outer_ring_signal"
 	]
 	save_data["world"]["quest_state"]["objective_progress"] = {
 		"quest.restore_outpost|interact|building.outpost_core": 1,
@@ -306,7 +311,12 @@ func _mark_slice_complete(save_data: Dictionary) -> void:
 		"quest.enter_pollution_edge|craft_item|item.resistance_vial_t1": 1,
 		"quest.enter_pollution_edge|defeat_enemy|enemy.polluted_skitter": 1,
 		"quest.defeat_elite_node|defeat_enemy|enemy.elite_residue_node": 1,
-		"quest.unlock_ruin_signal|inspect|map_object.ruin_gate": 1
+		"quest.unlock_ruin_signal|inspect|map_object.ruin_gate": 1,
+		"quest.scout_ruin_outer_ring|visit_region|region.ruin_outer_ring": 1,
+		"quest.scout_ruin_outer_ring|gather_item|item.relay_shard": 2,
+		"quest.assemble_phase_anchor|craft_item|item.phase_anchor": 1,
+		"quest.stabilize_outer_ring_barrier|inspect|map_object.outer_ring_barrier": 1,
+		"quest.secure_outer_ring_signal|inspect|map_object.outer_ring_console": 1
 	}
 	save_data["world"]["quest_state"]["unlocked_effects"] = [
 		"region.outpost_platform",
@@ -321,5 +331,7 @@ func _mark_slice_complete(save_data: Dictionary) -> void:
 		"region.pollution_edge",
 		"recipe.cleanse_residue",
 		"region.locked_ruin_gate",
+		"region.ruin_outer_ring",
+		"recipe.phase_anchor",
 		"slice_01_complete"
 	]

@@ -79,9 +79,9 @@ func _get_region_marker_data() -> Array[Dictionary]:
 			"direction": "东南"
 		},
 		{
-			"region_id": "region.locked_ruin_gate",
-			"label": "遗迹",
-			"direction": "东端"
+			"region_id": "region.ruin_outer_ring",
+			"label": "外圈",
+			"direction": "更东"
 		}
 	]
 

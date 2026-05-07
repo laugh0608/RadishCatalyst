@@ -226,6 +226,12 @@ func _on_interaction_available(interactable: PrototypeInteractable, should_auto_
 	if interactable.definition_id == "map_object.ruin_gate":
 		hud.show_prompt(interaction_prompt_formatter.format_ruin_gate_prompt(world_state))
 		return
+	if interactable.definition_id == "map_object.outer_ring_barrier":
+		hud.show_prompt(interaction_prompt_formatter.format_outer_ring_barrier_prompt(world_state, character_state))
+		return
+	if interactable.definition_id == "map_object.outer_ring_console":
+		hud.show_prompt(interaction_prompt_formatter.format_outer_ring_console_prompt(world_state))
+		return
 	if interactable.interaction_type == "process_recipe":
 		var auto_selected_recipe := _maybe_select_recommended_recipe(interactable, should_auto_select_recipe)
 		hud.show_prompt(interaction_prompt_formatter.format_processing_prompt(interactable, character_state, world_state))
@@ -264,6 +270,16 @@ func _on_region_gate_blocked(message: String) -> void:
 		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(
 			message,
 			interaction_prompt_formatter.format_pollution_gate_hint(world_state, character_state)
+		))
+	elif message.find("抖动雾幕") >= 0:
+		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(
+			message,
+			"需要：回基地用基础反应器组装稳相信标。"
+		))
+	elif message.find("遗迹外圈") >= 0:
+		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(
+			message,
+			"需要：先检查封锁遗迹入口，确认外圈通路。"
 		))
 	else:
 		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(message, "需要：先检查前哨核心。"))
@@ -343,6 +359,15 @@ func _reconcile_active_quest_state() -> void:
 func _refresh_current_context_prompt() -> void:
 	var interactable := vertical_slice_map.current_interactable
 	if interactable == null:
+		return
+	if interactable.definition_id == "map_object.ruin_gate":
+		hud.show_prompt(interaction_prompt_formatter.format_ruin_gate_prompt(world_state))
+		return
+	if interactable.definition_id == "map_object.outer_ring_barrier":
+		hud.show_prompt(interaction_prompt_formatter.format_outer_ring_barrier_prompt(world_state, character_state))
+		return
+	if interactable.definition_id == "map_object.outer_ring_console":
+		hud.show_prompt(interaction_prompt_formatter.format_outer_ring_console_prompt(world_state))
 		return
 	if interactable.interaction_type == "process_recipe":
 		hud.show_prompt(interaction_prompt_formatter.format_processing_prompt(interactable, character_state, world_state))

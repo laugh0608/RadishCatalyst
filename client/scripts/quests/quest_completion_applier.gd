@@ -26,7 +26,7 @@ func apply_completion(world_state: WorldState, character_state: CharacterState, 
 	var quest_name := _get_display_name(quest_id)
 	var title := "任务完成：%s" % quest_name
 	var panel_title := "任务完成"
-	if quest_id == "quest.unlock_ruin_signal":
+	if quest_id == "quest.secure_outer_ring_signal":
 		panel_title = "切片完成"
 	var completed_text := "完成：%s" % quest_name
 	var reward_text := "奖励：无直接物资"
@@ -105,7 +105,11 @@ func _format_completion_note(quest_id: String) -> String:
 		"quest.defeat_elite_node":
 			return "污染源点已压制，封锁遗迹入口信号可确认"
 		"quest.unlock_ruin_signal":
-			return "切片结尾：更深区域信号已确认，后续内容待开放"
+			return "遗迹外圈通路已恢复，可进入外圈回收继电残片"
+		"quest.stabilize_outer_ring_barrier":
+			return "稳相信标已部署，外圈深段通路已稳定"
+		"quest.secure_outer_ring_signal":
+			return "遗迹外圈第一版内容完成，更深遗迹结构已定位"
 		_:
 			return ""
 

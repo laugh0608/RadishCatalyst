@@ -17,7 +17,8 @@
         "quest.calibrate_reactor",
         "quest.analyze_anomaly_sample",
         "quest.make_filter_module",
-        "quest.prepare_treatment_supplies"
+        "quest.prepare_treatment_supplies",
+        "quest.assemble_phase_anchor"
       ],
       "public_level": "public"
     },
@@ -69,6 +70,20 @@
       "weather_pool": ["weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
       "quest_refs": ["quest.unlock_ruin_signal"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "region.ruin_outer_ring",
+      "display_name_key": "region.ruin_outer_ring.name",
+      "description_key": "region.ruin_outer_ring.desc",
+      "planet_or_world": "world.slice_01",
+      "biome_type": "ruin_outer_ring",
+      "danger_level": 3,
+      "resources": ["item.relay_shard"],
+      "pollution_types": ["pollution.yellow_residue"],
+      "weather_pool": ["weather.clear", "weather.acid_mist"],
+      "recommended_equipment": ["equipment.filter_module_t1"],
+      "quest_refs": ["quest.scout_ruin_outer_ring", "quest.stabilize_outer_ring_barrier", "quest.secure_outer_ring_signal"],
       "public_level": "spoiler"
     }
   ]

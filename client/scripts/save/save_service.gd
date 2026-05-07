@@ -356,7 +356,7 @@ func _format_slot_details(save_data: Dictionary) -> String:
 			if active_quest_ids is Array and not active_quest_ids.is_empty():
 				parts.append("目标：%s" % _get_display_name(String(active_quest_ids[0])))
 			elif _get_string_array(quest_state.get("unlocked_effects", [])).has("slice_01_complete"):
-				parts.append("目标：第一切片已完成")
+				parts.append("目标：遗迹外圈第一版已完成")
 
 	return "；".join(parts)
 

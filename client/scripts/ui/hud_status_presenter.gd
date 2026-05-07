@@ -7,9 +7,12 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 	"item.reactor_calibrator",
 	"item.basic_parts",
 	"item.polluted_residue",
+	"item.relay_shard",
+	"item.phase_anchor",
 	"item.filter_media",
 	"item.foundation_material",
-	"fluid.basic_solvent"
+	"fluid.basic_solvent",
+	"fluid.polluted_slurry"
 ]
 
 var objective_source_resolver: QuestObjectiveSourceResolver
@@ -92,7 +95,7 @@ func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, que
 	if not quest_id.is_empty():
 		return _get_display_name(data_registry, quest_id)
 	if _is_slice_complete(world_state):
-		return "第一切片已完成"
+		return "遗迹外圈第一版已完成"
 	return "无"
 
 
@@ -142,7 +145,7 @@ func _format_quick_slots(data_registry: DataRegistry, character_state: Character
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
 		if _is_slice_complete(world_state):
-			return "更深区域信号已确认"
+			return "外圈中继已确认，更深遗迹结构已定位"
 		return "无"
 
 	var quest := data_registry.get_definition(quest_id)

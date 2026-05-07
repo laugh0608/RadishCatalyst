@@ -159,6 +159,8 @@ func get_recommended_recipe_id(
 			return _select_if_available(interactable, "recipe.foundation_t1")
 		"quest.enter_pollution_edge":
 			return _select_if_available(interactable, "recipe.cleanse_residue")
+		"quest.assemble_phase_anchor":
+			return _select_if_available(interactable, "recipe.phase_anchor")
 		_:
 			return ""
 
@@ -216,6 +218,8 @@ func _get_completion_next_step(recipe_id: String) -> String:
 			return "把抗污染药剂留在快捷栏，继续采集沉积物并清理受扰敌人。"
 		"recipe.repair_gel":
 			return "把修复凝胶留在快捷栏，生命偏低时按 1 使用。"
+		"recipe.phase_anchor":
+			return "带着稳相信标返回遗迹外圈，在抖动雾幕前部署后再继续深入。"
 		_:
 			return "查看当前任务目标，选择下一次加工或外出行动。"
 

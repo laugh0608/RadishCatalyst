@@ -25,7 +25,7 @@ func format_runtime_hint(world_state: WorldState, character_state: CharacterStat
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
 		if _is_slice_complete(world_state):
-			return "第一切片原型已收束；返回基地整理补给，后续区域待开放。"
+			return "遗迹外圈第一版已完成；返回基地整理补给，等待更深区域。"
 		return "按当前目标推进。"
 
 	var target_region_id := _get_target_region_id(world_state, quest_id)
@@ -65,7 +65,15 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.defeat_elite_node":
 			return "污染残核会持续压低防护，带抗污染药剂后继续向东推进。"
 		"quest.unlock_ruin_signal":
-			return "前往污染边界东侧检查封锁遗迹入口；此处仅确认后续信号。"
+			return "前往污染边界东侧检查封锁遗迹入口，打开遗迹外圈通路。"
+		"quest.scout_ruin_outer_ring":
+			return "穿过封锁入口进入遗迹外圈，回收两处继电残片。"
+		"quest.assemble_phase_anchor":
+			return "回基地使用基础反应器，组装稳相信标。"
+		"quest.stabilize_outer_ring_barrier":
+			return "带着稳相信标返回遗迹外圈，在抖动雾幕前部署后再继续深入。"
+		"quest.secure_outer_ring_signal":
+			return "穿过已稳定的抖动雾幕，向东检查外圈中继台。"
 		_:
 			return "按当前目标推进。"
 
@@ -73,7 +81,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 func format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
 		if _is_slice_complete(world_state):
-			return "更深区域信号已确认，整理补给后等待后续内容。"
+			return "遗迹外圈的第二闭环已跑通，整理补给后等待更深内容。"
 		return "查看当前目标和附近交互提示，按顺序推进。"
 
 	var target_region_id := _get_target_region_id(world_state, quest_id)
@@ -117,7 +125,15 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.defeat_elite_node":
 			return "污染残核是本轮危险区域挑战；抗污染药剂用于维持防护，修复凝胶用于保命。"
 		"quest.unlock_ruin_signal":
-			return "检查封锁遗迹入口即可结束本切片，不会进入新区域。"
+			return "先确认封锁入口信号，真正把主线推进到遗迹外圈。"
+		"quest.scout_ruin_outer_ring":
+			return "先把外圈继电残片带回基地；它们是下一次深入所需开路物的核心输入。"
+		"quest.assemble_phase_anchor":
+			return "稳相信标会直接改变再次深入的结果；污染浆液来自过滤器的上一次处理副产。"
+		"quest.stabilize_outer_ring_barrier":
+			return "部署稳相信标后，抖动雾幕才会让出外圈深段通路。"
+		"quest.secure_outer_ring_signal":
+			return "外圈中继台会给出更深遗迹的稳定回波，作为这条第二闭环的收束点。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 

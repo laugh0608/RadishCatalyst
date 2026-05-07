@@ -126,8 +126,32 @@ func _run_checks() -> void:
 	_complete_active_quest("quest.unlock_ruin_signal", [
 		{"type": "inspect", "target_id": "map_object.ruin_gate", "amount": 1}
 	])
-	_expect_equal(world_state.quest_state.active_quest_ids, [], "after ruin signal has no active quest")
+	_expect_active_quest("quest.scout_ruin_outer_ring", "after ruin signal opens outer ring")
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.unlock_ruin_signal", "ruin signal completed")
+	_expect_array_has(world_state.unlocked_region_ids, "region.ruin_outer_ring", "ruin signal unlocks outer ring region")
+
+	_complete_active_quest("quest.scout_ruin_outer_ring", [
+		{"type": "visit_region", "target_id": "region.ruin_outer_ring", "amount": 1},
+		{"type": "gather_item", "target_id": "item.relay_shard", "amount": 2}
+	])
+	_expect_active_quest("quest.assemble_phase_anchor", "after ruin outer ring scouting")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_anchor", "outer ring scouting unlocks phase anchor recipe")
+
+	_complete_active_quest("quest.assemble_phase_anchor", [
+		{"type": "craft_item", "target_id": "item.phase_anchor", "amount": 1}
+	])
+	_expect_active_quest("quest.stabilize_outer_ring_barrier", "after phase anchor assembly")
+
+	_complete_active_quest("quest.stabilize_outer_ring_barrier", [
+		{"type": "inspect", "target_id": "map_object.outer_ring_barrier", "amount": 1}
+	])
+	_expect_active_quest("quest.secure_outer_ring_signal", "after stabilizing barrier")
+
+	_complete_active_quest("quest.secure_outer_ring_signal", [
+		{"type": "inspect", "target_id": "map_object.outer_ring_console", "amount": 1}
+	])
+	_expect_equal(world_state.quest_state.active_quest_ids, [], "after outer ring secure has no active quest")
+	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.secure_outer_ring_signal", "outer ring secure completed")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "slice completion unlock")
 
 	_check_processing_runtime()
@@ -192,9 +216,12 @@ func _check_onboarding_hints() -> void:
 	hint_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1)
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.enter_pollution_edge", "过滤器处理沉积物", "low protection onboarding hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.defeat_elite_node", "维持防护", "elite node supply hint")
-
+	hint_world.unlock_region("region.ruin_outer_ring")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.scout_ruin_outer_ring", "继电残片", "outer ring scouting hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_phase_anchor", "污染浆液", "phase anchor assembly hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.stabilize_outer_ring_barrier", "稳相信标", "outer ring barrier hint")
 	hint_world.quest_state.unlocked_effects.append("slice_01_complete")
-	_expect_hint_contains(presenter, hint_world, hint_character, "", "更深区域信号", "slice complete onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "", "第二闭环", "slice complete onboarding hint")
 	map.free()
 
 
@@ -350,16 +377,11 @@ func _check_region_markers() -> void:
 	)
 
 	marker_world.unlock_region("region.locked_ruin_gate")
-	_expect_text_contains(
-		presenter.format_region_markers(marker_world, "quest.unlock_ruin_signal"),
-		"污染：东南，目标",
-		"ruin gate objective follows scene placement in pollution edge"
-	)
-	_expect_array_has(
-		presenter.format_map_marker_labels(marker_world, "quest.unlock_ruin_signal"),
-		"污染\n目标",
-		"ruin gate minimap objective follows pollution edge marker"
-	)
+	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.unlock_ruin_signal"), "污染：东南，目标", "ruin gate objective follows scene placement in pollution edge")
+	_expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.unlock_ruin_signal"), "污染\n目标", "ruin gate minimap objective follows pollution edge marker")
+	marker_world.unlock_region("region.ruin_outer_ring")
+	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.scout_ruin_outer_ring"), "外圈：更东，目标", "outer ring scouting points to outer ring marker")
+	_expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.scout_ruin_outer_ring"), "外圈\n目标", "outer ring minimap objective marker")
 	map.free()
 
 
@@ -640,9 +662,9 @@ func _check_quest_completion_panel_text() -> void:
 	_expect_text_contains(
 		String(presenter.format_quest_completion_panel_texts({
 			"completed_text": "完成：解锁后续入口",
-			"note_text": "切片结尾：更深区域信号已确认，后续内容待开放"
+			"note_text": "遗迹外圈通路已恢复，可进入外圈回收继电残片"
 		}).get("detail", "")),
-		"提示：切片结尾",
+		"提示：遗迹外圈通路已恢复",
 		"completion note prefix"
 	)
 
@@ -866,7 +888,7 @@ func _check_region_prompt_formatter() -> void:
 	ruin_world.quest_state.completed_quest_ids.append("quest.unlock_ruin_signal")
 	_expect_text_contains(
 		formatter.format_ruin_gate_prompt(ruin_world),
-		"后续内容待开放",
+		"遗迹外圈已开放",
 		"ruin gate completed prompt"
 	)
 

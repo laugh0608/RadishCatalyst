@@ -10,7 +10,8 @@ var current_weather_id: String = "weather.clear"
 var pollution_levels: Dictionary = {
 	"region.outpost_platform": 0.0,
 	"region.crystal_vein_field": 0.0,
-	"region.pollution_edge": 1.0
+	"region.pollution_edge": 1.0,
+	"region.ruin_outer_ring": 1.15
 }
 var map_objects: Dictionary = {}
 var enemies: Dictionary = {}

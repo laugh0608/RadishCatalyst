@@ -35,6 +35,16 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		return updates
 	if interaction_type == "inspect" and definition_id == "map_object.ruin_gate":
 		return [_set_update("quest.unlock_ruin_signal", "inspect", "map_object.ruin_gate", 1)]
+	if interaction_type == "gather" and definition_id == "map_object.relay_shard_cache":
+		var updates: Array[Dictionary] = [
+			_set_update("quest.scout_ruin_outer_ring", "visit_region", "region.ruin_outer_ring", 1)
+		]
+		updates.append_array(_get_drop_objective_updates("quest.scout_ruin_outer_ring", "gather_item", "item.relay_shard", definition_id))
+		return updates
+	if interaction_type == "inspect" and definition_id == "map_object.outer_ring_barrier":
+		return [_set_update("quest.stabilize_outer_ring_barrier", "inspect", "map_object.outer_ring_barrier", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.outer_ring_console":
+		return [_set_update("quest.secure_outer_ring_signal", "inspect", "map_object.outer_ring_console", 1)]
 	if interaction_type == "process_recipe":
 		return get_recipe_objective_updates(recipe_id)
 	if interaction_type == "build":
@@ -47,6 +57,8 @@ func get_region_objective_updates(region_id: String, _quest_state: QuestState) -
 		return [_set_update("quest.scout_crystal_field", "visit_region", region_id, 1)]
 	if region_id == "region.pollution_edge":
 		return [_set_update("quest.enter_pollution_edge", "visit_region", region_id, 1)]
+	if region_id == "region.ruin_outer_ring":
+		return [_set_update("quest.scout_ruin_outer_ring", "visit_region", region_id, 1)]
 	return []
 
 
@@ -62,6 +74,8 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 			return [_set_update("quest.make_filter_module", "craft_item", "equipment.filter_module_t1", 1)]
 		"recipe.cleanse_residue":
 			return [_set_update("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1)]
+		"recipe.phase_anchor":
+			return [_set_update("quest.assemble_phase_anchor", "craft_item", "item.phase_anchor", 1)]
 		_:
 			return []
 

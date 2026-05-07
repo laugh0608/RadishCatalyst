@@ -156,6 +156,32 @@
       "source_refs": ["recipe.repair_gel"],
       "used_by_refs": ["quest.prepare_treatment_supplies", "quest.defeat_elite_node"],
       "public_level": "public"
+    },
+    {
+      "id": "item.relay_shard",
+      "display_name_key": "item.relay_shard.name",
+      "description_key": "item.relay_shard.desc",
+      "category": "resource",
+      "tags": ["ruin", "relay", "slice_02"],
+      "stack_size": 20,
+      "mass": 0.2,
+      "rarity": "uncommon",
+      "source_refs": ["map_object.relay_shard_cache"],
+      "used_by_refs": ["quest.scout_ruin_outer_ring", "recipe.phase_anchor"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.phase_anchor",
+      "display_name_key": "item.phase_anchor.name",
+      "description_key": "item.phase_anchor.desc",
+      "category": "component",
+      "tags": ["ruin", "phase_anchor", "slice_02"],
+      "stack_size": 5,
+      "mass": 0.3,
+      "rarity": "uncommon",
+      "source_refs": ["recipe.phase_anchor"],
+      "used_by_refs": ["quest.assemble_phase_anchor", "quest.stabilize_outer_ring_barrier"],
+      "public_level": "spoiler"
     }
   ]
 }

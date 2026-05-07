@@ -12,13 +12,17 @@ const PLAYER_INTERACTION_RANGE := 96.0
 const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
 const OUTPOST_RESPAWN_POSITION := Vector2(-250, -48)
 const PLAY_BOUNDS_MIN := Vector2(-360, -200)
-const PLAY_BOUNDS_MAX := Vector2(360, 200)
+const PLAY_BOUNDS_MAX := Vector2(620, 200)
 const CRYSTAL_REGION_X := -70.0
 const CRYSTAL_GATE_RETURN_X := -85.0
 const POLLUTION_REGION_X := 200.0
 const POLLUTION_GATE_X := 220.0
 const POLLUTION_DEEP_Y := -40.0
 const POLLUTION_GATE_RETURN_X := 195.0
+const RUIN_OUTER_RING_X := 390.0
+const RUIN_GATE_RETURN_X := 355.0
+const OUTER_RING_BARRIER_X := 540.0
+const OUTER_RING_BARRIER_RETURN_X := 514.0
 
 @onready var player: PlayerController = $Player
 @onready var interactables_root: Node2D = $Interactables
@@ -52,6 +56,10 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 	var interacted := current_interactable
 	if interacted.definition_id == "map_object.ruin_gate" and interacted.interaction_type == "inspect":
 		return _inspect_ruin_gate(world_state)
+	if interacted.definition_id == "map_object.outer_ring_barrier" and interacted.interaction_type == "inspect":
+		return _inspect_outer_ring_barrier(character_state, world_state)
+	if interacted.definition_id == "map_object.outer_ring_console" and interacted.interaction_type == "inspect":
+		return _inspect_outer_ring_console(world_state)
 
 	var action_id := interacted.get_current_recipe_id()
 	if interacted.interaction_type == "build":
@@ -108,6 +116,22 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 		elif interactable.definition_id == "map_object.ruin_gate":
 			if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):
 				interactable.set_confirmed_ruin_signal_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.outer_ring_barrier":
+			if world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier"):
+				interactable.set_stabilized_barrier_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.outer_ring_console":
+			if world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
+				interactable.set_secured_console_visual()
 				if current_interactable == interactable:
 					current_interactable = null
 					interaction_cleared.emit(interactable)
@@ -251,7 +275,7 @@ func sync_enemy_states(world_state: WorldState) -> void:
 		var enemy_state := world_state.ensure_enemy(
 			enemy.instance_id,
 			enemy.definition_id,
-			_get_enemy_region_id(definition),
+			_get_region_id_for_position(enemy.position),
 			max_health
 		)
 		enemy.apply_saved_state(enemy_state)
@@ -280,27 +304,18 @@ func get_player_position() -> Vector2:
 
 func update_region_presence(world_state: WorldState, character_state: CharacterState) -> void:
 	player.clamp_to_play_bounds(PLAY_BOUNDS_MIN, PLAY_BOUNDS_MAX)
-	apply_region_gate_bounds(world_state)
+	var gate_message := apply_region_gate_bounds(world_state)
+	if not gate_message.is_empty():
+		var clamped_region_id := _get_region_id_for_position(player.position)
+		last_reported_region_id = clamped_region_id
+		world_state.current_region_id = clamped_region_id
+		character_state.current_region_id = clamped_region_id
+		if gate_message != last_gate_message:
+			last_gate_message = gate_message
+			region_gate_blocked.emit(gate_message)
+		return
 
 	var region_id := _get_region_id_for_position(player.position)
-	if region_id == "region.crystal_vein_field" and not world_state.unlocked_region_ids.has(region_id):
-		player.position.x = CRYSTAL_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		var message := "晶体矿脉区尚未标记：先检查前哨核心，恢复基础导航。"
-		if message != last_gate_message:
-			last_gate_message = message
-			region_gate_blocked.emit(message)
-		return
-
-	if region_id == "region.pollution_edge" and not world_state.unlocked_region_ids.has(region_id):
-		player.position.x = POLLUTION_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		var message := "污染边界尚未稳定：先扩建处理点并启用基础过滤模块。"
-		if message != last_gate_message:
-			last_gate_message = message
-			region_gate_blocked.emit(message)
-		return
-
 	last_gate_message = ""
 	if region_id == last_reported_region_id:
 		return
@@ -311,11 +326,11 @@ func update_region_presence(world_state: WorldState, character_state: CharacterS
 	region_changed.emit(region_id)
 
 
-func apply_region_gate_bounds(world_state: WorldState) -> void:
+func apply_region_gate_bounds(world_state: WorldState) -> String:
 	if not world_state.unlocked_region_ids.has("region.crystal_vein_field") and player.position.x > CRYSTAL_GATE_RETURN_X:
 		player.position.x = CRYSTAL_GATE_RETURN_X
 		player.stop_positive_x_until_release()
-		return
+		return "晶体矿脉区尚未标记：先检查前哨核心，恢复基础导航。"
 
 	if (
 		not world_state.unlocked_region_ids.has("region.pollution_edge")
@@ -324,6 +339,19 @@ func apply_region_gate_bounds(world_state: WorldState) -> void:
 	):
 		player.position.x = POLLUTION_GATE_RETURN_X
 		player.stop_positive_x_until_release()
+		return "污染边界尚未稳定：先扩建处理点并启用基础过滤模块。"
+
+	if not world_state.unlocked_region_ids.has("region.ruin_outer_ring") and player.position.x > RUIN_GATE_RETURN_X:
+		player.position.x = RUIN_GATE_RETURN_X
+		player.stop_positive_x_until_release()
+		return "遗迹外圈仍被封锁：先检查封锁遗迹入口，确认外圈通路。"
+
+	if _is_outer_ring_barrier_locked(world_state) and player.position.x > OUTER_RING_BARRIER_X:
+		player.position.x = OUTER_RING_BARRIER_RETURN_X
+		player.stop_positive_x_until_release()
+		return "遗迹外圈深段仍被抖动雾幕阻断：先回基地组装稳相信标，再返回部署。"
+
+	return ""
 
 
 func _get_display_name(definition_id: String) -> String:
@@ -331,13 +359,6 @@ func _get_display_name(definition_id: String) -> String:
 	if definition.is_empty():
 		return definition_id
 	return data_registry.get_text(String(definition.get("display_name_key", definition_id)))
-
-
-func _get_enemy_region_id(definition: Dictionary) -> String:
-	var spawn_regions: Array = definition.get("spawn_regions", [])
-	if spawn_regions.is_empty():
-		return ""
-	return String(spawn_regions[0])
 
 
 func _get_recipes_for_building(building_id: String) -> Array[String]:
@@ -493,12 +514,60 @@ func _inspect_ruin_gate(world_state: WorldState) -> Dictionary:
 	if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):
 		return {
 			"success": true,
-			"message": "切片结尾：更深区域信号已确认，后续内容待开放。"
+			"message": "遗迹外圈通路已稳定：继续向东进入外圈，回收继电残片。"
 		}
 
 	return {
 		"success": true,
-		"message": "封锁遗迹入口信号已确认：污染深处仍有稳定异常回波。"
+		"message": "封锁遗迹入口信号已确认：遗迹外圈通路已恢复。"
+	}
+
+
+func _inspect_outer_ring_barrier(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_anchor"):
+		return _failure(
+			"抖动雾幕仍在扩散，临时无法通过。",
+			"通路未稳定",
+			"先回基地组装稳相信标，再返回遗迹外圈部署。"
+		)
+
+	if world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier"):
+		return {
+			"success": true,
+			"message": "抖动雾幕已稳定，外圈深段通路保持开启。"
+		}
+
+	if not character_state.inventory.has_ref("item.phase_anchor", 1):
+		return _failure(
+			"缺少稳相信标，抖动雾幕无法稳定。",
+			"缺少开路物",
+			"回基地用基础反应器，把继电残片和污染浆液组装成稳相信标。"
+		)
+
+	character_state.inventory.consume_ref("item.phase_anchor", 1)
+	return {
+		"success": true,
+		"message": "已部署稳相信标：抖动雾幕回落，外圈深段通路开启。"
+	}
+
+
+func _inspect_outer_ring_console(world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier"):
+		return _failure(
+			"外圈中继台仍被抖动雾幕隔开。",
+			"目标未就绪",
+			"先在雾幕前部署稳相信标，再进入外圈深段。"
+		)
+
+	if world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
+		return {
+			"success": true,
+			"message": "外圈中继台数据已读取：更深遗迹结构坐标已保留。"
+		}
+
+	return {
+		"success": true,
+		"message": "外圈中继台已接管：更深遗迹结构的稳定回波已定位。"
 	}
 
 
@@ -571,8 +640,14 @@ func _get_enemy_instance_id(enemy: PrototypeEnemy) -> String:
 
 
 func _get_region_id_for_position(map_position: Vector2) -> String:
+	if map_position.x >= RUIN_OUTER_RING_X:
+		return "region.ruin_outer_ring"
 	if map_position.x >= POLLUTION_REGION_X and map_position.y >= POLLUTION_DEEP_Y:
 		return "region.pollution_edge"
 	if map_position.x >= CRYSTAL_REGION_X:
 		return "region.crystal_vein_field"
 	return "region.outpost_platform"
+
+
+func _is_outer_ring_barrier_locked(world_state: WorldState) -> bool:
+	return not world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier")
