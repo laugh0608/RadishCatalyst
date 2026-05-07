@@ -37,7 +37,9 @@
         "quest.calibrate_reactor",
         "quest.bring_back_sample",
         "quest.analyze_anomaly_sample",
-        "quest.prepare_treatment_supplies"
+        "quest.prepare_treatment_supplies",
+        "quest.expand_treatment_point",
+        "quest.enter_pollution_edge"
       ],
       "public_level": "public"
     },
@@ -52,7 +54,7 @@
       "pollution_types": ["pollution.yellow_residue"],
       "weather_pool": ["weather.clear", "weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
-      "quest_refs": ["quest.expand_treatment_point", "quest.enter_pollution_edge", "quest.defeat_elite_node"],
+      "quest_refs": ["quest.expand_treatment_point", "quest.enter_pollution_edge", "quest.defeat_elite_node", "quest.unlock_ruin_signal"],
       "public_level": "public"
     },
     {

@@ -11,6 +11,7 @@ $sceneFiles = Get-ChildItem -LiteralPath $clientRoot -Recurse -File -Include *.t
 $projectPath = Join-Path $clientRoot "project.godot"
 $hudScenePath = Join-Path $clientRoot "scenes\ui\PrototypeHud.tscn"
 $verticalSliceMapScenePath = Join-Path $clientRoot "scenes\maps\VerticalSliceMap.tscn"
+$verticalSliceMapScriptPath = Join-Path $clientRoot "scripts\map\vertical_slice_map.gd"
 
 function Add-Error([string]$Message) {
     $errors.Add($Message)
@@ -131,6 +132,73 @@ function Get-NodeNumber($Properties, [string]$Key, [double]$DefaultValue) {
     }
 
     return [double]::Parse($Properties[$Key], [System.Globalization.CultureInfo]::InvariantCulture)
+}
+
+function Get-GDScriptConstantNumber([string]$Content, [string]$ConstantName, [double]$DefaultValue) {
+    $escapedName = [regex]::Escape($ConstantName)
+    $match = [regex]::Match($Content, "(?m)^const $escapedName := (?<value>-?\d+(\.\d+)?)$")
+    if (-not $match.Success) {
+        return $DefaultValue
+    }
+
+    return [double]::Parse($match.Groups["value"].Value, [System.Globalization.CultureInfo]::InvariantCulture)
+}
+
+function Get-NodeVector2($Properties, [string]$Key) {
+    if (-not $Properties.ContainsKey($Key)) {
+        return $null
+    }
+
+    $value = [string]$Properties[$Key]
+    $match = [regex]::Match($value, '^Vector2\((?<x>-?\d+(\.\d+)?),\s*(?<y>-?\d+(\.\d+)?)\)$')
+    if (-not $match.Success) {
+        return $null
+    }
+
+    return [pscustomobject]@{
+        X = [double]::Parse($match.Groups["x"].Value, [System.Globalization.CultureInfo]::InvariantCulture)
+        Y = [double]::Parse($match.Groups["y"].Value, [System.Globalization.CultureInfo]::InvariantCulture)
+    }
+}
+
+function Get-MapRegionId($Position, [double]$CrystalRegionX, [double]$PollutionRegionX, [double]$PollutionDeepY) {
+    if ($null -eq $Position) {
+        return ""
+    }
+
+    if ($Position.X -ge $PollutionRegionX -and $Position.Y -ge $PollutionDeepY) {
+        return "region.pollution_edge"
+    }
+    if ($Position.X -ge $CrystalRegionX) {
+        return "region.crystal_vein_field"
+    }
+    return "region.outpost_platform"
+}
+
+function Add-UniqueStringValue([hashtable]$Map, [string]$Key, [string]$Value) {
+    if ([string]::IsNullOrWhiteSpace($Key) -or [string]::IsNullOrWhiteSpace($Value)) {
+        return
+    }
+    if (-not $Map.ContainsKey($Key)) {
+        $Map[$Key] = [System.Collections.Generic.List[string]]::new()
+    }
+    if ($Map[$Key] -notcontains $Value) {
+        $Map[$Key].Add($Value)
+    }
+}
+
+function Add-QuestRegionRequirement([hashtable]$RequirementsByQuestRegion, [string]$QuestId, [string]$RegionId, [string]$Reason) {
+    if ([string]::IsNullOrWhiteSpace($QuestId) -or [string]::IsNullOrWhiteSpace($RegionId) -or [string]::IsNullOrWhiteSpace($Reason)) {
+        return
+    }
+
+    $key = "${QuestId}|${RegionId}"
+    if (-not $RequirementsByQuestRegion.ContainsKey($key)) {
+        $RequirementsByQuestRegion[$key] = [System.Collections.Generic.List[string]]::new()
+    }
+    if ($RequirementsByQuestRegion[$key] -notcontains $Reason) {
+        $RequirementsByQuestRegion[$key].Add($Reason)
+    }
 }
 
 function Get-PanelRect($Nodes, [string]$NodeName, [double]$ViewportWidth, [double]$ViewportHeight) {
@@ -294,6 +362,19 @@ foreach ($scriptFile in $scriptFiles) {
 if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
     $mapSceneContent = Get-Content -LiteralPath $verticalSliceMapScenePath -Raw
     $mapNodes = Get-SceneNodes $mapSceneContent
+    $crystalRegionX = -70.0
+    $pollutionRegionX = 200.0
+    $pollutionDeepY = -40.0
+    if (Test-Path -LiteralPath $verticalSliceMapScriptPath -PathType Leaf) {
+        $mapScriptContent = Get-Content -LiteralPath $verticalSliceMapScriptPath -Raw
+        $crystalRegionX = Get-GDScriptConstantNumber $mapScriptContent "CRYSTAL_REGION_X" $crystalRegionX
+        $pollutionRegionX = Get-GDScriptConstantNumber $mapScriptContent "POLLUTION_REGION_X" $pollutionRegionX
+        $pollutionDeepY = Get-GDScriptConstantNumber $mapScriptContent "POLLUTION_DEEP_Y" $pollutionDeepY
+    }
+    else {
+        Add-Error "client/scripts/map/vertical_slice_map.gd: missing map region source for scene region checks"
+    }
+
     $interactables = [System.Collections.Generic.List[object]]::new()
     $enemies = [System.Collections.Generic.List[object]]::new()
     $interactablesByInstanceId = @{}
@@ -301,21 +382,25 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
     foreach ($node in $mapNodes) {
         if ($node.Parent -eq "Interactables" -and $node.Properties.ContainsKey("definition_id")) {
             $instanceId = Get-MapObjectInstanceId $node.Name
+            $position = Get-NodeVector2 $node.Properties "position"
             $interactable = [pscustomobject]@{
                 Name = $node.Name
                 InstanceId = $instanceId
                 DefinitionId = Get-NodeString $node.Properties "definition_id"
                 InteractionType = Get-NodeString $node.Properties "interaction_type"
                 PrerequisiteInstanceId = Get-NodeString $node.Properties "prerequisite_instance_id"
+                RegionId = Get-MapRegionId $position $crystalRegionX $pollutionRegionX $pollutionDeepY
             }
             $interactables.Add($interactable)
             $interactablesByInstanceId[$instanceId] = $interactable
         }
 
         if ($node.Parent -eq "Enemies" -and $node.Properties.ContainsKey("definition_id")) {
+            $position = Get-NodeVector2 $node.Properties "position"
             $enemies.Add([pscustomobject]@{
                 Name = $node.Name
                 DefinitionId = Get-NodeString $node.Properties "definition_id"
+                RegionId = Get-MapRegionId $position $crystalRegionX $pollutionRegionX $pollutionDeepY
             })
         }
     }
@@ -332,24 +417,59 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
     $questsPath = Join-Path $clientRoot "data\quests.json"
     $mapObjectsPath = Join-Path $clientRoot "data\map_objects.json"
     $recipesPath = Join-Path $clientRoot "data\recipes.json"
+    $regionsPath = Join-Path $clientRoot "data\regions.json"
+    $enemiesPath = Join-Path $clientRoot "data\enemies.json"
     $questsJson = Read-JsonFile $questsPath
     $mapObjectsJson = Read-JsonFile $mapObjectsPath
     $recipesJson = Read-JsonFile $recipesPath
+    $regionsJson = Read-JsonFile $regionsPath
+    $enemiesJson = Read-JsonFile $enemiesPath
 
-    if ($null -ne $questsJson -and $null -ne $mapObjectsJson -and $null -ne $recipesJson) {
+    if ($null -ne $questsJson -and $null -ne $mapObjectsJson -and $null -ne $recipesJson -and $null -ne $regionsJson -and $null -ne $enemiesJson) {
         $mapObjectsById = @{}
         foreach ($mapObject in $mapObjectsJson.entries) {
             $mapObjectsById[[string]$mapObject.id] = $mapObject
         }
 
+        $enemiesById = @{}
+        foreach ($enemy in $enemiesJson.entries) {
+            $enemiesById[[string]$enemy.id] = $enemy
+        }
+
+        $questRefsByRegion = @{}
+        foreach ($region in $regionsJson.entries) {
+            $questRefsByRegion[[string]$region.id] = @($region.quest_refs) | ForEach-Object { [string]$_ } | Where-Object {
+                -not [string]::IsNullOrWhiteSpace($_)
+            }
+        }
+
+        $processorRegionsByBuilding = @{}
+        foreach ($interactable in $interactables) {
+            if ($interactable.InteractionType -eq "process_recipe") {
+                Add-UniqueStringValue $processorRegionsByBuilding $interactable.DefinitionId $interactable.RegionId
+            }
+        }
+
         $recipesByCraftedRef = @{}
+        $gatherRegionsByItem = @{}
+        $craftRegionsByItem = @{}
         foreach ($recipe in $recipesJson.entries) {
+            $requiredBuildingId = [string]$recipe.required_building_id
+            $processorRegions = @()
+            if ($processorRegionsByBuilding.ContainsKey($requiredBuildingId)) {
+                $processorRegions = @($processorRegionsByBuilding[$requiredBuildingId])
+            }
+
             foreach ($output in @($recipe.outputs)) {
                 $craftedId = [string]$output.id
                 if (-not $recipesByCraftedRef.ContainsKey($craftedId)) {
                     $recipesByCraftedRef[$craftedId] = [System.Collections.Generic.List[object]]::new()
                 }
                 $recipesByCraftedRef[$craftedId].Add($recipe)
+                foreach ($regionId in $processorRegions) {
+                    Add-UniqueStringValue $craftRegionsByItem $craftedId $regionId
+                    Add-UniqueStringValue $gatherRegionsByItem $craftedId $regionId
+                }
             }
             foreach ($byproduct in @($recipe.byproducts)) {
                 $craftedId = [string]$byproduct.id
@@ -357,8 +477,36 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
                     $recipesByCraftedRef[$craftedId] = [System.Collections.Generic.List[object]]::new()
                 }
                 $recipesByCraftedRef[$craftedId].Add($recipe)
+                foreach ($regionId in $processorRegions) {
+                    Add-UniqueStringValue $craftRegionsByItem $craftedId $regionId
+                    Add-UniqueStringValue $gatherRegionsByItem $craftedId $regionId
+                }
             }
         }
+
+        foreach ($interactable in $interactables) {
+            if (-not $mapObjectsById.ContainsKey($interactable.DefinitionId)) {
+                continue
+            }
+            $mapObject = $mapObjectsById[$interactable.DefinitionId]
+            foreach ($drop in @($mapObject.drops)) {
+                Add-UniqueStringValue $gatherRegionsByItem ([string]$drop.id) $interactable.RegionId
+            }
+            foreach ($sampleResultId in @($mapObject.sample_result_refs)) {
+                Add-UniqueStringValue $gatherRegionsByItem ([string]$sampleResultId) $interactable.RegionId
+            }
+        }
+
+        foreach ($enemy in $enemies) {
+            if (-not $enemiesById.ContainsKey($enemy.DefinitionId)) {
+                continue
+            }
+            foreach ($drop in @($enemiesById[$enemy.DefinitionId].drops)) {
+                Add-UniqueStringValue $gatherRegionsByItem ([string]$drop.id) $enemy.RegionId
+            }
+        }
+
+        $questRegionRequirements = @{}
 
         foreach ($quest in $questsJson.entries) {
             $questId = [string]$quest.id
@@ -366,6 +514,7 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
                 $objectiveType = [string]$objective.type
                 $targetId = [string]$objective.target_id
                 $requiredAmount = [double]$objective.amount
+                $objectiveRegions = [System.Collections.Generic.List[string]]::new()
 
                 if ($objectiveType -eq "interact" -and -not (Test-SceneInteractable $interactables $targetId)) {
                     Add-Error "client/scenes/maps/VerticalSliceMap.tscn: quest '${questId}' interact target '${targetId}' has no scene interactable"
@@ -421,7 +570,91 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
                         Add-Error "client/scenes/maps/VerticalSliceMap.tscn: quest '${questId}' gather_item target '${targetId}' needs $requiredAmount from scene gather nodes, got ${sceneGatherAmount}"
                     }
                 }
+
+                switch ($objectiveType) {
+                    "visit_region" {
+                        if ($targetId -like "region.*") {
+                            $objectiveRegions.Add($targetId)
+                        }
+                    }
+                    "return_region" {
+                        if ($targetId -like "region.*") {
+                            $objectiveRegions.Add($targetId)
+                        }
+                    }
+                    "interact" {
+                        foreach ($interactable in $interactables) {
+                            if ($interactable.DefinitionId -eq $targetId) {
+                                $objectiveRegions.Add($interactable.RegionId)
+                            }
+                        }
+                    }
+                    "sample_object" {
+                        foreach ($interactable in $interactables) {
+                            if ($interactable.DefinitionId -eq $targetId -and $interactable.InteractionType -eq "sample") {
+                                $objectiveRegions.Add($interactable.RegionId)
+                            }
+                        }
+                    }
+                    "inspect" {
+                        foreach ($interactable in $interactables) {
+                            if ($interactable.DefinitionId -eq $targetId -and $interactable.InteractionType -eq "inspect") {
+                                $objectiveRegions.Add($interactable.RegionId)
+                            }
+                        }
+                    }
+                    "build" {
+                        foreach ($interactable in $interactables) {
+                            if ($interactable.DefinitionId -eq $targetId -and $interactable.InteractionType -eq "build") {
+                                $objectiveRegions.Add($interactable.RegionId)
+                            }
+                        }
+                    }
+                    "defeat_enemy" {
+                        foreach ($enemy in $enemies) {
+                            if ($enemy.DefinitionId -eq $targetId) {
+                                $objectiveRegions.Add($enemy.RegionId)
+                            }
+                        }
+                    }
+                    "craft_item" {
+                        if ($craftRegionsByItem.ContainsKey($targetId)) {
+                            foreach ($regionId in $craftRegionsByItem[$targetId]) {
+                                $objectiveRegions.Add($regionId)
+                            }
+                        }
+                    }
+                    "gather_item" {
+                        if ($gatherRegionsByItem.ContainsKey($targetId)) {
+                            foreach ($regionId in $gatherRegionsByItem[$targetId]) {
+                                $objectiveRegions.Add($regionId)
+                            }
+                        }
+                    }
+                }
+
+                $uniqueObjectiveRegions = @($objectiveRegions | Where-Object {
+                    -not [string]::IsNullOrWhiteSpace($_)
+                } | Sort-Object -Unique)
+                foreach ($regionId in $uniqueObjectiveRegions) {
+                    Add-QuestRegionRequirement $questRegionRequirements $questId $regionId "${objectiveType}:${targetId}"
+                }
             }
+        }
+
+        foreach ($requirement in $questRegionRequirements.GetEnumerator()) {
+            $parts = $requirement.Key -split '\|', 2
+            $questId = $parts[0]
+            $regionId = $parts[1]
+            if (-not $questRefsByRegion.ContainsKey($regionId)) {
+                Add-Error "client/data/regions.json: missing region '${regionId}' required by quest '${questId}' objective region check"
+                continue
+            }
+            if ($questRefsByRegion[$regionId] -contains $questId) {
+                continue
+            }
+            $reasons = @($requirement.Value) -join ", "
+            Add-Error "client/data/regions.json:${regionId}.quest_refs is missing quest '${questId}' required by scene-backed objective regions (${reasons})"
         }
     }
 }

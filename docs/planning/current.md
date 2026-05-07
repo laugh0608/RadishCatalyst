@@ -75,7 +75,7 @@ pwsh ./scripts/check-client-flow.ps1
 pwsh ./scripts/check-godot-client.ps1
 ```
 
-其中 `check-client-data.ps1` 已覆盖静态数据引用、本地化键、配方解锁来源一致性、任务激活重复声明、区域任务索引、主线任务图一致性和任务目标来源，避免 `unlock_conditions`、`next_quest_ids`、任务 `unlock_effects`、`quest_refs`、主线前后置和目标可获得性脱节；`check-client-scenes.ps1` 已覆盖第一切片任务目标与地图交互实例、建造点、加工设备和敌人实例的对应关系。
+其中 `check-client-data.ps1` 已覆盖静态数据引用、本地化键、配方解锁来源一致性、任务激活重复声明、区域任务索引、主线任务图一致性和任务目标来源，避免 `unlock_conditions`、`next_quest_ids`、任务 `unlock_effects`、`quest_refs`、主线前后置和目标可获得性脱节；`check-client-scenes.ps1` 已覆盖第一切片任务目标与地图交互实例、建造点、加工设备和敌人实例的对应关系，并会按场景真实区域落点校验任务目标与 `quest_refs` 的区域归属同步。
 
 提交前仍需执行仓库文本卫生和 diff 检查：
 
