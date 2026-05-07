@@ -12,8 +12,12 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 	"fluid.basic_solvent"
 ]
 
+var objective_source_resolver: QuestObjectiveSourceResolver
+var objective_source_registry: DataRegistry
+
 
 func format_status_text(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> String:
+	_ensure_objective_source_resolver(data_registry)
 	var active_quest_id := _get_active_quest_id(world_state)
 	return "\n".join(_format_status_lines(data_registry, world_state, character_state, active_quest_id))
 
@@ -206,14 +210,12 @@ func _format_objective_target_name(
 	return "%s（%s）" % [target_name, source_hint]
 
 
-func _get_objective_source_hint(quest_id: String, objective_type: String, target_id: String) -> String:
-	if (
-		quest_id == "quest.calibrate_reactor"
-		and objective_type == "gather_item"
-		and target_id == "item.salvage_scrap"
-	):
-		return "外勤残骸"
-	return ""
+func _get_objective_source_hint(_quest_id: String, objective_type: String, target_id: String) -> String:
+	if objective_source_resolver == null:
+		return ""
+	if objective_type != "gather_item":
+		return ""
+	return objective_source_resolver.resolve_source_hint(objective_type, target_id)
 
 
 func _format_amount(amount: float) -> String:
@@ -233,3 +235,14 @@ func _get_display_name(data_registry: DataRegistry, definition_id: String) -> St
 
 func _is_slice_complete(world_state: WorldState) -> bool:
 	return world_state.quest_state.unlocked_effects.has("slice_01_complete")
+
+
+func _ensure_objective_source_resolver(data_registry: DataRegistry) -> void:
+	if data_registry == null:
+		objective_source_resolver = null
+		objective_source_registry = null
+		return
+	if objective_source_resolver != null and objective_source_registry == data_registry:
+		return
+	objective_source_resolver = QuestObjectiveSourceResolver.new(data_registry)
+	objective_source_registry = data_registry
