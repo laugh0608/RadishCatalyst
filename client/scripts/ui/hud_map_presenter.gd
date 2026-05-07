@@ -6,6 +6,16 @@ const MAP_MARKER_TARGET_COLOR := Color(1.0, 0.78, 0.28, 1.0)
 const MAP_MARKER_UNLOCKED_COLOR := Color(0.55, 0.72, 0.66, 1.0)
 const MAP_MARKER_LOCKED_COLOR := Color(0.28, 0.32, 0.32, 1.0)
 
+var target_region_resolver: QuestTargetRegionResolver
+
+
+func configure(data_registry: DataRegistry, map: VerticalSliceMap) -> void:
+	if data_registry == null:
+		target_region_resolver = null
+		return
+	target_region_resolver = QuestTargetRegionResolver.new(data_registry)
+	target_region_resolver.configure_from_map(map)
+
 
 func get_marker_view_data(world_state: WorldState, quest_id: String) -> Array[Dictionary]:
 	var target_region_id := _get_quest_target_region_id(world_state, quest_id)
@@ -101,30 +111,6 @@ func _get_map_marker_color(region_id: String, world_state: WorldState, target_re
 
 
 func _get_quest_target_region_id(world_state: WorldState, quest_id: String) -> String:
-	match quest_id:
-		"quest.restore_outpost":
-			return "region.outpost_platform"
-		"quest.scout_crystal_field":
-			return "region.crystal_vein_field"
-		"quest.calibrate_reactor":
-			if world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.salvage_scrap") < 4.0:
-				return "region.crystal_vein_field"
-			return "region.outpost_platform"
-		"quest.bring_back_sample":
-			return "region.crystal_vein_field"
-		"quest.analyze_anomaly_sample":
-			if world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.anomaly_residue") < 2.0:
-				return "region.crystal_vein_field"
-			return "region.outpost_platform"
-		"quest.make_filter_module":
-			return "region.outpost_platform"
-		"quest.prepare_treatment_supplies":
-			if world_state.quest_state.get_objective_progress(quest_id, "craft_item", "item.repair_gel") <= 0.0:
-				return "region.outpost_platform"
-			return "region.crystal_vein_field"
-		"quest.expand_treatment_point", "quest.enter_pollution_edge", "quest.defeat_elite_node":
-			return "region.pollution_edge"
-		"quest.unlock_ruin_signal":
-			return "region.locked_ruin_gate"
-		_:
-			return ""
+	if target_region_resolver == null:
+		return ""
+	return target_region_resolver.resolve_target_region_id(world_state, quest_id)

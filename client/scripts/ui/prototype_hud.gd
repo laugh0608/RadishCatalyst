@@ -110,6 +110,10 @@ func _process(delta: float) -> void:
 	_update_timed_panel_visibility(delta)
 
 
+func configure_map_presenter(data_registry: DataRegistry, map: VerticalSliceMap) -> void:
+	map_presenter.configure(data_registry, map)
+
+
 func _update_timed_panel_visibility(delta: float) -> void:
 	supply_feedback_remaining_seconds = maxf(0.0, supply_feedback_remaining_seconds - delta)
 	if supply_feedback_remaining_seconds <= 0.0:

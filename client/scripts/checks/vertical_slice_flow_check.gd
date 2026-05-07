@@ -1,6 +1,7 @@
 extends SceneTree
 
 const GameRootScript := preload("res://scripts/game/game_root.gd")
+const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
 
 var failures: Array[String] = []
 var data_registry := DataRegistry.new()
@@ -194,6 +195,9 @@ func _check_status_panel_summary() -> void:
 
 func _check_region_markers() -> void:
 	var presenter := HudMapPresenter.new()
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	presenter.configure(data_registry, map)
 	var marker_world := WorldState.create_default()
 	_expect_text_contains(
 		presenter.format_region_markers(marker_world, "quest.restore_outpost"),
@@ -222,6 +226,18 @@ func _check_region_markers() -> void:
 	)
 
 	marker_world.quest_state.set_objective_progress(
+		"quest.calibrate_reactor",
+		"gather_item",
+		"item.salvage_scrap",
+		4.0
+	)
+	_expect_text_contains(
+		presenter.format_region_markers(marker_world, "quest.calibrate_reactor"),
+		"基地：当前位置，目标",
+		"calibrator crafting returns to outpost reactor"
+	)
+
+	marker_world.quest_state.set_objective_progress(
 		"quest.bring_back_sample",
 		"sample_object",
 		"map_object.anomaly_crystal",
@@ -233,17 +249,72 @@ func _check_region_markers() -> void:
 		"sample marker remains in crystal field"
 	)
 
+	marker_world.quest_state.set_objective_progress(
+		"quest.analyze_anomaly_sample",
+		"gather_item",
+		"item.anomaly_residue",
+		2.0
+	)
+	_expect_text_contains(
+		presenter.format_region_markers(marker_world, "quest.analyze_anomaly_sample"),
+		"基地：当前位置，目标",
+		"analysis crafting returns to outpost reactor"
+	)
+
+	marker_world.quest_state.set_objective_progress(
+		"quest.prepare_treatment_supplies",
+		"craft_item",
+		"item.repair_gel",
+		1.0
+	)
+	_expect_text_contains(
+		presenter.format_region_markers(marker_world, "quest.prepare_treatment_supplies"),
+		"晶体：东侧，目标",
+		"treatment enemy stays in crystal field"
+	)
+
+	marker_world.unlock_region("region.pollution_edge")
+	marker_world.quest_state.set_objective_progress(
+		"quest.enter_pollution_edge",
+		"visit_region",
+		"region.pollution_edge",
+		1.0
+	)
+	marker_world.quest_state.set_objective_progress(
+		"quest.enter_pollution_edge",
+		"gather_item",
+		"item.polluted_residue",
+		2.0
+	)
+	_expect_text_contains(
+		presenter.format_region_markers(marker_world, "quest.enter_pollution_edge"),
+		"晶体：东侧，目标",
+		"resistance vial crafting points back to treatment filter"
+	)
+	marker_world.quest_state.set_objective_progress(
+		"quest.enter_pollution_edge",
+		"craft_item",
+		"item.resistance_vial_t1",
+		1.0
+	)
+	_expect_text_contains(
+		presenter.format_region_markers(marker_world, "quest.enter_pollution_edge"),
+		"污染：东南，目标",
+		"polluted skitter returns objective to pollution edge"
+	)
+
 	marker_world.unlock_region("region.locked_ruin_gate")
 	_expect_text_contains(
 		presenter.format_region_markers(marker_world, "quest.unlock_ruin_signal"),
-		"遗迹：东端，目标",
-		"ruin gate marker as objective"
+		"污染：东南，目标",
+		"ruin gate objective follows scene placement in pollution edge"
 	)
 	_expect_array_has(
 		presenter.format_map_marker_labels(marker_world, "quest.unlock_ruin_signal"),
-		"遗迹\n目标",
-		"ruin gate minimap objective marker"
+		"污染\n目标",
+		"ruin gate minimap objective follows pollution edge marker"
 	)
+	map.free()
 
 
 func _check_region_presence_bounds() -> void:

@@ -30,6 +30,7 @@ func _ready() -> void:
 	hud_feedback_presenter = HudFeedbackPresenter.new()
 	hud_log_presenter = HudLogPresenter.new(data_registry)
 	vertical_slice_map.setup(data_registry)
+	hud.configure_map_presenter(data_registry, vertical_slice_map)
 	vertical_slice_map.sync_enemy_states(world_state)
 	vertical_slice_map.refresh_world_interactables(world_state)
 	vertical_slice_map.player.interaction_requested.connect(_on_player_interaction_requested)
