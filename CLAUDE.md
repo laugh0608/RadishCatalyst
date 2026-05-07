@@ -2,11 +2,11 @@
 
 本文件为 Claude Code 在 RadishCatalyst 仓库中工作时的指导。其规则应与 `AGENTS.md` 保持基本同步。
 
-## 项目定位
+## 项目长期定位
 
 `RadishCatalyst / 异星催化` 是一个以异星化工基地、人物探索战斗、角色成长和后续协作联机为核心方向的 2D / 2.5D 工业科幻 ARPG。
 
-当前阶段以仓库地基、策划定稿、架构边界和可玩原型准备为主，不应过早进入大规模内容生产、复杂后端或 MMO 化实现。
+当前阶段、短期重点、当前不做和阶段退出条件以 `docs/planning/current.md` 为准。
 
 语言规范：
 
@@ -26,14 +26,7 @@ pwsh ./scripts/check-text-files.ps1
 ./scripts/check-text-files.sh
 ```
 
-当前检查内容：
-
-- UTF-8 文本编码。
-- 不含 UTF-8 BOM。
-- 文本文件统一 LF 换行。
-- 文本文件末尾有换行。
-- 非 Markdown / CSV 文本文件不保留行尾空白。
-- 源码类文件原则上不超过 1500 行。
+用途：仓库文本卫生。
 
 ### 客户端聚合验证
 
@@ -41,20 +34,11 @@ pwsh ./scripts/check-text-files.ps1
 pwsh ./scripts/check-client.ps1
 ```
 
-聚合脚本会按顺序执行：
+用途：客户端聚合验证。
 
-```powershell
-pwsh ./scripts/check-client-data.ps1
-pwsh ./scripts/check-client-scenes.ps1
-pwsh ./scripts/check-client-save.ps1
-pwsh ./scripts/check-client-quests.ps1
-pwsh ./scripts/check-client-flow.ps1
-pwsh ./scripts/check-godot-client.ps1
-```
+当前验证重点和默认验证基线以 `docs/planning/current.md` 为准；脚本具体覆盖范围以脚本实现为准。
 
-其中 `check-client-data.ps1` 会校验客户端静态数据 JSON、稳定 ID、引用、本地化键、配方 `unlock_conditions` 与任务 `unlock_effects` 的来源一致性、任务不要同时出现在 `next_quest_ids` 和 `unlock_effects`、直接区域目标已被对应区域 `quest_refs` 收录、主线任务图的唯一入口、前后置对齐、阶段递增、可达性和切片完成终点，以及任务目标的可获得 / 可制造 / 可击败来源；`check-client-scenes.ps1` 会校验场景资源引用、Godot 脚本 UID、第一切片任务目标与地图实例 / 加工设备 / 敌人实例的对应关系，以及原型 HUD 关键面板默认布局，避免状态、地图、设备、任务完成、撤离、补给、提示和日志面板互相遮挡。
-
-涉及客户端状态、任务、存档、场景或脚本时，优先执行聚合验证；提交前仍需按范围执行 `pwsh ./scripts/check-text-files.ps1` 和 `git diff --check`。
+涉及客户端状态、任务、存档、场景或脚本时，优先执行 `pwsh ./scripts/check-client.ps1`；提交前仍需按范围执行 `pwsh ./scripts/check-text-files.ps1` 和 `git diff --check`。
 
 ## 文档真相源
 
@@ -62,7 +46,7 @@ pwsh ./scripts/check-godot-client.ps1
 
 1. `docs/planning/daily-start.md`
 2. `docs/planning/current.md`
-3. 最新周志的“风险与未完成项”和“下周建议”（当前为 `docs/devlogs/2026-W19.md`）
+3. `docs/devlogs/` 下最新一期周志中的“风险与未完成项”和“下周建议”
 
 按任务选读：
 
@@ -96,13 +80,9 @@ pwsh ./scripts/check-godot-client.ps1
 
 ## 分支与 PR
 
-- `dev` 是日常开发与文档集成分支。
-- `master` / `main` 仅作为稳定主线。
-- 常规功能、文档、规范类变更默认先进入 `dev`。
-- 阶段性稳定后，再从 `dev` 向 `master` / `main` 发起 Pull Request。
-- `master` / `main` 不直接 push，只通过 Pull Request 合并。
-- 当前允许 `merge commit` 与 `rebase merge`，禁用 `squash merge`。
-- 当前阶段不要求保护 `dev`。
+- 分支与 PR 治理以 `docs/adr/0001-branch-and-pr-governance.md` 为准。
+- `dev` 是日常开发与文档集成分支，`master` / `main` 仅作为稳定主线。
+- 远端分支保护、合并策略、默认目标分支和阶段性例外以 ADR 与仓库实际设置为准。
 
 ## AI 执行边界
 
@@ -121,21 +101,21 @@ pwsh ./scripts/check-godot-client.ps1
 - 修改系统环境、注册表、证书、全局 Git 配置或编辑器全局配置。
 - 打包、发布、上传、推送远端分支或创建 Release。
 
-### 当前默认不做
+### 默认不做
 
 - 跨工作区编辑历史旧仓库、兄弟仓库、参考仓库或其他项目；确需跨仓库操作时必须先获得明确授权。
 - 把旧仓库代码整包迁入当前仓库。
-- 在首版前实现 MMO 级账号、交易、公会、官方大世界或复杂专用服务器。
 - 未经明确要求执行破坏性 Git 操作。
+- 项目范围上的“当前不做”事项以 `docs/planning/current.md` 为准。
 
 ## 工程与内容边界
 
 - 优先以 Godot 4.x 作为原型方向。
 - 脚本侧默认优先考虑 GDScript。
-- 首版必须先保证离线单机完整闭环。
-- 联机作为架构预留和后续阶段推进，不作为首版依赖。
 - 核心设计围绕“基地服务冒险，冒险反哺基地”展开。
 - 化工自动化是项目差异化卖点，但不应成为玩家理解门槛。
+- 战斗、探索、成长与生产链必须形成互相推动的闭环。
+- 当前阶段范围、当前不做和里程碑退出条件以 `docs/planning/current.md` 为准；涉及联机、存档或边界判断时参考 `docs/architecture/multiplayer-and-save-architecture.md`。
 
 ## 代码与文件规范
 
@@ -180,3 +160,13 @@ pwsh ./scripts/check-godot-client.ps1
 - 每周重要推进记录到 `docs/devlogs/YYYY-Www.md`。
 - 周志记录应包含：本周目标、完成情况、关键决策、验证记录、风险与未完成项、下周建议。
 - 更新日志和周志使用 Asia/Shanghai（UTC+8）日期。
+
+## 变更方向判断标准
+
+如果一个改动同时满足以下条件，则方向通常是正确的：
+
+- 项目边界更清晰。
+- 更接近 `docs/planning/current.md` 中定义的当前里程碑和退出条件。
+- 文档、代码和验证入口一致。
+- 没有提前压入与当前目标无关的复杂度。
+- 仓库规则、验证入口和协作说明仍能保持同步。

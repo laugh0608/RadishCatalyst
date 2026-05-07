@@ -1,13 +1,15 @@
 # Current Plan
 
-更新时间：2026-05-06
+更新时间：2026-05-07
 
 ## 入口约束
 
 本文是新会话的阶段入口，只保留当前阶段、最近进度、短期重点、验证入口和退出条件。历史过程、长完成清单和详细复盘优先查看：
 
+`AGENTS.md` 和 `CLAUDE.md` 只保留长期协作约束与稳定入口引用；当前阶段、当前不做、当前验证重点和退出条件统一以本文为准。
+
 - `docs/planning/daily-start.md`
-- `docs/devlogs/2026-W19.md`
+- `docs/devlogs/README.md` 中列出的最新一期周志
 - `docs/planning/vertical-slice.md`
 - `docs/design/onboarding-and-first-hour.md`
 - `docs/planning/milestone-review-checklist.md`

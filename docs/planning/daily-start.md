@@ -33,7 +33,7 @@
 日常推进必读：
 
 - `docs/planning/current.md`
-- 最新周志的“风险与未完成项”和“下周建议”，当前为 `docs/devlogs/2026-W19.md`
+- `docs/devlogs/` 下最新一期周志中的“风险与未完成项”和“下周建议”
 
 按任务选读：
 
