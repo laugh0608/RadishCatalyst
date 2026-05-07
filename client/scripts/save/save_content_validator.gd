@@ -7,7 +7,11 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.crystal_cluster": "map_object.crystal_cluster",
 	"map_object_instance.crystal_cluster_east": "map_object.crystal_cluster",
 	"map_object_instance.crystal_cluster_south": "map_object.crystal_cluster",
+	"map_object_instance.field_wreckage_north": "map_object.field_wreckage",
+	"map_object_instance.field_wreckage_east": "map_object.field_wreckage",
 	"map_object_instance.anomaly_crystal": "map_object.anomaly_crystal",
+	"map_object_instance.anomaly_residue_north": "map_object.anomaly_residue_patch",
+	"map_object_instance.anomaly_residue_east": "map_object.anomaly_residue_patch",
 	"map_object_instance.pollution_residue": "map_object.pollution_residue_patch",
 	"map_object_instance.rough_ground_north": "map_object.rough_ground",
 	"map_object_instance.rough_ground_south": "map_object.rough_ground",
@@ -23,8 +27,16 @@ const PROTOTYPE_ENEMY_SOURCES := {
 		"definition_id": "enemy.native_skitter",
 		"region_id": "region.crystal_vein_field"
 	},
+	"enemy_instance.treatment_skitter": {
+		"definition_id": "enemy.treatment_skitter",
+		"region_id": "region.crystal_vein_field"
+	},
 	"enemy_instance.polluted_skitter": {
 		"definition_id": "enemy.polluted_skitter",
+		"region_id": "region.pollution_edge"
+	},
+	"enemy_instance.elite_residue_node": {
+		"definition_id": "enemy.elite_residue_node",
 		"region_id": "region.pollution_edge"
 	}
 }
@@ -98,6 +110,9 @@ const STRUCTURE_BUFFER_ALLOWED_FIELDS := [
 
 const DEFAULT_ACTIVE_QUEST_IDS: Array[String] = ["quest.restore_outpost"]
 const DEFAULT_UNLOCKED_REGION_IDS: Array[String] = ["region.outpost_platform"]
+const LEGACY_OBJECTIVE_PROGRESS_KEYS: Array[String] = [
+	"quest.bring_back_sample|return_region|region.outpost_platform"
+]
 
 var data_registry: DataRegistry
 
@@ -526,27 +541,9 @@ func _validate_cross_block_content(world_data: Dictionary, character_data: Dicti
 	return ""
 
 
-func _validate_world_region_links(world_data: Dictionary, unlocked_region_ids: Array[String]) -> String:
-	for collection_ref in [
-		{"label": "world.map_objects", "value": world_data.get("map_objects", {})},
-		{"label": "world.enemies", "value": world_data.get("enemies", {})},
-		{"label": "world.base_structures", "value": world_data.get("base_structures", {})}
-	]:
-		var value = collection_ref.get("value", {})
-		if not (value is Dictionary):
-			continue
-		for instance_id in value:
-			var entry = value[instance_id]
-			if not (entry is Dictionary):
-				continue
-			var region_id := String(entry.get("region_id", ""))
-			if region_id.is_empty():
-				continue
-			if not unlocked_region_ids.has(region_id):
-				return "读取存档失败：%s.%s 指向未解锁区域，当前运行状态已保留。" % [
-					String(collection_ref.get("label", "")),
-					String(instance_id)
-				]
+func _validate_world_region_links(_world_data: Dictionary, _unlocked_region_ids: Array[String]) -> String:
+	# 固定切片地图会提前记录后续区域的对象、敌人和建造点状态。
+	# 当前区域仍由 _validate_cross_block_content() 校验必须已解锁。
 	return ""
 
 
@@ -716,7 +713,7 @@ func _validate_quest_content(quest_state: Dictionary) -> String:
 			var target_error := _validate_known_or_special_ref(parts[2], "quest_state.objective_progress")
 			if not target_error.is_empty():
 				return target_error
-			var objective_error := _validate_defined_quest_objective(parts[0], parts[1], parts[2])
+			var objective_error := _validate_defined_quest_objective(parts[0], parts[1], parts[2], String(objective_key))
 			if not objective_error.is_empty():
 				return objective_error
 			var required_amount := _get_defined_quest_objective_amount(parts[0], parts[1], parts[2])
@@ -733,7 +730,9 @@ func _validate_quest_content(quest_state: Dictionary) -> String:
 	return ""
 
 
-func _validate_defined_quest_objective(quest_id: String, objective_type: String, target_id: String) -> String:
+func _validate_defined_quest_objective(quest_id: String, objective_type: String, target_id: String, objective_key: String) -> String:
+	if LEGACY_OBJECTIVE_PROGRESS_KEYS.has(objective_key):
+		return ""
 	var quest := data_registry.get_definition(quest_id)
 	for objective in quest.get("objectives", []):
 		if not (objective is Dictionary):

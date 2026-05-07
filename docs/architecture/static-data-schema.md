@@ -1,6 +1,6 @@
 # Static Data Schema
 
-更新时间：2026-04-29
+更新时间：2026-05-06
 
 ## 文档目的
 
@@ -230,6 +230,8 @@ public_level
 
 `inputs`、`outputs`、`byproducts` 应引用物品或流体 ID。
 
+`unlock_conditions` 当前用于说明配方由哪些任务解锁，并必须与任务定义中的 `unlock_effects` 保持一致；`scripts/check-client-data.ps1` 会校验这种对应关系，避免配方显示条件、任务奖励和运行时解锁来源分叉。
+
 首版配方至少包括：
 
 - 晶体矿物加工。
@@ -371,6 +373,10 @@ quest_refs
 public_level
 ```
 
+`quest_refs` 表示该区域承载或强关联的任务，用于地图、HUD 和玩家指引反查。多地点任务应写入每个关键地点，例如先在野外采样、再回基地加工的任务，需要同时出现在野外区域和基地区域中。`scripts/check-client-data.ps1` 会校验任务中直接指向 `region.*` 的目标已被对应区域的 `quest_refs` 收录；其他采集、制造、战斗等间接地点关系仍由内容作者按任务节奏维护。
+
+当前第一切片仍是固定原型地图，场景实例与任务目标的同步由 `scripts/check-client-scenes.ps1` 兜底：任务中的交互、采样、检查、建造、加工和击败目标必须能在 `VerticalSliceMap.tscn` 找到对应交互点、建造点、加工设备或敌人实例；地图对象掉落数量也会按任务需求做最小核对，避免静态数据正确但场景未放目标。
+
 地图对象定义描述可交互对象类型。
 
 建议字段：
@@ -455,6 +461,27 @@ unlock_effects
 next_quest_ids
 public_level
 ```
+
+线性任务推进使用 `next_quest_ids`。`unlock_effects` 用于区域、配方、切片标记或非线性任务解锁；同一个任务不应同时写入 `next_quest_ids` 和 `unlock_effects`，避免任务激活来源出现双口径。`scripts/check-client-data.ps1` 会拦截这种重复声明。
+
+当任务目标直接引用 `region.*` 时，对应区域的 `quest_refs` 必须包含该任务，避免任务目标、区域数据和 HUD / 地图提示出现分叉。
+
+当前主线任务图必须满足：
+
+- 只有一个无前置的主线入口。
+- `next_quest_ids` 与后续任务 `prerequisites` 双向对齐。
+- 后续主线任务的 `stage` 必须递增。
+- 所有主线任务都能从入口沿 `next_quest_ids` 到达。
+- 主线任务图不得成环。
+- 终点主线任务必须唯一解锁 `slice_01_complete`。
+
+任务目标来源也纳入静态检查：
+
+- `gather_item` 目标必须能从地图对象掉落 / 采样、敌人掉落、配方产物 / 副产或任务奖励中获得。
+- `craft_item` 目标必须来自配方产物或副产。
+- `defeat_enemy` 目标必须有敌人定义，并在当前 schema 中具备可生成来源。
+
+这些检查只覆盖当前 schema 明确表达的来源关系，不推断复杂解锁时序；后续若引入正式关卡编辑器、动态刷怪表或掉落表，再扩展对应数据约束。
 
 目标类型限制在首版可实现范围：
 

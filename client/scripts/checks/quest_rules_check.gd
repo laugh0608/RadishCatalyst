@@ -5,6 +5,8 @@ var data_registry := DataRegistry.new()
 var event_rules: QuestEventRules
 var progress_rules: QuestProgressRules
 var completion_rules: QuestCompletionRules
+var completion_applier: QuestCompletionApplier
+var quest_runtime: QuestRuntime
 
 
 func _init() -> void:
@@ -29,6 +31,8 @@ func _run_checks() -> void:
 	event_rules = QuestEventRules.new(data_registry)
 	progress_rules = QuestProgressRules.new(data_registry)
 	completion_rules = QuestCompletionRules.new(data_registry, progress_rules)
+	completion_applier = QuestCompletionApplier.new(data_registry)
+	quest_runtime = QuestRuntime.new(data_registry)
 
 	_check_interaction_event_objective_updates()
 	_check_region_event_objective_updates()
@@ -36,6 +40,9 @@ func _run_checks() -> void:
 	_check_non_active_quest_does_not_complete()
 	_check_incomplete_active_quest_does_not_complete()
 	_check_completed_quest_returns_structured_result()
+	_check_completion_applier_grants_rewards_unlocks_and_feedback()
+	_check_quest_runtime_applies_updates_and_completion_feedback()
+	_check_quest_runtime_recovers_pre_sampled_anomaly()
 	_check_active_objective_progress_is_capped()
 	_check_inactive_objective_progress_is_ignored()
 
@@ -56,6 +63,16 @@ func _check_interaction_event_objective_updates() -> void:
 
 	updates = event_rules.get_interaction_objective_updates(
 		{
+			"definition_id": "map_object.field_wreckage",
+			"interaction_type": "gather"
+		},
+		{},
+		quest_state
+	)
+	_expect_update(updates, "add", "quest.calibrate_reactor", "gather_item", "item.salvage_scrap", 2.0, "field wreckage gather update")
+
+	updates = event_rules.get_interaction_objective_updates(
+		{
 			"definition_id": "map_object.ruin_gate",
 			"interaction_type": "inspect"
 		},
@@ -63,6 +80,16 @@ func _check_interaction_event_objective_updates() -> void:
 		quest_state
 	)
 	_expect_update(updates, "set", "quest.unlock_ruin_signal", "inspect", "map_object.ruin_gate", 1.0, "ruin inspect update")
+
+	updates = event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.anomaly_residue_patch",
+			"interaction_type": "gather"
+		},
+		{},
+		quest_state
+	)
+	_expect_update(updates, "add", "quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 1.0, "anomaly residue gather update")
 
 
 func _check_region_event_objective_updates() -> void:
@@ -75,10 +102,37 @@ func _check_region_event_objective_updates() -> void:
 	_expect_equal(updates.size(), 0, "outpost return before sample update count")
 	quest_state.set_objective_progress("quest.bring_back_sample", "sample_object", "map_object.anomaly_crystal", 1)
 	updates = event_rules.get_region_objective_updates("region.outpost_platform", quest_state)
-	_expect_update(updates, "set", "quest.bring_back_sample", "return_region", "region.outpost_platform", 1.0, "outpost return update")
+	_expect_equal(updates.size(), 0, "outpost return after sample should not update sample quest")
 
 
 func _check_recipe_build_and_enemy_event_objective_updates() -> void:
+	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.reactor_calibrator"),
+		"set",
+		"quest.calibrate_reactor",
+		"craft_item",
+		"item.reactor_calibrator",
+		1.0,
+		"reactor calibrator recipe update"
+	)
+	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.repair_gel"),
+		"set",
+		"quest.prepare_treatment_supplies",
+		"craft_item",
+		"item.repair_gel",
+		1.0,
+		"repair gel recipe update"
+	)
+	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.analyze_anomaly_sample"),
+		"set",
+		"quest.analyze_anomaly_sample",
+		"craft_item",
+		"item.sample_analysis",
+		1.0,
+		"sample analysis recipe update"
+	)
 	_expect_update(
 		event_rules.get_recipe_objective_updates("recipe.basic_filter_module"),
 		"set",
@@ -98,6 +152,16 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		"foundation build update"
 	)
 	_expect_update(
+		event_rules.get_defeated_enemy_objective_updates("enemy.treatment_skitter"),
+		"set",
+		"quest.prepare_treatment_supplies",
+		"defeat_enemy",
+		"enemy.treatment_skitter",
+		1.0,
+		"treatment enemy defeat update"
+	)
+	_expect_equal(event_rules.get_defeated_enemy_objective_updates("enemy.native_skitter").size(), 0, "ordinary native enemy should not complete treatment prep")
+	_expect_update(
 		event_rules.get_defeated_enemy_objective_updates("enemy.polluted_skitter"),
 		"set",
 		"quest.enter_pollution_edge",
@@ -106,6 +170,15 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		1.0,
 		"polluted enemy defeat update"
 	)
+	_expect_update(
+		event_rules.get_defeated_enemy_objective_updates("enemy.elite_residue_node"),
+		"set",
+		"quest.defeat_elite_node",
+		"defeat_enemy",
+		"enemy.elite_residue_node",
+		1.0,
+		"elite node defeat update"
+	)
 
 
 func _check_non_active_quest_does_not_complete() -> void:
@@ -113,7 +186,7 @@ func _check_non_active_quest_does_not_complete() -> void:
 	var result := completion_rules.try_complete_quest(quest_state, "quest.scout_crystal_field")
 	_expect_equal(bool(result.get("completed", true)), false, "non active quest completion")
 	_expect_array_missing(quest_state.completed_quest_ids, "quest.scout_crystal_field", "non active quest completed list")
-	_expect_array_missing(quest_state.active_quest_ids, "quest.bring_back_sample", "non active next quest")
+	_expect_array_missing(quest_state.active_quest_ids, "quest.calibrate_reactor", "non active next quest")
 
 
 func _check_incomplete_active_quest_does_not_complete() -> void:
@@ -145,6 +218,66 @@ func _check_completed_quest_returns_structured_result() -> void:
 	_expect_result_ref(result.get("rewards", []), "item.basic_parts", 4.0, "restore reward refs")
 	_expect_result_value(result.get("unlock_effects", []), "recipe.process_crystal_ore", "restore unlock result")
 	_expect_result_value(result.get("next_quest_ids", []), "quest.scout_crystal_field", "restore next quest result")
+
+
+func _check_completion_applier_grants_rewards_unlocks_and_feedback() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	progress_rules.set_active_objective_progress(
+		world_state.quest_state,
+		"quest.restore_outpost",
+		"interact",
+		"building.outpost_core",
+		1
+	)
+
+	var result := completion_rules.try_complete_quest(world_state.quest_state, "quest.restore_outpost")
+	var feedback := completion_applier.apply_completion(world_state, character_state, result)
+	_expect_equal(character_state.inventory.items.get("item.basic_parts", 0), 8, "applier grants item rewards")
+	_expect_array_has(world_state.unlocked_region_ids, "region.crystal_vein_field", "applier unlocks world region")
+	_expect_equal(String(feedback.get("title", "")), "任务完成：恢复前哨", "applier feedback title")
+	_expect_equal(String(feedback.get("panel_title", "")), "任务完成", "applier panel title")
+	_expect_equal(String(feedback.get("completed_text", "")), "完成：恢复前哨", "applier completed text")
+	_expect_equal(String(feedback.get("reward_text", "")), "奖励：基础零件 x4", "applier reward text")
+	_expect_equal(String(feedback.get("next_goal_text", "")), "新目标：勘探晶体矿脉", "applier next goal text")
+	if String(feedback.get("log_message", "")).find("解锁：") < 0:
+		failures.append("applier log message should include unlock text, got %s" % var_to_str(feedback))
+
+
+func _check_quest_runtime_applies_updates_and_completion_feedback() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	var result := quest_runtime.apply_objective_updates(world_state, character_state, [
+		{
+			"mode": "set",
+			"quest_id": "quest.restore_outpost",
+			"objective_type": "interact",
+			"target_id": "building.outpost_core",
+			"amount": 1
+		}
+	])
+	_expect_equal(bool(result.get("accepted", false)), true, "runtime accepts objective updates")
+	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.restore_outpost", "runtime completes restore quest")
+	_expect_array_has(world_state.unlocked_region_ids, "region.crystal_vein_field", "runtime applies world unlock")
+	_expect_equal(character_state.inventory.items.get("item.basic_parts", 0), 8, "runtime applies reward")
+	_expect_equal(_result_array_size(result, "completion_feedbacks"), 1, "runtime completion feedback count")
+	_expect_equal(_result_array_size(result, "log_messages"), 1, "runtime log message count")
+
+
+func _check_quest_runtime_recovers_pre_sampled_anomaly() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	_mark_bring_back_sample_active_with_pre_sampled_anomaly(world_state, character_state)
+
+	var result := quest_runtime.reconcile_active_objectives(world_state, character_state)
+	_expect_equal(bool(result.get("accepted", false)), true, "runtime accepts pre-sampled anomaly recovery")
+	_expect_equal(
+		world_state.quest_state.get_objective_progress("quest.bring_back_sample", "sample_object", "map_object.anomaly_crystal"),
+		1.0,
+		"pre-sampled anomaly sample objective"
+	)
+	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.bring_back_sample", "pre-sampled anomaly completes sample quest")
+	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_anomaly_sample", "pre-sampled anomaly activates sample analysis quest")
 
 
 func _check_active_objective_progress_is_capped() -> void:
@@ -189,6 +322,33 @@ func _mark_restore_outpost_completed(quest_state: QuestState) -> void:
 		1
 	)
 	completion_rules.try_complete_quest(quest_state, "quest.restore_outpost")
+
+
+func _mark_bring_back_sample_active_with_pre_sampled_anomaly(world_state: WorldState, character_state: CharacterState) -> void:
+	world_state.unlock_region("region.crystal_vein_field")
+	world_state.quest_state.active_quest_ids = ["quest.bring_back_sample"]
+	world_state.quest_state.completed_quest_ids = [
+		"quest.restore_outpost",
+		"quest.scout_crystal_field",
+		"quest.calibrate_reactor"
+	]
+	world_state.quest_state.objective_progress = {
+		"quest.restore_outpost|interact|building.outpost_core": 1,
+		"quest.scout_crystal_field|visit_region|region.crystal_vein_field": 1,
+		"quest.scout_crystal_field|gather_item|item.crystal_ore": 6,
+		"quest.calibrate_reactor|gather_item|item.salvage_scrap": 4,
+		"quest.calibrate_reactor|craft_item|item.reactor_calibrator": 1
+	}
+	world_state.quest_state.unlocked_effects = [
+		"region.outpost_platform",
+		"region.crystal_vein_field",
+		"recipe.process_crystal_ore",
+		"recipe.repair_gel",
+		"recipe.reactor_calibrator"
+	]
+	world_state.ensure_map_object("map_object_instance.anomaly_crystal", "map_object.anomaly_crystal", "region.crystal_vein_field")
+	world_state.set_map_object_flag("map_object_instance.anomaly_crystal", "is_sampled", true)
+	character_state.inventory.add_item("item.anomaly_sample", 1)
 
 
 func _expect_result_ref(refs, expected_id: String, expected_amount: float, label: String) -> void:
@@ -255,6 +415,14 @@ func _expect_array_has(values: Array, expected_value: String, label: String) -> 
 func _expect_array_missing(values: Array, unexpected_value: String, label: String) -> void:
 	if values.has(unexpected_value):
 		failures.append("%s should not contain %s, got %s" % [label, unexpected_value, var_to_str(values)])
+
+
+func _result_array_size(result: Dictionary, key: String) -> int:
+	var values = result.get(key, [])
+	if not values is Array:
+		failures.append("%s should be an array, got %s" % [key, var_to_str(values)])
+		return 0
+	return values.size()
 
 
 func _cleanup() -> void:

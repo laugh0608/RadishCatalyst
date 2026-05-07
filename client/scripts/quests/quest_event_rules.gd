@@ -8,7 +8,7 @@ func _init(registry: DataRegistry) -> void:
 	data_registry = registry
 
 
-func get_interaction_objective_updates(context: Dictionary, result: Dictionary, quest_state: QuestState) -> Array[Dictionary]:
+func get_interaction_objective_updates(context: Dictionary, result: Dictionary, _quest_state: QuestState) -> Array[Dictionary]:
 	var definition_id := String(context.get("definition_id", ""))
 	var interaction_type := String(context.get("interaction_type", ""))
 	var recipe_id := String(context.get("recipe_id", ""))
@@ -21,8 +21,12 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		]
 		updates.append_array(_get_drop_objective_updates("quest.scout_crystal_field", "gather_item", "item.crystal_ore", definition_id))
 		return updates
+	if interaction_type == "gather" and definition_id == "map_object.field_wreckage":
+		return _get_drop_objective_updates("quest.calibrate_reactor", "gather_item", "item.salvage_scrap", definition_id)
 	if interaction_type == "sample" and definition_id == "map_object.anomaly_crystal":
 		return [_set_update("quest.bring_back_sample", "sample_object", "map_object.anomaly_crystal", 1)]
+	if interaction_type == "gather" and definition_id == "map_object.anomaly_residue_patch":
+		return _get_drop_objective_updates("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", definition_id)
 	if interaction_type == "gather" and definition_id == "map_object.pollution_residue_patch":
 		var updates: Array[Dictionary] = [
 			_set_update("quest.enter_pollution_edge", "visit_region", "region.pollution_edge", 1)
@@ -38,14 +42,9 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 	return []
 
 
-func get_region_objective_updates(region_id: String, quest_state: QuestState) -> Array[Dictionary]:
+func get_region_objective_updates(region_id: String, _quest_state: QuestState) -> Array[Dictionary]:
 	if region_id == "region.crystal_vein_field":
 		return [_set_update("quest.scout_crystal_field", "visit_region", region_id, 1)]
-	if (
-		region_id == "region.outpost_platform"
-		and quest_state.get_objective_progress("quest.bring_back_sample", "sample_object", "map_object.anomaly_crystal") > 0.0
-	):
-		return [_set_update("quest.bring_back_sample", "return_region", region_id, 1)]
 	if region_id == "region.pollution_edge":
 		return [_set_update("quest.enter_pollution_edge", "visit_region", region_id, 1)]
 	return []
@@ -53,6 +52,12 @@ func get_region_objective_updates(region_id: String, quest_state: QuestState) ->
 
 func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 	match recipe_id:
+		"recipe.reactor_calibrator":
+			return [_set_update("quest.calibrate_reactor", "craft_item", "item.reactor_calibrator", 1)]
+		"recipe.analyze_anomaly_sample":
+			return [_set_update("quest.analyze_anomaly_sample", "craft_item", "item.sample_analysis", 1)]
+		"recipe.repair_gel":
+			return [_set_update("quest.prepare_treatment_supplies", "craft_item", "item.repair_gel", 1)]
 		"recipe.basic_filter_module":
 			return [_set_update("quest.make_filter_module", "craft_item", "equipment.filter_module_t1", 1)]
 		"recipe.cleanse_residue":
@@ -70,8 +75,12 @@ func get_build_objective_updates(building_id: String) -> Array[Dictionary]:
 
 
 func get_defeated_enemy_objective_updates(enemy_definition_id: String) -> Array[Dictionary]:
+	if enemy_definition_id == "enemy.treatment_skitter":
+		return [_set_update("quest.prepare_treatment_supplies", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.polluted_skitter":
 		return [_set_update("quest.enter_pollution_edge", "defeat_enemy", enemy_definition_id, 1)]
+	if enemy_definition_id == "enemy.elite_residue_node":
+		return [_set_update("quest.defeat_elite_node", "defeat_enemy", enemy_definition_id, 1)]
 	return []
 
 

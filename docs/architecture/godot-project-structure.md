@@ -1,6 +1,6 @@
 # Godot Project Structure
 
-更新时间：2026-04-29
+更新时间：2026-05-06
 
 ## 文档目的
 
@@ -380,6 +380,8 @@ pwsh ./scripts/check-text-files.ps1
 
 `check-client-quests.ps1` 当前会先执行一次 Godot 导入，再通过 `client/scripts/checks/quest_rules_check.gd` 直接复验 `QuestEventRules`、`QuestProgressRules` 和 `QuestCompletionRules`，并将 Godot 配置、数据和缓存隔离到 `.godot-check-home/quest-rules/` 下。
 
+`check-client-data.ps1` 当前除了基础 JSON、引用和本地化键，还会校验配方解锁来源、任务激活来源、区域任务索引、主线任务图、任务目标来源和切片完成终点。`check-client-scenes.ps1` 当前除了资源引用、脚本 UID 和 HUD 面板布局，还会校验 `VerticalSliceMap.tscn` 中任务目标对应的交互点、建造点、加工设备、敌人实例和地图对象掉落数量。
+
 ## GDScript 与 C# 边界
 
 当前项目默认优先使用 GDScript。
@@ -432,7 +434,9 @@ Godot 初始工程不做：
 - 静态数据和存档混在一起。
 - 所有系统都挂在 `GameRoot` 一个脚本里。
 
-当前 `GameRoot` 仍承担原型事件入口、任务目标更新应用和 HUD 文案拼装，但任务事件映射、任务目标进度写入、目标上限封顶、目标满足度判断、任务完成状态变更、任务解锁效果写入和后续任务激活已下沉到 `scripts/quests/`。后续进入更完整任务系统、存档或联机命令化之前，应继续把奖励发放、世界解锁和完成文案逐步下沉到 `scripts/quests/` 或系统层，避免场景根脚本继续膨胀。
+当前 `GameRoot` 仍承担原型事件入口和地图 / HUD 调用编排，但任务事件映射、任务目标进度写入、目标上限封顶、目标满足度判断、任务完成状态变更、任务解锁效果写入和后续任务激活已下沉到 `scripts/quests/`；加工设备、建造点、清理地块、污染边界门槛和遗迹入口提示文本已下沉到 `scripts/ui/interaction_prompt_formatter.gd`。
+
+HUD 侧已将可复用文本和视图数据拆入 presenter：`HudDebugPanelPresenter` 负责存档槽与快捷栏调试面板刷新，`HudDevicePanelPresenter` 负责设备面板文本、配方列表和操作提示，`HudFeedbackPresenter` 负责任务完成、撤离和补给反馈文本，`HudStatusPresenter` 负责右侧状态摘要，`HudMapPresenter` 负责小地图 / 区域标记视图数据，`HudHintPresenter` 负责任务方向和首小时引导短提示，`HudLogPresenter` 负责启动、槽位、失败、区域、设备和推荐配方等日志格式化。`PrototypeHud` 当前主要保留控件引用、Label 赋值、面板显示 / 隐藏、计时和日志入口；后续应优先避免重新把业务文案、任务判断或状态拼装堆回 HUD 主脚本或 `GameRoot`，只有当计时胶水继续膨胀时再拆新的 presenter。
 
 ## 与仓库结构的关系
 

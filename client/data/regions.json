@@ -12,7 +12,13 @@
       "pollution_types": [],
       "weather_pool": ["weather.clear"],
       "recommended_equipment": ["equipment.basic_tool", "equipment.basic_suit"],
-      "quest_refs": ["quest.restore_outpost", "quest.make_filter_module"],
+      "quest_refs": [
+        "quest.restore_outpost",
+        "quest.calibrate_reactor",
+        "quest.analyze_anomaly_sample",
+        "quest.make_filter_module",
+        "quest.prepare_treatment_supplies"
+      ],
       "public_level": "public"
     },
     {
@@ -22,11 +28,17 @@
       "planet_or_world": "world.slice_01",
       "biome_type": "crystal_field",
       "danger_level": 1,
-      "resources": ["item.crystal_ore", "item.anomaly_sample"],
+      "resources": ["item.crystal_ore", "item.salvage_scrap", "item.anomaly_sample"],
       "pollution_types": [],
       "weather_pool": ["weather.clear", "weather.night"],
       "recommended_equipment": ["equipment.basic_tool", "equipment.basic_suit"],
-      "quest_refs": ["quest.scout_crystal_field", "quest.bring_back_sample"],
+      "quest_refs": [
+        "quest.scout_crystal_field",
+        "quest.calibrate_reactor",
+        "quest.bring_back_sample",
+        "quest.analyze_anomaly_sample",
+        "quest.prepare_treatment_supplies"
+      ],
       "public_level": "public"
     },
     {
@@ -40,7 +52,7 @@
       "pollution_types": ["pollution.yellow_residue"],
       "weather_pool": ["weather.clear", "weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
-      "quest_refs": ["quest.enter_pollution_edge"],
+      "quest_refs": ["quest.expand_treatment_point", "quest.enter_pollution_edge", "quest.defeat_elite_node"],
       "public_level": "public"
     },
     {

@@ -19,6 +19,23 @@
       "public_level": "public"
     },
     {
+      "id": "map_object.field_wreckage",
+      "display_name_key": "map_object.field_wreckage.name",
+      "description_key": "map_object.field_wreckage.desc",
+      "object_type": "salvage_node",
+      "interaction_types": ["gather"],
+      "is_destructible": true,
+      "is_collectible": false,
+      "is_sampleable": false,
+      "blocks_movement": true,
+      "blocks_building": true,
+      "required_tool_tags": ["gather_basic"],
+      "drops": [{"id": "item.salvage_scrap", "amount": 2}],
+      "sample_result_refs": [],
+      "pollution_effect": "",
+      "public_level": "public"
+    },
+    {
       "id": "map_object.anomaly_crystal",
       "display_name_key": "map_object.anomaly_crystal.name",
       "description_key": "map_object.anomaly_crystal.desc",
@@ -34,6 +51,23 @@
       "sample_result_refs": ["item.anomaly_sample"],
       "pollution_effect": "",
       "public_level": "spoiler"
+    },
+    {
+      "id": "map_object.anomaly_residue_patch",
+      "display_name_key": "map_object.anomaly_residue_patch.name",
+      "description_key": "map_object.anomaly_residue_patch.desc",
+      "object_type": "sample_residue",
+      "interaction_types": ["gather"],
+      "is_destructible": true,
+      "is_collectible": false,
+      "is_sampleable": false,
+      "blocks_movement": false,
+      "blocks_building": true,
+      "required_tool_tags": ["sample_basic"],
+      "drops": [{"id": "item.anomaly_residue", "amount": 1}],
+      "sample_result_refs": [],
+      "pollution_effect": "",
+      "public_level": "public"
     },
     {
       "id": "map_object.pollution_residue_patch",

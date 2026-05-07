@@ -38,7 +38,25 @@ desktop.ini
 # Editor and IDE local settings
 .vscode/
 .idea/
+.vs/
+.fleet/
 *.suo
 *.user
 *.userosscache
 *.sln.docstates
+
+# Environment and local secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Patch / merge leftovers
+*.orig
+*.rej
+
+# Agents
+.claude
+.claude/
+.codex
+.codex/

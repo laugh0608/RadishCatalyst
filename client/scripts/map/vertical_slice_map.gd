@@ -15,9 +15,10 @@ const PLAY_BOUNDS_MIN := Vector2(-360, -200)
 const PLAY_BOUNDS_MAX := Vector2(360, 200)
 const CRYSTAL_REGION_X := -70.0
 const CRYSTAL_GATE_RETURN_X := -85.0
+const POLLUTION_REGION_X := 200.0
 const POLLUTION_GATE_X := 220.0
 const POLLUTION_DEEP_Y := -40.0
-const POLLUTION_GATE_RETURN_X := 205.0
+const POLLUTION_GATE_RETURN_X := 195.0
 
 @onready var player: PlayerController = $Player
 @onready var interactables_root: Node2D = $Interactables
@@ -46,10 +47,7 @@ func _ready() -> void:
 
 func try_interact(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if current_interactable == null:
-		return {
-			"success": false,
-			"message": "附近没有可交互目标。"
-		}
+		return _failure("附近没有可交互目标。", "交互未执行", "靠近带名称的目标，等待交互提示出现后再按 E。")
 
 	var interacted := current_interactable
 	if interacted.definition_id == "map_object.ruin_gate" and interacted.interaction_type == "inspect":
@@ -71,9 +69,10 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 	if not interacted.can_interact():
 		current_interactable = null
 		interaction_cleared.emit(interacted)
-	var evacuation_message := _evacuate_if_needed(character_state, world_state, "pollution")
-	if not evacuation_message.is_empty():
-		result["message"] = "%s%s" % [String(result.get("message", "")), evacuation_message]
+	var evacuation_feedback := _evacuate_if_needed(character_state, world_state, "pollution")
+	if not evacuation_feedback.is_empty():
+		result["message"] = "%s%s" % [String(result.get("message", "")), String(evacuation_feedback.get("log_message", ""))]
+		result["evacuation_feedback"] = evacuation_feedback
 	return result
 
 
@@ -92,9 +91,35 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			is_processed = bool(object_state.get("is_cleared", false))
 		if interactable.interaction_type == "build":
 			is_processed = bool(object_state.get("is_built", false))
+			if is_processed:
+				interactable.set_built_visual(String(object_state.get("built_definition_id", interactable.definition_id)))
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
 
 		if interactable.single_use:
 			interactable.consumed = is_processed
+		if interactable.interaction_type == "outpost_core":
+			if world_state.quest_state.has_completed_quest("quest.restore_outpost"):
+				interactable.set_restored_outpost_core_visual()
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.ruin_gate":
+			if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):
+				interactable.set_confirmed_ruin_signal_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
+		elif is_processed and interactable.set_processed_visual():
+			if current_interactable == interactable:
+				current_interactable = null
+				interaction_cleared.emit(interactable)
+			continue
+		elif not is_processed:
+			interactable.set_default_visual()
 
 		var should_enable: bool = not interactable.consumed
 		if interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter":
@@ -122,20 +147,11 @@ func update_current_interactable() -> void:
 
 func try_cycle_recipe() -> Dictionary:
 	if current_interactable == null:
-		return {
-			"success": false,
-			"message": "附近没有可切换配方的设备。"
-		}
+		return _failure("附近没有可切换配方的设备。", "配方未切换", "靠近基础反应器等加工设备后再按 R。")
 	if current_interactable.interaction_type != "process_recipe":
-		return {
-			"success": false,
-			"message": "当前目标不是加工设备。"
-		}
+		return _failure("当前目标不是加工设备。", "配方未切换", "靠近基础反应器或污染过滤器后再切换配方。")
 	if current_interactable.get_recipe_count() <= 1:
-		return {
-			"success": false,
-			"message": "当前设备没有可轮换配方。"
-		}
+		return _failure("当前设备没有可轮换配方。", "配方未切换", "该设备只有一个配方，直接按 E 尝试加工。")
 
 	var recipe_id := current_interactable.select_next_recipe()
 	return {
@@ -151,10 +167,7 @@ func try_cycle_recipe() -> Dictionary:
 func try_attack(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var target := _get_nearest_attack_target()
 	if target == null:
-		return {
-			"success": false,
-			"message": "攻击挥空：附近没有敌人。"
-		}
+		return _failure("攻击挥空：附近没有敌人。", "攻击未命中", "靠近敌人后再攻击，或回到当前目标区域。")
 
 	var damage := _get_attack_damage(character_state)
 	var result := target.apply_hit(damage)
@@ -184,7 +197,7 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 		}
 
 	var counter_message := _apply_enemy_counterattack(target, character_state)
-	var evacuation_message := _evacuate_if_needed(character_state, world_state, "combat")
+	var evacuation_feedback := _evacuate_if_needed(character_state, world_state, "combat")
 	return {
 		"success": true,
 		"message": "命中：%s，造成 %.0f 伤害，剩余 HP %.0f。%s%s" % [
@@ -192,10 +205,11 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 			damage,
 			float(result.get("health", 0.0)),
 			counter_message,
-			evacuation_message
+			String(evacuation_feedback.get("log_message", ""))
 		],
 		"enemy_definition_id": target.definition_id,
-		"enemy_defeated": false
+		"enemy_defeated": false,
+		"evacuation_feedback": evacuation_feedback
 	}
 
 
@@ -241,6 +255,14 @@ func sync_enemy_states(world_state: WorldState) -> void:
 			max_health
 		)
 		enemy.apply_saved_state(enemy_state)
+		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state))
+
+
+func refresh_enemy_spawns(world_state: WorldState) -> void:
+	for enemy in enemies_root.get_children():
+		if not enemy is PrototypeEnemy:
+			continue
+		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state))
 
 
 func apply_runtime_state(world_state: WorldState, character_state: CharacterState) -> void:
@@ -381,6 +403,23 @@ func _get_nearest_attack_target() -> PrototypeEnemy:
 	return nearest_enemy
 
 
+func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool:
+	if enemy.definition_id == "enemy.elite_residue_node":
+		return (
+			world_state.quest_state.has_active_quest("quest.defeat_elite_node")
+			or world_state.quest_state.has_completed_quest("quest.defeat_elite_node")
+		)
+	if enemy.definition_id != "enemy.treatment_skitter":
+		return true
+	var quest_state := world_state.quest_state
+	var quest_id := "quest.prepare_treatment_supplies"
+	if quest_state.has_completed_quest(quest_id):
+		return true
+	if not quest_state.has_active_quest(quest_id):
+		return false
+	return quest_state.get_objective_progress(quest_id, "craft_item", "item.repair_gel") >= 1.0
+
+
 func _get_attack_damage(character_state: CharacterState) -> float:
 	var tool_id := String(character_state.equipment.get("tool", ""))
 	var tool_definition := data_registry.get_definition(tool_id)
@@ -408,7 +447,10 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 			_format_amount(health_damage),
 			_format_amount(protection_damage)
 		]
-	return "%s 反击，生命 -%s。" % [enemy.display_name, _format_amount(health_damage)]
+	var message := "%s 反击，生命 -%s。" % [enemy.display_name, _format_amount(health_damage)]
+	if enemy.definition_id == "enemy.treatment_skitter":
+		message = "%s生命偏低时按 1 使用修复凝胶，或回基地再调制补给。" % message
+	return message
 
 
 func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, world_state: WorldState) -> String:
@@ -441,11 +483,12 @@ func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, 
 
 
 func _inspect_ruin_gate(world_state: WorldState) -> Dictionary:
-	if not world_state.quest_state.has_completed_quest("quest.enter_pollution_edge"):
-		return {
-			"success": false,
-			"message": "封锁遗迹入口仍被污染信号干扰：先治理污染边界，采集沉积物、处理药剂并击退受扰掠行体。"
-		}
+	if not world_state.quest_state.has_completed_quest("quest.defeat_elite_node"):
+		return _failure(
+			"封锁遗迹入口仍被污染信号干扰。",
+			"入口未解锁",
+			"先治理污染源点：采集沉积物、处理药剂并压制污染残核。"
+		)
 
 	if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):
 		return {
@@ -459,24 +502,31 @@ func _inspect_ruin_gate(world_state: WorldState) -> Dictionary:
 	}
 
 
-func _evacuate_if_needed(character_state: CharacterState, world_state: WorldState, reason: String) -> String:
+func _evacuate_if_needed(character_state: CharacterState, world_state: WorldState, reason: String) -> Dictionary:
 	if character_state.health > 0.0 and character_state.protection > 0.0:
-		return ""
+		return {}
 
 	var health_depleted := character_state.health <= 0.0
 	var protection_depleted := character_state.protection <= 0.0
+	var reason_text := _get_evacuation_reason(health_depleted, protection_depleted)
 	character_state.current_region_id = "region.outpost_platform"
 	world_state.current_region_id = "region.outpost_platform"
 	character_state.health = maxf(character_state.health, character_state.max_health * 0.6)
 	character_state.protection = maxf(character_state.protection, character_state.max_protection * 0.4)
 	player.position = OUTPOST_RESPAWN_POSITION
-
-	return " %s已撤回前哨；生命恢复到 %s，防护恢复到 %s。%s" % [
-		_get_evacuation_reason(health_depleted, protection_depleted),
+	var recovery_text := "已撤回前哨；生命恢复到 %s，防护恢复到 %s" % [
 		_format_amount(character_state.health),
-		_format_amount(character_state.protection),
-		_get_retry_hint(reason, health_depleted, protection_depleted)
+		_format_amount(character_state.protection)
 	]
+	var retry_text := _get_retry_hint(reason, health_depleted, protection_depleted)
+
+	return {
+		"title": "撤离前哨",
+		"reason_text": reason_text.trim_suffix("，"),
+		"recovery_text": recovery_text,
+		"retry_text": retry_text,
+		"log_message": " %s%s。%s" % [reason_text, recovery_text, retry_text]
+	}
 
 
 func _get_evacuation_reason(health_depleted: bool, protection_depleted: bool) -> String:
@@ -505,12 +555,23 @@ func _format_amount(amount: float) -> String:
 	return "%.1f" % amount
 
 
+func _failure(message: String, title: String, detail: String) -> Dictionary:
+	return {
+		"success": false,
+		"message": message,
+		"failure_feedback": {
+			"title": title,
+			"detail": detail
+		}
+	}
+
+
 func _get_enemy_instance_id(enemy: PrototypeEnemy) -> String:
 	return "enemy_instance.%s" % String(enemy.name).to_snake_case()
 
 
 func _get_region_id_for_position(map_position: Vector2) -> String:
-	if map_position.x >= POLLUTION_GATE_X and map_position.y >= POLLUTION_DEEP_Y:
+	if map_position.x >= POLLUTION_REGION_X and map_position.y >= POLLUTION_DEEP_Y:
 		return "region.pollution_edge"
 	if map_position.x >= CRYSTAL_REGION_X:
 		return "region.crystal_vein_field"

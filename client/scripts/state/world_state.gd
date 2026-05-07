@@ -110,6 +110,16 @@ func has_base_structure_definition(definition_id: String) -> bool:
 	return count_base_structures(definition_id) > 0
 
 
+func get_base_structure_id_for_definition(definition_id: String) -> String:
+	for structure_id in base_structures:
+		var structure = base_structures[structure_id]
+		if not structure is Dictionary:
+			continue
+		if String(structure.get("definition_id", "")) == definition_id:
+			return String(structure_id)
+	return ""
+
+
 func count_base_structures(definition_id: String) -> int:
 	var count := 0
 	for structure in base_structures.values():
@@ -125,9 +135,22 @@ func set_base_structure_status(structure_id: String, status: String, recipe_id: 
 		return
 
 	base_structures[structure_id]["status"] = status
-	if not recipe_id.is_empty():
+	if status == "in_progress":
+		base_structures[structure_id]["active_recipe_id"] = recipe_id
+		base_structures[structure_id]["progress_seconds"] = 0.0
+		return
+
+	base_structures[structure_id].erase("active_recipe_id")
+	base_structures[structure_id].erase("progress_seconds")
+	if status == "completed" and not recipe_id.is_empty():
 		base_structures[structure_id]["last_recipe_id"] = recipe_id
-	base_structures[structure_id]["completed_runs"] = int(base_structures[structure_id].get("completed_runs", 0)) + 1
+		base_structures[structure_id]["completed_runs"] = int(base_structures[structure_id].get("completed_runs", 0)) + 1
+
+
+func set_base_structure_progress(structure_id: String, progress_seconds: float) -> void:
+	if not base_structures.has(structure_id):
+		return
+	base_structures[structure_id]["progress_seconds"] = progress_seconds
 
 
 func set_map_object_flag(instance_id: String, flag_name: String, value: bool) -> void:

@@ -2,11 +2,11 @@
 
 本文件为 Claude Code 在 RadishCatalyst 仓库中工作时的指导。其规则应与 `AGENTS.md` 保持基本同步。
 
-## 项目定位
+## 项目长期定位
 
 `RadishCatalyst / 异星催化` 是一个以异星化工基地、人物探索战斗、角色成长和后续协作联机为核心方向的 2D / 2.5D 工业科幻 ARPG。
 
-当前阶段以仓库地基、策划定稿、架构边界和可玩原型准备为主，不应过早进入大规模内容生产、复杂后端或 MMO 化实现。
+当前阶段、短期重点、当前不做和阶段退出条件以 `docs/planning/current.md` 为准。
 
 语言规范：
 
@@ -26,14 +26,7 @@ pwsh ./scripts/check-text-files.ps1
 ./scripts/check-text-files.sh
 ```
 
-当前检查内容：
-
-- UTF-8 文本编码。
-- 不含 UTF-8 BOM。
-- 文本文件统一 LF 换行。
-- 文本文件末尾有换行。
-- 非 Markdown / CSV 文本文件不保留行尾空白。
-- 源码类文件原则上不超过 1500 行。
+用途：仓库文本卫生。
 
 ### 客户端聚合验证
 
@@ -41,35 +34,34 @@ pwsh ./scripts/check-text-files.ps1
 pwsh ./scripts/check-client.ps1
 ```
 
-聚合脚本会按顺序执行：
+用途：客户端聚合验证。
 
-```powershell
-pwsh ./scripts/check-client-data.ps1
-pwsh ./scripts/check-client-scenes.ps1
-pwsh ./scripts/check-client-save.ps1
-pwsh ./scripts/check-client-quests.ps1
-pwsh ./scripts/check-client-flow.ps1
-pwsh ./scripts/check-godot-client.ps1
-```
+当前验证重点和默认验证基线以 `docs/planning/current.md` 为准；脚本具体覆盖范围以脚本实现为准。
 
-涉及客户端状态、任务、存档、场景或脚本时，优先执行聚合验证；提交前仍需按范围执行 `pwsh ./scripts/check-text-files.ps1` 和 `git diff --check`。
+涉及客户端状态、任务、存档、场景或脚本时，优先执行 `pwsh ./scripts/check-client.ps1`；提交前仍需按范围执行 `pwsh ./scripts/check-text-files.ps1` 和 `git diff --check`。
 
 ## 文档真相源
 
-`docs/` 是本仓库正式文档源。当前优先阅读顺序：
+`docs/` 是本仓库正式文档源。日常推进类提示（例如“根据项目规划和开发进度，今天要来做什么以推进开发”）优先阅读：
 
-1. `docs/README.md`
+1. `docs/planning/daily-start.md`
 2. `docs/planning/current.md`
-3. `docs/product/creative-development-brief.md`
-4. `docs/architecture/multiplayer-and-save-architecture.md`
-5. `docs/design/README.md`
-6. `docs/devlogs/README.md`
-7. `docs/adr/0001-branch-and-pr-governance.md`
+3. `docs/devlogs/` 下最新一期周志中的“风险与未完成项”和“下周建议”
+
+按任务选读：
+
+- 项目方向：`docs/product/creative-development-brief.md`
+- 首小时体验：`docs/design/onboarding-and-first-hour.md`
+- 联机、存档或边界：`docs/architecture/multiplayer-and-save-architecture.md`
+- 代码结构和重构：`docs/architecture/code-style-and-language-practices.md`
+- 阶段复核：`docs/planning/milestone-review-checklist.md`
+- 协作治理：`docs/adr/0001-branch-and-pr-governance.md`
 
 规则：
 
 - 若文档、代码和阶段目标冲突，先判断哪一方过期，再统一修正。
 - 优先更新已有文档，不为一次性讨论创建大量散文档。
+- `docs/planning/daily-start.md`、`docs/planning/current.md`、`docs/README.md`、各目录 `README.md` 等关键入口文档应保持简约，只描述当前阶段、最近进度、下一步重点和必要索引；历史过程、长清单和背景材料应放入周志、专题文档、`docs/reference/` 或 `docs/archive/`，避免新会话读取入口时浪费上下文。
 - 参考资料放在 `docs/reference/`，归档材料放在 `docs/archive/`。
 - `docs/archive/full-conversation-history.md` 保留历史原貌，不作为当前规范。
 - 重大架构、阶段边界、协作规则、验证基线或目录职责变化，必须同步更新 `docs/`。
@@ -88,13 +80,9 @@ pwsh ./scripts/check-godot-client.ps1
 
 ## 分支与 PR
 
-- `dev` 是日常开发与文档集成分支。
-- `master` / `main` 仅作为稳定主线。
-- 常规功能、文档、规范类变更默认先进入 `dev`。
-- 阶段性稳定后，再从 `dev` 向 `master` / `main` 发起 Pull Request。
-- `master` / `main` 不直接 push，只通过 Pull Request 合并。
-- 当前允许 `merge commit` 与 `rebase merge`，禁用 `squash merge`。
-- 当前阶段不要求保护 `dev`。
+- 分支与 PR 治理以 `docs/adr/0001-branch-and-pr-governance.md` 为准。
+- `dev` 是日常开发与文档集成分支，`master` / `main` 仅作为稳定主线。
+- 远端分支保护、合并策略、默认目标分支和阶段性例外以 ADR 与仓库实际设置为准。
 
 ## AI 执行边界
 
@@ -113,21 +101,21 @@ pwsh ./scripts/check-godot-client.ps1
 - 修改系统环境、注册表、证书、全局 Git 配置或编辑器全局配置。
 - 打包、发布、上传、推送远端分支或创建 Release。
 
-### 当前默认不做
+### 默认不做
 
-- 跨工作区编辑 `D:\Code\Radish`、`D:\Code\RadishFlow` 或其他项目。
+- 跨工作区编辑历史旧仓库、兄弟仓库、参考仓库或其他项目；确需跨仓库操作时必须先获得明确授权。
 - 把旧仓库代码整包迁入当前仓库。
-- 在首版前实现 MMO 级账号、交易、公会、官方大世界或复杂专用服务器。
 - 未经明确要求执行破坏性 Git 操作。
+- 项目范围上的“当前不做”事项以 `docs/planning/current.md` 为准。
 
 ## 工程与内容边界
 
 - 优先以 Godot 4.x 作为原型方向。
 - 脚本侧默认优先考虑 GDScript。
-- 首版必须先保证离线单机完整闭环。
-- 联机作为架构预留和后续阶段推进，不作为首版依赖。
 - 核心设计围绕“基地服务冒险，冒险反哺基地”展开。
 - 化工自动化是项目差异化卖点，但不应成为玩家理解门槛。
+- 战斗、探索、成长与生产链必须形成互相推动的闭环。
+- 当前阶段范围、当前不做和里程碑退出条件以 `docs/planning/current.md` 为准；涉及联机、存档或边界判断时参考 `docs/architecture/multiplayer-and-save-architecture.md`。
 
 ## 代码与文件规范
 
@@ -139,6 +127,10 @@ pwsh ./scripts/check-godot-client.ps1
 - 文件接近 1000 行时，后续新增实现应优先拆分职责、提取子模块或测试 helper。
 - 不以单文件承载全部状态、全部 UI 或全部玩法逻辑。
 - 避免为了“整齐”堆出过深目录树，优先按职责做浅层分组。
+- 编写代码时遵循对应语言和框架的惯用实践，例如 GDScript 优先使用 Godot 4.x 的节点、资源、信号和类型习惯，PowerShell 脚本使用清晰的参数、管道和错误处理方式。
+- 禁止为了显得“高级”而编写不明意义的方法名、晦涩抽象、空泛 `Manager` / `Helper` / `Service` 包装或多层转发；抽象必须有明确职责、真实复用价值或清晰边界收益。
+- 优先使用标准库、引擎 API、结构化数据和明确类型表达意图，不用脆弱的字符串拼接、隐式约定或注释解释一段本可以写清楚的代码。
+- 详细代码语言实践规范见 `docs/architecture/code-style-and-language-practices.md`。
 
 ## 仓库结构
 
@@ -168,3 +160,13 @@ pwsh ./scripts/check-godot-client.ps1
 - 每周重要推进记录到 `docs/devlogs/YYYY-Www.md`。
 - 周志记录应包含：本周目标、完成情况、关键决策、验证记录、风险与未完成项、下周建议。
 - 更新日志和周志使用 Asia/Shanghai（UTC+8）日期。
+
+## 变更方向判断标准
+
+如果一个改动同时满足以下条件，则方向通常是正确的：
+
+- 项目边界更清晰。
+- 更接近 `docs/planning/current.md` 中定义的当前里程碑和退出条件。
+- 文档、代码和验证入口一致。
+- 没有提前压入与当前目标无关的复杂度。
+- 仓库规则、验证入口和协作说明仍能保持同步。

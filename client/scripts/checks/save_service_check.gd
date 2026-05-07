@@ -144,6 +144,8 @@ func _run_checks() -> void:
 	_check_loads_older_backup_when_recent_backup_is_bad()
 	_check_all_bad_saves_fail_without_replacing_state()
 	_check_named_slot_save_load()
+	_check_delete_slot_clears_save_and_backups()
+	_check_quick_slot_binding_persists()
 	_check_save_slot_summaries()
 	_check_migrates_legacy_primary_save()
 	_check_migrates_legacy_backup_when_legacy_primary_is_bad()
@@ -371,6 +373,58 @@ func _check_named_slot_save_load() -> void:
 
 	_expect_equal(String(load_result.get("slot_id", "")), slot_id, "named slot id")
 	_expect_recovered_world_id(load_result, "world.slot.02", "named slot world")
+
+
+func _check_delete_slot_clears_save_and_backups() -> void:
+	var slot_id := "slot_03"
+	_remove_slot_files(slot_id)
+	var first_world := WorldState.create_default()
+	first_world.world_id = "world.delete.first"
+	_expect_success(save_service.save_game_for_slot(slot_id, first_world, CharacterState.create_default()), "save delete slot first")
+	var second_world := WorldState.create_default()
+	second_world.world_id = "world.delete.second"
+	_expect_success(save_service.save_game_for_slot(slot_id, second_world, CharacterState.create_default()), "save delete slot second")
+	if not FileAccess.file_exists(_get_slot_save_file(slot_id)):
+		failures.append("delete slot setup should create primary save")
+	if not FileAccess.file_exists(_get_slot_backup_file(slot_id, 1)):
+		failures.append("delete slot setup should create backup")
+
+	var delete_result := save_service.delete_game_for_slot(slot_id)
+	_expect_success(delete_result, "delete slot")
+	if FileAccess.file_exists(_get_slot_save_file(slot_id)):
+		failures.append("delete slot should remove primary save")
+	for backup_index in range(1, 4):
+		if FileAccess.file_exists(_get_slot_backup_file(slot_id, backup_index)):
+			failures.append("delete slot should remove backup %d" % backup_index)
+
+	var empty_summary := save_service.get_save_slot_summary(slot_id)
+	_expect_equal(String(empty_summary.get("status", "")), "空槽位", "deleted slot summary status")
+	_expect_equal(bool(empty_summary.get("has_loadable_save", true)), false, "deleted slot should not be loadable")
+
+
+func _check_quick_slot_binding_persists() -> void:
+	var slot_id := "slot_02"
+	var character_state := CharacterState.create_default()
+	_expect_success(
+		character_state.bind_quick_slot(0, "item.resistance_vial_t1", data_registry),
+		"bind resistance vial to slot 1"
+	)
+	_expect_success(character_state.bind_quick_slot(1, "", data_registry), "clear quick slot 2")
+	_expect_failure_message(
+		character_state.bind_quick_slot(0, "item.basic_parts", data_registry),
+		"暂不能绑定到快捷栏",
+		"reject unsupported quick slot item"
+	)
+
+	var save_result := save_service.save_game_for_slot(slot_id, WorldState.create_default(), character_state)
+	_expect_success(save_result, "save quick slot bindings")
+	var load_result := save_service.load_game_for_slot(slot_id)
+	_expect_success(load_result, "load quick slot bindings")
+	if not bool(load_result.get("success", false)):
+		return
+
+	var loaded_character: CharacterState = load_result["character_state"]
+	_expect_equal(loaded_character.quick_slots, ["item.resistance_vial_t1", ""], "quick slot bindings persist")
 
 
 func _check_save_slot_summaries() -> void:
@@ -616,33 +670,44 @@ func _check_slice_end_hook_state_persists() -> void:
 	world_state.quest_state.completed_quest_ids = [
 		"quest.restore_outpost",
 		"quest.scout_crystal_field",
+		"quest.calibrate_reactor",
 		"quest.bring_back_sample",
+		"quest.analyze_anomaly_sample",
 		"quest.make_filter_module",
+		"quest.prepare_treatment_supplies",
 		"quest.expand_treatment_point",
-		"quest.enter_pollution_edge"
+		"quest.enter_pollution_edge",
+		"quest.defeat_elite_node"
 	]
 	world_state.quest_state.objective_progress = {
 		"quest.restore_outpost|interact|building.outpost_core": 1,
 		"quest.scout_crystal_field|visit_region|region.crystal_vein_field": 1,
 		"quest.scout_crystal_field|gather_item|item.crystal_ore": 6,
+		"quest.calibrate_reactor|gather_item|item.salvage_scrap": 4,
+		"quest.calibrate_reactor|craft_item|item.reactor_calibrator": 1,
 		"quest.bring_back_sample|sample_object|map_object.anomaly_crystal": 1,
-		"quest.bring_back_sample|return_region|region.outpost_platform": 1,
+		"quest.analyze_anomaly_sample|gather_item|item.anomaly_residue": 2,
+		"quest.analyze_anomaly_sample|craft_item|item.sample_analysis": 1,
 		"quest.make_filter_module|craft_item|equipment.filter_module_t1": 1,
+		"quest.prepare_treatment_supplies|craft_item|item.repair_gel": 1,
+		"quest.prepare_treatment_supplies|defeat_enemy|enemy.treatment_skitter": 1,
 		"quest.expand_treatment_point|build|building.foundation_t1": 2,
 		"quest.expand_treatment_point|build|building.pollution_filter": 1,
 		"quest.enter_pollution_edge|visit_region|region.pollution_edge": 1,
 		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 2,
 		"quest.enter_pollution_edge|craft_item|item.resistance_vial_t1": 1,
-		"quest.enter_pollution_edge|defeat_enemy|enemy.polluted_skitter": 1
+		"quest.enter_pollution_edge|defeat_enemy|enemy.polluted_skitter": 1,
+		"quest.defeat_elite_node|defeat_enemy|enemy.elite_residue_node": 1
 	}
 	world_state.quest_state.unlocked_effects = [
 		"region.outpost_platform",
 		"region.crystal_vein_field",
 		"recipe.process_crystal_ore",
 		"recipe.repair_gel",
+		"recipe.reactor_calibrator",
+		"recipe.analyze_anomaly_sample",
 		"recipe.make_filter_media",
-		"quest.make_filter_module",
-		"quest.expand_treatment_point",
+		"recipe.basic_filter_module",
 		"recipe.foundation_t1",
 		"region.pollution_edge",
 		"recipe.cleanse_residue",
@@ -661,11 +726,17 @@ func _check_slice_end_hook_state_persists() -> void:
 	_expect_array_has(loaded_world.unlocked_region_ids, "region.locked_ruin_gate", "slice hook unlocked ruin gate region")
 	_expect_array_has(loaded_world.quest_state.active_quest_ids, "quest.unlock_ruin_signal", "slice hook active ruin signal quest")
 	_expect_array_has(loaded_world.quest_state.completed_quest_ids, "quest.enter_pollution_edge", "slice hook completed pollution edge quest")
+	_expect_array_has(loaded_world.quest_state.completed_quest_ids, "quest.defeat_elite_node", "slice hook completed elite node quest")
 	_expect_array_has(loaded_world.quest_state.unlocked_effects, "region.locked_ruin_gate", "slice hook persisted ruin gate unlock")
 	_expect_equal(
 		loaded_world.quest_state.get_objective_progress("quest.enter_pollution_edge", "defeat_enemy", "enemy.polluted_skitter"),
 		1.0,
 		"slice hook polluted enemy objective"
+	)
+	_expect_equal(
+		loaded_world.quest_state.get_objective_progress("quest.defeat_elite_node", "defeat_enemy", "enemy.elite_residue_node"),
+		1.0,
+		"slice hook elite node objective"
 	)
 
 
@@ -679,25 +750,35 @@ func _check_slice_complete_state_persists() -> void:
 	world_state.quest_state.completed_quest_ids = [
 		"quest.restore_outpost",
 		"quest.scout_crystal_field",
+		"quest.calibrate_reactor",
 		"quest.bring_back_sample",
+		"quest.analyze_anomaly_sample",
 		"quest.make_filter_module",
+		"quest.prepare_treatment_supplies",
 		"quest.expand_treatment_point",
 		"quest.enter_pollution_edge",
+		"quest.defeat_elite_node",
 		"quest.unlock_ruin_signal"
 	]
 	world_state.quest_state.objective_progress = {
 		"quest.restore_outpost|interact|building.outpost_core": 1,
 		"quest.scout_crystal_field|visit_region|region.crystal_vein_field": 1,
 		"quest.scout_crystal_field|gather_item|item.crystal_ore": 6,
+		"quest.calibrate_reactor|gather_item|item.salvage_scrap": 4,
+		"quest.calibrate_reactor|craft_item|item.reactor_calibrator": 1,
 		"quest.bring_back_sample|sample_object|map_object.anomaly_crystal": 1,
-		"quest.bring_back_sample|return_region|region.outpost_platform": 1,
+		"quest.analyze_anomaly_sample|gather_item|item.anomaly_residue": 2,
+		"quest.analyze_anomaly_sample|craft_item|item.sample_analysis": 1,
 		"quest.make_filter_module|craft_item|equipment.filter_module_t1": 1,
+		"quest.prepare_treatment_supplies|craft_item|item.repair_gel": 1,
+		"quest.prepare_treatment_supplies|defeat_enemy|enemy.treatment_skitter": 1,
 		"quest.expand_treatment_point|build|building.foundation_t1": 2,
 		"quest.expand_treatment_point|build|building.pollution_filter": 1,
 		"quest.enter_pollution_edge|visit_region|region.pollution_edge": 1,
 		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 2,
 		"quest.enter_pollution_edge|craft_item|item.resistance_vial_t1": 1,
 		"quest.enter_pollution_edge|defeat_enemy|enemy.polluted_skitter": 1,
+		"quest.defeat_elite_node|defeat_enemy|enemy.elite_residue_node": 1,
 		"quest.unlock_ruin_signal|inspect|map_object.ruin_gate": 1
 	}
 	world_state.quest_state.unlocked_effects = [
@@ -705,9 +786,10 @@ func _check_slice_complete_state_persists() -> void:
 		"region.crystal_vein_field",
 		"recipe.process_crystal_ore",
 		"recipe.repair_gel",
+		"recipe.reactor_calibrator",
+		"recipe.analyze_anomaly_sample",
 		"recipe.make_filter_media",
-		"quest.make_filter_module",
-		"quest.expand_treatment_point",
+		"recipe.basic_filter_module",
 		"recipe.foundation_t1",
 		"region.pollution_edge",
 		"recipe.cleanse_residue",
@@ -727,6 +809,7 @@ func _check_slice_complete_state_persists() -> void:
 	var loaded_world: WorldState = load_result["world_state"]
 	var loaded_character: CharacterState = load_result["character_state"]
 	_expect_array_has(loaded_world.quest_state.completed_quest_ids, "quest.unlock_ruin_signal", "slice complete ruin signal quest")
+	_expect_array_has(loaded_world.quest_state.completed_quest_ids, "quest.defeat_elite_node", "slice complete elite node quest")
 	_expect_array_has(loaded_world.quest_state.unlocked_effects, "slice_01_complete", "slice complete unlock effect")
 	_expect_equal(
 		loaded_world.quest_state.get_objective_progress("quest.unlock_ruin_signal", "inspect", "map_object.ruin_gate"),

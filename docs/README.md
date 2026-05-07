@@ -8,6 +8,19 @@
 
 仓库许可条款以根目录 [LICENSE](../LICENSE) 为准。
 
+## Entry Document Constraints
+
+- `docs/planning/daily-start.md`、`docs/planning/current.md`、`docs/README.md` 和各目录 `README.md` 是新会话优先入口，应保持简约。
+- 入口文档只保留当前阶段、最近进度、下一步重点、验证入口和必要索引。
+- 历史过程、长完成清单、背景讨论和一次性分析应放入 `devlogs/`、专题文档、`reference/` 或 `archive/`，不要堆进入口文档。
+- 更新入口文档时优先链接到细节来源，不复制大段背景，避免 AI / Agent 在新会话中消耗不必要上下文。
+- 日常推进类提示优先读取 [Daily Start](planning/daily-start.md)，再按任务选读细节文档。
+
+## Code Language Standards
+
+- 正式代码语言实践规范见 [Code Style And Language Practices](architecture/code-style-and-language-practices.md)。
+- 入口摘要：代码应贴近对应语言、框架和引擎的惯用实践；抽象必须有明确职责和真实收益；禁止不明意义的方法、晦涩封装和多层无收益转发。
+
 ## Structure
 
 - `product/`：当前项目方向、产品定义、玩法支柱与开发准备总纲。
@@ -29,6 +42,7 @@
 - [Worldbuilding Premise](product/worldbuilding-premise.md)
 - [MVP Feature List](product/mvp-feature-list.md)
 - [Multiplayer and Save Architecture](architecture/multiplayer-and-save-architecture.md)
+- [Code Style And Language Practices](architecture/code-style-and-language-practices.md)
 - [Platform And Compatibility](architecture/platform-and-compatibility.md)
 - [Save Data Model](architecture/save-data-model.md)
 - [Static Data Schema](architecture/static-data-schema.md)
@@ -47,6 +61,7 @@
 
 ## Planning And Governance
 
+- [Daily Start](planning/daily-start.md)
 - [Current Plan](planning/current.md)
 - [Vertical Slice](planning/vertical-slice.md)
 - [Milestone Review Checklist](planning/milestone-review-checklist.md)

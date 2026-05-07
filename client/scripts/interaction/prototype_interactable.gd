@@ -1,22 +1,42 @@
 extends Area2D
 class_name PrototypeInteractable
 
+const DEFAULT_MARKER_COLOR := Color(0.862745, 0.737255, 0.266667, 1)
+const RESTORED_OUTPOST_CORE_COLOR := Color(0.18, 0.86, 0.93, 1)
+const GATHERED_CRYSTAL_COLOR := Color(0.22, 0.42, 0.58, 1)
+const GATHERED_SALVAGE_COLOR := Color(0.48, 0.56, 0.58, 1)
+const SAMPLED_ANOMALY_COLOR := Color(0.7, 0.38, 0.82, 1)
+const GATHERED_ANOMALY_RESIDUE_COLOR := Color(0.42, 0.52, 0.72, 1)
+const GATHERED_RESIDUE_COLOR := Color(0.44, 0.42, 0.2, 1)
+const CLEARED_GROUND_COLOR := Color(0.42, 0.5, 0.42, 1)
+const CONFIRMED_RUIN_SIGNAL_COLOR := Color(0.36, 0.5, 0.68, 1)
+const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
+const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
+
 @export var definition_id: String = ""
 @export var interaction_type: String = "inspect"
 @export var recipe_id: String = ""
 @export var prerequisite_instance_id: String = ""
 @export var single_use: bool = true
+@export var label_offset := Vector2(-72.0, 20.0)
+@export var label_size := Vector2(144.0, 24.0)
 
 var consumed: bool = false
 var instance_id: String = ""
 var recipe_ids: Array[String] = []
 var recipe_index: int = 0
+var display_name_text: String = ""
 
 @onready var label: Label = $Label
+@onready var marker: ColorRect = $Marker
 
 
 func setup(display_name: String) -> void:
-	label.text = display_name
+	display_name_text = display_name
+	label.offset_left = label_offset.x
+	label.offset_top = label_offset.y
+	label.offset_right = label_offset.x + label_size.x
+	_set_label_text(display_name)
 
 
 func can_interact() -> bool:
@@ -53,6 +73,30 @@ func select_next_recipe() -> String:
 	return recipe_id
 
 
+func select_recipe(target_recipe_id: String) -> bool:
+	if target_recipe_id.is_empty():
+		return false
+	if recipe_ids.is_empty():
+		if recipe_id != target_recipe_id:
+			return false
+		return true
+
+	var target_index := recipe_ids.find(target_recipe_id)
+	if target_index < 0:
+		return false
+	recipe_index = target_index
+	recipe_id = recipe_ids[recipe_index]
+	return true
+
+
+func has_recipe(target_recipe_id: String) -> bool:
+	if target_recipe_id.is_empty():
+		return false
+	if recipe_ids.is_empty():
+		return recipe_id == target_recipe_id
+	return recipe_ids.has(target_recipe_id)
+
+
 func get_recipe_count() -> int:
 	if recipe_ids.is_empty() and not recipe_id.is_empty():
 		return 1
@@ -66,6 +110,11 @@ func get_recipe_position() -> int:
 
 
 func mark_consumed() -> void:
+	if interaction_type == "build":
+		set_built_visual(definition_id)
+		return
+	if set_processed_visual():
+		return
 	if single_use:
 		consumed = true
 		visible = false
@@ -75,3 +124,92 @@ func mark_consumed() -> void:
 func set_interaction_enabled(enabled: bool) -> void:
 	visible = enabled
 	monitoring = enabled
+
+
+func set_default_visual() -> void:
+	consumed = false
+	visible = true
+	monitoring = true
+	marker.color = DEFAULT_MARKER_COLOR
+	_set_label_text(display_name_text)
+
+
+func set_restored_outpost_core_visual() -> void:
+	consumed = true
+	visible = true
+	monitoring = false
+	marker.color = RESTORED_OUTPOST_CORE_COLOR
+	_set_label_text("%s\n已恢复" % display_name_text, 2)
+
+
+func set_processed_visual() -> bool:
+	if interaction_type == "gather" and definition_id == "map_object.crystal_cluster":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = GATHERED_CRYSTAL_COLOR
+		_set_label_text("%s\n已采集" % display_name_text, 2)
+		return true
+	if interaction_type == "gather" and definition_id == "map_object.field_wreckage":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = GATHERED_SALVAGE_COLOR
+		_set_label_text("%s\n已回收" % display_name_text, 2)
+		return true
+	if interaction_type == "gather" and definition_id == "map_object.anomaly_residue_patch":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = GATHERED_ANOMALY_RESIDUE_COLOR
+		_set_label_text("%s\n已回收" % display_name_text, 2)
+		return true
+	if interaction_type == "gather" and definition_id == "map_object.pollution_residue_patch":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = GATHERED_RESIDUE_COLOR
+		_set_label_text("%s\n已回收" % display_name_text, 2)
+		return true
+	if interaction_type == "sample" and definition_id == "map_object.anomaly_crystal":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = SAMPLED_ANOMALY_COLOR
+		_set_label_text("%s\n已采样" % display_name_text, 2)
+		return true
+	if interaction_type == "clear" and definition_id == "map_object.rough_ground":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = CLEARED_GROUND_COLOR
+		_set_label_text("%s\n已清理" % display_name_text, 2)
+		return true
+	return false
+
+
+func set_confirmed_ruin_signal_visual() -> void:
+	consumed = true
+	visible = true
+	monitoring = false
+	marker.color = CONFIRMED_RUIN_SIGNAL_COLOR
+	_set_label_text("%s\n信号已确认" % display_name_text, 2)
+
+
+func set_built_visual(built_definition_id: String) -> void:
+	consumed = true
+	visible = true
+	monitoring = false
+	if built_definition_id == "building.foundation_t1":
+		marker.color = BUILT_FOUNDATION_COLOR
+		_set_label_text("基础地基")
+	elif built_definition_id == "building.pollution_filter":
+		marker.color = BUILT_FILTER_COLOR
+		_set_label_text("")
+	else:
+		marker.color = DEFAULT_MARKER_COLOR
+
+
+func _set_label_text(text: String, min_lines: int = 1) -> void:
+	label.text = text
+	label.offset_bottom = label_offset.y + label_size.y * maxi(min_lines, 1)

@@ -8,7 +8,8 @@ $ErrorActionPreference = "Stop"
 $textExtensions = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 @(
     ".cs", ".gd", ".gdshader", ".ts", ".tsx", ".js", ".jsx", ".rs", ".py",
-    ".json", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".godot", ".tscn",
+    ".json", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".xml", ".csproj",
+    ".fsproj", ".props", ".targets", ".sln", ".godot", ".tscn",
     ".tres", ".md", ".txt", ".csv", ".ps1", ".sh", ".bat", ".cmd",
     ".gitattributes", ".gitignore", ".editorconfig", ".dockerignore",
     ".svg", ".gltf"
