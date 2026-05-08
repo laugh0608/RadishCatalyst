@@ -11,6 +11,7 @@ var interaction_prompt_formatter: InteractionPromptFormatter
 var hud_feedback_presenter: HudFeedbackPresenter
 var hud_log_presenter: HudLogPresenter
 
+@onready var world_camera: Camera2D = $WorldCamera
 @onready var vertical_slice_map: VerticalSliceMap = $VerticalSliceMap
 @onready var hud: PrototypeHud = $PrototypeHud
 
@@ -50,6 +51,8 @@ func _ready() -> void:
 	vertical_slice_map.interaction_cleared.connect(_on_interaction_cleared)
 	vertical_slice_map.region_changed.connect(_on_region_changed)
 	vertical_slice_map.region_gate_blocked.connect(_on_region_gate_blocked)
+	_configure_world_camera()
+	_sync_world_camera()
 
 	hud.append_log(hud_log_presenter.format_startup_log())
 	_refresh_save_slot_summaries()
@@ -65,6 +68,7 @@ func _process(delta: float) -> void:
 	vertical_slice_map.update_current_interactable()
 	vertical_slice_map.update_region_presence(world_state, character_state)
 	character_state.position = vertical_slice_map.get_player_position()
+	_sync_world_camera()
 	_refresh_current_context_prompt()
 	_update_hud()
 
@@ -199,6 +203,7 @@ func _load_from_slot(slot_id: String) -> void:
 	world_state = result.get("world_state", WorldState.create_default())
 	character_state = result.get("character_state", CharacterState.create_default())
 	vertical_slice_map.apply_runtime_state(world_state, character_state)
+	_sync_world_camera()
 	hud.append_log(hud_log_presenter.format_slot_result_log(slot_id, result))
 	_refresh_save_slot_summaries()
 	_update_hud()
@@ -209,6 +214,7 @@ func _start_new_game() -> void:
 	world_state = new_state.get("world_state", WorldState.create_default())
 	character_state = new_state.get("character_state", CharacterState.create_default())
 	vertical_slice_map.apply_runtime_state(world_state, character_state)
+	_sync_world_camera()
 	hud.clear_runtime_feedback()
 	hud.append_log(hud_log_presenter.format_new_game_log())
 	_refresh_save_slot_summaries()
@@ -313,6 +319,23 @@ func _update_hud() -> void:
 
 func _refresh_save_slot_summaries() -> void:
 	hud.update_save_slot_summaries(save_service.get_save_slot_summaries(PrototypeHud.SAVE_SLOT_IDS))
+
+
+func _configure_world_camera() -> void:
+	if world_camera == null:
+		return
+	world_camera.make_current()
+	var bounds := vertical_slice_map.get_camera_bounds_rect_global()
+	world_camera.limit_left = int(floor(bounds.position.x))
+	world_camera.limit_top = int(floor(bounds.position.y))
+	world_camera.limit_right = int(ceil(bounds.position.x + bounds.size.x))
+	world_camera.limit_bottom = int(ceil(bounds.position.y + bounds.size.y))
+
+
+func _sync_world_camera() -> void:
+	if world_camera == null:
+		return
+	world_camera.position = vertical_slice_map.get_camera_focus_global_position()
 
 
 func _get_display_name(definition_id: String) -> String:

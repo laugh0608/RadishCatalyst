@@ -264,6 +264,16 @@ function Test-PointInRect($Point, $Rect, [double]$Padding = 0.0) {
     return $true
 }
 
+function Resolve-CameraAxis([double]$Focus, [double]$MinEdge, [double]$MaxEdge, [double]$ViewportSize) {
+    $halfViewport = $ViewportSize * 0.5
+    $minCenter = $MinEdge + $halfViewport
+    $maxCenter = $MaxEdge - $halfViewport
+    if ($minCenter -gt $maxCenter) {
+        return ($MinEdge + $MaxEdge) * 0.5
+    }
+    return [Math]::Min([Math]::Max($Focus, $minCenter), $maxCenter)
+}
+
 function ConvertTo-SnakeCase([string]$Name) {
     $withWordBoundaries = [regex]::Replace($Name, '([A-Z]+)([A-Z][a-z])', '$1_$2')
     $withLowerBoundaries = [regex]::Replace($withWordBoundaries, '([a-z0-9])([A-Z])', '$1_$2')
@@ -452,10 +462,19 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
     $interactablesByInstanceId = @{}
     $playerPosition = $null
     $outpostCorePosition = $null
+    $backgroundBounds = $null
 
     foreach ($node in $mapNodes) {
         if ($node.Parent -eq "." -and $node.Name -eq "Player") {
             $playerPosition = Get-NodeVector2 $node.Properties "position"
+        }
+        if ($node.Parent -eq "." -and $node.Name -eq "Background") {
+            $backgroundBounds = [pscustomobject]@{
+                Left = Get-NodeNumber $node.Properties "offset_left" 0.0
+                Top = Get-NodeNumber $node.Properties "offset_top" 0.0
+                Right = Get-NodeNumber $node.Properties "offset_right" 0.0
+                Bottom = Get-NodeNumber $node.Properties "offset_bottom" 0.0
+            }
         }
 
         if ($node.Parent -eq "Interactables" -and $node.Properties.ContainsKey("definition_id")) {
@@ -499,15 +518,21 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
         $gameRootContent = Get-Content -LiteralPath $gameRootScenePath -Raw
         $gameRootNodes = Get-SceneNodes $gameRootContent
         $mapRootNode = $null
+        $cameraNode = $null
         foreach ($node in $gameRootNodes) {
             if ($node.Parent -eq "." -and $node.Name -eq "VerticalSliceMap") {
                 $mapRootNode = $node
-                break
+            }
+            if ($node.Parent -eq "." -and $node.Name -eq "WorldCamera") {
+                $cameraNode = $node
             }
         }
 
         if ($null -eq $mapRootNode) {
             Add-Error "client/scenes/game/GameRoot.tscn: missing VerticalSliceMap instance"
+        }
+        elseif ($null -eq $cameraNode) {
+            Add-Error "client/scenes/game/GameRoot.tscn: missing WorldCamera follow camera"
         }
         else {
             $mapRootPosition = Get-NodeVector2 $mapRootNode.Properties "position"
@@ -527,9 +552,24 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
                 )
 
                 foreach ($hotspot in $hotspots) {
-                    $screenPoint = [pscustomobject]@{
+                    $worldPoint = [pscustomobject]@{
                         X = $mapRootPosition.X + $hotspot.Position.X * $mapRootScale.X
                         Y = $mapRootPosition.Y + $hotspot.Position.Y * $mapRootScale.Y
+                    }
+                    $cameraCenter = $worldPoint
+                    if ($null -ne $backgroundBounds) {
+                        $backgroundLeft = $mapRootPosition.X + $backgroundBounds.Left * $mapRootScale.X
+                        $backgroundTop = $mapRootPosition.Y + $backgroundBounds.Top * $mapRootScale.Y
+                        $backgroundRight = $mapRootPosition.X + $backgroundBounds.Right * $mapRootScale.X
+                        $backgroundBottom = $mapRootPosition.Y + $backgroundBounds.Bottom * $mapRootScale.Y
+                        $cameraCenter = [pscustomobject]@{
+                            X = Resolve-CameraAxis $worldPoint.X $backgroundLeft $backgroundRight $viewportWidth
+                            Y = Resolve-CameraAxis $worldPoint.Y $backgroundTop $backgroundBottom $viewportHeight
+                        }
+                    }
+                    $screenPoint = [pscustomobject]@{
+                        X = $viewportWidth * 0.5 + ($worldPoint.X - $cameraCenter.X)
+                        Y = $viewportHeight * 0.5 + ($worldPoint.Y - $cameraCenter.Y)
                     }
                     foreach ($panelName in $blockingPanels) {
                         if (-not $panelsByName.ContainsKey($panelName)) {

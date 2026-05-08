@@ -7,6 +7,8 @@
 [node name="GameRoot" type="Node2D"]
 script = ExtResource("1_game_root")
 
+[node name="WorldCamera" type="Camera2D" parent="."]
+
 [node name="VerticalSliceMap" parent="." instance=ExtResource("2_map")]
 position = Vector2(1180, 700)
 scale = Vector2(1.9, 1.9)

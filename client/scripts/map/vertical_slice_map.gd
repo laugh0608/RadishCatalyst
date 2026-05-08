@@ -13,6 +13,8 @@ const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
 const OUTPOST_RESPAWN_POSITION := Vector2(-250, -48)
 const PLAY_BOUNDS_MIN := Vector2(-360, -200)
 const PLAY_BOUNDS_MAX := Vector2(820, 200)
+const CAMERA_BOUNDS_MIN := Vector2(-620, -360)
+const CAMERA_BOUNDS_MAX := Vector2(900, 360)
 const CRYSTAL_REGION_X := -70.0
 const CRYSTAL_GATE_RETURN_X := -85.0
 const POLLUTION_REGION_X := 200.0
@@ -353,6 +355,16 @@ func apply_runtime_state(world_state: WorldState, character_state: CharacterStat
 
 func get_player_position() -> Vector2:
 	return player.position
+
+
+func get_camera_focus_global_position() -> Vector2:
+	return player.global_position
+
+
+func get_camera_bounds_rect_global() -> Rect2:
+	var top_left := to_global(CAMERA_BOUNDS_MIN)
+	var bottom_right := to_global(CAMERA_BOUNDS_MAX)
+	return Rect2(top_left, bottom_right - top_left)
 
 
 func update_region_presence(world_state: WorldState, character_state: CharacterState) -> void:
