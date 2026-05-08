@@ -150,6 +150,36 @@
       "pollution_delta": 0.0,
       "unlock_conditions": ["quest.salvage_signal_echo"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.phase_filament_refining",
+      "display_name_key": "recipe.phase_filament_refining.name",
+      "description_key": "recipe.phase_filament_refining.desc",
+      "category": "filtration",
+      "required_building_id": "building.pollution_filter",
+      "inputs": [{"id": "item.phase_filament", "amount": 2}],
+      "outputs": [{"id": "item.resonance_filter", "amount": 1}],
+      "byproducts": [{"id": "fluid.polluted_slurry", "amount": 1}],
+      "duration": 10.0,
+      "energy_cost": 4.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.harvest_phase_filament"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.deep_override_key",
+      "display_name_key": "recipe.deep_override_key.name",
+      "description_key": "recipe.deep_override_key.desc",
+      "category": "assembly",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.resonance_filter", "amount": 1}, {"id": "fluid.polluted_slurry", "amount": 1}, {"id": "item.basic_parts", "amount": 2}],
+      "outputs": [{"id": "item.deep_override_key", "amount": 1}],
+      "byproducts": [],
+      "duration": 12.0,
+      "energy_cost": 5.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.refine_phase_filament"],
+      "public_level": "spoiler"
     }
   ]
 }

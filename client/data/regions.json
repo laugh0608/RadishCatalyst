@@ -19,7 +19,8 @@
         "quest.make_filter_module",
         "quest.prepare_treatment_supplies",
         "quest.assemble_phase_anchor",
-        "quest.analyze_deep_signal"
+        "quest.analyze_deep_signal",
+        "quest.assemble_deep_override"
       ],
       "public_level": "public"
     },
@@ -41,7 +42,8 @@
         "quest.analyze_anomaly_sample",
         "quest.prepare_treatment_supplies",
         "quest.expand_treatment_point",
-        "quest.enter_pollution_edge"
+        "quest.enter_pollution_edge",
+        "quest.refine_phase_filament"
       ],
       "public_level": "public"
     },
@@ -84,7 +86,21 @@
       "pollution_types": ["pollution.yellow_residue"],
       "weather_pool": ["weather.clear", "weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
-      "quest_refs": ["quest.scout_ruin_outer_ring", "quest.stabilize_outer_ring_barrier", "quest.secure_outer_ring_signal", "quest.salvage_signal_echo"],
+      "quest_refs": ["quest.scout_ruin_outer_ring", "quest.stabilize_outer_ring_barrier", "quest.secure_outer_ring_signal", "quest.salvage_signal_echo", "quest.unlock_deep_ruin_entrance"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "region.deep_ruin_threshold",
+      "display_name_key": "region.deep_ruin_threshold.name",
+      "description_key": "region.deep_ruin_threshold.desc",
+      "planet_or_world": "world.slice_01",
+      "biome_type": "deep_ruin_threshold",
+      "danger_level": 4,
+      "resources": ["item.phase_filament", "item.deep_ruin_core"],
+      "pollution_types": ["pollution.yellow_residue"],
+      "weather_pool": ["weather.acid_mist"],
+      "recommended_equipment": ["equipment.filter_module_t1"],
+      "quest_refs": ["quest.harvest_phase_filament", "quest.unlock_deep_ruin_cache"],
       "public_level": "spoiler"
     }
   ]

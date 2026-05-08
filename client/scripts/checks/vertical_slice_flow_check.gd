@@ -1,15 +1,11 @@
 extends SceneTree
-
 const GameRootScript := preload("res://scripts/game/game_root.gd")
 const HudRuntimeHintFlowCheckScript := preload("res://scripts/checks/hud_runtime_hint_flow_check.gd")
 const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
-
 var failures: Array[String] = []
 var data_registry := DataRegistry.new()
 var world_state := WorldState.create_default()
 var character_state := CharacterState.create_default()
-
-
 func _init() -> void:
 	_run_checks()
 	if failures.is_empty():
@@ -17,18 +13,14 @@ func _init() -> void:
 		_cleanup()
 		quit(0)
 		return
-
 	for failure in failures:
 		push_error(failure)
 	_cleanup()
 	quit(1)
-
-
 func _run_checks() -> void:
 	if not data_registry.load_all():
 		failures.append("data registry should load all static data")
 		return
-
 	_expect_equal(world_state.quest_state.active_quest_ids, ["quest.restore_outpost"], "initial active quest")
 	_check_onboarding_hints()
 	_check_runtime_hint_prompt_flow()
@@ -52,33 +44,28 @@ func _run_checks() -> void:
 	_check_failure_feedback_logs()
 	_check_device_panel_formatting()
 	_check_manual_recipe_cycle_keeps_player_choice()
-
 	_complete_active_quest("quest.restore_outpost", [
 		{"type": "interact", "target_id": "building.outpost_core", "amount": 1}
 	])
 	_expect_active_quest("quest.scout_crystal_field", "after restore outpost")
 	_expect_array_has(world_state.unlocked_region_ids, "region.crystal_vein_field", "restore unlocks crystal region")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.process_crystal_ore", "restore unlocks crystal recipe")
-
 	_complete_active_quest("quest.scout_crystal_field", [
 		{"type": "visit_region", "target_id": "region.crystal_vein_field", "amount": 1},
 		{"type": "gather_item", "target_id": "item.crystal_ore", "amount": 6}
 	])
 	_expect_active_quest("quest.calibrate_reactor", "after scout crystal field")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.reactor_calibrator", "scout unlocks reactor calibrator recipe")
-
 	_complete_active_quest("quest.calibrate_reactor", [
 		{"type": "gather_item", "target_id": "item.salvage_scrap", "amount": 4},
 		{"type": "craft_item", "target_id": "item.reactor_calibrator", "amount": 1}
 	])
 	_expect_active_quest("quest.bring_back_sample", "after calibrate reactor")
-
 	_complete_active_quest("quest.bring_back_sample", [
 		{"type": "sample_object", "target_id": "map_object.anomaly_crystal", "amount": 1}
 	])
 	_expect_active_quest("quest.analyze_anomaly_sample", "after bring back sample")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.analyze_anomaly_sample", "sample unlocks analysis recipe")
-
 	_complete_active_quest("quest.analyze_anomaly_sample", [
 		{"type": "gather_item", "target_id": "item.anomaly_residue", "amount": 2},
 		{"type": "craft_item", "target_id": "item.sample_analysis", "amount": 1}
@@ -86,19 +73,16 @@ func _run_checks() -> void:
 	_expect_active_quest("quest.make_filter_module", "after sample analysis")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.make_filter_media", "analysis unlocks filter media recipe")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.basic_filter_module", "analysis unlocks filter module recipe")
-
 	_complete_active_quest("quest.make_filter_module", [
 		{"type": "craft_item", "target_id": "equipment.filter_module_t1", "amount": 1}
 	])
 	_expect_active_quest("quest.prepare_treatment_supplies", "after make filter module")
-
 	_complete_active_quest("quest.prepare_treatment_supplies", [
 		{"type": "craft_item", "target_id": "item.repair_gel", "amount": 1},
 		{"type": "defeat_enemy", "target_id": "enemy.treatment_skitter", "amount": 1}
 	])
 	_expect_active_quest("quest.expand_treatment_point", "after prepare treatment supplies")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.foundation_t1", "supplies unlock foundation recipe")
-
 	_complete_active_quest("quest.expand_treatment_point", [
 		{"type": "build", "target_id": "building.foundation_t1", "amount": 2},
 		{"type": "build", "target_id": "building.pollution_filter", "amount": 1}
@@ -106,7 +90,6 @@ func _run_checks() -> void:
 	_expect_active_quest("quest.enter_pollution_edge", "after expand treatment point")
 	_expect_array_has(world_state.unlocked_region_ids, "region.pollution_edge", "treatment point unlocks pollution edge region")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.cleanse_residue", "treatment point unlocks residue recipe")
-
 	_complete_active_quest("quest.enter_pollution_edge", [
 		{"type": "visit_region", "target_id": "region.pollution_edge", "amount": 1},
 		{"type": "gather_item", "target_id": "item.polluted_residue", "amount": 2},
@@ -115,38 +98,32 @@ func _run_checks() -> void:
 	])
 	_expect_active_quest("quest.defeat_elite_node", "after enter pollution edge")
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.enter_pollution_edge", "pollution edge completed")
-
 	_complete_active_quest("quest.defeat_elite_node", [
 		{"type": "defeat_enemy", "target_id": "enemy.elite_residue_node", "amount": 1}
 	])
 	_expect_active_quest("quest.unlock_ruin_signal", "after defeat elite node")
 	_expect_array_has(world_state.unlocked_region_ids, "region.locked_ruin_gate", "elite node unlocks ruin gate region")
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.defeat_elite_node", "elite node completed")
-
 	_complete_active_quest("quest.unlock_ruin_signal", [
 		{"type": "inspect", "target_id": "map_object.ruin_gate", "amount": 1}
 	])
 	_expect_active_quest("quest.scout_ruin_outer_ring", "after ruin signal opens outer ring")
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.unlock_ruin_signal", "ruin signal completed")
 	_expect_array_has(world_state.unlocked_region_ids, "region.ruin_outer_ring", "ruin signal unlocks outer ring region")
-
 	_complete_active_quest("quest.scout_ruin_outer_ring", [
 		{"type": "visit_region", "target_id": "region.ruin_outer_ring", "amount": 1},
 		{"type": "gather_item", "target_id": "item.relay_shard", "amount": 2}
 	])
 	_expect_active_quest("quest.assemble_phase_anchor", "after ruin outer ring scouting")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_anchor", "outer ring scouting unlocks phase anchor recipe")
-
 	_complete_active_quest("quest.assemble_phase_anchor", [
 		{"type": "craft_item", "target_id": "item.phase_anchor", "amount": 1}
 	])
 	_expect_active_quest("quest.stabilize_outer_ring_barrier", "after phase anchor assembly")
-
 	_complete_active_quest("quest.stabilize_outer_ring_barrier", [
 		{"type": "inspect", "target_id": "map_object.outer_ring_barrier", "amount": 1}
 	])
 	_expect_active_quest("quest.secure_outer_ring_signal", "after stabilizing barrier")
-
 	_complete_active_quest("quest.secure_outer_ring_signal", [
 		{"type": "inspect", "target_id": "map_object.outer_ring_console", "amount": 1}
 	])
@@ -157,13 +134,25 @@ func _run_checks() -> void:
 	_expect_active_quest("quest.analyze_deep_signal", "after signal echo salvage")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.deep_signal_analysis", "echo salvage unlocks deep signal recipe")
 	_complete_active_quest("quest.analyze_deep_signal", [{"type": "craft_item", "target_id": "item.deep_ruin_coordinates", "amount": 1}])
-	_expect_equal(world_state.quest_state.active_quest_ids, [], "after deep signal analysis has no active quest")
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.analyze_deep_signal", "deep signal analysis completed")
-
+	_expect_active_quest("quest.unlock_deep_ruin_entrance", "after deep signal analysis opens deep ruin entrance")
+	_complete_active_quest("quest.unlock_deep_ruin_entrance", [{"type": "inspect", "target_id": "map_object.deep_ruin_door", "amount": 1}])
+	_expect_active_quest("quest.harvest_phase_filament", "after deep ruin door unlocks deep salvage run")
+	_expect_array_has(world_state.unlocked_region_ids, "region.deep_ruin_threshold", "deep ruin door unlocks deep region")
+	_complete_active_quest("quest.harvest_phase_filament", [{"type": "visit_region", "target_id": "region.deep_ruin_threshold", "amount": 1}, {"type": "defeat_enemy", "target_id": "enemy.deep_ruin_sentinel", "amount": 1}, {"type": "gather_item", "target_id": "item.phase_filament", "amount": 2}])
+	_expect_active_quest("quest.refine_phase_filament", "after phase filament salvage returns to filter")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_filament_refining", "phase filament salvage unlocks filter recipe")
+	_complete_active_quest("quest.refine_phase_filament", [{"type": "craft_item", "target_id": "item.resonance_filter", "amount": 1}])
+	_expect_active_quest("quest.assemble_deep_override", "after filter refinement returns to reactor")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.deep_override_key", "phase filament refinement unlocks override recipe")
+	_complete_active_quest("quest.assemble_deep_override", [{"type": "craft_item", "target_id": "item.deep_override_key", "amount": 1}])
+	_expect_active_quest("quest.unlock_deep_ruin_cache", "after override assembly returns to deep latch")
+	_complete_active_quest("quest.unlock_deep_ruin_cache", [{"type": "inspect", "target_id": "map_object.deep_ruin_latch", "amount": 1}])
+	_expect_equal(world_state.quest_state.active_quest_ids, [], "after deep ruin entry first pass has no active quest")
+	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.unlock_deep_ruin_cache", "deep ruin cache unlock completed")
+	_expect_equal(int(character_state.inventory.items.get("item.deep_ruin_core", 0)), 1, "deep ruin cache grants first deep reward")
 	_check_processing_runtime()
 	_check_evacuation_feedback()
-
-
 func _check_onboarding_hints() -> void:
 	var presenter := HudHintPresenter.new()
 	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
@@ -171,9 +160,7 @@ func _check_onboarding_hints() -> void:
 	presenter.configure(data_registry, map)
 	var hint_world := WorldState.create_default()
 	var hint_character := CharacterState.create_default()
-
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.restore_outpost", "前哨核心", "restore outpost onboarding hint")
-
 	hint_world.current_region_id = "region.crystal_vein_field"
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.scout_crystal_field", "采集晶体簇", "crystal field onboarding hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.calibrate_reactor", "外勤残骸", "calibration onboarding hint")
@@ -190,7 +177,6 @@ func _check_onboarding_hints() -> void:
 		"处理点北缘",
 		"supply prep direction follows treatment point combat region"
 	)
-
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.expand_treatment_point", "2 块地基", "foundation onboarding hint")
 	_expect_text_contains(
 		presenter.format_direction_hint(hint_world, hint_character, "quest.expand_treatment_point"),
@@ -200,7 +186,6 @@ func _check_onboarding_hints() -> void:
 	hint_world.add_base_structure("structure.foundation_site_north", "building.foundation_t1", "region.pollution_edge")
 	hint_world.add_base_structure("structure.foundation_site_south", "building.foundation_t1", "region.pollution_edge")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.expand_treatment_point", "污染过滤器", "pollution filter onboarding hint")
-
 	hint_character.equipment["suit_module"] = "equipment.filter_module_t1"
 	hint_world.unlock_region("region.pollution_edge")
 	hint_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "visit_region", "region.pollution_edge", 1)
@@ -228,16 +213,18 @@ func _check_onboarding_hints() -> void:
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.stabilize_outer_ring_barrier", "稳相信标", "outer ring barrier hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.salvage_signal_echo", "回波匣", "signal echo salvage hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_deep_signal", "更深遗迹坐标", "deep signal analysis hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.unlock_deep_ruin_entrance", "门禁", "deep ruin entrance hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.harvest_phase_filament", "相位纤丝", "phase filament salvage hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_phase_filament", "污染过滤器", "phase filament filter hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_deep_override", "污染浆液", "deep override assembly hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.unlock_deep_ruin_cache", "深段收益", "deep ruin latch hint")
 	hint_world.quest_state.completed_quest_ids.append("quest.analyze_deep_signal")
+	hint_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_cache")
 	hint_world.quest_state.unlocked_effects.append("slice_01_complete")
-	_expect_hint_contains(presenter, hint_world, hint_character, "", "更深入口价值", "deep signal completion onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "", "深段样块", "deep ruin entry completion onboarding hint")
 	map.free()
-
-
 func _check_runtime_hint_prompt_flow() -> void:
 	HudRuntimeHintFlowCheckScript.new().run(root, failures, data_registry)
-
-
 func _check_status_panel_summary() -> void:
 	var presenter := HudStatusPresenter.new()
 	var status_world := WorldState.create_default()
@@ -255,7 +242,6 @@ func _check_status_panel_summary() -> void:
 	_expect_text_missing(status_text, "背包：", "status removes full inventory duplicate")
 	if status_text.split("\n").size() > 8:
 		failures.append("status panel should stay compact, got %d lines: %s" % [status_text.split("\n").size(), status_text])
-
 	var calibration_world := WorldState.create_default()
 	calibration_world.quest_state.active_quest_ids = ["quest.calibrate_reactor"]
 	var calibration_status_text := presenter.format_status_text(data_registry, calibration_world, status_character)
@@ -264,7 +250,6 @@ func _check_status_panel_summary() -> void:
 		"收集 导电废件（外勤残骸） 0/4",
 		"status shows conductive scrap source"
 	)
-
 	var scout_world := WorldState.create_default()
 	scout_world.quest_state.active_quest_ids = ["quest.scout_crystal_field"]
 	var scout_status_text := presenter.format_status_text(data_registry, scout_world, status_character)
@@ -273,8 +258,6 @@ func _check_status_panel_summary() -> void:
 		"收集 晶体矿物（晶体簇） 0/6",
 		"status shows crystal gather source"
 	)
-
-
 func _check_region_markers() -> void:
 	var presenter := HudMapPresenter.new()
 	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
@@ -294,7 +277,6 @@ func _check_region_markers() -> void:
 	var initial_map_labels := presenter.format_map_marker_labels(marker_world, "quest.restore_outpost")
 	_expect_array_has(initial_map_labels, "基地\n当前\n目标", "outpost minimap current target marker")
 	_expect_array_has(initial_map_labels, "晶体\n未解锁", "crystal minimap locked marker")
-
 	marker_world.unlock_region("region.crystal_vein_field")
 	_expect_text_contains(
 		presenter.format_region_markers(marker_world, "quest.scout_crystal_field"),
@@ -306,7 +288,6 @@ func _check_region_markers() -> void:
 		"晶体\n目标",
 		"crystal minimap objective marker"
 	)
-
 	marker_world.quest_state.set_objective_progress(
 		"quest.calibrate_reactor",
 		"gather_item",
@@ -318,7 +299,6 @@ func _check_region_markers() -> void:
 		"基地：当前位置，目标",
 		"calibrator crafting returns to outpost reactor"
 	)
-
 	marker_world.quest_state.set_objective_progress(
 		"quest.bring_back_sample",
 		"sample_object",
@@ -330,7 +310,6 @@ func _check_region_markers() -> void:
 		"晶体：东侧，目标",
 		"sample marker remains in crystal field"
 	)
-
 	marker_world.quest_state.set_objective_progress(
 		"quest.analyze_anomaly_sample",
 		"gather_item",
@@ -342,7 +321,6 @@ func _check_region_markers() -> void:
 		"基地：当前位置，目标",
 		"analysis crafting returns to outpost reactor"
 	)
-
 	marker_world.quest_state.set_objective_progress(
 		"quest.prepare_treatment_supplies",
 		"craft_item",
@@ -354,7 +332,6 @@ func _check_region_markers() -> void:
 		"晶体：东侧，目标",
 		"treatment enemy stays in crystal field"
 	)
-
 	marker_world.unlock_region("region.pollution_edge")
 	marker_world.quest_state.set_objective_progress(
 		"quest.enter_pollution_edge",
@@ -380,7 +357,6 @@ func _check_region_markers() -> void:
 		1.0
 	)
 	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.enter_pollution_edge"), "污染：东南，目标", "polluted skitter returns objective to pollution edge")
-
 	marker_world.unlock_region("region.locked_ruin_gate")
 	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.unlock_ruin_signal"), "污染：东南，目标", "ruin gate objective follows scene placement in pollution edge")
 	_expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.unlock_ruin_signal"), "污染\n目标", "ruin gate minimap objective follows pollution edge marker")
@@ -390,9 +366,14 @@ func _check_region_markers() -> void:
 	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.salvage_signal_echo"), "外圈：更东，目标", "signal echo salvage stays in outer ring")
 	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.analyze_deep_signal"), "基地：当前位置，目标", "deep signal analysis returns to outpost reactor")
 	_expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.analyze_deep_signal"), "基地\n当前\n目标", "deep signal analysis minimap returns to outpost")
+	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.unlock_deep_ruin_entrance"), "外圈：更东，目标", "deep ruin door stays in outer ring")
+	marker_world.unlock_region("region.deep_ruin_threshold")
+	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.harvest_phase_filament"), "深段：更深，目标", "phase filament salvage points to deep region")
+	_expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.harvest_phase_filament"), "深段\n目标", "deep region minimap objective marker")
+	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.refine_phase_filament"), "晶体：东侧，目标", "phase filament filter points back to treatment filter")
+	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.assemble_deep_override"), "基地：当前位置，目标", "deep override assembly returns to outpost reactor")
+	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.unlock_deep_ruin_cache"), "深段：更深，目标", "deep latch returns objective to deep region")
 	map.free()
-
-
 func _check_region_presence_bounds() -> void:
 	var map := VerticalSliceMap.new()
 	_expect_equal(
@@ -410,9 +391,17 @@ func _check_region_presence_bounds() -> void:
 		"region.crystal_vein_field",
 		"gap before pollution visual edge should remain crystal"
 	)
+	_expect_equal(
+		map._get_region_id_for_position(Vector2(680, -8)),
+		"region.ruin_outer_ring",
+		"deep door should still sit in ruin outer ring"
+	)
+	_expect_equal(
+		map._get_region_id_for_position(Vector2(734, -96)),
+		"region.deep_ruin_threshold",
+		"deep filament salvage should sit in deep region"
+	)
 	map.free()
-
-
 func _check_pollution_gate_runtime_bounds() -> void:
 	var map := VerticalSliceMap.new()
 	map.player = PlayerController.new()
@@ -423,7 +412,6 @@ func _check_pollution_gate_runtime_bounds() -> void:
 	map.update_region_presence(gate_world, gate_character)
 	_expect_equal(map.player.position.x, 195.0, "locked pollution edge should push player before visual region")
 	_expect_equal(gate_world.current_region_id, "region.crystal_vein_field", "locked pollution edge should return to crystal side")
-
 	var unlocked_world := WorldState.create_default()
 	unlocked_world.unlock_region("region.crystal_vein_field")
 	unlocked_world.unlock_region("region.pollution_edge")
@@ -433,10 +421,32 @@ func _check_pollution_gate_runtime_bounds() -> void:
 	map.update_region_presence(unlocked_world, unlocked_character)
 	_expect_equal(unlocked_world.current_region_id, "region.pollution_edge", "unlocked pollution edge should update current region")
 	_expect_equal(unlocked_character.current_region_id, "region.pollution_edge", "unlocked pollution edge should update character region")
+	var deep_gate_world := WorldState.create_default()
+	deep_gate_world.unlock_region("region.crystal_vein_field")
+	deep_gate_world.unlock_region("region.pollution_edge")
+	deep_gate_world.unlock_region("region.ruin_outer_ring")
+	deep_gate_world.quest_state.completed_quest_ids.append("quest.stabilize_outer_ring_barrier")
+	var deep_gate_character := CharacterState.create_default()
+	map.last_reported_region_id = deep_gate_world.current_region_id
+	map.player.position = Vector2(734, -96)
+	map.update_region_presence(deep_gate_world, deep_gate_character)
+	_expect_equal(map.player.position.x, 676.0, "locked deep ruin gate should push player before deep region")
+	_expect_equal(deep_gate_world.current_region_id, "region.ruin_outer_ring", "locked deep ruin gate should keep outer ring region")
+	var unlocked_deep_world := WorldState.create_default()
+	unlocked_deep_world.unlock_region("region.crystal_vein_field")
+	unlocked_deep_world.unlock_region("region.pollution_edge")
+	unlocked_deep_world.unlock_region("region.ruin_outer_ring")
+	unlocked_deep_world.unlock_region("region.deep_ruin_threshold")
+	unlocked_deep_world.quest_state.completed_quest_ids.append("quest.stabilize_outer_ring_barrier")
+	unlocked_deep_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_entrance")
+	var unlocked_deep_character := CharacterState.create_default()
+	map.last_reported_region_id = unlocked_deep_world.current_region_id
+	map.player.position = Vector2(734, -96)
+	map.update_region_presence(unlocked_deep_world, unlocked_deep_character)
+	_expect_equal(unlocked_deep_world.current_region_id, "region.deep_ruin_threshold", "unlocked deep ruin gate should update current region")
+	_expect_equal(unlocked_deep_character.current_region_id, "region.deep_ruin_threshold", "unlocked deep ruin gate should update character region")
 	map.player.free()
 	map.free()
-
-
 func _check_new_game_state_reset() -> void:
 	var game_root = GameRootScript.new()
 	var new_state := game_root.create_new_game_state()
@@ -446,7 +456,6 @@ func _check_new_game_state_reset() -> void:
 		failures.append("new game state should include world and character")
 		game_root.free()
 		return
-
 	_expect_equal(reset_world.current_region_id, "region.outpost_platform", "new game resets world region")
 	_expect_equal(reset_character.current_region_id, "region.outpost_platform", "new game resets character region")
 	_expect_equal(reset_world.quest_state.active_quest_ids, ["quest.restore_outpost"], "new game resets active quest")
@@ -456,8 +465,6 @@ func _check_new_game_state_reset() -> void:
 	game_root.world_state = null
 	game_root.character_state = null
 	game_root.free()
-
-
 func _check_outpost_core_restored_visual() -> void:
 	var temp_root := Node.new()
 	var outpost_core := _create_visual_check_interactable(
@@ -477,15 +484,12 @@ func _check_outpost_core_restored_visual() -> void:
 	_expect_equal(outpost_core.monitoring, true, "new game outpost core enables interaction")
 	_expect_equal(outpost_core.marker.color, default_color, "new game outpost core restores default color")
 	temp_root.free()
-
-
 func _check_early_interaction_processed_visuals() -> void:
 	var map := VerticalSliceMap.new()
 	map.player = PlayerController.new()
 	map.interactables_root = Node2D.new()
 	map.add_child(map.player)
 	map.add_child(map.interactables_root)
-
 	var crystal := _create_visual_check_interactable(
 		map.interactables_root,
 		"map_object_instance.crystal_cluster",
@@ -539,7 +543,6 @@ func _check_early_interaction_processed_visuals() -> void:
 	var default_salvage_color := salvage.marker.color
 	var default_anomaly_residue_color := anomaly_residue.marker.color
 	var default_ruin_color := ruin_gate.marker.color
-
 	var visual_world := WorldState.create_default()
 	visual_world.ensure_map_object(crystal.instance_id, crystal.definition_id, "region.crystal_vein_field")
 	visual_world.set_map_object_flag(crystal.instance_id, "is_gathered", true)
@@ -555,7 +558,6 @@ func _check_early_interaction_processed_visuals() -> void:
 	visual_world.set_map_object_flag(residue.instance_id, "is_gathered", true)
 	visual_world.quest_state.completed_quest_ids.append("quest.unlock_ruin_signal")
 	map.refresh_world_interactables(visual_world)
-
 	_expect_equal(crystal.visible, true, "gathered crystal remains visible")
 	_expect_equal(crystal.monitoring, false, "gathered crystal disables repeat interaction")
 	_expect_equal(crystal.marker.color == default_crystal_color, false, "gathered crystal changes color")
@@ -581,7 +583,6 @@ func _check_early_interaction_processed_visuals() -> void:
 	_expect_equal(ruin_gate.monitoring, false, "confirmed ruin gate disables repeat interaction")
 	_expect_equal(ruin_gate.marker.color == default_ruin_color, false, "confirmed ruin gate changes color")
 	_expect_text_contains(ruin_gate.label.text, "信号已确认", "confirmed ruin gate label")
-
 	var reset_world := WorldState.create_default()
 	map.refresh_world_interactables(reset_world)
 	_expect_equal(crystal.monitoring, true, "new game crystal enables interaction")
@@ -595,10 +596,7 @@ func _check_early_interaction_processed_visuals() -> void:
 	_expect_equal(anomaly_residue.label.text, "异常残留点", "new game anomaly residue restores label")
 	_expect_equal(ruin_gate.monitoring, true, "new game ruin gate enables interaction")
 	_expect_equal(ruin_gate.marker.color, default_ruin_color, "new game ruin gate restores default color")
-
 	map.free()
-
-
 func _check_pollution_enemy_defeated_visual() -> void:
 	var enemy := _create_visual_check_enemy("enemy.polluted_skitter", "受扰掠行体", 40.0, "polluted")
 	var default_polluted_color := enemy.sprite.color
@@ -611,8 +609,6 @@ func _check_pollution_enemy_defeated_visual() -> void:
 	_expect_equal(enemy.sprite.color == default_polluted_color, false, "polluted enemy defeated changes color")
 	_expect_text_contains(enemy.label.text, "污染已压制", "polluted enemy defeated label")
 	enemy.free()
-
-
 func _check_treatment_enemy_spawn_gate() -> void:
 	var map := VerticalSliceMap.new()
 	var treatment_enemy := _create_visual_check_enemy("enemy.treatment_skitter", "处理点掠行体", 35.0, "basic")
@@ -625,8 +621,6 @@ func _check_treatment_enemy_spawn_gate() -> void:
 	_expect_equal(map._should_enemy_spawn(treatment_enemy, gate_world), true, "treatment enemy spawns after repair gel")
 	treatment_enemy.free()
 	map.free()
-
-
 func _check_treatment_enemy_combat_pressure() -> void:
 	var map := VerticalSliceMap.new()
 	map.data_registry = data_registry
@@ -637,8 +631,6 @@ func _check_treatment_enemy_combat_pressure() -> void:
 	_expect_text_contains(counter_message, "修复凝胶", "treatment enemy counterattack supply hint")
 	treatment_enemy.free()
 	map.free()
-
-
 func _check_quest_completion_panel_text() -> void:
 	var presenter := HudFeedbackPresenter.new()
 	var panel_texts := presenter.format_quest_completion_panel_texts({
@@ -675,8 +667,6 @@ func _check_quest_completion_panel_text() -> void:
 		"提示：遗迹外圈通路已恢复",
 		"completion note prefix"
 	)
-
-
 func _check_build_prompts() -> void:
 	var build_world := WorldState.create_default()
 	var build_character := CharacterState.create_default()
@@ -685,7 +675,6 @@ func _check_build_prompts() -> void:
 		ProcessingSystem.new(data_registry),
 		BuildSystem.new(data_registry)
 	)
-
 	var rough_ground := PrototypeInteractable.new()
 	rough_ground.definition_id = "map_object.rough_ground"
 	rough_ground.interaction_type = "clear"
@@ -695,7 +684,6 @@ func _check_build_prompts() -> void:
 		"阻挡建造",
 		"rough ground prompt"
 	)
-
 	var foundation_site := PrototypeInteractable.new()
 	foundation_site.definition_id = "building.foundation_t1"
 	foundation_site.interaction_type = "build"
@@ -706,7 +694,6 @@ func _check_build_prompts() -> void:
 		"地面仍然粗糙",
 		"foundation blocked prompt"
 	)
-
 	build_world.ensure_map_object("map_object_instance.rough_ground_north", "map_object.rough_ground", "region.pollution_edge")
 	build_world.set_map_object_flag("map_object_instance.rough_ground_north", "is_cleared", true)
 	_expect_text_contains(
@@ -714,14 +701,12 @@ func _check_build_prompts() -> void:
 		"缺少建造材料",
 		"foundation missing material prompt"
 	)
-
 	build_character.inventory.add_item("item.foundation_material", 1)
 	_expect_text_contains(
 		formatter.format_build_prompt(foundation_site, build_character, build_world),
 		"按 E 建造",
 		"foundation ready prompt"
 	)
-
 	var filter_site := PrototypeInteractable.new()
 	filter_site.definition_id = "building.pollution_filter"
 	filter_site.interaction_type = "build"
@@ -741,8 +726,6 @@ func _check_build_prompts() -> void:
 	rough_ground.free()
 	foundation_site.free()
 	filter_site.free()
-
-
 func _check_supply_feedback() -> void:
 	var supply_character := CharacterState.create_default()
 	supply_character.health = 45.0
@@ -751,31 +734,25 @@ func _check_supply_feedback() -> void:
 	_expect_equal(supply_character.health, 80.0, "repair gel health recovery")
 	_expect_feedback_contains(repair_result, "生命 +35", "repair gel feedback")
 	_expect_feedback_contains(repair_result, "当前 80 / 100", "repair gel current health feedback")
-
 	var full_health_character := CharacterState.create_default()
 	var full_health_blocked := full_health_character.use_quick_slot(0, data_registry)
 	_expect_equal(bool(full_health_blocked.get("success", true)), false, "full health should block repair gel")
 	_expect_feedback_contains(full_health_blocked, "生命已满", "full health supply feedback")
-
 	var missing_repair_result := supply_character.use_quick_slot(0, data_registry)
 	_expect_equal(bool(missing_repair_result.get("success", true)), false, "missing repair gel should fail")
 	_expect_feedback_contains(missing_repair_result, "基础反应器", "missing repair gel refill hint")
-
 	var missing_vial_character := CharacterState.create_default()
 	missing_vial_character.protection = 30.0
 	missing_vial_character.inventory.items.erase("item.resistance_vial_t1")
 	var missing_vial_result := missing_vial_character.use_quick_slot(1, data_registry)
 	_expect_equal(bool(missing_vial_result.get("success", true)), false, "missing vial should fail")
 	_expect_feedback_contains(missing_vial_result, "污染过滤器", "missing vial refill hint")
-
 	var vial_character := CharacterState.create_default()
 	vial_character.protection = 40.0
 	vial_character.inventory.add_item("item.resistance_vial_t1", 1)
 	var vial_result := vial_character.use_quick_slot(1, data_registry)
 	_expect_equal(bool(vial_result.get("success", false)), true, "resistance vial should be usable")
 	_expect_feedback_contains(vial_result, "继续深入污染边界", "resistance vial next step feedback")
-
-
 func _check_hud_feedback_presenter() -> void:
 	var presenter := HudFeedbackPresenter.new()
 	var supply_feedback := {
@@ -786,7 +763,6 @@ func _check_hud_feedback_presenter() -> void:
 		"title": "撤离前哨",
 		"reason_text": "生命耗尽"
 	}
-
 	_expect_equal(
 		presenter.get_supply_feedback({"supply_feedback": supply_feedback}),
 		supply_feedback,
@@ -810,8 +786,6 @@ func _check_hud_feedback_presenter() -> void:
 	var supply_panel_texts := presenter.format_supply_feedback_panel_texts(supply_feedback)
 	_expect_equal(String(supply_panel_texts.get("title", "")), "补给已使用", "presenter formats supply title")
 	_expect_equal(String(supply_panel_texts.get("detail", "")), "生命 +35", "presenter formats supply detail")
-
-
 func _check_pollution_status_hints() -> void:
 	var presenter := HudStatusPresenter.new()
 	var pollution_world := WorldState.create_default()
@@ -821,7 +795,6 @@ func _check_pollution_status_hints() -> void:
 		"无持续污染压力",
 		"stable region pollution status"
 	)
-
 	pollution_world.current_region_id = "region.pollution_edge"
 	pollution_character.current_region_id = "region.pollution_edge"
 	_expect_text_contains(
@@ -829,22 +802,18 @@ func _check_pollution_status_hints() -> void:
 		"未启用过滤模块",
 		"pollution status without module"
 	)
-
 	pollution_character.equipment["suit_module"] = "equipment.filter_module_t1"
 	_expect_text_contains(
 		presenter.format_pollution_status(data_registry, pollution_world, pollution_character),
 		"消耗 x0.65",
 		"pollution status with module"
 	)
-
 	pollution_character.protection = 30.0
 	_expect_text_contains(
 		presenter.format_pollution_status(data_registry, pollution_world, pollution_character),
 		"防护危险",
 		"low protection pollution status"
 	)
-
-
 func _check_region_prompt_formatter() -> void:
 	var formatter := InteractionPromptFormatter.new(
 		data_registry,
@@ -879,7 +848,6 @@ func _check_region_prompt_formatter() -> void:
 		"下一步：需要：先完成处理点扩建。",
 		"region gate blocked next step"
 	)
-
 	var ruin_world := WorldState.create_default()
 	_expect_text_contains(formatter.format_ruin_gate_prompt(ruin_world), "先压制污染残核", "ruin gate blocked prompt")
 	ruin_world.quest_state.completed_quest_ids.append("quest.enter_pollution_edge")
@@ -887,15 +855,30 @@ func _check_region_prompt_formatter() -> void:
 	_expect_text_contains(formatter.format_ruin_gate_prompt(ruin_world), "按 E 确认", "ruin gate ready prompt")
 	ruin_world.quest_state.completed_quest_ids.append("quest.unlock_ruin_signal")
 	_expect_text_contains(formatter.format_ruin_gate_prompt(ruin_world), "遗迹外圈已开放", "ruin gate completed prompt")
-
 	var echo_world := WorldState.create_default()
 	_expect_text_contains(formatter.format_signal_echo_cache_prompt(echo_world), "先检查外圈中继台", "signal echo cache blocked prompt")
 	echo_world.quest_state.completed_quest_ids.append("quest.secure_outer_ring_signal")
 	_expect_text_contains(formatter.format_signal_echo_cache_prompt(echo_world), "按 E 回收", "signal echo cache ready prompt")
 	echo_world.quest_state.completed_quest_ids.append("quest.salvage_signal_echo")
 	_expect_text_contains(formatter.format_signal_echo_cache_prompt(echo_world), "已回收", "signal echo cache completed prompt")
-
-
+	var deep_door_world := WorldState.create_default()
+	var deep_door_character := CharacterState.create_default()
+	_expect_text_contains(formatter.format_deep_ruin_door_prompt(deep_door_world, deep_door_character), "先回基地解析深段回波", "deep ruin door blocked prompt")
+	deep_door_world.quest_state.completed_quest_ids.append("quest.analyze_deep_signal")
+	_expect_text_contains(formatter.format_deep_ruin_door_prompt(deep_door_world, deep_door_character), "缺少更深遗迹坐标", "deep ruin door missing coordinates prompt")
+	deep_door_character.inventory.add_item("item.deep_ruin_coordinates", 1)
+	_expect_text_contains(formatter.format_deep_ruin_door_prompt(deep_door_world, deep_door_character), "按 E 写入", "deep ruin door ready prompt")
+	deep_door_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_entrance")
+	_expect_text_contains(formatter.format_deep_ruin_door_prompt(deep_door_world, deep_door_character), "已写入", "deep ruin door completed prompt")
+	var deep_latch_world := WorldState.create_default()
+	var deep_latch_character := CharacterState.create_default()
+	_expect_text_contains(formatter.format_deep_ruin_latch_prompt(deep_latch_world, deep_latch_character), "先回基地精炼相位纤丝", "deep ruin latch blocked prompt")
+	deep_latch_world.quest_state.completed_quest_ids.append("quest.assemble_deep_override")
+	_expect_text_contains(formatter.format_deep_ruin_latch_prompt(deep_latch_world, deep_latch_character), "缺少深段覆写栓", "deep ruin latch missing key prompt")
+	deep_latch_character.inventory.add_item("item.deep_override_key", 1)
+	_expect_text_contains(formatter.format_deep_ruin_latch_prompt(deep_latch_world, deep_latch_character), "按 E 覆写", "deep ruin latch ready prompt")
+	deep_latch_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_cache")
+	_expect_text_contains(formatter.format_deep_ruin_latch_prompt(deep_latch_world, deep_latch_character), "已覆写", "deep ruin latch completed prompt")
 func _check_failure_feedback_logs() -> void:
 	var log_presenter := HudLogPresenter.new(data_registry)
 	var no_target_map := VerticalSliceMap.new()
@@ -907,27 +890,23 @@ func _check_failure_feedback_logs() -> void:
 		"no target failure log"
 	)
 	no_target_map.free()
-
 	var no_enemy_map := VerticalSliceMap.new()
 	no_enemy_map.enemies_root = Node2D.new()
 	var no_enemy := no_enemy_map.try_attack(CharacterState.create_default(), WorldState.create_default())
 	_expect_failure_feedback(no_enemy, "攻击未命中", "no enemy attack feedback")
 	no_enemy_map.enemies_root.free()
 	no_enemy_map.free()
-
 	var processing := ProcessingSystem.new(data_registry)
 	var processing_world := WorldState.create_default()
 	var processing_character := CharacterState.create_default()
 	processing_world.quest_state.unlock_effect("recipe.process_crystal_ore")
 	var missing_inputs := processing.process_recipe("recipe.process_crystal_ore", processing_character, processing_world)
 	_expect_failure_feedback(missing_inputs, "原料不足", "processing missing inputs feedback")
-
 	processing_character.inventory.add_item("item.crystal_ore", 3)
 	var started := processing.process_recipe("recipe.process_crystal_ore", processing_character, processing_world)
 	_expect_equal(bool(started.get("success", false)), true, "processing starts before in-progress failure")
 	var in_progress := processing.process_recipe("recipe.process_crystal_ore", processing_character, processing_world)
 	_expect_failure_feedback(in_progress, "设备加工中", "processing in progress feedback")
-
 	var build_system := BuildSystem.new(data_registry)
 	var build_world := WorldState.create_default()
 	var build_character := CharacterState.create_default()
@@ -938,7 +917,6 @@ func _check_failure_feedback_logs() -> void:
 		build_world
 	)
 	_expect_failure_feedback(blocked_build, "建造前置不足", "build prerequisite feedback")
-
 	var gather_system := GatherSystem.new(data_registry)
 	var blocked_sample := gather_system.interact_with_object(
 		"map_object_instance.anomaly_crystal",
@@ -948,7 +926,6 @@ func _check_failure_feedback_logs() -> void:
 		WorldState.create_default()
 	)
 	_expect_failure_feedback(blocked_sample, "交互前置不足", "anomaly sample quest gate feedback")
-
 	var blocked_residue := gather_system.interact_with_object(
 		"map_object_instance.anomaly_residue_north",
 		"map_object.anomaly_residue_patch",
@@ -957,8 +934,6 @@ func _check_failure_feedback_logs() -> void:
 		WorldState.create_default()
 	)
 	_expect_failure_feedback(blocked_residue, "交互前置不足", "anomaly residue quest gate feedback")
-
-
 func _check_hud_log_presenter() -> void:
 	var presenter := HudLogPresenter.new(data_registry)
 	var startup_log := presenter.format_startup_log()
@@ -989,8 +964,6 @@ func _check_hud_log_presenter() -> void:
 		"分析异常样本",
 		"log presenter resolves recipe display names"
 	)
-
-
 func _check_device_panel_formatting() -> void:
 	var device_panel_presenter := HudDevicePanelPresenter.new()
 	var processing := ProcessingSystem.new(data_registry)
@@ -1011,7 +984,6 @@ func _check_device_panel_formatting() -> void:
 	])
 	device_world.quest_state.unlock_effect("recipe.process_crystal_ore")
 	device_character.inventory.add_item("item.crystal_ore", 3)
-
 	var texts := device_panel_presenter.format_device_panel_texts(
 		data_registry,
 		processing,
@@ -1025,7 +997,6 @@ func _check_device_panel_formatting() -> void:
 	_expect_text_contains(String(texts.get("operations", "")), "E 启动当前配方", "device panel process operation")
 	_expect_text_contains(String(texts.get("operations", "")), "R 切换配方", "device panel cycle operation")
 	_expect_text_contains(String(texts.get("operations", "")), "Q 关闭面板", "device panel close operation")
-
 	var recommended_world := WorldState.create_default()
 	var recommended_character := CharacterState.create_default()
 	recommended_world.quest_state.active_quest_ids = ["quest.analyze_anomaly_sample"]
@@ -1054,7 +1025,6 @@ func _check_device_panel_formatting() -> void:
 		"device panel recommended recipe marker"
 	)
 	_check_task_recipe_selection(reactor, processing)
-
 	var filter := PrototypeInteractable.new()
 	filter.definition_id = "building.pollution_filter"
 	filter.interaction_type = "process_recipe"
@@ -1079,15 +1049,19 @@ func _check_device_panel_formatting() -> void:
 	_expect_text_contains(String(filter_texts.get("title", "")), "污染过滤器", "filter device panel title")
 	_expect_text_contains(String(filter_texts.get("recipes", "")), "缺 污染沉积物 x2", "filter device panel missing input")
 	_expect_text_contains(String(filter_texts.get("operations", "")), "E 尝试当前配方", "filter device panel blocked operation")
-
 	reactor.free()
 	filter.free()
-
-
 func _check_task_recipe_selection(reactor: PrototypeInteractable, processing: ProcessingSystem) -> void:
 	var recipe_world := WorldState.create_default()
 	var recipe_character := CharacterState.create_default()
-
+	var filter := PrototypeInteractable.new()
+	filter.definition_id = "building.pollution_filter"
+	filter.interaction_type = "process_recipe"
+	filter.recipe_id = "recipe.cleanse_residue"
+	filter.set_recipe_cycle([
+		"recipe.cleanse_residue",
+		"recipe.phase_filament_refining"
+	])
 	recipe_world.quest_state.active_quest_ids = ["quest.analyze_anomaly_sample"]
 	recipe_world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 2)
 	_expect_equal(
@@ -1095,7 +1069,6 @@ func _check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pr
 		"recipe.analyze_anomaly_sample",
 		"sample analysis task recipe selection"
 	)
-
 	recipe_world.quest_state.active_quest_ids = ["quest.make_filter_module"]
 	_expect_equal(
 		processing.get_recommended_recipe_id(reactor, recipe_character, recipe_world),
@@ -1108,8 +1081,28 @@ func _check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pr
 		"recipe.basic_filter_module",
 		"filter module task selects module recipe after media"
 	)
-
-
+	recipe_world.quest_state.active_quest_ids = ["quest.refine_phase_filament"]
+	_expect_equal(
+		processing.get_recommended_recipe_id(filter, recipe_character, recipe_world),
+		"recipe.phase_filament_refining",
+		"phase filament refinement selects pollution filter recipe"
+	)
+	var deep_reactor := PrototypeInteractable.new()
+	deep_reactor.definition_id = "building.basic_reactor"
+	deep_reactor.interaction_type = "process_recipe"
+	deep_reactor.recipe_id = "recipe.process_crystal_ore"
+	deep_reactor.set_recipe_cycle([
+		"recipe.process_crystal_ore",
+		"recipe.deep_override_key"
+	])
+	recipe_world.quest_state.active_quest_ids = ["quest.assemble_deep_override"]
+	_expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.deep_override_key",
+		"deep override assembly selects reactor recipe"
+	)
+	deep_reactor.free()
+	filter.free()
 func _check_manual_recipe_cycle_keeps_player_choice() -> void:
 	var game_root = GameRootScript.new()
 	var recipe_world := WorldState.create_default()
@@ -1133,7 +1126,6 @@ func _check_manual_recipe_cycle_keeps_player_choice() -> void:
 	game_root.processing_system = processing
 	game_root.world_state = recipe_world
 	game_root.character_state = recipe_character
-
 	_expect_equal(
 		game_root._maybe_select_recommended_recipe(reactor, false),
 		"",
@@ -1154,16 +1146,12 @@ func _check_manual_recipe_cycle_keeps_player_choice() -> void:
 		"recipe.analyze_anomaly_sample",
 		"device approach changes to recommended recipe"
 	)
-
 	reactor.free()
 	game_root.free()
-
-
 func _complete_active_quest(quest_id: String, progress_refs: Array) -> void:
 	if not world_state.quest_state.has_active_quest(quest_id):
 		failures.append("%s should be active before completion" % quest_id)
 		return
-
 	for progress_ref in progress_refs:
 		if not progress_ref is Dictionary:
 			continue
@@ -1173,11 +1161,9 @@ func _complete_active_quest(quest_id: String, progress_refs: Array) -> void:
 			String(progress_ref.get("target_id", "")),
 			float(progress_ref.get("amount", 1.0))
 		)
-
 	if not _are_objectives_complete(quest_id):
 		failures.append("%s objectives should be complete before applying rewards" % quest_id)
 		return
-
 	var quest := data_registry.get_definition(quest_id)
 	world_state.quest_state.complete_quest(quest_id)
 	_grant_refs(quest.get("rewards", []))
@@ -1185,14 +1171,11 @@ func _complete_active_quest(quest_id: String, progress_refs: Array) -> void:
 		_apply_unlock(String(effect_id))
 	for next_quest_id in quest.get("next_quest_ids", []):
 		world_state.quest_state.activate_quest(String(next_quest_id))
-
-
 func _are_objectives_complete(quest_id: String) -> bool:
 	var quest := data_registry.get_definition(quest_id)
 	if quest.is_empty():
 		failures.append("missing quest definition: %s" % quest_id)
 		return false
-
 	for objective in quest.get("objectives", []):
 		if not objective is Dictionary:
 			continue
@@ -1203,51 +1186,39 @@ func _are_objectives_complete(quest_id: String) -> bool:
 		if current_amount < required_amount:
 			return false
 	return true
-
-
 func _grant_refs(refs: Array) -> void:
 	for ref in refs:
 		if not ref is Dictionary:
 			continue
-
 		var definition_id := String(ref.get("id", ""))
 		var amount := float(ref.get("amount", 0.0))
 		if definition_id.is_empty() or amount <= 0.0:
 			continue
 		character_state.inventory.add_ref(definition_id, amount)
-
-
 func _apply_unlock(effect_id: String) -> void:
 	if effect_id.begins_with("region."):
 		world_state.unlock_region(effect_id)
 	world_state.quest_state.unlock_effect(effect_id)
-
-
 func _check_processing_runtime() -> void:
 	var processing := ProcessingSystem.new(data_registry)
 	var processing_world := WorldState.create_default()
 	var processing_character := CharacterState.create_default()
 	processing_world.quest_state.unlock_effect("recipe.process_crystal_ore")
 	processing_character.inventory.add_item("item.crystal_ore", 3)
-
 	var start_result := processing.process_recipe("recipe.process_crystal_ore", processing_character, processing_world)
 	_expect_equal(bool(start_result.get("success", false)), true, "processing should start")
 	_expect_equal(int(processing_character.inventory.items.get("item.crystal_ore", 0)), 0, "processing consumes inputs on start")
 	_expect_equal(int(processing_character.inventory.items.get("item.basic_parts", 0)), 4, "processing should not grant outputs on start")
-
 	var reactor: Dictionary = processing_world.base_structures.get("structure.basic_reactor", {})
 	_expect_equal(String(reactor.get("status", "")), "in_progress", "reactor status after start")
 	_expect_equal(String(reactor.get("active_recipe_id", "")), "recipe.process_crystal_ore", "reactor active recipe")
-
 	var partial_results := processing.advance_processing(3.0, processing_character, processing_world)
 	_expect_equal(partial_results.size(), 0, "processing should not complete early")
 	reactor = processing_world.base_structures.get("structure.basic_reactor", {})
 	_expect_equal(float(reactor.get("progress_seconds", 0.0)), 3.0, "reactor partial progress")
-
 	var status := processing.get_recipe_status("recipe.process_crystal_ore", processing_character, processing_world)
 	if String(status.get("message", "")).find("加工中") < 0:
 		failures.append("processing status should show in progress, got %s" % var_to_str(status))
-
 	var completed_results := processing.advance_processing(10.0, processing_character, processing_world)
 	_expect_equal(completed_results.size(), 1, "processing should complete after duration")
 	if not completed_results.is_empty():
@@ -1283,7 +1254,6 @@ func _check_processing_runtime() -> void:
 		"按 R 切换",
 		"processing panel next step"
 	)
-
 	var filter_world := WorldState.create_default()
 	var filter_character := CharacterState.create_default()
 	filter_world.quest_state.unlock_effect("recipe.cleanse_residue")
@@ -1295,7 +1265,6 @@ func _check_processing_runtime() -> void:
 	)
 	filter_character.inventory.add_item("item.polluted_residue", 2)
 	filter_character.inventory.add_fluid("fluid.basic_solvent", 1.0)
-
 	var filter_start := processing.process_recipe("recipe.cleanse_residue", filter_character, filter_world)
 	_expect_equal(bool(filter_start.get("success", false)), true, "pollution filter should start")
 	_expect_equal(filter_world.base_structures.has("structure.pollution_filter"), false, "processing should reuse built pollution filter structure")
@@ -1335,8 +1304,6 @@ func _check_processing_runtime() -> void:
 		"抗污染药剂",
 		"pollution filter panel next step"
 	)
-
-
 func _check_evacuation_feedback() -> void:
 	var map := VerticalSliceMap.new()
 	map.player = PlayerController.new()
@@ -1346,7 +1313,6 @@ func _check_evacuation_feedback() -> void:
 	evacuation_character.protection = 80.0
 	evacuation_character.current_region_id = "region.pollution_edge"
 	evacuation_world.current_region_id = "region.pollution_edge"
-
 	var feedback := map._evacuate_if_needed(evacuation_character, evacuation_world, "combat")
 	_expect_equal(String(feedback.get("title", "")), "撤离前哨", "evacuation feedback title")
 	_expect_equal(String(feedback.get("reason_text", "")), "生命耗尽", "evacuation reason")
@@ -1363,27 +1329,17 @@ func _check_evacuation_feedback() -> void:
 	_expect_text_contains(String(panel_texts.get("detail", "")), "再尝试前：按 1 使用修复凝胶", "evacuation panel retry")
 	map.player.free()
 	map.free()
-
-
 func _expect_active_quest(quest_id: String, label: String) -> void:
 	_expect_array_has(world_state.quest_state.active_quest_ids, quest_id, label)
-
-
 func _expect_equal(actual, expected, label: String) -> void:
 	if actual != expected:
 		failures.append("%s expected %s, got %s" % [label, var_to_str(expected), var_to_str(actual)])
-
-
 func _expect_array_has(values: Array, expected_value: String, label: String) -> void:
 	if not values.has(expected_value):
 		failures.append("%s should contain %s, got %s" % [label, expected_value, var_to_str(values)])
-
-
 func _expect_array_missing(values: Array, unexpected_value: String, label: String) -> void:
 	if values.has(unexpected_value):
 		failures.append("%s should not contain %s, got %s" % [label, unexpected_value, var_to_str(values)])
-
-
 func _expect_hint_contains(
 	presenter: HudHintPresenter,
 	hint_world: WorldState,
@@ -1395,31 +1351,22 @@ func _expect_hint_contains(
 	var hint := presenter.format_onboarding_hint(hint_world, hint_character, quest_id)
 	if hint.find(expected_text) < 0:
 		failures.append("%s should contain %s, got %s" % [label, expected_text, hint])
-
-
 func _expect_text_contains(text: String, expected_text: String, label: String) -> void:
 	if text.find(expected_text) < 0:
 		failures.append("%s should contain %s, got %s" % [label, expected_text, text])
-
-
 func _expect_text_missing(text: String, unexpected_text: String, label: String) -> void:
 	if text.find(unexpected_text) >= 0:
 		failures.append("%s should not contain %s, got %s" % [label, unexpected_text, text])
-
-
 func _expect_feedback_contains(result: Dictionary, expected_text: String, label: String) -> void:
 	var feedback = result.get("supply_feedback", {})
 	if not feedback is Dictionary:
 		failures.append("%s should include supply feedback, got %s" % [label, var_to_str(result)])
 		return
-
 	var text := "%s %s" % [
 		String(feedback.get("title", "")),
 		String(feedback.get("detail", ""))
 	]
 	_expect_text_contains(text, expected_text, label)
-
-
 func _create_visual_check_interactable(
 	parent: Node,
 	instance_id: String,
@@ -1448,8 +1395,6 @@ func _create_visual_check_interactable(
 	interactable.interaction_type = interaction_type
 	interactable.setup(display_name)
 	return interactable
-
-
 func _create_visual_check_enemy(
 	definition_id: String,
 	display_name: String,
@@ -1475,8 +1420,6 @@ func _create_visual_check_enemy(
 	enemy.definition_id = definition_id
 	enemy.setup(display_name, max_health, category)
 	return enemy
-
-
 func _expect_failure_feedback(result: Dictionary, expected_title: String, label: String) -> void:
 	_expect_equal(bool(result.get("success", true)), false, "%s success state" % label)
 	var feedback = result.get("failure_feedback", {})
@@ -1486,7 +1429,5 @@ func _expect_failure_feedback(result: Dictionary, expected_title: String, label:
 	_expect_equal(String(feedback.get("title", "")), expected_title, label)
 	if String(feedback.get("detail", "")).strip_edges().is_empty():
 		failures.append("%s should include next-step detail, got %s" % [label, var_to_str(feedback)])
-
-
 func _cleanup() -> void:
 	data_registry.free()

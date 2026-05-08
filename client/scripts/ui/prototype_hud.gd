@@ -32,13 +32,15 @@ var runtime_hint_text := ""
 	$MapPanel/OutpostMarker,
 	$MapPanel/CrystalMarker,
 	$MapPanel/PollutionMarker,
-	$MapPanel/RuinMarker
+	$MapPanel/RuinMarker,
+	$MapPanel/DeepMarker
 ]
 @onready var map_marker_labels: Array[Label] = [
 	$MapPanel/OutpostLabel,
 	$MapPanel/CrystalLabel,
 	$MapPanel/PollutionLabel,
-	$MapPanel/RuinLabel
+	$MapPanel/RuinLabel,
+	$MapPanel/DeepLabel
 ]
 @onready var device_title_label: Label = $DevicePanel/DeviceTitleLabel
 @onready var device_status_label: Label = $DevicePanel/DeviceStatusLabel
@@ -380,14 +382,16 @@ func _ensure_runtime_nodes() -> void:
 			get_node_or_null("MapPanel/OutpostMarker"),
 			get_node_or_null("MapPanel/CrystalMarker"),
 			get_node_or_null("MapPanel/PollutionMarker"),
-			get_node_or_null("MapPanel/RuinMarker")
+			get_node_or_null("MapPanel/RuinMarker"),
+			get_node_or_null("MapPanel/DeepMarker")
 		]
 	if map_marker_labels.is_empty() or map_marker_labels[0] == null:
 		map_marker_labels = [
 			get_node_or_null("MapPanel/OutpostLabel"),
 			get_node_or_null("MapPanel/CrystalLabel"),
 			get_node_or_null("MapPanel/PollutionLabel"),
-			get_node_or_null("MapPanel/RuinLabel")
+			get_node_or_null("MapPanel/RuinLabel"),
+			get_node_or_null("MapPanel/DeepLabel")
 		]
 	if device_title_label == null:
 		device_title_label = get_node_or_null("DevicePanel/DeviceTitleLabel")

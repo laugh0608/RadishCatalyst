@@ -113,7 +113,17 @@ func _format_completion_note(quest_id: String) -> String:
 		"quest.salvage_signal_echo":
 			return "深段回波已带回；回基地解析后可整理出更深遗迹坐标"
 		"quest.analyze_deep_signal":
-			return "更深遗迹坐标已解析，下一包区域内容可从这里继续展开"
+			return "更深遗迹坐标已解析，可返回外圈最东侧写入深段入口门禁"
+		"quest.unlock_deep_ruin_entrance":
+			return "深段入口已打开，可进入更深区域回收相位纤丝"
+		"quest.harvest_phase_filament":
+			return "相位纤丝已带回；回基地用污染过滤器精炼谐振滤芯"
+		"quest.refine_phase_filament":
+			return "谐振滤芯和污染浆液已就绪；回基础反应器组装深段覆写栓"
+		"quest.assemble_deep_override":
+			return "深段覆写栓已完成，可返回深段入口覆写锁扣"
+		"quest.unlock_deep_ruin_cache":
+			return "深段样块已回收；更深遗迹入口第一版闭环已成立"
 		_:
 			return ""
 

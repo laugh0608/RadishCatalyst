@@ -355,6 +355,8 @@ func _format_slot_details(save_data: Dictionary) -> String:
 			var active_quest_ids = quest_state.get("active_quest_ids", [])
 			if active_quest_ids is Array and not active_quest_ids.is_empty():
 				parts.append("目标：%s" % _get_display_name(String(active_quest_ids[0])))
+			elif _get_string_array(quest_state.get("completed_quest_ids", [])).has("quest.unlock_deep_ruin_cache"):
+				parts.append("目标：更深遗迹入口第一版已完成")
 			elif _get_string_array(quest_state.get("unlocked_effects", [])).has("slice_01_complete"):
 				parts.append("目标：遗迹外圈第一版已完成")
 

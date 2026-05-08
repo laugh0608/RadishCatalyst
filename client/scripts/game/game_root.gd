@@ -235,6 +235,12 @@ func _on_interaction_available(interactable: PrototypeInteractable, should_auto_
 	if interactable.definition_id == "map_object.signal_echo_cache":
 		hud.show_prompt(interaction_prompt_formatter.format_signal_echo_cache_prompt(world_state))
 		return
+	if interactable.definition_id == "map_object.deep_ruin_door":
+		hud.show_prompt(interaction_prompt_formatter.format_deep_ruin_door_prompt(world_state, character_state))
+		return
+	if interactable.definition_id == "map_object.deep_ruin_latch":
+		hud.show_prompt(interaction_prompt_formatter.format_deep_ruin_latch_prompt(world_state, character_state))
+		return
 	if interactable.interaction_type == "process_recipe":
 		var auto_selected_recipe := _maybe_select_recommended_recipe(interactable, should_auto_select_recipe)
 		hud.show_prompt(interaction_prompt_formatter.format_processing_prompt(interactable, character_state, world_state))
@@ -278,6 +284,11 @@ func _on_region_gate_blocked(message: String) -> void:
 		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(
 			message,
 			"需要：回基地用基础反应器组装稳相信标。"
+		))
+	elif message.find("深段入口") >= 0:
+		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(
+			message,
+			"需要：回基地解析深段回波，带着更深遗迹坐标回来写入门禁。"
 		))
 	elif message.find("遗迹外圈") >= 0:
 		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(
@@ -374,6 +385,12 @@ func _refresh_current_context_prompt() -> void:
 		return
 	if interactable.definition_id == "map_object.signal_echo_cache":
 		hud.show_prompt(interaction_prompt_formatter.format_signal_echo_cache_prompt(world_state))
+		return
+	if interactable.definition_id == "map_object.deep_ruin_door":
+		hud.show_prompt(interaction_prompt_formatter.format_deep_ruin_door_prompt(world_state, character_state))
+		return
+	if interactable.definition_id == "map_object.deep_ruin_latch":
+		hud.show_prompt(interaction_prompt_formatter.format_deep_ruin_latch_prompt(world_state, character_state))
 		return
 	if interactable.interaction_type == "process_recipe":
 		hud.show_prompt(interaction_prompt_formatter.format_processing_prompt(interactable, character_state, world_state))

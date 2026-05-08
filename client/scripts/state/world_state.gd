@@ -11,7 +11,8 @@ var pollution_levels: Dictionary = {
 	"region.outpost_platform": 0.0,
 	"region.crystal_vein_field": 0.0,
 	"region.pollution_edge": 1.0,
-	"region.ruin_outer_ring": 1.15
+	"region.ruin_outer_ring": 1.15,
+	"region.deep_ruin_threshold": 1.35
 }
 var map_objects: Dictionary = {}
 var enemies: Dictionary = {}

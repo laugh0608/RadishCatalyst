@@ -11,6 +11,10 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 	"item.phase_anchor",
 	"item.signal_echo_trace",
 	"item.deep_ruin_coordinates",
+	"item.phase_filament",
+	"item.resonance_filter",
+	"item.deep_override_key",
+	"item.deep_ruin_core",
 	"item.filter_media",
 	"item.foundation_material",
 	"fluid.basic_solvent",
@@ -96,8 +100,10 @@ func _format_status_lines(
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if not quest_id.is_empty():
 		return _get_display_name(data_registry, quest_id)
+	if _has_completed_deep_ruin_entry(world_state):
+		return "更深遗迹入口第一版已完成"
 	if _has_completed_deep_signal_analysis(world_state):
-		return "更深遗迹坐标已解析"
+		return "更深遗迹坐标待写入门禁"
 	if _is_slice_complete(world_state):
 		return "遗迹外圈第一版已完成"
 	return "无"
@@ -148,8 +154,10 @@ func _format_quick_slots(data_registry: DataRegistry, character_state: Character
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_deep_ruin_entry(world_state):
+			return "深段入口、过滤精炼和覆写开锁闭环已完成；深段样块已回收"
 		if _has_completed_deep_signal_analysis(world_state):
-			return "深段回波已转成可执行坐标，下一段遗迹入口已具备明确方向"
+			return "深段回波已转成可执行坐标，返回遗迹外圈最东侧即可写入深段入口门禁"
 		if _is_slice_complete(world_state):
 			return "外圈中继已确认，更深遗迹结构已定位"
 		return "无"
@@ -248,6 +256,10 @@ func _is_slice_complete(world_state: WorldState) -> bool:
 
 func _has_completed_deep_signal_analysis(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.analyze_deep_signal")
+
+
+func _has_completed_deep_ruin_entry(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_cache")
 
 
 func _ensure_objective_source_resolver(data_registry: DataRegistry) -> void:

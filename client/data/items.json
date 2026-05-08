@@ -206,7 +206,59 @@
       "mass": 0.1,
       "rarity": "rare",
       "source_refs": ["recipe.deep_signal_analysis"],
-      "used_by_refs": ["quest.analyze_deep_signal"],
+      "used_by_refs": ["quest.analyze_deep_signal", "quest.unlock_deep_ruin_entrance"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.phase_filament",
+      "display_name_key": "item.phase_filament.name",
+      "description_key": "item.phase_filament.desc",
+      "category": "resource",
+      "tags": ["ruin", "phase_filament", "slice_02"],
+      "stack_size": 10,
+      "mass": 0.2,
+      "rarity": "rare",
+      "source_refs": ["map_object.phase_filament_cluster"],
+      "used_by_refs": ["quest.harvest_phase_filament", "recipe.phase_filament_refining"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.resonance_filter",
+      "display_name_key": "item.resonance_filter.name",
+      "description_key": "item.resonance_filter.desc",
+      "category": "component",
+      "tags": ["ruin", "resonance_filter", "slice_02"],
+      "stack_size": 5,
+      "mass": 0.2,
+      "rarity": "rare",
+      "source_refs": ["recipe.phase_filament_refining"],
+      "used_by_refs": ["quest.refine_phase_filament", "recipe.deep_override_key"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.deep_override_key",
+      "display_name_key": "item.deep_override_key.name",
+      "description_key": "item.deep_override_key.desc",
+      "category": "component",
+      "tags": ["ruin", "override_key", "slice_02"],
+      "stack_size": 3,
+      "mass": 0.3,
+      "rarity": "rare",
+      "source_refs": ["recipe.deep_override_key"],
+      "used_by_refs": ["quest.assemble_deep_override", "quest.unlock_deep_ruin_cache"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.deep_ruin_core",
+      "display_name_key": "item.deep_ruin_core.name",
+      "description_key": "item.deep_ruin_core.desc",
+      "category": "resource",
+      "tags": ["ruin", "deep_core", "slice_02"],
+      "stack_size": 5,
+      "mass": 0.4,
+      "rarity": "epic",
+      "source_refs": ["quest.unlock_deep_ruin_cache"],
+      "used_by_refs": [],
       "public_level": "spoiler"
     }
   ]

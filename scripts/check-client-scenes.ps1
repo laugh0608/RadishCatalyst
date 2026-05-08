@@ -162,11 +162,14 @@ function Get-NodeVector2($Properties, [string]$Key) {
     }
 }
 
-function Get-MapRegionId($Position, [double]$CrystalRegionX, [double]$PollutionRegionX, [double]$PollutionDeepY, [double]$RuinOuterRingX) {
+function Get-MapRegionId($Position, [double]$CrystalRegionX, [double]$PollutionRegionX, [double]$PollutionDeepY, [double]$RuinOuterRingX, [double]$DeepRuinRegionX) {
     if ($null -eq $Position) {
         return ""
     }
 
+    if ($Position.X -ge $DeepRuinRegionX) {
+        return "region.deep_ruin_threshold"
+    }
     if ($Position.X -ge $RuinOuterRingX) {
         return "region.ruin_outer_ring"
     }
@@ -419,12 +422,14 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
     $pollutionRegionX = 200.0
     $pollutionDeepY = -40.0
     $ruinOuterRingX = 390.0
+    $deepRuinRegionX = 700.0
     if (Test-Path -LiteralPath $verticalSliceMapScriptPath -PathType Leaf) {
         $mapScriptContent = Get-Content -LiteralPath $verticalSliceMapScriptPath -Raw
         $crystalRegionX = Get-GDScriptConstantNumber $mapScriptContent "CRYSTAL_REGION_X" $crystalRegionX
         $pollutionRegionX = Get-GDScriptConstantNumber $mapScriptContent "POLLUTION_REGION_X" $pollutionRegionX
         $pollutionDeepY = Get-GDScriptConstantNumber $mapScriptContent "POLLUTION_DEEP_Y" $pollutionDeepY
         $ruinOuterRingX = Get-GDScriptConstantNumber $mapScriptContent "RUIN_OUTER_RING_X" $ruinOuterRingX
+        $deepRuinRegionX = Get-GDScriptConstantNumber $mapScriptContent "DEEP_RUIN_REGION_X" $deepRuinRegionX
     }
     else {
         Add-Error "client/scripts/map/vertical_slice_map.gd: missing map region source for scene region checks"
@@ -453,7 +458,7 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
                 DefinitionId = Get-NodeString $node.Properties "definition_id"
                 InteractionType = Get-NodeString $node.Properties "interaction_type"
                 PrerequisiteInstanceId = Get-NodeString $node.Properties "prerequisite_instance_id"
-                RegionId = Get-MapRegionId $position $crystalRegionX $pollutionRegionX $pollutionDeepY $ruinOuterRingX
+                RegionId = Get-MapRegionId $position $crystalRegionX $pollutionRegionX $pollutionDeepY $ruinOuterRingX $deepRuinRegionX
             }
             $interactables.Add($interactable)
             $interactablesByInstanceId[$instanceId] = $interactable
@@ -464,7 +469,7 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
             $enemies.Add([pscustomobject]@{
                 Name = $node.Name
                 DefinitionId = Get-NodeString $node.Properties "definition_id"
-                RegionId = Get-MapRegionId $position $crystalRegionX $pollutionRegionX $pollutionDeepY $ruinOuterRingX
+                RegionId = Get-MapRegionId $position $crystalRegionX $pollutionRegionX $pollutionDeepY $ruinOuterRingX $deepRuinRegionX
             })
         }
     }

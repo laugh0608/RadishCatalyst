@@ -64,6 +64,8 @@ func advance_pollution_edge_ready(world_state: WorldState, character_state: Char
 func reconcile_active_objectives(world_state: WorldState, character_state: CharacterState) -> Dictionary:
 	var updates: Array[Dictionary] = []
 	var log_messages: Array[String] = []
+	if _activate_missing_deep_ruin_followup(world_state):
+		log_messages.append("旧进度已接入：更深遗迹入口门禁写入任务已补入当前目标。")
 	if _activate_missing_outer_ring_followup(world_state):
 		log_messages.append("旧进度已接入：外圈中继后的深段回波回收任务已补入当前目标。")
 	if world_state.quest_state.has_active_quest("quest.bring_back_sample"):
@@ -140,6 +142,19 @@ func _activate_missing_outer_ring_followup(world_state: WorldState) -> bool:
 	if world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
 		return false
 	world_state.quest_state.activate_quest("quest.salvage_signal_echo")
+	return true
+
+
+func _activate_missing_deep_ruin_followup(world_state: WorldState) -> bool:
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.analyze_deep_signal"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_entrance"):
+		return false
+	if world_state.quest_state.has_active_quest("quest.unlock_deep_ruin_entrance"):
+		return false
+	world_state.quest_state.activate_quest("quest.unlock_deep_ruin_entrance")
 	return true
 
 

@@ -163,6 +163,10 @@ func get_recommended_recipe_id(
 			return _select_if_available(interactable, "recipe.phase_anchor")
 		"quest.analyze_deep_signal":
 			return _select_if_available(interactable, "recipe.deep_signal_analysis")
+		"quest.refine_phase_filament":
+			return _select_if_available(interactable, "recipe.phase_filament_refining")
+		"quest.assemble_deep_override":
+			return _select_if_available(interactable, "recipe.deep_override_key")
 		_:
 			return ""
 
@@ -223,7 +227,11 @@ func _get_completion_next_step(recipe_id: String) -> String:
 		"recipe.phase_anchor":
 			return "带着稳相信标返回遗迹外圈，在抖动雾幕前部署后再继续深入。"
 		"recipe.deep_signal_analysis":
-			return "更深遗迹坐标已整理完成；返回基地整理补给，等待下一包区域内容。"
+			return "带着更深遗迹坐标返回遗迹外圈最东侧，写入深段入口门禁。"
+		"recipe.phase_filament_refining":
+			return "把谐振滤芯、副产污染浆液和基础零件送到基础反应器，组装深段覆写栓。"
+		"recipe.deep_override_key":
+			return "带着深段覆写栓返回深段入口，覆写锁扣并取出样块。"
 		_:
 			return "查看当前任务目标，选择下一次加工或外出行动。"
 

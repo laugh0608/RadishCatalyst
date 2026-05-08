@@ -47,6 +47,16 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		return [_set_update("quest.secure_outer_ring_signal", "inspect", "map_object.outer_ring_console", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.signal_echo_cache":
 		return [_set_update("quest.salvage_signal_echo", "inspect", "map_object.signal_echo_cache", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.deep_ruin_door":
+		return [_set_update("quest.unlock_deep_ruin_entrance", "inspect", "map_object.deep_ruin_door", 1)]
+	if interaction_type == "gather" and definition_id == "map_object.phase_filament_cluster":
+		var updates: Array[Dictionary] = [
+			_set_update("quest.harvest_phase_filament", "visit_region", "region.deep_ruin_threshold", 1)
+		]
+		updates.append_array(_get_drop_objective_updates("quest.harvest_phase_filament", "gather_item", "item.phase_filament", definition_id))
+		return updates
+	if interaction_type == "inspect" and definition_id == "map_object.deep_ruin_latch":
+		return [_set_update("quest.unlock_deep_ruin_cache", "inspect", "map_object.deep_ruin_latch", 1)]
 	if interaction_type == "process_recipe":
 		return get_recipe_objective_updates(recipe_id)
 	if interaction_type == "build":
@@ -61,6 +71,8 @@ func get_region_objective_updates(region_id: String, _quest_state: QuestState) -
 		return [_set_update("quest.enter_pollution_edge", "visit_region", region_id, 1)]
 	if region_id == "region.ruin_outer_ring":
 		return [_set_update("quest.scout_ruin_outer_ring", "visit_region", region_id, 1)]
+	if region_id == "region.deep_ruin_threshold":
+		return [_set_update("quest.harvest_phase_filament", "visit_region", region_id, 1)]
 	return []
 
 
@@ -80,6 +92,10 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 			return [_set_update("quest.assemble_phase_anchor", "craft_item", "item.phase_anchor", 1)]
 		"recipe.deep_signal_analysis":
 			return [_set_update("quest.analyze_deep_signal", "craft_item", "item.deep_ruin_coordinates", 1)]
+		"recipe.phase_filament_refining":
+			return [_set_update("quest.refine_phase_filament", "craft_item", "item.resonance_filter", 1)]
+		"recipe.deep_override_key":
+			return [_set_update("quest.assemble_deep_override", "craft_item", "item.deep_override_key", 1)]
 		_:
 			return []
 
@@ -101,6 +117,8 @@ func get_defeated_enemy_objective_updates(enemy_definition_id: String) -> Array[
 		return [_set_update("quest.defeat_elite_node", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.ruin_phase_guard":
 		return [_set_update("quest.salvage_signal_echo", "defeat_enemy", enemy_definition_id, 1)]
+	if enemy_definition_id == "enemy.deep_ruin_sentinel":
+		return [_set_update("quest.harvest_phase_filament", "defeat_enemy", enemy_definition_id, 1)]
 	return []
 
 

@@ -154,6 +154,26 @@ func format_signal_echo_cache_prompt(world_state: WorldState) -> String:
 	return "按 E 回收：外圈回波匣。"
 
 
+func format_deep_ruin_door_prompt(world_state: WorldState, character_state: CharacterState) -> String:
+	if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_entrance"):
+		return "深段入口门禁：已写入，可继续向东进入深段。"
+	if not world_state.quest_state.has_completed_quest("quest.analyze_deep_signal"):
+		return "深段入口门禁：先回基地解析深段回波，拿到更深遗迹坐标。"
+	if not character_state.inventory.has_ref("item.deep_ruin_coordinates", 1):
+		return "深段入口门禁：缺少更深遗迹坐标；回基地确认基础反应器解析结果后再来。"
+	return "按 E 写入：更深遗迹坐标，打开深段入口。"
+
+
+func format_deep_ruin_latch_prompt(world_state: WorldState, character_state: CharacterState) -> String:
+	if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_cache"):
+		return "深段锁扣：已覆写，深段样块已回收。"
+	if not world_state.quest_state.has_completed_quest("quest.assemble_deep_override"):
+		return "深段锁扣：先回基地精炼相位纤丝并组装深段覆写栓。"
+	if not character_state.inventory.has_ref("item.deep_override_key", 1):
+		return "深段锁扣：缺少深段覆写栓；回过滤器精炼纤丝，再去反应器组装。"
+	return "按 E 覆写：深段锁扣。"
+
+
 func format_pollution_entry_warning(character_state: CharacterState) -> String:
 	var warnings: Array[String] = []
 	if character_state.protection < character_state.max_protection * 0.5:

@@ -82,6 +82,11 @@ func _get_region_marker_data() -> Array[Dictionary]:
 			"region_id": "region.ruin_outer_ring",
 			"label": "外圈",
 			"direction": "更东"
+		},
+		{
+			"region_id": "region.deep_ruin_threshold",
+			"label": "深段",
+			"direction": "更深"
 		}
 	]
 

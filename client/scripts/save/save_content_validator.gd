@@ -24,7 +24,11 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.relay_shard_cache_south": "map_object.relay_shard_cache",
 	"map_object_instance.outer_ring_barrier": "map_object.outer_ring_barrier",
 	"map_object_instance.outer_ring_console": "map_object.outer_ring_console",
-	"map_object_instance.signal_echo_cache": "map_object.signal_echo_cache"
+	"map_object_instance.signal_echo_cache": "map_object.signal_echo_cache",
+	"map_object_instance.deep_ruin_door": "map_object.deep_ruin_door",
+	"map_object_instance.phase_filament_cluster_north": "map_object.phase_filament_cluster",
+	"map_object_instance.phase_filament_cluster_south": "map_object.phase_filament_cluster",
+	"map_object_instance.deep_ruin_latch": "map_object.deep_ruin_latch"
 }
 
 const PROTOTYPE_ENEMY_SOURCES := {
@@ -47,6 +51,10 @@ const PROTOTYPE_ENEMY_SOURCES := {
 	"enemy_instance.ruin_phase_guard": {
 		"definition_id": "enemy.ruin_phase_guard",
 		"region_id": "region.ruin_outer_ring"
+	},
+	"enemy_instance.deep_ruin_sentinel": {
+		"definition_id": "enemy.deep_ruin_sentinel",
+		"region_id": "region.deep_ruin_threshold"
 	}
 }
 

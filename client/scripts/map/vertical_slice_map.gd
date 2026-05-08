@@ -12,7 +12,7 @@ const PLAYER_INTERACTION_RANGE := 96.0
 const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
 const OUTPOST_RESPAWN_POSITION := Vector2(-250, -48)
 const PLAY_BOUNDS_MIN := Vector2(-360, -200)
-const PLAY_BOUNDS_MAX := Vector2(620, 200)
+const PLAY_BOUNDS_MAX := Vector2(820, 200)
 const CRYSTAL_REGION_X := -70.0
 const CRYSTAL_GATE_RETURN_X := -85.0
 const POLLUTION_REGION_X := 200.0
@@ -23,6 +23,8 @@ const RUIN_OUTER_RING_X := 390.0
 const RUIN_GATE_RETURN_X := 355.0
 const OUTER_RING_BARRIER_X := 540.0
 const OUTER_RING_BARRIER_RETURN_X := 514.0
+const DEEP_RUIN_REGION_X := 700.0
+const DEEP_RUIN_GATE_RETURN_X := 676.0
 
 @onready var player: PlayerController = $Player
 @onready var interactables_root: Node2D = $Interactables
@@ -62,6 +64,10 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		return _inspect_outer_ring_console(world_state)
 	if interacted.definition_id == "map_object.signal_echo_cache" and interacted.interaction_type == "inspect":
 		return _inspect_signal_echo_cache(world_state)
+	if interacted.definition_id == "map_object.deep_ruin_door" and interacted.interaction_type == "inspect":
+		return _inspect_deep_ruin_door(character_state, world_state)
+	if interacted.definition_id == "map_object.deep_ruin_latch" and interacted.interaction_type == "inspect":
+		return _inspect_deep_ruin_latch(character_state, world_state)
 
 	var action_id := interacted.get_current_recipe_id()
 	if interacted.interaction_type == "build":
@@ -147,6 +153,22 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 					interaction_cleared.emit(interactable)
 				continue
 			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.deep_ruin_door":
+			if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_entrance"):
+				interactable.set_opened_deep_ruin_door_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.deep_ruin_latch":
+			if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_cache"):
+				interactable.set_overridden_deep_ruin_latch_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
 		elif is_processed and interactable.set_processed_visual():
 			if current_interactable == interactable:
 				current_interactable = null
@@ -227,6 +249,16 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 			return {
 				"success": true,
 				"message": "击败：%s。%s外圈回波匣附近的干扰守卫已清空。" % [
+					target.display_name,
+					drops_message
+				],
+				"enemy_definition_id": target.definition_id,
+				"enemy_defeated": true
+			}
+		if target.definition_id == "enemy.deep_ruin_sentinel":
+			return {
+				"success": true,
+				"message": "击败：%s。%s深段锁扣前的压制守卫已清空，相位纤丝回收线已打开。" % [
 					target.display_name,
 					drops_message
 				],
@@ -371,6 +403,11 @@ func apply_region_gate_bounds(world_state: WorldState) -> String:
 		player.stop_positive_x_until_release()
 		return "遗迹外圈深段仍被抖动雾幕阻断：先回基地组装稳相信标，再返回部署。"
 
+	if _is_deep_ruin_gate_locked(world_state) and player.position.x > DEEP_RUIN_GATE_RETURN_X:
+		player.position.x = DEEP_RUIN_GATE_RETURN_X
+		player.stop_positive_x_until_release()
+		return "深段入口仍未校准：先带着更深遗迹坐标回到门禁写入。"
+
 	return ""
 
 
@@ -454,6 +491,11 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 		return (
 			world_state.quest_state.has_active_quest("quest.salvage_signal_echo")
 			or world_state.quest_state.has_completed_quest("quest.salvage_signal_echo")
+		)
+	if enemy.definition_id == "enemy.deep_ruin_sentinel":
+		return (
+			world_state.quest_state.has_active_quest("quest.harvest_phase_filament")
+			or world_state.quest_state.has_completed_quest("quest.harvest_phase_filament")
 		)
 	if enemy.definition_id != "enemy.treatment_skitter":
 		return true
@@ -616,6 +658,62 @@ func _inspect_signal_echo_cache(world_state: WorldState) -> Dictionary:
 	}
 
 
+func _inspect_deep_ruin_door(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.analyze_deep_signal"):
+		return _failure(
+			"深段入口门禁仍没有可执行坐标。",
+			"入口未校准",
+			"先回基地解析深段回波，整理出更深遗迹坐标。"
+		)
+
+	if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_entrance"):
+		return {
+			"success": true,
+			"message": "深段入口门禁已写入：继续向东进入深段，回收相位纤丝。"
+		}
+
+	if not character_state.inventory.has_ref("item.deep_ruin_coordinates", 1):
+		return _failure(
+			"缺少更深遗迹坐标，门禁无法写入。",
+			"缺少开门坐标",
+			"回基地确认基础反应器已完成深段回波解析，并带上更深遗迹坐标返回。"
+		)
+
+	character_state.inventory.consume_ref("item.deep_ruin_coordinates", 1)
+	return {
+		"success": true,
+		"message": "更深遗迹坐标已写入：深段入口门禁开启。"
+	}
+
+
+func _inspect_deep_ruin_latch(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.assemble_deep_override"):
+		return _failure(
+			"深段锁扣仍被相位回路封住。",
+			"锁扣未覆写",
+			"先回基地用污染过滤器精炼相位纤丝，再用基础反应器组装深段覆写栓。"
+		)
+
+	if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_cache"):
+		return {
+			"success": true,
+			"message": "深段锁扣已覆写：深段样块已经回收。"
+		}
+
+	if not character_state.inventory.has_ref("item.deep_override_key", 1):
+		return _failure(
+			"缺少深段覆写栓，锁扣无法解除。",
+			"缺少覆写栓",
+			"回处理点过滤器精炼相位纤丝，再去基础反应器组装深段覆写栓。"
+		)
+
+	character_state.inventory.consume_ref("item.deep_override_key", 1)
+	return {
+		"success": true,
+		"message": "已覆写深段锁扣：深段样块匣解封，可带回新的深段样块。"
+	}
+
+
 func _evacuate_if_needed(character_state: CharacterState, world_state: WorldState, reason: String) -> Dictionary:
 	if character_state.health > 0.0 and character_state.protection > 0.0:
 		return {}
@@ -685,6 +783,8 @@ func _get_enemy_instance_id(enemy: PrototypeEnemy) -> String:
 
 
 func _get_region_id_for_position(map_position: Vector2) -> String:
+	if map_position.x >= DEEP_RUIN_REGION_X:
+		return "region.deep_ruin_threshold"
 	if map_position.x >= RUIN_OUTER_RING_X:
 		return "region.ruin_outer_ring"
 	if map_position.x >= POLLUTION_REGION_X and map_position.y >= POLLUTION_DEEP_Y:
@@ -696,3 +796,7 @@ func _get_region_id_for_position(map_position: Vector2) -> String:
 
 func _is_outer_ring_barrier_locked(world_state: WorldState) -> bool:
 	return not world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier")
+
+
+func _is_deep_ruin_gate_locked(world_state: WorldState) -> bool:
+	return not world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_entrance")

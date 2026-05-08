@@ -9,11 +9,14 @@ const SAMPLED_ANOMALY_COLOR := Color(0.7, 0.38, 0.82, 1)
 const GATHERED_ANOMALY_RESIDUE_COLOR := Color(0.42, 0.52, 0.72, 1)
 const GATHERED_RESIDUE_COLOR := Color(0.44, 0.42, 0.2, 1)
 const GATHERED_RELAY_SHARD_COLOR := Color(0.54, 0.54, 0.66, 1)
+const GATHERED_PHASE_FILAMENT_COLOR := Color(0.66, 0.46, 0.7, 1)
 const CLEARED_GROUND_COLOR := Color(0.42, 0.5, 0.42, 1)
 const CONFIRMED_RUIN_SIGNAL_COLOR := Color(0.36, 0.5, 0.68, 1)
 const STABILIZED_BARRIER_COLOR := Color(0.42, 0.66, 0.78, 1)
 const SECURED_CONSOLE_COLOR := Color(0.34, 0.74, 0.74, 1)
 const RECOVERED_SIGNAL_ECHO_COLOR := Color(0.44, 0.78, 0.88, 1)
+const OPENED_DEEP_RUIN_DOOR_COLOR := Color(0.62, 0.54, 0.82, 1)
+const OVERRIDDEN_DEEP_RUIN_LATCH_COLOR := Color(0.9, 0.62, 0.44, 1)
 const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
 const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
 
@@ -182,6 +185,13 @@ func set_processed_visual() -> bool:
 		marker.color = GATHERED_RELAY_SHARD_COLOR
 		_set_label_text("%s\n已回收" % display_name_text, 2)
 		return true
+	if interaction_type == "gather" and definition_id == "map_object.phase_filament_cluster":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = GATHERED_PHASE_FILAMENT_COLOR
+		_set_label_text("%s\n已回收" % display_name_text, 2)
+		return true
 	if interaction_type == "sample" and definition_id == "map_object.anomaly_crystal":
 		consumed = true
 		visible = true
@@ -229,6 +239,22 @@ func set_recovered_signal_echo_visual() -> void:
 	monitoring = false
 	marker.color = RECOVERED_SIGNAL_ECHO_COLOR
 	_set_label_text("%s\n回波已回收" % display_name_text, 2)
+
+
+func set_opened_deep_ruin_door_visual() -> void:
+	consumed = true
+	visible = true
+	monitoring = false
+	marker.color = OPENED_DEEP_RUIN_DOOR_COLOR
+	_set_label_text("%s\n门禁已写入" % display_name_text, 2)
+
+
+func set_overridden_deep_ruin_latch_visual() -> void:
+	consumed = true
+	visible = true
+	monitoring = false
+	marker.color = OVERRIDDEN_DEEP_RUIN_LATCH_COLOR
+	_set_label_text("%s\n锁扣已覆写" % display_name_text, 2)
 
 
 func set_built_visual(built_definition_id: String) -> void:

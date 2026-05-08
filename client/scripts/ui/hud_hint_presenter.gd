@@ -24,8 +24,10 @@ func format_runtime_hint(world_state: WorldState, character_state: CharacterStat
 
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_deep_ruin_entry(world_state):
+			return "深段样块已带回：整理补给后，后续可以继续向更深遗迹扩展。"
 		if _has_completed_deep_signal_analysis(world_state):
-			return "更深遗迹坐标已解析；返回基地整理补给，等待下一包区域。"
+			return "更深遗迹坐标已解析；返回遗迹外圈最东侧，把坐标写入深段入口门禁。"
 		if _is_slice_complete(world_state):
 			return "遗迹外圈第一版已完成；返回基地整理补给，等待更深区域。"
 		return "按当前目标推进。"
@@ -80,14 +82,26 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "继续留在遗迹外圈深段，清理相位守卫并回收外圈回波匣。"
 		"quest.analyze_deep_signal":
 			return "回基地使用基础反应器，解析深段回波并整理更深遗迹坐标。"
+		"quest.unlock_deep_ruin_entrance":
+			return "带着更深遗迹坐标返回遗迹外圈最东侧，写入深段入口门禁。"
+		"quest.harvest_phase_filament":
+			return "进入深段入口，清理深段守卫并回收两处相位纤丝。"
+		"quest.refine_phase_filament":
+			return "回处理点过滤器，精炼相位纤丝并保留副产污染浆液。"
+		"quest.assemble_deep_override":
+			return "回基地使用基础反应器，把谐振滤芯和污染浆液组装成深段覆写栓。"
+		"quest.unlock_deep_ruin_cache":
+			return "带着深段覆写栓返回深段入口，覆写锁扣并取出样块。"
 		_:
 			return "按当前目标推进。"
 
 
 func format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_deep_ruin_entry(world_state):
+			return "更深遗迹入口第一版已经完成，深段样块已带回基地；下一包内容可继续沿这条线扩展。"
 		if _has_completed_deep_signal_analysis(world_state):
-			return "更深入口价值已经落成可执行坐标；下一包内容可直接从这里继续展开。"
+			return "更深入口价值已经落成可执行坐标；这次要把它真正写回现场门禁，而不是停在背包里。"
 		if _is_slice_complete(world_state):
 			return "遗迹外圈的第二闭环已跑通，整理补给后等待更深内容。"
 		return "查看当前目标和附近交互提示，按顺序推进。"
@@ -146,6 +160,16 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "相位守卫压着真正的深段回报；把回波匣带回基地后，才能把这次深入变成下一段入口价值。"
 		"quest.analyze_deep_signal":
 			return "这次加工不是补给，而是把深段回波整理成更深遗迹坐标，确认外圈收益真实反哺下一次远征。"
+		"quest.unlock_deep_ruin_entrance":
+			return "这一步要把更深遗迹坐标真正写回现场门禁，别让坐标只停在任务列表里。"
+		"quest.harvest_phase_filament":
+			return "相位纤丝是这包内容的新外勤收益；先带回基地精炼，再决定能不能继续开锁。"
+		"quest.refine_phase_filament":
+			return "先用污染过滤器剥掉相位纤丝上的污染层；副产污染浆液会直接作为下一步组装输入。"
+		"quest.assemble_deep_override":
+			return "深段覆写栓会把过滤器副产的污染浆液和外勤材料重新变成开路物，决定下一次深入是否有效。"
+		"quest.unlock_deep_ruin_cache":
+			return "只有带着基地组装的覆写栓回来，深段锁扣才会交出第一份真正的深段收益。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 
@@ -156,6 +180,10 @@ func _is_slice_complete(world_state: WorldState) -> bool:
 
 func _has_completed_deep_signal_analysis(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.analyze_deep_signal")
+
+
+func _has_completed_deep_ruin_entry(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_cache")
 
 
 func _get_target_region_id(world_state: WorldState, quest_id: String) -> String:
