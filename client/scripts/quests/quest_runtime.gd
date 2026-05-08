@@ -63,11 +63,23 @@ func advance_pollution_edge_ready(world_state: WorldState, character_state: Char
 
 func reconcile_active_objectives(world_state: WorldState, character_state: CharacterState) -> Dictionary:
 	var updates: Array[Dictionary] = []
+	var log_messages: Array[String] = []
+	if _activate_missing_outer_ring_followup(world_state):
+		log_messages.append("旧进度已接入：外圈中继后的深段回波回收任务已补入当前目标。")
 	if world_state.quest_state.has_active_quest("quest.bring_back_sample"):
 		updates.append_array(_get_bring_back_sample_recovery_updates(world_state, character_state))
 	if updates.is_empty():
-		return _empty_result(false)
-	return apply_objective_updates(world_state, character_state, updates)
+		if log_messages.is_empty():
+			return _empty_result(false)
+		var activation_only_result := _empty_result(true)
+		for message in log_messages:
+			activation_only_result["log_messages"].append(message)
+		return activation_only_result
+	var result := apply_objective_updates(world_state, character_state, updates)
+	result["accepted"] = true
+	for message in log_messages:
+		result["log_messages"].append(message)
+	return result
 
 
 func apply_objective_updates(
@@ -116,6 +128,19 @@ func _get_bring_back_sample_recovery_updates(world_state: WorldState, character_
 	if sample_progress < 1.0 and has_sample:
 		updates.append(_objective_set_update(quest_id, "sample_object", "map_object.anomaly_crystal", 1))
 	return updates
+
+
+func _activate_missing_outer_ring_followup(world_state: WorldState) -> bool:
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.salvage_signal_echo"):
+		return false
+	if world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
+		return false
+	world_state.quest_state.activate_quest("quest.salvage_signal_echo")
+	return true
 
 
 func _objective_set_update(quest_id: String, objective_type: String, target_id: String, amount: float) -> Dictionary:

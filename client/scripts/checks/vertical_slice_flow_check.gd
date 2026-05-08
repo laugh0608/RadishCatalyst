@@ -150,9 +150,15 @@ func _run_checks() -> void:
 	_complete_active_quest("quest.secure_outer_ring_signal", [
 		{"type": "inspect", "target_id": "map_object.outer_ring_console", "amount": 1}
 	])
-	_expect_equal(world_state.quest_state.active_quest_ids, [], "after outer ring secure has no active quest")
+	_expect_active_quest("quest.salvage_signal_echo", "after outer ring secure starts echo salvage")
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.secure_outer_ring_signal", "outer ring secure completed")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "slice completion unlock")
+	_complete_active_quest("quest.salvage_signal_echo", [{"type": "defeat_enemy", "target_id": "enemy.ruin_phase_guard", "amount": 1}, {"type": "inspect", "target_id": "map_object.signal_echo_cache", "amount": 1}])
+	_expect_active_quest("quest.analyze_deep_signal", "after signal echo salvage")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.deep_signal_analysis", "echo salvage unlocks deep signal recipe")
+	_complete_active_quest("quest.analyze_deep_signal", [{"type": "craft_item", "target_id": "item.deep_ruin_coordinates", "amount": 1}])
+	_expect_equal(world_state.quest_state.active_quest_ids, [], "after deep signal analysis has no active quest")
+	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.analyze_deep_signal", "deep signal analysis completed")
 
 	_check_processing_runtime()
 	_check_evacuation_feedback()
@@ -220,8 +226,11 @@ func _check_onboarding_hints() -> void:
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.scout_ruin_outer_ring", "继电残片", "outer ring scouting hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_phase_anchor", "污染浆液", "phase anchor assembly hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.stabilize_outer_ring_barrier", "稳相信标", "outer ring barrier hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.salvage_signal_echo", "回波匣", "signal echo salvage hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_deep_signal", "更深遗迹坐标", "deep signal analysis hint")
+	hint_world.quest_state.completed_quest_ids.append("quest.analyze_deep_signal")
 	hint_world.quest_state.unlocked_effects.append("slice_01_complete")
-	_expect_hint_contains(presenter, hint_world, hint_character, "", "第二闭环", "slice complete onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "", "更深入口价值", "deep signal completion onboarding hint")
 	map.free()
 
 
@@ -370,11 +379,7 @@ func _check_region_markers() -> void:
 		"item.resistance_vial_t1",
 		1.0
 	)
-	_expect_text_contains(
-		presenter.format_region_markers(marker_world, "quest.enter_pollution_edge"),
-		"污染：东南，目标",
-		"polluted skitter returns objective to pollution edge"
-	)
+	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.enter_pollution_edge"), "污染：东南，目标", "polluted skitter returns objective to pollution edge")
 
 	marker_world.unlock_region("region.locked_ruin_gate")
 	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.unlock_ruin_signal"), "污染：东南，目标", "ruin gate objective follows scene placement in pollution edge")
@@ -382,6 +387,9 @@ func _check_region_markers() -> void:
 	marker_world.unlock_region("region.ruin_outer_ring")
 	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.scout_ruin_outer_ring"), "外圈：更东，目标", "outer ring scouting points to outer ring marker")
 	_expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.scout_ruin_outer_ring"), "外圈\n目标", "outer ring minimap objective marker")
+	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.salvage_signal_echo"), "外圈：更东，目标", "signal echo salvage stays in outer ring")
+	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.analyze_deep_signal"), "基地：当前位置，目标", "deep signal analysis returns to outpost reactor")
+	_expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.analyze_deep_signal"), "基地\n当前\n目标", "deep signal analysis minimap returns to outpost")
 	map.free()
 
 
@@ -873,24 +881,19 @@ func _check_region_prompt_formatter() -> void:
 	)
 
 	var ruin_world := WorldState.create_default()
-	_expect_text_contains(
-		formatter.format_ruin_gate_prompt(ruin_world),
-		"先压制污染残核",
-		"ruin gate blocked prompt"
-	)
+	_expect_text_contains(formatter.format_ruin_gate_prompt(ruin_world), "先压制污染残核", "ruin gate blocked prompt")
 	ruin_world.quest_state.completed_quest_ids.append("quest.enter_pollution_edge")
 	ruin_world.quest_state.completed_quest_ids.append("quest.defeat_elite_node")
-	_expect_text_contains(
-		formatter.format_ruin_gate_prompt(ruin_world),
-		"按 E 确认",
-		"ruin gate ready prompt"
-	)
+	_expect_text_contains(formatter.format_ruin_gate_prompt(ruin_world), "按 E 确认", "ruin gate ready prompt")
 	ruin_world.quest_state.completed_quest_ids.append("quest.unlock_ruin_signal")
-	_expect_text_contains(
-		formatter.format_ruin_gate_prompt(ruin_world),
-		"遗迹外圈已开放",
-		"ruin gate completed prompt"
-	)
+	_expect_text_contains(formatter.format_ruin_gate_prompt(ruin_world), "遗迹外圈已开放", "ruin gate completed prompt")
+
+	var echo_world := WorldState.create_default()
+	_expect_text_contains(formatter.format_signal_echo_cache_prompt(echo_world), "先检查外圈中继台", "signal echo cache blocked prompt")
+	echo_world.quest_state.completed_quest_ids.append("quest.secure_outer_ring_signal")
+	_expect_text_contains(formatter.format_signal_echo_cache_prompt(echo_world), "按 E 回收", "signal echo cache ready prompt")
+	echo_world.quest_state.completed_quest_ids.append("quest.salvage_signal_echo")
+	_expect_text_contains(formatter.format_signal_echo_cache_prompt(echo_world), "已回收", "signal echo cache completed prompt")
 
 
 func _check_failure_feedback_logs() -> void:

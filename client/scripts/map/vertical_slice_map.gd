@@ -60,6 +60,8 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		return _inspect_outer_ring_barrier(character_state, world_state)
 	if interacted.definition_id == "map_object.outer_ring_console" and interacted.interaction_type == "inspect":
 		return _inspect_outer_ring_console(world_state)
+	if interacted.definition_id == "map_object.signal_echo_cache" and interacted.interaction_type == "inspect":
+		return _inspect_signal_echo_cache(world_state)
 
 	var action_id := interacted.get_current_recipe_id()
 	if interacted.interaction_type == "build":
@@ -137,6 +139,14 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 					interaction_cleared.emit(interactable)
 				continue
 			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.signal_echo_cache":
+			if world_state.quest_state.has_completed_quest("quest.salvage_signal_echo"):
+				interactable.set_recovered_signal_echo_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
 		elif is_processed and interactable.set_processed_visual():
 			if current_interactable == interactable:
 				current_interactable = null
@@ -207,6 +217,16 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 			return {
 				"success": true,
 				"message": "击败：%s。%s污染处理点周边暂时安全。" % [
+					target.display_name,
+					drops_message
+				],
+				"enemy_definition_id": target.definition_id,
+				"enemy_defeated": true
+			}
+		if target.definition_id == "enemy.ruin_phase_guard":
+			return {
+				"success": true,
+				"message": "击败：%s。%s外圈回波匣附近的干扰守卫已清空。" % [
 					target.display_name,
 					drops_message
 				],
@@ -430,6 +450,11 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 			world_state.quest_state.has_active_quest("quest.defeat_elite_node")
 			or world_state.quest_state.has_completed_quest("quest.defeat_elite_node")
 		)
+	if enemy.definition_id == "enemy.ruin_phase_guard":
+		return (
+			world_state.quest_state.has_active_quest("quest.salvage_signal_echo")
+			or world_state.quest_state.has_completed_quest("quest.salvage_signal_echo")
+		)
 	if enemy.definition_id != "enemy.treatment_skitter":
 		return true
 	var quest_state := world_state.quest_state
@@ -568,6 +593,26 @@ func _inspect_outer_ring_console(world_state: WorldState) -> Dictionary:
 	return {
 		"success": true,
 		"message": "外圈中继台已接管：更深遗迹结构的稳定回波已定位。"
+	}
+
+
+func _inspect_signal_echo_cache(world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
+		return _failure(
+			"外圈回波匣仍处于锁定状态。",
+			"目标未就绪",
+			"先检查外圈中继台，锁定深段稳定回波。"
+		)
+
+	if world_state.quest_state.has_completed_quest("quest.salvage_signal_echo"):
+		return {
+			"success": true,
+			"message": "外圈回波匣已回收：返回基地解析深段回波。"
+		}
+
+	return {
+		"success": true,
+		"message": "已回收外圈回波匣：回基地用基础反应器整理更深遗迹坐标。"
 	}
 
 

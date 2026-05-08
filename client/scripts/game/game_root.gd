@@ -232,6 +232,9 @@ func _on_interaction_available(interactable: PrototypeInteractable, should_auto_
 	if interactable.definition_id == "map_object.outer_ring_console":
 		hud.show_prompt(interaction_prompt_formatter.format_outer_ring_console_prompt(world_state))
 		return
+	if interactable.definition_id == "map_object.signal_echo_cache":
+		hud.show_prompt(interaction_prompt_formatter.format_signal_echo_cache_prompt(world_state))
+		return
 	if interactable.interaction_type == "process_recipe":
 		var auto_selected_recipe := _maybe_select_recommended_recipe(interactable, should_auto_select_recipe)
 		hud.show_prompt(interaction_prompt_formatter.format_processing_prompt(interactable, character_state, world_state))
@@ -368,6 +371,9 @@ func _refresh_current_context_prompt() -> void:
 		return
 	if interactable.definition_id == "map_object.outer_ring_console":
 		hud.show_prompt(interaction_prompt_formatter.format_outer_ring_console_prompt(world_state))
+		return
+	if interactable.definition_id == "map_object.signal_echo_cache":
+		hud.show_prompt(interaction_prompt_formatter.format_signal_echo_cache_prompt(world_state))
 		return
 	if interactable.interaction_type == "process_recipe":
 		hud.show_prompt(interaction_prompt_formatter.format_processing_prompt(interactable, character_state, world_state))

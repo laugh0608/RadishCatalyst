@@ -13,6 +13,7 @@ const CLEARED_GROUND_COLOR := Color(0.42, 0.5, 0.42, 1)
 const CONFIRMED_RUIN_SIGNAL_COLOR := Color(0.36, 0.5, 0.68, 1)
 const STABILIZED_BARRIER_COLOR := Color(0.42, 0.66, 0.78, 1)
 const SECURED_CONSOLE_COLOR := Color(0.34, 0.74, 0.74, 1)
+const RECOVERED_SIGNAL_ECHO_COLOR := Color(0.44, 0.78, 0.88, 1)
 const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
 const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
 
@@ -220,6 +221,14 @@ func set_secured_console_visual() -> void:
 	monitoring = false
 	marker.color = SECURED_CONSOLE_COLOR
 	_set_label_text("%s\n数据已读取" % display_name_text, 2)
+
+
+func set_recovered_signal_echo_visual() -> void:
+	consumed = true
+	visible = true
+	monitoring = false
+	marker.color = RECOVERED_SIGNAL_ECHO_COLOR
+	_set_label_text("%s\n回波已回收" % display_name_text, 2)
 
 
 func set_built_visual(built_definition_id: String) -> void:

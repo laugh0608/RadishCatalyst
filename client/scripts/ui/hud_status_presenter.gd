@@ -9,6 +9,8 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 	"item.polluted_residue",
 	"item.relay_shard",
 	"item.phase_anchor",
+	"item.signal_echo_trace",
+	"item.deep_ruin_coordinates",
 	"item.filter_media",
 	"item.foundation_material",
 	"fluid.basic_solvent",
@@ -94,6 +96,8 @@ func _format_status_lines(
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if not quest_id.is_empty():
 		return _get_display_name(data_registry, quest_id)
+	if _has_completed_deep_signal_analysis(world_state):
+		return "更深遗迹坐标已解析"
 	if _is_slice_complete(world_state):
 		return "遗迹外圈第一版已完成"
 	return "无"
@@ -144,6 +148,8 @@ func _format_quick_slots(data_registry: DataRegistry, character_state: Character
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_deep_signal_analysis(world_state):
+			return "深段回波已转成可执行坐标，下一段遗迹入口已具备明确方向"
 		if _is_slice_complete(world_state):
 			return "外圈中继已确认，更深遗迹结构已定位"
 		return "无"
@@ -238,6 +244,10 @@ func _get_display_name(data_registry: DataRegistry, definition_id: String) -> St
 
 func _is_slice_complete(world_state: WorldState) -> bool:
 	return world_state.quest_state.unlocked_effects.has("slice_01_complete")
+
+
+func _has_completed_deep_signal_analysis(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.analyze_deep_signal")
 
 
 func _ensure_objective_source_resolver(data_registry: DataRegistry) -> void:

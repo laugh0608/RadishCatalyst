@@ -138,6 +138,14 @@ func format_outer_ring_console_prompt(world_state: WorldState) -> String:
 	return "按 E 检查：外圈中继台。"
 
 
+func format_signal_echo_cache_prompt(world_state: WorldState) -> String:
+	if not world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
+		return "外圈回波匣：先检查外圈中继台，锁定稳定回波。"
+	if world_state.quest_state.has_completed_quest("quest.salvage_signal_echo"):
+		return "外圈回波匣：已回收，回基地解析深段回波。"
+	return "按 E 回收：外圈回波匣。"
+
+
 func format_pollution_entry_warning(character_state: CharacterState) -> String:
 	var warnings: Array[String] = []
 	if character_state.protection < character_state.max_protection * 0.5:

@@ -161,6 +161,8 @@ func get_recommended_recipe_id(
 			return _select_if_available(interactable, "recipe.cleanse_residue")
 		"quest.assemble_phase_anchor":
 			return _select_if_available(interactable, "recipe.phase_anchor")
+		"quest.analyze_deep_signal":
+			return _select_if_available(interactable, "recipe.deep_signal_analysis")
 		_:
 			return ""
 
@@ -220,6 +222,8 @@ func _get_completion_next_step(recipe_id: String) -> String:
 			return "把修复凝胶留在快捷栏，生命偏低时按 1 使用。"
 		"recipe.phase_anchor":
 			return "带着稳相信标返回遗迹外圈，在抖动雾幕前部署后再继续深入。"
+		"recipe.deep_signal_analysis":
+			return "更深遗迹坐标已整理完成；返回基地整理补给，等待下一包区域内容。"
 		_:
 			return "查看当前任务目标，选择下一次加工或外出行动。"
 

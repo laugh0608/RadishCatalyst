@@ -45,6 +45,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		return [_set_update("quest.stabilize_outer_ring_barrier", "inspect", "map_object.outer_ring_barrier", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.outer_ring_console":
 		return [_set_update("quest.secure_outer_ring_signal", "inspect", "map_object.outer_ring_console", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.signal_echo_cache":
+		return [_set_update("quest.salvage_signal_echo", "inspect", "map_object.signal_echo_cache", 1)]
 	if interaction_type == "process_recipe":
 		return get_recipe_objective_updates(recipe_id)
 	if interaction_type == "build":
@@ -76,6 +78,8 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 			return [_set_update("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1)]
 		"recipe.phase_anchor":
 			return [_set_update("quest.assemble_phase_anchor", "craft_item", "item.phase_anchor", 1)]
+		"recipe.deep_signal_analysis":
+			return [_set_update("quest.analyze_deep_signal", "craft_item", "item.deep_ruin_coordinates", 1)]
 		_:
 			return []
 
@@ -95,6 +99,8 @@ func get_defeated_enemy_objective_updates(enemy_definition_id: String) -> Array[
 		return [_set_update("quest.enter_pollution_edge", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.elite_residue_node":
 		return [_set_update("quest.defeat_elite_node", "defeat_enemy", enemy_definition_id, 1)]
+	if enemy_definition_id == "enemy.ruin_phase_guard":
+		return [_set_update("quest.salvage_signal_echo", "defeat_enemy", enemy_definition_id, 1)]
 	return []
 
 

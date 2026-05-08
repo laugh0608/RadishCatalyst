@@ -43,6 +43,7 @@ func _run_checks() -> void:
 	_check_completion_applier_grants_rewards_unlocks_and_feedback()
 	_check_quest_runtime_applies_updates_and_completion_feedback()
 	_check_quest_runtime_recovers_pre_sampled_anomaly()
+	_check_runtime_activates_missing_outer_ring_followup()
 	_check_active_objective_progress_is_capped()
 	_check_inactive_objective_progress_is_ignored()
 
@@ -90,6 +91,16 @@ func _check_interaction_event_objective_updates() -> void:
 		quest_state
 	)
 	_expect_update(updates, "add", "quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 1.0, "anomaly residue gather update")
+
+	updates = event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.signal_echo_cache",
+			"interaction_type": "inspect"
+		},
+		{},
+		quest_state
+	)
+	_expect_update(updates, "set", "quest.salvage_signal_echo", "inspect", "map_object.signal_echo_cache", 1.0, "signal echo inspect update")
 
 
 func _check_region_event_objective_updates() -> void:
@@ -143,6 +154,15 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		"filter module recipe update"
 	)
 	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.deep_signal_analysis"),
+		"set",
+		"quest.analyze_deep_signal",
+		"craft_item",
+		"item.deep_ruin_coordinates",
+		1.0,
+		"deep signal analysis recipe update"
+	)
+	_expect_update(
 		event_rules.get_build_objective_updates("building.foundation_t1"),
 		"add",
 		"quest.expand_treatment_point",
@@ -178,6 +198,15 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		"enemy.elite_residue_node",
 		1.0,
 		"elite node defeat update"
+	)
+	_expect_update(
+		event_rules.get_defeated_enemy_objective_updates("enemy.ruin_phase_guard"),
+		"set",
+		"quest.salvage_signal_echo",
+		"defeat_enemy",
+		"enemy.ruin_phase_guard",
+		1.0,
+		"ruin phase guard defeat update"
 	)
 
 
@@ -278,6 +307,53 @@ func _check_quest_runtime_recovers_pre_sampled_anomaly() -> void:
 	)
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.bring_back_sample", "pre-sampled anomaly completes sample quest")
 	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_anomaly_sample", "pre-sampled anomaly activates sample analysis quest")
+
+
+func _check_runtime_activates_missing_outer_ring_followup() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.quest_state.active_quest_ids = []
+	world_state.quest_state.completed_quest_ids = [
+		"quest.restore_outpost",
+		"quest.scout_crystal_field",
+		"quest.calibrate_reactor",
+		"quest.bring_back_sample",
+		"quest.analyze_anomaly_sample",
+		"quest.make_filter_module",
+		"quest.prepare_treatment_supplies",
+		"quest.expand_treatment_point",
+		"quest.enter_pollution_edge",
+		"quest.defeat_elite_node",
+		"quest.unlock_ruin_signal",
+		"quest.scout_ruin_outer_ring",
+		"quest.assemble_phase_anchor",
+		"quest.stabilize_outer_ring_barrier",
+		"quest.secure_outer_ring_signal"
+	]
+	world_state.quest_state.unlocked_effects = [
+		"region.outpost_platform",
+		"region.crystal_vein_field",
+		"recipe.process_crystal_ore",
+		"recipe.repair_gel",
+		"recipe.reactor_calibrator",
+		"recipe.analyze_anomaly_sample",
+		"recipe.make_filter_media",
+		"recipe.basic_filter_module",
+		"recipe.foundation_t1",
+		"region.pollution_edge",
+		"recipe.cleanse_residue",
+		"region.locked_ruin_gate",
+		"region.ruin_outer_ring",
+		"recipe.phase_anchor",
+		"slice_01_complete"
+	]
+
+	var result := quest_runtime.reconcile_active_objectives(world_state, character_state)
+	_expect_equal(bool(result.get("accepted", false)), true, "runtime accepts missing outer ring followup activation")
+	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.salvage_signal_echo", "runtime activates signal echo salvage quest")
+	_expect_equal(_result_array_size(result, "completion_feedbacks"), 0, "followup activation should not emit completion feedback")
+	if String(result.get("log_messages", [""])[0]).find("深段回波回收任务") < 0:
+		failures.append("followup activation should log outer ring extension activation, got %s" % var_to_str(result))
 
 
 func _check_active_objective_progress_is_capped() -> void:

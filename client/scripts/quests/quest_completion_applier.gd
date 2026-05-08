@@ -109,7 +109,11 @@ func _format_completion_note(quest_id: String) -> String:
 		"quest.stabilize_outer_ring_barrier":
 			return "稳相信标已部署，外圈深段通路已稳定"
 		"quest.secure_outer_ring_signal":
-			return "遗迹外圈第一版内容完成，更深遗迹结构已定位"
+			return "遗迹外圈主闭环已完成；深段回波匣已暴露，可继续回收"
+		"quest.salvage_signal_echo":
+			return "深段回波已带回；回基地解析后可整理出更深遗迹坐标"
+		"quest.analyze_deep_signal":
+			return "更深遗迹坐标已解析，下一包区域内容可从这里继续展开"
 		_:
 			return ""
 

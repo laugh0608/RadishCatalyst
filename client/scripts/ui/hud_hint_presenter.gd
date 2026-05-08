@@ -24,6 +24,8 @@ func format_runtime_hint(world_state: WorldState, character_state: CharacterStat
 
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_deep_signal_analysis(world_state):
+			return "更深遗迹坐标已解析；返回基地整理补给，等待下一包区域。"
 		if _is_slice_complete(world_state):
 			return "遗迹外圈第一版已完成；返回基地整理补给，等待更深区域。"
 		return "按当前目标推进。"
@@ -74,12 +76,18 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "带着稳相信标返回遗迹外圈，在抖动雾幕前部署后再继续深入。"
 		"quest.secure_outer_ring_signal":
 			return "穿过已稳定的抖动雾幕，向东检查外圈中继台。"
+		"quest.salvage_signal_echo":
+			return "继续留在遗迹外圈深段，清理相位守卫并回收外圈回波匣。"
+		"quest.analyze_deep_signal":
+			return "回基地使用基础反应器，解析深段回波并整理更深遗迹坐标。"
 		_:
 			return "按当前目标推进。"
 
 
 func format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_deep_signal_analysis(world_state):
+			return "更深入口价值已经落成可执行坐标；下一包内容可直接从这里继续展开。"
 		if _is_slice_complete(world_state):
 			return "遗迹外圈的第二闭环已跑通，整理补给后等待更深内容。"
 		return "查看当前目标和附近交互提示，按顺序推进。"
@@ -134,12 +142,20 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "部署稳相信标后，抖动雾幕才会让出外圈深段通路。"
 		"quest.secure_outer_ring_signal":
 			return "外圈中继台会给出更深遗迹的稳定回波，作为这条第二闭环的收束点。"
+		"quest.salvage_signal_echo":
+			return "相位守卫压着真正的深段回报；把回波匣带回基地后，才能把这次深入变成下一段入口价值。"
+		"quest.analyze_deep_signal":
+			return "这次加工不是补给，而是把深段回波整理成更深遗迹坐标，确认外圈收益真实反哺下一次远征。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 
 
 func _is_slice_complete(world_state: WorldState) -> bool:
 	return world_state.quest_state.unlocked_effects.has("slice_01_complete")
+
+
+func _has_completed_deep_signal_analysis(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.analyze_deep_signal")
 
 
 func _get_target_region_id(world_state: WorldState, quest_id: String) -> String:

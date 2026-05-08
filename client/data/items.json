@@ -182,6 +182,32 @@
       "source_refs": ["recipe.phase_anchor"],
       "used_by_refs": ["quest.assemble_phase_anchor", "quest.stabilize_outer_ring_barrier"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "item.signal_echo_trace",
+      "display_name_key": "item.signal_echo_trace.name",
+      "description_key": "item.signal_echo_trace.desc",
+      "category": "resource",
+      "tags": ["ruin", "signal_echo", "slice_02"],
+      "stack_size": 5,
+      "mass": 0.2,
+      "rarity": "rare",
+      "source_refs": ["quest.salvage_signal_echo"],
+      "used_by_refs": ["recipe.deep_signal_analysis"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.deep_ruin_coordinates",
+      "display_name_key": "item.deep_ruin_coordinates.name",
+      "description_key": "item.deep_ruin_coordinates.desc",
+      "category": "component",
+      "tags": ["ruin", "coordinates", "slice_02"],
+      "stack_size": 3,
+      "mass": 0.1,
+      "rarity": "rare",
+      "source_refs": ["recipe.deep_signal_analysis"],
+      "used_by_refs": ["quest.analyze_deep_signal"],
+      "public_level": "spoiler"
     }
   ]
 }

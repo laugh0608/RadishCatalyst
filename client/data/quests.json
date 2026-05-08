@@ -198,6 +198,32 @@
       "prerequisites": ["quest.stabilize_outer_ring_barrier"],
       "rewards": [],
       "unlock_effects": ["slice_01_complete"],
+      "next_quest_ids": ["quest.salvage_signal_echo"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.salvage_signal_echo",
+      "display_name_key": "quest.salvage_signal_echo.name",
+      "description_key": "quest.salvage_signal_echo.desc",
+      "quest_type": "main",
+      "stage": 16,
+      "objectives": [{"type": "defeat_enemy", "target_id": "enemy.ruin_phase_guard", "amount": 1}, {"type": "inspect", "target_id": "map_object.signal_echo_cache", "amount": 1}],
+      "prerequisites": ["quest.secure_outer_ring_signal"],
+      "rewards": [{"id": "item.signal_echo_trace", "amount": 1}],
+      "unlock_effects": ["recipe.deep_signal_analysis"],
+      "next_quest_ids": ["quest.analyze_deep_signal"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.analyze_deep_signal",
+      "display_name_key": "quest.analyze_deep_signal.name",
+      "description_key": "quest.analyze_deep_signal.desc",
+      "quest_type": "main",
+      "stage": 17,
+      "objectives": [{"type": "craft_item", "target_id": "item.deep_ruin_coordinates", "amount": 1}],
+      "prerequisites": ["quest.salvage_signal_echo"],
+      "rewards": [],
+      "unlock_effects": ["slice_01_complete"],
       "next_quest_ids": [],
       "public_level": "spoiler"
     }

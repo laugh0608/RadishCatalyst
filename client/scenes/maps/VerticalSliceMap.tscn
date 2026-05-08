@@ -234,6 +234,14 @@ single_use = false
 label_offset = Vector2(-90, -54)
 label_size = Vector2(180, 24)
 
+[node name="SignalEchoCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(610, 34)
+definition_id = "map_object.signal_echo_cache"
+interaction_type = "inspect"
+single_use = false
+label_offset = Vector2(-94, 22)
+label_size = Vector2(188, 24)
+
 [node name="Enemies" type="Node2D" parent="."]
 
 [node name="NativeSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
@@ -251,3 +259,7 @@ definition_id = "enemy.polluted_skitter"
 [node name="EliteResidueNode" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(330, 66)
 definition_id = "enemy.elite_residue_node"
+
+[node name="RuinPhaseGuard" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(596, -8)
+definition_id = "enemy.ruin_phase_guard"

@@ -135,6 +135,21 @@
       "pollution_delta": 0.0,
       "unlock_conditions": ["quest.scout_ruin_outer_ring"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.deep_signal_analysis",
+      "display_name_key": "recipe.deep_signal_analysis.name",
+      "description_key": "recipe.deep_signal_analysis.desc",
+      "category": "analysis",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.signal_echo_trace", "amount": 1}, {"id": "item.basic_parts", "amount": 2}],
+      "outputs": [{"id": "item.deep_ruin_coordinates", "amount": 1}],
+      "byproducts": [],
+      "duration": 9.0,
+      "energy_cost": 5.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.salvage_signal_echo"],
+      "public_level": "spoiler"
     }
   ]
 }
