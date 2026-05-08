@@ -5,9 +5,11 @@ const SAVE_SLOT_IDS: Array[String] = ["slot_01", "slot_02", "slot_03"]
 const QUICK_SLOT_BIND_CANDIDATES: Array[String] = ["item.repair_gel", "item.resistance_vial_t1", ""]
 const SUPPLY_FEEDBACK_SECONDS := 4.0
 const QUEST_COMPLETION_FEEDBACK_SECONDS := 7.0
+const LOG_FEEDBACK_SECONDS := 6.0
 var last_quick_slots: Array[String] = []
 var supply_feedback_remaining_seconds := 0.0
 var quest_completion_feedback_remaining_seconds := 0.0
+var log_feedback_remaining_seconds := 0.0
 var debug_panels_visible := false
 var device_panel_presenter := HudDevicePanelPresenter.new()
 var debug_panel_presenter := HudDebugPanelPresenter.new()
@@ -22,6 +24,7 @@ var runtime_hint_text := ""
 @onready var completion_panel: ColorRect = $CompletionPanel
 @onready var quick_slot_panel: ColorRect = $QuickSlotPanel
 @onready var device_panel: ColorRect = $DevicePanel
+@onready var log_panel: ColorRect = $LogPanel
 @onready var status_label: Label = $StatusPanel/StatusLabel
 @onready var prompt_label: Label = $PromptPanel/PromptLabel
 @onready var log_label: Label = $LogPanel/LogLabel
@@ -126,6 +129,9 @@ func _update_timed_panel_visibility(delta: float) -> void:
 	quest_completion_feedback_remaining_seconds = maxf(0.0, quest_completion_feedback_remaining_seconds - delta)
 	if quest_completion_feedback_remaining_seconds <= 0.0:
 		completion_panel.visible = false
+	log_feedback_remaining_seconds = maxf(0.0, log_feedback_remaining_seconds - delta)
+	if log_feedback_remaining_seconds <= 0.0 and log_panel != null:
+		log_panel.visible = false
 
 
 func update_status(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> void:
@@ -165,6 +171,9 @@ func append_log(text: String) -> void:
 	_ensure_runtime_nodes()
 	if log_label != null:
 		log_label.text = text
+	if log_panel != null:
+		log_panel.visible = not text.strip_edges().is_empty()
+	log_feedback_remaining_seconds = LOG_FEEDBACK_SECONDS if not text.strip_edges().is_empty() else 0.0
 
 
 func clear_runtime_feedback() -> void:
@@ -358,6 +367,8 @@ func _ensure_runtime_nodes() -> void:
 		quick_slot_panel = get_node_or_null("QuickSlotPanel")
 	if device_panel == null:
 		device_panel = get_node_or_null("DevicePanel")
+	if log_panel == null:
+		log_panel = get_node_or_null("LogPanel")
 	if status_label == null:
 		status_label = get_node_or_null("StatusPanel/StatusLabel")
 	if prompt_label == null:

@@ -72,6 +72,11 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 		"方向：",
 		"interaction prompt should replace runtime hint rows"
 	)
+	if hud.prompt_label.text.split("\n").size() > 6:
+		failures.append("interaction prompt should stay compact, got %d lines: %s" % [
+			hud.prompt_label.text.split("\n").size(),
+			hud.prompt_label.text
+		])
 	hud.clear_prompt()
 	_expect_text_contains(
 		failures,

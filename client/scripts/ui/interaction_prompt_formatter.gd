@@ -19,39 +19,47 @@ func format_processing_prompt(
 ) -> String:
 	var recipe_id := interactable.get_current_recipe_id()
 	var status := processing_system.get_recipe_status(recipe_id, character_state, world_state)
-	var parts: Array[String] = [
-		"设备：%s" % _get_display_name(interactable.definition_id),
-		"配方：%s" % _get_display_name(recipe_id)
-	]
+	var parts: Array[String] = ["设备：%s" % _get_display_name(interactable.definition_id)]
+	var recipe_line := "配方：%s" % _get_display_name(recipe_id)
 	if interactable.get_recipe_count() > 1:
-		parts[1] = "%s；R 切换（%d/%d）" % [
-			parts[1],
+		recipe_line = "%s（%d/%d）" % [
+			recipe_line,
 			interactable.get_recipe_position(),
 			interactable.get_recipe_count()
 		]
+	parts.append(recipe_line)
 
-	parts.append("输入：%s" % String(status.get("inputs", "无")))
-	parts.append("产出：%s" % String(status.get("outputs", "无")))
+	var io_line := "输入：%s；产出：%s" % [
+		String(status.get("inputs", "无")),
+		String(status.get("outputs", "无"))
+	]
 	var byproducts := String(status.get("byproducts", ""))
 	if not byproducts.is_empty():
-		parts.append("副产：%s" % byproducts)
-	parts.append("耗时：%s 秒" % String(status.get("duration", "0")))
+		io_line = "%s；副产：%s" % [io_line, byproducts]
+	parts.append(io_line)
+
+	var status_line := "状态：%s" % String(status.get("message", ""))
 	var progress := String(status.get("progress", ""))
 	if not progress.is_empty():
-		parts.append("进度：%s" % progress)
+		status_line = "%s；进度 %s" % [status_line, progress]
+	else:
+		status_line = "%s；耗时 %s 秒" % [status_line, String(status.get("duration", "0"))]
+	parts.append(status_line)
+
+	var action_parts: Array[String] = ["Q 查看详情"]
+	if interactable.get_recipe_count() > 1:
+		action_parts.append("R 切换")
+	if bool(status.get("can_process", false)):
+		action_parts.append("E 启动加工")
+	parts.append("操作：%s" % "；".join(action_parts))
+
 	var last_completion := String(status.get("last_completion", ""))
 	if not last_completion.is_empty():
-		parts.append(last_completion)
-	var last_destination := String(status.get("last_destination", ""))
-	if not last_destination.is_empty():
-		parts.append("入库：%s" % last_destination)
-	var last_next_step := String(status.get("last_next_step", ""))
-	if not last_next_step.is_empty():
-		parts.append("下一步：%s" % last_next_step)
-	parts.append("状态：%s" % String(status.get("message", "")))
-	parts.append("按 Q 打开设备面板")
-	if bool(status.get("can_process", false)):
-		parts.append("按 E 启动加工")
+		var result_line := "上次结果：%s" % last_completion
+		var last_destination := String(status.get("last_destination", ""))
+		if not last_destination.is_empty():
+			result_line = "%s；入库：%s" % [result_line, last_destination]
+		parts.append(result_line)
 	return "\n".join(parts)
 
 

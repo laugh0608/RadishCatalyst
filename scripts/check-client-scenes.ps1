@@ -9,6 +9,7 @@ $errors = [System.Collections.Generic.List[string]]::new()
 $clientRoot = Join-Path $RepoRoot "client"
 $sceneFiles = Get-ChildItem -LiteralPath $clientRoot -Recurse -File -Include *.tscn,*.tres,*.godot
 $projectPath = Join-Path $clientRoot "project.godot"
+$gameRootScenePath = Join-Path $clientRoot "scenes\game\GameRoot.tscn"
 $hudScenePath = Join-Path $clientRoot "scenes\ui\PrototypeHud.tscn"
 $verticalSliceMapScenePath = Join-Path $clientRoot "scenes\maps\VerticalSliceMap.tscn"
 $verticalSliceMapScriptPath = Join-Path $clientRoot "scripts\map\vertical_slice_map.gd"
@@ -241,6 +242,25 @@ function Test-RectOverlap($A, $B) {
     return $true
 }
 
+function Test-PointInRect($Point, $Rect, [double]$Padding = 0.0) {
+    if ($null -eq $Point -or $null -eq $Rect) {
+        return $false
+    }
+    if ($Point.X -lt ($Rect.Left - $Padding)) {
+        return $false
+    }
+    if ($Point.X -gt ($Rect.Right + $Padding)) {
+        return $false
+    }
+    if ($Point.Y -lt ($Rect.Top - $Padding)) {
+        return $false
+    }
+    if ($Point.Y -gt ($Rect.Bottom + $Padding)) {
+        return $false
+    }
+    return $true
+}
+
 function ConvertTo-SnakeCase([string]$Name) {
     $withWordBoundaries = [regex]::Replace($Name, '([A-Z]+)([A-Z][a-z])', '$1_$2')
     $withLowerBoundaries = [regex]::Replace($withWordBoundaries, '([a-z0-9])([A-Z])', '$1_$2')
@@ -342,6 +362,31 @@ if (Test-Path -LiteralPath $projectPath -PathType Leaf) {
             if ($rect.Right -le $rect.Left -or $rect.Bottom -le $rect.Top) {
                 Add-Error "client/scenes/ui/PrototypeHud.tscn: ${panelName} has invalid rect"
             }
+
+            $width = $rect.Right - $rect.Left
+            $height = $rect.Bottom - $rect.Top
+            switch ($panelName) {
+                "MapPanel" {
+                    if ($width -gt 360.0 -or $height -gt 180.0 -or $rect.Right -gt 380.0) {
+                        Add-Error "client/scenes/ui/PrototypeHud.tscn: MapPanel exceeds compact left-column bounds"
+                    }
+                }
+                "StatusPanel" {
+                    if ($width -gt 360.0 -or $height -gt 300.0 -or $rect.Right -gt 380.0) {
+                        Add-Error "client/scenes/ui/PrototypeHud.tscn: StatusPanel exceeds compact left-column bounds"
+                    }
+                }
+                "PromptPanel" {
+                    if ($width -gt 360.0 -or $height -gt 200.0 -or $rect.Right -gt 380.0) {
+                        Add-Error "client/scenes/ui/PrototypeHud.tscn: PromptPanel exceeds compact left-column bounds"
+                    }
+                }
+                "LogPanel" {
+                    if ($width -gt 360.0 -or $height -gt 140.0 -or $rect.Right -gt 380.0) {
+                        Add-Error "client/scenes/ui/PrototypeHud.tscn: LogPanel exceeds compact left-column bounds"
+                    }
+                }
+            }
         }
 
         for ($i = 0; $i -lt $panels.Count; $i++) {
@@ -350,6 +395,11 @@ if (Test-Path -LiteralPath $projectPath -PathType Leaf) {
                     Add-Error "client/scenes/ui/PrototypeHud.tscn: $($panels[$i].Name) overlaps $($panels[$j].Name)"
                 }
             }
+        }
+
+        $panelsByName = @{}
+        foreach ($panel in $panels) {
+            $panelsByName[$panel.Name] = $panel
         }
     }
 }
@@ -383,11 +433,20 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
     $interactables = [System.Collections.Generic.List[object]]::new()
     $enemies = [System.Collections.Generic.List[object]]::new()
     $interactablesByInstanceId = @{}
+    $playerPosition = $null
+    $outpostCorePosition = $null
 
     foreach ($node in $mapNodes) {
+        if ($node.Parent -eq "." -and $node.Name -eq "Player") {
+            $playerPosition = Get-NodeVector2 $node.Properties "position"
+        }
+
         if ($node.Parent -eq "Interactables" -and $node.Properties.ContainsKey("definition_id")) {
             $instanceId = Get-MapObjectInstanceId $node.Name
             $position = Get-NodeVector2 $node.Properties "position"
+            if ($node.Name -eq "OutpostCore") {
+                $outpostCorePosition = $position
+            }
             $interactable = [pscustomobject]@{
                 Name = $node.Name
                 InstanceId = $instanceId
@@ -416,6 +475,55 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
         }
         if (-not $interactablesByInstanceId.ContainsKey($interactable.PrerequisiteInstanceId)) {
             Add-Error "client/scenes/maps/VerticalSliceMap.tscn: build interactable '$($interactable.Name)' references missing prerequisite_instance_id '$($interactable.PrerequisiteInstanceId)'"
+        }
+    }
+
+    if ((Test-Path -LiteralPath $gameRootScenePath -PathType Leaf) -and $null -ne $playerPosition -and $null -ne $outpostCorePosition -and $null -ne $panelsByName) {
+        $gameRootContent = Get-Content -LiteralPath $gameRootScenePath -Raw
+        $gameRootNodes = Get-SceneNodes $gameRootContent
+        $mapRootNode = $null
+        foreach ($node in $gameRootNodes) {
+            if ($node.Parent -eq "." -and $node.Name -eq "VerticalSliceMap") {
+                $mapRootNode = $node
+                break
+            }
+        }
+
+        if ($null -eq $mapRootNode) {
+            Add-Error "client/scenes/game/GameRoot.tscn: missing VerticalSliceMap instance"
+        }
+        else {
+            $mapRootPosition = Get-NodeVector2 $mapRootNode.Properties "position"
+            $mapRootScale = Get-NodeVector2 $mapRootNode.Properties "scale"
+            if ($null -eq $mapRootPosition) {
+                Add-Error "client/scenes/game/GameRoot.tscn: VerticalSliceMap is missing position"
+            }
+            else {
+                if ($null -eq $mapRootScale) {
+                    $mapRootScale = [pscustomobject]@{ X = 1.0; Y = 1.0 }
+                }
+
+                $blockingPanels = @("MapPanel", "StatusPanel", "PromptPanel")
+                $hotspots = @(
+                    @{ Label = "player spawn"; Position = $playerPosition },
+                    @{ Label = "outpost core"; Position = $outpostCorePosition }
+                )
+
+                foreach ($hotspot in $hotspots) {
+                    $screenPoint = [pscustomobject]@{
+                        X = $mapRootPosition.X + $hotspot.Position.X * $mapRootScale.X
+                        Y = $mapRootPosition.Y + $hotspot.Position.Y * $mapRootScale.Y
+                    }
+                    foreach ($panelName in $blockingPanels) {
+                        if (-not $panelsByName.ContainsKey($panelName)) {
+                            continue
+                        }
+                        if (Test-PointInRect $screenPoint $panelsByName[$panelName] 12.0) {
+                            Add-Error "client/scenes/game/GameRoot.tscn: ${panelName} occludes ${hotspot.Label} hotspot"
+                        }
+                    }
+                }
+            }
         }
     }
 

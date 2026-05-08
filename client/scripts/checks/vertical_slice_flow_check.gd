@@ -961,11 +961,14 @@ func _check_failure_feedback_logs() -> void:
 
 func _check_hud_log_presenter() -> void:
 	var presenter := HudLogPresenter.new(data_registry)
+	var startup_log := presenter.format_startup_log()
 	_expect_text_contains(
-		presenter.format_startup_log(),
-		"Tab 显示或隐藏存档 / 快捷栏调试面板",
+		startup_log,
+		"Tab 切换调试面板",
 		"startup log keeps debug boundary hint"
 	)
+	if startup_log.length() > 80:
+		failures.append("startup log should stay compact, got %d chars: %s" % [startup_log.length(), startup_log])
 	_expect_equal(
 		presenter.format_slot_result_log("slot_02", {"message": "保存完成。"}),
 		"槽位 02：保存完成。",

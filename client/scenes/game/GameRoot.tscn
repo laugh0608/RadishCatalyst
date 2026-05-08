@@ -8,7 +8,7 @@
 script = ExtResource("1_game_root")
 
 [node name="VerticalSliceMap" parent="." instance=ExtResource("2_map")]
-position = Vector2(1000, 700)
-scale = Vector2(2.15, 2.15)
+position = Vector2(1180, 700)
+scale = Vector2(1.9, 1.9)
 
 [node name="PrototypeHud" parent="." instance=ExtResource("3_hud")]
