@@ -28,6 +28,7 @@ func _run_checks() -> void:
 	_check_region_markers()
 	_check_region_presence_bounds()
 	_check_pollution_gate_runtime_bounds()
+	_check_deep_gate_releases_movement_block()
 	_check_new_game_state_reset()
 	_check_outpost_core_restored_visual()
 	_check_early_interaction_processed_visuals()
@@ -233,8 +234,9 @@ func _check_status_panel_summary() -> void:
 	_expect_text_contains(status_text, "目标：恢复前哨", "status keeps current goal")
 	_expect_text_contains(status_text, "进度：交互 前哨核心 0/1", "status keeps objective progress")
 	_expect_text_contains(status_text, "状态：生命 100 / 100；防护 100 / 100", "status keeps health and protection")
-	_expect_text_contains(status_text, "快捷栏：1 修复凝胶 x1", "status keeps quick slots")
-	_expect_text_contains(status_text, "关键物资：基础零件 x4", "status keeps key resources")
+	_expect_text_contains(status_text, "快捷栏：1 修复凝胶x1", "status keeps quick slots")
+	_expect_text_contains(status_text, "关键物资：基础零件x4", "status keeps key resources")
+	_expect_text_missing(status_text, "模块：", "status folds module state into pollution line")
 	_expect_text_missing(status_text, "区域：", "status removes minimap region duplicate")
 	_expect_text_missing(status_text, "方向：", "status removes minimap direction duplicate")
 	_expect_text_missing(status_text, "提示：", "status removes onboarding duplicate")
@@ -445,6 +447,26 @@ func _check_pollution_gate_runtime_bounds() -> void:
 	map.update_region_presence(unlocked_deep_world, unlocked_deep_character)
 	_expect_equal(unlocked_deep_world.current_region_id, "region.deep_ruin_threshold", "unlocked deep ruin gate should update current region")
 	_expect_equal(unlocked_deep_character.current_region_id, "region.deep_ruin_threshold", "unlocked deep ruin gate should update character region")
+	map.player.free()
+	map.free()
+
+
+func _check_deep_gate_releases_movement_block() -> void:
+	var map := VerticalSliceMap.new()
+	map.player = PlayerController.new()
+	var unlocked_world := WorldState.create_default()
+	unlocked_world.unlock_region("region.crystal_vein_field")
+	unlocked_world.unlock_region("region.pollution_edge")
+	unlocked_world.unlock_region("region.ruin_outer_ring")
+	unlocked_world.unlock_region("region.deep_ruin_threshold")
+	unlocked_world.quest_state.completed_quest_ids.append("quest.stabilize_outer_ring_barrier")
+	unlocked_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_entrance")
+	var unlocked_character := CharacterState.create_default()
+	map.last_reported_region_id = "region.ruin_outer_ring"
+	map.player.stop_positive_x_until_release()
+	map.player.position = Vector2(734, -96)
+	map.update_region_presence(unlocked_world, unlocked_character)
+	_expect_equal(map.player.block_positive_x_until_release, false, "opened deep ruin gate should release positive x block")
 	map.player.free()
 	map.free()
 func _check_new_game_state_reset() -> void:
@@ -792,7 +814,7 @@ func _check_pollution_status_hints() -> void:
 	var pollution_character := CharacterState.create_default()
 	_expect_text_contains(
 		presenter.format_pollution_status(data_registry, pollution_world, pollution_character),
-		"无持续污染压力",
+		"无持续污染",
 		"stable region pollution status"
 	)
 	pollution_world.current_region_id = "region.pollution_edge"
@@ -967,6 +989,7 @@ func _check_hud_log_presenter() -> void:
 func _check_device_panel_formatting() -> void:
 	var device_panel_presenter := HudDevicePanelPresenter.new()
 	var processing := ProcessingSystem.new(data_registry)
+	var formatter := InteractionPromptFormatter.new(data_registry, processing, BuildSystem.new(data_registry))
 	var device_world := WorldState.create_default()
 	var device_character := CharacterState.create_default()
 	var reactor := PrototypeInteractable.new()
@@ -997,6 +1020,13 @@ func _check_device_panel_formatting() -> void:
 	_expect_text_contains(String(texts.get("operations", "")), "E 启动当前配方", "device panel process operation")
 	_expect_text_contains(String(texts.get("operations", "")), "R 切换配方", "device panel cycle operation")
 	_expect_text_contains(String(texts.get("operations", "")), "Q 关闭面板", "device panel close operation")
+	var prompt_text := formatter.format_processing_prompt(reactor, device_character, device_world)
+	_expect_text_contains(prompt_text, "设备：基础反应器", "processing prompt shows device name")
+	_expect_text_contains(prompt_text, "Q 详情", "processing prompt keeps device detail shortcut")
+	if prompt_text.split("\n").size() > 5:
+		failures.append("processing prompt should stay compact, got %d lines: %s" % [prompt_text.split("\n").size(), prompt_text])
+	if prompt_text.find("上次结果") >= 0:
+		failures.append("processing prompt should not duplicate last completion details: %s" % prompt_text)
 	var recommended_world := WorldState.create_default()
 	var recommended_character := CharacterState.create_default()
 	recommended_world.quest_state.active_quest_ids = ["quest.analyze_anomaly_sample"]

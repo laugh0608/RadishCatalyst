@@ -75,6 +75,10 @@ func stop_positive_x_until_release() -> void:
 	velocity.x = 0.0
 
 
+func clear_positive_x_block() -> void:
+	block_positive_x_until_release = false
+
+
 func clamp_to_play_bounds(minimum: Vector2, maximum: Vector2) -> void:
 	var clamped_position := Vector2(
 		clampf(position.x, minimum.x, maximum.x),

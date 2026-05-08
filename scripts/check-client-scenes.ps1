@@ -343,6 +343,7 @@ if (Test-Path -LiteralPath $projectPath -PathType Leaf) {
             "CompletionPanel",
             "QuickSlotPanel",
             "StatusPanel",
+            "VitalsPanel",
             "MapPanel",
             "PromptPanel",
             "DevicePanel",
@@ -351,6 +352,7 @@ if (Test-Path -LiteralPath $projectPath -PathType Leaf) {
             "SupplyFeedbackPanel"
         )
         $panels = @()
+        $debugPanelNames = @("SavePanel", "QuickSlotPanel")
 
         foreach ($panelName in $panelNames) {
             $rect = Get-PanelRect $nodes $panelName $viewportWidth $viewportHeight
@@ -370,23 +372,28 @@ if (Test-Path -LiteralPath $projectPath -PathType Leaf) {
             $height = $rect.Bottom - $rect.Top
             switch ($panelName) {
                 "MapPanel" {
-                    if ($width -gt 360.0 -or $height -gt 180.0 -or $rect.Right -gt 380.0) {
-                        Add-Error "client/scenes/ui/PrototypeHud.tscn: MapPanel exceeds compact left-column bounds"
+                    if ($width -gt 380.0 -or $height -gt 220.0 -or $rect.Left -gt 40.0 -or $rect.Top -gt 40.0 -or $rect.Right -gt 420.0 -or $rect.Bottom -gt 240.0) {
+                        Add-Error "client/scenes/ui/PrototypeHud.tscn: MapPanel drifted out of distributed HUD map bounds"
                     }
                 }
                 "StatusPanel" {
-                    if ($width -gt 360.0 -or $height -gt 300.0 -or $rect.Right -gt 380.0) {
-                        Add-Error "client/scenes/ui/PrototypeHud.tscn: StatusPanel exceeds compact left-column bounds"
+                    if ($width -gt 560.0 -or $height -gt 220.0 -or $rect.Left -gt 40.0 -or $rect.Top -lt 180.0 -or $rect.Top -gt 260.0 -or $rect.Right -gt 580.0 -or $rect.Bottom -gt 460.0) {
+                        Add-Error "client/scenes/ui/PrototypeHud.tscn: StatusPanel drifted out of distributed HUD objective-card bounds"
+                    }
+                }
+                "VitalsPanel" {
+                    if ($width -gt 460.0 -or $height -gt 200.0 -or $rect.Top -gt 40.0 -or $rect.Left -lt ($viewportWidth - 540.0) -or $rect.Right -gt $viewportWidth) {
+                        Add-Error "client/scenes/ui/PrototypeHud.tscn: VitalsPanel drifted out of distributed HUD vitals-card bounds"
                     }
                 }
                 "PromptPanel" {
-                    if ($width -gt 360.0 -or $height -gt 200.0 -or $rect.Right -gt 380.0) {
-                        Add-Error "client/scenes/ui/PrototypeHud.tscn: PromptPanel exceeds compact left-column bounds"
+                    if ($width -gt 860.0 -or $height -gt 220.0 -or $rect.Left -gt 40.0 -or $rect.Right -gt 860.0 -or $rect.Top -lt ($viewportHeight - 320.0)) {
+                        Add-Error "client/scenes/ui/PrototypeHud.tscn: PromptPanel drifted out of distributed HUD bottom-rail bounds"
                     }
                 }
                 "LogPanel" {
-                    if ($width -gt 360.0 -or $height -gt 140.0 -or $rect.Right -gt 380.0) {
-                        Add-Error "client/scenes/ui/PrototypeHud.tscn: LogPanel exceeds compact left-column bounds"
+                    if ($width -gt 860.0 -or $height -gt 120.0 -or $rect.Left -gt 40.0 -or $rect.Right -gt 860.0 -or $rect.Top -lt ($viewportHeight - 400.0)) {
+                        Add-Error "client/scenes/ui/PrototypeHud.tscn: LogPanel drifted out of distributed HUD log-rail bounds"
                     }
                 }
             }
@@ -394,6 +401,11 @@ if (Test-Path -LiteralPath $projectPath -PathType Leaf) {
 
         for ($i = 0; $i -lt $panels.Count; $i++) {
             for ($j = $i + 1; $j -lt $panels.Count; $j++) {
+                $aIsDebug = $debugPanelNames -contains $panels[$i].Name
+                $bIsDebug = $debugPanelNames -contains $panels[$j].Name
+                if ($aIsDebug -xor $bIsDebug) {
+                    continue
+                }
                 if (Test-RectOverlap $panels[$i] $panels[$j]) {
                     Add-Error "client/scenes/ui/PrototypeHud.tscn: $($panels[$i].Name) overlaps $($panels[$j].Name)"
                 }

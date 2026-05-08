@@ -344,6 +344,7 @@ func refresh_enemy_spawns(world_state: WorldState) -> void:
 func apply_runtime_state(world_state: WorldState, character_state: CharacterState) -> void:
 	current_interactable = null
 	player.position = character_state.position
+	player.clear_positive_x_block()
 	last_reported_region_id = world_state.current_region_id
 	last_gate_message = ""
 	sync_enemy_states(world_state)
@@ -367,6 +368,7 @@ func update_region_presence(world_state: WorldState, character_state: CharacterS
 			region_gate_blocked.emit(gate_message)
 		return
 
+	player.clear_positive_x_block()
 	var region_id := _get_region_id_for_position(player.position)
 	last_gate_message = ""
 	if region_id == last_reported_region_id:

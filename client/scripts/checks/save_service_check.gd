@@ -137,8 +137,10 @@ func _run_checks() -> void:
 		_expect_equal(loaded_world.world_id, "world.slice_01.prototype", "loaded world id")
 		_expect_equal(loaded_character.stable_id, "character.player", "loaded character id")
 
+	_check_save_rejects_invalid_current_state()
 	_check_slice_end_hook_state_persists()
 	_check_slice_complete_state_persists()
+	_check_deep_ruin_state_persists()
 	_check_save_backup()
 	_check_loads_recent_backup_when_primary_is_bad()
 	_check_loads_older_backup_when_recent_backup_is_bad()
@@ -573,6 +575,16 @@ func _check_rejects_invalid_enemy_health() -> void:
 	_expect_failure_message(save_service.load_game(), "敌人生命值超出有效范围", "invalid enemy health")
 
 
+func _check_save_rejects_invalid_current_state() -> void:
+	var invalid_world := WorldState.create_default()
+	var invalid_character := CharacterState.create_default()
+	invalid_world.current_region_id = "region.deep_ruin_threshold"
+	invalid_character.current_region_id = "region.deep_ruin_threshold"
+	var result := save_service.save_game(invalid_world, invalid_character)
+	_expect_failure_message(result, "未通过存档校验", "save rejects invalid current state")
+	_expect_failure_message(result, "世界当前区域尚未解锁", "save invalid current state keeps validator detail")
+
+
 func _check_rejects_locked_current_region() -> void:
 	_remove_save_file()
 	_remove_backup_files()
@@ -839,6 +851,121 @@ func _check_slice_complete_state_persists() -> void:
 	_expect_equal(loaded_world.current_region_id, "region.ruin_outer_ring", "slice complete world region")
 	_expect_equal(loaded_character.current_region_id, "region.ruin_outer_ring", "slice complete character region")
 	_expect_equal(loaded_character.position, Vector2(578, -64), "slice complete character position")
+
+
+func _check_deep_ruin_state_persists() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var world_state := WorldState.create_default()
+	world_state.unlock_region("region.crystal_vein_field")
+	world_state.unlock_region("region.pollution_edge")
+	world_state.unlock_region("region.locked_ruin_gate")
+	world_state.unlock_region("region.ruin_outer_ring")
+	world_state.unlock_region("region.deep_ruin_threshold")
+	world_state.current_region_id = "region.deep_ruin_threshold"
+	world_state.quest_state.active_quest_ids = []
+	world_state.quest_state.completed_quest_ids = [
+		"quest.restore_outpost",
+		"quest.scout_crystal_field",
+		"quest.calibrate_reactor",
+		"quest.bring_back_sample",
+		"quest.analyze_anomaly_sample",
+		"quest.make_filter_module",
+		"quest.prepare_treatment_supplies",
+		"quest.expand_treatment_point",
+		"quest.enter_pollution_edge",
+		"quest.defeat_elite_node",
+		"quest.unlock_ruin_signal",
+		"quest.scout_ruin_outer_ring",
+		"quest.assemble_phase_anchor",
+		"quest.stabilize_outer_ring_barrier",
+		"quest.secure_outer_ring_signal",
+		"quest.salvage_signal_echo",
+		"quest.analyze_deep_signal",
+		"quest.unlock_deep_ruin_entrance",
+		"quest.harvest_phase_filament",
+		"quest.refine_phase_filament",
+		"quest.assemble_deep_override",
+		"quest.unlock_deep_ruin_cache"
+	]
+	world_state.quest_state.objective_progress = {
+		"quest.restore_outpost|interact|building.outpost_core": 1,
+		"quest.scout_crystal_field|visit_region|region.crystal_vein_field": 1,
+		"quest.scout_crystal_field|gather_item|item.crystal_ore": 6,
+		"quest.calibrate_reactor|gather_item|item.salvage_scrap": 4,
+		"quest.calibrate_reactor|craft_item|item.reactor_calibrator": 1,
+		"quest.bring_back_sample|sample_object|map_object.anomaly_crystal": 1,
+		"quest.analyze_anomaly_sample|gather_item|item.anomaly_residue": 2,
+		"quest.analyze_anomaly_sample|craft_item|item.sample_analysis": 1,
+		"quest.make_filter_module|craft_item|equipment.filter_module_t1": 1,
+		"quest.prepare_treatment_supplies|craft_item|item.repair_gel": 1,
+		"quest.prepare_treatment_supplies|defeat_enemy|enemy.treatment_skitter": 1,
+		"quest.expand_treatment_point|build|building.foundation_t1": 2,
+		"quest.expand_treatment_point|build|building.pollution_filter": 1,
+		"quest.enter_pollution_edge|visit_region|region.pollution_edge": 1,
+		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 2,
+		"quest.enter_pollution_edge|craft_item|item.resistance_vial_t1": 1,
+		"quest.enter_pollution_edge|defeat_enemy|enemy.polluted_skitter": 1,
+		"quest.defeat_elite_node|defeat_enemy|enemy.elite_residue_node": 1,
+		"quest.unlock_ruin_signal|inspect|map_object.ruin_gate": 1,
+		"quest.scout_ruin_outer_ring|visit_region|region.ruin_outer_ring": 1,
+		"quest.scout_ruin_outer_ring|gather_item|item.relay_shard": 2,
+		"quest.assemble_phase_anchor|craft_item|item.phase_anchor": 1,
+		"quest.stabilize_outer_ring_barrier|inspect|map_object.outer_ring_barrier": 1,
+		"quest.secure_outer_ring_signal|inspect|map_object.outer_ring_console": 1,
+		"quest.salvage_signal_echo|defeat_enemy|enemy.ruin_phase_guard": 1,
+		"quest.salvage_signal_echo|inspect|map_object.signal_echo_cache": 1,
+		"quest.analyze_deep_signal|craft_item|item.deep_ruin_coordinates": 1,
+		"quest.unlock_deep_ruin_entrance|inspect|map_object.deep_ruin_door": 1,
+		"quest.harvest_phase_filament|visit_region|region.deep_ruin_threshold": 1,
+		"quest.harvest_phase_filament|defeat_enemy|enemy.deep_ruin_sentinel": 1,
+		"quest.harvest_phase_filament|gather_item|item.phase_filament": 2,
+		"quest.refine_phase_filament|craft_item|item.resonance_filter": 1,
+		"quest.assemble_deep_override|craft_item|item.deep_override_key": 1,
+		"quest.unlock_deep_ruin_cache|inspect|map_object.deep_ruin_latch": 1
+	}
+	world_state.quest_state.unlocked_effects = [
+		"region.outpost_platform",
+		"region.crystal_vein_field",
+		"recipe.process_crystal_ore",
+		"recipe.repair_gel",
+		"recipe.reactor_calibrator",
+		"recipe.analyze_anomaly_sample",
+		"recipe.make_filter_media",
+		"recipe.basic_filter_module",
+		"recipe.foundation_t1",
+		"region.pollution_edge",
+		"recipe.cleanse_residue",
+		"region.locked_ruin_gate",
+		"region.ruin_outer_ring",
+		"recipe.phase_anchor",
+		"slice_01_complete",
+		"recipe.deep_signal_analysis",
+		"region.deep_ruin_threshold",
+		"recipe.phase_filament_refining",
+		"recipe.deep_override_key"
+	]
+
+	var character_state := CharacterState.create_default()
+	character_state.current_region_id = "region.deep_ruin_threshold"
+	character_state.position = Vector2(764, 12)
+	character_state.inventory.add_item("item.deep_ruin_core", 1)
+	_expect_success(save_service.save_game(world_state, character_state), "save deep ruin first pass state")
+	var load_result := save_service.load_game()
+	_expect_success(load_result, "load deep ruin first pass state")
+	if not bool(load_result.get("success", false)):
+		return
+
+	var loaded_world: WorldState = load_result["world_state"]
+	var loaded_character: CharacterState = load_result["character_state"]
+	_expect_equal(loaded_world.current_region_id, "region.deep_ruin_threshold", "deep ruin world region")
+	_expect_equal(loaded_character.current_region_id, "region.deep_ruin_threshold", "deep ruin character region")
+	_expect_equal(loaded_character.position, Vector2(764, 12), "deep ruin character position")
+	_expect_equal(loaded_world.quest_state.active_quest_ids, [], "deep ruin first pass should not keep active quest")
+	_expect_array_has(loaded_world.unlocked_region_ids, "region.deep_ruin_threshold", "deep ruin region persists")
+	_expect_array_has(loaded_world.quest_state.completed_quest_ids, "quest.unlock_deep_ruin_cache", "deep ruin latch quest persists")
+	_expect_array_has(loaded_world.quest_state.unlocked_effects, "recipe.deep_override_key", "deep override recipe unlock persists")
+	_expect_equal(int(loaded_character.inventory.items.get("item.deep_ruin_core", 0)), 1, "deep ruin reward persists")
 
 
 func _read_json_file(save_path: String) -> Dictionary:

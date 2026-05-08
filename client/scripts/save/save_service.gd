@@ -50,6 +50,9 @@ func save_game_for_slot(slot_id: String, world_state: WorldState, character_stat
 		"world": world_state.to_dict(),
 		"character": character_state.to_dict()
 	}
+	var validation_result := _validate_save_data_for_write(save_data)
+	if not bool(validation_result.get("success", false)):
+		return validation_result
 
 	var backup_result := _backup_existing_save(paths)
 	if not bool(backup_result.get("success", false)):
@@ -410,6 +413,25 @@ func _validate_save_content(save_data: Dictionary) -> String:
 	if content_validator == null:
 		return ""
 	return content_validator.validate_save_content(save_data)
+
+
+func _validate_save_data_for_write(save_data: Dictionary) -> Dictionary:
+	var schema_error := _validate_save_data(save_data)
+	if not schema_error.is_empty():
+		return _failure(_format_save_validation_error(schema_error))
+	var content_error := _validate_save_content(save_data)
+	if not content_error.is_empty():
+		return _failure(_format_save_validation_error(content_error))
+	return _success("当前运行状态可保存。")
+
+
+func _format_save_validation_error(message: String) -> String:
+	var normalized := message
+	if normalized.begins_with("读取存档失败："):
+		normalized = normalized.trim_prefix("读取存档失败：")
+	if normalized.ends_with("当前运行状态已保留。"):
+		normalized = normalized.trim_suffix("当前运行状态已保留。")
+	return "保存失败：当前运行状态未通过存档校验：%s" % normalized.strip_edges()
 
 
 func _get_string_array(value, default_values: Array[String] = []) -> Array[String]:

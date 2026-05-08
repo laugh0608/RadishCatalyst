@@ -6,11 +6,13 @@ const QUICK_SLOT_BIND_CANDIDATES: Array[String] = ["item.repair_gel", "item.resi
 const SUPPLY_FEEDBACK_SECONDS := 4.0
 const QUEST_COMPLETION_FEEDBACK_SECONDS := 7.0
 const LOG_FEEDBACK_SECONDS := 6.0
+
 var last_quick_slots: Array[String] = []
 var supply_feedback_remaining_seconds := 0.0
 var quest_completion_feedback_remaining_seconds := 0.0
 var log_feedback_remaining_seconds := 0.0
 var debug_panels_visible := false
+var last_viewport_size := Vector2.ZERO
 var device_panel_presenter := HudDevicePanelPresenter.new()
 var debug_panel_presenter := HudDebugPanelPresenter.new()
 var feedback_presenter := HudFeedbackPresenter.new()
@@ -23,9 +25,14 @@ var runtime_hint_text := ""
 @onready var save_panel: ColorRect = $SavePanel
 @onready var completion_panel: ColorRect = $CompletionPanel
 @onready var quick_slot_panel: ColorRect = $QuickSlotPanel
+@onready var status_panel: ColorRect = $StatusPanel
+@onready var vitals_panel: ColorRect = $VitalsPanel
+@onready var map_panel: ColorRect = $MapPanel
+@onready var prompt_panel: ColorRect = $PromptPanel
 @onready var device_panel: ColorRect = $DevicePanel
 @onready var log_panel: ColorRect = $LogPanel
 @onready var status_label: Label = $StatusPanel/StatusLabel
+@onready var vitals_label: Label = $VitalsPanel/VitalsLabel
 @onready var prompt_label: Label = $PromptPanel/PromptLabel
 @onready var log_label: Label = $LogPanel/LogLabel
 @onready var map_marker_rects: Array[ColorRect] = [
@@ -104,6 +111,7 @@ func _ready() -> void:
 		quick_slot_binding_buttons[index].pressed.connect(_on_quick_slot_binding_pressed.bind(index))
 	evacuation_close_button.pressed.connect(_on_evacuation_close_pressed)
 	device_close_button.pressed.connect(hide_device_panel)
+	_layout_runtime_panels(true)
 	_set_debug_panels_visible(false)
 
 
@@ -116,6 +124,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
+	_layout_runtime_panels()
 	_update_timed_panel_visibility(delta)
 
 
@@ -140,7 +149,9 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 	_ensure_runtime_nodes()
 	var active_quest_id := _get_active_quest_id(world_state)
 	if status_label != null:
-		status_label.text = status_presenter.format_status_text(data_registry, world_state, character_state)
+		status_label.text = status_presenter.format_objective_text(data_registry, world_state)
+	if vitals_label != null:
+		vitals_label.text = status_presenter.format_vitals_text(data_registry, world_state, character_state)
 	_update_runtime_hint(world_state, character_state, active_quest_id)
 	_update_map_panel(world_state, active_quest_id)
 	last_quick_slots = debug_panel_presenter.update_quick_slot_binding_panel(
@@ -317,6 +328,9 @@ func _set_debug_panels_visible(should_show: bool) -> void:
 	debug_panels_visible = should_show
 	save_panel.visible = should_show
 	quick_slot_panel.visible = should_show
+	if vitals_panel != null:
+		vitals_panel.visible = not should_show
+	_layout_runtime_panels(true)
 
 
 func _append_detail(details: Array[String], text: String) -> void:
@@ -367,12 +381,22 @@ func _ensure_runtime_nodes() -> void:
 		completion_panel = get_node_or_null("CompletionPanel")
 	if quick_slot_panel == null:
 		quick_slot_panel = get_node_or_null("QuickSlotPanel")
+	if status_panel == null:
+		status_panel = get_node_or_null("StatusPanel")
+	if vitals_panel == null:
+		vitals_panel = get_node_or_null("VitalsPanel")
+	if map_panel == null:
+		map_panel = get_node_or_null("MapPanel")
+	if prompt_panel == null:
+		prompt_panel = get_node_or_null("PromptPanel")
 	if device_panel == null:
 		device_panel = get_node_or_null("DevicePanel")
 	if log_panel == null:
 		log_panel = get_node_or_null("LogPanel")
 	if status_label == null:
 		status_label = get_node_or_null("StatusPanel/StatusLabel")
+	if vitals_label == null:
+		vitals_label = get_node_or_null("VitalsPanel/VitalsLabel")
 	if prompt_label == null:
 		prompt_label = get_node_or_null("PromptPanel/PromptLabel")
 	if log_label == null:
@@ -457,3 +481,124 @@ func _ensure_runtime_nodes() -> void:
 			get_node_or_null("SavePanel/Slot02DeleteButton"),
 			get_node_or_null("SavePanel/Slot03DeleteButton")
 		]
+
+
+func _layout_runtime_panels(force: bool = false) -> void:
+	_ensure_runtime_nodes()
+	var viewport_size := get_viewport().get_visible_rect().size
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		return
+	if not force and viewport_size == last_viewport_size:
+		return
+
+	last_viewport_size = viewport_size
+	var margin := 20.0
+	var gap := 16.0
+	var map_width := 352.0
+	var map_height := 176.0
+	var objective_width := clampf(viewport_size.x * 0.28, 400.0, 520.0)
+	var objective_height := 180.0
+	var vitals_width := clampf(viewport_size.x * 0.24, 360.0, 440.0)
+	var vitals_height := 168.0
+	var prompt_width := clampf(viewport_size.x * 0.40, 680.0, 820.0)
+	var prompt_height := 192.0
+	var log_width := prompt_width
+	var log_height := 96.0
+	var device_width := clampf(viewport_size.x * 0.34, 520.0, 640.0)
+	var device_height := clampf(viewport_size.y * 0.52, 620.0, 760.0)
+	var feedback_width := clampf(viewport_size.x * 0.24, 460.0, 560.0)
+	var feedback_height := 220.0
+	var save_width := 544.0
+	var save_height := 318.0
+	var quick_width := 368.0
+	var quick_height := 134.0
+	var save_position := Vector2(viewport_size.x - margin - save_width, margin)
+	var quick_slot_position := Vector2(
+		viewport_size.x - margin - quick_width,
+		save_position.y + save_height + gap
+	)
+	var vitals_x := viewport_size.x - margin - vitals_width
+	if debug_panels_visible:
+		var shifted_vitals_x := save_position.x - gap - vitals_width
+		vitals_x = maxf(margin + objective_width + gap, shifted_vitals_x)
+
+	_set_control_rect(map_panel, Vector2(margin, margin), Vector2(map_width, map_height))
+	_set_control_rect(status_panel, Vector2(margin, map_panel.position.y + map_panel.size.y + gap), Vector2(objective_width, objective_height))
+	if vitals_panel != null:
+		if not debug_panels_visible:
+			vitals_panel.visible = true
+		_set_control_rect(vitals_panel, Vector2(vitals_x, margin), Vector2(vitals_width, vitals_height))
+
+	var prompt_y := viewport_size.y - margin - prompt_height
+	var log_y := prompt_y - gap - log_height
+	_set_control_rect(prompt_panel, Vector2(margin, prompt_y), Vector2(prompt_width, prompt_height))
+	_set_control_rect(log_panel, Vector2(margin, log_y), Vector2(log_width, log_height))
+
+	var device_y := (viewport_size.y - device_height) * 0.5
+	if debug_panels_visible:
+		device_y = maxf(device_y, quick_slot_position.y + quick_height + gap)
+	var device_x := viewport_size.x - margin - device_width
+	_set_control_rect(device_panel, Vector2(device_x, device_y), Vector2(device_width, device_height))
+	_set_control_rect(
+		completion_panel,
+		Vector2((viewport_size.x - feedback_width) * 0.5, viewport_size.y - margin - feedback_height - 72.0),
+		Vector2(feedback_width, feedback_height)
+	)
+	var side_feedback_x := viewport_size.x - margin - feedback_width
+	if device_x - gap - feedback_width >= margin:
+		side_feedback_x = device_x - gap - feedback_width
+	_set_control_rect(
+		evacuation_panel,
+		Vector2(side_feedback_x, (viewport_size.y - 280.0) * 0.5),
+		Vector2(feedback_width, 280.0)
+	)
+	_set_control_rect(
+		supply_feedback_panel,
+		Vector2(side_feedback_x, evacuation_panel.position.y + evacuation_panel.size.y + gap),
+		Vector2(feedback_width, 118.0)
+	)
+	_set_control_rect(save_panel, save_position, Vector2(save_width, save_height))
+	_set_control_rect(quick_slot_panel, quick_slot_position, Vector2(quick_width, quick_height))
+
+	_layout_full_label(status_label, status_panel, 18.0, 18.0)
+	_layout_full_label(vitals_label, vitals_panel, 18.0, 18.0)
+	_layout_full_label(prompt_label, prompt_panel, 18.0, 18.0)
+	_layout_full_label(log_label, log_panel, 18.0, 18.0)
+	_layout_full_label(completion_title_label, completion_panel, 22.0, 16.0, 32.0)
+	_layout_full_label(completion_detail_label, completion_panel, 22.0, 62.0)
+	_layout_device_panel_labels()
+
+
+func _set_control_rect(control: Control, position: Vector2, size: Vector2) -> void:
+	if control == null:
+		return
+	control.position = position
+	control.size = size
+
+
+func _layout_full_label(label: Label, panel: Control, left: float, top: float, forced_height: float = -1.0) -> void:
+	if label == null or panel == null:
+		return
+	label.position = Vector2(left, top)
+	label.size.x = maxf(0.0, panel.size.x - left * 2.0)
+	label.size.y = forced_height if forced_height > 0.0 else maxf(0.0, panel.size.y - top * 2.0)
+
+
+func _layout_device_panel_labels() -> void:
+	if device_panel == null:
+		return
+	if device_title_label != null:
+		device_title_label.position = Vector2(22.0, 18.0)
+		device_title_label.size = Vector2(device_panel.size.x - 134.0, 32.0)
+	if device_close_button != null:
+		device_close_button.position = Vector2(device_panel.size.x - 104.0, 18.0)
+		device_close_button.size = Vector2(82.0, 32.0)
+	if device_status_label != null:
+		device_status_label.position = Vector2(22.0, 66.0)
+		device_status_label.size = Vector2(device_panel.size.x - 44.0, 244.0)
+	if device_recipe_label != null:
+		device_recipe_label.position = Vector2(22.0, 322.0)
+		device_recipe_label.size = Vector2(device_panel.size.x - 44.0, 240.0)
+	if device_operation_label != null:
+		device_operation_label.position = Vector2(22.0, device_panel.size.y - 78.0)
+		device_operation_label.size = Vector2(device_panel.size.x - 44.0, 42.0)
