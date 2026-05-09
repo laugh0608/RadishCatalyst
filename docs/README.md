@@ -47,6 +47,9 @@
 - [Save Data Model](architecture/save-data-model.md)
 - [Static Data Schema](architecture/static-data-schema.md)
 - [Godot Project Structure](architecture/godot-project-structure.md)
+- [Runtime Systems Overview](architecture/runtime-systems-overview.md)
+- [Client Data Dictionary](reference/client-data-dictionary.md)
+- [Content Authoring Guide](reference/content-authoring-guide.md)
 
 ## Design Documents
 
@@ -70,6 +73,8 @@
 
 ## Reference Documents
 
+- [Client Data Dictionary](reference/client-data-dictionary.md)
+- [Content Authoring Guide](reference/content-authoring-guide.md)
 - [Chemical Automation Game Outline](reference/chemical-automation-game-outline.md)
 - [Cultivation Game Outline](reference/cultivation-game-outline.md)
 - [Community Advice](reference/community-advice.md)
