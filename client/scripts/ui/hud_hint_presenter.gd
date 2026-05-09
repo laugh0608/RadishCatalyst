@@ -24,8 +24,10 @@ func format_runtime_hint(world_state: WorldState, character_state: CharacterStat
 
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_second_deep_pass(world_state):
+			return "深段第二轮读数矩阵已整理完成：补给后，下一包内容可以继续把深段往里推。"
 		if _has_completed_deep_ruin_entry(world_state):
-			return "深段样块已带回：整理补给后，后续可以继续向更深遗迹扩展。"
+			return "深段样块已带回：先回基地解析样块，别让这份深段收益停在背包里。"
 		if _has_completed_deep_signal_analysis(world_state):
 			return "更深遗迹坐标已解析；返回遗迹外圈最东侧，把坐标写入深段入口门禁。"
 		if _is_slice_complete(world_state):
@@ -92,14 +94,22 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "回基地使用基础反应器，把谐振滤芯和污染浆液组装成深段覆写栓。"
 		"quest.unlock_deep_ruin_cache":
 			return "带着深段覆写栓返回深段入口，覆写锁扣并取出样块。"
+		"quest.analyze_deep_core":
+			return "回基地使用基础反应器，解析深段样块并整理路由印片。"
+		"quest.activate_deep_array":
+			return "带着深段路由印片返回深段，点亮阵列台、清理追袭体并回收两束相位导管。"
+		"quest.assemble_deep_signal_matrix":
+			return "回基地使用基础反应器，把相位导管和污染浆液整理成新的深段读数矩阵。"
 		_:
 			return "按当前目标推进。"
 
 
 func format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_second_deep_pass(world_state):
+			return "深段第二轮闭环已经成立：深段样块和相位导管都能被基地加工成新的有效读数。"
 		if _has_completed_deep_ruin_entry(world_state):
-			return "更深遗迹入口第一版已经完成，深段样块已带回基地；下一包内容可继续沿这条线扩展。"
+			return "第一份深段样块只是开始；要把它回基地解析成路由印片，才能继续放大深段收益。"
 		if _has_completed_deep_signal_analysis(world_state):
 			return "更深入口价值已经落成可执行坐标；这次要把它真正写回现场门禁，而不是停在背包里。"
 		if _is_slice_complete(world_state):
@@ -170,6 +180,12 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "深段覆写栓会把过滤器副产的污染浆液和外勤材料重新变成开路物，决定下一次深入是否有效。"
 		"quest.unlock_deep_ruin_cache":
 			return "只有带着基地组装的覆写栓回来，深段锁扣才会交出第一份真正的深段收益。"
+		"quest.analyze_deep_core":
+			return "这次回基地不是收尾，而是把深段样块继续整理成新的路由印片，明确下一次深入的落点。"
+		"quest.activate_deep_array":
+			return "阵列台点亮后才会暴露第二轮风险和收益；追袭体与相位导管要在同一趟深段外勤里一起解决。"
+		"quest.assemble_deep_signal_matrix":
+			return "把相位导管再次带回基地整理成读数矩阵，才能证明深段第二轮收益也能持续反哺基地。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 
@@ -184,6 +200,10 @@ func _has_completed_deep_signal_analysis(world_state: WorldState) -> bool:
 
 func _has_completed_deep_ruin_entry(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_cache")
+
+
+func _has_completed_second_deep_pass(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.assemble_deep_signal_matrix")
 
 
 func _get_target_region_id(world_state: WorldState, quest_id: String) -> String:

@@ -12,9 +12,9 @@ const PLAYER_INTERACTION_RANGE := 96.0
 const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
 const OUTPOST_RESPAWN_POSITION := Vector2(-250, -48)
 const PLAY_BOUNDS_MIN := Vector2(-360, -200)
-const PLAY_BOUNDS_MAX := Vector2(820, 200)
+const PLAY_BOUNDS_MAX := Vector2(980, 200)
 const CAMERA_BOUNDS_MIN := Vector2(-620, -360)
-const CAMERA_BOUNDS_MAX := Vector2(900, 360)
+const CAMERA_BOUNDS_MAX := Vector2(1000, 360)
 const CRYSTAL_REGION_X := -70.0
 const CRYSTAL_GATE_RETURN_X := -85.0
 const POLLUTION_REGION_X := 200.0
@@ -70,6 +70,8 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		return _inspect_deep_ruin_door(character_state, world_state)
 	if interacted.definition_id == "map_object.deep_ruin_latch" and interacted.interaction_type == "inspect":
 		return _inspect_deep_ruin_latch(character_state, world_state)
+	if interacted.definition_id == "map_object.deep_signal_array" and interacted.interaction_type == "inspect":
+		return _inspect_deep_signal_array(character_state, world_state)
 
 	var action_id := interacted.get_current_recipe_id()
 	if interacted.interaction_type == "build":
@@ -171,6 +173,14 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 					interaction_cleared.emit(interactable)
 				continue
 			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.deep_signal_array":
+			if world_state.quest_state.has_completed_quest("quest.activate_deep_array"):
+				interactable.set_activated_deep_signal_array_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
 		elif is_processed and interactable.set_processed_visual():
 			if current_interactable == interactable:
 				current_interactable = null
@@ -182,6 +192,11 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 		var should_enable: bool = not interactable.consumed
 		if interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter":
 			should_enable = should_enable and world_state.has_base_structure_definition("building.pollution_filter")
+		if interactable.definition_id == "map_object.phase_conduit_cluster":
+			should_enable = should_enable and (
+				world_state.quest_state.has_active_quest("quest.activate_deep_array")
+				or world_state.quest_state.has_completed_quest("quest.activate_deep_array")
+			)
 
 		interactable.set_interaction_enabled(should_enable)
 		if current_interactable == interactable and not should_enable:
@@ -261,6 +276,16 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 			return {
 				"success": true,
 				"message": "击败：%s。%s深段锁扣前的压制守卫已清空，相位纤丝回收线已打开。" % [
+					target.display_name,
+					drops_message
+				],
+				"enemy_definition_id": target.definition_id,
+				"enemy_defeated": true
+			}
+		if target.definition_id == "enemy.deep_ruin_stalker":
+			return {
+				"success": true,
+				"message": "击败：%s。%s深段阵列后的追袭线已清空，相位导管回收窗口已打开。" % [
 					target.display_name,
 					drops_message
 				],
@@ -511,6 +536,11 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 			world_state.quest_state.has_active_quest("quest.harvest_phase_filament")
 			or world_state.quest_state.has_completed_quest("quest.harvest_phase_filament")
 		)
+	if enemy.definition_id == "enemy.deep_ruin_stalker":
+		return (
+			world_state.quest_state.has_active_quest("quest.activate_deep_array")
+			or world_state.quest_state.has_completed_quest("quest.activate_deep_array")
+		)
 	if enemy.definition_id != "enemy.treatment_skitter":
 		return true
 	var quest_state := world_state.quest_state
@@ -711,7 +741,7 @@ func _inspect_deep_ruin_latch(character_state: CharacterState, world_state: Worl
 	if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_cache"):
 		return {
 			"success": true,
-			"message": "深段锁扣已覆写：深段样块已经回收。"
+			"message": "深段锁扣已覆写：深段样块已经回收，可回基地继续解析第二轮阵列路线。"
 		}
 
 	if not character_state.inventory.has_ref("item.deep_override_key", 1):
@@ -724,7 +754,35 @@ func _inspect_deep_ruin_latch(character_state: CharacterState, world_state: Worl
 	character_state.inventory.consume_ref("item.deep_override_key", 1)
 	return {
 		"success": true,
-		"message": "已覆写深段锁扣：深段样块匣解封，可带回新的深段样块。"
+		"message": "已覆写深段锁扣：深段样块匣解封，可带回新的深段样块并继续回基地解析。"
+	}
+
+
+func _inspect_deep_signal_array(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.analyze_deep_core"):
+		return _failure(
+			"深段阵列台仍没有可执行的第二轮路由。",
+			"阵列未点亮",
+			"先回基地用基础反应器解析深段样块，整理出深段路由印片。"
+		)
+
+	if world_state.quest_state.has_completed_quest("quest.activate_deep_array"):
+		return {
+			"success": true,
+			"message": "深段阵列台已点亮：相位导管回收线已暴露，带回基地后可继续整理读数矩阵。"
+		}
+
+	if not character_state.inventory.has_ref("item.deep_route_imprint", 1):
+		return _failure(
+			"缺少深段路由印片，阵列台无法重启。",
+			"缺少路由印片",
+			"回基地确认基础反应器已完成样块解析，并带上深段路由印片返回。"
+		)
+
+	character_state.inventory.consume_ref("item.deep_route_imprint", 1)
+	return {
+		"success": true,
+		"message": "深段路由印片已写入：阵列台点亮，第二轮相位导管回收线已暴露。"
 	}
 
 

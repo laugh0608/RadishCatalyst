@@ -167,6 +167,10 @@ func get_recommended_recipe_id(
 			return _select_if_available(interactable, "recipe.phase_filament_refining")
 		"quest.assemble_deep_override":
 			return _select_if_available(interactable, "recipe.deep_override_key")
+		"quest.analyze_deep_core":
+			return _select_if_available(interactable, "recipe.deep_core_imprint")
+		"quest.assemble_deep_signal_matrix":
+			return _select_if_available(interactable, "recipe.deep_signal_matrix")
 		_:
 			return ""
 
@@ -232,6 +236,10 @@ func _get_completion_next_step(recipe_id: String) -> String:
 			return "把谐振滤芯、副产污染浆液和基础零件送到基础反应器，组装深段覆写栓。"
 		"recipe.deep_override_key":
 			return "带着深段覆写栓返回深段入口，覆写锁扣并取出样块。"
+		"recipe.deep_core_imprint":
+			return "带着深段路由印片返回深段阵列台，点亮第二轮导管回收线。"
+		"recipe.deep_signal_matrix":
+			return "深段第二轮读数已整理完成；这批深段收益已经再次反哺基地，为下一包更深内容留出入口。"
 		_:
 			return "查看当前任务目标，选择下一次加工或外出行动。"
 

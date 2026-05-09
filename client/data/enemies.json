@@ -90,6 +90,21 @@
       "drops": [{"id": "item.repair_gel", "amount": 1}],
       "spawn_regions": ["region.deep_ruin_threshold"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "enemy.deep_ruin_stalker",
+      "display_name_key": "enemy.deep_ruin_stalker.name",
+      "description_key": "enemy.deep_ruin_stalker.desc",
+      "category": "ruin_guard",
+      "faction": "ruin_sentinel",
+      "base_stats": {"max_health": 72, "attack": 14, "move_speed": 108},
+      "behaviors": ["phase_guard", "melee_chase"],
+      "damage_types": ["physical", "pollution"],
+      "resistances": {"pollution": 0.45},
+      "drop_table_id": "drop.deep_ruin_stalker",
+      "drops": [{"id": "item.repair_gel", "amount": 1}],
+      "spawn_regions": ["region.deep_ruin_threshold"],
+      "public_level": "spoiler"
     }
   ]
 }

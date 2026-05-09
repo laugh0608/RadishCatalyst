@@ -28,7 +28,10 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.deep_ruin_door": "map_object.deep_ruin_door",
 	"map_object_instance.phase_filament_cluster_north": "map_object.phase_filament_cluster",
 	"map_object_instance.phase_filament_cluster_south": "map_object.phase_filament_cluster",
-	"map_object_instance.deep_ruin_latch": "map_object.deep_ruin_latch"
+	"map_object_instance.deep_ruin_latch": "map_object.deep_ruin_latch",
+	"map_object_instance.deep_signal_array": "map_object.deep_signal_array",
+	"map_object_instance.phase_conduit_cluster_north": "map_object.phase_conduit_cluster",
+	"map_object_instance.phase_conduit_cluster_south": "map_object.phase_conduit_cluster"
 }
 
 const PROTOTYPE_ENEMY_SOURCES := {
@@ -54,6 +57,10 @@ const PROTOTYPE_ENEMY_SOURCES := {
 	},
 	"enemy_instance.deep_ruin_sentinel": {
 		"definition_id": "enemy.deep_ruin_sentinel",
+		"region_id": "region.deep_ruin_threshold"
+	},
+	"enemy_instance.deep_ruin_stalker": {
+		"definition_id": "enemy.deep_ruin_stalker",
 		"region_id": "region.deep_ruin_threshold"
 	}
 }

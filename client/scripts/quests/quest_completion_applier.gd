@@ -123,7 +123,13 @@ func _format_completion_note(quest_id: String) -> String:
 		"quest.assemble_deep_override":
 			return "深段覆写栓已完成，可返回深段入口覆写锁扣"
 		"quest.unlock_deep_ruin_cache":
-			return "深段样块已回收；更深遗迹入口第一版闭环已成立"
+			return "深段样块已回收；回基地解析后可继续点亮深段阵列"
+		"quest.analyze_deep_core":
+			return "深段路由印片已整理；返回深段阵列台可打开第二轮回收线"
+		"quest.activate_deep_array":
+			return "深段阵列已点亮；相位导管已带回，可回基地整理新的读数矩阵"
+		"quest.assemble_deep_signal_matrix":
+			return "深段读数矩阵已整理完成；第二轮深段收益已成功再次反哺基地"
 		_:
 			return ""
 

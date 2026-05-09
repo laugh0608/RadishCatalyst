@@ -166,6 +166,16 @@ func format_deep_ruin_latch_prompt(world_state: WorldState, character_state: Cha
 	return "按 E 覆写：深段锁扣。"
 
 
+func format_deep_signal_array_prompt(world_state: WorldState, character_state: CharacterState) -> String:
+	if world_state.quest_state.has_completed_quest("quest.activate_deep_array"):
+		return "深段阵列台：已点亮，第二轮导管回收线已暴露。"
+	if not world_state.quest_state.has_completed_quest("quest.analyze_deep_core"):
+		return "深段阵列台：先回基地解析深段样块，整理出路由印片。"
+	if not character_state.inventory.has_ref("item.deep_route_imprint", 1):
+		return "深段阵列台：缺少深段路由印片；回基地确认基础反应器解析结果后再来。"
+	return "按 E 写入：深段路由印片，点亮深段阵列台。"
+
+
 func format_pollution_entry_warning(character_state: CharacterState) -> String:
 	var warnings: Array[String] = []
 	if character_state.protection < character_state.max_protection * 0.5:

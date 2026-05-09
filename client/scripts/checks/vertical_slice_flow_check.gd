@@ -149,9 +149,18 @@ func _run_checks() -> void:
 	_complete_active_quest("quest.assemble_deep_override", [{"type": "craft_item", "target_id": "item.deep_override_key", "amount": 1}])
 	_expect_active_quest("quest.unlock_deep_ruin_cache", "after override assembly returns to deep latch")
 	_complete_active_quest("quest.unlock_deep_ruin_cache", [{"type": "inspect", "target_id": "map_object.deep_ruin_latch", "amount": 1}])
-	_expect_equal(world_state.quest_state.active_quest_ids, [], "after deep ruin entry first pass has no active quest")
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.unlock_deep_ruin_cache", "deep ruin cache unlock completed")
 	_expect_equal(int(character_state.inventory.items.get("item.deep_ruin_core", 0)), 1, "deep ruin cache grants first deep reward")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.deep_core_imprint", "deep ruin cache unlocks deep core imprint recipe")
+	_expect_active_quest("quest.analyze_deep_core", "after deep ruin cache starts deep core analysis")
+	_complete_active_quest("quest.analyze_deep_core", [{"type": "craft_item", "target_id": "item.deep_route_imprint", "amount": 1}])
+	_expect_active_quest("quest.activate_deep_array", "after deep core analysis returns to deep array")
+	_complete_active_quest("quest.activate_deep_array", [{"type": "inspect", "target_id": "map_object.deep_signal_array", "amount": 1}, {"type": "defeat_enemy", "target_id": "enemy.deep_ruin_stalker", "amount": 1}, {"type": "gather_item", "target_id": "item.phase_conduit", "amount": 2}])
+	_expect_active_quest("quest.assemble_deep_signal_matrix", "after deep array activation returns to reactor")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.deep_signal_matrix", "deep array activation unlocks deep signal matrix recipe")
+	_complete_active_quest("quest.assemble_deep_signal_matrix", [{"type": "craft_item", "target_id": "item.deep_signal_matrix", "amount": 1}])
+	_expect_equal(world_state.quest_state.active_quest_ids, [], "after second deep pass should have no active quest")
+	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.assemble_deep_signal_matrix", "deep signal matrix quest completed")
 	_check_processing_runtime()
 	_check_evacuation_feedback()
 func _check_onboarding_hints() -> void:
@@ -219,10 +228,14 @@ func _check_onboarding_hints() -> void:
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_phase_filament", "污染过滤器", "phase filament filter hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_deep_override", "污染浆液", "deep override assembly hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.unlock_deep_ruin_cache", "深段收益", "deep ruin latch hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_deep_core", "路由印片", "deep core analysis hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.activate_deep_array", "相位导管", "deep array activation hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_deep_signal_matrix", "读数矩阵", "deep signal matrix assembly hint")
 	hint_world.quest_state.completed_quest_ids.append("quest.analyze_deep_signal")
 	hint_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_cache")
+	hint_world.quest_state.completed_quest_ids.append("quest.assemble_deep_signal_matrix")
 	hint_world.quest_state.unlocked_effects.append("slice_01_complete")
-	_expect_hint_contains(presenter, hint_world, hint_character, "", "深段样块", "deep ruin entry completion onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "", "第二轮闭环", "deep second pass completion onboarding hint")
 	map.free()
 func _check_runtime_hint_prompt_flow() -> void:
 	HudRuntimeHintFlowCheckScript.new().run(root, failures, data_registry)
@@ -375,6 +388,10 @@ func _check_region_markers() -> void:
 	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.refine_phase_filament"), "晶体：东侧，目标", "phase filament filter points back to treatment filter")
 	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.assemble_deep_override"), "基地：当前位置，目标", "deep override assembly returns to outpost reactor")
 	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.unlock_deep_ruin_cache"), "深段：更深，目标", "deep latch returns objective to deep region")
+	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.analyze_deep_core"), "基地：当前位置，目标", "deep core analysis returns to outpost reactor")
+	_expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.analyze_deep_core"), "基地\n当前\n目标", "deep core analysis minimap returns to outpost")
+	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.activate_deep_array"), "深段：更深，目标", "deep array activation returns objective to deep region")
+	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.assemble_deep_signal_matrix"), "基地：当前位置，目标", "deep signal matrix assembly returns to outpost reactor")
 	map.free()
 func _check_region_presence_bounds() -> void:
 	var map := VerticalSliceMap.new()
@@ -901,6 +918,15 @@ func _check_region_prompt_formatter() -> void:
 	_expect_text_contains(formatter.format_deep_ruin_latch_prompt(deep_latch_world, deep_latch_character), "按 E 覆写", "deep ruin latch ready prompt")
 	deep_latch_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_cache")
 	_expect_text_contains(formatter.format_deep_ruin_latch_prompt(deep_latch_world, deep_latch_character), "已覆写", "deep ruin latch completed prompt")
+	var deep_array_world := WorldState.create_default()
+	var deep_array_character := CharacterState.create_default()
+	_expect_text_contains(formatter.format_deep_signal_array_prompt(deep_array_world, deep_array_character), "先回基地解析深段样块", "deep signal array blocked prompt")
+	deep_array_world.quest_state.completed_quest_ids.append("quest.analyze_deep_core")
+	_expect_text_contains(formatter.format_deep_signal_array_prompt(deep_array_world, deep_array_character), "缺少深段路由印片", "deep signal array missing imprint prompt")
+	deep_array_character.inventory.add_item("item.deep_route_imprint", 1)
+	_expect_text_contains(formatter.format_deep_signal_array_prompt(deep_array_world, deep_array_character), "按 E 写入", "deep signal array ready prompt")
+	deep_array_world.quest_state.completed_quest_ids.append("quest.activate_deep_array")
+	_expect_text_contains(formatter.format_deep_signal_array_prompt(deep_array_world, deep_array_character), "已点亮", "deep signal array completed prompt")
 func _check_failure_feedback_logs() -> void:
 	var log_presenter := HudLogPresenter.new(data_registry)
 	var no_target_map := VerticalSliceMap.new()
@@ -1123,14 +1149,16 @@ func _check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pr
 	deep_reactor.recipe_id = "recipe.process_crystal_ore"
 	deep_reactor.set_recipe_cycle([
 		"recipe.process_crystal_ore",
-		"recipe.deep_override_key"
-	])
-	recipe_world.quest_state.active_quest_ids = ["quest.assemble_deep_override"]
-	_expect_equal(
-		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
 		"recipe.deep_override_key",
-		"deep override assembly selects reactor recipe"
-	)
+		"recipe.deep_core_imprint",
+		"recipe.deep_signal_matrix"
+	])
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_deep_core"]
+	_expect_equal(processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world), "recipe.deep_core_imprint", "deep core analysis selects reactor recipe")
+	recipe_world.quest_state.active_quest_ids = ["quest.assemble_deep_override"]
+	_expect_equal(processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world), "recipe.deep_override_key", "deep override assembly selects reactor recipe")
+	recipe_world.quest_state.active_quest_ids = ["quest.assemble_deep_signal_matrix"]
+	_expect_equal(processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world), "recipe.deep_signal_matrix", "deep signal matrix assembly selects reactor recipe")
 	deep_reactor.free()
 	filter.free()
 func _check_manual_recipe_cycle_keeps_player_choice() -> void:

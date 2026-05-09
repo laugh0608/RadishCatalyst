@@ -44,6 +44,7 @@ func _run_checks() -> void:
 	_check_quest_runtime_applies_updates_and_completion_feedback()
 	_check_quest_runtime_recovers_pre_sampled_anomaly()
 	_check_runtime_activates_missing_outer_ring_followup()
+	_check_runtime_activates_missing_second_deep_followup()
 	_check_active_objective_progress_is_capped()
 	_check_inactive_objective_progress_is_ignored()
 
@@ -101,6 +102,26 @@ func _check_interaction_event_objective_updates() -> void:
 		quest_state
 	)
 	_expect_update(updates, "set", "quest.salvage_signal_echo", "inspect", "map_object.signal_echo_cache", 1.0, "signal echo inspect update")
+
+	updates = event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.deep_signal_array",
+			"interaction_type": "inspect"
+		},
+		{},
+		quest_state
+	)
+	_expect_update(updates, "set", "quest.activate_deep_array", "inspect", "map_object.deep_signal_array", 1.0, "deep signal array inspect update")
+
+	updates = event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.phase_conduit_cluster",
+			"interaction_type": "gather"
+		},
+		{},
+		quest_state
+	)
+	_expect_update(updates, "add", "quest.activate_deep_array", "gather_item", "item.phase_conduit", 1.0, "phase conduit gather update")
 
 
 func _check_region_event_objective_updates() -> void:
@@ -163,6 +184,24 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		"deep signal analysis recipe update"
 	)
 	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.deep_core_imprint"),
+		"set",
+		"quest.analyze_deep_core",
+		"craft_item",
+		"item.deep_route_imprint",
+		1.0,
+		"deep core imprint recipe update"
+	)
+	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.deep_signal_matrix"),
+		"set",
+		"quest.assemble_deep_signal_matrix",
+		"craft_item",
+		"item.deep_signal_matrix",
+		1.0,
+		"deep signal matrix recipe update"
+	)
+	_expect_update(
 		event_rules.get_build_objective_updates("building.foundation_t1"),
 		"add",
 		"quest.expand_treatment_point",
@@ -207,6 +246,15 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		"enemy.ruin_phase_guard",
 		1.0,
 		"ruin phase guard defeat update"
+	)
+	_expect_update(
+		event_rules.get_defeated_enemy_objective_updates("enemy.deep_ruin_stalker"),
+		"set",
+		"quest.activate_deep_array",
+		"defeat_enemy",
+		"enemy.deep_ruin_stalker",
+		1.0,
+		"deep ruin stalker defeat update"
 	)
 
 
@@ -354,6 +402,65 @@ func _check_runtime_activates_missing_outer_ring_followup() -> void:
 	_expect_equal(_result_array_size(result, "completion_feedbacks"), 0, "followup activation should not emit completion feedback")
 	if String(result.get("log_messages", [""])[0]).find("深段回波回收任务") < 0:
 		failures.append("followup activation should log outer ring extension activation, got %s" % var_to_str(result))
+
+
+func _check_runtime_activates_missing_second_deep_followup() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.quest_state.active_quest_ids = []
+	world_state.quest_state.completed_quest_ids = [
+		"quest.restore_outpost",
+		"quest.scout_crystal_field",
+		"quest.calibrate_reactor",
+		"quest.bring_back_sample",
+		"quest.analyze_anomaly_sample",
+		"quest.make_filter_module",
+		"quest.prepare_treatment_supplies",
+		"quest.expand_treatment_point",
+		"quest.enter_pollution_edge",
+		"quest.defeat_elite_node",
+		"quest.unlock_ruin_signal",
+		"quest.scout_ruin_outer_ring",
+		"quest.assemble_phase_anchor",
+		"quest.stabilize_outer_ring_barrier",
+		"quest.secure_outer_ring_signal",
+		"quest.salvage_signal_echo",
+		"quest.analyze_deep_signal",
+		"quest.unlock_deep_ruin_entrance",
+		"quest.harvest_phase_filament",
+		"quest.refine_phase_filament",
+		"quest.assemble_deep_override",
+		"quest.unlock_deep_ruin_cache"
+	]
+	world_state.quest_state.unlocked_effects = [
+		"region.outpost_platform",
+		"region.crystal_vein_field",
+		"recipe.process_crystal_ore",
+		"recipe.repair_gel",
+		"recipe.reactor_calibrator",
+		"recipe.analyze_anomaly_sample",
+		"recipe.make_filter_media",
+		"recipe.basic_filter_module",
+		"recipe.foundation_t1",
+		"region.pollution_edge",
+		"recipe.cleanse_residue",
+		"region.locked_ruin_gate",
+		"region.ruin_outer_ring",
+		"recipe.phase_anchor",
+		"slice_01_complete",
+		"recipe.deep_signal_analysis",
+		"region.deep_ruin_threshold",
+		"recipe.phase_filament_refining",
+		"recipe.deep_override_key",
+		"recipe.deep_core_imprint"
+	]
+
+	var result := quest_runtime.reconcile_active_objectives(world_state, character_state)
+	_expect_equal(bool(result.get("accepted", false)), true, "runtime accepts missing second deep followup activation")
+	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_deep_core", "runtime activates deep core analysis quest")
+	_expect_equal(_result_array_size(result, "completion_feedbacks"), 0, "second deep activation should not emit completion feedback")
+	if String(result.get("log_messages", [""])[0]).find("第二轮任务") < 0:
+		failures.append("second deep activation should log deep followup activation, got %s" % var_to_str(result))
 
 
 func _check_active_objective_progress_is_capped() -> void:

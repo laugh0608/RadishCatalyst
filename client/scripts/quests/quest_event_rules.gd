@@ -57,6 +57,10 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		return updates
 	if interaction_type == "inspect" and definition_id == "map_object.deep_ruin_latch":
 		return [_set_update("quest.unlock_deep_ruin_cache", "inspect", "map_object.deep_ruin_latch", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.deep_signal_array":
+		return [_set_update("quest.activate_deep_array", "inspect", "map_object.deep_signal_array", 1)]
+	if interaction_type == "gather" and definition_id == "map_object.phase_conduit_cluster":
+		return _get_drop_objective_updates("quest.activate_deep_array", "gather_item", "item.phase_conduit", definition_id)
 	if interaction_type == "process_recipe":
 		return get_recipe_objective_updates(recipe_id)
 	if interaction_type == "build":
@@ -96,6 +100,10 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 			return [_set_update("quest.refine_phase_filament", "craft_item", "item.resonance_filter", 1)]
 		"recipe.deep_override_key":
 			return [_set_update("quest.assemble_deep_override", "craft_item", "item.deep_override_key", 1)]
+		"recipe.deep_core_imprint":
+			return [_set_update("quest.analyze_deep_core", "craft_item", "item.deep_route_imprint", 1)]
+		"recipe.deep_signal_matrix":
+			return [_set_update("quest.assemble_deep_signal_matrix", "craft_item", "item.deep_signal_matrix", 1)]
 		_:
 			return []
 
@@ -119,6 +127,8 @@ func get_defeated_enemy_objective_updates(enemy_definition_id: String) -> Array[
 		return [_set_update("quest.salvage_signal_echo", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.deep_ruin_sentinel":
 		return [_set_update("quest.harvest_phase_filament", "defeat_enemy", enemy_definition_id, 1)]
+	if enemy_definition_id == "enemy.deep_ruin_stalker":
+		return [_set_update("quest.activate_deep_array", "defeat_enemy", enemy_definition_id, 1)]
 	return []
 
 

@@ -258,7 +258,46 @@
       "mass": 0.4,
       "rarity": "epic",
       "source_refs": ["quest.unlock_deep_ruin_cache"],
-      "used_by_refs": [],
+      "used_by_refs": ["recipe.deep_core_imprint"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.deep_route_imprint",
+      "display_name_key": "item.deep_route_imprint.name",
+      "description_key": "item.deep_route_imprint.desc",
+      "category": "component",
+      "tags": ["ruin", "route_imprint", "slice_02"],
+      "stack_size": 3,
+      "mass": 0.1,
+      "rarity": "rare",
+      "source_refs": ["recipe.deep_core_imprint"],
+      "used_by_refs": ["quest.analyze_deep_core", "quest.activate_deep_array"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.phase_conduit",
+      "display_name_key": "item.phase_conduit.name",
+      "description_key": "item.phase_conduit.desc",
+      "category": "resource",
+      "tags": ["ruin", "phase_conduit", "slice_02"],
+      "stack_size": 10,
+      "mass": 0.3,
+      "rarity": "rare",
+      "source_refs": ["map_object.phase_conduit_cluster"],
+      "used_by_refs": ["quest.activate_deep_array", "recipe.deep_signal_matrix"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.deep_signal_matrix",
+      "display_name_key": "item.deep_signal_matrix.name",
+      "description_key": "item.deep_signal_matrix.desc",
+      "category": "component",
+      "tags": ["ruin", "signal_matrix", "slice_02"],
+      "stack_size": 3,
+      "mass": 0.2,
+      "rarity": "epic",
+      "source_refs": ["recipe.deep_signal_matrix"],
+      "used_by_refs": ["quest.assemble_deep_signal_matrix"],
       "public_level": "spoiler"
     }
   ]

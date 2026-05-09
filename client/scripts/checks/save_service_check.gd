@@ -943,7 +943,8 @@ func _check_deep_ruin_state_persists() -> void:
 		"recipe.deep_signal_analysis",
 		"region.deep_ruin_threshold",
 		"recipe.phase_filament_refining",
-		"recipe.deep_override_key"
+		"recipe.deep_override_key",
+		"recipe.deep_core_imprint"
 	]
 
 	var character_state := CharacterState.create_default()

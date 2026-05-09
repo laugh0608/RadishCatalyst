@@ -180,6 +180,36 @@
       "pollution_delta": 0.0,
       "unlock_conditions": ["quest.refine_phase_filament"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.deep_core_imprint",
+      "display_name_key": "recipe.deep_core_imprint.name",
+      "description_key": "recipe.deep_core_imprint.desc",
+      "category": "analysis",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.deep_ruin_core", "amount": 1}, {"id": "item.basic_parts", "amount": 2}],
+      "outputs": [{"id": "item.deep_route_imprint", "amount": 1}],
+      "byproducts": [],
+      "duration": 10.0,
+      "energy_cost": 5.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.unlock_deep_ruin_cache"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.deep_signal_matrix",
+      "display_name_key": "recipe.deep_signal_matrix.name",
+      "description_key": "recipe.deep_signal_matrix.desc",
+      "category": "analysis",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.phase_conduit", "amount": 2}, {"id": "fluid.polluted_slurry", "amount": 1}, {"id": "item.basic_parts", "amount": 2}],
+      "outputs": [{"id": "item.deep_signal_matrix", "amount": 1}],
+      "byproducts": [],
+      "duration": 13.0,
+      "energy_cost": 6.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.activate_deep_array"],
+      "public_level": "spoiler"
     }
   ]
 }

@@ -11,7 +11,7 @@ script = ExtResource("1_map")
 [node name="Background" type="ColorRect" parent="."]
 offset_left = -620.0
 offset_top = -360.0
-offset_right = 900.0
+offset_right = 1000.0
 offset_bottom = 360.0
 color = Color(0.101961, 0.133333, 0.141176, 1)
 
@@ -46,7 +46,7 @@ color = Color(0.180392, 0.180392, 0.247059, 1)
 [node name="RegionDeepRuin" type="ColorRect" parent="."]
 offset_left = 700.0
 offset_top = -200.0
-offset_right = 840.0
+offset_right = 960.0
 offset_bottom = 200.0
 color = Color(0.223529, 0.176471, 0.211765, 1)
 
@@ -85,9 +85,9 @@ horizontal_alignment = 1
 [node name="DeepDirectionLabel" type="Label" parent="."]
 offset_left = 710.0
 offset_top = 166.0
-offset_right = 832.0
+offset_right = 952.0
 offset_bottom = 192.0
-text = "→ 深段入口"
+text = "→ 深段入口 / 阵列"
 horizontal_alignment = 1
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
@@ -287,6 +287,28 @@ single_use = false
 label_offset = Vector2(-92, 22)
 label_size = Vector2(184, 24)
 
+[node name="DeepSignalArray" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(876, -92)
+definition_id = "map_object.deep_signal_array"
+interaction_type = "inspect"
+single_use = false
+label_offset = Vector2(-96, -52)
+label_size = Vector2(192, 24)
+
+[node name="PhaseConduitClusterNorth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(920, -18)
+definition_id = "map_object.phase_conduit_cluster"
+interaction_type = "gather"
+label_offset = Vector2(-92, 22)
+label_size = Vector2(184, 24)
+
+[node name="PhaseConduitClusterSouth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(948, 96)
+definition_id = "map_object.phase_conduit_cluster"
+interaction_type = "gather"
+label_offset = Vector2(-92, 22)
+label_size = Vector2(184, 24)
+
 [node name="Enemies" type="Node2D" parent="."]
 
 [node name="NativeSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
@@ -312,3 +334,7 @@ definition_id = "enemy.ruin_phase_guard"
 [node name="DeepRuinSentinel" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(764, 12)
 definition_id = "enemy.deep_ruin_sentinel"
+
+[node name="DeepRuinStalker" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(900, 18)
+definition_id = "enemy.deep_ruin_stalker"
