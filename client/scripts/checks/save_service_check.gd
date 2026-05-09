@@ -137,6 +137,7 @@ func _run_checks() -> void:
 		_expect_equal(loaded_world.world_id, "world.slice_01.prototype", "loaded world id")
 		_expect_equal(loaded_character.stable_id, "character.player", "loaded character id")
 
+	_check_save_migrates_legacy_equipment_inventory_entry()
 	_check_save_rejects_invalid_current_state()
 	_check_slice_end_hook_state_persists()
 	_check_slice_complete_state_persists()
@@ -149,6 +150,7 @@ func _run_checks() -> void:
 	_check_delete_slot_clears_save_and_backups()
 	_check_quick_slot_binding_persists()
 	_check_save_slot_summaries()
+	_check_legacy_slot_summary_uses_local_time()
 	_check_migrates_legacy_primary_save()
 	_check_migrates_legacy_backup_when_legacy_primary_is_bad()
 	_check_existing_slot_blocks_legacy_migration()
@@ -191,9 +193,10 @@ func _write_text_file(save_path: String, content: String) -> void:
 		failures.append("could not open user://")
 		return
 
-	var dir_error := dir.make_dir_recursive("saves/slots/%s" % SaveService.DEFAULT_SLOT_ID)
+	var relative_save_path := save_path.trim_prefix("user://")
+	var dir_error := dir.make_dir_recursive(relative_save_path.get_base_dir())
 	if dir_error != OK:
-		failures.append("could not create default slot save dir: %s" % error_string(dir_error))
+		failures.append("could not create save dir for %s: %s" % [save_path, error_string(dir_error)])
 		return
 
 	var file := FileAccess.open(save_path, FileAccess.WRITE)
@@ -447,6 +450,15 @@ func _check_save_slot_summaries() -> void:
 	var saved_details := String(saved_summary.get("details", ""))
 	if not saved_details.contains("最近保存"):
 		failures.append("saved slot summary should mention update time, got: %s" % saved_details)
+	var saved_file_data := _read_json_file(_get_slot_save_file(slot_id))
+	if not _is_number(saved_file_data.get("updated_at_unix", null)):
+		failures.append("saved slot summary primary file should keep updated_at_unix for local time display")
+	else:
+		_expect_equal(
+			_extract_saved_at_from_details(saved_details),
+			_format_local_datetime_from_unix(int(saved_file_data.get("updated_at_unix", 0))),
+			"saved slot summary should use local save time"
+		)
 
 	var summaries := save_service.get_save_slot_summaries(["slot_01", slot_id])
 	_expect_equal(summaries.size(), 2, "slot summary list size")
@@ -462,6 +474,33 @@ func _check_save_slot_summaries() -> void:
 	_expect_equal(bool(backup_summary.get("recovered_from_backup", false)), true, "bad primary summary should mark backup")
 	if not String(backup_summary.get("status", "")).contains("备份 1"):
 		failures.append("bad primary summary should mention backup 1, got: %s" % String(backup_summary.get("status", "")))
+
+	var backup_file_data := _read_json_file(_get_slot_backup_file(slot_id, 1))
+	if not _is_number(backup_file_data.get("updated_at_unix", null)):
+		failures.append("saved slot summary backup should keep updated_at_unix for local time display")
+	else:
+		_expect_equal(
+			_extract_saved_at_from_details(String(backup_summary.get("details", ""))),
+			_format_local_datetime_from_unix(int(backup_file_data.get("updated_at_unix", 0))),
+			"backup slot summary should use local save time"
+		)
+
+
+func _check_legacy_slot_summary_uses_local_time() -> void:
+	var slot_id := "slot_04"
+	_remove_slot_files(slot_id)
+	var legacy_save_data := _make_save_data("world.slot.summary.legacy")
+	legacy_save_data["updated_at"] = "2026-05-09T13:58:00"
+	var summary_save_path := _get_slot_save_file(slot_id)
+	_write_save_json_to_path(summary_save_path, legacy_save_data)
+
+	var summary := save_service.get_save_slot_summary(slot_id)
+	_expect_equal(bool(summary.get("has_loadable_save", false)), true, "legacy slot summary should stay loadable")
+	_expect_equal(
+		_extract_saved_at_from_details(String(summary.get("details", ""))),
+		_format_legacy_utc_saved_at("2026-05-09T13:58:00"),
+		"legacy slot summary should convert utc save time to local time"
+	)
 
 
 func _check_migrates_legacy_primary_save() -> void:
@@ -585,6 +624,32 @@ func _check_save_rejects_invalid_current_state() -> void:
 	_expect_failure_message(result, "世界当前区域尚未解锁", "save invalid current state keeps validator detail")
 
 
+func _check_save_migrates_legacy_equipment_inventory_entry() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var legacy_world := WorldState.create_default()
+	var legacy_character := CharacterState.create_default()
+	legacy_character.inventory.items["equipment.filter_module_t1"] = 1
+	var save_result := save_service.save_game(legacy_world, legacy_character)
+	_expect_success(save_result, "save migrates legacy equipment inventory entry")
+	var load_result := save_service.load_game()
+	_expect_success(load_result, "load migrated equipment inventory entry")
+	if not bool(load_result.get("success", false)):
+		return
+
+	var loaded_character: CharacterState = load_result["character_state"]
+	_expect_equal(
+		int(loaded_character.inventory.equipment.get("equipment.filter_module_t1", 0)),
+		1,
+		"legacy equipment inventory entry should migrate to equipment bucket"
+	)
+	_expect_equal(
+		loaded_character.inventory.items.has("equipment.filter_module_t1"),
+		false,
+		"legacy equipment inventory entry should not remain in item bucket"
+	)
+
+
 func _check_rejects_locked_current_region() -> void:
 	_remove_save_file()
 	_remove_backup_files()
@@ -662,6 +727,40 @@ func _make_save_data(world_id: String) -> Dictionary:
 		"world": world_state.to_dict(),
 		"character": CharacterState.create_default().to_dict()
 	}
+
+
+func _extract_saved_at_from_details(details: String) -> String:
+	for part in details.split("；", false):
+		var text := String(part)
+		if text.begins_with("最近保存："):
+			return text.trim_prefix("最近保存：")
+	return ""
+
+
+func _format_legacy_utc_saved_at(datetime_text: String) -> String:
+	var iso_text := datetime_text.replace(" ", "T").strip_edges()
+	var parsed_unix := int(Time.get_unix_time_from_datetime_string("%sZ" % iso_text))
+	if parsed_unix <= 0:
+		return datetime_text.replace("T", " ")
+	return _format_local_datetime_from_unix(parsed_unix)
+
+
+func _format_local_datetime_from_unix(unix_time: int) -> String:
+	if unix_time <= 0:
+		return ""
+	return Time.get_datetime_string_from_unix_time(unix_time + _get_system_utc_offset_seconds(), true)
+
+
+func _get_system_utc_offset_seconds() -> int:
+	var local_now := Time.get_datetime_string_from_system(false, true)
+	var utc_now := Time.get_datetime_string_from_system(true, true)
+	var local_unix := int(Time.get_unix_time_from_datetime_string(local_now))
+	var utc_unix := int(Time.get_unix_time_from_datetime_string(utc_now))
+	return local_unix - utc_unix
+
+
+func _is_number(value) -> bool:
+	return typeof(value) == TYPE_INT or typeof(value) == TYPE_FLOAT
 
 
 func _expect_recovered_world_id(result: Dictionary, expected_world_id: String, label: String) -> void:

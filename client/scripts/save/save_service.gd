@@ -41,12 +41,14 @@ func save_game_for_slot(slot_id: String, world_state: WorldState, character_stat
 	if not bool(dir_result.get("success", false)):
 		return dir_result
 
-	var now := Time.get_datetime_string_from_system(true, true)
+	var now := Time.get_datetime_string_from_system(false, true)
+	var now_unix := int(floor(Time.get_unix_time_from_system()))
 	var save_data := {
 		"save_schema_version": SAVE_SCHEMA_VERSION,
 		"game_version": GAME_VERSION,
 		"created_at": _read_existing_created_at(now, save_file),
 		"updated_at": now,
+		"updated_at_unix": now_unix,
 		"world": world_state.to_dict(),
 		"character": character_state.to_dict()
 	}
@@ -342,9 +344,9 @@ func _format_slot_summary(
 
 func _format_slot_details(save_data: Dictionary) -> String:
 	var parts: Array[String] = []
-	var updated_at := String(save_data.get("updated_at", ""))
+	var updated_at := _get_saved_at_display_text(save_data)
 	if updated_at.is_empty():
-		updated_at = String(save_data.get("created_at", "未知时间"))
+		updated_at = "未知时间"
 	parts.append("最近保存：%s" % updated_at)
 
 	var world_data = save_data.get("world", {})
@@ -366,6 +368,54 @@ func _format_slot_details(save_data: Dictionary) -> String:
 				parts.append("目标：遗迹外圈第一版已完成")
 
 	return "；".join(parts)
+
+
+func _get_saved_at_display_text(save_data: Dictionary) -> String:
+	var updated_at_unix = save_data.get("updated_at_unix", null)
+	if _is_number(updated_at_unix):
+		return _format_local_datetime_from_unix(int(updated_at_unix))
+
+	var updated_at := String(save_data.get("updated_at", ""))
+	if not updated_at.is_empty():
+		return _format_legacy_saved_at_text(updated_at)
+
+	var created_at := String(save_data.get("created_at", ""))
+	if not created_at.is_empty():
+		return _format_legacy_saved_at_text(created_at)
+	return ""
+
+
+func _format_legacy_saved_at_text(datetime_text: String) -> String:
+	var normalized := datetime_text.strip_edges()
+	if normalized.is_empty():
+		return ""
+	var iso_text := normalized.replace(" ", "T")
+	if not _has_explicit_timezone_suffix(iso_text):
+		iso_text += "Z"
+	var parsed_unix := int(Time.get_unix_time_from_datetime_string(iso_text))
+	if parsed_unix <= 0:
+		return normalized.replace("T", " ")
+	return _format_local_datetime_from_unix(parsed_unix)
+
+
+func _format_local_datetime_from_unix(unix_time: int) -> String:
+	if unix_time <= 0:
+		return ""
+	return Time.get_datetime_string_from_unix_time(unix_time + _get_system_utc_offset_seconds(), true)
+
+
+func _get_system_utc_offset_seconds() -> int:
+	var local_now := Time.get_datetime_string_from_system(false, true)
+	var utc_now := Time.get_datetime_string_from_system(true, true)
+	var local_unix := int(Time.get_unix_time_from_datetime_string(local_now))
+	var utc_unix := int(Time.get_unix_time_from_datetime_string(utc_now))
+	return local_unix - utc_unix
+
+
+func _has_explicit_timezone_suffix(datetime_text: String) -> bool:
+	if datetime_text.to_upper().ends_with("Z"):
+		return true
+	return datetime_text.rfind("+") > 10 or datetime_text.rfind("-") > 10
 
 
 func _format_slot_display_name(slot_id: String) -> String:

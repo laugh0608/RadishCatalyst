@@ -1,6 +1,7 @@
 extends SceneTree
 const GameRootScript := preload("res://scripts/game/game_root.gd")
 const HudRuntimeHintFlowCheckScript := preload("res://scripts/checks/hud_runtime_hint_flow_check.gd")
+const VerticalSliceRegressionChecks := preload("res://scripts/checks/vertical_slice_regression_check.gd")
 const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
 var failures: Array[String] = []
 var data_registry := DataRegistry.new()
@@ -41,7 +42,7 @@ func _run_checks() -> void:
 	_check_hud_feedback_presenter()
 	_check_pollution_status_hints()
 	_check_region_prompt_formatter()
-	_check_hud_log_presenter()
+	VerticalSliceRegressionChecks.new(self).run_ui_and_recipe_checks()
 	_check_failure_feedback_logs()
 	_check_device_panel_formatting()
 	_check_manual_recipe_cycle_keeps_player_choice()
@@ -162,6 +163,7 @@ func _run_checks() -> void:
 	_expect_equal(world_state.quest_state.active_quest_ids, [], "after second deep pass should have no active quest")
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.assemble_deep_signal_matrix", "deep signal matrix quest completed")
 	_check_processing_runtime()
+	VerticalSliceRegressionChecks.new(self).check_equipment_processing_runtime()
 	_check_evacuation_feedback()
 func _check_onboarding_hints() -> void:
 	var presenter := HudHintPresenter.new()
@@ -982,36 +984,6 @@ func _check_failure_feedback_logs() -> void:
 		WorldState.create_default()
 	)
 	_expect_failure_feedback(blocked_residue, "交互前置不足", "anomaly residue quest gate feedback")
-func _check_hud_log_presenter() -> void:
-	var presenter := HudLogPresenter.new(data_registry)
-	var startup_log := presenter.format_startup_log()
-	_expect_text_contains(
-		startup_log,
-		"Tab 切换调试面板",
-		"startup log keeps debug boundary hint"
-	)
-	if startup_log.length() > 80:
-		failures.append("startup log should stay compact, got %d chars: %s" % [startup_log.length(), startup_log])
-	_expect_equal(
-		presenter.format_slot_result_log("slot_02", {"message": "保存完成。"}),
-		"槽位 02：保存完成。",
-		"log presenter formats save slot names"
-	)
-	_expect_equal(
-		presenter.join_messages(["", "已进入：晶体矿脉区。", "  ", "任务完成：恢复前哨。"]),
-		"已进入：晶体矿脉区。 任务完成：恢复前哨。",
-		"log presenter joins non-empty messages"
-	)
-	_expect_text_contains(
-		presenter.format_device_panel_opened_log("building.basic_reactor"),
-		"基础反应器",
-		"log presenter resolves device display names"
-	)
-	_expect_text_contains(
-		presenter.format_recommended_recipe_selected_log("recipe.analyze_anomaly_sample"),
-		"分析异常样本",
-		"log presenter resolves recipe display names"
-	)
 func _check_device_panel_formatting() -> void:
 	var device_panel_presenter := HudDevicePanelPresenter.new()
 	var processing := ProcessingSystem.new(data_registry)
@@ -1080,7 +1052,7 @@ func _check_device_panel_formatting() -> void:
 		"分析异常样本（当前目标）",
 		"device panel recommended recipe marker"
 	)
-	_check_task_recipe_selection(reactor, processing)
+	VerticalSliceRegressionChecks.new(self).check_task_recipe_selection(reactor, processing)
 	var filter := PrototypeInteractable.new()
 	filter.definition_id = "building.pollution_filter"
 	filter.interaction_type = "process_recipe"
@@ -1106,60 +1078,6 @@ func _check_device_panel_formatting() -> void:
 	_expect_text_contains(String(filter_texts.get("recipes", "")), "缺 污染沉积物 x2", "filter device panel missing input")
 	_expect_text_contains(String(filter_texts.get("operations", "")), "E 尝试当前配方", "filter device panel blocked operation")
 	reactor.free()
-	filter.free()
-func _check_task_recipe_selection(reactor: PrototypeInteractable, processing: ProcessingSystem) -> void:
-	var recipe_world := WorldState.create_default()
-	var recipe_character := CharacterState.create_default()
-	var filter := PrototypeInteractable.new()
-	filter.definition_id = "building.pollution_filter"
-	filter.interaction_type = "process_recipe"
-	filter.recipe_id = "recipe.cleanse_residue"
-	filter.set_recipe_cycle([
-		"recipe.cleanse_residue",
-		"recipe.phase_filament_refining"
-	])
-	recipe_world.quest_state.active_quest_ids = ["quest.analyze_anomaly_sample"]
-	recipe_world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 2)
-	_expect_equal(
-		processing.get_recommended_recipe_id(reactor, recipe_character, recipe_world),
-		"recipe.analyze_anomaly_sample",
-		"sample analysis task recipe selection"
-	)
-	recipe_world.quest_state.active_quest_ids = ["quest.make_filter_module"]
-	_expect_equal(
-		processing.get_recommended_recipe_id(reactor, recipe_character, recipe_world),
-		"recipe.make_filter_media",
-		"filter module task first selects media recipe"
-	)
-	recipe_character.inventory.add_item("item.filter_media", 1)
-	_expect_equal(
-		processing.get_recommended_recipe_id(reactor, recipe_character, recipe_world),
-		"recipe.basic_filter_module",
-		"filter module task selects module recipe after media"
-	)
-	recipe_world.quest_state.active_quest_ids = ["quest.refine_phase_filament"]
-	_expect_equal(
-		processing.get_recommended_recipe_id(filter, recipe_character, recipe_world),
-		"recipe.phase_filament_refining",
-		"phase filament refinement selects pollution filter recipe"
-	)
-	var deep_reactor := PrototypeInteractable.new()
-	deep_reactor.definition_id = "building.basic_reactor"
-	deep_reactor.interaction_type = "process_recipe"
-	deep_reactor.recipe_id = "recipe.process_crystal_ore"
-	deep_reactor.set_recipe_cycle([
-		"recipe.process_crystal_ore",
-		"recipe.deep_override_key",
-		"recipe.deep_core_imprint",
-		"recipe.deep_signal_matrix"
-	])
-	recipe_world.quest_state.active_quest_ids = ["quest.analyze_deep_core"]
-	_expect_equal(processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world), "recipe.deep_core_imprint", "deep core analysis selects reactor recipe")
-	recipe_world.quest_state.active_quest_ids = ["quest.assemble_deep_override"]
-	_expect_equal(processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world), "recipe.deep_override_key", "deep override assembly selects reactor recipe")
-	recipe_world.quest_state.active_quest_ids = ["quest.assemble_deep_signal_matrix"]
-	_expect_equal(processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world), "recipe.deep_signal_matrix", "deep signal matrix assembly selects reactor recipe")
-	deep_reactor.free()
 	filter.free()
 func _check_manual_recipe_cycle_keeps_player_choice() -> void:
 	var game_root = GameRootScript.new()

@@ -92,8 +92,11 @@ func _sample(instance_id: String, definition: Dictionary, character_state: Chara
 	var sample_refs: Array = definition.get("sample_result_refs", [])
 	var rewards: Array[String] = []
 	for sample_id in sample_refs:
-		character_state.inventory.add_item(String(sample_id), 1)
-		rewards.append("%s x1" % sample_id)
+		var definition_id := String(sample_id)
+		if definition_id.is_empty():
+			continue
+		character_state.inventory.add_ref(definition_id, 1)
+		rewards.append("%s x1" % _get_display_name(definition_id))
 
 	world_state.set_map_object_flag(instance_id, "is_sampled", true)
 	if rewards.is_empty():
@@ -108,18 +111,15 @@ func _grant_refs(refs: Array, character_state: CharacterState) -> Array[String]:
 			continue
 
 		var reward_id := String(ref.get("id", ""))
-		var amount := int(ref.get("amount", 0))
-		if reward_id.is_empty() or amount <= 0:
+		var amount := float(ref.get("amount", 0.0))
+		if reward_id.is_empty() or amount <= 0.0:
 			continue
 
-		if reward_id.begins_with("item."):
-			character_state.inventory.add_item(reward_id, amount)
-		elif reward_id.begins_with("fluid."):
-			character_state.inventory.add_fluid(reward_id, amount)
-		else:
+		if not reward_id.begins_with("item.") and not reward_id.begins_with("fluid.") and not reward_id.begins_with("equipment."):
 			continue
 
-		rewards.append("%s x%d" % [reward_id, amount])
+		character_state.inventory.add_ref(reward_id, amount)
+		rewards.append("%s x%s" % [_get_display_name(reward_id), _format_amount(amount)])
 	return rewards
 
 
@@ -156,6 +156,13 @@ func _format_amount(amount: float) -> String:
 	if is_equal_approx(amount, roundf(amount)):
 		return str(int(amount))
 	return "%.1f" % amount
+
+
+func _get_display_name(definition_id: String) -> String:
+	var definition := data_registry.get_definition(definition_id)
+	if definition.is_empty():
+		return definition_id
+	return data_registry.get_text(String(definition.get("display_name_key", definition_id)))
 
 
 func _supports_interaction(definition: Dictionary, interaction_type: String) -> bool:

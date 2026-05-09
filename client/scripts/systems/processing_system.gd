@@ -154,23 +154,30 @@ func get_recommended_recipe_id(
 				return _select_if_available(interactable, "recipe.repair_gel")
 			return ""
 		"quest.expand_treatment_point":
-			if character_state.inventory.has_ref("item.foundation_material", 2):
+			var pending_foundations := maxi(0, 2 - world_state.count_base_structures("building.foundation_t1"))
+			if _get_inventory_ref_amount("item.foundation_material", character_state.inventory) < pending_foundations:
+				return _select_if_available(interactable, "recipe.foundation_t1")
+			if world_state.has_base_structure_definition("building.pollution_filter"):
 				return ""
-			return _select_if_available(interactable, "recipe.foundation_t1")
+			if _get_build_cost_shortage("building.pollution_filter", "item.filter_media", character_state.inventory) > 0.0:
+				return _select_if_available(interactable, "recipe.make_filter_media")
+			if _get_build_cost_shortage("building.pollution_filter", "item.basic_parts", character_state.inventory) > 0.0:
+				return _select_if_available(interactable, "recipe.process_crystal_ore")
+			return ""
 		"quest.enter_pollution_edge":
 			return _select_if_available(interactable, "recipe.cleanse_residue")
 		"quest.assemble_phase_anchor":
-			return _select_if_available(interactable, "recipe.phase_anchor")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_anchor")
 		"quest.analyze_deep_signal":
-			return _select_if_available(interactable, "recipe.deep_signal_analysis")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_signal_analysis")
 		"quest.refine_phase_filament":
 			return _select_if_available(interactable, "recipe.phase_filament_refining")
 		"quest.assemble_deep_override":
-			return _select_if_available(interactable, "recipe.deep_override_key")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_override_key")
 		"quest.analyze_deep_core":
-			return _select_if_available(interactable, "recipe.deep_core_imprint")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_core_imprint")
 		"quest.assemble_deep_signal_matrix":
-			return _select_if_available(interactable, "recipe.deep_signal_matrix")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_signal_matrix")
 		_:
 			return ""
 
@@ -213,7 +220,7 @@ func _format_last_completion_status(structure: Dictionary) -> String:
 func _get_completion_next_step(recipe_id: String) -> String:
 	match recipe_id:
 		"recipe.process_crystal_ore":
-			return "基础零件已可用于过滤模块、地基材料或修复凝胶；按 R 切换需要的配方。"
+			return "基础零件已补足；若当前任务还差更高阶配方，设备会自动切回对应配方，也可按 R 切换。"
 		"recipe.reactor_calibrator":
 			return "反应器采样通道已校准；前往异常晶体采样并回收周边残留物。"
 		"recipe.analyze_anomaly_sample":
@@ -284,6 +291,67 @@ func _select_if_available(interactable: PrototypeInteractable, recipe_id: String
 	if interactable.has_recipe(recipe_id):
 		return recipe_id
 	return ""
+
+
+func _select_recipe_with_basic_parts_fallback(
+	interactable: PrototypeInteractable,
+	inventory: InventoryState,
+	target_recipe_id: String
+) -> String:
+	if _should_refill_basic_parts_before_recipe(target_recipe_id, inventory):
+		var refill_recipe_id := _select_if_available(interactable, "recipe.process_crystal_ore")
+		if not refill_recipe_id.is_empty():
+			return refill_recipe_id
+	return _select_if_available(interactable, target_recipe_id)
+
+
+func _should_refill_basic_parts_before_recipe(target_recipe_id: String, inventory: InventoryState) -> bool:
+	var recipe := data_registry.get_definition(target_recipe_id)
+	if recipe.is_empty():
+		return false
+	if _get_recipe_input_shortage(recipe, "item.basic_parts", inventory) <= 0.0:
+		return false
+	return _has_required_inputs_except(recipe, inventory, "item.basic_parts")
+
+
+func _get_recipe_input_shortage(recipe: Dictionary, definition_id: String, inventory: InventoryState) -> float:
+	for input_ref in recipe.get("inputs", []):
+		if not input_ref is Dictionary:
+			continue
+		if String(input_ref.get("id", "")) != definition_id:
+			continue
+		return maxf(0.0, float(input_ref.get("amount", 0.0)) - _get_inventory_ref_amount(definition_id, inventory))
+	return 0.0
+
+
+func _has_required_inputs_except(recipe: Dictionary, inventory: InventoryState, skipped_definition_id: String) -> bool:
+	for input_ref in recipe.get("inputs", []):
+		if not input_ref is Dictionary:
+			continue
+		var definition_id := String(input_ref.get("id", ""))
+		var amount := float(input_ref.get("amount", 0.0))
+		if definition_id.is_empty() or amount <= 0.0 or definition_id == skipped_definition_id:
+			continue
+		if _get_inventory_ref_amount(definition_id, inventory) < amount:
+			return false
+	return true
+
+
+func _get_build_cost_shortage(building_id: String, definition_id: String, inventory: InventoryState) -> float:
+	if building_id.is_empty() or definition_id.is_empty():
+		return 0.0
+
+	var building := data_registry.get_definition(building_id)
+	if building.is_empty():
+		return 0.0
+
+	for cost in building.get("build_cost", []):
+		if not cost is Dictionary:
+			continue
+		if String(cost.get("id", "")) != definition_id:
+			continue
+		return maxf(0.0, float(cost.get("amount", 0.0)) - _get_inventory_ref_amount(definition_id, inventory))
+	return 0.0
 
 
 func _get_active_structure_for_building(building_id: String, world_state: WorldState) -> Dictionary:
@@ -413,6 +481,8 @@ func _get_recipe_duration(recipe: Dictionary) -> float:
 func _get_inventory_ref_amount(definition_id: String, inventory: InventoryState) -> float:
 	if definition_id.begins_with("fluid."):
 		return float(inventory.fluids.get(definition_id, 0.0))
+	if definition_id.begins_with("equipment."):
+		return float(inventory.equipment.get(definition_id, 0))
 	return float(inventory.items.get(definition_id, 0))
 
 

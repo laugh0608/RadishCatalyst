@@ -7,6 +7,7 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.crystal_cluster": "map_object.crystal_cluster",
 	"map_object_instance.crystal_cluster_east": "map_object.crystal_cluster",
 	"map_object_instance.crystal_cluster_south": "map_object.crystal_cluster",
+	"map_object_instance.crystal_cluster_reserve": "map_object.crystal_cluster",
 	"map_object_instance.field_wreckage_north": "map_object.field_wreckage",
 	"map_object_instance.field_wreckage_east": "map_object.field_wreckage",
 	"map_object_instance.anomaly_crystal": "map_object.anomaly_crystal",
@@ -790,6 +791,16 @@ func _validate_inventory_content(value, label: String) -> String:
 			var item_amount = items[item_id]
 			if not _is_whole_number(item_amount) or int(item_amount) < 0:
 				return "读取存档失败：%s.items 中存在无效数量，当前运行状态已保留。" % label
+
+	var equipment = value.get("equipment", {})
+	if equipment is Dictionary:
+		for equipment_id in equipment:
+			var equipment_error := _validate_definition_ref(String(equipment_id), "equipment.", "%s.equipment" % label)
+			if not equipment_error.is_empty():
+				return equipment_error
+			var equipment_amount = equipment[equipment_id]
+			if not _is_whole_number(equipment_amount) or int(equipment_amount) < 0:
+				return "读取存档失败：%s.equipment 中存在无效数量，当前运行状态已保留。" % label
 
 	var fluids = value.get("fluids", {})
 	if fluids is Dictionary:

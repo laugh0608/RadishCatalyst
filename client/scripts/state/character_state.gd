@@ -26,9 +26,18 @@ static func create_default() -> CharacterState:
 
 
 func equip_suit_module(module_id: String) -> bool:
-	if module_id.is_empty() or not inventory.has_ref(module_id, 1):
+	if module_id.is_empty():
+		return false
+	if String(equipment.get("suit_module", "")) == module_id:
+		return true
+	if not inventory.has_ref(module_id, 1):
 		return false
 
+	var previous_module_id := String(equipment.get("suit_module", ""))
+	if not previous_module_id.is_empty():
+		inventory.add_ref(previous_module_id, 1)
+
+	inventory.consume_ref(module_id, 1)
 	equipment["suit_module"] = module_id
 	return true
 

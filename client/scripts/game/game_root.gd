@@ -422,6 +422,7 @@ func _refresh_current_context_prompt() -> void:
 		hud.show_prompt(interaction_prompt_formatter.format_deep_signal_array_prompt(world_state, character_state))
 		return
 	if interactable.interaction_type == "process_recipe":
+		_maybe_select_followup_recipe(interactable)
 		hud.show_prompt(interaction_prompt_formatter.format_processing_prompt(interactable, character_state, world_state))
 		hud.refresh_device_panel(data_registry, processing_system, interactable, character_state, world_state)
 	if interactable.interaction_type == "build":
@@ -457,6 +458,22 @@ func _select_recommended_recipe(interactable: PrototypeInteractable) -> String:
 
 func _maybe_select_recommended_recipe(interactable: PrototypeInteractable, should_auto_select_recipe: bool) -> String:
 	if not should_auto_select_recipe:
+		return ""
+	return _select_recommended_recipe(interactable)
+
+
+func _maybe_select_followup_recipe(interactable: PrototypeInteractable) -> String:
+	if interactable == null or interactable.interaction_type != "process_recipe":
+		return ""
+
+	var structure_id := world_state.get_base_structure_id_for_definition(interactable.definition_id)
+	if structure_id.is_empty():
+		return ""
+
+	var structure: Dictionary = world_state.base_structures.get(structure_id, {})
+	if String(structure.get("status", "")) != "completed":
+		return ""
+	if String(structure.get("last_recipe_id", "")) != interactable.get_current_recipe_id():
 		return ""
 	return _select_recommended_recipe(interactable)
 
