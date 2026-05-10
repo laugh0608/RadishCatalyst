@@ -244,6 +244,9 @@ func _check_onboarding_hints() -> void:
 	hint_world.quest_state.completed_quest_ids.append("quest.assemble_deep_signal_matrix")
 	hint_world.quest_state.completed_quest_ids.append("quest.deploy_phase_relay_anchor")
 	hint_world.quest_state.unlocked_effects.append("slice_01_complete")
+	hint_world.current_region_id = "region.outpost_platform"
+	_expect_text_contains(presenter.format_direction_hint(hint_world, hint_character, ""), "相位回投台", "phase relay completion direction returns to relay pad")
+	_expect_text_contains(presenter.format_onboarding_hint(hint_world, hint_character, ""), "相位回投台", "phase relay completion onboarding points to relay pad")
 	_expect_hint_contains(presenter, hint_world, hint_character, "", "回传锚点", "phase relay completion onboarding hint")
 	map.free()
 func _check_runtime_hint_prompt_flow() -> void:
@@ -261,6 +264,13 @@ func _check_status_panel_summary() -> void:
 	_expect_text_missing(status_text, "模块：", "status folds module state into pollution line")
 	_expect_text_missing(status_text, "区域：", "status removes minimap region duplicate")
 	_expect_text_missing(status_text, "方向：", "status removes minimap direction duplicate")
+	var relay_world := WorldState.create_default()
+	relay_world.current_region_id = "region.outpost_platform"
+	relay_world.quest_state.active_quest_ids.clear()
+	relay_world.quest_state.completed_quest_ids.append("quest.deploy_phase_relay_anchor")
+	var relay_text := presenter.format_status_text(data_registry, relay_world, status_character)
+	_expect_text_contains(relay_text, "相位回投台", "phase relay status highlights return pad")
+	_expect_text_contains(relay_text, "按 E 回投返回深段", "phase relay status keeps explicit return action")
 	_expect_text_missing(status_text, "提示：", "status removes onboarding duplicate")
 	_expect_text_missing(status_text, "坐标：", "status removes debug coordinate duplicate")
 	_expect_text_missing(status_text, "背包：", "status removes full inventory duplicate")
@@ -402,6 +412,9 @@ func _check_region_markers() -> void:
 	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.activate_deep_array"), "深段：更深，目标", "deep array activation returns objective to deep region")
 	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.assemble_deep_signal_matrix"), "基地：当前位置，目标", "deep signal matrix assembly returns to outpost reactor")
 	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.deploy_phase_relay_anchor"), "深段：更深，目标", "phase relay anchor deployment returns to deep region")
+	marker_world.current_region_id = "region.outpost_platform"
+	marker_world.quest_state.completed_quest_ids.append("quest.deploy_phase_relay_anchor")
+	_expect_text_contains(presenter.format_region_markers(marker_world, ""), "深段：更深，目标", "phase relay completion keeps deep region targeted from outpost")
 	map.free()
 func _check_region_presence_bounds() -> void:
 	var map := VerticalSliceMap.new()
@@ -526,9 +539,10 @@ func _check_outpost_core_restored_visual() -> void:
 	var default_color := outpost_core.marker.color
 	outpost_core.set_restored_outpost_core_visual()
 	_expect_equal(outpost_core.visible, true, "restored outpost core remains visible")
-	_expect_equal(outpost_core.monitoring, false, "restored outpost core disables repeat interaction")
+	_expect_equal(outpost_core.monitoring, true, "restored outpost core keeps repeat interaction")
 	_expect_equal(outpost_core.marker.color == default_color, false, "restored outpost core changes color")
 	_expect_text_contains(outpost_core.label.text, "已恢复", "restored outpost core label")
+	_expect_text_contains(outpost_core.label.text, "整备", "restored outpost core resupply label")
 	outpost_core.set_default_visual()
 	_expect_equal(outpost_core.monitoring, true, "new game outpost core enables interaction")
 	_expect_equal(outpost_core.marker.color, default_color, "new game outpost core restores default color")
@@ -802,6 +816,26 @@ func _check_supply_feedback() -> void:
 	var vial_result := vial_character.use_quick_slot(1, data_registry)
 	_expect_equal(bool(vial_result.get("success", false)), true, "resistance vial should be usable")
 	_expect_feedback_contains(vial_result, "继续深入污染边界", "resistance vial next step feedback")
+	var outpost_world := WorldState.create_default()
+	outpost_world.quest_state.completed_quest_ids.append("quest.restore_outpost")
+	var outpost_character := CharacterState.create_default()
+	outpost_character.health = 62.0
+	outpost_character.protection = 28.0
+	var gather_system := GatherSystem.new(data_registry)
+	var outpost_result := gather_system.interact_with_object(
+		"map_object_instance.outpost_core",
+		"building.outpost_core",
+		"outpost_core",
+		outpost_character,
+		outpost_world
+	)
+	_expect_equal(bool(outpost_result.get("success", false)), true, "restored outpost core should resupply vitals")
+	_expect_equal(outpost_character.health, 100.0, "restored outpost core refills health")
+	_expect_equal(outpost_character.protection, 100.0, "restored outpost core refills protection")
+	_expect_feedback_contains(outpost_result, "生命 +38", "restored outpost core health feedback")
+	_expect_feedback_contains(outpost_result, "防护 +72", "restored outpost core protection feedback")
+	var outpost_full_result := gather_system.interact_with_object("map_object_instance.outpost_core", "building.outpost_core", "outpost_core", outpost_character, outpost_world)
+	_expect_text_contains(String(outpost_full_result.get("message", "")), "生命与防护完整", "restored outpost core keeps ready message at full vitals")
 func _check_hud_feedback_presenter() -> void:
 	var presenter := HudFeedbackPresenter.new()
 	var supply_feedback := {
@@ -937,6 +971,14 @@ func _check_region_prompt_formatter() -> void:
 	_expect_text_contains(formatter.format_deep_signal_array_prompt(deep_array_world, deep_array_character), "按 E 写入", "deep signal array ready prompt")
 	deep_array_world.quest_state.completed_quest_ids.append("quest.activate_deep_array")
 	_expect_text_contains(formatter.format_deep_signal_array_prompt(deep_array_world, deep_array_character), "已点亮", "deep signal array completed prompt")
+	var outpost_prompt_world := WorldState.create_default()
+	var outpost_prompt_character := CharacterState.create_default()
+	_expect_text_contains(formatter.format_outpost_core_prompt(outpost_prompt_world, outpost_prompt_character), "按 E 恢复", "outpost core restore prompt")
+	outpost_prompt_world.quest_state.completed_quest_ids.append("quest.restore_outpost")
+	_expect_text_contains(formatter.format_outpost_core_prompt(outpost_prompt_world, outpost_prompt_character), "整备在线", "outpost core ready prompt at full vitals")
+	outpost_prompt_character.health = 74.0
+	outpost_prompt_character.protection = 56.0
+	_expect_text_contains(formatter.format_outpost_core_prompt(outpost_prompt_world, outpost_prompt_character), "按 E 整备", "outpost core refill prompt")
 	var relay_anchor_world := WorldState.create_default()
 	var relay_anchor_character := CharacterState.create_default()
 	_expect_text_contains(formatter.format_phase_return_anchor_prompt(relay_anchor_world, relay_anchor_character), "先回基地整理深段读数矩阵", "phase relay anchor blocked prompt")

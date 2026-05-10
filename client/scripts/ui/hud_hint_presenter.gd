@@ -25,6 +25,8 @@ func format_runtime_hint(world_state: WorldState, character_state: CharacterStat
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
 		if _has_completed_phase_relay_anchor(world_state):
+			if world_state.current_region_id == "region.outpost_platform":
+				return "相位回投台已就绪：在基地按 E 返回最后部署的前线回传锚点，补给后继续把深段往里推。"
 			return "前线回传锚点已在线：深段空跑已被压缩，补给后可继续把深段往里推。"
 		if _has_completed_second_deep_pass(world_state):
 			return "深段读数矩阵已整理完成：返回深段固定点，把它部署成前线回传锚点。"
@@ -111,6 +113,8 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 func format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
 		if _has_completed_phase_relay_anchor(world_state):
+			if world_state.current_region_id == "region.outpost_platform":
+				return "前线回传锚点链已打通：先在基地相位回投台回到最后锚点，再观察这条往返是否真的缩短空跑而不跳过补给。"
 			return "前线回传锚点已经上线：基地与深段之间的无决策空跑被压缩，但基地补给和加工仍然保留价值。"
 		if _has_completed_second_deep_pass(world_state):
 			return "深段读数矩阵不是终点；要把它带回深段部署成前线回传锚点，才能真正缩短第二轮往返。"

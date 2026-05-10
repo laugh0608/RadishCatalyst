@@ -180,6 +180,8 @@ func _format_quick_slots(data_registry: DataRegistry, character_state: Character
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
 		if _has_completed_phase_relay_anchor(world_state):
+			if world_state.current_region_id == "region.outpost_platform":
+				return "基地相位回投台已锁定最后锚点；当前可按 E 回投返回深段，补给后再观察这条往返是否真的缩短空跑"
 			return "基地与深段之间的快速回传已上线；当前可从前线快速回基地，并从基地回投到最后锚点"
 		if _has_completed_second_deep_pass(world_state):
 			return "深段读数矩阵已整理完成；返回深段固定点即可部署前线回传锚点"

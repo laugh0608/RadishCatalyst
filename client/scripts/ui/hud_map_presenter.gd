@@ -116,6 +116,17 @@ func _get_map_marker_color(region_id: String, world_state: WorldState, target_re
 
 
 func _get_quest_target_region_id(world_state: WorldState, quest_id: String) -> String:
+	if quest_id.is_empty():
+		return _get_runtime_followup_region_id(world_state)
 	if target_region_resolver == null:
 		return ""
 	return target_region_resolver.resolve_target_region_id(world_state, quest_id)
+
+
+func _get_runtime_followup_region_id(world_state: WorldState) -> String:
+	if (
+		world_state.current_region_id == "region.outpost_platform"
+		and world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor")
+	):
+		return "region.deep_ruin_threshold"
+	return ""

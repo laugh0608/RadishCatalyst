@@ -121,6 +121,9 @@ func get_recipe_position() -> int:
 
 
 func mark_consumed() -> void:
+	if interaction_type == "outpost_core":
+		set_restored_outpost_core_visual()
+		return
 	if interaction_type == "build":
 		set_built_visual(definition_id)
 		return
@@ -146,11 +149,11 @@ func set_default_visual() -> void:
 
 
 func set_restored_outpost_core_visual() -> void:
-	consumed = true
+	consumed = false
 	visible = true
-	monitoring = false
+	monitoring = true
 	marker.color = RESTORED_OUTPOST_CORE_COLOR
-	_set_label_text("%s\n已恢复" % display_name_text, 2)
+	_set_label_text("%s\n已恢复，可整备" % display_name_text, 2)
 
 
 func set_processed_visual() -> bool:

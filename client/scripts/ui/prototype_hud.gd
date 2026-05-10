@@ -3,6 +3,18 @@ class_name PrototypeHud
 
 const SAVE_SLOT_IDS: Array[String] = ["slot_01", "slot_02", "slot_03"]
 const QUICK_SLOT_BIND_CANDIDATES: Array[String] = ["item.repair_gel", "item.resistance_vial_t1", ""]
+const GM_RESOURCE_CANDIDATES: Array[String] = [
+	"item.repair_gel",
+	"item.resistance_vial_t1",
+	"item.basic_parts",
+	"fluid.basic_solvent",
+	"fluid.polluted_slurry",
+	"item.phase_anchor",
+	"item.deep_ruin_coordinates",
+	"item.deep_override_key",
+	"item.deep_route_imprint",
+	"item.deep_signal_matrix"
+]
 const SUPPLY_FEEDBACK_SECONDS := 4.0
 const QUEST_COMPLETION_FEEDBACK_SECONDS := 7.0
 const LOG_FEEDBACK_SECONDS := 6.0
@@ -24,6 +36,9 @@ var context_prompt_text := ""
 var runtime_hint_text := ""
 var development_baseline_definitions: Array[Dictionary] = []
 var selected_development_baseline_index := 0
+var selected_gm_resource_index := 0
+var last_debug_data_registry: DataRegistry
+var last_debug_character_state: CharacterState
 
 @onready var save_panel: ColorRect = $SavePanel
 @onready var completion_panel: ColorRect = $CompletionPanel
@@ -67,6 +82,13 @@ var selected_development_baseline_index := 0
 	$QuickSlotPanel/Slot01BindingButton,
 	$QuickSlotPanel/Slot02BindingButton
 ]
+@onready var gm_resource_label: Label = $QuickSlotPanel/GmResourceLabel
+@onready var gm_vitals_label: Label = $QuickSlotPanel/GmVitalsLabel
+@onready var gm_previous_button: Button = $QuickSlotPanel/GmPreviousButton
+@onready var gm_subtract_button: Button = $QuickSlotPanel/GmSubtractButton
+@onready var gm_add_button: Button = $QuickSlotPanel/GmAddButton
+@onready var gm_next_button: Button = $QuickSlotPanel/GmNextButton
+@onready var gm_refill_button: Button = $QuickSlotPanel/GmRefillButton
 @onready var evacuation_panel: ColorRect = $EvacuationPanel
 @onready var evacuation_title_label: Label = $EvacuationPanel/EvacuationTitleLabel
 @onready var evacuation_detail_label: Label = $EvacuationPanel/EvacuationDetailLabel
@@ -106,6 +128,8 @@ signal delete_slot_requested(slot_id: String)
 signal new_game_requested
 signal quick_slot_binding_requested(slot_index: int, item_id: String)
 signal development_baseline_requested(baseline_id: String)
+signal gm_resource_adjust_requested(definition_id: String, delta: float)
+signal gm_vitals_refill_requested
 
 
 func _ready() -> void:
@@ -120,6 +144,11 @@ func _ready() -> void:
 		delete_slot_buttons[index].pressed.connect(_on_delete_slot_pressed.bind(index))
 	for index in range(quick_slot_binding_buttons.size()):
 		quick_slot_binding_buttons[index].pressed.connect(_on_quick_slot_binding_pressed.bind(index))
+	gm_previous_button.pressed.connect(_on_gm_previous_pressed)
+	gm_subtract_button.pressed.connect(_on_gm_subtract_pressed)
+	gm_add_button.pressed.connect(_on_gm_add_pressed)
+	gm_next_button.pressed.connect(_on_gm_next_pressed)
+	gm_refill_button.pressed.connect(_on_gm_refill_pressed)
 	evacuation_close_button.pressed.connect(_on_evacuation_close_pressed)
 	device_close_button.pressed.connect(hide_device_panel)
 	_layout_runtime_panels(true)
@@ -158,6 +187,8 @@ func _update_timed_panel_visibility(delta: float) -> void:
 
 func update_status(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> void:
 	_ensure_runtime_nodes()
+	last_debug_data_registry = data_registry
+	last_debug_character_state = character_state
 	var active_quest_id := _get_active_quest_id(world_state)
 	if status_label != null:
 		status_label.text = status_presenter.format_objective_text(data_registry, world_state)
@@ -170,6 +201,7 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 		character_state,
 		quick_slot_binding_labels
 	)
+	_refresh_gm_panel()
 
 
 func _get_active_quest_id(world_state: WorldState) -> String:
@@ -371,6 +403,38 @@ func _on_quick_slot_binding_pressed(slot_index: int) -> void:
 	quick_slot_binding_requested.emit(slot_index, next_item_id)
 
 
+func _on_gm_previous_pressed() -> void:
+	if GM_RESOURCE_CANDIDATES.is_empty():
+		return
+	selected_gm_resource_index = posmod(selected_gm_resource_index - 1, GM_RESOURCE_CANDIDATES.size())
+	_refresh_gm_panel()
+
+
+func _on_gm_subtract_pressed() -> void:
+	var definition_id := _get_selected_gm_resource_id()
+	if definition_id.is_empty():
+		return
+	gm_resource_adjust_requested.emit(definition_id, -1.0)
+
+
+func _on_gm_add_pressed() -> void:
+	var definition_id := _get_selected_gm_resource_id()
+	if definition_id.is_empty():
+		return
+	gm_resource_adjust_requested.emit(definition_id, 1.0)
+
+
+func _on_gm_next_pressed() -> void:
+	if GM_RESOURCE_CANDIDATES.is_empty():
+		return
+	selected_gm_resource_index = posmod(selected_gm_resource_index + 1, GM_RESOURCE_CANDIDATES.size())
+	_refresh_gm_panel()
+
+
+func _on_gm_refill_pressed() -> void:
+	gm_vitals_refill_requested.emit()
+
+
 func _on_evacuation_close_pressed() -> void:
 	evacuation_panel.visible = false
 
@@ -509,6 +573,20 @@ func _ensure_runtime_nodes() -> void:
 			get_node_or_null("QuickSlotPanel/Slot01BindingButton"),
 			get_node_or_null("QuickSlotPanel/Slot02BindingButton")
 		]
+	if gm_resource_label == null:
+		gm_resource_label = get_node_or_null("QuickSlotPanel/GmResourceLabel")
+	if gm_vitals_label == null:
+		gm_vitals_label = get_node_or_null("QuickSlotPanel/GmVitalsLabel")
+	if gm_previous_button == null:
+		gm_previous_button = get_node_or_null("QuickSlotPanel/GmPreviousButton")
+	if gm_subtract_button == null:
+		gm_subtract_button = get_node_or_null("QuickSlotPanel/GmSubtractButton")
+	if gm_add_button == null:
+		gm_add_button = get_node_or_null("QuickSlotPanel/GmAddButton")
+	if gm_next_button == null:
+		gm_next_button = get_node_or_null("QuickSlotPanel/GmNextButton")
+	if gm_refill_button == null:
+		gm_refill_button = get_node_or_null("QuickSlotPanel/GmRefillButton")
 	if evacuation_panel == null:
 		evacuation_panel = get_node_or_null("EvacuationPanel")
 	if evacuation_title_label == null:
@@ -587,7 +665,7 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	var save_width := 544.0
 	var save_height := 454.0
 	var quick_width := 368.0
-	var quick_height := 134.0
+	var quick_height := 322.0
 	var save_position := Vector2(viewport_size.x - margin - save_width, margin)
 	var quick_slot_position := Vector2(
 		viewport_size.x - margin - quick_width,
@@ -612,7 +690,10 @@ func _layout_runtime_panels(force: bool = false) -> void:
 
 	var device_y := (viewport_size.y - device_height) * 0.5
 	if debug_panels_visible:
-		device_y = maxf(device_y, quick_slot_position.y + quick_height + gap)
+		device_y = minf(
+			viewport_size.y - margin - device_height,
+			maxf(device_y, quick_slot_position.y + quick_height + gap)
+		)
 	var device_x := viewport_size.x - margin - device_width
 	_set_control_rect(device_panel, Vector2(device_x, device_y), Vector2(device_width, device_height))
 	_set_control_rect(
@@ -684,3 +765,42 @@ func _get_selected_development_baseline() -> Dictionary:
 	if development_baseline_definitions.is_empty():
 		return {}
 	return development_baseline_definitions[selected_development_baseline_index]
+
+
+func _get_selected_gm_resource_id() -> String:
+	if GM_RESOURCE_CANDIDATES.is_empty():
+		return ""
+	selected_gm_resource_index = clampi(selected_gm_resource_index, 0, GM_RESOURCE_CANDIDATES.size() - 1)
+	return GM_RESOURCE_CANDIDATES[selected_gm_resource_index]
+
+
+func _refresh_gm_panel() -> void:
+	_ensure_runtime_nodes()
+	var has_context := last_debug_data_registry != null and last_debug_character_state != null
+	var definition_id := _get_selected_gm_resource_id()
+	if gm_resource_label != null:
+		if has_context:
+			gm_resource_label.text = debug_panel_presenter.format_gm_resource_text(
+				last_debug_data_registry,
+				last_debug_character_state,
+				definition_id
+			)
+		else:
+			gm_resource_label.text = "GM 资源读取中..."
+	if gm_vitals_label != null:
+		if has_context:
+			gm_vitals_label.text = debug_panel_presenter.format_gm_vitals_text(last_debug_character_state)
+		else:
+			gm_vitals_label.text = ""
+
+	var has_gm_candidates := not definition_id.is_empty()
+	if gm_previous_button != null:
+		gm_previous_button.disabled = not has_gm_candidates
+	if gm_subtract_button != null:
+		gm_subtract_button.disabled = not has_gm_candidates
+	if gm_add_button != null:
+		gm_add_button.disabled = not has_gm_candidates
+	if gm_next_button != null:
+		gm_next_button.disabled = not has_gm_candidates
+	if gm_refill_button != null:
+		gm_refill_button.disabled = not has_context

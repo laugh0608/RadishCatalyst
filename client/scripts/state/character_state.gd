@@ -66,6 +66,33 @@ func apply_protection_damage(amount: float) -> float:
 	return actual_amount
 
 
+func restore_health(amount: float) -> float:
+	var actual_amount := maxf(0.0, amount)
+	var before := health
+	health = minf(max_health, health + actual_amount)
+	return health - before
+
+
+func restore_protection(amount: float) -> float:
+	var actual_amount := maxf(0.0, amount)
+	var before := protection
+	protection = minf(max_protection, protection + actual_amount)
+	return protection - before
+
+
+func restore_vitals_to_full() -> Dictionary:
+	var restored_health := restore_health(max_health)
+	var restored_protection := restore_protection(max_protection)
+	return {
+		"restored_health": restored_health,
+		"restored_protection": restored_protection
+	}
+
+
+func are_vitals_full() -> bool:
+	return health >= max_health and protection >= max_protection
+
+
 func use_quick_slot(slot_index: int, data_registry: DataRegistry) -> Dictionary:
 	if slot_index < 0 or slot_index >= quick_slots.size():
 		return _failure("该快捷栏槽位不存在。")

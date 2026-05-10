@@ -65,8 +65,29 @@ func interact_with_object(
 			return _success("交互完成。")
 
 
-func _interact_with_outpost_core(_character_state: CharacterState, _world_state: WorldState) -> Dictionary:
-	return _success("前哨核心已恢复，晶体矿脉区已标记。")
+func _interact_with_outpost_core(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
+		return _success("前哨核心已恢复，晶体矿脉区已标记。")
+
+	var restoration := character_state.restore_vitals_to_full()
+	var restored_health := float(restoration.get("restored_health", 0.0))
+	var restored_protection := float(restoration.get("restored_protection", 0.0))
+	if restored_health <= 0.0 and restored_protection <= 0.0:
+		return _success("前哨核心已在线：生命与防护完整，可继续外出或使用相位回投台。")
+
+	var detail := _format_outpost_core_refit_detail(
+		character_state,
+		restored_health,
+		restored_protection
+	)
+	return {
+		"success": true,
+		"message": "前哨核心整备完成：%s。" % detail,
+		"supply_feedback": {
+			"title": "前哨整备完成",
+			"detail": detail
+		}
+	}
 
 
 func _gather(instance_id: String, definition: Dictionary, character_state: CharacterState, world_state: WorldState) -> Dictionary:
@@ -150,6 +171,27 @@ func _get_pollution_protection_hint(character_state: CharacterState) -> String:
 	if module_id.is_empty():
 		return "，未启用过滤模块"
 	return "，过滤模块已降低消耗"
+
+
+func _format_outpost_core_refit_detail(
+	character_state: CharacterState,
+	restored_health: float,
+	restored_protection: float
+) -> String:
+	var parts: Array[String] = []
+	if restored_health > 0.0:
+		parts.append("生命 +%s，当前 %s / %s" % [
+			_format_amount(restored_health),
+			_format_amount(character_state.health),
+			_format_amount(character_state.max_health)
+		])
+	if restored_protection > 0.0:
+		parts.append("防护 +%s，当前 %s / %s" % [
+			_format_amount(restored_protection),
+			_format_amount(character_state.protection),
+			_format_amount(character_state.max_protection)
+		])
+	return "；".join(parts)
 
 
 func _format_amount(amount: float) -> String:

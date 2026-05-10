@@ -13,6 +13,7 @@ func run_ui_and_recipe_checks() -> void:
 	_check_hud_log_presenter()
 	_check_development_baseline_presenter()
 	_check_game_root_development_baseline_factory()
+	_check_game_root_gm_tools()
 	_check_resource_interaction_logs()
 	_check_completed_recipe_followup_auto_selection()
 
@@ -238,8 +239,29 @@ func _check_game_root_development_baseline_factory() -> void:
 	host._expect_equal(world_state.current_region_id, "region.outpost_platform", "S4 baseline world region")
 	host._expect_equal(character_state.current_region_id, "region.outpost_platform", "S4 baseline character region")
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_deep_core", "S4 baseline active quest")
+	host._expect_equal(int(character_state.inventory.items.get("item.basic_parts", 0)), 4, "S4 baseline keeps enough basic parts for the second deep pass")
 	host._expect_equal(int(character_state.inventory.items.get("item.deep_ruin_core", 0)), 1, "S4 baseline keeps deep ruin core reward")
+	host._expect_equal(float(character_state.inventory.fluids.get("fluid.polluted_slurry", 0.0)), 1.0, "S4 baseline keeps polluted slurry for deep signal matrix")
 	host._expect_equal(String(character_state.equipment.get("suit_module", "")), "equipment.filter_module_t1", "S4 baseline equips filter module")
+	game_root.free()
+
+
+func _check_game_root_gm_tools() -> void:
+	var game_root := GameRootScript.new()
+	game_root.data_registry = host.data_registry
+	game_root.character_state = CharacterState.create_default()
+	var add_result := game_root._apply_gm_resource_delta("item.repair_gel", 1.0)
+	host._expect_equal(bool(add_result.get("success", false)), true, "GM resource add succeeds")
+	host._expect_equal(int(game_root.character_state.inventory.items.get("item.repair_gel", 0)), 2, "GM resource add updates inventory")
+	var fluid_result := game_root._apply_gm_resource_delta("fluid.polluted_slurry", 1.0)
+	host._expect_equal(bool(fluid_result.get("success", false)), true, "GM fluid add succeeds")
+	host._expect_equal(float(game_root.character_state.inventory.fluids.get("fluid.polluted_slurry", 0.0)), 1.0, "GM fluid add updates inventory")
+	game_root.character_state.health = 54.0
+	game_root.character_state.protection = 16.0
+	var refill_result := game_root._apply_gm_vitals_refill()
+	host._expect_equal(bool(refill_result.get("success", false)), true, "GM vitals refill succeeds")
+	host._expect_equal(game_root.character_state.health, 100.0, "GM vitals refill restores health")
+	host._expect_equal(game_root.character_state.protection, 100.0, "GM vitals refill restores protection")
 	game_root.free()
 
 

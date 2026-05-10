@@ -50,6 +50,8 @@ func _ready() -> void:
 	hud.new_game_requested.connect(_on_hud_new_game_requested)
 	hud.quick_slot_binding_requested.connect(_on_hud_quick_slot_binding_requested)
 	hud.development_baseline_requested.connect(_on_hud_development_baseline_requested)
+	hud.gm_resource_adjust_requested.connect(_on_hud_gm_resource_adjust_requested)
+	hud.gm_vitals_refill_requested.connect(_on_hud_gm_vitals_refill_requested)
 	vertical_slice_map.interaction_available.connect(_on_interaction_available)
 	vertical_slice_map.interaction_cleared.connect(_on_interaction_cleared)
 	vertical_slice_map.region_changed.connect(_on_region_changed)
@@ -84,6 +86,7 @@ func _on_player_interaction_requested() -> void:
 	if bool(result.get("success", false)) and _should_advance_interaction(context, result):
 		_append_quest_runtime_result(log_messages, quest_runtime.advance_for_interaction(world_state, character_state, context, result))
 	hud_feedback_presenter.show_evacuation_feedback(result, hud)
+	hud_feedback_presenter.show_supply_feedback(result, hud)
 	vertical_slice_map.refresh_world_interactables(world_state)
 	if vertical_slice_map.current_interactable != null:
 		_on_interaction_available(vertical_slice_map.current_interactable)
@@ -205,6 +208,18 @@ func _on_hud_development_baseline_requested(baseline_id: String) -> void:
 	_update_hud()
 
 
+func _on_hud_gm_resource_adjust_requested(definition_id: String, delta: float) -> void:
+	var result := _apply_gm_resource_delta(definition_id, delta)
+	hud.append_log(String(result.get("message", "")))
+	_update_hud()
+
+
+func _on_hud_gm_vitals_refill_requested() -> void:
+	var result := _apply_gm_vitals_refill()
+	hud.append_log(String(result.get("message", "")))
+	_update_hud()
+
+
 func _save_to_slot(slot_id: String) -> void:
 	character_state.position = vertical_slice_map.get_player_position()
 	var result := save_service.save_game_for_slot(slot_id, world_state, character_state)
@@ -259,6 +274,9 @@ func create_development_baseline_state(baseline_id: String) -> Dictionary:
 
 
 func _on_interaction_available(interactable: PrototypeInteractable, should_auto_select_recipe: bool = true) -> void:
+	if interactable.interaction_type == "outpost_core":
+		hud.show_prompt(interaction_prompt_formatter.format_outpost_core_prompt(world_state, character_state))
+		return
 	if interactable.definition_id == "map_object.ruin_gate":
 		hud.show_prompt(interaction_prompt_formatter.format_ruin_gate_prompt(world_state))
 		return
@@ -436,6 +454,9 @@ func _refresh_current_context_prompt() -> void:
 	var interactable := vertical_slice_map.current_interactable
 	if interactable == null:
 		return
+	if interactable.interaction_type == "outpost_core":
+		hud.show_prompt(interaction_prompt_formatter.format_outpost_core_prompt(world_state, character_state))
+		return
 	if interactable.definition_id == "map_object.ruin_gate":
 		hud.show_prompt(interaction_prompt_formatter.format_ruin_gate_prompt(world_state))
 		return
@@ -534,3 +555,70 @@ func _show_quest_completion_feedbacks(result: Dictionary) -> void:
 		if not feedback is Dictionary:
 			continue
 		hud.show_quest_completion(feedback)
+
+
+func _apply_gm_resource_delta(definition_id: String, delta: float) -> Dictionary:
+	if definition_id.is_empty():
+		return {
+			"success": false,
+			"message": "GM：未选择要调整的资源。"
+		}
+	if data_registry.get_definition(definition_id).is_empty():
+		return {
+			"success": false,
+			"message": "GM：未知资源 %s。" % definition_id
+		}
+	if is_zero_approx(delta):
+		return {
+			"success": false,
+			"message": "GM：资源数量未变化。"
+		}
+
+	if delta > 0.0:
+		character_state.inventory.add_ref(definition_id, delta)
+	else:
+		character_state.inventory.consume_ref(definition_id, absf(delta))
+	return {
+		"success": true,
+		"message": "GM：%s %s%s，当前 %s。" % [
+			_get_display_name(definition_id),
+			"+" if delta > 0.0 else "-",
+			_format_amount(absf(delta)),
+			_format_inventory_amount(definition_id)
+		]
+	}
+
+
+func _apply_gm_vitals_refill() -> Dictionary:
+	var restoration := character_state.restore_vitals_to_full()
+	var restored_health := float(restoration.get("restored_health", 0.0))
+	var restored_protection := float(restoration.get("restored_protection", 0.0))
+	if restored_health <= 0.0 and restored_protection <= 0.0:
+		return {
+			"success": true,
+			"message": "GM：生命与防护已满。"
+		}
+
+	var parts: Array[String] = []
+	if restored_health > 0.0:
+		parts.append("生命 +%s" % _format_amount(restored_health))
+	if restored_protection > 0.0:
+		parts.append("防护 +%s" % _format_amount(restored_protection))
+	return {
+		"success": true,
+		"message": "GM：%s。" % "，".join(parts)
+	}
+
+
+func _format_inventory_amount(definition_id: String) -> String:
+	if definition_id.begins_with("fluid."):
+		return _format_amount(float(character_state.inventory.fluids.get(definition_id, 0.0)))
+	if definition_id.begins_with("equipment."):
+		return str(int(character_state.inventory.equipment.get(definition_id, 0)))
+	return str(int(character_state.inventory.items.get(definition_id, 0)))
+
+
+func _format_amount(amount: float) -> String:
+	if is_equal_approx(amount, roundf(amount)):
+		return str(int(amount))
+	return "%.1f" % amount
