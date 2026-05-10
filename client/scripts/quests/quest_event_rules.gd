@@ -97,6 +97,14 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		return sink_updates
 	if interaction_type == "inspect" and definition_id == "map_object.phase_well_sink":
 		return [_set_update("quest.inspect_phase_well_sink", "inspect", "map_object.phase_well_sink", 1)]
+	if interaction_type == "gather" and definition_id == "map_object.heart_spine_cluster":
+		var chamber_updates: Array[Dictionary] = [
+			_set_update("quest.collect_heart_spine", "visit_region", "region.phase_well_chamber", 1)
+		]
+		chamber_updates.append_array(_get_drop_objective_updates("quest.collect_heart_spine", "gather_item", "item.heart_spine", definition_id))
+		return chamber_updates
+	if interaction_type == "inspect" and definition_id == "map_object.phase_well_chamber":
+		return [_set_update("quest.inspect_phase_well_chamber", "inspect", "map_object.phase_well_chamber", 1)]
 	if interaction_type == "process_recipe":
 		return get_recipe_objective_updates(recipe_id)
 	if interaction_type == "build":
@@ -124,6 +132,10 @@ func get_region_objective_updates(region_id: String, _quest_state: QuestState) -
 	if region_id == "region.phase_well_sink":
 		return [
 			_set_update("quest.collect_well_ash", "visit_region", region_id, 1)
+		]
+	if region_id == "region.phase_well_chamber":
+		return [
+			_set_update("quest.collect_heart_spine", "visit_region", region_id, 1)
 		]
 	return []
 
@@ -174,6 +186,12 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 			return [_set_update("quest.refine_well_ash", "craft_item", "item.phase_well_lattice", 1)]
 		"recipe.phase_well_pike":
 			return [_set_update("quest.assemble_phase_well_pike", "craft_item", "item.phase_well_pike", 1)]
+		"recipe.phase_well_heart_analysis":
+			return [_set_update("quest.analyze_phase_well_heart", "craft_item", "item.phase_well_pulse_sheet", 1)]
+		"recipe.heart_spine_stabilization":
+			return [_set_update("quest.refine_heart_spine", "craft_item", "item.phase_well_damper", 1)]
+		"recipe.phase_well_shunt":
+			return [_set_update("quest.assemble_phase_well_shunt", "craft_item", "item.phase_well_shunt", 1)]
 		_:
 			return []
 
@@ -207,6 +225,8 @@ func get_defeated_enemy_objective_updates(enemy_definition_id: String) -> Array[
 		return [_set_update("quest.collect_well_flux", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.phase_well_lurker":
 		return [_set_update("quest.collect_well_ash", "defeat_enemy", enemy_definition_id, 1)]
+	if enemy_definition_id == "enemy.phase_well_reaver":
+		return [_set_update("quest.collect_heart_spine", "defeat_enemy", enemy_definition_id, 1)]
 	return []
 
 

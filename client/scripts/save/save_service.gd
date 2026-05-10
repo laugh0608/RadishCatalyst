@@ -358,15 +358,25 @@ func _format_slot_details(save_data: Dictionary) -> String:
 		var quest_state = world_data.get("quest_state", {})
 		if quest_state is Dictionary:
 			var active_quest_ids = quest_state.get("active_quest_ids", [])
+			var completed_quest_ids := _get_string_array(quest_state.get("completed_quest_ids", []))
+			var unlocked_effects := _get_string_array(quest_state.get("unlocked_effects", []))
 			if active_quest_ids is Array and not active_quest_ids.is_empty():
 				parts.append("目标：%s" % _get_display_name(String(active_quest_ids[0])))
-			elif _get_string_array(quest_state.get("completed_quest_ids", [])).has("quest.deploy_phase_relay_anchor"):
+			elif completed_quest_ids.has("quest.inspect_phase_well_chamber"):
+				parts.append("目标：相位井纺核已带回")
+			elif completed_quest_ids.has("quest.inspect_phase_well_sink"):
+				parts.append("目标：相位井心核待解析")
+			elif completed_quest_ids.has("quest.inspect_inner_phase_well"):
+				parts.append("目标：相位井芯样本待解析")
+			elif completed_quest_ids.has("quest.unlock_phase_well"):
+				parts.append("目标：相位井定位器待解析")
+			elif completed_quest_ids.has("quest.deploy_phase_relay_anchor"):
 				parts.append("目标：前线回传锚点已部署")
-			elif _get_string_array(quest_state.get("completed_quest_ids", [])).has("quest.assemble_deep_signal_matrix"):
+			elif completed_quest_ids.has("quest.assemble_deep_signal_matrix"):
 				parts.append("目标：待部署前线回传锚点")
-			elif _get_string_array(quest_state.get("completed_quest_ids", [])).has("quest.unlock_deep_ruin_cache"):
+			elif completed_quest_ids.has("quest.unlock_deep_ruin_cache"):
 				parts.append("目标：待继续解析深段样块")
-			elif _get_string_array(quest_state.get("unlocked_effects", [])).has("slice_01_complete"):
+			elif unlocked_effects.has("slice_01_complete"):
 				parts.append("目标：遗迹外圈第一版已完成")
 
 	return "；".join(parts)

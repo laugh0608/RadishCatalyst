@@ -72,6 +72,14 @@ const BASELINE_DEFINITIONS := [
 		"completed_through": "quest.inspect_inner_phase_well",
 		"summary": "内层相位井已勘验，井芯样本已带回，下一步回基地解析并推进更东侧井底裂口。",
 		"recommended_for": "井芯样本解析、井壁余烬回收、稳相格处理、井底穿钉、井底裂口与旧存档兼容回归。"
+	},
+	{
+		"id": "baseline.s9_phase_well_heart_ready",
+		"code": "S9",
+		"display_name": "S9 相位井心核已带回",
+		"completed_through": "quest.inspect_phase_well_sink",
+		"summary": "井底裂口已凿开，相位井心核已带回，下一步回基地解析并推进更东侧井心室断面。",
+		"recommended_for": "相位井心核解析、心棘残片回收、抑振骨处理、井心分流栓、井心室断面与旧存档兼容回归。"
 	}
 ]
 

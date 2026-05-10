@@ -24,8 +24,10 @@ func format_runtime_hint(world_state: WorldState, character_state: CharacterStat
 
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_well_chamber(world_state):
+			return "井心室断面已经交出第一份相位井纺核：更东侧风险线又一次转成了基地可继续放大的新收益锚点。"
 		if _has_completed_phase_well_sink(world_state):
-			return "井底裂口已经交出第一份相位井心核：更东侧风险线又一次转成了基地可继续放大的新收益锚点。"
+			return "相位井心核已带回：先回基地解析心核，把更东侧井心室断面真正压成下一包可执行目标。"
 		if _has_completed_inner_phase_well(world_state):
 			return "内层相位井井芯样本已带回：先回基地解析井芯样本，把更东侧井底裂口真正压成下一包可执行目标。"
 		if _has_completed_phase_well_lock(world_state):
@@ -156,14 +158,26 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "回基地使用基础反应器，把相位井频谱片、稳相格和基础零件组装成井底穿钉。"
 		"quest.inspect_phase_well_sink":
 			return "带着井底穿钉返回更东侧井底裂口，凿开后带回第一份相位井心核。"
+		"quest.analyze_phase_well_heart":
+			return "回基地使用基础反应器，解析相位井心核并整理相位井脉搏片。"
+		"quest.collect_heart_spine":
+			return "沿心核脉搏继续向东推进，击退心室撕裂体并回收两处心棘残片。"
+		"quest.refine_heart_spine":
+			return "回处理点污染过滤器，把心棘残片稳定成可继续组装的相位井抑振骨。"
+		"quest.assemble_phase_well_shunt":
+			return "回基地使用基础反应器，把相位井脉搏片、抑振骨和基础零件组装成井心分流栓。"
+		"quest.inspect_phase_well_chamber":
+			return "带着井心分流栓返回更东侧井心室断面，勘验后带回第一份相位井纺核。"
 		_:
 			return "按当前目标推进。"
 
 
 func format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_well_chamber(world_state):
+			return "相位井纺核已经带回基地，这说明相位井心核后的更深门槛也已经成功压成下一轮基地回投锚点。"
 		if _has_completed_phase_well_sink(world_state):
-			return "相位井心核已经带回基地，这说明井芯样本后的新风险与新收益也已经成功落成下一轮基地回投锚点。"
+			return "相位井心核不是收尾；要先回基地把它解析成脉搏片，井心室断面才会真正变成新的可执行推进包。"
 		if _has_completed_inner_phase_well(world_state):
 			return "井芯样本只是下一轮的起点；要先回基地把它解析成频谱片，井底裂口才会真正变成新的可执行推进包。"
 		if _has_completed_phase_well_lock(world_state):
@@ -296,6 +310,16 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "井底穿钉会把井芯分析产物和过滤结果重新变成开路物，决定井底裂口能否交出第一份相位井心核。"
 		"quest.inspect_phase_well_sink":
 			return "这一步要把基地组装的井底穿钉真正带回前线，让井芯样本后的更深收益第一次落成实体战利品。"
+		"quest.analyze_phase_well_heart":
+			return "相位井心核不是纪念品；要先回基地把它反解成脉搏片，新的井心室断面风险才会真正显形。"
+		"quest.collect_heart_spine":
+			return "井心室的新敌人和心棘残片要在同一趟外勤里一起解决，这一步负责把新风险和下一次基地加工输入同时带回来。"
+		"quest.refine_heart_spine":
+			return "先用污染过滤器稳定心棘残片；副产污染浆液会继续反哺井心分流栓组装，不需要引入第三台设备。"
+		"quest.assemble_phase_well_shunt":
+			return "井心分流栓会把心核分析产物和过滤结果重新变成开路物，决定井心室断面能否交出第一份相位井纺核。"
+		"quest.inspect_phase_well_chamber":
+			return "这一步要把基地组装的井心分流栓真正带回前线，让相位井心核后的更深收益继续落成实体战利品。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 
@@ -318,6 +342,10 @@ func _has_completed_second_deep_pass(world_state: WorldState) -> bool:
 
 func _has_completed_phase_relay_anchor(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor")
+
+
+func _has_completed_phase_well_chamber(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.inspect_phase_well_chamber")
 
 
 func _has_completed_phase_well_sink(world_state: WorldState) -> bool:

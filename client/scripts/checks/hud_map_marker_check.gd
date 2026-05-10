@@ -26,11 +26,12 @@ func run(root_window: Window) -> void:
 		"locked crystal marker"
 	)
 	var initial_map_labels := presenter.format_map_marker_labels(marker_world, "quest.restore_outpost")
-	host._expect_equal(initial_map_labels.size(), 7, "minimap marker count includes phase well sink")
+	host._expect_equal(initial_map_labels.size(), 8, "minimap marker count includes phase well chamber")
 	host._expect_array_has(initial_map_labels, "基地\n当前\n目标", "outpost minimap current target marker")
 	host._expect_array_has(initial_map_labels, "晶体\n未解锁", "crystal minimap locked marker")
 	host._expect_array_has(initial_map_labels, "井口\n未解锁", "inner phase well minimap locked marker")
 	host._expect_array_has(initial_map_labels, "井底\n未解锁", "phase well sink minimap locked marker")
+	host._expect_array_has(initial_map_labels, "心室\n未解锁", "phase well chamber minimap locked marker")
 	marker_world.unlock_region("region.crystal_vein_field")
 	host._expect_text_contains(
 		presenter.format_region_markers(marker_world, "quest.scout_crystal_field"),
@@ -155,4 +156,9 @@ func run(root_window: Window) -> void:
 	marker_world.unlock_region("region.phase_well_sink")
 	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.collect_well_ash"), "井底：更深，目标", "well ash collection points to phase well sink marker")
 	host._expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.collect_well_ash"), "井底\n目标", "phase well sink minimap objective marker")
+	marker_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_sink")
+	host._expect_text_contains(presenter.format_region_markers(marker_world, ""), "基地：当前位置，目标", "phase well sink completion returns runtime followup to outpost analysis")
+	marker_world.unlock_region("region.phase_well_chamber")
+	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.collect_heart_spine"), "心室：更东，目标", "heart spine collection points to phase well chamber marker")
+	host._expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.collect_heart_spine"), "心室\n目标", "phase well chamber minimap objective marker")
 	map.free()

@@ -165,6 +165,21 @@
       "drops": [{"id": "item.repair_gel", "amount": 1}],
       "spawn_regions": ["region.phase_well_sink"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "enemy.phase_well_reaver",
+      "display_name_key": "enemy.phase_well_reaver.name",
+      "description_key": "enemy.phase_well_reaver.desc",
+      "category": "ruin_guard",
+      "faction": "ruin_sentinel",
+      "base_stats": {"max_health": 132, "attack": 24, "move_speed": 122},
+      "behaviors": ["phase_guard", "melee_chase"],
+      "damage_types": ["physical", "pollution"],
+      "resistances": {"pollution": 0.7},
+      "drop_table_id": "drop.phase_well_reaver",
+      "drops": [{"id": "item.repair_gel", "amount": 1}],
+      "spawn_regions": ["region.phase_well_chamber"],
+      "public_level": "spoiler"
     }
   ]
 }

@@ -26,7 +26,12 @@ const GM_RESOURCE_CANDIDATES: Array[String] = [
 	"item.well_ash",
 	"item.phase_well_lattice",
 	"item.phase_well_pike",
-	"item.phase_well_heart"
+	"item.phase_well_heart",
+	"item.phase_well_pulse_sheet",
+	"item.heart_spine",
+	"item.phase_well_damper",
+	"item.phase_well_shunt",
+	"item.phase_well_spindle"
 ]
 const SUPPLY_FEEDBACK_SECONDS := 4.0
 const QUEST_COMPLETION_FEEDBACK_SECONDS := 7.0
@@ -73,7 +78,8 @@ var last_debug_character_state: CharacterState
 	$MapPanel/RuinMarker,
 	$MapPanel/DeepMarker,
 	$MapPanel/InnerPhaseWellMarker,
-	$MapPanel/PhaseWellSinkMarker
+	$MapPanel/PhaseWellSinkMarker,
+	$MapPanel/PhaseWellChamberMarker
 ]
 @onready var map_marker_labels: Array[Label] = [
 	$MapPanel/OutpostLabel,
@@ -82,7 +88,8 @@ var last_debug_character_state: CharacterState
 	$MapPanel/RuinLabel,
 	$MapPanel/DeepLabel,
 	$MapPanel/InnerPhaseWellLabel,
-	$MapPanel/PhaseWellSinkLabel
+	$MapPanel/PhaseWellSinkLabel,
+	$MapPanel/PhaseWellChamberLabel
 ]
 @onready var device_title_label: Label = $DevicePanel/DeviceTitleLabel
 @onready var device_status_label: Label = $DevicePanel/DeviceStatusLabel

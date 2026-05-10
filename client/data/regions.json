@@ -30,7 +30,9 @@
         "quest.analyze_phase_well_locator",
         "quest.assemble_phase_well_probe",
         "quest.analyze_phase_well_core",
-        "quest.assemble_phase_well_pike"
+        "quest.assemble_phase_well_pike",
+        "quest.analyze_phase_well_heart",
+        "quest.assemble_phase_well_shunt"
       ],
       "public_level": "public"
     },
@@ -57,7 +59,8 @@
         "quest.refine_phase_splinters",
         "quest.refine_fault_residue",
         "quest.refine_well_flux",
-        "quest.refine_well_ash"
+        "quest.refine_well_ash",
+        "quest.refine_heart_spine"
       ],
       "public_level": "public"
     },
@@ -143,6 +146,20 @@
       "weather_pool": ["weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
       "quest_refs": ["quest.collect_well_ash", "quest.inspect_phase_well_sink"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "region.phase_well_chamber",
+      "display_name_key": "region.phase_well_chamber.name",
+      "description_key": "region.phase_well_chamber.desc",
+      "planet_or_world": "world.slice_01",
+      "biome_type": "phase_well_chamber",
+      "danger_level": 7,
+      "resources": ["item.heart_spine", "item.phase_well_spindle"],
+      "pollution_types": ["pollution.yellow_residue"],
+      "weather_pool": ["weather.acid_mist"],
+      "recommended_equipment": ["equipment.filter_module_t1"],
+      "quest_refs": ["quest.collect_heart_spine", "quest.inspect_phase_well_chamber"],
       "public_level": "spoiler"
     }
   ]

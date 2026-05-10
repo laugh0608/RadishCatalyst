@@ -600,9 +600,74 @@
       "objectives": [{"type": "inspect", "target_id": "map_object.phase_well_sink", "amount": 1}],
       "prerequisites": ["quest.assemble_phase_well_pike"],
       "rewards": [{"id": "item.phase_well_heart", "amount": 1}],
-      "unlock_effects": ["slice_01_complete"],
-      "next_quest_ids": [],
+      "unlock_effects": ["slice_01_complete", "recipe.phase_well_heart_analysis"],
+      "next_quest_ids": ["quest.analyze_phase_well_heart"],
       "public_level": "spoiler"
-    }
+    },
+    {
+      "id": "quest.analyze_phase_well_heart",
+      "display_name_key": "quest.analyze_phase_well_heart.name",
+      "description_key": "quest.analyze_phase_well_heart.desc",
+      "quest_type": "main",
+      "stage": 47,
+      "objectives": [{"type": "craft_item", "target_id": "item.phase_well_pulse_sheet", "amount": 1}],
+      "prerequisites": ["quest.inspect_phase_well_sink"],
+      "rewards": [],
+      "unlock_effects": ["region.phase_well_chamber"],
+      "next_quest_ids": ["quest.collect_heart_spine"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.collect_heart_spine",
+      "display_name_key": "quest.collect_heart_spine.name",
+      "description_key": "quest.collect_heart_spine.desc",
+      "quest_type": "main",
+      "stage": 48,
+      "objectives": [{"type": "visit_region", "target_id": "region.phase_well_chamber", "amount": 1}, {"type": "defeat_enemy", "target_id": "enemy.phase_well_reaver", "amount": 1}, {"type": "gather_item", "target_id": "item.heart_spine", "amount": 2}],
+      "prerequisites": ["quest.analyze_phase_well_heart"],
+      "rewards": [],
+      "unlock_effects": ["recipe.heart_spine_stabilization"],
+      "next_quest_ids": ["quest.refine_heart_spine"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.refine_heart_spine",
+      "display_name_key": "quest.refine_heart_spine.name",
+      "description_key": "quest.refine_heart_spine.desc",
+      "quest_type": "main",
+      "stage": 49,
+      "objectives": [{"type": "craft_item", "target_id": "item.phase_well_damper", "amount": 1}],
+      "prerequisites": ["quest.collect_heart_spine"],
+      "rewards": [],
+      "unlock_effects": ["recipe.phase_well_shunt"],
+      "next_quest_ids": ["quest.assemble_phase_well_shunt"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.assemble_phase_well_shunt",
+      "display_name_key": "quest.assemble_phase_well_shunt.name",
+      "description_key": "quest.assemble_phase_well_shunt.desc",
+      "quest_type": "main",
+      "stage": 50,
+      "objectives": [{"type": "craft_item", "target_id": "item.phase_well_shunt", "amount": 1}],
+      "prerequisites": ["quest.refine_heart_spine"],
+      "rewards": [],
+      "unlock_effects": [],
+      "next_quest_ids": ["quest.inspect_phase_well_chamber"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.inspect_phase_well_chamber",
+      "display_name_key": "quest.inspect_phase_well_chamber.name",
+      "description_key": "quest.inspect_phase_well_chamber.desc",
+      "quest_type": "main",
+      "stage": 51,
+      "objectives": [{"type": "inspect", "target_id": "map_object.phase_well_chamber", "amount": 1}],
+      "prerequisites": ["quest.assemble_phase_well_shunt"],
+      "rewards": [{"id": "item.phase_well_spindle", "amount": 1}],
+        "unlock_effects": ["slice_01_complete"],
+        "next_quest_ids": [],
+        "public_level": "spoiler"
+      }
   ]
 }

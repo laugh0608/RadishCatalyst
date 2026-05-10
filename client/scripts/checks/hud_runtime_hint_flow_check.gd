@@ -84,6 +84,23 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 		"提示：相位井定位器不是收尾；先回基地解析它",
 		"runtime hint prompt keeps locator analysis explicit after phase well lock"
 	)
+	var heart_world := WorldState.create_default()
+	var heart_character := CharacterState.create_default()
+	heart_world.quest_state.active_quest_ids = []
+	heart_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_sink")
+	hud.update_status(data_registry, heart_world, heart_character)
+	_expect_text_contains(
+		failures,
+		hud.prompt_label.text,
+		"方向：相位井心核已带回：先回基地解析心核",
+		"runtime hint prompt keeps phase well heart fallback after sink"
+	)
+	_expect_text_contains(
+		failures,
+		hud.prompt_label.text,
+		"提示：相位井心核不是收尾；要先回基地把它解析成脉搏片",
+		"runtime hint prompt keeps heart analysis explicit after phase well sink"
+	)
 	hud.update_status(data_registry, relay_world, relay_character)
 
 	var reactor := PrototypeInteractable.new()

@@ -97,6 +97,11 @@ func _get_region_marker_data() -> Array[Dictionary]:
 			"region_id": "region.phase_well_sink",
 			"label": "井底",
 			"direction": "更深"
+		},
+		{
+			"region_id": "region.phase_well_chamber",
+			"label": "心室",
+			"direction": "更东"
 		}
 	]
 
@@ -134,8 +139,10 @@ func _get_quest_target_region_id(world_state: WorldState, quest_id: String) -> S
 
 
 func _get_runtime_followup_region_id(world_state: WorldState) -> String:
-	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_sink"):
+	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_chamber"):
 		return ""
+	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_sink"):
+		return "region.outpost_platform"
 	if world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well"):
 		return "region.outpost_platform"
 	if world_state.quest_state.has_completed_quest("quest.unlock_phase_well"):

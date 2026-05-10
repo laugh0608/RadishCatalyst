@@ -30,7 +30,9 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		"recipe.phase_filament_refining",
 		"recipe.phase_splinter_refining",
 		"recipe.fault_residue_stabilization",
-		"recipe.well_flux_stabilization"
+		"recipe.well_flux_stabilization",
+		"recipe.well_ash_stabilization",
+		"recipe.heart_spine_stabilization"
 	])
 	recipe_world.quest_state.active_quest_ids = ["quest.analyze_anomaly_sample"]
 	recipe_world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 2)
@@ -104,7 +106,11 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		"recipe.inner_fault_analysis",
 		"recipe.phase_well_key",
 		"recipe.phase_well_locator_analysis",
-		"recipe.phase_well_probe"
+		"recipe.phase_well_probe",
+		"recipe.phase_well_core_analysis",
+		"recipe.phase_well_pike",
+		"recipe.phase_well_heart_analysis",
+		"recipe.phase_well_shunt"
 	])
 	recipe_character.inventory.items["item.basic_parts"] = 1
 	recipe_character.inventory.add_item("item.signal_echo_trace", 1)
@@ -230,6 +236,76 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		"recipe.phase_well_probe",
 		"phase well probe assembly returns to reactor recipe after basic parts are restored"
 	)
+	recipe_character.inventory.add_item("item.phase_well_core", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_core"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"phase well core analysis falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_core_analysis",
+		"phase well core analysis returns to reactor recipe after basic parts are restored"
+	)
+	recipe_world.quest_state.active_quest_ids = ["quest.refine_well_ash"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(filter, recipe_character, recipe_world),
+		"recipe.well_ash_stabilization",
+		"well ash refinement selects pollution filter recipe"
+	)
+	recipe_character.inventory.add_item("item.phase_well_spectrum", 1)
+	recipe_character.inventory.add_item("item.phase_well_lattice", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.assemble_phase_well_pike"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"phase well pike assembly falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_pike",
+		"phase well pike assembly returns to reactor recipe after basic parts are restored"
+	)
+	recipe_character.inventory.add_item("item.phase_well_heart", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_heart"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"phase well heart analysis falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_heart_analysis",
+		"phase well heart analysis returns to reactor recipe after basic parts are restored"
+	)
+	recipe_world.quest_state.active_quest_ids = ["quest.refine_heart_spine"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(filter, recipe_character, recipe_world),
+		"recipe.heart_spine_stabilization",
+		"heart spine refinement selects pollution filter recipe"
+	)
+	recipe_character.inventory.add_item("item.phase_well_pulse_sheet", 1)
+	recipe_character.inventory.add_item("item.phase_well_damper", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.assemble_phase_well_shunt"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"phase well shunt assembly falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_shunt",
+		"phase well shunt assembly returns to reactor recipe after basic parts are restored"
+	)
 	deep_reactor.free()
 	filter.free()
 
@@ -306,7 +382,7 @@ func _check_hud_log_presenter() -> void:
 
 func _check_development_baseline_presenter() -> void:
 	var definitions := DevelopmentBaselineCatalog.get_baseline_definitions()
-	host._expect_equal(definitions.size(), 9, "development baseline catalog count")
+	host._expect_equal(definitions.size(), 10, "development baseline catalog count")
 	host._expect_equal(
 		String(definitions[0].get("id", "")),
 		"baseline.s0_new_game",

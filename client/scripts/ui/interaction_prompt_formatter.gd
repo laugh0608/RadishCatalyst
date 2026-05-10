@@ -238,12 +238,22 @@ func format_inner_phase_well_prompt(world_state: WorldState, character_state: Ch
 
 func format_phase_well_sink_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_sink"):
-		return "井底裂口：已凿开，第一份相位井心核已带回基地。"
+		return "井底裂口：已凿开，第一份相位井心核已带回基地；下一步回基地解析并继续推进井心室断面。"
 	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_pike"):
 		return "井底裂口：先回基地用基础反应器组装井底穿钉，再回来凿开更东侧裂口。"
 	if not character_state.inventory.has_ref("item.phase_well_pike", 1):
 		return "井底裂口：缺少井底穿钉；回基地确认基础反应器组装结果后再来。"
 	return "按 E 凿开：井底裂口。"
+
+
+func format_phase_well_chamber_prompt(world_state: WorldState, character_state: CharacterState) -> String:
+	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_chamber"):
+		return "井心室断面：已勘验，第一份相位井纺核已带回基地。"
+	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_shunt"):
+		return "井心室断面：先回基地用基础反应器组装井心分流栓，再回来勘验更东侧断面。"
+	if not character_state.inventory.has_ref("item.phase_well_shunt", 1):
+		return "井心室断面：缺少井心分流栓；回基地确认基础反应器组装结果后再来。"
+	return "按 E 勘验：井心室断面。"
 
 
 func format_pollution_entry_warning(character_state: CharacterState) -> String:
