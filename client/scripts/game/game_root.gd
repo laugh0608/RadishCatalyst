@@ -250,6 +250,12 @@ func _on_interaction_available(interactable: PrototypeInteractable, should_auto_
 	if interactable.definition_id == "map_object.deep_signal_array":
 		hud.show_prompt(interaction_prompt_formatter.format_deep_signal_array_prompt(world_state, character_state))
 		return
+	if interactable.definition_id == "map_object.phase_return_anchor":
+		hud.show_prompt(interaction_prompt_formatter.format_phase_return_anchor_prompt(world_state, character_state))
+		return
+	if interactable.definition_id == "map_object.phase_relay_pad":
+		hud.show_prompt(interaction_prompt_formatter.format_phase_relay_pad_prompt(world_state))
+		return
 	if interactable.interaction_type == "process_recipe":
 		var auto_selected_recipe := _maybe_select_recommended_recipe(interactable, should_auto_select_recipe)
 		hud.show_prompt(interaction_prompt_formatter.format_processing_prompt(interactable, character_state, world_state))
@@ -420,6 +426,12 @@ func _refresh_current_context_prompt() -> void:
 		return
 	if interactable.definition_id == "map_object.deep_signal_array":
 		hud.show_prompt(interaction_prompt_formatter.format_deep_signal_array_prompt(world_state, character_state))
+		return
+	if interactable.definition_id == "map_object.phase_return_anchor":
+		hud.show_prompt(interaction_prompt_formatter.format_phase_return_anchor_prompt(world_state, character_state))
+		return
+	if interactable.definition_id == "map_object.phase_relay_pad":
+		hud.show_prompt(interaction_prompt_formatter.format_phase_relay_pad_prompt(world_state))
 		return
 	if interactable.interaction_type == "process_recipe":
 		_maybe_select_followup_recipe(interactable)

@@ -102,7 +102,7 @@
       "pollution_types": ["pollution.yellow_residue"],
       "weather_pool": ["weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
-      "quest_refs": ["quest.harvest_phase_filament", "quest.unlock_deep_ruin_cache", "quest.activate_deep_array"],
+      "quest_refs": ["quest.harvest_phase_filament", "quest.unlock_deep_ruin_cache", "quest.activate_deep_array", "quest.deploy_phase_relay_anchor"],
       "public_level": "spoiler"
     }
   ]

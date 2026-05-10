@@ -176,6 +176,24 @@ func format_deep_signal_array_prompt(world_state: WorldState, character_state: C
 	return "按 E 写入：深段路由印片，点亮深段阵列台。"
 
 
+func format_phase_return_anchor_prompt(world_state: WorldState, character_state: CharacterState) -> String:
+	if world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor"):
+		return "按 E 回传：前线回传锚点，快速返回基地相位回投台。"
+	if not world_state.quest_state.has_completed_quest("quest.assemble_deep_signal_matrix"):
+		return "前线回传锚点：先回基地整理深段读数矩阵，再返回深段部署。"
+	if not character_state.inventory.has_ref("item.deep_signal_matrix", 1):
+		return "前线回传锚点：缺少深段读数矩阵；回基地确认基础反应器整理结果后再来。"
+	return "按 E 部署：深段读数矩阵，激活前线回传锚点。"
+
+
+func format_phase_relay_pad_prompt(world_state: WorldState) -> String:
+	if not world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor"):
+		return "相位回投台：先在深段部署前线回传锚点，再回来回投。"
+	if not world_state.has_active_phase_relay_anchor():
+		return "相位回投台：前线锚点当前离线；返回深段重新校准后再尝试。"
+	return "按 E 回投：相位回投台，返回最后部署的前线回传锚点。"
+
+
 func format_pollution_entry_warning(character_state: CharacterState) -> String:
 	var warnings: Array[String] = []
 	if character_state.protection < character_state.max_protection * 0.5:

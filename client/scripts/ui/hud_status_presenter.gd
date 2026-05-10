@@ -122,8 +122,10 @@ func _format_vital_lines(
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if not quest_id.is_empty():
 		return _get_display_name(data_registry, quest_id)
+	if _has_completed_phase_relay_anchor(world_state):
+		return "前线回传锚点已部署"
 	if _has_completed_second_deep_pass(world_state):
-		return "深段第二轮闭环已完成"
+		return "前线回传锚点待部署"
 	if _has_completed_deep_ruin_entry(world_state):
 		return "深段样块待继续解析"
 	if _has_completed_deep_signal_analysis(world_state):
@@ -177,8 +179,10 @@ func _format_quick_slots(data_registry: DataRegistry, character_state: Character
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_relay_anchor(world_state):
+			return "基地与深段之间的快速回传已上线；当前可从前线快速回基地，并从基地回投到最后锚点"
 		if _has_completed_second_deep_pass(world_state):
-			return "深段样块和相位导管都已整理成读数矩阵；第二轮基地 -> 深段 -> 基地闭环已成立"
+			return "深段读数矩阵已整理完成；返回深段固定点即可部署前线回传锚点"
 		if _has_completed_deep_ruin_entry(world_state):
 			return "深段样块已回收；回基地解析样块后可继续点亮深段阵列"
 		if _has_completed_deep_signal_analysis(world_state):
@@ -289,6 +293,10 @@ func _has_completed_deep_ruin_entry(world_state: WorldState) -> bool:
 
 func _has_completed_second_deep_pass(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.assemble_deep_signal_matrix")
+
+
+func _has_completed_phase_relay_anchor(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor")
 
 
 func _ensure_objective_source_resolver(data_registry: DataRegistry) -> void:

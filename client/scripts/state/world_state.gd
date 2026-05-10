@@ -7,6 +7,7 @@ var current_region_id: String = "region.outpost_platform"
 var unlocked_region_ids: Array[String] = ["region.outpost_platform"]
 var time_minutes: int = 480
 var current_weather_id: String = "weather.clear"
+var active_phase_relay_anchor_id: String = ""
 var pollution_levels: Dictionary = {
 	"region.outpost_platform": 0.0,
 	"region.crystal_vein_field": 0.0,
@@ -38,6 +39,24 @@ static func create_default() -> WorldState:
 func unlock_region(region_id: String) -> void:
 	if not unlocked_region_ids.has(region_id):
 		unlocked_region_ids.append(region_id)
+
+
+func set_active_phase_relay_anchor(anchor_instance_id: String) -> void:
+	active_phase_relay_anchor_id = anchor_instance_id
+
+
+func clear_active_phase_relay_anchor() -> void:
+	active_phase_relay_anchor_id = ""
+
+
+func has_active_phase_relay_anchor() -> bool:
+	return not active_phase_relay_anchor_id.is_empty()
+
+
+func is_active_phase_relay_anchor(anchor_instance_id: String) -> bool:
+	if anchor_instance_id.is_empty():
+		return false
+	return active_phase_relay_anchor_id == anchor_instance_id
 
 
 func ensure_map_object(instance_id: String, definition_id: String, region_id: String = "") -> Dictionary:
@@ -169,6 +188,7 @@ func to_dict() -> Dictionary:
 		"unlocked_region_ids": unlocked_region_ids.duplicate(true),
 		"time_minutes": time_minutes,
 		"current_weather_id": current_weather_id,
+		"active_phase_relay_anchor_id": active_phase_relay_anchor_id,
 		"pollution_levels": pollution_levels.duplicate(true),
 		"map_objects": map_objects.duplicate(true),
 		"enemies": enemies.duplicate(true),
@@ -187,6 +207,7 @@ static func from_dict(data: Dictionary) -> WorldState:
 		state.unlocked_region_ids.assign(unlocked_region_ids_data)
 	state.time_minutes = int(data.get("time_minutes", 480))
 	state.current_weather_id = String(data.get("current_weather_id", "weather.clear"))
+	state.active_phase_relay_anchor_id = String(data.get("active_phase_relay_anchor_id", ""))
 	var pollution_levels_data = data.get("pollution_levels", state.pollution_levels)
 	if pollution_levels_data is Dictionary:
 		state.pollution_levels = pollution_levels_data.duplicate(true)

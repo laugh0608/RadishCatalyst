@@ -64,6 +64,8 @@ func advance_pollution_edge_ready(world_state: WorldState, character_state: Char
 func reconcile_active_objectives(world_state: WorldState, character_state: CharacterState) -> Dictionary:
 	var updates: Array[Dictionary] = []
 	var log_messages: Array[String] = []
+	if _restore_missing_phase_relay_anchor(world_state):
+		log_messages.append("旧进度已接入：前线回传锚点已按固定深段落点恢复在线。")
 	if _activate_missing_second_deep_followup(world_state):
 		log_messages.append("旧进度已接入：深段样块后的第二轮任务已补入当前目标。")
 	if _activate_missing_deep_ruin_followup(world_state):
@@ -176,10 +178,24 @@ func _activate_missing_second_deep_followup(world_state: WorldState) -> bool:
 		world_state.quest_state.activate_quest("quest.activate_deep_array")
 		return true
 	if world_state.quest_state.has_completed_quest("quest.assemble_deep_signal_matrix"):
-		return false
+		if world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor"):
+			return false
+		if world_state.quest_state.has_active_quest("quest.deploy_phase_relay_anchor"):
+			return false
+		world_state.quest_state.activate_quest("quest.deploy_phase_relay_anchor")
+		return true
 	if world_state.quest_state.has_active_quest("quest.assemble_deep_signal_matrix"):
 		return false
 	world_state.quest_state.activate_quest("quest.assemble_deep_signal_matrix")
+	return true
+
+
+func _restore_missing_phase_relay_anchor(world_state: WorldState) -> bool:
+	if not world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor"):
+		return false
+	if world_state.has_active_phase_relay_anchor():
+		return false
+	world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor")
 	return true
 
 

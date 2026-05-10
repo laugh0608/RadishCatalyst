@@ -27,6 +27,8 @@ const OUTER_RING_BARRIER_X := 540.0
 const OUTER_RING_BARRIER_RETURN_X := 514.0
 const DEEP_RUIN_REGION_X := 700.0
 const DEEP_RUIN_GATE_RETURN_X := 676.0
+const PHASE_RELAY_PAD_FALLBACK_POSITION := Vector2(-210, -40)
+const PHASE_RETURN_ANCHOR_FALLBACK_POSITION := Vector2(852, 92)
 
 @onready var player: PlayerController = $Player
 @onready var interactables_root: Node2D = $Interactables
@@ -72,6 +74,10 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		return _inspect_deep_ruin_latch(character_state, world_state)
 	if interacted.definition_id == "map_object.deep_signal_array" and interacted.interaction_type == "inspect":
 		return _inspect_deep_signal_array(character_state, world_state)
+	if interacted.definition_id == "map_object.phase_return_anchor" and interacted.interaction_type == "inspect":
+		return _inspect_phase_return_anchor(character_state, world_state)
+	if interacted.definition_id == "map_object.phase_relay_pad" and interacted.interaction_type == "inspect":
+		return _inspect_phase_relay_pad(character_state, world_state)
 
 	var action_id := interacted.get_current_recipe_id()
 	if interacted.interaction_type == "build":
@@ -181,6 +187,16 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 					interaction_cleared.emit(interactable)
 				continue
 			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.phase_return_anchor":
+			if world_state.is_active_phase_relay_anchor(interactable.instance_id):
+				interactable.set_deployed_phase_return_anchor_visual()
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.phase_relay_pad":
+			if world_state.has_active_phase_relay_anchor():
+				interactable.set_ready_phase_relay_pad_visual()
+				continue
+			interactable.set_default_visual()
 		elif is_processed and interactable.set_processed_visual():
 			if current_interactable == interactable:
 				current_interactable = null
@@ -197,6 +213,13 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				world_state.quest_state.has_active_quest("quest.activate_deep_array")
 				or world_state.quest_state.has_completed_quest("quest.activate_deep_array")
 			)
+		if interactable.definition_id == "map_object.phase_return_anchor":
+			should_enable = should_enable and (
+				world_state.quest_state.has_active_quest("quest.deploy_phase_relay_anchor")
+				or world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor")
+			)
+		if interactable.definition_id == "map_object.phase_relay_pad":
+			should_enable = should_enable and world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor")
 
 		interactable.set_interaction_enabled(should_enable)
 		if current_interactable == interactable and not should_enable:
@@ -786,6 +809,69 @@ func _inspect_deep_signal_array(character_state: CharacterState, world_state: Wo
 	}
 
 
+func _inspect_phase_return_anchor(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	var anchor_instance_id := "map_object_instance.phase_return_anchor"
+	if current_interactable != null:
+		anchor_instance_id = current_interactable.instance_id
+
+	if world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor"):
+		world_state.set_active_phase_relay_anchor(anchor_instance_id)
+		_teleport_player_to_region(
+			character_state,
+			world_state,
+			"region.outpost_platform",
+			_get_phase_relay_pad_return_position()
+		)
+		return {
+			"success": true,
+			"message": "前线回传锚点已联通：已快速回传到基地相位回投台。"
+		}
+
+	if not world_state.quest_state.has_completed_quest("quest.assemble_deep_signal_matrix"):
+		return _failure(
+			"前线回传锚点仍缺少可执行读数。",
+			"锚点未部署",
+			"先回基地整理深段读数矩阵，再返回深段固定点部署。"
+		)
+
+	if not character_state.inventory.has_ref("item.deep_signal_matrix", 1):
+		return _failure(
+			"缺少深段读数矩阵，前线回传锚点无法校准。",
+			"缺少读数矩阵",
+			"回基地确认基础反应器已完成深段读数矩阵，并带回来部署。"
+		)
+
+	character_state.inventory.consume_ref("item.deep_signal_matrix", 1)
+	world_state.set_active_phase_relay_anchor(anchor_instance_id)
+	return {
+		"success": true,
+		"message": "深段读数矩阵已写入：前线回传锚点上线，可在深段快速回基地，并从基地回投回来。"
+	}
+
+
+func _inspect_phase_relay_pad(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor"):
+		return _failure(
+			"相位回投台仍未锁定前线落点。",
+			"回投未就绪",
+			"先带着深段读数矩阵返回深段，部署前线回传锚点。"
+		)
+
+	if not world_state.has_active_phase_relay_anchor():
+		return _failure(
+			"前线回传锚点当前离线，相位回投台无法建立落点。",
+			"锚点未在线",
+			"返回深段重新校准前线回传锚点，再从基地回投。"
+		)
+
+	var target_position := _get_phase_return_anchor_return_position(world_state.active_phase_relay_anchor_id)
+	_teleport_player_to_region(character_state, world_state, "region.deep_ruin_threshold", target_position)
+	return {
+		"success": true,
+		"message": "相位回投台已联通：已回投到最后部署的前线回传锚点。"
+	}
+
+
 func _evacuate_if_needed(character_state: CharacterState, world_state: WorldState, reason: String) -> Dictionary:
 	if character_state.health > 0.0 and character_state.protection > 0.0:
 		return {}
@@ -848,6 +934,45 @@ func _failure(message: String, title: String, detail: String) -> Dictionary:
 			"detail": detail
 		}
 	}
+
+
+func _teleport_player_to_region(
+	character_state: CharacterState,
+	world_state: WorldState,
+	region_id: String,
+	target_position: Vector2
+) -> void:
+	player.position = target_position
+	player.clear_positive_x_block()
+	last_gate_message = ""
+	last_reported_region_id = region_id
+	world_state.current_region_id = region_id
+	character_state.current_region_id = region_id
+	update_current_interactable()
+
+
+func _get_phase_relay_pad_return_position() -> Vector2:
+	return _get_interactable_return_position(
+		"map_object_instance.phase_relay_pad",
+		PHASE_RELAY_PAD_FALLBACK_POSITION
+	)
+
+
+func _get_phase_return_anchor_return_position(anchor_instance_id: String) -> Vector2:
+	return _get_interactable_return_position(
+		anchor_instance_id,
+		PHASE_RETURN_ANCHOR_FALLBACK_POSITION
+	)
+
+
+func _get_interactable_return_position(instance_id: String, fallback_position: Vector2) -> Vector2:
+	for interactable in interactables_root.get_children():
+		if not interactable is PrototypeInteractable:
+			continue
+		if interactable.instance_id != instance_id:
+			continue
+		return interactable.position + Vector2(0, 30)
+	return fallback_position
 
 
 func _get_enemy_instance_id(enemy: PrototypeEnemy) -> String:

@@ -327,6 +327,19 @@
       "objectives": [{"type": "craft_item", "target_id": "item.deep_signal_matrix", "amount": 1}],
       "prerequisites": ["quest.activate_deep_array"],
       "rewards": [],
+      "unlock_effects": [],
+      "next_quest_ids": ["quest.deploy_phase_relay_anchor"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.deploy_phase_relay_anchor",
+      "display_name_key": "quest.deploy_phase_relay_anchor.name",
+      "description_key": "quest.deploy_phase_relay_anchor.desc",
+      "quest_type": "main",
+      "stage": 26,
+      "objectives": [{"type": "inspect", "target_id": "map_object.phase_return_anchor", "amount": 1}],
+      "prerequisites": ["quest.assemble_deep_signal_matrix"],
+      "rewards": [],
       "unlock_effects": ["slice_01_complete"],
       "next_quest_ids": [],
       "public_level": "spoiler"

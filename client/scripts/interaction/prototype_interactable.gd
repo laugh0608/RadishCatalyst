@@ -19,6 +19,8 @@ const RECOVERED_SIGNAL_ECHO_COLOR := Color(0.44, 0.78, 0.88, 1)
 const OPENED_DEEP_RUIN_DOOR_COLOR := Color(0.62, 0.54, 0.82, 1)
 const OVERRIDDEN_DEEP_RUIN_LATCH_COLOR := Color(0.9, 0.62, 0.44, 1)
 const ACTIVATED_DEEP_SIGNAL_ARRAY_COLOR := Color(0.72, 0.82, 0.92, 1)
+const DEPLOYED_PHASE_RETURN_ANCHOR_COLOR := Color(0.46, 0.84, 0.9, 1)
+const READY_PHASE_RELAY_PAD_COLOR := Color(0.48, 0.92, 0.72, 1)
 const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
 const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
 
@@ -272,6 +274,22 @@ func set_activated_deep_signal_array_visual() -> void:
 	monitoring = false
 	marker.color = ACTIVATED_DEEP_SIGNAL_ARRAY_COLOR
 	_set_label_text("%s\n阵列已点亮" % display_name_text, 2)
+
+
+func set_deployed_phase_return_anchor_visual() -> void:
+	consumed = false
+	visible = true
+	monitoring = true
+	marker.color = DEPLOYED_PHASE_RETURN_ANCHOR_COLOR
+	_set_label_text("%s\n锚点在线" % display_name_text, 2)
+
+
+func set_ready_phase_relay_pad_visual() -> void:
+	consumed = false
+	visible = true
+	monitoring = true
+	marker.color = READY_PHASE_RELAY_PAD_COLOR
+	_set_label_text("%s\n回投就绪" % display_name_text, 2)
 
 
 func set_built_visual(built_definition_id: String) -> void:

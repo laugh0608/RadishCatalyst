@@ -45,6 +45,7 @@ func _run_checks() -> void:
 	_check_quest_runtime_recovers_pre_sampled_anomaly()
 	_check_runtime_activates_missing_outer_ring_followup()
 	_check_runtime_activates_missing_second_deep_followup()
+	_check_runtime_activates_phase_relay_followup()
 	_check_active_objective_progress_is_capped()
 	_check_inactive_objective_progress_is_ignored()
 
@@ -122,6 +123,16 @@ func _check_interaction_event_objective_updates() -> void:
 		quest_state
 	)
 	_expect_update(updates, "add", "quest.activate_deep_array", "gather_item", "item.phase_conduit", 1.0, "phase conduit gather update")
+
+	updates = event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.phase_return_anchor",
+			"interaction_type": "inspect"
+		},
+		{},
+		quest_state
+	)
+	_expect_update(updates, "set", "quest.deploy_phase_relay_anchor", "inspect", "map_object.phase_return_anchor", 1.0, "phase relay anchor inspect update")
 
 
 func _check_region_event_objective_updates() -> void:
@@ -461,6 +472,69 @@ func _check_runtime_activates_missing_second_deep_followup() -> void:
 	_expect_equal(_result_array_size(result, "completion_feedbacks"), 0, "second deep activation should not emit completion feedback")
 	if String(result.get("log_messages", [""])[0]).find("第二轮任务") < 0:
 		failures.append("second deep activation should log deep followup activation, got %s" % var_to_str(result))
+
+
+func _check_runtime_activates_phase_relay_followup() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.quest_state.active_quest_ids = []
+	world_state.quest_state.completed_quest_ids = [
+		"quest.restore_outpost",
+		"quest.scout_crystal_field",
+		"quest.calibrate_reactor",
+		"quest.bring_back_sample",
+		"quest.analyze_anomaly_sample",
+		"quest.make_filter_module",
+		"quest.prepare_treatment_supplies",
+		"quest.expand_treatment_point",
+		"quest.enter_pollution_edge",
+		"quest.defeat_elite_node",
+		"quest.unlock_ruin_signal",
+		"quest.scout_ruin_outer_ring",
+		"quest.assemble_phase_anchor",
+		"quest.stabilize_outer_ring_barrier",
+		"quest.secure_outer_ring_signal",
+		"quest.salvage_signal_echo",
+		"quest.analyze_deep_signal",
+		"quest.unlock_deep_ruin_entrance",
+		"quest.harvest_phase_filament",
+		"quest.refine_phase_filament",
+		"quest.assemble_deep_override",
+		"quest.unlock_deep_ruin_cache",
+		"quest.analyze_deep_core",
+		"quest.activate_deep_array",
+		"quest.assemble_deep_signal_matrix"
+	]
+	world_state.quest_state.unlocked_effects = [
+		"region.outpost_platform",
+		"region.crystal_vein_field",
+		"recipe.process_crystal_ore",
+		"recipe.repair_gel",
+		"recipe.reactor_calibrator",
+		"recipe.analyze_anomaly_sample",
+		"recipe.make_filter_media",
+		"recipe.basic_filter_module",
+		"recipe.foundation_t1",
+		"region.pollution_edge",
+		"recipe.cleanse_residue",
+		"region.locked_ruin_gate",
+		"region.ruin_outer_ring",
+		"recipe.phase_anchor",
+		"slice_01_complete",
+		"recipe.deep_signal_analysis",
+		"region.deep_ruin_threshold",
+		"recipe.phase_filament_refining",
+		"recipe.deep_override_key",
+		"recipe.deep_core_imprint",
+		"recipe.deep_signal_matrix"
+	]
+
+	var result := quest_runtime.reconcile_active_objectives(world_state, character_state)
+	_expect_equal(bool(result.get("accepted", false)), true, "runtime accepts phase relay followup activation")
+	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.deploy_phase_relay_anchor", "runtime activates phase relay anchor deployment quest")
+	_expect_equal(_result_array_size(result, "completion_feedbacks"), 0, "phase relay activation should not emit completion feedback")
+	if String(result.get("log_messages", [""])[0]).find("第二轮任务") < 0:
+		failures.append("phase relay activation should log deep followup activation, got %s" % var_to_str(result))
 
 
 func _check_active_objective_progress_is_capped() -> void:

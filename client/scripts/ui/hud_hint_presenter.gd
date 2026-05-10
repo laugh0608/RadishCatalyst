@@ -24,8 +24,10 @@ func format_runtime_hint(world_state: WorldState, character_state: CharacterStat
 
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_relay_anchor(world_state):
+			return "前线回传锚点已在线：深段空跑已被压缩，补给后可继续把深段往里推。"
 		if _has_completed_second_deep_pass(world_state):
-			return "深段第二轮读数矩阵已整理完成：补给后，下一包内容可以继续把深段往里推。"
+			return "深段读数矩阵已整理完成：返回深段固定点，把它部署成前线回传锚点。"
 		if _has_completed_deep_ruin_entry(world_state):
 			return "深段样块已带回：先回基地解析样块，别让这份深段收益停在背包里。"
 		if _has_completed_deep_signal_analysis(world_state):
@@ -99,15 +101,19 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.activate_deep_array":
 			return "带着深段路由印片返回深段，点亮阵列台、清理追袭体并回收两束相位导管。"
 		"quest.assemble_deep_signal_matrix":
-			return "回基地使用基础反应器，把相位导管和污染浆液整理成新的深段读数矩阵。"
+			return "回基地使用基础反应器，把相位导管和污染浆液整理成可部署锚点的深段读数矩阵。"
+		"quest.deploy_phase_relay_anchor":
+			return "带着深段读数矩阵返回深段固定点，部署前线回传锚点。"
 		_:
 			return "按当前目标推进。"
 
 
 func format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_relay_anchor(world_state):
+			return "前线回传锚点已经上线：基地与深段之间的无决策空跑被压缩，但基地补给和加工仍然保留价值。"
 		if _has_completed_second_deep_pass(world_state):
-			return "深段第二轮闭环已经成立：深段样块和相位导管都能被基地加工成新的有效读数。"
+			return "深段读数矩阵不是终点；要把它带回深段部署成前线回传锚点，才能真正缩短第二轮往返。"
 		if _has_completed_deep_ruin_entry(world_state):
 			return "第一份深段样块只是开始；要把它回基地解析成路由印片，才能继续放大深段收益。"
 		if _has_completed_deep_signal_analysis(world_state):
@@ -185,7 +191,9 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.activate_deep_array":
 			return "阵列台点亮后才会暴露第二轮风险和收益；追袭体与相位导管要在同一趟深段外勤里一起解决。"
 		"quest.assemble_deep_signal_matrix":
-			return "把相位导管再次带回基地整理成读数矩阵，才能证明深段第二轮收益也能持续反哺基地。"
+			return "把相位导管再次带回基地整理成读数矩阵后，还要把它带回深段部署成回传锚点，才算真正解决第二轮空跑。"
+		"quest.deploy_phase_relay_anchor":
+			return "这次返回深段不是继续拿材料，而是把基地加工出来的读数矩阵真正写回前线回传锚点，开启前线 -> 基地 -> 前线的快速往返。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 
@@ -204,6 +212,10 @@ func _has_completed_deep_ruin_entry(world_state: WorldState) -> bool:
 
 func _has_completed_second_deep_pass(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.assemble_deep_signal_matrix")
+
+
+func _has_completed_phase_relay_anchor(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor")
 
 
 func _get_target_region_id(world_state: WorldState, quest_id: String) -> String:

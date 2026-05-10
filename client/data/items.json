@@ -297,7 +297,7 @@
       "mass": 0.2,
       "rarity": "epic",
       "source_refs": ["recipe.deep_signal_matrix"],
-      "used_by_refs": ["quest.assemble_deep_signal_matrix"],
+      "used_by_refs": ["quest.assemble_deep_signal_matrix", "quest.deploy_phase_relay_anchor"],
       "public_level": "spoiler"
     }
   ]

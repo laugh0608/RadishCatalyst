@@ -962,6 +962,7 @@ func _check_deep_ruin_state_persists() -> void:
 	world_state.unlock_region("region.ruin_outer_ring")
 	world_state.unlock_region("region.deep_ruin_threshold")
 	world_state.current_region_id = "region.deep_ruin_threshold"
+	world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor")
 	world_state.quest_state.active_quest_ids = []
 	world_state.quest_state.completed_quest_ids = [
 		"quest.restore_outpost",
@@ -985,7 +986,11 @@ func _check_deep_ruin_state_persists() -> void:
 		"quest.harvest_phase_filament",
 		"quest.refine_phase_filament",
 		"quest.assemble_deep_override",
-		"quest.unlock_deep_ruin_cache"
+		"quest.unlock_deep_ruin_cache",
+		"quest.analyze_deep_core",
+		"quest.activate_deep_array",
+		"quest.assemble_deep_signal_matrix",
+		"quest.deploy_phase_relay_anchor"
 	]
 	world_state.quest_state.objective_progress = {
 		"quest.restore_outpost|interact|building.outpost_core": 1,
@@ -1021,7 +1026,13 @@ func _check_deep_ruin_state_persists() -> void:
 		"quest.harvest_phase_filament|gather_item|item.phase_filament": 2,
 		"quest.refine_phase_filament|craft_item|item.resonance_filter": 1,
 		"quest.assemble_deep_override|craft_item|item.deep_override_key": 1,
-		"quest.unlock_deep_ruin_cache|inspect|map_object.deep_ruin_latch": 1
+		"quest.unlock_deep_ruin_cache|inspect|map_object.deep_ruin_latch": 1,
+		"quest.analyze_deep_core|craft_item|item.deep_route_imprint": 1,
+		"quest.activate_deep_array|inspect|map_object.deep_signal_array": 1,
+		"quest.activate_deep_array|defeat_enemy|enemy.deep_ruin_stalker": 1,
+		"quest.activate_deep_array|gather_item|item.phase_conduit": 2,
+		"quest.assemble_deep_signal_matrix|craft_item|item.deep_signal_matrix": 1,
+		"quest.deploy_phase_relay_anchor|inspect|map_object.phase_return_anchor": 1
 	}
 	world_state.quest_state.unlocked_effects = [
 		"region.outpost_platform",
@@ -1043,7 +1054,8 @@ func _check_deep_ruin_state_persists() -> void:
 		"region.deep_ruin_threshold",
 		"recipe.phase_filament_refining",
 		"recipe.deep_override_key",
-		"recipe.deep_core_imprint"
+		"recipe.deep_core_imprint",
+		"recipe.deep_signal_matrix"
 	]
 
 	var character_state := CharacterState.create_default()
@@ -1065,6 +1077,8 @@ func _check_deep_ruin_state_persists() -> void:
 	_expect_array_has(loaded_world.unlocked_region_ids, "region.deep_ruin_threshold", "deep ruin region persists")
 	_expect_array_has(loaded_world.quest_state.completed_quest_ids, "quest.unlock_deep_ruin_cache", "deep ruin latch quest persists")
 	_expect_array_has(loaded_world.quest_state.unlocked_effects, "recipe.deep_override_key", "deep override recipe unlock persists")
+	_expect_array_has(loaded_world.quest_state.completed_quest_ids, "quest.deploy_phase_relay_anchor", "phase relay deployment quest persists")
+	_expect_equal(loaded_world.active_phase_relay_anchor_id, "map_object_instance.phase_return_anchor", "active phase relay anchor persists")
 	_expect_equal(int(loaded_character.inventory.items.get("item.deep_ruin_core", 0)), 1, "deep ruin reward persists")
 
 

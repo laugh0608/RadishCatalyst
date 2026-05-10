@@ -59,6 +59,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		return [_set_update("quest.unlock_deep_ruin_cache", "inspect", "map_object.deep_ruin_latch", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.deep_signal_array":
 		return [_set_update("quest.activate_deep_array", "inspect", "map_object.deep_signal_array", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.phase_return_anchor":
+		return [_set_update("quest.deploy_phase_relay_anchor", "inspect", "map_object.phase_return_anchor", 1)]
 	if interaction_type == "gather" and definition_id == "map_object.phase_conduit_cluster":
 		return _get_drop_objective_updates("quest.activate_deep_array", "gather_item", "item.phase_conduit", definition_id)
 	if interaction_type == "process_recipe":

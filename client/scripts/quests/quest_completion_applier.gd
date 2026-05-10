@@ -129,7 +129,9 @@ func _format_completion_note(quest_id: String) -> String:
 		"quest.activate_deep_array":
 			return "深段阵列已点亮；相位导管已带回，可回基地整理新的读数矩阵"
 		"quest.assemble_deep_signal_matrix":
-			return "深段读数矩阵已整理完成；第二轮深段收益已成功再次反哺基地"
+			return "深段读数矩阵已整理完成；返回深段固定点部署前线回传锚点"
+		"quest.deploy_phase_relay_anchor":
+			return "前线回传锚点已部署；现在可以前线快速回基地，并从基地回投到最后锚点"
 		_:
 			return ""
 
