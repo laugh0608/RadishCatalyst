@@ -120,6 +120,21 @@
       "drops": [{"id": "item.repair_gel", "amount": 1}],
       "spawn_regions": ["region.deep_ruin_threshold"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "enemy.inner_fault_stalker",
+      "display_name_key": "enemy.inner_fault_stalker.name",
+      "description_key": "enemy.inner_fault_stalker.desc",
+      "category": "ruin_guard",
+      "faction": "ruin_sentinel",
+      "base_stats": {"max_health": 96, "attack": 18, "move_speed": 116},
+      "behaviors": ["phase_guard", "melee_chase"],
+      "damage_types": ["physical", "pollution"],
+      "resistances": {"pollution": 0.55},
+      "drop_table_id": "drop.inner_fault_stalker",
+      "drops": [{"id": "item.repair_gel", "amount": 1}],
+      "spawn_regions": ["region.deep_ruin_threshold"],
+      "public_level": "spoiler"
     }
   ]
 }

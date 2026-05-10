@@ -24,8 +24,10 @@ func format_runtime_hint(world_state: WorldState, character_state: CharacterStat
 
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_well_lock(world_state):
+			return "相位井定位器已带回：更东侧内层相位井的风险、收益和推进目标已经明确，可继续围绕它扩下一轮深段。"
 		if _has_completed_phase_fault_spire(world_state):
-			return "裂相尖塔已校准：第一份内层故障轨迹已带回，这条回传后的更深推进线已经真正成立。"
+			return "裂相尖塔已校准：先回基地解析内层故障轨迹，再把更东侧相位井锁压成下一包深段目标。"
 		if _has_completed_phase_relay_anchor(world_state):
 			if world_state.current_region_id == "region.outpost_platform":
 				return "相位回投台已就绪：先在基地按 E 返回最后部署的前线回传锚点，再追踪更东侧裂相碎屑。"
@@ -120,14 +122,26 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "回基地使用基础反应器，把透镜胚片、污染浆液和基础零件调准成中继调谐镜。"
 		"quest.inspect_phase_fault_spire":
 			return "带着中继调谐镜返回更东侧裂相尖塔，校准后带回第一份内层故障轨迹。"
+		"quest.analyze_inner_fault_trace":
+			return "回基地使用基础反应器，解析内层故障轨迹并整理相位井坐标印片。"
+		"quest.collect_fault_residue":
+			return "返回裂相尖塔更东侧，击退内层潜猎体并回收两处故障残渣。"
+		"quest.refine_fault_residue":
+			return "回处理点污染过滤器，把故障残渣稳定成可用于下一步开锁的故障芯。"
+		"quest.assemble_phase_well_key":
+			return "回基地使用基础反应器，把坐标印片、稳定故障芯和基础零件组装成相位井钥。"
+		"quest.unlock_phase_well":
+			return "带着相位井钥返回更东侧相位井锁，钉住后带回第一份定位器。"
 		_:
 			return "按当前目标推进。"
 
 
 func format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_well_lock(world_state):
+			return "相位井定位器不是收尾，而是下一轮更深内容的明确锚点；回传链现在已经能稳定指向新的风险和收益。"
 		if _has_completed_phase_fault_spire(world_state):
-			return "裂相尖塔已经校准完成：回传后的更深风险和收益已经被压缩进可反复验证的新一包深段内容。"
+			return "裂相尖塔已经校准完成：内层故障轨迹必须先回基地解析，才能把更东侧相位井锁真正变成下一包可验证内容。"
 		if _has_completed_phase_relay_anchor(world_state):
 			if world_state.current_region_id == "region.outpost_platform":
 				return "前线回传锚点链已打通：先在基地相位回投台回到最后锚点，再把更东侧裂相碎屑带回基地加工。"
@@ -224,6 +238,16 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "中继调谐镜会把过滤器副产重新变成开路物，决定裂相尖塔能否吐出第一份内层故障轨迹。"
 		"quest.inspect_phase_fault_spire":
 			return "这一步要把基地调准的中继调谐镜真正带回前线，逼出新的深段收益，而不是让它停在背包里。"
+		"quest.analyze_inner_fault_trace":
+			return "内层故障轨迹不是纪念品；要先回基地把它反解成坐标印片，新的更深门锁才会显形。"
+		"quest.collect_fault_residue":
+			return "更东侧新敌人和故障残渣要一起解决；这一步负责把新的前线风险和下一次基地加工输入同时带回来。"
+		"quest.refine_fault_residue":
+			return "先用污染过滤器稳定故障残渣；副产污染浆液会继续反哺相位井钥组装，不需要新设备。"
+		"quest.assemble_phase_well_key":
+			return "相位井钥会把分析产物和过滤结果重新变成开路物，决定相位井锁能否交出新的定位器。"
+		"quest.unlock_phase_well":
+			return "这一步要把基地组装的相位井钥真正带回前线，让回传链明确指向下一轮更深相位井目标。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 
@@ -246,6 +270,10 @@ func _has_completed_second_deep_pass(world_state: WorldState) -> bool:
 
 func _has_completed_phase_relay_anchor(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor")
+
+
+func _has_completed_phase_well_lock(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.unlock_phase_well")
 
 
 func _has_completed_phase_fault_spire(world_state: WorldState) -> bool:

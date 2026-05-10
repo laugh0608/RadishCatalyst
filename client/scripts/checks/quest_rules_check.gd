@@ -47,6 +47,7 @@ func _run_checks() -> void:
 	_check_runtime_activates_missing_second_deep_followup()
 	_check_runtime_activates_phase_relay_followup()
 	_check_runtime_activates_post_phase_relay_followup()
+	_check_runtime_restores_inner_fault_analysis_followup()
 	_check_active_objective_progress_is_capped()
 	_check_inactive_objective_progress_is_ignored()
 
@@ -166,6 +167,27 @@ func _check_interaction_event_objective_updates() -> void:
 	)
 	_expect_update(updates, "set", "quest.inspect_phase_fault_spire", "inspect", "map_object.phase_fault_spire", 1.0, "phase fault spire inspect update")
 
+	updates = event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.fault_residue_cluster",
+			"interaction_type": "gather"
+		},
+		{},
+		quest_state
+	)
+	_expect_update(updates, "set", "quest.collect_fault_residue", "visit_region", "region.deep_ruin_threshold", 1.0, "fault residue visit update")
+	_expect_update(updates, "add", "quest.collect_fault_residue", "gather_item", "item.fault_residue", 1.0, "fault residue gather update")
+
+	updates = event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.phase_well_lock",
+			"interaction_type": "inspect"
+		},
+		{},
+		quest_state
+	)
+	_expect_update(updates, "set", "quest.unlock_phase_well", "inspect", "map_object.phase_well_lock", 1.0, "phase well lock inspect update")
+
 
 func _check_region_event_objective_updates() -> void:
 	var quest_state := QuestState.create_default()
@@ -181,6 +203,7 @@ func _check_region_event_objective_updates() -> void:
 
 	updates = event_rules.get_region_objective_updates("region.deep_ruin_threshold", quest_state)
 	_expect_update(updates, "set", "quest.trace_phase_splinters", "visit_region", "region.deep_ruin_threshold", 1.0, "post relay deep region visit update")
+	_expect_update(updates, "set", "quest.collect_fault_residue", "visit_region", "region.deep_ruin_threshold", 1.0, "fault residue region visit update")
 
 
 func _check_recipe_build_and_enemy_event_objective_updates() -> void:
@@ -266,6 +289,33 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		"relay tuning lens recipe update"
 	)
 	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.inner_fault_analysis"),
+		"set",
+		"quest.analyze_inner_fault_trace",
+		"craft_item",
+		"item.phase_well_coordinate",
+		1.0,
+		"inner fault analysis recipe update"
+	)
+	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.fault_residue_stabilization"),
+		"set",
+		"quest.refine_fault_residue",
+		"craft_item",
+		"item.stabilized_fault_core",
+		1.0,
+		"fault residue stabilization recipe update"
+	)
+	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.phase_well_key"),
+		"set",
+		"quest.assemble_phase_well_key",
+		"craft_item",
+		"item.phase_well_key",
+		1.0,
+		"phase well key recipe update"
+	)
+	_expect_update(
 		event_rules.get_build_objective_updates("building.foundation_t1"),
 		"add",
 		"quest.expand_treatment_point",
@@ -328,6 +378,15 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		"enemy.deep_fault_hunter",
 		1.0,
 		"deep fault hunter defeat update"
+	)
+	_expect_update(
+		event_rules.get_defeated_enemy_objective_updates("enemy.inner_fault_stalker"),
+		"set",
+		"quest.collect_fault_residue",
+		"defeat_enemy",
+		"enemy.inner_fault_stalker",
+		1.0,
+		"inner fault stalker defeat update"
 	)
 
 
@@ -660,8 +719,78 @@ func _check_runtime_activates_post_phase_relay_followup() -> void:
 	_expect_equal(world_state.active_phase_relay_anchor_id, "map_object_instance.phase_return_anchor", "runtime restores active phase relay anchor for post relay saves")
 	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.reenter_phase_frontline", "runtime activates relay pad reentry quest")
 	_expect_equal(_result_array_size(result, "completion_feedbacks"), 0, "post relay activation should not emit completion feedback")
-	if String(result.get("log_messages", [""])[0]).find("前线回传锚点") < 0 and String(result.get("log_messages", ["", ""])[1]).find("裂相尖塔任务") < 0:
+	if String(result.get("log_messages", [""])[0]).find("前线回传锚点") < 0 and String(result.get("log_messages", ["", ""])[1]).find("深段后续任务") < 0:
 		failures.append("post relay activation should log relay restore and new deep followup, got %s" % var_to_str(result))
+
+
+func _check_runtime_restores_inner_fault_analysis_followup() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.quest_state.active_quest_ids = []
+	world_state.quest_state.completed_quest_ids = [
+		"quest.restore_outpost",
+		"quest.scout_crystal_field",
+		"quest.calibrate_reactor",
+		"quest.bring_back_sample",
+		"quest.analyze_anomaly_sample",
+		"quest.make_filter_module",
+		"quest.prepare_treatment_supplies",
+		"quest.expand_treatment_point",
+		"quest.enter_pollution_edge",
+		"quest.defeat_elite_node",
+		"quest.unlock_ruin_signal",
+		"quest.scout_ruin_outer_ring",
+		"quest.assemble_phase_anchor",
+		"quest.stabilize_outer_ring_barrier",
+		"quest.secure_outer_ring_signal",
+		"quest.salvage_signal_echo",
+		"quest.analyze_deep_signal",
+		"quest.unlock_deep_ruin_entrance",
+		"quest.harvest_phase_filament",
+		"quest.refine_phase_filament",
+		"quest.assemble_deep_override",
+		"quest.unlock_deep_ruin_cache",
+		"quest.analyze_deep_core",
+		"quest.activate_deep_array",
+		"quest.assemble_deep_signal_matrix",
+		"quest.deploy_phase_relay_anchor",
+		"quest.reenter_phase_frontline",
+		"quest.trace_phase_splinters",
+		"quest.refine_phase_splinters",
+		"quest.tune_relay_lens",
+		"quest.inspect_phase_fault_spire"
+	]
+	world_state.quest_state.unlocked_effects = [
+		"region.outpost_platform",
+		"region.crystal_vein_field",
+		"recipe.process_crystal_ore",
+		"recipe.repair_gel",
+		"recipe.reactor_calibrator",
+		"recipe.analyze_anomaly_sample",
+		"recipe.make_filter_media",
+		"recipe.basic_filter_module",
+		"recipe.foundation_t1",
+		"region.pollution_edge",
+		"recipe.cleanse_residue",
+		"region.locked_ruin_gate",
+		"region.ruin_outer_ring",
+		"recipe.phase_anchor",
+		"slice_01_complete",
+		"recipe.deep_signal_analysis",
+		"region.deep_ruin_threshold",
+		"recipe.phase_filament_refining",
+		"recipe.deep_override_key",
+		"recipe.deep_core_imprint",
+		"recipe.deep_signal_matrix",
+		"recipe.phase_splinter_refining",
+		"recipe.relay_tuning_lens"
+	]
+
+	var result := quest_runtime.reconcile_active_objectives(world_state, character_state)
+	_expect_equal(bool(result.get("accepted", false)), true, "runtime accepts inner fault analysis followup restoration")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.inner_fault_analysis", "runtime restores missing inner fault analysis unlock")
+	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_inner_fault_trace", "runtime activates inner fault analysis quest")
+	_expect_equal(_result_array_size(result, "completion_feedbacks"), 0, "inner fault followup restoration should not emit completion feedback")
 
 
 func _check_active_objective_progress_is_capped() -> void:

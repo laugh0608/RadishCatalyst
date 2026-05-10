@@ -1,6 +1,7 @@
 extends SceneTree
 const GameRootScript := preload("res://scripts/game/game_root.gd")
 const HudRuntimeHintFlowCheckScript := preload("res://scripts/checks/hud_runtime_hint_flow_check.gd")
+const HudMapMarkerCheckScript := preload("res://scripts/checks/hud_map_marker_check.gd")
 const PhaseRelayFlowChecks := preload("res://scripts/checks/phase_relay_flow_check.gd")
 const RegionPromptChecks := preload("res://scripts/checks/region_prompt_check.gd")
 const VerticalSliceRegressionChecks := preload("res://scripts/checks/vertical_slice_regression_check.gd")
@@ -28,7 +29,7 @@ func _run_checks() -> void:
 	_check_onboarding_hints()
 	_check_runtime_hint_prompt_flow()
 	_check_status_panel_summary()
-	_check_region_markers()
+	HudMapMarkerCheckScript.new(self).run(root)
 	_check_region_presence_bounds()
 	_check_pollution_gate_runtime_bounds()
 	_check_deep_gate_releases_movement_block()
@@ -183,9 +184,28 @@ func _run_checks() -> void:
 	_complete_active_quest("quest.tune_relay_lens", [{"type": "craft_item", "target_id": "item.relay_tuning_lens", "amount": 1}])
 	_expect_active_quest("quest.inspect_phase_fault_spire", "after relay lens tuning returns to deep spire")
 	_complete_active_quest("quest.inspect_phase_fault_spire", [{"type": "inspect", "target_id": "map_object.phase_fault_spire", "amount": 1}])
-	_expect_equal(world_state.quest_state.active_quest_ids, [], "after phase fault spire calibration should have no active quest")
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_phase_fault_spire", "phase fault spire quest completed")
 	_expect_equal(int(character_state.inventory.items.get("item.inner_fault_trace", 0)), 1, "phase fault spire grants first inner fault trace")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.inner_fault_analysis", "phase fault spire unlocks inner fault analysis recipe")
+	_expect_active_quest("quest.analyze_inner_fault_trace", "after phase fault spire returns to base analysis")
+	_complete_active_quest("quest.analyze_inner_fault_trace", [{"type": "craft_item", "target_id": "item.phase_well_coordinate", "amount": 1}])
+	_expect_active_quest("quest.collect_fault_residue", "after inner fault analysis returns to deeper front")
+	_complete_active_quest("quest.collect_fault_residue", [
+		{"type": "visit_region", "target_id": "region.deep_ruin_threshold", "amount": 1},
+		{"type": "defeat_enemy", "target_id": "enemy.inner_fault_stalker", "amount": 1},
+		{"type": "gather_item", "target_id": "item.fault_residue", "amount": 2}
+	])
+	_expect_active_quest("quest.refine_fault_residue", "after fault residue collection returns to filter")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.fault_residue_stabilization", "fault residue collection unlocks stabilization recipe")
+	_complete_active_quest("quest.refine_fault_residue", [{"type": "craft_item", "target_id": "item.stabilized_fault_core", "amount": 1}])
+	_expect_active_quest("quest.assemble_phase_well_key", "after fault residue refinement returns to reactor")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_key", "fault residue refinement unlocks phase well key recipe")
+	_complete_active_quest("quest.assemble_phase_well_key", [{"type": "craft_item", "target_id": "item.phase_well_key", "amount": 1}])
+	_expect_active_quest("quest.unlock_phase_well", "after phase well key assembly returns to deep lock")
+	_complete_active_quest("quest.unlock_phase_well", [{"type": "inspect", "target_id": "map_object.phase_well_lock", "amount": 1}])
+	_expect_equal(world_state.quest_state.active_quest_ids, [], "after phase well lock should have no active quest")
+	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.unlock_phase_well", "phase well lock quest completed")
+	_expect_equal(int(character_state.inventory.items.get("item.phase_well_locator", 0)), 1, "phase well lock grants first locator")
 	_check_processing_runtime()
 	VerticalSliceRegressionChecks.new(self).check_equipment_processing_runtime()
 	_check_evacuation_feedback()
@@ -278,6 +298,16 @@ func _check_onboarding_hints() -> void:
 		"relay tuning lens direction returns to reactor"
 	)
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.inspect_phase_fault_spire", "中继调谐镜", "phase fault spire onboarding hint")
+	_expect_text_contains(
+		presenter.format_direction_hint(hint_world, hint_character, "quest.analyze_inner_fault_trace"),
+		"基础反应器",
+		"inner fault analysis direction returns to reactor"
+	)
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_inner_fault_trace", "坐标印片", "inner fault analysis onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.collect_fault_residue", "故障残渣", "fault residue collection onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_fault_residue", "故障残渣", "fault residue refinement onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_phase_well_key", "相位井钥", "phase well key assembly onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.unlock_phase_well", "相位井钥", "phase well lock onboarding hint")
 	hint_world.quest_state.completed_quest_ids.append("quest.analyze_deep_signal")
 	hint_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_cache")
 	hint_world.quest_state.completed_quest_ids.append("quest.assemble_deep_signal_matrix")
@@ -287,6 +317,32 @@ func _check_onboarding_hints() -> void:
 	_expect_text_contains(presenter.format_direction_hint(hint_world, hint_character, ""), "相位回投台", "phase relay completion direction returns to relay pad")
 	_expect_text_contains(presenter.format_onboarding_hint(hint_world, hint_character, ""), "相位回投台", "phase relay completion onboarding points to relay pad")
 	_expect_hint_contains(presenter, hint_world, hint_character, "", "回传锚点", "phase relay completion onboarding hint")
+	var spire_completion_world := WorldState.create_default()
+	spire_completion_world.quest_state.active_quest_ids.clear()
+	spire_completion_world.quest_state.completed_quest_ids.append("quest.inspect_phase_fault_spire")
+	_expect_text_contains(
+		presenter.format_direction_hint(spire_completion_world, hint_character, ""),
+		"相位井锁",
+		"phase fault spire completion direction points to phase well lock"
+	)
+	_expect_text_contains(
+		presenter.format_onboarding_hint(spire_completion_world, hint_character, ""),
+		"内层故障轨迹",
+		"phase fault spire completion onboarding points to base analysis"
+	)
+	var phase_well_world := WorldState.create_default()
+	phase_well_world.quest_state.active_quest_ids.clear()
+	phase_well_world.quest_state.completed_quest_ids.append("quest.unlock_phase_well")
+	_expect_text_contains(
+		presenter.format_direction_hint(phase_well_world, hint_character, ""),
+		"相位井定位器已带回",
+		"phase well completion direction highlights next deep anchor"
+	)
+	_expect_text_contains(
+		presenter.format_onboarding_hint(phase_well_world, hint_character, ""),
+		"不是收尾",
+		"phase well completion onboarding keeps new deep target explicit"
+	)
 	map.free()
 func _check_runtime_hint_prompt_flow() -> void:
 	HudRuntimeHintFlowCheckScript.new().run(root, failures, data_registry)
@@ -320,8 +376,14 @@ func _check_status_panel_summary() -> void:
 	spire_world.quest_state.active_quest_ids.clear()
 	spire_world.quest_state.completed_quest_ids.append("quest.inspect_phase_fault_spire")
 	var spire_text := presenter.format_status_text(data_registry, spire_world, status_character)
-	_expect_text_contains(spire_text, "目标：内层故障轨迹已带回", "status falls back to deep reward after phase fault spire")
-	_expect_text_contains(spire_text, "裂相尖塔已校准", "status progress keeps phase fault spire completion summary")
+	_expect_text_contains(spire_text, "目标：内层故障轨迹待解析", "status falls back to inner fault analysis after phase fault spire")
+	_expect_text_contains(spire_text, "相位井锁变成新目标", "status progress keeps phase fault spire followup summary")
+	var phase_well_text_world := WorldState.create_default()
+	phase_well_text_world.quest_state.active_quest_ids.clear()
+	phase_well_text_world.quest_state.completed_quest_ids.append("quest.unlock_phase_well")
+	var phase_well_text := presenter.format_status_text(data_registry, phase_well_text_world, status_character)
+	_expect_text_contains(phase_well_text, "目标：相位井定位器已带回", "status falls back to phase well locator after lock")
+	_expect_text_contains(phase_well_text, "风险、收益和推进目标固定出来", "status progress keeps phase well completion summary")
 	_expect_text_missing(status_text, "提示：", "status removes onboarding duplicate")
 	_expect_text_missing(status_text, "坐标：", "status removes debug coordinate duplicate")
 	_expect_text_missing(status_text, "背包：", "status removes full inventory duplicate")
@@ -343,135 +405,6 @@ func _check_status_panel_summary() -> void:
 		"收集 晶体矿物（晶体簇） 0/6",
 		"status shows crystal gather source"
 	)
-func _check_region_markers() -> void:
-	var presenter := HudMapPresenter.new()
-	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
-	root.add_child(map)
-	presenter.configure(data_registry, map)
-	var marker_world := WorldState.create_default()
-	_expect_text_contains(
-		presenter.format_region_markers(marker_world, "quest.restore_outpost"),
-		"基地：当前位置，目标",
-		"outpost marker as current objective"
-	)
-	_expect_text_contains(
-		presenter.format_region_markers(marker_world, "quest.restore_outpost"),
-		"晶体：东侧，未解锁",
-		"locked crystal marker"
-	)
-	var initial_map_labels := presenter.format_map_marker_labels(marker_world, "quest.restore_outpost")
-	_expect_array_has(initial_map_labels, "基地\n当前\n目标", "outpost minimap current target marker")
-	_expect_array_has(initial_map_labels, "晶体\n未解锁", "crystal minimap locked marker")
-	marker_world.unlock_region("region.crystal_vein_field")
-	_expect_text_contains(
-		presenter.format_region_markers(marker_world, "quest.scout_crystal_field"),
-		"晶体：东侧，目标",
-		"crystal marker as objective"
-	)
-	_expect_array_has(
-		presenter.format_map_marker_labels(marker_world, "quest.scout_crystal_field"),
-		"晶体\n目标",
-		"crystal minimap objective marker"
-	)
-	marker_world.quest_state.set_objective_progress(
-		"quest.calibrate_reactor",
-		"gather_item",
-		"item.salvage_scrap",
-		4.0
-	)
-	_expect_text_contains(
-		presenter.format_region_markers(marker_world, "quest.calibrate_reactor"),
-		"基地：当前位置，目标",
-		"calibrator crafting returns to outpost reactor"
-	)
-	marker_world.quest_state.set_objective_progress(
-		"quest.bring_back_sample",
-		"sample_object",
-		"map_object.anomaly_crystal",
-		1.0
-	)
-	_expect_text_contains(
-		presenter.format_region_markers(marker_world, "quest.bring_back_sample"),
-		"晶体：东侧，目标",
-		"sample marker remains in crystal field"
-	)
-	marker_world.quest_state.set_objective_progress(
-		"quest.analyze_anomaly_sample",
-		"gather_item",
-		"item.anomaly_residue",
-		2.0
-	)
-	_expect_text_contains(
-		presenter.format_region_markers(marker_world, "quest.analyze_anomaly_sample"),
-		"基地：当前位置，目标",
-		"analysis crafting returns to outpost reactor"
-	)
-	marker_world.quest_state.set_objective_progress(
-		"quest.prepare_treatment_supplies",
-		"craft_item",
-		"item.repair_gel",
-		1.0
-	)
-	_expect_text_contains(
-		presenter.format_region_markers(marker_world, "quest.prepare_treatment_supplies"),
-		"晶体：东侧，目标",
-		"treatment enemy stays in crystal field"
-	)
-	marker_world.unlock_region("region.pollution_edge")
-	marker_world.quest_state.set_objective_progress(
-		"quest.enter_pollution_edge",
-		"visit_region",
-		"region.pollution_edge",
-		1.0
-	)
-	marker_world.quest_state.set_objective_progress(
-		"quest.enter_pollution_edge",
-		"gather_item",
-		"item.polluted_residue",
-		2.0
-	)
-	_expect_text_contains(
-		presenter.format_region_markers(marker_world, "quest.enter_pollution_edge"),
-		"晶体：东侧，目标",
-		"resistance vial crafting points back to treatment filter"
-	)
-	marker_world.quest_state.set_objective_progress(
-		"quest.enter_pollution_edge",
-		"craft_item",
-		"item.resistance_vial_t1",
-		1.0
-	)
-	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.enter_pollution_edge"), "污染：东南，目标", "polluted skitter returns objective to pollution edge")
-	marker_world.unlock_region("region.locked_ruin_gate")
-	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.unlock_ruin_signal"), "污染：东南，目标", "ruin gate objective follows scene placement in pollution edge")
-	_expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.unlock_ruin_signal"), "污染\n目标", "ruin gate minimap objective follows pollution edge marker")
-	marker_world.unlock_region("region.ruin_outer_ring")
-	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.scout_ruin_outer_ring"), "外圈：更东，目标", "outer ring scouting points to outer ring marker")
-	_expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.scout_ruin_outer_ring"), "外圈\n目标", "outer ring minimap objective marker")
-	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.salvage_signal_echo"), "外圈：更东，目标", "signal echo salvage stays in outer ring")
-	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.analyze_deep_signal"), "基地：当前位置，目标", "deep signal analysis returns to outpost reactor")
-	_expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.analyze_deep_signal"), "基地\n当前\n目标", "deep signal analysis minimap returns to outpost")
-	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.unlock_deep_ruin_entrance"), "外圈：更东，目标", "deep ruin door stays in outer ring")
-	marker_world.unlock_region("region.deep_ruin_threshold")
-	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.harvest_phase_filament"), "深段：更深，目标", "phase filament salvage points to deep region")
-	_expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.harvest_phase_filament"), "深段\n目标", "deep region minimap objective marker")
-	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.refine_phase_filament"), "晶体：东侧，目标", "phase filament filter points back to treatment filter")
-	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.assemble_deep_override"), "基地：当前位置，目标", "deep override assembly returns to outpost reactor")
-	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.unlock_deep_ruin_cache"), "深段：更深，目标", "deep latch returns objective to deep region")
-	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.analyze_deep_core"), "基地：当前位置，目标", "deep core analysis returns to outpost reactor")
-	_expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.analyze_deep_core"), "基地\n当前\n目标", "deep core analysis minimap returns to outpost")
-	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.activate_deep_array"), "深段：更深，目标", "deep array activation returns objective to deep region")
-	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.assemble_deep_signal_matrix"), "基地：当前位置，目标", "deep signal matrix assembly returns to outpost reactor")
-	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.deploy_phase_relay_anchor"), "深段：更深，目标", "phase relay anchor deployment returns to deep region")
-	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.reenter_phase_frontline"), "基地：当前位置，目标", "relay reentry starts from outpost pad")
-	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.trace_phase_splinters"), "深段：更深，目标", "phase splinter tracing returns objective to deeper region")
-	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.refine_phase_splinters"), "晶体：东侧，目标", "phase splinter refinement returns to treatment filter")
-	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.tune_relay_lens"), "基地：当前位置，目标", "relay tuning lens returns to outpost reactor")
-	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.inspect_phase_fault_spire"), "深段：更深，目标", "phase fault spire returns objective to deeper region")
-	marker_world.current_region_id = "region.outpost_platform"
-	marker_world.quest_state.completed_quest_ids.append("quest.deploy_phase_relay_anchor")
-	_expect_text_contains(presenter.format_region_markers(marker_world, ""), "深段：更深，目标", "phase relay completion keeps deep region targeted from outpost")
-	map.free()
 func _check_region_presence_bounds() -> void:
 	var map := VerticalSliceMap.new()
 	_expect_equal(
@@ -498,6 +431,11 @@ func _check_region_presence_bounds() -> void:
 		map._get_region_id_for_position(Vector2(734, -96)),
 		"region.deep_ruin_threshold",
 		"deep filament salvage should sit in deep region"
+	)
+	_expect_equal(
+		map._get_region_id_for_position(Vector2(1408, -22)),
+		"region.deep_ruin_threshold",
+		"phase well lock should stay in deep region"
 	)
 	map.free()
 func _check_pollution_gate_runtime_bounds() -> void:

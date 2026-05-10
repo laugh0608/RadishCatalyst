@@ -37,7 +37,10 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.phase_conduit_cluster_south": "map_object.phase_conduit_cluster",
 	"map_object_instance.phase_splinter_cluster_north": "map_object.phase_splinter_cluster",
 	"map_object_instance.phase_splinter_cluster_south": "map_object.phase_splinter_cluster",
-	"map_object_instance.phase_fault_spire": "map_object.phase_fault_spire"
+	"map_object_instance.phase_fault_spire": "map_object.phase_fault_spire",
+	"map_object_instance.fault_residue_cluster_north": "map_object.fault_residue_cluster",
+	"map_object_instance.fault_residue_cluster_south": "map_object.fault_residue_cluster",
+	"map_object_instance.phase_well_lock": "map_object.phase_well_lock"
 }
 
 const PROTOTYPE_ENEMY_SOURCES := {
@@ -71,6 +74,10 @@ const PROTOTYPE_ENEMY_SOURCES := {
 	},
 	"enemy_instance.deep_fault_hunter": {
 		"definition_id": "enemy.deep_fault_hunter",
+		"region_id": "region.deep_ruin_threshold"
+	},
+	"enemy_instance.inner_fault_stalker": {
+		"definition_id": "enemy.inner_fault_stalker",
 		"region_id": "region.deep_ruin_threshold"
 	}
 }
@@ -147,6 +154,9 @@ const DEFAULT_UNLOCKED_REGION_IDS: Array[String] = ["region.outpost_platform"]
 const LEGACY_OBJECTIVE_PROGRESS_KEYS: Array[String] = [
 	"quest.bring_back_sample|return_region|region.outpost_platform"
 ]
+const LEGACY_OPTIONAL_COMPLETED_QUEST_EFFECTS := {
+	"quest.inspect_phase_fault_spire": ["recipe.inner_fault_analysis"]
+}
 
 var data_registry: DataRegistry
 
@@ -672,6 +682,8 @@ func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[Strin
 		for effect_id in quest.get("unlock_effects", []):
 			var id := String(effect_id)
 			if not unlocked_effects.has(id):
+				if _is_legacy_optional_completed_quest_effect(quest_id, id):
+					continue
 				return "读取存档失败：quest_state.unlocked_effects 缺少已完成任务声明的解锁效果，当前运行状态已保留。"
 			if id.begins_with("region.") and not unlocked_region_ids.has(id):
 				return "读取存档失败：world.unlocked_region_ids 缺少已完成任务声明的区域解锁结果，当前运行状态已保留。"
@@ -689,6 +701,16 @@ func _is_effect_unlocked_by_completed_quest(effect_id: String, completed_quest_i
 		for quest_effect in quest.get("unlock_effects", []):
 			if String(quest_effect) == effect_id:
 				return true
+	return false
+
+
+func _is_legacy_optional_completed_quest_effect(quest_id: String, effect_id: String) -> bool:
+	if not LEGACY_OPTIONAL_COMPLETED_QUEST_EFFECTS.has(quest_id):
+		return false
+	var optional_effects: Array = LEGACY_OPTIONAL_COMPLETED_QUEST_EFFECTS[quest_id]
+	for optional_effect in optional_effects:
+		if String(optional_effect) == effect_id:
+			return true
 	return false
 
 

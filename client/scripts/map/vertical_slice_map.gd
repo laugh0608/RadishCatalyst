@@ -12,9 +12,9 @@ const PLAYER_INTERACTION_RANGE := 96.0
 const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
 const OUTPOST_RESPAWN_POSITION := Vector2(-250, -48)
 const PLAY_BOUNDS_MIN := Vector2(-360, -200)
-const PLAY_BOUNDS_MAX := Vector2(1220, 200)
+const PLAY_BOUNDS_MAX := Vector2(1460, 200)
 const CAMERA_BOUNDS_MIN := Vector2(-620, -360)
-const CAMERA_BOUNDS_MAX := Vector2(1240, 360)
+const CAMERA_BOUNDS_MAX := Vector2(1480, 360)
 const CRYSTAL_REGION_X := -70.0
 const CRYSTAL_GATE_RETURN_X := -85.0
 const POLLUTION_REGION_X := 200.0
@@ -80,6 +80,8 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		return _inspect_phase_relay_pad(character_state, world_state)
 	if interacted.definition_id == "map_object.phase_fault_spire" and interacted.interaction_type == "inspect":
 		return _inspect_phase_fault_spire(character_state, world_state)
+	if interacted.definition_id == "map_object.phase_well_lock" and interacted.interaction_type == "inspect":
+		return _inspect_phase_well_lock(character_state, world_state)
 
 	var action_id := interacted.get_current_recipe_id()
 	if interacted.interaction_type == "build":
@@ -207,6 +209,14 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 					interaction_cleared.emit(interactable)
 				continue
 			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.phase_well_lock":
+			if world_state.quest_state.has_completed_quest("quest.unlock_phase_well"):
+				interactable.set_stabilized_phase_well_lock_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
 		elif is_processed and interactable.set_processed_visual():
 			if current_interactable == interactable:
 				current_interactable = null
@@ -235,10 +245,20 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				world_state.quest_state.has_active_quest("quest.trace_phase_splinters")
 				or world_state.quest_state.has_completed_quest("quest.trace_phase_splinters")
 			)
+		if interactable.definition_id == "map_object.fault_residue_cluster":
+			should_enable = should_enable and (
+				world_state.quest_state.has_active_quest("quest.collect_fault_residue")
+				or world_state.quest_state.has_completed_quest("quest.collect_fault_residue")
+			)
 		if interactable.definition_id == "map_object.phase_fault_spire":
 			should_enable = should_enable and (
 				world_state.quest_state.has_active_quest("quest.inspect_phase_fault_spire")
 				or world_state.quest_state.has_completed_quest("quest.inspect_phase_fault_spire")
+			)
+		if interactable.definition_id == "map_object.phase_well_lock":
+			should_enable = should_enable and (
+				world_state.quest_state.has_active_quest("quest.unlock_phase_well")
+				or world_state.quest_state.has_completed_quest("quest.unlock_phase_well")
 			)
 
 		interactable.set_interaction_enabled(should_enable)
@@ -923,7 +943,7 @@ func _inspect_phase_fault_spire(character_state: CharacterState, world_state: Wo
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_fault_spire"):
 		return {
 			"success": true,
-			"message": "裂相尖塔已校准：第一份内层故障轨迹已经带回基地。"
+			"message": "裂相尖塔已校准：第一份内层故障轨迹已经带回基地，可继续回去解析更东侧相位井锁。"
 		}
 
 	if not character_state.inventory.has_ref("item.relay_tuning_lens", 1):
@@ -936,7 +956,35 @@ func _inspect_phase_fault_spire(character_state: CharacterState, world_state: Wo
 	character_state.inventory.consume_ref("item.relay_tuning_lens", 1)
 	return {
 		"success": true,
-		"message": "中继调谐镜已对准：裂相尖塔开始回吐内层故障轨迹。"
+		"message": "中继调谐镜已对准：裂相尖塔开始回吐内层故障轨迹，并暴露更东侧相位井锁的第一段坐标。"
+	}
+
+
+func _inspect_phase_well_lock(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_key"):
+		return _failure(
+			"相位井锁仍缺少可执行的锁定位。",
+			"井锁未钉住",
+			"先回基地用基础反应器，把坐标印片、稳定故障芯和基础零件组装成相位井钥。"
+		)
+
+	if world_state.quest_state.has_completed_quest("quest.unlock_phase_well"):
+		return {
+			"success": true,
+			"message": "相位井锁已钉住：第一份相位井定位器已经带回基地。"
+		}
+
+	if not character_state.inventory.has_ref("item.phase_well_key", 1):
+		return _failure(
+			"缺少相位井钥，相位井锁无法稳定。",
+			"缺少相位井钥",
+			"回基地确认基础反应器已经完成相位井钥，并带回来钉住相位井锁。"
+		)
+
+	character_state.inventory.consume_ref("item.phase_well_key", 1)
+	return {
+		"success": true,
+		"message": "相位井钥已写入：相位井锁开始析出定位器，更东侧内层相位井目标已被钉住。"
 	}
 
 

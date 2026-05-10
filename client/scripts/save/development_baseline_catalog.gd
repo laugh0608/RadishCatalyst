@@ -48,6 +48,14 @@ const BASELINE_DEFINITIONS := [
 		"completed_through": "quest.deploy_phase_relay_anchor",
 		"summary": "前线回传锚点和基地相位回投台都已在线，下一步从回投台重返前线并追踪裂相碎屑。",
 		"recommended_for": "前线回传、基地回投、回传后的新深段内容、旧进度兼容与节奏回归。"
+	},
+	{
+		"id": "baseline.s6_inner_fault_trace_ready",
+		"code": "S6",
+		"display_name": "S6 内层故障轨迹已回收",
+		"completed_through": "quest.inspect_phase_fault_spire",
+		"summary": "裂相尖塔已校准，第一份内层故障轨迹已带回，下一步回基地解析并继续推进相位井锁。",
+		"recommended_for": "内层故障轨迹解析、故障残渣回收、相位井钥组装、相位井锁与旧存档兼容回归。"
 	}
 ]
 

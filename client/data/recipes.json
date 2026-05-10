@@ -240,6 +240,51 @@
       "pollution_delta": 0.0,
       "unlock_conditions": ["quest.refine_phase_splinters"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.inner_fault_analysis",
+      "display_name_key": "recipe.inner_fault_analysis.name",
+      "description_key": "recipe.inner_fault_analysis.desc",
+      "category": "analysis",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.inner_fault_trace", "amount": 1}, {"id": "item.basic_parts", "amount": 2}],
+      "outputs": [{"id": "item.phase_well_coordinate", "amount": 1}],
+      "byproducts": [],
+      "duration": 11.0,
+      "energy_cost": 6.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.inspect_phase_fault_spire"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.fault_residue_stabilization",
+      "display_name_key": "recipe.fault_residue_stabilization.name",
+      "description_key": "recipe.fault_residue_stabilization.desc",
+      "category": "filtration",
+      "required_building_id": "building.pollution_filter",
+      "inputs": [{"id": "item.fault_residue", "amount": 2}],
+      "outputs": [{"id": "item.stabilized_fault_core", "amount": 1}],
+      "byproducts": [{"id": "fluid.polluted_slurry", "amount": 1}],
+      "duration": 12.0,
+      "energy_cost": 5.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.collect_fault_residue"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.phase_well_key",
+      "display_name_key": "recipe.phase_well_key.name",
+      "description_key": "recipe.phase_well_key.desc",
+      "category": "assembly",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.phase_well_coordinate", "amount": 1}, {"id": "item.stabilized_fault_core", "amount": 1}, {"id": "item.basic_parts", "amount": 2}],
+      "outputs": [{"id": "item.phase_well_key", "amount": 1}],
+      "byproducts": [],
+      "duration": 13.0,
+      "energy_cost": 6.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.refine_fault_residue"],
+      "public_level": "spoiler"
     }
   ]
 }

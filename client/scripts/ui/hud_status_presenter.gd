@@ -22,6 +22,11 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 	"item.phase_lens_blank",
 	"item.relay_tuning_lens",
 	"item.inner_fault_trace",
+	"item.phase_well_coordinate",
+	"item.fault_residue",
+	"item.stabilized_fault_core",
+	"item.phase_well_key",
+	"item.phase_well_locator",
 	"item.filter_media",
 	"item.foundation_material",
 	"fluid.basic_solvent",
@@ -126,8 +131,10 @@ func _format_vital_lines(
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if not quest_id.is_empty():
 		return _get_display_name(data_registry, quest_id)
+	if _has_completed_phase_well_lock(world_state):
+		return "相位井定位器已带回"
 	if _has_completed_phase_fault_spire(world_state):
-		return "内层故障轨迹已带回"
+		return "内层故障轨迹待解析"
 	if _has_completed_phase_relay_anchor(world_state):
 		return "前线回传锚点已部署"
 	if _has_completed_second_deep_pass(world_state):
@@ -185,8 +192,10 @@ func _format_quick_slots(data_registry: DataRegistry, character_state: Character
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_well_lock(world_state):
+			return "相位井锁已钉住；定位器已把更东侧内层相位井的风险、收益和推进目标固定出来"
 		if _has_completed_phase_fault_spire(world_state):
-			return "裂相尖塔已校准；第一份内层故障轨迹已带回，回传后的更深推进线已落成"
+			return "裂相尖塔已校准；回基地解析故障轨迹，继续把更东侧相位井锁变成新目标"
 		if _has_completed_phase_relay_anchor(world_state):
 			if world_state.current_region_id == "region.outpost_platform":
 				return "基地相位回投台已锁定最后锚点；当前可按 E 回投返回深段，并继续追踪更东侧裂相碎屑"
@@ -307,6 +316,10 @@ func _has_completed_second_deep_pass(world_state: WorldState) -> bool:
 
 func _has_completed_phase_relay_anchor(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor")
+
+
+func _has_completed_phase_well_lock(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.unlock_phase_well")
 
 
 func _has_completed_phase_fault_spire(world_state: WorldState) -> bool:

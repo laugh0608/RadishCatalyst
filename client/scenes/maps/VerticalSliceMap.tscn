@@ -11,7 +11,7 @@ script = ExtResource("1_map")
 [node name="Background" type="ColorRect" parent="."]
 offset_left = -620.0
 offset_top = -360.0
-offset_right = 1240.0
+offset_right = 1480.0
 offset_bottom = 360.0
 color = Color(0.101961, 0.133333, 0.141176, 1)
 
@@ -46,7 +46,7 @@ color = Color(0.180392, 0.180392, 0.247059, 1)
 [node name="RegionDeepRuin" type="ColorRect" parent="."]
 offset_left = 700.0
 offset_top = -200.0
-offset_right = 1200.0
+offset_right = 1440.0
 offset_bottom = 200.0
 color = Color(0.223529, 0.176471, 0.211765, 1)
 
@@ -85,7 +85,7 @@ horizontal_alignment = 1
 [node name="DeepDirectionLabel" type="Label" parent="."]
 offset_left = 710.0
 offset_top = 166.0
-offset_right = 1192.0
+offset_right = 1432.0
 offset_bottom = 192.0
 text = "→ 深段 / 裂相脊 / 尖塔"
 horizontal_alignment = 1
@@ -354,6 +354,28 @@ single_use = false
 label_offset = Vector2(-92, 22)
 label_size = Vector2(184, 24)
 
+[node name="FaultResidueClusterNorth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(1260, -96)
+definition_id = "map_object.fault_residue_cluster"
+interaction_type = "gather"
+label_offset = Vector2(-96, -52)
+label_size = Vector2(192, 24)
+
+[node name="FaultResidueClusterSouth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(1334, 88)
+definition_id = "map_object.fault_residue_cluster"
+interaction_type = "gather"
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
+
+[node name="PhaseWellLock" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(1408, -22)
+definition_id = "map_object.phase_well_lock"
+interaction_type = "inspect"
+single_use = false
+label_offset = Vector2(-92, 22)
+label_size = Vector2(184, 24)
+
 [node name="Enemies" type="Node2D" parent="."]
 
 [node name="NativeSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
@@ -387,3 +409,7 @@ definition_id = "enemy.deep_ruin_stalker"
 [node name="DeepFaultHunter" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(1098, 16)
 definition_id = "enemy.deep_fault_hunter"
+
+[node name="InnerFaultStalker" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(1312, 12)
+definition_id = "enemy.inner_fault_stalker"

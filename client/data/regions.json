@@ -24,7 +24,9 @@
         "quest.analyze_deep_core",
         "quest.assemble_deep_signal_matrix",
         "quest.reenter_phase_frontline",
-        "quest.tune_relay_lens"
+        "quest.tune_relay_lens",
+        "quest.analyze_inner_fault_trace",
+        "quest.assemble_phase_well_key"
       ],
       "public_level": "public"
     },
@@ -48,7 +50,8 @@
         "quest.expand_treatment_point",
         "quest.enter_pollution_edge",
         "quest.refine_phase_filament",
-        "quest.refine_phase_splinters"
+        "quest.refine_phase_splinters",
+        "quest.refine_fault_residue"
       ],
       "public_level": "public"
     },
@@ -101,11 +104,11 @@
       "planet_or_world": "world.slice_01",
       "biome_type": "deep_ruin_threshold",
       "danger_level": 4,
-      "resources": ["item.phase_filament", "item.deep_ruin_core", "item.phase_conduit", "item.phase_splinter", "item.inner_fault_trace"],
+      "resources": ["item.phase_filament", "item.deep_ruin_core", "item.phase_conduit", "item.phase_splinter", "item.inner_fault_trace", "item.fault_residue", "item.phase_well_locator"],
       "pollution_types": ["pollution.yellow_residue"],
       "weather_pool": ["weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
-      "quest_refs": ["quest.harvest_phase_filament", "quest.unlock_deep_ruin_cache", "quest.activate_deep_array", "quest.deploy_phase_relay_anchor", "quest.trace_phase_splinters", "quest.inspect_phase_fault_spire"],
+      "quest_refs": ["quest.harvest_phase_filament", "quest.unlock_deep_ruin_cache", "quest.activate_deep_array", "quest.deploy_phase_relay_anchor", "quest.trace_phase_splinters", "quest.inspect_phase_fault_spire", "quest.collect_fault_residue", "quest.unlock_phase_well"],
       "public_level": "spoiler"
     }
   ]

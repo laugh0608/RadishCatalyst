@@ -67,6 +67,25 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 		"runtime hint prompt explains relay reentry purpose"
 	)
 
+	var phase_well_world := WorldState.create_default()
+	var phase_well_character := CharacterState.create_default()
+	phase_well_world.quest_state.active_quest_ids = []
+	phase_well_world.quest_state.completed_quest_ids.append("quest.unlock_phase_well")
+	hud.update_status(data_registry, phase_well_world, phase_well_character)
+	_expect_text_contains(
+		failures,
+		hud.prompt_label.text,
+		"方向：相位井定位器已带回",
+		"runtime hint prompt keeps phase well locator fallback after final deep lock"
+	)
+	_expect_text_contains(
+		failures,
+		hud.prompt_label.text,
+		"提示：相位井定位器不是收尾",
+		"runtime hint prompt keeps next deep anchor explicit after phase well lock"
+	)
+	hud.update_status(data_registry, relay_world, relay_character)
+
 	var reactor := PrototypeInteractable.new()
 	reactor.definition_id = "building.basic_reactor"
 	reactor.interaction_type = "process_recipe"

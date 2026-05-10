@@ -39,9 +39,9 @@ func run() -> void:
 		host._expect_equal(loaded_character.current_region_id, character_state.current_region_id, "%s baseline character region" % code)
 		host._expect_equal(loaded_world.quest_state.active_quest_ids, world_state.quest_state.active_quest_ids, "%s baseline active quests" % code)
 		host._expect_equal(loaded_world.quest_state.completed_quest_ids, world_state.quest_state.completed_quest_ids, "%s baseline completed quests" % code)
-		if baseline_id == "baseline.s5_phase_relay_online":
+		if baseline_id == "baseline.s5_phase_relay_online" or baseline_id == "baseline.s6_inner_fault_trace_ready":
 			host._expect_equal(
 				loaded_world.active_phase_relay_anchor_id,
 				"map_object_instance.phase_return_anchor",
-				"S5 baseline active phase relay anchor"
+				"%s baseline active phase relay anchor" % code.to_upper()
 			)

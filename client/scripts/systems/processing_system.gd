@@ -182,6 +182,12 @@ func get_recommended_recipe_id(
 			return _select_if_available(interactable, "recipe.phase_splinter_refining")
 		"quest.tune_relay_lens":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.relay_tuning_lens")
+		"quest.analyze_inner_fault_trace":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.inner_fault_analysis")
+		"quest.refine_fault_residue":
+			return _select_if_available(interactable, "recipe.fault_residue_stabilization")
+		"quest.assemble_phase_well_key":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_key")
 		_:
 			return ""
 
@@ -255,6 +261,12 @@ func _get_completion_next_step(recipe_id: String) -> String:
 			return "透镜胚片和副产污染浆液已筛出；把它们带回基地反应器，调准成中继调谐镜。"
 		"recipe.relay_tuning_lens":
 			return "带着中继调谐镜返回更东侧裂相尖塔，逼出第一份内层故障轨迹。"
+		"recipe.inner_fault_analysis":
+			return "相位井坐标印片已整理完成；返回裂相尖塔更东侧，击退潜猎体并回收故障残渣。"
+		"recipe.fault_residue_stabilization":
+			return "稳定故障芯和副产污染浆液已筛出；把它们带回基地反应器，组装相位井钥。"
+		"recipe.phase_well_key":
+			return "带着相位井钥返回更东侧相位井锁，钉住锁位并带回第一份定位器。"
 		_:
 			return "查看当前任务目标，选择下一次加工或外出行动。"
 
