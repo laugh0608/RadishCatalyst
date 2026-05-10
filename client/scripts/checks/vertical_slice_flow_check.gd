@@ -223,9 +223,28 @@ func _run_checks() -> void:
 	_complete_active_quest("quest.assemble_phase_well_probe", [{"type": "craft_item", "target_id": "item.phase_well_probe", "amount": 1}])
 	_expect_active_quest("quest.inspect_inner_phase_well", "after phase well probe assembly returns to inner well")
 	_complete_active_quest("quest.inspect_inner_phase_well", [{"type": "inspect", "target_id": "map_object.inner_phase_well", "amount": 1}])
-	_expect_equal(world_state.quest_state.active_quest_ids, [], "after inner phase well should have no active quest")
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_inner_phase_well", "inner phase well quest completed")
 	_expect_equal(int(character_state.inventory.items.get("item.phase_well_core", 0)), 1, "inner phase well grants first core sample")
+	_expect_active_quest("quest.analyze_phase_well_core", "after inner phase well returns to base analysis")
+	_complete_active_quest("quest.analyze_phase_well_core", [{"type": "craft_item", "target_id": "item.phase_well_spectrum", "amount": 1}])
+	_expect_active_quest("quest.collect_well_ash", "after phase well core analysis returns to deeper sink")
+	_expect_array_has(world_state.unlocked_region_ids, "region.phase_well_sink", "phase well core analysis unlocks phase well sink region")
+	_complete_active_quest("quest.collect_well_ash", [
+		{"type": "visit_region", "target_id": "region.phase_well_sink", "amount": 1},
+		{"type": "defeat_enemy", "target_id": "enemy.phase_well_lurker", "amount": 1},
+		{"type": "gather_item", "target_id": "item.well_ash", "amount": 2}
+	])
+	_expect_active_quest("quest.refine_well_ash", "after well ash collection returns to filter")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.well_ash_stabilization", "well ash collection unlocks stabilization recipe")
+	_complete_active_quest("quest.refine_well_ash", [{"type": "craft_item", "target_id": "item.phase_well_lattice", "amount": 1}])
+	_expect_active_quest("quest.assemble_phase_well_pike", "after well ash refinement returns to reactor")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_pike", "well ash refinement unlocks phase well pike recipe")
+	_complete_active_quest("quest.assemble_phase_well_pike", [{"type": "craft_item", "target_id": "item.phase_well_pike", "amount": 1}])
+	_expect_active_quest("quest.inspect_phase_well_sink", "after phase well pike assembly returns to sink")
+	_complete_active_quest("quest.inspect_phase_well_sink", [{"type": "inspect", "target_id": "map_object.phase_well_sink", "amount": 1}])
+	_expect_equal(world_state.quest_state.active_quest_ids, [], "after phase well sink should have no active quest")
+	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_phase_well_sink", "phase well sink quest completed")
+	_expect_equal(int(character_state.inventory.items.get("item.phase_well_heart", 0)), 1, "phase well sink grants first heart reward")
 	_check_processing_runtime()
 	VerticalSliceRegressionChecks.new(self).check_equipment_processing_runtime()
 	_check_evacuation_feedback()
@@ -368,13 +387,13 @@ func _check_onboarding_hints() -> void:
 	inner_phase_well_world.quest_state.completed_quest_ids.append("quest.inspect_inner_phase_well")
 	_expect_text_contains(
 		presenter.format_direction_hint(inner_phase_well_world, hint_character, ""),
-		"井芯样本已带回",
-		"inner phase well completion direction highlights first core reward"
+		"回基地解析井芯样本",
+		"inner phase well completion direction highlights next base analysis"
 	)
 	_expect_text_contains(
 		presenter.format_onboarding_hint(inner_phase_well_world, hint_character, ""),
-		"更高收益",
-		"inner phase well completion onboarding keeps first reward explicit"
+		"井芯样本只是下一轮的起点",
+		"inner phase well completion onboarding keeps next package explicit"
 	)
 	map.free()
 func _check_runtime_hint_prompt_flow() -> void:
@@ -421,8 +440,8 @@ func _check_status_panel_summary() -> void:
 	inner_phase_well_text_world.quest_state.active_quest_ids.clear()
 	inner_phase_well_text_world.quest_state.completed_quest_ids.append("quest.inspect_inner_phase_well")
 	var inner_phase_well_text := presenter.format_status_text(data_registry, inner_phase_well_text_world, status_character)
-	_expect_text_contains(inner_phase_well_text, "目标：相位井芯样本已带回", "status falls back to inner phase well reward after completion")
-	_expect_text_contains(inner_phase_well_text, "更东侧新风险线已经转成明确收益", "status progress keeps inner phase well completion summary")
+	_expect_text_contains(inner_phase_well_text, "目标：相位井芯样本待解析", "status falls back to inner phase well analysis after completion")
+	_expect_text_contains(inner_phase_well_text, "回基地解析后可继续把更东侧井底裂口转成新的推进包", "status progress keeps inner phase well followup summary")
 	_expect_text_missing(status_text, "提示：", "status removes onboarding duplicate")
 	_expect_text_missing(status_text, "坐标：", "status removes debug coordinate duplicate")
 	_expect_text_missing(status_text, "背包：", "status removes full inventory duplicate")

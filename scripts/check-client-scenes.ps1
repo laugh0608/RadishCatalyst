@@ -162,11 +162,14 @@ function Get-NodeVector2($Properties, [string]$Key) {
     }
 }
 
-function Get-MapRegionId($Position, [double]$CrystalRegionX, [double]$PollutionRegionX, [double]$PollutionDeepY, [double]$RuinOuterRingX, [double]$DeepRuinRegionX, [double]$InnerPhaseWellRegionX) {
+function Get-MapRegionId($Position, [double]$CrystalRegionX, [double]$PollutionRegionX, [double]$PollutionDeepY, [double]$RuinOuterRingX, [double]$DeepRuinRegionX, [double]$InnerPhaseWellRegionX, [double]$PhaseWellSinkRegionX) {
     if ($null -eq $Position) {
         return ""
     }
 
+    if ($Position.X -ge $PhaseWellSinkRegionX) {
+        return "region.phase_well_sink"
+    }
     if ($Position.X -ge $InnerPhaseWellRegionX) {
         return "region.inner_phase_well"
     }
@@ -449,6 +452,7 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
     $ruinOuterRingX = 390.0
     $deepRuinRegionX = 700.0
     $innerPhaseWellRegionX = 1460.0
+    $phaseWellSinkRegionX = 1760.0
     if (Test-Path -LiteralPath $verticalSliceMapScriptPath -PathType Leaf) {
         $mapScriptContent = Get-Content -LiteralPath $verticalSliceMapScriptPath -Raw
         $crystalRegionX = Get-GDScriptConstantNumber $mapScriptContent "CRYSTAL_REGION_X" $crystalRegionX
@@ -457,6 +461,7 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
         $ruinOuterRingX = Get-GDScriptConstantNumber $mapScriptContent "RUIN_OUTER_RING_X" $ruinOuterRingX
         $deepRuinRegionX = Get-GDScriptConstantNumber $mapScriptContent "DEEP_RUIN_REGION_X" $deepRuinRegionX
         $innerPhaseWellRegionX = Get-GDScriptConstantNumber $mapScriptContent "INNER_PHASE_WELL_REGION_X" $innerPhaseWellRegionX
+        $phaseWellSinkRegionX = Get-GDScriptConstantNumber $mapScriptContent "PHASE_WELL_SINK_REGION_X" $phaseWellSinkRegionX
     }
     else {
         Add-Error "client/scripts/map/vertical_slice_map.gd: missing map region source for scene region checks"
@@ -494,7 +499,7 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
                 DefinitionId = Get-NodeString $node.Properties "definition_id"
                 InteractionType = Get-NodeString $node.Properties "interaction_type"
                 PrerequisiteInstanceId = Get-NodeString $node.Properties "prerequisite_instance_id"
-                RegionId = Get-MapRegionId $position $crystalRegionX $pollutionRegionX $pollutionDeepY $ruinOuterRingX $deepRuinRegionX $innerPhaseWellRegionX
+                RegionId = Get-MapRegionId $position $crystalRegionX $pollutionRegionX $pollutionDeepY $ruinOuterRingX $deepRuinRegionX $innerPhaseWellRegionX $phaseWellSinkRegionX
             }
             $interactables.Add($interactable)
             $interactablesByInstanceId[$instanceId] = $interactable
@@ -505,7 +510,7 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
             $enemies.Add([pscustomobject]@{
                 Name = $node.Name
                 DefinitionId = Get-NodeString $node.Properties "definition_id"
-                RegionId = Get-MapRegionId $position $crystalRegionX $pollutionRegionX $pollutionDeepY $ruinOuterRingX $deepRuinRegionX $innerPhaseWellRegionX
+                RegionId = Get-MapRegionId $position $crystalRegionX $pollutionRegionX $pollutionDeepY $ruinOuterRingX $deepRuinRegionX $innerPhaseWellRegionX $phaseWellSinkRegionX
             })
         }
     }

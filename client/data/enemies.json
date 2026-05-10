@@ -150,6 +150,21 @@
       "drops": [{"id": "item.repair_gel", "amount": 1}],
       "spawn_regions": ["region.inner_phase_well"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "enemy.phase_well_lurker",
+      "display_name_key": "enemy.phase_well_lurker.name",
+      "description_key": "enemy.phase_well_lurker.desc",
+      "category": "ruin_guard",
+      "faction": "ruin_sentinel",
+      "base_stats": {"max_health": 120, "attack": 22, "move_speed": 120},
+      "behaviors": ["phase_guard", "melee_chase"],
+      "damage_types": ["physical", "pollution"],
+      "resistances": {"pollution": 0.65},
+      "drop_table_id": "drop.phase_well_lurker",
+      "drops": [{"id": "item.repair_gel", "amount": 1}],
+      "spawn_regions": ["region.phase_well_sink"],
+      "public_level": "spoiler"
     }
   ]
 }

@@ -32,6 +32,11 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 	"item.phase_well_stabilizer",
 	"item.phase_well_probe",
 	"item.phase_well_core",
+	"item.phase_well_spectrum",
+	"item.well_ash",
+	"item.phase_well_lattice",
+	"item.phase_well_pike",
+	"item.phase_well_heart",
 	"item.filter_media",
 	"item.foundation_material",
 	"fluid.basic_solvent",
@@ -136,8 +141,10 @@ func _format_vital_lines(
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if not quest_id.is_empty():
 		return _get_display_name(data_registry, quest_id)
+	if _has_completed_phase_well_sink(world_state):
+		return "相位井心核已带回"
 	if _has_completed_inner_phase_well(world_state):
-		return "相位井芯样本已带回"
+		return "相位井芯样本待解析"
 	if _has_completed_phase_well_lock(world_state):
 		return "相位井定位器待解析"
 	if _has_completed_phase_fault_spire(world_state):
@@ -199,8 +206,10 @@ func _format_quick_slots(data_registry: DataRegistry, character_state: Character
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_well_sink(world_state):
+			return "井底裂口已凿开；相位井心核已带回基地，新的更深收益锚点已生成"
 		if _has_completed_inner_phase_well(world_state):
-			return "内层相位井已给出第一份井芯样本；这条更东侧新风险线已经转成明确收益"
+			return "井芯样本已回收；回基地解析后可继续把更东侧井底裂口转成新的推进包"
 		if _has_completed_phase_well_lock(world_state):
 			return "相位井锁已钉住；先回基地解析定位器，再把更东侧内层相位井真正转成新推进包"
 		if _has_completed_phase_fault_spire(world_state):
@@ -325,6 +334,10 @@ func _has_completed_second_deep_pass(world_state: WorldState) -> bool:
 
 func _has_completed_phase_relay_anchor(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor")
+
+
+func _has_completed_phase_well_sink(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.inspect_phase_well_sink")
 
 
 func _has_completed_phase_well_lock(world_state: WorldState) -> bool:

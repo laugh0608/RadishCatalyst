@@ -28,7 +28,9 @@
         "quest.analyze_inner_fault_trace",
         "quest.assemble_phase_well_key",
         "quest.analyze_phase_well_locator",
-        "quest.assemble_phase_well_probe"
+        "quest.assemble_phase_well_probe",
+        "quest.analyze_phase_well_core",
+        "quest.assemble_phase_well_pike"
       ],
       "public_level": "public"
     },
@@ -54,7 +56,8 @@
         "quest.refine_phase_filament",
         "quest.refine_phase_splinters",
         "quest.refine_fault_residue",
-        "quest.refine_well_flux"
+        "quest.refine_well_flux",
+        "quest.refine_well_ash"
       ],
       "public_level": "public"
     },
@@ -126,6 +129,20 @@
       "weather_pool": ["weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
       "quest_refs": ["quest.collect_well_flux", "quest.inspect_inner_phase_well"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "region.phase_well_sink",
+      "display_name_key": "region.phase_well_sink.name",
+      "description_key": "region.phase_well_sink.desc",
+      "planet_or_world": "world.slice_01",
+      "biome_type": "phase_well_sink",
+      "danger_level": 6,
+      "resources": ["item.well_ash", "item.phase_well_heart"],
+      "pollution_types": ["pollution.yellow_residue"],
+      "weather_pool": ["weather.acid_mist"],
+      "recommended_equipment": ["equipment.filter_module_t1"],
+      "quest_refs": ["quest.collect_well_ash", "quest.inspect_phase_well_sink"],
       "public_level": "spoiler"
     }
   ]

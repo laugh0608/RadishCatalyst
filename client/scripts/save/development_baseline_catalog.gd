@@ -64,6 +64,14 @@ const BASELINE_DEFINITIONS := [
 		"completed_through": "quest.unlock_phase_well",
 		"summary": "相位井锁已钉住，定位器已带回，下一步回基地解析并推进更东侧内层相位井。",
 		"recommended_for": "定位器解析、井涌碎屑回收、稳流芯处理、相位井探针、内层相位井与旧存档兼容回归。"
+	},
+	{
+		"id": "baseline.s8_phase_well_core_ready",
+		"code": "S8",
+		"display_name": "S8 相位井芯样本已带回",
+		"completed_through": "quest.inspect_inner_phase_well",
+		"summary": "内层相位井已勘验，井芯样本已带回，下一步回基地解析并推进更东侧井底裂口。",
+		"recommended_for": "井芯样本解析、井壁余烬回收、稳相格处理、井底穿钉、井底裂口与旧存档兼容回归。"
 	}
 ]
 

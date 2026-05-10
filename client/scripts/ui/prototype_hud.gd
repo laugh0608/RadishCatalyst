@@ -21,7 +21,12 @@ const GM_RESOURCE_CANDIDATES: Array[String] = [
 	"item.well_flux_shard",
 	"item.phase_well_stabilizer",
 	"item.phase_well_probe",
-	"item.phase_well_core"
+	"item.phase_well_core",
+	"item.phase_well_spectrum",
+	"item.well_ash",
+	"item.phase_well_lattice",
+	"item.phase_well_pike",
+	"item.phase_well_heart"
 ]
 const SUPPLY_FEEDBACK_SECONDS := 4.0
 const QUEST_COMPLETION_FEEDBACK_SECONDS := 7.0
@@ -67,7 +72,8 @@ var last_debug_character_state: CharacterState
 	$MapPanel/PollutionMarker,
 	$MapPanel/RuinMarker,
 	$MapPanel/DeepMarker,
-	$MapPanel/InnerPhaseWellMarker
+	$MapPanel/InnerPhaseWellMarker,
+	$MapPanel/PhaseWellSinkMarker
 ]
 @onready var map_marker_labels: Array[Label] = [
 	$MapPanel/OutpostLabel,
@@ -75,7 +81,8 @@ var last_debug_character_state: CharacterState
 	$MapPanel/PollutionLabel,
 	$MapPanel/RuinLabel,
 	$MapPanel/DeepLabel,
-	$MapPanel/InnerPhaseWellLabel
+	$MapPanel/InnerPhaseWellLabel,
+	$MapPanel/PhaseWellSinkLabel
 ]
 @onready var device_title_label: Label = $DevicePanel/DeviceTitleLabel
 @onready var device_status_label: Label = $DevicePanel/DeviceStatusLabel
@@ -550,7 +557,8 @@ func _ensure_runtime_nodes() -> void:
 			get_node_or_null("MapPanel/PollutionMarker"),
 			get_node_or_null("MapPanel/RuinMarker"),
 			get_node_or_null("MapPanel/DeepMarker"),
-			get_node_or_null("MapPanel/InnerPhaseWellMarker")
+			get_node_or_null("MapPanel/InnerPhaseWellMarker"),
+			get_node_or_null("MapPanel/PhaseWellSinkMarker")
 		]
 	if map_marker_labels.is_empty() or map_marker_labels[0] == null:
 		map_marker_labels = [
@@ -559,7 +567,8 @@ func _ensure_runtime_nodes() -> void:
 			get_node_or_null("MapPanel/PollutionLabel"),
 			get_node_or_null("MapPanel/RuinLabel"),
 			get_node_or_null("MapPanel/DeepLabel"),
-			get_node_or_null("MapPanel/InnerPhaseWellLabel")
+			get_node_or_null("MapPanel/InnerPhaseWellLabel"),
+			get_node_or_null("MapPanel/PhaseWellSinkLabel")
 		]
 	if device_title_label == null:
 		device_title_label = get_node_or_null("DevicePanel/DeviceTitleLabel")
@@ -660,7 +669,7 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	last_viewport_size = viewport_size
 	var margin := 20.0
 	var gap := 16.0
-	var map_width := 372.0
+	var map_width := 378.0
 	var map_height := 176.0
 	var objective_width := clampf(viewport_size.x * 0.28, 400.0, 520.0)
 	var objective_height := 180.0

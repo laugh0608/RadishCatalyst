@@ -43,7 +43,10 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.phase_well_lock": "map_object.phase_well_lock",
 	"map_object_instance.well_flux_cluster_north": "map_object.well_flux_cluster",
 	"map_object_instance.well_flux_cluster_south": "map_object.well_flux_cluster",
-	"map_object_instance.inner_phase_well": "map_object.inner_phase_well"
+	"map_object_instance.inner_phase_well": "map_object.inner_phase_well",
+	"map_object_instance.well_ash_cluster_north": "map_object.well_ash_cluster",
+	"map_object_instance.well_ash_cluster_south": "map_object.well_ash_cluster",
+	"map_object_instance.phase_well_sink": "map_object.phase_well_sink"
 }
 
 const PROTOTYPE_ENEMY_SOURCES := {
@@ -86,6 +89,10 @@ const PROTOTYPE_ENEMY_SOURCES := {
 	"enemy_instance.phase_well_sentry": {
 		"definition_id": "enemy.phase_well_sentry",
 		"region_id": "region.inner_phase_well"
+	},
+	"enemy_instance.phase_well_lurker": {
+		"definition_id": "enemy.phase_well_lurker",
+		"region_id": "region.phase_well_sink"
 	}
 }
 
@@ -163,7 +170,8 @@ const LEGACY_OBJECTIVE_PROGRESS_KEYS: Array[String] = [
 ]
 const LEGACY_OPTIONAL_COMPLETED_QUEST_EFFECTS := {
 	"quest.inspect_phase_fault_spire": ["recipe.inner_fault_analysis"],
-	"quest.unlock_phase_well": ["recipe.phase_well_locator_analysis"]
+	"quest.unlock_phase_well": ["recipe.phase_well_locator_analysis"],
+	"quest.inspect_inner_phase_well": ["recipe.phase_well_core_analysis"]
 }
 
 var data_registry: DataRegistry

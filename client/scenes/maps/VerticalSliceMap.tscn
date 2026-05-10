@@ -11,7 +11,7 @@ script = ExtResource("1_map")
 [node name="Background" type="ColorRect" parent="."]
 offset_left = -620.0
 offset_top = -360.0
-offset_right = 1800.0
+offset_right = 2080.0
 offset_bottom = 360.0
 color = Color(0.101961, 0.133333, 0.141176, 1)
 
@@ -56,6 +56,13 @@ offset_top = -200.0
 offset_right = 1760.0
 offset_bottom = 200.0
 color = Color(0.172549, 0.188235, 0.258824, 1)
+
+[node name="RegionPhaseWellSink" type="ColorRect" parent="."]
+offset_left = 1760.0
+offset_top = -200.0
+offset_right = 2040.0
+offset_bottom = 200.0
+color = Color(0.239216, 0.176471, 0.145098, 1)
 
 [node name="BaseDirectionLabel" type="Label" parent="."]
 offset_left = -342.0
@@ -103,6 +110,14 @@ offset_top = 166.0
 offset_right = 1752.0
 offset_bottom = 192.0
 text = "→ 内层相位井"
+horizontal_alignment = 1
+
+[node name="PhaseWellSinkDirectionLabel" type="Label" parent="."]
+offset_left = 1772.0
+offset_top = 166.0
+offset_right = 2032.0
+offset_bottom = 192.0
+text = "→ 井底裂口"
 horizontal_alignment = 1
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
@@ -413,6 +428,28 @@ single_use = false
 label_offset = Vector2(-100, 22)
 label_size = Vector2(200, 24)
 
+[node name="WellAshClusterNorth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(1822, -96)
+definition_id = "map_object.well_ash_cluster"
+interaction_type = "gather"
+label_offset = Vector2(-96, -52)
+label_size = Vector2(192, 24)
+
+[node name="WellAshClusterSouth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(1902, 92)
+definition_id = "map_object.well_ash_cluster"
+interaction_type = "gather"
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
+
+[node name="PhaseWellSink" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(1988, -20)
+definition_id = "map_object.phase_well_sink"
+interaction_type = "inspect"
+single_use = false
+label_offset = Vector2(-100, 22)
+label_size = Vector2(200, 24)
+
 [node name="Enemies" type="Node2D" parent="."]
 
 [node name="NativeSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
@@ -454,3 +491,7 @@ definition_id = "enemy.inner_fault_stalker"
 [node name="PhaseWellSentry" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(1568, 16)
 definition_id = "enemy.phase_well_sentry"
+
+[node name="PhaseWellLurker" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(1868, 14)
+definition_id = "enemy.phase_well_lurker"

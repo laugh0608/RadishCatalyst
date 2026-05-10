@@ -330,6 +330,51 @@
       "pollution_delta": 0.0,
       "unlock_conditions": ["quest.refine_well_flux"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.phase_well_core_analysis",
+      "display_name_key": "recipe.phase_well_core_analysis.name",
+      "description_key": "recipe.phase_well_core_analysis.desc",
+      "category": "analysis",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.phase_well_core", "amount": 1}, {"id": "item.basic_parts", "amount": 2}],
+      "outputs": [{"id": "item.phase_well_spectrum", "amount": 1}],
+      "byproducts": [],
+      "duration": 13.0,
+      "energy_cost": 6.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.inspect_inner_phase_well"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.well_ash_stabilization",
+      "display_name_key": "recipe.well_ash_stabilization.name",
+      "description_key": "recipe.well_ash_stabilization.desc",
+      "category": "filtration",
+      "required_building_id": "building.pollution_filter",
+      "inputs": [{"id": "item.well_ash", "amount": 2}],
+      "outputs": [{"id": "item.phase_well_lattice", "amount": 1}],
+      "byproducts": [{"id": "fluid.polluted_slurry", "amount": 1}],
+      "duration": 13.0,
+      "energy_cost": 6.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.collect_well_ash"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.phase_well_pike",
+      "display_name_key": "recipe.phase_well_pike.name",
+      "description_key": "recipe.phase_well_pike.desc",
+      "category": "assembly",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.phase_well_spectrum", "amount": 1}, {"id": "item.phase_well_lattice", "amount": 1}, {"id": "item.basic_parts", "amount": 2}],
+      "outputs": [{"id": "item.phase_well_pike", "amount": 1}],
+      "byproducts": [],
+      "duration": 14.0,
+      "energy_cost": 6.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.refine_well_ash"],
+      "public_level": "spoiler"
     }
   ]
 }
