@@ -19,8 +19,11 @@ var feedback_presenter := HudFeedbackPresenter.new()
 var map_presenter := HudMapPresenter.new()
 var status_presenter := HudStatusPresenter.new()
 var hint_presenter := HudHintPresenter.new()
+var development_baseline_presenter := HudDevelopmentBaselinePresenter.new()
 var context_prompt_text := ""
 var runtime_hint_text := ""
+var development_baseline_definitions: Array[Dictionary] = []
+var selected_development_baseline_index := 0
 
 @onready var save_panel: ColorRect = $SavePanel
 @onready var completion_panel: ColorRect = $CompletionPanel
@@ -72,6 +75,10 @@ var runtime_hint_text := ""
 @onready var supply_feedback_title_label: Label = $SupplyFeedbackPanel/SupplyFeedbackTitleLabel
 @onready var supply_feedback_detail_label: Label = $SupplyFeedbackPanel/SupplyFeedbackDetailLabel
 @onready var new_game_button: Button = $SavePanel/NewGameButton
+@onready var baseline_label: Label = $SavePanel/BaselineLabel
+@onready var baseline_previous_button: Button = $SavePanel/BaselinePreviousButton
+@onready var baseline_load_button: Button = $SavePanel/BaselineLoadButton
+@onready var baseline_next_button: Button = $SavePanel/BaselineNextButton
 @onready var save_slot_labels: Array[Label] = [
 	$SavePanel/Slot01Label,
 	$SavePanel/Slot02Label,
@@ -98,11 +105,15 @@ signal load_slot_requested(slot_id: String)
 signal delete_slot_requested(slot_id: String)
 signal new_game_requested
 signal quick_slot_binding_requested(slot_index: int, item_id: String)
+signal development_baseline_requested(baseline_id: String)
 
 
 func _ready() -> void:
 	_ensure_runtime_nodes()
 	new_game_button.pressed.connect(_on_new_game_pressed)
+	baseline_previous_button.pressed.connect(_on_baseline_previous_pressed)
+	baseline_load_button.pressed.connect(_on_baseline_load_pressed)
+	baseline_next_button.pressed.connect(_on_baseline_next_pressed)
 	for index in range(SAVE_SLOT_IDS.size()):
 		save_slot_buttons[index].pressed.connect(_on_save_slot_pressed.bind(index))
 		load_slot_buttons[index].pressed.connect(_on_load_slot_pressed.bind(index))
@@ -291,6 +302,21 @@ func update_save_slot_summaries(summaries: Array[Dictionary]) -> void:
 		SAVE_SLOT_IDS
 	)
 
+func update_development_baselines(definitions: Array[Dictionary]) -> void:
+	development_baseline_definitions.clear()
+	for definition in definitions:
+		var baseline_definition: Dictionary = definition
+		development_baseline_definitions.append(baseline_definition.duplicate(true))
+	if development_baseline_definitions.is_empty():
+		selected_development_baseline_index = 0
+	else:
+		selected_development_baseline_index = clampi(
+			selected_development_baseline_index,
+			0,
+			development_baseline_definitions.size() - 1
+		)
+	_refresh_development_baseline_panel()
+
 
 func _on_save_slot_pressed(slot_index: int) -> void:
 	save_slot_requested.emit(SAVE_SLOT_IDS[slot_index])
@@ -306,6 +332,32 @@ func _on_delete_slot_pressed(slot_index: int) -> void:
 
 func _on_new_game_pressed() -> void:
 	new_game_requested.emit()
+
+
+func _on_baseline_previous_pressed() -> void:
+	if development_baseline_definitions.is_empty():
+		return
+	selected_development_baseline_index = posmod(
+		selected_development_baseline_index - 1,
+		development_baseline_definitions.size()
+	)
+	_refresh_development_baseline_panel()
+
+
+func _on_baseline_load_pressed() -> void:
+	var definition := _get_selected_development_baseline()
+	if definition.is_empty():
+		return
+	development_baseline_requested.emit(String(definition.get("id", "")))
+
+func _on_baseline_next_pressed() -> void:
+	if development_baseline_definitions.is_empty():
+		return
+	selected_development_baseline_index = posmod(
+		selected_development_baseline_index + 1,
+		development_baseline_definitions.size()
+	)
+	_refresh_development_baseline_panel()
 
 
 func _on_quick_slot_binding_pressed(slot_index: int) -> void:
@@ -364,6 +416,23 @@ func _update_runtime_hint(world_state: WorldState, character_state: CharacterSta
 	_refresh_prompt_label()
 
 
+func _refresh_development_baseline_panel() -> void:
+	_ensure_runtime_nodes()
+	var definition := _get_selected_development_baseline()
+	if baseline_label != null:
+		baseline_label.text = development_baseline_presenter.format_selected_baseline(
+			definition,
+			selected_development_baseline_index,
+			maxi(development_baseline_definitions.size(), 1)
+		)
+	var has_definitions := not development_baseline_definitions.is_empty()
+	if baseline_previous_button != null:
+		baseline_previous_button.disabled = not has_definitions
+	if baseline_load_button != null:
+		baseline_load_button.disabled = not has_definitions
+	if baseline_next_button != null:
+		baseline_next_button.disabled = not has_definitions
+
 func _refresh_prompt_label() -> void:
 	_ensure_runtime_nodes()
 	if prompt_label == null:
@@ -372,7 +441,6 @@ func _refresh_prompt_label() -> void:
 		prompt_label.text = context_prompt_text
 		return
 	prompt_label.text = runtime_hint_text
-
 
 func _ensure_runtime_nodes() -> void:
 	if save_panel == null:
@@ -457,6 +525,14 @@ func _ensure_runtime_nodes() -> void:
 		supply_feedback_detail_label = get_node_or_null("SupplyFeedbackPanel/SupplyFeedbackDetailLabel")
 	if new_game_button == null:
 		new_game_button = get_node_or_null("SavePanel/NewGameButton")
+	if baseline_label == null:
+		baseline_label = get_node_or_null("SavePanel/BaselineLabel")
+	if baseline_previous_button == null:
+		baseline_previous_button = get_node_or_null("SavePanel/BaselinePreviousButton")
+	if baseline_load_button == null:
+		baseline_load_button = get_node_or_null("SavePanel/BaselineLoadButton")
+	if baseline_next_button == null:
+		baseline_next_button = get_node_or_null("SavePanel/BaselineNextButton")
 	if save_slot_labels.is_empty() or save_slot_labels[0] == null:
 		save_slot_labels = [
 			get_node_or_null("SavePanel/Slot01Label"),
@@ -509,7 +585,7 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	var feedback_width := clampf(viewport_size.x * 0.24, 460.0, 560.0)
 	var feedback_height := 220.0
 	var save_width := 544.0
-	var save_height := 318.0
+	var save_height := 454.0
 	var quick_width := 368.0
 	var quick_height := 134.0
 	var save_position := Vector2(viewport_size.x - margin - save_width, margin)
@@ -602,3 +678,9 @@ func _layout_device_panel_labels() -> void:
 	if device_operation_label != null:
 		device_operation_label.position = Vector2(22.0, device_panel.size.y - 78.0)
 		device_operation_label.size = Vector2(device_panel.size.x - 44.0, 42.0)
+
+
+func _get_selected_development_baseline() -> Dictionary:
+	if development_baseline_definitions.is_empty():
+		return {}
+	return development_baseline_definitions[selected_development_baseline_index]

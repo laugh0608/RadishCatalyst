@@ -57,6 +57,7 @@
 - [Core Gameplay Loop](design/core-gameplay-loop.md)
 - [Character Progression And Equipment](design/character-progression-and-equipment.md)
 - [Combat And Interaction Prototype](design/combat-and-interaction-prototype.md)
+- [Development Retest Baselines](design/development-retest-baselines.md)
 - [Maps And Regions](design/maps-and-regions.md)
 - [Narrative And Quest Framework](design/narrative-and-quest-framework.md)
 - [Onboarding And First Hour](design/onboarding-and-first-hour.md)

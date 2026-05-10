@@ -4,6 +4,7 @@ var data_registry: DataRegistry
 var world_state: WorldState
 var character_state: CharacterState
 var save_service := SaveService.new()
+var development_baseline_builder: DevelopmentBaselineBuilder
 var processing_system: ProcessingSystem
 var build_system: BuildSystem
 var quest_runtime: QuestRuntime
@@ -24,6 +25,7 @@ func _ready() -> void:
 	world_state = WorldState.create_default()
 	character_state = CharacterState.create_default()
 	save_service.setup(data_registry)
+	development_baseline_builder = DevelopmentBaselineBuilder.new(data_registry)
 	processing_system = ProcessingSystem.new(data_registry)
 	build_system = BuildSystem.new(data_registry)
 	quest_runtime = QuestRuntime.new(data_registry)
@@ -47,6 +49,7 @@ func _ready() -> void:
 	hud.delete_slot_requested.connect(_on_hud_delete_slot_requested)
 	hud.new_game_requested.connect(_on_hud_new_game_requested)
 	hud.quick_slot_binding_requested.connect(_on_hud_quick_slot_binding_requested)
+	hud.development_baseline_requested.connect(_on_hud_development_baseline_requested)
 	vertical_slice_map.interaction_available.connect(_on_interaction_available)
 	vertical_slice_map.interaction_cleared.connect(_on_interaction_cleared)
 	vertical_slice_map.region_changed.connect(_on_region_changed)
@@ -55,6 +58,7 @@ func _ready() -> void:
 	_sync_world_camera()
 
 	hud.append_log(hud_log_presenter.format_startup_log())
+	hud.update_development_baselines(development_baseline_builder.get_baseline_definitions())
 	_refresh_save_slot_summaries()
 	_update_hud()
 
@@ -184,6 +188,23 @@ func _on_hud_quick_slot_binding_requested(slot_index: int, item_id: String) -> v
 	_update_hud()
 
 
+func _on_hud_development_baseline_requested(baseline_id: String) -> void:
+	var result := create_development_baseline_state(baseline_id)
+	if not bool(result.get("success", false)):
+		hud.append_log(hud_log_presenter.format_result_log(result))
+		_update_hud()
+		return
+
+	world_state = result.get("world_state", WorldState.create_default())
+	character_state = result.get("character_state", CharacterState.create_default())
+	vertical_slice_map.apply_runtime_state(world_state, character_state)
+	_sync_world_camera()
+	hud.clear_runtime_feedback()
+	hud.append_log(hud_log_presenter.format_result_log(result))
+	_refresh_save_slot_summaries()
+	_update_hud()
+
+
 func _save_to_slot(slot_id: String) -> void:
 	character_state.position = vertical_slice_map.get_player_position()
 	var result := save_service.save_game_for_slot(slot_id, world_state, character_state)
@@ -226,6 +247,15 @@ func create_new_game_state() -> Dictionary:
 		"world_state": WorldState.create_default(),
 		"character_state": CharacterState.create_default()
 	}
+
+
+func create_development_baseline_state(baseline_id: String) -> Dictionary:
+	if development_baseline_builder == null:
+		return {
+			"success": false,
+			"message": "开发基线生成器尚未初始化。"
+		}
+	return development_baseline_builder.create_baseline_state(baseline_id)
 
 
 func _on_interaction_available(interactable: PrototypeInteractable, should_auto_select_recipe: bool = true) -> void:

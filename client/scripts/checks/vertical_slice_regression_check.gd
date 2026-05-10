@@ -11,6 +11,8 @@ func _init(check_host) -> void:
 
 func run_ui_and_recipe_checks() -> void:
 	_check_hud_log_presenter()
+	_check_development_baseline_presenter()
+	_check_game_root_development_baseline_factory()
 	_check_resource_interaction_logs()
 	_check_completed_recipe_followup_auto_selection()
 
@@ -200,6 +202,45 @@ func _check_hud_log_presenter() -> void:
 		"分析异常样本",
 		"log presenter resolves recipe display names"
 	)
+
+
+func _check_development_baseline_presenter() -> void:
+	var definitions := DevelopmentBaselineCatalog.get_baseline_definitions()
+	host._expect_equal(definitions.size(), 6, "development baseline catalog count")
+	host._expect_equal(
+		String(definitions[0].get("id", "")),
+		"baseline.s0_new_game",
+		"development baseline catalog starts from S0"
+	)
+	var presenter := HudDevelopmentBaselinePresenter.new()
+	var selected_text := presenter.format_selected_baseline(definitions[3], 3, definitions.size())
+	host._expect_text_contains(selected_text, "S3 深段门禁已开", "development baseline presenter shows selected baseline name")
+	host._expect_text_contains(selected_text, "相位纤丝", "development baseline presenter shows baseline summary")
+	host._expect_text_contains(selected_text, "过滤器精炼", "development baseline presenter shows recommended use")
+
+
+func _check_game_root_development_baseline_factory() -> void:
+	var game_root := GameRootScript.new()
+	game_root.development_baseline_builder = DevelopmentBaselineBuilder.new(host.data_registry)
+	var result := game_root.create_development_baseline_state("baseline.s4_deep_cache_open")
+	host._expect_equal(bool(result.get("success", false)), true, "game root development baseline generation")
+	if not bool(result.get("success", false)):
+		game_root.free()
+		return
+
+	var world_state: WorldState = result.get("world_state", null)
+	var character_state: CharacterState = result.get("character_state", null)
+	if world_state == null or character_state == null:
+		host.failures.append("development baseline generation should return world and character states")
+		game_root.free()
+		return
+
+	host._expect_equal(world_state.current_region_id, "region.outpost_platform", "S4 baseline world region")
+	host._expect_equal(character_state.current_region_id, "region.outpost_platform", "S4 baseline character region")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_deep_core", "S4 baseline active quest")
+	host._expect_equal(int(character_state.inventory.items.get("item.deep_ruin_core", 0)), 1, "S4 baseline keeps deep ruin core reward")
+	host._expect_equal(String(character_state.equipment.get("suit_module", "")), "equipment.filter_module_t1", "S4 baseline equips filter module")
+	game_root.free()
 
 
 func _check_resource_interaction_logs() -> void:

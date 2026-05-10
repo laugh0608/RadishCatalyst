@@ -52,6 +52,7 @@ pwsh ./scripts/check-client.ps1
 
 - 项目方向：`docs/product/creative-development-brief.md`
 - 首小时体验：`docs/design/onboarding-and-first-hour.md`
+- 开发复测基线：`docs/design/development-retest-baselines.md`
 - 联机、存档或边界：`docs/architecture/multiplayer-and-save-architecture.md`
 - 代码结构和重构：`docs/architecture/code-style-and-language-practices.md`
 - 阶段复核：`docs/planning/milestone-review-checklist.md`
@@ -76,6 +77,7 @@ pwsh ./scripts/check-client.ps1
 - 若需求不明确，或改动会影响架构、阶段边界、接口口径、验证基线，则先说明判断并做必要澄清。
 - 每次新增/修改功能、修复 bug 或处理其他任务时，优先从根因、长期维护性和系统一致性出发，选择更完整、更稳妥的治理方案；不要把“最小修复”当作默认优先级，也不要无节制地层层增加兜底来掩盖问题。
 - 每做完一个可分割子步骤，应进行匹配的最小验证。
+- 人工复测默认优先使用开发复测基线定位对应段落；只有涉及早期链路、共享任务 / HUD / 地图提示、存档迁移兼容或较大功能包收口时，再强制回到 `S0` 全链路空档复测。
 - 重要阶段性推进除了修改文件，还应同步追加到本周周志。
 
 ## 分支与 PR

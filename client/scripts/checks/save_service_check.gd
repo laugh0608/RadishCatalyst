@@ -1,5 +1,6 @@
 extends SceneTree
 
+const DevelopmentBaselineSaveChecks := preload("res://scripts/checks/development_baseline_save_check.gd")
 const EntitySourceChecks := preload("res://scripts/checks/save_entity_source_check.gd")
 const LEGACY_SAVE_BACKUP_FILE := "user://saves/slice_01_autosave.bak.json"
 const QuestObjectiveChecks := preload("res://scripts/checks/save_quest_objective_check.gd")
@@ -9,6 +10,7 @@ const StructureRuntimeChecks := preload("res://scripts/checks/save_structure_run
 var failures: Array[String] = []
 var save_service := SaveService.new()
 var data_registry := DataRegistry.new()
+var development_baseline_builder: DevelopmentBaselineBuilder
 
 
 func _init() -> void:
@@ -30,6 +32,7 @@ func _run_checks() -> void:
 		failures.append("data registry should load all static data")
 		return
 	save_service.setup(data_registry)
+	development_baseline_builder = DevelopmentBaselineBuilder.new(data_registry)
 
 	_remove_save_file()
 	_remove_backup_files()
@@ -142,6 +145,7 @@ func _run_checks() -> void:
 	_check_slice_end_hook_state_persists()
 	_check_slice_complete_state_persists()
 	_check_deep_ruin_state_persists()
+	DevelopmentBaselineSaveChecks.new(self).run()
 	_check_save_backup()
 	_check_loads_recent_backup_when_primary_is_bad()
 	_check_loads_older_backup_when_recent_backup_is_bad()

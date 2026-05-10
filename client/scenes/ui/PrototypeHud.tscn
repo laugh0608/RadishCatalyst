@@ -22,7 +22,7 @@ anchor_right = 1.0
 offset_left = -564.0
 offset_top = 20.0
 offset_right = -20.0
-offset_bottom = 338.0
+offset_bottom = 474.0
 color = Color(0.0352941, 0.054902, 0.0588235, 0.88)
 clip_contents = true
 
@@ -131,6 +131,44 @@ offset_right = 526.0
 offset_bottom = 266.0
 text = "清空"
 
+[node name="BaselineTitleLabel" type="Label" parent="SavePanel"]
+offset_left = 18.0
+offset_top = 314.0
+offset_right = 290.0
+offset_bottom = 342.0
+text = "开发基线"
+label_settings = SubResource("LabelSettings_prompt")
+
+[node name="BaselinePreviousButton" type="Button" parent="SavePanel"]
+offset_left = 298.0
+offset_top = 314.0
+offset_right = 364.0
+offset_bottom = 346.0
+text = "上一个"
+
+[node name="BaselineLoadButton" type="Button" parent="SavePanel"]
+offset_left = 376.0
+offset_top = 314.0
+offset_right = 442.0
+offset_bottom = 346.0
+text = "载入"
+
+[node name="BaselineNextButton" type="Button" parent="SavePanel"]
+offset_left = 454.0
+offset_top = 314.0
+offset_right = 526.0
+offset_bottom = 346.0
+text = "下一个"
+
+[node name="BaselineLabel" type="Label" parent="SavePanel"]
+offset_left = 18.0
+offset_top = 356.0
+offset_right = 526.0
+offset_bottom = 438.0
+text = "开发基线读取中..."
+label_settings = SubResource("LabelSettings_status")
+autowrap_mode = 3
+
 [node name="CompletionPanel" type="ColorRect" parent="."]
 visible = false
 offset_left = 970.0
@@ -163,9 +201,9 @@ visible = false
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -388.0
-offset_top = 354.0
+offset_top = 490.0
 offset_right = -20.0
-offset_bottom = 488.0
+offset_bottom = 624.0
 color = Color(0.0352941, 0.054902, 0.0588235, 0.88)
 clip_contents = true
 
