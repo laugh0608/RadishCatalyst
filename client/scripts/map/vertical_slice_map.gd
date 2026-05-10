@@ -12,9 +12,9 @@ const PLAYER_INTERACTION_RANGE := 96.0
 const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
 const OUTPOST_RESPAWN_POSITION := Vector2(-250, -48)
 const PLAY_BOUNDS_MIN := Vector2(-360, -200)
-const PLAY_BOUNDS_MAX := Vector2(1460, 200)
+const PLAY_BOUNDS_MAX := Vector2(1780, 200)
 const CAMERA_BOUNDS_MIN := Vector2(-620, -360)
-const CAMERA_BOUNDS_MAX := Vector2(1480, 360)
+const CAMERA_BOUNDS_MAX := Vector2(1800, 360)
 const CRYSTAL_REGION_X := -70.0
 const CRYSTAL_GATE_RETURN_X := -85.0
 const POLLUTION_REGION_X := 200.0
@@ -26,7 +26,9 @@ const RUIN_GATE_RETURN_X := 355.0
 const OUTER_RING_BARRIER_X := 540.0
 const OUTER_RING_BARRIER_RETURN_X := 514.0
 const DEEP_RUIN_REGION_X := 700.0
+const INNER_PHASE_WELL_REGION_X := 1460.0
 const DEEP_RUIN_GATE_RETURN_X := 676.0
+const INNER_PHASE_WELL_GATE_RETURN_X := 1432.0
 const PHASE_RELAY_PAD_FALLBACK_POSITION := Vector2(-210, -40)
 const PHASE_RETURN_ANCHOR_FALLBACK_POSITION := Vector2(852, 92)
 
@@ -82,6 +84,8 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		return _inspect_phase_fault_spire(character_state, world_state)
 	if interacted.definition_id == "map_object.phase_well_lock" and interacted.interaction_type == "inspect":
 		return _inspect_phase_well_lock(character_state, world_state)
+	if interacted.definition_id == "map_object.inner_phase_well" and interacted.interaction_type == "inspect":
+		return _inspect_inner_phase_well(character_state, world_state)
 
 	var action_id := interacted.get_current_recipe_id()
 	if interacted.interaction_type == "build":
@@ -217,6 +221,14 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 					interaction_cleared.emit(interactable)
 				continue
 			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.inner_phase_well":
+			if world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well"):
+				interactable.set_stabilized_inner_phase_well_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
 		elif is_processed and interactable.set_processed_visual():
 			if current_interactable == interactable:
 				current_interactable = null
@@ -259,6 +271,16 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			should_enable = should_enable and (
 				world_state.quest_state.has_active_quest("quest.unlock_phase_well")
 				or world_state.quest_state.has_completed_quest("quest.unlock_phase_well")
+			)
+		if interactable.definition_id == "map_object.well_flux_cluster":
+			should_enable = should_enable and (
+				world_state.quest_state.has_active_quest("quest.collect_well_flux")
+				or world_state.quest_state.has_completed_quest("quest.collect_well_flux")
+			)
+		if interactable.definition_id == "map_object.inner_phase_well":
+			should_enable = should_enable and (
+				world_state.quest_state.has_active_quest("quest.inspect_inner_phase_well")
+				or world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well")
 			)
 
 		interactable.set_interaction_enabled(should_enable)
@@ -359,6 +381,16 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 			return {
 				"success": true,
 				"message": "击败：%s。%s更东侧裂相脊的封锁压力已减弱，裂相碎屑回收线已打开。" % [
+					target.display_name,
+					drops_message
+				],
+				"enemy_definition_id": target.definition_id,
+				"enemy_defeated": true
+			}
+		if target.definition_id == "enemy.phase_well_sentry":
+			return {
+				"success": true,
+				"message": "击败：%s。%s更东侧内层相位井边缘的压制已减弱，井涌碎屑回收线已打开。" % [
 					target.display_name,
 					drops_message
 				],
@@ -520,6 +552,11 @@ func apply_region_gate_bounds(world_state: WorldState) -> String:
 		player.stop_positive_x_until_release()
 		return "深段入口仍未校准：先带着更深遗迹坐标回到门禁写入。"
 
+	if not world_state.unlocked_region_ids.has("region.inner_phase_well") and player.position.x > INNER_PHASE_WELL_GATE_RETURN_X:
+		player.position.x = INNER_PHASE_WELL_GATE_RETURN_X
+		player.stop_positive_x_until_release()
+		return "内层相位井仍未定位：先回基地解析相位井定位器，再回来继续向东推进。"
+
 	return ""
 
 
@@ -618,6 +655,11 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 		return (
 			world_state.quest_state.has_active_quest("quest.trace_phase_splinters")
 			or world_state.quest_state.has_completed_quest("quest.trace_phase_splinters")
+		)
+	if enemy.definition_id == "enemy.phase_well_sentry":
+		return (
+			world_state.quest_state.has_active_quest("quest.collect_well_flux")
+			or world_state.quest_state.has_completed_quest("quest.collect_well_flux")
 		)
 	if enemy.definition_id != "enemy.treatment_skitter":
 		return true
@@ -971,7 +1013,7 @@ func _inspect_phase_well_lock(character_state: CharacterState, world_state: Worl
 	if world_state.quest_state.has_completed_quest("quest.unlock_phase_well"):
 		return {
 			"success": true,
-			"message": "相位井锁已钉住：第一份相位井定位器已经带回基地。"
+			"message": "相位井锁已钉住：第一份相位井定位器已经带回基地；下一步回基地解析定位器。"
 		}
 
 	if not character_state.inventory.has_ref("item.phase_well_key", 1):
@@ -985,6 +1027,34 @@ func _inspect_phase_well_lock(character_state: CharacterState, world_state: Worl
 	return {
 		"success": true,
 		"message": "相位井钥已写入：相位井锁开始析出定位器，更东侧内层相位井目标已被钉住。"
+	}
+
+
+func _inspect_inner_phase_well(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_probe"):
+		return _failure(
+			"内层相位井仍缺少可执行的探针读数。",
+			"井芯未读取",
+			"先回基地用基础反应器，把相位井路由片、稳流芯和基础零件组装成相位井探针。"
+		)
+
+	if world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well"):
+		return {
+			"success": true,
+			"message": "内层相位井已勘验：第一份井芯样本已经带回基地。"
+		}
+
+	if not character_state.inventory.has_ref("item.phase_well_probe", 1):
+		return _failure(
+			"缺少相位井探针，内层相位井无法读取。",
+			"缺少相位井探针",
+			"回基地确认基础反应器已经完成相位井探针，并带回来读取井芯样本。"
+		)
+
+	character_state.inventory.consume_ref("item.phase_well_probe", 1)
+	return {
+		"success": true,
+		"message": "相位井探针已写入：内层相位井交出了第一份井芯样本，这条更东侧风险线已开始稳定回投收益。"
 	}
 
 
@@ -1096,6 +1166,8 @@ func _get_enemy_instance_id(enemy: PrototypeEnemy) -> String:
 
 
 func _get_region_id_for_position(map_position: Vector2) -> String:
+	if map_position.x >= INNER_PHASE_WELL_REGION_X:
+		return "region.inner_phase_well"
 	if map_position.x >= DEEP_RUIN_REGION_X:
 		return "region.deep_ruin_threshold"
 	if map_position.x >= RUIN_OUTER_RING_X:

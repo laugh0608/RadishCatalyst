@@ -24,8 +24,10 @@ func format_runtime_hint(world_state: WorldState, character_state: CharacterStat
 
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_inner_phase_well(world_state):
+			return "内层相位井井芯样本已带回：更东侧新风险已经被转成第一份更高收益，下一轮可继续围绕井芯深化基地回投。"
 		if _has_completed_phase_well_lock(world_state):
-			return "相位井定位器已带回：更东侧内层相位井的风险、收益和推进目标已经明确，可继续围绕它扩下一轮深段。"
+			return "相位井定位器已带回：先回基地解析定位器，把更东侧内层相位井真正落成新的推进包。"
 		if _has_completed_phase_fault_spire(world_state):
 			return "裂相尖塔已校准：先回基地解析内层故障轨迹，再把更东侧相位井锁压成下一包深段目标。"
 		if _has_completed_phase_relay_anchor(world_state):
@@ -132,14 +134,26 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "回基地使用基础反应器，把坐标印片、稳定故障芯和基础零件组装成相位井钥。"
 		"quest.unlock_phase_well":
 			return "带着相位井钥返回更东侧相位井锁，钉住后带回第一份定位器。"
+		"quest.analyze_phase_well_locator":
+			return "回基地使用基础反应器，解析相位井定位器并整理内层相位井路由片。"
+		"quest.collect_well_flux":
+			return "沿定位器路由继续向东推进，击退井口哨戒体并回收两处井涌碎屑。"
+		"quest.refine_well_flux":
+			return "回处理点污染过滤器，把井涌碎屑筛成可继续组装的相位井稳流芯。"
+		"quest.assemble_phase_well_probe":
+			return "回基地使用基础反应器，把相位井路由片、稳流芯和基础零件组装成相位井探针。"
+		"quest.inspect_inner_phase_well":
+			return "带着相位井探针返回更东侧内层相位井，读取第一份井芯样本。"
 		_:
 			return "按当前目标推进。"
 
 
 func format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_inner_phase_well(world_state):
+			return "井芯样本已经带回基地，这说明定位器后的新风险线已经真正转化成更高收益，而不是停在一条提示文字上。"
 		if _has_completed_phase_well_lock(world_state):
-			return "相位井定位器不是收尾，而是下一轮更深内容的明确锚点；回传链现在已经能稳定指向新的风险和收益。"
+			return "相位井定位器不是收尾；先回基地解析它，才能把更东侧内层相位井真正变成新的可验证主线。"
 		if _has_completed_phase_fault_spire(world_state):
 			return "裂相尖塔已经校准完成：内层故障轨迹必须先回基地解析，才能把更东侧相位井锁真正变成下一包可验证内容。"
 		if _has_completed_phase_relay_anchor(world_state):
@@ -248,6 +262,16 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "相位井钥会把分析产物和过滤结果重新变成开路物，决定相位井锁能否交出新的定位器。"
 		"quest.unlock_phase_well":
 			return "这一步要把基地组装的相位井钥真正带回前线，让回传链明确指向下一轮更深相位井目标。"
+		"quest.analyze_phase_well_locator":
+			return "定位器必须先回基地解析，新的更东侧井口区才会真正解锁成可执行目标，而不是停在任务奖励里。"
+		"quest.collect_well_flux":
+			return "新井口哨戒体和井涌碎屑要在同一趟外勤里一起解决，这一步负责把新风险和下一步加工输入同时带回来。"
+		"quest.refine_well_flux":
+			return "先用污染过滤器稳定井涌碎屑；副产污染浆液会继续反哺探针组装，不需要引入第三台设备。"
+		"quest.assemble_phase_well_probe":
+			return "相位井探针会把定位器分析结果和过滤器输出重新变成开路物，决定内层相位井能否交出第一份井芯样本。"
+		"quest.inspect_inner_phase_well":
+			return "这一步要把基地组装的相位井探针真正带回前线，让更东侧内层相位井第一次给出明确收益。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 
@@ -278,6 +302,10 @@ func _has_completed_phase_well_lock(world_state: WorldState) -> bool:
 
 func _has_completed_phase_fault_spire(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.inspect_phase_fault_spire")
+
+
+func _has_completed_inner_phase_well(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well")
 
 
 func _get_target_region_id(world_state: WorldState, quest_id: String) -> String:

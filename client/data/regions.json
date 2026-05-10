@@ -26,7 +26,9 @@
         "quest.reenter_phase_frontline",
         "quest.tune_relay_lens",
         "quest.analyze_inner_fault_trace",
-        "quest.assemble_phase_well_key"
+        "quest.assemble_phase_well_key",
+        "quest.analyze_phase_well_locator",
+        "quest.assemble_phase_well_probe"
       ],
       "public_level": "public"
     },
@@ -51,7 +53,8 @@
         "quest.enter_pollution_edge",
         "quest.refine_phase_filament",
         "quest.refine_phase_splinters",
-        "quest.refine_fault_residue"
+        "quest.refine_fault_residue",
+        "quest.refine_well_flux"
       ],
       "public_level": "public"
     },
@@ -109,6 +112,20 @@
       "weather_pool": ["weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
       "quest_refs": ["quest.harvest_phase_filament", "quest.unlock_deep_ruin_cache", "quest.activate_deep_array", "quest.deploy_phase_relay_anchor", "quest.trace_phase_splinters", "quest.inspect_phase_fault_spire", "quest.collect_fault_residue", "quest.unlock_phase_well"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "region.inner_phase_well",
+      "display_name_key": "region.inner_phase_well.name",
+      "description_key": "region.inner_phase_well.desc",
+      "planet_or_world": "world.slice_01",
+      "biome_type": "inner_phase_well",
+      "danger_level": 5,
+      "resources": ["item.well_flux_shard", "item.phase_well_core"],
+      "pollution_types": ["pollution.yellow_residue"],
+      "weather_pool": ["weather.acid_mist"],
+      "recommended_equipment": ["equipment.filter_module_t1"],
+      "quest_refs": ["quest.collect_well_flux", "quest.inspect_inner_phase_well"],
       "public_level": "spoiler"
     }
   ]

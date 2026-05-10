@@ -285,6 +285,51 @@
       "pollution_delta": 0.0,
       "unlock_conditions": ["quest.refine_fault_residue"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.phase_well_locator_analysis",
+      "display_name_key": "recipe.phase_well_locator_analysis.name",
+      "description_key": "recipe.phase_well_locator_analysis.desc",
+      "category": "analysis",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.phase_well_locator", "amount": 1}, {"id": "item.basic_parts", "amount": 2}],
+      "outputs": [{"id": "item.phase_well_route", "amount": 1}],
+      "byproducts": [],
+      "duration": 12.0,
+      "energy_cost": 6.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.unlock_phase_well"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.well_flux_stabilization",
+      "display_name_key": "recipe.well_flux_stabilization.name",
+      "description_key": "recipe.well_flux_stabilization.desc",
+      "category": "filtration",
+      "required_building_id": "building.pollution_filter",
+      "inputs": [{"id": "item.well_flux_shard", "amount": 2}],
+      "outputs": [{"id": "item.phase_well_stabilizer", "amount": 1}],
+      "byproducts": [{"id": "fluid.polluted_slurry", "amount": 1}],
+      "duration": 12.0,
+      "energy_cost": 5.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.collect_well_flux"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.phase_well_probe",
+      "display_name_key": "recipe.phase_well_probe.name",
+      "description_key": "recipe.phase_well_probe.desc",
+      "category": "assembly",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.phase_well_route", "amount": 1}, {"id": "item.phase_well_stabilizer", "amount": 1}, {"id": "item.basic_parts", "amount": 2}],
+      "outputs": [{"id": "item.phase_well_probe", "amount": 1}],
+      "byproducts": [],
+      "duration": 13.0,
+      "energy_cost": 6.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.refine_well_flux"],
+      "public_level": "spoiler"
     }
   ]
 }

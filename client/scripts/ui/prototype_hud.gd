@@ -15,7 +15,13 @@ const GM_RESOURCE_CANDIDATES: Array[String] = [
 	"item.deep_route_imprint",
 	"item.deep_signal_matrix",
 	"item.phase_lens_blank",
-	"item.relay_tuning_lens"
+	"item.relay_tuning_lens",
+	"item.phase_well_locator",
+	"item.phase_well_route",
+	"item.well_flux_shard",
+	"item.phase_well_stabilizer",
+	"item.phase_well_probe",
+	"item.phase_well_core"
 ]
 const SUPPLY_FEEDBACK_SECONDS := 4.0
 const QUEST_COMPLETION_FEEDBACK_SECONDS := 7.0
@@ -60,14 +66,16 @@ var last_debug_character_state: CharacterState
 	$MapPanel/CrystalMarker,
 	$MapPanel/PollutionMarker,
 	$MapPanel/RuinMarker,
-	$MapPanel/DeepMarker
+	$MapPanel/DeepMarker,
+	$MapPanel/InnerPhaseWellMarker
 ]
 @onready var map_marker_labels: Array[Label] = [
 	$MapPanel/OutpostLabel,
 	$MapPanel/CrystalLabel,
 	$MapPanel/PollutionLabel,
 	$MapPanel/RuinLabel,
-	$MapPanel/DeepLabel
+	$MapPanel/DeepLabel,
+	$MapPanel/InnerPhaseWellLabel
 ]
 @onready var device_title_label: Label = $DevicePanel/DeviceTitleLabel
 @onready var device_status_label: Label = $DevicePanel/DeviceStatusLabel
@@ -541,7 +549,8 @@ func _ensure_runtime_nodes() -> void:
 			get_node_or_null("MapPanel/CrystalMarker"),
 			get_node_or_null("MapPanel/PollutionMarker"),
 			get_node_or_null("MapPanel/RuinMarker"),
-			get_node_or_null("MapPanel/DeepMarker")
+			get_node_or_null("MapPanel/DeepMarker"),
+			get_node_or_null("MapPanel/InnerPhaseWellMarker")
 		]
 	if map_marker_labels.is_empty() or map_marker_labels[0] == null:
 		map_marker_labels = [
@@ -549,7 +558,8 @@ func _ensure_runtime_nodes() -> void:
 			get_node_or_null("MapPanel/CrystalLabel"),
 			get_node_or_null("MapPanel/PollutionLabel"),
 			get_node_or_null("MapPanel/RuinLabel"),
-			get_node_or_null("MapPanel/DeepLabel")
+			get_node_or_null("MapPanel/DeepLabel"),
+			get_node_or_null("MapPanel/InnerPhaseWellLabel")
 		]
 	if device_title_label == null:
 		device_title_label = get_node_or_null("DevicePanel/DeviceTitleLabel")
@@ -650,7 +660,7 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	last_viewport_size = viewport_size
 	var margin := 20.0
 	var gap := 16.0
-	var map_width := 352.0
+	var map_width := 372.0
 	var map_height := 176.0
 	var objective_width := clampf(viewport_size.x * 0.28, 400.0, 520.0)
 	var objective_height := 180.0

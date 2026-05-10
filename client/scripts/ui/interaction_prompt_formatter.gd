@@ -218,12 +218,22 @@ func format_phase_fault_spire_prompt(world_state: WorldState, character_state: C
 
 func format_phase_well_lock_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.unlock_phase_well"):
-		return "相位井锁：已钉住，第一份相位井定位器已带回基地。"
+		return "相位井锁：已钉住，第一份相位井定位器已带回基地；下一步回基地解析定位器。"
 	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_key"):
 		return "相位井锁：先回基地用基础反应器组装相位井钥，再回来钉住锁位。"
 	if not character_state.inventory.has_ref("item.phase_well_key", 1):
 		return "相位井锁：缺少相位井钥；回基地确认基础反应器组装结果后再来。"
 	return "按 E 锁定：相位井锁。"
+
+
+func format_inner_phase_well_prompt(world_state: WorldState, character_state: CharacterState) -> String:
+	if world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well"):
+		return "内层相位井：井芯样本已读取，可回基地继续消化这份更高收益。"
+	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_probe"):
+		return "内层相位井：先回基地组装相位井探针，再回来读取井芯样本。"
+	if not character_state.inventory.has_ref("item.phase_well_probe", 1):
+		return "内层相位井：缺少相位井探针；回基地确认基础反应器组装结果后再来。"
+	return "按 E 勘验：内层相位井。"
 
 
 func format_pollution_entry_warning(character_state: CharacterState) -> String:

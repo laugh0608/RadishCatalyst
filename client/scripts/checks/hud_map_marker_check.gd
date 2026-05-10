@@ -26,8 +26,10 @@ func run(root_window: Window) -> void:
 		"locked crystal marker"
 	)
 	var initial_map_labels := presenter.format_map_marker_labels(marker_world, "quest.restore_outpost")
+	host._expect_equal(initial_map_labels.size(), 6, "minimap marker count includes inner phase well")
 	host._expect_array_has(initial_map_labels, "基地\n当前\n目标", "outpost minimap current target marker")
 	host._expect_array_has(initial_map_labels, "晶体\n未解锁", "crystal minimap locked marker")
+	host._expect_array_has(initial_map_labels, "井口\n未解锁", "inner phase well minimap locked marker")
 	marker_world.unlock_region("region.crystal_vein_field")
 	host._expect_text_contains(
 		presenter.format_region_markers(marker_world, "quest.scout_crystal_field"),
@@ -142,4 +144,9 @@ func run(root_window: Window) -> void:
 	marker_world.current_region_id = "region.outpost_platform"
 	marker_world.quest_state.completed_quest_ids.append("quest.deploy_phase_relay_anchor")
 	host._expect_text_contains(presenter.format_region_markers(marker_world, ""), "深段：更深，目标", "phase relay completion keeps deep region targeted from outpost")
+	marker_world.quest_state.completed_quest_ids.append("quest.unlock_phase_well")
+	host._expect_text_contains(presenter.format_region_markers(marker_world, ""), "基地：当前位置，目标", "phase well completion returns runtime followup to outpost analysis")
+	marker_world.unlock_region("region.inner_phase_well")
+	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.collect_well_flux"), "井口：更东，目标", "well flux collection points to inner phase well marker")
+	host._expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.collect_well_flux"), "井口\n目标", "inner phase well minimap objective marker")
 	map.free()

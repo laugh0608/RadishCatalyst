@@ -11,7 +11,7 @@ script = ExtResource("1_map")
 [node name="Background" type="ColorRect" parent="."]
 offset_left = -620.0
 offset_top = -360.0
-offset_right = 1480.0
+offset_right = 1800.0
 offset_bottom = 360.0
 color = Color(0.101961, 0.133333, 0.141176, 1)
 
@@ -46,9 +46,16 @@ color = Color(0.180392, 0.180392, 0.247059, 1)
 [node name="RegionDeepRuin" type="ColorRect" parent="."]
 offset_left = 700.0
 offset_top = -200.0
-offset_right = 1440.0
+offset_right = 1460.0
 offset_bottom = 200.0
 color = Color(0.223529, 0.176471, 0.211765, 1)
+
+[node name="RegionInnerPhaseWell" type="ColorRect" parent="."]
+offset_left = 1460.0
+offset_top = -200.0
+offset_right = 1760.0
+offset_bottom = 200.0
+color = Color(0.172549, 0.188235, 0.258824, 1)
 
 [node name="BaseDirectionLabel" type="Label" parent="."]
 offset_left = -342.0
@@ -85,9 +92,17 @@ horizontal_alignment = 1
 [node name="DeepDirectionLabel" type="Label" parent="."]
 offset_left = 710.0
 offset_top = 166.0
-offset_right = 1432.0
+offset_right = 1452.0
 offset_bottom = 192.0
-text = "→ 深段 / 裂相脊 / 尖塔"
+text = "→ 深段 / 裂相脊 / 井锁"
+horizontal_alignment = 1
+
+[node name="InnerPhaseWellDirectionLabel" type="Label" parent="."]
+offset_left = 1472.0
+offset_top = 166.0
+offset_right = 1752.0
+offset_bottom = 192.0
+text = "→ 内层相位井"
 horizontal_alignment = 1
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
@@ -376,6 +391,28 @@ single_use = false
 label_offset = Vector2(-92, 22)
 label_size = Vector2(184, 24)
 
+[node name="WellFluxClusterNorth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(1524, -96)
+definition_id = "map_object.well_flux_cluster"
+interaction_type = "gather"
+label_offset = Vector2(-96, -52)
+label_size = Vector2(192, 24)
+
+[node name="WellFluxClusterSouth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(1602, 92)
+definition_id = "map_object.well_flux_cluster"
+interaction_type = "gather"
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
+
+[node name="InnerPhaseWell" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(1692, -18)
+definition_id = "map_object.inner_phase_well"
+interaction_type = "inspect"
+single_use = false
+label_offset = Vector2(-100, 22)
+label_size = Vector2(200, 24)
+
 [node name="Enemies" type="Node2D" parent="."]
 
 [node name="NativeSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
@@ -413,3 +450,7 @@ definition_id = "enemy.deep_fault_hunter"
 [node name="InnerFaultStalker" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(1312, 12)
 definition_id = "enemy.inner_fault_stalker"
+
+[node name="PhaseWellSentry" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(1568, 16)
+definition_id = "enemy.phase_well_sentry"

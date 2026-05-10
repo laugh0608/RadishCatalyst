@@ -56,6 +56,14 @@ const BASELINE_DEFINITIONS := [
 		"completed_through": "quest.inspect_phase_fault_spire",
 		"summary": "裂相尖塔已校准，第一份内层故障轨迹已带回，下一步回基地解析并继续推进相位井锁。",
 		"recommended_for": "内层故障轨迹解析、故障残渣回收、相位井钥组装、相位井锁与旧存档兼容回归。"
+	},
+	{
+		"id": "baseline.s7_phase_well_locator_ready",
+		"code": "S7",
+		"display_name": "S7 相位井定位器已带回",
+		"completed_through": "quest.unlock_phase_well",
+		"summary": "相位井锁已钉住，定位器已带回，下一步回基地解析并推进更东侧内层相位井。",
+		"recommended_for": "定位器解析、井涌碎屑回收、稳流芯处理、相位井探针、内层相位井与旧存档兼容回归。"
 	}
 ]
 

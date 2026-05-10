@@ -87,6 +87,11 @@ func _get_region_marker_data() -> Array[Dictionary]:
 			"region_id": "region.deep_ruin_threshold",
 			"label": "深段",
 			"direction": "更深"
+		},
+		{
+			"region_id": "region.inner_phase_well",
+			"label": "井口",
+			"direction": "更东"
 		}
 	]
 
@@ -124,6 +129,10 @@ func _get_quest_target_region_id(world_state: WorldState, quest_id: String) -> S
 
 
 func _get_runtime_followup_region_id(world_state: WorldState) -> String:
+	if world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well"):
+		return ""
+	if world_state.quest_state.has_completed_quest("quest.unlock_phase_well"):
+		return "region.outpost_platform"
 	if (
 		world_state.current_region_id == "region.outpost_platform"
 		and world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor")

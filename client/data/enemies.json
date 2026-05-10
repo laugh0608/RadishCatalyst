@@ -135,6 +135,21 @@
       "drops": [{"id": "item.repair_gel", "amount": 1}],
       "spawn_regions": ["region.deep_ruin_threshold"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "enemy.phase_well_sentry",
+      "display_name_key": "enemy.phase_well_sentry.name",
+      "description_key": "enemy.phase_well_sentry.desc",
+      "category": "ruin_guard",
+      "faction": "ruin_sentinel",
+      "base_stats": {"max_health": 108, "attack": 20, "move_speed": 118},
+      "behaviors": ["phase_guard", "melee_chase"],
+      "damage_types": ["physical", "pollution"],
+      "resistances": {"pollution": 0.6},
+      "drop_table_id": "drop.phase_well_sentry",
+      "drops": [{"id": "item.repair_gel", "amount": 1}],
+      "spawn_regions": ["region.inner_phase_well"],
+      "public_level": "spoiler"
     }
   ]
 }

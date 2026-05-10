@@ -42,7 +42,12 @@ const QUEST_PROGRESS_ORDER: Array[String] = [
 	"quest.collect_fault_residue",
 	"quest.refine_fault_residue",
 	"quest.assemble_phase_well_key",
-	"quest.unlock_phase_well"
+	"quest.unlock_phase_well",
+	"quest.analyze_phase_well_locator",
+	"quest.collect_well_flux",
+	"quest.refine_well_flux",
+	"quest.assemble_phase_well_probe",
+	"quest.inspect_inner_phase_well"
 ]
 
 var data_registry: DataRegistry
@@ -241,6 +246,18 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			_mark_structure_completed(world_state, "structure.pollution_filter_build_site", "recipe.fault_residue_stabilization")
 		"quest.assemble_phase_well_key":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_key")
+		"quest.analyze_phase_well_locator":
+			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_locator_analysis")
+		"quest.collect_well_flux":
+			_mark_enemy_defeated(world_state, "enemy_instance.phase_well_sentry", "enemy.phase_well_sentry", "region.inner_phase_well")
+			_mark_objects_gathered(world_state, [
+				"map_object_instance.well_flux_cluster_north",
+				"map_object_instance.well_flux_cluster_south"
+			], "map_object.well_flux_cluster", "region.inner_phase_well")
+		"quest.refine_well_flux":
+			_mark_structure_completed(world_state, "structure.pollution_filter_build_site", "recipe.well_flux_stabilization")
+		"quest.assemble_phase_well_probe":
+			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_probe")
 
 
 func _apply_baseline_pose_and_inventory(
@@ -317,6 +334,14 @@ func _apply_baseline_pose_and_inventory(
 			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
 			character_state.inventory = _make_inventory(
 				{"item.basic_parts": 4, "item.repair_gel": 1, "item.resistance_vial_t1": 1},
+				{},
+				{"fluid.basic_solvent": 2.0}
+			)
+		"baseline.s7_phase_well_locator_ready":
+			_set_runtime_position(world_state, character_state, "region.outpost_platform", BASELINE_PHASE_RELAY_PAD_POSITION)
+			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
+			character_state.inventory = _make_inventory(
+				{"item.basic_parts": 4, "item.phase_well_locator": 1, "item.repair_gel": 1, "item.resistance_vial_t1": 1},
 				{},
 				{"fluid.basic_solvent": 2.0}
 			)

@@ -29,7 +29,8 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		"recipe.cleanse_residue",
 		"recipe.phase_filament_refining",
 		"recipe.phase_splinter_refining",
-		"recipe.fault_residue_stabilization"
+		"recipe.fault_residue_stabilization",
+		"recipe.well_flux_stabilization"
 	])
 	recipe_world.quest_state.active_quest_ids = ["quest.analyze_anomaly_sample"]
 	recipe_world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 2)
@@ -101,7 +102,9 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		"recipe.deep_signal_matrix",
 		"recipe.relay_tuning_lens",
 		"recipe.inner_fault_analysis",
-		"recipe.phase_well_key"
+		"recipe.phase_well_key",
+		"recipe.phase_well_locator_analysis",
+		"recipe.phase_well_probe"
 	])
 	recipe_character.inventory.items["item.basic_parts"] = 1
 	recipe_character.inventory.add_item("item.signal_echo_trace", 1)
@@ -192,6 +195,41 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		"recipe.phase_well_key",
 		"phase well key assembly returns to reactor recipe after basic parts are restored"
 	)
+	recipe_character.inventory.add_item("item.phase_well_locator", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_locator"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"phase well locator analysis falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_locator_analysis",
+		"phase well locator analysis returns to reactor recipe after basic parts are restored"
+	)
+	recipe_world.quest_state.active_quest_ids = ["quest.refine_well_flux"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(filter, recipe_character, recipe_world),
+		"recipe.well_flux_stabilization",
+		"well flux refinement selects pollution filter recipe"
+	)
+	recipe_character.inventory.add_item("item.phase_well_route", 1)
+	recipe_character.inventory.add_item("item.phase_well_stabilizer", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.assemble_phase_well_probe"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"phase well probe assembly falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_probe",
+		"phase well probe assembly returns to reactor recipe after basic parts are restored"
+	)
 	deep_reactor.free()
 	filter.free()
 
@@ -268,7 +306,7 @@ func _check_hud_log_presenter() -> void:
 
 func _check_development_baseline_presenter() -> void:
 	var definitions := DevelopmentBaselineCatalog.get_baseline_definitions()
-	host._expect_equal(definitions.size(), 7, "development baseline catalog count")
+	host._expect_equal(definitions.size(), 8, "development baseline catalog count")
 	host._expect_equal(
 		String(definitions[0].get("id", "")),
 		"baseline.s0_new_game",

@@ -203,9 +203,29 @@ func _run_checks() -> void:
 	_complete_active_quest("quest.assemble_phase_well_key", [{"type": "craft_item", "target_id": "item.phase_well_key", "amount": 1}])
 	_expect_active_quest("quest.unlock_phase_well", "after phase well key assembly returns to deep lock")
 	_complete_active_quest("quest.unlock_phase_well", [{"type": "inspect", "target_id": "map_object.phase_well_lock", "amount": 1}])
-	_expect_equal(world_state.quest_state.active_quest_ids, [], "after phase well lock should have no active quest")
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.unlock_phase_well", "phase well lock quest completed")
 	_expect_equal(int(character_state.inventory.items.get("item.phase_well_locator", 0)), 1, "phase well lock grants first locator")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_locator_analysis", "phase well lock unlocks locator analysis recipe")
+	_expect_active_quest("quest.analyze_phase_well_locator", "after phase well lock returns to base analysis")
+	_complete_active_quest("quest.analyze_phase_well_locator", [{"type": "craft_item", "target_id": "item.phase_well_route", "amount": 1}])
+	_expect_active_quest("quest.collect_well_flux", "after locator analysis returns to inner phase well edge")
+	_expect_array_has(world_state.unlocked_region_ids, "region.inner_phase_well", "locator analysis unlocks inner phase well region")
+	_complete_active_quest("quest.collect_well_flux", [
+		{"type": "visit_region", "target_id": "region.inner_phase_well", "amount": 1},
+		{"type": "defeat_enemy", "target_id": "enemy.phase_well_sentry", "amount": 1},
+		{"type": "gather_item", "target_id": "item.well_flux_shard", "amount": 2}
+	])
+	_expect_active_quest("quest.refine_well_flux", "after well flux collection returns to filter")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.well_flux_stabilization", "well flux collection unlocks stabilization recipe")
+	_complete_active_quest("quest.refine_well_flux", [{"type": "craft_item", "target_id": "item.phase_well_stabilizer", "amount": 1}])
+	_expect_active_quest("quest.assemble_phase_well_probe", "after well flux refinement returns to reactor")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_probe", "well flux refinement unlocks phase well probe recipe")
+	_complete_active_quest("quest.assemble_phase_well_probe", [{"type": "craft_item", "target_id": "item.phase_well_probe", "amount": 1}])
+	_expect_active_quest("quest.inspect_inner_phase_well", "after phase well probe assembly returns to inner well")
+	_complete_active_quest("quest.inspect_inner_phase_well", [{"type": "inspect", "target_id": "map_object.inner_phase_well", "amount": 1}])
+	_expect_equal(world_state.quest_state.active_quest_ids, [], "after inner phase well should have no active quest")
+	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_inner_phase_well", "inner phase well quest completed")
+	_expect_equal(int(character_state.inventory.items.get("item.phase_well_core", 0)), 1, "inner phase well grants first core sample")
 	_check_processing_runtime()
 	VerticalSliceRegressionChecks.new(self).check_equipment_processing_runtime()
 	_check_evacuation_feedback()
@@ -335,13 +355,26 @@ func _check_onboarding_hints() -> void:
 	phase_well_world.quest_state.completed_quest_ids.append("quest.unlock_phase_well")
 	_expect_text_contains(
 		presenter.format_direction_hint(phase_well_world, hint_character, ""),
-		"相位井定位器已带回",
-		"phase well completion direction highlights next deep anchor"
+		"回基地解析定位器",
+		"phase well completion direction highlights base analysis followup"
 	)
 	_expect_text_contains(
 		presenter.format_onboarding_hint(phase_well_world, hint_character, ""),
-		"不是收尾",
-		"phase well completion onboarding keeps new deep target explicit"
+		"先回基地解析它",
+		"phase well completion onboarding keeps locator analysis explicit"
+	)
+	var inner_phase_well_world := WorldState.create_default()
+	inner_phase_well_world.quest_state.active_quest_ids.clear()
+	inner_phase_well_world.quest_state.completed_quest_ids.append("quest.inspect_inner_phase_well")
+	_expect_text_contains(
+		presenter.format_direction_hint(inner_phase_well_world, hint_character, ""),
+		"井芯样本已带回",
+		"inner phase well completion direction highlights first core reward"
+	)
+	_expect_text_contains(
+		presenter.format_onboarding_hint(inner_phase_well_world, hint_character, ""),
+		"更高收益",
+		"inner phase well completion onboarding keeps first reward explicit"
 	)
 	map.free()
 func _check_runtime_hint_prompt_flow() -> void:
@@ -382,8 +415,14 @@ func _check_status_panel_summary() -> void:
 	phase_well_text_world.quest_state.active_quest_ids.clear()
 	phase_well_text_world.quest_state.completed_quest_ids.append("quest.unlock_phase_well")
 	var phase_well_text := presenter.format_status_text(data_registry, phase_well_text_world, status_character)
-	_expect_text_contains(phase_well_text, "目标：相位井定位器已带回", "status falls back to phase well locator after lock")
-	_expect_text_contains(phase_well_text, "风险、收益和推进目标固定出来", "status progress keeps phase well completion summary")
+	_expect_text_contains(phase_well_text, "目标：相位井定位器待解析", "status falls back to phase well locator analysis after lock")
+	_expect_text_contains(phase_well_text, "先回基地解析定位器", "status progress keeps locator analysis summary")
+	var inner_phase_well_text_world := WorldState.create_default()
+	inner_phase_well_text_world.quest_state.active_quest_ids.clear()
+	inner_phase_well_text_world.quest_state.completed_quest_ids.append("quest.inspect_inner_phase_well")
+	var inner_phase_well_text := presenter.format_status_text(data_registry, inner_phase_well_text_world, status_character)
+	_expect_text_contains(inner_phase_well_text, "目标：相位井芯样本已带回", "status falls back to inner phase well reward after completion")
+	_expect_text_contains(inner_phase_well_text, "更东侧新风险线已经转成明确收益", "status progress keeps inner phase well completion summary")
 	_expect_text_missing(status_text, "提示：", "status removes onboarding duplicate")
 	_expect_text_missing(status_text, "坐标：", "status removes debug coordinate duplicate")
 	_expect_text_missing(status_text, "背包：", "status removes full inventory duplicate")
