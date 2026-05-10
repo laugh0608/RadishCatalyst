@@ -13,7 +13,9 @@ const GM_RESOURCE_CANDIDATES: Array[String] = [
 	"item.deep_ruin_coordinates",
 	"item.deep_override_key",
 	"item.deep_route_imprint",
-	"item.deep_signal_matrix"
+	"item.deep_signal_matrix",
+	"item.phase_lens_blank",
+	"item.relay_tuning_lens"
 ]
 const SUPPLY_FEEDBACK_SECONDS := 4.0
 const QUEST_COMPLETION_FEEDBACK_SECONDS := 7.0

@@ -34,7 +34,10 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.phase_return_anchor": "map_object.phase_return_anchor",
 	"map_object_instance.phase_relay_pad": "map_object.phase_relay_pad",
 	"map_object_instance.phase_conduit_cluster_north": "map_object.phase_conduit_cluster",
-	"map_object_instance.phase_conduit_cluster_south": "map_object.phase_conduit_cluster"
+	"map_object_instance.phase_conduit_cluster_south": "map_object.phase_conduit_cluster",
+	"map_object_instance.phase_splinter_cluster_north": "map_object.phase_splinter_cluster",
+	"map_object_instance.phase_splinter_cluster_south": "map_object.phase_splinter_cluster",
+	"map_object_instance.phase_fault_spire": "map_object.phase_fault_spire"
 }
 
 const PROTOTYPE_ENEMY_SOURCES := {
@@ -64,6 +67,10 @@ const PROTOTYPE_ENEMY_SOURCES := {
 	},
 	"enemy_instance.deep_ruin_stalker": {
 		"definition_id": "enemy.deep_ruin_stalker",
+		"region_id": "region.deep_ruin_threshold"
+	},
+	"enemy_instance.deep_fault_hunter": {
+		"definition_id": "enemy.deep_fault_hunter",
 		"region_id": "region.deep_ruin_threshold"
 	}
 }

@@ -2,6 +2,7 @@ extends SceneTree
 const GameRootScript := preload("res://scripts/game/game_root.gd")
 const HudRuntimeHintFlowCheckScript := preload("res://scripts/checks/hud_runtime_hint_flow_check.gd")
 const PhaseRelayFlowChecks := preload("res://scripts/checks/phase_relay_flow_check.gd")
+const RegionPromptChecks := preload("res://scripts/checks/region_prompt_check.gd")
 const VerticalSliceRegressionChecks := preload("res://scripts/checks/vertical_slice_regression_check.gd")
 const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
 var failures: Array[String] = []
@@ -42,7 +43,7 @@ func _run_checks() -> void:
 	_check_supply_feedback()
 	_check_hud_feedback_presenter()
 	_check_pollution_status_hints()
-	_check_region_prompt_formatter()
+	RegionPromptChecks.new(self).run()
 	PhaseRelayFlowChecks.new(self).run()
 	VerticalSliceRegressionChecks.new(self).run_ui_and_recipe_checks()
 	_check_failure_feedback_logs()
@@ -165,8 +166,26 @@ func _run_checks() -> void:
 	_expect_active_quest("quest.deploy_phase_relay_anchor", "after deep signal matrix assembly returns to deep anchor")
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.assemble_deep_signal_matrix", "deep signal matrix quest completed")
 	_complete_active_quest("quest.deploy_phase_relay_anchor", [{"type": "inspect", "target_id": "map_object.phase_return_anchor", "amount": 1}])
-	_expect_equal(world_state.quest_state.active_quest_ids, [], "after phase relay anchor deployment should have no active quest")
+	_expect_equal(world_state.quest_state.active_quest_ids, ["quest.reenter_phase_frontline"], "after phase relay anchor deployment should activate relay reentry quest")
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.deploy_phase_relay_anchor", "phase relay anchor deployment quest completed")
+	_complete_active_quest("quest.reenter_phase_frontline", [{"type": "inspect", "target_id": "map_object.phase_relay_pad", "amount": 1}])
+	_expect_active_quest("quest.trace_phase_splinters", "after relay reentry returns to new deep pressure")
+	_complete_active_quest("quest.trace_phase_splinters", [
+		{"type": "visit_region", "target_id": "region.deep_ruin_threshold", "amount": 1},
+		{"type": "defeat_enemy", "target_id": "enemy.deep_fault_hunter", "amount": 1},
+		{"type": "gather_item", "target_id": "item.phase_splinter", "amount": 2}
+	])
+	_expect_active_quest("quest.refine_phase_splinters", "after phase splinter tracing returns to filter refinement")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_splinter_refining", "phase splinter tracing unlocks filter recipe")
+	_complete_active_quest("quest.refine_phase_splinters", [{"type": "craft_item", "target_id": "item.phase_lens_blank", "amount": 1}])
+	_expect_active_quest("quest.tune_relay_lens", "after phase lens blank refinement returns to reactor")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.relay_tuning_lens", "phase splinter refinement unlocks relay lens recipe")
+	_complete_active_quest("quest.tune_relay_lens", [{"type": "craft_item", "target_id": "item.relay_tuning_lens", "amount": 1}])
+	_expect_active_quest("quest.inspect_phase_fault_spire", "after relay lens tuning returns to deep spire")
+	_complete_active_quest("quest.inspect_phase_fault_spire", [{"type": "inspect", "target_id": "map_object.phase_fault_spire", "amount": 1}])
+	_expect_equal(world_state.quest_state.active_quest_ids, [], "after phase fault spire calibration should have no active quest")
+	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_phase_fault_spire", "phase fault spire quest completed")
+	_expect_equal(int(character_state.inventory.items.get("item.inner_fault_trace", 0)), 1, "phase fault spire grants first inner fault trace")
 	_check_processing_runtime()
 	VerticalSliceRegressionChecks.new(self).check_equipment_processing_runtime()
 	_check_evacuation_feedback()
@@ -239,6 +258,26 @@ func _check_onboarding_hints() -> void:
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.activate_deep_array", "相位导管", "deep array activation hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_deep_signal_matrix", "读数矩阵", "deep signal matrix assembly hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.deploy_phase_relay_anchor", "回传锚点", "phase relay anchor deployment hint")
+	hint_world.current_region_id = "region.outpost_platform"
+	_expect_text_contains(
+		presenter.format_direction_hint(hint_world, hint_character, "quest.reenter_phase_frontline"),
+		"相位回投台",
+		"relay reentry direction returns to outpost relay pad"
+	)
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.reenter_phase_frontline", "回投台", "relay reentry onboarding hint")
+	hint_world.current_region_id = "region.deep_ruin_threshold"
+	_expect_text_contains(
+		presenter.format_direction_hint(hint_world, hint_character, "quest.trace_phase_splinters"),
+		"裂相猎手",
+		"phase splinter tracing direction points to new deep hunter"
+	)
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_phase_splinters", "污染过滤器", "phase splinter refinement hint")
+	_expect_text_contains(
+		presenter.format_direction_hint(hint_world, hint_character, "quest.tune_relay_lens"),
+		"基础反应器",
+		"relay tuning lens direction returns to reactor"
+	)
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.inspect_phase_fault_spire", "中继调谐镜", "phase fault spire onboarding hint")
 	hint_world.quest_state.completed_quest_ids.append("quest.analyze_deep_signal")
 	hint_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_cache")
 	hint_world.quest_state.completed_quest_ids.append("quest.assemble_deep_signal_matrix")
@@ -261,6 +300,12 @@ func _check_status_panel_summary() -> void:
 	_expect_text_contains(status_text, "状态：生命 100 / 100；防护 100 / 100", "status keeps health and protection")
 	_expect_text_contains(status_text, "快捷栏：1 修复凝胶x1", "status keeps quick slots")
 	_expect_text_contains(status_text, "关键物资：基础零件x4", "status keeps key resources")
+	var reentry_world := WorldState.create_default()
+	reentry_world.current_region_id = "region.outpost_platform"
+	reentry_world.quest_state.active_quest_ids = ["quest.reenter_phase_frontline"]
+	var reentry_text := presenter.format_status_text(data_registry, reentry_world, status_character)
+	_expect_text_contains(reentry_text, "目标：从回投台重返前线", "status shows relay reentry goal name")
+	_expect_text_contains(reentry_text, "检查 相位回投台 0/1", "status shows relay reentry objective progress")
 	_expect_text_missing(status_text, "模块：", "status folds module state into pollution line")
 	_expect_text_missing(status_text, "区域：", "status removes minimap region duplicate")
 	_expect_text_missing(status_text, "方向：", "status removes minimap direction duplicate")
@@ -271,6 +316,12 @@ func _check_status_panel_summary() -> void:
 	var relay_text := presenter.format_status_text(data_registry, relay_world, status_character)
 	_expect_text_contains(relay_text, "相位回投台", "phase relay status highlights return pad")
 	_expect_text_contains(relay_text, "按 E 回投返回深段", "phase relay status keeps explicit return action")
+	var spire_world := WorldState.create_default()
+	spire_world.quest_state.active_quest_ids.clear()
+	spire_world.quest_state.completed_quest_ids.append("quest.inspect_phase_fault_spire")
+	var spire_text := presenter.format_status_text(data_registry, spire_world, status_character)
+	_expect_text_contains(spire_text, "目标：内层故障轨迹已带回", "status falls back to deep reward after phase fault spire")
+	_expect_text_contains(spire_text, "裂相尖塔已校准", "status progress keeps phase fault spire completion summary")
 	_expect_text_missing(status_text, "提示：", "status removes onboarding duplicate")
 	_expect_text_missing(status_text, "坐标：", "status removes debug coordinate duplicate")
 	_expect_text_missing(status_text, "背包：", "status removes full inventory duplicate")
@@ -412,6 +463,11 @@ func _check_region_markers() -> void:
 	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.activate_deep_array"), "深段：更深，目标", "deep array activation returns objective to deep region")
 	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.assemble_deep_signal_matrix"), "基地：当前位置，目标", "deep signal matrix assembly returns to outpost reactor")
 	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.deploy_phase_relay_anchor"), "深段：更深，目标", "phase relay anchor deployment returns to deep region")
+	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.reenter_phase_frontline"), "基地：当前位置，目标", "relay reentry starts from outpost pad")
+	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.trace_phase_splinters"), "深段：更深，目标", "phase splinter tracing returns objective to deeper region")
+	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.refine_phase_splinters"), "晶体：东侧，目标", "phase splinter refinement returns to treatment filter")
+	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.tune_relay_lens"), "基地：当前位置，目标", "relay tuning lens returns to outpost reactor")
+	_expect_text_contains(presenter.format_region_markers(marker_world, "quest.inspect_phase_fault_spire"), "深段：更深，目标", "phase fault spire returns objective to deeper region")
 	marker_world.current_region_id = "region.outpost_platform"
 	marker_world.quest_state.completed_quest_ids.append("quest.deploy_phase_relay_anchor")
 	_expect_text_contains(presenter.format_region_markers(marker_world, ""), "深段：更深，目标", "phase relay completion keeps deep region targeted from outpost")
@@ -897,105 +953,6 @@ func _check_pollution_status_hints() -> void:
 		"防护危险",
 		"low protection pollution status"
 	)
-func _check_region_prompt_formatter() -> void:
-	var formatter := InteractionPromptFormatter.new(
-		data_registry,
-		ProcessingSystem.new(data_registry),
-		BuildSystem.new(data_registry)
-	)
-	var gate_world := WorldState.create_default()
-	var gate_character := CharacterState.create_default()
-	_expect_text_contains(
-		formatter.format_pollution_gate_hint(gate_world, gate_character),
-		"处理点扩建",
-		"pollution gate requires treatment point"
-	)
-	_expect_text_contains(
-		formatter.format_pollution_gate_hint(gate_world, gate_character),
-		"启用基础过滤模块",
-		"pollution gate requires module"
-	)
-	gate_character.protection = 30.0
-	_expect_text_contains(
-		formatter.format_pollution_entry_warning(gate_character),
-		"污染边界警告",
-		"pollution entry warning title"
-	)
-	_expect_text_contains(
-		formatter.format_region_gate_blocked_log("污染边界尚未稳定。", "需要：先完成处理点扩建。"),
-		"通行受阻：污染边界",
-		"region gate blocked log title"
-	)
-	_expect_text_contains(
-		formatter.format_region_gate_blocked_log("污染边界尚未稳定。", "需要：先完成处理点扩建。"),
-		"下一步：需要：先完成处理点扩建。",
-		"region gate blocked next step"
-	)
-	var ruin_world := WorldState.create_default()
-	_expect_text_contains(formatter.format_ruin_gate_prompt(ruin_world), "先压制污染残核", "ruin gate blocked prompt")
-	ruin_world.quest_state.completed_quest_ids.append("quest.enter_pollution_edge")
-	ruin_world.quest_state.completed_quest_ids.append("quest.defeat_elite_node")
-	_expect_text_contains(formatter.format_ruin_gate_prompt(ruin_world), "按 E 确认", "ruin gate ready prompt")
-	ruin_world.quest_state.completed_quest_ids.append("quest.unlock_ruin_signal")
-	_expect_text_contains(formatter.format_ruin_gate_prompt(ruin_world), "遗迹外圈已开放", "ruin gate completed prompt")
-	var echo_world := WorldState.create_default()
-	_expect_text_contains(formatter.format_signal_echo_cache_prompt(echo_world), "先检查外圈中继台", "signal echo cache blocked prompt")
-	echo_world.quest_state.completed_quest_ids.append("quest.secure_outer_ring_signal")
-	_expect_text_contains(formatter.format_signal_echo_cache_prompt(echo_world), "按 E 回收", "signal echo cache ready prompt")
-	echo_world.quest_state.completed_quest_ids.append("quest.salvage_signal_echo")
-	_expect_text_contains(formatter.format_signal_echo_cache_prompt(echo_world), "已回收", "signal echo cache completed prompt")
-	var deep_door_world := WorldState.create_default()
-	var deep_door_character := CharacterState.create_default()
-	_expect_text_contains(formatter.format_deep_ruin_door_prompt(deep_door_world, deep_door_character), "先回基地解析深段回波", "deep ruin door blocked prompt")
-	deep_door_world.quest_state.completed_quest_ids.append("quest.analyze_deep_signal")
-	_expect_text_contains(formatter.format_deep_ruin_door_prompt(deep_door_world, deep_door_character), "缺少更深遗迹坐标", "deep ruin door missing coordinates prompt")
-	deep_door_character.inventory.add_item("item.deep_ruin_coordinates", 1)
-	_expect_text_contains(formatter.format_deep_ruin_door_prompt(deep_door_world, deep_door_character), "按 E 写入", "deep ruin door ready prompt")
-	deep_door_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_entrance")
-	_expect_text_contains(formatter.format_deep_ruin_door_prompt(deep_door_world, deep_door_character), "已写入", "deep ruin door completed prompt")
-	var deep_latch_world := WorldState.create_default()
-	var deep_latch_character := CharacterState.create_default()
-	_expect_text_contains(formatter.format_deep_ruin_latch_prompt(deep_latch_world, deep_latch_character), "先回基地精炼相位纤丝", "deep ruin latch blocked prompt")
-	deep_latch_world.quest_state.completed_quest_ids.append("quest.assemble_deep_override")
-	_expect_text_contains(formatter.format_deep_ruin_latch_prompt(deep_latch_world, deep_latch_character), "缺少深段覆写栓", "deep ruin latch missing key prompt")
-	deep_latch_character.inventory.add_item("item.deep_override_key", 1)
-	_expect_text_contains(formatter.format_deep_ruin_latch_prompt(deep_latch_world, deep_latch_character), "按 E 覆写", "deep ruin latch ready prompt")
-	deep_latch_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_cache")
-	_expect_text_contains(formatter.format_deep_ruin_latch_prompt(deep_latch_world, deep_latch_character), "已覆写", "deep ruin latch completed prompt")
-	var deep_array_world := WorldState.create_default()
-	var deep_array_character := CharacterState.create_default()
-	_expect_text_contains(formatter.format_deep_signal_array_prompt(deep_array_world, deep_array_character), "先回基地解析深段样块", "deep signal array blocked prompt")
-	deep_array_world.quest_state.completed_quest_ids.append("quest.analyze_deep_core")
-	_expect_text_contains(formatter.format_deep_signal_array_prompt(deep_array_world, deep_array_character), "缺少深段路由印片", "deep signal array missing imprint prompt")
-	deep_array_character.inventory.add_item("item.deep_route_imprint", 1)
-	_expect_text_contains(formatter.format_deep_signal_array_prompt(deep_array_world, deep_array_character), "按 E 写入", "deep signal array ready prompt")
-	deep_array_world.quest_state.completed_quest_ids.append("quest.activate_deep_array")
-	_expect_text_contains(formatter.format_deep_signal_array_prompt(deep_array_world, deep_array_character), "已点亮", "deep signal array completed prompt")
-	var outpost_prompt_world := WorldState.create_default()
-	var outpost_prompt_character := CharacterState.create_default()
-	_expect_text_contains(formatter.format_outpost_core_prompt(outpost_prompt_world, outpost_prompt_character), "按 E 恢复", "outpost core restore prompt")
-	outpost_prompt_world.quest_state.completed_quest_ids.append("quest.restore_outpost")
-	_expect_text_contains(formatter.format_outpost_core_prompt(outpost_prompt_world, outpost_prompt_character), "整备在线", "outpost core ready prompt at full vitals")
-	outpost_prompt_character.health = 74.0
-	outpost_prompt_character.protection = 56.0
-	_expect_text_contains(formatter.format_outpost_core_prompt(outpost_prompt_world, outpost_prompt_character), "按 E 整备", "outpost core refill prompt")
-	var relay_anchor_world := WorldState.create_default()
-	var relay_anchor_character := CharacterState.create_default()
-	_expect_text_contains(formatter.format_phase_return_anchor_prompt(relay_anchor_world, relay_anchor_character), "先回基地整理深段读数矩阵", "phase relay anchor blocked prompt")
-	relay_anchor_world.quest_state.completed_quest_ids.append("quest.assemble_deep_signal_matrix")
-	_expect_text_contains(formatter.format_phase_return_anchor_prompt(relay_anchor_world, relay_anchor_character), "缺少深段读数矩阵", "phase relay anchor missing matrix prompt")
-	relay_anchor_character.inventory.add_item("item.deep_signal_matrix", 1)
-	_expect_text_contains(formatter.format_phase_return_anchor_prompt(relay_anchor_world, relay_anchor_character), "按 E 部署", "phase relay anchor ready prompt")
-	relay_anchor_world.quest_state.completed_quest_ids.append("quest.deploy_phase_relay_anchor")
-	_expect_text_contains(formatter.format_phase_return_anchor_prompt(relay_anchor_world, relay_anchor_character), "按 E 回传", "phase relay anchor completed prompt")
-	var relay_pad_world := WorldState.create_default()
-	_expect_text_contains(formatter.format_phase_relay_pad_prompt(relay_pad_world), "先在深段部署前线回传锚点", "phase relay pad blocked prompt")
-	relay_pad_world.quest_state.completed_quest_ids.append("quest.deploy_phase_relay_anchor")
-	_expect_text_contains(formatter.format_phase_relay_pad_prompt(relay_pad_world), "前线锚点当前离线", "phase relay pad offline prompt")
-	relay_pad_world.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor")
-	_expect_text_contains(formatter.format_phase_relay_pad_prompt(relay_pad_world), "按 E 回投", "phase relay pad ready prompt")
-
-
 func _check_failure_feedback_logs() -> void:
 	var log_presenter := HudLogPresenter.new(data_registry)
 	var no_target_map := VerticalSliceMap.new()
@@ -1346,6 +1303,72 @@ func _check_processing_runtime() -> void:
 		String(filter_status.get("last_next_step", "")),
 		"抗污染药剂",
 		"pollution filter panel next step"
+	)
+	var splinter_world := WorldState.create_default()
+	var splinter_character := CharacterState.create_default()
+	splinter_world.quest_state.unlock_effect("recipe.phase_splinter_refining")
+	splinter_world.add_base_structure(
+		"structure.pollution_filter_build_site",
+		"building.pollution_filter",
+		"region.pollution_edge",
+		"map_object_instance.pollution_filter_build_site"
+	)
+	splinter_character.inventory.add_item("item.phase_splinter", 2)
+	var splinter_start := processing.process_recipe("recipe.phase_splinter_refining", splinter_character, splinter_world)
+	_expect_equal(bool(splinter_start.get("success", false)), true, "phase splinter refining should start")
+	var splinter_completed := processing.advance_processing(20.0, splinter_character, splinter_world)
+	_expect_equal(splinter_completed.size(), 1, "phase splinter refining should complete")
+	if not splinter_completed.is_empty():
+		_expect_text_contains(
+			String(splinter_completed[0].get("message", "")),
+			"透镜胚片 x1",
+			"phase splinter refining completion log output destination"
+		)
+		_expect_text_contains(
+			String(splinter_completed[0].get("message", "")),
+			"污染浆液 x1",
+			"phase splinter refining completion log byproduct destination"
+		)
+		_expect_text_contains(
+			String(splinter_completed[0].get("message", "")),
+			"中继调谐镜",
+			"phase splinter refining completion log next step"
+		)
+	_expect_equal(int(splinter_character.inventory.items.get("item.phase_lens_blank", 0)), 1, "phase splinter refining grants lens blank")
+	_expect_equal(float(splinter_character.inventory.fluids.get("fluid.polluted_slurry", 0.0)), 1.0, "phase splinter refining grants polluted slurry byproduct")
+	var splinter_status := processing.get_recipe_status("recipe.phase_splinter_refining", splinter_character, splinter_world)
+	_expect_text_contains(
+		String(splinter_status.get("last_next_step", "")),
+		"中继调谐镜",
+		"phase splinter refining panel next step"
+	)
+	var tuning_world := WorldState.create_default()
+	var tuning_character := CharacterState.create_default()
+	tuning_world.quest_state.unlock_effect("recipe.relay_tuning_lens")
+	tuning_character.inventory.add_item("item.phase_lens_blank", 1)
+	tuning_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
+	tuning_character.inventory.items["item.basic_parts"] = 2
+	var tuning_start := processing.process_recipe("recipe.relay_tuning_lens", tuning_character, tuning_world)
+	_expect_equal(bool(tuning_start.get("success", false)), true, "relay tuning lens processing should start")
+	var tuning_completed := processing.advance_processing(20.0, tuning_character, tuning_world)
+	_expect_equal(tuning_completed.size(), 1, "relay tuning lens processing should complete")
+	if not tuning_completed.is_empty():
+		_expect_text_contains(
+			String(tuning_completed[0].get("message", "")),
+			"中继调谐镜 x1",
+			"relay tuning lens completion log output destination"
+		)
+		_expect_text_contains(
+			String(tuning_completed[0].get("message", "")),
+			"裂相尖塔",
+			"relay tuning lens completion log next step"
+		)
+	_expect_equal(int(tuning_character.inventory.items.get("item.relay_tuning_lens", 0)), 1, "relay tuning lens grants calibration item")
+	var tuning_status := processing.get_recipe_status("recipe.relay_tuning_lens", tuning_character, tuning_world)
+	_expect_text_contains(
+		String(tuning_status.get("last_next_step", "")),
+		"裂相尖塔",
+		"relay tuning lens panel next step"
 	)
 func _check_evacuation_feedback() -> void:
 	var map := VerticalSliceMap.new()

@@ -46,8 +46,8 @@ const BASELINE_DEFINITIONS := [
 		"code": "S5",
 		"display_name": "S5 前线回传已上线",
 		"completed_through": "quest.deploy_phase_relay_anchor",
-		"summary": "前线回传锚点和基地相位回投台都已在线。",
-		"recommended_for": "前线回传、基地回投、深段节奏观察和旧进度兼容回归。"
+		"summary": "前线回传锚点和基地相位回投台都已在线，下一步从回投台重返前线并追踪裂相碎屑。",
+		"recommended_for": "前线回传、基地回投、回传后的新深段内容、旧进度兼容与节奏回归。"
 	}
 ]
 

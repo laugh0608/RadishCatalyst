@@ -22,7 +22,9 @@
         "quest.analyze_deep_signal",
         "quest.assemble_deep_override",
         "quest.analyze_deep_core",
-        "quest.assemble_deep_signal_matrix"
+        "quest.assemble_deep_signal_matrix",
+        "quest.reenter_phase_frontline",
+        "quest.tune_relay_lens"
       ],
       "public_level": "public"
     },
@@ -45,7 +47,8 @@
         "quest.prepare_treatment_supplies",
         "quest.expand_treatment_point",
         "quest.enter_pollution_edge",
-        "quest.refine_phase_filament"
+        "quest.refine_phase_filament",
+        "quest.refine_phase_splinters"
       ],
       "public_level": "public"
     },
@@ -60,7 +63,7 @@
       "pollution_types": ["pollution.yellow_residue"],
       "weather_pool": ["weather.clear", "weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
-      "quest_refs": ["quest.expand_treatment_point", "quest.enter_pollution_edge", "quest.defeat_elite_node", "quest.unlock_ruin_signal"],
+      "quest_refs": ["quest.expand_treatment_point", "quest.enter_pollution_edge", "quest.defeat_elite_node", "quest.unlock_ruin_signal", "quest.refine_phase_splinters"],
       "public_level": "public"
     },
     {
@@ -98,11 +101,11 @@
       "planet_or_world": "world.slice_01",
       "biome_type": "deep_ruin_threshold",
       "danger_level": 4,
-      "resources": ["item.phase_filament", "item.deep_ruin_core", "item.phase_conduit"],
+      "resources": ["item.phase_filament", "item.deep_ruin_core", "item.phase_conduit", "item.phase_splinter", "item.inner_fault_trace"],
       "pollution_types": ["pollution.yellow_residue"],
       "weather_pool": ["weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
-      "quest_refs": ["quest.harvest_phase_filament", "quest.unlock_deep_ruin_cache", "quest.activate_deep_array", "quest.deploy_phase_relay_anchor"],
+      "quest_refs": ["quest.harvest_phase_filament", "quest.unlock_deep_ruin_cache", "quest.activate_deep_array", "quest.deploy_phase_relay_anchor", "quest.trace_phase_splinters", "quest.inspect_phase_fault_spire"],
       "public_level": "spoiler"
     }
   ]

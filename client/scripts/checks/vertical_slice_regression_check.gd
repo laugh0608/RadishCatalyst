@@ -27,7 +27,8 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	filter.recipe_id = "recipe.cleanse_residue"
 	filter.set_recipe_cycle([
 		"recipe.cleanse_residue",
-		"recipe.phase_filament_refining"
+		"recipe.phase_filament_refining",
+		"recipe.phase_splinter_refining"
 	])
 	recipe_world.quest_state.active_quest_ids = ["quest.analyze_anomaly_sample"]
 	recipe_world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 2)
@@ -96,7 +97,8 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		"recipe.deep_signal_analysis",
 		"recipe.deep_override_key",
 		"recipe.deep_core_imprint",
-		"recipe.deep_signal_matrix"
+		"recipe.deep_signal_matrix",
+		"recipe.relay_tuning_lens"
 	])
 	recipe_character.inventory.items["item.basic_parts"] = 1
 	recipe_character.inventory.add_item("item.signal_echo_trace", 1)
@@ -130,6 +132,27 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
 		"recipe.deep_signal_matrix",
 		"deep signal matrix assembly returns to reactor recipe after basic parts are restored"
+	)
+	recipe_world.quest_state.active_quest_ids = ["quest.refine_phase_splinters"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(filter, recipe_character, recipe_world),
+		"recipe.phase_splinter_refining",
+		"phase splinter refining selects pollution filter recipe"
+	)
+	recipe_character.inventory.add_item("item.phase_lens_blank", 1)
+	recipe_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.tune_relay_lens"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"relay tuning lens falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.relay_tuning_lens",
+		"relay tuning lens returns to reactor recipe after basic parts are restored"
 	)
 	deep_reactor.free()
 	filter.free()

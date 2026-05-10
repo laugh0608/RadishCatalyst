@@ -24,10 +24,12 @@ func format_runtime_hint(world_state: WorldState, character_state: CharacterStat
 
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_fault_spire(world_state):
+			return "裂相尖塔已校准：第一份内层故障轨迹已带回，这条回传后的更深推进线已经真正成立。"
 		if _has_completed_phase_relay_anchor(world_state):
 			if world_state.current_region_id == "region.outpost_platform":
-				return "相位回投台已就绪：在基地按 E 返回最后部署的前线回传锚点，补给后继续把深段往里推。"
-			return "前线回传锚点已在线：深段空跑已被压缩，补给后可继续把深段往里推。"
+				return "相位回投台已就绪：先在基地按 E 返回最后部署的前线回传锚点，再追踪更东侧裂相碎屑。"
+			return "前线回传锚点已在线：先回基地用相位回投台重返前线，再把裂相碎屑带回基地继续加工。"
 		if _has_completed_second_deep_pass(world_state):
 			return "深段读数矩阵已整理完成：返回深段固定点，把它部署成前线回传锚点。"
 		if _has_completed_deep_ruin_entry(world_state):
@@ -106,16 +108,30 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "回基地使用基础反应器，把相位导管和污染浆液整理成可部署锚点的深段读数矩阵。"
 		"quest.deploy_phase_relay_anchor":
 			return "带着深段读数矩阵返回深段固定点，部署前线回传锚点。"
+		"quest.reenter_phase_frontline":
+			if world_state.current_region_id == "region.outpost_platform":
+				return "在基地按 E 使用相位回投台，返回最后部署的锚点并继续追踪更东侧裂相碎屑。"
+			return "先用前线回传锚点回基地，再在相位回投台按 E 回到最后锚点。"
+		"quest.trace_phase_splinters":
+			return "从锚点继续向东推进，击败裂相猎手并回收两处裂相碎屑。"
+		"quest.refine_phase_splinters":
+			return "回处理点污染过滤器，把裂相碎屑筛成透镜胚片并保留副产污染浆液。"
+		"quest.tune_relay_lens":
+			return "回基地使用基础反应器，把透镜胚片、污染浆液和基础零件调准成中继调谐镜。"
+		"quest.inspect_phase_fault_spire":
+			return "带着中继调谐镜返回更东侧裂相尖塔，校准后带回第一份内层故障轨迹。"
 		_:
 			return "按当前目标推进。"
 
 
 func format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_fault_spire(world_state):
+			return "裂相尖塔已经校准完成：回传后的更深风险和收益已经被压缩进可反复验证的新一包深段内容。"
 		if _has_completed_phase_relay_anchor(world_state):
 			if world_state.current_region_id == "region.outpost_platform":
-				return "前线回传锚点链已打通：先在基地相位回投台回到最后锚点，再观察这条往返是否真的缩短空跑而不跳过补给。"
-			return "前线回传锚点已经上线：基地与深段之间的无决策空跑被压缩，但基地补给和加工仍然保留价值。"
+				return "前线回传锚点链已打通：先在基地相位回投台回到最后锚点，再把更东侧裂相碎屑带回基地加工。"
+			return "前线回传锚点已经上线：这次要用它把回基地补给和更深收益串成真正的新主线，而不是停在便利功能。"
 		if _has_completed_second_deep_pass(world_state):
 			return "深段读数矩阵不是终点；要把它带回深段部署成前线回传锚点，才能真正缩短第二轮往返。"
 		if _has_completed_deep_ruin_entry(world_state):
@@ -198,6 +214,16 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "把相位导管再次带回基地整理成读数矩阵后，还要把它带回深段部署成回传锚点，才算真正解决第二轮空跑。"
 		"quest.deploy_phase_relay_anchor":
 			return "这次返回深段不是继续拿材料，而是把基地加工出来的读数矩阵真正写回前线回传锚点，开启前线 -> 基地 -> 前线的快速往返。"
+		"quest.reenter_phase_frontline":
+			return "先真正用一次回投台，让回传链从便利功能变成明确主线动作；回到锚点后再继续看更东侧新风险。"
+		"quest.trace_phase_splinters":
+			return "裂相碎屑是回传后的第一份新深段收益；它们必须再回基地加工，才能证明这条更深推进线不是纯跑图。"
+		"quest.refine_phase_splinters":
+			return "先用污染过滤器把裂相碎屑筛成透镜胚片；副产污染浆液会直接回到下一步中继调谐镜组装。"
+		"quest.tune_relay_lens":
+			return "中继调谐镜会把过滤器副产重新变成开路物，决定裂相尖塔能否吐出第一份内层故障轨迹。"
+		"quest.inspect_phase_fault_spire":
+			return "这一步要把基地调准的中继调谐镜真正带回前线，逼出新的深段收益，而不是让它停在背包里。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 
@@ -220,6 +246,10 @@ func _has_completed_second_deep_pass(world_state: WorldState) -> bool:
 
 func _has_completed_phase_relay_anchor(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor")
+
+
+func _has_completed_phase_fault_spire(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.inspect_phase_fault_spire")
 
 
 func _get_target_region_id(world_state: WorldState, quest_id: String) -> String:

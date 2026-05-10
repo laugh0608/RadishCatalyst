@@ -15,6 +15,15 @@ func run() -> void:
 	map.player = map.get_node("Player")
 	map.interactables_root = map.get_node("Interactables")
 	map.enemies_root = map.get_node("Enemies")
+	for interactable in map.interactables_root.get_children():
+		if interactable is PrototypeInteractable:
+			interactable.label = interactable.get_node("Label")
+			interactable.marker = interactable.get_node("Marker")
+	for enemy in map.enemies_root.get_children():
+		if enemy is PrototypeEnemy:
+			enemy.label = enemy.get_node("Label")
+			enemy.sprite = enemy.get_node("Sprite")
+			enemy.collision_shape = enemy.get_node("CollisionShape2D")
 	map.setup(host.data_registry)
 	var relay_world := WorldState.create_default()
 	relay_world.unlock_region("region.crystal_vein_field")
@@ -79,6 +88,7 @@ func run() -> void:
 	)
 	host._expect_array_has(relay_world.quest_state.completed_quest_ids, "quest.deploy_phase_relay_anchor", "phase relay deployment completes quest")
 	host._expect_equal(Array(deploy_runtime_result.get("completion_feedbacks", [])).size(), 1, "phase relay deployment emits completion feedback")
+	host._expect_array_has(relay_world.quest_state.active_quest_ids, "quest.reenter_phase_frontline", "phase relay deployment activates reentry quest")
 	map.refresh_world_interactables(relay_world)
 	map.update_current_interactable()
 	var return_result := map.try_interact(relay_character, relay_world)
@@ -94,6 +104,19 @@ func run() -> void:
 	host._expect_equal(bool(pad_result.get("success", false)), true, "phase relay pad return to deep anchor should succeed")
 	host._expect_equal(relay_world.current_region_id, "region.deep_ruin_threshold", "phase relay pad updates world region back to deep")
 	host._expect_equal(relay_character.current_region_id, "region.deep_ruin_threshold", "phase relay pad updates character region back to deep")
+	var pad_runtime_result := relay_runtime.advance_for_interaction(
+		relay_world,
+		relay_character,
+		{
+			"definition_id": "map_object.phase_relay_pad",
+			"interaction_type": "inspect",
+			"recipe_id": ""
+		},
+		pad_result
+	)
+	host._expect_array_has(relay_world.quest_state.completed_quest_ids, "quest.reenter_phase_frontline", "phase relay pad completes reentry quest")
+	host._expect_array_has(relay_world.quest_state.active_quest_ids, "quest.trace_phase_splinters", "phase relay pad activates phase splinter tracing quest")
+	host._expect_equal(Array(pad_runtime_result.get("completion_feedbacks", [])).size(), 1, "phase relay pad emits completion feedback")
 	host._expect_equal(
 		map.current_interactable.definition_id,
 		"map_object.phase_return_anchor",

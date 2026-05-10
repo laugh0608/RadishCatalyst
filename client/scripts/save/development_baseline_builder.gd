@@ -32,7 +32,12 @@ const QUEST_PROGRESS_ORDER: Array[String] = [
 	"quest.analyze_deep_core",
 	"quest.activate_deep_array",
 	"quest.assemble_deep_signal_matrix",
-	"quest.deploy_phase_relay_anchor"
+	"quest.deploy_phase_relay_anchor",
+	"quest.reenter_phase_frontline",
+	"quest.trace_phase_splinters",
+	"quest.refine_phase_splinters",
+	"quest.tune_relay_lens",
+	"quest.inspect_phase_fault_spire"
 ]
 
 var data_registry: DataRegistry
@@ -209,6 +214,16 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.deep_signal_matrix")
 		"quest.deploy_phase_relay_anchor":
 			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor")
+		"quest.trace_phase_splinters":
+			_mark_enemy_defeated(world_state, "enemy_instance.deep_fault_hunter", "enemy.deep_fault_hunter", "region.deep_ruin_threshold")
+			_mark_objects_gathered(world_state, [
+				"map_object_instance.phase_splinter_cluster_north",
+				"map_object_instance.phase_splinter_cluster_south"
+			], "map_object.phase_splinter_cluster", "region.deep_ruin_threshold")
+		"quest.refine_phase_splinters":
+			_mark_structure_completed(world_state, "structure.pollution_filter_build_site", "recipe.phase_splinter_refining")
+		"quest.tune_relay_lens":
+			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.relay_tuning_lens")
 
 
 func _apply_baseline_pose_and_inventory(

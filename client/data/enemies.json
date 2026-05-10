@@ -105,6 +105,21 @@
       "drops": [{"id": "item.repair_gel", "amount": 1}],
       "spawn_regions": ["region.deep_ruin_threshold"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "enemy.deep_fault_hunter",
+      "display_name_key": "enemy.deep_fault_hunter.name",
+      "description_key": "enemy.deep_fault_hunter.desc",
+      "category": "ruin_guard",
+      "faction": "ruin_sentinel",
+      "base_stats": {"max_health": 84, "attack": 16, "move_speed": 112},
+      "behaviors": ["phase_guard", "melee_chase"],
+      "damage_types": ["physical", "pollution"],
+      "resistances": {"pollution": 0.5},
+      "drop_table_id": "drop.deep_fault_hunter",
+      "drops": [{"id": "item.repair_gel", "amount": 1}],
+      "spawn_regions": ["region.deep_ruin_threshold"],
+      "public_level": "spoiler"
     }
   ]
 }

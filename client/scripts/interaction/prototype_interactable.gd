@@ -11,6 +11,7 @@ const GATHERED_RESIDUE_COLOR := Color(0.44, 0.42, 0.2, 1)
 const GATHERED_RELAY_SHARD_COLOR := Color(0.54, 0.54, 0.66, 1)
 const GATHERED_PHASE_FILAMENT_COLOR := Color(0.66, 0.46, 0.7, 1)
 const GATHERED_PHASE_CONDUIT_COLOR := Color(0.56, 0.72, 0.82, 1)
+const GATHERED_PHASE_SPLINTER_COLOR := Color(0.78, 0.62, 0.9, 1)
 const CLEARED_GROUND_COLOR := Color(0.42, 0.5, 0.42, 1)
 const CONFIRMED_RUIN_SIGNAL_COLOR := Color(0.36, 0.5, 0.68, 1)
 const STABILIZED_BARRIER_COLOR := Color(0.42, 0.66, 0.78, 1)
@@ -21,6 +22,7 @@ const OVERRIDDEN_DEEP_RUIN_LATCH_COLOR := Color(0.9, 0.62, 0.44, 1)
 const ACTIVATED_DEEP_SIGNAL_ARRAY_COLOR := Color(0.72, 0.82, 0.92, 1)
 const DEPLOYED_PHASE_RETURN_ANCHOR_COLOR := Color(0.46, 0.84, 0.9, 1)
 const READY_PHASE_RELAY_PAD_COLOR := Color(0.48, 0.92, 0.72, 1)
+const TUNED_PHASE_FAULT_SPIRE_COLOR := Color(0.86, 0.74, 0.42, 1)
 const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
 const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
 
@@ -206,6 +208,13 @@ func set_processed_visual() -> bool:
 		marker.color = GATHERED_PHASE_CONDUIT_COLOR
 		_set_label_text("%s\n已回收" % display_name_text, 2)
 		return true
+	if interaction_type == "gather" and definition_id == "map_object.phase_splinter_cluster":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = GATHERED_PHASE_SPLINTER_COLOR
+		_set_label_text("%s\n已回收" % display_name_text, 2)
+		return true
 	if interaction_type == "sample" and definition_id == "map_object.anomaly_crystal":
 		consumed = true
 		visible = true
@@ -293,6 +302,14 @@ func set_ready_phase_relay_pad_visual() -> void:
 	monitoring = true
 	marker.color = READY_PHASE_RELAY_PAD_COLOR
 	_set_label_text("%s\n回投就绪" % display_name_text, 2)
+
+
+func set_tuned_phase_fault_spire_visual() -> void:
+	consumed = true
+	visible = true
+	monitoring = false
+	marker.color = TUNED_PHASE_FAULT_SPIRE_COLOR
+	_set_label_text("%s\n已校准" % display_name_text, 2)
 
 
 func set_built_visual(built_definition_id: String) -> void:

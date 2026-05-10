@@ -12,9 +12,9 @@ const PLAYER_INTERACTION_RANGE := 96.0
 const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
 const OUTPOST_RESPAWN_POSITION := Vector2(-250, -48)
 const PLAY_BOUNDS_MIN := Vector2(-360, -200)
-const PLAY_BOUNDS_MAX := Vector2(980, 200)
+const PLAY_BOUNDS_MAX := Vector2(1220, 200)
 const CAMERA_BOUNDS_MIN := Vector2(-620, -360)
-const CAMERA_BOUNDS_MAX := Vector2(1000, 360)
+const CAMERA_BOUNDS_MAX := Vector2(1240, 360)
 const CRYSTAL_REGION_X := -70.0
 const CRYSTAL_GATE_RETURN_X := -85.0
 const POLLUTION_REGION_X := 200.0
@@ -78,6 +78,8 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		return _inspect_phase_return_anchor(character_state, world_state)
 	if interacted.definition_id == "map_object.phase_relay_pad" and interacted.interaction_type == "inspect":
 		return _inspect_phase_relay_pad(character_state, world_state)
+	if interacted.definition_id == "map_object.phase_fault_spire" and interacted.interaction_type == "inspect":
+		return _inspect_phase_fault_spire(character_state, world_state)
 
 	var action_id := interacted.get_current_recipe_id()
 	if interacted.interaction_type == "build":
@@ -197,6 +199,14 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				interactable.set_ready_phase_relay_pad_visual()
 				continue
 			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.phase_fault_spire":
+			if world_state.quest_state.has_completed_quest("quest.inspect_phase_fault_spire"):
+				interactable.set_tuned_phase_fault_spire_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
 		elif is_processed and interactable.set_processed_visual():
 			if current_interactable == interactable:
 				current_interactable = null
@@ -220,6 +230,16 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			)
 		if interactable.definition_id == "map_object.phase_relay_pad":
 			should_enable = should_enable and world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor")
+		if interactable.definition_id == "map_object.phase_splinter_cluster":
+			should_enable = should_enable and (
+				world_state.quest_state.has_active_quest("quest.trace_phase_splinters")
+				or world_state.quest_state.has_completed_quest("quest.trace_phase_splinters")
+			)
+		if interactable.definition_id == "map_object.phase_fault_spire":
+			should_enable = should_enable and (
+				world_state.quest_state.has_active_quest("quest.inspect_phase_fault_spire")
+				or world_state.quest_state.has_completed_quest("quest.inspect_phase_fault_spire")
+			)
 
 		interactable.set_interaction_enabled(should_enable)
 		if current_interactable == interactable and not should_enable:
@@ -309,6 +329,16 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 			return {
 				"success": true,
 				"message": "击败：%s。%s深段阵列后的追袭线已清空，相位导管回收窗口已打开。" % [
+					target.display_name,
+					drops_message
+				],
+				"enemy_definition_id": target.definition_id,
+				"enemy_defeated": true
+			}
+		if target.definition_id == "enemy.deep_fault_hunter":
+			return {
+				"success": true,
+				"message": "击败：%s。%s更东侧裂相脊的封锁压力已减弱，裂相碎屑回收线已打开。" % [
 					target.display_name,
 					drops_message
 				],
@@ -563,6 +593,11 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 		return (
 			world_state.quest_state.has_active_quest("quest.activate_deep_array")
 			or world_state.quest_state.has_completed_quest("quest.activate_deep_array")
+		)
+	if enemy.definition_id == "enemy.deep_fault_hunter":
+		return (
+			world_state.quest_state.has_active_quest("quest.trace_phase_splinters")
+			or world_state.quest_state.has_completed_quest("quest.trace_phase_splinters")
 		)
 	if enemy.definition_id != "enemy.treatment_skitter":
 		return true
@@ -824,7 +859,7 @@ func _inspect_phase_return_anchor(character_state: CharacterState, world_state: 
 		)
 		return {
 			"success": true,
-			"message": "前线回传锚点已联通：已快速回传到基地相位回投台。"
+			"message": "前线回传锚点已联通：已快速回传到基地相位回投台；下一步从回投台重返前线，追踪更东侧裂相碎屑。"
 		}
 
 	if not world_state.quest_state.has_completed_quest("quest.assemble_deep_signal_matrix"):
@@ -866,9 +901,42 @@ func _inspect_phase_relay_pad(character_state: CharacterState, world_state: Worl
 
 	var target_position := _get_phase_return_anchor_return_position(world_state.active_phase_relay_anchor_id)
 	_teleport_player_to_region(character_state, world_state, "region.deep_ruin_threshold", target_position)
+	if world_state.quest_state.has_active_quest("quest.reenter_phase_frontline"):
+		return {
+			"success": true,
+			"message": "相位回投台已联通：已回投到最后部署的前线回传锚点；更东侧裂相碎屑和新的深段猎手已暴露。"
+		}
 	return {
 		"success": true,
 		"message": "相位回投台已联通：已回投到最后部署的前线回传锚点。"
+	}
+
+
+func _inspect_phase_fault_spire(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.tune_relay_lens"):
+		return _failure(
+			"裂相尖塔仍缺少可执行的调谐镜组。",
+			"尖塔未校准",
+			"先回基地用基础反应器，把透镜胚片、污染浆液和基础零件调准成中继调谐镜。"
+		)
+
+	if world_state.quest_state.has_completed_quest("quest.inspect_phase_fault_spire"):
+		return {
+			"success": true,
+			"message": "裂相尖塔已校准：第一份内层故障轨迹已经带回基地。"
+		}
+
+	if not character_state.inventory.has_ref("item.relay_tuning_lens", 1):
+		return _failure(
+			"缺少中继调谐镜，裂相尖塔无法校准。",
+			"缺少调谐镜",
+			"回基地确认基础反应器已经完成中继调谐镜，并带回来对准裂相尖塔。"
+		)
+
+	character_state.inventory.consume_ref("item.relay_tuning_lens", 1)
+	return {
+		"success": true,
+		"message": "中继调谐镜已对准：裂相尖塔开始回吐内层故障轨迹。"
 	}
 
 

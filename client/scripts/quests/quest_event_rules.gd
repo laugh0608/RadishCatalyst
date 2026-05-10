@@ -61,8 +61,18 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		return [_set_update("quest.activate_deep_array", "inspect", "map_object.deep_signal_array", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.phase_return_anchor":
 		return [_set_update("quest.deploy_phase_relay_anchor", "inspect", "map_object.phase_return_anchor", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.phase_relay_pad":
+		return [_set_update("quest.reenter_phase_frontline", "inspect", "map_object.phase_relay_pad", 1)]
 	if interaction_type == "gather" and definition_id == "map_object.phase_conduit_cluster":
 		return _get_drop_objective_updates("quest.activate_deep_array", "gather_item", "item.phase_conduit", definition_id)
+	if interaction_type == "gather" and definition_id == "map_object.phase_splinter_cluster":
+		var updates: Array[Dictionary] = [
+			_set_update("quest.trace_phase_splinters", "visit_region", "region.deep_ruin_threshold", 1)
+		]
+		updates.append_array(_get_drop_objective_updates("quest.trace_phase_splinters", "gather_item", "item.phase_splinter", definition_id))
+		return updates
+	if interaction_type == "inspect" and definition_id == "map_object.phase_fault_spire":
+		return [_set_update("quest.inspect_phase_fault_spire", "inspect", "map_object.phase_fault_spire", 1)]
 	if interaction_type == "process_recipe":
 		return get_recipe_objective_updates(recipe_id)
 	if interaction_type == "build":
@@ -78,7 +88,10 @@ func get_region_objective_updates(region_id: String, _quest_state: QuestState) -
 	if region_id == "region.ruin_outer_ring":
 		return [_set_update("quest.scout_ruin_outer_ring", "visit_region", region_id, 1)]
 	if region_id == "region.deep_ruin_threshold":
-		return [_set_update("quest.harvest_phase_filament", "visit_region", region_id, 1)]
+		return [
+			_set_update("quest.harvest_phase_filament", "visit_region", region_id, 1),
+			_set_update("quest.trace_phase_splinters", "visit_region", region_id, 1)
+		]
 	return []
 
 
@@ -106,6 +119,10 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 			return [_set_update("quest.analyze_deep_core", "craft_item", "item.deep_route_imprint", 1)]
 		"recipe.deep_signal_matrix":
 			return [_set_update("quest.assemble_deep_signal_matrix", "craft_item", "item.deep_signal_matrix", 1)]
+		"recipe.phase_splinter_refining":
+			return [_set_update("quest.refine_phase_splinters", "craft_item", "item.phase_lens_blank", 1)]
+		"recipe.relay_tuning_lens":
+			return [_set_update("quest.tune_relay_lens", "craft_item", "item.relay_tuning_lens", 1)]
 		_:
 			return []
 
@@ -131,6 +148,8 @@ func get_defeated_enemy_objective_updates(enemy_definition_id: String) -> Array[
 		return [_set_update("quest.harvest_phase_filament", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.deep_ruin_stalker":
 		return [_set_update("quest.activate_deep_array", "defeat_enemy", enemy_definition_id, 1)]
+	if enemy_definition_id == "enemy.deep_fault_hunter":
+		return [_set_update("quest.trace_phase_splinters", "defeat_enemy", enemy_definition_id, 1)]
 	return []
 
 

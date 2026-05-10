@@ -178,6 +178,10 @@ func get_recommended_recipe_id(
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_core_imprint")
 		"quest.assemble_deep_signal_matrix":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_signal_matrix")
+		"quest.refine_phase_splinters":
+			return _select_if_available(interactable, "recipe.phase_splinter_refining")
+		"quest.tune_relay_lens":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.relay_tuning_lens")
 		_:
 			return ""
 
@@ -246,7 +250,11 @@ func _get_completion_next_step(recipe_id: String) -> String:
 		"recipe.deep_core_imprint":
 			return "带着深段路由印片返回深段阵列台，点亮第二轮导管回收线。"
 		"recipe.deep_signal_matrix":
-			return "深段第二轮读数已整理完成；这批深段收益已经再次反哺基地，为下一包更深内容留出入口。"
+			return "深段第二轮读数已整理完成；返回深段固定点部署前线回传锚点，并准备从回投台重返前线。"
+		"recipe.phase_splinter_refining":
+			return "透镜胚片和副产污染浆液已筛出；把它们带回基地反应器，调准成中继调谐镜。"
+		"recipe.relay_tuning_lens":
+			return "带着中继调谐镜返回更东侧裂相尖塔，逼出第一份内层故障轨迹。"
 		_:
 			return "查看当前任务目标，选择下一次加工或外出行动。"
 

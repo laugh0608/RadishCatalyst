@@ -49,6 +49,24 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 		"runtime hint prompt keeps onboarding line"
 	)
 
+	var relay_world := WorldState.create_default()
+	var relay_character := CharacterState.create_default()
+	relay_world.current_region_id = "region.outpost_platform"
+	relay_world.quest_state.active_quest_ids = ["quest.reenter_phase_frontline"]
+	hud.update_status(data_registry, relay_world, relay_character)
+	_expect_text_contains(
+		failures,
+		hud.prompt_label.text,
+		"方向：在基地按 E 使用相位回投台",
+		"runtime hint prompt points relay reentry back to outpost pad"
+	)
+	_expect_text_contains(
+		failures,
+		hud.prompt_label.text,
+		"提示：先真正用一次回投台",
+		"runtime hint prompt explains relay reentry purpose"
+	)
+
 	var reactor := PrototypeInteractable.new()
 	reactor.definition_id = "building.basic_reactor"
 	reactor.interaction_type = "process_recipe"
@@ -81,7 +99,7 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 	_expect_text_contains(
 		failures,
 		hud.prompt_label.text,
-		"方向：确认快捷栏 1 带修复凝胶",
+		"方向：在基地按 E 使用相位回投台",
 		"runtime hint returns after interaction clears"
 	)
 
