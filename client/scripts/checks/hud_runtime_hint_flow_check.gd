@@ -101,6 +101,34 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 		"提示：相位井心核不是收尾；要先回基地把它解析成脉搏片",
 		"runtime hint prompt keeps heart analysis explicit after phase well sink"
 	)
+	var chamber_world := WorldState.create_default()
+	var chamber_character := CharacterState.create_default()
+	chamber_world.quest_state.active_quest_ids = []
+	chamber_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_chamber")
+	hud.update_status(data_registry, chamber_world, chamber_character)
+	_expect_text_contains(
+		failures,
+		hud.prompt_label.text,
+		"方向：相位井纺核已带回：先回基地解析纺核",
+		"runtime hint prompt keeps phase well spindle fallback after chamber"
+	)
+	_expect_text_contains(
+		failures,
+		hud.prompt_label.text,
+		"提示：相位井纺核不是收尾；要先回基地把它解析成经片",
+		"runtime hint prompt keeps spindle analysis explicit after phase well chamber"
+	)
+	var loom_world := WorldState.create_default()
+	var loom_character := CharacterState.create_default()
+	loom_world.quest_state.active_quest_ids = []
+	loom_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_loom")
+	hud.update_status(data_registry, loom_world, loom_character)
+	_expect_text_contains(
+		failures,
+		hud.prompt_label.text,
+		"方向：井纺室断面已经交出第一份相位井织核",
+		"runtime hint prompt summarizes weave core reward after phase well loom"
+	)
 	hud.update_status(data_registry, relay_world, relay_character)
 
 	var reactor := PrototypeInteractable.new()

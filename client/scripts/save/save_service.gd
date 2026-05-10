@@ -378,8 +378,10 @@ func _format_slot_details(save_data: Dictionary) -> String:
 			var unlocked_effects := _get_string_array(quest_state.get("unlocked_effects", []))
 			if active_quest_ids is Array and not active_quest_ids.is_empty():
 				parts.append("目标：%s" % _get_display_name(String(active_quest_ids[0])))
+			elif completed_quest_ids.has("quest.inspect_phase_well_loom"):
+				parts.append("目标：相位井织核已带回")
 			elif completed_quest_ids.has("quest.inspect_phase_well_chamber"):
-				parts.append("目标：相位井纺核已带回")
+				parts.append("目标：相位井纺核待解析")
 			elif completed_quest_ids.has("quest.inspect_phase_well_sink"):
 				parts.append("目标：相位井心核待解析")
 			elif completed_quest_ids.has("quest.inspect_inner_phase_well"):

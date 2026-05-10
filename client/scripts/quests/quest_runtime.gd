@@ -73,6 +73,8 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 		log_messages.append(CharacterProgressionStats.LEGACY_SYNC_LOG_MESSAGE)
 	if _restore_missing_phase_well_heart_analysis_unlock(world_state):
 		log_messages.append("旧进度已接入：相位井心核解析配方已补齐。")
+	if _restore_missing_phase_well_spindle_analysis_unlock(world_state):
+		log_messages.append("旧进度已接入：相位井纺核解析配方已补齐。")
 	if _restore_missing_phase_well_core_analysis_unlock(world_state):
 		log_messages.append("旧进度已接入：相位井芯样本解析配方已补齐。")
 	if _restore_missing_phase_well_locator_analysis_unlock(world_state):
@@ -81,6 +83,8 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 		log_messages.append("旧进度已接入：内层故障轨迹分析配方已补齐。")
 	if _restore_missing_phase_relay_anchor(world_state):
 		log_messages.append("旧进度已接入：前线回传锚点已按固定深段落点恢复在线。")
+	if _activate_missing_post_phase_well_chamber_followup(world_state):
+		log_messages.append("旧进度已接入：井心室后的井纺后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_sink_followup(world_state):
 		log_messages.append("旧进度已接入：井底裂口后的心核后续任务已补入当前目标。")
 	if _activate_missing_post_phase_relay_followup(world_state):
@@ -254,6 +258,36 @@ func _restore_missing_phase_well_heart_analysis_unlock(world_state: WorldState) 
 	return true
 
 
+func _restore_missing_phase_well_spindle_analysis_unlock(world_state: WorldState) -> bool:
+	if not world_state.quest_state.has_completed_quest("quest.inspect_phase_well_chamber"):
+		return false
+	if world_state.quest_state.unlocked_effects.has("recipe.phase_well_spindle_analysis"):
+		return false
+	world_state.quest_state.unlock_effect("recipe.phase_well_spindle_analysis")
+	return true
+
+
+func _activate_missing_post_phase_well_chamber_followup(world_state: WorldState) -> bool:
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.inspect_phase_well_chamber"):
+		return false
+	for quest_id in [
+		"quest.analyze_phase_well_spindle",
+		"quest.collect_weft_bundle",
+		"quest.refine_weft_bundle",
+		"quest.assemble_phase_well_shuttle",
+		"quest.inspect_phase_well_loom"
+	]:
+		if world_state.quest_state.has_completed_quest(quest_id):
+			continue
+		if world_state.quest_state.has_active_quest(quest_id):
+			return false
+		world_state.quest_state.activate_quest(quest_id)
+		return true
+	return false
+
+
 func _activate_missing_post_phase_well_sink_followup(world_state: WorldState) -> bool:
 	if not world_state.quest_state.active_quest_ids.is_empty():
 		return false
@@ -264,7 +298,12 @@ func _activate_missing_post_phase_well_sink_followup(world_state: WorldState) ->
 		"quest.collect_heart_spine",
 		"quest.refine_heart_spine",
 		"quest.assemble_phase_well_shunt",
-		"quest.inspect_phase_well_chamber"
+		"quest.inspect_phase_well_chamber",
+		"quest.analyze_phase_well_spindle",
+		"quest.collect_weft_bundle",
+		"quest.refine_weft_bundle",
+		"quest.assemble_phase_well_shuttle",
+		"quest.inspect_phase_well_loom"
 	]:
 		if world_state.quest_state.has_completed_quest(quest_id):
 			continue
@@ -305,7 +344,12 @@ func _activate_missing_post_phase_relay_followup(world_state: WorldState) -> boo
 		"quest.collect_heart_spine",
 		"quest.refine_heart_spine",
 		"quest.assemble_phase_well_shunt",
-		"quest.inspect_phase_well_chamber"
+		"quest.inspect_phase_well_chamber",
+		"quest.analyze_phase_well_spindle",
+		"quest.collect_weft_bundle",
+		"quest.refine_weft_bundle",
+		"quest.assemble_phase_well_shuttle",
+		"quest.inspect_phase_well_loom"
 	]:
 		if world_state.quest_state.has_completed_quest(quest_id):
 			continue
@@ -318,6 +362,11 @@ func _activate_missing_post_phase_relay_followup(world_state: WorldState) -> boo
 
 func _get_default_phase_relay_anchor_id(world_state: WorldState) -> String:
 	for quest_id in [
+		"quest.inspect_phase_well_loom",
+		"quest.assemble_phase_well_shuttle",
+		"quest.refine_weft_bundle",
+		"quest.collect_weft_bundle",
+		"quest.analyze_phase_well_spindle",
 		"quest.inspect_phase_well_chamber",
 		"quest.assemble_phase_well_shunt",
 		"quest.refine_heart_spine",

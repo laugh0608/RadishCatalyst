@@ -11,7 +11,7 @@ script = ExtResource("1_map")
 [node name="Background" type="ColorRect" parent="."]
 offset_left = -620.0
 offset_top = -360.0
-offset_right = 2360.0
+offset_right = 2640.0
 offset_bottom = 360.0
 color = Color(0.101961, 0.133333, 0.141176, 1)
 
@@ -70,6 +70,13 @@ offset_top = -200.0
 offset_right = 2320.0
 offset_bottom = 200.0
 color = Color(0.258824, 0.145098, 0.160784, 1)
+
+[node name="RegionPhaseWellLoom" type="ColorRect" parent="."]
+offset_left = 2320.0
+offset_top = -200.0
+offset_right = 2600.0
+offset_bottom = 200.0
+color = Color(0.282353, 0.176471, 0.14902, 1)
 
 [node name="BaseDirectionLabel" type="Label" parent="."]
 offset_left = -342.0
@@ -133,6 +140,14 @@ offset_top = 166.0
 offset_right = 2312.0
 offset_bottom = 192.0
 text = "→ 井心室断面"
+horizontal_alignment = 1
+
+[node name="PhaseWellLoomDirectionLabel" type="Label" parent="."]
+offset_left = 2332.0
+offset_top = 166.0
+offset_right = 2592.0
+offset_bottom = 192.0
+text = "→ 井纺室断面"
 horizontal_alignment = 1
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
@@ -495,6 +510,28 @@ single_use = false
 label_offset = Vector2(-100, 22)
 label_size = Vector2(200, 24)
 
+[node name="WeftBundleClusterNorth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(2386, -96)
+definition_id = "map_object.weft_bundle_cluster"
+interaction_type = "gather"
+label_offset = Vector2(-96, -52)
+label_size = Vector2(192, 24)
+
+[node name="WeftBundleClusterSouth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(2478, 92)
+definition_id = "map_object.weft_bundle_cluster"
+interaction_type = "gather"
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
+
+[node name="PhaseWellLoom" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(2562, -18)
+definition_id = "map_object.phase_well_loom"
+interaction_type = "inspect"
+single_use = false
+label_offset = Vector2(-100, 22)
+label_size = Vector2(200, 24)
+
 [node name="Enemies" type="Node2D" parent="."]
 
 [node name="NativeSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
@@ -544,3 +581,7 @@ definition_id = "enemy.phase_well_lurker"
 [node name="PhaseWellReaver" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(2148, 16)
 definition_id = "enemy.phase_well_reaver"
+
+[node name="PhaseWellTangler" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(2430, 16)
+definition_id = "enemy.phase_well_tangler"

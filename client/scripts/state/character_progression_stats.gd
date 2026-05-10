@@ -34,6 +34,11 @@ const PROGRESSION_MILESTONES := [
 		"quest_id": "quest.inspect_phase_well_chamber",
 		"health_bonus": 15.0,
 		"protection_bonus": 15.0
+	},
+	{
+		"quest_id": "quest.inspect_phase_well_loom",
+		"health_bonus": 15.0,
+		"protection_bonus": 15.0
 	}
 ]
 

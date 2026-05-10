@@ -319,6 +319,9 @@ func _on_interaction_available(interactable: PrototypeInteractable, should_auto_
 	if interactable.definition_id == "map_object.phase_well_chamber":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_well_chamber_prompt(world_state, character_state))
 		return
+	if interactable.definition_id == "map_object.phase_well_loom":
+		hud.show_prompt(interaction_prompt_formatter.format_phase_well_loom_prompt(world_state, character_state))
+		return
 	if interactable.interaction_type == "process_recipe":
 		var auto_selected_recipe := _maybe_select_recommended_recipe(interactable, should_auto_select_recipe)
 		hud.show_prompt(interaction_prompt_formatter.format_processing_prompt(interactable, character_state, world_state))
@@ -528,6 +531,9 @@ func _refresh_current_context_prompt() -> void:
 		return
 	if interactable.definition_id == "map_object.phase_well_chamber":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_well_chamber_prompt(world_state, character_state))
+		return
+	if interactable.definition_id == "map_object.phase_well_loom":
+		hud.show_prompt(interaction_prompt_formatter.format_phase_well_loom_prompt(world_state, character_state))
 		return
 	if interactable.interaction_type == "process_recipe":
 		_maybe_select_followup_recipe(interactable)

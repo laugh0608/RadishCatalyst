@@ -32,7 +32,9 @@
         "quest.analyze_phase_well_core",
         "quest.assemble_phase_well_pike",
         "quest.analyze_phase_well_heart",
-        "quest.assemble_phase_well_shunt"
+        "quest.assemble_phase_well_shunt",
+        "quest.analyze_phase_well_spindle",
+        "quest.assemble_phase_well_shuttle"
       ],
       "public_level": "public"
     },
@@ -60,7 +62,8 @@
         "quest.refine_fault_residue",
         "quest.refine_well_flux",
         "quest.refine_well_ash",
-        "quest.refine_heart_spine"
+        "quest.refine_heart_spine",
+        "quest.refine_weft_bundle"
       ],
       "public_level": "public"
     },
@@ -160,6 +163,20 @@
       "weather_pool": ["weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
       "quest_refs": ["quest.deploy_phase_relay_anchor", "quest.collect_heart_spine", "quest.inspect_phase_well_chamber"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "region.phase_well_loom",
+      "display_name_key": "region.phase_well_loom.name",
+      "description_key": "region.phase_well_loom.desc",
+      "planet_or_world": "world.slice_01",
+      "biome_type": "phase_well_loom",
+      "danger_level": 8,
+      "resources": ["item.weft_bundle", "item.phase_well_weave_core"],
+      "pollution_types": ["pollution.yellow_residue"],
+      "weather_pool": ["weather.acid_mist"],
+      "recommended_equipment": ["equipment.filter_module_t1"],
+      "quest_refs": ["quest.analyze_phase_well_spindle", "quest.collect_weft_bundle", "quest.inspect_phase_well_loom"],
       "public_level": "spoiler"
     }
   ]

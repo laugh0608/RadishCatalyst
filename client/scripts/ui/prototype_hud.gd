@@ -31,7 +31,12 @@ const GM_RESOURCE_CANDIDATES: Array[String] = [
 	"item.heart_spine",
 	"item.phase_well_damper",
 	"item.phase_well_shunt",
-	"item.phase_well_spindle"
+	"item.phase_well_spindle",
+	"item.phase_well_warp_sheet",
+	"item.weft_bundle",
+	"item.phase_well_tension_rib",
+	"item.phase_well_shuttle",
+	"item.phase_well_weave_core"
 ]
 const SUPPLY_FEEDBACK_SECONDS := 4.0
 const QUEST_COMPLETION_FEEDBACK_SECONDS := 7.0
@@ -79,7 +84,8 @@ var last_debug_character_state: CharacterState
 	$MapPanel/DeepMarker,
 	$MapPanel/InnerPhaseWellMarker,
 	$MapPanel/PhaseWellSinkMarker,
-	$MapPanel/PhaseWellChamberMarker
+	$MapPanel/PhaseWellChamberMarker,
+	$MapPanel/PhaseWellLoomMarker
 ]
 @onready var map_marker_labels: Array[Label] = [
 	$MapPanel/OutpostLabel,
@@ -89,7 +95,8 @@ var last_debug_character_state: CharacterState
 	$MapPanel/DeepLabel,
 	$MapPanel/InnerPhaseWellLabel,
 	$MapPanel/PhaseWellSinkLabel,
-	$MapPanel/PhaseWellChamberLabel
+	$MapPanel/PhaseWellChamberLabel,
+	$MapPanel/PhaseWellLoomLabel
 ]
 @onready var device_title_label: Label = $DevicePanel/DeviceTitleLabel
 @onready var device_status_label: Label = $DevicePanel/DeviceStatusLabel
@@ -565,7 +572,9 @@ func _ensure_runtime_nodes() -> void:
 			get_node_or_null("MapPanel/RuinMarker"),
 			get_node_or_null("MapPanel/DeepMarker"),
 			get_node_or_null("MapPanel/InnerPhaseWellMarker"),
-			get_node_or_null("MapPanel/PhaseWellSinkMarker")
+			get_node_or_null("MapPanel/PhaseWellSinkMarker"),
+			get_node_or_null("MapPanel/PhaseWellChamberMarker"),
+			get_node_or_null("MapPanel/PhaseWellLoomMarker")
 		]
 	if map_marker_labels.is_empty() or map_marker_labels[0] == null:
 		map_marker_labels = [
@@ -575,7 +584,9 @@ func _ensure_runtime_nodes() -> void:
 			get_node_or_null("MapPanel/RuinLabel"),
 			get_node_or_null("MapPanel/DeepLabel"),
 			get_node_or_null("MapPanel/InnerPhaseWellLabel"),
-			get_node_or_null("MapPanel/PhaseWellSinkLabel")
+			get_node_or_null("MapPanel/PhaseWellSinkLabel"),
+			get_node_or_null("MapPanel/PhaseWellChamberLabel"),
+			get_node_or_null("MapPanel/PhaseWellLoomLabel")
 		]
 	if device_title_label == null:
 		device_title_label = get_node_or_null("DevicePanel/DeviceTitleLabel")

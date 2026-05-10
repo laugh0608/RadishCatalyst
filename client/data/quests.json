@@ -665,9 +665,74 @@
       "objectives": [{"type": "inspect", "target_id": "map_object.phase_well_chamber", "amount": 1}],
       "prerequisites": ["quest.assemble_phase_well_shunt"],
       "rewards": [{"id": "item.phase_well_spindle", "amount": 1}],
-        "unlock_effects": ["slice_01_complete"],
-        "next_quest_ids": [],
-        "public_level": "spoiler"
-      }
+      "unlock_effects": ["recipe.phase_well_spindle_analysis"],
+      "next_quest_ids": ["quest.analyze_phase_well_spindle"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.analyze_phase_well_spindle",
+      "display_name_key": "quest.analyze_phase_well_spindle.name",
+      "description_key": "quest.analyze_phase_well_spindle.desc",
+      "quest_type": "main",
+      "stage": 52,
+      "objectives": [{"type": "craft_item", "target_id": "item.phase_well_warp_sheet", "amount": 1}],
+      "prerequisites": ["quest.inspect_phase_well_chamber"],
+      "rewards": [],
+      "unlock_effects": ["region.phase_well_loom"],
+      "next_quest_ids": ["quest.collect_weft_bundle"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.collect_weft_bundle",
+      "display_name_key": "quest.collect_weft_bundle.name",
+      "description_key": "quest.collect_weft_bundle.desc",
+      "quest_type": "main",
+      "stage": 53,
+      "objectives": [{"type": "visit_region", "target_id": "region.phase_well_loom", "amount": 1}, {"type": "defeat_enemy", "target_id": "enemy.phase_well_tangler", "amount": 1}, {"type": "gather_item", "target_id": "item.weft_bundle", "amount": 2}],
+      "prerequisites": ["quest.analyze_phase_well_spindle"],
+      "rewards": [],
+      "unlock_effects": ["recipe.weft_bundle_stabilization"],
+      "next_quest_ids": ["quest.refine_weft_bundle"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.refine_weft_bundle",
+      "display_name_key": "quest.refine_weft_bundle.name",
+      "description_key": "quest.refine_weft_bundle.desc",
+      "quest_type": "main",
+      "stage": 54,
+      "objectives": [{"type": "craft_item", "target_id": "item.phase_well_tension_rib", "amount": 1}],
+      "prerequisites": ["quest.collect_weft_bundle"],
+      "rewards": [],
+      "unlock_effects": ["recipe.phase_well_shuttle"],
+      "next_quest_ids": ["quest.assemble_phase_well_shuttle"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.assemble_phase_well_shuttle",
+      "display_name_key": "quest.assemble_phase_well_shuttle.name",
+      "description_key": "quest.assemble_phase_well_shuttle.desc",
+      "quest_type": "main",
+      "stage": 55,
+      "objectives": [{"type": "craft_item", "target_id": "item.phase_well_shuttle", "amount": 1}],
+      "prerequisites": ["quest.refine_weft_bundle"],
+      "rewards": [],
+      "unlock_effects": [],
+      "next_quest_ids": ["quest.inspect_phase_well_loom"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.inspect_phase_well_loom",
+      "display_name_key": "quest.inspect_phase_well_loom.name",
+      "description_key": "quest.inspect_phase_well_loom.desc",
+      "quest_type": "main",
+      "stage": 56,
+      "objectives": [{"type": "inspect", "target_id": "map_object.phase_well_loom", "amount": 1}],
+      "prerequisites": ["quest.assemble_phase_well_shuttle"],
+      "rewards": [{"id": "item.phase_well_weave_core", "amount": 1}],
+      "unlock_effects": ["slice_01_complete"],
+      "next_quest_ids": [],
+      "public_level": "spoiler"
+    }
   ]
 }

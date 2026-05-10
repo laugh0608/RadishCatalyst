@@ -32,7 +32,8 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		"recipe.fault_residue_stabilization",
 		"recipe.well_flux_stabilization",
 		"recipe.well_ash_stabilization",
-		"recipe.heart_spine_stabilization"
+		"recipe.heart_spine_stabilization",
+		"recipe.weft_bundle_stabilization"
 	])
 	recipe_world.quest_state.active_quest_ids = ["quest.analyze_anomaly_sample"]
 	recipe_world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 2)
@@ -110,7 +111,9 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		"recipe.phase_well_core_analysis",
 		"recipe.phase_well_pike",
 		"recipe.phase_well_heart_analysis",
-		"recipe.phase_well_shunt"
+		"recipe.phase_well_shunt",
+		"recipe.phase_well_spindle_analysis",
+		"recipe.phase_well_shuttle"
 	])
 	recipe_character.inventory.items["item.basic_parts"] = 1
 	recipe_character.inventory.add_item("item.signal_echo_trace", 1)
@@ -306,6 +309,41 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		"recipe.phase_well_shunt",
 		"phase well shunt assembly returns to reactor recipe after basic parts are restored"
 	)
+	recipe_character.inventory.add_item("item.phase_well_spindle", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_spindle"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"phase well spindle analysis falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_spindle_analysis",
+		"phase well spindle analysis returns to reactor recipe after basic parts are restored"
+	)
+	recipe_world.quest_state.active_quest_ids = ["quest.refine_weft_bundle"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(filter, recipe_character, recipe_world),
+		"recipe.weft_bundle_stabilization",
+		"weft bundle refinement selects pollution filter recipe"
+	)
+	recipe_character.inventory.add_item("item.phase_well_warp_sheet", 1)
+	recipe_character.inventory.add_item("item.phase_well_tension_rib", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.assemble_phase_well_shuttle"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"phase well shuttle assembly falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_shuttle",
+		"phase well shuttle assembly returns to reactor recipe after basic parts are restored"
+	)
 	deep_reactor.free()
 	filter.free()
 
@@ -382,7 +420,7 @@ func _check_hud_log_presenter() -> void:
 
 func _check_development_baseline_presenter() -> void:
 	var definitions := DevelopmentBaselineCatalog.get_baseline_definitions()
-	host._expect_equal(definitions.size(), 10, "development baseline catalog count")
+	host._expect_equal(definitions.size(), 11, "development baseline catalog count")
 	host._expect_equal(
 		String(definitions[0].get("id", "")),
 		"baseline.s0_new_game",

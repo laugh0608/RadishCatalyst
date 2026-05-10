@@ -80,6 +80,14 @@ const BASELINE_DEFINITIONS := [
 		"completed_through": "quest.inspect_phase_well_sink",
 		"summary": "井底裂口已凿开，相位井心核已带回，下一步回基地解析并推进更东侧井心室断面。",
 		"recommended_for": "相位井心核解析、心棘残片回收、抑振骨处理、井心分流栓、井心室断面与旧存档兼容回归。"
+	},
+	{
+		"id": "baseline.s10_phase_well_spindle_ready",
+		"code": "S10",
+		"display_name": "S10 相位井纺核已带回",
+		"completed_through": "quest.inspect_phase_well_chamber",
+		"summary": "井心室断面已勘验，相位井纺核已带回，下一步回基地解析并推进更东侧井纺室断面。",
+		"recommended_for": "相位井纺核解析、纬束残团回收、张力肋处理、井纺梭栓、井纺室断面与第二回投锚点兼容回归。"
 	}
 ]
 

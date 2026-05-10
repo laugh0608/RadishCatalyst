@@ -24,8 +24,10 @@ func format_runtime_hint(world_state: WorldState, character_state: CharacterStat
 
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_well_loom(world_state):
+			return "井纺室断面已经交出第一份相位井织核：纺核后的更东侧风险线又一次转成了基地可继续放大的新收益锚点。"
 		if _has_completed_phase_well_chamber(world_state):
-			return "井心室断面已经交出第一份相位井纺核：更东侧风险线又一次转成了基地可继续放大的新收益锚点。"
+			return "相位井纺核已带回：先回基地解析纺核，把更东侧井纺室断面真正压成下一包可执行目标。"
 		if _has_completed_phase_well_sink(world_state):
 			return "相位井心核已带回：先回基地解析心核，把更东侧井心室断面真正压成下一包可执行目标。"
 		if _has_completed_inner_phase_well(world_state):
@@ -168,14 +170,26 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "回基地使用基础反应器，把相位井脉搏片、抑振骨和基础零件组装成井心分流栓。"
 		"quest.inspect_phase_well_chamber":
 			return "带着井心分流栓返回更东侧井心室断面，勘验后带回第一份相位井纺核。"
+		"quest.analyze_phase_well_spindle":
+			return "回基地使用基础反应器，解析相位井纺核并整理相位井经片。"
+		"quest.collect_weft_bundle":
+			return "沿纺核经片继续向东推进，击退井纺纠缠体并回收两处纬束残团。"
+		"quest.refine_weft_bundle":
+			return "回处理点污染过滤器，把纬束残团筛成可继续组装的相位井张力肋。"
+		"quest.assemble_phase_well_shuttle":
+			return "回基地使用基础反应器，把相位井经片、张力肋和基础零件组装成井纺梭栓。"
+		"quest.inspect_phase_well_loom":
+			return "带着井纺梭栓返回更东侧井纺室断面，勘验后带回第一份相位井织核。"
 		_:
 			return "按当前目标推进。"
 
 
 func format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_well_loom(world_state):
+			return "相位井织核已经带回基地，这说明相位井纺核后的更东侧门槛也已经成功压成下一轮基地回投锚点。"
 		if _has_completed_phase_well_chamber(world_state):
-			return "相位井纺核已经带回基地，这说明相位井心核后的更深门槛也已经成功压成下一轮基地回投锚点。"
+			return "相位井纺核不是收尾；要先回基地把它解析成经片，井纺室断面才会真正变成新的可执行推进包。"
 		if _has_completed_phase_well_sink(world_state):
 			return "相位井心核不是收尾；要先回基地把它解析成脉搏片，井心室断面才会真正变成新的可执行推进包。"
 		if _has_completed_inner_phase_well(world_state):
@@ -320,6 +334,16 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "井心分流栓会把心核分析产物和过滤结果重新变成开路物，决定井心室断面能否交出第一份相位井纺核。"
 		"quest.inspect_phase_well_chamber":
 			return "这一步要把基地组装的井心分流栓真正带回前线，让相位井心核后的更深收益继续落成实体战利品。"
+		"quest.analyze_phase_well_spindle":
+			return "相位井纺核不是纪念品；要先回基地把它反解成经片，新的井纺室断面风险才会真正显形。"
+		"quest.collect_weft_bundle":
+			return "井纺室的新敌人和纬束残团要在同一趟外勤里一起解决，这一步负责把新风险和下一次基地加工输入同时带回来。"
+		"quest.refine_weft_bundle":
+			return "先用污染过滤器稳定纬束残团；副产污染浆液会继续反哺井纺梭栓组装，不需要引入第三台设备。"
+		"quest.assemble_phase_well_shuttle":
+			return "井纺梭栓会把纺核分析产物和过滤结果重新变成开路物，决定井纺室断面能否交出第一份相位井织核。"
+		"quest.inspect_phase_well_loom":
+			return "这一步要把基地组装的井纺梭栓真正带回前线，让相位井纺核后的更深收益继续落成实体战利品。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 
@@ -346,6 +370,10 @@ func _has_completed_phase_relay_anchor(world_state: WorldState) -> bool:
 
 func _has_completed_phase_well_chamber(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.inspect_phase_well_chamber")
+
+
+func _has_completed_phase_well_loom(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.inspect_phase_well_loom")
 
 
 func _has_completed_phase_well_sink(world_state: WorldState) -> bool:

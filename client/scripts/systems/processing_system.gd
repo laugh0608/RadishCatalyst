@@ -206,6 +206,12 @@ func get_recommended_recipe_id(
 			return _select_if_available(interactable, "recipe.heart_spine_stabilization")
 		"quest.assemble_phase_well_shunt":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_shunt")
+		"quest.analyze_phase_well_spindle":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_spindle_analysis")
+		"quest.refine_weft_bundle":
+			return _select_if_available(interactable, "recipe.weft_bundle_stabilization")
+		"quest.assemble_phase_well_shuttle":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_shuttle")
 		_:
 			return ""
 
@@ -303,6 +309,12 @@ func _get_completion_next_step(recipe_id: String) -> String:
 			return "抑振骨和副产污染浆液已筛出；把它们带回基地反应器，组装井心分流栓。"
 		"recipe.phase_well_shunt":
 			return "带着井心分流栓返回更东侧井心室断面，勘验断面并带回第一份相位井纺核。"
+		"recipe.phase_well_spindle_analysis":
+			return "相位井经片已整理完成；继续向东进入新暴露的井纺室边缘，击退井纺纠缠体并回收纬束残团。"
+		"recipe.weft_bundle_stabilization":
+			return "张力肋和副产污染浆液已筛出；把它们带回基地反应器，组装井纺梭栓。"
+		"recipe.phase_well_shuttle":
+			return "带着井纺梭栓返回更东侧井纺室断面，勘验断面并带回第一份相位井织核。"
 		_:
 			return "查看当前任务目标，选择下一次加工或外出行动。"
 

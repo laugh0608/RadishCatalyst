@@ -50,7 +50,10 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.phase_well_sink": "map_object.phase_well_sink",
 	"map_object_instance.heart_spine_cluster_north": "map_object.heart_spine_cluster",
 	"map_object_instance.heart_spine_cluster_south": "map_object.heart_spine_cluster",
-	"map_object_instance.phase_well_chamber": "map_object.phase_well_chamber"
+	"map_object_instance.phase_well_chamber": "map_object.phase_well_chamber",
+	"map_object_instance.weft_bundle_cluster_north": "map_object.weft_bundle_cluster",
+	"map_object_instance.weft_bundle_cluster_south": "map_object.weft_bundle_cluster",
+	"map_object_instance.phase_well_loom": "map_object.phase_well_loom"
 }
 
 const PROTOTYPE_ENEMY_SOURCES := {
@@ -101,6 +104,10 @@ const PROTOTYPE_ENEMY_SOURCES := {
 	"enemy_instance.phase_well_reaver": {
 		"definition_id": "enemy.phase_well_reaver",
 		"region_id": "region.phase_well_chamber"
+	},
+	"enemy_instance.phase_well_tangler": {
+		"definition_id": "enemy.phase_well_tangler",
+		"region_id": "region.phase_well_loom"
 	}
 }
 
@@ -180,7 +187,8 @@ const LEGACY_OPTIONAL_COMPLETED_QUEST_EFFECTS := {
 	"quest.inspect_phase_fault_spire": ["recipe.inner_fault_analysis"],
 	"quest.unlock_phase_well": ["recipe.phase_well_locator_analysis"],
 	"quest.inspect_inner_phase_well": ["recipe.phase_well_core_analysis"],
-	"quest.inspect_phase_well_sink": ["recipe.phase_well_heart_analysis"]
+	"quest.inspect_phase_well_sink": ["recipe.phase_well_heart_analysis"],
+	"quest.inspect_phase_well_chamber": ["recipe.phase_well_spindle_analysis"]
 }
 
 var data_registry: DataRegistry

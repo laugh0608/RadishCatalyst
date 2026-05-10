@@ -42,6 +42,11 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 	"item.phase_well_damper",
 	"item.phase_well_shunt",
 	"item.phase_well_spindle",
+	"item.phase_well_warp_sheet",
+	"item.weft_bundle",
+	"item.phase_well_tension_rib",
+	"item.phase_well_shuttle",
+	"item.phase_well_weave_core",
 	"item.filter_media",
 	"item.foundation_material",
 	"fluid.basic_solvent",
@@ -146,8 +151,10 @@ func _format_vital_lines(
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if not quest_id.is_empty():
 		return _get_display_name(data_registry, quest_id)
+	if _has_completed_phase_well_loom(world_state):
+		return "相位井织核已带回"
 	if _has_completed_phase_well_chamber(world_state):
-		return "相位井纺核已带回"
+		return "相位井纺核待解析"
 	if _has_completed_phase_well_sink(world_state):
 		return "相位井心核待解析"
 	if _has_completed_inner_phase_well(world_state):
@@ -213,8 +220,10 @@ func _format_quick_slots(data_registry: DataRegistry, character_state: Character
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_well_loom(world_state):
+			return "井纺室断面已勘验；相位井织核已带回基地，新的更东侧收益锚点已生成"
 		if _has_completed_phase_well_chamber(world_state):
-			return "井心室断面已勘验；相位井纺核已带回基地，新的更深收益锚点已生成"
+			return "井心室断面已勘验；回基地解析相位井纺核后，可继续把更东侧井纺室断面转成新的推进包"
 		if _has_completed_phase_well_sink(world_state):
 			return "井底裂口已凿开；回基地解析相位井心核后，可继续把更东侧井心室断面转成新的推进包"
 		if _has_completed_inner_phase_well(world_state):
@@ -347,6 +356,10 @@ func _has_completed_phase_relay_anchor(world_state: WorldState) -> bool:
 
 func _has_completed_phase_well_chamber(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.inspect_phase_well_chamber")
+
+
+func _has_completed_phase_well_loom(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.inspect_phase_well_loom")
 
 
 func _has_completed_phase_well_sink(world_state: WorldState) -> bool:
