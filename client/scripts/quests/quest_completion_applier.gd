@@ -18,6 +18,15 @@ func apply_completion(world_state: WorldState, character_state: CharacterState, 
 	var unlock_effects: Array = completion_result.get("unlock_effects", [])
 	for effect_id in unlock_effects:
 		_apply_world_unlock_effect(world_state, String(effect_id))
+	var progression_sync := CharacterProgressionStats.sync_character_state(
+		character_state,
+		world_state.quest_state,
+		"gain"
+	)
+	if bool(progression_sync.get("changed", false)):
+		var progression_reward_message := CharacterProgressionStats.format_reward_message(progression_sync)
+		if not progression_reward_message.is_empty():
+			reward_messages.append(progression_reward_message)
 
 	var next_quest_ids: Array = completion_result.get("next_quest_ids", [])
 	var next_quest_names := _format_next_quest_names(next_quest_ids)

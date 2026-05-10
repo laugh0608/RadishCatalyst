@@ -159,7 +159,7 @@
       "pollution_types": ["pollution.yellow_residue"],
       "weather_pool": ["weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
-      "quest_refs": ["quest.collect_heart_spine", "quest.inspect_phase_well_chamber"],
+      "quest_refs": ["quest.deploy_phase_relay_anchor", "quest.collect_heart_spine", "quest.inspect_phase_well_chamber"],
       "public_level": "spoiler"
     }
   ]

@@ -202,8 +202,8 @@ func format_phase_relay_pad_prompt(world_state: WorldState) -> String:
 	if not world_state.has_active_phase_relay_anchor():
 		return "相位回投台：前线锚点当前离线；返回深段重新校准后再尝试。"
 	if world_state.quest_state.has_active_quest("quest.reenter_phase_frontline"):
-		return "按 E 回投：相位回投台，返回最后锚点并继续追踪更东侧裂相碎屑。"
-	return "按 E 回投：相位回投台，返回最后部署的前线回传锚点。"
+		return "按 E 回投：相位回投台，返回当前锚点并继续追踪更东侧裂相碎屑。"
+	return "按 E 回投：相位回投台，返回最近校准的前线回传锚点。"
 
 
 func format_phase_fault_spire_prompt(world_state: WorldState, character_state: CharacterState) -> String:

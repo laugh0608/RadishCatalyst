@@ -48,6 +48,7 @@ func _run_checks() -> void:
 	_check_runtime_activates_phase_relay_followup()
 	_check_runtime_activates_post_phase_relay_followup()
 	_check_runtime_restores_inner_fault_analysis_followup()
+	_check_runtime_syncs_progression_vitals_and_late_anchor()
 	_check_active_objective_progress_is_capped()
 	_check_inactive_objective_progress_is_ignored()
 
@@ -532,7 +533,7 @@ func _check_runtime_activates_missing_outer_ring_followup() -> void:
 	_expect_equal(bool(result.get("accepted", false)), true, "runtime accepts missing outer ring followup activation")
 	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.salvage_signal_echo", "runtime activates signal echo salvage quest")
 	_expect_equal(_result_array_size(result, "completion_feedbacks"), 0, "followup activation should not emit completion feedback")
-	if String(result.get("log_messages", [""])[0]).find("深段回波回收任务") < 0:
+	if not _result_logs_contain(result, "深段回波回收任务"):
 		failures.append("followup activation should log outer ring extension activation, got %s" % var_to_str(result))
 
 
@@ -591,7 +592,7 @@ func _check_runtime_activates_missing_second_deep_followup() -> void:
 	_expect_equal(bool(result.get("accepted", false)), true, "runtime accepts missing second deep followup activation")
 	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_deep_core", "runtime activates deep core analysis quest")
 	_expect_equal(_result_array_size(result, "completion_feedbacks"), 0, "second deep activation should not emit completion feedback")
-	if String(result.get("log_messages", [""])[0]).find("第二轮任务") < 0:
+	if not _result_logs_contain(result, "第二轮任务"):
 		failures.append("second deep activation should log deep followup activation, got %s" % var_to_str(result))
 
 
@@ -654,7 +655,7 @@ func _check_runtime_activates_phase_relay_followup() -> void:
 	_expect_equal(bool(result.get("accepted", false)), true, "runtime accepts phase relay followup activation")
 	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.deploy_phase_relay_anchor", "runtime activates phase relay anchor deployment quest")
 	_expect_equal(_result_array_size(result, "completion_feedbacks"), 0, "phase relay activation should not emit completion feedback")
-	if String(result.get("log_messages", [""])[0]).find("第二轮任务") < 0:
+	if not _result_logs_contain(result, "第二轮任务"):
 		failures.append("phase relay activation should log deep followup activation, got %s" % var_to_str(result))
 
 
@@ -719,7 +720,7 @@ func _check_runtime_activates_post_phase_relay_followup() -> void:
 	_expect_equal(world_state.active_phase_relay_anchor_id, "map_object_instance.phase_return_anchor", "runtime restores active phase relay anchor for post relay saves")
 	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.reenter_phase_frontline", "runtime activates relay pad reentry quest")
 	_expect_equal(_result_array_size(result, "completion_feedbacks"), 0, "post relay activation should not emit completion feedback")
-	if String(result.get("log_messages", [""])[0]).find("前线回传锚点") < 0 and String(result.get("log_messages", ["", ""])[1]).find("深段后续任务") < 0:
+	if not _result_logs_contain(result, "前线回传锚点") or not _result_logs_contain(result, "深段后续任务"):
 		failures.append("post relay activation should log relay restore and new deep followup, got %s" % var_to_str(result))
 
 
@@ -791,6 +792,75 @@ func _check_runtime_restores_inner_fault_analysis_followup() -> void:
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.inner_fault_analysis", "runtime restores missing inner fault analysis unlock")
 	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_inner_fault_trace", "runtime activates inner fault analysis quest")
 	_expect_equal(_result_array_size(result, "completion_feedbacks"), 0, "inner fault followup restoration should not emit completion feedback")
+
+
+func _check_runtime_syncs_progression_vitals_and_late_anchor() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.quest_state.active_quest_ids = ["quest.collect_heart_spine"]
+	world_state.quest_state.completed_quest_ids = [
+		"quest.restore_outpost",
+		"quest.scout_crystal_field",
+		"quest.calibrate_reactor",
+		"quest.bring_back_sample",
+		"quest.analyze_anomaly_sample",
+		"quest.make_filter_module",
+		"quest.prepare_treatment_supplies",
+		"quest.expand_treatment_point",
+		"quest.enter_pollution_edge",
+		"quest.defeat_elite_node",
+		"quest.unlock_ruin_signal",
+		"quest.scout_ruin_outer_ring",
+		"quest.assemble_phase_anchor",
+		"quest.stabilize_outer_ring_barrier",
+		"quest.secure_outer_ring_signal",
+		"quest.salvage_signal_echo",
+		"quest.analyze_deep_signal",
+		"quest.unlock_deep_ruin_entrance",
+		"quest.harvest_phase_filament",
+		"quest.refine_phase_filament",
+		"quest.assemble_deep_override",
+		"quest.unlock_deep_ruin_cache",
+		"quest.analyze_deep_core",
+		"quest.activate_deep_array",
+		"quest.assemble_deep_signal_matrix",
+		"quest.deploy_phase_relay_anchor",
+		"quest.reenter_phase_frontline",
+		"quest.trace_phase_splinters",
+		"quest.refine_phase_splinters",
+		"quest.tune_relay_lens",
+		"quest.inspect_phase_fault_spire",
+		"quest.analyze_inner_fault_trace",
+		"quest.collect_fault_residue",
+		"quest.refine_fault_residue",
+		"quest.assemble_phase_well_key",
+		"quest.unlock_phase_well",
+		"quest.analyze_phase_well_locator",
+		"quest.collect_well_flux",
+		"quest.refine_well_flux",
+		"quest.assemble_phase_well_probe",
+		"quest.inspect_inner_phase_well",
+		"quest.analyze_phase_well_core",
+		"quest.collect_well_ash",
+		"quest.refine_well_ash",
+		"quest.assemble_phase_well_pike",
+		"quest.inspect_phase_well_sink",
+		"quest.analyze_phase_well_heart"
+	]
+	character_state.health = 100.0
+	character_state.protection = 100.0
+
+	var result := quest_runtime.reconcile_active_objectives(world_state, character_state)
+	_expect_equal(bool(result.get("accepted", false)), true, "runtime accepts late-stage progression sync")
+	_expect_equal(character_state.max_health, 175.0, "runtime syncs late-stage max health")
+	_expect_equal(character_state.max_protection, 175.0, "runtime syncs late-stage max protection")
+	_expect_equal(character_state.health, 175.0, "runtime preserves late-stage full health ratio")
+	_expect_equal(character_state.protection, 175.0, "runtime preserves late-stage full protection ratio")
+	_expect_equal(
+		world_state.active_phase_relay_anchor_id,
+		"map_object_instance.phase_return_anchor_chamber",
+		"runtime restores chamber relay anchor for late-stage saves"
+	)
 
 
 func _check_active_objective_progress_is_capped() -> void:
@@ -936,6 +1006,16 @@ func _result_array_size(result: Dictionary, key: String) -> int:
 		failures.append("%s should be an array, got %s" % [key, var_to_str(values)])
 		return 0
 	return values.size()
+
+
+func _result_logs_contain(result: Dictionary, expected_fragment: String) -> bool:
+	var values = result.get("log_messages", [])
+	if not values is Array:
+		return false
+	for value in values:
+		if String(value).find(expected_fragment) >= 0:
+			return true
+	return false
 
 
 func _cleanup() -> void:

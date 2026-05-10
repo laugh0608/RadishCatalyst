@@ -1005,7 +1005,7 @@ func _inspect_phase_return_anchor(character_state: CharacterState, world_state: 
 		)
 		return {
 			"success": true,
-			"message": "前线回传锚点已联通：已快速回传到基地相位回投台；下一步从回投台重返前线，追踪更东侧裂相碎屑。"
+			"message": "前线回传锚点已联通：已快速回传到基地相位回投台；当前前线落点已重校准，下一步从回投台重返前线，追踪更东侧裂相碎屑。"
 		}
 
 	if not world_state.quest_state.has_completed_quest("quest.assemble_deep_signal_matrix"):
@@ -1045,16 +1045,18 @@ func _inspect_phase_relay_pad(character_state: CharacterState, world_state: Worl
 			"返回深段重新校准前线回传锚点，再从基地回投。"
 		)
 
-	var target_position := _get_phase_return_anchor_return_position(world_state.active_phase_relay_anchor_id)
-	_teleport_player_to_region(character_state, world_state, "region.deep_ruin_threshold", target_position)
+	var active_anchor_id := world_state.active_phase_relay_anchor_id
+	var target_position := _get_phase_return_anchor_return_position(active_anchor_id)
+	var target_region_id := _get_interactable_region_id(active_anchor_id, "region.deep_ruin_threshold")
+	_teleport_player_to_region(character_state, world_state, target_region_id, target_position)
 	if world_state.quest_state.has_active_quest("quest.reenter_phase_frontline"):
 		return {
 			"success": true,
-			"message": "相位回投台已联通：已回投到最后部署的前线回传锚点；更东侧裂相碎屑和新的深段猎手已暴露。"
+			"message": "相位回投台已联通：已回投到最近校准的前线回传锚点；更东侧裂相碎屑和新的深段猎手已暴露。"
 		}
 	return {
 		"success": true,
-		"message": "相位回投台已联通：已回投到最后部署的前线回传锚点。"
+		"message": "相位回投台已联通：已回投到最近校准的前线回传锚点。"
 	}
 
 
@@ -1214,7 +1216,7 @@ func _evacuate_if_needed(character_state: CharacterState, world_state: WorldStat
 		_format_amount(character_state.health),
 		_format_amount(character_state.protection)
 	]
-	var retry_text := _get_retry_hint(reason, health_depleted, protection_depleted)
+	var retry_text := _get_retry_hint(world_state, reason, health_depleted, protection_depleted)
 
 	return {
 		"title": "撤离前哨",
@@ -1235,7 +1237,9 @@ func _get_evacuation_reason(health_depleted: bool, protection_depleted: bool) ->
 	return "状态过低，"
 
 
-func _get_retry_hint(reason: String, health_depleted: bool, protection_depleted: bool) -> String:
+func _get_retry_hint(world_state: WorldState, reason: String, health_depleted: bool, protection_depleted: bool) -> String:
+	if world_state.quest_state.has_completed_quest("quest.restore_outpost"):
+		return "再尝试前：先按 E 整备前哨核心回满生命与防护；若要前线续战，再补修复凝胶或抗污染药剂。"
 	if protection_depleted:
 		return "再尝试前：启用过滤模块，按 2 使用抗污染药剂，或回基地处理污染沉积物补充药剂。"
 	if health_depleted:
@@ -1299,6 +1303,16 @@ func _get_interactable_return_position(instance_id: String, fallback_position: V
 			continue
 		return interactable.position + Vector2(0, 30)
 	return fallback_position
+
+
+func _get_interactable_region_id(instance_id: String, fallback_region_id: String) -> String:
+	for interactable in interactables_root.get_children():
+		if not interactable is PrototypeInteractable:
+			continue
+		if interactable.instance_id != instance_id:
+			continue
+		return _get_region_id_for_position(interactable.position)
+	return fallback_region_id
 
 
 func _get_enemy_instance_id(enemy: PrototypeEnemy) -> String:

@@ -36,7 +36,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "裂相尖塔已校准：先回基地解析内层故障轨迹，再把更东侧相位井锁压成下一包深段目标。"
 		if _has_completed_phase_relay_anchor(world_state):
 			if world_state.current_region_id == "region.outpost_platform":
-				return "相位回投台已就绪：先在基地按 E 返回最后部署的前线回传锚点，再追踪更东侧裂相碎屑。"
+				return "相位回投台已就绪：先在基地按 E 返回最近校准的前线回传锚点，再追踪更东侧裂相碎屑。"
 			return "前线回传锚点已在线：先回基地用相位回投台重返前线，再把裂相碎屑带回基地继续加工。"
 		if _has_completed_second_deep_pass(world_state):
 			return "深段读数矩阵已整理完成：返回深段固定点，把它部署成前线回传锚点。"
@@ -118,8 +118,8 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "带着深段读数矩阵返回深段固定点，部署前线回传锚点。"
 		"quest.reenter_phase_frontline":
 			if world_state.current_region_id == "region.outpost_platform":
-				return "在基地按 E 使用相位回投台，返回最后部署的锚点并继续追踪更东侧裂相碎屑。"
-			return "先用前线回传锚点回基地，再在相位回投台按 E 回到最后锚点。"
+				return "在基地按 E 使用相位回投台，返回最近校准的锚点并继续追踪更东侧裂相碎屑。"
+			return "先用前线回传锚点回基地，再在相位回投台按 E 回到当前锚点。"
 		"quest.trace_phase_splinters":
 			return "从锚点继续向东推进，击败裂相猎手并回收两处裂相碎屑。"
 		"quest.refine_phase_splinters":
@@ -186,7 +186,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "裂相尖塔已经校准完成：内层故障轨迹必须先回基地解析，才能把更东侧相位井锁真正变成下一包可验证内容。"
 		if _has_completed_phase_relay_anchor(world_state):
 			if world_state.current_region_id == "region.outpost_platform":
-				return "前线回传锚点链已打通：先在基地相位回投台回到最后锚点，再把更东侧裂相碎屑带回基地加工。"
+				return "前线回传锚点链已打通：先在基地相位回投台回到当前锚点，再把更东侧裂相碎屑带回基地加工。"
 			return "前线回传锚点已经上线：这次要用它把回基地补给和更深收益串成真正的新主线，而不是停在便利功能。"
 		if _has_completed_second_deep_pass(world_state):
 			return "深段读数矩阵不是终点；要把它带回深段部署成前线回传锚点，才能真正缩短第二轮往返。"

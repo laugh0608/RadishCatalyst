@@ -93,11 +93,12 @@ func load_game_for_slot(slot_id: String) -> Dictionary:
 			var message := "已读取原型存档。"
 			if index > 0:
 				message = "主存档不可用，已从最近备份 %d 恢复原型存档。" % index
+			var loaded_states := _build_loaded_states(save_data)
 			return {
 				"success": true,
 				"message": message,
-				"world_state": WorldState.from_dict(save_data.get("world", {})),
-				"character_state": CharacterState.from_dict(save_data.get("character", {})),
+				"world_state": loaded_states.get("world_state", WorldState.create_default()),
+				"character_state": loaded_states.get("character_state", CharacterState.create_default()),
 				"slot_id": String(paths.get("slot_id", DEFAULT_SLOT_ID)),
 				"recovered_from_backup": index > 0,
 				"source_file": save_file
@@ -219,11 +220,12 @@ func _load_legacy_save_into_slot(paths: Dictionary) -> Dictionary:
 			var message := "已从旧原型存档迁移到默认槽位。"
 			if index > 0:
 				message = "已从旧原型备份 %d 迁移到默认槽位。" % index
+			var loaded_states := _build_loaded_states(save_data)
 			return {
 				"success": true,
 				"message": message,
-				"world_state": WorldState.from_dict(save_data.get("world", {})),
-				"character_state": CharacterState.from_dict(save_data.get("character", {})),
+				"world_state": loaded_states.get("world_state", WorldState.create_default()),
+				"character_state": loaded_states.get("character_state", CharacterState.create_default()),
 				"slot_id": String(paths.get("slot_id", DEFAULT_SLOT_ID)),
 				"migrated_from_legacy": true,
 				"source_file": legacy_file
@@ -314,6 +316,20 @@ func _read_save_file(save_file: String) -> Dictionary:
 		"success": true,
 		"message": "已读取原型存档。",
 		"save_data": save_data
+	}
+
+
+func _build_loaded_states(save_data: Dictionary) -> Dictionary:
+	var world_state := WorldState.from_dict(save_data.get("world", {}))
+	var character_state := CharacterState.from_dict(save_data.get("character", {}))
+	CharacterProgressionStats.sync_character_state(
+		character_state,
+		world_state.quest_state,
+		"preserve_ratio"
+	)
+	return {
+		"world_state": world_state,
+		"character_state": character_state
 	}
 
 

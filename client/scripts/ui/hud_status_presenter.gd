@@ -225,7 +225,7 @@ func _format_active_quest_progress(data_registry: DataRegistry, world_state: Wor
 			return "裂相尖塔已校准；回基地解析故障轨迹，继续把更东侧相位井锁变成新目标"
 		if _has_completed_phase_relay_anchor(world_state):
 			if world_state.current_region_id == "region.outpost_platform":
-				return "基地相位回投台已锁定最后锚点；当前可按 E 回投返回深段，并继续追踪更东侧裂相碎屑"
+				return "基地相位回投台已锁定当前锚点；当前可按 E 回投返回深段，并继续追踪更东侧裂相碎屑"
 			return "基地与深段之间的快速回传已上线；当前可从前线快速回基地，再用回投台重返更东侧裂相脊"
 		if _has_completed_second_deep_pass(world_state):
 			return "深段读数矩阵已整理完成；返回深段固定点即可部署前线回传锚点"

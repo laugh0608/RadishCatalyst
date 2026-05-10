@@ -105,7 +105,7 @@ func run() -> void:
 	relay_pad_world.quest_state.completed_quest_ids.append("quest.deploy_phase_relay_anchor")
 	host._expect_text_contains(formatter.format_phase_relay_pad_prompt(relay_pad_world), "前线锚点当前离线", "phase relay pad offline prompt")
 	relay_pad_world.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor")
-	host._expect_text_contains(formatter.format_phase_relay_pad_prompt(relay_pad_world), "按 E 回投", "phase relay pad ready prompt")
+	host._expect_text_contains(formatter.format_phase_relay_pad_prompt(relay_pad_world), "最近校准", "phase relay pad ready prompt")
 	relay_pad_world.quest_state.active_quest_ids = ["quest.reenter_phase_frontline"]
 	host._expect_text_contains(formatter.format_phase_relay_pad_prompt(relay_pad_world), "裂相碎屑", "phase relay pad reentry prompt points to deeper followup")
 	var spire_world := WorldState.create_default()

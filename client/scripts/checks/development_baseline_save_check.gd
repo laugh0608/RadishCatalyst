@@ -39,6 +39,17 @@ func run() -> void:
 		host._expect_equal(loaded_character.current_region_id, character_state.current_region_id, "%s baseline character region" % code)
 		host._expect_equal(loaded_world.quest_state.active_quest_ids, world_state.quest_state.active_quest_ids, "%s baseline active quests" % code)
 		host._expect_equal(loaded_world.quest_state.completed_quest_ids, world_state.quest_state.completed_quest_ids, "%s baseline completed quests" % code)
+		var expected_vitals := CharacterProgressionStats.get_expected_vitals(loaded_world.quest_state)
+		host._expect_equal(
+			loaded_character.max_health,
+			float(expected_vitals.get("max_health", 100.0)),
+			"%s baseline max health follows progression" % code
+		)
+		host._expect_equal(
+			loaded_character.max_protection,
+			float(expected_vitals.get("max_protection", 100.0)),
+			"%s baseline max protection follows progression" % code
+		)
 		if baseline_id == "baseline.s5_phase_relay_online" or baseline_id == "baseline.s6_inner_fault_trace_ready" or baseline_id == "baseline.s7_phase_well_locator_ready" or baseline_id == "baseline.s8_phase_well_core_ready" or baseline_id == "baseline.s9_phase_well_heart_ready":
 			host._expect_equal(
 				loaded_world.active_phase_relay_anchor_id,

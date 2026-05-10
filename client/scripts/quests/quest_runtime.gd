@@ -64,6 +64,13 @@ func advance_pollution_edge_ready(world_state: WorldState, character_state: Char
 func reconcile_active_objectives(world_state: WorldState, character_state: CharacterState) -> Dictionary:
 	var updates: Array[Dictionary] = []
 	var log_messages: Array[String] = []
+	var progression_sync := CharacterProgressionStats.sync_character_state(
+		character_state,
+		world_state.quest_state,
+		"preserve_ratio"
+	)
+	if bool(progression_sync.get("changed", false)):
+		log_messages.append(CharacterProgressionStats.LEGACY_SYNC_LOG_MESSAGE)
 	if _restore_missing_phase_well_heart_analysis_unlock(world_state):
 		log_messages.append("旧进度已接入：相位井心核解析配方已补齐。")
 	if _restore_missing_phase_well_core_analysis_unlock(world_state):
@@ -207,7 +214,7 @@ func _restore_missing_phase_relay_anchor(world_state: WorldState) -> bool:
 		return false
 	if world_state.has_active_phase_relay_anchor():
 		return false
-	world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor")
+	world_state.set_active_phase_relay_anchor(_get_default_phase_relay_anchor_id(world_state))
 	return true
 
 
@@ -307,6 +314,18 @@ func _activate_missing_post_phase_relay_followup(world_state: WorldState) -> boo
 		world_state.quest_state.activate_quest(quest_id)
 		return true
 	return false
+
+
+func _get_default_phase_relay_anchor_id(world_state: WorldState) -> String:
+	for quest_id in [
+		"quest.inspect_phase_well_chamber",
+		"quest.assemble_phase_well_shunt",
+		"quest.refine_heart_spine",
+		"quest.collect_heart_spine"
+	]:
+		if world_state.quest_state.has_completed_quest(quest_id) or world_state.quest_state.has_active_quest(quest_id):
+			return "map_object_instance.phase_return_anchor_chamber"
+	return "map_object_instance.phase_return_anchor"
 
 
 func _objective_set_update(quest_id: String, objective_type: String, target_id: String, amount: float) -> Dictionary:
