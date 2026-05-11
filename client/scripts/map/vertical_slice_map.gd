@@ -49,11 +49,13 @@ const PHASE_RETURN_ANCHOR_FALLBACK_POSITION := Vector2(852, 92)
 var data_registry: DataRegistry
 var current_interactable: PrototypeInteractable
 var gather_system: GatherSystem
+var phase_well_frontier_runtime: PhaseWellFrontierRuntime
 var last_reported_region_id := "region.outpost_platform"
 var last_gate_message := ""
 func setup(registry: DataRegistry) -> void:
 	data_registry = registry
 	gather_system = GatherSystem.new(data_registry)
+	phase_well_frontier_runtime = PhaseWellFrontierRuntime.new(data_registry)
 	_setup_interactable_labels()
 	_setup_enemy_labels()
 func _ready() -> void:
@@ -99,7 +101,9 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 	if interacted.definition_id == "map_object.phase_well_frame" and interacted.interaction_type == "inspect":
 		return _inspect_phase_well_frame(character_state, world_state)
 	if interacted.definition_id == "map_object.phase_well_tether" and interacted.interaction_type == "inspect":
-		return _inspect_phase_well_tether(character_state, world_state)
+		return phase_well_frontier_runtime.inspect_tether(character_state, world_state)
+	if interacted.definition_id == "map_object.phase_well_anchor_field" and interacted.interaction_type == "inspect":
+		return phase_well_frontier_runtime.inspect_anchor_field(character_state, world_state)
 
 	var action_id := interacted.get_current_recipe_id()
 	if interacted.interaction_type == "build":
@@ -123,6 +127,8 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		result["evacuation_feedback"] = evacuation_feedback
 	return result
 func refresh_world_interactables(world_state: WorldState) -> void:
+	if phase_well_frontier_runtime != null:
+		phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
 			continue
@@ -286,6 +292,17 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 					interaction_cleared.emit(interactable)
 				continue
 			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.phase_well_anchor_field":
+			if phase_well_frontier_runtime == null:
+				interactable.set_default_visual()
+			elif phase_well_frontier_runtime.is_anchor_field_stabilized(world_state):
+				interactable.set_stabilized_phase_well_anchor_field_visual()
+			elif phase_well_frontier_runtime.is_anchor_field_pressure_cleared(world_state):
+				interactable.set_ready_phase_well_anchor_field_visual()
+			elif phase_well_frontier_runtime.is_anchor_field_deployed(world_state):
+				interactable.set_deployed_phase_well_anchor_field_visual()
+			else:
+				interactable.set_default_visual()
 		elif is_processed and interactable.set_processed_visual():
 			if current_interactable == interactable:
 				current_interactable = null
@@ -388,6 +405,12 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			should_enable = should_enable and (
 				world_state.quest_state.has_active_quest("quest.inspect_phase_well_tether")
 				or world_state.quest_state.has_completed_quest("quest.inspect_phase_well_tether")
+			)
+		if interactable.definition_id == "map_object.phase_well_anchor_field":
+			should_enable = should_enable and phase_well_frontier_runtime != null and (
+				world_state.quest_state.has_active_quest("quest.stabilize_phase_well_anchor_field")
+				or world_state.quest_state.has_completed_quest("quest.stabilize_phase_well_anchor_field")
+				or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_anchor_stake")
 			)
 
 		interactable.set_interaction_enabled(should_enable)
@@ -562,6 +585,17 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 				"enemy_definition_id": target.definition_id,
 				"enemy_defeated": true
 			}
+		if target.definition_id == "enemy.phase_well_warden":
+			phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
+			return {
+				"success": true,
+				"message": "击败：%s。%s井系桥东侧的回稳压制已被拆掉，锚场回稳窗现在可以回去收束。" % [
+					target.display_name,
+					drops_message
+				],
+				"enemy_definition_id": target.definition_id,
+				"enemy_defeated": true
+			}
 		return {
 			"success": true,
 			"message": "击败：%s。%s" % [target.display_name, drops_message],
@@ -608,6 +642,8 @@ func _setup_enemy_labels() -> void:
 		enemy.instance_id = _get_enemy_instance_id(enemy)
 		enemy.setup(_get_display_name(enemy.definition_id), max_health, String(definition.get("category", "basic")))
 func sync_enemy_states(world_state: WorldState) -> void:
+	if phase_well_frontier_runtime != null:
+		phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
 	for enemy in enemies_root.get_children():
 		if not enemy is PrototypeEnemy:
 			continue
@@ -624,6 +660,8 @@ func sync_enemy_states(world_state: WorldState) -> void:
 		enemy.apply_saved_state(enemy_state)
 		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state))
 func refresh_enemy_spawns(world_state: WorldState) -> void:
+	if phase_well_frontier_runtime != null:
+		phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
 	for enemy in enemies_root.get_children():
 		if not enemy is PrototypeEnemy:
 			continue
@@ -842,6 +880,8 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 			world_state.quest_state.has_active_quest("quest.collect_tether_fiber")
 			or world_state.quest_state.has_completed_quest("quest.collect_tether_fiber")
 		)
+	if enemy.definition_id == "enemy.phase_well_warden":
+		return phase_well_frontier_runtime != null and phase_well_frontier_runtime.should_spawn_anchor_field_enemy(world_state)
 	if enemy.definition_id != "enemy.treatment_skitter":
 		return true
 	var quest_state := world_state.quest_state
@@ -1321,32 +1361,6 @@ func _inspect_phase_well_frame(character_state: CharacterState, world_state: Wor
 	return {
 		"success": true,
 		"message": "井纹架键栓已写入：井纹架断面开始析出相位井结核，更东侧更深收益再次抬升。"
-	}
-func _inspect_phase_well_tether(character_state: CharacterState, world_state: WorldState) -> Dictionary:
-	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_tether_spike"):
-		return _failure(
-			"井系桥断面仍缺少可执行的系桥读数。",
-			"井系桥未勘验",
-			"先回基地用基础反应器，把相位井系谱片、井系固肋和基础零件组装成井系定桩。"
-		)
-
-	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_tether"):
-		return {
-			"success": true,
-			"message": "井系桥断面已勘验：第一份相位井锚核已经带回基地。"
-		}
-
-	if not character_state.inventory.has_ref("item.phase_well_tether_spike", 1):
-		return _failure(
-			"缺少井系定桩，井系桥断面无法稳定。",
-			"缺少井系定桩",
-			"回基地确认基础反应器已经完成井系定桩，并带回来勘验井系桥断面。"
-		)
-
-	character_state.inventory.consume_ref("item.phase_well_tether_spike", 1)
-	return {
-		"success": true,
-		"message": "井系定桩已写入：井系桥断面开始析出相位井锚核，这条结核后的新收益线已经被真正钉住。"
 	}
 func _evacuate_if_needed(character_state: CharacterState, world_state: WorldState, reason: String) -> Dictionary:
 	if character_state.health > 0.0 and character_state.protection > 0.0:

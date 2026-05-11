@@ -79,10 +79,14 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 		log_messages.append("旧进度已接入：相位井织核解析配方已补齐。")
 	if _restore_missing_phase_well_knot_core_analysis_unlock(world_state):
 		log_messages.append("旧进度已接入：相位井结核解析配方已补齐。")
+	if _restore_missing_phase_well_anchor_core_analysis_unlock(world_state):
+		log_messages.append("旧进度已接入：相位井锚核解析配方已补齐。")
 	if _restore_missing_phase_well_weave_core_reward(character_state, world_state):
 		log_messages.append("旧进度已接入：井纺室勘验奖励的相位井织核已补回背包。")
 	if _restore_missing_phase_well_knot_core_reward(character_state, world_state):
 		log_messages.append("旧进度已接入：井纹架勘验奖励的相位井结核已补回背包。")
+	if _restore_missing_phase_well_anchor_core_reward(character_state, world_state):
+		log_messages.append("旧进度已接入：井系桥勘验奖励的相位井锚核已补回背包。")
 	if _restore_missing_phase_well_core_analysis_unlock(world_state):
 		log_messages.append("旧进度已接入：相位井芯样本解析配方已补齐。")
 	if _restore_missing_phase_well_locator_analysis_unlock(world_state):
@@ -97,6 +101,8 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 		log_messages.append("旧进度已接入：井纺室后的井纹架后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_frame_followup(world_state):
 		log_messages.append("旧进度已接入：井纹架后的井系桥后续任务已补入当前目标。")
+	if _activate_missing_post_phase_well_tether_followup(world_state):
+		log_messages.append("旧进度已接入：井系桥后的锚场回稳后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_chamber_followup(world_state):
 		log_messages.append("旧进度已接入：井心室后的井纺后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_sink_followup(world_state):
@@ -215,6 +221,18 @@ func _get_late_craft_progress_recovery_updates(world_state: WorldState, characte
 		{
 			"quest_id": "quest.assemble_phase_well_tether_spike",
 			"item_id": "item.phase_well_tether_spike"
+		},
+		{
+			"quest_id": "quest.analyze_phase_well_anchor_core",
+			"item_id": "item.phase_well_return_sheet"
+		},
+		{
+			"quest_id": "quest.refine_anchor_core_dust",
+			"item_id": "item.anchor_field_filter"
+		},
+		{
+			"quest_id": "quest.assemble_phase_well_anchor_stake",
+			"item_id": "item.phase_well_anchor_stake"
 		}
 	]:
 		var quest_id := String(recovery.get("quest_id", ""))
@@ -387,6 +405,15 @@ func _restore_missing_phase_well_knot_core_analysis_unlock(world_state: WorldSta
 	return true
 
 
+func _restore_missing_phase_well_anchor_core_analysis_unlock(world_state: WorldState) -> bool:
+	if not world_state.quest_state.has_completed_quest("quest.inspect_phase_well_tether"):
+		return false
+	if world_state.quest_state.unlocked_effects.has("recipe.phase_well_anchor_core_analysis"):
+		return false
+	world_state.quest_state.unlock_effect("recipe.phase_well_anchor_core_analysis")
+	return true
+
+
 func _restore_missing_phase_well_knot_core_reward(character_state: CharacterState, world_state: WorldState) -> bool:
 	if not world_state.quest_state.has_completed_quest("quest.inspect_phase_well_frame"):
 		return false
@@ -397,6 +424,25 @@ func _restore_missing_phase_well_knot_core_reward(character_state: CharacterStat
 	if character_state.inventory.has_ref("item.phase_well_tether_sheet", 1):
 		return false
 	character_state.inventory.add_ref("item.phase_well_knot_core", 1)
+	return true
+
+
+func _restore_missing_phase_well_anchor_core_reward(character_state: CharacterState, world_state: WorldState) -> bool:
+	if not world_state.quest_state.has_completed_quest("quest.inspect_phase_well_tether"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.analyze_phase_well_anchor_core"):
+		return false
+	for item_id in [
+		"item.phase_well_anchor_core",
+		"item.phase_well_return_sheet",
+		"item.anchor_core_dust",
+		"item.anchor_field_filter",
+		"item.phase_well_anchor_stake",
+		"item.phase_well_echo_shard"
+	]:
+		if character_state.inventory.has_ref(item_id, 1):
+			return false
+	character_state.inventory.add_ref("item.phase_well_anchor_core", 1)
 	return true
 
 
@@ -432,6 +478,26 @@ func _activate_missing_post_phase_well_frame_followup(world_state: WorldState) -
 		"quest.refine_tether_fiber",
 		"quest.assemble_phase_well_tether_spike",
 		"quest.inspect_phase_well_tether"
+	]:
+		if world_state.quest_state.has_completed_quest(quest_id):
+			continue
+		if world_state.quest_state.has_active_quest(quest_id):
+			return false
+		world_state.quest_state.activate_quest(quest_id)
+		return true
+	return false
+
+
+func _activate_missing_post_phase_well_tether_followup(world_state: WorldState) -> bool:
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.inspect_phase_well_tether"):
+		return false
+	for quest_id in [
+		"quest.analyze_phase_well_anchor_core",
+		"quest.refine_anchor_core_dust",
+		"quest.assemble_phase_well_anchor_stake",
+		"quest.stabilize_phase_well_anchor_field"
 	]:
 		if world_state.quest_state.has_completed_quest(quest_id):
 			continue
@@ -488,7 +554,11 @@ func _activate_missing_post_phase_well_sink_followup(world_state: WorldState) ->
 		"quest.collect_tether_fiber",
 		"quest.refine_tether_fiber",
 		"quest.assemble_phase_well_tether_spike",
-		"quest.inspect_phase_well_tether"
+		"quest.inspect_phase_well_tether",
+		"quest.analyze_phase_well_anchor_core",
+		"quest.refine_anchor_core_dust",
+		"quest.assemble_phase_well_anchor_stake",
+		"quest.stabilize_phase_well_anchor_field"
 	]:
 		if world_state.quest_state.has_completed_quest(quest_id):
 			continue
@@ -544,7 +614,11 @@ func _activate_missing_post_phase_relay_followup(world_state: WorldState) -> boo
 		"quest.collect_tether_fiber",
 		"quest.refine_tether_fiber",
 		"quest.assemble_phase_well_tether_spike",
-		"quest.inspect_phase_well_tether"
+		"quest.inspect_phase_well_tether",
+		"quest.analyze_phase_well_anchor_core",
+		"quest.refine_anchor_core_dust",
+		"quest.assemble_phase_well_anchor_stake",
+		"quest.stabilize_phase_well_anchor_field"
 	]:
 		if world_state.quest_state.has_completed_quest(quest_id):
 			continue

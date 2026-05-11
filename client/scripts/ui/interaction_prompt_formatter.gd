@@ -290,12 +290,30 @@ func format_phase_well_frame_prompt(world_state: WorldState, character_state: Ch
 
 func format_phase_well_tether_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_tether"):
-		return "井系桥断面：已勘验，第一份相位井锚核已带回基地。"
+		return "井系桥断面：已勘验，第一份相位井锚核已带回基地；下一步回基地解析锚核并组装井系校锚桩。"
 	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_tether_spike"):
 		return "井系桥断面：先回基地用基础反应器组装井系定桩，再回来勘验更东侧断面。"
 	if not character_state.inventory.has_ref("item.phase_well_tether_spike", 1):
 		return "井系桥断面：缺少井系定桩；回基地确认基础反应器组装结果后再来。"
 	return "按 E 勘验：井系桥断面。"
+
+
+func format_phase_well_anchor_field_prompt(world_state: WorldState, character_state: CharacterState) -> String:
+	var object_state := world_state.get_map_object("map_object_instance.phase_well_anchor_field")
+	var deployed := bool(object_state.get("anchor_field_deployed", false))
+	var pressure_cleared := bool(object_state.get("anchor_field_pressure_cleared", false))
+	var stabilized := bool(object_state.get("anchor_field_stabilized", false)) or world_state.quest_state.has_completed_quest("quest.stabilize_phase_well_anchor_field")
+	if stabilized:
+		return "锚场回稳窗：已稳定，井系桥东侧的局部稳定窗口仍在维持；相位井余响片已带回基地。"
+	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_anchor_stake"):
+		return "锚场回稳窗：先回基地解析相位井锚核、稳定锚核落尘，再组装井系校锚桩回来部署。"
+	if not deployed:
+		if not character_state.inventory.has_ref("item.phase_well_anchor_stake", 1):
+			return "锚场回稳窗：缺少井系校锚桩；回基地确认基础反应器组装结果后再来。"
+		return "按 E 部署：锚场回稳窗。"
+	if not pressure_cleared:
+		return "锚场回稳窗：回稳中；先清掉井系守脉体，再回来收束稳定窗口。"
+	return "按 E 收束：锚场回稳窗。"
 
 
 func format_pollution_entry_warning(character_state: CharacterState) -> String:

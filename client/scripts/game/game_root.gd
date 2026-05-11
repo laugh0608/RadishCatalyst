@@ -334,6 +334,9 @@ func _on_interaction_available(interactable: PrototypeInteractable, should_auto_
 	if interactable.definition_id == "map_object.phase_well_tether":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_well_tether_prompt(world_state, character_state))
 		return
+	if interactable.definition_id == "map_object.phase_well_anchor_field":
+		hud.show_prompt(interaction_prompt_formatter.format_phase_well_anchor_field_prompt(world_state, character_state))
+		return
 	if interactable.interaction_type == "process_recipe":
 		var auto_selected_recipe := _maybe_select_recommended_recipe(interactable, should_auto_select_recipe)
 		hud.show_prompt(interaction_prompt_formatter.format_processing_prompt(interactable, character_state, world_state))
@@ -572,6 +575,9 @@ func _refresh_current_context_prompt() -> void:
 	if interactable.definition_id == "map_object.phase_well_tether":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_well_tether_prompt(world_state, character_state))
 		return
+	if interactable.definition_id == "map_object.phase_well_anchor_field":
+		hud.show_prompt(interaction_prompt_formatter.format_phase_well_anchor_field_prompt(world_state, character_state))
+		return
 	if interactable.interaction_type == "process_recipe":
 		_maybe_select_followup_recipe(interactable)
 		hud.show_prompt(interaction_prompt_formatter.format_processing_prompt(interactable, character_state, world_state))
@@ -583,6 +589,8 @@ func _refresh_current_context_prompt() -> void:
 
 
 func _should_advance_interaction(context: Dictionary, result: Dictionary) -> bool:
+	if result.has("advance_interaction"):
+		return bool(result.get("advance_interaction", false))
 	if String(context.get("interaction_type", "")) == "process_recipe":
 		return result.has("completed_recipe_id")
 	return true

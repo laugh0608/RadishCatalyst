@@ -104,6 +104,14 @@ const BASELINE_DEFINITIONS := [
 		"completed_through": "quest.inspect_phase_well_frame",
 		"summary": "井纹架断面已勘验，相位井结核已带回，下一步回基地解析并推进更东侧井系桥断面。",
 		"recommended_for": "相位井结核解析、系索残股回收、系固肋处理、井系定桩和井系桥断面与第二回投锚点兼容回归。"
+	},
+	{
+		"id": "baseline.s13_phase_well_anchor_core_ready",
+		"code": "S13",
+		"display_name": "S13 相位井锚核已带回",
+		"completed_through": "quest.inspect_phase_well_tether",
+		"summary": "井系桥断面已勘验，相位井锚核已带回，下一步回基地解析并把井系桥东侧改造成锚场回稳窗口。",
+		"recommended_for": "相位井锚核解析、锚核落尘稳定、井系校锚桩组装、锚场回稳短守场与稳定窗口提示回归。"
 	}
 ]
 

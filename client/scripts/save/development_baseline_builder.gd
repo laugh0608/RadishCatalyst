@@ -72,7 +72,11 @@ const QUEST_PROGRESS_ORDER: Array[String] = [
 	"quest.collect_tether_fiber",
 	"quest.refine_tether_fiber",
 	"quest.assemble_phase_well_tether_spike",
-	"quest.inspect_phase_well_tether"
+	"quest.inspect_phase_well_tether",
+	"quest.analyze_phase_well_anchor_core",
+	"quest.refine_anchor_core_dust",
+	"quest.assemble_phase_well_anchor_stake",
+	"quest.stabilize_phase_well_anchor_field"
 ]
 
 var data_registry: DataRegistry
@@ -343,6 +347,23 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			_mark_structure_completed(world_state, "structure.pollution_filter_build_site", "recipe.tether_fiber_stabilization")
 		"quest.assemble_phase_well_tether_spike":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_tether_spike")
+		"quest.analyze_phase_well_anchor_core":
+			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_anchor_core_analysis")
+		"quest.refine_anchor_core_dust":
+			_mark_structure_completed(world_state, "structure.pollution_filter_build_site", "recipe.anchor_core_dust_stabilization")
+		"quest.assemble_phase_well_anchor_stake":
+			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_anchor_stake")
+		"quest.stabilize_phase_well_anchor_field":
+			var anchor_field_state := world_state.ensure_map_object(
+				"map_object_instance.phase_well_anchor_field",
+				"map_object.phase_well_anchor_field",
+				"region.phase_well_tether"
+			)
+			anchor_field_state["anchor_field_deployed"] = true
+			anchor_field_state["anchor_field_pressure_active"] = false
+			anchor_field_state["anchor_field_pressure_cleared"] = true
+			anchor_field_state["anchor_field_stabilized"] = true
+			_mark_enemy_defeated(world_state, "enemy_instance.phase_well_warden", "enemy.phase_well_warden", "region.phase_well_tether")
 
 
 func _apply_baseline_pose_and_inventory(
@@ -470,6 +491,15 @@ func _apply_baseline_pose_and_inventory(
 			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
 			character_state.inventory = _make_inventory(
 				{"item.basic_parts": 4, "item.phase_well_knot_core": 1, "item.repair_gel": 1, "item.resistance_vial_t1": 1},
+				{},
+				{"fluid.basic_solvent": 2.0}
+			)
+		"baseline.s13_phase_well_anchor_core_ready":
+			_set_runtime_position(world_state, character_state, "region.outpost_platform", BASELINE_PHASE_RELAY_PAD_POSITION)
+			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
+			character_state.inventory = _make_inventory(
+				{"item.basic_parts": 4, "item.phase_well_anchor_core": 1, "item.repair_gel": 1, "item.resistance_vial_t1": 1},
 				{},
 				{"fluid.basic_solvent": 2.0}
 			)

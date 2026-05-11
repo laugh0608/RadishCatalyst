@@ -154,8 +154,10 @@ func _get_quest_target_region_id(world_state: WorldState, quest_id: String) -> S
 
 
 func _get_runtime_followup_region_id(world_state: WorldState) -> String:
-	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_tether"):
+	if world_state.quest_state.has_completed_quest("quest.stabilize_phase_well_anchor_field"):
 		return ""
+	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_tether"):
+		return "region.outpost_platform"
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_frame"):
 		return "region.outpost_platform"
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_loom"):

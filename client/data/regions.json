@@ -38,7 +38,9 @@
         "quest.analyze_phase_well_weave_core",
         "quest.assemble_phase_well_frame_key",
         "quest.analyze_phase_well_knot_core",
-        "quest.assemble_phase_well_tether_spike"
+        "quest.assemble_phase_well_tether_spike",
+        "quest.analyze_phase_well_anchor_core",
+        "quest.assemble_phase_well_anchor_stake"
       ],
       "public_level": "public"
     },
@@ -69,7 +71,8 @@
         "quest.refine_heart_spine",
         "quest.refine_weft_bundle",
         "quest.refine_selvedge_strip",
-        "quest.refine_tether_fiber"
+        "quest.refine_tether_fiber",
+        "quest.refine_anchor_core_dust"
       ],
       "public_level": "public"
     },
@@ -212,11 +215,11 @@
       "planet_or_world": "world.slice_01",
       "biome_type": "phase_well_tether",
       "danger_level": 10,
-      "resources": ["item.tether_fiber", "item.phase_well_anchor_core"],
+      "resources": ["item.tether_fiber", "item.phase_well_anchor_core", "item.phase_well_echo_shard"],
       "pollution_types": ["pollution.yellow_residue"],
       "weather_pool": ["weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
-      "quest_refs": ["quest.analyze_phase_well_knot_core", "quest.collect_tether_fiber", "quest.inspect_phase_well_tether"],
+      "quest_refs": ["quest.analyze_phase_well_knot_core", "quest.collect_tether_fiber", "quest.inspect_phase_well_tether", "quest.analyze_phase_well_anchor_core", "quest.stabilize_phase_well_anchor_field"],
       "public_level": "spoiler"
     }
   ]

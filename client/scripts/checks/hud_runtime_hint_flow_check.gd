@@ -160,14 +160,14 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 	_expect_text_contains(
 		failures,
 		hud.prompt_label.text,
-		"方向：井系桥断面已经交出第一份相位井锚核",
-		"runtime hint prompt summarizes anchor core reward after phase well tether"
+		"方向：相位井锚核已带回",
+		"runtime hint prompt points to anchor core analysis after phase well tether"
 	)
 	_expect_text_contains(
 		failures,
 		hud.prompt_label.text,
-		"提示：相位井锚核已经带回基地",
-		"runtime hint prompt keeps anchor core summary after phase well tether"
+		"提示：相位井锚核不是收尾",
+		"runtime hint prompt keeps anchor-field package explicit after phase well tether"
 	)
 	hud.update_status(data_registry, relay_world, relay_character)
 

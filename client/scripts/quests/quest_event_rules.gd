@@ -129,6 +129,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		return tether_updates
 	if interaction_type == "inspect" and definition_id == "map_object.phase_well_tether":
 		return [_set_update("quest.inspect_phase_well_tether", "inspect", "map_object.phase_well_tether", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.phase_well_anchor_field":
+		return [_set_update("quest.stabilize_phase_well_anchor_field", "inspect", "map_object.phase_well_anchor_field", 1)]
 	if interaction_type == "process_recipe":
 		return get_recipe_objective_updates(recipe_id)
 	if interaction_type == "build":
@@ -246,6 +248,12 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 			return [_set_update("quest.refine_tether_fiber", "craft_item", "item.phase_well_tether_rib", 1)]
 		"recipe.phase_well_tether_spike":
 			return [_set_update("quest.assemble_phase_well_tether_spike", "craft_item", "item.phase_well_tether_spike", 1)]
+		"recipe.phase_well_anchor_core_analysis":
+			return [_set_update("quest.analyze_phase_well_anchor_core", "craft_item", "item.phase_well_return_sheet", 1)]
+		"recipe.anchor_core_dust_stabilization":
+			return [_set_update("quest.refine_anchor_core_dust", "craft_item", "item.anchor_field_filter", 1)]
+		"recipe.phase_well_anchor_stake":
+			return [_set_update("quest.assemble_phase_well_anchor_stake", "craft_item", "item.phase_well_anchor_stake", 1)]
 		_:
 			return []
 
@@ -287,6 +295,8 @@ func get_defeated_enemy_objective_updates(enemy_definition_id: String) -> Array[
 		return [_set_update("quest.collect_selvedge_strip", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.phase_well_binder":
 		return [_set_update("quest.collect_tether_fiber", "defeat_enemy", enemy_definition_id, 1)]
+	if enemy_definition_id == "enemy.phase_well_warden":
+		return [_set_update("quest.stabilize_phase_well_anchor_field", "defeat_enemy", enemy_definition_id, 1)]
 	return []
 
 

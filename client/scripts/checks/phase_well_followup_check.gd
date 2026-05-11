@@ -85,10 +85,26 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	host._complete_active_quest("quest.assemble_phase_well_tether_spike", [{"type": "craft_item", "target_id": "item.phase_well_tether_spike", "amount": 1}])
 	host._expect_active_quest("quest.inspect_phase_well_tether", "after phase well tether spike assembly returns to tether")
 	host._complete_active_quest("quest.inspect_phase_well_tether", [{"type": "inspect", "target_id": "map_object.phase_well_tether", "amount": 1}])
-	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after phase well tether should have no active quest")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_phase_well_tether", "phase well tether quest completed")
 	host._expect_equal(int(character_state.inventory.items.get("item.phase_well_anchor_core", 0)), 1, "phase well tether grants first anchor core reward")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "phase well tether keeps slice completion unlock present")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_anchor_core_analysis", "phase well tether unlocks anchor core analysis recipe")
+	host._expect_active_quest("quest.analyze_phase_well_anchor_core", "after phase well tether returns to anchor core analysis")
+	host._complete_active_quest("quest.analyze_phase_well_anchor_core", [{"type": "craft_item", "target_id": "item.phase_well_return_sheet", "amount": 1}])
+	host._expect_active_quest("quest.refine_anchor_core_dust", "after anchor core analysis returns to filter")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.anchor_core_dust_stabilization", "anchor core analysis unlocks anchor dust stabilization recipe")
+	host._complete_active_quest("quest.refine_anchor_core_dust", [{"type": "craft_item", "target_id": "item.anchor_field_filter", "amount": 1}])
+	host._expect_active_quest("quest.assemble_phase_well_anchor_stake", "after anchor dust refinement returns to reactor")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_anchor_stake", "anchor dust refinement unlocks anchor stake recipe")
+	host._complete_active_quest("quest.assemble_phase_well_anchor_stake", [{"type": "craft_item", "target_id": "item.phase_well_anchor_stake", "amount": 1}])
+	host._expect_active_quest("quest.stabilize_phase_well_anchor_field", "after anchor stake assembly returns to frontier")
+	host._complete_active_quest("quest.stabilize_phase_well_anchor_field", [
+		{"type": "defeat_enemy", "target_id": "enemy.phase_well_warden", "amount": 1},
+		{"type": "inspect", "target_id": "map_object.phase_well_anchor_field", "amount": 1}
+	])
+	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after anchor field stabilization should have no active quest")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.stabilize_phase_well_anchor_field", "anchor field stabilization quest completed")
+	host._expect_equal(int(character_state.inventory.items.get("item.phase_well_echo_shard", 0)), 1, "anchor field stabilization grants first echo shard reward")
 
 
 func run_hud_and_map_checks() -> void:
@@ -139,8 +155,17 @@ func _check_onboarding_hints() -> void:
 	var tether_completion_world := WorldState.create_default()
 	tether_completion_world.quest_state.active_quest_ids.clear()
 	tether_completion_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_tether")
-	host._expect_text_contains(presenter.format_direction_hint(tether_completion_world, hint_character, ""), "相位井锚核", "phase well tether completion direction summarizes latest reward anchor")
-	host._expect_text_contains(presenter.format_onboarding_hint(tether_completion_world, hint_character, ""), "相位井锚核已经带回基地", "phase well tether completion onboarding summarizes latest reward anchor")
+	host._expect_text_contains(presenter.format_direction_hint(tether_completion_world, hint_character, ""), "解析锚核", "phase well tether completion direction points to anchor core analysis")
+	host._expect_text_contains(presenter.format_onboarding_hint(tether_completion_world, hint_character, ""), "锚核不是收尾", "phase well tether completion onboarding keeps anchor-field package explicit")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_phase_well_anchor_core", "归谱片", "phase well anchor core analysis onboarding hint")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_anchor_core_dust", "第三台设备", "anchor core dust refinement onboarding keeps device reuse explicit")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_phase_well_anchor_stake", "井系校锚桩", "anchor stake assembly onboarding hint")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.stabilize_phase_well_anchor_field", "短守场", "anchor field stabilization onboarding hint")
+	var anchor_field_completion_world := WorldState.create_default()
+	anchor_field_completion_world.quest_state.active_quest_ids.clear()
+	anchor_field_completion_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
+	host._expect_text_contains(presenter.format_direction_hint(anchor_field_completion_world, hint_character, ""), "稳定窗口", "anchor field completion direction summarizes stabilized window")
+	host._expect_text_contains(presenter.format_onboarding_hint(anchor_field_completion_world, hint_character, ""), "基地先产出稳场工具", "anchor field completion onboarding summarizes new loop")
 
 
 func _check_status_panel_summary() -> void:
@@ -174,8 +199,14 @@ func _check_status_panel_summary() -> void:
 	phase_well_tether_text_world.quest_state.active_quest_ids.clear()
 	phase_well_tether_text_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_tether")
 	var phase_well_tether_text := presenter.format_status_text(host.data_registry, phase_well_tether_text_world, status_character)
-	host._expect_text_contains(phase_well_tether_text, "目标：相位井锚核已带回", "status falls back to phase well anchor core summary after tether")
-	host._expect_text_contains(phase_well_tether_text, "井系桥断面已勘验", "status progress keeps phase well tether summary")
+	host._expect_text_contains(phase_well_tether_text, "目标：相位井锚核待解析", "status falls back to phase well anchor analysis summary after tether")
+	host._expect_text_contains(phase_well_tether_text, "稳定窗口", "status progress keeps post-tether anchor-field summary")
+	var anchor_field_text_world := WorldState.create_default()
+	anchor_field_text_world.quest_state.active_quest_ids.clear()
+	anchor_field_text_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
+	var anchor_field_text := presenter.format_status_text(host.data_registry, anchor_field_text_world, status_character)
+	host._expect_text_contains(anchor_field_text, "目标：相位井余响片已带回", "status falls back to anchor field completion summary")
+	host._expect_text_contains(anchor_field_text, "稳定窗口已生成", "status progress keeps anchor field completion summary")
 
 
 func _check_region_presence_bounds() -> void:

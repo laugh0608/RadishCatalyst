@@ -183,3 +183,17 @@ func run() -> void:
 	host._expect_text_contains(formatter.format_phase_well_tether_prompt(phase_well_tether_world, phase_well_tether_character), "按 E 勘验", "phase well tether ready prompt")
 	phase_well_tether_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_tether")
 	host._expect_text_contains(formatter.format_phase_well_tether_prompt(phase_well_tether_world, phase_well_tether_character), "相位井锚核已带回基地", "phase well tether completed prompt")
+	host._expect_text_contains(formatter.format_phase_well_tether_prompt(phase_well_tether_world, phase_well_tether_character), "组装井系校锚桩", "phase well tether completed prompt keeps anchor-field followup explicit")
+	var anchor_field_world := WorldState.create_default()
+	var anchor_field_character := CharacterState.create_default()
+	host._expect_text_contains(formatter.format_phase_well_anchor_field_prompt(anchor_field_world, anchor_field_character), "解析相位井锚核", "anchor field blocked prompt")
+	anchor_field_world.quest_state.completed_quest_ids.append("quest.assemble_phase_well_anchor_stake")
+	host._expect_text_contains(formatter.format_phase_well_anchor_field_prompt(anchor_field_world, anchor_field_character), "缺少井系校锚桩", "anchor field missing stake prompt")
+	anchor_field_character.inventory.add_item("item.phase_well_anchor_stake", 1)
+	host._expect_text_contains(formatter.format_phase_well_anchor_field_prompt(anchor_field_world, anchor_field_character), "按 E 部署", "anchor field deploy prompt")
+	anchor_field_world.ensure_map_object("map_object_instance.phase_well_anchor_field", "map_object.phase_well_anchor_field", "region.phase_well_tether")["anchor_field_deployed"] = true
+	host._expect_text_contains(formatter.format_phase_well_anchor_field_prompt(anchor_field_world, anchor_field_character), "回稳中", "anchor field active prompt")
+	anchor_field_world.get_map_object("map_object_instance.phase_well_anchor_field")["anchor_field_pressure_cleared"] = true
+	host._expect_text_contains(formatter.format_phase_well_anchor_field_prompt(anchor_field_world, anchor_field_character), "按 E 收束", "anchor field ready prompt")
+	anchor_field_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
+	host._expect_text_contains(formatter.format_phase_well_anchor_field_prompt(anchor_field_world, anchor_field_character), "局部稳定窗口", "anchor field completed prompt")

@@ -225,6 +225,21 @@
       "drops": [{"id": "item.repair_gel", "amount": 1}],
       "spawn_regions": ["region.phase_well_tether"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "enemy.phase_well_warden",
+      "display_name_key": "enemy.phase_well_warden.name",
+      "description_key": "enemy.phase_well_warden.desc",
+      "category": "ruin_guard",
+      "faction": "ruin_sentinel",
+      "base_stats": {"max_health": 138, "attack": 18, "move_speed": 130},
+      "behaviors": ["phase_guard", "melee_chase"],
+      "damage_types": ["physical", "pollution"],
+      "resistances": {"pollution": 0.84},
+      "drop_table_id": "drop.phase_well_warden",
+      "drops": [{"id": "item.repair_gel", "amount": 1}],
+      "spawn_regions": ["region.phase_well_tether"],
+      "public_level": "spoiler"
     }
   ]
 }

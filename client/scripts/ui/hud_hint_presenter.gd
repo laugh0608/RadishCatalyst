@@ -24,8 +24,10 @@ func format_runtime_hint(world_state: WorldState, character_state: CharacterStat
 
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_well_anchor_field(world_state):
+			return "井系桥东侧的局部稳定窗口已经生成：相位井余响片已带回基地，这一包“先做后勤再改前线”的闭环已经成立。"
 		if _has_completed_phase_well_tether(world_state):
-			return "井系桥断面已经交出第一份相位井锚核：相位井结核后的更东侧风险线又一次转成了基地可继续放大的新收益锚点。"
+			return "相位井锚核已带回：先回基地解析锚核、稳定锚核落尘，再把井系校锚桩带回井系桥东侧做锚场回稳。"
 		if _has_completed_phase_well_frame(world_state):
 			return "相位井结核已带回：先回基地解析结核，把更东侧井系桥断面真正压成下一包可执行目标。"
 		if _has_completed_phase_well_loom(world_state):
@@ -204,14 +206,29 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "回基地使用基础反应器，把相位井系谱片、系固肋和基础零件组装成井系定桩。"
 		"quest.inspect_phase_well_tether":
 			return "带着井系定桩返回更东侧井系桥断面，勘验后带回第一份相位井锚核。"
+		"quest.analyze_phase_well_anchor_core":
+			return "回基地使用基础反应器，解析相位井锚核并整理归谱片与锚核落尘。"
+		"quest.refine_anchor_core_dust":
+			return "回处理点污染过滤器，把锚核落尘稳定成可用于前线稳场的稳场滤囊。"
+		"quest.assemble_phase_well_anchor_stake":
+			return "回基地使用基础反应器，把归谱片、稳场滤囊和基础零件组装成井系校锚桩。"
+		"quest.stabilize_phase_well_anchor_field":
+			var anchor_field_state := world_state.get_map_object("map_object_instance.phase_well_anchor_field")
+			if bool(anchor_field_state.get("anchor_field_pressure_cleared", false)):
+				return "井系守脉体已清掉：返回井系桥东侧锚场回稳窗，收束这次局部稳定窗口。"
+			if bool(anchor_field_state.get("anchor_field_deployed", false)):
+				return "井系校锚桩已部署：先清掉井系守脉体，再回来收束井系桥东侧的回稳窗。"
+			return "带着井系校锚桩返回井系桥东侧，部署后顶住一轮短守场并收束第一份相位井余响片。"
 		_:
 			return "按当前目标推进。"
 
 
 func format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_well_anchor_field(world_state):
+			return "锚场回稳不是单纯多打一只怪；它证明了基地先产出稳场工具，真的可以把下一次外勤改造成更稳的前线窗口。"
 		if _has_completed_phase_well_tether(world_state):
-			return "相位井锚核已经带回基地，这说明相位井结核后的更东侧门槛也已经成功压成下一轮基地回投锚点。"
+			return "相位井锚核不是收尾；要先回基地把它解析成归谱片和锚核落尘，新的井系桥东侧稳场任务才会真正出现。"
 		if _has_completed_phase_well_frame(world_state):
 			return "相位井结核不是收尾；要先回基地把它解析成系谱片，井系桥断面才会真正变成新的可执行推进包。"
 		if _has_completed_phase_well_loom(world_state):
@@ -392,6 +409,19 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "井系定桩会把结核分析产物和过滤结果重新变成开路物，决定井系桥断面能否交出第一份相位井锚核。"
 		"quest.inspect_phase_well_tether":
 			return "这一步要把基地组装的井系定桩真正带回前线，让相位井结核后的更深收益继续落成实体战利品。"
+		"quest.analyze_phase_well_anchor_core":
+			return "相位井锚核不是新的门钥匙；它要先在基地被拆成可执行的归谱片和锚核落尘，后面的外勤目标结构才会被改写。"
+		"quest.refine_anchor_core_dust":
+			return "锚核落尘要继续复用污染过滤器稳定；副产污染浆液仍保留，不需要第三台设备，但这次真正重要的是前线稳场材料而不是再开下一个同构门禁。"
+		"quest.assemble_phase_well_anchor_stake":
+			return "井系校锚桩负责把基地加工结果直接带回前线，它不是收集奖励，而是下一次外勤目标本身。"
+		"quest.stabilize_phase_well_anchor_field":
+			var anchor_field_state := world_state.get_map_object("map_object_instance.phase_well_anchor_field")
+			if bool(anchor_field_state.get("anchor_field_pressure_cleared", false)):
+				return "这一步不是捡第二份材料；要回去收束已经打开的稳定窗口，让前线节奏真的被基地准备改写。"
+			if bool(anchor_field_state.get("anchor_field_deployed", false)):
+				return "井系校锚桩已经写进现场，现在的重点是顶住短时压制，而不是继续沿路搜刮两处新资源。"
+			return "这一步明确改掉旧模板：先把基地产物带回前线部署，再靠一次短守场换来局部稳定窗口和相位井余响片。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 
@@ -422,6 +452,10 @@ func _has_completed_phase_well_chamber(world_state: WorldState) -> bool:
 
 func _has_completed_phase_well_tether(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.inspect_phase_well_tether")
+
+
+func _has_completed_phase_well_anchor_field(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.stabilize_phase_well_anchor_field")
 
 
 func _has_completed_phase_well_frame(world_state: WorldState) -> bool:

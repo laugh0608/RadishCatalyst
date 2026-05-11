@@ -57,6 +57,11 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 	"item.phase_well_tether_rib",
 	"item.phase_well_tether_spike",
 	"item.phase_well_anchor_core",
+	"item.phase_well_return_sheet",
+	"item.anchor_core_dust",
+	"item.anchor_field_filter",
+	"item.phase_well_anchor_stake",
+	"item.phase_well_echo_shard",
 	"item.filter_media",
 	"item.foundation_material",
 	"fluid.basic_solvent",
@@ -161,8 +166,10 @@ func _format_vital_lines(
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if not quest_id.is_empty():
 		return _get_display_name(data_registry, quest_id)
+	if _has_completed_phase_well_anchor_field(world_state):
+		return "相位井余响片已带回"
 	if _has_completed_phase_well_tether(world_state):
-		return "相位井锚核已带回"
+		return "相位井锚核待解析"
 	if _has_completed_phase_well_frame(world_state):
 		return "相位井结核待解析"
 	if _has_completed_phase_well_loom(world_state):
@@ -234,8 +241,10 @@ func _format_quick_slots(data_registry: DataRegistry, character_state: Character
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_well_anchor_field(world_state):
+			return "井系桥东侧稳定窗口已生成；相位井余响片已带回基地，这一轮“基地先改前线”的闭环已经完成"
 		if _has_completed_phase_well_tether(world_state):
-			return "井系桥断面已勘验；相位井锚核已带回基地，新的更东侧收益锚点已生成"
+			return "井系桥断面已勘验；回基地解析相位井锚核后，可继续把井系桥东侧改成新的短守场稳定窗口"
 		if _has_completed_phase_well_frame(world_state):
 			return "井纹架断面已勘验；回基地解析相位井结核后，可继续把更东侧井系桥断面转成新的推进包"
 		if _has_completed_phase_well_loom(world_state):
@@ -378,6 +387,10 @@ func _has_completed_phase_well_chamber(world_state: WorldState) -> bool:
 
 func _has_completed_phase_well_tether(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.inspect_phase_well_tether")
+
+
+func _has_completed_phase_well_anchor_field(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.stabilize_phase_well_anchor_field")
 
 
 func _has_completed_phase_well_frame(world_state: WorldState) -> bool:

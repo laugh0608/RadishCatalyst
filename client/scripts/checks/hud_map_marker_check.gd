@@ -183,7 +183,7 @@ func run(root_window: Window) -> void:
 	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.collect_tether_fiber"), "井系：更东，目标", "tether fiber collection points to phase well tether marker")
 	host._expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.collect_tether_fiber"), "井系\n目标", "phase well tether minimap objective marker")
 	marker_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_tether")
-	host._expect_text_missing(presenter.format_region_markers(marker_world, ""), "目标", "phase well tether completion clears runtime followup marker")
+	host._expect_text_contains(presenter.format_region_markers(marker_world, ""), "基地：当前位置，目标", "phase well tether completion returns runtime followup to outpost analysis")
 
 	var hud := PrototypeHudScene.instantiate() as PrototypeHud
 	root_window.add_child(hud)

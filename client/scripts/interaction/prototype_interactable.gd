@@ -37,6 +37,9 @@ const STABILIZED_PHASE_WELL_CHAMBER_COLOR := Color(0.96, 0.64, 0.58, 1)
 const STABILIZED_PHASE_WELL_LOOM_COLOR := Color(0.98, 0.74, 0.64, 1)
 const STABILIZED_PHASE_WELL_FRAME_COLOR := Color(0.99, 0.82, 0.68, 1)
 const STABILIZED_PHASE_WELL_TETHER_COLOR := Color(1.0, 0.88, 0.72, 1)
+const DEPLOYED_PHASE_WELL_ANCHOR_FIELD_COLOR := Color(0.86, 0.86, 0.58, 1)
+const READY_PHASE_WELL_ANCHOR_FIELD_COLOR := Color(0.76, 0.96, 0.68, 1)
+const STABILIZED_PHASE_WELL_ANCHOR_FIELD_COLOR := Color(0.62, 0.98, 0.82, 1)
 const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
 const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
 
@@ -436,6 +439,30 @@ func set_stabilized_phase_well_tether_visual() -> void:
 	monitoring = false
 	marker.color = STABILIZED_PHASE_WELL_TETHER_COLOR
 	_set_label_text("%s\n锚核已取出" % display_name_text, 2)
+
+
+func set_deployed_phase_well_anchor_field_visual() -> void:
+	consumed = false
+	visible = true
+	monitoring = true
+	marker.color = DEPLOYED_PHASE_WELL_ANCHOR_FIELD_COLOR
+	_set_label_text("%s\n回稳中" % display_name_text, 2)
+
+
+func set_ready_phase_well_anchor_field_visual() -> void:
+	consumed = false
+	visible = true
+	monitoring = true
+	marker.color = READY_PHASE_WELL_ANCHOR_FIELD_COLOR
+	_set_label_text("%s\n待收束" % display_name_text, 2)
+
+
+func set_stabilized_phase_well_anchor_field_visual() -> void:
+	consumed = false
+	visible = true
+	monitoring = true
+	marker.color = STABILIZED_PHASE_WELL_ANCHOR_FIELD_COLOR
+	_set_label_text("%s\n已稳定" % display_name_text, 2)
 
 
 func set_built_visual(built_definition_id: String) -> void:
