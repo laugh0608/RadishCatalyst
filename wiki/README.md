@@ -41,6 +41,15 @@ Wiki 不记录：
 - `mechanics/`：战斗、采集、污染、安全、事故、联机等机制说明。
 - `lore/`：公开世界观、阵营、事件和可公开剧情。
 
+## 当前原型已补的词条
+
+以下页面涉及中后段相位井内容，默认按剧透处理：
+
+- [井系桥后的前线回稳指南](guides/late-frontier-anchor-field-guide.md)
+- [前线锚点与稳定窗口](mechanics/frontline-anchors-and-stable-windows.md)
+- [相位井东侧前线区域](regions/phase-well-east-frontier.md)
+- [相位井锚场回稳生产线](production-lines/phase-well-anchor-field-line.md)
+
 ## 编写原则
 
 - 文件名使用英文，正文使用中文。
