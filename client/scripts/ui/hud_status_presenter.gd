@@ -323,7 +323,7 @@ func _format_objective_target_name(
 func _get_objective_source_hint(_quest_id: String, objective_type: String, target_id: String) -> String:
 	if objective_source_resolver == null:
 		return ""
-	if objective_type != "gather_item":
+	if objective_type != "gather_item" and objective_type != "craft_item":
 		return ""
 	return objective_source_resolver.resolve_source_hint(objective_type, target_id)
 

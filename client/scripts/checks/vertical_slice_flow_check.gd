@@ -453,19 +453,19 @@ func _check_status_panel_summary() -> void:
 	var calibration_world := WorldState.create_default()
 	calibration_world.quest_state.active_quest_ids = ["quest.calibrate_reactor"]
 	var calibration_status_text := presenter.format_status_text(data_registry, calibration_world, status_character)
-	_expect_text_contains(
-		calibration_status_text,
-		"收集 导电废件（外勤残骸） 0/4",
-		"status shows conductive scrap source"
-	)
+	_expect_text_contains(calibration_status_text, "收集 导电废件（外勤残骸） 0/4", "status shows conductive scrap source")
 	var scout_world := WorldState.create_default()
 	scout_world.quest_state.active_quest_ids = ["quest.scout_crystal_field"]
 	var scout_status_text := presenter.format_status_text(data_registry, scout_world, status_character)
-	_expect_text_contains(
-		scout_status_text,
-		"收集 晶体矿物（晶体簇） 0/6",
-		"status shows crystal gather source"
-	)
+	_expect_text_contains(scout_status_text, "收集 晶体矿物（晶体簇） 0/6", "status shows crystal gather source")
+	var reactor_craft_world := WorldState.create_default()
+	reactor_craft_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_weave_core"]
+	var reactor_craft_status_text := presenter.format_status_text(data_registry, reactor_craft_world, status_character)
+	_expect_text_contains(reactor_craft_status_text, "制造 相位井纹谱片（基础反应器） 0/1", "status shows reactor craft source")
+	var filter_craft_world := WorldState.create_default()
+	filter_craft_world.quest_state.active_quest_ids = ["quest.refine_selvedge_strip"]
+	var filter_craft_status_text := presenter.format_status_text(data_registry, filter_craft_world, status_character)
+	_expect_text_contains(filter_craft_status_text, "制造 相位井纹架肋（污染过滤器） 0/1", "status shows filter craft source")
 func _check_region_presence_bounds() -> void:
 	var map := VerticalSliceMap.new()
 	_expect_equal(

@@ -255,12 +255,24 @@ func _validate_world_content(world_data: Dictionary) -> String:
 			if not _is_number(pollution_value) or float(pollution_value) < 0.0:
 				return "读取存档失败：world.pollution_levels 中存在无效污染值，当前运行状态已保留。"
 
+	var deployed_phase_relay_anchor_ids = world_data.get("deployed_phase_relay_anchor_ids", [])
+	if deployed_phase_relay_anchor_ids is Array:
+		for deployed_anchor_entry in deployed_phase_relay_anchor_ids:
+			var deployed_anchor_id := String(deployed_anchor_entry)
+			if not deployed_anchor_id.begins_with("map_object_instance."):
+				return "读取存档失败：world.deployed_phase_relay_anchor_ids 使用了无效实例 ID，当前运行状态已保留。"
+			if not PROTOTYPE_MAP_OBJECT_SOURCES.has(deployed_anchor_id):
+				return "读取存档失败：world.deployed_phase_relay_anchor_ids 没有匹配的原型地图对象来源，当前运行状态已保留。"
+
 	var active_phase_relay_anchor_id := String(world_data.get("active_phase_relay_anchor_id", ""))
 	if not active_phase_relay_anchor_id.is_empty():
 		if not active_phase_relay_anchor_id.begins_with("map_object_instance."):
 			return "读取存档失败：world.active_phase_relay_anchor_id 使用了无效实例 ID，当前运行状态已保留。"
 		if not PROTOTYPE_MAP_OBJECT_SOURCES.has(active_phase_relay_anchor_id):
 			return "读取存档失败：world.active_phase_relay_anchor_id 没有匹配的原型地图对象来源，当前运行状态已保留。"
+		if deployed_phase_relay_anchor_ids is Array and not deployed_phase_relay_anchor_ids.is_empty():
+			if not deployed_phase_relay_anchor_ids.has(active_phase_relay_anchor_id):
+				return "读取存档失败：world.active_phase_relay_anchor_id 没有包含在已部署锚点列表中，当前运行状态已保留。"
 
 	var map_objects_error := _validate_runtime_object_map(world_data.get("map_objects", {}), ["map_object.", "building."], "map_object_instance.", "world.map_objects")
 	if not map_objects_error.is_empty():

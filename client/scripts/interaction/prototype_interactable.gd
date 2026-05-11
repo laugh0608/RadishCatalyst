@@ -26,6 +26,7 @@ const OPENED_DEEP_RUIN_DOOR_COLOR := Color(0.62, 0.54, 0.82, 1)
 const OVERRIDDEN_DEEP_RUIN_LATCH_COLOR := Color(0.9, 0.62, 0.44, 1)
 const ACTIVATED_DEEP_SIGNAL_ARRAY_COLOR := Color(0.72, 0.82, 0.92, 1)
 const DEPLOYED_PHASE_RETURN_ANCHOR_COLOR := Color(0.46, 0.84, 0.9, 1)
+const STANDBY_PHASE_RETURN_ANCHOR_COLOR := Color(0.34, 0.64, 0.72, 1)
 const READY_PHASE_RELAY_PAD_COLOR := Color(0.48, 0.92, 0.72, 1)
 const TUNED_PHASE_FAULT_SPIRE_COLOR := Color(0.86, 0.74, 0.42, 1)
 const STABILIZED_PHASE_WELL_LOCK_COLOR := Color(0.92, 0.82, 0.52, 1)
@@ -341,19 +342,26 @@ func set_activated_deep_signal_array_visual() -> void:
 	_set_label_text("%s\n阵列已点亮" % display_name_text, 2)
 
 
-func set_deployed_phase_return_anchor_visual() -> void:
+func set_deployed_phase_return_anchor_visual(is_current: bool = true) -> void:
 	consumed = false
 	visible = true
 	monitoring = true
-	marker.color = DEPLOYED_PHASE_RETURN_ANCHOR_COLOR
-	_set_label_text("%s\n锚点在线" % display_name_text, 2)
+	if is_current:
+		marker.color = DEPLOYED_PHASE_RETURN_ANCHOR_COLOR
+		_set_label_text("%s\n当前落点" % display_name_text, 2)
+		return
+	marker.color = STANDBY_PHASE_RETURN_ANCHOR_COLOR
+	_set_label_text("%s\n已部署" % display_name_text, 2)
 
 
-func set_ready_phase_relay_pad_visual() -> void:
+func set_ready_phase_relay_pad_visual(has_multiple_anchors: bool = false) -> void:
 	consumed = false
 	visible = true
 	monitoring = true
 	marker.color = READY_PHASE_RELAY_PAD_COLOR
+	if has_multiple_anchors:
+		_set_label_text("%s\n回投就绪 / R 切换" % display_name_text, 2)
+		return
 	_set_label_text("%s\n回投就绪" % display_name_text, 2)
 
 

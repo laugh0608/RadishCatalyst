@@ -184,11 +184,19 @@ func format_deep_signal_array_prompt(world_state: WorldState, character_state: C
 	return "按 E 写入：深段路由印片，点亮深段阵列台。"
 
 
-func format_phase_return_anchor_prompt(world_state: WorldState, character_state: CharacterState) -> String:
+func format_phase_return_anchor_prompt(
+	world_state: WorldState,
+	character_state: CharacterState,
+	anchor_instance_id: String = ""
+) -> String:
 	if world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor"):
+		var recalibration_hint := ""
+		if not anchor_instance_id.is_empty() and world_state.has_deployed_phase_relay_anchor(anchor_instance_id):
+			if not world_state.is_active_phase_relay_anchor(anchor_instance_id):
+				recalibration_hint = "；回传后会把基地当前落点切回这里"
 		if world_state.quest_state.has_active_quest("quest.reenter_phase_frontline"):
-			return "按 E 回传：前线回传锚点，返回基地相位回投台，再从回投台重返更东侧裂相脊。"
-		return "按 E 回传：前线回传锚点，快速返回基地相位回投台。"
+			return "按 E 回传：前线回传锚点，返回基地相位回投台，再从回投台重返更东侧裂相脊%s。" % recalibration_hint
+		return "按 E 回传：前线回传锚点，快速返回基地相位回投台%s。" % recalibration_hint
 	if not world_state.quest_state.has_completed_quest("quest.assemble_deep_signal_matrix"):
 		return "前线回传锚点：先回基地整理深段读数矩阵，再返回深段部署。"
 	if not character_state.inventory.has_ref("item.deep_signal_matrix", 1):
@@ -201,9 +209,13 @@ func format_phase_relay_pad_prompt(world_state: WorldState) -> String:
 		return "相位回投台：先在深段部署前线回传锚点，再回来回投。"
 	if not world_state.has_active_phase_relay_anchor():
 		return "相位回投台：前线锚点当前离线；返回深段重新校准后再尝试。"
+	var active_anchor_label := _format_phase_relay_anchor_label(world_state.active_phase_relay_anchor_id)
+	var cycle_hint := ""
+	if world_state.get_deployed_phase_relay_anchor_count() > 1:
+		cycle_hint = "；按 R 切换已部署落点"
 	if world_state.quest_state.has_active_quest("quest.reenter_phase_frontline"):
-		return "按 E 回投：相位回投台，返回当前锚点并继续追踪更东侧裂相碎屑。"
-	return "按 E 回投：相位回投台，返回最近校准的前线回传锚点。"
+		return "按 E 回投：相位回投台，返回当前锚点 %s 并继续追踪更东侧裂相碎屑%s。" % [active_anchor_label, cycle_hint]
+	return "按 E 回投：相位回投台，返回当前前线回传锚点 %s%s。" % [active_anchor_label, cycle_hint]
 
 
 func format_phase_fault_spire_prompt(world_state: WorldState, character_state: CharacterState) -> String:
@@ -336,3 +348,13 @@ func _get_display_name(definition_id: String) -> String:
 		return definition_id
 
 	return data_registry.get_text(String(definition.get("display_name_key", definition_id)))
+
+
+func _format_phase_relay_anchor_label(anchor_instance_id: String) -> String:
+	match anchor_instance_id:
+		"map_object_instance.phase_return_anchor":
+			return "深段固定点"
+		"map_object_instance.phase_return_anchor_chamber":
+			return "井心室前线"
+		_:
+			return "当前落点"

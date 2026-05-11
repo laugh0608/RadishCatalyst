@@ -1083,6 +1083,11 @@ func _check_deep_ruin_state_persists() -> void:
 	_expect_array_has(loaded_world.quest_state.unlocked_effects, "recipe.deep_override_key", "deep override recipe unlock persists")
 	_expect_array_has(loaded_world.quest_state.completed_quest_ids, "quest.deploy_phase_relay_anchor", "phase relay deployment quest persists")
 	_expect_equal(loaded_world.active_phase_relay_anchor_id, "map_object_instance.phase_return_anchor", "active phase relay anchor persists")
+	_expect_equal(
+		loaded_world.get_deployed_phase_relay_anchor_ids(),
+		["map_object_instance.phase_return_anchor"],
+		"deployed phase relay anchors persist"
+	)
 	_expect_equal(int(loaded_character.inventory.items.get("item.deep_ruin_core", 0)), 1, "deep ruin reward persists")
 
 

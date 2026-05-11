@@ -49,22 +49,16 @@ var current_interactable: PrototypeInteractable
 var gather_system: GatherSystem
 var last_reported_region_id := "region.outpost_platform"
 var last_gate_message := ""
-
-
 func setup(registry: DataRegistry) -> void:
 	data_registry = registry
 	gather_system = GatherSystem.new(data_registry)
 	_setup_interactable_labels()
 	_setup_enemy_labels()
-
-
 func _ready() -> void:
 	for interactable in interactables_root.get_children():
 		if interactable is PrototypeInteractable:
 			interactable.body_entered.connect(_on_interactable_body_entered.bind(interactable))
 			interactable.body_exited.connect(_on_interactable_body_exited.bind(interactable))
-
-
 func try_interact(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if current_interactable == null:
 		return _failure("附近没有可交互目标。", "交互未执行", "靠近带名称的目标，等待交互提示出现后再按 E。")
@@ -124,8 +118,6 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		result["message"] = "%s%s" % [String(result.get("message", "")), String(evacuation_feedback.get("log_message", ""))]
 		result["evacuation_feedback"] = evacuation_feedback
 	return result
-
-
 func refresh_world_interactables(world_state: WorldState) -> void:
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
@@ -213,12 +205,17 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			interactable.set_default_visual()
 		elif interactable.definition_id == "map_object.phase_return_anchor":
 			if world_state.is_active_phase_relay_anchor(interactable.instance_id):
-				interactable.set_deployed_phase_return_anchor_visual()
+				interactable.set_deployed_phase_return_anchor_visual(true)
+				continue
+			if world_state.has_deployed_phase_relay_anchor(interactable.instance_id):
+				interactable.set_deployed_phase_return_anchor_visual(false)
 				continue
 			interactable.set_default_visual()
 		elif interactable.definition_id == "map_object.phase_relay_pad":
 			if world_state.has_active_phase_relay_anchor():
-				interactable.set_ready_phase_relay_pad_visual()
+				interactable.set_ready_phase_relay_pad_visual(
+					world_state.get_deployed_phase_relay_anchor_count() > 1
+				)
 				continue
 			interactable.set_default_visual()
 		elif interactable.definition_id == "map_object.phase_fault_spire":
@@ -376,8 +373,6 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			current_interactable = null
 			interaction_cleared.emit(interactable)
 	update_current_interactable()
-
-
 func update_current_interactable() -> void:
 	var nearest_interactable := _get_nearest_interactable()
 	if nearest_interactable == current_interactable:
@@ -389,11 +384,11 @@ func update_current_interactable() -> void:
 		interaction_cleared.emit(previous_interactable)
 	if current_interactable != null:
 		interaction_available.emit(current_interactable)
-
-
-func try_cycle_recipe() -> Dictionary:
+func try_cycle_recipe(world_state: WorldState = null) -> Dictionary:
 	if current_interactable == null:
 		return _failure("附近没有可切换配方的设备。", "配方未切换", "靠近基础反应器等加工设备后再按 R。")
+	if current_interactable.definition_id == "map_object.phase_relay_pad":
+		return _cycle_phase_relay_anchor(world_state)
 	if current_interactable.interaction_type != "process_recipe":
 		return _failure("当前目标不是加工设备。", "配方未切换", "靠近基础反应器或污染过滤器后再切换配方。")
 	if current_interactable.get_recipe_count() <= 1:
@@ -408,8 +403,18 @@ func try_cycle_recipe() -> Dictionary:
 			current_interactable.get_recipe_count()
 		]
 	}
-
-
+func _cycle_phase_relay_anchor(world_state: WorldState) -> Dictionary:
+	if world_state == null:
+		return _failure("相位回投台当前没有运行时状态。", "锚点未切换", "重新进入地图后再尝试切换前线落点。")
+	if not world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor"):
+		return _failure("相位回投台仍未接入前线锚点。", "锚点未切换", "先在深段部署前线回传锚点。")
+	if world_state.get_deployed_phase_relay_anchor_count() <= 1:
+		return _failure("当前只有一个已部署锚点。", "锚点未切换", "继续向东推进并校准新的前线锚点后，再按 R 切换。")
+	var active_anchor_id := world_state.cycle_active_phase_relay_anchor()
+	return {
+		"success": true,
+		"message": "当前回投落点已切换到 %s；按 E 可直接回投。" % _get_phase_relay_anchor_label(active_anchor_id)
+	}
 func try_attack(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var target := _get_nearest_attack_target()
 	if target == null:
@@ -547,8 +552,6 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 		"enemy_defeated": false,
 		"evacuation_feedback": evacuation_feedback
 	}
-
-
 func _setup_interactable_labels() -> void:
 	if data_registry == null:
 		return
@@ -560,8 +563,6 @@ func _setup_interactable_labels() -> void:
 			interactable.set_recipe_cycle(_get_recipes_for_building(interactable.definition_id))
 		interactable.instance_id = "map_object_instance.%s" % String(interactable.name).to_snake_case()
 		interactable.setup(_get_display_name(interactable.definition_id))
-
-
 func _setup_enemy_labels() -> void:
 	if data_registry == null:
 		return
@@ -574,8 +575,6 @@ func _setup_enemy_labels() -> void:
 		var max_health := float(definition.get("base_stats", {}).get("max_health", 20.0))
 		enemy.instance_id = _get_enemy_instance_id(enemy)
 		enemy.setup(_get_display_name(enemy.definition_id), max_health, String(definition.get("category", "basic")))
-
-
 func sync_enemy_states(world_state: WorldState) -> void:
 	for enemy in enemies_root.get_children():
 		if not enemy is PrototypeEnemy:
@@ -592,15 +591,11 @@ func sync_enemy_states(world_state: WorldState) -> void:
 		)
 		enemy.apply_saved_state(enemy_state)
 		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state))
-
-
 func refresh_enemy_spawns(world_state: WorldState) -> void:
 	for enemy in enemies_root.get_children():
 		if not enemy is PrototypeEnemy:
 			continue
 		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state))
-
-
 func apply_runtime_state(world_state: WorldState, character_state: CharacterState) -> void:
 	current_interactable = null
 	player.position = character_state.position
@@ -609,22 +604,14 @@ func apply_runtime_state(world_state: WorldState, character_state: CharacterStat
 	last_gate_message = ""
 	sync_enemy_states(world_state)
 	refresh_world_interactables(world_state)
-
-
 func get_player_position() -> Vector2:
 	return player.position
-
-
 func get_camera_focus_global_position() -> Vector2:
 	return player.global_position
-
-
 func get_camera_bounds_rect_global() -> Rect2:
 	var top_left := to_global(CAMERA_BOUNDS_MIN)
 	var bottom_right := to_global(CAMERA_BOUNDS_MAX)
 	return Rect2(top_left, bottom_right - top_left)
-
-
 func update_region_presence(world_state: WorldState, character_state: CharacterState) -> void:
 	player.clamp_to_play_bounds(PLAY_BOUNDS_MIN, PLAY_BOUNDS_MAX)
 	var gate_message := apply_region_gate_bounds(world_state)
@@ -648,8 +635,6 @@ func update_region_presence(world_state: WorldState, character_state: CharacterS
 	world_state.current_region_id = region_id
 	character_state.current_region_id = region_id
 	region_changed.emit(region_id)
-
-
 func apply_region_gate_bounds(world_state: WorldState) -> String:
 	if not world_state.unlocked_region_ids.has("region.crystal_vein_field") and player.position.x > CRYSTAL_GATE_RETURN_X:
 		player.position.x = CRYSTAL_GATE_RETURN_X
@@ -706,15 +691,11 @@ func apply_region_gate_bounds(world_state: WorldState) -> String:
 		return "井纹架断面仍未稳定：先回基地解析相位井织核，再带着新的井纹架键栓回来继续向东推进。"
 
 	return ""
-
-
 func _get_display_name(definition_id: String) -> String:
 	var definition := data_registry.get_definition(definition_id)
 	if definition.is_empty():
 		return definition_id
 	return data_registry.get_text(String(definition.get("display_name_key", definition_id)))
-
-
 func _get_recipes_for_building(building_id: String) -> Array[String]:
 	var recipe_ids: Array[String] = []
 	if data_registry == null:
@@ -728,20 +709,14 @@ func _get_recipes_for_building(building_id: String) -> Array[String]:
 		recipe_ids.append(String(recipe.get("id", "")))
 
 	return recipe_ids
-
-
 func _on_interactable_body_entered(body: Node2D, interactable: PrototypeInteractable) -> void:
 	if body != player or not interactable.can_interact():
 		return
 	update_current_interactable()
-
-
 func _on_interactable_body_exited(body: Node2D, interactable: PrototypeInteractable) -> void:
 	if body != player or current_interactable != interactable:
 		return
 	update_current_interactable()
-
-
 func _get_nearest_interactable() -> PrototypeInteractable:
 	var nearest_interactable: PrototypeInteractable = null
 	var nearest_distance := INF
@@ -758,8 +733,6 @@ func _get_nearest_interactable() -> PrototypeInteractable:
 		nearest_distance = distance
 
 	return nearest_interactable
-
-
 func _get_nearest_attack_target() -> PrototypeEnemy:
 	var nearest_enemy: PrototypeEnemy = null
 	var nearest_distance := INF
@@ -776,8 +749,6 @@ func _get_nearest_attack_target() -> PrototypeEnemy:
 		nearest_distance = distance
 
 	return nearest_enemy
-
-
 func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool:
 	if enemy.definition_id == "enemy.elite_residue_node":
 		return (
@@ -838,16 +809,12 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 	if not quest_state.has_active_quest(quest_id):
 		return false
 	return quest_state.get_objective_progress(quest_id, "craft_item", "item.repair_gel") >= 1.0
-
-
 func _get_attack_damage(character_state: CharacterState) -> float:
 	var tool_id := String(character_state.equipment.get("tool", ""))
 	var tool_definition := data_registry.get_definition(tool_id)
 	var stat_modifiers: Dictionary = tool_definition.get("stat_modifiers", {})
 	var attack_power := float(stat_modifiers.get("attack_power", 1.0))
 	return BASE_ATTACK_DAMAGE * attack_power
-
-
 func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: CharacterState) -> String:
 	var definition := data_registry.get_definition(enemy.definition_id)
 	var base_stats: Dictionary = definition.get("base_stats", {})
@@ -871,8 +838,6 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 	if enemy.definition_id == "enemy.treatment_skitter":
 		message = "%s生命偏低时按 1 使用修复凝胶，或回基地再调制补给。" % message
 	return message
-
-
 func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, world_state: WorldState) -> String:
 	if world_state.has_enemy_drops_granted(enemy.instance_id):
 		return ""
@@ -900,8 +865,6 @@ func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, 
 	if parts.is_empty():
 		return ""
 	return "获得：%s。" % ", ".join(parts)
-
-
 func _inspect_ruin_gate(world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.defeat_elite_node"):
 		return _failure(
@@ -920,8 +883,6 @@ func _inspect_ruin_gate(world_state: WorldState) -> Dictionary:
 		"success": true,
 		"message": "封锁遗迹入口信号已确认：遗迹外圈通路已恢复。"
 	}
-
-
 func _inspect_outer_ring_barrier(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_anchor"):
 		return _failure(
@@ -948,8 +909,6 @@ func _inspect_outer_ring_barrier(character_state: CharacterState, world_state: W
 		"success": true,
 		"message": "已部署稳相信标：抖动雾幕回落，外圈深段通路开启。"
 	}
-
-
 func _inspect_outer_ring_console(world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier"):
 		return _failure(
@@ -968,8 +927,6 @@ func _inspect_outer_ring_console(world_state: WorldState) -> Dictionary:
 		"success": true,
 		"message": "外圈中继台已接管：更深遗迹结构的稳定回波已定位。"
 	}
-
-
 func _inspect_signal_echo_cache(world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
 		return _failure(
@@ -988,8 +945,6 @@ func _inspect_signal_echo_cache(world_state: WorldState) -> Dictionary:
 		"success": true,
 		"message": "已回收外圈回波匣：回基地用基础反应器整理更深遗迹坐标。"
 	}
-
-
 func _inspect_deep_ruin_door(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.analyze_deep_signal"):
 		return _failure(
@@ -1016,8 +971,6 @@ func _inspect_deep_ruin_door(character_state: CharacterState, world_state: World
 		"success": true,
 		"message": "更深遗迹坐标已写入：深段入口门禁开启。"
 	}
-
-
 func _inspect_deep_ruin_latch(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.assemble_deep_override"):
 		return _failure(
@@ -1044,8 +997,6 @@ func _inspect_deep_ruin_latch(character_state: CharacterState, world_state: Worl
 		"success": true,
 		"message": "已覆写深段锁扣：深段样块匣解封，可带回新的深段样块并继续回基地解析。"
 	}
-
-
 func _inspect_deep_signal_array(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.analyze_deep_core"):
 		return _failure(
@@ -1072,14 +1023,13 @@ func _inspect_deep_signal_array(character_state: CharacterState, world_state: Wo
 		"success": true,
 		"message": "深段路由印片已写入：阵列台点亮，第二轮相位导管回收线已暴露。"
 	}
-
-
 func _inspect_phase_return_anchor(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var anchor_instance_id := "map_object_instance.phase_return_anchor"
 	if current_interactable != null:
 		anchor_instance_id = current_interactable.instance_id
 
 	if world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor"):
+		var previous_anchor_id := world_state.active_phase_relay_anchor_id
 		world_state.set_active_phase_relay_anchor(anchor_instance_id)
 		_teleport_player_to_region(
 			character_state,
@@ -1087,9 +1037,13 @@ func _inspect_phase_return_anchor(character_state: CharacterState, world_state: 
 			"region.outpost_platform",
 			_get_phase_relay_pad_return_position()
 		)
+		var anchor_label := _get_phase_relay_anchor_label(anchor_instance_id)
+		var recalibration_text := "当前回投落点保持为 %s" % anchor_label
+		if previous_anchor_id != anchor_instance_id:
+			recalibration_text = "当前回投落点已切回 %s" % anchor_label
 		return {
 			"success": true,
-			"message": "前线回传锚点已联通：已快速回传到基地相位回投台；当前前线落点已重校准，下一步从回投台重返前线，追踪更东侧裂相碎屑。"
+			"message": "前线回传锚点已联通：已快速回传到基地相位回投台；%s，下一步从回投台重返前线，追踪更东侧裂相碎屑。" % recalibration_text
 		}
 
 	if not world_state.quest_state.has_completed_quest("quest.assemble_deep_signal_matrix"):
@@ -1110,10 +1064,8 @@ func _inspect_phase_return_anchor(character_state: CharacterState, world_state: 
 	world_state.set_active_phase_relay_anchor(anchor_instance_id)
 	return {
 		"success": true,
-		"message": "深段读数矩阵已写入：前线回传锚点上线，可在深段快速回基地，并从基地回投回来。"
+		"message": "深段读数矩阵已写入：%s 已上线，可在深段快速回基地，并从基地回投回来。" % _get_phase_relay_anchor_label(anchor_instance_id)
 	}
-
-
 func _inspect_phase_relay_pad(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor"):
 		return _failure(
@@ -1133,17 +1085,19 @@ func _inspect_phase_relay_pad(character_state: CharacterState, world_state: Worl
 	var target_position := _get_phase_return_anchor_return_position(active_anchor_id)
 	var target_region_id := _get_interactable_region_id(active_anchor_id, "region.deep_ruin_threshold")
 	_teleport_player_to_region(character_state, world_state, target_region_id, target_position)
+	var active_anchor_label := _get_phase_relay_anchor_label(active_anchor_id)
+	var cycle_hint := ""
+	if world_state.get_deployed_phase_relay_anchor_count() > 1:
+		cycle_hint = "；如需切回其他已部署锚点，可先按 R 轮换落点"
 	if world_state.quest_state.has_active_quest("quest.reenter_phase_frontline"):
 		return {
 			"success": true,
-			"message": "相位回投台已联通：已回投到最近校准的前线回传锚点；更东侧裂相碎屑和新的深段猎手已暴露。"
+			"message": "相位回投台已联通：已回投到 %s；更东侧裂相碎屑和新的深段猎手已暴露%s。" % [active_anchor_label, cycle_hint]
 		}
 	return {
 		"success": true,
-		"message": "相位回投台已联通：已回投到最近校准的前线回传锚点。"
+		"message": "相位回投台已联通：已回投到 %s%s。" % [active_anchor_label, cycle_hint]
 	}
-
-
 func _inspect_phase_fault_spire(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.tune_relay_lens"):
 		return _failure(
@@ -1170,8 +1124,6 @@ func _inspect_phase_fault_spire(character_state: CharacterState, world_state: Wo
 		"success": true,
 		"message": "中继调谐镜已对准：裂相尖塔开始回吐内层故障轨迹，并暴露更东侧相位井锁的第一段坐标。"
 	}
-
-
 func _inspect_phase_well_lock(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_key"):
 		return _failure(
@@ -1198,8 +1150,6 @@ func _inspect_phase_well_lock(character_state: CharacterState, world_state: Worl
 		"success": true,
 		"message": "相位井钥已写入：相位井锁开始析出定位器，更东侧内层相位井目标已被钉住。"
 	}
-
-
 func _inspect_inner_phase_well(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_probe"):
 		return _failure(
@@ -1226,8 +1176,6 @@ func _inspect_inner_phase_well(character_state: CharacterState, world_state: Wor
 		"success": true,
 		"message": "相位井探针已写入：内层相位井交出了第一份井芯样本，这条更东侧风险线已开始稳定回投收益。"
 	}
-
-
 func _inspect_phase_well_sink(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_pike"):
 		return _failure(
@@ -1254,8 +1202,6 @@ func _inspect_phase_well_sink(character_state: CharacterState, world_state: Worl
 		"success": true,
 		"message": "井底穿钉已写入：井底裂口开始析出相位井心核，更东侧井心室断面的第一段读数已被钉住。"
 	}
-
-
 func _inspect_phase_well_chamber(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_shunt"):
 		return _failure(
@@ -1282,8 +1228,6 @@ func _inspect_phase_well_chamber(character_state: CharacterState, world_state: W
 		"success": true,
 		"message": "井心分流栓已写入：井心室断面开始析出相位井纺核，更东侧更深收益再次抬升。"
 	}
-
-
 func _inspect_phase_well_loom(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_shuttle"):
 		return _failure(
@@ -1310,8 +1254,6 @@ func _inspect_phase_well_loom(character_state: CharacterState, world_state: Worl
 		"success": true,
 		"message": "井纺梭栓已写入：井纺室断面开始析出相位井织核，更东侧更深收益再次抬升。"
 	}
-
-
 func _inspect_phase_well_frame(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_frame_key"):
 		return _failure(
@@ -1338,8 +1280,6 @@ func _inspect_phase_well_frame(character_state: CharacterState, world_state: Wor
 		"success": true,
 		"message": "井纹架键栓已写入：井纹架断面开始析出相位井结核，更东侧更深收益再次抬升。"
 	}
-
-
 func _evacuate_if_needed(character_state: CharacterState, world_state: WorldState, reason: String) -> Dictionary:
 	if character_state.health > 0.0 and character_state.protection > 0.0:
 		return {}
@@ -1365,8 +1305,6 @@ func _evacuate_if_needed(character_state: CharacterState, world_state: WorldStat
 		"retry_text": retry_text,
 		"log_message": " %s%s。%s" % [reason_text, recovery_text, retry_text]
 	}
-
-
 func _get_evacuation_reason(health_depleted: bool, protection_depleted: bool) -> String:
 	if health_depleted and protection_depleted:
 		return "生命和防护耗尽，"
@@ -1375,8 +1313,6 @@ func _get_evacuation_reason(health_depleted: bool, protection_depleted: bool) ->
 	if protection_depleted:
 		return "防护耗尽，"
 	return "状态过低，"
-
-
 func _get_retry_hint(world_state: WorldState, reason: String, health_depleted: bool, protection_depleted: bool) -> String:
 	if world_state.quest_state.has_completed_quest("quest.restore_outpost"):
 		return "再尝试前：先按 E 整备前哨核心回满生命与防护；若要前线续战，再补修复凝胶或抗污染药剂。"
@@ -1387,14 +1323,10 @@ func _get_retry_hint(world_state: WorldState, reason: String, health_depleted: b
 	if reason == "pollution":
 		return "再尝试前：检查防护和抗污染药剂。"
 	return "再尝试前：补充快捷栏物品。"
-
-
 func _format_amount(amount: float) -> String:
 	if is_equal_approx(amount, roundf(amount)):
 		return str(int(amount))
 	return "%.1f" % amount
-
-
 func _failure(message: String, title: String, detail: String) -> Dictionary:
 	return {
 		"success": false,
@@ -1404,8 +1336,6 @@ func _failure(message: String, title: String, detail: String) -> Dictionary:
 			"detail": detail
 		}
 	}
-
-
 func _teleport_player_to_region(
 	character_state: CharacterState,
 	world_state: WorldState,
@@ -1419,22 +1349,27 @@ func _teleport_player_to_region(
 	world_state.current_region_id = region_id
 	character_state.current_region_id = region_id
 	update_current_interactable()
-
-
+func _get_phase_relay_anchor_label(anchor_instance_id: String) -> String:
+	match anchor_instance_id:
+		"map_object_instance.phase_return_anchor":
+			return "深段固定点锚点"
+		"map_object_instance.phase_return_anchor_chamber":
+			return "井心室前线锚点"
+		_:
+			var region_id := _get_interactable_region_id(anchor_instance_id, "")
+			if region_id.is_empty():
+				return "前线回传锚点"
+			return "%s锚点" % _get_display_name(region_id)
 func _get_phase_relay_pad_return_position() -> Vector2:
 	return _get_interactable_return_position(
 		"map_object_instance.phase_relay_pad",
 		PHASE_RELAY_PAD_FALLBACK_POSITION
 	)
-
-
 func _get_phase_return_anchor_return_position(anchor_instance_id: String) -> Vector2:
 	return _get_interactable_return_position(
 		anchor_instance_id,
 		PHASE_RETURN_ANCHOR_FALLBACK_POSITION
 	)
-
-
 func _get_interactable_return_position(instance_id: String, fallback_position: Vector2) -> Vector2:
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
@@ -1443,8 +1378,6 @@ func _get_interactable_return_position(instance_id: String, fallback_position: V
 			continue
 		return interactable.position + Vector2(0, 30)
 	return fallback_position
-
-
 func _get_interactable_region_id(instance_id: String, fallback_region_id: String) -> String:
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
@@ -1453,12 +1386,8 @@ func _get_interactable_region_id(instance_id: String, fallback_region_id: String
 			continue
 		return _get_region_id_for_position(interactable.position)
 	return fallback_region_id
-
-
 func _get_enemy_instance_id(enemy: PrototypeEnemy) -> String:
 	return "enemy_instance.%s" % String(enemy.name).to_snake_case()
-
-
 func _get_region_id_for_position(map_position: Vector2) -> String:
 	if map_position.x >= PHASE_WELL_FRAME_REGION_X:
 		return "region.phase_well_frame"
@@ -1479,11 +1408,7 @@ func _get_region_id_for_position(map_position: Vector2) -> String:
 	if map_position.x >= CRYSTAL_REGION_X:
 		return "region.crystal_vein_field"
 	return "region.outpost_platform"
-
-
 func _is_outer_ring_barrier_locked(world_state: WorldState) -> bool:
 	return not world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier")
-
-
 func _is_deep_ruin_gate_locked(world_state: WorldState) -> bool:
 	return not world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_entrance")

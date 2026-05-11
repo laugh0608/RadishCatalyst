@@ -56,9 +56,22 @@ func run() -> void:
 				"map_object_instance.phase_return_anchor",
 				"%s baseline active phase relay anchor" % code.to_upper()
 			)
+			host._expect_equal(
+				loaded_world.get_deployed_phase_relay_anchor_ids(),
+				["map_object_instance.phase_return_anchor"],
+				"%s baseline deployed phase relay anchors" % code.to_upper()
+			)
 		if baseline_id == "baseline.s10_phase_well_spindle_ready" or baseline_id == "baseline.s11_phase_well_weave_core_ready":
 			host._expect_equal(
 				loaded_world.active_phase_relay_anchor_id,
 				"map_object_instance.phase_return_anchor_chamber",
 				"%s baseline active phase relay anchor" % code.to_upper()
+			)
+			host._expect_equal(
+				loaded_world.get_deployed_phase_relay_anchor_ids(),
+				[
+					"map_object_instance.phase_return_anchor",
+					"map_object_instance.phase_return_anchor_chamber"
+				],
+				"%s baseline deployed phase relay anchors" % code.to_upper()
 			)

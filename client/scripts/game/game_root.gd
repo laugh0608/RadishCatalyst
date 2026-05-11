@@ -108,8 +108,8 @@ func _on_player_attack_requested() -> void:
 
 
 func _on_player_recipe_cycle_requested() -> void:
-	var result := vertical_slice_map.try_cycle_recipe()
-	if bool(result.get("success", false)) and vertical_slice_map.current_interactable != null:
+	var result := vertical_slice_map.try_cycle_recipe(world_state)
+	if bool(result.get("success", false)) and vertical_slice_map.current_interactable != null and vertical_slice_map.current_interactable.interaction_type == "process_recipe":
 		hud.append_log(interaction_prompt_formatter.format_processing_log(
 			vertical_slice_map.current_interactable.get_current_recipe_id(),
 			character_state,
@@ -118,6 +118,8 @@ func _on_player_recipe_cycle_requested() -> void:
 		_on_interaction_available(vertical_slice_map.current_interactable, false)
 	else:
 		hud.append_log(hud_log_presenter.format_result_log(result))
+		if bool(result.get("success", false)) and vertical_slice_map.current_interactable != null:
+			_on_interaction_available(vertical_slice_map.current_interactable, false)
 	_update_hud()
 
 
@@ -299,7 +301,11 @@ func _on_interaction_available(interactable: PrototypeInteractable, should_auto_
 		hud.show_prompt(interaction_prompt_formatter.format_deep_signal_array_prompt(world_state, character_state))
 		return
 	if interactable.definition_id == "map_object.phase_return_anchor":
-		hud.show_prompt(interaction_prompt_formatter.format_phase_return_anchor_prompt(world_state, character_state))
+		hud.show_prompt(interaction_prompt_formatter.format_phase_return_anchor_prompt(
+			world_state,
+			character_state,
+			interactable.instance_id
+		))
 		return
 	if interactable.definition_id == "map_object.phase_relay_pad":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_relay_pad_prompt(world_state))
@@ -525,7 +531,11 @@ func _refresh_current_context_prompt() -> void:
 		hud.show_prompt(interaction_prompt_formatter.format_deep_signal_array_prompt(world_state, character_state))
 		return
 	if interactable.definition_id == "map_object.phase_return_anchor":
-		hud.show_prompt(interaction_prompt_formatter.format_phase_return_anchor_prompt(world_state, character_state))
+		hud.show_prompt(interaction_prompt_formatter.format_phase_return_anchor_prompt(
+			world_state,
+			character_state,
+			interactable.instance_id
+		))
 		return
 	if interactable.definition_id == "map_object.phase_relay_pad":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_relay_pad_prompt(world_state))

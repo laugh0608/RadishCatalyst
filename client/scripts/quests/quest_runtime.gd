@@ -77,6 +77,8 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 		log_messages.append("旧进度已接入：相位井纺核解析配方已补齐。")
 	if _restore_missing_phase_well_weave_core_analysis_unlock(world_state):
 		log_messages.append("旧进度已接入：相位井织核解析配方已补齐。")
+	if _restore_missing_phase_well_weave_core_reward(character_state, world_state):
+		log_messages.append("旧进度已接入：井纺室勘验奖励的相位井织核已补回背包。")
 	if _restore_missing_phase_well_core_analysis_unlock(world_state):
 		log_messages.append("旧进度已接入：相位井芯样本解析配方已补齐。")
 	if _restore_missing_phase_well_locator_analysis_unlock(world_state):
@@ -85,6 +87,8 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 		log_messages.append("旧进度已接入：内层故障轨迹分析配方已补齐。")
 	if _restore_missing_phase_relay_anchor(world_state):
 		log_messages.append("旧进度已接入：前线回传锚点已按固定深段落点恢复在线。")
+	if _restore_missing_deployed_phase_relay_anchors(world_state):
+		log_messages.append("旧进度已接入：已部署前线锚点列表已按现有回投进度补齐。")
 	if _activate_missing_post_phase_well_loom_followup(world_state):
 		log_messages.append("旧进度已接入：井纺室后的井纹架后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_chamber_followup(world_state):
@@ -101,6 +105,10 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 		log_messages.append("旧进度已接入：外圈中继后的深段回波回收任务已补入当前目标。")
 	if world_state.quest_state.has_active_quest("quest.bring_back_sample"):
 		updates.append_array(_get_bring_back_sample_recovery_updates(world_state, character_state))
+	var late_craft_recovery_updates := _get_late_craft_progress_recovery_updates(world_state, character_state)
+	if not late_craft_recovery_updates.is_empty():
+		updates.append_array(late_craft_recovery_updates)
+		log_messages.append("旧进度已接入：背包里已完成的后段加工产物已补记到当前任务。")
 	if updates.is_empty():
 		if log_messages.is_empty():
 			return _empty_result(false)
@@ -160,6 +168,46 @@ func _get_bring_back_sample_recovery_updates(world_state: WorldState, character_
 	var has_sample := bool(anomaly_state.get("is_sampled", false)) or character_state.inventory.has_ref("item.anomaly_sample", 1)
 	if sample_progress < 1.0 and has_sample:
 		updates.append(_objective_set_update(quest_id, "sample_object", "map_object.anomaly_crystal", 1))
+	return updates
+
+
+func _get_late_craft_progress_recovery_updates(world_state: WorldState, character_state: CharacterState) -> Array[Dictionary]:
+	var updates: Array[Dictionary] = []
+	for recovery in [
+		{
+			"quest_id": "quest.analyze_phase_well_spindle",
+			"item_id": "item.phase_well_warp_sheet"
+		},
+		{
+			"quest_id": "quest.refine_weft_bundle",
+			"item_id": "item.phase_well_tension_rib"
+		},
+		{
+			"quest_id": "quest.assemble_phase_well_shuttle",
+			"item_id": "item.phase_well_shuttle"
+		},
+		{
+			"quest_id": "quest.analyze_phase_well_weave_core",
+			"item_id": "item.phase_well_pattern_sheet"
+		},
+		{
+			"quest_id": "quest.refine_selvedge_strip",
+			"item_id": "item.phase_well_frame_rib"
+		},
+		{
+			"quest_id": "quest.assemble_phase_well_frame_key",
+			"item_id": "item.phase_well_frame_key"
+		}
+	]:
+		var quest_id := String(recovery.get("quest_id", ""))
+		var item_id := String(recovery.get("item_id", ""))
+		if not world_state.quest_state.has_active_quest(quest_id):
+			continue
+		if world_state.quest_state.get_objective_progress(quest_id, "craft_item", item_id) >= 1.0:
+			continue
+		if not character_state.inventory.has_ref(item_id, 1):
+			continue
+		updates.append(_objective_set_update(quest_id, "craft_item", item_id, 1))
 	return updates
 
 
@@ -226,6 +274,25 @@ func _restore_missing_phase_relay_anchor(world_state: WorldState) -> bool:
 	return true
 
 
+func _restore_missing_deployed_phase_relay_anchors(world_state: WorldState) -> bool:
+	if not world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor"):
+		return false
+	var changed := false
+	if world_state.has_active_phase_relay_anchor():
+		var active_anchor_id := world_state.active_phase_relay_anchor_id
+		if not world_state.has_deployed_phase_relay_anchor(active_anchor_id):
+			world_state.add_deployed_phase_relay_anchor(active_anchor_id)
+			changed = true
+	if not world_state.has_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor"):
+		world_state.add_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor")
+		changed = true
+	if world_state.active_phase_relay_anchor_id == "map_object_instance.phase_return_anchor_chamber":
+		if not world_state.has_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber"):
+			world_state.add_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+			changed = true
+	return changed
+
+
 func _restore_missing_inner_fault_analysis_unlock(world_state: WorldState) -> bool:
 	if not world_state.quest_state.has_completed_quest("quest.inspect_phase_fault_spire"):
 		return false
@@ -277,6 +344,19 @@ func _restore_missing_phase_well_weave_core_analysis_unlock(world_state: WorldSt
 	if world_state.quest_state.unlocked_effects.has("recipe.phase_well_weave_core_analysis"):
 		return false
 	world_state.quest_state.unlock_effect("recipe.phase_well_weave_core_analysis")
+	return true
+
+
+func _restore_missing_phase_well_weave_core_reward(character_state: CharacterState, world_state: WorldState) -> bool:
+	if not world_state.quest_state.has_completed_quest("quest.inspect_phase_well_loom"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.analyze_phase_well_weave_core"):
+		return false
+	if character_state.inventory.has_ref("item.phase_well_weave_core", 1):
+		return false
+	if character_state.inventory.has_ref("item.phase_well_pattern_sheet", 1):
+		return false
+	character_state.inventory.add_ref("item.phase_well_weave_core", 1)
 	return true
 
 

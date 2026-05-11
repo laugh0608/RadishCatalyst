@@ -69,6 +69,9 @@ var last_debug_character_state: CharacterState
 @onready var status_panel: ColorRect = $StatusPanel
 @onready var vitals_panel: ColorRect = $VitalsPanel
 @onready var map_panel: ColorRect = $MapPanel
+@onready var map_title_label: Label = $MapPanel/MapTitleLabel
+@onready var map_hint_label: Label = $MapPanel/MapHintLabel
+@onready var map_track: ColorRect = $MapPanel/MapTrack
 @onready var prompt_panel: ColorRect = $PromptPanel
 @onready var device_panel: ColorRect = $DevicePanel
 @onready var log_panel: ColorRect = $LogPanel
@@ -85,7 +88,8 @@ var last_debug_character_state: CharacterState
 	$MapPanel/InnerPhaseWellMarker,
 	$MapPanel/PhaseWellSinkMarker,
 	$MapPanel/PhaseWellChamberMarker,
-	$MapPanel/PhaseWellLoomMarker
+	$MapPanel/PhaseWellLoomMarker,
+	$MapPanel/PhaseWellFrameMarker
 ]
 @onready var map_marker_labels: Array[Label] = [
 	$MapPanel/OutpostLabel,
@@ -96,7 +100,8 @@ var last_debug_character_state: CharacterState
 	$MapPanel/InnerPhaseWellLabel,
 	$MapPanel/PhaseWellSinkLabel,
 	$MapPanel/PhaseWellChamberLabel,
-	$MapPanel/PhaseWellLoomLabel
+	$MapPanel/PhaseWellLoomLabel,
+	$MapPanel/PhaseWellFrameLabel
 ]
 @onready var device_title_label: Label = $DevicePanel/DeviceTitleLabel
 @onready var device_status_label: Label = $DevicePanel/DeviceStatusLabel
@@ -550,6 +555,12 @@ func _ensure_runtime_nodes() -> void:
 		vitals_panel = get_node_or_null("VitalsPanel")
 	if map_panel == null:
 		map_panel = get_node_or_null("MapPanel")
+	if map_title_label == null:
+		map_title_label = get_node_or_null("MapPanel/MapTitleLabel")
+	if map_hint_label == null:
+		map_hint_label = get_node_or_null("MapPanel/MapHintLabel")
+	if map_track == null:
+		map_track = get_node_or_null("MapPanel/MapTrack")
 	if prompt_panel == null:
 		prompt_panel = get_node_or_null("PromptPanel")
 	if device_panel == null:
@@ -574,7 +585,8 @@ func _ensure_runtime_nodes() -> void:
 			get_node_or_null("MapPanel/InnerPhaseWellMarker"),
 			get_node_or_null("MapPanel/PhaseWellSinkMarker"),
 			get_node_or_null("MapPanel/PhaseWellChamberMarker"),
-			get_node_or_null("MapPanel/PhaseWellLoomMarker")
+			get_node_or_null("MapPanel/PhaseWellLoomMarker"),
+			get_node_or_null("MapPanel/PhaseWellFrameMarker")
 		]
 	if map_marker_labels.is_empty() or map_marker_labels[0] == null:
 		map_marker_labels = [
@@ -586,7 +598,8 @@ func _ensure_runtime_nodes() -> void:
 			get_node_or_null("MapPanel/InnerPhaseWellLabel"),
 			get_node_or_null("MapPanel/PhaseWellSinkLabel"),
 			get_node_or_null("MapPanel/PhaseWellChamberLabel"),
-			get_node_or_null("MapPanel/PhaseWellLoomLabel")
+			get_node_or_null("MapPanel/PhaseWellLoomLabel"),
+			get_node_or_null("MapPanel/PhaseWellFrameLabel")
 		]
 	if device_title_label == null:
 		device_title_label = get_node_or_null("DevicePanel/DeviceTitleLabel")
@@ -687,8 +700,8 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	last_viewport_size = viewport_size
 	var margin := 20.0
 	var gap := 16.0
-	var map_width := 378.0
-	var map_height := 176.0
+	var map_width := clampf(viewport_size.x * 0.38, 448.0, 500.0)
+	var map_height := 208.0
 	var objective_width := clampf(viewport_size.x * 0.28, 400.0, 520.0)
 	var objective_height := 180.0
 	var vitals_width := clampf(viewport_size.x * 0.24, 360.0, 440.0)
@@ -756,6 +769,7 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	_set_control_rect(save_panel, save_position, Vector2(save_width, save_height))
 	_set_control_rect(quick_slot_panel, quick_slot_position, Vector2(quick_width, quick_height))
 
+	_layout_map_panel_contents()
 	_layout_full_label(status_label, status_panel, 18.0, 18.0)
 	_layout_full_label(vitals_label, vitals_panel, 18.0, 18.0)
 	_layout_full_label(prompt_label, prompt_panel, 18.0, 18.0)
@@ -770,6 +784,62 @@ func _set_control_rect(control: Control, position: Vector2, size: Vector2) -> vo
 		return
 	control.position = position
 	control.size = size
+
+
+func _layout_map_panel_contents() -> void:
+	if map_panel == null:
+		return
+	if map_title_label != null:
+		map_title_label.position = Vector2(18.0, 14.0)
+		map_title_label.size = Vector2(maxf(0.0, map_panel.size.x - 36.0), 28.0)
+	if map_hint_label != null:
+		map_hint_label.position = Vector2(18.0, 46.0)
+		map_hint_label.size = Vector2(maxf(0.0, map_panel.size.x - 36.0), 28.0)
+
+	var marker_count := mini(map_marker_rects.size(), map_marker_labels.size())
+	if marker_count <= 0:
+		return
+
+	var marker_top := 84.0
+	var marker_size := Vector2(20.0, 22.0)
+	var label_top := 112.0
+	var label_height := maxf(0.0, map_panel.size.y - label_top - 12.0)
+	var left_margin := 22.0
+	var right_margin := 22.0
+	var usable_width := maxf(0.0, map_panel.size.x - left_margin - right_margin - marker_size.x)
+	var step := 0.0
+	if marker_count > 1:
+		step = usable_width / float(marker_count - 1)
+	var label_width := maxf(54.0, step + 18.0)
+	var first_center_x := left_margin + marker_size.x * 0.5
+	var last_center_x := first_center_x
+
+	for index in range(marker_count):
+		var marker_rect := map_marker_rects[index]
+		var marker_label := map_marker_labels[index]
+		if marker_rect == null or marker_label == null:
+			continue
+
+		var marker_x := left_margin + step * float(index)
+		marker_rect.position = Vector2(marker_x, marker_top)
+		marker_rect.size = marker_size
+
+		var marker_center_x := marker_x + marker_size.x * 0.5
+		var label_x := clampf(
+			marker_center_x - label_width * 0.5,
+			4.0,
+			maxf(4.0, map_panel.size.x - label_width - 4.0)
+		)
+		marker_label.position = Vector2(label_x, label_top)
+		marker_label.size = Vector2(label_width, label_height)
+
+		if index == 0:
+			first_center_x = marker_center_x
+		last_center_x = marker_center_x
+
+	if map_track != null:
+		map_track.position = Vector2(first_center_x, marker_top + marker_size.y * 0.5 - 3.0)
+		map_track.size = Vector2(maxf(0.0, last_center_x - first_center_x), 6.0)
 
 
 func _layout_full_label(label: Label, panel: Control, left: float, top: float, forced_height: float = -1.0) -> void:

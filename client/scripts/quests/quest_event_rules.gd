@@ -105,6 +105,22 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		return chamber_updates
 	if interaction_type == "inspect" and definition_id == "map_object.phase_well_chamber":
 		return [_set_update("quest.inspect_phase_well_chamber", "inspect", "map_object.phase_well_chamber", 1)]
+	if interaction_type == "gather" and definition_id == "map_object.weft_bundle_cluster":
+		var loom_updates: Array[Dictionary] = [
+			_set_update("quest.collect_weft_bundle", "visit_region", "region.phase_well_loom", 1)
+		]
+		loom_updates.append_array(_get_drop_objective_updates("quest.collect_weft_bundle", "gather_item", "item.weft_bundle", definition_id))
+		return loom_updates
+	if interaction_type == "inspect" and definition_id == "map_object.phase_well_loom":
+		return [_set_update("quest.inspect_phase_well_loom", "inspect", "map_object.phase_well_loom", 1)]
+	if interaction_type == "gather" and definition_id == "map_object.selvedge_strip_cluster":
+		var frame_updates: Array[Dictionary] = [
+			_set_update("quest.collect_selvedge_strip", "visit_region", "region.phase_well_frame", 1)
+		]
+		frame_updates.append_array(_get_drop_objective_updates("quest.collect_selvedge_strip", "gather_item", "item.selvedge_strip", definition_id))
+		return frame_updates
+	if interaction_type == "inspect" and definition_id == "map_object.phase_well_frame":
+		return [_set_update("quest.inspect_phase_well_frame", "inspect", "map_object.phase_well_frame", 1)]
 	if interaction_type == "process_recipe":
 		return get_recipe_objective_updates(recipe_id)
 	if interaction_type == "build":
@@ -136,6 +152,14 @@ func get_region_objective_updates(region_id: String, _quest_state: QuestState) -
 	if region_id == "region.phase_well_chamber":
 		return [
 			_set_update("quest.collect_heart_spine", "visit_region", region_id, 1)
+		]
+	if region_id == "region.phase_well_loom":
+		return [
+			_set_update("quest.collect_weft_bundle", "visit_region", region_id, 1)
+		]
+	if region_id == "region.phase_well_frame":
+		return [
+			_set_update("quest.collect_selvedge_strip", "visit_region", region_id, 1)
 		]
 	return []
 
@@ -192,6 +216,18 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 			return [_set_update("quest.refine_heart_spine", "craft_item", "item.phase_well_damper", 1)]
 		"recipe.phase_well_shunt":
 			return [_set_update("quest.assemble_phase_well_shunt", "craft_item", "item.phase_well_shunt", 1)]
+		"recipe.phase_well_spindle_analysis":
+			return [_set_update("quest.analyze_phase_well_spindle", "craft_item", "item.phase_well_warp_sheet", 1)]
+		"recipe.weft_bundle_stabilization":
+			return [_set_update("quest.refine_weft_bundle", "craft_item", "item.phase_well_tension_rib", 1)]
+		"recipe.phase_well_shuttle":
+			return [_set_update("quest.assemble_phase_well_shuttle", "craft_item", "item.phase_well_shuttle", 1)]
+		"recipe.phase_well_weave_core_analysis":
+			return [_set_update("quest.analyze_phase_well_weave_core", "craft_item", "item.phase_well_pattern_sheet", 1)]
+		"recipe.selvedge_strip_stabilization":
+			return [_set_update("quest.refine_selvedge_strip", "craft_item", "item.phase_well_frame_rib", 1)]
+		"recipe.phase_well_frame_key":
+			return [_set_update("quest.assemble_phase_well_frame_key", "craft_item", "item.phase_well_frame_key", 1)]
 		_:
 			return []
 
@@ -227,6 +263,10 @@ func get_defeated_enemy_objective_updates(enemy_definition_id: String) -> Array[
 		return [_set_update("quest.collect_well_ash", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.phase_well_reaver":
 		return [_set_update("quest.collect_heart_spine", "defeat_enemy", enemy_definition_id, 1)]
+	if enemy_definition_id == "enemy.phase_well_tangler":
+		return [_set_update("quest.collect_weft_bundle", "defeat_enemy", enemy_definition_id, 1)]
+	if enemy_definition_id == "enemy.phase_well_raker":
+		return [_set_update("quest.collect_selvedge_strip", "defeat_enemy", enemy_definition_id, 1)]
 	return []
 
 

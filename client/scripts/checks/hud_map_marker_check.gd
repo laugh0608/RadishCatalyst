@@ -1,6 +1,7 @@
 extends RefCounted
 
 const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
+const PrototypeHudScene := preload("res://scenes/ui/PrototypeHud.tscn")
 
 var host
 
@@ -177,4 +178,38 @@ func run(root_window: Window) -> void:
 	host._expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.collect_selvedge_strip"), "井纹\n目标", "phase well frame minimap objective marker")
 	marker_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_frame")
 	host._expect_text_missing(presenter.format_region_markers(marker_world, ""), "目标", "phase well frame completion clears runtime followup marker")
+
+	var hud := PrototypeHudScene.instantiate() as PrototypeHud
+	root_window.add_child(hud)
+	hud._ensure_runtime_nodes()
+	host._expect_equal(hud.map_marker_rects.size(), 10, "prototype hud runtime map marker count includes phase well frame")
+	host._expect_equal(hud.map_marker_labels.size(), 10, "prototype hud runtime map label count includes phase well frame")
+	if hud.get_node_or_null("MapPanel/PhaseWellFrameMarker") == null:
+		host.failures.append("prototype hud scene should include phase well frame marker node")
+	if hud.get_node_or_null("MapPanel/PhaseWellFrameLabel") == null:
+		host.failures.append("prototype hud scene should include phase well frame label node")
+	hud._set_control_rect(hud.map_panel, Vector2.ZERO, Vector2(448.0, 208.0))
+	hud._layout_map_panel_contents()
+	for label in hud.map_marker_labels:
+		_assert_control_within_panel(label, hud.map_panel, "prototype hud minimap label")
+	hud.free()
 	map.free()
+
+
+func _assert_control_within_panel(control: Control, panel: Control, label: String) -> void:
+	if control == null:
+		host.failures.append("%s should exist" % label)
+		return
+	if panel == null:
+		host.failures.append("%s panel should exist" % label)
+		return
+	if control.position.x < -0.01 or control.position.y < -0.01:
+		host.failures.append("%s should stay within panel bounds, got position %s" % [label, var_to_str(control.position)])
+		return
+	if control.position.x + control.size.x > panel.size.x + 0.01 or control.position.y + control.size.y > panel.size.y + 0.01:
+		host.failures.append("%s should stay within panel bounds, got position %s size %s panel %s" % [
+			label,
+			var_to_str(control.position),
+			var_to_str(control.size),
+			var_to_str(panel.size)
+		])

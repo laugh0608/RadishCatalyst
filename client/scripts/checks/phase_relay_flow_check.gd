@@ -75,6 +75,11 @@ func run() -> void:
 	host._expect_equal(bool(deploy_result.get("success", false)), true, "phase relay anchor deployment should succeed")
 	host._expect_equal(int(relay_character.inventory.items.get("item.deep_signal_matrix", 0)), 0, "phase relay anchor deployment consumes deep signal matrix")
 	host._expect_equal(relay_world.active_phase_relay_anchor_id, "map_object_instance.phase_return_anchor", "phase relay anchor deployment records active anchor")
+	host._expect_equal(
+		relay_world.get_deployed_phase_relay_anchor_ids(),
+		["map_object_instance.phase_return_anchor"],
+		"phase relay anchor deployment records deployed anchors"
+	)
 	var relay_runtime := QuestRuntime.new(host.data_registry)
 	var deploy_runtime_result := relay_runtime.advance_for_interaction(
 		relay_world,
@@ -203,12 +208,34 @@ func run() -> void:
 		"map_object_instance.phase_return_anchor_chamber",
 		"phase well chamber anchor should replace active relay anchor"
 	)
+	host._expect_equal(
+		chamber_anchor_world.get_deployed_phase_relay_anchor_ids(),
+		[
+			"map_object_instance.phase_return_anchor",
+			"map_object_instance.phase_return_anchor_chamber"
+		],
+		"phase well chamber anchor should keep both deployed anchors"
+	)
 	host._expect_equal(chamber_anchor_world.current_region_id, "region.outpost_platform", "phase well chamber anchor return updates world region")
 	host._expect_equal(chamber_anchor_character.current_region_id, "region.outpost_platform", "phase well chamber anchor return updates character region")
 	host._expect_equal(
 		map.current_interactable.definition_id,
 		"map_object.phase_relay_pad",
 		"phase relay pad should become current interactable after returning from chamber anchor"
+	)
+	var cycle_to_deep_result := map.try_cycle_recipe(chamber_anchor_world)
+	host._expect_equal(bool(cycle_to_deep_result.get("success", false)), true, "phase relay pad should cycle back to deep anchor")
+	host._expect_equal(
+		chamber_anchor_world.active_phase_relay_anchor_id,
+		"map_object_instance.phase_return_anchor",
+		"phase relay pad cycle should switch active relay anchor back to deep"
+	)
+	var cycle_back_to_chamber_result := map.try_cycle_recipe(chamber_anchor_world)
+	host._expect_equal(bool(cycle_back_to_chamber_result.get("success", false)), true, "phase relay pad should cycle back to chamber anchor")
+	host._expect_equal(
+		chamber_anchor_world.active_phase_relay_anchor_id,
+		"map_object_instance.phase_return_anchor_chamber",
+		"phase relay pad cycle should switch active relay anchor back to chamber"
 	)
 	var chamber_pad_result := map.try_interact(chamber_anchor_character, chamber_anchor_world)
 	host._expect_equal(bool(chamber_pad_result.get("success", false)), true, "phase relay pad return to chamber anchor should succeed")

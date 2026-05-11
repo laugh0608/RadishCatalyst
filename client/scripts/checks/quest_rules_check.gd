@@ -43,6 +43,8 @@ func _run_checks() -> void:
 	_check_completion_applier_grants_rewards_unlocks_and_feedback()
 	_check_quest_runtime_applies_updates_and_completion_feedback()
 	_check_quest_runtime_recovers_pre_sampled_anomaly()
+	_check_phase_well_weave_core_recipe_progression()
+	_check_runtime_recovers_late_craft_progress_from_inventory()
 	_check_runtime_activates_missing_outer_ring_followup()
 	_check_runtime_activates_missing_second_deep_followup()
 	_check_runtime_activates_phase_relay_followup()
@@ -191,6 +193,48 @@ func _check_interaction_event_objective_updates() -> void:
 	)
 	_expect_update(updates, "set", "quest.unlock_phase_well", "inspect", "map_object.phase_well_lock", 1.0, "phase well lock inspect update")
 
+	updates = event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.weft_bundle_cluster",
+			"interaction_type": "gather"
+		},
+		{},
+		quest_state
+	)
+	_expect_update(updates, "set", "quest.collect_weft_bundle", "visit_region", "region.phase_well_loom", 1.0, "weft bundle visit update")
+	_expect_update(updates, "add", "quest.collect_weft_bundle", "gather_item", "item.weft_bundle", 1.0, "weft bundle gather update")
+
+	updates = event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.phase_well_loom",
+			"interaction_type": "inspect"
+		},
+		{},
+		quest_state
+	)
+	_expect_update(updates, "set", "quest.inspect_phase_well_loom", "inspect", "map_object.phase_well_loom", 1.0, "phase well loom inspect update")
+
+	updates = event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.selvedge_strip_cluster",
+			"interaction_type": "gather"
+		},
+		{},
+		quest_state
+	)
+	_expect_update(updates, "set", "quest.collect_selvedge_strip", "visit_region", "region.phase_well_frame", 1.0, "selvedge strip visit update")
+	_expect_update(updates, "add", "quest.collect_selvedge_strip", "gather_item", "item.selvedge_strip", 1.0, "selvedge strip gather update")
+
+	updates = event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.phase_well_frame",
+			"interaction_type": "inspect"
+		},
+		{},
+		quest_state
+	)
+	_expect_update(updates, "set", "quest.inspect_phase_well_frame", "inspect", "map_object.phase_well_frame", 1.0, "phase well frame inspect update")
+
 
 func _check_region_event_objective_updates() -> void:
 	var quest_state := QuestState.create_default()
@@ -207,6 +251,12 @@ func _check_region_event_objective_updates() -> void:
 	updates = event_rules.get_region_objective_updates("region.deep_ruin_threshold", quest_state)
 	_expect_update(updates, "set", "quest.trace_phase_splinters", "visit_region", "region.deep_ruin_threshold", 1.0, "post relay deep region visit update")
 	_expect_update(updates, "set", "quest.collect_fault_residue", "visit_region", "region.deep_ruin_threshold", 1.0, "fault residue region visit update")
+
+	updates = event_rules.get_region_objective_updates("region.phase_well_loom", quest_state)
+	_expect_update(updates, "set", "quest.collect_weft_bundle", "visit_region", "region.phase_well_loom", 1.0, "phase well loom region visit update")
+
+	updates = event_rules.get_region_objective_updates("region.phase_well_frame", quest_state)
+	_expect_update(updates, "set", "quest.collect_selvedge_strip", "visit_region", "region.phase_well_frame", 1.0, "phase well frame region visit update")
 
 
 func _check_recipe_build_and_enemy_event_objective_updates() -> void:
@@ -319,6 +369,60 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		"phase well key recipe update"
 	)
 	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.phase_well_spindle_analysis"),
+		"set",
+		"quest.analyze_phase_well_spindle",
+		"craft_item",
+		"item.phase_well_warp_sheet",
+		1.0,
+		"phase well spindle analysis recipe update"
+	)
+	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.weft_bundle_stabilization"),
+		"set",
+		"quest.refine_weft_bundle",
+		"craft_item",
+		"item.phase_well_tension_rib",
+		1.0,
+		"weft bundle stabilization recipe update"
+	)
+	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.phase_well_shuttle"),
+		"set",
+		"quest.assemble_phase_well_shuttle",
+		"craft_item",
+		"item.phase_well_shuttle",
+		1.0,
+		"phase well shuttle recipe update"
+	)
+	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.phase_well_weave_core_analysis"),
+		"set",
+		"quest.analyze_phase_well_weave_core",
+		"craft_item",
+		"item.phase_well_pattern_sheet",
+		1.0,
+		"phase well weave core analysis recipe update"
+	)
+	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.selvedge_strip_stabilization"),
+		"set",
+		"quest.refine_selvedge_strip",
+		"craft_item",
+		"item.phase_well_frame_rib",
+		1.0,
+		"selvedge strip stabilization recipe update"
+	)
+	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.phase_well_frame_key"),
+		"set",
+		"quest.assemble_phase_well_frame_key",
+		"craft_item",
+		"item.phase_well_frame_key",
+		1.0,
+		"phase well frame key recipe update"
+	)
+	_expect_update(
 		event_rules.get_build_objective_updates("building.foundation_t1"),
 		"add",
 		"quest.expand_treatment_point",
@@ -390,6 +494,24 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		"enemy.inner_fault_stalker",
 		1.0,
 		"inner fault stalker defeat update"
+	)
+	_expect_update(
+		event_rules.get_defeated_enemy_objective_updates("enemy.phase_well_tangler"),
+		"set",
+		"quest.collect_weft_bundle",
+		"defeat_enemy",
+		"enemy.phase_well_tangler",
+		1.0,
+		"phase well tangler defeat update"
+	)
+	_expect_update(
+		event_rules.get_defeated_enemy_objective_updates("enemy.phase_well_raker"),
+		"set",
+		"quest.collect_selvedge_strip",
+		"defeat_enemy",
+		"enemy.phase_well_raker",
+		1.0,
+		"phase well raker defeat update"
 	)
 
 
@@ -490,6 +612,40 @@ func _check_quest_runtime_recovers_pre_sampled_anomaly() -> void:
 	)
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.bring_back_sample", "pre-sampled anomaly completes sample quest")
 	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_anomaly_sample", "pre-sampled anomaly activates sample analysis quest")
+
+
+func _check_phase_well_weave_core_recipe_progression() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.quest_state.active_quest_ids = ["quest.analyze_phase_well_weave_core"]
+	world_state.quest_state.completed_quest_ids = ["quest.inspect_phase_well_loom"]
+	var result := quest_runtime.advance_for_interaction(
+		world_state,
+		character_state,
+		{
+			"interaction_type": "process_recipe",
+			"recipe_id": "recipe.phase_well_weave_core_analysis"
+		},
+		{}
+	)
+	_expect_equal(bool(result.get("accepted", false)), true, "phase well weave core recipe update should be accepted")
+	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.analyze_phase_well_weave_core", "phase well weave core analysis quest should complete after crafting pattern sheet")
+	_expect_array_has(world_state.unlocked_region_ids, "region.phase_well_frame", "phase well weave core analysis should unlock phase well frame region")
+	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.collect_selvedge_strip", "phase well weave core analysis should advance to selvedge strip collection")
+
+
+func _check_runtime_recovers_late_craft_progress_from_inventory() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.quest_state.active_quest_ids = ["quest.analyze_phase_well_weave_core"]
+	world_state.quest_state.completed_quest_ids = ["quest.inspect_phase_well_loom"]
+	character_state.inventory.add_item("item.phase_well_pattern_sheet", 1)
+	var result := quest_runtime.reconcile_active_objectives(world_state, character_state)
+	_expect_equal(bool(result.get("accepted", false)), true, "runtime accepts late craft progress recovery")
+	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.analyze_phase_well_weave_core", "runtime completes weave core analysis when crafted result already exists")
+	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.collect_selvedge_strip", "runtime advances to selvedge strip collection after late craft recovery")
+	if not _result_logs_contain(result, "后段加工产物已补记到当前任务"):
+		failures.append("late craft progress recovery should log restored craft progress, got %s" % var_to_str(result))
 
 
 func _check_runtime_activates_missing_outer_ring_followup() -> void:
@@ -720,6 +876,11 @@ func _check_runtime_activates_post_phase_relay_followup() -> void:
 	var result := quest_runtime.reconcile_active_objectives(world_state, character_state)
 	_expect_equal(bool(result.get("accepted", false)), true, "runtime accepts post phase relay followup activation")
 	_expect_equal(world_state.active_phase_relay_anchor_id, "map_object_instance.phase_return_anchor", "runtime restores active phase relay anchor for post relay saves")
+	_expect_equal(
+		world_state.get_deployed_phase_relay_anchor_ids(),
+		["map_object_instance.phase_return_anchor"],
+		"runtime restores deployed phase relay anchors for post relay saves"
+	)
 	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.reenter_phase_frontline", "runtime activates relay pad reentry quest")
 	_expect_equal(_result_array_size(result, "completion_feedbacks"), 0, "post relay activation should not emit completion feedback")
 	if not _result_logs_contain(result, "前线回传锚点") or not _result_logs_contain(result, "深段后续任务"):
@@ -1011,8 +1172,11 @@ func _check_runtime_restores_phase_well_weave_core_followup() -> void:
 	var result := quest_runtime.reconcile_active_objectives(world_state, character_state)
 	_expect_equal(bool(result.get("accepted", false)), true, "runtime accepts phase well weave core followup restoration")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_weave_core_analysis", "runtime restores missing phase well weave core analysis unlock")
+	_expect_equal(int(character_state.inventory.items.get("item.phase_well_weave_core", 0)), 1, "runtime restores missing phase well weave core reward")
 	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_phase_well_weave_core", "runtime activates phase well weave core analysis quest")
 	_expect_equal(_result_array_size(result, "completion_feedbacks"), 0, "phase well weave core followup restoration should not emit completion feedback")
+	if not _result_logs_contain(result, "相位井织核已补回背包"):
+		failures.append("phase well weave core restoration should log restored weave core reward, got %s" % var_to_str(result))
 
 
 func _check_runtime_syncs_progression_vitals_and_late_anchor() -> void:
@@ -1081,6 +1245,14 @@ func _check_runtime_syncs_progression_vitals_and_late_anchor() -> void:
 		world_state.active_phase_relay_anchor_id,
 		"map_object_instance.phase_return_anchor_chamber",
 		"runtime restores chamber relay anchor for late-stage saves"
+	)
+	_expect_equal(
+		world_state.get_deployed_phase_relay_anchor_ids(),
+		[
+			"map_object_instance.phase_return_anchor_chamber",
+			"map_object_instance.phase_return_anchor"
+		],
+		"runtime restores deployed anchors for late-stage saves"
 	)
 
 

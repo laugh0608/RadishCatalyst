@@ -212,6 +212,12 @@ func get_recommended_recipe_id(
 			return _select_if_available(interactable, "recipe.weft_bundle_stabilization")
 		"quest.assemble_phase_well_shuttle":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_shuttle")
+		"quest.analyze_phase_well_weave_core":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_weave_core_analysis")
+		"quest.refine_selvedge_strip":
+			return _select_if_available(interactable, "recipe.selvedge_strip_stabilization")
+		"quest.assemble_phase_well_frame_key":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_frame_key")
 		_:
 			return ""
 
@@ -315,6 +321,12 @@ func _get_completion_next_step(recipe_id: String) -> String:
 			return "张力肋和副产污染浆液已筛出；把它们带回基地反应器，组装井纺梭栓。"
 		"recipe.phase_well_shuttle":
 			return "带着井纺梭栓返回更东侧井纺室断面，勘验断面并带回第一份相位井织核。"
+		"recipe.phase_well_weave_core_analysis":
+			return "相位井纹谱片已整理完成；继续向东进入新暴露的井纹架边缘，击退井纹刮裂体并回收边缕残条。"
+		"recipe.selvedge_strip_stabilization":
+			return "井纹架肋和副产污染浆液已筛出；把它们带回基地反应器，组装井纹架键栓。"
+		"recipe.phase_well_frame_key":
+			return "带着井纹架键栓返回更东侧井纹架断面，勘验断面并带回第一份相位井结核。"
 		_:
 			return "查看当前任务目标，选择下一次加工或外出行动。"
 
