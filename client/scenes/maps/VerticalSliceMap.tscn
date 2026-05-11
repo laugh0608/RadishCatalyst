@@ -11,7 +11,7 @@ script = ExtResource("1_map")
 [node name="Background" type="ColorRect" parent="."]
 offset_left = -620.0
 offset_top = -360.0
-offset_right = 2640.0
+offset_right = 3240.0
 offset_bottom = 360.0
 color = Color(0.101961, 0.133333, 0.141176, 1)
 
@@ -77,6 +77,20 @@ offset_top = -200.0
 offset_right = 2600.0
 offset_bottom = 200.0
 color = Color(0.282353, 0.176471, 0.14902, 1)
+
+[node name="RegionPhaseWellFrame" type="ColorRect" parent="."]
+offset_left = 2600.0
+offset_top = -200.0
+offset_right = 2880.0
+offset_bottom = 200.0
+color = Color(0.313726, 0.211765, 0.164706, 1)
+
+[node name="RegionPhaseWellTether" type="ColorRect" parent="."]
+offset_left = 2880.0
+offset_top = -200.0
+offset_right = 3200.0
+offset_bottom = 200.0
+color = Color(0.337255, 0.235294, 0.184314, 1)
 
 [node name="BaseDirectionLabel" type="Label" parent="."]
 offset_left = -342.0
@@ -148,6 +162,22 @@ offset_top = 166.0
 offset_right = 2592.0
 offset_bottom = 192.0
 text = "→ 井纺室断面"
+horizontal_alignment = 1
+
+[node name="PhaseWellFrameDirectionLabel" type="Label" parent="."]
+offset_left = 2612.0
+offset_top = 166.0
+offset_right = 2872.0
+offset_bottom = 192.0
+text = "→ 井纹架断面"
+horizontal_alignment = 1
+
+[node name="PhaseWellTetherDirectionLabel" type="Label" parent="."]
+offset_left = 2892.0
+offset_top = 166.0
+offset_right = 3192.0
+offset_bottom = 192.0
+text = "→ 井系桥断面"
 horizontal_alignment = 1
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
@@ -554,6 +584,28 @@ single_use = false
 label_offset = Vector2(-100, 22)
 label_size = Vector2(200, 24)
 
+[node name="TetherFiberClusterNorth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(2946, -96)
+definition_id = "map_object.tether_fiber_cluster"
+interaction_type = "gather"
+label_offset = Vector2(-96, -52)
+label_size = Vector2(192, 24)
+
+[node name="TetherFiberClusterSouth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3038, 92)
+definition_id = "map_object.tether_fiber_cluster"
+interaction_type = "gather"
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
+
+[node name="PhaseWellTether" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3126, -18)
+definition_id = "map_object.phase_well_tether"
+interaction_type = "inspect"
+single_use = false
+label_offset = Vector2(-100, 22)
+label_size = Vector2(200, 24)
+
 [node name="Enemies" type="Node2D" parent="."]
 
 [node name="NativeSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
@@ -611,3 +663,7 @@ definition_id = "enemy.phase_well_tangler"
 [node name="PhaseWellRaker" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(2710, 16)
 definition_id = "enemy.phase_well_raker"
+
+[node name="PhaseWellBinder" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(2994, 16)
+definition_id = "enemy.phase_well_binder"

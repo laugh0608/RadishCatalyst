@@ -1,5 +1,7 @@
 extends SceneTree
 
+const QuestRulesTetherCheckScript := preload("res://scripts/checks/quest_rules_tether_check.gd")
+
 var failures: Array[String] = []
 var data_registry := DataRegistry.new()
 var event_rules: QuestEventRules
@@ -52,6 +54,7 @@ func _run_checks() -> void:
 	_check_runtime_restores_inner_fault_analysis_followup()
 	_check_runtime_restores_phase_well_spindle_followup()
 	_check_runtime_restores_phase_well_weave_core_followup()
+	QuestRulesTetherCheckScript.new(self).run()
 	_check_runtime_syncs_progression_vitals_and_late_anchor()
 	_check_active_objective_progress_is_capped()
 	_check_inactive_objective_progress_is_ignored()
@@ -235,6 +238,27 @@ func _check_interaction_event_objective_updates() -> void:
 	)
 	_expect_update(updates, "set", "quest.inspect_phase_well_frame", "inspect", "map_object.phase_well_frame", 1.0, "phase well frame inspect update")
 
+	updates = event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.tether_fiber_cluster",
+			"interaction_type": "gather"
+		},
+		{},
+		quest_state
+	)
+	_expect_update(updates, "set", "quest.collect_tether_fiber", "visit_region", "region.phase_well_tether", 1.0, "tether fiber visit update")
+	_expect_update(updates, "add", "quest.collect_tether_fiber", "gather_item", "item.tether_fiber", 1.0, "tether fiber gather update")
+
+	updates = event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.phase_well_tether",
+			"interaction_type": "inspect"
+		},
+		{},
+		quest_state
+	)
+	_expect_update(updates, "set", "quest.inspect_phase_well_tether", "inspect", "map_object.phase_well_tether", 1.0, "phase well tether inspect update")
+
 
 func _check_region_event_objective_updates() -> void:
 	var quest_state := QuestState.create_default()
@@ -257,6 +281,9 @@ func _check_region_event_objective_updates() -> void:
 
 	updates = event_rules.get_region_objective_updates("region.phase_well_frame", quest_state)
 	_expect_update(updates, "set", "quest.collect_selvedge_strip", "visit_region", "region.phase_well_frame", 1.0, "phase well frame region visit update")
+
+	updates = event_rules.get_region_objective_updates("region.phase_well_tether", quest_state)
+	_expect_update(updates, "set", "quest.collect_tether_fiber", "visit_region", "region.phase_well_tether", 1.0, "phase well tether region visit update")
 
 
 func _check_recipe_build_and_enemy_event_objective_updates() -> void:
@@ -423,6 +450,33 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		"phase well frame key recipe update"
 	)
 	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.phase_well_knot_core_analysis"),
+		"set",
+		"quest.analyze_phase_well_knot_core",
+		"craft_item",
+		"item.phase_well_tether_sheet",
+		1.0,
+		"phase well knot core analysis recipe update"
+	)
+	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.tether_fiber_stabilization"),
+		"set",
+		"quest.refine_tether_fiber",
+		"craft_item",
+		"item.phase_well_tether_rib",
+		1.0,
+		"tether fiber stabilization recipe update"
+	)
+	_expect_update(
+		event_rules.get_recipe_objective_updates("recipe.phase_well_tether_spike"),
+		"set",
+		"quest.assemble_phase_well_tether_spike",
+		"craft_item",
+		"item.phase_well_tether_spike",
+		1.0,
+		"phase well tether spike recipe update"
+	)
+	_expect_update(
 		event_rules.get_build_objective_updates("building.foundation_t1"),
 		"add",
 		"quest.expand_treatment_point",
@@ -512,6 +566,15 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		"enemy.phase_well_raker",
 		1.0,
 		"phase well raker defeat update"
+	)
+	_expect_update(
+		event_rules.get_defeated_enemy_objective_updates("enemy.phase_well_binder"),
+		"set",
+		"quest.collect_tether_fiber",
+		"defeat_enemy",
+		"enemy.phase_well_binder",
+		1.0,
+		"phase well binder defeat update"
 	)
 
 
@@ -646,7 +709,6 @@ func _check_runtime_recovers_late_craft_progress_from_inventory() -> void:
 	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.collect_selvedge_strip", "runtime advances to selvedge strip collection after late craft recovery")
 	if not _result_logs_contain(result, "后段加工产物已补记到当前任务"):
 		failures.append("late craft progress recovery should log restored craft progress, got %s" % var_to_str(result))
-
 
 func _check_runtime_activates_missing_outer_ring_followup() -> void:
 	var world_state := WorldState.create_default()
@@ -1177,7 +1239,6 @@ func _check_runtime_restores_phase_well_weave_core_followup() -> void:
 	_expect_equal(_result_array_size(result, "completion_feedbacks"), 0, "phase well weave core followup restoration should not emit completion feedback")
 	if not _result_logs_contain(result, "相位井织核已补回背包"):
 		failures.append("phase well weave core restoration should log restored weave core reward, got %s" % var_to_str(result))
-
 
 func _check_runtime_syncs_progression_vitals_and_late_anchor() -> void:
 	var world_state := WorldState.create_default()

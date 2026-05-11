@@ -121,6 +121,14 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		return frame_updates
 	if interaction_type == "inspect" and definition_id == "map_object.phase_well_frame":
 		return [_set_update("quest.inspect_phase_well_frame", "inspect", "map_object.phase_well_frame", 1)]
+	if interaction_type == "gather" and definition_id == "map_object.tether_fiber_cluster":
+		var tether_updates: Array[Dictionary] = [
+			_set_update("quest.collect_tether_fiber", "visit_region", "region.phase_well_tether", 1)
+		]
+		tether_updates.append_array(_get_drop_objective_updates("quest.collect_tether_fiber", "gather_item", "item.tether_fiber", definition_id))
+		return tether_updates
+	if interaction_type == "inspect" and definition_id == "map_object.phase_well_tether":
+		return [_set_update("quest.inspect_phase_well_tether", "inspect", "map_object.phase_well_tether", 1)]
 	if interaction_type == "process_recipe":
 		return get_recipe_objective_updates(recipe_id)
 	if interaction_type == "build":
@@ -160,6 +168,10 @@ func get_region_objective_updates(region_id: String, _quest_state: QuestState) -
 	if region_id == "region.phase_well_frame":
 		return [
 			_set_update("quest.collect_selvedge_strip", "visit_region", region_id, 1)
+		]
+	if region_id == "region.phase_well_tether":
+		return [
+			_set_update("quest.collect_tether_fiber", "visit_region", region_id, 1)
 		]
 	return []
 
@@ -228,6 +240,12 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 			return [_set_update("quest.refine_selvedge_strip", "craft_item", "item.phase_well_frame_rib", 1)]
 		"recipe.phase_well_frame_key":
 			return [_set_update("quest.assemble_phase_well_frame_key", "craft_item", "item.phase_well_frame_key", 1)]
+		"recipe.phase_well_knot_core_analysis":
+			return [_set_update("quest.analyze_phase_well_knot_core", "craft_item", "item.phase_well_tether_sheet", 1)]
+		"recipe.tether_fiber_stabilization":
+			return [_set_update("quest.refine_tether_fiber", "craft_item", "item.phase_well_tether_rib", 1)]
+		"recipe.phase_well_tether_spike":
+			return [_set_update("quest.assemble_phase_well_tether_spike", "craft_item", "item.phase_well_tether_spike", 1)]
 		_:
 			return []
 
@@ -267,6 +285,8 @@ func get_defeated_enemy_objective_updates(enemy_definition_id: String) -> Array[
 		return [_set_update("quest.collect_weft_bundle", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.phase_well_raker":
 		return [_set_update("quest.collect_selvedge_strip", "defeat_enemy", enemy_definition_id, 1)]
+	if enemy_definition_id == "enemy.phase_well_binder":
+		return [_set_update("quest.collect_tether_fiber", "defeat_enemy", enemy_definition_id, 1)]
 	return []
 
 

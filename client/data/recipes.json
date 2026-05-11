@@ -510,6 +510,51 @@
       "pollution_delta": 0.0,
       "unlock_conditions": ["quest.refine_selvedge_strip"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.phase_well_knot_core_analysis",
+      "display_name_key": "recipe.phase_well_knot_core_analysis.name",
+      "description_key": "recipe.phase_well_knot_core_analysis.desc",
+      "category": "analysis",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.phase_well_knot_core", "amount": 1}, {"id": "item.basic_parts", "amount": 2}],
+      "outputs": [{"id": "item.phase_well_tether_sheet", "amount": 1}],
+      "byproducts": [],
+      "duration": 16.0,
+      "energy_cost": 6.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.inspect_phase_well_frame"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.tether_fiber_stabilization",
+      "display_name_key": "recipe.tether_fiber_stabilization.name",
+      "description_key": "recipe.tether_fiber_stabilization.desc",
+      "category": "filtration",
+      "required_building_id": "building.pollution_filter",
+      "inputs": [{"id": "item.tether_fiber", "amount": 2}],
+      "outputs": [{"id": "item.phase_well_tether_rib", "amount": 1}],
+      "byproducts": [{"id": "fluid.polluted_slurry", "amount": 1}],
+      "duration": 16.0,
+      "energy_cost": 6.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.collect_tether_fiber"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.phase_well_tether_spike",
+      "display_name_key": "recipe.phase_well_tether_spike.name",
+      "description_key": "recipe.phase_well_tether_spike.desc",
+      "category": "assembly",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.phase_well_tether_sheet", "amount": 1}, {"id": "item.phase_well_tether_rib", "amount": 1}, {"id": "item.basic_parts", "amount": 2}],
+      "outputs": [{"id": "item.phase_well_tether_spike", "amount": 1}],
+      "byproducts": [],
+      "duration": 17.0,
+      "energy_cost": 6.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.refine_tether_fiber"],
+      "public_level": "spoiler"
     }
   ]
 }

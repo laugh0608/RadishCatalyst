@@ -96,6 +96,14 @@ const BASELINE_DEFINITIONS := [
 		"completed_through": "quest.inspect_phase_well_loom",
 		"summary": "井纺室断面已勘验，相位井织核已带回，下一步回基地解析并推进更东侧井纹架断面。",
 		"recommended_for": "相位井织核解析、边缕残条回收、纹架肋处理、井纹架键栓、井纹架断面与第二回投锚点兼容回归。"
+	},
+	{
+		"id": "baseline.s12_phase_well_knot_core_ready",
+		"code": "S12",
+		"display_name": "S12 相位井结核已带回",
+		"completed_through": "quest.inspect_phase_well_frame",
+		"summary": "井纹架断面已勘验，相位井结核已带回，下一步回基地解析并推进更东侧井系桥断面。",
+		"recommended_for": "相位井结核解析、系索残股回收、系固肋处理、井系定桩和井系桥断面与第二回投锚点兼容回归。"
 	}
 ]
 

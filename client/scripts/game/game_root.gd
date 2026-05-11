@@ -331,6 +331,9 @@ func _on_interaction_available(interactable: PrototypeInteractable, should_auto_
 	if interactable.definition_id == "map_object.phase_well_frame":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_well_frame_prompt(world_state, character_state))
 		return
+	if interactable.definition_id == "map_object.phase_well_tether":
+		hud.show_prompt(interaction_prompt_formatter.format_phase_well_tether_prompt(world_state, character_state))
+		return
 	if interactable.interaction_type == "process_recipe":
 		var auto_selected_recipe := _maybe_select_recommended_recipe(interactable, should_auto_select_recipe)
 		hud.show_prompt(interaction_prompt_formatter.format_processing_prompt(interactable, character_state, world_state))
@@ -404,6 +407,11 @@ func _on_region_gate_blocked(message: String) -> void:
 		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(
 			message,
 			"需要：先回基地解析相位井织核，再组装井纹架键栓回来勘验断面。"
+		))
+	elif message.find("井系桥") >= 0:
+		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(
+			message,
+			"需要：先回基地解析相位井结核，再组装井系定桩回来勘验断面。"
 		))
 	elif message.find("遗迹外圈") >= 0:
 		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(
@@ -560,6 +568,9 @@ func _refresh_current_context_prompt() -> void:
 		return
 	if interactable.definition_id == "map_object.phase_well_frame":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_well_frame_prompt(world_state, character_state))
+		return
+	if interactable.definition_id == "map_object.phase_well_tether":
+		hud.show_prompt(interaction_prompt_formatter.format_phase_well_tether_prompt(world_state, character_state))
 		return
 	if interactable.interaction_type == "process_recipe":
 		_maybe_select_followup_recipe(interactable)

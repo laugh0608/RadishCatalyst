@@ -210,6 +210,21 @@
       "drops": [{"id": "item.repair_gel", "amount": 1}],
       "spawn_regions": ["region.phase_well_frame"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "enemy.phase_well_binder",
+      "display_name_key": "enemy.phase_well_binder.name",
+      "description_key": "enemy.phase_well_binder.desc",
+      "category": "ruin_guard",
+      "faction": "ruin_sentinel",
+      "base_stats": {"max_health": 126, "attack": 17, "move_speed": 128},
+      "behaviors": ["phase_guard", "melee_chase"],
+      "damage_types": ["physical", "pollution"],
+      "resistances": {"pollution": 0.82},
+      "drop_table_id": "drop.phase_well_binder",
+      "drops": [{"id": "item.repair_gel", "amount": 1}],
+      "spawn_regions": ["region.phase_well_tether"],
+      "public_level": "spoiler"
     }
   ]
 }

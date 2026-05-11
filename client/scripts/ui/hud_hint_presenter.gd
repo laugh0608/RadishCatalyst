@@ -24,8 +24,10 @@ func format_runtime_hint(world_state: WorldState, character_state: CharacterStat
 
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_well_tether(world_state):
+			return "井系桥断面已经交出第一份相位井锚核：相位井结核后的更东侧风险线又一次转成了基地可继续放大的新收益锚点。"
 		if _has_completed_phase_well_frame(world_state):
-			return "井纹架断面已经交出第一份相位井结核：织核后的更东侧风险线又一次转成了基地可继续放大的新收益锚点。"
+			return "相位井结核已带回：先回基地解析结核，把更东侧井系桥断面真正压成下一包可执行目标。"
 		if _has_completed_phase_well_loom(world_state):
 			return "相位井织核已带回：先回基地解析织核，把更东侧井纹架断面真正压成下一包可执行目标。"
 		if _has_completed_phase_well_chamber(world_state):
@@ -192,14 +194,26 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "回基地使用基础反应器，把相位井纹谱片、纹架肋和基础零件组装成井纹架键栓。"
 		"quest.inspect_phase_well_frame":
 			return "带着井纹架键栓返回更东侧井纹架断面，勘验后带回第一份相位井结核。"
+		"quest.analyze_phase_well_knot_core":
+			return "回基地使用基础反应器，解析相位井结核并整理相位井系谱片。"
+		"quest.collect_tether_fiber":
+			return "沿结核系谱继续向东推进，击退井系缚结体并回收两处系索残股。"
+		"quest.refine_tether_fiber":
+			return "回处理点污染过滤器，把系索残股筛成可继续组装的相位井系固肋。"
+		"quest.assemble_phase_well_tether_spike":
+			return "回基地使用基础反应器，把相位井系谱片、系固肋和基础零件组装成井系定桩。"
+		"quest.inspect_phase_well_tether":
+			return "带着井系定桩返回更东侧井系桥断面，勘验后带回第一份相位井锚核。"
 		_:
 			return "按当前目标推进。"
 
 
 func format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_well_tether(world_state):
+			return "相位井锚核已经带回基地，这说明相位井结核后的更东侧门槛也已经成功压成下一轮基地回投锚点。"
 		if _has_completed_phase_well_frame(world_state):
-			return "相位井结核已经带回基地，这说明相位井织核后的更东侧门槛也已经成功压成下一轮基地回投锚点。"
+			return "相位井结核不是收尾；要先回基地把它解析成系谱片，井系桥断面才会真正变成新的可执行推进包。"
 		if _has_completed_phase_well_loom(world_state):
 			return "相位井织核不是收尾；要先回基地把它解析成纹谱片，井纹架断面才会真正变成新的可执行推进包。"
 		if _has_completed_phase_well_chamber(world_state):
@@ -368,6 +382,16 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "井纹架键栓会把织核分析产物和过滤结果重新变成开路物，决定井纹架断面能否交出第一份相位井结核。"
 		"quest.inspect_phase_well_frame":
 			return "这一步要把基地组装的井纹架键栓真正带回前线，让相位井织核后的更深收益继续落成实体战利品。"
+		"quest.analyze_phase_well_knot_core":
+			return "相位井结核不是纪念品；要先回基地把它反解成系谱片，新的井系桥断面风险才会真正显形。"
+		"quest.collect_tether_fiber":
+			return "井系桥的新敌人和系索残股要在同一趟外勤里一起解决，这一步负责把新风险和下一次基地加工输入同时带回来。"
+		"quest.refine_tether_fiber":
+			return "先用污染过滤器稳定系索残股；副产污染浆液会继续反哺井系定桩组装，不需要引入第三台设备。"
+		"quest.assemble_phase_well_tether_spike":
+			return "井系定桩会把结核分析产物和过滤结果重新变成开路物，决定井系桥断面能否交出第一份相位井锚核。"
+		"quest.inspect_phase_well_tether":
+			return "这一步要把基地组装的井系定桩真正带回前线，让相位井结核后的更深收益继续落成实体战利品。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 
@@ -394,6 +418,10 @@ func _has_completed_phase_relay_anchor(world_state: WorldState) -> bool:
 
 func _has_completed_phase_well_chamber(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.inspect_phase_well_chamber")
+
+
+func _has_completed_phase_well_tether(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.inspect_phase_well_tether")
 
 
 func _has_completed_phase_well_frame(world_state: WorldState) -> bool:

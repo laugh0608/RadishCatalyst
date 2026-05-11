@@ -143,8 +143,31 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 	_expect_text_contains(
 		failures,
 		hud.prompt_label.text,
-		"方向：井纹架断面已经交出第一份相位井结核",
-		"runtime hint prompt summarizes knot core reward after phase well frame"
+		"方向：相位井结核已带回：先回基地解析结核",
+		"runtime hint prompt keeps knot core analysis fallback after phase well frame"
+	)
+	_expect_text_contains(
+		failures,
+		hud.prompt_label.text,
+		"提示：相位井结核不是收尾",
+		"runtime hint prompt keeps knot core analysis explicit after phase well frame"
+	)
+	var tether_world := WorldState.create_default()
+	var tether_character := CharacterState.create_default()
+	tether_world.quest_state.active_quest_ids = []
+	tether_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_tether")
+	hud.update_status(data_registry, tether_world, tether_character)
+	_expect_text_contains(
+		failures,
+		hud.prompt_label.text,
+		"方向：井系桥断面已经交出第一份相位井锚核",
+		"runtime hint prompt summarizes anchor core reward after phase well tether"
+	)
+	_expect_text_contains(
+		failures,
+		hud.prompt_label.text,
+		"提示：相位井锚核已经带回基地",
+		"runtime hint prompt keeps anchor core summary after phase well tether"
 	)
 	hud.update_status(data_registry, relay_world, relay_character)
 

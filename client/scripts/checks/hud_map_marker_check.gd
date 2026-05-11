@@ -27,7 +27,7 @@ func run(root_window: Window) -> void:
 		"locked crystal marker"
 	)
 	var initial_map_labels := presenter.format_map_marker_labels(marker_world, "quest.restore_outpost")
-	host._expect_equal(initial_map_labels.size(), 10, "minimap marker count includes phase well frame")
+	host._expect_equal(initial_map_labels.size(), 11, "minimap marker count includes phase well tether")
 	host._expect_array_has(initial_map_labels, "基地\n当前\n目标", "outpost minimap current target marker")
 	host._expect_array_has(initial_map_labels, "晶体\n未解锁", "crystal minimap locked marker")
 	host._expect_array_has(initial_map_labels, "井口\n未解锁", "inner phase well minimap locked marker")
@@ -35,6 +35,7 @@ func run(root_window: Window) -> void:
 	host._expect_array_has(initial_map_labels, "心室\n未解锁", "phase well chamber minimap locked marker")
 	host._expect_array_has(initial_map_labels, "井纺\n未解锁", "phase well loom minimap locked marker")
 	host._expect_array_has(initial_map_labels, "井纹\n未解锁", "phase well frame minimap locked marker")
+	host._expect_array_has(initial_map_labels, "井系\n未解锁", "phase well tether minimap locked marker")
 	marker_world.unlock_region("region.crystal_vein_field")
 	host._expect_text_contains(
 		presenter.format_region_markers(marker_world, "quest.scout_crystal_field"),
@@ -177,17 +178,26 @@ func run(root_window: Window) -> void:
 	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.collect_selvedge_strip"), "井纹：更东，目标", "selvedge strip collection points to phase well frame marker")
 	host._expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.collect_selvedge_strip"), "井纹\n目标", "phase well frame minimap objective marker")
 	marker_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_frame")
-	host._expect_text_missing(presenter.format_region_markers(marker_world, ""), "目标", "phase well frame completion clears runtime followup marker")
+	host._expect_text_contains(presenter.format_region_markers(marker_world, ""), "基地：当前位置，目标", "phase well frame completion returns runtime followup to outpost analysis")
+	marker_world.unlock_region("region.phase_well_tether")
+	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.collect_tether_fiber"), "井系：更东，目标", "tether fiber collection points to phase well tether marker")
+	host._expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.collect_tether_fiber"), "井系\n目标", "phase well tether minimap objective marker")
+	marker_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_tether")
+	host._expect_text_missing(presenter.format_region_markers(marker_world, ""), "目标", "phase well tether completion clears runtime followup marker")
 
 	var hud := PrototypeHudScene.instantiate() as PrototypeHud
 	root_window.add_child(hud)
 	hud._ensure_runtime_nodes()
-	host._expect_equal(hud.map_marker_rects.size(), 10, "prototype hud runtime map marker count includes phase well frame")
-	host._expect_equal(hud.map_marker_labels.size(), 10, "prototype hud runtime map label count includes phase well frame")
+	host._expect_equal(hud.map_marker_rects.size(), 11, "prototype hud runtime map marker count includes phase well tether")
+	host._expect_equal(hud.map_marker_labels.size(), 11, "prototype hud runtime map label count includes phase well tether")
 	if hud.get_node_or_null("MapPanel/PhaseWellFrameMarker") == null:
 		host.failures.append("prototype hud scene should include phase well frame marker node")
 	if hud.get_node_or_null("MapPanel/PhaseWellFrameLabel") == null:
 		host.failures.append("prototype hud scene should include phase well frame label node")
+	if hud.get_node_or_null("MapPanel/PhaseWellTetherMarker") == null:
+		host.failures.append("prototype hud scene should include phase well tether marker node")
+	if hud.get_node_or_null("MapPanel/PhaseWellTetherLabel") == null:
+		host.failures.append("prototype hud scene should include phase well tether label node")
 	hud._set_control_rect(hud.map_panel, Vector2.ZERO, Vector2(448.0, 208.0))
 	hud._layout_map_panel_contents()
 	for label in hud.map_marker_labels:

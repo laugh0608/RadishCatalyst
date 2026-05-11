@@ -218,6 +218,12 @@ func get_recommended_recipe_id(
 			return _select_if_available(interactable, "recipe.selvedge_strip_stabilization")
 		"quest.assemble_phase_well_frame_key":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_frame_key")
+		"quest.analyze_phase_well_knot_core":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_knot_core_analysis")
+		"quest.refine_tether_fiber":
+			return _select_if_available(interactable, "recipe.tether_fiber_stabilization")
+		"quest.assemble_phase_well_tether_spike":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_tether_spike")
 		_:
 			return ""
 
@@ -327,6 +333,12 @@ func _get_completion_next_step(recipe_id: String) -> String:
 			return "井纹架肋和副产污染浆液已筛出；把它们带回基地反应器，组装井纹架键栓。"
 		"recipe.phase_well_frame_key":
 			return "带着井纹架键栓返回更东侧井纹架断面，勘验断面并带回第一份相位井结核。"
+		"recipe.phase_well_knot_core_analysis":
+			return "相位井系谱片已整理完成；继续向东进入新暴露的井系桥边缘，击退井系缚结体并回收系索残股。"
+		"recipe.tether_fiber_stabilization":
+			return "相位井系固肋和副产污染浆液已筛出；把它们带回基地反应器，组装井系定桩。"
+		"recipe.phase_well_tether_spike":
+			return "带着井系定桩返回更东侧井系桥断面，勘验断面并带回第一份相位井锚核。"
 		_:
 			return "查看当前任务目标，选择下一次加工或外出行动。"
 

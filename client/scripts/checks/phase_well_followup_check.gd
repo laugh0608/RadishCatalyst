@@ -46,7 +46,6 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	host._expect_active_quest("quest.inspect_phase_well_loom", "after phase well shuttle assembly returns to loom")
 	host._complete_active_quest("quest.inspect_phase_well_loom", [{"type": "inspect", "target_id": "map_object.phase_well_loom", "amount": 1}])
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_phase_well_loom", "phase well loom quest completed")
-	host._expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "phase well loom restores terminal slice completion unlock")
 	host._expect_equal(int(character_state.inventory.items.get("item.phase_well_weave_core", 0)), 1, "phase well loom grants first weave core reward")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_weave_core_analysis", "phase well loom unlocks weave core analysis recipe")
 	host._expect_active_quest("quest.analyze_phase_well_weave_core", "after phase well loom returns to weave core analysis")
@@ -66,9 +65,30 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	host._complete_active_quest("quest.assemble_phase_well_frame_key", [{"type": "craft_item", "target_id": "item.phase_well_frame_key", "amount": 1}])
 	host._expect_active_quest("quest.inspect_phase_well_frame", "after phase well frame key assembly returns to frame")
 	host._complete_active_quest("quest.inspect_phase_well_frame", [{"type": "inspect", "target_id": "map_object.phase_well_frame", "amount": 1}])
-	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after phase well frame should have no active quest")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_phase_well_frame", "phase well frame quest completed")
 	host._expect_equal(int(character_state.inventory.items.get("item.phase_well_knot_core", 0)), 1, "phase well frame grants first knot core reward")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_knot_core_analysis", "phase well frame unlocks knot core analysis recipe")
+	host._expect_active_quest("quest.analyze_phase_well_knot_core", "after phase well frame returns to knot core analysis")
+	host._complete_active_quest("quest.analyze_phase_well_knot_core", [{"type": "craft_item", "target_id": "item.phase_well_tether_sheet", "amount": 1}])
+	host._expect_active_quest("quest.collect_tether_fiber", "after knot core analysis returns to tether edge")
+	host._expect_array_has(world_state.unlocked_region_ids, "region.phase_well_tether", "phase well knot core analysis unlocks phase well tether region")
+	host._complete_active_quest("quest.collect_tether_fiber", [
+		{"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1},
+		{"type": "defeat_enemy", "target_id": "enemy.phase_well_binder", "amount": 1},
+		{"type": "gather_item", "target_id": "item.tether_fiber", "amount": 2}
+	])
+	host._expect_active_quest("quest.refine_tether_fiber", "after tether fiber collection returns to filter")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.tether_fiber_stabilization", "tether fiber collection unlocks stabilization recipe")
+	host._complete_active_quest("quest.refine_tether_fiber", [{"type": "craft_item", "target_id": "item.phase_well_tether_rib", "amount": 1}])
+	host._expect_active_quest("quest.assemble_phase_well_tether_spike", "after tether fiber refinement returns to reactor")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_tether_spike", "tether fiber refinement unlocks phase well tether spike recipe")
+	host._complete_active_quest("quest.assemble_phase_well_tether_spike", [{"type": "craft_item", "target_id": "item.phase_well_tether_spike", "amount": 1}])
+	host._expect_active_quest("quest.inspect_phase_well_tether", "after phase well tether spike assembly returns to tether")
+	host._complete_active_quest("quest.inspect_phase_well_tether", [{"type": "inspect", "target_id": "map_object.phase_well_tether", "amount": 1}])
+	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after phase well tether should have no active quest")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_phase_well_tether", "phase well tether quest completed")
+	host._expect_equal(int(character_state.inventory.items.get("item.phase_well_anchor_core", 0)), 1, "phase well tether grants first anchor core reward")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "phase well tether keeps slice completion unlock present")
 
 
 func run_hud_and_map_checks() -> void:
@@ -78,6 +98,7 @@ func run_hud_and_map_checks() -> void:
 	_check_phase_well_chamber_gate()
 	_check_phase_well_loom_gate()
 	_check_phase_well_frame_gate()
+	_check_phase_well_tether_gate()
 
 
 func _check_onboarding_hints() -> void:
@@ -110,8 +131,16 @@ func _check_onboarding_hints() -> void:
 	var frame_completion_world := WorldState.create_default()
 	frame_completion_world.quest_state.active_quest_ids.clear()
 	frame_completion_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_frame")
-	host._expect_text_contains(presenter.format_direction_hint(frame_completion_world, hint_character, ""), "相位井结核", "phase well frame completion direction summarizes latest reward anchor")
-	host._expect_text_contains(presenter.format_onboarding_hint(frame_completion_world, hint_character, ""), "相位井结核已经带回基地", "phase well frame completion onboarding summarizes latest reward anchor")
+	host._expect_text_contains(presenter.format_direction_hint(frame_completion_world, hint_character, ""), "回基地解析结核", "phase well frame completion direction points to tether analysis")
+	host._expect_text_contains(presenter.format_onboarding_hint(frame_completion_world, hint_character, ""), "相位井结核不是收尾", "phase well frame completion onboarding keeps tether package explicit")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_phase_well_knot_core", "系谱片", "phase well knot core analysis onboarding hint")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_phase_well_tether_spike", "井系定桩", "phase well tether spike assembly onboarding hint")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.inspect_phase_well_tether", "井系定桩", "phase well tether onboarding hint")
+	var tether_completion_world := WorldState.create_default()
+	tether_completion_world.quest_state.active_quest_ids.clear()
+	tether_completion_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_tether")
+	host._expect_text_contains(presenter.format_direction_hint(tether_completion_world, hint_character, ""), "相位井锚核", "phase well tether completion direction summarizes latest reward anchor")
+	host._expect_text_contains(presenter.format_onboarding_hint(tether_completion_world, hint_character, ""), "相位井锚核已经带回基地", "phase well tether completion onboarding summarizes latest reward anchor")
 
 
 func _check_status_panel_summary() -> void:
@@ -139,8 +168,14 @@ func _check_status_panel_summary() -> void:
 	phase_well_frame_text_world.quest_state.active_quest_ids.clear()
 	phase_well_frame_text_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_frame")
 	var phase_well_frame_text := presenter.format_status_text(host.data_registry, phase_well_frame_text_world, status_character)
-	host._expect_text_contains(phase_well_frame_text, "目标：相位井结核已带回", "status falls back to phase well knot core summary after frame")
-	host._expect_text_contains(phase_well_frame_text, "井纹架断面已勘验", "status progress keeps phase well frame summary")
+	host._expect_text_contains(phase_well_frame_text, "目标：相位井结核待解析", "status falls back to phase well knot core analysis after frame")
+	host._expect_text_contains(phase_well_frame_text, "回基地解析相位井结核后", "status progress keeps phase well frame followup summary")
+	var phase_well_tether_text_world := WorldState.create_default()
+	phase_well_tether_text_world.quest_state.active_quest_ids.clear()
+	phase_well_tether_text_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_tether")
+	var phase_well_tether_text := presenter.format_status_text(host.data_registry, phase_well_tether_text_world, status_character)
+	host._expect_text_contains(phase_well_tether_text, "目标：相位井锚核已带回", "status falls back to phase well anchor core summary after tether")
+	host._expect_text_contains(phase_well_tether_text, "井系桥断面已勘验", "status progress keeps phase well tether summary")
 
 
 func _check_region_presence_bounds() -> void:
@@ -148,6 +183,7 @@ func _check_region_presence_bounds() -> void:
 	host._expect_equal(map._get_region_id_for_position(Vector2(2282, -18)), "region.phase_well_chamber", "phase well chamber should sit in the eastern chamber region")
 	host._expect_equal(map._get_region_id_for_position(Vector2(2562, -18)), "region.phase_well_loom", "phase well loom should sit in the new eastern loom region")
 	host._expect_equal(map._get_region_id_for_position(Vector2(2842, -18)), "region.phase_well_frame", "phase well frame should sit in the new eastern frame region")
+	host._expect_equal(map._get_region_id_for_position(Vector2(3126, -18)), "region.phase_well_tether", "phase well tether should sit in the new eastern tether region")
 	map.free()
 
 
@@ -264,5 +300,48 @@ func _check_phase_well_frame_gate() -> void:
 	map.player.position = Vector2(2666, -96)
 	map.update_region_presence(unlocked_frame_world, unlocked_frame_character)
 	host._expect_equal(unlocked_frame_world.current_region_id, "region.phase_well_frame", "unlocked phase well frame should update current region")
+	map.player.free()
+	map.free()
+
+
+func _check_phase_well_tether_gate() -> void:
+	var map := VerticalSliceMap.new()
+	map.player = PlayerController.new()
+	var tether_gate_world := WorldState.create_default()
+	tether_gate_world.unlock_region("region.crystal_vein_field")
+	tether_gate_world.unlock_region("region.pollution_edge")
+	tether_gate_world.unlock_region("region.ruin_outer_ring")
+	tether_gate_world.unlock_region("region.deep_ruin_threshold")
+	tether_gate_world.unlock_region("region.inner_phase_well")
+	tether_gate_world.unlock_region("region.phase_well_sink")
+	tether_gate_world.unlock_region("region.phase_well_chamber")
+	tether_gate_world.unlock_region("region.phase_well_loom")
+	tether_gate_world.unlock_region("region.phase_well_frame")
+	tether_gate_world.quest_state.completed_quest_ids.append("quest.stabilize_outer_ring_barrier")
+	tether_gate_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_entrance")
+	var tether_gate_character := CharacterState.create_default()
+	map.last_reported_region_id = tether_gate_world.current_region_id
+	map.player.position = Vector2(2946, -96)
+	map.update_region_presence(tether_gate_world, tether_gate_character)
+	host._expect_equal(map.player.position.x, 2852.0, "locked phase well tether should push player before tether region")
+	host._expect_equal(tether_gate_world.current_region_id, "region.phase_well_frame", "locked phase well tether should keep frame region")
+	var unlocked_tether_world := WorldState.create_default()
+	unlocked_tether_world.unlock_region("region.crystal_vein_field")
+	unlocked_tether_world.unlock_region("region.pollution_edge")
+	unlocked_tether_world.unlock_region("region.ruin_outer_ring")
+	unlocked_tether_world.unlock_region("region.deep_ruin_threshold")
+	unlocked_tether_world.unlock_region("region.inner_phase_well")
+	unlocked_tether_world.unlock_region("region.phase_well_sink")
+	unlocked_tether_world.unlock_region("region.phase_well_chamber")
+	unlocked_tether_world.unlock_region("region.phase_well_loom")
+	unlocked_tether_world.unlock_region("region.phase_well_frame")
+	unlocked_tether_world.unlock_region("region.phase_well_tether")
+	unlocked_tether_world.quest_state.completed_quest_ids.append("quest.stabilize_outer_ring_barrier")
+	unlocked_tether_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_entrance")
+	var unlocked_tether_character := CharacterState.create_default()
+	map.last_reported_region_id = unlocked_tether_world.current_region_id
+	map.player.position = Vector2(2946, -96)
+	map.update_region_presence(unlocked_tether_world, unlocked_tether_character)
+	host._expect_equal(unlocked_tether_world.current_region_id, "region.phase_well_tether", "unlocked phase well tether should update current region")
 	map.player.free()
 	map.free()
