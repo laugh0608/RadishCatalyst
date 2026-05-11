@@ -62,7 +62,12 @@ const QUEST_PROGRESS_ORDER: Array[String] = [
 	"quest.collect_weft_bundle",
 	"quest.refine_weft_bundle",
 	"quest.assemble_phase_well_shuttle",
-	"quest.inspect_phase_well_loom"
+	"quest.inspect_phase_well_loom",
+	"quest.analyze_phase_well_weave_core",
+	"quest.collect_selvedge_strip",
+	"quest.refine_selvedge_strip",
+	"quest.assemble_phase_well_frame_key",
+	"quest.inspect_phase_well_frame"
 ]
 
 var data_registry: DataRegistry
@@ -309,6 +314,18 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			_mark_structure_completed(world_state, "structure.pollution_filter_build_site", "recipe.weft_bundle_stabilization")
 		"quest.assemble_phase_well_shuttle":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_shuttle")
+		"quest.analyze_phase_well_weave_core":
+			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_weave_core_analysis")
+		"quest.collect_selvedge_strip":
+			_mark_enemy_defeated(world_state, "enemy_instance.phase_well_raker", "enemy.phase_well_raker", "region.phase_well_frame")
+			_mark_objects_gathered(world_state, [
+				"map_object_instance.selvedge_strip_cluster_north",
+				"map_object_instance.selvedge_strip_cluster_south"
+			], "map_object.selvedge_strip_cluster", "region.phase_well_frame")
+		"quest.refine_selvedge_strip":
+			_mark_structure_completed(world_state, "structure.pollution_filter_build_site", "recipe.selvedge_strip_stabilization")
+		"quest.assemble_phase_well_frame_key":
+			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_frame_key")
 
 
 func _apply_baseline_pose_and_inventory(
@@ -418,6 +435,15 @@ func _apply_baseline_pose_and_inventory(
 			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
 			character_state.inventory = _make_inventory(
 				{"item.basic_parts": 4, "item.phase_well_spindle": 1, "item.repair_gel": 1, "item.resistance_vial_t1": 1},
+				{},
+				{"fluid.basic_solvent": 2.0}
+			)
+		"baseline.s11_phase_well_weave_core_ready":
+			_set_runtime_position(world_state, character_state, "region.outpost_platform", BASELINE_PHASE_RELAY_PAD_POSITION)
+			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
+			character_state.inventory = _make_inventory(
+				{"item.basic_parts": 4, "item.phase_well_weave_core": 1, "item.repair_gel": 1, "item.resistance_vial_t1": 1},
 				{},
 				{"fluid.basic_solvent": 2.0}
 			)

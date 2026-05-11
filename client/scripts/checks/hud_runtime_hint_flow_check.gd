@@ -126,8 +126,25 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 	_expect_text_contains(
 		failures,
 		hud.prompt_label.text,
-		"方向：井纺室断面已经交出第一份相位井织核",
-		"runtime hint prompt summarizes weave core reward after phase well loom"
+		"方向：相位井织核已带回：先回基地解析织核",
+		"runtime hint prompt keeps weave core analysis fallback after phase well loom"
+	)
+	_expect_text_contains(
+		failures,
+		hud.prompt_label.text,
+		"提示：相位井织核不是收尾",
+		"runtime hint prompt keeps weave core analysis explicit after phase well loom"
+	)
+	var frame_world := WorldState.create_default()
+	var frame_character := CharacterState.create_default()
+	frame_world.quest_state.active_quest_ids = []
+	frame_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_frame")
+	hud.update_status(data_registry, frame_world, frame_character)
+	_expect_text_contains(
+		failures,
+		hud.prompt_label.text,
+		"方向：井纹架断面已经交出第一份相位井结核",
+		"runtime hint prompt summarizes knot core reward after phase well frame"
 	)
 	hud.update_status(data_registry, relay_world, relay_character)
 

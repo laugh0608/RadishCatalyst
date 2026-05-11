@@ -258,12 +258,22 @@ func format_phase_well_chamber_prompt(world_state: WorldState, character_state: 
 
 func format_phase_well_loom_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_loom"):
-		return "井纺室断面：已勘验，第一份相位井织核已带回基地。"
+		return "井纺室断面：已勘验，第一份相位井织核已带回基地；下一步回基地解析并继续推进井纹架断面。"
 	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_shuttle"):
 		return "井纺室断面：先回基地用基础反应器组装井纺梭栓，再回来勘验更东侧断面。"
 	if not character_state.inventory.has_ref("item.phase_well_shuttle", 1):
 		return "井纺室断面：缺少井纺梭栓；回基地确认基础反应器组装结果后再来。"
 	return "按 E 勘验：井纺室断面。"
+
+
+func format_phase_well_frame_prompt(world_state: WorldState, character_state: CharacterState) -> String:
+	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_frame"):
+		return "井纹架断面：已勘验，第一份相位井结核已带回基地。"
+	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_frame_key"):
+		return "井纹架断面：先回基地用基础反应器组装井纹架键栓，再回来勘验更东侧断面。"
+	if not character_state.inventory.has_ref("item.phase_well_frame_key", 1):
+		return "井纹架断面：缺少井纹架键栓；回基地确认基础反应器组装结果后再来。"
+	return "按 E 勘验：井纹架断面。"
 
 
 func format_pollution_entry_warning(character_state: CharacterState) -> String:

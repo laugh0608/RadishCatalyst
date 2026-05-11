@@ -26,13 +26,14 @@ func run(root_window: Window) -> void:
 		"locked crystal marker"
 	)
 	var initial_map_labels := presenter.format_map_marker_labels(marker_world, "quest.restore_outpost")
-	host._expect_equal(initial_map_labels.size(), 9, "minimap marker count includes phase well loom")
+	host._expect_equal(initial_map_labels.size(), 10, "minimap marker count includes phase well frame")
 	host._expect_array_has(initial_map_labels, "基地\n当前\n目标", "outpost minimap current target marker")
 	host._expect_array_has(initial_map_labels, "晶体\n未解锁", "crystal minimap locked marker")
 	host._expect_array_has(initial_map_labels, "井口\n未解锁", "inner phase well minimap locked marker")
 	host._expect_array_has(initial_map_labels, "井底\n未解锁", "phase well sink minimap locked marker")
 	host._expect_array_has(initial_map_labels, "心室\n未解锁", "phase well chamber minimap locked marker")
 	host._expect_array_has(initial_map_labels, "井纺\n未解锁", "phase well loom minimap locked marker")
+	host._expect_array_has(initial_map_labels, "井纹\n未解锁", "phase well frame minimap locked marker")
 	marker_world.unlock_region("region.crystal_vein_field")
 	host._expect_text_contains(
 		presenter.format_region_markers(marker_world, "quest.scout_crystal_field"),
@@ -169,5 +170,11 @@ func run(root_window: Window) -> void:
 	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.collect_weft_bundle"), "井纺：更东，目标", "weft bundle collection points to phase well loom marker")
 	host._expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.collect_weft_bundle"), "井纺\n目标", "phase well loom minimap objective marker")
 	marker_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_loom")
-	host._expect_text_missing(presenter.format_region_markers(marker_world, ""), "目标", "phase well loom completion clears runtime followup marker")
+	host._expect_text_contains(presenter.format_region_markers(marker_world, ""), "基地：当前位置，目标", "phase well loom completion returns runtime followup to outpost analysis")
+	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.analyze_phase_well_weave_core"), "基地：当前位置，目标", "phase well weave core analysis returns to outpost reactor")
+	marker_world.unlock_region("region.phase_well_frame")
+	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.collect_selvedge_strip"), "井纹：更东，目标", "selvedge strip collection points to phase well frame marker")
+	host._expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.collect_selvedge_strip"), "井纹\n目标", "phase well frame minimap objective marker")
+	marker_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_frame")
+	host._expect_text_missing(presenter.format_region_markers(marker_world, ""), "目标", "phase well frame completion clears runtime followup marker")
 	map.free()

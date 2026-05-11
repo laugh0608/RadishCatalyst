@@ -12,9 +12,9 @@ const PLAYER_INTERACTION_RANGE := 96.0
 const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
 const OUTPOST_RESPAWN_POSITION := Vector2(-250, -48)
 const PLAY_BOUNDS_MIN := Vector2(-360, -200)
-const PLAY_BOUNDS_MAX := Vector2(2620, 200)
+const PLAY_BOUNDS_MAX := Vector2(2900, 200)
 const CAMERA_BOUNDS_MIN := Vector2(-620, -360)
-const CAMERA_BOUNDS_MAX := Vector2(2640, 360)
+const CAMERA_BOUNDS_MAX := Vector2(2920, 360)
 const CRYSTAL_REGION_X := -70.0
 const CRYSTAL_GATE_RETURN_X := -85.0
 const POLLUTION_REGION_X := 200.0
@@ -30,11 +30,13 @@ const INNER_PHASE_WELL_REGION_X := 1460.0
 const PHASE_WELL_SINK_REGION_X := 1760.0
 const PHASE_WELL_CHAMBER_REGION_X := 2040.0
 const PHASE_WELL_LOOM_REGION_X := 2320.0
+const PHASE_WELL_FRAME_REGION_X := 2600.0
 const DEEP_RUIN_GATE_RETURN_X := 676.0
 const INNER_PHASE_WELL_GATE_RETURN_X := 1432.0
 const PHASE_WELL_SINK_GATE_RETURN_X := 1732.0
 const PHASE_WELL_CHAMBER_GATE_RETURN_X := 2012.0
 const PHASE_WELL_LOOM_GATE_RETURN_X := 2292.0
+const PHASE_WELL_FRAME_GATE_RETURN_X := 2572.0
 const PHASE_RELAY_PAD_FALLBACK_POSITION := Vector2(-210, -40)
 const PHASE_RETURN_ANCHOR_FALLBACK_POSITION := Vector2(852, 92)
 
@@ -98,6 +100,8 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		return _inspect_phase_well_chamber(character_state, world_state)
 	if interacted.definition_id == "map_object.phase_well_loom" and interacted.interaction_type == "inspect":
 		return _inspect_phase_well_loom(character_state, world_state)
+	if interacted.definition_id == "map_object.phase_well_frame" and interacted.interaction_type == "inspect":
+		return _inspect_phase_well_frame(character_state, world_state)
 
 	var action_id := interacted.get_current_recipe_id()
 	if interacted.interaction_type == "build":
@@ -265,6 +269,14 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 					interaction_cleared.emit(interactable)
 				continue
 			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.phase_well_frame":
+			if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_frame"):
+				interactable.set_stabilized_phase_well_frame_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
 		elif is_processed and interactable.set_processed_visual():
 			if current_interactable == interactable:
 				current_interactable = null
@@ -347,6 +359,16 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			should_enable = should_enable and (
 				world_state.quest_state.has_active_quest("quest.inspect_phase_well_loom")
 				or world_state.quest_state.has_completed_quest("quest.inspect_phase_well_loom")
+			)
+		if interactable.definition_id == "map_object.selvedge_strip_cluster":
+			should_enable = should_enable and (
+				world_state.quest_state.has_active_quest("quest.collect_selvedge_strip")
+				or world_state.quest_state.has_completed_quest("quest.collect_selvedge_strip")
+			)
+		if interactable.definition_id == "map_object.phase_well_frame":
+			should_enable = should_enable and (
+				world_state.quest_state.has_active_quest("quest.inspect_phase_well_frame")
+				or world_state.quest_state.has_completed_quest("quest.inspect_phase_well_frame")
 			)
 
 		interactable.set_interaction_enabled(should_enable)
@@ -487,6 +509,16 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 			return {
 				"success": true,
 				"message": "击败：%s。%s更东侧井纺室边缘的压制已减弱，纬束残团回收线已打开。" % [
+					target.display_name,
+					drops_message
+				],
+				"enemy_definition_id": target.definition_id,
+				"enemy_defeated": true
+			}
+		if target.definition_id == "enemy.phase_well_raker":
+			return {
+				"success": true,
+				"message": "击败：%s。%s更东侧井纹架边缘的压制已减弱，边缕残条回收线已打开。" % [
 					target.display_name,
 					drops_message
 				],
@@ -668,6 +700,11 @@ func apply_region_gate_bounds(world_state: WorldState) -> String:
 		player.stop_positive_x_until_release()
 		return "井纺室断面仍未稳定：先回基地解析相位井纺核，再带着新的井纺梭栓回来继续向东推进。"
 
+	if not world_state.unlocked_region_ids.has("region.phase_well_frame") and player.position.x > PHASE_WELL_FRAME_GATE_RETURN_X:
+		player.position.x = PHASE_WELL_FRAME_GATE_RETURN_X
+		player.stop_positive_x_until_release()
+		return "井纹架断面仍未稳定：先回基地解析相位井织核，再带着新的井纹架键栓回来继续向东推进。"
+
 	return ""
 
 
@@ -786,6 +823,11 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 		return (
 			world_state.quest_state.has_active_quest("quest.collect_weft_bundle")
 			or world_state.quest_state.has_completed_quest("quest.collect_weft_bundle")
+		)
+	if enemy.definition_id == "enemy.phase_well_raker":
+		return (
+			world_state.quest_state.has_active_quest("quest.collect_selvedge_strip")
+			or world_state.quest_state.has_completed_quest("quest.collect_selvedge_strip")
 		)
 	if enemy.definition_id != "enemy.treatment_skitter":
 		return true
@@ -1253,7 +1295,7 @@ func _inspect_phase_well_loom(character_state: CharacterState, world_state: Worl
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_loom"):
 		return {
 			"success": true,
-			"message": "井纺室断面已勘验：第一份相位井织核已经带回基地。"
+			"message": "井纺室断面已勘验：第一份相位井织核已经带回基地；下一步回基地解析并继续推进井纹架断面。"
 		}
 
 	if not character_state.inventory.has_ref("item.phase_well_shuttle", 1):
@@ -1267,6 +1309,34 @@ func _inspect_phase_well_loom(character_state: CharacterState, world_state: Worl
 	return {
 		"success": true,
 		"message": "井纺梭栓已写入：井纺室断面开始析出相位井织核，更东侧更深收益再次抬升。"
+	}
+
+
+func _inspect_phase_well_frame(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_frame_key"):
+		return _failure(
+			"井纹架断面仍缺少可执行的纹架读数。",
+			"井纹架未勘验",
+			"先回基地用基础反应器，把相位井纹谱片、纹架肋和基础零件组装成井纹架键栓。"
+		)
+
+	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_frame"):
+		return {
+			"success": true,
+			"message": "井纹架断面已勘验：第一份相位井结核已经带回基地。"
+		}
+
+	if not character_state.inventory.has_ref("item.phase_well_frame_key", 1):
+		return _failure(
+			"缺少井纹架键栓，井纹架断面无法稳定。",
+			"缺少井纹架键栓",
+			"回基地确认基础反应器已经完成井纹架键栓，并带回来勘验井纹架断面。"
+		)
+
+	character_state.inventory.consume_ref("item.phase_well_frame_key", 1)
+	return {
+		"success": true,
+		"message": "井纹架键栓已写入：井纹架断面开始析出相位井结核，更东侧更深收益再次抬升。"
 	}
 
 
@@ -1390,6 +1460,8 @@ func _get_enemy_instance_id(enemy: PrototypeEnemy) -> String:
 
 
 func _get_region_id_for_position(map_position: Vector2) -> String:
+	if map_position.x >= PHASE_WELL_FRAME_REGION_X:
+		return "region.phase_well_frame"
 	if map_position.x >= PHASE_WELL_LOOM_REGION_X:
 		return "region.phase_well_loom"
 	if map_position.x >= PHASE_WELL_CHAMBER_REGION_X:

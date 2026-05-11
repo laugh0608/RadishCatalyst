@@ -45,10 +45,30 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	host._complete_active_quest("quest.assemble_phase_well_shuttle", [{"type": "craft_item", "target_id": "item.phase_well_shuttle", "amount": 1}])
 	host._expect_active_quest("quest.inspect_phase_well_loom", "after phase well shuttle assembly returns to loom")
 	host._complete_active_quest("quest.inspect_phase_well_loom", [{"type": "inspect", "target_id": "map_object.phase_well_loom", "amount": 1}])
-	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after phase well loom should have no active quest")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_phase_well_loom", "phase well loom quest completed")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "phase well loom restores terminal slice completion unlock")
 	host._expect_equal(int(character_state.inventory.items.get("item.phase_well_weave_core", 0)), 1, "phase well loom grants first weave core reward")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_weave_core_analysis", "phase well loom unlocks weave core analysis recipe")
+	host._expect_active_quest("quest.analyze_phase_well_weave_core", "after phase well loom returns to weave core analysis")
+	host._complete_active_quest("quest.analyze_phase_well_weave_core", [{"type": "craft_item", "target_id": "item.phase_well_pattern_sheet", "amount": 1}])
+	host._expect_active_quest("quest.collect_selvedge_strip", "after weave core analysis returns to frame edge")
+	host._expect_array_has(world_state.unlocked_region_ids, "region.phase_well_frame", "phase well weave core analysis unlocks phase well frame region")
+	host._complete_active_quest("quest.collect_selvedge_strip", [
+		{"type": "visit_region", "target_id": "region.phase_well_frame", "amount": 1},
+		{"type": "defeat_enemy", "target_id": "enemy.phase_well_raker", "amount": 1},
+		{"type": "gather_item", "target_id": "item.selvedge_strip", "amount": 2}
+	])
+	host._expect_active_quest("quest.refine_selvedge_strip", "after selvedge strip collection returns to filter")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.selvedge_strip_stabilization", "selvedge strip collection unlocks stabilization recipe")
+	host._complete_active_quest("quest.refine_selvedge_strip", [{"type": "craft_item", "target_id": "item.phase_well_frame_rib", "amount": 1}])
+	host._expect_active_quest("quest.assemble_phase_well_frame_key", "after selvedge strip refinement returns to reactor")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_frame_key", "selvedge strip refinement unlocks phase well frame key recipe")
+	host._complete_active_quest("quest.assemble_phase_well_frame_key", [{"type": "craft_item", "target_id": "item.phase_well_frame_key", "amount": 1}])
+	host._expect_active_quest("quest.inspect_phase_well_frame", "after phase well frame key assembly returns to frame")
+	host._complete_active_quest("quest.inspect_phase_well_frame", [{"type": "inspect", "target_id": "map_object.phase_well_frame", "amount": 1}])
+	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after phase well frame should have no active quest")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_phase_well_frame", "phase well frame quest completed")
+	host._expect_equal(int(character_state.inventory.items.get("item.phase_well_knot_core", 0)), 1, "phase well frame grants first knot core reward")
 
 
 func run_hud_and_map_checks() -> void:
@@ -57,6 +77,7 @@ func run_hud_and_map_checks() -> void:
 	_check_region_presence_bounds()
 	_check_phase_well_chamber_gate()
 	_check_phase_well_loom_gate()
+	_check_phase_well_frame_gate()
 
 
 func _check_onboarding_hints() -> void:
@@ -81,8 +102,16 @@ func _check_onboarding_hints() -> void:
 	var loom_completion_world := WorldState.create_default()
 	loom_completion_world.quest_state.active_quest_ids.clear()
 	loom_completion_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_loom")
-	host._expect_text_contains(presenter.format_direction_hint(loom_completion_world, hint_character, ""), "相位井织核", "phase well loom completion direction summarizes latest reward anchor")
-	host._expect_text_contains(presenter.format_onboarding_hint(loom_completion_world, hint_character, ""), "相位井织核已经带回基地", "phase well loom completion onboarding summarizes latest reward anchor")
+	host._expect_text_contains(presenter.format_direction_hint(loom_completion_world, hint_character, ""), "回基地解析织核", "phase well loom completion direction points to phase well frame analysis")
+	host._expect_text_contains(presenter.format_onboarding_hint(loom_completion_world, hint_character, ""), "相位井织核不是收尾", "phase well loom completion onboarding keeps frame package explicit")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_phase_well_weave_core", "纹谱片", "phase well weave core analysis onboarding hint")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_phase_well_frame_key", "井纹架键栓", "phase well frame key assembly onboarding hint")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.inspect_phase_well_frame", "井纹架键栓", "phase well frame onboarding hint")
+	var frame_completion_world := WorldState.create_default()
+	frame_completion_world.quest_state.active_quest_ids.clear()
+	frame_completion_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_frame")
+	host._expect_text_contains(presenter.format_direction_hint(frame_completion_world, hint_character, ""), "相位井结核", "phase well frame completion direction summarizes latest reward anchor")
+	host._expect_text_contains(presenter.format_onboarding_hint(frame_completion_world, hint_character, ""), "相位井结核已经带回基地", "phase well frame completion onboarding summarizes latest reward anchor")
 
 
 func _check_status_panel_summary() -> void:
@@ -104,14 +133,21 @@ func _check_status_panel_summary() -> void:
 	phase_well_loom_text_world.quest_state.active_quest_ids.clear()
 	phase_well_loom_text_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_loom")
 	var phase_well_loom_text := presenter.format_status_text(host.data_registry, phase_well_loom_text_world, status_character)
-	host._expect_text_contains(phase_well_loom_text, "目标：相位井织核已带回", "status falls back to phase well weave core summary after loom")
-	host._expect_text_contains(phase_well_loom_text, "井纺室断面已勘验", "status progress keeps phase well loom summary")
+	host._expect_text_contains(phase_well_loom_text, "目标：相位井织核待解析", "status falls back to phase well weave core analysis after loom")
+	host._expect_text_contains(phase_well_loom_text, "回基地解析相位井织核后", "status progress keeps phase well loom followup summary")
+	var phase_well_frame_text_world := WorldState.create_default()
+	phase_well_frame_text_world.quest_state.active_quest_ids.clear()
+	phase_well_frame_text_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_frame")
+	var phase_well_frame_text := presenter.format_status_text(host.data_registry, phase_well_frame_text_world, status_character)
+	host._expect_text_contains(phase_well_frame_text, "目标：相位井结核已带回", "status falls back to phase well knot core summary after frame")
+	host._expect_text_contains(phase_well_frame_text, "井纹架断面已勘验", "status progress keeps phase well frame summary")
 
 
 func _check_region_presence_bounds() -> void:
 	var map := VerticalSliceMap.new()
 	host._expect_equal(map._get_region_id_for_position(Vector2(2282, -18)), "region.phase_well_chamber", "phase well chamber should sit in the eastern chamber region")
 	host._expect_equal(map._get_region_id_for_position(Vector2(2562, -18)), "region.phase_well_loom", "phase well loom should sit in the new eastern loom region")
+	host._expect_equal(map._get_region_id_for_position(Vector2(2842, -18)), "region.phase_well_frame", "phase well frame should sit in the new eastern frame region")
 	map.free()
 
 
@@ -187,5 +223,46 @@ func _check_phase_well_loom_gate() -> void:
 	map.player.position = Vector2(2386, -96)
 	map.update_region_presence(unlocked_loom_world, unlocked_loom_character)
 	host._expect_equal(unlocked_loom_world.current_region_id, "region.phase_well_loom", "unlocked phase well loom should update current region")
+	map.player.free()
+	map.free()
+
+
+func _check_phase_well_frame_gate() -> void:
+	var map := VerticalSliceMap.new()
+	map.player = PlayerController.new()
+	var frame_gate_world := WorldState.create_default()
+	frame_gate_world.unlock_region("region.crystal_vein_field")
+	frame_gate_world.unlock_region("region.pollution_edge")
+	frame_gate_world.unlock_region("region.ruin_outer_ring")
+	frame_gate_world.unlock_region("region.deep_ruin_threshold")
+	frame_gate_world.unlock_region("region.inner_phase_well")
+	frame_gate_world.unlock_region("region.phase_well_sink")
+	frame_gate_world.unlock_region("region.phase_well_chamber")
+	frame_gate_world.unlock_region("region.phase_well_loom")
+	frame_gate_world.quest_state.completed_quest_ids.append("quest.stabilize_outer_ring_barrier")
+	frame_gate_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_entrance")
+	var frame_gate_character := CharacterState.create_default()
+	map.last_reported_region_id = frame_gate_world.current_region_id
+	map.player.position = Vector2(2666, -96)
+	map.update_region_presence(frame_gate_world, frame_gate_character)
+	host._expect_equal(map.player.position.x, 2572.0, "locked phase well frame should push player before frame region")
+	host._expect_equal(frame_gate_world.current_region_id, "region.phase_well_loom", "locked phase well frame should keep loom region")
+	var unlocked_frame_world := WorldState.create_default()
+	unlocked_frame_world.unlock_region("region.crystal_vein_field")
+	unlocked_frame_world.unlock_region("region.pollution_edge")
+	unlocked_frame_world.unlock_region("region.ruin_outer_ring")
+	unlocked_frame_world.unlock_region("region.deep_ruin_threshold")
+	unlocked_frame_world.unlock_region("region.inner_phase_well")
+	unlocked_frame_world.unlock_region("region.phase_well_sink")
+	unlocked_frame_world.unlock_region("region.phase_well_chamber")
+	unlocked_frame_world.unlock_region("region.phase_well_loom")
+	unlocked_frame_world.unlock_region("region.phase_well_frame")
+	unlocked_frame_world.quest_state.completed_quest_ids.append("quest.stabilize_outer_ring_barrier")
+	unlocked_frame_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_entrance")
+	var unlocked_frame_character := CharacterState.create_default()
+	map.last_reported_region_id = unlocked_frame_world.current_region_id
+	map.player.position = Vector2(2666, -96)
+	map.update_region_presence(unlocked_frame_world, unlocked_frame_character)
+	host._expect_equal(unlocked_frame_world.current_region_id, "region.phase_well_frame", "unlocked phase well frame should update current region")
 	map.player.free()
 	map.free()

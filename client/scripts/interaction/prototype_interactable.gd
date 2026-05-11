@@ -16,6 +16,7 @@ const GATHERED_WELL_FLUX_COLOR := Color(0.74, 0.82, 0.96, 1)
 const GATHERED_WELL_ASH_COLOR := Color(0.82, 0.66, 0.42, 1)
 const GATHERED_HEART_SPINE_COLOR := Color(0.88, 0.58, 0.48, 1)
 const GATHERED_WEFT_BUNDLE_COLOR := Color(0.92, 0.68, 0.6, 1)
+const GATHERED_SELVEDGE_STRIP_COLOR := Color(0.96, 0.78, 0.66, 1)
 const CLEARED_GROUND_COLOR := Color(0.42, 0.5, 0.42, 1)
 const CONFIRMED_RUIN_SIGNAL_COLOR := Color(0.36, 0.5, 0.68, 1)
 const STABILIZED_BARRIER_COLOR := Color(0.42, 0.66, 0.78, 1)
@@ -32,6 +33,7 @@ const STABILIZED_INNER_PHASE_WELL_COLOR := Color(0.8, 0.92, 0.64, 1)
 const STABILIZED_PHASE_WELL_SINK_COLOR := Color(0.94, 0.78, 0.56, 1)
 const STABILIZED_PHASE_WELL_CHAMBER_COLOR := Color(0.96, 0.64, 0.58, 1)
 const STABILIZED_PHASE_WELL_LOOM_COLOR := Color(0.98, 0.74, 0.64, 1)
+const STABILIZED_PHASE_WELL_FRAME_COLOR := Color(0.99, 0.82, 0.68, 1)
 const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
 const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
 
@@ -259,6 +261,13 @@ func set_processed_visual() -> bool:
 		marker.color = GATHERED_WEFT_BUNDLE_COLOR
 		_set_label_text("%s\n已回收" % display_name_text, 2)
 		return true
+	if interaction_type == "gather" and definition_id == "map_object.selvedge_strip_cluster":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = GATHERED_SELVEDGE_STRIP_COLOR
+		_set_label_text("%s\n已回收" % display_name_text, 2)
+		return true
 	if interaction_type == "sample" and definition_id == "map_object.anomaly_crystal":
 		consumed = true
 		visible = true
@@ -394,6 +403,14 @@ func set_stabilized_phase_well_loom_visual() -> void:
 	monitoring = false
 	marker.color = STABILIZED_PHASE_WELL_LOOM_COLOR
 	_set_label_text("%s\n织核已取出" % display_name_text, 2)
+
+
+func set_stabilized_phase_well_frame_visual() -> void:
+	consumed = true
+	visible = true
+	monitoring = false
+	marker.color = STABILIZED_PHASE_WELL_FRAME_COLOR
+	_set_label_text("%s\n结核已取出" % display_name_text, 2)
 
 
 func set_built_visual(built_definition_id: String) -> void:

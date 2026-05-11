@@ -195,6 +195,21 @@
       "drops": [{"id": "item.repair_gel", "amount": 1}],
       "spawn_regions": ["region.phase_well_loom"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "enemy.phase_well_raker",
+      "display_name_key": "enemy.phase_well_raker.name",
+      "description_key": "enemy.phase_well_raker.desc",
+      "category": "ruin_guard",
+      "faction": "ruin_sentinel",
+      "base_stats": {"max_health": 152, "attack": 28, "move_speed": 126},
+      "behaviors": ["phase_guard", "melee_chase"],
+      "damage_types": ["physical", "pollution"],
+      "resistances": {"pollution": 0.8},
+      "drop_table_id": "drop.phase_well_raker",
+      "drops": [{"id": "item.repair_gel", "amount": 1}],
+      "spawn_regions": ["region.phase_well_frame"],
+      "public_level": "spoiler"
     }
   ]
 }

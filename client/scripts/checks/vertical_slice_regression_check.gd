@@ -420,7 +420,7 @@ func _check_hud_log_presenter() -> void:
 
 func _check_development_baseline_presenter() -> void:
 	var definitions := DevelopmentBaselineCatalog.get_baseline_definitions()
-	host._expect_equal(definitions.size(), 11, "development baseline catalog count")
+	host._expect_equal(definitions.size(), 12, "development baseline catalog count")
 	host._expect_equal(
 		String(definitions[0].get("id", "")),
 		"baseline.s0_new_game",
