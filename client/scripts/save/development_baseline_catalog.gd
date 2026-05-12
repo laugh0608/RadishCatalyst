@@ -120,6 +120,14 @@ const BASELINE_DEFINITIONS := [
 		"completed_through": "quest.stabilize_phase_well_anchor_field",
 		"summary": "井系桥东侧锚场回稳已完成，稳定窗口已生成，相位井余响片已带回。",
 		"recommended_for": "锚场完成态、局部稳定窗口收益、相位井余响片后续设计和下一包入口判断。"
+	},
+	{
+		"id": "baseline.s15_phase_well_stability_readout_ready",
+		"code": "S15",
+		"display_name": "S15 稳窗读数已解析",
+		"completed_through": "quest.analyze_phase_well_echo_shard",
+		"summary": "相位井余响片已解析成稳窗读数，锚场回稳窗已可作为回访回充点观察。",
+		"recommended_for": "稳窗读数完成态、锚场回访回充、前线容错反馈和阶段收口判断。"
 	}
 ]
 

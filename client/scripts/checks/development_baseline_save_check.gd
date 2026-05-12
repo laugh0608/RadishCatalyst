@@ -66,7 +66,8 @@ func run() -> void:
 			"baseline.s11_phase_well_weave_core_ready",
 			"baseline.s12_phase_well_knot_core_ready",
 			"baseline.s13_phase_well_anchor_core_ready",
-			"baseline.s14_phase_well_anchor_field_stabilized"
+			"baseline.s14_phase_well_anchor_field_stabilized",
+			"baseline.s15_phase_well_stability_readout_ready"
 		]:
 			host._expect_equal(
 				loaded_world.active_phase_relay_anchor_id,
@@ -97,4 +98,26 @@ func run() -> void:
 				bool(anchor_field_state.get("anchor_field_stabilized", false)),
 				true,
 				"S14 baseline should keep anchor field stabilized"
+			)
+		if baseline_id == "baseline.s15_phase_well_stability_readout_ready":
+			host._expect_array_has(
+				loaded_world.quest_state.completed_quest_ids,
+				"quest.analyze_phase_well_echo_shard",
+				"S15 baseline should complete echo shard analysis"
+			)
+			host._expect_equal(
+				loaded_world.quest_state.active_quest_ids,
+				[],
+				"S15 baseline should not keep an active quest"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.phase_well_stability_readout", 0)),
+				1,
+				"S15 baseline should keep phase well stability readout"
+			)
+			var readout_anchor_field_state := loaded_world.get_map_object("map_object_instance.phase_well_anchor_field")
+			host._expect_equal(
+				bool(readout_anchor_field_state.get("anchor_field_stabilized", false)),
+				true,
+				"S15 baseline should keep anchor field stabilized"
 			)

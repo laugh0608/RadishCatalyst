@@ -77,7 +77,8 @@ const QUEST_PROGRESS_ORDER: Array[String] = [
 	"quest.analyze_phase_well_anchor_core",
 	"quest.refine_anchor_core_dust",
 	"quest.assemble_phase_well_anchor_stake",
-	"quest.stabilize_phase_well_anchor_field"
+	"quest.stabilize_phase_well_anchor_field",
+	"quest.analyze_phase_well_echo_shard"
 ]
 
 var data_registry: DataRegistry
@@ -365,6 +366,8 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			anchor_field_state["anchor_field_pressure_cleared"] = true
 			anchor_field_state["anchor_field_stabilized"] = true
 			_mark_enemy_defeated(world_state, "enemy_instance.phase_well_warden", "enemy.phase_well_warden", "region.phase_well_tether")
+		"quest.analyze_phase_well_echo_shard":
+			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_echo_shard_analysis")
 
 
 func _apply_baseline_pose_and_inventory(
@@ -510,6 +513,15 @@ func _apply_baseline_pose_and_inventory(
 			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
 			character_state.inventory = _make_inventory(
 				{"item.basic_parts": 4, "item.phase_well_echo_shard": 1, "item.repair_gel": 1, "item.resistance_vial_t1": 1},
+				{},
+				{"fluid.basic_solvent": 2.0}
+			)
+		"baseline.s15_phase_well_stability_readout_ready":
+			_set_runtime_position(world_state, character_state, "region.phase_well_tether", BASELINE_ANCHOR_FIELD_POSITION)
+			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
+			character_state.inventory = _make_inventory(
+				{"item.basic_parts": 4, "item.phase_well_stability_readout": 1, "item.repair_gel": 1, "item.resistance_vial_t1": 1},
 				{},
 				{"fluid.basic_solvent": 2.0}
 			)
