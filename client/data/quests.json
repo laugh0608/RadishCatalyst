@@ -909,7 +909,7 @@
       "description_key": "quest.stabilize_phase_well_anchor_field.desc",
       "quest_type": "main",
       "stage": 70,
-      "objectives": [{"type": "defeat_enemy", "target_id": "enemy.phase_well_warden", "amount": 1}, {"type": "inspect", "target_id": "map_object.phase_well_anchor_field", "amount": 1}],
+      "objectives": [{"type": "inspect", "target_id": "map_object.phase_well_anchor_field", "amount": 1}, {"type": "defeat_enemy", "target_id": "enemy.phase_well_warden", "amount": 1}],
       "prerequisites": ["quest.assemble_phase_well_anchor_stake"],
       "rewards": [{"id": "item.phase_well_echo_shard", "amount": 1}],
       "unlock_effects": ["slice_01_complete"],

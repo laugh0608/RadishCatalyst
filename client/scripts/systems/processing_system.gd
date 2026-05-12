@@ -224,6 +224,12 @@ func get_recommended_recipe_id(
 			return _select_if_available(interactable, "recipe.tether_fiber_stabilization")
 		"quest.assemble_phase_well_tether_spike":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_tether_spike")
+		"quest.analyze_phase_well_anchor_core":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_anchor_core_analysis")
+		"quest.refine_anchor_core_dust":
+			return _select_if_available(interactable, "recipe.anchor_core_dust_stabilization")
+		"quest.assemble_phase_well_anchor_stake":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_anchor_stake")
 		_:
 			return ""
 

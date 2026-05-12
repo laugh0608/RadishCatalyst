@@ -35,7 +35,8 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		"recipe.heart_spine_stabilization",
 		"recipe.weft_bundle_stabilization",
 		"recipe.selvedge_strip_stabilization",
-		"recipe.tether_fiber_stabilization"
+		"recipe.tether_fiber_stabilization",
+		"recipe.anchor_core_dust_stabilization"
 	])
 	recipe_world.quest_state.active_quest_ids = ["quest.analyze_anomaly_sample"]
 	recipe_world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 2)
@@ -119,7 +120,9 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		"recipe.phase_well_weave_core_analysis",
 		"recipe.phase_well_frame_key",
 		"recipe.phase_well_knot_core_analysis",
-		"recipe.phase_well_tether_spike"
+		"recipe.phase_well_tether_spike",
+		"recipe.phase_well_anchor_core_analysis",
+		"recipe.phase_well_anchor_stake"
 	])
 	recipe_character.inventory.items["item.basic_parts"] = 1
 	recipe_character.inventory.add_item("item.signal_echo_trace", 1)
@@ -419,6 +422,41 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
 		"recipe.phase_well_tether_spike",
 		"phase well tether spike assembly returns to reactor recipe after basic parts are restored"
+	)
+	recipe_character.inventory.add_item("item.phase_well_anchor_core", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_anchor_core"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"phase well anchor core analysis falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_anchor_core_analysis",
+		"phase well anchor core analysis returns to reactor recipe after basic parts are restored"
+	)
+	recipe_world.quest_state.active_quest_ids = ["quest.refine_anchor_core_dust"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(filter, recipe_character, recipe_world),
+		"recipe.anchor_core_dust_stabilization",
+		"anchor core dust refinement selects pollution filter recipe"
+	)
+	recipe_character.inventory.add_item("item.phase_well_return_sheet", 1)
+	recipe_character.inventory.add_item("item.anchor_field_filter", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.assemble_phase_well_anchor_stake"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"phase well anchor stake assembly falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_anchor_stake",
+		"phase well anchor stake assembly returns to reactor recipe after basic parts are restored"
 	)
 	deep_reactor.free()
 	filter.free()
