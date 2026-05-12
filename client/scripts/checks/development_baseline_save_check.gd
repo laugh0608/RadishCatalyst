@@ -61,7 +61,13 @@ func run() -> void:
 				["map_object_instance.phase_return_anchor"],
 				"%s baseline deployed phase relay anchors" % code.to_upper()
 			)
-		if baseline_id == "baseline.s10_phase_well_spindle_ready" or baseline_id == "baseline.s11_phase_well_weave_core_ready":
+		if baseline_id in [
+			"baseline.s10_phase_well_spindle_ready",
+			"baseline.s11_phase_well_weave_core_ready",
+			"baseline.s12_phase_well_knot_core_ready",
+			"baseline.s13_phase_well_anchor_core_ready",
+			"baseline.s14_phase_well_anchor_field_stabilized"
+		]:
 			host._expect_equal(
 				loaded_world.active_phase_relay_anchor_id,
 				"map_object_instance.phase_return_anchor_chamber",
@@ -74,4 +80,21 @@ func run() -> void:
 					"map_object_instance.phase_return_anchor_chamber"
 				],
 				"%s baseline deployed phase relay anchors" % code.to_upper()
+			)
+		if baseline_id == "baseline.s14_phase_well_anchor_field_stabilized":
+			host._expect_array_has(
+				loaded_world.quest_state.completed_quest_ids,
+				"quest.stabilize_phase_well_anchor_field",
+				"S14 baseline should complete anchor field stabilization"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.phase_well_echo_shard", 0)),
+				1,
+				"S14 baseline should keep phase well echo shard"
+			)
+			var anchor_field_state := loaded_world.get_map_object("map_object_instance.phase_well_anchor_field")
+			host._expect_equal(
+				bool(anchor_field_state.get("anchor_field_stabilized", false)),
+				true,
+				"S14 baseline should keep anchor field stabilized"
 			)

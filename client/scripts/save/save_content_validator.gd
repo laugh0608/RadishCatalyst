@@ -59,7 +59,8 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.phase_well_frame": "map_object.phase_well_frame",
 	"map_object_instance.tether_fiber_cluster_north": "map_object.tether_fiber_cluster",
 	"map_object_instance.tether_fiber_cluster_south": "map_object.tether_fiber_cluster",
-	"map_object_instance.phase_well_tether": "map_object.phase_well_tether"
+	"map_object_instance.phase_well_tether": "map_object.phase_well_tether",
+	"map_object_instance.phase_well_anchor_field": "map_object.phase_well_anchor_field"
 }
 
 const PROTOTYPE_ENEMY_SOURCES := {
@@ -122,6 +123,10 @@ const PROTOTYPE_ENEMY_SOURCES := {
 	"enemy_instance.phase_well_binder": {
 		"definition_id": "enemy.phase_well_binder",
 		"region_id": "region.phase_well_tether"
+	},
+	"enemy_instance.phase_well_warden": {
+		"definition_id": "enemy.phase_well_warden",
+		"region_id": "region.phase_well_tether"
 	}
 }
 
@@ -155,7 +160,11 @@ const MAP_OBJECT_ALLOWED_FIELDS := [
 	"is_sampled",
 	"is_cleared",
 	"is_built",
-	"built_definition_id"
+	"built_definition_id",
+	"anchor_field_deployed",
+	"anchor_field_pressure_active",
+	"anchor_field_pressure_cleared",
+	"anchor_field_stabilized"
 ]
 
 const ENEMY_ALLOWED_FIELDS := [

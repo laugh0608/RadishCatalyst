@@ -112,6 +112,14 @@ const BASELINE_DEFINITIONS := [
 		"completed_through": "quest.inspect_phase_well_tether",
 		"summary": "井系桥断面已勘验，相位井锚核已带回，下一步回基地解析并把井系桥东侧改造成锚场回稳窗口。",
 		"recommended_for": "相位井锚核解析、锚核落尘稳定、井系校锚桩组装、锚场回稳短守场与稳定窗口提示回归。"
+	},
+	{
+		"id": "baseline.s14_phase_well_anchor_field_stabilized",
+		"code": "S14",
+		"display_name": "S14 锚场回稳已完成",
+		"completed_through": "quest.stabilize_phase_well_anchor_field",
+		"summary": "井系桥东侧锚场回稳已完成，稳定窗口已生成，相位井余响片已带回。",
+		"recommended_for": "锚场完成态、局部稳定窗口收益、相位井余响片后续设计和下一包入口判断。"
 	}
 ]
 
