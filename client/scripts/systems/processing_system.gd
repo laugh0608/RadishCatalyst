@@ -230,6 +230,8 @@ func get_recommended_recipe_id(
 			return _select_if_available(interactable, "recipe.anchor_core_dust_stabilization")
 		"quest.assemble_phase_well_anchor_stake":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_anchor_stake")
+		"quest.analyze_phase_well_echo_shard":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_echo_shard_analysis")
 		_:
 			return ""
 
