@@ -345,6 +345,10 @@ func _get_completion_next_step(recipe_id: String) -> String:
 			return "相位井系固肋和副产污染浆液已筛出；把它们带回基地反应器，组装井系定桩。"
 		"recipe.phase_well_tether_spike":
 			return "带着井系定桩返回更东侧井系桥断面，勘验断面并带回第一份相位井锚核。"
+		"recipe.phase_well_anchor_stake":
+			return "带着井系校锚桩返回井系桥东侧锚场回稳窗，部署后完成短守场并收束相位井余响片。"
+		"recipe.phase_well_echo_shard_analysis":
+			return "相位井稳窗读数已整理完成；回到井系桥东侧锚场回稳窗，可用稳定窗口在前线回充生命与防护。"
 		_:
 			return "查看当前任务目标，选择下一次加工或外出行动。"
 

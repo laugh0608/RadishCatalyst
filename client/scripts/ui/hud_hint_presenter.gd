@@ -24,8 +24,10 @@ func format_runtime_hint(world_state: WorldState, character_state: CharacterStat
 
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_well_echo_shard_analysis(world_state):
+			return "相位井稳窗读数已解析：回到井系桥东侧锚场回稳窗，可用读数校准后的稳定窗口在前线回充生命与防护。"
 		if _has_completed_phase_well_anchor_field(world_state):
-			return "井系桥东侧的局部稳定窗口已经生成：相位井余响片已带回基地，这一包“先做后勤再改前线”的闭环已经成立。"
+			return "井系桥东侧的局部稳定窗口已经生成：相位井余响片已带回基地，回基地解析后可把这里校准成前线回稳点。"
 		if _has_completed_phase_well_tether(world_state):
 			return "相位井锚核已带回：先回基地解析锚核、稳定锚核落尘，再把井系校锚桩带回井系桥东侧做锚场回稳。"
 		if _has_completed_phase_well_frame(world_state):
@@ -219,12 +221,16 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			if bool(anchor_field_state.get("anchor_field_deployed", false)):
 				return "井系校锚桩已部署：先清掉井系守脉体，再回来收束井系桥东侧的回稳窗；校锚桩会保留在现场，失败后可直接重试。"
 			return "带着井系校锚桩返回井系桥东侧，部署后顶住一轮短守场并收束第一份相位井余响片。"
+		"quest.analyze_phase_well_echo_shard":
+			return "回基地使用基础反应器，把相位井余响片解析成稳窗读数；读数会强化井系桥东侧稳定窗口的前线回充。"
 		_:
 			return "按当前目标推进。"
 
 
 func format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_well_echo_shard_analysis(world_state):
+			return "稳窗读数把锚场完成态变成了可回访的前线容错收益；这不是新门禁，而是让基地解析结果反向强化既有前线。"
 		if _has_completed_phase_well_anchor_field(world_state):
 			return "锚场回稳不是单纯多打一只怪；它证明了基地先产出稳场工具，真的可以把下一次外勤改造成更稳的前线窗口。"
 		if _has_completed_phase_well_tether(world_state):
@@ -422,6 +428,8 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			if bool(anchor_field_state.get("anchor_field_deployed", false)):
 				return "井系校锚桩已经写进现场，现在的重点是顶住短时压制，而不是继续沿路搜刮两处新资源；失败后也不需要回基地重做校锚桩。"
 			return "这一步明确改掉旧模板：先把基地产物带回前线部署，再靠一次短守场换来局部稳定窗口和相位井余响片；部署后的校锚桩会保留在现场。"
+		"quest.analyze_phase_well_echo_shard":
+			return "稳窗读数不是下一张门票；它会反向强化已经完成的锚场回稳窗，让玩家之后能在前线回充生命与防护，获得更明确的容错收益。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 
@@ -456,6 +464,10 @@ func _has_completed_phase_well_tether(world_state: WorldState) -> bool:
 
 func _has_completed_phase_well_anchor_field(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.stabilize_phase_well_anchor_field")
+
+
+func _has_completed_phase_well_echo_shard_analysis(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.analyze_phase_well_echo_shard")
 
 
 func _has_completed_phase_well_frame(world_state: WorldState) -> bool:

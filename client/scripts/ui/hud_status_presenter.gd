@@ -62,6 +62,7 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 	"item.anchor_field_filter",
 	"item.phase_well_anchor_stake",
 	"item.phase_well_echo_shard",
+	"item.phase_well_stability_readout",
 	"item.filter_media",
 	"item.foundation_material",
 	"fluid.basic_solvent",
@@ -166,6 +167,8 @@ func _format_vital_lines(
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if not quest_id.is_empty():
 		return _get_display_name(data_registry, quest_id)
+	if _has_completed_phase_well_echo_shard_analysis(world_state):
+		return "相位井稳窗读数已解析"
 	if _has_completed_phase_well_anchor_field(world_state):
 		return "相位井余响片已带回"
 	if _has_completed_phase_well_tether(world_state):
@@ -241,8 +244,10 @@ func _format_quick_slots(data_registry: DataRegistry, character_state: Character
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_well_echo_shard_analysis(world_state):
+			return "相位井稳窗读数已解析；井系桥东侧稳定窗口已校准为前线回稳点，可回访恢复生命与防护"
 		if _has_completed_phase_well_anchor_field(world_state):
-			return "井系桥东侧稳定窗口已生成；回稳完成时已在现场回充生命与防护，相位井余响片已带回基地"
+			return "井系桥东侧稳定窗口已生成；相位井余响片已带回基地，解析后可校准为可回访的前线回稳点"
 		if _has_completed_phase_well_tether(world_state):
 			return "井系桥断面已勘验；回基地解析相位井锚核后，可继续把井系桥东侧改成新的短守场稳定窗口"
 		if _has_completed_phase_well_frame(world_state):
@@ -391,6 +396,10 @@ func _has_completed_phase_well_tether(world_state: WorldState) -> bool:
 
 func _has_completed_phase_well_anchor_field(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.stabilize_phase_well_anchor_field")
+
+
+func _has_completed_phase_well_echo_shard_analysis(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.analyze_phase_well_echo_shard")
 
 
 func _has_completed_phase_well_frame(world_state: WorldState) -> bool:

@@ -304,7 +304,12 @@ func format_phase_well_anchor_field_prompt(world_state: WorldState, character_st
 	var pressure_cleared := bool(object_state.get("anchor_field_pressure_cleared", false))
 	var stabilized := bool(object_state.get("anchor_field_stabilized", false)) or world_state.quest_state.has_completed_quest("quest.stabilize_phase_well_anchor_field")
 	if stabilized:
-		return "锚场回稳窗：已稳定，井系桥东侧的局部稳定窗口仍在维持；相位井余响片已带回基地。"
+		if (
+			world_state.quest_state.has_completed_quest("quest.analyze_phase_well_echo_shard")
+			or character_state.inventory.has_ref("item.phase_well_stability_readout", 1)
+		):
+			return "按 E 回充：稳窗读数已校准，锚场回稳窗可在前线恢复生命与防护。"
+		return "锚场回稳窗：局部稳定窗口已维持；回基地解析相位井余响片后，可把这里校准成前线回稳点。"
 	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_anchor_stake"):
 		return "锚场回稳窗：先回基地解析相位井锚核、稳定锚核落尘，再组装井系校锚桩回来部署。"
 	if not deployed:

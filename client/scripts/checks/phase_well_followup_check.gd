@@ -168,11 +168,18 @@ func _check_onboarding_hints() -> void:
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_phase_well_anchor_stake", "井系校锚桩", "anchor stake assembly onboarding hint")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.stabilize_phase_well_anchor_field", "短守场", "anchor field stabilization onboarding hint")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.stabilize_phase_well_anchor_field", "部署后的校锚桩会保留在现场", "anchor field stabilization onboarding keeps retry rule explicit before deployment")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_phase_well_echo_shard", "前线回充", "echo shard analysis direction explains readout payoff")
 	var anchor_field_completion_world := WorldState.create_default()
 	anchor_field_completion_world.quest_state.active_quest_ids.clear()
 	anchor_field_completion_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
 	host._expect_text_contains(presenter.format_direction_hint(anchor_field_completion_world, hint_character, ""), "稳定窗口", "anchor field completion direction summarizes stabilized window")
 	host._expect_text_contains(presenter.format_onboarding_hint(anchor_field_completion_world, hint_character, ""), "基地先产出稳场工具", "anchor field completion onboarding summarizes new loop")
+	var readout_completion_world := WorldState.create_default()
+	readout_completion_world.quest_state.active_quest_ids.clear()
+	readout_completion_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
+	readout_completion_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
+	host._expect_text_contains(presenter.format_direction_hint(readout_completion_world, hint_character, ""), "前线回充", "readout completion direction summarizes reusable recovery")
+	host._expect_text_contains(presenter.format_onboarding_hint(readout_completion_world, hint_character, ""), "容错收益", "readout completion onboarding summarizes tolerance payoff")
 	var anchor_field_deployed_world := WorldState.create_default()
 	anchor_field_deployed_world.quest_state.active_quest_ids = ["quest.stabilize_phase_well_anchor_field"]
 	anchor_field_deployed_world.ensure_map_object("map_object_instance.phase_well_anchor_field", "map_object.phase_well_anchor_field", "region.phase_well_tether")["anchor_field_deployed"] = true
@@ -219,7 +226,14 @@ func _check_status_panel_summary() -> void:
 	var anchor_field_text := presenter.format_status_text(host.data_registry, anchor_field_text_world, status_character)
 	host._expect_text_contains(anchor_field_text, "目标：相位井余响片已带回", "status falls back to anchor field completion summary")
 	host._expect_text_contains(anchor_field_text, "稳定窗口已生成", "status progress keeps anchor field completion summary")
-	host._expect_text_contains(anchor_field_text, "回充生命与防护", "status progress keeps anchor field recovery payoff explicit")
+	host._expect_text_contains(anchor_field_text, "解析后可校准", "status progress points to readout calibration")
+	var readout_text_world := WorldState.create_default()
+	readout_text_world.quest_state.active_quest_ids.clear()
+	readout_text_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
+	readout_text_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
+	var readout_text := presenter.format_status_text(host.data_registry, readout_text_world, status_character)
+	host._expect_text_contains(readout_text, "目标：相位井稳窗读数已解析", "status falls back to readout completion summary")
+	host._expect_text_contains(readout_text, "可回访恢复生命与防护", "status progress keeps readout recovery payoff explicit")
 
 
 func _check_anchor_field_recovery() -> void:
@@ -249,6 +263,15 @@ func _check_anchor_field_recovery() -> void:
 	host._expect_equal(character_state.health, 90.0, "anchor field stabilization restores health")
 	host._expect_equal(character_state.protection, 85.0, "anchor field stabilization restores protection")
 	host._expect_text_contains(String(result.get("message", "")), "稳定窗口回充", "anchor field completion log mentions recovery payoff")
+	world_state.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
+	world_state.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
+	character_state.health = 40.0
+	character_state.protection = 30.0
+	var readout_result := runtime.inspect_anchor_field(character_state, world_state)
+	host._expect_equal(bool(readout_result.get("success", false)), true, "readout-calibrated anchor field remains interactable")
+	host._expect_equal(character_state.health, 75.0, "readout-calibrated anchor field restores more health")
+	host._expect_equal(character_state.protection, 85.0, "readout-calibrated anchor field restores more protection")
+	host._expect_text_contains(String(readout_result.get("message", "")), "稳窗读数校准", "readout-calibrated anchor field log mentions readout payoff")
 
 
 func _check_region_presence_bounds() -> void:

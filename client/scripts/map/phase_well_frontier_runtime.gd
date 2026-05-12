@@ -8,7 +8,9 @@ const PHASE_WELL_TETHER_SPIKE_ITEM_ID := "item.phase_well_tether_spike"
 const ANALYZE_ANCHOR_CORE_QUEST_ID := "quest.analyze_phase_well_anchor_core"
 const ASSEMBLE_ANCHOR_STAKE_QUEST_ID := "quest.assemble_phase_well_anchor_stake"
 const STABILIZE_ANCHOR_FIELD_QUEST_ID := "quest.stabilize_phase_well_anchor_field"
+const ANALYZE_ECHO_SHARD_QUEST_ID := "quest.analyze_phase_well_echo_shard"
 const PHASE_WELL_ANCHOR_STAKE_ITEM_ID := "item.phase_well_anchor_stake"
+const PHASE_WELL_STABILITY_READOUT_ITEM_ID := "item.phase_well_stability_readout"
 
 const ANCHOR_FIELD_MAP_OBJECT_ID := "map_object.phase_well_anchor_field"
 const ANCHOR_FIELD_INSTANCE_ID := "map_object_instance.phase_well_anchor_field"
@@ -22,6 +24,8 @@ const FLAG_ANCHOR_FIELD_PRESSURE_CLEARED := "anchor_field_pressure_cleared"
 const FLAG_ANCHOR_FIELD_STABILIZED := "anchor_field_stabilized"
 const ANCHOR_FIELD_HEALTH_RECOVERY_RATIO := 0.2
 const ANCHOR_FIELD_PROTECTION_RECOVERY_RATIO := 0.35
+const STABILITY_READOUT_HEALTH_RECOVERY_RATIO := 0.35
+const STABILITY_READOUT_PROTECTION_RECOVERY_RATIO := 0.55
 
 var data_registry: DataRegistry
 
@@ -63,10 +67,23 @@ func inspect_anchor_field(character_state: CharacterState, world_state: WorldSta
 	sync_anchor_field_progress(world_state)
 
 	if world_state.quest_state.has_completed_quest(STABILIZE_ANCHOR_FIELD_QUEST_ID):
+		if _has_stability_readout(character_state, world_state):
+			var readout_recovery_message := _apply_anchor_field_recovery(
+				character_state,
+				STABILITY_READOUT_HEALTH_RECOVERY_RATIO,
+				STABILITY_READOUT_PROTECTION_RECOVERY_RATIO,
+				" 稳窗读数校准：当前生命与防护已经完整，井系桥东侧可作为前线回稳点。",
+				" 稳窗读数校准：生命 +%s，防护 +%s；这处锚场现在可作为前线回稳点。"
+			)
+			return {
+				"success": true,
+				"advance_interaction": false,
+				"message": "锚场回稳窗已按稳窗读数校准：局部稳定窗口会在前线回充生命与防护。%s" % readout_recovery_message
+			}
 		return {
 			"success": true,
 			"advance_interaction": false,
-			"message": "锚场回稳窗已稳定：井系桥东侧的局部稳定窗口仍在维持，相位井余响片已带回基地。"
+			"message": "锚场回稳窗已稳定：井系桥东侧的局部稳定窗口仍在维持；回基地解析相位井余响片后，可把这里校准成前线回稳点。"
 		}
 
 	if not world_state.quest_state.has_completed_quest(ASSEMBLE_ANCHOR_STAKE_QUEST_ID):
@@ -107,7 +124,13 @@ func inspect_anchor_field(character_state: CharacterState, world_state: WorldSta
 	object_state[FLAG_ANCHOR_FIELD_PRESSURE_ACTIVE] = false
 	object_state[FLAG_ANCHOR_FIELD_PRESSURE_CLEARED] = true
 	object_state[FLAG_ANCHOR_FIELD_STABILIZED] = true
-	var recovery_message := _apply_anchor_field_recovery(character_state)
+	var recovery_message := _apply_anchor_field_recovery(
+		character_state,
+		ANCHOR_FIELD_HEALTH_RECOVERY_RATIO,
+		ANCHOR_FIELD_PROTECTION_RECOVERY_RATIO,
+		" 稳定窗口已就绪：当前生命与防护已经完整。",
+		" 稳定窗口回充：生命 +%s，防护 +%s。"
+	)
 	return {
 		"success": true,
 		"advance_interaction": true,
@@ -155,6 +178,13 @@ func is_anchor_field_stabilized(world_state: WorldState) -> bool:
 	return bool(object_state.get(FLAG_ANCHOR_FIELD_STABILIZED, false))
 
 
+func _has_stability_readout(character_state: CharacterState, world_state: WorldState) -> bool:
+	return (
+		world_state.quest_state.has_completed_quest(ANALYZE_ECHO_SHARD_QUEST_ID)
+		or character_state.inventory.has_ref(PHASE_WELL_STABILITY_READOUT_ITEM_ID, 1)
+	)
+
+
 func _ensure_anchor_field_state(world_state: WorldState) -> Dictionary:
 	var object_state := world_state.ensure_map_object(
 		ANCHOR_FIELD_INSTANCE_ID,
@@ -191,16 +221,22 @@ func _reset_anchor_field_enemy(world_state: WorldState) -> void:
 	enemy_state["drops_granted"] = false
 
 
-func _apply_anchor_field_recovery(character_state: CharacterState) -> String:
+func _apply_anchor_field_recovery(
+	character_state: CharacterState,
+	health_recovery_ratio: float,
+	protection_recovery_ratio: float,
+	full_vitals_message: String,
+	recovery_message_template: String
+) -> String:
 	var restored_health := character_state.restore_health(
-		character_state.max_health * ANCHOR_FIELD_HEALTH_RECOVERY_RATIO
+		character_state.max_health * health_recovery_ratio
 	)
 	var restored_protection := character_state.restore_protection(
-		character_state.max_protection * ANCHOR_FIELD_PROTECTION_RECOVERY_RATIO
+		character_state.max_protection * protection_recovery_ratio
 	)
 	if restored_health <= 0.0 and restored_protection <= 0.0:
-		return " 稳定窗口已就绪：当前生命与防护已经完整。"
-	return " 稳定窗口回充：生命 +%s，防护 +%s。" % [
+		return full_vitals_message
+	return recovery_message_template % [
 		_format_amount(restored_health),
 		_format_amount(restored_protection)
 	]
