@@ -242,7 +242,7 @@ func _format_quick_slots(data_registry: DataRegistry, character_state: Character
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
 		if _has_completed_phase_well_anchor_field(world_state):
-			return "井系桥东侧稳定窗口已生成；相位井余响片已带回基地，这一轮“基地先改前线”的闭环已经完成"
+			return "井系桥东侧稳定窗口已生成；回稳完成时已在现场回充生命与防护，相位井余响片已带回基地"
 		if _has_completed_phase_well_tether(world_state):
 			return "井系桥断面已勘验；回基地解析相位井锚核后，可继续把井系桥东侧改成新的短守场稳定窗口"
 		if _has_completed_phase_well_frame(world_state):

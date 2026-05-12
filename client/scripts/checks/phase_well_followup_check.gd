@@ -110,6 +110,7 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 func run_hud_and_map_checks() -> void:
 	_check_onboarding_hints()
 	_check_status_panel_summary()
+	_check_anchor_field_recovery()
 	_check_region_presence_bounds()
 	_check_phase_well_chamber_gate()
 	_check_phase_well_loom_gate()
@@ -213,6 +214,36 @@ func _check_status_panel_summary() -> void:
 	var anchor_field_text := presenter.format_status_text(host.data_registry, anchor_field_text_world, status_character)
 	host._expect_text_contains(anchor_field_text, "目标：相位井余响片已带回", "status falls back to anchor field completion summary")
 	host._expect_text_contains(anchor_field_text, "稳定窗口已生成", "status progress keeps anchor field completion summary")
+	host._expect_text_contains(anchor_field_text, "回充生命与防护", "status progress keeps anchor field recovery payoff explicit")
+
+
+func _check_anchor_field_recovery() -> void:
+	var runtime := PhaseWellFrontierRuntime.new(host.data_registry)
+	var world_state := WorldState.create_default()
+	world_state.quest_state.completed_quest_ids.append("quest.assemble_phase_well_anchor_stake")
+	var object_state := world_state.ensure_map_object(
+		"map_object_instance.phase_well_anchor_field",
+		"map_object.phase_well_anchor_field",
+		"region.phase_well_tether"
+	)
+	object_state["anchor_field_deployed"] = true
+	object_state["anchor_field_pressure_active"] = false
+	object_state["anchor_field_pressure_cleared"] = true
+	var enemy_state := world_state.ensure_enemy(
+		"enemy_instance.phase_well_warden",
+		"enemy.phase_well_warden",
+		"region.phase_well_tether",
+		20.0
+	)
+	enemy_state["is_defeated"] = true
+	var character_state := CharacterState.create_default()
+	character_state.health = 70.0
+	character_state.protection = 50.0
+	var result := runtime.inspect_anchor_field(character_state, world_state)
+	host._expect_equal(bool(result.get("success", false)), true, "anchor field stabilization should complete after pressure is cleared")
+	host._expect_equal(character_state.health, 90.0, "anchor field stabilization restores health")
+	host._expect_equal(character_state.protection, 85.0, "anchor field stabilization restores protection")
+	host._expect_text_contains(String(result.get("message", "")), "稳定窗口回充", "anchor field completion log mentions recovery payoff")
 
 
 func _check_region_presence_bounds() -> void:

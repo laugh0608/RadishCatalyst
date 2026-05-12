@@ -20,6 +20,8 @@ const FLAG_ANCHOR_FIELD_DEPLOYED := "anchor_field_deployed"
 const FLAG_ANCHOR_FIELD_PRESSURE_ACTIVE := "anchor_field_pressure_active"
 const FLAG_ANCHOR_FIELD_PRESSURE_CLEARED := "anchor_field_pressure_cleared"
 const FLAG_ANCHOR_FIELD_STABILIZED := "anchor_field_stabilized"
+const ANCHOR_FIELD_HEALTH_RECOVERY_RATIO := 0.2
+const ANCHOR_FIELD_PROTECTION_RECOVERY_RATIO := 0.35
 
 var data_registry: DataRegistry
 
@@ -105,10 +107,11 @@ func inspect_anchor_field(character_state: CharacterState, world_state: WorldSta
 	object_state[FLAG_ANCHOR_FIELD_PRESSURE_ACTIVE] = false
 	object_state[FLAG_ANCHOR_FIELD_PRESSURE_CLEARED] = true
 	object_state[FLAG_ANCHOR_FIELD_STABILIZED] = true
+	var recovery_message := _apply_anchor_field_recovery(character_state)
 	return {
 		"success": true,
 		"advance_interaction": true,
-		"message": "锚场回稳完成：井系桥东侧留下了可持续的局部稳定窗口，第一份相位井余响片已被收束带回基地。"
+		"message": "锚场回稳完成：井系桥东侧留下了可持续的局部稳定窗口，第一份相位井余响片已被收束带回基地。%s" % recovery_message
 	}
 
 
@@ -188,6 +191,21 @@ func _reset_anchor_field_enemy(world_state: WorldState) -> void:
 	enemy_state["drops_granted"] = false
 
 
+func _apply_anchor_field_recovery(character_state: CharacterState) -> String:
+	var restored_health := character_state.restore_health(
+		character_state.max_health * ANCHOR_FIELD_HEALTH_RECOVERY_RATIO
+	)
+	var restored_protection := character_state.restore_protection(
+		character_state.max_protection * ANCHOR_FIELD_PROTECTION_RECOVERY_RATIO
+	)
+	if restored_health <= 0.0 and restored_protection <= 0.0:
+		return " 稳定窗口已就绪：当前生命与防护已经完整。"
+	return " 稳定窗口回充：生命 +%s，防护 +%s。" % [
+		_format_amount(restored_health),
+		_format_amount(restored_protection)
+	]
+
+
 func _failure(message: String, title: String, detail: String) -> Dictionary:
 	return {
 		"success": false,
@@ -195,3 +213,9 @@ func _failure(message: String, title: String, detail: String) -> Dictionary:
 		"title": title,
 		"detail": detail
 	}
+
+
+func _format_amount(amount: float) -> String:
+	if is_equal_approx(amount, roundf(amount)):
+		return str(int(amount))
+	return "%.1f" % amount
