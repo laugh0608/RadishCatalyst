@@ -161,11 +161,17 @@ func _check_onboarding_hints() -> void:
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_anchor_core_dust", "第三台设备", "anchor core dust refinement onboarding keeps device reuse explicit")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_phase_well_anchor_stake", "井系校锚桩", "anchor stake assembly onboarding hint")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.stabilize_phase_well_anchor_field", "短守场", "anchor field stabilization onboarding hint")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.stabilize_phase_well_anchor_field", "部署后的校锚桩会保留在现场", "anchor field stabilization onboarding keeps retry rule explicit before deployment")
 	var anchor_field_completion_world := WorldState.create_default()
 	anchor_field_completion_world.quest_state.active_quest_ids.clear()
 	anchor_field_completion_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
 	host._expect_text_contains(presenter.format_direction_hint(anchor_field_completion_world, hint_character, ""), "稳定窗口", "anchor field completion direction summarizes stabilized window")
 	host._expect_text_contains(presenter.format_onboarding_hint(anchor_field_completion_world, hint_character, ""), "基地先产出稳场工具", "anchor field completion onboarding summarizes new loop")
+	var anchor_field_deployed_world := WorldState.create_default()
+	anchor_field_deployed_world.quest_state.active_quest_ids = ["quest.stabilize_phase_well_anchor_field"]
+	anchor_field_deployed_world.ensure_map_object("map_object_instance.phase_well_anchor_field", "map_object.phase_well_anchor_field", "region.phase_well_tether")["anchor_field_deployed"] = true
+	host._expect_text_contains(presenter.format_direction_hint(anchor_field_deployed_world, hint_character, "quest.stabilize_phase_well_anchor_field"), "失败后可直接重试", "anchor field direction keeps deployed retry rule explicit")
+	host._expect_text_contains(presenter.format_onboarding_hint(anchor_field_deployed_world, hint_character, "quest.stabilize_phase_well_anchor_field"), "不需要回基地重做校锚桩", "anchor field onboarding keeps deployed retry rule explicit")
 
 
 func _check_status_panel_summary() -> void:

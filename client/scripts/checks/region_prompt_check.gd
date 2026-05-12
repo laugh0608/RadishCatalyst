@@ -193,6 +193,7 @@ func run() -> void:
 	host._expect_text_contains(formatter.format_phase_well_anchor_field_prompt(anchor_field_world, anchor_field_character), "按 E 部署", "anchor field deploy prompt")
 	anchor_field_world.ensure_map_object("map_object_instance.phase_well_anchor_field", "map_object.phase_well_anchor_field", "region.phase_well_tether")["anchor_field_deployed"] = true
 	host._expect_text_contains(formatter.format_phase_well_anchor_field_prompt(anchor_field_world, anchor_field_character), "回稳中", "anchor field active prompt")
+	host._expect_text_contains(formatter.format_phase_well_anchor_field_prompt(anchor_field_world, anchor_field_character), "失败后可直接重试", "anchor field active prompt keeps retry guidance explicit")
 	anchor_field_world.get_map_object("map_object_instance.phase_well_anchor_field")["anchor_field_pressure_cleared"] = true
 	host._expect_text_contains(formatter.format_phase_well_anchor_field_prompt(anchor_field_world, anchor_field_character), "按 E 收束", "anchor field ready prompt")
 	anchor_field_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")

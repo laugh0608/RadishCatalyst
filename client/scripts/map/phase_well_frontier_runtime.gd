@@ -91,14 +91,14 @@ func inspect_anchor_field(character_state: CharacterState, world_state: WorldSta
 		return {
 			"success": true,
 			"advance_interaction": false,
-			"message": "井系校锚桩已部署：锚场回稳开始重写井系桥东侧读数，井系守脉体已被逼出；先清掉压制再回来收束。"
+			"message": "井系校锚桩已部署：锚场回稳开始重写井系桥东侧读数，井系守脉体已被逼出；先清掉压制再回来收束。校锚桩会保留在现场，失败后可直接重试，不必回基地重做。"
 		}
 
 	if not is_anchor_field_pressure_cleared(world_state):
 		return {
 			"success": true,
 			"advance_interaction": false,
-			"message": "锚场仍在回稳：井系守脉体还在压着回稳窗，先清掉它，再回来收束局部稳定窗口。"
+			"message": "锚场仍在回稳：井系守脉体还在压着回稳窗，先清掉它，再回来收束局部稳定窗口。已部署的校锚桩不会丢失，失败后直接回到这里继续压制即可。"
 		}
 
 	object_state[FLAG_ANCHOR_FIELD_DEPLOYED] = true

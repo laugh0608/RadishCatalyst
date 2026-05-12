@@ -312,7 +312,7 @@ func format_phase_well_anchor_field_prompt(world_state: WorldState, character_st
 			return "锚场回稳窗：缺少井系校锚桩；回基地确认基础反应器组装结果后再来。"
 		return "按 E 部署：锚场回稳窗。"
 	if not pressure_cleared:
-		return "锚场回稳窗：回稳中；先清掉井系守脉体，再回来收束稳定窗口。"
+		return "锚场回稳窗：回稳中；先清掉井系守脉体，再回来收束稳定窗口。校锚桩会保留在现场，失败后可直接重试。"
 	return "按 E 收束：锚场回稳窗。"
 
 

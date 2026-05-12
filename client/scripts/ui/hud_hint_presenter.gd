@@ -217,7 +217,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			if bool(anchor_field_state.get("anchor_field_pressure_cleared", false)):
 				return "井系守脉体已清掉：返回井系桥东侧锚场回稳窗，收束这次局部稳定窗口。"
 			if bool(anchor_field_state.get("anchor_field_deployed", false)):
-				return "井系校锚桩已部署：先清掉井系守脉体，再回来收束井系桥东侧的回稳窗。"
+				return "井系校锚桩已部署：先清掉井系守脉体，再回来收束井系桥东侧的回稳窗；校锚桩会保留在现场，失败后可直接重试。"
 			return "带着井系校锚桩返回井系桥东侧，部署后顶住一轮短守场并收束第一份相位井余响片。"
 		_:
 			return "按当前目标推进。"
@@ -420,8 +420,8 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			if bool(anchor_field_state.get("anchor_field_pressure_cleared", false)):
 				return "这一步不是捡第二份材料；要回去收束已经打开的稳定窗口，让前线节奏真的被基地准备改写。"
 			if bool(anchor_field_state.get("anchor_field_deployed", false)):
-				return "井系校锚桩已经写进现场，现在的重点是顶住短时压制，而不是继续沿路搜刮两处新资源。"
-			return "这一步明确改掉旧模板：先把基地产物带回前线部署，再靠一次短守场换来局部稳定窗口和相位井余响片。"
+				return "井系校锚桩已经写进现场，现在的重点是顶住短时压制，而不是继续沿路搜刮两处新资源；失败后也不需要回基地重做校锚桩。"
+			return "这一步明确改掉旧模板：先把基地产物带回前线部署，再靠一次短守场换来局部稳定窗口和相位井余响片；部署后的校锚桩会保留在现场。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 
