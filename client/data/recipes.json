@@ -600,6 +600,21 @@
       "pollution_delta": 0.0,
       "unlock_conditions": ["quest.refine_anchor_core_dust"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.phase_well_echo_shard_analysis",
+      "display_name_key": "recipe.phase_well_echo_shard_analysis.name",
+      "description_key": "recipe.phase_well_echo_shard_analysis.desc",
+      "category": "analysis",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.phase_well_echo_shard", "amount": 1}, {"id": "item.basic_parts", "amount": 2}],
+      "outputs": [{"id": "item.phase_well_stability_readout", "amount": 1}],
+      "byproducts": [],
+      "duration": 18.0,
+      "energy_cost": 6.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.stabilize_phase_well_anchor_field"],
+      "public_level": "spoiler"
     }
   ]
 }

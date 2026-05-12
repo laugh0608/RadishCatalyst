@@ -40,7 +40,8 @@
         "quest.analyze_phase_well_knot_core",
         "quest.assemble_phase_well_tether_spike",
         "quest.analyze_phase_well_anchor_core",
-        "quest.assemble_phase_well_anchor_stake"
+        "quest.assemble_phase_well_anchor_stake",
+        "quest.analyze_phase_well_echo_shard"
       ],
       "public_level": "public"
     },

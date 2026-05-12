@@ -912,6 +912,19 @@
       "objectives": [{"type": "inspect", "target_id": "map_object.phase_well_anchor_field", "amount": 1}, {"type": "defeat_enemy", "target_id": "enemy.phase_well_warden", "amount": 1}],
       "prerequisites": ["quest.assemble_phase_well_anchor_stake"],
       "rewards": [{"id": "item.phase_well_echo_shard", "amount": 1}],
+      "unlock_effects": ["recipe.phase_well_echo_shard_analysis"],
+      "next_quest_ids": ["quest.analyze_phase_well_echo_shard"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.analyze_phase_well_echo_shard",
+      "display_name_key": "quest.analyze_phase_well_echo_shard.name",
+      "description_key": "quest.analyze_phase_well_echo_shard.desc",
+      "quest_type": "main",
+      "stage": 71,
+      "objectives": [{"type": "craft_item", "target_id": "item.phase_well_stability_readout", "amount": 1}],
+      "prerequisites": ["quest.stabilize_phase_well_anchor_field"],
+      "rewards": [],
       "unlock_effects": ["slice_01_complete"],
       "next_quest_ids": [],
       "public_level": "spoiler"

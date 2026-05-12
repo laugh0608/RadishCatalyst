@@ -102,9 +102,14 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 		{"type": "defeat_enemy", "target_id": "enemy.phase_well_warden", "amount": 1},
 		{"type": "inspect", "target_id": "map_object.phase_well_anchor_field", "amount": 1}
 	])
-	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after anchor field stabilization should have no active quest")
+	host._expect_active_quest("quest.analyze_phase_well_echo_shard", "after anchor field stabilization returns to echo shard analysis")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.stabilize_phase_well_anchor_field", "anchor field stabilization quest completed")
 	host._expect_equal(int(character_state.inventory.items.get("item.phase_well_echo_shard", 0)), 1, "anchor field stabilization grants first echo shard reward")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_echo_shard_analysis", "anchor field stabilization unlocks echo shard analysis recipe")
+	host._complete_active_quest("quest.analyze_phase_well_echo_shard", [{"type": "craft_item", "target_id": "item.phase_well_stability_readout", "amount": 1}])
+	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after echo shard analysis should have no active quest")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.analyze_phase_well_echo_shard", "echo shard analysis quest completed")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "echo shard analysis keeps slice completion unlock present")
 
 
 func run_hud_and_map_checks() -> void:
