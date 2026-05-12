@@ -233,6 +233,10 @@ func _get_late_craft_progress_recovery_updates(world_state: WorldState, characte
 		{
 			"quest_id": "quest.assemble_phase_well_anchor_stake",
 			"item_id": "item.phase_well_anchor_stake"
+		},
+		{
+			"quest_id": "quest.analyze_phase_well_echo_shard",
+			"item_id": "item.phase_well_stability_readout"
 		}
 	]:
 		var quest_id := String(recovery.get("quest_id", ""))

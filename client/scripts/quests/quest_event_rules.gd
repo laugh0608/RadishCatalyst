@@ -254,6 +254,8 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 			return [_set_update("quest.refine_anchor_core_dust", "craft_item", "item.anchor_field_filter", 1)]
 		"recipe.phase_well_anchor_stake":
 			return [_set_update("quest.assemble_phase_well_anchor_stake", "craft_item", "item.phase_well_anchor_stake", 1)]
+		"recipe.phase_well_echo_shard_analysis":
+			return [_set_update("quest.analyze_phase_well_echo_shard", "craft_item", "item.phase_well_stability_readout", 1)]
 		_:
 			return []
 
