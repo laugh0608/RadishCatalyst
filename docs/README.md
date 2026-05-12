@@ -16,6 +16,22 @@
 - 更新入口文档时优先链接到细节来源，不复制大段背景，避免 AI / Agent 在新会话中消耗不必要上下文。
 - 日常推进类提示优先读取 [Daily Start](planning/daily-start.md)，再按任务选读细节文档。
 
+## Documentation Size Budgets
+
+- 文档篇幅按角色控制，不对所有 Markdown 套同一个硬上限。
+- 入口文档：`docs/README.md`、`docs/planning/current.md`、`docs/planning/daily-start.md` 和 `docs/**/README.md`，硬上限 120 行；超过前应先改写为摘要并链接细节来源。
+- 活跃专题文档：除 `devlogs/`、`reference/`、`archive/` 外的 `docs/` 正式文档，建议控制在 280 行内；接近 220 行时优先拆成“总览 + 子文档”。
+- 周志与参考：`docs/devlogs/`、`docs/reference/` 建议控制在 350 行内；继续增长时先补紧凑摘要、目录或专题拆分。
+- 归档：`docs/archive/` 不设硬上限，但不作为新会话入口，不承载当前规则。
+- 长文默认遵守“一篇只回答一个主问题”；不要让同一文件同时承担入口、规则、历史、案例四种职责。
+- 活跃长文若继续扩展，建议在开头补 `用途`、`何时阅读`、`细节去向` 三项摘要，帮助开发者和 Agent 快速跳读。
+
+文档篇幅检查入口：
+
+```powershell
+pwsh ./scripts/check-docs.ps1
+```
+
 ## Code Language Standards
 
 - 正式代码语言实践规范见 [Code Style And Language Practices](architecture/code-style-and-language-practices.md)。

@@ -37,6 +37,8 @@
 - 若文档、代码和阶段目标冲突，先判断哪一方过期，再统一修正。
 - 优先更新已有文档，不为一次性讨论创建大量散文档。
 - `docs/planning/daily-start.md`、`docs/planning/current.md`、`docs/README.md`、各目录 `README.md` 等关键入口文档应保持简约，只描述当前阶段、最近进度、下一步重点和必要索引；历史过程、长清单和背景材料应放入周志、专题文档、`docs/reference/` 或 `docs/archive/`，避免新会话读取入口时浪费上下文。
+- 文档按角色控制篇幅：`docs/README.md`、`docs/planning/current.md`、`docs/planning/daily-start.md` 和 `docs/**/README.md` 硬上限 120 行；`docs/` 下其他活跃专题文档建议 280 行内；`docs/devlogs/` 和 `docs/reference/` 建议 350 行内；`docs/archive/` 不设硬上限，但不作为新会话入口。
+- 专题文档接近 220 行时，新增内容优先拆成“总览 + 子文档”，或把历史过程移到周志、`reference/`、`archive/`；不要让单文件同时承担入口、规则、历史和案例四种职责。
 - 参考资料放在 `docs/reference/`，归档材料放在 `docs/archive/`。
 - `docs/archive/full-conversation-history.md` 保留历史原貌，可能包含旧路径和旧中文文件名，不作为当前规范。
 - 重大架构、阶段边界、协作规则、验证基线或目录职责变化，必须同步更新 `docs/`。
@@ -82,13 +84,25 @@ Linux/macOS 或 Git Bash 环境可执行：
 ./scripts/check-text-files.sh
 ```
 
+文档篇幅检查入口：
+
+```powershell
+pwsh ./scripts/check-docs.ps1
+```
+
+Linux/macOS 或 Git Bash 环境可执行：
+
+```bash
+./scripts/check-docs.sh
+```
+
 客户端聚合验证入口：
 
 ```powershell
 pwsh ./scripts/check-client.ps1
 ```
 
-提交前按改动范围至少执行匹配的最小验证；涉及客户端状态、任务、存档、场景或脚本时，优先执行 `pwsh ./scripts/check-client.ps1`，再执行 `pwsh ./scripts/check-text-files.ps1` 和 `git diff --check`。
+提交前按改动范围至少执行匹配的最小验证；涉及客户端状态、任务、存档、场景或脚本时，优先执行 `pwsh ./scripts/check-client.ps1`，再执行 `pwsh ./scripts/check-text-files.ps1` 和 `git diff --check`。涉及 `docs/`、根 `README.md`、`AGENTS.md` 或 `CLAUDE.md` 时，额外执行 `pwsh ./scripts/check-docs.ps1`。
 
 如果未来加入 Godot 导出配置、脚本静态检查或更多自动化测试入口，应同步更新脚本、`docs/`、`AGENTS.md`、`CLAUDE.md` 和 CI。
 
@@ -99,6 +113,7 @@ pwsh ./scripts/check-client.ps1
 - 读取和修改仓库内代码、文档、配置。
 - `git status`、`git diff`、`git log` 等只读 Git 操作。
 - `pwsh ./scripts/check-text-files.ps1`、`./scripts/check-text-files.sh`。
+- `pwsh ./scripts/check-docs.ps1`、`./scripts/check-docs.sh`。
 - `pwsh ./scripts/check-client.ps1` 及其单项客户端检查脚本。
 - 简洁明确的提交操作。
 
@@ -131,6 +146,7 @@ pwsh ./scripts/check-client.ps1
 - 新增仓库文件优先使用英文文件名。
 - 正文可以使用中文。
 - 文本文件使用 UTF-8，无 BOM。
+- 入口文档遵守文档篇幅硬上限；其他文档接近各自建议上限时，优先拆分职责，不继续在单文件内堆历史、规则和案例。
 - 单个源码文件原则上不超过 1000 行，硬上限 1500 行。
 - 文件接近 1000 行时，后续新增实现应优先拆分职责、提取子模块或测试 helper。
 - 不以单文件承载全部状态、全部 UI 或全部玩法逻辑。
