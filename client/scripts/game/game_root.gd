@@ -68,9 +68,11 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if world_state == null or character_state == null:
 		return
-	_apply_processing_progress(delta)
-	_reconcile_active_quest_state()
+	var should_refresh_interactables := _apply_processing_progress(delta)
+	should_refresh_interactables = _reconcile_active_quest_state() or should_refresh_interactables
 	vertical_slice_map.refresh_enemy_spawns(world_state)
+	if should_refresh_interactables:
+		vertical_slice_map.refresh_world_interactables(world_state)
 	vertical_slice_map.update_current_interactable()
 	vertical_slice_map.update_region_presence(world_state, character_state)
 	character_state.position = vertical_slice_map.get_player_position()
@@ -481,7 +483,7 @@ func _get_current_interaction_context() -> Dictionary:
 	}
 
 
-func _apply_processing_progress(delta: float) -> void:
+func _apply_processing_progress(delta: float) -> bool:
 	var completed_results := processing_system.advance_processing(delta, character_state, world_state)
 	for result in completed_results:
 		var recipe_id := String(result.get("completed_recipe_id", ""))
@@ -499,18 +501,23 @@ func _apply_processing_progress(delta: float) -> void:
 				result
 			)
 		)
-		hud.append_log(hud_log_presenter.join_messages(log_messages))
+		if hud != null:
+			hud.append_log(hud_log_presenter.join_messages(log_messages))
+	if not completed_results.is_empty():
+		vertical_slice_map.refresh_world_interactables(world_state)
+	return not completed_results.is_empty()
 
 
-func _reconcile_active_quest_state() -> void:
+func _reconcile_active_quest_state() -> bool:
 	var result := quest_runtime.reconcile_active_objectives(world_state, character_state)
 	if not bool(result.get("accepted", false)):
-		return
+		return false
 	var log_messages: Array[String] = []
 	_append_quest_runtime_result(log_messages, result)
 	if log_messages.is_empty():
-		return
+		return true
 	hud.append_log(hud_log_presenter.join_messages(log_messages))
+	return true
 
 
 func _refresh_current_context_prompt() -> void:
@@ -647,6 +654,8 @@ func _append_quest_runtime_result(log_messages: Array[String], result: Dictionar
 
 
 func _show_quest_completion_feedbacks(result: Dictionary) -> void:
+	if hud == null:
+		return
 	for feedback in result.get("completion_feedbacks", []):
 		if not feedback is Dictionary:
 			continue

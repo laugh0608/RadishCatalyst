@@ -1,5 +1,7 @@
 extends RefCounted
 
+const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
+
 var host
 
 
@@ -12,6 +14,44 @@ func run() -> void:
 	_check_phase_filament_refining(processing)
 	_check_phase_splinter_refining(processing)
 	_check_relay_tuning_lens(processing)
+	_check_completed_deep_signal_matrix_refreshes_anchor()
+
+
+func _check_completed_deep_signal_matrix_refreshes_anchor() -> void:
+	var map := VerticalSliceMapScene.instantiate()
+	host.root.add_child(map)
+	map.setup(host.data_registry)
+	var world := WorldState.create_default()
+	world.unlock_region("region.deep_ruin_threshold")
+	world.current_region_id = "region.deep_ruin_threshold"
+	world.quest_state.active_quest_ids = ["quest.assemble_deep_signal_matrix"]
+	world.quest_state.unlock_effect("recipe.deep_signal_matrix")
+	world.set_base_structure_status("structure.basic_reactor", "in_progress", "recipe.deep_signal_matrix")
+	var character := CharacterState.create_default()
+	character.current_region_id = "region.deep_ruin_threshold"
+	character.position = Vector2(854, 96)
+	map.apply_runtime_state(world, character)
+	host._expect_equal(map.current_interactable == null, true, "phase relay anchor should be hidden before matrix completion")
+	var processing := ProcessingSystem.new(host.data_registry)
+	var completed := processing.advance_processing(20.0, character, world)
+	host._expect_equal(completed.size(), 1, "deep signal matrix processing should complete")
+	var quest_runtime := QuestRuntime.new(host.data_registry)
+	if not completed.is_empty():
+		quest_runtime.advance_for_interaction(
+			world,
+			character,
+			{
+				"definition_id": "building.basic_reactor",
+				"interaction_type": "process_recipe",
+				"recipe_id": "recipe.deep_signal_matrix"
+			},
+			completed[0]
+		)
+	host._expect_array_has(world.quest_state.active_quest_ids, "quest.deploy_phase_relay_anchor", "deep signal matrix completion activates anchor deployment")
+	map.refresh_world_interactables(world)
+	host._expect_equal(map.current_interactable.definition_id, "map_object.phase_return_anchor", "completed matrix should refresh and reveal relay anchor")
+	host.root.remove_child(map)
+	map.free()
 
 
 func _check_phase_filament_refining(processing: ProcessingSystem) -> void:

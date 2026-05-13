@@ -8,7 +8,7 @@
       "category": "refining",
       "required_building_id": "building.basic_reactor",
       "inputs": [{"id": "item.crystal_ore", "amount": 3}],
-      "outputs": [{"id": "item.basic_parts", "amount": 2}],
+      "outputs": [{"id": "item.basic_parts", "amount": 4}],
       "byproducts": [],
       "duration": 6.0,
       "energy_cost": 2.0,

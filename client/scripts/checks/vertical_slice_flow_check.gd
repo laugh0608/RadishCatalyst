@@ -1225,7 +1225,7 @@ func _check_processing_runtime() -> void:
 	if not completed_results.is_empty():
 		_expect_text_contains(
 			String(completed_results[0].get("message", "")),
-			"产物已放入背包：基础零件 x2",
+			"产物已放入背包：基础零件 x4",
 			"processing completion log destination"
 		)
 		_expect_text_contains(
@@ -1233,7 +1233,7 @@ func _check_processing_runtime() -> void:
 			"下一步：",
 			"processing completion log next step"
 		)
-	_expect_equal(int(processing_character.inventory.items.get("item.basic_parts", 0)), 6, "processing grants outputs on completion")
+	_expect_equal(int(processing_character.inventory.items.get("item.basic_parts", 0)), 8, "processing grants outputs on completion")
 	reactor = processing_world.base_structures.get("structure.basic_reactor", {})
 	_expect_equal(String(reactor.get("status", "")), "completed", "reactor status after completion")
 	_expect_equal(String(reactor.get("active_recipe_id", "")), "", "reactor clears active recipe after completion")
@@ -1247,7 +1247,7 @@ func _check_processing_runtime() -> void:
 	)
 	_expect_text_contains(
 		String(completed_status.get("last_destination", "")),
-		"产物已放入背包：基础零件 x2",
+		"产物已放入背包：基础零件 x4",
 		"processing panel destination"
 	)
 	_expect_text_contains(
