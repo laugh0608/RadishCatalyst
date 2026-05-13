@@ -49,6 +49,8 @@ Wiki 不记录：
 - [前线锚点与稳定窗口](mechanics/frontline-anchors-and-stable-windows.md)
 - [相位井东侧前线区域](regions/phase-well-east-frontier.md)
 - [相位井锚场回稳生产线](production-lines/phase-well-anchor-field-line.md)
+- [基础零件](items/basic-parts.md)
+- [晶体矿物加工](recipes/crystal-ore-processing.md)
 
 ## 编写原则
 
