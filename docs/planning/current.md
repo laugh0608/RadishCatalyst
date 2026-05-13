@@ -9,6 +9,7 @@
 `AGENTS.md` 和 `CLAUDE.md` 只保留长期协作约束与稳定入口引用；当前阶段、当前不做、当前验证重点和退出条件统一以本文为准。
 
 - `docs/planning/daily-start.md`
+- `docs/planning/resource-and-frontline-loop-rework.md`
 - `docs/devlogs/README.md` 中列出的最新一期周志
 - `docs/planning/vertical-slice.md`
 - `docs/design/onboarding-and-first-hour.md`

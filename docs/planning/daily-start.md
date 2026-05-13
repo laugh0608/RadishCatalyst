@@ -37,6 +37,7 @@
 日常推进必读：
 
 - `docs/planning/current.md`
+- `docs/planning/resource-and-frontline-loop-rework.md`
 - `docs/devlogs/` 下最新一期周志中的“风险与未完成项”和“下周建议”
 
 按任务选读：
