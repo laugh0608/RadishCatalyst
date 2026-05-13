@@ -196,7 +196,7 @@
       "stage": 15,
       "objectives": [{"type": "inspect", "target_id": "map_object.outer_ring_console", "amount": 1}],
       "prerequisites": ["quest.stabilize_outer_ring_barrier"],
-      "rewards": [],
+      "rewards": [{"id": "item.basic_parts", "amount": 6}],
       "unlock_effects": ["slice_01_complete"],
       "next_quest_ids": ["quest.salvage_signal_echo"],
       "public_level": "spoiler"
@@ -287,7 +287,7 @@
       "stage": 22,
       "objectives": [{"type": "inspect", "target_id": "map_object.deep_ruin_latch", "amount": 1}],
       "prerequisites": ["quest.assemble_deep_override"],
-      "rewards": [{"id": "item.deep_ruin_core", "amount": 1}],
+      "rewards": [{"id": "item.deep_ruin_core", "amount": 1}, {"id": "item.basic_parts", "amount": 6}],
       "unlock_effects": ["slice_01_complete", "recipe.deep_core_imprint"],
       "next_quest_ids": ["quest.analyze_deep_core"],
       "public_level": "spoiler"
@@ -339,7 +339,7 @@
       "stage": 26,
       "objectives": [{"type": "inspect", "target_id": "map_object.phase_return_anchor", "amount": 1}],
       "prerequisites": ["quest.assemble_deep_signal_matrix"],
-      "rewards": [],
+      "rewards": [{"id": "item.basic_parts", "amount": 6}],
       "unlock_effects": ["slice_01_complete"],
       "next_quest_ids": ["quest.reenter_phase_frontline"],
       "public_level": "spoiler"
@@ -469,7 +469,7 @@
       "stage": 36,
       "objectives": [{"type": "inspect", "target_id": "map_object.phase_well_lock", "amount": 1}],
       "prerequisites": ["quest.assemble_phase_well_key"],
-      "rewards": [{"id": "item.phase_well_locator", "amount": 1}],
+      "rewards": [{"id": "item.phase_well_locator", "amount": 1}, {"id": "item.basic_parts", "amount": 6}],
       "unlock_effects": ["slice_01_complete", "recipe.phase_well_locator_analysis"],
       "next_quest_ids": ["quest.analyze_phase_well_locator"],
       "public_level": "spoiler"
@@ -534,7 +534,7 @@
       "stage": 41,
       "objectives": [{"type": "inspect", "target_id": "map_object.inner_phase_well", "amount": 1}],
       "prerequisites": ["quest.assemble_phase_well_probe"],
-      "rewards": [{"id": "item.phase_well_core", "amount": 1}],
+      "rewards": [{"id": "item.phase_well_core", "amount": 1}, {"id": "item.basic_parts", "amount": 6}],
       "unlock_effects": ["slice_01_complete", "recipe.phase_well_core_analysis"],
       "next_quest_ids": ["quest.analyze_phase_well_core"],
       "public_level": "spoiler"
@@ -599,7 +599,7 @@
       "stage": 46,
       "objectives": [{"type": "inspect", "target_id": "map_object.phase_well_sink", "amount": 1}],
       "prerequisites": ["quest.assemble_phase_well_pike"],
-      "rewards": [{"id": "item.phase_well_heart", "amount": 1}],
+      "rewards": [{"id": "item.phase_well_heart", "amount": 1}, {"id": "item.basic_parts", "amount": 6}],
       "unlock_effects": ["slice_01_complete", "recipe.phase_well_heart_analysis"],
       "next_quest_ids": ["quest.analyze_phase_well_heart"],
       "public_level": "spoiler"
@@ -664,7 +664,7 @@
       "stage": 51,
       "objectives": [{"type": "inspect", "target_id": "map_object.phase_well_chamber", "amount": 1}],
       "prerequisites": ["quest.assemble_phase_well_shunt"],
-      "rewards": [{"id": "item.phase_well_spindle", "amount": 1}],
+      "rewards": [{"id": "item.phase_well_spindle", "amount": 1}, {"id": "item.basic_parts", "amount": 6}],
       "unlock_effects": ["recipe.phase_well_spindle_analysis"],
       "next_quest_ids": ["quest.analyze_phase_well_spindle"],
       "public_level": "spoiler"
@@ -729,7 +729,7 @@
       "stage": 56,
       "objectives": [{"type": "inspect", "target_id": "map_object.phase_well_loom", "amount": 1}],
       "prerequisites": ["quest.assemble_phase_well_shuttle"],
-      "rewards": [{"id": "item.phase_well_weave_core", "amount": 1}],
+      "rewards": [{"id": "item.phase_well_weave_core", "amount": 1}, {"id": "item.basic_parts", "amount": 6}],
       "unlock_effects": ["slice_01_complete", "recipe.phase_well_weave_core_analysis"],
       "next_quest_ids": ["quest.analyze_phase_well_weave_core"],
       "public_level": "spoiler"
@@ -794,7 +794,7 @@
       "stage": 61,
       "objectives": [{"type": "inspect", "target_id": "map_object.phase_well_frame", "amount": 1}],
       "prerequisites": ["quest.assemble_phase_well_frame_key"],
-      "rewards": [{"id": "item.phase_well_knot_core", "amount": 1}],
+      "rewards": [{"id": "item.phase_well_knot_core", "amount": 1}, {"id": "item.basic_parts", "amount": 6}],
       "unlock_effects": ["slice_01_complete", "recipe.phase_well_knot_core_analysis"],
       "next_quest_ids": ["quest.analyze_phase_well_knot_core"],
       "public_level": "spoiler"
@@ -859,7 +859,7 @@
       "stage": 66,
       "objectives": [{"type": "inspect", "target_id": "map_object.phase_well_tether", "amount": 1}],
       "prerequisites": ["quest.assemble_phase_well_tether_spike"],
-      "rewards": [{"id": "item.phase_well_anchor_core", "amount": 1}],
+      "rewards": [{"id": "item.phase_well_anchor_core", "amount": 1}, {"id": "item.basic_parts", "amount": 6}],
       "unlock_effects": ["slice_01_complete", "recipe.phase_well_anchor_core_analysis"],
       "next_quest_ids": ["quest.analyze_phase_well_anchor_core"],
       "public_level": "spoiler"
@@ -911,7 +911,7 @@
       "stage": 70,
       "objectives": [{"type": "inspect", "target_id": "map_object.phase_well_anchor_field", "amount": 1}, {"type": "defeat_enemy", "target_id": "enemy.phase_well_warden", "amount": 1}],
       "prerequisites": ["quest.assemble_phase_well_anchor_stake"],
-      "rewards": [{"id": "item.phase_well_echo_shard", "amount": 1}],
+      "rewards": [{"id": "item.phase_well_echo_shard", "amount": 1}, {"id": "item.basic_parts", "amount": 8}],
       "unlock_effects": ["recipe.phase_well_echo_shard_analysis"],
       "next_quest_ids": ["quest.analyze_phase_well_echo_shard"],
       "public_level": "spoiler"
