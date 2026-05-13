@@ -122,10 +122,30 @@ func run() -> void:
 	host._expect_array_has(relay_world.quest_state.completed_quest_ids, "quest.reenter_phase_frontline", "phase relay pad completes reentry quest")
 	host._expect_array_has(relay_world.quest_state.active_quest_ids, "quest.trace_phase_splinters", "phase relay pad activates phase splinter tracing quest")
 	host._expect_equal(Array(pad_runtime_result.get("completion_feedbacks", [])).size(), 1, "phase relay pad emits completion feedback")
+	relay_runtime.reconcile_active_objectives(relay_world, relay_character)
+	host._expect_equal(
+		relay_world.quest_state.get_objective_progress("quest.trace_phase_splinters", "visit_region", "region.deep_ruin_threshold"),
+		1.0,
+		"phase relay reentry should immediately count current deep region for splinter tracing"
+	)
 	host._expect_equal(
 		map.current_interactable.definition_id,
 		"map_object.phase_return_anchor",
 		"phase relay anchor should become current interactable after returning to deep region"
+	)
+
+	var locked_splinter_world := WorldState.create_default()
+	locked_splinter_world.unlock_region("region.deep_ruin_threshold")
+	locked_splinter_world.current_region_id = "region.deep_ruin_threshold"
+	var locked_splinter_character := CharacterState.create_default()
+	locked_splinter_character.current_region_id = "region.deep_ruin_threshold"
+	locked_splinter_character.position = Vector2(1036, -102)
+	map.apply_runtime_state(locked_splinter_world, locked_splinter_character)
+	map.update_current_interactable()
+	host._expect_equal(
+		map.current_interactable == null,
+		true,
+		"disabled phase splinter clusters should not remain interactable before relay reentry"
 	)
 	var chamber_anchor_world := WorldState.create_default()
 	for region_id in [

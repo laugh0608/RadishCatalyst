@@ -117,6 +117,8 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 		log_messages.append("旧进度已接入：外圈中继后的深段回波回收任务已补入当前目标。")
 	if world_state.quest_state.has_active_quest("quest.bring_back_sample"):
 		updates.append_array(_get_bring_back_sample_recovery_updates(world_state, character_state))
+	updates.append_array(_get_active_region_progress_recovery_updates(world_state))
+	updates.append_array(_get_active_inventory_gather_recovery_updates(world_state, character_state))
 	var late_craft_recovery_updates := _get_late_craft_progress_recovery_updates(world_state, character_state)
 	if not late_craft_recovery_updates.is_empty():
 		updates.append_array(late_craft_recovery_updates)
@@ -180,6 +182,53 @@ func _get_bring_back_sample_recovery_updates(world_state: WorldState, character_
 	var has_sample := bool(anomaly_state.get("is_sampled", false)) or character_state.inventory.has_ref("item.anomaly_sample", 1)
 	if sample_progress < 1.0 and has_sample:
 		updates.append(_objective_set_update(quest_id, "sample_object", "map_object.anomaly_crystal", 1))
+	return updates
+
+
+func _get_active_region_progress_recovery_updates(world_state: WorldState) -> Array[Dictionary]:
+	var updates: Array[Dictionary] = []
+	var current_region_id := world_state.current_region_id
+	if current_region_id.is_empty():
+		return updates
+
+	for quest_id in world_state.quest_state.active_quest_ids:
+		var quest := completion_rules.data_registry.get_definition(String(quest_id))
+		if quest.is_empty():
+			continue
+		for objective in quest.get("objectives", []):
+			if not objective is Dictionary:
+				continue
+			if String(objective.get("type", "")) != "visit_region":
+				continue
+			if String(objective.get("target_id", "")) != current_region_id:
+				continue
+			if world_state.quest_state.get_objective_progress(String(quest_id), "visit_region", current_region_id) >= 1.0:
+				continue
+			updates.append(_objective_set_update(String(quest_id), "visit_region", current_region_id, 1))
+	return updates
+
+
+func _get_active_inventory_gather_recovery_updates(world_state: WorldState, character_state: CharacterState) -> Array[Dictionary]:
+	var updates: Array[Dictionary] = []
+	for quest_id in world_state.quest_state.active_quest_ids:
+		var quest := completion_rules.data_registry.get_definition(String(quest_id))
+		if quest.is_empty():
+			continue
+		for objective in quest.get("objectives", []):
+			if not objective is Dictionary:
+				continue
+			if String(objective.get("type", "")) != "gather_item":
+				continue
+			var item_id := String(objective.get("target_id", ""))
+			var required_amount := float(objective.get("amount", 1.0))
+			if item_id.is_empty() or required_amount <= 0.0:
+				continue
+			var current_amount := world_state.quest_state.get_objective_progress(String(quest_id), "gather_item", item_id)
+			if current_amount >= required_amount:
+				continue
+			if not character_state.inventory.has_ref(item_id, required_amount):
+				continue
+			updates.append(_objective_set_update(String(quest_id), "gather_item", item_id, required_amount))
 	return updates
 
 

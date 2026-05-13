@@ -45,6 +45,7 @@ func _run_checks() -> void:
 	_check_completion_applier_grants_rewards_unlocks_and_feedback()
 	_check_quest_runtime_applies_updates_and_completion_feedback()
 	_check_quest_runtime_recovers_pre_sampled_anomaly()
+	_check_runtime_recovers_current_region_and_inventory_progress()
 	_check_phase_well_weave_core_recipe_progression()
 	_check_runtime_recovers_late_craft_progress_from_inventory()
 	_check_runtime_activates_missing_outer_ring_followup()
@@ -675,6 +676,24 @@ func _check_quest_runtime_recovers_pre_sampled_anomaly() -> void:
 	)
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.bring_back_sample", "pre-sampled anomaly completes sample quest")
 	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_anomaly_sample", "pre-sampled anomaly activates sample analysis quest")
+
+
+func _check_runtime_recovers_current_region_and_inventory_progress() -> void:
+	var region_world := WorldState.create_default()
+	var region_character := CharacterState.create_default()
+	region_world.quest_state.active_quest_ids = ["quest.trace_phase_splinters"]
+	region_world.current_region_id = "region.deep_ruin_threshold"
+	var region_result := quest_runtime.reconcile_active_objectives(region_world, region_character)
+	_expect_equal(bool(region_result.get("accepted", false)), true, "runtime accepts current region recovery")
+	_expect_equal(region_world.quest_state.get_objective_progress("quest.trace_phase_splinters", "visit_region", "region.deep_ruin_threshold"), 1.0, "runtime recovers active visit objective from current region")
+	var gather_world := WorldState.create_default()
+	var gather_character := CharacterState.create_default()
+	gather_world.quest_state.active_quest_ids = ["quest.trace_phase_splinters"]
+	gather_character.inventory.add_item("item.phase_splinter", 2)
+	var gather_result := quest_runtime.reconcile_active_objectives(gather_world, gather_character)
+	_expect_equal(bool(gather_result.get("accepted", false)), true, "runtime accepts inventory gather recovery")
+	_expect_equal(gather_world.quest_state.get_objective_progress("quest.trace_phase_splinters", "gather_item", "item.phase_splinter"), 2.0, "runtime recovers active gather objective from existing inventory")
+	_expect_array_missing(gather_world.quest_state.completed_quest_ids, "quest.trace_phase_splinters", "inventory recovery alone should not complete multi-objective quest")
 
 
 func _check_phase_well_weave_core_recipe_progression() -> void:

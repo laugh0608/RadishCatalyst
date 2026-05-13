@@ -70,7 +70,7 @@ func setup(display_name: String) -> void:
 
 
 func can_interact() -> bool:
-	return not consumed
+	return not consumed and visible and monitoring
 
 
 func set_recipe_cycle(available_recipe_ids: Array[String]) -> void:

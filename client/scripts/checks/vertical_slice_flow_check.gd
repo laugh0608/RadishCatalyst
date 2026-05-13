@@ -1,5 +1,6 @@
 extends SceneTree
 const GameRootScript := preload("res://scripts/game/game_root.gd")
+const DeepProcessingCheckScript := preload("res://scripts/checks/deep_processing_check.gd")
 const HudRuntimeHintFlowCheckScript := preload("res://scripts/checks/hud_runtime_hint_flow_check.gd")
 const HudMapMarkerCheckScript := preload("res://scripts/checks/hud_map_marker_check.gd")
 const PhaseWellFollowupChecks := preload("res://scripts/checks/phase_well_followup_check.gd")
@@ -249,6 +250,7 @@ func _run_checks() -> void:
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_heart_analysis", "phase well sink unlocks heart analysis recipe")
 	PhaseWellFollowupChecks.new(self).run_flow(world_state, character_state)
 	_check_processing_runtime()
+	DeepProcessingCheckScript.new(self).run()
 	VerticalSliceRegressionChecks.new(self).check_equipment_processing_runtime()
 	_check_evacuation_feedback()
 func _check_onboarding_hints() -> void:
@@ -1302,72 +1304,6 @@ func _check_processing_runtime() -> void:
 		String(filter_status.get("last_next_step", "")),
 		"抗污染药剂",
 		"pollution filter panel next step"
-	)
-	var splinter_world := WorldState.create_default()
-	var splinter_character := CharacterState.create_default()
-	splinter_world.quest_state.unlock_effect("recipe.phase_splinter_refining")
-	splinter_world.add_base_structure(
-		"structure.pollution_filter_build_site",
-		"building.pollution_filter",
-		"region.pollution_edge",
-		"map_object_instance.pollution_filter_build_site"
-	)
-	splinter_character.inventory.add_item("item.phase_splinter", 2)
-	var splinter_start := processing.process_recipe("recipe.phase_splinter_refining", splinter_character, splinter_world)
-	_expect_equal(bool(splinter_start.get("success", false)), true, "phase splinter refining should start")
-	var splinter_completed := processing.advance_processing(20.0, splinter_character, splinter_world)
-	_expect_equal(splinter_completed.size(), 1, "phase splinter refining should complete")
-	if not splinter_completed.is_empty():
-		_expect_text_contains(
-			String(splinter_completed[0].get("message", "")),
-			"透镜胚片 x1",
-			"phase splinter refining completion log output destination"
-		)
-		_expect_text_contains(
-			String(splinter_completed[0].get("message", "")),
-			"污染浆液 x1",
-			"phase splinter refining completion log byproduct destination"
-		)
-		_expect_text_contains(
-			String(splinter_completed[0].get("message", "")),
-			"中继调谐镜",
-			"phase splinter refining completion log next step"
-		)
-	_expect_equal(int(splinter_character.inventory.items.get("item.phase_lens_blank", 0)), 1, "phase splinter refining grants lens blank")
-	_expect_equal(float(splinter_character.inventory.fluids.get("fluid.polluted_slurry", 0.0)), 1.0, "phase splinter refining grants polluted slurry byproduct")
-	var splinter_status := processing.get_recipe_status("recipe.phase_splinter_refining", splinter_character, splinter_world)
-	_expect_text_contains(
-		String(splinter_status.get("last_next_step", "")),
-		"中继调谐镜",
-		"phase splinter refining panel next step"
-	)
-	var tuning_world := WorldState.create_default()
-	var tuning_character := CharacterState.create_default()
-	tuning_world.quest_state.unlock_effect("recipe.relay_tuning_lens")
-	tuning_character.inventory.add_item("item.phase_lens_blank", 1)
-	tuning_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
-	tuning_character.inventory.items["item.basic_parts"] = 2
-	var tuning_start := processing.process_recipe("recipe.relay_tuning_lens", tuning_character, tuning_world)
-	_expect_equal(bool(tuning_start.get("success", false)), true, "relay tuning lens processing should start")
-	var tuning_completed := processing.advance_processing(20.0, tuning_character, tuning_world)
-	_expect_equal(tuning_completed.size(), 1, "relay tuning lens processing should complete")
-	if not tuning_completed.is_empty():
-		_expect_text_contains(
-			String(tuning_completed[0].get("message", "")),
-			"中继调谐镜 x1",
-			"relay tuning lens completion log output destination"
-		)
-		_expect_text_contains(
-			String(tuning_completed[0].get("message", "")),
-			"裂相尖塔",
-			"relay tuning lens completion log next step"
-		)
-	_expect_equal(int(tuning_character.inventory.items.get("item.relay_tuning_lens", 0)), 1, "relay tuning lens grants calibration item")
-	var tuning_status := processing.get_recipe_status("recipe.relay_tuning_lens", tuning_character, tuning_world)
-	_expect_text_contains(
-		String(tuning_status.get("last_next_step", "")),
-		"裂相尖塔",
-		"relay tuning lens panel next step"
 	)
 func _check_evacuation_feedback() -> void:
 	var map := VerticalSliceMap.new()

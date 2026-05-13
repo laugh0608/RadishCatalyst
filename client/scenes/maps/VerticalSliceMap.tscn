@@ -227,6 +227,20 @@ interaction_type = "gather"
 label_offset = Vector2(-82, -52)
 label_size = Vector2(164, 24)
 
+[node name="CrystalClusterWestReserve" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-42, 28)
+definition_id = "map_object.crystal_cluster"
+interaction_type = "gather"
+label_offset = Vector2(-82, 22)
+label_size = Vector2(164, 24)
+
+[node name="CrystalClusterNorthEastReserve" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(168, -152)
+definition_id = "map_object.crystal_cluster"
+interaction_type = "gather"
+label_offset = Vector2(-82, -52)
+label_size = Vector2(164, 24)
+
 [node name="FieldWreckageNorth" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(20, 88)
 definition_id = "map_object.field_wreckage"
