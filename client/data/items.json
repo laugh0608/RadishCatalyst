@@ -401,7 +401,7 @@
       "mass": 0.2,
       "rarity": "epic",
       "source_refs": ["recipe.phase_well_key"],
-      "used_by_refs": ["quest.assemble_phase_well_key", "quest.unlock_phase_well"],
+      "used_by_refs": ["quest.refine_fault_residue", "quest.unlock_phase_well"],
       "public_level": "spoiler"
     },
     {

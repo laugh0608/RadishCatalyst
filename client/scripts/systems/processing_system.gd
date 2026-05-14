@@ -201,9 +201,11 @@ func get_recommended_recipe_id(
 		"quest.analyze_inner_fault_trace":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.inner_fault_analysis")
 		"quest.refine_fault_residue":
-			return _select_if_available(interactable, "recipe.fault_residue_stabilization")
-		"quest.assemble_phase_well_key":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_key")
+			if not character_state.inventory.has_ref("item.stabilized_fault_core", 1):
+				return _select_if_available(interactable, "recipe.fault_residue_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_key", 1):
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_key")
+			return ""
 		"quest.analyze_phase_well_locator":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_locator_analysis")
 		"quest.refine_well_flux":
@@ -324,7 +326,7 @@ func _get_completion_next_step(recipe_id: String) -> String:
 		"recipe.inner_fault_analysis":
 			return "相位井坐标印片已整理完成；返回裂相尖塔更东侧，击退潜猎体并回收故障残渣。"
 		"recipe.fault_residue_stabilization":
-			return "稳定故障芯和副产污染浆液已筛出；把它们带回基地反应器，组装相位井钥。"
+			return "稳定故障芯和副产污染浆液已筛出；继续这次井锁整备，回基地基础反应器组装相位井钥。"
 		"recipe.phase_well_key":
 			return "带着相位井钥返回更东侧相位井锁，钉住锁位并带回第一份定位器。"
 		"recipe.phase_well_locator_analysis":

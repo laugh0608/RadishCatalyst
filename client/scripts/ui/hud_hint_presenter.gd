@@ -145,8 +145,8 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.collect_fault_residue":
 			return "返回裂相尖塔更东侧，击退内层潜猎体并回收两处故障残渣。"
 		"quest.refine_fault_residue":
-			return "回处理点污染过滤器，把故障残渣稳定成可用于下一步开锁的故障芯。"
-		"quest.assemble_phase_well_key":
+			if not character_state.inventory.has_ref("item.stabilized_fault_core", 1):
+				return "回处理点污染过滤器，把故障残渣稳定成可用于下一步开锁的故障芯。"
 			return "回基地使用基础反应器，把坐标印片、稳定故障芯和基础零件组装成相位井钥。"
 		"quest.unlock_phase_well":
 			return "带着相位井钥返回更东侧相位井锁，钉住后带回第一份定位器。"
@@ -352,9 +352,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.collect_fault_residue":
 			return "更东侧新敌人和故障残渣要一起解决；这一步负责把新的前线风险和下一次基地加工输入同时带回来。"
 		"quest.refine_fault_residue":
-			return "先用污染过滤器稳定故障残渣；副产污染浆液会继续反哺相位井钥组装，不需要新设备。"
-		"quest.assemble_phase_well_key":
-			return "相位井钥会把分析产物和过滤结果重新变成开路物，决定相位井锁能否交出新的定位器。"
+			return "这一步是一次井锁整备：先稳定故障残渣，再把坐标印片和稳定故障芯组装成相位井钥，下一趟外勤直接去钉住井锁。"
 		"quest.unlock_phase_well":
 			return "这一步要把基地组装的相位井钥真正带回前线，让回传链明确指向下一轮更深相位井目标。"
 		"quest.analyze_phase_well_locator":

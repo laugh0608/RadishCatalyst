@@ -211,7 +211,7 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 		"recipe.fault_residue_stabilization":
 			return [_set_update("quest.refine_fault_residue", "craft_item", "item.stabilized_fault_core", 1)]
 		"recipe.phase_well_key":
-			return [_set_update("quest.assemble_phase_well_key", "craft_item", "item.phase_well_key", 1)]
+			return [_set_update("quest.refine_fault_residue", "craft_item", "item.phase_well_key", 1)]
 		"recipe.phase_well_locator_analysis":
 			return [_set_update("quest.analyze_phase_well_locator", "craft_item", "item.phase_well_route", 1)]
 		"recipe.well_flux_stabilization":

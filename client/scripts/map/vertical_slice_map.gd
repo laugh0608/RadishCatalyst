@@ -1207,11 +1207,11 @@ func _inspect_phase_fault_spire(character_state: CharacterState, world_state: Wo
 		"message": "中继调谐镜已对准：裂相尖塔开始回吐内层故障轨迹，并暴露更东侧相位井锁的第一段坐标。"
 	}
 func _inspect_phase_well_lock(character_state: CharacterState, world_state: WorldState) -> Dictionary:
-	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_key"):
+	if not (world_state.quest_state.has_completed_quest("quest.refine_fault_residue") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_key")):
 		return _failure(
 			"相位井锁仍缺少可执行的锁定位。",
 			"井锁未钉住",
-			"先回基地用基础反应器，把坐标印片、稳定故障芯和基础零件组装成相位井钥。"
+			"先回基地完成相位井钥整备：稳定故障残渣，再用基础反应器组装相位井钥。"
 		)
 
 	if world_state.quest_state.has_completed_quest("quest.unlock_phase_well"):

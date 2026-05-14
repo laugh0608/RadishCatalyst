@@ -234,8 +234,8 @@ func format_phase_fault_spire_prompt(world_state: WorldState, character_state: C
 func format_phase_well_lock_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.unlock_phase_well"):
 		return "相位井锁：已钉住，第一份相位井定位器已带回基地；下一步回基地解析定位器。"
-	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_key"):
-		return "相位井锁：先回基地用基础反应器组装相位井钥，再回来钉住锁位。"
+	if not (world_state.quest_state.has_completed_quest("quest.refine_fault_residue") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_key")):
+		return "相位井锁：先回基地完成相位井钥整备，再回来钉住锁位。"
 	if not character_state.inventory.has_ref("item.phase_well_key", 1):
 		return "相位井锁：缺少相位井钥；回基地确认基础反应器组装结果后再来。"
 	return "按 E 锁定：相位井锁。"

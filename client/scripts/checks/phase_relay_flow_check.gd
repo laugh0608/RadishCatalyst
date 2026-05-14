@@ -195,7 +195,6 @@ func run() -> void:
 		"quest.analyze_inner_fault_trace",
 		"quest.collect_fault_residue",
 		"quest.refine_fault_residue",
-		"quest.assemble_phase_well_key",
 		"quest.unlock_phase_well",
 		"quest.analyze_phase_well_locator",
 		"quest.collect_well_flux",

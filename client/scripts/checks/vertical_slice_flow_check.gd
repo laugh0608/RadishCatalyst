@@ -201,11 +201,12 @@ func _run_checks() -> void:
 	])
 	_expect_active_quest("quest.refine_fault_residue", "after fault residue collection returns to filter")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.fault_residue_stabilization", "fault residue collection unlocks stabilization recipe")
-	_complete_active_quest("quest.refine_fault_residue", [{"type": "craft_item", "target_id": "item.stabilized_fault_core", "amount": 1}])
-	_expect_active_quest("quest.assemble_phase_well_key", "after fault residue refinement returns to reactor")
-	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_key", "fault residue refinement unlocks phase well key recipe")
-	_complete_active_quest("quest.assemble_phase_well_key", [{"type": "craft_item", "target_id": "item.phase_well_key", "amount": 1}])
-	_expect_active_quest("quest.unlock_phase_well", "after phase well key assembly returns to deep lock")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_key", "fault residue collection unlocks phase well key recipe")
+	_complete_active_quest("quest.refine_fault_residue", [
+		{"type": "craft_item", "target_id": "item.stabilized_fault_core", "amount": 1},
+		{"type": "craft_item", "target_id": "item.phase_well_key", "amount": 1}
+	])
+	_expect_active_quest("quest.unlock_phase_well", "after phase well key prep returns to deep lock")
 	_complete_active_quest("quest.unlock_phase_well", [{"type": "inspect", "target_id": "map_object.phase_well_lock", "amount": 1}])
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.unlock_phase_well", "phase well lock quest completed")
 	_expect_equal(int(character_state.inventory.items.get("item.phase_well_locator", 0)), 1, "phase well lock grants first locator")
@@ -352,8 +353,7 @@ func _check_onboarding_hints() -> void:
 	)
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_inner_fault_trace", "坐标印片", "inner fault analysis onboarding hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.collect_fault_residue", "故障残渣", "fault residue collection onboarding hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_fault_residue", "故障残渣", "fault residue refinement onboarding hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_phase_well_key", "相位井钥", "phase well key assembly onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_fault_residue", "相位井钥", "phase well key prep onboarding hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.unlock_phase_well", "相位井钥", "phase well lock onboarding hint")
 	hint_world.quest_state.completed_quest_ids.append("quest.analyze_deep_signal")
 	hint_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_cache")

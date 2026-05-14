@@ -41,7 +41,6 @@ const QUEST_PROGRESS_ORDER: Array[String] = [
 	"quest.analyze_inner_fault_trace",
 	"quest.collect_fault_residue",
 	"quest.refine_fault_residue",
-	"quest.assemble_phase_well_key",
 	"quest.unlock_phase_well",
 	"quest.analyze_phase_well_locator",
 	"quest.collect_well_flux",
@@ -273,7 +272,6 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			], "map_object.fault_residue_cluster", "region.deep_ruin_threshold")
 		"quest.refine_fault_residue":
 			_mark_structure_completed(world_state, "structure.pollution_filter_build_site", "recipe.fault_residue_stabilization")
-		"quest.assemble_phase_well_key":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_key")
 		"quest.analyze_phase_well_locator":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_locator_analysis")

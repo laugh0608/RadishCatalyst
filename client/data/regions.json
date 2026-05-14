@@ -26,7 +26,7 @@
         "quest.reenter_phase_frontline",
         "quest.refine_phase_splinters",
         "quest.analyze_inner_fault_trace",
-        "quest.assemble_phase_well_key",
+        "quest.refine_fault_residue",
         "quest.analyze_phase_well_locator",
         "quest.assemble_phase_well_probe",
         "quest.analyze_phase_well_core",

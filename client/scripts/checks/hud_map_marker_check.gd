@@ -144,7 +144,6 @@ func run(root_window: Window) -> void:
 	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.analyze_inner_fault_trace"), "基地：当前位置，目标", "inner fault analysis returns to outpost reactor")
 	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.collect_fault_residue"), "深段：更深，目标", "fault residue collection returns objective to deeper region")
 	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.refine_fault_residue"), "晶体：东侧，目标", "fault residue refinement returns to treatment filter")
-	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.assemble_phase_well_key"), "基地：当前位置，目标", "phase well key assembly returns to outpost reactor")
 	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.unlock_phase_well"), "深段：更深，目标", "phase well lock returns objective to deeper region")
 	marker_world.current_region_id = "region.outpost_platform"
 	marker_world.quest_state.completed_quest_ids.append("quest.deploy_phase_relay_anchor")

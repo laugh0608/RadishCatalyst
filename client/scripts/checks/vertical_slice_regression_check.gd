@@ -201,17 +201,16 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	recipe_character.inventory.add_item("item.phase_well_coordinate", 1)
 	recipe_character.inventory.add_item("item.stabilized_fault_core", 1)
 	recipe_character.inventory.items["item.basic_parts"] = 1
-	recipe_world.quest_state.active_quest_ids = ["quest.assemble_phase_well_key"]
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
 		"recipe.process_crystal_ore",
-		"phase well key assembly falls back to basic parts recipe when only parts are missing"
+		"phase well key prep falls back to basic parts recipe when only parts are missing"
 	)
 	recipe_character.inventory.items["item.basic_parts"] = 2
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
 		"recipe.phase_well_key",
-		"phase well key assembly returns to reactor recipe after basic parts are restored"
+		"phase well key prep returns to reactor recipe after basic parts are restored"
 	)
 	recipe_character.inventory.add_item("item.phase_well_locator", 1)
 	recipe_character.inventory.items["item.basic_parts"] = 1
