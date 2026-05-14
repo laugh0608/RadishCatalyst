@@ -977,6 +977,18 @@ func _check_failure_feedback_logs() -> void:
 	processing_world.quest_state.unlock_effect("recipe.process_crystal_ore")
 	var missing_inputs := processing.process_recipe("recipe.process_crystal_ore", processing_character, processing_world)
 	_expect_failure_feedback(missing_inputs, "原料不足", "processing missing inputs feedback")
+	var missing_parts_world := WorldState.create_default()
+	var missing_parts_character := CharacterState.create_default()
+	missing_parts_world.quest_state.unlock_effect("recipe.relay_tuning_lens")
+	missing_parts_character.inventory.add_item("item.phase_lens_blank", 1)
+	missing_parts_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
+	missing_parts_character.inventory.items["item.basic_parts"] = 0
+	var missing_parts := processing.process_recipe("recipe.relay_tuning_lens", missing_parts_character, missing_parts_world)
+	_expect_failure_feedback(missing_parts, "原料不足", "processing missing basic parts feedback")
+	_expect_text_contains(String(missing_parts.get("message", "")), "前哨核心回收", "processing missing basic parts message points to outpost supply")
+	_expect_text_contains(String(missing_parts.get("message", "")), "晶体矿物", "processing missing basic parts message points to ore fallback")
+	var missing_parts_feedback: Dictionary = missing_parts.get("failure_feedback", {})
+	_expect_text_contains(String(missing_parts_feedback.get("detail", "")), "阶段补给批次", "processing missing basic parts detail points to stage supply")
 	processing_character.inventory.add_item("item.crystal_ore", 3)
 	var started := processing.process_recipe("recipe.process_crystal_ore", processing_character, processing_world)
 	_expect_equal(bool(started.get("success", false)), true, "processing starts before in-progress failure")
@@ -1077,6 +1089,27 @@ func _check_device_panel_formatting() -> void:
 		"分析异常样本（当前目标）",
 		"device panel recommended recipe marker"
 	)
+	var missing_parts_world := WorldState.create_default()
+	var missing_parts_character := CharacterState.create_default()
+	var missing_parts_reactor := PrototypeInteractable.new()
+	missing_parts_world.quest_state.unlock_effect("recipe.relay_tuning_lens")
+	missing_parts_character.inventory.add_item("item.phase_lens_blank", 1)
+	missing_parts_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
+	missing_parts_character.inventory.items["item.basic_parts"] = 0
+	missing_parts_reactor.definition_id = "building.basic_reactor"
+	missing_parts_reactor.interaction_type = "process_recipe"
+	missing_parts_reactor.recipe_id = "recipe.relay_tuning_lens"
+	missing_parts_reactor.set_recipe_cycle(["recipe.relay_tuning_lens"])
+	var missing_parts_texts := device_panel_presenter.format_device_panel_texts(
+		data_registry,
+		processing,
+		missing_parts_reactor,
+		missing_parts_character,
+		missing_parts_world
+	)
+	_expect_text_contains(String(missing_parts_texts.get("status", "")), "前哨核心回收", "device panel basic parts supply points to outpost")
+	_expect_text_contains(String(missing_parts_texts.get("status", "")), "阶段补给批次", "device panel basic parts supply points to stage supply")
+	_expect_text_contains(String(missing_parts_texts.get("recipes", "")), "缺 基础零件 x2", "device panel basic parts missing input")
 	VerticalSliceRegressionChecks.new(self).check_task_recipe_selection(reactor, processing)
 	var filter := PrototypeInteractable.new()
 	filter.definition_id = "building.pollution_filter"
@@ -1103,6 +1136,7 @@ func _check_device_panel_formatting() -> void:
 	_expect_text_contains(String(filter_texts.get("recipes", "")), "缺 污染沉积物 x2", "filter device panel missing input")
 	_expect_text_contains(String(filter_texts.get("operations", "")), "E 尝试当前配方", "filter device panel blocked operation")
 	reactor.free()
+	missing_parts_reactor.free()
 	filter.free()
 func _check_manual_recipe_cycle_keeps_player_choice() -> void:
 	var game_root = GameRootScript.new()

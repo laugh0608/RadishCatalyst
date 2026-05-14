@@ -30,7 +30,11 @@ func process_recipe(recipe_id: String, character_state: CharacterState, world_st
 
 	var missing_inputs := _get_missing_inputs(recipe, character_state.inventory)
 	if not missing_inputs.is_empty():
-		return _failure("缺少原料：%s。" % ", ".join(missing_inputs), "原料不足", "先采集资源或切换到输入已满足的配方。")
+		return _failure(
+			_format_missing_input_message(recipe, missing_inputs, character_state.inventory),
+			"原料不足",
+			_format_missing_input_next_step(recipe, character_state.inventory)
+		)
 
 	_consume_refs(recipe.get("inputs", []), character_state.inventory)
 	world_state.set_base_structure_status(structure_id, "in_progress", recipe_id)
@@ -118,7 +122,15 @@ func get_recipe_status(recipe_id: String, character_state: CharacterState, world
 	if not missing_structure.is_empty():
 		return _recipe_status(recipe, false, missing_structure, missing_inputs, {}, required_structure)
 	if not missing_inputs.is_empty():
-		return _recipe_status(recipe, false, "缺少原料：%s。" % ", ".join(missing_inputs), missing_inputs, {}, required_structure)
+		return _recipe_status(
+			recipe,
+			false,
+			"缺少原料：%s。" % ", ".join(missing_inputs),
+			missing_inputs,
+			{},
+			required_structure,
+			_format_missing_input_supply_hint(recipe, character_state.inventory)
+		)
 
 	return _recipe_status(recipe, true, "可加工。", [], {}, required_structure)
 
@@ -367,6 +379,31 @@ func _format_in_progress_message(structure: Dictionary) -> String:
 	]
 
 
+func _format_missing_input_message(recipe: Dictionary, missing_inputs: Array[String], inventory: InventoryState) -> String:
+	var message := "缺少原料：%s。" % ", ".join(missing_inputs)
+	var supply_hint := _format_missing_input_supply_hint(recipe, inventory)
+	if not supply_hint.is_empty():
+		message += " 补给方向：%s" % supply_hint
+	return message
+
+
+func _format_missing_input_next_step(recipe: Dictionary, inventory: InventoryState) -> String:
+	var supply_hint := _format_missing_input_supply_hint(recipe, inventory)
+	if not supply_hint.is_empty():
+		return "补给方向：%s" % supply_hint
+	return "先采集资源或切换到输入已满足的配方。"
+
+
+func _format_missing_input_supply_hint(recipe: Dictionary, inventory: InventoryState) -> String:
+	if _get_recipe_input_shortage(recipe, "item.basic_parts", inventory) <= 0.0:
+		return ""
+	if data_registry.get_definition("recipe.process_crystal_ore").is_empty():
+		return "先检查前哨核心回收和阶段补给批次。"
+	if _get_inventory_ref_amount("item.crystal_ore", inventory) >= 3.0:
+		return "先检查前哨核心回收和阶段补给批次；当前也可切换到处理晶体矿物，把晶体矿物加工成基础零件。"
+	return "先检查前哨核心回收和阶段补给批次；若仍不足，去晶体矿脉区采集晶体矿物后加工成基础零件。"
+
+
 func _get_missing_inputs(recipe: Dictionary, inventory: InventoryState) -> Array[String]:
 	var missing_inputs: Array[String] = []
 	for input_ref in recipe.get("inputs", []):
@@ -522,7 +559,8 @@ func _recipe_status(
 	message: String,
 	missing_inputs: Array[String],
 	active_structure: Dictionary = {},
-	required_structure: Dictionary = {}
+	required_structure: Dictionary = {},
+	supply_hint: String = ""
 ) -> Dictionary:
 	var active_recipe_id := String(active_structure.get("active_recipe_id", ""))
 	var active_recipe := data_registry.get_definition(active_recipe_id)
@@ -544,6 +582,7 @@ func _recipe_status(
 		"outputs": _format_refs(recipe.get("outputs", [])),
 		"byproducts": _format_refs(recipe.get("byproducts", []), ""),
 		"missing_inputs": missing_inputs,
+		"supply_hint": supply_hint,
 		"duration": _format_amount(duration),
 		"progress": progress,
 		"progress_ratio": progress_ratio
