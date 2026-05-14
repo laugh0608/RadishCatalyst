@@ -51,6 +51,7 @@ Wiki 不记录：
 - [相位井锚场回稳生产线](production-lines/phase-well-anchor-field-line.md)
 - [基础零件](items/basic-parts.md)
 - [晶体矿物加工](recipes/crystal-ore-processing.md)
+- [回收基础零件](recipes/basic-parts-reclamation.md)
 
 ## 编写原则
 
