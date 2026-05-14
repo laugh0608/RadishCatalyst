@@ -254,8 +254,8 @@ func format_inner_phase_well_prompt(world_state: WorldState, character_state: Ch
 func format_phase_well_sink_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_sink"):
 		return "井底裂口：已凿开，第一份相位井心核已带回基地；下一步回基地解析并继续推进井心室断面。"
-	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_pike"):
-		return "井底裂口：先回基地用基础反应器组装井底穿钉，再回来凿开更东侧裂口。"
+	if not _has_completed_any(world_state, ["quest.refine_well_ash", "quest.assemble_phase_well_pike"]):
+		return "井底裂口：先回基地完成井底整备，把井底穿钉带回来凿开更东侧裂口。"
 	if not character_state.inventory.has_ref("item.phase_well_pike", 1):
 		return "井底裂口：缺少井底穿钉；回基地确认基础反应器组装结果后再来。"
 	return "按 E 凿开：井底裂口。"
@@ -264,8 +264,8 @@ func format_phase_well_sink_prompt(world_state: WorldState, character_state: Cha
 func format_phase_well_chamber_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_chamber"):
 		return "井心室断面：已勘验，第一份相位井纺核已带回基地；下一步回基地解析并继续推进井纺室断面。"
-	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_shunt"):
-		return "井心室断面：先回基地用基础反应器组装井心分流栓，再回来勘验更东侧断面。"
+	if not _has_completed_any(world_state, ["quest.refine_heart_spine", "quest.assemble_phase_well_shunt"]):
+		return "井心室断面：先回基地完成井心整备，把井心分流栓带回来勘验更东侧断面。"
 	if not character_state.inventory.has_ref("item.phase_well_shunt", 1):
 		return "井心室断面：缺少井心分流栓；回基地确认基础反应器组装结果后再来。"
 	return "按 E 勘验：井心室断面。"
@@ -274,8 +274,8 @@ func format_phase_well_chamber_prompt(world_state: WorldState, character_state: 
 func format_phase_well_loom_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_loom"):
 		return "井纺室断面：已勘验，第一份相位井织核已带回基地；下一步回基地解析并继续推进井纹架断面。"
-	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_shuttle"):
-		return "井纺室断面：先回基地用基础反应器组装井纺梭栓，再回来勘验更东侧断面。"
+	if not _has_completed_any(world_state, ["quest.refine_weft_bundle", "quest.assemble_phase_well_shuttle"]):
+		return "井纺室断面：先回基地完成井纺整备，把井纺梭栓带回来勘验更东侧断面。"
 	if not character_state.inventory.has_ref("item.phase_well_shuttle", 1):
 		return "井纺室断面：缺少井纺梭栓；回基地确认基础反应器组装结果后再来。"
 	return "按 E 勘验：井纺室断面。"
@@ -284,8 +284,8 @@ func format_phase_well_loom_prompt(world_state: WorldState, character_state: Cha
 func format_phase_well_frame_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_frame"):
 		return "井纹架断面：已勘验，第一份相位井结核已带回基地；下一步回基地解析并继续推进井系桥断面。"
-	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_frame_key"):
-		return "井纹架断面：先回基地用基础反应器组装井纹架键栓，再回来勘验更东侧断面。"
+	if not _has_completed_any(world_state, ["quest.refine_selvedge_strip", "quest.assemble_phase_well_frame_key"]):
+		return "井纹架断面：先回基地完成井纹架整备，把井纹架键栓带回来勘验更东侧断面。"
 	if not character_state.inventory.has_ref("item.phase_well_frame_key", 1):
 		return "井纹架断面：缺少井纹架键栓；回基地确认基础反应器组装结果后再来。"
 	return "按 E 勘验：井纹架断面。"
@@ -293,9 +293,9 @@ func format_phase_well_frame_prompt(world_state: WorldState, character_state: Ch
 
 func format_phase_well_tether_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_tether"):
-		return "井系桥断面：已勘验，第一份相位井锚核已带回基地；下一步回基地解析锚核并组装井系校锚桩。"
-	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_tether_spike"):
-		return "井系桥断面：先回基地用基础反应器组装井系定桩，再回来勘验更东侧断面。"
+		return "井系桥断面：已勘验，第一份相位井锚核已带回基地；下一步回基地完成锚场整备。"
+	if not _has_completed_any(world_state, ["quest.refine_tether_fiber", "quest.assemble_phase_well_tether_spike"]):
+		return "井系桥断面：先回基地完成井系整备，把井系定桩带回来勘验更东侧断面。"
 	if not character_state.inventory.has_ref("item.phase_well_tether_spike", 1):
 		return "井系桥断面：缺少井系定桩；回基地确认基础反应器组装结果后再来。"
 	return "按 E 勘验：井系桥断面。"
@@ -313,8 +313,8 @@ func format_phase_well_anchor_field_prompt(world_state: WorldState, character_st
 		):
 			return "按 E 回充：稳窗读数已校准，锚场回稳窗可在前线恢复生命与防护。"
 		return "锚场回稳窗：局部稳定窗口已维持；回基地解析相位井余响片后，可把这里校准成前线回稳点。"
-	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_anchor_stake"):
-		return "锚场回稳窗：先回基地解析相位井锚核、稳定锚核落尘，再组装井系校锚桩回来部署。"
+	if not _has_completed_any(world_state, ["quest.refine_anchor_core_dust", "quest.assemble_phase_well_anchor_stake"]):
+		return "锚场回稳窗：先回基地完成锚场整备，把井系校锚桩带回来部署。"
 	if not deployed:
 		if not character_state.inventory.has_ref("item.phase_well_anchor_stake", 1):
 			return "锚场回稳窗：缺少井系校锚桩；回基地确认基础反应器组装结果后再来。"
@@ -373,6 +373,13 @@ func _get_interaction_tool_status(definition_id: String, character_state: Charac
 	if missing_tags.is_empty():
 		return "可清理"
 	return "缺少能力：%s" % ", ".join(missing_tags)
+
+
+func _has_completed_any(world_state: WorldState, quest_ids: Array[String]) -> bool:
+	for quest_id in quest_ids:
+		if world_state.quest_state.has_completed_quest(quest_id):
+			return true
+	return false
 
 
 func _get_display_name(definition_id: String) -> String:

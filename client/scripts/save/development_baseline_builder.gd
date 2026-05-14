@@ -49,31 +49,25 @@ const QUEST_PROGRESS_ORDER: Array[String] = [
 	"quest.analyze_phase_well_core",
 	"quest.collect_well_ash",
 	"quest.refine_well_ash",
-	"quest.assemble_phase_well_pike",
 	"quest.inspect_phase_well_sink",
 	"quest.analyze_phase_well_heart",
 	"quest.collect_heart_spine",
 	"quest.refine_heart_spine",
-	"quest.assemble_phase_well_shunt",
 	"quest.inspect_phase_well_chamber",
 	"quest.analyze_phase_well_spindle",
 	"quest.collect_weft_bundle",
 	"quest.refine_weft_bundle",
-	"quest.assemble_phase_well_shuttle",
 	"quest.inspect_phase_well_loom",
 	"quest.analyze_phase_well_weave_core",
 	"quest.collect_selvedge_strip",
 	"quest.refine_selvedge_strip",
-	"quest.assemble_phase_well_frame_key",
 	"quest.inspect_phase_well_frame",
 	"quest.analyze_phase_well_knot_core",
 	"quest.collect_tether_fiber",
 	"quest.refine_tether_fiber",
-	"quest.assemble_phase_well_tether_spike",
 	"quest.inspect_phase_well_tether",
 	"quest.analyze_phase_well_anchor_core",
 	"quest.refine_anchor_core_dust",
-	"quest.assemble_phase_well_anchor_stake",
 	"quest.stabilize_phase_well_anchor_field",
 	"quest.analyze_phase_well_echo_shard"
 ]
@@ -293,7 +287,6 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			], "map_object.well_ash_cluster", "region.phase_well_sink")
 		"quest.refine_well_ash":
 			_mark_structure_completed(world_state, "structure.pollution_filter_build_site", "recipe.well_ash_stabilization")
-		"quest.assemble_phase_well_pike":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_pike")
 		"quest.analyze_phase_well_heart":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_heart_analysis")
@@ -305,7 +298,6 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			], "map_object.heart_spine_cluster", "region.phase_well_chamber")
 		"quest.refine_heart_spine":
 			_mark_structure_completed(world_state, "structure.pollution_filter_build_site", "recipe.heart_spine_stabilization")
-		"quest.assemble_phase_well_shunt":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_shunt")
 		"quest.analyze_phase_well_spindle":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_spindle_analysis")
@@ -317,7 +309,6 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			], "map_object.weft_bundle_cluster", "region.phase_well_loom")
 		"quest.refine_weft_bundle":
 			_mark_structure_completed(world_state, "structure.pollution_filter_build_site", "recipe.weft_bundle_stabilization")
-		"quest.assemble_phase_well_shuttle":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_shuttle")
 		"quest.analyze_phase_well_weave_core":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_weave_core_analysis")
@@ -329,7 +320,6 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			], "map_object.selvedge_strip_cluster", "region.phase_well_frame")
 		"quest.refine_selvedge_strip":
 			_mark_structure_completed(world_state, "structure.pollution_filter_build_site", "recipe.selvedge_strip_stabilization")
-		"quest.assemble_phase_well_frame_key":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_frame_key")
 		"quest.analyze_phase_well_knot_core":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_knot_core_analysis")
@@ -341,13 +331,11 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			], "map_object.tether_fiber_cluster", "region.phase_well_tether")
 		"quest.refine_tether_fiber":
 			_mark_structure_completed(world_state, "structure.pollution_filter_build_site", "recipe.tether_fiber_stabilization")
-		"quest.assemble_phase_well_tether_spike":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_tether_spike")
 		"quest.analyze_phase_well_anchor_core":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_anchor_core_analysis")
 		"quest.refine_anchor_core_dust":
 			_mark_structure_completed(world_state, "structure.pollution_filter_build_site", "recipe.anchor_core_dust_stabilization")
-		"quest.assemble_phase_well_anchor_stake":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_anchor_stake")
 		"quest.stabilize_phase_well_anchor_field":
 			var anchor_field_state := world_state.ensure_map_object(

@@ -219,37 +219,61 @@ func get_recommended_recipe_id(
 		"quest.analyze_phase_well_core":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_core_analysis", world_state)
 		"quest.refine_well_ash":
-			return _select_if_available(interactable, "recipe.well_ash_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_lattice", 1):
+				return _select_if_available(interactable, "recipe.well_ash_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_pike", 1):
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_pike", world_state)
+			return ""
 		"quest.assemble_phase_well_pike":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_pike", world_state)
 		"quest.analyze_phase_well_heart":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_heart_analysis", world_state)
 		"quest.refine_heart_spine":
-			return _select_if_available(interactable, "recipe.heart_spine_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_damper", 1):
+				return _select_if_available(interactable, "recipe.heart_spine_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_shunt", 1):
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_shunt", world_state)
+			return ""
 		"quest.assemble_phase_well_shunt":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_shunt", world_state)
 		"quest.analyze_phase_well_spindle":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_spindle_analysis", world_state)
 		"quest.refine_weft_bundle":
-			return _select_if_available(interactable, "recipe.weft_bundle_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_tension_rib", 1):
+				return _select_if_available(interactable, "recipe.weft_bundle_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_shuttle", 1):
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_shuttle", world_state)
+			return ""
 		"quest.assemble_phase_well_shuttle":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_shuttle", world_state)
 		"quest.analyze_phase_well_weave_core":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_weave_core_analysis", world_state)
 		"quest.refine_selvedge_strip":
-			return _select_if_available(interactable, "recipe.selvedge_strip_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_frame_rib", 1):
+				return _select_if_available(interactable, "recipe.selvedge_strip_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_frame_key", 1):
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_frame_key", world_state)
+			return ""
 		"quest.assemble_phase_well_frame_key":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_frame_key", world_state)
 		"quest.analyze_phase_well_knot_core":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_knot_core_analysis", world_state)
 		"quest.refine_tether_fiber":
-			return _select_if_available(interactable, "recipe.tether_fiber_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_tether_rib", 1):
+				return _select_if_available(interactable, "recipe.tether_fiber_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_tether_spike", 1):
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_tether_spike", world_state)
+			return ""
 		"quest.assemble_phase_well_tether_spike":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_tether_spike", world_state)
 		"quest.analyze_phase_well_anchor_core":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_anchor_core_analysis", world_state)
 		"quest.refine_anchor_core_dust":
-			return _select_if_available(interactable, "recipe.anchor_core_dust_stabilization")
+			if not character_state.inventory.has_ref("item.anchor_field_filter", 1):
+				return _select_if_available(interactable, "recipe.anchor_core_dust_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_anchor_stake", 1):
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_anchor_stake", world_state)
+			return ""
 		"quest.assemble_phase_well_anchor_stake":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_anchor_stake", world_state)
 		"quest.analyze_phase_well_echo_shard":
@@ -344,31 +368,31 @@ func _get_completion_next_step(recipe_id: String) -> String:
 		"recipe.phase_well_core_analysis":
 			return "相位井频谱片已整理完成；继续向东进入新暴露的井底裂口边缘，击退潜伏体并回收井壁余烬。"
 		"recipe.well_ash_stabilization":
-			return "稳相格和副产污染浆液已筛出；把它们带回基地反应器，组装井底穿钉。"
+			return "稳相格和副产污染浆液已筛出；继续这次井底整备，回基地基础反应器组装井底穿钉。"
 		"recipe.phase_well_pike":
 			return "带着井底穿钉返回更东侧井底裂口，凿开裂口并带回第一份相位井心核。"
 		"recipe.phase_well_heart_analysis":
 			return "相位井脉搏片已整理完成；继续向东进入新暴露的井心室边缘，击退心室撕裂体并回收心棘残片。"
 		"recipe.heart_spine_stabilization":
-			return "抑振骨和副产污染浆液已筛出；把它们带回基地反应器，组装井心分流栓。"
+			return "抑振骨和副产污染浆液已筛出；继续这次井心整备，回基地基础反应器组装井心分流栓。"
 		"recipe.phase_well_shunt":
 			return "带着井心分流栓返回更东侧井心室断面，勘验断面并带回第一份相位井纺核。"
 		"recipe.phase_well_spindle_analysis":
 			return "相位井经片已整理完成；继续向东进入新暴露的井纺室边缘，击退井纺纠缠体并回收纬束残团。"
 		"recipe.weft_bundle_stabilization":
-			return "张力肋和副产污染浆液已筛出；把它们带回基地反应器，组装井纺梭栓。"
+			return "张力肋和副产污染浆液已筛出；继续这次井纺整备，回基地基础反应器组装井纺梭栓。"
 		"recipe.phase_well_shuttle":
 			return "带着井纺梭栓返回更东侧井纺室断面，勘验断面并带回第一份相位井织核。"
 		"recipe.phase_well_weave_core_analysis":
 			return "相位井纹谱片已整理完成；继续向东进入新暴露的井纹架边缘，击退井纹刮裂体并回收边缕残条。"
 		"recipe.selvedge_strip_stabilization":
-			return "井纹架肋和副产污染浆液已筛出；把它们带回基地反应器，组装井纹架键栓。"
+			return "井纹架肋和副产污染浆液已筛出；继续这次井纹架整备，回基地基础反应器组装井纹架键栓。"
 		"recipe.phase_well_frame_key":
 			return "带着井纹架键栓返回更东侧井纹架断面，勘验断面并带回第一份相位井结核。"
 		"recipe.phase_well_knot_core_analysis":
 			return "相位井系谱片已整理完成；继续向东进入新暴露的井系桥边缘，击退井系缚结体并回收系索残股。"
 		"recipe.tether_fiber_stabilization":
-			return "相位井系固肋和副产污染浆液已筛出；把它们带回基地反应器，组装井系定桩。"
+			return "相位井系固肋和副产污染浆液已筛出；继续这次井系整备，回基地基础反应器组装井系定桩。"
 		"recipe.phase_well_tether_spike":
 			return "带着井系定桩返回更东侧井系桥断面，勘验断面并带回第一份相位井锚核。"
 		"recipe.phase_well_anchor_stake":

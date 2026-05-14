@@ -226,37 +226,55 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 		"recipe.well_ash_stabilization":
 			return [_set_update("quest.refine_well_ash", "craft_item", "item.phase_well_lattice", 1)]
 		"recipe.phase_well_pike":
-			return [_set_update("quest.assemble_phase_well_pike", "craft_item", "item.phase_well_pike", 1)]
+			return [
+				_set_update("quest.refine_well_ash", "craft_item", "item.phase_well_pike", 1),
+				_set_update("quest.assemble_phase_well_pike", "craft_item", "item.phase_well_pike", 1)
+			]
 		"recipe.phase_well_heart_analysis":
 			return [_set_update("quest.analyze_phase_well_heart", "craft_item", "item.phase_well_pulse_sheet", 1)]
 		"recipe.heart_spine_stabilization":
 			return [_set_update("quest.refine_heart_spine", "craft_item", "item.phase_well_damper", 1)]
 		"recipe.phase_well_shunt":
-			return [_set_update("quest.assemble_phase_well_shunt", "craft_item", "item.phase_well_shunt", 1)]
+			return [
+				_set_update("quest.refine_heart_spine", "craft_item", "item.phase_well_shunt", 1),
+				_set_update("quest.assemble_phase_well_shunt", "craft_item", "item.phase_well_shunt", 1)
+			]
 		"recipe.phase_well_spindle_analysis":
 			return [_set_update("quest.analyze_phase_well_spindle", "craft_item", "item.phase_well_warp_sheet", 1)]
 		"recipe.weft_bundle_stabilization":
 			return [_set_update("quest.refine_weft_bundle", "craft_item", "item.phase_well_tension_rib", 1)]
 		"recipe.phase_well_shuttle":
-			return [_set_update("quest.assemble_phase_well_shuttle", "craft_item", "item.phase_well_shuttle", 1)]
+			return [
+				_set_update("quest.refine_weft_bundle", "craft_item", "item.phase_well_shuttle", 1),
+				_set_update("quest.assemble_phase_well_shuttle", "craft_item", "item.phase_well_shuttle", 1)
+			]
 		"recipe.phase_well_weave_core_analysis":
 			return [_set_update("quest.analyze_phase_well_weave_core", "craft_item", "item.phase_well_pattern_sheet", 1)]
 		"recipe.selvedge_strip_stabilization":
 			return [_set_update("quest.refine_selvedge_strip", "craft_item", "item.phase_well_frame_rib", 1)]
 		"recipe.phase_well_frame_key":
-			return [_set_update("quest.assemble_phase_well_frame_key", "craft_item", "item.phase_well_frame_key", 1)]
+			return [
+				_set_update("quest.refine_selvedge_strip", "craft_item", "item.phase_well_frame_key", 1),
+				_set_update("quest.assemble_phase_well_frame_key", "craft_item", "item.phase_well_frame_key", 1)
+			]
 		"recipe.phase_well_knot_core_analysis":
 			return [_set_update("quest.analyze_phase_well_knot_core", "craft_item", "item.phase_well_tether_sheet", 1)]
 		"recipe.tether_fiber_stabilization":
 			return [_set_update("quest.refine_tether_fiber", "craft_item", "item.phase_well_tether_rib", 1)]
 		"recipe.phase_well_tether_spike":
-			return [_set_update("quest.assemble_phase_well_tether_spike", "craft_item", "item.phase_well_tether_spike", 1)]
+			return [
+				_set_update("quest.refine_tether_fiber", "craft_item", "item.phase_well_tether_spike", 1),
+				_set_update("quest.assemble_phase_well_tether_spike", "craft_item", "item.phase_well_tether_spike", 1)
+			]
 		"recipe.phase_well_anchor_core_analysis":
 			return [_set_update("quest.analyze_phase_well_anchor_core", "craft_item", "item.phase_well_return_sheet", 1)]
 		"recipe.anchor_core_dust_stabilization":
 			return [_set_update("quest.refine_anchor_core_dust", "craft_item", "item.anchor_field_filter", 1)]
 		"recipe.phase_well_anchor_stake":
-			return [_set_update("quest.assemble_phase_well_anchor_stake", "craft_item", "item.phase_well_anchor_stake", 1)]
+			return [
+				_set_update("quest.refine_anchor_core_dust", "craft_item", "item.phase_well_anchor_stake", 1),
+				_set_update("quest.assemble_phase_well_anchor_stake", "craft_item", "item.phase_well_anchor_stake", 1)
+			]
 		"recipe.phase_well_echo_shard_analysis":
 			return [_set_update("quest.analyze_phase_well_echo_shard", "craft_item", "item.phase_well_stability_readout", 1)]
 		_:

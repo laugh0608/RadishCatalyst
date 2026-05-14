@@ -167,7 +167,9 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.collect_well_ash":
 			return "沿井芯频谱继续向东推进，击退井底潜伏体并回收两处井壁余烬。"
 		"quest.refine_well_ash":
-			return "回处理点污染过滤器，把井壁余烬稳定成可继续组装的相位井稳相格。"
+			if not character_state.inventory.has_ref("item.phase_well_lattice", 1):
+				return "先回处理点污染过滤器，把井壁余烬稳定成相位井稳相格。"
+			return "继续这次井底整备：回基地基础反应器，把频谱片、稳相格和基础零件组装成井底穿钉。"
 		"quest.assemble_phase_well_pike":
 			return "回基地使用基础反应器，把相位井频谱片、稳相格和基础零件组装成井底穿钉。"
 		"quest.inspect_phase_well_sink":
@@ -177,7 +179,9 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.collect_heart_spine":
 			return "沿心核脉搏继续向东推进，击退心室撕裂体并回收两处心棘残片。"
 		"quest.refine_heart_spine":
-			return "回处理点污染过滤器，把心棘残片稳定成可继续组装的相位井抑振骨。"
+			if not character_state.inventory.has_ref("item.phase_well_damper", 1):
+				return "先回处理点污染过滤器，把心棘残片稳定成相位井抑振骨。"
+			return "继续这次井心整备：回基地基础反应器，把脉搏片、抑振骨和基础零件组装成井心分流栓。"
 		"quest.assemble_phase_well_shunt":
 			return "回基地使用基础反应器，把相位井脉搏片、抑振骨和基础零件组装成井心分流栓。"
 		"quest.inspect_phase_well_chamber":
@@ -187,7 +191,9 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.collect_weft_bundle":
 			return "沿纺核经片继续向东推进，击退井纺纠缠体并回收两处纬束残团。"
 		"quest.refine_weft_bundle":
-			return "回处理点污染过滤器，把纬束残团筛成可继续组装的相位井张力肋。"
+			if not character_state.inventory.has_ref("item.phase_well_tension_rib", 1):
+				return "先回处理点污染过滤器，把纬束残团稳定成相位井张力肋。"
+			return "继续这次井纺整备：回基地基础反应器，把经片、张力肋和基础零件组装成井纺梭栓。"
 		"quest.assemble_phase_well_shuttle":
 			return "回基地使用基础反应器，把相位井经片、张力肋和基础零件组装成井纺梭栓。"
 		"quest.inspect_phase_well_loom":
@@ -197,7 +203,9 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.collect_selvedge_strip":
 			return "沿织核纹谱继续向东推进，击退井纹刮裂体并回收两处边缕残条。"
 		"quest.refine_selvedge_strip":
-			return "回处理点污染过滤器，把边缕残条筛成可继续组装的相位井纹架肋。"
+			if not character_state.inventory.has_ref("item.phase_well_frame_rib", 1):
+				return "先回处理点污染过滤器，把边缕残条稳定成相位井纹架肋。"
+			return "继续这次井纹架整备：回基地基础反应器，把纹谱片、纹架肋和基础零件组装成井纹架键栓。"
 		"quest.assemble_phase_well_frame_key":
 			return "回基地使用基础反应器，把相位井纹谱片、纹架肋和基础零件组装成井纹架键栓。"
 		"quest.inspect_phase_well_frame":
@@ -207,7 +215,9 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.collect_tether_fiber":
 			return "沿结核系谱继续向东推进，击退井系缚结体并回收两处系索残股。"
 		"quest.refine_tether_fiber":
-			return "回处理点污染过滤器，把系索残股筛成可继续组装的相位井系固肋。"
+			if not character_state.inventory.has_ref("item.phase_well_tether_rib", 1):
+				return "先回处理点污染过滤器，把系索残股稳定成相位井系固肋。"
+			return "继续这次井系整备：回基地基础反应器，把系谱片、系固肋和基础零件组装成井系定桩。"
 		"quest.assemble_phase_well_tether_spike":
 			return "回基地使用基础反应器，把相位井系谱片、系固肋和基础零件组装成井系定桩。"
 		"quest.inspect_phase_well_tether":
@@ -215,7 +225,9 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.analyze_phase_well_anchor_core":
 			return "回基地使用基础反应器，解析相位井锚核并整理归谱片与锚核落尘。"
 		"quest.refine_anchor_core_dust":
-			return "回处理点污染过滤器，把锚核落尘稳定成可用于前线稳场的稳场滤囊。"
+			if not character_state.inventory.has_ref("item.anchor_field_filter", 1):
+				return "先回处理点污染过滤器，把锚核落尘稳定成稳场滤囊。"
+			return "继续这次锚场整备：回基地基础反应器，把归谱片、稳场滤囊和基础零件组装成井系校锚桩。"
 		"quest.assemble_phase_well_anchor_stake":
 			return "回基地使用基础反应器，把归谱片、稳场滤囊和基础零件组装成井系校锚桩。"
 		"quest.stabilize_phase_well_anchor_field":
@@ -372,7 +384,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.collect_well_ash":
 			return "井底潜伏体和井壁余烬要在同一趟外勤里一起解决，这一步负责把新的前线压力和下一次基地加工输入同时带回来。"
 		"quest.refine_well_ash":
-			return "先用污染过滤器稳定井壁余烬；副产污染浆液会继续反哺井底穿钉组装，不需要引入第三台设备。"
+			return "这一步是一次井底整备：先稳定井壁余烬，再把频谱片和稳相格组装成井底穿钉，下一趟外勤直接去凿开井底裂口。"
 		"quest.assemble_phase_well_pike":
 			return "井底穿钉会把井芯分析产物和过滤结果重新变成开路物，决定井底裂口能否交出第一份相位井心核。"
 		"quest.inspect_phase_well_sink":
@@ -382,7 +394,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.collect_heart_spine":
 			return "井心室的新敌人和心棘残片要在同一趟外勤里一起解决，这一步负责把新风险和下一次基地加工输入同时带回来。"
 		"quest.refine_heart_spine":
-			return "先用污染过滤器稳定心棘残片；副产污染浆液会继续反哺井心分流栓组装，不需要引入第三台设备。"
+			return "这一步是一次井心整备：先稳定心棘残片，再把脉搏片和抑振骨组装成井心分流栓，下一趟外勤直接勘验井心室断面。"
 		"quest.assemble_phase_well_shunt":
 			return "井心分流栓会把心核分析产物和过滤结果重新变成开路物，决定井心室断面能否交出第一份相位井纺核。"
 		"quest.inspect_phase_well_chamber":
@@ -392,7 +404,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.collect_weft_bundle":
 			return "井纺室的新敌人和纬束残团要在同一趟外勤里一起解决，这一步负责把新风险和下一次基地加工输入同时带回来。"
 		"quest.refine_weft_bundle":
-			return "先用污染过滤器稳定纬束残团；副产污染浆液会继续反哺井纺梭栓组装，不需要引入第三台设备。"
+			return "这一步是一次井纺整备：先稳定纬束残团，再把经片和张力肋组装成井纺梭栓，下一趟外勤直接勘验井纺室断面。"
 		"quest.assemble_phase_well_shuttle":
 			return "井纺梭栓会把纺核分析产物和过滤结果重新变成开路物，决定井纺室断面能否交出第一份相位井织核。"
 		"quest.inspect_phase_well_loom":
@@ -402,7 +414,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.collect_selvedge_strip":
 			return "井纹架的新敌人和边缕残条要在同一趟外勤里一起解决，这一步负责把新风险和下一次基地加工输入同时带回来。"
 		"quest.refine_selvedge_strip":
-			return "先用污染过滤器稳定边缕残条；副产污染浆液会继续反哺井纹架键栓组装，不需要引入第三台设备。"
+			return "这一步是一次井纹架整备：先稳定边缕残条，再把纹谱片和纹架肋组装成井纹架键栓，下一趟外勤直接勘验井纹架断面。"
 		"quest.assemble_phase_well_frame_key":
 			return "井纹架键栓会把织核分析产物和过滤结果重新变成开路物，决定井纹架断面能否交出第一份相位井结核。"
 		"quest.inspect_phase_well_frame":
@@ -412,7 +424,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.collect_tether_fiber":
 			return "井系桥的新敌人和系索残股要在同一趟外勤里一起解决，这一步负责把新风险和下一次基地加工输入同时带回来。"
 		"quest.refine_tether_fiber":
-			return "先用污染过滤器稳定系索残股；副产污染浆液会继续反哺井系定桩组装，不需要引入第三台设备。"
+			return "这一步是一次井系整备：先稳定系索残股，再把系谱片和系固肋组装成井系定桩，下一趟外勤直接勘验井系桥断面。"
 		"quest.assemble_phase_well_tether_spike":
 			return "井系定桩会把结核分析产物和过滤结果重新变成开路物，决定井系桥断面能否交出第一份相位井锚核。"
 		"quest.inspect_phase_well_tether":
@@ -420,7 +432,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.analyze_phase_well_anchor_core":
 			return "相位井锚核不是新的门钥匙；它要先在基地被拆成可执行的归谱片和锚核落尘，后面的外勤目标结构才会被改写。"
 		"quest.refine_anchor_core_dust":
-			return "锚核落尘要继续复用污染过滤器稳定；副产污染浆液仍保留，不需要第三台设备，但这次真正重要的是前线稳场材料而不是再开下一个同构门禁。"
+			return "这一步是一次锚场整备：先稳定锚核落尘，再把归谱片和稳场滤囊组装成井系校锚桩，下一趟外勤直接进入短守场。"
 		"quest.assemble_phase_well_anchor_stake":
 			return "井系校锚桩负责把基地加工结果直接带回前线，它不是收集奖励，而是下一次外勤目标本身。"
 		"quest.stabilize_phase_well_anchor_field":

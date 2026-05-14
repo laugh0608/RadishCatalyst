@@ -531,7 +531,7 @@
       "mass": 0.2,
       "rarity": "legendary",
       "source_refs": ["recipe.phase_well_pike"],
-      "used_by_refs": ["quest.assemble_phase_well_pike", "quest.inspect_phase_well_sink"],
+      "used_by_refs": ["quest.refine_well_ash", "quest.inspect_phase_well_sink"],
       "public_level": "spoiler"
     },
     {
@@ -596,7 +596,7 @@
       "mass": 0.2,
       "rarity": "legendary",
       "source_refs": ["recipe.phase_well_shunt"],
-      "used_by_refs": ["quest.assemble_phase_well_shunt", "quest.inspect_phase_well_chamber"],
+      "used_by_refs": ["quest.refine_heart_spine", "quest.inspect_phase_well_chamber"],
       "public_level": "spoiler"
     },
     {
@@ -661,7 +661,7 @@
       "mass": 0.2,
       "rarity": "legendary",
       "source_refs": ["recipe.phase_well_shuttle"],
-      "used_by_refs": ["quest.assemble_phase_well_shuttle", "quest.inspect_phase_well_loom"],
+      "used_by_refs": ["quest.refine_weft_bundle", "quest.inspect_phase_well_loom"],
       "public_level": "spoiler"
     },
     {
@@ -726,7 +726,7 @@
       "mass": 0.2,
       "rarity": "legendary",
       "source_refs": ["recipe.phase_well_frame_key"],
-      "used_by_refs": ["quest.assemble_phase_well_frame_key", "quest.inspect_phase_well_frame"],
+      "used_by_refs": ["quest.refine_selvedge_strip", "quest.inspect_phase_well_frame"],
       "public_level": "spoiler"
     },
     {
@@ -791,7 +791,7 @@
       "mass": 0.2,
       "rarity": "legendary",
       "source_refs": ["recipe.phase_well_tether_spike"],
-      "used_by_refs": ["quest.assemble_phase_well_tether_spike", "quest.inspect_phase_well_tether"],
+      "used_by_refs": ["quest.refine_tether_fiber", "quest.inspect_phase_well_tether"],
       "public_level": "spoiler"
     },
     {
@@ -856,7 +856,7 @@
       "mass": 0.3,
       "rarity": "legendary",
       "source_refs": ["recipe.phase_well_anchor_stake"],
-      "used_by_refs": ["quest.assemble_phase_well_anchor_stake", "quest.stabilize_phase_well_anchor_field"],
+      "used_by_refs": ["quest.refine_anchor_core_dust", "quest.stabilize_phase_well_anchor_field"],
       "public_level": "spoiler"
     },
     {

@@ -151,12 +151,22 @@ func _format_completion_note(quest_id: String) -> String:
 			return "内层故障轨迹已带回；回传后的更深风险和收益已真正落到下一轮推进线索"
 		"quest.refine_well_flux":
 			return "相位井探针已整备完成；返回更东侧内层相位井，读取第一份井芯样本"
+		"quest.refine_well_ash":
+			return "井底穿钉已整备完成；返回更东侧井底裂口，凿开后带回第一份相位井心核"
+		"quest.refine_heart_spine":
+			return "井心分流栓已整备完成；返回更东侧井心室断面，勘验后带回第一份相位井纺核"
+		"quest.refine_weft_bundle":
+			return "井纺梭栓已整备完成；返回更东侧井纺室断面，勘验后带回第一份相位井织核"
+		"quest.refine_selvedge_strip":
+			return "井纹架键栓已整备完成；返回更东侧井纹架断面，勘验后带回第一份相位井结核"
+		"quest.refine_tether_fiber":
+			return "井系定桩已整备完成；返回更东侧井系桥断面，勘验后带回第一份相位井锚核"
 		"quest.inspect_phase_well_tether":
 			return "相位井锚核已带回；回基地解析后可把井系桥东侧改成新的短守场目标"
 		"quest.analyze_phase_well_anchor_core":
-			return "归谱片和锚核落尘已整理完成；回处理点稳定落尘，再把前线稳场工具做出来"
+			return "归谱片和锚核落尘已整理完成；回基地完成井系校锚桩整备"
 		"quest.refine_anchor_core_dust":
-			return "稳场滤囊已完成；回基础反应器把它组成井系校锚桩"
+			return "井系校锚桩已整备完成；返回井系桥东侧部署并顶住一轮回稳压制"
 		"quest.assemble_phase_well_anchor_stake":
 			return "井系校锚桩已完成；返回井系桥东侧部署并顶住一轮回稳压制"
 		"quest.stabilize_phase_well_anchor_field":

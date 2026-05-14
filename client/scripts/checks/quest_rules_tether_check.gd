@@ -200,16 +200,16 @@ func _check_phase_well_anchor_core_recipe_progression() -> void:
 func _check_runtime_recovers_late_anchor_stake_progress_from_inventory() -> void:
 	var world_state := WorldState.create_default()
 	var character_state := CharacterState.create_default()
-	world_state.quest_state.active_quest_ids = ["quest.assemble_phase_well_anchor_stake"]
+	world_state.quest_state.active_quest_ids = ["quest.refine_anchor_core_dust"]
 	world_state.quest_state.completed_quest_ids = [
 		"quest.inspect_phase_well_tether",
-		"quest.analyze_phase_well_anchor_core",
-		"quest.refine_anchor_core_dust"
+		"quest.analyze_phase_well_anchor_core"
 	]
+	character_state.inventory.add_item("item.anchor_field_filter", 1)
 	character_state.inventory.add_item("item.phase_well_anchor_stake", 1)
 	var result: Dictionary = host.quest_runtime.reconcile_active_objectives(world_state, character_state)
 	host._expect_equal(bool(result.get("accepted", false)), true, "runtime accepts late anchor stake progress recovery")
-	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.assemble_phase_well_anchor_stake", "runtime completes anchor stake assembly when crafted result already exists")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.refine_anchor_core_dust", "runtime completes anchor field package when crafted result already exists")
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.stabilize_phase_well_anchor_field", "runtime advances to anchor field stabilization after late craft recovery")
 	if not host._result_logs_contain(result, "后段加工产物已补记到当前任务"):
 		host.failures.append("late anchor stake recovery should log restored craft progress, got %s" % var_to_str(result))

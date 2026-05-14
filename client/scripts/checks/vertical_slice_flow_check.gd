@@ -242,10 +242,11 @@ func _run_checks() -> void:
 	])
 	_expect_active_quest("quest.refine_well_ash", "after well ash collection returns to filter")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.well_ash_stabilization", "well ash collection unlocks stabilization recipe")
-	_complete_active_quest("quest.refine_well_ash", [{"type": "craft_item", "target_id": "item.phase_well_lattice", "amount": 1}])
-	_expect_active_quest("quest.assemble_phase_well_pike", "after well ash refinement returns to reactor")
-	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_pike", "well ash refinement unlocks phase well pike recipe")
-	_complete_active_quest("quest.assemble_phase_well_pike", [{"type": "craft_item", "target_id": "item.phase_well_pike", "amount": 1}])
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_pike", "well ash collection unlocks phase well pike recipe")
+	_complete_active_quest("quest.refine_well_ash", [
+		{"type": "craft_item", "target_id": "item.phase_well_lattice", "amount": 1},
+		{"type": "craft_item", "target_id": "item.phase_well_pike", "amount": 1}
+	])
 	_expect_active_quest("quest.inspect_phase_well_sink", "after phase well pike assembly returns to sink")
 	_complete_active_quest("quest.inspect_phase_well_sink", [{"type": "inspect", "target_id": "map_object.phase_well_sink", "amount": 1}])
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_phase_well_sink", "phase well sink quest completed")

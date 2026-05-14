@@ -1,11 +1,9 @@
 extends Node2D
 class_name VerticalSliceMap
-
 signal interaction_available(interactable: PrototypeInteractable)
 signal interaction_cleared(interactable: PrototypeInteractable)
 signal region_changed(region_id: String)
 signal region_gate_blocked(message: String)
-
 const ATTACK_RANGE := 90.0
 const BASE_ATTACK_DAMAGE := 10.0
 const PLAYER_INTERACTION_RANGE := 96.0
@@ -411,7 +409,7 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			should_enable = should_enable and phase_well_frontier_runtime != null and (
 				world_state.quest_state.has_active_quest("quest.stabilize_phase_well_anchor_field")
 				or world_state.quest_state.has_completed_quest("quest.stabilize_phase_well_anchor_field")
-				or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_anchor_stake")
+				or world_state.quest_state.has_completed_quest("quest.refine_anchor_core_dust") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_anchor_stake")
 			)
 
 		interactable.set_interaction_enabled(should_enable)
@@ -892,6 +890,8 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 	if not quest_state.has_active_quest(quest_id):
 		return false
 	return quest_state.get_objective_progress(quest_id, "craft_item", "item.repair_gel") >= 1.0
+
+
 func _get_attack_damage(character_state: CharacterState) -> float:
 	var tool_id := String(character_state.equipment.get("tool", ""))
 	var tool_definition := data_registry.get_definition(tool_id)
@@ -1260,11 +1260,11 @@ func _inspect_inner_phase_well(character_state: CharacterState, world_state: Wor
 		"message": "相位井探针已写入：内层相位井交出了第一份井芯样本，这条更东侧风险线已开始稳定回投收益。"
 	}
 func _inspect_phase_well_sink(character_state: CharacterState, world_state: WorldState) -> Dictionary:
-	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_pike"):
+	if not (world_state.quest_state.has_completed_quest("quest.refine_well_ash") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_pike")):
 		return _failure(
 			"井底裂口仍缺少可执行的穿钉读数。",
 			"裂口未凿开",
-			"先回基地用基础反应器，把相位井频谱片、稳相格和基础零件组装成井底穿钉。"
+			"先回基地完成井底整备，把井底穿钉带回来凿开裂口。"
 		)
 
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_sink"):
@@ -1286,11 +1286,11 @@ func _inspect_phase_well_sink(character_state: CharacterState, world_state: Worl
 		"message": "井底穿钉已写入：井底裂口开始析出相位井心核，更东侧井心室断面的第一段读数已被钉住。"
 	}
 func _inspect_phase_well_chamber(character_state: CharacterState, world_state: WorldState) -> Dictionary:
-	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_shunt"):
+	if not (world_state.quest_state.has_completed_quest("quest.refine_heart_spine") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_shunt")):
 		return _failure(
 			"井心室断面仍缺少可执行的分流读数。",
 			"心室未勘验",
-			"先回基地用基础反应器，把相位井脉搏片、抑振骨和基础零件组装成井心分流栓。"
+			"先回基地完成井心整备，把井心分流栓带回来勘验断面。"
 		)
 
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_chamber"):
@@ -1312,11 +1312,11 @@ func _inspect_phase_well_chamber(character_state: CharacterState, world_state: W
 		"message": "井心分流栓已写入：井心室断面开始析出相位井纺核，更东侧更深收益再次抬升。"
 	}
 func _inspect_phase_well_loom(character_state: CharacterState, world_state: WorldState) -> Dictionary:
-	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_shuttle"):
+	if not (world_state.quest_state.has_completed_quest("quest.refine_weft_bundle") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_shuttle")):
 		return _failure(
 			"井纺室断面仍缺少可执行的织构读数。",
 			"井纺室未勘验",
-			"先回基地用基础反应器，把相位井经片、张力肋和基础零件组装成井纺梭栓。"
+			"先回基地完成井纺整备，把井纺梭栓带回来勘验断面。"
 		)
 
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_loom"):
@@ -1338,11 +1338,11 @@ func _inspect_phase_well_loom(character_state: CharacterState, world_state: Worl
 		"message": "井纺梭栓已写入：井纺室断面开始析出相位井织核，更东侧更深收益再次抬升。"
 	}
 func _inspect_phase_well_frame(character_state: CharacterState, world_state: WorldState) -> Dictionary:
-	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_frame_key"):
+	if not (world_state.quest_state.has_completed_quest("quest.refine_selvedge_strip") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_frame_key")):
 		return _failure(
 			"井纹架断面仍缺少可执行的纹架读数。",
 			"井纹架未勘验",
-			"先回基地用基础反应器，把相位井纹谱片、纹架肋和基础零件组装成井纹架键栓。"
+			"先回基地完成井纹架整备，把井纹架键栓带回来勘验断面。"
 		)
 
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_frame"):

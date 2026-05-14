@@ -19,10 +19,11 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	])
 	host._expect_active_quest("quest.refine_heart_spine", "after heart spine collection returns to filter")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.heart_spine_stabilization", "heart spine collection unlocks stabilization recipe")
-	host._complete_active_quest("quest.refine_heart_spine", [{"type": "craft_item", "target_id": "item.phase_well_damper", "amount": 1}])
-	host._expect_active_quest("quest.assemble_phase_well_shunt", "after heart spine refinement returns to reactor")
-	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_shunt", "heart spine refinement unlocks phase well shunt recipe")
-	host._complete_active_quest("quest.assemble_phase_well_shunt", [{"type": "craft_item", "target_id": "item.phase_well_shunt", "amount": 1}])
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_shunt", "heart spine collection unlocks phase well shunt recipe")
+	host._complete_active_quest("quest.refine_heart_spine", [
+		{"type": "craft_item", "target_id": "item.phase_well_damper", "amount": 1},
+		{"type": "craft_item", "target_id": "item.phase_well_shunt", "amount": 1}
+	])
 	host._expect_active_quest("quest.inspect_phase_well_chamber", "after phase well shunt assembly returns to chamber")
 	host._complete_active_quest("quest.inspect_phase_well_chamber", [{"type": "inspect", "target_id": "map_object.phase_well_chamber", "amount": 1}])
 	host._expect_active_quest("quest.analyze_phase_well_spindle", "after phase well chamber returns to spindle analysis")
@@ -39,10 +40,11 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	])
 	host._expect_active_quest("quest.refine_weft_bundle", "after weft bundle collection returns to filter")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.weft_bundle_stabilization", "weft bundle collection unlocks stabilization recipe")
-	host._complete_active_quest("quest.refine_weft_bundle", [{"type": "craft_item", "target_id": "item.phase_well_tension_rib", "amount": 1}])
-	host._expect_active_quest("quest.assemble_phase_well_shuttle", "after weft bundle refinement returns to reactor")
-	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_shuttle", "weft bundle refinement unlocks phase well shuttle recipe")
-	host._complete_active_quest("quest.assemble_phase_well_shuttle", [{"type": "craft_item", "target_id": "item.phase_well_shuttle", "amount": 1}])
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_shuttle", "weft bundle collection unlocks phase well shuttle recipe")
+	host._complete_active_quest("quest.refine_weft_bundle", [
+		{"type": "craft_item", "target_id": "item.phase_well_tension_rib", "amount": 1},
+		{"type": "craft_item", "target_id": "item.phase_well_shuttle", "amount": 1}
+	])
 	host._expect_active_quest("quest.inspect_phase_well_loom", "after phase well shuttle assembly returns to loom")
 	host._complete_active_quest("quest.inspect_phase_well_loom", [{"type": "inspect", "target_id": "map_object.phase_well_loom", "amount": 1}])
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_phase_well_loom", "phase well loom quest completed")
@@ -59,10 +61,11 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	])
 	host._expect_active_quest("quest.refine_selvedge_strip", "after selvedge strip collection returns to filter")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.selvedge_strip_stabilization", "selvedge strip collection unlocks stabilization recipe")
-	host._complete_active_quest("quest.refine_selvedge_strip", [{"type": "craft_item", "target_id": "item.phase_well_frame_rib", "amount": 1}])
-	host._expect_active_quest("quest.assemble_phase_well_frame_key", "after selvedge strip refinement returns to reactor")
-	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_frame_key", "selvedge strip refinement unlocks phase well frame key recipe")
-	host._complete_active_quest("quest.assemble_phase_well_frame_key", [{"type": "craft_item", "target_id": "item.phase_well_frame_key", "amount": 1}])
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_frame_key", "selvedge strip collection unlocks phase well frame key recipe")
+	host._complete_active_quest("quest.refine_selvedge_strip", [
+		{"type": "craft_item", "target_id": "item.phase_well_frame_rib", "amount": 1},
+		{"type": "craft_item", "target_id": "item.phase_well_frame_key", "amount": 1}
+	])
 	host._expect_active_quest("quest.inspect_phase_well_frame", "after phase well frame key assembly returns to frame")
 	host._complete_active_quest("quest.inspect_phase_well_frame", [{"type": "inspect", "target_id": "map_object.phase_well_frame", "amount": 1}])
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_phase_well_frame", "phase well frame quest completed")
@@ -79,10 +82,11 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	])
 	host._expect_active_quest("quest.refine_tether_fiber", "after tether fiber collection returns to filter")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.tether_fiber_stabilization", "tether fiber collection unlocks stabilization recipe")
-	host._complete_active_quest("quest.refine_tether_fiber", [{"type": "craft_item", "target_id": "item.phase_well_tether_rib", "amount": 1}])
-	host._expect_active_quest("quest.assemble_phase_well_tether_spike", "after tether fiber refinement returns to reactor")
-	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_tether_spike", "tether fiber refinement unlocks phase well tether spike recipe")
-	host._complete_active_quest("quest.assemble_phase_well_tether_spike", [{"type": "craft_item", "target_id": "item.phase_well_tether_spike", "amount": 1}])
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_tether_spike", "tether fiber collection unlocks phase well tether spike recipe")
+	host._complete_active_quest("quest.refine_tether_fiber", [
+		{"type": "craft_item", "target_id": "item.phase_well_tether_rib", "amount": 1},
+		{"type": "craft_item", "target_id": "item.phase_well_tether_spike", "amount": 1}
+	])
 	host._expect_active_quest("quest.inspect_phase_well_tether", "after phase well tether spike assembly returns to tether")
 	host._complete_active_quest("quest.inspect_phase_well_tether", [{"type": "inspect", "target_id": "map_object.phase_well_tether", "amount": 1}])
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_phase_well_tether", "phase well tether quest completed")
@@ -93,10 +97,11 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	host._complete_active_quest("quest.analyze_phase_well_anchor_core", [{"type": "craft_item", "target_id": "item.phase_well_return_sheet", "amount": 1}])
 	host._expect_active_quest("quest.refine_anchor_core_dust", "after anchor core analysis returns to filter")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.anchor_core_dust_stabilization", "anchor core analysis unlocks anchor dust stabilization recipe")
-	host._complete_active_quest("quest.refine_anchor_core_dust", [{"type": "craft_item", "target_id": "item.anchor_field_filter", "amount": 1}])
-	host._expect_active_quest("quest.assemble_phase_well_anchor_stake", "after anchor dust refinement returns to reactor")
-	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_anchor_stake", "anchor dust refinement unlocks anchor stake recipe")
-	host._complete_active_quest("quest.assemble_phase_well_anchor_stake", [{"type": "craft_item", "target_id": "item.phase_well_anchor_stake", "amount": 1}])
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_anchor_stake", "anchor core analysis unlocks anchor stake recipe")
+	host._complete_active_quest("quest.refine_anchor_core_dust", [
+		{"type": "craft_item", "target_id": "item.anchor_field_filter", "amount": 1},
+		{"type": "craft_item", "target_id": "item.phase_well_anchor_stake", "amount": 1}
+	])
 	host._expect_active_quest("quest.stabilize_phase_well_anchor_field", "after anchor stake assembly returns to frontier")
 	host._complete_active_quest("quest.stabilize_phase_well_anchor_field", [
 		{"type": "defeat_enemy", "target_id": "enemy.phase_well_warden", "amount": 1},
@@ -134,9 +139,9 @@ func _check_onboarding_hints() -> void:
 	host._expect_text_contains(presenter.format_direction_hint(heart_completion_world, hint_character, ""), "回基地解析心核", "phase well heart completion direction highlights next base analysis")
 	host._expect_text_contains(presenter.format_onboarding_hint(heart_completion_world, hint_character, ""), "相位井心核不是收尾", "phase well heart completion onboarding keeps next package explicit")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_phase_well_heart", "脉搏片", "phase well heart analysis onboarding hint")
-	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_phase_well_shunt", "井心分流栓", "phase well shunt assembly onboarding hint")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_heart_spine", "一次井心整备", "phase well shunt package onboarding hint")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_phase_well_spindle", "经片", "phase well spindle analysis onboarding hint")
-	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_weft_bundle", "第三台设备", "weft bundle refinement onboarding keeps device reuse explicit")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_weft_bundle", "一次井纺整备", "weft bundle package onboarding hint")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.inspect_phase_well_loom", "井纺梭栓", "phase well loom onboarding hint")
 	var chamber_completion_world := WorldState.create_default()
 	chamber_completion_world.quest_state.active_quest_ids.clear()
@@ -149,7 +154,7 @@ func _check_onboarding_hints() -> void:
 	host._expect_text_contains(presenter.format_direction_hint(loom_completion_world, hint_character, ""), "回基地解析织核", "phase well loom completion direction points to phase well frame analysis")
 	host._expect_text_contains(presenter.format_onboarding_hint(loom_completion_world, hint_character, ""), "相位井织核不是收尾", "phase well loom completion onboarding keeps frame package explicit")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_phase_well_weave_core", "纹谱片", "phase well weave core analysis onboarding hint")
-	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_phase_well_frame_key", "井纹架键栓", "phase well frame key assembly onboarding hint")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_selvedge_strip", "一次井纹架整备", "phase well frame key package onboarding hint")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.inspect_phase_well_frame", "井纹架键栓", "phase well frame onboarding hint")
 	var frame_completion_world := WorldState.create_default()
 	frame_completion_world.quest_state.active_quest_ids.clear()
@@ -157,7 +162,7 @@ func _check_onboarding_hints() -> void:
 	host._expect_text_contains(presenter.format_direction_hint(frame_completion_world, hint_character, ""), "回基地解析结核", "phase well frame completion direction points to tether analysis")
 	host._expect_text_contains(presenter.format_onboarding_hint(frame_completion_world, hint_character, ""), "相位井结核不是收尾", "phase well frame completion onboarding keeps tether package explicit")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_phase_well_knot_core", "系谱片", "phase well knot core analysis onboarding hint")
-	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_phase_well_tether_spike", "井系定桩", "phase well tether spike assembly onboarding hint")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_tether_fiber", "一次井系整备", "phase well tether spike package onboarding hint")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.inspect_phase_well_tether", "井系定桩", "phase well tether onboarding hint")
 	var tether_completion_world := WorldState.create_default()
 	tether_completion_world.quest_state.active_quest_ids.clear()
@@ -165,8 +170,7 @@ func _check_onboarding_hints() -> void:
 	host._expect_text_contains(presenter.format_direction_hint(tether_completion_world, hint_character, ""), "解析锚核", "phase well tether completion direction points to anchor core analysis")
 	host._expect_text_contains(presenter.format_onboarding_hint(tether_completion_world, hint_character, ""), "锚核不是收尾", "phase well tether completion onboarding keeps anchor-field package explicit")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_phase_well_anchor_core", "归谱片", "phase well anchor core analysis onboarding hint")
-	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_anchor_core_dust", "第三台设备", "anchor core dust refinement onboarding keeps device reuse explicit")
-	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_phase_well_anchor_stake", "井系校锚桩", "anchor stake assembly onboarding hint")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_anchor_core_dust", "一次锚场整备", "anchor stake package onboarding hint")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.stabilize_phase_well_anchor_field", "短守场", "anchor field stabilization onboarding hint")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.stabilize_phase_well_anchor_field", "部署后的校锚桩会保留在现场", "anchor field stabilization onboarding keeps retry rule explicit before deployment")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_phase_well_echo_shard", "前线回充", "echo shard analysis direction explains readout payoff")
@@ -240,7 +244,7 @@ func _check_status_panel_summary() -> void:
 func _check_anchor_field_recovery() -> void:
 	var runtime := PhaseWellFrontierRuntime.new(host.data_registry)
 	var world_state := WorldState.create_default()
-	world_state.quest_state.completed_quest_ids.append("quest.assemble_phase_well_anchor_stake")
+	world_state.quest_state.completed_quest_ids.append("quest.refine_anchor_core_dust")
 	var object_state := world_state.ensure_map_object(
 		"map_object_instance.phase_well_anchor_field",
 		"map_object.phase_well_anchor_field",

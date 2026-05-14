@@ -244,7 +244,7 @@ func _get_late_craft_progress_recovery_updates(world_state: WorldState, characte
 			"item_id": "item.phase_well_tension_rib"
 		},
 		{
-			"quest_id": "quest.assemble_phase_well_shuttle",
+			"quest_id": "quest.refine_weft_bundle",
 			"item_id": "item.phase_well_shuttle"
 		},
 		{
@@ -256,7 +256,7 @@ func _get_late_craft_progress_recovery_updates(world_state: WorldState, characte
 			"item_id": "item.phase_well_frame_rib"
 		},
 		{
-			"quest_id": "quest.assemble_phase_well_frame_key",
+			"quest_id": "quest.refine_selvedge_strip",
 			"item_id": "item.phase_well_frame_key"
 		},
 		{
@@ -268,7 +268,7 @@ func _get_late_craft_progress_recovery_updates(world_state: WorldState, characte
 			"item_id": "item.phase_well_tether_rib"
 		},
 		{
-			"quest_id": "quest.assemble_phase_well_tether_spike",
+			"quest_id": "quest.refine_tether_fiber",
 			"item_id": "item.phase_well_tether_spike"
 		},
 		{
@@ -280,7 +280,7 @@ func _get_late_craft_progress_recovery_updates(world_state: WorldState, characte
 			"item_id": "item.anchor_field_filter"
 		},
 		{
-			"quest_id": "quest.assemble_phase_well_anchor_stake",
+			"quest_id": "quest.refine_anchor_core_dust",
 			"item_id": "item.phase_well_anchor_stake"
 		},
 		{
@@ -508,7 +508,6 @@ func _activate_missing_post_phase_well_loom_followup(world_state: WorldState) ->
 		"quest.analyze_phase_well_weave_core",
 		"quest.collect_selvedge_strip",
 		"quest.refine_selvedge_strip",
-		"quest.assemble_phase_well_frame_key",
 		"quest.inspect_phase_well_frame"
 	]:
 		if world_state.quest_state.has_completed_quest(quest_id):
@@ -529,7 +528,6 @@ func _activate_missing_post_phase_well_frame_followup(world_state: WorldState) -
 		"quest.analyze_phase_well_knot_core",
 		"quest.collect_tether_fiber",
 		"quest.refine_tether_fiber",
-		"quest.assemble_phase_well_tether_spike",
 		"quest.inspect_phase_well_tether"
 	]:
 		if world_state.quest_state.has_completed_quest(quest_id):
@@ -549,7 +547,6 @@ func _activate_missing_post_phase_well_tether_followup(world_state: WorldState) 
 	for quest_id in [
 		"quest.analyze_phase_well_anchor_core",
 		"quest.refine_anchor_core_dust",
-		"quest.assemble_phase_well_anchor_stake",
 		"quest.stabilize_phase_well_anchor_field"
 	]:
 		if world_state.quest_state.has_completed_quest(quest_id):
@@ -570,7 +567,6 @@ func _activate_missing_post_phase_well_chamber_followup(world_state: WorldState)
 		"quest.analyze_phase_well_spindle",
 		"quest.collect_weft_bundle",
 		"quest.refine_weft_bundle",
-		"quest.assemble_phase_well_shuttle",
 		"quest.inspect_phase_well_loom"
 	]:
 		if world_state.quest_state.has_completed_quest(quest_id):
@@ -591,26 +587,21 @@ func _activate_missing_post_phase_well_sink_followup(world_state: WorldState) ->
 		"quest.analyze_phase_well_heart",
 		"quest.collect_heart_spine",
 		"quest.refine_heart_spine",
-		"quest.assemble_phase_well_shunt",
 		"quest.inspect_phase_well_chamber",
 		"quest.analyze_phase_well_spindle",
 		"quest.collect_weft_bundle",
 		"quest.refine_weft_bundle",
-		"quest.assemble_phase_well_shuttle",
 		"quest.inspect_phase_well_loom",
 		"quest.analyze_phase_well_weave_core",
 		"quest.collect_selvedge_strip",
 		"quest.refine_selvedge_strip",
-		"quest.assemble_phase_well_frame_key",
 		"quest.inspect_phase_well_frame",
 		"quest.analyze_phase_well_knot_core",
 		"quest.collect_tether_fiber",
 		"quest.refine_tether_fiber",
-		"quest.assemble_phase_well_tether_spike",
 		"quest.inspect_phase_well_tether",
 		"quest.analyze_phase_well_anchor_core",
 		"quest.refine_anchor_core_dust",
-		"quest.assemble_phase_well_anchor_stake",
 		"quest.stabilize_phase_well_anchor_field"
 	]:
 		if world_state.quest_state.has_completed_quest(quest_id):
@@ -643,31 +634,25 @@ func _activate_missing_post_phase_relay_followup(world_state: WorldState) -> boo
 		"quest.analyze_phase_well_core",
 		"quest.collect_well_ash",
 		"quest.refine_well_ash",
-		"quest.assemble_phase_well_pike",
 		"quest.inspect_phase_well_sink",
 		"quest.analyze_phase_well_heart",
 		"quest.collect_heart_spine",
 		"quest.refine_heart_spine",
-		"quest.assemble_phase_well_shunt",
 		"quest.inspect_phase_well_chamber",
 		"quest.analyze_phase_well_spindle",
 		"quest.collect_weft_bundle",
 		"quest.refine_weft_bundle",
-		"quest.assemble_phase_well_shuttle",
 		"quest.inspect_phase_well_loom",
 		"quest.analyze_phase_well_weave_core",
 		"quest.collect_selvedge_strip",
 		"quest.refine_selvedge_strip",
-		"quest.assemble_phase_well_frame_key",
 		"quest.inspect_phase_well_frame",
 		"quest.analyze_phase_well_knot_core",
 		"quest.collect_tether_fiber",
 		"quest.refine_tether_fiber",
-		"quest.assemble_phase_well_tether_spike",
 		"quest.inspect_phase_well_tether",
 		"quest.analyze_phase_well_anchor_core",
 		"quest.refine_anchor_core_dust",
-		"quest.assemble_phase_well_anchor_stake",
 		"quest.stabilize_phase_well_anchor_field"
 	]:
 		if world_state.quest_state.has_completed_quest(quest_id):
@@ -682,12 +667,10 @@ func _activate_missing_post_phase_relay_followup(world_state: WorldState) -> boo
 func _get_default_phase_relay_anchor_id(world_state: WorldState) -> String:
 	for quest_id in [
 		"quest.inspect_phase_well_loom",
-		"quest.assemble_phase_well_shuttle",
 		"quest.refine_weft_bundle",
 		"quest.collect_weft_bundle",
 		"quest.analyze_phase_well_spindle",
 		"quest.inspect_phase_well_chamber",
-		"quest.assemble_phase_well_shunt",
 		"quest.refine_heart_spine",
 		"quest.collect_heart_spine"
 	]:

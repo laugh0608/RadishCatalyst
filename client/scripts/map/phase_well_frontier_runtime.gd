@@ -2,11 +2,13 @@ extends RefCounted
 class_name PhaseWellFrontierRuntime
 
 const PHASE_WELL_TETHER_SPIKE_QUEST_ID := "quest.assemble_phase_well_tether_spike"
+const PHASE_WELL_TETHER_PACKAGE_QUEST_ID := "quest.refine_tether_fiber"
 const PHASE_WELL_TETHER_QUEST_ID := "quest.inspect_phase_well_tether"
 const PHASE_WELL_TETHER_SPIKE_ITEM_ID := "item.phase_well_tether_spike"
 
 const ANALYZE_ANCHOR_CORE_QUEST_ID := "quest.analyze_phase_well_anchor_core"
 const ASSEMBLE_ANCHOR_STAKE_QUEST_ID := "quest.assemble_phase_well_anchor_stake"
+const ANCHOR_FIELD_PACKAGE_QUEST_ID := "quest.refine_anchor_core_dust"
 const STABILIZE_ANCHOR_FIELD_QUEST_ID := "quest.stabilize_phase_well_anchor_field"
 const ANALYZE_ECHO_SHARD_QUEST_ID := "quest.analyze_phase_well_echo_shard"
 const PHASE_WELL_ANCHOR_STAKE_ITEM_ID := "item.phase_well_anchor_stake"
@@ -35,11 +37,14 @@ func _init(registry: DataRegistry) -> void:
 
 
 func inspect_tether(character_state: CharacterState, world_state: WorldState) -> Dictionary:
-	if not world_state.quest_state.has_completed_quest(PHASE_WELL_TETHER_SPIKE_QUEST_ID):
+	if (
+		not world_state.quest_state.has_completed_quest(PHASE_WELL_TETHER_PACKAGE_QUEST_ID)
+		and not world_state.quest_state.has_completed_quest(PHASE_WELL_TETHER_SPIKE_QUEST_ID)
+	):
 		return _failure(
 			"井系桥断面仍缺少可执行的系桥读数。",
 			"井系桥未勘验",
-			"先回基地用基础反应器，把相位井系谱片、井系固肋和基础零件组装成井系定桩。"
+			"先回基地完成井系整备，把井系定桩带回来勘验断面。"
 		)
 
 	if world_state.quest_state.has_completed_quest(PHASE_WELL_TETHER_QUEST_ID):
@@ -86,11 +91,14 @@ func inspect_anchor_field(character_state: CharacterState, world_state: WorldSta
 			"message": "锚场回稳窗已稳定：井系桥东侧的局部稳定窗口仍在维持；回基地解析相位井余响片后，可把这里校准成前线回稳点。"
 		}
 
-	if not world_state.quest_state.has_completed_quest(ASSEMBLE_ANCHOR_STAKE_QUEST_ID):
+	if (
+		not world_state.quest_state.has_completed_quest(ANCHOR_FIELD_PACKAGE_QUEST_ID)
+		and not world_state.quest_state.has_completed_quest(ASSEMBLE_ANCHOR_STAKE_QUEST_ID)
+	):
 		return _failure(
 			"锚场回稳窗仍缺少可执行的校锚桩。",
 			"锚场未回稳",
-			"先回基地解析相位井锚核、稳定锚核落尘，再把井系校锚桩带回来部署。"
+			"先回基地完成锚场整备，把井系校锚桩带回来部署。"
 		)
 
 	if not is_anchor_field_deployed(world_state):

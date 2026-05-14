@@ -388,7 +388,7 @@
       "duration": 14.0,
       "energy_cost": 6.0,
       "pollution_delta": 0.0,
-      "unlock_conditions": ["quest.refine_well_ash"],
+      "unlock_conditions": ["quest.collect_well_ash"],
       "public_level": "spoiler"
     },
     {
@@ -433,7 +433,7 @@
       "duration": 15.0,
       "energy_cost": 6.0,
       "pollution_delta": 0.0,
-      "unlock_conditions": ["quest.refine_heart_spine"],
+      "unlock_conditions": ["quest.collect_heart_spine"],
       "public_level": "spoiler"
     },
     {
@@ -478,7 +478,7 @@
       "duration": 16.0,
       "energy_cost": 6.0,
       "pollution_delta": 0.0,
-      "unlock_conditions": ["quest.refine_weft_bundle"],
+      "unlock_conditions": ["quest.collect_weft_bundle"],
       "public_level": "spoiler"
     },
     {
@@ -523,7 +523,7 @@
       "duration": 16.0,
       "energy_cost": 6.0,
       "pollution_delta": 0.0,
-      "unlock_conditions": ["quest.refine_selvedge_strip"],
+      "unlock_conditions": ["quest.collect_selvedge_strip"],
       "public_level": "spoiler"
     },
     {
@@ -568,7 +568,7 @@
       "duration": 17.0,
       "energy_cost": 6.0,
       "pollution_delta": 0.0,
-      "unlock_conditions": ["quest.refine_tether_fiber"],
+      "unlock_conditions": ["quest.collect_tether_fiber"],
       "public_level": "spoiler"
     },
     {
@@ -613,7 +613,7 @@
       "duration": 18.0,
       "energy_cost": 6.0,
       "pollution_delta": 0.0,
-      "unlock_conditions": ["quest.refine_anchor_core_dust"],
+      "unlock_conditions": ["quest.analyze_phase_well_anchor_core"],
       "public_level": "spoiler"
     },
     {
