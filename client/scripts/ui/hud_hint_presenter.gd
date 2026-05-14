@@ -133,7 +133,9 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.trace_phase_splinters":
 			return "从锚点继续向东推进，击败裂相猎手并回收两处裂相碎屑。"
 		"quest.refine_phase_splinters":
-			return "回处理点污染过滤器，把裂相碎屑筛成透镜胚片并保留副产污染浆液。"
+			if not character_state.inventory.has_ref("item.phase_lens_blank", 1):
+				return "回处理点污染过滤器，把裂相碎屑筛成透镜胚片并保留副产污染浆液。"
+			return "回基地使用基础反应器，把透镜胚片、污染浆液和基础零件调准成中继调谐镜。"
 		"quest.tune_relay_lens":
 			return "回基地使用基础反应器，把透镜胚片、污染浆液和基础零件调准成中继调谐镜。"
 		"quest.inspect_phase_fault_spire":
@@ -340,7 +342,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.trace_phase_splinters":
 			return "裂相碎屑是回传后的第一份新深段收益；它们必须再回基地加工，才能证明这条更深推进线不是纯跑图。"
 		"quest.refine_phase_splinters":
-			return "先用污染过滤器把裂相碎屑筛成透镜胚片；副产污染浆液会直接回到下一步中继调谐镜组装。"
+			return "这一步是一次远征整备：先用污染过滤器筛出透镜胚片，再用基础反应器调准中继调谐镜，下一趟外勤直接去校准裂相尖塔。"
 		"quest.tune_relay_lens":
 			return "中继调谐镜会把过滤器副产重新变成开路物，决定裂相尖塔能否吐出第一份内层故障轨迹。"
 		"quest.inspect_phase_fault_spire":

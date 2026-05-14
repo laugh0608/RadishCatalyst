@@ -1181,11 +1181,11 @@ func _inspect_phase_relay_pad(character_state: CharacterState, world_state: Worl
 		"message": "相位回投台已联通：已回投到 %s%s。" % [active_anchor_label, cycle_hint]
 	}
 func _inspect_phase_fault_spire(character_state: CharacterState, world_state: WorldState) -> Dictionary:
-	if not world_state.quest_state.has_completed_quest("quest.tune_relay_lens"):
+	if not (world_state.quest_state.has_completed_quest("quest.refine_phase_splinters") or world_state.quest_state.has_completed_quest("quest.tune_relay_lens")):
 		return _failure(
 			"裂相尖塔仍缺少可执行的调谐镜组。",
 			"尖塔未校准",
-			"先回基地用基础反应器，把透镜胚片、污染浆液和基础零件调准成中继调谐镜。"
+			"先回基地完成中继调谐镜整备：过滤裂相碎屑，再用基础反应器调准镜组。"
 		)
 
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_fault_spire"):

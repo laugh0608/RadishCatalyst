@@ -24,7 +24,7 @@
         "quest.analyze_deep_core",
         "quest.assemble_deep_signal_matrix",
         "quest.reenter_phase_frontline",
-        "quest.tune_relay_lens",
+        "quest.refine_phase_splinters",
         "quest.analyze_inner_fault_trace",
         "quest.assemble_phase_well_key",
         "quest.analyze_phase_well_locator",

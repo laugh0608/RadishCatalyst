@@ -181,11 +181,12 @@ func _run_checks() -> void:
 	])
 	_expect_active_quest("quest.refine_phase_splinters", "after phase splinter tracing returns to filter refinement")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_splinter_refining", "phase splinter tracing unlocks filter recipe")
-	_complete_active_quest("quest.refine_phase_splinters", [{"type": "craft_item", "target_id": "item.phase_lens_blank", "amount": 1}])
-	_expect_active_quest("quest.tune_relay_lens", "after phase lens blank refinement returns to reactor")
-	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.relay_tuning_lens", "phase splinter refinement unlocks relay lens recipe")
-	_complete_active_quest("quest.tune_relay_lens", [{"type": "craft_item", "target_id": "item.relay_tuning_lens", "amount": 1}])
-	_expect_active_quest("quest.inspect_phase_fault_spire", "after relay lens tuning returns to deep spire")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.relay_tuning_lens", "phase splinter tracing unlocks relay lens recipe")
+	_complete_active_quest("quest.refine_phase_splinters", [
+		{"type": "craft_item", "target_id": "item.phase_lens_blank", "amount": 1},
+		{"type": "craft_item", "target_id": "item.relay_tuning_lens", "amount": 1}
+	])
+	_expect_active_quest("quest.inspect_phase_fault_spire", "after relay lens expedition prep returns to deep spire")
 	_complete_active_quest("quest.inspect_phase_fault_spire", [{"type": "inspect", "target_id": "map_object.phase_fault_spire", "amount": 1}])
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_phase_fault_spire", "phase fault spire quest completed")
 	_expect_equal(int(character_state.inventory.items.get("item.inner_fault_trace", 0)), 1, "phase fault spire grants first inner fault trace")
@@ -336,10 +337,12 @@ func _check_onboarding_hints() -> void:
 		"phase splinter tracing direction points to new deep hunter"
 	)
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_phase_splinters", "污染过滤器", "phase splinter refinement hint")
+	hint_character.inventory.add_item("item.phase_lens_blank", 1)
+	hint_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
 	_expect_text_contains(
-		presenter.format_direction_hint(hint_world, hint_character, "quest.tune_relay_lens"),
+		presenter.format_direction_hint(hint_world, hint_character, "quest.refine_phase_splinters"),
 		"基础反应器",
-		"relay tuning lens direction returns to reactor"
+		"phase splinter expedition prep second step returns to reactor"
 	)
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.inspect_phase_fault_spire", "中继调谐镜", "phase fault spire onboarding hint")
 	_expect_text_contains(

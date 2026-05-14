@@ -191,7 +191,11 @@ func get_recommended_recipe_id(
 		"quest.assemble_deep_signal_matrix":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_signal_matrix")
 		"quest.refine_phase_splinters":
-			return _select_if_available(interactable, "recipe.phase_splinter_refining")
+			if not character_state.inventory.has_ref("item.phase_lens_blank", 1):
+				return _select_if_available(interactable, "recipe.phase_splinter_refining")
+			if not character_state.inventory.has_ref("item.relay_tuning_lens", 1):
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.relay_tuning_lens")
+			return ""
 		"quest.tune_relay_lens":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.relay_tuning_lens")
 		"quest.analyze_inner_fault_trace":
@@ -314,7 +318,7 @@ func _get_completion_next_step(recipe_id: String) -> String:
 		"recipe.deep_signal_matrix":
 			return "深段第二轮读数已整理完成；返回深段固定点部署前线回传锚点，并准备从回投台重返前线。"
 		"recipe.phase_splinter_refining":
-			return "透镜胚片和副产污染浆液已筛出；把它们带回基地反应器，调准成中继调谐镜。"
+			return "透镜胚片和副产污染浆液已筛出；继续这次远征整备，回基地基础反应器调准中继调谐镜。"
 		"recipe.relay_tuning_lens":
 			return "带着中继调谐镜返回更东侧裂相尖塔，逼出第一份内层故障轨迹。"
 		"recipe.inner_fault_analysis":

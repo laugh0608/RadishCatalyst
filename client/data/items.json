@@ -336,7 +336,7 @@
       "mass": 0.2,
       "rarity": "epic",
       "source_refs": ["recipe.relay_tuning_lens"],
-      "used_by_refs": ["quest.tune_relay_lens", "quest.inspect_phase_fault_spire"],
+      "used_by_refs": ["quest.refine_phase_splinters", "quest.inspect_phase_fault_spire"],
       "public_level": "spoiler"
     },
     {

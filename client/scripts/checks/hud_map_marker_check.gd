@@ -140,7 +140,6 @@ func run(root_window: Window) -> void:
 	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.reenter_phase_frontline"), "基地：当前位置，目标", "relay reentry starts from outpost pad")
 	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.trace_phase_splinters"), "深段：更深，目标", "phase splinter tracing returns objective to deeper region")
 	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.refine_phase_splinters"), "晶体：东侧，目标", "phase splinter refinement returns to treatment filter")
-	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.tune_relay_lens"), "基地：当前位置，目标", "relay tuning lens returns to outpost reactor")
 	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.inspect_phase_fault_spire"), "深段：更深，目标", "phase fault spire returns objective to deeper region")
 	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.analyze_inner_fault_trace"), "基地：当前位置，目标", "inner fault analysis returns to outpost reactor")
 	host._expect_text_contains(presenter.format_region_markers(marker_world, "quest.collect_fault_residue"), "深段：更深，目标", "fault residue collection returns objective to deeper region")

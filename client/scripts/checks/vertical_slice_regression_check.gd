@@ -167,17 +167,16 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	recipe_character.inventory.add_item("item.phase_lens_blank", 1)
 	recipe_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
 	recipe_character.inventory.items["item.basic_parts"] = 1
-	recipe_world.quest_state.active_quest_ids = ["quest.tune_relay_lens"]
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
 		"recipe.process_crystal_ore",
-		"relay tuning lens falls back to basic parts recipe when only parts are missing"
+		"relay lens expedition prep falls back to basic parts recipe when only parts are missing"
 	)
 	recipe_character.inventory.items["item.basic_parts"] = 2
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
 		"recipe.relay_tuning_lens",
-		"relay tuning lens returns to reactor recipe after basic parts are restored"
+		"relay lens expedition prep returns to reactor recipe after basic parts are restored"
 	)
 	recipe_character.inventory.add_item("item.inner_fault_trace", 1)
 	recipe_character.inventory.items["item.basic_parts"] = 1

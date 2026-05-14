@@ -221,8 +221,11 @@ func format_phase_relay_pad_prompt(world_state: WorldState) -> String:
 func format_phase_fault_spire_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_fault_spire"):
 		return "裂相尖塔：已校准，第一份内层故障轨迹已带回基地；下一步回基地解析更东侧相位井锁。"
-	if not world_state.quest_state.has_completed_quest("quest.tune_relay_lens"):
-		return "裂相尖塔：先回基地用基础反应器调准中继调谐镜，再回来校准内层回波。"
+	if not (
+		world_state.quest_state.has_completed_quest("quest.refine_phase_splinters")
+		or world_state.quest_state.has_completed_quest("quest.tune_relay_lens")
+	):
+		return "裂相尖塔：先回基地完成中继调谐镜整备，再回来校准内层回波。"
 	if not character_state.inventory.has_ref("item.relay_tuning_lens", 1):
 		return "裂相尖塔：缺少中继调谐镜；回基地确认基础反应器组装结果后再来。"
 	return "按 E 校准：裂相尖塔。"

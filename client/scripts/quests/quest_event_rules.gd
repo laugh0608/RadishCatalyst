@@ -205,7 +205,7 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 		"recipe.phase_splinter_refining":
 			return [_set_update("quest.refine_phase_splinters", "craft_item", "item.phase_lens_blank", 1)]
 		"recipe.relay_tuning_lens":
-			return [_set_update("quest.tune_relay_lens", "craft_item", "item.relay_tuning_lens", 1)]
+			return [_set_update("quest.refine_phase_splinters", "craft_item", "item.relay_tuning_lens", 1)]
 		"recipe.inner_fault_analysis":
 			return [_set_update("quest.analyze_inner_fault_trace", "craft_item", "item.phase_well_coordinate", 1)]
 		"recipe.fault_residue_stabilization":

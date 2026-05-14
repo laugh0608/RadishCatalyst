@@ -144,11 +144,9 @@ func _format_completion_note(quest_id: String) -> String:
 		"quest.reenter_phase_frontline":
 			return "基地回投已接入正式主线；更东侧裂相碎屑和新的深段猎手已暴露"
 		"quest.trace_phase_splinters":
-			return "裂相碎屑已带回；回处理点过滤器筛出透镜胚片"
+			return "裂相碎屑已带回；回基地完成中继调谐镜远征整备"
 		"quest.refine_phase_splinters":
-			return "透镜胚片和副产污染浆液已就绪；回基地用基础反应器调准中继调谐镜"
-		"quest.tune_relay_lens":
-			return "中继调谐镜已完成；返回更东侧裂相尖塔，逼出第一份内层故障轨迹"
+			return "中继调谐镜已整备完成；返回更东侧裂相尖塔，逼出第一份内层故障轨迹"
 		"quest.inspect_phase_fault_spire":
 			return "内层故障轨迹已带回；回传后的更深风险和收益已真正落到下一轮推进线索"
 		"quest.inspect_phase_well_tether":

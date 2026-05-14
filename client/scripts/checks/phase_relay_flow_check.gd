@@ -191,7 +191,6 @@ func run() -> void:
 		"quest.reenter_phase_frontline",
 		"quest.trace_phase_splinters",
 		"quest.refine_phase_splinters",
-		"quest.tune_relay_lens",
 		"quest.inspect_phase_fault_spire",
 		"quest.analyze_inner_fault_trace",
 		"quest.collect_fault_residue",

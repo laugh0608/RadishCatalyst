@@ -37,7 +37,6 @@ const QUEST_PROGRESS_ORDER: Array[String] = [
 	"quest.reenter_phase_frontline",
 	"quest.trace_phase_splinters",
 	"quest.refine_phase_splinters",
-	"quest.tune_relay_lens",
 	"quest.inspect_phase_fault_spire",
 	"quest.analyze_inner_fault_trace",
 	"quest.collect_fault_residue",
@@ -263,7 +262,6 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			], "map_object.phase_splinter_cluster", "region.deep_ruin_threshold")
 		"quest.refine_phase_splinters":
 			_mark_structure_completed(world_state, "structure.pollution_filter_build_site", "recipe.phase_splinter_refining")
-		"quest.tune_relay_lens":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.relay_tuning_lens")
 		"quest.analyze_inner_fault_trace":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.inner_fault_analysis")

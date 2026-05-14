@@ -363,11 +363,11 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 	_expect_update(
 		event_rules.get_recipe_objective_updates("recipe.relay_tuning_lens"),
 		"set",
-		"quest.tune_relay_lens",
+		"quest.refine_phase_splinters",
 		"craft_item",
 		"item.relay_tuning_lens",
 		1.0,
-		"relay tuning lens recipe update"
+		"relay tuning lens recipe update for expedition prep"
 	)
 	_expect_update(
 		event_rules.get_recipe_objective_updates("recipe.inner_fault_analysis"),
