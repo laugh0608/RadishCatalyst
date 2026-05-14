@@ -19,6 +19,23 @@
       "public_level": "public"
     },
     {
+      "id": "map_object.rich_crystal_vein",
+      "display_name_key": "map_object.rich_crystal_vein.name",
+      "description_key": "map_object.rich_crystal_vein.desc",
+      "object_type": "resource_node",
+      "interaction_types": ["gather"],
+      "is_destructible": true,
+      "is_collectible": false,
+      "is_sampleable": false,
+      "blocks_movement": true,
+      "blocks_building": true,
+      "required_tool_tags": ["gather_basic"],
+      "drops": [{"id": "item.crystal_ore", "amount": 6}],
+      "sample_result_refs": [],
+      "pollution_effect": "",
+      "public_level": "public"
+    },
+    {
       "id": "map_object.field_wreckage",
       "display_name_key": "map_object.field_wreckage.name",
       "description_key": "map_object.field_wreckage.desc",

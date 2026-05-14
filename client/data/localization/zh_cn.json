@@ -435,6 +435,8 @@
   "region.phase_well_tether.desc": "相位井结核解析后才真正暴露的更东侧井系桥断面，风险继续升级，但短期仍只复用污染过滤器和基础反应器来把收益继续向更深处抬升。",
     "map_object.crystal_cluster.name": "晶体簇",
     "map_object.crystal_cluster.desc": "可采集晶体矿物的矿脉节点。",
+    "map_object.rich_crystal_vein.name": "富晶残脉",
+    "map_object.rich_crystal_vein.desc": "晶体矿脉区北侧裸露出的高密度残脉，可作为基础零件不足时的应急晶体矿物来源。",
     "map_object.field_wreckage.name": "外勤残骸",
     "map_object.field_wreckage.desc": "前哨旧探机留下的残骸，可回收导电废件。",
     "map_object.anomaly_crystal.name": "异常晶体",

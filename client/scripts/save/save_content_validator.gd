@@ -10,6 +10,7 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.crystal_cluster_reserve": "map_object.crystal_cluster",
 	"map_object_instance.crystal_cluster_west_reserve": "map_object.crystal_cluster",
 	"map_object_instance.crystal_cluster_north_east_reserve": "map_object.crystal_cluster",
+	"map_object_instance.rich_crystal_vein_north": "map_object.rich_crystal_vein",
 	"map_object_instance.field_wreckage_north": "map_object.field_wreckage",
 	"map_object_instance.field_wreckage_east": "map_object.field_wreckage",
 	"map_object_instance.anomaly_crystal": "map_object.anomaly_crystal",

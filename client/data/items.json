@@ -10,7 +10,7 @@
       "stack_size": 99,
       "mass": 0.4,
       "rarity": "common",
-      "source_refs": ["map_object.crystal_cluster"],
+      "source_refs": ["map_object.crystal_cluster", "map_object.rich_crystal_vein"],
       "used_by_refs": ["recipe.process_crystal_ore", "recipe.make_filter_media", "recipe.reactor_calibrator", "recipe.foundation_t1"],
       "public_level": "public"
     },

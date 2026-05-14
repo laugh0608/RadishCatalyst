@@ -990,7 +990,7 @@ func _check_failure_feedback_logs() -> void:
 	var missing_parts := processing.process_recipe("recipe.relay_tuning_lens", missing_parts_character, missing_parts_world)
 	_expect_failure_feedback(missing_parts, "原料不足", "processing missing basic parts feedback")
 	_expect_text_contains(String(missing_parts.get("message", "")), "前哨核心回收", "processing missing basic parts message points to outpost supply")
-	_expect_text_contains(String(missing_parts.get("message", "")), "晶体矿物", "processing missing basic parts message points to ore fallback")
+	_expect_text_contains(String(missing_parts.get("message", "")), "富晶残脉", "processing missing basic parts message points to rich vein fallback")
 	var missing_parts_feedback: Dictionary = missing_parts.get("failure_feedback", {})
 	_expect_text_contains(String(missing_parts_feedback.get("detail", "")), "阶段补给批次", "processing missing basic parts detail points to stage supply")
 	processing_character.inventory.add_item("item.crystal_ore", 3)
@@ -1025,6 +1025,16 @@ func _check_failure_feedback_logs() -> void:
 		WorldState.create_default()
 	)
 	_expect_failure_feedback(blocked_residue, "交互前置不足", "anomaly residue quest gate feedback")
+	var rich_vein_character := CharacterState.create_default()
+	var rich_vein_result := gather_system.interact_with_object(
+		"map_object_instance.rich_crystal_vein_north",
+		"map_object.rich_crystal_vein",
+		"gather",
+		rich_vein_character,
+		WorldState.create_default()
+	)
+	_expect_equal(bool(rich_vein_result.get("success", false)), true, "rich crystal vein can be gathered as optional supply")
+	_expect_equal(int(rich_vein_character.inventory.items.get("item.crystal_ore", 0)), 6, "rich crystal vein grants emergency crystal ore")
 func _check_device_panel_formatting() -> void:
 	var device_panel_presenter := HudDevicePanelPresenter.new()
 	var processing := ProcessingSystem.new(data_registry)
@@ -1113,6 +1123,7 @@ func _check_device_panel_formatting() -> void:
 	)
 	_expect_text_contains(String(missing_parts_texts.get("status", "")), "前哨核心回收", "device panel basic parts supply points to outpost")
 	_expect_text_contains(String(missing_parts_texts.get("status", "")), "阶段补给批次", "device panel basic parts supply points to stage supply")
+	_expect_text_contains(String(missing_parts_texts.get("status", "")), "富晶残脉", "device panel basic parts supply points to rich vein")
 	_expect_text_contains(String(missing_parts_texts.get("recipes", "")), "缺 基础零件 x2", "device panel basic parts missing input")
 	VerticalSliceRegressionChecks.new(self).check_task_recipe_selection(reactor, processing)
 	var filter := PrototypeInteractable.new()

@@ -241,6 +241,13 @@ interaction_type = "gather"
 label_offset = Vector2(-82, -52)
 label_size = Vector2(164, 24)
 
+[node name="RichCrystalVeinNorth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(92, -168)
+definition_id = "map_object.rich_crystal_vein"
+interaction_type = "gather"
+label_offset = Vector2(-82, -52)
+label_size = Vector2(164, 24)
+
 [node name="FieldWreckageNorth" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(20, 88)
 definition_id = "map_object.field_wreckage"

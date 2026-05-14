@@ -411,7 +411,7 @@ func _format_missing_input_supply_hint(recipe: Dictionary, inventory: InventoryS
 		return "先检查前哨核心回收和阶段补给批次。"
 	if _get_inventory_ref_amount("item.crystal_ore", inventory) >= 3.0:
 		return "先检查前哨核心回收和阶段补给批次；当前也可切换到处理晶体矿物，把晶体矿物加工成基础零件。"
-	return "先检查前哨核心回收和阶段补给批次；若仍不足，去晶体矿脉区采集晶体矿物后加工成基础零件。"
+	return "先检查前哨核心回收和阶段补给批次；若仍不足，去晶体矿脉区北侧富晶残脉采集晶体矿物后加工成基础零件。"
 
 
 func _get_missing_inputs(recipe: Dictionary, inventory: InventoryState) -> Array[String]:

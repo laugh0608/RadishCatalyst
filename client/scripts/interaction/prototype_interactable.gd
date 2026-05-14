@@ -176,7 +176,7 @@ func set_restored_outpost_core_visual() -> void:
 
 
 func set_processed_visual() -> bool:
-	if interaction_type == "gather" and definition_id == "map_object.crystal_cluster":
+	if interaction_type == "gather" and (definition_id == "map_object.crystal_cluster" or definition_id == "map_object.rich_crystal_vein"):
 		consumed = true
 		visible = true
 		monitoring = false
