@@ -131,8 +131,8 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	recipe_world.quest_state.active_quest_ids = ["quest.analyze_deep_signal"]
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
-		"recipe.process_crystal_ore",
-		"deep signal analysis falls back to basic parts recipe when only parts are missing"
+		"recipe.deep_signal_analysis",
+		"deep signal analysis no longer falls back when basic parts are low"
 	)
 	recipe_character.inventory.items["item.basic_parts"] = 2
 	host._expect_equal(
@@ -150,16 +150,9 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	recipe_world.quest_state.active_quest_ids = ["quest.assemble_deep_signal_matrix"]
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
-		"recipe.process_crystal_ore",
-		"deep signal matrix assembly falls back to crystal basic parts recipe before reclaim is unlocked"
+		"recipe.deep_signal_matrix",
+		"deep signal matrix no longer falls back when basic parts are low"
 	)
-	recipe_world.quest_state.unlock_effect("recipe.reclaim_basic_parts")
-	host._expect_equal(
-		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
-		"recipe.reclaim_basic_parts",
-		"deep signal matrix assembly prefers slurry reclaim after phase relay unlock"
-	)
-	recipe_world.quest_state.unlocked_effects.erase("recipe.reclaim_basic_parts")
 	recipe_character.inventory.items["item.basic_parts"] = 2
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
@@ -180,6 +173,13 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		"recipe.process_crystal_ore",
 		"relay lens expedition prep falls back to basic parts recipe when only parts are missing"
 	)
+	recipe_world.quest_state.unlock_effect("recipe.reclaim_basic_parts")
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.reclaim_basic_parts",
+		"relay lens expedition prep prefers slurry reclaim after phase relay unlock"
+	)
+	recipe_world.quest_state.unlocked_effects.erase("recipe.reclaim_basic_parts")
 	recipe_character.inventory.items["item.basic_parts"] = 2
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
@@ -191,8 +191,8 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	recipe_world.quest_state.active_quest_ids = ["quest.analyze_inner_fault_trace"]
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
-		"recipe.process_crystal_ore",
-		"inner fault analysis falls back to basic parts recipe when only parts are missing"
+		"recipe.inner_fault_analysis",
+		"inner fault analysis no longer falls back when basic parts are low"
 	)
 	recipe_character.inventory.items["item.basic_parts"] = 2
 	host._expect_equal(
@@ -225,8 +225,8 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_locator"]
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
-		"recipe.process_crystal_ore",
-		"phase well locator analysis falls back to basic parts recipe when only parts are missing"
+		"recipe.phase_well_locator_analysis",
+		"phase well locator analysis no longer falls back when basic parts are low"
 	)
 	recipe_character.inventory.items["item.basic_parts"] = 2
 	host._expect_equal(
@@ -260,8 +260,8 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_core"]
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
-		"recipe.process_crystal_ore",
-		"phase well core analysis falls back to basic parts recipe when only parts are missing"
+		"recipe.phase_well_core_analysis",
+		"phase well core analysis no longer falls back when basic parts are low"
 	)
 	recipe_character.inventory.items["item.basic_parts"] = 2
 	host._expect_equal(
@@ -295,8 +295,8 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_heart"]
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
-		"recipe.process_crystal_ore",
-		"phase well heart analysis falls back to basic parts recipe when only parts are missing"
+		"recipe.phase_well_heart_analysis",
+		"phase well heart analysis no longer falls back when basic parts are low"
 	)
 	recipe_character.inventory.items["item.basic_parts"] = 2
 	host._expect_equal(
@@ -330,8 +330,8 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_spindle"]
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
-		"recipe.process_crystal_ore",
-		"phase well spindle analysis falls back to basic parts recipe when only parts are missing"
+		"recipe.phase_well_spindle_analysis",
+		"phase well spindle analysis no longer falls back when basic parts are low"
 	)
 	recipe_character.inventory.items["item.basic_parts"] = 2
 	host._expect_equal(
@@ -365,8 +365,8 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_weave_core"]
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
-		"recipe.process_crystal_ore",
-		"phase well weave core analysis falls back to basic parts recipe when only parts are missing"
+		"recipe.phase_well_weave_core_analysis",
+		"phase well weave core analysis no longer falls back when basic parts are low"
 	)
 	recipe_character.inventory.items["item.basic_parts"] = 2
 	host._expect_equal(
@@ -400,8 +400,8 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_knot_core"]
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
-		"recipe.process_crystal_ore",
-		"phase well knot core analysis falls back to basic parts recipe when only parts are missing"
+		"recipe.phase_well_knot_core_analysis",
+		"phase well knot core analysis no longer falls back when basic parts are low"
 	)
 	recipe_character.inventory.items["item.basic_parts"] = 2
 	host._expect_equal(
@@ -435,8 +435,8 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_anchor_core"]
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
-		"recipe.process_crystal_ore",
-		"phase well anchor core analysis falls back to basic parts recipe when only parts are missing"
+		"recipe.phase_well_anchor_core_analysis",
+		"phase well anchor core analysis no longer falls back when basic parts are low"
 	)
 	recipe_character.inventory.items["item.basic_parts"] = 2
 	host._expect_equal(
@@ -470,8 +470,8 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_echo_shard"]
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
-		"recipe.process_crystal_ore",
-		"phase well echo shard analysis falls back to basic parts recipe when only parts are missing"
+		"recipe.phase_well_echo_shard_analysis",
+		"phase well echo shard analysis no longer falls back when basic parts are low"
 	)
 	recipe_character.inventory.items["item.basic_parts"] = 2
 	host._expect_equal(
