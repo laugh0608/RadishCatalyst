@@ -230,22 +230,22 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	host._expect_equal(
 		processing.get_recommended_recipe_id(filter, recipe_character, recipe_world),
 		"recipe.well_flux_stabilization",
-		"well flux refinement selects pollution filter recipe"
+		"phase well probe prep selects pollution filter recipe first"
 	)
 	recipe_character.inventory.add_item("item.phase_well_route", 1)
 	recipe_character.inventory.add_item("item.phase_well_stabilizer", 1)
 	recipe_character.inventory.items["item.basic_parts"] = 1
-	recipe_world.quest_state.active_quest_ids = ["quest.assemble_phase_well_probe"]
+	recipe_world.quest_state.active_quest_ids = ["quest.refine_well_flux"]
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
 		"recipe.process_crystal_ore",
-		"phase well probe assembly falls back to basic parts recipe when only parts are missing"
+		"phase well probe prep falls back to basic parts recipe when only parts are missing"
 	)
 	recipe_character.inventory.items["item.basic_parts"] = 2
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
 		"recipe.phase_well_probe",
-		"phase well probe assembly returns to reactor recipe after basic parts are restored"
+		"phase well probe prep returns to reactor recipe after basic parts are restored"
 	)
 	recipe_character.inventory.add_item("item.phase_well_core", 1)
 	recipe_character.inventory.items["item.basic_parts"] = 1

@@ -244,8 +244,8 @@ func format_phase_well_lock_prompt(world_state: WorldState, character_state: Cha
 func format_inner_phase_well_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well"):
 		return "内层相位井：井芯样本已带回；先回基地解析这份样本，再回来继续推进更东侧井底裂口。"
-	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_probe"):
-		return "内层相位井：先回基地组装相位井探针，再回来读取井芯样本。"
+	if not (world_state.quest_state.has_completed_quest("quest.refine_well_flux") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_probe")):
+		return "内层相位井：先回基地完成相位井探针整备，再回来读取井芯样本。"
 	if not character_state.inventory.has_ref("item.phase_well_probe", 1):
 		return "内层相位井：缺少相位井探针；回基地确认基础反应器组装结果后再来。"
 	return "按 E 勘验：内层相位井。"

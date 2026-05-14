@@ -149,6 +149,8 @@ func _format_completion_note(quest_id: String) -> String:
 			return "中继调谐镜已整备完成；返回更东侧裂相尖塔，逼出第一份内层故障轨迹"
 		"quest.inspect_phase_fault_spire":
 			return "内层故障轨迹已带回；回传后的更深风险和收益已真正落到下一轮推进线索"
+		"quest.refine_well_flux":
+			return "相位井探针已整备完成；返回更东侧内层相位井，读取第一份井芯样本"
 		"quest.inspect_phase_well_tether":
 			return "相位井锚核已带回；回基地解析后可把井系桥东侧改成新的短守场目标"
 		"quest.analyze_phase_well_anchor_core":

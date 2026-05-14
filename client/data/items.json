@@ -466,7 +466,7 @@
       "mass": 0.2,
       "rarity": "legendary",
       "source_refs": ["recipe.phase_well_probe"],
-      "used_by_refs": ["quest.assemble_phase_well_probe", "quest.inspect_inner_phase_well"],
+      "used_by_refs": ["quest.refine_well_flux", "quest.assemble_phase_well_probe", "quest.inspect_inner_phase_well"],
       "public_level": "spoiler"
     },
     {

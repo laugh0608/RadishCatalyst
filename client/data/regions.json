@@ -28,6 +28,7 @@
         "quest.analyze_inner_fault_trace",
         "quest.refine_fault_residue",
         "quest.analyze_phase_well_locator",
+        "quest.refine_well_flux",
         "quest.assemble_phase_well_probe",
         "quest.analyze_phase_well_core",
         "quest.assemble_phase_well_pike",

@@ -1233,11 +1233,11 @@ func _inspect_phase_well_lock(character_state: CharacterState, world_state: Worl
 		"message": "相位井钥已写入：相位井锁开始析出定位器，更东侧内层相位井目标已被钉住。"
 	}
 func _inspect_inner_phase_well(character_state: CharacterState, world_state: WorldState) -> Dictionary:
-	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_well_probe"):
+	if not (world_state.quest_state.has_completed_quest("quest.refine_well_flux") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_probe")):
 		return _failure(
 			"内层相位井仍缺少可执行的探针读数。",
 			"井芯未读取",
-			"先回基地用基础反应器，把相位井路由片、稳流芯和基础零件组装成相位井探针。"
+			"先回基地完成相位井探针整备：稳定井涌碎屑，再用基础反应器组装探针。"
 		)
 
 	if world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well"):

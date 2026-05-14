@@ -155,7 +155,9 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.collect_well_flux":
 			return "沿定位器路由继续向东推进，击退井口哨戒体并回收两处井涌碎屑。"
 		"quest.refine_well_flux":
-			return "回处理点污染过滤器，把井涌碎屑筛成可继续组装的相位井稳流芯。"
+			if not character_state.inventory.has_ref("item.phase_well_stabilizer", 1):
+				return "先回处理点污染过滤器，把井涌碎屑筛成可继续组装的相位井稳流芯。"
+			return "继续这次探针整备：回基地基础反应器，把路由片、稳流芯和基础零件组装成相位井探针。"
 		"quest.assemble_phase_well_probe":
 			return "回基地使用基础反应器，把相位井路由片、稳流芯和基础零件组装成相位井探针。"
 		"quest.inspect_inner_phase_well":
@@ -360,7 +362,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.collect_well_flux":
 			return "新井口哨戒体和井涌碎屑要在同一趟外勤里一起解决，这一步负责把新风险和下一步加工输入同时带回来。"
 		"quest.refine_well_flux":
-			return "先用污染过滤器稳定井涌碎屑；副产污染浆液会继续反哺探针组装，不需要引入第三台设备。"
+			return "这一步是一次探针整备：先稳定井涌碎屑，再把路由片和稳流芯组装成相位井探针，下一趟外勤直接去读取井芯样本。"
 		"quest.assemble_phase_well_probe":
 			return "相位井探针会把定位器分析结果和过滤器输出重新变成开路物，决定内层相位井能否交出第一份井芯样本。"
 		"quest.inspect_inner_phase_well":

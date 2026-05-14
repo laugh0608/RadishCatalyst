@@ -222,11 +222,12 @@ func _run_checks() -> void:
 	])
 	_expect_active_quest("quest.refine_well_flux", "after well flux collection returns to filter")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.well_flux_stabilization", "well flux collection unlocks stabilization recipe")
-	_complete_active_quest("quest.refine_well_flux", [{"type": "craft_item", "target_id": "item.phase_well_stabilizer", "amount": 1}])
-	_expect_active_quest("quest.assemble_phase_well_probe", "after well flux refinement returns to reactor")
-	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_probe", "well flux refinement unlocks phase well probe recipe")
-	_complete_active_quest("quest.assemble_phase_well_probe", [{"type": "craft_item", "target_id": "item.phase_well_probe", "amount": 1}])
-	_expect_active_quest("quest.inspect_inner_phase_well", "after phase well probe assembly returns to inner well")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_probe", "well flux collection unlocks phase well probe recipe")
+	_complete_active_quest("quest.refine_well_flux", [
+		{"type": "craft_item", "target_id": "item.phase_well_stabilizer", "amount": 1},
+		{"type": "craft_item", "target_id": "item.phase_well_probe", "amount": 1}
+	])
+	_expect_active_quest("quest.inspect_inner_phase_well", "after phase well probe prep returns to inner well")
 	_complete_active_quest("quest.inspect_inner_phase_well", [{"type": "inspect", "target_id": "map_object.inner_phase_well", "amount": 1}])
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_inner_phase_well", "inner phase well quest completed")
 	_expect_equal(int(character_state.inventory.items.get("item.phase_well_core", 0)), 1, "inner phase well grants first core sample")

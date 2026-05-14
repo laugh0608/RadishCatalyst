@@ -639,7 +639,6 @@ func _activate_missing_post_phase_relay_followup(world_state: WorldState) -> boo
 		"quest.analyze_phase_well_locator",
 		"quest.collect_well_flux",
 		"quest.refine_well_flux",
-		"quest.assemble_phase_well_probe",
 		"quest.inspect_inner_phase_well",
 		"quest.analyze_phase_well_core",
 		"quest.collect_well_ash",

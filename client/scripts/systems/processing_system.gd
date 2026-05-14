@@ -209,7 +209,11 @@ func get_recommended_recipe_id(
 		"quest.analyze_phase_well_locator":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_locator_analysis")
 		"quest.refine_well_flux":
-			return _select_if_available(interactable, "recipe.well_flux_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_stabilizer", 1):
+				return _select_if_available(interactable, "recipe.well_flux_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_probe", 1):
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_probe")
+			return ""
 		"quest.assemble_phase_well_probe":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_probe")
 		"quest.analyze_phase_well_core":
@@ -332,7 +336,7 @@ func _get_completion_next_step(recipe_id: String) -> String:
 		"recipe.phase_well_locator_analysis":
 			return "相位井路由片已整理完成；继续向东进入新暴露的内层相位井边缘，击退哨戒体并回收井涌碎屑。"
 		"recipe.well_flux_stabilization":
-			return "稳流芯和副产污染浆液已筛出；把它们带回基地反应器，组装相位井探针。"
+			return "稳流芯和副产污染浆液已筛出；继续这次探针整备，回基地基础反应器组装相位井探针。"
 		"recipe.phase_well_probe":
 			return "带着相位井探针返回更东侧内层相位井，读取第一份井芯样本。"
 		"recipe.phase_well_core_analysis":

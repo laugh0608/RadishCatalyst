@@ -45,7 +45,6 @@ const QUEST_PROGRESS_ORDER: Array[String] = [
 	"quest.analyze_phase_well_locator",
 	"quest.collect_well_flux",
 	"quest.refine_well_flux",
-	"quest.assemble_phase_well_probe",
 	"quest.inspect_inner_phase_well",
 	"quest.analyze_phase_well_core",
 	"quest.collect_well_ash",
@@ -283,7 +282,6 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			], "map_object.well_flux_cluster", "region.inner_phase_well")
 		"quest.refine_well_flux":
 			_mark_structure_completed(world_state, "structure.pollution_filter_build_site", "recipe.well_flux_stabilization")
-		"quest.assemble_phase_well_probe":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_probe")
 		"quest.analyze_phase_well_core":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_core_analysis")
