@@ -17,6 +17,21 @@
       "public_level": "public"
     },
     {
+      "id": "recipe.reclaim_basic_parts",
+      "display_name_key": "recipe.reclaim_basic_parts.name",
+      "description_key": "recipe.reclaim_basic_parts.desc",
+      "category": "recovery",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "fluid.polluted_slurry", "amount": 1}],
+      "outputs": [{"id": "item.basic_parts", "amount": 2}],
+      "byproducts": [],
+      "duration": 9.0,
+      "energy_cost": 2.0,
+      "pollution_delta": -0.1,
+      "unlock_conditions": ["quest.deploy_phase_relay_anchor"],
+      "public_level": "spoiler"
+    },
+    {
       "id": "recipe.make_filter_media",
       "display_name_key": "recipe.make_filter_media.name",
       "description_key": "recipe.make_filter_media.desc",

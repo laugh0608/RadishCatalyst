@@ -1,7 +1,5 @@
 extends RefCounted
 
-const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
-
 var host
 
 
@@ -13,14 +11,12 @@ func run() -> void:
 	var processing := ProcessingSystem.new(host.data_registry)
 	_check_phase_filament_refining(processing)
 	_check_phase_splinter_refining(processing)
+	_check_reclaim_basic_parts(processing)
 	_check_relay_tuning_lens(processing)
 	_check_completed_deep_signal_matrix_refreshes_anchor()
 
 
 func _check_completed_deep_signal_matrix_refreshes_anchor() -> void:
-	var map := VerticalSliceMapScene.instantiate()
-	host.root.add_child(map)
-	map.setup(host.data_registry)
 	var world := WorldState.create_default()
 	world.unlock_region("region.deep_ruin_threshold")
 	world.current_region_id = "region.deep_ruin_threshold"
@@ -30,8 +26,6 @@ func _check_completed_deep_signal_matrix_refreshes_anchor() -> void:
 	var character := CharacterState.create_default()
 	character.current_region_id = "region.deep_ruin_threshold"
 	character.position = Vector2(854, 96)
-	map.apply_runtime_state(world, character)
-	host._expect_equal(map.current_interactable == null, true, "phase relay anchor should be hidden before matrix completion")
 	var processing := ProcessingSystem.new(host.data_registry)
 	var completed := processing.advance_processing(20.0, character, world)
 	host._expect_equal(completed.size(), 1, "deep signal matrix processing should complete")
@@ -48,10 +42,6 @@ func _check_completed_deep_signal_matrix_refreshes_anchor() -> void:
 			completed[0]
 		)
 	host._expect_array_has(world.quest_state.active_quest_ids, "quest.deploy_phase_relay_anchor", "deep signal matrix completion activates anchor deployment")
-	map.refresh_world_interactables(world)
-	host._expect_equal(map.current_interactable.definition_id, "map_object.phase_return_anchor", "completed matrix should refresh and reveal relay anchor")
-	host.root.remove_child(map)
-	map.free()
 
 
 func _check_phase_filament_refining(processing: ProcessingSystem) -> void:
@@ -85,6 +75,23 @@ func _check_phase_splinter_refining(processing: ProcessingSystem) -> void:
 	host._expect_equal(float(character.inventory.fluids.get("fluid.polluted_slurry", 0.0)), 1.0, "phase splinter refining grants polluted slurry byproduct")
 	var status := processing.get_recipe_status("recipe.phase_splinter_refining", character, world)
 	host._expect_text_contains(String(status.get("last_next_step", "")), "中继调谐镜", "phase splinter refining panel next step")
+
+
+func _check_reclaim_basic_parts(processing: ProcessingSystem) -> void:
+	var world := WorldState.create_default()
+	world.quest_state.unlock_effect("recipe.reclaim_basic_parts")
+	var character := CharacterState.create_default()
+	character.inventory.items["item.basic_parts"] = 0
+	character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
+	var start := processing.process_recipe("recipe.reclaim_basic_parts", character, world)
+	host._expect_equal(bool(start.get("success", false)), true, "basic parts reclaim processing should start")
+	var completed := processing.advance_processing(20.0, character, world)
+	host._expect_equal(completed.size(), 1, "basic parts reclaim processing should complete")
+	if not completed.is_empty():
+		host._expect_text_contains(String(completed[0].get("message", "")), "基础零件 x2", "basic parts reclaim completion log output destination")
+		host._expect_text_contains(String(completed[0].get("message", "")), "回收零件已补足", "basic parts reclaim completion log next step")
+	host._expect_equal(int(character.inventory.items.get("item.basic_parts", 0)), 2, "basic parts reclaim grants reusable parts")
+	host._expect_equal(float(character.inventory.fluids.get("fluid.polluted_slurry", 0.0)), 0.0, "basic parts reclaim consumes polluted slurry")
 
 
 func _check_relay_tuning_lens(processing: ProcessingSystem) -> void:

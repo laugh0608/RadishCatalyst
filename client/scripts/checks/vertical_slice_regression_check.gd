@@ -102,6 +102,7 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	deep_reactor.recipe_id = "recipe.process_crystal_ore"
 	deep_reactor.set_recipe_cycle([
 		"recipe.process_crystal_ore",
+		"recipe.reclaim_basic_parts",
 		"recipe.deep_signal_analysis",
 		"recipe.deep_override_key",
 		"recipe.deep_core_imprint",
@@ -150,8 +151,15 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
 		"recipe.process_crystal_ore",
-		"deep signal matrix assembly falls back to basic parts recipe when only parts are missing"
+		"deep signal matrix assembly falls back to crystal basic parts recipe before reclaim is unlocked"
 	)
+	recipe_world.quest_state.unlock_effect("recipe.reclaim_basic_parts")
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.reclaim_basic_parts",
+		"deep signal matrix assembly prefers slurry reclaim after phase relay unlock"
+	)
+	recipe_world.quest_state.unlocked_effects.erase("recipe.reclaim_basic_parts")
 	recipe_character.inventory.items["item.basic_parts"] = 2
 	host._expect_equal(
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),

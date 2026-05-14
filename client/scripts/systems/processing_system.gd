@@ -179,81 +179,81 @@ func get_recommended_recipe_id(
 		"quest.enter_pollution_edge":
 			return _select_if_available(interactable, "recipe.cleanse_residue")
 		"quest.assemble_phase_anchor":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_anchor")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_anchor", world_state)
 		"quest.analyze_deep_signal":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_signal_analysis")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_signal_analysis", world_state)
 		"quest.refine_phase_filament":
 			return _select_if_available(interactable, "recipe.phase_filament_refining")
 		"quest.assemble_deep_override":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_override_key")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_override_key", world_state)
 		"quest.analyze_deep_core":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_core_imprint")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_core_imprint", world_state)
 		"quest.assemble_deep_signal_matrix":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_signal_matrix")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_signal_matrix", world_state)
 		"quest.refine_phase_splinters":
 			if not character_state.inventory.has_ref("item.phase_lens_blank", 1):
 				return _select_if_available(interactable, "recipe.phase_splinter_refining")
 			if not character_state.inventory.has_ref("item.relay_tuning_lens", 1):
-				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.relay_tuning_lens")
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.relay_tuning_lens", world_state)
 			return ""
 		"quest.tune_relay_lens":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.relay_tuning_lens")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.relay_tuning_lens", world_state)
 		"quest.analyze_inner_fault_trace":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.inner_fault_analysis")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.inner_fault_analysis", world_state)
 		"quest.refine_fault_residue":
 			if not character_state.inventory.has_ref("item.stabilized_fault_core", 1):
 				return _select_if_available(interactable, "recipe.fault_residue_stabilization")
 			if not character_state.inventory.has_ref("item.phase_well_key", 1):
-				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_key")
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_key", world_state)
 			return ""
 		"quest.analyze_phase_well_locator":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_locator_analysis")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_locator_analysis", world_state)
 		"quest.refine_well_flux":
 			if not character_state.inventory.has_ref("item.phase_well_stabilizer", 1):
 				return _select_if_available(interactable, "recipe.well_flux_stabilization")
 			if not character_state.inventory.has_ref("item.phase_well_probe", 1):
-				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_probe")
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_probe", world_state)
 			return ""
 		"quest.assemble_phase_well_probe":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_probe")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_probe", world_state)
 		"quest.analyze_phase_well_core":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_core_analysis")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_core_analysis", world_state)
 		"quest.refine_well_ash":
 			return _select_if_available(interactable, "recipe.well_ash_stabilization")
 		"quest.assemble_phase_well_pike":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_pike")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_pike", world_state)
 		"quest.analyze_phase_well_heart":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_heart_analysis")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_heart_analysis", world_state)
 		"quest.refine_heart_spine":
 			return _select_if_available(interactable, "recipe.heart_spine_stabilization")
 		"quest.assemble_phase_well_shunt":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_shunt")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_shunt", world_state)
 		"quest.analyze_phase_well_spindle":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_spindle_analysis")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_spindle_analysis", world_state)
 		"quest.refine_weft_bundle":
 			return _select_if_available(interactable, "recipe.weft_bundle_stabilization")
 		"quest.assemble_phase_well_shuttle":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_shuttle")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_shuttle", world_state)
 		"quest.analyze_phase_well_weave_core":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_weave_core_analysis")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_weave_core_analysis", world_state)
 		"quest.refine_selvedge_strip":
 			return _select_if_available(interactable, "recipe.selvedge_strip_stabilization")
 		"quest.assemble_phase_well_frame_key":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_frame_key")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_frame_key", world_state)
 		"quest.analyze_phase_well_knot_core":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_knot_core_analysis")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_knot_core_analysis", world_state)
 		"quest.refine_tether_fiber":
 			return _select_if_available(interactable, "recipe.tether_fiber_stabilization")
 		"quest.assemble_phase_well_tether_spike":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_tether_spike")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_tether_spike", world_state)
 		"quest.analyze_phase_well_anchor_core":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_anchor_core_analysis")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_anchor_core_analysis", world_state)
 		"quest.refine_anchor_core_dust":
 			return _select_if_available(interactable, "recipe.anchor_core_dust_stabilization")
 		"quest.assemble_phase_well_anchor_stake":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_anchor_stake")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_anchor_stake", world_state)
 		"quest.analyze_phase_well_echo_shard":
-			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_echo_shard_analysis")
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_echo_shard_analysis", world_state)
 		_:
 			return ""
 
@@ -297,6 +297,8 @@ func _get_completion_next_step(recipe_id: String) -> String:
 	match recipe_id:
 		"recipe.process_crystal_ore":
 			return "基础零件已补足；若当前任务还差更高阶配方，设备会自动切回对应配方，也可按 R 切换。"
+		"recipe.reclaim_basic_parts":
+			return "回收零件已补足；继续当前前线整备配方，或按 R 切回目标配方。"
 		"recipe.reactor_calibrator":
 			return "反应器采样通道已校准；前往异常晶体采样并回收周边残留物。"
 		"recipe.analyze_anomaly_sample":
@@ -409,6 +411,8 @@ func _format_missing_input_supply_hint(recipe: Dictionary, inventory: InventoryS
 		return ""
 	if data_registry.get_definition("recipe.process_crystal_ore").is_empty():
 		return "先检查前哨核心回收和阶段补给批次。"
+	if _get_inventory_ref_amount("fluid.polluted_slurry", inventory) >= 1.0:
+		return "先检查前哨核心回收和阶段补给批次；相位中继锚点部署后，也可切换到回收基础零件，把污染浆液回收成基础零件；若仍不足，去晶体矿脉区北侧富晶残脉采集晶体矿物。"
 	if _get_inventory_ref_amount("item.crystal_ore", inventory) >= 3.0:
 		return "先检查前哨核心回收和阶段补给批次；当前也可切换到处理晶体矿物，把晶体矿物加工成基础零件。"
 	return "先检查前哨核心回收和阶段补给批次；若仍不足，去晶体矿脉区北侧富晶残脉采集晶体矿物后加工成基础零件。"
@@ -447,13 +451,28 @@ func _select_if_available(interactable: PrototypeInteractable, recipe_id: String
 func _select_recipe_with_basic_parts_fallback(
 	interactable: PrototypeInteractable,
 	inventory: InventoryState,
-	target_recipe_id: String
+	target_recipe_id: String,
+	world_state: WorldState
 ) -> String:
 	if _should_refill_basic_parts_before_recipe(target_recipe_id, inventory):
-		var refill_recipe_id := _select_if_available(interactable, "recipe.process_crystal_ore")
+		var refill_recipe_id := _select_basic_parts_refill_recipe(interactable, inventory, world_state)
 		if not refill_recipe_id.is_empty():
 			return refill_recipe_id
 	return _select_if_available(interactable, target_recipe_id)
+
+
+func _select_basic_parts_refill_recipe(
+	interactable: PrototypeInteractable,
+	inventory: InventoryState,
+	world_state: WorldState
+) -> String:
+	if _get_inventory_ref_amount("fluid.polluted_slurry", inventory) >= 1.0:
+		var reclaim_recipe_id := _select_if_available(interactable, "recipe.reclaim_basic_parts")
+		if not reclaim_recipe_id.is_empty():
+			var reclaim_recipe := data_registry.get_definition(reclaim_recipe_id)
+			if _get_recipe_lock_message(reclaim_recipe, world_state).is_empty():
+				return reclaim_recipe_id
+	return _select_if_available(interactable, "recipe.process_crystal_ore")
 
 
 func _should_refill_basic_parts_before_recipe(target_recipe_id: String, inventory: InventoryState) -> bool:

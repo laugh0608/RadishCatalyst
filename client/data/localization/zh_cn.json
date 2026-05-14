@@ -287,6 +287,8 @@
   "quest.analyze_phase_well_echo_shard.desc": "回基地继续复用基础反应器解析相位井余响片，把锚场完成态校准成可回访的前线回稳收益。",
     "recipe.process_crystal_ore.name": "处理晶体矿物",
     "recipe.process_crystal_ore.desc": "将晶体矿物加工为可复用的基础零件。",
+    "recipe.reclaim_basic_parts.name": "回收基础零件",
+    "recipe.reclaim_basic_parts.desc": "把相位前线回传的污染浆液低效率回收成可复用基础零件。",
     "recipe.make_filter_media.name": "制备过滤介质",
     "recipe.make_filter_media.desc": "使用晶体矿物和基础溶剂制备过滤介质。",
     "recipe.reactor_calibrator.name": "组装反应器校准件",

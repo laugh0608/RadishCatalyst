@@ -93,6 +93,7 @@ func run() -> void:
 	)
 	host._expect_array_has(relay_world.quest_state.completed_quest_ids, "quest.deploy_phase_relay_anchor", "phase relay deployment completes quest")
 	host._expect_equal(Array(deploy_runtime_result.get("completion_feedbacks", [])).size(), 1, "phase relay deployment emits completion feedback")
+	host._expect_array_has(relay_world.quest_state.unlocked_effects, "recipe.reclaim_basic_parts", "phase relay deployment unlocks basic parts reclaim")
 	host._expect_array_has(relay_world.quest_state.active_quest_ids, "quest.reenter_phase_frontline", "phase relay deployment activates reentry quest")
 	map.refresh_world_interactables(relay_world)
 	map.update_current_interactable()

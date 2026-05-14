@@ -49,7 +49,7 @@
       "stack_size": 99,
       "mass": 0.2,
       "rarity": "common",
-      "source_refs": ["building.outpost_core"],
+      "source_refs": ["building.outpost_core", "recipe.process_crystal_ore", "recipe.reclaim_basic_parts"],
       "used_by_refs": ["recipe.basic_filter_module", "recipe.foundation_t1", "recipe.repair_gel"],
       "public_level": "public"
     },

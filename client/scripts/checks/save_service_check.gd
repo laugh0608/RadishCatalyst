@@ -1054,6 +1054,7 @@ func _check_deep_ruin_state_persists() -> void:
 		"region.ruin_outer_ring",
 		"recipe.phase_anchor",
 		"slice_01_complete",
+		"recipe.reclaim_basic_parts",
 		"recipe.deep_signal_analysis",
 		"region.deep_ruin_threshold",
 		"recipe.phase_filament_refining",
@@ -1082,6 +1083,7 @@ func _check_deep_ruin_state_persists() -> void:
 	_expect_array_has(loaded_world.quest_state.completed_quest_ids, "quest.unlock_deep_ruin_cache", "deep ruin latch quest persists")
 	_expect_array_has(loaded_world.quest_state.unlocked_effects, "recipe.deep_override_key", "deep override recipe unlock persists")
 	_expect_array_has(loaded_world.quest_state.completed_quest_ids, "quest.deploy_phase_relay_anchor", "phase relay deployment quest persists")
+	_expect_array_has(loaded_world.quest_state.unlocked_effects, "recipe.reclaim_basic_parts", "basic parts reclaim recipe unlock persists")
 	_expect_equal(loaded_world.active_phase_relay_anchor_id, "map_object_instance.phase_return_anchor", "active phase relay anchor persists")
 	_expect_equal(
 		loaded_world.get_deployed_phase_relay_anchor_ids(),

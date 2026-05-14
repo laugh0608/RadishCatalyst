@@ -340,7 +340,7 @@
       "objectives": [{"type": "inspect", "target_id": "map_object.phase_return_anchor", "amount": 1}],
       "prerequisites": ["quest.assemble_deep_signal_matrix"],
       "rewards": [{"id": "item.basic_parts", "amount": 6}],
-      "unlock_effects": ["slice_01_complete"],
+      "unlock_effects": ["slice_01_complete", "recipe.reclaim_basic_parts"],
       "next_quest_ids": ["quest.reenter_phase_frontline"],
       "public_level": "spoiler"
     },
