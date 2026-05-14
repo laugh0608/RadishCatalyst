@@ -621,6 +621,13 @@ func _check_early_interaction_processed_visuals() -> void:
 		"gather",
 		"晶体簇"
 	)
+	var rich_crystal_vein := _create_visual_check_interactable(
+		map.interactables_root,
+		"map_object_instance.rich_crystal_vein_north",
+		"map_object.rich_crystal_vein",
+		"gather",
+		"富晶残脉"
+	)
 	var salvage := _create_visual_check_interactable(
 		map.interactables_root,
 		"map_object_instance.field_wreckage_north",
@@ -712,6 +719,13 @@ func _check_early_interaction_processed_visuals() -> void:
 	_expect_equal(crystal.monitoring, true, "new game crystal enables interaction")
 	_expect_equal(crystal.marker.color, default_crystal_color, "new game crystal restores default color")
 	_expect_equal(crystal.label.text, "晶体簇", "new game crystal restores label")
+	_expect_equal(rich_crystal_vein.visible, false, "new game rich crystal vein stays hidden before crystal scout completion")
+	_expect_equal(rich_crystal_vein.monitoring, false, "new game rich crystal vein cannot complete crystal scout objective")
+	var post_scout_world := WorldState.create_default()
+	post_scout_world.quest_state.completed_quest_ids.append("quest.scout_crystal_field")
+	map.refresh_world_interactables(post_scout_world)
+	_expect_equal(rich_crystal_vein.visible, true, "rich crystal vein appears after crystal scout completion")
+	_expect_equal(rich_crystal_vein.monitoring, true, "rich crystal vein becomes optional supply after crystal scout completion")
 	_expect_equal(salvage.monitoring, true, "new game salvage enables interaction")
 	_expect_equal(salvage.marker.color, default_salvage_color, "new game salvage restores default color")
 	_expect_equal(salvage.label.text, "外勤残骸", "new game salvage restores label")

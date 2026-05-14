@@ -41,7 +41,6 @@ const PHASE_WELL_FRAME_GATE_RETURN_X := 2572.0
 const PHASE_WELL_TETHER_GATE_RETURN_X := 2852.0
 const PHASE_RELAY_PAD_FALLBACK_POSITION := Vector2(-210, -40)
 const PHASE_RETURN_ANCHOR_FALLBACK_POSITION := Vector2(852, 92)
-
 @onready var player: PlayerController = $Player
 @onready var interactables_root: Node2D = $Interactables
 @onready var enemies_root: Node2D = $Enemies
@@ -319,6 +318,8 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				world_state.quest_state.has_active_quest("quest.activate_deep_array")
 				or world_state.quest_state.has_completed_quest("quest.activate_deep_array")
 			)
+		if interactable.definition_id == "map_object.rich_crystal_vein":
+			should_enable = should_enable and world_state.quest_state.has_completed_quest("quest.scout_crystal_field")
 		if interactable.definition_id == "map_object.phase_return_anchor":
 			should_enable = should_enable and (
 				world_state.quest_state.has_active_quest("quest.deploy_phase_relay_anchor")
