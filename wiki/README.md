@@ -53,6 +53,8 @@ Wiki 不记录：
 - [晶体矿物加工](recipes/crystal-ore-processing.md)
 - [回收基础零件](recipes/basic-parts-reclamation.md)
 
+其中前线回稳、稳定窗口和相位井东侧区域页面已覆盖第一版轻量前线行动：基地确认、稳窗回波探点、回基地解析前线行动回报。
+
 ## 编写原则
 
 - 文件名使用英文，正文使用中文。
