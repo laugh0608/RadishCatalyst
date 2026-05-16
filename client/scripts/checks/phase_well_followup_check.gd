@@ -148,6 +148,7 @@ func run_hud_and_map_checks() -> void:
 	_check_status_panel_summary()
 	_check_anchor_field_recovery()
 	_check_echo_shard_analysis_progress()
+	_check_stability_echo_report_progress()
 	_check_stability_window_calibration_runtime()
 	_check_region_presence_bounds()
 	_check_phase_well_chamber_gate()
@@ -384,6 +385,49 @@ func _check_echo_shard_analysis_progress() -> void:
 		recovery_world.quest_state.completed_quest_ids,
 		"quest.analyze_phase_well_echo_shard",
 		"echo shard analysis recovers completed objective from inventory"
+	)
+
+
+func _check_stability_echo_report_progress() -> void:
+	var runtime := QuestRuntime.new(host.data_registry)
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.quest_state.active_quest_ids = ["quest.analyze_stability_echo_sample"]
+	var result := runtime.advance_for_interaction(
+		world_state,
+		character_state,
+		{
+			"definition_id": "building.basic_reactor",
+			"interaction_type": "process_recipe",
+			"recipe_id": "recipe.process_crystal_ore"
+		},
+		{"success": true, "completed_recipe_id": "recipe.stability_echo_report"}
+	)
+	host._expect_equal(
+		world_state.quest_state.get_objective_progress(
+			"quest.analyze_stability_echo_sample",
+			"craft_item",
+			"item.frontline_action_report"
+		),
+		1.0,
+		"stability echo report completion advances frontline action report objective"
+	)
+	host._expect_array_has(
+		world_state.quest_state.completed_quest_ids,
+		"quest.analyze_stability_echo_sample",
+		"stability echo report completion completes quest"
+	)
+	host._expect_equal(bool(result.get("accepted", false)), true, "stability echo report completion result accepted")
+
+	var recovery_world := WorldState.create_default()
+	var recovery_character := CharacterState.create_default()
+	recovery_world.quest_state.active_quest_ids = ["quest.analyze_stability_echo_sample"]
+	recovery_character.inventory.add_item("item.frontline_action_report", 1)
+	runtime.reconcile_active_objectives(recovery_world, recovery_character)
+	host._expect_array_has(
+		recovery_world.quest_state.completed_quest_ids,
+		"quest.analyze_stability_echo_sample",
+		"stability echo report recovers completed objective from inventory"
 	)
 
 

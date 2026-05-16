@@ -12,6 +12,7 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 	var definition_id := String(context.get("definition_id", ""))
 	var interaction_type := String(context.get("interaction_type", ""))
 	var recipe_id := String(context.get("recipe_id", ""))
+	var completed_recipe_id := String(result.get("completed_recipe_id", ""))
 
 	if interaction_type == "outpost_core":
 		return [_set_update("quest.restore_outpost", "interact", "building.outpost_core", 1)]
@@ -163,6 +164,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 			_set_update("quest.survey_stability_echo_probe", "inspect", "map_object.stability_echo_probe", 1)
 		]
 	if interaction_type == "process_recipe":
+		if not completed_recipe_id.is_empty():
+			return get_recipe_objective_updates(completed_recipe_id)
 		return get_recipe_objective_updates(recipe_id)
 	if interaction_type == "build":
 		return get_build_objective_updates(String(result.get("built_definition_id", definition_id)))
