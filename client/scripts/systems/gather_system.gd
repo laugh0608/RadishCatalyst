@@ -60,6 +60,8 @@ func interact_with_object(
 			return _sample(instance_id, definition, character_state, world_state)
 		"clear":
 			world_state.set_map_object_flag(instance_id, "is_cleared", true)
+			if definition_id == "map_object.phase_well_frame_route_blocker":
+				return _success("井纹架侧路已清理：边缕残条回收线打开，另一侧路可以保留为未选路线。")
 			return _success("地块已清理。")
 		_:
 			return _success("交互完成。")

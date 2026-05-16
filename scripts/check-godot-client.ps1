@@ -17,7 +17,8 @@ if (-not (Test-Path -LiteralPath (Join-Path $clientRoot "project.godot") -PathTy
     exit 1
 }
 
-$godotHome = Join-Path $RepoRoot ".godot-check-home"
+$godotRunId = "godot-import-{0}-{1}" -f $PID, [DateTime]::UtcNow.ToString("yyyyMMddHHmmssfff")
+$godotHome = Join-Path (Join-Path $RepoRoot ".godot-check-runs") $godotRunId
 $godotConfigHome = Join-Path $godotHome "config"
 $godotDataHome = Join-Path $godotHome "data"
 $godotCacheHome = Join-Path $godotHome "cache"

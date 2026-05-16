@@ -121,6 +121,7 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 		updates.append_array(_get_bring_back_sample_recovery_updates(world_state, character_state))
 	updates.append_array(_get_active_region_progress_recovery_updates(world_state))
 	updates.append_array(_get_active_inventory_gather_recovery_updates(world_state, character_state))
+	updates.append_array(_get_phase_well_frame_route_recovery_updates(world_state, character_state))
 	var late_craft_recovery_updates := _get_late_craft_progress_recovery_updates(world_state, character_state)
 	if not late_craft_recovery_updates.is_empty():
 		updates.append_array(late_craft_recovery_updates)
@@ -231,6 +232,33 @@ func _get_active_inventory_gather_recovery_updates(world_state: WorldState, char
 			if not character_state.inventory.has_ref(item_id, required_amount):
 				continue
 			updates.append(_objective_set_update(String(quest_id), "gather_item", item_id, required_amount))
+	return updates
+
+
+func _get_phase_well_frame_route_recovery_updates(world_state: WorldState, character_state: CharacterState) -> Array[Dictionary]:
+	var updates: Array[Dictionary] = []
+	var quest_id := "quest.collect_selvedge_strip"
+	if not world_state.quest_state.has_active_quest(quest_id):
+		return updates
+	if world_state.quest_state.get_objective_progress(quest_id, "clear", "map_object.phase_well_frame_route_blocker") >= 1.0:
+		return updates
+
+	var has_route_evidence := false
+	for route_instance_id in [
+		"map_object_instance.phase_well_frame_route_north",
+		"map_object_instance.phase_well_frame_route_south"
+	]:
+		if bool(world_state.get_map_object(route_instance_id).get("is_cleared", false)):
+			has_route_evidence = true
+	if world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.selvedge_strip") > 0.0:
+		has_route_evidence = true
+	if world_state.quest_state.get_objective_progress(quest_id, "defeat_enemy", "enemy.phase_well_raker") > 0.0:
+		has_route_evidence = true
+	if character_state.inventory.has_ref("item.selvedge_strip", 1):
+		has_route_evidence = true
+	if not has_route_evidence:
+		return updates
+	updates.append(_objective_set_update(quest_id, "clear", "map_object.phase_well_frame_route_blocker", 1))
 	return updates
 
 

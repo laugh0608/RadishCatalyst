@@ -56,6 +56,7 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	host._expect_array_has(world_state.unlocked_region_ids, "region.phase_well_frame", "phase well weave core analysis unlocks phase well frame region")
 	host._complete_active_quest("quest.collect_selvedge_strip", [
 		{"type": "visit_region", "target_id": "region.phase_well_frame", "amount": 1},
+		{"type": "clear", "target_id": "map_object.phase_well_frame_route_blocker", "amount": 1},
 		{"type": "defeat_enemy", "target_id": "enemy.phase_well_raker", "amount": 1},
 		{"type": "gather_item", "target_id": "item.selvedge_strip", "amount": 2}
 	])

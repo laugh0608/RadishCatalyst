@@ -546,6 +546,23 @@
       "public_level": "spoiler"
     },
     {
+      "id": "map_object.phase_well_frame_route_blocker",
+      "display_name_key": "map_object.phase_well_frame_route_blocker.name",
+      "description_key": "map_object.phase_well_frame_route_blocker.desc",
+      "object_type": "terrain_blocker",
+      "interaction_types": ["clear"],
+      "is_destructible": true,
+      "is_collectible": false,
+      "is_sampleable": false,
+      "blocks_movement": false,
+      "blocks_building": true,
+      "required_tool_tags": ["construct_basic"],
+      "drops": [],
+      "sample_result_refs": [],
+      "pollution_effect": "pollution.yellow_residue",
+      "public_level": "spoiler"
+    },
+    {
       "id": "map_object.phase_well_frame",
       "display_name_key": "map_object.phase_well_frame.name",
       "description_key": "map_object.phase_well_frame.desc",

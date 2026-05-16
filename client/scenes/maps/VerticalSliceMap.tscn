@@ -597,6 +597,20 @@ interaction_type = "gather"
 label_offset = Vector2(-96, 22)
 label_size = Vector2(192, 24)
 
+[node name="PhaseWellFrameRouteNorth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(2630, -18)
+definition_id = "map_object.phase_well_frame_route_blocker"
+interaction_type = "clear"
+label_offset = Vector2(-96, -52)
+label_size = Vector2(192, 24)
+
+[node name="PhaseWellFrameRouteSouth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(2788, 36)
+definition_id = "map_object.phase_well_frame_route_blocker"
+interaction_type = "clear"
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
+
 [node name="PhaseWellFrame" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(2842, -18)
 definition_id = "map_object.phase_well_frame"

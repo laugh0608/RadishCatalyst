@@ -203,7 +203,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.analyze_phase_well_weave_core":
 			return "回基地使用基础反应器，解析相位井织核并整理相位井纹谱片。"
 		"quest.collect_selvedge_strip":
-			return "沿织核纹谱继续向东推进，击退井纹刮裂体并回收两处边缕残条。"
+			return "沿织核纹谱继续向东推进，先清理任一条井纹架侧路，再击退井纹刮裂体并回收两处边缕残条。"
 		"quest.refine_selvedge_strip":
 			if not character_state.inventory.has_ref("item.phase_well_frame_rib", 1):
 				return "先回处理点污染过滤器，把边缕残条稳定成相位井纹架肋。"
@@ -418,7 +418,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.analyze_phase_well_weave_core":
 			return "相位井织核不是纪念品；要先回基地把它反解成纹谱片，新的井纹架断面风险才会真正显形。"
 		"quest.collect_selvedge_strip":
-			return "井纹架的新敌人和边缕残条要在同一趟外勤里一起解决，这一步负责把新风险和下一次基地加工输入同时带回来。"
+			return "井纹架这一步改成路线清障样板：先选一条侧路打开回收线，再把新风险和下一次基地加工输入同时带回来。"
 		"quest.refine_selvedge_strip":
 			return "这一步是一次井纹架整备：先稳定边缕残条，再把纹谱片和纹架肋组装成井纹架键栓，下一趟外勤直接勘验井纹架断面。"
 		"quest.assemble_phase_well_frame_key":

@@ -231,6 +231,16 @@ func _check_interaction_event_objective_updates() -> void:
 
 	updates = event_rules.get_interaction_objective_updates(
 		{
+			"definition_id": "map_object.phase_well_frame_route_blocker",
+			"interaction_type": "clear"
+		},
+		{},
+		quest_state
+	)
+	_expect_update(updates, "set", "quest.collect_selvedge_strip", "clear", "map_object.phase_well_frame_route_blocker", 1.0, "phase well frame route clear update")
+
+	updates = event_rules.get_interaction_objective_updates(
+		{
 			"definition_id": "map_object.phase_well_frame",
 			"interaction_type": "inspect"
 		},

@@ -29,6 +29,7 @@ release/
 *.log
 logs/
 .godot-check-home/
+.godot-check-runs/
 
 # OS metadata
 .DS_Store

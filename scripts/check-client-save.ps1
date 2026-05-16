@@ -23,7 +23,8 @@ if (-not (Test-Path -LiteralPath $checkScript -PathType Leaf)) {
     exit 1
 }
 
-$godotHome = Join-Path $RepoRoot ".godot-check-home/save-service"
+$godotRunId = "save-service-{0}-{1}" -f $PID, [DateTime]::UtcNow.ToString("yyyyMMddHHmmssfff")
+$godotHome = Join-Path (Join-Path $RepoRoot ".godot-check-runs") $godotRunId
 $godotConfigHome = Join-Path $godotHome "config"
 $godotDataHome = Join-Path $godotHome "data"
 $godotCacheHome = Join-Path $godotHome "cache"

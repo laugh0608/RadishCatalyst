@@ -97,6 +97,19 @@ func format_clear_prompt(
 	world_state: WorldState
 ) -> String:
 	var object_state := world_state.get_map_object(interactable.instance_id)
+	if interactable.definition_id == "map_object.phase_well_frame_route_blocker":
+		if bool(object_state.get("is_cleared", false)):
+			return "井纹架侧路障：已清理，边缕残条回收线保持打开。"
+		var frame_tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
+		var frame_parts: Array[String] = [
+			"侧路：%s" % _get_display_name(interactable.definition_id),
+			"状态：未清理，边缕残条回收线不稳定。",
+			"后续：任选一条侧路清理，再回收两处边缕残条。",
+			"工具：%s" % frame_tool_status
+		]
+		if frame_tool_status == "可清理":
+			frame_parts.append("按 E 清理侧路")
+		return "\n".join(frame_parts)
 	if bool(object_state.get("is_cleared", false)):
 		return "地块：%s\n状态：已清理，可用于铺设基础地基。" % _get_display_name(interactable.definition_id)
 

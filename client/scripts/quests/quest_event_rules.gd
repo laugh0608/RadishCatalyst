@@ -119,6 +119,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		]
 		frame_updates.append_array(_get_drop_objective_updates("quest.collect_selvedge_strip", "gather_item", "item.selvedge_strip", definition_id))
 		return frame_updates
+	if interaction_type == "clear" and definition_id == "map_object.phase_well_frame_route_blocker":
+		return [_set_update("quest.collect_selvedge_strip", "clear", "map_object.phase_well_frame_route_blocker", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.phase_well_frame":
 		return [_set_update("quest.inspect_phase_well_frame", "inspect", "map_object.phase_well_frame", 1)]
 	if interaction_type == "gather" and definition_id == "map_object.tether_fiber_cluster":

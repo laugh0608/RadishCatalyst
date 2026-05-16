@@ -297,6 +297,13 @@ func set_processed_visual() -> bool:
 		marker.color = CLEARED_GROUND_COLOR
 		_set_label_text("%s\n已清理" % display_name_text, 2)
 		return true
+	if interaction_type == "clear" and definition_id == "map_object.phase_well_frame_route_blocker":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = CLEARED_GROUND_COLOR
+		_set_label_text("%s\n已清理" % display_name_text, 2)
+		return true
 	return false
 
 

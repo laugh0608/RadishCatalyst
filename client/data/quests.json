@@ -727,7 +727,7 @@
       "description_key": "quest.collect_selvedge_strip.desc",
       "quest_type": "main",
       "stage": 58,
-      "objectives": [{"type": "visit_region", "target_id": "region.phase_well_frame", "amount": 1}, {"type": "defeat_enemy", "target_id": "enemy.phase_well_raker", "amount": 1}, {"type": "gather_item", "target_id": "item.selvedge_strip", "amount": 2}],
+      "objectives": [{"type": "visit_region", "target_id": "region.phase_well_frame", "amount": 1}, {"type": "clear", "target_id": "map_object.phase_well_frame_route_blocker", "amount": 1}, {"type": "defeat_enemy", "target_id": "enemy.phase_well_raker", "amount": 1}, {"type": "gather_item", "target_id": "item.selvedge_strip", "amount": 2}],
       "prerequisites": ["quest.analyze_phase_well_weave_core"],
       "rewards": [],
       "unlock_effects": ["recipe.selvedge_strip_stabilization", "recipe.phase_well_frame_key"],

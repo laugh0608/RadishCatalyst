@@ -1,0 +1,215 @@
+# 2026-W18 Development Log - 验证记录
+
+返回：[2026-W18 Development Log](2026-W18.md)
+
+## 验证记录
+
+- `pwsh ./scripts/check-client-data.ps1`
+- `pwsh ./scripts/check-client-scenes.ps1`
+- `pwsh ./scripts/check-client-save.ps1`
+- `pwsh ./scripts/check-godot-client.ps1`
+- `pwsh ./scripts/check-text-files.ps1`
+- `git diff --check`
+- 2026-04-28 布局修复复验：`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-28 基础战斗复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-28 最小加工复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-28 多配方加工复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-28 过滤模块启用复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-28 污染处理点复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-28 污染边界敌人复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-28 最小任务推进复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-28 敌人反击压力复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-29 扩建处理点复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-29 击败掉落与撤离补救复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-29 快捷栏补给使用复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-29 原型存档保存 / 读取复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-29 任务完成奖励反馈复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-29 原型存档读取校验复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-29 原型存档运行时复验入口：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-client-save.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-29 原型存档保存前备份复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-client-save.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-29 区域通行门槛与方向提示复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-client-save.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-29 设备缺料提示复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-client-save.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-29 污染失败与撤离引导复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-client-save.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-29 切片结尾入口提示复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-client-save.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-29 切片结尾存档状态复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-client-save.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-29 切片完成 HUD 状态复验：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-client-save.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-29 第一切片流程复验入口：`pwsh ./scripts/check-client-data.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-client-save.ps1`、`pwsh ./scripts/check-client-flow.ps1`、`pwsh ./scripts/check-godot-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-29 客户端聚合验证入口：`pwsh ./scripts/check-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-29 本地存档阶段策略文档复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-29 原型存档备份轮转复验：`pwsh ./scripts/check-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-29 日终文档对账复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-30 存档槽位与备份恢复复验：`pwsh ./scripts/check-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-30 旧原型存档迁移复验：`pwsh ./scripts/check-client.ps1`
+- 2026-04-30 存档内容一致性复验：`pwsh ./scripts/check-client.ps1`
+- 2026-04-30 存档实例与跨块关系复验：`pwsh ./scripts/check-client.ps1`
+- 2026-04-30 已完成任务目标满足度复验：`pwsh ./scripts/check-client.ps1`
+- 2026-04-30 任务目标类型复验：`pwsh ./scripts/check-client-save.ps1`
+- 2026-04-30 任务目标类型最终复验：`pwsh ./scripts/check-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-04-30 地图对象实例来源复验：`pwsh ./scripts/check-client-save.ps1`
+- 2026-04-30 地图对象实例来源最终复验：`pwsh ./scripts/check-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-01 三槽位原型存档 UI 入口初步复验：`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-client-save.ps1`
+- 2026-05-01 三槽位原型存档 UI 入口最终复验：`pwsh ./scripts/check-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-01 存档内容校验拆分与敌人 / 建筑来源复验初步复验：`pwsh ./scripts/check-client-save.ps1`、`pwsh ./scripts/check-client-scenes.ps1`
+- 2026-05-01 存档内容校验拆分与敌人 / 建筑来源复验最终复验：`pwsh ./scripts/check-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-01 存档字段白名单初步复验：`pwsh ./scripts/check-client-save.ps1`
+- 2026-05-01 存档字段白名单最终复验：`pwsh ./scripts/check-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-01 建筑运行时状态取值初步复验：`pwsh ./scripts/check-client-save.ps1`
+- 2026-05-01 建筑运行时状态取值最终复验：`pwsh ./scripts/check-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-01 加工中设备进度边界初步复验：`pwsh ./scripts/check-client-save.ps1`
+- 2026-05-01 加工中设备进度边界最终复验：`pwsh ./scripts/check-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-01 设备输入输出缓冲边界初步复验：`pwsh ./scripts/check-client-save.ps1`
+- 2026-05-01 设备输入输出缓冲边界最终复验：`pwsh ./scripts/check-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-01 存档运行时复验入口拆分初步复验：`pwsh ./scripts/check-client-save.ps1`
+- 2026-05-01 存档运行时复验入口拆分最终复验：`pwsh ./scripts/check-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-01 已完成任务解锁效果完整性初步复验：`pwsh ./scripts/check-client-save.ps1`
+- 2026-05-01 进行中任务来源校验初步复验：`pwsh ./scripts/check-client-save.ps1`
+- 2026-05-01 已完成任务链来源校验初步复验：`pwsh ./scripts/check-client-save.ps1`
+- 2026-05-01 设备配方解锁限制初步复验：`pwsh ./scripts/check-client-save.ps1`
+- 2026-05-01 设备配方解锁限制最终复验：`pwsh ./scripts/check-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-01 配方解锁来源追溯初步复验：`pwsh ./scripts/check-client-save.ps1`
+- 2026-05-01 配方解锁来源追溯最终复验：`pwsh ./scripts/check-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-01 区域解锁来源追溯初步复验：`pwsh ./scripts/check-client-save.ps1`
+- 2026-05-01 区域解锁来源追溯客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-01 区域解锁来源追溯最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-01 任务链与解锁来源提示整理初步复验：`pwsh ./scripts/check-client-save.ps1`
+- 2026-05-01 任务链与解锁来源提示整理最终复验：`pwsh ./scripts/check-client.ps1`、`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-01 任务目标进度复验入口拆分初步复验：`pwsh ./scripts/check-client-save.ps1`
+- 2026-05-01 任务目标进度复验入口拆分客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-01 任务目标进度复验入口拆分最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-01 任务目标进度来源边界初步复验：`pwsh ./scripts/check-client-save.ps1`
+- 2026-05-01 任务目标进度来源边界客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-01 任务目标进度来源边界最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-01 任务目标进度上限边界初步复验：`pwsh ./scripts/check-client-save.ps1`、`pwsh ./scripts/check-client-flow.ps1`
+- 2026-05-01 任务目标进度上限边界客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-01 任务目标进度上限边界最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-01 任务目标进度规则下沉客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-01 任务目标进度规则下沉最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-01 任务完成规则下沉客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-01 任务完成规则下沉最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-01 任务规则直接复验初步复验：`pwsh ./scripts/check-client-quests.ps1`
+- 2026-05-01 任务规则直接复验客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-01 任务规则直接复验最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-01 任务事件映射下沉初步复验：`pwsh ./scripts/check-client-quests.ps1`
+- 2026-05-01 任务事件映射下沉客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-01 任务事件映射下沉最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-02 任务完成应用器与 HUD 反馈初步复验：`pwsh ./scripts/check-client-quests.ps1`
+- 2026-05-02 任务完成应用器与 HUD 反馈客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-02 任务完成应用器与 HUD 反馈最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-02 任务运行时编排下沉初步复验：`pwsh ./scripts/check-client-quests.ps1`
+- 2026-05-02 任务运行时编排下沉客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-02 任务运行时编排下沉最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-02 快捷栏绑定 UI 初步复验：`pwsh ./scripts/check-client-save.ps1`、`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-client-quests.ps1`
+- 2026-05-02 快捷栏绑定 UI 客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-02 快捷栏绑定 UI 最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-02 撤离反馈面板初步复验：`pwsh ./scripts/check-client-flow.ps1`
+- 2026-05-02 撤离反馈面板客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-02 撤离反馈面板最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-02 设备加工耗时初步复验：`pwsh ./scripts/check-client-flow.ps1`
+- 2026-05-02 设备加工耗时客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-02 设备加工耗时最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-02 任务驱动短提示初步复验：`pwsh ./scripts/check-client-flow.ps1`
+- 2026-05-02 任务驱动短提示客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-02 任务驱动短提示最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-02 建造点状态提示初步复验：`pwsh ./scripts/check-client-flow.ps1`
+- 2026-05-02 建造点状态提示客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-02 建造点状态提示最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-02 补给使用反馈初步复验：`pwsh ./scripts/check-client-flow.ps1`
+- 2026-05-02 补给使用反馈客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-02 补给使用反馈最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-02 污染区域状态提示初步复验：`pwsh ./scripts/check-client-flow.ps1`
+- 2026-05-02 污染区域状态提示客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-02 污染区域状态提示最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-02 区域标记摘要初步复验：`pwsh ./scripts/check-client-flow.ps1`
+- 2026-05-02 区域标记摘要客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-02 区域标记摘要最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-02 任务完成反馈层级初步复验：`pwsh ./scripts/check-client-quests.ps1`、`pwsh ./scripts/check-client-flow.ps1`
+- 2026-05-02 任务完成反馈层级客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-02 任务完成反馈层级最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-02 非存档失败提示初步复验：`pwsh ./scripts/check-client-flow.ps1`
+- 2026-05-02 非存档失败提示客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-02 非存档失败提示最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-02 设备完成提示初步复验：`pwsh ./scripts/check-client-flow.ps1`
+- 2026-05-02 设备完成提示客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-02 设备完成提示最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-02 污染过滤器完成提示初步复验：`pwsh ./scripts/check-client-flow.ps1`
+- 2026-05-02 污染过滤器完成提示客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-02 污染过滤器完成提示最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-02 交互提示 formatter 初步复验：`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-client-flow.ps1`
+- 2026-05-02 交互提示 formatter 客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-02 交互提示 formatter 最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-02 区域提示 formatter 初步复验：`pwsh ./scripts/check-client-flow.ps1`
+- 2026-05-02 区域提示 formatter 客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-02 区域提示 formatter 最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+- 2026-05-02 HUD 反馈 presenter 初步复验：`pwsh ./scripts/check-client-scenes.ps1`、`pwsh ./scripts/check-client-flow.ps1`
+- 2026-05-02 HUD 反馈 presenter 客户端复验：`pwsh ./scripts/check-client.ps1`
+- 2026-05-02 HUD 反馈 presenter 最终复验：`pwsh ./scripts/check-text-files.ps1`、`git diff --check`
+
+2026-04-29 提交回顾：
+
+- `7a01b41 feat: 接回扩建处理点任务链`
+- `8ae29d5 feat: 接入敌人掉落与撤离补救`
+- `a60d22a feat: 接入快捷栏补给使用`
+- `f49a404 feat: 接入原型存档保存读取`
+- `ada97a8 feat: 补充任务完成奖励反馈`
+- `97e9ea8 fix: 补充原型存档读取校验`
+- `74460ac test: 增加原型存档运行时复验`
+- `533d9ce docs: 修正协作规范`
+- `9518e48 fix: 增加原型存档保存前备份`
+- `f6f0cb1 feat: 增加区域通行与方向提示`
+- `6948955 feat: 补充设备缺料提示`
+- `5999167 feat: 补充污染失败再尝试引导`
+- `4fd8505 feat: 增加切片结尾入口提示`
+- `c7c9f03 test: 增加切片结尾存档复验`
+- `c58840b fix: 显示切片完成 HUD 状态`
+- `bcba2e7 test: 增加第一切片流程复验`
+- `58b687a ci: 增加客户端聚合验证入口`
+- `292a8b4 docs: 明确本地存档阶段策略`
+- `ae80821 fix: 增加原型存档备份轮转`
+- 本次日终回顾确认：扩建处理点、快捷栏补给、存档读写与校验、任务奖励、区域引导、设备缺料、污染失败引导、切片结尾、流程复验、聚合验证和备份轮转均已同步到对应设计、规划、架构或周志文档。
+
+2026-04-30 提交回顾：
+
+- `3e2008d fix: 增加存档槽位与备份恢复`
+- `633c46c fix: 增加旧原型存档迁移`
+- `a05fcef fix: 增加存档内容一致性校验`
+- `e1e0324 fix: 增加存档跨块关系校验`
+- `5191fc9 fix: 增加已完成任务目标校验`
+- `274ecaa fix: 增加任务目标类型校验`
+- `776f318 fix: 增加地图对象来源校验`
+- 本次日终回顾确认：默认槽位、备份恢复、旧原型迁移、内容一致性、实例与跨块关系、已完成任务目标满足度、任务目标类型和地图对象实例来源均已同步到 `current.md`、`vertical-slice.md`、`save-data-model.md`、`multiplayer-and-save-architecture.md` 和本周周志。
+
+2026-05-01 提交回顾：
+
+- `de7afac fix: 校验已完成任务链来源`
+- `5b4ae07 fix: 整理任务解锁来源校验`
+- `0f86bf6 test: 拆分任务目标存档复验`
+- `58a7723 fix: 校验任务目标进度来源`
+- `57ff3b3 fix: 限制任务目标进度上限`
+- `fccc550 refactor: 下沉任务目标进度规则`
+- `264c258 refactor: 下沉任务完成规则`
+- `b2cc8e6 test: 增加任务规则直接复验`
+- `bbeb56e refactor: 下沉任务事件映射`
+- 本次日终回顾确认：已完成任务链来源、`unlocked_effects`、区域 / 配方来源追溯、任务目标进度来源和上限、任务规则复验入口，以及任务事件映射、任务目标进度、任务完成规则下沉，均已同步到 `current.md`、`vertical-slice.md`、`save-data-model.md`、`multiplayer-and-save-architecture.md`、`godot-project-structure.md`、`AGENTS.md`、`CLAUDE.md` 和本周周志。
+
+2026-05-02 提交回顾：
+
+- `6ee23a7 feat: 20260502 周-阶段性合并 (#2)`
+- `4198356 refactor: 下沉任务完成反馈`
+- `111dcd3 refactor: 下沉任务运行时编排`
+- `e1ddfca feat: 增加快捷栏绑定入口`
+- `ee6695a docs: 修正快捷栏绑定周志口径`
+- `c6df592 feat: 增加撤离反馈面板`
+- `b9e0150 feat: 接入设备加工耗时雏形`
+- `3269dc6 feat: 增加任务驱动短提示`
+- `b5931b7 feat: 补充建造点状态提示`
+- `889a360 feat: 补充快捷栏补给反馈`
+- `03d6f9c feat: 补充污染区域状态提示`
+- `146d902 feat: 增加区域标记摘要`
+- `49e1a74 feat: 整理任务完成反馈层级`
+- `3bf1cc4 feat: 整理非存档失败提示`
+- `c48d3d1 feat: 整理设备完成提示`
+- `30664f1 test: 覆盖污染过滤器完成提示`
+- `ae63254 refactor: 下沉交互提示格式化`
+- `0ec494d refactor: 下沉区域提示格式化`
+- `f7bb45d refactor: 下沉 HUD 反馈显示判断`
+- 本次日终回顾确认：任务完成反馈、任务运行时编排、快捷栏绑定、撤离反馈、设备加工耗时、任务驱动短提示、建造点状态、补给反馈、污染区域状态、区域标记摘要、非存档失败提示、设备完成入库提示、污染过滤器完成提示，以及 `InteractionPromptFormatter` / `HudFeedbackPresenter` 下沉边界，均已同步到 `current.md`、`vertical-slice.md`、`godot-project-structure.md`、`onboarding-and-first-hour.md` 和本周周志。

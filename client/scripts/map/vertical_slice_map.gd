@@ -54,6 +54,7 @@ const INTERACTABLE_QUEST_GATES := {
 	"map_object.phase_well_chamber": "quest.inspect_phase_well_chamber",
 	"map_object.weft_bundle_cluster": "quest.collect_weft_bundle",
 	"map_object.phase_well_loom": "quest.inspect_phase_well_loom",
+	"map_object.phase_well_frame_route_blocker": "quest.collect_selvedge_strip",
 	"map_object.selvedge_strip_cluster": "quest.collect_selvedge_strip",
 	"map_object.phase_well_frame": "quest.inspect_phase_well_frame",
 	"map_object.tether_fiber_cluster": "quest.collect_tether_fiber",
@@ -361,6 +362,19 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			should_enable = should_enable and (
 				world_state.quest_state.has_active_quest(gate_quest_id)
 				or world_state.quest_state.has_completed_quest(gate_quest_id)
+			)
+		if interactable.definition_id == "map_object.phase_well_frame_route_blocker":
+			should_enable = (
+				should_enable
+				and world_state.quest_state.has_active_quest("quest.collect_selvedge_strip")
+			)
+		if interactable.definition_id == "map_object.selvedge_strip_cluster":
+			should_enable = (
+				should_enable
+				and (
+					_has_phase_well_frame_route_cleared(world_state)
+					or world_state.quest_state.has_completed_quest("quest.collect_selvedge_strip")
+				)
 			)
 		if interactable.definition_id == "map_object.rich_crystal_vein":
 			should_enable = should_enable and world_state.quest_state.has_completed_quest("quest.scout_crystal_field")
@@ -1412,6 +1426,20 @@ func _get_phase_relay_anchor_label(anchor_instance_id: String) -> String:
 			if region_id.is_empty():
 				return "前线回传锚点"
 			return "%s锚点" % _get_display_name(region_id)
+func _has_phase_well_frame_route_cleared(world_state: WorldState) -> bool:
+	if world_state.quest_state.get_objective_progress(
+		"quest.collect_selvedge_strip",
+		"clear",
+		"map_object.phase_well_frame_route_blocker"
+	) >= 1.0:
+		return true
+	for route_instance_id in [
+		"map_object_instance.phase_well_frame_route_north",
+		"map_object_instance.phase_well_frame_route_south"
+	]:
+		if bool(world_state.get_map_object(route_instance_id).get("is_cleared", false)):
+			return true
+	return false
 func _get_phase_relay_pad_return_position() -> Vector2:
 	return _get_interactable_return_position(
 		"map_object_instance.phase_relay_pad",

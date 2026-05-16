@@ -326,6 +326,8 @@ func _get_objective_verb(objective_type: String) -> String:
 			return "制造 "
 		"build":
 			return "建造 "
+		"clear":
+			return "清理 "
 		"defeat_enemy":
 			return "击败 "
 		"inspect":

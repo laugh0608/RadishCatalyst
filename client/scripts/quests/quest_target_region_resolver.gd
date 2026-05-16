@@ -101,6 +101,8 @@ func _index_interactable(
 			_index_map_object_drop_regions(interactable.definition_id, region_id)
 		"inspect":
 			_add_objective_region("inspect", interactable.definition_id, region_id, PRIMARY_SOURCE_PRIORITY)
+		"clear":
+			_add_objective_region("clear", interactable.definition_id, region_id, PRIMARY_SOURCE_PRIORITY)
 		"build":
 			_add_objective_region("build", interactable.definition_id, region_id, PRIMARY_SOURCE_PRIORITY)
 		"gather":

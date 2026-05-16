@@ -57,6 +57,8 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.weft_bundle_cluster_north": "map_object.weft_bundle_cluster",
 	"map_object_instance.weft_bundle_cluster_south": "map_object.weft_bundle_cluster",
 	"map_object_instance.phase_well_loom": "map_object.phase_well_loom",
+	"map_object_instance.phase_well_frame_route_north": "map_object.phase_well_frame_route_blocker",
+	"map_object_instance.phase_well_frame_route_south": "map_object.phase_well_frame_route_blocker",
 	"map_object_instance.selvedge_strip_cluster_north": "map_object.selvedge_strip_cluster",
 	"map_object_instance.selvedge_strip_cluster_south": "map_object.selvedge_strip_cluster",
 	"map_object_instance.phase_well_frame": "map_object.phase_well_frame",
