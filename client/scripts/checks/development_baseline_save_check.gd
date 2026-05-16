@@ -68,7 +68,8 @@ func run() -> void:
 			"baseline.s13_phase_well_anchor_core_ready",
 			"baseline.s14_phase_well_anchor_field_stabilized",
 			"baseline.s15_phase_well_stability_readout_ready",
-			"baseline.s16_phase_well_stability_window_calibrated"
+			"baseline.s16_phase_well_stability_window_calibrated",
+			"baseline.s17_frontline_action_report_ready"
 		]:
 			host._expect_equal(
 				loaded_world.active_phase_relay_anchor_id,
@@ -130,8 +131,8 @@ func run() -> void:
 			)
 			host._expect_equal(
 				loaded_world.quest_state.active_quest_ids,
-				[],
-				"S16 baseline should not keep an active quest"
+				["quest.plan_stability_frontline_action"],
+				"S16 baseline should activate frontline action confirmation"
 			)
 			for node_instance_id in [
 				"map_object_instance.phase_well_stability_node_west",
@@ -144,3 +145,31 @@ func run() -> void:
 					true,
 					"S16 baseline should keep %s calibrated" % node_instance_id
 				)
+		if baseline_id == "baseline.s17_frontline_action_report_ready":
+			host._expect_array_has(
+				loaded_world.quest_state.completed_quest_ids,
+				"quest.analyze_stability_echo_sample",
+				"S17 baseline should complete stability echo report"
+			)
+			host._expect_equal(
+				loaded_world.quest_state.active_quest_ids,
+				[],
+				"S17 baseline should not keep an active quest"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.frontline_action_report", 0)),
+				1,
+				"S17 baseline should keep frontline action report"
+			)
+			var console_state := loaded_world.get_map_object("map_object_instance.frontline_action_console")
+			host._expect_equal(
+				bool(console_state.get("is_sampled", false)),
+				true,
+				"S17 baseline should keep frontline action console confirmed"
+			)
+			var probe_state := loaded_world.get_map_object("map_object_instance.stability_echo_probe")
+			host._expect_equal(
+				bool(probe_state.get("is_sampled", false)),
+				true,
+				"S17 baseline should keep stability echo probe sampled"
+			)

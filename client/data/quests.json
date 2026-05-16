@@ -917,6 +917,45 @@
       "prerequisites": ["quest.analyze_phase_well_echo_shard"],
       "rewards": [],
       "unlock_effects": ["slice_01_complete"],
+      "next_quest_ids": ["quest.plan_stability_frontline_action"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.plan_stability_frontline_action",
+      "display_name_key": "quest.plan_stability_frontline_action.name",
+      "description_key": "quest.plan_stability_frontline_action.desc",
+      "quest_type": "main",
+      "stage": 73,
+      "objectives": [{"type": "inspect", "target_id": "map_object.frontline_action_console", "amount": 1}],
+      "prerequisites": ["quest.calibrate_phase_well_stability_window"],
+      "rewards": [],
+      "unlock_effects": [],
+      "next_quest_ids": ["quest.survey_stability_echo_probe"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.survey_stability_echo_probe",
+      "display_name_key": "quest.survey_stability_echo_probe.name",
+      "description_key": "quest.survey_stability_echo_probe.desc",
+      "quest_type": "main",
+      "stage": 74,
+      "objectives": [{"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1}, {"type": "inspect", "target_id": "map_object.stability_echo_probe", "amount": 1}],
+      "prerequisites": ["quest.plan_stability_frontline_action"],
+      "rewards": [{"id": "item.stability_echo_sample", "amount": 1}, {"id": "item.basic_parts", "amount": 4}],
+      "unlock_effects": ["recipe.stability_echo_report"],
+      "next_quest_ids": ["quest.analyze_stability_echo_sample"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.analyze_stability_echo_sample",
+      "display_name_key": "quest.analyze_stability_echo_sample.name",
+      "description_key": "quest.analyze_stability_echo_sample.desc",
+      "quest_type": "main",
+      "stage": 75,
+      "objectives": [{"type": "craft_item", "target_id": "item.frontline_action_report", "amount": 1}],
+      "prerequisites": ["quest.survey_stability_echo_probe"],
+      "rewards": [],
+      "unlock_effects": ["slice_01_complete"],
       "next_quest_ids": [],
       "public_level": "spoiler"
     }

@@ -155,6 +155,13 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		return [_set_update("quest.calibrate_phase_well_stability_window", "inspect", "map_object.phase_well_stability_node_core", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.phase_well_stability_node_east":
 		return [_set_update("quest.calibrate_phase_well_stability_window", "inspect", "map_object.phase_well_stability_node_east", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.frontline_action_console":
+		return [_set_update("quest.plan_stability_frontline_action", "inspect", "map_object.frontline_action_console", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.stability_echo_probe":
+		return [
+			_set_update("quest.survey_stability_echo_probe", "visit_region", "region.phase_well_tether", 1),
+			_set_update("quest.survey_stability_echo_probe", "inspect", "map_object.stability_echo_probe", 1)
+		]
 	if interaction_type == "process_recipe":
 		return get_recipe_objective_updates(recipe_id)
 	if interaction_type == "build":
@@ -301,6 +308,8 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 			]
 		"recipe.phase_well_echo_shard_analysis":
 			return [_set_update("quest.analyze_phase_well_echo_shard", "craft_item", "item.phase_well_stability_readout", 1)]
+		"recipe.stability_echo_report":
+			return [_set_update("quest.analyze_stability_echo_sample", "craft_item", "item.frontline_action_report", 1)]
 		_:
 			return []
 

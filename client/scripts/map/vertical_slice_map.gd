@@ -66,7 +66,9 @@ const INTERACTABLE_QUEST_GATES := {
 	"map_object.phase_well_tether_knot_node": "quest.collect_tether_fiber",
 	"map_object.tether_fiber_cluster": "quest.collect_tether_fiber",
 	"map_object.phase_well_tether": "quest.inspect_phase_well_tether",
-	"map_object.phase_well_anchor_pressure_pin": "quest.stabilize_phase_well_anchor_field"
+	"map_object.phase_well_anchor_pressure_pin": "quest.stabilize_phase_well_anchor_field",
+	"map_object.frontline_action_console": "quest.plan_stability_frontline_action",
+	"map_object.stability_echo_probe": "quest.survey_stability_echo_probe"
 }
 @onready var player: PlayerController = $Player
 @onready var interactables_root: Node2D = $Interactables

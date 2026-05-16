@@ -48,7 +48,9 @@
         "quest.analyze_phase_well_anchor_core",
         "quest.refine_anchor_core_dust",
         "quest.assemble_phase_well_anchor_stake",
-        "quest.analyze_phase_well_echo_shard"
+        "quest.analyze_phase_well_echo_shard",
+        "quest.plan_stability_frontline_action",
+        "quest.analyze_stability_echo_sample"
       ],
       "public_level": "public"
     },
@@ -227,7 +229,7 @@
       "pollution_types": ["pollution.yellow_residue"],
       "weather_pool": ["weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
-      "quest_refs": ["quest.analyze_phase_well_knot_core", "quest.collect_tether_fiber", "quest.inspect_phase_well_tether", "quest.analyze_phase_well_anchor_core", "quest.stabilize_phase_well_anchor_field", "quest.calibrate_phase_well_stability_window"],
+      "quest_refs": ["quest.analyze_phase_well_knot_core", "quest.collect_tether_fiber", "quest.inspect_phase_well_tether", "quest.analyze_phase_well_anchor_core", "quest.stabilize_phase_well_anchor_field", "quest.calibrate_phase_well_stability_window", "quest.survey_stability_echo_probe"],
       "public_level": "spoiler"
     }
   ]

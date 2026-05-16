@@ -24,8 +24,14 @@ func format_runtime_hint(world_state: WorldState, character_state: CharacterStat
 
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_stability_echo_report(world_state):
+			return "前线行动回报已归档：基地选择、前线读取、回基地解析的最短闭环已经跑通。"
+		if _has_completed_stability_echo_probe(world_state):
+			return "稳窗回波样本已带回：回基地使用基础反应器，把样本解析成前线行动回报。"
+		if _has_completed_stability_frontline_action(world_state):
+			return "前线行动已确认：用相位回投返回井系桥东侧，读取稳窗回波探点。"
 		if _has_completed_phase_well_stability_window_calibration(world_state):
-			return "稳窗相位序已完成现场校准：锚场回稳窗现在同时承担回访回充和现场定序样板。"
+			return "稳窗相位序已完成现场校准：回基地在前线行动台确认下一趟外出目标。"
 		if _has_completed_phase_well_echo_shard_analysis(world_state):
 			return "相位井稳窗读数已解析：回到井系桥东侧，按西侧、中央、东侧顺序校准三处稳窗节点。"
 		if _has_completed_phase_well_anchor_field(world_state):
@@ -245,14 +251,26 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "回基地使用基础反应器，把相位井余响片解析成稳窗读数；读数会强化井系桥东侧稳定窗口的前线回充。"
 		"quest.calibrate_phase_well_stability_window":
 			return "带着稳窗读数返回井系桥东侧，按西侧、中央、东侧顺序校准三处稳窗节点。"
+		"quest.plan_stability_frontline_action":
+			return "回基地检查前线行动台，确认这次行动只做一件事：回访井系桥东侧稳窗探点。"
+		"quest.survey_stability_echo_probe":
+			return "用相位回投返回井系桥东侧，在稳窗回波探点读取样本后回基地。"
+		"quest.analyze_stability_echo_sample":
+			return "回基地使用基础反应器，把稳窗回波样本解析成前线行动回报。"
 		_:
 			return "按当前目标推进。"
 
 
 func format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_stability_echo_report(world_state):
+			return "这一步先把“远征”压成轻量前线行动：基地决定目标，前线只取一个读数，回基地完成反馈。"
+		if _has_completed_stability_echo_probe(world_state):
+			return "样本已经拿到，先别继续堆现场目标；回基地解析它，验证行动回报能不能收住这一趟。"
+		if _has_completed_stability_frontline_action(world_state):
+			return "这次不是新大区，只是一次短前线行动；目标在同一锚场窗口内完成。"
 		if _has_completed_phase_well_stability_window_calibration(world_state):
-			return "稳窗校准证明了第一版现场定序模板可运行；后续可以继续扩成路线清障或局部解谜。"
+			return "稳窗校准之后先不继续拉长相位井；回基地用前线行动台验证最短基地-前线-基地反馈。"
 		if _has_completed_phase_well_echo_shard_analysis(world_state):
 			return "稳窗读数已经从基地解析结果变成现场执行目标；这一步验证的是按序校准，而不是继续堆采集和单件制造。"
 		if _has_completed_phase_well_anchor_field(world_state):
@@ -456,6 +474,12 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "稳窗读数不是下一张门票；它会反向强化已经完成的锚场回稳窗，让玩家之后能在前线回充生命与防护，获得更明确的容错收益。"
 		"quest.calibrate_phase_well_stability_window":
 			return "这是第一版现场校准模板：不是再打一轮怪或采两处材料，而是在同一前线位置按西侧、中央、东侧顺序写入读数，验证局部定序目标能否成立。"
+		"quest.plan_stability_frontline_action":
+			return "前线行动台不是复杂远征系统；当前只用它把下一趟外出目标从“继续往东”改成一次短回访。"
+		"quest.survey_stability_echo_probe":
+			return "这一步只读取一个探点，不再追加打怪、两处采集和门禁，先验证短行动的目标密度。"
+		"quest.analyze_stability_echo_sample":
+			return "行动回报负责收束这趟短回访，让前线读取真正回到基地反馈，而不是停在背包里。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 
@@ -508,6 +532,18 @@ func _has_anchor_field_pressure_pins_cleared(world_state: WorldState) -> bool:
 
 func _has_completed_phase_well_stability_window_calibration(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.calibrate_phase_well_stability_window")
+
+
+func _has_completed_stability_frontline_action(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.plan_stability_frontline_action")
+
+
+func _has_completed_stability_echo_probe(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.survey_stability_echo_probe")
+
+
+func _has_completed_stability_echo_report(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.analyze_stability_echo_sample")
 
 
 func _has_completed_phase_well_frame(world_state: WorldState) -> bool:

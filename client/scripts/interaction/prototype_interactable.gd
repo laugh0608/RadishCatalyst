@@ -42,6 +42,7 @@ const READY_PHASE_WELL_ANCHOR_FIELD_COLOR := Color(0.76, 0.96, 0.68, 1)
 const STABILIZED_PHASE_WELL_ANCHOR_FIELD_COLOR := Color(0.62, 0.98, 0.82, 1)
 const READY_STABILITY_CALIBRATION_COLOR := Color(0.66, 0.9, 0.96, 1)
 const CALIBRATED_STABILITY_NODE_COLOR := Color(0.48, 0.82, 0.92, 1)
+const COMPLETED_FRONTLINE_ACTION_COLOR := Color(0.56, 0.9, 0.78, 1)
 const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
 const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
 
@@ -331,6 +332,20 @@ func set_processed_visual() -> bool:
 		monitoring = false
 		marker.color = READY_STABILITY_CALIBRATION_COLOR
 		_set_label_text("%s\n读数已写入" % display_name_text, 2)
+		return true
+	if interaction_type == "inspect" and definition_id == "map_object.frontline_action_console":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
+		_set_label_text("%s\n行动已确认" % display_name_text, 2)
+		return true
+	if interaction_type == "inspect" and definition_id == "map_object.stability_echo_probe":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
+		_set_label_text("%s\n样本已读取" % display_name_text, 2)
 		return true
 	return false
 

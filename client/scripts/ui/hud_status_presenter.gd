@@ -63,6 +63,8 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 	"item.phase_well_anchor_stake",
 	"item.phase_well_echo_shard",
 	"item.phase_well_stability_readout",
+	"item.stability_echo_sample",
+	"item.frontline_action_report",
 	"item.filter_media",
 	"item.foundation_material",
 	"fluid.basic_solvent",
@@ -167,8 +169,14 @@ func _format_vital_lines(
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if not quest_id.is_empty():
 		return _get_display_name(data_registry, quest_id)
+	if _has_completed_stability_echo_report(world_state):
+		return "前线行动回报已归档"
+	if _has_completed_stability_echo_probe(world_state):
+		return "稳窗回波样本待解析"
+	if _has_completed_stability_frontline_action(world_state):
+		return "稳窗回波探点待读取"
 	if _has_completed_phase_well_stability_window_calibration(world_state):
-		return "稳窗相位序已校准"
+		return "前线行动待确认"
 	if _has_completed_phase_well_echo_shard_analysis(world_state):
 		return "相位井稳窗读数待现场校准"
 	if _has_completed_phase_well_anchor_field(world_state):
@@ -246,8 +254,14 @@ func _format_quick_slots(data_registry: DataRegistry, character_state: Character
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_stability_echo_report(world_state):
+			return "基地确认行动、前线读取探点、回基地解析回报的最短循环已完成"
+		if _has_completed_stability_echo_probe(world_state):
+			return "稳窗回波样本已带回；回基地基础反应器解析成前线行动回报"
+		if _has_completed_stability_frontline_action(world_state):
+			return "前线行动已确认；回到井系桥东侧读取稳窗回波探点"
 		if _has_completed_phase_well_stability_window_calibration(world_state):
-			return "三处稳窗校准点已按顺序写入；锚场回稳窗成为第一版现场定序目标样板"
+			return "三处稳窗校准点已按顺序写入；回基地在前线行动台确认下一趟外出"
 		if _has_completed_phase_well_echo_shard_analysis(world_state):
 			return "相位井稳窗读数已解析；返回井系桥东侧按西侧、中央、东侧顺序校准稳窗节点"
 		if _has_completed_phase_well_anchor_field(world_state):
@@ -410,6 +424,18 @@ func _has_completed_phase_well_echo_shard_analysis(world_state: WorldState) -> b
 
 func _has_completed_phase_well_stability_window_calibration(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.calibrate_phase_well_stability_window")
+
+
+func _has_completed_stability_frontline_action(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.plan_stability_frontline_action")
+
+
+func _has_completed_stability_echo_probe(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.survey_stability_echo_probe")
+
+
+func _has_completed_stability_echo_report(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.analyze_stability_echo_sample")
 
 
 func _has_completed_phase_well_frame(world_state: WorldState) -> bool:

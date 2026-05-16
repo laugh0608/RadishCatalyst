@@ -174,7 +174,13 @@ func _format_completion_note(quest_id: String) -> String:
 		"quest.analyze_phase_well_echo_shard":
 			return "稳窗读数已解析；返回井系桥东侧按现场相位序校准三处稳窗节点"
 		"quest.calibrate_phase_well_stability_window":
-			return "稳窗校准完成；现场目标已从单次制造往返转成按顺序执行的前线校准模板"
+			return "稳窗校准完成；回基地在前线行动台确认下一趟外出行动"
+		"quest.plan_stability_frontline_action":
+			return "前线行动已确认；从相位回投台返回井系桥东侧，读取稳窗回波探点"
+		"quest.survey_stability_echo_probe":
+			return "稳窗回波样本已带回；回基地用基础反应器解析前线行动回报"
+		"quest.analyze_stability_echo_sample":
+			return "前线行动回报已归档；基地选择、前线读取、返回解析的最短闭环已跑通"
 		_:
 			return ""
 

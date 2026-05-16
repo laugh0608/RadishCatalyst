@@ -124,9 +124,23 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 		{"type": "inspect", "target_id": "map_object.phase_well_stability_node_core", "amount": 1},
 		{"type": "inspect", "target_id": "map_object.phase_well_stability_node_east", "amount": 1}
 	])
-	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after stability window calibration should have no active quest")
+	host._expect_active_quest("quest.plan_stability_frontline_action", "after stability window calibration returns to base frontline action")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.calibrate_phase_well_stability_window", "stability window calibration quest completed")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "stability window calibration keeps slice completion unlock present")
+	host._complete_active_quest("quest.plan_stability_frontline_action", [{"type": "inspect", "target_id": "map_object.frontline_action_console", "amount": 1}])
+	host._expect_active_quest("quest.survey_stability_echo_probe", "after frontline action confirmation returns to stability echo probe")
+	host._complete_active_quest("quest.survey_stability_echo_probe", [
+		{"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1},
+		{"type": "inspect", "target_id": "map_object.stability_echo_probe", "amount": 1}
+	])
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.survey_stability_echo_probe", "stability echo probe quest completed")
+	host._expect_equal(int(character_state.inventory.items.get("item.stability_echo_sample", 0)), 1, "stability echo probe grants echo sample")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.stability_echo_report", "stability echo probe unlocks echo report recipe")
+	host._expect_active_quest("quest.analyze_stability_echo_sample", "after stability echo probe returns to base report analysis")
+	host._complete_active_quest("quest.analyze_stability_echo_sample", [{"type": "craft_item", "target_id": "item.frontline_action_report", "amount": 1}])
+	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after stability echo report should have no active quest")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.analyze_stability_echo_sample", "stability echo report quest completed")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "stability echo report keeps slice completion unlock present")
 
 
 func run_hud_and_map_checks() -> void:
@@ -188,6 +202,9 @@ func _check_onboarding_hints() -> void:
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.stabilize_phase_well_anchor_field", "部署后的校锚桩会保留在现场", "anchor field stabilization onboarding keeps retry rule explicit before deployment")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_phase_well_echo_shard", "前线回充", "echo shard analysis direction explains readout payoff")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.calibrate_phase_well_stability_window", "西侧、中央、东侧", "stability window calibration direction explains node order")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.plan_stability_frontline_action", "前线行动台", "frontline action confirmation direction explains base console")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.survey_stability_echo_probe", "短行动的目标密度", "stability echo probe onboarding explains short field objective")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_stability_echo_sample", "回到基地反馈", "stability echo sample analysis onboarding explains return report")
 	var anchor_field_completion_world := WorldState.create_default()
 	anchor_field_completion_world.quest_state.active_quest_ids.clear()
 	anchor_field_completion_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
@@ -204,8 +221,16 @@ func _check_onboarding_hints() -> void:
 	calibration_completion_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
 	calibration_completion_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
 	calibration_completion_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
-	host._expect_text_contains(presenter.format_direction_hint(calibration_completion_world, hint_character, ""), "现场定序样板", "calibration completion direction summarizes calibration template")
-	host._expect_text_contains(presenter.format_onboarding_hint(calibration_completion_world, hint_character, ""), "现场定序模板", "calibration completion onboarding summarizes field sequencing template")
+	host._expect_text_contains(presenter.format_direction_hint(calibration_completion_world, hint_character, ""), "前线行动台", "calibration completion direction points to frontline action console")
+	host._expect_text_contains(presenter.format_onboarding_hint(calibration_completion_world, hint_character, ""), "最短基地-前线-基地反馈", "calibration completion onboarding summarizes next loop")
+	var frontline_report_world := WorldState.create_default()
+	frontline_report_world.quest_state.active_quest_ids.clear()
+	frontline_report_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
+	frontline_report_world.quest_state.completed_quest_ids.append("quest.plan_stability_frontline_action")
+	frontline_report_world.quest_state.completed_quest_ids.append("quest.survey_stability_echo_probe")
+	frontline_report_world.quest_state.completed_quest_ids.append("quest.analyze_stability_echo_sample")
+	host._expect_text_contains(presenter.format_direction_hint(frontline_report_world, hint_character, ""), "前线行动回报已归档", "frontline report completion direction summarizes loop")
+	host._expect_text_contains(presenter.format_onboarding_hint(frontline_report_world, hint_character, ""), "轻量前线行动", "frontline report completion onboarding avoids heavy expedition language")
 	var anchor_field_deployed_world := WorldState.create_default()
 	anchor_field_deployed_world.quest_state.active_quest_ids = ["quest.stabilize_phase_well_anchor_field"]
 	anchor_field_deployed_world.ensure_map_object("map_object_instance.phase_well_anchor_field", "map_object.phase_well_anchor_field", "region.phase_well_tether")["anchor_field_deployed"] = true
@@ -266,8 +291,19 @@ func _check_status_panel_summary() -> void:
 	calibration_text_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
 	calibration_text_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
 	var calibration_text := presenter.format_status_text(host.data_registry, calibration_text_world, status_character)
-	host._expect_text_contains(calibration_text, "目标：稳窗相位序已校准", "status falls back to stability calibration completion")
-	host._expect_text_contains(calibration_text, "现场定序目标样板", "status progress keeps calibration template explicit")
+	host._expect_text_contains(calibration_text, "目标：前线行动待确认", "status falls back to frontline action confirmation after calibration")
+	host._expect_text_contains(calibration_text, "前线行动台", "status progress points to base frontline action console")
+	var frontline_report_text_world := WorldState.create_default()
+	frontline_report_text_world.quest_state.active_quest_ids.clear()
+	frontline_report_text_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
+	frontline_report_text_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
+	frontline_report_text_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
+	frontline_report_text_world.quest_state.completed_quest_ids.append("quest.plan_stability_frontline_action")
+	frontline_report_text_world.quest_state.completed_quest_ids.append("quest.survey_stability_echo_probe")
+	frontline_report_text_world.quest_state.completed_quest_ids.append("quest.analyze_stability_echo_sample")
+	var frontline_report_text := presenter.format_status_text(host.data_registry, frontline_report_text_world, status_character)
+	host._expect_text_contains(frontline_report_text, "目标：前线行动回报已归档", "status falls back to frontline report completion")
+	host._expect_text_contains(frontline_report_text, "最短循环已完成", "status progress keeps base-frontline-base loop explicit")
 
 
 func _check_anchor_field_recovery() -> void:

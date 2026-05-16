@@ -6,6 +6,7 @@ const BASELINE_OUTER_RING_POSITION := Vector2(604, -44)
 const BASELINE_DEEP_THRESHOLD_POSITION := Vector2(738, 10)
 const BASELINE_PHASE_RELAY_PAD_POSITION := Vector2(-210, -40)
 const BASELINE_ANCHOR_FIELD_POSITION := Vector2(3192, 18)
+const BASELINE_FRONTLINE_ACTION_CONSOLE_POSITION := Vector2(-92, 48)
 
 const QUEST_PROGRESS_ORDER: Array[String] = [
 	"quest.restore_outpost",
@@ -70,7 +71,10 @@ const QUEST_PROGRESS_ORDER: Array[String] = [
 	"quest.refine_anchor_core_dust",
 	"quest.stabilize_phase_well_anchor_field",
 	"quest.analyze_phase_well_echo_shard",
-	"quest.calibrate_phase_well_stability_window"
+	"quest.calibrate_phase_well_stability_window",
+	"quest.plan_stability_frontline_action",
+	"quest.survey_stability_echo_probe",
+	"quest.analyze_stability_echo_sample"
 ]
 
 var data_registry: DataRegistry
@@ -382,6 +386,22 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 					"region.phase_well_tether"
 				)
 				node_state["stability_node_calibrated"] = true
+		"quest.plan_stability_frontline_action":
+			_mark_object_sampled(
+				world_state,
+				"map_object_instance.frontline_action_console",
+				"map_object.frontline_action_console",
+				"region.outpost_platform"
+			)
+		"quest.survey_stability_echo_probe":
+			_mark_object_sampled(
+				world_state,
+				"map_object_instance.stability_echo_probe",
+				"map_object.stability_echo_probe",
+				"region.phase_well_tether"
+			)
+		"quest.analyze_stability_echo_sample":
+			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.stability_echo_report")
 
 
 func _apply_baseline_pose_and_inventory(
@@ -545,6 +565,15 @@ func _apply_baseline_pose_and_inventory(
 			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
 			character_state.inventory = _make_inventory(
 				{"item.basic_parts": 4, "item.phase_well_stability_readout": 1, "item.repair_gel": 1, "item.resistance_vial_t1": 1},
+				{},
+				{"fluid.basic_solvent": 2.0}
+			)
+		"baseline.s17_frontline_action_report_ready":
+			_set_runtime_position(world_state, character_state, "region.outpost_platform", BASELINE_FRONTLINE_ACTION_CONSOLE_POSITION)
+			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
+			character_state.inventory = _make_inventory(
+				{"item.basic_parts": 8, "item.frontline_action_report": 1, "item.repair_gel": 1, "item.resistance_vial_t1": 1},
 				{},
 				{"fluid.basic_solvent": 2.0}
 			)

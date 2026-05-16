@@ -205,6 +205,13 @@ single_use = false
 label_offset = Vector2(-94, 22)
 label_size = Vector2(188, 24)
 
+[node name="FrontlineActionConsole" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-92, 48)
+definition_id = "map_object.frontline_action_console"
+interaction_type = "inspect"
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
+
 [node name="CrystalCluster" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(30, -70)
 definition_id = "map_object.crystal_cluster"
@@ -784,6 +791,13 @@ interaction_type = "inspect"
 single_use = false
 label_offset = Vector2(-96, -42)
 label_size = Vector2(192, 24)
+
+[node name="StabilityEchoProbe" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3216, -154)
+definition_id = "map_object.stability_echo_probe"
+interaction_type = "inspect"
+label_offset = Vector2(-104, -52)
+label_size = Vector2(208, 24)
 
 [node name="Enemies" type="Node2D" parent="."]
 

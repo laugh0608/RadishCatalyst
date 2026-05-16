@@ -76,7 +76,9 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.phase_well_anchor_field": "map_object.phase_well_anchor_field",
 	"map_object_instance.phase_well_stability_node_west": "map_object.phase_well_stability_node_west",
 	"map_object_instance.phase_well_stability_node_core": "map_object.phase_well_stability_node_core",
-	"map_object_instance.phase_well_stability_node_east": "map_object.phase_well_stability_node_east"
+	"map_object_instance.phase_well_stability_node_east": "map_object.phase_well_stability_node_east",
+	"map_object_instance.frontline_action_console": "map_object.frontline_action_console",
+	"map_object_instance.stability_echo_probe": "map_object.stability_echo_probe"
 }
 
 const PROTOTYPE_ENEMY_SOURCES := {

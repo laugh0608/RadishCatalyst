@@ -630,6 +630,21 @@
       "pollution_delta": 0.0,
       "unlock_conditions": ["quest.stabilize_phase_well_anchor_field"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.stability_echo_report",
+      "display_name_key": "recipe.stability_echo_report.name",
+      "description_key": "recipe.stability_echo_report.desc",
+      "category": "analysis",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.stability_echo_sample", "amount": 1}],
+      "outputs": [{"id": "item.frontline_action_report", "amount": 1}],
+      "byproducts": [],
+      "duration": 12.0,
+      "energy_cost": 5.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.survey_stability_echo_probe"],
+      "public_level": "spoiler"
     }
   ]
 }

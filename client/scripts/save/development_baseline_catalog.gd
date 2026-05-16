@@ -136,6 +136,14 @@ const BASELINE_DEFINITIONS := [
 		"completed_through": "quest.calibrate_phase_well_stability_window",
 		"summary": "西侧、中央和东侧三处稳窗校准点已按顺序写入，现场校准模板完成。",
 		"recommended_for": "现场校准完成态、局部定序目标、前线容错收益和阶段收口判断。"
+	},
+	{
+		"id": "baseline.s17_frontline_action_report_ready",
+		"code": "S17",
+		"display_name": "S17 前线行动回报已归档",
+		"completed_through": "quest.analyze_stability_echo_sample",
+		"summary": "基地前线行动台、稳窗回波探点和回报解析已跑通第一条最短闭环。",
+		"recommended_for": "基地选择、前线行动、返回解析和下一组核心循环入口判断。"
 	}
 ]
 
