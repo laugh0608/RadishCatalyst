@@ -103,6 +103,8 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 		log_messages.append("旧进度已接入：井纹架后的井系桥后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_tether_followup(world_state):
 		log_messages.append("旧进度已接入：井系桥后的锚场回稳后续任务已补入当前目标。")
+	if _activate_missing_post_phase_well_readout_followup(world_state):
+		log_messages.append("旧进度已接入：稳窗读数后的现场校准任务已补入当前目标。")
 	if _activate_missing_post_phase_well_chamber_followup(world_state):
 		log_messages.append("旧进度已接入：井心室后的井纺后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_sink_followup(world_state):
@@ -558,6 +560,19 @@ func _activate_missing_post_phase_well_tether_followup(world_state: WorldState) 
 	return false
 
 
+func _activate_missing_post_phase_well_readout_followup(world_state: WorldState) -> bool:
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.analyze_phase_well_echo_shard"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.calibrate_phase_well_stability_window"):
+		return false
+	if world_state.quest_state.has_active_quest("quest.calibrate_phase_well_stability_window"):
+		return false
+	world_state.quest_state.activate_quest("quest.calibrate_phase_well_stability_window")
+	return true
+
+
 func _activate_missing_post_phase_well_chamber_followup(world_state: WorldState) -> bool:
 	if not world_state.quest_state.active_quest_ids.is_empty():
 		return false
@@ -602,7 +617,9 @@ func _activate_missing_post_phase_well_sink_followup(world_state: WorldState) ->
 		"quest.inspect_phase_well_tether",
 		"quest.analyze_phase_well_anchor_core",
 		"quest.refine_anchor_core_dust",
-		"quest.stabilize_phase_well_anchor_field"
+		"quest.stabilize_phase_well_anchor_field",
+		"quest.analyze_phase_well_echo_shard",
+		"quest.calibrate_phase_well_stability_window"
 	]:
 		if world_state.quest_state.has_completed_quest(quest_id):
 			continue
@@ -653,7 +670,9 @@ func _activate_missing_post_phase_relay_followup(world_state: WorldState) -> boo
 		"quest.inspect_phase_well_tether",
 		"quest.analyze_phase_well_anchor_core",
 		"quest.refine_anchor_core_dust",
-		"quest.stabilize_phase_well_anchor_field"
+		"quest.stabilize_phase_well_anchor_field",
+		"quest.analyze_phase_well_echo_shard",
+		"quest.calibrate_phase_well_stability_window"
 	]:
 		if world_state.quest_state.has_completed_quest(quest_id):
 			continue

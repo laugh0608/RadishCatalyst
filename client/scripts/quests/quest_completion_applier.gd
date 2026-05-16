@@ -171,6 +171,10 @@ func _format_completion_note(quest_id: String) -> String:
 			return "井系校锚桩已完成；返回井系桥东侧部署并顶住一轮回稳压制"
 		"quest.stabilize_phase_well_anchor_field":
 			return "井系桥东侧稳定窗口已生成；相位井余响片已带回基地"
+		"quest.analyze_phase_well_echo_shard":
+			return "稳窗读数已解析；返回井系桥东侧按现场相位序校准三处稳窗节点"
+		"quest.calibrate_phase_well_stability_window":
+			return "稳窗校准完成；现场目标已从单次制造往返转成按顺序执行的前线校准模板"
 		_:
 			return ""
 

@@ -167,8 +167,10 @@ func _format_vital_lines(
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if not quest_id.is_empty():
 		return _get_display_name(data_registry, quest_id)
+	if _has_completed_phase_well_stability_window_calibration(world_state):
+		return "稳窗相位序已校准"
 	if _has_completed_phase_well_echo_shard_analysis(world_state):
-		return "相位井稳窗读数已解析"
+		return "相位井稳窗读数待现场校准"
 	if _has_completed_phase_well_anchor_field(world_state):
 		return "相位井余响片已带回"
 	if _has_completed_phase_well_tether(world_state):
@@ -244,8 +246,10 @@ func _format_quick_slots(data_registry: DataRegistry, character_state: Character
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_well_stability_window_calibration(world_state):
+			return "三处稳窗校准点已按顺序写入；锚场回稳窗成为第一版现场定序目标样板"
 		if _has_completed_phase_well_echo_shard_analysis(world_state):
-			return "相位井稳窗读数已解析；井系桥东侧稳定窗口已校准为前线回稳点，可回访恢复生命与防护"
+			return "相位井稳窗读数已解析；返回井系桥东侧按西侧、中央、东侧顺序校准稳窗节点"
 		if _has_completed_phase_well_anchor_field(world_state):
 			return "井系桥东侧稳定窗口已生成；相位井余响片已带回基地，解析后可校准为可回访的前线回稳点"
 		if _has_completed_phase_well_tether(world_state):
@@ -400,6 +404,10 @@ func _has_completed_phase_well_anchor_field(world_state: WorldState) -> bool:
 
 func _has_completed_phase_well_echo_shard_analysis(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.analyze_phase_well_echo_shard")
+
+
+func _has_completed_phase_well_stability_window_calibration(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.calibrate_phase_well_stability_window")
 
 
 func _has_completed_phase_well_frame(world_state: WorldState) -> bool:

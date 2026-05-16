@@ -131,6 +131,12 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		return [_set_update("quest.inspect_phase_well_tether", "inspect", "map_object.phase_well_tether", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.phase_well_anchor_field":
 		return [_set_update("quest.stabilize_phase_well_anchor_field", "inspect", "map_object.phase_well_anchor_field", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.phase_well_stability_node_west":
+		return [_set_update("quest.calibrate_phase_well_stability_window", "inspect", "map_object.phase_well_stability_node_west", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.phase_well_stability_node_core":
+		return [_set_update("quest.calibrate_phase_well_stability_window", "inspect", "map_object.phase_well_stability_node_core", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.phase_well_stability_node_east":
+		return [_set_update("quest.calibrate_phase_well_stability_window", "inspect", "map_object.phase_well_stability_node_east", 1)]
 	if interaction_type == "process_recipe":
 		return get_recipe_objective_updates(recipe_id)
 	if interaction_type == "build":

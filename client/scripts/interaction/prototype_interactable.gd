@@ -40,6 +40,8 @@ const STABILIZED_PHASE_WELL_TETHER_COLOR := Color(1.0, 0.88, 0.72, 1)
 const DEPLOYED_PHASE_WELL_ANCHOR_FIELD_COLOR := Color(0.86, 0.86, 0.58, 1)
 const READY_PHASE_WELL_ANCHOR_FIELD_COLOR := Color(0.76, 0.96, 0.68, 1)
 const STABILIZED_PHASE_WELL_ANCHOR_FIELD_COLOR := Color(0.62, 0.98, 0.82, 1)
+const READY_STABILITY_CALIBRATION_COLOR := Color(0.66, 0.9, 0.96, 1)
+const CALIBRATED_STABILITY_NODE_COLOR := Color(0.48, 0.82, 0.92, 1)
 const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
 const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
 
@@ -463,6 +465,22 @@ func set_stabilized_phase_well_anchor_field_visual() -> void:
 	monitoring = true
 	marker.color = STABILIZED_PHASE_WELL_ANCHOR_FIELD_COLOR
 	_set_label_text("%s\n已稳定" % display_name_text, 2)
+
+
+func set_ready_stability_calibration_visual() -> void:
+	consumed = false
+	visible = true
+	monitoring = true
+	marker.color = READY_STABILITY_CALIBRATION_COLOR
+	_set_label_text("%s\n待校准" % display_name_text, 2)
+
+
+func set_calibrated_stability_node_visual() -> void:
+	consumed = true
+	visible = true
+	monitoring = false
+	marker.color = CALIBRATED_STABILITY_NODE_COLOR
+	_set_label_text("%s\n已校准" % display_name_text, 2)
 
 
 func set_built_visual(built_definition_id: String) -> void:

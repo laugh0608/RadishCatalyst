@@ -11,6 +11,7 @@ const ASSEMBLE_ANCHOR_STAKE_QUEST_ID := "quest.assemble_phase_well_anchor_stake"
 const ANCHOR_FIELD_PACKAGE_QUEST_ID := "quest.refine_anchor_core_dust"
 const STABILIZE_ANCHOR_FIELD_QUEST_ID := "quest.stabilize_phase_well_anchor_field"
 const ANALYZE_ECHO_SHARD_QUEST_ID := "quest.analyze_phase_well_echo_shard"
+const CALIBRATE_STABILITY_WINDOW_QUEST_ID := "quest.calibrate_phase_well_stability_window"
 const PHASE_WELL_ANCHOR_STAKE_ITEM_ID := "item.phase_well_anchor_stake"
 const PHASE_WELL_STABILITY_READOUT_ITEM_ID := "item.phase_well_stability_readout"
 
@@ -19,11 +20,29 @@ const ANCHOR_FIELD_INSTANCE_ID := "map_object_instance.phase_well_anchor_field"
 const ANCHOR_FIELD_REGION_ID := "region.phase_well_tether"
 const ANCHOR_FIELD_ENEMY_ID := "enemy.phase_well_warden"
 const ANCHOR_FIELD_ENEMY_INSTANCE_ID := "enemy_instance.phase_well_warden"
+const STABILITY_WINDOW_CALIBRATION_NODES := [
+	{
+		"definition_id": "map_object.phase_well_stability_node_west",
+		"instance_id": "map_object_instance.phase_well_stability_node_west",
+		"label": "西侧稳窗校准点"
+	},
+	{
+		"definition_id": "map_object.phase_well_stability_node_core",
+		"instance_id": "map_object_instance.phase_well_stability_node_core",
+		"label": "中央稳窗校准点"
+	},
+	{
+		"definition_id": "map_object.phase_well_stability_node_east",
+		"instance_id": "map_object_instance.phase_well_stability_node_east",
+		"label": "东侧稳窗校准点"
+	}
+]
 
 const FLAG_ANCHOR_FIELD_DEPLOYED := "anchor_field_deployed"
 const FLAG_ANCHOR_FIELD_PRESSURE_ACTIVE := "anchor_field_pressure_active"
 const FLAG_ANCHOR_FIELD_PRESSURE_CLEARED := "anchor_field_pressure_cleared"
 const FLAG_ANCHOR_FIELD_STABILIZED := "anchor_field_stabilized"
+const FLAG_STABILITY_NODE_CALIBRATED := "stability_node_calibrated"
 const ANCHOR_FIELD_HEALTH_RECOVERY_RATIO := 0.2
 const ANCHOR_FIELD_PROTECTION_RECOVERY_RATIO := 0.35
 const STABILITY_READOUT_HEALTH_RECOVERY_RATIO := 0.35
@@ -146,6 +165,65 @@ func inspect_anchor_field(character_state: CharacterState, world_state: WorldSta
 	}
 
 
+func inspect_stability_calibration_node(
+	instance_id: String,
+	definition_id: String,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest(ANALYZE_ECHO_SHARD_QUEST_ID):
+		return _failure(
+			"稳窗读数尚未解析，现场校准点没有可写入的读数。",
+			"缺少稳窗读数",
+			"先回基地用基础反应器解析相位井余响片，再带着稳窗读数返回锚场。"
+		)
+	if (
+		not character_state.inventory.has_ref(PHASE_WELL_STABILITY_READOUT_ITEM_ID, 1)
+		and not world_state.quest_state.has_completed_quest(CALIBRATE_STABILITY_WINDOW_QUEST_ID)
+	):
+		return _failure(
+			"背包里没有相位井稳窗读数，无法开始现场校准。",
+			"缺少稳窗读数",
+			"确认余响片解析产物已放入背包，再从相位回投台返回井系桥东侧。"
+		)
+
+	var node_index := _get_stability_node_index(definition_id)
+	if node_index < 0:
+		return _failure(
+			"未知稳窗校准点：%s。" % definition_id,
+			"校准点异常",
+			"换一个已标记的稳窗校准点，或检查地图对象定义。"
+		)
+
+	var node_state := _ensure_stability_node_state(world_state, instance_id, definition_id)
+	if bool(node_state.get(FLAG_STABILITY_NODE_CALIBRATED, false)):
+		return {
+			"success": true,
+			"advance_interaction": false,
+			"message": "%s 已完成校准；继续检查剩余稳窗校准点。" % _get_stability_node_label(node_index)
+		}
+
+	if not _are_previous_stability_nodes_calibrated(world_state, node_index):
+		return _failure(
+			"%s 的相位序还没有对齐。" % _get_stability_node_label(node_index),
+			"校准顺序不匹配",
+			"先按西侧、中央、东侧顺序写入稳窗读数，避免回稳窗再次抖动。"
+		)
+
+	node_state[FLAG_STABILITY_NODE_CALIBRATED] = true
+	if node_index < STABILITY_WINDOW_CALIBRATION_NODES.size() - 1:
+		return {
+			"success": true,
+			"advance_interaction": true,
+			"message": "%s 已写入稳窗读数；继续按现场相位序校准下一处节点。" % _get_stability_node_label(node_index)
+		}
+	return {
+		"success": true,
+		"advance_interaction": true,
+		"message": "三处稳窗校准点已按顺序写入：锚场回稳窗不再只是回充点，后续前线目标可以围绕现场读数顺序展开。"
+	}
+
+
 func sync_anchor_field_progress(world_state: WorldState) -> void:
 	var object_state := _ensure_anchor_field_state(world_state)
 	if world_state.quest_state.has_completed_quest(STABILIZE_ANCHOR_FIELD_QUEST_ID):
@@ -186,6 +264,24 @@ func is_anchor_field_stabilized(world_state: WorldState) -> bool:
 	return bool(object_state.get(FLAG_ANCHOR_FIELD_STABILIZED, false))
 
 
+func is_stability_calibration_node(definition_id: String) -> bool:
+	return _get_stability_node_index(definition_id) >= 0
+
+
+func is_stability_node_calibrated(world_state: WorldState, instance_id: String, definition_id: String) -> bool:
+	var object_state := _ensure_stability_node_state(world_state, instance_id, definition_id)
+	return bool(object_state.get(FLAG_STABILITY_NODE_CALIBRATED, false))
+
+
+func is_stability_calibration_ready(world_state: WorldState, definition_id: String) -> bool:
+	var node_index := _get_stability_node_index(definition_id)
+	if node_index < 0:
+		return false
+	if not world_state.quest_state.has_completed_quest(ANALYZE_ECHO_SHARD_QUEST_ID):
+		return false
+	return _are_previous_stability_nodes_calibrated(world_state, node_index)
+
+
 func _has_stability_readout(character_state: CharacterState, world_state: WorldState) -> bool:
 	return (
 		world_state.quest_state.has_completed_quest(ANALYZE_ECHO_SHARD_QUEST_ID)
@@ -208,6 +304,45 @@ func _ensure_anchor_field_state(world_state: WorldState) -> Dictionary:
 	if not object_state.has(FLAG_ANCHOR_FIELD_STABILIZED):
 		object_state[FLAG_ANCHOR_FIELD_STABILIZED] = false
 	return object_state
+
+
+func _ensure_stability_node_state(world_state: WorldState, instance_id: String, definition_id: String) -> Dictionary:
+	var object_state := world_state.ensure_map_object(
+		instance_id,
+		definition_id,
+		ANCHOR_FIELD_REGION_ID
+	)
+	if not object_state.has(FLAG_STABILITY_NODE_CALIBRATED):
+		object_state[FLAG_STABILITY_NODE_CALIBRATED] = false
+	return object_state
+
+
+func _are_previous_stability_nodes_calibrated(world_state: WorldState, node_index: int) -> bool:
+	for index in range(node_index):
+		var node: Dictionary = STABILITY_WINDOW_CALIBRATION_NODES[index]
+		var node_state := _ensure_stability_node_state(
+			world_state,
+			String(node.get("instance_id", "")),
+			String(node.get("definition_id", ""))
+		)
+		if not bool(node_state.get(FLAG_STABILITY_NODE_CALIBRATED, false)):
+			return false
+	return true
+
+
+func _get_stability_node_index(definition_id: String) -> int:
+	for index in range(STABILITY_WINDOW_CALIBRATION_NODES.size()):
+		var node: Dictionary = STABILITY_WINDOW_CALIBRATION_NODES[index]
+		if String(node.get("definition_id", "")) == definition_id:
+			return index
+	return -1
+
+
+func _get_stability_node_label(node_index: int) -> String:
+	if node_index < 0 or node_index >= STABILITY_WINDOW_CALIBRATION_NODES.size():
+		return "稳窗校准点"
+	var node: Dictionary = STABILITY_WINDOW_CALIBRATION_NODES[node_index]
+	return String(node.get("label", "稳窗校准点"))
 
 
 func _ensure_anchor_field_enemy_state(world_state: WorldState) -> Dictionary:

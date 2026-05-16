@@ -67,7 +67,8 @@ func run() -> void:
 			"baseline.s12_phase_well_knot_core_ready",
 			"baseline.s13_phase_well_anchor_core_ready",
 			"baseline.s14_phase_well_anchor_field_stabilized",
-			"baseline.s15_phase_well_stability_readout_ready"
+			"baseline.s15_phase_well_stability_readout_ready",
+			"baseline.s16_phase_well_stability_window_calibrated"
 		]:
 			host._expect_equal(
 				loaded_world.active_phase_relay_anchor_id,
@@ -107,8 +108,8 @@ func run() -> void:
 			)
 			host._expect_equal(
 				loaded_world.quest_state.active_quest_ids,
-				[],
-				"S15 baseline should not keep an active quest"
+				["quest.calibrate_phase_well_stability_window"],
+				"S15 baseline should activate stability window calibration"
 			)
 			host._expect_equal(
 				int(loaded_character.inventory.items.get("item.phase_well_stability_readout", 0)),
@@ -121,3 +122,25 @@ func run() -> void:
 				true,
 				"S15 baseline should keep anchor field stabilized"
 			)
+		if baseline_id == "baseline.s16_phase_well_stability_window_calibrated":
+			host._expect_array_has(
+				loaded_world.quest_state.completed_quest_ids,
+				"quest.calibrate_phase_well_stability_window",
+				"S16 baseline should complete stability window calibration"
+			)
+			host._expect_equal(
+				loaded_world.quest_state.active_quest_ids,
+				[],
+				"S16 baseline should not keep an active quest"
+			)
+			for node_instance_id in [
+				"map_object_instance.phase_well_stability_node_west",
+				"map_object_instance.phase_well_stability_node_core",
+				"map_object_instance.phase_well_stability_node_east"
+			]:
+				var node_state := loaded_world.get_map_object(node_instance_id)
+				host._expect_equal(
+					bool(node_state.get("stability_node_calibrated", false)),
+					true,
+					"S16 baseline should keep %s calibrated" % node_instance_id
+				)

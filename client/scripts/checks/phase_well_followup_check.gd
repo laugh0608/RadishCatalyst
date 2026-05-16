@@ -112,9 +112,16 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	host._expect_equal(int(character_state.inventory.items.get("item.phase_well_echo_shard", 0)), 1, "anchor field stabilization grants first echo shard reward")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_echo_shard_analysis", "anchor field stabilization unlocks echo shard analysis recipe")
 	host._complete_active_quest("quest.analyze_phase_well_echo_shard", [{"type": "craft_item", "target_id": "item.phase_well_stability_readout", "amount": 1}])
-	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after echo shard analysis should have no active quest")
+	host._expect_active_quest("quest.calibrate_phase_well_stability_window", "after echo shard analysis returns to field calibration")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.analyze_phase_well_echo_shard", "echo shard analysis quest completed")
-	host._expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "echo shard analysis keeps slice completion unlock present")
+	host._complete_active_quest("quest.calibrate_phase_well_stability_window", [
+		{"type": "inspect", "target_id": "map_object.phase_well_stability_node_west", "amount": 1},
+		{"type": "inspect", "target_id": "map_object.phase_well_stability_node_core", "amount": 1},
+		{"type": "inspect", "target_id": "map_object.phase_well_stability_node_east", "amount": 1}
+	])
+	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after stability window calibration should have no active quest")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.calibrate_phase_well_stability_window", "stability window calibration quest completed")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "stability window calibration keeps slice completion unlock present")
 
 
 func run_hud_and_map_checks() -> void:
@@ -122,6 +129,7 @@ func run_hud_and_map_checks() -> void:
 	_check_status_panel_summary()
 	_check_anchor_field_recovery()
 	_check_echo_shard_analysis_progress()
+	_check_stability_window_calibration_runtime()
 	_check_region_presence_bounds()
 	_check_phase_well_chamber_gate()
 	_check_phase_well_loom_gate()
@@ -174,6 +182,7 @@ func _check_onboarding_hints() -> void:
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.stabilize_phase_well_anchor_field", "短守场", "anchor field stabilization onboarding hint")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.stabilize_phase_well_anchor_field", "部署后的校锚桩会保留在现场", "anchor field stabilization onboarding keeps retry rule explicit before deployment")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_phase_well_echo_shard", "前线回充", "echo shard analysis direction explains readout payoff")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.calibrate_phase_well_stability_window", "西侧、中央、东侧", "stability window calibration direction explains node order")
 	var anchor_field_completion_world := WorldState.create_default()
 	anchor_field_completion_world.quest_state.active_quest_ids.clear()
 	anchor_field_completion_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
@@ -183,8 +192,15 @@ func _check_onboarding_hints() -> void:
 	readout_completion_world.quest_state.active_quest_ids.clear()
 	readout_completion_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
 	readout_completion_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
-	host._expect_text_contains(presenter.format_direction_hint(readout_completion_world, hint_character, ""), "前线回充", "readout completion direction summarizes reusable recovery")
-	host._expect_text_contains(presenter.format_onboarding_hint(readout_completion_world, hint_character, ""), "容错收益", "readout completion onboarding summarizes tolerance payoff")
+	host._expect_text_contains(presenter.format_direction_hint(readout_completion_world, hint_character, ""), "三处稳窗节点", "readout completion direction points to field calibration")
+	host._expect_text_contains(presenter.format_onboarding_hint(readout_completion_world, hint_character, ""), "按序校准", "readout completion onboarding summarizes calibration payoff")
+	var calibration_completion_world := WorldState.create_default()
+	calibration_completion_world.quest_state.active_quest_ids.clear()
+	calibration_completion_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
+	calibration_completion_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
+	calibration_completion_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
+	host._expect_text_contains(presenter.format_direction_hint(calibration_completion_world, hint_character, ""), "现场定序样板", "calibration completion direction summarizes calibration template")
+	host._expect_text_contains(presenter.format_onboarding_hint(calibration_completion_world, hint_character, ""), "现场定序模板", "calibration completion onboarding summarizes field sequencing template")
 	var anchor_field_deployed_world := WorldState.create_default()
 	anchor_field_deployed_world.quest_state.active_quest_ids = ["quest.stabilize_phase_well_anchor_field"]
 	anchor_field_deployed_world.ensure_map_object("map_object_instance.phase_well_anchor_field", "map_object.phase_well_anchor_field", "region.phase_well_tether")["anchor_field_deployed"] = true
@@ -237,8 +253,16 @@ func _check_status_panel_summary() -> void:
 	readout_text_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
 	readout_text_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
 	var readout_text := presenter.format_status_text(host.data_registry, readout_text_world, status_character)
-	host._expect_text_contains(readout_text, "目标：相位井稳窗读数已解析", "status falls back to readout completion summary")
-	host._expect_text_contains(readout_text, "可回访恢复生命与防护", "status progress keeps readout recovery payoff explicit")
+	host._expect_text_contains(readout_text, "目标：相位井稳窗读数待现场校准", "status falls back to readout calibration summary")
+	host._expect_text_contains(readout_text, "顺序校准稳窗节点", "status progress points to stability node calibration")
+	var calibration_text_world := WorldState.create_default()
+	calibration_text_world.quest_state.active_quest_ids.clear()
+	calibration_text_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
+	calibration_text_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
+	calibration_text_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
+	var calibration_text := presenter.format_status_text(host.data_registry, calibration_text_world, status_character)
+	host._expect_text_contains(calibration_text, "目标：稳窗相位序已校准", "status falls back to stability calibration completion")
+	host._expect_text_contains(calibration_text, "现场定序目标样板", "status progress keeps calibration template explicit")
 
 
 func _check_anchor_field_recovery() -> void:
@@ -320,6 +344,47 @@ func _check_echo_shard_analysis_progress() -> void:
 		"quest.analyze_phase_well_echo_shard",
 		"echo shard analysis recovers completed objective from inventory"
 	)
+
+
+func _check_stability_window_calibration_runtime() -> void:
+	var runtime := PhaseWellFrontierRuntime.new(host.data_registry)
+	var world_state := WorldState.create_default()
+	world_state.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
+	world_state.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
+	var character_state := CharacterState.create_default()
+	character_state.inventory.add_item("item.phase_well_stability_readout", 1)
+	var out_of_order_result := runtime.inspect_stability_calibration_node(
+		"map_object_instance.phase_well_stability_node_core",
+		"map_object.phase_well_stability_node_core",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(out_of_order_result.get("success", true)), false, "stability calibration should reject out-of-order node")
+	host._expect_text_contains(String(out_of_order_result.get("message", "")), "相位序", "out-of-order stability calibration explains sequence")
+	var west_result := runtime.inspect_stability_calibration_node(
+		"map_object_instance.phase_well_stability_node_west",
+		"map_object.phase_well_stability_node_west",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(west_result.get("success", false)), true, "west stability node calibration should succeed")
+	var west_state := world_state.get_map_object("map_object_instance.phase_well_stability_node_west")
+	host._expect_equal(bool(west_state.get("stability_node_calibrated", false)), true, "west stability node should be marked calibrated")
+	var core_result := runtime.inspect_stability_calibration_node(
+		"map_object_instance.phase_well_stability_node_core",
+		"map_object.phase_well_stability_node_core",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(core_result.get("success", false)), true, "core stability node calibration should succeed after west")
+	var east_result := runtime.inspect_stability_calibration_node(
+		"map_object_instance.phase_well_stability_node_east",
+		"map_object.phase_well_stability_node_east",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(east_result.get("success", false)), true, "east stability node calibration should succeed after core")
+	host._expect_text_contains(String(east_result.get("message", "")), "三处稳窗校准点", "final stability calibration message summarizes full sequence")
 
 
 func _check_region_presence_bounds() -> void:

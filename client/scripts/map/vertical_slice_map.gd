@@ -39,6 +39,26 @@ const PHASE_WELL_FRAME_GATE_RETURN_X := 2572.0
 const PHASE_WELL_TETHER_GATE_RETURN_X := 2852.0
 const PHASE_RELAY_PAD_FALLBACK_POSITION := Vector2(-210, -40)
 const PHASE_RETURN_ANCHOR_FALLBACK_POSITION := Vector2(852, 92)
+const INTERACTABLE_QUEST_GATES := {
+	"map_object.phase_conduit_cluster": "quest.activate_deep_array",
+	"map_object.phase_return_anchor": "quest.deploy_phase_relay_anchor",
+	"map_object.phase_splinter_cluster": "quest.trace_phase_splinters",
+	"map_object.fault_residue_cluster": "quest.collect_fault_residue",
+	"map_object.phase_fault_spire": "quest.inspect_phase_fault_spire",
+	"map_object.phase_well_lock": "quest.unlock_phase_well",
+	"map_object.well_flux_cluster": "quest.collect_well_flux",
+	"map_object.inner_phase_well": "quest.inspect_inner_phase_well",
+	"map_object.well_ash_cluster": "quest.collect_well_ash",
+	"map_object.phase_well_sink": "quest.inspect_phase_well_sink",
+	"map_object.heart_spine_cluster": "quest.collect_heart_spine",
+	"map_object.phase_well_chamber": "quest.inspect_phase_well_chamber",
+	"map_object.weft_bundle_cluster": "quest.collect_weft_bundle",
+	"map_object.phase_well_loom": "quest.inspect_phase_well_loom",
+	"map_object.selvedge_strip_cluster": "quest.collect_selvedge_strip",
+	"map_object.phase_well_frame": "quest.inspect_phase_well_frame",
+	"map_object.tether_fiber_cluster": "quest.collect_tether_fiber",
+	"map_object.phase_well_tether": "quest.inspect_phase_well_tether"
+}
 @onready var player: PlayerController = $Player
 @onready var interactables_root: Node2D = $Interactables
 @onready var enemies_root: Node2D = $Enemies
@@ -101,6 +121,17 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		return phase_well_frontier_runtime.inspect_tether(character_state, world_state)
 	if interacted.definition_id == "map_object.phase_well_anchor_field" and interacted.interaction_type == "inspect":
 		return phase_well_frontier_runtime.inspect_anchor_field(character_state, world_state)
+	if (
+		interacted.interaction_type == "inspect"
+		and phase_well_frontier_runtime != null
+		and phase_well_frontier_runtime.is_stability_calibration_node(interacted.definition_id)
+	):
+		return phase_well_frontier_runtime.inspect_stability_calibration_node(
+			interacted.instance_id,
+			interacted.definition_id,
+			character_state,
+			world_state
+		)
 
 	var action_id := interacted.get_current_recipe_id()
 	if interacted.interaction_type == "build":
@@ -300,6 +331,20 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				interactable.set_deployed_phase_well_anchor_field_visual()
 			else:
 				interactable.set_default_visual()
+		elif (
+			phase_well_frontier_runtime != null
+			and phase_well_frontier_runtime.is_stability_calibration_node(interactable.definition_id)
+		):
+			if phase_well_frontier_runtime.is_stability_node_calibrated(
+				world_state,
+				interactable.instance_id,
+				interactable.definition_id
+			):
+				interactable.set_calibrated_stability_node_visual()
+			elif phase_well_frontier_runtime.is_stability_calibration_ready(world_state, interactable.definition_id):
+				interactable.set_ready_stability_calibration_visual()
+			else:
+				interactable.set_default_visual()
 		elif is_processed and interactable.set_processed_visual():
 			if current_interactable == interactable:
 				current_interactable = null
@@ -311,105 +356,29 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 		var should_enable: bool = not interactable.consumed
 		if interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter":
 			should_enable = should_enable and world_state.has_base_structure_definition("building.pollution_filter")
-		if interactable.definition_id == "map_object.phase_conduit_cluster":
+		if INTERACTABLE_QUEST_GATES.has(interactable.definition_id):
+			var gate_quest_id := String(INTERACTABLE_QUEST_GATES[interactable.definition_id])
 			should_enable = should_enable and (
-				world_state.quest_state.has_active_quest("quest.activate_deep_array")
-				or world_state.quest_state.has_completed_quest("quest.activate_deep_array")
+				world_state.quest_state.has_active_quest(gate_quest_id)
+				or world_state.quest_state.has_completed_quest(gate_quest_id)
 			)
 		if interactable.definition_id == "map_object.rich_crystal_vein":
 			should_enable = should_enable and world_state.quest_state.has_completed_quest("quest.scout_crystal_field")
-		if interactable.definition_id == "map_object.phase_return_anchor":
-			should_enable = should_enable and (
-				world_state.quest_state.has_active_quest("quest.deploy_phase_relay_anchor")
-				or world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor")
-			)
 		if interactable.definition_id == "map_object.phase_relay_pad":
 			should_enable = should_enable and world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor")
-		if interactable.definition_id == "map_object.phase_splinter_cluster":
-			should_enable = should_enable and (
-				world_state.quest_state.has_active_quest("quest.trace_phase_splinters")
-				or world_state.quest_state.has_completed_quest("quest.trace_phase_splinters")
-			)
-		if interactable.definition_id == "map_object.fault_residue_cluster":
-			should_enable = should_enable and (
-				world_state.quest_state.has_active_quest("quest.collect_fault_residue")
-				or world_state.quest_state.has_completed_quest("quest.collect_fault_residue")
-			)
-		if interactable.definition_id == "map_object.phase_fault_spire":
-			should_enable = should_enable and (
-				world_state.quest_state.has_active_quest("quest.inspect_phase_fault_spire")
-				or world_state.quest_state.has_completed_quest("quest.inspect_phase_fault_spire")
-			)
-		if interactable.definition_id == "map_object.phase_well_lock":
-			should_enable = should_enable and (
-				world_state.quest_state.has_active_quest("quest.unlock_phase_well")
-				or world_state.quest_state.has_completed_quest("quest.unlock_phase_well")
-			)
-		if interactable.definition_id == "map_object.well_flux_cluster":
-			should_enable = should_enable and (
-				world_state.quest_state.has_active_quest("quest.collect_well_flux")
-				or world_state.quest_state.has_completed_quest("quest.collect_well_flux")
-			)
-		if interactable.definition_id == "map_object.inner_phase_well":
-			should_enable = should_enable and (
-				world_state.quest_state.has_active_quest("quest.inspect_inner_phase_well")
-				or world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well")
-			)
-		if interactable.definition_id == "map_object.well_ash_cluster":
-			should_enable = should_enable and (
-				world_state.quest_state.has_active_quest("quest.collect_well_ash")
-				or world_state.quest_state.has_completed_quest("quest.collect_well_ash")
-			)
-		if interactable.definition_id == "map_object.phase_well_sink":
-			should_enable = should_enable and (
-				world_state.quest_state.has_active_quest("quest.inspect_phase_well_sink")
-				or world_state.quest_state.has_completed_quest("quest.inspect_phase_well_sink")
-			)
-		if interactable.definition_id == "map_object.heart_spine_cluster":
-			should_enable = should_enable and (
-				world_state.quest_state.has_active_quest("quest.collect_heart_spine")
-				or world_state.quest_state.has_completed_quest("quest.collect_heart_spine")
-			)
-		if interactable.definition_id == "map_object.phase_well_chamber":
-			should_enable = should_enable and (
-				world_state.quest_state.has_active_quest("quest.inspect_phase_well_chamber")
-				or world_state.quest_state.has_completed_quest("quest.inspect_phase_well_chamber")
-			)
-		if interactable.definition_id == "map_object.weft_bundle_cluster":
-			should_enable = should_enable and (
-				world_state.quest_state.has_active_quest("quest.collect_weft_bundle")
-				or world_state.quest_state.has_completed_quest("quest.collect_weft_bundle")
-			)
-		if interactable.definition_id == "map_object.phase_well_loom":
-			should_enable = should_enable and (
-				world_state.quest_state.has_active_quest("quest.inspect_phase_well_loom")
-				or world_state.quest_state.has_completed_quest("quest.inspect_phase_well_loom")
-			)
-		if interactable.definition_id == "map_object.selvedge_strip_cluster":
-			should_enable = should_enable and (
-				world_state.quest_state.has_active_quest("quest.collect_selvedge_strip")
-				or world_state.quest_state.has_completed_quest("quest.collect_selvedge_strip")
-			)
-		if interactable.definition_id == "map_object.phase_well_frame":
-			should_enable = should_enable and (
-				world_state.quest_state.has_active_quest("quest.inspect_phase_well_frame")
-				or world_state.quest_state.has_completed_quest("quest.inspect_phase_well_frame")
-			)
-		if interactable.definition_id == "map_object.tether_fiber_cluster":
-			should_enable = should_enable and (
-				world_state.quest_state.has_active_quest("quest.collect_tether_fiber")
-				or world_state.quest_state.has_completed_quest("quest.collect_tether_fiber")
-			)
-		if interactable.definition_id == "map_object.phase_well_tether":
-			should_enable = should_enable and (
-				world_state.quest_state.has_active_quest("quest.inspect_phase_well_tether")
-				or world_state.quest_state.has_completed_quest("quest.inspect_phase_well_tether")
-			)
 		if interactable.definition_id == "map_object.phase_well_anchor_field":
 			should_enable = should_enable and phase_well_frontier_runtime != null and (
 				world_state.quest_state.has_active_quest("quest.stabilize_phase_well_anchor_field")
 				or world_state.quest_state.has_completed_quest("quest.stabilize_phase_well_anchor_field")
 				or world_state.quest_state.has_completed_quest("quest.refine_anchor_core_dust") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_anchor_stake")
+			)
+		if (
+			phase_well_frontier_runtime != null
+			and phase_well_frontier_runtime.is_stability_calibration_node(interactable.definition_id)
+		):
+			should_enable = (
+				world_state.quest_state.has_active_quest("quest.calibrate_phase_well_stability_window")
+				or world_state.quest_state.has_completed_quest("quest.calibrate_phase_well_stability_window")
 			)
 
 		interactable.set_interaction_enabled(should_enable)

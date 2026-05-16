@@ -899,6 +899,23 @@
       "objectives": [{"type": "craft_item", "target_id": "item.phase_well_stability_readout", "amount": 1}],
       "prerequisites": ["quest.stabilize_phase_well_anchor_field"],
       "rewards": [],
+      "unlock_effects": [],
+      "next_quest_ids": ["quest.calibrate_phase_well_stability_window"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.calibrate_phase_well_stability_window",
+      "display_name_key": "quest.calibrate_phase_well_stability_window.name",
+      "description_key": "quest.calibrate_phase_well_stability_window.desc",
+      "quest_type": "main",
+      "stage": 72,
+      "objectives": [
+        {"type": "inspect", "target_id": "map_object.phase_well_stability_node_west", "amount": 1},
+        {"type": "inspect", "target_id": "map_object.phase_well_stability_node_core", "amount": 1},
+        {"type": "inspect", "target_id": "map_object.phase_well_stability_node_east", "amount": 1}
+      ],
+      "prerequisites": ["quest.analyze_phase_well_echo_shard"],
+      "rewards": [],
       "unlock_effects": ["slice_01_complete"],
       "next_quest_ids": [],
       "public_level": "spoiler"

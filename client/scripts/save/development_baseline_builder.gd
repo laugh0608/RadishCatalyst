@@ -69,7 +69,8 @@ const QUEST_PROGRESS_ORDER: Array[String] = [
 	"quest.analyze_phase_well_anchor_core",
 	"quest.refine_anchor_core_dust",
 	"quest.stabilize_phase_well_anchor_field",
-	"quest.analyze_phase_well_echo_shard"
+	"quest.analyze_phase_well_echo_shard",
+	"quest.calibrate_phase_well_stability_window"
 ]
 
 var data_registry: DataRegistry
@@ -350,6 +351,27 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			_mark_enemy_defeated(world_state, "enemy_instance.phase_well_warden", "enemy.phase_well_warden", "region.phase_well_tether")
 		"quest.analyze_phase_well_echo_shard":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_echo_shard_analysis")
+		"quest.calibrate_phase_well_stability_window":
+			for node in [
+				{
+					"instance_id": "map_object_instance.phase_well_stability_node_west",
+					"definition_id": "map_object.phase_well_stability_node_west"
+				},
+				{
+					"instance_id": "map_object_instance.phase_well_stability_node_core",
+					"definition_id": "map_object.phase_well_stability_node_core"
+				},
+				{
+					"instance_id": "map_object_instance.phase_well_stability_node_east",
+					"definition_id": "map_object.phase_well_stability_node_east"
+				}
+			]:
+				var node_state := world_state.ensure_map_object(
+					String(node.get("instance_id", "")),
+					String(node.get("definition_id", "")),
+					"region.phase_well_tether"
+				)
+				node_state["stability_node_calibrated"] = true
 
 
 func _apply_baseline_pose_and_inventory(
@@ -499,6 +521,15 @@ func _apply_baseline_pose_and_inventory(
 				{"fluid.basic_solvent": 2.0}
 			)
 		"baseline.s15_phase_well_stability_readout_ready":
+			_set_runtime_position(world_state, character_state, "region.phase_well_tether", BASELINE_ANCHOR_FIELD_POSITION)
+			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
+			character_state.inventory = _make_inventory(
+				{"item.basic_parts": 4, "item.phase_well_stability_readout": 1, "item.repair_gel": 1, "item.resistance_vial_t1": 1},
+				{},
+				{"fluid.basic_solvent": 2.0}
+			)
+		"baseline.s16_phase_well_stability_window_calibrated":
 			_set_runtime_position(world_state, character_state, "region.phase_well_tether", BASELINE_ANCHOR_FIELD_POSITION)
 			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
 			character_state.equipment["suit_module"] = "equipment.filter_module_t1"

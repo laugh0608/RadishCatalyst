@@ -882,7 +882,7 @@
       "mass": 0.1,
       "rarity": "legendary",
       "source_refs": ["recipe.phase_well_echo_shard_analysis"],
-      "used_by_refs": ["quest.analyze_phase_well_echo_shard"],
+      "used_by_refs": ["quest.analyze_phase_well_echo_shard", "quest.calibrate_phase_well_stability_window"],
       "public_level": "spoiler"
     }
   ]

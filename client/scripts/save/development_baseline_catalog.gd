@@ -126,8 +126,16 @@ const BASELINE_DEFINITIONS := [
 		"code": "S15",
 		"display_name": "S15 稳窗读数已解析",
 		"completed_through": "quest.analyze_phase_well_echo_shard",
-		"summary": "相位井余响片已解析成稳窗读数，锚场回稳窗已可作为回访回充点观察。",
-		"recommended_for": "稳窗读数完成态、锚场回访回充、前线容错反馈和阶段收口判断。"
+		"summary": "相位井余响片已解析成稳窗读数，下一步返回锚场按现场相位序校准三处节点。",
+		"recommended_for": "稳窗读数完成态、现场校准目标、锚场回访回充和前线容错反馈回归。"
+	},
+	{
+		"id": "baseline.s16_phase_well_stability_window_calibrated",
+		"code": "S16",
+		"display_name": "S16 稳窗相位序已校准",
+		"completed_through": "quest.calibrate_phase_well_stability_window",
+		"summary": "西侧、中央和东侧三处稳窗校准点已按顺序写入，现场校准模板完成。",
+		"recommended_for": "现场校准完成态、局部定序目标、前线容错收益和阶段收口判断。"
 	}
 ]
 
