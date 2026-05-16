@@ -179,7 +179,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.analyze_phase_well_heart":
 			return "回基地使用基础反应器，解析相位井心核并整理相位井脉搏片。"
 		"quest.collect_heart_spine":
-			return "沿心核脉搏继续向东推进，击退心室撕裂体并回收两处心棘残片。"
+			return "沿心核脉搏继续向东推进，压制心室撕裂体；战斗收束后会直接带回两份心棘残片。"
 		"quest.refine_heart_spine":
 			if not character_state.inventory.has_ref("item.phase_well_damper", 1):
 				return "先回处理点污染过滤器，把心棘残片稳定成相位井抑振骨。"
@@ -191,7 +191,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.analyze_phase_well_spindle":
 			return "回基地使用基础反应器，解析相位井纺核并整理相位井经片。"
 		"quest.collect_weft_bundle":
-			return "沿纺核经片继续向东推进，击退井纺纠缠体并回收两处纬束残团。"
+			return "沿纺核经片继续向东推进，这次避开正面缠斗，只抽取一处纬束残团并带回可用余量。"
 		"quest.refine_weft_bundle":
 			if not character_state.inventory.has_ref("item.phase_well_tension_rib", 1):
 				return "先回处理点污染过滤器，把纬束残团稳定成相位井张力肋。"
@@ -203,7 +203,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.analyze_phase_well_weave_core":
 			return "回基地使用基础反应器，解析相位井织核并整理相位井纹谱片。"
 		"quest.collect_selvedge_strip":
-			return "沿织核纹谱继续向东推进，先清理任一条井纹架侧路，再击退井纹刮裂体并回收两处边缕残条。"
+			return "沿织核纹谱继续向东推进，先清理任一条井纹架侧路，再沿打开的回收线取回两处边缕残条。"
 		"quest.refine_selvedge_strip":
 			if not character_state.inventory.has_ref("item.phase_well_frame_rib", 1):
 				return "先回处理点污染过滤器，把边缕残条稳定成相位井纹架肋。"
@@ -215,7 +215,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.analyze_phase_well_knot_core":
 			return "回基地使用基础反应器，解析相位井结核并整理相位井系谱片。"
 		"quest.collect_tether_fiber":
-			return "沿结核系谱继续向东推进，击退井系缚结体并回收两处系索残股。"
+			return "沿结核系谱继续向东推进，断开井系缚结体；战斗完成后直接获得两份系索残股。"
 		"quest.refine_tether_fiber":
 			if not character_state.inventory.has_ref("item.phase_well_tether_rib", 1):
 				return "先回处理点污染过滤器，把系索残股稳定成相位井系固肋。"
@@ -398,7 +398,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.analyze_phase_well_heart":
 			return "相位井心核不是纪念品；要先回基地把它反解成脉搏片，新的井心室断面风险才会真正显形。"
 		"quest.collect_heart_spine":
-			return "井心室的新敌人和心棘残片要在同一趟外勤里一起解决，这一步负责把新风险和下一次基地加工输入同时带回来。"
+			return "井心室这一步改成战斗回收：压制心室撕裂体后直接得到整备输入，不再同时要求扫两处采集点。"
 		"quest.refine_heart_spine":
 			return "这一步是一次井心整备：先稳定心棘残片，再把脉搏片和抑振骨组装成井心分流栓，下一趟外勤直接勘验井心室断面。"
 		"quest.assemble_phase_well_shunt":
@@ -408,7 +408,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.analyze_phase_well_spindle":
 			return "相位井纺核不是纪念品；要先回基地把它反解成经片，新的井纺室断面风险才会真正显形。"
 		"quest.collect_weft_bundle":
-			return "井纺室的新敌人和纬束残团要在同一趟外勤里一起解决，这一步负责把新风险和下一次基地加工输入同时带回来。"
+			return "井纺室这一步改成低压抽取：只需要拿到一处纬束残团，剩余可用余量会随任务结算带回。"
 		"quest.refine_weft_bundle":
 			return "这一步是一次井纺整备：先稳定纬束残团，再把经片和张力肋组装成井纺梭栓，下一趟外勤直接勘验井纺室断面。"
 		"quest.assemble_phase_well_shuttle":
@@ -418,7 +418,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.analyze_phase_well_weave_core":
 			return "相位井织核不是纪念品；要先回基地把它反解成纹谱片，新的井纹架断面风险才会真正显形。"
 		"quest.collect_selvedge_strip":
-			return "井纹架这一步改成路线清障样板：先选一条侧路打开回收线，再把新风险和下一次基地加工输入同时带回来。"
+			return "井纹架这一步改成路线清障样板：先选一条侧路打开回收线，再把下一次基地加工输入带回来。"
 		"quest.refine_selvedge_strip":
 			return "这一步是一次井纹架整备：先稳定边缕残条，再把纹谱片和纹架肋组装成井纹架键栓，下一趟外勤直接勘验井纹架断面。"
 		"quest.assemble_phase_well_frame_key":
@@ -428,7 +428,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.analyze_phase_well_knot_core":
 			return "相位井结核不是纪念品；要先回基地把它反解成系谱片，新的井系桥断面风险才会真正显形。"
 		"quest.collect_tether_fiber":
-			return "井系桥的新敌人和系索残股要在同一趟外勤里一起解决，这一步负责把新风险和下一次基地加工输入同时带回来。"
+			return "井系桥这一步改成断链战斗：目标是拆掉缚结体本身，系索残股会随战斗收束带回整备。"
 		"quest.refine_tether_fiber":
 			return "这一步是一次井系整备：先稳定系索残股，再把系谱片和系固肋组装成井系定桩，下一趟外勤直接勘验井系桥断面。"
 		"quest.assemble_phase_well_tether_spike":
