@@ -166,9 +166,9 @@ func _format_completion_note(quest_id: String) -> String:
 		"quest.analyze_phase_well_anchor_core":
 			return "归谱片和锚核落尘已整理完成；回基地完成井系校锚桩整备"
 		"quest.refine_anchor_core_dust":
-			return "井系校锚桩已整备完成；返回井系桥东侧部署并顶住一轮回稳压制"
+			return "井系校锚桩已整备完成；返回井系桥东侧部署，先清压力钉再顶住一轮回稳压制"
 		"quest.assemble_phase_well_anchor_stake":
-			return "井系校锚桩已完成；返回井系桥东侧部署并顶住一轮回稳压制"
+			return "井系校锚桩已完成；返回井系桥东侧部署，先清压力钉再顶住一轮回稳压制"
 		"quest.stabilize_phase_well_anchor_field":
 			return "井系桥东侧稳定窗口已生成；相位井余响片已带回基地"
 		"quest.analyze_phase_well_echo_shard":

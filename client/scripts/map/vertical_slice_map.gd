@@ -54,15 +54,19 @@ const INTERACTABLE_QUEST_GATES := {
 	"map_object.well_ash_cluster": "quest.collect_well_ash",
 	"map_object.well_ash_crust_blocker": "quest.collect_well_ash",
 	"map_object.phase_well_sink": "quest.inspect_phase_well_sink",
+	"map_object.phase_well_chamber_shunt_node": "quest.collect_heart_spine",
 	"map_object.heart_spine_cluster": "quest.collect_heart_spine",
 	"map_object.phase_well_chamber": "quest.inspect_phase_well_chamber",
+	"map_object.phase_well_loom_tension_spool": "quest.collect_weft_bundle",
 	"map_object.weft_bundle_cluster": "quest.collect_weft_bundle",
 	"map_object.phase_well_loom": "quest.inspect_phase_well_loom",
 	"map_object.phase_well_frame_route_blocker": "quest.collect_selvedge_strip",
 	"map_object.selvedge_strip_cluster": "quest.collect_selvedge_strip",
 	"map_object.phase_well_frame": "quest.inspect_phase_well_frame",
+	"map_object.phase_well_tether_knot_node": "quest.collect_tether_fiber",
 	"map_object.tether_fiber_cluster": "quest.collect_tether_fiber",
-	"map_object.phase_well_tether": "quest.inspect_phase_well_tether"
+	"map_object.phase_well_tether": "quest.inspect_phase_well_tether",
+	"map_object.phase_well_anchor_pressure_pin": "quest.stabilize_phase_well_anchor_field"
 }
 @onready var player: PlayerController = $Player
 @onready var interactables_root: Node2D = $Interactables
@@ -115,11 +119,11 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 	if interacted.definition_id == "map_object.phase_well_sink" and interacted.interaction_type == "inspect":
 		return _inspect_phase_well_sink(character_state, world_state)
 	if interacted.definition_id == "map_object.phase_well_chamber" and interacted.interaction_type == "inspect":
-		return _inspect_phase_well_chamber(character_state, world_state)
+		return phase_well_frontier_runtime.inspect_chamber(character_state, world_state)
 	if interacted.definition_id == "map_object.phase_well_loom" and interacted.interaction_type == "inspect":
-		return _inspect_phase_well_loom(character_state, world_state)
+		return phase_well_frontier_runtime.inspect_loom(character_state, world_state)
 	if interacted.definition_id == "map_object.phase_well_frame" and interacted.interaction_type == "inspect":
-		return _inspect_phase_well_frame(character_state, world_state)
+		return phase_well_frontier_runtime.inspect_frame(character_state, world_state)
 	if interacted.definition_id == "map_object.phase_well_tether" and interacted.interaction_type == "inspect":
 		return phase_well_frontier_runtime.inspect_tether(character_state, world_state)
 	if interacted.definition_id == "map_object.phase_well_anchor_field" and interacted.interaction_type == "inspect":
@@ -368,6 +372,34 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				should_enable
 				and world_state.quest_state.has_active_quest("quest.collect_selvedge_strip")
 			)
+		if interactable.definition_id == "map_object.heart_spine_cluster":
+			should_enable = (
+				should_enable
+				and (
+					_has_phase_well_field_readings(
+						world_state,
+						"quest.collect_heart_spine",
+						"inspect",
+						"map_object.phase_well_chamber_shunt_node",
+						2
+					)
+					or world_state.quest_state.has_completed_quest("quest.collect_heart_spine")
+				)
+			)
+		if interactable.definition_id == "map_object.weft_bundle_cluster":
+			should_enable = (
+				should_enable
+				and (
+					_has_phase_well_field_readings(
+						world_state,
+						"quest.collect_weft_bundle",
+						"inspect",
+						"map_object.phase_well_loom_tension_spool",
+						2
+					)
+					or world_state.quest_state.has_completed_quest("quest.collect_weft_bundle")
+				)
+			)
 		if interactable.definition_id == "map_object.selvedge_strip_cluster":
 			should_enable = (
 				should_enable
@@ -375,6 +407,28 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 					_has_phase_well_frame_route_cleared(world_state)
 					or world_state.quest_state.has_completed_quest("quest.collect_selvedge_strip")
 				)
+			)
+		if interactable.definition_id == "map_object.tether_fiber_cluster":
+			should_enable = (
+				should_enable
+				and (
+					_has_phase_well_field_readings(
+						world_state,
+						"quest.collect_tether_fiber",
+						"inspect",
+						"map_object.phase_well_tether_knot_node",
+						2
+					)
+					or world_state.quest_state.has_completed_quest("quest.collect_tether_fiber")
+				)
+			)
+		if interactable.definition_id == "map_object.phase_well_anchor_pressure_pin":
+			should_enable = (
+				should_enable
+				and phase_well_frontier_runtime != null
+				and world_state.quest_state.has_active_quest("quest.stabilize_phase_well_anchor_field")
+				and phase_well_frontier_runtime.is_anchor_field_deployed(world_state)
+				and not phase_well_frontier_runtime.is_anchor_field_stabilized(world_state)
 			)
 		if interactable.definition_id == "map_object.rich_crystal_vein":
 			should_enable = should_enable and world_state.quest_state.has_completed_quest("quest.scout_crystal_field")
@@ -1266,84 +1320,6 @@ func _inspect_phase_well_sink(character_state: CharacterState, world_state: Worl
 		"success": true,
 		"message": "井底穿钉已写入：井底裂口开始析出相位井心核，更东侧井心室断面的第一段读数已被钉住。"
 	}
-func _inspect_phase_well_chamber(character_state: CharacterState, world_state: WorldState) -> Dictionary:
-	if not (world_state.quest_state.has_completed_quest("quest.refine_heart_spine") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_shunt")):
-		return _failure(
-			"井心室断面仍缺少可执行的分流读数。",
-			"心室未勘验",
-			"先回基地完成井心整备，把井心分流栓带回来勘验断面。"
-		)
-
-	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_chamber"):
-		return {
-			"success": true,
-			"message": "井心室断面已勘验：第一份相位井纺核已经带回基地；下一步回基地解析并继续推进更东侧井纺室断面。"
-		}
-
-	if not character_state.inventory.has_ref("item.phase_well_shunt", 1):
-		return _failure(
-			"缺少井心分流栓，井心室断面无法稳定。",
-			"缺少井心分流栓",
-			"回基地确认基础反应器已经完成井心分流栓，并带回来勘验井心室断面。"
-		)
-
-	character_state.inventory.consume_ref("item.phase_well_shunt", 1)
-	return {
-		"success": true,
-		"message": "井心分流栓已写入：井心室断面开始析出相位井纺核，更东侧更深收益再次抬升。"
-	}
-func _inspect_phase_well_loom(character_state: CharacterState, world_state: WorldState) -> Dictionary:
-	if not (world_state.quest_state.has_completed_quest("quest.refine_weft_bundle") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_shuttle")):
-		return _failure(
-			"井纺室断面仍缺少可执行的织构读数。",
-			"井纺室未勘验",
-			"先回基地完成井纺整备，把井纺梭栓带回来勘验断面。"
-		)
-
-	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_loom"):
-		return {
-			"success": true,
-			"message": "井纺室断面已勘验：第一份相位井织核已经带回基地；下一步回基地解析并继续推进井纹架断面。"
-		}
-
-	if not character_state.inventory.has_ref("item.phase_well_shuttle", 1):
-		return _failure(
-			"缺少井纺梭栓，井纺室断面无法稳定。",
-			"缺少井纺梭栓",
-			"回基地确认基础反应器已经完成井纺梭栓，并带回来勘验井纺室断面。"
-		)
-
-	character_state.inventory.consume_ref("item.phase_well_shuttle", 1)
-	return {
-		"success": true,
-		"message": "井纺梭栓已写入：井纺室断面开始析出相位井织核，更东侧更深收益再次抬升。"
-	}
-func _inspect_phase_well_frame(character_state: CharacterState, world_state: WorldState) -> Dictionary:
-	if not (world_state.quest_state.has_completed_quest("quest.refine_selvedge_strip") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_frame_key")):
-		return _failure(
-			"井纹架断面仍缺少可执行的纹架读数。",
-			"井纹架未勘验",
-			"先回基地完成井纹架整备，把井纹架键栓带回来勘验断面。"
-		)
-
-	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_frame"):
-		return {
-			"success": true,
-			"message": "井纹架断面已勘验：第一份相位井结核已经带回基地。"
-		}
-
-	if not character_state.inventory.has_ref("item.phase_well_frame_key", 1):
-		return _failure(
-			"缺少井纹架键栓，井纹架断面无法稳定。",
-			"缺少井纹架键栓",
-			"回基地确认基础反应器已经完成井纹架键栓，并带回来勘验井纹架断面。"
-		)
-
-	character_state.inventory.consume_ref("item.phase_well_frame_key", 1)
-	return {
-		"success": true,
-		"message": "井纹架键栓已写入：井纹架断面开始析出相位井结核，更东侧更深收益再次抬升。"
-	}
 func _evacuate_if_needed(character_state: CharacterState, world_state: WorldState, reason: String) -> Dictionary:
 	if character_state.health > 0.0 and character_state.protection > 0.0:
 		return {}
@@ -1438,6 +1414,20 @@ func _has_phase_well_frame_route_cleared(world_state: WorldState) -> bool:
 		if bool(world_state.get_map_object(route_instance_id).get("is_cleared", false)):
 			return true
 	return false
+
+
+func _has_phase_well_field_readings(
+	world_state: WorldState,
+	quest_id: String,
+	objective_type: String,
+	target_id: String,
+	required_amount: float
+) -> bool:
+	return world_state.quest_state.get_objective_progress(
+		quest_id,
+		objective_type,
+		target_id
+	) >= required_amount
 
 
 func _get_phase_relay_pad_return_position() -> Vector2:

@@ -14,6 +14,7 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	host._expect_array_has(world_state.unlocked_region_ids, "region.phase_well_chamber", "phase well heart analysis unlocks phase well chamber region")
 	host._complete_active_quest("quest.collect_heart_spine", [
 		{"type": "visit_region", "target_id": "region.phase_well_chamber", "amount": 1},
+		{"type": "inspect", "target_id": "map_object.phase_well_chamber_shunt_node", "amount": 2},
 		{"type": "defeat_enemy", "target_id": "enemy.phase_well_reaver", "amount": 1},
 		{"type": "gather_item", "target_id": "item.heart_spine", "amount": 2}
 	])
@@ -35,6 +36,7 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	host._expect_array_has(world_state.unlocked_region_ids, "region.phase_well_loom", "phase well spindle analysis unlocks phase well loom region")
 	host._complete_active_quest("quest.collect_weft_bundle", [
 		{"type": "visit_region", "target_id": "region.phase_well_loom", "amount": 1},
+		{"type": "inspect", "target_id": "map_object.phase_well_loom_tension_spool", "amount": 2},
 		{"type": "defeat_enemy", "target_id": "enemy.phase_well_tangler", "amount": 1},
 		{"type": "gather_item", "target_id": "item.weft_bundle", "amount": 2}
 	])
@@ -78,6 +80,7 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	host._expect_array_has(world_state.unlocked_region_ids, "region.phase_well_tether", "phase well knot core analysis unlocks phase well tether region")
 	host._complete_active_quest("quest.collect_tether_fiber", [
 		{"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1},
+		{"type": "inspect", "target_id": "map_object.phase_well_tether_knot_node", "amount": 2},
 		{"type": "defeat_enemy", "target_id": "enemy.phase_well_binder", "amount": 1},
 		{"type": "gather_item", "target_id": "item.tether_fiber", "amount": 2}
 	])
@@ -105,8 +108,9 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	])
 	host._expect_active_quest("quest.stabilize_phase_well_anchor_field", "after anchor stake assembly returns to frontier")
 	host._complete_active_quest("quest.stabilize_phase_well_anchor_field", [
-		{"type": "defeat_enemy", "target_id": "enemy.phase_well_warden", "amount": 1},
-		{"type": "inspect", "target_id": "map_object.phase_well_anchor_field", "amount": 1}
+		{"type": "inspect", "target_id": "map_object.phase_well_anchor_field", "amount": 1},
+		{"type": "clear", "target_id": "map_object.phase_well_anchor_pressure_pin", "amount": 2},
+		{"type": "defeat_enemy", "target_id": "enemy.phase_well_warden", "amount": 1}
 	])
 	host._expect_active_quest("quest.analyze_phase_well_echo_shard", "after anchor field stabilization returns to echo shard analysis")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.stabilize_phase_well_anchor_field", "anchor field stabilization quest completed")

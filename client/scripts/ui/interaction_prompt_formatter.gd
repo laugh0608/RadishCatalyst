@@ -110,6 +110,19 @@ func format_clear_prompt(
 		if frame_tool_status == "可清理":
 			frame_parts.append("按 E 清理侧路")
 		return "\n".join(frame_parts)
+	if interactable.definition_id == "map_object.phase_well_anchor_pressure_pin":
+		if bool(object_state.get("is_cleared", false)):
+			return "锚场压力钉：已清理，回稳压制正在转向井系守脉体。"
+		var pin_tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
+		var pin_parts: Array[String] = [
+			"压力钉：%s" % _get_display_name(interactable.definition_id),
+			"状态：未清理，井系守脉体还没有完全暴露。",
+			"后续：清掉两处压力钉，再压制井系守脉体。",
+			"工具：%s" % pin_tool_status
+		]
+		if pin_tool_status == "可清理":
+			pin_parts.append("按 E 清理压力钉")
+		return "\n".join(pin_parts)
 	if bool(object_state.get("is_cleared", false)):
 		return "地块：%s\n状态：已清理，可用于铺设基础地基。" % _get_display_name(interactable.definition_id)
 
@@ -333,6 +346,8 @@ func format_phase_well_anchor_field_prompt(world_state: WorldState, character_st
 			return "锚场回稳窗：缺少井系校锚桩；回基地确认基础反应器组装结果后再来。"
 		return "按 E 部署：锚场回稳窗。"
 	if not pressure_cleared:
+		if not _has_anchor_field_pressure_pins_cleared(world_state):
+			return "锚场回稳窗：回稳中；先清掉两处压力钉，再压制井系守脉体。校锚桩会保留在现场，失败后可直接重试。"
 		return "锚场回稳窗：回稳中；先清掉井系守脉体，再回来收束稳定窗口。校锚桩会保留在现场，失败后可直接重试。"
 	return "按 E 收束：锚场回稳窗。"
 
@@ -393,6 +408,16 @@ func _has_completed_any(world_state: WorldState, quest_ids: Array[String]) -> bo
 		if world_state.quest_state.has_completed_quest(quest_id):
 			return true
 	return false
+
+
+func _has_anchor_field_pressure_pins_cleared(world_state: WorldState) -> bool:
+	for pressure_pin_instance_id in [
+		"map_object_instance.phase_well_anchor_pressure_pin_west",
+		"map_object_instance.phase_well_anchor_pressure_pin_east"
+	]:
+		if not bool(world_state.get_map_object(pressure_pin_instance_id).get("is_cleared", false)):
+			return false
+	return true
 
 
 func _get_display_name(definition_id: String) -> String:

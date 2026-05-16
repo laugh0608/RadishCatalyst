@@ -304,6 +304,13 @@ func set_processed_visual() -> bool:
 		marker.color = CLEARED_GROUND_COLOR
 		_set_label_text("%s\n已清理" % display_name_text, 2)
 		return true
+	if interaction_type == "clear" and definition_id == "map_object.phase_well_anchor_pressure_pin":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = CLEARED_GROUND_COLOR
+		_set_label_text("%s\n已清理" % display_name_text, 2)
+		return true
 	if interaction_type == "clear" and definition_id == "map_object.well_ash_crust_blocker":
 		consumed = true
 		visible = true
@@ -315,6 +322,9 @@ func set_processed_visual() -> bool:
 		definition_id == "map_object.phase_splinter_resonance_node"
 		or definition_id == "map_object.fault_residue_pulse_node"
 		or definition_id == "map_object.well_flux_pressure_vent"
+		or definition_id == "map_object.phase_well_chamber_shunt_node"
+		or definition_id == "map_object.phase_well_loom_tension_spool"
+		or definition_id == "map_object.phase_well_tether_knot_node"
 	):
 		consumed = true
 		visible = true

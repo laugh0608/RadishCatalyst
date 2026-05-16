@@ -179,7 +179,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.analyze_phase_well_heart":
 			return "回基地使用基础反应器，解析相位井心核并整理相位井脉搏片。"
 		"quest.collect_heart_spine":
-			return "沿心核脉搏继续向东推进，击退心室撕裂体并回收两处心棘残片。"
+			return "沿心核脉搏继续向东推进，先写入两处井心分流读数，再击退心室撕裂体并回收两处心棘残片。"
 		"quest.refine_heart_spine":
 			if not character_state.inventory.has_ref("item.phase_well_damper", 1):
 				return "先回处理点污染过滤器，把心棘残片稳定成相位井抑振骨。"
@@ -191,7 +191,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.analyze_phase_well_spindle":
 			return "回基地使用基础反应器，解析相位井纺核并整理相位井经片。"
 		"quest.collect_weft_bundle":
-			return "沿纺核经片继续向东推进，击退井纺纠缠体并回收两处纬束残团。"
+			return "沿纺核经片继续向东推进，先检查两处井纺张力绕轮，再击退井纺纠缠体并回收两处纬束残团。"
 		"quest.refine_weft_bundle":
 			if not character_state.inventory.has_ref("item.phase_well_tension_rib", 1):
 				return "先回处理点污染过滤器，把纬束残团稳定成相位井张力肋。"
@@ -215,7 +215,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.analyze_phase_well_knot_core":
 			return "回基地使用基础反应器，解析相位井结核并整理相位井系谱片。"
 		"quest.collect_tether_fiber":
-			return "沿结核系谱继续向东推进，击退井系缚结体并回收两处系索残股。"
+			return "沿结核系谱继续向东推进，先检查两处井系桥结点，再击退井系缚结体并回收两处系索残股。"
 		"quest.refine_tether_fiber":
 			if not character_state.inventory.has_ref("item.phase_well_tether_rib", 1):
 				return "先回处理点污染过滤器，把系索残股稳定成相位井系固肋。"
@@ -237,8 +237,10 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			if bool(anchor_field_state.get("anchor_field_pressure_cleared", false)):
 				return "井系守脉体已清掉：返回井系桥东侧锚场回稳窗，收束这次局部稳定窗口。"
 			if bool(anchor_field_state.get("anchor_field_deployed", false)):
+				if not _has_anchor_field_pressure_pins_cleared(world_state):
+					return "井系校锚桩已部署：先清掉两处锚场压力钉，再压制井系守脉体；校锚桩会保留在现场，失败后可直接重试。"
 				return "井系校锚桩已部署：先清掉井系守脉体，再回来收束井系桥东侧的回稳窗；校锚桩会保留在现场，失败后可直接重试。"
-			return "带着井系校锚桩返回井系桥东侧，部署后顶住一轮短守场并收束第一份相位井余响片。"
+			return "带着井系校锚桩返回井系桥东侧，部署后先清压力钉，再顶住一轮短守场并收束第一份相位井余响片。"
 		"quest.analyze_phase_well_echo_shard":
 			return "回基地使用基础反应器，把相位井余响片解析成稳窗读数；读数会强化井系桥东侧稳定窗口的前线回充。"
 		"quest.calibrate_phase_well_stability_window":
@@ -398,7 +400,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.analyze_phase_well_heart":
 			return "相位井心核不是纪念品；要先回基地把它反解成脉搏片，新的井心室断面风险才会真正显形。"
 		"quest.collect_heart_spine":
-			return "井心室的新敌人和心棘残片要在同一趟外勤里一起解决，这一步负责把新风险和下一次基地加工输入同时带回来。"
+			return "井心室先用两处现场读数降下心棘脉冲，再处理敌人和残片；它不再只是打一只怪后采两处材料。"
 		"quest.refine_heart_spine":
 			return "这一步是一次井心整备：先稳定心棘残片，再把脉搏片和抑振骨组装成井心分流栓，下一趟外勤直接勘验井心室断面。"
 		"quest.assemble_phase_well_shunt":
@@ -408,7 +410,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.analyze_phase_well_spindle":
 			return "相位井纺核不是纪念品；要先回基地把它反解成经片，新的井纺室断面风险才会真正显形。"
 		"quest.collect_weft_bundle":
-			return "井纺室的新敌人和纬束残团要在同一趟外勤里一起解决，这一步负责把新风险和下一次基地加工输入同时带回来。"
+			return "井纺室先确认两处张力绕轮，再处理敌人和纬束残团；这一步把空间两侧的读数关系放进回收目标。"
 		"quest.refine_weft_bundle":
 			return "这一步是一次井纺整备：先稳定纬束残团，再把经片和张力肋组装成井纺梭栓，下一趟外勤直接勘验井纺室断面。"
 		"quest.assemble_phase_well_shuttle":
@@ -428,7 +430,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.analyze_phase_well_knot_core":
 			return "相位井结核不是纪念品；要先回基地把它反解成系谱片，新的井系桥断面风险才会真正显形。"
 		"quest.collect_tether_fiber":
-			return "井系桥的新敌人和系索残股要在同一趟外勤里一起解决，这一步负责把新风险和下一次基地加工输入同时带回来。"
+			return "井系桥先检查两端结点，再处理敌人和系索残股；桥体目标不再只靠中央敌人和两处采集点成立。"
 		"quest.refine_tether_fiber":
 			return "这一步是一次井系整备：先稳定系索残股，再把系谱片和系固肋组装成井系定桩，下一趟外勤直接勘验井系桥断面。"
 		"quest.assemble_phase_well_tether_spike":
@@ -446,8 +448,10 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			if bool(anchor_field_state.get("anchor_field_pressure_cleared", false)):
 				return "这一步不是捡第二份材料；要回去收束已经打开的稳定窗口，让前线节奏真的被基地准备改写。"
 			if bool(anchor_field_state.get("anchor_field_deployed", false)):
+				if not _has_anchor_field_pressure_pins_cleared(world_state):
+					return "井系校锚桩已经写进现场，现在先清两处压力钉，再让井系守脉体完全暴露；失败后也不需要回基地重做校锚桩。"
 				return "井系校锚桩已经写进现场，现在的重点是顶住短时压制，而不是继续沿路搜刮两处新资源；失败后也不需要回基地重做校锚桩。"
-			return "这一步明确改掉旧模板：先把基地产物带回前线部署，再靠一次短守场换来局部稳定窗口和相位井余响片；部署后的校锚桩会保留在现场。"
+			return "这一步明确改掉旧模板：先把基地产物带回前线部署，再清压力钉和短守场，换来局部稳定窗口和相位井余响片；部署后的校锚桩会保留在现场。"
 		"quest.analyze_phase_well_echo_shard":
 			return "稳窗读数不是下一张门票；它会反向强化已经完成的锚场回稳窗，让玩家之后能在前线回充生命与防护，获得更明确的容错收益。"
 		"quest.calibrate_phase_well_stability_window":
@@ -490,6 +494,16 @@ func _has_completed_phase_well_anchor_field(world_state: WorldState) -> bool:
 
 func _has_completed_phase_well_echo_shard_analysis(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.analyze_phase_well_echo_shard")
+
+
+func _has_anchor_field_pressure_pins_cleared(world_state: WorldState) -> bool:
+	for pressure_pin_instance_id in [
+		"map_object_instance.phase_well_anchor_pressure_pin_west",
+		"map_object_instance.phase_well_anchor_pressure_pin_east"
+	]:
+		if not bool(world_state.get_map_object(pressure_pin_instance_id).get("is_cleared", false)):
+			return false
+	return true
 
 
 func _has_completed_phase_well_stability_window_calibration(world_state: WorldState) -> bool:

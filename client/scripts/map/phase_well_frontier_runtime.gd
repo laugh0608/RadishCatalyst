@@ -1,6 +1,21 @@
 extends RefCounted
 class_name PhaseWellFrontierRuntime
 
+const PHASE_WELL_CHAMBER_PACKAGE_QUEST_ID := "quest.refine_heart_spine"
+const PHASE_WELL_CHAMBER_SHUNT_QUEST_ID := "quest.assemble_phase_well_shunt"
+const PHASE_WELL_CHAMBER_QUEST_ID := "quest.inspect_phase_well_chamber"
+const PHASE_WELL_CHAMBER_SHUNT_ITEM_ID := "item.phase_well_shunt"
+
+const PHASE_WELL_LOOM_PACKAGE_QUEST_ID := "quest.refine_weft_bundle"
+const PHASE_WELL_LOOM_SHUTTLE_QUEST_ID := "quest.assemble_phase_well_shuttle"
+const PHASE_WELL_LOOM_QUEST_ID := "quest.inspect_phase_well_loom"
+const PHASE_WELL_LOOM_SHUTTLE_ITEM_ID := "item.phase_well_shuttle"
+
+const PHASE_WELL_FRAME_PACKAGE_QUEST_ID := "quest.refine_selvedge_strip"
+const PHASE_WELL_FRAME_KEY_QUEST_ID := "quest.assemble_phase_well_frame_key"
+const PHASE_WELL_FRAME_QUEST_ID := "quest.inspect_phase_well_frame"
+const PHASE_WELL_FRAME_KEY_ITEM_ID := "item.phase_well_frame_key"
+
 const PHASE_WELL_TETHER_SPIKE_QUEST_ID := "quest.assemble_phase_well_tether_spike"
 const PHASE_WELL_TETHER_PACKAGE_QUEST_ID := "quest.refine_tether_fiber"
 const PHASE_WELL_TETHER_QUEST_ID := "quest.inspect_phase_well_tether"
@@ -20,6 +35,10 @@ const ANCHOR_FIELD_INSTANCE_ID := "map_object_instance.phase_well_anchor_field"
 const ANCHOR_FIELD_REGION_ID := "region.phase_well_tether"
 const ANCHOR_FIELD_ENEMY_ID := "enemy.phase_well_warden"
 const ANCHOR_FIELD_ENEMY_INSTANCE_ID := "enemy_instance.phase_well_warden"
+const ANCHOR_FIELD_PRESSURE_PIN_INSTANCE_IDS := [
+	"map_object_instance.phase_well_anchor_pressure_pin_west",
+	"map_object_instance.phase_well_anchor_pressure_pin_east"
+]
 const STABILITY_WINDOW_CALIBRATION_NODES := [
 	{
 		"definition_id": "map_object.phase_well_stability_node_west",
@@ -53,6 +72,99 @@ var data_registry: DataRegistry
 
 func _init(registry: DataRegistry) -> void:
 	data_registry = registry
+
+
+func inspect_chamber(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if (
+		not world_state.quest_state.has_completed_quest(PHASE_WELL_CHAMBER_PACKAGE_QUEST_ID)
+		and not world_state.quest_state.has_completed_quest(PHASE_WELL_CHAMBER_SHUNT_QUEST_ID)
+	):
+		return _failure(
+			"井心室断面仍缺少可执行的分流读数。",
+			"心室未勘验",
+			"先回基地完成井心整备，把井心分流栓带回来勘验断面。"
+		)
+
+	if world_state.quest_state.has_completed_quest(PHASE_WELL_CHAMBER_QUEST_ID):
+		return {
+			"success": true,
+			"message": "井心室断面已勘验：第一份相位井纺核已经带回基地；下一步回基地解析并继续推进更东侧井纺室断面。"
+		}
+
+	if not character_state.inventory.has_ref(PHASE_WELL_CHAMBER_SHUNT_ITEM_ID, 1):
+		return _failure(
+			"缺少井心分流栓，井心室断面无法稳定。",
+			"缺少井心分流栓",
+			"回基地确认基础反应器已经完成井心分流栓，并带回来勘验井心室断面。"
+		)
+
+	character_state.inventory.consume_ref(PHASE_WELL_CHAMBER_SHUNT_ITEM_ID, 1)
+	return {
+		"success": true,
+		"message": "井心分流栓已写入：井心室断面开始析出相位井纺核，更东侧更深收益再次抬升。"
+	}
+
+
+func inspect_loom(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if (
+		not world_state.quest_state.has_completed_quest(PHASE_WELL_LOOM_PACKAGE_QUEST_ID)
+		and not world_state.quest_state.has_completed_quest(PHASE_WELL_LOOM_SHUTTLE_QUEST_ID)
+	):
+		return _failure(
+			"井纺室断面仍缺少可执行的织构读数。",
+			"井纺室未勘验",
+			"先回基地完成井纺整备，把井纺梭栓带回来勘验断面。"
+		)
+
+	if world_state.quest_state.has_completed_quest(PHASE_WELL_LOOM_QUEST_ID):
+		return {
+			"success": true,
+			"message": "井纺室断面已勘验：第一份相位井织核已经带回基地；下一步回基地解析并继续推进井纹架断面。"
+		}
+
+	if not character_state.inventory.has_ref(PHASE_WELL_LOOM_SHUTTLE_ITEM_ID, 1):
+		return _failure(
+			"缺少井纺梭栓，井纺室断面无法稳定。",
+			"缺少井纺梭栓",
+			"回基地确认基础反应器已经完成井纺梭栓，并带回来勘验井纺室断面。"
+		)
+
+	character_state.inventory.consume_ref(PHASE_WELL_LOOM_SHUTTLE_ITEM_ID, 1)
+	return {
+		"success": true,
+		"message": "井纺梭栓已写入：井纺室断面开始析出相位井织核，更东侧更深收益再次抬升。"
+	}
+
+
+func inspect_frame(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if (
+		not world_state.quest_state.has_completed_quest(PHASE_WELL_FRAME_PACKAGE_QUEST_ID)
+		and not world_state.quest_state.has_completed_quest(PHASE_WELL_FRAME_KEY_QUEST_ID)
+	):
+		return _failure(
+			"井纹架断面仍缺少可执行的纹架读数。",
+			"井纹架未勘验",
+			"先回基地完成井纹架整备，把井纹架键栓带回来勘验断面。"
+		)
+
+	if world_state.quest_state.has_completed_quest(PHASE_WELL_FRAME_QUEST_ID):
+		return {
+			"success": true,
+			"message": "井纹架断面已勘验：第一份相位井结核已经带回基地。"
+		}
+
+	if not character_state.inventory.has_ref(PHASE_WELL_FRAME_KEY_ITEM_ID, 1):
+		return _failure(
+			"缺少井纹架键栓，井纹架断面无法稳定。",
+			"缺少井纹架键栓",
+			"回基地确认基础反应器已经完成井纹架键栓，并带回来勘验井纹架断面。"
+		)
+
+	character_state.inventory.consume_ref(PHASE_WELL_FRAME_KEY_ITEM_ID, 1)
+	return {
+		"success": true,
+		"message": "井纹架键栓已写入：井纹架断面开始析出相位井结核，更东侧更深收益再次抬升。"
+	}
 
 
 func inspect_tether(character_state: CharacterState, world_state: WorldState) -> Dictionary:
@@ -137,10 +249,16 @@ func inspect_anchor_field(character_state: CharacterState, world_state: WorldSta
 		return {
 			"success": true,
 			"advance_interaction": false,
-			"message": "井系校锚桩已部署：锚场回稳开始重写井系桥东侧读数，井系守脉体已被逼出；先清掉压制再回来收束。校锚桩会保留在现场，失败后可直接重试，不必回基地重做。"
+			"message": "井系校锚桩已部署：锚场回稳开始重写井系桥东侧读数，先清掉两处压力钉，井系守脉体才会完全暴露。校锚桩会保留在现场，失败后可直接重试，不必回基地重做。"
 		}
 
 	if not is_anchor_field_pressure_cleared(world_state):
+		if not is_anchor_field_pressure_pins_cleared(world_state):
+			return {
+				"success": true,
+				"advance_interaction": false,
+				"message": "锚场仍在回稳：两处压力钉还没有全部清掉，先处理压力钉，再压制井系守脉体。"
+			}
 		return {
 			"success": true,
 			"advance_interaction": false,
@@ -246,7 +364,12 @@ func sync_anchor_field_progress(world_state: WorldState) -> void:
 
 func should_spawn_anchor_field_enemy(world_state: WorldState) -> bool:
 	sync_anchor_field_progress(world_state)
-	return is_anchor_field_deployed(world_state) and not is_anchor_field_pressure_cleared(world_state) and not is_anchor_field_stabilized(world_state)
+	return (
+		is_anchor_field_deployed(world_state)
+		and is_anchor_field_pressure_pins_cleared(world_state)
+		and not is_anchor_field_pressure_cleared(world_state)
+		and not is_anchor_field_stabilized(world_state)
+	)
 
 
 func is_anchor_field_deployed(world_state: WorldState) -> bool:
@@ -262,6 +385,13 @@ func is_anchor_field_pressure_cleared(world_state: WorldState) -> bool:
 func is_anchor_field_stabilized(world_state: WorldState) -> bool:
 	var object_state := _ensure_anchor_field_state(world_state)
 	return bool(object_state.get(FLAG_ANCHOR_FIELD_STABILIZED, false))
+
+
+func is_anchor_field_pressure_pins_cleared(world_state: WorldState) -> bool:
+	for pressure_pin_instance_id in ANCHOR_FIELD_PRESSURE_PIN_INSTANCE_IDS:
+		if not bool(world_state.get_map_object(String(pressure_pin_instance_id)).get("is_cleared", false)):
+			return false
+	return true
 
 
 func is_stability_calibration_node(definition_id: String) -> bool:

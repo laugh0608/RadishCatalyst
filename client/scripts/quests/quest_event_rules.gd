@@ -105,6 +105,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		return [_add_update("quest.collect_well_ash", "clear", "map_object.well_ash_crust_blocker", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.phase_well_sink":
 		return [_set_update("quest.inspect_phase_well_sink", "inspect", "map_object.phase_well_sink", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.phase_well_chamber_shunt_node":
+		return [_add_update("quest.collect_heart_spine", "inspect", "map_object.phase_well_chamber_shunt_node", 1)]
 	if interaction_type == "gather" and definition_id == "map_object.heart_spine_cluster":
 		var chamber_updates: Array[Dictionary] = [
 			_set_update("quest.collect_heart_spine", "visit_region", "region.phase_well_chamber", 1)
@@ -113,6 +115,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		return chamber_updates
 	if interaction_type == "inspect" and definition_id == "map_object.phase_well_chamber":
 		return [_set_update("quest.inspect_phase_well_chamber", "inspect", "map_object.phase_well_chamber", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.phase_well_loom_tension_spool":
+		return [_add_update("quest.collect_weft_bundle", "inspect", "map_object.phase_well_loom_tension_spool", 1)]
 	if interaction_type == "gather" and definition_id == "map_object.weft_bundle_cluster":
 		var loom_updates: Array[Dictionary] = [
 			_set_update("quest.collect_weft_bundle", "visit_region", "region.phase_well_loom", 1)
@@ -131,6 +135,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		return [_set_update("quest.collect_selvedge_strip", "clear", "map_object.phase_well_frame_route_blocker", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.phase_well_frame":
 		return [_set_update("quest.inspect_phase_well_frame", "inspect", "map_object.phase_well_frame", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.phase_well_tether_knot_node":
+		return [_add_update("quest.collect_tether_fiber", "inspect", "map_object.phase_well_tether_knot_node", 1)]
 	if interaction_type == "gather" and definition_id == "map_object.tether_fiber_cluster":
 		var tether_updates: Array[Dictionary] = [
 			_set_update("quest.collect_tether_fiber", "visit_region", "region.phase_well_tether", 1)
@@ -141,6 +147,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		return [_set_update("quest.inspect_phase_well_tether", "inspect", "map_object.phase_well_tether", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.phase_well_anchor_field":
 		return [_set_update("quest.stabilize_phase_well_anchor_field", "inspect", "map_object.phase_well_anchor_field", 1)]
+	if interaction_type == "clear" and definition_id == "map_object.phase_well_anchor_pressure_pin":
+		return [_add_update("quest.stabilize_phase_well_anchor_field", "clear", "map_object.phase_well_anchor_pressure_pin", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.phase_well_stability_node_west":
 		return [_set_update("quest.calibrate_phase_well_stability_window", "inspect", "map_object.phase_well_stability_node_west", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.phase_well_stability_node_core":

@@ -60,6 +60,8 @@ func interact_with_object(
 			return _sample(instance_id, definition, character_state, world_state)
 		"clear":
 			world_state.set_map_object_flag(instance_id, "is_cleared", true)
+			if definition_id == "map_object.phase_well_anchor_pressure_pin":
+				return _success("锚场压力钉已清理：继续清掉剩余压力钉，井系守脉体会完全暴露。")
 			if definition_id == "map_object.phase_well_frame_route_blocker":
 				return _success("井纹架侧路已清理：边缕残条回收线打开，另一侧路可以保留为未选路线。")
 			if definition_id == "map_object.well_ash_crust_blocker":
@@ -285,6 +287,9 @@ func _is_persistent_field_reading(definition_id: String) -> bool:
 		definition_id == "map_object.phase_splinter_resonance_node"
 		or definition_id == "map_object.fault_residue_pulse_node"
 		or definition_id == "map_object.well_flux_pressure_vent"
+		or definition_id == "map_object.phase_well_chamber_shunt_node"
+		or definition_id == "map_object.phase_well_loom_tension_spool"
+		or definition_id == "map_object.phase_well_tether_knot_node"
 	)
 
 

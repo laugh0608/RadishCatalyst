@@ -121,7 +121,9 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 		updates.append_array(_get_bring_back_sample_recovery_updates(world_state, character_state))
 	updates.append_array(_get_active_region_progress_recovery_updates(world_state))
 	updates.append_array(_get_active_inventory_gather_recovery_updates(world_state, character_state))
+	updates.append_array(_get_phase_well_field_reading_recovery_updates(world_state, character_state))
 	updates.append_array(_get_phase_well_frame_route_recovery_updates(world_state, character_state))
+	updates.append_array(_get_anchor_field_pressure_pin_recovery_updates(world_state))
 	var late_craft_recovery_updates := _get_late_craft_progress_recovery_updates(world_state, character_state)
 	if not late_craft_recovery_updates.is_empty():
 		updates.append_array(late_craft_recovery_updates)
@@ -235,6 +237,66 @@ func _get_active_inventory_gather_recovery_updates(world_state: WorldState, char
 	return updates
 
 
+func _get_phase_well_field_reading_recovery_updates(world_state: WorldState, character_state: CharacterState) -> Array[Dictionary]:
+	var updates: Array[Dictionary] = []
+	for recovery in [
+		{
+			"quest_id": "quest.collect_heart_spine",
+			"objective_target_id": "map_object.phase_well_chamber_shunt_node",
+			"instance_ids": [
+				"map_object_instance.phase_well_chamber_shunt_west",
+				"map_object_instance.phase_well_chamber_shunt_east"
+			],
+			"item_id": "item.heart_spine",
+			"enemy_id": "enemy.phase_well_reaver"
+		},
+		{
+			"quest_id": "quest.collect_weft_bundle",
+			"objective_target_id": "map_object.phase_well_loom_tension_spool",
+			"instance_ids": [
+				"map_object_instance.phase_well_loom_tension_north",
+				"map_object_instance.phase_well_loom_tension_south"
+			],
+			"item_id": "item.weft_bundle",
+			"enemy_id": "enemy.phase_well_tangler"
+		},
+		{
+			"quest_id": "quest.collect_tether_fiber",
+			"objective_target_id": "map_object.phase_well_tether_knot_node",
+			"instance_ids": [
+				"map_object_instance.phase_well_tether_knot_west",
+				"map_object_instance.phase_well_tether_knot_east"
+			],
+			"item_id": "item.tether_fiber",
+			"enemy_id": "enemy.phase_well_binder"
+		}
+	]:
+		var quest_id := String(recovery.get("quest_id", ""))
+		var objective_target_id := String(recovery.get("objective_target_id", ""))
+		if not world_state.quest_state.has_active_quest(quest_id):
+			continue
+		if world_state.quest_state.get_objective_progress(quest_id, "inspect", objective_target_id) >= 2.0:
+			continue
+
+		var reading_count := 0
+		for instance_id in recovery.get("instance_ids", []):
+			if bool(world_state.get_map_object(String(instance_id)).get("is_sampled", false)):
+				reading_count += 1
+		if reading_count >= 2:
+			updates.append(_objective_set_update(quest_id, "inspect", objective_target_id, 2))
+			continue
+
+		var item_id := String(recovery.get("item_id", ""))
+		var enemy_id := String(recovery.get("enemy_id", ""))
+		if (
+			world_state.quest_state.get_objective_progress(quest_id, "gather_item", item_id) > 0.0
+			or world_state.quest_state.get_objective_progress(quest_id, "defeat_enemy", enemy_id) > 0.0
+			or character_state.inventory.has_ref(item_id, 1)
+		):
+			updates.append(_objective_set_update(quest_id, "inspect", objective_target_id, 2))
+	return updates
+
+
 func _get_phase_well_frame_route_recovery_updates(world_state: WorldState, character_state: CharacterState) -> Array[Dictionary]:
 	var updates: Array[Dictionary] = []
 	var quest_id := "quest.collect_selvedge_strip"
@@ -259,6 +321,27 @@ func _get_phase_well_frame_route_recovery_updates(world_state: WorldState, chara
 	if not has_route_evidence:
 		return updates
 	updates.append(_objective_set_update(quest_id, "clear", "map_object.phase_well_frame_route_blocker", 1))
+	return updates
+
+
+func _get_anchor_field_pressure_pin_recovery_updates(world_state: WorldState) -> Array[Dictionary]:
+	var updates: Array[Dictionary] = []
+	var quest_id := "quest.stabilize_phase_well_anchor_field"
+	var objective_target_id := "map_object.phase_well_anchor_pressure_pin"
+	if not world_state.quest_state.has_active_quest(quest_id):
+		return updates
+	if world_state.quest_state.get_objective_progress(quest_id, "clear", objective_target_id) >= 2.0:
+		return updates
+
+	var pin_count := 0
+	for pressure_pin_instance_id in [
+		"map_object_instance.phase_well_anchor_pressure_pin_west",
+		"map_object_instance.phase_well_anchor_pressure_pin_east"
+	]:
+		if bool(world_state.get_map_object(pressure_pin_instance_id).get("is_cleared", false)):
+			pin_count += 1
+	if pin_count >= 2 or world_state.quest_state.get_objective_progress(quest_id, "defeat_enemy", "enemy.phase_well_warden") > 0.0:
+		updates.append(_objective_set_update(quest_id, "clear", objective_target_id, 2))
 	return updates
 
 

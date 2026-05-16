@@ -595,15 +595,29 @@ single_use = false
 label_offset = Vector2(-96, 22)
 label_size = Vector2(192, 24)
 
+[node name="PhaseWellChamberShuntWest" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(2094, -108)
+definition_id = "map_object.phase_well_chamber_shunt_node"
+interaction_type = "inspect"
+label_offset = Vector2(-104, -52)
+label_size = Vector2(208, 24)
+
+[node name="PhaseWellChamberShuntEast" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(2224, 68)
+definition_id = "map_object.phase_well_chamber_shunt_node"
+interaction_type = "inspect"
+label_offset = Vector2(-104, 22)
+label_size = Vector2(208, 24)
+
 [node name="HeartSpineClusterNorth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(2106, -96)
+position = Vector2(2164, -92)
 definition_id = "map_object.heart_spine_cluster"
 interaction_type = "gather"
 label_offset = Vector2(-96, -52)
 label_size = Vector2(192, 24)
 
 [node name="HeartSpineClusterSouth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(2196, 92)
+position = Vector2(2278, 92)
 definition_id = "map_object.heart_spine_cluster"
 interaction_type = "gather"
 label_offset = Vector2(-96, 22)
@@ -617,15 +631,29 @@ single_use = false
 label_offset = Vector2(-100, 22)
 label_size = Vector2(200, 24)
 
+[node name="PhaseWellLoomTensionNorth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(2352, -82)
+definition_id = "map_object.phase_well_loom_tension_spool"
+interaction_type = "inspect"
+label_offset = Vector2(-104, -52)
+label_size = Vector2(208, 24)
+
+[node name="PhaseWellLoomTensionSouth" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(2502, 88)
+definition_id = "map_object.phase_well_loom_tension_spool"
+interaction_type = "inspect"
+label_offset = Vector2(-104, 22)
+label_size = Vector2(208, 24)
+
 [node name="WeftBundleClusterNorth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(2386, -96)
+position = Vector2(2426, -112)
 definition_id = "map_object.weft_bundle_cluster"
 interaction_type = "gather"
 label_offset = Vector2(-96, -52)
 label_size = Vector2(192, 24)
 
 [node name="WeftBundleClusterSouth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(2478, 92)
+position = Vector2(2550, 74)
 definition_id = "map_object.weft_bundle_cluster"
 interaction_type = "gather"
 label_offset = Vector2(-96, 22)
@@ -675,15 +703,29 @@ single_use = false
 label_offset = Vector2(-100, 22)
 label_size = Vector2(200, 24)
 
+[node name="PhaseWellTetherKnotWest" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(2916, 76)
+definition_id = "map_object.phase_well_tether_knot_node"
+interaction_type = "inspect"
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
+
+[node name="PhaseWellTetherKnotEast" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3072, -92)
+definition_id = "map_object.phase_well_tether_knot_node"
+interaction_type = "inspect"
+label_offset = Vector2(-96, -52)
+label_size = Vector2(192, 24)
+
 [node name="TetherFiberClusterNorth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(2946, -96)
+position = Vector2(2988, -112)
 definition_id = "map_object.tether_fiber_cluster"
 interaction_type = "gather"
 label_offset = Vector2(-96, -52)
 label_size = Vector2(192, 24)
 
 [node name="TetherFiberClusterSouth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(3038, 92)
+position = Vector2(3134, 78)
 definition_id = "map_object.tether_fiber_cluster"
 interaction_type = "gather"
 label_offset = Vector2(-96, 22)
@@ -704,6 +746,20 @@ interaction_type = "inspect"
 single_use = false
 label_offset = Vector2(-112, 22)
 label_size = Vector2(224, 24)
+
+[node name="PhaseWellAnchorPressurePinWest" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3118, 38)
+definition_id = "map_object.phase_well_anchor_pressure_pin"
+interaction_type = "clear"
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
+
+[node name="PhaseWellAnchorPressurePinEast" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3200, 52)
+definition_id = "map_object.phase_well_anchor_pressure_pin"
+interaction_type = "clear"
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
 
 [node name="PhaseWellStabilityNodeWest" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(3148, -78)
@@ -776,11 +832,11 @@ position = Vector2(1902, -12)
 definition_id = "enemy.phase_well_lurker"
 
 [node name="PhaseWellReaver" parent="Enemies" instance=ExtResource("4_enemy")]
-position = Vector2(2148, 16)
+position = Vector2(2188, -12)
 definition_id = "enemy.phase_well_reaver"
 
 [node name="PhaseWellTangler" parent="Enemies" instance=ExtResource("4_enemy")]
-position = Vector2(2430, 16)
+position = Vector2(2466, 8)
 definition_id = "enemy.phase_well_tangler"
 
 [node name="PhaseWellRaker" parent="Enemies" instance=ExtResource("4_enemy")]
@@ -788,7 +844,7 @@ position = Vector2(2710, 16)
 definition_id = "enemy.phase_well_raker"
 
 [node name="PhaseWellBinder" parent="Enemies" instance=ExtResource("4_enemy")]
-position = Vector2(2994, 16)
+position = Vector2(3034, 10)
 definition_id = "enemy.phase_well_binder"
 
 [node name="PhaseWellWarden" parent="Enemies" instance=ExtResource("4_enemy")]
