@@ -41,6 +41,43 @@ func run() -> void:
 		"下一步：需要：先完成处理点扩建。",
 		"region gate blocked next step"
 	)
+	var field_reading_interactable := PrototypeInteractable.new()
+	field_reading_interactable.instance_id = "map_object_instance.phase_well_chamber_shunt_west"
+	field_reading_interactable.definition_id = "map_object.phase_well_chamber_shunt_node"
+	field_reading_interactable.interaction_type = "inspect"
+	var field_reading_world := WorldState.create_default()
+	field_reading_world.quest_state.active_quest_ids = ["quest.collect_heart_spine"]
+	field_reading_world.quest_state.set_objective_progress(
+		"quest.collect_heart_spine",
+		"inspect",
+		"map_object.phase_well_chamber_shunt_node",
+		1
+	)
+	var field_reading_prompt := formatter.format_field_reading_prompt(field_reading_interactable, field_reading_world)
+	host._expect_text_contains(field_reading_prompt, "当前进度 1/2", "field reading prompt shows partial progress")
+	host._expect_text_contains(field_reading_prompt, "心棘残片", "field reading prompt explains unlocked collection line")
+	var field_reading_system := GatherSystem.new(host.data_registry)
+	var field_reading_result := field_reading_system.interact_with_object(
+		field_reading_interactable.instance_id,
+		field_reading_interactable.definition_id,
+		field_reading_interactable.interaction_type,
+		CharacterState.create_default(),
+		field_reading_world
+	)
+	host._expect_text_contains(
+		String(field_reading_result.get("message", "")),
+		"两处分流读数已写入",
+		"field reading result explains completion effect"
+	)
+	field_reading_interactable.free()
+	var ash_blocker := PrototypeInteractable.new()
+	ash_blocker.instance_id = "map_object_instance.well_ash_crust_north"
+	ash_blocker.definition_id = "map_object.well_ash_crust_blocker"
+	ash_blocker.interaction_type = "clear"
+	var ash_prompt := formatter.format_clear_prompt(ash_blocker, CharacterState.create_default(), WorldState.create_default())
+	host._expect_text_contains(ash_prompt, "井壁余烬", "well ash crust prompt points to ash collection")
+	host._expect_text_contains(ash_prompt, "清理余烬壳", "well ash crust prompt uses special clear action")
+	ash_blocker.free()
 	var ruin_world := WorldState.create_default()
 	host._expect_text_contains(formatter.format_ruin_gate_prompt(ruin_world), "先压制污染残核", "ruin gate blocked prompt")
 	ruin_world.quest_state.completed_quest_ids.append("quest.enter_pollution_edge")

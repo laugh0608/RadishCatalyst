@@ -5,6 +5,57 @@ var data_registry: DataRegistry
 var processing_system: ProcessingSystem
 var build_system: BuildSystem
 
+const FIELD_READING_PROMPTS := {
+	"map_object.phase_splinter_resonance_node": {
+		"quest_id": "quest.trace_phase_splinters",
+		"objective_type": "inspect",
+		"target_id": "map_object.phase_splinter_resonance_node",
+		"required": 2.0,
+		"title": "裂相共振读数",
+		"effect": "两点读数写完后，裂相碎屑回收线才会稳定。"
+	},
+	"map_object.fault_residue_pulse_node": {
+		"quest_id": "quest.collect_fault_residue",
+		"objective_type": "inspect",
+		"target_id": "map_object.fault_residue_pulse_node",
+		"required": 2.0,
+		"title": "故障脉冲读数",
+		"effect": "两处脉冲读完后，故障残渣回收线才会显形。"
+	},
+	"map_object.well_flux_pressure_vent": {
+		"quest_id": "quest.collect_well_flux",
+		"objective_type": "inspect",
+		"target_id": "map_object.well_flux_pressure_vent",
+		"required": 2.0,
+		"title": "井涌泄压阀",
+		"effect": "两处泄压完成后，井涌碎屑回收线才会稳定。"
+	},
+	"map_object.phase_well_chamber_shunt_node": {
+		"quest_id": "quest.collect_heart_spine",
+		"objective_type": "inspect",
+		"target_id": "map_object.phase_well_chamber_shunt_node",
+		"required": 2.0,
+		"title": "井心分流读数",
+		"effect": "两处分流写完后，心棘残片才会从脉冲里露出。"
+	},
+	"map_object.phase_well_loom_tension_spool": {
+		"quest_id": "quest.collect_weft_bundle",
+		"objective_type": "inspect",
+		"target_id": "map_object.phase_well_loom_tension_spool",
+		"required": 2.0,
+		"title": "井纺张力绕轮",
+		"effect": "两处张力确认后，纬束残团回收线才会稳定。"
+	},
+	"map_object.phase_well_tether_knot_node": {
+		"quest_id": "quest.collect_tether_fiber",
+		"objective_type": "inspect",
+		"target_id": "map_object.phase_well_tether_knot_node",
+		"required": 2.0,
+		"title": "井系桥结点",
+		"effect": "两端结点确认后，系索残股才会从桥体边缘松开。"
+	}
+}
+
 
 func _init(registry: DataRegistry, processing: ProcessingSystem, builder: BuildSystem) -> void:
 	data_registry = registry
@@ -97,6 +148,19 @@ func format_clear_prompt(
 	world_state: WorldState
 ) -> String:
 	var object_state := world_state.get_map_object(interactable.instance_id)
+	if interactable.definition_id == "map_object.well_ash_crust_blocker":
+		if bool(object_state.get("is_cleared", false)):
+			return "井底余烬壳：已清理，井壁余烬回收线保持打开。"
+		var ash_tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
+		var ash_parts: Array[String] = [
+			"清障：%s" % _get_display_name(interactable.definition_id),
+			"状态：未清理，井壁余烬被余烬壳压住。",
+			"后续：清掉两处余烬壳，再处理井底潜伏体和井壁余烬。",
+			"工具：%s" % ash_tool_status
+		]
+		if ash_tool_status == "可清理":
+			ash_parts.append("按 E 清理余烬壳")
+		return "\n".join(ash_parts)
 	if interactable.definition_id == "map_object.phase_well_frame_route_blocker":
 		if bool(object_state.get("is_cleared", false)):
 			return "井纹架侧路障：已清理，边缕残条回收线保持打开。"
@@ -135,6 +199,37 @@ func format_clear_prompt(
 	]
 	if tool_status == "可清理":
 		parts.append("按 E 清理地块")
+	return "\n".join(parts)
+
+
+func can_format_field_reading_prompt(definition_id: String) -> bool:
+	return FIELD_READING_PROMPTS.has(definition_id)
+
+
+func format_field_reading_prompt(interactable: PrototypeInteractable, world_state: WorldState) -> String:
+	var prompt: Dictionary = FIELD_READING_PROMPTS.get(interactable.definition_id, {})
+	if prompt.is_empty():
+		return "按 E 交互：%s" % _get_display_name(interactable.definition_id)
+
+	var title := String(prompt.get("title", _get_display_name(interactable.definition_id)))
+	var object_state := world_state.get_map_object(interactable.instance_id)
+	if bool(object_state.get("is_sampled", false)):
+		return "%s：已写入；继续检查剩余现场读数点。" % title
+
+	var quest_id := String(prompt.get("quest_id", ""))
+	var objective_type := String(prompt.get("objective_type", "inspect"))
+	var target_id := String(prompt.get("target_id", interactable.definition_id))
+	var required := float(prompt.get("required", 1.0))
+	var current := world_state.quest_state.get_objective_progress(quest_id, objective_type, target_id)
+	if world_state.quest_state.has_completed_quest(quest_id):
+		current = required
+	var progress := "%s/%s" % [_format_amount(current), _format_amount(required)]
+	var parts: Array[String] = [
+		"读数：%s" % title,
+		"状态：未写入，当前进度 %s。" % progress,
+		"作用：%s" % String(prompt.get("effect", "写入后会推进当前现场目标。")),
+		"按 E 写入读数"
+	]
 	return "\n".join(parts)
 
 
@@ -429,6 +524,12 @@ func _get_display_name(definition_id: String) -> String:
 		return definition_id
 
 	return data_registry.get_text(String(definition.get("display_name_key", definition_id)))
+
+
+func _format_amount(amount: float) -> String:
+	if is_equal_approx(amount, roundf(amount)):
+		return str(int(amount))
+	return "%.1f" % amount
 
 
 func _format_phase_relay_anchor_label(anchor_instance_id: String) -> String:

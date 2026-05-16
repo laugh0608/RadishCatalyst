@@ -7,6 +7,63 @@ var data_registry: DataRegistry
 var processing_system: ProcessingSystem
 var build_system: BuildSystem
 
+const FIELD_READING_RESULTS := {
+	"map_object.phase_splinter_resonance_node": {
+		"quest_id": "quest.trace_phase_splinters",
+		"objective_type": "inspect",
+		"target_id": "map_object.phase_splinter_resonance_node",
+		"required": 2.0,
+		"step": "裂相共振读数",
+		"partial": "继续检查另一处裂相共振点，再处理猎手和碎屑。",
+		"complete": "两点共振已定位，裂相碎屑回收线已经稳定。"
+	},
+	"map_object.fault_residue_pulse_node": {
+		"quest_id": "quest.collect_fault_residue",
+		"objective_type": "inspect",
+		"target_id": "map_object.fault_residue_pulse_node",
+		"required": 2.0,
+		"step": "故障脉冲读数",
+		"partial": "继续读另一处脉冲，再压制潜猎体。",
+		"complete": "两处故障脉冲已读出，故障残渣回收线已经显形。"
+	},
+	"map_object.well_flux_pressure_vent": {
+		"quest_id": "quest.collect_well_flux",
+		"objective_type": "inspect",
+		"target_id": "map_object.well_flux_pressure_vent",
+		"required": 2.0,
+		"step": "井涌泄压",
+		"partial": "继续处理另一处泄压阀，再压制井口哨戒体。",
+		"complete": "两处井涌压力已卸掉，井涌碎屑回收线已经稳定。"
+	},
+	"map_object.phase_well_chamber_shunt_node": {
+		"quest_id": "quest.collect_heart_spine",
+		"objective_type": "inspect",
+		"target_id": "map_object.phase_well_chamber_shunt_node",
+		"required": 2.0,
+		"step": "井心分流读数",
+		"partial": "继续写入另一处分流读数，心棘残片还没有完全露出。",
+		"complete": "两处分流读数已写入，心棘残片从脉冲里露出。"
+	},
+	"map_object.phase_well_loom_tension_spool": {
+		"quest_id": "quest.collect_weft_bundle",
+		"objective_type": "inspect",
+		"target_id": "map_object.phase_well_loom_tension_spool",
+		"required": 2.0,
+		"step": "井纺张力绕轮",
+		"partial": "继续检查另一处张力绕轮，纬束残团还不稳定。",
+		"complete": "两处张力绕轮已确认，纬束残团回收线已经稳定。"
+	},
+	"map_object.phase_well_tether_knot_node": {
+		"quest_id": "quest.collect_tether_fiber",
+		"objective_type": "inspect",
+		"target_id": "map_object.phase_well_tether_knot_node",
+		"required": 2.0,
+		"step": "井系桥结点",
+		"partial": "继续检查另一端结点，系索残股还没有完全松开。",
+		"complete": "两端桥结点已确认，系索残股从桥体边缘松开。"
+	}
+}
+
 
 func _init(registry: DataRegistry) -> void:
 	data_registry = registry
@@ -70,7 +127,7 @@ func interact_with_object(
 		"inspect":
 			if _is_persistent_field_reading(definition_id):
 				world_state.set_map_object_flag(instance_id, "is_sampled", true)
-				return _success("现场读数已写入。")
+				return _success(_format_field_reading_result(definition_id, world_state))
 			return _success("交互完成。")
 		_:
 			return _success("交互完成。")
@@ -291,6 +348,27 @@ func _is_persistent_field_reading(definition_id: String) -> bool:
 		or definition_id == "map_object.phase_well_loom_tension_spool"
 		or definition_id == "map_object.phase_well_tether_knot_node"
 	)
+
+
+func _format_field_reading_result(definition_id: String, world_state: WorldState) -> String:
+	var result: Dictionary = FIELD_READING_RESULTS.get(definition_id, {})
+	if result.is_empty():
+		return "现场读数已写入。"
+	var quest_id := String(result.get("quest_id", ""))
+	var objective_type := String(result.get("objective_type", "inspect"))
+	var target_id := String(result.get("target_id", definition_id))
+	var required := float(result.get("required", 1.0))
+	var current := world_state.quest_state.get_objective_progress(quest_id, objective_type, target_id)
+	var next_progress := minf(required, current + 1.0)
+	var suffix := String(result.get("partial", "继续检查剩余现场读数点。"))
+	if next_progress >= required:
+		suffix = String(result.get("complete", "现场读数已全部写入。"))
+	return "%s已写入：%s/%s；%s" % [
+		String(result.get("step", "现场读数")),
+		_format_amount(next_progress),
+		_format_amount(required),
+		suffix
+	]
 
 
 func _success(message: String) -> Dictionary:
