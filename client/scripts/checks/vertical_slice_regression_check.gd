@@ -124,7 +124,8 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		"recipe.phase_well_tether_spike",
 		"recipe.phase_well_anchor_core_analysis",
 		"recipe.phase_well_anchor_stake",
-		"recipe.phase_well_echo_shard_analysis"
+		"recipe.phase_well_echo_shard_analysis",
+		"recipe.stability_echo_report"
 	])
 	recipe_character.inventory.items["item.basic_parts"] = 1
 	recipe_character.inventory.add_item("item.signal_echo_trace", 1)
@@ -478,6 +479,13 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
 		"recipe.phase_well_echo_shard_analysis",
 		"phase well echo shard analysis returns to reactor recipe after basic parts are restored"
+	)
+	recipe_character.inventory.add_item("item.stability_echo_sample", 1)
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_stability_echo_sample"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.stability_echo_report",
+		"stability echo report analysis selects reactor recipe"
 	)
 	deep_reactor.free()
 	filter.free()
