@@ -14,9 +14,9 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	host._expect_array_has(world_state.unlocked_region_ids, "region.phase_well_chamber", "phase well heart analysis unlocks phase well chamber region")
 	host._complete_active_quest("quest.collect_heart_spine", [
 		{"type": "visit_region", "target_id": "region.phase_well_chamber", "amount": 1},
-		{"type": "defeat_enemy", "target_id": "enemy.phase_well_reaver", "amount": 1}
+		{"type": "defeat_enemy", "target_id": "enemy.phase_well_reaver", "amount": 1},
+		{"type": "gather_item", "target_id": "item.heart_spine", "amount": 2}
 	])
-	host._expect_equal(int(character_state.inventory.items.get("item.heart_spine", 0)), 2, "phase well reaver completion grants heart spine inputs")
 	host._expect_active_quest("quest.refine_heart_spine", "after heart spine collection returns to filter")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.heart_spine_stabilization", "heart spine collection unlocks stabilization recipe")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_shunt", "heart spine collection unlocks phase well shunt recipe")
@@ -35,9 +35,9 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	host._expect_array_has(world_state.unlocked_region_ids, "region.phase_well_loom", "phase well spindle analysis unlocks phase well loom region")
 	host._complete_active_quest("quest.collect_weft_bundle", [
 		{"type": "visit_region", "target_id": "region.phase_well_loom", "amount": 1},
-		{"type": "gather_item", "target_id": "item.weft_bundle", "amount": 1}
+		{"type": "defeat_enemy", "target_id": "enemy.phase_well_tangler", "amount": 1},
+		{"type": "gather_item", "target_id": "item.weft_bundle", "amount": 2}
 	])
-	host._expect_equal(int(character_state.inventory.items.get("item.weft_bundle", 0)), 1, "phase well loom single extraction grants extra weft bundle input")
 	host._expect_active_quest("quest.refine_weft_bundle", "after weft bundle collection returns to filter")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.weft_bundle_stabilization", "weft bundle collection unlocks stabilization recipe")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_shuttle", "weft bundle collection unlocks phase well shuttle recipe")
@@ -57,6 +57,7 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	host._complete_active_quest("quest.collect_selvedge_strip", [
 		{"type": "visit_region", "target_id": "region.phase_well_frame", "amount": 1},
 		{"type": "clear", "target_id": "map_object.phase_well_frame_route_blocker", "amount": 1},
+		{"type": "defeat_enemy", "target_id": "enemy.phase_well_raker", "amount": 1},
 		{"type": "gather_item", "target_id": "item.selvedge_strip", "amount": 2}
 	])
 	host._expect_active_quest("quest.refine_selvedge_strip", "after selvedge strip collection returns to filter")
@@ -77,9 +78,9 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	host._expect_array_has(world_state.unlocked_region_ids, "region.phase_well_tether", "phase well knot core analysis unlocks phase well tether region")
 	host._complete_active_quest("quest.collect_tether_fiber", [
 		{"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1},
-		{"type": "defeat_enemy", "target_id": "enemy.phase_well_binder", "amount": 1}
+		{"type": "defeat_enemy", "target_id": "enemy.phase_well_binder", "amount": 1},
+		{"type": "gather_item", "target_id": "item.tether_fiber", "amount": 2}
 	])
-	host._expect_equal(int(character_state.inventory.items.get("item.tether_fiber", 0)), 2, "phase well binder completion grants tether fiber inputs")
 	host._expect_active_quest("quest.refine_tether_fiber", "after tether fiber collection returns to filter")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.tether_fiber_stabilization", "tether fiber collection unlocks stabilization recipe")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_well_tether_spike", "tether fiber collection unlocks phase well tether spike recipe")

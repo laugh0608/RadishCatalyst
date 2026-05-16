@@ -175,7 +175,7 @@ func _run_checks() -> void:
 	_complete_active_quest("quest.reenter_phase_frontline", [{"type": "inspect", "target_id": "map_object.phase_relay_pad", "amount": 1}])
 	_expect_active_quest("quest.trace_phase_splinters", "after relay reentry returns to new deep pressure")
 	_complete_active_quest("quest.trace_phase_splinters", [
-		{"type": "visit_region", "target_id": "region.deep_ruin_threshold", "amount": 1},
+		{"type": "visit_region", "target_id": "region.deep_ruin_threshold", "amount": 1}, {"type": "inspect", "target_id": "map_object.phase_splinter_resonance_node", "amount": 2},
 		{"type": "defeat_enemy", "target_id": "enemy.deep_fault_hunter", "amount": 1},
 		{"type": "gather_item", "target_id": "item.phase_splinter", "amount": 2}
 	])
@@ -195,7 +195,7 @@ func _run_checks() -> void:
 	_complete_active_quest("quest.analyze_inner_fault_trace", [{"type": "craft_item", "target_id": "item.phase_well_coordinate", "amount": 1}])
 	_expect_active_quest("quest.collect_fault_residue", "after inner fault analysis returns to deeper front")
 	_complete_active_quest("quest.collect_fault_residue", [
-		{"type": "visit_region", "target_id": "region.deep_ruin_threshold", "amount": 1},
+		{"type": "visit_region", "target_id": "region.deep_ruin_threshold", "amount": 1}, {"type": "inspect", "target_id": "map_object.fault_residue_pulse_node", "amount": 2},
 		{"type": "defeat_enemy", "target_id": "enemy.inner_fault_stalker", "amount": 1},
 		{"type": "gather_item", "target_id": "item.fault_residue", "amount": 2}
 	])
@@ -216,7 +216,7 @@ func _run_checks() -> void:
 	_expect_active_quest("quest.collect_well_flux", "after locator analysis returns to inner phase well edge")
 	_expect_array_has(world_state.unlocked_region_ids, "region.inner_phase_well", "locator analysis unlocks inner phase well region")
 	_complete_active_quest("quest.collect_well_flux", [
-		{"type": "visit_region", "target_id": "region.inner_phase_well", "amount": 1},
+		{"type": "visit_region", "target_id": "region.inner_phase_well", "amount": 1}, {"type": "inspect", "target_id": "map_object.well_flux_pressure_vent", "amount": 2},
 		{"type": "defeat_enemy", "target_id": "enemy.phase_well_sentry", "amount": 1},
 		{"type": "gather_item", "target_id": "item.well_flux_shard", "amount": 2}
 	])
@@ -236,7 +236,7 @@ func _run_checks() -> void:
 	_expect_active_quest("quest.collect_well_ash", "after phase well core analysis returns to deeper sink")
 	_expect_array_has(world_state.unlocked_region_ids, "region.phase_well_sink", "phase well core analysis unlocks phase well sink region")
 	_complete_active_quest("quest.collect_well_ash", [
-		{"type": "visit_region", "target_id": "region.phase_well_sink", "amount": 1},
+		{"type": "visit_region", "target_id": "region.phase_well_sink", "amount": 1}, {"type": "clear", "target_id": "map_object.well_ash_crust_blocker", "amount": 2},
 		{"type": "defeat_enemy", "target_id": "enemy.phase_well_lurker", "amount": 1},
 		{"type": "gather_item", "target_id": "item.well_ash", "amount": 2}
 	])

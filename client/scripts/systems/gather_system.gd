@@ -62,7 +62,14 @@ func interact_with_object(
 			world_state.set_map_object_flag(instance_id, "is_cleared", true)
 			if definition_id == "map_object.phase_well_frame_route_blocker":
 				return _success("井纹架侧路已清理：边缕残条回收线打开，另一侧路可以保留为未选路线。")
+			if definition_id == "map_object.well_ash_crust_blocker":
+				return _success("井底余烬壳已清理：井壁余烬回收线打开。")
 			return _success("地块已清理。")
+		"inspect":
+			if _is_persistent_field_reading(definition_id):
+				world_state.set_map_object_flag(instance_id, "is_sampled", true)
+				return _success("现场读数已写入。")
+			return _success("交互完成。")
 		_:
 			return _success("交互完成。")
 
@@ -265,10 +272,20 @@ func _is_already_processed(object_state: Dictionary, interaction_type: String) -
 			return bool(object_state.get("is_gathered", false))
 		"sample":
 			return bool(object_state.get("is_sampled", false))
+		"inspect":
+			return bool(object_state.get("is_sampled", false))
 		"clear":
 			return bool(object_state.get("is_cleared", false))
 		_:
 			return false
+
+
+func _is_persistent_field_reading(definition_id: String) -> bool:
+	return (
+		definition_id == "map_object.phase_splinter_resonance_node"
+		or definition_id == "map_object.fault_residue_pulse_node"
+		or definition_id == "map_object.well_flux_pressure_vent"
+	)
 
 
 func _success(message: String) -> Dictionary:

@@ -249,6 +249,8 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor")
 		"quest.trace_phase_splinters":
 			_mark_enemy_defeated(world_state, "enemy_instance.deep_fault_hunter", "enemy.deep_fault_hunter", "region.deep_ruin_threshold")
+			_mark_object_sampled(world_state, "map_object_instance.phase_splinter_resonance_west", "map_object.phase_splinter_resonance_node", "region.deep_ruin_threshold")
+			_mark_object_sampled(world_state, "map_object_instance.phase_splinter_resonance_east", "map_object.phase_splinter_resonance_node", "region.deep_ruin_threshold")
 			_mark_objects_gathered(world_state, [
 				"map_object_instance.phase_splinter_cluster_north",
 				"map_object_instance.phase_splinter_cluster_south"
@@ -260,6 +262,8 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.inner_fault_analysis")
 		"quest.collect_fault_residue":
 			_mark_enemy_defeated(world_state, "enemy_instance.inner_fault_stalker", "enemy.inner_fault_stalker", "region.deep_ruin_threshold")
+			_mark_object_sampled(world_state, "map_object_instance.fault_residue_pulse_west", "map_object.fault_residue_pulse_node", "region.deep_ruin_threshold")
+			_mark_object_sampled(world_state, "map_object_instance.fault_residue_pulse_east", "map_object.fault_residue_pulse_node", "region.deep_ruin_threshold")
 			_mark_objects_gathered(world_state, [
 				"map_object_instance.fault_residue_cluster_north",
 				"map_object_instance.fault_residue_cluster_south"
@@ -271,6 +275,8 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_locator_analysis")
 		"quest.collect_well_flux":
 			_mark_enemy_defeated(world_state, "enemy_instance.phase_well_sentry", "enemy.phase_well_sentry", "region.inner_phase_well")
+			_mark_object_sampled(world_state, "map_object_instance.well_flux_pressure_vent_west", "map_object.well_flux_pressure_vent", "region.inner_phase_well")
+			_mark_object_sampled(world_state, "map_object_instance.well_flux_pressure_vent_east", "map_object.well_flux_pressure_vent", "region.inner_phase_well")
 			_mark_objects_gathered(world_state, [
 				"map_object_instance.well_flux_cluster_north",
 				"map_object_instance.well_flux_cluster_south"
@@ -282,6 +288,10 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_well_core_analysis")
 		"quest.collect_well_ash":
 			_mark_enemy_defeated(world_state, "enemy_instance.phase_well_lurker", "enemy.phase_well_lurker", "region.phase_well_sink")
+			_mark_objects_cleared(world_state, [
+				"map_object_instance.well_ash_crust_north",
+				"map_object_instance.well_ash_crust_south"
+			], "map_object.well_ash_crust_blocker", "region.phase_well_sink")
 			_mark_objects_gathered(world_state, [
 				"map_object_instance.well_ash_cluster_north",
 				"map_object_instance.well_ash_cluster_south"

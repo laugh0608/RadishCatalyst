@@ -304,6 +304,24 @@ func set_processed_visual() -> bool:
 		marker.color = CLEARED_GROUND_COLOR
 		_set_label_text("%s\n已清理" % display_name_text, 2)
 		return true
+	if interaction_type == "clear" and definition_id == "map_object.well_ash_crust_blocker":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = CLEARED_GROUND_COLOR
+		_set_label_text("%s\n已清理" % display_name_text, 2)
+		return true
+	if interaction_type == "inspect" and (
+		definition_id == "map_object.phase_splinter_resonance_node"
+		or definition_id == "map_object.fault_residue_pulse_node"
+		or definition_id == "map_object.well_flux_pressure_vent"
+	):
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = READY_STABILITY_CALIBRATION_COLOR
+		_set_label_text("%s\n读数已写入" % display_name_text, 2)
+		return true
 	return false
 
 

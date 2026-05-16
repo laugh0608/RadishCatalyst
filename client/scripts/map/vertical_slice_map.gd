@@ -43,12 +43,16 @@ const INTERACTABLE_QUEST_GATES := {
 	"map_object.phase_conduit_cluster": "quest.activate_deep_array",
 	"map_object.phase_return_anchor": "quest.deploy_phase_relay_anchor",
 	"map_object.phase_splinter_cluster": "quest.trace_phase_splinters",
+	"map_object.phase_splinter_resonance_node": "quest.trace_phase_splinters",
 	"map_object.fault_residue_cluster": "quest.collect_fault_residue",
+	"map_object.fault_residue_pulse_node": "quest.collect_fault_residue",
 	"map_object.phase_fault_spire": "quest.inspect_phase_fault_spire",
 	"map_object.phase_well_lock": "quest.unlock_phase_well",
 	"map_object.well_flux_cluster": "quest.collect_well_flux",
+	"map_object.well_flux_pressure_vent": "quest.collect_well_flux",
 	"map_object.inner_phase_well": "quest.inspect_inner_phase_well",
 	"map_object.well_ash_cluster": "quest.collect_well_ash",
+	"map_object.well_ash_crust_blocker": "quest.collect_well_ash",
 	"map_object.phase_well_sink": "quest.inspect_phase_well_sink",
 	"map_object.heart_spine_cluster": "quest.collect_heart_spine",
 	"map_object.phase_well_chamber": "quest.inspect_phase_well_chamber",
@@ -63,7 +67,6 @@ const INTERACTABLE_QUEST_GATES := {
 @onready var player: PlayerController = $Player
 @onready var interactables_root: Node2D = $Interactables
 @onready var enemies_root: Node2D = $Enemies
-
 var data_registry: DataRegistry
 var current_interactable: PrototypeInteractable
 var gather_system: GatherSystem
@@ -84,7 +87,6 @@ func _ready() -> void:
 func try_interact(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if current_interactable == null:
 		return _failure("附近没有可交互目标。", "交互未执行", "靠近带名称的目标，等待交互提示出现后再按 E。")
-
 	var interacted := current_interactable
 	if interacted.definition_id == "map_object.ruin_gate" and interacted.interaction_type == "inspect":
 		return _inspect_ruin_gate(world_state)
@@ -133,7 +135,6 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 			character_state,
 			world_state
 		)
-
 	var action_id := interacted.get_current_recipe_id()
 	if interacted.interaction_type == "build":
 		action_id = interacted.prerequisite_instance_id
@@ -161,12 +162,13 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
 			continue
-
 		var object_state := world_state.get_map_object(interactable.instance_id)
 		var is_processed := false
 		if interactable.interaction_type == "gather":
 			is_processed = bool(object_state.get("is_gathered", false))
 		if interactable.interaction_type == "sample":
+			is_processed = bool(object_state.get("is_sampled", false))
+		if interactable.interaction_type == "inspect":
 			is_processed = bool(object_state.get("is_sampled", false))
 		if interactable.interaction_type == "clear":
 			is_processed = bool(object_state.get("is_cleared", false))
@@ -178,7 +180,6 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 					current_interactable = null
 					interaction_cleared.emit(interactable)
 				continue
-
 		if interactable.single_use:
 			interactable.consumed = is_processed
 		if interactable.interaction_type == "outpost_core":
@@ -353,7 +354,6 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			continue
 		elif not is_processed:
 			interactable.set_default_visual()
-
 		var should_enable: bool = not interactable.consumed
 		if interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter":
 			should_enable = should_enable and world_state.has_base_structure_definition("building.pollution_filter")
@@ -394,7 +394,6 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				world_state.quest_state.has_active_quest("quest.calibrate_phase_well_stability_window")
 				or world_state.quest_state.has_completed_quest("quest.calibrate_phase_well_stability_window")
 			)
-
 		interactable.set_interaction_enabled(should_enable)
 		if current_interactable == interactable and not should_enable:
 			current_interactable = null
@@ -404,7 +403,6 @@ func update_current_interactable() -> void:
 	var nearest_interactable := _get_nearest_interactable()
 	if nearest_interactable == current_interactable:
 		return
-
 	var previous_interactable := current_interactable
 	current_interactable = nearest_interactable
 	if previous_interactable != null:
@@ -1440,6 +1438,8 @@ func _has_phase_well_frame_route_cleared(world_state: WorldState) -> bool:
 		if bool(world_state.get_map_object(route_instance_id).get("is_cleared", false)):
 			return true
 	return false
+
+
 func _get_phase_relay_pad_return_position() -> Vector2:
 	return _get_interactable_return_position(
 		"map_object_instance.phase_relay_pad",

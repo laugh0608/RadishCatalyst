@@ -133,7 +133,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 				return "在基地按 E 使用相位回投台，返回最近校准的锚点并继续追踪更东侧裂相碎屑。"
 			return "先用前线回传锚点回基地，再在相位回投台按 E 回到当前锚点。"
 		"quest.trace_phase_splinters":
-			return "从锚点继续向东推进，击败裂相猎手并回收两处裂相碎屑。"
+			return "从锚点继续向东推进，先写入两处裂相共振读数，再击败裂相猎手并回收两处碎屑。"
 		"quest.refine_phase_splinters":
 			if not character_state.inventory.has_ref("item.phase_lens_blank", 1):
 				return "回处理点污染过滤器，把裂相碎屑筛成透镜胚片并保留副产污染浆液。"
@@ -145,7 +145,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.analyze_inner_fault_trace":
 			return "回基地使用基础反应器，解析内层故障轨迹并整理相位井坐标印片。"
 		"quest.collect_fault_residue":
-			return "返回裂相尖塔更东侧，击退内层潜猎体并回收两处故障残渣。"
+			return "返回裂相尖塔更东侧，先读出两处故障脉冲，再击退内层潜猎体并回收两处故障残渣。"
 		"quest.refine_fault_residue":
 			if not character_state.inventory.has_ref("item.stabilized_fault_core", 1):
 				return "回处理点污染过滤器，把故障残渣稳定成可用于下一步开锁的故障芯。"
@@ -155,7 +155,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.analyze_phase_well_locator":
 			return "回基地使用基础反应器，解析相位井定位器并整理内层相位井路由片。"
 		"quest.collect_well_flux":
-			return "沿定位器路由继续向东推进，击退井口哨戒体并回收两处井涌碎屑。"
+			return "沿定位器路由继续向东推进，先处理两处井涌泄压阀，再击退井口哨戒体并回收两处井涌碎屑。"
 		"quest.refine_well_flux":
 			if not character_state.inventory.has_ref("item.phase_well_stabilizer", 1):
 				return "先回处理点污染过滤器，把井涌碎屑筛成可继续组装的相位井稳流芯。"
@@ -167,7 +167,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.analyze_phase_well_core":
 			return "回基地使用基础反应器，解析井芯样本并整理相位井频谱片。"
 		"quest.collect_well_ash":
-			return "沿井芯频谱继续向东推进，击退井底潜伏体并回收两处井壁余烬。"
+			return "沿井芯频谱继续向东推进，先清掉两处井底余烬壳，再击退井底潜伏体并回收两处井壁余烬。"
 		"quest.refine_well_ash":
 			if not character_state.inventory.has_ref("item.phase_well_lattice", 1):
 				return "先回处理点污染过滤器，把井壁余烬稳定成相位井稳相格。"
@@ -179,7 +179,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.analyze_phase_well_heart":
 			return "回基地使用基础反应器，解析相位井心核并整理相位井脉搏片。"
 		"quest.collect_heart_spine":
-			return "沿心核脉搏继续向东推进，压制心室撕裂体；战斗收束后会直接带回两份心棘残片。"
+			return "沿心核脉搏继续向东推进，击退心室撕裂体并回收两处心棘残片。"
 		"quest.refine_heart_spine":
 			if not character_state.inventory.has_ref("item.phase_well_damper", 1):
 				return "先回处理点污染过滤器，把心棘残片稳定成相位井抑振骨。"
@@ -191,7 +191,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.analyze_phase_well_spindle":
 			return "回基地使用基础反应器，解析相位井纺核并整理相位井经片。"
 		"quest.collect_weft_bundle":
-			return "沿纺核经片继续向东推进，这次避开正面缠斗，只抽取一处纬束残团并带回可用余量。"
+			return "沿纺核经片继续向东推进，击退井纺纠缠体并回收两处纬束残团。"
 		"quest.refine_weft_bundle":
 			if not character_state.inventory.has_ref("item.phase_well_tension_rib", 1):
 				return "先回处理点污染过滤器，把纬束残团稳定成相位井张力肋。"
@@ -203,7 +203,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.analyze_phase_well_weave_core":
 			return "回基地使用基础反应器，解析相位井织核并整理相位井纹谱片。"
 		"quest.collect_selvedge_strip":
-			return "沿织核纹谱继续向东推进，先清理任一条井纹架侧路，再沿打开的回收线取回两处边缕残条。"
+			return "沿织核纹谱继续向东推进，先清理任一条井纹架侧路，再击退井纹刮裂体并回收两处边缕残条。"
 		"quest.refine_selvedge_strip":
 			if not character_state.inventory.has_ref("item.phase_well_frame_rib", 1):
 				return "先回处理点污染过滤器，把边缕残条稳定成相位井纹架肋。"
@@ -215,7 +215,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.analyze_phase_well_knot_core":
 			return "回基地使用基础反应器，解析相位井结核并整理相位井系谱片。"
 		"quest.collect_tether_fiber":
-			return "沿结核系谱继续向东推进，断开井系缚结体；战斗完成后直接获得两份系索残股。"
+			return "沿结核系谱继续向东推进，击退井系缚结体并回收两处系索残股。"
 		"quest.refine_tether_fiber":
 			if not character_state.inventory.has_ref("item.phase_well_tether_rib", 1):
 				return "先回处理点污染过滤器，把系索残股稳定成相位井系固肋。"
@@ -360,7 +360,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.reenter_phase_frontline":
 			return "先真正用一次回投台，让回传链从便利功能变成明确主线动作；回到锚点后再继续看更东侧新风险。"
 		"quest.trace_phase_splinters":
-			return "裂相碎屑是回传后的第一份新深段收益；它们必须再回基地加工，才能证明这条更深推进线不是纯跑图。"
+			return "裂相脊这一步先做两点共振定位，再处理猎手和碎屑回收；它应该像回传后的第一段现场侦测，而不是只走到两个采集点。"
 		"quest.refine_phase_splinters":
 			return "这一步是一次远征整备：先用污染过滤器筛出透镜胚片，再用基础反应器调准中继调谐镜，下一趟外勤直接去校准裂相尖塔。"
 		"quest.tune_relay_lens":
@@ -370,7 +370,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.analyze_inner_fault_trace":
 			return "内层故障轨迹不是纪念品；要先回基地把它反解成坐标印片，新的更深门锁才会显形。"
 		"quest.collect_fault_residue":
-			return "更东侧新敌人和故障残渣要一起解决；这一步负责把新的前线风险和下一次基地加工输入同时带回来。"
+			return "故障残渣这一步先读两处脉冲，再处理潜猎体和残渣；目标是让玩家先判断现场窗口，再带回下一次基地加工输入。"
 		"quest.refine_fault_residue":
 			return "这一步是一次井锁整备：先稳定故障残渣，再把坐标印片和稳定故障芯组装成相位井钥，下一趟外勤直接去钉住井锁。"
 		"quest.unlock_phase_well":
@@ -378,7 +378,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.analyze_phase_well_locator":
 			return "定位器必须先回基地解析，新的更东侧井口区才会真正解锁成可执行目标，而不是停在任务奖励里。"
 		"quest.collect_well_flux":
-			return "新井口哨戒体和井涌碎屑要在同一趟外勤里一起解决，这一步负责把新风险和下一步加工输入同时带回来。"
+			return "井涌这一步先做泄压，再处理哨戒体和碎屑；它应该像降压后的危险回收，不再只是同一套打怪采集。"
 		"quest.refine_well_flux":
 			return "这一步是一次探针整备：先稳定井涌碎屑，再把路由片和稳流芯组装成相位井探针，下一趟外勤直接去读取井芯样本。"
 		"quest.assemble_phase_well_probe":
@@ -388,7 +388,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.analyze_phase_well_core":
 			return "井芯样本不是收尾；要先回基地把它反解成频谱片，新的井底裂口风险才会真正显形。"
 		"quest.collect_well_ash":
-			return "井底潜伏体和井壁余烬要在同一趟外勤里一起解决，这一步负责把新的前线压力和下一次基地加工输入同时带回来。"
+			return "井底裂口这一步先清余烬壳，再处理潜伏体和井壁余烬；它负责把路线清理和材料回收合成一趟外勤。"
 		"quest.refine_well_ash":
 			return "这一步是一次井底整备：先稳定井壁余烬，再把频谱片和稳相格组装成井底穿钉，下一趟外勤直接去凿开井底裂口。"
 		"quest.assemble_phase_well_pike":
@@ -398,7 +398,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.analyze_phase_well_heart":
 			return "相位井心核不是纪念品；要先回基地把它反解成脉搏片，新的井心室断面风险才会真正显形。"
 		"quest.collect_heart_spine":
-			return "井心室这一步改成战斗回收：压制心室撕裂体后直接得到整备输入，不再同时要求扫两处采集点。"
+			return "井心室的新敌人和心棘残片要在同一趟外勤里一起解决，这一步负责把新风险和下一次基地加工输入同时带回来。"
 		"quest.refine_heart_spine":
 			return "这一步是一次井心整备：先稳定心棘残片，再把脉搏片和抑振骨组装成井心分流栓，下一趟外勤直接勘验井心室断面。"
 		"quest.assemble_phase_well_shunt":
@@ -408,7 +408,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.analyze_phase_well_spindle":
 			return "相位井纺核不是纪念品；要先回基地把它反解成经片，新的井纺室断面风险才会真正显形。"
 		"quest.collect_weft_bundle":
-			return "井纺室这一步改成低压抽取：只需要拿到一处纬束残团，剩余可用余量会随任务结算带回。"
+			return "井纺室的新敌人和纬束残团要在同一趟外勤里一起解决，这一步负责把新风险和下一次基地加工输入同时带回来。"
 		"quest.refine_weft_bundle":
 			return "这一步是一次井纺整备：先稳定纬束残团，再把经片和张力肋组装成井纺梭栓，下一趟外勤直接勘验井纺室断面。"
 		"quest.assemble_phase_well_shuttle":
@@ -418,7 +418,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.analyze_phase_well_weave_core":
 			return "相位井织核不是纪念品；要先回基地把它反解成纹谱片，新的井纹架断面风险才会真正显形。"
 		"quest.collect_selvedge_strip":
-			return "井纹架这一步改成路线清障样板：先选一条侧路打开回收线，再把下一次基地加工输入带回来。"
+			return "井纹架这一步改成路线清障样板：先选一条侧路打开回收线，再把新风险和下一次基地加工输入同时带回来。"
 		"quest.refine_selvedge_strip":
 			return "这一步是一次井纹架整备：先稳定边缕残条，再把纹谱片和纹架肋组装成井纹架键栓，下一趟外勤直接勘验井纹架断面。"
 		"quest.assemble_phase_well_frame_key":
@@ -428,7 +428,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.analyze_phase_well_knot_core":
 			return "相位井结核不是纪念品；要先回基地把它反解成系谱片，新的井系桥断面风险才会真正显形。"
 		"quest.collect_tether_fiber":
-			return "井系桥这一步改成断链战斗：目标是拆掉缚结体本身，系索残股会随战斗收束带回整备。"
+			return "井系桥的新敌人和系索残股要在同一趟外勤里一起解决，这一步负责把新风险和下一次基地加工输入同时带回来。"
 		"quest.refine_tether_fiber":
 			return "这一步是一次井系整备：先稳定系索残股，再把系谱片和系固肋组装成井系定桩，下一趟外勤直接勘验井系桥断面。"
 		"quest.assemble_phase_well_tether_spike":

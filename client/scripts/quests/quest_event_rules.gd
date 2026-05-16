@@ -71,6 +71,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		]
 		updates.append_array(_get_drop_objective_updates("quest.trace_phase_splinters", "gather_item", "item.phase_splinter", definition_id))
 		return updates
+	if interaction_type == "inspect" and definition_id == "map_object.phase_splinter_resonance_node":
+		return [_add_update("quest.trace_phase_splinters", "inspect", "map_object.phase_splinter_resonance_node", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.phase_fault_spire":
 		return [_set_update("quest.inspect_phase_fault_spire", "inspect", "map_object.phase_fault_spire", 1)]
 	if interaction_type == "gather" and definition_id == "map_object.fault_residue_cluster":
@@ -79,6 +81,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		]
 		updates.append_array(_get_drop_objective_updates("quest.collect_fault_residue", "gather_item", "item.fault_residue", definition_id))
 		return updates
+	if interaction_type == "inspect" and definition_id == "map_object.fault_residue_pulse_node":
+		return [_add_update("quest.collect_fault_residue", "inspect", "map_object.fault_residue_pulse_node", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.phase_well_lock":
 		return [_set_update("quest.unlock_phase_well", "inspect", "map_object.phase_well_lock", 1)]
 	if interaction_type == "gather" and definition_id == "map_object.well_flux_cluster":
@@ -87,6 +91,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		]
 		updates.append_array(_get_drop_objective_updates("quest.collect_well_flux", "gather_item", "item.well_flux_shard", definition_id))
 		return updates
+	if interaction_type == "inspect" and definition_id == "map_object.well_flux_pressure_vent":
+		return [_add_update("quest.collect_well_flux", "inspect", "map_object.well_flux_pressure_vent", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.inner_phase_well":
 		return [_set_update("quest.inspect_inner_phase_well", "inspect", "map_object.inner_phase_well", 1)]
 	if interaction_type == "gather" and definition_id == "map_object.well_ash_cluster":
@@ -95,6 +101,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		]
 		sink_updates.append_array(_get_drop_objective_updates("quest.collect_well_ash", "gather_item", "item.well_ash", definition_id))
 		return sink_updates
+	if interaction_type == "clear" and definition_id == "map_object.well_ash_crust_blocker":
+		return [_add_update("quest.collect_well_ash", "clear", "map_object.well_ash_crust_blocker", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.phase_well_sink":
 		return [_set_update("quest.inspect_phase_well_sink", "inspect", "map_object.phase_well_sink", 1)]
 	if interaction_type == "gather" and definition_id == "map_object.heart_spine_cluster":
