@@ -4,6 +4,7 @@
 
 - [Daily Start](daily-start.md)
 - [Current Plan](current.md)
+- [Base Action Choice Prototype](base-action-choice-prototype.md)
 - [Resource And Frontline Loop Rework](resource-and-frontline-loop-rework.md)
 - [Vertical Slice](vertical-slice.md)
 - [Milestone Review Checklist](milestone-review-checklist.md)

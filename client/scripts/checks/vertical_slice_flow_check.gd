@@ -1231,6 +1231,7 @@ func _complete_active_quest(quest_id: String, progress_refs: Array) -> void:
 		return
 	var quest := data_registry.get_definition(quest_id)
 	world_state.quest_state.complete_quest(quest_id)
+	if quest_id == "quest.choose_steady_supply_action" or quest_id == "quest.choose_phase_survey_action": world_state.quest_state.active_quest_ids.erase("quest.choose_phase_survey_action" if quest_id == "quest.choose_steady_supply_action" else "quest.choose_steady_supply_action")
 	_grant_refs(quest.get("rewards", []))
 	for effect_id in quest.get("unlock_effects", []):
 		_apply_unlock(String(effect_id))

@@ -675,6 +675,36 @@
       "pollution_delta": 0.0,
       "unlock_conditions": ["quest.inspect_route_signal_marker"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.steady_supply_feedback",
+      "display_name_key": "recipe.steady_supply_feedback.name",
+      "description_key": "recipe.steady_supply_feedback.desc",
+      "category": "analysis",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.steady_supply_trace", "amount": 1}],
+      "outputs": [{"id": "item.steady_supply_feedback", "amount": 1}],
+      "byproducts": [],
+      "duration": 10.0,
+      "energy_cost": 4.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.inspect_steady_supply_drop"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.phase_survey_feedback",
+      "display_name_key": "recipe.phase_survey_feedback.name",
+      "description_key": "recipe.phase_survey_feedback.desc",
+      "category": "analysis",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.phase_survey_trace", "amount": 1}],
+      "outputs": [{"id": "item.phase_survey_feedback", "amount": 1}],
+      "byproducts": [],
+      "duration": 10.0,
+      "energy_cost": 4.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.inspect_phase_survey_nodes"],
+      "public_level": "spoiler"
     }
   ]
 }

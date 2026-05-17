@@ -158,8 +158,16 @@ const BASELINE_DEFINITIONS := [
 		"code": "S19",
 		"display_name": "S19 巡线反馈已归档",
 		"completed_through": "quest.analyze_route_signal_trace",
-		"summary": "巡线短行动台、井系桥巡线信标、信标解析和第三次基地反馈已跑通。",
-		"recommended_for": "第三条轻量前线行动、巡线信标、返回解析和降低人工短复测后的自动回归。"
+		"summary": "巡线短行动台、井系桥巡线信标、信标解析和第三次基地反馈已跑通，基地行动选择入口已激活。",
+		"recommended_for": "第三条轻量前线行动完成态、稳场补给 / 相位测绘二选一入口和选择前提示回归。"
+	},
+	{
+		"id": "baseline.s20_phase_survey_feedback_ready",
+		"code": "S20",
+		"display_name": "S20 相位测绘反馈已归档",
+		"completed_through": "quest.analyze_phase_survey_trace",
+		"summary": "基地选择相位测绘后，井系桥前线两处测绘点和返回解析已跑通第一轮行动选择闭环。",
+		"recommended_for": "基地行动二选一、相位测绘目标差异、测绘反馈收益和 S19 后新循环验收。"
 	}
 ]
 

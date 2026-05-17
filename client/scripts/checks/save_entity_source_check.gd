@@ -98,6 +98,31 @@ func _check_loads_known_map_object_source() -> void:
 			"definition_id": "map_object.route_signal_marker",
 			"region_id": "region.phase_well_tether",
 			"is_sampled": true
+		},
+		"map_object_instance.base_supply_choice_console": {
+			"definition_id": "map_object.base_supply_choice_console",
+			"region_id": "region.outpost_platform",
+			"is_sampled": true
+		},
+		"map_object_instance.base_survey_choice_console": {
+			"definition_id": "map_object.base_survey_choice_console",
+			"region_id": "region.outpost_platform",
+			"is_sampled": true
+		},
+		"map_object_instance.steady_supply_drop_marker": {
+			"definition_id": "map_object.steady_supply_drop_marker",
+			"region_id": "region.phase_well_tether",
+			"is_sampled": true
+		},
+		"map_object_instance.phase_survey_node_west": {
+			"definition_id": "map_object.phase_survey_node_west",
+			"region_id": "region.phase_well_tether",
+			"is_sampled": true
+		},
+		"map_object_instance.phase_survey_node_east": {
+			"definition_id": "map_object.phase_survey_node_east",
+			"region_id": "region.phase_well_tether",
+			"is_sampled": true
 		}
 	}
 	host._write_save_json(save_data)

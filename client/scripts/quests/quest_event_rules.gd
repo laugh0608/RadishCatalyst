@@ -177,6 +177,25 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 			_set_update("quest.inspect_route_signal_marker", "visit_region", "region.phase_well_tether", 1),
 			_set_update("quest.inspect_route_signal_marker", "inspect", "map_object.route_signal_marker", 1)
 		]
+	if interaction_type == "inspect" and definition_id == "map_object.base_supply_choice_console":
+		return [_set_update("quest.choose_steady_supply_action", "inspect", "map_object.base_supply_choice_console", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.base_survey_choice_console":
+		return [_set_update("quest.choose_phase_survey_action", "inspect", "map_object.base_survey_choice_console", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.steady_supply_drop_marker":
+		return [
+			_set_update("quest.inspect_steady_supply_drop", "visit_region", "region.phase_well_tether", 1),
+			_set_update("quest.inspect_steady_supply_drop", "inspect", "map_object.steady_supply_drop_marker", 1)
+		]
+	if interaction_type == "inspect" and definition_id == "map_object.phase_survey_node_west":
+		return [
+			_set_update("quest.inspect_phase_survey_nodes", "visit_region", "region.phase_well_tether", 1),
+			_set_update("quest.inspect_phase_survey_nodes", "inspect", "map_object.phase_survey_node_west", 1)
+		]
+	if interaction_type == "inspect" and definition_id == "map_object.phase_survey_node_east":
+		return [
+			_set_update("quest.inspect_phase_survey_nodes", "visit_region", "region.phase_well_tether", 1),
+			_set_update("quest.inspect_phase_survey_nodes", "inspect", "map_object.phase_survey_node_east", 1)
+		]
 	if interaction_type == "process_recipe":
 		if not completed_recipe_id.is_empty():
 			return get_recipe_objective_updates(completed_recipe_id)
@@ -331,6 +350,10 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 			return [_set_update("quest.analyze_supply_return_trace", "craft_item", "item.short_action_feedback", 1)]
 		"recipe.route_action_feedback":
 			return [_set_update("quest.analyze_route_signal_trace", "craft_item", "item.route_action_feedback", 1)]
+		"recipe.steady_supply_feedback":
+			return [_set_update("quest.analyze_steady_supply_trace", "craft_item", "item.steady_supply_feedback", 1)]
+		"recipe.phase_survey_feedback":
+			return [_set_update("quest.analyze_phase_survey_trace", "craft_item", "item.phase_survey_feedback", 1)]
 		_:
 			return []
 

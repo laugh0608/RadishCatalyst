@@ -18,6 +18,7 @@ func try_complete_quest(quest_state: QuestState, quest_id: String) -> Dictionary
 
 	var quest := data_registry.get_definition(quest_id)
 	quest_state.complete_quest(quest_id)
+	_apply_mutually_exclusive_choice_cleanup(quest_state, quest_id)
 	for effect_id in quest.get("unlock_effects", []):
 		quest_state.unlock_effect(String(effect_id))
 	for next_quest_id in quest.get("next_quest_ids", []):
@@ -36,3 +37,11 @@ func _not_completed() -> Dictionary:
 	return {
 		"completed": false
 	}
+
+
+func _apply_mutually_exclusive_choice_cleanup(quest_state: QuestState, quest_id: String) -> void:
+	match quest_id:
+		"quest.choose_steady_supply_action":
+			quest_state.active_quest_ids.erase("quest.choose_phase_survey_action")
+		"quest.choose_phase_survey_action":
+			quest_state.active_quest_ids.erase("quest.choose_steady_supply_action")

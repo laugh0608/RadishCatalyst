@@ -86,7 +86,8 @@ func run() -> void:
 			"baseline.s16_phase_well_stability_window_calibrated",
 			"baseline.s17_frontline_action_report_ready",
 			"baseline.s18_short_action_feedback_ready",
-			"baseline.s19_route_action_feedback_ready"
+			"baseline.s19_route_action_feedback_ready",
+			"baseline.s20_phase_survey_feedback_ready"
 		]:
 			host._expect_equal(
 				loaded_world.active_phase_relay_anchor_id,
@@ -247,8 +248,8 @@ func run() -> void:
 			)
 			host._expect_equal(
 				loaded_world.quest_state.active_quest_ids,
-				[],
-				"S19 baseline should not keep an active quest"
+				["quest.choose_steady_supply_action", "quest.choose_phase_survey_action"],
+				"S19 baseline should activate base action choices"
 			)
 			host._expect_equal(
 				int(loaded_character.inventory.items.get("item.route_action_feedback", 0)),
@@ -277,3 +278,45 @@ func run() -> void:
 				true,
 				"S19 baseline should keep route marker sampled"
 			)
+		if baseline_id == "baseline.s20_phase_survey_feedback_ready":
+			host._expect_array_has(
+				loaded_world.quest_state.completed_quest_ids,
+				"quest.analyze_phase_survey_trace",
+				"S20 baseline should complete phase survey feedback"
+			)
+			host._expect_array_has(
+				loaded_world.quest_state.completed_quest_ids,
+				"quest.choose_phase_survey_action",
+				"S20 baseline should choose phase survey action"
+			)
+			host._expect_equal(
+				loaded_world.quest_state.active_quest_ids,
+				[],
+				"S20 baseline should not keep an active quest"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.phase_survey_feedback", 0)),
+				1,
+				"S20 baseline should keep phase survey feedback"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.resistance_vial_t1", 0)),
+				5,
+				"S20 baseline should keep survey feedback resistance vial"
+			)
+			var survey_console_state := loaded_world.get_map_object("map_object_instance.base_survey_choice_console")
+			host._expect_equal(
+				bool(survey_console_state.get("is_sampled", false)),
+				true,
+				"S20 baseline should keep survey choice confirmed"
+			)
+			for survey_node_id in [
+				"map_object_instance.phase_survey_node_west",
+				"map_object_instance.phase_survey_node_east"
+			]:
+				var survey_node_state := loaded_world.get_map_object(survey_node_id)
+				host._expect_equal(
+					bool(survey_node_state.get("is_sampled", false)),
+					true,
+					"S20 baseline should keep %s sampled" % survey_node_id
+				)

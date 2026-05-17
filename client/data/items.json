@@ -960,7 +960,59 @@
       "mass": 0.1,
       "rarity": "legendary",
       "source_refs": ["recipe.route_action_feedback"],
-      "used_by_refs": ["quest.analyze_route_signal_trace"],
+      "used_by_refs": ["quest.analyze_route_signal_trace", "quest.choose_steady_supply_action", "quest.choose_phase_survey_action"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.steady_supply_trace",
+      "display_name_key": "item.steady_supply_trace.name",
+      "description_key": "item.steady_supply_trace.desc",
+      "category": "resource",
+      "tags": ["ruin", "phase_well", "base_action_choice", "supply_trace", "slice_03"],
+      "stack_size": 3,
+      "mass": 0.2,
+      "rarity": "legendary",
+      "source_refs": ["quest.inspect_steady_supply_drop"],
+      "used_by_refs": ["quest.analyze_steady_supply_trace", "recipe.steady_supply_feedback"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.steady_supply_feedback",
+      "display_name_key": "item.steady_supply_feedback.name",
+      "description_key": "item.steady_supply_feedback.desc",
+      "category": "component",
+      "tags": ["ruin", "phase_well", "base_action_choice", "base_feedback", "slice_03"],
+      "stack_size": 3,
+      "mass": 0.1,
+      "rarity": "legendary",
+      "source_refs": ["recipe.steady_supply_feedback"],
+      "used_by_refs": ["quest.analyze_steady_supply_trace"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.phase_survey_trace",
+      "display_name_key": "item.phase_survey_trace.name",
+      "description_key": "item.phase_survey_trace.desc",
+      "category": "resource",
+      "tags": ["ruin", "phase_well", "base_action_choice", "survey_trace", "slice_03"],
+      "stack_size": 3,
+      "mass": 0.2,
+      "rarity": "legendary",
+      "source_refs": ["quest.inspect_phase_survey_nodes"],
+      "used_by_refs": ["quest.analyze_phase_survey_trace", "recipe.phase_survey_feedback"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.phase_survey_feedback",
+      "display_name_key": "item.phase_survey_feedback.name",
+      "description_key": "item.phase_survey_feedback.desc",
+      "category": "component",
+      "tags": ["ruin", "phase_well", "base_action_choice", "base_feedback", "slice_03"],
+      "stack_size": 3,
+      "mass": 0.1,
+      "rarity": "legendary",
+      "source_refs": ["recipe.phase_survey_feedback"],
+      "used_by_refs": ["quest.analyze_phase_survey_trace"],
       "public_level": "spoiler"
     }
   ]

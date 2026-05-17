@@ -27,7 +27,13 @@ const PHASE_RELAY_TETHER_PROGRESS_QUEST_IDS: Array[String] = [
 	"quest.analyze_supply_return_trace",
 	"quest.confirm_route_frontline_action",
 	"quest.inspect_route_signal_marker",
-	"quest.analyze_route_signal_trace"
+	"quest.analyze_route_signal_trace",
+	"quest.choose_steady_supply_action",
+	"quest.choose_phase_survey_action",
+	"quest.inspect_steady_supply_drop",
+	"quest.analyze_steady_supply_trace",
+	"quest.inspect_phase_survey_nodes",
+	"quest.analyze_phase_survey_trace"
 ]
 
 var event_rules: QuestEventRules
@@ -142,6 +148,12 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 		log_messages.append("旧进度已接入：前线行动回报后的补给短行动已补入当前目标。")
 	if _activate_missing_post_short_action_feedback_route_action(world_state):
 		log_messages.append("旧进度已接入：短行动反馈后的巡线短行动已补入当前目标。")
+	if _activate_missing_post_route_action_feedback_choice(world_state):
+		log_messages.append("旧进度已接入：巡线反馈后的基地行动选择已补入当前目标。")
+	if _activate_missing_post_supply_choice_followup(world_state):
+		log_messages.append("旧进度已接入：稳场补给选择后的前线目标已补入当前目标。")
+	if _activate_missing_post_survey_choice_followup(world_state):
+		log_messages.append("旧进度已接入：相位测绘选择后的前线目标已补入当前目标。")
 	if _activate_missing_post_phase_well_chamber_followup(world_state):
 		log_messages.append("旧进度已接入：井心室后的井纺后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_sink_followup(world_state):
@@ -812,6 +824,42 @@ func _activate_missing_post_short_action_feedback_route_action(world_state: Worl
 	if world_state.quest_state.has_active_quest("quest.confirm_route_frontline_action"):
 		return false
 	world_state.quest_state.activate_quest("quest.confirm_route_frontline_action")
+	return true
+
+
+func _activate_missing_post_route_action_feedback_choice(world_state: WorldState) -> bool:
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.analyze_route_signal_trace"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.analyze_steady_supply_trace"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.analyze_phase_survey_trace"):
+		return false
+	world_state.quest_state.activate_quest("quest.choose_steady_supply_action")
+	world_state.quest_state.activate_quest("quest.choose_phase_survey_action")
+	return true
+
+
+func _activate_missing_post_supply_choice_followup(world_state: WorldState) -> bool:
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.choose_steady_supply_action"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.analyze_steady_supply_trace"):
+		return false
+	world_state.quest_state.activate_quest("quest.inspect_steady_supply_drop")
+	return true
+
+
+func _activate_missing_post_survey_choice_followup(world_state: WorldState) -> bool:
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.choose_phase_survey_action"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.analyze_phase_survey_trace"):
+		return false
+	world_state.quest_state.activate_quest("quest.inspect_phase_survey_nodes")
 	return true
 
 

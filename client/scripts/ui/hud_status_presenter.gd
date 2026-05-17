@@ -69,6 +69,10 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 	"item.short_action_feedback",
 	"item.route_signal_trace",
 	"item.route_action_feedback",
+	"item.steady_supply_trace",
+	"item.steady_supply_feedback",
+	"item.phase_survey_trace",
+	"item.phase_survey_feedback",
 	"item.filter_media",
 	"item.foundation_material",
 	"fluid.basic_solvent",
@@ -173,8 +177,12 @@ func _format_vital_lines(
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if not quest_id.is_empty():
 		return _get_display_name(data_registry, quest_id)
+	if _has_completed_phase_survey_feedback(world_state):
+		return "相位测绘反馈已归档"
+	if _has_completed_steady_supply_feedback(world_state):
+		return "稳场补给反馈已归档"
 	if _has_completed_route_action_feedback(world_state):
-		return "巡线反馈已归档"
+		return "基地行动选择待确认"
 	if _has_completed_route_signal_marker(world_state):
 		return "巡线读数待解析"
 	if _has_completed_route_frontline_action(world_state):
@@ -270,8 +278,12 @@ func _format_quick_slots(data_registry: DataRegistry, character_state: Character
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_phase_survey_feedback(world_state):
+			return "相位测绘选择闭环已完成；本轮验证了基地选择、两处前线读数和返回提示收益"
+		if _has_completed_steady_supply_feedback(world_state):
+			return "稳场补给选择闭环已完成；本轮验证了基地选择、低风险前线目标和返回补给收益"
 		if _has_completed_route_action_feedback(world_state):
-			return "第三条基地确认、前线短目标、回基地反馈闭环已完成；后续轻量行动先靠自动检查推进，人工短复测降为风险触发"
+			return "巡线反馈已归档；回基地在行动选择台选择稳场补给或相位测绘"
 		if _has_completed_route_signal_marker(world_state):
 			return "巡线信标读数已带回；回基地基础反应器解析成巡线反馈记录"
 		if _has_completed_route_frontline_action(world_state):
@@ -488,6 +500,14 @@ func _has_completed_route_signal_marker(world_state: WorldState) -> bool:
 
 func _has_completed_route_action_feedback(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.analyze_route_signal_trace")
+
+
+func _has_completed_steady_supply_feedback(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.analyze_steady_supply_trace")
+
+
+func _has_completed_phase_survey_feedback(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.analyze_phase_survey_trace")
 
 
 func _has_completed_phase_well_frame(world_state: WorldState) -> bool:

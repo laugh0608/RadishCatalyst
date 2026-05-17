@@ -72,7 +72,7 @@ const INTERACTABLE_QUEST_GATES := {
 	"map_object.frontline_supply_console": "quest.confirm_supply_frontline_action",
 	"map_object.supply_return_marker": "quest.inspect_supply_return_marker",
 	"map_object.frontline_route_console": "quest.confirm_route_frontline_action",
-	"map_object.route_signal_marker": "quest.inspect_route_signal_marker"
+	"map_object.route_signal_marker": "quest.inspect_route_signal_marker", "map_object.base_supply_choice_console": "quest.choose_steady_supply_action", "map_object.base_survey_choice_console": "quest.choose_phase_survey_action", "map_object.steady_supply_drop_marker": "quest.inspect_steady_supply_drop", "map_object.phase_survey_node_west": "quest.inspect_phase_survey_nodes", "map_object.phase_survey_node_east": "quest.inspect_phase_survey_nodes"
 }
 @onready var player: PlayerController = $Player
 @onready var interactables_root: Node2D = $Interactables

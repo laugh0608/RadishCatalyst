@@ -181,11 +181,34 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	var repair_gel_before_route_feedback := int(character_state.inventory.items.get("item.repair_gel", 0))
 	var resistance_vial_before_route_feedback := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
 	host._complete_active_quest("quest.analyze_route_signal_trace", [{"type": "craft_item", "target_id": "item.route_action_feedback", "amount": 1}])
-	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after route action feedback should have no active quest")
+	host._expect_equal(
+		world_state.quest_state.active_quest_ids,
+		["quest.choose_steady_supply_action", "quest.choose_phase_survey_action"],
+		"after route action feedback should activate base action choices"
+	)
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.analyze_route_signal_trace", "route action feedback quest completed")
 	host._expect_equal(int(character_state.inventory.items.get("item.basic_parts", 0)), basic_parts_before_route_feedback + 2, "route action feedback grants base supply parts")
 	host._expect_equal(int(character_state.inventory.items.get("item.repair_gel", 0)), repair_gel_before_route_feedback + 1, "route action feedback grants repair gel")
 	host._expect_equal(int(character_state.inventory.items.get("item.resistance_vial_t1", 0)), resistance_vial_before_route_feedback + 1, "route action feedback grants resistance vial")
+	host._complete_active_quest("quest.choose_phase_survey_action", [{"type": "inspect", "target_id": "map_object.base_survey_choice_console", "amount": 1}])
+	host._expect_equal(world_state.quest_state.active_quest_ids, ["quest.inspect_phase_survey_nodes"], "phase survey choice should close supply choice and activate survey targets")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.choose_phase_survey_action", "phase survey choice quest completed")
+	host._complete_active_quest("quest.inspect_phase_survey_nodes", [
+		{"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1},
+		{"type": "inspect", "target_id": "map_object.phase_survey_node_west", "amount": 1},
+		{"type": "inspect", "target_id": "map_object.phase_survey_node_east", "amount": 1}
+	])
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_phase_survey_nodes", "phase survey nodes quest completed")
+	host._expect_equal(int(character_state.inventory.items.get("item.phase_survey_trace", 0)), 1, "phase survey nodes grant survey trace")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_survey_feedback", "phase survey nodes unlock feedback recipe")
+	host._expect_active_quest("quest.analyze_phase_survey_trace", "after survey nodes returns to base feedback analysis")
+	var basic_parts_before_survey_feedback := int(character_state.inventory.items.get("item.basic_parts", 0))
+	var resistance_vial_before_survey_feedback := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
+	host._complete_active_quest("quest.analyze_phase_survey_trace", [{"type": "craft_item", "target_id": "item.phase_survey_feedback", "amount": 1}])
+	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after survey feedback should have no active quest")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.analyze_phase_survey_trace", "phase survey feedback quest completed")
+	host._expect_equal(int(character_state.inventory.items.get("item.basic_parts", 0)), basic_parts_before_survey_feedback + 1, "phase survey feedback grants base parts")
+	host._expect_equal(int(character_state.inventory.items.get("item.resistance_vial_t1", 0)), resistance_vial_before_survey_feedback + 1, "phase survey feedback grants resistance vial")
 
 
 func run_hud_and_map_checks() -> void:
@@ -256,7 +279,11 @@ func _check_onboarding_hints() -> void:
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_supply_return_trace", "回到基地反馈", "supply trace analysis onboarding explains feedback loop")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.confirm_route_frontline_action", "第三条行动", "route action confirmation onboarding explains third action")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.inspect_route_signal_marker", "一处巡线信标", "route marker onboarding explains short target")
-	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_route_signal_trace", "回到基地归档", "route trace analysis onboarding explains feedback loop")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_route_signal_trace", "基地行动选择", "route trace analysis onboarding points to choice prototype")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.choose_steady_supply_action", "补给方案", "steady supply choice onboarding explains option")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.choose_phase_survey_action", "测绘方案", "phase survey choice onboarding explains option")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.inspect_steady_supply_drop", "风险更低", "steady supply field onboarding explains low-risk target")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.inspect_phase_survey_nodes", "两处读数点", "phase survey field onboarding explains two-point target")
 	var anchor_field_completion_world := WorldState.create_default()
 	anchor_field_completion_world.quest_state.active_quest_ids.clear()
 	anchor_field_completion_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
@@ -306,8 +333,8 @@ func _check_onboarding_hints() -> void:
 	route_feedback_world.quest_state.completed_quest_ids.append("quest.confirm_route_frontline_action")
 	route_feedback_world.quest_state.completed_quest_ids.append("quest.inspect_route_signal_marker")
 	route_feedback_world.quest_state.completed_quest_ids.append("quest.analyze_route_signal_trace")
-	host._expect_text_contains(presenter.format_direction_hint(route_feedback_world, hint_character, ""), "第三条", "route feedback completion direction summarizes third loop")
-	host._expect_text_contains(presenter.format_onboarding_hint(route_feedback_world, hint_character, ""), "人工短复测", "route feedback completion onboarding explains reduced manual retest")
+	host._expect_text_contains(presenter.format_direction_hint(route_feedback_world, hint_character, ""), "稳场补给", "route feedback completion direction points to base choice")
+	host._expect_text_contains(presenter.format_onboarding_hint(route_feedback_world, hint_character, ""), "真实取舍", "route feedback completion onboarding explains choice shift")
 	var anchor_field_deployed_world := WorldState.create_default()
 	anchor_field_deployed_world.quest_state.active_quest_ids = ["quest.stabilize_phase_well_anchor_field"]
 	anchor_field_deployed_world.ensure_map_object("map_object_instance.phase_well_anchor_field", "map_object.phase_well_anchor_field", "region.phase_well_tether")["anchor_field_deployed"] = true
@@ -410,8 +437,8 @@ func _check_status_panel_summary() -> void:
 	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.inspect_route_signal_marker")
 	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.analyze_route_signal_trace")
 	var route_feedback_text := presenter.format_status_text(host.data_registry, route_feedback_text_world, status_character)
-	host._expect_text_contains(route_feedback_text, "目标：巡线反馈已归档", "status falls back to route action feedback completion")
-	host._expect_text_contains(route_feedback_text, "第三条基地确认", "status progress keeps third loop explicit")
+	host._expect_text_contains(route_feedback_text, "目标：基地行动选择待确认", "status falls back to base action choice after route feedback")
+	host._expect_text_contains(route_feedback_text, "稳场补给或相位测绘", "status progress points to base action options")
 
 
 func _check_anchor_field_recovery() -> void:
@@ -600,6 +627,11 @@ func _check_stability_echo_report_progress() -> void:
 		route_feedback_world.quest_state.completed_quest_ids,
 		"quest.analyze_route_signal_trace",
 		"route action feedback completion completes quest"
+	)
+	host._expect_equal(
+		route_feedback_world.quest_state.active_quest_ids,
+		["quest.choose_steady_supply_action", "quest.choose_phase_survey_action"],
+		"route action feedback completion activates base action choices"
 	)
 	host._expect_equal(bool(route_feedback_result.get("accepted", false)), true, "route action feedback completion result accepted")
 

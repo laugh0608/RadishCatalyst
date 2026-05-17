@@ -1034,6 +1034,88 @@
       "prerequisites": ["quest.inspect_route_signal_marker"],
       "rewards": [{"id": "item.basic_parts", "amount": 2}, {"id": "item.repair_gel", "amount": 1}, {"id": "item.resistance_vial_t1", "amount": 1}],
       "unlock_effects": ["slice_01_complete"],
+      "next_quest_ids": ["quest.choose_steady_supply_action", "quest.choose_phase_survey_action"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.choose_steady_supply_action",
+      "display_name_key": "quest.choose_steady_supply_action.name",
+      "description_key": "quest.choose_steady_supply_action.desc",
+      "quest_type": "side",
+      "stage": 82,
+      "objectives": [{"type": "inspect", "target_id": "map_object.base_supply_choice_console", "amount": 1}],
+      "prerequisites": ["quest.analyze_route_signal_trace"],
+      "rewards": [],
+      "unlock_effects": [],
+      "next_quest_ids": ["quest.inspect_steady_supply_drop"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.choose_phase_survey_action",
+      "display_name_key": "quest.choose_phase_survey_action.name",
+      "description_key": "quest.choose_phase_survey_action.desc",
+      "quest_type": "main",
+      "stage": 82,
+      "objectives": [{"type": "inspect", "target_id": "map_object.base_survey_choice_console", "amount": 1}],
+      "prerequisites": ["quest.analyze_route_signal_trace"],
+      "rewards": [],
+      "unlock_effects": [],
+      "next_quest_ids": ["quest.inspect_phase_survey_nodes"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.inspect_steady_supply_drop",
+      "display_name_key": "quest.inspect_steady_supply_drop.name",
+      "description_key": "quest.inspect_steady_supply_drop.desc",
+      "quest_type": "side",
+      "stage": 83,
+      "objectives": [{"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1}, {"type": "inspect", "target_id": "map_object.steady_supply_drop_marker", "amount": 1}],
+      "prerequisites": ["quest.choose_steady_supply_action"],
+      "rewards": [{"id": "item.steady_supply_trace", "amount": 1}, {"id": "item.basic_parts", "amount": 3}],
+      "unlock_effects": ["recipe.steady_supply_feedback"],
+      "next_quest_ids": ["quest.analyze_steady_supply_trace"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.analyze_steady_supply_trace",
+      "display_name_key": "quest.analyze_steady_supply_trace.name",
+      "description_key": "quest.analyze_steady_supply_trace.desc",
+      "quest_type": "side",
+      "stage": 84,
+      "objectives": [{"type": "craft_item", "target_id": "item.steady_supply_feedback", "amount": 1}],
+      "prerequisites": ["quest.inspect_steady_supply_drop"],
+      "rewards": [{"id": "item.basic_parts", "amount": 3}, {"id": "item.repair_gel", "amount": 1}],
+      "unlock_effects": ["slice_01_complete"],
+      "next_quest_ids": [],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.inspect_phase_survey_nodes",
+      "display_name_key": "quest.inspect_phase_survey_nodes.name",
+      "description_key": "quest.inspect_phase_survey_nodes.desc",
+      "quest_type": "main",
+      "stage": 83,
+      "objectives": [
+        {"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1},
+        {"type": "inspect", "target_id": "map_object.phase_survey_node_west", "amount": 1},
+        {"type": "inspect", "target_id": "map_object.phase_survey_node_east", "amount": 1}
+      ],
+      "prerequisites": ["quest.choose_phase_survey_action"],
+      "rewards": [{"id": "item.phase_survey_trace", "amount": 1}, {"id": "item.basic_parts", "amount": 1}],
+      "unlock_effects": ["recipe.phase_survey_feedback"],
+      "next_quest_ids": ["quest.analyze_phase_survey_trace"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.analyze_phase_survey_trace",
+      "display_name_key": "quest.analyze_phase_survey_trace.name",
+      "description_key": "quest.analyze_phase_survey_trace.desc",
+      "quest_type": "main",
+      "stage": 84,
+      "objectives": [{"type": "craft_item", "target_id": "item.phase_survey_feedback", "amount": 1}],
+      "prerequisites": ["quest.inspect_phase_survey_nodes"],
+      "rewards": [{"id": "item.basic_parts", "amount": 1}, {"id": "item.resistance_vial_t1", "amount": 1}],
+      "unlock_effects": ["slice_01_complete"],
       "next_quest_ids": [],
       "public_level": "spoiler"
     }

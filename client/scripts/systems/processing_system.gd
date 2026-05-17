@@ -284,6 +284,10 @@ func get_recommended_recipe_id(
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.short_action_feedback", world_state)
 		"quest.analyze_route_signal_trace":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.route_action_feedback", world_state)
+		"quest.analyze_steady_supply_trace":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.steady_supply_feedback", world_state)
+		"quest.analyze_phase_survey_trace":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_survey_feedback", world_state)
 		_:
 			return ""
 
@@ -410,7 +414,11 @@ func _get_completion_next_step(recipe_id: String) -> String:
 		"recipe.short_action_feedback":
 			return "短行动反馈已归档；第二条基地确认、前线短目标、回基地反馈闭环已完成，下一步可在巡线短行动台确认第三趟。"
 		"recipe.route_action_feedback":
-			return "巡线反馈已归档；第三条基地确认、前线短目标、回基地反馈闭环已完成。"
+			return "巡线反馈已归档；回基地行动选择台，在稳场补给和相位测绘之间选择下一趟短行动。"
+		"recipe.steady_supply_feedback":
+			return "稳场补给反馈已归档；低风险补给选择已经跑通一轮基地选择、前线目标和返回收益。"
+		"recipe.phase_survey_feedback":
+			return "相位测绘反馈已归档；侦测选择已经跑通一轮基地选择、两处前线读数和返回收益。"
 		_:
 			return "查看当前任务目标，选择下一次加工或外出行动。"
 
