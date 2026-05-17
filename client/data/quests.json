@@ -995,6 +995,45 @@
       "prerequisites": ["quest.inspect_supply_return_marker"],
       "rewards": [{"id": "item.basic_parts", "amount": 2}, {"id": "item.repair_gel", "amount": 1}, {"id": "item.resistance_vial_t1", "amount": 1}],
       "unlock_effects": ["slice_01_complete"],
+      "next_quest_ids": ["quest.confirm_route_frontline_action"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.confirm_route_frontline_action",
+      "display_name_key": "quest.confirm_route_frontline_action.name",
+      "description_key": "quest.confirm_route_frontline_action.desc",
+      "quest_type": "main",
+      "stage": 79,
+      "objectives": [{"type": "inspect", "target_id": "map_object.frontline_route_console", "amount": 1}],
+      "prerequisites": ["quest.analyze_supply_return_trace"],
+      "rewards": [],
+      "unlock_effects": [],
+      "next_quest_ids": ["quest.inspect_route_signal_marker"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.inspect_route_signal_marker",
+      "display_name_key": "quest.inspect_route_signal_marker.name",
+      "description_key": "quest.inspect_route_signal_marker.desc",
+      "quest_type": "main",
+      "stage": 80,
+      "objectives": [{"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1}, {"type": "inspect", "target_id": "map_object.route_signal_marker", "amount": 1}],
+      "prerequisites": ["quest.confirm_route_frontline_action"],
+      "rewards": [{"id": "item.route_signal_trace", "amount": 1}, {"id": "item.basic_parts", "amount": 2}],
+      "unlock_effects": ["recipe.route_action_feedback"],
+      "next_quest_ids": ["quest.analyze_route_signal_trace"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.analyze_route_signal_trace",
+      "display_name_key": "quest.analyze_route_signal_trace.name",
+      "description_key": "quest.analyze_route_signal_trace.desc",
+      "quest_type": "main",
+      "stage": 81,
+      "objectives": [{"type": "craft_item", "target_id": "item.route_action_feedback", "amount": 1}],
+      "prerequisites": ["quest.inspect_route_signal_marker"],
+      "rewards": [{"id": "item.basic_parts", "amount": 2}, {"id": "item.repair_gel", "amount": 1}, {"id": "item.resistance_vial_t1", "amount": 1}],
+      "unlock_effects": ["slice_01_complete"],
       "next_quest_ids": [],
       "public_level": "spoiler"
     }

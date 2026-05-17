@@ -219,6 +219,13 @@ interaction_type = "inspect"
 label_offset = Vector2(-96, 22)
 label_size = Vector2(192, 24)
 
+[node name="FrontlineRouteConsole" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-92, 124)
+definition_id = "map_object.frontline_route_console"
+interaction_type = "inspect"
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
+
 [node name="CrystalCluster" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(30, -70)
 definition_id = "map_object.crystal_cluster"
@@ -817,6 +824,13 @@ label_size = Vector2(208, 24)
 [node name="SupplyReturnMarker" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(3358, -154)
 definition_id = "map_object.supply_return_marker"
+interaction_type = "inspect"
+label_offset = Vector2(-104, -52)
+label_size = Vector2(208, 24)
+
+[node name="RouteSignalMarker" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3500, -154)
+definition_id = "map_object.route_signal_marker"
 interaction_type = "inspect"
 label_offset = Vector2(-104, -52)
 label_size = Vector2(208, 24)

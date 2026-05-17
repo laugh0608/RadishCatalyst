@@ -81,7 +81,9 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.frontline_action_console": "map_object.frontline_action_console",
 	"map_object_instance.stability_echo_probe": "map_object.stability_echo_probe",
 	"map_object_instance.frontline_supply_console": "map_object.frontline_supply_console",
-	"map_object_instance.supply_return_marker": "map_object.supply_return_marker"
+	"map_object_instance.supply_return_marker": "map_object.supply_return_marker",
+	"map_object_instance.frontline_route_console": "map_object.frontline_route_console",
+	"map_object_instance.route_signal_marker": "map_object.route_signal_marker"
 }
 
 const PROTOTYPE_ENEMY_SOURCES := {

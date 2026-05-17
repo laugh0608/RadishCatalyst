@@ -24,8 +24,14 @@ func format_runtime_hint(world_state: WorldState, character_state: CharacterStat
 
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_route_action_feedback(world_state):
+			return "巡线反馈已归档：第三条基地确认、前线短目标、回基地反馈闭环已经跑通。"
+		if _has_completed_route_signal_marker(world_state):
+			return "巡线信标读数已带回：回基地使用基础反应器，把读数解析成巡线反馈记录。"
+		if _has_completed_route_frontline_action(world_state):
+			return "巡线短行动已确认：用相位回投返回井系桥前线，读取巡线信标。"
 		if _has_completed_short_action_feedback(world_state):
-			return "短行动反馈已归档：第二条基地确认、前线短目标、回基地反馈闭环已经跑通。"
+			return "短行动反馈已归档：回基地巡线短行动台确认第三条轻量行动。"
 		if _has_completed_supply_return_marker(world_state):
 			return "补给回执读数已带回：回基地使用基础反应器，把读数解析成短行动反馈记录。"
 		if _has_completed_supply_frontline_action(world_state):
@@ -269,14 +275,26 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "用相位回投返回井系桥前线，读取补给回执标记后回基地。"
 		"quest.analyze_supply_return_trace":
 			return "回基地使用基础反应器，把补给回执读数解析成短行动反馈记录。"
+		"quest.confirm_route_frontline_action":
+			return "回基地检查巡线短行动台，把短行动反馈记录接成第三趟短目标。"
+		"quest.inspect_route_signal_marker":
+			return "用相位回投返回井系桥前线，读取巡线信标后回基地。"
+		"quest.analyze_route_signal_trace":
+			return "回基地使用基础反应器，把巡线信标读数解析成巡线反馈记录。"
 		_:
 			return "按当前目标推进。"
 
 
 func format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_route_action_feedback(world_state):
+			return "连续三条轻量行动已经足够支撑后续自动化推进；日常不再要求每条都人工短复测，只在 P0 / P1 或阶段闸门触发。"
+		if _has_completed_route_signal_marker(world_state):
+			return "信标已经拿到，继续回基地归档，避免把第三趟行动停在背包完成态。"
+		if _has_completed_route_frontline_action(world_state):
+			return "第三条行动仍保持一个明确现场目标，重点验证连续行动可以靠自动检查兜底。"
 		if _has_completed_short_action_feedback(world_state):
-			return "第二条轻量行动已经证明这个模板能重复：基地确认、前线一个短目标、回基地反馈，不需要扩成大远征。"
+			return "第二条行动已经收住，现在接第三条行动；仍然只做基地确认、前线一个短目标、回基地反馈。"
 		if _has_completed_supply_return_marker(world_state):
 			return "回执已经拿到，继续回基地解析，避免把第二趟行动停在背包完成态。"
 		if _has_completed_supply_frontline_action(world_state):
@@ -504,6 +522,12 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "短目标只读取一处回执标记，重点是验证补给反馈能否让下一趟外出有明确落点。"
 		"quest.analyze_supply_return_trace":
 			return "这次解析负责证明第二条短行动也能回到基地反馈，形成可重复的核心循环。"
+		"quest.confirm_route_frontline_action":
+			return "第三条行动从短行动反馈接出；这里仍然只确认一次，不引入完整远征选择系统。"
+		"quest.inspect_route_signal_marker":
+			return "短目标只读取一处巡线信标，重点是验证连续行动可以由自动检查覆盖，不要求每条都人工短复测。"
+		"quest.analyze_route_signal_trace":
+			return "这次解析负责把第三条短行动回到基地归档，形成可继续扩展的核心循环。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 
@@ -580,6 +604,18 @@ func _has_completed_supply_return_marker(world_state: WorldState) -> bool:
 
 func _has_completed_short_action_feedback(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.analyze_supply_return_trace")
+
+
+func _has_completed_route_frontline_action(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.confirm_route_frontline_action")
+
+
+func _has_completed_route_signal_marker(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.inspect_route_signal_marker")
+
+
+func _has_completed_route_action_feedback(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.analyze_route_signal_trace")
 
 
 func _has_completed_phase_well_frame(world_state: WorldState) -> bool:

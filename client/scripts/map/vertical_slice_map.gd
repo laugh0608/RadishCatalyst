@@ -70,7 +70,9 @@ const INTERACTABLE_QUEST_GATES := {
 	"map_object.frontline_action_console": "quest.plan_stability_frontline_action",
 	"map_object.stability_echo_probe": "quest.survey_stability_echo_probe",
 	"map_object.frontline_supply_console": "quest.confirm_supply_frontline_action",
-	"map_object.supply_return_marker": "quest.inspect_supply_return_marker"
+	"map_object.supply_return_marker": "quest.inspect_supply_return_marker",
+	"map_object.frontline_route_console": "quest.confirm_route_frontline_action",
+	"map_object.route_signal_marker": "quest.inspect_route_signal_marker"
 }
 @onready var player: PlayerController = $Player
 @onready var interactables_root: Node2D = $Interactables
@@ -1428,7 +1430,6 @@ func _has_phase_well_frame_route_cleared(world_state: WorldState) -> bool:
 		if bool(world_state.get_map_object(route_instance_id).get("is_cleared", false)):
 			return true
 	return false
-
 func _has_phase_well_field_readings(
 	world_state: WorldState,
 	quest_id: String,

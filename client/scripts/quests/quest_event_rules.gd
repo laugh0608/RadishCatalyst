@@ -170,6 +170,13 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 			_set_update("quest.inspect_supply_return_marker", "visit_region", "region.phase_well_tether", 1),
 			_set_update("quest.inspect_supply_return_marker", "inspect", "map_object.supply_return_marker", 1)
 		]
+	if interaction_type == "inspect" and definition_id == "map_object.frontline_route_console":
+		return [_set_update("quest.confirm_route_frontline_action", "inspect", "map_object.frontline_route_console", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.route_signal_marker":
+		return [
+			_set_update("quest.inspect_route_signal_marker", "visit_region", "region.phase_well_tether", 1),
+			_set_update("quest.inspect_route_signal_marker", "inspect", "map_object.route_signal_marker", 1)
+		]
 	if interaction_type == "process_recipe":
 		if not completed_recipe_id.is_empty():
 			return get_recipe_objective_updates(completed_recipe_id)
@@ -322,6 +329,8 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 			return [_set_update("quest.analyze_stability_echo_sample", "craft_item", "item.frontline_action_report", 1)]
 		"recipe.short_action_feedback":
 			return [_set_update("quest.analyze_supply_return_trace", "craft_item", "item.short_action_feedback", 1)]
+		"recipe.route_action_feedback":
+			return [_set_update("quest.analyze_route_signal_trace", "craft_item", "item.route_action_feedback", 1)]
 		_:
 			return []
 

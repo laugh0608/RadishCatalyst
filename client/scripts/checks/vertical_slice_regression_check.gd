@@ -127,7 +127,8 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		"recipe.phase_well_anchor_stake",
 		"recipe.phase_well_echo_shard_analysis",
 		"recipe.stability_echo_report",
-		"recipe.short_action_feedback"
+		"recipe.short_action_feedback",
+		"recipe.route_action_feedback"
 	])
 	recipe_character.inventory.items["item.basic_parts"] = 1
 	recipe_character.inventory.add_item("item.signal_echo_trace", 1)
@@ -496,6 +497,13 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		"recipe.short_action_feedback",
 		"short action feedback analysis selects reactor recipe"
 	)
+	recipe_character.inventory.add_item("item.route_signal_trace", 1)
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_route_signal_trace"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.route_action_feedback",
+		"route action feedback analysis selects reactor recipe"
+	)
 	deep_reactor.free()
 	filter.free()
 
@@ -572,7 +580,7 @@ func _check_hud_log_presenter() -> void:
 
 func _check_development_baseline_presenter() -> void:
 	var definitions := DevelopmentBaselineCatalog.get_baseline_definitions()
-	host._expect_equal(definitions.size(), 19, "development baseline catalog count")
+	host._expect_equal(definitions.size(), 20, "development baseline catalog count")
 	host._expect_equal(
 		String(definitions[0].get("id", "")),
 		"baseline.s0_new_game",
@@ -584,9 +592,9 @@ func _check_development_baseline_presenter() -> void:
 	host._expect_text_contains(selected_text, "相位纤丝", "development baseline presenter shows baseline summary")
 	host._expect_text_contains(selected_text, "过滤器精炼", "development baseline presenter shows recommended use")
 	host._expect_equal(
-		String(definitions[18].get("id", "")),
-		"baseline.s18_short_action_feedback_ready",
-		"development baseline catalog ends at S18"
+		String(definitions[19].get("id", "")),
+		"baseline.s19_route_action_feedback_ready",
+		"development baseline catalog ends at S19"
 	)
 
 

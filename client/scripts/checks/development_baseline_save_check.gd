@@ -85,7 +85,8 @@ func run() -> void:
 			"baseline.s15_phase_well_stability_readout_ready",
 			"baseline.s16_phase_well_stability_window_calibrated",
 			"baseline.s17_frontline_action_report_ready",
-			"baseline.s18_short_action_feedback_ready"
+			"baseline.s18_short_action_feedback_ready",
+			"baseline.s19_route_action_feedback_ready"
 		]:
 			host._expect_equal(
 				loaded_world.active_phase_relay_anchor_id,
@@ -208,8 +209,8 @@ func run() -> void:
 			)
 			host._expect_equal(
 				loaded_world.quest_state.active_quest_ids,
-				[],
-				"S18 baseline should not keep an active quest"
+				["quest.confirm_route_frontline_action"],
+				"S18 baseline should activate route frontline action"
 			)
 			host._expect_equal(
 				int(loaded_character.inventory.items.get("item.short_action_feedback", 0)),
@@ -237,4 +238,42 @@ func run() -> void:
 				bool(supply_marker_state.get("is_sampled", false)),
 				true,
 				"S18 baseline should keep supply marker sampled"
+			)
+		if baseline_id == "baseline.s19_route_action_feedback_ready":
+			host._expect_array_has(
+				loaded_world.quest_state.completed_quest_ids,
+				"quest.analyze_route_signal_trace",
+				"S19 baseline should complete route action feedback"
+			)
+			host._expect_equal(
+				loaded_world.quest_state.active_quest_ids,
+				[],
+				"S19 baseline should not keep an active quest"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.route_action_feedback", 0)),
+				1,
+				"S19 baseline should keep route action feedback"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.repair_gel", 0)),
+				4,
+				"S19 baseline should keep third feedback repair gel"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.resistance_vial_t1", 0)),
+				4,
+				"S19 baseline should keep third feedback resistance vial"
+			)
+			var route_console_state := loaded_world.get_map_object("map_object_instance.frontline_route_console")
+			host._expect_equal(
+				bool(route_console_state.get("is_sampled", false)),
+				true,
+				"S19 baseline should keep route console confirmed"
+			)
+			var route_marker_state := loaded_world.get_map_object("map_object_instance.route_signal_marker")
+			host._expect_equal(
+				bool(route_marker_state.get("is_sampled", false)),
+				true,
+				"S19 baseline should keep route marker sampled"
 			)

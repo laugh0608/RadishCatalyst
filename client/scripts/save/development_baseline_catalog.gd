@@ -150,8 +150,16 @@ const BASELINE_DEFINITIONS := [
 		"code": "S18",
 		"display_name": "S18 短行动反馈已归档",
 		"completed_through": "quest.analyze_supply_return_trace",
-		"summary": "短行动补给台、井系桥补给回执标记、回执解析和第二次基地反馈已跑通。",
-		"recommended_for": "第二条轻量前线行动、补给回执、返回解析和核心循环可延展性回归。"
+		"summary": "短行动补给台、井系桥补给回执标记、回执解析和第二次基地反馈已跑通，下一步确认巡线短行动。",
+		"recommended_for": "第二条轻量前线行动完成态、巡线行动入口和核心循环可延展性回归。"
+	},
+	{
+		"id": "baseline.s19_route_action_feedback_ready",
+		"code": "S19",
+		"display_name": "S19 巡线反馈已归档",
+		"completed_through": "quest.analyze_route_signal_trace",
+		"summary": "巡线短行动台、井系桥巡线信标、信标解析和第三次基地反馈已跑通。",
+		"recommended_for": "第三条轻量前线行动、巡线信标、返回解析和降低人工短复测后的自动回归。"
 	}
 ]
 

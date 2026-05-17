@@ -67,6 +67,8 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 	"item.frontline_action_report",
 	"item.supply_return_trace",
 	"item.short_action_feedback",
+	"item.route_signal_trace",
+	"item.route_action_feedback",
 	"item.filter_media",
 	"item.foundation_material",
 	"fluid.basic_solvent",
@@ -171,8 +173,14 @@ func _format_vital_lines(
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if not quest_id.is_empty():
 		return _get_display_name(data_registry, quest_id)
+	if _has_completed_route_action_feedback(world_state):
+		return "巡线反馈已归档"
+	if _has_completed_route_signal_marker(world_state):
+		return "巡线读数待解析"
+	if _has_completed_route_frontline_action(world_state):
+		return "巡线信标待读取"
 	if _has_completed_short_action_feedback(world_state):
-		return "短行动反馈已归档"
+		return "巡线短行动待确认"
 	if _has_completed_supply_return_marker(world_state):
 		return "补给回执待解析"
 	if _has_completed_supply_frontline_action(world_state):
@@ -262,8 +270,14 @@ func _format_quick_slots(data_registry: DataRegistry, character_state: Character
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_route_action_feedback(world_state):
+			return "第三条基地确认、前线短目标、回基地反馈闭环已完成；后续轻量行动先靠自动检查推进，人工短复测降为风险触发"
+		if _has_completed_route_signal_marker(world_state):
+			return "巡线信标读数已带回；回基地基础反应器解析成巡线反馈记录"
+		if _has_completed_route_frontline_action(world_state):
+			return "巡线短行动已确认；回到井系桥前线读取巡线信标"
 		if _has_completed_short_action_feedback(world_state):
-			return "第二条基地确认、前线短目标、回基地反馈闭环已完成；短行动补给收益已经验证可继续接出行动"
+			return "短行动反馈已归档，下一趟巡线目标已整理；回基地巡线短行动台确认第三条轻量行动"
 		if _has_completed_supply_return_marker(world_state):
 			return "补给回执读数已带回；回基地基础反应器解析成短行动反馈记录"
 		if _has_completed_supply_frontline_action(world_state):
@@ -462,6 +476,18 @@ func _has_completed_supply_return_marker(world_state: WorldState) -> bool:
 
 func _has_completed_short_action_feedback(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.analyze_supply_return_trace")
+
+
+func _has_completed_route_frontline_action(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.confirm_route_frontline_action")
+
+
+func _has_completed_route_signal_marker(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.inspect_route_signal_marker")
+
+
+func _has_completed_route_action_feedback(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.analyze_route_signal_trace")
 
 
 func _has_completed_phase_well_frame(world_state: WorldState) -> bool:

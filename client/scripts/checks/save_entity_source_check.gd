@@ -88,6 +88,16 @@ func _check_loads_known_map_object_source() -> void:
 			"definition_id": "map_object.supply_return_marker",
 			"region_id": "region.phase_well_tether",
 			"is_sampled": true
+		},
+		"map_object_instance.frontline_route_console": {
+			"definition_id": "map_object.frontline_route_console",
+			"region_id": "region.outpost_platform",
+			"is_sampled": true
+		},
+		"map_object_instance.route_signal_marker": {
+			"definition_id": "map_object.route_signal_marker",
+			"region_id": "region.phase_well_tether",
+			"is_sampled": true
 		}
 	}
 	host._write_save_json(save_data)

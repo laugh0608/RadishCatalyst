@@ -161,12 +161,31 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	var repair_gel_before_short_feedback := int(character_state.inventory.items.get("item.repair_gel", 0))
 	var resistance_vial_before_short_feedback := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
 	host._complete_active_quest("quest.analyze_supply_return_trace", [{"type": "craft_item", "target_id": "item.short_action_feedback", "amount": 1}])
-	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after short action feedback should have no active quest")
+	host._expect_active_quest("quest.confirm_route_frontline_action", "after short action feedback returns to route action confirmation")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.analyze_supply_return_trace", "short action feedback quest completed")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "short action feedback keeps slice completion unlock present")
 	host._expect_equal(int(character_state.inventory.items.get("item.basic_parts", 0)), basic_parts_before_short_feedback + 2, "short action feedback grants base supply parts")
 	host._expect_equal(int(character_state.inventory.items.get("item.repair_gel", 0)), repair_gel_before_short_feedback + 1, "short action feedback grants repair gel")
 	host._expect_equal(int(character_state.inventory.items.get("item.resistance_vial_t1", 0)), resistance_vial_before_short_feedback + 1, "short action feedback grants resistance vial")
+	host._complete_active_quest("quest.confirm_route_frontline_action", [{"type": "inspect", "target_id": "map_object.frontline_route_console", "amount": 1}])
+	host._expect_active_quest("quest.inspect_route_signal_marker", "after route action confirmation returns to route signal marker")
+	host._complete_active_quest("quest.inspect_route_signal_marker", [
+		{"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1},
+		{"type": "inspect", "target_id": "map_object.route_signal_marker", "amount": 1}
+	])
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_route_signal_marker", "route signal marker quest completed")
+	host._expect_equal(int(character_state.inventory.items.get("item.route_signal_trace", 0)), 1, "route signal marker grants trace")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.route_action_feedback", "route signal marker unlocks route action feedback recipe")
+	host._expect_active_quest("quest.analyze_route_signal_trace", "after route marker returns to base feedback analysis")
+	var basic_parts_before_route_feedback := int(character_state.inventory.items.get("item.basic_parts", 0))
+	var repair_gel_before_route_feedback := int(character_state.inventory.items.get("item.repair_gel", 0))
+	var resistance_vial_before_route_feedback := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
+	host._complete_active_quest("quest.analyze_route_signal_trace", [{"type": "craft_item", "target_id": "item.route_action_feedback", "amount": 1}])
+	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after route action feedback should have no active quest")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.analyze_route_signal_trace", "route action feedback quest completed")
+	host._expect_equal(int(character_state.inventory.items.get("item.basic_parts", 0)), basic_parts_before_route_feedback + 2, "route action feedback grants base supply parts")
+	host._expect_equal(int(character_state.inventory.items.get("item.repair_gel", 0)), repair_gel_before_route_feedback + 1, "route action feedback grants repair gel")
+	host._expect_equal(int(character_state.inventory.items.get("item.resistance_vial_t1", 0)), resistance_vial_before_route_feedback + 1, "route action feedback grants resistance vial")
 
 
 func run_hud_and_map_checks() -> void:
@@ -235,6 +254,9 @@ func _check_onboarding_hints() -> void:
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.confirm_supply_frontline_action", "第二条行动", "supply action confirmation onboarding explains second action")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.inspect_supply_return_marker", "一处回执标记", "supply marker onboarding explains short target")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_supply_return_trace", "回到基地反馈", "supply trace analysis onboarding explains feedback loop")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.confirm_route_frontline_action", "第三条行动", "route action confirmation onboarding explains third action")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.inspect_route_signal_marker", "一处巡线信标", "route marker onboarding explains short target")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_route_signal_trace", "回到基地归档", "route trace analysis onboarding explains feedback loop")
 	var anchor_field_completion_world := WorldState.create_default()
 	anchor_field_completion_world.quest_state.active_quest_ids.clear()
 	anchor_field_completion_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
@@ -270,8 +292,22 @@ func _check_onboarding_hints() -> void:
 	short_feedback_world.quest_state.completed_quest_ids.append("quest.confirm_supply_frontline_action")
 	short_feedback_world.quest_state.completed_quest_ids.append("quest.inspect_supply_return_marker")
 	short_feedback_world.quest_state.completed_quest_ids.append("quest.analyze_supply_return_trace")
-	host._expect_text_contains(presenter.format_direction_hint(short_feedback_world, hint_character, ""), "第二条", "short feedback completion direction summarizes second loop")
-	host._expect_text_contains(presenter.format_onboarding_hint(short_feedback_world, hint_character, ""), "基地确认、前线一个短目标、回基地反馈", "short feedback completion onboarding keeps template explicit")
+	host._expect_text_contains(presenter.format_direction_hint(short_feedback_world, hint_character, ""), "巡线短行动台", "short feedback completion direction points to route action")
+	host._expect_text_contains(presenter.format_onboarding_hint(short_feedback_world, hint_character, ""), "第三条行动", "short feedback completion onboarding explains route action")
+	var route_feedback_world := WorldState.create_default()
+	route_feedback_world.quest_state.active_quest_ids.clear()
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.plan_stability_frontline_action")
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.survey_stability_echo_probe")
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.analyze_stability_echo_sample")
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.confirm_supply_frontline_action")
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.inspect_supply_return_marker")
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.analyze_supply_return_trace")
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.confirm_route_frontline_action")
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.inspect_route_signal_marker")
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.analyze_route_signal_trace")
+	host._expect_text_contains(presenter.format_direction_hint(route_feedback_world, hint_character, ""), "第三条", "route feedback completion direction summarizes third loop")
+	host._expect_text_contains(presenter.format_onboarding_hint(route_feedback_world, hint_character, ""), "人工短复测", "route feedback completion onboarding explains reduced manual retest")
 	var anchor_field_deployed_world := WorldState.create_default()
 	anchor_field_deployed_world.quest_state.active_quest_ids = ["quest.stabilize_phase_well_anchor_field"]
 	anchor_field_deployed_world.ensure_map_object("map_object_instance.phase_well_anchor_field", "map_object.phase_well_anchor_field", "region.phase_well_tether")["anchor_field_deployed"] = true
@@ -357,8 +393,25 @@ func _check_status_panel_summary() -> void:
 	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.inspect_supply_return_marker")
 	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.analyze_supply_return_trace")
 	var short_feedback_text := presenter.format_status_text(host.data_registry, short_feedback_text_world, status_character)
-	host._expect_text_contains(short_feedback_text, "目标：短行动反馈已归档", "status falls back to short action feedback completion")
-	host._expect_text_contains(short_feedback_text, "第二条基地确认", "status progress keeps second loop explicit")
+	host._expect_text_contains(short_feedback_text, "目标：巡线短行动待确认", "status falls back to route action after short feedback")
+	host._expect_text_contains(short_feedback_text, "巡线短行动台", "status progress points to route action console")
+	var route_feedback_text_world := WorldState.create_default()
+	route_feedback_text_world.quest_state.active_quest_ids.clear()
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.plan_stability_frontline_action")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.survey_stability_echo_probe")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.analyze_stability_echo_sample")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.confirm_supply_frontline_action")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.inspect_supply_return_marker")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.analyze_supply_return_trace")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.confirm_route_frontline_action")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.inspect_route_signal_marker")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.analyze_route_signal_trace")
+	var route_feedback_text := presenter.format_status_text(host.data_registry, route_feedback_text_world, status_character)
+	host._expect_text_contains(route_feedback_text, "目标：巡线反馈已归档", "status falls back to route action feedback completion")
+	host._expect_text_contains(route_feedback_text, "第三条基地确认", "status progress keeps third loop explicit")
 
 
 func _check_anchor_field_recovery() -> void:
@@ -515,7 +568,40 @@ func _check_stability_echo_report_progress() -> void:
 		"quest.analyze_supply_return_trace",
 		"short action feedback completion completes quest"
 	)
+	host._expect_array_has(
+		feedback_world.quest_state.active_quest_ids,
+		"quest.confirm_route_frontline_action",
+		"short action feedback completion activates route action"
+	)
 	host._expect_equal(bool(feedback_result.get("accepted", false)), true, "short action feedback completion result accepted")
+	var route_feedback_world := WorldState.create_default()
+	var route_feedback_character := CharacterState.create_default()
+	route_feedback_world.quest_state.active_quest_ids = ["quest.analyze_route_signal_trace"]
+	var route_feedback_result := runtime.advance_for_interaction(
+		route_feedback_world,
+		route_feedback_character,
+		{
+			"definition_id": "building.basic_reactor",
+			"interaction_type": "process_recipe",
+			"recipe_id": "recipe.process_crystal_ore"
+		},
+		{"success": true, "completed_recipe_id": "recipe.route_action_feedback"}
+	)
+	host._expect_equal(
+		route_feedback_world.quest_state.get_objective_progress(
+			"quest.analyze_route_signal_trace",
+			"craft_item",
+			"item.route_action_feedback"
+		),
+		1.0,
+		"route action feedback completion advances feedback objective"
+	)
+	host._expect_array_has(
+		route_feedback_world.quest_state.completed_quest_ids,
+		"quest.analyze_route_signal_trace",
+		"route action feedback completion completes quest"
+	)
+	host._expect_equal(bool(route_feedback_result.get("accepted", false)), true, "route action feedback completion result accepted")
 
 
 func _check_stability_window_calibration_runtime() -> void:

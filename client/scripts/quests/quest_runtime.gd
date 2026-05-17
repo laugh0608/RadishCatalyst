@@ -24,7 +24,10 @@ const PHASE_RELAY_TETHER_PROGRESS_QUEST_IDS: Array[String] = [
 	"quest.analyze_stability_echo_sample",
 	"quest.confirm_supply_frontline_action",
 	"quest.inspect_supply_return_marker",
-	"quest.analyze_supply_return_trace"
+	"quest.analyze_supply_return_trace",
+	"quest.confirm_route_frontline_action",
+	"quest.inspect_route_signal_marker",
+	"quest.analyze_route_signal_trace"
 ]
 
 var event_rules: QuestEventRules
@@ -137,6 +140,8 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 		log_messages.append("旧进度已接入：稳窗校准后的前线行动任务已补入当前目标。")
 	if _activate_missing_post_stability_echo_report_supply_action(world_state):
 		log_messages.append("旧进度已接入：前线行动回报后的补给短行动已补入当前目标。")
+	if _activate_missing_post_short_action_feedback_route_action(world_state):
+		log_messages.append("旧进度已接入：短行动反馈后的巡线短行动已补入当前目标。")
 	if _activate_missing_post_phase_well_chamber_followup(world_state):
 		log_messages.append("旧进度已接入：井心室后的井纺后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_sink_followup(world_state):
@@ -467,6 +472,10 @@ func _get_late_craft_progress_recovery_updates(world_state: WorldState, characte
 		{
 			"quest_id": "quest.analyze_supply_return_trace",
 			"item_id": "item.short_action_feedback"
+		},
+		{
+			"quest_id": "quest.analyze_route_signal_trace",
+			"item_id": "item.route_action_feedback"
 		}
 	]:
 		var quest_id := String(recovery.get("quest_id", ""))
@@ -790,6 +799,19 @@ func _activate_missing_post_stability_echo_report_supply_action(world_state: Wor
 	if world_state.quest_state.has_active_quest("quest.confirm_supply_frontline_action"):
 		return false
 	world_state.quest_state.activate_quest("quest.confirm_supply_frontline_action")
+	return true
+
+
+func _activate_missing_post_short_action_feedback_route_action(world_state: WorldState) -> bool:
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.analyze_supply_return_trace"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.analyze_route_signal_trace"):
+		return false
+	if world_state.quest_state.has_active_quest("quest.confirm_route_frontline_action"):
+		return false
+	world_state.quest_state.activate_quest("quest.confirm_route_frontline_action")
 	return true
 
 

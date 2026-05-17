@@ -934,7 +934,33 @@
       "mass": 0.1,
       "rarity": "legendary",
       "source_refs": ["recipe.short_action_feedback"],
-      "used_by_refs": ["quest.analyze_supply_return_trace"],
+      "used_by_refs": ["quest.analyze_supply_return_trace", "quest.confirm_route_frontline_action"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.route_signal_trace",
+      "display_name_key": "item.route_signal_trace.name",
+      "description_key": "item.route_signal_trace.desc",
+      "category": "resource",
+      "tags": ["ruin", "phase_well", "frontline_action", "route_trace", "slice_03"],
+      "stack_size": 3,
+      "mass": 0.2,
+      "rarity": "legendary",
+      "source_refs": ["quest.inspect_route_signal_marker"],
+      "used_by_refs": ["quest.analyze_route_signal_trace", "recipe.route_action_feedback"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.route_action_feedback",
+      "display_name_key": "item.route_action_feedback.name",
+      "description_key": "item.route_action_feedback.desc",
+      "category": "component",
+      "tags": ["ruin", "phase_well", "frontline_action", "base_feedback", "slice_03"],
+      "stack_size": 3,
+      "mass": 0.1,
+      "rarity": "legendary",
+      "source_refs": ["recipe.route_action_feedback"],
+      "used_by_refs": ["quest.analyze_route_signal_trace"],
       "public_level": "spoiler"
     }
   ]

@@ -186,7 +186,13 @@ func _format_completion_note(quest_id: String) -> String:
 		"quest.inspect_supply_return_marker":
 			return "补给回执读数已带回；回基地用基础反应器解析短行动反馈"
 		"quest.analyze_supply_return_trace":
-			return "短行动反馈已归档；第二条轻量前线行动闭环已经收束"
+			return "短行动反馈已归档；基地已把反馈整理成下一趟巡线短行动"
+		"quest.confirm_route_frontline_action":
+			return "巡线短行动已确认；从相位回投台返回井系桥前线，读取巡线信标"
+		"quest.inspect_route_signal_marker":
+			return "巡线信标读数已带回；回基地用基础反应器解析巡线反馈"
+		"quest.analyze_route_signal_trace":
+			return "巡线反馈已归档；第三条轻量前线行动闭环已经收束"
 		_:
 			return ""
 

@@ -282,6 +282,8 @@ func get_recommended_recipe_id(
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.stability_echo_report", world_state)
 		"quest.analyze_supply_return_trace":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.short_action_feedback", world_state)
+		"quest.analyze_route_signal_trace":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.route_action_feedback", world_state)
 		_:
 			return ""
 
@@ -406,7 +408,9 @@ func _get_completion_next_step(recipe_id: String) -> String:
 		"recipe.stability_echo_report":
 			return "前线行动回报已归档；这条基地确认、前线读取、回基地解析的短行动闭环已完成，下一步可在短行动补给台确认第二趟。"
 		"recipe.short_action_feedback":
-			return "短行动反馈已归档；第二条基地确认、前线短目标、回基地反馈闭环已完成。"
+			return "短行动反馈已归档；第二条基地确认、前线短目标、回基地反馈闭环已完成，下一步可在巡线短行动台确认第三趟。"
+		"recipe.route_action_feedback":
+			return "巡线反馈已归档；第三条基地确认、前线短目标、回基地反馈闭环已完成。"
 		_:
 			return "查看当前任务目标，选择下一次加工或外出行动。"
 
