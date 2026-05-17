@@ -41,15 +41,20 @@ func save_game_for_slot(slot_id: String, world_state: WorldState, character_stat
 	if not bool(dir_result.get("success", false)):
 		return dir_result
 
-	var now := Time.get_datetime_string_from_system(true, true)
+	var now := Time.get_datetime_string_from_system(false, true)
+	var now_unix := int(floor(Time.get_unix_time_from_system()))
 	var save_data := {
 		"save_schema_version": SAVE_SCHEMA_VERSION,
 		"game_version": GAME_VERSION,
 		"created_at": _read_existing_created_at(now, save_file),
 		"updated_at": now,
+		"updated_at_unix": now_unix,
 		"world": world_state.to_dict(),
 		"character": character_state.to_dict()
 	}
+	var validation_result := _validate_save_data_for_write(save_data)
+	if not bool(validation_result.get("success", false)):
+		return validation_result
 
 	var backup_result := _backup_existing_save(paths)
 	if not bool(backup_result.get("success", false)):
@@ -88,11 +93,12 @@ func load_game_for_slot(slot_id: String) -> Dictionary:
 			var message := "已读取原型存档。"
 			if index > 0:
 				message = "主存档不可用，已从最近备份 %d 恢复原型存档。" % index
+			var loaded_states := _build_loaded_states(save_data)
 			return {
 				"success": true,
 				"message": message,
-				"world_state": WorldState.from_dict(save_data.get("world", {})),
-				"character_state": CharacterState.from_dict(save_data.get("character", {})),
+				"world_state": loaded_states.get("world_state", WorldState.create_default()),
+				"character_state": loaded_states.get("character_state", CharacterState.create_default()),
 				"slot_id": String(paths.get("slot_id", DEFAULT_SLOT_ID)),
 				"recovered_from_backup": index > 0,
 				"source_file": save_file
@@ -214,11 +220,12 @@ func _load_legacy_save_into_slot(paths: Dictionary) -> Dictionary:
 			var message := "已从旧原型存档迁移到默认槽位。"
 			if index > 0:
 				message = "已从旧原型备份 %d 迁移到默认槽位。" % index
+			var loaded_states := _build_loaded_states(save_data)
 			return {
 				"success": true,
 				"message": message,
-				"world_state": WorldState.from_dict(save_data.get("world", {})),
-				"character_state": CharacterState.from_dict(save_data.get("character", {})),
+				"world_state": loaded_states.get("world_state", WorldState.create_default()),
+				"character_state": loaded_states.get("character_state", CharacterState.create_default()),
 				"slot_id": String(paths.get("slot_id", DEFAULT_SLOT_ID)),
 				"migrated_from_legacy": true,
 				"source_file": legacy_file
@@ -312,6 +319,20 @@ func _read_save_file(save_file: String) -> Dictionary:
 	}
 
 
+func _build_loaded_states(save_data: Dictionary) -> Dictionary:
+	var world_state := WorldState.from_dict(save_data.get("world", {}))
+	var character_state := CharacterState.from_dict(save_data.get("character", {}))
+	CharacterProgressionStats.sync_character_state(
+		character_state,
+		world_state.quest_state,
+		"preserve_ratio"
+	)
+	return {
+		"world_state": world_state,
+		"character_state": character_state
+	}
+
+
 func _format_slot_summary(
 	slot_id: String,
 	save_data: Dictionary,
@@ -339,9 +360,9 @@ func _format_slot_summary(
 
 func _format_slot_details(save_data: Dictionary) -> String:
 	var parts: Array[String] = []
-	var updated_at := String(save_data.get("updated_at", ""))
+	var updated_at := _get_saved_at_display_text(save_data)
 	if updated_at.is_empty():
-		updated_at = String(save_data.get("created_at", "未知时间"))
+		updated_at = "未知时间"
 	parts.append("最近保存：%s" % updated_at)
 
 	var world_data = save_data.get("world", {})
@@ -353,12 +374,84 @@ func _format_slot_details(save_data: Dictionary) -> String:
 		var quest_state = world_data.get("quest_state", {})
 		if quest_state is Dictionary:
 			var active_quest_ids = quest_state.get("active_quest_ids", [])
+			var completed_quest_ids := _get_string_array(quest_state.get("completed_quest_ids", []))
+			var unlocked_effects := _get_string_array(quest_state.get("unlocked_effects", []))
 			if active_quest_ids is Array and not active_quest_ids.is_empty():
 				parts.append("目标：%s" % _get_display_name(String(active_quest_ids[0])))
-			elif _get_string_array(quest_state.get("unlocked_effects", [])).has("slice_01_complete"):
-				parts.append("目标：第一切片已完成")
+			elif completed_quest_ids.has("quest.stabilize_phase_well_anchor_field"):
+				parts.append("目标：相位井余响片已带回")
+			elif completed_quest_ids.has("quest.inspect_phase_well_tether"):
+				parts.append("目标：相位井锚核待解析")
+			elif completed_quest_ids.has("quest.inspect_phase_well_frame"):
+				parts.append("目标：相位井结核待解析")
+			elif completed_quest_ids.has("quest.inspect_phase_well_loom"):
+				parts.append("目标：相位井织核待解析")
+			elif completed_quest_ids.has("quest.inspect_phase_well_chamber"):
+				parts.append("目标：相位井纺核待解析")
+			elif completed_quest_ids.has("quest.inspect_phase_well_sink"):
+				parts.append("目标：相位井心核待解析")
+			elif completed_quest_ids.has("quest.inspect_inner_phase_well"):
+				parts.append("目标：相位井芯样本待解析")
+			elif completed_quest_ids.has("quest.unlock_phase_well"):
+				parts.append("目标：相位井定位器待解析")
+			elif completed_quest_ids.has("quest.deploy_phase_relay_anchor"):
+				parts.append("目标：前线回传锚点已部署")
+			elif completed_quest_ids.has("quest.assemble_deep_signal_matrix"):
+				parts.append("目标：待部署前线回传锚点")
+			elif completed_quest_ids.has("quest.unlock_deep_ruin_cache"):
+				parts.append("目标：待继续解析深段样块")
+			elif unlocked_effects.has("slice_01_complete"):
+				parts.append("目标：遗迹外圈第一版已完成")
 
 	return "；".join(parts)
+
+
+func _get_saved_at_display_text(save_data: Dictionary) -> String:
+	var updated_at_unix = save_data.get("updated_at_unix", null)
+	if _is_number(updated_at_unix):
+		return _format_local_datetime_from_unix(int(updated_at_unix))
+
+	var updated_at := String(save_data.get("updated_at", ""))
+	if not updated_at.is_empty():
+		return _format_legacy_saved_at_text(updated_at)
+
+	var created_at := String(save_data.get("created_at", ""))
+	if not created_at.is_empty():
+		return _format_legacy_saved_at_text(created_at)
+	return ""
+
+
+func _format_legacy_saved_at_text(datetime_text: String) -> String:
+	var normalized := datetime_text.strip_edges()
+	if normalized.is_empty():
+		return ""
+	var iso_text := normalized.replace(" ", "T")
+	if not _has_explicit_timezone_suffix(iso_text):
+		iso_text += "Z"
+	var parsed_unix := int(Time.get_unix_time_from_datetime_string(iso_text))
+	if parsed_unix <= 0:
+		return normalized.replace("T", " ")
+	return _format_local_datetime_from_unix(parsed_unix)
+
+
+func _format_local_datetime_from_unix(unix_time: int) -> String:
+	if unix_time <= 0:
+		return ""
+	return Time.get_datetime_string_from_unix_time(unix_time + _get_system_utc_offset_seconds(), true)
+
+
+func _get_system_utc_offset_seconds() -> int:
+	var local_now := Time.get_datetime_string_from_system(false, true)
+	var utc_now := Time.get_datetime_string_from_system(true, true)
+	var local_unix := int(Time.get_unix_time_from_datetime_string(local_now))
+	var utc_unix := int(Time.get_unix_time_from_datetime_string(utc_now))
+	return local_unix - utc_unix
+
+
+func _has_explicit_timezone_suffix(datetime_text: String) -> bool:
+	if datetime_text.to_upper().ends_with("Z"):
+		return true
+	return datetime_text.rfind("+") > 10 or datetime_text.rfind("-") > 10
 
 
 func _format_slot_display_name(slot_id: String) -> String:
@@ -408,6 +501,25 @@ func _validate_save_content(save_data: Dictionary) -> String:
 	if content_validator == null:
 		return ""
 	return content_validator.validate_save_content(save_data)
+
+
+func _validate_save_data_for_write(save_data: Dictionary) -> Dictionary:
+	var schema_error := _validate_save_data(save_data)
+	if not schema_error.is_empty():
+		return _failure(_format_save_validation_error(schema_error))
+	var content_error := _validate_save_content(save_data)
+	if not content_error.is_empty():
+		return _failure(_format_save_validation_error(content_error))
+	return _success("当前运行状态可保存。")
+
+
+func _format_save_validation_error(message: String) -> String:
+	var normalized := message
+	if normalized.begins_with("读取存档失败："):
+		normalized = normalized.trim_prefix("读取存档失败：")
+	if normalized.ends_with("当前运行状态已保留。"):
+		normalized = normalized.trim_suffix("当前运行状态已保留。")
+	return "保存失败：当前运行状态未通过存档校验：%s" % normalized.strip_edges()
 
 
 func _get_string_array(value, default_values: Array[String] = []) -> Array[String]:

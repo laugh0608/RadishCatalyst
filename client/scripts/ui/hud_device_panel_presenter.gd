@@ -44,6 +44,9 @@ func _format_device_status(
 	]
 	if not recommended_recipe_id.is_empty():
 		parts.append(_format_recommended_recipe_status(data_registry, recipe_id, recommended_recipe_id))
+	var supply_hint := String(status.get("supply_hint", ""))
+	if not supply_hint.is_empty():
+		parts.append("补给：%s" % supply_hint)
 	var byproducts := String(status.get("byproducts", ""))
 	if not byproducts.is_empty():
 		parts.append("副产：%s" % byproducts)

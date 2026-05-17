@@ -7,6 +7,63 @@ var data_registry: DataRegistry
 var processing_system: ProcessingSystem
 var build_system: BuildSystem
 
+const FIELD_READING_RESULTS := {
+	"map_object.phase_splinter_resonance_node": {
+		"quest_id": "quest.trace_phase_splinters",
+		"objective_type": "inspect",
+		"target_id": "map_object.phase_splinter_resonance_node",
+		"required": 2.0,
+		"step": "裂相共振读数",
+		"partial": "继续检查另一处裂相共振点，再处理猎手和碎屑。",
+		"complete": "两点共振已定位，裂相碎屑回收线已经稳定。"
+	},
+	"map_object.fault_residue_pulse_node": {
+		"quest_id": "quest.collect_fault_residue",
+		"objective_type": "inspect",
+		"target_id": "map_object.fault_residue_pulse_node",
+		"required": 2.0,
+		"step": "故障脉冲读数",
+		"partial": "继续读另一处脉冲，再压制潜猎体。",
+		"complete": "两处故障脉冲已读出，故障残渣回收线已经显形。"
+	},
+	"map_object.well_flux_pressure_vent": {
+		"quest_id": "quest.collect_well_flux",
+		"objective_type": "inspect",
+		"target_id": "map_object.well_flux_pressure_vent",
+		"required": 2.0,
+		"step": "井涌泄压",
+		"partial": "继续处理另一处泄压阀，再压制井口哨戒体。",
+		"complete": "两处井涌压力已卸掉，井涌碎屑回收线已经稳定。"
+	},
+	"map_object.phase_well_chamber_shunt_node": {
+		"quest_id": "quest.collect_heart_spine",
+		"objective_type": "inspect",
+		"target_id": "map_object.phase_well_chamber_shunt_node",
+		"required": 2.0,
+		"step": "井心分流读数",
+		"partial": "继续写入另一处分流读数，心棘残片还没有完全露出。",
+		"complete": "两处分流读数已写入，心棘残片从脉冲里露出。"
+	},
+	"map_object.phase_well_loom_tension_spool": {
+		"quest_id": "quest.collect_weft_bundle",
+		"objective_type": "inspect",
+		"target_id": "map_object.phase_well_loom_tension_spool",
+		"required": 2.0,
+		"step": "井纺张力绕轮",
+		"partial": "继续检查另一处张力绕轮，纬束残团还不稳定。",
+		"complete": "两处张力绕轮已确认，纬束残团回收线已经稳定。"
+	},
+	"map_object.phase_well_tether_knot_node": {
+		"quest_id": "quest.collect_tether_fiber",
+		"objective_type": "inspect",
+		"target_id": "map_object.phase_well_tether_knot_node",
+		"required": 2.0,
+		"step": "井系桥结点",
+		"partial": "继续检查另一端结点，系索残股还没有完全松开。",
+		"complete": "两端桥结点已确认，系索残股从桥体边缘松开。"
+	}
+}
+
 
 func _init(registry: DataRegistry) -> void:
 	data_registry = registry
@@ -60,13 +117,45 @@ func interact_with_object(
 			return _sample(instance_id, definition, character_state, world_state)
 		"clear":
 			world_state.set_map_object_flag(instance_id, "is_cleared", true)
+			if definition_id == "map_object.phase_well_anchor_pressure_pin":
+				return _success("锚场压力钉已清理：继续清掉剩余压力钉，井系守脉体会完全暴露。")
+			if definition_id == "map_object.phase_well_frame_route_blocker":
+				return _success("井纹架侧路已清理：边缕残条回收线打开，另一侧路可以保留为未选路线。")
+			if definition_id == "map_object.well_ash_crust_blocker":
+				return _success("井底余烬壳已清理：井壁余烬回收线打开。")
 			return _success("地块已清理。")
+		"inspect":
+			if _is_persistent_field_reading(definition_id):
+				world_state.set_map_object_flag(instance_id, "is_sampled", true)
+				return _success(_format_field_reading_result(definition_id, world_state))
+			return _success("交互完成。")
 		_:
 			return _success("交互完成。")
 
 
-func _interact_with_outpost_core(_character_state: CharacterState, _world_state: WorldState) -> Dictionary:
-	return _success("前哨核心已恢复，晶体矿脉区已标记。")
+func _interact_with_outpost_core(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
+		return _success("前哨核心已恢复，晶体矿脉区已标记。")
+
+	var restoration := character_state.restore_vitals_to_full()
+	var restored_health := float(restoration.get("restored_health", 0.0))
+	var restored_protection := float(restoration.get("restored_protection", 0.0))
+	if restored_health <= 0.0 and restored_protection <= 0.0:
+		return _success("前哨核心已在线：生命与防护完整，可继续外出或使用相位回投台。")
+
+	var detail := _format_outpost_core_refit_detail(
+		character_state,
+		restored_health,
+		restored_protection
+	)
+	return {
+		"success": true,
+		"message": "前哨核心整备完成：%s。" % detail,
+		"supply_feedback": {
+			"title": "前哨整备完成",
+			"detail": detail
+		}
+	}
 
 
 func _gather(instance_id: String, definition: Dictionary, character_state: CharacterState, world_state: WorldState) -> Dictionary:
@@ -92,8 +181,11 @@ func _sample(instance_id: String, definition: Dictionary, character_state: Chara
 	var sample_refs: Array = definition.get("sample_result_refs", [])
 	var rewards: Array[String] = []
 	for sample_id in sample_refs:
-		character_state.inventory.add_item(String(sample_id), 1)
-		rewards.append("%s x1" % sample_id)
+		var definition_id := String(sample_id)
+		if definition_id.is_empty():
+			continue
+		character_state.inventory.add_ref(definition_id, 1)
+		rewards.append("%s x1" % _get_display_name(definition_id))
 
 	world_state.set_map_object_flag(instance_id, "is_sampled", true)
 	if rewards.is_empty():
@@ -108,18 +200,15 @@ func _grant_refs(refs: Array, character_state: CharacterState) -> Array[String]:
 			continue
 
 		var reward_id := String(ref.get("id", ""))
-		var amount := int(ref.get("amount", 0))
-		if reward_id.is_empty() or amount <= 0:
+		var amount := float(ref.get("amount", 0.0))
+		if reward_id.is_empty() or amount <= 0.0:
 			continue
 
-		if reward_id.begins_with("item."):
-			character_state.inventory.add_item(reward_id, amount)
-		elif reward_id.begins_with("fluid."):
-			character_state.inventory.add_fluid(reward_id, amount)
-		else:
+		if not reward_id.begins_with("item.") and not reward_id.begins_with("fluid.") and not reward_id.begins_with("equipment."):
 			continue
 
-		rewards.append("%s x%d" % [reward_id, amount])
+		character_state.inventory.add_ref(reward_id, amount)
+		rewards.append("%s x%s" % [_get_display_name(reward_id), _format_amount(amount)])
 	return rewards
 
 
@@ -152,10 +241,38 @@ func _get_pollution_protection_hint(character_state: CharacterState) -> String:
 	return "，过滤模块已降低消耗"
 
 
+func _format_outpost_core_refit_detail(
+	character_state: CharacterState,
+	restored_health: float,
+	restored_protection: float
+) -> String:
+	var parts: Array[String] = []
+	if restored_health > 0.0:
+		parts.append("生命 +%s，当前 %s / %s" % [
+			_format_amount(restored_health),
+			_format_amount(character_state.health),
+			_format_amount(character_state.max_health)
+		])
+	if restored_protection > 0.0:
+		parts.append("防护 +%s，当前 %s / %s" % [
+			_format_amount(restored_protection),
+			_format_amount(character_state.protection),
+			_format_amount(character_state.max_protection)
+		])
+	return "；".join(parts)
+
+
 func _format_amount(amount: float) -> String:
 	if is_equal_approx(amount, roundf(amount)):
 		return str(int(amount))
 	return "%.1f" % amount
+
+
+func _get_display_name(definition_id: String) -> String:
+	var definition := data_registry.get_definition(definition_id)
+	if definition.is_empty():
+		return definition_id
+	return data_registry.get_text(String(definition.get("display_name_key", definition_id)))
 
 
 func _supports_interaction(definition: Dictionary, interaction_type: String) -> bool:
@@ -214,10 +331,44 @@ func _is_already_processed(object_state: Dictionary, interaction_type: String) -
 			return bool(object_state.get("is_gathered", false))
 		"sample":
 			return bool(object_state.get("is_sampled", false))
+		"inspect":
+			return bool(object_state.get("is_sampled", false))
 		"clear":
 			return bool(object_state.get("is_cleared", false))
 		_:
 			return false
+
+
+func _is_persistent_field_reading(definition_id: String) -> bool:
+	return (
+		definition_id == "map_object.phase_splinter_resonance_node"
+		or definition_id == "map_object.fault_residue_pulse_node"
+		or definition_id == "map_object.well_flux_pressure_vent"
+		or definition_id == "map_object.phase_well_chamber_shunt_node"
+		or definition_id == "map_object.phase_well_loom_tension_spool"
+		or definition_id == "map_object.phase_well_tether_knot_node"
+	)
+
+
+func _format_field_reading_result(definition_id: String, world_state: WorldState) -> String:
+	var result: Dictionary = FIELD_READING_RESULTS.get(definition_id, {})
+	if result.is_empty():
+		return "现场读数已写入。"
+	var quest_id := String(result.get("quest_id", ""))
+	var objective_type := String(result.get("objective_type", "inspect"))
+	var target_id := String(result.get("target_id", definition_id))
+	var required := float(result.get("required", 1.0))
+	var current := world_state.quest_state.get_objective_progress(quest_id, objective_type, target_id)
+	var next_progress := minf(required, current + 1.0)
+	var suffix := String(result.get("partial", "继续检查剩余现场读数点。"))
+	if next_progress >= required:
+		suffix = String(result.get("complete", "现场读数已全部写入。"))
+	return "%s已写入：%s/%s；%s" % [
+		String(result.get("step", "现场读数")),
+		_format_amount(next_progress),
+		_format_amount(required),
+		suffix
+	]
 
 
 func _success(message: String) -> Dictionary:

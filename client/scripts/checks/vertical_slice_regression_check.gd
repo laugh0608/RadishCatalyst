@@ -1,0 +1,750 @@
+extends RefCounted
+
+const GameRootScript := preload("res://scripts/game/game_root.gd")
+
+var host
+
+
+func _init(check_host) -> void:
+	host = check_host
+
+
+func run_ui_and_recipe_checks() -> void:
+	_check_hud_log_presenter()
+	_check_development_baseline_presenter()
+	_check_game_root_development_baseline_factory()
+	_check_game_root_gm_tools()
+	_check_game_root_recipe_cycle_input_events()
+	_check_resource_interaction_logs()
+	_check_completed_recipe_followup_auto_selection()
+
+
+func check_task_recipe_selection(reactor: PrototypeInteractable, processing: ProcessingSystem) -> void:
+	var recipe_world := WorldState.create_default()
+	var recipe_character := CharacterState.create_default()
+	var filter := PrototypeInteractable.new()
+	filter.definition_id = "building.pollution_filter"
+	filter.interaction_type = "process_recipe"
+	filter.recipe_id = "recipe.cleanse_residue"
+	filter.set_recipe_cycle([
+		"recipe.cleanse_residue",
+		"recipe.phase_filament_refining",
+		"recipe.phase_splinter_refining",
+		"recipe.fault_residue_stabilization",
+		"recipe.well_flux_stabilization",
+		"recipe.well_ash_stabilization",
+		"recipe.heart_spine_stabilization",
+		"recipe.weft_bundle_stabilization",
+		"recipe.selvedge_strip_stabilization",
+		"recipe.tether_fiber_stabilization",
+		"recipe.anchor_core_dust_stabilization"
+	])
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_anomaly_sample"]
+	recipe_world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 2)
+	host._expect_equal(
+		processing.get_recommended_recipe_id(reactor, recipe_character, recipe_world),
+		"recipe.analyze_anomaly_sample",
+		"sample analysis task recipe selection"
+	)
+	recipe_world.quest_state.active_quest_ids = ["quest.make_filter_module"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(reactor, recipe_character, recipe_world),
+		"recipe.make_filter_media",
+		"filter module task first selects media recipe"
+	)
+	recipe_character.inventory.add_item("item.filter_media", 1)
+	host._expect_equal(
+		processing.get_recommended_recipe_id(reactor, recipe_character, recipe_world),
+		"recipe.basic_filter_module",
+		"filter module task selects module recipe after media"
+	)
+	recipe_character.inventory.items.erase("item.filter_media")
+	recipe_character.inventory.items.erase("item.foundation_material")
+	recipe_character.inventory.items["item.basic_parts"] = 4
+	recipe_world.quest_state.active_quest_ids = ["quest.expand_treatment_point"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(reactor, recipe_character, recipe_world),
+		"recipe.foundation_t1",
+		"expand treatment point first selects foundation recipe"
+	)
+	recipe_world.add_base_structure(
+		"structure.foundation_site_north",
+		"building.foundation_t1",
+		"region.pollution_edge",
+		"map_object_instance.foundation_site_north"
+	)
+	recipe_world.add_base_structure(
+		"structure.foundation_site_south",
+		"building.foundation_t1",
+		"region.pollution_edge",
+		"map_object_instance.foundation_site_south"
+	)
+	host._expect_equal(
+		processing.get_recommended_recipe_id(reactor, recipe_character, recipe_world),
+		"recipe.make_filter_media",
+		"expand treatment point selects filter media after foundations"
+	)
+	recipe_character.inventory.add_item("item.filter_media", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"expand treatment point falls back to basic parts after filter media"
+	)
+	recipe_world.quest_state.active_quest_ids = ["quest.refine_phase_filament"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(filter, recipe_character, recipe_world),
+		"recipe.phase_filament_refining",
+		"phase filament refinement selects pollution filter recipe"
+	)
+	var deep_reactor := PrototypeInteractable.new()
+	deep_reactor.definition_id = "building.basic_reactor"
+	deep_reactor.interaction_type = "process_recipe"
+	deep_reactor.recipe_id = "recipe.process_crystal_ore"
+	deep_reactor.set_recipe_cycle([
+		"recipe.process_crystal_ore",
+		"recipe.reclaim_basic_parts",
+		"recipe.deep_signal_analysis",
+		"recipe.deep_override_key",
+		"recipe.deep_core_imprint",
+		"recipe.deep_signal_matrix",
+		"recipe.relay_tuning_lens",
+		"recipe.inner_fault_analysis",
+		"recipe.phase_well_key",
+		"recipe.phase_well_locator_analysis",
+		"recipe.phase_well_probe",
+		"recipe.phase_well_core_analysis",
+		"recipe.phase_well_pike",
+		"recipe.phase_well_heart_analysis",
+		"recipe.phase_well_shunt",
+		"recipe.phase_well_spindle_analysis",
+		"recipe.phase_well_shuttle",
+		"recipe.phase_well_weave_core_analysis",
+		"recipe.phase_well_frame_key",
+		"recipe.phase_well_knot_core_analysis",
+		"recipe.phase_well_tether_spike",
+		"recipe.phase_well_anchor_core_analysis",
+		"recipe.phase_well_anchor_stake",
+		"recipe.phase_well_echo_shard_analysis",
+		"recipe.stability_echo_report"
+	])
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_character.inventory.add_item("item.signal_echo_trace", 1)
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_deep_signal"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.deep_signal_analysis",
+		"deep signal analysis no longer falls back when basic parts are low"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.deep_signal_analysis",
+		"deep signal analysis returns to reactor analysis recipe after basic parts are restored"
+	)
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_deep_core"]
+	host._expect_equal(processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world), "recipe.deep_core_imprint", "deep core analysis selects reactor recipe")
+	recipe_world.quest_state.active_quest_ids = ["quest.assemble_deep_override"]
+	host._expect_equal(processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world), "recipe.deep_override_key", "deep override assembly selects reactor recipe")
+	recipe_character.inventory.add_item("item.phase_conduit", 2)
+	recipe_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.assemble_deep_signal_matrix"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.deep_signal_matrix",
+		"deep signal matrix no longer falls back when basic parts are low"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.deep_signal_matrix",
+		"deep signal matrix assembly returns to reactor recipe after basic parts are restored"
+	)
+	recipe_world.quest_state.active_quest_ids = ["quest.refine_phase_splinters"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(filter, recipe_character, recipe_world),
+		"recipe.phase_splinter_refining",
+		"phase splinter refining selects pollution filter recipe"
+	)
+	recipe_character.inventory.add_item("item.phase_lens_blank", 1)
+	recipe_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"relay lens expedition prep falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_world.quest_state.unlock_effect("recipe.reclaim_basic_parts")
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.reclaim_basic_parts",
+		"relay lens expedition prep prefers slurry reclaim after phase relay unlock"
+	)
+	recipe_world.quest_state.unlocked_effects.erase("recipe.reclaim_basic_parts")
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.relay_tuning_lens",
+		"relay lens expedition prep returns to reactor recipe after basic parts are restored"
+	)
+	recipe_character.inventory.add_item("item.inner_fault_trace", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_inner_fault_trace"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.inner_fault_analysis",
+		"inner fault analysis no longer falls back when basic parts are low"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.inner_fault_analysis",
+		"inner fault analysis returns to reactor recipe after basic parts are restored"
+	)
+	recipe_world.quest_state.active_quest_ids = ["quest.refine_fault_residue"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(filter, recipe_character, recipe_world),
+		"recipe.fault_residue_stabilization",
+		"fault residue refinement selects pollution filter recipe"
+	)
+	recipe_character.inventory.add_item("item.phase_well_coordinate", 1)
+	recipe_character.inventory.add_item("item.stabilized_fault_core", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"phase well key prep falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_key",
+		"phase well key prep returns to reactor recipe after basic parts are restored"
+	)
+	recipe_character.inventory.add_item("item.phase_well_locator", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_locator"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_locator_analysis",
+		"phase well locator analysis no longer falls back when basic parts are low"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_locator_analysis",
+		"phase well locator analysis returns to reactor recipe after basic parts are restored"
+	)
+	recipe_world.quest_state.active_quest_ids = ["quest.refine_well_flux"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(filter, recipe_character, recipe_world),
+		"recipe.well_flux_stabilization",
+		"phase well probe prep selects pollution filter recipe first"
+	)
+	recipe_character.inventory.add_item("item.phase_well_route", 1)
+	recipe_character.inventory.add_item("item.phase_well_stabilizer", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.refine_well_flux"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"phase well probe prep falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_probe",
+		"phase well probe prep returns to reactor recipe after basic parts are restored"
+	)
+	recipe_character.inventory.add_item("item.phase_well_core", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_core"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_core_analysis",
+		"phase well core analysis no longer falls back when basic parts are low"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_core_analysis",
+		"phase well core analysis returns to reactor recipe after basic parts are restored"
+	)
+	recipe_world.quest_state.active_quest_ids = ["quest.refine_well_ash"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(filter, recipe_character, recipe_world),
+		"recipe.well_ash_stabilization",
+		"well ash refinement selects pollution filter recipe"
+	)
+	recipe_character.inventory.add_item("item.phase_well_spectrum", 1)
+	recipe_character.inventory.add_item("item.phase_well_lattice", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.assemble_phase_well_pike"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"phase well pike assembly falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_pike",
+		"phase well pike assembly returns to reactor recipe after basic parts are restored"
+	)
+	recipe_character.inventory.add_item("item.phase_well_heart", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_heart"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_heart_analysis",
+		"phase well heart analysis no longer falls back when basic parts are low"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_heart_analysis",
+		"phase well heart analysis returns to reactor recipe after basic parts are restored"
+	)
+	recipe_world.quest_state.active_quest_ids = ["quest.refine_heart_spine"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(filter, recipe_character, recipe_world),
+		"recipe.heart_spine_stabilization",
+		"heart spine refinement selects pollution filter recipe"
+	)
+	recipe_character.inventory.add_item("item.phase_well_pulse_sheet", 1)
+	recipe_character.inventory.add_item("item.phase_well_damper", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.assemble_phase_well_shunt"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"phase well shunt assembly falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_shunt",
+		"phase well shunt assembly returns to reactor recipe after basic parts are restored"
+	)
+	recipe_character.inventory.add_item("item.phase_well_spindle", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_spindle"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_spindle_analysis",
+		"phase well spindle analysis no longer falls back when basic parts are low"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_spindle_analysis",
+		"phase well spindle analysis returns to reactor recipe after basic parts are restored"
+	)
+	recipe_world.quest_state.active_quest_ids = ["quest.refine_weft_bundle"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(filter, recipe_character, recipe_world),
+		"recipe.weft_bundle_stabilization",
+		"weft bundle refinement selects pollution filter recipe"
+	)
+	recipe_character.inventory.add_item("item.phase_well_warp_sheet", 1)
+	recipe_character.inventory.add_item("item.phase_well_tension_rib", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.assemble_phase_well_shuttle"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"phase well shuttle assembly falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_shuttle",
+		"phase well shuttle assembly returns to reactor recipe after basic parts are restored"
+	)
+	recipe_character.inventory.add_item("item.phase_well_weave_core", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_weave_core"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_weave_core_analysis",
+		"phase well weave core analysis no longer falls back when basic parts are low"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_weave_core_analysis",
+		"phase well weave core analysis returns to reactor recipe after basic parts are restored"
+	)
+	recipe_world.quest_state.active_quest_ids = ["quest.refine_selvedge_strip"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(filter, recipe_character, recipe_world),
+		"recipe.selvedge_strip_stabilization",
+		"selvedge strip refinement selects pollution filter recipe"
+	)
+	recipe_character.inventory.add_item("item.phase_well_pattern_sheet", 1)
+	recipe_character.inventory.add_item("item.phase_well_frame_rib", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.assemble_phase_well_frame_key"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"phase well frame key assembly falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_frame_key",
+		"phase well frame key assembly returns to reactor recipe after basic parts are restored"
+	)
+	recipe_character.inventory.add_item("item.phase_well_knot_core", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_knot_core"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_knot_core_analysis",
+		"phase well knot core analysis no longer falls back when basic parts are low"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_knot_core_analysis",
+		"phase well knot core analysis returns to reactor recipe after basic parts are restored"
+	)
+	recipe_world.quest_state.active_quest_ids = ["quest.refine_tether_fiber"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(filter, recipe_character, recipe_world),
+		"recipe.tether_fiber_stabilization",
+		"tether fiber refinement selects pollution filter recipe"
+	)
+	recipe_character.inventory.add_item("item.phase_well_tether_sheet", 1)
+	recipe_character.inventory.add_item("item.phase_well_tether_rib", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.assemble_phase_well_tether_spike"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"phase well tether spike assembly falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_tether_spike",
+		"phase well tether spike assembly returns to reactor recipe after basic parts are restored"
+	)
+	recipe_character.inventory.add_item("item.phase_well_anchor_core", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_anchor_core"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_anchor_core_analysis",
+		"phase well anchor core analysis no longer falls back when basic parts are low"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_anchor_core_analysis",
+		"phase well anchor core analysis returns to reactor recipe after basic parts are restored"
+	)
+	recipe_world.quest_state.active_quest_ids = ["quest.refine_anchor_core_dust"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(filter, recipe_character, recipe_world),
+		"recipe.anchor_core_dust_stabilization",
+		"anchor core dust refinement selects pollution filter recipe"
+	)
+	recipe_character.inventory.add_item("item.phase_well_return_sheet", 1)
+	recipe_character.inventory.add_item("item.anchor_field_filter", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.assemble_phase_well_anchor_stake"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.process_crystal_ore",
+		"phase well anchor stake assembly falls back to basic parts recipe when only parts are missing"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_anchor_stake",
+		"phase well anchor stake assembly returns to reactor recipe after basic parts are restored"
+	)
+	recipe_character.inventory.add_item("item.phase_well_echo_shard", 1)
+	recipe_character.inventory.items["item.basic_parts"] = 1
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_echo_shard"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_echo_shard_analysis",
+		"phase well echo shard analysis no longer falls back when basic parts are low"
+	)
+	recipe_character.inventory.items["item.basic_parts"] = 2
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.phase_well_echo_shard_analysis",
+		"phase well echo shard analysis returns to reactor recipe after basic parts are restored"
+	)
+	recipe_character.inventory.add_item("item.stability_echo_sample", 1)
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_stability_echo_sample"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.stability_echo_report",
+		"stability echo report analysis selects reactor recipe"
+	)
+	deep_reactor.free()
+	filter.free()
+
+
+func check_equipment_processing_runtime() -> void:
+	var processing := ProcessingSystem.new(host.data_registry)
+	var module_world := WorldState.create_default()
+	module_world.quest_state.unlock_effect("recipe.basic_filter_module")
+	var module_character := CharacterState.create_default()
+	module_character.inventory.items["item.basic_parts"] = 2
+	module_character.inventory.items["item.filter_media"] = 1
+	var start_result := processing.process_recipe("recipe.basic_filter_module", module_character, module_world)
+	host._expect_equal(bool(start_result.get("success", false)), true, "filter module processing should start")
+	var completed_results := processing.advance_processing(20.0, module_character, module_world)
+	host._expect_equal(completed_results.size(), 1, "filter module processing should complete")
+	host._expect_equal(
+		int(module_character.inventory.equipment.get("equipment.filter_module_t1", 0)),
+		1,
+		"filter module should be stored in equipment inventory"
+	)
+	host._expect_equal(
+		module_character.inventory.items.has("equipment.filter_module_t1"),
+		false,
+		"filter module should not leak into item inventory"
+	)
+	host._expect_equal(
+		module_character.equip_suit_module("equipment.filter_module_t1"),
+		true,
+		"crafted filter module can be equipped"
+	)
+	host._expect_equal(
+		String(module_character.equipment.get("suit_module", "")),
+		"equipment.filter_module_t1",
+		"equipped filter module persists on character slot"
+	)
+	host._expect_equal(
+		int(module_character.inventory.equipment.get("equipment.filter_module_t1", 0)),
+		0,
+		"equipped filter module should leave equipment inventory"
+	)
+
+
+func _check_hud_log_presenter() -> void:
+	var presenter := HudLogPresenter.new(host.data_registry)
+	var startup_log := presenter.format_startup_log()
+	host._expect_text_contains(
+		startup_log,
+		"Tab 切换调试面板",
+		"startup log keeps debug boundary hint"
+	)
+	if startup_log.length() > 80:
+		host.failures.append("startup log should stay compact, got %d chars: %s" % [startup_log.length(), startup_log])
+	host._expect_equal(
+		presenter.format_slot_result_log("slot_02", {"message": "保存完成。"}),
+		"槽位 02：保存完成。",
+		"log presenter formats save slot names"
+	)
+	host._expect_equal(
+		presenter.join_messages(["", "已进入：晶体矿脉区。", "  ", "任务完成：恢复前哨。"]),
+		"已进入：晶体矿脉区。 任务完成：恢复前哨。",
+		"log presenter joins non-empty messages"
+	)
+	host._expect_text_contains(
+		presenter.format_device_panel_opened_log("building.basic_reactor"),
+		"基础反应器",
+		"log presenter resolves device display names"
+	)
+	host._expect_text_contains(
+		presenter.format_recommended_recipe_selected_log("recipe.analyze_anomaly_sample"),
+		"分析异常样本",
+		"log presenter resolves recipe display names"
+	)
+
+
+func _check_development_baseline_presenter() -> void:
+	var definitions := DevelopmentBaselineCatalog.get_baseline_definitions()
+	host._expect_equal(definitions.size(), 18, "development baseline catalog count")
+	host._expect_equal(
+		String(definitions[0].get("id", "")),
+		"baseline.s0_new_game",
+		"development baseline catalog starts from S0"
+	)
+	var presenter := HudDevelopmentBaselinePresenter.new()
+	var selected_text := presenter.format_selected_baseline(definitions[3], 3, definitions.size())
+	host._expect_text_contains(selected_text, "S3 深段门禁已开", "development baseline presenter shows selected baseline name")
+	host._expect_text_contains(selected_text, "相位纤丝", "development baseline presenter shows baseline summary")
+	host._expect_text_contains(selected_text, "过滤器精炼", "development baseline presenter shows recommended use")
+
+
+func _check_game_root_development_baseline_factory() -> void:
+	var game_root := GameRootScript.new()
+	game_root.development_baseline_builder = DevelopmentBaselineBuilder.new(host.data_registry)
+	var result := game_root.create_development_baseline_state("baseline.s4_deep_cache_open")
+	host._expect_equal(bool(result.get("success", false)), true, "game root development baseline generation")
+	if not bool(result.get("success", false)):
+		game_root.free()
+		return
+
+	var world_state: WorldState = result.get("world_state", null)
+	var character_state: CharacterState = result.get("character_state", null)
+	if world_state == null or character_state == null:
+		host.failures.append("development baseline generation should return world and character states")
+		game_root.free()
+		return
+
+	host._expect_equal(world_state.current_region_id, "region.outpost_platform", "S4 baseline world region")
+	host._expect_equal(character_state.current_region_id, "region.outpost_platform", "S4 baseline character region")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_deep_core", "S4 baseline active quest")
+	host._expect_equal(int(character_state.inventory.items.get("item.basic_parts", 0)), 4, "S4 baseline keeps enough basic parts for the second deep pass")
+	host._expect_equal(int(character_state.inventory.items.get("item.deep_ruin_core", 0)), 1, "S4 baseline keeps deep ruin core reward")
+	host._expect_equal(float(character_state.inventory.fluids.get("fluid.polluted_slurry", 0.0)), 1.0, "S4 baseline keeps polluted slurry for deep signal matrix")
+	host._expect_equal(String(character_state.equipment.get("suit_module", "")), "equipment.filter_module_t1", "S4 baseline equips filter module")
+	game_root.free()
+
+
+func _check_game_root_gm_tools() -> void:
+	var game_root := GameRootScript.new()
+	game_root.data_registry = host.data_registry
+	game_root.character_state = CharacterState.create_default()
+	var add_result := game_root._apply_gm_resource_delta("item.repair_gel", 1.0)
+	host._expect_equal(bool(add_result.get("success", false)), true, "GM resource add succeeds")
+	host._expect_equal(int(game_root.character_state.inventory.items.get("item.repair_gel", 0)), 2, "GM resource add updates inventory")
+	var fluid_result := game_root._apply_gm_resource_delta("fluid.polluted_slurry", 1.0)
+	host._expect_equal(bool(fluid_result.get("success", false)), true, "GM fluid add succeeds")
+	host._expect_equal(float(game_root.character_state.inventory.fluids.get("fluid.polluted_slurry", 0.0)), 1.0, "GM fluid add updates inventory")
+	game_root.character_state.health = 54.0
+	game_root.character_state.protection = 16.0
+	var refill_result := game_root._apply_gm_vitals_refill()
+	host._expect_equal(bool(refill_result.get("success", false)), true, "GM vitals refill succeeds")
+	host._expect_equal(game_root.character_state.health, 100.0, "GM vitals refill restores health")
+	host._expect_equal(game_root.character_state.protection, 100.0, "GM vitals refill restores protection")
+	game_root.free()
+
+
+func _check_game_root_recipe_cycle_input_events() -> void:
+	var game_root := GameRootScript.new()
+	var key_event := InputEventKey.new()
+	key_event.pressed = true
+	key_event.keycode = KEY_R
+	host._expect_equal(
+		game_root._is_recipe_cycle_key_event(key_event),
+		true,
+		"game root accepts R keycode for recipe and relay cycling"
+	)
+
+	var unicode_event := InputEventKey.new()
+	unicode_event.pressed = true
+	unicode_event.unicode = 114
+	host._expect_equal(
+		game_root._is_recipe_cycle_key_event(unicode_event),
+		true,
+		"game root accepts lowercase R unicode for recipe and relay cycling"
+	)
+
+	var echo_event := InputEventKey.new()
+	echo_event.pressed = true
+	echo_event.echo = true
+	echo_event.keycode = KEY_R
+	host._expect_equal(
+		game_root._is_recipe_cycle_key_event(echo_event),
+		false,
+		"game root ignores repeated R key echo events"
+	)
+	game_root.free()
+
+
+func _check_resource_interaction_logs() -> void:
+	var gather_system := GatherSystem.new(host.data_registry)
+	var gather_world := WorldState.create_default()
+	var gather_character := CharacterState.create_default()
+	var salvage_result := gather_system.interact_with_object(
+		"map_object_instance.field_wreckage_north",
+		"map_object.field_wreckage",
+		"gather",
+		gather_character,
+		gather_world
+	)
+	host._expect_text_contains(
+		String(salvage_result.get("message", "")),
+		"导电废件 x2",
+		"gather result should use display names"
+	)
+	host._expect_text_missing(
+		String(salvage_result.get("message", "")),
+		"item.salvage_scrap",
+		"gather result should not leak item ids"
+	)
+
+	var sample_world := WorldState.create_default()
+	sample_world.quest_state.active_quest_ids = ["quest.bring_back_sample"]
+	var sample_character := CharacterState.create_default()
+	var sample_result := gather_system.interact_with_object(
+		"map_object_instance.anomaly_crystal",
+		"map_object.anomaly_crystal",
+		"sample",
+		sample_character,
+		sample_world
+	)
+	host._expect_text_contains(
+		String(sample_result.get("message", "")),
+		"异常样本 x1",
+		"sample result should use display names"
+	)
+	host._expect_text_missing(
+		String(sample_result.get("message", "")),
+		"item.anomaly_sample",
+		"sample result should not leak item ids"
+	)
+
+
+func _check_completed_recipe_followup_auto_selection() -> void:
+	var game_root = GameRootScript.new()
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.foundation_t1"
+	reactor.set_recipe_cycle([
+		"recipe.foundation_t1",
+		"recipe.make_filter_media",
+		"recipe.process_crystal_ore"
+	])
+	var recipe_world := WorldState.create_default()
+	recipe_world.quest_state.active_quest_ids = ["quest.expand_treatment_point"]
+	recipe_world.add_base_structure(
+		"structure.foundation_site_north",
+		"building.foundation_t1",
+		"region.pollution_edge",
+		"map_object_instance.foundation_site_north"
+	)
+	recipe_world.add_base_structure(
+		"structure.foundation_site_south",
+		"building.foundation_t1",
+		"region.pollution_edge",
+		"map_object_instance.foundation_site_south"
+	)
+	recipe_world.base_structures["structure.basic_reactor"]["status"] = "completed"
+	recipe_world.base_structures["structure.basic_reactor"]["last_recipe_id"] = "recipe.foundation_t1"
+	var recipe_character := CharacterState.create_default()
+	recipe_character.inventory.items["item.basic_parts"] = 4
+	game_root.processing_system = ProcessingSystem.new(host.data_registry)
+	game_root.world_state = recipe_world
+	game_root.character_state = recipe_character
+	host._expect_equal(
+		game_root._maybe_select_followup_recipe(reactor),
+		"recipe.make_filter_media",
+		"completed recipe follow-up should auto select next recommendation"
+	)
+	host._expect_equal(
+		reactor.get_current_recipe_id(),
+		"recipe.make_filter_media",
+		"completed recipe follow-up updates current recipe"
+	)
+	reactor.select_recipe("recipe.process_crystal_ore")
+	host._expect_equal(
+		game_root._maybe_select_followup_recipe(reactor),
+		"",
+		"completed recipe follow-up should not override later manual choice"
+	)
+	reactor.free()
+	game_root.free()

@@ -41,12 +41,48 @@ func update_quick_slot_binding_panel(
 
 
 func get_next_quick_slot_candidate(current_item_id: String, candidates: Array[String]) -> String:
+	return get_next_candidate(current_item_id, candidates)
+
+
+func get_next_candidate(current_item_id: String, candidates: Array[String]) -> String:
 	if candidates.is_empty():
 		return ""
 	var current_index := candidates.find(current_item_id)
 	if current_index < 0:
 		return candidates[0]
 	return candidates[(current_index + 1) % candidates.size()]
+
+
+func get_previous_candidate(current_item_id: String, candidates: Array[String]) -> String:
+	if candidates.is_empty():
+		return ""
+	var current_index := candidates.find(current_item_id)
+	if current_index < 0:
+		return candidates[0]
+	return candidates[posmod(current_index - 1, candidates.size())]
+
+
+func format_gm_resource_text(
+	data_registry: DataRegistry,
+	character_state: CharacterState,
+	definition_id: String
+) -> String:
+	if definition_id.is_empty():
+		return "资源：未选择"
+	return "资源：%s\nID：%s\n当前：%s" % [
+		_get_display_name(data_registry, definition_id),
+		definition_id,
+		_format_inventory_amount(character_state, definition_id)
+	]
+
+
+func format_gm_vitals_text(character_state: CharacterState) -> String:
+	return "状态：生命 %s / %s；防护 %s / %s" % [
+		_format_amount(character_state.health),
+		_format_amount(character_state.max_health),
+		_format_amount(character_state.protection),
+		_format_amount(character_state.max_protection)
+	]
 
 
 func _format_save_slot_details(summary: Dictionary) -> String:
@@ -89,6 +125,20 @@ func _format_quick_slot_binding(data_registry: DataRegistry, character_state: Ch
 		_get_display_name(data_registry, item_id),
 		int(character_state.inventory.items.get(item_id, 0))
 	]
+
+
+func _format_inventory_amount(character_state: CharacterState, definition_id: String) -> String:
+	if definition_id.begins_with("fluid."):
+		return "x%s" % _format_amount(float(character_state.inventory.fluids.get(definition_id, 0.0)))
+	if definition_id.begins_with("equipment."):
+		return "x%d" % int(character_state.inventory.equipment.get(definition_id, 0))
+	return "x%d" % int(character_state.inventory.items.get(definition_id, 0))
+
+
+func _format_amount(amount: float) -> String:
+	if is_equal_approx(amount, roundf(amount)):
+		return str(int(amount))
+	return "%.1f" % amount
 
 
 func _get_display_name(data_registry: DataRegistry, definition_id: String) -> String:

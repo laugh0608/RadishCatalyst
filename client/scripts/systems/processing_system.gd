@@ -30,7 +30,11 @@ func process_recipe(recipe_id: String, character_state: CharacterState, world_st
 
 	var missing_inputs := _get_missing_inputs(recipe, character_state.inventory)
 	if not missing_inputs.is_empty():
-		return _failure("缺少原料：%s。" % ", ".join(missing_inputs), "原料不足", "先采集资源或切换到输入已满足的配方。")
+		return _failure(
+			_format_missing_input_message(recipe, missing_inputs, character_state.inventory),
+			"原料不足",
+			_format_missing_input_next_step(recipe, character_state.inventory)
+		)
 
 	_consume_refs(recipe.get("inputs", []), character_state.inventory)
 	world_state.set_base_structure_status(structure_id, "in_progress", recipe_id)
@@ -118,7 +122,15 @@ func get_recipe_status(recipe_id: String, character_state: CharacterState, world
 	if not missing_structure.is_empty():
 		return _recipe_status(recipe, false, missing_structure, missing_inputs, {}, required_structure)
 	if not missing_inputs.is_empty():
-		return _recipe_status(recipe, false, "缺少原料：%s。" % ", ".join(missing_inputs), missing_inputs, {}, required_structure)
+		return _recipe_status(
+			recipe,
+			false,
+			"缺少原料：%s。" % ", ".join(missing_inputs),
+			missing_inputs,
+			{},
+			required_structure,
+			_format_missing_input_supply_hint(recipe, character_state.inventory)
+		)
 
 	return _recipe_status(recipe, true, "可加工。", [], {}, required_structure)
 
@@ -154,11 +166,120 @@ func get_recommended_recipe_id(
 				return _select_if_available(interactable, "recipe.repair_gel")
 			return ""
 		"quest.expand_treatment_point":
-			if character_state.inventory.has_ref("item.foundation_material", 2):
+			var pending_foundations := maxi(0, 2 - world_state.count_base_structures("building.foundation_t1"))
+			if _get_inventory_ref_amount("item.foundation_material", character_state.inventory) < pending_foundations:
+				return _select_if_available(interactable, "recipe.foundation_t1")
+			if world_state.has_base_structure_definition("building.pollution_filter"):
 				return ""
-			return _select_if_available(interactable, "recipe.foundation_t1")
+			if _get_build_cost_shortage("building.pollution_filter", "item.filter_media", character_state.inventory) > 0.0:
+				return _select_if_available(interactable, "recipe.make_filter_media")
+			if _get_build_cost_shortage("building.pollution_filter", "item.basic_parts", character_state.inventory) > 0.0:
+				return _select_if_available(interactable, "recipe.process_crystal_ore")
+			return ""
 		"quest.enter_pollution_edge":
 			return _select_if_available(interactable, "recipe.cleanse_residue")
+		"quest.assemble_phase_anchor":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_anchor", world_state)
+		"quest.analyze_deep_signal":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_signal_analysis", world_state)
+		"quest.refine_phase_filament":
+			return _select_if_available(interactable, "recipe.phase_filament_refining")
+		"quest.assemble_deep_override":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_override_key", world_state)
+		"quest.analyze_deep_core":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_core_imprint", world_state)
+		"quest.assemble_deep_signal_matrix":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_signal_matrix", world_state)
+		"quest.refine_phase_splinters":
+			if not character_state.inventory.has_ref("item.phase_lens_blank", 1):
+				return _select_if_available(interactable, "recipe.phase_splinter_refining")
+			if not character_state.inventory.has_ref("item.relay_tuning_lens", 1):
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.relay_tuning_lens", world_state)
+			return ""
+		"quest.tune_relay_lens":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.relay_tuning_lens", world_state)
+		"quest.analyze_inner_fault_trace":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.inner_fault_analysis", world_state)
+		"quest.refine_fault_residue":
+			if not character_state.inventory.has_ref("item.stabilized_fault_core", 1):
+				return _select_if_available(interactable, "recipe.fault_residue_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_key", 1):
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_key", world_state)
+			return ""
+		"quest.analyze_phase_well_locator":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_locator_analysis", world_state)
+		"quest.refine_well_flux":
+			if not character_state.inventory.has_ref("item.phase_well_stabilizer", 1):
+				return _select_if_available(interactable, "recipe.well_flux_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_probe", 1):
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_probe", world_state)
+			return ""
+		"quest.assemble_phase_well_probe":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_probe", world_state)
+		"quest.analyze_phase_well_core":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_core_analysis", world_state)
+		"quest.refine_well_ash":
+			if not character_state.inventory.has_ref("item.phase_well_lattice", 1):
+				return _select_if_available(interactable, "recipe.well_ash_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_pike", 1):
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_pike", world_state)
+			return ""
+		"quest.assemble_phase_well_pike":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_pike", world_state)
+		"quest.analyze_phase_well_heart":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_heart_analysis", world_state)
+		"quest.refine_heart_spine":
+			if not character_state.inventory.has_ref("item.phase_well_damper", 1):
+				return _select_if_available(interactable, "recipe.heart_spine_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_shunt", 1):
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_shunt", world_state)
+			return ""
+		"quest.assemble_phase_well_shunt":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_shunt", world_state)
+		"quest.analyze_phase_well_spindle":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_spindle_analysis", world_state)
+		"quest.refine_weft_bundle":
+			if not character_state.inventory.has_ref("item.phase_well_tension_rib", 1):
+				return _select_if_available(interactable, "recipe.weft_bundle_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_shuttle", 1):
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_shuttle", world_state)
+			return ""
+		"quest.assemble_phase_well_shuttle":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_shuttle", world_state)
+		"quest.analyze_phase_well_weave_core":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_weave_core_analysis", world_state)
+		"quest.refine_selvedge_strip":
+			if not character_state.inventory.has_ref("item.phase_well_frame_rib", 1):
+				return _select_if_available(interactable, "recipe.selvedge_strip_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_frame_key", 1):
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_frame_key", world_state)
+			return ""
+		"quest.assemble_phase_well_frame_key":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_frame_key", world_state)
+		"quest.analyze_phase_well_knot_core":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_knot_core_analysis", world_state)
+		"quest.refine_tether_fiber":
+			if not character_state.inventory.has_ref("item.phase_well_tether_rib", 1):
+				return _select_if_available(interactable, "recipe.tether_fiber_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_tether_spike", 1):
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_tether_spike", world_state)
+			return ""
+		"quest.assemble_phase_well_tether_spike":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_tether_spike", world_state)
+		"quest.analyze_phase_well_anchor_core":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_anchor_core_analysis", world_state)
+		"quest.refine_anchor_core_dust":
+			if not character_state.inventory.has_ref("item.anchor_field_filter", 1):
+				return _select_if_available(interactable, "recipe.anchor_core_dust_stabilization")
+			if not character_state.inventory.has_ref("item.phase_well_anchor_stake", 1):
+				return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_anchor_stake", world_state)
+			return ""
+		"quest.assemble_phase_well_anchor_stake":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_anchor_stake", world_state)
+		"quest.analyze_phase_well_echo_shard":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_echo_shard_analysis", world_state)
+		"quest.analyze_stability_echo_sample":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.stability_echo_report", world_state)
 		_:
 			return ""
 
@@ -201,7 +322,9 @@ func _format_last_completion_status(structure: Dictionary) -> String:
 func _get_completion_next_step(recipe_id: String) -> String:
 	match recipe_id:
 		"recipe.process_crystal_ore":
-			return "基础零件已可用于过滤模块、地基材料或修复凝胶；按 R 切换需要的配方。"
+			return "基础零件已补足；若当前任务还差更高阶配方，设备会自动切回对应配方，也可按 R 切换。"
+		"recipe.reclaim_basic_parts":
+			return "回收零件已补足；继续当前前线整备配方，或按 R 切回目标配方。"
 		"recipe.reactor_calibrator":
 			return "反应器采样通道已校准；前往异常晶体采样并回收周边残留物。"
 		"recipe.analyze_anomaly_sample":
@@ -216,6 +339,70 @@ func _get_completion_next_step(recipe_id: String) -> String:
 			return "把抗污染药剂留在快捷栏，继续采集沉积物并清理受扰敌人。"
 		"recipe.repair_gel":
 			return "把修复凝胶留在快捷栏，生命偏低时按 1 使用。"
+		"recipe.phase_anchor":
+			return "带着稳相信标返回遗迹外圈，在抖动雾幕前部署后再继续深入。"
+		"recipe.deep_signal_analysis":
+			return "带着更深遗迹坐标返回遗迹外圈最东侧，写入深段入口门禁。"
+		"recipe.phase_filament_refining":
+			return "把谐振滤芯、副产污染浆液和基础零件送到基础反应器，组装深段覆写栓。"
+		"recipe.deep_override_key":
+			return "带着深段覆写栓返回深段入口，覆写锁扣并取出样块。"
+		"recipe.deep_core_imprint":
+			return "带着深段路由印片返回深段阵列台，点亮第二轮导管回收线。"
+		"recipe.deep_signal_matrix":
+			return "深段第二轮读数已整理完成；返回深段固定点部署前线回传锚点，并准备从回投台重返前线。"
+		"recipe.phase_splinter_refining":
+			return "透镜胚片和副产污染浆液已筛出；继续这次远征整备，回基地基础反应器调准中继调谐镜。"
+		"recipe.relay_tuning_lens":
+			return "带着中继调谐镜返回更东侧裂相尖塔，逼出第一份内层故障轨迹。"
+		"recipe.inner_fault_analysis":
+			return "相位井坐标印片已整理完成；返回裂相尖塔更东侧，击退潜猎体并回收故障残渣。"
+		"recipe.fault_residue_stabilization":
+			return "稳定故障芯和副产污染浆液已筛出；继续这次井锁整备，回基地基础反应器组装相位井钥。"
+		"recipe.phase_well_key":
+			return "带着相位井钥返回更东侧相位井锁，钉住锁位并带回第一份定位器。"
+		"recipe.phase_well_locator_analysis":
+			return "相位井路由片已整理完成；继续向东进入新暴露的内层相位井边缘，击退哨戒体并回收井涌碎屑。"
+		"recipe.well_flux_stabilization":
+			return "稳流芯和副产污染浆液已筛出；继续这次探针整备，回基地基础反应器组装相位井探针。"
+		"recipe.phase_well_probe":
+			return "带着相位井探针返回更东侧内层相位井，读取第一份井芯样本。"
+		"recipe.phase_well_core_analysis":
+			return "相位井频谱片已整理完成；继续向东进入新暴露的井底裂口边缘，击退潜伏体并回收井壁余烬。"
+		"recipe.well_ash_stabilization":
+			return "稳相格和副产污染浆液已筛出；继续这次井底整备，回基地基础反应器组装井底穿钉。"
+		"recipe.phase_well_pike":
+			return "带着井底穿钉返回更东侧井底裂口，凿开裂口并带回第一份相位井心核。"
+		"recipe.phase_well_heart_analysis":
+			return "相位井脉搏片已整理完成；继续向东进入新暴露的井心室边缘，击退心室撕裂体并回收心棘残片。"
+		"recipe.heart_spine_stabilization":
+			return "抑振骨和副产污染浆液已筛出；继续这次井心整备，回基地基础反应器组装井心分流栓。"
+		"recipe.phase_well_shunt":
+			return "带着井心分流栓返回更东侧井心室断面，勘验断面并带回第一份相位井纺核。"
+		"recipe.phase_well_spindle_analysis":
+			return "相位井经片已整理完成；继续向东进入新暴露的井纺室边缘，击退井纺纠缠体并回收纬束残团。"
+		"recipe.weft_bundle_stabilization":
+			return "张力肋和副产污染浆液已筛出；继续这次井纺整备，回基地基础反应器组装井纺梭栓。"
+		"recipe.phase_well_shuttle":
+			return "带着井纺梭栓返回更东侧井纺室断面，勘验断面并带回第一份相位井织核。"
+		"recipe.phase_well_weave_core_analysis":
+			return "相位井纹谱片已整理完成；继续向东进入新暴露的井纹架边缘，击退井纹刮裂体并回收边缕残条。"
+		"recipe.selvedge_strip_stabilization":
+			return "井纹架肋和副产污染浆液已筛出；继续这次井纹架整备，回基地基础反应器组装井纹架键栓。"
+		"recipe.phase_well_frame_key":
+			return "带着井纹架键栓返回更东侧井纹架断面，勘验断面并带回第一份相位井结核。"
+		"recipe.phase_well_knot_core_analysis":
+			return "相位井系谱片已整理完成；继续向东进入新暴露的井系桥边缘，击退井系缚结体并回收系索残股。"
+		"recipe.tether_fiber_stabilization":
+			return "相位井系固肋和副产污染浆液已筛出；继续这次井系整备，回基地基础反应器组装井系定桩。"
+		"recipe.phase_well_tether_spike":
+			return "带着井系定桩返回更东侧井系桥断面，勘验断面并带回第一份相位井锚核。"
+		"recipe.phase_well_anchor_stake":
+			return "带着井系校锚桩返回井系桥东侧锚场回稳窗，部署后完成短守场并收束相位井余响片。"
+		"recipe.phase_well_echo_shard_analysis":
+			return "相位井稳窗读数已整理完成；回到井系桥东侧锚场回稳窗，可用稳定窗口在前线回充生命与防护。"
+		"recipe.stability_echo_report":
+			return "前线行动回报已归档；这条基地确认、前线读取、回基地解析的短行动闭环已完成。"
 		_:
 			return "查看当前任务目标，选择下一次加工或外出行动。"
 
@@ -230,6 +417,33 @@ func _format_in_progress_message(structure: Dictionary) -> String:
 		_format_amount(progress_seconds),
 		_format_amount(duration)
 	]
+
+
+func _format_missing_input_message(recipe: Dictionary, missing_inputs: Array[String], inventory: InventoryState) -> String:
+	var message := "缺少原料：%s。" % ", ".join(missing_inputs)
+	var supply_hint := _format_missing_input_supply_hint(recipe, inventory)
+	if not supply_hint.is_empty():
+		message += " 补给方向：%s" % supply_hint
+	return message
+
+
+func _format_missing_input_next_step(recipe: Dictionary, inventory: InventoryState) -> String:
+	var supply_hint := _format_missing_input_supply_hint(recipe, inventory)
+	if not supply_hint.is_empty():
+		return "补给方向：%s" % supply_hint
+	return "先采集资源或切换到输入已满足的配方。"
+
+
+func _format_missing_input_supply_hint(recipe: Dictionary, inventory: InventoryState) -> String:
+	if _get_recipe_input_shortage(recipe, "item.basic_parts", inventory) <= 0.0:
+		return ""
+	if data_registry.get_definition("recipe.process_crystal_ore").is_empty():
+		return "先检查前哨核心回收和阶段补给批次。"
+	if _get_inventory_ref_amount("fluid.polluted_slurry", inventory) >= 1.0:
+		return "先检查前哨核心回收和阶段补给批次；相位中继锚点部署后，也可切换到回收基础零件，把污染浆液回收成基础零件；若仍不足，去晶体矿脉区北侧富晶残脉采集晶体矿物。"
+	if _get_inventory_ref_amount("item.crystal_ore", inventory) >= 3.0:
+		return "先检查前哨核心回收和阶段补给批次；当前也可切换到处理晶体矿物，把晶体矿物加工成基础零件。"
+	return "先检查前哨核心回收和阶段补给批次；若仍不足，去晶体矿脉区北侧富晶残脉采集晶体矿物后加工成基础零件。"
 
 
 func _get_missing_inputs(recipe: Dictionary, inventory: InventoryState) -> Array[String]:
@@ -260,6 +474,82 @@ func _select_if_available(interactable: PrototypeInteractable, recipe_id: String
 	if interactable.has_recipe(recipe_id):
 		return recipe_id
 	return ""
+
+
+func _select_recipe_with_basic_parts_fallback(
+	interactable: PrototypeInteractable,
+	inventory: InventoryState,
+	target_recipe_id: String,
+	world_state: WorldState
+) -> String:
+	if _should_refill_basic_parts_before_recipe(target_recipe_id, inventory):
+		var refill_recipe_id := _select_basic_parts_refill_recipe(interactable, inventory, world_state)
+		if not refill_recipe_id.is_empty():
+			return refill_recipe_id
+	return _select_if_available(interactable, target_recipe_id)
+
+
+func _select_basic_parts_refill_recipe(
+	interactable: PrototypeInteractable,
+	inventory: InventoryState,
+	world_state: WorldState
+) -> String:
+	if _get_inventory_ref_amount("fluid.polluted_slurry", inventory) >= 1.0:
+		var reclaim_recipe_id := _select_if_available(interactable, "recipe.reclaim_basic_parts")
+		if not reclaim_recipe_id.is_empty():
+			var reclaim_recipe := data_registry.get_definition(reclaim_recipe_id)
+			if _get_recipe_lock_message(reclaim_recipe, world_state).is_empty():
+				return reclaim_recipe_id
+	return _select_if_available(interactable, "recipe.process_crystal_ore")
+
+
+func _should_refill_basic_parts_before_recipe(target_recipe_id: String, inventory: InventoryState) -> bool:
+	var recipe := data_registry.get_definition(target_recipe_id)
+	if recipe.is_empty():
+		return false
+	if _get_recipe_input_shortage(recipe, "item.basic_parts", inventory) <= 0.0:
+		return false
+	return _has_required_inputs_except(recipe, inventory, "item.basic_parts")
+
+
+func _get_recipe_input_shortage(recipe: Dictionary, definition_id: String, inventory: InventoryState) -> float:
+	for input_ref in recipe.get("inputs", []):
+		if not input_ref is Dictionary:
+			continue
+		if String(input_ref.get("id", "")) != definition_id:
+			continue
+		return maxf(0.0, float(input_ref.get("amount", 0.0)) - _get_inventory_ref_amount(definition_id, inventory))
+	return 0.0
+
+
+func _has_required_inputs_except(recipe: Dictionary, inventory: InventoryState, skipped_definition_id: String) -> bool:
+	for input_ref in recipe.get("inputs", []):
+		if not input_ref is Dictionary:
+			continue
+		var definition_id := String(input_ref.get("id", ""))
+		var amount := float(input_ref.get("amount", 0.0))
+		if definition_id.is_empty() or amount <= 0.0 or definition_id == skipped_definition_id:
+			continue
+		if _get_inventory_ref_amount(definition_id, inventory) < amount:
+			return false
+	return true
+
+
+func _get_build_cost_shortage(building_id: String, definition_id: String, inventory: InventoryState) -> float:
+	if building_id.is_empty() or definition_id.is_empty():
+		return 0.0
+
+	var building := data_registry.get_definition(building_id)
+	if building.is_empty():
+		return 0.0
+
+	for cost in building.get("build_cost", []):
+		if not cost is Dictionary:
+			continue
+		if String(cost.get("id", "")) != definition_id:
+			continue
+		return maxf(0.0, float(cost.get("amount", 0.0)) - _get_inventory_ref_amount(definition_id, inventory))
+	return 0.0
 
 
 func _get_active_structure_for_building(building_id: String, world_state: WorldState) -> Dictionary:
@@ -326,7 +616,8 @@ func _recipe_status(
 	message: String,
 	missing_inputs: Array[String],
 	active_structure: Dictionary = {},
-	required_structure: Dictionary = {}
+	required_structure: Dictionary = {},
+	supply_hint: String = ""
 ) -> Dictionary:
 	var active_recipe_id := String(active_structure.get("active_recipe_id", ""))
 	var active_recipe := data_registry.get_definition(active_recipe_id)
@@ -348,6 +639,7 @@ func _recipe_status(
 		"outputs": _format_refs(recipe.get("outputs", [])),
 		"byproducts": _format_refs(recipe.get("byproducts", []), ""),
 		"missing_inputs": missing_inputs,
+		"supply_hint": supply_hint,
 		"duration": _format_amount(duration),
 		"progress": progress,
 		"progress_ratio": progress_ratio
@@ -389,6 +681,8 @@ func _get_recipe_duration(recipe: Dictionary) -> float:
 func _get_inventory_ref_amount(definition_id: String, inventory: InventoryState) -> float:
 	if definition_id.begins_with("fluid."):
 		return float(inventory.fluids.get(definition_id, 0.0))
+	if definition_id.begins_with("equipment."):
+		return float(inventory.equipment.get(definition_id, 0))
 	return float(inventory.items.get(definition_id, 0))
 
 

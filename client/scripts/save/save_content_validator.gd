@@ -7,6 +7,10 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.crystal_cluster": "map_object.crystal_cluster",
 	"map_object_instance.crystal_cluster_east": "map_object.crystal_cluster",
 	"map_object_instance.crystal_cluster_south": "map_object.crystal_cluster",
+	"map_object_instance.crystal_cluster_reserve": "map_object.crystal_cluster",
+	"map_object_instance.crystal_cluster_west_reserve": "map_object.crystal_cluster",
+	"map_object_instance.crystal_cluster_north_east_reserve": "map_object.crystal_cluster",
+	"map_object_instance.rich_crystal_vein_north": "map_object.rich_crystal_vein",
 	"map_object_instance.field_wreckage_north": "map_object.field_wreckage",
 	"map_object_instance.field_wreckage_east": "map_object.field_wreckage",
 	"map_object_instance.anomaly_crystal": "map_object.anomaly_crystal",
@@ -19,7 +23,63 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.foundation_site_south": "building.foundation_t1",
 	"map_object_instance.pollution_filter_build_site": "building.pollution_filter",
 	"map_object_instance.pollution_filter": "building.pollution_filter",
-	"map_object_instance.ruin_gate": "map_object.ruin_gate"
+	"map_object_instance.ruin_gate": "map_object.ruin_gate",
+	"map_object_instance.relay_shard_cache_north": "map_object.relay_shard_cache",
+	"map_object_instance.relay_shard_cache_south": "map_object.relay_shard_cache",
+	"map_object_instance.outer_ring_barrier": "map_object.outer_ring_barrier",
+	"map_object_instance.outer_ring_console": "map_object.outer_ring_console",
+	"map_object_instance.signal_echo_cache": "map_object.signal_echo_cache",
+	"map_object_instance.deep_ruin_door": "map_object.deep_ruin_door",
+	"map_object_instance.phase_filament_cluster_north": "map_object.phase_filament_cluster",
+	"map_object_instance.phase_filament_cluster_south": "map_object.phase_filament_cluster",
+	"map_object_instance.deep_ruin_latch": "map_object.deep_ruin_latch",
+	"map_object_instance.deep_signal_array": "map_object.deep_signal_array",
+	"map_object_instance.phase_return_anchor": "map_object.phase_return_anchor",
+	"map_object_instance.phase_return_anchor_chamber": "map_object.phase_return_anchor",
+	"map_object_instance.phase_return_anchor_tether": "map_object.phase_return_anchor",
+	"map_object_instance.phase_relay_pad": "map_object.phase_relay_pad",
+	"map_object_instance.phase_conduit_cluster_north": "map_object.phase_conduit_cluster",
+	"map_object_instance.phase_conduit_cluster_south": "map_object.phase_conduit_cluster",
+	"map_object_instance.phase_splinter_cluster_north": "map_object.phase_splinter_cluster",
+	"map_object_instance.phase_splinter_cluster_south": "map_object.phase_splinter_cluster",
+	"map_object_instance.phase_splinter_resonance_west": "map_object.phase_splinter_resonance_node",
+	"map_object_instance.phase_splinter_resonance_east": "map_object.phase_splinter_resonance_node",
+	"map_object_instance.phase_fault_spire": "map_object.phase_fault_spire",
+	"map_object_instance.fault_residue_cluster_north": "map_object.fault_residue_cluster",
+	"map_object_instance.fault_residue_cluster_south": "map_object.fault_residue_cluster",
+	"map_object_instance.fault_residue_pulse_west": "map_object.fault_residue_pulse_node",
+	"map_object_instance.fault_residue_pulse_east": "map_object.fault_residue_pulse_node",
+	"map_object_instance.phase_well_lock": "map_object.phase_well_lock",
+	"map_object_instance.well_flux_cluster_north": "map_object.well_flux_cluster",
+	"map_object_instance.well_flux_cluster_south": "map_object.well_flux_cluster",
+	"map_object_instance.well_flux_pressure_vent_west": "map_object.well_flux_pressure_vent",
+	"map_object_instance.well_flux_pressure_vent_east": "map_object.well_flux_pressure_vent",
+	"map_object_instance.inner_phase_well": "map_object.inner_phase_well",
+	"map_object_instance.well_ash_cluster_north": "map_object.well_ash_cluster",
+	"map_object_instance.well_ash_cluster_south": "map_object.well_ash_cluster",
+	"map_object_instance.well_ash_crust_north": "map_object.well_ash_crust_blocker",
+	"map_object_instance.well_ash_crust_south": "map_object.well_ash_crust_blocker",
+	"map_object_instance.phase_well_sink": "map_object.phase_well_sink",
+	"map_object_instance.heart_spine_cluster_north": "map_object.heart_spine_cluster",
+	"map_object_instance.heart_spine_cluster_south": "map_object.heart_spine_cluster",
+	"map_object_instance.phase_well_chamber": "map_object.phase_well_chamber",
+	"map_object_instance.weft_bundle_cluster_north": "map_object.weft_bundle_cluster",
+	"map_object_instance.weft_bundle_cluster_south": "map_object.weft_bundle_cluster",
+	"map_object_instance.phase_well_loom": "map_object.phase_well_loom",
+	"map_object_instance.phase_well_frame_route_north": "map_object.phase_well_frame_route_blocker",
+	"map_object_instance.phase_well_frame_route_south": "map_object.phase_well_frame_route_blocker",
+	"map_object_instance.selvedge_strip_cluster_north": "map_object.selvedge_strip_cluster",
+	"map_object_instance.selvedge_strip_cluster_south": "map_object.selvedge_strip_cluster",
+	"map_object_instance.phase_well_frame": "map_object.phase_well_frame",
+	"map_object_instance.tether_fiber_cluster_north": "map_object.tether_fiber_cluster",
+	"map_object_instance.tether_fiber_cluster_south": "map_object.tether_fiber_cluster",
+	"map_object_instance.phase_well_tether": "map_object.phase_well_tether",
+	"map_object_instance.phase_well_anchor_field": "map_object.phase_well_anchor_field",
+	"map_object_instance.phase_well_stability_node_west": "map_object.phase_well_stability_node_west",
+	"map_object_instance.phase_well_stability_node_core": "map_object.phase_well_stability_node_core",
+	"map_object_instance.phase_well_stability_node_east": "map_object.phase_well_stability_node_east",
+	"map_object_instance.frontline_action_console": "map_object.frontline_action_console",
+	"map_object_instance.stability_echo_probe": "map_object.stability_echo_probe"
 }
 
 const PROTOTYPE_ENEMY_SOURCES := {
@@ -38,6 +98,54 @@ const PROTOTYPE_ENEMY_SOURCES := {
 	"enemy_instance.elite_residue_node": {
 		"definition_id": "enemy.elite_residue_node",
 		"region_id": "region.pollution_edge"
+	},
+	"enemy_instance.ruin_phase_guard": {
+		"definition_id": "enemy.ruin_phase_guard",
+		"region_id": "region.ruin_outer_ring"
+	},
+	"enemy_instance.deep_ruin_sentinel": {
+		"definition_id": "enemy.deep_ruin_sentinel",
+		"region_id": "region.deep_ruin_threshold"
+	},
+	"enemy_instance.deep_ruin_stalker": {
+		"definition_id": "enemy.deep_ruin_stalker",
+		"region_id": "region.deep_ruin_threshold"
+	},
+	"enemy_instance.deep_fault_hunter": {
+		"definition_id": "enemy.deep_fault_hunter",
+		"region_id": "region.deep_ruin_threshold"
+	},
+	"enemy_instance.inner_fault_stalker": {
+		"definition_id": "enemy.inner_fault_stalker",
+		"region_id": "region.deep_ruin_threshold"
+	},
+	"enemy_instance.phase_well_sentry": {
+		"definition_id": "enemy.phase_well_sentry",
+		"region_id": "region.inner_phase_well"
+	},
+	"enemy_instance.phase_well_lurker": {
+		"definition_id": "enemy.phase_well_lurker",
+		"region_id": "region.phase_well_sink"
+	},
+	"enemy_instance.phase_well_reaver": {
+		"definition_id": "enemy.phase_well_reaver",
+		"region_id": "region.phase_well_chamber"
+	},
+	"enemy_instance.phase_well_tangler": {
+		"definition_id": "enemy.phase_well_tangler",
+		"region_id": "region.phase_well_loom"
+	},
+	"enemy_instance.phase_well_raker": {
+		"definition_id": "enemy.phase_well_raker",
+		"region_id": "region.phase_well_frame"
+	},
+	"enemy_instance.phase_well_binder": {
+		"definition_id": "enemy.phase_well_binder",
+		"region_id": "region.phase_well_tether"
+	},
+	"enemy_instance.phase_well_warden": {
+		"definition_id": "enemy.phase_well_warden",
+		"region_id": "region.phase_well_tether"
 	}
 }
 
@@ -71,7 +179,12 @@ const MAP_OBJECT_ALLOWED_FIELDS := [
 	"is_sampled",
 	"is_cleared",
 	"is_built",
-	"built_definition_id"
+	"built_definition_id",
+	"anchor_field_deployed",
+	"anchor_field_pressure_active",
+	"anchor_field_pressure_cleared",
+	"anchor_field_stabilized",
+	"stability_node_calibrated"
 ]
 
 const ENEMY_ALLOWED_FIELDS := [
@@ -113,6 +226,15 @@ const DEFAULT_UNLOCKED_REGION_IDS: Array[String] = ["region.outpost_platform"]
 const LEGACY_OBJECTIVE_PROGRESS_KEYS: Array[String] = [
 	"quest.bring_back_sample|return_region|region.outpost_platform"
 ]
+const LEGACY_OPTIONAL_COMPLETED_QUEST_EFFECTS := {
+	"quest.inspect_phase_fault_spire": ["recipe.inner_fault_analysis"],
+	"quest.unlock_phase_well": ["recipe.phase_well_locator_analysis"],
+	"quest.inspect_inner_phase_well": ["recipe.phase_well_core_analysis"],
+	"quest.inspect_phase_well_sink": ["recipe.phase_well_heart_analysis"],
+	"quest.inspect_phase_well_chamber": ["recipe.phase_well_spindle_analysis"],
+	"quest.inspect_phase_well_loom": ["recipe.phase_well_weave_core_analysis"],
+	"quest.inspect_phase_well_frame": ["recipe.phase_well_knot_core_analysis"]
+}
 
 var data_registry: DataRegistry
 
@@ -169,6 +291,25 @@ func _validate_world_content(world_data: Dictionary) -> String:
 			var pollution_value = pollution_levels[region_id]
 			if not _is_number(pollution_value) or float(pollution_value) < 0.0:
 				return "读取存档失败：world.pollution_levels 中存在无效污染值，当前运行状态已保留。"
+
+	var deployed_phase_relay_anchor_ids = world_data.get("deployed_phase_relay_anchor_ids", [])
+	if deployed_phase_relay_anchor_ids is Array:
+		for deployed_anchor_entry in deployed_phase_relay_anchor_ids:
+			var deployed_anchor_id := String(deployed_anchor_entry)
+			if not deployed_anchor_id.begins_with("map_object_instance."):
+				return "读取存档失败：world.deployed_phase_relay_anchor_ids 使用了无效实例 ID，当前运行状态已保留。"
+			if not PROTOTYPE_MAP_OBJECT_SOURCES.has(deployed_anchor_id):
+				return "读取存档失败：world.deployed_phase_relay_anchor_ids 没有匹配的原型地图对象来源，当前运行状态已保留。"
+
+	var active_phase_relay_anchor_id := String(world_data.get("active_phase_relay_anchor_id", ""))
+	if not active_phase_relay_anchor_id.is_empty():
+		if not active_phase_relay_anchor_id.begins_with("map_object_instance."):
+			return "读取存档失败：world.active_phase_relay_anchor_id 使用了无效实例 ID，当前运行状态已保留。"
+		if not PROTOTYPE_MAP_OBJECT_SOURCES.has(active_phase_relay_anchor_id):
+			return "读取存档失败：world.active_phase_relay_anchor_id 没有匹配的原型地图对象来源，当前运行状态已保留。"
+		if deployed_phase_relay_anchor_ids is Array and not deployed_phase_relay_anchor_ids.is_empty():
+			if not deployed_phase_relay_anchor_ids.has(active_phase_relay_anchor_id):
+				return "读取存档失败：world.active_phase_relay_anchor_id 没有包含在已部署锚点列表中，当前运行状态已保留。"
 
 	var map_objects_error := _validate_runtime_object_map(world_data.get("map_objects", {}), ["map_object.", "building."], "map_object_instance.", "world.map_objects")
 	if not map_objects_error.is_empty():
@@ -631,6 +772,8 @@ func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[Strin
 		for effect_id in quest.get("unlock_effects", []):
 			var id := String(effect_id)
 			if not unlocked_effects.has(id):
+				if _is_legacy_optional_completed_quest_effect(quest_id, id):
+					continue
 				return "读取存档失败：quest_state.unlocked_effects 缺少已完成任务声明的解锁效果，当前运行状态已保留。"
 			if id.begins_with("region.") and not unlocked_region_ids.has(id):
 				return "读取存档失败：world.unlocked_region_ids 缺少已完成任务声明的区域解锁结果，当前运行状态已保留。"
@@ -648,6 +791,16 @@ func _is_effect_unlocked_by_completed_quest(effect_id: String, completed_quest_i
 		for quest_effect in quest.get("unlock_effects", []):
 			if String(quest_effect) == effect_id:
 				return true
+	return false
+
+
+func _is_legacy_optional_completed_quest_effect(quest_id: String, effect_id: String) -> bool:
+	if not LEGACY_OPTIONAL_COMPLETED_QUEST_EFFECTS.has(quest_id):
+		return false
+	var optional_effects: Array = LEGACY_OPTIONAL_COMPLETED_QUEST_EFFECTS[quest_id]
+	for optional_effect in optional_effects:
+		if String(optional_effect) == effect_id:
+			return true
 	return false
 
 
@@ -766,6 +919,16 @@ func _validate_inventory_content(value, label: String) -> String:
 			var item_amount = items[item_id]
 			if not _is_whole_number(item_amount) or int(item_amount) < 0:
 				return "读取存档失败：%s.items 中存在无效数量，当前运行状态已保留。" % label
+
+	var equipment = value.get("equipment", {})
+	if equipment is Dictionary:
+		for equipment_id in equipment:
+			var equipment_error := _validate_definition_ref(String(equipment_id), "equipment.", "%s.equipment" % label)
+			if not equipment_error.is_empty():
+				return equipment_error
+			var equipment_amount = equipment[equipment_id]
+			if not _is_whole_number(equipment_amount) or int(equipment_amount) < 0:
+				return "读取存档失败：%s.equipment 中存在无效数量，当前运行状态已保留。" % label
 
 	var fluids = value.get("fluids", {})
 	if fluids is Dictionary:

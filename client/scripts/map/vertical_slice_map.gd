@@ -1,58 +1,146 @@
 extends Node2D
 class_name VerticalSliceMap
-
 signal interaction_available(interactable: PrototypeInteractable)
 signal interaction_cleared(interactable: PrototypeInteractable)
 signal region_changed(region_id: String)
 signal region_gate_blocked(message: String)
-
 const ATTACK_RANGE := 90.0
 const BASE_ATTACK_DAMAGE := 10.0
 const PLAYER_INTERACTION_RANGE := 96.0
 const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
 const OUTPOST_RESPAWN_POSITION := Vector2(-250, -48)
 const PLAY_BOUNDS_MIN := Vector2(-360, -200)
-const PLAY_BOUNDS_MAX := Vector2(360, 200)
+const PLAY_BOUNDS_MAX := Vector2(3600, 200)
+const CAMERA_BOUNDS_MIN := Vector2(-620, -360)
+const CAMERA_BOUNDS_MAX := Vector2(3620, 360)
 const CRYSTAL_REGION_X := -70.0
 const CRYSTAL_GATE_RETURN_X := -85.0
 const POLLUTION_REGION_X := 200.0
 const POLLUTION_GATE_X := 220.0
 const POLLUTION_DEEP_Y := -40.0
 const POLLUTION_GATE_RETURN_X := 195.0
-
+const RUIN_OUTER_RING_X := 390.0
+const RUIN_GATE_RETURN_X := 355.0
+const OUTER_RING_BARRIER_X := 540.0
+const OUTER_RING_BARRIER_RETURN_X := 514.0
+const DEEP_RUIN_REGION_X := 700.0
+const INNER_PHASE_WELL_REGION_X := 1460.0
+const PHASE_WELL_SINK_REGION_X := 1760.0
+const PHASE_WELL_CHAMBER_REGION_X := 2040.0
+const PHASE_WELL_LOOM_REGION_X := 2320.0
+const PHASE_WELL_FRAME_REGION_X := 2600.0
+const PHASE_WELL_TETHER_REGION_X := 2880.0
+const DEEP_RUIN_GATE_RETURN_X := 676.0
+const INNER_PHASE_WELL_GATE_RETURN_X := 1432.0
+const PHASE_WELL_SINK_GATE_RETURN_X := 1732.0
+const PHASE_WELL_CHAMBER_GATE_RETURN_X := 2012.0
+const PHASE_WELL_LOOM_GATE_RETURN_X := 2292.0
+const PHASE_WELL_FRAME_GATE_RETURN_X := 2572.0
+const PHASE_WELL_TETHER_GATE_RETURN_X := 2852.0
+const PHASE_RELAY_PAD_FALLBACK_POSITION := Vector2(-210, -40)
+const PHASE_RETURN_ANCHOR_FALLBACK_POSITION := Vector2(852, 92)
+const INTERACTABLE_QUEST_GATES := {
+	"map_object.phase_conduit_cluster": "quest.activate_deep_array",
+	"map_object.phase_return_anchor": "quest.deploy_phase_relay_anchor",
+	"map_object.phase_splinter_cluster": "quest.trace_phase_splinters",
+	"map_object.phase_splinter_resonance_node": "quest.trace_phase_splinters",
+	"map_object.fault_residue_cluster": "quest.collect_fault_residue",
+	"map_object.fault_residue_pulse_node": "quest.collect_fault_residue",
+	"map_object.phase_fault_spire": "quest.inspect_phase_fault_spire",
+	"map_object.phase_well_lock": "quest.unlock_phase_well",
+	"map_object.well_flux_cluster": "quest.collect_well_flux",
+	"map_object.well_flux_pressure_vent": "quest.collect_well_flux",
+	"map_object.inner_phase_well": "quest.inspect_inner_phase_well",
+	"map_object.well_ash_cluster": "quest.collect_well_ash",
+	"map_object.well_ash_crust_blocker": "quest.collect_well_ash",
+	"map_object.phase_well_sink": "quest.inspect_phase_well_sink",
+	"map_object.phase_well_chamber_shunt_node": "quest.collect_heart_spine",
+	"map_object.heart_spine_cluster": "quest.collect_heart_spine",
+	"map_object.phase_well_chamber": "quest.inspect_phase_well_chamber",
+	"map_object.phase_well_loom_tension_spool": "quest.collect_weft_bundle",
+	"map_object.weft_bundle_cluster": "quest.collect_weft_bundle",
+	"map_object.phase_well_loom": "quest.inspect_phase_well_loom",
+	"map_object.phase_well_frame_route_blocker": "quest.collect_selvedge_strip",
+	"map_object.selvedge_strip_cluster": "quest.collect_selvedge_strip",
+	"map_object.phase_well_frame": "quest.inspect_phase_well_frame",
+	"map_object.phase_well_tether_knot_node": "quest.collect_tether_fiber",
+	"map_object.tether_fiber_cluster": "quest.collect_tether_fiber",
+	"map_object.phase_well_tether": "quest.inspect_phase_well_tether",
+	"map_object.phase_well_anchor_pressure_pin": "quest.stabilize_phase_well_anchor_field",
+	"map_object.frontline_action_console": "quest.plan_stability_frontline_action",
+	"map_object.stability_echo_probe": "quest.survey_stability_echo_probe"
+}
 @onready var player: PlayerController = $Player
 @onready var interactables_root: Node2D = $Interactables
 @onready var enemies_root: Node2D = $Enemies
-
 var data_registry: DataRegistry
 var current_interactable: PrototypeInteractable
 var gather_system: GatherSystem
+var phase_well_frontier_runtime: PhaseWellFrontierRuntime
 var last_reported_region_id := "region.outpost_platform"
 var last_gate_message := ""
-
-
 func setup(registry: DataRegistry) -> void:
 	data_registry = registry
 	gather_system = GatherSystem.new(data_registry)
+	phase_well_frontier_runtime = PhaseWellFrontierRuntime.new(data_registry)
 	_setup_interactable_labels()
 	_setup_enemy_labels()
-
-
 func _ready() -> void:
 	for interactable in interactables_root.get_children():
 		if interactable is PrototypeInteractable:
 			interactable.body_entered.connect(_on_interactable_body_entered.bind(interactable))
 			interactable.body_exited.connect(_on_interactable_body_exited.bind(interactable))
-
-
 func try_interact(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if current_interactable == null:
 		return _failure("附近没有可交互目标。", "交互未执行", "靠近带名称的目标，等待交互提示出现后再按 E。")
-
 	var interacted := current_interactable
 	if interacted.definition_id == "map_object.ruin_gate" and interacted.interaction_type == "inspect":
 		return _inspect_ruin_gate(world_state)
-
+	if interacted.definition_id == "map_object.outer_ring_barrier" and interacted.interaction_type == "inspect":
+		return _inspect_outer_ring_barrier(character_state, world_state)
+	if interacted.definition_id == "map_object.outer_ring_console" and interacted.interaction_type == "inspect":
+		return _inspect_outer_ring_console(world_state)
+	if interacted.definition_id == "map_object.signal_echo_cache" and interacted.interaction_type == "inspect":
+		return _inspect_signal_echo_cache(world_state)
+	if interacted.definition_id == "map_object.deep_ruin_door" and interacted.interaction_type == "inspect":
+		return _inspect_deep_ruin_door(character_state, world_state)
+	if interacted.definition_id == "map_object.deep_ruin_latch" and interacted.interaction_type == "inspect":
+		return _inspect_deep_ruin_latch(character_state, world_state)
+	if interacted.definition_id == "map_object.deep_signal_array" and interacted.interaction_type == "inspect":
+		return _inspect_deep_signal_array(character_state, world_state)
+	if interacted.definition_id == "map_object.phase_return_anchor" and interacted.interaction_type == "inspect":
+		return _inspect_phase_return_anchor(character_state, world_state)
+	if interacted.definition_id == "map_object.phase_relay_pad" and interacted.interaction_type == "inspect":
+		return _inspect_phase_relay_pad(character_state, world_state)
+	if interacted.definition_id == "map_object.phase_fault_spire" and interacted.interaction_type == "inspect":
+		return _inspect_phase_fault_spire(character_state, world_state)
+	if interacted.definition_id == "map_object.phase_well_lock" and interacted.interaction_type == "inspect":
+		return _inspect_phase_well_lock(character_state, world_state)
+	if interacted.definition_id == "map_object.inner_phase_well" and interacted.interaction_type == "inspect":
+		return _inspect_inner_phase_well(character_state, world_state)
+	if interacted.definition_id == "map_object.phase_well_sink" and interacted.interaction_type == "inspect":
+		return _inspect_phase_well_sink(character_state, world_state)
+	if interacted.definition_id == "map_object.phase_well_chamber" and interacted.interaction_type == "inspect":
+		return phase_well_frontier_runtime.inspect_chamber(character_state, world_state)
+	if interacted.definition_id == "map_object.phase_well_loom" and interacted.interaction_type == "inspect":
+		return phase_well_frontier_runtime.inspect_loom(character_state, world_state)
+	if interacted.definition_id == "map_object.phase_well_frame" and interacted.interaction_type == "inspect":
+		return phase_well_frontier_runtime.inspect_frame(character_state, world_state)
+	if interacted.definition_id == "map_object.phase_well_tether" and interacted.interaction_type == "inspect":
+		return phase_well_frontier_runtime.inspect_tether(character_state, world_state)
+	if interacted.definition_id == "map_object.phase_well_anchor_field" and interacted.interaction_type == "inspect":
+		return phase_well_frontier_runtime.inspect_anchor_field(character_state, world_state)
+	if (
+		interacted.interaction_type == "inspect"
+		and phase_well_frontier_runtime != null
+		and phase_well_frontier_runtime.is_stability_calibration_node(interacted.definition_id)
+	):
+		return phase_well_frontier_runtime.inspect_stability_calibration_node(
+			interacted.instance_id,
+			interacted.definition_id,
+			character_state,
+			world_state
+		)
 	var action_id := interacted.get_current_recipe_id()
 	if interacted.interaction_type == "build":
 		action_id = interacted.prerequisite_instance_id
@@ -74,18 +162,19 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		result["message"] = "%s%s" % [String(result.get("message", "")), String(evacuation_feedback.get("log_message", ""))]
 		result["evacuation_feedback"] = evacuation_feedback
 	return result
-
-
 func refresh_world_interactables(world_state: WorldState) -> void:
+	if phase_well_frontier_runtime != null:
+		phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
 			continue
-
 		var object_state := world_state.get_map_object(interactable.instance_id)
 		var is_processed := false
 		if interactable.interaction_type == "gather":
 			is_processed = bool(object_state.get("is_gathered", false))
 		if interactable.interaction_type == "sample":
+			is_processed = bool(object_state.get("is_sampled", false))
+		if interactable.interaction_type == "inspect":
 			is_processed = bool(object_state.get("is_sampled", false))
 		if interactable.interaction_type == "clear":
 			is_processed = bool(object_state.get("is_cleared", false))
@@ -97,7 +186,6 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 					current_interactable = null
 					interaction_cleared.emit(interactable)
 				continue
-
 		if interactable.single_use:
 			interactable.consumed = is_processed
 		if interactable.interaction_type == "outpost_core":
@@ -113,6 +201,158 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 					interaction_cleared.emit(interactable)
 				continue
 			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.outer_ring_barrier":
+			if world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier"):
+				interactable.set_stabilized_barrier_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.outer_ring_console":
+			if world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
+				interactable.set_secured_console_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.signal_echo_cache":
+			if world_state.quest_state.has_completed_quest("quest.salvage_signal_echo"):
+				interactable.set_recovered_signal_echo_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.deep_ruin_door":
+			if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_entrance"):
+				interactable.set_opened_deep_ruin_door_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.deep_ruin_latch":
+			if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_cache"):
+				interactable.set_overridden_deep_ruin_latch_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.deep_signal_array":
+			if world_state.quest_state.has_completed_quest("quest.activate_deep_array"):
+				interactable.set_activated_deep_signal_array_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.phase_return_anchor":
+			if world_state.is_active_phase_relay_anchor(interactable.instance_id):
+				interactable.set_deployed_phase_return_anchor_visual(true)
+				continue
+			if world_state.has_deployed_phase_relay_anchor(interactable.instance_id):
+				interactable.set_deployed_phase_return_anchor_visual(false)
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.phase_relay_pad":
+			if world_state.has_active_phase_relay_anchor():
+				interactable.set_ready_phase_relay_pad_visual(
+					world_state.get_deployed_phase_relay_anchor_count() > 1
+				)
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.phase_fault_spire":
+			if world_state.quest_state.has_completed_quest("quest.inspect_phase_fault_spire"):
+				interactable.set_tuned_phase_fault_spire_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.phase_well_lock":
+			if world_state.quest_state.has_completed_quest("quest.unlock_phase_well"):
+				interactable.set_stabilized_phase_well_lock_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.inner_phase_well":
+			if world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well"):
+				interactable.set_stabilized_inner_phase_well_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.phase_well_sink":
+			if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_sink"):
+				interactable.set_stabilized_phase_well_sink_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.phase_well_chamber":
+			if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_chamber"):
+				interactable.set_stabilized_phase_well_chamber_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.phase_well_loom":
+			if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_loom"):
+				interactable.set_stabilized_phase_well_loom_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.phase_well_frame":
+			if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_frame"):
+				interactable.set_stabilized_phase_well_frame_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.phase_well_tether":
+			if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_tether"):
+				interactable.set_stabilized_phase_well_tether_visual()
+				if current_interactable == interactable:
+					current_interactable = null
+					interaction_cleared.emit(interactable)
+				continue
+			interactable.set_default_visual()
+		elif interactable.definition_id == "map_object.phase_well_anchor_field":
+			if phase_well_frontier_runtime == null:
+				interactable.set_default_visual()
+			elif phase_well_frontier_runtime.is_anchor_field_stabilized(world_state):
+				interactable.set_stabilized_phase_well_anchor_field_visual()
+			elif phase_well_frontier_runtime.is_anchor_field_pressure_cleared(world_state):
+				interactable.set_ready_phase_well_anchor_field_visual()
+			elif phase_well_frontier_runtime.is_anchor_field_deployed(world_state):
+				interactable.set_deployed_phase_well_anchor_field_visual()
+			else:
+				interactable.set_default_visual()
+		elif (
+			phase_well_frontier_runtime != null
+			and phase_well_frontier_runtime.is_stability_calibration_node(interactable.definition_id)
+		):
+			if phase_well_frontier_runtime.is_stability_node_calibrated(
+				world_state,
+				interactable.instance_id,
+				interactable.definition_id
+			):
+				interactable.set_calibrated_stability_node_visual()
+			elif phase_well_frontier_runtime.is_stability_calibration_ready(world_state, interactable.definition_id):
+				interactable.set_ready_stability_calibration_visual()
+			else:
+				interactable.set_default_visual()
 		elif is_processed and interactable.set_processed_visual():
 			if current_interactable == interactable:
 				current_interactable = null
@@ -120,35 +360,121 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			continue
 		elif not is_processed:
 			interactable.set_default_visual()
-
 		var should_enable: bool = not interactable.consumed
 		if interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter":
 			should_enable = should_enable and world_state.has_base_structure_definition("building.pollution_filter")
-
+		if INTERACTABLE_QUEST_GATES.has(interactable.definition_id):
+			var gate_quest_id := String(INTERACTABLE_QUEST_GATES[interactable.definition_id])
+			should_enable = should_enable and (
+				world_state.quest_state.has_active_quest(gate_quest_id)
+				or world_state.quest_state.has_completed_quest(gate_quest_id)
+			)
+		if interactable.definition_id == "map_object.phase_well_frame_route_blocker":
+			should_enable = (
+				should_enable
+				and world_state.quest_state.has_active_quest("quest.collect_selvedge_strip")
+			)
+		if interactable.definition_id == "map_object.heart_spine_cluster":
+			should_enable = (
+				should_enable
+				and (
+					_has_phase_well_field_readings(
+						world_state,
+						"quest.collect_heart_spine",
+						"inspect",
+						"map_object.phase_well_chamber_shunt_node",
+						2
+					)
+					or world_state.quest_state.has_completed_quest("quest.collect_heart_spine")
+				)
+			)
+		if interactable.definition_id == "map_object.weft_bundle_cluster":
+			should_enable = (
+				should_enable
+				and (
+					_has_phase_well_field_readings(
+						world_state,
+						"quest.collect_weft_bundle",
+						"inspect",
+						"map_object.phase_well_loom_tension_spool",
+						2
+					)
+					or world_state.quest_state.has_completed_quest("quest.collect_weft_bundle")
+				)
+			)
+		if interactable.definition_id == "map_object.selvedge_strip_cluster":
+			should_enable = (
+				should_enable
+				and (
+					_has_phase_well_frame_route_cleared(world_state)
+					or world_state.quest_state.has_completed_quest("quest.collect_selvedge_strip")
+				)
+			)
+		if interactable.definition_id == "map_object.tether_fiber_cluster":
+			should_enable = (
+				should_enable
+				and (
+					_has_phase_well_field_readings(
+						world_state,
+						"quest.collect_tether_fiber",
+						"inspect",
+						"map_object.phase_well_tether_knot_node",
+						2
+					)
+					or world_state.quest_state.has_completed_quest("quest.collect_tether_fiber")
+				)
+			)
+		if interactable.definition_id == "map_object.phase_well_anchor_pressure_pin":
+			should_enable = (
+				should_enable
+				and phase_well_frontier_runtime != null
+				and world_state.quest_state.has_active_quest("quest.stabilize_phase_well_anchor_field")
+				and phase_well_frontier_runtime.is_anchor_field_deployed(world_state)
+				and not phase_well_frontier_runtime.is_anchor_field_stabilized(world_state)
+			)
+		if interactable.definition_id == "map_object.rich_crystal_vein":
+			should_enable = should_enable and world_state.quest_state.has_completed_quest("quest.scout_crystal_field")
+		if interactable.definition_id == "map_object.phase_relay_pad":
+			should_enable = should_enable and world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor")
+		if interactable.definition_id == "map_object.phase_well_anchor_field":
+			should_enable = should_enable and phase_well_frontier_runtime != null and (
+				world_state.quest_state.has_active_quest("quest.stabilize_phase_well_anchor_field")
+				or world_state.quest_state.has_completed_quest("quest.stabilize_phase_well_anchor_field")
+				or world_state.quest_state.has_completed_quest("quest.refine_anchor_core_dust") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_anchor_stake")
+			)
+		if (
+			phase_well_frontier_runtime != null
+			and phase_well_frontier_runtime.is_stability_calibration_node(interactable.definition_id)
+		):
+			should_enable = (
+				world_state.quest_state.has_active_quest("quest.calibrate_phase_well_stability_window")
+				or world_state.quest_state.has_completed_quest("quest.calibrate_phase_well_stability_window")
+			)
 		interactable.set_interaction_enabled(should_enable)
 		if current_interactable == interactable and not should_enable:
 			current_interactable = null
 			interaction_cleared.emit(interactable)
 	update_current_interactable()
-
-
 func update_current_interactable() -> void:
 	var nearest_interactable := _get_nearest_interactable()
 	if nearest_interactable == current_interactable:
 		return
-
 	var previous_interactable := current_interactable
 	current_interactable = nearest_interactable
 	if previous_interactable != null:
 		interaction_cleared.emit(previous_interactable)
 	if current_interactable != null:
 		interaction_available.emit(current_interactable)
-
-
-func try_cycle_recipe() -> Dictionary:
+func try_cycle_recipe(world_state: WorldState = null) -> Dictionary:
 	if current_interactable == null:
+		if _has_nearby_phase_relay_pad():
+			return _cycle_phase_relay_anchor(world_state)
 		return _failure("附近没有可切换配方的设备。", "配方未切换", "靠近基础反应器等加工设备后再按 R。")
+	if current_interactable.definition_id == "map_object.phase_relay_pad":
+		return _cycle_phase_relay_anchor(world_state)
 	if current_interactable.interaction_type != "process_recipe":
+		if _has_nearby_phase_relay_pad():
+			return _cycle_phase_relay_anchor(world_state)
 		return _failure("当前目标不是加工设备。", "配方未切换", "靠近基础反应器或污染过滤器后再切换配方。")
 	if current_interactable.get_recipe_count() <= 1:
 		return _failure("当前设备没有可轮换配方。", "配方未切换", "该设备只有一个配方，直接按 E 尝试加工。")
@@ -162,8 +488,18 @@ func try_cycle_recipe() -> Dictionary:
 			current_interactable.get_recipe_count()
 		]
 	}
-
-
+func _cycle_phase_relay_anchor(world_state: WorldState) -> Dictionary:
+	if world_state == null:
+		return _failure("相位回投台当前没有运行时状态。", "锚点未切换", "重新进入地图后再尝试切换前线落点。")
+	if not world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor"):
+		return _failure("相位回投台仍未接入前线锚点。", "锚点未切换", "先在深段部署前线回传锚点。")
+	if world_state.get_deployed_phase_relay_anchor_count() <= 1:
+		return _failure("当前只有一个已部署锚点。", "锚点未切换", "继续向东推进并校准新的前线锚点后，再按 R 切换。")
+	var active_anchor_id := world_state.cycle_active_phase_relay_anchor()
+	return {
+		"success": true,
+		"message": "当前回投落点已切换到 %s；按 E 可直接回投。" % _get_phase_relay_anchor_label(active_anchor_id)
+	}
 func try_attack(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var target := _get_nearest_attack_target()
 	if target == null:
@@ -183,6 +519,117 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 			return {
 				"success": true,
 				"message": "击败：%s。%s污染处理点周边暂时安全。" % [
+					target.display_name,
+					drops_message
+				],
+				"enemy_definition_id": target.definition_id,
+				"enemy_defeated": true
+			}
+		if target.definition_id == "enemy.ruin_phase_guard":
+			return {
+				"success": true,
+				"message": "击败：%s。%s外圈回波匣附近的干扰守卫已清空。" % [
+					target.display_name,
+					drops_message
+				],
+				"enemy_definition_id": target.definition_id,
+				"enemy_defeated": true
+			}
+		if target.definition_id == "enemy.deep_ruin_sentinel":
+			return {
+				"success": true,
+				"message": "击败：%s。%s深段锁扣前的压制守卫已清空，相位纤丝回收线已打开。" % [
+					target.display_name,
+					drops_message
+				],
+				"enemy_definition_id": target.definition_id,
+				"enemy_defeated": true
+			}
+		if target.definition_id == "enemy.deep_ruin_stalker":
+			return {
+				"success": true,
+				"message": "击败：%s。%s深段阵列后的追袭线已清空，相位导管回收窗口已打开。" % [
+					target.display_name,
+					drops_message
+				],
+				"enemy_definition_id": target.definition_id,
+				"enemy_defeated": true
+			}
+		if target.definition_id == "enemy.deep_fault_hunter":
+			return {
+				"success": true,
+				"message": "击败：%s。%s更东侧裂相脊的封锁压力已减弱，裂相碎屑回收线已打开。" % [
+					target.display_name,
+					drops_message
+				],
+				"enemy_definition_id": target.definition_id,
+				"enemy_defeated": true
+			}
+		if target.definition_id == "enemy.phase_well_sentry":
+			return {
+				"success": true,
+				"message": "击败：%s。%s更东侧内层相位井边缘的压制已减弱，井涌碎屑回收线已打开。" % [
+					target.display_name,
+					drops_message
+				],
+				"enemy_definition_id": target.definition_id,
+				"enemy_defeated": true
+			}
+		if target.definition_id == "enemy.phase_well_lurker":
+			return {
+				"success": true,
+				"message": "击败：%s。%s更东侧井底裂口边缘的压制已减弱，井壁余烬回收线已打开。" % [
+					target.display_name,
+					drops_message
+				],
+				"enemy_definition_id": target.definition_id,
+				"enemy_defeated": true
+			}
+		if target.definition_id == "enemy.phase_well_reaver":
+			return {
+				"success": true,
+				"message": "击败：%s。%s更东侧井心室边缘的压制已减弱，心棘残片回收线已打开。" % [
+					target.display_name,
+					drops_message
+				],
+				"enemy_definition_id": target.definition_id,
+				"enemy_defeated": true
+			}
+		if target.definition_id == "enemy.phase_well_tangler":
+			return {
+				"success": true,
+				"message": "击败：%s。%s更东侧井纺室边缘的压制已减弱，纬束残团回收线已打开。" % [
+					target.display_name,
+					drops_message
+				],
+				"enemy_definition_id": target.definition_id,
+				"enemy_defeated": true
+			}
+		if target.definition_id == "enemy.phase_well_raker":
+			return {
+				"success": true,
+				"message": "击败：%s。%s更东侧井纹架边缘的压制已减弱，边缕残条回收线已打开。" % [
+					target.display_name,
+					drops_message
+				],
+				"enemy_definition_id": target.definition_id,
+				"enemy_defeated": true
+			}
+		if target.definition_id == "enemy.phase_well_binder":
+			return {
+				"success": true,
+				"message": "击败：%s。%s更东侧井系桥边缘的压制已减弱，系索残股回收线已打开。" % [
+					target.display_name,
+					drops_message
+				],
+				"enemy_definition_id": target.definition_id,
+				"enemy_defeated": true
+			}
+		if target.definition_id == "enemy.phase_well_warden":
+			phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
+			return {
+				"success": true,
+				"message": "击败：%s。%s井系桥东侧的回稳压制已被拆掉，锚场回稳窗现在可以回去收束。" % [
 					target.display_name,
 					drops_message
 				],
@@ -211,8 +658,6 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 		"enemy_defeated": false,
 		"evacuation_feedback": evacuation_feedback
 	}
-
-
 func _setup_interactable_labels() -> void:
 	if data_registry == null:
 		return
@@ -224,8 +669,6 @@ func _setup_interactable_labels() -> void:
 			interactable.set_recipe_cycle(_get_recipes_for_building(interactable.definition_id))
 		interactable.instance_id = "map_object_instance.%s" % String(interactable.name).to_snake_case()
 		interactable.setup(_get_display_name(interactable.definition_id))
-
-
 func _setup_enemy_labels() -> void:
 	if data_registry == null:
 		return
@@ -238,9 +681,9 @@ func _setup_enemy_labels() -> void:
 		var max_health := float(definition.get("base_stats", {}).get("max_health", 20.0))
 		enemy.instance_id = _get_enemy_instance_id(enemy)
 		enemy.setup(_get_display_name(enemy.definition_id), max_health, String(definition.get("category", "basic")))
-
-
 func sync_enemy_states(world_state: WorldState) -> void:
+	if phase_well_frontier_runtime != null:
+		phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
 	for enemy in enemies_root.get_children():
 		if not enemy is PrototypeEnemy:
 			continue
@@ -251,56 +694,49 @@ func sync_enemy_states(world_state: WorldState) -> void:
 		var enemy_state := world_state.ensure_enemy(
 			enemy.instance_id,
 			enemy.definition_id,
-			_get_enemy_region_id(definition),
+			_get_region_id_for_position(enemy.position),
 			max_health
 		)
 		enemy.apply_saved_state(enemy_state)
 		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state))
-
-
 func refresh_enemy_spawns(world_state: WorldState) -> void:
+	if phase_well_frontier_runtime != null:
+		phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
 	for enemy in enemies_root.get_children():
 		if not enemy is PrototypeEnemy:
 			continue
 		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state))
-
-
 func apply_runtime_state(world_state: WorldState, character_state: CharacterState) -> void:
 	current_interactable = null
 	player.position = character_state.position
+	player.clear_positive_x_block()
 	last_reported_region_id = world_state.current_region_id
 	last_gate_message = ""
 	sync_enemy_states(world_state)
 	refresh_world_interactables(world_state)
-
-
 func get_player_position() -> Vector2:
 	return player.position
-
-
+func get_camera_focus_global_position() -> Vector2:
+	return player.global_position
+func get_camera_bounds_rect_global() -> Rect2:
+	var top_left := to_global(CAMERA_BOUNDS_MIN)
+	var bottom_right := to_global(CAMERA_BOUNDS_MAX)
+	return Rect2(top_left, bottom_right - top_left)
 func update_region_presence(world_state: WorldState, character_state: CharacterState) -> void:
 	player.clamp_to_play_bounds(PLAY_BOUNDS_MIN, PLAY_BOUNDS_MAX)
-	apply_region_gate_bounds(world_state)
+	var gate_message := apply_region_gate_bounds(world_state)
+	if not gate_message.is_empty():
+		var clamped_region_id := _get_region_id_for_position(player.position)
+		last_reported_region_id = clamped_region_id
+		world_state.current_region_id = clamped_region_id
+		character_state.current_region_id = clamped_region_id
+		if gate_message != last_gate_message:
+			last_gate_message = gate_message
+			region_gate_blocked.emit(gate_message)
+		return
 
+	player.clear_positive_x_block()
 	var region_id := _get_region_id_for_position(player.position)
-	if region_id == "region.crystal_vein_field" and not world_state.unlocked_region_ids.has(region_id):
-		player.position.x = CRYSTAL_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		var message := "晶体矿脉区尚未标记：先检查前哨核心，恢复基础导航。"
-		if message != last_gate_message:
-			last_gate_message = message
-			region_gate_blocked.emit(message)
-		return
-
-	if region_id == "region.pollution_edge" and not world_state.unlocked_region_ids.has(region_id):
-		player.position.x = POLLUTION_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		var message := "污染边界尚未稳定：先扩建处理点并启用基础过滤模块。"
-		if message != last_gate_message:
-			last_gate_message = message
-			region_gate_blocked.emit(message)
-		return
-
 	last_gate_message = ""
 	if region_id == last_reported_region_id:
 		return
@@ -309,13 +745,11 @@ func update_region_presence(world_state: WorldState, character_state: CharacterS
 	world_state.current_region_id = region_id
 	character_state.current_region_id = region_id
 	region_changed.emit(region_id)
-
-
-func apply_region_gate_bounds(world_state: WorldState) -> void:
+func apply_region_gate_bounds(world_state: WorldState) -> String:
 	if not world_state.unlocked_region_ids.has("region.crystal_vein_field") and player.position.x > CRYSTAL_GATE_RETURN_X:
 		player.position.x = CRYSTAL_GATE_RETURN_X
 		player.stop_positive_x_until_release()
-		return
+		return "晶体矿脉区尚未标记：先检查前哨核心，恢复基础导航。"
 
 	if (
 		not world_state.unlocked_region_ids.has("region.pollution_edge")
@@ -324,22 +758,59 @@ func apply_region_gate_bounds(world_state: WorldState) -> void:
 	):
 		player.position.x = POLLUTION_GATE_RETURN_X
 		player.stop_positive_x_until_release()
+		return "污染边界尚未稳定：先扩建处理点并启用基础过滤模块。"
 
+	if not world_state.unlocked_region_ids.has("region.ruin_outer_ring") and player.position.x > RUIN_GATE_RETURN_X:
+		player.position.x = RUIN_GATE_RETURN_X
+		player.stop_positive_x_until_release()
+		return "遗迹外圈仍被封锁：先检查封锁遗迹入口，确认外圈通路。"
 
+	if _is_outer_ring_barrier_locked(world_state) and player.position.x > OUTER_RING_BARRIER_X:
+		player.position.x = OUTER_RING_BARRIER_RETURN_X
+		player.stop_positive_x_until_release()
+		return "遗迹外圈深段仍被抖动雾幕阻断：先回基地组装稳相信标，再返回部署。"
+
+	if _is_deep_ruin_gate_locked(world_state) and player.position.x > DEEP_RUIN_GATE_RETURN_X:
+		player.position.x = DEEP_RUIN_GATE_RETURN_X
+		player.stop_positive_x_until_release()
+		return "深段入口仍未校准：先带着更深遗迹坐标回到门禁写入。"
+
+	if not world_state.unlocked_region_ids.has("region.inner_phase_well") and player.position.x > INNER_PHASE_WELL_GATE_RETURN_X:
+		player.position.x = INNER_PHASE_WELL_GATE_RETURN_X
+		player.stop_positive_x_until_release()
+		return "内层相位井仍未定位：先回基地解析相位井定位器，再回来继续向东推进。"
+
+	if not world_state.unlocked_region_ids.has("region.phase_well_sink") and player.position.x > PHASE_WELL_SINK_GATE_RETURN_X:
+		player.position.x = PHASE_WELL_SINK_GATE_RETURN_X
+		player.stop_positive_x_until_release()
+		return "井底裂口仍未稳定：先回基地解析井芯样本，再带着新的井底穿钉回来继续向东推进。"
+
+	if not world_state.unlocked_region_ids.has("region.phase_well_chamber") and player.position.x > PHASE_WELL_CHAMBER_GATE_RETURN_X:
+		player.position.x = PHASE_WELL_CHAMBER_GATE_RETURN_X
+		player.stop_positive_x_until_release()
+		return "井心室断面仍未稳定：先回基地解析相位井心核，再带着新的井心分流栓回来继续向东推进。"
+
+	if not world_state.unlocked_region_ids.has("region.phase_well_loom") and player.position.x > PHASE_WELL_LOOM_GATE_RETURN_X:
+		player.position.x = PHASE_WELL_LOOM_GATE_RETURN_X
+		player.stop_positive_x_until_release()
+		return "井纺室断面仍未稳定：先回基地解析相位井纺核，再带着新的井纺梭栓回来继续向东推进。"
+
+	if not world_state.unlocked_region_ids.has("region.phase_well_frame") and player.position.x > PHASE_WELL_FRAME_GATE_RETURN_X:
+		player.position.x = PHASE_WELL_FRAME_GATE_RETURN_X
+		player.stop_positive_x_until_release()
+		return "井纹架断面仍未稳定：先回基地解析相位井织核，再带着新的井纹架键栓回来继续向东推进。"
+
+	if not world_state.unlocked_region_ids.has("region.phase_well_tether") and player.position.x > PHASE_WELL_TETHER_GATE_RETURN_X:
+		player.position.x = PHASE_WELL_TETHER_GATE_RETURN_X
+		player.stop_positive_x_until_release()
+		return "井系桥断面仍未稳定：先回基地解析相位井结核，再带着新的井系定桩回来继续向东推进。"
+
+	return ""
 func _get_display_name(definition_id: String) -> String:
 	var definition := data_registry.get_definition(definition_id)
 	if definition.is_empty():
 		return definition_id
 	return data_registry.get_text(String(definition.get("display_name_key", definition_id)))
-
-
-func _get_enemy_region_id(definition: Dictionary) -> String:
-	var spawn_regions: Array = definition.get("spawn_regions", [])
-	if spawn_regions.is_empty():
-		return ""
-	return String(spawn_regions[0])
-
-
 func _get_recipes_for_building(building_id: String) -> Array[String]:
 	var recipe_ids: Array[String] = []
 	if data_registry == null:
@@ -353,20 +824,14 @@ func _get_recipes_for_building(building_id: String) -> Array[String]:
 		recipe_ids.append(String(recipe.get("id", "")))
 
 	return recipe_ids
-
-
 func _on_interactable_body_entered(body: Node2D, interactable: PrototypeInteractable) -> void:
 	if body != player or not interactable.can_interact():
 		return
 	update_current_interactable()
-
-
 func _on_interactable_body_exited(body: Node2D, interactable: PrototypeInteractable) -> void:
 	if body != player or current_interactable != interactable:
 		return
 	update_current_interactable()
-
-
 func _get_nearest_interactable() -> PrototypeInteractable:
 	var nearest_interactable: PrototypeInteractable = null
 	var nearest_distance := INF
@@ -383,8 +848,11 @@ func _get_nearest_interactable() -> PrototypeInteractable:
 		nearest_distance = distance
 
 	return nearest_interactable
-
-
+func _has_nearby_phase_relay_pad() -> bool:
+	for interactable in interactables_root.get_children():
+		if interactable is PrototypeInteractable and interactable.can_interact() and interactable.definition_id == "map_object.phase_relay_pad" and player.position.distance_to(interactable.position) <= PLAYER_INTERACTION_RANGE:
+			return true
+	return false
 func _get_nearest_attack_target() -> PrototypeEnemy:
 	var nearest_enemy: PrototypeEnemy = null
 	var nearest_distance := INF
@@ -401,14 +869,64 @@ func _get_nearest_attack_target() -> PrototypeEnemy:
 		nearest_distance = distance
 
 	return nearest_enemy
-
-
 func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool:
 	if enemy.definition_id == "enemy.elite_residue_node":
 		return (
 			world_state.quest_state.has_active_quest("quest.defeat_elite_node")
 			or world_state.quest_state.has_completed_quest("quest.defeat_elite_node")
 		)
+	if enemy.definition_id == "enemy.ruin_phase_guard":
+		return (
+			world_state.quest_state.has_active_quest("quest.salvage_signal_echo")
+			or world_state.quest_state.has_completed_quest("quest.salvage_signal_echo")
+		)
+	if enemy.definition_id == "enemy.deep_ruin_sentinel":
+		return (
+			world_state.quest_state.has_active_quest("quest.harvest_phase_filament")
+			or world_state.quest_state.has_completed_quest("quest.harvest_phase_filament")
+		)
+	if enemy.definition_id == "enemy.deep_ruin_stalker":
+		return (
+			world_state.quest_state.has_active_quest("quest.activate_deep_array")
+			or world_state.quest_state.has_completed_quest("quest.activate_deep_array")
+		)
+	if enemy.definition_id == "enemy.deep_fault_hunter":
+		return (
+			world_state.quest_state.has_active_quest("quest.trace_phase_splinters")
+			or world_state.quest_state.has_completed_quest("quest.trace_phase_splinters")
+		)
+	if enemy.definition_id == "enemy.phase_well_sentry":
+		return (
+			world_state.quest_state.has_active_quest("quest.collect_well_flux")
+			or world_state.quest_state.has_completed_quest("quest.collect_well_flux")
+		)
+	if enemy.definition_id == "enemy.phase_well_lurker":
+		return (
+			world_state.quest_state.has_active_quest("quest.collect_well_ash")
+			or world_state.quest_state.has_completed_quest("quest.collect_well_ash")
+		)
+	if enemy.definition_id == "enemy.phase_well_reaver":
+		return (
+			world_state.quest_state.has_active_quest("quest.collect_heart_spine")
+			or world_state.quest_state.has_completed_quest("quest.collect_heart_spine")
+		)
+	if enemy.definition_id == "enemy.phase_well_tangler":
+		return (
+			world_state.quest_state.has_active_quest("quest.collect_weft_bundle")
+			or world_state.quest_state.has_completed_quest("quest.collect_weft_bundle")
+		)
+	if enemy.definition_id == "enemy.phase_well_raker":
+		return (
+			world_state.quest_state.has_active_quest("quest.collect_selvedge_strip")
+			or world_state.quest_state.has_completed_quest("quest.collect_selvedge_strip")
+		)
+	if enemy.definition_id == "enemy.phase_well_binder":
+		return (
+			world_state.quest_state.has_active_quest("quest.collect_tether_fiber")
+			or world_state.quest_state.has_completed_quest("quest.collect_tether_fiber")
+		)
+	if enemy.definition_id == "enemy.phase_well_warden":
+		return phase_well_frontier_runtime != null and phase_well_frontier_runtime.should_spawn_anchor_field_enemy(world_state)
 	if enemy.definition_id != "enemy.treatment_skitter":
 		return true
 	var quest_state := world_state.quest_state
@@ -426,8 +944,6 @@ func _get_attack_damage(character_state: CharacterState) -> float:
 	var stat_modifiers: Dictionary = tool_definition.get("stat_modifiers", {})
 	var attack_power := float(stat_modifiers.get("attack_power", 1.0))
 	return BASE_ATTACK_DAMAGE * attack_power
-
-
 func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: CharacterState) -> String:
 	var definition := data_registry.get_definition(enemy.definition_id)
 	var base_stats: Dictionary = definition.get("base_stats", {})
@@ -451,8 +967,6 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 	if enemy.definition_id == "enemy.treatment_skitter":
 		message = "%s生命偏低时按 1 使用修复凝胶，或回基地再调制补给。" % message
 	return message
-
-
 func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, world_state: WorldState) -> String:
 	if world_state.has_enemy_drops_granted(enemy.instance_id):
 		return ""
@@ -480,8 +994,6 @@ func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, 
 	if parts.is_empty():
 		return ""
 	return "获得：%s。" % ", ".join(parts)
-
-
 func _inspect_ruin_gate(world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.defeat_elite_node"):
 		return _failure(
@@ -493,15 +1005,332 @@ func _inspect_ruin_gate(world_state: WorldState) -> Dictionary:
 	if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):
 		return {
 			"success": true,
-			"message": "切片结尾：更深区域信号已确认，后续内容待开放。"
+			"message": "遗迹外圈通路已稳定：继续向东进入外圈，回收继电残片。"
 		}
 
 	return {
 		"success": true,
-		"message": "封锁遗迹入口信号已确认：污染深处仍有稳定异常回波。"
+		"message": "封锁遗迹入口信号已确认：遗迹外圈通路已恢复。"
 	}
+func _inspect_outer_ring_barrier(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_anchor"):
+		return _failure(
+			"抖动雾幕仍在扩散，临时无法通过。",
+			"通路未稳定",
+			"先回基地组装稳相信标，再返回遗迹外圈部署。"
+		)
 
+	if world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier"):
+		return {
+			"success": true,
+			"message": "抖动雾幕已稳定，外圈深段通路保持开启。"
+		}
 
+	if not character_state.inventory.has_ref("item.phase_anchor", 1):
+		return _failure(
+			"缺少稳相信标，抖动雾幕无法稳定。",
+			"缺少开路物",
+			"回基地用基础反应器，把继电残片和污染浆液组装成稳相信标。"
+		)
+
+	character_state.inventory.consume_ref("item.phase_anchor", 1)
+	return {
+		"success": true,
+		"message": "已部署稳相信标：抖动雾幕回落，外圈深段通路开启。"
+	}
+func _inspect_outer_ring_console(world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier"):
+		return _failure(
+			"外圈中继台仍被抖动雾幕隔开。",
+			"目标未就绪",
+			"先在雾幕前部署稳相信标，再进入外圈深段。"
+		)
+
+	if world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
+		return {
+			"success": true,
+			"message": "外圈中继台数据已读取：更深遗迹结构坐标已保留。"
+		}
+
+	return {
+		"success": true,
+		"message": "外圈中继台已接管：更深遗迹结构的稳定回波已定位。"
+	}
+func _inspect_signal_echo_cache(world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
+		return _failure(
+			"外圈回波匣仍处于锁定状态。",
+			"目标未就绪",
+			"先检查外圈中继台，锁定深段稳定回波。"
+		)
+
+	if world_state.quest_state.has_completed_quest("quest.salvage_signal_echo"):
+		return {
+			"success": true,
+			"message": "外圈回波匣已回收：返回基地解析深段回波。"
+		}
+
+	return {
+		"success": true,
+		"message": "已回收外圈回波匣：回基地用基础反应器整理更深遗迹坐标。"
+	}
+func _inspect_deep_ruin_door(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.analyze_deep_signal"):
+		return _failure(
+			"深段入口门禁仍没有可执行坐标。",
+			"入口未校准",
+			"先回基地解析深段回波，整理出更深遗迹坐标。"
+		)
+
+	if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_entrance"):
+		return {
+			"success": true,
+			"message": "深段入口门禁已写入：继续向东进入深段，回收相位纤丝。"
+		}
+
+	if not character_state.inventory.has_ref("item.deep_ruin_coordinates", 1):
+		return _failure(
+			"缺少更深遗迹坐标，门禁无法写入。",
+			"缺少开门坐标",
+			"回基地确认基础反应器已完成深段回波解析，并带上更深遗迹坐标返回。"
+		)
+
+	character_state.inventory.consume_ref("item.deep_ruin_coordinates", 1)
+	return {
+		"success": true,
+		"message": "更深遗迹坐标已写入：深段入口门禁开启。"
+	}
+func _inspect_deep_ruin_latch(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.assemble_deep_override"):
+		return _failure(
+			"深段锁扣仍被相位回路封住。",
+			"锁扣未覆写",
+			"先回基地用污染过滤器精炼相位纤丝，再用基础反应器组装深段覆写栓。"
+		)
+
+	if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_cache"):
+		return {
+			"success": true,
+			"message": "深段锁扣已覆写：深段样块已经回收，可回基地继续解析第二轮阵列路线。"
+		}
+
+	if not character_state.inventory.has_ref("item.deep_override_key", 1):
+		return _failure(
+			"缺少深段覆写栓，锁扣无法解除。",
+			"缺少覆写栓",
+			"回处理点过滤器精炼相位纤丝，再去基础反应器组装深段覆写栓。"
+		)
+
+	character_state.inventory.consume_ref("item.deep_override_key", 1)
+	return {
+		"success": true,
+		"message": "已覆写深段锁扣：深段样块匣解封，可带回新的深段样块并继续回基地解析。"
+	}
+func _inspect_deep_signal_array(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.analyze_deep_core"):
+		return _failure(
+			"深段阵列台仍没有可执行的第二轮路由。",
+			"阵列未点亮",
+			"先回基地用基础反应器解析深段样块，整理出深段路由印片。"
+		)
+
+	if world_state.quest_state.has_completed_quest("quest.activate_deep_array"):
+		return {
+			"success": true,
+			"message": "深段阵列台已点亮：相位导管回收线已暴露，带回基地后可继续整理读数矩阵。"
+		}
+
+	if not character_state.inventory.has_ref("item.deep_route_imprint", 1):
+		return _failure(
+			"缺少深段路由印片，阵列台无法重启。",
+			"缺少路由印片",
+			"回基地确认基础反应器已完成样块解析，并带上深段路由印片返回。"
+		)
+
+	character_state.inventory.consume_ref("item.deep_route_imprint", 1)
+	return {
+		"success": true,
+		"message": "深段路由印片已写入：阵列台点亮，第二轮相位导管回收线已暴露。"
+	}
+func _inspect_phase_return_anchor(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	var anchor_instance_id := "map_object_instance.phase_return_anchor"
+	if current_interactable != null:
+		anchor_instance_id = current_interactable.instance_id
+
+	if world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor"):
+		var previous_anchor_id := world_state.active_phase_relay_anchor_id
+		world_state.set_active_phase_relay_anchor(anchor_instance_id)
+		_teleport_player_to_region(
+			character_state,
+			world_state,
+			"region.outpost_platform",
+			_get_phase_relay_pad_return_position()
+		)
+		var anchor_label := _get_phase_relay_anchor_label(anchor_instance_id)
+		var recalibration_text := "当前回投落点保持为 %s" % anchor_label
+		if previous_anchor_id != anchor_instance_id:
+			recalibration_text = "当前回投落点已切回 %s" % anchor_label
+		return {
+			"success": true,
+			"message": "前线回传锚点已联通：已快速回传到基地相位回投台；%s，下一步从回投台重返前线，追踪更东侧裂相碎屑。" % recalibration_text
+		}
+
+	if not world_state.quest_state.has_completed_quest("quest.assemble_deep_signal_matrix"):
+		return _failure(
+			"前线回传锚点仍缺少可执行读数。",
+			"锚点未部署",
+			"先回基地整理深段读数矩阵，再返回深段固定点部署。"
+		)
+
+	if not character_state.inventory.has_ref("item.deep_signal_matrix", 1):
+		return _failure(
+			"缺少深段读数矩阵，前线回传锚点无法校准。",
+			"缺少读数矩阵",
+			"回基地确认基础反应器已完成深段读数矩阵，并带回来部署。"
+		)
+
+	character_state.inventory.consume_ref("item.deep_signal_matrix", 1)
+	world_state.set_active_phase_relay_anchor(anchor_instance_id)
+	return {
+		"success": true,
+		"message": "深段读数矩阵已写入：%s 已上线，可在深段快速回基地，并从基地回投回来。" % _get_phase_relay_anchor_label(anchor_instance_id)
+	}
+func _inspect_phase_relay_pad(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor"):
+		return _failure(
+			"相位回投台仍未锁定前线落点。",
+			"回投未就绪",
+			"先带着深段读数矩阵返回深段，部署前线回传锚点。"
+		)
+
+	if not world_state.has_active_phase_relay_anchor():
+		return _failure(
+			"前线回传锚点当前离线，相位回投台无法建立落点。",
+			"锚点未在线",
+			"返回深段重新校准前线回传锚点，再从基地回投。"
+		)
+
+	var active_anchor_id := world_state.active_phase_relay_anchor_id
+	var target_position := _get_phase_return_anchor_return_position(active_anchor_id)
+	var target_region_id := _get_interactable_region_id(active_anchor_id, "region.deep_ruin_threshold")
+	_teleport_player_to_region(character_state, world_state, target_region_id, target_position)
+	var active_anchor_label := _get_phase_relay_anchor_label(active_anchor_id)
+	var cycle_hint := ""
+	if world_state.get_deployed_phase_relay_anchor_count() > 1:
+		cycle_hint = "；如需切回其他已部署锚点，可先按 R 轮换落点"
+	if world_state.quest_state.has_active_quest("quest.reenter_phase_frontline"):
+		return {
+			"success": true,
+			"message": "相位回投台已联通：已回投到 %s；更东侧裂相碎屑和新的深段猎手已暴露%s。" % [active_anchor_label, cycle_hint]
+		}
+	return {
+		"success": true,
+		"message": "相位回投台已联通：已回投到 %s%s。" % [active_anchor_label, cycle_hint]
+	}
+func _inspect_phase_fault_spire(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not (world_state.quest_state.has_completed_quest("quest.refine_phase_splinters") or world_state.quest_state.has_completed_quest("quest.tune_relay_lens")):
+		return _failure(
+			"裂相尖塔仍缺少可执行的调谐镜组。",
+			"尖塔未校准",
+			"先回基地完成中继调谐镜整备：过滤裂相碎屑，再用基础反应器调准镜组。"
+		)
+
+	if world_state.quest_state.has_completed_quest("quest.inspect_phase_fault_spire"):
+		return {
+			"success": true,
+			"message": "裂相尖塔已校准：第一份内层故障轨迹已经带回基地，可继续回去解析更东侧相位井锁。"
+		}
+
+	if not character_state.inventory.has_ref("item.relay_tuning_lens", 1):
+		return _failure(
+			"缺少中继调谐镜，裂相尖塔无法校准。",
+			"缺少调谐镜",
+			"回基地确认基础反应器已经完成中继调谐镜，并带回来对准裂相尖塔。"
+		)
+
+	character_state.inventory.consume_ref("item.relay_tuning_lens", 1)
+	return {
+		"success": true,
+		"message": "中继调谐镜已对准：裂相尖塔开始回吐内层故障轨迹，并暴露更东侧相位井锁的第一段坐标。"
+	}
+func _inspect_phase_well_lock(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not (world_state.quest_state.has_completed_quest("quest.refine_fault_residue") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_key")):
+		return _failure(
+			"相位井锁仍缺少可执行的锁定位。",
+			"井锁未钉住",
+			"先回基地完成相位井钥整备：稳定故障残渣，再用基础反应器组装相位井钥。"
+		)
+
+	if world_state.quest_state.has_completed_quest("quest.unlock_phase_well"):
+		return {
+			"success": true,
+			"message": "相位井锁已钉住：第一份相位井定位器已经带回基地；下一步回基地解析定位器。"
+		}
+
+	if not character_state.inventory.has_ref("item.phase_well_key", 1):
+		return _failure(
+			"缺少相位井钥，相位井锁无法稳定。",
+			"缺少相位井钥",
+			"回基地确认基础反应器已经完成相位井钥，并带回来钉住相位井锁。"
+		)
+
+	character_state.inventory.consume_ref("item.phase_well_key", 1)
+	return {
+		"success": true,
+		"message": "相位井钥已写入：相位井锁开始析出定位器，更东侧内层相位井目标已被钉住。"
+	}
+func _inspect_inner_phase_well(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not (world_state.quest_state.has_completed_quest("quest.refine_well_flux") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_probe")):
+		return _failure(
+			"内层相位井仍缺少可执行的探针读数。",
+			"井芯未读取",
+			"先回基地完成相位井探针整备：稳定井涌碎屑，再用基础反应器组装探针。"
+		)
+
+	if world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well"):
+		return {
+			"success": true,
+			"message": "内层相位井已勘验：第一份井芯样本已经带回基地；下一步回基地解析并继续推进更东侧井底裂口。"
+		}
+
+	if not character_state.inventory.has_ref("item.phase_well_probe", 1):
+		return _failure(
+			"缺少相位井探针，内层相位井无法读取。",
+			"缺少相位井探针",
+			"回基地确认基础反应器已经完成相位井探针，并带回来读取井芯样本。"
+		)
+
+	character_state.inventory.consume_ref("item.phase_well_probe", 1)
+	return {
+		"success": true,
+		"message": "相位井探针已写入：内层相位井交出了第一份井芯样本，这条更东侧风险线已开始稳定回投收益。"
+	}
+func _inspect_phase_well_sink(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not (world_state.quest_state.has_completed_quest("quest.refine_well_ash") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_pike")):
+		return _failure(
+			"井底裂口仍缺少可执行的穿钉读数。",
+			"裂口未凿开",
+			"先回基地完成井底整备，把井底穿钉带回来凿开裂口。"
+		)
+
+	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_sink"):
+		return {
+			"success": true,
+			"message": "井底裂口已凿开：第一份相位井心核已经带回基地；下一步回基地解析并继续推进更东侧井心室断面。"
+		}
+
+	if not character_state.inventory.has_ref("item.phase_well_pike", 1):
+		return _failure(
+			"缺少井底穿钉，井底裂口无法稳定。",
+			"缺少井底穿钉",
+			"回基地确认基础反应器已经完成井底穿钉，并带回来凿开井底裂口。"
+		)
+
+	character_state.inventory.consume_ref("item.phase_well_pike", 1)
+	return {
+		"success": true,
+		"message": "井底穿钉已写入：井底裂口开始析出相位井心核，更东侧井心室断面的第一段读数已被钉住。"
+	}
 func _evacuate_if_needed(character_state: CharacterState, world_state: WorldState, reason: String) -> Dictionary:
 	if character_state.health > 0.0 and character_state.protection > 0.0:
 		return {}
@@ -518,7 +1347,7 @@ func _evacuate_if_needed(character_state: CharacterState, world_state: WorldStat
 		_format_amount(character_state.health),
 		_format_amount(character_state.protection)
 	]
-	var retry_text := _get_retry_hint(reason, health_depleted, protection_depleted)
+	var retry_text := _get_retry_hint(world_state, reason, health_depleted, protection_depleted)
 
 	return {
 		"title": "撤离前哨",
@@ -527,8 +1356,6 @@ func _evacuate_if_needed(character_state: CharacterState, world_state: WorldStat
 		"retry_text": retry_text,
 		"log_message": " %s%s。%s" % [reason_text, recovery_text, retry_text]
 	}
-
-
 func _get_evacuation_reason(health_depleted: bool, protection_depleted: bool) -> String:
 	if health_depleted and protection_depleted:
 		return "生命和防护耗尽，"
@@ -537,9 +1364,9 @@ func _get_evacuation_reason(health_depleted: bool, protection_depleted: bool) ->
 	if protection_depleted:
 		return "防护耗尽，"
 	return "状态过低，"
-
-
-func _get_retry_hint(reason: String, health_depleted: bool, protection_depleted: bool) -> String:
+func _get_retry_hint(world_state: WorldState, reason: String, health_depleted: bool, protection_depleted: bool) -> String:
+	if world_state.quest_state.has_completed_quest("quest.restore_outpost"):
+		return "再尝试前：先按 E 整备前哨核心回满生命与防护；若要前线续战，再补修复凝胶或抗污染药剂。"
 	if protection_depleted:
 		return "再尝试前：启用过滤模块，按 2 使用抗污染药剂，或回基地处理污染沉积物补充药剂。"
 	if health_depleted:
@@ -547,14 +1374,10 @@ func _get_retry_hint(reason: String, health_depleted: bool, protection_depleted:
 	if reason == "pollution":
 		return "再尝试前：检查防护和抗污染药剂。"
 	return "再尝试前：补充快捷栏物品。"
-
-
 func _format_amount(amount: float) -> String:
 	if is_equal_approx(amount, roundf(amount)):
 		return str(int(amount))
 	return "%.1f" % amount
-
-
 func _failure(message: String, title: String, detail: String) -> Dictionary:
 	return {
 		"success": false,
@@ -564,15 +1387,113 @@ func _failure(message: String, title: String, detail: String) -> Dictionary:
 			"detail": detail
 		}
 	}
+func _teleport_player_to_region(
+	character_state: CharacterState,
+	world_state: WorldState,
+	region_id: String,
+	target_position: Vector2
+) -> void:
+	player.position = target_position
+	player.clear_positive_x_block()
+	last_gate_message = ""
+	last_reported_region_id = region_id
+	world_state.current_region_id = region_id
+	character_state.current_region_id = region_id
+	update_current_interactable()
+func _get_phase_relay_anchor_label(anchor_instance_id: String) -> String:
+	match anchor_instance_id:
+		"map_object_instance.phase_return_anchor":
+			return "深段固定点锚点"
+		"map_object_instance.phase_return_anchor_chamber":
+			return "井心室前线锚点"
+		"map_object_instance.phase_return_anchor_tether":
+			return "井系桥前线锚点"
+		_:
+			var region_id := _get_interactable_region_id(anchor_instance_id, "")
+			if region_id.is_empty():
+				return "前线回传锚点"
+			return "%s锚点" % _get_display_name(region_id)
+func _has_phase_well_frame_route_cleared(world_state: WorldState) -> bool:
+	if world_state.quest_state.get_objective_progress(
+		"quest.collect_selvedge_strip",
+		"clear",
+		"map_object.phase_well_frame_route_blocker"
+	) >= 1.0:
+		return true
+	for route_instance_id in [
+		"map_object_instance.phase_well_frame_route_north",
+		"map_object_instance.phase_well_frame_route_south"
+	]:
+		if bool(world_state.get_map_object(route_instance_id).get("is_cleared", false)):
+			return true
+	return false
 
 
+func _has_phase_well_field_readings(
+	world_state: WorldState,
+	quest_id: String,
+	objective_type: String,
+	target_id: String,
+	required_amount: float
+) -> bool:
+	return world_state.quest_state.get_objective_progress(
+		quest_id,
+		objective_type,
+		target_id
+	) >= required_amount
+
+
+func _get_phase_relay_pad_return_position() -> Vector2:
+	return _get_interactable_return_position(
+		"map_object_instance.phase_relay_pad",
+		PHASE_RELAY_PAD_FALLBACK_POSITION
+	)
+func _get_phase_return_anchor_return_position(anchor_instance_id: String) -> Vector2:
+	return _get_interactable_return_position(
+		anchor_instance_id,
+		PHASE_RETURN_ANCHOR_FALLBACK_POSITION
+	)
+func _get_interactable_return_position(instance_id: String, fallback_position: Vector2) -> Vector2:
+	for interactable in interactables_root.get_children():
+		if not interactable is PrototypeInteractable:
+			continue
+		if interactable.instance_id != instance_id:
+			continue
+		return interactable.position + Vector2(0, 30)
+	return fallback_position
+func _get_interactable_region_id(instance_id: String, fallback_region_id: String) -> String:
+	for interactable in interactables_root.get_children():
+		if not interactable is PrototypeInteractable:
+			continue
+		if interactable.instance_id != instance_id:
+			continue
+		return _get_region_id_for_position(interactable.position)
+	return fallback_region_id
 func _get_enemy_instance_id(enemy: PrototypeEnemy) -> String:
 	return "enemy_instance.%s" % String(enemy.name).to_snake_case()
-
-
 func _get_region_id_for_position(map_position: Vector2) -> String:
+	if map_position.x >= PHASE_WELL_TETHER_REGION_X:
+		return "region.phase_well_tether"
+	if map_position.x >= PHASE_WELL_FRAME_REGION_X:
+		return "region.phase_well_frame"
+	if map_position.x >= PHASE_WELL_LOOM_REGION_X:
+		return "region.phase_well_loom"
+	if map_position.x >= PHASE_WELL_CHAMBER_REGION_X:
+		return "region.phase_well_chamber"
+	if map_position.x >= PHASE_WELL_SINK_REGION_X:
+		return "region.phase_well_sink"
+	if map_position.x >= INNER_PHASE_WELL_REGION_X:
+		return "region.inner_phase_well"
+	if map_position.x >= DEEP_RUIN_REGION_X:
+		return "region.deep_ruin_threshold"
+	if map_position.x >= RUIN_OUTER_RING_X:
+		return "region.ruin_outer_ring"
 	if map_position.x >= POLLUTION_REGION_X and map_position.y >= POLLUTION_DEEP_Y:
 		return "region.pollution_edge"
 	if map_position.x >= CRYSTAL_REGION_X:
 		return "region.crystal_vein_field"
 	return "region.outpost_platform"
+func _is_outer_ring_barrier_locked(world_state: WorldState) -> bool:
+	return not world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier")
+func _is_deep_ruin_gate_locked(world_state: WorldState) -> bool:
+	return not world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_entrance")

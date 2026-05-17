@@ -47,8 +47,6 @@ func _physics_process(_delta: float) -> void:
 		interaction_requested.emit()
 	if Input.is_action_just_pressed("attack"):
 		attack_requested.emit()
-	if Input.is_action_just_pressed("cycle_recipe"):
-		recipe_cycle_requested.emit()
 	if Input.is_action_just_pressed("toggle_device_panel"):
 		device_panel_toggle_requested.emit()
 	if Input.is_action_just_pressed("toggle_module"):
@@ -73,6 +71,10 @@ func _draw() -> void:
 func stop_positive_x_until_release() -> void:
 	block_positive_x_until_release = true
 	velocity.x = 0.0
+
+
+func clear_positive_x_block() -> void:
+	block_positive_x_until_release = false
 
 
 func clamp_to_play_bounds(minimum: Vector2, maximum: Vector2) -> void:

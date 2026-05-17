@@ -64,6 +64,11 @@ func _check_loads_known_map_object_source() -> void:
 	var save_data: Dictionary = host._make_save_data("world.valid.map_object_source")
 	host._mark_restore_outpost_completed(save_data)
 	save_data["world"]["map_objects"] = {
+		"map_object_instance.crystal_cluster_reserve": {
+			"definition_id": "map_object.crystal_cluster",
+			"region_id": "region.crystal_vein_field",
+			"is_gathered": true
+		},
 		"map_object_instance.crystal_cluster_east": {
 			"definition_id": "map_object.crystal_cluster",
 			"region_id": "region.crystal_vein_field",

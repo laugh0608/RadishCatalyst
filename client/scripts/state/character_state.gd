@@ -26,9 +26,18 @@ static func create_default() -> CharacterState:
 
 
 func equip_suit_module(module_id: String) -> bool:
-	if module_id.is_empty() or not inventory.has_ref(module_id, 1):
+	if module_id.is_empty():
+		return false
+	if String(equipment.get("suit_module", "")) == module_id:
+		return true
+	if not inventory.has_ref(module_id, 1):
 		return false
 
+	var previous_module_id := String(equipment.get("suit_module", ""))
+	if not previous_module_id.is_empty():
+		inventory.add_ref(previous_module_id, 1)
+
+	inventory.consume_ref(module_id, 1)
 	equipment["suit_module"] = module_id
 	return true
 
@@ -55,6 +64,33 @@ func apply_protection_damage(amount: float) -> float:
 	var actual_amount := maxf(0.0, amount)
 	protection = maxf(0.0, protection - actual_amount)
 	return actual_amount
+
+
+func restore_health(amount: float) -> float:
+	var actual_amount := maxf(0.0, amount)
+	var before := health
+	health = minf(max_health, health + actual_amount)
+	return health - before
+
+
+func restore_protection(amount: float) -> float:
+	var actual_amount := maxf(0.0, amount)
+	var before := protection
+	protection = minf(max_protection, protection + actual_amount)
+	return protection - before
+
+
+func restore_vitals_to_full() -> Dictionary:
+	var restored_health := restore_health(max_health)
+	var restored_protection := restore_protection(max_protection)
+	return {
+		"restored_health": restored_health,
+		"restored_protection": restored_protection
+	}
+
+
+func are_vitals_full() -> bool:
+	return health >= max_health and protection >= max_protection
 
 
 func use_quick_slot(slot_index: int, data_registry: DataRegistry) -> Dictionary:

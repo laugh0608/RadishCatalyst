@@ -38,7 +38,7 @@ $checks = @(
         }
     },
     @{
-        Name = "vertical slice flow"
+        Name = "vertical slice flow and HUD runtime hints"
         Script = "check-client-flow.ps1"
         Parameters = @{
             RepoRoot = $RepoRoot

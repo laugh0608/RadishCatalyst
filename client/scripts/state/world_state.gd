@@ -7,10 +7,14 @@ var current_region_id: String = "region.outpost_platform"
 var unlocked_region_ids: Array[String] = ["region.outpost_platform"]
 var time_minutes: int = 480
 var current_weather_id: String = "weather.clear"
+var active_phase_relay_anchor_id: String = ""
+var deployed_phase_relay_anchor_ids: Array[String] = []
 var pollution_levels: Dictionary = {
 	"region.outpost_platform": 0.0,
 	"region.crystal_vein_field": 0.0,
-	"region.pollution_edge": 1.0
+	"region.pollution_edge": 1.0,
+	"region.ruin_outer_ring": 1.15,
+	"region.deep_ruin_threshold": 1.35
 }
 var map_objects: Dictionary = {}
 var enemies: Dictionary = {}
@@ -36,6 +40,61 @@ static func create_default() -> WorldState:
 func unlock_region(region_id: String) -> void:
 	if not unlocked_region_ids.has(region_id):
 		unlocked_region_ids.append(region_id)
+
+
+func set_active_phase_relay_anchor(anchor_instance_id: String) -> void:
+	if anchor_instance_id.is_empty():
+		return
+	add_deployed_phase_relay_anchor(anchor_instance_id)
+	active_phase_relay_anchor_id = anchor_instance_id
+
+
+func add_deployed_phase_relay_anchor(anchor_instance_id: String) -> void:
+	if anchor_instance_id.is_empty():
+		return
+	if deployed_phase_relay_anchor_ids.has(anchor_instance_id):
+		return
+	deployed_phase_relay_anchor_ids.append(anchor_instance_id)
+
+
+func clear_active_phase_relay_anchor() -> void:
+	active_phase_relay_anchor_id = ""
+
+
+func has_active_phase_relay_anchor() -> bool:
+	return not active_phase_relay_anchor_id.is_empty()
+
+
+func has_deployed_phase_relay_anchor(anchor_instance_id: String) -> bool:
+	if anchor_instance_id.is_empty():
+		return false
+	return deployed_phase_relay_anchor_ids.has(anchor_instance_id)
+
+
+func get_deployed_phase_relay_anchor_count() -> int:
+	return deployed_phase_relay_anchor_ids.size()
+
+
+func get_deployed_phase_relay_anchor_ids() -> Array[String]:
+	return deployed_phase_relay_anchor_ids.duplicate()
+
+
+func is_active_phase_relay_anchor(anchor_instance_id: String) -> bool:
+	if anchor_instance_id.is_empty():
+		return false
+	return active_phase_relay_anchor_id == anchor_instance_id
+
+
+func cycle_active_phase_relay_anchor() -> String:
+	if deployed_phase_relay_anchor_ids.is_empty():
+		return ""
+	var current_index := deployed_phase_relay_anchor_ids.find(active_phase_relay_anchor_id)
+	if current_index < 0:
+		set_active_phase_relay_anchor(String(deployed_phase_relay_anchor_ids[0]))
+		return active_phase_relay_anchor_id
+	var next_index := (current_index + 1) % deployed_phase_relay_anchor_ids.size()
+	set_active_phase_relay_anchor(String(deployed_phase_relay_anchor_ids[next_index]))
+	return active_phase_relay_anchor_id
 
 
 func ensure_map_object(instance_id: String, definition_id: String, region_id: String = "") -> Dictionary:
@@ -167,6 +226,8 @@ func to_dict() -> Dictionary:
 		"unlocked_region_ids": unlocked_region_ids.duplicate(true),
 		"time_minutes": time_minutes,
 		"current_weather_id": current_weather_id,
+		"active_phase_relay_anchor_id": active_phase_relay_anchor_id,
+		"deployed_phase_relay_anchor_ids": deployed_phase_relay_anchor_ids.duplicate(true),
 		"pollution_levels": pollution_levels.duplicate(true),
 		"map_objects": map_objects.duplicate(true),
 		"enemies": enemies.duplicate(true),
@@ -185,6 +246,11 @@ static func from_dict(data: Dictionary) -> WorldState:
 		state.unlocked_region_ids.assign(unlocked_region_ids_data)
 	state.time_minutes = int(data.get("time_minutes", 480))
 	state.current_weather_id = String(data.get("current_weather_id", "weather.clear"))
+	var deployed_phase_relay_anchor_ids_data = data.get("deployed_phase_relay_anchor_ids", [])
+	if deployed_phase_relay_anchor_ids_data is Array:
+		for deployed_anchor_id in deployed_phase_relay_anchor_ids_data:
+			state.add_deployed_phase_relay_anchor(String(deployed_anchor_id))
+	state.set_active_phase_relay_anchor(String(data.get("active_phase_relay_anchor_id", "")))
 	var pollution_levels_data = data.get("pollution_levels", state.pollution_levels)
 	if pollution_levels_data is Dictionary:
 		state.pollution_levels = pollution_levels_data.duplicate(true)

@@ -91,5 +91,7 @@ func _get_active_color(category: String) -> Color:
 			return Color(0.78, 0.68, 0.22, 1)
 		"elite_node":
 			return Color(0.66, 0.48, 0.18, 1)
+		"ruin_guard":
+			return Color(0.38, 0.72, 0.82, 1)
 		_:
 			return Color(0.8, 0.313726, 0.215686, 1)

@@ -94,6 +94,267 @@ function Test-DefinitionRef([string]$Source, [string]$ReferenceId) {
     }
 }
 
+function Add-BudgetRef([hashtable]$Inventory, [string]$DefinitionId, [double]$Amount) {
+    if ([string]::IsNullOrWhiteSpace($DefinitionId) -or $Amount -le 0) {
+        return
+    }
+
+    if (-not $Inventory.ContainsKey($DefinitionId)) {
+        $Inventory[$DefinitionId] = 0.0
+    }
+    $Inventory[$DefinitionId] = [double]$Inventory[$DefinitionId] + $Amount
+}
+
+function Use-BudgetRef([hashtable]$Inventory, [string]$DefinitionId, [double]$Amount, [string]$Source) {
+    if ([string]::IsNullOrWhiteSpace($DefinitionId) -or $Amount -le 0) {
+        return
+    }
+
+    $currentAmount = 0.0
+    if ($Inventory.ContainsKey($DefinitionId)) {
+        $currentAmount = [double]$Inventory[$DefinitionId]
+    }
+
+    if ($currentAmount + 0.0001 -lt $Amount) {
+        Add-Error "client resource budget:${Source} requires '${DefinitionId}' x$Amount but only has $currentAmount"
+        $Inventory[$DefinitionId] = 0.0
+        return
+    }
+
+    $Inventory[$DefinitionId] = $currentAmount - $Amount
+}
+
+function Invoke-MainResourceBudgetCheck {
+    if (-not $filesByName.ContainsKey("quests.json") -or -not $filesByName.ContainsKey("recipes.json") -or -not $filesByName.ContainsKey("buildings.json")) {
+        return
+    }
+
+    $questsById = @{}
+    $mainQuestIds = [System.Collections.Generic.List[string]]::new()
+    foreach ($quest in $filesByName["quests.json"].entries) {
+        $questId = [string]$quest.id
+        $questsById[$questId] = $quest
+        if ([string]$quest.quest_type -eq "main") {
+            $mainQuestIds.Add($questId)
+        }
+    }
+
+    $mainRoots = @(
+        $mainQuestIds |
+            Where-Object {
+                $prerequisites = @($questsById[$_].prerequisites) | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+                $prerequisites.Count -eq 0
+            }
+    )
+    if ($mainRoots.Count -ne 1) {
+        return
+    }
+
+    $recipesByOutput = @{}
+    $recipeOutputAmounts = @{}
+    foreach ($recipe in $filesByName["recipes.json"].entries) {
+        foreach ($output in @($recipe.outputs)) {
+            $outputId = [string]$output.id
+            if ([string]::IsNullOrWhiteSpace($outputId) -or $recipesByOutput.ContainsKey($outputId)) {
+                continue
+            }
+            $recipesByOutput[$outputId] = $recipe
+            $recipeOutputAmounts[$outputId] = [double]$output.amount
+        }
+    }
+
+    $buildingsById = @{}
+    foreach ($building in $filesByName["buildings.json"].entries) {
+        $buildingsById[[string]$building.id] = $building
+    }
+
+    $mapObjectsById = @{}
+    if ($filesByName.ContainsKey("map_objects.json")) {
+        foreach ($mapObject in $filesByName["map_objects.json"].entries) {
+            $mapObjectsById[[string]$mapObject.id] = $mapObject
+        }
+    }
+
+    $inventory = @{
+        "item.basic_parts" = 4.0
+        "item.repair_gel" = 1.0
+        "fluid.basic_solvent" = 3.0
+    }
+    $interactionConsumes = @{
+        "map_object.outer_ring_barrier" = "item.phase_anchor"
+        "map_object.deep_ruin_door" = "item.deep_ruin_coordinates"
+        "map_object.deep_ruin_latch" = "item.deep_override_key"
+        "map_object.deep_signal_array" = "item.deep_route_imprint"
+        "map_object.phase_return_anchor" = "item.deep_signal_matrix"
+        "map_object.phase_fault_spire" = "item.relay_tuning_lens"
+        "map_object.phase_well_lock" = "item.phase_well_key"
+        "map_object.inner_phase_well" = "item.phase_well_probe"
+        "map_object.phase_well_sink" = "item.phase_well_pike"
+        "map_object.phase_well_chamber" = "item.phase_well_shunt"
+        "map_object.phase_well_loom" = "item.phase_well_shuttle"
+        "map_object.phase_well_frame" = "item.phase_well_frame_key"
+        "map_object.phase_well_tether" = "item.phase_well_tether_spike"
+        "map_object.phase_well_anchor_field" = "item.phase_well_anchor_stake"
+    }
+    $craftingStack = @{}
+
+    function Get-BudgetAmount([hashtable]$Inventory, [string]$DefinitionId) {
+        if ($Inventory.ContainsKey($DefinitionId)) {
+            return [double]$Inventory[$DefinitionId]
+        }
+        return 0.0
+    }
+
+    function Ensure-BudgetRef([hashtable]$Inventory, [string]$DefinitionId, [double]$Amount, [string]$Source) {
+        if ([string]::IsNullOrWhiteSpace($DefinitionId) -or $Amount -le 0) {
+            return
+        }
+        if ((Get-BudgetAmount $Inventory $DefinitionId) + 0.0001 -ge $Amount) {
+            return
+        }
+        if ($DefinitionId -eq "item.basic_parts") {
+            return
+        }
+        if (-not $recipesByOutput.ContainsKey($DefinitionId)) {
+            return
+        }
+        if ($craftingStack.ContainsKey($DefinitionId)) {
+            Add-Error "client resource budget:${Source} has recursive intermediate crafting for '${DefinitionId}'"
+            return
+        }
+
+        $craftingStack[$DefinitionId] = $true
+        $recipe = $recipesByOutput[$DefinitionId]
+        $outputAmount = [double]$recipeOutputAmounts[$DefinitionId]
+        if ($outputAmount -le 0) {
+            $outputAmount = 1.0
+        }
+        $shortage = $Amount - (Get-BudgetAmount $Inventory $DefinitionId)
+        $runs = [Math]::Ceiling($shortage / $outputAmount)
+        for ($run = 0; $run -lt $runs; $run += 1) {
+            foreach ($inputRef in @($recipe.inputs)) {
+                Ensure-BudgetRef $Inventory ([string]$inputRef.id) ([double]$inputRef.amount) "${Source} -> $([string]$recipe.id).inputs"
+                Use-BudgetRef $Inventory ([string]$inputRef.id) ([double]$inputRef.amount) "${Source} -> $([string]$recipe.id).inputs"
+            }
+            foreach ($outputRef in @($recipe.outputs)) {
+                Add-BudgetRef $Inventory ([string]$outputRef.id) ([double]$outputRef.amount)
+            }
+            foreach ($byproductRef in @($recipe.byproducts)) {
+                Add-BudgetRef $Inventory ([string]$byproductRef.id) ([double]$byproductRef.amount)
+            }
+        }
+        $craftingStack.Remove($DefinitionId)
+    }
+
+    $visited = @{}
+    $questId = [string]$mainRoots[0]
+    while (-not [string]::IsNullOrWhiteSpace($questId)) {
+        if ($visited.ContainsKey($questId)) {
+            Add-Error "client resource budget: main quest graph loops at '${questId}'"
+            return
+        }
+        $visited[$questId] = $true
+
+        $quest = $questsById[$questId]
+        foreach ($objective in @($quest.objectives)) {
+            $objectiveType = [string]$objective.type
+            $targetId = [string]$objective.target_id
+            $amount = [double]$objective.amount
+            if ($amount -le 0) {
+                $amount = 1.0
+            }
+
+            if ($objectiveType -eq "gather_item") {
+                Add-BudgetRef $inventory $targetId $amount
+                continue
+            }
+
+            if ($objectiveType -eq "sample_object") {
+                if ($mapObjectsById.ContainsKey($targetId)) {
+                    foreach ($sampleResultId in @($mapObjectsById[$targetId].sample_result_refs)) {
+                        Add-BudgetRef $inventory ([string]$sampleResultId) $amount
+                    }
+                }
+                continue
+            }
+
+            if ($objectiveType -eq "craft_item") {
+                if (-not $recipesByOutput.ContainsKey($targetId)) {
+                    Add-Error "client resource budget:${questId} cannot craft '${targetId}' because no recipe output produces it"
+                    continue
+                }
+
+                $recipe = $recipesByOutput[$targetId]
+                $outputAmount = [double]$recipeOutputAmounts[$targetId]
+                if ($outputAmount -le 0) {
+                    $outputAmount = 1.0
+                }
+                $runs = [Math]::Ceiling($amount / $outputAmount)
+                for ($run = 0; $run -lt $runs; $run += 1) {
+                    foreach ($inputRef in @($recipe.inputs)) {
+                        Ensure-BudgetRef $inventory ([string]$inputRef.id) ([double]$inputRef.amount) "${questId} -> $([string]$recipe.id).inputs"
+                        Use-BudgetRef $inventory ([string]$inputRef.id) ([double]$inputRef.amount) "${questId} -> $([string]$recipe.id).inputs"
+                    }
+                    foreach ($outputRef in @($recipe.outputs)) {
+                        Add-BudgetRef $inventory ([string]$outputRef.id) ([double]$outputRef.amount)
+                    }
+                    foreach ($byproductRef in @($recipe.byproducts)) {
+                        Add-BudgetRef $inventory ([string]$byproductRef.id) ([double]$byproductRef.amount)
+                    }
+                }
+                continue
+            }
+
+            if ($objectiveType -eq "build") {
+                if (-not $buildingsById.ContainsKey($targetId)) {
+                    Add-Error "client resource budget:${questId} cannot build unknown building '${targetId}'"
+                    continue
+                }
+
+                $building = $buildingsById[$targetId]
+                for ($run = 0; $run -lt [int]$amount; $run += 1) {
+                    foreach ($costRef in @($building.build_cost)) {
+                        Ensure-BudgetRef $inventory ([string]$costRef.id) ([double]$costRef.amount) "${questId} -> ${targetId}.build_cost"
+                        Use-BudgetRef $inventory ([string]$costRef.id) ([double]$costRef.amount) "${questId} -> ${targetId}.build_cost"
+                    }
+                }
+                continue
+            }
+
+            if ($objectiveType -eq "inspect" -and $interactionConsumes.ContainsKey($targetId)) {
+                Use-BudgetRef $inventory ([string]$interactionConsumes[$targetId]) 1.0 "${questId} -> ${targetId}.inspect"
+            }
+        }
+
+        foreach ($rewardRef in @($quest.rewards)) {
+            Add-BudgetRef $inventory ([string]$rewardRef.id) ([double]$rewardRef.amount)
+        }
+
+        $nextMainQuestIds = @(
+            @($quest.next_quest_ids) | ForEach-Object { [string]$_ } | Where-Object {
+                -not [string]::IsNullOrWhiteSpace($_) -and $questsById.ContainsKey($_) -and [string]$questsById[$_].quest_type -eq "main"
+            }
+        )
+        if ($nextMainQuestIds.Count -eq 0) {
+            break
+        }
+        if ($nextMainQuestIds.Count -gt 1) {
+            Add-Error "client resource budget:${questId} has multiple main next quests, budget check expects a single current main path"
+            return
+        }
+        $questId = [string]$nextMainQuestIds[0]
+    }
+
+    Use-BudgetRef $inventory "item.basic_parts" 3.0 "allowed miscraft buffer"
+    $terminalBasicParts = 0.0
+    if ($inventory.ContainsKey("item.basic_parts")) {
+        $terminalBasicParts = [double]$inventory["item.basic_parts"]
+    }
+    if ($terminalBasicParts -lt 8.0) {
+        Add-Error "client resource budget: terminal basic parts buffer should be at least 8 after main path and 3 miscrafts, got $terminalBasicParts"
+    }
+}
+
 foreach ($fileName in $filesByName.Keys) {
     foreach ($entry in $filesByName[$fileName].entries) {
         foreach ($property in $entry.PSObject.Properties) {
@@ -426,6 +687,8 @@ if ($filesByName.ContainsKey("quests.json")) {
         }
     }
 }
+
+Invoke-MainResourceBudgetCheck
 
 $localizationPath = Join-Path $dataRoot "localization/zh_cn.json"
 $localization = Read-JsonFile $localizationPath
