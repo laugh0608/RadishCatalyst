@@ -264,4 +264,160 @@ func run() -> void:
 		"map_object_instance.phase_return_anchor_chamber",
 		"phase well chamber anchor should become current interactable after returning from base"
 	)
+
+	var tether_anchor_world := WorldState.create_default()
+	for region_id in [
+		"region.crystal_vein_field",
+		"region.pollution_edge",
+		"region.locked_ruin_gate",
+		"region.ruin_outer_ring",
+		"region.deep_ruin_threshold",
+		"region.inner_phase_well",
+		"region.phase_well_sink",
+		"region.phase_well_chamber",
+		"region.phase_well_tether"
+	]:
+		tether_anchor_world.unlock_region(region_id)
+	tether_anchor_world.current_region_id = "region.phase_well_tether"
+	tether_anchor_world.quest_state.active_quest_ids = ["quest.stabilize_phase_well_anchor_field"]
+	tether_anchor_world.quest_state.completed_quest_ids = [
+		"quest.restore_outpost",
+		"quest.scout_crystal_field",
+		"quest.calibrate_reactor",
+		"quest.bring_back_sample",
+		"quest.analyze_anomaly_sample",
+		"quest.make_filter_module",
+		"quest.prepare_treatment_supplies",
+		"quest.expand_treatment_point",
+		"quest.enter_pollution_edge",
+		"quest.defeat_elite_node",
+		"quest.unlock_ruin_signal",
+		"quest.scout_ruin_outer_ring",
+		"quest.assemble_phase_anchor",
+		"quest.stabilize_outer_ring_barrier",
+		"quest.secure_outer_ring_signal",
+		"quest.salvage_signal_echo",
+		"quest.analyze_deep_signal",
+		"quest.unlock_deep_ruin_entrance",
+		"quest.harvest_phase_filament",
+		"quest.refine_phase_filament",
+		"quest.assemble_deep_override",
+		"quest.unlock_deep_ruin_cache",
+		"quest.analyze_deep_core",
+		"quest.activate_deep_array",
+		"quest.assemble_deep_signal_matrix",
+		"quest.deploy_phase_relay_anchor",
+		"quest.reenter_phase_frontline",
+		"quest.trace_phase_splinters",
+		"quest.refine_phase_splinters",
+		"quest.inspect_phase_fault_spire",
+		"quest.analyze_inner_fault_trace",
+		"quest.collect_fault_residue",
+		"quest.refine_fault_residue",
+		"quest.unlock_phase_well",
+		"quest.analyze_phase_well_locator",
+		"quest.collect_well_flux",
+		"quest.refine_well_flux",
+		"quest.inspect_inner_phase_well",
+		"quest.analyze_phase_well_core",
+		"quest.collect_well_ash",
+		"quest.refine_well_ash",
+		"quest.assemble_phase_well_pike",
+		"quest.inspect_phase_well_sink",
+		"quest.analyze_phase_well_heart",
+		"quest.collect_heart_spine",
+		"quest.refine_heart_spine",
+		"quest.assemble_phase_well_shunt",
+		"quest.inspect_phase_well_chamber",
+		"quest.analyze_phase_well_spindle",
+		"quest.collect_weft_bundle",
+		"quest.refine_weft_bundle",
+		"quest.assemble_phase_well_spindle",
+		"quest.inspect_phase_well_loom",
+		"quest.analyze_phase_well_weave_core",
+		"quest.collect_selvedge_strip",
+		"quest.refine_selvedge_strip",
+		"quest.assemble_phase_well_weave_shuttle",
+		"quest.inspect_phase_well_frame",
+		"quest.analyze_phase_well_knot_core",
+		"quest.collect_tether_fiber",
+		"quest.refine_tether_fiber",
+		"quest.assemble_phase_well_tether_spike",
+		"quest.inspect_phase_well_tether",
+		"quest.analyze_phase_well_anchor_core",
+		"quest.refine_anchor_core_dust"
+	]
+	tether_anchor_world.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor")
+	tether_anchor_world.add_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+	var tether_anchor_character := CharacterState.create_default()
+	tether_anchor_character.current_region_id = "region.phase_well_tether"
+	tether_anchor_character.position = Vector2(3238, 132)
+	map.apply_runtime_state(tether_anchor_world, tether_anchor_character)
+	map.update_current_interactable()
+	host._expect_equal(
+		map.current_interactable.instance_id,
+		"map_object_instance.phase_return_anchor_tether",
+		"phase well tether anchor should become current interactable at current map end"
+	)
+	var tether_anchor_result := map.try_interact(tether_anchor_character, tether_anchor_world)
+	host._expect_equal(bool(tether_anchor_result.get("success", false)), true, "phase well tether anchor return to outpost should succeed")
+	host._expect_equal(
+		tether_anchor_world.active_phase_relay_anchor_id,
+		"map_object_instance.phase_return_anchor_tether",
+		"phase well tether anchor should replace active relay anchor"
+	)
+	host._expect_equal(
+		tether_anchor_world.get_deployed_phase_relay_anchor_ids(),
+		[
+			"map_object_instance.phase_return_anchor",
+			"map_object_instance.phase_return_anchor_chamber",
+			"map_object_instance.phase_return_anchor_tether"
+		],
+		"phase well tether anchor should keep all deployed anchors"
+	)
+	host._expect_equal(tether_anchor_world.current_region_id, "region.outpost_platform", "phase well tether anchor return updates world region")
+	host._expect_equal(tether_anchor_character.current_region_id, "region.outpost_platform", "phase well tether anchor return updates character region")
+	tether_anchor_world.quest_state.active_quest_ids = ["quest.plan_stability_frontline_action"]
+	tether_anchor_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
+	tether_anchor_character.position = Vector2(-92, 48)
+	map.apply_runtime_state(tether_anchor_world, tether_anchor_character)
+	map.update_current_interactable()
+	host._expect_equal(
+		map.current_interactable.instance_id,
+		"map_object_instance.frontline_action_console",
+		"frontline console should take focus near the relay pad"
+	)
+	var console_cycle_to_deep_result := map.try_cycle_recipe(tether_anchor_world)
+	host._expect_equal(bool(console_cycle_to_deep_result.get("success", false)), true, "phase relay pad should cycle from nearby console focus")
+	host._expect_equal(
+		tether_anchor_world.active_phase_relay_anchor_id,
+		"map_object_instance.phase_return_anchor",
+		"nearby phase relay pad cycle should switch active relay anchor to deep"
+	)
+	var console_cycle_to_chamber_result := map.try_cycle_recipe(tether_anchor_world)
+	host._expect_equal(bool(console_cycle_to_chamber_result.get("success", false)), true, "phase relay pad should cycle to chamber from nearby console focus")
+	host._expect_equal(
+		tether_anchor_world.active_phase_relay_anchor_id,
+		"map_object_instance.phase_return_anchor_chamber",
+		"nearby phase relay pad cycle should switch active relay anchor to chamber"
+	)
+	var console_cycle_to_tether_result := map.try_cycle_recipe(tether_anchor_world)
+	host._expect_equal(bool(console_cycle_to_tether_result.get("success", false)), true, "phase relay pad should cycle back to tether from nearby console focus")
+	host._expect_equal(
+		tether_anchor_world.active_phase_relay_anchor_id,
+		"map_object_instance.phase_return_anchor_tether",
+		"nearby phase relay pad cycle should switch active relay anchor back to tether"
+	)
+	tether_anchor_character.position = Vector2(-188, 48)
+	map.apply_runtime_state(tether_anchor_world, tether_anchor_character)
+	map.update_current_interactable()
+	var tether_pad_result := map.try_interact(tether_anchor_character, tether_anchor_world)
+	host._expect_equal(bool(tether_pad_result.get("success", false)), true, "phase relay pad return to tether anchor should succeed")
+	host._expect_equal(tether_anchor_world.current_region_id, "region.phase_well_tether", "phase relay pad should return world to tether region")
+	host._expect_equal(tether_anchor_character.current_region_id, "region.phase_well_tether", "phase relay pad should return character to tether region")
+	host._expect_equal(
+		map.current_interactable.instance_id,
+		"map_object_instance.phase_return_anchor_tether",
+		"phase well tether anchor should become current interactable after returning from base"
+	)
 	map.free()

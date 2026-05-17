@@ -1333,8 +1333,8 @@ func _check_runtime_syncs_progression_vitals_and_late_anchor() -> void:
 	_expect_equal(
 		world_state.get_deployed_phase_relay_anchor_ids(),
 		[
-			"map_object_instance.phase_return_anchor_chamber",
-			"map_object_instance.phase_return_anchor"
+			"map_object_instance.phase_return_anchor",
+			"map_object_instance.phase_return_anchor_chamber"
 		],
 		"runtime restores deployed anchors for late-stage saves"
 	)

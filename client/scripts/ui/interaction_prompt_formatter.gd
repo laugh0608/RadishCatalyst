@@ -335,8 +335,8 @@ func format_phase_relay_pad_prompt(world_state: WorldState) -> String:
 	if world_state.get_deployed_phase_relay_anchor_count() > 1:
 		cycle_hint = "；按 R 切换已部署落点"
 	if world_state.quest_state.has_active_quest("quest.reenter_phase_frontline"):
-		return "按 E 回投：相位回投台，返回当前锚点 %s 并继续追踪更东侧裂相碎屑%s。" % [active_anchor_label, cycle_hint]
-	return "按 E 回投：相位回投台，返回当前前线回传锚点 %s%s。" % [active_anchor_label, cycle_hint]
+		return "相位回投台：当前落点 %s%s。按 E 回投并继续追踪更东侧裂相碎屑。" % [active_anchor_label, cycle_hint]
+	return "相位回投台：当前落点 %s%s。按 E 回投到该前线回传锚点。" % [active_anchor_label, cycle_hint]
 
 
 func format_phase_fault_spire_prompt(world_state: WorldState, character_state: CharacterState) -> String:
@@ -538,5 +538,7 @@ func _format_phase_relay_anchor_label(anchor_instance_id: String) -> String:
 			return "深段固定点"
 		"map_object_instance.phase_return_anchor_chamber":
 			return "井心室前线"
+		"map_object_instance.phase_return_anchor_tether":
+			return "井系桥前线"
 		_:
 			return "当前落点"

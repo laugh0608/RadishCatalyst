@@ -746,6 +746,14 @@ single_use = false
 label_offset = Vector2(-100, 22)
 label_size = Vector2(200, 24)
 
+[node name="PhaseReturnAnchorTether" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3238, 132)
+definition_id = "map_object.phase_return_anchor"
+interaction_type = "inspect"
+single_use = false
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
+
 [node name="PhaseWellAnchorField" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(3378, -8)
 definition_id = "map_object.phase_well_anchor_field"

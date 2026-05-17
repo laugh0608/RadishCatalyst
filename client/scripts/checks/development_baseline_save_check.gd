@@ -65,11 +65,7 @@ func run() -> void:
 			"baseline.s10_phase_well_spindle_ready",
 			"baseline.s11_phase_well_weave_core_ready",
 			"baseline.s12_phase_well_knot_core_ready",
-			"baseline.s13_phase_well_anchor_core_ready",
-			"baseline.s14_phase_well_anchor_field_stabilized",
-			"baseline.s15_phase_well_stability_readout_ready",
-			"baseline.s16_phase_well_stability_window_calibrated",
-			"baseline.s17_frontline_action_report_ready"
+			"baseline.s13_phase_well_anchor_core_ready"
 		]:
 			host._expect_equal(
 				loaded_world.active_phase_relay_anchor_id,
@@ -81,6 +77,26 @@ func run() -> void:
 				[
 					"map_object_instance.phase_return_anchor",
 					"map_object_instance.phase_return_anchor_chamber"
+				],
+				"%s baseline deployed phase relay anchors" % code.to_upper()
+			)
+		if baseline_id in [
+			"baseline.s14_phase_well_anchor_field_stabilized",
+			"baseline.s15_phase_well_stability_readout_ready",
+			"baseline.s16_phase_well_stability_window_calibrated",
+			"baseline.s17_frontline_action_report_ready"
+		]:
+			host._expect_equal(
+				loaded_world.active_phase_relay_anchor_id,
+				"map_object_instance.phase_return_anchor_tether",
+				"%s baseline active phase relay anchor" % code.to_upper()
+			)
+			host._expect_equal(
+				loaded_world.get_deployed_phase_relay_anchor_ids(),
+				[
+					"map_object_instance.phase_return_anchor",
+					"map_object_instance.phase_return_anchor_chamber",
+					"map_object_instance.phase_return_anchor_tether"
 				],
 				"%s baseline deployed phase relay anchors" % code.to_upper()
 			)

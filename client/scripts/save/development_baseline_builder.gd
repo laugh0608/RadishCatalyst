@@ -4,7 +4,7 @@ class_name DevelopmentBaselineBuilder
 const BASELINE_OUTPOST_POSITION := Vector2(-250, -48)
 const BASELINE_OUTER_RING_POSITION := Vector2(604, -44)
 const BASELINE_DEEP_THRESHOLD_POSITION := Vector2(738, 10)
-const BASELINE_PHASE_RELAY_PAD_POSITION := Vector2(-210, -40)
+const BASELINE_PHASE_RELAY_PAD_POSITION := Vector2(-188, 48)
 const BASELINE_ANCHOR_FIELD_POSITION := Vector2(3192, 18)
 const BASELINE_FRONTLINE_ACTION_CONSOLE_POSITION := Vector2(-92, 48)
 
@@ -543,7 +543,8 @@ func _apply_baseline_pose_and_inventory(
 			)
 		"baseline.s14_phase_well_anchor_field_stabilized":
 			_set_runtime_position(world_state, character_state, "region.phase_well_tether", BASELINE_ANCHOR_FIELD_POSITION)
-			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+			world_state.add_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_tether")
 			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
 			character_state.inventory = _make_inventory(
 				{"item.basic_parts": 4, "item.phase_well_echo_shard": 1, "item.repair_gel": 1, "item.resistance_vial_t1": 1},
@@ -552,7 +553,8 @@ func _apply_baseline_pose_and_inventory(
 			)
 		"baseline.s15_phase_well_stability_readout_ready":
 			_set_runtime_position(world_state, character_state, "region.phase_well_tether", BASELINE_ANCHOR_FIELD_POSITION)
-			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+			world_state.add_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_tether")
 			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
 			character_state.inventory = _make_inventory(
 				{"item.basic_parts": 4, "item.phase_well_stability_readout": 1, "item.repair_gel": 1, "item.resistance_vial_t1": 1},
@@ -561,7 +563,8 @@ func _apply_baseline_pose_and_inventory(
 			)
 		"baseline.s16_phase_well_stability_window_calibrated":
 			_set_runtime_position(world_state, character_state, "region.phase_well_tether", BASELINE_ANCHOR_FIELD_POSITION)
-			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+			world_state.add_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_tether")
 			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
 			character_state.inventory = _make_inventory(
 				{"item.basic_parts": 4, "item.phase_well_stability_readout": 1, "item.repair_gel": 1, "item.resistance_vial_t1": 1},
@@ -570,7 +573,8 @@ func _apply_baseline_pose_and_inventory(
 			)
 		"baseline.s17_frontline_action_report_ready":
 			_set_runtime_position(world_state, character_state, "region.outpost_platform", BASELINE_FRONTLINE_ACTION_CONSOLE_POSITION)
-			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+			world_state.add_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_tether")
 			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
 			character_state.inventory = _make_inventory(
 				{"item.basic_parts": 8, "item.frontline_action_report": 1, "item.repair_gel": 2, "item.resistance_vial_t1": 2},

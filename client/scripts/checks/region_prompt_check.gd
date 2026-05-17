@@ -142,9 +142,12 @@ func run() -> void:
 	relay_pad_world.quest_state.completed_quest_ids.append("quest.deploy_phase_relay_anchor")
 	host._expect_text_contains(formatter.format_phase_relay_pad_prompt(relay_pad_world), "前线锚点当前离线", "phase relay pad offline prompt")
 	relay_pad_world.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor")
+	host._expect_text_contains(formatter.format_phase_relay_pad_prompt(relay_pad_world), "当前落点", "phase relay pad should make active anchor explicit")
 	host._expect_text_contains(formatter.format_phase_relay_pad_prompt(relay_pad_world), "深段固定点", "phase relay pad ready prompt")
 	relay_pad_world.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
 	host._expect_text_contains(formatter.format_phase_relay_pad_prompt(relay_pad_world), "按 R 切换", "phase relay pad multi-anchor prompt")
+	relay_pad_world.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_tether")
+	host._expect_text_contains(formatter.format_phase_relay_pad_prompt(relay_pad_world), "井系桥前线", "phase relay pad tether anchor prompt")
 	relay_pad_world.quest_state.active_quest_ids = ["quest.reenter_phase_frontline"]
 	host._expect_text_contains(formatter.format_phase_relay_pad_prompt(relay_pad_world), "裂相碎屑", "phase relay pad reentry prompt points to deeper followup")
 	var spire_world := WorldState.create_default()

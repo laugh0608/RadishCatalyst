@@ -14,6 +14,7 @@ func run() -> void:
 	_check_phase_well_anchor_core_recipe_progression()
 	_check_runtime_recovers_late_anchor_stake_progress_from_inventory()
 	_check_runtime_restores_phase_well_anchor_core_followup()
+	_check_runtime_preserves_manual_phase_relay_anchor_selection()
 
 
 func _check_phase_well_knot_core_recipe_progression() -> void:
@@ -213,6 +214,37 @@ func _check_runtime_recovers_late_anchor_stake_progress_from_inventory() -> void
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.stabilize_phase_well_anchor_field", "runtime advances to anchor field stabilization after late craft recovery")
 	if not host._result_logs_contain(result, "后段加工产物已补记到当前任务"):
 		host.failures.append("late anchor stake recovery should log restored craft progress, got %s" % var_to_str(result))
+
+
+func _check_runtime_preserves_manual_phase_relay_anchor_selection() -> void:
+	var old_world := WorldState.create_default()
+	var old_character := CharacterState.create_default()
+	old_world.quest_state.active_quest_ids = ["quest.plan_stability_frontline_action"]
+	old_world.quest_state.completed_quest_ids = ["quest.deploy_phase_relay_anchor"]
+	old_world.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor")
+	var old_result: Dictionary = host.quest_runtime.reconcile_active_objectives(old_world, old_character)
+	host._expect_equal(bool(old_result.get("accepted", false)), true, "runtime accepts old tether relay migration")
+	host._expect_equal(
+		old_world.active_phase_relay_anchor_id,
+		"map_object_instance.phase_return_anchor_tether",
+		"runtime migrates old tether progress to tether relay anchor once"
+	)
+
+	var manual_world := WorldState.create_default()
+	var manual_character := CharacterState.create_default()
+	manual_world.quest_state.active_quest_ids = ["quest.plan_stability_frontline_action"]
+	manual_world.quest_state.completed_quest_ids = ["quest.deploy_phase_relay_anchor"]
+	manual_world.add_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor")
+	manual_world.add_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+	manual_world.add_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor_tether")
+	manual_world.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor")
+	var manual_result: Dictionary = host.quest_runtime.reconcile_active_objectives(manual_world, manual_character)
+	host._expect_equal(bool(manual_result.get("accepted", false)), false, "runtime leaves manual tether relay selection unchanged")
+	host._expect_equal(
+		manual_world.active_phase_relay_anchor_id,
+		"map_object_instance.phase_return_anchor",
+		"runtime does not overwrite manually selected deployed relay anchor"
+	)
 
 
 func _check_runtime_restores_phase_well_anchor_core_followup() -> void:

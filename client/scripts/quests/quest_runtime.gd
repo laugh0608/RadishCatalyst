@@ -1,6 +1,29 @@
 extends RefCounted
 class_name QuestRuntime
 
+const PHASE_RELAY_ANCHOR_DEEP_ID := "map_object_instance.phase_return_anchor"
+const PHASE_RELAY_ANCHOR_CHAMBER_ID := "map_object_instance.phase_return_anchor_chamber"
+const PHASE_RELAY_ANCHOR_TETHER_ID := "map_object_instance.phase_return_anchor_tether"
+const PHASE_RELAY_CHAMBER_PROGRESS_QUEST_IDS: Array[String] = [
+	"quest.inspect_phase_well_loom",
+	"quest.refine_weft_bundle",
+	"quest.collect_weft_bundle",
+	"quest.analyze_phase_well_spindle",
+	"quest.inspect_phase_well_chamber",
+	"quest.refine_heart_spine",
+	"quest.collect_heart_spine"
+]
+const PHASE_RELAY_TETHER_PROGRESS_QUEST_IDS: Array[String] = [
+	"quest.analyze_phase_well_anchor_core",
+	"quest.refine_anchor_core_dust",
+	"quest.stabilize_phase_well_anchor_field",
+	"quest.analyze_phase_well_echo_shard",
+	"quest.calibrate_phase_well_stability_window",
+	"quest.plan_stability_frontline_action",
+	"quest.survey_stability_echo_probe",
+	"quest.analyze_stability_echo_sample"
+]
+
 var event_rules: QuestEventRules
 var progress_rules: QuestProgressRules
 var completion_rules: QuestCompletionRules
@@ -95,6 +118,8 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 		log_messages.append("旧进度已接入：内层故障轨迹分析配方已补齐。")
 	if _restore_missing_phase_relay_anchor(world_state):
 		log_messages.append("旧进度已接入：前线回传锚点已按固定深段落点恢复在线。")
+	if _restore_late_phase_relay_anchor(world_state):
+		log_messages.append("旧进度已接入：井系桥前线回传锚点已设为当前回投落点。")
 	if _restore_missing_deployed_phase_relay_anchors(world_state):
 		log_messages.append("旧进度已接入：已部署前线锚点列表已按现有回投进度补齐。")
 	if _activate_missing_post_phase_well_loom_followup(world_state):
@@ -514,19 +539,34 @@ func _restore_missing_deployed_phase_relay_anchors(world_state: WorldState) -> b
 	if not world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor"):
 		return false
 	var changed := false
-	if world_state.has_active_phase_relay_anchor():
-		var active_anchor_id := world_state.active_phase_relay_anchor_id
-		if not world_state.has_deployed_phase_relay_anchor(active_anchor_id):
-			world_state.add_deployed_phase_relay_anchor(active_anchor_id)
-			changed = true
-	if not world_state.has_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor"):
-		world_state.add_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor")
+	if not world_state.has_deployed_phase_relay_anchor(PHASE_RELAY_ANCHOR_DEEP_ID):
+		world_state.add_deployed_phase_relay_anchor(PHASE_RELAY_ANCHOR_DEEP_ID)
 		changed = true
-	if world_state.active_phase_relay_anchor_id == "map_object_instance.phase_return_anchor_chamber":
-		if not world_state.has_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber"):
-			world_state.add_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
-			changed = true
+	if _should_have_chamber_phase_relay_anchor(world_state) and not world_state.has_deployed_phase_relay_anchor(PHASE_RELAY_ANCHOR_CHAMBER_ID):
+		world_state.add_deployed_phase_relay_anchor(PHASE_RELAY_ANCHOR_CHAMBER_ID)
+		changed = true
+	if _should_have_tether_phase_relay_anchor(world_state) and not world_state.has_deployed_phase_relay_anchor(PHASE_RELAY_ANCHOR_TETHER_ID):
+		world_state.add_deployed_phase_relay_anchor(PHASE_RELAY_ANCHOR_TETHER_ID)
+		changed = true
+	if world_state.has_active_phase_relay_anchor() and not world_state.has_deployed_phase_relay_anchor(world_state.active_phase_relay_anchor_id):
+		world_state.add_deployed_phase_relay_anchor(world_state.active_phase_relay_anchor_id)
+		changed = true
+	if _normalize_deployed_phase_relay_anchor_order(world_state):
+		changed = true
 	return changed
+
+
+func _restore_late_phase_relay_anchor(world_state: WorldState) -> bool:
+	if not world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor"):
+		return false
+	if not _should_have_tether_phase_relay_anchor(world_state):
+		return false
+	if world_state.has_deployed_phase_relay_anchor(PHASE_RELAY_ANCHOR_TETHER_ID):
+		return false
+	if world_state.active_phase_relay_anchor_id == PHASE_RELAY_ANCHOR_TETHER_ID:
+		return false
+	world_state.set_active_phase_relay_anchor(PHASE_RELAY_ANCHOR_TETHER_ID)
+	return true
 
 
 func _restore_missing_inner_fault_analysis_unlock(world_state: WorldState) -> bool:
@@ -842,18 +882,48 @@ func _activate_missing_post_phase_relay_followup(world_state: WorldState) -> boo
 
 
 func _get_default_phase_relay_anchor_id(world_state: WorldState) -> String:
-	for quest_id in [
-		"quest.inspect_phase_well_loom",
-		"quest.refine_weft_bundle",
-		"quest.collect_weft_bundle",
-		"quest.analyze_phase_well_spindle",
-		"quest.inspect_phase_well_chamber",
-		"quest.refine_heart_spine",
-		"quest.collect_heart_spine"
-	]:
+	if _should_have_tether_phase_relay_anchor(world_state):
+		return PHASE_RELAY_ANCHOR_TETHER_ID
+	if _should_have_chamber_phase_relay_anchor(world_state):
+		return PHASE_RELAY_ANCHOR_CHAMBER_ID
+	return PHASE_RELAY_ANCHOR_DEEP_ID
+
+
+func _should_have_chamber_phase_relay_anchor(world_state: WorldState) -> bool:
+	return world_state.active_phase_relay_anchor_id == PHASE_RELAY_ANCHOR_CHAMBER_ID \
+		or world_state.active_phase_relay_anchor_id == PHASE_RELAY_ANCHOR_TETHER_ID \
+		or _has_completed_or_active_quest(world_state, PHASE_RELAY_CHAMBER_PROGRESS_QUEST_IDS) \
+		or _should_have_tether_phase_relay_anchor(world_state)
+
+
+func _should_have_tether_phase_relay_anchor(world_state: WorldState) -> bool:
+	return world_state.active_phase_relay_anchor_id == PHASE_RELAY_ANCHOR_TETHER_ID \
+		or _has_completed_or_active_quest(world_state, PHASE_RELAY_TETHER_PROGRESS_QUEST_IDS)
+
+
+func _has_completed_or_active_quest(world_state: WorldState, quest_ids: Array[String]) -> bool:
+	for quest_id in quest_ids:
 		if world_state.quest_state.has_completed_quest(quest_id) or world_state.quest_state.has_active_quest(quest_id):
-			return "map_object_instance.phase_return_anchor_chamber"
-	return "map_object_instance.phase_return_anchor"
+			return true
+	return false
+
+
+func _normalize_deployed_phase_relay_anchor_order(world_state: WorldState) -> bool:
+	var ordered_anchor_ids: Array[String] = []
+	for anchor_id in [
+		PHASE_RELAY_ANCHOR_DEEP_ID,
+		PHASE_RELAY_ANCHOR_CHAMBER_ID,
+		PHASE_RELAY_ANCHOR_TETHER_ID
+	]:
+		if world_state.has_deployed_phase_relay_anchor(anchor_id):
+			ordered_anchor_ids.append(anchor_id)
+	for anchor_id in world_state.get_deployed_phase_relay_anchor_ids():
+		if not ordered_anchor_ids.has(anchor_id):
+			ordered_anchor_ids.append(anchor_id)
+	if world_state.deployed_phase_relay_anchor_ids == ordered_anchor_ids:
+		return false
+	world_state.deployed_phase_relay_anchor_ids = ordered_anchor_ids
+	return true
 
 
 func _objective_set_update(quest_id: String, objective_type: String, target_id: String, amount: float) -> Dictionary:

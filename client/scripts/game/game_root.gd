@@ -11,6 +11,8 @@ var quest_runtime: QuestRuntime
 var interaction_prompt_formatter: InteractionPromptFormatter
 var hud_feedback_presenter: HudFeedbackPresenter
 var hud_log_presenter: HudLogPresenter
+var recipe_cycle_key_pressed := false
+var last_recipe_cycle_request_frame := -1
 
 @onready var world_camera: Camera2D = $WorldCamera
 @onready var vertical_slice_map: VerticalSliceMap = $VerticalSliceMap
@@ -68,6 +70,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if world_state == null or character_state == null:
 		return
+	_poll_recipe_cycle_shortcut()
 	var should_refresh_interactables := _apply_processing_progress(delta)
 	should_refresh_interactables = _reconcile_active_quest_state() or should_refresh_interactables
 	vertical_slice_map.refresh_enemy_spawns(world_state)
@@ -79,6 +82,48 @@ func _process(delta: float) -> void:
 	_sync_world_camera()
 	_refresh_current_context_prompt()
 	_update_hud()
+
+
+func _input(event: InputEvent) -> void:
+	if _is_recipe_cycle_key_event(event):
+		_request_recipe_cycle()
+		get_viewport().set_input_as_handled()
+
+
+func _is_recipe_cycle_key_event(event: InputEvent) -> bool:
+	if event.is_action_pressed("cycle_recipe"):
+		return true
+	if not event is InputEventKey:
+		return false
+	var key_event := event as InputEventKey
+	if not key_event.pressed or key_event.echo:
+		return false
+	return (
+		key_event.keycode == KEY_R
+		or key_event.physical_keycode == KEY_R
+		or key_event.key_label == KEY_R
+		or key_event.unicode == 82
+		or key_event.unicode == 114
+	)
+
+
+func _poll_recipe_cycle_shortcut() -> void:
+	var is_pressed := (
+		Input.is_action_pressed("cycle_recipe")
+		or Input.is_key_pressed(KEY_R)
+		or Input.is_physical_key_pressed(KEY_R)
+	)
+	if is_pressed and not recipe_cycle_key_pressed:
+		_request_recipe_cycle()
+	recipe_cycle_key_pressed = is_pressed
+
+
+func _request_recipe_cycle() -> void:
+	var process_frame := Engine.get_process_frames()
+	if last_recipe_cycle_request_frame == process_frame:
+		return
+	last_recipe_cycle_request_frame = process_frame
+	_on_player_recipe_cycle_requested()
 
 
 func _on_player_interaction_requested() -> void:

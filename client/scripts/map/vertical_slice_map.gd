@@ -467,10 +467,14 @@ func update_current_interactable() -> void:
 		interaction_available.emit(current_interactable)
 func try_cycle_recipe(world_state: WorldState = null) -> Dictionary:
 	if current_interactable == null:
+		if _has_nearby_phase_relay_pad():
+			return _cycle_phase_relay_anchor(world_state)
 		return _failure("附近没有可切换配方的设备。", "配方未切换", "靠近基础反应器等加工设备后再按 R。")
 	if current_interactable.definition_id == "map_object.phase_relay_pad":
 		return _cycle_phase_relay_anchor(world_state)
 	if current_interactable.interaction_type != "process_recipe":
+		if _has_nearby_phase_relay_pad():
+			return _cycle_phase_relay_anchor(world_state)
 		return _failure("当前目标不是加工设备。", "配方未切换", "靠近基础反应器或污染过滤器后再切换配方。")
 	if current_interactable.get_recipe_count() <= 1:
 		return _failure("当前设备没有可轮换配方。", "配方未切换", "该设备只有一个配方，直接按 E 尝试加工。")
@@ -844,6 +848,11 @@ func _get_nearest_interactable() -> PrototypeInteractable:
 		nearest_distance = distance
 
 	return nearest_interactable
+func _has_nearby_phase_relay_pad() -> bool:
+	for interactable in interactables_root.get_children():
+		if interactable is PrototypeInteractable and interactable.can_interact() and interactable.definition_id == "map_object.phase_relay_pad" and player.position.distance_to(interactable.position) <= PLAYER_INTERACTION_RANGE:
+			return true
+	return false
 func _get_nearest_attack_target() -> PrototypeEnemy:
 	var nearest_enemy: PrototypeEnemy = null
 	var nearest_distance := INF
@@ -1397,6 +1406,8 @@ func _get_phase_relay_anchor_label(anchor_instance_id: String) -> String:
 			return "深段固定点锚点"
 		"map_object_instance.phase_return_anchor_chamber":
 			return "井心室前线锚点"
+		"map_object_instance.phase_return_anchor_tether":
+			return "井系桥前线锚点"
 		_:
 			var region_id := _get_interactable_region_id(anchor_instance_id, "")
 			if region_id.is_empty():

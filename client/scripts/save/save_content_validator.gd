@@ -36,6 +36,7 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.deep_signal_array": "map_object.deep_signal_array",
 	"map_object_instance.phase_return_anchor": "map_object.phase_return_anchor",
 	"map_object_instance.phase_return_anchor_chamber": "map_object.phase_return_anchor",
+	"map_object_instance.phase_return_anchor_tether": "map_object.phase_return_anchor",
 	"map_object_instance.phase_relay_pad": "map_object.phase_relay_pad",
 	"map_object_instance.phase_conduit_cluster_north": "map_object.phase_conduit_cluster",
 	"map_object_instance.phase_conduit_cluster_south": "map_object.phase_conduit_cluster",

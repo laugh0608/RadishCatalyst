@@ -14,6 +14,7 @@ func run_ui_and_recipe_checks() -> void:
 	_check_development_baseline_presenter()
 	_check_game_root_development_baseline_factory()
 	_check_game_root_gm_tools()
+	_check_game_root_recipe_cycle_input_events()
 	_check_resource_interaction_logs()
 	_check_completed_recipe_followup_auto_selection()
 
@@ -618,6 +619,38 @@ func _check_game_root_gm_tools() -> void:
 	host._expect_equal(bool(refill_result.get("success", false)), true, "GM vitals refill succeeds")
 	host._expect_equal(game_root.character_state.health, 100.0, "GM vitals refill restores health")
 	host._expect_equal(game_root.character_state.protection, 100.0, "GM vitals refill restores protection")
+	game_root.free()
+
+
+func _check_game_root_recipe_cycle_input_events() -> void:
+	var game_root := GameRootScript.new()
+	var key_event := InputEventKey.new()
+	key_event.pressed = true
+	key_event.keycode = KEY_R
+	host._expect_equal(
+		game_root._is_recipe_cycle_key_event(key_event),
+		true,
+		"game root accepts R keycode for recipe and relay cycling"
+	)
+
+	var unicode_event := InputEventKey.new()
+	unicode_event.pressed = true
+	unicode_event.unicode = 114
+	host._expect_equal(
+		game_root._is_recipe_cycle_key_event(unicode_event),
+		true,
+		"game root accepts lowercase R unicode for recipe and relay cycling"
+	)
+
+	var echo_event := InputEventKey.new()
+	echo_event.pressed = true
+	echo_event.echo = true
+	echo_event.keycode = KEY_R
+	host._expect_equal(
+		game_root._is_recipe_cycle_key_event(echo_event),
+		false,
+		"game root ignores repeated R key echo events"
+	)
 	game_root.free()
 
 
