@@ -161,6 +161,16 @@ func run() -> void:
 				1,
 				"S17 baseline should keep frontline action report"
 			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.repair_gel", 0)),
+				2,
+				"S17 baseline should keep base feedback repair gel"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.resistance_vial_t1", 0)),
+				2,
+				"S17 baseline should keep base feedback resistance vial"
+			)
 			var console_state := loaded_world.get_map_object("map_object_instance.frontline_action_console")
 			host._expect_equal(
 				bool(console_state.get("is_sampled", false)),

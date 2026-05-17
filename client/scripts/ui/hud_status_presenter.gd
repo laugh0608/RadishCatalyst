@@ -255,7 +255,7 @@ func _format_quick_slots(data_registry: DataRegistry, character_state: Character
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
 		if _has_completed_stability_echo_report(world_state):
-			return "基地确认行动、前线读取探点、回基地解析回报的最短循环已完成"
+			return "基地确认行动、前线读取探点、回基地解析回报的最短循环已完成；下一趟短行动补给已整理"
 		if _has_completed_stability_echo_probe(world_state):
 			return "稳窗回波样本已带回；回基地基础反应器解析成前线行动回报"
 		if _has_completed_stability_frontline_action(world_state):

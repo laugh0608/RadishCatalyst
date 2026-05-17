@@ -954,7 +954,7 @@
       "stage": 75,
       "objectives": [{"type": "craft_item", "target_id": "item.frontline_action_report", "amount": 1}],
       "prerequisites": ["quest.survey_stability_echo_probe"],
-      "rewards": [],
+      "rewards": [{"id": "item.basic_parts", "amount": 4}, {"id": "item.repair_gel", "amount": 1}, {"id": "item.resistance_vial_t1", "amount": 1}],
       "unlock_effects": ["slice_01_complete"],
       "next_quest_ids": [],
       "public_level": "spoiler"

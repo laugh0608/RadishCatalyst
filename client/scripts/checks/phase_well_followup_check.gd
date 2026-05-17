@@ -137,10 +137,16 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	host._expect_equal(int(character_state.inventory.items.get("item.stability_echo_sample", 0)), 1, "stability echo probe grants echo sample")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.stability_echo_report", "stability echo probe unlocks echo report recipe")
 	host._expect_active_quest("quest.analyze_stability_echo_sample", "after stability echo probe returns to base report analysis")
+	var basic_parts_before_report := int(character_state.inventory.items.get("item.basic_parts", 0))
+	var repair_gel_before_report := int(character_state.inventory.items.get("item.repair_gel", 0))
+	var resistance_vial_before_report := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
 	host._complete_active_quest("quest.analyze_stability_echo_sample", [{"type": "craft_item", "target_id": "item.frontline_action_report", "amount": 1}])
 	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after stability echo report should have no active quest")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.analyze_stability_echo_sample", "stability echo report quest completed")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "stability echo report keeps slice completion unlock present")
+	host._expect_equal(int(character_state.inventory.items.get("item.basic_parts", 0)), basic_parts_before_report + 4, "stability echo report grants base supply parts")
+	host._expect_equal(int(character_state.inventory.items.get("item.repair_gel", 0)), repair_gel_before_report + 1, "stability echo report grants next sortie repair gel")
+	host._expect_equal(int(character_state.inventory.items.get("item.resistance_vial_t1", 0)), resistance_vial_before_report + 1, "stability echo report grants next sortie resistance vial")
 
 
 func run_hud_and_map_checks() -> void:
@@ -231,7 +237,7 @@ func _check_onboarding_hints() -> void:
 	frontline_report_world.quest_state.completed_quest_ids.append("quest.survey_stability_echo_probe")
 	frontline_report_world.quest_state.completed_quest_ids.append("quest.analyze_stability_echo_sample")
 	host._expect_text_contains(presenter.format_direction_hint(frontline_report_world, hint_character, ""), "前线行动回报已归档", "frontline report completion direction summarizes loop")
-	host._expect_text_contains(presenter.format_onboarding_hint(frontline_report_world, hint_character, ""), "轻量前线行动", "frontline report completion onboarding avoids heavy expedition language")
+	host._expect_text_contains(presenter.format_onboarding_hint(frontline_report_world, hint_character, ""), "可见补给收益", "frontline report completion onboarding explains base payoff")
 	var anchor_field_deployed_world := WorldState.create_default()
 	anchor_field_deployed_world.quest_state.active_quest_ids = ["quest.stabilize_phase_well_anchor_field"]
 	anchor_field_deployed_world.ensure_map_object("map_object_instance.phase_well_anchor_field", "map_object.phase_well_anchor_field", "region.phase_well_tether")["anchor_field_deployed"] = true
@@ -304,7 +310,7 @@ func _check_status_panel_summary() -> void:
 	frontline_report_text_world.quest_state.completed_quest_ids.append("quest.analyze_stability_echo_sample")
 	var frontline_report_text := presenter.format_status_text(host.data_registry, frontline_report_text_world, status_character)
 	host._expect_text_contains(frontline_report_text, "目标：前线行动回报已归档", "status falls back to frontline report completion")
-	host._expect_text_contains(frontline_report_text, "最短循环已完成", "status progress keeps base-frontline-base loop explicit")
+	host._expect_text_contains(frontline_report_text, "短行动补给已整理", "status progress keeps base feedback payoff explicit")
 
 
 func _check_anchor_field_recovery() -> void:

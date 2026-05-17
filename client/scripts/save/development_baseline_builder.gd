@@ -573,7 +573,7 @@ func _apply_baseline_pose_and_inventory(
 			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
 			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
 			character_state.inventory = _make_inventory(
-				{"item.basic_parts": 8, "item.frontline_action_report": 1, "item.repair_gel": 1, "item.resistance_vial_t1": 1},
+				{"item.basic_parts": 8, "item.frontline_action_report": 1, "item.repair_gel": 2, "item.resistance_vial_t1": 2},
 				{},
 				{"fluid.basic_solvent": 2.0}
 			)

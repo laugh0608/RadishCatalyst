@@ -25,7 +25,7 @@ func format_runtime_hint(world_state: WorldState, character_state: CharacterStat
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
 		if _has_completed_stability_echo_report(world_state):
-			return "前线行动回报已归档：基地选择、前线读取、回基地解析的最短闭环已经跑通。"
+			return "前线行动回报已归档：基地选择、前线读取、回基地解析的最短闭环已经跑通，前哨已整理下一趟短行动补给。"
 		if _has_completed_stability_echo_probe(world_state):
 			return "稳窗回波样本已带回：回基地使用基础反应器，把样本解析成前线行动回报。"
 		if _has_completed_stability_frontline_action(world_state):
@@ -264,7 +264,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 func format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
 		if _has_completed_stability_echo_report(world_state):
-			return "这一步先把“远征”压成轻量前线行动：基地决定目标，前线只取一个读数，回基地完成反馈。"
+			return "这一步先把“远征”压成轻量前线行动：基地决定目标，前线只取一个读数，回基地完成反馈，并产出可见补给收益。"
 		if _has_completed_stability_echo_probe(world_state):
 			return "样本已经拿到，先别继续堆现场目标；回基地解析它，验证行动回报能不能收住这一趟。"
 		if _has_completed_stability_frontline_action(world_state):

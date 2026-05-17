@@ -180,7 +180,7 @@ func _format_completion_note(quest_id: String) -> String:
 		"quest.survey_stability_echo_probe":
 			return "稳窗回波样本已带回；回基地用基础反应器解析前线行动回报"
 		"quest.analyze_stability_echo_sample":
-			return "前线行动回报已归档；基地选择、前线读取、返回解析的最短闭环已跑通"
+			return "前线行动回报已归档；基地已把回报整理成下一趟短行动补给"
 		_:
 			return ""
 
