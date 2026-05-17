@@ -280,6 +280,8 @@ func get_recommended_recipe_id(
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_well_echo_shard_analysis", world_state)
 		"quest.analyze_stability_echo_sample":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.stability_echo_report", world_state)
+		"quest.analyze_supply_return_trace":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.short_action_feedback", world_state)
 		_:
 			return ""
 
@@ -402,7 +404,9 @@ func _get_completion_next_step(recipe_id: String) -> String:
 		"recipe.phase_well_echo_shard_analysis":
 			return "相位井稳窗读数已整理完成；回到井系桥东侧锚场回稳窗，可用稳定窗口在前线回充生命与防护。"
 		"recipe.stability_echo_report":
-			return "前线行动回报已归档；这条基地确认、前线读取、回基地解析的短行动闭环已完成。"
+			return "前线行动回报已归档；这条基地确认、前线读取、回基地解析的短行动闭环已完成，下一步可在短行动补给台确认第二趟。"
+		"recipe.short_action_feedback":
+			return "短行动反馈已归档；第二条基地确认、前线短目标、回基地反馈闭环已完成。"
 		_:
 			return "查看当前任务目标，选择下一次加工或外出行动。"
 

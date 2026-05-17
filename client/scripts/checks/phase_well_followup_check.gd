@@ -141,12 +141,32 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	var repair_gel_before_report := int(character_state.inventory.items.get("item.repair_gel", 0))
 	var resistance_vial_before_report := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
 	host._complete_active_quest("quest.analyze_stability_echo_sample", [{"type": "craft_item", "target_id": "item.frontline_action_report", "amount": 1}])
-	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after stability echo report should have no active quest")
+	host._expect_active_quest("quest.confirm_supply_frontline_action", "after stability echo report returns to supply action confirmation")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.analyze_stability_echo_sample", "stability echo report quest completed")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "stability echo report keeps slice completion unlock present")
 	host._expect_equal(int(character_state.inventory.items.get("item.basic_parts", 0)), basic_parts_before_report + 4, "stability echo report grants base supply parts")
 	host._expect_equal(int(character_state.inventory.items.get("item.repair_gel", 0)), repair_gel_before_report + 1, "stability echo report grants next sortie repair gel")
 	host._expect_equal(int(character_state.inventory.items.get("item.resistance_vial_t1", 0)), resistance_vial_before_report + 1, "stability echo report grants next sortie resistance vial")
+	host._complete_active_quest("quest.confirm_supply_frontline_action", [{"type": "inspect", "target_id": "map_object.frontline_supply_console", "amount": 1}])
+	host._expect_active_quest("quest.inspect_supply_return_marker", "after supply action confirmation returns to supply marker")
+	host._complete_active_quest("quest.inspect_supply_return_marker", [
+		{"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1},
+		{"type": "inspect", "target_id": "map_object.supply_return_marker", "amount": 1}
+	])
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_supply_return_marker", "supply return marker quest completed")
+	host._expect_equal(int(character_state.inventory.items.get("item.supply_return_trace", 0)), 1, "supply return marker grants trace")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.short_action_feedback", "supply return marker unlocks short action feedback recipe")
+	host._expect_active_quest("quest.analyze_supply_return_trace", "after supply marker returns to base feedback analysis")
+	var basic_parts_before_short_feedback := int(character_state.inventory.items.get("item.basic_parts", 0))
+	var repair_gel_before_short_feedback := int(character_state.inventory.items.get("item.repair_gel", 0))
+	var resistance_vial_before_short_feedback := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
+	host._complete_active_quest("quest.analyze_supply_return_trace", [{"type": "craft_item", "target_id": "item.short_action_feedback", "amount": 1}])
+	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after short action feedback should have no active quest")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.analyze_supply_return_trace", "short action feedback quest completed")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "short action feedback keeps slice completion unlock present")
+	host._expect_equal(int(character_state.inventory.items.get("item.basic_parts", 0)), basic_parts_before_short_feedback + 2, "short action feedback grants base supply parts")
+	host._expect_equal(int(character_state.inventory.items.get("item.repair_gel", 0)), repair_gel_before_short_feedback + 1, "short action feedback grants repair gel")
+	host._expect_equal(int(character_state.inventory.items.get("item.resistance_vial_t1", 0)), resistance_vial_before_short_feedback + 1, "short action feedback grants resistance vial")
 
 
 func run_hud_and_map_checks() -> void:
@@ -212,6 +232,9 @@ func _check_onboarding_hints() -> void:
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.plan_stability_frontline_action", "前线行动台", "frontline action confirmation direction explains base console")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.survey_stability_echo_probe", "短行动的目标密度", "stability echo probe onboarding explains short field objective")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_stability_echo_sample", "回到基地反馈", "stability echo sample analysis onboarding explains return report")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.confirm_supply_frontline_action", "第二条行动", "supply action confirmation onboarding explains second action")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.inspect_supply_return_marker", "一处回执标记", "supply marker onboarding explains short target")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_supply_return_trace", "回到基地反馈", "supply trace analysis onboarding explains feedback loop")
 	var anchor_field_completion_world := WorldState.create_default()
 	anchor_field_completion_world.quest_state.active_quest_ids.clear()
 	anchor_field_completion_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
@@ -236,8 +259,19 @@ func _check_onboarding_hints() -> void:
 	frontline_report_world.quest_state.completed_quest_ids.append("quest.plan_stability_frontline_action")
 	frontline_report_world.quest_state.completed_quest_ids.append("quest.survey_stability_echo_probe")
 	frontline_report_world.quest_state.completed_quest_ids.append("quest.analyze_stability_echo_sample")
-	host._expect_text_contains(presenter.format_direction_hint(frontline_report_world, hint_character, ""), "前线行动回报已归档", "frontline report completion direction summarizes loop")
-	host._expect_text_contains(presenter.format_onboarding_hint(frontline_report_world, hint_character, ""), "可见补给收益", "frontline report completion onboarding explains base payoff")
+	host._expect_text_contains(presenter.format_direction_hint(frontline_report_world, hint_character, ""), "短行动补给台", "frontline report completion direction points to supply console")
+	host._expect_text_contains(presenter.format_onboarding_hint(frontline_report_world, hint_character, ""), "第二条行动", "frontline report completion onboarding explains next action")
+	var short_feedback_world := WorldState.create_default()
+	short_feedback_world.quest_state.active_quest_ids.clear()
+	short_feedback_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
+	short_feedback_world.quest_state.completed_quest_ids.append("quest.plan_stability_frontline_action")
+	short_feedback_world.quest_state.completed_quest_ids.append("quest.survey_stability_echo_probe")
+	short_feedback_world.quest_state.completed_quest_ids.append("quest.analyze_stability_echo_sample")
+	short_feedback_world.quest_state.completed_quest_ids.append("quest.confirm_supply_frontline_action")
+	short_feedback_world.quest_state.completed_quest_ids.append("quest.inspect_supply_return_marker")
+	short_feedback_world.quest_state.completed_quest_ids.append("quest.analyze_supply_return_trace")
+	host._expect_text_contains(presenter.format_direction_hint(short_feedback_world, hint_character, ""), "第二条", "short feedback completion direction summarizes second loop")
+	host._expect_text_contains(presenter.format_onboarding_hint(short_feedback_world, hint_character, ""), "基地确认、前线一个短目标、回基地反馈", "short feedback completion onboarding keeps template explicit")
 	var anchor_field_deployed_world := WorldState.create_default()
 	anchor_field_deployed_world.quest_state.active_quest_ids = ["quest.stabilize_phase_well_anchor_field"]
 	anchor_field_deployed_world.ensure_map_object("map_object_instance.phase_well_anchor_field", "map_object.phase_well_anchor_field", "region.phase_well_tether")["anchor_field_deployed"] = true
@@ -309,8 +343,22 @@ func _check_status_panel_summary() -> void:
 	frontline_report_text_world.quest_state.completed_quest_ids.append("quest.survey_stability_echo_probe")
 	frontline_report_text_world.quest_state.completed_quest_ids.append("quest.analyze_stability_echo_sample")
 	var frontline_report_text := presenter.format_status_text(host.data_registry, frontline_report_text_world, status_character)
-	host._expect_text_contains(frontline_report_text, "目标：前线行动回报已归档", "status falls back to frontline report completion")
-	host._expect_text_contains(frontline_report_text, "短行动补给已整理", "status progress keeps base feedback payoff explicit")
+	host._expect_text_contains(frontline_report_text, "目标：补给短行动待确认", "status falls back to supply action after frontline report")
+	host._expect_text_contains(frontline_report_text, "短行动补给台", "status progress points to supply action console")
+	var short_feedback_text_world := WorldState.create_default()
+	short_feedback_text_world.quest_state.active_quest_ids.clear()
+	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
+	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
+	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
+	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.plan_stability_frontline_action")
+	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.survey_stability_echo_probe")
+	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.analyze_stability_echo_sample")
+	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.confirm_supply_frontline_action")
+	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.inspect_supply_return_marker")
+	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.analyze_supply_return_trace")
+	var short_feedback_text := presenter.format_status_text(host.data_registry, short_feedback_text_world, status_character)
+	host._expect_text_contains(short_feedback_text, "目标：短行动反馈已归档", "status falls back to short action feedback completion")
+	host._expect_text_contains(short_feedback_text, "第二条基地确认", "status progress keeps second loop explicit")
 
 
 func _check_anchor_field_recovery() -> void:
@@ -423,6 +471,11 @@ func _check_stability_echo_report_progress() -> void:
 		"quest.analyze_stability_echo_sample",
 		"stability echo report completion completes quest"
 	)
+	host._expect_array_has(
+		world_state.quest_state.active_quest_ids,
+		"quest.confirm_supply_frontline_action",
+		"stability echo report completion activates supply action"
+	)
 	host._expect_equal(bool(result.get("accepted", false)), true, "stability echo report completion result accepted")
 
 	var recovery_world := WorldState.create_default()
@@ -435,6 +488,34 @@ func _check_stability_echo_report_progress() -> void:
 		"quest.analyze_stability_echo_sample",
 		"stability echo report recovers completed objective from inventory"
 	)
+	var feedback_world := WorldState.create_default()
+	var feedback_character := CharacterState.create_default()
+	feedback_world.quest_state.active_quest_ids = ["quest.analyze_supply_return_trace"]
+	var feedback_result := runtime.advance_for_interaction(
+		feedback_world,
+		feedback_character,
+		{
+			"definition_id": "building.basic_reactor",
+			"interaction_type": "process_recipe",
+			"recipe_id": "recipe.process_crystal_ore"
+		},
+		{"success": true, "completed_recipe_id": "recipe.short_action_feedback"}
+	)
+	host._expect_equal(
+		feedback_world.quest_state.get_objective_progress(
+			"quest.analyze_supply_return_trace",
+			"craft_item",
+			"item.short_action_feedback"
+		),
+		1.0,
+		"short action feedback completion advances feedback objective"
+	)
+	host._expect_array_has(
+		feedback_world.quest_state.completed_quest_ids,
+		"quest.analyze_supply_return_trace",
+		"short action feedback completion completes quest"
+	)
+	host._expect_equal(bool(feedback_result.get("accepted", false)), true, "short action feedback completion result accepted")
 
 
 func _check_stability_window_calibration_runtime() -> void:

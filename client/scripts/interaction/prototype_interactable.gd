@@ -347,6 +347,20 @@ func set_processed_visual() -> bool:
 		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
 		_set_label_text("%s\n样本已读取" % display_name_text, 2)
 		return true
+	if interaction_type == "inspect" and definition_id == "map_object.frontline_supply_console":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
+		_set_label_text("%s\n补给已确认" % display_name_text, 2)
+		return true
+	if interaction_type == "inspect" and definition_id == "map_object.supply_return_marker":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
+		_set_label_text("%s\n回执已读取" % display_name_text, 2)
+		return true
 	return false
 
 

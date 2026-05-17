@@ -908,7 +908,33 @@
       "mass": 0.1,
       "rarity": "legendary",
       "source_refs": ["recipe.stability_echo_report"],
-      "used_by_refs": ["quest.analyze_stability_echo_sample"],
+      "used_by_refs": ["quest.analyze_stability_echo_sample", "quest.confirm_supply_frontline_action"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.supply_return_trace",
+      "display_name_key": "item.supply_return_trace.name",
+      "description_key": "item.supply_return_trace.desc",
+      "category": "resource",
+      "tags": ["ruin", "phase_well", "frontline_action", "supply_trace", "slice_03"],
+      "stack_size": 3,
+      "mass": 0.2,
+      "rarity": "legendary",
+      "source_refs": ["quest.inspect_supply_return_marker"],
+      "used_by_refs": ["quest.analyze_supply_return_trace", "recipe.short_action_feedback"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.short_action_feedback",
+      "display_name_key": "item.short_action_feedback.name",
+      "description_key": "item.short_action_feedback.desc",
+      "category": "component",
+      "tags": ["ruin", "phase_well", "frontline_action", "base_feedback", "slice_03"],
+      "stack_size": 3,
+      "mass": 0.1,
+      "rarity": "legendary",
+      "source_refs": ["recipe.short_action_feedback"],
+      "used_by_refs": ["quest.analyze_supply_return_trace"],
       "public_level": "spoiler"
     }
   ]

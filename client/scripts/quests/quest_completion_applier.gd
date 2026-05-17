@@ -181,6 +181,12 @@ func _format_completion_note(quest_id: String) -> String:
 			return "稳窗回波样本已带回；回基地用基础反应器解析前线行动回报"
 		"quest.analyze_stability_echo_sample":
 			return "前线行动回报已归档；基地已把回报整理成下一趟短行动补给"
+		"quest.confirm_supply_frontline_action":
+			return "补给短行动已确认；从相位回投台返回井系桥前线，读取补给回执标记"
+		"quest.inspect_supply_return_marker":
+			return "补给回执读数已带回；回基地用基础反应器解析短行动反馈"
+		"quest.analyze_supply_return_trace":
+			return "短行动反馈已归档；第二条轻量前线行动闭环已经收束"
 		_:
 			return ""
 

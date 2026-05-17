@@ -24,8 +24,14 @@ func format_runtime_hint(world_state: WorldState, character_state: CharacterStat
 
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_short_action_feedback(world_state):
+			return "短行动反馈已归档：第二条基地确认、前线短目标、回基地反馈闭环已经跑通。"
+		if _has_completed_supply_return_marker(world_state):
+			return "补给回执读数已带回：回基地使用基础反应器，把读数解析成短行动反馈记录。"
+		if _has_completed_supply_frontline_action(world_state):
+			return "补给短行动已确认：用相位回投返回井系桥前线，读取补给回执标记。"
 		if _has_completed_stability_echo_report(world_state):
-			return "前线行动回报已归档：基地选择、前线读取、回基地解析的最短闭环已经跑通，前哨已整理下一趟短行动补给。"
+			return "前线行动回报已归档：前哨已整理下一趟短行动补给，回基地短行动补给台确认第二条轻量行动。"
 		if _has_completed_stability_echo_probe(world_state):
 			return "稳窗回波样本已带回：回基地使用基础反应器，把样本解析成前线行动回报。"
 		if _has_completed_stability_frontline_action(world_state):
@@ -257,14 +263,26 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "用相位回投返回井系桥东侧，在稳窗回波探点读取样本后回基地。"
 		"quest.analyze_stability_echo_sample":
 			return "回基地使用基础反应器，把稳窗回波样本解析成前线行动回报。"
+		"quest.confirm_supply_frontline_action":
+			return "回基地检查短行动补给台，把上一趟回报整理出的补给转成下一趟短目标。"
+		"quest.inspect_supply_return_marker":
+			return "用相位回投返回井系桥前线，读取补给回执标记后回基地。"
+		"quest.analyze_supply_return_trace":
+			return "回基地使用基础反应器，把补给回执读数解析成短行动反馈记录。"
 		_:
 			return "按当前目标推进。"
 
 
 func format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if _has_completed_short_action_feedback(world_state):
+			return "第二条轻量行动已经证明这个模板能重复：基地确认、前线一个短目标、回基地反馈，不需要扩成大远征。"
+		if _has_completed_supply_return_marker(world_state):
+			return "回执已经拿到，继续回基地解析，避免把第二趟行动停在背包完成态。"
+		if _has_completed_supply_frontline_action(world_state):
+			return "这一步只验证补给收益能不能接出新的短回访，现场仍然保持一个明确目标。"
 		if _has_completed_stability_echo_report(world_state):
-			return "这一步先把“远征”压成轻量前线行动：基地决定目标，前线只取一个读数，回基地完成反馈，并产出可见补给收益。"
+			return "第一条行动的补给收益现在要继续接出第二条行动，验证循环能延展，而不是只做一次样板。"
 		if _has_completed_stability_echo_probe(world_state):
 			return "样本已经拿到，先别继续堆现场目标；回基地解析它，验证行动回报能不能收住这一趟。"
 		if _has_completed_stability_frontline_action(world_state):
@@ -480,6 +498,12 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "这一步只读取一个探点，不再追加打怪、两处采集和门禁，先验证短行动的目标密度。"
 		"quest.analyze_stability_echo_sample":
 			return "行动回报负责收束这趟短回访，让前线读取真正回到基地反馈，而不是停在背包里。"
+		"quest.confirm_supply_frontline_action":
+			return "第二条行动从补给收益接出；这里仍然只确认一次，不引入完整远征选择系统。"
+		"quest.inspect_supply_return_marker":
+			return "短目标只读取一处回执标记，重点是验证补给反馈能否让下一趟外出有明确落点。"
+		"quest.analyze_supply_return_trace":
+			return "这次解析负责证明第二条短行动也能回到基地反馈，形成可重复的核心循环。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 
@@ -544,6 +568,18 @@ func _has_completed_stability_echo_probe(world_state: WorldState) -> bool:
 
 func _has_completed_stability_echo_report(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.analyze_stability_echo_sample")
+
+
+func _has_completed_supply_frontline_action(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.confirm_supply_frontline_action")
+
+
+func _has_completed_supply_return_marker(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.inspect_supply_return_marker")
+
+
+func _has_completed_short_action_feedback(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.analyze_supply_return_trace")
 
 
 func _has_completed_phase_well_frame(world_state: WorldState) -> bool:

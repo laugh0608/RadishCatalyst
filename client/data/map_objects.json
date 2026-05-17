@@ -850,6 +850,40 @@
       "sample_result_refs": [],
       "pollution_effect": "pollution.yellow_residue",
       "public_level": "spoiler"
+    },
+    {
+      "id": "map_object.frontline_supply_console",
+      "display_name_key": "map_object.frontline_supply_console.name",
+      "description_key": "map_object.frontline_supply_console.desc",
+      "object_type": "base_console",
+      "interaction_types": ["inspect"],
+      "is_destructible": false,
+      "is_collectible": false,
+      "is_sampleable": false,
+      "blocks_movement": false,
+      "blocks_building": true,
+      "required_tool_tags": [],
+      "drops": [],
+      "sample_result_refs": [],
+      "pollution_effect": "",
+      "public_level": "spoiler"
+    },
+    {
+      "id": "map_object.supply_return_marker",
+      "display_name_key": "map_object.supply_return_marker.name",
+      "description_key": "map_object.supply_return_marker.desc",
+      "object_type": "calibration_node",
+      "interaction_types": ["inspect"],
+      "is_destructible": false,
+      "is_collectible": false,
+      "is_sampleable": false,
+      "blocks_movement": false,
+      "blocks_building": true,
+      "required_tool_tags": [],
+      "drops": [],
+      "sample_result_refs": [],
+      "pollution_effect": "pollution.yellow_residue",
+      "public_level": "spoiler"
     }
   ]
 }

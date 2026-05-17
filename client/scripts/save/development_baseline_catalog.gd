@@ -142,8 +142,16 @@ const BASELINE_DEFINITIONS := [
 		"code": "S17",
 		"display_name": "S17 前线行动回报已归档",
 		"completed_through": "quest.analyze_stability_echo_sample",
-		"summary": "基地前线行动台、稳窗回波探点、回报解析和短行动补给收益已跑通第一条最短闭环。",
-		"recommended_for": "基地选择、前线行动、返回解析、补给反馈和下一组核心循环入口判断。"
+		"summary": "基地前线行动台、稳窗回波探点、回报解析和短行动补给收益已跑通第一条最短闭环，下一步确认补给短行动。",
+		"recommended_for": "第一条轻量前线行动完成态、短行动补给收益和第二条行动入口判断。"
+	},
+	{
+		"id": "baseline.s18_short_action_feedback_ready",
+		"code": "S18",
+		"display_name": "S18 短行动反馈已归档",
+		"completed_through": "quest.analyze_supply_return_trace",
+		"summary": "短行动补给台、井系桥补给回执标记、回执解析和第二次基地反馈已跑通。",
+		"recommended_for": "第二条轻量前线行动、补给回执、返回解析和核心循环可延展性回归。"
 	}
 ]
 

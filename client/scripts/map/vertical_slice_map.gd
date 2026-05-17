@@ -68,7 +68,9 @@ const INTERACTABLE_QUEST_GATES := {
 	"map_object.phase_well_tether": "quest.inspect_phase_well_tether",
 	"map_object.phase_well_anchor_pressure_pin": "quest.stabilize_phase_well_anchor_field",
 	"map_object.frontline_action_console": "quest.plan_stability_frontline_action",
-	"map_object.stability_echo_probe": "quest.survey_stability_echo_probe"
+	"map_object.stability_echo_probe": "quest.survey_stability_echo_probe",
+	"map_object.frontline_supply_console": "quest.confirm_supply_frontline_action",
+	"map_object.supply_return_marker": "quest.inspect_supply_return_marker"
 }
 @onready var player: PlayerController = $Player
 @onready var interactables_root: Node2D = $Interactables
@@ -937,7 +939,6 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 		return false
 	return quest_state.get_objective_progress(quest_id, "craft_item", "item.repair_gel") >= 1.0
 
-
 func _get_attack_damage(character_state: CharacterState) -> float:
 	var tool_id := String(character_state.equipment.get("tool", ""))
 	var tool_definition := data_registry.get_definition(tool_id)
@@ -1428,7 +1429,6 @@ func _has_phase_well_frame_route_cleared(world_state: WorldState) -> bool:
 			return true
 	return false
 
-
 func _has_phase_well_field_readings(
 	world_state: WorldState,
 	quest_id: String,
@@ -1440,8 +1440,7 @@ func _has_phase_well_field_readings(
 		quest_id,
 		objective_type,
 		target_id
-	) >= required_amount
-
+) >= required_amount
 
 func _get_phase_relay_pad_return_position() -> Vector2:
 	return _get_interactable_return_position(

@@ -645,6 +645,21 @@
       "pollution_delta": 0.0,
       "unlock_conditions": ["quest.survey_stability_echo_probe"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.short_action_feedback",
+      "display_name_key": "recipe.short_action_feedback.name",
+      "description_key": "recipe.short_action_feedback.desc",
+      "category": "analysis",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.supply_return_trace", "amount": 1}],
+      "outputs": [{"id": "item.short_action_feedback", "amount": 1}],
+      "byproducts": [],
+      "duration": 10.0,
+      "energy_cost": 4.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.inspect_supply_return_marker"],
+      "public_level": "spoiler"
     }
   ]
 }

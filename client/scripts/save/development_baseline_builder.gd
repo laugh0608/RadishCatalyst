@@ -74,7 +74,10 @@ const QUEST_PROGRESS_ORDER: Array[String] = [
 	"quest.calibrate_phase_well_stability_window",
 	"quest.plan_stability_frontline_action",
 	"quest.survey_stability_echo_probe",
-	"quest.analyze_stability_echo_sample"
+	"quest.analyze_stability_echo_sample",
+	"quest.confirm_supply_frontline_action",
+	"quest.inspect_supply_return_marker",
+	"quest.analyze_supply_return_trace"
 ]
 
 var data_registry: DataRegistry
@@ -402,6 +405,22 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			)
 		"quest.analyze_stability_echo_sample":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.stability_echo_report")
+		"quest.confirm_supply_frontline_action":
+			_mark_object_sampled(
+				world_state,
+				"map_object_instance.frontline_supply_console",
+				"map_object.frontline_supply_console",
+				"region.outpost_platform"
+			)
+		"quest.inspect_supply_return_marker":
+			_mark_object_sampled(
+				world_state,
+				"map_object_instance.supply_return_marker",
+				"map_object.supply_return_marker",
+				"region.phase_well_tether"
+			)
+		"quest.analyze_supply_return_trace":
+			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.short_action_feedback")
 
 
 func _apply_baseline_pose_and_inventory(
@@ -578,6 +597,22 @@ func _apply_baseline_pose_and_inventory(
 			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
 			character_state.inventory = _make_inventory(
 				{"item.basic_parts": 8, "item.frontline_action_report": 1, "item.repair_gel": 2, "item.resistance_vial_t1": 2},
+				{},
+				{"fluid.basic_solvent": 2.0}
+			)
+		"baseline.s18_short_action_feedback_ready":
+			_set_runtime_position(world_state, character_state, "region.outpost_platform", BASELINE_FRONTLINE_ACTION_CONSOLE_POSITION)
+			world_state.add_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_tether")
+			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
+			character_state.inventory = _make_inventory(
+				{
+					"item.basic_parts": 12,
+					"item.frontline_action_report": 1,
+					"item.short_action_feedback": 1,
+					"item.repair_gel": 3,
+					"item.resistance_vial_t1": 3
+				},
 				{},
 				{"fluid.basic_solvent": 2.0}
 			)

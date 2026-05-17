@@ -84,7 +84,8 @@ func run() -> void:
 			"baseline.s14_phase_well_anchor_field_stabilized",
 			"baseline.s15_phase_well_stability_readout_ready",
 			"baseline.s16_phase_well_stability_window_calibrated",
-			"baseline.s17_frontline_action_report_ready"
+			"baseline.s17_frontline_action_report_ready",
+			"baseline.s18_short_action_feedback_ready"
 		]:
 			host._expect_equal(
 				loaded_world.active_phase_relay_anchor_id,
@@ -169,8 +170,8 @@ func run() -> void:
 			)
 			host._expect_equal(
 				loaded_world.quest_state.active_quest_ids,
-				[],
-				"S17 baseline should not keep an active quest"
+				["quest.confirm_supply_frontline_action"],
+				"S17 baseline should activate supply frontline action"
 			)
 			host._expect_equal(
 				int(loaded_character.inventory.items.get("item.frontline_action_report", 0)),
@@ -198,4 +199,42 @@ func run() -> void:
 				bool(probe_state.get("is_sampled", false)),
 				true,
 				"S17 baseline should keep stability echo probe sampled"
+			)
+		if baseline_id == "baseline.s18_short_action_feedback_ready":
+			host._expect_array_has(
+				loaded_world.quest_state.completed_quest_ids,
+				"quest.analyze_supply_return_trace",
+				"S18 baseline should complete short action feedback"
+			)
+			host._expect_equal(
+				loaded_world.quest_state.active_quest_ids,
+				[],
+				"S18 baseline should not keep an active quest"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.short_action_feedback", 0)),
+				1,
+				"S18 baseline should keep short action feedback"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.repair_gel", 0)),
+				3,
+				"S18 baseline should keep second feedback repair gel"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.resistance_vial_t1", 0)),
+				3,
+				"S18 baseline should keep second feedback resistance vial"
+			)
+			var supply_console_state := loaded_world.get_map_object("map_object_instance.frontline_supply_console")
+			host._expect_equal(
+				bool(supply_console_state.get("is_sampled", false)),
+				true,
+				"S18 baseline should keep supply console confirmed"
+			)
+			var supply_marker_state := loaded_world.get_map_object("map_object_instance.supply_return_marker")
+			host._expect_equal(
+				bool(supply_marker_state.get("is_sampled", false)),
+				true,
+				"S18 baseline should keep supply marker sampled"
 			)

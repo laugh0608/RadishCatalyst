@@ -956,6 +956,45 @@
       "prerequisites": ["quest.survey_stability_echo_probe"],
       "rewards": [{"id": "item.basic_parts", "amount": 4}, {"id": "item.repair_gel", "amount": 1}, {"id": "item.resistance_vial_t1", "amount": 1}],
       "unlock_effects": ["slice_01_complete"],
+      "next_quest_ids": ["quest.confirm_supply_frontline_action"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.confirm_supply_frontline_action",
+      "display_name_key": "quest.confirm_supply_frontline_action.name",
+      "description_key": "quest.confirm_supply_frontline_action.desc",
+      "quest_type": "main",
+      "stage": 76,
+      "objectives": [{"type": "inspect", "target_id": "map_object.frontline_supply_console", "amount": 1}],
+      "prerequisites": ["quest.analyze_stability_echo_sample"],
+      "rewards": [],
+      "unlock_effects": [],
+      "next_quest_ids": ["quest.inspect_supply_return_marker"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.inspect_supply_return_marker",
+      "display_name_key": "quest.inspect_supply_return_marker.name",
+      "description_key": "quest.inspect_supply_return_marker.desc",
+      "quest_type": "main",
+      "stage": 77,
+      "objectives": [{"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1}, {"type": "inspect", "target_id": "map_object.supply_return_marker", "amount": 1}],
+      "prerequisites": ["quest.confirm_supply_frontline_action"],
+      "rewards": [{"id": "item.supply_return_trace", "amount": 1}, {"id": "item.basic_parts", "amount": 2}],
+      "unlock_effects": ["recipe.short_action_feedback"],
+      "next_quest_ids": ["quest.analyze_supply_return_trace"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.analyze_supply_return_trace",
+      "display_name_key": "quest.analyze_supply_return_trace.name",
+      "description_key": "quest.analyze_supply_return_trace.desc",
+      "quest_type": "main",
+      "stage": 78,
+      "objectives": [{"type": "craft_item", "target_id": "item.short_action_feedback", "amount": 1}],
+      "prerequisites": ["quest.inspect_supply_return_marker"],
+      "rewards": [{"id": "item.basic_parts", "amount": 2}, {"id": "item.repair_gel", "amount": 1}, {"id": "item.resistance_vial_t1", "amount": 1}],
+      "unlock_effects": ["slice_01_complete"],
       "next_quest_ids": [],
       "public_level": "spoiler"
     }
