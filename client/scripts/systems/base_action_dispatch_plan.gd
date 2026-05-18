@@ -8,6 +8,16 @@ const CONSOLE_DEFINITION_IDS: Array[String] = [
 	"map_object.base_supply_choice_console",
 	"map_object.base_survey_choice_console"
 ]
+const SUPPLY_PACKAGE_STATUS_KEY := "supply_package_status"
+const SURVEY_INTEL_STATUS_KEY := "survey_intel_status"
+const ROUTE_TARGET_REGION_KEY := "route_target_region_id"
+const ROUTE_RISK_NOTE_KEY := "route_risk_note"
+const STATUS_READY := "ready"
+const STATUS_USED := "used"
+const SUPPLY_FEEDBACK_QUEST_ID := "quest.analyze_steady_supply_trace"
+const SURVEY_FEEDBACK_QUEST_ID := "quest.analyze_phase_survey_trace"
+const ROUTE_TARGET_REGION_ID := "region.phase_well_tether"
+const ROUTE_RISK_NOTE := "井系桥前线低压读数线：优先走西侧测绘边界，东侧节点存在短时扰动。"
 
 
 static func is_action_console(definition_id: String) -> bool:
@@ -22,11 +32,11 @@ static func summarize(world_state: WorldState, character_state: CharacterState =
 	var summary := {
 		"stage": stage,
 		"title": _format_title(stage),
-		"direction": _format_direction(stage),
+		"direction": _format_direction(stage, world_state),
 		"onboarding": _format_onboarding(stage),
 		"status_goal": _format_status_goal(stage),
-		"status_progress": _format_status_progress(stage),
-		"preparation_lines": _format_preparation_lines(stage, character_state)
+		"status_progress": _format_status_progress(stage, world_state),
+		"preparation_lines": _format_preparation_lines(stage, world_state, character_state)
 	}
 	return summary
 
@@ -49,6 +59,64 @@ static func format_status_goal(world_state: WorldState) -> String:
 static func format_status_progress(world_state: WorldState) -> String:
 	var summary := summarize(world_state)
 	return String(summary.get("status_progress", ""))
+
+
+static func register_feedback_completion(world_state: WorldState, quest_id: String) -> Array[String]:
+	if world_state == null:
+		return []
+	match quest_id:
+		SUPPLY_FEEDBACK_QUEST_ID:
+			world_state.set_base_action_state_value(SUPPLY_PACKAGE_STATUS_KEY, STATUS_READY)
+			return ["行动台整备：下一次出发补给包待装入"]
+		SURVEY_FEEDBACK_QUEST_ID:
+			world_state.set_base_action_state_value(SURVEY_INTEL_STATUS_KEY, STATUS_READY)
+			world_state.set_base_action_state_value(ROUTE_TARGET_REGION_KEY, ROUTE_TARGET_REGION_ID)
+			world_state.set_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE)
+			return ["行动台情报：下一次出发路线提示待载入"]
+		_:
+			return []
+
+
+static func apply_departure_preparation(world_state: WorldState, character_state: CharacterState) -> Array[String]:
+	var messages: Array[String] = []
+	if world_state == null or character_state == null:
+		return messages
+	if get_supply_package_status(world_state) == STATUS_READY:
+		character_state.inventory.add_item("item.basic_parts", 2)
+		character_state.inventory.add_item("item.repair_gel", 1)
+		world_state.set_base_action_state_value(SUPPLY_PACKAGE_STATUS_KEY, STATUS_USED)
+		messages.append("补给整备包已装入本趟出发：基础零件 +2，修复凝胶 +1。")
+	if get_survey_intel_status(world_state) == STATUS_READY:
+		world_state.set_base_action_state_value(SURVEY_INTEL_STATUS_KEY, STATUS_USED)
+		world_state.set_base_action_state_value(ROUTE_TARGET_REGION_KEY, ROUTE_TARGET_REGION_ID)
+		world_state.set_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE)
+		messages.append("测绘路线提示已载入：井系桥前线目标显形；风险预告为低压读数线，优先走西侧测绘边界。")
+	return messages
+
+
+static func get_supply_package_status(world_state: WorldState) -> String:
+	return _get_preparation_status(world_state, SUPPLY_PACKAGE_STATUS_KEY, SUPPLY_FEEDBACK_QUEST_ID)
+
+
+static func get_survey_intel_status(world_state: WorldState) -> String:
+	return _get_preparation_status(world_state, SURVEY_INTEL_STATUS_KEY, SURVEY_FEEDBACK_QUEST_ID)
+
+
+static func get_route_target_region_id(world_state: WorldState) -> String:
+	if world_state == null:
+		return ""
+	var status := get_survey_intel_status(world_state)
+	if status != STATUS_READY and status != STATUS_USED:
+		return ""
+	return String(world_state.get_base_action_state_value(ROUTE_TARGET_REGION_KEY, ROUTE_TARGET_REGION_ID))
+
+
+static func get_route_risk_note(world_state: WorldState) -> String:
+	if get_route_target_region_id(world_state).is_empty():
+		return ""
+	if world_state == null:
+		return ""
+	return String(world_state.get_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE))
 
 
 static func format_console_prompt(definition_id: String, world_state: WorldState, character_state: CharacterState) -> String:
@@ -146,7 +214,7 @@ static func _format_title(stage: String) -> String:
 			return "行动调度"
 
 
-static func _format_direction(stage: String) -> String:
+static func _format_direction(stage: String, world_state: WorldState) -> String:
 	match stage:
 		"first_ready":
 			return "稳窗相位序已完成现场校准：回基地在行动台确认稳窗回访，把前线窗口转成下一趟外出目标。"
@@ -173,13 +241,17 @@ static func _format_direction(stage: String) -> String:
 		"steady_supply_return":
 			return "稳场补给回执已带回：回基地使用基础反应器，把补给收益解析成下一轮整备资源。"
 		"steady_supply_ready":
-			return "稳场补给反馈已归档：补给整备已进入行动台，下一趟外出可按更充足的基础物资和修复凝胶准备。"
+			if get_supply_package_status(world_state) == STATUS_USED:
+				return "稳场补给反馈已归档：补给整备包已经装入本趟出发，资源缓冲会随背包一起带到前线。"
+			return "稳场补给反馈已归档：补给整备已进入行动台，下一趟外出会装入基础零件和修复凝胶缓冲。"
 		"phase_survey_dispatched":
 			return "相位测绘行动已派发：用相位回投返回井系桥前线，读取西侧和东侧两处测绘点。"
 		"phase_survey_return":
 			return "相位测绘记录已带回：回基地使用基础反应器，把测绘收益解析成下一趟路线提示。"
 		"phase_survey_ready":
-			return "相位测绘反馈已归档：测绘整备已进入行动台，下一趟外出可优先依据两点读数判断路线和目标风险。"
+			if get_survey_intel_status(world_state) == STATUS_USED:
+				return "相位测绘反馈已归档：测绘路线提示已经载入本趟出发，井系桥前线目标和风险预告保持显形。"
+			return "相位测绘反馈已归档：测绘整备已进入行动台，下一趟外出会载入井系桥前线路线提示、目标显形和风险预告。"
 		_:
 			return ""
 
@@ -216,23 +288,27 @@ static func _format_status_goal(stage: String) -> String:
 			return _format_title(stage)
 
 
-static func _format_status_progress(stage: String) -> String:
+static func _format_status_progress(stage: String, world_state: WorldState) -> String:
 	match stage:
 		"choice_ready":
 			return "行动台待选择：稳场补给提供低风险补给包；相位测绘提供两点路线提示"
 		"steady_supply_ready":
-			return "稳场补给反馈已归档；行动台已记录基础零件和修复凝胶补给收益"
+			if get_supply_package_status(world_state) == STATUS_USED:
+				return "稳场补给反馈已归档；本趟出发已装入基础零件和修复凝胶补给包"
+			return "稳场补给反馈已归档；下一次从基地回投会装入基础零件和修复凝胶补给包"
 		"phase_survey_ready":
-			return "相位测绘反馈已归档；行动台已记录两点测绘和下一趟路线提示收益"
+			if get_survey_intel_status(world_state) == STATUS_USED:
+				return "相位测绘反馈已归档；本趟出发已载入井系桥前线目标和风险预告"
+			return "相位测绘反馈已归档；下一次从基地回投会载入井系桥前线目标和风险预告"
 		"steady_supply_dispatched":
 			return "稳场补给已选择；前线目标压缩为一处补给投放点"
 		"phase_survey_dispatched":
 			return "相位测绘已选择；前线目标展开为西侧和东侧两处测绘点"
 		_:
-			return _format_direction(stage)
+			return _format_direction(stage, world_state)
 
 
-static func _format_preparation_lines(stage: String, character_state: CharacterState) -> Array[String]:
+static func _format_preparation_lines(stage: String, world_state: WorldState, character_state: CharacterState) -> Array[String]:
 	var parts_count := _get_item_count(character_state, "item.basic_parts")
 	var repair_count := _get_item_count(character_state, "item.repair_gel")
 	var vial_count := _get_item_count(character_state, "item.resistance_vial_t1")
@@ -243,14 +319,24 @@ static func _format_preparation_lines(stage: String, character_state: CharacterS
 				"方案 B：相位测绘；目标 2 处；回报偏路线提示和风险预告。"
 			]
 		"steady_supply_ready":
+			var package_status := get_supply_package_status(world_state)
+			var package_line := "出发补给包：待装入；基础零件 +2，修复凝胶 +1。"
+			if package_status == STATUS_USED:
+				package_line = "出发补给包：已装入本趟回投；资源缓冲已进入背包。"
 			return [
 				"整备：基础零件 %d；修复凝胶 %d。" % [parts_count, repair_count],
+				package_line,
 				"效果：下一趟出发优先按补给缓冲规划，适合低风险回收。"
 			]
 		"phase_survey_ready":
+			var intel_status := get_survey_intel_status(world_state)
+			var intel_line := "路线提示：待载入；目标显形到井系桥前线。"
+			if intel_status == STATUS_USED:
+				intel_line = "路线提示：已载入本趟回投；井系桥前线目标保持显形。"
 			return [
 				"整备：抗污染药剂 %d；基础零件 %d。" % [vial_count, parts_count],
-				"效果：下一趟出发优先按测绘路线提示规划，适合确认新目标风险。"
+				intel_line,
+				"风险预告：%s" % get_route_risk_note(world_state)
 			]
 		"steady_supply_dispatched", "steady_supply_return":
 			return ["已选：稳场补给；目标少、路线短，收益偏整备资源。"]
@@ -294,3 +380,14 @@ static func _get_item_count(character_state: CharacterState, item_id: String) ->
 	if character_state == null:
 		return 0
 	return int(character_state.inventory.items.get(item_id, 0))
+
+
+static func _get_preparation_status(world_state: WorldState, key: String, feedback_quest_id: String) -> String:
+	if world_state == null:
+		return ""
+	var explicit_status := String(world_state.get_base_action_state_value(key, ""))
+	if not explicit_status.is_empty():
+		return explicit_status
+	if world_state.quest_state.has_completed_quest(feedback_quest_id):
+		return STATUS_READY
+	return ""

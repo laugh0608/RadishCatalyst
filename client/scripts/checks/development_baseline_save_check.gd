@@ -304,6 +304,16 @@ func run() -> void:
 				5,
 				"S20 baseline should keep survey feedback resistance vial"
 			)
+			host._expect_equal(
+				BaseActionDispatchPlan.get_survey_intel_status(loaded_world),
+				BaseActionDispatchPlan.STATUS_READY,
+				"S20 baseline should keep survey route intel ready"
+			)
+			host._expect_equal(
+				BaseActionDispatchPlan.get_route_target_region_id(loaded_world),
+				"region.phase_well_tether",
+				"S20 baseline should keep revealed survey target"
+			)
 			var survey_console_state := loaded_world.get_map_object("map_object_instance.base_survey_choice_console")
 			host._expect_equal(
 				bool(survey_console_state.get("is_sampled", false)),

@@ -1216,6 +1216,7 @@ func _inspect_phase_relay_pad(character_state: CharacterState, world_state: Worl
 	var active_anchor_id := world_state.active_phase_relay_anchor_id
 	var target_position := _get_phase_return_anchor_return_position(active_anchor_id)
 	var target_region_id := _get_interactable_region_id(active_anchor_id, "region.deep_ruin_threshold")
+	var departure_preparation_text := " ".join(BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state))
 	_teleport_player_to_region(character_state, world_state, target_region_id, target_position)
 	var active_anchor_label := _get_phase_relay_anchor_label(active_anchor_id)
 	var cycle_hint := ""
@@ -1224,11 +1225,11 @@ func _inspect_phase_relay_pad(character_state: CharacterState, world_state: Worl
 	if world_state.quest_state.has_active_quest("quest.reenter_phase_frontline"):
 		return {
 			"success": true,
-			"message": "相位回投台已联通：已回投到 %s；更东侧裂相碎屑和新的深段猎手已暴露%s。" % [active_anchor_label, cycle_hint]
+			"message": "相位回投台已联通：已回投到 %s；更东侧裂相碎屑和新的深段猎手已暴露%s。%s" % [active_anchor_label, cycle_hint, departure_preparation_text]
 		}
 	return {
 		"success": true,
-		"message": "相位回投台已联通：已回投到 %s%s。" % [active_anchor_label, cycle_hint]
+		"message": "相位回投台已联通：已回投到 %s%s。%s" % [active_anchor_label, cycle_hint, departure_preparation_text]
 	}
 func _inspect_phase_fault_spire(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not (world_state.quest_state.has_completed_quest("quest.refine_phase_splinters") or world_state.quest_state.has_completed_quest("quest.tune_relay_lens")):
@@ -1442,7 +1443,6 @@ func _has_phase_well_field_readings(
 		objective_type,
 		target_id
 ) >= required_amount
-
 func _get_phase_relay_pad_return_position() -> Vector2:
 	return _get_interactable_return_position(
 		"map_object_instance.phase_relay_pad",

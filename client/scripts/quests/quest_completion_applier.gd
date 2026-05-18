@@ -15,6 +15,7 @@ func apply_completion(world_state: WorldState, character_state: CharacterState, 
 	var quest_id := String(completion_result.get("quest_id", ""))
 	var reward_refs: Array = completion_result.get("rewards", [])
 	var reward_messages := _grant_refs(character_state, reward_refs)
+	reward_messages.append_array(BaseActionDispatchPlan.register_feedback_completion(world_state, quest_id))
 	var unlock_effects: Array = completion_result.get("unlock_effects", [])
 	for effect_id in unlock_effects:
 		_apply_world_unlock_effect(world_state, String(effect_id))

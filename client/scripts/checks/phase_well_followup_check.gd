@@ -754,6 +754,38 @@ func _check_base_action_choice_runtime() -> void:
 		"补给整备已生效",
 		"steady supply prompt shows preparation payoff"
 	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_supply_package_status(supply_world),
+		BaseActionDispatchPlan.STATUS_READY,
+		"steady supply feedback should prepare a next-departure package"
+	)
+	var supply_departure_messages := BaseActionDispatchPlan.apply_departure_preparation(supply_world, supply_character)
+	host._expect_equal(supply_departure_messages.size(), 1, "steady supply departure should apply one package")
+	host._expect_text_contains(
+		String(supply_departure_messages[0]),
+		"补给整备包已装入",
+		"steady supply departure message explains package"
+	)
+	host._expect_equal(
+		int(supply_character.inventory.items.get("item.basic_parts", 0)),
+		12,
+		"steady supply departure package grants resource buffer parts"
+	)
+	host._expect_equal(
+		int(supply_character.inventory.items.get("item.repair_gel", 0)),
+		3,
+		"steady supply departure package grants repair gel"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_supply_package_status(supply_world),
+		BaseActionDispatchPlan.STATUS_USED,
+		"steady supply package should become used after departure"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.apply_departure_preparation(supply_world, supply_character).size(),
+		0,
+		"steady supply package should not duplicate after use"
+	)
 
 	var survey_world := WorldState.create_default()
 	var survey_character := CharacterState.create_default()
@@ -864,6 +896,38 @@ func _check_base_action_choice_runtime() -> void:
 		BaseActionDispatchPlan.format_console_prompt("map_object.base_survey_choice_console", survey_world, survey_character),
 		"测绘整备已生效",
 		"phase survey prompt shows route hint payoff"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_survey_intel_status(survey_world),
+		BaseActionDispatchPlan.STATUS_READY,
+		"phase survey feedback should prepare route intel"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_route_target_region_id(survey_world),
+		"region.phase_well_tether",
+		"phase survey feedback should reveal next route target"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.get_route_risk_note(survey_world),
+		"短时扰动",
+		"phase survey route intel should include risk preview"
+	)
+	var survey_departure_messages := BaseActionDispatchPlan.apply_departure_preparation(survey_world, survey_character)
+	host._expect_equal(survey_departure_messages.size(), 1, "phase survey departure should load one intel package")
+	host._expect_text_contains(
+		String(survey_departure_messages[0]),
+		"目标显形",
+		"phase survey departure message explains target reveal"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_survey_intel_status(survey_world),
+		BaseActionDispatchPlan.STATUS_USED,
+		"phase survey intel should become used after departure"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_route_target_region_id(survey_world),
+		"region.phase_well_tether",
+		"phase survey revealed route target should persist after departure"
 	)
 
 

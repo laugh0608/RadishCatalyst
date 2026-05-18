@@ -42,6 +42,9 @@ func format_region_markers(world_state: WorldState, quest_id: String) -> String:
 
 		if target_region_id == region_id:
 			marker_parts.append("目标")
+			var route_risk_note := BaseActionDispatchPlan.get_route_risk_note(world_state)
+			if not route_risk_note.is_empty() and quest_id.is_empty():
+				marker_parts.append("测绘预告")
 		elif world_state.unlocked_region_ids.has(region_id):
 			marker_parts.append("已解锁")
 		else:
@@ -128,6 +131,8 @@ func _format_map_marker_label(marker: Dictionary, world_state: WorldState, targe
 		rows.append("当前")
 	if target_region_id == region_id:
 		rows.append("目标")
+		if not BaseActionDispatchPlan.get_route_risk_note(world_state).is_empty():
+			rows.append("测绘预告")
 	elif world_state.unlocked_region_ids.has(region_id):
 		rows.append("已解锁")
 	else:
@@ -154,6 +159,9 @@ func _get_quest_target_region_id(world_state: WorldState, quest_id: String) -> S
 
 
 func _get_runtime_followup_region_id(world_state: WorldState) -> String:
+	var dispatch_route_region_id := BaseActionDispatchPlan.get_route_target_region_id(world_state)
+	if not dispatch_route_region_id.is_empty():
+		return dispatch_route_region_id
 	if world_state.quest_state.has_completed_quest("quest.calibrate_phase_well_stability_window"):
 		return ""
 	if world_state.quest_state.has_completed_quest("quest.analyze_phase_well_echo_shard"):
