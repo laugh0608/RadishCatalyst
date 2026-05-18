@@ -217,6 +217,7 @@ func run_hud_and_map_checks() -> void:
 	_check_anchor_field_recovery()
 	_check_echo_shard_analysis_progress()
 	_check_stability_echo_report_progress()
+	_check_base_action_choice_runtime()
 	_check_stability_window_calibration_runtime()
 	_check_region_presence_bounds()
 	_check_phase_well_chamber_gate()
@@ -634,6 +635,207 @@ func _check_stability_echo_report_progress() -> void:
 		"route action feedback completion activates base action choices"
 	)
 	host._expect_equal(bool(route_feedback_result.get("accepted", false)), true, "route action feedback completion result accepted")
+
+
+func _check_base_action_choice_runtime() -> void:
+	var runtime := QuestRuntime.new(host.data_registry)
+	var supply_world := WorldState.create_default()
+	var supply_character := CharacterState.create_default()
+	supply_world.quest_state.active_quest_ids = [
+		"quest.choose_steady_supply_action",
+		"quest.choose_phase_survey_action"
+	]
+	var supply_choice_result := runtime.advance_for_interaction(
+		supply_world,
+		supply_character,
+		{
+			"definition_id": "map_object.base_supply_choice_console",
+			"interaction_type": "inspect"
+		},
+		{"success": true}
+	)
+	host._expect_equal(bool(supply_choice_result.get("accepted", false)), true, "steady supply choice result accepted")
+	host._expect_equal(
+		supply_world.quest_state.active_quest_ids,
+		["quest.inspect_steady_supply_drop"],
+		"steady supply choice should close survey choice and activate supply target"
+	)
+	host._expect_array_has(
+		supply_world.quest_state.completed_quest_ids,
+		"quest.choose_steady_supply_action",
+		"steady supply choice quest completed"
+	)
+	host._expect_array_missing(
+		supply_world.quest_state.completed_quest_ids,
+		"quest.choose_phase_survey_action",
+		"steady supply choice should not complete survey choice"
+	)
+	var supply_drop_result := runtime.advance_for_interaction(
+		supply_world,
+		supply_character,
+		{
+			"definition_id": "map_object.steady_supply_drop_marker",
+			"interaction_type": "inspect"
+		},
+		{"success": true}
+	)
+	host._expect_equal(bool(supply_drop_result.get("accepted", false)), true, "steady supply drop result accepted")
+	host._expect_array_has(
+		supply_world.quest_state.completed_quest_ids,
+		"quest.inspect_steady_supply_drop",
+		"steady supply drop quest completed"
+	)
+	host._expect_equal(
+		int(supply_character.inventory.items.get("item.steady_supply_trace", 0)),
+		1,
+		"steady supply drop grants trace"
+	)
+	host._expect_equal(
+		int(supply_character.inventory.items.get("item.basic_parts", 0)),
+		7,
+		"steady supply drop grants low-risk base parts"
+	)
+	host._expect_array_has(
+		supply_world.quest_state.unlocked_effects,
+		"recipe.steady_supply_feedback",
+		"steady supply drop unlocks feedback recipe"
+	)
+	host._expect_equal(
+		supply_world.quest_state.active_quest_ids,
+		["quest.analyze_steady_supply_trace"],
+		"steady supply drop returns to base feedback analysis"
+	)
+	var supply_feedback_result := runtime.advance_for_interaction(
+		supply_world,
+		supply_character,
+		{
+			"definition_id": "building.basic_reactor",
+			"interaction_type": "process_recipe",
+			"recipe_id": "recipe.process_crystal_ore"
+		},
+		{"success": true, "completed_recipe_id": "recipe.steady_supply_feedback"}
+	)
+	host._expect_equal(bool(supply_feedback_result.get("accepted", false)), true, "steady supply feedback result accepted")
+	host._expect_equal(
+		supply_world.quest_state.active_quest_ids,
+		[],
+		"steady supply feedback should finish branch without lingering quests"
+	)
+	host._expect_array_has(
+		supply_world.quest_state.completed_quest_ids,
+		"quest.analyze_steady_supply_trace",
+		"steady supply feedback quest completed"
+	)
+	host._expect_equal(
+		int(supply_character.inventory.items.get("item.basic_parts", 0)),
+		10,
+		"steady supply feedback grants resource-focused return"
+	)
+	host._expect_equal(
+		int(supply_character.inventory.items.get("item.repair_gel", 0)),
+		2,
+		"steady supply feedback grants repair gel"
+	)
+
+	var survey_world := WorldState.create_default()
+	var survey_character := CharacterState.create_default()
+	survey_world.quest_state.active_quest_ids = [
+		"quest.choose_steady_supply_action",
+		"quest.choose_phase_survey_action"
+	]
+	var survey_choice_result := runtime.advance_for_interaction(
+		survey_world,
+		survey_character,
+		{
+			"definition_id": "map_object.base_survey_choice_console",
+			"interaction_type": "inspect"
+		},
+		{"success": true}
+	)
+	host._expect_equal(bool(survey_choice_result.get("accepted", false)), true, "phase survey choice result accepted")
+	host._expect_equal(
+		survey_world.quest_state.active_quest_ids,
+		["quest.inspect_phase_survey_nodes"],
+		"phase survey choice should close supply choice and activate survey targets"
+	)
+	host._expect_array_missing(
+		survey_world.quest_state.completed_quest_ids,
+		"quest.choose_steady_supply_action",
+		"phase survey choice should not complete steady supply choice"
+	)
+	runtime.advance_for_interaction(
+		survey_world,
+		survey_character,
+		{
+			"definition_id": "map_object.phase_survey_node_west",
+			"interaction_type": "inspect"
+		},
+		{"success": true}
+	)
+	host._expect_equal(
+		survey_world.quest_state.has_completed_quest("quest.inspect_phase_survey_nodes"),
+		false,
+		"phase survey should require both survey nodes"
+	)
+	host._expect_equal(
+		survey_world.quest_state.get_objective_progress(
+			"quest.inspect_phase_survey_nodes",
+			"inspect",
+			"map_object.phase_survey_node_west"
+		),
+		1.0,
+		"phase survey west node records partial progress"
+	)
+	runtime.advance_for_interaction(
+		survey_world,
+		survey_character,
+		{
+			"definition_id": "map_object.phase_survey_node_east",
+			"interaction_type": "inspect"
+		},
+		{"success": true}
+	)
+	host._expect_array_has(
+		survey_world.quest_state.completed_quest_ids,
+		"quest.inspect_phase_survey_nodes",
+		"phase survey nodes quest completed after both readings"
+	)
+	host._expect_equal(
+		int(survey_character.inventory.items.get("item.phase_survey_trace", 0)),
+		1,
+		"phase survey nodes grant survey trace"
+	)
+	host._expect_equal(
+		int(survey_character.inventory.items.get("item.basic_parts", 0)),
+		5,
+		"phase survey nodes grant smaller resource return"
+	)
+	host._expect_array_has(
+		survey_world.quest_state.unlocked_effects,
+		"recipe.phase_survey_feedback",
+		"phase survey nodes unlock feedback recipe"
+	)
+	var survey_feedback_result := runtime.advance_for_interaction(
+		survey_world,
+		survey_character,
+		{
+			"definition_id": "building.basic_reactor",
+			"interaction_type": "process_recipe",
+			"recipe_id": "recipe.process_crystal_ore"
+		},
+		{"success": true, "completed_recipe_id": "recipe.phase_survey_feedback"}
+	)
+	host._expect_equal(bool(survey_feedback_result.get("accepted", false)), true, "phase survey feedback result accepted")
+	host._expect_equal(
+		survey_world.quest_state.active_quest_ids,
+		[],
+		"phase survey feedback should finish branch without lingering quests"
+	)
+	host._expect_equal(
+		int(survey_character.inventory.items.get("item.resistance_vial_t1", 0)),
+		1,
+		"phase survey feedback grants information-oriented vial return"
+	)
 
 
 func _check_stability_window_calibration_runtime() -> void:

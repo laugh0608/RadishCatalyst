@@ -1217,54 +1217,21 @@ func _complete_active_quest(quest_id: String, progress_refs: Array) -> void:
 	if not world_state.quest_state.has_active_quest(quest_id):
 		failures.append("%s should be active before completion" % quest_id)
 		return
+	var updates: Array[Dictionary] = []
 	for progress_ref in progress_refs:
 		if not progress_ref is Dictionary:
 			continue
-		world_state.quest_state.set_objective_progress(
-			quest_id,
-			String(progress_ref.get("type", "")),
-			String(progress_ref.get("target_id", "")),
-			float(progress_ref.get("amount", 1.0))
-		)
-	if not _are_objectives_complete(quest_id):
-		failures.append("%s objectives should be complete before applying rewards" % quest_id)
-		return
-	var quest := data_registry.get_definition(quest_id)
-	world_state.quest_state.complete_quest(quest_id)
-	if quest_id == "quest.choose_steady_supply_action" or quest_id == "quest.choose_phase_survey_action": world_state.quest_state.active_quest_ids.erase("quest.choose_phase_survey_action" if quest_id == "quest.choose_steady_supply_action" else "quest.choose_steady_supply_action")
-	_grant_refs(quest.get("rewards", []))
-	for effect_id in quest.get("unlock_effects", []):
-		_apply_unlock(String(effect_id))
-	for next_quest_id in quest.get("next_quest_ids", []):
-		world_state.quest_state.activate_quest(String(next_quest_id))
-func _are_objectives_complete(quest_id: String) -> bool:
-	var quest := data_registry.get_definition(quest_id)
-	if quest.is_empty():
-		failures.append("missing quest definition: %s" % quest_id)
-		return false
-	for objective in quest.get("objectives", []):
-		if not objective is Dictionary:
-			continue
-		var objective_type := String(objective.get("type", ""))
-		var target_id := String(objective.get("target_id", ""))
-		var required_amount := float(objective.get("amount", 1.0))
-		var current_amount := world_state.quest_state.get_objective_progress(quest_id, objective_type, target_id)
-		if current_amount < required_amount:
-			return false
-	return true
-func _grant_refs(refs: Array) -> void:
-	for ref in refs:
-		if not ref is Dictionary:
-			continue
-		var definition_id := String(ref.get("id", ""))
-		var amount := float(ref.get("amount", 0.0))
-		if definition_id.is_empty() or amount <= 0.0:
-			continue
-		character_state.inventory.add_ref(definition_id, amount)
-func _apply_unlock(effect_id: String) -> void:
-	if effect_id.begins_with("region."):
-		world_state.unlock_region(effect_id)
-	world_state.quest_state.unlock_effect(effect_id)
+		updates.append({
+			"mode": "set",
+			"quest_id": quest_id,
+			"objective_type": String(progress_ref.get("type", "")),
+			"target_id": String(progress_ref.get("target_id", "")),
+			"amount": float(progress_ref.get("amount", 1.0))
+		})
+	var runtime := QuestRuntime.new(data_registry)
+	runtime.apply_objective_updates(world_state, character_state, updates)
+	if not world_state.quest_state.has_completed_quest(quest_id):
+		failures.append("%s should complete through QuestRuntime" % quest_id)
 func _check_processing_runtime() -> void:
 	var processing := ProcessingSystem.new(data_registry)
 	var processing_world := WorldState.create_default()
