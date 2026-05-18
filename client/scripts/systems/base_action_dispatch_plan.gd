@@ -18,9 +18,13 @@ const SUPPLY_PACKAGE_STATUS_KEY := "supply_package_status"
 const SURVEY_INTEL_STATUS_KEY := "survey_intel_status"
 const ROUTE_TARGET_REGION_KEY := "route_target_region_id"
 const ROUTE_RISK_NOTE_KEY := "route_risk_note"
+const DEPARTURE_PLAN_KEY := "departure_plan_key"
+const LAST_DEPARTURE_PLAN_KEY := "last_departure_plan_key"
 const STATUS_READY := "ready"
 const STATUS_QUEUED := "queued"
 const STATUS_USED := "used"
+const PLAN_STEADY_SUPPLY := "steady_supply_buffer"
+const PLAN_PHASE_SURVEY := "phase_survey_intel"
 const SUPPLY_FEEDBACK_QUEST_ID := "quest.analyze_steady_supply_trace"
 const SURVEY_FEEDBACK_QUEST_ID := "quest.analyze_phase_survey_trace"
 const ROUTE_TARGET_REGION_ID := "region.phase_well_tether"
@@ -113,12 +117,14 @@ static func confirm_departure_preparation(world_state: WorldState) -> Array[Stri
 		return messages
 	if get_supply_package_status(world_state) == STATUS_READY:
 		world_state.set_base_action_state_value(SUPPLY_PACKAGE_STATUS_KEY, STATUS_QUEUED)
-		messages.append("出发整备槽已确认：补给包待随下一次相位回投装入。")
+		world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, PLAN_STEADY_SUPPLY)
+		messages.append("出发整备槽已确认：低风险补给计划待随下一次相位回投装入。")
 	if get_survey_intel_status(world_state) == STATUS_READY:
 		world_state.set_base_action_state_value(SURVEY_INTEL_STATUS_KEY, STATUS_QUEUED)
 		world_state.set_base_action_state_value(ROUTE_TARGET_REGION_KEY, ROUTE_TARGET_REGION_ID)
 		world_state.set_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE)
-		messages.append("出发整备槽已确认：测绘路线提示待随下一次相位回投载入。")
+		world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, PLAN_PHASE_SURVEY)
+		messages.append("出发整备槽已确认：信息侦测计划待随下一次相位回投载入。")
 	return messages
 
 
@@ -126,16 +132,23 @@ static func apply_departure_preparation(world_state: WorldState, character_state
 	var messages: Array[String] = []
 	if world_state == null or character_state == null:
 		return messages
+	var departure_plan_key := get_departure_plan_key(world_state)
 	if get_supply_package_status(world_state) == STATUS_QUEUED:
 		character_state.inventory.add_item("item.basic_parts", 2)
 		character_state.inventory.add_item("item.repair_gel", 1)
 		world_state.set_base_action_state_value(SUPPLY_PACKAGE_STATUS_KEY, STATUS_USED)
-		messages.append("补给整备包已装入本趟出发：基础零件 +2，修复凝胶 +1。")
+		if departure_plan_key.is_empty():
+			departure_plan_key = PLAN_STEADY_SUPPLY
+		messages.append("低风险补给计划已执行：基础零件 +2，修复凝胶 +1。")
 	if get_survey_intel_status(world_state) == STATUS_QUEUED:
 		world_state.set_base_action_state_value(SURVEY_INTEL_STATUS_KEY, STATUS_USED)
 		world_state.set_base_action_state_value(ROUTE_TARGET_REGION_KEY, ROUTE_TARGET_REGION_ID)
 		world_state.set_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE)
-		messages.append("测绘路线提示已载入：井系桥前线目标显形；风险预告为低压读数线，优先走西侧测绘边界。")
+		if departure_plan_key.is_empty():
+			departure_plan_key = PLAN_PHASE_SURVEY
+		messages.append("信息侦测计划已执行：井系桥前线目标显形；风险预告为低压读数线，优先走西侧测绘边界。")
+	if not departure_plan_key.is_empty() and not messages.is_empty():
+		world_state.set_base_action_state_value(LAST_DEPARTURE_PLAN_KEY, departure_plan_key)
 	return messages
 
 
@@ -162,6 +175,25 @@ static func get_route_risk_note(world_state: WorldState) -> String:
 	if world_state == null:
 		return ""
 	return String(world_state.get_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE))
+
+
+static func get_departure_plan_key(world_state: WorldState) -> String:
+	if world_state == null:
+		return ""
+	var explicit_plan := String(world_state.get_base_action_state_value(DEPARTURE_PLAN_KEY, ""))
+	if not explicit_plan.is_empty():
+		return explicit_plan
+	if get_supply_package_status(world_state) == STATUS_READY or get_supply_package_status(world_state) == STATUS_QUEUED:
+		return PLAN_STEADY_SUPPLY
+	if get_survey_intel_status(world_state) == STATUS_READY or get_survey_intel_status(world_state) == STATUS_QUEUED:
+		return PLAN_PHASE_SURVEY
+	return String(world_state.get_base_action_state_value(LAST_DEPARTURE_PLAN_KEY, ""))
+
+
+static func get_last_departure_plan_key(world_state: WorldState) -> String:
+	if world_state == null:
+		return ""
+	return String(world_state.get_base_action_state_value(LAST_DEPARTURE_PLAN_KEY, ""))
 
 
 static func format_console_prompt(definition_id: String, world_state: WorldState, character_state: CharacterState) -> String:
@@ -378,11 +410,12 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 				package_line = "出发补给包：整备槽已确认；等待下一次相位回投装入。"
 			if package_status == STATUS_USED:
 				package_line = "出发补给包：已装入本趟回投；资源缓冲已进入背包。"
-			return [
+			var supply_lines: Array[String] = [
 				"整备：基础零件 %d；修复凝胶 %d。" % [parts_count, repair_count],
-				package_line,
-				"效果：下一趟出发优先按补给缓冲规划，适合低风险回收。"
+				package_line
 			]
+			supply_lines.append_array(_format_departure_plan_lines(PLAN_STEADY_SUPPLY))
+			return supply_lines
 		"phase_survey_ready":
 			var intel_status := get_survey_intel_status(world_state)
 			var intel_line := "路线提示：待确认；目标显形到井系桥前线。"
@@ -390,11 +423,13 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 				intel_line = "路线提示：整备槽已确认；等待下一次相位回投载入。"
 			if intel_status == STATUS_USED:
 				intel_line = "路线提示：已载入本趟回投；井系桥前线目标保持显形。"
-			return [
+			var survey_lines: Array[String] = [
 				"整备：抗污染药剂 %d；基础零件 %d。" % [vial_count, parts_count],
 				intel_line,
 				"风险预告：%s" % get_route_risk_note(world_state)
 			]
+			survey_lines.append_array(_format_departure_plan_lines(PLAN_PHASE_SURVEY))
+			return survey_lines
 		"steady_supply_dispatched", "steady_supply_return":
 			return ["已选：稳场补给；目标少、路线短，收益偏整备资源。"]
 		"phase_survey_dispatched", "phase_survey_return":
@@ -446,6 +481,24 @@ static func _get_item_count(character_state: CharacterState, item_id: String) ->
 	if character_state == null:
 		return 0
 	return int(character_state.inventory.items.get(item_id, 0))
+
+
+static func _format_departure_plan_lines(plan_key: String) -> Array[String]:
+	match plan_key:
+		PLAN_STEADY_SUPPLY:
+			return [
+				"计划：低风险补给；预计收益为基础零件 +2、修复凝胶 +1。",
+				"风险：低；不增加前线读点，适合补资源缓冲。",
+				"代价：占用本次出发整备槽，回投时一次性消耗。"
+			]
+		PLAN_PHASE_SURVEY:
+			return [
+				"计划：信息侦测；预计收益为目标显形和路线风险预告。",
+				"风险：中；需要按低压读数线避开东侧短时扰动。",
+				"代价：占用本次出发整备槽，不额外发放资源。"
+			]
+		_:
+			return []
 
 
 static func _get_preparation_status(world_state: WorldState, key: String, feedback_quest_id: String) -> String:

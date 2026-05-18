@@ -764,6 +764,11 @@ func _check_base_action_choice_runtime() -> void:
 		"出发补给整备槽",
 		"steady supply action console should confirm departure slot"
 	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", supply_world, supply_character),
+		"计划：低风险补给",
+		"steady supply action console should show risk reward profile"
+	)
 	host._expect_equal(
 		BaseActionDispatchPlan.apply_departure_preparation(supply_world, supply_character).size(),
 		0,
@@ -777,17 +782,22 @@ func _check_base_action_choice_runtime() -> void:
 		supply_world
 	)
 	host._expect_equal(bool(supply_slot_result.get("success", false)), true, "steady supply action console should accept departure slot confirmation")
-	host._expect_text_contains(String(supply_slot_result.get("message", "")), "出发整备槽已确认", "steady supply action console should queue one departure slot")
+	host._expect_text_contains(String(supply_slot_result.get("message", "")), "低风险补给计划", "steady supply action console should queue one departure slot")
 	host._expect_equal(
 		BaseActionDispatchPlan.get_supply_package_status(supply_world),
 		BaseActionDispatchPlan.STATUS_QUEUED,
 		"steady supply package should become queued after action console confirmation"
 	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_departure_plan_key(supply_world),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"steady supply confirmation should record departure plan key"
+	)
 	var supply_departure_messages := BaseActionDispatchPlan.apply_departure_preparation(supply_world, supply_character)
 	host._expect_equal(supply_departure_messages.size(), 1, "steady supply departure should apply one package")
 	host._expect_text_contains(
 		String(supply_departure_messages[0]),
-		"补给整备包已装入",
+		"低风险补给计划已执行",
 		"steady supply departure message explains package"
 	)
 	host._expect_equal(
@@ -804,6 +814,11 @@ func _check_base_action_choice_runtime() -> void:
 		BaseActionDispatchPlan.get_supply_package_status(supply_world),
 		BaseActionDispatchPlan.STATUS_USED,
 		"steady supply package should become used after departure"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_last_departure_plan_key(supply_world),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"steady supply departure should persist last executed plan"
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.apply_departure_preparation(supply_world, supply_character).size(),
@@ -931,6 +946,11 @@ func _check_base_action_choice_runtime() -> void:
 		"测绘路线整备槽",
 		"phase survey action console should confirm departure slot"
 	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", survey_world, survey_character),
+		"计划：信息侦测",
+		"phase survey action console should show risk reward profile"
+	)
 	host._expect_equal(
 		BaseActionDispatchPlan.get_route_target_region_id(survey_world),
 		"region.phase_well_tether",
@@ -954,23 +974,33 @@ func _check_base_action_choice_runtime() -> void:
 		survey_world
 	)
 	host._expect_equal(bool(survey_slot_result.get("success", false)), true, "phase survey action console should accept departure slot confirmation")
-	host._expect_text_contains(String(survey_slot_result.get("message", "")), "出发整备槽已确认", "phase survey action console should queue one departure slot")
+	host._expect_text_contains(String(survey_slot_result.get("message", "")), "信息侦测计划", "phase survey action console should queue one departure slot")
 	host._expect_equal(
 		BaseActionDispatchPlan.get_survey_intel_status(survey_world),
 		BaseActionDispatchPlan.STATUS_QUEUED,
 		"phase survey intel should become queued after action console confirmation"
 	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_departure_plan_key(survey_world),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"phase survey confirmation should record departure plan key"
+	)
 	var survey_departure_messages := BaseActionDispatchPlan.apply_departure_preparation(survey_world, survey_character)
 	host._expect_equal(survey_departure_messages.size(), 1, "phase survey departure should load one intel package")
 	host._expect_text_contains(
 		String(survey_departure_messages[0]),
-		"目标显形",
+		"信息侦测计划已执行",
 		"phase survey departure message explains target reveal"
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.get_survey_intel_status(survey_world),
 		BaseActionDispatchPlan.STATUS_USED,
 		"phase survey intel should become used after departure"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_last_departure_plan_key(survey_world),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"phase survey departure should persist last executed plan"
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.get_route_target_region_id(survey_world),
