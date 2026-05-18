@@ -24,6 +24,9 @@ func format_runtime_hint(world_state: WorldState, character_state: CharacterStat
 
 func format_direction_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		var action_direction := BaseActionDispatchPlan.format_direction_hint(world_state)
+		if not action_direction.is_empty():
+			return action_direction
 		if _has_completed_phase_survey_feedback(world_state):
 			return "相位测绘反馈已归档：基地行动选择已经跑通一轮侦测方案、两处前线读数和返回解析。"
 		if _has_completed_steady_supply_feedback(world_state):
@@ -303,6 +306,9 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 
 func format_onboarding_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		var action_onboarding := BaseActionDispatchPlan.format_onboarding_hint(world_state)
+		if not action_onboarding.is_empty():
+			return action_onboarding
 		if _has_completed_phase_survey_feedback(world_state):
 			return "首轮选择原型先验证侦测方案：同一行动台选择后，前线目标数量和返回收益都已经不同于补给方案。"
 		if _has_completed_steady_supply_feedback(world_state):

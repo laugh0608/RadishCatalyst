@@ -384,6 +384,9 @@ func _on_interaction_available(interactable: PrototypeInteractable, should_auto_
 	if interactable.definition_id == "map_object.phase_well_anchor_field":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_well_anchor_field_prompt(world_state, character_state))
 		return
+	if interaction_prompt_formatter.can_format_base_action_prompt(interactable.definition_id):
+		hud.show_prompt(interaction_prompt_formatter.format_base_action_prompt(interactable, world_state, character_state))
+		return
 	if interaction_prompt_formatter.can_format_field_reading_prompt(interactable.definition_id):
 		hud.show_prompt(interaction_prompt_formatter.format_field_reading_prompt(interactable, world_state))
 		return
@@ -632,6 +635,9 @@ func _refresh_current_context_prompt() -> void:
 		return
 	if interactable.definition_id == "map_object.phase_well_anchor_field":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_well_anchor_field_prompt(world_state, character_state))
+		return
+	if interaction_prompt_formatter.can_format_base_action_prompt(interactable.definition_id):
+		hud.show_prompt(interaction_prompt_formatter.format_base_action_prompt(interactable, world_state, character_state))
 		return
 	if interaction_prompt_formatter.can_format_field_reading_prompt(interactable.definition_id):
 		hud.show_prompt(interaction_prompt_formatter.format_field_reading_prompt(interactable, world_state))

@@ -301,16 +301,16 @@ func _check_onboarding_hints() -> void:
 	calibration_completion_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
 	calibration_completion_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
 	calibration_completion_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
-	host._expect_text_contains(presenter.format_direction_hint(calibration_completion_world, hint_character, ""), "前线行动台", "calibration completion direction points to frontline action console")
-	host._expect_text_contains(presenter.format_onboarding_hint(calibration_completion_world, hint_character, ""), "最短基地-前线-基地反馈", "calibration completion onboarding summarizes next loop")
+	host._expect_text_contains(presenter.format_direction_hint(calibration_completion_world, hint_character, ""), "行动台确认稳窗回访", "calibration completion direction points to action console")
+	host._expect_text_contains(presenter.format_onboarding_hint(calibration_completion_world, hint_character, ""), "调度链", "calibration completion onboarding summarizes next loop")
 	var frontline_report_world := WorldState.create_default()
 	frontline_report_world.quest_state.active_quest_ids.clear()
 	frontline_report_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
 	frontline_report_world.quest_state.completed_quest_ids.append("quest.plan_stability_frontline_action")
 	frontline_report_world.quest_state.completed_quest_ids.append("quest.survey_stability_echo_probe")
 	frontline_report_world.quest_state.completed_quest_ids.append("quest.analyze_stability_echo_sample")
-	host._expect_text_contains(presenter.format_direction_hint(frontline_report_world, hint_character, ""), "短行动补给台", "frontline report completion direction points to supply console")
-	host._expect_text_contains(presenter.format_onboarding_hint(frontline_report_world, hint_character, ""), "第二条行动", "frontline report completion onboarding explains next action")
+	host._expect_text_contains(presenter.format_direction_hint(frontline_report_world, hint_character, ""), "行动台确认补给短行动", "frontline report completion direction points to action console")
+	host._expect_text_contains(presenter.format_onboarding_hint(frontline_report_world, hint_character, ""), "调度链", "frontline report completion onboarding explains next action")
 	var short_feedback_world := WorldState.create_default()
 	short_feedback_world.quest_state.active_quest_ids.clear()
 	short_feedback_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
@@ -320,8 +320,8 @@ func _check_onboarding_hints() -> void:
 	short_feedback_world.quest_state.completed_quest_ids.append("quest.confirm_supply_frontline_action")
 	short_feedback_world.quest_state.completed_quest_ids.append("quest.inspect_supply_return_marker")
 	short_feedback_world.quest_state.completed_quest_ids.append("quest.analyze_supply_return_trace")
-	host._expect_text_contains(presenter.format_direction_hint(short_feedback_world, hint_character, ""), "巡线短行动台", "short feedback completion direction points to route action")
-	host._expect_text_contains(presenter.format_onboarding_hint(short_feedback_world, hint_character, ""), "第三条行动", "short feedback completion onboarding explains route action")
+	host._expect_text_contains(presenter.format_direction_hint(short_feedback_world, hint_character, ""), "行动台确认巡线短行动", "short feedback completion direction points to route action")
+	host._expect_text_contains(presenter.format_onboarding_hint(short_feedback_world, hint_character, ""), "巡线反馈", "short feedback completion onboarding explains route action")
 	var route_feedback_world := WorldState.create_default()
 	route_feedback_world.quest_state.active_quest_ids.clear()
 	route_feedback_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
@@ -396,8 +396,8 @@ func _check_status_panel_summary() -> void:
 	calibration_text_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
 	calibration_text_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
 	var calibration_text := presenter.format_status_text(host.data_registry, calibration_text_world, status_character)
-	host._expect_text_contains(calibration_text, "目标：前线行动待确认", "status falls back to frontline action confirmation after calibration")
-	host._expect_text_contains(calibration_text, "前线行动台", "status progress points to base frontline action console")
+	host._expect_text_contains(calibration_text, "目标：稳窗回访待确认", "status falls back to frontline action confirmation after calibration")
+	host._expect_text_contains(calibration_text, "行动台确认稳窗回访", "status progress points to base action console")
 	var frontline_report_text_world := WorldState.create_default()
 	frontline_report_text_world.quest_state.active_quest_ids.clear()
 	frontline_report_text_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
@@ -408,7 +408,7 @@ func _check_status_panel_summary() -> void:
 	frontline_report_text_world.quest_state.completed_quest_ids.append("quest.analyze_stability_echo_sample")
 	var frontline_report_text := presenter.format_status_text(host.data_registry, frontline_report_text_world, status_character)
 	host._expect_text_contains(frontline_report_text, "目标：补给短行动待确认", "status falls back to supply action after frontline report")
-	host._expect_text_contains(frontline_report_text, "短行动补给台", "status progress points to supply action console")
+	host._expect_text_contains(frontline_report_text, "行动台确认补给短行动", "status progress points to supply action console")
 	var short_feedback_text_world := WorldState.create_default()
 	short_feedback_text_world.quest_state.active_quest_ids.clear()
 	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
@@ -422,7 +422,7 @@ func _check_status_panel_summary() -> void:
 	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.analyze_supply_return_trace")
 	var short_feedback_text := presenter.format_status_text(host.data_registry, short_feedback_text_world, status_character)
 	host._expect_text_contains(short_feedback_text, "目标：巡线短行动待确认", "status falls back to route action after short feedback")
-	host._expect_text_contains(short_feedback_text, "巡线短行动台", "status progress points to route action console")
+	host._expect_text_contains(short_feedback_text, "行动台确认巡线短行动", "status progress points to route action console")
 	var route_feedback_text_world := WorldState.create_default()
 	route_feedback_text_world.quest_state.active_quest_ids.clear()
 	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
@@ -438,8 +438,8 @@ func _check_status_panel_summary() -> void:
 	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.inspect_route_signal_marker")
 	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.analyze_route_signal_trace")
 	var route_feedback_text := presenter.format_status_text(host.data_registry, route_feedback_text_world, status_character)
-	host._expect_text_contains(route_feedback_text, "目标：基地行动选择待确认", "status falls back to base action choice after route feedback")
-	host._expect_text_contains(route_feedback_text, "稳场补给或相位测绘", "status progress points to base action options")
+	host._expect_text_contains(route_feedback_text, "目标：基地行动方案待选择", "status falls back to base action choice after route feedback")
+	host._expect_text_contains(route_feedback_text, "稳场补给提供低风险补给包", "status progress points to base action options")
 
 
 func _check_anchor_field_recovery() -> void:
@@ -645,6 +645,13 @@ func _check_base_action_choice_runtime() -> void:
 		"quest.choose_steady_supply_action",
 		"quest.choose_phase_survey_action"
 	]
+	var choice_prompt := BaseActionDispatchPlan.format_console_prompt(
+		"map_object.base_supply_choice_console",
+		supply_world,
+		supply_character
+	)
+	host._expect_text_contains(choice_prompt, "方案 A：稳场补给", "base action console prompt lists supply option")
+	host._expect_text_contains(choice_prompt, "方案 B：相位测绘", "base action console prompt lists survey option")
 	var supply_choice_result := runtime.advance_for_interaction(
 		supply_world,
 		supply_character,
@@ -735,6 +742,17 @@ func _check_base_action_choice_runtime() -> void:
 		int(supply_character.inventory.items.get("item.repair_gel", 0)),
 		2,
 		"steady supply feedback grants repair gel"
+	)
+	var supply_dispatch_summary := BaseActionDispatchPlan.summarize(supply_world, supply_character)
+	host._expect_equal(
+		String(supply_dispatch_summary.get("stage", "")),
+		"steady_supply_ready",
+		"steady supply feedback should become dispatch preparation state"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.base_supply_choice_console", supply_world, supply_character),
+		"补给整备已生效",
+		"steady supply prompt shows preparation payoff"
 	)
 
 	var survey_world := WorldState.create_default()
@@ -835,6 +853,17 @@ func _check_base_action_choice_runtime() -> void:
 		int(survey_character.inventory.items.get("item.resistance_vial_t1", 0)),
 		1,
 		"phase survey feedback grants information-oriented vial return"
+	)
+	var survey_dispatch_summary := BaseActionDispatchPlan.summarize(survey_world, survey_character)
+	host._expect_equal(
+		String(survey_dispatch_summary.get("stage", "")),
+		"phase_survey_ready",
+		"phase survey feedback should become dispatch preparation state"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.base_survey_choice_console", survey_world, survey_character),
+		"测绘整备已生效",
+		"phase survey prompt shows route hint payoff"
 	)
 
 

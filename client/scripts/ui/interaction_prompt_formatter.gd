@@ -202,6 +202,22 @@ func format_clear_prompt(
 	return "\n".join(parts)
 
 
+func can_format_base_action_prompt(definition_id: String) -> bool:
+	return BaseActionDispatchPlan.is_action_console(definition_id)
+
+
+func format_base_action_prompt(
+	interactable: PrototypeInteractable,
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	return BaseActionDispatchPlan.format_console_prompt(
+		interactable.definition_id,
+		world_state,
+		character_state
+	)
+
+
 func can_format_field_reading_prompt(definition_id: String) -> bool:
 	return FIELD_READING_PROMPTS.has(definition_id)
 
