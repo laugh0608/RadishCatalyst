@@ -759,6 +759,30 @@ func _check_base_action_choice_runtime() -> void:
 		BaseActionDispatchPlan.STATUS_READY,
 		"steady supply feedback should prepare a next-departure package"
 	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", supply_world, supply_character),
+		"出发补给整备槽",
+		"steady supply action console should confirm departure slot"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.apply_departure_preparation(supply_world, supply_character).size(),
+		0,
+		"steady supply package should wait for action console confirmation"
+	)
+	var supply_slot_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		supply_character,
+		supply_world
+	)
+	host._expect_equal(bool(supply_slot_result.get("success", false)), true, "steady supply action console should accept departure slot confirmation")
+	host._expect_text_contains(String(supply_slot_result.get("message", "")), "出发整备槽已确认", "steady supply action console should queue one departure slot")
+	host._expect_equal(
+		BaseActionDispatchPlan.get_supply_package_status(supply_world),
+		BaseActionDispatchPlan.STATUS_QUEUED,
+		"steady supply package should become queued after action console confirmation"
+	)
 	var supply_departure_messages := BaseActionDispatchPlan.apply_departure_preparation(supply_world, supply_character)
 	host._expect_equal(supply_departure_messages.size(), 1, "steady supply departure should apply one package")
 	host._expect_text_contains(
@@ -902,6 +926,11 @@ func _check_base_action_choice_runtime() -> void:
 		BaseActionDispatchPlan.STATUS_READY,
 		"phase survey feedback should prepare route intel"
 	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", survey_world, survey_character),
+		"测绘路线整备槽",
+		"phase survey action console should confirm departure slot"
+	)
 	host._expect_equal(
 		BaseActionDispatchPlan.get_route_target_region_id(survey_world),
 		"region.phase_well_tether",
@@ -911,6 +940,25 @@ func _check_base_action_choice_runtime() -> void:
 		BaseActionDispatchPlan.get_route_risk_note(survey_world),
 		"短时扰动",
 		"phase survey route intel should include risk preview"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.apply_departure_preparation(survey_world, survey_character).size(),
+		0,
+		"phase survey intel should wait for action console confirmation"
+	)
+	var survey_slot_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		survey_character,
+		survey_world
+	)
+	host._expect_equal(bool(survey_slot_result.get("success", false)), true, "phase survey action console should accept departure slot confirmation")
+	host._expect_text_contains(String(survey_slot_result.get("message", "")), "出发整备槽已确认", "phase survey action console should queue one departure slot")
+	host._expect_equal(
+		BaseActionDispatchPlan.get_survey_intel_status(survey_world),
+		BaseActionDispatchPlan.STATUS_QUEUED,
+		"phase survey intel should become queued after action console confirmation"
 	)
 	var survey_departure_messages := BaseActionDispatchPlan.apply_departure_preparation(survey_world, survey_character)
 	host._expect_equal(survey_departure_messages.size(), 1, "phase survey departure should load one intel package")
