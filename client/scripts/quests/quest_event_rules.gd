@@ -8,7 +8,7 @@ func _init(registry: DataRegistry) -> void:
 	data_registry = registry
 
 
-func get_interaction_objective_updates(context: Dictionary, result: Dictionary, _quest_state: QuestState) -> Array[Dictionary]:
+func get_interaction_objective_updates(context: Dictionary, result: Dictionary, quest_state: QuestState) -> Array[Dictionary]:
 	var definition_id := String(context.get("definition_id", ""))
 	var interaction_type := String(context.get("interaction_type", ""))
 	var recipe_id := String(context.get("recipe_id", ""))
@@ -157,21 +157,24 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 	if interaction_type == "inspect" and definition_id == "map_object.phase_well_stability_node_east":
 		return [_set_update("quest.calibrate_phase_well_stability_window", "inspect", "map_object.phase_well_stability_node_east", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.frontline_action_console":
-		return [_set_update("quest.plan_stability_frontline_action", "inspect", "map_object.frontline_action_console", 1)]
+		var frontline_quest_id := BaseActionDispatchPlan.get_frontline_action_console_quest_id(quest_state)
+		if not frontline_quest_id.is_empty():
+			return [_set_update(frontline_quest_id, "inspect", "map_object.frontline_action_console", 1)]
+		return []
 	if interaction_type == "inspect" and definition_id == "map_object.stability_echo_probe":
 		return [
 			_set_update("quest.survey_stability_echo_probe", "visit_region", "region.phase_well_tether", 1),
 			_set_update("quest.survey_stability_echo_probe", "inspect", "map_object.stability_echo_probe", 1)
 		]
 	if interaction_type == "inspect" and definition_id == "map_object.frontline_supply_console":
-		return [_set_update("quest.confirm_supply_frontline_action", "inspect", "map_object.frontline_supply_console", 1)]
+		return [_set_update("quest.confirm_supply_frontline_action", "inspect", "map_object.frontline_action_console", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.supply_return_marker":
 		return [
 			_set_update("quest.inspect_supply_return_marker", "visit_region", "region.phase_well_tether", 1),
 			_set_update("quest.inspect_supply_return_marker", "inspect", "map_object.supply_return_marker", 1)
 		]
 	if interaction_type == "inspect" and definition_id == "map_object.frontline_route_console":
-		return [_set_update("quest.confirm_route_frontline_action", "inspect", "map_object.frontline_route_console", 1)]
+		return [_set_update("quest.confirm_route_frontline_action", "inspect", "map_object.frontline_action_console", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.route_signal_marker":
 		return [
 			_set_update("quest.inspect_route_signal_marker", "visit_region", "region.phase_well_tether", 1),

@@ -147,7 +147,7 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	host._expect_equal(int(character_state.inventory.items.get("item.basic_parts", 0)), basic_parts_before_report + 4, "stability echo report grants base supply parts")
 	host._expect_equal(int(character_state.inventory.items.get("item.repair_gel", 0)), repair_gel_before_report + 1, "stability echo report grants next sortie repair gel")
 	host._expect_equal(int(character_state.inventory.items.get("item.resistance_vial_t1", 0)), resistance_vial_before_report + 1, "stability echo report grants next sortie resistance vial")
-	host._complete_active_quest("quest.confirm_supply_frontline_action", [{"type": "inspect", "target_id": "map_object.frontline_supply_console", "amount": 1}])
+	host._complete_active_quest("quest.confirm_supply_frontline_action", [{"type": "inspect", "target_id": "map_object.frontline_action_console", "amount": 1}])
 	host._expect_active_quest("quest.inspect_supply_return_marker", "after supply action confirmation returns to supply marker")
 	host._complete_active_quest("quest.inspect_supply_return_marker", [
 		{"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1},
@@ -167,7 +167,7 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	host._expect_equal(int(character_state.inventory.items.get("item.basic_parts", 0)), basic_parts_before_short_feedback + 2, "short action feedback grants base supply parts")
 	host._expect_equal(int(character_state.inventory.items.get("item.repair_gel", 0)), repair_gel_before_short_feedback + 1, "short action feedback grants repair gel")
 	host._expect_equal(int(character_state.inventory.items.get("item.resistance_vial_t1", 0)), resistance_vial_before_short_feedback + 1, "short action feedback grants resistance vial")
-	host._complete_active_quest("quest.confirm_route_frontline_action", [{"type": "inspect", "target_id": "map_object.frontline_route_console", "amount": 1}])
+	host._complete_active_quest("quest.confirm_route_frontline_action", [{"type": "inspect", "target_id": "map_object.frontline_action_console", "amount": 1}])
 	host._expect_active_quest("quest.inspect_route_signal_marker", "after route action confirmation returns to route signal marker")
 	host._complete_active_quest("quest.inspect_route_signal_marker", [
 		{"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1},

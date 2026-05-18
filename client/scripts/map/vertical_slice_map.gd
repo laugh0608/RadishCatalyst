@@ -67,12 +67,8 @@ const INTERACTABLE_QUEST_GATES := {
 	"map_object.tether_fiber_cluster": "quest.collect_tether_fiber",
 	"map_object.phase_well_tether": "quest.inspect_phase_well_tether",
 	"map_object.phase_well_anchor_pressure_pin": "quest.stabilize_phase_well_anchor_field",
-	"map_object.frontline_action_console": "quest.plan_stability_frontline_action",
-	"map_object.stability_echo_probe": "quest.survey_stability_echo_probe",
-	"map_object.frontline_supply_console": "quest.confirm_supply_frontline_action",
-	"map_object.supply_return_marker": "quest.inspect_supply_return_marker",
-	"map_object.frontline_route_console": "quest.confirm_route_frontline_action",
-	"map_object.route_signal_marker": "quest.inspect_route_signal_marker", "map_object.base_supply_choice_console": "quest.choose_steady_supply_action", "map_object.base_survey_choice_console": "quest.choose_phase_survey_action", "map_object.steady_supply_drop_marker": "quest.inspect_steady_supply_drop", "map_object.phase_survey_node_west": "quest.inspect_phase_survey_nodes", "map_object.phase_survey_node_east": "quest.inspect_phase_survey_nodes"
+	"map_object.frontline_action_console": "quest.plan_stability_frontline_action", "map_object.stability_echo_probe": "quest.survey_stability_echo_probe",
+	"map_object.supply_return_marker": "quest.inspect_supply_return_marker", "map_object.route_signal_marker": "quest.inspect_route_signal_marker", "map_object.base_supply_choice_console": "quest.choose_steady_supply_action", "map_object.base_survey_choice_console": "quest.choose_phase_survey_action", "map_object.steady_supply_drop_marker": "quest.inspect_steady_supply_drop", "map_object.phase_survey_node_west": "quest.inspect_phase_survey_nodes", "map_object.phase_survey_node_east": "quest.inspect_phase_survey_nodes"
 }
 @onready var player: PlayerController = $Player
 @onready var interactables_root: Node2D = $Interactables
@@ -357,6 +353,8 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				interactable.set_ready_stability_calibration_visual()
 			else:
 				interactable.set_default_visual()
+		elif interactable.definition_id == BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID and BaseActionDispatchPlan.is_frontline_action_console_ready(world_state):
+			interactable.set_default_visual()
 		elif is_processed and interactable.set_processed_visual():
 			if current_interactable == interactable:
 				current_interactable = null
@@ -373,6 +371,8 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				world_state.quest_state.has_active_quest(gate_quest_id)
 				or world_state.quest_state.has_completed_quest(gate_quest_id)
 			)
+		if interactable.definition_id == BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID:
+			should_enable = should_enable and BaseActionDispatchPlan.is_frontline_action_console_ready(world_state)
 		if interactable.definition_id == "map_object.phase_well_frame_route_blocker":
 			should_enable = (
 				should_enable

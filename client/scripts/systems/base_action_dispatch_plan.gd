@@ -8,6 +8,12 @@ const CONSOLE_DEFINITION_IDS: Array[String] = [
 	"map_object.base_supply_choice_console",
 	"map_object.base_survey_choice_console"
 ]
+const FRONTLINE_ACTION_CONSOLE_ID := "map_object.frontline_action_console"
+const FRONTLINE_ACTION_QUEST_IDS: Array[String] = [
+	"quest.plan_stability_frontline_action",
+	"quest.confirm_supply_frontline_action",
+	"quest.confirm_route_frontline_action"
+]
 const SUPPLY_PACKAGE_STATUS_KEY := "supply_package_status"
 const SURVEY_INTEL_STATUS_KEY := "survey_intel_status"
 const ROUTE_TARGET_REGION_KEY := "route_target_region_id"
@@ -22,6 +28,19 @@ const ROUTE_RISK_NOTE := "井系桥前线低压读数线：优先走西侧测绘
 
 static func is_action_console(definition_id: String) -> bool:
 	return CONSOLE_DEFINITION_IDS.has(definition_id)
+
+
+static func get_frontline_action_console_quest_id(quest_state: QuestState) -> String:
+	if quest_state == null:
+		return ""
+	for quest_id in FRONTLINE_ACTION_QUEST_IDS:
+		if quest_state.has_active_quest(quest_id):
+			return quest_id
+	return ""
+
+
+static func is_frontline_action_console_ready(world_state: WorldState) -> bool:
+	return world_state != null and not get_frontline_action_console_quest_id(world_state.quest_state).is_empty()
 
 
 static func summarize(world_state: WorldState, character_state: CharacterState = null) -> Dictionary:
@@ -348,15 +367,20 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 
 static func _format_console_action_line(definition_id: String, stage: String) -> String:
 	match definition_id:
-		"map_object.frontline_action_console":
-			if stage == "first_ready":
-				return "按 E 确认：稳窗回访。"
+		FRONTLINE_ACTION_CONSOLE_ID:
+			match stage:
+				"first_ready":
+					return "按 E 确认：稳窗回访。"
+				"short_ready":
+					return "按 E 确认：补给短行动。"
+				"route_ready":
+					return "按 E 确认：巡线短行动。"
 		"map_object.frontline_supply_console":
 			if stage == "short_ready":
-				return "按 E 确认：补给短行动。"
+				return "确认入口已并入前线行动台。"
 		"map_object.frontline_route_console":
 			if stage == "route_ready":
-				return "按 E 确认：巡线短行动。"
+				return "确认入口已并入前线行动台。"
 		"map_object.base_supply_choice_console":
 			if stage == "choice_ready":
 				return "按 E 选择：稳场补给方案。"

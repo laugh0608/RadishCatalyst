@@ -233,8 +233,18 @@ const STRUCTURE_BUFFER_ALLOWED_FIELDS := [
 const DEFAULT_ACTIVE_QUEST_IDS: Array[String] = ["quest.restore_outpost"]
 const DEFAULT_UNLOCKED_REGION_IDS: Array[String] = ["region.outpost_platform"]
 const LEGACY_OBJECTIVE_PROGRESS_KEYS: Array[String] = [
-	"quest.bring_back_sample|return_region|region.outpost_platform"
+	"quest.bring_back_sample|return_region|region.outpost_platform",
+	"quest.confirm_supply_frontline_action|inspect|map_object.frontline_supply_console",
+	"quest.confirm_route_frontline_action|inspect|map_object.frontline_route_console"
 ]
+const LEGACY_COMPLETED_OBJECTIVE_PROGRESS_KEYS := {
+	"quest.confirm_supply_frontline_action|inspect|map_object.frontline_action_console": [
+		"quest.confirm_supply_frontline_action|inspect|map_object.frontline_supply_console"
+	],
+	"quest.confirm_route_frontline_action|inspect|map_object.frontline_action_console": [
+		"quest.confirm_route_frontline_action|inspect|map_object.frontline_route_console"
+	]
+}
 const LEGACY_OPTIONAL_COMPLETED_QUEST_EFFECTS := {
 	"quest.inspect_phase_fault_spire": ["recipe.inner_fault_analysis"],
 	"quest.unlock_phase_well": ["recipe.phase_well_locator_analysis"],
@@ -838,11 +848,20 @@ func _validate_completed_quest_objectives(quest_id: String, quest: Dictionary, q
 		var target_id := String(objective.get("target_id", ""))
 		var required_amount := float(objective.get("amount", 1.0))
 		var objective_key := "%s|%s|%s" % [quest_id, objective_type, target_id]
-		var current_amount := float(objective_progress.get(objective_key, 0.0))
+		var current_amount := _get_completed_objective_progress_amount(objective_progress, objective_key)
 		if current_amount < required_amount:
 			return "读取存档失败：已完成任务目标进度不足，当前运行状态已保留。"
 
 	return ""
+
+
+func _get_completed_objective_progress_amount(objective_progress: Dictionary, objective_key: String) -> float:
+	var current_amount := float(objective_progress.get(objective_key, 0.0))
+	if not LEGACY_COMPLETED_OBJECTIVE_PROGRESS_KEYS.has(objective_key):
+		return current_amount
+	for legacy_key in LEGACY_COMPLETED_OBJECTIVE_PROGRESS_KEYS[objective_key]:
+		current_amount = maxf(current_amount, float(objective_progress.get(String(legacy_key), 0.0)))
+	return current_amount
 
 
 func _validate_quest_content(quest_state: Dictionary) -> String:

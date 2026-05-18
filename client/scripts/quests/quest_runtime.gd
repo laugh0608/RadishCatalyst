@@ -177,6 +177,7 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 	updates.append_array(_get_phase_well_field_reading_recovery_updates(world_state, character_state))
 	updates.append_array(_get_phase_well_frame_route_recovery_updates(world_state, character_state))
 	updates.append_array(_get_anchor_field_pressure_pin_recovery_updates(world_state))
+	updates.append_array(_get_frontline_action_console_recovery_updates(world_state))
 	var late_craft_recovery_updates := _get_late_craft_progress_recovery_updates(world_state, character_state)
 	if not late_craft_recovery_updates.is_empty():
 		updates.append_array(late_craft_recovery_updates)
@@ -419,6 +420,33 @@ func _get_anchor_field_pressure_pin_recovery_updates(world_state: WorldState) ->
 			pin_count += 1
 	if pin_count >= 2 or world_state.quest_state.get_objective_progress(quest_id, "defeat_enemy", "enemy.phase_well_warden") > 0.0:
 		updates.append(_objective_set_update(quest_id, "clear", objective_target_id, 2))
+	return updates
+
+
+func _get_frontline_action_console_recovery_updates(world_state: WorldState) -> Array[Dictionary]:
+	var updates: Array[Dictionary] = []
+	for recovery in [
+		{
+			"quest_id": "quest.confirm_supply_frontline_action",
+			"legacy_target_id": "map_object.frontline_supply_console",
+			"legacy_instance_id": "map_object_instance.frontline_supply_console"
+		},
+		{
+			"quest_id": "quest.confirm_route_frontline_action",
+			"legacy_target_id": "map_object.frontline_route_console",
+			"legacy_instance_id": "map_object_instance.frontline_route_console"
+		}
+	]:
+		var quest_id := String(recovery.get("quest_id", ""))
+		if not world_state.quest_state.has_active_quest(quest_id):
+			continue
+		if world_state.quest_state.get_objective_progress(quest_id, "inspect", BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID) >= 1.0:
+			continue
+		if (
+			world_state.quest_state.get_objective_progress(quest_id, "inspect", String(recovery.get("legacy_target_id", ""))) >= 1.0
+			or bool(world_state.get_map_object(String(recovery.get("legacy_instance_id", ""))).get("is_sampled", false))
+		):
+			updates.append(_objective_set_update(quest_id, "inspect", BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID, 1))
 	return updates
 
 

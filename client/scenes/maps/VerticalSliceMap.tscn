@@ -212,20 +212,6 @@ interaction_type = "inspect"
 label_offset = Vector2(-96, 22)
 label_size = Vector2(192, 24)
 
-[node name="FrontlineSupplyConsole" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(-92, 86)
-definition_id = "map_object.frontline_supply_console"
-interaction_type = "inspect"
-label_offset = Vector2(-96, 22)
-label_size = Vector2(192, 24)
-
-[node name="FrontlineRouteConsole" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(-92, 124)
-definition_id = "map_object.frontline_route_console"
-interaction_type = "inspect"
-label_offset = Vector2(-96, 22)
-label_size = Vector2(192, 24)
-
 [node name="BaseSupplyChoiceConsole" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(-250, 86)
 definition_id = "map_object.base_supply_choice_console"

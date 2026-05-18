@@ -228,11 +228,11 @@ func run() -> void:
 				3,
 				"S18 baseline should keep second feedback resistance vial"
 			)
-			var supply_console_state := loaded_world.get_map_object("map_object_instance.frontline_supply_console")
+			var supply_console_state := loaded_world.get_map_object("map_object_instance.frontline_action_console")
 			host._expect_equal(
 				bool(supply_console_state.get("is_sampled", false)),
 				true,
-				"S18 baseline should keep supply console confirmed"
+				"S18 baseline should keep unified frontline action console confirmed"
 			)
 			var supply_marker_state := loaded_world.get_map_object("map_object_instance.supply_return_marker")
 			host._expect_equal(
@@ -266,11 +266,11 @@ func run() -> void:
 				4,
 				"S19 baseline should keep third feedback resistance vial"
 			)
-			var route_console_state := loaded_world.get_map_object("map_object_instance.frontline_route_console")
+			var route_console_state := loaded_world.get_map_object("map_object_instance.frontline_action_console")
 			host._expect_equal(
 				bool(route_console_state.get("is_sampled", false)),
 				true,
-				"S19 baseline should keep route console confirmed"
+				"S19 baseline should keep unified frontline action console confirmed"
 			)
 			var route_marker_state := loaded_world.get_map_object("map_object_instance.route_signal_marker")
 			host._expect_equal(

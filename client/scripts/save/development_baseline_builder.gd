@@ -414,8 +414,8 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 		"quest.confirm_supply_frontline_action":
 			_mark_object_sampled(
 				world_state,
-				"map_object_instance.frontline_supply_console",
-				"map_object.frontline_supply_console",
+				"map_object_instance.frontline_action_console",
+				"map_object.frontline_action_console",
 				"region.outpost_platform"
 			)
 		"quest.inspect_supply_return_marker":
@@ -430,8 +430,8 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 		"quest.confirm_route_frontline_action":
 			_mark_object_sampled(
 				world_state,
-				"map_object_instance.frontline_route_console",
-				"map_object.frontline_route_console",
+				"map_object_instance.frontline_action_console",
+				"map_object.frontline_action_console",
 				"region.outpost_platform"
 			)
 		"quest.inspect_route_signal_marker":
