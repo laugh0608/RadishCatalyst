@@ -775,6 +775,16 @@ func _check_base_action_choice_runtime() -> void:
 		"steady supply action console should confirm departure slot"
 	)
 	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_progress(supply_world),
+		"按 E 确认出发补给整备槽",
+		"steady supply status progress should include explicit confirmation input"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", supply_world, supply_character),
+		"按 E 确认：出发补给整备槽",
+		"steady supply action console prompt should expose confirmation input before details"
+	)
+	host._expect_text_contains(
 		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", supply_world, supply_character),
 		"计划：低风险补给",
 		"steady supply action console should show risk reward profile"
@@ -831,6 +841,16 @@ func _check_base_action_choice_runtime() -> void:
 		BaseActionDispatchPlan.get_departure_plan_key(supply_world),
 		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
 		"steady supply confirmation should record departure plan key"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_progress(supply_world),
+		"到相位回投台按 E 出发",
+		"steady supply queued status should point to phase relay pad"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_direction_hint(supply_world),
+		"到相位回投台按 E 出发",
+		"steady supply queued direction should explain next interaction"
 	)
 	var supply_departure_messages := BaseActionDispatchPlan.apply_departure_preparation(supply_world, supply_character)
 	host._expect_equal(supply_departure_messages.size(), 1, "steady supply departure should apply one package")
@@ -996,6 +1016,16 @@ func _check_base_action_choice_runtime() -> void:
 		"phase survey action console should confirm departure slot"
 	)
 	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_progress(survey_world),
+		"按 E 确认测绘路线整备槽",
+		"phase survey status progress should include explicit confirmation input"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", survey_world, survey_character),
+		"按 E 确认：测绘路线整备槽",
+		"phase survey action console prompt should expose confirmation input before details"
+	)
+	host._expect_text_contains(
 		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", survey_world, survey_character),
 		"计划：信息侦测",
 		"phase survey action console should show risk reward profile"
@@ -1052,12 +1082,27 @@ func _check_base_action_choice_runtime() -> void:
 		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
 		"phase survey confirmation should record departure plan key"
 	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_progress(survey_world),
+		"到相位回投台按 E 出发",
+		"phase survey queued status should point to phase relay pad"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_direction_hint(survey_world),
+		"到相位回投台按 E 出发",
+		"phase survey queued direction should explain next interaction"
+	)
 	var survey_departure_messages := BaseActionDispatchPlan.apply_departure_preparation(survey_world, survey_character)
 	host._expect_equal(survey_departure_messages.size(), 1, "phase survey departure should load one intel package")
 	host._expect_text_contains(
 		String(survey_departure_messages[0]),
 		"信息侦测计划已执行",
 		"phase survey departure message explains target reveal"
+	)
+	host._expect_text_contains(
+		String(survey_departure_messages[0]),
+		"暂无新交互目标",
+		"phase survey departure message should avoid implying a new field interaction"
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.get_survey_intel_status(survey_world),
@@ -1071,8 +1116,18 @@ func _check_base_action_choice_runtime() -> void:
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.get_route_target_region_id(survey_world),
-		"region.phase_well_tether",
-		"phase survey revealed route target should persist after departure"
+		"",
+		"phase survey consumed intel should stop marking a non-actionable route target"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_progress(survey_world),
+		"没有新交互目标",
+		"phase survey used status should explain that the visible route has no field objective"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_direction_hint(survey_world),
+		"返回基地行动台安排下一计划",
+		"phase survey used direction should send player back to action console"
 	)
 
 

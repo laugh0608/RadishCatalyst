@@ -155,7 +155,7 @@ static func apply_departure_preparation(world_state: WorldState, character_state
 		world_state.set_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE)
 		if departure_plan_key.is_empty():
 			departure_plan_key = PLAN_PHASE_SURVEY
-		messages.append("信息侦测计划已执行：井系桥前线目标显形；风险预告为低压读数线，优先走西侧测绘边界。")
+		messages.append("信息侦测计划已执行：本趟路线情报已验证；井系桥前线暂无新交互目标，返回基地行动台安排下一计划。")
 	if not departure_plan_key.is_empty() and not messages.is_empty():
 		world_state.set_base_action_state_value(LAST_DEPARTURE_PLAN_KEY, departure_plan_key)
 	return messages
@@ -173,7 +173,7 @@ static func get_route_target_region_id(world_state: WorldState) -> String:
 	if world_state == null:
 		return ""
 	var status := get_survey_intel_status(world_state)
-	if status != STATUS_READY and status != STATUS_QUEUED and status != STATUS_USED:
+	if status != STATUS_READY and status != STATUS_QUEUED:
 		return ""
 	return String(world_state.get_base_action_state_value(ROUTE_TARGET_REGION_KEY, ROUTE_TARGET_REGION_ID))
 
@@ -251,12 +251,12 @@ static func format_console_prompt(definition_id: String, world_state: WorldState
 		"基地行动台：%s" % String(summary.get("title", "行动调度")),
 		"状态：%s" % String(summary.get("status_progress", "等待下一步行动调度。"))
 	]
-	var preparation_lines: Array = summary.get("preparation_lines", [])
-	for line in preparation_lines:
-		parts.append(String(line))
 	var console_line := _format_console_action_line(definition_id, String(summary.get("stage", "")), world_state)
 	if not console_line.is_empty():
 		parts.append(console_line)
+	var preparation_lines: Array = summary.get("preparation_lines", [])
+	for line in preparation_lines:
+		parts.append(String(line))
 	return "\n".join(parts)
 
 
@@ -367,7 +367,7 @@ static func _format_direction(stage: String, world_state: WorldState) -> String:
 			if get_supply_package_status(world_state) == STATUS_USED:
 				return "稳场补给反馈已归档：补给整备包已经装入本趟出发，资源缓冲会随背包一起带到前线。"
 			if get_supply_package_status(world_state) == STATUS_QUEUED:
-				return "稳场补给反馈已归档：补给整备槽已确认，下一次相位回投会装入基础零件和修复凝胶缓冲。"
+				return "稳场补给整备槽已确认：下一步到相位回投台按 E 出发，回投时会装入基础零件和修复凝胶缓冲。"
 			return "稳场补给反馈已归档：回基地在前线行动台确认出发整备槽，再从相位回投台外出。"
 		"phase_survey_dispatched":
 			return "相位测绘行动已派发：用相位回投返回井系桥前线，读取西侧和东侧两处测绘点。"
@@ -375,9 +375,9 @@ static func _format_direction(stage: String, world_state: WorldState) -> String:
 			return "相位测绘记录已带回：回基地使用基础反应器，把测绘收益解析成下一趟路线提示。"
 		"phase_survey_ready":
 			if get_survey_intel_status(world_state) == STATUS_USED:
-				return "相位测绘反馈已归档：测绘路线提示已经载入本趟出发，井系桥前线目标和风险预告保持显形。"
+				return "相位测绘路线情报已生效：井系桥前线目前没有新的可交互目标；返回基地行动台安排下一计划。"
 			if get_survey_intel_status(world_state) == STATUS_QUEUED:
-				return "相位测绘反馈已归档：测绘整备槽已确认，下一次相位回投会载入井系桥前线路线提示和风险预告。"
+				return "相位测绘整备槽已确认：下一步到相位回投台按 E 出发，回投时会载入井系桥前线目标和风险预告。"
 			return "相位测绘反馈已归档：回基地在前线行动台确认出发整备槽，再从相位回投台外出。"
 		_:
 			return ""
@@ -423,14 +423,14 @@ static func _format_status_progress(stage: String, world_state: WorldState) -> S
 			if get_supply_package_status(world_state) == STATUS_USED:
 				return "稳场补给反馈已归档；本趟出发已装入基础零件和修复凝胶补给包"
 			if get_supply_package_status(world_state) == STATUS_QUEUED:
-				return "稳场补给反馈已归档；出发整备槽已确认，下一次回投会装入补给包"
-			return "稳场补给反馈已归档；前线行动台待确认出发整备槽"
+				return "稳场补给整备槽已确认；到相位回投台按 E 出发，回投时装入补给包"
+			return "稳场补给反馈已归档；到前线行动台按 E 确认出发补给整备槽"
 		"phase_survey_ready":
 			if get_survey_intel_status(world_state) == STATUS_USED:
-				return "相位测绘反馈已归档；本趟出发已载入井系桥前线目标和风险预告"
+				return "相位测绘路线情报已生效；井系桥前线没有新交互目标，返回基地行动台安排下一计划"
 			if get_survey_intel_status(world_state) == STATUS_QUEUED:
-				return "相位测绘反馈已归档；出发整备槽已确认，下一次回投会载入路线提示"
-			return "相位测绘反馈已归档；前线行动台待确认出发整备槽"
+				return "相位测绘整备槽已确认；到相位回投台按 E 出发，回投时载入路线提示"
+			return "相位测绘反馈已归档；到前线行动台按 E 确认测绘路线整备槽"
 		"steady_supply_dispatched":
 			return "稳场补给已选择；前线目标压缩为一处补给投放点"
 		"phase_survey_dispatched":
@@ -453,7 +453,7 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 			var package_status := get_supply_package_status(world_state)
 			var package_line := "出发补给包：待确认；基础零件 +2，修复凝胶 +1。"
 			if package_status == STATUS_QUEUED:
-				package_line = "出发补给包：整备槽已确认；等待下一次相位回投装入。"
+				package_line = "出发补给包：整备槽已确认；到相位回投台按 E 出发时装入。"
 			if package_status == STATUS_USED:
 				package_line = "出发补给包：已装入本趟回投；资源缓冲已进入背包。"
 			var supply_lines: Array[String] = [
@@ -467,9 +467,9 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 			var intel_status := get_survey_intel_status(world_state)
 			var intel_line := "路线提示：待确认；目标显形到井系桥前线。"
 			if intel_status == STATUS_QUEUED:
-				intel_line = "路线提示：整备槽已确认；等待下一次相位回投载入。"
+				intel_line = "路线提示：整备槽已确认；到相位回投台按 E 出发时载入。"
 			if intel_status == STATUS_USED:
-				intel_line = "路线提示：已载入本趟回投；井系桥前线目标保持显形。"
+				intel_line = "路线提示：已完成本趟验证；井系桥前线没有新的可交互目标。"
 			var survey_lines: Array[String] = [
 				"整备：抗污染药剂 %d；基础零件 %d。" % [vial_count, parts_count],
 				intel_line,
