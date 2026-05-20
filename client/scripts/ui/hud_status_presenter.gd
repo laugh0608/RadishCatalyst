@@ -289,7 +289,7 @@ func _format_active_quest_progress(data_registry: DataRegistry, world_state: Wor
 		if _has_completed_steady_supply_feedback(world_state):
 			return "稳场补给选择闭环已完成；本轮验证了基地选择、低风险前线目标和返回补给收益"
 		if _has_completed_route_action_feedback(world_state):
-			return "巡线反馈已归档；回基地在行动选择台选择稳场补给或相位测绘"
+			return "巡线反馈已归档；回基地在行动选择台选择稳场补给、相位测绘或压力清障"
 		if _has_completed_route_signal_marker(world_state):
 			return "巡线信标读数已带回；回基地基础反应器解析成巡线反馈记录"
 		if _has_completed_route_frontline_action(world_state):

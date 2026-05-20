@@ -30,10 +30,13 @@ const PHASE_RELAY_TETHER_PROGRESS_QUEST_IDS: Array[String] = [
 	"quest.analyze_route_signal_trace",
 	"quest.choose_steady_supply_action",
 	"quest.choose_phase_survey_action",
+	"quest.choose_pressure_clearance_action",
 	"quest.inspect_steady_supply_drop",
 	"quest.analyze_steady_supply_trace",
 	"quest.inspect_phase_survey_nodes",
-	"quest.analyze_phase_survey_trace"
+	"quest.analyze_phase_survey_trace",
+	"quest.clear_pressure_frontline_hazard",
+	"quest.analyze_pressure_clearance_trace"
 ]
 
 var event_rules: QuestEventRules
@@ -154,6 +157,8 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 		log_messages.append("旧进度已接入：稳场补给选择后的前线目标已补入当前目标。")
 	if _activate_missing_post_survey_choice_followup(world_state):
 		log_messages.append("旧进度已接入：相位测绘选择后的前线目标已补入当前目标。")
+	if _activate_missing_post_pressure_choice_followup(world_state):
+		log_messages.append("旧进度已接入：压力清障选择后的前线目标已补入当前目标。")
 	if _activate_missing_post_phase_well_chamber_followup(world_state):
 		log_messages.append("旧进度已接入：井心室后的井纺后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_sink_followup(world_state):
@@ -864,8 +869,11 @@ func _activate_missing_post_route_action_feedback_choice(world_state: WorldState
 		return false
 	if world_state.quest_state.has_completed_quest("quest.analyze_phase_survey_trace"):
 		return false
+	if world_state.quest_state.has_completed_quest("quest.analyze_pressure_clearance_trace"):
+		return false
 	world_state.quest_state.activate_quest("quest.choose_steady_supply_action")
 	world_state.quest_state.activate_quest("quest.choose_phase_survey_action")
+	world_state.quest_state.activate_quest("quest.choose_pressure_clearance_action")
 	return true
 
 
@@ -888,6 +896,17 @@ func _activate_missing_post_survey_choice_followup(world_state: WorldState) -> b
 	if world_state.quest_state.has_completed_quest("quest.analyze_phase_survey_trace"):
 		return false
 	world_state.quest_state.activate_quest("quest.inspect_phase_survey_nodes")
+	return true
+
+
+func _activate_missing_post_pressure_choice_followup(world_state: WorldState) -> bool:
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.choose_pressure_clearance_action"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.analyze_pressure_clearance_trace"):
+		return false
+	world_state.quest_state.activate_quest("quest.clear_pressure_frontline_hazard")
 	return true
 
 

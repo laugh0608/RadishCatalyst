@@ -130,7 +130,8 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		"recipe.short_action_feedback",
 		"recipe.route_action_feedback",
 		"recipe.steady_supply_feedback",
-		"recipe.phase_survey_feedback"
+		"recipe.phase_survey_feedback",
+		"recipe.pressure_clearance_feedback"
 	])
 	recipe_character.inventory.items["item.basic_parts"] = 1
 	recipe_character.inventory.add_item("item.signal_echo_trace", 1)
@@ -519,6 +520,13 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
 		"recipe.phase_survey_feedback",
 		"phase survey feedback analysis selects reactor recipe"
+	)
+	recipe_character.inventory.add_item("item.pressure_clearance_trace", 1)
+	recipe_world.quest_state.active_quest_ids = ["quest.analyze_pressure_clearance_trace"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world),
+		"recipe.pressure_clearance_feedback",
+		"pressure clearance feedback analysis selects reactor recipe"
 	)
 	deep_reactor.free()
 	filter.free()

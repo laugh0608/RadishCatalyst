@@ -248,7 +248,7 @@ func run() -> void:
 			)
 			host._expect_equal(
 				loaded_world.quest_state.active_quest_ids,
-				["quest.choose_steady_supply_action", "quest.choose_phase_survey_action"],
+				["quest.choose_steady_supply_action", "quest.choose_phase_survey_action", "quest.choose_pressure_clearance_action"],
 				"S19 baseline should activate base action choices"
 			)
 			host._expect_equal(

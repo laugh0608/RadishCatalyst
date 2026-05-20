@@ -1034,7 +1034,7 @@
       "prerequisites": ["quest.inspect_route_signal_marker"],
       "rewards": [{"id": "item.basic_parts", "amount": 2}, {"id": "item.repair_gel", "amount": 1}, {"id": "item.resistance_vial_t1", "amount": 1}],
       "unlock_effects": ["slice_01_complete"],
-      "next_quest_ids": ["quest.choose_steady_supply_action", "quest.choose_phase_survey_action"],
+      "next_quest_ids": ["quest.choose_steady_supply_action", "quest.choose_phase_survey_action", "quest.choose_pressure_clearance_action"],
       "public_level": "spoiler"
     },
     {
@@ -1061,6 +1061,19 @@
       "rewards": [],
       "unlock_effects": [],
       "next_quest_ids": ["quest.inspect_phase_survey_nodes"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.choose_pressure_clearance_action",
+      "display_name_key": "quest.choose_pressure_clearance_action.name",
+      "description_key": "quest.choose_pressure_clearance_action.desc",
+      "quest_type": "side",
+      "stage": 82,
+      "objectives": [{"type": "inspect", "target_id": "map_object.base_pressure_choice_console", "amount": 1}],
+      "prerequisites": ["quest.analyze_route_signal_trace"],
+      "rewards": [],
+      "unlock_effects": [],
+      "next_quest_ids": ["quest.clear_pressure_frontline_hazard"],
       "public_level": "spoiler"
     },
     {
@@ -1115,6 +1128,32 @@
       "objectives": [{"type": "craft_item", "target_id": "item.phase_survey_feedback", "amount": 1}],
       "prerequisites": ["quest.inspect_phase_survey_nodes"],
       "rewards": [{"id": "item.basic_parts", "amount": 1}, {"id": "item.resistance_vial_t1", "amount": 1}],
+      "unlock_effects": ["slice_01_complete"],
+      "next_quest_ids": [],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.clear_pressure_frontline_hazard",
+      "display_name_key": "quest.clear_pressure_frontline_hazard.name",
+      "description_key": "quest.clear_pressure_frontline_hazard.desc",
+      "quest_type": "side",
+      "stage": 83,
+      "objectives": [{"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1}, {"type": "clear", "target_id": "map_object.pressure_clearance_node", "amount": 1}],
+      "prerequisites": ["quest.choose_pressure_clearance_action"],
+      "rewards": [{"id": "item.pressure_clearance_trace", "amount": 1}, {"id": "item.repair_gel", "amount": 1}],
+      "unlock_effects": ["recipe.pressure_clearance_feedback"],
+      "next_quest_ids": ["quest.analyze_pressure_clearance_trace"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.analyze_pressure_clearance_trace",
+      "display_name_key": "quest.analyze_pressure_clearance_trace.name",
+      "description_key": "quest.analyze_pressure_clearance_trace.desc",
+      "quest_type": "side",
+      "stage": 84,
+      "objectives": [{"type": "craft_item", "target_id": "item.pressure_clearance_feedback", "amount": 1}],
+      "prerequisites": ["quest.clear_pressure_frontline_hazard"],
+      "rewards": [{"id": "item.basic_parts", "amount": 2}, {"id": "item.resistance_vial_t1", "amount": 1}],
       "unlock_effects": ["slice_01_complete"],
       "next_quest_ids": [],
       "public_level": "spoiler"

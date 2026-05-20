@@ -960,7 +960,7 @@
       "mass": 0.1,
       "rarity": "legendary",
       "source_refs": ["recipe.route_action_feedback"],
-      "used_by_refs": ["quest.analyze_route_signal_trace", "quest.choose_steady_supply_action", "quest.choose_phase_survey_action"],
+      "used_by_refs": ["quest.analyze_route_signal_trace", "quest.choose_steady_supply_action", "quest.choose_phase_survey_action", "quest.choose_pressure_clearance_action"],
       "public_level": "spoiler"
     },
     {
@@ -1013,6 +1013,32 @@
       "rarity": "legendary",
       "source_refs": ["recipe.phase_survey_feedback"],
       "used_by_refs": ["quest.analyze_phase_survey_trace"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.pressure_clearance_trace",
+      "display_name_key": "item.pressure_clearance_trace.name",
+      "description_key": "item.pressure_clearance_trace.desc",
+      "category": "resource",
+      "tags": ["ruin", "phase_well", "base_action_choice", "clearance_trace", "slice_03"],
+      "stack_size": 3,
+      "mass": 0.2,
+      "rarity": "legendary",
+      "source_refs": ["quest.clear_pressure_frontline_hazard"],
+      "used_by_refs": ["quest.analyze_pressure_clearance_trace", "recipe.pressure_clearance_feedback"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "item.pressure_clearance_feedback",
+      "display_name_key": "item.pressure_clearance_feedback.name",
+      "description_key": "item.pressure_clearance_feedback.desc",
+      "category": "component",
+      "tags": ["ruin", "phase_well", "base_action_choice", "base_feedback", "slice_03"],
+      "stack_size": 3,
+      "mass": 0.1,
+      "rarity": "legendary",
+      "source_refs": ["recipe.pressure_clearance_feedback"],
+      "used_by_refs": ["quest.analyze_pressure_clearance_trace"],
       "public_level": "spoiler"
     }
   ]

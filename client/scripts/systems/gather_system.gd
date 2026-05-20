@@ -132,6 +132,8 @@ func interact_with_object(
 				return _success("井纹架侧路已清理：边缕残条回收线打开，另一侧路可以保留为未选路线。")
 			if definition_id == "map_object.well_ash_crust_blocker":
 				return _success("井底余烬壳已清理：井壁余烬回收线打开。")
+			if definition_id == "map_object.pressure_clearance_node":
+				return _success("前线压力扰点已清除：带回压力清障回执，回基地用基础反应器解析防护收益。")
 			return _success("地块已清理。")
 		"inspect":
 			if _is_persistent_field_reading(definition_id):

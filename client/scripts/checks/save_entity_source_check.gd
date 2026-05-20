@@ -109,6 +109,11 @@ func _check_loads_known_map_object_source() -> void:
 			"region_id": "region.outpost_platform",
 			"is_sampled": true
 		},
+		"map_object_instance.base_pressure_choice_console": {
+			"definition_id": "map_object.base_pressure_choice_console",
+			"region_id": "region.outpost_platform",
+			"is_sampled": true
+		},
 		"map_object_instance.steady_supply_drop_marker": {
 			"definition_id": "map_object.steady_supply_drop_marker",
 			"region_id": "region.phase_well_tether",
@@ -123,6 +128,11 @@ func _check_loads_known_map_object_source() -> void:
 			"definition_id": "map_object.phase_survey_node_east",
 			"region_id": "region.phase_well_tether",
 			"is_sampled": true
+		},
+		"map_object_instance.pressure_clearance_node": {
+			"definition_id": "map_object.pressure_clearance_node",
+			"region_id": "region.phase_well_tether",
+			"is_cleared": true
 		}
 	}
 	host._write_save_json(save_data)

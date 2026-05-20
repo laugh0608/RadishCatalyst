@@ -183,7 +183,7 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	host._complete_active_quest("quest.analyze_route_signal_trace", [{"type": "craft_item", "target_id": "item.route_action_feedback", "amount": 1}])
 	host._expect_equal(
 		world_state.quest_state.active_quest_ids,
-		["quest.choose_steady_supply_action", "quest.choose_phase_survey_action"],
+		["quest.choose_steady_supply_action", "quest.choose_phase_survey_action", "quest.choose_pressure_clearance_action"],
 		"after route action feedback should activate base action choices"
 	)
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.analyze_route_signal_trace", "route action feedback quest completed")
@@ -439,7 +439,7 @@ func _check_status_panel_summary() -> void:
 	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.analyze_route_signal_trace")
 	var route_feedback_text := presenter.format_status_text(host.data_registry, route_feedback_text_world, status_character)
 	host._expect_text_contains(route_feedback_text, "目标：基地行动方案待选择", "status falls back to base action choice after route feedback")
-	host._expect_text_contains(route_feedback_text, "稳场补给提供低风险补给包", "status progress points to base action options")
+	host._expect_text_contains(route_feedback_text, "压力清障高风险换防护", "status progress points to three base action options")
 
 
 func _check_anchor_field_recovery() -> void:
@@ -631,7 +631,7 @@ func _check_stability_echo_report_progress() -> void:
 	)
 	host._expect_equal(
 		route_feedback_world.quest_state.active_quest_ids,
-		["quest.choose_steady_supply_action", "quest.choose_phase_survey_action"],
+		["quest.choose_steady_supply_action", "quest.choose_phase_survey_action", "quest.choose_pressure_clearance_action"],
 		"route action feedback completion activates base action choices"
 	)
 	host._expect_equal(bool(route_feedback_result.get("accepted", false)), true, "route action feedback completion result accepted")
@@ -643,7 +643,8 @@ func _check_base_action_choice_runtime() -> void:
 	var supply_character := CharacterState.create_default()
 	supply_world.quest_state.active_quest_ids = [
 		"quest.choose_steady_supply_action",
-		"quest.choose_phase_survey_action"
+		"quest.choose_phase_survey_action",
+		"quest.choose_pressure_clearance_action"
 	]
 	var choice_prompt := BaseActionDispatchPlan.format_console_prompt(
 		"map_object.base_supply_choice_console",
@@ -665,7 +666,7 @@ func _check_base_action_choice_runtime() -> void:
 	host._expect_equal(
 		supply_world.quest_state.active_quest_ids,
 		["quest.inspect_steady_supply_drop"],
-		"steady supply choice should close survey choice and activate supply target"
+		"steady supply choice should close other choices and activate supply target"
 	)
 	host._expect_array_has(
 		supply_world.quest_state.completed_quest_ids,
@@ -676,6 +677,11 @@ func _check_base_action_choice_runtime() -> void:
 		supply_world.quest_state.completed_quest_ids,
 		"quest.choose_phase_survey_action",
 		"steady supply choice should not complete survey choice"
+	)
+	host._expect_array_missing(
+		supply_world.quest_state.completed_quest_ids,
+		"quest.choose_pressure_clearance_action",
+		"steady supply choice should not complete pressure choice"
 	)
 	var supply_drop_result := runtime.advance_for_interaction(
 		supply_world,
@@ -889,7 +895,8 @@ func _check_base_action_choice_runtime() -> void:
 	var survey_character := CharacterState.create_default()
 	survey_world.quest_state.active_quest_ids = [
 		"quest.choose_steady_supply_action",
-		"quest.choose_phase_survey_action"
+		"quest.choose_phase_survey_action",
+		"quest.choose_pressure_clearance_action"
 	]
 	var survey_choice_result := runtime.advance_for_interaction(
 		survey_world,
@@ -910,6 +917,11 @@ func _check_base_action_choice_runtime() -> void:
 		survey_world.quest_state.completed_quest_ids,
 		"quest.choose_steady_supply_action",
 		"phase survey choice should not complete steady supply choice"
+	)
+	host._expect_array_missing(
+		survey_world.quest_state.completed_quest_ids,
+		"quest.choose_pressure_clearance_action",
+		"phase survey choice should not complete pressure choice"
 	)
 	runtime.advance_for_interaction(
 		survey_world,
@@ -1007,8 +1019,8 @@ func _check_base_action_choice_runtime() -> void:
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.get_next_plan_candidate_key(survey_world),
-		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
-		"phase survey feedback should seed supply as next plan candidate"
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"phase survey feedback should seed pressure clearance as next plan candidate"
 	)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", survey_world, survey_character),
@@ -1128,6 +1140,131 @@ func _check_base_action_choice_runtime() -> void:
 		BaseActionDispatchPlan.format_direction_hint(survey_world),
 		"返回基地行动台安排下一计划",
 		"phase survey used direction should send player back to action console"
+	)
+
+	var pressure_world := WorldState.create_default()
+	var pressure_character := CharacterState.create_default()
+	pressure_world.quest_state.active_quest_ids = [
+		"quest.choose_steady_supply_action",
+		"quest.choose_phase_survey_action",
+		"quest.choose_pressure_clearance_action"
+	]
+	var pressure_choice_prompt := BaseActionDispatchPlan.format_console_prompt(
+		"map_object.base_pressure_choice_console",
+		pressure_world,
+		pressure_character
+	)
+	host._expect_text_contains(pressure_choice_prompt, "方案 C：压力清障", "base action console prompt lists pressure option")
+	var pressure_choice_result := runtime.advance_for_interaction(
+		pressure_world,
+		pressure_character,
+		{
+			"definition_id": "map_object.base_pressure_choice_console",
+			"interaction_type": "inspect"
+		},
+		{"success": true}
+	)
+	host._expect_equal(bool(pressure_choice_result.get("accepted", false)), true, "pressure clearance choice result accepted")
+	host._expect_equal(
+		pressure_world.quest_state.active_quest_ids,
+		["quest.clear_pressure_frontline_hazard"],
+		"pressure choice should close other choices and activate clearance target"
+	)
+	host._expect_array_missing(
+		pressure_world.quest_state.completed_quest_ids,
+		"quest.choose_steady_supply_action",
+		"pressure choice should not complete steady supply choice"
+	)
+	host._expect_array_missing(
+		pressure_world.quest_state.completed_quest_ids,
+		"quest.choose_phase_survey_action",
+		"pressure choice should not complete phase survey choice"
+	)
+	var pressure_clear_result := runtime.advance_for_interaction(
+		pressure_world,
+		pressure_character,
+		{
+			"definition_id": "map_object.pressure_clearance_node",
+			"interaction_type": "clear"
+		},
+		{"success": true}
+	)
+	host._expect_equal(bool(pressure_clear_result.get("accepted", false)), true, "pressure clearance node result accepted")
+	host._expect_array_has(
+		pressure_world.quest_state.completed_quest_ids,
+		"quest.clear_pressure_frontline_hazard",
+		"pressure clearance quest completed"
+	)
+	host._expect_equal(
+		int(pressure_character.inventory.items.get("item.pressure_clearance_trace", 0)),
+		1,
+		"pressure clearance grants trace"
+	)
+	host._expect_equal(
+		int(pressure_character.inventory.items.get("item.repair_gel", 0)),
+		2,
+		"pressure clearance grants immediate repair gel"
+	)
+	host._expect_array_has(
+		pressure_world.quest_state.unlocked_effects,
+		"recipe.pressure_clearance_feedback",
+		"pressure clearance unlocks feedback recipe"
+	)
+	var pressure_feedback_result := runtime.advance_for_interaction(
+		pressure_world,
+		pressure_character,
+		{
+			"definition_id": "building.basic_reactor",
+			"interaction_type": "process_recipe",
+			"recipe_id": "recipe.process_crystal_ore"
+		},
+		{"success": true, "completed_recipe_id": "recipe.pressure_clearance_feedback"}
+	)
+	host._expect_equal(bool(pressure_feedback_result.get("accepted", false)), true, "pressure clearance feedback result accepted")
+	host._expect_equal(
+		pressure_world.quest_state.active_quest_ids,
+		[],
+		"pressure clearance feedback should finish branch without lingering quests"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_pressure_clearance_status(pressure_world),
+		BaseActionDispatchPlan.STATUS_READY,
+		"pressure clearance feedback should prepare defensive departure package"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(pressure_world),
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"pressure clearance feedback should fill current plan slot"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", pressure_world, pressure_character),
+		"按 E 确认：清障防护整备槽",
+		"pressure clearance action console should expose departure confirmation"
+	)
+	var pressure_slot_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		pressure_character,
+		pressure_world
+	)
+	host._expect_equal(bool(pressure_slot_result.get("success", false)), true, "pressure action console should accept departure slot confirmation")
+	host._expect_equal(
+		BaseActionDispatchPlan.get_pressure_clearance_status(pressure_world),
+		BaseActionDispatchPlan.STATUS_QUEUED,
+		"pressure clearance package should become queued after confirmation"
+	)
+	var pressure_departure_messages := BaseActionDispatchPlan.apply_departure_preparation(pressure_world, pressure_character)
+	host._expect_equal(pressure_departure_messages.size(), 1, "pressure departure should apply one defensive package")
+	host._expect_text_contains(
+		String(pressure_departure_messages[0]),
+		"压力清障防护计划已执行",
+		"pressure departure message explains defensive package"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_pressure_clearance_status(pressure_world),
+		BaseActionDispatchPlan.STATUS_USED,
+		"pressure clearance package should become used after departure"
 	)
 
 

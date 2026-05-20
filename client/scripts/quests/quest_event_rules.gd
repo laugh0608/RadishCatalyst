@@ -184,6 +184,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		return [_set_update("quest.choose_steady_supply_action", "inspect", "map_object.base_supply_choice_console", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.base_survey_choice_console":
 		return [_set_update("quest.choose_phase_survey_action", "inspect", "map_object.base_survey_choice_console", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.base_pressure_choice_console":
+		return [_set_update("quest.choose_pressure_clearance_action", "inspect", "map_object.base_pressure_choice_console", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.steady_supply_drop_marker":
 		return [
 			_set_update("quest.inspect_steady_supply_drop", "visit_region", "region.phase_well_tether", 1),
@@ -198,6 +200,11 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		return [
 			_set_update("quest.inspect_phase_survey_nodes", "visit_region", "region.phase_well_tether", 1),
 			_set_update("quest.inspect_phase_survey_nodes", "inspect", "map_object.phase_survey_node_east", 1)
+		]
+	if interaction_type == "clear" and definition_id == "map_object.pressure_clearance_node":
+		return [
+			_set_update("quest.clear_pressure_frontline_hazard", "visit_region", "region.phase_well_tether", 1),
+			_set_update("quest.clear_pressure_frontline_hazard", "clear", "map_object.pressure_clearance_node", 1)
 		]
 	if interaction_type == "process_recipe":
 		if not completed_recipe_id.is_empty():
@@ -357,6 +364,8 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 			return [_set_update("quest.analyze_steady_supply_trace", "craft_item", "item.steady_supply_feedback", 1)]
 		"recipe.phase_survey_feedback":
 			return [_set_update("quest.analyze_phase_survey_trace", "craft_item", "item.phase_survey_feedback", 1)]
+		"recipe.pressure_clearance_feedback":
+			return [_set_update("quest.analyze_pressure_clearance_trace", "craft_item", "item.pressure_clearance_feedback", 1)]
 		_:
 			return []
 

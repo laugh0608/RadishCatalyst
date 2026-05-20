@@ -32,7 +32,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		if _has_completed_steady_supply_feedback(world_state):
 			return "稳场补给反馈已归档：基地行动选择已经跑通一轮低风险补给方案和返回收益。"
 		if _has_completed_route_action_feedback(world_state):
-			return "巡线反馈已归档：回基地在行动选择台选择稳场补给或相位测绘。"
+			return "巡线反馈已归档：回基地在行动选择台选择稳场补给、相位测绘或压力清障。"
 		if _has_completed_route_signal_marker(world_state):
 			return "巡线信标读数已带回：回基地使用基础反应器，把读数解析成巡线反馈记录。"
 		if _has_completed_route_frontline_action(world_state):
@@ -292,6 +292,8 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "回基地行动选择台确认稳场补给；这是低风险方案，下一趟只读取一处补给投放点。"
 		"quest.choose_phase_survey_action":
 			return "回基地行动选择台确认相位测绘；这是侦测方案，下一趟要读取两处分散测绘点。"
+		"quest.choose_pressure_clearance_action":
+			return "回基地行动选择台确认压力清障；这是高风险方案，下一趟要清掉一处压力扰点。"
 		"quest.inspect_steady_supply_drop":
 			return "用相位回投返回井系桥前线，读取一处稳场补给投放点后回基地。"
 		"quest.analyze_steady_supply_trace":
@@ -300,6 +302,10 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "用相位回投返回井系桥前线，读取西侧和东侧两处相位测绘点后回基地。"
 		"quest.analyze_phase_survey_trace":
 			return "回基地使用基础反应器，把相位测绘记录解析成测绘反馈。"
+		"quest.clear_pressure_frontline_hazard":
+			return "用相位回投返回井系桥前线，清掉一处压力扰点后回基地。"
+		"quest.analyze_pressure_clearance_trace":
+			return "回基地使用基础反应器，把压力清障回执解析成清障反馈。"
 		_:
 			return "按当前目标推进。"
 
@@ -555,9 +561,11 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.analyze_route_signal_trace":
 			return "这次解析负责把第三条短行动回到基地归档，并把下一步从同构短行动切到基地行动选择。"
 		"quest.choose_steady_supply_action":
-			return "这不是完整远征队列；只是把本趟选择标成补给方案，完成后另一项测绘选择会关闭。"
+			return "这不是完整远征队列；只是把本趟选择标成补给方案，完成后测绘和清障选择会关闭。"
 		"quest.choose_phase_survey_action":
-			return "这不是完整远征队列；只是把本趟选择标成测绘方案，完成后另一项补给选择会关闭。"
+			return "这不是完整远征队列；只是把本趟选择标成测绘方案，完成后补给和清障选择会关闭。"
+		"quest.choose_pressure_clearance_action":
+			return "这不是完整远征队列；只是把本趟选择标成清障方案，完成后补给和测绘选择会关闭。"
 		"quest.inspect_steady_supply_drop":
 			return "补给方案的前线差异是目标更近、风险更低，收益偏基础零件和修复凝胶。"
 		"quest.analyze_steady_supply_trace":
@@ -566,6 +574,10 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "测绘方案的前线差异是两处读数点更分散，收益偏下一趟行动提示。"
 		"quest.analyze_phase_survey_trace":
 			return "解析后只给现有补给和提示口径，不扩成复杂侦查系统。"
+		"quest.clear_pressure_frontline_hazard":
+			return "清障方案的前线差异是一处高风险扰点，收益偏修复和抗污染补给。"
+		"quest.analyze_pressure_clearance_trace":
+			return "解析后只给现有防护补给，不新增成功率、队员或装备 loadout。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 

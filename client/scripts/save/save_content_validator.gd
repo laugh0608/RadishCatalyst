@@ -86,9 +86,11 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.route_signal_marker": "map_object.route_signal_marker",
 	"map_object_instance.base_supply_choice_console": "map_object.base_supply_choice_console",
 	"map_object_instance.base_survey_choice_console": "map_object.base_survey_choice_console",
+	"map_object_instance.base_pressure_choice_console": "map_object.base_pressure_choice_console",
 	"map_object_instance.steady_supply_drop_marker": "map_object.steady_supply_drop_marker",
 	"map_object_instance.phase_survey_node_west": "map_object.phase_survey_node_west",
-	"map_object_instance.phase_survey_node_east": "map_object.phase_survey_node_east"
+	"map_object_instance.phase_survey_node_east": "map_object.phase_survey_node_east",
+	"map_object_instance.pressure_clearance_node": "map_object.pressure_clearance_node"
 }
 
 const PROTOTYPE_ENEMY_SOURCES := {

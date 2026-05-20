@@ -226,6 +226,13 @@ interaction_type = "inspect"
 label_offset = Vector2(-96, 22)
 label_size = Vector2(192, 24)
 
+[node name="BasePressureChoiceConsole" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-250, 162)
+definition_id = "map_object.base_pressure_choice_console"
+interaction_type = "inspect"
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
+
 [node name="CrystalCluster" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(30, -70)
 definition_id = "map_object.crystal_cluster"
@@ -853,6 +860,13 @@ label_size = Vector2(224, 24)
 position = Vector2(3540, -82)
 definition_id = "map_object.phase_survey_node_east"
 interaction_type = "inspect"
+label_offset = Vector2(-112, 24)
+label_size = Vector2(224, 24)
+
+[node name="PressureClearanceNode" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3420, 18)
+definition_id = "map_object.pressure_clearance_node"
+interaction_type = "clear"
 label_offset = Vector2(-112, 24)
 label_size = Vector2(224, 24)
 

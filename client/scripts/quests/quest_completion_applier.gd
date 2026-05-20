@@ -193,11 +193,13 @@ func _format_completion_note(quest_id: String) -> String:
 		"quest.inspect_route_signal_marker":
 			return "巡线信标读数已带回；回基地用基础反应器解析巡线反馈"
 		"quest.analyze_route_signal_trace":
-			return "巡线反馈已归档；回基地行动台，选择稳场补给或相位测绘"
+			return "巡线反馈已归档；回基地行动台，选择稳场补给、相位测绘或压力清障"
 		"quest.choose_steady_supply_action":
 			return "稳场补给行动已选择；从相位回投台返回井系桥前线，读取补给投放点"
 		"quest.choose_phase_survey_action":
 			return "相位测绘行动已选择；从相位回投台返回井系桥前线，读取两处测绘点"
+		"quest.choose_pressure_clearance_action":
+			return "压力清障行动已选择；从相位回投台返回井系桥前线，清除一处压力扰点"
 		"quest.inspect_steady_supply_drop":
 			return "稳场补给回执已带回；回基地用基础反应器解析补给反馈"
 		"quest.analyze_steady_supply_trace":
@@ -206,6 +208,10 @@ func _format_completion_note(quest_id: String) -> String:
 			return "相位测绘记录已带回；回基地用基础反应器解析测绘反馈"
 		"quest.analyze_phase_survey_trace":
 			return "相位测绘反馈已归档；行动台已把本趟收益转成下一轮路线提示"
+		"quest.clear_pressure_frontline_hazard":
+			return "压力清障回执已带回；回基地用基础反应器解析防护收益"
+		"quest.analyze_pressure_clearance_trace":
+			return "压力清障反馈已归档；行动台已把本趟风险收益转成下一轮防护整备"
 		_:
 			return ""
 

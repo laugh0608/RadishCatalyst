@@ -43,5 +43,10 @@ func _apply_mutually_exclusive_choice_cleanup(quest_state: QuestState, quest_id:
 	match quest_id:
 		"quest.choose_steady_supply_action":
 			quest_state.active_quest_ids.erase("quest.choose_phase_survey_action")
+			quest_state.active_quest_ids.erase("quest.choose_pressure_clearance_action")
 		"quest.choose_phase_survey_action":
 			quest_state.active_quest_ids.erase("quest.choose_steady_supply_action")
+			quest_state.active_quest_ids.erase("quest.choose_pressure_clearance_action")
+		"quest.choose_pressure_clearance_action":
+			quest_state.active_quest_ids.erase("quest.choose_steady_supply_action")
+			quest_state.active_quest_ids.erase("quest.choose_phase_survey_action")

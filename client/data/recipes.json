@@ -705,6 +705,21 @@
       "pollution_delta": 0.0,
       "unlock_conditions": ["quest.inspect_phase_survey_nodes"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "recipe.pressure_clearance_feedback",
+      "display_name_key": "recipe.pressure_clearance_feedback.name",
+      "description_key": "recipe.pressure_clearance_feedback.desc",
+      "category": "analysis",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.pressure_clearance_trace", "amount": 1}],
+      "outputs": [{"id": "item.pressure_clearance_feedback", "amount": 1}],
+      "byproducts": [],
+      "duration": 10.0,
+      "energy_cost": 4.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.clear_pressure_frontline_hazard"],
+      "public_level": "spoiler"
     }
   ]
 }
