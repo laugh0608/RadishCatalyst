@@ -13,6 +13,7 @@ func run() -> void:
 	_check_candidate_promotes_after_pressure_departure()
 	_check_promoted_plan_passes_next_preparation_cycle()
 	_check_action_plan_preview_wording_is_shared()
+	_check_departure_confirmation_locks_risk_reward_snapshot()
 	_check_phase_relay_pad_shows_confirmed_preparation()
 
 
@@ -215,6 +216,52 @@ func _check_action_plan_preview_wording_is_shared() -> void:
 		character_state
 	)
 	host._expect_text_contains(candidate_prompt, "按 E 替换下一计划候选：压力清障；收益：修复凝胶 +1、抗污染药剂 +1；风险：高；代价：整备槽。", "preview wording shows replacement candidate risk and reward")
+
+
+func _check_departure_confirmation_locks_risk_reward_snapshot() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	var starting_parts := int(character_state.inventory.items.get("item.basic_parts", 0))
+	var starting_repair := int(character_state.inventory.items.get("item.repair_gel", 0))
+	var starting_vial := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.PRESSURE_CLEARANCE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_STEADY_SUPPLY)
+	var confirm_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+	host._expect_text_contains(" ".join(confirm_messages), "收益：修复凝胶 +1、抗污染药剂 +1；风险：高", "departure confirmation records high-risk reward preview")
+	host._expect_equal(
+		String(world_state.get_base_action_state_value(BaseActionDispatchPlan.DEPARTURE_PLAN_RISK_KEY, "")),
+		"高",
+		"departure confirmation stores accepted risk"
+	)
+	host._expect_equal(
+		String(world_state.get_base_action_state_value(BaseActionDispatchPlan.DEPARTURE_PLAN_REWARD_KEY, "")),
+		"修复凝胶 +1、抗污染药剂 +1",
+		"departure confirmation stores accepted reward"
+	)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, BaseActionDispatchPlan.STATUS_QUEUED)
+	var departure_messages := BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	host._expect_text_contains(" ".join(departure_messages), "已按高风险收益确认出发", "departure execution follows accepted high-risk plan")
+	host._expect_equal(
+		int(character_state.inventory.items.get("item.basic_parts", 0)),
+		starting_parts,
+		"departure confirmation does not execute an unconfirmed queued supply package"
+	)
+	host._expect_equal(
+		int(character_state.inventory.items.get("item.repair_gel", 0)),
+		starting_repair + 1,
+		"departure confirmation executes accepted pressure repair reward"
+	)
+	host._expect_equal(
+		int(character_state.inventory.items.get("item.resistance_vial_t1", 0)),
+		starting_vial + 1,
+		"departure confirmation executes accepted pressure vial reward"
+	)
+	host._expect_equal(
+		String(world_state.get_base_action_state_value(BaseActionDispatchPlan.DEPARTURE_PLAN_RISK_KEY, "")),
+		"",
+		"departure execution clears accepted risk snapshot"
+	)
 
 
 func _check_phase_relay_pad_shows_confirmed_preparation() -> void:

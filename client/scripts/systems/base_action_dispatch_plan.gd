@@ -23,6 +23,10 @@ const ROUTE_RISK_NOTE_KEY := "route_risk_note"
 const CURRENT_PLAN_KEY := "current_departure_plan_key"
 const NEXT_PLAN_CANDIDATE_KEY := "next_departure_plan_candidate_key"
 const DEPARTURE_PLAN_KEY := "departure_plan_key"
+const DEPARTURE_PLAN_TARGET_KEY := "departure_plan_target"
+const DEPARTURE_PLAN_REWARD_KEY := "departure_plan_reward"
+const DEPARTURE_PLAN_RISK_KEY := "departure_plan_risk"
+const DEPARTURE_PLAN_COST_KEY := "departure_plan_cost"
 const LAST_DEPARTURE_PLAN_KEY := "last_departure_plan_key"
 const STATUS_READY := "ready"
 const STATUS_QUEUED := "queued"
@@ -131,11 +135,11 @@ static func format_departure_preparation_prompt(world_state: WorldState) -> Stri
 		return ""
 	var departure_plan := get_departure_plan_key(world_state)
 	if departure_plan == PLAN_STEADY_SUPPLY and get_supply_package_status(world_state) == STATUS_QUEUED:
-		return _format_relay_preparation_preview(departure_plan)
+		return _format_relay_preparation_preview(world_state, departure_plan)
 	if departure_plan == PLAN_PHASE_SURVEY and get_survey_intel_status(world_state) == STATUS_QUEUED:
-		return _format_relay_preparation_preview(departure_plan)
+		return _format_relay_preparation_preview(world_state, departure_plan)
 	if departure_plan == PLAN_PRESSURE_CLEARANCE and get_pressure_clearance_status(world_state) == STATUS_QUEUED:
-		return _format_relay_preparation_preview(departure_plan)
+		return _format_relay_preparation_preview(world_state, departure_plan)
 	return ""
 
 
@@ -176,19 +180,22 @@ static func confirm_departure_preparation(world_state: WorldState) -> Array[Stri
 		world_state.set_base_action_state_value(SUPPLY_PACKAGE_STATUS_KEY, STATUS_QUEUED)
 		world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, PLAN_STEADY_SUPPLY)
 		world_state.set_base_action_state_value(CURRENT_PLAN_KEY, PLAN_STEADY_SUPPLY)
-		messages.append("出发整备槽已确认：低风险补给计划待随下一次相位回投装入。")
+		_set_departure_confirmation_snapshot(world_state, PLAN_STEADY_SUPPLY)
+		messages.append(_format_departure_confirmation_message(PLAN_STEADY_SUPPLY))
 	if current_plan_key == PLAN_PHASE_SURVEY and get_survey_intel_status(world_state) == STATUS_READY:
 		world_state.set_base_action_state_value(SURVEY_INTEL_STATUS_KEY, STATUS_QUEUED)
 		world_state.set_base_action_state_value(ROUTE_TARGET_REGION_KEY, ROUTE_TARGET_REGION_ID)
 		world_state.set_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE)
 		world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, PLAN_PHASE_SURVEY)
 		world_state.set_base_action_state_value(CURRENT_PLAN_KEY, PLAN_PHASE_SURVEY)
-		messages.append("出发整备槽已确认：信息侦测计划待随下一次相位回投载入。")
+		_set_departure_confirmation_snapshot(world_state, PLAN_PHASE_SURVEY)
+		messages.append(_format_departure_confirmation_message(PLAN_PHASE_SURVEY))
 	if current_plan_key == PLAN_PRESSURE_CLEARANCE and get_pressure_clearance_status(world_state) == STATUS_READY:
 		world_state.set_base_action_state_value(PRESSURE_CLEARANCE_STATUS_KEY, STATUS_QUEUED)
 		world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, PLAN_PRESSURE_CLEARANCE)
 		world_state.set_base_action_state_value(CURRENT_PLAN_KEY, PLAN_PRESSURE_CLEARANCE)
-		messages.append("出发整备槽已确认：压力清障防护计划待随下一次相位回投装入。")
+		_set_departure_confirmation_snapshot(world_state, PLAN_PRESSURE_CLEARANCE)
+		messages.append(_format_departure_confirmation_message(PLAN_PRESSURE_CLEARANCE))
 	return messages
 
 
@@ -196,28 +203,24 @@ static func apply_departure_preparation(world_state: WorldState, character_state
 	var messages: Array[String] = []
 	if world_state == null or character_state == null:
 		return messages
-	var departure_plan_key := get_departure_plan_key(world_state)
-	if get_supply_package_status(world_state) == STATUS_QUEUED:
+	var departure_plan_key := _get_confirmed_departure_plan_key(world_state)
+	if departure_plan_key.is_empty():
+		departure_plan_key = _infer_queued_departure_plan_key(world_state)
+	if departure_plan_key == PLAN_STEADY_SUPPLY and get_supply_package_status(world_state) == STATUS_QUEUED:
 		character_state.inventory.add_item("item.basic_parts", 2)
 		character_state.inventory.add_item("item.repair_gel", 1)
 		world_state.set_base_action_state_value(SUPPLY_PACKAGE_STATUS_KEY, STATUS_USED)
-		if departure_plan_key.is_empty():
-			departure_plan_key = PLAN_STEADY_SUPPLY
-		messages.append("低风险补给计划已执行：基础零件 +2，修复凝胶 +1。")
-	if get_survey_intel_status(world_state) == STATUS_QUEUED:
+		messages.append(_format_departure_execution_message(PLAN_STEADY_SUPPLY))
+	if departure_plan_key == PLAN_PHASE_SURVEY and get_survey_intel_status(world_state) == STATUS_QUEUED:
 		world_state.set_base_action_state_value(SURVEY_INTEL_STATUS_KEY, STATUS_USED)
 		world_state.set_base_action_state_value(ROUTE_TARGET_REGION_KEY, ROUTE_TARGET_REGION_ID)
 		world_state.set_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE)
-		if departure_plan_key.is_empty():
-			departure_plan_key = PLAN_PHASE_SURVEY
-		messages.append("信息侦测计划已执行：本趟路线情报已验证；井系桥前线暂无新交互目标，返回基地行动台安排下一计划。")
-	if get_pressure_clearance_status(world_state) == STATUS_QUEUED:
+		messages.append(_format_departure_execution_message(PLAN_PHASE_SURVEY))
+	if departure_plan_key == PLAN_PRESSURE_CLEARANCE and get_pressure_clearance_status(world_state) == STATUS_QUEUED:
 		character_state.inventory.add_item("item.repair_gel", 1)
 		character_state.inventory.add_item("item.resistance_vial_t1", 1)
 		world_state.set_base_action_state_value(PRESSURE_CLEARANCE_STATUS_KEY, STATUS_USED)
-		if departure_plan_key.is_empty():
-			departure_plan_key = PLAN_PRESSURE_CLEARANCE
-		messages.append("压力清障防护计划已执行：修复凝胶 +1，抗污染药剂 +1。")
+		messages.append(_format_departure_execution_message(PLAN_PRESSURE_CLEARANCE))
 	if not departure_plan_key.is_empty() and not messages.is_empty():
 		world_state.set_base_action_state_value(LAST_DEPARTURE_PLAN_KEY, departure_plan_key)
 		messages.append(_promote_next_plan_candidate(world_state, departure_plan_key))
@@ -767,12 +770,14 @@ static func _promote_next_plan_candidate(world_state: WorldState, executed_plan_
 		promoted_plan_key = _get_alternate_plan_key(executed_plan_key)
 	if promoted_plan_key.is_empty():
 		world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, "")
+		_clear_departure_confirmation_snapshot(world_state)
 		return "下一计划候选为空：返回基地行动台选择或替换后续方案。"
 
 	_set_plan_status(world_state, promoted_plan_key, STATUS_READY)
 	world_state.set_base_action_state_value(CURRENT_PLAN_KEY, promoted_plan_key)
 	world_state.set_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, _get_alternate_plan_key(promoted_plan_key))
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, "")
+	_clear_departure_confirmation_snapshot(world_state)
 	return "下一计划候选已进入当前计划槽：%s；回基地在前线行动台按 E 确认，或在方案终端替换下一候选。" % _format_plan_label(promoted_plan_key)
 
 
@@ -821,8 +826,8 @@ static func _format_candidate_preview(plan_key: String) -> String:
 	]
 
 
-static func _format_relay_preparation_preview(plan_key: String) -> String:
-	var preview := _get_plan_preview(plan_key)
+static func _format_relay_preparation_preview(world_state: WorldState, plan_key: String) -> String:
+	var preview := _get_departure_confirmation_preview(world_state, plan_key)
 	if preview.is_empty():
 		return ""
 	return "本次整备：%s已确认；收益：%s；风险：%s；代价：%s" % [
@@ -831,6 +836,84 @@ static func _format_relay_preparation_preview(plan_key: String) -> String:
 		String(preview.get("risk", "")),
 		String(preview.get("cost", ""))
 	]
+
+
+static func _get_confirmed_departure_plan_key(world_state: WorldState) -> String:
+	if world_state == null:
+		return ""
+	return String(world_state.get_base_action_state_value(DEPARTURE_PLAN_KEY, ""))
+
+
+static func _infer_queued_departure_plan_key(world_state: WorldState) -> String:
+	if get_supply_package_status(world_state) == STATUS_QUEUED:
+		return PLAN_STEADY_SUPPLY
+	if get_survey_intel_status(world_state) == STATUS_QUEUED:
+		return PLAN_PHASE_SURVEY
+	if get_pressure_clearance_status(world_state) == STATUS_QUEUED:
+		return PLAN_PRESSURE_CLEARANCE
+	return ""
+
+
+static func _set_departure_confirmation_snapshot(world_state: WorldState, plan_key: String) -> void:
+	var preview := _get_plan_preview(plan_key)
+	if preview.is_empty():
+		return
+	world_state.set_base_action_state_value(DEPARTURE_PLAN_TARGET_KEY, String(preview.get("target", "")))
+	world_state.set_base_action_state_value(DEPARTURE_PLAN_REWARD_KEY, String(preview.get("reward", "")))
+	world_state.set_base_action_state_value(DEPARTURE_PLAN_RISK_KEY, String(preview.get("risk", "")))
+	world_state.set_base_action_state_value(DEPARTURE_PLAN_COST_KEY, String(preview.get("cost", "")))
+
+
+static func _clear_departure_confirmation_snapshot(world_state: WorldState) -> void:
+	world_state.set_base_action_state_value(DEPARTURE_PLAN_TARGET_KEY, "")
+	world_state.set_base_action_state_value(DEPARTURE_PLAN_REWARD_KEY, "")
+	world_state.set_base_action_state_value(DEPARTURE_PLAN_RISK_KEY, "")
+	world_state.set_base_action_state_value(DEPARTURE_PLAN_COST_KEY, "")
+
+
+static func _get_departure_confirmation_preview(world_state: WorldState, plan_key: String) -> Dictionary:
+	var preview := _get_plan_preview(plan_key).duplicate(true)
+	if world_state == null or preview.is_empty():
+		return preview
+	var target := String(world_state.get_base_action_state_value(DEPARTURE_PLAN_TARGET_KEY, ""))
+	var reward := String(world_state.get_base_action_state_value(DEPARTURE_PLAN_REWARD_KEY, ""))
+	var risk := String(world_state.get_base_action_state_value(DEPARTURE_PLAN_RISK_KEY, ""))
+	var cost := String(world_state.get_base_action_state_value(DEPARTURE_PLAN_COST_KEY, ""))
+	if not target.is_empty():
+		preview["target"] = target
+	if not reward.is_empty():
+		preview["reward"] = reward
+	if not risk.is_empty():
+		preview["risk"] = risk
+	if not cost.is_empty():
+		preview["cost"] = cost
+	return preview
+
+
+static func _format_departure_confirmation_message(plan_key: String) -> String:
+	var preview := _get_plan_preview(plan_key)
+	if preview.is_empty():
+		return "出发整备槽已确认：未定计划。"
+	return "出发整备槽已确认：%s计划；目标：%s；收益：%s；风险：%s；代价：%s。" % [
+		String(preview.get("label", "")),
+		String(preview.get("target", "")),
+		String(preview.get("reward", "")),
+		String(preview.get("risk", "")),
+		String(preview.get("cost", ""))
+	]
+
+
+static func _format_departure_execution_message(plan_key: String) -> String:
+	var preview := _get_plan_preview(plan_key)
+	match plan_key:
+		PLAN_STEADY_SUPPLY:
+			return "低风险补给计划已执行：基础零件 +2，修复凝胶 +1；已按%s风险收益确认出发。" % String(preview.get("risk", ""))
+		PLAN_PHASE_SURVEY:
+			return "信息侦测计划已执行：本趟路线情报已验证；井系桥前线暂无新交互目标；已按%s风险收益确认出发，返回基地行动台安排下一计划。" % String(preview.get("risk", ""))
+		PLAN_PRESSURE_CLEARANCE:
+			return "压力清障防护计划已执行：修复凝胶 +1，抗污染药剂 +1；已按%s风险收益确认出发。" % String(preview.get("risk", ""))
+		_:
+			return "出发计划已执行。"
 
 
 static func _is_known_plan_key(plan_key: String) -> bool:
