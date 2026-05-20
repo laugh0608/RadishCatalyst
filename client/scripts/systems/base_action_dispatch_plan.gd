@@ -35,6 +35,35 @@ const SURVEY_FEEDBACK_QUEST_ID := "quest.analyze_phase_survey_trace"
 const PRESSURE_FEEDBACK_QUEST_ID := "quest.analyze_pressure_clearance_trace"
 const ROUTE_TARGET_REGION_ID := "region.phase_well_tether"
 const ROUTE_RISK_NOTE := "井系桥前线低压读数线：优先走西侧测绘边界，东侧节点存在短时扰动。"
+const PLAN_PREVIEWS := {
+	PLAN_STEADY_SUPPLY: {
+		"label": "低风险补给",
+		"choice_label": "稳场补给",
+		"target": "读取 1 处稳场补给投放点",
+		"reward": "基础零件 +2、修复凝胶 +1",
+		"risk": "低",
+		"risk_detail": "不增加前线读点，适合补资源缓冲",
+		"cost": "占用本次出发整备槽，回投时一次性消耗"
+	},
+	PLAN_PHASE_SURVEY: {
+		"label": "信息侦测",
+		"choice_label": "相位测绘",
+		"target": "读取西侧和东侧 2 处相位测绘点",
+		"reward": "目标显形和路线风险预告",
+		"risk": "中",
+		"risk_detail": "需要按低压读数线避开东侧短时扰动",
+		"cost": "占用本次出发整备槽，不额外发放资源"
+	},
+	PLAN_PRESSURE_CLEARANCE: {
+		"label": "压力清障",
+		"choice_label": "压力清障",
+		"target": "清除 1 处前线压力扰点",
+		"reward": "修复凝胶 +1、抗污染药剂 +1",
+		"risk": "高",
+		"risk_detail": "需要处理一处高压扰点",
+		"cost": "占用本次出发整备槽，回投时一次性装入"
+	}
+}
 
 
 static func is_action_console(definition_id: String) -> bool:
@@ -102,11 +131,11 @@ static func format_departure_preparation_prompt(world_state: WorldState) -> Stri
 		return ""
 	var departure_plan := get_departure_plan_key(world_state)
 	if departure_plan == PLAN_STEADY_SUPPLY and get_supply_package_status(world_state) == STATUS_QUEUED:
-		return "本次整备：低风险补给计划已确认，回投时装入基础零件 +2、修复凝胶 +1"
+		return _format_relay_preparation_preview(departure_plan)
 	if departure_plan == PLAN_PHASE_SURVEY and get_survey_intel_status(world_state) == STATUS_QUEUED:
-		return "本次整备：信息侦测计划已确认，回投时载入井系桥前线目标和风险预告"
+		return _format_relay_preparation_preview(departure_plan)
 	if departure_plan == PLAN_PRESSURE_CLEARANCE and get_pressure_clearance_status(world_state) == STATUS_QUEUED:
-		return "本次整备：压力清障防护计划已确认，回投时装入修复凝胶 +1、抗污染药剂 +1"
+		return _format_relay_preparation_preview(departure_plan)
 	return ""
 
 
@@ -527,9 +556,9 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 	match stage:
 		"choice_ready":
 			return [
-				"方案 A：稳场补给；目标 1 处；回报偏基础零件和修复凝胶。",
-				"方案 B：相位测绘；目标 2 处；回报偏路线提示和风险预告。",
-				"方案 C：压力清障；清除 1 处压力扰点；回报偏防护整备。"
+				_format_choice_preview_line("方案 A", PLAN_STEADY_SUPPLY),
+				_format_choice_preview_line("方案 B", PLAN_PHASE_SURVEY),
+				_format_choice_preview_line("方案 C", PLAN_PRESSURE_CLEARANCE)
 			]
 		"steady_supply_ready":
 			var package_status := get_supply_package_status(world_state)
@@ -643,27 +672,21 @@ static func _get_item_count(character_state: CharacterState, item_id: String) ->
 
 
 static func _format_departure_plan_lines(plan_key: String) -> Array[String]:
-	match plan_key:
-		PLAN_STEADY_SUPPLY:
-			return [
-				"计划：低风险补给；预计收益为基础零件 +2、修复凝胶 +1。",
-				"风险：低；不增加前线读点，适合补资源缓冲。",
-				"代价：占用本次出发整备槽，回投时一次性消耗。"
-			]
-		PLAN_PHASE_SURVEY:
-			return [
-				"计划：信息侦测；预计收益为目标显形和路线风险预告。",
-				"风险：中；需要按低压读数线避开东侧短时扰动。",
-				"代价：占用本次出发整备槽，不额外发放资源。"
-			]
-		PLAN_PRESSURE_CLEARANCE:
-			return [
-				"计划：压力清障；预计收益为修复凝胶 +1、抗污染药剂 +1。",
-				"风险：高；需要清除一处前线压力扰点。",
-				"代价：占用本次出发整备槽，回投时一次性装入。"
-			]
-		_:
-			return []
+	var preview := _get_plan_preview(plan_key)
+	if preview.is_empty():
+		return []
+	return [
+		"计划：%s；目标：%s；收益：%s。" % [
+			String(preview.get("label", "")),
+			String(preview.get("target", "")),
+			String(preview.get("reward", ""))
+		],
+		"风险：%s；%s。" % [
+			String(preview.get("risk", "")),
+			String(preview.get("risk_detail", ""))
+		],
+		"代价：%s。" % String(preview.get("cost", ""))
+	]
 
 
 static func _format_plan_queue_lines(world_state: WorldState) -> Array[String]:
@@ -679,8 +702,8 @@ static func _format_plan_queue_lines(world_state: WorldState) -> Array[String]:
 
 static func _format_candidate_console_action_line(plan_key: String, world_state: WorldState) -> String:
 	if get_next_plan_candidate_key(world_state) == plan_key:
-		return "下一计划候选已是：%s。" % _format_plan_label(plan_key)
-	return "按 E 替换下一计划候选：%s。" % _format_plan_label(plan_key)
+		return "下一计划候选已是：%s。" % _format_candidate_preview(plan_key)
+	return "按 E 替换下一计划候选：%s。" % _format_candidate_preview(plan_key)
 
 
 static func _set_current_plan_slot(world_state: WorldState, plan_key: String) -> void:
@@ -767,15 +790,47 @@ static func _set_plan_status(world_state: WorldState, plan_key: String, status: 
 
 
 static func _format_plan_label(plan_key: String) -> String:
-	match plan_key:
-		PLAN_STEADY_SUPPLY:
-			return "低风险补给"
-		PLAN_PHASE_SURVEY:
-			return "信息侦测"
-		PLAN_PRESSURE_CLEARANCE:
-			return "压力清障"
-		_:
-			return "未定计划"
+	return String(_get_plan_preview(plan_key).get("label", "未定计划"))
+
+
+static func _get_plan_preview(plan_key: String) -> Dictionary:
+	return PLAN_PREVIEWS.get(plan_key, {})
+
+
+static func _format_choice_preview_line(prefix: String, plan_key: String) -> String:
+	var preview := _get_plan_preview(plan_key)
+	if preview.is_empty():
+		return "%s：未定计划。" % prefix
+	return "%s：%s；目标：%s；收益：%s；风险：%s；代价：整备槽。" % [
+		prefix,
+		String(preview.get("choice_label", preview.get("label", ""))),
+		String(preview.get("target", "")),
+		String(preview.get("reward", "")),
+		String(preview.get("risk", ""))
+	]
+
+
+static func _format_candidate_preview(plan_key: String) -> String:
+	var preview := _get_plan_preview(plan_key)
+	if preview.is_empty():
+		return "未定计划"
+	return "%s；收益：%s；风险：%s；代价：整备槽" % [
+		String(preview.get("label", "")),
+		String(preview.get("reward", "")),
+		String(preview.get("risk", ""))
+	]
+
+
+static func _format_relay_preparation_preview(plan_key: String) -> String:
+	var preview := _get_plan_preview(plan_key)
+	if preview.is_empty():
+		return ""
+	return "本次整备：%s已确认；收益：%s；风险：%s；代价：%s" % [
+		String(preview.get("label", "")),
+		String(preview.get("reward", "")),
+		String(preview.get("risk", "")),
+		String(preview.get("cost", ""))
+	]
 
 
 static func _is_known_plan_key(plan_key: String) -> bool:

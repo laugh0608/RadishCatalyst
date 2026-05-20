@@ -12,6 +12,7 @@ func run() -> void:
 	_check_candidate_promotes_after_survey_departure()
 	_check_candidate_promotes_after_pressure_departure()
 	_check_promoted_plan_passes_next_preparation_cycle()
+	_check_action_plan_preview_wording_is_shared()
 	_check_phase_relay_pad_shows_confirmed_preparation()
 
 
@@ -179,6 +180,43 @@ func _check_promoted_plan_passes_next_preparation_cycle() -> void:
 	)
 
 
+func _check_action_plan_preview_wording_is_shared() -> void:
+	var choice_world := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	choice_world.quest_state.completed_quest_ids.append("quest.analyze_route_signal_trace")
+	var choice_prompt := BaseActionDispatchPlan.format_console_prompt(
+		"map_object.base_supply_choice_console",
+		choice_world,
+		character_state
+	)
+	host._expect_text_contains(choice_prompt, "方案 A：稳场补给；目标：读取 1 处稳场补给投放点；收益：基础零件 +2、修复凝胶 +1；风险：低；代价：整备槽。", "preview wording shows supply choice risk and reward")
+	host._expect_text_contains(choice_prompt, "方案 B：相位测绘；目标：读取西侧和东侧 2 处相位测绘点；收益：目标显形和路线风险预告；风险：中；代价：整备槽。", "preview wording shows survey choice risk and reward")
+	host._expect_text_contains(choice_prompt, "方案 C：压力清障；目标：清除 1 处前线压力扰点；收益：修复凝胶 +1、抗污染药剂 +1；风险：高；代价：整备槽。", "preview wording shows pressure choice risk and reward")
+
+	var survey_world := WorldState.create_default()
+	survey_world.set_base_action_state_value(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	survey_world.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	var current_plan_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		survey_world,
+		character_state
+	)
+	host._expect_text_contains(current_plan_prompt, "计划：信息侦测；目标：读取西侧和东侧 2 处相位测绘点；收益：目标显形和路线风险预告。", "preview wording shows current plan reward")
+	host._expect_text_contains(current_plan_prompt, "风险：中；需要按低压读数线避开东侧短时扰动。", "preview wording shows current plan risk detail")
+	host._expect_text_contains(current_plan_prompt, "代价：占用本次出发整备槽，不额外发放资源。", "preview wording shows current plan cost detail")
+
+	var candidate_world := WorldState.create_default()
+	candidate_world.set_base_action_state_value(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	candidate_world.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_STEADY_SUPPLY)
+	candidate_world.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	var candidate_prompt := BaseActionDispatchPlan.format_console_prompt(
+		"map_object.base_pressure_choice_console",
+		candidate_world,
+		character_state
+	)
+	host._expect_text_contains(candidate_prompt, "按 E 替换下一计划候选：压力清障；收益：修复凝胶 +1、抗污染药剂 +1；风险：高；代价：整备槽。", "preview wording shows replacement candidate risk and reward")
+
+
 func _check_phase_relay_pad_shows_confirmed_preparation() -> void:
 	var formatter := InteractionPromptFormatter.new(
 		host.data_registry,
@@ -192,5 +230,8 @@ func _check_phase_relay_pad_shows_confirmed_preparation() -> void:
 	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE)
 	BaseActionDispatchPlan.confirm_departure_preparation(world_state)
 	var prompt := formatter.format_phase_relay_pad_prompt(world_state)
-	host._expect_text_contains(prompt, "本次整备：压力清障防护计划已确认", "phase relay pad prompt shows queued pressure preparation")
+	host._expect_text_contains(prompt, "本次整备：压力清障已确认", "phase relay pad prompt shows queued pressure preparation")
+	host._expect_text_contains(prompt, "收益：修复凝胶 +1、抗污染药剂 +1", "phase relay pad prompt shows pressure reward")
+	host._expect_text_contains(prompt, "风险：高", "phase relay pad prompt shows pressure risk")
+	host._expect_text_contains(prompt, "代价：占用本次出发整备槽", "phase relay pad prompt shows pressure cost")
 	host._expect_text_contains(prompt, "按 E 回投", "phase relay pad prompt keeps departure input")
