@@ -11,6 +11,8 @@ func run() -> void:
 	_check_candidate_promotes_after_supply_departure()
 	_check_candidate_promotes_after_survey_departure()
 	_check_candidate_promotes_after_pressure_departure()
+	_check_promoted_plan_passes_next_preparation_cycle()
+	_check_phase_relay_pad_shows_confirmed_preparation()
 
 
 func _check_candidate_promotes_after_supply_departure() -> void:
@@ -123,3 +125,72 @@ func _check_candidate_promotes_after_pressure_departure() -> void:
 		"按 E 确认：出发补给整备槽",
 		"pressure rotation action console confirms promoted supply slot"
 	)
+
+
+func _check_promoted_plan_passes_next_preparation_cycle() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	var gather_system := GatherSystem.new(host.data_registry)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_STEADY_SUPPLY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	var first_confirm_result := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(first_confirm_result.get("success", false)), true, "preparation review first action console confirmation succeeds")
+	BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(world_state),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"preparation review promotes survey after first departure"
+	)
+	var second_confirm_result := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(second_confirm_result.get("success", false)), true, "preparation review promoted action console confirmation succeeds")
+	host._expect_text_contains(
+		String(second_confirm_result.get("message", "")),
+		"信息侦测计划",
+		"preparation review second confirmation explains promoted survey plan"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_survey_intel_status(world_state),
+		BaseActionDispatchPlan.STATUS_QUEUED,
+		"preparation review promoted survey becomes queued"
+	)
+	var second_departure_messages := BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	host._expect_text_contains(
+		" ".join(second_departure_messages),
+		"信息侦测计划已执行",
+		"preparation review second departure executes promoted plan"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(world_state),
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"preparation review second departure promotes pressure candidate"
+	)
+
+
+func _check_phase_relay_pad_shows_confirmed_preparation() -> void:
+	var formatter := InteractionPromptFormatter.new(
+		host.data_registry,
+		ProcessingSystem.new(host.data_registry),
+		BuildSystem.new(host.data_registry)
+	)
+	var world_state := WorldState.create_default()
+	world_state.quest_state.completed_quest_ids.append("quest.deploy_phase_relay_anchor")
+	world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_tether")
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.PRESSURE_CLEARANCE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE)
+	BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+	var prompt := formatter.format_phase_relay_pad_prompt(world_state)
+	host._expect_text_contains(prompt, "本次整备：压力清障防护计划已确认", "phase relay pad prompt shows queued pressure preparation")
+	host._expect_text_contains(prompt, "按 E 回投", "phase relay pad prompt keeps departure input")

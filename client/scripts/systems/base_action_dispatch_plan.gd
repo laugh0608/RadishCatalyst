@@ -97,6 +97,19 @@ static func format_status_progress(world_state: WorldState) -> String:
 	return String(summary.get("status_progress", ""))
 
 
+static func format_departure_preparation_prompt(world_state: WorldState) -> String:
+	if world_state == null:
+		return ""
+	var departure_plan := get_departure_plan_key(world_state)
+	if departure_plan == PLAN_STEADY_SUPPLY and get_supply_package_status(world_state) == STATUS_QUEUED:
+		return "本次整备：低风险补给计划已确认，回投时装入基础零件 +2、修复凝胶 +1"
+	if departure_plan == PLAN_PHASE_SURVEY and get_survey_intel_status(world_state) == STATUS_QUEUED:
+		return "本次整备：信息侦测计划已确认，回投时载入井系桥前线目标和风险预告"
+	if departure_plan == PLAN_PRESSURE_CLEARANCE and get_pressure_clearance_status(world_state) == STATUS_QUEUED:
+		return "本次整备：压力清障防护计划已确认，回投时装入修复凝胶 +1、抗污染药剂 +1"
+	return ""
+
+
 static func register_feedback_completion(world_state: WorldState, quest_id: String) -> Array[String]:
 	if world_state == null:
 		return []

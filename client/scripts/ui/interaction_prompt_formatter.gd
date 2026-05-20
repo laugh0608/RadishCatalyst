@@ -438,9 +438,12 @@ func format_phase_relay_pad_prompt(world_state: WorldState) -> String:
 	var cycle_hint := ""
 	if world_state.get_deployed_phase_relay_anchor_count() > 1:
 		cycle_hint = "；按 R 切换已部署落点"
+	var preparation_hint := BaseActionDispatchPlan.format_departure_preparation_prompt(world_state)
+	if not preparation_hint.is_empty():
+		preparation_hint = "。%s" % preparation_hint
 	if world_state.quest_state.has_active_quest("quest.reenter_phase_frontline"):
-		return "相位回投台：当前落点 %s%s。按 E 回投并继续追踪更东侧裂相碎屑。" % [active_anchor_label, cycle_hint]
-	return "相位回投台：当前落点 %s%s。按 E 回投到该前线回传锚点。" % [active_anchor_label, cycle_hint]
+		return "相位回投台：当前落点 %s%s。按 E 回投并继续追踪更东侧裂相碎屑%s。" % [active_anchor_label, cycle_hint, preparation_hint]
+	return "相位回投台：当前落点 %s%s。按 E 回投到该前线回传锚点%s。" % [active_anchor_label, cycle_hint, preparation_hint]
 
 
 func format_phase_fault_spire_prompt(world_state: WorldState, character_state: CharacterState) -> String:
