@@ -186,6 +186,7 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 					current_interactable = null
 					interaction_cleared.emit(interactable)
 				continue
+		if BaseActionDispatchPlan.is_plan_candidate_console_ready(interactable.definition_id, world_state): is_processed = false
 		if interactable.single_use:
 			interactable.consumed = is_processed
 		if interactable.interaction_type == "outpost_core":
@@ -369,7 +370,7 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			var gate_quest_id := String(INTERACTABLE_QUEST_GATES[interactable.definition_id])
 			should_enable = should_enable and (
 				world_state.quest_state.has_active_quest(gate_quest_id)
-				or world_state.quest_state.has_completed_quest(gate_quest_id)
+				or world_state.quest_state.has_completed_quest(gate_quest_id) or BaseActionDispatchPlan.is_plan_candidate_console_ready(interactable.definition_id, world_state)
 			)
 		if interactable.definition_id == BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID:
 			should_enable = should_enable and BaseActionDispatchPlan.is_frontline_action_console_ready(world_state)
@@ -482,7 +483,6 @@ func try_cycle_recipe(world_state: WorldState = null) -> Dictionary:
 		return _failure("当前目标不是加工设备。", "配方未切换", "靠近基础反应器或污染过滤器后再切换配方。")
 	if current_interactable.get_recipe_count() <= 1:
 		return _failure("当前设备没有可轮换配方。", "配方未切换", "该设备只有一个配方，直接按 E 尝试加工。")
-
 	var recipe_id := current_interactable.select_next_recipe()
 	return {
 		"success": true,

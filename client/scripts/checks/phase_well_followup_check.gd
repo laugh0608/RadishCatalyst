@@ -759,6 +759,16 @@ func _check_base_action_choice_runtime() -> void:
 		BaseActionDispatchPlan.STATUS_READY,
 		"steady supply feedback should prepare a next-departure package"
 	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(supply_world),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"steady supply feedback should fill current plan slot"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_next_plan_candidate_key(supply_world),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"steady supply feedback should seed survey as next plan candidate"
+	)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", supply_world, supply_character),
 		"出发补给整备槽",
@@ -768,6 +778,35 @@ func _check_base_action_choice_runtime() -> void:
 		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", supply_world, supply_character),
 		"计划：低风险补给",
 		"steady supply action console should show risk reward profile"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", supply_world, supply_character),
+		"下一计划候选：信息侦测",
+		"steady supply action console should show next candidate"
+	)
+	var supply_candidate_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.base_supply_choice_console",
+		"map_object.base_supply_choice_console",
+		"inspect",
+		supply_character,
+		supply_world
+	)
+	host._expect_equal(bool(supply_candidate_result.get("success", false)), true, "steady supply candidate replacement should be accepted")
+	host._expect_text_contains(String(supply_candidate_result.get("message", "")), "下一计划候选", "candidate replacement should explain queued candidate")
+	host._expect_equal(
+		BaseActionDispatchPlan.get_next_plan_candidate_key(supply_world),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"steady supply candidate replacement should not change current slot"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(supply_world),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"candidate replacement should keep current supply plan"
+	)
+	host._expect_equal(
+		supply_world.quest_state.active_quest_ids,
+		[],
+		"candidate replacement should not activate field quests"
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.apply_departure_preparation(supply_world, supply_character).size(),
@@ -941,6 +980,16 @@ func _check_base_action_choice_runtime() -> void:
 		BaseActionDispatchPlan.STATUS_READY,
 		"phase survey feedback should prepare route intel"
 	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(survey_world),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"phase survey feedback should fill current plan slot"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_next_plan_candidate_key(survey_world),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"phase survey feedback should seed supply as next plan candidate"
+	)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", survey_world, survey_character),
 		"测绘路线整备槽",
@@ -950,6 +999,24 @@ func _check_base_action_choice_runtime() -> void:
 		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", survey_world, survey_character),
 		"计划：信息侦测",
 		"phase survey action console should show risk reward profile"
+	)
+	var survey_candidate_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.base_survey_choice_console",
+		"map_object.base_survey_choice_console",
+		"inspect",
+		survey_character,
+		survey_world
+	)
+	host._expect_equal(bool(survey_candidate_result.get("success", false)), true, "phase survey candidate replacement should be accepted")
+	host._expect_equal(
+		BaseActionDispatchPlan.get_next_plan_candidate_key(survey_world),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"phase survey candidate replacement should update next candidate"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(survey_world),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"phase survey candidate replacement should keep current slot"
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.get_route_target_region_id(survey_world),

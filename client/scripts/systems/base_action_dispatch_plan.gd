@@ -18,6 +18,8 @@ const SUPPLY_PACKAGE_STATUS_KEY := "supply_package_status"
 const SURVEY_INTEL_STATUS_KEY := "survey_intel_status"
 const ROUTE_TARGET_REGION_KEY := "route_target_region_id"
 const ROUTE_RISK_NOTE_KEY := "route_risk_note"
+const CURRENT_PLAN_KEY := "current_departure_plan_key"
+const NEXT_PLAN_CANDIDATE_KEY := "next_departure_plan_candidate_key"
 const DEPARTURE_PLAN_KEY := "departure_plan_key"
 const LAST_DEPARTURE_PLAN_KEY := "last_departure_plan_key"
 const STATUS_READY := "ready"
@@ -97,11 +99,13 @@ static func register_feedback_completion(world_state: WorldState, quest_id: Stri
 	match quest_id:
 		SUPPLY_FEEDBACK_QUEST_ID:
 			world_state.set_base_action_state_value(SUPPLY_PACKAGE_STATUS_KEY, STATUS_READY)
+			_set_current_plan_slot(world_state, PLAN_STEADY_SUPPLY)
 			return ["行动台整备：下一次出发补给包待装入"]
 		SURVEY_FEEDBACK_QUEST_ID:
 			world_state.set_base_action_state_value(SURVEY_INTEL_STATUS_KEY, STATUS_READY)
 			world_state.set_base_action_state_value(ROUTE_TARGET_REGION_KEY, ROUTE_TARGET_REGION_ID)
 			world_state.set_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE)
+			_set_current_plan_slot(world_state, PLAN_PHASE_SURVEY)
 			return ["行动台情报：下一次出发路线提示待载入"]
 		_:
 			return []
@@ -115,15 +119,20 @@ static func confirm_departure_preparation(world_state: WorldState) -> Array[Stri
 	var messages: Array[String] = []
 	if world_state == null:
 		return messages
-	if get_supply_package_status(world_state) == STATUS_READY:
+	var current_plan_key := get_current_plan_key(world_state)
+	if current_plan_key.is_empty():
+		current_plan_key = get_departure_plan_key(world_state)
+	if current_plan_key == PLAN_STEADY_SUPPLY and get_supply_package_status(world_state) == STATUS_READY:
 		world_state.set_base_action_state_value(SUPPLY_PACKAGE_STATUS_KEY, STATUS_QUEUED)
 		world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, PLAN_STEADY_SUPPLY)
+		world_state.set_base_action_state_value(CURRENT_PLAN_KEY, PLAN_STEADY_SUPPLY)
 		messages.append("出发整备槽已确认：低风险补给计划待随下一次相位回投装入。")
-	if get_survey_intel_status(world_state) == STATUS_READY:
+	if current_plan_key == PLAN_PHASE_SURVEY and get_survey_intel_status(world_state) == STATUS_READY:
 		world_state.set_base_action_state_value(SURVEY_INTEL_STATUS_KEY, STATUS_QUEUED)
 		world_state.set_base_action_state_value(ROUTE_TARGET_REGION_KEY, ROUTE_TARGET_REGION_ID)
 		world_state.set_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE)
 		world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, PLAN_PHASE_SURVEY)
+		world_state.set_base_action_state_value(CURRENT_PLAN_KEY, PLAN_PHASE_SURVEY)
 		messages.append("出发整备槽已确认：信息侦测计划待随下一次相位回投载入。")
 	return messages
 
@@ -183,6 +192,9 @@ static func get_departure_plan_key(world_state: WorldState) -> String:
 	var explicit_plan := String(world_state.get_base_action_state_value(DEPARTURE_PLAN_KEY, ""))
 	if not explicit_plan.is_empty():
 		return explicit_plan
+	var current_plan := get_current_plan_key(world_state)
+	if not current_plan.is_empty():
+		return current_plan
 	if get_supply_package_status(world_state) == STATUS_READY or get_supply_package_status(world_state) == STATUS_QUEUED:
 		return PLAN_STEADY_SUPPLY
 	if get_survey_intel_status(world_state) == STATUS_READY or get_survey_intel_status(world_state) == STATUS_QUEUED:
@@ -190,10 +202,44 @@ static func get_departure_plan_key(world_state: WorldState) -> String:
 	return String(world_state.get_base_action_state_value(LAST_DEPARTURE_PLAN_KEY, ""))
 
 
+static func get_current_plan_key(world_state: WorldState) -> String:
+	if world_state == null:
+		return ""
+	var explicit_plan := String(world_state.get_base_action_state_value(CURRENT_PLAN_KEY, ""))
+	if not explicit_plan.is_empty():
+		return explicit_plan
+	if get_supply_package_status(world_state) == STATUS_READY or get_supply_package_status(world_state) == STATUS_QUEUED:
+		return PLAN_STEADY_SUPPLY
+	if get_survey_intel_status(world_state) == STATUS_READY or get_survey_intel_status(world_state) == STATUS_QUEUED:
+		return PLAN_PHASE_SURVEY
+	return ""
+
+
+static func get_next_plan_candidate_key(world_state: WorldState) -> String:
+	if world_state == null:
+		return ""
+	var explicit_candidate := String(world_state.get_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, ""))
+	if _is_known_plan_key(explicit_candidate):
+		return explicit_candidate
+	return _get_alternate_plan_key(get_current_plan_key(world_state))
+
+
 static func get_last_departure_plan_key(world_state: WorldState) -> String:
 	if world_state == null:
 		return ""
 	return String(world_state.get_base_action_state_value(LAST_DEPARTURE_PLAN_KEY, ""))
+
+
+static func is_plan_candidate_console_ready(definition_id: String, world_state: WorldState) -> bool:
+	return _is_plan_candidate_console(definition_id) and _can_replace_next_plan_candidate(world_state)
+
+
+static func select_next_plan_candidate_for_console(definition_id: String, world_state: WorldState) -> Array[String]:
+	var plan_key := _get_plan_key_for_console(definition_id)
+	if plan_key.is_empty() or not _can_replace_next_plan_candidate(world_state):
+		return []
+	world_state.set_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, plan_key)
+	return ["下一计划候选已更新：%s。当前出发整备槽不变。" % _format_plan_label(plan_key)]
 
 
 static func format_console_prompt(definition_id: String, world_state: WorldState, character_state: CharacterState) -> String:
@@ -208,7 +254,7 @@ static func format_console_prompt(definition_id: String, world_state: WorldState
 	var preparation_lines: Array = summary.get("preparation_lines", [])
 	for line in preparation_lines:
 		parts.append(String(line))
-	var console_line := _format_console_action_line(definition_id, String(summary.get("stage", "")))
+	var console_line := _format_console_action_line(definition_id, String(summary.get("stage", "")), world_state)
 	if not console_line.is_empty():
 		parts.append(console_line)
 	return "\n".join(parts)
@@ -414,6 +460,7 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 				"整备：基础零件 %d；修复凝胶 %d。" % [parts_count, repair_count],
 				package_line
 			]
+			supply_lines.append_array(_format_plan_queue_lines(world_state))
 			supply_lines.append_array(_format_departure_plan_lines(PLAN_STEADY_SUPPLY))
 			return supply_lines
 		"phase_survey_ready":
@@ -428,6 +475,7 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 				intel_line,
 				"风险预告：%s" % get_route_risk_note(world_state)
 			]
+			survey_lines.append_array(_format_plan_queue_lines(world_state))
 			survey_lines.append_array(_format_departure_plan_lines(PLAN_PHASE_SURVEY))
 			return survey_lines
 		"steady_supply_dispatched", "steady_supply_return":
@@ -438,7 +486,7 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 			return ["整备：沿用当前补给；行动台等待本趟返回数据。"]
 
 
-static func _format_console_action_line(definition_id: String, stage: String) -> String:
+static func _format_console_action_line(definition_id: String, stage: String, world_state: WorldState) -> String:
 	match definition_id:
 		FRONTLINE_ACTION_CONSOLE_ID:
 			match stage:
@@ -461,9 +509,13 @@ static func _format_console_action_line(definition_id: String, stage: String) ->
 		"map_object.base_supply_choice_console":
 			if stage == "choice_ready":
 				return "按 E 选择：稳场补给方案。"
+			if is_plan_candidate_console_ready(definition_id, world_state):
+				return _format_candidate_console_action_line(PLAN_STEADY_SUPPLY, world_state)
 		"map_object.base_survey_choice_console":
 			if stage == "choice_ready":
 				return "按 E 选择：相位测绘方案。"
+			if is_plan_candidate_console_ready(definition_id, world_state):
+				return _format_candidate_console_action_line(PLAN_PHASE_SURVEY, world_state)
 	return "当前终端已纳入行动台；按 HUD 目标推进。"
 
 
@@ -499,6 +551,75 @@ static func _format_departure_plan_lines(plan_key: String) -> Array[String]:
 			]
 		_:
 			return []
+
+
+static func _format_plan_queue_lines(world_state: WorldState) -> Array[String]:
+	var current_plan := get_current_plan_key(world_state)
+	var next_candidate := get_next_plan_candidate_key(world_state)
+	var lines: Array[String] = []
+	if not current_plan.is_empty():
+		lines.append("当前计划槽：%s。" % _format_plan_label(current_plan))
+	if not next_candidate.is_empty():
+		lines.append("下一计划候选：%s；可在对应方案终端替换。" % _format_plan_label(next_candidate))
+	return lines
+
+
+static func _format_candidate_console_action_line(plan_key: String, world_state: WorldState) -> String:
+	if get_next_plan_candidate_key(world_state) == plan_key:
+		return "下一计划候选已是：%s。" % _format_plan_label(plan_key)
+	return "按 E 替换下一计划候选：%s。" % _format_plan_label(plan_key)
+
+
+static func _set_current_plan_slot(world_state: WorldState, plan_key: String) -> void:
+	world_state.set_base_action_state_value(CURRENT_PLAN_KEY, plan_key)
+	if String(world_state.get_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, "")).is_empty():
+		world_state.set_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, _get_alternate_plan_key(plan_key))
+
+
+static func _can_replace_next_plan_candidate(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	if world_state.quest_state.has_active_quest("quest.choose_steady_supply_action"):
+		return false
+	if world_state.quest_state.has_active_quest("quest.choose_phase_survey_action"):
+		return false
+	return not get_current_plan_key(world_state).is_empty()
+
+
+static func _is_plan_candidate_console(definition_id: String) -> bool:
+	return definition_id == "map_object.base_supply_choice_console" or definition_id == "map_object.base_survey_choice_console"
+
+
+static func _get_plan_key_for_console(definition_id: String) -> String:
+	match definition_id:
+		"map_object.base_supply_choice_console":
+			return PLAN_STEADY_SUPPLY
+		"map_object.base_survey_choice_console":
+			return PLAN_PHASE_SURVEY
+		_:
+			return ""
+
+
+static func _get_alternate_plan_key(plan_key: String) -> String:
+	if plan_key == PLAN_STEADY_SUPPLY:
+		return PLAN_PHASE_SURVEY
+	if plan_key == PLAN_PHASE_SURVEY:
+		return PLAN_STEADY_SUPPLY
+	return ""
+
+
+static func _format_plan_label(plan_key: String) -> String:
+	match plan_key:
+		PLAN_STEADY_SUPPLY:
+			return "低风险补给"
+		PLAN_PHASE_SURVEY:
+			return "信息侦测"
+		_:
+			return "未定计划"
+
+
+static func _is_known_plan_key(plan_key: String) -> bool:
+	return plan_key == PLAN_STEADY_SUPPLY or plan_key == PLAN_PHASE_SURVEY
 
 
 static func _get_preparation_status(world_state: WorldState, key: String, feedback_quest_id: String) -> String:

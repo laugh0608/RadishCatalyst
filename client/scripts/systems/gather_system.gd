@@ -100,6 +100,10 @@ func interact_with_object(
 		var departure_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
 		if not departure_messages.is_empty():
 			return _success(" ".join(departure_messages))
+	if interaction_type == "inspect" and BaseActionDispatchPlan.is_plan_candidate_console_ready(definition_id, world_state):
+		var candidate_messages := BaseActionDispatchPlan.select_next_plan_candidate_for_console(definition_id, world_state)
+		if not candidate_messages.is_empty():
+			return _success(" ".join(candidate_messages))
 
 	var object_state := world_state.ensure_map_object(instance_id, definition_id, character_state.current_region_id)
 	if _is_already_processed(object_state, interaction_type):
