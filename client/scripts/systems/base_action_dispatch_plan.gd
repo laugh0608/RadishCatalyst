@@ -178,6 +178,7 @@ static func apply_departure_preparation(world_state: WorldState, character_state
 		messages.append("压力清障防护计划已执行：修复凝胶 +1，抗污染药剂 +1。")
 	if not departure_plan_key.is_empty() and not messages.is_empty():
 		world_state.set_base_action_state_value(LAST_DEPARTURE_PLAN_KEY, departure_plan_key)
+		messages.append(_promote_next_plan_candidate(world_state, departure_plan_key))
 	return messages
 
 
@@ -291,6 +292,9 @@ static func format_console_prompt(definition_id: String, world_state: WorldState
 static func _get_stage(world_state: WorldState) -> String:
 	if world_state == null:
 		return ""
+	var preparation_stage := _get_current_preparation_stage(world_state)
+	if not preparation_stage.is_empty():
+		return preparation_stage
 	var quest_state := world_state.quest_state
 	if quest_state.has_completed_quest("quest.analyze_phase_survey_trace"):
 		return "phase_survey_ready"
@@ -708,6 +712,45 @@ static func _get_alternate_plan_key(plan_key: String) -> String:
 	if plan_key == PLAN_PRESSURE_CLEARANCE:
 		return PLAN_STEADY_SUPPLY
 	return ""
+
+
+static func _get_current_preparation_stage(world_state: WorldState) -> String:
+	var current_plan := get_current_plan_key(world_state)
+	if current_plan == PLAN_STEADY_SUPPLY and not get_supply_package_status(world_state).is_empty():
+		return "steady_supply_ready"
+	if current_plan == PLAN_PHASE_SURVEY and not get_survey_intel_status(world_state).is_empty():
+		return "phase_survey_ready"
+	if current_plan == PLAN_PRESSURE_CLEARANCE and not get_pressure_clearance_status(world_state).is_empty():
+		return "pressure_clearance_ready"
+	return ""
+
+
+static func _promote_next_plan_candidate(world_state: WorldState, executed_plan_key: String) -> String:
+	var promoted_plan_key := get_next_plan_candidate_key(world_state)
+	if promoted_plan_key.is_empty():
+		promoted_plan_key = _get_alternate_plan_key(executed_plan_key)
+	if promoted_plan_key.is_empty():
+		world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, "")
+		return "下一计划候选为空：返回基地行动台选择或替换后续方案。"
+
+	_set_plan_status(world_state, promoted_plan_key, STATUS_READY)
+	world_state.set_base_action_state_value(CURRENT_PLAN_KEY, promoted_plan_key)
+	world_state.set_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, _get_alternate_plan_key(promoted_plan_key))
+	world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, "")
+	return "下一计划候选已进入当前计划槽：%s；回基地在前线行动台按 E 确认，或在方案终端替换下一候选。" % _format_plan_label(promoted_plan_key)
+
+
+static func _set_plan_status(world_state: WorldState, plan_key: String, status: String) -> void:
+	match plan_key:
+		PLAN_STEADY_SUPPLY:
+			world_state.set_base_action_state_value(SUPPLY_PACKAGE_STATUS_KEY, status)
+		PLAN_PHASE_SURVEY:
+			world_state.set_base_action_state_value(SURVEY_INTEL_STATUS_KEY, status)
+			if status == STATUS_READY or status == STATUS_QUEUED:
+				world_state.set_base_action_state_value(ROUTE_TARGET_REGION_KEY, ROUTE_TARGET_REGION_ID)
+				world_state.set_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE)
+		PLAN_PRESSURE_CLEARANCE:
+			world_state.set_base_action_state_value(PRESSURE_CLEARANCE_STATUS_KEY, status)
 
 
 static func _format_plan_label(plan_key: String) -> String:

@@ -859,11 +859,16 @@ func _check_base_action_choice_runtime() -> void:
 		"steady supply queued direction should explain next interaction"
 	)
 	var supply_departure_messages := BaseActionDispatchPlan.apply_departure_preparation(supply_world, supply_character)
-	host._expect_equal(supply_departure_messages.size(), 1, "steady supply departure should apply one package")
+	host._expect_equal(supply_departure_messages.size(), 2, "steady supply departure should apply one package and promote next candidate")
 	host._expect_text_contains(
 		String(supply_departure_messages[0]),
 		"低风险补给计划已执行",
 		"steady supply departure message explains package"
+	)
+	host._expect_text_contains(
+		String(supply_departure_messages[1]),
+		"下一计划候选已进入当前计划槽",
+		"steady supply departure message explains candidate promotion"
 	)
 	host._expect_equal(
 		int(supply_character.inventory.items.get("item.basic_parts", 0)),
@@ -877,8 +882,8 @@ func _check_base_action_choice_runtime() -> void:
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.get_supply_package_status(supply_world),
-		BaseActionDispatchPlan.STATUS_USED,
-		"steady supply package should become used after departure"
+		BaseActionDispatchPlan.STATUS_READY,
+		"steady supply package should become ready again when same candidate is promoted"
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.get_last_departure_plan_key(supply_world),
@@ -1105,11 +1110,16 @@ func _check_base_action_choice_runtime() -> void:
 		"phase survey queued direction should explain next interaction"
 	)
 	var survey_departure_messages := BaseActionDispatchPlan.apply_departure_preparation(survey_world, survey_character)
-	host._expect_equal(survey_departure_messages.size(), 1, "phase survey departure should load one intel package")
+	host._expect_equal(survey_departure_messages.size(), 2, "phase survey departure should load intel and promote next candidate")
 	host._expect_text_contains(
 		String(survey_departure_messages[0]),
 		"信息侦测计划已执行",
 		"phase survey departure message explains target reveal"
+	)
+	host._expect_text_contains(
+		String(survey_departure_messages[1]),
+		"下一计划候选已进入当前计划槽",
+		"phase survey departure message explains candidate promotion"
 	)
 	host._expect_text_contains(
 		String(survey_departure_messages[0]),
@@ -1118,8 +1128,8 @@ func _check_base_action_choice_runtime() -> void:
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.get_survey_intel_status(survey_world),
-		BaseActionDispatchPlan.STATUS_USED,
-		"phase survey intel should become used after departure"
+		BaseActionDispatchPlan.STATUS_READY,
+		"phase survey intel should become ready again when same candidate is promoted"
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.get_last_departure_plan_key(survey_world),
@@ -1128,18 +1138,18 @@ func _check_base_action_choice_runtime() -> void:
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.get_route_target_region_id(survey_world),
-		"",
-		"phase survey consumed intel should stop marking a non-actionable route target"
+		"region.phase_well_tether",
+		"phase survey promoted intel should keep route target actionable"
 	)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_status_progress(survey_world),
-		"没有新交互目标",
-		"phase survey used status should explain that the visible route has no field objective"
+		"按 E 确认测绘路线整备槽",
+		"phase survey promoted status should ask for action console confirmation"
 	)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_direction_hint(survey_world),
-		"返回基地行动台安排下一计划",
-		"phase survey used direction should send player back to action console"
+		"确认出发整备槽",
+		"phase survey promoted direction should send player to action console"
 	)
 
 	var pressure_world := WorldState.create_default()
@@ -1255,11 +1265,16 @@ func _check_base_action_choice_runtime() -> void:
 		"pressure clearance package should become queued after confirmation"
 	)
 	var pressure_departure_messages := BaseActionDispatchPlan.apply_departure_preparation(pressure_world, pressure_character)
-	host._expect_equal(pressure_departure_messages.size(), 1, "pressure departure should apply one defensive package")
+	host._expect_equal(pressure_departure_messages.size(), 2, "pressure departure should apply defensive package and promote next candidate")
 	host._expect_text_contains(
 		String(pressure_departure_messages[0]),
 		"压力清障防护计划已执行",
 		"pressure departure message explains defensive package"
+	)
+	host._expect_text_contains(
+		String(pressure_departure_messages[1]),
+		"下一计划候选已进入当前计划槽",
+		"pressure departure message explains candidate promotion"
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.get_pressure_clearance_status(pressure_world),
