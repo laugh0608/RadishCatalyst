@@ -139,6 +139,12 @@ func interact_with_object(
 			if _is_persistent_field_reading(definition_id):
 				world_state.set_map_object_flag(instance_id, "is_sampled", true)
 				return _success(_format_field_reading_result(definition_id, world_state))
+			if definition_id == "map_object.steady_supply_drop_marker":
+				return _success("稳场补给回执已读取：回基地用基础反应器解析补给收益。")
+			if definition_id == "map_object.phase_survey_node_west":
+				return _success("西侧相位测绘读数已写入：继续读取东侧测绘点，再回基地解析路线提示。")
+			if definition_id == "map_object.phase_survey_node_east":
+				return _success("东侧相位测绘读数已写入：两处读数完成后回基地解析路线提示。")
 			return _success("交互完成。")
 		_:
 			return _success("交互完成。")

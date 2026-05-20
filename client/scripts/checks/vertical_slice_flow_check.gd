@@ -1,6 +1,7 @@
 extends SceneTree
 const GameRootScript := preload("res://scripts/game/game_root.gd")
 const DeepProcessingCheckScript := preload("res://scripts/checks/deep_processing_check.gd")
+const BaseActionTargetPromptCheckScript := preload("res://scripts/checks/base_action_target_prompt_check.gd")
 const HudRuntimeHintFlowCheckScript := preload("res://scripts/checks/hud_runtime_hint_flow_check.gd")
 const HudMapMarkerCheckScript := preload("res://scripts/checks/hud_map_marker_check.gd")
 const PhaseWellFollowupChecks := preload("res://scripts/checks/phase_well_followup_check.gd")
@@ -34,6 +35,7 @@ func _run_checks() -> void:
 	HudMapMarkerCheckScript.new(self).run(root)
 	_check_region_presence_bounds()
 	_check_pollution_gate_runtime_bounds()
+	BaseActionTargetPromptCheckScript.new(self).run()
 	PhaseWellFollowupChecks.new(self).run_hud_and_map_checks()
 	_check_deep_gate_releases_movement_block()
 	_check_new_game_state_reset()
