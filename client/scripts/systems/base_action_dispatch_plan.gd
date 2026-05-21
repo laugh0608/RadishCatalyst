@@ -245,6 +245,14 @@ static func is_frontline_window_active(world_state: WorldState) -> bool:
 	return String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_STATUS_KEY, "")) == STATUS_ACTIVE
 
 
+static func get_frontline_window_feedback(world_state: WorldState) -> String:
+	if world_state == null:
+		return ""
+	if String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_STATUS_KEY, "")) != STATUS_RESOLVED:
+		return ""
+	return String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_KEY, ""))
+
+
 static func is_frontline_window_interactable(definition_id: String, world_state: WorldState) -> bool:
 	return is_frontline_window_object(definition_id) and is_frontline_window_active(world_state)
 
@@ -642,6 +650,7 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 				"整备：基础零件 %d；修复凝胶 %d。" % [parts_count, repair_count],
 				package_line
 			]
+			supply_lines.append_array(_format_frontline_window_feedback_lines(world_state))
 			supply_lines.append_array(_format_plan_queue_lines(world_state))
 			supply_lines.append_array(_format_departure_plan_lines(PLAN_STEADY_SUPPLY))
 			return supply_lines
@@ -657,6 +666,7 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 				intel_line,
 				"风险预告：%s" % get_route_risk_note(world_state)
 			]
+			survey_lines.append_array(_format_frontline_window_feedback_lines(world_state))
 			survey_lines.append_array(_format_plan_queue_lines(world_state))
 			survey_lines.append_array(_format_departure_plan_lines(PLAN_PHASE_SURVEY))
 			return survey_lines
@@ -671,6 +681,7 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 				"整备：抗污染药剂 %d；修复凝胶 %d。" % [vial_count, repair_count],
 				pressure_line
 			]
+			pressure_lines.append_array(_format_frontline_window_feedback_lines(world_state))
 			pressure_lines.append_array(_format_plan_queue_lines(world_state))
 			pressure_lines.append_array(_format_departure_plan_lines(PLAN_PRESSURE_CLEARANCE))
 			return pressure_lines
@@ -769,6 +780,13 @@ static func _format_plan_queue_lines(world_state: WorldState) -> Array[String]:
 	if not next_candidate.is_empty():
 		lines.append("下一计划候选：%s；可在对应方案终端替换。" % _format_plan_label(next_candidate))
 	return lines
+
+
+static func _format_frontline_window_feedback_lines(world_state: WorldState) -> Array[String]:
+	var feedback := get_frontline_window_feedback(world_state)
+	if feedback.is_empty():
+		return []
+	return ["前线窗口反馈：%s" % feedback]
 
 
 static func _format_candidate_console_action_line(plan_key: String, world_state: WorldState) -> String:

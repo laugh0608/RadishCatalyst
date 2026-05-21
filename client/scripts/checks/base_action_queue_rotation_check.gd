@@ -339,4 +339,20 @@ func _check_prepared_frontline_window_follows_confirmed_plan() -> void:
 		"已处理",
 		"frontline window prompt shows resolved state"
 	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt(
+			BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+			world_state,
+			character_state
+		),
+		"前线窗口反馈：前线异常窗口已按压力清障计划处理",
+		"action console carries resolved frontline window feedback"
+	)
+	BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+	BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_frontline_window_feedback(world_state),
+		"",
+		"new confirmed departure clears consumed frontline window feedback"
+	)
 	window.free()
