@@ -870,6 +870,13 @@ interaction_type = "clear"
 label_offset = Vector2(-112, 24)
 label_size = Vector2(224, 24)
 
+[node name="PreparedFrontlineWindow" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3366, -36)
+definition_id = "map_object.prepared_frontline_window"
+interaction_type = "inspect"
+label_offset = Vector2(-112, -52)
+label_size = Vector2(224, 24)
+
 [node name="Enemies" type="Node2D" parent="."]
 
 [node name="NativeSkitter" parent="Enemies" instance=ExtResource("4_enemy")]

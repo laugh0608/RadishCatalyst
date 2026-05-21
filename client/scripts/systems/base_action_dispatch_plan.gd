@@ -28,9 +28,16 @@ const DEPARTURE_PLAN_REWARD_KEY := "departure_plan_reward"
 const DEPARTURE_PLAN_RISK_KEY := "departure_plan_risk"
 const DEPARTURE_PLAN_COST_KEY := "departure_plan_cost"
 const LAST_DEPARTURE_PLAN_KEY := "last_departure_plan_key"
+const FRONTLINE_WINDOW_STATUS_KEY := "frontline_window_status"
+const FRONTLINE_WINDOW_PLAN_KEY := "frontline_window_plan_key"
+const FRONTLINE_WINDOW_FEEDBACK_KEY := "frontline_window_feedback"
+const FRONTLINE_WINDOW_OBJECT_ID := "map_object.prepared_frontline_window"
+const FRONTLINE_WINDOW_INSTANCE_ID := "map_object_instance.prepared_frontline_window"
 const STATUS_READY := "ready"
 const STATUS_QUEUED := "queued"
 const STATUS_USED := "used"
+const STATUS_ACTIVE := "active"
+const STATUS_RESOLVED := "resolved"
 const PLAN_STEADY_SUPPLY := "steady_supply_buffer"
 const PLAN_PHASE_SURVEY := "phase_survey_intel"
 const PLAN_PRESSURE_CLEARANCE := "pressure_clearance_guard"
@@ -223,7 +230,68 @@ static func apply_departure_preparation(world_state: WorldState, character_state
 		messages.append(_format_departure_execution_message(PLAN_PRESSURE_CLEARANCE))
 	if not departure_plan_key.is_empty() and not messages.is_empty():
 		world_state.set_base_action_state_value(LAST_DEPARTURE_PLAN_KEY, departure_plan_key)
+		_activate_frontline_window(world_state, departure_plan_key)
 		messages.append(_promote_next_plan_candidate(world_state, departure_plan_key))
+	return messages
+
+
+static func is_frontline_window_object(definition_id: String) -> bool:
+	return definition_id == FRONTLINE_WINDOW_OBJECT_ID
+
+
+static func is_frontline_window_active(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_STATUS_KEY, "")) == STATUS_ACTIVE
+
+
+static func is_frontline_window_interactable(definition_id: String, world_state: WorldState) -> bool:
+	return is_frontline_window_object(definition_id) and is_frontline_window_active(world_state)
+
+
+static func get_frontline_window_plan_key(world_state: WorldState) -> String:
+	if world_state == null:
+		return ""
+	var plan_key := String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_PLAN_KEY, ""))
+	if _is_known_plan_key(plan_key):
+		return plan_key
+	return ""
+
+
+static func format_frontline_window_prompt(world_state: WorldState) -> String:
+	if world_state == null:
+		return "前线异常窗口：等待基地整备计划。"
+	var status := String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_STATUS_KEY, ""))
+	var plan_key := get_frontline_window_plan_key(world_state)
+	if status == STATUS_RESOLVED:
+		var feedback := String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_KEY, ""))
+		if feedback.is_empty():
+			feedback = "窗口已处理，返回基地行动台安排下一轮。"
+		return "前线异常窗口：已处理。\n反馈：%s" % feedback
+	if status != STATUS_ACTIVE or plan_key.is_empty():
+		return "前线异常窗口：等待相位回投执行已确认整备槽。"
+	var preview := _get_plan_preview(plan_key)
+	return "前线异常窗口：已载入%s计划。\n目标：%s。\n收益：%s；风险：%s。\n按 E 处理窗口。" % [
+		String(preview.get("label", "")),
+		String(preview.get("target", "")),
+		String(preview.get("reward", "")),
+		String(preview.get("risk", ""))
+	]
+
+
+static func resolve_frontline_window(world_state: WorldState) -> Array[String]:
+	var messages: Array[String] = []
+	if world_state == null:
+		return messages
+	if not is_frontline_window_active(world_state):
+		return messages
+	var plan_key := get_frontline_window_plan_key(world_state)
+	if plan_key.is_empty():
+		return messages
+	var feedback := _format_frontline_window_resolution_message(plan_key)
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_STATUS_KEY, STATUS_RESOLVED)
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_KEY, feedback)
+	messages.append(feedback)
 	return messages
 
 
@@ -781,6 +849,27 @@ static func _promote_next_plan_candidate(world_state: WorldState, executed_plan_
 	return "下一计划候选已进入当前计划槽：%s；回基地在前线行动台按 E 确认，或在方案终端替换下一候选。" % _format_plan_label(promoted_plan_key)
 
 
+static func _activate_frontline_window(world_state: WorldState, plan_key: String) -> void:
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_STATUS_KEY, STATUS_ACTIVE)
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_PLAN_KEY, plan_key)
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_KEY, "")
+	if world_state.map_objects.has(FRONTLINE_WINDOW_INSTANCE_ID):
+		world_state.map_objects[FRONTLINE_WINDOW_INSTANCE_ID]["is_sampled"] = false
+		world_state.map_objects[FRONTLINE_WINDOW_INSTANCE_ID]["is_cleared"] = false
+
+
+static func _format_frontline_window_resolution_message(plan_key: String) -> String:
+	match plan_key:
+		PLAN_STEADY_SUPPLY:
+			return "前线异常窗口已按低风险补给计划处理：稳定样本已归档，回基地行动台可把它作为下一轮资源缓冲依据。"
+		PLAN_PHASE_SURVEY:
+			return "前线异常窗口已按信息侦测计划处理：路线读数已归档，回基地行动台可把它作为下一轮目标预告依据。"
+		PLAN_PRESSURE_CLEARANCE:
+			return "前线异常窗口已按压力清障计划处理：扰动残压已归档，回基地行动台可把它作为下一轮防护整备依据。"
+		_:
+			return "前线异常窗口已处理：返回基地行动台安排下一轮。"
+
+
 static func _set_plan_status(world_state: WorldState, plan_key: String, status: String) -> void:
 	match plan_key:
 		PLAN_STEADY_SUPPLY:
@@ -907,11 +996,11 @@ static func _format_departure_execution_message(plan_key: String) -> String:
 	var preview := _get_plan_preview(plan_key)
 	match plan_key:
 		PLAN_STEADY_SUPPLY:
-			return "低风险补给计划已执行：基础零件 +2，修复凝胶 +1；已按%s风险收益确认出发。" % String(preview.get("risk", ""))
+			return "低风险补给计划已执行：基础零件 +2，修复凝胶 +1；同一前线异常窗口已载入补给解法；已按%s风险收益确认出发。" % String(preview.get("risk", ""))
 		PLAN_PHASE_SURVEY:
-			return "信息侦测计划已执行：本趟路线情报已验证；井系桥前线暂无新交互目标；已按%s风险收益确认出发，返回基地行动台安排下一计划。" % String(preview.get("risk", ""))
+			return "信息侦测计划已执行：本趟路线情报已验证；同一前线异常窗口已载入侦测解法；已按%s风险收益确认出发，返回基地行动台安排下一计划。" % String(preview.get("risk", ""))
 		PLAN_PRESSURE_CLEARANCE:
-			return "压力清障防护计划已执行：修复凝胶 +1，抗污染药剂 +1；已按%s风险收益确认出发。" % String(preview.get("risk", ""))
+			return "压力清障防护计划已执行：修复凝胶 +1，抗污染药剂 +1；同一前线异常窗口已载入清障解法；已按%s风险收益确认出发。" % String(preview.get("risk", ""))
 		_:
 			return "出发计划已执行。"
 

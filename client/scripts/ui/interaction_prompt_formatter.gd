@@ -265,7 +265,7 @@ func can_format_field_reading_prompt(definition_id: String) -> bool:
 
 
 func can_format_frontline_action_target_prompt(definition_id: String) -> bool:
-	return FRONTLINE_ACTION_TARGET_PROMPTS.has(definition_id)
+	return FRONTLINE_ACTION_TARGET_PROMPTS.has(definition_id) or BaseActionDispatchPlan.is_frontline_window_object(definition_id)
 
 
 func format_frontline_action_target_prompt(
@@ -273,6 +273,8 @@ func format_frontline_action_target_prompt(
 	character_state: CharacterState,
 	world_state: WorldState
 ) -> String:
+	if BaseActionDispatchPlan.is_frontline_window_object(interactable.definition_id):
+		return BaseActionDispatchPlan.format_frontline_window_prompt(world_state)
 	var prompt: Dictionary = FRONTLINE_ACTION_TARGET_PROMPTS.get(interactable.definition_id, {})
 	if prompt.is_empty():
 		return "按 E 交互：%s" % _get_display_name(interactable.definition_id)

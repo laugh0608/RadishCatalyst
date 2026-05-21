@@ -413,6 +413,13 @@ func set_processed_visual() -> bool:
 		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
 		_set_label_text("%s\n测绘已读取" % display_name_text, 2)
 		return true
+	if interaction_type == "inspect" and definition_id == "map_object.prepared_frontline_window":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
+		_set_label_text("%s\n窗口已处理" % display_name_text, 2)
+		return true
 	if interaction_type == "clear" and definition_id == "map_object.pressure_clearance_node":
 		consumed = true
 		visible = true

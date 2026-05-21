@@ -1123,8 +1123,8 @@ func _check_base_action_choice_runtime() -> void:
 	)
 	host._expect_text_contains(
 		String(survey_departure_messages[0]),
-		"暂无新交互目标",
-		"phase survey departure message should avoid implying a new field interaction"
+		"同一前线异常窗口已载入侦测解法",
+		"phase survey departure message should point to the shared prepared window"
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.get_survey_intel_status(survey_world),

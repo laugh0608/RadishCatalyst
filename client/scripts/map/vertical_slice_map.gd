@@ -374,6 +374,7 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			)
 		if interactable.definition_id == BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID:
 			should_enable = should_enable and BaseActionDispatchPlan.is_frontline_action_console_ready(world_state)
+		if BaseActionDispatchPlan.is_frontline_window_object(interactable.definition_id): should_enable = should_enable and BaseActionDispatchPlan.is_frontline_window_active(world_state)
 		if interactable.definition_id == "map_object.phase_well_frame_route_blocker":
 			should_enable = (
 				should_enable
@@ -665,7 +666,6 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 func _setup_interactable_labels() -> void:
 	if data_registry == null:
 		return
-
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
 			continue
@@ -676,7 +676,6 @@ func _setup_interactable_labels() -> void:
 func _setup_enemy_labels() -> void:
 	if data_registry == null:
 		return
-
 	for enemy in enemies_root.get_children():
 		if not enemy is PrototypeEnemy:
 			continue

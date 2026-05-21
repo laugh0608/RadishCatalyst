@@ -15,6 +15,7 @@ func run() -> void:
 	_check_action_plan_preview_wording_is_shared()
 	_check_departure_confirmation_locks_risk_reward_snapshot()
 	_check_phase_relay_pad_shows_confirmed_preparation()
+	_check_prepared_frontline_window_follows_confirmed_plan()
 
 
 func _check_candidate_promotes_after_supply_departure() -> void:
@@ -282,3 +283,60 @@ func _check_phase_relay_pad_shows_confirmed_preparation() -> void:
 	host._expect_text_contains(prompt, "风险：高", "phase relay pad prompt shows pressure risk")
 	host._expect_text_contains(prompt, "代价：占用本次出发整备槽", "phase relay pad prompt shows pressure cost")
 	host._expect_text_contains(prompt, "按 E 回投", "phase relay pad prompt keeps departure input")
+
+
+func _check_prepared_frontline_window_follows_confirmed_plan() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.PRESSURE_CLEARANCE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE)
+	BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+	BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	host._expect_equal(
+		BaseActionDispatchPlan.is_frontline_window_active(world_state),
+		true,
+		"frontline window becomes active after confirmed departure"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_frontline_window_plan_key(world_state),
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"frontline window stores the executed plan key"
+	)
+	var formatter := InteractionPromptFormatter.new(
+		host.data_registry,
+		ProcessingSystem.new(host.data_registry),
+		BuildSystem.new(host.data_registry)
+	)
+	var window := PrototypeInteractable.new()
+	window.instance_id = BaseActionDispatchPlan.FRONTLINE_WINDOW_INSTANCE_ID
+	window.definition_id = BaseActionDispatchPlan.FRONTLINE_WINDOW_OBJECT_ID
+	window.interaction_type = "inspect"
+	host._expect_text_contains(
+		formatter.format_frontline_action_target_prompt(window, character_state, world_state),
+		"已载入压力清障计划",
+		"frontline window prompt uses confirmed plan"
+	)
+	var result := GatherSystem.new(host.data_registry).interact_with_object(
+		window.instance_id,
+		window.definition_id,
+		window.interaction_type,
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(result.get("success", false)), true, "frontline window interaction succeeds")
+	host._expect_text_contains(
+		String(result.get("message", "")),
+		"压力清障计划处理",
+		"frontline window result explains pressure plan"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.is_frontline_window_active(world_state),
+		false,
+		"frontline window is no longer active after resolution"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		"已处理",
+		"frontline window prompt shows resolved state"
+	)
+	window.free()

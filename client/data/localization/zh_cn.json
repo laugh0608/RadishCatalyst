@@ -595,6 +595,8 @@
   "map_object.phase_survey_node_east.desc": "井系桥前线末端的第二处测绘点，读取后能把测绘记录带回基地解析。",
   "map_object.pressure_clearance_node.name": "前线压力扰点",
   "map_object.pressure_clearance_node.desc": "井系桥前线新显出的高压扰点，清除后可带回压力清障回执。",
+  "map_object.prepared_frontline_window.name": "整备异常窗口",
+  "map_object.prepared_frontline_window.desc": "井系桥前线的共享异常窗口，会根据本次已确认整备计划呈现不同目标和反馈。",
   "item.steady_supply_trace.name": "稳场补给回执",
   "item.steady_supply_trace.desc": "从补给投放点带回的回执，证明基地选择低风险补给方案后能稳定回收物资。",
   "item.steady_supply_feedback.name": "稳场补给反馈",

@@ -90,7 +90,8 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.steady_supply_drop_marker": "map_object.steady_supply_drop_marker",
 	"map_object_instance.phase_survey_node_west": "map_object.phase_survey_node_west",
 	"map_object_instance.phase_survey_node_east": "map_object.phase_survey_node_east",
-	"map_object_instance.pressure_clearance_node": "map_object.pressure_clearance_node"
+	"map_object_instance.pressure_clearance_node": "map_object.pressure_clearance_node",
+	"map_object_instance.prepared_frontline_window": "map_object.prepared_frontline_window"
 }
 
 const PROTOTYPE_ENEMY_SOURCES := {

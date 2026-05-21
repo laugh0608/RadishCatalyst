@@ -133,6 +133,11 @@ func _check_loads_known_map_object_source() -> void:
 			"definition_id": "map_object.pressure_clearance_node",
 			"region_id": "region.phase_well_tether",
 			"is_cleared": true
+		},
+		"map_object_instance.prepared_frontline_window": {
+			"definition_id": "map_object.prepared_frontline_window",
+			"region_id": "region.phase_well_tether",
+			"is_sampled": true
 		}
 	}
 	host._write_save_json(save_data)

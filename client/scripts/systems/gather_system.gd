@@ -136,6 +136,22 @@ func interact_with_object(
 				return _success("前线压力扰点已清除：带回压力清障回执，回基地用基础反应器解析防护收益。")
 			return _success("地块已清理。")
 		"inspect":
+			if BaseActionDispatchPlan.is_frontline_window_object(definition_id):
+				if not BaseActionDispatchPlan.is_frontline_window_active(world_state):
+					return _failure(
+						"前线异常窗口还没有载入出发整备计划。",
+						"窗口未激活",
+						"先在基地前线行动台确认整备槽，再从相位回投台出发。"
+					)
+				world_state.set_map_object_flag(instance_id, "is_sampled", true)
+				var window_messages := BaseActionDispatchPlan.resolve_frontline_window(world_state)
+				if window_messages.is_empty():
+					return _failure(
+						"前线异常窗口缺少可处理的计划快照。",
+						"窗口状态异常",
+						"回基地重新确认出发整备槽，再从相位回投台出发。"
+					)
+				return _success(" ".join(window_messages))
 			if _is_persistent_field_reading(definition_id):
 				world_state.set_map_object_flag(instance_id, "is_sampled", true)
 				return _success(_format_field_reading_result(definition_id, world_state))
