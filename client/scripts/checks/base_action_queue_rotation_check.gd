@@ -340,6 +340,11 @@ func _check_prepared_frontline_window_follows_confirmed_plan() -> void:
 		"frontline window prompt shows resolved state"
 	)
 	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		"完成态收益：扰动残压已转成下一轮风险回落依据",
+		"resolved frontline window prompt should explain completion payoff"
+	)
+	host._expect_text_contains(
 		BaseActionDispatchPlan.format_console_prompt(
 			BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
 			world_state,
@@ -352,6 +357,11 @@ func _check_prepared_frontline_window_follows_confirmed_plan() -> void:
 		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
 		world_state,
 		character_state
+	)
+	host._expect_text_contains(
+		action_console_prompt,
+		"完成态收益：扰动残压已转成下一轮风险回落依据",
+		"action console should explain resolved window payoff"
 	)
 	host._expect_text_contains(
 		action_console_prompt,

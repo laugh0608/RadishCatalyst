@@ -275,7 +275,10 @@ static func format_frontline_window_prompt(world_state: WorldState) -> String:
 		var feedback := String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_KEY, ""))
 		if feedback.is_empty():
 			feedback = "窗口已处理，返回基地行动台安排下一轮。"
-		return "前线异常窗口：已处理。\n反馈：%s" % feedback
+		var payoff := _format_frontline_window_completion_payoff(world_state)
+		if payoff.is_empty():
+			return "前线异常窗口：已处理。\n反馈：%s" % feedback
+		return "前线异常窗口：已处理。\n反馈：%s\n完成态收益：%s" % [feedback, payoff]
 	if status != STATUS_ACTIVE or plan_key.is_empty():
 		return "前线异常窗口：等待相位回投执行已确认整备槽。"
 	var preview := _get_plan_preview(plan_key)
@@ -798,13 +801,28 @@ static func _format_frontline_window_feedback_lines(world_state: WorldState) -> 
 	var feedback := get_frontline_window_feedback(world_state)
 	if feedback.is_empty():
 		return []
-	return ["前线窗口反馈：%s" % feedback]
+	var lines: Array[String] = ["前线窗口反馈：%s" % feedback]
+	var payoff := _format_frontline_window_completion_payoff(world_state)
+	if not payoff.is_empty():
+		lines.append("完成态收益：%s" % payoff)
+	return lines
 
 
 static func _get_resolved_frontline_window_plan_key(world_state: WorldState) -> String:
 	if get_frontline_window_feedback(world_state).is_empty():
 		return ""
 	return get_frontline_window_plan_key(world_state)
+
+
+static func _format_frontline_window_completion_payoff(world_state: WorldState) -> String:
+	match _get_resolved_frontline_window_plan_key(world_state):
+		PLAN_STEADY_SUPPLY:
+			return "稳定样本已转成下一轮资源缓冲依据，可支撑低风险补给或覆盖测绘往返。"
+		PLAN_PHASE_SURVEY:
+			return "路线读数已转成下一轮目标预告依据，可支撑补给投放或提前判断清障扰点。"
+		PLAN_PRESSURE_CLEARANCE:
+			return "扰动残压已转成下一轮风险回落依据，可支撑低压补给、测绘预告或继续防护清障。"
+	return ""
 
 
 static func _format_window_feedback_plan_note(world_state: WorldState, plan_key: String) -> String:
