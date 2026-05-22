@@ -348,6 +348,30 @@ func _check_prepared_frontline_window_follows_confirmed_plan() -> void:
 		"前线窗口反馈：前线异常窗口已按压力清障计划处理",
 		"action console carries resolved frontline window feedback"
 	)
+	var action_console_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		world_state,
+		character_state
+	)
+	host._expect_text_contains(
+		action_console_prompt,
+		"行动台预告：残压已收束，补给候选可在低压窗口回收资源缓冲。",
+		"frontline window feedback should adjust current plan preview"
+	)
+	host._expect_text_contains(
+		action_console_prompt,
+		"下一计划候选：信息侦测；窗口反馈预告：残压已收束，测绘候选可把低干扰路线转成目标预告",
+		"frontline window feedback should adjust next candidate explanation"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt(
+			"map_object.base_survey_choice_console",
+			world_state,
+			character_state
+		),
+		"窗口反馈：残压已收束，测绘候选可把低干扰路线转成目标预告",
+		"candidate console should include resolved frontline window feedback"
+	)
 	BaseActionDispatchPlan.confirm_departure_preparation(world_state)
 	BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
 	host._expect_equal(

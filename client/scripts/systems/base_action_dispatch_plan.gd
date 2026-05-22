@@ -389,7 +389,11 @@ static func select_next_plan_candidate_for_console(definition_id: String, world_
 	if plan_key.is_empty() or not _can_replace_next_plan_candidate(world_state):
 		return []
 	world_state.set_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, plan_key)
-	return ["下一计划候选已更新：%s。当前出发整备槽不变。" % _format_plan_label(plan_key)]
+	var feedback_note := _format_window_feedback_plan_note(world_state, plan_key)
+	var feedback_text := ""
+	if not feedback_note.is_empty():
+		feedback_text = "窗口反馈预告：%s。" % feedback_note
+	return ["下一计划候选已更新：%s。%s当前出发整备槽不变。" % [_format_plan_label(plan_key), feedback_text]]
 
 
 static func format_console_prompt(definition_id: String, world_state: WorldState, character_state: CharacterState) -> String:
@@ -652,7 +656,7 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 			]
 			supply_lines.append_array(_format_frontline_window_feedback_lines(world_state))
 			supply_lines.append_array(_format_plan_queue_lines(world_state))
-			supply_lines.append_array(_format_departure_plan_lines(PLAN_STEADY_SUPPLY))
+			supply_lines.append_array(_format_departure_plan_lines(PLAN_STEADY_SUPPLY, world_state))
 			return supply_lines
 		"phase_survey_ready":
 			var intel_status := get_survey_intel_status(world_state)
@@ -668,7 +672,7 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 			]
 			survey_lines.append_array(_format_frontline_window_feedback_lines(world_state))
 			survey_lines.append_array(_format_plan_queue_lines(world_state))
-			survey_lines.append_array(_format_departure_plan_lines(PLAN_PHASE_SURVEY))
+			survey_lines.append_array(_format_departure_plan_lines(PLAN_PHASE_SURVEY, world_state))
 			return survey_lines
 		"pressure_clearance_ready":
 			var pressure_status := get_pressure_clearance_status(world_state)
@@ -683,7 +687,7 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 			]
 			pressure_lines.append_array(_format_frontline_window_feedback_lines(world_state))
 			pressure_lines.append_array(_format_plan_queue_lines(world_state))
-			pressure_lines.append_array(_format_departure_plan_lines(PLAN_PRESSURE_CLEARANCE))
+			pressure_lines.append_array(_format_departure_plan_lines(PLAN_PRESSURE_CLEARANCE, world_state))
 			return pressure_lines
 		"steady_supply_dispatched", "steady_supply_return":
 			return ["已选：稳场补给；目标少、路线短，收益偏整备资源。"]
@@ -753,11 +757,11 @@ static func _get_item_count(character_state: CharacterState, item_id: String) ->
 	return int(character_state.inventory.items.get(item_id, 0))
 
 
-static func _format_departure_plan_lines(plan_key: String) -> Array[String]:
+static func _format_departure_plan_lines(plan_key: String, world_state: WorldState) -> Array[String]:
 	var preview := _get_plan_preview(plan_key)
 	if preview.is_empty():
 		return []
-	return [
+	var lines: Array[String] = [
 		"计划：%s；目标：%s；收益：%s。" % [
 			String(preview.get("label", "")),
 			String(preview.get("target", "")),
@@ -769,6 +773,10 @@ static func _format_departure_plan_lines(plan_key: String) -> Array[String]:
 		],
 		"代价：%s。" % String(preview.get("cost", ""))
 	]
+	var feedback_note := _format_window_feedback_plan_note(world_state, plan_key)
+	if not feedback_note.is_empty():
+		lines.append("行动台预告：%s。" % feedback_note)
+	return lines
 
 
 static func _format_plan_queue_lines(world_state: WorldState) -> Array[String]:
@@ -778,7 +786,11 @@ static func _format_plan_queue_lines(world_state: WorldState) -> Array[String]:
 	if not current_plan.is_empty():
 		lines.append("当前计划槽：%s。" % _format_plan_label(current_plan))
 	if not next_candidate.is_empty():
-		lines.append("下一计划候选：%s；可在对应方案终端替换。" % _format_plan_label(next_candidate))
+		var feedback_note := _format_window_feedback_plan_note(world_state, next_candidate)
+		if feedback_note.is_empty():
+			lines.append("下一计划候选：%s；可在对应方案终端替换。" % _format_plan_label(next_candidate))
+		else:
+			lines.append("下一计划候选：%s；窗口反馈预告：%s；可在对应方案终端替换。" % [_format_plan_label(next_candidate), feedback_note])
 	return lines
 
 
@@ -789,10 +801,45 @@ static func _format_frontline_window_feedback_lines(world_state: WorldState) -> 
 	return ["前线窗口反馈：%s" % feedback]
 
 
+static func _get_resolved_frontline_window_plan_key(world_state: WorldState) -> String:
+	if get_frontline_window_feedback(world_state).is_empty():
+		return ""
+	return get_frontline_window_plan_key(world_state)
+
+
+static func _format_window_feedback_plan_note(world_state: WorldState, plan_key: String) -> String:
+	var source_plan := _get_resolved_frontline_window_plan_key(world_state)
+	if source_plan.is_empty() or plan_key.is_empty():
+		return ""
+	match source_plan:
+		PLAN_STEADY_SUPPLY:
+			if plan_key == PLAN_STEADY_SUPPLY:
+				return "稳定样本已归档，补给候选会继续强调资源缓冲和短目标"
+			if plan_key == PLAN_PHASE_SURVEY:
+				return "稳定样本已归档，测绘候选可预告补给缓冲覆盖两处读数往返"
+			if plan_key == PLAN_PRESSURE_CLEARANCE:
+				return "稳定样本已归档，清障候选会先说明防护补给再处理扰点"
+		PLAN_PHASE_SURVEY:
+			if plan_key == PLAN_STEADY_SUPPLY:
+				return "路线读数已归档，补给候选会贴近已显形路线投放"
+			if plan_key == PLAN_PHASE_SURVEY:
+				return "路线读数已归档，测绘候选会继续强调目标显形和扰动来源"
+			if plan_key == PLAN_PRESSURE_CLEARANCE:
+				return "路线读数已归档，清障候选会提前说明扰点位置"
+		PLAN_PRESSURE_CLEARANCE:
+			if plan_key == PLAN_STEADY_SUPPLY:
+				return "残压已收束，补给候选可在低压窗口回收资源缓冲"
+			if plan_key == PLAN_PHASE_SURVEY:
+				return "残压已收束，测绘候选可把低干扰路线转成目标预告"
+			if plan_key == PLAN_PRESSURE_CLEARANCE:
+				return "残压已收束，清障候选会继续说明防护整备和风险回落"
+	return ""
+
+
 static func _format_candidate_console_action_line(plan_key: String, world_state: WorldState) -> String:
 	if get_next_plan_candidate_key(world_state) == plan_key:
-		return "下一计划候选已是：%s。" % _format_candidate_preview(plan_key)
-	return "按 E 替换下一计划候选：%s。" % _format_candidate_preview(plan_key)
+		return "下一计划候选已是：%s。" % _format_candidate_preview(plan_key, world_state)
+	return "按 E 替换下一计划候选：%s。" % _format_candidate_preview(plan_key, world_state)
 
 
 static func _set_current_plan_slot(world_state: WorldState, plan_key: String) -> void:
@@ -922,15 +969,19 @@ static func _format_choice_preview_line(prefix: String, plan_key: String) -> Str
 	]
 
 
-static func _format_candidate_preview(plan_key: String) -> String:
+static func _format_candidate_preview(plan_key: String, world_state: WorldState = null) -> String:
 	var preview := _get_plan_preview(plan_key)
 	if preview.is_empty():
 		return "未定计划"
-	return "%s；收益：%s；风险：%s；代价：整备槽" % [
+	var text := "%s；收益：%s；风险：%s；代价：整备槽" % [
 		String(preview.get("label", "")),
 		String(preview.get("reward", "")),
 		String(preview.get("risk", ""))
 	]
+	var feedback_note := _format_window_feedback_plan_note(world_state, plan_key)
+	if not feedback_note.is_empty():
+		text = "%s；窗口反馈：%s" % [text, feedback_note]
+	return text
 
 
 static func _format_relay_preparation_preview(world_state: WorldState, plan_key: String) -> String:
