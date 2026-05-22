@@ -16,6 +16,7 @@ func run() -> void:
 	_check_departure_confirmation_locks_risk_reward_snapshot()
 	_check_phase_relay_pad_shows_confirmed_preparation()
 	_check_prepared_frontline_window_follows_confirmed_plan()
+	_check_frontline_window_stage_review_covers_all_plans()
 
 
 func _check_candidate_promotes_after_supply_departure() -> void:
@@ -390,3 +391,102 @@ func _check_prepared_frontline_window_follows_confirmed_plan() -> void:
 		"new confirmed departure clears consumed frontline window feedback"
 	)
 	window.free()
+
+
+func _check_frontline_window_stage_review_covers_all_plans() -> void:
+	_expect_frontline_window_stage_review(
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"完成态收益：稳定样本已转成下一轮资源缓冲依据",
+		"行动台预告：稳定样本已归档，测绘候选可预告补给缓冲覆盖两处读数往返。",
+		"下一计划候选：压力清障；窗口反馈预告：稳定样本已归档，清障候选会先说明防护补给再处理扰点"
+	)
+	_expect_frontline_window_stage_review(
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"完成态收益：路线读数已转成下一轮目标预告依据",
+		"行动台预告：路线读数已归档，清障候选会提前说明扰点位置。",
+		"下一计划候选：低风险补给；窗口反馈预告：路线读数已归档，补给候选会贴近已显形路线投放"
+	)
+	_expect_frontline_window_stage_review(
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"完成态收益：扰动残压已转成下一轮风险回落依据",
+		"行动台预告：残压已收束，补给候选可在低压窗口回收资源缓冲。",
+		"下一计划候选：信息侦测；窗口反馈预告：残压已收束，测绘候选可把低干扰路线转成目标预告"
+	)
+
+
+func _expect_frontline_window_stage_review(
+	executed_plan_key: String,
+	promoted_plan_key: String,
+	expected_payoff: String,
+	expected_current_preview: String,
+	expected_next_candidate_preview: String
+) -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, executed_plan_key)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, promoted_plan_key)
+	_set_ready_status_for_plan(world_state, executed_plan_key)
+
+	var confirm_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+	host._expect_equal(confirm_messages.size(), 1, "stage review confirms one departure slot for %s" % executed_plan_key)
+	var departure_messages := BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	host._expect_equal(departure_messages.size(), 2, "stage review applies departure and promotes candidate for %s" % executed_plan_key)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_frontline_window_plan_key(world_state),
+		executed_plan_key,
+		"stage review window stores executed plan %s" % executed_plan_key
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(world_state),
+		promoted_plan_key,
+		"stage review promotes expected plan after %s" % executed_plan_key
+	)
+
+	var window_messages := BaseActionDispatchPlan.resolve_frontline_window(world_state)
+	host._expect_equal(window_messages.size(), 1, "stage review resolves frontline window for %s" % executed_plan_key)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		expected_payoff,
+		"stage review resolved window payoff for %s" % executed_plan_key
+	)
+	var action_console_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		world_state,
+		character_state
+	)
+	host._expect_text_contains(
+		action_console_prompt,
+		expected_payoff,
+		"stage review action console payoff for %s" % executed_plan_key
+	)
+	host._expect_text_contains(
+		action_console_prompt,
+		expected_current_preview,
+		"stage review current plan preview for %s" % executed_plan_key
+	)
+	host._expect_text_contains(
+		action_console_prompt,
+		expected_next_candidate_preview,
+		"stage review next candidate preview for %s" % executed_plan_key
+	)
+
+	BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+	BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_frontline_window_feedback(world_state),
+		"",
+		"stage review clears old window feedback on next departure for %s" % executed_plan_key
+	)
+
+
+func _set_ready_status_for_plan(world_state: WorldState, plan_key: String) -> void:
+	match plan_key:
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY:
+			world_state.set_base_action_state_value(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY:
+			world_state.set_base_action_state_value(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE:
+			world_state.set_base_action_state_value(BaseActionDispatchPlan.PRESSURE_CLEARANCE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
