@@ -234,9 +234,8 @@ func _check_action_plan_preview_wording_is_shared() -> void:
 		candidate_world,
 		character_state
 	)
-	host._expect_text_contains(candidate_prompt, "按 E 替换下一计划候选：压力清障；模块：防护涂层；风险：高", "preview wording shows replacement candidate summary")
-	host._expect_text_contains(candidate_prompt, "风险拆解：目标密度 低；路线扰动 高；防护消耗 中", "preview wording shows replacement candidate risk profile")
-	host._expect_text_contains(candidate_prompt, "收益：修复凝胶 +1、抗污染药剂 +1；代价：整备槽。", "preview wording shows replacement candidate reward and cost")
+	host._expect_text_contains(candidate_prompt, "按 E 替换下一计划候选：压力清障；模块：防护涂层；风险：高（目标低 / 路线高 / 防护中）", "preview wording shows compact replacement candidate summary")
+	host._expect_text_contains(candidate_prompt, "收益：修复凝胶 +1、抗污染药剂 +1", "preview wording keeps replacement candidate reward")
 
 
 func _check_light_preparation_module_enters_snapshots() -> void:
@@ -258,8 +257,8 @@ func _check_light_preparation_module_enters_snapshots() -> void:
 	)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_departure_preparation_prompt(world_state),
-		"拆解：目标密度 中；路线扰动 中；防护消耗 低",
-		"phase relay prompt exposes confirmed risk profile"
+		"风险：中（目标中 / 路线中 / 防护低）",
+		"phase relay prompt exposes compact confirmed risk profile"
 	)
 	var departure_messages := BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
 	host._expect_text_contains(" ".join(departure_messages), "轻量整备模块：回波透镜", "departure execution carries preparation module")
@@ -270,8 +269,8 @@ func _check_light_preparation_module_enters_snapshots() -> void:
 	)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
-		"风险拆解：目标密度 中；路线扰动 中；防护消耗 低",
-		"frontline window prompt shows active risk profile"
+		"风险：中（目标中 / 路线中 / 防护低）",
+		"frontline window prompt shows compact active risk profile"
 	)
 	BaseActionDispatchPlan.resolve_frontline_window(world_state)
 	host._expect_text_contains(

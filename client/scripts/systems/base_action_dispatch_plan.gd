@@ -361,14 +361,13 @@ static func format_frontline_window_prompt(world_state: WorldState) -> String:
 	if status != STATUS_ACTIVE or plan_key.is_empty():
 		return "前线异常窗口：等待相位回投执行已确认整备槽。"
 	var preview := _get_plan_preview(plan_key)
-	var module_line := _format_frontline_window_module_line(world_state, preview)
-	return "前线异常窗口：已载入%s计划。\n目标：%s。\n收益：%s；风险：%s；风险拆解：%s。%s\n按 E 处理窗口。" % [
+	return "前线异常窗口：已载入%s计划；模块：%s；风险：%s（%s）。\n本趟目标：%s。\n处理结果：%s。\n按 E 处理窗口。" % [
 		String(preview.get("label", "")),
-		String(preview.get("target", "")),
-		String(preview.get("reward", "")),
+		_format_window_module_name(world_state, preview),
 		String(preview.get("risk", "")),
-		String(preview.get("risk_profile", "")),
-		module_line
+		_format_compact_risk_profile(String(preview.get("risk_profile", ""))),
+		String(preview.get("target", "")),
+		String(preview.get("reward", ""))
 	]
 
 
@@ -996,16 +995,15 @@ static func _format_frontline_window_completion_payoff(world_state: WorldState) 
 	return ""
 
 
-static func _format_frontline_window_module_line(world_state: WorldState, fallback_preview: Dictionary) -> String:
-	var module := String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_MODULE_KEY, ""))
-	var module_effect := String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_MODULE_EFFECT_KEY, ""))
+static func _format_window_module_name(world_state: WorldState, fallback_preview: Dictionary) -> String:
+	var module := ""
+	if world_state != null:
+		module = String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_MODULE_KEY, ""))
 	if module.is_empty():
 		module = String(fallback_preview.get("module", ""))
-	if module_effect.is_empty():
-		module_effect = String(fallback_preview.get("module_effect", ""))
-	if module.is_empty() or module_effect.is_empty():
-		return ""
-	return "\n轻量整备模块：%s；效果：%s。" % [module, module_effect]
+	if module.is_empty():
+		return "未定模块"
+	return module
 
 
 static func _format_resolved_frontline_window_module_line(world_state: WorldState) -> String:
@@ -1275,11 +1273,11 @@ static func _format_candidate_preview(plan_key: String, world_state: WorldState 
 	var preview := _get_plan_preview(plan_key)
 	if preview.is_empty():
 		return "未定计划"
-	var text := "%s；模块：%s；风险：%s\n风险拆解：%s\n收益：%s；代价：整备槽" % [
+	var text := "%s；模块：%s；风险：%s（%s）；收益：%s" % [
 		String(preview.get("label", "")),
 		String(preview.get("module", "")),
 		String(preview.get("risk", "")),
-		String(preview.get("risk_profile", "")),
+		_format_compact_risk_profile(String(preview.get("risk_profile", ""))),
 		String(preview.get("reward", ""))
 	]
 	var feedback_note := _format_window_feedback_plan_note(world_state, plan_key)
@@ -1292,14 +1290,24 @@ static func _format_relay_preparation_preview(world_state: WorldState, plan_key:
 	var preview := _get_departure_confirmation_preview(world_state, plan_key)
 	if preview.is_empty():
 		return ""
-	return "本次整备：%s已确认；模块：%s；风险：%s\n风险拆解：%s\n收益：%s；代价：%s" % [
+	return "本次整备：%s已确认；模块：%s；风险：%s（%s）\n收益：%s；代价：%s" % [
 		String(preview.get("label", "")),
 		String(preview.get("module", "")),
 		String(preview.get("risk", "")),
-		String(preview.get("risk_profile", "")),
+		_format_compact_risk_profile(String(preview.get("risk_profile", ""))),
 		String(preview.get("reward", "")),
 		String(preview.get("cost", ""))
 	]
+
+
+static func _format_compact_risk_profile(risk_profile: String) -> String:
+	if risk_profile.is_empty():
+		return "未定"
+	var compact := risk_profile
+	compact = compact.replace("目标密度 ", "目标")
+	compact = compact.replace("路线扰动 ", "路线")
+	compact = compact.replace("防护消耗 ", "防护")
+	return compact.replace("；", " / ")
 
 
 static func _get_confirmed_departure_plan_key(world_state: WorldState) -> String:
