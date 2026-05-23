@@ -471,7 +471,7 @@ func _check_frontline_window_stage_review_covers_all_plans() -> void:
 		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
 		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
 		"完成态收益：稳定样本已转成下一轮资源缓冲依据",
-		"行动台预告：稳定样本已归档，测绘候选可预告补给缓冲覆盖两处读数往返。",
+		"资源缓冲承接：稳定样本已归档，基础零件 / 修复凝胶可覆盖两处读数往返",
 		"下一计划候选：压力清障；窗口反馈预告：稳定样本已归档，清障候选会先说明防护补给再处理扰点"
 	)
 	_expect_frontline_window_stage_review(
@@ -485,7 +485,7 @@ func _check_frontline_window_stage_review_covers_all_plans() -> void:
 		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
 		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
 		"完成态收益：扰动残压已转成下一轮风险回落依据",
-		"行动台预告：残压已收束，补给候选可在低压窗口回收资源缓冲。",
+		"残压回落承接：高压扰点已收束，补给计划可贴近低压窗口回收资源缓冲。",
 		"下一计划候选：信息侦测；窗口反馈预告：残压已收束，测绘候选可把低干扰路线转成目标预告"
 	)
 

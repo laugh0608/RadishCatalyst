@@ -928,9 +928,9 @@ static func _format_departure_plan_lines(plan_key: String, world_state: WorldSta
 	var feedback_note := _format_window_feedback_plan_note(world_state, plan_key)
 	if not feedback_note.is_empty():
 		lines.append("行动台预告：%s。" % feedback_note)
-	var route_intel_line := _format_route_intel_carryover_line(world_state, plan_key)
-	if not route_intel_line.is_empty():
-		lines.append(route_intel_line)
+	var carryover_line := _format_window_feedback_carryover_line(world_state, plan_key)
+	if not carryover_line.is_empty():
+		lines.append(carryover_line)
 	return lines
 
 
@@ -1052,19 +1052,35 @@ static func _format_window_feedback_plan_note(world_state: WorldState, plan_key:
 	return ""
 
 
-static func _format_route_intel_carryover_line(world_state: WorldState, plan_key: String) -> String:
-	if _get_resolved_frontline_window_plan_key(world_state) != PLAN_PHASE_SURVEY:
-		return ""
-	var risk_note := String(world_state.get_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE))
-	if risk_note.is_empty():
-		risk_note = ROUTE_RISK_NOTE
-	match plan_key:
+static func _format_window_feedback_carryover_line(world_state: WorldState, plan_key: String) -> String:
+	match _get_resolved_frontline_window_plan_key(world_state):
 		PLAN_STEADY_SUPPLY:
-			return "路线情报承接：西侧测绘边界已显形，补给投放会贴近低压读数线；风险预告：%s" % risk_note
+			match plan_key:
+				PLAN_STEADY_SUPPLY:
+					return "资源缓冲承接：稳定样本已归档，补给计划继续压低目标密度并回收基础零件。"
+				PLAN_PHASE_SURVEY:
+					return "资源缓冲承接：稳定样本已归档，基础零件 / 修复凝胶可覆盖两处读数往返；目标预告：测绘仍需西侧和东侧两处读数。"
+				PLAN_PRESSURE_CLEARANCE:
+					return "资源缓冲承接：稳定样本已归档，清障前会先说明防护补给如何覆盖扰点处理。"
 		PLAN_PHASE_SURVEY:
-			return "路线情报承接：西侧边界和东侧扰动来源已记录，下一轮测绘会复核目标显形；风险预告：%s" % risk_note
+			var risk_note := String(world_state.get_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE))
+			if risk_note.is_empty():
+				risk_note = ROUTE_RISK_NOTE
+			match plan_key:
+				PLAN_STEADY_SUPPLY:
+					return "路线情报承接：西侧测绘边界已显形，补给投放会贴近低压读数线；风险预告：%s" % risk_note
+				PLAN_PHASE_SURVEY:
+					return "路线情报承接：西侧边界和东侧扰动来源已记录，下一轮测绘会复核目标显形；风险预告：%s" % risk_note
+				PLAN_PRESSURE_CLEARANCE:
+					return "路线情报承接：东侧短时扰动已标出，清障计划会先说明扰点接近路线；风险预告：%s" % risk_note
 		PLAN_PRESSURE_CLEARANCE:
-			return "路线情报承接：东侧短时扰动已标出，清障计划会先说明扰点接近路线；风险预告：%s" % risk_note
+			match plan_key:
+				PLAN_STEADY_SUPPLY:
+					return "残压回落承接：高压扰点已收束，补给计划可贴近低压窗口回收资源缓冲。"
+				PLAN_PHASE_SURVEY:
+					return "残压回落承接：高压扰点已收束，测绘计划可把低干扰路线转成下一轮目标预告。"
+				PLAN_PRESSURE_CLEARANCE:
+					return "残压回落承接：高压扰点已收束，清障计划继续说明防护整备和风险回落。"
 	return ""
 
 
