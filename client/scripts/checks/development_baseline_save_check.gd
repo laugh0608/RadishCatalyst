@@ -164,6 +164,13 @@ func run() -> void:
 					true,
 					"S16 baseline should keep %s calibrated" % node_instance_id
 				)
+			_expect_frontline_action_console_interaction_advances(
+				loaded_world,
+				loaded_character,
+				"quest.plan_stability_frontline_action",
+				"quest.survey_stability_echo_probe",
+				"S16 baseline"
+			)
 		if baseline_id == "baseline.s17_frontline_action_report_ready":
 			host._expect_array_has(
 				loaded_world.quest_state.completed_quest_ids,
@@ -202,6 +209,13 @@ func run() -> void:
 				true,
 				"S17 baseline should keep stability echo probe sampled"
 			)
+			_expect_frontline_action_console_interaction_advances(
+				loaded_world,
+				loaded_character,
+				"quest.confirm_supply_frontline_action",
+				"quest.inspect_supply_return_marker",
+				"S17 baseline"
+			)
 		if baseline_id == "baseline.s18_short_action_feedback_ready":
 			host._expect_array_has(
 				loaded_world.quest_state.completed_quest_ids,
@@ -239,6 +253,13 @@ func run() -> void:
 				bool(supply_marker_state.get("is_sampled", false)),
 				true,
 				"S18 baseline should keep supply marker sampled"
+			)
+			_expect_frontline_action_console_interaction_advances(
+				loaded_world,
+				loaded_character,
+				"quest.confirm_route_frontline_action",
+				"quest.inspect_route_signal_marker",
+				"S18 baseline"
 			)
 		if baseline_id == "baseline.s19_route_action_feedback_ready":
 			host._expect_array_has(
@@ -330,3 +351,43 @@ func run() -> void:
 					true,
 					"S20 baseline should keep %s sampled" % survey_node_id
 				)
+
+
+func _expect_frontline_action_console_interaction_advances(
+	world_state: WorldState,
+	character_state: CharacterState,
+	expected_completed_quest_id: String,
+	expected_next_quest_id: String,
+	label: String
+) -> void:
+	var interaction_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_success(interaction_result, "%s frontline action console interaction" % label)
+	if not bool(interaction_result.get("success", false)):
+		return
+	var quest_result := QuestRuntime.new(host.data_registry).advance_for_interaction(
+		world_state,
+		character_state,
+		{
+			"definition_id": BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+			"interaction_type": "inspect"
+		},
+		interaction_result
+	)
+	if not bool(quest_result.get("accepted", false)):
+		host.failures.append("%s frontline action console should advance quest runtime" % label)
+	host._expect_array_has(
+		world_state.quest_state.completed_quest_ids,
+		expected_completed_quest_id,
+		"%s should complete %s through real action console interaction" % [label, expected_completed_quest_id]
+	)
+	host._expect_array_has(
+		world_state.quest_state.active_quest_ids,
+		expected_next_quest_id,
+		"%s should activate %s through real action console interaction" % [label, expected_next_quest_id]
+	)

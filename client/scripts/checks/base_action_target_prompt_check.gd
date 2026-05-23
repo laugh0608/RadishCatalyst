@@ -98,6 +98,42 @@ func run() -> void:
 		"回基地用基础反应器解析补给收益",
 		"steady supply interaction result points to base analysis"
 	)
+	_expect_inspect_persists_sampled(
+		gather_system,
+		"map_object_instance.stability_echo_probe",
+		"map_object.stability_echo_probe",
+		"stability echo probe"
+	)
+	_expect_inspect_persists_sampled(
+		gather_system,
+		"map_object_instance.supply_return_marker",
+		"map_object.supply_return_marker",
+		"supply return marker"
+	)
+	_expect_inspect_persists_sampled(
+		gather_system,
+		"map_object_instance.route_signal_marker",
+		"map_object.route_signal_marker",
+		"route signal marker"
+	)
+	_expect_inspect_persists_sampled(
+		gather_system,
+		"map_object_instance.steady_supply_drop_marker",
+		"map_object.steady_supply_drop_marker",
+		"steady supply drop marker"
+	)
+	_expect_inspect_persists_sampled(
+		gather_system,
+		"map_object_instance.phase_survey_node_west",
+		"map_object.phase_survey_node_west",
+		"phase survey west node"
+	)
+	_expect_inspect_persists_sampled(
+		gather_system,
+		"map_object_instance.phase_survey_node_east",
+		"map_object.phase_survey_node_east",
+		"phase survey east node"
+	)
 	host._expect_text_contains(
 		String(gather_system.interact_with_object(
 			pressure_node.instance_id,
@@ -122,3 +158,25 @@ func _create_interactable(instance_id: String, definition_id: String, interactio
 	interactable.definition_id = definition_id
 	interactable.interaction_type = interaction_type
 	return interactable
+
+
+func _expect_inspect_persists_sampled(
+	gather_system: GatherSystem,
+	instance_id: String,
+	definition_id: String,
+	label: String
+) -> void:
+	var world_state := WorldState.create_default()
+	var result := gather_system.interact_with_object(
+		instance_id,
+		definition_id,
+		"inspect",
+		CharacterState.create_default(),
+		world_state
+	)
+	host._expect_equal(bool(result.get("success", false)), true, "%s inspect succeeds" % label)
+	host._expect_equal(
+		bool(world_state.get_map_object(instance_id).get("is_sampled", false)),
+		true,
+		"%s inspect persists sampled state for refreshed map visual" % label
+	)

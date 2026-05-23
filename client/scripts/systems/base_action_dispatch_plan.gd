@@ -34,8 +34,10 @@ const FRONTLINE_WINDOW_FEEDBACK_KEY := "frontline_window_feedback"
 const FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY := "frontline_window_feedback_acked"
 const FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY := "frontline_window_archived_plan_key"
 const FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY := "frontline_window_archived_feedback"
+const FRONTLINE_WINDOW_REVIEW_COUNT_KEY := "frontline_window_review_count"
 const FRONTLINE_WINDOW_OBJECT_ID := "map_object.prepared_frontline_window"
 const FRONTLINE_WINDOW_INSTANCE_ID := "map_object_instance.prepared_frontline_window"
+const FRONTLINE_WINDOW_REVIEW_LIMIT := 2
 const STATUS_READY := "ready"
 const STATUS_QUEUED := "queued"
 const STATUS_USED := "used"
@@ -97,6 +99,8 @@ static func is_frontline_action_console_ready(world_state: WorldState) -> bool:
 	if world_state != null and has_unreviewed_frontline_window_feedback(world_state):
 		return true
 	if world_state != null and not get_frontline_window_feedback(world_state).is_empty():
+		return false
+	if world_state != null and _has_reached_frontline_window_review_limit(world_state):
 		return false
 	return (
 		world_state != null
@@ -193,6 +197,9 @@ static func confirm_departure_preparation(world_state: WorldState) -> Array[Stri
 	if has_unreviewed_frontline_window_feedback(world_state):
 		messages.append("前线异常窗口反馈仍待归档：先在基地行动台按 E 归档本趟结果，再决定后续扩展。")
 		return messages
+	if _has_reached_frontline_window_review_limit(world_state):
+		messages.append("连续两轮窗口复盘已完成：当前原型到此收口，不再继续确认下一趟。")
+		return messages
 	var current_plan_key := get_current_plan_key(world_state)
 	if current_plan_key.is_empty():
 		current_plan_key = get_departure_plan_key(world_state)
@@ -278,6 +285,10 @@ static func acknowledge_frontline_window_feedback(world_state: WorldState) -> Ar
 		return messages
 	var feedback := get_frontline_window_feedback(world_state)
 	var plan_key := get_frontline_window_plan_key(world_state)
+	var had_legacy_archived_feedback := (
+		world_state.get_base_action_state_value(FRONTLINE_WINDOW_REVIEW_COUNT_KEY, null) == null
+		and not _get_archived_frontline_window_feedback(world_state).is_empty()
+	)
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY, true)
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY, plan_key)
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY, feedback)
@@ -286,6 +297,11 @@ static func acknowledge_frontline_window_feedback(world_state: WorldState) -> Ar
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_KEY, "")
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, "")
 	_clear_departure_confirmation_snapshot(world_state)
+	var review_count := _increment_frontline_window_review_count(world_state, had_legacy_archived_feedback)
+	if review_count >= FRONTLINE_WINDOW_REVIEW_LIMIT:
+		_clear_review_plan_slots(world_state)
+		messages.append("前线异常窗口反馈已归档：连续两轮窗口复盘已完成；当前原型到此收口，不再继续确认下一趟。")
+		return messages
 	_prepare_review_plan_slots(world_state, plan_key)
 	var current_plan := get_current_plan_key(world_state)
 	var next_candidate := get_next_plan_candidate_key(world_state)
@@ -471,6 +487,8 @@ static func _get_stage(world_state: WorldState) -> String:
 			return "frontline_window_return"
 		if has_unreviewed_frontline_window_feedback(world_state):
 			return "frontline_window_review"
+	if _has_reached_frontline_window_review_limit(world_state):
+		return "frontline_window_complete"
 	var preparation_stage := _get_current_preparation_stage(world_state)
 	if not preparation_stage.is_empty():
 		return preparation_stage
@@ -577,7 +595,7 @@ static func _format_direction(stage: String, world_state: WorldState) -> String:
 		"frontline_window_review":
 			return "前线异常窗口反馈已带回基地：在行动台按 E 归档本趟结果；归档后本轮原型收口，不会自动派发下一趟。"
 		"frontline_window_complete":
-			return "本趟窗口反馈已归档：回基地行动台查看复盘整备，下一趟仍需手动确认出发槽。"
+			return "连续两轮窗口复盘已完成：本轮原型到此收口，不再继续确认下一趟。"
 		"first_ready":
 			return "稳窗相位序已完成现场校准：回基地在行动台确认稳窗回访，把前线窗口转成下一趟外出目标。"
 		"first_dispatched":
@@ -694,7 +712,7 @@ static func _format_status_progress(stage: String, world_state: WorldState) -> S
 		"frontline_window_review":
 			return "本趟窗口反馈待归档；到基地行动台按 E 收口本轮结果"
 		"frontline_window_complete":
-			return "本轮同一前线窗口结果已归档；下一轮复盘整备等待行动台确认"
+			return "连续两轮窗口复盘已完成；行动台不再继续确认下一趟"
 		"choice_ready":
 			return "行动台待选择：稳场补给低风险；相位测绘给路线提示；压力清障高风险换防护"
 		"steady_supply_ready":
@@ -742,7 +760,7 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 			if feedback_lines.is_empty():
 				feedback_lines.append("前线窗口反馈：等待本趟窗口结果。")
 			if stage == "frontline_window_complete":
-				feedback_lines.append("下一步：在行动台确认复盘整备槽；不会自动派发下一趟。")
+				feedback_lines.append("阶段边界：连续两轮复盘已完成，不再继续确认下一趟。")
 			else:
 				feedback_lines.append("下一步：回基地行动台归档反馈，而不是继续确认下一轮出发。")
 			return feedback_lines
@@ -1008,6 +1026,42 @@ static func _prepare_review_plan_slots(world_state: WorldState, source_plan_key:
 	if next_candidate.is_empty() or next_candidate == current_plan:
 		next_candidate = _get_review_candidate_plan_key(source_plan_key, current_plan)
 	world_state.set_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, next_candidate)
+
+
+static func _clear_review_plan_slots(world_state: WorldState) -> void:
+	world_state.set_base_action_state_value(CURRENT_PLAN_KEY, "")
+	world_state.set_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, "")
+	world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, "")
+	world_state.set_base_action_state_value(SUPPLY_PACKAGE_STATUS_KEY, STATUS_USED)
+	world_state.set_base_action_state_value(SURVEY_INTEL_STATUS_KEY, STATUS_USED)
+	world_state.set_base_action_state_value(PRESSURE_CLEARANCE_STATUS_KEY, STATUS_USED)
+	_clear_departure_confirmation_snapshot(world_state)
+
+
+static func _increment_frontline_window_review_count(world_state: WorldState, had_legacy_archived_feedback: bool) -> int:
+	var explicit_count = world_state.get_base_action_state_value(FRONTLINE_WINDOW_REVIEW_COUNT_KEY, null)
+	var review_count := 1
+	if explicit_count != null:
+		review_count = int(explicit_count) + 1
+	elif had_legacy_archived_feedback:
+		review_count = FRONTLINE_WINDOW_REVIEW_LIMIT
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_REVIEW_COUNT_KEY, review_count)
+	return review_count
+
+
+static func _get_frontline_window_review_count(world_state: WorldState) -> int:
+	if world_state == null:
+		return 0
+	var explicit_count = world_state.get_base_action_state_value(FRONTLINE_WINDOW_REVIEW_COUNT_KEY, null)
+	if explicit_count != null:
+		return int(explicit_count)
+	if not _get_archived_frontline_window_feedback(world_state).is_empty():
+		return FRONTLINE_WINDOW_REVIEW_LIMIT
+	return 0
+
+
+static func _has_reached_frontline_window_review_limit(world_state: WorldState) -> bool:
+	return _get_frontline_window_review_count(world_state) >= FRONTLINE_WINDOW_REVIEW_LIMIT
 
 
 static func _get_review_current_plan_key(source_plan_key: String) -> String:

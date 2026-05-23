@@ -17,6 +17,8 @@ func run() -> void:
 	_check_phase_relay_pad_shows_confirmed_preparation()
 	_check_prepared_frontline_window_follows_confirmed_plan()
 	_check_frontline_window_stage_review_covers_all_plans()
+	_check_review_preparation_runs_two_window_cycles()
+	_check_legacy_archived_window_state_stops_loop()
 
 
 func _check_candidate_promotes_after_supply_departure() -> void:
@@ -436,6 +438,160 @@ func _check_frontline_window_stage_review_covers_all_plans() -> void:
 		"完成态收益：扰动残压已转成下一轮风险回落依据",
 		"行动台预告：残压已收束，补给候选可在低压窗口回收资源缓冲。",
 		"下一计划候选：信息侦测；窗口反馈预告：残压已收束，测绘候选可把低干扰路线转成目标预告"
+	)
+
+
+func _check_review_preparation_runs_two_window_cycles() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	var gather_system := GatherSystem.new(host.data_registry)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_STEADY_SUPPLY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+
+	var first_confirm := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(first_confirm.get("success", false)), true, "two-cycle review first confirmation succeeds")
+	BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	BaseActionDispatchPlan.resolve_frontline_window(world_state)
+	var first_review := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_text_contains(
+		String(first_review.get("message", "")),
+		"当前计划槽：信息侦测",
+		"two-cycle review archives first window and exposes promoted current plan"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt(BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID, world_state, character_state),
+		"前线窗口反馈：前线异常窗口已按低风险补给计划处理",
+		"two-cycle review keeps first archived feedback visible before second confirmation"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state).size(),
+		0,
+		"two-cycle review cannot launch second window before manual confirmation"
+	)
+
+	var second_confirm := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_text_contains(
+		String(second_confirm.get("message", "")),
+		"信息侦测计划",
+		"two-cycle review manually confirms the second departure slot"
+	)
+	var second_departure := BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	host._expect_equal(second_departure.size(), 2, "two-cycle review applies second confirmed departure")
+	host._expect_equal(
+		BaseActionDispatchPlan.get_frontline_window_plan_key(world_state),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"two-cycle review second window uses the confirmed survey plan"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(world_state),
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"two-cycle review promotes the next candidate after second departure"
+	)
+	BaseActionDispatchPlan.resolve_frontline_window(world_state)
+	var second_review_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		world_state,
+		character_state
+	)
+	host._expect_text_contains(
+		second_review_prompt,
+		"前线窗口反馈：前线异常窗口已按信息侦测计划处理",
+		"two-cycle review second resolved window replaces the visible feedback"
+	)
+	host._expect_text_contains(
+		second_review_prompt,
+		"完成态收益：路线读数已转成下一轮目标预告依据",
+		"two-cycle review second resolved window uses the second payoff"
+	)
+	var second_review := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_text_contains(
+		String(second_review.get("message", "")),
+		"连续两轮窗口复盘已完成",
+		"two-cycle review archives second feedback and stops the prototype loop"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.is_frontline_action_console_ready(world_state),
+		false,
+		"two-cycle review disables the action console after the second archive"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state).size(),
+		0,
+		"two-cycle review cannot launch a third window after completion"
+	)
+
+
+func _check_legacy_archived_window_state_stops_loop() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY, "旧版归档反馈")
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.PRESSURE_CLEARANCE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	host._expect_equal(
+		BaseActionDispatchPlan.is_frontline_action_console_ready(world_state),
+		false,
+		"legacy archived window state should not keep the action console in an endless loop"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_progress(world_state),
+		"行动台不再继续确认下一趟",
+		"legacy archived window state should present a completion status"
+	)
+	var confirm_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+	host._expect_text_contains(
+		" ".join(confirm_messages),
+		"连续两轮窗口复盘已完成",
+		"legacy archived window state blocks another departure confirmation"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state).size(),
+		0,
+		"legacy archived window state cannot execute another departure"
+	)
+
+	var resolving_world := WorldState.create_default()
+	resolving_world.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY, BaseActionDispatchPlan.PLAN_STEADY_SUPPLY)
+	resolving_world.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY, "旧版上一轮归档反馈")
+	resolving_world.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_STATUS_KEY, BaseActionDispatchPlan.STATUS_RESOLVED)
+	resolving_world.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_PLAN_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	resolving_world.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_FEEDBACK_KEY, "旧版当前窗口反馈")
+	resolving_world.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY, false)
+	var review_messages := BaseActionDispatchPlan.acknowledge_frontline_window_feedback(resolving_world)
+	host._expect_text_contains(
+		" ".join(review_messages),
+		"连续两轮窗口复盘已完成",
+		"legacy resolving window archive should stop immediately when an older archive already exists"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.is_frontline_action_console_ready(resolving_world),
+		false,
+		"legacy resolving window archive should not reopen action confirmation"
 	)
 
 

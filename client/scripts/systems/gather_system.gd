@@ -103,6 +103,10 @@ func interact_with_object(
 		var departure_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
 		if not departure_messages.is_empty():
 			return _success(" ".join(departure_messages))
+		var frontline_quest_id := BaseActionDispatchPlan.get_frontline_action_console_quest_id(world_state.quest_state)
+		if not frontline_quest_id.is_empty():
+			_set_map_object_flag(world_state, instance_id, definition_id, "is_sampled", true)
+			return _success(_format_frontline_action_console_result(frontline_quest_id))
 	if interaction_type == "inspect" and BaseActionDispatchPlan.is_plan_candidate_console_ready(definition_id, world_state):
 		var candidate_messages := BaseActionDispatchPlan.select_next_plan_candidate_for_console(definition_id, world_state)
 		if not candidate_messages.is_empty():
@@ -128,7 +132,7 @@ func interact_with_object(
 		"sample":
 			return _sample(instance_id, definition, character_state, world_state)
 		"clear":
-			world_state.set_map_object_flag(instance_id, "is_cleared", true)
+			_set_map_object_flag(world_state, instance_id, definition_id, "is_cleared", true)
 			if definition_id == "map_object.phase_well_anchor_pressure_pin":
 				return _success("锚场压力钉已清理：继续清掉剩余压力钉，井系守脉体会完全暴露。")
 			if definition_id == "map_object.phase_well_frame_route_blocker":
@@ -146,7 +150,7 @@ func interact_with_object(
 						"窗口未激活",
 						"先在基地前线行动台确认整备槽，再从相位回投台出发。"
 					)
-				world_state.set_map_object_flag(instance_id, "is_sampled", true)
+				_set_map_object_flag(world_state, instance_id, definition_id, "is_sampled", true)
 				var window_messages := BaseActionDispatchPlan.resolve_frontline_window(world_state)
 				if window_messages.is_empty():
 					return _failure(
@@ -156,14 +160,20 @@ func interact_with_object(
 					)
 				return _success(" ".join(window_messages))
 			if _is_persistent_field_reading(definition_id):
-				world_state.set_map_object_flag(instance_id, "is_sampled", true)
+				_set_map_object_flag(world_state, instance_id, definition_id, "is_sampled", true)
 				return _success(_format_field_reading_result(definition_id, world_state))
 			if definition_id == "map_object.steady_supply_drop_marker":
+				_set_map_object_flag(world_state, instance_id, definition_id, "is_sampled", true)
 				return _success("稳场补给回执已读取：回基地用基础反应器解析补给收益。")
 			if definition_id == "map_object.phase_survey_node_west":
+				_set_map_object_flag(world_state, instance_id, definition_id, "is_sampled", true)
 				return _success("西侧相位测绘读数已写入：继续读取东侧测绘点，再回基地解析路线提示。")
 			if definition_id == "map_object.phase_survey_node_east":
+				_set_map_object_flag(world_state, instance_id, definition_id, "is_sampled", true)
 				return _success("东侧相位测绘读数已写入：两处读数完成后回基地解析路线提示。")
+			if _is_frontline_single_use_reading(definition_id):
+				_set_map_object_flag(world_state, instance_id, definition_id, "is_sampled", true)
+				return _success(_format_frontline_single_use_reading_result(definition_id))
 			return _success("交互完成。")
 		_:
 			return _success("交互完成。")
@@ -197,7 +207,7 @@ func _interact_with_outpost_core(character_state: CharacterState, world_state: W
 func _gather(instance_id: String, definition: Dictionary, character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var rewards := _grant_refs(definition.get("drops", []), character_state)
 	var protection_drain := _apply_pollution_pressure(definition, character_state)
-	world_state.set_map_object_flag(instance_id, "is_gathered", true)
+	_set_map_object_flag(world_state, instance_id, String(definition.get("id", "")), "is_gathered", true)
 
 	var result_parts: Array[String] = []
 	if rewards.is_empty():
@@ -223,7 +233,7 @@ func _sample(instance_id: String, definition: Dictionary, character_state: Chara
 		character_state.inventory.add_ref(definition_id, 1)
 		rewards.append("%s x1" % _get_display_name(definition_id))
 
-	world_state.set_map_object_flag(instance_id, "is_sampled", true)
+	_set_map_object_flag(world_state, instance_id, String(definition.get("id", "")), "is_sampled", true)
 	if rewards.is_empty():
 		return _success("采样完成。")
 	return _success("采样完成：%s" % ", ".join(rewards))
@@ -311,6 +321,18 @@ func _get_display_name(definition_id: String) -> String:
 	return data_registry.get_text(String(definition.get("display_name_key", definition_id)))
 
 
+func _format_frontline_action_console_result(quest_id: String) -> String:
+	match quest_id:
+		"quest.plan_stability_frontline_action":
+			return "前线行动台已确认：用相位回投返回井系桥东侧，读取稳窗回波探点。"
+		"quest.confirm_supply_frontline_action":
+			return "补给短行动已确认：用相位回投返回井系桥前线，读取补给回执标记。"
+		"quest.confirm_route_frontline_action":
+			return "巡线短行动已确认：用相位回投返回井系桥前线，读取巡线信标。"
+		_:
+			return "前线行动台已确认。"
+
+
 func _supports_interaction(definition: Dictionary, interaction_type: String) -> bool:
 	var interaction_types: Array = definition.get("interaction_types", [])
 	return interaction_types.has(interaction_type)
@@ -375,6 +397,17 @@ func _is_already_processed(object_state: Dictionary, interaction_type: String) -
 			return false
 
 
+func _set_map_object_flag(
+	world_state: WorldState,
+	instance_id: String,
+	definition_id: String,
+	flag_name: String,
+	value: bool
+) -> void:
+	world_state.ensure_map_object(instance_id, definition_id)
+	world_state.set_map_object_flag(instance_id, flag_name, value)
+
+
 func _is_persistent_field_reading(definition_id: String) -> bool:
 	return (
 		definition_id == "map_object.phase_splinter_resonance_node"
@@ -384,6 +417,26 @@ func _is_persistent_field_reading(definition_id: String) -> bool:
 		or definition_id == "map_object.phase_well_loom_tension_spool"
 		or definition_id == "map_object.phase_well_tether_knot_node"
 	)
+
+
+func _is_frontline_single_use_reading(definition_id: String) -> bool:
+	return (
+		definition_id == "map_object.stability_echo_probe"
+		or definition_id == "map_object.supply_return_marker"
+		or definition_id == "map_object.route_signal_marker"
+	)
+
+
+func _format_frontline_single_use_reading_result(definition_id: String) -> String:
+	match definition_id:
+		"map_object.stability_echo_probe":
+			return "稳窗回波样本已读取：回基地用基础反应器解析前线行动回报。"
+		"map_object.supply_return_marker":
+			return "补给回执标记已读取：回基地用基础反应器解析短行动反馈。"
+		"map_object.route_signal_marker":
+			return "巡线信标已读取：回基地用基础反应器解析巡线反馈。"
+		_:
+			return "前线读点已读取。"
 
 
 func _format_field_reading_result(definition_id: String, world_state: WorldState) -> String:
