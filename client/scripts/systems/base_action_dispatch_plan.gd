@@ -916,21 +916,15 @@ static func _format_departure_plan_lines(plan_key: String, world_state: WorldSta
 	if preview.is_empty():
 		return []
 	var lines: Array[String] = [
-		"计划：%s；目标：%s；收益：%s。" % [
+		"计划：%s；模块：%s；风险：%s。" % [
 			String(preview.get("label", "")),
-			String(preview.get("target", "")),
-			String(preview.get("reward", ""))
-		],
-		"风险：%s；%s。" % [
-			String(preview.get("risk", "")),
-			String(preview.get("risk_detail", ""))
-		],
-		"风险拆解：%s。" % String(preview.get("risk_profile", "")),
-		"代价：%s。" % String(preview.get("cost", "")),
-		"轻量整备模块：%s；效果：%s。" % [
 			String(preview.get("module", "")),
-			String(preview.get("module_effect", ""))
-		]
+			String(preview.get("risk", ""))
+		],
+		"风险拆解：%s；说明：%s。" % [String(preview.get("risk_profile", "")), String(preview.get("risk_detail", ""))],
+		"目标：%s。" % String(preview.get("target", "")),
+		"收益：%s；代价：%s。" % [String(preview.get("reward", "")), String(preview.get("cost", ""))],
+		"模块效果：%s。" % String(preview.get("module_effect", ""))
 	]
 	var feedback_note := _format_window_feedback_plan_note(world_state, plan_key)
 	if not feedback_note.is_empty():
@@ -1266,14 +1260,14 @@ static func _format_choice_preview_line(prefix: String, plan_key: String) -> Str
 	var preview := _get_plan_preview(plan_key)
 	if preview.is_empty():
 		return "%s：未定计划。" % prefix
-	return "%s：%s；模块：%s；目标：%s；收益：%s；风险：%s；拆解：%s；代价：整备槽。" % [
+	return "%s：%s；模块：%s；风险：%s。\n风险拆解：%s。\n目标：%s；收益：%s；代价：整备槽。" % [
 		prefix,
 		String(preview.get("choice_label", preview.get("label", ""))),
 		String(preview.get("module", "")),
-		String(preview.get("target", "")),
-		String(preview.get("reward", "")),
 		String(preview.get("risk", "")),
-		String(preview.get("risk_profile", ""))
+		String(preview.get("risk_profile", "")),
+		String(preview.get("target", "")),
+		String(preview.get("reward", ""))
 	]
 
 
@@ -1281,16 +1275,16 @@ static func _format_candidate_preview(plan_key: String, world_state: WorldState 
 	var preview := _get_plan_preview(plan_key)
 	if preview.is_empty():
 		return "未定计划"
-	var text := "%s；模块：%s；收益：%s；风险：%s；拆解：%s；代价：整备槽" % [
+	var text := "%s；模块：%s；风险：%s\n风险拆解：%s\n收益：%s；代价：整备槽" % [
 		String(preview.get("label", "")),
 		String(preview.get("module", "")),
-		String(preview.get("reward", "")),
 		String(preview.get("risk", "")),
-		String(preview.get("risk_profile", ""))
+		String(preview.get("risk_profile", "")),
+		String(preview.get("reward", ""))
 	]
 	var feedback_note := _format_window_feedback_plan_note(world_state, plan_key)
 	if not feedback_note.is_empty():
-		text = "%s；窗口反馈：%s" % [text, feedback_note]
+		text = "%s\n窗口反馈：%s" % [text, feedback_note]
 	return text
 
 
@@ -1298,12 +1292,12 @@ static func _format_relay_preparation_preview(world_state: WorldState, plan_key:
 	var preview := _get_departure_confirmation_preview(world_state, plan_key)
 	if preview.is_empty():
 		return ""
-	return "本次整备：%s已确认；模块：%s；收益：%s；风险：%s；拆解：%s；代价：%s" % [
+	return "本次整备：%s已确认；模块：%s；风险：%s\n风险拆解：%s\n收益：%s；代价：%s" % [
 		String(preview.get("label", "")),
 		String(preview.get("module", "")),
-		String(preview.get("reward", "")),
 		String(preview.get("risk", "")),
 		String(preview.get("risk_profile", "")),
+		String(preview.get("reward", "")),
 		String(preview.get("cost", ""))
 	]
 
@@ -1379,13 +1373,13 @@ static func _format_departure_confirmation_message(plan_key: String) -> String:
 	var preview := _get_plan_preview(plan_key)
 	if preview.is_empty():
 		return "出发整备槽已确认：未定计划。"
-	return "出发整备槽已确认：%s计划；轻量整备模块：%s；目标：%s；收益：%s；风险：%s；风险拆解：%s；代价：%s。" % [
+	return "出发整备槽已确认：%s计划；模块：%s；风险：%s。\n风险拆解：%s。\n目标：%s；收益：%s；代价：%s。" % [
 		String(preview.get("label", "")),
 		String(preview.get("module", "")),
-		String(preview.get("target", "")),
-		String(preview.get("reward", "")),
 		String(preview.get("risk", "")),
 		String(preview.get("risk_profile", "")),
+		String(preview.get("target", "")),
+		String(preview.get("reward", "")),
 		String(preview.get("cost", ""))
 	]
 
