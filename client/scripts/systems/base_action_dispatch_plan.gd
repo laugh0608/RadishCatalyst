@@ -946,6 +946,9 @@ static func _format_plan_queue_lines(world_state: WorldState) -> Array[String]:
 			lines.append("下一计划候选：%s；可在对应方案终端替换。" % _format_plan_label(next_candidate))
 		else:
 			lines.append("下一计划候选：%s；窗口反馈预告：%s；可在对应方案终端替换。" % [_format_plan_label(next_candidate), feedback_note])
+		var decision_note := _format_candidate_decision_note(world_state, next_candidate)
+		if not decision_note.is_empty():
+			lines.append("候选判断：%s" % decision_note)
 	return lines
 
 
@@ -1085,9 +1088,38 @@ static func _format_window_feedback_carryover_line(world_state: WorldState, plan
 
 
 static func _format_candidate_console_action_line(plan_key: String, world_state: WorldState) -> String:
+	var decision_note := _format_candidate_decision_note(world_state, plan_key)
+	if not decision_note.is_empty():
+		decision_note = "\n候选判断：%s" % decision_note
 	if get_next_plan_candidate_key(world_state) == plan_key:
-		return "下一计划候选已是：%s。" % _format_candidate_preview(plan_key, world_state)
-	return "按 E 替换下一计划候选：%s。" % _format_candidate_preview(plan_key, world_state)
+		return "下一计划候选已是：%s。%s" % [_format_candidate_preview(plan_key, world_state), decision_note]
+	return "按 E 替换下一计划候选：%s。%s" % [_format_candidate_preview(plan_key, world_state), decision_note]
+
+
+static func _format_candidate_decision_note(world_state: WorldState, candidate_plan_key: String) -> String:
+	if world_state == null or not _is_known_plan_key(candidate_plan_key):
+		return ""
+	var current_plan := get_current_plan_key(world_state)
+	var current_label := _format_plan_label(current_plan)
+	var candidate_label := _format_plan_label(candidate_plan_key)
+	var prefix := "保留%s" % candidate_label
+	if candidate_plan_key != get_next_plan_candidate_key(world_state):
+		prefix = "替换为%s" % candidate_label
+	var basis := ""
+	match candidate_plan_key:
+		PLAN_STEADY_SUPPLY:
+			basis = "目标密度低，适合把当前%s后的空档转成资源缓冲" % current_label
+		PLAN_PHASE_SURVEY:
+			basis = "目标密度中，适合把当前%s后的反馈转成路线和目标预告" % current_label
+		PLAN_PRESSURE_CLEARANCE:
+			basis = "路线扰动高、防护消耗中，适合在当前%s后集中处理已知扰点" % current_label
+	if _get_resolved_frontline_window_plan_key(world_state) == PLAN_PRESSURE_CLEARANCE and candidate_plan_key == PLAN_PRESSURE_CLEARANCE:
+		basis = "残压已回落，继续清障只保留中等防护消耗，不会打开新循环"
+	if _get_resolved_frontline_window_plan_key(world_state) == PLAN_PHASE_SURVEY and candidate_plan_key == PLAN_STEADY_SUPPLY:
+		basis = "路线已显形，低风险补给可贴近西侧边界回收资源"
+	if _get_resolved_frontline_window_plan_key(world_state) == PLAN_STEADY_SUPPLY and candidate_plan_key == PLAN_PHASE_SURVEY:
+		basis = "资源缓冲已归档，测绘两点往返有补给兜底"
+	return "%s：%s；不影响当前出发整备槽。" % [prefix, basis]
 
 
 static func _set_current_plan_slot(world_state: WorldState, plan_key: String) -> void:
