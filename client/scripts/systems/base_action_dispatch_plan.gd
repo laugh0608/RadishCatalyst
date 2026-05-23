@@ -32,6 +32,8 @@ const FRONTLINE_WINDOW_STATUS_KEY := "frontline_window_status"
 const FRONTLINE_WINDOW_PLAN_KEY := "frontline_window_plan_key"
 const FRONTLINE_WINDOW_FEEDBACK_KEY := "frontline_window_feedback"
 const FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY := "frontline_window_feedback_acked"
+const FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY := "frontline_window_archived_plan_key"
+const FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY := "frontline_window_archived_feedback"
 const FRONTLINE_WINDOW_OBJECT_ID := "map_object.prepared_frontline_window"
 const FRONTLINE_WINDOW_INSTANCE_ID := "map_object_instance.prepared_frontline_window"
 const STATUS_READY := "ready"
@@ -191,9 +193,6 @@ static func confirm_departure_preparation(world_state: WorldState) -> Array[Stri
 	if has_unreviewed_frontline_window_feedback(world_state):
 		messages.append("前线异常窗口反馈仍待归档：先在基地行动台按 E 归档本趟结果，再决定后续扩展。")
 		return messages
-	if not get_frontline_window_feedback(world_state).is_empty():
-		messages.append("本轮整备窗口反馈已归档：当前原型到此收口，不再自动派发下一趟。")
-		return messages
 	var current_plan_key := get_current_plan_key(world_state)
 	if current_plan_key.is_empty():
 		current_plan_key = get_departure_plan_key(world_state)
@@ -277,12 +276,23 @@ static func acknowledge_frontline_window_feedback(world_state: WorldState) -> Ar
 	var messages: Array[String] = []
 	if world_state == null or not has_unreviewed_frontline_window_feedback(world_state):
 		return messages
+	var feedback := get_frontline_window_feedback(world_state)
+	var plan_key := get_frontline_window_plan_key(world_state)
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY, true)
-	world_state.set_base_action_state_value(CURRENT_PLAN_KEY, "")
-	world_state.set_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, "")
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY, plan_key)
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY, feedback)
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_STATUS_KEY, "")
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_PLAN_KEY, "")
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_KEY, "")
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, "")
 	_clear_departure_confirmation_snapshot(world_state)
-	messages.append("前线异常窗口反馈已归档：本轮整备结果已经进入行动台记录；当前原型到此收口，不再自动派发下一趟。")
+	_prepare_review_plan_slots(world_state, plan_key)
+	var current_plan := get_current_plan_key(world_state)
+	var next_candidate := get_next_plan_candidate_key(world_state)
+	messages.append("前线异常窗口反馈已归档：本轮整备结果已经进入行动台记录；当前计划槽：%s；下一计划候选：%s。下一趟仍需在行动台确认整备槽，不会自动派发。" % [
+		_format_plan_label(current_plan),
+		_format_plan_label(next_candidate)
+	])
 	return messages
 
 
@@ -461,7 +471,6 @@ static func _get_stage(world_state: WorldState) -> String:
 			return "frontline_window_return"
 		if has_unreviewed_frontline_window_feedback(world_state):
 			return "frontline_window_review"
-		return "frontline_window_complete"
 	var preparation_stage := _get_current_preparation_stage(world_state)
 	if not preparation_stage.is_empty():
 		return preparation_stage
@@ -568,7 +577,7 @@ static func _format_direction(stage: String, world_state: WorldState) -> String:
 		"frontline_window_review":
 			return "前线异常窗口反馈已带回基地：在行动台按 E 归档本趟结果；归档后本轮原型收口，不会自动派发下一趟。"
 		"frontline_window_complete":
-			return "本趟窗口反馈已归档：当前整备结果驱动同一前线窗口原型到此收口，后续扩展再决定下一组基地行动。"
+			return "本趟窗口反馈已归档：回基地行动台查看复盘整备，下一趟仍需手动确认出发槽。"
 		"first_ready":
 			return "稳窗相位序已完成现场校准：回基地在行动台确认稳窗回访，把前线窗口转成下一趟外出目标。"
 		"first_dispatched":
@@ -685,7 +694,7 @@ static func _format_status_progress(stage: String, world_state: WorldState) -> S
 		"frontline_window_review":
 			return "本趟窗口反馈待归档；到基地行动台按 E 收口本轮结果"
 		"frontline_window_complete":
-			return "本轮同一前线窗口结果已归档；当前原型不再自动派发下一趟"
+			return "本轮同一前线窗口结果已归档；下一轮复盘整备等待行动台确认"
 		"choice_ready":
 			return "行动台待选择：稳场补给低风险；相位测绘给路线提示；压力清障高风险换防护"
 		"steady_supply_ready":
@@ -733,7 +742,7 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 			if feedback_lines.is_empty():
 				feedback_lines.append("前线窗口反馈：等待本趟窗口结果。")
 			if stage == "frontline_window_complete":
-				feedback_lines.append("阶段边界：本轮原型已收口，不自动确认下一趟。")
+				feedback_lines.append("下一步：在行动台确认复盘整备槽；不会自动派发下一趟。")
 			else:
 				feedback_lines.append("下一步：回基地行动台归档反馈，而不是继续确认下一轮出发。")
 			return feedback_lines
@@ -901,6 +910,8 @@ static func _format_plan_queue_lines(world_state: WorldState) -> Array[String]:
 static func _format_frontline_window_feedback_lines(world_state: WorldState) -> Array[String]:
 	var feedback := get_frontline_window_feedback(world_state)
 	if feedback.is_empty():
+		feedback = _get_archived_frontline_window_feedback(world_state)
+	if feedback.is_empty():
 		return []
 	var lines: Array[String] = ["前线窗口反馈：%s" % feedback]
 	var payoff := _format_frontline_window_completion_payoff(world_state)
@@ -910,9 +921,25 @@ static func _format_frontline_window_feedback_lines(world_state: WorldState) -> 
 
 
 static func _get_resolved_frontline_window_plan_key(world_state: WorldState) -> String:
-	if get_frontline_window_feedback(world_state).is_empty():
+	var plan_key := get_frontline_window_plan_key(world_state)
+	if not get_frontline_window_feedback(world_state).is_empty() and not plan_key.is_empty():
+		return plan_key
+	return _get_archived_frontline_window_plan_key(world_state)
+
+
+static func _get_archived_frontline_window_feedback(world_state: WorldState) -> String:
+	if world_state == null:
 		return ""
-	return get_frontline_window_plan_key(world_state)
+	return String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY, ""))
+
+
+static func _get_archived_frontline_window_plan_key(world_state: WorldState) -> String:
+	if world_state == null:
+		return ""
+	var plan_key := String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY, ""))
+	if _is_known_plan_key(plan_key):
+		return plan_key
+	return ""
 
 
 static func _format_frontline_window_completion_payoff(world_state: WorldState) -> String:
@@ -965,6 +992,47 @@ static func _set_current_plan_slot(world_state: WorldState, plan_key: String) ->
 	world_state.set_base_action_state_value(CURRENT_PLAN_KEY, plan_key)
 	if String(world_state.get_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, "")).is_empty():
 		world_state.set_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, _get_alternate_plan_key(plan_key))
+
+
+static func _prepare_review_plan_slots(world_state: WorldState, source_plan_key: String) -> void:
+	var current_plan := get_current_plan_key(world_state)
+	if current_plan.is_empty():
+		current_plan = _get_review_current_plan_key(source_plan_key)
+	if current_plan.is_empty():
+		current_plan = _get_alternate_plan_key(source_plan_key)
+	if current_plan.is_empty():
+		return
+	_set_plan_status(world_state, current_plan, STATUS_READY)
+	world_state.set_base_action_state_value(CURRENT_PLAN_KEY, current_plan)
+	var next_candidate := get_next_plan_candidate_key(world_state)
+	if next_candidate.is_empty() or next_candidate == current_plan:
+		next_candidate = _get_review_candidate_plan_key(source_plan_key, current_plan)
+	world_state.set_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, next_candidate)
+
+
+static func _get_review_current_plan_key(source_plan_key: String) -> String:
+	match source_plan_key:
+		PLAN_STEADY_SUPPLY:
+			return PLAN_STEADY_SUPPLY
+		PLAN_PHASE_SURVEY:
+			return PLAN_PHASE_SURVEY
+		PLAN_PRESSURE_CLEARANCE:
+			return PLAN_STEADY_SUPPLY
+	return PLAN_STEADY_SUPPLY
+
+
+static func _get_review_candidate_plan_key(source_plan_key: String, current_plan_key: String) -> String:
+	match source_plan_key:
+		PLAN_STEADY_SUPPLY:
+			return PLAN_PHASE_SURVEY
+		PLAN_PHASE_SURVEY:
+			return PLAN_STEADY_SUPPLY
+		PLAN_PRESSURE_CLEARANCE:
+			return PLAN_PRESSURE_CLEARANCE
+	var alternate := _get_alternate_plan_key(current_plan_key)
+	if alternate.is_empty():
+		return PLAN_PHASE_SURVEY
+	return alternate
 
 
 static func _can_replace_next_plan_candidate(world_state: WorldState) -> bool:

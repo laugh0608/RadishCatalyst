@@ -178,18 +178,18 @@ func _check_promoted_plan_passes_next_preparation_cycle() -> void:
 	host._expect_equal(bool(second_confirm_result.get("success", false)), true, "preparation review promoted action console confirmation succeeds")
 	host._expect_text_contains(
 		String(second_confirm_result.get("message", "")),
-		"当前原型到此收口",
-		"preparation review records window feedback instead of confirming another departure"
+		"下一趟仍需在行动台确认整备槽",
+		"preparation review records window feedback and opens manual review preparation"
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.is_frontline_action_console_ready(world_state),
-		false,
-		"preparation review stops action console after feedback acknowledgement"
+		true,
+		"preparation review leaves action console ready for manual next confirmation"
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.format_status_progress(world_state),
-		"本轮同一前线窗口结果已归档；当前原型不再自动派发下一趟",
-		"preparation review leaves a clear completion state"
+		"相位测绘反馈已归档；到前线行动台按 E 确认测绘路线整备槽",
+		"preparation review leaves the promoted plan waiting for manual confirmation"
 	)
 
 
@@ -399,13 +399,18 @@ func _check_prepared_frontline_window_follows_confirmed_plan() -> void:
 	)
 	host._expect_text_contains(
 		String(review_result.get("message", "")),
-		"当前原型到此收口",
-		"action console acknowledgement stops automatic loop"
+		"下一趟仍需在行动台确认整备槽",
+		"action console acknowledgement opens manual review preparation"
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.is_frontline_action_console_ready(world_state),
-		false,
-		"acknowledged frontline window feedback disables next automatic confirmation"
+		true,
+		"acknowledged frontline window feedback keeps next preparation manual"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state).size(),
+		0,
+		"acknowledged frontline window feedback does not auto-dispatch without confirmation"
 	)
 	window.free()
 
@@ -494,13 +499,18 @@ func _expect_frontline_window_stage_review(
 	)
 	host._expect_text_contains(
 		String(review_result.get("message", "")),
-		"当前原型到此收口",
-		"stage review archives feedback instead of launching next departure for %s" % executed_plan_key
+		"下一趟仍需在行动台确认整备槽",
+		"stage review archives feedback and waits for manual confirmation for %s" % executed_plan_key
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.is_frontline_action_console_ready(world_state),
-		false,
-		"stage review disables automatic next confirmation for %s" % executed_plan_key
+		true,
+		"stage review keeps manual next confirmation available for %s" % executed_plan_key
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state).size(),
+		0,
+		"stage review does not execute the next plan before confirmation for %s" % executed_plan_key
 	)
 
 
