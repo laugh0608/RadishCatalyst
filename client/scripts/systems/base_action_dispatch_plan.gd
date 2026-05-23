@@ -27,12 +27,18 @@ const DEPARTURE_PLAN_TARGET_KEY := "departure_plan_target"
 const DEPARTURE_PLAN_REWARD_KEY := "departure_plan_reward"
 const DEPARTURE_PLAN_RISK_KEY := "departure_plan_risk"
 const DEPARTURE_PLAN_COST_KEY := "departure_plan_cost"
+const DEPARTURE_PLAN_MODULE_KEY := "departure_plan_module"
+const DEPARTURE_PLAN_MODULE_EFFECT_KEY := "departure_plan_module_effect"
 const LAST_DEPARTURE_PLAN_KEY := "last_departure_plan_key"
 const FRONTLINE_WINDOW_STATUS_KEY := "frontline_window_status"
 const FRONTLINE_WINDOW_PLAN_KEY := "frontline_window_plan_key"
+const FRONTLINE_WINDOW_MODULE_KEY := "frontline_window_module"
+const FRONTLINE_WINDOW_MODULE_EFFECT_KEY := "frontline_window_module_effect"
 const FRONTLINE_WINDOW_FEEDBACK_KEY := "frontline_window_feedback"
 const FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY := "frontline_window_feedback_acked"
 const FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY := "frontline_window_archived_plan_key"
+const FRONTLINE_WINDOW_ARCHIVED_MODULE_KEY := "frontline_window_archived_module"
+const FRONTLINE_WINDOW_ARCHIVED_MODULE_EFFECT_KEY := "frontline_window_archived_module_effect"
 const FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY := "frontline_window_archived_feedback"
 const FRONTLINE_WINDOW_REVIEW_COUNT_KEY := "frontline_window_review_count"
 const FRONTLINE_WINDOW_OBJECT_ID := "map_object.prepared_frontline_window"
@@ -59,7 +65,9 @@ const PLAN_PREVIEWS := {
 		"reward": "基础零件 +2、修复凝胶 +1",
 		"risk": "低",
 		"risk_detail": "不增加前线读点，适合补资源缓冲",
-		"cost": "占用本次出发整备槽，回投时一次性消耗"
+		"cost": "占用本次出发整备槽，回投时一次性消耗",
+		"module": "稳相垫片",
+		"module_effect": "减少窗口抖动，稳定样本更容易转成下一轮资源缓冲"
 	},
 	PLAN_PHASE_SURVEY: {
 		"label": "信息侦测",
@@ -68,7 +76,9 @@ const PLAN_PREVIEWS := {
 		"reward": "目标显形和路线风险预告",
 		"risk": "中",
 		"risk_detail": "需要按低压读数线避开东侧短时扰动",
-		"cost": "占用本次出发整备槽，不额外发放资源"
+		"cost": "占用本次出发整备槽，不额外发放资源",
+		"module": "回波透镜",
+		"module_effect": "放大测绘回波，下一轮候选会更明确目标预告"
 	},
 	PLAN_PRESSURE_CLEARANCE: {
 		"label": "压力清障",
@@ -77,7 +87,9 @@ const PLAN_PREVIEWS := {
 		"reward": "修复凝胶 +1、抗污染药剂 +1",
 		"risk": "高",
 		"risk_detail": "需要处理一处高压扰点",
-		"cost": "占用本次出发整备槽，回投时一次性装入"
+		"cost": "占用本次出发整备槽，回投时一次性装入",
+		"module": "防护涂层",
+		"module_effect": "先给清障防护窗口，再处理扰点风险"
 	}
 }
 
@@ -291,9 +303,13 @@ static func acknowledge_frontline_window_feedback(world_state: WorldState) -> Ar
 	)
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY, true)
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY, plan_key)
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_ARCHIVED_MODULE_KEY, String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_MODULE_KEY, "")))
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_ARCHIVED_MODULE_EFFECT_KEY, String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_MODULE_EFFECT_KEY, "")))
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY, feedback)
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_STATUS_KEY, "")
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_PLAN_KEY, "")
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_MODULE_KEY, "")
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_MODULE_EFFECT_KEY, "")
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_KEY, "")
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, "")
 	_clear_departure_confirmation_snapshot(world_state)
@@ -341,11 +357,13 @@ static func format_frontline_window_prompt(world_state: WorldState) -> String:
 	if status != STATUS_ACTIVE or plan_key.is_empty():
 		return "前线异常窗口：等待相位回投执行已确认整备槽。"
 	var preview := _get_plan_preview(plan_key)
-	return "前线异常窗口：已载入%s计划。\n目标：%s。\n收益：%s；风险：%s。\n按 E 处理窗口。" % [
+	var module_line := _format_frontline_window_module_line(world_state, preview)
+	return "前线异常窗口：已载入%s计划。\n目标：%s。\n收益：%s；风险：%s。%s\n按 E 处理窗口。" % [
 		String(preview.get("label", "")),
 		String(preview.get("target", "")),
 		String(preview.get("reward", "")),
-		String(preview.get("risk", ""))
+		String(preview.get("risk", "")),
+		module_line
 	]
 
 
@@ -902,7 +920,11 @@ static func _format_departure_plan_lines(plan_key: String, world_state: WorldSta
 			String(preview.get("risk", "")),
 			String(preview.get("risk_detail", ""))
 		],
-		"代价：%s。" % String(preview.get("cost", ""))
+		"代价：%s。" % String(preview.get("cost", "")),
+		"轻量整备模块：%s；效果：%s。" % [
+			String(preview.get("module", "")),
+			String(preview.get("module_effect", ""))
+		]
 	]
 	var feedback_note := _format_window_feedback_plan_note(world_state, plan_key)
 	if not feedback_note.is_empty():
@@ -932,6 +954,9 @@ static func _format_frontline_window_feedback_lines(world_state: WorldState) -> 
 	if feedback.is_empty():
 		return []
 	var lines: Array[String] = ["前线窗口反馈：%s" % feedback]
+	var module_line := _format_resolved_frontline_window_module_line(world_state)
+	if not module_line.is_empty():
+		lines.append(module_line)
 	var payoff := _format_frontline_window_completion_payoff(world_state)
 	if not payoff.is_empty():
 		lines.append("完成态收益：%s" % payoff)
@@ -969,6 +994,32 @@ static func _format_frontline_window_completion_payoff(world_state: WorldState) 
 		PLAN_PRESSURE_CLEARANCE:
 			return "扰动残压已转成下一轮风险回落依据，可支撑低压补给、测绘预告或继续防护清障。"
 	return ""
+
+
+static func _format_frontline_window_module_line(world_state: WorldState, fallback_preview: Dictionary) -> String:
+	var module := String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_MODULE_KEY, ""))
+	var module_effect := String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_MODULE_EFFECT_KEY, ""))
+	if module.is_empty():
+		module = String(fallback_preview.get("module", ""))
+	if module_effect.is_empty():
+		module_effect = String(fallback_preview.get("module_effect", ""))
+	if module.is_empty() or module_effect.is_empty():
+		return ""
+	return "\n轻量整备模块：%s；效果：%s。" % [module, module_effect]
+
+
+static func _format_resolved_frontline_window_module_line(world_state: WorldState) -> String:
+	if world_state == null:
+		return ""
+	var module := String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_MODULE_KEY, ""))
+	var module_effect := String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_MODULE_EFFECT_KEY, ""))
+	if module.is_empty():
+		module = String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_ARCHIVED_MODULE_KEY, ""))
+	if module_effect.is_empty():
+		module_effect = String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_ARCHIVED_MODULE_EFFECT_KEY, ""))
+	if module.is_empty() or module_effect.is_empty():
+		return ""
+	return "轻量整备模块：%s；效果：%s" % [module, module_effect]
 
 
 static func _format_window_feedback_plan_note(world_state: WorldState, plan_key: String) -> String:
@@ -1160,8 +1211,11 @@ static func _promote_next_plan_candidate(world_state: WorldState, executed_plan_
 
 
 static func _activate_frontline_window(world_state: WorldState, plan_key: String) -> void:
+	var preview := _get_departure_confirmation_preview(world_state, plan_key)
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_STATUS_KEY, STATUS_ACTIVE)
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_PLAN_KEY, plan_key)
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_MODULE_KEY, String(preview.get("module", "")))
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_MODULE_EFFECT_KEY, String(preview.get("module_effect", "")))
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_KEY, "")
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY, false)
 	if world_state.map_objects.has(FRONTLINE_WINDOW_INSTANCE_ID):
@@ -1172,11 +1226,11 @@ static func _activate_frontline_window(world_state: WorldState, plan_key: String
 static func _format_frontline_window_resolution_message(plan_key: String) -> String:
 	match plan_key:
 		PLAN_STEADY_SUPPLY:
-			return "前线异常窗口已按低风险补给计划处理：稳定样本已归档，回基地行动台可把它作为下一轮资源缓冲依据。"
+			return "前线异常窗口已按低风险补给计划处理：稳相垫片让稳定样本更容易归档，回基地行动台可把它作为下一轮资源缓冲依据。"
 		PLAN_PHASE_SURVEY:
-			return "前线异常窗口已按信息侦测计划处理：路线读数已归档，回基地行动台可把它作为下一轮目标预告依据。"
+			return "前线异常窗口已按信息侦测计划处理：回波透镜放大了路线读数，回基地行动台可把它作为下一轮目标预告依据。"
 		PLAN_PRESSURE_CLEARANCE:
-			return "前线异常窗口已按压力清障计划处理：扰动残压已归档，回基地行动台可把它作为下一轮防护整备依据。"
+			return "前线异常窗口已按压力清障计划处理：防护涂层先接住扰动残压，回基地行动台可把它作为下一轮防护整备依据。"
 		_:
 			return "前线异常窗口已处理：返回基地行动台安排下一轮。"
 
@@ -1206,9 +1260,10 @@ static func _format_choice_preview_line(prefix: String, plan_key: String) -> Str
 	var preview := _get_plan_preview(plan_key)
 	if preview.is_empty():
 		return "%s：未定计划。" % prefix
-	return "%s：%s；目标：%s；收益：%s；风险：%s；代价：整备槽。" % [
+	return "%s：%s；模块：%s；目标：%s；收益：%s；风险：%s；代价：整备槽。" % [
 		prefix,
 		String(preview.get("choice_label", preview.get("label", ""))),
+		String(preview.get("module", "")),
 		String(preview.get("target", "")),
 		String(preview.get("reward", "")),
 		String(preview.get("risk", ""))
@@ -1219,8 +1274,9 @@ static func _format_candidate_preview(plan_key: String, world_state: WorldState 
 	var preview := _get_plan_preview(plan_key)
 	if preview.is_empty():
 		return "未定计划"
-	var text := "%s；收益：%s；风险：%s；代价：整备槽" % [
+	var text := "%s；模块：%s；收益：%s；风险：%s；代价：整备槽" % [
 		String(preview.get("label", "")),
+		String(preview.get("module", "")),
 		String(preview.get("reward", "")),
 		String(preview.get("risk", ""))
 	]
@@ -1234,8 +1290,9 @@ static func _format_relay_preparation_preview(world_state: WorldState, plan_key:
 	var preview := _get_departure_confirmation_preview(world_state, plan_key)
 	if preview.is_empty():
 		return ""
-	return "本次整备：%s已确认；收益：%s；风险：%s；代价：%s" % [
+	return "本次整备：%s已确认；模块：%s；收益：%s；风险：%s；代价：%s" % [
 		String(preview.get("label", "")),
+		String(preview.get("module", "")),
 		String(preview.get("reward", "")),
 		String(preview.get("risk", "")),
 		String(preview.get("cost", ""))
@@ -1266,6 +1323,8 @@ static func _set_departure_confirmation_snapshot(world_state: WorldState, plan_k
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_REWARD_KEY, String(preview.get("reward", "")))
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_RISK_KEY, String(preview.get("risk", "")))
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_COST_KEY, String(preview.get("cost", "")))
+	world_state.set_base_action_state_value(DEPARTURE_PLAN_MODULE_KEY, String(preview.get("module", "")))
+	world_state.set_base_action_state_value(DEPARTURE_PLAN_MODULE_EFFECT_KEY, String(preview.get("module_effect", "")))
 
 
 static func _clear_departure_confirmation_snapshot(world_state: WorldState) -> void:
@@ -1273,6 +1332,8 @@ static func _clear_departure_confirmation_snapshot(world_state: WorldState) -> v
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_REWARD_KEY, "")
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_RISK_KEY, "")
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_COST_KEY, "")
+	world_state.set_base_action_state_value(DEPARTURE_PLAN_MODULE_KEY, "")
+	world_state.set_base_action_state_value(DEPARTURE_PLAN_MODULE_EFFECT_KEY, "")
 
 
 static func _get_departure_confirmation_preview(world_state: WorldState, plan_key: String) -> Dictionary:
@@ -1283,6 +1344,8 @@ static func _get_departure_confirmation_preview(world_state: WorldState, plan_ke
 	var reward := String(world_state.get_base_action_state_value(DEPARTURE_PLAN_REWARD_KEY, ""))
 	var risk := String(world_state.get_base_action_state_value(DEPARTURE_PLAN_RISK_KEY, ""))
 	var cost := String(world_state.get_base_action_state_value(DEPARTURE_PLAN_COST_KEY, ""))
+	var module := String(world_state.get_base_action_state_value(DEPARTURE_PLAN_MODULE_KEY, ""))
+	var module_effect := String(world_state.get_base_action_state_value(DEPARTURE_PLAN_MODULE_EFFECT_KEY, ""))
 	if not target.is_empty():
 		preview["target"] = target
 	if not reward.is_empty():
@@ -1291,6 +1354,10 @@ static func _get_departure_confirmation_preview(world_state: WorldState, plan_ke
 		preview["risk"] = risk
 	if not cost.is_empty():
 		preview["cost"] = cost
+	if not module.is_empty():
+		preview["module"] = module
+	if not module_effect.is_empty():
+		preview["module_effect"] = module_effect
 	return preview
 
 
@@ -1298,8 +1365,9 @@ static func _format_departure_confirmation_message(plan_key: String) -> String:
 	var preview := _get_plan_preview(plan_key)
 	if preview.is_empty():
 		return "出发整备槽已确认：未定计划。"
-	return "出发整备槽已确认：%s计划；目标：%s；收益：%s；风险：%s；代价：%s。" % [
+	return "出发整备槽已确认：%s计划；轻量整备模块：%s；目标：%s；收益：%s；风险：%s；代价：%s。" % [
 		String(preview.get("label", "")),
+		String(preview.get("module", "")),
 		String(preview.get("target", "")),
 		String(preview.get("reward", "")),
 		String(preview.get("risk", "")),
@@ -1311,11 +1379,11 @@ static func _format_departure_execution_message(plan_key: String) -> String:
 	var preview := _get_plan_preview(plan_key)
 	match plan_key:
 		PLAN_STEADY_SUPPLY:
-			return "低风险补给计划已执行：基础零件 +2，修复凝胶 +1；同一前线异常窗口已载入补给解法；已按%s风险收益确认出发，先在前线处理窗口再回基地。" % String(preview.get("risk", ""))
+			return "低风险补给计划已执行：基础零件 +2，修复凝胶 +1；轻量整备模块：%s；同一前线异常窗口已载入补给解法；已按%s风险收益确认出发，先在前线处理窗口再回基地。" % [String(preview.get("module", "")), String(preview.get("risk", ""))]
 		PLAN_PHASE_SURVEY:
-			return "信息侦测计划已执行：本趟路线情报已验证；同一前线异常窗口已载入侦测解法；已按%s风险收益确认出发，先在前线处理窗口再回基地。" % String(preview.get("risk", ""))
+			return "信息侦测计划已执行：本趟路线情报已验证；轻量整备模块：%s；同一前线异常窗口已载入侦测解法；已按%s风险收益确认出发，先在前线处理窗口再回基地。" % [String(preview.get("module", "")), String(preview.get("risk", ""))]
 		PLAN_PRESSURE_CLEARANCE:
-			return "压力清障防护计划已执行：修复凝胶 +1，抗污染药剂 +1；同一前线异常窗口已载入清障解法；已按%s风险收益确认出发，先在前线处理窗口再回基地。" % String(preview.get("risk", ""))
+			return "压力清障防护计划已执行：修复凝胶 +1，抗污染药剂 +1；轻量整备模块：%s；同一前线异常窗口已载入清障解法；已按%s风险收益确认出发，先在前线处理窗口再回基地。" % [String(preview.get("module", "")), String(preview.get("risk", ""))]
 		_:
 			return "出发计划已执行。"
 

@@ -13,6 +13,7 @@ func run() -> void:
 	_check_candidate_promotes_after_pressure_departure()
 	_check_promoted_plan_passes_next_preparation_cycle()
 	_check_action_plan_preview_wording_is_shared()
+	_check_light_preparation_module_enters_snapshots()
 	_check_departure_confirmation_locks_risk_reward_snapshot()
 	_check_phase_relay_pad_shows_confirmed_preparation()
 	_check_prepared_frontline_window_follows_confirmed_plan()
@@ -204,9 +205,9 @@ func _check_action_plan_preview_wording_is_shared() -> void:
 		choice_world,
 		character_state
 	)
-	host._expect_text_contains(choice_prompt, "方案 A：稳场补给；目标：读取 1 处稳场补给投放点；收益：基础零件 +2、修复凝胶 +1；风险：低；代价：整备槽。", "preview wording shows supply choice risk and reward")
-	host._expect_text_contains(choice_prompt, "方案 B：相位测绘；目标：读取西侧和东侧 2 处相位测绘点；收益：目标显形和路线风险预告；风险：中；代价：整备槽。", "preview wording shows survey choice risk and reward")
-	host._expect_text_contains(choice_prompt, "方案 C：压力清障；目标：清除 1 处前线压力扰点；收益：修复凝胶 +1、抗污染药剂 +1；风险：高；代价：整备槽。", "preview wording shows pressure choice risk and reward")
+	host._expect_text_contains(choice_prompt, "方案 A：稳场补给；模块：稳相垫片；目标：读取 1 处稳场补给投放点；收益：基础零件 +2、修复凝胶 +1；风险：低；代价：整备槽。", "preview wording shows supply choice risk and reward")
+	host._expect_text_contains(choice_prompt, "方案 B：相位测绘；模块：回波透镜；目标：读取西侧和东侧 2 处相位测绘点；收益：目标显形和路线风险预告；风险：中；代价：整备槽。", "preview wording shows survey choice risk and reward")
+	host._expect_text_contains(choice_prompt, "方案 C：压力清障；模块：防护涂层；目标：清除 1 处前线压力扰点；收益：修复凝胶 +1、抗污染药剂 +1；风险：高；代价：整备槽。", "preview wording shows pressure choice risk and reward")
 
 	var survey_world := WorldState.create_default()
 	survey_world.set_base_action_state_value(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
@@ -219,6 +220,7 @@ func _check_action_plan_preview_wording_is_shared() -> void:
 	host._expect_text_contains(current_plan_prompt, "计划：信息侦测；目标：读取西侧和东侧 2 处相位测绘点；收益：目标显形和路线风险预告。", "preview wording shows current plan reward")
 	host._expect_text_contains(current_plan_prompt, "风险：中；需要按低压读数线避开东侧短时扰动。", "preview wording shows current plan risk detail")
 	host._expect_text_contains(current_plan_prompt, "代价：占用本次出发整备槽，不额外发放资源。", "preview wording shows current plan cost detail")
+	host._expect_text_contains(current_plan_prompt, "轻量整备模块：回波透镜；效果：放大测绘回波", "preview wording shows current plan preparation module")
 
 	var candidate_world := WorldState.create_default()
 	candidate_world.set_base_action_state_value(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
@@ -229,7 +231,44 @@ func _check_action_plan_preview_wording_is_shared() -> void:
 		candidate_world,
 		character_state
 	)
-	host._expect_text_contains(candidate_prompt, "按 E 替换下一计划候选：压力清障；收益：修复凝胶 +1、抗污染药剂 +1；风险：高；代价：整备槽。", "preview wording shows replacement candidate risk and reward")
+	host._expect_text_contains(candidate_prompt, "按 E 替换下一计划候选：压力清障；模块：防护涂层；收益：修复凝胶 +1、抗污染药剂 +1；风险：高；代价：整备槽。", "preview wording shows replacement candidate risk and reward")
+
+
+func _check_light_preparation_module_enters_snapshots() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	var confirm_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+	host._expect_text_contains(" ".join(confirm_messages), "轻量整备模块：回波透镜", "departure confirmation includes preparation module")
+	host._expect_equal(
+		String(world_state.get_base_action_state_value(BaseActionDispatchPlan.DEPARTURE_PLAN_MODULE_KEY, "")),
+		"回波透镜",
+		"departure confirmation stores preparation module"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_departure_preparation_prompt(world_state),
+		"模块：回波透镜",
+		"phase relay prompt exposes confirmed preparation module"
+	)
+	var departure_messages := BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	host._expect_text_contains(" ".join(departure_messages), "轻量整备模块：回波透镜", "departure execution carries preparation module")
+	host._expect_equal(
+		String(world_state.get_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_MODULE_KEY, "")),
+		"回波透镜",
+		"frontline window stores preparation module"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		"轻量整备模块：回波透镜",
+		"frontline window prompt shows active preparation module"
+	)
+	BaseActionDispatchPlan.resolve_frontline_window(world_state)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt(BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID, world_state, character_state),
+		"轻量整备模块：回波透镜",
+		"resolved action console feedback preserves preparation module"
+	)
 
 
 func _check_departure_confirmation_locks_risk_reward_snapshot() -> void:
