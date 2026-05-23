@@ -478,14 +478,14 @@ func _check_frontline_window_stage_review_covers_all_plans() -> void:
 		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
 		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
 		"完成态收益：路线读数已转成下一轮目标预告依据",
-		"路线情报承接：东侧短时扰动已标出，清障计划会先说明扰点接近路线",
+		"路线情报承接：目标预告=东侧短时扰动位置；路线扰动=高；防护消耗=中",
 		"下一计划候选：低风险补给；窗口反馈预告：路线读数已归档，补给候选会贴近西侧已显形路线投放"
 	)
 	_expect_frontline_window_stage_review(
 		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
 		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
 		"完成态收益：扰动残压已转成下一轮风险回落依据",
-		"残压回落承接：高压扰点已收束，补给计划可贴近低压窗口回收资源缓冲。",
+		"残压回落承接：目标预告=低压窗口补给回收；路线扰动=低；防护消耗=低。",
 		"下一计划候选：信息侦测；窗口反馈预告：残压已收束，测绘候选可把低干扰路线转成目标预告"
 	)
 

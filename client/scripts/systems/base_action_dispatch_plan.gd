@@ -1068,19 +1068,19 @@ static func _format_window_feedback_carryover_line(world_state: WorldState, plan
 				risk_note = ROUTE_RISK_NOTE
 			match plan_key:
 				PLAN_STEADY_SUPPLY:
-					return "路线情报承接：西侧测绘边界已显形，补给投放会贴近低压读数线；风险预告：%s" % risk_note
+					return "路线情报承接：目标预告=西侧低压边界补给投放；路线扰动=避开东侧短时扰动；防护消耗=低。风险预告：%s" % risk_note
 				PLAN_PHASE_SURVEY:
-					return "路线情报承接：西侧边界和东侧扰动来源已记录，下一轮测绘会复核目标显形；风险预告：%s" % risk_note
+					return "路线情报承接：目标预告=复核西侧边界 / 东侧扰动来源；路线扰动=中；防护消耗=低。风险预告：%s" % risk_note
 				PLAN_PRESSURE_CLEARANCE:
-					return "路线情报承接：东侧短时扰动已标出，清障计划会先说明扰点接近路线；风险预告：%s" % risk_note
+					return "路线情报承接：目标预告=东侧短时扰动位置；路线扰动=高；防护消耗=中。风险预告：%s" % risk_note
 		PLAN_PRESSURE_CLEARANCE:
 			match plan_key:
 				PLAN_STEADY_SUPPLY:
-					return "残压回落承接：高压扰点已收束，补给计划可贴近低压窗口回收资源缓冲。"
+					return "残压回落承接：目标预告=低压窗口补给回收；路线扰动=低；防护消耗=低。"
 				PLAN_PHASE_SURVEY:
-					return "残压回落承接：高压扰点已收束，测绘计划可把低干扰路线转成下一轮目标预告。"
+					return "残压回落承接：目标预告=低干扰路线测绘；路线扰动=中；防护消耗=低。"
 				PLAN_PRESSURE_CLEARANCE:
-					return "残压回落承接：高压扰点已收束，清障计划继续说明防护整备和风险回落。"
+					return "残压回落承接：目标预告=继续清障扰点；路线扰动=中；防护消耗=中。"
 	return ""
 
 
