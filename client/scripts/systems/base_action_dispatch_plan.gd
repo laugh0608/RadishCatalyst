@@ -928,6 +928,9 @@ static func _format_departure_plan_lines(plan_key: String, world_state: WorldSta
 	var feedback_note := _format_window_feedback_plan_note(world_state, plan_key)
 	if not feedback_note.is_empty():
 		lines.append("行动台预告：%s。" % feedback_note)
+	var route_intel_line := _format_route_intel_carryover_line(world_state, plan_key)
+	if not route_intel_line.is_empty():
+		lines.append(route_intel_line)
 	return lines
 
 
@@ -1034,11 +1037,11 @@ static func _format_window_feedback_plan_note(world_state: WorldState, plan_key:
 				return "稳定样本已归档，清障候选会先说明防护补给再处理扰点"
 		PLAN_PHASE_SURVEY:
 			if plan_key == PLAN_STEADY_SUPPLY:
-				return "路线读数已归档，补给候选会贴近已显形路线投放"
+				return "路线读数已归档，补给候选会贴近西侧已显形路线投放"
 			if plan_key == PLAN_PHASE_SURVEY:
-				return "路线读数已归档，测绘候选会继续强调目标显形和扰动来源"
+				return "路线读数已归档，测绘候选会继续复核西侧边界和东侧扰动来源"
 			if plan_key == PLAN_PRESSURE_CLEARANCE:
-				return "路线读数已归档，清障候选会提前说明扰点位置"
+				return "路线读数已归档，清障候选会提前标出东侧短时扰动位置"
 		PLAN_PRESSURE_CLEARANCE:
 			if plan_key == PLAN_STEADY_SUPPLY:
 				return "残压已收束，补给候选可在低压窗口回收资源缓冲"
@@ -1046,6 +1049,22 @@ static func _format_window_feedback_plan_note(world_state: WorldState, plan_key:
 				return "残压已收束，测绘候选可把低干扰路线转成目标预告"
 			if plan_key == PLAN_PRESSURE_CLEARANCE:
 				return "残压已收束，清障候选会继续说明防护整备和风险回落"
+	return ""
+
+
+static func _format_route_intel_carryover_line(world_state: WorldState, plan_key: String) -> String:
+	if _get_resolved_frontline_window_plan_key(world_state) != PLAN_PHASE_SURVEY:
+		return ""
+	var risk_note := String(world_state.get_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE))
+	if risk_note.is_empty():
+		risk_note = ROUTE_RISK_NOTE
+	match plan_key:
+		PLAN_STEADY_SUPPLY:
+			return "路线情报承接：西侧测绘边界已显形，补给投放会贴近低压读数线；风险预告：%s" % risk_note
+		PLAN_PHASE_SURVEY:
+			return "路线情报承接：西侧边界和东侧扰动来源已记录，下一轮测绘会复核目标显形；风险预告：%s" % risk_note
+		PLAN_PRESSURE_CLEARANCE:
+			return "路线情报承接：东侧短时扰动已标出，清障计划会先说明扰点接近路线；风险预告：%s" % risk_note
 	return ""
 
 
@@ -1070,6 +1089,9 @@ static func _prepare_review_plan_slots(world_state: WorldState, source_plan_key:
 	if current_plan.is_empty():
 		return
 	_set_plan_status(world_state, current_plan, STATUS_READY)
+	if source_plan_key == PLAN_PHASE_SURVEY:
+		world_state.set_base_action_state_value(ROUTE_TARGET_REGION_KEY, ROUTE_TARGET_REGION_ID)
+		world_state.set_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE)
 	world_state.set_base_action_state_value(CURRENT_PLAN_KEY, current_plan)
 	var next_candidate := get_next_plan_candidate_key(world_state)
 	if next_candidate.is_empty() or next_candidate == current_plan:

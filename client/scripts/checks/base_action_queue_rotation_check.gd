@@ -478,8 +478,8 @@ func _check_frontline_window_stage_review_covers_all_plans() -> void:
 		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
 		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
 		"完成态收益：路线读数已转成下一轮目标预告依据",
-		"行动台预告：路线读数已归档，清障候选会提前说明扰点位置。",
-		"下一计划候选：低风险补给；窗口反馈预告：路线读数已归档，补给候选会贴近已显形路线投放"
+		"路线情报承接：东侧短时扰动已标出，清障计划会先说明扰点接近路线",
+		"下一计划候选：低风险补给；窗口反馈预告：路线读数已归档，补给候选会贴近西侧已显形路线投放"
 	)
 	_expect_frontline_window_stage_review(
 		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
@@ -648,8 +648,8 @@ func _expect_frontline_window_stage_review(
 	executed_plan_key: String,
 	promoted_plan_key: String,
 	expected_payoff: String,
-	_expected_current_preview: String,
-	_expected_next_candidate_preview: String
+	expected_current_preview: String,
+	expected_next_candidate_preview: String
 ) -> void:
 	var world_state := WorldState.create_default()
 	var character_state := CharacterState.create_default()
@@ -716,6 +716,21 @@ func _expect_frontline_window_stage_review(
 		BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state).size(),
 		0,
 		"stage review does not execute the next plan before confirmation for %s" % executed_plan_key
+	)
+	var reviewed_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		world_state,
+		character_state
+	)
+	host._expect_text_contains(
+		reviewed_prompt,
+		expected_current_preview,
+		"stage review current plan preview reflects archived window feedback for %s" % executed_plan_key
+	)
+	host._expect_text_contains(
+		reviewed_prompt,
+		expected_next_candidate_preview,
+		"stage review next candidate preview reflects archived window feedback for %s" % executed_plan_key
 	)
 
 
