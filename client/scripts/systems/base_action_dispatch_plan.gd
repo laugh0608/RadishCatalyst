@@ -26,6 +26,7 @@ const DEPARTURE_PLAN_KEY := "departure_plan_key"
 const DEPARTURE_PLAN_TARGET_KEY := "departure_plan_target"
 const DEPARTURE_PLAN_REWARD_KEY := "departure_plan_reward"
 const DEPARTURE_PLAN_RISK_KEY := "departure_plan_risk"
+const DEPARTURE_PLAN_RISK_PROFILE_KEY := "departure_plan_risk_profile"
 const DEPARTURE_PLAN_COST_KEY := "departure_plan_cost"
 const DEPARTURE_PLAN_MODULE_KEY := "departure_plan_module"
 const DEPARTURE_PLAN_MODULE_EFFECT_KEY := "departure_plan_module_effect"
@@ -65,6 +66,7 @@ const PLAN_PREVIEWS := {
 		"reward": "基础零件 +2、修复凝胶 +1",
 		"risk": "低",
 		"risk_detail": "不增加前线读点，适合补资源缓冲",
+		"risk_profile": "目标密度 低；路线扰动 低；防护消耗 低",
 		"cost": "占用本次出发整备槽，回投时一次性消耗",
 		"module": "稳相垫片",
 		"module_effect": "减少窗口抖动，稳定样本更容易转成下一轮资源缓冲"
@@ -76,6 +78,7 @@ const PLAN_PREVIEWS := {
 		"reward": "目标显形和路线风险预告",
 		"risk": "中",
 		"risk_detail": "需要按低压读数线避开东侧短时扰动",
+		"risk_profile": "目标密度 中；路线扰动 中；防护消耗 低",
 		"cost": "占用本次出发整备槽，不额外发放资源",
 		"module": "回波透镜",
 		"module_effect": "放大测绘回波，下一轮候选会更明确目标预告"
@@ -87,6 +90,7 @@ const PLAN_PREVIEWS := {
 		"reward": "修复凝胶 +1、抗污染药剂 +1",
 		"risk": "高",
 		"risk_detail": "需要处理一处高压扰点",
+		"risk_profile": "目标密度 低；路线扰动 高；防护消耗 中",
 		"cost": "占用本次出发整备槽，回投时一次性装入",
 		"module": "防护涂层",
 		"module_effect": "先给清障防护窗口，再处理扰点风险"
@@ -358,11 +362,12 @@ static func format_frontline_window_prompt(world_state: WorldState) -> String:
 		return "前线异常窗口：等待相位回投执行已确认整备槽。"
 	var preview := _get_plan_preview(plan_key)
 	var module_line := _format_frontline_window_module_line(world_state, preview)
-	return "前线异常窗口：已载入%s计划。\n目标：%s。\n收益：%s；风险：%s。%s\n按 E 处理窗口。" % [
+	return "前线异常窗口：已载入%s计划。\n目标：%s。\n收益：%s；风险：%s；风险拆解：%s。%s\n按 E 处理窗口。" % [
 		String(preview.get("label", "")),
 		String(preview.get("target", "")),
 		String(preview.get("reward", "")),
 		String(preview.get("risk", "")),
+		String(preview.get("risk_profile", "")),
 		module_line
 	]
 
@@ -920,6 +925,7 @@ static func _format_departure_plan_lines(plan_key: String, world_state: WorldSta
 			String(preview.get("risk", "")),
 			String(preview.get("risk_detail", ""))
 		],
+		"风险拆解：%s。" % String(preview.get("risk_profile", "")),
 		"代价：%s。" % String(preview.get("cost", "")),
 		"轻量整备模块：%s；效果：%s。" % [
 			String(preview.get("module", "")),
@@ -1260,13 +1266,14 @@ static func _format_choice_preview_line(prefix: String, plan_key: String) -> Str
 	var preview := _get_plan_preview(plan_key)
 	if preview.is_empty():
 		return "%s：未定计划。" % prefix
-	return "%s：%s；模块：%s；目标：%s；收益：%s；风险：%s；代价：整备槽。" % [
+	return "%s：%s；模块：%s；目标：%s；收益：%s；风险：%s；拆解：%s；代价：整备槽。" % [
 		prefix,
 		String(preview.get("choice_label", preview.get("label", ""))),
 		String(preview.get("module", "")),
 		String(preview.get("target", "")),
 		String(preview.get("reward", "")),
-		String(preview.get("risk", ""))
+		String(preview.get("risk", "")),
+		String(preview.get("risk_profile", ""))
 	]
 
 
@@ -1274,11 +1281,12 @@ static func _format_candidate_preview(plan_key: String, world_state: WorldState 
 	var preview := _get_plan_preview(plan_key)
 	if preview.is_empty():
 		return "未定计划"
-	var text := "%s；模块：%s；收益：%s；风险：%s；代价：整备槽" % [
+	var text := "%s；模块：%s；收益：%s；风险：%s；拆解：%s；代价：整备槽" % [
 		String(preview.get("label", "")),
 		String(preview.get("module", "")),
 		String(preview.get("reward", "")),
-		String(preview.get("risk", ""))
+		String(preview.get("risk", "")),
+		String(preview.get("risk_profile", ""))
 	]
 	var feedback_note := _format_window_feedback_plan_note(world_state, plan_key)
 	if not feedback_note.is_empty():
@@ -1290,11 +1298,12 @@ static func _format_relay_preparation_preview(world_state: WorldState, plan_key:
 	var preview := _get_departure_confirmation_preview(world_state, plan_key)
 	if preview.is_empty():
 		return ""
-	return "本次整备：%s已确认；模块：%s；收益：%s；风险：%s；代价：%s" % [
+	return "本次整备：%s已确认；模块：%s；收益：%s；风险：%s；拆解：%s；代价：%s" % [
 		String(preview.get("label", "")),
 		String(preview.get("module", "")),
 		String(preview.get("reward", "")),
 		String(preview.get("risk", "")),
+		String(preview.get("risk_profile", "")),
 		String(preview.get("cost", ""))
 	]
 
@@ -1322,6 +1331,7 @@ static func _set_departure_confirmation_snapshot(world_state: WorldState, plan_k
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_TARGET_KEY, String(preview.get("target", "")))
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_REWARD_KEY, String(preview.get("reward", "")))
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_RISK_KEY, String(preview.get("risk", "")))
+	world_state.set_base_action_state_value(DEPARTURE_PLAN_RISK_PROFILE_KEY, String(preview.get("risk_profile", "")))
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_COST_KEY, String(preview.get("cost", "")))
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_MODULE_KEY, String(preview.get("module", "")))
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_MODULE_EFFECT_KEY, String(preview.get("module_effect", "")))
@@ -1331,6 +1341,7 @@ static func _clear_departure_confirmation_snapshot(world_state: WorldState) -> v
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_TARGET_KEY, "")
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_REWARD_KEY, "")
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_RISK_KEY, "")
+	world_state.set_base_action_state_value(DEPARTURE_PLAN_RISK_PROFILE_KEY, "")
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_COST_KEY, "")
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_MODULE_KEY, "")
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_MODULE_EFFECT_KEY, "")
@@ -1343,6 +1354,7 @@ static func _get_departure_confirmation_preview(world_state: WorldState, plan_ke
 	var target := String(world_state.get_base_action_state_value(DEPARTURE_PLAN_TARGET_KEY, ""))
 	var reward := String(world_state.get_base_action_state_value(DEPARTURE_PLAN_REWARD_KEY, ""))
 	var risk := String(world_state.get_base_action_state_value(DEPARTURE_PLAN_RISK_KEY, ""))
+	var risk_profile := String(world_state.get_base_action_state_value(DEPARTURE_PLAN_RISK_PROFILE_KEY, ""))
 	var cost := String(world_state.get_base_action_state_value(DEPARTURE_PLAN_COST_KEY, ""))
 	var module := String(world_state.get_base_action_state_value(DEPARTURE_PLAN_MODULE_KEY, ""))
 	var module_effect := String(world_state.get_base_action_state_value(DEPARTURE_PLAN_MODULE_EFFECT_KEY, ""))
@@ -1352,6 +1364,8 @@ static func _get_departure_confirmation_preview(world_state: WorldState, plan_ke
 		preview["reward"] = reward
 	if not risk.is_empty():
 		preview["risk"] = risk
+	if not risk_profile.is_empty():
+		preview["risk_profile"] = risk_profile
 	if not cost.is_empty():
 		preview["cost"] = cost
 	if not module.is_empty():
@@ -1365,12 +1379,13 @@ static func _format_departure_confirmation_message(plan_key: String) -> String:
 	var preview := _get_plan_preview(plan_key)
 	if preview.is_empty():
 		return "出发整备槽已确认：未定计划。"
-	return "出发整备槽已确认：%s计划；轻量整备模块：%s；目标：%s；收益：%s；风险：%s；代价：%s。" % [
+	return "出发整备槽已确认：%s计划；轻量整备模块：%s；目标：%s；收益：%s；风险：%s；风险拆解：%s；代价：%s。" % [
 		String(preview.get("label", "")),
 		String(preview.get("module", "")),
 		String(preview.get("target", "")),
 		String(preview.get("reward", "")),
 		String(preview.get("risk", "")),
+		String(preview.get("risk_profile", "")),
 		String(preview.get("cost", ""))
 	]
 
