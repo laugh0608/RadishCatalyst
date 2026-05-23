@@ -159,6 +159,12 @@ func _get_quest_target_region_id(world_state: WorldState, quest_id: String) -> S
 
 
 func _get_runtime_followup_region_id(world_state: WorldState) -> String:
+	if BaseActionDispatchPlan.is_frontline_window_active(world_state):
+		return "region.phase_well_tether"
+	if not BaseActionDispatchPlan.get_frontline_window_feedback(world_state).is_empty():
+		if world_state.current_region_id != "region.outpost_platform":
+			return "region.outpost_platform"
+		return ""
 	var dispatch_route_region_id := BaseActionDispatchPlan.get_route_target_region_id(world_state)
 	if not dispatch_route_region_id.is_empty():
 		return dispatch_route_region_id

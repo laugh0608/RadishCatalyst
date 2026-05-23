@@ -31,6 +31,7 @@ const LAST_DEPARTURE_PLAN_KEY := "last_departure_plan_key"
 const FRONTLINE_WINDOW_STATUS_KEY := "frontline_window_status"
 const FRONTLINE_WINDOW_PLAN_KEY := "frontline_window_plan_key"
 const FRONTLINE_WINDOW_FEEDBACK_KEY := "frontline_window_feedback"
+const FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY := "frontline_window_feedback_acked"
 const FRONTLINE_WINDOW_OBJECT_ID := "map_object.prepared_frontline_window"
 const FRONTLINE_WINDOW_INSTANCE_ID := "map_object_instance.prepared_frontline_window"
 const STATUS_READY := "ready"
@@ -91,6 +92,10 @@ static func get_frontline_action_console_quest_id(quest_state: QuestState) -> St
 
 
 static func is_frontline_action_console_ready(world_state: WorldState) -> bool:
+	if world_state != null and has_unreviewed_frontline_window_feedback(world_state):
+		return true
+	if world_state != null and not get_frontline_window_feedback(world_state).is_empty():
+		return false
 	return (
 		world_state != null
 		and (
@@ -180,6 +185,15 @@ static func confirm_departure_preparation(world_state: WorldState) -> Array[Stri
 	var messages: Array[String] = []
 	if world_state == null:
 		return messages
+	if is_frontline_window_active(world_state):
+		messages.append("前线异常窗口仍待处理：先在井系桥前线的异常窗口按 E 处理本趟结果，再回基地确认下一计划。")
+		return messages
+	if has_unreviewed_frontline_window_feedback(world_state):
+		messages.append("前线异常窗口反馈仍待归档：先在基地行动台按 E 归档本趟结果，再决定后续扩展。")
+		return messages
+	if not get_frontline_window_feedback(world_state).is_empty():
+		messages.append("本轮整备窗口反馈已归档：当前原型到此收口，不再自动派发下一趟。")
+		return messages
 	var current_plan_key := get_current_plan_key(world_state)
 	if current_plan_key.is_empty():
 		current_plan_key = get_departure_plan_key(world_state)
@@ -253,6 +267,25 @@ static func get_frontline_window_feedback(world_state: WorldState) -> String:
 	return String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_KEY, ""))
 
 
+static func has_unreviewed_frontline_window_feedback(world_state: WorldState) -> bool:
+	if get_frontline_window_feedback(world_state).is_empty():
+		return false
+	return not bool(world_state.get_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY, false))
+
+
+static func acknowledge_frontline_window_feedback(world_state: WorldState) -> Array[String]:
+	var messages: Array[String] = []
+	if world_state == null or not has_unreviewed_frontline_window_feedback(world_state):
+		return messages
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY, true)
+	world_state.set_base_action_state_value(CURRENT_PLAN_KEY, "")
+	world_state.set_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, "")
+	world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, "")
+	_clear_departure_confirmation_snapshot(world_state)
+	messages.append("前线异常窗口反馈已归档：本轮整备结果已经进入行动台记录；当前原型到此收口，不再自动派发下一趟。")
+	return messages
+
+
 static func is_frontline_window_interactable(definition_id: String, world_state: WorldState) -> bool:
 	return is_frontline_window_object(definition_id) and is_frontline_window_active(world_state)
 
@@ -302,6 +335,7 @@ static func resolve_frontline_window(world_state: WorldState) -> Array[String]:
 	var feedback := _format_frontline_window_resolution_message(plan_key)
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_STATUS_KEY, STATUS_RESOLVED)
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_KEY, feedback)
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY, false)
 	messages.append(feedback)
 	return messages
 
@@ -420,6 +454,14 @@ static func format_console_prompt(definition_id: String, world_state: WorldState
 static func _get_stage(world_state: WorldState) -> String:
 	if world_state == null:
 		return ""
+	if is_frontline_window_active(world_state):
+		return "frontline_window_active"
+	if not get_frontline_window_feedback(world_state).is_empty():
+		if world_state.current_region_id != "region.outpost_platform":
+			return "frontline_window_return"
+		if has_unreviewed_frontline_window_feedback(world_state):
+			return "frontline_window_review"
+		return "frontline_window_complete"
 	var preparation_stage := _get_current_preparation_stage(world_state)
 	if not preparation_stage.is_empty():
 		return preparation_stage
@@ -467,6 +509,14 @@ static func _get_stage(world_state: WorldState) -> String:
 
 static func _format_title(stage: String) -> String:
 	match stage:
+		"frontline_window_active":
+			return "前线异常窗口待处理"
+		"frontline_window_return":
+			return "前线窗口反馈待归档"
+		"frontline_window_review":
+			return "前线窗口反馈待归档"
+		"frontline_window_complete":
+			return "整备窗口已收口"
 		"first_ready":
 			return "稳窗回访待确认"
 		"first_dispatched":
@@ -511,6 +561,14 @@ static func _format_title(stage: String) -> String:
 
 static func _format_direction(stage: String, world_state: WorldState) -> String:
 	match stage:
+		"frontline_window_active":
+			return "本趟整备已随相位回投载入井系桥前线：先找到前线异常窗口并按 E 处理，再回基地行动台查看反馈和下一计划。"
+		"frontline_window_return":
+			return "前线异常窗口已处理：用前线回传锚点回基地，在基地行动台按 E 归档本趟反馈。"
+		"frontline_window_review":
+			return "前线异常窗口反馈已带回基地：在行动台按 E 归档本趟结果；归档后本轮原型收口，不会自动派发下一趟。"
+		"frontline_window_complete":
+			return "本趟窗口反馈已归档：当前整备结果驱动同一前线窗口原型到此收口，后续扩展再决定下一组基地行动。"
 		"first_ready":
 			return "稳窗相位序已完成现场校准：回基地在行动台确认稳窗回访，把前线窗口转成下一趟外出目标。"
 		"first_dispatched":
@@ -567,6 +625,12 @@ static func _format_direction(stage: String, world_state: WorldState) -> String:
 
 static func _format_onboarding(stage: String) -> String:
 	match stage:
+		"frontline_window_active":
+			return "下一计划已经预排，但它不能替代本趟前线结果；先处理同一异常窗口，回基地后再确认下一轮整备。"
+		"frontline_window_return", "frontline_window_review":
+			return "同一窗口的关键验证点是返回反馈，而不是无限重复出发；先把本趟结果归档。"
+		"frontline_window_complete":
+			return "当前阶段只验证一轮整备结果如何影响同一前线窗口，不继续自动循环。"
 		"choice_ready":
 			return "行动台现在处理真实取舍：补给方案减少前线目标压力并回收整备物资，测绘方案增加读数成本但换来路线提示。"
 		"steady_supply_ready":
@@ -591,6 +655,14 @@ static func _format_onboarding(stage: String) -> String:
 
 static func _format_status_goal(stage: String) -> String:
 	match stage:
+		"frontline_window_active":
+			return "前线异常窗口待处理"
+		"frontline_window_return":
+			return "前线窗口反馈待回基地归档"
+		"frontline_window_review":
+			return "前线窗口反馈待归档"
+		"frontline_window_complete":
+			return "整备窗口反馈已归档"
 		"choice_ready":
 			return "基地行动方案待选择"
 		"steady_supply_ready":
@@ -605,6 +677,15 @@ static func _format_status_goal(stage: String) -> String:
 
 static func _format_status_progress(stage: String, world_state: WorldState) -> String:
 	match stage:
+		"frontline_window_active":
+			var plan_label := _format_plan_label(get_frontline_window_plan_key(world_state))
+			return "本趟%s计划已载入同一前线异常窗口；先在窗口按 E 处理结果" % plan_label
+		"frontline_window_return":
+			return "前线窗口已处理；下一步用前线回传锚点回基地归档反馈"
+		"frontline_window_review":
+			return "本趟窗口反馈待归档；到基地行动台按 E 收口本轮结果"
+		"frontline_window_complete":
+			return "本轮同一前线窗口结果已归档；当前原型不再自动派发下一趟"
 		"choice_ready":
 			return "行动台待选择：稳场补给低风险；相位测绘给路线提示；压力清障高风险换防护"
 		"steady_supply_ready":
@@ -640,6 +721,22 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 	var repair_count := _get_item_count(character_state, "item.repair_gel")
 	var vial_count := _get_item_count(character_state, "item.resistance_vial_t1")
 	match stage:
+		"frontline_window_active":
+			var lines: Array[String] = [
+				format_frontline_window_prompt(world_state),
+				"下一计划已预排，但要等本趟窗口处理并回基地后再确认。"
+			]
+			lines.append_array(_format_plan_queue_lines(world_state))
+			return lines
+		"frontline_window_return", "frontline_window_review", "frontline_window_complete":
+			var feedback_lines: Array[String] = _format_frontline_window_feedback_lines(world_state)
+			if feedback_lines.is_empty():
+				feedback_lines.append("前线窗口反馈：等待本趟窗口结果。")
+			if stage == "frontline_window_complete":
+				feedback_lines.append("阶段边界：本轮原型已收口，不自动确认下一趟。")
+			else:
+				feedback_lines.append("下一步：回基地行动台归档反馈，而不是继续确认下一轮出发。")
+			return feedback_lines
 		"choice_ready":
 			return [
 				_format_choice_preview_line("方案 A", PLAN_STEADY_SUPPLY),
@@ -706,6 +803,10 @@ static func _format_console_action_line(definition_id: String, stage: String, wo
 	match definition_id:
 		FRONTLINE_ACTION_CONSOLE_ID:
 			match stage:
+				"frontline_window_review":
+					return "按 E 归档本趟反馈。"
+				"frontline_window_complete":
+					return "本轮已收口；不自动派发下一趟。"
 				"first_ready":
 					return "按 E 确认：稳窗回访。"
 				"short_ready":
@@ -869,6 +970,10 @@ static func _set_current_plan_slot(world_state: WorldState, plan_key: String) ->
 static func _can_replace_next_plan_candidate(world_state: WorldState) -> bool:
 	if world_state == null:
 		return false
+	if is_frontline_window_active(world_state):
+		return false
+	if not get_frontline_window_feedback(world_state).is_empty():
+		return false
 	if world_state.quest_state.has_active_quest("quest.choose_steady_supply_action"):
 		return false
 	if world_state.quest_state.has_active_quest("quest.choose_phase_survey_action"):
@@ -936,6 +1041,7 @@ static func _activate_frontline_window(world_state: WorldState, plan_key: String
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_STATUS_KEY, STATUS_ACTIVE)
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_PLAN_KEY, plan_key)
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_KEY, "")
+	world_state.set_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY, false)
 	if world_state.map_objects.has(FRONTLINE_WINDOW_INSTANCE_ID):
 		world_state.map_objects[FRONTLINE_WINDOW_INSTANCE_ID]["is_sampled"] = false
 		world_state.map_objects[FRONTLINE_WINDOW_INSTANCE_ID]["is_cleared"] = false
@@ -1083,11 +1189,11 @@ static func _format_departure_execution_message(plan_key: String) -> String:
 	var preview := _get_plan_preview(plan_key)
 	match plan_key:
 		PLAN_STEADY_SUPPLY:
-			return "低风险补给计划已执行：基础零件 +2，修复凝胶 +1；同一前线异常窗口已载入补给解法；已按%s风险收益确认出发。" % String(preview.get("risk", ""))
+			return "低风险补给计划已执行：基础零件 +2，修复凝胶 +1；同一前线异常窗口已载入补给解法；已按%s风险收益确认出发，先在前线处理窗口再回基地。" % String(preview.get("risk", ""))
 		PLAN_PHASE_SURVEY:
-			return "信息侦测计划已执行：本趟路线情报已验证；同一前线异常窗口已载入侦测解法；已按%s风险收益确认出发，返回基地行动台安排下一计划。" % String(preview.get("risk", ""))
+			return "信息侦测计划已执行：本趟路线情报已验证；同一前线异常窗口已载入侦测解法；已按%s风险收益确认出发，先在前线处理窗口再回基地。" % String(preview.get("risk", ""))
 		PLAN_PRESSURE_CLEARANCE:
-			return "压力清障防护计划已执行：修复凝胶 +1，抗污染药剂 +1；同一前线异常窗口已载入清障解法；已按%s风险收益确认出发。" % String(preview.get("risk", ""))
+			return "压力清障防护计划已执行：修复凝胶 +1，抗污染药剂 +1；同一前线异常窗口已载入清障解法；已按%s风险收益确认出发，先在前线处理窗口再回基地。" % String(preview.get("risk", ""))
 		_:
 			return "出发计划已执行。"
 

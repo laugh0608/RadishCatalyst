@@ -1143,13 +1143,19 @@ func _check_base_action_choice_runtime() -> void:
 	)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_status_progress(survey_world),
-		"按 E 确认测绘路线整备槽",
-		"phase survey promoted status should ask for action console confirmation"
+		"先在窗口按 E 处理结果",
+		"phase survey departure status should point to the active frontline window"
 	)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_direction_hint(survey_world),
-		"确认出发整备槽",
-		"phase survey promoted direction should send player to action console"
+		"先找到前线异常窗口并按 E 处理",
+		"phase survey departure direction should not send player back before window resolution"
+	)
+	BaseActionDispatchPlan.resolve_frontline_window(survey_world)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_progress(survey_world),
+		"按 E 收口本轮结果",
+		"phase survey resolved window should ask for feedback archival before any new confirmation"
 	)
 
 	var pressure_world := WorldState.create_default()

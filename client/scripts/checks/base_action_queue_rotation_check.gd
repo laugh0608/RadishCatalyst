@@ -56,14 +56,15 @@ func _check_candidate_promotes_after_supply_departure() -> void:
 		"supply rotation clears executed departure slot and exposes promoted current plan"
 	)
 	host._expect_text_contains(
-		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", world_state, character_state),
-		"按 E 确认：测绘路线整备槽",
-		"supply rotation action console confirms promoted survey slot"
-	)
-	host._expect_text_contains(
 		BaseActionDispatchPlan.format_direction_hint(world_state),
-		"确认出发整备槽",
-		"supply rotation direction points to action console confirmation"
+		"先找到前线异常窗口并按 E 处理",
+		"supply rotation direction points to active frontline window before next confirmation"
+	)
+	BaseActionDispatchPlan.resolve_frontline_window(world_state)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", world_state, character_state),
+		"归档本趟反馈",
+		"supply rotation action console reviews window feedback before any next departure"
 	)
 
 
@@ -92,10 +93,11 @@ func _check_candidate_promotes_after_survey_departure() -> void:
 		BaseActionDispatchPlan.STATUS_READY,
 		"survey rotation prepares promoted pressure plan"
 	)
+	BaseActionDispatchPlan.resolve_frontline_window(world_state)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", world_state, character_state),
-		"按 E 确认：清障防护整备槽",
-		"survey rotation action console confirms promoted pressure slot"
+		"归档本趟反馈",
+		"survey rotation action console reviews window feedback before any next departure"
 	)
 
 
@@ -124,10 +126,11 @@ func _check_candidate_promotes_after_pressure_departure() -> void:
 		BaseActionDispatchPlan.STATUS_READY,
 		"pressure rotation prepares promoted supply plan"
 	)
+	BaseActionDispatchPlan.resolve_frontline_window(world_state)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", world_state, character_state),
-		"按 E 确认：出发补给整备槽",
-		"pressure rotation action console confirms promoted supply slot"
+		"归档本趟反馈",
+		"pressure rotation action console reviews window feedback before any next departure"
 	)
 
 
@@ -152,6 +155,19 @@ func _check_promoted_plan_passes_next_preparation_cycle() -> void:
 		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
 		"preparation review promotes survey after first departure"
 	)
+	var premature_confirm_result := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_text_contains(
+		String(premature_confirm_result.get("message", "")),
+		"前线异常窗口仍待处理",
+		"preparation review blocks next confirmation while frontline window is active"
+	)
+	BaseActionDispatchPlan.resolve_frontline_window(world_state)
 	var second_confirm_result := gather_system.interact_with_object(
 		"map_object_instance.frontline_action_console",
 		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
@@ -162,24 +178,18 @@ func _check_promoted_plan_passes_next_preparation_cycle() -> void:
 	host._expect_equal(bool(second_confirm_result.get("success", false)), true, "preparation review promoted action console confirmation succeeds")
 	host._expect_text_contains(
 		String(second_confirm_result.get("message", "")),
-		"信息侦测计划",
-		"preparation review second confirmation explains promoted survey plan"
+		"当前原型到此收口",
+		"preparation review records window feedback instead of confirming another departure"
 	)
 	host._expect_equal(
-		BaseActionDispatchPlan.get_survey_intel_status(world_state),
-		BaseActionDispatchPlan.STATUS_QUEUED,
-		"preparation review promoted survey becomes queued"
-	)
-	var second_departure_messages := BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
-	host._expect_text_contains(
-		" ".join(second_departure_messages),
-		"信息侦测计划已执行",
-		"preparation review second departure executes promoted plan"
+		BaseActionDispatchPlan.is_frontline_action_console_ready(world_state),
+		false,
+		"preparation review stops action console after feedback acknowledgement"
 	)
 	host._expect_equal(
-		BaseActionDispatchPlan.get_current_plan_key(world_state),
-		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
-		"preparation review second departure promotes pressure candidate"
+		BaseActionDispatchPlan.format_status_progress(world_state),
+		"本轮同一前线窗口结果已归档；当前原型不再自动派发下一趟",
+		"preparation review leaves a clear completion state"
 	)
 
 
@@ -303,6 +313,17 @@ func _check_prepared_frontline_window_follows_confirmed_plan() -> void:
 		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
 		"frontline window stores the executed plan key"
 	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_direction_hint(world_state),
+		"先找到前线异常窗口并按 E 处理",
+		"active frontline window direction should not send player back to the action console"
+	)
+	var blocked_confirm_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+	host._expect_text_contains(
+		" ".join(blocked_confirm_messages),
+		"前线异常窗口仍待处理",
+		"active frontline window blocks the next departure confirmation"
+	)
 	var formatter := InteractionPromptFormatter.new(
 		host.data_registry,
 		ProcessingSystem.new(host.data_registry),
@@ -366,29 +387,25 @@ func _check_prepared_frontline_window_follows_confirmed_plan() -> void:
 	)
 	host._expect_text_contains(
 		action_console_prompt,
-		"行动台预告：残压已收束，补给候选可在低压窗口回收资源缓冲。",
-		"frontline window feedback should adjust current plan preview"
+		"归档本趟反馈",
+		"action console should ask for feedback archival instead of previewing another loop"
+	)
+	var review_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
 	)
 	host._expect_text_contains(
-		action_console_prompt,
-		"下一计划候选：信息侦测；窗口反馈预告：残压已收束，测绘候选可把低干扰路线转成目标预告",
-		"frontline window feedback should adjust next candidate explanation"
+		String(review_result.get("message", "")),
+		"当前原型到此收口",
+		"action console acknowledgement stops automatic loop"
 	)
-	host._expect_text_contains(
-		BaseActionDispatchPlan.format_console_prompt(
-			"map_object.base_survey_choice_console",
-			world_state,
-			character_state
-		),
-		"窗口反馈：残压已收束，测绘候选可把低干扰路线转成目标预告",
-		"candidate console should include resolved frontline window feedback"
-	)
-	BaseActionDispatchPlan.confirm_departure_preparation(world_state)
-	BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
 	host._expect_equal(
-		BaseActionDispatchPlan.get_frontline_window_feedback(world_state),
-		"",
-		"new confirmed departure clears consumed frontline window feedback"
+		BaseActionDispatchPlan.is_frontline_action_console_ready(world_state),
+		false,
+		"acknowledged frontline window feedback disables next automatic confirmation"
 	)
 	window.free()
 
@@ -421,8 +438,8 @@ func _expect_frontline_window_stage_review(
 	executed_plan_key: String,
 	promoted_plan_key: String,
 	expected_payoff: String,
-	expected_current_preview: String,
-	expected_next_candidate_preview: String
+	_expected_current_preview: String,
+	_expected_next_candidate_preview: String
 ) -> void:
 	var world_state := WorldState.create_default()
 	var character_state := CharacterState.create_default()
@@ -464,21 +481,26 @@ func _expect_frontline_window_stage_review(
 	)
 	host._expect_text_contains(
 		action_console_prompt,
-		expected_current_preview,
-		"stage review current plan preview for %s" % executed_plan_key
-	)
-	host._expect_text_contains(
-		action_console_prompt,
-		expected_next_candidate_preview,
-		"stage review next candidate preview for %s" % executed_plan_key
+		"归档本趟反馈",
+		"stage review asks to archive feedback before another departure for %s" % executed_plan_key
 	)
 
-	BaseActionDispatchPlan.confirm_departure_preparation(world_state)
-	BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	var review_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_text_contains(
+		String(review_result.get("message", "")),
+		"当前原型到此收口",
+		"stage review archives feedback instead of launching next departure for %s" % executed_plan_key
+	)
 	host._expect_equal(
-		BaseActionDispatchPlan.get_frontline_window_feedback(world_state),
-		"",
-		"stage review clears old window feedback on next departure for %s" % executed_plan_key
+		BaseActionDispatchPlan.is_frontline_action_console_ready(world_state),
+		false,
+		"stage review disables automatic next confirmation for %s" % executed_plan_key
 	)
 
 

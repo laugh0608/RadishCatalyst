@@ -97,6 +97,9 @@ func interact_with_object(
 		return _failure("未知交互对象：%s。" % definition_id, "交互未完成", "换一个可交互目标，或检查地图对象定义。")
 
 	if interaction_type == "inspect" and definition_id == BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID:
+		var review_messages := BaseActionDispatchPlan.acknowledge_frontline_window_feedback(world_state)
+		if not review_messages.is_empty():
+			return _success(" ".join(review_messages))
 		var departure_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
 		if not departure_messages.is_empty():
 			return _success(" ".join(departure_messages))
