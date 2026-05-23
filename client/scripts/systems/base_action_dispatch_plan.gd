@@ -478,7 +478,11 @@ static func select_next_plan_candidate_for_console(definition_id: String, world_
 	var feedback_text := ""
 	if not feedback_note.is_empty():
 		feedback_text = "窗口反馈预告：%s。" % feedback_note
-	return ["下一计划候选已更新：%s。%s当前出发整备槽不变。" % [_format_plan_label(plan_key), feedback_text]]
+	var decision_note := _format_candidate_decision_note(world_state, plan_key)
+	var decision_text := ""
+	if not decision_note.is_empty():
+		decision_text = "候选判断：%s" % decision_note
+	return ["下一计划候选已更新：%s。%s%s" % [_format_plan_label(plan_key), feedback_text, decision_text]]
 
 
 static func format_console_prompt(definition_id: String, world_state: WorldState, character_state: CharacterState) -> String:
