@@ -196,6 +196,11 @@ func run(root_window: Window) -> void:
 		"井系\n目标\n测绘预告",
 		"phase survey feedback minimap labels route intel target"
 	)
+	host._expect_array_missing(
+		presenter.format_map_marker_labels(survey_intel_world, "quest.collect_tether_fiber"),
+		"井系\n目标\n测绘预告",
+		"phase survey route intel does not relabel normal quest targets as survey preview"
+	)
 	var active_window_world := WorldState.create_default()
 	active_window_world.current_region_id = "region.outpost_platform"
 	active_window_world.unlock_region("region.phase_well_tether")

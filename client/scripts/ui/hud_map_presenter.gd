@@ -23,7 +23,7 @@ func get_marker_view_data(world_state: WorldState, quest_id: String) -> Array[Di
 	for marker in _get_region_marker_data():
 		var region_id := String(marker.get("region_id", ""))
 		view_data.append({
-			"label": _format_map_marker_label(marker, world_state, target_region_id),
+			"label": _format_map_marker_label(marker, world_state, target_region_id, quest_id),
 			"color": _get_map_marker_color(region_id, world_state, target_region_id)
 		})
 	return view_data
@@ -124,14 +124,14 @@ func _get_region_marker_data() -> Array[Dictionary]:
 	]
 
 
-func _format_map_marker_label(marker: Dictionary, world_state: WorldState, target_region_id: String) -> String:
+func _format_map_marker_label(marker: Dictionary, world_state: WorldState, target_region_id: String, quest_id: String) -> String:
 	var region_id := String(marker.get("region_id", ""))
 	var rows: Array[String] = [String(marker.get("label", region_id))]
 	if world_state.current_region_id == region_id:
 		rows.append("当前")
 	if target_region_id == region_id:
 		rows.append("目标")
-		if not BaseActionDispatchPlan.get_route_risk_note(world_state).is_empty():
+		if quest_id.is_empty() and not BaseActionDispatchPlan.get_route_risk_note(world_state).is_empty():
 			rows.append("测绘预告")
 	elif world_state.unlocked_region_ids.has(region_id):
 		rows.append("已解锁")
