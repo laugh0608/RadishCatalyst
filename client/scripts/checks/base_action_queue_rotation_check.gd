@@ -842,12 +842,34 @@ func _expect_frontline_window_stage_review(
 ) -> void:
 	var world_state := WorldState.create_default()
 	var character_state := CharacterState.create_default()
+	var gather_system := GatherSystem.new(host.data_registry)
 	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, executed_plan_key)
 	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, promoted_plan_key)
 	_set_ready_status_for_plan(world_state, executed_plan_key)
 
-	var confirm_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
-	host._expect_equal(confirm_messages.size(), 1, "stage review confirms one departure slot for %s" % executed_plan_key)
+	var confirm_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		world_state,
+		character_state
+	)
+	host._expect_text_contains(
+		confirm_prompt,
+		BaseActionWindowOutcome.get_window_target(executed_plan_key),
+		"stage review action console previews structured window target for %s" % executed_plan_key
+	)
+	var confirm_result := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(confirm_result.get("success", false)), true, "stage review real action console confirmation succeeds for %s" % executed_plan_key)
+	host._expect_text_contains(
+		String(confirm_result.get("message", "")),
+		BaseActionWindowOutcome.get_window_target(executed_plan_key),
+		"stage review confirmation uses structured window target for %s" % executed_plan_key
+	)
 	var departure_messages := BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
 	host._expect_equal(departure_messages.size(), 2, "stage review applies departure and promotes candidate for %s" % executed_plan_key)
 	host._expect_equal(
@@ -860,9 +882,25 @@ func _expect_frontline_window_stage_review(
 		promoted_plan_key,
 		"stage review promotes expected plan after %s" % executed_plan_key
 	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		BaseActionWindowOutcome.get_window_result(executed_plan_key),
+		"stage review active window uses structured result for %s" % executed_plan_key
+	)
 
-	var window_messages := BaseActionDispatchPlan.resolve_frontline_window(world_state)
-	host._expect_equal(window_messages.size(), 1, "stage review resolves frontline window for %s" % executed_plan_key)
+	var window_result := gather_system.interact_with_object(
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_INSTANCE_ID,
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_OBJECT_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(window_result.get("success", false)), true, "stage review real frontline window interaction succeeds for %s" % executed_plan_key)
+	host._expect_text_contains(
+		String(window_result.get("message", "")),
+		BaseActionWindowOutcome.get_resolution(executed_plan_key),
+		"stage review real window interaction resolves structured outcome for %s" % executed_plan_key
+	)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
 		expected_payoff,
@@ -884,7 +922,7 @@ func _expect_frontline_window_stage_review(
 		"stage review asks to archive feedback before another departure for %s" % executed_plan_key
 	)
 
-	var review_result := GatherSystem.new(host.data_registry).interact_with_object(
+	var review_result := gather_system.interact_with_object(
 		"map_object_instance.frontline_action_console",
 		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
 		"inspect",
