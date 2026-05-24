@@ -141,12 +141,74 @@ func run_flow(world_state: WorldState, character_state: CharacterState) -> void:
 	var repair_gel_before_report := int(character_state.inventory.items.get("item.repair_gel", 0))
 	var resistance_vial_before_report := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
 	host._complete_active_quest("quest.analyze_stability_echo_sample", [{"type": "craft_item", "target_id": "item.frontline_action_report", "amount": 1}])
-	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after stability echo report should have no active quest")
+	host._expect_active_quest("quest.confirm_supply_frontline_action", "after stability echo report returns to supply action confirmation")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.analyze_stability_echo_sample", "stability echo report quest completed")
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "stability echo report keeps slice completion unlock present")
 	host._expect_equal(int(character_state.inventory.items.get("item.basic_parts", 0)), basic_parts_before_report + 4, "stability echo report grants base supply parts")
 	host._expect_equal(int(character_state.inventory.items.get("item.repair_gel", 0)), repair_gel_before_report + 1, "stability echo report grants next sortie repair gel")
 	host._expect_equal(int(character_state.inventory.items.get("item.resistance_vial_t1", 0)), resistance_vial_before_report + 1, "stability echo report grants next sortie resistance vial")
+	host._complete_active_quest("quest.confirm_supply_frontline_action", [{"type": "inspect", "target_id": "map_object.frontline_action_console", "amount": 1}])
+	host._expect_active_quest("quest.inspect_supply_return_marker", "after supply action confirmation returns to supply marker")
+	host._complete_active_quest("quest.inspect_supply_return_marker", [
+		{"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1},
+		{"type": "inspect", "target_id": "map_object.supply_return_marker", "amount": 1}
+	])
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_supply_return_marker", "supply return marker quest completed")
+	host._expect_equal(int(character_state.inventory.items.get("item.supply_return_trace", 0)), 1, "supply return marker grants trace")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.short_action_feedback", "supply return marker unlocks short action feedback recipe")
+	host._expect_active_quest("quest.analyze_supply_return_trace", "after supply marker returns to base feedback analysis")
+	var basic_parts_before_short_feedback := int(character_state.inventory.items.get("item.basic_parts", 0))
+	var repair_gel_before_short_feedback := int(character_state.inventory.items.get("item.repair_gel", 0))
+	var resistance_vial_before_short_feedback := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
+	host._complete_active_quest("quest.analyze_supply_return_trace", [{"type": "craft_item", "target_id": "item.short_action_feedback", "amount": 1}])
+	host._expect_active_quest("quest.confirm_route_frontline_action", "after short action feedback returns to route action confirmation")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.analyze_supply_return_trace", "short action feedback quest completed")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "short action feedback keeps slice completion unlock present")
+	host._expect_equal(int(character_state.inventory.items.get("item.basic_parts", 0)), basic_parts_before_short_feedback + 2, "short action feedback grants base supply parts")
+	host._expect_equal(int(character_state.inventory.items.get("item.repair_gel", 0)), repair_gel_before_short_feedback + 1, "short action feedback grants repair gel")
+	host._expect_equal(int(character_state.inventory.items.get("item.resistance_vial_t1", 0)), resistance_vial_before_short_feedback + 1, "short action feedback grants resistance vial")
+	host._complete_active_quest("quest.confirm_route_frontline_action", [{"type": "inspect", "target_id": "map_object.frontline_action_console", "amount": 1}])
+	host._expect_active_quest("quest.inspect_route_signal_marker", "after route action confirmation returns to route signal marker")
+	host._complete_active_quest("quest.inspect_route_signal_marker", [
+		{"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1},
+		{"type": "inspect", "target_id": "map_object.route_signal_marker", "amount": 1}
+	])
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_route_signal_marker", "route signal marker quest completed")
+	host._expect_equal(int(character_state.inventory.items.get("item.route_signal_trace", 0)), 1, "route signal marker grants trace")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.route_action_feedback", "route signal marker unlocks route action feedback recipe")
+	host._expect_active_quest("quest.analyze_route_signal_trace", "after route marker returns to base feedback analysis")
+	var basic_parts_before_route_feedback := int(character_state.inventory.items.get("item.basic_parts", 0))
+	var repair_gel_before_route_feedback := int(character_state.inventory.items.get("item.repair_gel", 0))
+	var resistance_vial_before_route_feedback := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
+	host._complete_active_quest("quest.analyze_route_signal_trace", [{"type": "craft_item", "target_id": "item.route_action_feedback", "amount": 1}])
+	host._expect_equal(
+		world_state.quest_state.active_quest_ids,
+		["quest.choose_steady_supply_action", "quest.choose_phase_survey_action", "quest.choose_pressure_clearance_action"],
+		"after route action feedback should activate base action choices"
+	)
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.analyze_route_signal_trace", "route action feedback quest completed")
+	host._expect_equal(int(character_state.inventory.items.get("item.basic_parts", 0)), basic_parts_before_route_feedback + 2, "route action feedback grants base supply parts")
+	host._expect_equal(int(character_state.inventory.items.get("item.repair_gel", 0)), repair_gel_before_route_feedback + 1, "route action feedback grants repair gel")
+	host._expect_equal(int(character_state.inventory.items.get("item.resistance_vial_t1", 0)), resistance_vial_before_route_feedback + 1, "route action feedback grants resistance vial")
+	host._complete_active_quest("quest.choose_phase_survey_action", [{"type": "inspect", "target_id": "map_object.base_survey_choice_console", "amount": 1}])
+	host._expect_equal(world_state.quest_state.active_quest_ids, ["quest.inspect_phase_survey_nodes"], "phase survey choice should close supply choice and activate survey targets")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.choose_phase_survey_action", "phase survey choice quest completed")
+	host._complete_active_quest("quest.inspect_phase_survey_nodes", [
+		{"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1},
+		{"type": "inspect", "target_id": "map_object.phase_survey_node_west", "amount": 1},
+		{"type": "inspect", "target_id": "map_object.phase_survey_node_east", "amount": 1}
+	])
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.inspect_phase_survey_nodes", "phase survey nodes quest completed")
+	host._expect_equal(int(character_state.inventory.items.get("item.phase_survey_trace", 0)), 1, "phase survey nodes grant survey trace")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_survey_feedback", "phase survey nodes unlock feedback recipe")
+	host._expect_active_quest("quest.analyze_phase_survey_trace", "after survey nodes returns to base feedback analysis")
+	var basic_parts_before_survey_feedback := int(character_state.inventory.items.get("item.basic_parts", 0))
+	var resistance_vial_before_survey_feedback := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
+	host._complete_active_quest("quest.analyze_phase_survey_trace", [{"type": "craft_item", "target_id": "item.phase_survey_feedback", "amount": 1}])
+	host._expect_equal(world_state.quest_state.active_quest_ids, [], "after survey feedback should have no active quest")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.analyze_phase_survey_trace", "phase survey feedback quest completed")
+	host._expect_equal(int(character_state.inventory.items.get("item.basic_parts", 0)), basic_parts_before_survey_feedback + 1, "phase survey feedback grants base parts")
+	host._expect_equal(int(character_state.inventory.items.get("item.resistance_vial_t1", 0)), resistance_vial_before_survey_feedback + 1, "phase survey feedback grants resistance vial")
 
 
 func run_hud_and_map_checks() -> void:
@@ -155,6 +217,7 @@ func run_hud_and_map_checks() -> void:
 	_check_anchor_field_recovery()
 	_check_echo_shard_analysis_progress()
 	_check_stability_echo_report_progress()
+	_check_base_action_choice_runtime()
 	_check_stability_window_calibration_runtime()
 	_check_region_presence_bounds()
 	_check_phase_well_chamber_gate()
@@ -212,6 +275,16 @@ func _check_onboarding_hints() -> void:
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.plan_stability_frontline_action", "前线行动台", "frontline action confirmation direction explains base console")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.survey_stability_echo_probe", "短行动的目标密度", "stability echo probe onboarding explains short field objective")
 	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_stability_echo_sample", "回到基地反馈", "stability echo sample analysis onboarding explains return report")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.confirm_supply_frontline_action", "第二条行动", "supply action confirmation onboarding explains second action")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.inspect_supply_return_marker", "一处回执标记", "supply marker onboarding explains short target")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_supply_return_trace", "回到基地反馈", "supply trace analysis onboarding explains feedback loop")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.confirm_route_frontline_action", "第三条行动", "route action confirmation onboarding explains third action")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.inspect_route_signal_marker", "一处巡线信标", "route marker onboarding explains short target")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_route_signal_trace", "基地行动选择", "route trace analysis onboarding points to choice prototype")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.choose_steady_supply_action", "补给方案", "steady supply choice onboarding explains option")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.choose_phase_survey_action", "测绘方案", "phase survey choice onboarding explains option")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.inspect_steady_supply_drop", "风险更低", "steady supply field onboarding explains low-risk target")
+	host._expect_hint_contains(presenter, hint_world, hint_character, "quest.inspect_phase_survey_nodes", "两处读数点", "phase survey field onboarding explains two-point target")
 	var anchor_field_completion_world := WorldState.create_default()
 	anchor_field_completion_world.quest_state.active_quest_ids.clear()
 	anchor_field_completion_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
@@ -228,16 +301,41 @@ func _check_onboarding_hints() -> void:
 	calibration_completion_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
 	calibration_completion_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
 	calibration_completion_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
-	host._expect_text_contains(presenter.format_direction_hint(calibration_completion_world, hint_character, ""), "前线行动台", "calibration completion direction points to frontline action console")
-	host._expect_text_contains(presenter.format_onboarding_hint(calibration_completion_world, hint_character, ""), "最短基地-前线-基地反馈", "calibration completion onboarding summarizes next loop")
+	host._expect_text_contains(presenter.format_direction_hint(calibration_completion_world, hint_character, ""), "行动台确认稳窗回访", "calibration completion direction points to action console")
+	host._expect_text_contains(presenter.format_onboarding_hint(calibration_completion_world, hint_character, ""), "调度链", "calibration completion onboarding summarizes next loop")
 	var frontline_report_world := WorldState.create_default()
 	frontline_report_world.quest_state.active_quest_ids.clear()
 	frontline_report_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
 	frontline_report_world.quest_state.completed_quest_ids.append("quest.plan_stability_frontline_action")
 	frontline_report_world.quest_state.completed_quest_ids.append("quest.survey_stability_echo_probe")
 	frontline_report_world.quest_state.completed_quest_ids.append("quest.analyze_stability_echo_sample")
-	host._expect_text_contains(presenter.format_direction_hint(frontline_report_world, hint_character, ""), "前线行动回报已归档", "frontline report completion direction summarizes loop")
-	host._expect_text_contains(presenter.format_onboarding_hint(frontline_report_world, hint_character, ""), "可见补给收益", "frontline report completion onboarding explains base payoff")
+	host._expect_text_contains(presenter.format_direction_hint(frontline_report_world, hint_character, ""), "行动台确认补给短行动", "frontline report completion direction points to action console")
+	host._expect_text_contains(presenter.format_onboarding_hint(frontline_report_world, hint_character, ""), "调度链", "frontline report completion onboarding explains next action")
+	var short_feedback_world := WorldState.create_default()
+	short_feedback_world.quest_state.active_quest_ids.clear()
+	short_feedback_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
+	short_feedback_world.quest_state.completed_quest_ids.append("quest.plan_stability_frontline_action")
+	short_feedback_world.quest_state.completed_quest_ids.append("quest.survey_stability_echo_probe")
+	short_feedback_world.quest_state.completed_quest_ids.append("quest.analyze_stability_echo_sample")
+	short_feedback_world.quest_state.completed_quest_ids.append("quest.confirm_supply_frontline_action")
+	short_feedback_world.quest_state.completed_quest_ids.append("quest.inspect_supply_return_marker")
+	short_feedback_world.quest_state.completed_quest_ids.append("quest.analyze_supply_return_trace")
+	host._expect_text_contains(presenter.format_direction_hint(short_feedback_world, hint_character, ""), "行动台确认巡线短行动", "short feedback completion direction points to route action")
+	host._expect_text_contains(presenter.format_onboarding_hint(short_feedback_world, hint_character, ""), "巡线反馈", "short feedback completion onboarding explains route action")
+	var route_feedback_world := WorldState.create_default()
+	route_feedback_world.quest_state.active_quest_ids.clear()
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.plan_stability_frontline_action")
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.survey_stability_echo_probe")
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.analyze_stability_echo_sample")
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.confirm_supply_frontline_action")
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.inspect_supply_return_marker")
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.analyze_supply_return_trace")
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.confirm_route_frontline_action")
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.inspect_route_signal_marker")
+	route_feedback_world.quest_state.completed_quest_ids.append("quest.analyze_route_signal_trace")
+	host._expect_text_contains(presenter.format_direction_hint(route_feedback_world, hint_character, ""), "稳场补给", "route feedback completion direction points to base choice")
+	host._expect_text_contains(presenter.format_onboarding_hint(route_feedback_world, hint_character, ""), "真实取舍", "route feedback completion onboarding explains choice shift")
 	var anchor_field_deployed_world := WorldState.create_default()
 	anchor_field_deployed_world.quest_state.active_quest_ids = ["quest.stabilize_phase_well_anchor_field"]
 	anchor_field_deployed_world.ensure_map_object("map_object_instance.phase_well_anchor_field", "map_object.phase_well_anchor_field", "region.phase_well_tether")["anchor_field_deployed"] = true
@@ -298,8 +396,8 @@ func _check_status_panel_summary() -> void:
 	calibration_text_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
 	calibration_text_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
 	var calibration_text := presenter.format_status_text(host.data_registry, calibration_text_world, status_character)
-	host._expect_text_contains(calibration_text, "目标：前线行动待确认", "status falls back to frontline action confirmation after calibration")
-	host._expect_text_contains(calibration_text, "前线行动台", "status progress points to base frontline action console")
+	host._expect_text_contains(calibration_text, "目标：稳窗回访待确认", "status falls back to frontline action confirmation after calibration")
+	host._expect_text_contains(calibration_text, "行动台确认稳窗回访", "status progress points to base action console")
 	var frontline_report_text_world := WorldState.create_default()
 	frontline_report_text_world.quest_state.active_quest_ids.clear()
 	frontline_report_text_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
@@ -309,8 +407,39 @@ func _check_status_panel_summary() -> void:
 	frontline_report_text_world.quest_state.completed_quest_ids.append("quest.survey_stability_echo_probe")
 	frontline_report_text_world.quest_state.completed_quest_ids.append("quest.analyze_stability_echo_sample")
 	var frontline_report_text := presenter.format_status_text(host.data_registry, frontline_report_text_world, status_character)
-	host._expect_text_contains(frontline_report_text, "目标：前线行动回报已归档", "status falls back to frontline report completion")
-	host._expect_text_contains(frontline_report_text, "短行动补给已整理", "status progress keeps base feedback payoff explicit")
+	host._expect_text_contains(frontline_report_text, "目标：补给短行动待确认", "status falls back to supply action after frontline report")
+	host._expect_text_contains(frontline_report_text, "行动台确认补给短行动", "status progress points to supply action console")
+	var short_feedback_text_world := WorldState.create_default()
+	short_feedback_text_world.quest_state.active_quest_ids.clear()
+	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
+	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
+	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
+	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.plan_stability_frontline_action")
+	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.survey_stability_echo_probe")
+	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.analyze_stability_echo_sample")
+	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.confirm_supply_frontline_action")
+	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.inspect_supply_return_marker")
+	short_feedback_text_world.quest_state.completed_quest_ids.append("quest.analyze_supply_return_trace")
+	var short_feedback_text := presenter.format_status_text(host.data_registry, short_feedback_text_world, status_character)
+	host._expect_text_contains(short_feedback_text, "目标：巡线短行动待确认", "status falls back to route action after short feedback")
+	host._expect_text_contains(short_feedback_text, "行动台确认巡线短行动", "status progress points to route action console")
+	var route_feedback_text_world := WorldState.create_default()
+	route_feedback_text_world.quest_state.active_quest_ids.clear()
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.plan_stability_frontline_action")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.survey_stability_echo_probe")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.analyze_stability_echo_sample")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.confirm_supply_frontline_action")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.inspect_supply_return_marker")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.analyze_supply_return_trace")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.confirm_route_frontline_action")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.inspect_route_signal_marker")
+	route_feedback_text_world.quest_state.completed_quest_ids.append("quest.analyze_route_signal_trace")
+	var route_feedback_text := presenter.format_status_text(host.data_registry, route_feedback_text_world, status_character)
+	host._expect_text_contains(route_feedback_text, "目标：基地行动方案待选择", "status falls back to base action choice after route feedback")
+	host._expect_text_contains(route_feedback_text, "压力清障高风险换防护", "status progress points to three base action options")
 
 
 func _check_anchor_field_recovery() -> void:
@@ -423,6 +552,11 @@ func _check_stability_echo_report_progress() -> void:
 		"quest.analyze_stability_echo_sample",
 		"stability echo report completion completes quest"
 	)
+	host._expect_array_has(
+		world_state.quest_state.active_quest_ids,
+		"quest.confirm_supply_frontline_action",
+		"stability echo report completion activates supply action"
+	)
 	host._expect_equal(bool(result.get("accepted", false)), true, "stability echo report completion result accepted")
 
 	var recovery_world := WorldState.create_default()
@@ -434,6 +568,724 @@ func _check_stability_echo_report_progress() -> void:
 		recovery_world.quest_state.completed_quest_ids,
 		"quest.analyze_stability_echo_sample",
 		"stability echo report recovers completed objective from inventory"
+	)
+	var feedback_world := WorldState.create_default()
+	var feedback_character := CharacterState.create_default()
+	feedback_world.quest_state.active_quest_ids = ["quest.analyze_supply_return_trace"]
+	var feedback_result := runtime.advance_for_interaction(
+		feedback_world,
+		feedback_character,
+		{
+			"definition_id": "building.basic_reactor",
+			"interaction_type": "process_recipe",
+			"recipe_id": "recipe.process_crystal_ore"
+		},
+		{"success": true, "completed_recipe_id": "recipe.short_action_feedback"}
+	)
+	host._expect_equal(
+		feedback_world.quest_state.get_objective_progress(
+			"quest.analyze_supply_return_trace",
+			"craft_item",
+			"item.short_action_feedback"
+		),
+		1.0,
+		"short action feedback completion advances feedback objective"
+	)
+	host._expect_array_has(
+		feedback_world.quest_state.completed_quest_ids,
+		"quest.analyze_supply_return_trace",
+		"short action feedback completion completes quest"
+	)
+	host._expect_array_has(
+		feedback_world.quest_state.active_quest_ids,
+		"quest.confirm_route_frontline_action",
+		"short action feedback completion activates route action"
+	)
+	host._expect_equal(bool(feedback_result.get("accepted", false)), true, "short action feedback completion result accepted")
+	var route_feedback_world := WorldState.create_default()
+	var route_feedback_character := CharacterState.create_default()
+	route_feedback_world.quest_state.active_quest_ids = ["quest.analyze_route_signal_trace"]
+	var route_feedback_result := runtime.advance_for_interaction(
+		route_feedback_world,
+		route_feedback_character,
+		{
+			"definition_id": "building.basic_reactor",
+			"interaction_type": "process_recipe",
+			"recipe_id": "recipe.process_crystal_ore"
+		},
+		{"success": true, "completed_recipe_id": "recipe.route_action_feedback"}
+	)
+	host._expect_equal(
+		route_feedback_world.quest_state.get_objective_progress(
+			"quest.analyze_route_signal_trace",
+			"craft_item",
+			"item.route_action_feedback"
+		),
+		1.0,
+		"route action feedback completion advances feedback objective"
+	)
+	host._expect_array_has(
+		route_feedback_world.quest_state.completed_quest_ids,
+		"quest.analyze_route_signal_trace",
+		"route action feedback completion completes quest"
+	)
+	host._expect_equal(
+		route_feedback_world.quest_state.active_quest_ids,
+		["quest.choose_steady_supply_action", "quest.choose_phase_survey_action", "quest.choose_pressure_clearance_action"],
+		"route action feedback completion activates base action choices"
+	)
+	host._expect_equal(bool(route_feedback_result.get("accepted", false)), true, "route action feedback completion result accepted")
+
+
+func _check_base_action_choice_runtime() -> void:
+	var runtime := QuestRuntime.new(host.data_registry)
+	var supply_world := WorldState.create_default()
+	var supply_character := CharacterState.create_default()
+	supply_world.quest_state.active_quest_ids = [
+		"quest.choose_steady_supply_action",
+		"quest.choose_phase_survey_action",
+		"quest.choose_pressure_clearance_action"
+	]
+	var choice_prompt := BaseActionDispatchPlan.format_console_prompt(
+		"map_object.base_supply_choice_console",
+		supply_world,
+		supply_character
+	)
+	host._expect_text_contains(choice_prompt, "方案 A：稳场补给", "base action console prompt lists supply option")
+	host._expect_text_contains(choice_prompt, "方案 B：相位测绘", "base action console prompt lists survey option")
+	var supply_choice_result := runtime.advance_for_interaction(
+		supply_world,
+		supply_character,
+		{
+			"definition_id": "map_object.base_supply_choice_console",
+			"interaction_type": "inspect"
+		},
+		{"success": true}
+	)
+	host._expect_equal(bool(supply_choice_result.get("accepted", false)), true, "steady supply choice result accepted")
+	host._expect_equal(
+		supply_world.quest_state.active_quest_ids,
+		["quest.inspect_steady_supply_drop"],
+		"steady supply choice should close other choices and activate supply target"
+	)
+	host._expect_array_has(
+		supply_world.quest_state.completed_quest_ids,
+		"quest.choose_steady_supply_action",
+		"steady supply choice quest completed"
+	)
+	host._expect_array_missing(
+		supply_world.quest_state.completed_quest_ids,
+		"quest.choose_phase_survey_action",
+		"steady supply choice should not complete survey choice"
+	)
+	host._expect_array_missing(
+		supply_world.quest_state.completed_quest_ids,
+		"quest.choose_pressure_clearance_action",
+		"steady supply choice should not complete pressure choice"
+	)
+	var supply_drop_result := runtime.advance_for_interaction(
+		supply_world,
+		supply_character,
+		{
+			"definition_id": "map_object.steady_supply_drop_marker",
+			"interaction_type": "inspect"
+		},
+		{"success": true}
+	)
+	host._expect_equal(bool(supply_drop_result.get("accepted", false)), true, "steady supply drop result accepted")
+	host._expect_array_has(
+		supply_world.quest_state.completed_quest_ids,
+		"quest.inspect_steady_supply_drop",
+		"steady supply drop quest completed"
+	)
+	host._expect_equal(
+		int(supply_character.inventory.items.get("item.steady_supply_trace", 0)),
+		1,
+		"steady supply drop grants trace"
+	)
+	host._expect_equal(
+		int(supply_character.inventory.items.get("item.basic_parts", 0)),
+		7,
+		"steady supply drop grants low-risk base parts"
+	)
+	host._expect_array_has(
+		supply_world.quest_state.unlocked_effects,
+		"recipe.steady_supply_feedback",
+		"steady supply drop unlocks feedback recipe"
+	)
+	host._expect_equal(
+		supply_world.quest_state.active_quest_ids,
+		["quest.analyze_steady_supply_trace"],
+		"steady supply drop returns to base feedback analysis"
+	)
+	var supply_feedback_result := runtime.advance_for_interaction(
+		supply_world,
+		supply_character,
+		{
+			"definition_id": "building.basic_reactor",
+			"interaction_type": "process_recipe",
+			"recipe_id": "recipe.process_crystal_ore"
+		},
+		{"success": true, "completed_recipe_id": "recipe.steady_supply_feedback"}
+	)
+	host._expect_equal(bool(supply_feedback_result.get("accepted", false)), true, "steady supply feedback result accepted")
+	host._expect_equal(
+		supply_world.quest_state.active_quest_ids,
+		[],
+		"steady supply feedback should finish branch without lingering quests"
+	)
+	host._expect_array_has(
+		supply_world.quest_state.completed_quest_ids,
+		"quest.analyze_steady_supply_trace",
+		"steady supply feedback quest completed"
+	)
+	host._expect_equal(
+		int(supply_character.inventory.items.get("item.basic_parts", 0)),
+		10,
+		"steady supply feedback grants resource-focused return"
+	)
+	host._expect_equal(
+		int(supply_character.inventory.items.get("item.repair_gel", 0)),
+		2,
+		"steady supply feedback grants repair gel"
+	)
+	var supply_dispatch_summary := BaseActionDispatchPlan.summarize(supply_world, supply_character)
+	host._expect_equal(
+		String(supply_dispatch_summary.get("stage", "")),
+		"steady_supply_ready",
+		"steady supply feedback should become dispatch preparation state"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.base_supply_choice_console", supply_world, supply_character),
+		"补给整备已生效",
+		"steady supply prompt shows preparation payoff"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_supply_package_status(supply_world),
+		BaseActionDispatchPlan.STATUS_READY,
+		"steady supply feedback should prepare a next-departure package"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(supply_world),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"steady supply feedback should fill current plan slot"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_next_plan_candidate_key(supply_world),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"steady supply feedback should seed survey as next plan candidate"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", supply_world, supply_character),
+		"出发补给整备槽",
+		"steady supply action console should confirm departure slot"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_progress(supply_world),
+		"按 E 确认出发补给整备槽",
+		"steady supply status progress should include explicit confirmation input"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", supply_world, supply_character),
+		"按 E 确认：出发补给整备槽",
+		"steady supply action console prompt should expose confirmation input before details"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", supply_world, supply_character),
+		"计划：低风险补给",
+		"steady supply action console should show risk reward profile"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", supply_world, supply_character),
+		"下一计划候选：信息侦测",
+		"steady supply action console should show next candidate"
+	)
+	var supply_candidate_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.base_supply_choice_console",
+		"map_object.base_supply_choice_console",
+		"inspect",
+		supply_character,
+		supply_world
+	)
+	host._expect_equal(bool(supply_candidate_result.get("success", false)), true, "steady supply candidate replacement should be accepted")
+	host._expect_text_contains(String(supply_candidate_result.get("message", "")), "下一计划候选", "candidate replacement should explain queued candidate")
+	host._expect_equal(
+		BaseActionDispatchPlan.get_next_plan_candidate_key(supply_world),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"steady supply candidate replacement should not change current slot"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(supply_world),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"candidate replacement should keep current supply plan"
+	)
+	host._expect_equal(
+		supply_world.quest_state.active_quest_ids,
+		[],
+		"candidate replacement should not activate field quests"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.apply_departure_preparation(supply_world, supply_character).size(),
+		0,
+		"steady supply package should wait for action console confirmation"
+	)
+	var supply_slot_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		supply_character,
+		supply_world
+	)
+	host._expect_equal(bool(supply_slot_result.get("success", false)), true, "steady supply action console should accept departure slot confirmation")
+	host._expect_text_contains(String(supply_slot_result.get("message", "")), "低风险补给计划", "steady supply action console should queue one departure slot")
+	host._expect_equal(
+		BaseActionDispatchPlan.get_supply_package_status(supply_world),
+		BaseActionDispatchPlan.STATUS_QUEUED,
+		"steady supply package should become queued after action console confirmation"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_departure_plan_key(supply_world),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"steady supply confirmation should record departure plan key"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_progress(supply_world),
+		"到相位回投台按 E 出发",
+		"steady supply queued status should point to phase relay pad"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_direction_hint(supply_world),
+		"到相位回投台按 E 出发",
+		"steady supply queued direction should explain next interaction"
+	)
+	var supply_departure_messages := BaseActionDispatchPlan.apply_departure_preparation(supply_world, supply_character)
+	host._expect_equal(supply_departure_messages.size(), 2, "steady supply departure should apply one package and promote next candidate")
+	host._expect_text_contains(
+		String(supply_departure_messages[0]),
+		"低风险补给计划已执行",
+		"steady supply departure message explains package"
+	)
+	host._expect_text_contains(
+		String(supply_departure_messages[1]),
+		"下一计划候选已进入当前计划槽",
+		"steady supply departure message explains candidate promotion"
+	)
+	host._expect_equal(
+		int(supply_character.inventory.items.get("item.basic_parts", 0)),
+		12,
+		"steady supply departure package grants resource buffer parts"
+	)
+	host._expect_equal(
+		int(supply_character.inventory.items.get("item.repair_gel", 0)),
+		3,
+		"steady supply departure package grants repair gel"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_supply_package_status(supply_world),
+		BaseActionDispatchPlan.STATUS_READY,
+		"steady supply package should become ready again when same candidate is promoted"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_last_departure_plan_key(supply_world),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"steady supply departure should persist last executed plan"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.apply_departure_preparation(supply_world, supply_character).size(),
+		0,
+		"steady supply package should not duplicate after use"
+	)
+
+	var survey_world := WorldState.create_default()
+	var survey_character := CharacterState.create_default()
+	survey_world.quest_state.active_quest_ids = [
+		"quest.choose_steady_supply_action",
+		"quest.choose_phase_survey_action",
+		"quest.choose_pressure_clearance_action"
+	]
+	var survey_choice_result := runtime.advance_for_interaction(
+		survey_world,
+		survey_character,
+		{
+			"definition_id": "map_object.base_survey_choice_console",
+			"interaction_type": "inspect"
+		},
+		{"success": true}
+	)
+	host._expect_equal(bool(survey_choice_result.get("accepted", false)), true, "phase survey choice result accepted")
+	host._expect_equal(
+		survey_world.quest_state.active_quest_ids,
+		["quest.inspect_phase_survey_nodes"],
+		"phase survey choice should close supply choice and activate survey targets"
+	)
+	host._expect_array_missing(
+		survey_world.quest_state.completed_quest_ids,
+		"quest.choose_steady_supply_action",
+		"phase survey choice should not complete steady supply choice"
+	)
+	host._expect_array_missing(
+		survey_world.quest_state.completed_quest_ids,
+		"quest.choose_pressure_clearance_action",
+		"phase survey choice should not complete pressure choice"
+	)
+	runtime.advance_for_interaction(
+		survey_world,
+		survey_character,
+		{
+			"definition_id": "map_object.phase_survey_node_west",
+			"interaction_type": "inspect"
+		},
+		{"success": true}
+	)
+	host._expect_equal(
+		survey_world.quest_state.has_completed_quest("quest.inspect_phase_survey_nodes"),
+		false,
+		"phase survey should require both survey nodes"
+	)
+	host._expect_equal(
+		survey_world.quest_state.get_objective_progress(
+			"quest.inspect_phase_survey_nodes",
+			"inspect",
+			"map_object.phase_survey_node_west"
+		),
+		1.0,
+		"phase survey west node records partial progress"
+	)
+	runtime.advance_for_interaction(
+		survey_world,
+		survey_character,
+		{
+			"definition_id": "map_object.phase_survey_node_east",
+			"interaction_type": "inspect"
+		},
+		{"success": true}
+	)
+	host._expect_array_has(
+		survey_world.quest_state.completed_quest_ids,
+		"quest.inspect_phase_survey_nodes",
+		"phase survey nodes quest completed after both readings"
+	)
+	host._expect_equal(
+		int(survey_character.inventory.items.get("item.phase_survey_trace", 0)),
+		1,
+		"phase survey nodes grant survey trace"
+	)
+	host._expect_equal(
+		int(survey_character.inventory.items.get("item.basic_parts", 0)),
+		5,
+		"phase survey nodes grant smaller resource return"
+	)
+	host._expect_array_has(
+		survey_world.quest_state.unlocked_effects,
+		"recipe.phase_survey_feedback",
+		"phase survey nodes unlock feedback recipe"
+	)
+	var survey_feedback_result := runtime.advance_for_interaction(
+		survey_world,
+		survey_character,
+		{
+			"definition_id": "building.basic_reactor",
+			"interaction_type": "process_recipe",
+			"recipe_id": "recipe.process_crystal_ore"
+		},
+		{"success": true, "completed_recipe_id": "recipe.phase_survey_feedback"}
+	)
+	host._expect_equal(bool(survey_feedback_result.get("accepted", false)), true, "phase survey feedback result accepted")
+	host._expect_equal(
+		survey_world.quest_state.active_quest_ids,
+		[],
+		"phase survey feedback should finish branch without lingering quests"
+	)
+	host._expect_equal(
+		int(survey_character.inventory.items.get("item.resistance_vial_t1", 0)),
+		1,
+		"phase survey feedback grants information-oriented vial return"
+	)
+	var survey_dispatch_summary := BaseActionDispatchPlan.summarize(survey_world, survey_character)
+	host._expect_equal(
+		String(survey_dispatch_summary.get("stage", "")),
+		"phase_survey_ready",
+		"phase survey feedback should become dispatch preparation state"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.base_survey_choice_console", survey_world, survey_character),
+		"测绘整备已生效",
+		"phase survey prompt shows route hint payoff"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_survey_intel_status(survey_world),
+		BaseActionDispatchPlan.STATUS_READY,
+		"phase survey feedback should prepare route intel"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(survey_world),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"phase survey feedback should fill current plan slot"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_next_plan_candidate_key(survey_world),
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"phase survey feedback should seed pressure clearance as next plan candidate"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", survey_world, survey_character),
+		"测绘路线整备槽",
+		"phase survey action console should confirm departure slot"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_progress(survey_world),
+		"按 E 确认测绘路线整备槽",
+		"phase survey status progress should include explicit confirmation input"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", survey_world, survey_character),
+		"按 E 确认：测绘路线整备槽",
+		"phase survey action console prompt should expose confirmation input before details"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", survey_world, survey_character),
+		"计划：信息侦测",
+		"phase survey action console should show risk reward profile"
+	)
+	var survey_candidate_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.base_survey_choice_console",
+		"map_object.base_survey_choice_console",
+		"inspect",
+		survey_character,
+		survey_world
+	)
+	host._expect_equal(bool(survey_candidate_result.get("success", false)), true, "phase survey candidate replacement should be accepted")
+	host._expect_equal(
+		BaseActionDispatchPlan.get_next_plan_candidate_key(survey_world),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"phase survey candidate replacement should update next candidate"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(survey_world),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"phase survey candidate replacement should keep current slot"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_route_target_region_id(survey_world),
+		"region.phase_well_tether",
+		"phase survey feedback should reveal next route target"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.get_route_risk_note(survey_world),
+		"短时扰动",
+		"phase survey route intel should include risk preview"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.apply_departure_preparation(survey_world, survey_character).size(),
+		0,
+		"phase survey intel should wait for action console confirmation"
+	)
+	var survey_slot_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		survey_character,
+		survey_world
+	)
+	host._expect_equal(bool(survey_slot_result.get("success", false)), true, "phase survey action console should accept departure slot confirmation")
+	host._expect_text_contains(String(survey_slot_result.get("message", "")), "信息侦测计划", "phase survey action console should queue one departure slot")
+	host._expect_equal(
+		BaseActionDispatchPlan.get_survey_intel_status(survey_world),
+		BaseActionDispatchPlan.STATUS_QUEUED,
+		"phase survey intel should become queued after action console confirmation"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_departure_plan_key(survey_world),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"phase survey confirmation should record departure plan key"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_progress(survey_world),
+		"到相位回投台按 E 出发",
+		"phase survey queued status should point to phase relay pad"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_direction_hint(survey_world),
+		"到相位回投台按 E 出发",
+		"phase survey queued direction should explain next interaction"
+	)
+	var survey_departure_messages := BaseActionDispatchPlan.apply_departure_preparation(survey_world, survey_character)
+	host._expect_equal(survey_departure_messages.size(), 2, "phase survey departure should load intel and promote next candidate")
+	host._expect_text_contains(
+		String(survey_departure_messages[0]),
+		"信息侦测计划已执行",
+		"phase survey departure message explains target reveal"
+	)
+	host._expect_text_contains(
+		String(survey_departure_messages[1]),
+		"下一计划候选已进入当前计划槽",
+		"phase survey departure message explains candidate promotion"
+	)
+	host._expect_text_contains(
+		String(survey_departure_messages[0]),
+		"同一前线异常窗口已载入侦测解法",
+		"phase survey departure message should point to the shared prepared window"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_survey_intel_status(survey_world),
+		BaseActionDispatchPlan.STATUS_READY,
+		"phase survey intel should become ready again when same candidate is promoted"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_last_departure_plan_key(survey_world),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"phase survey departure should persist last executed plan"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_route_target_region_id(survey_world),
+		"region.phase_well_tether",
+		"phase survey promoted intel should keep route target actionable"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_progress(survey_world),
+		"先在窗口按 E 处理结果",
+		"phase survey departure status should point to the active frontline window"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_direction_hint(survey_world),
+		"先找到前线异常窗口并按 E 处理",
+		"phase survey departure direction should not send player back before window resolution"
+	)
+	BaseActionDispatchPlan.resolve_frontline_window(survey_world)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_progress(survey_world),
+		"按 E 收口本轮结果",
+		"phase survey resolved window should ask for feedback archival before any new confirmation"
+	)
+
+	var pressure_world := WorldState.create_default()
+	var pressure_character := CharacterState.create_default()
+	pressure_world.quest_state.active_quest_ids = [
+		"quest.choose_steady_supply_action",
+		"quest.choose_phase_survey_action",
+		"quest.choose_pressure_clearance_action"
+	]
+	var pressure_choice_prompt := BaseActionDispatchPlan.format_console_prompt(
+		"map_object.base_pressure_choice_console",
+		pressure_world,
+		pressure_character
+	)
+	host._expect_text_contains(pressure_choice_prompt, "方案 C：压力清障", "base action console prompt lists pressure option")
+	var pressure_choice_result := runtime.advance_for_interaction(
+		pressure_world,
+		pressure_character,
+		{
+			"definition_id": "map_object.base_pressure_choice_console",
+			"interaction_type": "inspect"
+		},
+		{"success": true}
+	)
+	host._expect_equal(bool(pressure_choice_result.get("accepted", false)), true, "pressure clearance choice result accepted")
+	host._expect_equal(
+		pressure_world.quest_state.active_quest_ids,
+		["quest.clear_pressure_frontline_hazard"],
+		"pressure choice should close other choices and activate clearance target"
+	)
+	host._expect_array_missing(
+		pressure_world.quest_state.completed_quest_ids,
+		"quest.choose_steady_supply_action",
+		"pressure choice should not complete steady supply choice"
+	)
+	host._expect_array_missing(
+		pressure_world.quest_state.completed_quest_ids,
+		"quest.choose_phase_survey_action",
+		"pressure choice should not complete phase survey choice"
+	)
+	var pressure_clear_result := runtime.advance_for_interaction(
+		pressure_world,
+		pressure_character,
+		{
+			"definition_id": "map_object.pressure_clearance_node",
+			"interaction_type": "clear"
+		},
+		{"success": true}
+	)
+	host._expect_equal(bool(pressure_clear_result.get("accepted", false)), true, "pressure clearance node result accepted")
+	host._expect_array_has(
+		pressure_world.quest_state.completed_quest_ids,
+		"quest.clear_pressure_frontline_hazard",
+		"pressure clearance quest completed"
+	)
+	host._expect_equal(
+		int(pressure_character.inventory.items.get("item.pressure_clearance_trace", 0)),
+		1,
+		"pressure clearance grants trace"
+	)
+	host._expect_equal(
+		int(pressure_character.inventory.items.get("item.repair_gel", 0)),
+		2,
+		"pressure clearance grants immediate repair gel"
+	)
+	host._expect_array_has(
+		pressure_world.quest_state.unlocked_effects,
+		"recipe.pressure_clearance_feedback",
+		"pressure clearance unlocks feedback recipe"
+	)
+	var pressure_feedback_result := runtime.advance_for_interaction(
+		pressure_world,
+		pressure_character,
+		{
+			"definition_id": "building.basic_reactor",
+			"interaction_type": "process_recipe",
+			"recipe_id": "recipe.process_crystal_ore"
+		},
+		{"success": true, "completed_recipe_id": "recipe.pressure_clearance_feedback"}
+	)
+	host._expect_equal(bool(pressure_feedback_result.get("accepted", false)), true, "pressure clearance feedback result accepted")
+	host._expect_equal(
+		pressure_world.quest_state.active_quest_ids,
+		[],
+		"pressure clearance feedback should finish branch without lingering quests"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_pressure_clearance_status(pressure_world),
+		BaseActionDispatchPlan.STATUS_READY,
+		"pressure clearance feedback should prepare defensive departure package"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(pressure_world),
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"pressure clearance feedback should fill current plan slot"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt("map_object.frontline_action_console", pressure_world, pressure_character),
+		"按 E 确认：清障防护整备槽",
+		"pressure clearance action console should expose departure confirmation"
+	)
+	var pressure_slot_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		pressure_character,
+		pressure_world
+	)
+	host._expect_equal(bool(pressure_slot_result.get("success", false)), true, "pressure action console should accept departure slot confirmation")
+	host._expect_equal(
+		BaseActionDispatchPlan.get_pressure_clearance_status(pressure_world),
+		BaseActionDispatchPlan.STATUS_QUEUED,
+		"pressure clearance package should become queued after confirmation"
+	)
+	var pressure_departure_messages := BaseActionDispatchPlan.apply_departure_preparation(pressure_world, pressure_character)
+	host._expect_equal(pressure_departure_messages.size(), 2, "pressure departure should apply defensive package and promote next candidate")
+	host._expect_text_contains(
+		String(pressure_departure_messages[0]),
+		"压力清障防护计划已执行",
+		"pressure departure message explains defensive package"
+	)
+	host._expect_text_contains(
+		String(pressure_departure_messages[1]),
+		"下一计划候选已进入当前计划槽",
+		"pressure departure message explains candidate promotion"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_pressure_clearance_status(pressure_world),
+		BaseActionDispatchPlan.STATUS_USED,
+		"pressure clearance package should become used after departure"
 	)
 
 

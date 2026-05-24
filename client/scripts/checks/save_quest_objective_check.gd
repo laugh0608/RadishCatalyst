@@ -17,6 +17,7 @@ func run() -> void:
 	_check_rejects_completed_quest_without_objective_progress()
 	_check_rejects_completed_quest_with_partial_objective_progress()
 	_check_loads_legacy_sample_return_objective_progress()
+	_check_loads_legacy_frontline_action_console_progress()
 
 
 func _check_loads_active_quest_with_partial_defined_objective_progress() -> void:
@@ -150,3 +151,20 @@ func _check_loads_legacy_sample_return_objective_progress() -> void:
 	]
 	host._write_save_json(save_data)
 	host._expect_success(host.save_service.load_game(), "legacy sample return objective progress")
+
+
+func _check_loads_legacy_frontline_action_console_progress() -> void:
+	host._remove_save_file()
+	host._remove_backup_files()
+	var save_data: Dictionary = host._make_save_data("world.valid.legacy_frontline_action_console")
+	var baseline_result: Dictionary = host.development_baseline_builder.create_baseline_state("baseline.s19_route_action_feedback_ready")
+	var baseline_world: WorldState = baseline_result.get("world_state", null)
+	var baseline_character: CharacterState = baseline_result.get("character_state", null)
+	save_data["world"] = baseline_world.to_dict()
+	save_data["character"] = baseline_character.to_dict()
+	save_data["world"]["quest_state"]["objective_progress"].erase("quest.confirm_supply_frontline_action|inspect|map_object.frontline_action_console")
+	save_data["world"]["quest_state"]["objective_progress"].erase("quest.confirm_route_frontline_action|inspect|map_object.frontline_action_console")
+	save_data["world"]["quest_state"]["objective_progress"]["quest.confirm_supply_frontline_action|inspect|map_object.frontline_supply_console"] = 1
+	save_data["world"]["quest_state"]["objective_progress"]["quest.confirm_route_frontline_action|inspect|map_object.frontline_route_console"] = 1
+	host._write_save_json(save_data)
+	host._expect_success(host.save_service.load_game(), "legacy frontline action console objective progress")

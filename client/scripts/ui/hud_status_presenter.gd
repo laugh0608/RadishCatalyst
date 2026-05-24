@@ -65,6 +65,14 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 	"item.phase_well_stability_readout",
 	"item.stability_echo_sample",
 	"item.frontline_action_report",
+	"item.supply_return_trace",
+	"item.short_action_feedback",
+	"item.route_signal_trace",
+	"item.route_action_feedback",
+	"item.steady_supply_trace",
+	"item.steady_supply_feedback",
+	"item.phase_survey_trace",
+	"item.phase_survey_feedback",
 	"item.filter_media",
 	"item.foundation_material",
 	"fluid.basic_solvent",
@@ -169,8 +177,27 @@ func _format_vital_lines(
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if not quest_id.is_empty():
 		return _get_display_name(data_registry, quest_id)
+	var action_goal := BaseActionDispatchPlan.format_status_goal(world_state)
+	if not action_goal.is_empty():
+		return action_goal
+	if _has_completed_phase_survey_feedback(world_state):
+		return "相位测绘反馈已归档"
+	if _has_completed_steady_supply_feedback(world_state):
+		return "稳场补给反馈已归档"
+	if _has_completed_route_action_feedback(world_state):
+		return "基地行动选择待确认"
+	if _has_completed_route_signal_marker(world_state):
+		return "巡线读数待解析"
+	if _has_completed_route_frontline_action(world_state):
+		return "巡线信标待读取"
+	if _has_completed_short_action_feedback(world_state):
+		return "巡线短行动待确认"
+	if _has_completed_supply_return_marker(world_state):
+		return "补给回执待解析"
+	if _has_completed_supply_frontline_action(world_state):
+		return "补给回执标记待读取"
 	if _has_completed_stability_echo_report(world_state):
-		return "前线行动回报已归档"
+		return "补给短行动待确认"
 	if _has_completed_stability_echo_probe(world_state):
 		return "稳窗回波样本待解析"
 	if _has_completed_stability_frontline_action(world_state):
@@ -254,8 +281,27 @@ func _format_quick_slots(data_registry: DataRegistry, character_state: Character
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		var action_progress := BaseActionDispatchPlan.format_status_progress(world_state)
+		if not action_progress.is_empty():
+			return action_progress
+		if _has_completed_phase_survey_feedback(world_state):
+			return "相位测绘选择闭环已完成；本轮验证了基地选择、两处前线读数和返回提示收益"
+		if _has_completed_steady_supply_feedback(world_state):
+			return "稳场补给选择闭环已完成；本轮验证了基地选择、低风险前线目标和返回补给收益"
+		if _has_completed_route_action_feedback(world_state):
+			return "巡线反馈已归档；回基地在行动选择台选择稳场补给、相位测绘或压力清障"
+		if _has_completed_route_signal_marker(world_state):
+			return "巡线信标读数已带回；回基地基础反应器解析成巡线反馈记录"
+		if _has_completed_route_frontline_action(world_state):
+			return "巡线短行动已确认；回到井系桥前线读取巡线信标"
+		if _has_completed_short_action_feedback(world_state):
+			return "短行动反馈已归档，下一趟巡线目标已整理；回基地巡线短行动台确认第三条轻量行动"
+		if _has_completed_supply_return_marker(world_state):
+			return "补给回执读数已带回；回基地基础反应器解析成短行动反馈记录"
+		if _has_completed_supply_frontline_action(world_state):
+			return "补给短行动已确认；回到井系桥前线读取补给回执标记"
 		if _has_completed_stability_echo_report(world_state):
-			return "基地确认行动、前线读取探点、回基地解析回报的最短循环已完成；下一趟短行动补给已整理"
+			return "前线行动回报已归档，下一趟短行动补给已整理；回基地短行动补给台确认第二条轻量行动"
 		if _has_completed_stability_echo_probe(world_state):
 			return "稳窗回波样本已带回；回基地基础反应器解析成前线行动回报"
 		if _has_completed_stability_frontline_action(world_state):
@@ -436,6 +482,38 @@ func _has_completed_stability_echo_probe(world_state: WorldState) -> bool:
 
 func _has_completed_stability_echo_report(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.analyze_stability_echo_sample")
+
+
+func _has_completed_supply_frontline_action(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.confirm_supply_frontline_action")
+
+
+func _has_completed_supply_return_marker(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.inspect_supply_return_marker")
+
+
+func _has_completed_short_action_feedback(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.analyze_supply_return_trace")
+
+
+func _has_completed_route_frontline_action(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.confirm_route_frontline_action")
+
+
+func _has_completed_route_signal_marker(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.inspect_route_signal_marker")
+
+
+func _has_completed_route_action_feedback(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.analyze_route_signal_trace")
+
+
+func _has_completed_steady_supply_feedback(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.analyze_steady_supply_trace")
+
+
+func _has_completed_phase_survey_feedback(world_state: WorldState) -> bool:
+	return world_state.quest_state.has_completed_quest("quest.analyze_phase_survey_trace")
 
 
 func _has_completed_phase_well_frame(world_state: WorldState) -> bool:

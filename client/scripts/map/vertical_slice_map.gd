@@ -67,8 +67,8 @@ const INTERACTABLE_QUEST_GATES := {
 	"map_object.tether_fiber_cluster": "quest.collect_tether_fiber",
 	"map_object.phase_well_tether": "quest.inspect_phase_well_tether",
 	"map_object.phase_well_anchor_pressure_pin": "quest.stabilize_phase_well_anchor_field",
-	"map_object.frontline_action_console": "quest.plan_stability_frontline_action",
-	"map_object.stability_echo_probe": "quest.survey_stability_echo_probe"
+	"map_object.frontline_action_console": "quest.plan_stability_frontline_action", "map_object.stability_echo_probe": "quest.survey_stability_echo_probe",
+	"map_object.supply_return_marker": "quest.inspect_supply_return_marker", "map_object.route_signal_marker": "quest.inspect_route_signal_marker", "map_object.base_supply_choice_console": "quest.choose_steady_supply_action", "map_object.base_survey_choice_console": "quest.choose_phase_survey_action", "map_object.base_pressure_choice_console": "quest.choose_pressure_clearance_action", "map_object.steady_supply_drop_marker": "quest.inspect_steady_supply_drop", "map_object.phase_survey_node_west": "quest.inspect_phase_survey_nodes", "map_object.phase_survey_node_east": "quest.inspect_phase_survey_nodes", "map_object.pressure_clearance_node": "quest.clear_pressure_frontline_hazard"
 }
 @onready var player: PlayerController = $Player
 @onready var interactables_root: Node2D = $Interactables
@@ -186,6 +186,7 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 					current_interactable = null
 					interaction_cleared.emit(interactable)
 				continue
+		if BaseActionDispatchPlan.is_plan_candidate_console_ready(interactable.definition_id, world_state): is_processed = false
 		if interactable.single_use:
 			interactable.consumed = is_processed
 		if interactable.interaction_type == "outpost_core":
@@ -353,6 +354,8 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				interactable.set_ready_stability_calibration_visual()
 			else:
 				interactable.set_default_visual()
+		elif interactable.definition_id == BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID and BaseActionDispatchPlan.is_frontline_action_console_ready(world_state):
+			interactable.set_default_visual()
 		elif is_processed and interactable.set_processed_visual():
 			if current_interactable == interactable:
 				current_interactable = null
@@ -367,8 +370,11 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			var gate_quest_id := String(INTERACTABLE_QUEST_GATES[interactable.definition_id])
 			should_enable = should_enable and (
 				world_state.quest_state.has_active_quest(gate_quest_id)
-				or world_state.quest_state.has_completed_quest(gate_quest_id)
+				or world_state.quest_state.has_completed_quest(gate_quest_id) or BaseActionDispatchPlan.is_plan_candidate_console_ready(interactable.definition_id, world_state)
 			)
+		if interactable.definition_id == BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID:
+			should_enable = should_enable and BaseActionDispatchPlan.is_frontline_action_console_ready(world_state)
+		if BaseActionDispatchPlan.is_frontline_window_object(interactable.definition_id): should_enable = should_enable and BaseActionDispatchPlan.is_frontline_window_active(world_state)
 		if interactable.definition_id == "map_object.phase_well_frame_route_blocker":
 			should_enable = (
 				should_enable
@@ -478,7 +484,6 @@ func try_cycle_recipe(world_state: WorldState = null) -> Dictionary:
 		return _failure("当前目标不是加工设备。", "配方未切换", "靠近基础反应器或污染过滤器后再切换配方。")
 	if current_interactable.get_recipe_count() <= 1:
 		return _failure("当前设备没有可轮换配方。", "配方未切换", "该设备只有一个配方，直接按 E 尝试加工。")
-
 	var recipe_id := current_interactable.select_next_recipe()
 	return {
 		"success": true,
@@ -661,7 +666,6 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 func _setup_interactable_labels() -> void:
 	if data_registry == null:
 		return
-
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
 			continue
@@ -672,7 +676,6 @@ func _setup_interactable_labels() -> void:
 func _setup_enemy_labels() -> void:
 	if data_registry == null:
 		return
-
 	for enemy in enemies_root.get_children():
 		if not enemy is PrototypeEnemy:
 			continue
@@ -936,7 +939,6 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 	if not quest_state.has_active_quest(quest_id):
 		return false
 	return quest_state.get_objective_progress(quest_id, "craft_item", "item.repair_gel") >= 1.0
-
 
 func _get_attack_damage(character_state: CharacterState) -> float:
 	var tool_id := String(character_state.equipment.get("tool", ""))
@@ -1213,6 +1215,7 @@ func _inspect_phase_relay_pad(character_state: CharacterState, world_state: Worl
 	var active_anchor_id := world_state.active_phase_relay_anchor_id
 	var target_position := _get_phase_return_anchor_return_position(active_anchor_id)
 	var target_region_id := _get_interactable_region_id(active_anchor_id, "region.deep_ruin_threshold")
+	var departure_preparation_text := " ".join(BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state))
 	_teleport_player_to_region(character_state, world_state, target_region_id, target_position)
 	var active_anchor_label := _get_phase_relay_anchor_label(active_anchor_id)
 	var cycle_hint := ""
@@ -1221,11 +1224,11 @@ func _inspect_phase_relay_pad(character_state: CharacterState, world_state: Worl
 	if world_state.quest_state.has_active_quest("quest.reenter_phase_frontline"):
 		return {
 			"success": true,
-			"message": "相位回投台已联通：已回投到 %s；更东侧裂相碎屑和新的深段猎手已暴露%s。" % [active_anchor_label, cycle_hint]
+			"message": "相位回投台已联通：已回投到 %s；更东侧裂相碎屑和新的深段猎手已暴露%s。%s" % [active_anchor_label, cycle_hint, departure_preparation_text]
 		}
 	return {
 		"success": true,
-		"message": "相位回投台已联通：已回投到 %s%s。" % [active_anchor_label, cycle_hint]
+		"message": "相位回投台已联通：已回投到 %s%s。%s" % [active_anchor_label, cycle_hint, departure_preparation_text]
 	}
 func _inspect_phase_fault_spire(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not (world_state.quest_state.has_completed_quest("quest.refine_phase_splinters") or world_state.quest_state.has_completed_quest("quest.tune_relay_lens")):
@@ -1427,8 +1430,6 @@ func _has_phase_well_frame_route_cleared(world_state: WorldState) -> bool:
 		if bool(world_state.get_map_object(route_instance_id).get("is_cleared", false)):
 			return true
 	return false
-
-
 func _has_phase_well_field_readings(
 	world_state: WorldState,
 	quest_id: String,
@@ -1440,9 +1441,7 @@ func _has_phase_well_field_readings(
 		quest_id,
 		objective_type,
 		target_id
-	) >= required_amount
-
-
+) >= required_amount
 func _get_phase_relay_pad_return_position() -> Vector2:
 	return _get_interactable_return_position(
 		"map_object_instance.phase_relay_pad",

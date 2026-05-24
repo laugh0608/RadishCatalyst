@@ -8,7 +8,7 @@ func _init(registry: DataRegistry) -> void:
 	data_registry = registry
 
 
-func get_interaction_objective_updates(context: Dictionary, result: Dictionary, _quest_state: QuestState) -> Array[Dictionary]:
+func get_interaction_objective_updates(context: Dictionary, result: Dictionary, quest_state: QuestState) -> Array[Dictionary]:
 	var definition_id := String(context.get("definition_id", ""))
 	var interaction_type := String(context.get("interaction_type", ""))
 	var recipe_id := String(context.get("recipe_id", ""))
@@ -157,11 +157,54 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 	if interaction_type == "inspect" and definition_id == "map_object.phase_well_stability_node_east":
 		return [_set_update("quest.calibrate_phase_well_stability_window", "inspect", "map_object.phase_well_stability_node_east", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.frontline_action_console":
-		return [_set_update("quest.plan_stability_frontline_action", "inspect", "map_object.frontline_action_console", 1)]
+		var frontline_quest_id := BaseActionDispatchPlan.get_frontline_action_console_quest_id(quest_state)
+		if not frontline_quest_id.is_empty():
+			return [_set_update(frontline_quest_id, "inspect", "map_object.frontline_action_console", 1)]
+		return []
 	if interaction_type == "inspect" and definition_id == "map_object.stability_echo_probe":
 		return [
 			_set_update("quest.survey_stability_echo_probe", "visit_region", "region.phase_well_tether", 1),
 			_set_update("quest.survey_stability_echo_probe", "inspect", "map_object.stability_echo_probe", 1)
+		]
+	if interaction_type == "inspect" and definition_id == "map_object.frontline_supply_console":
+		return [_set_update("quest.confirm_supply_frontline_action", "inspect", "map_object.frontline_action_console", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.supply_return_marker":
+		return [
+			_set_update("quest.inspect_supply_return_marker", "visit_region", "region.phase_well_tether", 1),
+			_set_update("quest.inspect_supply_return_marker", "inspect", "map_object.supply_return_marker", 1)
+		]
+	if interaction_type == "inspect" and definition_id == "map_object.frontline_route_console":
+		return [_set_update("quest.confirm_route_frontline_action", "inspect", "map_object.frontline_action_console", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.route_signal_marker":
+		return [
+			_set_update("quest.inspect_route_signal_marker", "visit_region", "region.phase_well_tether", 1),
+			_set_update("quest.inspect_route_signal_marker", "inspect", "map_object.route_signal_marker", 1)
+		]
+	if interaction_type == "inspect" and definition_id == "map_object.base_supply_choice_console":
+		return [_set_update("quest.choose_steady_supply_action", "inspect", "map_object.base_supply_choice_console", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.base_survey_choice_console":
+		return [_set_update("quest.choose_phase_survey_action", "inspect", "map_object.base_survey_choice_console", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.base_pressure_choice_console":
+		return [_set_update("quest.choose_pressure_clearance_action", "inspect", "map_object.base_pressure_choice_console", 1)]
+	if interaction_type == "inspect" and definition_id == "map_object.steady_supply_drop_marker":
+		return [
+			_set_update("quest.inspect_steady_supply_drop", "visit_region", "region.phase_well_tether", 1),
+			_set_update("quest.inspect_steady_supply_drop", "inspect", "map_object.steady_supply_drop_marker", 1)
+		]
+	if interaction_type == "inspect" and definition_id == "map_object.phase_survey_node_west":
+		return [
+			_set_update("quest.inspect_phase_survey_nodes", "visit_region", "region.phase_well_tether", 1),
+			_set_update("quest.inspect_phase_survey_nodes", "inspect", "map_object.phase_survey_node_west", 1)
+		]
+	if interaction_type == "inspect" and definition_id == "map_object.phase_survey_node_east":
+		return [
+			_set_update("quest.inspect_phase_survey_nodes", "visit_region", "region.phase_well_tether", 1),
+			_set_update("quest.inspect_phase_survey_nodes", "inspect", "map_object.phase_survey_node_east", 1)
+		]
+	if interaction_type == "clear" and definition_id == "map_object.pressure_clearance_node":
+		return [
+			_set_update("quest.clear_pressure_frontline_hazard", "visit_region", "region.phase_well_tether", 1),
+			_set_update("quest.clear_pressure_frontline_hazard", "clear", "map_object.pressure_clearance_node", 1)
 		]
 	if interaction_type == "process_recipe":
 		if not completed_recipe_id.is_empty():
@@ -313,6 +356,16 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 			return [_set_update("quest.analyze_phase_well_echo_shard", "craft_item", "item.phase_well_stability_readout", 1)]
 		"recipe.stability_echo_report":
 			return [_set_update("quest.analyze_stability_echo_sample", "craft_item", "item.frontline_action_report", 1)]
+		"recipe.short_action_feedback":
+			return [_set_update("quest.analyze_supply_return_trace", "craft_item", "item.short_action_feedback", 1)]
+		"recipe.route_action_feedback":
+			return [_set_update("quest.analyze_route_signal_trace", "craft_item", "item.route_action_feedback", 1)]
+		"recipe.steady_supply_feedback":
+			return [_set_update("quest.analyze_steady_supply_trace", "craft_item", "item.steady_supply_feedback", 1)]
+		"recipe.phase_survey_feedback":
+			return [_set_update("quest.analyze_phase_survey_trace", "craft_item", "item.phase_survey_feedback", 1)]
+		"recipe.pressure_clearance_feedback":
+			return [_set_update("quest.analyze_pressure_clearance_trace", "craft_item", "item.pressure_clearance_feedback", 1)]
 		_:
 			return []
 

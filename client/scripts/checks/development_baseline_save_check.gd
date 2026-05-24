@@ -84,7 +84,10 @@ func run() -> void:
 			"baseline.s14_phase_well_anchor_field_stabilized",
 			"baseline.s15_phase_well_stability_readout_ready",
 			"baseline.s16_phase_well_stability_window_calibrated",
-			"baseline.s17_frontline_action_report_ready"
+			"baseline.s17_frontline_action_report_ready",
+			"baseline.s18_short_action_feedback_ready",
+			"baseline.s19_route_action_feedback_ready",
+			"baseline.s20_phase_survey_feedback_ready"
 		]:
 			host._expect_equal(
 				loaded_world.active_phase_relay_anchor_id,
@@ -161,6 +164,13 @@ func run() -> void:
 					true,
 					"S16 baseline should keep %s calibrated" % node_instance_id
 				)
+			_expect_frontline_action_console_interaction_advances(
+				loaded_world,
+				loaded_character,
+				"quest.plan_stability_frontline_action",
+				"quest.survey_stability_echo_probe",
+				"S16 baseline"
+			)
 		if baseline_id == "baseline.s17_frontline_action_report_ready":
 			host._expect_array_has(
 				loaded_world.quest_state.completed_quest_ids,
@@ -169,8 +179,8 @@ func run() -> void:
 			)
 			host._expect_equal(
 				loaded_world.quest_state.active_quest_ids,
-				[],
-				"S17 baseline should not keep an active quest"
+				["quest.confirm_supply_frontline_action"],
+				"S17 baseline should activate supply frontline action"
 			)
 			host._expect_equal(
 				int(loaded_character.inventory.items.get("item.frontline_action_report", 0)),
@@ -199,3 +209,185 @@ func run() -> void:
 				true,
 				"S17 baseline should keep stability echo probe sampled"
 			)
+			_expect_frontline_action_console_interaction_advances(
+				loaded_world,
+				loaded_character,
+				"quest.confirm_supply_frontline_action",
+				"quest.inspect_supply_return_marker",
+				"S17 baseline"
+			)
+		if baseline_id == "baseline.s18_short_action_feedback_ready":
+			host._expect_array_has(
+				loaded_world.quest_state.completed_quest_ids,
+				"quest.analyze_supply_return_trace",
+				"S18 baseline should complete short action feedback"
+			)
+			host._expect_equal(
+				loaded_world.quest_state.active_quest_ids,
+				["quest.confirm_route_frontline_action"],
+				"S18 baseline should activate route frontline action"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.short_action_feedback", 0)),
+				1,
+				"S18 baseline should keep short action feedback"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.repair_gel", 0)),
+				3,
+				"S18 baseline should keep second feedback repair gel"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.resistance_vial_t1", 0)),
+				3,
+				"S18 baseline should keep second feedback resistance vial"
+			)
+			var supply_console_state := loaded_world.get_map_object("map_object_instance.frontline_action_console")
+			host._expect_equal(
+				bool(supply_console_state.get("is_sampled", false)),
+				true,
+				"S18 baseline should keep unified frontline action console confirmed"
+			)
+			var supply_marker_state := loaded_world.get_map_object("map_object_instance.supply_return_marker")
+			host._expect_equal(
+				bool(supply_marker_state.get("is_sampled", false)),
+				true,
+				"S18 baseline should keep supply marker sampled"
+			)
+			_expect_frontline_action_console_interaction_advances(
+				loaded_world,
+				loaded_character,
+				"quest.confirm_route_frontline_action",
+				"quest.inspect_route_signal_marker",
+				"S18 baseline"
+			)
+		if baseline_id == "baseline.s19_route_action_feedback_ready":
+			host._expect_array_has(
+				loaded_world.quest_state.completed_quest_ids,
+				"quest.analyze_route_signal_trace",
+				"S19 baseline should complete route action feedback"
+			)
+			host._expect_equal(
+				loaded_world.quest_state.active_quest_ids,
+				["quest.choose_steady_supply_action", "quest.choose_phase_survey_action", "quest.choose_pressure_clearance_action"],
+				"S19 baseline should activate base action choices"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.route_action_feedback", 0)),
+				1,
+				"S19 baseline should keep route action feedback"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.repair_gel", 0)),
+				4,
+				"S19 baseline should keep third feedback repair gel"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.resistance_vial_t1", 0)),
+				4,
+				"S19 baseline should keep third feedback resistance vial"
+			)
+			var route_console_state := loaded_world.get_map_object("map_object_instance.frontline_action_console")
+			host._expect_equal(
+				bool(route_console_state.get("is_sampled", false)),
+				true,
+				"S19 baseline should keep unified frontline action console confirmed"
+			)
+			var route_marker_state := loaded_world.get_map_object("map_object_instance.route_signal_marker")
+			host._expect_equal(
+				bool(route_marker_state.get("is_sampled", false)),
+				true,
+				"S19 baseline should keep route marker sampled"
+			)
+		if baseline_id == "baseline.s20_phase_survey_feedback_ready":
+			host._expect_array_has(
+				loaded_world.quest_state.completed_quest_ids,
+				"quest.analyze_phase_survey_trace",
+				"S20 baseline should complete phase survey feedback"
+			)
+			host._expect_array_has(
+				loaded_world.quest_state.completed_quest_ids,
+				"quest.choose_phase_survey_action",
+				"S20 baseline should choose phase survey action"
+			)
+			host._expect_equal(
+				loaded_world.quest_state.active_quest_ids,
+				[],
+				"S20 baseline should not keep an active quest"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.phase_survey_feedback", 0)),
+				1,
+				"S20 baseline should keep phase survey feedback"
+			)
+			host._expect_equal(
+				int(loaded_character.inventory.items.get("item.resistance_vial_t1", 0)),
+				5,
+				"S20 baseline should keep survey feedback resistance vial"
+			)
+			host._expect_equal(
+				BaseActionDispatchPlan.get_survey_intel_status(loaded_world),
+				BaseActionDispatchPlan.STATUS_READY,
+				"S20 baseline should keep survey route intel ready"
+			)
+			host._expect_equal(
+				BaseActionDispatchPlan.get_route_target_region_id(loaded_world),
+				"region.phase_well_tether",
+				"S20 baseline should keep revealed survey target"
+			)
+			var survey_console_state := loaded_world.get_map_object("map_object_instance.base_survey_choice_console")
+			host._expect_equal(
+				bool(survey_console_state.get("is_sampled", false)),
+				true,
+				"S20 baseline should keep survey choice confirmed"
+			)
+			for survey_node_id in [
+				"map_object_instance.phase_survey_node_west",
+				"map_object_instance.phase_survey_node_east"
+			]:
+				var survey_node_state := loaded_world.get_map_object(survey_node_id)
+				host._expect_equal(
+					bool(survey_node_state.get("is_sampled", false)),
+					true,
+					"S20 baseline should keep %s sampled" % survey_node_id
+				)
+
+
+func _expect_frontline_action_console_interaction_advances(
+	world_state: WorldState,
+	character_state: CharacterState,
+	expected_completed_quest_id: String,
+	expected_next_quest_id: String,
+	label: String
+) -> void:
+	var interaction_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_success(interaction_result, "%s frontline action console interaction" % label)
+	if not bool(interaction_result.get("success", false)):
+		return
+	var quest_result := QuestRuntime.new(host.data_registry).advance_for_interaction(
+		world_state,
+		character_state,
+		{
+			"definition_id": BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+			"interaction_type": "inspect"
+		},
+		interaction_result
+	)
+	if not bool(quest_result.get("accepted", false)):
+		host.failures.append("%s frontline action console should advance quest runtime" % label)
+	host._expect_array_has(
+		world_state.quest_state.completed_quest_ids,
+		expected_completed_quest_id,
+		"%s should complete %s through real action console interaction" % [label, expected_completed_quest_id]
+	)
+	host._expect_array_has(
+		world_state.quest_state.active_quest_ids,
+		expected_next_quest_id,
+		"%s should activate %s through real action console interaction" % [label, expected_next_quest_id]
+	)

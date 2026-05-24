@@ -78,6 +78,66 @@ func _check_loads_known_map_object_source() -> void:
 			"definition_id": "map_object.rough_ground",
 			"region_id": "region.crystal_vein_field",
 			"is_cleared": true
+		},
+		"map_object_instance.frontline_supply_console": {
+			"definition_id": "map_object.frontline_supply_console",
+			"region_id": "region.outpost_platform",
+			"is_sampled": true
+		},
+		"map_object_instance.supply_return_marker": {
+			"definition_id": "map_object.supply_return_marker",
+			"region_id": "region.phase_well_tether",
+			"is_sampled": true
+		},
+		"map_object_instance.frontline_route_console": {
+			"definition_id": "map_object.frontline_route_console",
+			"region_id": "region.outpost_platform",
+			"is_sampled": true
+		},
+		"map_object_instance.route_signal_marker": {
+			"definition_id": "map_object.route_signal_marker",
+			"region_id": "region.phase_well_tether",
+			"is_sampled": true
+		},
+		"map_object_instance.base_supply_choice_console": {
+			"definition_id": "map_object.base_supply_choice_console",
+			"region_id": "region.outpost_platform",
+			"is_sampled": true
+		},
+		"map_object_instance.base_survey_choice_console": {
+			"definition_id": "map_object.base_survey_choice_console",
+			"region_id": "region.outpost_platform",
+			"is_sampled": true
+		},
+		"map_object_instance.base_pressure_choice_console": {
+			"definition_id": "map_object.base_pressure_choice_console",
+			"region_id": "region.outpost_platform",
+			"is_sampled": true
+		},
+		"map_object_instance.steady_supply_drop_marker": {
+			"definition_id": "map_object.steady_supply_drop_marker",
+			"region_id": "region.phase_well_tether",
+			"is_sampled": true
+		},
+		"map_object_instance.phase_survey_node_west": {
+			"definition_id": "map_object.phase_survey_node_west",
+			"region_id": "region.phase_well_tether",
+			"is_sampled": true
+		},
+		"map_object_instance.phase_survey_node_east": {
+			"definition_id": "map_object.phase_survey_node_east",
+			"region_id": "region.phase_well_tether",
+			"is_sampled": true
+		},
+		"map_object_instance.pressure_clearance_node": {
+			"definition_id": "map_object.pressure_clearance_node",
+			"region_id": "region.phase_well_tether",
+			"is_cleared": true
+		},
+		"map_object_instance.prepared_frontline_window": {
+			"definition_id": "map_object.prepared_frontline_window",
+			"region_id": "region.phase_well_tether",
+			"is_sampled": true
 		}
 	}
 	host._write_save_json(save_data)

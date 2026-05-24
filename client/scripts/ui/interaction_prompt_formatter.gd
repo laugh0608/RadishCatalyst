@@ -56,6 +56,46 @@ const FIELD_READING_PROMPTS := {
 	}
 }
 
+const FRONTLINE_ACTION_TARGET_PROMPTS := {
+	"map_object.steady_supply_drop_marker": {
+		"quest_id": "quest.inspect_steady_supply_drop",
+		"objective_type": "inspect",
+		"target_ids": ["map_object.steady_supply_drop_marker"],
+		"title": "稳场补给投放点",
+		"status": "未读取，补给回执还没有带回基地。",
+		"effect": "读取后回基地使用基础反应器解析稳场补给反馈。",
+		"action": "按 E 读取补给回执"
+	},
+	"map_object.phase_survey_node_west": {
+		"quest_id": "quest.inspect_phase_survey_nodes",
+		"objective_type": "inspect",
+		"target_ids": ["map_object.phase_survey_node_west", "map_object.phase_survey_node_east"],
+		"title": "西侧相位测绘点",
+		"status": "未写入，测绘记录需要西侧和东侧两处读数。",
+		"effect": "两处读数完成后回基地解析相位测绘反馈，换取路线提示。",
+		"action": "按 E 写入测绘读数"
+	},
+	"map_object.phase_survey_node_east": {
+		"quest_id": "quest.inspect_phase_survey_nodes",
+		"objective_type": "inspect",
+		"target_ids": ["map_object.phase_survey_node_west", "map_object.phase_survey_node_east"],
+		"title": "东侧相位测绘点",
+		"status": "未写入，测绘记录需要西侧和东侧两处读数。",
+		"effect": "两处读数完成后回基地解析相位测绘反馈，换取路线提示。",
+		"action": "按 E 写入测绘读数"
+	},
+	"map_object.pressure_clearance_node": {
+		"quest_id": "quest.clear_pressure_frontline_hazard",
+		"objective_type": "clear",
+		"target_ids": ["map_object.pressure_clearance_node"],
+		"title": "前线压力扰点",
+		"status": "未清理，高压扰动仍压着井系桥前线。",
+		"effect": "清除后回基地使用基础反应器解析压力清障反馈，换取防护整备。",
+		"action": "按 E 清理压力扰点",
+		"requires_tool": true
+	}
+}
+
 
 func _init(registry: DataRegistry, processing: ProcessingSystem, builder: BuildSystem) -> void:
 	data_registry = registry
@@ -187,6 +227,8 @@ func format_clear_prompt(
 		if pin_tool_status == "可清理":
 			pin_parts.append("按 E 清理压力钉")
 		return "\n".join(pin_parts)
+	if interactable.definition_id == "map_object.pressure_clearance_node":
+		return format_frontline_action_target_prompt(interactable, character_state, world_state)
 	if bool(object_state.get("is_cleared", false)):
 		return "地块：%s\n状态：已清理，可用于铺设基础地基。" % _get_display_name(interactable.definition_id)
 
@@ -202,8 +244,72 @@ func format_clear_prompt(
 	return "\n".join(parts)
 
 
+func can_format_base_action_prompt(definition_id: String) -> bool:
+	return BaseActionDispatchPlan.is_action_console(definition_id)
+
+
+func format_base_action_prompt(
+	interactable: PrototypeInteractable,
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	return BaseActionDispatchPlan.format_console_prompt(
+		interactable.definition_id,
+		world_state,
+		character_state
+	)
+
+
 func can_format_field_reading_prompt(definition_id: String) -> bool:
 	return FIELD_READING_PROMPTS.has(definition_id)
+
+
+func can_format_frontline_action_target_prompt(definition_id: String) -> bool:
+	return FRONTLINE_ACTION_TARGET_PROMPTS.has(definition_id) or BaseActionDispatchPlan.is_frontline_window_object(definition_id)
+
+
+func format_frontline_action_target_prompt(
+	interactable: PrototypeInteractable,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
+	if BaseActionDispatchPlan.is_frontline_window_object(interactable.definition_id):
+		return BaseActionDispatchPlan.format_frontline_window_prompt(world_state)
+	var prompt: Dictionary = FRONTLINE_ACTION_TARGET_PROMPTS.get(interactable.definition_id, {})
+	if prompt.is_empty():
+		return "按 E 交互：%s" % _get_display_name(interactable.definition_id)
+
+	var title := String(prompt.get("title", _get_display_name(interactable.definition_id)))
+	var object_state := world_state.get_map_object(interactable.instance_id)
+	var is_cleared := bool(object_state.get("is_cleared", false))
+	var quest_id := String(prompt.get("quest_id", ""))
+	var objective_type := String(prompt.get("objective_type", "inspect"))
+	var target_ids: Array = prompt.get("target_ids", [interactable.definition_id])
+	var required := float(target_ids.size())
+	var current := 0.0
+	for target_id in target_ids:
+		current += world_state.quest_state.get_objective_progress(quest_id, objective_type, String(target_id))
+	if world_state.quest_state.has_completed_quest(quest_id):
+		current = required
+	if is_cleared:
+		current = required
+	var progress := "%s/%s" % [_format_amount(current), _format_amount(required)]
+	if current >= required:
+		return "%s：已完成；下一步回基地用基础反应器解析反馈，再到前线行动台确认整备槽。" % title
+
+	var parts: Array[String] = [
+		"目标：%s" % title,
+		"状态：%s 当前进度 %s。" % [String(prompt.get("status", "未完成。")), progress],
+		"后续：%s" % String(prompt.get("effect", "完成后回基地解析反馈。"))
+	]
+	if bool(prompt.get("requires_tool", false)):
+		var tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
+		parts.append("工具：%s" % tool_status)
+		if tool_status == "可清理":
+			parts.append(String(prompt.get("action", "按 E 交互")))
+	else:
+		parts.append(String(prompt.get("action", "按 E 交互")))
+	return "\n".join(parts)
 
 
 func format_field_reading_prompt(interactable: PrototypeInteractable, world_state: WorldState) -> String:
@@ -334,9 +440,12 @@ func format_phase_relay_pad_prompt(world_state: WorldState) -> String:
 	var cycle_hint := ""
 	if world_state.get_deployed_phase_relay_anchor_count() > 1:
 		cycle_hint = "；按 R 切换已部署落点"
+	var preparation_hint := BaseActionDispatchPlan.format_departure_preparation_prompt(world_state)
+	if not preparation_hint.is_empty():
+		preparation_hint = "。%s" % preparation_hint
 	if world_state.quest_state.has_active_quest("quest.reenter_phase_frontline"):
-		return "相位回投台：当前落点 %s%s。按 E 回投并继续追踪更东侧裂相碎屑。" % [active_anchor_label, cycle_hint]
-	return "相位回投台：当前落点 %s%s。按 E 回投到该前线回传锚点。" % [active_anchor_label, cycle_hint]
+		return "相位回投台：当前落点 %s%s。按 E 回投并继续追踪更东侧裂相碎屑%s。" % [active_anchor_label, cycle_hint, preparation_hint]
+	return "相位回投台：当前落点 %s%s。按 E 回投到该前线回传锚点%s。" % [active_anchor_label, cycle_hint, preparation_hint]
 
 
 func format_phase_fault_spire_prompt(world_state: WorldState, character_state: CharacterState) -> String:

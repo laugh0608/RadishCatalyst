@@ -30,6 +30,7 @@ var base_structures: Dictionary = {
 		"status": "idle"
 	}
 }
+var base_action_state: Dictionary = {}
 var quest_state: QuestState = QuestState.create_default()
 
 
@@ -212,6 +213,18 @@ func set_base_structure_progress(structure_id: String, progress_seconds: float) 
 	base_structures[structure_id]["progress_seconds"] = progress_seconds
 
 
+func get_base_action_state_value(key: String, default_value = null):
+	if key.is_empty():
+		return default_value
+	return base_action_state.get(key, default_value)
+
+
+func set_base_action_state_value(key: String, value) -> void:
+	if key.is_empty():
+		return
+	base_action_state[key] = value
+
+
 func set_map_object_flag(instance_id: String, flag_name: String, value: bool) -> void:
 	if not map_objects.has(instance_id):
 		return
@@ -232,6 +245,7 @@ func to_dict() -> Dictionary:
 		"map_objects": map_objects.duplicate(true),
 		"enemies": enemies.duplicate(true),
 		"base_structures": base_structures.duplicate(true),
+		"base_action_state": base_action_state.duplicate(true),
 		"quest_state": quest_state.to_dict()
 	}
 
@@ -263,6 +277,9 @@ static func from_dict(data: Dictionary) -> WorldState:
 	var base_structures_data = data.get("base_structures", state.base_structures)
 	if base_structures_data is Dictionary:
 		state.base_structures = base_structures_data.duplicate(true)
+	var base_action_state_data = data.get("base_action_state", {})
+	if base_action_state_data is Dictionary:
+		state.base_action_state = base_action_state_data.duplicate(true)
 	var quest_state_data = data.get("quest_state", {})
 	if quest_state_data is Dictionary:
 		state.quest_state = QuestState.from_dict(quest_state_data)

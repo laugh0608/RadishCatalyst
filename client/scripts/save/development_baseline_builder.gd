@@ -74,7 +74,16 @@ const QUEST_PROGRESS_ORDER: Array[String] = [
 	"quest.calibrate_phase_well_stability_window",
 	"quest.plan_stability_frontline_action",
 	"quest.survey_stability_echo_probe",
-	"quest.analyze_stability_echo_sample"
+	"quest.analyze_stability_echo_sample",
+	"quest.confirm_supply_frontline_action",
+	"quest.inspect_supply_return_marker",
+	"quest.analyze_supply_return_trace",
+	"quest.confirm_route_frontline_action",
+	"quest.inspect_route_signal_marker",
+	"quest.analyze_route_signal_trace",
+	"quest.choose_phase_survey_action",
+	"quest.inspect_phase_survey_nodes",
+	"quest.analyze_phase_survey_trace"
 ]
 
 var data_registry: DataRegistry
@@ -402,6 +411,80 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			)
 		"quest.analyze_stability_echo_sample":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.stability_echo_report")
+		"quest.confirm_supply_frontline_action":
+			_mark_object_sampled(
+				world_state,
+				"map_object_instance.frontline_action_console",
+				"map_object.frontline_action_console",
+				"region.outpost_platform"
+			)
+		"quest.inspect_supply_return_marker":
+			_mark_object_sampled(
+				world_state,
+				"map_object_instance.supply_return_marker",
+				"map_object.supply_return_marker",
+				"region.phase_well_tether"
+			)
+		"quest.analyze_supply_return_trace":
+			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.short_action_feedback")
+		"quest.confirm_route_frontline_action":
+			_mark_object_sampled(
+				world_state,
+				"map_object_instance.frontline_action_console",
+				"map_object.frontline_action_console",
+				"region.outpost_platform"
+			)
+		"quest.inspect_route_signal_marker":
+			_mark_object_sampled(
+				world_state,
+				"map_object_instance.route_signal_marker",
+				"map_object.route_signal_marker",
+				"region.phase_well_tether"
+			)
+		"quest.analyze_route_signal_trace":
+			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.route_action_feedback")
+		"quest.choose_steady_supply_action":
+			_mark_object_sampled(
+				world_state,
+				"map_object_instance.base_supply_choice_console",
+				"map_object.base_supply_choice_console",
+				"region.outpost_platform"
+			)
+		"quest.choose_phase_survey_action":
+			_mark_object_sampled(
+				world_state,
+				"map_object_instance.base_survey_choice_console",
+				"map_object.base_survey_choice_console",
+				"region.outpost_platform"
+			)
+		"quest.inspect_steady_supply_drop":
+			_mark_object_sampled(
+				world_state,
+				"map_object_instance.steady_supply_drop_marker",
+				"map_object.steady_supply_drop_marker",
+				"region.phase_well_tether"
+			)
+		"quest.analyze_steady_supply_trace":
+			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.steady_supply_feedback")
+		"quest.inspect_phase_survey_nodes":
+			for node in [
+				{
+					"instance_id": "map_object_instance.phase_survey_node_west",
+					"definition_id": "map_object.phase_survey_node_west"
+				},
+				{
+					"instance_id": "map_object_instance.phase_survey_node_east",
+					"definition_id": "map_object.phase_survey_node_east"
+				}
+			]:
+				_mark_object_sampled(
+					world_state,
+					String(node.get("instance_id", "")),
+					String(node.get("definition_id", "")),
+					"region.phase_well_tether"
+				)
+		"quest.analyze_phase_survey_trace":
+			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_survey_feedback")
 
 
 func _apply_baseline_pose_and_inventory(
@@ -578,6 +661,57 @@ func _apply_baseline_pose_and_inventory(
 			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
 			character_state.inventory = _make_inventory(
 				{"item.basic_parts": 8, "item.frontline_action_report": 1, "item.repair_gel": 2, "item.resistance_vial_t1": 2},
+				{},
+				{"fluid.basic_solvent": 2.0}
+			)
+		"baseline.s18_short_action_feedback_ready":
+			_set_runtime_position(world_state, character_state, "region.outpost_platform", BASELINE_FRONTLINE_ACTION_CONSOLE_POSITION)
+			world_state.add_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_tether")
+			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
+			character_state.inventory = _make_inventory(
+				{
+					"item.basic_parts": 12,
+					"item.frontline_action_report": 1,
+					"item.short_action_feedback": 1,
+					"item.repair_gel": 3,
+					"item.resistance_vial_t1": 3
+				},
+				{},
+				{"fluid.basic_solvent": 2.0}
+			)
+		"baseline.s19_route_action_feedback_ready":
+			_set_runtime_position(world_state, character_state, "region.outpost_platform", BASELINE_FRONTLINE_ACTION_CONSOLE_POSITION)
+			world_state.add_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_tether")
+			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
+			character_state.inventory = _make_inventory(
+				{
+					"item.basic_parts": 14,
+					"item.frontline_action_report": 1,
+					"item.short_action_feedback": 1,
+					"item.route_action_feedback": 1,
+					"item.repair_gel": 4,
+					"item.resistance_vial_t1": 4
+				},
+				{},
+				{"fluid.basic_solvent": 2.0}
+			)
+		"baseline.s20_phase_survey_feedback_ready":
+			_set_runtime_position(world_state, character_state, "region.outpost_platform", BASELINE_FRONTLINE_ACTION_CONSOLE_POSITION)
+			world_state.add_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_tether")
+			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
+			character_state.inventory = _make_inventory(
+				{
+					"item.basic_parts": 16,
+					"item.frontline_action_report": 1,
+					"item.short_action_feedback": 1,
+					"item.route_action_feedback": 1,
+					"item.phase_survey_feedback": 1,
+					"item.repair_gel": 4,
+					"item.resistance_vial_t1": 5
+				},
 				{},
 				{"fluid.basic_solvent": 2.0}
 			)

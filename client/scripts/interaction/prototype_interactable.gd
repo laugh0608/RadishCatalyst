@@ -347,6 +347,86 @@ func set_processed_visual() -> bool:
 		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
 		_set_label_text("%s\n样本已读取" % display_name_text, 2)
 		return true
+	if interaction_type == "inspect" and definition_id == "map_object.frontline_supply_console":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
+		_set_label_text("%s\n补给已确认" % display_name_text, 2)
+		return true
+	if interaction_type == "inspect" and definition_id == "map_object.supply_return_marker":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
+		_set_label_text("%s\n回执已读取" % display_name_text, 2)
+		return true
+	if interaction_type == "inspect" and definition_id == "map_object.frontline_route_console":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
+		_set_label_text("%s\n巡线已确认" % display_name_text, 2)
+		return true
+	if interaction_type == "inspect" and definition_id == "map_object.route_signal_marker":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
+		_set_label_text("%s\n信标已读取" % display_name_text, 2)
+		return true
+	if interaction_type == "inspect" and definition_id == "map_object.base_supply_choice_console":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
+		_set_label_text("%s\n补给已选择" % display_name_text, 2)
+		return true
+	if interaction_type == "inspect" and definition_id == "map_object.base_survey_choice_console":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
+		_set_label_text("%s\n测绘已选择" % display_name_text, 2)
+		return true
+	if interaction_type == "inspect" and definition_id == "map_object.base_pressure_choice_console":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
+		_set_label_text("%s\n清障已选择" % display_name_text, 2)
+		return true
+	if interaction_type == "inspect" and definition_id == "map_object.steady_supply_drop_marker":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
+		_set_label_text("%s\n回执已读取" % display_name_text, 2)
+		return true
+	if interaction_type == "inspect" and (
+		definition_id == "map_object.phase_survey_node_west"
+		or definition_id == "map_object.phase_survey_node_east"
+	):
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
+		_set_label_text("%s\n测绘已读取" % display_name_text, 2)
+		return true
+	if interaction_type == "inspect" and definition_id == "map_object.prepared_frontline_window":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
+		_set_label_text("%s\n窗口已处理" % display_name_text, 2)
+		return true
+	if interaction_type == "clear" and definition_id == "map_object.pressure_clearance_node":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = CLEARED_GROUND_COLOR
+		_set_label_text("%s\n扰点已清除" % display_name_text, 2)
+		return true
 	return false
 
 

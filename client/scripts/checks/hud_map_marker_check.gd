@@ -182,6 +182,40 @@ func run(root_window: Window) -> void:
 	host._expect_array_has(presenter.format_map_marker_labels(marker_world, "quest.collect_tether_fiber"), "井系\n目标", "phase well tether minimap objective marker")
 	marker_world.quest_state.completed_quest_ids.append("quest.inspect_phase_well_tether")
 	host._expect_text_contains(presenter.format_region_markers(marker_world, ""), "基地：当前位置，目标", "phase well tether completion returns runtime followup to outpost analysis")
+	var survey_intel_world := WorldState.create_default()
+	survey_intel_world.current_region_id = "region.outpost_platform"
+	survey_intel_world.unlock_region("region.phase_well_tether")
+	survey_intel_world.quest_state.completed_quest_ids.append("quest.analyze_phase_survey_trace")
+	host._expect_text_contains(
+		presenter.format_region_markers(survey_intel_world, ""),
+		"井系：更东，目标，测绘预告",
+		"phase survey feedback reveals tether route target on map"
+	)
+	host._expect_array_has(
+		presenter.format_map_marker_labels(survey_intel_world, ""),
+		"井系\n目标\n测绘预告",
+		"phase survey feedback minimap labels route intel target"
+	)
+	var active_window_world := WorldState.create_default()
+	active_window_world.current_region_id = "region.outpost_platform"
+	active_window_world.unlock_region("region.phase_well_tether")
+	active_window_world.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_STATUS_KEY, BaseActionDispatchPlan.STATUS_ACTIVE)
+	active_window_world.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_PLAN_KEY, BaseActionDispatchPlan.PLAN_STEADY_SUPPLY)
+	host._expect_text_contains(
+		presenter.format_region_markers(active_window_world, ""),
+		"井系：更东，目标",
+		"active frontline window targets the tether region on map"
+	)
+	var resolved_window_world := WorldState.create_default()
+	resolved_window_world.current_region_id = "region.phase_well_tether"
+	resolved_window_world.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_STATUS_KEY, BaseActionDispatchPlan.STATUS_RESOLVED)
+	resolved_window_world.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_PLAN_KEY, BaseActionDispatchPlan.PLAN_STEADY_SUPPLY)
+	resolved_window_world.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_FEEDBACK_KEY, "前线异常窗口已处理。")
+	host._expect_text_contains(
+		presenter.format_region_markers(resolved_window_world, ""),
+		"基地：西侧，目标",
+		"resolved frontline window points map target back to base while player is still in front line"
+	)
 
 	var hud := PrototypeHudScene.instantiate() as PrototypeHud
 	root_window.add_child(hud)

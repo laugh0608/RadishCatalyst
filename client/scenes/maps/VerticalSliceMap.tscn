@@ -212,6 +212,27 @@ interaction_type = "inspect"
 label_offset = Vector2(-96, 22)
 label_size = Vector2(192, 24)
 
+[node name="BaseSupplyChoiceConsole" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-250, 86)
+definition_id = "map_object.base_supply_choice_console"
+interaction_type = "inspect"
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
+
+[node name="BaseSurveyChoiceConsole" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-250, 124)
+definition_id = "map_object.base_survey_choice_console"
+interaction_type = "inspect"
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
+
+[node name="BasePressureChoiceConsole" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-250, 162)
+definition_id = "map_object.base_pressure_choice_console"
+interaction_type = "inspect"
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
+
 [node name="CrystalCluster" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(30, -70)
 definition_id = "map_object.crystal_cluster"
@@ -806,6 +827,55 @@ definition_id = "map_object.stability_echo_probe"
 interaction_type = "inspect"
 label_offset = Vector2(-104, -52)
 label_size = Vector2(208, 24)
+
+[node name="SupplyReturnMarker" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3358, -154)
+definition_id = "map_object.supply_return_marker"
+interaction_type = "inspect"
+label_offset = Vector2(-104, -52)
+label_size = Vector2(208, 24)
+
+[node name="RouteSignalMarker" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3500, -154)
+definition_id = "map_object.route_signal_marker"
+interaction_type = "inspect"
+label_offset = Vector2(-104, -52)
+label_size = Vector2(208, 24)
+
+[node name="SteadySupplyDropMarker" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3298, -188)
+definition_id = "map_object.steady_supply_drop_marker"
+interaction_type = "inspect"
+label_offset = Vector2(-112, -52)
+label_size = Vector2(224, 24)
+
+[node name="PhaseSurveyNodeWest" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3240, -82)
+definition_id = "map_object.phase_survey_node_west"
+interaction_type = "inspect"
+label_offset = Vector2(-112, 24)
+label_size = Vector2(224, 24)
+
+[node name="PhaseSurveyNodeEast" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3540, -82)
+definition_id = "map_object.phase_survey_node_east"
+interaction_type = "inspect"
+label_offset = Vector2(-112, 24)
+label_size = Vector2(224, 24)
+
+[node name="PressureClearanceNode" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3420, 18)
+definition_id = "map_object.pressure_clearance_node"
+interaction_type = "clear"
+label_offset = Vector2(-112, 24)
+label_size = Vector2(224, 24)
+
+[node name="PreparedFrontlineWindow" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3366, -36)
+definition_id = "map_object.prepared_frontline_window"
+interaction_type = "inspect"
+label_offset = Vector2(-112, -52)
+label_size = Vector2(224, 24)
 
 [node name="Enemies" type="Node2D" parent="."]
 

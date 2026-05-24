@@ -21,7 +21,22 @@ const PHASE_RELAY_TETHER_PROGRESS_QUEST_IDS: Array[String] = [
 	"quest.calibrate_phase_well_stability_window",
 	"quest.plan_stability_frontline_action",
 	"quest.survey_stability_echo_probe",
-	"quest.analyze_stability_echo_sample"
+	"quest.analyze_stability_echo_sample",
+	"quest.confirm_supply_frontline_action",
+	"quest.inspect_supply_return_marker",
+	"quest.analyze_supply_return_trace",
+	"quest.confirm_route_frontline_action",
+	"quest.inspect_route_signal_marker",
+	"quest.analyze_route_signal_trace",
+	"quest.choose_steady_supply_action",
+	"quest.choose_phase_survey_action",
+	"quest.choose_pressure_clearance_action",
+	"quest.inspect_steady_supply_drop",
+	"quest.analyze_steady_supply_trace",
+	"quest.inspect_phase_survey_nodes",
+	"quest.analyze_phase_survey_trace",
+	"quest.clear_pressure_frontline_hazard",
+	"quest.analyze_pressure_clearance_trace"
 ]
 
 var event_rules: QuestEventRules
@@ -132,6 +147,18 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 		log_messages.append("旧进度已接入：稳窗读数后的现场校准任务已补入当前目标。")
 	if _activate_missing_post_stability_window_frontline_action(world_state):
 		log_messages.append("旧进度已接入：稳窗校准后的前线行动任务已补入当前目标。")
+	if _activate_missing_post_stability_echo_report_supply_action(world_state):
+		log_messages.append("旧进度已接入：前线行动回报后的补给短行动已补入当前目标。")
+	if _activate_missing_post_short_action_feedback_route_action(world_state):
+		log_messages.append("旧进度已接入：短行动反馈后的巡线短行动已补入当前目标。")
+	if _activate_missing_post_route_action_feedback_choice(world_state):
+		log_messages.append("旧进度已接入：巡线反馈后的基地行动选择已补入当前目标。")
+	if _activate_missing_post_supply_choice_followup(world_state):
+		log_messages.append("旧进度已接入：稳场补给选择后的前线目标已补入当前目标。")
+	if _activate_missing_post_survey_choice_followup(world_state):
+		log_messages.append("旧进度已接入：相位测绘选择后的前线目标已补入当前目标。")
+	if _activate_missing_post_pressure_choice_followup(world_state):
+		log_messages.append("旧进度已接入：压力清障选择后的前线目标已补入当前目标。")
 	if _activate_missing_post_phase_well_chamber_followup(world_state):
 		log_messages.append("旧进度已接入：井心室后的井纺后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_sink_followup(world_state):
@@ -155,6 +182,7 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 	updates.append_array(_get_phase_well_field_reading_recovery_updates(world_state, character_state))
 	updates.append_array(_get_phase_well_frame_route_recovery_updates(world_state, character_state))
 	updates.append_array(_get_anchor_field_pressure_pin_recovery_updates(world_state))
+	updates.append_array(_get_frontline_action_console_recovery_updates(world_state))
 	var late_craft_recovery_updates := _get_late_craft_progress_recovery_updates(world_state, character_state)
 	if not late_craft_recovery_updates.is_empty():
 		updates.append_array(late_craft_recovery_updates)
@@ -400,6 +428,33 @@ func _get_anchor_field_pressure_pin_recovery_updates(world_state: WorldState) ->
 	return updates
 
 
+func _get_frontline_action_console_recovery_updates(world_state: WorldState) -> Array[Dictionary]:
+	var updates: Array[Dictionary] = []
+	for recovery in [
+		{
+			"quest_id": "quest.confirm_supply_frontline_action",
+			"legacy_target_id": "map_object.frontline_supply_console",
+			"legacy_instance_id": "map_object_instance.frontline_supply_console"
+		},
+		{
+			"quest_id": "quest.confirm_route_frontline_action",
+			"legacy_target_id": "map_object.frontline_route_console",
+			"legacy_instance_id": "map_object_instance.frontline_route_console"
+		}
+	]:
+		var quest_id := String(recovery.get("quest_id", ""))
+		if not world_state.quest_state.has_active_quest(quest_id):
+			continue
+		if world_state.quest_state.get_objective_progress(quest_id, "inspect", BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID) >= 1.0:
+			continue
+		if (
+			world_state.quest_state.get_objective_progress(quest_id, "inspect", String(recovery.get("legacy_target_id", ""))) >= 1.0
+			or bool(world_state.get_map_object(String(recovery.get("legacy_instance_id", ""))).get("is_sampled", false))
+		):
+			updates.append(_objective_set_update(quest_id, "inspect", BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID, 1))
+	return updates
+
+
 func _get_late_craft_progress_recovery_updates(world_state: WorldState, character_state: CharacterState) -> Array[Dictionary]:
 	var updates: Array[Dictionary] = []
 	for recovery in [
@@ -458,6 +513,14 @@ func _get_late_craft_progress_recovery_updates(world_state: WorldState, characte
 		{
 			"quest_id": "quest.analyze_stability_echo_sample",
 			"item_id": "item.frontline_action_report"
+		},
+		{
+			"quest_id": "quest.analyze_supply_return_trace",
+			"item_id": "item.short_action_feedback"
+		},
+		{
+			"quest_id": "quest.analyze_route_signal_trace",
+			"item_id": "item.route_action_feedback"
 		}
 	]:
 		var quest_id := String(recovery.get("quest_id", ""))
@@ -768,6 +831,82 @@ func _activate_missing_post_stability_window_frontline_action(world_state: World
 	if world_state.quest_state.has_active_quest("quest.plan_stability_frontline_action"):
 		return false
 	world_state.quest_state.activate_quest("quest.plan_stability_frontline_action")
+	return true
+
+
+func _activate_missing_post_stability_echo_report_supply_action(world_state: WorldState) -> bool:
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.analyze_stability_echo_sample"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.analyze_supply_return_trace"):
+		return false
+	if world_state.quest_state.has_active_quest("quest.confirm_supply_frontline_action"):
+		return false
+	world_state.quest_state.activate_quest("quest.confirm_supply_frontline_action")
+	return true
+
+
+func _activate_missing_post_short_action_feedback_route_action(world_state: WorldState) -> bool:
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.analyze_supply_return_trace"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.analyze_route_signal_trace"):
+		return false
+	if world_state.quest_state.has_active_quest("quest.confirm_route_frontline_action"):
+		return false
+	world_state.quest_state.activate_quest("quest.confirm_route_frontline_action")
+	return true
+
+
+func _activate_missing_post_route_action_feedback_choice(world_state: WorldState) -> bool:
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.analyze_route_signal_trace"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.analyze_steady_supply_trace"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.analyze_phase_survey_trace"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.analyze_pressure_clearance_trace"):
+		return false
+	world_state.quest_state.activate_quest("quest.choose_steady_supply_action")
+	world_state.quest_state.activate_quest("quest.choose_phase_survey_action")
+	world_state.quest_state.activate_quest("quest.choose_pressure_clearance_action")
+	return true
+
+
+func _activate_missing_post_supply_choice_followup(world_state: WorldState) -> bool:
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.choose_steady_supply_action"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.analyze_steady_supply_trace"):
+		return false
+	world_state.quest_state.activate_quest("quest.inspect_steady_supply_drop")
+	return true
+
+
+func _activate_missing_post_survey_choice_followup(world_state: WorldState) -> bool:
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.choose_phase_survey_action"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.analyze_phase_survey_trace"):
+		return false
+	world_state.quest_state.activate_quest("quest.inspect_phase_survey_nodes")
+	return true
+
+
+func _activate_missing_post_pressure_choice_followup(world_state: WorldState) -> bool:
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.choose_pressure_clearance_action"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.analyze_pressure_clearance_trace"):
+		return false
+	world_state.quest_state.activate_quest("quest.clear_pressure_frontline_hazard")
 	return true
 
 

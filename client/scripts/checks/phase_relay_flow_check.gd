@@ -387,6 +387,33 @@ func run() -> void:
 		"map_object_instance.frontline_action_console",
 		"frontline console should take focus near the relay pad"
 	)
+	var action_console_result := map.try_interact(tether_anchor_character, tether_anchor_world)
+	host._expect_equal(bool(action_console_result.get("success", false)), true, "S16 frontline console interaction should succeed")
+	QuestRuntime.new(host.data_registry).advance_for_interaction(
+		tether_anchor_world,
+		tether_anchor_character,
+		{
+			"definition_id": BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+			"interaction_type": "inspect"
+		},
+		action_console_result
+	)
+	map.refresh_world_interactables(tether_anchor_world)
+	var frontline_console: PrototypeInteractable = null
+	for interactable in map.interactables_root.get_children():
+		if interactable is PrototypeInteractable and interactable.instance_id == "map_object_instance.frontline_action_console":
+			frontline_console = interactable
+			break
+	host._expect_equal(frontline_console != null, true, "frontline console should exist after S16 confirmation")
+	if frontline_console != null:
+		host._expect_equal(frontline_console.visible, true, "S16 frontline console remains visible after confirmation")
+		host._expect_equal(frontline_console.monitoring, false, "S16 frontline console should not stay interactable after confirmation")
+	host._expect_text_contains(frontline_console.label.text, "行动已确认", "S16 frontline console keeps completed visual")
+	tether_anchor_world.quest_state.active_quest_ids = ["quest.plan_stability_frontline_action"]
+	tether_anchor_world.quest_state.completed_quest_ids.erase("quest.plan_stability_frontline_action")
+	tether_anchor_world.map_objects.erase("map_object_instance.frontline_action_console")
+	map.apply_runtime_state(tether_anchor_world, tether_anchor_character)
+	map.update_current_interactable()
 	var console_cycle_to_deep_result := map.try_cycle_recipe(tether_anchor_world)
 	host._expect_equal(bool(console_cycle_to_deep_result.get("success", false)), true, "phase relay pad should cycle from nearby console focus")
 	host._expect_equal(
