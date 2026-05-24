@@ -164,6 +164,7 @@ func _run_checks() -> void:
 	_check_rejects_unknown_region_id()
 	_check_rejects_invalid_character_position()
 	_check_rejects_invalid_enemy_health()
+	_check_rejects_invalid_base_action_state()
 	EntitySourceChecks.new(self).run()
 	StructureRuntimeChecks.new(self).run()
 	_check_rejects_locked_current_region()
@@ -617,6 +618,33 @@ func _check_rejects_invalid_enemy_health() -> void:
 	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.pollution_edge"]
 	_write_save_json(save_data)
 	_expect_failure_message(save_service.load_game(), "敌人生命值超出有效范围", "invalid enemy health")
+
+
+func _check_rejects_invalid_base_action_state() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var unknown_key_save_data := _make_save_data("world.invalid.base_action_unknown_key")
+	unknown_key_save_data["world"]["base_action_state"] = {"debug_extra_plan": "bad"}
+	_write_save_json(unknown_key_save_data)
+	_expect_failure_message(save_service.load_game(), "world.base_action_state 包含不允许的字段", "base action unknown key")
+
+	_remove_save_file()
+	_remove_backup_files()
+	var wrong_type_save_data := _make_save_data("world.invalid.base_action_wrong_type")
+	wrong_type_save_data["world"]["base_action_state"] = {
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY: "true"
+	}
+	_write_save_json(wrong_type_save_data)
+	_expect_failure_message(save_service.load_game(), "必须是布尔值", "base action wrong bool type")
+
+	_remove_save_file()
+	_remove_backup_files()
+	var invalid_plan_save_data := _make_save_data("world.invalid.base_action_plan")
+	invalid_plan_save_data["world"]["base_action_state"] = {
+		BaseActionDispatchPlan.CURRENT_PLAN_KEY: "debug_extra_plan"
+	}
+	_write_save_json(invalid_plan_save_data)
+	_expect_failure_message(save_service.load_game(), "使用了无效行动计划", "base action invalid plan")
 
 
 func _check_save_rejects_invalid_current_state() -> void:

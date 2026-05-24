@@ -94,6 +94,68 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.prepared_frontline_window": "map_object.prepared_frontline_window"
 }
 
+const BASE_ACTION_STRING_KEYS: Array[String] = [
+	BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY,
+	BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY,
+	BaseActionDispatchPlan.PRESSURE_CLEARANCE_STATUS_KEY,
+	BaseActionDispatchPlan.ROUTE_TARGET_REGION_KEY,
+	BaseActionDispatchPlan.ROUTE_RISK_NOTE_KEY,
+	BaseActionDispatchPlan.CURRENT_PLAN_KEY,
+	BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY,
+	BaseActionDispatchPlan.DEPARTURE_PLAN_KEY,
+	BaseActionDispatchPlan.DEPARTURE_PLAN_TARGET_KEY,
+	BaseActionDispatchPlan.DEPARTURE_PLAN_REWARD_KEY,
+	BaseActionDispatchPlan.DEPARTURE_PLAN_RISK_KEY,
+	BaseActionDispatchPlan.DEPARTURE_PLAN_RISK_PROFILE_KEY,
+	BaseActionDispatchPlan.DEPARTURE_PLAN_COST_KEY,
+	BaseActionDispatchPlan.DEPARTURE_PLAN_MODULE_KEY,
+	BaseActionDispatchPlan.DEPARTURE_PLAN_MODULE_EFFECT_KEY,
+	BaseActionDispatchPlan.LAST_DEPARTURE_PLAN_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_STATUS_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_PLAN_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_MODULE_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_MODULE_EFFECT_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_FEEDBACK_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_MODULE_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_MODULE_EFFECT_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY
+]
+const BASE_ACTION_BOOL_KEYS: Array[String] = [
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY
+]
+const BASE_ACTION_INT_KEYS: Array[String] = [
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_COUNT_KEY
+]
+const BASE_ACTION_STATUS_KEYS: Array[String] = [
+	BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY,
+	BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY,
+	BaseActionDispatchPlan.PRESSURE_CLEARANCE_STATUS_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_STATUS_KEY
+]
+const BASE_ACTION_PLAN_KEYS: Array[String] = [
+	BaseActionDispatchPlan.CURRENT_PLAN_KEY,
+	BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY,
+	BaseActionDispatchPlan.DEPARTURE_PLAN_KEY,
+	BaseActionDispatchPlan.LAST_DEPARTURE_PLAN_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_PLAN_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY
+]
+const BASE_ACTION_VALID_STATUSES: Array[String] = [
+	"",
+	BaseActionDispatchPlan.STATUS_READY,
+	BaseActionDispatchPlan.STATUS_QUEUED,
+	BaseActionDispatchPlan.STATUS_USED,
+	BaseActionDispatchPlan.STATUS_ACTIVE,
+	BaseActionDispatchPlan.STATUS_RESOLVED
+]
+const BASE_ACTION_VALID_PLANS: Array[String] = [
+	"",
+	BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+	BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+	BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE
+]
+
 const PROTOTYPE_ENEMY_SOURCES := {
 	"enemy_instance.native_skitter": {
 		"definition_id": "enemy.native_skitter",
@@ -363,6 +425,9 @@ func _validate_world_content(world_data: Dictionary) -> String:
 	var structure_state_error := _validate_base_structure_runtime_state(world_data.get("base_structures", {}), world_data.get("quest_state", {}))
 	if not structure_state_error.is_empty():
 		return structure_state_error
+	var base_action_error := _validate_base_action_state(world_data.get("base_action_state", {}))
+	if not base_action_error.is_empty():
+		return base_action_error
 
 	var quest_state = world_data.get("quest_state", {})
 	if quest_state is Dictionary:
@@ -371,6 +436,39 @@ func _validate_world_content(world_data: Dictionary) -> String:
 			return quest_error
 
 	return ""
+
+
+func _validate_base_action_state(value) -> String:
+	if not (value is Dictionary):
+		return "读取存档失败：world.base_action_state 必须是对象，当前运行状态已保留。"
+
+	for key in value:
+		var key_string := String(key)
+		var state_value = value[key]
+		if not _is_allowed_base_action_state_key(key_string):
+			return "读取存档失败：world.base_action_state 包含不允许的字段：%s，当前运行状态已保留。" % key_string
+		if BASE_ACTION_STRING_KEYS.has(key_string) and not (state_value is String):
+			return "读取存档失败：world.base_action_state.%s 必须是字符串，当前运行状态已保留。" % key_string
+		if BASE_ACTION_BOOL_KEYS.has(key_string) and not (state_value is bool):
+			return "读取存档失败：world.base_action_state.%s 必须是布尔值，当前运行状态已保留。" % key_string
+		if BASE_ACTION_INT_KEYS.has(key_string) and (not _is_number(state_value) or int(state_value) < 0 or not is_equal_approx(float(state_value), float(int(state_value)))):
+			return "读取存档失败：world.base_action_state.%s 必须是非负整数，当前运行状态已保留。" % key_string
+		if BASE_ACTION_STATUS_KEYS.has(key_string) and not BASE_ACTION_VALID_STATUSES.has(String(state_value)):
+			return "读取存档失败：world.base_action_state.%s 使用了无效状态，当前运行状态已保留。" % key_string
+		if BASE_ACTION_PLAN_KEYS.has(key_string) and not BASE_ACTION_VALID_PLANS.has(String(state_value)):
+			return "读取存档失败：world.base_action_state.%s 使用了无效行动计划，当前运行状态已保留。" % key_string
+
+	var route_target_region_id := String(value.get(BaseActionDispatchPlan.ROUTE_TARGET_REGION_KEY, ""))
+	if not route_target_region_id.is_empty():
+		var route_region_error := _validate_definition_ref(route_target_region_id, "region.", "world.base_action_state.%s" % BaseActionDispatchPlan.ROUTE_TARGET_REGION_KEY)
+		if not route_region_error.is_empty():
+			return route_region_error
+
+	return ""
+
+
+func _is_allowed_base_action_state_key(key: String) -> bool:
+	return BASE_ACTION_STRING_KEYS.has(key) or BASE_ACTION_BOOL_KEYS.has(key) or BASE_ACTION_INT_KEYS.has(key)
 
 
 func _validate_character_content(character_data: Dictionary) -> String:
