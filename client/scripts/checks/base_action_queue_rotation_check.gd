@@ -20,6 +20,7 @@ func run() -> void:
 	_check_prepared_frontline_window_follows_confirmed_plan()
 	_check_second_stage_entry_real_interaction_keeps_window_outcome_source()
 	_check_candidate_console_real_interaction_only_replaces_next_candidate()
+	_check_candidate_console_blocks_replacement_during_window_review()
 	_check_frontline_window_stage_review_covers_all_plans()
 	_check_review_preparation_runs_two_window_cycles()
 	_check_legacy_archived_window_state_stops_loop()
@@ -652,6 +653,56 @@ func _check_candidate_console_real_interaction_only_replaces_next_candidate() ->
 		BaseActionDispatchPlan.format_departure_preparation_prompt(world_state),
 		"本次整备：低风险补给已确认",
 		"candidate console replacement keeps phase relay prompt on current departure"
+	)
+
+
+func _check_candidate_console_blocks_replacement_during_window_review() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	var gather_system := GatherSystem.new(host.data_registry)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_STEADY_SUPPLY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+	BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+
+	var active_window_result := gather_system.interact_with_object(
+		"map_object_instance.base_pressure_choice_console",
+		"map_object.base_pressure_choice_console",
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(active_window_result.get("success", false)), false, "candidate console blocks replacement while frontline window is active")
+	host._expect_text_contains(
+		String(active_window_result.get("message", "")),
+		"方案终端暂不可替换下一候选",
+		"candidate console active-window failure explains replacement is closed"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_next_plan_candidate_key(world_state),
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"candidate console active-window failure keeps promoted next candidate"
+	)
+
+	BaseActionDispatchPlan.resolve_frontline_window(world_state)
+	var unresolved_feedback_result := gather_system.interact_with_object(
+		"map_object_instance.base_supply_choice_console",
+		"map_object.base_supply_choice_console",
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(unresolved_feedback_result.get("success", false)), false, "candidate console blocks replacement while feedback is unreviewed")
+	host._expect_text_contains(
+		String(unresolved_feedback_result.get("message", "")),
+		"方案终端暂不可替换下一候选",
+		"candidate console unreviewed-feedback failure explains replacement is closed"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_next_plan_candidate_key(world_state),
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"candidate console unreviewed-feedback failure keeps next candidate"
 	)
 
 

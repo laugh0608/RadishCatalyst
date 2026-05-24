@@ -111,6 +111,16 @@ func interact_with_object(
 		var candidate_messages := BaseActionDispatchPlan.select_next_plan_candidate_for_console(definition_id, world_state)
 		if not candidate_messages.is_empty():
 			return _success(" ".join(candidate_messages))
+	if (
+		interaction_type == "inspect"
+		and BaseActionDispatchPlan.is_plan_candidate_console(definition_id)
+		and not BaseActionDispatchPlan.is_plan_choice_console_ready(definition_id, world_state)
+	):
+		return _failure(
+			"方案终端暂不可替换下一候选。",
+			"候选替换未开放",
+			"先处理本趟前线异常窗口并回基地归档反馈，再查看或替换下一计划候选。"
+		)
 
 	var object_state := world_state.ensure_map_object(instance_id, definition_id, character_state.current_region_id)
 	if _is_already_processed(object_state, interaction_type):

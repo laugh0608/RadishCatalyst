@@ -469,6 +469,24 @@ static func is_plan_candidate_console_ready(definition_id: String, world_state: 
 	return _is_plan_candidate_console(definition_id) and _can_replace_next_plan_candidate(world_state)
 
 
+static func is_plan_candidate_console(definition_id: String) -> bool:
+	return _is_plan_candidate_console(definition_id)
+
+
+static func is_plan_choice_console_ready(definition_id: String, world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	match definition_id:
+		"map_object.base_supply_choice_console":
+			return world_state.quest_state.has_active_quest("quest.choose_steady_supply_action")
+		"map_object.base_survey_choice_console":
+			return world_state.quest_state.has_active_quest("quest.choose_phase_survey_action")
+		"map_object.base_pressure_choice_console":
+			return world_state.quest_state.has_active_quest("quest.choose_pressure_clearance_action")
+		_:
+			return false
+
+
 static func select_next_plan_candidate_for_console(definition_id: String, world_state: WorldState) -> Array[String]:
 	var plan_key := _get_plan_key_for_console(definition_id)
 	if plan_key.is_empty() or not _can_replace_next_plan_candidate(world_state):
