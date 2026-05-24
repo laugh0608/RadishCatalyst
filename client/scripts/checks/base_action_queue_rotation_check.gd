@@ -212,6 +212,7 @@ func _check_action_plan_preview_wording_is_shared() -> void:
 	host._expect_text_contains(choice_prompt, "风险拆解：目标密度 中；路线扰动 中；防护消耗 低。", "preview wording shows survey risk profile")
 	host._expect_text_contains(choice_prompt, "方案 C：压力清障；模块：防护涂层；风险：高。", "preview wording shows pressure choice summary")
 	host._expect_text_contains(choice_prompt, "目标：清除 1 处前线压力扰点；收益：修复凝胶 +1、抗污染药剂 +1；代价：整备槽。", "preview wording shows pressure choice result")
+	host._expect_text_contains(choice_prompt, "窗口结果预览：清理 1 处压力扰点并读取扰动残压", "preview wording shows pressure module window outcome")
 
 	var survey_world := WorldState.create_default()
 	survey_world.set_base_action_state_value(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
@@ -225,6 +226,7 @@ func _check_action_plan_preview_wording_is_shared() -> void:
 	host._expect_text_contains(current_plan_prompt, "风险拆解：目标密度 中；路线扰动 中；防护消耗 低；说明：需要按低压读数线避开东侧短时扰动。", "preview wording shows current plan risk profile")
 	host._expect_text_contains(current_plan_prompt, "收益：目标显形和路线风险预告；代价：占用本次出发整备槽，不额外发放资源。", "preview wording shows current plan reward and cost")
 	host._expect_text_contains(current_plan_prompt, "模块效果：放大测绘回波", "preview wording shows current plan preparation module")
+	host._expect_text_contains(current_plan_prompt, "窗口结果预览：读取西侧边界和东侧扰动 2 处路线回波", "preview wording shows current plan window outcome")
 
 	var candidate_world := WorldState.create_default()
 	candidate_world.set_base_action_state_value(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
@@ -248,6 +250,7 @@ func _check_light_preparation_module_enters_snapshots() -> void:
 	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
 	var confirm_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
 	host._expect_text_contains(" ".join(confirm_messages), "模块：回波透镜；风险：中", "departure confirmation includes preparation module")
+	host._expect_text_contains(" ".join(confirm_messages), "窗口结果预览：读取西侧边界和东侧扰动 2 处路线回波", "departure confirmation previews module window outcome")
 	host._expect_equal(
 		String(world_state.get_base_action_state_value(BaseActionDispatchPlan.DEPARTURE_PLAN_MODULE_KEY, "")),
 		"回波透镜",
@@ -368,6 +371,7 @@ func _check_phase_relay_pad_shows_confirmed_preparation() -> void:
 	host._expect_text_contains(prompt, "收益：修复凝胶 +1、抗污染药剂 +1", "phase relay pad prompt shows pressure reward")
 	host._expect_text_contains(prompt, "风险：高", "phase relay pad prompt shows pressure risk")
 	host._expect_text_contains(prompt, "代价：占用本次出发整备槽", "phase relay pad prompt shows pressure cost")
+	host._expect_text_contains(prompt, "窗口结果预览：清理 1 处压力扰点并读取扰动残压", "phase relay pad prompt shows module window outcome")
 	host._expect_text_contains(prompt, "按 E 回投", "phase relay pad prompt keeps departure input")
 
 
