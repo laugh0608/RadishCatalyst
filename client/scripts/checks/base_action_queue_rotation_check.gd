@@ -833,6 +833,34 @@ func _check_review_preparation_runs_two_window_cycles() -> void:
 		0,
 		"two-cycle review cannot launch a third window after completion"
 	)
+	var blocked_action_console := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(blocked_action_console.get("success", false)), true, "two-cycle review action console returns explicit completion message")
+	host._expect_text_contains(
+		String(blocked_action_console.get("message", "")),
+		"连续两轮窗口复盘已完成",
+		"two-cycle review action console avoids generic inspect success after completion"
+	)
+
+	var idle_world := WorldState.create_default()
+	var idle_action_console := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		idle_world
+	)
+	host._expect_equal(bool(idle_action_console.get("success", false)), false, "idle action console blocks generic inspect success")
+	host._expect_text_contains(
+		String(idle_action_console.get("message", "")),
+		"前线行动台当前没有可确认计划",
+		"idle action console explains that no current plan is available"
+	)
 
 
 func _check_legacy_archived_window_state_stops_loop() -> void:

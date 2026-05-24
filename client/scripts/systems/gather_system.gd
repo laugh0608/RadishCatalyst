@@ -107,6 +107,11 @@ func interact_with_object(
 		if not frontline_quest_id.is_empty():
 			_set_map_object_flag(world_state, instance_id, definition_id, "is_sampled", true)
 			return _success(_format_frontline_action_console_result(frontline_quest_id))
+		return _failure(
+			"前线行动台当前没有可确认计划。",
+			"行动台未开放",
+			"先处理当前前线窗口、归档反馈，或等待基地行动反馈进入当前计划槽。"
+		)
 	if interaction_type == "inspect" and BaseActionDispatchPlan.is_plan_candidate_console_ready(definition_id, world_state):
 		var candidate_messages := BaseActionDispatchPlan.select_next_plan_candidate_for_console(definition_id, world_state)
 		if not candidate_messages.is_empty():
