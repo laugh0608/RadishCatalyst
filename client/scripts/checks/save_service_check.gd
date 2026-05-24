@@ -1217,6 +1217,37 @@ func _check_base_action_second_stage_state_persists() -> void:
 	if not archived_console_prompt.contains("路线情报承接：目标预告=东侧短时扰动位置；路线扰动=高；防护消耗=中"):
 		failures.append("archived base action route carryover persists, got: %s" % archived_console_prompt)
 
+	_remove_save_file()
+	_remove_backup_files()
+	var candidate_world := WorldState.create_default()
+	var candidate_character := CharacterState.create_default()
+	candidate_world.set_base_action_state_value(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	candidate_world.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_STEADY_SUPPLY)
+	candidate_world.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	BaseActionDispatchPlan.confirm_departure_preparation(candidate_world)
+	BaseActionDispatchPlan.select_next_plan_candidate_for_console("map_object.base_pressure_choice_console", candidate_world)
+	_expect_success(save_service.save_game(candidate_world, candidate_character), "save replaced base action candidate state")
+	var candidate_load_result := save_service.load_game()
+	_expect_success(candidate_load_result, "load replaced base action candidate state")
+	if not bool(candidate_load_result.get("success", false)):
+		return
+	var loaded_candidate_world: WorldState = candidate_load_result["world_state"]
+	_expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(loaded_candidate_world),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"replaced base action candidate keeps current plan after load"
+	)
+	_expect_equal(
+		BaseActionDispatchPlan.get_departure_plan_key(loaded_candidate_world),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"replaced base action candidate keeps confirmed departure after load"
+	)
+	_expect_equal(
+		BaseActionDispatchPlan.get_next_plan_candidate_key(loaded_candidate_world),
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"replaced base action candidate persists after load"
+	)
+
 
 func _read_json_file(save_path: String) -> Dictionary:
 	var file := FileAccess.open(save_path, FileAccess.READ)

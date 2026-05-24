@@ -19,6 +19,7 @@ func run() -> void:
 	_check_phase_relay_pad_shows_confirmed_preparation()
 	_check_prepared_frontline_window_follows_confirmed_plan()
 	_check_second_stage_entry_real_interaction_keeps_window_outcome_source()
+	_check_candidate_console_real_interaction_only_replaces_next_candidate()
 	_check_frontline_window_stage_review_covers_all_plans()
 	_check_review_preparation_runs_two_window_cycles()
 	_check_legacy_archived_window_state_stops_loop()
@@ -584,6 +585,67 @@ func _check_second_stage_entry_real_interaction_keeps_window_outcome_source() ->
 		reviewed_prompt,
 		"候选判断：保留",
 		"second-stage entry reviewed candidate keeps the second-level decision note"
+	)
+
+
+func _check_candidate_console_real_interaction_only_replaces_next_candidate() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	var gather_system := GatherSystem.new(host.data_registry)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_STEADY_SUPPLY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+
+	var confirm_result := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(confirm_result.get("success", false)), true, "candidate console setup confirms current departure")
+	host._expect_equal(
+		BaseActionDispatchPlan.get_departure_plan_key(world_state),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"candidate console setup keeps confirmed departure plan"
+	)
+	var replacement_result := gather_system.interact_with_object(
+		"map_object_instance.base_pressure_choice_console",
+		"map_object.base_pressure_choice_console",
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(replacement_result.get("success", false)), true, "candidate console replacement interaction succeeds")
+	host._expect_text_contains(
+		String(replacement_result.get("message", "")),
+		"下一计划候选已更新：压力清障",
+		"candidate console replacement result updates next candidate"
+	)
+	host._expect_text_contains(
+		String(replacement_result.get("message", "")),
+		"候选判断：保留压力清障：路线扰动高、防护消耗中",
+		"candidate console replacement keeps second-level decision note"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(world_state),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"candidate console replacement does not change current plan"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_departure_plan_key(world_state),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"candidate console replacement does not change confirmed departure slot"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_next_plan_candidate_key(world_state),
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"candidate console replacement stores the new next candidate"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_departure_preparation_prompt(world_state),
+		"本次整备：低风险补给已确认",
+		"candidate console replacement keeps phase relay prompt on current departure"
 	)
 
 
