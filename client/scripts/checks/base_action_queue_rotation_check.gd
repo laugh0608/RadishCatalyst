@@ -14,6 +14,7 @@ func run() -> void:
 	_check_promoted_plan_passes_next_preparation_cycle()
 	_check_action_plan_preview_wording_is_shared()
 	_check_light_preparation_module_enters_snapshots()
+	_check_light_preparation_module_changes_window_outcome()
 	_check_departure_confirmation_locks_risk_reward_snapshot()
 	_check_phase_relay_pad_shows_confirmed_preparation()
 	_check_prepared_frontline_window_follows_confirmed_plan()
@@ -279,6 +280,27 @@ func _check_light_preparation_module_enters_snapshots() -> void:
 		BaseActionDispatchPlan.format_console_prompt(BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID, world_state, character_state),
 		"轻量整备模块：回波透镜",
 		"resolved action console feedback preserves preparation module"
+	)
+
+
+func _check_light_preparation_module_changes_window_outcome() -> void:
+	_expect_module_window_outcome(
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"读取 1 处稳相缓存并回收稳定样本",
+		"稳相垫片压低窗口抖动",
+		"稳定样本作为下一轮资源缓冲依据"
+	)
+	_expect_module_window_outcome(
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"读取西侧边界和东侧扰动 2 处路线回波",
+		"回波透镜放大路线读数",
+		"下一轮目标预告依据"
+	)
+	_expect_module_window_outcome(
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"清理 1 处压力扰点并读取扰动残压",
+		"防护涂层先承接残压",
+		"下一轮防护整备依据"
 	)
 
 
@@ -749,3 +771,22 @@ func _set_ready_status_for_plan(world_state: WorldState, plan_key: String) -> vo
 			world_state.set_base_action_state_value(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
 		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE:
 			world_state.set_base_action_state_value(BaseActionDispatchPlan.PRESSURE_CLEARANCE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+
+
+func _expect_module_window_outcome(
+	plan_key: String,
+	expected_target: String,
+	expected_window_result: String,
+	expected_resolution: String
+) -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, plan_key)
+	_set_ready_status_for_plan(world_state, plan_key)
+	BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+	BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	var active_prompt := BaseActionDispatchPlan.format_frontline_window_prompt(world_state)
+	host._expect_text_contains(active_prompt, expected_target, "module outcome active target for %s" % plan_key)
+	host._expect_text_contains(active_prompt, expected_window_result, "module outcome active result for %s" % plan_key)
+	var window_messages := BaseActionDispatchPlan.resolve_frontline_window(world_state)
+	host._expect_text_contains(" ".join(window_messages), expected_resolution, "module outcome resolution for %s" % plan_key)

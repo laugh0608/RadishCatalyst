@@ -366,8 +366,8 @@ static func format_frontline_window_prompt(world_state: WorldState) -> String:
 		_format_window_module_name(world_state, preview),
 		String(preview.get("risk", "")),
 		_format_compact_risk_profile(String(preview.get("risk_profile", ""))),
-		String(preview.get("target", "")),
-		String(preview.get("reward", ""))
+		BaseActionWindowOutcome.get_window_target(plan_key, String(preview.get("target", ""))),
+		BaseActionWindowOutcome.get_window_result(plan_key, String(preview.get("reward", "")))
 	]
 
 
@@ -995,14 +995,7 @@ static func _get_archived_frontline_window_plan_key(world_state: WorldState) -> 
 
 
 static func _format_frontline_window_completion_payoff(world_state: WorldState) -> String:
-	match _get_resolved_frontline_window_plan_key(world_state):
-		PLAN_STEADY_SUPPLY:
-			return "稳定样本已转成下一轮资源缓冲依据，可支撑低风险补给或覆盖测绘往返。"
-		PLAN_PHASE_SURVEY:
-			return "路线读数已转成下一轮目标预告依据，可支撑补给投放或提前判断清障扰点。"
-		PLAN_PRESSURE_CLEARANCE:
-			return "扰动残压已转成下一轮风险回落依据，可支撑低压补给、测绘预告或继续防护清障。"
-	return ""
+	return BaseActionWindowOutcome.get_payoff(_get_resolved_frontline_window_plan_key(world_state))
 
 
 static func _format_window_module_name(world_state: WorldState, fallback_preview: Dictionary) -> String:
@@ -1034,61 +1027,18 @@ static func _format_window_feedback_plan_note(world_state: WorldState, plan_key:
 	var source_plan := _get_resolved_frontline_window_plan_key(world_state)
 	if source_plan.is_empty() or plan_key.is_empty():
 		return ""
-	match source_plan:
-		PLAN_STEADY_SUPPLY:
-			if plan_key == PLAN_STEADY_SUPPLY:
-				return "稳定样本已归档，补给候选会继续强调资源缓冲和短目标"
-			if plan_key == PLAN_PHASE_SURVEY:
-				return "稳定样本已归档，测绘候选可预告补给缓冲覆盖两处读数往返"
-			if plan_key == PLAN_PRESSURE_CLEARANCE:
-				return "稳定样本已归档，清障候选会先说明防护补给再处理扰点"
-		PLAN_PHASE_SURVEY:
-			if plan_key == PLAN_STEADY_SUPPLY:
-				return "路线读数已归档，补给候选会贴近西侧已显形路线投放"
-			if plan_key == PLAN_PHASE_SURVEY:
-				return "路线读数已归档，测绘候选会继续复核西侧边界和东侧扰动来源"
-			if plan_key == PLAN_PRESSURE_CLEARANCE:
-				return "路线读数已归档，清障候选会提前标出东侧短时扰动位置"
-		PLAN_PRESSURE_CLEARANCE:
-			if plan_key == PLAN_STEADY_SUPPLY:
-				return "残压已收束，补给候选可在低压窗口回收资源缓冲"
-			if plan_key == PLAN_PHASE_SURVEY:
-				return "残压已收束，测绘候选可把低干扰路线转成目标预告"
-			if plan_key == PLAN_PRESSURE_CLEARANCE:
-				return "残压已收束，清障候选会继续说明防护整备和风险回落"
-	return ""
+	return BaseActionWindowOutcome.get_plan_note(source_plan, plan_key)
 
 
 static func _format_window_feedback_carryover_line(world_state: WorldState, plan_key: String) -> String:
-	match _get_resolved_frontline_window_plan_key(world_state):
-		PLAN_STEADY_SUPPLY:
-			match plan_key:
-				PLAN_STEADY_SUPPLY:
-					return "资源缓冲承接：稳定样本已归档，补给计划继续压低目标密度并回收基础零件。"
-				PLAN_PHASE_SURVEY:
-					return "资源缓冲承接：稳定样本已归档，基础零件 / 修复凝胶可覆盖两处读数往返；目标预告：测绘仍需西侧和东侧两处读数。"
-				PLAN_PRESSURE_CLEARANCE:
-					return "资源缓冲承接：稳定样本已归档，清障前会先说明防护补给如何覆盖扰点处理。"
-		PLAN_PHASE_SURVEY:
-			var risk_note := String(world_state.get_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE))
-			if risk_note.is_empty():
-				risk_note = ROUTE_RISK_NOTE
-			match plan_key:
-				PLAN_STEADY_SUPPLY:
-					return "路线情报承接：目标预告=西侧低压边界补给投放；路线扰动=避开东侧短时扰动；防护消耗=低。风险预告：%s" % risk_note
-				PLAN_PHASE_SURVEY:
-					return "路线情报承接：目标预告=复核西侧边界 / 东侧扰动来源；路线扰动=中；防护消耗=低。风险预告：%s" % risk_note
-				PLAN_PRESSURE_CLEARANCE:
-					return "路线情报承接：目标预告=东侧短时扰动位置；路线扰动=高；防护消耗=中。风险预告：%s" % risk_note
-		PLAN_PRESSURE_CLEARANCE:
-			match plan_key:
-				PLAN_STEADY_SUPPLY:
-					return "残压回落承接：目标预告=低压窗口补给回收；路线扰动=低；防护消耗=低。"
-				PLAN_PHASE_SURVEY:
-					return "残压回落承接：目标预告=低干扰路线测绘；路线扰动=中；防护消耗=低。"
-				PLAN_PRESSURE_CLEARANCE:
-					return "残压回落承接：目标预告=继续清障扰点；路线扰动=中；防护消耗=中。"
-	return ""
+	var source_plan := _get_resolved_frontline_window_plan_key(world_state)
+	var carryover := BaseActionWindowOutcome.get_carryover(source_plan, plan_key)
+	if source_plan == PLAN_PHASE_SURVEY and not carryover.is_empty():
+		var risk_note := String(world_state.get_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE))
+		if risk_note.is_empty():
+			risk_note = ROUTE_RISK_NOTE
+		return "%s风险预告：%s" % [carryover, risk_note]
+	return carryover
 
 
 static func _format_candidate_console_action_line(plan_key: String, world_state: WorldState) -> String:
@@ -1296,15 +1246,7 @@ static func _activate_frontline_window(world_state: WorldState, plan_key: String
 
 
 static func _format_frontline_window_resolution_message(plan_key: String) -> String:
-	match plan_key:
-		PLAN_STEADY_SUPPLY:
-			return "前线异常窗口已按低风险补给计划处理：稳相垫片让稳定样本更容易归档，回基地行动台可把它作为下一轮资源缓冲依据。"
-		PLAN_PHASE_SURVEY:
-			return "前线异常窗口已按信息侦测计划处理：回波透镜放大了路线读数，回基地行动台可把它作为下一轮目标预告依据。"
-		PLAN_PRESSURE_CLEARANCE:
-			return "前线异常窗口已按压力清障计划处理：防护涂层先接住扰动残压，回基地行动台可把它作为下一轮防护整备依据。"
-		_:
-			return "前线异常窗口已处理：返回基地行动台安排下一轮。"
+	return BaseActionWindowOutcome.get_resolution(plan_key)
 
 
 static func _set_plan_status(world_state: WorldState, plan_key: String, status: String) -> void:
