@@ -481,6 +481,7 @@ func _validate_base_action_state_relationships(value: Dictionary) -> String:
 	var window_feedback := String(value.get(BaseActionDispatchPlan.FRONTLINE_WINDOW_FEEDBACK_KEY, ""))
 	var archived_plan := String(value.get(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY, ""))
 	var archived_feedback := String(value.get(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY, ""))
+	var departure_plan := String(value.get(BaseActionDispatchPlan.DEPARTURE_PLAN_KEY, ""))
 
 	if window_status == BaseActionDispatchPlan.STATUS_ACTIVE and window_plan.is_empty():
 		return "读取存档失败：world.base_action_state.frontline_window_status 为 active 时必须记录 frontline_window_plan_key，当前运行状态已保留。"
@@ -493,8 +494,22 @@ func _validate_base_action_state_relationships(value: Dictionary) -> String:
 		return "读取存档失败：world.base_action_state.frontline_window_feedback 只能用于已处理窗口，当前运行状态已保留。"
 	if not archived_feedback.is_empty() and archived_plan.is_empty():
 		return "读取存档失败：world.base_action_state.frontline_window_archived_feedback 必须带有归档行动计划，当前运行状态已保留。"
+	if not departure_plan.is_empty() and _get_base_action_preparation_status_for_plan(value, departure_plan) != BaseActionDispatchPlan.STATUS_QUEUED:
+		return "读取存档失败：world.base_action_state.departure_plan_key 必须对应 queued 出发整备状态，当前运行状态已保留。"
 
 	return ""
+
+
+func _get_base_action_preparation_status_for_plan(value: Dictionary, plan_key: String) -> String:
+	match plan_key:
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY:
+			return String(value.get(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, ""))
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY:
+			return String(value.get(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, ""))
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE:
+			return String(value.get(BaseActionDispatchPlan.PRESSURE_CLEARANCE_STATUS_KEY, ""))
+		_:
+			return ""
 
 
 func _validate_character_content(character_data: Dictionary) -> String:

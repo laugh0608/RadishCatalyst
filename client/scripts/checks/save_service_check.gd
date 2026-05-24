@@ -674,6 +674,16 @@ func _check_rejects_invalid_base_action_state() -> void:
 	_write_save_json(archived_feedback_without_plan_save_data)
 	_expect_failure_message(save_service.load_game(), "frontline_window_archived_feedback 必须带有归档行动计划", "base action archived feedback requires plan")
 
+	_remove_save_file()
+	_remove_backup_files()
+	var departure_without_queued_status_save_data := _make_save_data("world.invalid.base_action_departure_without_queued_status")
+	departure_without_queued_status_save_data["world"]["base_action_state"] = {
+		BaseActionDispatchPlan.DEPARTURE_PLAN_KEY: BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY: BaseActionDispatchPlan.STATUS_READY
+	}
+	_write_save_json(departure_without_queued_status_save_data)
+	_expect_failure_message(save_service.load_game(), "departure_plan_key 必须对应 queued 出发整备状态", "base action departure plan requires queued status")
+
 
 func _check_save_rejects_invalid_current_state() -> void:
 	var invalid_world := WorldState.create_default()
