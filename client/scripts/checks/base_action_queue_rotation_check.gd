@@ -18,6 +18,7 @@ func run() -> void:
 	_check_departure_confirmation_locks_risk_reward_snapshot()
 	_check_phase_relay_pad_shows_confirmed_preparation()
 	_check_prepared_frontline_window_follows_confirmed_plan()
+	_check_second_stage_entry_real_interaction_keeps_window_outcome_source()
 	_check_frontline_window_stage_review_covers_all_plans()
 	_check_review_preparation_runs_two_window_cycles()
 	_check_legacy_archived_window_state_stops_loop()
@@ -492,6 +493,98 @@ func _check_prepared_frontline_window_follows_confirmed_plan() -> void:
 		"acknowledged frontline window feedback does not auto-dispatch without confirmation"
 	)
 	window.free()
+
+
+func _check_second_stage_entry_real_interaction_keeps_window_outcome_source() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	var gather_system := GatherSystem.new(host.data_registry)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE)
+
+	var confirm_result := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(confirm_result.get("success", false)), true, "second-stage entry action console confirmation succeeds")
+	host._expect_text_contains(
+		String(confirm_result.get("message", "")),
+		"窗口结果预览：读取西侧边界和东侧扰动 2 处路线回波；回波透镜放大路线读数",
+		"second-stage entry confirmation previews the structured survey window outcome"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_departure_preparation_prompt(world_state),
+		"窗口结果预览：读取西侧边界和东侧扰动 2 处路线回波；回波透镜放大路线读数",
+		"second-stage entry phase relay prompt keeps the same window outcome preview"
+	)
+
+	var departure_messages := BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	host._expect_text_contains(
+		" ".join(departure_messages),
+		"轻量整备模块：回波透镜",
+		"second-stage entry phase relay execution carries the confirmed module"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		"本趟目标：读取西侧边界和东侧扰动 2 处路线回波。",
+		"second-stage entry active window uses the structured survey target"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		"处理结果：回波透镜放大路线读数，处理后生成目标预告和路线扰动依据。",
+		"second-stage entry active window uses the structured survey result"
+	)
+
+	var window_result := gather_system.interact_with_object(
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_INSTANCE_ID,
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_OBJECT_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(window_result.get("success", false)), true, "second-stage entry frontline window interaction succeeds")
+	host._expect_text_contains(
+		String(window_result.get("message", "")),
+		"回波透镜放大了路线读数",
+		"second-stage entry frontline window result follows the same structured outcome"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt(BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID, world_state, character_state),
+		"完成态收益：路线读数已转成下一轮目标预告依据",
+		"second-stage entry action console carries the resolved structured payoff"
+	)
+
+	var review_result := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_text_contains(
+		String(review_result.get("message", "")),
+		"当前计划槽：压力清障",
+		"second-stage entry review keeps the promoted current plan manual"
+	)
+	var reviewed_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		world_state,
+		character_state
+	)
+	host._expect_text_contains(
+		reviewed_prompt,
+		"路线情报承接：目标预告=东侧短时扰动位置；路线扰动=高；防护消耗=中",
+		"second-stage entry reviewed current plan uses archived route outcome carryover"
+	)
+	host._expect_text_contains(
+		reviewed_prompt,
+		"候选判断：保留",
+		"second-stage entry reviewed candidate keeps the second-level decision note"
+	)
 
 
 func _check_frontline_window_stage_review_covers_all_plans() -> void:
