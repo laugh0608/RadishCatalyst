@@ -381,6 +381,21 @@ func _check_phase_relay_requires_confirmed_departure_slot() -> void:
 		"phase relay execution does not record last departure from unconfirmed queued status"
 	)
 
+	var missing_snapshot_world := WorldState.create_default()
+	missing_snapshot_world.set_base_action_state_value(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, BaseActionDispatchPlan.STATUS_QUEUED)
+	missing_snapshot_world.set_base_action_state_value(BaseActionDispatchPlan.DEPARTURE_PLAN_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	var missing_snapshot_messages := BaseActionDispatchPlan.apply_departure_preparation(missing_snapshot_world, character_state)
+	host._expect_equal(
+		missing_snapshot_messages.size(),
+		0,
+		"phase relay execution ignores confirmed plan without risk reward snapshot"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.is_frontline_window_active(missing_snapshot_world),
+		false,
+		"phase relay execution does not activate window without risk reward snapshot"
+	)
+
 
 func _check_phase_relay_pad_shows_confirmed_preparation() -> void:
 	var formatter := InteractionPromptFormatter.new(

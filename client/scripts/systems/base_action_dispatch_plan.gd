@@ -247,6 +247,8 @@ static func apply_departure_preparation(world_state: WorldState, character_state
 	if world_state == null or character_state == null:
 		return messages
 	var departure_plan_key := _get_confirmed_departure_plan_key(world_state)
+	if not _has_departure_confirmation_snapshot(world_state):
+		return messages
 	if departure_plan_key == PLAN_STEADY_SUPPLY and get_supply_package_status(world_state) == STATUS_QUEUED:
 		character_state.inventory.add_item("item.basic_parts", 2)
 		character_state.inventory.add_item("item.repair_gel", 1)
@@ -1354,6 +1356,25 @@ static func _get_confirmed_departure_plan_key(world_state: WorldState) -> String
 	if world_state == null:
 		return ""
 	return String(world_state.get_base_action_state_value(DEPARTURE_PLAN_KEY, ""))
+
+
+static func _has_departure_confirmation_snapshot(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	if _get_confirmed_departure_plan_key(world_state).is_empty():
+		return false
+	for key in [
+		DEPARTURE_PLAN_TARGET_KEY,
+		DEPARTURE_PLAN_REWARD_KEY,
+		DEPARTURE_PLAN_RISK_KEY,
+		DEPARTURE_PLAN_RISK_PROFILE_KEY,
+		DEPARTURE_PLAN_COST_KEY,
+		DEPARTURE_PLAN_MODULE_KEY,
+		DEPARTURE_PLAN_MODULE_EFFECT_KEY
+	]:
+		if String(world_state.get_base_action_state_value(key, "")).is_empty():
+			return false
+	return true
 
 
 static func _set_departure_confirmation_snapshot(world_state: WorldState, plan_key: String) -> void:

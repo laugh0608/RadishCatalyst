@@ -501,8 +501,25 @@ func _validate_base_action_state_relationships(value: Dictionary) -> String:
 		return "读取存档失败：world.base_action_state queued 出发整备状态只能保留 departure_plan_key 对应计划，当前运行状态已保留。"
 	if not departure_plan.is_empty() and _get_base_action_preparation_status_for_plan(value, departure_plan) != BaseActionDispatchPlan.STATUS_QUEUED:
 		return "读取存档失败：world.base_action_state.departure_plan_key 必须对应 queued 出发整备状态，当前运行状态已保留。"
+	if not departure_plan.is_empty() and not _has_base_action_departure_snapshot(value):
+		return "读取存档失败：world.base_action_state.departure_plan_key 必须带齐风险收益快照，当前运行状态已保留。"
 
 	return ""
+
+
+func _has_base_action_departure_snapshot(value: Dictionary) -> bool:
+	for key in [
+		BaseActionDispatchPlan.DEPARTURE_PLAN_TARGET_KEY,
+		BaseActionDispatchPlan.DEPARTURE_PLAN_REWARD_KEY,
+		BaseActionDispatchPlan.DEPARTURE_PLAN_RISK_KEY,
+		BaseActionDispatchPlan.DEPARTURE_PLAN_RISK_PROFILE_KEY,
+		BaseActionDispatchPlan.DEPARTURE_PLAN_COST_KEY,
+		BaseActionDispatchPlan.DEPARTURE_PLAN_MODULE_KEY,
+		BaseActionDispatchPlan.DEPARTURE_PLAN_MODULE_EFFECT_KEY
+	]:
+		if String(value.get(key, "")).is_empty():
+			return false
+	return true
 
 
 func _get_queued_base_action_plan_keys(value: Dictionary) -> Array[String]:
