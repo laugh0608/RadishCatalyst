@@ -145,6 +145,7 @@ func _run_checks() -> void:
 	_check_slice_end_hook_state_persists()
 	_check_slice_complete_state_persists()
 	_check_deep_ruin_state_persists()
+	_check_base_action_second_stage_state_persists()
 	DevelopmentBaselineSaveChecks.new(self).run()
 	_check_save_backup()
 	_check_loads_recent_backup_when_primary_is_bad()
@@ -1091,6 +1092,102 @@ func _check_deep_ruin_state_persists() -> void:
 		"deployed phase relay anchors persist"
 	)
 	_expect_equal(int(loaded_character.inventory.items.get("item.deep_ruin_core", 0)), 1, "deep ruin reward persists")
+
+
+func _check_base_action_second_stage_state_persists() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE)
+	BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+
+	_expect_success(save_service.save_game(world_state, character_state), "save confirmed base action second-stage state")
+	var confirmed_load_result := save_service.load_game()
+	_expect_success(confirmed_load_result, "load confirmed base action second-stage state")
+	if not bool(confirmed_load_result.get("success", false)):
+		return
+	var confirmed_world: WorldState = confirmed_load_result["world_state"]
+	var confirmed_character: CharacterState = confirmed_load_result["character_state"]
+	_expect_equal(
+		BaseActionDispatchPlan.get_survey_intel_status(confirmed_world),
+		BaseActionDispatchPlan.STATUS_QUEUED,
+		"confirmed base action survey queued status persists"
+	)
+	_expect_equal(
+		BaseActionDispatchPlan.get_departure_plan_key(confirmed_world),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"confirmed base action departure plan persists"
+	)
+	_expect_equal(
+		String(confirmed_world.get_base_action_state_value(BaseActionDispatchPlan.DEPARTURE_PLAN_MODULE_KEY, "")),
+		"回波透镜",
+		"confirmed base action module snapshot persists"
+	)
+	var confirmed_prompt := BaseActionDispatchPlan.format_departure_preparation_prompt(confirmed_world)
+	if not confirmed_prompt.contains("窗口结果预览：读取西侧边界和东侧扰动 2 处路线回波"):
+		failures.append("confirmed base action window preview persists, got: %s" % confirmed_prompt)
+
+	BaseActionDispatchPlan.apply_departure_preparation(confirmed_world, confirmed_character)
+	_expect_success(save_service.save_game(confirmed_world, confirmed_character), "save active base action window state")
+	var active_load_result := save_service.load_game()
+	_expect_success(active_load_result, "load active base action window state")
+	if not bool(active_load_result.get("success", false)):
+		return
+	var active_world: WorldState = active_load_result["world_state"]
+	var active_character: CharacterState = active_load_result["character_state"]
+	_expect_equal(
+		BaseActionDispatchPlan.is_frontline_window_active(active_world),
+		true,
+		"active base action window status persists"
+	)
+	_expect_equal(
+		BaseActionDispatchPlan.get_frontline_window_plan_key(active_world),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"active base action window plan persists"
+	)
+	_expect_equal(
+		String(active_world.get_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_MODULE_KEY, "")),
+		"回波透镜",
+		"active base action window module persists"
+	)
+	var active_window_prompt := BaseActionDispatchPlan.format_frontline_window_prompt(active_world)
+	if not active_window_prompt.contains("处理结果：回波透镜放大路线读数"):
+		failures.append("active base action window result persists, got: %s" % active_window_prompt)
+
+	BaseActionDispatchPlan.resolve_frontline_window(active_world)
+	BaseActionDispatchPlan.acknowledge_frontline_window_feedback(active_world)
+	_expect_success(save_service.save_game(active_world, active_character), "save archived base action window state")
+	var archived_load_result := save_service.load_game()
+	_expect_success(archived_load_result, "load archived base action window state")
+	if not bool(archived_load_result.get("success", false)):
+		return
+	var archived_world: WorldState = archived_load_result["world_state"]
+	var archived_character: CharacterState = archived_load_result["character_state"]
+	_expect_equal(
+		String(archived_world.get_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY, "")),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"archived base action window plan persists"
+	)
+	_expect_equal(
+		String(archived_world.get_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_MODULE_KEY, "")),
+		"回波透镜",
+		"archived base action window module persists"
+	)
+	_expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(archived_world),
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"archived base action review current plan persists"
+	)
+	var archived_console_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		archived_world,
+		archived_character
+	)
+	if not archived_console_prompt.contains("路线情报承接：目标预告=东侧短时扰动位置；路线扰动=高；防护消耗=中"):
+		failures.append("archived base action route carryover persists, got: %s" % archived_console_prompt)
 
 
 func _read_json_file(save_path: String) -> Dictionary:
