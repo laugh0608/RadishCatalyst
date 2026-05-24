@@ -646,6 +646,34 @@ func _check_rejects_invalid_base_action_state() -> void:
 	_write_save_json(invalid_plan_save_data)
 	_expect_failure_message(save_service.load_game(), "使用了无效行动计划", "base action invalid plan")
 
+	_remove_save_file()
+	_remove_backup_files()
+	var active_without_plan_save_data := _make_save_data("world.invalid.base_action_active_without_plan")
+	active_without_plan_save_data["world"]["base_action_state"] = {
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_STATUS_KEY: BaseActionDispatchPlan.STATUS_ACTIVE
+	}
+	_write_save_json(active_without_plan_save_data)
+	_expect_failure_message(save_service.load_game(), "active 时必须记录 frontline_window_plan_key", "base action active window requires plan")
+
+	_remove_save_file()
+	_remove_backup_files()
+	var resolved_without_feedback_save_data := _make_save_data("world.invalid.base_action_resolved_without_feedback")
+	resolved_without_feedback_save_data["world"]["base_action_state"] = {
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_STATUS_KEY: BaseActionDispatchPlan.STATUS_RESOLVED,
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_PLAN_KEY: BaseActionDispatchPlan.PLAN_PHASE_SURVEY
+	}
+	_write_save_json(resolved_without_feedback_save_data)
+	_expect_failure_message(save_service.load_game(), "resolved 时必须记录 frontline_window_feedback", "base action resolved window requires feedback")
+
+	_remove_save_file()
+	_remove_backup_files()
+	var archived_feedback_without_plan_save_data := _make_save_data("world.invalid.base_action_archived_feedback_without_plan")
+	archived_feedback_without_plan_save_data["world"]["base_action_state"] = {
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY: "旧窗口反馈"
+	}
+	_write_save_json(archived_feedback_without_plan_save_data)
+	_expect_failure_message(save_service.load_game(), "frontline_window_archived_feedback 必须带有归档行动计划", "base action archived feedback requires plan")
+
 
 func _check_save_rejects_invalid_current_state() -> void:
 	var invalid_world := WorldState.create_default()

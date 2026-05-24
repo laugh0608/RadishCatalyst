@@ -464,11 +464,37 @@ func _validate_base_action_state(value) -> String:
 		if not route_region_error.is_empty():
 			return route_region_error
 
+	var state_relationship_error := _validate_base_action_state_relationships(value)
+	if not state_relationship_error.is_empty():
+		return state_relationship_error
+
 	return ""
 
 
 func _is_allowed_base_action_state_key(key: String) -> bool:
 	return BASE_ACTION_STRING_KEYS.has(key) or BASE_ACTION_BOOL_KEYS.has(key) or BASE_ACTION_INT_KEYS.has(key)
+
+
+func _validate_base_action_state_relationships(value: Dictionary) -> String:
+	var window_status := String(value.get(BaseActionDispatchPlan.FRONTLINE_WINDOW_STATUS_KEY, ""))
+	var window_plan := String(value.get(BaseActionDispatchPlan.FRONTLINE_WINDOW_PLAN_KEY, ""))
+	var window_feedback := String(value.get(BaseActionDispatchPlan.FRONTLINE_WINDOW_FEEDBACK_KEY, ""))
+	var archived_plan := String(value.get(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY, ""))
+	var archived_feedback := String(value.get(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY, ""))
+
+	if window_status == BaseActionDispatchPlan.STATUS_ACTIVE and window_plan.is_empty():
+		return "读取存档失败：world.base_action_state.frontline_window_status 为 active 时必须记录 frontline_window_plan_key，当前运行状态已保留。"
+	if window_status == BaseActionDispatchPlan.STATUS_RESOLVED:
+		if window_plan.is_empty():
+			return "读取存档失败：world.base_action_state.frontline_window_status 为 resolved 时必须记录 frontline_window_plan_key，当前运行状态已保留。"
+		if window_feedback.is_empty():
+			return "读取存档失败：world.base_action_state.frontline_window_status 为 resolved 时必须记录 frontline_window_feedback，当前运行状态已保留。"
+	if window_status != BaseActionDispatchPlan.STATUS_RESOLVED and not window_feedback.is_empty():
+		return "读取存档失败：world.base_action_state.frontline_window_feedback 只能用于已处理窗口，当前运行状态已保留。"
+	if not archived_feedback.is_empty() and archived_plan.is_empty():
+		return "读取存档失败：world.base_action_state.frontline_window_archived_feedback 必须带有归档行动计划，当前运行状态已保留。"
+
+	return ""
 
 
 func _validate_character_content(character_data: Dictionary) -> String:
