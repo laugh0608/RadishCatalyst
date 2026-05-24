@@ -16,6 +16,7 @@ func run() -> void:
 	_check_light_preparation_module_enters_snapshots()
 	_check_light_preparation_module_changes_window_outcome()
 	_check_departure_confirmation_locks_risk_reward_snapshot()
+	_check_phase_relay_requires_confirmed_departure_slot()
 	_check_phase_relay_pad_shows_confirmed_preparation()
 	_check_prepared_frontline_window_follows_confirmed_plan()
 	_check_second_stage_entry_real_interaction_keeps_window_outcome_source()
@@ -355,6 +356,29 @@ func _check_departure_confirmation_locks_risk_reward_snapshot() -> void:
 		String(world_state.get_base_action_state_value(BaseActionDispatchPlan.DEPARTURE_PLAN_RISK_KEY, "")),
 		"",
 		"departure execution clears accepted risk snapshot"
+	)
+
+
+func _check_phase_relay_requires_confirmed_departure_slot() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, BaseActionDispatchPlan.STATUS_QUEUED)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	var departure_messages := BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	host._expect_equal(
+		departure_messages.size(),
+		0,
+		"phase relay execution ignores queued status without confirmed departure plan"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.is_frontline_window_active(world_state),
+		false,
+		"phase relay execution does not activate window from unconfirmed queued status"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_last_departure_plan_key(world_state),
+		"",
+		"phase relay execution does not record last departure from unconfirmed queued status"
 	)
 
 

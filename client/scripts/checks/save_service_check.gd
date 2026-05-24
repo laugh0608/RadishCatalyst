@@ -684,6 +684,26 @@ func _check_rejects_invalid_base_action_state() -> void:
 	_write_save_json(departure_without_queued_status_save_data)
 	_expect_failure_message(save_service.load_game(), "departure_plan_key 必须对应 queued 出发整备状态", "base action departure plan requires queued status")
 
+	_remove_save_file()
+	_remove_backup_files()
+	var queued_without_departure_save_data := _make_save_data("world.invalid.base_action_queued_without_departure")
+	queued_without_departure_save_data["world"]["base_action_state"] = {
+		BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY: BaseActionDispatchPlan.STATUS_QUEUED
+	}
+	_write_save_json(queued_without_departure_save_data)
+	_expect_failure_message(save_service.load_game(), "queued 出发整备状态必须带有 departure_plan_key", "base action queued status requires departure plan")
+
+	_remove_save_file()
+	_remove_backup_files()
+	var extra_queued_plan_save_data := _make_save_data("world.invalid.base_action_extra_queued_plan")
+	extra_queued_plan_save_data["world"]["base_action_state"] = {
+		BaseActionDispatchPlan.DEPARTURE_PLAN_KEY: BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY: BaseActionDispatchPlan.STATUS_QUEUED,
+		BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY: BaseActionDispatchPlan.STATUS_QUEUED
+	}
+	_write_save_json(extra_queued_plan_save_data)
+	_expect_failure_message(save_service.load_game(), "queued 出发整备状态只能保留 departure_plan_key 对应计划", "base action rejects extra queued plans")
+
 
 func _check_save_rejects_invalid_current_state() -> void:
 	var invalid_world := WorldState.create_default()

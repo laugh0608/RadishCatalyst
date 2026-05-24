@@ -247,8 +247,6 @@ static func apply_departure_preparation(world_state: WorldState, character_state
 	if world_state == null or character_state == null:
 		return messages
 	var departure_plan_key := _get_confirmed_departure_plan_key(world_state)
-	if departure_plan_key.is_empty():
-		departure_plan_key = _infer_queued_departure_plan_key(world_state)
 	if departure_plan_key == PLAN_STEADY_SUPPLY and get_supply_package_status(world_state) == STATUS_QUEUED:
 		character_state.inventory.add_item("item.basic_parts", 2)
 		character_state.inventory.add_item("item.repair_gel", 1)
@@ -1356,16 +1354,6 @@ static func _get_confirmed_departure_plan_key(world_state: WorldState) -> String
 	if world_state == null:
 		return ""
 	return String(world_state.get_base_action_state_value(DEPARTURE_PLAN_KEY, ""))
-
-
-static func _infer_queued_departure_plan_key(world_state: WorldState) -> String:
-	if get_supply_package_status(world_state) == STATUS_QUEUED:
-		return PLAN_STEADY_SUPPLY
-	if get_survey_intel_status(world_state) == STATUS_QUEUED:
-		return PLAN_PHASE_SURVEY
-	if get_pressure_clearance_status(world_state) == STATUS_QUEUED:
-		return PLAN_PRESSURE_CLEARANCE
-	return ""
 
 
 static func _set_departure_confirmation_snapshot(world_state: WorldState, plan_key: String) -> void:

@@ -482,6 +482,7 @@ func _validate_base_action_state_relationships(value: Dictionary) -> String:
 	var archived_plan := String(value.get(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY, ""))
 	var archived_feedback := String(value.get(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY, ""))
 	var departure_plan := String(value.get(BaseActionDispatchPlan.DEPARTURE_PLAN_KEY, ""))
+	var queued_plan_keys := _get_queued_base_action_plan_keys(value)
 
 	if window_status == BaseActionDispatchPlan.STATUS_ACTIVE and window_plan.is_empty():
 		return "读取存档失败：world.base_action_state.frontline_window_status 为 active 时必须记录 frontline_window_plan_key，当前运行状态已保留。"
@@ -494,10 +495,25 @@ func _validate_base_action_state_relationships(value: Dictionary) -> String:
 		return "读取存档失败：world.base_action_state.frontline_window_feedback 只能用于已处理窗口，当前运行状态已保留。"
 	if not archived_feedback.is_empty() and archived_plan.is_empty():
 		return "读取存档失败：world.base_action_state.frontline_window_archived_feedback 必须带有归档行动计划，当前运行状态已保留。"
+	if not queued_plan_keys.is_empty() and departure_plan.is_empty():
+		return "读取存档失败：world.base_action_state queued 出发整备状态必须带有 departure_plan_key，当前运行状态已保留。"
+	if queued_plan_keys.size() > 1 or (queued_plan_keys.size() == 1 and queued_plan_keys[0] != departure_plan):
+		return "读取存档失败：world.base_action_state queued 出发整备状态只能保留 departure_plan_key 对应计划，当前运行状态已保留。"
 	if not departure_plan.is_empty() and _get_base_action_preparation_status_for_plan(value, departure_plan) != BaseActionDispatchPlan.STATUS_QUEUED:
 		return "读取存档失败：world.base_action_state.departure_plan_key 必须对应 queued 出发整备状态，当前运行状态已保留。"
 
 	return ""
+
+
+func _get_queued_base_action_plan_keys(value: Dictionary) -> Array[String]:
+	var queued_plan_keys: Array[String] = []
+	if String(value.get(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, "")) == BaseActionDispatchPlan.STATUS_QUEUED:
+		queued_plan_keys.append(BaseActionDispatchPlan.PLAN_STEADY_SUPPLY)
+	if String(value.get(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, "")) == BaseActionDispatchPlan.STATUS_QUEUED:
+		queued_plan_keys.append(BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	if String(value.get(BaseActionDispatchPlan.PRESSURE_CLEARANCE_STATUS_KEY, "")) == BaseActionDispatchPlan.STATUS_QUEUED:
+		queued_plan_keys.append(BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE)
+	return queued_plan_keys
 
 
 func _get_base_action_preparation_status_for_plan(value: Dictionary, plan_key: String) -> String:
