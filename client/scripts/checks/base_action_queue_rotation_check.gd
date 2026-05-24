@@ -241,6 +241,7 @@ func _check_action_plan_preview_wording_is_shared() -> void:
 	)
 	host._expect_text_contains(candidate_prompt, "按 E 替换下一计划候选：压力清障；模块：防护涂层；风险：高（目标低 / 路线高 / 防护中）", "preview wording shows compact replacement candidate summary")
 	host._expect_text_contains(candidate_prompt, "收益：修复凝胶 +1、抗污染药剂 +1", "preview wording keeps replacement candidate reward")
+	host._expect_text_contains(candidate_prompt, "窗口结果预览：清理 1 处压力扰点并读取扰动残压", "preview wording shows replacement candidate window outcome")
 	host._expect_text_contains(candidate_prompt, "候选判断：替换为压力清障：路线扰动高、防护消耗中", "preview wording explains replacement candidate tradeoff")
 	host._expect_text_contains(" ".join(BaseActionDispatchPlan.select_next_plan_candidate_for_console("map_object.base_pressure_choice_console", candidate_world)), "候选判断：保留压力清障", "candidate replacement result keeps second-level decision note")
 
@@ -621,6 +622,11 @@ func _check_candidate_console_real_interaction_only_replaces_next_candidate() ->
 		String(replacement_result.get("message", "")),
 		"下一计划候选已更新：压力清障",
 		"candidate console replacement result updates next candidate"
+	)
+	host._expect_text_contains(
+		String(replacement_result.get("message", "")),
+		"窗口结果预览：清理 1 处压力扰点并读取扰动残压",
+		"candidate console replacement result includes the structured window outcome"
 	)
 	host._expect_text_contains(
 		String(replacement_result.get("message", "")),

@@ -474,15 +474,15 @@ static func select_next_plan_candidate_for_console(definition_id: String, world_
 	if plan_key.is_empty() or not _can_replace_next_plan_candidate(world_state):
 		return []
 	world_state.set_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, plan_key)
-	var feedback_note := _format_window_feedback_plan_note(world_state, plan_key)
-	var feedback_text := ""
-	if not feedback_note.is_empty():
-		feedback_text = "窗口反馈预告：%s。" % feedback_note
 	var decision_note := _format_candidate_decision_note(world_state, plan_key)
 	var decision_text := ""
 	if not decision_note.is_empty():
 		decision_text = "候选判断：%s" % decision_note
-	return ["下一计划候选已更新：%s。%s%s" % [_format_plan_label(plan_key), feedback_text, decision_text]]
+	return ["下一计划候选已更新：%s。\n%s\n%s" % [
+		_format_plan_label(plan_key),
+		_format_candidate_preview(plan_key, world_state),
+		decision_text
+	]]
 
 
 static func format_console_prompt(definition_id: String, world_state: WorldState, character_state: CharacterState) -> String:
@@ -1300,6 +1300,9 @@ static func _format_candidate_preview(plan_key: String, world_state: WorldState 
 		_format_compact_risk_profile(String(preview.get("risk_profile", ""))),
 		String(preview.get("reward", ""))
 	]
+	var window_preview := _format_window_outcome_preview_line(plan_key)
+	if not window_preview.is_empty():
+		text = "%s\n%s" % [text, window_preview]
 	var feedback_note := _format_window_feedback_plan_note(world_state, plan_key)
 	if not feedback_note.is_empty():
 		text = "%s\n窗口反馈：%s" % [text, feedback_note]
