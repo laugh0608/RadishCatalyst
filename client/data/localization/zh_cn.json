@@ -415,6 +415,8 @@
   "enemy.phase_well_binder.desc": "相位井结核指向的更东侧井系缚结体，会守住系索残股和井系桥断面本体。",
   "enemy.phase_well_warden.name": "井系守脉体",
   "enemy.phase_well_warden.desc": "井系校锚桩部署后被逼出的井系守脉体，会继续压住锚场回稳窗，直到玩家把它拆掉。",
+  "enemy.pressure_clearance_guard.name": "清障扰动守卫",
+  "enemy.pressure_clearance_guard.desc": "基地选择压力清障后被扰点逼出的短战斗守卫，压住清障回执直到被击退。",
     "region.outpost_platform.name": "基地平台",
     "region.outpost_platform.desc": "玩家初始恢复和加工补给的前哨区域。",
     "region.crystal_vein_field.name": "晶体矿脉区",

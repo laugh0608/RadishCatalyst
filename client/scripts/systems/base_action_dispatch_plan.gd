@@ -86,10 +86,10 @@ const PLAN_PREVIEWS := {
 	PLAN_PRESSURE_CLEARANCE: {
 		"label": "压力清障",
 		"choice_label": "压力清障",
-		"target": "清除 1 处前线压力扰点",
+		"target": "击退 1 个清障扰动守卫并清除 1 处前线压力扰点",
 		"reward": "修复凝胶 +1、抗污染药剂 +1",
 		"risk": "高",
-		"risk_detail": "需要处理一处高压扰点",
+		"risk_detail": "需要处理一场短战斗和一处高压扰点",
 		"risk_profile": "目标密度 低；路线扰动 高；防护消耗 中",
 		"cost": "占用本次出发整备槽，回投时一次性装入",
 		"module": "防护涂层",

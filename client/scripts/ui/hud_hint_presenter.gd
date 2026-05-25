@@ -293,7 +293,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.choose_phase_survey_action":
 			return "回基地行动选择台确认相位测绘；这是侦测方案，下一趟要读取两处分散测绘点。"
 		"quest.choose_pressure_clearance_action":
-			return "回基地行动选择台确认压力清障；这是高风险方案，下一趟要清掉一处压力扰点。"
+			return "回基地行动选择台确认压力清障；这是高风险方案，下一趟要先击退扰动守卫，再清掉一处压力扰点。"
 		"quest.inspect_steady_supply_drop":
 			return "用相位回投返回井系桥前线，读取一处稳场补给投放点后回基地。"
 		"quest.analyze_steady_supply_trace":
@@ -303,7 +303,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.analyze_phase_survey_trace":
 			return "回基地使用基础反应器，把相位测绘记录解析成测绘反馈。"
 		"quest.clear_pressure_frontline_hazard":
-			return "用相位回投返回井系桥前线，清掉一处压力扰点后回基地。"
+			return "用相位回投返回井系桥前线，先击退清障扰动守卫，再清掉一处压力扰点后回基地。"
 		"quest.analyze_pressure_clearance_trace":
 			return "回基地使用基础反应器，把压力清障回执解析成清障反馈。"
 		_:
@@ -575,7 +575,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.analyze_phase_survey_trace":
 			return "解析后只给现有补给和提示口径，不扩成复杂侦查系统。"
 		"quest.clear_pressure_frontline_hazard":
-			return "清障方案的前线差异是一处高风险扰点，收益偏修复和抗污染补给。"
+			return "清障方案的前线差异是一场短战斗加一处高风险扰点，收益偏修复和抗污染补给。"
 		"quest.analyze_pressure_clearance_trace":
 			return "解析后只给现有防护补给，不新增成功率、队员或装备 loadout。"
 		_:

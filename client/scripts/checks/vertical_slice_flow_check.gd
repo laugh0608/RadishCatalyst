@@ -46,6 +46,7 @@ func _run_checks() -> void:
 	_check_pollution_enemy_defeated_visual()
 	_check_treatment_enemy_spawn_gate()
 	_check_treatment_enemy_combat_pressure()
+	_check_pressure_clearance_guard_combat_gate()
 	_check_quest_completion_panel_text()
 	_check_build_prompts()
 	_check_supply_feedback()
@@ -773,6 +774,23 @@ func _check_treatment_enemy_combat_pressure() -> void:
 	_expect_equal(combat_character.health, 91.0, "treatment enemy counterattack pressure")
 	_expect_text_contains(counter_message, "修复凝胶", "treatment enemy counterattack supply hint")
 	treatment_enemy.free()
+	map.free()
+func _check_pressure_clearance_guard_combat_gate() -> void:
+	var map := VerticalSliceMap.new()
+	map.data_registry = data_registry
+	var guard := _create_visual_check_enemy("enemy.pressure_clearance_guard", "清障扰动守卫", 64.0, "ruin_guard")
+	guard.name = "PressureClearanceGuard"
+	var gate_world := WorldState.create_default()
+	_expect_equal(map._should_enemy_spawn(guard, gate_world), false, "pressure clearance guard hidden before quest")
+	gate_world.quest_state.active_quest_ids = ["quest.clear_pressure_frontline_hazard"]
+	_expect_equal(map._should_enemy_spawn(guard, gate_world), true, "pressure clearance guard spawns during pressure quest")
+
+	var combat_character := CharacterState.create_default()
+	var counter_message := map._apply_enemy_counterattack(guard, combat_character)
+	_expect_equal(combat_character.health, 88.0, "pressure clearance guard counterattack health pressure")
+	_expect_equal(combat_character.protection, 94.0, "pressure clearance guard counterattack protection pressure")
+	_expect_text_contains(counter_message, "防护 -6", "pressure clearance guard counterattack protection hint")
+	guard.free()
 	map.free()
 func _check_quest_completion_panel_text() -> void:
 	var presenter := HudFeedbackPresenter.new()

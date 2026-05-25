@@ -587,7 +587,7 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		1.0,
 		"phase well binder defeat update"
 	)
-
+	_expect_update(event_rules.get_defeated_enemy_objective_updates("enemy.pressure_clearance_guard"), "set", "quest.clear_pressure_frontline_hazard", "defeat_enemy", "enemy.pressure_clearance_guard", 1.0, "pressure clearance guard defeat update")
 
 func _check_non_active_quest_does_not_complete() -> void:
 	var quest_state := QuestState.create_default()

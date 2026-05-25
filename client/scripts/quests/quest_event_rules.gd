@@ -409,6 +409,8 @@ func get_defeated_enemy_objective_updates(enemy_definition_id: String) -> Array[
 		return [_set_update("quest.collect_tether_fiber", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.phase_well_warden":
 		return [_set_update("quest.stabilize_phase_well_anchor_field", "defeat_enemy", enemy_definition_id, 1)]
+	if enemy_definition_id == "enemy.pressure_clearance_guard":
+		return [_set_update("quest.clear_pressure_frontline_hazard", "defeat_enemy", enemy_definition_id, 1)]
 	return []
 
 

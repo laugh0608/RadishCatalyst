@@ -1138,7 +1138,7 @@
       "description_key": "quest.clear_pressure_frontline_hazard.desc",
       "quest_type": "side",
       "stage": 83,
-      "objectives": [{"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1}, {"type": "clear", "target_id": "map_object.pressure_clearance_node", "amount": 1}],
+      "objectives": [{"type": "visit_region", "target_id": "region.phase_well_tether", "amount": 1}, {"type": "defeat_enemy", "target_id": "enemy.pressure_clearance_guard", "amount": 1}, {"type": "clear", "target_id": "map_object.pressure_clearance_node", "amount": 1}],
       "prerequisites": ["quest.choose_pressure_clearance_action"],
       "rewards": [{"id": "item.pressure_clearance_trace", "amount": 1}, {"id": "item.repair_gel", "amount": 1}],
       "unlock_effects": ["recipe.pressure_clearance_feedback"],

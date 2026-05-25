@@ -521,132 +521,33 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 	if bool(result.get("defeated", false)):
 		var drops_message := _grant_enemy_drops(target, character_state, world_state)
 		if target.definition_id == "enemy.polluted_skitter":
-			return {
-				"success": true,
-				"message": "击败：%s。%s污染处理点周边暂时安全。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "污染处理点周边暂时安全。")
 		if target.definition_id == "enemy.ruin_phase_guard":
-			return {
-				"success": true,
-				"message": "击败：%s。%s外圈回波匣附近的干扰守卫已清空。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "外圈回波匣附近的干扰守卫已清空。")
 		if target.definition_id == "enemy.deep_ruin_sentinel":
-			return {
-				"success": true,
-				"message": "击败：%s。%s深段锁扣前的压制守卫已清空，相位纤丝回收线已打开。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "深段锁扣前的压制守卫已清空，相位纤丝回收线已打开。")
 		if target.definition_id == "enemy.deep_ruin_stalker":
-			return {
-				"success": true,
-				"message": "击败：%s。%s深段阵列后的追袭线已清空，相位导管回收窗口已打开。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "深段阵列后的追袭线已清空，相位导管回收窗口已打开。")
 		if target.definition_id == "enemy.deep_fault_hunter":
-			return {
-				"success": true,
-				"message": "击败：%s。%s更东侧裂相脊的封锁压力已减弱，裂相碎屑回收线已打开。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "更东侧裂相脊的封锁压力已减弱，裂相碎屑回收线已打开。")
 		if target.definition_id == "enemy.phase_well_sentry":
-			return {
-				"success": true,
-				"message": "击败：%s。%s更东侧内层相位井边缘的压制已减弱，井涌碎屑回收线已打开。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "更东侧内层相位井边缘的压制已减弱，井涌碎屑回收线已打开。")
 		if target.definition_id == "enemy.phase_well_lurker":
-			return {
-				"success": true,
-				"message": "击败：%s。%s更东侧井底裂口边缘的压制已减弱，井壁余烬回收线已打开。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "更东侧井底裂口边缘的压制已减弱，井壁余烬回收线已打开。")
 		if target.definition_id == "enemy.phase_well_reaver":
-			return {
-				"success": true,
-				"message": "击败：%s。%s更东侧井心室边缘的压制已减弱，心棘残片回收线已打开。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "更东侧井心室边缘的压制已减弱，心棘残片回收线已打开。")
 		if target.definition_id == "enemy.phase_well_tangler":
-			return {
-				"success": true,
-				"message": "击败：%s。%s更东侧井纺室边缘的压制已减弱，纬束残团回收线已打开。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "更东侧井纺室边缘的压制已减弱，纬束残团回收线已打开。")
 		if target.definition_id == "enemy.phase_well_raker":
-			return {
-				"success": true,
-				"message": "击败：%s。%s更东侧井纹架边缘的压制已减弱，边缕残条回收线已打开。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "更东侧井纹架边缘的压制已减弱，边缕残条回收线已打开。")
 		if target.definition_id == "enemy.phase_well_binder":
-			return {
-				"success": true,
-				"message": "击败：%s。%s更东侧井系桥边缘的压制已减弱，系索残股回收线已打开。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "更东侧井系桥边缘的压制已减弱，系索残股回收线已打开。")
 		if target.definition_id == "enemy.phase_well_warden":
 			phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
-			return {
-				"success": true,
-				"message": "击败：%s。%s井系桥东侧的回稳压制已被拆掉，锚场回稳窗现在可以回去收束。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
-		return {
-			"success": true,
-			"message": "击败：%s。%s" % [target.display_name, drops_message],
-			"enemy_definition_id": target.definition_id,
-			"enemy_defeated": true
-		}
+			return _enemy_defeat_result(target, drops_message, "井系桥东侧的回稳压制已被拆掉，锚场回稳窗现在可以回去收束。")
+		if target.definition_id == "enemy.pressure_clearance_guard":
+			return _enemy_defeat_result(target, drops_message, "前线压力扰点的短战斗压制已解除，现在可以清理扰点并带回清障回执。")
+		return _enemy_defeat_result(target, drops_message)
 
 	var counter_message := _apply_enemy_counterattack(target, character_state)
 	var evacuation_feedback := _evacuate_if_needed(character_state, world_state, "combat")
@@ -930,6 +831,11 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 		)
 	if enemy.definition_id == "enemy.phase_well_warden":
 		return phase_well_frontier_runtime != null and phase_well_frontier_runtime.should_spawn_anchor_field_enemy(world_state)
+	if enemy.definition_id == "enemy.pressure_clearance_guard":
+		return (
+			world_state.quest_state.has_active_quest("quest.clear_pressure_frontline_hazard")
+			or world_state.quest_state.has_completed_quest("quest.clear_pressure_frontline_hazard")
+		)
 	if enemy.definition_id != "enemy.treatment_skitter":
 		return true
 	var quest_state := world_state.quest_state
@@ -946,6 +852,13 @@ func _get_attack_damage(character_state: CharacterState) -> float:
 	var stat_modifiers: Dictionary = tool_definition.get("stat_modifiers", {})
 	var attack_power := float(stat_modifiers.get("attack_power", 1.0))
 	return BASE_ATTACK_DAMAGE * attack_power
+func _enemy_defeat_result(enemy: PrototypeEnemy, drops_message: String, followup: String = "") -> Dictionary:
+	return {
+		"success": true,
+		"message": "击败：%s。%s%s" % [enemy.display_name, drops_message, followup],
+		"enemy_definition_id": enemy.definition_id,
+		"enemy_defeated": true
+	}
 func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: CharacterState) -> String:
 	var definition := data_registry.get_definition(enemy.definition_id)
 	var base_stats: Dictionary = definition.get("base_stats", {})

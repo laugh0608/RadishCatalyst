@@ -89,8 +89,8 @@ const FRONTLINE_ACTION_TARGET_PROMPTS := {
 		"objective_type": "clear",
 		"target_ids": ["map_object.pressure_clearance_node"],
 		"title": "前线压力扰点",
-		"status": "未清理，高压扰动仍压着井系桥前线。",
-		"effect": "清除后回基地使用基础反应器解析压力清障反馈，换取防护整备。",
+		"status": "未清理，高压扰动仍压着井系桥前线；清障扰动守卫也需要先击退。",
+		"effect": "击退守卫并清除扰点后回基地使用基础反应器解析压力清障反馈，换取防护整备。",
 		"action": "按 E 清理压力扰点",
 		"requires_tool": true
 	}

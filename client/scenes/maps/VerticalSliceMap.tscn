@@ -942,3 +942,7 @@ definition_id = "enemy.phase_well_binder"
 [node name="PhaseWellWarden" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(3164, 18)
 definition_id = "enemy.phase_well_warden"
+
+[node name="PressureClearanceGuard" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(3352, 24)
+definition_id = "enemy.pressure_clearance_guard"

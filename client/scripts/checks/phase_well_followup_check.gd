@@ -1160,11 +1160,7 @@ func _check_base_action_choice_runtime() -> void:
 
 	var pressure_world := WorldState.create_default()
 	var pressure_character := CharacterState.create_default()
-	pressure_world.quest_state.active_quest_ids = [
-		"quest.choose_steady_supply_action",
-		"quest.choose_phase_survey_action",
-		"quest.choose_pressure_clearance_action"
-	]
+	pressure_world.quest_state.active_quest_ids = ["quest.choose_steady_supply_action", "quest.choose_phase_survey_action", "quest.choose_pressure_clearance_action"]
 	var pressure_choice_prompt := BaseActionDispatchPlan.format_console_prompt(
 		"map_object.base_pressure_choice_console",
 		pressure_world,
@@ -1196,6 +1192,9 @@ func _check_base_action_choice_runtime() -> void:
 		"quest.choose_phase_survey_action",
 		"pressure choice should not complete phase survey choice"
 	)
+	var pressure_guard_result := runtime.advance_for_defeated_enemy(pressure_world, pressure_character, "enemy.pressure_clearance_guard")
+	host._expect_equal(bool(pressure_guard_result.get("accepted", false)), true, "pressure clearance guard defeat result accepted")
+	host._expect_array_missing(pressure_world.quest_state.completed_quest_ids, "quest.clear_pressure_frontline_hazard", "pressure clearance should still require clearing the hazard after guard defeat")
 	var pressure_clear_result := runtime.advance_for_interaction(
 		pressure_world,
 		pressure_character,
