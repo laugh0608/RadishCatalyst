@@ -15,6 +15,7 @@ func run() -> void:
 	_check_action_plan_preview_wording_is_shared()
 	_check_light_preparation_module_enters_snapshots()
 	_check_light_preparation_module_changes_window_outcome()
+	_check_pressure_coating_closes_base_frontline_upgrade_loop()
 	_check_departure_confirmation_locks_risk_reward_snapshot()
 	_check_phase_relay_requires_confirmed_departure_slot()
 	_check_phase_relay_pad_shows_confirmed_preparation()
@@ -307,8 +308,37 @@ func _check_light_preparation_module_changes_window_outcome() -> void:
 	_expect_module_window_outcome(
 		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
 		"清理 1 处压力扰点并读取扰动残压",
-		"防护涂层先承接残压",
-		"下一轮防护整备依据"
+		"防护涂层承接扰动残压并带回涂层样本",
+		"改良成下一轮防护整备依据"
+	)
+
+
+func _check_pressure_coating_closes_base_frontline_upgrade_loop() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.PRESSURE_CLEARANCE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE)
+	var confirm_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+	host._expect_text_contains(" ".join(confirm_messages), "涂层样本", "pressure coating confirmation previews sample return")
+	BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	BaseActionDispatchPlan.resolve_frontline_window(world_state)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		"防护涂层样本已改良为下一轮风险回落依据",
+		"pressure coating window payoff feeds upgraded preparation"
+	)
+	BaseActionDispatchPlan.acknowledge_frontline_window_feedback(world_state)
+	var reviewed_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		world_state,
+		character_state
+	)
+	host._expect_text_contains(reviewed_prompt, "涂层样本承接：目标预告=继续清障扰点；路线扰动=中；防护消耗=低。", "pressure coating carryover lowers next clearance drain")
+	host._expect_text_contains(
+		" ".join(BaseActionDispatchPlan.select_next_plan_candidate_for_console("map_object.base_pressure_choice_console", world_state)),
+		"候选判断：保留压力清障：涂层样本已改良，继续清障降为低防护消耗",
+		"pressure coating candidate explains upgraded next clearance"
 	)
 
 
@@ -485,7 +515,7 @@ func _check_prepared_frontline_window_follows_confirmed_plan() -> void:
 	)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
-		"完成态收益：扰动残压已转成下一轮风险回落依据",
+		"完成态收益：防护涂层样本已改良为下一轮风险回落依据",
 		"resolved frontline window prompt should explain completion payoff"
 	)
 	host._expect_text_contains(
@@ -504,7 +534,7 @@ func _check_prepared_frontline_window_follows_confirmed_plan() -> void:
 	)
 	host._expect_text_contains(
 		action_console_prompt,
-		"完成态收益：扰动残压已转成下一轮风险回落依据",
+		"完成态收益：防护涂层样本已改良为下一轮风险回落依据",
 		"action console should explain resolved window payoff"
 	)
 	host._expect_text_contains(
@@ -763,9 +793,9 @@ func _check_frontline_window_stage_review_covers_all_plans() -> void:
 	_expect_frontline_window_stage_review(
 		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
 		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
-		"完成态收益：扰动残压已转成下一轮风险回落依据",
-		"残压回落承接：目标预告=低压窗口补给回收；路线扰动=低；防护消耗=低。",
-		"下一计划候选：信息侦测；窗口反馈预告：残压已收束，测绘候选可把低干扰路线转成目标预告"
+		"完成态收益：防护涂层样本已改良为下一轮风险回落依据",
+		"涂层样本承接：目标预告=低压窗口补给回收；路线扰动=低；防护消耗=低。",
+		"下一计划候选：信息侦测；窗口反馈预告：涂层样本已归档，测绘候选可把低干扰路线转成目标预告"
 	)
 
 

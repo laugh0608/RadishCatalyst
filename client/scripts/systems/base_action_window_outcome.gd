@@ -40,18 +40,18 @@ const OUTCOMES := {
 	},
 	PLAN_PRESSURE_CLEARANCE: {
 		"window_target": "清理 1 处压力扰点并读取扰动残压",
-		"window_result": "防护涂层先承接残压，处理后生成防护消耗回落依据",
-		"resolution": "前线异常窗口已按压力清障计划处理：防护涂层先接住扰动残压，回基地行动台可把它作为下一轮防护整备依据。",
-		"payoff": "扰动残压已转成下一轮风险回落依据，可支撑低压补给、测绘预告或继续防护清障。",
+		"window_result": "防护涂层承接扰动残压并带回涂层样本，处理后生成改良防护整备依据",
+		"resolution": "前线异常窗口已按压力清障计划处理：防护涂层接住扰动残压并带回涂层样本，回基地行动台可把它改良成下一轮防护整备依据。",
+		"payoff": "防护涂层样本已改良为下一轮风险回落依据，可支撑低压补给、测绘预告或低消耗清障。",
 		"plan_notes": {
-			PLAN_STEADY_SUPPLY: "残压已收束，补给候选可在低压窗口回收资源缓冲",
-			PLAN_PHASE_SURVEY: "残压已收束，测绘候选可把低干扰路线转成目标预告",
-			PLAN_PRESSURE_CLEARANCE: "残压已收束，清障候选会继续说明防护整备和风险回落"
+			PLAN_STEADY_SUPPLY: "涂层样本已归档，补给候选可在低压窗口回收资源缓冲",
+			PLAN_PHASE_SURVEY: "涂层样本已归档，测绘候选可把低干扰路线转成目标预告",
+			PLAN_PRESSURE_CLEARANCE: "涂层样本已改良，清障候选会说明低消耗防护整备"
 		},
 		"carryovers": {
-			PLAN_STEADY_SUPPLY: "残压回落承接：目标预告=低压窗口补给回收；路线扰动=低；防护消耗=低。",
-			PLAN_PHASE_SURVEY: "残压回落承接：目标预告=低干扰路线测绘；路线扰动=中；防护消耗=低。",
-			PLAN_PRESSURE_CLEARANCE: "残压回落承接：目标预告=继续清障扰点；路线扰动=中；防护消耗=中。"
+			PLAN_STEADY_SUPPLY: "涂层样本承接：目标预告=低压窗口补给回收；路线扰动=低；防护消耗=低。",
+			PLAN_PHASE_SURVEY: "涂层样本承接：目标预告=低干扰路线测绘；路线扰动=中；防护消耗=低。",
+			PLAN_PRESSURE_CLEARANCE: "涂层样本承接：目标预告=继续清障扰点；路线扰动=中；防护消耗=低。"
 		}
 	}
 }

@@ -93,7 +93,7 @@ const PLAN_PREVIEWS := {
 		"risk_profile": "目标密度 低；路线扰动 高；防护消耗 中",
 		"cost": "占用本次出发整备槽，回投时一次性装入",
 		"module": "防护涂层",
-		"module_effect": "先给清障防护窗口，再处理扰点风险"
+		"module_effect": "承接清障残压并带回涂层样本，回基地后改良下一轮防护整备"
 	}
 }
 
@@ -1089,7 +1089,7 @@ static func _format_candidate_decision_note(world_state: WorldState, candidate_p
 		PLAN_PRESSURE_CLEARANCE:
 			basis = "路线扰动高、防护消耗中，适合在当前%s后集中处理已知扰点" % current_label
 	if _get_resolved_frontline_window_plan_key(world_state) == PLAN_PRESSURE_CLEARANCE and candidate_plan_key == PLAN_PRESSURE_CLEARANCE:
-		basis = "残压已回落，继续清障只保留中等防护消耗，不会打开新循环"
+		basis = "涂层样本已改良，继续清障降为低防护消耗，不会打开新循环"
 	if _get_resolved_frontline_window_plan_key(world_state) == PLAN_PHASE_SURVEY and candidate_plan_key == PLAN_STEADY_SUPPLY:
 		basis = "路线已显形，低风险补给可贴近西侧边界回收资源"
 	if _get_resolved_frontline_window_plan_key(world_state) == PLAN_STEADY_SUPPLY and candidate_plan_key == PLAN_PHASE_SURVEY:
