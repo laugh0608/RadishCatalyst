@@ -527,8 +527,8 @@ func _check_prepared_frontline_window_follows_confirmed_plan() -> void:
 	)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_direction_hint(world_state),
-		"先找到前线异常窗口并按 E 处理",
-		"active frontline window direction should not send player back to the action console"
+		"先按 J 击退清障扰动守卫",
+		"active pressure window direction should expose guard combat before window resolution"
 	)
 	var blocked_confirm_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
 	host._expect_text_contains(
@@ -547,10 +547,21 @@ func _check_prepared_frontline_window_follows_confirmed_plan() -> void:
 	window.interaction_type = "inspect"
 	host._expect_text_contains(
 		formatter.format_frontline_action_target_prompt(window, character_state, world_state),
-		"已载入压力清障计划",
+		"当前步骤：清障扰动守卫仍在压制异常窗口",
 		"frontline window prompt uses confirmed plan"
 	)
 	var result := GatherSystem.new(host.data_registry).interact_with_object(
+		window.instance_id,
+		window.definition_id,
+		window.interaction_type,
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(result.get("success", true)), false, "pressure window blocks direct interaction before guard defeat")
+	host._expect_text_contains(String(result.get("message", "")), "先靠近守卫按 J 攻击", "pressure window explains guard blocker")
+	var guard_state := world_state.ensure_enemy(BaseActionDispatchPlan.PRESSURE_CLEARANCE_GUARD_INSTANCE_ID, "enemy.pressure_clearance_guard", "region.phase_well_tether", 64.0)
+	guard_state["is_defeated"] = true
+	result = GatherSystem.new(host.data_registry).interact_with_object(
 		window.instance_id,
 		window.definition_id,
 		window.interaction_type,
@@ -1090,6 +1101,9 @@ func _expect_frontline_window_stage_review(
 		promoted_plan_key,
 		"stage review promotes expected plan after %s" % executed_plan_key
 	)
+	if executed_plan_key == BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE:
+		var guard_state := world_state.ensure_enemy(BaseActionDispatchPlan.PRESSURE_CLEARANCE_GUARD_INSTANCE_ID, "enemy.pressure_clearance_guard", "region.phase_well_tether", 64.0)
+		guard_state["is_defeated"] = true
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
 		BaseActionWindowOutcome.get_window_result(executed_plan_key),
@@ -1196,6 +1210,9 @@ func _expect_module_window_outcome(
 	_set_ready_status_for_plan(world_state, plan_key)
 	BaseActionDispatchPlan.confirm_departure_preparation(world_state)
 	BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	if plan_key == BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE:
+		var guard_state := world_state.ensure_enemy(BaseActionDispatchPlan.PRESSURE_CLEARANCE_GUARD_INSTANCE_ID, "enemy.pressure_clearance_guard", "region.phase_well_tether", 64.0)
+		guard_state["is_defeated"] = true
 	var active_prompt := BaseActionDispatchPlan.format_frontline_window_prompt(world_state)
 	host._expect_text_contains(active_prompt, expected_target, "module outcome active target for %s" % plan_key)
 	host._expect_text_contains(active_prompt, expected_window_result, "module outcome active result for %s" % plan_key)

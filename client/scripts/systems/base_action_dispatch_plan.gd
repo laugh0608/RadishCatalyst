@@ -45,6 +45,7 @@ const FRONTLINE_WINDOW_REVIEW_COUNT_KEY := "frontline_window_review_count"
 const FRONTLINE_WINDOW_OBJECT_ID := "map_object.prepared_frontline_window"
 const FRONTLINE_WINDOW_INSTANCE_ID := "map_object_instance.prepared_frontline_window"
 const FRONTLINE_WINDOW_REVIEW_LIMIT := 2
+const PRESSURE_CLEARANCE_GUARD_INSTANCE_ID := "enemy_instance.pressure_clearance_guard"
 const STATUS_READY := "ready"
 const STATUS_QUEUED := "queued"
 const STATUS_USED := "used"
@@ -345,6 +346,10 @@ static func get_frontline_window_plan_key(world_state: WorldState) -> String:
 	return ""
 
 
+static func get_frontline_window_blocker(world_state: WorldState) -> String:
+	return "清障扰动守卫仍在压制异常窗口：先靠近守卫按 J 攻击，击退后再对窗口按 E 处理。" if _is_pressure_clearance_guard_required(world_state) else ""
+
+
 static func format_frontline_window_prompt(world_state: WorldState) -> String:
 	if world_state == null:
 		return "前线异常窗口：等待基地整备计划。"
@@ -361,14 +366,10 @@ static func format_frontline_window_prompt(world_state: WorldState) -> String:
 	if status != STATUS_ACTIVE or plan_key.is_empty():
 		return "前线异常窗口：等待相位回投执行已确认整备槽。"
 	var preview := _get_plan_preview(plan_key)
-	return "前线异常窗口：已载入%s计划；模块：%s；风险：%s（%s）。\n本趟目标：%s。\n处理结果：%s。\n按 E 处理窗口。" % [
-		String(preview.get("label", "")),
-		_format_window_module_name(world_state, preview),
-		String(preview.get("risk", "")),
-		_format_compact_risk_profile(String(preview.get("risk_profile", ""))),
-		BaseActionWindowOutcome.get_window_target(plan_key, String(preview.get("target", ""))),
-		BaseActionWindowOutcome.get_window_result(plan_key, String(preview.get("reward", "")))
-	]
+	var blocker := get_frontline_window_blocker(world_state)
+	if not blocker.is_empty():
+		return "前线异常窗口：已载入%s计划；模块：%s；风险：%s（%s）。\n本趟目标：%s。\n当前步骤：%s" % [String(preview.get("label", "")), _format_window_module_name(world_state, preview), String(preview.get("risk", "")), _format_compact_risk_profile(String(preview.get("risk_profile", ""))), BaseActionWindowOutcome.get_window_target(plan_key, String(preview.get("target", ""))), blocker]
+	return "前线异常窗口：已载入%s计划；模块：%s；风险：%s（%s）。\n本趟目标：%s。\n处理结果：%s。\n按 E 处理窗口。" % [String(preview.get("label", "")), _format_window_module_name(world_state, preview), String(preview.get("risk", "")), _format_compact_risk_profile(String(preview.get("risk_profile", ""))), BaseActionWindowOutcome.get_window_target(plan_key, String(preview.get("target", ""))), BaseActionWindowOutcome.get_window_result(plan_key, String(preview.get("reward", "")))]
 
 
 static func resolve_frontline_window(world_state: WorldState) -> Array[String]:
@@ -633,6 +634,9 @@ static func _format_title(stage: String) -> String:
 static func _format_direction(stage: String, world_state: WorldState) -> String:
 	match stage:
 		"frontline_window_active":
+			var blocker := get_frontline_window_blocker(world_state)
+			if not blocker.is_empty():
+				return "本趟压力清障已载入井系桥前线：当前计划=压力清障，模块=防护涂层。先按 J 击退清障扰动守卫，再处理异常窗口。"
 			return "本趟整备已随相位回投载入井系桥前线：先找到前线异常窗口并按 E 处理，再回基地行动台查看反馈和下一计划。"
 		"frontline_window_return":
 			return "前线异常窗口已处理：用前线回传锚点回基地，在基地行动台按 E 归档本趟反馈。"
@@ -750,6 +754,8 @@ static func _format_status_progress(stage: String, world_state: WorldState) -> S
 	match stage:
 		"frontline_window_active":
 			var plan_label := _format_plan_label(get_frontline_window_plan_key(world_state))
+			if not get_frontline_window_blocker(world_state).is_empty():
+				return "本趟%s计划已载入；模块：防护涂层；当前步骤：按 J 击退清障扰动守卫" % plan_label
 			return "本趟%s计划已载入同一前线异常窗口；先在窗口按 E 处理结果" % plan_label
 		"frontline_window_return":
 			return "前线窗口已处理；下一步用前线回传锚点回基地归档反馈"
@@ -1464,13 +1470,17 @@ static func _format_departure_execution_message(plan_key: String) -> String:
 	var preview := _get_plan_preview(plan_key)
 	match plan_key:
 		PLAN_STEADY_SUPPLY:
-			return "低风险补给计划已执行：基础零件 +2，修复凝胶 +1；轻量整备模块：%s；同一前线异常窗口已载入补给解法；已按%s风险收益确认出发，先在前线处理窗口再回基地。" % [String(preview.get("module", "")), String(preview.get("risk", ""))]
+			return "低风险补给计划已执行：当前计划：低风险补给；轻量整备模块：%s；目标：读取补给缓存。基础零件 +2，修复凝胶 +1；已按%s风险收益确认出发，先在前线处理窗口再回基地。" % [String(preview.get("module", "")), String(preview.get("risk", ""))]
 		PLAN_PHASE_SURVEY:
-			return "信息侦测计划已执行：本趟路线情报已验证；轻量整备模块：%s；同一前线异常窗口已载入侦测解法；已按%s风险收益确认出发，先在前线处理窗口再回基地。" % [String(preview.get("module", "")), String(preview.get("risk", ""))]
+			return "信息侦测计划已执行：当前计划：信息侦测；轻量整备模块：%s；目标：校准两处路线回波。同一前线异常窗口已载入侦测解法；已按%s风险收益确认出发，先在前线处理窗口再回基地。" % [String(preview.get("module", "")), String(preview.get("risk", ""))]
 		PLAN_PRESSURE_CLEARANCE:
-			return "压力清障防护计划已执行：修复凝胶 +1，抗污染药剂 +1；轻量整备模块：%s；同一前线异常窗口已载入清障解法；已按%s风险收益确认出发，先在前线处理窗口再回基地。" % [String(preview.get("module", "")), String(preview.get("risk", ""))]
+			return "压力清障防护计划已执行：当前计划：压力清障；轻量整备模块：%s；目标：先按 J 击退清障扰动守卫，再按 E 处理异常窗口。修复凝胶 +1，抗污染药剂 +1；已按%s风险收益确认出发。" % [String(preview.get("module", "")), String(preview.get("risk", ""))]
 		_:
 			return "出发计划已执行。"
+
+
+static func _is_pressure_clearance_guard_required(world_state: WorldState) -> bool:
+	return world_state != null and is_frontline_window_active(world_state) and get_frontline_window_plan_key(world_state) == PLAN_PRESSURE_CLEARANCE and not bool(world_state.get_enemy(PRESSURE_CLEARANCE_GUARD_INSTANCE_ID).get("is_defeated", false))
 
 
 static func _is_known_plan_key(plan_key: String) -> bool:

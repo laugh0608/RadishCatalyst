@@ -165,6 +165,9 @@ func interact_with_object(
 						"窗口未激活",
 						"先在基地前线行动台确认整备槽，再从相位回投台出发。"
 					)
+				var window_blocker := BaseActionDispatchPlan.get_frontline_window_blocker(world_state)
+				if not window_blocker.is_empty():
+					return _failure(window_blocker, "窗口被守卫压制", "先击退清障扰动守卫，再回来处理异常窗口。")
 				_set_map_object_flag(world_state, instance_id, definition_id, "is_sampled", true)
 				var window_messages := BaseActionDispatchPlan.resolve_frontline_window(world_state)
 				if window_messages.is_empty():

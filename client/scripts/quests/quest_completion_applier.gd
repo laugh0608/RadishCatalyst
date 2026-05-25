@@ -199,7 +199,7 @@ func _format_completion_note(quest_id: String) -> String:
 		"quest.choose_phase_survey_action":
 			return "相位测绘行动已选择；从相位回投台返回井系桥前线，读取两处测绘点"
 		"quest.choose_pressure_clearance_action":
-			return "压力清障行动已选择；从相位回投台返回井系桥前线，清除一处压力扰点"
+			return "压力清障行动已选择；从相位回投台返回井系桥前线，先击退清障扰动守卫，再清除压力扰点"
 		"quest.inspect_steady_supply_drop":
 			return "稳场补给回执已带回；回基地用基础反应器解析补给反馈"
 		"quest.analyze_steady_supply_trace":

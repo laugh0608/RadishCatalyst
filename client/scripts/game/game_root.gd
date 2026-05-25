@@ -150,6 +150,9 @@ func _on_player_attack_requested() -> void:
 			quest_runtime.advance_for_defeated_enemy(world_state, character_state, String(result.get("enemy_definition_id", "")))
 		)
 	hud_feedback_presenter.show_evacuation_feedback(result, hud)
+	vertical_slice_map.refresh_world_interactables(world_state)
+	if vertical_slice_map.current_interactable != null:
+		_on_interaction_available(vertical_slice_map.current_interactable)
 	hud.append_log(hud_log_presenter.join_messages(log_messages))
 	_update_hud()
 

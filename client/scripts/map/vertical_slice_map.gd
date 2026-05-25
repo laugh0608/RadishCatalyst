@@ -835,6 +835,10 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 		return (
 			world_state.quest_state.has_active_quest("quest.clear_pressure_frontline_hazard")
 			or world_state.quest_state.has_completed_quest("quest.clear_pressure_frontline_hazard")
+			or (
+				BaseActionDispatchPlan.is_frontline_window_active(world_state)
+				and BaseActionDispatchPlan.get_frontline_window_plan_key(world_state) == BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE
+			)
 		)
 	if enemy.definition_id != "enemy.treatment_skitter":
 		return true

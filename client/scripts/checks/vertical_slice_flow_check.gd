@@ -784,6 +784,10 @@ func _check_pressure_clearance_guard_combat_gate() -> void:
 	_expect_equal(map._should_enemy_spawn(guard, gate_world), false, "pressure clearance guard hidden before quest")
 	gate_world.quest_state.active_quest_ids = ["quest.clear_pressure_frontline_hazard"]
 	_expect_equal(map._should_enemy_spawn(guard, gate_world), true, "pressure clearance guard spawns during pressure quest")
+	var window_world := WorldState.create_default()
+	window_world.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_STATUS_KEY, BaseActionDispatchPlan.STATUS_ACTIVE)
+	window_world.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_PLAN_KEY, BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE)
+	_expect_equal(map._should_enemy_spawn(guard, window_world), true, "pressure clearance guard spawns during pressure window")
 
 	var combat_character := CharacterState.create_default()
 	var counter_message := map._apply_enemy_counterattack(guard, combat_character)

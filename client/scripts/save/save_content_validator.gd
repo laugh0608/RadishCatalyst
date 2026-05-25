@@ -220,6 +220,10 @@ const PROTOTYPE_ENEMY_SOURCES := {
 	"enemy_instance.phase_well_warden": {
 		"definition_id": "enemy.phase_well_warden",
 		"region_id": "region.phase_well_tether"
+	},
+	"enemy_instance.pressure_clearance_guard": {
+		"definition_id": "enemy.pressure_clearance_guard",
+		"region_id": "region.phase_well_tether"
 	}
 }
 
