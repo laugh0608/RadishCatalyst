@@ -8,18 +8,18 @@ const PLAN_PRESSURE_CLEARANCE := "pressure_clearance_guard"
 const OUTCOMES := {
 	PLAN_STEADY_SUPPLY: {
 		"window_target": "读取 1 处稳相缓存并回收稳定样本",
-		"window_result": "稳相垫片压低窗口抖动，处理后生成稳定样本和资源缓冲依据",
-		"resolution": "前线异常窗口已按低风险补给计划处理：稳相垫片压低了窗口抖动，回基地行动台可把稳定样本作为下一轮资源缓冲依据。",
-		"payoff": "稳定样本已转成下一轮资源缓冲依据，可支撑低风险补给或覆盖测绘往返。",
+		"window_result": "稳相垫片压低窗口抖动并带回稳相缓存样本，处理后生成强化资源回收依据",
+		"resolution": "前线异常窗口已按低风险补给计划处理：稳相垫片压低了窗口抖动并带回稳相缓存样本，回基地行动台可把它改良成下一轮资源回收依据。",
+		"payoff": "稳相缓存样本已改良为下一轮强化资源回收依据，可支撑低风险补给或覆盖测绘往返。",
 		"plan_notes": {
-			PLAN_STEADY_SUPPLY: "稳定样本已归档，补给候选会继续强调资源缓冲和短目标",
-			PLAN_PHASE_SURVEY: "稳定样本已归档，测绘候选可预告补给缓冲覆盖两处读数往返",
-			PLAN_PRESSURE_CLEARANCE: "稳定样本已归档，清障候选会先说明防护补给再处理扰点"
+			PLAN_STEADY_SUPPLY: "稳相缓存样本已归档，补给候选会继续强调强化回收和短目标",
+			PLAN_PHASE_SURVEY: "稳相缓存样本已归档，测绘候选可预告补给缓冲覆盖两处读数往返",
+			PLAN_PRESSURE_CLEARANCE: "稳相缓存样本已归档，清障候选会先说明防护补给再处理扰点"
 		},
 		"carryovers": {
-			PLAN_STEADY_SUPPLY: "资源缓冲承接：稳定样本已归档，补给计划继续压低目标密度并回收基础零件。",
-			PLAN_PHASE_SURVEY: "资源缓冲承接：稳定样本已归档，基础零件 / 修复凝胶可覆盖两处读数往返；目标预告：测绘仍需西侧和东侧两处读数。",
-			PLAN_PRESSURE_CLEARANCE: "资源缓冲承接：稳定样本已归档，清障前会先说明防护补给如何覆盖扰点处理。"
+			PLAN_STEADY_SUPPLY: "稳相缓存承接：目标预告=短目标补给回收；路线扰动=低；资源回收=强化基础零件缓冲。",
+			PLAN_PHASE_SURVEY: "稳相缓存承接：基础零件 / 修复凝胶可覆盖两处读数往返；目标预告：测绘仍需西侧和东侧两处读数。",
+			PLAN_PRESSURE_CLEARANCE: "稳相缓存承接：清障前会先说明防护补给如何覆盖扰点处理。"
 		}
 	},
 	PLAN_PHASE_SURVEY: {

@@ -69,7 +69,7 @@ const PLAN_PREVIEWS := {
 		"risk_profile": "目标密度 低；路线扰动 低；防护消耗 低",
 		"cost": "占用本次出发整备槽，回投时一次性消耗",
 		"module": "稳相垫片",
-		"module_effect": "减少窗口抖动，稳定样本更容易转成下一轮资源缓冲"
+		"module_effect": "压低窗口抖动并带回稳相缓存样本，回基地后强化下一轮资源回收"
 	},
 	PLAN_PHASE_SURVEY: {
 		"label": "信息侦测",
@@ -1097,7 +1097,11 @@ static func _format_candidate_decision_note(world_state: WorldState, candidate_p
 	if _get_resolved_frontline_window_plan_key(world_state) == PLAN_PHASE_SURVEY and candidate_plan_key == PLAN_PRESSURE_CLEARANCE:
 		basis = "透镜校准读数已归档，清障会提前标出扰点并把路线扰动降为中"
 	if _get_resolved_frontline_window_plan_key(world_state) == PLAN_STEADY_SUPPLY and candidate_plan_key == PLAN_PHASE_SURVEY:
-		basis = "资源缓冲已归档，测绘两点往返有补给兜底"
+		basis = "稳相缓存样本已归档，测绘两点往返有补给兜底"
+	if _get_resolved_frontline_window_plan_key(world_state) == PLAN_STEADY_SUPPLY and candidate_plan_key == PLAN_STEADY_SUPPLY:
+		basis = "稳相缓存样本已改良，继续补给会强化基础零件缓冲"
+	if _get_resolved_frontline_window_plan_key(world_state) == PLAN_STEADY_SUPPLY and candidate_plan_key == PLAN_PRESSURE_CLEARANCE:
+		basis = "稳相缓存样本已归档，清障前可先确认防护补给覆盖扰点处理"
 	return "%s：%s；不影响当前出发整备槽。" % [prefix, basis]
 
 

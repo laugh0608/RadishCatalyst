@@ -17,6 +17,7 @@ func run() -> void:
 	_check_light_preparation_module_changes_window_outcome()
 	_check_pressure_coating_closes_base_frontline_upgrade_loop()
 	_check_echo_lens_closes_base_frontline_survey_loop()
+	_check_stability_pad_closes_base_frontline_recovery_loop()
 	_check_departure_confirmation_locks_risk_reward_snapshot()
 	_check_phase_relay_requires_confirmed_departure_slot()
 	_check_phase_relay_pad_shows_confirmed_preparation()
@@ -297,8 +298,8 @@ func _check_light_preparation_module_changes_window_outcome() -> void:
 	_expect_module_window_outcome(
 		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
 		"读取 1 处稳相缓存并回收稳定样本",
-		"稳相垫片压低窗口抖动",
-		"稳定样本作为下一轮资源缓冲依据"
+		"稳相垫片压低窗口抖动并带回稳相缓存样本",
+		"改良成下一轮资源回收依据"
 	)
 	_expect_module_window_outcome(
 		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
@@ -369,6 +370,35 @@ func _check_echo_lens_closes_base_frontline_survey_loop() -> void:
 		" ".join(BaseActionDispatchPlan.select_next_plan_candidate_for_console("map_object.base_survey_choice_console", world_state)),
 		"候选判断：保留信息侦测：透镜校准读数已归档，继续测绘会按低扰动路线复核两处回波",
 		"echo lens candidate explains upgraded next survey"
+	)
+
+
+func _check_stability_pad_closes_base_frontline_recovery_loop() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_STEADY_SUPPLY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_STEADY_SUPPLY)
+	var confirm_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+	host._expect_text_contains(" ".join(confirm_messages), "稳相缓存样本", "stability pad confirmation previews cache sample return")
+	BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	BaseActionDispatchPlan.resolve_frontline_window(world_state)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		"稳相缓存样本已改良为下一轮强化资源回收依据",
+		"stability pad window payoff feeds upgraded recovery preparation"
+	)
+	BaseActionDispatchPlan.acknowledge_frontline_window_feedback(world_state)
+	var reviewed_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		world_state,
+		character_state
+	)
+	host._expect_text_contains(reviewed_prompt, "稳相缓存承接：目标预告=短目标补给回收；路线扰动=低；资源回收=强化基础零件缓冲。", "stability pad carryover upgrades next supply recovery")
+	host._expect_text_contains(
+		" ".join(BaseActionDispatchPlan.select_next_plan_candidate_for_console("map_object.base_supply_choice_console", world_state)),
+		"候选判断：保留低风险补给：稳相缓存样本已改良，继续补给会强化基础零件缓冲",
+		"stability pad candidate explains upgraded next supply"
 	)
 
 
@@ -809,9 +839,9 @@ func _check_frontline_window_stage_review_covers_all_plans() -> void:
 	_expect_frontline_window_stage_review(
 		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
 		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
-		"完成态收益：稳定样本已转成下一轮资源缓冲依据",
-		"资源缓冲承接：稳定样本已归档，基础零件 / 修复凝胶可覆盖两处读数往返",
-		"下一计划候选：压力清障；窗口反馈预告：稳定样本已归档，清障候选会先说明防护补给再处理扰点"
+		"完成态收益：稳相缓存样本已改良为下一轮强化资源回收依据",
+		"稳相缓存承接：基础零件 / 修复凝胶可覆盖两处读数往返",
+		"下一计划候选：压力清障；窗口反馈预告：稳相缓存样本已归档，清障候选会先说明防护补给再处理扰点"
 	)
 	_expect_frontline_window_stage_review(
 		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
