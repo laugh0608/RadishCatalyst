@@ -1250,7 +1250,7 @@ func _check_base_action_second_stage_state_persists() -> void:
 		"active base action window module persists"
 	)
 	var active_window_prompt := BaseActionDispatchPlan.format_frontline_window_prompt(active_world)
-	if not active_window_prompt.contains("处理结果：回波透镜放大路线读数"):
+	if not active_window_prompt.contains("处理结果：回波透镜校准两处路线回波"):
 		failures.append("active base action window result persists, got: %s" % active_window_prompt)
 
 	BaseActionDispatchPlan.resolve_frontline_window(active_world)
@@ -1282,7 +1282,7 @@ func _check_base_action_second_stage_state_persists() -> void:
 		archived_world,
 		archived_character
 	)
-	if not archived_console_prompt.contains("路线情报承接：目标预告=东侧短时扰动位置；路线扰动=高；防护消耗=中"):
+	if not archived_console_prompt.contains("透镜校准承接：目标预告=东侧短时扰动位置；路线扰动=中；防护消耗=中"):
 		failures.append("archived base action route carryover persists, got: %s" % archived_console_prompt)
 
 	_remove_save_file()

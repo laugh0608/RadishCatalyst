@@ -81,7 +81,7 @@ const PLAN_PREVIEWS := {
 		"risk_profile": "目标密度 中；路线扰动 中；防护消耗 低",
 		"cost": "占用本次出发整备槽，不额外发放资源",
 		"module": "回波透镜",
-		"module_effect": "放大测绘回波，下一轮候选会更明确目标预告"
+		"module_effect": "校准两处路线回波并带回透镜读数，回基地后降低下一轮路线扰动"
 	},
 	PLAN_PRESSURE_CLEARANCE: {
 		"label": "压力清障",
@@ -1091,7 +1091,11 @@ static func _format_candidate_decision_note(world_state: WorldState, candidate_p
 	if _get_resolved_frontline_window_plan_key(world_state) == PLAN_PRESSURE_CLEARANCE and candidate_plan_key == PLAN_PRESSURE_CLEARANCE:
 		basis = "涂层样本已改良，继续清障降为低防护消耗，不会打开新循环"
 	if _get_resolved_frontline_window_plan_key(world_state) == PLAN_PHASE_SURVEY and candidate_plan_key == PLAN_STEADY_SUPPLY:
-		basis = "路线已显形，低风险补给可贴近西侧边界回收资源"
+		basis = "透镜校准读数已归档，低风险补给可贴近西侧低扰动边界回收资源"
+	if _get_resolved_frontline_window_plan_key(world_state) == PLAN_PHASE_SURVEY and candidate_plan_key == PLAN_PHASE_SURVEY:
+		basis = "透镜校准读数已归档，继续测绘会按低扰动路线复核两处回波"
+	if _get_resolved_frontline_window_plan_key(world_state) == PLAN_PHASE_SURVEY and candidate_plan_key == PLAN_PRESSURE_CLEARANCE:
+		basis = "透镜校准读数已归档，清障会提前标出扰点并把路线扰动降为中"
 	if _get_resolved_frontline_window_plan_key(world_state) == PLAN_STEADY_SUPPLY and candidate_plan_key == PLAN_PHASE_SURVEY:
 		basis = "资源缓冲已归档，测绘两点往返有补给兜底"
 	return "%s：%s；不影响当前出发整备槽。" % [prefix, basis]

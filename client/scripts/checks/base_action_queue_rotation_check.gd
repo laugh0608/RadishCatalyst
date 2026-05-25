@@ -16,6 +16,7 @@ func run() -> void:
 	_check_light_preparation_module_enters_snapshots()
 	_check_light_preparation_module_changes_window_outcome()
 	_check_pressure_coating_closes_base_frontline_upgrade_loop()
+	_check_echo_lens_closes_base_frontline_survey_loop()
 	_check_departure_confirmation_locks_risk_reward_snapshot()
 	_check_phase_relay_requires_confirmed_departure_slot()
 	_check_phase_relay_pad_shows_confirmed_preparation()
@@ -230,7 +231,7 @@ func _check_action_plan_preview_wording_is_shared() -> void:
 	host._expect_text_contains(current_plan_prompt, "计划：信息侦测；模块：回波透镜；风险：中。", "preview wording shows current plan summary")
 	host._expect_text_contains(current_plan_prompt, "风险拆解：目标密度 中；路线扰动 中；防护消耗 低；说明：需要按低压读数线避开东侧短时扰动。", "preview wording shows current plan risk profile")
 	host._expect_text_contains(current_plan_prompt, "收益：目标显形和路线风险预告；代价：占用本次出发整备槽，不额外发放资源。", "preview wording shows current plan reward and cost")
-	host._expect_text_contains(current_plan_prompt, "模块效果：放大测绘回波", "preview wording shows current plan preparation module")
+	host._expect_text_contains(current_plan_prompt, "模块效果：校准两处路线回波并带回透镜读数", "preview wording shows current plan preparation module")
 	host._expect_text_contains(current_plan_prompt, "窗口结果预览：读取西侧边界和东侧扰动 2 处路线回波", "preview wording shows current plan window outcome")
 
 	var candidate_world := WorldState.create_default()
@@ -302,8 +303,8 @@ func _check_light_preparation_module_changes_window_outcome() -> void:
 	_expect_module_window_outcome(
 		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
 		"读取西侧边界和东侧扰动 2 处路线回波",
-		"回波透镜放大路线读数",
-		"下一轮目标预告依据"
+		"回波透镜校准两处路线回波并带回透镜校准读数",
+		"下一轮低扰动目标预告依据"
 	)
 	_expect_module_window_outcome(
 		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
@@ -339,6 +340,35 @@ func _check_pressure_coating_closes_base_frontline_upgrade_loop() -> void:
 		" ".join(BaseActionDispatchPlan.select_next_plan_candidate_for_console("map_object.base_pressure_choice_console", world_state)),
 		"候选判断：保留压力清障：涂层样本已改良，继续清障降为低防护消耗",
 		"pressure coating candidate explains upgraded next clearance"
+	)
+
+
+func _check_echo_lens_closes_base_frontline_survey_loop() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	var confirm_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+	host._expect_text_contains(" ".join(confirm_messages), "透镜校准读数", "echo lens confirmation previews calibrated reading return")
+	BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	BaseActionDispatchPlan.resolve_frontline_window(world_state)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		"透镜校准读数已转成下一轮低扰动目标预告依据",
+		"echo lens window payoff feeds upgraded survey preparation"
+	)
+	BaseActionDispatchPlan.acknowledge_frontline_window_feedback(world_state)
+	var reviewed_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		world_state,
+		character_state
+	)
+	host._expect_text_contains(reviewed_prompt, "透镜校准承接：目标预告=复核西侧边界 / 东侧扰动来源；路线扰动=低；防护消耗=低。", "echo lens carryover lowers next survey route disturbance")
+	host._expect_text_contains(
+		" ".join(BaseActionDispatchPlan.select_next_plan_candidate_for_console("map_object.base_survey_choice_console", world_state)),
+		"候选判断：保留信息侦测：透镜校准读数已归档，继续测绘会按低扰动路线复核两处回波",
+		"echo lens candidate explains upgraded next survey"
 	)
 
 
@@ -585,12 +615,12 @@ func _check_second_stage_entry_real_interaction_keeps_window_outcome_source() ->
 	host._expect_equal(bool(confirm_result.get("success", false)), true, "second-stage entry action console confirmation succeeds")
 	host._expect_text_contains(
 		String(confirm_result.get("message", "")),
-		"窗口结果预览：读取西侧边界和东侧扰动 2 处路线回波；回波透镜放大路线读数",
+		"窗口结果预览：读取西侧边界和东侧扰动 2 处路线回波；回波透镜校准两处路线回波",
 		"second-stage entry confirmation previews the structured survey window outcome"
 	)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_departure_preparation_prompt(world_state),
-		"窗口结果预览：读取西侧边界和东侧扰动 2 处路线回波；回波透镜放大路线读数",
+		"窗口结果预览：读取西侧边界和东侧扰动 2 处路线回波；回波透镜校准两处路线回波",
 		"second-stage entry phase relay prompt keeps the same window outcome preview"
 	)
 
@@ -607,7 +637,7 @@ func _check_second_stage_entry_real_interaction_keeps_window_outcome_source() ->
 	)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
-		"处理结果：回波透镜放大路线读数，处理后生成目标预告和路线扰动依据。",
+		"处理结果：回波透镜校准两处路线回波并带回透镜校准读数，处理后生成低扰动目标预告依据。",
 		"second-stage entry active window uses the structured survey result"
 	)
 
@@ -621,12 +651,12 @@ func _check_second_stage_entry_real_interaction_keeps_window_outcome_source() ->
 	host._expect_equal(bool(window_result.get("success", false)), true, "second-stage entry frontline window interaction succeeds")
 	host._expect_text_contains(
 		String(window_result.get("message", "")),
-		"回波透镜放大了路线读数",
+		"回波透镜校准了两处路线回波",
 		"second-stage entry frontline window result follows the same structured outcome"
 	)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_console_prompt(BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID, world_state, character_state),
-		"完成态收益：路线读数已转成下一轮目标预告依据",
+		"完成态收益：透镜校准读数已转成下一轮低扰动目标预告依据",
 		"second-stage entry action console carries the resolved structured payoff"
 	)
 
@@ -649,7 +679,7 @@ func _check_second_stage_entry_real_interaction_keeps_window_outcome_source() ->
 	)
 	host._expect_text_contains(
 		reviewed_prompt,
-		"路线情报承接：目标预告=东侧短时扰动位置；路线扰动=高；防护消耗=中",
+		"透镜校准承接：目标预告=东侧短时扰动位置；路线扰动=中；防护消耗=中",
 		"second-stage entry reviewed current plan uses archived route outcome carryover"
 	)
 	host._expect_text_contains(
@@ -786,9 +816,9 @@ func _check_frontline_window_stage_review_covers_all_plans() -> void:
 	_expect_frontline_window_stage_review(
 		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
 		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
-		"完成态收益：路线读数已转成下一轮目标预告依据",
-		"路线情报承接：目标预告=东侧短时扰动位置；路线扰动=高；防护消耗=中",
-		"下一计划候选：低风险补给；窗口反馈预告：路线读数已归档，补给候选会贴近西侧已显形路线投放"
+		"完成态收益：透镜校准读数已转成下一轮低扰动目标预告依据",
+		"透镜校准承接：目标预告=东侧短时扰动位置；路线扰动=中；防护消耗=中",
+		"下一计划候选：低风险补给；窗口反馈预告：透镜校准读数已归档，补给候选会贴近西侧已显形路线投放"
 	)
 	_expect_frontline_window_stage_review(
 		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
@@ -877,7 +907,7 @@ func _check_review_preparation_runs_two_window_cycles() -> void:
 	)
 	host._expect_text_contains(
 		second_review_prompt,
-		"完成态收益：路线读数已转成下一轮目标预告依据",
+		"完成态收益：透镜校准读数已转成下一轮低扰动目标预告依据",
 		"two-cycle review second resolved window uses the second payoff"
 	)
 	var second_review := gather_system.interact_with_object(
