@@ -5,3 +5,4 @@
 ## 当前原型词条
 
 - [前线锚点与稳定窗口](frontline-anchors-and-stable-windows.md)
+- [前线行动台与出发整备](frontline-action-preparation.md)
