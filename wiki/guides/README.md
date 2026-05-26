@@ -4,4 +4,4 @@
 
 ## 当前原型词条
 
-- [井系桥后的前线回稳指南](late-frontier-anchor-field-guide.md)
+- [锚定桥后的前线回稳指南](late-frontier-anchor-field-guide.md)
