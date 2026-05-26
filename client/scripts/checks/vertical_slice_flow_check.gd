@@ -321,12 +321,12 @@ func _check_onboarding_hints() -> void:
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_phase_anchor", "污染浆液", "phase anchor assembly hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.stabilize_outer_ring_barrier", "稳相信标", "outer ring barrier hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.salvage_signal_echo", "回波匣", "signal echo salvage hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_deep_signal", "更深遗迹坐标", "deep signal analysis hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_deep_signal", "裂相坐标", "deep signal analysis hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.unlock_deep_ruin_entrance", "门禁", "deep ruin entrance hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.harvest_phase_filament", "相位纤丝", "phase filament salvage hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_phase_filament", "污染过滤器", "phase filament filter hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_deep_override", "污染浆液", "deep override assembly hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.unlock_deep_ruin_cache", "深段收益", "deep ruin latch hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.unlock_deep_ruin_cache", "裂相收益", "deep ruin latch hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_deep_core", "路由印片", "deep core analysis hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.activate_deep_array", "相位导管", "deep array activation hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_deep_signal_matrix", "读数矩阵", "deep signal matrix assembly hint")
@@ -376,7 +376,7 @@ func _check_onboarding_hints() -> void:
 	spire_completion_world.quest_state.completed_quest_ids.append("quest.inspect_phase_fault_spire")
 	_expect_text_contains(
 		presenter.format_direction_hint(spire_completion_world, hint_character, ""),
-		"相位井锁",
+		"锁相结构",
 		"phase fault spire completion direction points to phase well lock"
 	)
 	_expect_text_contains(
@@ -438,13 +438,13 @@ func _check_status_panel_summary() -> void:
 	relay_world.quest_state.completed_quest_ids.append("quest.deploy_phase_relay_anchor")
 	var relay_text := presenter.format_status_text(data_registry, relay_world, status_character)
 	_expect_text_contains(relay_text, "相位回投台", "phase relay status highlights return pad")
-	_expect_text_contains(relay_text, "按 E 回投返回深段", "phase relay status keeps explicit return action")
+	_expect_text_contains(relay_text, "按 E 回投返回裂相脊", "phase relay status keeps explicit return action")
 	var spire_world := WorldState.create_default()
 	spire_world.quest_state.active_quest_ids.clear()
 	spire_world.quest_state.completed_quest_ids.append("quest.inspect_phase_fault_spire")
 	var spire_text := presenter.format_status_text(data_registry, spire_world, status_character)
 	_expect_text_contains(spire_text, "目标：内层故障轨迹待解析", "status falls back to inner fault analysis after phase fault spire")
-	_expect_text_contains(spire_text, "相位井锁变成新目标", "status progress keeps phase fault spire followup summary")
+	_expect_text_contains(spire_text, "锁相结构变成新目标", "status progress keeps phase fault spire followup summary")
 	var phase_well_text_world := WorldState.create_default()
 	phase_well_text_world.quest_state.active_quest_ids.clear()
 	phase_well_text_world.quest_state.completed_quest_ids.append("quest.unlock_phase_well")
@@ -456,7 +456,7 @@ func _check_status_panel_summary() -> void:
 	inner_phase_well_text_world.quest_state.completed_quest_ids.append("quest.inspect_inner_phase_well")
 	var inner_phase_well_text := presenter.format_status_text(data_registry, inner_phase_well_text_world, status_character)
 	_expect_text_contains(inner_phase_well_text, "目标：相位井芯样本待解析", "status falls back to inner phase well analysis after completion")
-	_expect_text_contains(inner_phase_well_text, "回基地解析后可继续把更东侧井底裂口转成新的推进包", "status progress keeps inner phase well followup summary")
+	_expect_text_contains(inner_phase_well_text, "回基地解析后可继续把盐壳浅滩转成新的推进包", "status progress keeps inner phase well followup summary")
 	_expect_text_missing(status_text, "提示：", "status removes onboarding duplicate")
 	_expect_text_missing(status_text, "坐标：", "status removes debug coordinate duplicate")
 	_expect_text_missing(status_text, "背包：", "status removes full inventory duplicate")
@@ -827,9 +827,9 @@ func _check_quest_completion_panel_text() -> void:
 	_expect_text_contains(
 		String(presenter.format_quest_completion_panel_texts({
 			"completed_text": "完成：解锁后续入口",
-			"note_text": "遗迹外圈通路已恢复，可进入外圈回收继电残片"
+			"note_text": "封锁遗迹通路已恢复，可进入外圈回收继电残片"
 		}).get("detail", "")),
-		"提示：遗迹外圈通路已恢复",
+		"提示：封锁遗迹通路已恢复",
 		"completion note prefix"
 	)
 func _check_build_prompts() -> void:

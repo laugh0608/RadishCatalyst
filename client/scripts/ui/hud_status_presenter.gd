@@ -88,7 +88,7 @@ func format_status_text(data_registry: DataRegistry, world_state: WorldState, ch
 	_ensure_objective_source_resolver(data_registry)
 	var active_quest_id := _get_active_quest_id(world_state)
 	return "\n".join(
-		["RadishCatalyst Prototype"]
+		["前哨状态"]
 		+ _format_objective_lines(data_registry, world_state, active_quest_id)
 		+ _format_vital_lines(data_registry, world_state, character_state)
 	)
@@ -229,11 +229,11 @@ func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, que
 	if _has_completed_second_deep_pass(world_state):
 		return "前线回传锚点待部署"
 	if _has_completed_deep_ruin_entry(world_state):
-		return "深段样块待继续解析"
+		return "裂相样块待继续解析"
 	if _has_completed_deep_signal_analysis(world_state):
-		return "更深遗迹坐标待写入门禁"
+		return "裂相坐标待写入门禁"
 	if _is_slice_complete(world_state):
-		return "遗迹外圈第一版已完成"
+		return "封锁遗迹第一版已完成"
 	return "无"
 
 
@@ -293,53 +293,53 @@ func _format_active_quest_progress(data_registry: DataRegistry, world_state: Wor
 		if _has_completed_route_signal_marker(world_state):
 			return "巡线信标读数已带回；回基地基础反应器解析成巡线反馈记录"
 		if _has_completed_route_frontline_action(world_state):
-			return "巡线短行动已确认；回到井系桥前线读取巡线信标"
+			return "巡线短行动已确认；回到锚定桥前线读取巡线信标"
 		if _has_completed_short_action_feedback(world_state):
 			return "短行动反馈已归档，下一趟巡线目标已整理；回基地巡线短行动台确认第三条轻量行动"
 		if _has_completed_supply_return_marker(world_state):
 			return "补给回执读数已带回；回基地基础反应器解析成短行动反馈记录"
 		if _has_completed_supply_frontline_action(world_state):
-			return "补给短行动已确认；回到井系桥前线读取补给回执标记"
+			return "补给短行动已确认；回到锚定桥前线读取补给回执标记"
 		if _has_completed_stability_echo_report(world_state):
 			return "前线行动回报已归档，下一趟短行动补给已整理；回基地短行动补给台确认第二条轻量行动"
 		if _has_completed_stability_echo_probe(world_state):
 			return "稳窗回波样本已带回；回基地基础反应器解析成前线行动回报"
 		if _has_completed_stability_frontline_action(world_state):
-			return "前线行动已确认；回到井系桥东侧读取稳窗回波探点"
+			return "前线行动已确认；回到锚定桥东侧读取稳窗回波探点"
 		if _has_completed_phase_well_stability_window_calibration(world_state):
 			return "三处稳窗校准点已按顺序写入；回基地在前线行动台确认下一趟外出"
 		if _has_completed_phase_well_echo_shard_analysis(world_state):
-			return "相位井稳窗读数已解析；返回井系桥东侧按西侧、中央、东侧顺序校准稳窗节点"
+			return "相位井稳窗读数已解析；返回锚定桥东侧按西侧、中央、东侧顺序校准稳窗节点"
 		if _has_completed_phase_well_anchor_field(world_state):
-			return "井系桥东侧稳定窗口已生成；相位井余响片已带回基地，解析后可校准为可回访的前线回稳点"
+			return "锚定桥东侧稳定窗口已生成；相位井余响片已带回基地，解析后可校准为可回访的前线回稳点"
 		if _has_completed_phase_well_tether(world_state):
-			return "井系桥断面已勘验；回基地解析相位井锚核后，可继续把井系桥东侧改成新的短守场稳定窗口"
+			return "锚定桥已勘验；回基地解析相位井锚核后，可继续把锚定桥东侧改成新的短守场稳定窗口"
 		if _has_completed_phase_well_frame(world_state):
-			return "井纹架断面已勘验；回基地解析相位井结核后，可继续把更东侧井系桥断面转成新的推进包"
+			return "锁相框架已勘验；回基地解析相位井结核后，可继续把锚定桥转成新的推进包"
 		if _has_completed_phase_well_loom(world_state):
-			return "井纺室断面已勘验；回基地解析相位井织核后，可继续把更东侧井纹架断面转成新的推进包"
+			return "风蚀管廊已勘验；回基地解析相位井织核后，可继续把锁相框架转成新的推进包"
 		if _has_completed_phase_well_chamber(world_state):
-			return "井心室断面已勘验；回基地解析相位井纺核后，可继续把更东侧井纺室断面转成新的推进包"
+			return "碎晶沟谷已勘验；回基地解析相位井纺核后，可继续把风蚀管廊转成新的推进包"
 		if _has_completed_phase_well_sink(world_state):
-			return "井底裂口已凿开；回基地解析相位井心核后，可继续把更东侧井心室断面转成新的推进包"
+			return "盐壳浅滩已凿开；回基地解析相位井心核后，可继续把碎晶沟谷转成新的推进包"
 		if _has_completed_inner_phase_well(world_state):
-			return "井芯样本已回收；回基地解析后可继续把更东侧井底裂口转成新的推进包"
+			return "井芯样本已回收；回基地解析后可继续把盐壳浅滩转成新的推进包"
 		if _has_completed_phase_well_lock(world_state):
-			return "相位井锁已钉住；先回基地解析定位器，再把更东侧内层相位井真正转成新推进包"
+			return "锁相结构已钉住；先回基地解析定位器，再把更东侧回声台地真正转成新推进包"
 		if _has_completed_phase_fault_spire(world_state):
-			return "裂相尖塔已校准；回基地解析故障轨迹，继续把更东侧相位井锁变成新目标"
+			return "裂相尖塔已校准；回基地解析故障轨迹，继续把更东侧锁相结构变成新目标"
 		if _has_completed_phase_relay_anchor(world_state):
 			if world_state.current_region_id == "region.outpost_platform":
-				return "基地相位回投台已锁定当前锚点；当前可按 E 回投返回深段，并继续追踪更东侧裂相碎屑"
-			return "基地与深段之间的快速回传已上线；当前可从前线快速回基地，再用回投台重返更东侧裂相脊"
+				return "基地相位回投台已锁定当前锚点；当前可按 E 回投返回裂相脊，并继续追踪更东侧裂相碎屑"
+			return "基地与裂相脊之间的快速回传已上线；当前可从前线快速回基地，再用回投台重返更东侧裂相脊"
 		if _has_completed_second_deep_pass(world_state):
-			return "深段读数矩阵已整理完成；返回深段固定点即可部署前线回传锚点"
+			return "裂相读数矩阵已整理完成；返回裂相脊固定点即可部署前线回传锚点"
 		if _has_completed_deep_ruin_entry(world_state):
-			return "深段样块已回收；回基地解析样块后可继续点亮深段阵列"
+			return "裂相样块已回收；回基地解析样块后可继续点亮裂相阵列"
 		if _has_completed_deep_signal_analysis(world_state):
-			return "深段回波已转成可执行坐标，返回遗迹外圈最东侧即可写入深段入口门禁"
+			return "封锁回波已转成可执行坐标，返回封锁遗迹最东侧即可写入裂相脊入口门禁"
 		if _is_slice_complete(world_state):
-			return "外圈中继已确认，更深遗迹结构已定位"
+			return "外圈中继已确认，裂相结构已定位"
 		return "无"
 
 	var quest := data_registry.get_definition(quest_id)
