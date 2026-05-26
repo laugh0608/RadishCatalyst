@@ -83,42 +83,42 @@ func _get_region_marker_data() -> Array[Dictionary]:
 		},
 		{
 			"region_id": "region.ruin_outer_ring",
-			"label": "外圈",
+			"label": "封锁",
 			"direction": "更东"
 		},
 		{
 			"region_id": "region.deep_ruin_threshold",
-			"label": "深段",
+			"label": "裂相",
 			"direction": "更深"
 		},
 		{
 			"region_id": "region.inner_phase_well",
-			"label": "井口",
+			"label": "回声",
 			"direction": "更东"
 		},
 		{
 			"region_id": "region.phase_well_sink",
-			"label": "井底",
+			"label": "盐壳",
 			"direction": "更深"
 		},
 		{
 			"region_id": "region.phase_well_chamber",
-			"label": "心室",
+			"label": "碎晶",
 			"direction": "更东"
 		},
 		{
 			"region_id": "region.phase_well_loom",
-			"label": "井纺",
+			"label": "风蚀",
 			"direction": "更东"
 		},
 		{
 			"region_id": "region.phase_well_frame",
-			"label": "井纹",
+			"label": "锁相",
 			"direction": "更东"
 		},
 		{
 			"region_id": "region.phase_well_tether",
-			"label": "井系",
+			"label": "锚定",
 			"direction": "更东"
 		}
 	]
