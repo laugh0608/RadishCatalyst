@@ -10,7 +10,7 @@
 - `docs/planning/base-action-choice-prototype.md`
 - `docs/planning/resource-and-frontline-loop-rework.md`
 - `docs/devlogs/README.md` 中列出的最新一期周志
-- `docs/planning/vertical-slice.md`
+- `docs/planning/demo-scope-and-playable-slice.md` 和 `docs/planning/vertical-slice.md`
 - `docs/design/onboarding-and-first-hour.md`
 - `docs/planning/milestone-review-checklist.md`
 

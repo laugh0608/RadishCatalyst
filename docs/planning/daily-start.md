@@ -21,10 +21,10 @@
 
 ## 今日事项
 
-1. 先更新规划入口和周志：宣布当前阶段通过，冻结前线行动台扩展，记录下一阶段目标和“及时进入下一阶段”的节奏规则。
-2. 起草 12 区域职责表：确认哪些是核心区域、功能区域、过渡区域；最后新增的第 12 个区域必须服务 demo 终点。
-3. 选出第一批要扩尺度的 3 到 4 个核心区域，并明确每个区域的资源、危险、回基地收益和回访理由。
-4. 定义 UI baseline 的第一包范围：主 HUD、当前目标、关键资源、基地摘要、角色状态摘要。
+1. 以 `docs/planning/demo-scope-and-playable-slice.md` 为细节源，确认 12 区域职责表、核心 / 功能 / 过渡分层和第 12 个 demo 终点区域。
+2. 先推进 4 个核心区域的第一轮尺度规划：基地平台、晶体矿脉区、污染边界区、稳定核心设备区。
+3. 启动 UI baseline 第一包：主 HUD、目标追踪、关键资源、基地摘要、角色状态摘要。
+4. 若开始改客户端，先做区域 / UI 可读性相关的最小实现，不触碰已冻结的前线行动台、窗口复盘、高压窗口和 `base_action_state`，除非出现 `P0` / `P1`。
 
 ## 当前不做
 
@@ -56,6 +56,7 @@
 
 按任务选读：
 
+- Demo 范围与 UI baseline：`docs/planning/demo-scope-and-playable-slice.md`
 - 区域和首小时体验：`docs/design/onboarding-and-first-hour.md`
 - 开发复测基线：`docs/design/development-retest-baselines.md`
 - 代码结构和重构：`docs/architecture/code-style-and-language-practices.md`
