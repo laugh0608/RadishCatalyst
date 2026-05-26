@@ -46,6 +46,7 @@ const FRONTLINE_WINDOW_OBJECT_ID := "map_object.prepared_frontline_window"
 const FRONTLINE_WINDOW_INSTANCE_ID := "map_object_instance.prepared_frontline_window"
 const FRONTLINE_WINDOW_REVIEW_LIMIT := 2
 const PRESSURE_CLEARANCE_GUARD_INSTANCE_ID := "enemy_instance.pressure_clearance_guard"
+const OVERPRESSURE_MODULE_NAME := BaseActionPlanPreview.OVERPRESSURE_MODULE_NAME
 const STATUS_READY := "ready"
 const STATUS_QUEUED := "queued"
 const STATUS_USED := "used"
@@ -59,49 +60,8 @@ const SURVEY_FEEDBACK_QUEST_ID := "quest.analyze_phase_survey_trace"
 const PRESSURE_FEEDBACK_QUEST_ID := "quest.analyze_pressure_clearance_trace"
 const ROUTE_TARGET_REGION_ID := "region.phase_well_tether"
 const ROUTE_RISK_NOTE := "井系桥前线低压读数线：优先走西侧测绘边界，东侧节点存在短时扰动。"
-const PLAN_PREVIEWS := {
-	PLAN_STEADY_SUPPLY: {
-		"label": "低风险补给",
-		"choice_label": "稳场补给",
-		"target": "读取 1 处稳场补给投放点",
-		"reward": "基础零件 +2、修复凝胶 +1",
-		"risk": "低",
-		"risk_detail": "不增加前线读点，适合补资源缓冲",
-		"risk_profile": "目标密度 低；路线扰动 低；防护消耗 低",
-		"cost": "占用本次出发整备槽，回投时一次性消耗",
-		"module": "稳相垫片",
-		"module_effect": "压低窗口抖动并带回稳相缓存样本，回基地后强化下一轮资源回收"
-	},
-	PLAN_PHASE_SURVEY: {
-		"label": "信息侦测",
-		"choice_label": "相位测绘",
-		"target": "读取西侧和东侧 2 处相位测绘点",
-		"reward": "目标显形和路线风险预告",
-		"risk": "中",
-		"risk_detail": "需要按低压读数线避开东侧短时扰动",
-		"risk_profile": "目标密度 中；路线扰动 中；防护消耗 低",
-		"cost": "占用本次出发整备槽，不额外发放资源",
-		"module": "回波透镜",
-		"module_effect": "校准两处路线回波并带回透镜读数，回基地后降低下一轮路线扰动"
-	},
-	PLAN_PRESSURE_CLEARANCE: {
-		"label": "压力清障",
-		"choice_label": "压力清障",
-		"target": "击退 1 个清障扰动守卫并清除 1 处前线压力扰点",
-		"reward": "修复凝胶 +1、抗污染药剂 +1",
-		"risk": "高",
-		"risk_detail": "需要处理一场短战斗和一处高压扰点",
-		"risk_profile": "目标密度 低；路线扰动 高；防护消耗 中",
-		"cost": "占用本次出发整备槽，回投时一次性装入",
-		"module": "防护涂层",
-		"module_effect": "承接清障残压并带回涂层样本，回基地后改良下一轮防护整备"
-	}
-}
-
-
 static func is_action_console(definition_id: String) -> bool:
 	return CONSOLE_DEFINITION_IDS.has(definition_id)
-
 
 static func get_frontline_action_console_quest_id(quest_state: QuestState) -> String:
 	if quest_state == null:
@@ -111,13 +71,12 @@ static func get_frontline_action_console_quest_id(quest_state: QuestState) -> St
 			return quest_id
 	return ""
 
-
 static func is_frontline_action_console_ready(world_state: WorldState) -> bool:
 	if world_state != null and has_unreviewed_frontline_window_feedback(world_state):
 		return true
 	if world_state != null and not get_frontline_window_feedback(world_state).is_empty():
 		return false
-	if world_state != null and _has_reached_frontline_window_review_limit(world_state):
+	if world_state != null and _is_base_action_review_complete(world_state):
 		return false
 	return (
 		world_state != null
@@ -126,7 +85,6 @@ static func is_frontline_action_console_ready(world_state: WorldState) -> bool:
 			or has_pending_departure_preparation(world_state)
 		)
 	)
-
 
 static func summarize(world_state: WorldState, character_state: CharacterState = null) -> Dictionary:
 	var stage := _get_stage(world_state)
@@ -138,32 +96,27 @@ static func summarize(world_state: WorldState, character_state: CharacterState =
 		"title": _format_title(stage),
 		"direction": _format_direction(stage, world_state),
 		"onboarding": _format_onboarding(stage),
-		"status_goal": _format_status_goal(stage),
+		"status_goal": _format_status_goal(stage, world_state),
 		"status_progress": _format_status_progress(stage, world_state),
 		"preparation_lines": _format_preparation_lines(stage, world_state, character_state)
 	}
 	return summary
 
-
 static func format_direction_hint(world_state: WorldState) -> String:
 	var summary := summarize(world_state)
 	return String(summary.get("direction", ""))
-
 
 static func format_onboarding_hint(world_state: WorldState) -> String:
 	var summary := summarize(world_state)
 	return String(summary.get("onboarding", ""))
 
-
 static func format_status_goal(world_state: WorldState) -> String:
 	var summary := summarize(world_state)
 	return String(summary.get("status_goal", ""))
 
-
 static func format_status_progress(world_state: WorldState) -> String:
 	var summary := summarize(world_state)
 	return String(summary.get("status_progress", ""))
-
 
 static func format_departure_preparation_prompt(world_state: WorldState) -> String:
 	if world_state == null:
@@ -176,7 +129,6 @@ static func format_departure_preparation_prompt(world_state: WorldState) -> Stri
 	if departure_plan == PLAN_PRESSURE_CLEARANCE and get_pressure_clearance_status(world_state) == STATUS_QUEUED:
 		return _format_relay_preparation_preview(world_state, departure_plan)
 	return ""
-
 
 static func register_feedback_completion(world_state: WorldState, quest_id: String) -> Array[String]:
 	if world_state == null:
@@ -199,10 +151,8 @@ static func register_feedback_completion(world_state: WorldState, quest_id: Stri
 		_:
 			return []
 
-
 static func has_pending_departure_preparation(world_state: WorldState) -> bool:
 	return get_supply_package_status(world_state) == STATUS_READY or get_survey_intel_status(world_state) == STATUS_READY or get_pressure_clearance_status(world_state) == STATUS_READY
-
 
 static func confirm_departure_preparation(world_state: WorldState) -> Array[String]:
 	var messages: Array[String] = []
@@ -214,8 +164,8 @@ static func confirm_departure_preparation(world_state: WorldState) -> Array[Stri
 	if has_unreviewed_frontline_window_feedback(world_state):
 		messages.append("前线异常窗口反馈仍待归档：先在基地行动台按 E 归档本趟结果，再决定后续扩展。")
 		return messages
-	if _has_reached_frontline_window_review_limit(world_state):
-		messages.append("连续两轮窗口复盘已完成：当前原型到此收口，不再继续确认下一趟。")
+	if _is_base_action_review_complete(world_state):
+		messages.append("高压窗口目标已完成：当前原型到此收口，不再继续确认下一趟。")
 		return messages
 	var current_plan_key := get_current_plan_key(world_state)
 	if current_plan_key.is_empty():
@@ -225,7 +175,7 @@ static func confirm_departure_preparation(world_state: WorldState) -> Array[Stri
 		world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, PLAN_STEADY_SUPPLY)
 		world_state.set_base_action_state_value(CURRENT_PLAN_KEY, PLAN_STEADY_SUPPLY)
 		_set_departure_confirmation_snapshot(world_state, PLAN_STEADY_SUPPLY)
-		messages.append(_format_departure_confirmation_message(PLAN_STEADY_SUPPLY))
+		messages.append(_format_departure_confirmation_message(PLAN_STEADY_SUPPLY, world_state))
 	if current_plan_key == PLAN_PHASE_SURVEY and get_survey_intel_status(world_state) == STATUS_READY:
 		world_state.set_base_action_state_value(SURVEY_INTEL_STATUS_KEY, STATUS_QUEUED)
 		world_state.set_base_action_state_value(ROUTE_TARGET_REGION_KEY, ROUTE_TARGET_REGION_ID)
@@ -233,15 +183,14 @@ static func confirm_departure_preparation(world_state: WorldState) -> Array[Stri
 		world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, PLAN_PHASE_SURVEY)
 		world_state.set_base_action_state_value(CURRENT_PLAN_KEY, PLAN_PHASE_SURVEY)
 		_set_departure_confirmation_snapshot(world_state, PLAN_PHASE_SURVEY)
-		messages.append(_format_departure_confirmation_message(PLAN_PHASE_SURVEY))
+		messages.append(_format_departure_confirmation_message(PLAN_PHASE_SURVEY, world_state))
 	if current_plan_key == PLAN_PRESSURE_CLEARANCE and get_pressure_clearance_status(world_state) == STATUS_READY:
 		world_state.set_base_action_state_value(PRESSURE_CLEARANCE_STATUS_KEY, STATUS_QUEUED)
 		world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, PLAN_PRESSURE_CLEARANCE)
 		world_state.set_base_action_state_value(CURRENT_PLAN_KEY, PLAN_PRESSURE_CLEARANCE)
 		_set_departure_confirmation_snapshot(world_state, PLAN_PRESSURE_CLEARANCE)
-		messages.append(_format_departure_confirmation_message(PLAN_PRESSURE_CLEARANCE))
+		messages.append(_format_departure_confirmation_message(PLAN_PRESSURE_CLEARANCE, world_state))
 	return messages
-
 
 static func apply_departure_preparation(world_state: WorldState, character_state: CharacterState) -> Array[String]:
 	var messages: Array[String] = []
@@ -254,33 +203,30 @@ static func apply_departure_preparation(world_state: WorldState, character_state
 		character_state.inventory.add_item("item.basic_parts", 2)
 		character_state.inventory.add_item("item.repair_gel", 1)
 		world_state.set_base_action_state_value(SUPPLY_PACKAGE_STATUS_KEY, STATUS_USED)
-		messages.append(_format_departure_execution_message(PLAN_STEADY_SUPPLY))
+		messages.append(_format_departure_execution_message(PLAN_STEADY_SUPPLY, world_state))
 	if departure_plan_key == PLAN_PHASE_SURVEY and get_survey_intel_status(world_state) == STATUS_QUEUED:
 		world_state.set_base_action_state_value(SURVEY_INTEL_STATUS_KEY, STATUS_USED)
 		world_state.set_base_action_state_value(ROUTE_TARGET_REGION_KEY, ROUTE_TARGET_REGION_ID)
 		world_state.set_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE)
-		messages.append(_format_departure_execution_message(PLAN_PHASE_SURVEY))
+		messages.append(_format_departure_execution_message(PLAN_PHASE_SURVEY, world_state))
 	if departure_plan_key == PLAN_PRESSURE_CLEARANCE and get_pressure_clearance_status(world_state) == STATUS_QUEUED:
 		character_state.inventory.add_item("item.repair_gel", 1)
 		character_state.inventory.add_item("item.resistance_vial_t1", 1)
 		world_state.set_base_action_state_value(PRESSURE_CLEARANCE_STATUS_KEY, STATUS_USED)
-		messages.append(_format_departure_execution_message(PLAN_PRESSURE_CLEARANCE))
+		messages.append(_format_departure_execution_message(PLAN_PRESSURE_CLEARANCE, world_state))
 	if not departure_plan_key.is_empty() and not messages.is_empty():
 		world_state.set_base_action_state_value(LAST_DEPARTURE_PLAN_KEY, departure_plan_key)
 		_activate_frontline_window(world_state, departure_plan_key)
 		messages.append(_promote_next_plan_candidate(world_state, departure_plan_key))
 	return messages
 
-
 static func is_frontline_window_object(definition_id: String) -> bool:
 	return definition_id == FRONTLINE_WINDOW_OBJECT_ID
-
 
 static func is_frontline_window_active(world_state: WorldState) -> bool:
 	if world_state == null:
 		return false
 	return String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_STATUS_KEY, "")) == STATUS_ACTIVE
-
 
 static func get_frontline_window_feedback(world_state: WorldState) -> String:
 	if world_state == null:
@@ -289,12 +235,10 @@ static func get_frontline_window_feedback(world_state: WorldState) -> String:
 		return ""
 	return String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_KEY, ""))
 
-
 static func has_unreviewed_frontline_window_feedback(world_state: WorldState) -> bool:
 	if get_frontline_window_feedback(world_state).is_empty():
 		return false
 	return not bool(world_state.get_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY, false))
-
 
 static func acknowledge_frontline_window_feedback(world_state: WorldState) -> Array[String]:
 	var messages: Array[String] = []
@@ -302,6 +246,7 @@ static func acknowledge_frontline_window_feedback(world_state: WorldState) -> Ar
 		return messages
 	var feedback := get_frontline_window_feedback(world_state)
 	var plan_key := get_frontline_window_plan_key(world_state)
+	var resolved_outcome_key := _get_effective_window_outcome_key(world_state, plan_key)
 	var had_legacy_archived_feedback := (
 		world_state.get_base_action_state_value(FRONTLINE_WINDOW_REVIEW_COUNT_KEY, null) == null
 		and not _get_archived_frontline_window_feedback(world_state).is_empty()
@@ -319,9 +264,17 @@ static func acknowledge_frontline_window_feedback(world_state: WorldState) -> Ar
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, "")
 	_clear_departure_confirmation_snapshot(world_state)
 	var review_count := _increment_frontline_window_review_count(world_state, had_legacy_archived_feedback)
-	if review_count >= FRONTLINE_WINDOW_REVIEW_LIMIT:
+	if resolved_outcome_key == BaseActionWindowOutcome.PLAN_OVERPRESSURE_WINDOW:
+		_clear_review_plan_slots(world_state)
+		messages.append("高压窗口反馈已归档：三类模块收益已经支撑更危险目标；当前原型到此收口，不再继续确认下一趟。")
+		return messages
+	if had_legacy_archived_feedback:
 		_clear_review_plan_slots(world_state)
 		messages.append("前线异常窗口反馈已归档：连续两轮窗口复盘已完成；当前原型到此收口，不再继续确认下一趟。")
+		return messages
+	if review_count >= FRONTLINE_WINDOW_REVIEW_LIMIT:
+		_prepare_overpressure_window_slot(world_state)
+		messages.append("前线异常窗口反馈已归档：两轮复盘收益已合并为高压窗口目标；当前计划槽：高压窗口。下一趟仍需在行动台确认三模块联锁整备槽，不会自动派发。")
 		return messages
 	_prepare_review_plan_slots(world_state, plan_key)
 	var current_plan := get_current_plan_key(world_state)
@@ -332,10 +285,8 @@ static func acknowledge_frontline_window_feedback(world_state: WorldState) -> Ar
 	])
 	return messages
 
-
 static func is_frontline_window_interactable(definition_id: String, world_state: WorldState) -> bool:
 	return is_frontline_window_object(definition_id) and is_frontline_window_active(world_state)
-
 
 static func get_frontline_window_plan_key(world_state: WorldState) -> String:
 	if world_state == null:
@@ -345,10 +296,8 @@ static func get_frontline_window_plan_key(world_state: WorldState) -> String:
 		return plan_key
 	return ""
 
-
 static func get_frontline_window_blocker(world_state: WorldState) -> String:
 	return "清障扰动守卫仍在压制异常窗口：先靠近守卫按 J 攻击，击退后再对窗口按 E 处理。" if _is_pressure_clearance_guard_required(world_state) else ""
-
 
 static func format_frontline_window_prompt(world_state: WorldState) -> String:
 	if world_state == null:
@@ -365,12 +314,12 @@ static func format_frontline_window_prompt(world_state: WorldState) -> String:
 		return "前线异常窗口：已处理。\n反馈：%s\n完成态收益：%s" % [feedback, payoff]
 	if status != STATUS_ACTIVE or plan_key.is_empty():
 		return "前线异常窗口：等待相位回投执行已确认整备槽。"
-	var preview := _get_plan_preview(plan_key)
+	var preview := _get_plan_preview_for_world(world_state, plan_key)
 	var blocker := get_frontline_window_blocker(world_state)
+	var outcome_key := _get_effective_window_outcome_key(world_state, plan_key)
 	if not blocker.is_empty():
-		return "前线异常窗口：已载入%s计划；模块：%s；风险：%s（%s）。\n本趟目标：%s。\n当前步骤：%s" % [String(preview.get("label", "")), _format_window_module_name(world_state, preview), String(preview.get("risk", "")), _format_compact_risk_profile(String(preview.get("risk_profile", ""))), BaseActionWindowOutcome.get_window_target(plan_key, String(preview.get("target", ""))), blocker]
-	return "前线异常窗口：已载入%s计划；模块：%s；风险：%s（%s）。\n本趟目标：%s。\n处理结果：%s。\n按 E 处理窗口。" % [String(preview.get("label", "")), _format_window_module_name(world_state, preview), String(preview.get("risk", "")), _format_compact_risk_profile(String(preview.get("risk_profile", ""))), BaseActionWindowOutcome.get_window_target(plan_key, String(preview.get("target", ""))), BaseActionWindowOutcome.get_window_result(plan_key, String(preview.get("reward", "")))]
-
+		return "前线异常窗口：已载入%s计划；模块：%s；风险：%s（%s）。\n本趟目标：%s。\n当前步骤：%s" % [String(preview.get("label", "")), _format_window_module_name(world_state, preview), String(preview.get("risk", "")), _format_compact_risk_profile(String(preview.get("risk_profile", ""))), BaseActionWindowOutcome.get_window_target(outcome_key, String(preview.get("target", ""))), blocker]
+	return "前线异常窗口：已载入%s计划；模块：%s；风险：%s（%s）。\n本趟目标：%s。\n处理结果：%s。\n按 E 处理窗口。" % [String(preview.get("label", "")), _format_window_module_name(world_state, preview), String(preview.get("risk", "")), _format_compact_risk_profile(String(preview.get("risk_profile", ""))), BaseActionWindowOutcome.get_window_target(outcome_key, String(preview.get("target", ""))), BaseActionWindowOutcome.get_window_result(outcome_key, String(preview.get("reward", "")))]
 
 static func resolve_frontline_window(world_state: WorldState) -> Array[String]:
 	var messages: Array[String] = []
@@ -381,25 +330,21 @@ static func resolve_frontline_window(world_state: WorldState) -> Array[String]:
 	var plan_key := get_frontline_window_plan_key(world_state)
 	if plan_key.is_empty():
 		return messages
-	var feedback := _format_frontline_window_resolution_message(plan_key)
+	var feedback := _format_frontline_window_resolution_message(plan_key, world_state)
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_STATUS_KEY, STATUS_RESOLVED)
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_KEY, feedback)
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY, false)
 	messages.append(feedback)
 	return messages
 
-
 static func get_supply_package_status(world_state: WorldState) -> String:
 	return _get_preparation_status(world_state, SUPPLY_PACKAGE_STATUS_KEY, SUPPLY_FEEDBACK_QUEST_ID)
-
 
 static func get_survey_intel_status(world_state: WorldState) -> String:
 	return _get_preparation_status(world_state, SURVEY_INTEL_STATUS_KEY, SURVEY_FEEDBACK_QUEST_ID)
 
-
 static func get_pressure_clearance_status(world_state: WorldState) -> String:
 	return _get_preparation_status(world_state, PRESSURE_CLEARANCE_STATUS_KEY, PRESSURE_FEEDBACK_QUEST_ID)
-
 
 static func get_route_target_region_id(world_state: WorldState) -> String:
 	if world_state == null:
@@ -409,14 +354,12 @@ static func get_route_target_region_id(world_state: WorldState) -> String:
 		return ""
 	return String(world_state.get_base_action_state_value(ROUTE_TARGET_REGION_KEY, ROUTE_TARGET_REGION_ID))
 
-
 static func get_route_risk_note(world_state: WorldState) -> String:
 	if get_route_target_region_id(world_state).is_empty():
 		return ""
 	if world_state == null:
 		return ""
 	return String(world_state.get_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE))
-
 
 static func get_departure_plan_key(world_state: WorldState) -> String:
 	if world_state == null:
@@ -435,7 +378,6 @@ static func get_departure_plan_key(world_state: WorldState) -> String:
 		return PLAN_PRESSURE_CLEARANCE
 	return String(world_state.get_base_action_state_value(LAST_DEPARTURE_PLAN_KEY, ""))
 
-
 static func get_current_plan_key(world_state: WorldState) -> String:
 	if world_state == null:
 		return ""
@@ -450,7 +392,6 @@ static func get_current_plan_key(world_state: WorldState) -> String:
 		return PLAN_PRESSURE_CLEARANCE
 	return ""
 
-
 static func get_next_plan_candidate_key(world_state: WorldState) -> String:
 	if world_state == null:
 		return ""
@@ -459,20 +400,16 @@ static func get_next_plan_candidate_key(world_state: WorldState) -> String:
 		return explicit_candidate
 	return _get_alternate_plan_key(get_current_plan_key(world_state))
 
-
 static func get_last_departure_plan_key(world_state: WorldState) -> String:
 	if world_state == null:
 		return ""
 	return String(world_state.get_base_action_state_value(LAST_DEPARTURE_PLAN_KEY, ""))
 
-
 static func is_plan_candidate_console_ready(definition_id: String, world_state: WorldState) -> bool:
 	return _is_plan_candidate_console(definition_id) and _can_replace_next_plan_candidate(world_state)
 
-
 static func is_plan_candidate_console(definition_id: String) -> bool:
 	return _is_plan_candidate_console(definition_id)
-
 
 static func is_plan_choice_console_ready(definition_id: String, world_state: WorldState) -> bool:
 	if world_state == null:
@@ -486,7 +423,6 @@ static func is_plan_choice_console_ready(definition_id: String, world_state: Wor
 			return world_state.quest_state.has_active_quest("quest.choose_pressure_clearance_action")
 		_:
 			return false
-
 
 static func select_next_plan_candidate_for_console(definition_id: String, world_state: WorldState) -> Array[String]:
 	var plan_key := _get_plan_key_for_console(definition_id)
@@ -502,7 +438,6 @@ static func select_next_plan_candidate_for_console(definition_id: String, world_
 		_format_candidate_preview(plan_key, world_state),
 		decision_text
 	]]
-
 
 static func format_console_prompt(definition_id: String, world_state: WorldState, character_state: CharacterState) -> String:
 	var summary := summarize(world_state, character_state)
@@ -521,7 +456,6 @@ static func format_console_prompt(definition_id: String, world_state: WorldState
 		parts.append(String(line))
 	return "\n".join(parts)
 
-
 static func _get_stage(world_state: WorldState) -> String:
 	if world_state == null:
 		return ""
@@ -532,7 +466,7 @@ static func _get_stage(world_state: WorldState) -> String:
 			return "frontline_window_return"
 		if has_unreviewed_frontline_window_feedback(world_state):
 			return "frontline_window_review"
-	if _has_reached_frontline_window_review_limit(world_state):
+	if _is_base_action_review_complete(world_state):
 		return "frontline_window_complete"
 	var preparation_stage := _get_current_preparation_stage(world_state)
 	if not preparation_stage.is_empty():
@@ -577,7 +511,6 @@ static func _get_stage(world_state: WorldState) -> String:
 	if quest_state.has_active_quest("quest.plan_stability_frontline_action") or quest_state.has_completed_quest("quest.calibrate_phase_well_stability_window"):
 		return "first_ready"
 	return ""
-
 
 static func _format_title(stage: String) -> String:
 	match stage:
@@ -629,7 +562,6 @@ static func _format_title(stage: String) -> String:
 			return "清障整备已生效"
 		_:
 			return "行动调度"
-
 
 static func _format_direction(stage: String, world_state: WorldState) -> String:
 	match stage:
@@ -689,6 +621,8 @@ static func _format_direction(stage: String, world_state: WorldState) -> String:
 		"pressure_clearance_return":
 			return "压力清障回执已带回：回基地使用基础反应器，把清障收益解析成下一轮防护整备。"
 		"pressure_clearance_ready":
+			if _is_overpressure_plan(world_state, PLAN_PRESSURE_CLEARANCE):
+				return "三类模块收益已合并：回基地在前线行动台确认高压窗口整备槽，再从相位回投台外出。"
 			if get_pressure_clearance_status(world_state) == STATUS_USED:
 				return "压力清障反馈已归档：防护整备已经装入本趟出发，后续清障分支可继续沿用行动台。"
 			if get_pressure_clearance_status(world_state) == STATUS_QUEUED:
@@ -696,7 +630,6 @@ static func _format_direction(stage: String, world_state: WorldState) -> String:
 			return "压力清障反馈已归档：回基地在前线行动台确认清障防护整备槽，再从相位回投台外出。"
 		_:
 			return ""
-
 
 static func _format_onboarding(stage: String) -> String:
 	match stage:
@@ -727,8 +660,7 @@ static func _format_onboarding(stage: String) -> String:
 		_:
 			return ""
 
-
-static func _format_status_goal(stage: String) -> String:
+static func _format_status_goal(stage: String, world_state: WorldState = null) -> String:
 	match stage:
 		"frontline_window_active":
 			return "前线异常窗口待处理"
@@ -745,10 +677,11 @@ static func _format_status_goal(stage: String) -> String:
 		"phase_survey_ready":
 			return "测绘整备已生效"
 		"pressure_clearance_ready":
+			if _is_overpressure_plan(world_state, PLAN_PRESSURE_CLEARANCE):
+				return "高压窗口整备待确认"
 			return "清障整备已生效"
 		_:
 			return _format_title(stage)
-
 
 static func _format_status_progress(stage: String, world_state: WorldState) -> String:
 	match stage:
@@ -778,6 +711,8 @@ static func _format_status_progress(stage: String, world_state: WorldState) -> S
 				return "相位测绘整备槽已确认；到相位回投台按 E 出发，回投时载入路线提示"
 			return "相位测绘反馈已归档；到前线行动台按 E 确认测绘路线整备槽"
 		"pressure_clearance_ready":
+			if _is_overpressure_plan(world_state, PLAN_PRESSURE_CLEARANCE):
+				return "三类模块收益已合并；到前线行动台按 E 确认高压窗口整备槽"
 			if get_pressure_clearance_status(world_state) == STATUS_USED:
 				return "压力清障反馈已归档；本趟出发已装入修复凝胶和抗污染药剂"
 			if get_pressure_clearance_status(world_state) == STATUS_QUEUED:
@@ -791,7 +726,6 @@ static func _format_status_progress(stage: String, world_state: WorldState) -> S
 			return "压力清障已选择；前线目标为一处压力扰点清除"
 		_:
 			return _format_direction(stage, world_state)
-
 
 static func _format_preparation_lines(stage: String, world_state: WorldState, character_state: CharacterState) -> Array[String]:
 	var parts_count := _get_item_count(character_state, "item.basic_parts")
@@ -852,6 +786,14 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 			survey_lines.append_array(_format_departure_plan_lines(PLAN_PHASE_SURVEY, world_state))
 			return survey_lines
 		"pressure_clearance_ready":
+			if _is_overpressure_plan(world_state, PLAN_PRESSURE_CLEARANCE):
+				var overpressure_lines: Array[String] = [
+					"整备：三类模块收益已归档；基础零件 %d；修复凝胶 %d；抗污染药剂 %d。" % [parts_count, repair_count, vial_count],
+					"高压窗口：待确认；复用稳相缓存、透镜校准和防护涂层收益。"
+				]
+				overpressure_lines.append_array(_format_frontline_window_feedback_lines(world_state))
+				overpressure_lines.append_array(_format_departure_plan_lines(PLAN_PRESSURE_CLEARANCE, world_state))
+				return overpressure_lines
 			var pressure_status := get_pressure_clearance_status(world_state)
 			var pressure_line := "防护整备：待确认；修复凝胶 +1，抗污染药剂 +1。"
 			if pressure_status == STATUS_QUEUED:
@@ -875,7 +817,6 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 		_:
 			return ["整备：沿用当前补给；行动台等待本趟返回数据。"]
 
-
 static func _format_console_action_line(definition_id: String, stage: String, world_state: WorldState) -> String:
 	match definition_id:
 		FRONTLINE_ACTION_CONSOLE_ID:
@@ -895,6 +836,8 @@ static func _format_console_action_line(definition_id: String, stage: String, wo
 				"phase_survey_ready":
 					return "按 E 确认：测绘路线整备槽。"
 				"pressure_clearance_ready":
+					if _is_overpressure_plan(world_state, PLAN_PRESSURE_CLEARANCE):
+						return "按 E 确认：高压窗口三模块联锁整备槽。"
 					return "按 E 确认：清障防护整备槽。"
 		"map_object.frontline_supply_console":
 			if stage == "short_ready":
@@ -919,7 +862,6 @@ static func _format_console_action_line(definition_id: String, stage: String, wo
 				return _format_candidate_console_action_line(PLAN_PRESSURE_CLEARANCE, world_state)
 	return "当前终端已纳入行动台；按 HUD 目标推进。"
 
-
 static func _format_default_console_prompt(definition_id: String) -> String:
 	match definition_id:
 		"map_object.base_supply_choice_console":
@@ -931,15 +873,13 @@ static func _format_default_console_prompt(definition_id: String) -> String:
 		_:
 			return "基地行动台：行动调度\n状态：等待前置目标完成。"
 
-
 static func _get_item_count(character_state: CharacterState, item_id: String) -> int:
 	if character_state == null:
 		return 0
 	return int(character_state.inventory.items.get(item_id, 0))
 
-
 static func _format_departure_plan_lines(plan_key: String, world_state: WorldState) -> Array[String]:
-	var preview := _get_plan_preview(plan_key)
+	var preview := _get_plan_preview_for_world(world_state, plan_key)
 	if preview.is_empty():
 		return []
 	var lines: Array[String] = [
@@ -953,7 +893,7 @@ static func _format_departure_plan_lines(plan_key: String, world_state: WorldSta
 		"收益：%s；代价：%s。" % [String(preview.get("reward", "")), String(preview.get("cost", ""))],
 		"模块效果：%s。" % String(preview.get("module_effect", ""))
 	]
-	var window_preview := _format_window_outcome_preview_line(plan_key)
+	var window_preview := _format_window_outcome_preview_line_for_world(plan_key, world_state)
 	if not window_preview.is_empty():
 		lines.append(window_preview)
 	var feedback_note := _format_window_feedback_plan_note(world_state, plan_key)
@@ -963,7 +903,6 @@ static func _format_departure_plan_lines(plan_key: String, world_state: WorldSta
 	if not carryover_line.is_empty():
 		lines.append(carryover_line)
 	return lines
-
 
 static func _format_plan_queue_lines(world_state: WorldState) -> Array[String]:
 	var current_plan := get_current_plan_key(world_state)
@@ -982,7 +921,6 @@ static func _format_plan_queue_lines(world_state: WorldState) -> Array[String]:
 			lines.append("候选判断：%s" % decision_note)
 	return lines
 
-
 static func _format_frontline_window_feedback_lines(world_state: WorldState) -> Array[String]:
 	var feedback := get_frontline_window_feedback(world_state)
 	if feedback.is_empty():
@@ -998,19 +936,20 @@ static func _format_frontline_window_feedback_lines(world_state: WorldState) -> 
 		lines.append("完成态收益：%s" % payoff)
 	return lines
 
-
 static func _get_resolved_frontline_window_plan_key(world_state: WorldState) -> String:
 	var plan_key := get_frontline_window_plan_key(world_state)
 	if not get_frontline_window_feedback(world_state).is_empty() and not plan_key.is_empty():
 		return plan_key
 	return _get_archived_frontline_window_plan_key(world_state)
 
+static func _get_resolved_frontline_window_outcome_key(world_state: WorldState) -> String:
+	var plan_key := _get_resolved_frontline_window_plan_key(world_state)
+	return _get_effective_window_outcome_key(world_state, plan_key)
 
 static func _get_archived_frontline_window_feedback(world_state: WorldState) -> String:
 	if world_state == null:
 		return ""
 	return String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY, ""))
-
 
 static func _get_archived_frontline_window_plan_key(world_state: WorldState) -> String:
 	if world_state == null:
@@ -1020,10 +959,8 @@ static func _get_archived_frontline_window_plan_key(world_state: WorldState) -> 
 		return plan_key
 	return ""
 
-
 static func _format_frontline_window_completion_payoff(world_state: WorldState) -> String:
-	return BaseActionWindowOutcome.get_payoff(_get_resolved_frontline_window_plan_key(world_state))
-
+	return BaseActionWindowOutcome.get_payoff(_get_resolved_frontline_window_outcome_key(world_state))
 
 static func _format_window_module_name(world_state: WorldState, fallback_preview: Dictionary) -> String:
 	var module := ""
@@ -1034,7 +971,6 @@ static func _format_window_module_name(world_state: WorldState, fallback_preview
 	if module.is_empty():
 		return "未定模块"
 	return module
-
 
 static func _format_resolved_frontline_window_module_line(world_state: WorldState) -> String:
 	if world_state == null:
@@ -1049,16 +985,25 @@ static func _format_resolved_frontline_window_module_line(world_state: WorldStat
 		return ""
 	return "轻量整备模块：%s；效果：%s" % [module, module_effect]
 
+static func _get_effective_window_outcome_key(world_state: WorldState, plan_key: String) -> String:
+	if plan_key == PLAN_PRESSURE_CLEARANCE:
+		var module := ""
+		if world_state != null:
+			module = String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_MODULE_KEY, ""))
+			if module.is_empty():
+				module = String(world_state.get_base_action_state_value(FRONTLINE_WINDOW_ARCHIVED_MODULE_KEY, ""))
+		if module == OVERPRESSURE_MODULE_NAME or _is_overpressure_plan(world_state, plan_key):
+			return BaseActionWindowOutcome.PLAN_OVERPRESSURE_WINDOW
+	return plan_key
 
 static func _format_window_feedback_plan_note(world_state: WorldState, plan_key: String) -> String:
-	var source_plan := _get_resolved_frontline_window_plan_key(world_state)
+	var source_plan := _get_resolved_frontline_window_outcome_key(world_state)
 	if source_plan.is_empty() or plan_key.is_empty():
 		return ""
 	return BaseActionWindowOutcome.get_plan_note(source_plan, plan_key)
 
-
 static func _format_window_feedback_carryover_line(world_state: WorldState, plan_key: String) -> String:
-	var source_plan := _get_resolved_frontline_window_plan_key(world_state)
+	var source_plan := _get_resolved_frontline_window_outcome_key(world_state)
 	var carryover := BaseActionWindowOutcome.get_carryover(source_plan, plan_key)
 	if source_plan == PLAN_PHASE_SURVEY and not carryover.is_empty():
 		var risk_note := String(world_state.get_base_action_state_value(ROUTE_RISK_NOTE_KEY, ROUTE_RISK_NOTE))
@@ -1067,7 +1012,6 @@ static func _format_window_feedback_carryover_line(world_state: WorldState, plan
 		return "%s风险预告：%s" % [carryover, risk_note]
 	return carryover
 
-
 static func _format_candidate_console_action_line(plan_key: String, world_state: WorldState) -> String:
 	var decision_note := _format_candidate_decision_note(world_state, plan_key)
 	if not decision_note.is_empty():
@@ -1075,7 +1019,6 @@ static func _format_candidate_console_action_line(plan_key: String, world_state:
 	if get_next_plan_candidate_key(world_state) == plan_key:
 		return "下一计划候选已是：%s。%s" % [_format_candidate_preview(plan_key, world_state), decision_note]
 	return "按 E 替换下一计划候选：%s。%s" % [_format_candidate_preview(plan_key, world_state), decision_note]
-
 
 static func _format_candidate_decision_note(world_state: WorldState, candidate_plan_key: String) -> String:
 	if world_state == null or not _is_known_plan_key(candidate_plan_key):
@@ -1110,12 +1053,10 @@ static func _format_candidate_decision_note(world_state: WorldState, candidate_p
 		basis = "稳相缓存样本已归档，清障前可先确认防护补给覆盖扰点处理"
 	return "%s：%s；不影响当前出发整备槽。" % [prefix, basis]
 
-
 static func _set_current_plan_slot(world_state: WorldState, plan_key: String) -> void:
 	world_state.set_base_action_state_value(CURRENT_PLAN_KEY, plan_key)
 	if String(world_state.get_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, "")).is_empty():
 		world_state.set_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, _get_alternate_plan_key(plan_key))
-
 
 static func _prepare_review_plan_slots(world_state: WorldState, source_plan_key: String) -> void:
 	var current_plan := get_current_plan_key(world_state)
@@ -1135,7 +1076,6 @@ static func _prepare_review_plan_slots(world_state: WorldState, source_plan_key:
 		next_candidate = _get_review_candidate_plan_key(source_plan_key, current_plan)
 	world_state.set_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, next_candidate)
 
-
 static func _clear_review_plan_slots(world_state: WorldState) -> void:
 	world_state.set_base_action_state_value(CURRENT_PLAN_KEY, "")
 	world_state.set_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, "")
@@ -1145,6 +1085,14 @@ static func _clear_review_plan_slots(world_state: WorldState) -> void:
 	world_state.set_base_action_state_value(PRESSURE_CLEARANCE_STATUS_KEY, STATUS_USED)
 	_clear_departure_confirmation_snapshot(world_state)
 
+static func _prepare_overpressure_window_slot(world_state: WorldState) -> void:
+	world_state.set_base_action_state_value(SUPPLY_PACKAGE_STATUS_KEY, STATUS_USED)
+	world_state.set_base_action_state_value(SURVEY_INTEL_STATUS_KEY, STATUS_USED)
+	world_state.set_base_action_state_value(PRESSURE_CLEARANCE_STATUS_KEY, STATUS_READY)
+	world_state.set_base_action_state_value(CURRENT_PLAN_KEY, PLAN_PRESSURE_CLEARANCE)
+	world_state.set_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, "")
+	world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, "")
+	_clear_departure_confirmation_snapshot(world_state)
 
 static func _increment_frontline_window_review_count(world_state: WorldState, had_legacy_archived_feedback: bool) -> int:
 	var explicit_count = world_state.get_base_action_state_value(FRONTLINE_WINDOW_REVIEW_COUNT_KEY, null)
@@ -1156,7 +1104,6 @@ static func _increment_frontline_window_review_count(world_state: WorldState, ha
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_REVIEW_COUNT_KEY, review_count)
 	return review_count
 
-
 static func _get_frontline_window_review_count(world_state: WorldState) -> int:
 	if world_state == null:
 		return 0
@@ -1167,10 +1114,18 @@ static func _get_frontline_window_review_count(world_state: WorldState) -> int:
 		return FRONTLINE_WINDOW_REVIEW_LIMIT
 	return 0
 
-
 static func _has_reached_frontline_window_review_limit(world_state: WorldState) -> bool:
 	return _get_frontline_window_review_count(world_state) >= FRONTLINE_WINDOW_REVIEW_LIMIT
 
+static func _is_base_action_review_complete(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	if world_state.get_base_action_state_value(FRONTLINE_WINDOW_REVIEW_COUNT_KEY, null) == null and not _get_archived_frontline_window_feedback(world_state).is_empty():
+		return true
+	return _get_frontline_window_review_count(world_state) > FRONTLINE_WINDOW_REVIEW_LIMIT
+
+static func _is_overpressure_plan(world_state: WorldState, plan_key: String) -> bool:
+	return plan_key == PLAN_PRESSURE_CLEARANCE and _get_frontline_window_review_count(world_state) >= FRONTLINE_WINDOW_REVIEW_LIMIT and not _is_base_action_review_complete(world_state)
 
 static func _get_review_current_plan_key(source_plan_key: String) -> String:
 	match source_plan_key:
@@ -1181,7 +1136,6 @@ static func _get_review_current_plan_key(source_plan_key: String) -> String:
 		PLAN_PRESSURE_CLEARANCE:
 			return PLAN_STEADY_SUPPLY
 	return PLAN_STEADY_SUPPLY
-
 
 static func _get_review_candidate_plan_key(source_plan_key: String, current_plan_key: String) -> String:
 	match source_plan_key:
@@ -1196,7 +1150,6 @@ static func _get_review_candidate_plan_key(source_plan_key: String, current_plan
 		return PLAN_PHASE_SURVEY
 	return alternate
 
-
 static func _can_replace_next_plan_candidate(world_state: WorldState) -> bool:
 	if world_state == null:
 		return false
@@ -1210,12 +1163,12 @@ static func _can_replace_next_plan_candidate(world_state: WorldState) -> bool:
 		return false
 	if world_state.quest_state.has_active_quest("quest.choose_pressure_clearance_action"):
 		return false
+	if _is_overpressure_plan(world_state, get_current_plan_key(world_state)):
+		return false
 	return not get_current_plan_key(world_state).is_empty()
-
 
 static func _is_plan_candidate_console(definition_id: String) -> bool:
 	return definition_id == "map_object.base_supply_choice_console" or definition_id == "map_object.base_survey_choice_console" or definition_id == "map_object.base_pressure_choice_console"
-
 
 static func _get_plan_key_for_console(definition_id: String) -> String:
 	match definition_id:
@@ -1228,7 +1181,6 @@ static func _get_plan_key_for_console(definition_id: String) -> String:
 		_:
 			return ""
 
-
 static func _get_alternate_plan_key(plan_key: String) -> String:
 	if plan_key == PLAN_STEADY_SUPPLY:
 		return PLAN_PHASE_SURVEY
@@ -1237,7 +1189,6 @@ static func _get_alternate_plan_key(plan_key: String) -> String:
 	if plan_key == PLAN_PRESSURE_CLEARANCE:
 		return PLAN_STEADY_SUPPLY
 	return ""
-
 
 static func _get_current_preparation_stage(world_state: WorldState) -> String:
 	var current_plan := get_current_plan_key(world_state)
@@ -1249,8 +1200,13 @@ static func _get_current_preparation_stage(world_state: WorldState) -> String:
 		return "pressure_clearance_ready"
 	return ""
 
-
 static func _promote_next_plan_candidate(world_state: WorldState, executed_plan_key: String) -> String:
+	if _is_overpressure_plan(world_state, executed_plan_key):
+		world_state.set_base_action_state_value(CURRENT_PLAN_KEY, "")
+		world_state.set_base_action_state_value(NEXT_PLAN_CANDIDATE_KEY, "")
+		world_state.set_base_action_state_value(DEPARTURE_PLAN_KEY, "")
+		_clear_departure_confirmation_snapshot(world_state)
+		return "高压窗口不预排下一候选：先处理本趟窗口并回基地归档，确认三类模块收益是否足够支撑更危险目标。"
 	var promoted_plan_key := get_next_plan_candidate_key(world_state)
 	if promoted_plan_key.is_empty():
 		promoted_plan_key = _get_alternate_plan_key(executed_plan_key)
@@ -1266,7 +1222,6 @@ static func _promote_next_plan_candidate(world_state: WorldState, executed_plan_
 	_clear_departure_confirmation_snapshot(world_state)
 	return "下一计划候选已进入当前计划槽：%s；回基地在前线行动台按 E 确认，或在方案终端替换下一候选。" % _format_plan_label(promoted_plan_key)
 
-
 static func _activate_frontline_window(world_state: WorldState, plan_key: String) -> void:
 	var preview := _get_departure_confirmation_preview(world_state, plan_key)
 	world_state.set_base_action_state_value(FRONTLINE_WINDOW_STATUS_KEY, STATUS_ACTIVE)
@@ -1279,10 +1234,8 @@ static func _activate_frontline_window(world_state: WorldState, plan_key: String
 		world_state.map_objects[FRONTLINE_WINDOW_INSTANCE_ID]["is_sampled"] = false
 		world_state.map_objects[FRONTLINE_WINDOW_INSTANCE_ID]["is_cleared"] = false
 
-
-static func _format_frontline_window_resolution_message(plan_key: String) -> String:
-	return BaseActionWindowOutcome.get_resolution(plan_key)
-
+static func _format_frontline_window_resolution_message(plan_key: String, world_state: WorldState = null) -> String:
+	return BaseActionWindowOutcome.get_resolution(_get_effective_window_outcome_key(world_state, plan_key))
 
 static func _set_plan_status(world_state: WorldState, plan_key: String, status: String) -> void:
 	match plan_key:
@@ -1296,14 +1249,16 @@ static func _set_plan_status(world_state: WorldState, plan_key: String, status: 
 		PLAN_PRESSURE_CLEARANCE:
 			world_state.set_base_action_state_value(PRESSURE_CLEARANCE_STATUS_KEY, status)
 
-
 static func _format_plan_label(plan_key: String) -> String:
 	return String(_get_plan_preview(plan_key).get("label", "未定计划"))
 
-
 static func _get_plan_preview(plan_key: String) -> Dictionary:
-	return PLAN_PREVIEWS.get(plan_key, {})
+	return BaseActionPlanPreview.get_plan_preview(plan_key)
 
+static func _get_plan_preview_for_world(world_state: WorldState, plan_key: String) -> Dictionary:
+	if _is_overpressure_plan(world_state, plan_key):
+		return BaseActionPlanPreview.get_overpressure_window_preview().duplicate(true)
+	return _get_plan_preview(plan_key)
 
 static func _format_choice_preview_line(prefix: String, plan_key: String) -> String:
 	var preview := _get_plan_preview(plan_key)
@@ -1319,7 +1274,6 @@ static func _format_choice_preview_line(prefix: String, plan_key: String) -> Str
 		String(preview.get("reward", "")),
 		_format_window_outcome_preview_line(plan_key)
 	]
-
 
 static func _format_candidate_preview(plan_key: String, world_state: WorldState = null) -> String:
 	var preview := _get_plan_preview(plan_key)
@@ -1340,7 +1294,6 @@ static func _format_candidate_preview(plan_key: String, world_state: WorldState 
 		text = "%s\n窗口反馈：%s" % [text, feedback_note]
 	return text
 
-
 static func _format_relay_preparation_preview(world_state: WorldState, plan_key: String) -> String:
 	var preview := _get_departure_confirmation_preview(world_state, plan_key)
 	if preview.is_empty():
@@ -1355,7 +1308,6 @@ static func _format_relay_preparation_preview(world_state: WorldState, plan_key:
 		_format_window_outcome_preview_line(plan_key)
 	]
 
-
 static func _format_compact_risk_profile(risk_profile: String) -> String:
 	if risk_profile.is_empty():
 		return "未定"
@@ -1365,12 +1317,10 @@ static func _format_compact_risk_profile(risk_profile: String) -> String:
 	compact = compact.replace("防护消耗 ", "防护")
 	return compact.replace("；", " / ")
 
-
 static func _get_confirmed_departure_plan_key(world_state: WorldState) -> String:
 	if world_state == null:
 		return ""
 	return String(world_state.get_base_action_state_value(DEPARTURE_PLAN_KEY, ""))
-
 
 static func _has_departure_confirmation_snapshot(world_state: WorldState) -> bool:
 	if world_state == null:
@@ -1390,9 +1340,8 @@ static func _has_departure_confirmation_snapshot(world_state: WorldState) -> boo
 			return false
 	return true
 
-
 static func _set_departure_confirmation_snapshot(world_state: WorldState, plan_key: String) -> void:
-	var preview := _get_plan_preview(plan_key)
+	var preview := _get_plan_preview_for_world(world_state, plan_key)
 	if preview.is_empty():
 		return
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_TARGET_KEY, String(preview.get("target", "")))
@@ -1403,7 +1352,6 @@ static func _set_departure_confirmation_snapshot(world_state: WorldState, plan_k
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_MODULE_KEY, String(preview.get("module", "")))
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_MODULE_EFFECT_KEY, String(preview.get("module_effect", "")))
 
-
 static func _clear_departure_confirmation_snapshot(world_state: WorldState) -> void:
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_TARGET_KEY, "")
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_REWARD_KEY, "")
@@ -1412,7 +1360,6 @@ static func _clear_departure_confirmation_snapshot(world_state: WorldState) -> v
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_COST_KEY, "")
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_MODULE_KEY, "")
 	world_state.set_base_action_state_value(DEPARTURE_PLAN_MODULE_EFFECT_KEY, "")
-
 
 static func _get_departure_confirmation_preview(world_state: WorldState, plan_key: String) -> Dictionary:
 	var preview := _get_plan_preview(plan_key).duplicate(true)
@@ -1441,9 +1388,8 @@ static func _get_departure_confirmation_preview(world_state: WorldState, plan_ke
 		preview["module_effect"] = module_effect
 	return preview
 
-
-static func _format_departure_confirmation_message(plan_key: String) -> String:
-	var preview := _get_plan_preview(plan_key)
+static func _format_departure_confirmation_message(plan_key: String, world_state: WorldState = null) -> String:
+	var preview := _get_plan_preview_for_world(world_state, plan_key)
 	if preview.is_empty():
 		return "出发整备槽已确认：未定计划。"
 	return "出发整备槽已确认：%s计划；模块：%s；风险：%s。\n风险拆解：%s。\n目标：%s；收益：%s；代价：%s。\n%s" % [
@@ -1454,9 +1400,8 @@ static func _format_departure_confirmation_message(plan_key: String) -> String:
 		String(preview.get("target", "")),
 		String(preview.get("reward", "")),
 		String(preview.get("cost", "")),
-		_format_window_outcome_preview_line(plan_key)
+		_format_window_outcome_preview_line_for_world(plan_key, world_state)
 	]
-
 
 static func _format_window_outcome_preview_line(plan_key: String) -> String:
 	var window_target := BaseActionWindowOutcome.get_window_target(plan_key)
@@ -1465,27 +1410,33 @@ static func _format_window_outcome_preview_line(plan_key: String) -> String:
 		return ""
 	return "窗口结果预览：%s；%s。" % [window_target, window_result]
 
+static func _format_window_outcome_preview_line_for_world(plan_key: String, world_state: WorldState) -> String:
+	var outcome_key := _get_effective_window_outcome_key(world_state, plan_key)
+	var window_target := BaseActionWindowOutcome.get_window_target(outcome_key)
+	var window_result := BaseActionWindowOutcome.get_window_result(outcome_key)
+	if window_target.is_empty() or window_result.is_empty():
+		return ""
+	return "窗口结果预览：%s；%s。" % [window_target, window_result]
 
-static func _format_departure_execution_message(plan_key: String) -> String:
-	var preview := _get_plan_preview(plan_key)
+static func _format_departure_execution_message(plan_key: String, world_state: WorldState = null) -> String:
+	var preview := _get_plan_preview_for_world(world_state, plan_key)
 	match plan_key:
 		PLAN_STEADY_SUPPLY:
 			return "低风险补给计划已执行：当前计划：低风险补给；轻量整备模块：%s；目标：读取补给缓存。基础零件 +2，修复凝胶 +1；已按%s风险收益确认出发，先在前线处理窗口再回基地。" % [String(preview.get("module", "")), String(preview.get("risk", ""))]
 		PLAN_PHASE_SURVEY:
 			return "信息侦测计划已执行：当前计划：信息侦测；轻量整备模块：%s；目标：校准两处路线回波。同一前线异常窗口已载入侦测解法；已按%s风险收益确认出发，先在前线处理窗口再回基地。" % [String(preview.get("module", "")), String(preview.get("risk", ""))]
 		PLAN_PRESSURE_CLEARANCE:
+			if String(preview.get("module", "")) == OVERPRESSURE_MODULE_NAME:
+				return "高压窗口计划已执行：当前计划：高压窗口；轻量整备模块：%s；目标：按三类模块收益处理更危险窗口。修复凝胶 +1，抗污染药剂 +1；已按%s风险收益确认出发。" % [String(preview.get("module", "")), String(preview.get("risk", ""))]
 			return "压力清障防护计划已执行：当前计划：压力清障；轻量整备模块：%s；目标：先按 J 击退清障扰动守卫，再按 E 处理异常窗口。修复凝胶 +1，抗污染药剂 +1；已按%s风险收益确认出发。" % [String(preview.get("module", "")), String(preview.get("risk", ""))]
 		_:
 			return "出发计划已执行。"
 
-
 static func _is_pressure_clearance_guard_required(world_state: WorldState) -> bool:
 	return world_state != null and is_frontline_window_active(world_state) and get_frontline_window_plan_key(world_state) == PLAN_PRESSURE_CLEARANCE and not bool(world_state.get_enemy(PRESSURE_CLEARANCE_GUARD_INSTANCE_ID).get("is_defeated", false))
 
-
 static func _is_known_plan_key(plan_key: String) -> bool:
 	return plan_key == PLAN_STEADY_SUPPLY or plan_key == PLAN_PHASE_SURVEY or plan_key == PLAN_PRESSURE_CLEARANCE
-
 
 static func _get_preparation_status(world_state: WorldState, key: String, feedback_quest_id: String) -> String:
 	if world_state == null:

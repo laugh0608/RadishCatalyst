@@ -4,6 +4,7 @@ class_name BaseActionWindowOutcome
 const PLAN_STEADY_SUPPLY := "steady_supply_buffer"
 const PLAN_PHASE_SURVEY := "phase_survey_intel"
 const PLAN_PRESSURE_CLEARANCE := "pressure_clearance_guard"
+const PLAN_OVERPRESSURE_WINDOW := "overpressure_window"
 
 const OUTCOMES := {
 	PLAN_STEADY_SUPPLY: {
@@ -52,6 +53,22 @@ const OUTCOMES := {
 			PLAN_STEADY_SUPPLY: "涂层样本承接：目标预告=低压窗口补给回收；路线扰动=低；防护消耗=低。",
 			PLAN_PHASE_SURVEY: "涂层样本承接：目标预告=低干扰路线测绘；路线扰动=中；防护消耗=低。",
 			PLAN_PRESSURE_CLEARANCE: "涂层样本承接：目标预告=继续清障扰点；路线扰动=中；防护消耗=低。"
+		}
+	},
+	PLAN_OVERPRESSURE_WINDOW: {
+		"window_target": "用稳相缓存稳住窗口，按透镜读数校准边界，击退守卫后压制 1 处高压扰点",
+		"window_result": "三模块联锁把回收缓冲、低扰动路线和低消耗防护合到同一趟高压处理，带回高压窗口稳定数据",
+		"resolution": "高压异常窗口已压制：稳相垫片、回波透镜和防护涂层共同接住高压扰动，带回高压窗口稳定数据，证明三类模块收益能支撑更危险目标。",
+		"payoff": "高压窗口稳定数据已归档：三类模块收益共同支撑了更危险目标，下一阶段可围绕精英节点或基地升级继续设计。",
+		"plan_notes": {
+			PLAN_STEADY_SUPPLY: "高压窗口数据已归档，后续补给设计可围绕高压环境资源回收展开",
+			PLAN_PHASE_SURVEY: "高压窗口数据已归档，后续测绘设计可围绕稳定边界和更远路线展开",
+			PLAN_PRESSURE_CLEARANCE: "高压窗口数据已归档，后续清障设计可围绕更强守卫或更高压扰点展开"
+		},
+		"carryovers": {
+			PLAN_STEADY_SUPPLY: "高压数据承接：补给收益、路线读数和防护改良已被证明可共同支撑更危险目标。",
+			PLAN_PHASE_SURVEY: "高压数据承接：路线读数可继续服务更远目标预告，但不新增随机成功率。",
+			PLAN_PRESSURE_CLEARANCE: "高压数据承接：清障风险可继续升级为更强守卫或精英节点，但不新增第 4 个模块。"
 		}
 	}
 }

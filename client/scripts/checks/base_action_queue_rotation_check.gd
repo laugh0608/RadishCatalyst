@@ -960,18 +960,83 @@ func _check_review_preparation_runs_two_window_cycles() -> void:
 	)
 	host._expect_text_contains(
 		String(second_review.get("message", "")),
-		"连续两轮窗口复盘已完成",
-		"two-cycle review archives second feedback and stops the prototype loop"
+		"两轮复盘收益已合并为高压窗口目标",
+		"two-cycle review archives second feedback and opens overpressure target"
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.is_frontline_action_console_ready(world_state),
-		false,
-		"two-cycle review disables the action console after the second archive"
+		true,
+		"two-cycle review keeps the action console ready for overpressure confirmation"
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state).size(),
 		0,
-		"two-cycle review cannot launch a third window after completion"
+		"two-cycle review cannot launch overpressure before manual confirmation"
+	)
+	var overpressure_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		world_state,
+		character_state
+	)
+	host._expect_text_contains(
+		overpressure_prompt,
+		"高压窗口：待确认",
+		"two-cycle review exposes overpressure as a distinct next target"
+	)
+	host._expect_text_contains(
+		overpressure_prompt,
+		"三模块联锁",
+		"two-cycle review explains that overpressure uses all three module payoffs"
+	)
+
+	var overpressure_confirm := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_text_contains(
+		String(overpressure_confirm.get("message", "")),
+		"高压窗口计划",
+		"two-cycle review confirms the overpressure departure slot"
+	)
+	var overpressure_departure := BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	host._expect_equal(overpressure_departure.size(), 2, "two-cycle review applies overpressure departure")
+	host._expect_text_contains(
+		" ".join(overpressure_departure),
+		"三类模块收益",
+		"two-cycle review overpressure departure explains the combined payoff"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		"高压扰点",
+		"two-cycle review overpressure window uses the high-pressure target"
+	)
+	var guard_state := world_state.ensure_enemy(BaseActionDispatchPlan.PRESSURE_CLEARANCE_GUARD_INSTANCE_ID, "enemy.pressure_clearance_guard", "region.phase_well_tether", 64.0)
+	guard_state["is_defeated"] = true
+	BaseActionDispatchPlan.resolve_frontline_window(world_state)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		"高压窗口稳定数据已归档",
+		"two-cycle review overpressure payoff is visible after resolution"
+	)
+	var overpressure_review := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_text_contains(
+		String(overpressure_review.get("message", "")),
+		"高压窗口反馈已归档",
+		"two-cycle review archives overpressure and stops the prototype loop"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.is_frontline_action_console_ready(world_state),
+		false,
+		"two-cycle review disables the action console after overpressure archive"
 	)
 	var blocked_action_console := gather_system.interact_with_object(
 		"map_object_instance.frontline_action_console",
@@ -983,7 +1048,7 @@ func _check_review_preparation_runs_two_window_cycles() -> void:
 	host._expect_equal(bool(blocked_action_console.get("success", false)), true, "two-cycle review action console returns explicit completion message")
 	host._expect_text_contains(
 		String(blocked_action_console.get("message", "")),
-		"连续两轮窗口复盘已完成",
+		"高压窗口目标已完成",
 		"two-cycle review action console avoids generic inspect success after completion"
 	)
 
@@ -1023,7 +1088,7 @@ func _check_legacy_archived_window_state_stops_loop() -> void:
 	var confirm_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
 	host._expect_text_contains(
 		" ".join(confirm_messages),
-		"连续两轮窗口复盘已完成",
+		"高压窗口目标已完成",
 		"legacy archived window state blocks another departure confirmation"
 	)
 	host._expect_equal(
