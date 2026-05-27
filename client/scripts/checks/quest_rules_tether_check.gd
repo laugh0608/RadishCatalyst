@@ -18,6 +18,7 @@ func run() -> void:
 	_check_demo_stabilization_event_rules()
 	_check_runtime_activates_demo_stabilization_core_entry()
 	_check_demo_stabilization_three_step_flow()
+	_check_demo_stabilization_short_run_from_overpressure_archive()
 
 
 func _check_phase_well_knot_core_recipe_progression() -> void:
@@ -480,3 +481,74 @@ func _check_demo_stabilization_three_step_flow() -> void:
 			host.failures.append("core write completion feedback should be a dictionary, got %s" % var_to_str(feedback))
 			return
 		host._expect_equal(String(feedback.get("panel_title", "")), "Demo 完成", "core write completion uses demo panel title")
+
+
+func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	var gather_system := GatherSystem.new(host.data_registry)
+	world_state.quest_state.active_quest_ids.clear()
+	world_state.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
+	world_state.set_base_action_state_value(
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_COUNT_KEY,
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_LIMIT + 1
+	)
+	world_state.set_base_action_state_value(
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY,
+		"高压窗口稳定数据已归档"
+	)
+
+	var result: Dictionary = host.quest_runtime.reconcile_active_objectives(world_state, character_state)
+	host._expect_equal(bool(result.get("accepted", false)), true, "short run accepts overpressure archive state")
+	host._expect_array_has(world_state.unlocked_region_ids, "region.demo_stabilization_core", "short run unlocks demo core region")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.enter_demo_stabilization_core", "short run activates demo core entry")
+	if not host._result_logs_contain(result, "核心稳定站已接入"):
+		host.failures.append("short run should log demo core entry activation, got %s" % var_to_str(result))
+
+	world_state.current_region_id = "region.demo_stabilization_core"
+	character_state.current_region_id = "region.demo_stabilization_core"
+	result = host.quest_runtime.advance_for_region(world_state, character_state, "region.demo_stabilization_core")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.enter_demo_stabilization_core", "short run completes demo core entry")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.defeat_demo_stabilization_guard", "short run activates guard objective")
+
+	var repair_before := int(character_state.inventory.items.get("item.repair_gel", 0))
+	var recovery_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_recovery_wreckage",
+		"map_object.demo_stabilization_recovery_cache",
+		"gather",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(recovery_result.get("success", false)), true, "short run side recovery cache can be gathered")
+	host._expect_equal(
+		int(character_state.inventory.items.get("item.repair_gel", 0)),
+		repair_before + 1,
+		"short run side recovery grants repair gel"
+	)
+	host._expect_array_missing(world_state.quest_state.completed_quest_ids, "quest.write_demo_stabilization_core", "side recovery should not complete demo")
+
+	result = host.quest_runtime.advance_for_defeated_enemy(world_state, character_state, "enemy.demo_stabilization_guard")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.defeat_demo_stabilization_guard", "short run completes guard defeat")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.write_demo_stabilization_core", "short run activates core write")
+	world_state.ensure_enemy("enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core", 156.0)
+	world_state.update_enemy_health("enemy_instance.demo_stabilization_guard", 0.0, true)
+
+	var write_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(write_result.get("success", false)), true, "short run writes demo stabilization core")
+	result = host.quest_runtime.advance_for_interaction(
+		world_state,
+		character_state,
+		{
+			"definition_id": "map_object.demo_stabilization_core",
+			"interaction_type": "inspect"
+		},
+		write_result
+	)
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.write_demo_stabilization_core", "short run completes demo core write")
+	host._expect_equal(host._result_array_size(result, "completion_feedbacks"), 1, "short run emits demo completion feedback")
