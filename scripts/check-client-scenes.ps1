@@ -461,8 +461,8 @@ foreach ($scriptFile in $scriptFiles) {
 if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
     $mapSceneContent = Get-Content -LiteralPath $verticalSliceMapScenePath -Raw
     $mapNodes = Get-SceneNodes $mapSceneContent
-    $crystalRegionX = -70.0
-    $pollutionRegionX = 200.0
+    $crystalRegionX = -20.0
+    $pollutionRegionX = 240.0
     $pollutionDeepY = -40.0
     $ruinOuterRingX = 390.0
     $deepRuinRegionX = 700.0

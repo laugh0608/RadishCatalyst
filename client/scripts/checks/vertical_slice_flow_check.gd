@@ -521,7 +521,7 @@ func _check_pollution_gate_runtime_bounds() -> void:
 	var gate_character := CharacterState.create_default()
 	map.player.position = Vector2(253, 30)
 	map.update_region_presence(gate_world, gate_character)
-	_expect_equal(map.player.position.x, 195.0, "locked pollution edge should push player before visual region")
+	_expect_equal(map.player.position.x, 235.0, "locked pollution edge should push player before visual region")
 	_expect_equal(gate_world.current_region_id, "region.crystal_vein_field", "locked pollution edge should return to crystal side")
 	var unlocked_world := WorldState.create_default()
 	unlocked_world.unlock_region("region.crystal_vein_field")

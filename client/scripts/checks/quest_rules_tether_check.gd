@@ -387,7 +387,7 @@ func _check_runtime_restores_phase_well_anchor_core_followup() -> void:
 
 func _check_demo_stabilization_event_rules() -> void:
 	var quest_state := QuestState.create_default()
-	var updates := host.event_rules.get_region_objective_updates("region.demo_stabilization_core", quest_state)
+	var updates: Array = host.event_rules.get_region_objective_updates("region.demo_stabilization_core", quest_state)
 	host._expect_update(updates, "set", "quest.enter_demo_stabilization_core", "visit_region", "region.demo_stabilization_core", 1.0, "demo core region visit update")
 
 	updates = host.event_rules.get_defeated_enemy_objective_updates("enemy.demo_stabilization_guard")
@@ -414,7 +414,7 @@ func _check_runtime_activates_demo_stabilization_core_entry() -> void:
 		BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_LIMIT + 1
 	)
 
-	var result := host.quest_runtime.reconcile_active_objectives(world_state, character_state)
+	var result: Dictionary = host.quest_runtime.reconcile_active_objectives(world_state, character_state)
 	host._expect_equal(bool(result.get("accepted", false)), true, "overpressure review activates demo core entry")
 	host._expect_array_has(world_state.unlocked_region_ids, "region.demo_stabilization_core", "overpressure review unlocks demo core")
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.enter_demo_stabilization_core", "overpressure review activates demo core entry quest")
@@ -429,7 +429,7 @@ func _check_demo_stabilization_three_step_flow() -> void:
 	character_state.current_region_id = "region.demo_stabilization_core"
 	world_state.quest_state.active_quest_ids = ["quest.enter_demo_stabilization_core"]
 
-	var result := host.quest_runtime.advance_for_region(world_state, character_state, "region.demo_stabilization_core")
+	var result: Dictionary = host.quest_runtime.advance_for_region(world_state, character_state, "region.demo_stabilization_core")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.enter_demo_stabilization_core", "enter demo core quest completes on region visit")
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.defeat_demo_stabilization_guard", "enter demo core activates guard quest")
 	host._expect_equal(host._result_array_size(result, "completion_feedbacks"), 1, "enter demo core emits completion feedback")
