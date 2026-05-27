@@ -12,6 +12,7 @@ func _init(check_host) -> void:
 func run_ui_and_recipe_checks() -> void:
 	_check_hud_log_presenter()
 	_check_development_baseline_presenter()
+	_check_demo_stabilization_baseline_status_panel()
 	_check_game_root_development_baseline_factory()
 	_check_game_root_gm_tools()
 	_check_game_root_recipe_cycle_input_events()
@@ -620,6 +621,30 @@ func _check_development_baseline_presenter() -> void:
 		"baseline.s21_demo_stabilization_core_ready",
 		"development baseline catalog ends at S21"
 	)
+
+
+func _check_demo_stabilization_baseline_status_panel() -> void:
+	var builder := DevelopmentBaselineBuilder.new(host.data_registry)
+	var result := builder.create_baseline_state("baseline.s21_demo_stabilization_core_ready")
+	host._expect_equal(bool(result.get("success", false)), true, "S21 baseline status panel generation")
+	if not bool(result.get("success", false)):
+		return
+
+	var world_state: WorldState = result.get("world_state", null)
+	var character_state: CharacterState = result.get("character_state", null)
+	if world_state == null or character_state == null:
+		host.failures.append("S21 baseline status panel should receive world and character states")
+		return
+
+	var presenter := HudStatusPresenter.new()
+	var status_text := presenter.format_status_text(host.data_registry, world_state, character_state)
+	host._expect_text_contains(status_text, "目标：进入核心稳定站", "S21 status shows demo core entry target")
+	host._expect_text_contains(status_text, "进度：进入 核心稳定站 0/1", "S21 status shows demo core region progress")
+	host._expect_text_contains(status_text, "关键资源：基础零件x16", "S21 status keeps compact key resources")
+	host._expect_text_contains(status_text, "设备：待命；当前目标先外出推进", "S21 status keeps base summary from pulling player back")
+	host._expect_text_contains(status_text, "模块：基础多用工具；基础防护服；基础过滤模块", "S21 status keeps combat module visible")
+	host._expect_text_missing(status_text, "前线行动台", "S21 status should not point back to action console")
+	host._expect_text_missing(status_text, "高压窗口", "S21 status should not reopen overpressure window")
 
 
 func _check_game_root_development_baseline_factory() -> void:
