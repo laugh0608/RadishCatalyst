@@ -206,6 +206,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 			_set_update("quest.clear_pressure_frontline_hazard", "visit_region", "region.phase_well_tether", 1),
 			_set_update("quest.clear_pressure_frontline_hazard", "clear", "map_object.pressure_clearance_node", 1)
 		]
+	if interaction_type == "inspect" and definition_id == "map_object.demo_stabilization_core":
+		return [_set_update("quest.write_demo_stabilization_core", "inspect", "map_object.demo_stabilization_core", 1)]
 	if interaction_type == "process_recipe":
 		if not completed_recipe_id.is_empty():
 			return get_recipe_objective_updates(completed_recipe_id)
@@ -251,6 +253,10 @@ func get_region_objective_updates(region_id: String, _quest_state: QuestState) -
 	if region_id == "region.phase_well_tether":
 		return [
 			_set_update("quest.collect_tether_fiber", "visit_region", region_id, 1)
+		]
+	if region_id == "region.demo_stabilization_core":
+		return [
+			_set_update("quest.enter_demo_stabilization_core", "visit_region", region_id, 1)
 		]
 	return []
 
@@ -411,6 +417,8 @@ func get_defeated_enemy_objective_updates(enemy_definition_id: String) -> Array[
 		return [_set_update("quest.stabilize_phase_well_anchor_field", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.pressure_clearance_guard":
 		return [_set_update("quest.clear_pressure_frontline_hazard", "defeat_enemy", enemy_definition_id, 1)]
+	if enemy_definition_id == "enemy.demo_stabilization_guard":
+		return [_set_update("quest.defeat_demo_stabilization_guard", "defeat_enemy", enemy_definition_id, 1)]
 	return []
 
 

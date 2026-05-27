@@ -549,6 +549,8 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 			return _enemy_defeat_result(target, drops_message, "井系桥东侧的回稳压制已被拆掉，锚场回稳窗现在可以回去收束。")
 		if target.definition_id == "enemy.pressure_clearance_guard":
 			return _enemy_defeat_result(target, drops_message, "前线压力扰点的短战斗压制已解除，现在可以清理扰点并带回清障回执。")
+		if target.definition_id == "enemy.demo_stabilization_guard":
+			return _enemy_defeat_result(target, drops_message, "核心阶段守卫已被击败，核心稳定设备现在可以写入稳定数据。")
 		return _enemy_defeat_result(target, drops_message)
 
 	var counter_message := _apply_enemy_counterattack(target, character_state)
@@ -846,6 +848,11 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 				BaseActionDispatchPlan.is_frontline_window_active(world_state)
 				and BaseActionDispatchPlan.get_frontline_window_plan_key(world_state) == BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE
 			)
+		)
+	if enemy.definition_id == "enemy.demo_stabilization_guard":
+		return (
+			world_state.quest_state.has_active_quest("quest.defeat_demo_stabilization_guard")
+			or world_state.quest_state.has_completed_quest("quest.defeat_demo_stabilization_guard")
 		)
 	if enemy.definition_id != "enemy.treatment_skitter":
 		return true

@@ -38,6 +38,8 @@ func apply_completion(world_state: WorldState, character_state: CharacterState, 
 	var panel_title := "任务完成"
 	if quest_id == "quest.secure_outer_ring_signal":
 		panel_title = "切片完成"
+	if quest_id == "quest.write_demo_stabilization_core":
+		panel_title = "Demo 完成"
 	var completed_text := "完成：%s" % quest_name
 	var reward_text := "奖励：无直接物资"
 	if not reward_messages.is_empty():
@@ -212,6 +214,12 @@ func _format_completion_note(quest_id: String) -> String:
 			return "压力清障回执已带回；回基地用基础反应器解析防护收益"
 		"quest.analyze_pressure_clearance_trace":
 			return "压力清障反馈已归档；行动台已把本趟风险收益转成下一轮防护整备"
+		"quest.enter_demo_stabilization_core":
+			return "核心稳定站入口已确认；阶段守卫压住核心设备，需要先清掉守卫"
+		"quest.defeat_demo_stabilization_guard":
+			return "核心阶段守卫已击败；核心稳定设备可以接收稳窗与高压窗口归档数据"
+		"quest.write_demo_stabilization_core":
+			return "核心稳定站已接管第一条稳定通道；首版 demo 主线目标已完成"
 		_:
 			return ""
 

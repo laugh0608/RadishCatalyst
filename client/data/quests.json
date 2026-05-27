@@ -1157,6 +1157,45 @@
       "unlock_effects": ["slice_01_complete"],
       "next_quest_ids": [],
       "public_level": "spoiler"
+    },
+    {
+      "id": "quest.enter_demo_stabilization_core",
+      "display_name_key": "quest.enter_demo_stabilization_core.name",
+      "description_key": "quest.enter_demo_stabilization_core.desc",
+      "quest_type": "side",
+      "stage": 85,
+      "objectives": [{"type": "visit_region", "target_id": "region.demo_stabilization_core", "amount": 1}],
+      "prerequisites": ["quest.calibrate_phase_well_stability_window"],
+      "rewards": [],
+      "unlock_effects": [],
+      "next_quest_ids": ["quest.defeat_demo_stabilization_guard"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.defeat_demo_stabilization_guard",
+      "display_name_key": "quest.defeat_demo_stabilization_guard.name",
+      "description_key": "quest.defeat_demo_stabilization_guard.desc",
+      "quest_type": "side",
+      "stage": 86,
+      "objectives": [{"type": "defeat_enemy", "target_id": "enemy.demo_stabilization_guard", "amount": 1}],
+      "prerequisites": ["quest.enter_demo_stabilization_core"],
+      "rewards": [{"id": "item.repair_gel", "amount": 1}, {"id": "item.resistance_vial_t1", "amount": 1}],
+      "unlock_effects": [],
+      "next_quest_ids": ["quest.write_demo_stabilization_core"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.write_demo_stabilization_core",
+      "display_name_key": "quest.write_demo_stabilization_core.name",
+      "description_key": "quest.write_demo_stabilization_core.desc",
+      "quest_type": "side",
+      "stage": 87,
+      "objectives": [{"type": "inspect", "target_id": "map_object.demo_stabilization_core", "amount": 1}],
+      "prerequisites": ["quest.defeat_demo_stabilization_guard"],
+      "rewards": [{"id": "item.basic_parts", "amount": 4}],
+      "unlock_effects": ["slice_01_complete"],
+      "next_quest_ids": [],
+      "public_level": "spoiler"
     }
   ]
 }

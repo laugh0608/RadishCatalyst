@@ -253,7 +253,7 @@
       "pollution_types": ["pollution.yellow_residue"],
       "weather_pool": ["weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
-      "quest_refs": [],
+      "quest_refs": ["quest.enter_demo_stabilization_core", "quest.defeat_demo_stabilization_guard", "quest.write_demo_stabilization_core"],
       "public_level": "spoiler"
     }
   ]

@@ -36,7 +36,10 @@ const PHASE_RELAY_TETHER_PROGRESS_QUEST_IDS: Array[String] = [
 	"quest.inspect_phase_survey_nodes",
 	"quest.analyze_phase_survey_trace",
 	"quest.clear_pressure_frontline_hazard",
-	"quest.analyze_pressure_clearance_trace"
+	"quest.analyze_pressure_clearance_trace",
+	"quest.enter_demo_stabilization_core",
+	"quest.defeat_demo_stabilization_guard",
+	"quest.write_demo_stabilization_core"
 ]
 
 var event_rules: QuestEventRules
@@ -145,6 +148,8 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 		log_messages.append("旧进度已接入：井系桥后的锚场回稳后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_readout_followup(world_state):
 		log_messages.append("旧进度已接入：稳窗读数后的现场校准任务已补入当前目标。")
+	if _activate_missing_demo_stabilization_core_entry(world_state):
+		log_messages.append("核心稳定站已接入：高压窗口稳定数据已归档，最终写入目标已补入当前目标。")
 	if _activate_missing_post_stability_window_frontline_action(world_state):
 		log_messages.append("旧进度已接入：稳窗校准后的前线行动任务已补入当前目标。")
 	if _activate_missing_post_stability_echo_report_supply_action(world_state):
@@ -910,6 +915,22 @@ func _activate_missing_post_pressure_choice_followup(world_state: WorldState) ->
 	return true
 
 
+func _activate_missing_demo_stabilization_core_entry(world_state: WorldState) -> bool:
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		return false
+	if world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core"):
+		return false
+	if world_state.quest_state.has_active_quest("quest.enter_demo_stabilization_core"):
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.calibrate_phase_well_stability_window"):
+		return false
+	if not _has_completed_overpressure_review(world_state):
+		return false
+	world_state.unlock_region("region.demo_stabilization_core")
+	world_state.quest_state.activate_quest("quest.enter_demo_stabilization_core")
+	return true
+
+
 func _activate_missing_post_phase_well_chamber_followup(world_state: WorldState) -> bool:
 	if not world_state.quest_state.active_quest_ids.is_empty():
 		return false
@@ -1045,6 +1066,14 @@ func _has_completed_or_active_quest(world_state: WorldState, quest_ids: Array[St
 		if world_state.quest_state.has_completed_quest(quest_id) or world_state.quest_state.has_active_quest(quest_id):
 			return true
 	return false
+
+
+func _has_completed_overpressure_review(world_state: WorldState) -> bool:
+	var review_count = world_state.get_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_COUNT_KEY, null)
+	if review_count != null:
+		return int(review_count) > BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_LIMIT
+	var archived_feedback := String(world_state.get_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY, ""))
+	return not archived_feedback.is_empty()
 
 
 func _normalize_deployed_phase_relay_anchor_order(world_state: WorldState) -> bool:

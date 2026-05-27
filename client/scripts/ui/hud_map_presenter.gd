@@ -173,6 +173,8 @@ func _get_runtime_followup_region_id(world_state: WorldState) -> String:
 	var dispatch_route_region_id := BaseActionDispatchPlan.get_route_target_region_id(world_state)
 	if not dispatch_route_region_id.is_empty():
 		return dispatch_route_region_id
+	if world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core"):
+		return ""
 	if _has_completed_frontline_window_review(world_state):
 		return "region.demo_stabilization_core"
 	if world_state.quest_state.has_completed_quest("quest.calibrate_phase_well_stability_window"):

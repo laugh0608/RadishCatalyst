@@ -892,6 +892,14 @@ interaction_type = "inspect"
 label_offset = Vector2(-112, -52)
 label_size = Vector2(224, 24)
 
+[node name="DemoStabilizationCore" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3940, -20)
+definition_id = "map_object.demo_stabilization_core"
+interaction_type = "inspect"
+single_use = false
+label_offset = Vector2(-112, 24)
+label_size = Vector2(224, 24)
+
 [node name="Enemies" type="Node2D" parent="."]
 
 [node name="NativeSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
@@ -961,3 +969,7 @@ definition_id = "enemy.phase_well_warden"
 [node name="PressureClearanceGuard" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(3352, 24)
 definition_id = "enemy.pressure_clearance_guard"
+
+[node name="DemoStabilizationGuard" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(3800, 24)
+definition_id = "enemy.demo_stabilization_guard"

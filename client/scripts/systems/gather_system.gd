@@ -192,6 +192,9 @@ func interact_with_object(
 			if _is_frontline_single_use_reading(definition_id):
 				_set_map_object_flag(world_state, instance_id, definition_id, "is_sampled", true)
 				return _success(_format_frontline_single_use_reading_result(definition_id))
+			if definition_id == "map_object.demo_stabilization_core":
+				_set_map_object_flag(world_state, instance_id, definition_id, "is_sampled", true)
+				return _success("核心稳定数据已写入：锚定桥稳窗和高压窗口归档数据接入核心设备，第一条稳定通道已打开。")
 			return _success("交互完成。")
 		_:
 			return _success("交互完成。")
@@ -378,6 +381,14 @@ func _get_tool_requirement_error(definition: Dictionary, character_state: Charac
 
 
 func _get_quest_gate_error(definition_id: String, interaction_type: String, world_state: WorldState) -> String:
+	if definition_id == "map_object.demo_stabilization_core" and interaction_type == "inspect":
+		if world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core"):
+			return ""
+		if not world_state.quest_state.has_active_quest("quest.write_demo_stabilization_core"):
+			return "核心稳定设备尚未开放写入。"
+		if not bool(world_state.get_enemy("enemy_instance.demo_stabilization_guard").get("is_defeated", false)):
+			return "核心阶段守卫仍在压制写入平台。"
+		return ""
 	if definition_id != "map_object.anomaly_crystal" or interaction_type != "sample":
 		if definition_id != "map_object.anomaly_residue_patch" or interaction_type != "gather":
 			return ""
@@ -394,6 +405,8 @@ func _get_quest_gate_error(definition_id: String, interaction_type: String, worl
 
 
 func _get_quest_gate_detail(definition_id: String, interaction_type: String) -> String:
+	if definition_id == "map_object.demo_stabilization_core" and interaction_type == "inspect":
+		return "先进入核心稳定站并击败核心阶段守卫，再回来写入稳定数据。"
 	if definition_id == "map_object.anomaly_crystal" and interaction_type == "sample":
 		return "先完成反应器校准件，再按任务目标采样异常晶体。"
 	if definition_id == "map_object.anomaly_residue_patch" and interaction_type == "gather":
