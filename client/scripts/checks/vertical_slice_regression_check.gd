@@ -604,7 +604,7 @@ func _check_hud_log_presenter() -> void:
 
 func _check_development_baseline_presenter() -> void:
 	var definitions := DevelopmentBaselineCatalog.get_baseline_definitions()
-	host._expect_equal(definitions.size(), 21, "development baseline catalog count")
+	host._expect_equal(definitions.size(), 22, "development baseline catalog count")
 	host._expect_equal(
 		String(definitions[0].get("id", "")),
 		"baseline.s0_new_game",
@@ -616,9 +616,9 @@ func _check_development_baseline_presenter() -> void:
 	host._expect_text_contains(selected_text, "相位纤丝", "development baseline presenter shows baseline summary")
 	host._expect_text_contains(selected_text, "过滤器精炼", "development baseline presenter shows recommended use")
 	host._expect_equal(
-		String(definitions[20].get("id", "")),
-		"baseline.s20_phase_survey_feedback_ready",
-		"development baseline catalog ends at S20"
+		String(definitions[21].get("id", "")),
+		"baseline.s21_demo_stabilization_core_ready",
+		"development baseline catalog ends at S21"
 	)
 
 

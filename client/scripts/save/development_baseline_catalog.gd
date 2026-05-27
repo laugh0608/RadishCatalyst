@@ -168,6 +168,14 @@ const BASELINE_DEFINITIONS := [
 		"completed_through": "quest.analyze_phase_survey_trace",
 		"summary": "基地选择相位测绘后，井系桥前线两处测绘点和返回解析已跑通第一轮行动选择闭环。",
 		"recommended_for": "基地行动二选一、相位测绘目标差异、测绘反馈收益和 S19 后新循环验收。"
+	},
+	{
+		"id": "baseline.s21_demo_stabilization_core_ready",
+		"code": "S21",
+		"display_name": "S21 核心稳定站已开放",
+		"completed_through": "quest.analyze_phase_survey_trace",
+		"summary": "高压窗口稳定数据已归档，核心稳定站已解锁，下一步从锚定桥进入核心稳定站。",
+		"recommended_for": "核心稳定站人工短跑、阶段守卫、侧向补给缓存、核心设备写入和 demo 完成反馈。"
 	}
 ]
 

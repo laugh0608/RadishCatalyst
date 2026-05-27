@@ -874,7 +874,11 @@ func _validate_cross_block_content(world_data: Dictionary, character_data: Dicti
 	var structure_error := _validate_structure_site_links(world_data)
 	if not structure_error.is_empty():
 		return structure_error
-	var quest_error := _validate_quest_relationships(world_data.get("quest_state", {}), unlocked_region_ids)
+	var quest_error := _validate_quest_relationships(
+		world_data.get("quest_state", {}),
+		unlocked_region_ids,
+		world_data.get("base_action_state", {})
+	)
 	if not quest_error.is_empty():
 		return quest_error
 	return ""
@@ -912,7 +916,7 @@ func _validate_structure_site_links(world_data: Dictionary) -> String:
 	return ""
 
 
-func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[String]) -> String:
+func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[String], base_action_state) -> String:
 	if not (quest_state is Dictionary):
 		return ""
 
@@ -932,6 +936,7 @@ func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[Strin
 		if (
 			not DEFAULT_ACTIVE_QUEST_IDS.has(quest_id)
 			and not _is_quest_activated_by_completed_quest(quest_id, completed_quest_ids)
+			and not _is_quest_activated_by_runtime_state(quest_id, completed_quest_ids, base_action_state)
 		):
 			return "读取存档失败：quest_state.active_quest_ids 中存在未由默认任务或已完成任务链解锁的任务，当前运行状态已保留。"
 
@@ -959,7 +964,11 @@ func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[Strin
 			return "读取存档失败：quest_state.unlocked_effects 中的非区域 / 配方解锁缺少已完成任务 unlock_effects 来源，当前运行状态已保留。"
 
 	for region_id in unlocked_region_ids:
-		if not _is_default_unlocked_region(region_id) and not _is_effect_unlocked_by_completed_quest(region_id, completed_quest_ids):
+		if (
+			not _is_default_unlocked_region(region_id)
+			and not _is_effect_unlocked_by_completed_quest(region_id, completed_quest_ids)
+			and not _is_region_unlocked_by_runtime_state(region_id, completed_quest_ids, base_action_state)
+		):
 			return "读取存档失败：world.unlocked_region_ids 中的非默认区域缺少已完成任务 unlock_effects 来源，当前运行状态已保留。"
 
 	for quest_id in completed_quest_ids:
@@ -1012,6 +1021,32 @@ func _is_quest_activated_by_completed_quest(active_quest_id: String, completed_q
 			if String(quest_effect) == active_quest_id:
 				return true
 	return false
+
+
+func _is_quest_activated_by_runtime_state(quest_id: String, completed_quest_ids: Array[String], base_action_state) -> bool:
+	return (
+		quest_id == "quest.enter_demo_stabilization_core"
+		and completed_quest_ids.has("quest.calibrate_phase_well_stability_window")
+		and _has_completed_overpressure_review(base_action_state)
+	)
+
+
+func _is_region_unlocked_by_runtime_state(region_id: String, completed_quest_ids: Array[String], base_action_state) -> bool:
+	return (
+		region_id == "region.demo_stabilization_core"
+		and completed_quest_ids.has("quest.calibrate_phase_well_stability_window")
+		and _has_completed_overpressure_review(base_action_state)
+	)
+
+
+func _has_completed_overpressure_review(base_action_state) -> bool:
+	if not (base_action_state is Dictionary):
+		return false
+	var review_count = base_action_state.get(BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_COUNT_KEY, null)
+	if review_count != null:
+		return int(review_count) > BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_LIMIT
+	var archived_feedback := String(base_action_state.get(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY, ""))
+	return archived_feedback.find("高压窗口") >= 0
 
 
 func _validate_completed_quest_objectives(quest_id: String, quest: Dictionary, quest_state: Dictionary) -> String:
