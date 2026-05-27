@@ -1335,6 +1335,7 @@ func _check_region_presence_bounds() -> void:
 	host._expect_equal(map._get_region_id_for_position(Vector2(2562, -18)), "region.phase_well_loom", "phase well loom should sit in the new eastern loom region")
 	host._expect_equal(map._get_region_id_for_position(Vector2(2842, -18)), "region.phase_well_frame", "phase well frame should sit in the new eastern frame region")
 	host._expect_equal(map._get_region_id_for_position(Vector2(3126, -18)), "region.phase_well_tether", "phase well tether should sit in the new eastern tether region")
+	host._expect_equal(map._get_region_id_for_position(Vector2(3700, -18)), "region.demo_stabilization_core", "demo stabilization core should sit beyond the anchor bridge")
 	map.free()
 
 

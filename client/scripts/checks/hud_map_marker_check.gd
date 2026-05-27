@@ -27,7 +27,7 @@ func run(root_window: Window) -> void:
 		"locked crystal marker"
 	)
 	var initial_map_labels := presenter.format_map_marker_labels(marker_world, "quest.restore_outpost")
-	host._expect_equal(initial_map_labels.size(), 11, "minimap marker count includes phase well tether")
+	host._expect_equal(initial_map_labels.size(), 12, "minimap marker count includes demo stabilization core")
 	host._expect_array_has(initial_map_labels, "基地\n当前\n目标", "outpost minimap current target marker")
 	host._expect_array_has(initial_map_labels, "晶体\n未解锁", "crystal minimap locked marker")
 	host._expect_array_has(initial_map_labels, "回声\n未解锁", "echo plateau minimap locked marker")
@@ -36,6 +36,7 @@ func run(root_window: Window) -> void:
 	host._expect_array_has(initial_map_labels, "风蚀\n未解锁", "wind cut conduit minimap locked marker")
 	host._expect_array_has(initial_map_labels, "锁相\n未解锁", "phase lock frame minimap locked marker")
 	host._expect_array_has(initial_map_labels, "锚定\n未解锁", "anchor bridge minimap locked marker")
+	host._expect_array_has(initial_map_labels, "核心\n未解锁", "demo stabilization core minimap locked marker")
 	marker_world.unlock_region("region.crystal_vein_field")
 	host._expect_text_contains(
 		presenter.format_region_markers(marker_world, "quest.scout_crystal_field"),
@@ -221,12 +222,29 @@ func run(root_window: Window) -> void:
 		"基地：西侧，目标",
 		"resolved frontline window points map target back to base while player is still in front line"
 	)
+	var completed_window_review_world := WorldState.create_default()
+	completed_window_review_world.current_region_id = "region.outpost_platform"
+	completed_window_review_world.unlock_region("region.phase_well_tether")
+	completed_window_review_world.set_base_action_state_value(
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_COUNT_KEY,
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_LIMIT + 1
+	)
+	host._expect_text_contains(
+		presenter.format_region_markers(completed_window_review_world, ""),
+		"核心：更东，目标",
+		"completed frontline window review targets demo stabilization core on map"
+	)
+	host._expect_array_has(
+		presenter.format_map_marker_labels(completed_window_review_world, ""),
+		"核心\n目标",
+		"completed frontline window review marks demo stabilization core as minimap target"
+	)
 
 	var hud := PrototypeHudScene.instantiate() as PrototypeHud
 	root_window.add_child(hud)
 	hud._ensure_runtime_nodes()
-	host._expect_equal(hud.map_marker_rects.size(), 11, "prototype hud runtime map marker count includes phase well tether")
-	host._expect_equal(hud.map_marker_labels.size(), 11, "prototype hud runtime map label count includes phase well tether")
+	host._expect_equal(hud.map_marker_rects.size(), 12, "prototype hud runtime map marker count includes demo stabilization core")
+	host._expect_equal(hud.map_marker_labels.size(), 12, "prototype hud runtime map label count includes demo stabilization core")
 	if hud.get_node_or_null("MapPanel/PhaseWellFrameMarker") == null:
 		host.failures.append("prototype hud scene should include phase well frame marker node")
 	if hud.get_node_or_null("MapPanel/PhaseWellFrameLabel") == null:
@@ -235,6 +253,10 @@ func run(root_window: Window) -> void:
 		host.failures.append("prototype hud scene should include phase well tether marker node")
 	if hud.get_node_or_null("MapPanel/PhaseWellTetherLabel") == null:
 		host.failures.append("prototype hud scene should include phase well tether label node")
+	if hud.get_node_or_null("MapPanel/DemoStabilizationCoreMarker") == null:
+		host.failures.append("prototype hud scene should include demo stabilization core marker node")
+	if hud.get_node_or_null("MapPanel/DemoStabilizationCoreLabel") == null:
+		host.failures.append("prototype hud scene should include demo stabilization core label node")
 	hud._set_control_rect(hud.map_panel, Vector2.ZERO, Vector2(448.0, 208.0))
 	hud._layout_map_panel_contents()
 	for label in hud.map_marker_labels:

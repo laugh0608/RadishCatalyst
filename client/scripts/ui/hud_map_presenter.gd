@@ -120,6 +120,11 @@ func _get_region_marker_data() -> Array[Dictionary]:
 			"region_id": "region.phase_well_tether",
 			"label": "锚定",
 			"direction": "更东"
+		},
+		{
+			"region_id": "region.demo_stabilization_core",
+			"label": "核心",
+			"direction": "更东"
 		}
 	]
 
@@ -168,6 +173,8 @@ func _get_runtime_followup_region_id(world_state: WorldState) -> String:
 	var dispatch_route_region_id := BaseActionDispatchPlan.get_route_target_region_id(world_state)
 	if not dispatch_route_region_id.is_empty():
 		return dispatch_route_region_id
+	if _has_completed_frontline_window_review(world_state):
+		return "region.demo_stabilization_core"
 	if world_state.quest_state.has_completed_quest("quest.calibrate_phase_well_stability_window"):
 		return ""
 	if world_state.quest_state.has_completed_quest("quest.analyze_phase_well_echo_shard"):
@@ -194,3 +201,13 @@ func _get_runtime_followup_region_id(world_state: WorldState) -> String:
 	):
 		return "region.deep_ruin_threshold"
 	return ""
+
+
+func _has_completed_frontline_window_review(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	var review_count = world_state.get_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_COUNT_KEY, null)
+	if review_count != null:
+		return int(review_count) > BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_LIMIT
+	var archived_feedback := String(world_state.get_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY, ""))
+	return not archived_feedback.is_empty()

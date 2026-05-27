@@ -441,6 +441,8 @@
   "region.phase_well_frame.desc": "疑似用于压住异常相位的旧设施框架，说明这里曾经有系统试图稳定星球反应。",
   "region.phase_well_tether.name": "锚定桥",
   "region.phase_well_tether.desc": "连接前线稳定窗口与核心稳定工程的高风险桥区，前线行动结果会在这里回写到基地计划。",
+  "region.demo_stabilization_core.name": "核心稳定站",
+  "region.demo_stabilization_core.desc": "首版 demo 的稳定工程终点，前线高压窗口数据会在这里写入核心设备并打开后续稳定通道。",
     "map_object.crystal_cluster.name": "晶体簇",
     "map_object.crystal_cluster.desc": "可采集晶体矿物的矿脉节点。",
     "map_object.rich_crystal_vein.name": "富晶残脉",

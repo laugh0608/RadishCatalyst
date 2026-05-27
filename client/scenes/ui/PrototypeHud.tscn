@@ -563,6 +563,23 @@ label_settings = SubResource("LabelSettings_status")
 horizontal_alignment = 1
 autowrap_mode = 3
 
+[node name="DemoStabilizationCoreMarker" type="ColorRect" parent="MapPanel"]
+offset_left = 458.0
+offset_top = 86.0
+offset_right = 478.0
+offset_bottom = 108.0
+color = Color(0.7, 0.86, 0.82, 1)
+
+[node name="DemoStabilizationCoreLabel" type="Label" parent="MapPanel"]
+offset_left = 430.0
+offset_top = 118.0
+offset_right = 486.0
+offset_bottom = 166.0
+text = "核心"
+label_settings = SubResource("LabelSettings_status")
+horizontal_alignment = 1
+autowrap_mode = 3
+
 [node name="PromptPanel" type="ColorRect" parent="."]
 anchor_left = 0.0
 anchor_right = 0.0

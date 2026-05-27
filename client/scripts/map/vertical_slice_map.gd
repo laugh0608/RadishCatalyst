@@ -10,9 +10,9 @@ const PLAYER_INTERACTION_RANGE := 96.0
 const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
 const OUTPOST_RESPAWN_POSITION := Vector2(-250, -48)
 const PLAY_BOUNDS_MIN := Vector2(-360, -200)
-const PLAY_BOUNDS_MAX := Vector2(3600, 200)
+const PLAY_BOUNDS_MAX := Vector2(4200, 200)
 const CAMERA_BOUNDS_MIN := Vector2(-620, -360)
-const CAMERA_BOUNDS_MAX := Vector2(3620, 360)
+const CAMERA_BOUNDS_MAX := Vector2(4220, 360)
 const CRYSTAL_REGION_X := -70.0
 const CRYSTAL_GATE_RETURN_X := -85.0
 const POLLUTION_REGION_X := 200.0
@@ -30,6 +30,7 @@ const PHASE_WELL_CHAMBER_REGION_X := 2040.0
 const PHASE_WELL_LOOM_REGION_X := 2320.0
 const PHASE_WELL_FRAME_REGION_X := 2600.0
 const PHASE_WELL_TETHER_REGION_X := 2880.0
+const DEMO_STABILIZATION_CORE_REGION_X := 3640.0
 const DEEP_RUIN_GATE_RETURN_X := 676.0
 const INNER_PHASE_WELL_GATE_RETURN_X := 1432.0
 const PHASE_WELL_SINK_GATE_RETURN_X := 1732.0
@@ -37,6 +38,7 @@ const PHASE_WELL_CHAMBER_GATE_RETURN_X := 2012.0
 const PHASE_WELL_LOOM_GATE_RETURN_X := 2292.0
 const PHASE_WELL_FRAME_GATE_RETURN_X := 2572.0
 const PHASE_WELL_TETHER_GATE_RETURN_X := 2852.0
+const DEMO_STABILIZATION_CORE_GATE_RETURN_X := 3612.0
 const PHASE_RELAY_PAD_FALLBACK_POSITION := Vector2(-210, -40)
 const PHASE_RETURN_ANCHOR_FALLBACK_POSITION := Vector2(852, 92)
 const INTERACTABLE_QUEST_GATES := {
@@ -708,6 +710,11 @@ func apply_region_gate_bounds(world_state: WorldState) -> String:
 		player.position.x = PHASE_WELL_TETHER_GATE_RETURN_X
 		player.stop_positive_x_until_release()
 		return "井系桥断面仍未稳定：先回基地解析相位井结核，再带着新的井系定桩回来继续向东推进。"
+
+	if not world_state.unlocked_region_ids.has("region.demo_stabilization_core") and player.position.x > DEMO_STABILIZATION_CORE_GATE_RETURN_X:
+		player.position.x = DEMO_STABILIZATION_CORE_GATE_RETURN_X
+		player.stop_positive_x_until_release()
+		return "核心稳定站仍未接管：先完成锚定桥稳定窗口和高压窗口归档。"
 
 	return ""
 func _get_display_name(definition_id: String) -> String:
@@ -1388,6 +1395,8 @@ func _get_interactable_region_id(instance_id: String, fallback_region_id: String
 func _get_enemy_instance_id(enemy: PrototypeEnemy) -> String:
 	return "enemy_instance.%s" % String(enemy.name).to_snake_case()
 func _get_region_id_for_position(map_position: Vector2) -> String:
+	if map_position.x >= DEMO_STABILIZATION_CORE_REGION_X:
+		return "region.demo_stabilization_core"
 	if map_position.x >= PHASE_WELL_TETHER_REGION_X:
 		return "region.phase_well_tether"
 	if map_position.x >= PHASE_WELL_FRAME_REGION_X:

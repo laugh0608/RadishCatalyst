@@ -162,11 +162,14 @@ function Get-NodeVector2($Properties, [string]$Key) {
     }
 }
 
-function Get-MapRegionId($Position, [double]$CrystalRegionX, [double]$PollutionRegionX, [double]$PollutionDeepY, [double]$RuinOuterRingX, [double]$DeepRuinRegionX, [double]$InnerPhaseWellRegionX, [double]$PhaseWellSinkRegionX, [double]$PhaseWellChamberRegionX, [double]$PhaseWellLoomRegionX, [double]$PhaseWellFrameRegionX, [double]$PhaseWellTetherRegionX) {
+function Get-MapRegionId($Position, [double]$CrystalRegionX, [double]$PollutionRegionX, [double]$PollutionDeepY, [double]$RuinOuterRingX, [double]$DeepRuinRegionX, [double]$InnerPhaseWellRegionX, [double]$PhaseWellSinkRegionX, [double]$PhaseWellChamberRegionX, [double]$PhaseWellLoomRegionX, [double]$PhaseWellFrameRegionX, [double]$PhaseWellTetherRegionX, [double]$DemoStabilizationCoreRegionX) {
     if ($null -eq $Position) {
         return ""
     }
 
+    if ($Position.X -ge $DemoStabilizationCoreRegionX) {
+        return "region.demo_stabilization_core"
+    }
     if ($Position.X -ge $PhaseWellTetherRegionX) {
         return "region.phase_well_tether"
     }
@@ -469,6 +472,7 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
     $phaseWellLoomRegionX = 2320.0
     $phaseWellFrameRegionX = 2600.0
     $phaseWellTetherRegionX = 2880.0
+    $demoStabilizationCoreRegionX = 3640.0
     if (Test-Path -LiteralPath $verticalSliceMapScriptPath -PathType Leaf) {
         $mapScriptContent = Get-Content -LiteralPath $verticalSliceMapScriptPath -Raw
         $crystalRegionX = Get-GDScriptConstantNumber $mapScriptContent "CRYSTAL_REGION_X" $crystalRegionX
@@ -482,6 +486,7 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
         $phaseWellLoomRegionX = Get-GDScriptConstantNumber $mapScriptContent "PHASE_WELL_LOOM_REGION_X" $phaseWellLoomRegionX
         $phaseWellFrameRegionX = Get-GDScriptConstantNumber $mapScriptContent "PHASE_WELL_FRAME_REGION_X" $phaseWellFrameRegionX
         $phaseWellTetherRegionX = Get-GDScriptConstantNumber $mapScriptContent "PHASE_WELL_TETHER_REGION_X" $phaseWellTetherRegionX
+        $demoStabilizationCoreRegionX = Get-GDScriptConstantNumber $mapScriptContent "DEMO_STABILIZATION_CORE_REGION_X" $demoStabilizationCoreRegionX
     }
     else {
         Add-Error "client/scripts/map/vertical_slice_map.gd: missing map region source for scene region checks"
@@ -519,7 +524,7 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
                 DefinitionId = Get-NodeString $node.Properties "definition_id"
                 InteractionType = Get-NodeString $node.Properties "interaction_type"
                 PrerequisiteInstanceId = Get-NodeString $node.Properties "prerequisite_instance_id"
-                RegionId = Get-MapRegionId $position $crystalRegionX $pollutionRegionX $pollutionDeepY $ruinOuterRingX $deepRuinRegionX $innerPhaseWellRegionX $phaseWellSinkRegionX $phaseWellChamberRegionX $phaseWellLoomRegionX $phaseWellFrameRegionX $phaseWellTetherRegionX
+                RegionId = Get-MapRegionId $position $crystalRegionX $pollutionRegionX $pollutionDeepY $ruinOuterRingX $deepRuinRegionX $innerPhaseWellRegionX $phaseWellSinkRegionX $phaseWellChamberRegionX $phaseWellLoomRegionX $phaseWellFrameRegionX $phaseWellTetherRegionX $demoStabilizationCoreRegionX
             }
             $interactables.Add($interactable)
             $interactablesByInstanceId[$instanceId] = $interactable
@@ -530,7 +535,7 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
             $enemies.Add([pscustomobject]@{
                 Name = $node.Name
                 DefinitionId = Get-NodeString $node.Properties "definition_id"
-                RegionId = Get-MapRegionId $position $crystalRegionX $pollutionRegionX $pollutionDeepY $ruinOuterRingX $deepRuinRegionX $innerPhaseWellRegionX $phaseWellSinkRegionX $phaseWellChamberRegionX $phaseWellLoomRegionX $phaseWellFrameRegionX $phaseWellTetherRegionX
+                RegionId = Get-MapRegionId $position $crystalRegionX $pollutionRegionX $pollutionDeepY $ruinOuterRingX $deepRuinRegionX $innerPhaseWellRegionX $phaseWellSinkRegionX $phaseWellChamberRegionX $phaseWellLoomRegionX $phaseWellFrameRegionX $phaseWellTetherRegionX $demoStabilizationCoreRegionX
             })
         }
     }

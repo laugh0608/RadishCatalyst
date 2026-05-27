@@ -96,7 +96,8 @@ var last_debug_character_state: CharacterState
 	$MapPanel/PhaseWellChamberMarker,
 	$MapPanel/PhaseWellLoomMarker,
 	$MapPanel/PhaseWellFrameMarker,
-	$MapPanel/PhaseWellTetherMarker
+	$MapPanel/PhaseWellTetherMarker,
+	$MapPanel/DemoStabilizationCoreMarker
 ]
 @onready var map_marker_labels: Array[Label] = [
 	$MapPanel/OutpostLabel,
@@ -109,7 +110,8 @@ var last_debug_character_state: CharacterState
 	$MapPanel/PhaseWellChamberLabel,
 	$MapPanel/PhaseWellLoomLabel,
 	$MapPanel/PhaseWellFrameLabel,
-	$MapPanel/PhaseWellTetherLabel
+	$MapPanel/PhaseWellTetherLabel,
+	$MapPanel/DemoStabilizationCoreLabel
 ]
 @onready var device_title_label: Label = $DevicePanel/DeviceTitleLabel
 @onready var device_status_label: Label = $DevicePanel/DeviceStatusLabel
@@ -595,7 +597,8 @@ func _ensure_runtime_nodes() -> void:
 			get_node_or_null("MapPanel/PhaseWellChamberMarker"),
 			get_node_or_null("MapPanel/PhaseWellLoomMarker"),
 			get_node_or_null("MapPanel/PhaseWellFrameMarker"),
-			get_node_or_null("MapPanel/PhaseWellTetherMarker")
+			get_node_or_null("MapPanel/PhaseWellTetherMarker"),
+			get_node_or_null("MapPanel/DemoStabilizationCoreMarker")
 		]
 	if map_marker_labels.is_empty() or map_marker_labels[0] == null:
 		map_marker_labels = [
@@ -609,7 +612,8 @@ func _ensure_runtime_nodes() -> void:
 			get_node_or_null("MapPanel/PhaseWellChamberLabel"),
 			get_node_or_null("MapPanel/PhaseWellLoomLabel"),
 			get_node_or_null("MapPanel/PhaseWellFrameLabel"),
-			get_node_or_null("MapPanel/PhaseWellTetherLabel")
+			get_node_or_null("MapPanel/PhaseWellTetherLabel"),
+			get_node_or_null("MapPanel/DemoStabilizationCoreLabel")
 		]
 	if device_title_label == null:
 		device_title_label = get_node_or_null("DevicePanel/DeviceTitleLabel")
@@ -820,7 +824,7 @@ func _layout_map_panel_contents() -> void:
 	var step := 0.0
 	if marker_count > 1:
 		step = usable_width / float(marker_count - 1)
-	var label_width := maxf(54.0, step + 18.0)
+	var label_width := maxf(46.0, step + 12.0)
 	var first_center_x := left_margin + marker_size.x * 0.5
 	var last_center_x := first_center_x
 

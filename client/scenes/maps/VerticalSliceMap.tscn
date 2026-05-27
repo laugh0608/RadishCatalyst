@@ -11,7 +11,7 @@ script = ExtResource("1_map")
 [node name="Background" type="ColorRect" parent="."]
 offset_left = -620.0
 offset_top = -360.0
-offset_right = 3240.0
+offset_right = 4220.0
 offset_bottom = 360.0
 color = Color(0.101961, 0.133333, 0.141176, 1)
 
@@ -88,9 +88,16 @@ color = Color(0.313726, 0.211765, 0.164706, 1)
 [node name="RegionPhaseWellTether" type="ColorRect" parent="."]
 offset_left = 2880.0
 offset_top = -200.0
-offset_right = 3600.0
+offset_right = 3640.0
 offset_bottom = 200.0
 color = Color(0.337255, 0.235294, 0.184314, 1)
+
+[node name="RegionDemoStabilizationCore" type="ColorRect" parent="."]
+offset_left = 3640.0
+offset_top = -200.0
+offset_right = 4200.0
+offset_bottom = 200.0
+color = Color(0.211765, 0.317647, 0.294118, 1)
 
 [node name="BaseDirectionLabel" type="Label" parent="."]
 offset_left = -342.0
@@ -175,9 +182,17 @@ horizontal_alignment = 1
 [node name="PhaseWellTetherDirectionLabel" type="Label" parent="."]
 offset_left = 2892.0
 offset_top = 166.0
-offset_right = 3592.0
+offset_right = 3632.0
 offset_bottom = 192.0
-text = "→ 井系桥断面"
+text = "→ 锚定桥"
+horizontal_alignment = 1
+
+[node name="DemoStabilizationCoreDirectionLabel" type="Label" parent="."]
+offset_left = 3652.0
+offset_top = 166.0
+offset_right = 4192.0
+offset_bottom = 192.0
+text = "→ 核心稳定站"
 horizontal_alignment = 1
 
 [node name="Player" parent="." instance=ExtResource("2_player")]

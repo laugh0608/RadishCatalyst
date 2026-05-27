@@ -241,6 +241,20 @@
       "recommended_equipment": ["equipment.filter_module_t1"],
       "quest_refs": ["quest.deploy_phase_relay_anchor", "quest.analyze_phase_well_knot_core", "quest.collect_tether_fiber", "quest.inspect_phase_well_tether", "quest.analyze_phase_well_anchor_core", "quest.stabilize_phase_well_anchor_field", "quest.calibrate_phase_well_stability_window", "quest.survey_stability_echo_probe", "quest.inspect_supply_return_marker", "quest.inspect_route_signal_marker", "quest.inspect_steady_supply_drop", "quest.inspect_phase_survey_nodes", "quest.clear_pressure_frontline_hazard"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "region.demo_stabilization_core",
+      "display_name_key": "region.demo_stabilization_core.name",
+      "description_key": "region.demo_stabilization_core.desc",
+      "planet_or_world": "world.slice_01",
+      "biome_type": "demo_stabilization_core",
+      "danger_level": 11,
+      "resources": ["item.phase_well_stability_readout"],
+      "pollution_types": ["pollution.yellow_residue"],
+      "weather_pool": ["weather.acid_mist"],
+      "recommended_equipment": ["equipment.filter_module_t1"],
+      "quest_refs": [],
+      "public_level": "spoiler"
     }
   ]
 }
