@@ -32,7 +32,7 @@ color = Color(0.14902, 0.211765, 0.301961, 1)
 [node name="RegionPollution" type="ColorRect" parent="."]
 offset_left = 240.0
 offset_top = -40.0
-offset_right = 360.0
+offset_right = 380.0
 offset_bottom = 200.0
 color = Color(0.258824, 0.247059, 0.12549, 1)
 
@@ -326,27 +326,27 @@ label_offset = Vector2(-78, 22)
 label_size = Vector2(156, 24)
 
 [node name="PollutionResidue" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(265, 30)
+position = Vector2(274, 74)
 definition_id = "map_object.pollution_residue_patch"
 interaction_type = "gather"
 label_offset = Vector2(-68, 22)
 
 [node name="RoughGroundNorth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(220, -150)
+position = Vector2(250, -150)
 definition_id = "map_object.rough_ground"
 interaction_type = "clear"
 label_offset = Vector2(-92, -52)
 label_size = Vector2(184, 24)
 
 [node name="RoughGroundSouth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(286, -150)
+position = Vector2(330, -150)
 definition_id = "map_object.rough_ground"
 interaction_type = "clear"
 label_offset = Vector2(-92, -52)
 label_size = Vector2(184, 24)
 
 [node name="FoundationSiteNorth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(220, -104)
+position = Vector2(250, -104)
 definition_id = "building.foundation_t1"
 interaction_type = "build"
 recipe_id = ""
@@ -355,7 +355,7 @@ label_offset = Vector2(-96, 22)
 label_size = Vector2(192, 24)
 
 [node name="FoundationSiteSouth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(286, -104)
+position = Vector2(330, -104)
 definition_id = "building.foundation_t1"
 interaction_type = "build"
 recipe_id = ""
@@ -364,7 +364,7 @@ label_offset = Vector2(-96, 22)
 label_size = Vector2(192, 24)
 
 [node name="PollutionFilterBuildSite" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(253, -104)
+position = Vector2(290, -104)
 definition_id = "building.pollution_filter"
 interaction_type = "build"
 recipe_id = ""
@@ -372,7 +372,7 @@ label_offset = Vector2(-88, -54)
 label_size = Vector2(176, 24)
 
 [node name="PollutionFilter" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(253, -104)
+position = Vector2(290, -104)
 definition_id = "building.pollution_filter"
 interaction_type = "process_recipe"
 recipe_id = "recipe.cleanse_residue"
@@ -381,7 +381,7 @@ label_offset = Vector2(-88, -54)
 label_size = Vector2(176, 24)
 
 [node name="RuinGate" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(342, -10)
+position = Vector2(368, 16)
 definition_id = "map_object.ruin_gate"
 interaction_type = "inspect"
 single_use = false
@@ -893,12 +893,19 @@ label_offset = Vector2(-112, -52)
 label_size = Vector2(224, 24)
 
 [node name="DemoStabilizationCore" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(3940, -20)
+position = Vector2(4038, -24)
 definition_id = "map_object.demo_stabilization_core"
 interaction_type = "inspect"
 single_use = false
 label_offset = Vector2(-112, 24)
 label_size = Vector2(224, 24)
+
+[node name="DemoStabilizationRecoveryWreckage" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3744, 112)
+definition_id = "map_object.demo_stabilization_recovery_cache"
+interaction_type = "gather"
+label_offset = Vector2(-82, 22)
+label_size = Vector2(164, 24)
 
 [node name="Enemies" type="Node2D" parent="."]
 
@@ -911,11 +918,11 @@ position = Vector2(222, -58)
 definition_id = "enemy.treatment_skitter"
 
 [node name="PollutedSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
-position = Vector2(302, 112)
+position = Vector2(318, 126)
 definition_id = "enemy.polluted_skitter"
 
 [node name="EliteResidueNode" parent="Enemies" instance=ExtResource("4_enemy")]
-position = Vector2(330, 66)
+position = Vector2(358, 92)
 definition_id = "enemy.elite_residue_node"
 
 [node name="RuinPhaseGuard" parent="Enemies" instance=ExtResource("4_enemy")]
@@ -971,5 +978,5 @@ position = Vector2(3352, 24)
 definition_id = "enemy.pressure_clearance_guard"
 
 [node name="DemoStabilizationGuard" parent="Enemies" instance=ExtResource("4_enemy")]
-position = Vector2(3800, 24)
+position = Vector2(3870, 18)
 definition_id = "enemy.demo_stabilization_guard"

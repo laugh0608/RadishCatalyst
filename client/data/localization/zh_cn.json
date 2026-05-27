@@ -601,6 +601,8 @@
   "map_object.pressure_clearance_node.desc": "井系桥前线新显出的高压扰点，清除后可带回压力清障回执。",
   "map_object.prepared_frontline_window.name": "整备异常窗口",
   "map_object.prepared_frontline_window.desc": "井系桥前线的共享异常窗口，会根据本次已确认整备计划呈现不同目标和反馈。",
+  "map_object.demo_stabilization_recovery_cache.name": "核心站补给缓存",
+  "map_object.demo_stabilization_recovery_cache.desc": "核心稳定站侧边残留的应急补给，可在写入核心设备前补一次修复资源。",
   "map_object.demo_stabilization_core.name": "核心稳定设备",
   "map_object.demo_stabilization_core.desc": "核心稳定站中央的写入设备，必须先击败阶段守卫，才能接收锚定桥稳窗与高压窗口数据。",
   "enemy.demo_stabilization_guard.name": "核心阶段守卫",

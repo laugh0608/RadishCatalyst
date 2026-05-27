@@ -549,6 +549,28 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
         }
     }
 
+    $demoCore = $interactables | Where-Object { $_.Name -eq "DemoStabilizationCore" } | Select-Object -First 1
+    $demoRecovery = $interactables | Where-Object { $_.Name -eq "DemoStabilizationRecoveryWreckage" } | Select-Object -First 1
+    $demoGuard = $enemies | Where-Object { $_.Name -eq "DemoStabilizationGuard" } | Select-Object -First 1
+    if ($null -eq $demoCore) {
+        Add-Error "client/scenes/maps/VerticalSliceMap.tscn: missing demo stabilization core device"
+    }
+    elseif ($demoCore.RegionId -ne "region.demo_stabilization_core") {
+        Add-Error "client/scenes/maps/VerticalSliceMap.tscn: demo stabilization core device must sit in demo stabilization core region"
+    }
+    if ($null -eq $demoRecovery) {
+        Add-Error "client/scenes/maps/VerticalSliceMap.tscn: missing demo stabilization side recovery point"
+    }
+    elseif ($demoRecovery.RegionId -ne "region.demo_stabilization_core") {
+        Add-Error "client/scenes/maps/VerticalSliceMap.tscn: demo stabilization recovery point must sit in demo stabilization core region"
+    }
+    if ($null -eq $demoGuard) {
+        Add-Error "client/scenes/maps/VerticalSliceMap.tscn: missing demo stabilization guard"
+    }
+    elseif ($demoGuard.RegionId -ne "region.demo_stabilization_core") {
+        Add-Error "client/scenes/maps/VerticalSliceMap.tscn: demo stabilization guard must sit in demo stabilization core region"
+    }
+
     if ((Test-Path -LiteralPath $gameRootScenePath -PathType Leaf) -and $null -ne $playerPosition -and $null -ne $outpostCorePosition -and $null -ne $panelsByName) {
         $gameRootContent = Get-Content -LiteralPath $gameRootScenePath -Raw
         $gameRootNodes = Get-SceneNodes $gameRootContent
