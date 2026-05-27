@@ -420,16 +420,18 @@ func _check_status_panel_summary() -> void:
 	var status_text := presenter.format_status_text(data_registry, status_world, status_character)
 	_expect_text_contains(status_text, "目标：恢复前哨", "status keeps current goal")
 	_expect_text_contains(status_text, "进度：交互 前哨核心 0/1", "status keeps objective progress")
-	_expect_text_contains(status_text, "状态：生命 100 / 100；防护 100 / 100", "status keeps health and protection")
+	_expect_text_contains(status_text, "关键资源：基础零件x4", "status keeps contextual key resources")
+	_expect_text_contains(status_text, "基地摘要", "status groups base summary")
+	_expect_text_contains(status_text, "角色状态", "status groups character summary")
+	_expect_text_contains(status_text, "生命 / 防护：100 / 100；100 / 100", "status keeps health and protection")
 	_expect_text_contains(status_text, "快捷栏：1 修复凝胶x1", "status keeps quick slots")
-	_expect_text_contains(status_text, "关键物资：基础零件x4", "status keeps key resources")
+	_expect_text_contains(status_text, "模块：基础多用工具；基础防护服；未装模块", "status keeps equipment summary")
 	var reentry_world := WorldState.create_default()
 	reentry_world.current_region_id = "region.outpost_platform"
 	reentry_world.quest_state.active_quest_ids = ["quest.reenter_phase_frontline"]
 	var reentry_text := presenter.format_status_text(data_registry, reentry_world, status_character)
 	_expect_text_contains(reentry_text, "目标：从回投台重返前线", "status shows relay reentry goal name")
 	_expect_text_contains(reentry_text, "检查 相位回投台 0/1", "status shows relay reentry objective progress")
-	_expect_text_missing(status_text, "模块：", "status folds module state into pollution line")
 	_expect_text_missing(status_text, "区域：", "status removes minimap region duplicate")
 	_expect_text_missing(status_text, "方向：", "status removes minimap direction duplicate")
 	var relay_world := WorldState.create_default()
@@ -460,7 +462,7 @@ func _check_status_panel_summary() -> void:
 	_expect_text_missing(status_text, "提示：", "status removes onboarding duplicate")
 	_expect_text_missing(status_text, "坐标：", "status removes debug coordinate duplicate")
 	_expect_text_missing(status_text, "背包：", "status removes full inventory duplicate")
-	if status_text.split("\n").size() > 8:
+	if status_text.split("\n").size() > 12:
 		failures.append("status panel should stay compact, got %d lines: %s" % [status_text.split("\n").size(), status_text])
 	var calibration_world := WorldState.create_default()
 	calibration_world.quest_state.active_quest_ids = ["quest.calibrate_reactor"]

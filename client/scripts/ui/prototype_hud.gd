@@ -235,7 +235,7 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 	last_debug_character_state = character_state
 	var active_quest_id := _get_active_quest_id(world_state)
 	if status_label != null:
-		status_label.text = status_presenter.format_objective_text(data_registry, world_state)
+		status_label.text = status_presenter.format_objective_text(data_registry, world_state, character_state)
 	if vitals_label != null:
 		vitals_label.text = status_presenter.format_vitals_text(data_registry, world_state, character_state)
 	_update_runtime_hint(world_state, character_state, active_quest_id)
@@ -714,8 +714,8 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	var map_height := 208.0
 	var objective_width := clampf(viewport_size.x * 0.28, 400.0, 520.0)
 	var objective_height := 180.0
-	var vitals_width := clampf(viewport_size.x * 0.24, 360.0, 440.0)
-	var vitals_height := 168.0
+	var vitals_width := clampf(viewport_size.x * 0.28, 420.0, 500.0)
+	var vitals_height := 248.0
 	var prompt_width := clampf(viewport_size.x * 0.40, 680.0, 820.0)
 	var prompt_height := 192.0
 	var log_width := prompt_width

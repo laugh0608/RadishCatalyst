@@ -410,7 +410,7 @@ if (Test-Path -LiteralPath $projectPath -PathType Leaf) {
                     }
                 }
                 "VitalsPanel" {
-                    if ($width -gt 460.0 -or $height -gt 200.0 -or $rect.Top -gt 40.0 -or $rect.Left -lt ($viewportWidth - 540.0) -or $rect.Right -gt $viewportWidth) {
+                    if ($width -gt 520.0 -or $height -gt 260.0 -or $rect.Top -gt 40.0 -or $rect.Left -lt ($viewportWidth - 560.0) -or $rect.Right -gt $viewportWidth) {
                         Add-Error "client/scenes/ui/PrototypeHud.tscn: VitalsPanel drifted out of distributed HUD vitals-card bounds"
                     }
                 }

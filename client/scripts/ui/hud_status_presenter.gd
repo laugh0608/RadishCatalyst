@@ -79,6 +79,7 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 	"fluid.polluted_slurry"
 ]
 const MAX_VISIBLE_KEY_RESOURCE_COUNT := 2
+const MAX_CONTEXT_RESOURCE_COUNT := 3
 
 var objective_source_resolver: QuestObjectiveSourceResolver
 var objective_source_registry: DataRegistry
@@ -88,21 +89,38 @@ func format_status_text(data_registry: DataRegistry, world_state: WorldState, ch
 	_ensure_objective_source_resolver(data_registry)
 	var active_quest_id := _get_active_quest_id(world_state)
 	return "\n".join(
-		["前哨状态"]
+		["当前目标"]
 		+ _format_objective_lines(data_registry, world_state, active_quest_id)
-		+ _format_vital_lines(data_registry, world_state, character_state)
+		+ _format_key_resource_lines(data_registry, world_state, character_state, active_quest_id)
+		+ ["基地摘要"]
+		+ _format_base_summary_lines(data_registry, world_state, character_state, active_quest_id)
+		+ ["角色状态"]
+		+ _format_character_lines(data_registry, world_state, character_state)
 	)
 
 
-func format_objective_text(data_registry: DataRegistry, world_state: WorldState) -> String:
+func format_objective_text(
+	data_registry: DataRegistry,
+	world_state: WorldState,
+	character_state: CharacterState = null
+) -> String:
 	_ensure_objective_source_resolver(data_registry)
 	var active_quest_id := _get_active_quest_id(world_state)
-	return "\n".join(["当前目标"] + _format_objective_lines(data_registry, world_state, active_quest_id))
+	return "\n".join(
+		["当前目标"]
+		+ _format_objective_lines(data_registry, world_state, active_quest_id)
+		+ _format_key_resource_lines(data_registry, world_state, character_state, active_quest_id)
+	)
 
 
 func format_vitals_text(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> String:
 	_ensure_objective_source_resolver(data_registry)
-	return "\n".join(_format_vital_lines(data_registry, world_state, character_state))
+	return "\n".join(
+		["基地摘要"]
+		+ _format_base_summary_lines(data_registry, world_state, character_state, _get_active_quest_id(world_state))
+		+ ["角色状态"]
+		+ _format_character_lines(data_registry, world_state, character_state)
+	)
 
 
 func format_pollution_status(
@@ -156,13 +174,13 @@ func _format_objective_lines(
 	]
 
 
-func _format_vital_lines(
+func _format_character_lines(
 	data_registry: DataRegistry,
 	world_state: WorldState,
 	character_state: CharacterState
 ) -> Array[String]:
 	return [
-		"状态：生命 %.0f / %.0f；防护 %.0f / %.0f" % [
+		"生命 / 防护：%.0f / %.0f；%.0f / %.0f" % [
 			character_state.health,
 			character_state.max_health,
 			character_state.protection,
@@ -170,8 +188,44 @@ func _format_vital_lines(
 		],
 		"污染：%s" % format_pollution_status(data_registry, world_state, character_state),
 		"快捷栏：%s" % _format_quick_slots(data_registry, character_state),
-		"关键物资：%s" % _format_key_resources(data_registry, character_state.inventory)
+		"模块：%s" % _format_equipment_summary(data_registry, character_state)
 	]
+
+
+func _format_key_resource_lines(
+	data_registry: DataRegistry,
+	world_state: WorldState,
+	character_state: CharacterState,
+	active_quest_id: String
+) -> Array[String]:
+	return ["关键资源：%s" % _format_contextual_key_resources(
+		data_registry,
+		world_state,
+		character_state,
+		active_quest_id
+	)]
+
+
+func _format_base_summary_lines(
+	data_registry: DataRegistry,
+	world_state: WorldState,
+	character_state: CharacterState,
+	active_quest_id: String
+) -> Array[String]:
+	var active_structure_summary := _format_active_base_structure(data_registry, world_state)
+	if not active_structure_summary.is_empty():
+		return [active_structure_summary]
+
+	var active_quest := data_registry.get_definition(active_quest_id)
+	if not active_quest.is_empty():
+		var craft_summary := _format_current_craft_summary(data_registry, active_quest, character_state, world_state)
+		if not craft_summary.is_empty():
+			return craft_summary
+		var build_summary := _format_current_build_summary(data_registry, active_quest, character_state)
+		if not build_summary.is_empty():
+			return build_summary
+
+	return ["设备：待命；当前目标先外出推进"]
 
 
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
@@ -237,11 +291,45 @@ func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, que
 	return "无"
 
 
-func _format_key_resources(data_registry: DataRegistry, inventory: InventoryState) -> String:
+func _format_contextual_key_resources(
+	data_registry: DataRegistry,
+	world_state: WorldState,
+	character_state: CharacterState,
+	active_quest_id: String
+) -> String:
+	var active_quest := data_registry.get_definition(active_quest_id)
+	var parts: Array[String] = []
+	var seen := {}
+	if not active_quest.is_empty():
+		for objective in active_quest.get("objectives", []):
+			if not objective is Dictionary:
+				continue
+			var objective_type := String(objective.get("type", ""))
+			var target_id := String(objective.get("target_id", ""))
+			var required_amount := float(objective.get("amount", 1.0))
+			if objective_type == "gather_item" or objective_type == "craft_item":
+				_append_objective_resource(parts, seen, data_registry, world_state, active_quest_id, objective_type, target_id, required_amount)
+			if objective_type == "craft_item":
+				var recipe := _find_recipe_for_output(data_registry, target_id)
+				_append_recipe_inputs(parts, seen, data_registry, character_state, recipe)
+			if objective_type == "build":
+				var building := data_registry.get_definition(target_id)
+				_append_cost_refs(parts, seen, data_registry, character_state, building.get("build_cost", []))
+			if parts.size() >= MAX_CONTEXT_RESOURCE_COUNT:
+				break
+
+	if parts.is_empty():
+		return _format_fallback_key_resources(data_registry, character_state)
+	return "；".join(parts.slice(0, MAX_CONTEXT_RESOURCE_COUNT))
+
+
+func _format_fallback_key_resources(data_registry: DataRegistry, character_state: CharacterState) -> String:
+	if character_state == null:
+		return "暂无"
 	var parts: Array[String] = []
 	var hidden_count := 0
 	for definition_id in STATUS_KEY_RESOURCE_IDS:
-		var amount := _get_inventory_amount(inventory, definition_id)
+		var amount := _get_inventory_amount(character_state.inventory, definition_id)
 		if amount <= 0.0:
 			continue
 		if parts.size() >= MAX_VISIBLE_KEY_RESOURCE_COUNT:
@@ -255,10 +343,200 @@ func _format_key_resources(data_registry: DataRegistry, inventory: InventoryStat
 	return "；".join(parts)
 
 
+func _append_objective_resource(
+	parts: Array[String],
+	seen: Dictionary,
+	data_registry: DataRegistry,
+	world_state: WorldState,
+	quest_id: String,
+	objective_type: String,
+	target_id: String,
+	required_amount: float
+) -> void:
+	if target_id.is_empty() or seen.has(target_id):
+		return
+	var current_amount := minf(
+		world_state.quest_state.get_objective_progress(quest_id, objective_type, target_id),
+		required_amount
+	)
+	parts.append("%s %s/%s" % [
+		_get_display_name(data_registry, target_id),
+		_format_amount(current_amount),
+		_format_amount(required_amount)
+	])
+	seen[target_id] = true
+
+
+func _append_recipe_inputs(
+	parts: Array[String],
+	seen: Dictionary,
+	data_registry: DataRegistry,
+	character_state: CharacterState,
+	recipe: Dictionary
+) -> void:
+	if character_state == null or recipe.is_empty():
+		return
+	_append_cost_refs(parts, seen, data_registry, character_state, recipe.get("inputs", []))
+
+
+func _append_cost_refs(
+	parts: Array[String],
+	seen: Dictionary,
+	data_registry: DataRegistry,
+	character_state: CharacterState,
+	refs: Array
+) -> void:
+	if character_state == null:
+		return
+	for ref in refs:
+		if not ref is Dictionary:
+			continue
+		var definition_id := String(ref.get("id", ""))
+		var required_amount := float(ref.get("amount", 0.0))
+		if definition_id.is_empty() or required_amount <= 0.0 or seen.has(definition_id):
+			continue
+		parts.append("%s %s/%s" % [
+			_get_display_name(data_registry, definition_id),
+			_format_amount(_get_inventory_amount(character_state.inventory, definition_id)),
+			_format_amount(required_amount)
+		])
+		seen[definition_id] = true
+		if parts.size() >= MAX_CONTEXT_RESOURCE_COUNT:
+			return
+
+
 func _get_inventory_amount(inventory: InventoryState, definition_id: String) -> float:
 	if definition_id.begins_with("fluid."):
 		return float(inventory.fluids.get(definition_id, 0.0))
+	if definition_id.begins_with("equipment."):
+		return float(inventory.equipment.get(definition_id, 0))
 	return float(inventory.items.get(definition_id, 0))
+
+
+func _format_active_base_structure(data_registry: DataRegistry, world_state: WorldState) -> String:
+	for structure in world_state.base_structures.values():
+		if not structure is Dictionary:
+			continue
+		if String(structure.get("status", "")) != "in_progress":
+			continue
+		var recipe_id := String(structure.get("active_recipe_id", ""))
+		var structure_name := _get_display_name(data_registry, String(structure.get("definition_id", "")))
+		return "设备：%s加工中 -> %s" % [structure_name, _get_display_name(data_registry, recipe_id)]
+	return ""
+
+
+func _format_current_craft_summary(
+	data_registry: DataRegistry,
+	active_quest: Dictionary,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> Array[String]:
+	for objective in active_quest.get("objectives", []):
+		if not objective is Dictionary:
+			continue
+		if String(objective.get("type", "")) != "craft_item":
+			continue
+		var target_id := String(objective.get("target_id", ""))
+		var recipe := _find_recipe_for_output(data_registry, target_id)
+		if recipe.is_empty():
+			continue
+		var missing_inputs := _format_missing_recipe_inputs(data_registry, recipe, character_state.inventory)
+		var recipe_name := _get_display_name(data_registry, String(recipe.get("id", "")))
+		var building_name := _get_display_name(data_registry, String(recipe.get("required_building_id", "")))
+		var line := "可制造：%s（%s）" % [recipe_name, building_name]
+		if not missing_inputs.is_empty():
+			line = "待制造：%s；缺 %s" % [recipe_name, missing_inputs]
+		var result := [line]
+		var output_summary := _format_refs(data_registry, recipe.get("outputs", []), "")
+		if not output_summary.is_empty():
+			result.append("完成后：获得 %s" % output_summary)
+		return result
+	return []
+
+
+func _format_current_build_summary(
+	data_registry: DataRegistry,
+	active_quest: Dictionary,
+	character_state: CharacterState
+) -> Array[String]:
+	for objective in active_quest.get("objectives", []):
+		if not objective is Dictionary:
+			continue
+		if String(objective.get("type", "")) != "build":
+			continue
+		var building_id := String(objective.get("target_id", ""))
+		var building := data_registry.get_definition(building_id)
+		if building.is_empty():
+			continue
+		var missing_costs := _format_missing_refs(data_registry, building.get("build_cost", []), character_state.inventory)
+		if missing_costs.is_empty():
+			return ["可建造：%s" % _get_display_name(data_registry, building_id)]
+		return ["待建造：%s；缺 %s" % [_get_display_name(data_registry, building_id), missing_costs]]
+	return []
+
+
+func _find_recipe_for_output(data_registry: DataRegistry, target_id: String) -> Dictionary:
+	if target_id.is_empty():
+		return {}
+	for recipe in data_registry.get_table("recipes"):
+		if not recipe is Dictionary:
+			continue
+		for output_ref in recipe.get("outputs", []):
+			if not output_ref is Dictionary:
+				continue
+			if String(output_ref.get("id", "")) == target_id:
+				return recipe
+	return {}
+
+
+func _format_missing_recipe_inputs(data_registry: DataRegistry, recipe: Dictionary, inventory: InventoryState) -> String:
+	return _format_missing_refs(data_registry, recipe.get("inputs", []), inventory)
+
+
+func _format_missing_refs(data_registry: DataRegistry, refs: Array, inventory: InventoryState) -> String:
+	var parts: Array[String] = []
+	for ref in refs:
+		if not ref is Dictionary:
+			continue
+		var definition_id := String(ref.get("id", ""))
+		var required_amount := float(ref.get("amount", 0.0))
+		if definition_id.is_empty() or required_amount <= 0.0:
+			continue
+		var shortage := required_amount - _get_inventory_amount(inventory, definition_id)
+		if shortage <= 0.0:
+			continue
+		parts.append("%s x%s" % [_get_display_name(data_registry, definition_id), _format_amount(shortage)])
+	if parts.is_empty():
+		return ""
+	return "，".join(parts)
+
+
+func _format_refs(data_registry: DataRegistry, refs: Array, empty_text: String = "无") -> String:
+	var parts: Array[String] = []
+	for ref in refs:
+		if not ref is Dictionary:
+			continue
+		var definition_id := String(ref.get("id", ""))
+		var amount := float(ref.get("amount", 0.0))
+		if definition_id.is_empty() or amount <= 0.0:
+			continue
+		parts.append("%s x%s" % [_get_display_name(data_registry, definition_id), _format_amount(amount)])
+	if parts.is_empty():
+		return empty_text
+	return "，".join(parts)
+
+
+func _format_equipment_summary(data_registry: DataRegistry, character_state: CharacterState) -> String:
+	var parts: Array[String] = [
+		_get_display_name(data_registry, String(character_state.equipment.get("tool", ""))),
+		_get_display_name(data_registry, String(character_state.equipment.get("suit", "")))
+	]
+	var suit_module_id := String(character_state.equipment.get("suit_module", ""))
+	if suit_module_id.is_empty():
+		parts.append("未装模块")
+	else:
+		parts.append(_get_display_name(data_registry, suit_module_id))
+	return "；".join(parts)
 
 
 func _format_quick_slots(data_registry: DataRegistry, character_state: CharacterState) -> String:
