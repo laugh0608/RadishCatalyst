@@ -15,6 +15,7 @@ func run_ui_and_recipe_checks() -> void:
 	_check_first_hour_guidance_copy()
 	_check_first_hour_content_density()
 	_check_first_hour_objective_milestones()
+	_check_first_hour_base_return_manufacturing_readability()
 	_check_development_baseline_presenter()
 	_check_demo_stabilization_baseline_status_panel()
 	_check_game_root_development_baseline_factory()
@@ -46,6 +47,56 @@ func _check_first_hour_guidance_copy() -> void:
 		"反应器校准、过滤模块和地基",
 		"crystal processing completion explains base use"
 	)
+
+
+func _check_first_hour_base_return_manufacturing_readability() -> void:
+	var processing := ProcessingSystem.new(host.data_registry)
+	var device_panel_presenter := HudDevicePanelPresenter.new()
+	var status_presenter := HudStatusPresenter.new()
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.process_crystal_ore"
+	reactor.set_recipe_cycle([
+		"recipe.process_crystal_ore",
+		"recipe.analyze_anomaly_sample",
+		"recipe.make_filter_media",
+		"recipe.basic_filter_module"
+	])
+	var analysis_world := WorldState.create_default()
+	analysis_world.quest_state.active_quest_ids = ["quest.analyze_anomaly_sample"]
+	analysis_world.quest_state.unlock_effect("recipe.analyze_anomaly_sample")
+	analysis_world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 2)
+	var analysis_character := CharacterState.create_default()
+	var panel_texts := device_panel_presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		reactor,
+		analysis_character,
+		analysis_world
+	)
+	host._expect_text_contains(
+		String(panel_texts.get("status", "")),
+		"过滤参数",
+		"device panel explains why recommended sample analysis matters"
+	)
+
+	var module_world := WorldState.create_default()
+	module_world.quest_state.active_quest_ids = ["quest.make_filter_module"]
+	module_world.quest_state.unlock_effect("recipe.make_filter_media")
+	var module_character := CharacterState.create_default()
+	module_character.inventory.add_item("item.crystal_ore", 2)
+	var module_text := status_presenter.format_vitals_text(host.data_registry, module_world, module_character)
+	host._expect_text_contains(module_text, "建议配方：制备过滤介质", "base summary points to intermediate filter media")
+	host._expect_text_contains(module_text, "继续组装基础过滤模块", "base summary explains filter media purpose")
+
+	var supply_world := WorldState.create_default()
+	supply_world.quest_state.active_quest_ids = ["quest.prepare_treatment_supplies"]
+	supply_world.quest_state.set_objective_progress("quest.prepare_treatment_supplies", "craft_item", "item.repair_gel", 1)
+	var supply_text := status_presenter.format_vitals_text(host.data_registry, supply_world, CharacterState.create_default())
+	host._expect_text_missing(supply_text, "待制造：修复凝胶", "base summary stops repeating completed repair gel craft")
+	host._expect_text_contains(supply_text, "当前目标先外出推进", "base summary returns to field after repair gel is ready")
+	reactor.free()
 
 
 func _check_first_hour_content_density() -> void:

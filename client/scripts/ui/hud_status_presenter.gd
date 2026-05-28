@@ -221,7 +221,7 @@ func _format_base_summary_lines(
 		var craft_summary := _format_current_craft_summary(data_registry, active_quest, character_state, world_state)
 		if not craft_summary.is_empty():
 			return craft_summary
-		var build_summary := _format_current_build_summary(data_registry, active_quest, character_state)
+		var build_summary := _format_current_build_summary(data_registry, active_quest, character_state, world_state)
 		if not build_summary.is_empty():
 			return build_summary
 
@@ -431,48 +431,153 @@ func _format_current_craft_summary(
 	character_state: CharacterState,
 	world_state: WorldState
 ) -> Array[String]:
+	var quest_id := String(active_quest.get("id", ""))
+	var first_hour_summary := _format_first_hour_recommended_craft_summary(
+		data_registry,
+		quest_id,
+		character_state,
+		world_state
+	)
+	if not first_hour_summary.is_empty():
+		return first_hour_summary
+
 	for objective in active_quest.get("objectives", []):
 		if not objective is Dictionary:
 			continue
 		if String(objective.get("type", "")) != "craft_item":
 			continue
 		var target_id := String(objective.get("target_id", ""))
+		var required_amount := float(objective.get("amount", 1.0))
+		if world_state.quest_state.get_objective_progress(quest_id, "craft_item", target_id) >= required_amount:
+			continue
 		var recipe := _find_recipe_for_output(data_registry, target_id)
 		if recipe.is_empty():
 			continue
-		var missing_inputs := _format_missing_recipe_inputs(data_registry, recipe, character_state.inventory)
-		var recipe_name := _get_display_name(data_registry, String(recipe.get("id", "")))
-		var building_name := _get_display_name(data_registry, String(recipe.get("required_building_id", "")))
-		var line := "可制造：%s（%s）" % [recipe_name, building_name]
-		if not missing_inputs.is_empty():
-			line = "待制造：%s；缺 %s" % [recipe_name, missing_inputs]
-		var result: Array[String] = [line]
-		var output_summary := _format_refs(data_registry, recipe.get("outputs", []), "")
-		if not output_summary.is_empty():
-			result.append("完成后：获得 %s" % output_summary)
-		return result
+		return _format_recipe_summary(data_registry, recipe, character_state, "可制造")
 	return []
 
 
 func _format_current_build_summary(
 	data_registry: DataRegistry,
 	active_quest: Dictionary,
-	character_state: CharacterState
+	character_state: CharacterState,
+	world_state: WorldState
 ) -> Array[String]:
+	var quest_id := String(active_quest.get("id", ""))
 	for objective in active_quest.get("objectives", []):
 		if not objective is Dictionary:
 			continue
 		if String(objective.get("type", "")) != "build":
 			continue
 		var building_id := String(objective.get("target_id", ""))
+		var required_amount := float(objective.get("amount", 1.0))
+		var progress_amount := maxf(
+			world_state.quest_state.get_objective_progress(quest_id, "build", building_id),
+			float(world_state.count_base_structures(building_id))
+		)
+		if progress_amount >= required_amount:
+			continue
 		var building := data_registry.get_definition(building_id)
 		if building.is_empty():
 			continue
 		var missing_costs := _format_missing_refs(data_registry, building.get("build_cost", []), character_state.inventory)
+		var result: Array[String] = []
 		if missing_costs.is_empty():
-			return ["可建造：%s" % _get_display_name(data_registry, building_id)]
-		return ["待建造：%s；缺 %s" % [_get_display_name(data_registry, building_id), missing_costs]]
+			result.append("可建造：%s" % _get_display_name(data_registry, building_id))
+		else:
+			result.append("待建造：%s；缺 %s" % [_get_display_name(data_registry, building_id), missing_costs])
+		var purpose_hint := RecipePurposeHints.format_build_goal_hint(building_id)
+		if not purpose_hint.is_empty():
+			result.append("用途：%s" % purpose_hint)
+		return result
 	return []
+
+
+func _format_first_hour_recommended_craft_summary(
+	data_registry: DataRegistry,
+	quest_id: String,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> Array[String]:
+	match quest_id:
+		"quest.make_filter_module":
+			if not character_state.inventory.has_ref("item.filter_media", 1):
+				return _format_recipe_summary(
+					data_registry,
+					data_registry.get_definition("recipe.make_filter_media"),
+					character_state,
+					"建议配方"
+				)
+		"quest.expand_treatment_point":
+			var foundation_progress := maxf(
+				world_state.quest_state.get_objective_progress(quest_id, "build", "building.foundation_t1"),
+				float(world_state.count_base_structures("building.foundation_t1"))
+			)
+			var pending_foundations := maxi(0, 2 - int(foundation_progress))
+			if _get_inventory_amount(character_state.inventory, "item.foundation_material") < float(pending_foundations):
+				return _format_recipe_summary(
+					data_registry,
+					data_registry.get_definition("recipe.foundation_t1"),
+					character_state,
+					"建议配方"
+				)
+			if not world_state.has_base_structure_definition("building.pollution_filter"):
+				if _get_build_cost_shortage("building.pollution_filter", "item.filter_media", data_registry, character_state) > 0.0:
+					return _format_recipe_summary(
+						data_registry,
+						data_registry.get_definition("recipe.make_filter_media"),
+						character_state,
+						"建议配方"
+					)
+				if _get_build_cost_shortage("building.pollution_filter", "item.basic_parts", data_registry, character_state) > 0.0:
+					return _format_recipe_summary(
+						data_registry,
+						data_registry.get_definition("recipe.process_crystal_ore"),
+						character_state,
+						"建议配方"
+					)
+	return []
+
+
+func _format_recipe_summary(
+	data_registry: DataRegistry,
+	recipe: Dictionary,
+	character_state: CharacterState,
+	ready_prefix: String
+) -> Array[String]:
+	if recipe.is_empty():
+		return []
+	var recipe_id := String(recipe.get("id", ""))
+	var missing_inputs := _format_missing_recipe_inputs(data_registry, recipe, character_state.inventory)
+	var recipe_name := _get_display_name(data_registry, recipe_id)
+	var building_name := _get_display_name(data_registry, String(recipe.get("required_building_id", "")))
+	var line := "%s：%s（%s）" % [ready_prefix, recipe_name, building_name]
+	if not missing_inputs.is_empty():
+		line = "待制造：%s；缺 %s" % [recipe_name, missing_inputs]
+	var result: Array[String] = [line]
+	var output_summary := _format_refs(data_registry, recipe.get("outputs", []), "")
+	if not output_summary.is_empty():
+		result.append("完成后：获得 %s" % output_summary)
+	var purpose_hint := RecipePurposeHints.format_recipe_goal_hint(recipe_id)
+	if not purpose_hint.is_empty():
+		result.append("用途：%s" % purpose_hint)
+	return result
+
+
+func _get_build_cost_shortage(
+	building_id: String,
+	definition_id: String,
+	data_registry: DataRegistry,
+	character_state: CharacterState
+) -> float:
+	var building := data_registry.get_definition(building_id)
+	for ref in building.get("build_cost", []):
+		if not ref is Dictionary:
+			continue
+		if String(ref.get("id", "")) != definition_id:
+			continue
+		return maxf(0.0, float(ref.get("amount", 0.0)) - _get_inventory_amount(character_state.inventory, definition_id))
+	return 0.0
 
 
 func _find_recipe_for_output(data_registry: DataRegistry, target_id: String) -> Dictionary:
