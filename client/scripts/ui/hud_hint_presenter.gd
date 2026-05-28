@@ -104,7 +104,9 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 				return "回到异常晶体周边，回收两处异常残留点。"
 			return "回基地使用基础反应器，分析异常样本。"
 		"quest.make_filter_module":
-			return "回基地使用基础反应器，组装基础过滤模块。"
+			if not character_state.inventory.has_ref("item.filter_media", 1):
+				return "回基地使用基础反应器，先制造过滤介质；随后组装基础过滤模块。"
+			return "回基地使用基础反应器，组装基础过滤模块；启用后会降低污染防护消耗。"
 		"quest.prepare_treatment_supplies":
 			if target_region_id == "region.outpost_platform":
 				return "回基地用基础反应器调制修复凝胶，它是下一段清障战斗补给。"
@@ -394,7 +396,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 				return "异常残留物用于校验样本，回收两处后再回基地加工分析。"
 			return "靠近基础反应器，切换到异常样本分析配方并等待完成。"
 		"quest.make_filter_module":
-			return "基础反应器负责制造远征产物；先补齐配方输入，再等待加工完成。"
+			return "基础反应器负责制造远征产物；过滤模块会降低污染防护消耗，让下一次深入更稳。"
 		"quest.prepare_treatment_supplies":
 			if target_region_id == "region.outpost_platform":
 				return "先调制 1 份修复凝胶；它是下一段清障战斗的生命补给。"

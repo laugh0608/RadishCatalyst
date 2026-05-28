@@ -10,13 +10,16 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.crystal_cluster_reserve": "map_object.crystal_cluster",
 	"map_object_instance.crystal_cluster_west_reserve": "map_object.crystal_cluster",
 	"map_object_instance.crystal_cluster_north_east_reserve": "map_object.crystal_cluster",
+	"map_object_instance.crystal_cluster_side_pocket": "map_object.crystal_cluster",
 	"map_object_instance.rich_crystal_vein_north": "map_object.rich_crystal_vein",
 	"map_object_instance.field_wreckage_north": "map_object.field_wreckage",
 	"map_object_instance.field_wreckage_east": "map_object.field_wreckage",
+	"map_object_instance.field_wreckage_south_pocket": "map_object.field_wreckage",
 	"map_object_instance.anomaly_crystal": "map_object.anomaly_crystal",
 	"map_object_instance.anomaly_residue_north": "map_object.anomaly_residue_patch",
 	"map_object_instance.anomaly_residue_east": "map_object.anomaly_residue_patch",
 	"map_object_instance.pollution_residue": "map_object.pollution_residue_patch",
+	"map_object_instance.pollution_residue_deep": "map_object.pollution_residue_patch",
 	"map_object_instance.rough_ground_north": "map_object.rough_ground",
 	"map_object_instance.rough_ground_south": "map_object.rough_ground",
 	"map_object_instance.foundation_site_north": "building.foundation_t1",
@@ -163,11 +166,19 @@ const PROTOTYPE_ENEMY_SOURCES := {
 		"definition_id": "enemy.native_skitter",
 		"region_id": "region.crystal_vein_field"
 	},
+	"enemy_instance.native_skitter_patrol": {
+		"definition_id": "enemy.native_skitter",
+		"region_id": "region.crystal_vein_field"
+	},
 	"enemy_instance.treatment_skitter": {
 		"definition_id": "enemy.treatment_skitter",
 		"region_id": "region.crystal_vein_field"
 	},
 	"enemy_instance.polluted_skitter": {
+		"definition_id": "enemy.polluted_skitter",
+		"region_id": "region.pollution_edge"
+	},
+	"enemy_instance.polluted_skitter_deep": {
 		"definition_id": "enemy.polluted_skitter",
 		"region_id": "region.pollution_edge"
 	},

@@ -332,7 +332,7 @@ func _format_last_completion_status(structure: Dictionary) -> String:
 func _get_completion_next_step(recipe_id: String) -> String:
 	match recipe_id:
 		"recipe.process_crystal_ore":
-			return "基础零件已补足；若当前任务还差更高阶配方，设备会自动切回对应配方，也可按 R 切换。"
+			return "基础零件已补足；它们会用于反应器校准、过滤模块和地基。若当前任务还差更高阶配方，可按 R 切换到目标配方。"
 		"recipe.reclaim_basic_parts":
 			return "回收零件已补足；继续当前前线整备配方，或按 R 切回目标配方。"
 		"recipe.reactor_calibrator":
@@ -342,11 +342,11 @@ func _get_completion_next_step(recipe_id: String) -> String:
 		"recipe.make_filter_media":
 			return "切换到基础过滤模块配方，把过滤介质和基础零件组装成远征模块。"
 		"recipe.basic_filter_module":
-			return "按 F 启用基础过滤模块，再准备污染处理点的地基。"
+			return "基础过滤模块会降低污染区防护消耗；按 F 启用后，再准备污染处理点的地基。"
 		"recipe.foundation_t1":
 			return "前往污染边界北缘清理地块并铺设基础地基。"
 		"recipe.cleanse_residue":
-			return "把抗污染药剂留在快捷栏，继续采集沉积物并清理受扰敌人。"
+			return "抗污染药剂已准备；把它留在快捷栏，继续采集沉积物并清理受扰敌人，深入前用于维持防护。"
 		"recipe.repair_gel":
 			return "把修复凝胶留在快捷栏，生命偏低时按 1 使用。"
 		"recipe.phase_anchor":

@@ -1,6 +1,7 @@
 extends RefCounted
 
 const GameRootScript := preload("res://scripts/game/game_root.gd")
+const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
 
 var host
 
@@ -11,6 +12,8 @@ func _init(check_host) -> void:
 
 func run_ui_and_recipe_checks() -> void:
 	_check_hud_log_presenter()
+	_check_first_hour_guidance_copy()
+	_check_first_hour_content_density()
 	_check_development_baseline_presenter()
 	_check_demo_stabilization_baseline_status_panel()
 	_check_game_root_development_baseline_factory()
@@ -18,6 +21,66 @@ func run_ui_and_recipe_checks() -> void:
 	_check_game_root_recipe_cycle_input_events()
 	_check_resource_interaction_logs()
 	_check_completed_recipe_followup_auto_selection()
+
+
+func _check_first_hour_guidance_copy() -> void:
+	var presenter := HudHintPresenter.new()
+	presenter.configure(host.data_registry, null)
+	var world := WorldState.create_default()
+	var character := CharacterState.create_default()
+	host._expect_text_contains(
+		presenter.format_onboarding_hint(world, character, "quest.make_filter_module"),
+		"降低污染防护消耗",
+		"filter module onboarding explains field value"
+	)
+	character.inventory.add_item("item.filter_media", 1)
+	host._expect_text_contains(
+		presenter.format_direction_hint(world, character, "quest.make_filter_module"),
+		"降低污染防护消耗",
+		"filter module direction explains why crafting matters"
+	)
+	var processing := ProcessingSystem.new(host.data_registry)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.process_crystal_ore"),
+		"反应器校准、过滤模块和地基",
+		"crystal processing completion explains base use"
+	)
+
+
+func _check_first_hour_content_density() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	host.root.add_child(map)
+	map.setup(host.data_registry)
+	var interactable_expectations := {
+		"Interactables/CrystalClusterSidePocket": "map_object.crystal_cluster",
+		"Interactables/FieldWreckageSouthPocket": "map_object.field_wreckage",
+		"Interactables/PollutionResidueDeep": "map_object.pollution_residue_patch"
+	}
+	for node_path in interactable_expectations:
+		var interactable := map.get_node_or_null(String(node_path)) as PrototypeInteractable
+		host._expect_equal(interactable != null, true, "%s exists" % node_path)
+		if interactable == null:
+			continue
+		host._expect_equal(
+			interactable.definition_id,
+			String(interactable_expectations[node_path]),
+			"%s definition" % node_path
+		)
+	var enemy_expectations := {
+		"Enemies/NativeSkitterPatrol": "enemy.native_skitter",
+		"Enemies/PollutedSkitterDeep": "enemy.polluted_skitter"
+	}
+	for node_path in enemy_expectations:
+		var enemy := map.get_node_or_null(String(node_path)) as PrototypeEnemy
+		host._expect_equal(enemy != null, true, "%s exists" % node_path)
+		if enemy == null:
+			continue
+		host._expect_equal(
+			enemy.definition_id,
+			String(enemy_expectations[node_path]),
+			"%s definition" % node_path
+		)
+	map.free()
 
 
 func check_task_recipe_selection(reactor: PrototypeInteractable, processing: ProcessingSystem) -> void:

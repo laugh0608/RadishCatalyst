@@ -112,8 +112,24 @@ func _format_unlock_effects(unlock_effects: Array) -> Array[String]:
 
 func _format_completion_note(quest_id: String) -> String:
 	match quest_id:
+		"quest.restore_outpost":
+			return "前哨核心恢复，基础反应器已上线；下一步出门采集晶体矿物作为第一批加工输入"
+		"quest.scout_crystal_field":
+			return "第一批外勤资源已带回；回基地用基础反应器把资源转成校准和补给能力"
+		"quest.calibrate_reactor":
+			return "反应器采样通道已校准；下一趟去异常晶体采样，带回可分析的样本"
+		"quest.bring_back_sample":
+			return "异常样本已确认；继续回收周边残留物，回基地才能完成样本分析"
+		"quest.analyze_anomaly_sample":
+			return "样本分析给出过滤参数；用基地产物制造过滤模块，才能更稳地推进污染区"
+		"quest.make_filter_module":
+			return "基础过滤模块会降低污染区防护消耗；启用后再准备处理点补给和地基"
+		"quest.prepare_treatment_supplies":
+			return "修复凝胶已准备，处理点北缘威胁已清理；下一步铺设地基并启用污染过滤器"
+		"quest.expand_treatment_point":
+			return "污染过滤器已上线；处理沉积物可调制抗污染药剂，支撑更深的危险目标"
 		"quest.enter_pollution_edge":
-			return "污染深处出现稳定源点反应"
+			return "污染沉积物已转成药剂补给；带着药剂继续压制更深处的污染源点"
 		"quest.defeat_elite_node":
 			return "污染源点已压制，封锁遗迹入口信号可确认"
 		"quest.unlock_ruin_signal":

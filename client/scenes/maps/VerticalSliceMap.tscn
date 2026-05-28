@@ -284,6 +284,13 @@ interaction_type = "gather"
 label_offset = Vector2(-82, -52)
 label_size = Vector2(164, 24)
 
+[node name="CrystalClusterSidePocket" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(92, -34)
+definition_id = "map_object.crystal_cluster"
+interaction_type = "gather"
+label_offset = Vector2(-82, 22)
+label_size = Vector2(164, 24)
+
 [node name="RichCrystalVeinNorth" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(146, -168)
 definition_id = "map_object.rich_crystal_vein"
@@ -300,6 +307,13 @@ label_size = Vector2(164, 24)
 
 [node name="FieldWreckageEast" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(208, 76)
+definition_id = "map_object.field_wreckage"
+interaction_type = "gather"
+label_offset = Vector2(-82, 22)
+label_size = Vector2(164, 24)
+
+[node name="FieldWreckageSouthPocket" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(38, 142)
 definition_id = "map_object.field_wreckage"
 interaction_type = "gather"
 label_offset = Vector2(-82, 22)
@@ -327,6 +341,12 @@ label_size = Vector2(156, 24)
 
 [node name="PollutionResidue" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(274, 74)
+definition_id = "map_object.pollution_residue_patch"
+interaction_type = "gather"
+label_offset = Vector2(-68, 22)
+
+[node name="PollutionResidueDeep" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(342, 158)
 definition_id = "map_object.pollution_residue_patch"
 interaction_type = "gather"
 label_offset = Vector2(-68, 22)
@@ -913,12 +933,20 @@ label_size = Vector2(164, 24)
 position = Vector2(118, 22)
 definition_id = "enemy.native_skitter"
 
+[node name="NativeSkitterPatrol" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(76, -132)
+definition_id = "enemy.native_skitter"
+
 [node name="TreatmentSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(222, -58)
 definition_id = "enemy.treatment_skitter"
 
 [node name="PollutedSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(318, 126)
+definition_id = "enemy.polluted_skitter"
+
+[node name="PollutedSkitterDeep" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(276, 156)
 definition_id = "enemy.polluted_skitter"
 
 [node name="EliteResidueNode" parent="Enemies" instance=ExtResource("4_enemy")]
