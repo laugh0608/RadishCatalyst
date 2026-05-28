@@ -14,6 +14,7 @@ func run_ui_and_recipe_checks() -> void:
 	_check_hud_log_presenter()
 	_check_first_hour_guidance_copy()
 	_check_first_hour_content_density()
+	_check_first_hour_objective_milestones()
 	_check_development_baseline_presenter()
 	_check_demo_stabilization_baseline_status_panel()
 	_check_game_root_development_baseline_factory()
@@ -81,6 +82,41 @@ func _check_first_hour_content_density() -> void:
 			"%s definition" % node_path
 		)
 	map.free()
+
+
+func _check_first_hour_objective_milestones() -> void:
+	var runtime := QuestRuntime.new(host.data_registry)
+	var character := CharacterState.create_default()
+	var calibrate_world := WorldState.create_default()
+	calibrate_world.quest_state.active_quest_ids = ["quest.calibrate_reactor"]
+	var calibrate_result := runtime.apply_objective_updates(calibrate_world, character, [
+		{"quest_id": "quest.calibrate_reactor", "objective_type": "gather_item", "target_id": "item.salvage_scrap", "amount": 4.0, "mode": "add"}
+	])
+	host._expect_text_contains(
+		" ".join(calibrate_result.get("log_messages", [])),
+		"回基地使用基础反应器",
+		"salvage milestone tells player to return to base"
+	)
+	var supply_world := WorldState.create_default()
+	supply_world.quest_state.active_quest_ids = ["quest.prepare_treatment_supplies"]
+	var supply_result := runtime.apply_objective_updates(supply_world, character, [
+		{"quest_id": "quest.prepare_treatment_supplies", "objective_type": "craft_item", "target_id": "item.repair_gel", "amount": 1.0, "mode": "add"}
+	])
+	host._expect_text_contains(
+		" ".join(supply_result.get("log_messages", [])),
+		"处理点北缘",
+		"repair gel milestone points back to field threat"
+	)
+	var pollution_world := WorldState.create_default()
+	pollution_world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
+	var pollution_result := runtime.apply_objective_updates(pollution_world, character, [
+		{"quest_id": "quest.enter_pollution_edge", "objective_type": "gather_item", "target_id": "item.polluted_residue", "amount": 2.0, "mode": "add"}
+	])
+	host._expect_text_contains(
+		" ".join(pollution_result.get("log_messages", [])),
+		"回处理点过滤器",
+		"pollution residue milestone explains treatment reason"
+	)
 
 
 func check_task_recipe_selection(reactor: PrototypeInteractable, processing: ProcessingSystem) -> void:

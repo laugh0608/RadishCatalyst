@@ -213,26 +213,67 @@ func apply_objective_updates(
 ) -> Dictionary:
 	var result := _empty_result(true)
 	var changed_quest_ids: Array[String] = []
+	var milestone_messages_by_quest := {}
 	for update in updates:
 		var quest_id := String(update.get("quest_id", ""))
 		var objective_type := String(update.get("objective_type", ""))
 		var target_id := String(update.get("target_id", ""))
 		var amount := float(update.get("amount", 0.0))
+		var required_amount := progress_rules.get_objective_required_amount(quest_id, objective_type, target_id)
+		var previous_amount := 0.0
+		if required_amount >= 0.0:
+			previous_amount = world_state.quest_state.get_objective_progress(quest_id, objective_type, target_id)
 		if String(update.get("mode", "set")) == "add":
 			progress_rules.add_active_objective_progress(world_state.quest_state, quest_id, objective_type, target_id, amount)
 		else:
 			progress_rules.set_active_objective_progress(world_state.quest_state, quest_id, objective_type, target_id, amount)
+		if required_amount > 0.0:
+			var current_amount := world_state.quest_state.get_objective_progress(quest_id, objective_type, target_id)
+			if previous_amount < required_amount and current_amount >= required_amount:
+				var milestone_message := _format_objective_milestone_message(quest_id, objective_type, target_id)
+				if not milestone_message.is_empty():
+					if not milestone_messages_by_quest.has(quest_id):
+						milestone_messages_by_quest[quest_id] = []
+					milestone_messages_by_quest[quest_id].append(milestone_message)
 		if not changed_quest_ids.has(quest_id):
 			changed_quest_ids.append(quest_id)
 
 	for quest_id in changed_quest_ids:
 		var feedback := _try_complete_quest(world_state, character_state, quest_id)
-		if feedback.is_empty():
+		if not feedback.is_empty():
+			result["completion_feedbacks"].append(feedback)
+			result["log_messages"].append(String(feedback.get("log_message", "")))
 			continue
 
-		result["completion_feedbacks"].append(feedback)
-		result["log_messages"].append(String(feedback.get("log_message", "")))
+		if not world_state.quest_state.has_active_quest(quest_id):
+			continue
+		if not milestone_messages_by_quest.has(quest_id):
+			continue
+		for milestone_message in milestone_messages_by_quest[quest_id]:
+			result["log_messages"].append(String(milestone_message))
 	return result
+
+
+func _format_objective_milestone_message(quest_id: String, objective_type: String, target_id: String) -> String:
+	match quest_id:
+		"quest.calibrate_reactor":
+			if objective_type == "gather_item" and target_id == "item.salvage_scrap":
+				return "导电废件已够：回基地使用基础反应器，组装反应器校准件。"
+		"quest.analyze_anomaly_sample":
+			if objective_type == "gather_item" and target_id == "item.anomaly_residue":
+				return "异常残留物已够：回基地使用基础反应器，把样本分析成过滤模块参数。"
+		"quest.prepare_treatment_supplies":
+			if objective_type == "craft_item" and target_id == "item.repair_gel":
+				return "修复凝胶已就绪：带上快捷栏 1 的补给，去处理点北缘清理掠行体。"
+		"quest.expand_treatment_point":
+			if objective_type == "build" and target_id == "building.foundation_t1":
+				return "两块地基已铺好：继续建造污染过滤器，之后才能把沉积物处理成药剂。"
+		"quest.enter_pollution_edge":
+			if objective_type == "gather_item" and target_id == "item.polluted_residue":
+				return "污染沉积物已够：回处理点过滤器处理成抗污染药剂，再继续深入污染边界。"
+			if objective_type == "craft_item" and target_id == "item.resistance_vial_t1":
+				return "抗污染药剂已就绪：按 2 可补防护，带着药剂压制污染边界的受扰敌人。"
+	return ""
 
 
 func _try_complete_quest(world_state: WorldState, character_state: CharacterState, quest_id: String) -> Dictionary:
