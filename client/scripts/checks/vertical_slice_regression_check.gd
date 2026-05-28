@@ -106,6 +106,8 @@ func _check_first_hour_content_density() -> void:
 	var interactable_expectations := {
 		"Interactables/CrystalClusterSidePocket": "map_object.crystal_cluster",
 		"Interactables/FieldWreckageSouthPocket": "map_object.field_wreckage",
+		"Interactables/FieldWreckageGateCache": "map_object.field_wreckage",
+		"Interactables/PollutionResidueOuterPocket": "map_object.pollution_residue_patch",
 		"Interactables/PollutionResidueDeep": "map_object.pollution_residue_patch"
 	}
 	for node_path in interactable_expectations:

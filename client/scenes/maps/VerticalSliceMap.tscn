@@ -206,14 +206,14 @@ definition_id = "building.outpost_core"
 interaction_type = "outpost_core"
 
 [node name="BasicReactor" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(-184, -42)
+position = Vector2(-166, -66)
 definition_id = "building.basic_reactor"
 interaction_type = "process_recipe"
 recipe_id = "recipe.process_crystal_ore"
 single_use = false
 
 [node name="PhaseRelayPad" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(-188, 48)
+position = Vector2(-180, 42)
 definition_id = "map_object.phase_relay_pad"
 interaction_type = "inspect"
 single_use = false
@@ -221,152 +221,165 @@ label_offset = Vector2(-94, 22)
 label_size = Vector2(188, 24)
 
 [node name="FrontlineActionConsole" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(-92, 48)
+position = Vector2(-92, 96)
 definition_id = "map_object.frontline_action_console"
 interaction_type = "inspect"
 label_offset = Vector2(-96, 22)
 label_size = Vector2(192, 24)
 
 [node name="BaseSupplyChoiceConsole" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(-250, 86)
+position = Vector2(-318, 74)
 definition_id = "map_object.base_supply_choice_console"
 interaction_type = "inspect"
 label_offset = Vector2(-96, 22)
 label_size = Vector2(192, 24)
 
 [node name="BaseSurveyChoiceConsole" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(-250, 124)
+position = Vector2(-318, 112)
 definition_id = "map_object.base_survey_choice_console"
 interaction_type = "inspect"
 label_offset = Vector2(-96, 22)
 label_size = Vector2(192, 24)
 
 [node name="BasePressureChoiceConsole" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(-250, 162)
+position = Vector2(-318, 150)
 definition_id = "map_object.base_pressure_choice_console"
 interaction_type = "inspect"
 label_offset = Vector2(-96, 22)
 label_size = Vector2(192, 24)
 
 [node name="CrystalCluster" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(26, -78)
+position = Vector2(24, -88)
 definition_id = "map_object.crystal_cluster"
 interaction_type = "gather"
 
 [node name="CrystalClusterEast" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(126, -92)
+position = Vector2(122, -112)
 definition_id = "map_object.crystal_cluster"
 interaction_type = "gather"
 
 [node name="CrystalClusterSouth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(168, -8)
+position = Vector2(174, -18)
 definition_id = "map_object.crystal_cluster"
 interaction_type = "gather"
 
 [node name="CrystalClusterReserve" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(54, -154)
+position = Vector2(50, -158)
 definition_id = "map_object.crystal_cluster"
 interaction_type = "gather"
 label_offset = Vector2(-82, -52)
 label_size = Vector2(164, 24)
 
 [node name="CrystalClusterWestReserve" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(12, 38)
+position = Vector2(14, 56)
 definition_id = "map_object.crystal_cluster"
 interaction_type = "gather"
 label_offset = Vector2(-82, 22)
 label_size = Vector2(164, 24)
 
 [node name="CrystalClusterNorthEastReserve" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(210, -136)
+position = Vector2(210, -156)
 definition_id = "map_object.crystal_cluster"
 interaction_type = "gather"
 label_offset = Vector2(-82, -52)
 label_size = Vector2(164, 24)
 
 [node name="CrystalClusterSidePocket" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(92, -34)
+position = Vector2(92, -38)
 definition_id = "map_object.crystal_cluster"
 interaction_type = "gather"
 label_offset = Vector2(-82, 22)
 label_size = Vector2(164, 24)
 
 [node name="RichCrystalVeinNorth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(146, -168)
+position = Vector2(150, -176)
 definition_id = "map_object.rich_crystal_vein"
 interaction_type = "gather"
 label_offset = Vector2(-82, -52)
 label_size = Vector2(164, 24)
 
 [node name="FieldWreckageNorth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(70, 104)
+position = Vector2(52, 112)
 definition_id = "map_object.field_wreckage"
 interaction_type = "gather"
 label_offset = Vector2(-82, 22)
 label_size = Vector2(164, 24)
 
 [node name="FieldWreckageEast" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(208, 76)
+position = Vector2(214, 82)
 definition_id = "map_object.field_wreckage"
 interaction_type = "gather"
 label_offset = Vector2(-82, 22)
 label_size = Vector2(164, 24)
 
 [node name="FieldWreckageSouthPocket" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(38, 142)
+position = Vector2(40, 160)
 definition_id = "map_object.field_wreckage"
 interaction_type = "gather"
 label_offset = Vector2(-82, 22)
 label_size = Vector2(164, 24)
 
+[node name="FieldWreckageGateCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(224, -112)
+definition_id = "map_object.field_wreckage"
+interaction_type = "gather"
+label_offset = Vector2(-82, -52)
+label_size = Vector2(164, 24)
+
 [node name="AnomalyCrystal" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(184, 112)
+position = Vector2(194, 126)
 definition_id = "map_object.anomaly_crystal"
 interaction_type = "sample"
 label_offset = Vector2(-72, -48)
 
 [node name="AnomalyResidueNorth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(130, 144)
+position = Vector2(134, 154)
 definition_id = "map_object.anomaly_residue_patch"
 interaction_type = "gather"
 label_offset = Vector2(-78, 22)
 label_size = Vector2(156, 24)
 
 [node name="AnomalyResidueEast" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(216, 126)
+position = Vector2(224, 138)
 definition_id = "map_object.anomaly_residue_patch"
 interaction_type = "gather"
 label_offset = Vector2(-78, 22)
 label_size = Vector2(156, 24)
 
 [node name="PollutionResidue" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(274, 74)
+position = Vector2(258, 34)
+definition_id = "map_object.pollution_residue_patch"
+interaction_type = "gather"
+label_offset = Vector2(-68, 22)
+
+[node name="PollutionResidueOuterPocket" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(304, 96)
 definition_id = "map_object.pollution_residue_patch"
 interaction_type = "gather"
 label_offset = Vector2(-68, 22)
 
 [node name="PollutionResidueDeep" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(342, 158)
+position = Vector2(344, 158)
 definition_id = "map_object.pollution_residue_patch"
 interaction_type = "gather"
 label_offset = Vector2(-68, 22)
 
 [node name="RoughGroundNorth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(250, -150)
+position = Vector2(258, -156)
 definition_id = "map_object.rough_ground"
 interaction_type = "clear"
 label_offset = Vector2(-92, -52)
 label_size = Vector2(184, 24)
 
 [node name="RoughGroundSouth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(330, -150)
+position = Vector2(338, -156)
 definition_id = "map_object.rough_ground"
 interaction_type = "clear"
 label_offset = Vector2(-92, -52)
 label_size = Vector2(184, 24)
 
 [node name="FoundationSiteNorth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(250, -104)
+position = Vector2(258, -110)
 definition_id = "building.foundation_t1"
 interaction_type = "build"
 recipe_id = ""
@@ -375,7 +388,7 @@ label_offset = Vector2(-96, 22)
 label_size = Vector2(192, 24)
 
 [node name="FoundationSiteSouth" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(330, -104)
+position = Vector2(338, -110)
 definition_id = "building.foundation_t1"
 interaction_type = "build"
 recipe_id = ""
@@ -384,7 +397,7 @@ label_offset = Vector2(-96, 22)
 label_size = Vector2(192, 24)
 
 [node name="PollutionFilterBuildSite" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(290, -104)
+position = Vector2(298, -110)
 definition_id = "building.pollution_filter"
 interaction_type = "build"
 recipe_id = ""
@@ -392,7 +405,7 @@ label_offset = Vector2(-88, -54)
 label_size = Vector2(176, 24)
 
 [node name="PollutionFilter" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(290, -104)
+position = Vector2(298, -110)
 definition_id = "building.pollution_filter"
 interaction_type = "process_recipe"
 recipe_id = "recipe.cleanse_residue"
@@ -401,7 +414,7 @@ label_offset = Vector2(-88, -54)
 label_size = Vector2(176, 24)
 
 [node name="RuinGate" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(368, 16)
+position = Vector2(372, 24)
 definition_id = "map_object.ruin_gate"
 interaction_type = "inspect"
 single_use = false
@@ -930,27 +943,27 @@ label_size = Vector2(164, 24)
 [node name="Enemies" type="Node2D" parent="."]
 
 [node name="NativeSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
-position = Vector2(118, 22)
+position = Vector2(144, 32)
 definition_id = "enemy.native_skitter"
 
 [node name="NativeSkitterPatrol" parent="Enemies" instance=ExtResource("4_enemy")]
-position = Vector2(76, -132)
+position = Vector2(84, -144)
 definition_id = "enemy.native_skitter"
 
 [node name="TreatmentSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
-position = Vector2(222, -58)
+position = Vector2(224, -76)
 definition_id = "enemy.treatment_skitter"
 
 [node name="PollutedSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
-position = Vector2(318, 126)
+position = Vector2(310, 76)
 definition_id = "enemy.polluted_skitter"
 
 [node name="PollutedSkitterDeep" parent="Enemies" instance=ExtResource("4_enemy")]
-position = Vector2(276, 156)
+position = Vector2(300, 160)
 definition_id = "enemy.polluted_skitter"
 
 [node name="EliteResidueNode" parent="Enemies" instance=ExtResource("4_enemy")]
-position = Vector2(358, 92)
+position = Vector2(360, 118)
 definition_id = "enemy.elite_residue_node"
 
 [node name="RuinPhaseGuard" parent="Enemies" instance=ExtResource("4_enemy")]

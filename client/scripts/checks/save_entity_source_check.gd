@@ -74,6 +74,16 @@ func _check_loads_known_map_object_source() -> void:
 			"region_id": "region.crystal_vein_field",
 			"is_gathered": true
 		},
+		"map_object_instance.field_wreckage_gate_cache": {
+			"definition_id": "map_object.field_wreckage",
+			"region_id": "region.crystal_vein_field",
+			"is_gathered": true
+		},
+		"map_object_instance.pollution_residue_outer_pocket": {
+			"definition_id": "map_object.pollution_residue_patch",
+			"region_id": "region.pollution_edge",
+			"is_gathered": true
+		},
 		"map_object_instance.rough_ground_north": {
 			"definition_id": "map_object.rough_ground",
 			"region_id": "region.crystal_vein_field",
