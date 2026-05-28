@@ -91,7 +91,9 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.phase_survey_node_west": "map_object.phase_survey_node_west",
 	"map_object_instance.phase_survey_node_east": "map_object.phase_survey_node_east",
 	"map_object_instance.pressure_clearance_node": "map_object.pressure_clearance_node",
-	"map_object_instance.prepared_frontline_window": "map_object.prepared_frontline_window"
+	"map_object_instance.prepared_frontline_window": "map_object.prepared_frontline_window",
+	"map_object_instance.demo_stabilization_recovery_cache": "map_object.demo_stabilization_recovery_cache",
+	"map_object_instance.demo_stabilization_core": "map_object.demo_stabilization_core"
 }
 
 const BASE_ACTION_STRING_KEYS: Array[String] = [
@@ -224,6 +226,10 @@ const PROTOTYPE_ENEMY_SOURCES := {
 	"enemy_instance.pressure_clearance_guard": {
 		"definition_id": "enemy.pressure_clearance_guard",
 		"region_id": "region.phase_well_tether"
+	},
+	"enemy_instance.demo_stabilization_guard": {
+		"definition_id": "enemy.demo_stabilization_guard",
+		"region_id": "region.demo_stabilization_core"
 	}
 }
 

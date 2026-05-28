@@ -153,27 +153,27 @@ func _format_completion_note(quest_id: String) -> String:
 		"quest.inspect_phase_fault_spire":
 			return "内层故障轨迹已带回；回传后的后续风险和收益已真正落到下一轮推进线索"
 		"quest.refine_well_flux":
-			return "相位井探针已整备完成；返回更东侧回声台地，读取第一份井芯样本"
+			return "回声探针已整备完成；返回更东侧回声台地，读取第一份回声芯样本"
 		"quest.refine_well_ash":
-			return "井底穿钉已整备完成；返回更东侧盐壳浅滩，凿开后带回第一份相位井心核"
+			return "盐壳穿钉已整备完成；返回更东侧盐壳浅滩，凿开后带回第一份碎晶心核"
 		"quest.refine_heart_spine":
-			return "井心分流栓已整备完成；返回更东侧碎晶沟谷，勘验后带回第一份相位井纺核"
+			return "碎晶分流栓已整备完成；返回更东侧碎晶沟谷，勘验后带回第一份风蚀张力核"
 		"quest.refine_weft_bundle":
-			return "井纺梭栓已整备完成；返回更东侧风蚀管廊，勘验后带回第一份相位井织核"
+			return "风蚀梭栓已整备完成；返回更东侧风蚀管廊，勘验后带回第一份锁相织构核"
 		"quest.refine_selvedge_strip":
-			return "锁相框架键栓已整备完成；返回更东侧锁相框架，勘验后带回第一份相位井结核"
+			return "锁相框架键栓已整备完成；返回更东侧锁相框架，勘验后带回第一份锚定结核"
 		"quest.refine_tether_fiber":
-			return "井系定桩已整备完成；返回锚定桥，勘验后带回第一份相位井锚核"
+			return "锚定桩已整备完成；返回锚定桥，勘验后带回第一份稳场锚核"
 		"quest.inspect_phase_well_tether":
-			return "相位井锚核已带回；回基地解析后可把锚定桥东侧改成新的短守场目标"
+			return "稳场锚核已带回；回基地解析后可把锚定桥东侧改成新的短守场目标"
 		"quest.analyze_phase_well_anchor_core":
-			return "归谱片和锚核落尘已整理完成；回基地完成井系校锚桩整备"
+			return "归谱片和锚核落尘已整理完成；回基地完成稳场校锚桩整备"
 		"quest.refine_anchor_core_dust":
-			return "井系校锚桩已整备完成；返回锚定桥东侧部署，先清压力钉再顶住一轮回稳压制"
+			return "稳场校锚桩已整备完成；返回锚定桥东侧部署，先清压力钉再顶住一轮回稳压制"
 		"quest.assemble_phase_well_anchor_stake":
-			return "井系校锚桩已完成；返回锚定桥东侧部署，先清压力钉再顶住一轮回稳压制"
+			return "稳场校锚桩已完成；返回锚定桥东侧部署，先清压力钉再顶住一轮回稳压制"
 		"quest.stabilize_phase_well_anchor_field":
-			return "锚定桥东侧稳定窗口已生成；相位井余响片已带回基地"
+			return "锚定桥东侧稳定窗口已生成；稳窗余响片已带回基地"
 		"quest.analyze_phase_well_echo_shard":
 			return "稳窗读数已解析；返回锚定桥东侧按现场相位序校准三处稳窗节点"
 		"quest.calibrate_phase_well_stability_window":

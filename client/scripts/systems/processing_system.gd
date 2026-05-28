@@ -366,51 +366,51 @@ func _get_completion_next_step(recipe_id: String) -> String:
 		"recipe.relay_tuning_lens":
 			return "带着中继调谐镜返回更东侧裂相尖塔，逼出第一份内层故障轨迹。"
 		"recipe.inner_fault_analysis":
-			return "相位井坐标印片已整理完成；返回裂相尖塔更东侧，击退潜猎体并回收故障残渣。"
+			return "裂相坐标印片已整理完成；返回裂相尖塔更东侧，击退潜猎体并回收故障残渣。"
 		"recipe.fault_residue_stabilization":
-			return "稳定故障芯和副产污染浆液已筛出；继续这次井锁整备，回基地基础反应器组装相位井钥。"
+			return "稳定故障芯和副产污染浆液已筛出；继续这次裂相锁位整备，回基地基础反应器组装裂相锁钥。"
 		"recipe.phase_well_key":
-			return "带着相位井钥返回更东侧相位井锁，钉住锁位并带回第一份定位器。"
+			return "带着裂相锁钥返回更东侧裂相锁位，钉住锁位并带回第一份定位器。"
 		"recipe.phase_well_locator_analysis":
-			return "相位井路由片已整理完成；继续向东进入新暴露的内层相位井边缘，击退哨戒体并回收井涌碎屑。"
+			return "回声路由片已整理完成；继续向东进入新暴露的回声台地边缘，击退哨戒体并回收回声碎屑。"
 		"recipe.well_flux_stabilization":
-			return "稳流芯和副产污染浆液已筛出；继续这次探针整备，回基地基础反应器组装相位井探针。"
+			return "稳流芯和副产污染浆液已筛出；继续这次探针整备，回基地基础反应器组装回声探针。"
 		"recipe.phase_well_probe":
-			return "带着相位井探针返回更东侧内层相位井，读取第一份井芯样本。"
+			return "带着回声探针返回更东侧回声台地，读取第一份回声芯样本。"
 		"recipe.phase_well_core_analysis":
-			return "相位井频谱片已整理完成；继续向东进入新暴露的井底裂口边缘，击退潜伏体并回收井壁余烬。"
+			return "盐壳频谱片已整理完成；继续向东进入新暴露的盐壳浅滩边缘，击退潜伏体并回收盐壳余烬。"
 		"recipe.well_ash_stabilization":
-			return "稳相格和副产污染浆液已筛出；继续这次井底整备，回基地基础反应器组装井底穿钉。"
+			return "稳相格和副产污染浆液已筛出；继续这次盐壳整备，回基地基础反应器组装盐壳穿钉。"
 		"recipe.phase_well_pike":
-			return "带着井底穿钉返回更东侧井底裂口，凿开裂口并带回第一份相位井心核。"
+			return "带着盐壳穿钉返回更东侧盐壳浅滩，凿开裂口并带回第一份碎晶心核。"
 		"recipe.phase_well_heart_analysis":
-			return "相位井脉搏片已整理完成；继续向东进入新暴露的井心室边缘，击退心室撕裂体并回收心棘残片。"
+			return "碎晶脉搏片已整理完成；继续向东进入新暴露的碎晶沟谷边缘，击退碎晶撕裂体并回收心棘残片。"
 		"recipe.heart_spine_stabilization":
-			return "抑振骨和副产污染浆液已筛出；继续这次井心整备，回基地基础反应器组装井心分流栓。"
+			return "抑振骨和副产污染浆液已筛出；继续这次碎晶整备，回基地基础反应器组装碎晶分流栓。"
 		"recipe.phase_well_shunt":
-			return "带着井心分流栓返回更东侧井心室断面，勘验断面并带回第一份相位井纺核。"
+			return "带着碎晶分流栓返回更东侧碎晶沟谷断面，勘验断面并带回第一份风蚀张力核。"
 		"recipe.phase_well_spindle_analysis":
-			return "相位井经片已整理完成；继续向东进入新暴露的井纺室边缘，击退井纺纠缠体并回收纬束残团。"
+			return "风蚀经片已整理完成；继续向东进入新暴露的风蚀管廊边缘，击退风蚀纠缠体并回收纬束残团。"
 		"recipe.weft_bundle_stabilization":
-			return "张力肋和副产污染浆液已筛出；继续这次井纺整备，回基地基础反应器组装井纺梭栓。"
+			return "张力肋和副产污染浆液已筛出；继续这次风蚀整备，回基地基础反应器组装风蚀梭栓。"
 		"recipe.phase_well_shuttle":
-			return "带着井纺梭栓返回更东侧井纺室断面，勘验断面并带回第一份相位井织核。"
+			return "带着风蚀梭栓返回更东侧风蚀管廊断面，勘验断面并带回第一份锁相织构核。"
 		"recipe.phase_well_weave_core_analysis":
-			return "相位井纹谱片已整理完成；继续向东进入新暴露的井纹架边缘，击退井纹刮裂体并回收边缕残条。"
+			return "锁相纹谱片已整理完成；继续向东进入新暴露的锁相框架边缘，击退锁相刮裂体并回收边缕残条。"
 		"recipe.selvedge_strip_stabilization":
-			return "井纹架肋和副产污染浆液已筛出；继续这次井纹架整备，回基地基础反应器组装井纹架键栓。"
+			return "锁相框架肋和副产污染浆液已筛出；继续这次锁相框架整备，回基地基础反应器组装锁相键栓。"
 		"recipe.phase_well_frame_key":
-			return "带着井纹架键栓返回更东侧井纹架断面，勘验断面并带回第一份相位井结核。"
+			return "带着锁相键栓返回更东侧锁相框架断面，勘验断面并带回第一份锚定结核。"
 		"recipe.phase_well_knot_core_analysis":
-			return "相位井系谱片已整理完成；继续向东进入新暴露的井系桥边缘，击退井系缚结体并回收系索残股。"
+			return "锚定系谱片已整理完成；继续向东进入新暴露的锚定桥边缘，击退锚定缚结体并回收锚索残股。"
 		"recipe.tether_fiber_stabilization":
-			return "相位井系固肋和副产污染浆液已筛出；继续这次井系整备，回基地基础反应器组装井系定桩。"
+			return "锚定系固肋和副产污染浆液已筛出；继续这次锚定桥整备，回基地基础反应器组装锚定桩。"
 		"recipe.phase_well_tether_spike":
-			return "带着井系定桩返回更东侧井系桥断面，勘验断面并带回第一份相位井锚核。"
+			return "带着锚定桩返回更东侧锚定桥断面，勘验断面并带回第一份稳场锚核。"
 		"recipe.phase_well_anchor_stake":
-			return "带着井系校锚桩返回井系桥东侧锚场回稳窗，部署后完成短守场并收束相位井余响片。"
+			return "带着稳场校锚桩返回锚定桥东侧锚场回稳窗，部署后完成短守场并收束稳窗余响片。"
 		"recipe.phase_well_echo_shard_analysis":
-			return "相位井稳窗读数已整理完成；回到井系桥东侧锚场回稳窗，可用稳定窗口在前线回充生命与防护。"
+			return "稳窗读数已整理完成；回到锚定桥东侧锚场回稳窗，可用稳定窗口在前线回充生命与防护。"
 		"recipe.stability_echo_report":
 			return "前线行动回报已归档；这条基地确认、前线读取、回基地解析的短行动闭环已完成，下一步可在短行动补给台确认第二趟。"
 		"recipe.short_action_feedback":

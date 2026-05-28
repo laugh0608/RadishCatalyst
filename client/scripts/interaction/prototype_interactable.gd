@@ -545,7 +545,7 @@ func set_stabilized_phase_well_sink_visual() -> void:
 	visible = true
 	monitoring = false
 	marker.color = STABILIZED_PHASE_WELL_SINK_COLOR
-	_set_label_text("%s\n井心核已取出" % display_name_text, 2)
+	_set_label_text("%s\n碎晶心核已取出" % display_name_text, 2)
 
 
 func set_stabilized_phase_well_chamber_visual() -> void:
@@ -553,7 +553,7 @@ func set_stabilized_phase_well_chamber_visual() -> void:
 	visible = true
 	monitoring = false
 	marker.color = STABILIZED_PHASE_WELL_CHAMBER_COLOR
-	_set_label_text("%s\n纺核已取出" % display_name_text, 2)
+	_set_label_text("%s\n风蚀张力核已取出" % display_name_text, 2)
 
 
 func set_stabilized_phase_well_loom_visual() -> void:
@@ -561,7 +561,7 @@ func set_stabilized_phase_well_loom_visual() -> void:
 	visible = true
 	monitoring = false
 	marker.color = STABILIZED_PHASE_WELL_LOOM_COLOR
-	_set_label_text("%s\n织核已取出" % display_name_text, 2)
+	_set_label_text("%s\n锁相织构核已取出" % display_name_text, 2)
 
 
 func set_stabilized_phase_well_frame_visual() -> void:

@@ -136,7 +136,7 @@ offset_left = 710.0
 offset_top = 166.0
 offset_right = 1452.0
 offset_bottom = 192.0
-text = "→ 深段 / 裂相脊 / 井锁"
+text = "→ 深段 / 裂相脊 / 裂相锁"
 horizontal_alignment = 1
 
 [node name="InnerPhaseWellDirectionLabel" type="Label" parent="."]
@@ -144,7 +144,7 @@ offset_left = 1472.0
 offset_top = 166.0
 offset_right = 1752.0
 offset_bottom = 192.0
-text = "→ 内层相位井"
+text = "→ 回声台地"
 horizontal_alignment = 1
 
 [node name="PhaseWellSinkDirectionLabel" type="Label" parent="."]
@@ -152,7 +152,7 @@ offset_left = 1772.0
 offset_top = 166.0
 offset_right = 2032.0
 offset_bottom = 192.0
-text = "→ 井底裂口"
+text = "→ 盐壳浅滩"
 horizontal_alignment = 1
 
 [node name="PhaseWellChamberDirectionLabel" type="Label" parent="."]
@@ -160,7 +160,7 @@ offset_left = 2052.0
 offset_top = 166.0
 offset_right = 2312.0
 offset_bottom = 192.0
-text = "→ 井心室断面"
+text = "→ 碎晶沟谷"
 horizontal_alignment = 1
 
 [node name="PhaseWellLoomDirectionLabel" type="Label" parent="."]
@@ -168,7 +168,7 @@ offset_left = 2332.0
 offset_top = 166.0
 offset_right = 2592.0
 offset_bottom = 192.0
-text = "→ 井纺室断面"
+text = "→ 风蚀管廊"
 horizontal_alignment = 1
 
 [node name="PhaseWellFrameDirectionLabel" type="Label" parent="."]
@@ -176,7 +176,7 @@ offset_left = 2612.0
 offset_top = 166.0
 offset_right = 2872.0
 offset_bottom = 192.0
-text = "→ 井纹架断面"
+text = "→ 锁相框架"
 horizontal_alignment = 1
 
 [node name="PhaseWellTetherDirectionLabel" type="Label" parent="."]

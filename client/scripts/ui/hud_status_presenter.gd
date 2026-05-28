@@ -259,23 +259,23 @@ func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, que
 	if _has_completed_phase_well_stability_window_calibration(world_state):
 		return "前线行动待确认"
 	if _has_completed_phase_well_echo_shard_analysis(world_state):
-		return "相位井稳窗读数待现场校准"
+		return "稳窗读数待现场校准"
 	if _has_completed_phase_well_anchor_field(world_state):
-		return "相位井余响片已带回"
+		return "稳窗余响片已带回"
 	if _has_completed_phase_well_tether(world_state):
-		return "相位井锚核待解析"
+		return "稳场锚核待解析"
 	if _has_completed_phase_well_frame(world_state):
-		return "相位井结核待解析"
+		return "锚定结核待解析"
 	if _has_completed_phase_well_loom(world_state):
-		return "相位井织核待解析"
+		return "锁相织构核待解析"
 	if _has_completed_phase_well_chamber(world_state):
-		return "相位井纺核待解析"
+		return "风蚀张力核待解析"
 	if _has_completed_phase_well_sink(world_state):
-		return "相位井心核待解析"
+		return "碎晶心核待解析"
 	if _has_completed_inner_phase_well(world_state):
-		return "相位井芯样本待解析"
+		return "回声芯样本待解析"
 	if _has_completed_phase_well_lock(world_state):
-		return "相位井定位器待解析"
+		return "回声定位器待解析"
 	if _has_completed_phase_fault_spire(world_state):
 		return "内层故障轨迹待解析"
 	if _has_completed_phase_relay_anchor(world_state):
@@ -446,7 +446,7 @@ func _format_current_craft_summary(
 		var line := "可制造：%s（%s）" % [recipe_name, building_name]
 		if not missing_inputs.is_empty():
 			line = "待制造：%s；缺 %s" % [recipe_name, missing_inputs]
-		var result := [line]
+		var result: Array[String] = [line]
 		var output_summary := _format_refs(data_registry, recipe.get("outputs", []), "")
 		if not output_summary.is_empty():
 			result.append("完成后：获得 %s" % output_summary)
@@ -587,21 +587,21 @@ func _format_active_quest_progress(data_registry: DataRegistry, world_state: Wor
 		if _has_completed_phase_well_stability_window_calibration(world_state):
 			return "三处稳窗校准点已按顺序写入；回基地在前线行动台确认下一趟外出"
 		if _has_completed_phase_well_echo_shard_analysis(world_state):
-			return "相位井稳窗读数已解析；返回锚定桥东侧按西侧、中央、东侧顺序校准稳窗节点"
+			return "稳窗读数已解析；返回锚定桥东侧按西侧、中央、东侧顺序校准稳窗节点"
 		if _has_completed_phase_well_anchor_field(world_state):
-			return "锚定桥东侧稳定窗口已生成；相位井余响片已带回基地，解析后可校准为可回访的前线回稳点"
+			return "锚定桥东侧稳定窗口已生成；稳窗余响片已带回基地，解析后可校准为可回访的前线回稳点"
 		if _has_completed_phase_well_tether(world_state):
-			return "锚定桥已勘验；回基地解析相位井锚核后，可继续把锚定桥东侧改成新的短守场稳定窗口"
+			return "锚定桥已勘验；回基地解析稳场锚核后，可继续把锚定桥东侧改成新的短守场稳定窗口"
 		if _has_completed_phase_well_frame(world_state):
-			return "锁相框架已勘验；回基地解析相位井结核后，可继续把锚定桥转成新的推进包"
+			return "锁相框架已勘验；回基地解析锚定结核后，可继续把锚定桥转成新的推进包"
 		if _has_completed_phase_well_loom(world_state):
-			return "风蚀管廊已勘验；回基地解析相位井织核后，可继续把锁相框架转成新的推进包"
+			return "风蚀管廊已勘验；回基地解析锁相织构核后，可继续把锁相框架转成新的推进包"
 		if _has_completed_phase_well_chamber(world_state):
-			return "碎晶沟谷已勘验；回基地解析相位井纺核后，可继续把风蚀管廊转成新的推进包"
+			return "碎晶沟谷已勘验；回基地解析风蚀张力核后，可继续把风蚀管廊转成新的推进包"
 		if _has_completed_phase_well_sink(world_state):
-			return "盐壳浅滩已凿开；回基地解析相位井心核后，可继续把碎晶沟谷转成新的推进包"
+			return "盐壳浅滩已凿开；回基地解析碎晶心核后，可继续把碎晶沟谷转成新的推进包"
 		if _has_completed_inner_phase_well(world_state):
-			return "井芯样本已回收；回基地解析后可继续把盐壳浅滩转成新的推进包"
+			return "回声芯样本已回收；回基地解析后可继续把盐壳浅滩转成新的推进包"
 		if _has_completed_phase_well_lock(world_state):
 			return "锁相结构已钉住；先回基地解析定位器，再把更东侧回声台地真正转成新推进包"
 		if _has_completed_phase_fault_spire(world_state):

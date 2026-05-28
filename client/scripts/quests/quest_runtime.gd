@@ -113,39 +113,39 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 	if bool(progression_sync.get("changed", false)):
 		log_messages.append(CharacterProgressionStats.LEGACY_SYNC_LOG_MESSAGE)
 	if _restore_missing_phase_well_heart_analysis_unlock(world_state):
-		log_messages.append("旧进度已接入：相位井心核解析配方已补齐。")
+		log_messages.append("旧进度已接入：碎晶心核解析配方已补齐。")
 	if _restore_missing_phase_well_spindle_analysis_unlock(world_state):
-		log_messages.append("旧进度已接入：相位井纺核解析配方已补齐。")
+		log_messages.append("旧进度已接入：风蚀张力核解析配方已补齐。")
 	if _restore_missing_phase_well_weave_core_analysis_unlock(world_state):
-		log_messages.append("旧进度已接入：相位井织核解析配方已补齐。")
+		log_messages.append("旧进度已接入：锁相织构核解析配方已补齐。")
 	if _restore_missing_phase_well_knot_core_analysis_unlock(world_state):
-		log_messages.append("旧进度已接入：相位井结核解析配方已补齐。")
+		log_messages.append("旧进度已接入：锚定结核解析配方已补齐。")
 	if _restore_missing_phase_well_anchor_core_analysis_unlock(world_state):
-		log_messages.append("旧进度已接入：相位井锚核解析配方已补齐。")
+		log_messages.append("旧进度已接入：稳场锚核解析配方已补齐。")
 	if _restore_missing_phase_well_weave_core_reward(character_state, world_state):
-		log_messages.append("旧进度已接入：井纺室勘验奖励的相位井织核已补回背包。")
+		log_messages.append("旧进度已接入：风蚀管廊勘验奖励的锁相织构核已补回背包。")
 	if _restore_missing_phase_well_knot_core_reward(character_state, world_state):
-		log_messages.append("旧进度已接入：井纹架勘验奖励的相位井结核已补回背包。")
+		log_messages.append("旧进度已接入：锁相框架勘验奖励的锚定结核已补回背包。")
 	if _restore_missing_phase_well_anchor_core_reward(character_state, world_state):
-		log_messages.append("旧进度已接入：井系桥勘验奖励的相位井锚核已补回背包。")
+		log_messages.append("旧进度已接入：锚定桥勘验奖励的稳场锚核已补回背包。")
 	if _restore_missing_phase_well_core_analysis_unlock(world_state):
-		log_messages.append("旧进度已接入：相位井芯样本解析配方已补齐。")
+		log_messages.append("旧进度已接入：回声芯样本解析配方已补齐。")
 	if _restore_missing_phase_well_locator_analysis_unlock(world_state):
-		log_messages.append("旧进度已接入：相位井定位器解析配方已补齐。")
+		log_messages.append("旧进度已接入：回声定位器解析配方已补齐。")
 	if _restore_missing_inner_fault_analysis_unlock(world_state):
 		log_messages.append("旧进度已接入：内层故障轨迹分析配方已补齐。")
 	if _restore_missing_phase_relay_anchor(world_state):
 		log_messages.append("旧进度已接入：前线回传锚点已按固定深段落点恢复在线。")
 	if _restore_late_phase_relay_anchor(world_state):
-		log_messages.append("旧进度已接入：井系桥前线回传锚点已设为当前回投落点。")
+		log_messages.append("旧进度已接入：锚定桥前线回传锚点已设为当前回投落点。")
 	if _restore_missing_deployed_phase_relay_anchors(world_state):
 		log_messages.append("旧进度已接入：已部署前线锚点列表已按现有回投进度补齐。")
 	if _activate_missing_post_phase_well_loom_followup(world_state):
-		log_messages.append("旧进度已接入：井纺室后的井纹架后续任务已补入当前目标。")
+		log_messages.append("旧进度已接入：风蚀管廊后的锁相框架后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_frame_followup(world_state):
-		log_messages.append("旧进度已接入：井纹架后的井系桥后续任务已补入当前目标。")
+		log_messages.append("旧进度已接入：锁相框架后的锚定桥后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_tether_followup(world_state):
-		log_messages.append("旧进度已接入：井系桥后的锚场回稳后续任务已补入当前目标。")
+		log_messages.append("旧进度已接入：锚定桥后的锚场回稳后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_readout_followup(world_state):
 		log_messages.append("旧进度已接入：稳窗读数后的现场校准任务已补入当前目标。")
 	if _activate_missing_demo_stabilization_core_entry(world_state):
@@ -165,9 +165,9 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 	if _activate_missing_post_pressure_choice_followup(world_state):
 		log_messages.append("旧进度已接入：压力清障选择后的前线目标已补入当前目标。")
 	if _activate_missing_post_phase_well_chamber_followup(world_state):
-		log_messages.append("旧进度已接入：井心室后的井纺后续任务已补入当前目标。")
+		log_messages.append("旧进度已接入：碎晶沟谷后的风蚀后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_sink_followup(world_state):
-		log_messages.append("旧进度已接入：井底裂口后的心核后续任务已补入当前目标。")
+		log_messages.append("旧进度已接入：盐壳浅滩后的心核后续任务已补入当前目标。")
 	if _activate_missing_post_phase_relay_followup(world_state):
 		log_messages.append("旧进度已接入：回传后的深段后续任务已补入当前目标。")
 	if _activate_missing_second_deep_followup(world_state):

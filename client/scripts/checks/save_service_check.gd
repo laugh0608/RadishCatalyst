@@ -1368,5 +1368,10 @@ func _expect_array_has(values: Array, expected_value: String, label: String) -> 
 		failures.append("%s should contain %s, got %s" % [label, expected_value, var_to_str(values)])
 
 
+func _expect_array_missing(values: Array, unexpected_value: String, label: String) -> void:
+	if values.has(unexpected_value):
+		failures.append("%s should not contain %s, got %s" % [label, unexpected_value, var_to_str(values)])
+
+
 func _cleanup() -> void:
 	data_registry.free()

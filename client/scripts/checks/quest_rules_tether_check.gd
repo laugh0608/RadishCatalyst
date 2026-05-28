@@ -175,9 +175,9 @@ func _check_runtime_restores_phase_well_knot_core_followup() -> void:
 	host._expect_equal(int(character_state.inventory.items.get("item.phase_well_knot_core", 0)), 1, "runtime restores missing phase well knot core reward")
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_phase_well_knot_core", "runtime activates phase well knot core analysis quest")
 	host._expect_equal(host._result_array_size(result, "completion_feedbacks"), 0, "phase well knot core followup restoration should not emit completion feedback")
-	if not host._result_logs_contain(result, "相位井结核已补回背包"):
+	if not host._result_logs_contain(result, "锚定结核已补回背包"):
 		host.failures.append("phase well knot core restoration should log restored knot core reward, got %s" % var_to_str(result))
-	if not host._result_logs_contain(result, "井纹架后的井系桥后续任务"):
+	if not host._result_logs_contain(result, "锁相框架后的锚定桥后续任务"):
 		host.failures.append("phase well knot core restoration should log tether followup activation, got %s" % var_to_str(result))
 
 
@@ -380,9 +380,9 @@ func _check_runtime_restores_phase_well_anchor_core_followup() -> void:
 	host._expect_equal(int(character_state.inventory.items.get("item.phase_well_anchor_core", 0)), 1, "runtime restores missing anchor core reward")
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_phase_well_anchor_core", "runtime activates anchor core analysis quest")
 	host._expect_equal(host._result_array_size(result, "completion_feedbacks"), 0, "anchor core followup restoration should not emit completion feedback")
-	if not host._result_logs_contain(result, "相位井锚核已补回背包"):
+	if not host._result_logs_contain(result, "稳场锚核已补回背包"):
 		host.failures.append("phase well anchor core restoration should log restored anchor core reward, got %s" % var_to_str(result))
-	if not host._result_logs_contain(result, "井系桥后的锚场回稳后续任务"):
+	if not host._result_logs_contain(result, "锚定桥后的锚场回稳后续任务"):
 		host.failures.append("phase well anchor core restoration should log anchor-field followup activation, got %s" % var_to_str(result))
 
 

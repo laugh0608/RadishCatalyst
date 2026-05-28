@@ -59,7 +59,7 @@ const SUPPLY_FEEDBACK_QUEST_ID := "quest.analyze_steady_supply_trace"
 const SURVEY_FEEDBACK_QUEST_ID := "quest.analyze_phase_survey_trace"
 const PRESSURE_FEEDBACK_QUEST_ID := "quest.analyze_pressure_clearance_trace"
 const ROUTE_TARGET_REGION_ID := "region.phase_well_tether"
-const ROUTE_RISK_NOTE := "井系桥前线低压读数线：优先走西侧测绘边界，东侧节点存在短时扰动。"
+const ROUTE_RISK_NOTE := "锚定桥前线低压读数线：优先走西侧测绘边界，东侧节点存在短时扰动。"
 static func is_action_console(definition_id: String) -> bool:
 	return CONSOLE_DEFINITION_IDS.has(definition_id)
 
@@ -159,7 +159,7 @@ static func confirm_departure_preparation(world_state: WorldState) -> Array[Stri
 	if world_state == null:
 		return messages
 	if is_frontline_window_active(world_state):
-		messages.append("前线异常窗口仍待处理：先在井系桥前线的异常窗口按 E 处理本趟结果，再回基地确认下一计划。")
+		messages.append("前线异常窗口仍待处理：先在锚定桥前线的异常窗口按 E 处理本趟结果，再回基地确认下一计划。")
 		return messages
 	if has_unreviewed_frontline_window_feedback(world_state):
 		messages.append("前线异常窗口反馈仍待归档：先在基地行动台按 E 归档本趟结果，再决定后续扩展。")
@@ -568,8 +568,8 @@ static func _format_direction(stage: String, world_state: WorldState) -> String:
 		"frontline_window_active":
 			var blocker := get_frontline_window_blocker(world_state)
 			if not blocker.is_empty():
-				return "本趟压力清障已载入井系桥前线：当前计划=压力清障，模块=防护涂层。先按 J 击退清障扰动守卫，再处理异常窗口。"
-			return "本趟整备已随相位回投载入井系桥前线：先找到前线异常窗口并按 E 处理，再回基地行动台查看反馈和下一计划。"
+				return "本趟压力清障已载入锚定桥前线：当前计划=压力清障，模块=防护涂层。先按 J 击退清障扰动守卫，再处理异常窗口。"
+			return "本趟整备已随相位回投载入锚定桥前线：先找到前线异常窗口并按 E 处理，再回基地行动台查看反馈和下一计划。"
 		"frontline_window_return":
 			return "前线异常窗口已处理：用前线回传锚点回基地，在基地行动台按 E 归档本趟反馈。"
 		"frontline_window_review":
@@ -579,25 +579,25 @@ static func _format_direction(stage: String, world_state: WorldState) -> String:
 		"first_ready":
 			return "稳窗相位序已完成现场校准：回基地在行动台确认稳窗回访，把前线窗口转成下一趟外出目标。"
 		"first_dispatched":
-			return "稳窗回访已派发：用相位回投返回井系桥东侧，读取稳窗回波探点后回基地。"
+			return "稳窗回访已派发：用相位回投返回锚定桥东侧，读取稳窗回波探点后回基地。"
 		"first_return":
 			return "稳窗回波样本已带回：回基地使用基础反应器，把样本解析成前线行动回报。"
 		"short_ready":
 			return "前线行动回报已归档：回基地在行动台确认补给短行动，把上一趟收益转成下一趟补给目标。"
 		"short_dispatched":
-			return "补给短行动已派发：用相位回投返回井系桥前线，读取补给回执标记。"
+			return "补给短行动已派发：用相位回投返回锚定桥前线，读取补给回执标记。"
 		"short_return":
 			return "补给回执读数已带回：回基地使用基础反应器，把读数解析成短行动反馈记录。"
 		"route_ready":
 			return "短行动反馈已归档：回基地在行动台确认巡线短行动，把连续行动接到路线信标。"
 		"route_dispatched":
-			return "巡线短行动已派发：用相位回投返回井系桥前线，读取巡线信标。"
+			return "巡线短行动已派发：用相位回投返回锚定桥前线，读取巡线信标。"
 		"route_return":
 			return "巡线信标读数已带回：回基地使用基础反应器，把读数解析成巡线反馈记录。"
 		"choice_ready":
 			return "巡线反馈已归档：回基地行动台选择稳场补给、相位测绘或压力清障，决定下一趟风险收益。"
 		"steady_supply_dispatched":
-			return "稳场补给行动已派发：用相位回投返回井系桥前线，读取一处补给投放点后回基地。"
+			return "稳场补给行动已派发：用相位回投返回锚定桥前线，读取一处补给投放点后回基地。"
 		"steady_supply_return":
 			return "稳场补给回执已带回：回基地使用基础反应器，把补给收益解析成下一轮整备资源。"
 		"steady_supply_ready":
@@ -607,17 +607,17 @@ static func _format_direction(stage: String, world_state: WorldState) -> String:
 				return "稳场补给整备槽已确认：下一步到相位回投台按 E 出发，回投时会装入基础零件和修复凝胶缓冲。"
 			return "稳场补给反馈已归档：回基地在前线行动台确认出发整备槽，再从相位回投台外出。"
 		"phase_survey_dispatched":
-			return "相位测绘行动已派发：用相位回投返回井系桥前线，读取西侧和东侧两处测绘点。"
+			return "相位测绘行动已派发：用相位回投返回锚定桥前线，读取西侧和东侧两处测绘点。"
 		"phase_survey_return":
 			return "相位测绘记录已带回：回基地使用基础反应器，把测绘收益解析成下一趟路线提示。"
 		"phase_survey_ready":
 			if get_survey_intel_status(world_state) == STATUS_USED:
-				return "相位测绘路线情报已生效：井系桥前线目前没有新的可交互目标；返回基地行动台安排下一计划。"
+				return "相位测绘路线情报已生效：锚定桥前线目前没有新的可交互目标；返回基地行动台安排下一计划。"
 			if get_survey_intel_status(world_state) == STATUS_QUEUED:
-				return "相位测绘整备槽已确认：下一步到相位回投台按 E 出发，回投时会载入井系桥前线目标和风险预告。"
+				return "相位测绘整备槽已确认：下一步到相位回投台按 E 出发，回投时会载入锚定桥前线目标和风险预告。"
 			return "相位测绘反馈已归档：回基地在前线行动台确认出发整备槽，再从相位回投台外出。"
 		"pressure_clearance_dispatched":
-			return "压力清障行动已派发：用相位回投返回井系桥前线，清除一处前线压力扰点后回基地。"
+			return "压力清障行动已派发：用相位回投返回锚定桥前线，清除一处前线压力扰点后回基地。"
 		"pressure_clearance_return":
 			return "压力清障回执已带回：回基地使用基础反应器，把清障收益解析成下一轮防护整备。"
 		"pressure_clearance_ready":
@@ -706,7 +706,7 @@ static func _format_status_progress(stage: String, world_state: WorldState) -> S
 			return "稳场补给反馈已归档；到前线行动台按 E 确认出发补给整备槽"
 		"phase_survey_ready":
 			if get_survey_intel_status(world_state) == STATUS_USED:
-				return "相位测绘路线情报已生效；井系桥前线没有新交互目标，返回基地行动台安排下一计划"
+				return "相位测绘路线情报已生效；锚定桥前线没有新交互目标，返回基地行动台安排下一计划"
 			if get_survey_intel_status(world_state) == STATUS_QUEUED:
 				return "相位测绘整备槽已确认；到相位回投台按 E 出发，回投时载入路线提示"
 			return "相位测绘反馈已归档；到前线行动台按 E 确认测绘路线整备槽"
@@ -771,11 +771,11 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 			return supply_lines
 		"phase_survey_ready":
 			var intel_status := get_survey_intel_status(world_state)
-			var intel_line := "路线提示：待确认；目标显形到井系桥前线。"
+			var intel_line := "路线提示：待确认；目标显形到锚定桥前线。"
 			if intel_status == STATUS_QUEUED:
 				intel_line = "路线提示：整备槽已确认；到相位回投台按 E 出发时载入。"
 			if intel_status == STATUS_USED:
-				intel_line = "路线提示：已完成本趟验证；井系桥前线没有新的可交互目标。"
+				intel_line = "路线提示：已完成本趟验证；锚定桥前线没有新的可交互目标。"
 			var survey_lines: Array[String] = [
 				"整备：抗污染药剂 %d；基础零件 %d。" % [vial_count, parts_count],
 				intel_line,

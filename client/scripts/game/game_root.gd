@@ -445,35 +445,35 @@ func _on_region_gate_blocked(message: String) -> void:
 			message,
 			"需要：回基地解析深段回波，带着更深遗迹坐标回来写入门禁。"
 		))
-	elif message.find("内层相位井") >= 0:
+	elif message.find("回声台地") >= 0:
 		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(
 			message,
-			"需要：先回基地解析定位器，确认更东侧内层相位井路由。"
+			"需要：先回基地解析定位器，确认更东侧回声台地路由。"
 		))
-	elif message.find("井底裂口") >= 0:
+	elif message.find("盐壳浅滩") >= 0:
 		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(
 			message,
-			"需要：先回基地解析井芯样本，再组装井底穿钉回来凿开裂口。"
+			"需要：先回基地解析回声芯样本，再组装盐壳穿钉回来凿开裂口。"
 		))
-	elif message.find("井心室") >= 0:
+	elif message.find("碎晶沟谷") >= 0:
 		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(
 			message,
-			"需要：先回基地解析相位井心核，再组装井心分流栓回来勘验断面。"
+			"需要：先回基地解析碎晶心核，再组装碎晶分流栓回来勘验断面。"
 		))
-	elif message.find("井纺室") >= 0:
+	elif message.find("风蚀管廊") >= 0:
 		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(
 			message,
-			"需要：先回基地解析相位井纺核，再组装井纺梭栓回来勘验断面。"
+			"需要：先回基地解析风蚀张力核，再组装风蚀梭栓回来勘验断面。"
 		))
-	elif message.find("井纹架") >= 0:
+	elif message.find("锁相框架") >= 0:
 		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(
 			message,
-			"需要：先回基地解析相位井织核，再组装井纹架键栓回来勘验断面。"
+			"需要：先回基地解析锁相织构核，再组装锁相键栓回来勘验断面。"
 		))
-	elif message.find("井系桥") >= 0:
+	elif message.find("锚定桥") >= 0:
 		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(
 			message,
-			"需要：先回基地解析相位井结核，再组装井系定桩回来勘验断面。"
+			"需要：先回基地解析锚定结核，再组装锚定桩回来勘验断面。"
 		))
 	elif message.find("遗迹外圈") >= 0:
 		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(

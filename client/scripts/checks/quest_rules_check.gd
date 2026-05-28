@@ -1262,7 +1262,7 @@ func _check_runtime_restores_phase_well_weave_core_followup() -> void:
 	_expect_equal(int(character_state.inventory.items.get("item.phase_well_weave_core", 0)), 1, "runtime restores missing phase well weave core reward")
 	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_phase_well_weave_core", "runtime activates phase well weave core analysis quest")
 	_expect_equal(_result_array_size(result, "completion_feedbacks"), 0, "phase well weave core followup restoration should not emit completion feedback")
-	if not _result_logs_contain(result, "相位井织核已补回背包"):
+	if not _result_logs_contain(result, "锁相织构核已补回背包"):
 		failures.append("phase well weave core restoration should log restored weave core reward, got %s" % var_to_str(result))
 
 func _check_runtime_syncs_progression_vitals_and_late_anchor() -> void:

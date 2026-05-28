@@ -379,21 +379,21 @@ func _format_slot_details(save_data: Dictionary) -> String:
 			if active_quest_ids is Array and not active_quest_ids.is_empty():
 				parts.append("目标：%s" % _get_display_name(String(active_quest_ids[0])))
 			elif completed_quest_ids.has("quest.stabilize_phase_well_anchor_field"):
-				parts.append("目标：相位井余响片已带回")
+				parts.append("目标：稳窗余响片已带回")
 			elif completed_quest_ids.has("quest.inspect_phase_well_tether"):
-				parts.append("目标：相位井锚核待解析")
+				parts.append("目标：稳场锚核待解析")
 			elif completed_quest_ids.has("quest.inspect_phase_well_frame"):
-				parts.append("目标：相位井结核待解析")
+				parts.append("目标：锚定结核待解析")
 			elif completed_quest_ids.has("quest.inspect_phase_well_loom"):
-				parts.append("目标：相位井织核待解析")
+				parts.append("目标：锁相织构核待解析")
 			elif completed_quest_ids.has("quest.inspect_phase_well_chamber"):
-				parts.append("目标：相位井纺核待解析")
+				parts.append("目标：风蚀张力核待解析")
 			elif completed_quest_ids.has("quest.inspect_phase_well_sink"):
-				parts.append("目标：相位井心核待解析")
+				parts.append("目标：碎晶心核待解析")
 			elif completed_quest_ids.has("quest.inspect_inner_phase_well"):
-				parts.append("目标：相位井芯样本待解析")
+				parts.append("目标：回声芯样本待解析")
 			elif completed_quest_ids.has("quest.unlock_phase_well"):
-				parts.append("目标：相位井定位器待解析")
+				parts.append("目标：回声定位器待解析")
 			elif completed_quest_ids.has("quest.deploy_phase_relay_anchor"):
 				parts.append("目标：前线回传锚点已部署")
 			elif completed_quest_ids.has("quest.assemble_deep_signal_matrix"):

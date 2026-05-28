@@ -31,16 +31,16 @@ const FIELD_READING_RESULTS := {
 		"objective_type": "inspect",
 		"target_id": "map_object.well_flux_pressure_vent",
 		"required": 2.0,
-		"step": "井涌泄压",
-		"partial": "继续处理另一处泄压阀，再压制井口哨戒体。",
-		"complete": "两处井涌压力已卸掉，井涌碎屑回收线已经稳定。"
+		"step": "回声泄压",
+		"partial": "继续处理另一处泄压阀，再压制回声哨戒体。",
+		"complete": "两处回声压力已卸掉，回声碎屑回收线已经稳定。"
 	},
 	"map_object.phase_well_chamber_shunt_node": {
 		"quest_id": "quest.collect_heart_spine",
 		"objective_type": "inspect",
 		"target_id": "map_object.phase_well_chamber_shunt_node",
 		"required": 2.0,
-		"step": "井心分流读数",
+		"step": "碎晶分流读数",
 		"partial": "继续写入另一处分流读数，心棘残片还没有完全露出。",
 		"complete": "两处分流读数已写入，心棘残片从脉冲里露出。"
 	},
@@ -49,7 +49,7 @@ const FIELD_READING_RESULTS := {
 		"objective_type": "inspect",
 		"target_id": "map_object.phase_well_loom_tension_spool",
 		"required": 2.0,
-		"step": "井纺张力绕轮",
+		"step": "风蚀张力绕轮",
 		"partial": "继续检查另一处张力绕轮，纬束残团还不稳定。",
 		"complete": "两处张力绕轮已确认，纬束残团回收线已经稳定。"
 	},
@@ -58,9 +58,9 @@ const FIELD_READING_RESULTS := {
 		"objective_type": "inspect",
 		"target_id": "map_object.phase_well_tether_knot_node",
 		"required": 2.0,
-		"step": "井系桥结点",
-		"partial": "继续检查另一端结点，系索残股还没有完全松开。",
-		"complete": "两端桥结点已确认，系索残股从桥体边缘松开。"
+		"step": "锚定桥结点",
+		"partial": "继续检查另一端结点，锚索残股还没有完全松开。",
+		"complete": "两端桥结点已确认，锚索残股从桥体边缘松开。"
 	}
 }
 
@@ -149,11 +149,11 @@ func interact_with_object(
 		"clear":
 			_set_map_object_flag(world_state, instance_id, definition_id, "is_cleared", true)
 			if definition_id == "map_object.phase_well_anchor_pressure_pin":
-				return _success("锚场压力钉已清理：继续清掉剩余压力钉，井系守脉体会完全暴露。")
+				return _success("锚场压力钉已清理：继续清掉剩余压力钉，稳场守脉体会完全暴露。")
 			if definition_id == "map_object.phase_well_frame_route_blocker":
-				return _success("井纹架侧路已清理：边缕残条回收线打开，另一侧路可以保留为未选路线。")
+				return _success("锁相框架侧路已清理：边缕残条回收线打开，另一侧路可以保留为未选路线。")
 			if definition_id == "map_object.well_ash_crust_blocker":
-				return _success("井底余烬壳已清理：井壁余烬回收线打开。")
+				return _success("盐壳硬壳已清理：盐壳余烬回收线打开。")
 			if definition_id == "map_object.pressure_clearance_node":
 				return _success("前线压力扰点已清除：带回压力清障回执，回基地用基础反应器解析防护收益。")
 			return _success("地块已清理。")
@@ -345,11 +345,11 @@ func _get_display_name(definition_id: String) -> String:
 func _format_frontline_action_console_result(quest_id: String) -> String:
 	match quest_id:
 		"quest.plan_stability_frontline_action":
-			return "前线行动台已确认：用相位回投返回井系桥东侧，读取稳窗回波探点。"
+			return "前线行动台已确认：用相位回投返回锚定桥东侧，读取稳窗回波探点。"
 		"quest.confirm_supply_frontline_action":
-			return "补给短行动已确认：用相位回投返回井系桥前线，读取补给回执标记。"
+			return "补给短行动已确认：用相位回投返回锚定桥前线，读取补给回执标记。"
 		"quest.confirm_route_frontline_action":
-			return "巡线短行动已确认：用相位回投返回井系桥前线，读取巡线信标。"
+			return "巡线短行动已确认：用相位回投返回锚定桥前线，读取巡线信标。"
 		_:
 			return "前线行动台已确认。"
 

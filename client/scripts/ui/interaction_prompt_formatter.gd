@@ -27,15 +27,15 @@ const FIELD_READING_PROMPTS := {
 		"objective_type": "inspect",
 		"target_id": "map_object.well_flux_pressure_vent",
 		"required": 2.0,
-		"title": "井涌泄压阀",
-		"effect": "两处泄压完成后，井涌碎屑回收线才会稳定。"
+		"title": "回声泄压阀",
+		"effect": "两处泄压完成后，回声碎屑回收线才会稳定。"
 	},
 	"map_object.phase_well_chamber_shunt_node": {
 		"quest_id": "quest.collect_heart_spine",
 		"objective_type": "inspect",
 		"target_id": "map_object.phase_well_chamber_shunt_node",
 		"required": 2.0,
-		"title": "井心分流读数",
+		"title": "碎晶分流读数",
 		"effect": "两处分流写完后，心棘残片才会从脉冲里露出。"
 	},
 	"map_object.phase_well_loom_tension_spool": {
@@ -43,7 +43,7 @@ const FIELD_READING_PROMPTS := {
 		"objective_type": "inspect",
 		"target_id": "map_object.phase_well_loom_tension_spool",
 		"required": 2.0,
-		"title": "井纺张力绕轮",
+		"title": "风蚀张力绕轮",
 		"effect": "两处张力确认后，纬束残团回收线才会稳定。"
 	},
 	"map_object.phase_well_tether_knot_node": {
@@ -51,8 +51,8 @@ const FIELD_READING_PROMPTS := {
 		"objective_type": "inspect",
 		"target_id": "map_object.phase_well_tether_knot_node",
 		"required": 2.0,
-		"title": "井系桥结点",
-		"effect": "两端结点确认后，系索残股才会从桥体边缘松开。"
+		"title": "锚定桥结点",
+		"effect": "两端结点确认后，锚索残股才会从桥体边缘松开。"
 	}
 }
 
@@ -89,7 +89,7 @@ const FRONTLINE_ACTION_TARGET_PROMPTS := {
 		"objective_type": "clear",
 		"target_ids": ["map_object.pressure_clearance_node"],
 		"title": "前线压力扰点",
-		"status": "未清理，高压扰动仍压着井系桥前线；清障扰动守卫也需要先击退。",
+		"status": "未清理，高压扰动仍压着锚定桥前线；清障扰动守卫也需要先击退。",
 		"effect": "击退守卫并清除扰点后回基地使用基础反应器解析压力清障反馈，换取防护整备。",
 		"action": "按 E 清理压力扰点",
 		"requires_tool": true
@@ -190,12 +190,12 @@ func format_clear_prompt(
 	var object_state := world_state.get_map_object(interactable.instance_id)
 	if interactable.definition_id == "map_object.well_ash_crust_blocker":
 		if bool(object_state.get("is_cleared", false)):
-			return "井底余烬壳：已清理，井壁余烬回收线保持打开。"
+			return "盐壳硬壳：已清理，盐壳余烬回收线保持打开。"
 		var ash_tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
 		var ash_parts: Array[String] = [
 			"清障：%s" % _get_display_name(interactable.definition_id),
-			"状态：未清理，井壁余烬被余烬壳压住。",
-			"后续：清掉两处余烬壳，再处理井底潜伏体和井壁余烬。",
+			"状态：未清理，盐壳余烬被余烬壳压住。",
+			"后续：清掉两处余烬壳，再处理盐壳潜伏体和盐壳余烬。",
 			"工具：%s" % ash_tool_status
 		]
 		if ash_tool_status == "可清理":
@@ -203,7 +203,7 @@ func format_clear_prompt(
 		return "\n".join(ash_parts)
 	if interactable.definition_id == "map_object.phase_well_frame_route_blocker":
 		if bool(object_state.get("is_cleared", false)):
-			return "井纹架侧路障：已清理，边缕残条回收线保持打开。"
+			return "锁相框架侧路障：已清理，边缕残条回收线保持打开。"
 		var frame_tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
 		var frame_parts: Array[String] = [
 			"侧路：%s" % _get_display_name(interactable.definition_id),
@@ -216,12 +216,12 @@ func format_clear_prompt(
 		return "\n".join(frame_parts)
 	if interactable.definition_id == "map_object.phase_well_anchor_pressure_pin":
 		if bool(object_state.get("is_cleared", false)):
-			return "锚场压力钉：已清理，回稳压制正在转向井系守脉体。"
+			return "锚场压力钉：已清理，回稳压制正在转向稳场守脉体。"
 		var pin_tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
 		var pin_parts: Array[String] = [
 			"压力钉：%s" % _get_display_name(interactable.definition_id),
-			"状态：未清理，井系守脉体还没有完全暴露。",
-			"后续：清掉两处压力钉，再压制井系守脉体。",
+			"状态：未清理，稳场守脉体还没有完全暴露。",
+			"后续：清掉两处压力钉，再压制稳场守脉体。",
 			"工具：%s" % pin_tool_status
 		]
 		if pin_tool_status == "可清理":
@@ -450,7 +450,7 @@ func format_phase_relay_pad_prompt(world_state: WorldState) -> String:
 
 func format_phase_fault_spire_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_fault_spire"):
-		return "裂相尖塔：已校准，第一份内层故障轨迹已带回基地；下一步回基地解析更东侧相位井锁。"
+		return "裂相尖塔：已校准，第一份内层故障轨迹已带回基地；下一步回基地解析更东侧裂相锁位。"
 	if not (
 		world_state.quest_state.has_completed_quest("quest.refine_phase_splinters")
 		or world_state.quest_state.has_completed_quest("quest.tune_relay_lens")
@@ -463,72 +463,72 @@ func format_phase_fault_spire_prompt(world_state: WorldState, character_state: C
 
 func format_phase_well_lock_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.unlock_phase_well"):
-		return "相位井锁：已钉住，第一份相位井定位器已带回基地；下一步回基地解析定位器。"
+		return "裂相锁位：已钉住，第一份回声定位器已带回基地；下一步回基地解析定位器。"
 	if not (world_state.quest_state.has_completed_quest("quest.refine_fault_residue") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_key")):
-		return "相位井锁：先回基地完成相位井钥整备，再回来钉住锁位。"
+		return "裂相锁位：先回基地完成裂相锁钥整备，再回来钉住锁位。"
 	if not character_state.inventory.has_ref("item.phase_well_key", 1):
-		return "相位井锁：缺少相位井钥；回基地确认基础反应器组装结果后再来。"
-	return "按 E 锁定：相位井锁。"
+		return "裂相锁位：缺少裂相锁钥；回基地确认基础反应器组装结果后再来。"
+	return "按 E 锁定：裂相锁位。"
 
 
 func format_inner_phase_well_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well"):
-		return "内层相位井：井芯样本已带回；先回基地解析这份样本，再回来继续推进更东侧井底裂口。"
+		return "回声台地：回声芯样本已带回；先回基地解析这份样本，再回来继续推进更东侧盐壳浅滩。"
 	if not (world_state.quest_state.has_completed_quest("quest.refine_well_flux") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_probe")):
-		return "内层相位井：先回基地完成相位井探针整备，再回来读取井芯样本。"
+		return "回声台地：先回基地完成回声探针整备，再回来读取回声芯样本。"
 	if not character_state.inventory.has_ref("item.phase_well_probe", 1):
-		return "内层相位井：缺少相位井探针；回基地确认基础反应器组装结果后再来。"
-	return "按 E 勘验：内层相位井。"
+		return "回声台地：缺少回声探针；回基地确认基础反应器组装结果后再来。"
+	return "按 E 勘验：回声台地。"
 
 
 func format_phase_well_sink_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_sink"):
-		return "井底裂口：已凿开，第一份相位井心核已带回基地；下一步回基地解析并继续推进井心室断面。"
+		return "盐壳浅滩：已凿开，第一份碎晶心核已带回基地；下一步回基地解析并继续推进碎晶沟谷断面。"
 	if not _has_completed_any(world_state, ["quest.refine_well_ash", "quest.assemble_phase_well_pike"]):
-		return "井底裂口：先回基地完成井底整备，把井底穿钉带回来凿开更东侧裂口。"
+		return "盐壳浅滩：先回基地完成盐壳整备，把盐壳穿钉带回来凿开更东侧裂口。"
 	if not character_state.inventory.has_ref("item.phase_well_pike", 1):
-		return "井底裂口：缺少井底穿钉；回基地确认基础反应器组装结果后再来。"
-	return "按 E 凿开：井底裂口。"
+		return "盐壳浅滩：缺少盐壳穿钉；回基地确认基础反应器组装结果后再来。"
+	return "按 E 凿开：盐壳浅滩。"
 
 
 func format_phase_well_chamber_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_chamber"):
-		return "井心室断面：已勘验，第一份相位井纺核已带回基地；下一步回基地解析并继续推进井纺室断面。"
+		return "碎晶沟谷断面：已勘验，第一份风蚀张力核已带回基地；下一步回基地解析并继续推进风蚀管廊断面。"
 	if not _has_completed_any(world_state, ["quest.refine_heart_spine", "quest.assemble_phase_well_shunt"]):
-		return "井心室断面：先回基地完成井心整备，把井心分流栓带回来勘验更东侧断面。"
+		return "碎晶沟谷断面：先回基地完成碎晶整备，把碎晶分流栓带回来勘验更东侧断面。"
 	if not character_state.inventory.has_ref("item.phase_well_shunt", 1):
-		return "井心室断面：缺少井心分流栓；回基地确认基础反应器组装结果后再来。"
-	return "按 E 勘验：井心室断面。"
+		return "碎晶沟谷断面：缺少碎晶分流栓；回基地确认基础反应器组装结果后再来。"
+	return "按 E 勘验：碎晶沟谷断面。"
 
 
 func format_phase_well_loom_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_loom"):
-		return "井纺室断面：已勘验，第一份相位井织核已带回基地；下一步回基地解析并继续推进井纹架断面。"
+		return "风蚀管廊断面：已勘验，第一份锁相织构核已带回基地；下一步回基地解析并继续推进锁相框架断面。"
 	if not _has_completed_any(world_state, ["quest.refine_weft_bundle", "quest.assemble_phase_well_shuttle"]):
-		return "井纺室断面：先回基地完成井纺整备，把井纺梭栓带回来勘验更东侧断面。"
+		return "风蚀管廊断面：先回基地完成风蚀整备，把风蚀梭栓带回来勘验更东侧断面。"
 	if not character_state.inventory.has_ref("item.phase_well_shuttle", 1):
-		return "井纺室断面：缺少井纺梭栓；回基地确认基础反应器组装结果后再来。"
-	return "按 E 勘验：井纺室断面。"
+		return "风蚀管廊断面：缺少风蚀梭栓；回基地确认基础反应器组装结果后再来。"
+	return "按 E 勘验：风蚀管廊断面。"
 
 
 func format_phase_well_frame_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_frame"):
-		return "井纹架断面：已勘验，第一份相位井结核已带回基地；下一步回基地解析并继续推进井系桥断面。"
+		return "锁相框架断面：已勘验，第一份锚定结核已带回基地；下一步回基地解析并继续推进锚定桥断面。"
 	if not _has_completed_any(world_state, ["quest.refine_selvedge_strip", "quest.assemble_phase_well_frame_key"]):
-		return "井纹架断面：先回基地完成井纹架整备，把井纹架键栓带回来勘验更东侧断面。"
+		return "锁相框架断面：先回基地完成锁相框架整备，把锁相键栓带回来勘验更东侧断面。"
 	if not character_state.inventory.has_ref("item.phase_well_frame_key", 1):
-		return "井纹架断面：缺少井纹架键栓；回基地确认基础反应器组装结果后再来。"
-	return "按 E 勘验：井纹架断面。"
+		return "锁相框架断面：缺少锁相键栓；回基地确认基础反应器组装结果后再来。"
+	return "按 E 勘验：锁相框架断面。"
 
 
 func format_phase_well_tether_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_tether"):
-		return "井系桥断面：已勘验，第一份相位井锚核已带回基地；下一步回基地完成锚场整备。"
+		return "锚定桥断面：已勘验，第一份稳场锚核已带回基地；下一步回基地完成锚场整备。"
 	if not _has_completed_any(world_state, ["quest.refine_tether_fiber", "quest.assemble_phase_well_tether_spike"]):
-		return "井系桥断面：先回基地完成井系整备，把井系定桩带回来勘验更东侧断面。"
+		return "锚定桥断面：先回基地完成锚定桥整备，把锚定桩带回来勘验更东侧断面。"
 	if not character_state.inventory.has_ref("item.phase_well_tether_spike", 1):
-		return "井系桥断面：缺少井系定桩；回基地确认基础反应器组装结果后再来。"
-	return "按 E 勘验：井系桥断面。"
+		return "锚定桥断面：缺少锚定桩；回基地确认基础反应器组装结果后再来。"
+	return "按 E 勘验：锚定桥断面。"
 
 
 func format_phase_well_anchor_field_prompt(world_state: WorldState, character_state: CharacterState) -> String:
@@ -542,17 +542,17 @@ func format_phase_well_anchor_field_prompt(world_state: WorldState, character_st
 			or character_state.inventory.has_ref("item.phase_well_stability_readout", 1)
 		):
 			return "按 E 回充：稳窗读数已校准，锚场回稳窗可在前线恢复生命与防护。"
-		return "锚场回稳窗：局部稳定窗口已维持；回基地解析相位井余响片后，可把这里校准成前线回稳点。"
+		return "锚场回稳窗：局部稳定窗口已维持；回基地解析稳窗余响片后，可把这里校准成前线回稳点。"
 	if not _has_completed_any(world_state, ["quest.refine_anchor_core_dust", "quest.assemble_phase_well_anchor_stake"]):
-		return "锚场回稳窗：先回基地完成锚场整备，把井系校锚桩带回来部署。"
+		return "锚场回稳窗：先回基地完成锚场整备，把稳场校锚桩带回来部署。"
 	if not deployed:
 		if not character_state.inventory.has_ref("item.phase_well_anchor_stake", 1):
-			return "锚场回稳窗：缺少井系校锚桩；回基地确认基础反应器组装结果后再来。"
+			return "锚场回稳窗：缺少稳场校锚桩；回基地确认基础反应器组装结果后再来。"
 		return "按 E 部署：锚场回稳窗。"
 	if not pressure_cleared:
 		if not _has_anchor_field_pressure_pins_cleared(world_state):
-			return "锚场回稳窗：回稳中；先清掉两处压力钉，再压制井系守脉体。校锚桩会保留在现场，失败后可直接重试。"
-		return "锚场回稳窗：回稳中；先清掉井系守脉体，再回来收束稳定窗口。校锚桩会保留在现场，失败后可直接重试。"
+			return "锚场回稳窗：回稳中；先清掉两处压力钉，再压制稳场守脉体。校锚桩会保留在现场，失败后可直接重试。"
+		return "锚场回稳窗：回稳中；先清掉稳场守脉体，再回来收束稳定窗口。校锚桩会保留在现场，失败后可直接重试。"
 	return "按 E 收束：锚场回稳窗。"
 
 
@@ -646,8 +646,8 @@ func _format_phase_relay_anchor_label(anchor_instance_id: String) -> String:
 		"map_object_instance.phase_return_anchor":
 			return "深段固定点"
 		"map_object_instance.phase_return_anchor_chamber":
-			return "井心室前线"
+			return "碎晶沟谷前线"
 		"map_object_instance.phase_return_anchor_tether":
-			return "井系桥前线"
+			return "锚定桥前线"
 		_:
 			return "当前落点"

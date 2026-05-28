@@ -360,8 +360,8 @@ func _check_onboarding_hints() -> void:
 	)
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_inner_fault_trace", "坐标印片", "inner fault analysis onboarding hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.collect_fault_residue", "故障残渣", "fault residue collection onboarding hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_fault_residue", "相位井钥", "phase well key prep onboarding hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.unlock_phase_well", "相位井钥", "phase well lock onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_fault_residue", "裂相锁钥", "phase well key prep onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.unlock_phase_well", "裂相锁钥", "phase well lock onboarding hint")
 	hint_world.quest_state.completed_quest_ids.append("quest.analyze_deep_signal")
 	hint_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_cache")
 	hint_world.quest_state.completed_quest_ids.append("quest.assemble_deep_signal_matrix")
@@ -402,12 +402,12 @@ func _check_onboarding_hints() -> void:
 	inner_phase_well_world.quest_state.completed_quest_ids.append("quest.inspect_inner_phase_well")
 	_expect_text_contains(
 		presenter.format_direction_hint(inner_phase_well_world, hint_character, ""),
-		"回基地解析井芯样本",
+		"回基地解析回声芯样本",
 		"inner phase well completion direction highlights next base analysis"
 	)
 	_expect_text_contains(
 		presenter.format_onboarding_hint(inner_phase_well_world, hint_character, ""),
-		"井芯样本只是下一轮的起点",
+		"回声芯样本只是下一轮的起点",
 		"inner phase well completion onboarding keeps next package explicit"
 	)
 	map.free()
@@ -451,13 +451,13 @@ func _check_status_panel_summary() -> void:
 	phase_well_text_world.quest_state.active_quest_ids.clear()
 	phase_well_text_world.quest_state.completed_quest_ids.append("quest.unlock_phase_well")
 	var phase_well_text := presenter.format_status_text(data_registry, phase_well_text_world, status_character)
-	_expect_text_contains(phase_well_text, "目标：相位井定位器待解析", "status falls back to phase well locator analysis after lock")
+	_expect_text_contains(phase_well_text, "目标：回声定位器待解析", "status falls back to phase well locator analysis after lock")
 	_expect_text_contains(phase_well_text, "先回基地解析定位器", "status progress keeps locator analysis summary")
 	var inner_phase_well_text_world := WorldState.create_default()
 	inner_phase_well_text_world.quest_state.active_quest_ids.clear()
 	inner_phase_well_text_world.quest_state.completed_quest_ids.append("quest.inspect_inner_phase_well")
 	var inner_phase_well_text := presenter.format_status_text(data_registry, inner_phase_well_text_world, status_character)
-	_expect_text_contains(inner_phase_well_text, "目标：相位井芯样本待解析", "status falls back to inner phase well analysis after completion")
+	_expect_text_contains(inner_phase_well_text, "目标：回声芯样本待解析", "status falls back to inner phase well analysis after completion")
 	_expect_text_contains(inner_phase_well_text, "回基地解析后可继续把盐壳浅滩转成新的推进包", "status progress keeps inner phase well followup summary")
 	_expect_text_missing(status_text, "提示：", "status removes onboarding duplicate")
 	_expect_text_missing(status_text, "坐标：", "status removes debug coordinate duplicate")
@@ -475,11 +475,11 @@ func _check_status_panel_summary() -> void:
 	var reactor_craft_world := WorldState.create_default()
 	reactor_craft_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_weave_core"]
 	var reactor_craft_status_text := presenter.format_status_text(data_registry, reactor_craft_world, status_character)
-	_expect_text_contains(reactor_craft_status_text, "制造 相位井纹谱片（基础反应器） 0/1", "status shows reactor craft source")
+	_expect_text_contains(reactor_craft_status_text, "制造 锁相纹谱片（基础反应器） 0/1", "status shows reactor craft source")
 	var filter_craft_world := WorldState.create_default()
 	filter_craft_world.quest_state.active_quest_ids = ["quest.refine_selvedge_strip"]
 	var filter_craft_status_text := presenter.format_status_text(data_registry, filter_craft_world, status_character)
-	_expect_text_contains(filter_craft_status_text, "制造 相位井纹架肋（污染过滤器） 0/1", "status shows filter craft source")
+	_expect_text_contains(filter_craft_status_text, "制造 锁相框架肋（污染过滤器） 0/1", "status shows filter craft source")
 func _check_region_presence_bounds() -> void:
 	var map := VerticalSliceMap.new()
 	_expect_equal(

@@ -533,20 +533,20 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 		if target.definition_id == "enemy.deep_fault_hunter":
 			return _enemy_defeat_result(target, drops_message, "更东侧裂相脊的封锁压力已减弱，裂相碎屑回收线已打开。")
 		if target.definition_id == "enemy.phase_well_sentry":
-			return _enemy_defeat_result(target, drops_message, "更东侧内层相位井边缘的压制已减弱，井涌碎屑回收线已打开。")
+			return _enemy_defeat_result(target, drops_message, "更东侧回声台地边缘的压制已减弱，回声碎屑回收线已打开。")
 		if target.definition_id == "enemy.phase_well_lurker":
-			return _enemy_defeat_result(target, drops_message, "更东侧井底裂口边缘的压制已减弱，井壁余烬回收线已打开。")
+			return _enemy_defeat_result(target, drops_message, "更东侧盐壳浅滩边缘的压制已减弱，盐壳余烬回收线已打开。")
 		if target.definition_id == "enemy.phase_well_reaver":
-			return _enemy_defeat_result(target, drops_message, "更东侧井心室边缘的压制已减弱，心棘残片回收线已打开。")
+			return _enemy_defeat_result(target, drops_message, "更东侧碎晶沟谷边缘的压制已减弱，心棘残片回收线已打开。")
 		if target.definition_id == "enemy.phase_well_tangler":
-			return _enemy_defeat_result(target, drops_message, "更东侧井纺室边缘的压制已减弱，纬束残团回收线已打开。")
+			return _enemy_defeat_result(target, drops_message, "更东侧风蚀管廊边缘的压制已减弱，纬束残团回收线已打开。")
 		if target.definition_id == "enemy.phase_well_raker":
-			return _enemy_defeat_result(target, drops_message, "更东侧井纹架边缘的压制已减弱，边缕残条回收线已打开。")
+			return _enemy_defeat_result(target, drops_message, "更东侧锁相框架边缘的压制已减弱，边缕残条回收线已打开。")
 		if target.definition_id == "enemy.phase_well_binder":
-			return _enemy_defeat_result(target, drops_message, "更东侧井系桥边缘的压制已减弱，系索残股回收线已打开。")
+			return _enemy_defeat_result(target, drops_message, "更东侧锚定桥边缘的压制已减弱，锚索残股回收线已打开。")
 		if target.definition_id == "enemy.phase_well_warden":
 			phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
-			return _enemy_defeat_result(target, drops_message, "井系桥东侧的回稳压制已被拆掉，锚场回稳窗现在可以回去收束。")
+			return _enemy_defeat_result(target, drops_message, "锚定桥东侧的回稳压制已被拆掉，锚场回稳窗现在可以回去收束。")
 		if target.definition_id == "enemy.pressure_clearance_guard":
 			return _enemy_defeat_result(target, drops_message, "前线压力扰点的短战斗压制已解除，现在可以清理扰点并带回清障回执。")
 		if target.definition_id == "enemy.demo_stabilization_guard":
@@ -686,32 +686,32 @@ func apply_region_gate_bounds(world_state: WorldState) -> String:
 	if not world_state.unlocked_region_ids.has("region.inner_phase_well") and player.position.x > INNER_PHASE_WELL_GATE_RETURN_X:
 		player.position.x = INNER_PHASE_WELL_GATE_RETURN_X
 		player.stop_positive_x_until_release()
-		return "内层相位井仍未定位：先回基地解析相位井定位器，再回来继续向东推进。"
+		return "回声台地仍未定位：先回基地解析回声定位器，再回来继续向东推进。"
 
 	if not world_state.unlocked_region_ids.has("region.phase_well_sink") and player.position.x > PHASE_WELL_SINK_GATE_RETURN_X:
 		player.position.x = PHASE_WELL_SINK_GATE_RETURN_X
 		player.stop_positive_x_until_release()
-		return "井底裂口仍未稳定：先回基地解析井芯样本，再带着新的井底穿钉回来继续向东推进。"
+		return "盐壳浅滩仍未稳定：先回基地解析回声芯样本，再带着新的盐壳穿钉回来继续向东推进。"
 
 	if not world_state.unlocked_region_ids.has("region.phase_well_chamber") and player.position.x > PHASE_WELL_CHAMBER_GATE_RETURN_X:
 		player.position.x = PHASE_WELL_CHAMBER_GATE_RETURN_X
 		player.stop_positive_x_until_release()
-		return "井心室断面仍未稳定：先回基地解析相位井心核，再带着新的井心分流栓回来继续向东推进。"
+		return "碎晶沟谷断面仍未稳定：先回基地解析碎晶心核，再带着新的碎晶分流栓回来继续向东推进。"
 
 	if not world_state.unlocked_region_ids.has("region.phase_well_loom") and player.position.x > PHASE_WELL_LOOM_GATE_RETURN_X:
 		player.position.x = PHASE_WELL_LOOM_GATE_RETURN_X
 		player.stop_positive_x_until_release()
-		return "井纺室断面仍未稳定：先回基地解析相位井纺核，再带着新的井纺梭栓回来继续向东推进。"
+		return "风蚀管廊断面仍未稳定：先回基地解析风蚀张力核，再带着新的风蚀梭栓回来继续向东推进。"
 
 	if not world_state.unlocked_region_ids.has("region.phase_well_frame") and player.position.x > PHASE_WELL_FRAME_GATE_RETURN_X:
 		player.position.x = PHASE_WELL_FRAME_GATE_RETURN_X
 		player.stop_positive_x_until_release()
-		return "井纹架断面仍未稳定：先回基地解析相位井织核，再带着新的井纹架键栓回来继续向东推进。"
+		return "锁相框架断面仍未稳定：先回基地解析锁相织构核，再带着新的锁相键栓回来继续向东推进。"
 
 	if not world_state.unlocked_region_ids.has("region.phase_well_tether") and player.position.x > PHASE_WELL_TETHER_GATE_RETURN_X:
 		player.position.x = PHASE_WELL_TETHER_GATE_RETURN_X
 		player.stop_positive_x_until_release()
-		return "井系桥断面仍未稳定：先回基地解析相位井结核，再带着新的井系定桩回来继续向东推进。"
+		return "锚定桥断面仍未稳定：先回基地解析锚定结核，再带着新的锚定桩回来继续向东推进。"
 
 	if not world_state.unlocked_region_ids.has("region.demo_stabilization_core") and player.position.x > DEMO_STABILIZATION_CORE_GATE_RETURN_X:
 		player.position.x = DEMO_STABILIZATION_CORE_GATE_RETURN_X
@@ -1172,7 +1172,7 @@ func _inspect_phase_fault_spire(character_state: CharacterState, world_state: Wo
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_fault_spire"):
 		return {
 			"success": true,
-			"message": "裂相尖塔已校准：第一份内层故障轨迹已经带回基地，可继续回去解析更东侧相位井锁。"
+			"message": "裂相尖塔已校准：第一份内层故障轨迹已经带回基地，可继续回去解析更东侧裂相锁位。"
 		}
 
 	if not character_state.inventory.has_ref("item.relay_tuning_lens", 1):
@@ -1185,85 +1185,85 @@ func _inspect_phase_fault_spire(character_state: CharacterState, world_state: Wo
 	character_state.inventory.consume_ref("item.relay_tuning_lens", 1)
 	return {
 		"success": true,
-		"message": "中继调谐镜已对准：裂相尖塔开始回吐内层故障轨迹，并暴露更东侧相位井锁的第一段坐标。"
+		"message": "中继调谐镜已对准：裂相尖塔开始回吐内层故障轨迹，并暴露更东侧裂相锁位的第一段坐标。"
 	}
 func _inspect_phase_well_lock(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not (world_state.quest_state.has_completed_quest("quest.refine_fault_residue") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_key")):
 		return _failure(
-			"相位井锁仍缺少可执行的锁定位。",
-			"井锁未钉住",
-			"先回基地完成相位井钥整备：稳定故障残渣，再用基础反应器组装相位井钥。"
+			"裂相锁位仍缺少可执行的锁定位。",
+			"裂相锁位未钉住",
+			"先回基地完成裂相锁钥整备：稳定故障残渣，再用基础反应器组装裂相锁钥。"
 		)
 
 	if world_state.quest_state.has_completed_quest("quest.unlock_phase_well"):
 		return {
 			"success": true,
-			"message": "相位井锁已钉住：第一份相位井定位器已经带回基地；下一步回基地解析定位器。"
+			"message": "裂相锁位已钉住：第一份回声定位器已经带回基地；下一步回基地解析定位器。"
 		}
 
 	if not character_state.inventory.has_ref("item.phase_well_key", 1):
 		return _failure(
-			"缺少相位井钥，相位井锁无法稳定。",
-			"缺少相位井钥",
-			"回基地确认基础反应器已经完成相位井钥，并带回来钉住相位井锁。"
+			"缺少裂相锁钥，裂相锁位无法稳定。",
+			"缺少裂相锁钥",
+			"回基地确认基础反应器已经完成裂相锁钥，并带回来钉住裂相锁位。"
 		)
 
 	character_state.inventory.consume_ref("item.phase_well_key", 1)
 	return {
 		"success": true,
-		"message": "相位井钥已写入：相位井锁开始析出定位器，更东侧内层相位井目标已被钉住。"
+		"message": "裂相锁钥已写入：裂相锁位开始析出定位器，更东侧回声台地目标已被钉住。"
 	}
 func _inspect_inner_phase_well(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not (world_state.quest_state.has_completed_quest("quest.refine_well_flux") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_probe")):
 		return _failure(
-			"内层相位井仍缺少可执行的探针读数。",
+			"回声台地仍缺少可执行的探针读数。",
 			"井芯未读取",
-			"先回基地完成相位井探针整备：稳定井涌碎屑，再用基础反应器组装探针。"
+			"先回基地完成回声探针整备：稳定回声碎屑，再用基础反应器组装探针。"
 		)
 
 	if world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well"):
 		return {
 			"success": true,
-			"message": "内层相位井已勘验：第一份井芯样本已经带回基地；下一步回基地解析并继续推进更东侧井底裂口。"
+			"message": "回声台地已勘验：第一份回声芯样本已经带回基地；下一步回基地解析并继续推进更东侧盐壳浅滩。"
 		}
 
 	if not character_state.inventory.has_ref("item.phase_well_probe", 1):
 		return _failure(
-			"缺少相位井探针，内层相位井无法读取。",
-			"缺少相位井探针",
-			"回基地确认基础反应器已经完成相位井探针，并带回来读取井芯样本。"
+			"缺少回声探针，回声台地无法读取。",
+			"缺少回声探针",
+			"回基地确认基础反应器已经完成回声探针，并带回来读取回声芯样本。"
 		)
 
 	character_state.inventory.consume_ref("item.phase_well_probe", 1)
 	return {
 		"success": true,
-		"message": "相位井探针已写入：内层相位井交出了第一份井芯样本，这条更东侧风险线已开始稳定回投收益。"
+		"message": "回声探针已写入：回声台地交出了第一份回声芯样本，这条更东侧风险线已开始稳定回投收益。"
 	}
 func _inspect_phase_well_sink(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not (world_state.quest_state.has_completed_quest("quest.refine_well_ash") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_pike")):
 		return _failure(
-			"井底裂口仍缺少可执行的穿钉读数。",
+			"盐壳浅滩仍缺少可执行的穿钉读数。",
 			"裂口未凿开",
-			"先回基地完成井底整备，把井底穿钉带回来凿开裂口。"
+			"先回基地完成盐壳整备，把盐壳穿钉带回来凿开裂口。"
 		)
 
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_sink"):
 		return {
 			"success": true,
-			"message": "井底裂口已凿开：第一份相位井心核已经带回基地；下一步回基地解析并继续推进更东侧井心室断面。"
+			"message": "盐壳浅滩已凿开：第一份碎晶心核已经带回基地；下一步回基地解析并继续推进更东侧碎晶沟谷断面。"
 		}
 
 	if not character_state.inventory.has_ref("item.phase_well_pike", 1):
 		return _failure(
-			"缺少井底穿钉，井底裂口无法稳定。",
-			"缺少井底穿钉",
-			"回基地确认基础反应器已经完成井底穿钉，并带回来凿开井底裂口。"
+			"缺少盐壳穿钉，盐壳浅滩无法稳定。",
+			"缺少盐壳穿钉",
+			"回基地确认基础反应器已经完成盐壳穿钉，并带回来凿开盐壳浅滩。"
 		)
 
 	character_state.inventory.consume_ref("item.phase_well_pike", 1)
 	return {
 		"success": true,
-		"message": "井底穿钉已写入：井底裂口开始析出相位井心核，更东侧井心室断面的第一段读数已被钉住。"
+		"message": "盐壳穿钉已写入：盐壳浅滩开始析出碎晶心核，更东侧碎晶沟谷断面的第一段读数已被钉住。"
 	}
 func _evacuate_if_needed(character_state: CharacterState, world_state: WorldState, reason: String) -> Dictionary:
 	if character_state.health > 0.0 and character_state.protection > 0.0:
@@ -1339,9 +1339,9 @@ func _get_phase_relay_anchor_label(anchor_instance_id: String) -> String:
 		"map_object_instance.phase_return_anchor":
 			return "深段固定点锚点"
 		"map_object_instance.phase_return_anchor_chamber":
-			return "井心室前线锚点"
+			return "碎晶沟谷前线锚点"
 		"map_object_instance.phase_return_anchor_tether":
-			return "井系桥前线锚点"
+			return "锚定桥前线锚点"
 		_:
 			var region_id := _get_interactable_region_id(anchor_instance_id, "")
 			if region_id.is_empty():
