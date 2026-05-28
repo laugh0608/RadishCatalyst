@@ -45,6 +45,10 @@ const CALIBRATED_STABILITY_NODE_COLOR := Color(0.48, 0.82, 0.92, 1)
 const COMPLETED_FRONTLINE_ACTION_COLOR := Color(0.56, 0.9, 0.78, 1)
 const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
 const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
+const FOCUSED_MARKER_SCALE := Vector2(1.22, 1.22)
+const FOCUSED_MARKER_MODULATE := Color(1.18, 1.18, 1.18, 1)
+const DEFAULT_MARKER_MODULATE := Color(1, 1, 1, 1)
+const FOCUSED_Z_INDEX := 20
 
 @export var definition_id: String = ""
 @export var interaction_type: String = "inspect"
@@ -160,6 +164,16 @@ func mark_consumed() -> void:
 func set_interaction_enabled(enabled: bool) -> void:
 	visible = enabled
 	monitoring = enabled
+
+
+func set_focus_visual(focused: bool) -> void:
+	if label != null:
+		label.visible = focused and visible and not label.text.strip_edges().is_empty()
+	if marker != null:
+		marker.pivot_offset = marker.size * 0.5
+		marker.scale = FOCUSED_MARKER_SCALE if focused else Vector2.ONE
+		marker.modulate = FOCUSED_MARKER_MODULATE if focused else DEFAULT_MARKER_MODULATE
+	z_index = FOCUSED_Z_INDEX if focused else 0
 
 
 func set_default_visual() -> void:

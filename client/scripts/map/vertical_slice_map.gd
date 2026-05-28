@@ -87,6 +87,7 @@ func setup(registry: DataRegistry) -> void:
 	phase_well_frontier_runtime = PhaseWellFrontierRuntime.new(data_registry)
 	_setup_interactable_labels()
 	_setup_enemy_labels()
+	_refresh_focus_visuals()
 func _ready() -> void:
 	for interactable in interactables_root.get_children():
 		if interactable is PrototypeInteractable:
@@ -159,6 +160,7 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 	if not interacted.can_interact():
 		current_interactable = null
 		interaction_cleared.emit(interacted)
+	_refresh_focus_visuals()
 	var evacuation_feedback := _evacuate_if_needed(character_state, world_state, "pollution")
 	if not evacuation_feedback.is_empty():
 		result["message"] = "%s%s" % [String(result.get("message", "")), String(evacuation_feedback.get("log_message", ""))]
@@ -466,6 +468,7 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 func update_current_interactable() -> void:
 	var nearest_interactable := _get_nearest_interactable()
 	if nearest_interactable == current_interactable:
+		_refresh_focus_visuals()
 		return
 	var previous_interactable := current_interactable
 	current_interactable = nearest_interactable
@@ -473,6 +476,7 @@ func update_current_interactable() -> void:
 		interaction_cleared.emit(previous_interactable)
 	if current_interactable != null:
 		interaction_available.emit(current_interactable)
+	_refresh_focus_visuals()
 func try_cycle_recipe(world_state: WorldState = null) -> Dictionary:
 	if current_interactable == null:
 		if _has_nearby_phase_relay_pad():
@@ -607,6 +611,7 @@ func sync_enemy_states(world_state: WorldState) -> void:
 		)
 		enemy.apply_saved_state(enemy_state)
 		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state))
+	_refresh_focus_visuals()
 func refresh_enemy_spawns(world_state: WorldState) -> void:
 	if phase_well_frontier_runtime != null:
 		phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
@@ -614,6 +619,7 @@ func refresh_enemy_spawns(world_state: WorldState) -> void:
 		if not enemy is PrototypeEnemy:
 			continue
 		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state))
+	_refresh_enemy_focus_visuals()
 func apply_runtime_state(world_state: WorldState, character_state: CharacterState) -> void:
 	current_interactable = null
 	player.position = character_state.position
@@ -782,6 +788,18 @@ func _get_nearest_attack_target() -> PrototypeEnemy:
 		nearest_distance = distance
 
 	return nearest_enemy
+func _refresh_focus_visuals() -> void:
+	_refresh_interactable_focus_visuals()
+	_refresh_enemy_focus_visuals()
+func _refresh_interactable_focus_visuals() -> void:
+	for interactable in interactables_root.get_children():
+		if interactable is PrototypeInteractable:
+			interactable.set_focus_visual(interactable == current_interactable and interactable.can_interact())
+func _refresh_enemy_focus_visuals() -> void:
+	var focused_enemy := _get_nearest_attack_target()
+	for enemy in enemies_root.get_children():
+		if enemy is PrototypeEnemy:
+			enemy.set_focus_visual(enemy == focused_enemy)
 func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool:
 	if enemy.definition_id == "enemy.elite_residue_node":
 		return (

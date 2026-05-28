@@ -5,6 +5,10 @@ class_name PrototypeEnemy
 
 const DEFEATED_COLOR := Color(0.2, 0.2, 0.2, 1)
 const DEFEATED_POLLUTED_COLOR := Color(0.34, 0.32, 0.16, 1)
+const FOCUSED_SPRITE_SCALE := Vector2(1.22, 1.22)
+const FOCUSED_SPRITE_MODULATE := Color(1.16, 1.16, 1.16, 1)
+const DEFAULT_SPRITE_MODULATE := Color(1, 1, 1, 1)
+const FOCUSED_Z_INDEX := 18
 
 var health: float = 20.0
 var max_health: float = 20.0
@@ -59,6 +63,16 @@ func apply_saved_state(enemy_state: Dictionary) -> void:
 
 func can_be_attacked() -> bool:
 	return not defeated and visible
+
+
+func set_focus_visual(focused: bool) -> void:
+	if label != null:
+		label.visible = focused and visible and not defeated
+	if sprite != null:
+		sprite.pivot_offset = sprite.size * 0.5
+		sprite.scale = FOCUSED_SPRITE_SCALE if focused else Vector2.ONE
+		sprite.modulate = FOCUSED_SPRITE_MODULATE if focused else DEFAULT_SPRITE_MODULATE
+	z_index = FOCUSED_Z_INDEX if focused else 0
 
 
 func mark_defeated() -> void:
