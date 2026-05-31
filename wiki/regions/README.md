@@ -4,5 +4,6 @@
 
 ## 当前原型词条
 
+- [污染边界区](pollution-edge.md)
 - [锚定桥前线区域](phase-well-east-frontier.md)
 - [核心稳定站](core-stabilization-station.md)

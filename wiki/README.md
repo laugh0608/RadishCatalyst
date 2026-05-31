@@ -47,8 +47,17 @@ Wiki 不记录：
 
 - [首小时外勤入门](guides/first-hour-field-guide.md)
 - [基础零件](items/basic-parts.md)
+- [污染沉积物](items/polluted-residue.md)
+- [修复凝胶](items/repair-gel.md)
+- [抗污染药剂 I](items/resistance-vial-i.md)
 - [晶体矿物加工](recipes/crystal-ore-processing.md)
+- [调制修复凝胶](recipes/repair-gel.md)
+- [制造基础地基材料](recipes/foundation-material.md)
+- [污染沉积物处理](recipes/pollution-residue-treatment.md)
 - [回收基础零件](recipes/basic-parts-reclamation.md)
+- [污染过滤器](facilities/pollution-filter.md)
+- [污染边界区](regions/pollution-edge.md)
+- [污染与外勤补给](mechanics/pollution-and-field-supplies.md)
 
 以下页面涉及中后段相位井内容，默认按剧透处理：
 
