@@ -34,6 +34,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		]
 		updates.append_array(_get_drop_objective_updates("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", definition_id))
 		return updates
+	if interaction_type == "clear" and definition_id == "map_object.rough_ground":
+		return [_add_update("quest.expand_treatment_point", "clear", "map_object.rough_ground", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.ruin_gate":
 		return [_set_update("quest.unlock_ruin_signal", "inspect", "map_object.ruin_gate", 1)]
 	if interaction_type == "gather" and definition_id == "map_object.relay_shard_cache":

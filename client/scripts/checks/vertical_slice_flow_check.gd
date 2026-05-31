@@ -100,6 +100,7 @@ func _run_checks() -> void:
 	_expect_active_quest("quest.expand_treatment_point", "after prepare treatment supplies")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.foundation_t1", "supplies unlock foundation recipe")
 	_complete_active_quest("quest.expand_treatment_point", [
+		{"type": "clear", "target_id": "map_object.rough_ground", "amount": 2},
 		{"type": "build", "target_id": "building.foundation_t1", "amount": 2},
 		{"type": "build", "target_id": "building.pollution_filter", "amount": 1}
 	])
@@ -288,6 +289,8 @@ func _check_onboarding_hints() -> void:
 		"处理点北缘",
 		"supply prep direction follows treatment point combat region"
 	)
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.expand_treatment_point", "两块粗糙地面", "rough ground onboarding hint")
+	hint_world.quest_state.set_objective_progress("quest.expand_treatment_point", "clear", "map_object.rough_ground", 2)
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.expand_treatment_point", "2 块地基", "foundation onboarding hint")
 	_expect_text_contains(
 		presenter.format_direction_hint(hint_world, hint_character, "quest.expand_treatment_point"),

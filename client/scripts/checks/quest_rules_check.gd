@@ -23,7 +23,6 @@ func _init() -> void:
 	_cleanup()
 	quit(1)
 
-
 func _run_checks() -> void:
 	if not data_registry.load_all():
 		failures.append("data registry should load all static data")
@@ -60,7 +59,6 @@ func _run_checks() -> void:
 	_check_active_objective_progress_is_capped()
 	_check_inactive_objective_progress_is_ignored()
 
-
 func _check_interaction_event_objective_updates() -> void:
 	var quest_state := QuestState.create_default()
 	_mark_restore_outpost_completed(quest_state)
@@ -74,7 +72,6 @@ func _check_interaction_event_objective_updates() -> void:
 	)
 	_expect_update(updates, "set", "quest.scout_crystal_field", "visit_region", "region.crystal_vein_field", 1.0, "crystal gather visit update")
 	_expect_update(updates, "add", "quest.scout_crystal_field", "gather_item", "item.crystal_ore", 3.0, "crystal gather item update")
-
 	updates = event_rules.get_interaction_objective_updates(
 		{
 			"definition_id": "map_object.field_wreckage",
@@ -84,7 +81,6 @@ func _check_interaction_event_objective_updates() -> void:
 		quest_state
 	)
 	_expect_update(updates, "add", "quest.calibrate_reactor", "gather_item", "item.salvage_scrap", 2.0, "field wreckage gather update")
-
 	updates = event_rules.get_interaction_objective_updates(
 		{
 			"definition_id": "map_object.ruin_gate",
@@ -94,7 +90,6 @@ func _check_interaction_event_objective_updates() -> void:
 		quest_state
 	)
 	_expect_update(updates, "set", "quest.unlock_ruin_signal", "inspect", "map_object.ruin_gate", 1.0, "ruin inspect update")
-
 	updates = event_rules.get_interaction_objective_updates(
 		{
 			"definition_id": "map_object.anomaly_residue_patch",
@@ -104,7 +99,6 @@ func _check_interaction_event_objective_updates() -> void:
 		quest_state
 	)
 	_expect_update(updates, "add", "quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 1.0, "anomaly residue gather update")
-
 	updates = event_rules.get_interaction_objective_updates(
 		{
 			"definition_id": "map_object.signal_echo_cache",
@@ -114,7 +108,6 @@ func _check_interaction_event_objective_updates() -> void:
 		quest_state
 	)
 	_expect_update(updates, "set", "quest.salvage_signal_echo", "inspect", "map_object.signal_echo_cache", 1.0, "signal echo inspect update")
-
 	updates = event_rules.get_interaction_objective_updates(
 		{
 			"definition_id": "map_object.deep_signal_array",
@@ -124,7 +117,6 @@ func _check_interaction_event_objective_updates() -> void:
 		quest_state
 	)
 	_expect_update(updates, "set", "quest.activate_deep_array", "inspect", "map_object.deep_signal_array", 1.0, "deep signal array inspect update")
-
 	updates = event_rules.get_interaction_objective_updates(
 		{
 			"definition_id": "map_object.phase_conduit_cluster",
@@ -134,7 +126,6 @@ func _check_interaction_event_objective_updates() -> void:
 		quest_state
 	)
 	_expect_update(updates, "add", "quest.activate_deep_array", "gather_item", "item.phase_conduit", 1.0, "phase conduit gather update")
-
 	updates = event_rules.get_interaction_objective_updates(
 		{
 			"definition_id": "map_object.phase_return_anchor",
@@ -144,7 +135,6 @@ func _check_interaction_event_objective_updates() -> void:
 		quest_state
 	)
 	_expect_update(updates, "set", "quest.deploy_phase_relay_anchor", "inspect", "map_object.phase_return_anchor", 1.0, "phase relay anchor inspect update")
-
 	updates = event_rules.get_interaction_objective_updates(
 		{
 			"definition_id": "map_object.phase_relay_pad",
@@ -259,7 +249,6 @@ func _check_interaction_event_objective_updates() -> void:
 	)
 	_expect_update(updates, "set", "quest.collect_tether_fiber", "visit_region", "region.phase_well_tether", 1.0, "tether fiber visit update")
 	_expect_update(updates, "add", "quest.collect_tether_fiber", "gather_item", "item.tether_fiber", 1.0, "tether fiber gather update")
-
 	updates = event_rules.get_interaction_objective_updates(
 		{
 			"definition_id": "map_object.phase_well_tether",
@@ -276,7 +265,6 @@ func _check_region_event_objective_updates() -> void:
 	_mark_restore_outpost_completed(quest_state)
 	var updates := event_rules.get_region_objective_updates("region.crystal_vein_field", quest_state)
 	_expect_update(updates, "set", "quest.scout_crystal_field", "visit_region", "region.crystal_vein_field", 1.0, "crystal region visit update")
-
 	updates = event_rules.get_region_objective_updates("region.outpost_platform", quest_state)
 	_expect_equal(updates.size(), 0, "outpost return before sample update count")
 	quest_state.set_objective_progress("quest.bring_back_sample", "sample_object", "map_object.anomaly_crystal", 1)
@@ -486,6 +474,18 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		"item.phase_well_tether_spike",
 		1.0,
 		"phase well tether spike recipe update"
+	)
+	_expect_update(
+		event_rules.get_interaction_objective_updates({
+			"definition_id": "map_object.rough_ground",
+			"interaction_type": "clear"
+		}, {}, QuestState.create_default()),
+		"add",
+		"quest.expand_treatment_point",
+		"clear",
+		"map_object.rough_ground",
+		1.0,
+		"rough ground clear update"
 	)
 	_expect_update(
 		event_rules.get_build_objective_updates("building.foundation_t1"),

@@ -266,6 +266,8 @@ func _format_objective_milestone_message(quest_id: String, objective_type: Strin
 			if objective_type == "craft_item" and target_id == "item.repair_gel":
 				return "修复凝胶已就绪：带上快捷栏 1 的补给，去处理点北缘连续清理两处掠行体。"
 		"quest.expand_treatment_point":
+			if objective_type == "clear" and target_id == "map_object.rough_ground":
+				return "处理点地面已清理：回基地制造基础地基材料，再回来铺设 2 块地基。"
 			if objective_type == "build" and target_id == "building.foundation_t1":
 				return "两块地基已铺好：继续建造污染过滤器，之后才能把沉积物处理成药剂。"
 		"quest.enter_pollution_edge":

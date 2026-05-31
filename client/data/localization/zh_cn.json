@@ -162,7 +162,7 @@
     "quest.prepare_treatment_supplies.name": "准备处理点补给",
     "quest.prepare_treatment_supplies.desc": "调制修复凝胶，并清理处理点北缘的基础威胁。",
     "quest.expand_treatment_point.name": "扩建处理点",
-    "quest.expand_treatment_point.desc": "铺设地基并启用污染处理设备。",
+    "quest.expand_treatment_point.desc": "清理处理点地面，铺设地基并启用污染处理设备。",
     "quest.enter_pollution_edge.name": "进入污染边界",
     "quest.enter_pollution_edge.desc": "使用过滤模块和抗污染药剂进入污染边界，带回沉积物并清理受扰敌人。",
     "quest.defeat_elite_node.name": "治理污染源点",

@@ -41,7 +41,7 @@ func build_structure(
 		site_instance_id
 	)
 
-	return _success("建造完成：%s。" % _get_display_name(building_id), building_id)
+	return _success("建造完成：%s。%s" % [_get_display_name(building_id), _get_build_followup(building_id, world_state)], building_id)
 
 
 func get_build_status(
@@ -150,6 +150,17 @@ func _format_foundation_status(building_id: String, world_state: WorldState) -> 
 	if building_id != "building.pollution_filter":
 		return ""
 	return "基础地基：%d / 2" % mini(world_state.count_base_structures("building.foundation_t1"), 2)
+
+
+func _get_build_followup(building_id: String, world_state: WorldState) -> String:
+	if building_id == "building.foundation_t1":
+		var foundation_count := mini(world_state.count_base_structures("building.foundation_t1"), 2)
+		if foundation_count < 2:
+			return "基础地基：%d / 2；继续清理并铺设另一块。" % foundation_count
+		return "基础地基：2 / 2；现在可以建造污染过滤器。"
+	if building_id == "building.pollution_filter":
+		return "过滤器已上线；回收污染沉积物后可在这里处理抗污染药剂。"
+	return ""
 
 
 func _format_refs(refs: Array, empty_text: String = "无") -> String:
