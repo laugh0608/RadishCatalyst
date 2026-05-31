@@ -123,6 +123,8 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			if character_state.protection < character_state.max_protection * 0.5:
 				return "防护偏低，按 2 使用抗污染药剂；药剂来自过滤器处理沉积物。"
 			if _has_pollution_vial_ready(world_state, character_state):
+				if _get_pollution_residue_progress(world_state) < 4.0:
+					return "带着抗污染药剂回污染边界补第二批沉积物，并清理路上的受扰敌人。"
 				return "带着抗污染药剂继续深入污染边界，清理受扰敌人并靠近遗迹门前压力点。"
 			return "向东南进入黄色污染边界，采集沉积物并处理药剂。"
 		"quest.defeat_elite_node":
@@ -421,6 +423,8 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			if character_state.protection < character_state.max_protection * 0.5:
 				return "防护偏低，先使用抗污染药剂；缺药剂就回污染过滤器处理沉积物。"
 			if _has_pollution_vial_ready(world_state, character_state):
+				if _get_pollution_residue_progress(world_state) < 4.0:
+					return "药剂已准备好；先带它回污染边界补第二批沉积物，再推进遗迹门前压力点。"
 				return "抗污染药剂是遗迹门前压力点的防护缓冲，进入深处前确认快捷栏 2 可用。"
 			return "收集污染沉积物，用过滤器处理药剂，再清理受扰敌人。"
 		"quest.defeat_elite_node":
@@ -723,11 +727,11 @@ func _get_target_region_id(world_state: WorldState, quest_id: String) -> String:
 func _has_enough_pollution_residue_for_vial(world_state: WorldState, character_state: CharacterState) -> bool:
 	if character_state.inventory.has_ref("item.polluted_residue", 2):
 		return true
-	return world_state.quest_state.get_objective_progress(
-		"quest.enter_pollution_edge",
-		"gather_item",
-		"item.polluted_residue"
-	) >= 2.0
+	return _get_pollution_residue_progress(world_state) >= 2.0
+
+
+func _get_pollution_residue_progress(world_state: WorldState) -> float:
+	return world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue")
 
 
 func _has_pollution_vial_ready(world_state: WorldState, character_state: CharacterState) -> bool:

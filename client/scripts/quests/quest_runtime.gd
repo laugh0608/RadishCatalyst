@@ -274,7 +274,7 @@ func _format_objective_milestone_message(quest_id: String, objective_type: Strin
 			if objective_type == "gather_item" and target_id == "item.polluted_residue":
 				return "污染沉积物已够：回处理点过滤器处理成抗污染药剂，再继续深入污染边界。"
 			if objective_type == "craft_item" and target_id == "item.resistance_vial_t1":
-				return "抗污染药剂已就绪：按 2 可补防护，带着药剂压制污染边界的受扰敌人和遗迹门前压力点。"
+				return "抗污染药剂已就绪：按 2 可补防护，带药剂回污染边界补第二批沉积物并清理受扰敌人，之后再压制遗迹门前压力点。"
 	return ""
 
 

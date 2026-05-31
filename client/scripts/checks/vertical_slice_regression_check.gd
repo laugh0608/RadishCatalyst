@@ -74,11 +74,22 @@ func _check_first_hour_guidance_copy() -> void:
 		"处理点过滤器",
 		"pollution direction tells player to process gathered residue"
 	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.cleanse_residue", pollution_world),
+		"第二批沉积物",
+		"first residue cleansing completion points to the stocked return route"
+	)
 	pollution_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1)
 	host._expect_text_contains(
 		presenter.format_onboarding_hint(pollution_world, pollution_character, "quest.enter_pollution_edge"),
+		"第二批沉积物",
+		"pollution onboarding returns to residue route after first vial"
+	)
+	pollution_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", 4)
+	host._expect_text_contains(
+		presenter.format_onboarding_hint(pollution_world, pollution_character, "quest.enter_pollution_edge"),
 		"遗迹门前压力点",
-		"pollution onboarding ties vial to the next pressure point"
+		"pollution onboarding ties stocked vial to the next pressure point"
 	)
 
 
@@ -235,8 +246,8 @@ func _check_first_hour_objective_milestones() -> void:
 	])
 	host._expect_text_contains(
 		" ".join(vial_result.get("log_messages", [])),
-		"遗迹门前压力点",
-		"resistance vial milestone explains next pressure target"
+		"第二批沉积物",
+		"resistance vial milestone explains stocked return route"
 	)
 
 
