@@ -386,7 +386,7 @@ func get_build_objective_updates(building_id: String) -> Array[Dictionary]:
 
 func get_defeated_enemy_objective_updates(enemy_definition_id: String) -> Array[Dictionary]:
 	if enemy_definition_id == "enemy.treatment_skitter":
-		return [_set_update("quest.prepare_treatment_supplies", "defeat_enemy", enemy_definition_id, 1)]
+		return [_add_update("quest.prepare_treatment_supplies", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.polluted_skitter":
 		return [_set_update("quest.enter_pollution_edge", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.elite_residue_node":

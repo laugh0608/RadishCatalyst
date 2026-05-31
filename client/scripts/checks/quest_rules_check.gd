@@ -498,7 +498,7 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 	)
 	_expect_update(
 		event_rules.get_defeated_enemy_objective_updates("enemy.treatment_skitter"),
-		"set",
+		"add",
 		"quest.prepare_treatment_supplies",
 		"defeat_enemy",
 		"enemy.treatment_skitter",

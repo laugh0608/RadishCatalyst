@@ -95,7 +95,7 @@ func _run_checks() -> void:
 	_expect_active_quest("quest.prepare_treatment_supplies", "after make filter module")
 	_complete_active_quest("quest.prepare_treatment_supplies", [
 		{"type": "craft_item", "target_id": "item.repair_gel", "amount": 1},
-		{"type": "defeat_enemy", "target_id": "enemy.treatment_skitter", "amount": 1}
+		{"type": "defeat_enemy", "target_id": "enemy.treatment_skitter", "amount": 2}
 	])
 	_expect_active_quest("quest.expand_treatment_point", "after prepare treatment supplies")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.foundation_t1", "supplies unlock foundation recipe")

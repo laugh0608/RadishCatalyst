@@ -549,6 +549,8 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 		if target.definition_id == "enemy.polluted_skitter":
 			var followup := "遗迹门前压力减弱，可以继续处理污染残核或确认入口信号。" if target.instance_id == "enemy_instance.polluted_skitter_gate_pressure" else "污染处理点周边暂时安全。"
 			return _enemy_defeat_result(target, drops_message, followup)
+		if target.definition_id == "enemy.treatment_skitter":
+			return _enemy_defeat_result(target, drops_message, "处理点清障压力减弱；继续确认另一处威胁或回基地补齐修复凝胶。")
 		if target.definition_id == "enemy.ruin_phase_guard":
 			return _enemy_defeat_result(target, drops_message, "外圈回波匣附近的干扰守卫已清空。")
 		if target.definition_id == "enemy.deep_ruin_sentinel":

@@ -108,6 +108,7 @@ func _check_core_loop_layout() -> void:
 	var anomaly := map.get_node("Interactables/AnomalyCrystal") as PrototypeInteractable
 	var native := map.get_node("Enemies/NativeSkitter") as PrototypeEnemy
 	var treatment_skitter := map.get_node("Enemies/TreatmentSkitter") as PrototypeEnemy
+	var treatment_skitter_north := map.get_node("Enemies/TreatmentSkitterNorth") as PrototypeEnemy
 	host._expect_equal(
 		first_crystal.position.distance_to(native.position) > 120.0,
 		true,
@@ -137,6 +138,11 @@ func _check_core_loop_layout() -> void:
 		approach_wreckage.position.distance_to(treatment_skitter.position) <= VerticalSliceMap.ATTACK_RANGE,
 		true,
 		"first-hour treatment approach salvage is tied to the first guarded construction lane"
+	)
+	host._expect_equal(
+		approach_crystal.position.distance_to(treatment_skitter_north.position) <= VerticalSliceMap.ATTACK_RANGE,
+		true,
+		"first-hour treatment approach crystal is tied to the second guarded construction lane"
 	)
 
 	var rough_ground := map.get_node("Interactables/RoughGroundNorth") as PrototypeInteractable

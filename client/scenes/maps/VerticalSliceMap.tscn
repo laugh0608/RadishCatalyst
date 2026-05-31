@@ -974,6 +974,10 @@ definition_id = "enemy.native_skitter"
 position = Vector2(224, -76)
 definition_id = "enemy.treatment_skitter"
 
+[node name="TreatmentSkitterNorth" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(316, -136)
+definition_id = "enemy.treatment_skitter"
+
 [node name="PollutedSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(310, 76)
 definition_id = "enemy.polluted_skitter"

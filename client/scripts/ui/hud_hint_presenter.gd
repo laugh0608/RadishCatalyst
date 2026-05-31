@@ -110,7 +110,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.prepare_treatment_supplies":
 			if target_region_id == "region.outpost_platform":
 				return "回基地用基础反应器调制修复凝胶，它是下一段清障战斗补给。"
-			return "确认快捷栏 1 带修复凝胶，前往处理点北缘清理掠行体。"
+			return "确认快捷栏 1 带修复凝胶，前往处理点北缘连续清理两处掠行体。"
 		"quest.expand_treatment_point":
 			return "前往处理点北缘，清理地块、铺设地基并建造过滤器。"
 		"quest.enter_pollution_edge":
@@ -404,7 +404,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.prepare_treatment_supplies":
 			if target_region_id == "region.outpost_platform":
 				return "先调制 1 份修复凝胶；它是下一段清障战斗的生命补给。"
-			return "带上修复凝胶，生命偏低时按 1 使用，再清理处理点北缘的原生掠行体。"
+			return "带上修复凝胶，生命偏低时按 1 使用，再清理处理点北缘两处原生掠行体。"
 		"quest.expand_treatment_point":
 			if world_state.count_base_structures("building.foundation_t1") < 2:
 				return "污染过滤器不能直接落地，先清理地块并铺设 2 块地基。"

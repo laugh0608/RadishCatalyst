@@ -194,6 +194,7 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.basic_filter_module")
 		"quest.prepare_treatment_supplies":
 			_mark_enemy_defeated(world_state, "enemy_instance.treatment_skitter", "enemy.treatment_skitter", "region.crystal_vein_field")
+			_mark_enemy_defeated(world_state, "enemy_instance.treatment_skitter_north", "enemy.treatment_skitter", "region.crystal_vein_field")
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.repair_gel")
 		"quest.expand_treatment_point":
 			_mark_objects_cleared(world_state, [
