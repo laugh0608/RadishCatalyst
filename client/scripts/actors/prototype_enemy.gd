@@ -22,14 +22,26 @@ var enemy_category: String = "basic"
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
 
+func _ensure_visual_nodes() -> void:
+	if label == null:
+		label = get_node_or_null("Label") as Label
+	if sprite == null:
+		sprite = get_node_or_null("Sprite") as ColorRect
+	if collision_shape == null:
+		collision_shape = get_node_or_null("CollisionShape2D") as CollisionShape2D
+
+
 func setup(enemy_display_name: String, enemy_max_health: float, category: String = "basic") -> void:
+	_ensure_visual_nodes()
 	display_name = enemy_display_name
 	max_health = enemy_max_health
 	health = enemy_max_health
 	defeated = false
 	enemy_category = category
-	collision_shape.disabled = false
-	sprite.color = _get_active_color(category)
+	if collision_shape != null:
+		collision_shape.disabled = false
+	if sprite != null:
+		sprite.color = _get_active_color(category)
 	_update_label()
 
 
@@ -76,27 +88,38 @@ func set_focus_visual(focused: bool) -> void:
 
 
 func mark_defeated() -> void:
+	_ensure_visual_nodes()
 	defeated = true
 	health = 0.0
-	collision_shape.set_deferred("disabled", true)
+	if collision_shape != null:
+		collision_shape.set_deferred("disabled", true)
 	if enemy_category == "polluted":
-		sprite.color = DEFEATED_POLLUTED_COLOR
-		label.text = "%s\n污染已压制" % display_name
+		if sprite != null:
+			sprite.color = DEFEATED_POLLUTED_COLOR
+		if label != null:
+			label.text = "%s\n污染已压制" % display_name
 		return
-	sprite.color = DEFEATED_COLOR
-	label.text = "%s\n已击败" % display_name
+	if sprite != null:
+		sprite.color = DEFEATED_COLOR
+	if label != null:
+		label.text = "%s\n已击败" % display_name
 
 
 func _update_label() -> void:
-	label.text = "%s\nHP %.0f / %.0f" % [display_name, health, max_health]
+	_ensure_visual_nodes()
+	if label != null:
+		label.text = "%s\nHP %.0f / %.0f" % [display_name, health, max_health]
 
 
 func set_spawn_enabled(enabled: bool) -> void:
+	_ensure_visual_nodes()
 	visible = enabled
 	if defeated:
-		collision_shape.set_deferred("disabled", true)
+		if collision_shape != null:
+			collision_shape.set_deferred("disabled", true)
 		return
-	collision_shape.set_deferred("disabled", not enabled)
+	if collision_shape != null:
+		collision_shape.set_deferred("disabled", not enabled)
 
 
 func _get_active_color(category: String) -> Color:

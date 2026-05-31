@@ -81,7 +81,19 @@ var gather_system: GatherSystem
 var phase_well_frontier_runtime: PhaseWellFrontierRuntime
 var last_reported_region_id := "region.outpost_platform"
 var last_gate_message := ""
+
+
+func _ensure_scene_nodes() -> void:
+	if player == null:
+		player = get_node_or_null("Player") as PlayerController
+	if interactables_root == null:
+		interactables_root = get_node_or_null("Interactables") as Node2D
+	if enemies_root == null:
+		enemies_root = get_node_or_null("Enemies") as Node2D
+
+
 func setup(registry: DataRegistry) -> void:
+	_ensure_scene_nodes()
 	data_registry = registry
 	gather_system = GatherSystem.new(data_registry)
 	phase_well_frontier_runtime = PhaseWellFrontierRuntime.new(data_registry)
@@ -89,6 +101,9 @@ func setup(registry: DataRegistry) -> void:
 	_setup_enemy_labels()
 	_refresh_focus_visuals()
 func _ready() -> void:
+	_ensure_scene_nodes()
+	if interactables_root == null:
+		return
 	for interactable in interactables_root.get_children():
 		if interactable is PrototypeInteractable:
 			interactable.body_entered.connect(_on_interactable_body_entered.bind(interactable))
@@ -167,8 +182,12 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		result["evacuation_feedback"] = evacuation_feedback
 	return result
 func refresh_world_interactables(world_state: WorldState) -> void:
+	_ensure_scene_nodes()
 	if phase_well_frontier_runtime != null:
 		phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
+	if interactables_root == null:
+		_refresh_focus_visuals()
+		return
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
 			continue
@@ -575,6 +594,9 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 func _setup_interactable_labels() -> void:
 	if data_registry == null:
 		return
+	_ensure_scene_nodes()
+	if interactables_root == null:
+		return
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
 			continue
@@ -585,6 +607,9 @@ func _setup_interactable_labels() -> void:
 func _setup_enemy_labels() -> void:
 	if data_registry == null:
 		return
+	_ensure_scene_nodes()
+	if enemies_root == null:
+		return
 	for enemy in enemies_root.get_children():
 		if not enemy is PrototypeEnemy:
 			continue
@@ -594,8 +619,12 @@ func _setup_enemy_labels() -> void:
 		enemy.instance_id = _get_enemy_instance_id(enemy)
 		enemy.setup(_get_display_name(enemy.definition_id), max_health, String(definition.get("category", "basic")))
 func sync_enemy_states(world_state: WorldState) -> void:
+	_ensure_scene_nodes()
 	if phase_well_frontier_runtime != null:
 		phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
+	if enemies_root == null:
+		_refresh_focus_visuals()
+		return
 	for enemy in enemies_root.get_children():
 		if not enemy is PrototypeEnemy:
 			continue
@@ -613,8 +642,12 @@ func sync_enemy_states(world_state: WorldState) -> void:
 		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state))
 	_refresh_focus_visuals()
 func refresh_enemy_spawns(world_state: WorldState) -> void:
+	_ensure_scene_nodes()
 	if phase_well_frontier_runtime != null:
 		phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
+	if enemies_root == null:
+		_refresh_enemy_focus_visuals()
+		return
 	for enemy in enemies_root.get_children():
 		if not enemy is PrototypeEnemy:
 			continue
@@ -754,6 +787,8 @@ func _on_interactable_body_exited(body: Node2D, interactable: PrototypeInteracta
 func _get_nearest_interactable() -> PrototypeInteractable:
 	var nearest_interactable: PrototypeInteractable = null
 	var nearest_distance := INF
+	if player == null or interactables_root == null:
+		return nearest_interactable
 
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable or not interactable.can_interact():
@@ -768,6 +803,8 @@ func _get_nearest_interactable() -> PrototypeInteractable:
 
 	return nearest_interactable
 func _has_nearby_phase_relay_pad() -> bool:
+	if player == null or interactables_root == null:
+		return false
 	for interactable in interactables_root.get_children():
 		if interactable is PrototypeInteractable and interactable.can_interact() and interactable.definition_id == "map_object.phase_relay_pad" and player.position.distance_to(interactable.position) <= PLAYER_INTERACTION_RANGE:
 			return true
@@ -775,6 +812,8 @@ func _has_nearby_phase_relay_pad() -> bool:
 func _get_nearest_attack_target() -> PrototypeEnemy:
 	var nearest_enemy: PrototypeEnemy = null
 	var nearest_distance := INF
+	if player == null or enemies_root == null:
+		return nearest_enemy
 
 	for enemy in enemies_root.get_children():
 		if not enemy is PrototypeEnemy or not enemy.can_be_attacked():
@@ -792,11 +831,15 @@ func _refresh_focus_visuals() -> void:
 	_refresh_interactable_focus_visuals()
 	_refresh_enemy_focus_visuals()
 func _refresh_interactable_focus_visuals() -> void:
+	if interactables_root == null:
+		return
 	for interactable in interactables_root.get_children():
 		if interactable is PrototypeInteractable:
 			interactable.set_focus_visual(interactable == current_interactable and interactable.can_interact())
 func _refresh_enemy_focus_visuals() -> void:
 	var focused_enemy := _get_nearest_attack_target()
+	if enemies_root == null:
+		return
 	for enemy in enemies_root.get_children():
 		if enemy is PrototypeEnemy:
 			enemy.set_focus_visual(enemy == focused_enemy)
@@ -1402,6 +1445,9 @@ func _get_phase_return_anchor_return_position(anchor_instance_id: String) -> Vec
 		PHASE_RETURN_ANCHOR_FALLBACK_POSITION
 	)
 func _get_interactable_return_position(instance_id: String, fallback_position: Vector2) -> Vector2:
+	_ensure_scene_nodes()
+	if interactables_root == null:
+		return fallback_position
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
 			continue
@@ -1410,6 +1456,9 @@ func _get_interactable_return_position(instance_id: String, fallback_position: V
 		return interactable.position + Vector2(0, 30)
 	return fallback_position
 func _get_interactable_region_id(instance_id: String, fallback_region_id: String) -> String:
+	_ensure_scene_nodes()
+	if interactables_root == null:
+		return fallback_region_id
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
 			continue

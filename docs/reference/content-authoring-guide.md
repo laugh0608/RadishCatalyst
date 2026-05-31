@@ -263,6 +263,8 @@
 
 ## 最小验证建议
 
+以下 PowerShell 命令适合 Windows 或已安装 `pwsh` 的环境；macOS / Linux / Git Bash / zsh 可用 `./scripts/check-client.sh`、`./scripts/check-text-files.sh` 和 `git diff --check` 作为对应入口。
+
 ### 只改静态数据
 
 至少执行：

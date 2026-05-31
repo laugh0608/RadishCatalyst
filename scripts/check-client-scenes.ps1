@@ -9,10 +9,10 @@ $errors = [System.Collections.Generic.List[string]]::new()
 $clientRoot = Join-Path $RepoRoot "client"
 $sceneFiles = Get-ChildItem -LiteralPath $clientRoot -Recurse -File -Include *.tscn,*.tres,*.godot
 $projectPath = Join-Path $clientRoot "project.godot"
-$gameRootScenePath = Join-Path $clientRoot "scenes\game\GameRoot.tscn"
-$hudScenePath = Join-Path $clientRoot "scenes\ui\PrototypeHud.tscn"
-$verticalSliceMapScenePath = Join-Path $clientRoot "scenes\maps\VerticalSliceMap.tscn"
-$verticalSliceMapScriptPath = Join-Path $clientRoot "scripts\map\vertical_slice_map.gd"
+$gameRootScenePath = Join-Path $clientRoot "scenes/game/GameRoot.tscn"
+$hudScenePath = Join-Path $clientRoot "scenes/ui/PrototypeHud.tscn"
+$verticalSliceMapScenePath = Join-Path $clientRoot "scenes/maps/VerticalSliceMap.tscn"
+$verticalSliceMapScriptPath = Join-Path $clientRoot "scripts/map/vertical_slice_map.gd"
 
 function Add-Error([string]$Message) {
     $errors.Add($Message)
@@ -641,11 +641,11 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
         }
     }
 
-    $questsPath = Join-Path $clientRoot "data\quests.json"
-    $mapObjectsPath = Join-Path $clientRoot "data\map_objects.json"
-    $recipesPath = Join-Path $clientRoot "data\recipes.json"
-    $regionsPath = Join-Path $clientRoot "data\regions.json"
-    $enemiesPath = Join-Path $clientRoot "data\enemies.json"
+    $questsPath = Join-Path $clientRoot "data/quests.json"
+    $mapObjectsPath = Join-Path $clientRoot "data/map_objects.json"
+    $recipesPath = Join-Path $clientRoot "data/recipes.json"
+    $regionsPath = Join-Path $clientRoot "data/regions.json"
+    $enemiesPath = Join-Path $clientRoot "data/enemies.json"
     $questsJson = Read-JsonFile $questsPath
     $mapObjectsJson = Read-JsonFile $mapObjectsPath
     $recipesJson = Read-JsonFile $recipesPath

@@ -1,10 +1,12 @@
 [CmdletBinding()]
 param(
     [string]$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path,
-    [string]$GodotExe = "D:\Program Files\Godot\Godot_v4.6.2-stable_win64_console.exe"
+    [string]$GodotExe = ""
 )
 
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "Resolve-GodotExe.ps1")
+$GodotExe = Resolve-GodotExe -GodotExe $GodotExe
 
 if (-not (Test-Path -LiteralPath $GodotExe -PathType Leaf)) {
     Write-Error "Godot executable not found: ${GodotExe}"

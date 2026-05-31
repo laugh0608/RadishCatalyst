@@ -68,11 +68,20 @@ var display_name_text: String = ""
 @onready var marker: ColorRect = $Marker
 
 
+func _ensure_visual_nodes() -> void:
+	if label == null:
+		label = get_node_or_null("Label") as Label
+	if marker == null:
+		marker = get_node_or_null("Marker") as ColorRect
+
+
 func setup(display_name: String) -> void:
+	_ensure_visual_nodes()
 	display_name_text = display_name
-	label.offset_left = label_offset.x
-	label.offset_top = label_offset.y
-	label.offset_right = label_offset.x + label_size.x
+	if label != null:
+		label.offset_left = label_offset.x
+		label.offset_top = label_offset.y
+		label.offset_right = label_offset.x + label_size.x
 	_set_label_text(display_name)
 
 
@@ -177,10 +186,12 @@ func set_focus_visual(focused: bool) -> void:
 
 
 func set_default_visual() -> void:
+	_ensure_visual_nodes()
 	consumed = false
 	visible = true
 	monitoring = true
-	marker.color = DEFAULT_MARKER_COLOR
+	if marker != null:
+		marker.color = DEFAULT_MARKER_COLOR
 	_set_label_text(display_name_text)
 
 
@@ -649,5 +660,8 @@ func set_built_visual(built_definition_id: String) -> void:
 
 
 func _set_label_text(text: String, min_lines: int = 1) -> void:
+	_ensure_visual_nodes()
+	if label == null:
+		return
 	label.text = text
 	label.offset_bottom = label_offset.y + label_size.y * maxi(min_lines, 1)

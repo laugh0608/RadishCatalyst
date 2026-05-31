@@ -32,6 +32,12 @@
 pwsh ./scripts/check-docs.ps1
 ```
 
+macOS / Linux / Git Bash / zsh 可执行：
+
+```bash
+./scripts/check-docs.sh
+```
+
 ## Code Language Standards
 
 - 正式代码语言实践规范见 [Code Style And Language Practices](architecture/code-style-and-language-practices.md)。

@@ -95,19 +95,11 @@ UI 当前进入必要开发项，不作为纯美术打磨处理。优先级：
 
 ## 当前默认验证
 
-客户端相关改动优先执行：
-
-```powershell
-pwsh ./scripts/check-client.ps1
-```
+客户端相关改动优先执行：Windows 用 `pwsh ./scripts/check-client.ps1`，macOS / Linux / Git Bash 用 `./scripts/check-client.sh`。
 
 涉及文档、规划、协作规则或仓库入口时额外执行：
 
-```powershell
-pwsh ./scripts/check-docs.ps1
-pwsh ./scripts/check-text-files.ps1
-git diff --check
-```
+Windows 用 `pwsh ./scripts/check-docs.ps1`、`pwsh ./scripts/check-text-files.ps1`；macOS / Linux / Git Bash 用 `./scripts/check-docs.sh`、`./scripts/check-text-files.sh`；最后执行 `git diff --check`。
 
 ## 阶段退出条件
 

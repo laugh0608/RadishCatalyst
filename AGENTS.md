@@ -79,7 +79,7 @@
 pwsh ./scripts/check-text-files.ps1
 ```
 
-Linux/macOS 或 Git Bash 环境可执行：
+Linux/macOS、Git Bash 或 macOS zsh 环境可执行：
 
 ```bash
 ./scripts/check-text-files.sh
@@ -91,7 +91,7 @@ Linux/macOS 或 Git Bash 环境可执行：
 pwsh ./scripts/check-docs.ps1
 ```
 
-Linux/macOS 或 Git Bash 环境可执行：
+Linux/macOS、Git Bash 或 macOS zsh 环境可执行：
 
 ```bash
 ./scripts/check-docs.sh
@@ -103,7 +103,13 @@ Linux/macOS 或 Git Bash 环境可执行：
 pwsh ./scripts/check-client.ps1
 ```
 
-提交前按改动范围至少执行匹配的最小验证；涉及客户端状态、任务、存档、场景或脚本时，优先执行 `pwsh ./scripts/check-client.ps1`，再执行 `pwsh ./scripts/check-text-files.ps1` 和 `git diff --check`。涉及 `docs/`、根 `README.md`、`AGENTS.md` 或 `CLAUDE.md` 时，额外执行 `pwsh ./scripts/check-docs.ps1`。
+Linux/macOS、Git Bash 或 macOS zsh 环境可执行：
+
+```bash
+./scripts/check-client.sh
+```
+
+提交前按改动范围至少执行匹配的最小验证；涉及客户端状态、任务、存档、场景或脚本时，优先执行对应平台的 `check-client` 入口，再执行对应平台的 `check-text-files` 和 `git diff --check`。涉及 `docs/`、根 `README.md`、`AGENTS.md` 或 `CLAUDE.md` 时，额外执行对应平台的 `check-docs`。
 
 如果未来加入 Godot 导出配置、脚本静态检查或更多自动化测试入口，应同步更新脚本、`docs/`、`AGENTS.md`、`CLAUDE.md` 和 CI。
 
@@ -115,7 +121,7 @@ pwsh ./scripts/check-client.ps1
 - `git status`、`git diff`、`git log` 等只读 Git 操作。
 - `pwsh ./scripts/check-text-files.ps1`、`./scripts/check-text-files.sh`。
 - `pwsh ./scripts/check-docs.ps1`、`./scripts/check-docs.sh`。
-- `pwsh ./scripts/check-client.ps1` 及其单项客户端检查脚本。
+- `pwsh ./scripts/check-client.ps1`、`./scripts/check-client.sh` 及其单项客户端检查脚本。
 - 简洁明确的提交操作。
 
 ### 需要先告知用户再执行

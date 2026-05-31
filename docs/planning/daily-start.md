@@ -84,16 +84,6 @@
 
 ## 验证入口
 
-客户端相关改动优先执行：
+客户端相关改动优先执行：Windows 用 `pwsh ./scripts/check-client.ps1`，macOS / Linux / Git Bash 用 `./scripts/check-client.sh`。
 
-```powershell
-pwsh ./scripts/check-client.ps1
-```
-
-提交前执行：
-
-```powershell
-pwsh ./scripts/check-text-files.ps1
-pwsh ./scripts/check-docs.ps1
-git diff --check
-```
+提交前执行：Windows 用 `pwsh ./scripts/check-text-files.ps1`、`pwsh ./scripts/check-docs.ps1`；macOS / Linux / Git Bash 用 `./scripts/check-text-files.sh`、`./scripts/check-docs.sh`；最后执行 `git diff --check`。
