@@ -1346,7 +1346,7 @@ func _check_processing_runtime() -> void:
 		)
 		_expect_text_contains(
 			String(filter_completed[0].get("message", "")),
-			"继续采集沉积物并清理受扰敌人",
+			"快捷栏 2",
 			"pollution filter completion log next step"
 		)
 	_expect_equal(int(filter_character.inventory.items.get("item.resistance_vial_t1", 0)), 1, "pollution filter grants vial")

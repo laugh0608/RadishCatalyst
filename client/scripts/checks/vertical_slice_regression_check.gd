@@ -47,6 +47,38 @@ func _check_first_hour_guidance_copy() -> void:
 		"反应器校准、过滤模块和地基",
 		"crystal processing completion explains base use"
 	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.basic_filter_module"),
+		"处理点北缘清障",
+		"filter module completion points to field survivability"
+	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.repair_gel"),
+		"处理点北缘清障",
+		"repair gel completion points back to the next field fight"
+	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.cleanse_residue"),
+		"快捷栏 2",
+		"residue cleansing completion points to anti-pollution quick slot"
+	)
+	var pollution_world := WorldState.create_default()
+	var pollution_character := CharacterState.create_default()
+	pollution_character.equipment["suit_module"] = "equipment.filter_module_t1"
+	pollution_world.unlock_region("region.pollution_edge")
+	pollution_world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
+	pollution_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", 2)
+	host._expect_text_contains(
+		presenter.format_direction_hint(pollution_world, pollution_character, "quest.enter_pollution_edge"),
+		"处理点过滤器",
+		"pollution direction tells player to process gathered residue"
+	)
+	pollution_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1)
+	host._expect_text_contains(
+		presenter.format_onboarding_hint(pollution_world, pollution_character, "quest.enter_pollution_edge"),
+		"遗迹门前压力点",
+		"pollution onboarding ties vial to the next pressure point"
+	)
 
 
 func _check_first_hour_base_return_manufacturing_readability() -> void:
@@ -173,6 +205,14 @@ func _check_first_hour_objective_milestones() -> void:
 		" ".join(pollution_result.get("log_messages", [])),
 		"回处理点过滤器",
 		"pollution residue milestone explains treatment reason"
+	)
+	var vial_result := runtime.apply_objective_updates(pollution_world, character, [
+		{"quest_id": "quest.enter_pollution_edge", "objective_type": "craft_item", "target_id": "item.resistance_vial_t1", "amount": 1.0, "mode": "add"}
+	])
+	host._expect_text_contains(
+		" ".join(vial_result.get("log_messages", [])),
+		"遗迹门前压力点",
+		"resistance vial milestone explains next pressure target"
 	)
 
 

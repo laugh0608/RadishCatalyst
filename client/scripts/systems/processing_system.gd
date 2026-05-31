@@ -342,13 +342,13 @@ func _get_completion_next_step(recipe_id: String) -> String:
 		"recipe.make_filter_media":
 			return "切换到基础过滤模块配方，把过滤介质和基础零件组装成远征模块。"
 		"recipe.basic_filter_module":
-			return "基础过滤模块会降低污染区防护消耗；按 F 启用后，再准备污染处理点的地基。"
+			return "按 F 启用基础过滤模块；启用后污染防护消耗降低，处理点北缘清障和沉积物采集会更稳。"
 		"recipe.foundation_t1":
 			return "前往污染边界北缘清理地块并铺设基础地基。"
 		"recipe.cleanse_residue":
-			return "抗污染药剂已准备；把它留在快捷栏，继续采集沉积物并清理受扰敌人，深入前用于维持防护。"
+			return "抗污染药剂已准备；把它留在快捷栏 2，进入遗迹门前或更深污染压力区前用于维持防护。"
 		"recipe.repair_gel":
-			return "把修复凝胶留在快捷栏，生命偏低时按 1 使用。"
+			return "把修复凝胶留在快捷栏 1，前往处理点北缘清障；生命偏低时按 1 使用。"
 		"recipe.phase_anchor":
 			return "带着稳相信标返回遗迹外圈，在抖动雾幕前部署后再继续深入。"
 		"recipe.deep_signal_analysis":

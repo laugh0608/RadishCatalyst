@@ -116,10 +116,12 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.enter_pollution_edge":
 			if not world_state.unlocked_region_ids.has("region.pollution_edge"):
 				return "按 F 启用过滤模块，再向东进入黄色污染边界。"
-			if target_region_id == "region.crystal_vein_field":
+			if _has_enough_pollution_residue_for_vial(world_state, character_state) and not _has_pollution_vial_ready(world_state, character_state):
 				return "返回处理点过滤器处理沉积物，先调制抗污染药剂再深入污染边界。"
 			if character_state.protection < character_state.max_protection * 0.5:
 				return "防护偏低，按 2 使用抗污染药剂；药剂来自过滤器处理沉积物。"
+			if _has_pollution_vial_ready(world_state, character_state):
+				return "带着抗污染药剂继续深入污染边界，清理受扰敌人并靠近遗迹门前压力点。"
 			return "向东南进入黄色污染边界，采集沉积物并处理药剂。"
 		"quest.defeat_elite_node":
 			return "污染残核会持续压低防护，带抗污染药剂后继续向东推进。"
@@ -408,10 +410,12 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.enter_pollution_edge":
 			if String(character_state.equipment.get("suit_module", "")).is_empty():
 				return "启用基础过滤模块后再深入污染区，防护消耗会降低。"
-			if target_region_id == "region.crystal_vein_field":
+			if _has_enough_pollution_residue_for_vial(world_state, character_state) and not _has_pollution_vial_ready(world_state, character_state):
 				return "先回处理点过滤器处理沉积物，把抗污染药剂做出来，再继续深入污染区。"
 			if character_state.protection < character_state.max_protection * 0.5:
 				return "防护偏低，先使用抗污染药剂；缺药剂就回污染过滤器处理沉积物。"
+			if _has_pollution_vial_ready(world_state, character_state):
+				return "抗污染药剂是遗迹门前压力点的防护缓冲，进入深处前确认快捷栏 2 可用。"
 			return "收集污染沉积物，用过滤器处理药剂，再清理受扰敌人。"
 		"quest.defeat_elite_node":
 			return "污染残核是本轮危险区域挑战；抗污染药剂用于维持防护，修复凝胶用于保命。"
@@ -706,6 +710,26 @@ func _get_target_region_id(world_state: WorldState, quest_id: String) -> String:
 	if target_region_resolver == null:
 		return ""
 	return target_region_resolver.resolve_target_region_id(world_state, quest_id)
+
+
+func _has_enough_pollution_residue_for_vial(world_state: WorldState, character_state: CharacterState) -> bool:
+	if character_state.inventory.has_ref("item.polluted_residue", 2):
+		return true
+	return world_state.quest_state.get_objective_progress(
+		"quest.enter_pollution_edge",
+		"gather_item",
+		"item.polluted_residue"
+	) >= 2.0
+
+
+func _has_pollution_vial_ready(world_state: WorldState, character_state: CharacterState) -> bool:
+	if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+		return true
+	return world_state.quest_state.get_objective_progress(
+		"quest.enter_pollution_edge",
+		"craft_item",
+		"item.resistance_vial_t1"
+	) >= 1.0
 
 
 func _append_runtime_hint_line(lines: Array[String], label: String, text: String) -> void:

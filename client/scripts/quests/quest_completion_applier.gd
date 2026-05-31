@@ -123,13 +123,13 @@ func _format_completion_note(quest_id: String) -> String:
 		"quest.analyze_anomaly_sample":
 			return "样本分析给出过滤参数；用基地产物制造过滤模块，才能更稳地推进污染区"
 		"quest.make_filter_module":
-			return "基础过滤模块会降低污染区防护消耗；启用后再准备处理点补给和地基"
+			return "基础过滤模块会降低污染区防护消耗；启用后再准备处理点补给和地基，下一趟外出容错更高"
 		"quest.prepare_treatment_supplies":
-			return "修复凝胶已准备，处理点北缘威胁已清理；下一步铺设地基并启用污染过滤器"
+			return "修复凝胶已准备，处理点北缘威胁已清理；下一步铺设地基并启用污染过滤器，把沉积物转成药剂"
 		"quest.expand_treatment_point":
-			return "污染过滤器已上线；处理沉积物可调制抗污染药剂，支撑更深的危险目标"
+			return "污染过滤器已上线；处理沉积物可调制抗污染药剂，支撑遗迹门前和更深污染压力"
 		"quest.enter_pollution_edge":
-			return "污染沉积物已转成药剂补给；带着药剂继续压制更深处的污染源点"
+			return "污染沉积物已转成药剂补给；带着药剂继续压制遗迹门前和更深处的污染源点"
 		"quest.defeat_elite_node":
 			return "污染源点已压制，封锁遗迹入口信号可确认"
 		"quest.unlock_ruin_signal":
