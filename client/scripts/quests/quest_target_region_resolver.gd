@@ -63,7 +63,7 @@ func resolve_target_region_id(world_state: WorldState, quest_id: String) -> Stri
 		var objective_region_id := _resolve_objective_region(world_state, quest_id, objective)
 		if not objective_region_id.is_empty():
 			last_resolved_region_id = objective_region_id
-		if not _is_objective_complete(world_state, quest_id, objective):
+		if not _is_objective_complete(world_state, quest_id, objective) and not _should_step_past_objective(world_state, quest_id, objective):
 			return objective_region_id
 	return last_resolved_region_id
 
@@ -272,6 +272,16 @@ func _is_objective_complete(world_state: WorldState, quest_id: String, objective
 	var target_id := String(objective.get("target_id", ""))
 	var required_amount := float(objective.get("amount", 1.0))
 	return world_state.quest_state.get_objective_progress(quest_id, objective_type, target_id) >= required_amount
+
+
+func _should_step_past_objective(world_state: WorldState, quest_id: String, objective: Dictionary) -> bool:
+	if quest_id != "quest.enter_pollution_edge":
+		return false
+	if String(objective.get("type", "")) != "gather_item" or String(objective.get("target_id", "")) != "item.polluted_residue":
+		return false
+	var residue_progress := world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.polluted_residue")
+	var vial_progress := world_state.quest_state.get_objective_progress(quest_id, "craft_item", "item.resistance_vial_t1")
+	return residue_progress >= 2.0 and vial_progress < 1.0
 
 
 func _get_objective_key(objective_type: String, target_id: String) -> String:

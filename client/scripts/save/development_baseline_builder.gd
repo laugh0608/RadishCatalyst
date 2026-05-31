@@ -223,11 +223,17 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			)
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.foundation_t1")
 		"quest.enter_pollution_edge":
-			_mark_object_gathered(world_state, "map_object_instance.pollution_residue", "map_object.pollution_residue_patch", "region.pollution_edge")
+			_mark_objects_gathered(world_state, [
+				"map_object_instance.pollution_residue",
+				"map_object_instance.pollution_residue_outer_pocket"
+			], "map_object.pollution_residue_patch", "region.pollution_edge")
 			_mark_enemy_defeated(world_state, "enemy_instance.polluted_skitter", "enemy.polluted_skitter", "region.pollution_edge")
 			_mark_structure_completed(world_state, "structure.pollution_filter_build_site", "recipe.cleanse_residue")
 		"quest.defeat_elite_node":
 			_mark_enemy_defeated(world_state, "enemy_instance.elite_residue_node", "enemy.elite_residue_node", "region.pollution_edge")
+		"quest.unlock_ruin_signal":
+			_mark_enemy_defeated(world_state, "enemy_instance.polluted_skitter_gate_pressure", "enemy.polluted_skitter", "region.pollution_edge")
+			_mark_object_sampled(world_state, "map_object_instance.ruin_gate", "map_object.ruin_gate", "region.locked_ruin_gate")
 		"quest.scout_ruin_outer_ring":
 			_mark_objects_gathered(world_state, [
 				"map_object_instance.relay_shard_cache_north",

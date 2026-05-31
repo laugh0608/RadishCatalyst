@@ -82,7 +82,7 @@ func _check_rejects_active_quest_without_completed_quest_source() -> void:
 		"quest.expand_treatment_point|build|building.foundation_t1": 2,
 		"quest.expand_treatment_point|build|building.pollution_filter": 1,
 		"quest.enter_pollution_edge|visit_region|region.pollution_edge": 1,
-		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 2,
+		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 4,
 		"quest.enter_pollution_edge|craft_item|item.resistance_vial_t1": 1,
 		"quest.enter_pollution_edge|defeat_enemy|enemy.polluted_skitter": 1
 	}
@@ -307,7 +307,7 @@ func _mark_slice_complete(save_data: Dictionary) -> void:
 		"quest.expand_treatment_point|build|building.foundation_t1": 2,
 		"quest.expand_treatment_point|build|building.pollution_filter": 1,
 		"quest.enter_pollution_edge|visit_region|region.pollution_edge": 1,
-		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 2,
+		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 4,
 		"quest.enter_pollution_edge|craft_item|item.resistance_vial_t1": 1,
 		"quest.enter_pollution_edge|defeat_enemy|enemy.polluted_skitter": 1,
 		"quest.defeat_elite_node|defeat_enemy|enemy.elite_residue_node": 1,

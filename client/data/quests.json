@@ -113,7 +113,7 @@
       "stage": 9,
       "objectives": [
         {"type": "visit_region", "target_id": "region.pollution_edge", "amount": 1},
-        {"type": "gather_item", "target_id": "item.polluted_residue", "amount": 2},
+        {"type": "gather_item", "target_id": "item.polluted_residue", "amount": 4},
         {"type": "craft_item", "target_id": "item.resistance_vial_t1", "amount": 1},
         {"type": "defeat_enemy", "target_id": "enemy.polluted_skitter", "amount": 1}
       ],

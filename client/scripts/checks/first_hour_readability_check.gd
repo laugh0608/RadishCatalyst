@@ -15,6 +15,8 @@ func run() -> void:
 	_check_enemy_focus_labels()
 	_check_hud_map_runtime_labels()
 	_check_core_loop_layout()
+	_check_pollution_pressure_consumption()
+	_check_ruin_gate_pressure_gate()
 
 
 func _check_interactable_focus_labels() -> void:
@@ -198,4 +200,50 @@ func _check_core_loop_layout() -> void:
 		true,
 		"first-hour ruin gate remains beyond the elite pollution pressure"
 	)
+	map.free()
+
+
+func _check_pollution_pressure_consumption() -> void:
+	var gather_system := GatherSystem.new(host.data_registry)
+	var no_module_world := WorldState.create_default()
+	var no_module_character := CharacterState.create_default()
+	var no_module_result := gather_system.interact_with_object(
+		"map_object_instance.pollution_residue_ridge_cache",
+		"map_object.pollution_residue_patch",
+		"gather",
+		no_module_character,
+		no_module_world
+	)
+	host._expect_equal(bool(no_module_result.get("success", false)), true, "first-hour ridge residue gather succeeds")
+	host._expect_equal(no_module_character.protection, 76.0, "first-hour ridge residue consumes higher unfiltered protection")
+	host._expect_text_contains(String(no_module_result.get("message", "")), "门前高压点", "first-hour ridge residue explains gate pressure")
+
+	var module_world := WorldState.create_default()
+	var module_character := CharacterState.create_default()
+	module_character.equipment["suit_module"] = "equipment.filter_module_t1"
+	var module_result := gather_system.interact_with_object(
+		"map_object_instance.pollution_residue_ridge_cache",
+		"map_object.pollution_residue_patch",
+		"gather",
+		module_character,
+		module_world
+	)
+	host._expect_equal(bool(module_result.get("success", false)), true, "first-hour filtered ridge residue gather succeeds")
+	host._expect_equal(int(roundf(module_character.protection * 10.0)), 844, "first-hour filter module lowers ridge pressure drain")
+	host._expect_text_contains(String(module_result.get("message", "")), "过滤模块已降低消耗", "first-hour ridge residue logs filter benefit")
+
+
+func _check_ruin_gate_pressure_gate() -> void:
+	var map := VerticalSliceMap.new()
+	map.data_registry = host.data_registry
+	var gate_world := WorldState.create_default()
+	gate_world.quest_state.completed_quest_ids.append("quest.defeat_elite_node")
+	gate_world.quest_state.active_quest_ids = ["quest.unlock_ruin_signal"]
+	gate_world.ensure_enemy("enemy_instance.polluted_skitter_gate_pressure", "enemy.polluted_skitter", "region.pollution_edge", 30.0)
+	var blocked_result := map._inspect_ruin_gate(gate_world)
+	host._expect_equal(bool(blocked_result.get("success", true)), false, "first-hour ruin gate blocks while gate pressure enemy is active")
+	host._expect_failure_feedback(blocked_result, "门前压力未清", "first-hour ruin gate pressure failure feedback")
+	gate_world.update_enemy_health("enemy_instance.polluted_skitter_gate_pressure", 0.0, true)
+	var opened_result := map._inspect_ruin_gate(gate_world)
+	host._expect_equal(bool(opened_result.get("success", false)), true, "first-hour ruin gate opens after gate pressure enemy is defeated")
 	map.free()

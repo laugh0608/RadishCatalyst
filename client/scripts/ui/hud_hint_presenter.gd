@@ -126,6 +126,8 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.defeat_elite_node":
 			return "污染残核会持续压低防护，带抗污染药剂后继续向东推进。"
 		"quest.unlock_ruin_signal":
+			if _is_gate_pressure_active(world_state):
+				return "遗迹门前仍有受扰敌人压制；先用修复凝胶和抗污染药剂撑过门前压力，再检查封锁入口。"
 			return "前往污染边界东侧检查封锁遗迹入口，打开封锁遗迹通路。"
 		"quest.scout_ruin_outer_ring":
 			return "穿过封锁入口进入封锁遗迹，回收两处继电残片。"
@@ -420,6 +422,8 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.defeat_elite_node":
 			return "污染残核是本轮危险区域挑战；抗污染药剂用于维持防护，修复凝胶用于保命。"
 		"quest.unlock_ruin_signal":
+			if _is_gate_pressure_active(world_state):
+				return "先清理门前受扰敌人；这是药剂和修复凝胶真正改变推进结果的压力点。"
 			return "先确认封锁入口信号，真正把主线推进到封锁遗迹。"
 		"quest.scout_ruin_outer_ring":
 			return "先把外圈继电残片带回基地；它们是下一次深入所需开路物的核心输入。"
@@ -730,6 +734,13 @@ func _has_pollution_vial_ready(world_state: WorldState, character_state: Charact
 		"craft_item",
 		"item.resistance_vial_t1"
 	) >= 1.0
+
+
+func _is_gate_pressure_active(world_state: WorldState) -> bool:
+	var gate_pressure := world_state.get_enemy("enemy_instance.polluted_skitter_gate_pressure")
+	if gate_pressure.is_empty():
+		return false
+	return not bool(gate_pressure.get("is_defeated", false))
 
 
 func _append_runtime_hint_line(lines: Array[String], label: String, text: String) -> void:

@@ -148,9 +148,9 @@ func _check_pollution_gate_pressure_spawn_and_combat() -> void:
 	var combat_character := CharacterState.create_default()
 	combat_character.equipment["suit_module"] = "equipment.filter_module_t1"
 	var counter_message := map._apply_enemy_counterattack(gate_enemy, combat_character)
-	host._expect_equal(combat_character.health, 94.0, "gate pressure enemy counterattack health pressure")
+	host._expect_equal(int(roundf(combat_character.health * 10.0)), 919, "gate pressure enemy counterattack health pressure")
 	host._expect_equal(combat_character.protection < 100.0, true, "gate pressure enemy counterattack protection pressure")
-	host._expect_text_contains(counter_message, "防护 -2.0", "gate pressure enemy counterattack protection hint")
+	host._expect_text_contains(counter_message, "防护 -2.6", "gate pressure enemy counterattack protection hint")
 	gate_enemy.free()
 	map.free()
 
@@ -223,7 +223,7 @@ func _check_first_hour_objective_milestones() -> void:
 	var pollution_world := WorldState.create_default()
 	pollution_world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
 	var pollution_result := runtime.apply_objective_updates(pollution_world, character, [
-		{"quest_id": "quest.enter_pollution_edge", "objective_type": "gather_item", "target_id": "item.polluted_residue", "amount": 2.0, "mode": "add"}
+		{"quest_id": "quest.enter_pollution_edge", "objective_type": "gather_item", "target_id": "item.polluted_residue", "amount": 4.0, "mode": "add"}
 	])
 	host._expect_text_contains(
 		" ".join(pollution_result.get("log_messages", [])),

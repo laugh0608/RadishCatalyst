@@ -8,6 +8,7 @@ const ATTACK_RANGE := 90.0
 const BASE_ATTACK_DAMAGE := 10.0
 const PLAYER_INTERACTION_RANGE := 96.0
 const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
+const GATE_PRESSURE_COUNTER_MULT := 1.35
 const OUTPOST_RESPAWN_POSITION := Vector2(-250, -48)
 const PLAY_BOUNDS_MIN := Vector2(-360, -200)
 const PLAY_BOUNDS_MAX := Vector2(4200, 200)
@@ -943,22 +944,24 @@ func _enemy_defeat_result(enemy: PrototypeEnemy, drops_message: String, followup
 func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: CharacterState) -> String:
 	var definition := data_registry.get_definition(enemy.definition_id)
 	var base_stats: Dictionary = definition.get("base_stats", {})
-	var attack_damage := float(base_stats.get("attack", 0.0))
+	var pressure_multiplier := GATE_PRESSURE_COUNTER_MULT if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure" else 1.0
+	var attack_damage := float(base_stats.get("attack", 0.0)) * pressure_multiplier
 	var health_damage := character_state.apply_health_damage(attack_damage)
 	var protection_damage := 0.0
 	var damage_types: Array = definition.get("damage_types", [])
-
 	if damage_types.has("pollution"):
 		protection_damage = character_state.apply_protection_damage(
 			attack_damage * POLLUTION_COUNTER_PRESSURE_MULT * character_state.get_pollution_drain_multiplier(data_registry)
 		)
-
 	if protection_damage > 0.0:
-		return "%s 反击，生命 -%s，防护 -%s。" % [
+		var message := "%s 反击，生命 -%s，防护 -%s。" % [
 			enemy.display_name,
 			_format_amount(health_damage),
 			_format_amount(protection_damage)
 		]
+		if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure":
+			message = "%s门前污染压力更高，防护偏低时按 2 使用抗污染药剂，生命偏低时按 1 使用修复凝胶。" % message
+		return message
 	var message := "%s 反击，生命 -%s。" % [enemy.display_name, _format_amount(health_damage)]
 	if enemy.definition_id == "enemy.treatment_skitter":
 		message = "%s生命偏低时按 1 使用修复凝胶，或回基地再调制补给。" % message
@@ -966,26 +969,21 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, world_state: WorldState) -> String:
 	if world_state.has_enemy_drops_granted(enemy.instance_id):
 		return ""
-
 	var definition := data_registry.get_definition(enemy.definition_id)
 	var drops: Array = definition.get("drops", [])
 	if drops.is_empty():
 		world_state.set_enemy_drops_granted(enemy.instance_id, true)
 		return ""
-
 	var parts: Array[String] = []
 	for drop in drops:
 		if not drop is Dictionary:
 			continue
-
 		var definition_id := String(drop.get("id", ""))
 		var amount := float(drop.get("amount", 0.0))
 		if definition_id.is_empty() or amount <= 0.0:
 			continue
-
 		character_state.inventory.add_ref(definition_id, amount)
 		parts.append("%s x%s" % [_get_display_name(definition_id), _format_amount(amount)])
-
 	world_state.set_enemy_drops_granted(enemy.instance_id, true)
 	if parts.is_empty():
 		return ""
@@ -997,17 +995,24 @@ func _inspect_ruin_gate(world_state: WorldState) -> Dictionary:
 			"入口未解锁",
 			"先治理污染源点：采集沉积物、处理药剂并压制污染残核。"
 		)
-
+	if _is_gate_pressure_active(world_state):
+		return _failure(
+			"封锁遗迹入口仍被门前受扰敌人压制。",
+			"门前压力未清",
+			"先清理遗迹门前受扰敌人；防护偏低时按 2 使用抗污染药剂，生命偏低时按 1 使用修复凝胶。"
+		)
 	if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):
 		return {
 			"success": true,
 			"message": "遗迹外圈通路已稳定：继续向东进入外圈，回收继电残片。"
 		}
-
 	return {
 		"success": true,
 		"message": "封锁遗迹入口信号已确认：遗迹外圈通路已恢复。"
 	}
+func _is_gate_pressure_active(world_state: WorldState) -> bool:
+	var gate_pressure := world_state.get_enemy("enemy_instance.polluted_skitter_gate_pressure")
+	return not gate_pressure.is_empty() and not bool(gate_pressure.get("is_defeated", false))
 func _inspect_outer_ring_barrier(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_anchor"):
 		return _failure(
@@ -1015,20 +1020,17 @@ func _inspect_outer_ring_barrier(character_state: CharacterState, world_state: W
 			"通路未稳定",
 			"先回基地组装稳相信标，再返回遗迹外圈部署。"
 		)
-
 	if world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier"):
 		return {
 			"success": true,
 			"message": "抖动雾幕已稳定，外圈深段通路保持开启。"
 		}
-
 	if not character_state.inventory.has_ref("item.phase_anchor", 1):
 		return _failure(
 			"缺少稳相信标，抖动雾幕无法稳定。",
 			"缺少开路物",
 			"回基地用基础反应器，把继电残片和污染浆液组装成稳相信标。"
 		)
-
 	character_state.inventory.consume_ref("item.phase_anchor", 1)
 	return {
 		"success": true,
@@ -1041,13 +1043,11 @@ func _inspect_outer_ring_console(world_state: WorldState) -> Dictionary:
 			"目标未就绪",
 			"先在雾幕前部署稳相信标，再进入外圈深段。"
 		)
-
 	if world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
 		return {
 			"success": true,
 			"message": "外圈中继台数据已读取：更深遗迹结构坐标已保留。"
 		}
-
 	return {
 		"success": true,
 		"message": "外圈中继台已接管：更深遗迹结构的稳定回波已定位。"
@@ -1059,13 +1059,11 @@ func _inspect_signal_echo_cache(world_state: WorldState) -> Dictionary:
 			"目标未就绪",
 			"先检查外圈中继台，锁定深段稳定回波。"
 		)
-
 	if world_state.quest_state.has_completed_quest("quest.salvage_signal_echo"):
 		return {
 			"success": true,
 			"message": "外圈回波匣已回收：返回基地解析深段回波。"
 		}
-
 	return {
 		"success": true,
 		"message": "已回收外圈回波匣：回基地用基础反应器整理更深遗迹坐标。"
@@ -1077,20 +1075,17 @@ func _inspect_deep_ruin_door(character_state: CharacterState, world_state: World
 			"入口未校准",
 			"先回基地解析深段回波，整理出更深遗迹坐标。"
 		)
-
 	if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_entrance"):
 		return {
 			"success": true,
 			"message": "深段入口门禁已写入：继续向东进入深段，回收相位纤丝。"
 		}
-
 	if not character_state.inventory.has_ref("item.deep_ruin_coordinates", 1):
 		return _failure(
 			"缺少更深遗迹坐标，门禁无法写入。",
 			"缺少开门坐标",
 			"回基地确认基础反应器已完成深段回波解析，并带上更深遗迹坐标返回。"
 		)
-
 	character_state.inventory.consume_ref("item.deep_ruin_coordinates", 1)
 	return {
 		"success": true,

@@ -108,7 +108,7 @@ func _run_checks() -> void:
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.cleanse_residue", "treatment point unlocks residue recipe")
 	_complete_active_quest("quest.enter_pollution_edge", [
 		{"type": "visit_region", "target_id": "region.pollution_edge", "amount": 1},
-		{"type": "gather_item", "target_id": "item.polluted_residue", "amount": 2},
+		{"type": "gather_item", "target_id": "item.polluted_residue", "amount": 4},
 		{"type": "craft_item", "target_id": "item.resistance_vial_t1", "amount": 1},
 		{"type": "defeat_enemy", "target_id": "enemy.polluted_skitter", "amount": 1}
 	])

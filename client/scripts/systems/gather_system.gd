@@ -2,6 +2,12 @@ extends RefCounted
 class_name GatherSystem
 
 const PROTOTYPE_POLLUTION_PRESSURE_MULT := 15.0
+const POLLUTION_RESIDUE_PRESSURE_BY_INSTANCE := {
+	"map_object_instance.pollution_residue": 1.0,
+	"map_object_instance.pollution_residue_outer_pocket": 1.15,
+	"map_object_instance.pollution_residue_deep": 1.35,
+	"map_object_instance.pollution_residue_ridge_cache": 1.6
+}
 
 var data_registry: DataRegistry
 var processing_system: ProcessingSystem
@@ -227,7 +233,7 @@ func _interact_with_outpost_core(character_state: CharacterState, world_state: W
 
 func _gather(instance_id: String, definition: Dictionary, character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var rewards := _grant_refs(definition.get("drops", []), character_state)
-	var protection_drain := _apply_pollution_pressure(definition, character_state)
+	var protection_drain := _apply_pollution_pressure(instance_id, definition, character_state)
 	_set_map_object_flag(world_state, instance_id, String(definition.get("id", "")), "is_gathered", true)
 
 	var result_parts: Array[String] = []
@@ -240,6 +246,9 @@ func _gather(instance_id: String, definition: Dictionary, character_state: Chara
 			_format_amount(protection_drain),
 			_get_pollution_protection_hint(character_state)
 		])
+		var pressure_hint := _get_pollution_pressure_step_hint(instance_id, character_state)
+		if not pressure_hint.is_empty():
+			result_parts.append(pressure_hint)
 
 	return _success("%s。" % "；".join(result_parts))
 
@@ -279,7 +288,7 @@ func _grant_refs(refs: Array, character_state: CharacterState) -> Array[String]:
 	return rewards
 
 
-func _apply_pollution_pressure(definition: Dictionary, character_state: CharacterState) -> float:
+func _apply_pollution_pressure(instance_id: String, definition: Dictionary, character_state: CharacterState) -> float:
 	var pollution_id := String(definition.get("pollution_effect", ""))
 	if pollution_id.is_empty():
 		return 0.0
@@ -296,7 +305,8 @@ func _apply_pollution_pressure(definition: Dictionary, character_state: Characte
 	if base_drain <= 0.0:
 		return 0.0
 
-	var actual_drain := base_drain * character_state.get_pollution_drain_multiplier(data_registry)
+	var pressure_multiplier := float(POLLUTION_RESIDUE_PRESSURE_BY_INSTANCE.get(instance_id, 1.0))
+	var actual_drain := base_drain * pressure_multiplier * character_state.get_pollution_drain_multiplier(data_registry)
 	character_state.protection = maxf(0.0, character_state.protection - actual_drain)
 	return actual_drain
 
@@ -306,6 +316,16 @@ func _get_pollution_protection_hint(character_state: CharacterState) -> String:
 	if module_id.is_empty():
 		return "，未启用过滤模块"
 	return "，过滤模块已降低消耗"
+
+
+func _get_pollution_pressure_step_hint(instance_id: String, character_state: CharacterState) -> String:
+	if instance_id == "map_object_instance.pollution_residue_ridge_cache":
+		if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+			return "门前高压点已回收；防护偏低时按 2 使用抗污染药剂，再清理门前受扰敌人"
+		return "门前高压点已回收；建议回过滤器处理沉积物，补抗污染药剂后再推进"
+	if instance_id == "map_object_instance.pollution_residue_deep":
+		return "深处压力已显著抬升；后续门前点更适合带药剂再处理"
+	return ""
 
 
 func _format_outpost_core_refit_detail(
