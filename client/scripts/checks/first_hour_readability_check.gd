@@ -82,6 +82,7 @@ func _check_core_loop_layout() -> void:
 	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
 	host.root.add_child(map)
 	map.setup(host.data_registry)
+
 	var outpost := map.get_node("Interactables/OutpostCore") as PrototypeInteractable
 	var reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
 	var base_choice := map.get_node("Interactables/BaseSupplyChoiceConsole") as PrototypeInteractable
@@ -98,10 +99,13 @@ func _check_core_loop_layout() -> void:
 
 	var first_crystal := map.get_node("Interactables/CrystalCluster") as PrototypeInteractable
 	var side_crystal := map.get_node("Interactables/CrystalClusterSidePocket") as PrototypeInteractable
+	var approach_crystal := map.get_node("Interactables/CrystalClusterTreatmentApproach") as PrototypeInteractable
 	var south_wreckage := map.get_node("Interactables/FieldWreckageSouthPocket") as PrototypeInteractable
 	var gate_cache := map.get_node("Interactables/FieldWreckageGateCache") as PrototypeInteractable
+	var approach_wreckage := map.get_node("Interactables/FieldWreckageTreatmentApproach") as PrototypeInteractable
 	var anomaly := map.get_node("Interactables/AnomalyCrystal") as PrototypeInteractable
 	var native := map.get_node("Enemies/NativeSkitter") as PrototypeEnemy
+	var treatment_skitter := map.get_node("Enemies/TreatmentSkitter") as PrototypeEnemy
 	host._expect_equal(
 		first_crystal.position.distance_to(native.position) > 120.0,
 		true,
@@ -122,13 +126,25 @@ func _check_core_loop_layout() -> void:
 		true,
 		"first-hour gate cache gives a final scrap pocket before treatment construction"
 	)
+	host._expect_equal(
+		approach_crystal.position.x > gate_cache.position.x and approach_wreckage.position.x > gate_cache.position.x,
+		true,
+		"first-hour treatment approach adds resource choices after the first salvage pocket"
+	)
+	host._expect_equal(
+		approach_wreckage.position.distance_to(treatment_skitter.position) <= VerticalSliceMap.ATTACK_RANGE,
+		true,
+		"first-hour treatment approach salvage is tied to the first guarded construction lane"
+	)
 
 	var rough_ground := map.get_node("Interactables/RoughGroundNorth") as PrototypeInteractable
 	var filter_site := map.get_node("Interactables/PollutionFilterBuildSite") as PrototypeInteractable
 	var entry_residue := map.get_node("Interactables/PollutionResidue") as PrototypeInteractable
 	var outer_residue := map.get_node("Interactables/PollutionResidueOuterPocket") as PrototypeInteractable
 	var deep_residue := map.get_node("Interactables/PollutionResidueDeep") as PrototypeInteractable
+	var ridge_residue := map.get_node("Interactables/PollutionResidueRidgeCache") as PrototypeInteractable
 	var polluted := map.get_node("Enemies/PollutedSkitter") as PrototypeEnemy
+	var ridge_polluted := map.get_node("Enemies/PollutedSkitterRidge") as PrototypeEnemy
 	var elite := map.get_node("Enemies/EliteResidueNode") as PrototypeEnemy
 	var ruin_gate := map.get_node("Interactables/RuinGate") as PrototypeInteractable
 	host._expect_equal(
@@ -155,6 +171,16 @@ func _check_core_loop_layout() -> void:
 		deep_residue.position.distance_to(elite.position) <= VerticalSliceMap.ATTACK_RANGE,
 		true,
 		"first-hour deep pollution reward sits near the higher-risk elite node"
+	)
+	host._expect_equal(
+		ridge_residue.position.x > outer_residue.position.x and ridge_residue.position.x < ruin_gate.position.x,
+		true,
+		"first-hour ridge residue gives a risky optional pickup before the ruin gate"
+	)
+	host._expect_equal(
+		ridge_polluted.position.distance_to(ridge_residue.position) <= VerticalSliceMap.ATTACK_RANGE,
+		true,
+		"first-hour ridge residue is guarded by visible pollution pressure"
 	)
 	host._expect_equal(
 		ruin_gate.position.x > elite.position.x,

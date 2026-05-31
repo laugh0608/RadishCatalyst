@@ -105,10 +105,13 @@ func _check_first_hour_content_density() -> void:
 	map.setup(host.data_registry)
 	var interactable_expectations := {
 		"Interactables/CrystalClusterSidePocket": "map_object.crystal_cluster",
+		"Interactables/CrystalClusterTreatmentApproach": "map_object.crystal_cluster",
 		"Interactables/FieldWreckageSouthPocket": "map_object.field_wreckage",
 		"Interactables/FieldWreckageGateCache": "map_object.field_wreckage",
+		"Interactables/FieldWreckageTreatmentApproach": "map_object.field_wreckage",
 		"Interactables/PollutionResidueOuterPocket": "map_object.pollution_residue_patch",
-		"Interactables/PollutionResidueDeep": "map_object.pollution_residue_patch"
+		"Interactables/PollutionResidueDeep": "map_object.pollution_residue_patch",
+		"Interactables/PollutionResidueRidgeCache": "map_object.pollution_residue_patch"
 	}
 	for node_path in interactable_expectations:
 		var interactable := map.get_node_or_null(String(node_path)) as PrototypeInteractable
@@ -122,7 +125,8 @@ func _check_first_hour_content_density() -> void:
 		)
 	var enemy_expectations := {
 		"Enemies/NativeSkitterPatrol": "enemy.native_skitter",
-		"Enemies/PollutedSkitterDeep": "enemy.polluted_skitter"
+		"Enemies/PollutedSkitterDeep": "enemy.polluted_skitter",
+		"Enemies/PollutedSkitterRidge": "enemy.polluted_skitter"
 	}
 	for node_path in enemy_expectations:
 		var enemy := map.get_node_or_null(String(node_path)) as PrototypeEnemy
