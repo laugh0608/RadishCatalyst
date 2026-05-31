@@ -14,6 +14,7 @@ func run_ui_and_recipe_checks() -> void:
 	_check_hud_log_presenter()
 	_check_first_hour_guidance_copy()
 	_check_first_hour_content_density()
+	_check_pollution_gate_pressure_spawn_and_combat()
 	_check_first_hour_objective_milestones()
 	_check_first_hour_base_return_manufacturing_readability()
 	_check_development_baseline_presenter()
@@ -129,6 +130,29 @@ func _check_first_hour_base_return_manufacturing_readability() -> void:
 	host._expect_text_missing(supply_text, "待制造：修复凝胶", "base summary stops repeating completed repair gel craft")
 	host._expect_text_contains(supply_text, "当前目标先外出推进", "base summary returns to field after repair gel is ready")
 	reactor.free()
+
+
+func _check_pollution_gate_pressure_spawn_and_combat() -> void:
+	var map := VerticalSliceMap.new()
+	map.data_registry = host.data_registry
+	var gate_enemy := PrototypeEnemy.new()
+	gate_enemy.definition_id = "enemy.polluted_skitter"
+	gate_enemy.name = "PollutedSkitterGatePressure"
+	gate_enemy.instance_id = "enemy_instance.polluted_skitter_gate_pressure"
+	var gate_world := WorldState.create_default()
+	gate_world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
+	host._expect_equal(map._should_enemy_spawn(gate_enemy, gate_world), false, "gate pressure enemy waits for residue vial stage to complete")
+	gate_world.quest_state.active_quest_ids = ["quest.defeat_elite_node"]
+	host._expect_equal(map._should_enemy_spawn(gate_enemy, gate_world), true, "gate pressure enemy appears with elite residue node")
+
+	var combat_character := CharacterState.create_default()
+	combat_character.equipment["suit_module"] = "equipment.filter_module_t1"
+	var counter_message := map._apply_enemy_counterattack(gate_enemy, combat_character)
+	host._expect_equal(combat_character.health, 94.0, "gate pressure enemy counterattack health pressure")
+	host._expect_equal(combat_character.protection < 100.0, true, "gate pressure enemy counterattack protection pressure")
+	host._expect_text_contains(counter_message, "防护 -2.0", "gate pressure enemy counterattack protection hint")
+	gate_enemy.free()
+	map.free()
 
 
 func _check_first_hour_content_density() -> void:

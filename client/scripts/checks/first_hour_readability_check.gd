@@ -145,6 +145,7 @@ func _check_core_loop_layout() -> void:
 	var ridge_residue := map.get_node("Interactables/PollutionResidueRidgeCache") as PrototypeInteractable
 	var polluted := map.get_node("Enemies/PollutedSkitter") as PrototypeEnemy
 	var ridge_polluted := map.get_node("Enemies/PollutedSkitterRidge") as PrototypeEnemy
+	var gate_polluted := map.get_node("Enemies/PollutedSkitterGatePressure") as PrototypeEnemy
 	var elite := map.get_node("Enemies/EliteResidueNode") as PrototypeEnemy
 	var ruin_gate := map.get_node("Interactables/RuinGate") as PrototypeInteractable
 	host._expect_equal(
@@ -181,6 +182,16 @@ func _check_core_loop_layout() -> void:
 		ridge_polluted.position.distance_to(ridge_residue.position) <= VerticalSliceMap.ATTACK_RANGE,
 		true,
 		"first-hour ridge residue is guarded by visible pollution pressure"
+	)
+	host._expect_equal(
+		gate_polluted.position.distance_to(ruin_gate.position) <= VerticalSliceMap.ATTACK_RANGE,
+		true,
+		"first-hour ruin gate has a visible pollution pressure guard"
+	)
+	host._expect_equal(
+		gate_polluted.position.x > outer_residue.position.x and gate_polluted.position.x < ruin_gate.position.x,
+		true,
+		"first-hour gate pressure sits between residue collection and ruin signal"
 	)
 	host._expect_equal(
 		ruin_gate.position.x > elite.position.x,

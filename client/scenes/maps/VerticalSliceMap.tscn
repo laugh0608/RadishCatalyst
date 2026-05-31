@@ -434,7 +434,7 @@ label_offset = Vector2(-88, -54)
 label_size = Vector2(176, 24)
 
 [node name="RuinGate" parent="Interactables" instance=ExtResource("3_interactable")]
-position = Vector2(372, 24)
+position = Vector2(388, 24)
 definition_id = "map_object.ruin_gate"
 interaction_type = "inspect"
 single_use = false
@@ -984,6 +984,10 @@ definition_id = "enemy.polluted_skitter"
 
 [node name="PollutedSkitterRidge" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(380, 52)
+definition_id = "enemy.polluted_skitter"
+
+[node name="PollutedSkitterGatePressure" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(360, 28)
 definition_id = "enemy.polluted_skitter"
 
 [node name="EliteResidueNode" parent="Enemies" instance=ExtResource("4_enemy")]

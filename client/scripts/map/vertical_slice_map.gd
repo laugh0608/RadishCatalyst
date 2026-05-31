@@ -546,7 +546,8 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 	if bool(result.get("defeated", false)):
 		var drops_message := _grant_enemy_drops(target, character_state, world_state)
 		if target.definition_id == "enemy.polluted_skitter":
-			return _enemy_defeat_result(target, drops_message, "污染处理点周边暂时安全。")
+			var followup := "遗迹门前压力减弱，可以继续处理污染残核或确认入口信号。" if target.instance_id == "enemy_instance.polluted_skitter_gate_pressure" else "污染处理点周边暂时安全。"
+			return _enemy_defeat_result(target, drops_message, followup)
 		if target.definition_id == "enemy.ruin_phase_guard":
 			return _enemy_defeat_result(target, drops_message, "外圈回波匣附近的干扰守卫已清空。")
 		if target.definition_id == "enemy.deep_ruin_sentinel":
@@ -844,6 +845,8 @@ func _refresh_enemy_focus_visuals() -> void:
 		if enemy is PrototypeEnemy:
 			enemy.set_focus_visual(enemy == focused_enemy)
 func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool:
+	if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure":
+		return world_state.quest_state.has_active_quest("quest.defeat_elite_node") or world_state.quest_state.has_completed_quest("quest.defeat_elite_node")
 	if enemy.definition_id == "enemy.elite_residue_node":
 		return (
 			world_state.quest_state.has_active_quest("quest.defeat_elite_node")
@@ -924,7 +927,6 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 	if not quest_state.has_active_quest(quest_id):
 		return false
 	return quest_state.get_objective_progress(quest_id, "craft_item", "item.repair_gel") >= 1.0
-
 func _get_attack_damage(character_state: CharacterState) -> float:
 	var tool_id := String(character_state.equipment.get("tool", ""))
 	var tool_definition := data_registry.get_definition(tool_id)
