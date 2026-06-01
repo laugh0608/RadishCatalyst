@@ -20,6 +20,10 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 			return "制造处理点地基材料，做完去处理点北缘铺设两块地基；缺料时回访处理点入口前的晶体和残骸。"
 		"recipe.cleanse_residue":
 			return "把污染沉积物处理成抗污染药剂，按 2 补防护后继续深入污染边界。"
+		"recipe.deep_core_imprint":
+			return "把裂相样块解析成路由印片，做完直接返回裂相阵列台点亮第二轮导管回收线。"
+		"recipe.deep_signal_matrix":
+			return "把相位导管整理成深段读数矩阵，做完带回裂相脊固定点部署前线回传锚点。"
 	return ""
 
 

@@ -17,6 +17,7 @@ func run_ui_and_recipe_checks() -> void:
 	_check_pollution_gate_pressure_spawn_and_combat()
 	_check_first_hour_objective_milestones()
 	_check_first_hour_base_return_manufacturing_readability()
+	_check_mid_demo_handoff_readability()
 	_check_development_baseline_presenter()
 	_check_demo_stabilization_baseline_status_panel()
 	_check_game_root_development_baseline_factory()
@@ -140,6 +141,61 @@ func _check_first_hour_base_return_manufacturing_readability() -> void:
 	var supply_text := status_presenter.format_vitals_text(host.data_registry, supply_world, CharacterState.create_default())
 	host._expect_text_missing(supply_text, "待制造：修复凝胶", "base summary stops repeating completed repair gel craft")
 	host._expect_text_contains(supply_text, "当前目标先外出推进", "base summary returns to field after repair gel is ready")
+	reactor.free()
+
+
+func _check_mid_demo_handoff_readability() -> void:
+	var processing := ProcessingSystem.new(host.data_registry)
+	var device_panel_presenter := HudDevicePanelPresenter.new()
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.deep_core_imprint"
+	reactor.set_recipe_cycle([
+		"recipe.process_crystal_ore",
+		"recipe.deep_core_imprint",
+		"recipe.deep_signal_matrix"
+	])
+
+	var core_world := WorldState.create_default()
+	core_world.quest_state.active_quest_ids = ["quest.analyze_deep_core"]
+	core_world.quest_state.unlock_effect("recipe.deep_core_imprint")
+	core_world.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	var core_character := CharacterState.create_default()
+	core_character.inventory.add_item("item.deep_ruin_core", 1)
+	var core_texts := device_panel_presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		reactor,
+		core_character,
+		core_world
+	)
+	host._expect_text_contains(
+		String(core_texts.get("status", "")),
+		"裂相阵列台",
+		"deep core device purpose points to array activation"
+	)
+
+	var matrix_world := WorldState.create_default()
+	matrix_world.quest_state.active_quest_ids = ["quest.assemble_deep_signal_matrix"]
+	matrix_world.quest_state.unlock_effect("recipe.deep_signal_matrix")
+	matrix_world.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	var matrix_character := CharacterState.create_default()
+	matrix_character.inventory.add_item("item.phase_conduit", 2)
+	matrix_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
+	reactor.recipe_id = "recipe.deep_signal_matrix"
+	var matrix_texts := device_panel_presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		reactor,
+		matrix_character,
+		matrix_world
+	)
+	host._expect_text_contains(
+		String(matrix_texts.get("status", "")),
+		"前线回传锚点",
+		"deep matrix device purpose points to relay anchor deployment"
+	)
 	reactor.free()
 
 
@@ -824,6 +880,31 @@ func _check_mid_demo_missing_input_hints(processing: ProcessingSystem) -> void:
 		"相位纤丝精炼副产",
 		"deep override missing slurry points to filter byproduct"
 	)
+	var deep_core_world := WorldState.create_default()
+	deep_core_world.quest_state.unlock_effect("recipe.deep_core_imprint")
+	var deep_core_status := processing.get_recipe_status("recipe.deep_core_imprint", CharacterState.create_default(), deep_core_world)
+	host._expect_text_contains(
+		String(deep_core_status.get("supply_hint", "")),
+		"取出裂相样块",
+		"deep core missing sample points back to fracture latch"
+	)
+
+	var matrix_world := WorldState.create_default()
+	matrix_world.quest_state.unlock_effect("recipe.deep_signal_matrix")
+	var matrix_status := processing.get_recipe_status("recipe.deep_signal_matrix", CharacterState.create_default(), matrix_world)
+	host._expect_text_contains(
+		String(matrix_status.get("supply_hint", "")),
+		"回收两束相位导管",
+		"deep signal matrix missing conduit points back to array line"
+	)
+	var matrix_character := CharacterState.create_default()
+	matrix_character.inventory.add_item("item.phase_conduit", 2)
+	matrix_status = processing.get_recipe_status("recipe.deep_signal_matrix", matrix_character, matrix_world)
+	host._expect_text_contains(
+		String(matrix_status.get("supply_hint", "")),
+		"整理深段读数矩阵",
+		"deep signal matrix missing slurry points back to refinery source"
+	)
 
 
 func check_equipment_processing_runtime() -> void:
@@ -963,6 +1044,25 @@ func _check_game_root_development_baseline_factory() -> void:
 	host._expect_equal(int(character_state.inventory.items.get("item.deep_ruin_core", 0)), 1, "S4 baseline keeps fracture sample reward")
 	host._expect_equal(float(character_state.inventory.fluids.get("fluid.polluted_slurry", 0.0)), 1.0, "S4 baseline keeps polluted slurry for deep signal matrix")
 	host._expect_equal(String(character_state.equipment.get("suit_module", "")), "equipment.filter_module_t1", "S4 baseline equips filter module")
+
+	var s5_result := game_root.create_development_baseline_state("baseline.s5_phase_relay_online")
+	host._expect_equal(bool(s5_result.get("success", false)), true, "S5 development baseline generation")
+	if not bool(s5_result.get("success", false)):
+		game_root.free()
+		return
+	var s5_world: WorldState = s5_result.get("world_state", null)
+	var s5_character: CharacterState = s5_result.get("character_state", null)
+	host._expect_equal(s5_world.current_region_id, "region.outpost_platform", "S5 baseline world region")
+	host._expect_equal(s5_character.current_region_id, "region.outpost_platform", "S5 baseline character region")
+	host._expect_array_has(s5_world.quest_state.active_quest_ids, "quest.reenter_phase_frontline", "S5 baseline active quest")
+	host._expect_equal(s5_world.active_phase_relay_anchor_id, "map_object_instance.phase_return_anchor", "S5 baseline active relay anchor")
+	host._expect_equal(
+		s5_world.get_deployed_phase_relay_anchor_ids(),
+		["map_object_instance.phase_return_anchor"],
+		"S5 baseline deployed relay anchors"
+	)
+	host._expect_equal(int(s5_character.inventory.items.get("item.repair_gel", 0)), 1, "S5 baseline keeps field repair gel")
+	host._expect_equal(int(s5_character.inventory.items.get("item.resistance_vial_t1", 0)), 1, "S5 baseline keeps anti-pollution vial")
 	game_root.free()
 
 

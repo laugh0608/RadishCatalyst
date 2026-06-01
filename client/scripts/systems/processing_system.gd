@@ -498,6 +498,14 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 				return "先回处理点污染过滤器精炼相位纤丝，得到谐振滤芯。"
 			if _get_recipe_input_shortage(recipe, "fluid.polluted_slurry", inventory) > 0.0:
 				return "污染浆液来自相位纤丝精炼副产；先回处理点过滤器完成精炼，再组装裂相覆写栓。"
+		"recipe.deep_core_imprint":
+			if _get_recipe_input_shortage(recipe, "item.deep_ruin_core", inventory) > 0.0:
+				return "先带着裂相覆写栓返回裂相脊入口，覆写裂相锁扣并取出裂相样块。"
+		"recipe.deep_signal_matrix":
+			if _get_recipe_input_shortage(recipe, "item.phase_conduit", inventory) > 0.0:
+				return "先带裂相路由印片返回裂相阵列台，点亮阵列后清理追袭体并回收两束相位导管。"
+			if _get_recipe_input_shortage(recipe, "fluid.polluted_slurry", inventory) > 0.0:
+				return "污染浆液可从相位纤丝精炼副产或污染过滤器处理沉积物获得；补足后再整理深段读数矩阵。"
 	return ""
 
 

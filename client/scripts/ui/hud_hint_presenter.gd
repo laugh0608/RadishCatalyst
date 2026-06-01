@@ -160,9 +160,9 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.activate_deep_array":
 			return "带着裂相路由印片返回裂相脊，点亮阵列台、清理追袭体并回收两束相位导管。"
 		"quest.assemble_deep_signal_matrix":
-			return "回基地使用基础反应器，把相位导管和污染浆液整理成可部署锚点的裂相读数矩阵。"
+			return "回基地使用基础反应器，把相位导管和污染浆液整理成可部署锚点的深段读数矩阵。"
 		"quest.deploy_phase_relay_anchor":
-			return "带着裂相读数矩阵返回裂相脊固定点，部署前线回传锚点。"
+			return "带着深段读数矩阵返回裂相脊固定点，部署前线回传锚点。"
 		"quest.reenter_phase_frontline":
 			if world_state.current_region_id == "region.outpost_platform":
 				return "在基地按 E 使用相位回投台，返回最近校准的锚点并继续追踪更东侧裂相碎屑。"
