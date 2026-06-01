@@ -1215,7 +1215,7 @@ func _inspect_phase_relay_pad(character_state: CharacterState, world_state: Worl
 	if world_state.quest_state.has_active_quest("quest.reenter_phase_frontline"):
 		return {
 			"success": true,
-			"message": "相位回投台已联通：已回投到 %s；更东侧裂相碎屑和新的深段猎手已暴露%s。%s" % [active_anchor_label, cycle_hint, departure_preparation_text]
+			"message": "相位回投台已联通：已回投到 %s；更东侧裂相碎屑和裂相猎手已暴露%s。%s" % [active_anchor_label, cycle_hint, departure_preparation_text]
 		}
 	return {
 		"success": true,

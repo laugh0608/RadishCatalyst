@@ -568,7 +568,7 @@ func _apply_baseline_pose_and_inventory(
 			_set_runtime_position(world_state, character_state, "region.outpost_platform", BASELINE_PHASE_RELAY_PAD_POSITION)
 			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
 			character_state.inventory = _make_inventory(
-				{"item.basic_parts": 4, "item.repair_gel": 1, "item.resistance_vial_t1": 1},
+				{"item.basic_parts": 4, "item.inner_fault_trace": 1, "item.repair_gel": 1, "item.resistance_vial_t1": 1},
 				{},
 				{"fluid.basic_solvent": 2.0}
 			)

@@ -24,6 +24,12 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 			return "把裂相样块解析成路由印片，做完直接返回裂相阵列台点亮第二轮导管回收线。"
 		"recipe.deep_signal_matrix":
 			return "把相位导管整理成深段读数矩阵，做完带回裂相脊固定点部署前线回传锚点。"
+		"recipe.phase_splinter_refining":
+			return "把回投后回收的裂相碎屑筛成透镜胚片，做完继续去基础反应器调准中继调谐镜。"
+		"recipe.relay_tuning_lens":
+			return "把透镜胚片调准成中继调谐镜，做完带回裂相尖塔逼出内层故障轨迹。"
+		"recipe.inner_fault_analysis":
+			return "把内层故障轨迹解析成坐标印片，做完返回更东侧裂相锁位继续推进。"
 	return ""
 
 

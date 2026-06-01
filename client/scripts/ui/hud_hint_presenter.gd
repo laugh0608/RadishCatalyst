@@ -168,7 +168,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 				return "在基地按 E 使用相位回投台，返回最近校准的锚点并继续追踪更东侧裂相碎屑。"
 			return "先用前线回传锚点回基地，再在相位回投台按 E 回到当前锚点。"
 		"quest.trace_phase_splinters":
-			return "从锚点继续向东推进，先写入两处裂相共振读数，再击败裂相猎手并回收两处碎屑。"
+			return "从回投落点继续向东推进，先写入两处裂相共振读数，再击败裂相猎手并回收两处碎屑。"
 		"quest.refine_phase_splinters":
 			if not character_state.inventory.has_ref("item.phase_lens_blank", 1):
 				return "回处理点污染过滤器，把裂相碎屑筛成透镜胚片并保留副产污染浆液。"

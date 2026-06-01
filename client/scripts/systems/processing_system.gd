@@ -506,6 +506,17 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 				return "先带裂相路由印片返回裂相阵列台，点亮阵列后清理追袭体并回收两束相位导管。"
 			if _get_recipe_input_shortage(recipe, "fluid.polluted_slurry", inventory) > 0.0:
 				return "污染浆液可从相位纤丝精炼副产或污染过滤器处理沉积物获得；补足后再整理深段读数矩阵。"
+		"recipe.phase_splinter_refining":
+			if _get_recipe_input_shortage(recipe, "item.phase_splinter", inventory) > 0.0:
+				return "先用相位回投台返回前线锚点，写入两处裂相共振读数，击退裂相猎手后回收两处裂相碎屑。"
+		"recipe.relay_tuning_lens":
+			if _get_recipe_input_shortage(recipe, "item.phase_lens_blank", inventory) > 0.0:
+				return "先回处理点污染过滤器，把裂相碎屑筛成透镜胚片。"
+			if _get_recipe_input_shortage(recipe, "fluid.polluted_slurry", inventory) > 0.0:
+				return "污染浆液来自裂相碎屑筛分副产；先完成过滤器筛分，再调准中继调谐镜。"
+		"recipe.inner_fault_analysis":
+			if _get_recipe_input_shortage(recipe, "item.inner_fault_trace", inventory) > 0.0:
+				return "先带中继调谐镜返回更东侧裂相尖塔，校准后带回内层故障轨迹。"
 	return ""
 
 

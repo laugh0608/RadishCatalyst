@@ -458,7 +458,7 @@ func format_phase_fault_spire_prompt(world_state: WorldState, character_state: C
 		return "裂相尖塔：先回基地完成中继调谐镜整备，再回来校准内层回波。"
 	if not character_state.inventory.has_ref("item.relay_tuning_lens", 1):
 		return "裂相尖塔：缺少中继调谐镜；回基地确认基础反应器组装结果后再来。"
-	return "按 E 校准：裂相尖塔。"
+	return "按 E 校准：裂相尖塔，带回内层故障轨迹。"
 
 
 func format_phase_well_lock_prompt(world_state: WorldState, character_state: CharacterState) -> String:

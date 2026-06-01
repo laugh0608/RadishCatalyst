@@ -196,7 +196,59 @@ func _check_mid_demo_handoff_readability() -> void:
 		"前线回传锚点",
 		"deep matrix device purpose points to relay anchor deployment"
 	)
+
+	var filter := PrototypeInteractable.new()
+	filter.definition_id = "building.pollution_filter"
+	filter.interaction_type = "process_recipe"
+	filter.recipe_id = "recipe.phase_splinter_refining"
+	filter.set_recipe_cycle(["recipe.phase_splinter_refining"])
+	var splinter_world := WorldState.create_default()
+	splinter_world.quest_state.active_quest_ids = ["quest.refine_phase_splinters"]
+	splinter_world.quest_state.unlock_effect("recipe.phase_splinter_refining")
+	splinter_world.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
+	var splinter_character := CharacterState.create_default()
+	splinter_character.inventory.add_item("item.phase_splinter", 2)
+	var splinter_texts := device_panel_presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		filter,
+		splinter_character,
+		splinter_world
+	)
+	host._expect_text_contains(
+		String(splinter_texts.get("status", "")),
+		"中继调谐镜",
+		"phase splinter filter purpose points to relay lens tuning"
+	)
+
+	var lens_world := WorldState.create_default()
+	lens_world.quest_state.active_quest_ids = ["quest.refine_phase_splinters"]
+	lens_world.quest_state.unlock_effect("recipe.relay_tuning_lens")
+	lens_world.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	var lens_character := CharacterState.create_default()
+	lens_character.inventory.add_item("item.phase_lens_blank", 1)
+	lens_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
+	lens_character.inventory.items["item.basic_parts"] = 2
+	var lens_reactor := PrototypeInteractable.new()
+	lens_reactor.definition_id = "building.basic_reactor"
+	lens_reactor.interaction_type = "process_recipe"
+	lens_reactor.recipe_id = "recipe.relay_tuning_lens"
+	lens_reactor.set_recipe_cycle(["recipe.relay_tuning_lens"])
+	var lens_texts := device_panel_presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		lens_reactor,
+		lens_character,
+		lens_world
+	)
+	host._expect_text_contains(
+		String(lens_texts.get("status", "")),
+		"裂相尖塔",
+		"relay lens device purpose points to phase fault spire"
+	)
 	reactor.free()
+	filter.free()
+	lens_reactor.free()
 
 
 func _check_pollution_gate_pressure_spawn_and_combat() -> void:
@@ -905,6 +957,41 @@ func _check_mid_demo_missing_input_hints(processing: ProcessingSystem) -> void:
 		"整理深段读数矩阵",
 		"deep signal matrix missing slurry points back to refinery source"
 	)
+	var splinter_world := WorldState.create_default()
+	splinter_world.quest_state.unlock_effect("recipe.phase_splinter_refining")
+	splinter_world.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
+	var splinter_status := processing.get_recipe_status("recipe.phase_splinter_refining", CharacterState.create_default(), splinter_world)
+	host._expect_text_contains(
+		String(splinter_status.get("supply_hint", "")),
+		"两处裂相共振读数",
+		"phase splinter refining missing input points back to resonance and hunter route"
+	)
+
+	var lens_world := WorldState.create_default()
+	lens_world.quest_state.unlock_effect("recipe.relay_tuning_lens")
+	var lens_status := processing.get_recipe_status("recipe.relay_tuning_lens", CharacterState.create_default(), lens_world)
+	host._expect_text_contains(
+		String(lens_status.get("supply_hint", "")),
+		"筛成透镜胚片",
+		"relay lens missing blank points back to filter"
+	)
+	var lens_character := CharacterState.create_default()
+	lens_character.inventory.add_item("item.phase_lens_blank", 1)
+	lens_status = processing.get_recipe_status("recipe.relay_tuning_lens", lens_character, lens_world)
+	host._expect_text_contains(
+		String(lens_status.get("supply_hint", "")),
+		"裂相碎屑筛分副产",
+		"relay lens missing slurry points back to splinter filtering byproduct"
+	)
+
+	var inner_trace_world := WorldState.create_default()
+	inner_trace_world.quest_state.unlock_effect("recipe.inner_fault_analysis")
+	var inner_trace_status := processing.get_recipe_status("recipe.inner_fault_analysis", CharacterState.create_default(), inner_trace_world)
+	host._expect_text_contains(
+		String(inner_trace_status.get("supply_hint", "")),
+		"带回内层故障轨迹",
+		"inner fault analysis missing trace points back to spire calibration"
+	)
 
 
 func check_equipment_processing_runtime() -> void:
@@ -1063,6 +1150,22 @@ func _check_game_root_development_baseline_factory() -> void:
 	)
 	host._expect_equal(int(s5_character.inventory.items.get("item.repair_gel", 0)), 1, "S5 baseline keeps field repair gel")
 	host._expect_equal(int(s5_character.inventory.items.get("item.resistance_vial_t1", 0)), 1, "S5 baseline keeps anti-pollution vial")
+
+	var s6_result := game_root.create_development_baseline_state("baseline.s6_inner_fault_trace_ready")
+	host._expect_equal(bool(s6_result.get("success", false)), true, "S6 development baseline generation")
+	if not bool(s6_result.get("success", false)):
+		game_root.free()
+		return
+	var s6_world: WorldState = s6_result.get("world_state", null)
+	var s6_character: CharacterState = s6_result.get("character_state", null)
+	host._expect_array_has(s6_world.quest_state.active_quest_ids, "quest.analyze_inner_fault_trace", "S6 baseline active quest")
+	host._expect_equal(int(s6_character.inventory.items.get("item.inner_fault_trace", 0)), 1, "S6 baseline keeps inner fault trace reward")
+	host._expect_equal(s6_world.active_phase_relay_anchor_id, "map_object_instance.phase_return_anchor", "S6 baseline active relay anchor")
+	host._expect_equal(
+		s6_world.get_deployed_phase_relay_anchor_ids(),
+		["map_object_instance.phase_return_anchor"],
+		"S6 baseline deployed relay anchors"
+	)
 	game_root.free()
 
 
