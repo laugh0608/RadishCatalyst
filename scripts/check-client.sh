@@ -5,17 +5,9 @@ script_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 repo_root="$(CDPATH= cd -- "${script_dir}/.." && pwd)"
 client_root="${repo_root}/client"
 
-if command -v pwsh >/dev/null 2>&1; then
-  godot_arg="${GODOT_EXE:-}"
-  if [ -n "${godot_arg}" ]; then
-    exec pwsh -NoLogo -NoProfile -File "${repo_root}/scripts/check-client.ps1" -GodotExe "${godot_arg}"
-  fi
-  exec pwsh -NoLogo -NoProfile -File "${repo_root}/scripts/check-client.ps1"
-fi
-
 python_exe="${PYTHON:-python3}"
 if ! command -v "${python_exe}" >/dev/null 2>&1; then
-  echo "python3 is required to run macOS/Linux fallback client checks." >&2
+  echo "python3 is required to run macOS/Linux client checks." >&2
   exit 1
 fi
 
@@ -82,9 +74,8 @@ run_godot_checked() {
   fi
 }
 
-echo "PowerShell 7 (pwsh) not found; running macOS/Linux fallback client checks."
-echo "Fallback covers static data, Godot import, save runtime, quest rules and vertical slice flow."
-echo "Install PowerShell 7 to delegate to the full PowerShell client check set."
+echo "Running macOS/Linux client checks."
+echo "Coverage: static data, Godot import, save runtime, quest rules and vertical slice flow."
 echo "Using Godot: ${godot_exe}"
 
 "${python_exe}" "${repo_root}/scripts/check-client-data.py" "${repo_root}"
