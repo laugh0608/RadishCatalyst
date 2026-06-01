@@ -17,7 +17,7 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 		"recipe.repair_gel":
 			return "准备下一段处理点战斗补给，生命偏低时按 1 使用。"
 		"recipe.foundation_t1":
-			return "制造处理点地基材料，做完去处理点北缘铺设两块地基。"
+			return "制造处理点地基材料，做完去处理点北缘铺设两块地基；缺料时回访处理点入口前的晶体和残骸。"
 		"recipe.cleanse_residue":
 			return "把污染沉积物处理成抗污染药剂，按 2 补防护后继续深入污染边界。"
 	return ""

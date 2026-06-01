@@ -15,6 +15,7 @@ func run() -> void:
 	_check_enemy_focus_labels()
 	_check_hud_map_runtime_labels()
 	_check_core_loop_layout()
+	_check_treatment_entry_gather_feedback()
 	_check_pollution_pressure_consumption()
 	_check_ruin_gate_pressure_gate()
 
@@ -105,10 +106,13 @@ func _check_core_loop_layout() -> void:
 	var south_wreckage := map.get_node("Interactables/FieldWreckageSouthPocket") as PrototypeInteractable
 	var gate_cache := map.get_node("Interactables/FieldWreckageGateCache") as PrototypeInteractable
 	var approach_wreckage := map.get_node("Interactables/FieldWreckageTreatmentApproach") as PrototypeInteractable
+	var return_crystal := map.get_node("Interactables/CrystalClusterFoundationReturn") as PrototypeInteractable
+	var return_wreckage := map.get_node("Interactables/FieldWreckageFoundationReturn") as PrototypeInteractable
 	var anomaly := map.get_node("Interactables/AnomalyCrystal") as PrototypeInteractable
 	var native := map.get_node("Enemies/NativeSkitter") as PrototypeEnemy
 	var treatment_skitter := map.get_node("Enemies/TreatmentSkitter") as PrototypeEnemy
 	var treatment_skitter_north := map.get_node("Enemies/TreatmentSkitterNorth") as PrototypeEnemy
+	var treatment_skitter_return := map.get_node("Enemies/TreatmentSkitterReturn") as PrototypeEnemy
 	host._expect_equal(
 		first_crystal.position.distance_to(native.position) > 120.0,
 		true,
@@ -143,6 +147,22 @@ func _check_core_loop_layout() -> void:
 		approach_crystal.position.distance_to(treatment_skitter_north.position) <= VerticalSliceMap.ATTACK_RANGE,
 		true,
 		"first-hour treatment approach crystal is tied to the second guarded construction lane"
+	)
+	host._expect_equal(
+		return_crystal.position.x > approach_crystal.position.x and return_wreckage.position.x > approach_wreckage.position.x,
+		true,
+		"first-hour treatment entrance adds a final crystal and salvage return pocket"
+	)
+	host._expect_equal(
+		return_crystal.position.y < VerticalSliceMap.POLLUTION_DEEP_Y and return_wreckage.position.y < VerticalSliceMap.POLLUTION_DEEP_Y,
+		true,
+		"first-hour treatment entrance return pocket stays in the safe construction belt"
+	)
+	host._expect_equal(
+		return_crystal.position.distance_to(treatment_skitter_return.position) <= VerticalSliceMap.ATTACK_RANGE
+			and return_wreckage.position.distance_to(treatment_skitter_return.position) <= VerticalSliceMap.ATTACK_RANGE,
+		true,
+		"first-hour treatment entrance return pocket is tied to a low-pressure guard"
 	)
 
 	var rough_ground := map.get_node("Interactables/RoughGroundNorth") as PrototypeInteractable
@@ -207,6 +227,36 @@ func _check_core_loop_layout() -> void:
 		"first-hour ruin gate remains beyond the elite pollution pressure"
 	)
 	map.free()
+
+
+func _check_treatment_entry_gather_feedback() -> void:
+	var gather_system := GatherSystem.new(host.data_registry)
+	var world := WorldState.create_default()
+	var character := CharacterState.create_default()
+	var crystal_result := gather_system.interact_with_object(
+		"map_object_instance.crystal_cluster_foundation_return",
+		"map_object.crystal_cluster",
+		"gather",
+		character,
+		world
+	)
+	host._expect_text_contains(
+		String(crystal_result.get("message", "")),
+		"回基地加工基础零件或地基材料",
+		"first-hour treatment entrance crystal points back to manufacturing"
+	)
+	var wreckage_result := gather_system.interact_with_object(
+		"map_object_instance.field_wreckage_foundation_return",
+		"map_object.field_wreckage",
+		"gather",
+		character,
+		world
+	)
+	host._expect_text_contains(
+		String(wreckage_result.get("message", "")),
+		"若地基或过滤器缺料",
+		"first-hour treatment entrance salvage explains construction supply use"
+	)
 
 
 func _check_pollution_pressure_consumption() -> void:

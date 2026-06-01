@@ -249,6 +249,9 @@ func _gather(instance_id: String, definition: Dictionary, character_state: Chara
 		var pressure_hint := _get_pollution_pressure_step_hint(instance_id, character_state)
 		if not pressure_hint.is_empty():
 			result_parts.append(pressure_hint)
+	var first_hour_hint := _get_first_hour_gather_step_hint(instance_id)
+	if not first_hour_hint.is_empty():
+		result_parts.append(first_hour_hint)
 
 	return _success("%s。" % "；".join(result_parts))
 
@@ -325,6 +328,19 @@ func _get_pollution_pressure_step_hint(instance_id: String, character_state: Cha
 		return "门前高压点已回收；建议回过滤器处理沉积物，补抗污染药剂后再推进"
 	if instance_id == "map_object_instance.pollution_residue_deep":
 		return "深处压力已显著抬升；后续门前点更适合带药剂再处理"
+	return ""
+
+
+func _get_first_hour_gather_step_hint(instance_id: String) -> String:
+	match instance_id:
+		"map_object_instance.crystal_cluster_treatment_approach":
+			return "这些晶体可回基地加工成过滤模块或地基材料"
+		"map_object_instance.field_wreckage_treatment_approach":
+			return "残骸废件可补反应器校准；继续向处理点入口前确认补给余量"
+		"map_object_instance.crystal_cluster_foundation_return":
+			return "处理点入口前的回访晶体已补足；回基地加工基础零件或地基材料"
+		"map_object_instance.field_wreckage_foundation_return":
+			return "处理点入口前的残骸缓存已回收；若地基或过滤器缺料，先回基地整理制造"
 	return ""
 
 

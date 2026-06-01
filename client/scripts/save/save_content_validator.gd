@@ -18,6 +18,8 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 		"map_object_instance.field_wreckage_south_pocket": "map_object.field_wreckage",
 		"map_object_instance.field_wreckage_gate_cache": "map_object.field_wreckage",
 		"map_object_instance.field_wreckage_treatment_approach": "map_object.field_wreckage",
+		"map_object_instance.crystal_cluster_foundation_return": "map_object.crystal_cluster",
+		"map_object_instance.field_wreckage_foundation_return": "map_object.field_wreckage",
 		"map_object_instance.anomaly_crystal": "map_object.anomaly_crystal",
 		"map_object_instance.anomaly_residue_north": "map_object.anomaly_residue_patch",
 		"map_object_instance.anomaly_residue_east": "map_object.anomaly_residue_patch",
@@ -180,6 +182,10 @@ const PROTOTYPE_ENEMY_SOURCES := {
 		"region_id": "region.crystal_vein_field"
 	},
 	"enemy_instance.treatment_skitter_north": {
+		"definition_id": "enemy.treatment_skitter",
+		"region_id": "region.crystal_vein_field"
+	},
+	"enemy_instance.treatment_skitter_return": {
 		"definition_id": "enemy.treatment_skitter",
 		"region_id": "region.crystal_vein_field"
 	},

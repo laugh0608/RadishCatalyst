@@ -353,7 +353,7 @@ func _get_completion_next_step(recipe_id: String, world_state: WorldState = null
 		"recipe.basic_filter_module":
 			return "按 F 启用基础过滤模块；启用后污染防护消耗降低，处理点北缘清障和沉积物采集会更稳。"
 		"recipe.foundation_t1":
-			return "前往污染边界北缘清理地块并铺设基础地基。"
+			return "前往污染边界北缘清理地块并铺设基础地基；若材料不足，回晶体矿脉区到处理点入口前补晶体或残骸。"
 		"recipe.cleanse_residue":
 			if _should_return_for_second_pollution_residue_batch(world_state):
 				return "抗污染药剂已准备；把它留在快捷栏 2，带药剂回污染边界补第二批沉积物并清理受扰敌人。"
@@ -474,7 +474,7 @@ func _format_missing_input_supply_hint(recipe: Dictionary, inventory: InventoryS
 		return "先检查前哨核心回收和阶段补给批次；相位中继锚点部署后，也可切换到回收基础零件，把污染浆液回收成基础零件；若仍不足，去晶体矿脉区北侧富晶残脉采集晶体矿物。"
 	if _get_inventory_ref_amount("item.crystal_ore", inventory) >= 3.0:
 		return "先检查前哨核心回收和阶段补给批次；当前也可切换到处理晶体矿物，把晶体矿物加工成基础零件。"
-	return "先检查前哨核心回收和阶段补给批次；若仍不足，去晶体矿脉区北侧富晶残脉采集晶体矿物后加工成基础零件。"
+	return "先检查前哨核心回收和阶段补给批次；若仍不足，去晶体矿脉区北侧富晶残脉或处理点入口前的回访矿点采集晶体矿物后加工成基础零件。"
 
 
 func _get_missing_inputs(recipe: Dictionary, inventory: InventoryState) -> Array[String]:
