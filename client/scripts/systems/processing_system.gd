@@ -517,6 +517,17 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 		"recipe.inner_fault_analysis":
 			if _get_recipe_input_shortage(recipe, "item.inner_fault_trace", inventory) > 0.0:
 				return "先带中继调谐镜返回更东侧裂相尖塔，校准后带回内层故障轨迹。"
+		"recipe.fault_residue_stabilization":
+			if _get_recipe_input_shortage(recipe, "item.fault_residue", inventory) > 0.0:
+				return "先返回裂相尖塔更东侧，读出两处故障脉冲，击退内层潜猎体并回收两处故障残渣。"
+		"recipe.phase_well_key":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_coordinate", inventory) > 0.0:
+				return "先回基地基础反应器解析内层故障轨迹，整理出裂相坐标印片。"
+			if _get_recipe_input_shortage(recipe, "item.stabilized_fault_core", inventory) > 0.0:
+				return "先回处理点污染过滤器稳定故障残渣，筛出稳定故障芯。"
+		"recipe.phase_well_locator_analysis":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_locator", inventory) > 0.0:
+				return "先带裂相锁钥返回裂相锁位，钉住锁位并带回第一份回声定位器。"
 	return ""
 
 

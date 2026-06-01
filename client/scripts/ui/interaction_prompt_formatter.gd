@@ -468,7 +468,7 @@ func format_phase_well_lock_prompt(world_state: WorldState, character_state: Cha
 		return "裂相锁位：先回基地完成裂相锁钥整备，再回来钉住锁位。"
 	if not character_state.inventory.has_ref("item.phase_well_key", 1):
 		return "裂相锁位：缺少裂相锁钥；回基地确认基础反应器组装结果后再来。"
-	return "按 E 锁定：裂相锁位。"
+	return "按 E 锁定：裂相锁位，带回回声定位器。"
 
 
 func format_inner_phase_well_prompt(world_state: WorldState, character_state: CharacterState) -> String:

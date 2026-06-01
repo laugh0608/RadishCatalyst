@@ -186,7 +186,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 				return "回处理点污染过滤器，把故障残渣稳定成可用于下一步开锁的故障芯。"
 			return "回基地使用基础反应器，把坐标印片、稳定故障芯和基础零件组装成裂相锁钥。"
 		"quest.unlock_phase_well":
-			return "带着裂相锁钥返回更东侧锁相结构，钉住后带回第一份定位器。"
+			return "带着裂相锁钥返回更东侧裂相锁位，钉住后带回第一份回声定位器。"
 		"quest.analyze_phase_well_locator":
 			return "回基地使用基础反应器，解析回声定位器并整理回声台地路由片。"
 		"quest.collect_well_flux":

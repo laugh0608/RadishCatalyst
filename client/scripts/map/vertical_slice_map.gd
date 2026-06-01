@@ -1271,7 +1271,7 @@ func _inspect_phase_well_lock(character_state: CharacterState, world_state: Worl
 	character_state.inventory.consume_ref("item.phase_well_key", 1)
 	return {
 		"success": true,
-		"message": "裂相锁钥已写入：裂相锁位开始析出定位器，更东侧回声台地目标已被钉住。"
+		"message": "裂相锁钥已写入：裂相锁位析出回声定位器，更东侧回声台地目标已被钉住。"
 	}
 func _inspect_inner_phase_well(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not (world_state.quest_state.has_completed_quest("quest.refine_well_flux") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_probe")):

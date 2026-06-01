@@ -30,6 +30,12 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 			return "把透镜胚片调准成中继调谐镜，做完带回裂相尖塔逼出内层故障轨迹。"
 		"recipe.inner_fault_analysis":
 			return "把内层故障轨迹解析成坐标印片，做完返回更东侧裂相锁位继续推进。"
+		"recipe.fault_residue_stabilization":
+			return "把故障残渣稳定成故障芯，做完继续去基础反应器组装裂相锁钥。"
+		"recipe.phase_well_key":
+			return "把坐标印片和稳定故障芯组装成裂相锁钥，做完返回裂相锁位带回回声定位器。"
+		"recipe.phase_well_locator_analysis":
+			return "把回声定位器解析成回声路由片，做完继续推进更东侧回声台地。"
 	return ""
 
 

@@ -246,9 +246,85 @@ func _check_mid_demo_handoff_readability() -> void:
 		"裂相尖塔",
 		"relay lens device purpose points to phase fault spire"
 	)
+	var fault_filter := PrototypeInteractable.new()
+	fault_filter.definition_id = "building.pollution_filter"
+	fault_filter.interaction_type = "process_recipe"
+	fault_filter.recipe_id = "recipe.fault_residue_stabilization"
+	fault_filter.set_recipe_cycle(["recipe.fault_residue_stabilization"])
+	var fault_world := WorldState.create_default()
+	fault_world.quest_state.active_quest_ids = ["quest.refine_fault_residue"]
+	fault_world.quest_state.unlock_effect("recipe.fault_residue_stabilization")
+	fault_world.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
+	var fault_character := CharacterState.create_default()
+	fault_character.inventory.add_item("item.fault_residue", 2)
+	var fault_texts := device_panel_presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		fault_filter,
+		fault_character,
+		fault_world
+	)
+	host._expect_text_contains(
+		String(fault_texts.get("status", "")),
+		"裂相锁钥",
+		"fault residue filter purpose points to phase well key"
+	)
+
+	var key_reactor := PrototypeInteractable.new()
+	key_reactor.definition_id = "building.basic_reactor"
+	key_reactor.interaction_type = "process_recipe"
+	key_reactor.recipe_id = "recipe.phase_well_key"
+	key_reactor.set_recipe_cycle(["recipe.phase_well_key"])
+	var key_world := WorldState.create_default()
+	key_world.quest_state.active_quest_ids = ["quest.refine_fault_residue"]
+	key_world.quest_state.unlock_effect("recipe.phase_well_key")
+	key_world.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	var key_character := CharacterState.create_default()
+	key_character.inventory.add_item("item.phase_well_coordinate", 1)
+	key_character.inventory.add_item("item.stabilized_fault_core", 1)
+	key_character.inventory.items["item.basic_parts"] = 2
+	var key_texts := device_panel_presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		key_reactor,
+		key_character,
+		key_world
+	)
+	host._expect_text_contains(
+		String(key_texts.get("status", "")),
+		"回声定位器",
+		"phase well key purpose points to locator recovery"
+	)
+
+	var locator_reactor := PrototypeInteractable.new()
+	locator_reactor.definition_id = "building.basic_reactor"
+	locator_reactor.interaction_type = "process_recipe"
+	locator_reactor.recipe_id = "recipe.phase_well_locator_analysis"
+	locator_reactor.set_recipe_cycle(["recipe.phase_well_locator_analysis"])
+	var locator_world := WorldState.create_default()
+	locator_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_locator"]
+	locator_world.quest_state.unlock_effect("recipe.phase_well_locator_analysis")
+	locator_world.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	var locator_character := CharacterState.create_default()
+	locator_character.inventory.add_item("item.phase_well_locator", 1)
+	var locator_texts := device_panel_presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		locator_reactor,
+		locator_character,
+		locator_world
+	)
+	host._expect_text_contains(
+		String(locator_texts.get("status", "")),
+		"回声台地",
+		"phase well locator purpose points to echo plateau"
+	)
 	reactor.free()
 	filter.free()
 	lens_reactor.free()
+	fault_filter.free()
+	key_reactor.free()
+	locator_reactor.free()
 
 
 func _check_pollution_gate_pressure_spawn_and_combat() -> void:
@@ -993,6 +1069,58 @@ func _check_mid_demo_missing_input_hints(processing: ProcessingSystem) -> void:
 		"inner fault analysis missing trace points back to spire calibration"
 	)
 
+	var fault_residue_world := WorldState.create_default()
+	fault_residue_world.quest_state.unlock_effect("recipe.fault_residue_stabilization")
+	fault_residue_world.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
+	var fault_residue_status := processing.get_recipe_status(
+		"recipe.fault_residue_stabilization",
+		CharacterState.create_default(),
+		fault_residue_world
+	)
+	host._expect_text_contains(
+		String(fault_residue_status.get("supply_hint", "")),
+		"两处故障脉冲",
+		"fault residue stabilization missing input points back to fault pulse route"
+	)
+
+	var phase_well_key_world := WorldState.create_default()
+	phase_well_key_world.quest_state.unlock_effect("recipe.phase_well_key")
+	var phase_well_key_status := processing.get_recipe_status(
+		"recipe.phase_well_key",
+		CharacterState.create_default(),
+		phase_well_key_world
+	)
+	host._expect_text_contains(
+		String(phase_well_key_status.get("supply_hint", "")),
+		"解析内层故障轨迹",
+		"phase well key missing coordinate points back to inner trace analysis"
+	)
+	var phase_well_key_character := CharacterState.create_default()
+	phase_well_key_character.inventory.add_item("item.phase_well_coordinate", 1)
+	phase_well_key_status = processing.get_recipe_status(
+		"recipe.phase_well_key",
+		phase_well_key_character,
+		phase_well_key_world
+	)
+	host._expect_text_contains(
+		String(phase_well_key_status.get("supply_hint", "")),
+		"稳定故障残渣",
+		"phase well key missing core points back to residue stabilization"
+	)
+
+	var locator_world := WorldState.create_default()
+	locator_world.quest_state.unlock_effect("recipe.phase_well_locator_analysis")
+	var locator_status := processing.get_recipe_status(
+		"recipe.phase_well_locator_analysis",
+		CharacterState.create_default(),
+		locator_world
+	)
+	host._expect_text_contains(
+		String(locator_status.get("supply_hint", "")),
+		"回声定位器",
+		"phase well locator analysis missing locator points back to phase well lock"
+	)
+
 
 func check_equipment_processing_runtime() -> void:
 	var processing := ProcessingSystem.new(host.data_registry)
@@ -1165,6 +1293,22 @@ func _check_game_root_development_baseline_factory() -> void:
 		s6_world.get_deployed_phase_relay_anchor_ids(),
 		["map_object_instance.phase_return_anchor"],
 		"S6 baseline deployed relay anchors"
+	)
+
+	var s7_result := game_root.create_development_baseline_state("baseline.s7_phase_well_locator_ready")
+	host._expect_equal(bool(s7_result.get("success", false)), true, "S7 development baseline generation")
+	if not bool(s7_result.get("success", false)):
+		game_root.free()
+		return
+	var s7_world: WorldState = s7_result.get("world_state", null)
+	var s7_character: CharacterState = s7_result.get("character_state", null)
+	host._expect_array_has(s7_world.quest_state.active_quest_ids, "quest.analyze_phase_well_locator", "S7 baseline active quest")
+	host._expect_equal(int(s7_character.inventory.items.get("item.phase_well_locator", 0)), 1, "S7 baseline keeps phase well locator reward")
+	host._expect_equal(s7_world.active_phase_relay_anchor_id, "map_object_instance.phase_return_anchor", "S7 baseline active relay anchor")
+	host._expect_equal(
+		s7_world.get_deployed_phase_relay_anchor_ids(),
+		["map_object_instance.phase_return_anchor"],
+		"S7 baseline deployed relay anchors"
 	)
 	game_root.free()
 
