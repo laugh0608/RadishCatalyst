@@ -17,7 +17,7 @@
 - 禁止删除分支。
 - 仅允许通过 Pull Request 合并。
 - 要求 1 个审批和已解决会话。
-- 要求 `Repo Hygiene` 检查通过。
+- 要求 `Repo Hygiene` 检查通过；该 job 覆盖文本卫生、文档篇幅和默认分支 PR 的提交 diff 空白检查。
 - GitHub 对 Actions required status checks 当前按 job 名匹配，因此 ruleset 中固定写 job 名。
 - 允许 `merge` 与 `rebase` 两种合并方式，禁用 `squash`。
 - 管理员仅可通过 Pull Request 方式绕过规则，不开放直接 push。
@@ -32,7 +32,12 @@
 ## 检查入口
 
 - Windows：`pwsh ./scripts/check-text-files.ps1`
+- Windows：`pwsh ./scripts/check-docs.ps1`
 - Linux/macOS/Git Bash：`./scripts/check-text-files.sh`
+- Linux/macOS/Git Bash：`./scripts/check-docs.sh`
+- 提交前本地仍执行：`git diff --check`
+
+默认分支 PR 的 GitHub Actions 会在 PR base/head 范围内执行 `git diff --check`，避免干净 checkout 中裸命令没有检查对象。
 
 ## 应用方式
 

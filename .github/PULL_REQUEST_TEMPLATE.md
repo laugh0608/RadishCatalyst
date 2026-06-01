@@ -29,8 +29,11 @@
 
 ```text
 pwsh ./scripts/check-text-files.ps1
+pwsh ./scripts/check-docs.ps1
 ./scripts/check-text-files.sh
+./scripts/check-docs.sh
 ./scripts/check-client.sh
+git diff --check
 ```
 
 ## 影响评估
