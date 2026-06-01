@@ -74,6 +74,16 @@ func _check_loads_known_map_object_source() -> void:
 			"region_id": "region.crystal_vein_field",
 			"is_gathered": true
 		},
+		"map_object_instance.field_wreckage_gate_cache": {
+			"definition_id": "map_object.field_wreckage",
+			"region_id": "region.crystal_vein_field",
+			"is_gathered": true
+		},
+		"map_object_instance.pollution_residue_outer_pocket": {
+			"definition_id": "map_object.pollution_residue_patch",
+			"region_id": "region.pollution_edge",
+			"is_gathered": true
+		},
 		"map_object_instance.rough_ground_north": {
 			"definition_id": "map_object.rough_ground",
 			"region_id": "region.crystal_vein_field",
@@ -137,6 +147,16 @@ func _check_loads_known_map_object_source() -> void:
 		"map_object_instance.prepared_frontline_window": {
 			"definition_id": "map_object.prepared_frontline_window",
 			"region_id": "region.phase_well_tether",
+			"is_sampled": true
+		},
+		"map_object_instance.demo_stabilization_recovery_cache": {
+			"definition_id": "map_object.demo_stabilization_recovery_cache",
+			"region_id": "region.demo_stabilization_core",
+			"is_gathered": true
+		},
+		"map_object_instance.demo_stabilization_core": {
+			"definition_id": "map_object.demo_stabilization_core",
+			"region_id": "region.demo_stabilization_core",
 			"is_sampled": true
 		}
 	}
@@ -218,6 +238,13 @@ func _check_loads_known_enemy_source() -> void:
 			"health": 20,
 			"max_health": 20,
 			"is_defeated": false
+		},
+		"enemy_instance.demo_stabilization_guard": {
+			"definition_id": "enemy.demo_stabilization_guard",
+			"region_id": "region.demo_stabilization_core",
+			"health": 0,
+			"max_health": 156,
+			"is_defeated": true
 		}
 	}
 	host._write_save_json(save_data)

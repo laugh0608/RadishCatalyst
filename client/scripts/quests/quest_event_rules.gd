@@ -34,6 +34,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		]
 		updates.append_array(_get_drop_objective_updates("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", definition_id))
 		return updates
+	if interaction_type == "clear" and definition_id == "map_object.rough_ground":
+		return [_add_update("quest.expand_treatment_point", "clear", "map_object.rough_ground", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.ruin_gate":
 		return [_set_update("quest.unlock_ruin_signal", "inspect", "map_object.ruin_gate", 1)]
 	if interaction_type == "gather" and definition_id == "map_object.relay_shard_cache":
@@ -206,6 +208,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 			_set_update("quest.clear_pressure_frontline_hazard", "visit_region", "region.phase_well_tether", 1),
 			_set_update("quest.clear_pressure_frontline_hazard", "clear", "map_object.pressure_clearance_node", 1)
 		]
+	if interaction_type == "inspect" and definition_id == "map_object.demo_stabilization_core":
+		return [_set_update("quest.write_demo_stabilization_core", "inspect", "map_object.demo_stabilization_core", 1)]
 	if interaction_type == "process_recipe":
 		if not completed_recipe_id.is_empty():
 			return get_recipe_objective_updates(completed_recipe_id)
@@ -251,6 +255,10 @@ func get_region_objective_updates(region_id: String, _quest_state: QuestState) -
 	if region_id == "region.phase_well_tether":
 		return [
 			_set_update("quest.collect_tether_fiber", "visit_region", region_id, 1)
+		]
+	if region_id == "region.demo_stabilization_core":
+		return [
+			_set_update("quest.enter_demo_stabilization_core", "visit_region", region_id, 1)
 		]
 	return []
 
@@ -380,7 +388,7 @@ func get_build_objective_updates(building_id: String) -> Array[Dictionary]:
 
 func get_defeated_enemy_objective_updates(enemy_definition_id: String) -> Array[Dictionary]:
 	if enemy_definition_id == "enemy.treatment_skitter":
-		return [_set_update("quest.prepare_treatment_supplies", "defeat_enemy", enemy_definition_id, 1)]
+		return [_add_update("quest.prepare_treatment_supplies", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.polluted_skitter":
 		return [_set_update("quest.enter_pollution_edge", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.elite_residue_node":
@@ -409,6 +417,10 @@ func get_defeated_enemy_objective_updates(enemy_definition_id: String) -> Array[
 		return [_set_update("quest.collect_tether_fiber", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.phase_well_warden":
 		return [_set_update("quest.stabilize_phase_well_anchor_field", "defeat_enemy", enemy_definition_id, 1)]
+	if enemy_definition_id == "enemy.pressure_clearance_guard":
+		return [_set_update("quest.clear_pressure_frontline_hazard", "defeat_enemy", enemy_definition_id, 1)]
+	if enemy_definition_id == "enemy.demo_stabilization_guard":
+		return [_set_update("quest.defeat_demo_stabilization_guard", "defeat_enemy", enemy_definition_id, 1)]
 	return []
 
 

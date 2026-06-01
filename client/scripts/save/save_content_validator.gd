@@ -7,17 +7,27 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.crystal_cluster": "map_object.crystal_cluster",
 	"map_object_instance.crystal_cluster_east": "map_object.crystal_cluster",
 	"map_object_instance.crystal_cluster_south": "map_object.crystal_cluster",
-	"map_object_instance.crystal_cluster_reserve": "map_object.crystal_cluster",
-	"map_object_instance.crystal_cluster_west_reserve": "map_object.crystal_cluster",
-	"map_object_instance.crystal_cluster_north_east_reserve": "map_object.crystal_cluster",
-	"map_object_instance.rich_crystal_vein_north": "map_object.rich_crystal_vein",
-	"map_object_instance.field_wreckage_north": "map_object.field_wreckage",
-	"map_object_instance.field_wreckage_east": "map_object.field_wreckage",
-	"map_object_instance.anomaly_crystal": "map_object.anomaly_crystal",
-	"map_object_instance.anomaly_residue_north": "map_object.anomaly_residue_patch",
-	"map_object_instance.anomaly_residue_east": "map_object.anomaly_residue_patch",
-	"map_object_instance.pollution_residue": "map_object.pollution_residue_patch",
-	"map_object_instance.rough_ground_north": "map_object.rough_ground",
+		"map_object_instance.crystal_cluster_reserve": "map_object.crystal_cluster",
+		"map_object_instance.crystal_cluster_west_reserve": "map_object.crystal_cluster",
+		"map_object_instance.crystal_cluster_north_east_reserve": "map_object.crystal_cluster",
+		"map_object_instance.crystal_cluster_side_pocket": "map_object.crystal_cluster",
+		"map_object_instance.rich_crystal_vein_north": "map_object.rich_crystal_vein",
+		"map_object_instance.crystal_cluster_treatment_approach": "map_object.crystal_cluster",
+		"map_object_instance.field_wreckage_north": "map_object.field_wreckage",
+		"map_object_instance.field_wreckage_east": "map_object.field_wreckage",
+		"map_object_instance.field_wreckage_south_pocket": "map_object.field_wreckage",
+		"map_object_instance.field_wreckage_gate_cache": "map_object.field_wreckage",
+		"map_object_instance.field_wreckage_treatment_approach": "map_object.field_wreckage",
+		"map_object_instance.crystal_cluster_foundation_return": "map_object.crystal_cluster",
+		"map_object_instance.field_wreckage_foundation_return": "map_object.field_wreckage",
+		"map_object_instance.anomaly_crystal": "map_object.anomaly_crystal",
+		"map_object_instance.anomaly_residue_north": "map_object.anomaly_residue_patch",
+		"map_object_instance.anomaly_residue_east": "map_object.anomaly_residue_patch",
+		"map_object_instance.pollution_residue": "map_object.pollution_residue_patch",
+		"map_object_instance.pollution_residue_outer_pocket": "map_object.pollution_residue_patch",
+		"map_object_instance.pollution_residue_deep": "map_object.pollution_residue_patch",
+		"map_object_instance.pollution_residue_ridge_cache": "map_object.pollution_residue_patch",
+		"map_object_instance.rough_ground_north": "map_object.rough_ground",
 	"map_object_instance.rough_ground_south": "map_object.rough_ground",
 	"map_object_instance.foundation_site_north": "building.foundation_t1",
 	"map_object_instance.foundation_site_south": "building.foundation_t1",
@@ -91,11 +101,79 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.phase_survey_node_west": "map_object.phase_survey_node_west",
 	"map_object_instance.phase_survey_node_east": "map_object.phase_survey_node_east",
 	"map_object_instance.pressure_clearance_node": "map_object.pressure_clearance_node",
-	"map_object_instance.prepared_frontline_window": "map_object.prepared_frontline_window"
+	"map_object_instance.prepared_frontline_window": "map_object.prepared_frontline_window",
+	"map_object_instance.demo_stabilization_recovery_cache": "map_object.demo_stabilization_recovery_cache",
+	"map_object_instance.demo_stabilization_core": "map_object.demo_stabilization_core"
 }
+
+const BASE_ACTION_STRING_KEYS: Array[String] = [
+	BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY,
+	BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY,
+	BaseActionDispatchPlan.PRESSURE_CLEARANCE_STATUS_KEY,
+	BaseActionDispatchPlan.ROUTE_TARGET_REGION_KEY,
+	BaseActionDispatchPlan.ROUTE_RISK_NOTE_KEY,
+	BaseActionDispatchPlan.CURRENT_PLAN_KEY,
+	BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY,
+	BaseActionDispatchPlan.DEPARTURE_PLAN_KEY,
+	BaseActionDispatchPlan.DEPARTURE_PLAN_TARGET_KEY,
+	BaseActionDispatchPlan.DEPARTURE_PLAN_REWARD_KEY,
+	BaseActionDispatchPlan.DEPARTURE_PLAN_RISK_KEY,
+	BaseActionDispatchPlan.DEPARTURE_PLAN_RISK_PROFILE_KEY,
+	BaseActionDispatchPlan.DEPARTURE_PLAN_COST_KEY,
+	BaseActionDispatchPlan.DEPARTURE_PLAN_MODULE_KEY,
+	BaseActionDispatchPlan.DEPARTURE_PLAN_MODULE_EFFECT_KEY,
+	BaseActionDispatchPlan.LAST_DEPARTURE_PLAN_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_STATUS_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_PLAN_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_MODULE_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_MODULE_EFFECT_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_FEEDBACK_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_MODULE_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_MODULE_EFFECT_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY
+]
+const BASE_ACTION_BOOL_KEYS: Array[String] = [
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY
+]
+const BASE_ACTION_INT_KEYS: Array[String] = [
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_COUNT_KEY
+]
+const BASE_ACTION_STATUS_KEYS: Array[String] = [
+	BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY,
+	BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY,
+	BaseActionDispatchPlan.PRESSURE_CLEARANCE_STATUS_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_STATUS_KEY
+]
+const BASE_ACTION_PLAN_KEYS: Array[String] = [
+	BaseActionDispatchPlan.CURRENT_PLAN_KEY,
+	BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY,
+	BaseActionDispatchPlan.DEPARTURE_PLAN_KEY,
+	BaseActionDispatchPlan.LAST_DEPARTURE_PLAN_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_PLAN_KEY,
+	BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY
+]
+const BASE_ACTION_VALID_STATUSES: Array[String] = [
+	"",
+	BaseActionDispatchPlan.STATUS_READY,
+	BaseActionDispatchPlan.STATUS_QUEUED,
+	BaseActionDispatchPlan.STATUS_USED,
+	BaseActionDispatchPlan.STATUS_ACTIVE,
+	BaseActionDispatchPlan.STATUS_RESOLVED
+]
+const BASE_ACTION_VALID_PLANS: Array[String] = [
+	"",
+	BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+	BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+	BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE
+]
 
 const PROTOTYPE_ENEMY_SOURCES := {
 	"enemy_instance.native_skitter": {
+		"definition_id": "enemy.native_skitter",
+		"region_id": "region.crystal_vein_field"
+	},
+	"enemy_instance.native_skitter_patrol": {
 		"definition_id": "enemy.native_skitter",
 		"region_id": "region.crystal_vein_field"
 	},
@@ -103,14 +181,34 @@ const PROTOTYPE_ENEMY_SOURCES := {
 		"definition_id": "enemy.treatment_skitter",
 		"region_id": "region.crystal_vein_field"
 	},
-	"enemy_instance.polluted_skitter": {
-		"definition_id": "enemy.polluted_skitter",
-		"region_id": "region.pollution_edge"
+	"enemy_instance.treatment_skitter_north": {
+		"definition_id": "enemy.treatment_skitter",
+		"region_id": "region.crystal_vein_field"
 	},
-	"enemy_instance.elite_residue_node": {
-		"definition_id": "enemy.elite_residue_node",
-		"region_id": "region.pollution_edge"
+	"enemy_instance.treatment_skitter_return": {
+		"definition_id": "enemy.treatment_skitter",
+		"region_id": "region.crystal_vein_field"
 	},
+		"enemy_instance.polluted_skitter": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge"
+		},
+		"enemy_instance.polluted_skitter_deep": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge"
+		},
+		"enemy_instance.polluted_skitter_ridge": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge"
+		},
+		"enemy_instance.polluted_skitter_gate_pressure": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge"
+		},
+		"enemy_instance.elite_residue_node": {
+			"definition_id": "enemy.elite_residue_node",
+			"region_id": "region.pollution_edge"
+		},
 	"enemy_instance.ruin_phase_guard": {
 		"definition_id": "enemy.ruin_phase_guard",
 		"region_id": "region.ruin_outer_ring"
@@ -158,6 +256,14 @@ const PROTOTYPE_ENEMY_SOURCES := {
 	"enemy_instance.phase_well_warden": {
 		"definition_id": "enemy.phase_well_warden",
 		"region_id": "region.phase_well_tether"
+	},
+	"enemy_instance.pressure_clearance_guard": {
+		"definition_id": "enemy.pressure_clearance_guard",
+		"region_id": "region.phase_well_tether"
+	},
+	"enemy_instance.demo_stabilization_guard": {
+		"definition_id": "enemy.demo_stabilization_guard",
+		"region_id": "region.demo_stabilization_core"
 	}
 }
 
@@ -363,6 +469,9 @@ func _validate_world_content(world_data: Dictionary) -> String:
 	var structure_state_error := _validate_base_structure_runtime_state(world_data.get("base_structures", {}), world_data.get("quest_state", {}))
 	if not structure_state_error.is_empty():
 		return structure_state_error
+	var base_action_error := _validate_base_action_state(world_data.get("base_action_state", {}))
+	if not base_action_error.is_empty():
+		return base_action_error
 
 	var quest_state = world_data.get("quest_state", {})
 	if quest_state is Dictionary:
@@ -371,6 +480,113 @@ func _validate_world_content(world_data: Dictionary) -> String:
 			return quest_error
 
 	return ""
+
+
+func _validate_base_action_state(value) -> String:
+	if not (value is Dictionary):
+		return "读取存档失败：world.base_action_state 必须是对象，当前运行状态已保留。"
+
+	for key in value:
+		var key_string := String(key)
+		var state_value = value[key]
+		if not _is_allowed_base_action_state_key(key_string):
+			return "读取存档失败：world.base_action_state 包含不允许的字段：%s，当前运行状态已保留。" % key_string
+		if BASE_ACTION_STRING_KEYS.has(key_string) and not (state_value is String):
+			return "读取存档失败：world.base_action_state.%s 必须是字符串，当前运行状态已保留。" % key_string
+		if BASE_ACTION_BOOL_KEYS.has(key_string) and not (state_value is bool):
+			return "读取存档失败：world.base_action_state.%s 必须是布尔值，当前运行状态已保留。" % key_string
+		if BASE_ACTION_INT_KEYS.has(key_string) and (not _is_number(state_value) or int(state_value) < 0 or not is_equal_approx(float(state_value), float(int(state_value)))):
+			return "读取存档失败：world.base_action_state.%s 必须是非负整数，当前运行状态已保留。" % key_string
+		if BASE_ACTION_STATUS_KEYS.has(key_string) and not BASE_ACTION_VALID_STATUSES.has(String(state_value)):
+			return "读取存档失败：world.base_action_state.%s 使用了无效状态，当前运行状态已保留。" % key_string
+		if BASE_ACTION_PLAN_KEYS.has(key_string) and not BASE_ACTION_VALID_PLANS.has(String(state_value)):
+			return "读取存档失败：world.base_action_state.%s 使用了无效行动计划，当前运行状态已保留。" % key_string
+
+	var route_target_region_id := String(value.get(BaseActionDispatchPlan.ROUTE_TARGET_REGION_KEY, ""))
+	if not route_target_region_id.is_empty():
+		var route_region_error := _validate_definition_ref(route_target_region_id, "region.", "world.base_action_state.%s" % BaseActionDispatchPlan.ROUTE_TARGET_REGION_KEY)
+		if not route_region_error.is_empty():
+			return route_region_error
+
+	var state_relationship_error := _validate_base_action_state_relationships(value)
+	if not state_relationship_error.is_empty():
+		return state_relationship_error
+
+	return ""
+
+
+func _is_allowed_base_action_state_key(key: String) -> bool:
+	return BASE_ACTION_STRING_KEYS.has(key) or BASE_ACTION_BOOL_KEYS.has(key) or BASE_ACTION_INT_KEYS.has(key)
+
+
+func _validate_base_action_state_relationships(value: Dictionary) -> String:
+	var window_status := String(value.get(BaseActionDispatchPlan.FRONTLINE_WINDOW_STATUS_KEY, ""))
+	var window_plan := String(value.get(BaseActionDispatchPlan.FRONTLINE_WINDOW_PLAN_KEY, ""))
+	var window_feedback := String(value.get(BaseActionDispatchPlan.FRONTLINE_WINDOW_FEEDBACK_KEY, ""))
+	var archived_plan := String(value.get(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY, ""))
+	var archived_feedback := String(value.get(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY, ""))
+	var departure_plan := String(value.get(BaseActionDispatchPlan.DEPARTURE_PLAN_KEY, ""))
+	var queued_plan_keys := _get_queued_base_action_plan_keys(value)
+
+	if window_status == BaseActionDispatchPlan.STATUS_ACTIVE and window_plan.is_empty():
+		return "读取存档失败：world.base_action_state.frontline_window_status 为 active 时必须记录 frontline_window_plan_key，当前运行状态已保留。"
+	if window_status == BaseActionDispatchPlan.STATUS_RESOLVED:
+		if window_plan.is_empty():
+			return "读取存档失败：world.base_action_state.frontline_window_status 为 resolved 时必须记录 frontline_window_plan_key，当前运行状态已保留。"
+		if window_feedback.is_empty():
+			return "读取存档失败：world.base_action_state.frontline_window_status 为 resolved 时必须记录 frontline_window_feedback，当前运行状态已保留。"
+	if window_status != BaseActionDispatchPlan.STATUS_RESOLVED and not window_feedback.is_empty():
+		return "读取存档失败：world.base_action_state.frontline_window_feedback 只能用于已处理窗口，当前运行状态已保留。"
+	if not archived_feedback.is_empty() and archived_plan.is_empty():
+		return "读取存档失败：world.base_action_state.frontline_window_archived_feedback 必须带有归档行动计划，当前运行状态已保留。"
+	if not queued_plan_keys.is_empty() and departure_plan.is_empty():
+		return "读取存档失败：world.base_action_state queued 出发整备状态必须带有 departure_plan_key，当前运行状态已保留。"
+	if queued_plan_keys.size() > 1 or (queued_plan_keys.size() == 1 and queued_plan_keys[0] != departure_plan):
+		return "读取存档失败：world.base_action_state queued 出发整备状态只能保留 departure_plan_key 对应计划，当前运行状态已保留。"
+	if not departure_plan.is_empty() and _get_base_action_preparation_status_for_plan(value, departure_plan) != BaseActionDispatchPlan.STATUS_QUEUED:
+		return "读取存档失败：world.base_action_state.departure_plan_key 必须对应 queued 出发整备状态，当前运行状态已保留。"
+	if not departure_plan.is_empty() and not _has_base_action_departure_snapshot(value):
+		return "读取存档失败：world.base_action_state.departure_plan_key 必须带齐风险收益快照，当前运行状态已保留。"
+
+	return ""
+
+
+func _has_base_action_departure_snapshot(value: Dictionary) -> bool:
+	for key in [
+		BaseActionDispatchPlan.DEPARTURE_PLAN_TARGET_KEY,
+		BaseActionDispatchPlan.DEPARTURE_PLAN_REWARD_KEY,
+		BaseActionDispatchPlan.DEPARTURE_PLAN_RISK_KEY,
+		BaseActionDispatchPlan.DEPARTURE_PLAN_RISK_PROFILE_KEY,
+		BaseActionDispatchPlan.DEPARTURE_PLAN_COST_KEY,
+		BaseActionDispatchPlan.DEPARTURE_PLAN_MODULE_KEY,
+		BaseActionDispatchPlan.DEPARTURE_PLAN_MODULE_EFFECT_KEY
+	]:
+		if String(value.get(key, "")).is_empty():
+			return false
+	return true
+
+
+func _get_queued_base_action_plan_keys(value: Dictionary) -> Array[String]:
+	var queued_plan_keys: Array[String] = []
+	if String(value.get(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, "")) == BaseActionDispatchPlan.STATUS_QUEUED:
+		queued_plan_keys.append(BaseActionDispatchPlan.PLAN_STEADY_SUPPLY)
+	if String(value.get(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, "")) == BaseActionDispatchPlan.STATUS_QUEUED:
+		queued_plan_keys.append(BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	if String(value.get(BaseActionDispatchPlan.PRESSURE_CLEARANCE_STATUS_KEY, "")) == BaseActionDispatchPlan.STATUS_QUEUED:
+		queued_plan_keys.append(BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE)
+	return queued_plan_keys
+
+
+func _get_base_action_preparation_status_for_plan(value: Dictionary, plan_key: String) -> String:
+	match plan_key:
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY:
+			return String(value.get(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, ""))
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY:
+			return String(value.get(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, ""))
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE:
+			return String(value.get(BaseActionDispatchPlan.PRESSURE_CLEARANCE_STATUS_KEY, ""))
+		_:
+			return ""
 
 
 func _validate_character_content(character_data: Dictionary) -> String:
@@ -698,7 +914,11 @@ func _validate_cross_block_content(world_data: Dictionary, character_data: Dicti
 	var structure_error := _validate_structure_site_links(world_data)
 	if not structure_error.is_empty():
 		return structure_error
-	var quest_error := _validate_quest_relationships(world_data.get("quest_state", {}), unlocked_region_ids)
+	var quest_error := _validate_quest_relationships(
+		world_data.get("quest_state", {}),
+		unlocked_region_ids,
+		world_data.get("base_action_state", {})
+	)
 	if not quest_error.is_empty():
 		return quest_error
 	return ""
@@ -736,7 +956,7 @@ func _validate_structure_site_links(world_data: Dictionary) -> String:
 	return ""
 
 
-func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[String]) -> String:
+func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[String], base_action_state) -> String:
 	if not (quest_state is Dictionary):
 		return ""
 
@@ -756,6 +976,7 @@ func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[Strin
 		if (
 			not DEFAULT_ACTIVE_QUEST_IDS.has(quest_id)
 			and not _is_quest_activated_by_completed_quest(quest_id, completed_quest_ids)
+			and not _is_quest_activated_by_runtime_state(quest_id, completed_quest_ids, base_action_state)
 		):
 			return "读取存档失败：quest_state.active_quest_ids 中存在未由默认任务或已完成任务链解锁的任务，当前运行状态已保留。"
 
@@ -783,7 +1004,11 @@ func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[Strin
 			return "读取存档失败：quest_state.unlocked_effects 中的非区域 / 配方解锁缺少已完成任务 unlock_effects 来源，当前运行状态已保留。"
 
 	for region_id in unlocked_region_ids:
-		if not _is_default_unlocked_region(region_id) and not _is_effect_unlocked_by_completed_quest(region_id, completed_quest_ids):
+		if (
+			not _is_default_unlocked_region(region_id)
+			and not _is_effect_unlocked_by_completed_quest(region_id, completed_quest_ids)
+			and not _is_region_unlocked_by_runtime_state(region_id, completed_quest_ids, base_action_state)
+		):
 			return "读取存档失败：world.unlocked_region_ids 中的非默认区域缺少已完成任务 unlock_effects 来源，当前运行状态已保留。"
 
 	for quest_id in completed_quest_ids:
@@ -836,6 +1061,32 @@ func _is_quest_activated_by_completed_quest(active_quest_id: String, completed_q
 			if String(quest_effect) == active_quest_id:
 				return true
 	return false
+
+
+func _is_quest_activated_by_runtime_state(quest_id: String, completed_quest_ids: Array[String], base_action_state) -> bool:
+	return (
+		quest_id == "quest.enter_demo_stabilization_core"
+		and completed_quest_ids.has("quest.calibrate_phase_well_stability_window")
+		and _has_completed_overpressure_review(base_action_state)
+	)
+
+
+func _is_region_unlocked_by_runtime_state(region_id: String, completed_quest_ids: Array[String], base_action_state) -> bool:
+	return (
+		region_id == "region.demo_stabilization_core"
+		and completed_quest_ids.has("quest.calibrate_phase_well_stability_window")
+		and _has_completed_overpressure_review(base_action_state)
+	)
+
+
+func _has_completed_overpressure_review(base_action_state) -> bool:
+	if not (base_action_state is Dictionary):
+		return false
+	var review_count = base_action_state.get(BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_COUNT_KEY, null)
+	if review_count != null:
+		return int(review_count) > BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_LIMIT
+	var archived_feedback := String(base_action_state.get(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY, ""))
+	return archived_feedback.find("高压窗口") >= 0
 
 
 func _validate_completed_quest_objectives(quest_id: String, quest: Dictionary, quest_state: Dictionary) -> String:

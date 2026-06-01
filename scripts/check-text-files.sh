@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-repo_root="$(cd -- "${script_dir}/.." && pwd)"
+script_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+repo_root="$(CDPATH= cd -- "${script_dir}/.." && pwd)"
 
-if command -v pwsh >/dev/null 2>&1; then
-  exec pwsh -NoLogo -NoProfile -File "${repo_root}/scripts/check-text-files.ps1"
+python_exe="${PYTHON:-python3}"
+if command -v "${python_exe}" >/dev/null 2>&1; then
+  exec "${python_exe}" "${repo_root}/scripts/check-text-files.py" "${repo_root}"
 fi
 
-echo "PowerShell 7 (pwsh) is required to run repository text checks." >&2
+echo "python3 is required to run macOS/Linux repository text checks." >&2
 exit 1

@@ -80,28 +80,28 @@ func inspect_chamber(character_state: CharacterState, world_state: WorldState) -
 		and not world_state.quest_state.has_completed_quest(PHASE_WELL_CHAMBER_SHUNT_QUEST_ID)
 	):
 		return _failure(
-			"井心室断面仍缺少可执行的分流读数。",
-			"心室未勘验",
-			"先回基地完成井心整备，把井心分流栓带回来勘验断面。"
+			"碎晶沟谷断面仍缺少可执行的分流读数。",
+			"碎晶未勘验",
+			"先回基地完成碎晶整备，把碎晶分流栓带回来勘验断面。"
 		)
 
 	if world_state.quest_state.has_completed_quest(PHASE_WELL_CHAMBER_QUEST_ID):
 		return {
 			"success": true,
-			"message": "井心室断面已勘验：第一份相位井纺核已经带回基地；下一步回基地解析并继续推进更东侧井纺室断面。"
+			"message": "碎晶沟谷断面已勘验：第一份风蚀张力核已经带回基地；下一步回基地解析并继续推进更东侧风蚀管廊断面。"
 		}
 
 	if not character_state.inventory.has_ref(PHASE_WELL_CHAMBER_SHUNT_ITEM_ID, 1):
 		return _failure(
-			"缺少井心分流栓，井心室断面无法稳定。",
-			"缺少井心分流栓",
-			"回基地确认基础反应器已经完成井心分流栓，并带回来勘验井心室断面。"
+			"缺少碎晶分流栓，碎晶沟谷断面无法稳定。",
+			"缺少碎晶分流栓",
+			"回基地确认基础反应器已经完成碎晶分流栓，并带回来勘验碎晶沟谷断面。"
 		)
 
 	character_state.inventory.consume_ref(PHASE_WELL_CHAMBER_SHUNT_ITEM_ID, 1)
 	return {
 		"success": true,
-		"message": "井心分流栓已写入：井心室断面开始析出相位井纺核，更东侧更深收益再次抬升。"
+		"message": "碎晶分流栓已写入：碎晶沟谷断面开始析出风蚀张力核，更东侧更深收益再次抬升。"
 	}
 
 
@@ -111,28 +111,28 @@ func inspect_loom(character_state: CharacterState, world_state: WorldState) -> D
 		and not world_state.quest_state.has_completed_quest(PHASE_WELL_LOOM_SHUTTLE_QUEST_ID)
 	):
 		return _failure(
-			"井纺室断面仍缺少可执行的织构读数。",
-			"井纺室未勘验",
-			"先回基地完成井纺整备，把井纺梭栓带回来勘验断面。"
+			"风蚀管廊断面仍缺少可执行的织构读数。",
+			"风蚀管廊未勘验",
+			"先回基地完成风蚀整备，把风蚀梭栓带回来勘验断面。"
 		)
 
 	if world_state.quest_state.has_completed_quest(PHASE_WELL_LOOM_QUEST_ID):
 		return {
 			"success": true,
-			"message": "井纺室断面已勘验：第一份相位井织核已经带回基地；下一步回基地解析并继续推进井纹架断面。"
+			"message": "风蚀管廊断面已勘验：第一份锁相织构核已经带回基地；下一步回基地解析并继续推进锁相框架断面。"
 		}
 
 	if not character_state.inventory.has_ref(PHASE_WELL_LOOM_SHUTTLE_ITEM_ID, 1):
 		return _failure(
-			"缺少井纺梭栓，井纺室断面无法稳定。",
-			"缺少井纺梭栓",
-			"回基地确认基础反应器已经完成井纺梭栓，并带回来勘验井纺室断面。"
+			"缺少风蚀梭栓，风蚀管廊断面无法稳定。",
+			"缺少风蚀梭栓",
+			"回基地确认基础反应器已经完成风蚀梭栓，并带回来勘验风蚀管廊断面。"
 		)
 
 	character_state.inventory.consume_ref(PHASE_WELL_LOOM_SHUTTLE_ITEM_ID, 1)
 	return {
 		"success": true,
-		"message": "井纺梭栓已写入：井纺室断面开始析出相位井织核，更东侧更深收益再次抬升。"
+		"message": "风蚀梭栓已写入：风蚀管廊断面开始析出锁相织构核，更东侧更深收益再次抬升。"
 	}
 
 
@@ -142,28 +142,28 @@ func inspect_frame(character_state: CharacterState, world_state: WorldState) -> 
 		and not world_state.quest_state.has_completed_quest(PHASE_WELL_FRAME_KEY_QUEST_ID)
 	):
 		return _failure(
-			"井纹架断面仍缺少可执行的纹架读数。",
-			"井纹架未勘验",
-			"先回基地完成井纹架整备，把井纹架键栓带回来勘验断面。"
+			"锁相框架断面仍缺少可执行的纹架读数。",
+			"锁相框架未勘验",
+			"先回基地完成锁相框架整备，把锁相键栓带回来勘验断面。"
 		)
 
 	if world_state.quest_state.has_completed_quest(PHASE_WELL_FRAME_QUEST_ID):
 		return {
 			"success": true,
-			"message": "井纹架断面已勘验：第一份相位井结核已经带回基地。"
+			"message": "锁相框架断面已勘验：第一份锚定结核已经带回基地。"
 		}
 
 	if not character_state.inventory.has_ref(PHASE_WELL_FRAME_KEY_ITEM_ID, 1):
 		return _failure(
-			"缺少井纹架键栓，井纹架断面无法稳定。",
-			"缺少井纹架键栓",
-			"回基地确认基础反应器已经完成井纹架键栓，并带回来勘验井纹架断面。"
+			"缺少锁相键栓，锁相框架断面无法稳定。",
+			"缺少锁相键栓",
+			"回基地确认基础反应器已经完成锁相键栓，并带回来勘验锁相框架断面。"
 		)
 
 	character_state.inventory.consume_ref(PHASE_WELL_FRAME_KEY_ITEM_ID, 1)
 	return {
 		"success": true,
-		"message": "井纹架键栓已写入：井纹架断面开始析出相位井结核，更东侧更深收益再次抬升。"
+		"message": "锁相键栓已写入：锁相框架断面开始析出锚定结核，更东侧更深收益再次抬升。"
 	}
 
 
@@ -173,28 +173,28 @@ func inspect_tether(character_state: CharacterState, world_state: WorldState) ->
 		and not world_state.quest_state.has_completed_quest(PHASE_WELL_TETHER_SPIKE_QUEST_ID)
 	):
 		return _failure(
-			"井系桥断面仍缺少可执行的系桥读数。",
-			"井系桥未勘验",
-			"先回基地完成井系整备，把井系定桩带回来勘验断面。"
+			"锚定桥断面仍缺少可执行的系桥读数。",
+			"锚定桥未勘验",
+			"先回基地完成锚定桥整备，把锚定桩带回来勘验断面。"
 		)
 
 	if world_state.quest_state.has_completed_quest(PHASE_WELL_TETHER_QUEST_ID):
 		return {
 			"success": true,
-			"message": "井系桥断面已勘验：第一份相位井锚核已经带回基地；下一步回基地解析锚核，并把井系校锚桩带回前线做锚场回稳。"
+			"message": "锚定桥断面已勘验：第一份稳场锚核已经带回基地；下一步回基地解析锚核，并把稳场校锚桩带回前线做锚场回稳。"
 		}
 
 	if not character_state.inventory.has_ref(PHASE_WELL_TETHER_SPIKE_ITEM_ID, 1):
 		return _failure(
-			"缺少井系定桩，井系桥断面无法稳定。",
-			"缺少井系定桩",
-			"回基地确认基础反应器已经完成井系定桩，并带回来勘验井系桥断面。"
+			"缺少锚定桩，锚定桥断面无法稳定。",
+			"缺少锚定桩",
+			"回基地确认基础反应器已经完成锚定桩，并带回来勘验锚定桥断面。"
 		)
 
 	character_state.inventory.consume_ref(PHASE_WELL_TETHER_SPIKE_ITEM_ID, 1)
 	return {
 		"success": true,
-		"message": "井系定桩已写入：井系桥断面开始析出相位井锚核，这条结核后的新收益线已经被真正钉住。"
+		"message": "锚定桩已写入：锚定桥断面开始析出稳场锚核，这条结核后的新收益线已经被真正钉住。"
 	}
 
 
@@ -208,7 +208,7 @@ func inspect_anchor_field(character_state: CharacterState, world_state: WorldSta
 				character_state,
 				STABILITY_READOUT_HEALTH_RECOVERY_RATIO,
 				STABILITY_READOUT_PROTECTION_RECOVERY_RATIO,
-				" 稳窗读数校准：当前生命与防护已经完整，井系桥东侧可作为前线回稳点。",
+				" 稳窗读数校准：当前生命与防护已经完整，锚定桥东侧可作为前线回稳点。",
 				" 稳窗读数校准：生命 +%s，防护 +%s；这处锚场现在可作为前线回稳点。"
 			)
 			return {
@@ -219,7 +219,7 @@ func inspect_anchor_field(character_state: CharacterState, world_state: WorldSta
 		return {
 			"success": true,
 			"advance_interaction": false,
-			"message": "锚场回稳窗已稳定：井系桥东侧的局部稳定窗口仍在维持；回基地解析相位井余响片后，可把这里校准成前线回稳点。"
+			"message": "锚场回稳窗已稳定：锚定桥东侧的局部稳定窗口仍在维持；回基地解析稳窗余响片后，可把这里校准成前线回稳点。"
 		}
 
 	if (
@@ -229,15 +229,15 @@ func inspect_anchor_field(character_state: CharacterState, world_state: WorldSta
 		return _failure(
 			"锚场回稳窗仍缺少可执行的校锚桩。",
 			"锚场未回稳",
-			"先回基地完成锚场整备，把井系校锚桩带回来部署。"
+			"先回基地完成锚场整备，把稳场校锚桩带回来部署。"
 		)
 
 	if not is_anchor_field_deployed(world_state):
 		if not character_state.inventory.has_ref(PHASE_WELL_ANCHOR_STAKE_ITEM_ID, 1):
 			return _failure(
-				"缺少井系校锚桩，锚场回稳窗无法启动。",
-				"缺少井系校锚桩",
-				"回基地确认基础反应器已经完成井系校锚桩，并带回来部署到井系桥东侧。"
+				"缺少稳场校锚桩，锚场回稳窗无法启动。",
+				"缺少稳场校锚桩",
+				"回基地确认基础反应器已经完成稳场校锚桩，并带回来部署到锚定桥东侧。"
 			)
 
 		character_state.inventory.consume_ref(PHASE_WELL_ANCHOR_STAKE_ITEM_ID, 1)
@@ -249,7 +249,7 @@ func inspect_anchor_field(character_state: CharacterState, world_state: WorldSta
 		return {
 			"success": true,
 			"advance_interaction": false,
-			"message": "井系校锚桩已部署：锚场回稳开始重写井系桥东侧读数，先清掉两处压力钉，井系守脉体才会完全暴露。校锚桩会保留在现场，失败后可直接重试，不必回基地重做。"
+			"message": "稳场校锚桩已部署：锚场回稳开始重写锚定桥东侧读数，先清掉两处压力钉，稳场守脉体才会完全暴露。校锚桩会保留在现场，失败后可直接重试，不必回基地重做。"
 		}
 
 	if not is_anchor_field_pressure_cleared(world_state):
@@ -257,12 +257,12 @@ func inspect_anchor_field(character_state: CharacterState, world_state: WorldSta
 			return {
 				"success": true,
 				"advance_interaction": false,
-				"message": "锚场仍在回稳：两处压力钉还没有全部清掉，先处理压力钉，再压制井系守脉体。"
+				"message": "锚场仍在回稳：两处压力钉还没有全部清掉，先处理压力钉，再压制稳场守脉体。"
 			}
 		return {
 			"success": true,
 			"advance_interaction": false,
-			"message": "锚场仍在回稳：井系守脉体还在压着回稳窗，先清掉它，再回来收束局部稳定窗口。已部署的校锚桩不会丢失，失败后直接回到这里继续压制即可。"
+			"message": "锚场仍在回稳：稳场守脉体还在压着回稳窗，先清掉它，再回来收束局部稳定窗口。已部署的校锚桩不会丢失，失败后直接回到这里继续压制即可。"
 		}
 
 	object_state[FLAG_ANCHOR_FIELD_DEPLOYED] = true
@@ -279,7 +279,7 @@ func inspect_anchor_field(character_state: CharacterState, world_state: WorldSta
 	return {
 		"success": true,
 		"advance_interaction": true,
-		"message": "锚场回稳完成：井系桥东侧留下了可持续的局部稳定窗口，第一份相位井余响片已被收束带回基地。%s" % recovery_message
+		"message": "锚场回稳完成：锚定桥东侧留下了可持续的局部稳定窗口，第一份稳窗余响片已被收束带回基地。%s" % recovery_message
 	}
 
 
@@ -293,16 +293,16 @@ func inspect_stability_calibration_node(
 		return _failure(
 			"稳窗读数尚未解析，现场校准点没有可写入的读数。",
 			"缺少稳窗读数",
-			"先回基地用基础反应器解析相位井余响片，再带着稳窗读数返回锚场。"
+			"先回基地用基础反应器解析稳窗余响片，再带着稳窗读数返回锚场。"
 		)
 	if (
 		not character_state.inventory.has_ref(PHASE_WELL_STABILITY_READOUT_ITEM_ID, 1)
 		and not world_state.quest_state.has_completed_quest(CALIBRATE_STABILITY_WINDOW_QUEST_ID)
 	):
 		return _failure(
-			"背包里没有相位井稳窗读数，无法开始现场校准。",
+			"背包里没有稳窗读数，无法开始现场校准。",
 			"缺少稳窗读数",
-			"确认余响片解析产物已放入背包，再从相位回投台返回井系桥东侧。"
+			"确认余响片解析产物已放入背包，再从相位回投台返回锚定桥东侧。"
 		)
 
 	var node_index := _get_stability_node_index(definition_id)

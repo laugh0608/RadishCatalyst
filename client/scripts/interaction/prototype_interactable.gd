@@ -45,6 +45,10 @@ const CALIBRATED_STABILITY_NODE_COLOR := Color(0.48, 0.82, 0.92, 1)
 const COMPLETED_FRONTLINE_ACTION_COLOR := Color(0.56, 0.9, 0.78, 1)
 const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
 const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
+const FOCUSED_MARKER_SCALE := Vector2(1.22, 1.22)
+const FOCUSED_MARKER_MODULATE := Color(1.18, 1.18, 1.18, 1)
+const DEFAULT_MARKER_MODULATE := Color(1, 1, 1, 1)
+const FOCUSED_Z_INDEX := 20
 
 @export var definition_id: String = ""
 @export var interaction_type: String = "inspect"
@@ -64,11 +68,20 @@ var display_name_text: String = ""
 @onready var marker: ColorRect = $Marker
 
 
+func _ensure_visual_nodes() -> void:
+	if label == null:
+		label = get_node_or_null("Label") as Label
+	if marker == null:
+		marker = get_node_or_null("Marker") as ColorRect
+
+
 func setup(display_name: String) -> void:
+	_ensure_visual_nodes()
 	display_name_text = display_name
-	label.offset_left = label_offset.x
-	label.offset_top = label_offset.y
-	label.offset_right = label_offset.x + label_size.x
+	if label != null:
+		label.offset_left = label_offset.x
+		label.offset_top = label_offset.y
+		label.offset_right = label_offset.x + label_size.x
 	_set_label_text(display_name)
 
 
@@ -162,11 +175,23 @@ func set_interaction_enabled(enabled: bool) -> void:
 	monitoring = enabled
 
 
+func set_focus_visual(focused: bool) -> void:
+	if label != null:
+		label.visible = focused and visible and not label.text.strip_edges().is_empty()
+	if marker != null:
+		marker.pivot_offset = marker.size * 0.5
+		marker.scale = FOCUSED_MARKER_SCALE if focused else Vector2.ONE
+		marker.modulate = FOCUSED_MARKER_MODULATE if focused else DEFAULT_MARKER_MODULATE
+	z_index = FOCUSED_Z_INDEX if focused else 0
+
+
 func set_default_visual() -> void:
+	_ensure_visual_nodes()
 	consumed = false
 	visible = true
 	monitoring = true
-	marker.color = DEFAULT_MARKER_COLOR
+	if marker != null:
+		marker.color = DEFAULT_MARKER_COLOR
 	_set_label_text(display_name_text)
 
 
@@ -420,6 +445,13 @@ func set_processed_visual() -> bool:
 		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
 		_set_label_text("%s\n窗口已处理" % display_name_text, 2)
 		return true
+	if interaction_type == "inspect" and definition_id == "map_object.demo_stabilization_core":
+		consumed = true
+		visible = true
+		monitoring = false
+		marker.color = COMPLETED_FRONTLINE_ACTION_COLOR
+		_set_label_text("%s\n已接管" % display_name_text, 2)
+		return true
 	if interaction_type == "clear" and definition_id == "map_object.pressure_clearance_node":
 		consumed = true
 		visible = true
@@ -538,7 +570,7 @@ func set_stabilized_phase_well_sink_visual() -> void:
 	visible = true
 	monitoring = false
 	marker.color = STABILIZED_PHASE_WELL_SINK_COLOR
-	_set_label_text("%s\n井心核已取出" % display_name_text, 2)
+	_set_label_text("%s\n碎晶心核已取出" % display_name_text, 2)
 
 
 func set_stabilized_phase_well_chamber_visual() -> void:
@@ -546,7 +578,7 @@ func set_stabilized_phase_well_chamber_visual() -> void:
 	visible = true
 	monitoring = false
 	marker.color = STABILIZED_PHASE_WELL_CHAMBER_COLOR
-	_set_label_text("%s\n纺核已取出" % display_name_text, 2)
+	_set_label_text("%s\n风蚀张力核已取出" % display_name_text, 2)
 
 
 func set_stabilized_phase_well_loom_visual() -> void:
@@ -554,7 +586,7 @@ func set_stabilized_phase_well_loom_visual() -> void:
 	visible = true
 	monitoring = false
 	marker.color = STABILIZED_PHASE_WELL_LOOM_COLOR
-	_set_label_text("%s\n织核已取出" % display_name_text, 2)
+	_set_label_text("%s\n锁相织构核已取出" % display_name_text, 2)
 
 
 func set_stabilized_phase_well_frame_visual() -> void:
@@ -628,5 +660,8 @@ func set_built_visual(built_definition_id: String) -> void:
 
 
 func _set_label_text(text: String, min_lines: int = 1) -> void:
+	_ensure_visual_nodes()
+	if label == null:
+		return
 	label.text = text
 	label.offset_bottom = label_offset.y + label_size.y * maxi(min_lines, 1)

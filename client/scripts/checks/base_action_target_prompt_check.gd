@@ -77,6 +77,11 @@ func run() -> void:
 	)
 	host._expect_text_contains(
 		formatter.format_frontline_action_target_prompt(pressure_node, character_state, world_state),
+		"清障扰动守卫也需要先击退",
+		"pressure clearance target prompt mentions guard combat"
+	)
+	host._expect_text_contains(
+		formatter.format_frontline_action_target_prompt(pressure_node, character_state, world_state),
 		"回基地使用基础反应器解析压力清障反馈",
 		"pressure clearance target prompt points to base analysis"
 	)

@@ -14,9 +14,17 @@ func run() -> void:
 	_check_promoted_plan_passes_next_preparation_cycle()
 	_check_action_plan_preview_wording_is_shared()
 	_check_light_preparation_module_enters_snapshots()
+	_check_light_preparation_module_changes_window_outcome()
+	_check_pressure_coating_closes_base_frontline_upgrade_loop()
+	_check_echo_lens_closes_base_frontline_survey_loop()
+	_check_stability_pad_closes_base_frontline_recovery_loop()
 	_check_departure_confirmation_locks_risk_reward_snapshot()
+	_check_phase_relay_requires_confirmed_departure_slot()
 	_check_phase_relay_pad_shows_confirmed_preparation()
 	_check_prepared_frontline_window_follows_confirmed_plan()
+	_check_second_stage_entry_real_interaction_keeps_window_outcome_source()
+	_check_candidate_console_real_interaction_only_replaces_next_candidate()
+	_check_candidate_console_blocks_replacement_during_window_review()
 	_check_frontline_window_stage_review_covers_all_plans()
 	_check_review_preparation_runs_two_window_cycles()
 	_check_legacy_archived_window_state_stops_loop()
@@ -210,7 +218,8 @@ func _check_action_plan_preview_wording_is_shared() -> void:
 	host._expect_text_contains(choice_prompt, "方案 B：相位测绘；模块：回波透镜；风险：中。", "preview wording shows survey choice summary")
 	host._expect_text_contains(choice_prompt, "风险拆解：目标密度 中；路线扰动 中；防护消耗 低。", "preview wording shows survey risk profile")
 	host._expect_text_contains(choice_prompt, "方案 C：压力清障；模块：防护涂层；风险：高。", "preview wording shows pressure choice summary")
-	host._expect_text_contains(choice_prompt, "目标：清除 1 处前线压力扰点；收益：修复凝胶 +1、抗污染药剂 +1；代价：整备槽。", "preview wording shows pressure choice result")
+	host._expect_text_contains(choice_prompt, "目标：击退 1 个清障扰动守卫并清除 1 处前线压力扰点；收益：修复凝胶 +1、抗污染药剂 +1；代价：整备槽。", "preview wording shows pressure choice result")
+	host._expect_text_contains(choice_prompt, "窗口结果预览：击退清障扰动守卫，清理 1 处压力扰点并读取扰动残压", "preview wording shows pressure module window outcome")
 
 	var survey_world := WorldState.create_default()
 	survey_world.set_base_action_state_value(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
@@ -223,7 +232,8 @@ func _check_action_plan_preview_wording_is_shared() -> void:
 	host._expect_text_contains(current_plan_prompt, "计划：信息侦测；模块：回波透镜；风险：中。", "preview wording shows current plan summary")
 	host._expect_text_contains(current_plan_prompt, "风险拆解：目标密度 中；路线扰动 中；防护消耗 低；说明：需要按低压读数线避开东侧短时扰动。", "preview wording shows current plan risk profile")
 	host._expect_text_contains(current_plan_prompt, "收益：目标显形和路线风险预告；代价：占用本次出发整备槽，不额外发放资源。", "preview wording shows current plan reward and cost")
-	host._expect_text_contains(current_plan_prompt, "模块效果：放大测绘回波", "preview wording shows current plan preparation module")
+	host._expect_text_contains(current_plan_prompt, "模块效果：校准两处路线回波并带回透镜读数", "preview wording shows current plan preparation module")
+	host._expect_text_contains(current_plan_prompt, "窗口结果预览：读取西侧边界和东侧扰动 2 处路线回波", "preview wording shows current plan window outcome")
 
 	var candidate_world := WorldState.create_default()
 	candidate_world.set_base_action_state_value(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
@@ -236,6 +246,7 @@ func _check_action_plan_preview_wording_is_shared() -> void:
 	)
 	host._expect_text_contains(candidate_prompt, "按 E 替换下一计划候选：压力清障；模块：防护涂层；风险：高（目标低 / 路线高 / 防护中）", "preview wording shows compact replacement candidate summary")
 	host._expect_text_contains(candidate_prompt, "收益：修复凝胶 +1、抗污染药剂 +1", "preview wording keeps replacement candidate reward")
+	host._expect_text_contains(candidate_prompt, "窗口结果预览：击退清障扰动守卫，清理 1 处压力扰点并读取扰动残压", "preview wording shows replacement candidate window outcome")
 	host._expect_text_contains(candidate_prompt, "候选判断：替换为压力清障：路线扰动高、防护消耗中", "preview wording explains replacement candidate tradeoff")
 	host._expect_text_contains(" ".join(BaseActionDispatchPlan.select_next_plan_candidate_for_console("map_object.base_pressure_choice_console", candidate_world)), "候选判断：保留压力清障", "candidate replacement result keeps second-level decision note")
 
@@ -247,6 +258,7 @@ func _check_light_preparation_module_enters_snapshots() -> void:
 	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
 	var confirm_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
 	host._expect_text_contains(" ".join(confirm_messages), "模块：回波透镜；风险：中", "departure confirmation includes preparation module")
+	host._expect_text_contains(" ".join(confirm_messages), "窗口结果预览：读取西侧边界和东侧扰动 2 处路线回波", "departure confirmation previews module window outcome")
 	host._expect_equal(
 		String(world_state.get_base_action_state_value(BaseActionDispatchPlan.DEPARTURE_PLAN_MODULE_KEY, "")),
 		"回波透镜",
@@ -279,6 +291,114 @@ func _check_light_preparation_module_enters_snapshots() -> void:
 		BaseActionDispatchPlan.format_console_prompt(BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID, world_state, character_state),
 		"轻量整备模块：回波透镜",
 		"resolved action console feedback preserves preparation module"
+	)
+
+
+func _check_light_preparation_module_changes_window_outcome() -> void:
+	_expect_module_window_outcome(
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"读取 1 处稳相缓存并回收稳定样本",
+		"稳相垫片压低窗口抖动并带回稳相缓存样本",
+		"改良成下一轮资源回收依据"
+	)
+	_expect_module_window_outcome(
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"读取西侧边界和东侧扰动 2 处路线回波",
+		"回波透镜校准两处路线回波并带回透镜校准读数",
+		"下一轮低扰动目标预告依据"
+	)
+	_expect_module_window_outcome(
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"击退清障扰动守卫，清理 1 处压力扰点并读取扰动残压",
+		"防护涂层承接短战斗残压并带回涂层样本",
+		"改良成下一轮防护整备依据"
+	)
+
+
+func _check_pressure_coating_closes_base_frontline_upgrade_loop() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.PRESSURE_CLEARANCE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE)
+	var confirm_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+	host._expect_text_contains(" ".join(confirm_messages), "涂层样本", "pressure coating confirmation previews sample return")
+	BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	BaseActionDispatchPlan.resolve_frontline_window(world_state)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		"防护涂层样本已改良为下一轮风险回落依据",
+		"pressure coating window payoff feeds upgraded preparation"
+	)
+	BaseActionDispatchPlan.acknowledge_frontline_window_feedback(world_state)
+	var reviewed_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		world_state,
+		character_state
+	)
+	host._expect_text_contains(reviewed_prompt, "涂层样本承接：目标预告=继续清障扰点；路线扰动=中；防护消耗=低。", "pressure coating carryover lowers next clearance drain")
+	host._expect_text_contains(
+		" ".join(BaseActionDispatchPlan.select_next_plan_candidate_for_console("map_object.base_pressure_choice_console", world_state)),
+		"候选判断：保留压力清障：涂层样本已改良，继续清障降为低防护消耗",
+		"pressure coating candidate explains upgraded next clearance"
+	)
+
+
+func _check_echo_lens_closes_base_frontline_survey_loop() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	var confirm_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+	host._expect_text_contains(" ".join(confirm_messages), "透镜校准读数", "echo lens confirmation previews calibrated reading return")
+	BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	BaseActionDispatchPlan.resolve_frontline_window(world_state)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		"透镜校准读数已转成下一轮低扰动目标预告依据",
+		"echo lens window payoff feeds upgraded survey preparation"
+	)
+	BaseActionDispatchPlan.acknowledge_frontline_window_feedback(world_state)
+	var reviewed_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		world_state,
+		character_state
+	)
+	host._expect_text_contains(reviewed_prompt, "透镜校准承接：目标预告=复核西侧边界 / 东侧扰动来源；路线扰动=低；防护消耗=低。", "echo lens carryover lowers next survey route disturbance")
+	host._expect_text_contains(
+		" ".join(BaseActionDispatchPlan.select_next_plan_candidate_for_console("map_object.base_survey_choice_console", world_state)),
+		"候选判断：保留信息侦测：透镜校准读数已归档，继续测绘会按低扰动路线复核两处回波",
+		"echo lens candidate explains upgraded next survey"
+	)
+
+
+func _check_stability_pad_closes_base_frontline_recovery_loop() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_STEADY_SUPPLY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_STEADY_SUPPLY)
+	var confirm_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+	host._expect_text_contains(" ".join(confirm_messages), "稳相缓存样本", "stability pad confirmation previews cache sample return")
+	BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	BaseActionDispatchPlan.resolve_frontline_window(world_state)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		"稳相缓存样本已改良为下一轮强化资源回收依据",
+		"stability pad window payoff feeds upgraded recovery preparation"
+	)
+	BaseActionDispatchPlan.acknowledge_frontline_window_feedback(world_state)
+	var reviewed_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		world_state,
+		character_state
+	)
+	host._expect_text_contains(reviewed_prompt, "稳相缓存承接：目标预告=短目标补给回收；路线扰动=低；资源回收=强化基础零件缓冲。", "stability pad carryover upgrades next supply recovery")
+	host._expect_text_contains(
+		" ".join(BaseActionDispatchPlan.select_next_plan_candidate_for_console("map_object.base_supply_choice_console", world_state)),
+		"候选判断：保留低风险补给：稳相缓存样本已改良，继续补给会强化基础零件缓冲",
+		"stability pad candidate explains upgraded next supply"
 	)
 
 
@@ -329,6 +449,44 @@ func _check_departure_confirmation_locks_risk_reward_snapshot() -> void:
 	)
 
 
+func _check_phase_relay_requires_confirmed_departure_slot() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, BaseActionDispatchPlan.STATUS_QUEUED)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	var departure_messages := BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	host._expect_equal(
+		departure_messages.size(),
+		0,
+		"phase relay execution ignores queued status without confirmed departure plan"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.is_frontline_window_active(world_state),
+		false,
+		"phase relay execution does not activate window from unconfirmed queued status"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_last_departure_plan_key(world_state),
+		"",
+		"phase relay execution does not record last departure from unconfirmed queued status"
+	)
+
+	var missing_snapshot_world := WorldState.create_default()
+	missing_snapshot_world.set_base_action_state_value(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, BaseActionDispatchPlan.STATUS_QUEUED)
+	missing_snapshot_world.set_base_action_state_value(BaseActionDispatchPlan.DEPARTURE_PLAN_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	var missing_snapshot_messages := BaseActionDispatchPlan.apply_departure_preparation(missing_snapshot_world, character_state)
+	host._expect_equal(
+		missing_snapshot_messages.size(),
+		0,
+		"phase relay execution ignores confirmed plan without risk reward snapshot"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.is_frontline_window_active(missing_snapshot_world),
+		false,
+		"phase relay execution does not activate window without risk reward snapshot"
+	)
+
+
 func _check_phase_relay_pad_shows_confirmed_preparation() -> void:
 	var formatter := InteractionPromptFormatter.new(
 		host.data_registry,
@@ -346,6 +504,7 @@ func _check_phase_relay_pad_shows_confirmed_preparation() -> void:
 	host._expect_text_contains(prompt, "收益：修复凝胶 +1、抗污染药剂 +1", "phase relay pad prompt shows pressure reward")
 	host._expect_text_contains(prompt, "风险：高", "phase relay pad prompt shows pressure risk")
 	host._expect_text_contains(prompt, "代价：占用本次出发整备槽", "phase relay pad prompt shows pressure cost")
+	host._expect_text_contains(prompt, "窗口结果预览：击退清障扰动守卫，清理 1 处压力扰点并读取扰动残压", "phase relay pad prompt shows module window outcome")
 	host._expect_text_contains(prompt, "按 E 回投", "phase relay pad prompt keeps departure input")
 
 
@@ -368,8 +527,8 @@ func _check_prepared_frontline_window_follows_confirmed_plan() -> void:
 	)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_direction_hint(world_state),
-		"先找到前线异常窗口并按 E 处理",
-		"active frontline window direction should not send player back to the action console"
+		"先按 J 击退清障扰动守卫",
+		"active pressure window direction should expose guard combat before window resolution"
 	)
 	var blocked_confirm_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
 	host._expect_text_contains(
@@ -388,10 +547,21 @@ func _check_prepared_frontline_window_follows_confirmed_plan() -> void:
 	window.interaction_type = "inspect"
 	host._expect_text_contains(
 		formatter.format_frontline_action_target_prompt(window, character_state, world_state),
-		"已载入压力清障计划",
+		"当前步骤：清障扰动守卫仍在压制异常窗口",
 		"frontline window prompt uses confirmed plan"
 	)
 	var result := GatherSystem.new(host.data_registry).interact_with_object(
+		window.instance_id,
+		window.definition_id,
+		window.interaction_type,
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(result.get("success", true)), false, "pressure window blocks direct interaction before guard defeat")
+	host._expect_text_contains(String(result.get("message", "")), "先靠近守卫按 J 攻击", "pressure window explains guard blocker")
+	var guard_state := world_state.ensure_enemy(BaseActionDispatchPlan.PRESSURE_CLEARANCE_GUARD_INSTANCE_ID, "enemy.pressure_clearance_guard", "region.phase_well_tether", 64.0)
+	guard_state["is_defeated"] = true
+	result = GatherSystem.new(host.data_registry).interact_with_object(
 		window.instance_id,
 		window.definition_id,
 		window.interaction_type,
@@ -416,7 +586,7 @@ func _check_prepared_frontline_window_follows_confirmed_plan() -> void:
 	)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
-		"完成态收益：扰动残压已转成下一轮风险回落依据",
+		"完成态收益：防护涂层样本已改良为下一轮风险回落依据",
 		"resolved frontline window prompt should explain completion payoff"
 	)
 	host._expect_text_contains(
@@ -435,7 +605,7 @@ func _check_prepared_frontline_window_follows_confirmed_plan() -> void:
 	)
 	host._expect_text_contains(
 		action_console_prompt,
-		"完成态收益：扰动残压已转成下一轮风险回落依据",
+		"完成态收益：防护涂层样本已改良为下一轮风险回落依据",
 		"action console should explain resolved window payoff"
 	)
 	host._expect_text_contains(
@@ -468,27 +638,235 @@ func _check_prepared_frontline_window_follows_confirmed_plan() -> void:
 	window.free()
 
 
+func _check_second_stage_entry_real_interaction_keeps_window_outcome_source() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	var gather_system := GatherSystem.new(host.data_registry)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE)
+
+	var confirm_result := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(confirm_result.get("success", false)), true, "second-stage entry action console confirmation succeeds")
+	host._expect_text_contains(
+		String(confirm_result.get("message", "")),
+		"窗口结果预览：读取西侧边界和东侧扰动 2 处路线回波；回波透镜校准两处路线回波",
+		"second-stage entry confirmation previews the structured survey window outcome"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_departure_preparation_prompt(world_state),
+		"窗口结果预览：读取西侧边界和东侧扰动 2 处路线回波；回波透镜校准两处路线回波",
+		"second-stage entry phase relay prompt keeps the same window outcome preview"
+	)
+
+	var departure_messages := BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	host._expect_text_contains(
+		" ".join(departure_messages),
+		"轻量整备模块：回波透镜",
+		"second-stage entry phase relay execution carries the confirmed module"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		"本趟目标：读取西侧边界和东侧扰动 2 处路线回波。",
+		"second-stage entry active window uses the structured survey target"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		"处理结果：回波透镜校准两处路线回波并带回透镜校准读数，处理后生成低扰动目标预告依据。",
+		"second-stage entry active window uses the structured survey result"
+	)
+
+	var window_result := gather_system.interact_with_object(
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_INSTANCE_ID,
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_OBJECT_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(window_result.get("success", false)), true, "second-stage entry frontline window interaction succeeds")
+	host._expect_text_contains(
+		String(window_result.get("message", "")),
+		"回波透镜校准了两处路线回波",
+		"second-stage entry frontline window result follows the same structured outcome"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_console_prompt(BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID, world_state, character_state),
+		"完成态收益：透镜校准读数已转成下一轮低扰动目标预告依据",
+		"second-stage entry action console carries the resolved structured payoff"
+	)
+
+	var review_result := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_text_contains(
+		String(review_result.get("message", "")),
+		"当前计划槽：压力清障",
+		"second-stage entry review keeps the promoted current plan manual"
+	)
+	var reviewed_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		world_state,
+		character_state
+	)
+	host._expect_text_contains(
+		reviewed_prompt,
+		"透镜校准承接：目标预告=东侧短时扰动位置；路线扰动=中；防护消耗=中",
+		"second-stage entry reviewed current plan uses archived route outcome carryover"
+	)
+	host._expect_text_contains(
+		reviewed_prompt,
+		"候选判断：保留",
+		"second-stage entry reviewed candidate keeps the second-level decision note"
+	)
+
+
+func _check_candidate_console_real_interaction_only_replaces_next_candidate() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	var gather_system := GatherSystem.new(host.data_registry)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_STEADY_SUPPLY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+
+	var confirm_result := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(confirm_result.get("success", false)), true, "candidate console setup confirms current departure")
+	host._expect_equal(
+		BaseActionDispatchPlan.get_departure_plan_key(world_state),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"candidate console setup keeps confirmed departure plan"
+	)
+	var replacement_result := gather_system.interact_with_object(
+		"map_object_instance.base_pressure_choice_console",
+		"map_object.base_pressure_choice_console",
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(replacement_result.get("success", false)), true, "candidate console replacement interaction succeeds")
+	host._expect_text_contains(
+		String(replacement_result.get("message", "")),
+		"下一计划候选已更新：压力清障",
+		"candidate console replacement result updates next candidate"
+	)
+	host._expect_text_contains(
+		String(replacement_result.get("message", "")),
+		"窗口结果预览：击退清障扰动守卫，清理 1 处压力扰点并读取扰动残压",
+		"candidate console replacement result includes the structured window outcome"
+	)
+	host._expect_text_contains(
+		String(replacement_result.get("message", "")),
+		"候选判断：保留压力清障：路线扰动高、防护消耗中",
+		"candidate console replacement keeps second-level decision note"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(world_state),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"candidate console replacement does not change current plan"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_departure_plan_key(world_state),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"candidate console replacement does not change confirmed departure slot"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_next_plan_candidate_key(world_state),
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"candidate console replacement stores the new next candidate"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_departure_preparation_prompt(world_state),
+		"本次整备：低风险补给已确认",
+		"candidate console replacement keeps phase relay prompt on current departure"
+	)
+
+
+func _check_candidate_console_blocks_replacement_during_window_review() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	var gather_system := GatherSystem.new(host.data_registry)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_STEADY_SUPPLY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+	BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+
+	var active_window_result := gather_system.interact_with_object(
+		"map_object_instance.base_pressure_choice_console",
+		"map_object.base_pressure_choice_console",
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(active_window_result.get("success", false)), false, "candidate console blocks replacement while frontline window is active")
+	host._expect_text_contains(
+		String(active_window_result.get("message", "")),
+		"方案终端暂不可替换下一候选",
+		"candidate console active-window failure explains replacement is closed"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_next_plan_candidate_key(world_state),
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"candidate console active-window failure keeps promoted next candidate"
+	)
+
+	BaseActionDispatchPlan.resolve_frontline_window(world_state)
+	var unresolved_feedback_result := gather_system.interact_with_object(
+		"map_object_instance.base_supply_choice_console",
+		"map_object.base_supply_choice_console",
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(unresolved_feedback_result.get("success", false)), false, "candidate console blocks replacement while feedback is unreviewed")
+	host._expect_text_contains(
+		String(unresolved_feedback_result.get("message", "")),
+		"方案终端暂不可替换下一候选",
+		"candidate console unreviewed-feedback failure explains replacement is closed"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_next_plan_candidate_key(world_state),
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"candidate console unreviewed-feedback failure keeps next candidate"
+	)
+
+
 func _check_frontline_window_stage_review_covers_all_plans() -> void:
 	_expect_frontline_window_stage_review(
 		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
 		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
-		"完成态收益：稳定样本已转成下一轮资源缓冲依据",
-		"资源缓冲承接：稳定样本已归档，基础零件 / 修复凝胶可覆盖两处读数往返",
-		"下一计划候选：压力清障；窗口反馈预告：稳定样本已归档，清障候选会先说明防护补给再处理扰点"
+		"完成态收益：稳相缓存样本已改良为下一轮强化资源回收依据",
+		"稳相缓存承接：基础零件 / 修复凝胶可覆盖两处读数往返",
+		"下一计划候选：压力清障；窗口反馈预告：稳相缓存样本已归档，清障候选会先说明防护补给再处理扰点"
 	)
 	_expect_frontline_window_stage_review(
 		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
 		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
-		"完成态收益：路线读数已转成下一轮目标预告依据",
-		"路线情报承接：目标预告=东侧短时扰动位置；路线扰动=高；防护消耗=中",
-		"下一计划候选：低风险补给；窗口反馈预告：路线读数已归档，补给候选会贴近西侧已显形路线投放"
+		"完成态收益：透镜校准读数已转成下一轮低扰动目标预告依据",
+		"透镜校准承接：目标预告=东侧短时扰动位置；路线扰动=中；防护消耗=中",
+		"下一计划候选：低风险补给；窗口反馈预告：透镜校准读数已归档，补给候选会贴近西侧已显形路线投放"
 	)
 	_expect_frontline_window_stage_review(
 		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
 		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
-		"完成态收益：扰动残压已转成下一轮风险回落依据",
-		"残压回落承接：目标预告=低压窗口补给回收；路线扰动=低；防护消耗=低。",
-		"下一计划候选：信息侦测；窗口反馈预告：残压已收束，测绘候选可把低干扰路线转成目标预告"
+		"完成态收益：防护涂层样本已改良为下一轮风险回落依据",
+		"涂层样本承接：目标预告=低压窗口补给回收；路线扰动=低；防护消耗=低。",
+		"下一计划候选：信息侦测；窗口反馈预告：涂层样本已归档，测绘候选可把低干扰路线转成目标预告"
 	)
 
 
@@ -570,7 +948,7 @@ func _check_review_preparation_runs_two_window_cycles() -> void:
 	)
 	host._expect_text_contains(
 		second_review_prompt,
-		"完成态收益：路线读数已转成下一轮目标预告依据",
+		"完成态收益：透镜校准读数已转成下一轮低扰动目标预告依据",
 		"two-cycle review second resolved window uses the second payoff"
 	)
 	var second_review := gather_system.interact_with_object(
@@ -582,18 +960,111 @@ func _check_review_preparation_runs_two_window_cycles() -> void:
 	)
 	host._expect_text_contains(
 		String(second_review.get("message", "")),
-		"连续两轮窗口复盘已完成",
-		"two-cycle review archives second feedback and stops the prototype loop"
+		"两轮复盘收益已合并为高压窗口目标",
+		"two-cycle review archives second feedback and opens overpressure target"
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.is_frontline_action_console_ready(world_state),
-		false,
-		"two-cycle review disables the action console after the second archive"
+		true,
+		"two-cycle review keeps the action console ready for overpressure confirmation"
 	)
 	host._expect_equal(
 		BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state).size(),
 		0,
-		"two-cycle review cannot launch a third window after completion"
+		"two-cycle review cannot launch overpressure before manual confirmation"
+	)
+	var overpressure_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		world_state,
+		character_state
+	)
+	host._expect_text_contains(
+		overpressure_prompt,
+		"高压窗口：待确认",
+		"two-cycle review exposes overpressure as a distinct next target"
+	)
+	host._expect_text_contains(
+		overpressure_prompt,
+		"三模块联锁",
+		"two-cycle review explains that overpressure uses all three module payoffs"
+	)
+
+	var overpressure_confirm := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_text_contains(
+		String(overpressure_confirm.get("message", "")),
+		"高压窗口计划",
+		"two-cycle review confirms the overpressure departure slot"
+	)
+	var overpressure_departure := BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	host._expect_equal(overpressure_departure.size(), 2, "two-cycle review applies overpressure departure")
+	host._expect_text_contains(
+		" ".join(overpressure_departure),
+		"三类模块收益",
+		"two-cycle review overpressure departure explains the combined payoff"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		"高压扰点",
+		"two-cycle review overpressure window uses the high-pressure target"
+	)
+	var guard_state := world_state.ensure_enemy(BaseActionDispatchPlan.PRESSURE_CLEARANCE_GUARD_INSTANCE_ID, "enemy.pressure_clearance_guard", "region.phase_well_tether", 64.0)
+	guard_state["is_defeated"] = true
+	BaseActionDispatchPlan.resolve_frontline_window(world_state)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		"高压窗口稳定数据已归档",
+		"two-cycle review overpressure payoff is visible after resolution"
+	)
+	var overpressure_review := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_text_contains(
+		String(overpressure_review.get("message", "")),
+		"高压窗口反馈已归档",
+		"two-cycle review archives overpressure and stops the prototype loop"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.is_frontline_action_console_ready(world_state),
+		false,
+		"two-cycle review disables the action console after overpressure archive"
+	)
+	var blocked_action_console := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(blocked_action_console.get("success", false)), true, "two-cycle review action console returns explicit completion message")
+	host._expect_text_contains(
+		String(blocked_action_console.get("message", "")),
+		"高压窗口目标已完成",
+		"two-cycle review action console avoids generic inspect success after completion"
+	)
+
+	var idle_world := WorldState.create_default()
+	var idle_action_console := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		idle_world
+	)
+	host._expect_equal(bool(idle_action_console.get("success", false)), false, "idle action console blocks generic inspect success")
+	host._expect_text_contains(
+		String(idle_action_console.get("message", "")),
+		"前线行动台当前没有可确认计划",
+		"idle action console explains that no current plan is available"
 	)
 
 
@@ -617,7 +1088,7 @@ func _check_legacy_archived_window_state_stops_loop() -> void:
 	var confirm_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
 	host._expect_text_contains(
 		" ".join(confirm_messages),
-		"连续两轮窗口复盘已完成",
+		"高压窗口目标已完成",
 		"legacy archived window state blocks another departure confirmation"
 	)
 	host._expect_equal(
@@ -655,12 +1126,34 @@ func _expect_frontline_window_stage_review(
 ) -> void:
 	var world_state := WorldState.create_default()
 	var character_state := CharacterState.create_default()
+	var gather_system := GatherSystem.new(host.data_registry)
 	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, executed_plan_key)
 	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, promoted_plan_key)
 	_set_ready_status_for_plan(world_state, executed_plan_key)
 
-	var confirm_messages := BaseActionDispatchPlan.confirm_departure_preparation(world_state)
-	host._expect_equal(confirm_messages.size(), 1, "stage review confirms one departure slot for %s" % executed_plan_key)
+	var confirm_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		world_state,
+		character_state
+	)
+	host._expect_text_contains(
+		confirm_prompt,
+		BaseActionWindowOutcome.get_window_target(executed_plan_key),
+		"stage review action console previews structured window target for %s" % executed_plan_key
+	)
+	var confirm_result := gather_system.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(confirm_result.get("success", false)), true, "stage review real action console confirmation succeeds for %s" % executed_plan_key)
+	host._expect_text_contains(
+		String(confirm_result.get("message", "")),
+		BaseActionWindowOutcome.get_window_target(executed_plan_key),
+		"stage review confirmation uses structured window target for %s" % executed_plan_key
+	)
 	var departure_messages := BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
 	host._expect_equal(departure_messages.size(), 2, "stage review applies departure and promotes candidate for %s" % executed_plan_key)
 	host._expect_equal(
@@ -673,9 +1166,28 @@ func _expect_frontline_window_stage_review(
 		promoted_plan_key,
 		"stage review promotes expected plan after %s" % executed_plan_key
 	)
+	if executed_plan_key == BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE:
+		var guard_state := world_state.ensure_enemy(BaseActionDispatchPlan.PRESSURE_CLEARANCE_GUARD_INSTANCE_ID, "enemy.pressure_clearance_guard", "region.phase_well_tether", 64.0)
+		guard_state["is_defeated"] = true
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		BaseActionWindowOutcome.get_window_result(executed_plan_key),
+		"stage review active window uses structured result for %s" % executed_plan_key
+	)
 
-	var window_messages := BaseActionDispatchPlan.resolve_frontline_window(world_state)
-	host._expect_equal(window_messages.size(), 1, "stage review resolves frontline window for %s" % executed_plan_key)
+	var window_result := gather_system.interact_with_object(
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_INSTANCE_ID,
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_OBJECT_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(window_result.get("success", false)), true, "stage review real frontline window interaction succeeds for %s" % executed_plan_key)
+	host._expect_text_contains(
+		String(window_result.get("message", "")),
+		BaseActionWindowOutcome.get_resolution(executed_plan_key),
+		"stage review real window interaction resolves structured outcome for %s" % executed_plan_key
+	)
 	host._expect_text_contains(
 		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
 		expected_payoff,
@@ -697,7 +1209,7 @@ func _expect_frontline_window_stage_review(
 		"stage review asks to archive feedback before another departure for %s" % executed_plan_key
 	)
 
-	var review_result := GatherSystem.new(host.data_registry).interact_with_object(
+	var review_result := gather_system.interact_with_object(
 		"map_object_instance.frontline_action_console",
 		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
 		"inspect",
@@ -749,3 +1261,25 @@ func _set_ready_status_for_plan(world_state: WorldState, plan_key: String) -> vo
 			world_state.set_base_action_state_value(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
 		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE:
 			world_state.set_base_action_state_value(BaseActionDispatchPlan.PRESSURE_CLEARANCE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+
+
+func _expect_module_window_outcome(
+	plan_key: String,
+	expected_target: String,
+	expected_window_result: String,
+	expected_resolution: String
+) -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, plan_key)
+	_set_ready_status_for_plan(world_state, plan_key)
+	BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+	BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	if plan_key == BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE:
+		var guard_state := world_state.ensure_enemy(BaseActionDispatchPlan.PRESSURE_CLEARANCE_GUARD_INSTANCE_ID, "enemy.pressure_clearance_guard", "region.phase_well_tether", 64.0)
+		guard_state["is_defeated"] = true
+	var active_prompt := BaseActionDispatchPlan.format_frontline_window_prompt(world_state)
+	host._expect_text_contains(active_prompt, expected_target, "module outcome active target for %s" % plan_key)
+	host._expect_text_contains(active_prompt, expected_window_result, "module outcome active result for %s" % plan_key)
+	var window_messages := BaseActionDispatchPlan.resolve_frontline_window(world_state)
+	host._expect_text_contains(" ".join(window_messages), expected_resolution, "module outcome resolution for %s" % plan_key)

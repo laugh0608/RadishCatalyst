@@ -46,11 +46,15 @@ pwsh ./scripts/check-docs.ps1
 pwsh ./scripts/check-client.ps1
 ```
 
+```bash
+./scripts/check-client.sh
+```
+
 用途：客户端聚合验证。
 
 当前验证重点和默认验证基线以 `docs/planning/current.md` 为准；脚本具体覆盖范围以脚本实现为准。
 
-涉及客户端状态、任务、存档、场景或脚本时，优先执行 `pwsh ./scripts/check-client.ps1`；涉及 `docs/`、根 `README.md`、`AGENTS.md` 或 `CLAUDE.md` 时，加跑 `pwsh ./scripts/check-docs.ps1`；提交前仍需按范围执行 `pwsh ./scripts/check-text-files.ps1` 和 `git diff --check`。
+涉及客户端状态、任务、存档、场景或脚本时，优先执行对应平台的 `check-client` 入口；涉及 `docs/`、根 `README.md`、`AGENTS.md` 或 `CLAUDE.md` 时，加跑对应平台的 `check-docs`；提交前仍需按范围执行对应平台的 `check-text-files` 和 `git diff --check`。
 
 ## 文档真相源
 
@@ -109,7 +113,7 @@ pwsh ./scripts/check-client.ps1
 - `git status`、`git diff`、`git log` 等只读 Git 操作。
 - `pwsh ./scripts/check-text-files.ps1`、`./scripts/check-text-files.sh`。
 - `pwsh ./scripts/check-docs.ps1`、`./scripts/check-docs.sh`。
-- `pwsh ./scripts/check-client.ps1` 及其单项客户端检查脚本。
+- `pwsh ./scripts/check-client.ps1`、`./scripts/check-client.sh` 及其单项客户端检查脚本。
 - 简洁明确的提交操作。
 
 ### 需要先告知用户再执行

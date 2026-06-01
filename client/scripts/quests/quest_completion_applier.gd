@@ -38,6 +38,8 @@ func apply_completion(world_state: WorldState, character_state: CharacterState, 
 	var panel_title := "任务完成"
 	if quest_id == "quest.secure_outer_ring_signal":
 		panel_title = "切片完成"
+	if quest_id == "quest.write_demo_stabilization_core":
+		panel_title = "Demo 完成"
 	var completed_text := "完成：%s" % quest_name
 	var reward_text := "奖励：无直接物资"
 	if not reward_messages.is_empty():
@@ -110,96 +112,112 @@ func _format_unlock_effects(unlock_effects: Array) -> Array[String]:
 
 func _format_completion_note(quest_id: String) -> String:
 	match quest_id:
+		"quest.restore_outpost":
+			return "前哨核心恢复，基础反应器已上线；下一步出门采集晶体矿物作为第一批加工输入"
+		"quest.scout_crystal_field":
+			return "第一批外勤资源已带回；回基地用基础反应器把资源转成校准和补给能力"
+		"quest.calibrate_reactor":
+			return "反应器采样通道已校准；下一趟去异常晶体采样，带回可分析的样本"
+		"quest.bring_back_sample":
+			return "异常样本已确认；继续回收周边残留物，回基地才能完成样本分析"
+		"quest.analyze_anomaly_sample":
+			return "样本分析给出过滤参数；用基地产物制造过滤模块，才能更稳地推进污染区"
+		"quest.make_filter_module":
+			return "基础过滤模块会降低污染区防护消耗；启用后再准备处理点补给和地基，下一趟外出容错更高"
+		"quest.prepare_treatment_supplies":
+			return "修复凝胶已准备，处理点北缘威胁已清理；下一步铺设地基并启用污染过滤器，把沉积物转成药剂"
+		"quest.expand_treatment_point":
+			return "污染过滤器已上线；处理沉积物可调制抗污染药剂，支撑遗迹门前和更深污染压力"
 		"quest.enter_pollution_edge":
-			return "污染深处出现稳定源点反应"
+			return "污染沉积物已转成药剂补给；带着药剂继续压制遗迹门前和更深处的污染源点"
 		"quest.defeat_elite_node":
 			return "污染源点已压制，封锁遗迹入口信号可确认"
 		"quest.unlock_ruin_signal":
-			return "遗迹外圈通路已恢复，可进入外圈回收继电残片"
+			return "封锁遗迹通路已恢复，可进入封锁遗迹回收继电残片"
 		"quest.stabilize_outer_ring_barrier":
-			return "稳相信标已部署，外圈深段通路已稳定"
+			return "稳相信标已部署，封锁遗迹深处通路已稳定"
 		"quest.secure_outer_ring_signal":
-			return "遗迹外圈主闭环已完成；深段回波匣已暴露，可继续回收"
+			return "封锁遗迹主闭环已完成；封锁回波匣已暴露，可继续回收"
 		"quest.salvage_signal_echo":
-			return "深段回波已带回；回基地解析后可整理出更深遗迹坐标"
+			return "封锁回波已带回；回基地解析后可整理出裂相坐标"
 		"quest.analyze_deep_signal":
-			return "更深遗迹坐标已解析，可返回外圈最东侧写入深段入口门禁"
+			return "裂相坐标已解析，可返回封锁遗迹最东侧写入裂相脊入口门禁"
 		"quest.unlock_deep_ruin_entrance":
-			return "深段入口已打开，可进入更深区域回收相位纤丝"
+			return "裂相脊入口已打开，可进入裂相脊回收相位纤丝"
 		"quest.harvest_phase_filament":
 			return "相位纤丝已带回；回基地用污染过滤器精炼谐振滤芯"
 		"quest.refine_phase_filament":
-			return "谐振滤芯和污染浆液已就绪；回基础反应器组装深段覆写栓"
+			return "谐振滤芯和污染浆液已就绪；回基础反应器组装裂相覆写栓"
 		"quest.assemble_deep_override":
-			return "深段覆写栓已完成，可返回深段入口覆写锁扣"
+			return "裂相覆写栓已完成，可返回裂相脊入口覆写锁扣"
 		"quest.unlock_deep_ruin_cache":
-			return "深段样块已回收；回基地解析后可继续点亮深段阵列"
+			return "裂相样块已回收；回基地解析后可继续点亮裂相阵列"
 		"quest.analyze_deep_core":
-			return "深段路由印片已整理；返回深段阵列台可打开第二轮回收线"
+			return "裂相路由印片已整理；返回裂相阵列台可打开第二轮回收线"
 		"quest.activate_deep_array":
-			return "深段阵列已点亮；相位导管已带回，可回基地整理新的读数矩阵"
+			return "裂相阵列已点亮；相位导管已带回，可回基地整理新的读数矩阵"
 		"quest.assemble_deep_signal_matrix":
-			return "深段读数矩阵已整理完成；返回深段固定点部署前线回传锚点"
+			return "裂相读数矩阵已整理完成；返回裂相脊固定点部署前线回传锚点"
 		"quest.deploy_phase_relay_anchor":
 			return "前线回传锚点已部署；先在基地真正用一次相位回投台，再继续追踪更东侧裂相脊"
 		"quest.reenter_phase_frontline":
-			return "基地回投已接入正式主线；更东侧裂相碎屑和新的深段猎手已暴露"
+			return "基地回投已接入正式主线；更东侧裂相碎屑和新的裂相猎手已暴露"
 		"quest.trace_phase_splinters":
 			return "裂相碎屑已带回；回基地完成中继调谐镜远征整备"
 		"quest.refine_phase_splinters":
 			return "中继调谐镜已整备完成；返回更东侧裂相尖塔，逼出第一份内层故障轨迹"
 		"quest.inspect_phase_fault_spire":
-			return "内层故障轨迹已带回；回传后的更深风险和收益已真正落到下一轮推进线索"
+			return "内层故障轨迹已带回；回传后的后续风险和收益已真正落到下一轮推进线索"
 		"quest.refine_well_flux":
-			return "相位井探针已整备完成；返回更东侧内层相位井，读取第一份井芯样本"
+			return "回声探针已整备完成；返回更东侧回声台地，读取第一份回声芯样本"
 		"quest.refine_well_ash":
-			return "井底穿钉已整备完成；返回更东侧井底裂口，凿开后带回第一份相位井心核"
+			return "盐壳穿钉已整备完成；返回更东侧盐壳浅滩，凿开后带回第一份碎晶心核"
 		"quest.refine_heart_spine":
-			return "井心分流栓已整备完成；返回更东侧井心室断面，勘验后带回第一份相位井纺核"
+			return "碎晶分流栓已整备完成；返回更东侧碎晶沟谷，勘验后带回第一份风蚀张力核"
 		"quest.refine_weft_bundle":
-			return "井纺梭栓已整备完成；返回更东侧井纺室断面，勘验后带回第一份相位井织核"
+			return "风蚀梭栓已整备完成；返回更东侧风蚀管廊，勘验后带回第一份锁相织构核"
 		"quest.refine_selvedge_strip":
-			return "井纹架键栓已整备完成；返回更东侧井纹架断面，勘验后带回第一份相位井结核"
+			return "锁相框架键栓已整备完成；返回更东侧锁相框架，勘验后带回第一份锚定结核"
 		"quest.refine_tether_fiber":
-			return "井系定桩已整备完成；返回更东侧井系桥断面，勘验后带回第一份相位井锚核"
+			return "锚定桩已整备完成；返回锚定桥，勘验后带回第一份稳场锚核"
 		"quest.inspect_phase_well_tether":
-			return "相位井锚核已带回；回基地解析后可把井系桥东侧改成新的短守场目标"
+			return "稳场锚核已带回；回基地解析后可把锚定桥东侧改成新的短守场目标"
 		"quest.analyze_phase_well_anchor_core":
-			return "归谱片和锚核落尘已整理完成；回基地完成井系校锚桩整备"
+			return "归谱片和锚核落尘已整理完成；回基地完成稳场校锚桩整备"
 		"quest.refine_anchor_core_dust":
-			return "井系校锚桩已整备完成；返回井系桥东侧部署，先清压力钉再顶住一轮回稳压制"
+			return "稳场校锚桩已整备完成；返回锚定桥东侧部署，先清压力钉再顶住一轮回稳压制"
 		"quest.assemble_phase_well_anchor_stake":
-			return "井系校锚桩已完成；返回井系桥东侧部署，先清压力钉再顶住一轮回稳压制"
+			return "稳场校锚桩已完成；返回锚定桥东侧部署，先清压力钉再顶住一轮回稳压制"
 		"quest.stabilize_phase_well_anchor_field":
-			return "井系桥东侧稳定窗口已生成；相位井余响片已带回基地"
+			return "锚定桥东侧稳定窗口已生成；稳窗余响片已带回基地"
 		"quest.analyze_phase_well_echo_shard":
-			return "稳窗读数已解析；返回井系桥东侧按现场相位序校准三处稳窗节点"
+			return "稳窗读数已解析；返回锚定桥东侧按现场相位序校准三处稳窗节点"
 		"quest.calibrate_phase_well_stability_window":
 			return "稳窗校准完成；回基地在前线行动台确认下一趟外出行动"
 		"quest.plan_stability_frontline_action":
-			return "前线行动已确认；从相位回投台返回井系桥东侧，读取稳窗回波探点"
+			return "前线行动已确认；从相位回投台返回锚定桥东侧，读取稳窗回波探点"
 		"quest.survey_stability_echo_probe":
 			return "稳窗回波样本已带回；回基地用基础反应器解析前线行动回报"
 		"quest.analyze_stability_echo_sample":
 			return "前线行动回报已归档；基地已把回报整理成下一趟短行动补给"
 		"quest.confirm_supply_frontline_action":
-			return "补给短行动已确认；从相位回投台返回井系桥前线，读取补给回执标记"
+			return "补给短行动已确认；从相位回投台返回锚定桥前线，读取补给回执标记"
 		"quest.inspect_supply_return_marker":
 			return "补给回执读数已带回；回基地用基础反应器解析短行动反馈"
 		"quest.analyze_supply_return_trace":
 			return "短行动反馈已归档；基地已把反馈整理成下一趟巡线短行动"
 		"quest.confirm_route_frontline_action":
-			return "巡线短行动已确认；从相位回投台返回井系桥前线，读取巡线信标"
+			return "巡线短行动已确认；从相位回投台返回锚定桥前线，读取巡线信标"
 		"quest.inspect_route_signal_marker":
 			return "巡线信标读数已带回；回基地用基础反应器解析巡线反馈"
 		"quest.analyze_route_signal_trace":
 			return "巡线反馈已归档；回基地行动台，选择稳场补给、相位测绘或压力清障"
 		"quest.choose_steady_supply_action":
-			return "稳场补给行动已选择；从相位回投台返回井系桥前线，读取补给投放点"
+			return "稳场补给行动已选择；从相位回投台返回锚定桥前线，读取补给投放点"
 		"quest.choose_phase_survey_action":
-			return "相位测绘行动已选择；从相位回投台返回井系桥前线，读取两处测绘点"
+			return "相位测绘行动已选择；从相位回投台返回锚定桥前线，读取两处测绘点"
 		"quest.choose_pressure_clearance_action":
-			return "压力清障行动已选择；从相位回投台返回井系桥前线，清除一处压力扰点"
+			return "压力清障行动已选择；从相位回投台返回锚定桥前线，先击退清障扰动守卫，再清除压力扰点"
 		"quest.inspect_steady_supply_drop":
 			return "稳场补给回执已带回；回基地用基础反应器解析补给反馈"
 		"quest.analyze_steady_supply_trace":
@@ -212,6 +230,12 @@ func _format_completion_note(quest_id: String) -> String:
 			return "压力清障回执已带回；回基地用基础反应器解析防护收益"
 		"quest.analyze_pressure_clearance_trace":
 			return "压力清障反馈已归档；行动台已把本趟风险收益转成下一轮防护整备"
+		"quest.enter_demo_stabilization_core":
+			return "核心稳定站入口已确认；阶段守卫压住核心设备，需要先清掉守卫"
+		"quest.defeat_demo_stabilization_guard":
+			return "核心阶段守卫已击败；核心稳定设备可以接收稳窗与高压窗口归档数据"
+		"quest.write_demo_stabilization_core":
+			return "核心稳定站已接管第一条稳定通道；首版 demo 主线目标已完成"
 		_:
 			return ""
 

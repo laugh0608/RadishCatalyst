@@ -43,17 +43,32 @@ Wiki 不记录：
 
 ## 当前原型已补的词条
 
+以下页面适合新玩家或首小时复查：
+
+- [首小时外勤入门](guides/first-hour-field-guide.md)
+- [基础零件](items/basic-parts.md)
+- [污染沉积物](items/polluted-residue.md)
+- [修复凝胶](items/repair-gel.md)
+- [抗污染药剂 I](items/resistance-vial-i.md)
+- [晶体矿物加工](recipes/crystal-ore-processing.md)
+- [调制修复凝胶](recipes/repair-gel.md)
+- [制造基础地基材料](recipes/foundation-material.md)
+- [污染沉积物处理](recipes/pollution-residue-treatment.md)
+- [回收基础零件](recipes/basic-parts-reclamation.md)
+- [污染过滤器](facilities/pollution-filter.md)
+- [污染边界区](regions/pollution-edge.md)
+- [污染与外勤补给](mechanics/pollution-and-field-supplies.md)
+
 以下页面涉及中后段相位井内容，默认按剧透处理：
 
-- [井系桥后的前线回稳指南](guides/late-frontier-anchor-field-guide.md)
+- [裂相脊到回声台地生产线](production-lines/fracture-ridge-echo-plateau-line.md)
+- [锚定桥后的前线回稳指南](guides/late-frontier-anchor-field-guide.md)
 - [前线锚点与稳定窗口](mechanics/frontline-anchors-and-stable-windows.md)
-- [相位井东侧前线区域](regions/phase-well-east-frontier.md)
+- [锚定桥前线区域](regions/phase-well-east-frontier.md)
+- [核心稳定站](regions/core-stabilization-station.md)
 - [相位井锚场回稳生产线](production-lines/phase-well-anchor-field-line.md)
-- [基础零件](items/basic-parts.md)
-- [晶体矿物加工](recipes/crystal-ore-processing.md)
-- [回收基础零件](recipes/basic-parts-reclamation.md)
 
-其中前线回稳、稳定窗口和相位井东侧区域页面已覆盖轻量前线行动、基地行动选择、压力清障、风险收益确认、下一次出发整备、行动候选判断和同一前线窗口反馈。
+其中前线回稳、稳定窗口和锚定桥前线区域页面已覆盖轻量前线行动、基地行动选择、压力清障、风险收益确认、下一次出发整备、行动候选判断、同一前线窗口反馈、高压窗口三模块联锁和核心稳定站 demo 终点。
 
 ## 编写原则
 

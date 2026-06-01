@@ -25,5 +25,5 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Check repository hygiene
-        shell: pwsh
-        run: ./scripts/check-text-files.ps1
+        shell: bash
+        run: ./scripts/check-text-files.sh

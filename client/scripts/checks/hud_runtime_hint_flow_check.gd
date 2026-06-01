@@ -75,13 +75,13 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 	_expect_text_contains(
 		failures,
 		hud.prompt_label.text,
-		"方向：相位井定位器已带回：先回基地解析定位器",
+		"方向：回声定位器已带回：先回基地解析定位器",
 		"runtime hint prompt keeps phase well locator fallback after deep lock"
 	)
 	_expect_text_contains(
 		failures,
 		hud.prompt_label.text,
-		"提示：相位井定位器不是收尾；先回基地解析它",
+		"提示：回声定位器不是收尾；先回基地解析它",
 		"runtime hint prompt keeps locator analysis explicit after phase well lock"
 	)
 	var heart_world := WorldState.create_default()
@@ -92,13 +92,13 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 	_expect_text_contains(
 		failures,
 		hud.prompt_label.text,
-		"方向：相位井心核已带回：先回基地解析心核",
+		"方向：碎晶心核已带回：先回基地解析心核",
 		"runtime hint prompt keeps phase well heart fallback after sink"
 	)
 	_expect_text_contains(
 		failures,
 		hud.prompt_label.text,
-		"提示：相位井心核不是收尾；要先回基地把它解析成脉搏片",
+		"提示：碎晶心核不是收尾；要先回基地把它解析成脉搏片",
 		"runtime hint prompt keeps heart analysis explicit after phase well sink"
 	)
 	var chamber_world := WorldState.create_default()
@@ -109,13 +109,13 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 	_expect_text_contains(
 		failures,
 		hud.prompt_label.text,
-		"方向：相位井纺核已带回：先回基地解析纺核",
+		"方向：风蚀张力核已带回：先回基地解析风蚀张力核",
 		"runtime hint prompt keeps phase well spindle fallback after chamber"
 	)
 	_expect_text_contains(
 		failures,
 		hud.prompt_label.text,
-		"提示：相位井纺核不是收尾；要先回基地把它解析成经片",
+		"提示：风蚀张力核不是收尾；要先回基地把它解析成经片",
 		"runtime hint prompt keeps spindle analysis explicit after phase well chamber"
 	)
 	var loom_world := WorldState.create_default()
@@ -126,13 +126,13 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 	_expect_text_contains(
 		failures,
 		hud.prompt_label.text,
-		"方向：相位井织核已带回：先回基地解析织核",
+		"方向：锁相织构核已带回：先回基地解析锁相织构核",
 		"runtime hint prompt keeps weave core analysis fallback after phase well loom"
 	)
 	_expect_text_contains(
 		failures,
 		hud.prompt_label.text,
-		"提示：相位井织核不是收尾",
+		"提示：锁相织构核不是收尾",
 		"runtime hint prompt keeps weave core analysis explicit after phase well loom"
 	)
 	var frame_world := WorldState.create_default()
@@ -143,13 +143,13 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 	_expect_text_contains(
 		failures,
 		hud.prompt_label.text,
-		"方向：相位井结核已带回：先回基地解析结核",
+		"方向：锚定结核已带回：先回基地解析结核",
 		"runtime hint prompt keeps knot core analysis fallback after phase well frame"
 	)
 	_expect_text_contains(
 		failures,
 		hud.prompt_label.text,
-		"提示：相位井结核不是收尾",
+		"提示：锚定结核不是收尾",
 		"runtime hint prompt keeps knot core analysis explicit after phase well frame"
 	)
 	var tether_world := WorldState.create_default()
@@ -160,13 +160,13 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 	_expect_text_contains(
 		failures,
 		hud.prompt_label.text,
-		"方向：相位井锚核已带回",
+		"方向：稳场锚核已带回",
 		"runtime hint prompt points to anchor core analysis after phase well tether"
 	)
 	_expect_text_contains(
 		failures,
 		hud.prompt_label.text,
-		"提示：相位井锚核不是收尾",
+		"提示：稳场锚核不是收尾",
 		"runtime hint prompt keeps anchor-field package explicit after phase well tether"
 	)
 	hud.update_status(data_registry, relay_world, relay_character)

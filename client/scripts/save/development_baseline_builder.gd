@@ -7,6 +7,7 @@ const BASELINE_DEEP_THRESHOLD_POSITION := Vector2(738, 10)
 const BASELINE_PHASE_RELAY_PAD_POSITION := Vector2(-188, 48)
 const BASELINE_ANCHOR_FIELD_POSITION := Vector2(3192, 18)
 const BASELINE_FRONTLINE_ACTION_CONSOLE_POSITION := Vector2(-92, 48)
+const BASELINE_DEMO_STABILIZATION_ENTRY_POSITION := Vector2(3604, 18)
 
 const QUEST_PROGRESS_ORDER: Array[String] = [
 	"quest.restore_outpost",
@@ -193,6 +194,7 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.basic_filter_module")
 		"quest.prepare_treatment_supplies":
 			_mark_enemy_defeated(world_state, "enemy_instance.treatment_skitter", "enemy.treatment_skitter", "region.crystal_vein_field")
+			_mark_enemy_defeated(world_state, "enemy_instance.treatment_skitter_north", "enemy.treatment_skitter", "region.crystal_vein_field")
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.repair_gel")
 		"quest.expand_treatment_point":
 			_mark_objects_cleared(world_state, [
@@ -222,11 +224,17 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			)
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.foundation_t1")
 		"quest.enter_pollution_edge":
-			_mark_object_gathered(world_state, "map_object_instance.pollution_residue", "map_object.pollution_residue_patch", "region.pollution_edge")
+			_mark_objects_gathered(world_state, [
+				"map_object_instance.pollution_residue",
+				"map_object_instance.pollution_residue_outer_pocket"
+			], "map_object.pollution_residue_patch", "region.pollution_edge")
 			_mark_enemy_defeated(world_state, "enemy_instance.polluted_skitter", "enemy.polluted_skitter", "region.pollution_edge")
 			_mark_structure_completed(world_state, "structure.pollution_filter_build_site", "recipe.cleanse_residue")
 		"quest.defeat_elite_node":
 			_mark_enemy_defeated(world_state, "enemy_instance.elite_residue_node", "enemy.elite_residue_node", "region.pollution_edge")
+		"quest.unlock_ruin_signal":
+			_mark_enemy_defeated(world_state, "enemy_instance.polluted_skitter_gate_pressure", "enemy.polluted_skitter", "region.pollution_edge")
+			_mark_object_sampled(world_state, "map_object_instance.ruin_gate", "map_object.ruin_gate", "region.locked_ruin_gate")
 		"quest.scout_ruin_outer_ring":
 			_mark_objects_gathered(world_state, [
 				"map_object_instance.relay_shard_cache_north",
@@ -560,7 +568,7 @@ func _apply_baseline_pose_and_inventory(
 			_set_runtime_position(world_state, character_state, "region.outpost_platform", BASELINE_PHASE_RELAY_PAD_POSITION)
 			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
 			character_state.inventory = _make_inventory(
-				{"item.basic_parts": 4, "item.repair_gel": 1, "item.resistance_vial_t1": 1},
+				{"item.basic_parts": 4, "item.inner_fault_trace": 1, "item.repair_gel": 1, "item.resistance_vial_t1": 1},
 				{},
 				{"fluid.basic_solvent": 2.0}
 			)
@@ -701,6 +709,55 @@ func _apply_baseline_pose_and_inventory(
 			_set_runtime_position(world_state, character_state, "region.outpost_platform", BASELINE_FRONTLINE_ACTION_CONSOLE_POSITION)
 			world_state.add_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
 			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_tether")
+			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
+			character_state.inventory = _make_inventory(
+				{
+					"item.basic_parts": 16,
+					"item.frontline_action_report": 1,
+					"item.short_action_feedback": 1,
+					"item.route_action_feedback": 1,
+					"item.phase_survey_feedback": 1,
+					"item.repair_gel": 4,
+					"item.resistance_vial_t1": 5
+				},
+				{},
+				{"fluid.basic_solvent": 2.0}
+			)
+		"baseline.s21_demo_stabilization_core_ready":
+			_set_runtime_position(world_state, character_state, "region.phase_well_tether", BASELINE_DEMO_STABILIZATION_ENTRY_POSITION)
+			world_state.add_deployed_phase_relay_anchor("map_object_instance.phase_return_anchor_chamber")
+			world_state.set_active_phase_relay_anchor("map_object_instance.phase_return_anchor_tether")
+			world_state.unlock_region("region.demo_stabilization_core")
+			world_state.quest_state.active_quest_ids.clear()
+			world_state.quest_state.activate_quest("quest.enter_demo_stabilization_core")
+			world_state.set_base_action_state_value(
+				BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_COUNT_KEY,
+				BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_LIMIT + 1
+			)
+			world_state.set_base_action_state_value(
+				BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY,
+				BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE
+			)
+			world_state.set_base_action_state_value(
+				BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY,
+				"高压窗口反馈已归档：三类模块收益已经支撑更危险目标；当前原型到此收口，不再继续确认下一趟。"
+			)
+			world_state.set_base_action_state_value(
+				BaseActionDispatchPlan.FRONTLINE_WINDOW_STATUS_KEY,
+				BaseActionDispatchPlan.STATUS_RESOLVED
+			)
+			world_state.set_base_action_state_value(
+				BaseActionDispatchPlan.FRONTLINE_WINDOW_PLAN_KEY,
+				BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE
+			)
+			world_state.set_base_action_state_value(
+				BaseActionDispatchPlan.FRONTLINE_WINDOW_FEEDBACK_KEY,
+				"高压窗口稳定数据已归档：三类模块收益共同支撑了更危险目标。"
+			)
+			world_state.set_base_action_state_value(
+				BaseActionDispatchPlan.FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY,
+				true
+			)
 			character_state.equipment["suit_module"] = "equipment.filter_module_t1"
 			character_state.inventory = _make_inventory(
 				{

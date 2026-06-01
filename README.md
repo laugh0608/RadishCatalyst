@@ -26,6 +26,15 @@ pwsh ./scripts/check-client.ps1
 git diff --check
 ```
 
+macOS / Linux / Git Bash / zsh 可执行：
+
+```bash
+./scripts/check-docs.sh
+./scripts/check-text-files.sh
+./scripts/check-client.sh
+git diff --check
+```
+
 ## Repository Layout
 
 - `client/`：Godot 客户端原型工程。

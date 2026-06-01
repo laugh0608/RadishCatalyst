@@ -32,6 +32,12 @@
 pwsh ./scripts/check-docs.ps1
 ```
 
+macOS / Linux / Git Bash / zsh 可执行：
+
+```bash
+./scripts/check-docs.sh
+```
+
 ## Code Language Standards
 
 - 正式代码语言实践规范见 [Code Style And Language Practices](architecture/code-style-and-language-practices.md)。
@@ -83,6 +89,7 @@ pwsh ./scripts/check-docs.ps1
 
 - [Daily Start](planning/daily-start.md)
 - [Current Plan](planning/current.md)
+- [Demo Scope And Playable Slice](planning/demo-scope-and-playable-slice.md)
 - [Vertical Slice](planning/vertical-slice.md)
 - [Milestone Review Checklist](planning/milestone-review-checklist.md)
 - [Architecture Decision Records](adr/README.md)

@@ -145,6 +145,7 @@ func _run_checks() -> void:
 	_check_slice_end_hook_state_persists()
 	_check_slice_complete_state_persists()
 	_check_deep_ruin_state_persists()
+	_check_base_action_second_stage_state_persists()
 	DevelopmentBaselineSaveChecks.new(self).run()
 	_check_save_backup()
 	_check_loads_recent_backup_when_primary_is_bad()
@@ -163,6 +164,7 @@ func _run_checks() -> void:
 	_check_rejects_unknown_region_id()
 	_check_rejects_invalid_character_position()
 	_check_rejects_invalid_enemy_health()
+	_check_rejects_invalid_base_action_state()
 	EntitySourceChecks.new(self).run()
 	StructureRuntimeChecks.new(self).run()
 	_check_rejects_locked_current_region()
@@ -618,6 +620,101 @@ func _check_rejects_invalid_enemy_health() -> void:
 	_expect_failure_message(save_service.load_game(), "敌人生命值超出有效范围", "invalid enemy health")
 
 
+func _check_rejects_invalid_base_action_state() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var unknown_key_save_data := _make_save_data("world.invalid.base_action_unknown_key")
+	unknown_key_save_data["world"]["base_action_state"] = {"debug_extra_plan": "bad"}
+	_write_save_json(unknown_key_save_data)
+	_expect_failure_message(save_service.load_game(), "world.base_action_state 包含不允许的字段", "base action unknown key")
+
+	_remove_save_file()
+	_remove_backup_files()
+	var wrong_type_save_data := _make_save_data("world.invalid.base_action_wrong_type")
+	wrong_type_save_data["world"]["base_action_state"] = {
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_FEEDBACK_ACKED_KEY: "true"
+	}
+	_write_save_json(wrong_type_save_data)
+	_expect_failure_message(save_service.load_game(), "必须是布尔值", "base action wrong bool type")
+
+	_remove_save_file()
+	_remove_backup_files()
+	var invalid_plan_save_data := _make_save_data("world.invalid.base_action_plan")
+	invalid_plan_save_data["world"]["base_action_state"] = {
+		BaseActionDispatchPlan.CURRENT_PLAN_KEY: "debug_extra_plan"
+	}
+	_write_save_json(invalid_plan_save_data)
+	_expect_failure_message(save_service.load_game(), "使用了无效行动计划", "base action invalid plan")
+
+	_remove_save_file()
+	_remove_backup_files()
+	var active_without_plan_save_data := _make_save_data("world.invalid.base_action_active_without_plan")
+	active_without_plan_save_data["world"]["base_action_state"] = {
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_STATUS_KEY: BaseActionDispatchPlan.STATUS_ACTIVE
+	}
+	_write_save_json(active_without_plan_save_data)
+	_expect_failure_message(save_service.load_game(), "active 时必须记录 frontline_window_plan_key", "base action active window requires plan")
+
+	_remove_save_file()
+	_remove_backup_files()
+	var resolved_without_feedback_save_data := _make_save_data("world.invalid.base_action_resolved_without_feedback")
+	resolved_without_feedback_save_data["world"]["base_action_state"] = {
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_STATUS_KEY: BaseActionDispatchPlan.STATUS_RESOLVED,
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_PLAN_KEY: BaseActionDispatchPlan.PLAN_PHASE_SURVEY
+	}
+	_write_save_json(resolved_without_feedback_save_data)
+	_expect_failure_message(save_service.load_game(), "resolved 时必须记录 frontline_window_feedback", "base action resolved window requires feedback")
+
+	_remove_save_file()
+	_remove_backup_files()
+	var archived_feedback_without_plan_save_data := _make_save_data("world.invalid.base_action_archived_feedback_without_plan")
+	archived_feedback_without_plan_save_data["world"]["base_action_state"] = {
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY: "旧窗口反馈"
+	}
+	_write_save_json(archived_feedback_without_plan_save_data)
+	_expect_failure_message(save_service.load_game(), "frontline_window_archived_feedback 必须带有归档行动计划", "base action archived feedback requires plan")
+
+	_remove_save_file()
+	_remove_backup_files()
+	var departure_without_queued_status_save_data := _make_save_data("world.invalid.base_action_departure_without_queued_status")
+	departure_without_queued_status_save_data["world"]["base_action_state"] = {
+		BaseActionDispatchPlan.DEPARTURE_PLAN_KEY: BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY: BaseActionDispatchPlan.STATUS_READY
+	}
+	_write_save_json(departure_without_queued_status_save_data)
+	_expect_failure_message(save_service.load_game(), "departure_plan_key 必须对应 queued 出发整备状态", "base action departure plan requires queued status")
+
+	_remove_save_file()
+	_remove_backup_files()
+	var queued_without_departure_save_data := _make_save_data("world.invalid.base_action_queued_without_departure")
+	queued_without_departure_save_data["world"]["base_action_state"] = {
+		BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY: BaseActionDispatchPlan.STATUS_QUEUED
+	}
+	_write_save_json(queued_without_departure_save_data)
+	_expect_failure_message(save_service.load_game(), "queued 出发整备状态必须带有 departure_plan_key", "base action queued status requires departure plan")
+
+	_remove_save_file()
+	_remove_backup_files()
+	var extra_queued_plan_save_data := _make_save_data("world.invalid.base_action_extra_queued_plan")
+	extra_queued_plan_save_data["world"]["base_action_state"] = {
+		BaseActionDispatchPlan.DEPARTURE_PLAN_KEY: BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY: BaseActionDispatchPlan.STATUS_QUEUED,
+		BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY: BaseActionDispatchPlan.STATUS_QUEUED
+	}
+	_write_save_json(extra_queued_plan_save_data)
+	_expect_failure_message(save_service.load_game(), "queued 出发整备状态只能保留 departure_plan_key 对应计划", "base action rejects extra queued plans")
+
+	_remove_save_file()
+	_remove_backup_files()
+	var departure_without_snapshot_save_data := _make_save_data("world.invalid.base_action_departure_without_snapshot")
+	departure_without_snapshot_save_data["world"]["base_action_state"] = {
+		BaseActionDispatchPlan.DEPARTURE_PLAN_KEY: BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY: BaseActionDispatchPlan.STATUS_QUEUED
+	}
+	_write_save_json(departure_without_snapshot_save_data)
+	_expect_failure_message(save_service.load_game(), "departure_plan_key 必须带齐风险收益快照", "base action departure plan requires risk reward snapshot")
+
+
 func _check_save_rejects_invalid_current_state() -> void:
 	var invalid_world := WorldState.create_default()
 	var invalid_character := CharacterState.create_default()
@@ -807,11 +904,12 @@ func _check_slice_end_hook_state_persists() -> void:
 		"quest.analyze_anomaly_sample|craft_item|item.sample_analysis": 1,
 		"quest.make_filter_module|craft_item|equipment.filter_module_t1": 1,
 		"quest.prepare_treatment_supplies|craft_item|item.repair_gel": 1,
-		"quest.prepare_treatment_supplies|defeat_enemy|enemy.treatment_skitter": 1,
+		"quest.prepare_treatment_supplies|defeat_enemy|enemy.treatment_skitter": 2,
+		"quest.expand_treatment_point|clear|map_object.rough_ground": 2,
 		"quest.expand_treatment_point|build|building.foundation_t1": 2,
 		"quest.expand_treatment_point|build|building.pollution_filter": 1,
 		"quest.enter_pollution_edge|visit_region|region.pollution_edge": 1,
-		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 2,
+		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 4,
 		"quest.enter_pollution_edge|craft_item|item.resistance_vial_t1": 1,
 		"quest.enter_pollution_edge|defeat_enemy|enemy.polluted_skitter": 1,
 		"quest.defeat_elite_node|defeat_enemy|enemy.elite_residue_node": 1,
@@ -898,11 +996,12 @@ func _check_slice_complete_state_persists() -> void:
 		"quest.analyze_anomaly_sample|craft_item|item.sample_analysis": 1,
 		"quest.make_filter_module|craft_item|equipment.filter_module_t1": 1,
 		"quest.prepare_treatment_supplies|craft_item|item.repair_gel": 1,
-		"quest.prepare_treatment_supplies|defeat_enemy|enemy.treatment_skitter": 1,
+		"quest.prepare_treatment_supplies|defeat_enemy|enemy.treatment_skitter": 2,
+		"quest.expand_treatment_point|clear|map_object.rough_ground": 2,
 		"quest.expand_treatment_point|build|building.foundation_t1": 2,
 		"quest.expand_treatment_point|build|building.pollution_filter": 1,
 		"quest.enter_pollution_edge|visit_region|region.pollution_edge": 1,
-		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 2,
+		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 4,
 		"quest.enter_pollution_edge|craft_item|item.resistance_vial_t1": 1,
 		"quest.enter_pollution_edge|defeat_enemy|enemy.polluted_skitter": 1,
 		"quest.defeat_elite_node|defeat_enemy|enemy.elite_residue_node": 1,
@@ -1007,11 +1106,12 @@ func _check_deep_ruin_state_persists() -> void:
 		"quest.analyze_anomaly_sample|craft_item|item.sample_analysis": 1,
 		"quest.make_filter_module|craft_item|equipment.filter_module_t1": 1,
 		"quest.prepare_treatment_supplies|craft_item|item.repair_gel": 1,
-		"quest.prepare_treatment_supplies|defeat_enemy|enemy.treatment_skitter": 1,
+		"quest.prepare_treatment_supplies|defeat_enemy|enemy.treatment_skitter": 2,
+		"quest.expand_treatment_point|clear|map_object.rough_ground": 2,
 		"quest.expand_treatment_point|build|building.foundation_t1": 2,
 		"quest.expand_treatment_point|build|building.pollution_filter": 1,
 		"quest.enter_pollution_edge|visit_region|region.pollution_edge": 1,
-		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 2,
+		"quest.enter_pollution_edge|gather_item|item.polluted_residue": 4,
 		"quest.enter_pollution_edge|craft_item|item.resistance_vial_t1": 1,
 		"quest.enter_pollution_edge|defeat_enemy|enemy.polluted_skitter": 1,
 		"quest.defeat_elite_node|defeat_enemy|enemy.elite_residue_node": 1,
@@ -1093,6 +1193,133 @@ func _check_deep_ruin_state_persists() -> void:
 	_expect_equal(int(loaded_character.inventory.items.get("item.deep_ruin_core", 0)), 1, "deep ruin reward persists")
 
 
+func _check_base_action_second_stage_state_persists() -> void:
+	_remove_save_file()
+	_remove_backup_files()
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.SURVEY_INTEL_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	world_state.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE)
+	BaseActionDispatchPlan.confirm_departure_preparation(world_state)
+
+	_expect_success(save_service.save_game(world_state, character_state), "save confirmed base action second-stage state")
+	var confirmed_load_result := save_service.load_game()
+	_expect_success(confirmed_load_result, "load confirmed base action second-stage state")
+	if not bool(confirmed_load_result.get("success", false)):
+		return
+	var confirmed_world: WorldState = confirmed_load_result["world_state"]
+	var confirmed_character: CharacterState = confirmed_load_result["character_state"]
+	_expect_equal(
+		BaseActionDispatchPlan.get_survey_intel_status(confirmed_world),
+		BaseActionDispatchPlan.STATUS_QUEUED,
+		"confirmed base action survey queued status persists"
+	)
+	_expect_equal(
+		BaseActionDispatchPlan.get_departure_plan_key(confirmed_world),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"confirmed base action departure plan persists"
+	)
+	_expect_equal(
+		String(confirmed_world.get_base_action_state_value(BaseActionDispatchPlan.DEPARTURE_PLAN_MODULE_KEY, "")),
+		"回波透镜",
+		"confirmed base action module snapshot persists"
+	)
+	var confirmed_prompt := BaseActionDispatchPlan.format_departure_preparation_prompt(confirmed_world)
+	if not confirmed_prompt.contains("窗口结果预览：读取西侧边界和东侧扰动 2 处路线回波"):
+		failures.append("confirmed base action window preview persists, got: %s" % confirmed_prompt)
+
+	BaseActionDispatchPlan.apply_departure_preparation(confirmed_world, confirmed_character)
+	_expect_success(save_service.save_game(confirmed_world, confirmed_character), "save active base action window state")
+	var active_load_result := save_service.load_game()
+	_expect_success(active_load_result, "load active base action window state")
+	if not bool(active_load_result.get("success", false)):
+		return
+	var active_world: WorldState = active_load_result["world_state"]
+	var active_character: CharacterState = active_load_result["character_state"]
+	_expect_equal(
+		BaseActionDispatchPlan.is_frontline_window_active(active_world),
+		true,
+		"active base action window status persists"
+	)
+	_expect_equal(
+		BaseActionDispatchPlan.get_frontline_window_plan_key(active_world),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"active base action window plan persists"
+	)
+	_expect_equal(
+		String(active_world.get_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_MODULE_KEY, "")),
+		"回波透镜",
+		"active base action window module persists"
+	)
+	var active_window_prompt := BaseActionDispatchPlan.format_frontline_window_prompt(active_world)
+	if not active_window_prompt.contains("处理结果：回波透镜校准两处路线回波"):
+		failures.append("active base action window result persists, got: %s" % active_window_prompt)
+
+	BaseActionDispatchPlan.resolve_frontline_window(active_world)
+	BaseActionDispatchPlan.acknowledge_frontline_window_feedback(active_world)
+	_expect_success(save_service.save_game(active_world, active_character), "save archived base action window state")
+	var archived_load_result := save_service.load_game()
+	_expect_success(archived_load_result, "load archived base action window state")
+	if not bool(archived_load_result.get("success", false)):
+		return
+	var archived_world: WorldState = archived_load_result["world_state"]
+	var archived_character: CharacterState = archived_load_result["character_state"]
+	_expect_equal(
+		String(archived_world.get_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_PLAN_KEY, "")),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"archived base action window plan persists"
+	)
+	_expect_equal(
+		String(archived_world.get_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_MODULE_KEY, "")),
+		"回波透镜",
+		"archived base action window module persists"
+	)
+	_expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(archived_world),
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"archived base action review current plan persists"
+	)
+	var archived_console_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		archived_world,
+		archived_character
+	)
+	if not archived_console_prompt.contains("透镜校准承接：目标预告=东侧短时扰动位置；路线扰动=中；防护消耗=中"):
+		failures.append("archived base action route carryover persists, got: %s" % archived_console_prompt)
+
+	_remove_save_file()
+	_remove_backup_files()
+	var candidate_world := WorldState.create_default()
+	var candidate_character := CharacterState.create_default()
+	candidate_world.set_base_action_state_value(BaseActionDispatchPlan.SUPPLY_PACKAGE_STATUS_KEY, BaseActionDispatchPlan.STATUS_READY)
+	candidate_world.set_base_action_state_value(BaseActionDispatchPlan.CURRENT_PLAN_KEY, BaseActionDispatchPlan.PLAN_STEADY_SUPPLY)
+	candidate_world.set_base_action_state_value(BaseActionDispatchPlan.NEXT_PLAN_CANDIDATE_KEY, BaseActionDispatchPlan.PLAN_PHASE_SURVEY)
+	BaseActionDispatchPlan.confirm_departure_preparation(candidate_world)
+	BaseActionDispatchPlan.select_next_plan_candidate_for_console("map_object.base_pressure_choice_console", candidate_world)
+	_expect_success(save_service.save_game(candidate_world, candidate_character), "save replaced base action candidate state")
+	var candidate_load_result := save_service.load_game()
+	_expect_success(candidate_load_result, "load replaced base action candidate state")
+	if not bool(candidate_load_result.get("success", false)):
+		return
+	var loaded_candidate_world: WorldState = candidate_load_result["world_state"]
+	_expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(loaded_candidate_world),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"replaced base action candidate keeps current plan after load"
+	)
+	_expect_equal(
+		BaseActionDispatchPlan.get_departure_plan_key(loaded_candidate_world),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"replaced base action candidate keeps confirmed departure after load"
+	)
+	_expect_equal(
+		BaseActionDispatchPlan.get_next_plan_candidate_key(loaded_candidate_world),
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"replaced base action candidate persists after load"
+	)
+
+
 func _read_json_file(save_path: String) -> Dictionary:
 	var file := FileAccess.open(save_path, FileAccess.READ)
 	if file == null:
@@ -1142,6 +1369,16 @@ func _expect_equal(actual, expected, label: String) -> void:
 func _expect_array_has(values: Array, expected_value: String, label: String) -> void:
 	if not values.has(expected_value):
 		failures.append("%s should contain %s, got %s" % [label, expected_value, var_to_str(values)])
+
+
+func _expect_array_missing(values: Array, unexpected_value: String, label: String) -> void:
+	if values.has(unexpected_value):
+		failures.append("%s should not contain %s, got %s" % [label, unexpected_value, var_to_str(values)])
+
+
+func _expect_text_contains(text: String, expected_text: String, label: String) -> void:
+	if not text.contains(expected_text):
+		failures.append("%s should contain '%s', got: %s" % [label, expected_text, text])
 
 
 func _cleanup() -> void:

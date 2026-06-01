@@ -87,7 +87,8 @@ func run() -> void:
 			"baseline.s17_frontline_action_report_ready",
 			"baseline.s18_short_action_feedback_ready",
 			"baseline.s19_route_action_feedback_ready",
-			"baseline.s20_phase_survey_feedback_ready"
+			"baseline.s20_phase_survey_feedback_ready",
+			"baseline.s21_demo_stabilization_core_ready"
 		]:
 			host._expect_equal(
 				loaded_world.active_phase_relay_anchor_id,
@@ -351,6 +352,42 @@ func run() -> void:
 					true,
 					"S20 baseline should keep %s sampled" % survey_node_id
 				)
+		if baseline_id == "baseline.s21_demo_stabilization_core_ready":
+			host._expect_array_has(
+				loaded_world.unlocked_region_ids,
+				"region.demo_stabilization_core",
+				"S21 baseline should unlock demo stabilization core"
+			)
+			host._expect_array_has(
+				loaded_world.quest_state.active_quest_ids,
+				"quest.enter_demo_stabilization_core",
+				"S21 baseline should activate demo core entry"
+			)
+			host._expect_array_missing(
+				loaded_world.quest_state.completed_quest_ids,
+				"quest.write_demo_stabilization_core",
+				"S21 baseline should not complete demo core write"
+			)
+			host._expect_equal(
+				loaded_world.current_region_id,
+				"region.phase_well_tether",
+				"S21 baseline should start before demo core region"
+			)
+			host._expect_equal(
+				loaded_character.current_region_id,
+				"region.phase_well_tether",
+				"S21 baseline character should start before demo core region"
+			)
+			host._expect_equal(
+				int(loaded_world.get_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_COUNT_KEY, 0)),
+				BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_LIMIT + 1,
+				"S21 baseline should keep overpressure review archived"
+			)
+			host._expect_text_contains(
+				String(loaded_world.get_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY, "")),
+				"高压窗口反馈已归档",
+				"S21 baseline should keep overpressure archive feedback"
+			)
 
 
 func _expect_frontline_action_console_interaction_advances(

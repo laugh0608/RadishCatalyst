@@ -70,6 +70,9 @@ RadishCatalyst 是刚初始化的新仓库，当前重点不是堆功能，而�
 - 文本编码与文件格式检查脚本：
   - `scripts/check-text-files.ps1`
   - `scripts/check-text-files.sh`
+- 客户端聚合检查脚本：
+  - `scripts/check-client.ps1`
+  - `scripts/check-client.sh`
 
 ## 影响
 

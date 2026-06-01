@@ -96,7 +96,8 @@ var last_debug_character_state: CharacterState
 	$MapPanel/PhaseWellChamberMarker,
 	$MapPanel/PhaseWellLoomMarker,
 	$MapPanel/PhaseWellFrameMarker,
-	$MapPanel/PhaseWellTetherMarker
+	$MapPanel/PhaseWellTetherMarker,
+	$MapPanel/DemoStabilizationCoreMarker
 ]
 @onready var map_marker_labels: Array[Label] = [
 	$MapPanel/OutpostLabel,
@@ -109,7 +110,8 @@ var last_debug_character_state: CharacterState
 	$MapPanel/PhaseWellChamberLabel,
 	$MapPanel/PhaseWellLoomLabel,
 	$MapPanel/PhaseWellFrameLabel,
-	$MapPanel/PhaseWellTetherLabel
+	$MapPanel/PhaseWellTetherLabel,
+	$MapPanel/DemoStabilizationCoreLabel
 ]
 @onready var device_title_label: Label = $DevicePanel/DeviceTitleLabel
 @onready var device_status_label: Label = $DevicePanel/DeviceStatusLabel
@@ -235,7 +237,7 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 	last_debug_character_state = character_state
 	var active_quest_id := _get_active_quest_id(world_state)
 	if status_label != null:
-		status_label.text = status_presenter.format_objective_text(data_registry, world_state)
+		status_label.text = status_presenter.format_objective_text(data_registry, world_state, character_state)
 	if vitals_label != null:
 		vitals_label.text = status_presenter.format_vitals_text(data_registry, world_state, character_state)
 	_update_runtime_hint(world_state, character_state, active_quest_id)
@@ -516,7 +518,21 @@ func _update_map_panel(world_state: WorldState, quest_id: String) -> void:
 			continue
 		var marker_view := marker_view_data[index]
 		map_marker_rects[index].color = marker_view.get("color", Color.WHITE)
-		map_marker_labels[index].text = String(marker_view.get("label", ""))
+		map_marker_labels[index].text = _format_map_marker_runtime_label(String(marker_view.get("label", "")))
+
+
+func _format_map_marker_runtime_label(raw_label: String) -> String:
+	var rows := raw_label.split("\n", false)
+	if rows.size() <= 1:
+		return raw_label
+	var status_rows: Array[String] = []
+	for index in range(1, rows.size()):
+		var row := String(rows[index])
+		if row == "当前" or row == "目标" or row == "测绘预告":
+			status_rows.append(row)
+	if status_rows.is_empty():
+		return String(rows[0])
+	return "%s\n%s" % [String(rows[0]), " / ".join(status_rows)]
 
 
 func _update_runtime_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> void:
@@ -595,7 +611,8 @@ func _ensure_runtime_nodes() -> void:
 			get_node_or_null("MapPanel/PhaseWellChamberMarker"),
 			get_node_or_null("MapPanel/PhaseWellLoomMarker"),
 			get_node_or_null("MapPanel/PhaseWellFrameMarker"),
-			get_node_or_null("MapPanel/PhaseWellTetherMarker")
+			get_node_or_null("MapPanel/PhaseWellTetherMarker"),
+			get_node_or_null("MapPanel/DemoStabilizationCoreMarker")
 		]
 	if map_marker_labels.is_empty() or map_marker_labels[0] == null:
 		map_marker_labels = [
@@ -609,7 +626,8 @@ func _ensure_runtime_nodes() -> void:
 			get_node_or_null("MapPanel/PhaseWellChamberLabel"),
 			get_node_or_null("MapPanel/PhaseWellLoomLabel"),
 			get_node_or_null("MapPanel/PhaseWellFrameLabel"),
-			get_node_or_null("MapPanel/PhaseWellTetherLabel")
+			get_node_or_null("MapPanel/PhaseWellTetherLabel"),
+			get_node_or_null("MapPanel/DemoStabilizationCoreLabel")
 		]
 	if device_title_label == null:
 		device_title_label = get_node_or_null("DevicePanel/DeviceTitleLabel")
@@ -710,12 +728,12 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	last_viewport_size = viewport_size
 	var margin := 20.0
 	var gap := 16.0
-	var map_width := clampf(viewport_size.x * 0.38, 448.0, 500.0)
-	var map_height := 208.0
+	var map_width := clampf(viewport_size.x * 0.44, 560.0, 680.0)
+	var map_height := 232.0
 	var objective_width := clampf(viewport_size.x * 0.28, 400.0, 520.0)
 	var objective_height := 180.0
-	var vitals_width := clampf(viewport_size.x * 0.24, 360.0, 440.0)
-	var vitals_height := 168.0
+	var vitals_width := clampf(viewport_size.x * 0.28, 420.0, 500.0)
+	var vitals_height := 248.0
 	var prompt_width := clampf(viewport_size.x * 0.40, 680.0, 820.0)
 	var prompt_height := 192.0
 	var log_width := prompt_width
@@ -811,16 +829,17 @@ func _layout_map_panel_contents() -> void:
 		return
 
 	var marker_top := 84.0
-	var marker_size := Vector2(20.0, 22.0)
-	var label_top := 112.0
-	var label_height := maxf(0.0, map_panel.size.y - label_top - 12.0)
+	var marker_size := Vector2(18.0, 20.0)
+	var primary_label_top := 116.0
+	var secondary_label_top := 154.0
+	var label_height := 42.0
 	var left_margin := 22.0
 	var right_margin := 22.0
 	var usable_width := maxf(0.0, map_panel.size.x - left_margin - right_margin - marker_size.x)
 	var step := 0.0
 	if marker_count > 1:
 		step = usable_width / float(marker_count - 1)
-	var label_width := maxf(54.0, step + 18.0)
+	var label_width := clampf(step * 1.7, 64.0, 96.0)
 	var first_center_x := left_margin + marker_size.x * 0.5
 	var last_center_x := first_center_x
 
@@ -840,8 +859,10 @@ func _layout_map_panel_contents() -> void:
 			4.0,
 			maxf(4.0, map_panel.size.x - label_width - 4.0)
 		)
+		var label_top := primary_label_top if index % 2 == 0 else secondary_label_top
 		marker_label.position = Vector2(label_x, label_top)
 		marker_label.size = Vector2(label_width, label_height)
+		_prepare_wrapped_label(marker_label)
 
 		if index == 0:
 			first_center_x = marker_center_x
@@ -858,6 +879,14 @@ func _layout_full_label(label: Label, panel: Control, left: float, top: float, f
 	label.position = Vector2(left, top)
 	label.size.x = maxf(0.0, panel.size.x - left * 2.0)
 	label.size.y = forced_height if forced_height > 0.0 else maxf(0.0, panel.size.y - top * 2.0)
+	_prepare_wrapped_label(label)
+
+
+func _prepare_wrapped_label(label: Label) -> void:
+	if label == null:
+		return
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.clip_text = true
 
 
 func _layout_device_panel_labels() -> void:
@@ -866,18 +895,22 @@ func _layout_device_panel_labels() -> void:
 	if device_title_label != null:
 		device_title_label.position = Vector2(22.0, 18.0)
 		device_title_label.size = Vector2(device_panel.size.x - 134.0, 32.0)
+		_prepare_wrapped_label(device_title_label)
 	if device_close_button != null:
 		device_close_button.position = Vector2(device_panel.size.x - 104.0, 18.0)
 		device_close_button.size = Vector2(82.0, 32.0)
 	if device_status_label != null:
 		device_status_label.position = Vector2(22.0, 66.0)
 		device_status_label.size = Vector2(device_panel.size.x - 44.0, 244.0)
+		_prepare_wrapped_label(device_status_label)
 	if device_recipe_label != null:
 		device_recipe_label.position = Vector2(22.0, 322.0)
 		device_recipe_label.size = Vector2(device_panel.size.x - 44.0, 240.0)
+		_prepare_wrapped_label(device_recipe_label)
 	if device_operation_label != null:
 		device_operation_label.position = Vector2(22.0, device_panel.size.y - 78.0)
 		device_operation_label.size = Vector2(device_panel.size.x - 44.0, 42.0)
+		_prepare_wrapped_label(device_operation_label)
 
 
 func _get_selected_development_baseline() -> Dictionary:

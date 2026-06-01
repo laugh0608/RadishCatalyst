@@ -36,53 +36,53 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		if _has_completed_route_signal_marker(world_state):
 			return "巡线信标读数已带回：回基地使用基础反应器，把读数解析成巡线反馈记录。"
 		if _has_completed_route_frontline_action(world_state):
-			return "巡线短行动已确认：用相位回投返回井系桥前线，读取巡线信标。"
+			return "巡线短行动已确认：用相位回投返回锚定桥前线，读取巡线信标。"
 		if _has_completed_short_action_feedback(world_state):
 			return "短行动反馈已归档：回基地巡线短行动台确认第三条轻量行动。"
 		if _has_completed_supply_return_marker(world_state):
 			return "补给回执读数已带回：回基地使用基础反应器，把读数解析成短行动反馈记录。"
 		if _has_completed_supply_frontline_action(world_state):
-			return "补给短行动已确认：用相位回投返回井系桥前线，读取补给回执标记。"
+			return "补给短行动已确认：用相位回投返回锚定桥前线，读取补给回执标记。"
 		if _has_completed_stability_echo_report(world_state):
 			return "前线行动回报已归档：前哨已整理下一趟短行动补给，回基地短行动补给台确认第二条轻量行动。"
 		if _has_completed_stability_echo_probe(world_state):
 			return "稳窗回波样本已带回：回基地使用基础反应器，把样本解析成前线行动回报。"
 		if _has_completed_stability_frontline_action(world_state):
-			return "前线行动已确认：用相位回投返回井系桥东侧，读取稳窗回波探点。"
+			return "前线行动已确认：用相位回投返回锚定桥东侧，读取稳窗回波探点。"
 		if _has_completed_phase_well_stability_window_calibration(world_state):
 			return "稳窗相位序已完成现场校准：回基地在前线行动台确认下一趟外出目标。"
 		if _has_completed_phase_well_echo_shard_analysis(world_state):
-			return "相位井稳窗读数已解析：回到井系桥东侧，按西侧、中央、东侧顺序校准三处稳窗节点。"
+			return "稳窗读数已解析：回到锚定桥东侧，按西侧、中央、东侧顺序校准三处稳窗节点。"
 		if _has_completed_phase_well_anchor_field(world_state):
-			return "井系桥东侧的局部稳定窗口已经生成：相位井余响片已带回基地，回基地解析后可把这里校准成前线回稳点。"
+			return "锚定桥东侧的局部稳定窗口已经生成：稳窗余响片已带回基地，回基地解析后可把这里校准成前线回稳点。"
 		if _has_completed_phase_well_tether(world_state):
-			return "相位井锚核已带回：先回基地解析锚核、稳定锚核落尘，再把井系校锚桩带回井系桥东侧做锚场回稳。"
+			return "稳场锚核已带回：先回基地解析锚核、稳定锚核落尘，再把稳场校锚桩带回锚定桥东侧做锚场回稳。"
 		if _has_completed_phase_well_frame(world_state):
-			return "相位井结核已带回：先回基地解析结核，把更东侧井系桥断面真正压成下一包可执行目标。"
+			return "锚定结核已带回：先回基地解析结核，把锚定桥真正压成下一包可执行目标。"
 		if _has_completed_phase_well_loom(world_state):
-			return "相位井织核已带回：先回基地解析织核，把更东侧井纹架断面真正压成下一包可执行目标。"
+			return "锁相织构核已带回：先回基地解析锁相织构核，把锁相框架真正压成下一包可执行目标。"
 		if _has_completed_phase_well_chamber(world_state):
-			return "相位井纺核已带回：先回基地解析纺核，把更东侧井纺室断面真正压成下一包可执行目标。"
+			return "风蚀张力核已带回：先回基地解析风蚀张力核，把风蚀管廊真正压成下一包可执行目标。"
 		if _has_completed_phase_well_sink(world_state):
-			return "相位井心核已带回：先回基地解析心核，把更东侧井心室断面真正压成下一包可执行目标。"
+			return "碎晶心核已带回：先回基地解析心核，把碎晶沟谷真正压成下一包可执行目标。"
 		if _has_completed_inner_phase_well(world_state):
-			return "内层相位井井芯样本已带回：先回基地解析井芯样本，把更东侧井底裂口真正压成下一包可执行目标。"
+			return "回声台地样本已带回：先回基地解析回声芯样本，把盐壳浅滩真正压成下一包可执行目标。"
 		if _has_completed_phase_well_lock(world_state):
-			return "相位井定位器已带回：先回基地解析定位器，把更东侧内层相位井真正落成新的推进包。"
+			return "回声定位器已带回：先回基地解析定位器，把更东侧回声台地真正落成新的推进包。"
 		if _has_completed_phase_fault_spire(world_state):
-			return "裂相尖塔已校准：先回基地解析内层故障轨迹，再把更东侧相位井锁压成下一包深段目标。"
+			return "裂相尖塔已校准：先回基地解析内层故障轨迹，再把更东侧锁相结构压成下一包裂相目标。"
 		if _has_completed_phase_relay_anchor(world_state):
 			if world_state.current_region_id == "region.outpost_platform":
 				return "相位回投台已就绪：先在基地按 E 返回最近校准的前线回传锚点，再追踪更东侧裂相碎屑。"
 			return "前线回传锚点已在线：先回基地用相位回投台重返前线，再把裂相碎屑带回基地继续加工。"
 		if _has_completed_second_deep_pass(world_state):
-			return "深段读数矩阵已整理完成：返回深段固定点，把它部署成前线回传锚点。"
+			return "裂相读数矩阵已整理完成：返回裂相脊固定点，把它部署成前线回传锚点。"
 		if _has_completed_deep_ruin_entry(world_state):
-			return "深段样块已带回：先回基地解析样块，别让这份深段收益停在背包里。"
+			return "裂相样块已带回：先回基地解析样块，别让这份裂相收益停在背包里。"
 		if _has_completed_deep_signal_analysis(world_state):
-			return "更深遗迹坐标已解析；返回遗迹外圈最东侧，把坐标写入深段入口门禁。"
+			return "裂相坐标已解析；返回封锁遗迹最东侧，把坐标写入裂相脊入口门禁。"
 		if _is_slice_complete(world_state):
-			return "遗迹外圈第一版已完成；返回基地整理补给，等待更深区域。"
+			return "封锁遗迹第一版已完成；返回基地整理补给，等待核心稳定站坐标。"
 		return "按当前目标推进。"
 
 	var target_region_id := _get_target_region_id(world_state, quest_id)
@@ -104,61 +104,71 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 				return "回到异常晶体周边，回收两处异常残留点。"
 			return "回基地使用基础反应器，分析异常样本。"
 		"quest.make_filter_module":
-			return "回基地使用基础反应器，组装基础过滤模块。"
+			if not character_state.inventory.has_ref("item.filter_media", 1):
+				return "回基地使用基础反应器，先制造过滤介质；随后组装基础过滤模块。"
+			return "回基地使用基础反应器，组装基础过滤模块；启用后会降低污染防护消耗。"
 		"quest.prepare_treatment_supplies":
 			if target_region_id == "region.outpost_platform":
 				return "回基地用基础反应器调制修复凝胶，它是下一段清障战斗补给。"
-			return "确认快捷栏 1 带修复凝胶，前往处理点北缘清理掠行体。"
+			return "确认快捷栏 1 带修复凝胶，前往处理点北缘连续清理两处掠行体。"
 		"quest.expand_treatment_point":
+			if world_state.quest_state.get_objective_progress(quest_id, "clear", "map_object.rough_ground") < 2.0:
+				return "前往处理点北缘，先清理两块粗糙地面，再铺设地基。"
 			return "前往处理点北缘，清理地块、铺设地基并建造过滤器。"
 		"quest.enter_pollution_edge":
 			if not world_state.unlocked_region_ids.has("region.pollution_edge"):
 				return "按 F 启用过滤模块，再向东进入黄色污染边界。"
-			if target_region_id == "region.crystal_vein_field":
+			if _has_enough_pollution_residue_for_vial(world_state, character_state) and not _has_pollution_vial_ready(world_state, character_state):
 				return "返回处理点过滤器处理沉积物，先调制抗污染药剂再深入污染边界。"
 			if character_state.protection < character_state.max_protection * 0.5:
 				return "防护偏低，按 2 使用抗污染药剂；药剂来自过滤器处理沉积物。"
+			if _has_pollution_vial_ready(world_state, character_state):
+				if _get_pollution_residue_progress(world_state) < 4.0:
+					return "带着抗污染药剂回污染边界补第二批沉积物，并清理路上的受扰敌人。"
+				return "带着抗污染药剂继续深入污染边界，清理受扰敌人并靠近遗迹门前压力点。"
 			return "向东南进入黄色污染边界，采集沉积物并处理药剂。"
 		"quest.defeat_elite_node":
 			return "污染残核会持续压低防护，带抗污染药剂后继续向东推进。"
 		"quest.unlock_ruin_signal":
-			return "前往污染边界东侧检查封锁遗迹入口，打开遗迹外圈通路。"
+			if _is_gate_pressure_active(world_state):
+				return "遗迹门前仍有受扰敌人压制；先用修复凝胶和抗污染药剂撑过门前压力，再检查封锁入口。"
+			return "前往污染边界东侧检查封锁遗迹入口，打开封锁遗迹通路。"
 		"quest.scout_ruin_outer_ring":
-			return "穿过封锁入口进入遗迹外圈，回收两处继电残片。"
+			return "穿过封锁入口进入封锁遗迹，回收两处继电残片。"
 		"quest.assemble_phase_anchor":
 			return "回基地使用基础反应器，组装稳相信标。"
 		"quest.stabilize_outer_ring_barrier":
-			return "带着稳相信标返回遗迹外圈，在抖动雾幕前部署后再继续深入。"
+			return "带着稳相信标返回封锁遗迹，在抖动雾幕前部署后再继续深入。"
 		"quest.secure_outer_ring_signal":
-			return "穿过已稳定的抖动雾幕，向东检查外圈中继台。"
+			return "穿过已稳定的抖动雾幕，向东检查封锁遗迹中继台。"
 		"quest.salvage_signal_echo":
-			return "继续留在遗迹外圈深段，清理相位守卫并回收外圈回波匣。"
+			return "继续留在封锁遗迹深处，清理相位守卫并回收封锁回波匣。"
 		"quest.analyze_deep_signal":
-			return "回基地使用基础反应器，解析深段回波并整理更深遗迹坐标。"
+			return "回基地使用基础反应器，解析封锁回波并整理裂相坐标。"
 		"quest.unlock_deep_ruin_entrance":
-			return "带着更深遗迹坐标返回遗迹外圈最东侧，写入深段入口门禁。"
+			return "带着裂相坐标返回封锁遗迹最东侧，写入裂相脊入口门禁。"
 		"quest.harvest_phase_filament":
-			return "进入深段入口，清理深段守卫并回收两处相位纤丝。"
+			return "进入裂相脊入口，清理裂相守卫并回收两处相位纤丝。"
 		"quest.refine_phase_filament":
 			return "回处理点过滤器，精炼相位纤丝并保留副产污染浆液。"
 		"quest.assemble_deep_override":
-			return "回基地使用基础反应器，把谐振滤芯和污染浆液组装成深段覆写栓。"
+			return "回基地使用基础反应器，把谐振滤芯和污染浆液组装成裂相覆写栓。"
 		"quest.unlock_deep_ruin_cache":
-			return "带着深段覆写栓返回深段入口，覆写锁扣并取出样块。"
+			return "带着裂相覆写栓返回裂相脊入口，覆写锁扣并取出样块。"
 		"quest.analyze_deep_core":
-			return "回基地使用基础反应器，解析深段样块并整理路由印片。"
+			return "回基地使用基础反应器，解析裂相样块并整理路由印片。"
 		"quest.activate_deep_array":
-			return "带着深段路由印片返回深段，点亮阵列台、清理追袭体并回收两束相位导管。"
+			return "带着裂相路由印片返回裂相脊，点亮阵列台、清理追袭体并回收两束相位导管。"
 		"quest.assemble_deep_signal_matrix":
 			return "回基地使用基础反应器，把相位导管和污染浆液整理成可部署锚点的深段读数矩阵。"
 		"quest.deploy_phase_relay_anchor":
-			return "带着深段读数矩阵返回深段固定点，部署前线回传锚点。"
+			return "带着深段读数矩阵返回裂相脊固定点，部署前线回传锚点。"
 		"quest.reenter_phase_frontline":
 			if world_state.current_region_id == "region.outpost_platform":
 				return "在基地按 E 使用相位回投台，返回最近校准的锚点并继续追踪更东侧裂相碎屑。"
 			return "先用前线回传锚点回基地，再在相位回投台按 E 回到当前锚点。"
 		"quest.trace_phase_splinters":
-			return "从锚点继续向东推进，先写入两处裂相共振读数，再击败裂相猎手并回收两处碎屑。"
+			return "从回投落点继续向东推进，先写入两处裂相共振读数，再击败裂相猎手并回收两处碎屑。"
 		"quest.refine_phase_splinters":
 			if not character_state.inventory.has_ref("item.phase_lens_blank", 1):
 				return "回处理点污染过滤器，把裂相碎屑筛成透镜胚片并保留副产污染浆液。"
@@ -168,124 +178,124 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.inspect_phase_fault_spire":
 			return "带着中继调谐镜返回更东侧裂相尖塔，校准后带回第一份内层故障轨迹。"
 		"quest.analyze_inner_fault_trace":
-			return "回基地使用基础反应器，解析内层故障轨迹并整理相位井坐标印片。"
+			return "回基地使用基础反应器，解析内层故障轨迹并整理裂相坐标印片。"
 		"quest.collect_fault_residue":
 			return "返回裂相尖塔更东侧，先读出两处故障脉冲，再击退内层潜猎体并回收两处故障残渣。"
 		"quest.refine_fault_residue":
 			if not character_state.inventory.has_ref("item.stabilized_fault_core", 1):
 				return "回处理点污染过滤器，把故障残渣稳定成可用于下一步开锁的故障芯。"
-			return "回基地使用基础反应器，把坐标印片、稳定故障芯和基础零件组装成相位井钥。"
+			return "回基地使用基础反应器，把坐标印片、稳定故障芯和基础零件组装成裂相锁钥。"
 		"quest.unlock_phase_well":
-			return "带着相位井钥返回更东侧相位井锁，钉住后带回第一份定位器。"
+			return "带着裂相锁钥返回更东侧裂相锁位，钉住后带回第一份回声定位器。"
 		"quest.analyze_phase_well_locator":
-			return "回基地使用基础反应器，解析相位井定位器并整理内层相位井路由片。"
+			return "回基地使用基础反应器，解析回声定位器并整理回声台地路由片。"
 		"quest.collect_well_flux":
-			return "沿定位器路由继续向东推进，先处理两处井涌泄压阀，再击退井口哨戒体并回收两处井涌碎屑。"
+			return "沿定位器路由继续向东推进，先处理两处回声泄压阀，再击退回声哨戒体并回收两处回声碎屑。"
 		"quest.refine_well_flux":
 			if not character_state.inventory.has_ref("item.phase_well_stabilizer", 1):
-				return "先回处理点污染过滤器，把井涌碎屑筛成可继续组装的相位井稳流芯。"
-			return "继续这次探针整备：回基地基础反应器，把路由片、稳流芯和基础零件组装成相位井探针。"
+				return "先回处理点污染过滤器，把回声碎屑筛成可继续组装的回声稳流芯。"
+			return "继续这次探针整备：回基地基础反应器，把路由片、稳流芯和基础零件组装成回声探针。"
 		"quest.assemble_phase_well_probe":
-			return "回基地使用基础反应器，把相位井路由片、稳流芯和基础零件组装成相位井探针。"
+			return "回基地使用基础反应器，把回声路由片、稳流芯和基础零件组装成回声探针。"
 		"quest.inspect_inner_phase_well":
-			return "带着相位井探针返回更东侧内层相位井，读取第一份井芯样本。"
+			return "带着回声探针返回更东侧回声台地，读取第一份回声芯样本。"
 		"quest.analyze_phase_well_core":
-			return "回基地使用基础反应器，解析井芯样本并整理相位井频谱片。"
+			return "回基地使用基础反应器，解析回声芯样本并整理盐壳频谱片。"
 		"quest.collect_well_ash":
-			return "沿井芯频谱继续向东推进，先清掉两处井底余烬壳，再击退井底潜伏体并回收两处井壁余烬。"
+			return "沿盐壳频谱继续向东推进，先清掉两处盐壳硬壳，再击退盐壳潜伏体并回收两处盐壳余烬。"
 		"quest.refine_well_ash":
 			if not character_state.inventory.has_ref("item.phase_well_lattice", 1):
-				return "先回处理点污染过滤器，把井壁余烬稳定成相位井稳相格。"
-			return "继续这次井底整备：回基地基础反应器，把频谱片、稳相格和基础零件组装成井底穿钉。"
+				return "先回处理点污染过滤器，把盐壳余烬稳定成盐壳稳相格。"
+			return "继续这次盐壳整备：回基地基础反应器，把频谱片、稳相格和基础零件组装成盐壳穿钉。"
 		"quest.assemble_phase_well_pike":
-			return "回基地使用基础反应器，把相位井频谱片、稳相格和基础零件组装成井底穿钉。"
+			return "回基地使用基础反应器，把盐壳频谱片、稳相格和基础零件组装成盐壳穿钉。"
 		"quest.inspect_phase_well_sink":
-			return "带着井底穿钉返回更东侧井底裂口，凿开后带回第一份相位井心核。"
+			return "带着盐壳穿钉返回盐壳浅滩，凿开后带回第一份碎晶心核。"
 		"quest.analyze_phase_well_heart":
-			return "回基地使用基础反应器，解析相位井心核并整理相位井脉搏片。"
+			return "回基地使用基础反应器，解析碎晶心核并整理碎晶脉搏片。"
 		"quest.collect_heart_spine":
-			return "沿心核脉搏继续向东推进，先写入两处井心分流读数，再击退心室撕裂体并回收两处心棘残片。"
+			return "沿碎晶脉搏继续向东推进，先写入两处碎晶分流读数，再击退碎晶撕裂体并回收两处心棘残片。"
 		"quest.refine_heart_spine":
 			if not character_state.inventory.has_ref("item.phase_well_damper", 1):
-				return "先回处理点污染过滤器，把心棘残片稳定成相位井抑振骨。"
-			return "继续这次井心整备：回基地基础反应器，把脉搏片、抑振骨和基础零件组装成井心分流栓。"
+				return "先回处理点污染过滤器，把心棘残片稳定成碎晶抑振骨。"
+			return "继续这次碎晶整备：回基地基础反应器，把脉搏片、抑振骨和基础零件组装成碎晶分流栓。"
 		"quest.assemble_phase_well_shunt":
-			return "回基地使用基础反应器，把相位井脉搏片、抑振骨和基础零件组装成井心分流栓。"
+			return "回基地使用基础反应器，把碎晶脉搏片、抑振骨和基础零件组装成碎晶分流栓。"
 		"quest.inspect_phase_well_chamber":
-			return "带着井心分流栓返回更东侧井心室断面，勘验后带回第一份相位井纺核。"
+			return "带着碎晶分流栓返回碎晶沟谷，勘验后带回第一份风蚀张力核。"
 		"quest.analyze_phase_well_spindle":
-			return "回基地使用基础反应器，解析相位井纺核并整理相位井经片。"
+			return "回基地使用基础反应器，解析风蚀张力核并整理风蚀经片。"
 		"quest.collect_weft_bundle":
-			return "沿纺核经片继续向东推进，先检查两处井纺张力绕轮，再击退井纺纠缠体并回收两处纬束残团。"
+			return "沿风蚀经片继续向东推进，先检查两处风蚀张力绕轮，再击退风蚀纠缠体并回收两处纬束残团。"
 		"quest.refine_weft_bundle":
 			if not character_state.inventory.has_ref("item.phase_well_tension_rib", 1):
-				return "先回处理点污染过滤器，把纬束残团稳定成相位井张力肋。"
-			return "继续这次井纺整备：回基地基础反应器，把经片、张力肋和基础零件组装成井纺梭栓。"
+				return "先回处理点污染过滤器，把纬束残团稳定成风蚀张力肋。"
+			return "继续这次风蚀整备：回基地基础反应器，把经片、张力肋和基础零件组装成风蚀梭栓。"
 		"quest.assemble_phase_well_shuttle":
-			return "回基地使用基础反应器，把相位井经片、张力肋和基础零件组装成井纺梭栓。"
+			return "回基地使用基础反应器，把风蚀经片、张力肋和基础零件组装成风蚀梭栓。"
 		"quest.inspect_phase_well_loom":
-			return "带着井纺梭栓返回更东侧井纺室断面，勘验后带回第一份相位井织核。"
+			return "带着风蚀梭栓返回风蚀管廊，勘验后带回第一份锁相织构核。"
 		"quest.analyze_phase_well_weave_core":
-			return "回基地使用基础反应器，解析相位井织核并整理相位井纹谱片。"
+			return "回基地使用基础反应器，解析锁相织构核并整理锁相纹谱片。"
 		"quest.collect_selvedge_strip":
-			return "沿织核纹谱继续向东推进，先清理任一条井纹架侧路，再击退井纹刮裂体并回收两处边缕残条。"
+			return "沿锁相纹谱继续向东推进，先清理任一条锁相框架侧路，再击退锁相刮裂体并回收两处边缕残条。"
 		"quest.refine_selvedge_strip":
 			if not character_state.inventory.has_ref("item.phase_well_frame_rib", 1):
-				return "先回处理点污染过滤器，把边缕残条稳定成相位井纹架肋。"
-			return "继续这次井纹架整备：回基地基础反应器，把纹谱片、纹架肋和基础零件组装成井纹架键栓。"
+				return "先回处理点污染过滤器，把边缕残条稳定成锁相框架肋。"
+			return "继续这次锁相框架整备：回基地基础反应器，把纹谱片、纹架肋和基础零件组装成锁相框架键栓。"
 		"quest.assemble_phase_well_frame_key":
-			return "回基地使用基础反应器，把相位井纹谱片、纹架肋和基础零件组装成井纹架键栓。"
+			return "回基地使用基础反应器，把锁相纹谱片、纹架肋和基础零件组装成锁相框架键栓。"
 		"quest.inspect_phase_well_frame":
-			return "带着井纹架键栓返回更东侧井纹架断面，勘验后带回第一份相位井结核。"
+			return "带着锁相框架键栓返回锁相框架，勘验后带回第一份锚定结核。"
 		"quest.analyze_phase_well_knot_core":
-			return "回基地使用基础反应器，解析相位井结核并整理相位井系谱片。"
+			return "回基地使用基础反应器，解析锚定结核并整理锚定系谱片。"
 		"quest.collect_tether_fiber":
-			return "沿结核系谱继续向东推进，先检查两处井系桥结点，再击退井系缚结体并回收两处系索残股。"
+			return "沿结核系谱继续向东推进，先检查两处锚定桥结点，再击退锚定缚结体并回收两处锚索残股。"
 		"quest.refine_tether_fiber":
 			if not character_state.inventory.has_ref("item.phase_well_tether_rib", 1):
-				return "先回处理点污染过滤器，把系索残股稳定成相位井系固肋。"
-			return "继续这次井系整备：回基地基础反应器，把系谱片、系固肋和基础零件组装成井系定桩。"
+				return "先回处理点污染过滤器，把锚索残股稳定成锚定系固肋。"
+			return "继续这次锚定桥整备：回基地基础反应器，把系谱片、系固肋和基础零件组装成锚定桩。"
 		"quest.assemble_phase_well_tether_spike":
-			return "回基地使用基础反应器，把相位井系谱片、系固肋和基础零件组装成井系定桩。"
+			return "回基地使用基础反应器，把锚定系谱片、系固肋和基础零件组装成锚定桩。"
 		"quest.inspect_phase_well_tether":
-			return "带着井系定桩返回更东侧井系桥断面，勘验后带回第一份相位井锚核。"
+			return "带着锚定桩返回锚定桥，勘验后带回第一份稳场锚核。"
 		"quest.analyze_phase_well_anchor_core":
-			return "回基地使用基础反应器，解析相位井锚核并整理归谱片与锚核落尘。"
+			return "回基地使用基础反应器，解析稳场锚核并整理归谱片与锚核落尘。"
 		"quest.refine_anchor_core_dust":
 			if not character_state.inventory.has_ref("item.anchor_field_filter", 1):
 				return "先回处理点污染过滤器，把锚核落尘稳定成稳场滤囊。"
-			return "继续这次锚场整备：回基地基础反应器，把归谱片、稳场滤囊和基础零件组装成井系校锚桩。"
+			return "继续这次锚场整备：回基地基础反应器，把归谱片、稳场滤囊和基础零件组装成稳场校锚桩。"
 		"quest.assemble_phase_well_anchor_stake":
-			return "回基地使用基础反应器，把归谱片、稳场滤囊和基础零件组装成井系校锚桩。"
+			return "回基地使用基础反应器，把归谱片、稳场滤囊和基础零件组装成稳场校锚桩。"
 		"quest.stabilize_phase_well_anchor_field":
 			var anchor_field_state := world_state.get_map_object("map_object_instance.phase_well_anchor_field")
 			if bool(anchor_field_state.get("anchor_field_pressure_cleared", false)):
-				return "井系守脉体已清掉：返回井系桥东侧锚场回稳窗，收束这次局部稳定窗口。"
+				return "稳场守脉体已清掉：返回锚定桥东侧锚场回稳窗，收束这次局部稳定窗口。"
 			if bool(anchor_field_state.get("anchor_field_deployed", false)):
 				if not _has_anchor_field_pressure_pins_cleared(world_state):
-					return "井系校锚桩已部署：先清掉两处锚场压力钉，再压制井系守脉体；校锚桩会保留在现场，失败后可直接重试。"
-				return "井系校锚桩已部署：先清掉井系守脉体，再回来收束井系桥东侧的回稳窗；校锚桩会保留在现场，失败后可直接重试。"
-			return "带着井系校锚桩返回井系桥东侧，部署后先清压力钉，再顶住一轮短守场并收束第一份相位井余响片。"
+					return "稳场校锚桩已部署：先清掉两处锚场压力钉，再压制稳场守脉体；校锚桩会保留在现场，失败后可直接重试。"
+				return "稳场校锚桩已部署：先清掉稳场守脉体，再回来收束锚定桥东侧的回稳窗；校锚桩会保留在现场，失败后可直接重试。"
+			return "带着稳场校锚桩返回锚定桥东侧，部署后先清压力钉，再顶住一轮短守场并收束第一份稳窗余响片。"
 		"quest.analyze_phase_well_echo_shard":
-			return "回基地使用基础反应器，把相位井余响片解析成稳窗读数；读数会强化井系桥东侧稳定窗口的前线回充。"
+			return "回基地使用基础反应器，把稳窗余响片解析成稳窗读数；读数会强化锚定桥东侧稳定窗口的前线回充。"
 		"quest.calibrate_phase_well_stability_window":
-			return "带着稳窗读数返回井系桥东侧，按西侧、中央、东侧顺序校准三处稳窗节点。"
+			return "带着稳窗读数返回锚定桥东侧，按西侧、中央、东侧顺序校准三处稳窗节点。"
 		"quest.plan_stability_frontline_action":
-			return "回基地检查前线行动台，确认这次行动只做一件事：回访井系桥东侧稳窗探点。"
+			return "回基地检查前线行动台，确认这次行动只做一件事：回访锚定桥东侧稳窗探点。"
 		"quest.survey_stability_echo_probe":
-			return "用相位回投返回井系桥东侧，在稳窗回波探点读取样本后回基地。"
+			return "用相位回投返回锚定桥东侧，在稳窗回波探点读取样本后回基地。"
 		"quest.analyze_stability_echo_sample":
 			return "回基地使用基础反应器，把稳窗回波样本解析成前线行动回报。"
 		"quest.confirm_supply_frontline_action":
 			return "回基地检查短行动补给台，把上一趟回报整理出的补给转成下一趟短目标。"
 		"quest.inspect_supply_return_marker":
-			return "用相位回投返回井系桥前线，读取补给回执标记后回基地。"
+			return "用相位回投返回锚定桥前线，读取补给回执标记后回基地。"
 		"quest.analyze_supply_return_trace":
 			return "回基地使用基础反应器，把补给回执读数解析成短行动反馈记录。"
 		"quest.confirm_route_frontline_action":
 			return "回基地检查巡线短行动台，把短行动反馈记录接成第三趟短目标。"
 		"quest.inspect_route_signal_marker":
-			return "用相位回投返回井系桥前线，读取巡线信标后回基地。"
+			return "用相位回投返回锚定桥前线，读取巡线信标后回基地。"
 		"quest.analyze_route_signal_trace":
 			return "回基地使用基础反应器，把巡线信标读数解析成巡线反馈记录。"
 		"quest.choose_steady_supply_action":
@@ -293,17 +303,17 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.choose_phase_survey_action":
 			return "回基地行动选择台确认相位测绘；这是侦测方案，下一趟要读取两处分散测绘点。"
 		"quest.choose_pressure_clearance_action":
-			return "回基地行动选择台确认压力清障；这是高风险方案，下一趟要清掉一处压力扰点。"
+			return "回基地行动选择台确认压力清障；这是高风险方案，下一趟要先击退扰动守卫，再清掉一处压力扰点。"
 		"quest.inspect_steady_supply_drop":
-			return "用相位回投返回井系桥前线，读取一处稳场补给投放点后回基地。"
+			return "用相位回投返回锚定桥前线，读取一处稳场补给投放点后回基地。"
 		"quest.analyze_steady_supply_trace":
 			return "回基地使用基础反应器，把稳场补给回执解析成补给反馈。"
 		"quest.inspect_phase_survey_nodes":
-			return "用相位回投返回井系桥前线，读取西侧和东侧两处相位测绘点后回基地。"
+			return "用相位回投返回锚定桥前线，读取西侧和东侧两处相位测绘点后回基地。"
 		"quest.analyze_phase_survey_trace":
 			return "回基地使用基础反应器，把相位测绘记录解析成测绘反馈。"
 		"quest.clear_pressure_frontline_hazard":
-			return "用相位回投返回井系桥前线，清掉一处压力扰点后回基地。"
+			return "用相位回投返回锚定桥前线，先击退清障扰动守卫，再清掉一处压力扰点后回基地。"
 		"quest.analyze_pressure_clearance_trace":
 			return "回基地使用基础反应器，把压力清障回执解析成清障反馈。"
 		_:
@@ -338,39 +348,39 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		if _has_completed_stability_frontline_action(world_state):
 			return "这次不是新大区，只是一次短前线行动；目标在同一锚场窗口内完成。"
 		if _has_completed_phase_well_stability_window_calibration(world_state):
-			return "稳窗校准之后先不继续拉长相位井；回基地用前线行动台验证最短基地-前线-基地反馈。"
+			return "稳窗校准之后先不继续拉长区域链；回基地用前线行动台验证最短基地-前线-基地反馈。"
 		if _has_completed_phase_well_echo_shard_analysis(world_state):
 			return "稳窗读数已经从基地解析结果变成现场执行目标；这一步验证的是按序校准，而不是继续堆采集和单件制造。"
 		if _has_completed_phase_well_anchor_field(world_state):
 			return "锚场回稳不是单纯多打一只怪；它证明了基地先产出稳场工具，真的可以把下一次外勤改造成更稳的前线窗口。"
 		if _has_completed_phase_well_tether(world_state):
-			return "相位井锚核不是收尾；要先回基地把它解析成归谱片和锚核落尘，新的井系桥东侧稳场任务才会真正出现。"
+			return "稳场锚核不是收尾；要先回基地把它解析成归谱片和锚核落尘，新的锚定桥东侧稳场任务才会真正出现。"
 		if _has_completed_phase_well_frame(world_state):
-			return "相位井结核不是收尾；要先回基地把它解析成系谱片，井系桥断面才会真正变成新的可执行推进包。"
+			return "锚定结核不是收尾；要先回基地把它解析成系谱片，锚定桥才会真正变成新的可执行推进包。"
 		if _has_completed_phase_well_loom(world_state):
-			return "相位井织核不是收尾；要先回基地把它解析成纹谱片，井纹架断面才会真正变成新的可执行推进包。"
+			return "锁相织构核不是收尾；要先回基地把它解析成纹谱片，锁相框架才会真正变成新的可执行推进包。"
 		if _has_completed_phase_well_chamber(world_state):
-			return "相位井纺核不是收尾；要先回基地把它解析成经片，井纺室断面才会真正变成新的可执行推进包。"
+			return "风蚀张力核不是收尾；要先回基地把它解析成经片，风蚀管廊才会真正变成新的可执行推进包。"
 		if _has_completed_phase_well_sink(world_state):
-			return "相位井心核不是收尾；要先回基地把它解析成脉搏片，井心室断面才会真正变成新的可执行推进包。"
+			return "碎晶心核不是收尾；要先回基地把它解析成脉搏片，碎晶沟谷才会真正变成新的可执行推进包。"
 		if _has_completed_inner_phase_well(world_state):
-			return "井芯样本只是下一轮的起点；要先回基地把它解析成频谱片，井底裂口才会真正变成新的可执行推进包。"
+			return "回声芯样本只是下一轮的起点；要先回基地把它解析成频谱片，盐壳浅滩才会真正变成新的可执行推进包。"
 		if _has_completed_phase_well_lock(world_state):
-			return "相位井定位器不是收尾；先回基地解析它，才能把更东侧内层相位井真正变成新的可验证主线。"
+			return "回声定位器不是收尾；先回基地解析它，才能把更东侧回声台地真正变成新的可验证主线。"
 		if _has_completed_phase_fault_spire(world_state):
-			return "裂相尖塔已经校准完成：内层故障轨迹必须先回基地解析，才能把更东侧相位井锁真正变成下一包可验证内容。"
+			return "裂相尖塔已经校准完成：内层故障轨迹必须先回基地解析，才能把更东侧锁相结构真正变成下一包可验证内容。"
 		if _has_completed_phase_relay_anchor(world_state):
 			if world_state.current_region_id == "region.outpost_platform":
 				return "前线回传锚点链已打通：先在基地相位回投台回到当前锚点，再把更东侧裂相碎屑带回基地加工。"
-			return "前线回传锚点已经上线：这次要用它把回基地补给和更深收益串成真正的新主线，而不是停在便利功能。"
+			return "前线回传锚点已经上线：这次要用它把回基地补给和裂相收益串成真正的新主线，而不是停在便利功能。"
 		if _has_completed_second_deep_pass(world_state):
-			return "深段读数矩阵不是终点；要把它带回深段部署成前线回传锚点，才能真正缩短第二轮往返。"
+			return "裂相读数矩阵不是终点；要把它带回裂相脊部署成前线回传锚点，才能真正缩短第二轮往返。"
 		if _has_completed_deep_ruin_entry(world_state):
-			return "第一份深段样块只是开始；要把它回基地解析成路由印片，才能继续放大深段收益。"
+			return "第一份裂相样块只是开始；要把它回基地解析成路由印片，才能继续放大裂相收益。"
 		if _has_completed_deep_signal_analysis(world_state):
-			return "更深入口价值已经落成可执行坐标；这次要把它真正写回现场门禁，而不是停在背包里。"
+			return "裂相入口价值已经落成可执行坐标；这次要把它真正写回现场门禁，而不是停在背包里。"
 		if _is_slice_complete(world_state):
-			return "遗迹外圈的第二闭环已跑通，整理补给后等待更深内容。"
+			return "封锁遗迹的第二闭环已跑通，整理补给后等待核心稳定站坐标。"
 		return "查看当前目标和附近交互提示，按顺序推进。"
 
 	var target_region_id := _get_target_region_id(world_state, quest_id)
@@ -394,57 +404,65 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 				return "异常残留物用于校验样本，回收两处后再回基地加工分析。"
 			return "靠近基础反应器，切换到异常样本分析配方并等待完成。"
 		"quest.make_filter_module":
-			return "基础反应器负责制造远征产物；先补齐配方输入，再等待加工完成。"
+			return "基础反应器负责制造远征产物；过滤模块会降低污染防护消耗，让下一次深入更稳。"
 		"quest.prepare_treatment_supplies":
 			if target_region_id == "region.outpost_platform":
 				return "先调制 1 份修复凝胶；它是下一段清障战斗的生命补给。"
-			return "带上修复凝胶，生命偏低时按 1 使用，再清理处理点北缘的原生掠行体。"
+			return "带上修复凝胶，生命偏低时按 1 使用，再清理处理点北缘两处原生掠行体。"
 		"quest.expand_treatment_point":
+			if world_state.quest_state.get_objective_progress(quest_id, "clear", "map_object.rough_ground") < 2.0:
+				return "先清理处理点北缘两块粗糙地面；清完后再回基地制造基础地基材料。"
 			if world_state.count_base_structures("building.foundation_t1") < 2:
 				return "污染过滤器不能直接落地，先清理地块并铺设 2 块地基。"
 			return "地基已满足要求，建造污染过滤器来处理沉积物。"
 		"quest.enter_pollution_edge":
 			if String(character_state.equipment.get("suit_module", "")).is_empty():
 				return "启用基础过滤模块后再深入污染区，防护消耗会降低。"
-			if target_region_id == "region.crystal_vein_field":
+			if _has_enough_pollution_residue_for_vial(world_state, character_state) and not _has_pollution_vial_ready(world_state, character_state):
 				return "先回处理点过滤器处理沉积物，把抗污染药剂做出来，再继续深入污染区。"
 			if character_state.protection < character_state.max_protection * 0.5:
 				return "防护偏低，先使用抗污染药剂；缺药剂就回污染过滤器处理沉积物。"
+			if _has_pollution_vial_ready(world_state, character_state):
+				if _get_pollution_residue_progress(world_state) < 4.0:
+					return "药剂已准备好；先带它回污染边界补第二批沉积物，再推进遗迹门前压力点。"
+				return "抗污染药剂是遗迹门前压力点的防护缓冲，进入深处前确认快捷栏 2 可用。"
 			return "收集污染沉积物，用过滤器处理药剂，再清理受扰敌人。"
 		"quest.defeat_elite_node":
 			return "污染残核是本轮危险区域挑战；抗污染药剂用于维持防护，修复凝胶用于保命。"
 		"quest.unlock_ruin_signal":
-			return "先确认封锁入口信号，真正把主线推进到遗迹外圈。"
+			if _is_gate_pressure_active(world_state):
+				return "先清理门前受扰敌人；这是药剂和修复凝胶真正改变推进结果的压力点。"
+			return "先确认封锁入口信号，真正把主线推进到封锁遗迹。"
 		"quest.scout_ruin_outer_ring":
 			return "先把外圈继电残片带回基地；它们是下一次深入所需开路物的核心输入。"
 		"quest.assemble_phase_anchor":
 			return "稳相信标会直接改变再次深入的结果；污染浆液来自过滤器的上一次处理副产。"
 		"quest.stabilize_outer_ring_barrier":
-			return "部署稳相信标后，抖动雾幕才会让出外圈深段通路。"
+			return "部署稳相信标后，抖动雾幕才会让出封锁遗迹深处通路。"
 		"quest.secure_outer_ring_signal":
-			return "外圈中继台会给出更深遗迹的稳定回波，作为这条第二闭环的收束点。"
+			return "封锁遗迹中继台会给出裂相结构的稳定回波，作为这条第二闭环的收束点。"
 		"quest.salvage_signal_echo":
-			return "相位守卫压着真正的深段回报；把回波匣带回基地后，才能把这次深入变成下一段入口价值。"
+			return "相位守卫压着真正的裂相回报；把回波匣带回基地后，才能把这次深入变成下一段入口价值。"
 		"quest.analyze_deep_signal":
-			return "这次加工不是补给，而是把深段回波整理成更深遗迹坐标，确认外圈收益真实反哺下一次远征。"
+			return "这次加工不是补给，而是把封锁回波整理成裂相坐标，确认封锁遗迹收益真实反哺下一次远征。"
 		"quest.unlock_deep_ruin_entrance":
-			return "这一步要把更深遗迹坐标真正写回现场门禁，别让坐标只停在任务列表里。"
+			return "这一步要把裂相坐标真正写回现场门禁，别让坐标只停在任务列表里。"
 		"quest.harvest_phase_filament":
 			return "相位纤丝是这包内容的新外勤收益；先带回基地精炼，再决定能不能继续开锁。"
 		"quest.refine_phase_filament":
 			return "先用污染过滤器剥掉相位纤丝上的污染层；副产污染浆液会直接作为下一步组装输入。"
 		"quest.assemble_deep_override":
-			return "深段覆写栓会把过滤器副产的污染浆液和外勤材料重新变成开路物，决定下一次深入是否有效。"
+			return "裂相覆写栓会把过滤器副产的污染浆液和外勤材料重新变成开路物，决定下一次深入是否有效。"
 		"quest.unlock_deep_ruin_cache":
-			return "只有带着基地组装的覆写栓回来，深段锁扣才会交出第一份真正的深段收益。"
+			return "只有带着基地组装的覆写栓回来，裂相锁扣才会交出第一份真正的裂相收益。"
 		"quest.analyze_deep_core":
-			return "这次回基地不是收尾，而是把深段样块继续整理成新的路由印片，明确下一次深入的落点。"
+			return "这次回基地不是收尾，而是把裂相样块继续整理成新的路由印片，明确下一次深入的落点。"
 		"quest.activate_deep_array":
-			return "阵列台点亮后才会暴露第二轮风险和收益；追袭体与相位导管要在同一趟深段外勤里一起解决。"
+			return "阵列台点亮后才会暴露第二轮风险和收益；追袭体与相位导管要在同一趟裂相外勤里一起解决。"
 		"quest.assemble_deep_signal_matrix":
-			return "把相位导管再次带回基地整理成读数矩阵后，还要把它带回深段部署成回传锚点，才算真正解决第二轮空跑。"
+			return "把相位导管再次带回基地整理成读数矩阵后，还要把它带回裂相脊部署成回传锚点，才算真正解决第二轮空跑。"
 		"quest.deploy_phase_relay_anchor":
-			return "这次返回深段不是继续拿材料，而是把基地加工出来的读数矩阵真正写回前线回传锚点，开启前线 -> 基地 -> 前线的快速往返。"
+			return "这次返回裂相脊不是继续拿材料，而是把基地加工出来的读数矩阵真正写回前线回传锚点，开启前线 -> 基地 -> 前线的快速往返。"
 		"quest.reenter_phase_frontline":
 			return "先真正用一次回投台，让回传链从便利功能变成明确主线动作；回到锚点后再继续看更东侧新风险。"
 		"quest.trace_phase_splinters":
@@ -454,90 +472,90 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.tune_relay_lens":
 			return "中继调谐镜会把过滤器副产重新变成开路物，决定裂相尖塔能否吐出第一份内层故障轨迹。"
 		"quest.inspect_phase_fault_spire":
-			return "这一步要把基地调准的中继调谐镜真正带回前线，逼出新的深段收益，而不是让它停在背包里。"
+			return "这一步要把基地调准的中继调谐镜真正带回前线，逼出新的裂相收益，而不是让它停在背包里。"
 		"quest.analyze_inner_fault_trace":
-			return "内层故障轨迹不是纪念品；要先回基地把它反解成坐标印片，新的更深门锁才会显形。"
+			return "内层故障轨迹不是纪念品；要先回基地把它反解成坐标印片，新的锁相结构才会显形。"
 		"quest.collect_fault_residue":
 			return "故障残渣这一步先读两处脉冲，再处理潜猎体和残渣；目标是让玩家先判断现场窗口，再带回下一次基地加工输入。"
 		"quest.refine_fault_residue":
-			return "这一步是一次井锁整备：先稳定故障残渣，再把坐标印片和稳定故障芯组装成相位井钥，下一趟外勤直接去钉住井锁。"
+			return "这一步是一次裂相锁位整备：先稳定故障残渣，再把坐标印片和稳定故障芯组装成裂相锁钥，下一趟外勤直接去钉住裂相锁位。"
 		"quest.unlock_phase_well":
-			return "这一步要把基地组装的相位井钥真正带回前线，让回传链明确指向下一轮更深相位井目标。"
+			return "这一步要把基地组装的裂相锁钥真正带回前线，让回传链明确指向下一轮回声台地目标。"
 		"quest.analyze_phase_well_locator":
-			return "定位器必须先回基地解析，新的更东侧井口区才会真正解锁成可执行目标，而不是停在任务奖励里。"
+			return "定位器必须先回基地解析，新的更东侧回声台地才会真正解锁成可执行目标，而不是停在任务奖励里。"
 		"quest.collect_well_flux":
-			return "井涌这一步先做泄压，再处理哨戒体和碎屑；它应该像降压后的危险回收，不再只是同一套打怪采集。"
+			return "回声碎屑这一步先做泄压，再处理哨戒体和碎屑；它应该像降压后的危险回收，不再只是同一套打怪采集。"
 		"quest.refine_well_flux":
-			return "这一步是一次探针整备：先稳定井涌碎屑，再把路由片和稳流芯组装成相位井探针，下一趟外勤直接去读取井芯样本。"
+			return "这一步是一次探针整备：先稳定回声碎屑，再把路由片和稳流芯组装成回声探针，下一趟外勤直接去读取回声芯样本。"
 		"quest.assemble_phase_well_probe":
-			return "相位井探针会把定位器分析结果和过滤器输出重新变成开路物，决定内层相位井能否交出第一份井芯样本。"
+			return "回声探针会把定位器分析结果和过滤器输出重新变成开路物，决定回声台地能否交出第一份回声芯样本。"
 		"quest.inspect_inner_phase_well":
-			return "这一步要把基地组装的相位井探针真正带回前线，让更东侧内层相位井第一次给出明确收益。"
+			return "这一步要把基地组装的回声探针真正带回前线，让更东侧回声台地第一次给出明确收益。"
 		"quest.analyze_phase_well_core":
-			return "井芯样本不是收尾；要先回基地把它反解成频谱片，新的井底裂口风险才会真正显形。"
+			return "回声芯样本不是收尾；要先回基地把它反解成频谱片，新的盐壳浅滩风险才会真正显形。"
 		"quest.collect_well_ash":
-			return "井底裂口这一步先清余烬壳，再处理潜伏体和井壁余烬；它负责把路线清理和材料回收合成一趟外勤。"
+			return "盐壳浅滩这一步先清余烬壳，再处理潜伏体和盐壳余烬；它负责把路线清理和材料回收合成一趟外勤。"
 		"quest.refine_well_ash":
-			return "这一步是一次井底整备：先稳定井壁余烬，再把频谱片和稳相格组装成井底穿钉，下一趟外勤直接去凿开井底裂口。"
+			return "这一步是一次盐壳整备：先稳定盐壳余烬，再把频谱片和稳相格组装成盐壳穿钉，下一趟外勤直接去凿开盐壳浅滩。"
 		"quest.assemble_phase_well_pike":
-			return "井底穿钉会把井芯分析产物和过滤结果重新变成开路物，决定井底裂口能否交出第一份相位井心核。"
+			return "盐壳穿钉会把井芯分析产物和过滤结果重新变成开路物，决定盐壳浅滩能否交出第一份碎晶心核。"
 		"quest.inspect_phase_well_sink":
-			return "这一步要把基地组装的井底穿钉真正带回前线，让井芯样本后的更深收益第一次落成实体战利品。"
+			return "这一步要把基地组装的盐壳穿钉真正带回前线，让回声芯样本后的后续收益第一次落成实体战利品。"
 		"quest.analyze_phase_well_heart":
-			return "相位井心核不是纪念品；要先回基地把它反解成脉搏片，新的井心室断面风险才会真正显形。"
+			return "碎晶心核不是纪念品；要先回基地把它反解成脉搏片，新的碎晶沟谷风险才会真正显形。"
 		"quest.collect_heart_spine":
-			return "井心室先用两处现场读数降下心棘脉冲，再处理敌人和残片；它不再只是打一只怪后采两处材料。"
+			return "碎晶沟谷先用两处现场读数降下心棘脉冲，再处理敌人和残片；它不再只是打一只怪后采两处材料。"
 		"quest.refine_heart_spine":
-			return "这一步是一次井心整备：先稳定心棘残片，再把脉搏片和抑振骨组装成井心分流栓，下一趟外勤直接勘验井心室断面。"
+			return "这一步是一次碎晶整备：先稳定心棘残片，再把脉搏片和抑振骨组装成碎晶分流栓，下一趟外勤直接勘验碎晶沟谷。"
 		"quest.assemble_phase_well_shunt":
-			return "井心分流栓会把心核分析产物和过滤结果重新变成开路物，决定井心室断面能否交出第一份相位井纺核。"
+			return "碎晶分流栓会把心核分析产物和过滤结果重新变成开路物，决定碎晶沟谷能否交出第一份风蚀张力核。"
 		"quest.inspect_phase_well_chamber":
-			return "这一步要把基地组装的井心分流栓真正带回前线，让相位井心核后的更深收益继续落成实体战利品。"
+			return "这一步要把基地组装的碎晶分流栓真正带回前线，让碎晶心核后的后续收益继续落成实体战利品。"
 		"quest.analyze_phase_well_spindle":
-			return "相位井纺核不是纪念品；要先回基地把它反解成经片，新的井纺室断面风险才会真正显形。"
+			return "风蚀张力核不是纪念品；要先回基地把它反解成经片，新的风蚀管廊风险才会真正显形。"
 		"quest.collect_weft_bundle":
-			return "井纺室先确认两处张力绕轮，再处理敌人和纬束残团；这一步把空间两侧的读数关系放进回收目标。"
+			return "风蚀管廊先确认两处张力绕轮，再处理敌人和纬束残团；这一步把空间两侧的读数关系放进回收目标。"
 		"quest.refine_weft_bundle":
-			return "这一步是一次井纺整备：先稳定纬束残团，再把经片和张力肋组装成井纺梭栓，下一趟外勤直接勘验井纺室断面。"
+			return "这一步是一次风蚀整备：先稳定纬束残团，再把经片和张力肋组装成风蚀梭栓，下一趟外勤直接勘验风蚀管廊。"
 		"quest.assemble_phase_well_shuttle":
-			return "井纺梭栓会把纺核分析产物和过滤结果重新变成开路物，决定井纺室断面能否交出第一份相位井织核。"
+			return "风蚀梭栓会把风蚀张力核分析产物和过滤结果重新变成开路物，决定风蚀管廊能否交出第一份锁相织构核。"
 		"quest.inspect_phase_well_loom":
-			return "这一步要把基地组装的井纺梭栓真正带回前线，让相位井纺核后的更深收益继续落成实体战利品。"
+			return "这一步要把基地组装的风蚀梭栓真正带回前线，让风蚀张力核后的后续收益继续落成实体战利品。"
 		"quest.analyze_phase_well_weave_core":
-			return "相位井织核不是纪念品；要先回基地把它反解成纹谱片，新的井纹架断面风险才会真正显形。"
+			return "锁相织构核不是纪念品；要先回基地把它反解成纹谱片，新的锁相框架风险才会真正显形。"
 		"quest.collect_selvedge_strip":
-			return "井纹架这一步改成路线清障样板：先选一条侧路打开回收线，再把新风险和下一次基地加工输入同时带回来。"
+			return "锁相框架这一步改成路线清障样板：先选一条侧路打开回收线，再把新风险和下一次基地加工输入同时带回来。"
 		"quest.refine_selvedge_strip":
-			return "这一步是一次井纹架整备：先稳定边缕残条，再把纹谱片和纹架肋组装成井纹架键栓，下一趟外勤直接勘验井纹架断面。"
+			return "这一步是一次锁相框架整备：先稳定边缕残条，再把纹谱片和纹架肋组装成锁相框架键栓，下一趟外勤直接勘验锁相框架。"
 		"quest.assemble_phase_well_frame_key":
-			return "井纹架键栓会把织核分析产物和过滤结果重新变成开路物，决定井纹架断面能否交出第一份相位井结核。"
+			return "锁相键栓会把锁相织构核分析产物和过滤结果重新变成开路物，决定锁相框架能否交出第一份锚定结核。"
 		"quest.inspect_phase_well_frame":
-			return "这一步要把基地组装的井纹架键栓真正带回前线，让相位井织核后的更深收益继续落成实体战利品。"
+			return "这一步要把基地组装的锁相框架键栓真正带回前线，让锁相织构核后的后续收益继续落成实体战利品。"
 		"quest.analyze_phase_well_knot_core":
-			return "相位井结核不是纪念品；要先回基地把它反解成系谱片，新的井系桥断面风险才会真正显形。"
+			return "锚定结核不是纪念品；要先回基地把它反解成系谱片，新的锚定桥风险才会真正显形。"
 		"quest.collect_tether_fiber":
-			return "井系桥先检查两端结点，再处理敌人和系索残股；桥体目标不再只靠中央敌人和两处采集点成立。"
+			return "锚定桥先检查两端结点，再处理敌人和锚索残股；桥体目标不再只靠中央敌人和两处采集点成立。"
 		"quest.refine_tether_fiber":
-			return "这一步是一次井系整备：先稳定系索残股，再把系谱片和系固肋组装成井系定桩，下一趟外勤直接勘验井系桥断面。"
+			return "这一步是一次锚定桥整备：先稳定锚索残股，再把系谱片和系固肋组装成锚定桩，下一趟外勤直接勘验锚定桥。"
 		"quest.assemble_phase_well_tether_spike":
-			return "井系定桩会把结核分析产物和过滤结果重新变成开路物，决定井系桥断面能否交出第一份相位井锚核。"
+			return "锚定桩会把结核分析产物和过滤结果重新变成开路物，决定锚定桥能否交出第一份稳场锚核。"
 		"quest.inspect_phase_well_tether":
-			return "这一步要把基地组装的井系定桩真正带回前线，让相位井结核后的更深收益继续落成实体战利品。"
+			return "这一步要把基地组装的锚定桩真正带回前线，让锚定结核后的后续收益继续落成实体战利品。"
 		"quest.analyze_phase_well_anchor_core":
-			return "相位井锚核不是新的门钥匙；它要先在基地被拆成可执行的归谱片和锚核落尘，后面的外勤目标结构才会被改写。"
+			return "稳场锚核不是新的门钥匙；它要先在基地被拆成可执行的归谱片和锚核落尘，后面的外勤目标结构才会被改写。"
 		"quest.refine_anchor_core_dust":
-			return "这一步是一次锚场整备：先稳定锚核落尘，再把归谱片和稳场滤囊组装成井系校锚桩，下一趟外勤直接进入短守场。"
+			return "这一步是一次锚场整备：先稳定锚核落尘，再把归谱片和稳场滤囊组装成稳场校锚桩，下一趟外勤直接进入短守场。"
 		"quest.assemble_phase_well_anchor_stake":
-			return "井系校锚桩负责把基地加工结果直接带回前线，它不是收集奖励，而是下一次外勤目标本身。"
+			return "稳场校锚桩负责把基地加工结果直接带回前线，它不是收集奖励，而是下一次外勤目标本身。"
 		"quest.stabilize_phase_well_anchor_field":
 			var anchor_field_state := world_state.get_map_object("map_object_instance.phase_well_anchor_field")
 			if bool(anchor_field_state.get("anchor_field_pressure_cleared", false)):
 				return "这一步不是捡第二份材料；要回去收束已经打开的稳定窗口，让前线节奏真的被基地准备改写。"
 			if bool(anchor_field_state.get("anchor_field_deployed", false)):
 				if not _has_anchor_field_pressure_pins_cleared(world_state):
-					return "井系校锚桩已经写进现场，现在先清两处压力钉，再让井系守脉体完全暴露；失败后也不需要回基地重做校锚桩。"
-				return "井系校锚桩已经写进现场，现在的重点是顶住短时压制，而不是继续沿路搜刮两处新资源；失败后也不需要回基地重做校锚桩。"
-			return "这一步明确改掉旧模板：先把基地产物带回前线部署，再清压力钉和短守场，换来局部稳定窗口和相位井余响片；部署后的校锚桩会保留在现场。"
+					return "稳场校锚桩已经写进现场，现在先清两处压力钉，再让稳场守脉体完全暴露；失败后也不需要回基地重做校锚桩。"
+				return "稳场校锚桩已经写进现场，现在的重点是顶住短时压制，而不是继续沿路搜刮两处新资源；失败后也不需要回基地重做校锚桩。"
+			return "这一步明确改掉旧模板：先把基地产物带回前线部署，再清压力钉和短守场，换来局部稳定窗口和稳窗余响片；部署后的校锚桩会保留在现场。"
 		"quest.analyze_phase_well_echo_shard":
 			return "稳窗读数不是下一张门票；它会反向强化已经完成的锚场回稳窗，让玩家之后能在前线回充生命与防护，获得更明确的容错收益。"
 		"quest.calibrate_phase_well_stability_window":
@@ -575,7 +593,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.analyze_phase_survey_trace":
 			return "解析后只给现有补给和提示口径，不扩成复杂侦查系统。"
 		"quest.clear_pressure_frontline_hazard":
-			return "清障方案的前线差异是一处高风险扰点，收益偏修复和抗污染补给。"
+			return "清障方案的前线差异是一场短战斗加一处高风险扰点，收益偏修复和抗污染补给。"
 		"quest.analyze_pressure_clearance_trace":
 			return "解析后只给现有防护补给，不新增成功率、队员或装备 loadout。"
 		_:
@@ -704,6 +722,33 @@ func _get_target_region_id(world_state: WorldState, quest_id: String) -> String:
 	if target_region_resolver == null:
 		return ""
 	return target_region_resolver.resolve_target_region_id(world_state, quest_id)
+
+
+func _has_enough_pollution_residue_for_vial(world_state: WorldState, character_state: CharacterState) -> bool:
+	if character_state.inventory.has_ref("item.polluted_residue", 2):
+		return true
+	return _get_pollution_residue_progress(world_state) >= 2.0
+
+
+func _get_pollution_residue_progress(world_state: WorldState) -> float:
+	return world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue")
+
+
+func _has_pollution_vial_ready(world_state: WorldState, character_state: CharacterState) -> bool:
+	if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+		return true
+	return world_state.quest_state.get_objective_progress(
+		"quest.enter_pollution_edge",
+		"craft_item",
+		"item.resistance_vial_t1"
+	) >= 1.0
+
+
+func _is_gate_pressure_active(world_state: WorldState) -> bool:
+	var gate_pressure := world_state.get_enemy("enemy_instance.polluted_skitter_gate_pressure")
+	if gate_pressure.is_empty():
+		return false
+	return not bool(gate_pressure.get("is_defeated", false))
 
 
 func _append_runtime_hint_line(lines: Array[String], label: String, text: String) -> void:

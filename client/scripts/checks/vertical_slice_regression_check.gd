@@ -1,6 +1,7 @@
 extends RefCounted
 
 const GameRootScript := preload("res://scripts/game/game_root.gd")
+const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
 
 var host
 
@@ -11,12 +12,427 @@ func _init(check_host) -> void:
 
 func run_ui_and_recipe_checks() -> void:
 	_check_hud_log_presenter()
+	_check_first_hour_guidance_copy()
+	_check_first_hour_content_density()
+	_check_pollution_gate_pressure_spawn_and_combat()
+	_check_first_hour_objective_milestones()
+	_check_first_hour_base_return_manufacturing_readability()
+	_check_mid_demo_handoff_readability()
 	_check_development_baseline_presenter()
+	_check_demo_stabilization_baseline_status_panel()
 	_check_game_root_development_baseline_factory()
 	_check_game_root_gm_tools()
 	_check_game_root_recipe_cycle_input_events()
 	_check_resource_interaction_logs()
 	_check_completed_recipe_followup_auto_selection()
+
+
+func _check_first_hour_guidance_copy() -> void:
+	var presenter := HudHintPresenter.new()
+	presenter.configure(host.data_registry, null)
+	var world := WorldState.create_default()
+	var character := CharacterState.create_default()
+	host._expect_text_contains(
+		presenter.format_onboarding_hint(world, character, "quest.make_filter_module"),
+		"降低污染防护消耗",
+		"filter module onboarding explains field value"
+	)
+	character.inventory.add_item("item.filter_media", 1)
+	host._expect_text_contains(
+		presenter.format_direction_hint(world, character, "quest.make_filter_module"),
+		"降低污染防护消耗",
+		"filter module direction explains why crafting matters"
+	)
+	var processing := ProcessingSystem.new(host.data_registry)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.process_crystal_ore"),
+		"反应器校准、过滤模块和地基",
+		"crystal processing completion explains base use"
+	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.basic_filter_module"),
+		"处理点北缘清障",
+		"filter module completion points to field survivability"
+	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.repair_gel"),
+		"处理点北缘清障",
+		"repair gel completion points back to the next field fight"
+	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.cleanse_residue"),
+		"快捷栏 2",
+		"residue cleansing completion points to anti-pollution quick slot"
+	)
+	var pollution_world := WorldState.create_default()
+	var pollution_character := CharacterState.create_default()
+	pollution_character.equipment["suit_module"] = "equipment.filter_module_t1"
+	pollution_world.unlock_region("region.pollution_edge")
+	pollution_world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
+	pollution_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", 2)
+	host._expect_text_contains(
+		presenter.format_direction_hint(pollution_world, pollution_character, "quest.enter_pollution_edge"),
+		"处理点过滤器",
+		"pollution direction tells player to process gathered residue"
+	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.cleanse_residue", pollution_world),
+		"第二批沉积物",
+		"first residue cleansing completion points to the stocked return route"
+	)
+	pollution_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1)
+	host._expect_text_contains(
+		presenter.format_onboarding_hint(pollution_world, pollution_character, "quest.enter_pollution_edge"),
+		"第二批沉积物",
+		"pollution onboarding returns to residue route after first vial"
+	)
+	pollution_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", 4)
+	host._expect_text_contains(
+		presenter.format_onboarding_hint(pollution_world, pollution_character, "quest.enter_pollution_edge"),
+		"遗迹门前压力点",
+		"pollution onboarding ties stocked vial to the next pressure point"
+	)
+
+
+func _check_first_hour_base_return_manufacturing_readability() -> void:
+	var processing := ProcessingSystem.new(host.data_registry)
+	var device_panel_presenter := HudDevicePanelPresenter.new()
+	var status_presenter := HudStatusPresenter.new()
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.process_crystal_ore"
+	reactor.set_recipe_cycle([
+		"recipe.process_crystal_ore",
+		"recipe.analyze_anomaly_sample",
+		"recipe.make_filter_media",
+		"recipe.basic_filter_module"
+	])
+	var analysis_world := WorldState.create_default()
+	analysis_world.quest_state.active_quest_ids = ["quest.analyze_anomaly_sample"]
+	analysis_world.quest_state.unlock_effect("recipe.analyze_anomaly_sample")
+	analysis_world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 2)
+	var analysis_character := CharacterState.create_default()
+	var panel_texts := device_panel_presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		reactor,
+		analysis_character,
+		analysis_world
+	)
+	host._expect_text_contains(
+		String(panel_texts.get("status", "")),
+		"过滤参数",
+		"device panel explains why recommended sample analysis matters"
+	)
+
+	var module_world := WorldState.create_default()
+	module_world.quest_state.active_quest_ids = ["quest.make_filter_module"]
+	module_world.quest_state.unlock_effect("recipe.make_filter_media")
+	var module_character := CharacterState.create_default()
+	module_character.inventory.add_item("item.crystal_ore", 2)
+	var module_text := status_presenter.format_vitals_text(host.data_registry, module_world, module_character)
+	host._expect_text_contains(module_text, "建议配方：制备过滤介质", "base summary points to intermediate filter media")
+	host._expect_text_contains(module_text, "继续组装基础过滤模块", "base summary explains filter media purpose")
+
+	var supply_world := WorldState.create_default()
+	supply_world.quest_state.active_quest_ids = ["quest.prepare_treatment_supplies"]
+	supply_world.quest_state.set_objective_progress("quest.prepare_treatment_supplies", "craft_item", "item.repair_gel", 1)
+	var supply_text := status_presenter.format_vitals_text(host.data_registry, supply_world, CharacterState.create_default())
+	host._expect_text_missing(supply_text, "待制造：修复凝胶", "base summary stops repeating completed repair gel craft")
+	host._expect_text_contains(supply_text, "当前目标先外出推进", "base summary returns to field after repair gel is ready")
+	reactor.free()
+
+
+func _check_mid_demo_handoff_readability() -> void:
+	var processing := ProcessingSystem.new(host.data_registry)
+	var device_panel_presenter := HudDevicePanelPresenter.new()
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.deep_core_imprint"
+	reactor.set_recipe_cycle([
+		"recipe.process_crystal_ore",
+		"recipe.deep_core_imprint",
+		"recipe.deep_signal_matrix"
+	])
+
+	var core_world := WorldState.create_default()
+	core_world.quest_state.active_quest_ids = ["quest.analyze_deep_core"]
+	core_world.quest_state.unlock_effect("recipe.deep_core_imprint")
+	core_world.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	var core_character := CharacterState.create_default()
+	core_character.inventory.add_item("item.deep_ruin_core", 1)
+	var core_texts := device_panel_presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		reactor,
+		core_character,
+		core_world
+	)
+	host._expect_text_contains(
+		String(core_texts.get("status", "")),
+		"裂相阵列台",
+		"deep core device purpose points to array activation"
+	)
+
+	var matrix_world := WorldState.create_default()
+	matrix_world.quest_state.active_quest_ids = ["quest.assemble_deep_signal_matrix"]
+	matrix_world.quest_state.unlock_effect("recipe.deep_signal_matrix")
+	matrix_world.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	var matrix_character := CharacterState.create_default()
+	matrix_character.inventory.add_item("item.phase_conduit", 2)
+	matrix_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
+	reactor.recipe_id = "recipe.deep_signal_matrix"
+	var matrix_texts := device_panel_presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		reactor,
+		matrix_character,
+		matrix_world
+	)
+	host._expect_text_contains(
+		String(matrix_texts.get("status", "")),
+		"前线回传锚点",
+		"deep matrix device purpose points to relay anchor deployment"
+	)
+
+	var filter := PrototypeInteractable.new()
+	filter.definition_id = "building.pollution_filter"
+	filter.interaction_type = "process_recipe"
+	filter.recipe_id = "recipe.phase_splinter_refining"
+	filter.set_recipe_cycle(["recipe.phase_splinter_refining"])
+	var splinter_world := WorldState.create_default()
+	splinter_world.quest_state.active_quest_ids = ["quest.refine_phase_splinters"]
+	splinter_world.quest_state.unlock_effect("recipe.phase_splinter_refining")
+	splinter_world.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
+	var splinter_character := CharacterState.create_default()
+	splinter_character.inventory.add_item("item.phase_splinter", 2)
+	var splinter_texts := device_panel_presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		filter,
+		splinter_character,
+		splinter_world
+	)
+	host._expect_text_contains(
+		String(splinter_texts.get("status", "")),
+		"中继调谐镜",
+		"phase splinter filter purpose points to relay lens tuning"
+	)
+
+	var lens_world := WorldState.create_default()
+	lens_world.quest_state.active_quest_ids = ["quest.refine_phase_splinters"]
+	lens_world.quest_state.unlock_effect("recipe.relay_tuning_lens")
+	lens_world.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	var lens_character := CharacterState.create_default()
+	lens_character.inventory.add_item("item.phase_lens_blank", 1)
+	lens_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
+	lens_character.inventory.items["item.basic_parts"] = 2
+	var lens_reactor := PrototypeInteractable.new()
+	lens_reactor.definition_id = "building.basic_reactor"
+	lens_reactor.interaction_type = "process_recipe"
+	lens_reactor.recipe_id = "recipe.relay_tuning_lens"
+	lens_reactor.set_recipe_cycle(["recipe.relay_tuning_lens"])
+	var lens_texts := device_panel_presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		lens_reactor,
+		lens_character,
+		lens_world
+	)
+	host._expect_text_contains(
+		String(lens_texts.get("status", "")),
+		"裂相尖塔",
+		"relay lens device purpose points to phase fault spire"
+	)
+	var fault_filter := PrototypeInteractable.new()
+	fault_filter.definition_id = "building.pollution_filter"
+	fault_filter.interaction_type = "process_recipe"
+	fault_filter.recipe_id = "recipe.fault_residue_stabilization"
+	fault_filter.set_recipe_cycle(["recipe.fault_residue_stabilization"])
+	var fault_world := WorldState.create_default()
+	fault_world.quest_state.active_quest_ids = ["quest.refine_fault_residue"]
+	fault_world.quest_state.unlock_effect("recipe.fault_residue_stabilization")
+	fault_world.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
+	var fault_character := CharacterState.create_default()
+	fault_character.inventory.add_item("item.fault_residue", 2)
+	var fault_texts := device_panel_presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		fault_filter,
+		fault_character,
+		fault_world
+	)
+	host._expect_text_contains(
+		String(fault_texts.get("status", "")),
+		"裂相锁钥",
+		"fault residue filter purpose points to phase well key"
+	)
+
+	var key_reactor := PrototypeInteractable.new()
+	key_reactor.definition_id = "building.basic_reactor"
+	key_reactor.interaction_type = "process_recipe"
+	key_reactor.recipe_id = "recipe.phase_well_key"
+	key_reactor.set_recipe_cycle(["recipe.phase_well_key"])
+	var key_world := WorldState.create_default()
+	key_world.quest_state.active_quest_ids = ["quest.refine_fault_residue"]
+	key_world.quest_state.unlock_effect("recipe.phase_well_key")
+	key_world.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	var key_character := CharacterState.create_default()
+	key_character.inventory.add_item("item.phase_well_coordinate", 1)
+	key_character.inventory.add_item("item.stabilized_fault_core", 1)
+	key_character.inventory.items["item.basic_parts"] = 2
+	var key_texts := device_panel_presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		key_reactor,
+		key_character,
+		key_world
+	)
+	host._expect_text_contains(
+		String(key_texts.get("status", "")),
+		"回声定位器",
+		"phase well key purpose points to locator recovery"
+	)
+
+	var locator_reactor := PrototypeInteractable.new()
+	locator_reactor.definition_id = "building.basic_reactor"
+	locator_reactor.interaction_type = "process_recipe"
+	locator_reactor.recipe_id = "recipe.phase_well_locator_analysis"
+	locator_reactor.set_recipe_cycle(["recipe.phase_well_locator_analysis"])
+	var locator_world := WorldState.create_default()
+	locator_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_locator"]
+	locator_world.quest_state.unlock_effect("recipe.phase_well_locator_analysis")
+	locator_world.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	var locator_character := CharacterState.create_default()
+	locator_character.inventory.add_item("item.phase_well_locator", 1)
+	var locator_texts := device_panel_presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		locator_reactor,
+		locator_character,
+		locator_world
+	)
+	host._expect_text_contains(
+		String(locator_texts.get("status", "")),
+		"回声台地",
+		"phase well locator purpose points to echo plateau"
+	)
+	reactor.free()
+	filter.free()
+	lens_reactor.free()
+	fault_filter.free()
+	key_reactor.free()
+	locator_reactor.free()
+
+
+func _check_pollution_gate_pressure_spawn_and_combat() -> void:
+	var map := VerticalSliceMap.new()
+	map.data_registry = host.data_registry
+	var gate_enemy := PrototypeEnemy.new()
+	gate_enemy.definition_id = "enemy.polluted_skitter"
+	gate_enemy.name = "PollutedSkitterGatePressure"
+	gate_enemy.instance_id = "enemy_instance.polluted_skitter_gate_pressure"
+	var gate_world := WorldState.create_default()
+	gate_world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
+	host._expect_equal(map._should_enemy_spawn(gate_enemy, gate_world), false, "gate pressure enemy waits for residue vial stage to complete")
+	gate_world.quest_state.active_quest_ids = ["quest.defeat_elite_node"]
+	host._expect_equal(map._should_enemy_spawn(gate_enemy, gate_world), true, "gate pressure enemy appears with elite residue node")
+
+	var combat_character := CharacterState.create_default()
+	combat_character.equipment["suit_module"] = "equipment.filter_module_t1"
+	var counter_message := map._apply_enemy_counterattack(gate_enemy, combat_character)
+	host._expect_equal(int(roundf(combat_character.health * 10.0)), 919, "gate pressure enemy counterattack health pressure")
+	host._expect_equal(combat_character.protection < 100.0, true, "gate pressure enemy counterattack protection pressure")
+	host._expect_text_contains(counter_message, "防护 -2.6", "gate pressure enemy counterattack protection hint")
+	gate_enemy.free()
+	map.free()
+
+
+func _check_first_hour_content_density() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	host.root.add_child(map)
+	map.setup(host.data_registry)
+	var interactable_expectations := {
+		"Interactables/CrystalClusterSidePocket": "map_object.crystal_cluster",
+		"Interactables/CrystalClusterTreatmentApproach": "map_object.crystal_cluster",
+		"Interactables/FieldWreckageSouthPocket": "map_object.field_wreckage",
+		"Interactables/FieldWreckageGateCache": "map_object.field_wreckage",
+		"Interactables/FieldWreckageTreatmentApproach": "map_object.field_wreckage",
+		"Interactables/PollutionResidueOuterPocket": "map_object.pollution_residue_patch",
+		"Interactables/PollutionResidueDeep": "map_object.pollution_residue_patch",
+		"Interactables/PollutionResidueRidgeCache": "map_object.pollution_residue_patch"
+	}
+	for node_path in interactable_expectations:
+		var interactable := map.get_node_or_null(String(node_path)) as PrototypeInteractable
+		host._expect_equal(interactable != null, true, "%s exists" % node_path)
+		if interactable == null:
+			continue
+		host._expect_equal(
+			interactable.definition_id,
+			String(interactable_expectations[node_path]),
+			"%s definition" % node_path
+		)
+	var enemy_expectations := {
+		"Enemies/NativeSkitterPatrol": "enemy.native_skitter",
+		"Enemies/PollutedSkitterDeep": "enemy.polluted_skitter",
+		"Enemies/PollutedSkitterRidge": "enemy.polluted_skitter"
+	}
+	for node_path in enemy_expectations:
+		var enemy := map.get_node_or_null(String(node_path)) as PrototypeEnemy
+		host._expect_equal(enemy != null, true, "%s exists" % node_path)
+		if enemy == null:
+			continue
+		host._expect_equal(
+			enemy.definition_id,
+			String(enemy_expectations[node_path]),
+			"%s definition" % node_path
+		)
+	map.free()
+
+
+func _check_first_hour_objective_milestones() -> void:
+	var runtime := QuestRuntime.new(host.data_registry)
+	var character := CharacterState.create_default()
+	var calibrate_world := WorldState.create_default()
+	calibrate_world.quest_state.active_quest_ids = ["quest.calibrate_reactor"]
+	var calibrate_result := runtime.apply_objective_updates(calibrate_world, character, [
+		{"quest_id": "quest.calibrate_reactor", "objective_type": "gather_item", "target_id": "item.salvage_scrap", "amount": 4.0, "mode": "add"}
+	])
+	host._expect_text_contains(
+		" ".join(calibrate_result.get("log_messages", [])),
+		"回基地使用基础反应器",
+		"salvage milestone tells player to return to base"
+	)
+	var supply_world := WorldState.create_default()
+	supply_world.quest_state.active_quest_ids = ["quest.prepare_treatment_supplies"]
+	var supply_result := runtime.apply_objective_updates(supply_world, character, [
+		{"quest_id": "quest.prepare_treatment_supplies", "objective_type": "craft_item", "target_id": "item.repair_gel", "amount": 1.0, "mode": "add"}
+	])
+	host._expect_text_contains(
+		" ".join(supply_result.get("log_messages", [])),
+		"处理点北缘",
+		"repair gel milestone points back to field threat"
+	)
+	var pollution_world := WorldState.create_default()
+	pollution_world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
+	var pollution_result := runtime.apply_objective_updates(pollution_world, character, [
+		{"quest_id": "quest.enter_pollution_edge", "objective_type": "gather_item", "target_id": "item.polluted_residue", "amount": 4.0, "mode": "add"}
+	])
+	host._expect_text_contains(
+		" ".join(pollution_result.get("log_messages", [])),
+		"回处理点过滤器",
+		"pollution residue milestone explains treatment reason"
+	)
+	var vial_result := runtime.apply_objective_updates(pollution_world, character, [
+		{"quest_id": "quest.enter_pollution_edge", "objective_type": "craft_item", "target_id": "item.resistance_vial_t1", "amount": 1.0, "mode": "add"}
+	])
+	host._expect_text_contains(
+		" ".join(vial_result.get("log_messages", [])),
+		"第二批沉积物",
+		"resistance vial milestone explains stocked return route"
+	)
 
 
 func check_task_recipe_selection(reactor: PrototypeInteractable, processing: ProcessingSystem) -> void:
@@ -151,6 +567,7 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	host._expect_equal(processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world), "recipe.deep_core_imprint", "deep core analysis selects reactor recipe")
 	recipe_world.quest_state.active_quest_ids = ["quest.assemble_deep_override"]
 	host._expect_equal(processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world), "recipe.deep_override_key", "deep override assembly selects reactor recipe")
+	_check_mid_demo_missing_input_hints(processing)
 	recipe_character.inventory.add_item("item.phase_conduit", 2)
 	recipe_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
 	recipe_character.inventory.items["item.basic_parts"] = 1
@@ -532,6 +949,179 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	filter.free()
 
 
+func _check_mid_demo_missing_input_hints(processing: ProcessingSystem) -> void:
+	var phase_anchor_world := WorldState.create_default()
+	phase_anchor_world.quest_state.unlock_effect("recipe.phase_anchor")
+	var phase_anchor_character := CharacterState.create_default()
+	var phase_anchor_status := processing.get_recipe_status("recipe.phase_anchor", phase_anchor_character, phase_anchor_world)
+	host._expect_text_contains(
+		String(phase_anchor_status.get("supply_hint", "")),
+		"回收两处继电残片",
+		"phase anchor missing relay shard points to outer ring"
+	)
+	phase_anchor_character.inventory.add_item("item.relay_shard", 2)
+	phase_anchor_status = processing.get_recipe_status("recipe.phase_anchor", phase_anchor_character, phase_anchor_world)
+	host._expect_text_contains(
+		String(phase_anchor_status.get("supply_hint", "")),
+		"污染浆液来自污染过滤器处理沉积物",
+		"phase anchor missing slurry points to pollution filter"
+	)
+
+	var deep_signal_world := WorldState.create_default()
+	deep_signal_world.quest_state.unlock_effect("recipe.deep_signal_analysis")
+	var deep_signal_status := processing.get_recipe_status("recipe.deep_signal_analysis", CharacterState.create_default(), deep_signal_world)
+	host._expect_text_contains(
+		String(deep_signal_status.get("supply_hint", "")),
+		"回收外圈回波匣",
+		"deep signal analysis missing echo points to outer ring cache"
+	)
+
+	var filter_world := WorldState.create_default()
+	filter_world.quest_state.unlock_effect("recipe.phase_filament_refining")
+	filter_world.add_base_structure(
+		"structure.pollution_filter_build_site",
+		"building.pollution_filter",
+		"region.pollution_edge",
+		"map_object_instance.pollution_filter_build_site"
+	)
+	var filament_status := processing.get_recipe_status("recipe.phase_filament_refining", CharacterState.create_default(), filter_world)
+	host._expect_text_contains(
+		String(filament_status.get("supply_hint", "")),
+		"回收两处相位纤丝",
+		"phase filament refining missing input points to fracture ridge"
+	)
+
+	var override_world := WorldState.create_default()
+	override_world.quest_state.unlock_effect("recipe.deep_override_key")
+	var override_character := CharacterState.create_default()
+	override_character.inventory.items["item.basic_parts"] = 2
+	var override_status := processing.get_recipe_status("recipe.deep_override_key", override_character, override_world)
+	host._expect_text_contains(
+		String(override_status.get("supply_hint", "")),
+		"精炼相位纤丝",
+		"deep override missing resonance filter points to filter"
+	)
+	override_character.inventory.add_item("item.resonance_filter", 1)
+	override_status = processing.get_recipe_status("recipe.deep_override_key", override_character, override_world)
+	host._expect_text_contains(
+		String(override_status.get("supply_hint", "")),
+		"相位纤丝精炼副产",
+		"deep override missing slurry points to filter byproduct"
+	)
+	var deep_core_world := WorldState.create_default()
+	deep_core_world.quest_state.unlock_effect("recipe.deep_core_imprint")
+	var deep_core_status := processing.get_recipe_status("recipe.deep_core_imprint", CharacterState.create_default(), deep_core_world)
+	host._expect_text_contains(
+		String(deep_core_status.get("supply_hint", "")),
+		"取出裂相样块",
+		"deep core missing sample points back to fracture latch"
+	)
+
+	var matrix_world := WorldState.create_default()
+	matrix_world.quest_state.unlock_effect("recipe.deep_signal_matrix")
+	var matrix_status := processing.get_recipe_status("recipe.deep_signal_matrix", CharacterState.create_default(), matrix_world)
+	host._expect_text_contains(
+		String(matrix_status.get("supply_hint", "")),
+		"回收两束相位导管",
+		"deep signal matrix missing conduit points back to array line"
+	)
+	var matrix_character := CharacterState.create_default()
+	matrix_character.inventory.add_item("item.phase_conduit", 2)
+	matrix_status = processing.get_recipe_status("recipe.deep_signal_matrix", matrix_character, matrix_world)
+	host._expect_text_contains(
+		String(matrix_status.get("supply_hint", "")),
+		"整理深段读数矩阵",
+		"deep signal matrix missing slurry points back to refinery source"
+	)
+	var splinter_world := WorldState.create_default()
+	splinter_world.quest_state.unlock_effect("recipe.phase_splinter_refining")
+	splinter_world.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
+	var splinter_status := processing.get_recipe_status("recipe.phase_splinter_refining", CharacterState.create_default(), splinter_world)
+	host._expect_text_contains(
+		String(splinter_status.get("supply_hint", "")),
+		"两处裂相共振读数",
+		"phase splinter refining missing input points back to resonance and hunter route"
+	)
+
+	var lens_world := WorldState.create_default()
+	lens_world.quest_state.unlock_effect("recipe.relay_tuning_lens")
+	var lens_status := processing.get_recipe_status("recipe.relay_tuning_lens", CharacterState.create_default(), lens_world)
+	host._expect_text_contains(
+		String(lens_status.get("supply_hint", "")),
+		"筛成透镜胚片",
+		"relay lens missing blank points back to filter"
+	)
+	var lens_character := CharacterState.create_default()
+	lens_character.inventory.add_item("item.phase_lens_blank", 1)
+	lens_status = processing.get_recipe_status("recipe.relay_tuning_lens", lens_character, lens_world)
+	host._expect_text_contains(
+		String(lens_status.get("supply_hint", "")),
+		"裂相碎屑筛分副产",
+		"relay lens missing slurry points back to splinter filtering byproduct"
+	)
+
+	var inner_trace_world := WorldState.create_default()
+	inner_trace_world.quest_state.unlock_effect("recipe.inner_fault_analysis")
+	var inner_trace_status := processing.get_recipe_status("recipe.inner_fault_analysis", CharacterState.create_default(), inner_trace_world)
+	host._expect_text_contains(
+		String(inner_trace_status.get("supply_hint", "")),
+		"带回内层故障轨迹",
+		"inner fault analysis missing trace points back to spire calibration"
+	)
+
+	var fault_residue_world := WorldState.create_default()
+	fault_residue_world.quest_state.unlock_effect("recipe.fault_residue_stabilization")
+	fault_residue_world.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
+	var fault_residue_status := processing.get_recipe_status(
+		"recipe.fault_residue_stabilization",
+		CharacterState.create_default(),
+		fault_residue_world
+	)
+	host._expect_text_contains(
+		String(fault_residue_status.get("supply_hint", "")),
+		"两处故障脉冲",
+		"fault residue stabilization missing input points back to fault pulse route"
+	)
+
+	var phase_well_key_world := WorldState.create_default()
+	phase_well_key_world.quest_state.unlock_effect("recipe.phase_well_key")
+	var phase_well_key_status := processing.get_recipe_status(
+		"recipe.phase_well_key",
+		CharacterState.create_default(),
+		phase_well_key_world
+	)
+	host._expect_text_contains(
+		String(phase_well_key_status.get("supply_hint", "")),
+		"解析内层故障轨迹",
+		"phase well key missing coordinate points back to inner trace analysis"
+	)
+	var phase_well_key_character := CharacterState.create_default()
+	phase_well_key_character.inventory.add_item("item.phase_well_coordinate", 1)
+	phase_well_key_status = processing.get_recipe_status(
+		"recipe.phase_well_key",
+		phase_well_key_character,
+		phase_well_key_world
+	)
+	host._expect_text_contains(
+		String(phase_well_key_status.get("supply_hint", "")),
+		"稳定故障残渣",
+		"phase well key missing core points back to residue stabilization"
+	)
+
+	var locator_world := WorldState.create_default()
+	locator_world.quest_state.unlock_effect("recipe.phase_well_locator_analysis")
+	var locator_status := processing.get_recipe_status(
+		"recipe.phase_well_locator_analysis",
+		CharacterState.create_default(),
+		locator_world
+	)
+	host._expect_text_contains(
+		String(locator_status.get("supply_hint", "")),
+		"回声定位器",
+		"phase well locator analysis missing locator points back to phase well lock"
+	)
+
+
 func check_equipment_processing_runtime() -> void:
 	var processing := ProcessingSystem.new(host.data_registry)
 	var module_world := WorldState.create_default()
@@ -604,7 +1194,7 @@ func _check_hud_log_presenter() -> void:
 
 func _check_development_baseline_presenter() -> void:
 	var definitions := DevelopmentBaselineCatalog.get_baseline_definitions()
-	host._expect_equal(definitions.size(), 21, "development baseline catalog count")
+	host._expect_equal(definitions.size(), 22, "development baseline catalog count")
 	host._expect_equal(
 		String(definitions[0].get("id", "")),
 		"baseline.s0_new_game",
@@ -612,14 +1202,38 @@ func _check_development_baseline_presenter() -> void:
 	)
 	var presenter := HudDevelopmentBaselinePresenter.new()
 	var selected_text := presenter.format_selected_baseline(definitions[3], 3, definitions.size())
-	host._expect_text_contains(selected_text, "S3 深段门禁已开", "development baseline presenter shows selected baseline name")
+	host._expect_text_contains(selected_text, "S3 裂相脊入口已开", "development baseline presenter shows selected baseline name")
 	host._expect_text_contains(selected_text, "相位纤丝", "development baseline presenter shows baseline summary")
 	host._expect_text_contains(selected_text, "过滤器精炼", "development baseline presenter shows recommended use")
 	host._expect_equal(
-		String(definitions[20].get("id", "")),
-		"baseline.s20_phase_survey_feedback_ready",
-		"development baseline catalog ends at S20"
+		String(definitions[21].get("id", "")),
+		"baseline.s21_demo_stabilization_core_ready",
+		"development baseline catalog ends at S21"
 	)
+
+
+func _check_demo_stabilization_baseline_status_panel() -> void:
+	var builder := DevelopmentBaselineBuilder.new(host.data_registry)
+	var result := builder.create_baseline_state("baseline.s21_demo_stabilization_core_ready")
+	host._expect_equal(bool(result.get("success", false)), true, "S21 baseline status panel generation")
+	if not bool(result.get("success", false)):
+		return
+
+	var world_state: WorldState = result.get("world_state", null)
+	var character_state: CharacterState = result.get("character_state", null)
+	if world_state == null or character_state == null:
+		host.failures.append("S21 baseline status panel should receive world and character states")
+		return
+
+	var presenter := HudStatusPresenter.new()
+	var status_text := presenter.format_status_text(host.data_registry, world_state, character_state)
+	host._expect_text_contains(status_text, "目标：进入核心稳定站", "S21 status shows demo core entry target")
+	host._expect_text_contains(status_text, "进度：进入 核心稳定站 0/1", "S21 status shows demo core region progress")
+	host._expect_text_contains(status_text, "关键资源：基础零件x16", "S21 status keeps compact key resources")
+	host._expect_text_contains(status_text, "设备：待命；当前目标先外出推进", "S21 status keeps base summary from pulling player back")
+	host._expect_text_contains(status_text, "模块：基础多用工具；基础防护服；基础过滤模块", "S21 status keeps combat module visible")
+	host._expect_text_missing(status_text, "前线行动台", "S21 status should not point back to action console")
+	host._expect_text_missing(status_text, "高压窗口", "S21 status should not reopen overpressure window")
 
 
 func _check_game_root_development_baseline_factory() -> void:
@@ -642,9 +1256,60 @@ func _check_game_root_development_baseline_factory() -> void:
 	host._expect_equal(character_state.current_region_id, "region.outpost_platform", "S4 baseline character region")
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_deep_core", "S4 baseline active quest")
 	host._expect_equal(int(character_state.inventory.items.get("item.basic_parts", 0)), 4, "S4 baseline keeps enough basic parts for the second deep pass")
-	host._expect_equal(int(character_state.inventory.items.get("item.deep_ruin_core", 0)), 1, "S4 baseline keeps deep ruin core reward")
+	host._expect_equal(int(character_state.inventory.items.get("item.deep_ruin_core", 0)), 1, "S4 baseline keeps fracture sample reward")
 	host._expect_equal(float(character_state.inventory.fluids.get("fluid.polluted_slurry", 0.0)), 1.0, "S4 baseline keeps polluted slurry for deep signal matrix")
 	host._expect_equal(String(character_state.equipment.get("suit_module", "")), "equipment.filter_module_t1", "S4 baseline equips filter module")
+
+	var s5_result := game_root.create_development_baseline_state("baseline.s5_phase_relay_online")
+	host._expect_equal(bool(s5_result.get("success", false)), true, "S5 development baseline generation")
+	if not bool(s5_result.get("success", false)):
+		game_root.free()
+		return
+	var s5_world: WorldState = s5_result.get("world_state", null)
+	var s5_character: CharacterState = s5_result.get("character_state", null)
+	host._expect_equal(s5_world.current_region_id, "region.outpost_platform", "S5 baseline world region")
+	host._expect_equal(s5_character.current_region_id, "region.outpost_platform", "S5 baseline character region")
+	host._expect_array_has(s5_world.quest_state.active_quest_ids, "quest.reenter_phase_frontline", "S5 baseline active quest")
+	host._expect_equal(s5_world.active_phase_relay_anchor_id, "map_object_instance.phase_return_anchor", "S5 baseline active relay anchor")
+	host._expect_equal(
+		s5_world.get_deployed_phase_relay_anchor_ids(),
+		["map_object_instance.phase_return_anchor"],
+		"S5 baseline deployed relay anchors"
+	)
+	host._expect_equal(int(s5_character.inventory.items.get("item.repair_gel", 0)), 1, "S5 baseline keeps field repair gel")
+	host._expect_equal(int(s5_character.inventory.items.get("item.resistance_vial_t1", 0)), 1, "S5 baseline keeps anti-pollution vial")
+
+	var s6_result := game_root.create_development_baseline_state("baseline.s6_inner_fault_trace_ready")
+	host._expect_equal(bool(s6_result.get("success", false)), true, "S6 development baseline generation")
+	if not bool(s6_result.get("success", false)):
+		game_root.free()
+		return
+	var s6_world: WorldState = s6_result.get("world_state", null)
+	var s6_character: CharacterState = s6_result.get("character_state", null)
+	host._expect_array_has(s6_world.quest_state.active_quest_ids, "quest.analyze_inner_fault_trace", "S6 baseline active quest")
+	host._expect_equal(int(s6_character.inventory.items.get("item.inner_fault_trace", 0)), 1, "S6 baseline keeps inner fault trace reward")
+	host._expect_equal(s6_world.active_phase_relay_anchor_id, "map_object_instance.phase_return_anchor", "S6 baseline active relay anchor")
+	host._expect_equal(
+		s6_world.get_deployed_phase_relay_anchor_ids(),
+		["map_object_instance.phase_return_anchor"],
+		"S6 baseline deployed relay anchors"
+	)
+
+	var s7_result := game_root.create_development_baseline_state("baseline.s7_phase_well_locator_ready")
+	host._expect_equal(bool(s7_result.get("success", false)), true, "S7 development baseline generation")
+	if not bool(s7_result.get("success", false)):
+		game_root.free()
+		return
+	var s7_world: WorldState = s7_result.get("world_state", null)
+	var s7_character: CharacterState = s7_result.get("character_state", null)
+	host._expect_array_has(s7_world.quest_state.active_quest_ids, "quest.analyze_phase_well_locator", "S7 baseline active quest")
+	host._expect_equal(int(s7_character.inventory.items.get("item.phase_well_locator", 0)), 1, "S7 baseline keeps phase well locator reward")
+	host._expect_equal(s7_world.active_phase_relay_anchor_id, "map_object_instance.phase_return_anchor", "S7 baseline active relay anchor")
+	host._expect_equal(
+		s7_world.get_deployed_phase_relay_anchor_ids(),
+		["map_object_instance.phase_return_anchor"],
+		"S7 baseline deployed relay anchors"
+	)
 	game_root.free()
 
 

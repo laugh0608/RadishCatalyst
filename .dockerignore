@@ -2,6 +2,7 @@
 .github/
 .godot/
 .godot-check-home/
+.godot-check-runs/
 .idea/
 .vscode/
 .vs/

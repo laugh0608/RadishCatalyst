@@ -15,6 +15,10 @@ func run() -> void:
 	_check_runtime_recovers_late_anchor_stake_progress_from_inventory()
 	_check_runtime_restores_phase_well_anchor_core_followup()
 	_check_runtime_preserves_manual_phase_relay_anchor_selection()
+	_check_demo_stabilization_event_rules()
+	_check_runtime_activates_demo_stabilization_core_entry()
+	_check_demo_stabilization_three_step_flow()
+	_check_demo_stabilization_short_run_from_overpressure_archive()
 
 
 func _check_phase_well_knot_core_recipe_progression() -> void:
@@ -171,9 +175,9 @@ func _check_runtime_restores_phase_well_knot_core_followup() -> void:
 	host._expect_equal(int(character_state.inventory.items.get("item.phase_well_knot_core", 0)), 1, "runtime restores missing phase well knot core reward")
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_phase_well_knot_core", "runtime activates phase well knot core analysis quest")
 	host._expect_equal(host._result_array_size(result, "completion_feedbacks"), 0, "phase well knot core followup restoration should not emit completion feedback")
-	if not host._result_logs_contain(result, "相位井结核已补回背包"):
+	if not host._result_logs_contain(result, "锚定结核已补回背包"):
 		host.failures.append("phase well knot core restoration should log restored knot core reward, got %s" % var_to_str(result))
-	if not host._result_logs_contain(result, "井纹架后的井系桥后续任务"):
+	if not host._result_logs_contain(result, "锁相框架后的锚定桥后续任务"):
 		host.failures.append("phase well knot core restoration should log tether followup activation, got %s" % var_to_str(result))
 
 
@@ -376,7 +380,175 @@ func _check_runtime_restores_phase_well_anchor_core_followup() -> void:
 	host._expect_equal(int(character_state.inventory.items.get("item.phase_well_anchor_core", 0)), 1, "runtime restores missing anchor core reward")
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_phase_well_anchor_core", "runtime activates anchor core analysis quest")
 	host._expect_equal(host._result_array_size(result, "completion_feedbacks"), 0, "anchor core followup restoration should not emit completion feedback")
-	if not host._result_logs_contain(result, "相位井锚核已补回背包"):
+	if not host._result_logs_contain(result, "稳场锚核已补回背包"):
 		host.failures.append("phase well anchor core restoration should log restored anchor core reward, got %s" % var_to_str(result))
-	if not host._result_logs_contain(result, "井系桥后的锚场回稳后续任务"):
+	if not host._result_logs_contain(result, "锚定桥后的锚场回稳后续任务"):
 		host.failures.append("phase well anchor core restoration should log anchor-field followup activation, got %s" % var_to_str(result))
+
+
+func _check_demo_stabilization_event_rules() -> void:
+	var quest_state := QuestState.create_default()
+	var updates: Array = host.event_rules.get_region_objective_updates("region.demo_stabilization_core", quest_state)
+	host._expect_update(updates, "set", "quest.enter_demo_stabilization_core", "visit_region", "region.demo_stabilization_core", 1.0, "demo core region visit update")
+
+	updates = host.event_rules.get_defeated_enemy_objective_updates("enemy.demo_stabilization_guard")
+	host._expect_update(updates, "set", "quest.defeat_demo_stabilization_guard", "defeat_enemy", "enemy.demo_stabilization_guard", 1.0, "demo guard defeat update")
+
+	updates = host.event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.demo_stabilization_core",
+			"interaction_type": "inspect"
+		},
+		{},
+		quest_state
+	)
+	host._expect_update(updates, "set", "quest.write_demo_stabilization_core", "inspect", "map_object.demo_stabilization_core", 1.0, "demo core inspect update")
+
+
+func _check_runtime_activates_demo_stabilization_core_entry() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	world_state.quest_state.active_quest_ids.clear()
+	world_state.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
+	world_state.set_base_action_state_value(
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_COUNT_KEY,
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_LIMIT + 1
+	)
+
+	var result: Dictionary = host.quest_runtime.reconcile_active_objectives(world_state, character_state)
+	host._expect_equal(bool(result.get("accepted", false)), true, "overpressure review activates demo core entry")
+	host._expect_array_has(world_state.unlocked_region_ids, "region.demo_stabilization_core", "overpressure review unlocks demo core")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.enter_demo_stabilization_core", "overpressure review activates demo core entry quest")
+
+
+func _check_demo_stabilization_three_step_flow() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	var gather_system := GatherSystem.new(host.data_registry)
+	world_state.unlock_region("region.demo_stabilization_core")
+	world_state.current_region_id = "region.demo_stabilization_core"
+	character_state.current_region_id = "region.demo_stabilization_core"
+	world_state.quest_state.active_quest_ids = ["quest.enter_demo_stabilization_core"]
+
+	var result: Dictionary = host.quest_runtime.advance_for_region(world_state, character_state, "region.demo_stabilization_core")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.enter_demo_stabilization_core", "enter demo core quest completes on region visit")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.defeat_demo_stabilization_guard", "enter demo core activates guard quest")
+	host._expect_equal(host._result_array_size(result, "completion_feedbacks"), 1, "enter demo core emits completion feedback")
+
+	result = host.quest_runtime.advance_for_defeated_enemy(world_state, character_state, "enemy.demo_stabilization_guard")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.defeat_demo_stabilization_guard", "demo guard defeat quest completes")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.write_demo_stabilization_core", "guard defeat activates core write quest")
+
+	var blocked_world := WorldState.create_default()
+	blocked_world.quest_state.active_quest_ids = ["quest.write_demo_stabilization_core"]
+	var blocked := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"inspect",
+		character_state,
+		blocked_world
+	)
+	host._expect_equal(bool(blocked.get("success", true)), false, "core write should be blocked before guard defeat")
+	var blocked_message := String(blocked.get("message", ""))
+	if blocked_message.find("核心阶段守卫") < 0:
+		host.failures.append("core write blocker should mention guard, got %s" % blocked_message)
+
+	world_state.ensure_enemy("enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core", 156.0)
+	world_state.update_enemy_health("enemy_instance.demo_stabilization_guard", 0.0, true)
+	var interaction_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(interaction_result.get("success", false)), true, "core write interaction succeeds after guard defeat")
+	result = host.quest_runtime.advance_for_interaction(
+		world_state,
+		character_state,
+		{
+			"definition_id": "map_object.demo_stabilization_core",
+			"interaction_type": "inspect"
+		},
+		interaction_result
+	)
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.write_demo_stabilization_core", "core write quest completes")
+	host._expect_equal(host._result_array_size(result, "completion_feedbacks"), 1, "core write emits completion feedback")
+	if host._result_array_size(result, "completion_feedbacks") > 0:
+		var feedbacks: Array = result.get("completion_feedbacks", [])
+		var feedback = feedbacks[0]
+		if not feedback is Dictionary:
+			host.failures.append("core write completion feedback should be a dictionary, got %s" % var_to_str(feedback))
+			return
+		host._expect_equal(String(feedback.get("panel_title", "")), "Demo 完成", "core write completion uses demo panel title")
+
+
+func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
+	var world_state := WorldState.create_default()
+	var character_state := CharacterState.create_default()
+	var gather_system := GatherSystem.new(host.data_registry)
+	world_state.quest_state.active_quest_ids.clear()
+	world_state.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
+	world_state.set_base_action_state_value(
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_COUNT_KEY,
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_LIMIT + 1
+	)
+	world_state.set_base_action_state_value(
+		BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY,
+		"高压窗口稳定数据已归档"
+	)
+
+	var result: Dictionary = host.quest_runtime.reconcile_active_objectives(world_state, character_state)
+	host._expect_equal(bool(result.get("accepted", false)), true, "short run accepts overpressure archive state")
+	host._expect_array_has(world_state.unlocked_region_ids, "region.demo_stabilization_core", "short run unlocks demo core region")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.enter_demo_stabilization_core", "short run activates demo core entry")
+	if not host._result_logs_contain(result, "核心稳定站已接入"):
+		host.failures.append("short run should log demo core entry activation, got %s" % var_to_str(result))
+
+	world_state.current_region_id = "region.demo_stabilization_core"
+	character_state.current_region_id = "region.demo_stabilization_core"
+	result = host.quest_runtime.advance_for_region(world_state, character_state, "region.demo_stabilization_core")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.enter_demo_stabilization_core", "short run completes demo core entry")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.defeat_demo_stabilization_guard", "short run activates guard objective")
+
+	var repair_before := int(character_state.inventory.items.get("item.repair_gel", 0))
+	var recovery_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_recovery_wreckage",
+		"map_object.demo_stabilization_recovery_cache",
+		"gather",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(recovery_result.get("success", false)), true, "short run side recovery cache can be gathered")
+	host._expect_equal(
+		int(character_state.inventory.items.get("item.repair_gel", 0)),
+		repair_before + 1,
+		"short run side recovery grants repair gel"
+	)
+	host._expect_array_missing(world_state.quest_state.completed_quest_ids, "quest.write_demo_stabilization_core", "side recovery should not complete demo")
+
+	result = host.quest_runtime.advance_for_defeated_enemy(world_state, character_state, "enemy.demo_stabilization_guard")
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.defeat_demo_stabilization_guard", "short run completes guard defeat")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.write_demo_stabilization_core", "short run activates core write")
+	world_state.ensure_enemy("enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core", 156.0)
+	world_state.update_enemy_health("enemy_instance.demo_stabilization_guard", 0.0, true)
+
+	var write_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(write_result.get("success", false)), true, "short run writes demo stabilization core")
+	result = host.quest_runtime.advance_for_interaction(
+		world_state,
+		character_state,
+		{
+			"definition_id": "map_object.demo_stabilization_core",
+			"interaction_type": "inspect"
+		},
+		write_result
+	)
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.write_demo_stabilization_core", "short run completes demo core write")
+	host._expect_equal(host._result_array_size(result, "completion_feedbacks"), 1, "short run emits demo completion feedback")

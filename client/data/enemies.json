@@ -240,6 +240,36 @@
       "drops": [{"id": "item.repair_gel", "amount": 1}],
       "spawn_regions": ["region.phase_well_tether"],
       "public_level": "spoiler"
+    },
+    {
+      "id": "enemy.pressure_clearance_guard",
+      "display_name_key": "enemy.pressure_clearance_guard.name",
+      "description_key": "enemy.pressure_clearance_guard.desc",
+      "category": "ruin_guard",
+      "faction": "ruin_sentinel",
+      "base_stats": {"max_health": 64, "attack": 12, "move_speed": 112},
+      "behaviors": ["pressure_guard", "melee_chase"],
+      "damage_types": ["physical", "pollution"],
+      "resistances": {"pollution": 0.55},
+      "drop_table_id": "drop.pressure_clearance_guard",
+      "drops": [{"id": "item.repair_gel", "amount": 1}],
+      "spawn_regions": ["region.phase_well_tether"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "enemy.demo_stabilization_guard",
+      "display_name_key": "enemy.demo_stabilization_guard.name",
+      "description_key": "enemy.demo_stabilization_guard.desc",
+      "category": "ruin_guard",
+      "faction": "ruin_sentinel",
+      "base_stats": {"max_health": 156, "attack": 20, "move_speed": 118},
+      "behaviors": ["core_guard", "melee_chase"],
+      "damage_types": ["physical", "pollution"],
+      "resistances": {"pollution": 0.88},
+      "drop_table_id": "drop.demo_stabilization_guard",
+      "drops": [{"id": "item.repair_gel", "amount": 1}, {"id": "item.resistance_vial_t1", "amount": 1}],
+      "spawn_regions": ["region.demo_stabilization_core"],
+      "public_level": "spoiler"
     }
   ]
 }

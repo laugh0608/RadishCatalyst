@@ -36,7 +36,10 @@ const PHASE_RELAY_TETHER_PROGRESS_QUEST_IDS: Array[String] = [
 	"quest.inspect_phase_survey_nodes",
 	"quest.analyze_phase_survey_trace",
 	"quest.clear_pressure_frontline_hazard",
-	"quest.analyze_pressure_clearance_trace"
+	"quest.analyze_pressure_clearance_trace",
+	"quest.enter_demo_stabilization_core",
+	"quest.defeat_demo_stabilization_guard",
+	"quest.write_demo_stabilization_core"
 ]
 
 var event_rules: QuestEventRules
@@ -110,41 +113,43 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 	if bool(progression_sync.get("changed", false)):
 		log_messages.append(CharacterProgressionStats.LEGACY_SYNC_LOG_MESSAGE)
 	if _restore_missing_phase_well_heart_analysis_unlock(world_state):
-		log_messages.append("旧进度已接入：相位井心核解析配方已补齐。")
+		log_messages.append("旧进度已接入：碎晶心核解析配方已补齐。")
 	if _restore_missing_phase_well_spindle_analysis_unlock(world_state):
-		log_messages.append("旧进度已接入：相位井纺核解析配方已补齐。")
+		log_messages.append("旧进度已接入：风蚀张力核解析配方已补齐。")
 	if _restore_missing_phase_well_weave_core_analysis_unlock(world_state):
-		log_messages.append("旧进度已接入：相位井织核解析配方已补齐。")
+		log_messages.append("旧进度已接入：锁相织构核解析配方已补齐。")
 	if _restore_missing_phase_well_knot_core_analysis_unlock(world_state):
-		log_messages.append("旧进度已接入：相位井结核解析配方已补齐。")
+		log_messages.append("旧进度已接入：锚定结核解析配方已补齐。")
 	if _restore_missing_phase_well_anchor_core_analysis_unlock(world_state):
-		log_messages.append("旧进度已接入：相位井锚核解析配方已补齐。")
+		log_messages.append("旧进度已接入：稳场锚核解析配方已补齐。")
 	if _restore_missing_phase_well_weave_core_reward(character_state, world_state):
-		log_messages.append("旧进度已接入：井纺室勘验奖励的相位井织核已补回背包。")
+		log_messages.append("旧进度已接入：风蚀管廊勘验奖励的锁相织构核已补回背包。")
 	if _restore_missing_phase_well_knot_core_reward(character_state, world_state):
-		log_messages.append("旧进度已接入：井纹架勘验奖励的相位井结核已补回背包。")
+		log_messages.append("旧进度已接入：锁相框架勘验奖励的锚定结核已补回背包。")
 	if _restore_missing_phase_well_anchor_core_reward(character_state, world_state):
-		log_messages.append("旧进度已接入：井系桥勘验奖励的相位井锚核已补回背包。")
+		log_messages.append("旧进度已接入：锚定桥勘验奖励的稳场锚核已补回背包。")
 	if _restore_missing_phase_well_core_analysis_unlock(world_state):
-		log_messages.append("旧进度已接入：相位井芯样本解析配方已补齐。")
+		log_messages.append("旧进度已接入：回声芯样本解析配方已补齐。")
 	if _restore_missing_phase_well_locator_analysis_unlock(world_state):
-		log_messages.append("旧进度已接入：相位井定位器解析配方已补齐。")
+		log_messages.append("旧进度已接入：回声定位器解析配方已补齐。")
 	if _restore_missing_inner_fault_analysis_unlock(world_state):
 		log_messages.append("旧进度已接入：内层故障轨迹分析配方已补齐。")
 	if _restore_missing_phase_relay_anchor(world_state):
 		log_messages.append("旧进度已接入：前线回传锚点已按固定深段落点恢复在线。")
 	if _restore_late_phase_relay_anchor(world_state):
-		log_messages.append("旧进度已接入：井系桥前线回传锚点已设为当前回投落点。")
+		log_messages.append("旧进度已接入：锚定桥前线回传锚点已设为当前回投落点。")
 	if _restore_missing_deployed_phase_relay_anchors(world_state):
 		log_messages.append("旧进度已接入：已部署前线锚点列表已按现有回投进度补齐。")
 	if _activate_missing_post_phase_well_loom_followup(world_state):
-		log_messages.append("旧进度已接入：井纺室后的井纹架后续任务已补入当前目标。")
+		log_messages.append("旧进度已接入：风蚀管廊后的锁相框架后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_frame_followup(world_state):
-		log_messages.append("旧进度已接入：井纹架后的井系桥后续任务已补入当前目标。")
+		log_messages.append("旧进度已接入：锁相框架后的锚定桥后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_tether_followup(world_state):
-		log_messages.append("旧进度已接入：井系桥后的锚场回稳后续任务已补入当前目标。")
+		log_messages.append("旧进度已接入：锚定桥后的锚场回稳后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_readout_followup(world_state):
 		log_messages.append("旧进度已接入：稳窗读数后的现场校准任务已补入当前目标。")
+	if _activate_missing_demo_stabilization_core_entry(world_state):
+		log_messages.append("核心稳定站已接入：高压窗口稳定数据已归档，最终写入目标已补入当前目标。")
 	if _activate_missing_post_stability_window_frontline_action(world_state):
 		log_messages.append("旧进度已接入：稳窗校准后的前线行动任务已补入当前目标。")
 	if _activate_missing_post_stability_echo_report_supply_action(world_state):
@@ -160,15 +165,15 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 	if _activate_missing_post_pressure_choice_followup(world_state):
 		log_messages.append("旧进度已接入：压力清障选择后的前线目标已补入当前目标。")
 	if _activate_missing_post_phase_well_chamber_followup(world_state):
-		log_messages.append("旧进度已接入：井心室后的井纺后续任务已补入当前目标。")
+		log_messages.append("旧进度已接入：碎晶沟谷后的风蚀后续任务已补入当前目标。")
 	if _activate_missing_post_phase_well_sink_followup(world_state):
-		log_messages.append("旧进度已接入：井底裂口后的心核后续任务已补入当前目标。")
+		log_messages.append("旧进度已接入：盐壳浅滩后的心核后续任务已补入当前目标。")
 	if _activate_missing_post_phase_relay_followup(world_state):
 		log_messages.append("旧进度已接入：回传后的深段后续任务已补入当前目标。")
 	if _activate_missing_second_deep_followup(world_state):
-		log_messages.append("旧进度已接入：深段样块后的第二轮任务已补入当前目标。")
+		log_messages.append("旧进度已接入：裂相样块后的第二轮任务已补入当前目标。")
 	if _activate_missing_deep_ruin_followup(world_state):
-		log_messages.append("旧进度已接入：更深遗迹入口门禁写入任务已补入当前目标。")
+		log_messages.append("旧进度已接入：裂相脊入口门禁写入任务已补入当前目标。")
 	if _activate_missing_outer_ring_followup(world_state):
 		log_messages.append("旧进度已接入：外圈中继后的深段回波回收任务已补入当前目标。")
 	if world_state.quest_state.has_active_quest("quest.bring_back_sample"):
@@ -208,26 +213,69 @@ func apply_objective_updates(
 ) -> Dictionary:
 	var result := _empty_result(true)
 	var changed_quest_ids: Array[String] = []
+	var milestone_messages_by_quest := {}
 	for update in updates:
 		var quest_id := String(update.get("quest_id", ""))
 		var objective_type := String(update.get("objective_type", ""))
 		var target_id := String(update.get("target_id", ""))
 		var amount := float(update.get("amount", 0.0))
+		var required_amount := progress_rules.get_objective_required_amount(quest_id, objective_type, target_id)
+		var previous_amount := 0.0
+		if required_amount >= 0.0:
+			previous_amount = world_state.quest_state.get_objective_progress(quest_id, objective_type, target_id)
 		if String(update.get("mode", "set")) == "add":
 			progress_rules.add_active_objective_progress(world_state.quest_state, quest_id, objective_type, target_id, amount)
 		else:
 			progress_rules.set_active_objective_progress(world_state.quest_state, quest_id, objective_type, target_id, amount)
+		if required_amount > 0.0:
+			var current_amount := world_state.quest_state.get_objective_progress(quest_id, objective_type, target_id)
+			if previous_amount < required_amount and current_amount >= required_amount:
+				var milestone_message := _format_objective_milestone_message(quest_id, objective_type, target_id)
+				if not milestone_message.is_empty():
+					if not milestone_messages_by_quest.has(quest_id):
+						milestone_messages_by_quest[quest_id] = []
+					milestone_messages_by_quest[quest_id].append(milestone_message)
 		if not changed_quest_ids.has(quest_id):
 			changed_quest_ids.append(quest_id)
 
 	for quest_id in changed_quest_ids:
 		var feedback := _try_complete_quest(world_state, character_state, quest_id)
-		if feedback.is_empty():
+		if not feedback.is_empty():
+			result["completion_feedbacks"].append(feedback)
+			result["log_messages"].append(String(feedback.get("log_message", "")))
 			continue
 
-		result["completion_feedbacks"].append(feedback)
-		result["log_messages"].append(String(feedback.get("log_message", "")))
+		if not world_state.quest_state.has_active_quest(quest_id):
+			continue
+		if not milestone_messages_by_quest.has(quest_id):
+			continue
+		for milestone_message in milestone_messages_by_quest[quest_id]:
+			result["log_messages"].append(String(milestone_message))
 	return result
+
+
+func _format_objective_milestone_message(quest_id: String, objective_type: String, target_id: String) -> String:
+	match quest_id:
+		"quest.calibrate_reactor":
+			if objective_type == "gather_item" and target_id == "item.salvage_scrap":
+				return "导电废件已够：回基地使用基础反应器，组装反应器校准件。"
+		"quest.analyze_anomaly_sample":
+			if objective_type == "gather_item" and target_id == "item.anomaly_residue":
+				return "异常残留物已够：回基地使用基础反应器，把样本分析成过滤模块参数。"
+		"quest.prepare_treatment_supplies":
+			if objective_type == "craft_item" and target_id == "item.repair_gel":
+				return "修复凝胶已就绪：带上快捷栏 1 的补给，去处理点北缘连续清理两处掠行体。"
+		"quest.expand_treatment_point":
+			if objective_type == "clear" and target_id == "map_object.rough_ground":
+				return "处理点地面已清理：回基地制造基础地基材料，再回来铺设 2 块地基。"
+			if objective_type == "build" and target_id == "building.foundation_t1":
+				return "两块地基已铺好：继续建造污染过滤器，之后才能把沉积物处理成药剂。"
+		"quest.enter_pollution_edge":
+			if objective_type == "gather_item" and target_id == "item.polluted_residue":
+				return "污染沉积物已够：回处理点过滤器处理成抗污染药剂，再继续深入污染边界。"
+			if objective_type == "craft_item" and target_id == "item.resistance_vial_t1":
+				return "抗污染药剂已就绪：按 2 可补防护，带药剂回污染边界补第二批沉积物并清理受扰敌人，之后再压制遗迹门前压力点。"
+	return ""
 
 
 func _try_complete_quest(world_state: WorldState, character_state: CharacterState, quest_id: String) -> Dictionary:
@@ -910,6 +958,22 @@ func _activate_missing_post_pressure_choice_followup(world_state: WorldState) ->
 	return true
 
 
+func _activate_missing_demo_stabilization_core_entry(world_state: WorldState) -> bool:
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		return false
+	if world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core"):
+		return false
+	if world_state.quest_state.has_active_quest("quest.enter_demo_stabilization_core"):
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.calibrate_phase_well_stability_window"):
+		return false
+	if not _has_completed_overpressure_review(world_state):
+		return false
+	world_state.unlock_region("region.demo_stabilization_core")
+	world_state.quest_state.activate_quest("quest.enter_demo_stabilization_core")
+	return true
+
+
 func _activate_missing_post_phase_well_chamber_followup(world_state: WorldState) -> bool:
 	if not world_state.quest_state.active_quest_ids.is_empty():
 		return false
@@ -1045,6 +1109,14 @@ func _has_completed_or_active_quest(world_state: WorldState, quest_ids: Array[St
 		if world_state.quest_state.has_completed_quest(quest_id) or world_state.quest_state.has_active_quest(quest_id):
 			return true
 	return false
+
+
+func _has_completed_overpressure_review(world_state: WorldState) -> bool:
+	var review_count = world_state.get_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_COUNT_KEY, null)
+	if review_count != null:
+		return int(review_count) > BaseActionDispatchPlan.FRONTLINE_WINDOW_REVIEW_LIMIT
+	var archived_feedback := String(world_state.get_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_ARCHIVED_FEEDBACK_KEY, ""))
+	return not archived_feedback.is_empty()
 
 
 func _normalize_deployed_phase_relay_anchor_order(world_state: WorldState) -> bool:

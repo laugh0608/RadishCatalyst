@@ -153,7 +153,7 @@
       "stack_size": 10,
       "mass": 0.1,
       "rarity": "common",
-      "source_refs": ["recipe.repair_gel"],
+      "source_refs": ["recipe.repair_gel", "map_object.demo_stabilization_recovery_cache"],
       "used_by_refs": ["quest.prepare_treatment_supplies", "quest.defeat_elite_node"],
       "public_level": "public"
     },

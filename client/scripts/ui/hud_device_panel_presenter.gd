@@ -42,6 +42,9 @@ func _format_device_status(
 		"输入：%s" % String(status.get("inputs", "无")),
 		"产出：%s" % String(status.get("outputs", "无"))
 	]
+	var purpose_hint := RecipePurposeHints.format_recipe_goal_hint(recipe_id)
+	if not purpose_hint.is_empty():
+		parts.append("用途：%s" % purpose_hint)
 	if not recommended_recipe_id.is_empty():
 		parts.append(_format_recommended_recipe_status(data_registry, recipe_id, recommended_recipe_id))
 	var supply_hint := String(status.get("supply_hint", ""))
@@ -126,7 +129,13 @@ func _format_recommended_recipe_status(data_registry: DataRegistry, recipe_id: S
 	var recommended_name := _get_display_name(data_registry, recommended_recipe_id)
 	if recipe_id == recommended_recipe_id:
 		return "推荐：当前配方匹配当前目标。"
-	return "推荐：当前目标建议使用 %s；按 R 切换到标记为“当前目标”的配方。" % recommended_name
+	var purpose_hint := RecipePurposeHints.format_recipe_goal_hint(recommended_recipe_id)
+	if purpose_hint.is_empty():
+		return "推荐：当前目标建议使用 %s；按 R 切换到标记为“当前目标”的配方。" % recommended_name
+	return "推荐：当前目标建议使用 %s；%s；按 R 切换到标记为“当前目标”的配方。" % [
+		recommended_name,
+		purpose_hint
+	]
 
 
 func _get_display_name(data_registry: DataRegistry, definition_id: String) -> String:

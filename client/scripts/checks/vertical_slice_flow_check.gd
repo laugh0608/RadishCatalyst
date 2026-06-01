@@ -3,6 +3,7 @@ const GameRootScript := preload("res://scripts/game/game_root.gd")
 const DeepProcessingCheckScript := preload("res://scripts/checks/deep_processing_check.gd")
 const BaseActionQueueRotationCheckScript := preload("res://scripts/checks/base_action_queue_rotation_check.gd")
 const BaseActionTargetPromptCheckScript := preload("res://scripts/checks/base_action_target_prompt_check.gd")
+const FirstHourReadabilityCheckScript := preload("res://scripts/checks/first_hour_readability_check.gd")
 const HudRuntimeHintFlowCheckScript := preload("res://scripts/checks/hud_runtime_hint_flow_check.gd")
 const HudMapMarkerCheckScript := preload("res://scripts/checks/hud_map_marker_check.gd")
 const PhaseWellFollowupChecks := preload("res://scripts/checks/phase_well_followup_check.gd")
@@ -34,6 +35,7 @@ func _run_checks() -> void:
 	_check_runtime_hint_prompt_flow()
 	_check_status_panel_summary()
 	HudMapMarkerCheckScript.new(self).run(root)
+	FirstHourReadabilityCheckScript.new(self).run()
 	_check_region_presence_bounds()
 	_check_pollution_gate_runtime_bounds()
 	BaseActionQueueRotationCheckScript.new(self).run()
@@ -46,6 +48,7 @@ func _run_checks() -> void:
 	_check_pollution_enemy_defeated_visual()
 	_check_treatment_enemy_spawn_gate()
 	_check_treatment_enemy_combat_pressure()
+	_check_pressure_clearance_guard_combat_gate()
 	_check_quest_completion_panel_text()
 	_check_build_prompts()
 	_check_supply_feedback()
@@ -92,11 +95,12 @@ func _run_checks() -> void:
 	_expect_active_quest("quest.prepare_treatment_supplies", "after make filter module")
 	_complete_active_quest("quest.prepare_treatment_supplies", [
 		{"type": "craft_item", "target_id": "item.repair_gel", "amount": 1},
-		{"type": "defeat_enemy", "target_id": "enemy.treatment_skitter", "amount": 1}
+		{"type": "defeat_enemy", "target_id": "enemy.treatment_skitter", "amount": 2}
 	])
 	_expect_active_quest("quest.expand_treatment_point", "after prepare treatment supplies")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.foundation_t1", "supplies unlock foundation recipe")
 	_complete_active_quest("quest.expand_treatment_point", [
+		{"type": "clear", "target_id": "map_object.rough_ground", "amount": 2},
 		{"type": "build", "target_id": "building.foundation_t1", "amount": 2},
 		{"type": "build", "target_id": "building.pollution_filter", "amount": 1}
 	])
@@ -105,7 +109,7 @@ func _run_checks() -> void:
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.cleanse_residue", "treatment point unlocks residue recipe")
 	_complete_active_quest("quest.enter_pollution_edge", [
 		{"type": "visit_region", "target_id": "region.pollution_edge", "amount": 1},
-		{"type": "gather_item", "target_id": "item.polluted_residue", "amount": 2},
+		{"type": "gather_item", "target_id": "item.polluted_residue", "amount": 4},
 		{"type": "craft_item", "target_id": "item.resistance_vial_t1", "amount": 1},
 		{"type": "defeat_enemy", "target_id": "enemy.polluted_skitter", "amount": 1}
 	])
@@ -285,6 +289,8 @@ func _check_onboarding_hints() -> void:
 		"处理点北缘",
 		"supply prep direction follows treatment point combat region"
 	)
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.expand_treatment_point", "两块粗糙地面", "rough ground onboarding hint")
+	hint_world.quest_state.set_objective_progress("quest.expand_treatment_point", "clear", "map_object.rough_ground", 2)
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.expand_treatment_point", "2 块地基", "foundation onboarding hint")
 	_expect_text_contains(
 		presenter.format_direction_hint(hint_world, hint_character, "quest.expand_treatment_point"),
@@ -320,12 +326,12 @@ func _check_onboarding_hints() -> void:
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_phase_anchor", "污染浆液", "phase anchor assembly hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.stabilize_outer_ring_barrier", "稳相信标", "outer ring barrier hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.salvage_signal_echo", "回波匣", "signal echo salvage hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_deep_signal", "更深遗迹坐标", "deep signal analysis hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_deep_signal", "裂相坐标", "deep signal analysis hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.unlock_deep_ruin_entrance", "门禁", "deep ruin entrance hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.harvest_phase_filament", "相位纤丝", "phase filament salvage hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_phase_filament", "污染过滤器", "phase filament filter hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_deep_override", "污染浆液", "deep override assembly hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.unlock_deep_ruin_cache", "深段收益", "deep ruin latch hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.unlock_deep_ruin_cache", "裂相收益", "deep ruin latch hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_deep_core", "路由印片", "deep core analysis hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.activate_deep_array", "相位导管", "deep array activation hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_deep_signal_matrix", "读数矩阵", "deep signal matrix assembly hint")
@@ -359,8 +365,8 @@ func _check_onboarding_hints() -> void:
 	)
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_inner_fault_trace", "坐标印片", "inner fault analysis onboarding hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.collect_fault_residue", "故障残渣", "fault residue collection onboarding hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_fault_residue", "相位井钥", "phase well key prep onboarding hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.unlock_phase_well", "相位井钥", "phase well lock onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_fault_residue", "裂相锁钥", "phase well key prep onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.unlock_phase_well", "裂相锁钥", "phase well lock onboarding hint")
 	hint_world.quest_state.completed_quest_ids.append("quest.analyze_deep_signal")
 	hint_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_cache")
 	hint_world.quest_state.completed_quest_ids.append("quest.assemble_deep_signal_matrix")
@@ -375,7 +381,7 @@ func _check_onboarding_hints() -> void:
 	spire_completion_world.quest_state.completed_quest_ids.append("quest.inspect_phase_fault_spire")
 	_expect_text_contains(
 		presenter.format_direction_hint(spire_completion_world, hint_character, ""),
-		"相位井锁",
+		"锁相结构",
 		"phase fault spire completion direction points to phase well lock"
 	)
 	_expect_text_contains(
@@ -401,12 +407,12 @@ func _check_onboarding_hints() -> void:
 	inner_phase_well_world.quest_state.completed_quest_ids.append("quest.inspect_inner_phase_well")
 	_expect_text_contains(
 		presenter.format_direction_hint(inner_phase_well_world, hint_character, ""),
-		"回基地解析井芯样本",
+		"回基地解析回声芯样本",
 		"inner phase well completion direction highlights next base analysis"
 	)
 	_expect_text_contains(
 		presenter.format_onboarding_hint(inner_phase_well_world, hint_character, ""),
-		"井芯样本只是下一轮的起点",
+		"回声芯样本只是下一轮的起点",
 		"inner phase well completion onboarding keeps next package explicit"
 	)
 	map.free()
@@ -419,16 +425,18 @@ func _check_status_panel_summary() -> void:
 	var status_text := presenter.format_status_text(data_registry, status_world, status_character)
 	_expect_text_contains(status_text, "目标：恢复前哨", "status keeps current goal")
 	_expect_text_contains(status_text, "进度：交互 前哨核心 0/1", "status keeps objective progress")
-	_expect_text_contains(status_text, "状态：生命 100 / 100；防护 100 / 100", "status keeps health and protection")
+	_expect_text_contains(status_text, "关键资源：基础零件x4", "status keeps contextual key resources")
+	_expect_text_contains(status_text, "基地摘要", "status groups base summary")
+	_expect_text_contains(status_text, "角色状态", "status groups character summary")
+	_expect_text_contains(status_text, "生命 / 防护：100 / 100；100 / 100", "status keeps health and protection")
 	_expect_text_contains(status_text, "快捷栏：1 修复凝胶x1", "status keeps quick slots")
-	_expect_text_contains(status_text, "关键物资：基础零件x4", "status keeps key resources")
+	_expect_text_contains(status_text, "模块：基础多用工具；基础防护服；未装模块", "status keeps equipment summary")
 	var reentry_world := WorldState.create_default()
 	reentry_world.current_region_id = "region.outpost_platform"
 	reentry_world.quest_state.active_quest_ids = ["quest.reenter_phase_frontline"]
 	var reentry_text := presenter.format_status_text(data_registry, reentry_world, status_character)
 	_expect_text_contains(reentry_text, "目标：从回投台重返前线", "status shows relay reentry goal name")
 	_expect_text_contains(reentry_text, "检查 相位回投台 0/1", "status shows relay reentry objective progress")
-	_expect_text_missing(status_text, "模块：", "status folds module state into pollution line")
 	_expect_text_missing(status_text, "区域：", "status removes minimap region duplicate")
 	_expect_text_missing(status_text, "方向：", "status removes minimap direction duplicate")
 	var relay_world := WorldState.create_default()
@@ -437,29 +445,29 @@ func _check_status_panel_summary() -> void:
 	relay_world.quest_state.completed_quest_ids.append("quest.deploy_phase_relay_anchor")
 	var relay_text := presenter.format_status_text(data_registry, relay_world, status_character)
 	_expect_text_contains(relay_text, "相位回投台", "phase relay status highlights return pad")
-	_expect_text_contains(relay_text, "按 E 回投返回深段", "phase relay status keeps explicit return action")
+	_expect_text_contains(relay_text, "按 E 回投返回裂相脊", "phase relay status keeps explicit return action")
 	var spire_world := WorldState.create_default()
 	spire_world.quest_state.active_quest_ids.clear()
 	spire_world.quest_state.completed_quest_ids.append("quest.inspect_phase_fault_spire")
 	var spire_text := presenter.format_status_text(data_registry, spire_world, status_character)
 	_expect_text_contains(spire_text, "目标：内层故障轨迹待解析", "status falls back to inner fault analysis after phase fault spire")
-	_expect_text_contains(spire_text, "相位井锁变成新目标", "status progress keeps phase fault spire followup summary")
+	_expect_text_contains(spire_text, "锁相结构变成新目标", "status progress keeps phase fault spire followup summary")
 	var phase_well_text_world := WorldState.create_default()
 	phase_well_text_world.quest_state.active_quest_ids.clear()
 	phase_well_text_world.quest_state.completed_quest_ids.append("quest.unlock_phase_well")
 	var phase_well_text := presenter.format_status_text(data_registry, phase_well_text_world, status_character)
-	_expect_text_contains(phase_well_text, "目标：相位井定位器待解析", "status falls back to phase well locator analysis after lock")
+	_expect_text_contains(phase_well_text, "目标：回声定位器待解析", "status falls back to phase well locator analysis after lock")
 	_expect_text_contains(phase_well_text, "先回基地解析定位器", "status progress keeps locator analysis summary")
 	var inner_phase_well_text_world := WorldState.create_default()
 	inner_phase_well_text_world.quest_state.active_quest_ids.clear()
 	inner_phase_well_text_world.quest_state.completed_quest_ids.append("quest.inspect_inner_phase_well")
 	var inner_phase_well_text := presenter.format_status_text(data_registry, inner_phase_well_text_world, status_character)
-	_expect_text_contains(inner_phase_well_text, "目标：相位井芯样本待解析", "status falls back to inner phase well analysis after completion")
-	_expect_text_contains(inner_phase_well_text, "回基地解析后可继续把更东侧井底裂口转成新的推进包", "status progress keeps inner phase well followup summary")
+	_expect_text_contains(inner_phase_well_text, "目标：回声芯样本待解析", "status falls back to inner phase well analysis after completion")
+	_expect_text_contains(inner_phase_well_text, "回基地解析后可继续把盐壳浅滩转成新的推进包", "status progress keeps inner phase well followup summary")
 	_expect_text_missing(status_text, "提示：", "status removes onboarding duplicate")
 	_expect_text_missing(status_text, "坐标：", "status removes debug coordinate duplicate")
 	_expect_text_missing(status_text, "背包：", "status removes full inventory duplicate")
-	if status_text.split("\n").size() > 8:
+	if status_text.split("\n").size() > 12:
 		failures.append("status panel should stay compact, got %d lines: %s" % [status_text.split("\n").size(), status_text])
 	var calibration_world := WorldState.create_default()
 	calibration_world.quest_state.active_quest_ids = ["quest.calibrate_reactor"]
@@ -472,20 +480,20 @@ func _check_status_panel_summary() -> void:
 	var reactor_craft_world := WorldState.create_default()
 	reactor_craft_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_weave_core"]
 	var reactor_craft_status_text := presenter.format_status_text(data_registry, reactor_craft_world, status_character)
-	_expect_text_contains(reactor_craft_status_text, "制造 相位井纹谱片（基础反应器） 0/1", "status shows reactor craft source")
+	_expect_text_contains(reactor_craft_status_text, "制造 锁相纹谱片（基础反应器） 0/1", "status shows reactor craft source")
 	var filter_craft_world := WorldState.create_default()
 	filter_craft_world.quest_state.active_quest_ids = ["quest.refine_selvedge_strip"]
 	var filter_craft_status_text := presenter.format_status_text(data_registry, filter_craft_world, status_character)
-	_expect_text_contains(filter_craft_status_text, "制造 相位井纹架肋（污染过滤器） 0/1", "status shows filter craft source")
+	_expect_text_contains(filter_craft_status_text, "制造 锁相框架肋（污染过滤器） 0/1", "status shows filter craft source")
 func _check_region_presence_bounds() -> void:
 	var map := VerticalSliceMap.new()
 	_expect_equal(
-		map._get_region_id_for_position(Vector2(253, -104)),
+		map._get_region_id_for_position(Vector2(290, -104)),
 		"region.crystal_vein_field",
 		"pollution treatment point should not count as pollution"
 	)
 	_expect_equal(
-		map._get_region_id_for_position(Vector2(253, 30)),
+		map._get_region_id_for_position(Vector2(274, 74)),
 		"region.pollution_edge",
 		"pollution lower area should count as pollution"
 	)
@@ -516,16 +524,16 @@ func _check_pollution_gate_runtime_bounds() -> void:
 	var gate_world := WorldState.create_default()
 	gate_world.unlock_region("region.crystal_vein_field")
 	var gate_character := CharacterState.create_default()
-	map.player.position = Vector2(253, 30)
+	map.player.position = Vector2(274, 74)
 	map.update_region_presence(gate_world, gate_character)
-	_expect_equal(map.player.position.x, 195.0, "locked pollution edge should push player before visual region")
+	_expect_equal(map.player.position.x, 235.0, "locked pollution edge should push player before visual region")
 	_expect_equal(gate_world.current_region_id, "region.crystal_vein_field", "locked pollution edge should return to crystal side")
 	var unlocked_world := WorldState.create_default()
 	unlocked_world.unlock_region("region.crystal_vein_field")
 	unlocked_world.unlock_region("region.pollution_edge")
 	var unlocked_character := CharacterState.create_default()
 	map.last_reported_region_id = unlocked_world.current_region_id
-	map.player.position = Vector2(253, 30)
+	map.player.position = Vector2(274, 74)
 	map.update_region_presence(unlocked_world, unlocked_character)
 	_expect_equal(unlocked_world.current_region_id, "region.pollution_edge", "unlocked pollution edge should update current region")
 	_expect_equal(unlocked_character.current_region_id, "region.pollution_edge", "unlocked pollution edge should update character region")
@@ -774,6 +782,27 @@ func _check_treatment_enemy_combat_pressure() -> void:
 	_expect_text_contains(counter_message, "修复凝胶", "treatment enemy counterattack supply hint")
 	treatment_enemy.free()
 	map.free()
+func _check_pressure_clearance_guard_combat_gate() -> void:
+	var map := VerticalSliceMap.new()
+	map.data_registry = data_registry
+	var guard := _create_visual_check_enemy("enemy.pressure_clearance_guard", "清障扰动守卫", 64.0, "ruin_guard")
+	guard.name = "PressureClearanceGuard"
+	var gate_world := WorldState.create_default()
+	_expect_equal(map._should_enemy_spawn(guard, gate_world), false, "pressure clearance guard hidden before quest")
+	gate_world.quest_state.active_quest_ids = ["quest.clear_pressure_frontline_hazard"]
+	_expect_equal(map._should_enemy_spawn(guard, gate_world), true, "pressure clearance guard spawns during pressure quest")
+	var window_world := WorldState.create_default()
+	window_world.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_STATUS_KEY, BaseActionDispatchPlan.STATUS_ACTIVE)
+	window_world.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_PLAN_KEY, BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE)
+	_expect_equal(map._should_enemy_spawn(guard, window_world), true, "pressure clearance guard spawns during pressure window")
+
+	var combat_character := CharacterState.create_default()
+	var counter_message := map._apply_enemy_counterattack(guard, combat_character)
+	_expect_equal(combat_character.health, 88.0, "pressure clearance guard counterattack health pressure")
+	_expect_equal(combat_character.protection, 94.0, "pressure clearance guard counterattack protection pressure")
+	_expect_text_contains(counter_message, "防护 -6", "pressure clearance guard counterattack protection hint")
+	guard.free()
+	map.free()
 func _check_quest_completion_panel_text() -> void:
 	var presenter := HudFeedbackPresenter.new()
 	var panel_texts := presenter.format_quest_completion_panel_texts({
@@ -805,9 +834,9 @@ func _check_quest_completion_panel_text() -> void:
 	_expect_text_contains(
 		String(presenter.format_quest_completion_panel_texts({
 			"completed_text": "完成：解锁后续入口",
-			"note_text": "遗迹外圈通路已恢复，可进入外圈回收继电残片"
+			"note_text": "封锁遗迹通路已恢复，可进入外圈回收继电残片"
 		}).get("detail", "")),
-		"提示：遗迹外圈通路已恢复",
+		"提示：封锁遗迹通路已恢复",
 		"completion note prefix"
 	)
 func _check_build_prompts() -> void:
@@ -1320,7 +1349,7 @@ func _check_processing_runtime() -> void:
 		)
 		_expect_text_contains(
 			String(filter_completed[0].get("message", "")),
-			"继续采集沉积物并清理受扰敌人",
+			"快捷栏 2",
 			"pollution filter completion log next step"
 		)
 	_expect_equal(int(filter_character.inventory.items.get("item.resistance_vial_t1", 0)), 1, "pollution filter grants vial")

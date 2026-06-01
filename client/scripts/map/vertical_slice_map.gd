@@ -8,17 +8,18 @@ const ATTACK_RANGE := 90.0
 const BASE_ATTACK_DAMAGE := 10.0
 const PLAYER_INTERACTION_RANGE := 96.0
 const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
+const GATE_PRESSURE_COUNTER_MULT := 1.35
 const OUTPOST_RESPAWN_POSITION := Vector2(-250, -48)
 const PLAY_BOUNDS_MIN := Vector2(-360, -200)
-const PLAY_BOUNDS_MAX := Vector2(3600, 200)
+const PLAY_BOUNDS_MAX := Vector2(4200, 200)
 const CAMERA_BOUNDS_MIN := Vector2(-620, -360)
-const CAMERA_BOUNDS_MAX := Vector2(3620, 360)
-const CRYSTAL_REGION_X := -70.0
-const CRYSTAL_GATE_RETURN_X := -85.0
-const POLLUTION_REGION_X := 200.0
-const POLLUTION_GATE_X := 220.0
+const CAMERA_BOUNDS_MAX := Vector2(4220, 360)
+const CRYSTAL_REGION_X := -20.0
+const CRYSTAL_GATE_RETURN_X := -35.0
+const POLLUTION_REGION_X := 240.0
+const POLLUTION_GATE_X := 260.0
 const POLLUTION_DEEP_Y := -40.0
-const POLLUTION_GATE_RETURN_X := 195.0
+const POLLUTION_GATE_RETURN_X := 235.0
 const RUIN_OUTER_RING_X := 390.0
 const RUIN_GATE_RETURN_X := 355.0
 const OUTER_RING_BARRIER_X := 540.0
@@ -30,6 +31,7 @@ const PHASE_WELL_CHAMBER_REGION_X := 2040.0
 const PHASE_WELL_LOOM_REGION_X := 2320.0
 const PHASE_WELL_FRAME_REGION_X := 2600.0
 const PHASE_WELL_TETHER_REGION_X := 2880.0
+const DEMO_STABILIZATION_CORE_REGION_X := 3640.0
 const DEEP_RUIN_GATE_RETURN_X := 676.0
 const INNER_PHASE_WELL_GATE_RETURN_X := 1432.0
 const PHASE_WELL_SINK_GATE_RETURN_X := 1732.0
@@ -37,6 +39,7 @@ const PHASE_WELL_CHAMBER_GATE_RETURN_X := 2012.0
 const PHASE_WELL_LOOM_GATE_RETURN_X := 2292.0
 const PHASE_WELL_FRAME_GATE_RETURN_X := 2572.0
 const PHASE_WELL_TETHER_GATE_RETURN_X := 2852.0
+const DEMO_STABILIZATION_CORE_GATE_RETURN_X := 3612.0
 const PHASE_RELAY_PAD_FALLBACK_POSITION := Vector2(-210, -40)
 const PHASE_RETURN_ANCHOR_FALLBACK_POSITION := Vector2(852, 92)
 const INTERACTABLE_QUEST_GATES := {
@@ -79,13 +82,29 @@ var gather_system: GatherSystem
 var phase_well_frontier_runtime: PhaseWellFrontierRuntime
 var last_reported_region_id := "region.outpost_platform"
 var last_gate_message := ""
+
+
+func _ensure_scene_nodes() -> void:
+	if player == null:
+		player = get_node_or_null("Player") as PlayerController
+	if interactables_root == null:
+		interactables_root = get_node_or_null("Interactables") as Node2D
+	if enemies_root == null:
+		enemies_root = get_node_or_null("Enemies") as Node2D
+
+
 func setup(registry: DataRegistry) -> void:
+	_ensure_scene_nodes()
 	data_registry = registry
 	gather_system = GatherSystem.new(data_registry)
 	phase_well_frontier_runtime = PhaseWellFrontierRuntime.new(data_registry)
 	_setup_interactable_labels()
 	_setup_enemy_labels()
+	_refresh_focus_visuals()
 func _ready() -> void:
+	_ensure_scene_nodes()
+	if interactables_root == null:
+		return
 	for interactable in interactables_root.get_children():
 		if interactable is PrototypeInteractable:
 			interactable.body_entered.connect(_on_interactable_body_entered.bind(interactable))
@@ -157,14 +176,19 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 	if not interacted.can_interact():
 		current_interactable = null
 		interaction_cleared.emit(interacted)
+	_refresh_focus_visuals()
 	var evacuation_feedback := _evacuate_if_needed(character_state, world_state, "pollution")
 	if not evacuation_feedback.is_empty():
 		result["message"] = "%s%s" % [String(result.get("message", "")), String(evacuation_feedback.get("log_message", ""))]
 		result["evacuation_feedback"] = evacuation_feedback
 	return result
 func refresh_world_interactables(world_state: WorldState) -> void:
+	_ensure_scene_nodes()
 	if phase_well_frontier_runtime != null:
 		phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
+	if interactables_root == null:
+		_refresh_focus_visuals()
+		return
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
 			continue
@@ -464,6 +488,7 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 func update_current_interactable() -> void:
 	var nearest_interactable := _get_nearest_interactable()
 	if nearest_interactable == current_interactable:
+		_refresh_focus_visuals()
 		return
 	var previous_interactable := current_interactable
 	current_interactable = nearest_interactable
@@ -471,6 +496,7 @@ func update_current_interactable() -> void:
 		interaction_cleared.emit(previous_interactable)
 	if current_interactable != null:
 		interaction_available.emit(current_interactable)
+	_refresh_focus_visuals()
 func try_cycle_recipe(world_state: WorldState = null) -> Dictionary:
 	if current_interactable == null:
 		if _has_nearby_phase_relay_pad():
@@ -521,132 +547,38 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 	if bool(result.get("defeated", false)):
 		var drops_message := _grant_enemy_drops(target, character_state, world_state)
 		if target.definition_id == "enemy.polluted_skitter":
-			return {
-				"success": true,
-				"message": "击败：%s。%s污染处理点周边暂时安全。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			var followup := "遗迹门前压力减弱，可以继续处理污染残核或确认入口信号。" if target.instance_id == "enemy_instance.polluted_skitter_gate_pressure" else "污染处理点周边暂时安全。"
+			return _enemy_defeat_result(target, drops_message, followup)
+		if target.definition_id == "enemy.treatment_skitter":
+			return _enemy_defeat_result(target, drops_message, "处理点清障压力减弱；继续确认另一处威胁或回基地补齐修复凝胶。")
 		if target.definition_id == "enemy.ruin_phase_guard":
-			return {
-				"success": true,
-				"message": "击败：%s。%s外圈回波匣附近的干扰守卫已清空。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "外圈回波匣附近的干扰守卫已清空。")
 		if target.definition_id == "enemy.deep_ruin_sentinel":
-			return {
-				"success": true,
-				"message": "击败：%s。%s深段锁扣前的压制守卫已清空，相位纤丝回收线已打开。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "裂相锁扣前的压制守卫已清空，相位纤丝回收线已打开。")
 		if target.definition_id == "enemy.deep_ruin_stalker":
-			return {
-				"success": true,
-				"message": "击败：%s。%s深段阵列后的追袭线已清空，相位导管回收窗口已打开。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "裂相阵列后的追袭线已清空，相位导管回收窗口已打开。")
 		if target.definition_id == "enemy.deep_fault_hunter":
-			return {
-				"success": true,
-				"message": "击败：%s。%s更东侧裂相脊的封锁压力已减弱，裂相碎屑回收线已打开。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "更东侧裂相脊的封锁压力已减弱，裂相碎屑回收线已打开。")
 		if target.definition_id == "enemy.phase_well_sentry":
-			return {
-				"success": true,
-				"message": "击败：%s。%s更东侧内层相位井边缘的压制已减弱，井涌碎屑回收线已打开。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "更东侧回声台地边缘的压制已减弱，回声碎屑回收线已打开。")
 		if target.definition_id == "enemy.phase_well_lurker":
-			return {
-				"success": true,
-				"message": "击败：%s。%s更东侧井底裂口边缘的压制已减弱，井壁余烬回收线已打开。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "更东侧盐壳浅滩边缘的压制已减弱，盐壳余烬回收线已打开。")
 		if target.definition_id == "enemy.phase_well_reaver":
-			return {
-				"success": true,
-				"message": "击败：%s。%s更东侧井心室边缘的压制已减弱，心棘残片回收线已打开。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "更东侧碎晶沟谷边缘的压制已减弱，心棘残片回收线已打开。")
 		if target.definition_id == "enemy.phase_well_tangler":
-			return {
-				"success": true,
-				"message": "击败：%s。%s更东侧井纺室边缘的压制已减弱，纬束残团回收线已打开。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "更东侧风蚀管廊边缘的压制已减弱，纬束残团回收线已打开。")
 		if target.definition_id == "enemy.phase_well_raker":
-			return {
-				"success": true,
-				"message": "击败：%s。%s更东侧井纹架边缘的压制已减弱，边缕残条回收线已打开。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "更东侧锁相框架边缘的压制已减弱，边缕残条回收线已打开。")
 		if target.definition_id == "enemy.phase_well_binder":
-			return {
-				"success": true,
-				"message": "击败：%s。%s更东侧井系桥边缘的压制已减弱，系索残股回收线已打开。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
+			return _enemy_defeat_result(target, drops_message, "更东侧锚定桥边缘的压制已减弱，锚索残股回收线已打开。")
 		if target.definition_id == "enemy.phase_well_warden":
 			phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
-			return {
-				"success": true,
-				"message": "击败：%s。%s井系桥东侧的回稳压制已被拆掉，锚场回稳窗现在可以回去收束。" % [
-					target.display_name,
-					drops_message
-				],
-				"enemy_definition_id": target.definition_id,
-				"enemy_defeated": true
-			}
-		return {
-			"success": true,
-			"message": "击败：%s。%s" % [target.display_name, drops_message],
-			"enemy_definition_id": target.definition_id,
-			"enemy_defeated": true
-		}
+			return _enemy_defeat_result(target, drops_message, "锚定桥东侧的回稳压制已被拆掉，锚场回稳窗现在可以回去收束。")
+		if target.definition_id == "enemy.pressure_clearance_guard":
+			return _enemy_defeat_result(target, drops_message, "前线压力扰点的短战斗压制已解除，现在可以清理扰点并带回清障回执。")
+		if target.definition_id == "enemy.demo_stabilization_guard":
+			return _enemy_defeat_result(target, drops_message, "核心阶段守卫已被击败，核心稳定设备现在可以写入稳定数据。")
+		return _enemy_defeat_result(target, drops_message)
 
 	var counter_message := _apply_enemy_counterattack(target, character_state)
 	var evacuation_feedback := _evacuate_if_needed(character_state, world_state, "combat")
@@ -666,6 +598,9 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 func _setup_interactable_labels() -> void:
 	if data_registry == null:
 		return
+	_ensure_scene_nodes()
+	if interactables_root == null:
+		return
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
 			continue
@@ -676,6 +611,9 @@ func _setup_interactable_labels() -> void:
 func _setup_enemy_labels() -> void:
 	if data_registry == null:
 		return
+	_ensure_scene_nodes()
+	if enemies_root == null:
+		return
 	for enemy in enemies_root.get_children():
 		if not enemy is PrototypeEnemy:
 			continue
@@ -685,8 +623,12 @@ func _setup_enemy_labels() -> void:
 		enemy.instance_id = _get_enemy_instance_id(enemy)
 		enemy.setup(_get_display_name(enemy.definition_id), max_health, String(definition.get("category", "basic")))
 func sync_enemy_states(world_state: WorldState) -> void:
+	_ensure_scene_nodes()
 	if phase_well_frontier_runtime != null:
 		phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
+	if enemies_root == null:
+		_refresh_focus_visuals()
+		return
 	for enemy in enemies_root.get_children():
 		if not enemy is PrototypeEnemy:
 			continue
@@ -702,13 +644,19 @@ func sync_enemy_states(world_state: WorldState) -> void:
 		)
 		enemy.apply_saved_state(enemy_state)
 		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state))
+	_refresh_focus_visuals()
 func refresh_enemy_spawns(world_state: WorldState) -> void:
+	_ensure_scene_nodes()
 	if phase_well_frontier_runtime != null:
 		phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
+	if enemies_root == null:
+		_refresh_enemy_focus_visuals()
+		return
 	for enemy in enemies_root.get_children():
 		if not enemy is PrototypeEnemy:
 			continue
 		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state))
+	_refresh_enemy_focus_visuals()
 func apply_runtime_state(world_state: WorldState, character_state: CharacterState) -> void:
 	current_interactable = null
 	player.position = character_state.position
@@ -776,37 +724,42 @@ func apply_region_gate_bounds(world_state: WorldState) -> String:
 	if _is_deep_ruin_gate_locked(world_state) and player.position.x > DEEP_RUIN_GATE_RETURN_X:
 		player.position.x = DEEP_RUIN_GATE_RETURN_X
 		player.stop_positive_x_until_release()
-		return "深段入口仍未校准：先带着更深遗迹坐标回到门禁写入。"
+		return "裂相脊入口仍未校准：先带着裂相坐标回到门禁写入。"
 
 	if not world_state.unlocked_region_ids.has("region.inner_phase_well") and player.position.x > INNER_PHASE_WELL_GATE_RETURN_X:
 		player.position.x = INNER_PHASE_WELL_GATE_RETURN_X
 		player.stop_positive_x_until_release()
-		return "内层相位井仍未定位：先回基地解析相位井定位器，再回来继续向东推进。"
+		return "回声台地仍未定位：先回基地解析回声定位器，再回来继续向东推进。"
 
 	if not world_state.unlocked_region_ids.has("region.phase_well_sink") and player.position.x > PHASE_WELL_SINK_GATE_RETURN_X:
 		player.position.x = PHASE_WELL_SINK_GATE_RETURN_X
 		player.stop_positive_x_until_release()
-		return "井底裂口仍未稳定：先回基地解析井芯样本，再带着新的井底穿钉回来继续向东推进。"
+		return "盐壳浅滩仍未稳定：先回基地解析回声芯样本，再带着新的盐壳穿钉回来继续向东推进。"
 
 	if not world_state.unlocked_region_ids.has("region.phase_well_chamber") and player.position.x > PHASE_WELL_CHAMBER_GATE_RETURN_X:
 		player.position.x = PHASE_WELL_CHAMBER_GATE_RETURN_X
 		player.stop_positive_x_until_release()
-		return "井心室断面仍未稳定：先回基地解析相位井心核，再带着新的井心分流栓回来继续向东推进。"
+		return "碎晶沟谷断面仍未稳定：先回基地解析碎晶心核，再带着新的碎晶分流栓回来继续向东推进。"
 
 	if not world_state.unlocked_region_ids.has("region.phase_well_loom") and player.position.x > PHASE_WELL_LOOM_GATE_RETURN_X:
 		player.position.x = PHASE_WELL_LOOM_GATE_RETURN_X
 		player.stop_positive_x_until_release()
-		return "井纺室断面仍未稳定：先回基地解析相位井纺核，再带着新的井纺梭栓回来继续向东推进。"
+		return "风蚀管廊断面仍未稳定：先回基地解析风蚀张力核，再带着新的风蚀梭栓回来继续向东推进。"
 
 	if not world_state.unlocked_region_ids.has("region.phase_well_frame") and player.position.x > PHASE_WELL_FRAME_GATE_RETURN_X:
 		player.position.x = PHASE_WELL_FRAME_GATE_RETURN_X
 		player.stop_positive_x_until_release()
-		return "井纹架断面仍未稳定：先回基地解析相位井织核，再带着新的井纹架键栓回来继续向东推进。"
+		return "锁相框架断面仍未稳定：先回基地解析锁相织构核，再带着新的锁相键栓回来继续向东推进。"
 
 	if not world_state.unlocked_region_ids.has("region.phase_well_tether") and player.position.x > PHASE_WELL_TETHER_GATE_RETURN_X:
 		player.position.x = PHASE_WELL_TETHER_GATE_RETURN_X
 		player.stop_positive_x_until_release()
-		return "井系桥断面仍未稳定：先回基地解析相位井结核，再带着新的井系定桩回来继续向东推进。"
+		return "锚定桥断面仍未稳定：先回基地解析锚定结核，再带着新的锚定桩回来继续向东推进。"
+
+	if not world_state.unlocked_region_ids.has("region.demo_stabilization_core") and player.position.x > DEMO_STABILIZATION_CORE_GATE_RETURN_X:
+		player.position.x = DEMO_STABILIZATION_CORE_GATE_RETURN_X
+		player.stop_positive_x_until_release()
+		return "核心稳定站仍未接管：先完成锚定桥稳定窗口和高压窗口归档。"
 
 	return ""
 func _get_display_name(definition_id: String) -> String:
@@ -838,6 +791,8 @@ func _on_interactable_body_exited(body: Node2D, interactable: PrototypeInteracta
 func _get_nearest_interactable() -> PrototypeInteractable:
 	var nearest_interactable: PrototypeInteractable = null
 	var nearest_distance := INF
+	if player == null or interactables_root == null:
+		return nearest_interactable
 
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable or not interactable.can_interact():
@@ -852,6 +807,8 @@ func _get_nearest_interactable() -> PrototypeInteractable:
 
 	return nearest_interactable
 func _has_nearby_phase_relay_pad() -> bool:
+	if player == null or interactables_root == null:
+		return false
 	for interactable in interactables_root.get_children():
 		if interactable is PrototypeInteractable and interactable.can_interact() and interactable.definition_id == "map_object.phase_relay_pad" and player.position.distance_to(interactable.position) <= PLAYER_INTERACTION_RANGE:
 			return true
@@ -859,6 +816,8 @@ func _has_nearby_phase_relay_pad() -> bool:
 func _get_nearest_attack_target() -> PrototypeEnemy:
 	var nearest_enemy: PrototypeEnemy = null
 	var nearest_distance := INF
+	if player == null or enemies_root == null:
+		return nearest_enemy
 
 	for enemy in enemies_root.get_children():
 		if not enemy is PrototypeEnemy or not enemy.can_be_attacked():
@@ -872,7 +831,25 @@ func _get_nearest_attack_target() -> PrototypeEnemy:
 		nearest_distance = distance
 
 	return nearest_enemy
+func _refresh_focus_visuals() -> void:
+	_refresh_interactable_focus_visuals()
+	_refresh_enemy_focus_visuals()
+func _refresh_interactable_focus_visuals() -> void:
+	if interactables_root == null:
+		return
+	for interactable in interactables_root.get_children():
+		if interactable is PrototypeInteractable:
+			interactable.set_focus_visual(interactable == current_interactable and interactable.can_interact())
+func _refresh_enemy_focus_visuals() -> void:
+	var focused_enemy := _get_nearest_attack_target()
+	if enemies_root == null:
+		return
+	for enemy in enemies_root.get_children():
+		if enemy is PrototypeEnemy:
+			enemy.set_focus_visual(enemy == focused_enemy)
 func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool:
+	if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure":
+		return world_state.quest_state.has_active_quest("quest.defeat_elite_node") or world_state.quest_state.has_completed_quest("quest.defeat_elite_node")
 	if enemy.definition_id == "enemy.elite_residue_node":
 		return (
 			world_state.quest_state.has_active_quest("quest.defeat_elite_node")
@@ -930,6 +907,20 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 		)
 	if enemy.definition_id == "enemy.phase_well_warden":
 		return phase_well_frontier_runtime != null and phase_well_frontier_runtime.should_spawn_anchor_field_enemy(world_state)
+	if enemy.definition_id == "enemy.pressure_clearance_guard":
+		return (
+			world_state.quest_state.has_active_quest("quest.clear_pressure_frontline_hazard")
+			or world_state.quest_state.has_completed_quest("quest.clear_pressure_frontline_hazard")
+			or (
+				BaseActionDispatchPlan.is_frontline_window_active(world_state)
+				and BaseActionDispatchPlan.get_frontline_window_plan_key(world_state) == BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE
+			)
+		)
+	if enemy.definition_id == "enemy.demo_stabilization_guard":
+		return (
+			world_state.quest_state.has_active_quest("quest.defeat_demo_stabilization_guard")
+			or world_state.quest_state.has_completed_quest("quest.defeat_demo_stabilization_guard")
+		)
 	if enemy.definition_id != "enemy.treatment_skitter":
 		return true
 	var quest_state := world_state.quest_state
@@ -939,32 +930,40 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 	if not quest_state.has_active_quest(quest_id):
 		return false
 	return quest_state.get_objective_progress(quest_id, "craft_item", "item.repair_gel") >= 1.0
-
 func _get_attack_damage(character_state: CharacterState) -> float:
 	var tool_id := String(character_state.equipment.get("tool", ""))
 	var tool_definition := data_registry.get_definition(tool_id)
 	var stat_modifiers: Dictionary = tool_definition.get("stat_modifiers", {})
 	var attack_power := float(stat_modifiers.get("attack_power", 1.0))
 	return BASE_ATTACK_DAMAGE * attack_power
+func _enemy_defeat_result(enemy: PrototypeEnemy, drops_message: String, followup: String = "") -> Dictionary:
+	return {
+		"success": true,
+		"message": "击败：%s。%s%s" % [enemy.display_name, drops_message, followup],
+		"enemy_definition_id": enemy.definition_id,
+		"enemy_defeated": true
+	}
 func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: CharacterState) -> String:
 	var definition := data_registry.get_definition(enemy.definition_id)
 	var base_stats: Dictionary = definition.get("base_stats", {})
-	var attack_damage := float(base_stats.get("attack", 0.0))
+	var pressure_multiplier := GATE_PRESSURE_COUNTER_MULT if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure" else 1.0
+	var attack_damage := float(base_stats.get("attack", 0.0)) * pressure_multiplier
 	var health_damage := character_state.apply_health_damage(attack_damage)
 	var protection_damage := 0.0
 	var damage_types: Array = definition.get("damage_types", [])
-
 	if damage_types.has("pollution"):
 		protection_damage = character_state.apply_protection_damage(
 			attack_damage * POLLUTION_COUNTER_PRESSURE_MULT * character_state.get_pollution_drain_multiplier(data_registry)
 		)
-
 	if protection_damage > 0.0:
-		return "%s 反击，生命 -%s，防护 -%s。" % [
+		var message := "%s 反击，生命 -%s，防护 -%s。" % [
 			enemy.display_name,
 			_format_amount(health_damage),
 			_format_amount(protection_damage)
 		]
+		if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure":
+			message = "%s门前污染压力更高，防护偏低时按 2 使用抗污染药剂，生命偏低时按 1 使用修复凝胶。" % message
+		return message
 	var message := "%s 反击，生命 -%s。" % [enemy.display_name, _format_amount(health_damage)]
 	if enemy.definition_id == "enemy.treatment_skitter":
 		message = "%s生命偏低时按 1 使用修复凝胶，或回基地再调制补给。" % message
@@ -972,26 +971,21 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, world_state: WorldState) -> String:
 	if world_state.has_enemy_drops_granted(enemy.instance_id):
 		return ""
-
 	var definition := data_registry.get_definition(enemy.definition_id)
 	var drops: Array = definition.get("drops", [])
 	if drops.is_empty():
 		world_state.set_enemy_drops_granted(enemy.instance_id, true)
 		return ""
-
 	var parts: Array[String] = []
 	for drop in drops:
 		if not drop is Dictionary:
 			continue
-
 		var definition_id := String(drop.get("id", ""))
 		var amount := float(drop.get("amount", 0.0))
 		if definition_id.is_empty() or amount <= 0.0:
 			continue
-
 		character_state.inventory.add_ref(definition_id, amount)
 		parts.append("%s x%s" % [_get_display_name(definition_id), _format_amount(amount)])
-
 	world_state.set_enemy_drops_granted(enemy.instance_id, true)
 	if parts.is_empty():
 		return ""
@@ -1003,17 +997,24 @@ func _inspect_ruin_gate(world_state: WorldState) -> Dictionary:
 			"入口未解锁",
 			"先治理污染源点：采集沉积物、处理药剂并压制污染残核。"
 		)
-
+	if _is_gate_pressure_active(world_state):
+		return _failure(
+			"封锁遗迹入口仍被门前受扰敌人压制。",
+			"门前压力未清",
+			"先清理遗迹门前受扰敌人；防护偏低时按 2 使用抗污染药剂，生命偏低时按 1 使用修复凝胶。"
+		)
 	if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):
 		return {
 			"success": true,
 			"message": "遗迹外圈通路已稳定：继续向东进入外圈，回收继电残片。"
 		}
-
 	return {
 		"success": true,
 		"message": "封锁遗迹入口信号已确认：遗迹外圈通路已恢复。"
 	}
+func _is_gate_pressure_active(world_state: WorldState) -> bool:
+	var gate_pressure := world_state.get_enemy("enemy_instance.polluted_skitter_gate_pressure")
+	return not gate_pressure.is_empty() and not bool(gate_pressure.get("is_defeated", false))
 func _inspect_outer_ring_barrier(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_anchor"):
 		return _failure(
@@ -1021,20 +1022,17 @@ func _inspect_outer_ring_barrier(character_state: CharacterState, world_state: W
 			"通路未稳定",
 			"先回基地组装稳相信标，再返回遗迹外圈部署。"
 		)
-
 	if world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier"):
 		return {
 			"success": true,
 			"message": "抖动雾幕已稳定，外圈深段通路保持开启。"
 		}
-
 	if not character_state.inventory.has_ref("item.phase_anchor", 1):
 		return _failure(
 			"缺少稳相信标，抖动雾幕无法稳定。",
 			"缺少开路物",
 			"回基地用基础反应器，把继电残片和污染浆液组装成稳相信标。"
 		)
-
 	character_state.inventory.consume_ref("item.phase_anchor", 1)
 	return {
 		"success": true,
@@ -1047,16 +1045,14 @@ func _inspect_outer_ring_console(world_state: WorldState) -> Dictionary:
 			"目标未就绪",
 			"先在雾幕前部署稳相信标，再进入外圈深段。"
 		)
-
 	if world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
 		return {
 			"success": true,
-			"message": "外圈中继台数据已读取：更深遗迹结构坐标已保留。"
+			"message": "外圈中继台数据已读取：裂相结构坐标已保留。"
 		}
-
 	return {
 		"success": true,
-		"message": "外圈中继台已接管：更深遗迹结构的稳定回波已定位。"
+		"message": "外圈中继台已接管：裂相结构的稳定回波已定位。"
 	}
 func _inspect_signal_echo_cache(world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
@@ -1065,94 +1061,89 @@ func _inspect_signal_echo_cache(world_state: WorldState) -> Dictionary:
 			"目标未就绪",
 			"先检查外圈中继台，锁定深段稳定回波。"
 		)
-
 	if world_state.quest_state.has_completed_quest("quest.salvage_signal_echo"):
 		return {
 			"success": true,
 			"message": "外圈回波匣已回收：返回基地解析深段回波。"
 		}
-
 	return {
 		"success": true,
-		"message": "已回收外圈回波匣：回基地用基础反应器整理更深遗迹坐标。"
+		"message": "已回收外圈回波匣：回基地用基础反应器整理裂相坐标。"
 	}
 func _inspect_deep_ruin_door(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.analyze_deep_signal"):
 		return _failure(
-			"深段入口门禁仍没有可执行坐标。",
+			"裂相脊入口门禁仍没有可执行坐标。",
 			"入口未校准",
-			"先回基地解析深段回波，整理出更深遗迹坐标。"
+			"先回基地解析深段回波，整理出裂相坐标。"
 		)
-
 	if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_entrance"):
 		return {
 			"success": true,
-			"message": "深段入口门禁已写入：继续向东进入深段，回收相位纤丝。"
+			"message": "裂相脊入口门禁已写入：继续向东进入裂相脊，回收相位纤丝。"
 		}
-
 	if not character_state.inventory.has_ref("item.deep_ruin_coordinates", 1):
 		return _failure(
-			"缺少更深遗迹坐标，门禁无法写入。",
+			"缺少裂相坐标，门禁无法写入。",
 			"缺少开门坐标",
-			"回基地确认基础反应器已完成深段回波解析，并带上更深遗迹坐标返回。"
+			"回基地确认基础反应器已完成深段回波解析，并带上裂相坐标返回。"
 		)
-
 	character_state.inventory.consume_ref("item.deep_ruin_coordinates", 1)
 	return {
 		"success": true,
-		"message": "更深遗迹坐标已写入：深段入口门禁开启。"
+		"message": "裂相坐标已写入：裂相脊入口门禁开启。"
 	}
 func _inspect_deep_ruin_latch(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.assemble_deep_override"):
 		return _failure(
-			"深段锁扣仍被相位回路封住。",
+			"裂相锁扣仍被相位回路封住。",
 			"锁扣未覆写",
-			"先回基地用污染过滤器精炼相位纤丝，再用基础反应器组装深段覆写栓。"
+			"先回基地用污染过滤器精炼相位纤丝，再用基础反应器组装裂相覆写栓。"
 		)
 
 	if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_cache"):
 		return {
 			"success": true,
-			"message": "深段锁扣已覆写：深段样块已经回收，可回基地继续解析第二轮阵列路线。"
+			"message": "裂相锁扣已覆写：裂相样块已经回收，可回基地继续解析第二轮阵列路线。"
 		}
 
 	if not character_state.inventory.has_ref("item.deep_override_key", 1):
 		return _failure(
-			"缺少深段覆写栓，锁扣无法解除。",
+			"缺少裂相覆写栓，锁扣无法解除。",
 			"缺少覆写栓",
-			"回处理点过滤器精炼相位纤丝，再去基础反应器组装深段覆写栓。"
+			"回处理点过滤器精炼相位纤丝，再去基础反应器组装裂相覆写栓。"
 		)
 
 	character_state.inventory.consume_ref("item.deep_override_key", 1)
 	return {
 		"success": true,
-		"message": "已覆写深段锁扣：深段样块匣解封，可带回新的深段样块并继续回基地解析。"
+		"message": "已覆写裂相锁扣：裂相样块匣解封，可带回新的裂相样块并继续回基地解析。"
 	}
 func _inspect_deep_signal_array(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.analyze_deep_core"):
 		return _failure(
-			"深段阵列台仍没有可执行的第二轮路由。",
+			"裂相阵列台仍没有可执行的第二轮路由。",
 			"阵列未点亮",
-			"先回基地用基础反应器解析深段样块，整理出深段路由印片。"
+			"先回基地用基础反应器解析裂相样块，整理出裂相路由印片。"
 		)
 
 	if world_state.quest_state.has_completed_quest("quest.activate_deep_array"):
 		return {
 			"success": true,
-			"message": "深段阵列台已点亮：相位导管回收线已暴露，带回基地后可继续整理读数矩阵。"
+			"message": "裂相阵列台已点亮：相位导管回收线已暴露，带回基地后可继续整理读数矩阵。"
 		}
 
 	if not character_state.inventory.has_ref("item.deep_route_imprint", 1):
 		return _failure(
-			"缺少深段路由印片，阵列台无法重启。",
+			"缺少裂相路由印片，阵列台无法重启。",
 			"缺少路由印片",
-			"回基地确认基础反应器已完成样块解析，并带上深段路由印片返回。"
+			"回基地确认基础反应器已完成样块解析，并带上裂相路由印片返回。"
 		)
 
 	character_state.inventory.consume_ref("item.deep_route_imprint", 1)
 	return {
 		"success": true,
-		"message": "深段路由印片已写入：阵列台点亮，第二轮相位导管回收线已暴露。"
+		"message": "裂相路由印片已写入：裂相阵列台点亮，第二轮相位导管回收线已暴露。"
 	}
 func _inspect_phase_return_anchor(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var anchor_instance_id := "map_object_instance.phase_return_anchor"
@@ -1224,7 +1215,7 @@ func _inspect_phase_relay_pad(character_state: CharacterState, world_state: Worl
 	if world_state.quest_state.has_active_quest("quest.reenter_phase_frontline"):
 		return {
 			"success": true,
-			"message": "相位回投台已联通：已回投到 %s；更东侧裂相碎屑和新的深段猎手已暴露%s。%s" % [active_anchor_label, cycle_hint, departure_preparation_text]
+			"message": "相位回投台已联通：已回投到 %s；更东侧裂相碎屑和裂相猎手已暴露%s。%s" % [active_anchor_label, cycle_hint, departure_preparation_text]
 		}
 	return {
 		"success": true,
@@ -1241,7 +1232,7 @@ func _inspect_phase_fault_spire(character_state: CharacterState, world_state: Wo
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_fault_spire"):
 		return {
 			"success": true,
-			"message": "裂相尖塔已校准：第一份内层故障轨迹已经带回基地，可继续回去解析更东侧相位井锁。"
+			"message": "裂相尖塔已校准：第一份内层故障轨迹已经带回基地，可继续回去解析更东侧裂相锁位。"
 		}
 
 	if not character_state.inventory.has_ref("item.relay_tuning_lens", 1):
@@ -1254,85 +1245,85 @@ func _inspect_phase_fault_spire(character_state: CharacterState, world_state: Wo
 	character_state.inventory.consume_ref("item.relay_tuning_lens", 1)
 	return {
 		"success": true,
-		"message": "中继调谐镜已对准：裂相尖塔开始回吐内层故障轨迹，并暴露更东侧相位井锁的第一段坐标。"
+		"message": "中继调谐镜已对准：裂相尖塔开始回吐内层故障轨迹，并暴露更东侧裂相锁位的第一段坐标。"
 	}
 func _inspect_phase_well_lock(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not (world_state.quest_state.has_completed_quest("quest.refine_fault_residue") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_key")):
 		return _failure(
-			"相位井锁仍缺少可执行的锁定位。",
-			"井锁未钉住",
-			"先回基地完成相位井钥整备：稳定故障残渣，再用基础反应器组装相位井钥。"
+			"裂相锁位仍缺少可执行的锁定位。",
+			"裂相锁位未钉住",
+			"先回基地完成裂相锁钥整备：稳定故障残渣，再用基础反应器组装裂相锁钥。"
 		)
 
 	if world_state.quest_state.has_completed_quest("quest.unlock_phase_well"):
 		return {
 			"success": true,
-			"message": "相位井锁已钉住：第一份相位井定位器已经带回基地；下一步回基地解析定位器。"
+			"message": "裂相锁位已钉住：第一份回声定位器已经带回基地；下一步回基地解析定位器。"
 		}
 
 	if not character_state.inventory.has_ref("item.phase_well_key", 1):
 		return _failure(
-			"缺少相位井钥，相位井锁无法稳定。",
-			"缺少相位井钥",
-			"回基地确认基础反应器已经完成相位井钥，并带回来钉住相位井锁。"
+			"缺少裂相锁钥，裂相锁位无法稳定。",
+			"缺少裂相锁钥",
+			"回基地确认基础反应器已经完成裂相锁钥，并带回来钉住裂相锁位。"
 		)
 
 	character_state.inventory.consume_ref("item.phase_well_key", 1)
 	return {
 		"success": true,
-		"message": "相位井钥已写入：相位井锁开始析出定位器，更东侧内层相位井目标已被钉住。"
+		"message": "裂相锁钥已写入：裂相锁位析出回声定位器，更东侧回声台地目标已被钉住。"
 	}
 func _inspect_inner_phase_well(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not (world_state.quest_state.has_completed_quest("quest.refine_well_flux") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_probe")):
 		return _failure(
-			"内层相位井仍缺少可执行的探针读数。",
+			"回声台地仍缺少可执行的探针读数。",
 			"井芯未读取",
-			"先回基地完成相位井探针整备：稳定井涌碎屑，再用基础反应器组装探针。"
+			"先回基地完成回声探针整备：稳定回声碎屑，再用基础反应器组装探针。"
 		)
 
 	if world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well"):
 		return {
 			"success": true,
-			"message": "内层相位井已勘验：第一份井芯样本已经带回基地；下一步回基地解析并继续推进更东侧井底裂口。"
+			"message": "回声台地已勘验：第一份回声芯样本已经带回基地；下一步回基地解析并继续推进更东侧盐壳浅滩。"
 		}
 
 	if not character_state.inventory.has_ref("item.phase_well_probe", 1):
 		return _failure(
-			"缺少相位井探针，内层相位井无法读取。",
-			"缺少相位井探针",
-			"回基地确认基础反应器已经完成相位井探针，并带回来读取井芯样本。"
+			"缺少回声探针，回声台地无法读取。",
+			"缺少回声探针",
+			"回基地确认基础反应器已经完成回声探针，并带回来读取回声芯样本。"
 		)
 
 	character_state.inventory.consume_ref("item.phase_well_probe", 1)
 	return {
 		"success": true,
-		"message": "相位井探针已写入：内层相位井交出了第一份井芯样本，这条更东侧风险线已开始稳定回投收益。"
+		"message": "回声探针已写入：回声台地交出了第一份回声芯样本，这条更东侧风险线已开始稳定回投收益。"
 	}
 func _inspect_phase_well_sink(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not (world_state.quest_state.has_completed_quest("quest.refine_well_ash") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_pike")):
 		return _failure(
-			"井底裂口仍缺少可执行的穿钉读数。",
+			"盐壳浅滩仍缺少可执行的穿钉读数。",
 			"裂口未凿开",
-			"先回基地完成井底整备，把井底穿钉带回来凿开裂口。"
+			"先回基地完成盐壳整备，把盐壳穿钉带回来凿开裂口。"
 		)
 
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_sink"):
 		return {
 			"success": true,
-			"message": "井底裂口已凿开：第一份相位井心核已经带回基地；下一步回基地解析并继续推进更东侧井心室断面。"
+			"message": "盐壳浅滩已凿开：第一份碎晶心核已经带回基地；下一步回基地解析并继续推进更东侧碎晶沟谷断面。"
 		}
 
 	if not character_state.inventory.has_ref("item.phase_well_pike", 1):
 		return _failure(
-			"缺少井底穿钉，井底裂口无法稳定。",
-			"缺少井底穿钉",
-			"回基地确认基础反应器已经完成井底穿钉，并带回来凿开井底裂口。"
+			"缺少盐壳穿钉，盐壳浅滩无法稳定。",
+			"缺少盐壳穿钉",
+			"回基地确认基础反应器已经完成盐壳穿钉，并带回来凿开盐壳浅滩。"
 		)
 
 	character_state.inventory.consume_ref("item.phase_well_pike", 1)
 	return {
 		"success": true,
-		"message": "井底穿钉已写入：井底裂口开始析出相位井心核，更东侧井心室断面的第一段读数已被钉住。"
+		"message": "盐壳穿钉已写入：盐壳浅滩开始析出碎晶心核，更东侧碎晶沟谷断面的第一段读数已被钉住。"
 	}
 func _evacuate_if_needed(character_state: CharacterState, world_state: WorldState, reason: String) -> Dictionary:
 	if character_state.health > 0.0 and character_state.protection > 0.0:
@@ -1408,9 +1399,9 @@ func _get_phase_relay_anchor_label(anchor_instance_id: String) -> String:
 		"map_object_instance.phase_return_anchor":
 			return "深段固定点锚点"
 		"map_object_instance.phase_return_anchor_chamber":
-			return "井心室前线锚点"
+			return "碎晶沟谷前线锚点"
 		"map_object_instance.phase_return_anchor_tether":
-			return "井系桥前线锚点"
+			return "锚定桥前线锚点"
 		_:
 			var region_id := _get_interactable_region_id(anchor_instance_id, "")
 			if region_id.is_empty():
@@ -1453,6 +1444,9 @@ func _get_phase_return_anchor_return_position(anchor_instance_id: String) -> Vec
 		PHASE_RETURN_ANCHOR_FALLBACK_POSITION
 	)
 func _get_interactable_return_position(instance_id: String, fallback_position: Vector2) -> Vector2:
+	_ensure_scene_nodes()
+	if interactables_root == null:
+		return fallback_position
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
 			continue
@@ -1461,6 +1455,9 @@ func _get_interactable_return_position(instance_id: String, fallback_position: V
 		return interactable.position + Vector2(0, 30)
 	return fallback_position
 func _get_interactable_region_id(instance_id: String, fallback_region_id: String) -> String:
+	_ensure_scene_nodes()
+	if interactables_root == null:
+		return fallback_region_id
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
 			continue
@@ -1471,6 +1468,8 @@ func _get_interactable_region_id(instance_id: String, fallback_region_id: String
 func _get_enemy_instance_id(enemy: PrototypeEnemy) -> String:
 	return "enemy_instance.%s" % String(enemy.name).to_snake_case()
 func _get_region_id_for_position(map_position: Vector2) -> String:
+	if map_position.x >= DEMO_STABILIZATION_CORE_REGION_X:
+		return "region.demo_stabilization_core"
 	if map_position.x >= PHASE_WELL_TETHER_REGION_X:
 		return "region.phase_well_tether"
 	if map_position.x >= PHASE_WELL_FRAME_REGION_X:

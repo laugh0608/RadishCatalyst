@@ -9,10 +9,10 @@ $errors = [System.Collections.Generic.List[string]]::new()
 $clientRoot = Join-Path $RepoRoot "client"
 $sceneFiles = Get-ChildItem -LiteralPath $clientRoot -Recurse -File -Include *.tscn,*.tres,*.godot
 $projectPath = Join-Path $clientRoot "project.godot"
-$gameRootScenePath = Join-Path $clientRoot "scenes\game\GameRoot.tscn"
-$hudScenePath = Join-Path $clientRoot "scenes\ui\PrototypeHud.tscn"
-$verticalSliceMapScenePath = Join-Path $clientRoot "scenes\maps\VerticalSliceMap.tscn"
-$verticalSliceMapScriptPath = Join-Path $clientRoot "scripts\map\vertical_slice_map.gd"
+$gameRootScenePath = Join-Path $clientRoot "scenes/game/GameRoot.tscn"
+$hudScenePath = Join-Path $clientRoot "scenes/ui/PrototypeHud.tscn"
+$verticalSliceMapScenePath = Join-Path $clientRoot "scenes/maps/VerticalSliceMap.tscn"
+$verticalSliceMapScriptPath = Join-Path $clientRoot "scripts/map/vertical_slice_map.gd"
 
 function Add-Error([string]$Message) {
     $errors.Add($Message)
@@ -162,11 +162,14 @@ function Get-NodeVector2($Properties, [string]$Key) {
     }
 }
 
-function Get-MapRegionId($Position, [double]$CrystalRegionX, [double]$PollutionRegionX, [double]$PollutionDeepY, [double]$RuinOuterRingX, [double]$DeepRuinRegionX, [double]$InnerPhaseWellRegionX, [double]$PhaseWellSinkRegionX, [double]$PhaseWellChamberRegionX, [double]$PhaseWellLoomRegionX, [double]$PhaseWellFrameRegionX, [double]$PhaseWellTetherRegionX) {
+function Get-MapRegionId($Position, [double]$CrystalRegionX, [double]$PollutionRegionX, [double]$PollutionDeepY, [double]$RuinOuterRingX, [double]$DeepRuinRegionX, [double]$InnerPhaseWellRegionX, [double]$PhaseWellSinkRegionX, [double]$PhaseWellChamberRegionX, [double]$PhaseWellLoomRegionX, [double]$PhaseWellFrameRegionX, [double]$PhaseWellTetherRegionX, [double]$DemoStabilizationCoreRegionX) {
     if ($null -eq $Position) {
         return ""
     }
 
+    if ($Position.X -ge $DemoStabilizationCoreRegionX) {
+        return "region.demo_stabilization_core"
+    }
     if ($Position.X -ge $PhaseWellTetherRegionX) {
         return "region.phase_well_tether"
     }
@@ -410,7 +413,7 @@ if (Test-Path -LiteralPath $projectPath -PathType Leaf) {
                     }
                 }
                 "VitalsPanel" {
-                    if ($width -gt 460.0 -or $height -gt 200.0 -or $rect.Top -gt 40.0 -or $rect.Left -lt ($viewportWidth - 540.0) -or $rect.Right -gt $viewportWidth) {
+                    if ($width -gt 520.0 -or $height -gt 260.0 -or $rect.Top -gt 40.0 -or $rect.Left -lt ($viewportWidth - 560.0) -or $rect.Right -gt $viewportWidth) {
                         Add-Error "client/scenes/ui/PrototypeHud.tscn: VitalsPanel drifted out of distributed HUD vitals-card bounds"
                     }
                 }
@@ -458,8 +461,8 @@ foreach ($scriptFile in $scriptFiles) {
 if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
     $mapSceneContent = Get-Content -LiteralPath $verticalSliceMapScenePath -Raw
     $mapNodes = Get-SceneNodes $mapSceneContent
-    $crystalRegionX = -70.0
-    $pollutionRegionX = 200.0
+    $crystalRegionX = -20.0
+    $pollutionRegionX = 240.0
     $pollutionDeepY = -40.0
     $ruinOuterRingX = 390.0
     $deepRuinRegionX = 700.0
@@ -469,6 +472,7 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
     $phaseWellLoomRegionX = 2320.0
     $phaseWellFrameRegionX = 2600.0
     $phaseWellTetherRegionX = 2880.0
+    $demoStabilizationCoreRegionX = 3640.0
     if (Test-Path -LiteralPath $verticalSliceMapScriptPath -PathType Leaf) {
         $mapScriptContent = Get-Content -LiteralPath $verticalSliceMapScriptPath -Raw
         $crystalRegionX = Get-GDScriptConstantNumber $mapScriptContent "CRYSTAL_REGION_X" $crystalRegionX
@@ -482,6 +486,7 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
         $phaseWellLoomRegionX = Get-GDScriptConstantNumber $mapScriptContent "PHASE_WELL_LOOM_REGION_X" $phaseWellLoomRegionX
         $phaseWellFrameRegionX = Get-GDScriptConstantNumber $mapScriptContent "PHASE_WELL_FRAME_REGION_X" $phaseWellFrameRegionX
         $phaseWellTetherRegionX = Get-GDScriptConstantNumber $mapScriptContent "PHASE_WELL_TETHER_REGION_X" $phaseWellTetherRegionX
+        $demoStabilizationCoreRegionX = Get-GDScriptConstantNumber $mapScriptContent "DEMO_STABILIZATION_CORE_REGION_X" $demoStabilizationCoreRegionX
     }
     else {
         Add-Error "client/scripts/map/vertical_slice_map.gd: missing map region source for scene region checks"
@@ -519,7 +524,7 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
                 DefinitionId = Get-NodeString $node.Properties "definition_id"
                 InteractionType = Get-NodeString $node.Properties "interaction_type"
                 PrerequisiteInstanceId = Get-NodeString $node.Properties "prerequisite_instance_id"
-                RegionId = Get-MapRegionId $position $crystalRegionX $pollutionRegionX $pollutionDeepY $ruinOuterRingX $deepRuinRegionX $innerPhaseWellRegionX $phaseWellSinkRegionX $phaseWellChamberRegionX $phaseWellLoomRegionX $phaseWellFrameRegionX $phaseWellTetherRegionX
+                RegionId = Get-MapRegionId $position $crystalRegionX $pollutionRegionX $pollutionDeepY $ruinOuterRingX $deepRuinRegionX $innerPhaseWellRegionX $phaseWellSinkRegionX $phaseWellChamberRegionX $phaseWellLoomRegionX $phaseWellFrameRegionX $phaseWellTetherRegionX $demoStabilizationCoreRegionX
             }
             $interactables.Add($interactable)
             $interactablesByInstanceId[$instanceId] = $interactable
@@ -530,7 +535,7 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
             $enemies.Add([pscustomobject]@{
                 Name = $node.Name
                 DefinitionId = Get-NodeString $node.Properties "definition_id"
-                RegionId = Get-MapRegionId $position $crystalRegionX $pollutionRegionX $pollutionDeepY $ruinOuterRingX $deepRuinRegionX $innerPhaseWellRegionX $phaseWellSinkRegionX $phaseWellChamberRegionX $phaseWellLoomRegionX $phaseWellFrameRegionX $phaseWellTetherRegionX
+                RegionId = Get-MapRegionId $position $crystalRegionX $pollutionRegionX $pollutionDeepY $ruinOuterRingX $deepRuinRegionX $innerPhaseWellRegionX $phaseWellSinkRegionX $phaseWellChamberRegionX $phaseWellLoomRegionX $phaseWellFrameRegionX $phaseWellTetherRegionX $demoStabilizationCoreRegionX
             })
         }
     }
@@ -542,6 +547,28 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
         if (-not $interactablesByInstanceId.ContainsKey($interactable.PrerequisiteInstanceId)) {
             Add-Error "client/scenes/maps/VerticalSliceMap.tscn: build interactable '$($interactable.Name)' references missing prerequisite_instance_id '$($interactable.PrerequisiteInstanceId)'"
         }
+    }
+
+    $demoCore = $interactables | Where-Object { $_.Name -eq "DemoStabilizationCore" } | Select-Object -First 1
+    $demoRecovery = $interactables | Where-Object { $_.Name -eq "DemoStabilizationRecoveryWreckage" } | Select-Object -First 1
+    $demoGuard = $enemies | Where-Object { $_.Name -eq "DemoStabilizationGuard" } | Select-Object -First 1
+    if ($null -eq $demoCore) {
+        Add-Error "client/scenes/maps/VerticalSliceMap.tscn: missing demo stabilization core device"
+    }
+    elseif ($demoCore.RegionId -ne "region.demo_stabilization_core") {
+        Add-Error "client/scenes/maps/VerticalSliceMap.tscn: demo stabilization core device must sit in demo stabilization core region"
+    }
+    if ($null -eq $demoRecovery) {
+        Add-Error "client/scenes/maps/VerticalSliceMap.tscn: missing demo stabilization side recovery point"
+    }
+    elseif ($demoRecovery.RegionId -ne "region.demo_stabilization_core") {
+        Add-Error "client/scenes/maps/VerticalSliceMap.tscn: demo stabilization recovery point must sit in demo stabilization core region"
+    }
+    if ($null -eq $demoGuard) {
+        Add-Error "client/scenes/maps/VerticalSliceMap.tscn: missing demo stabilization guard"
+    }
+    elseif ($demoGuard.RegionId -ne "region.demo_stabilization_core") {
+        Add-Error "client/scenes/maps/VerticalSliceMap.tscn: demo stabilization guard must sit in demo stabilization core region"
     }
 
     if ((Test-Path -LiteralPath $gameRootScenePath -PathType Leaf) -and $null -ne $playerPosition -and $null -ne $outpostCorePosition -and $null -ne $panelsByName) {
@@ -614,11 +641,11 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
         }
     }
 
-    $questsPath = Join-Path $clientRoot "data\quests.json"
-    $mapObjectsPath = Join-Path $clientRoot "data\map_objects.json"
-    $recipesPath = Join-Path $clientRoot "data\recipes.json"
-    $regionsPath = Join-Path $clientRoot "data\regions.json"
-    $enemiesPath = Join-Path $clientRoot "data\enemies.json"
+    $questsPath = Join-Path $clientRoot "data/quests.json"
+    $mapObjectsPath = Join-Path $clientRoot "data/map_objects.json"
+    $recipesPath = Join-Path $clientRoot "data/recipes.json"
+    $regionsPath = Join-Path $clientRoot "data/regions.json"
+    $enemiesPath = Join-Path $clientRoot "data/enemies.json"
     $questsJson = Read-JsonFile $questsPath
     $mapObjectsJson = Read-JsonFile $mapObjectsPath
     $recipesJson = Read-JsonFile $recipesPath

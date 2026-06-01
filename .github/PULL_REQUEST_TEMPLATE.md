@@ -30,6 +30,7 @@
 ```text
 pwsh ./scripts/check-text-files.ps1
 ./scripts/check-text-files.sh
+./scripts/check-client.sh
 ```
 
 ## 影响评估
