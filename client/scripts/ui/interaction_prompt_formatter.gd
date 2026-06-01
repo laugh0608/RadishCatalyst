@@ -393,22 +393,22 @@ func format_deep_ruin_door_prompt(world_state: WorldState, character_state: Char
 
 func format_deep_ruin_latch_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_cache"):
-		return "深段锁扣：已覆写，深段样块已回收。"
+		return "裂相锁扣：已覆写，裂相样块已回收。"
 	if not world_state.quest_state.has_completed_quest("quest.assemble_deep_override"):
-		return "深段锁扣：先回基地精炼相位纤丝并组装深段覆写栓。"
+		return "裂相锁扣：先回基地精炼相位纤丝并组装裂相覆写栓。"
 	if not character_state.inventory.has_ref("item.deep_override_key", 1):
-		return "深段锁扣：缺少深段覆写栓；回过滤器精炼纤丝，再去反应器组装。"
-	return "按 E 覆写：深段锁扣。"
+		return "裂相锁扣：缺少裂相覆写栓；回过滤器精炼纤丝，再去反应器组装。"
+	return "按 E 覆写：裂相锁扣。"
 
 
 func format_deep_signal_array_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.activate_deep_array"):
-		return "深段阵列台：已点亮，第二轮导管回收线已暴露。"
+		return "裂相阵列台：已点亮，第二轮导管回收线已暴露。"
 	if not world_state.quest_state.has_completed_quest("quest.analyze_deep_core"):
-		return "深段阵列台：先回基地解析深段样块，整理出路由印片。"
+		return "裂相阵列台：先回基地解析裂相样块，整理出路由印片。"
 	if not character_state.inventory.has_ref("item.deep_route_imprint", 1):
-		return "深段阵列台：缺少深段路由印片；回基地确认基础反应器解析结果后再来。"
-	return "按 E 写入：深段路由印片，点亮深段阵列台。"
+		return "裂相阵列台：缺少裂相路由印片；回基地确认基础反应器解析结果后再来。"
+	return "按 E 写入：裂相路由印片，点亮裂相阵列台。"
 
 
 func format_phase_return_anchor_prompt(

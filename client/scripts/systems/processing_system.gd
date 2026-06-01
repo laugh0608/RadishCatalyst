@@ -365,11 +365,11 @@ func _get_completion_next_step(recipe_id: String, world_state: WorldState = null
 		"recipe.deep_signal_analysis":
 			return "带着裂相坐标返回封锁遗迹最东侧，写入裂相脊入口门禁。"
 		"recipe.phase_filament_refining":
-			return "把谐振滤芯、副产污染浆液和基础零件送到基础反应器，组装深段覆写栓。"
+			return "把谐振滤芯、副产污染浆液和基础零件送到基础反应器，组装裂相覆写栓。"
 		"recipe.deep_override_key":
-			return "带着深段覆写栓返回裂相脊入口深处，覆写锁扣并取出样块。"
+			return "带着裂相覆写栓返回裂相脊入口深处，覆写锁扣并取出样块。"
 		"recipe.deep_core_imprint":
-			return "带着深段路由印片返回深段阵列台，点亮第二轮导管回收线。"
+			return "带着裂相路由印片返回裂相阵列台，点亮第二轮导管回收线。"
 		"recipe.deep_signal_matrix":
 			return "深段第二轮读数已整理完成；返回深段固定点部署前线回传锚点，并准备从回投台重返前线。"
 		"recipe.phase_splinter_refining":
@@ -497,7 +497,7 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 			if _get_recipe_input_shortage(recipe, "item.resonance_filter", inventory) > 0.0:
 				return "先回处理点污染过滤器精炼相位纤丝，得到谐振滤芯。"
 			if _get_recipe_input_shortage(recipe, "fluid.polluted_slurry", inventory) > 0.0:
-				return "污染浆液来自相位纤丝精炼副产；先回处理点过滤器完成精炼，再组装深段覆写栓。"
+				return "污染浆液来自相位纤丝精炼副产；先回处理点过滤器完成精炼，再组装裂相覆写栓。"
 	return ""
 
 

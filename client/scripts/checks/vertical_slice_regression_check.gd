@@ -960,7 +960,7 @@ func _check_game_root_development_baseline_factory() -> void:
 	host._expect_equal(character_state.current_region_id, "region.outpost_platform", "S4 baseline character region")
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.analyze_deep_core", "S4 baseline active quest")
 	host._expect_equal(int(character_state.inventory.items.get("item.basic_parts", 0)), 4, "S4 baseline keeps enough basic parts for the second deep pass")
-	host._expect_equal(int(character_state.inventory.items.get("item.deep_ruin_core", 0)), 1, "S4 baseline keeps deep ruin core reward")
+	host._expect_equal(int(character_state.inventory.items.get("item.deep_ruin_core", 0)), 1, "S4 baseline keeps fracture sample reward")
 	host._expect_equal(float(character_state.inventory.fluids.get("fluid.polluted_slurry", 0.0)), 1.0, "S4 baseline keeps polluted slurry for deep signal matrix")
 	host._expect_equal(String(character_state.equipment.get("suit_module", "")), "equipment.filter_module_t1", "S4 baseline equips filter module")
 	game_root.free()

@@ -36,10 +36,10 @@ const BASELINE_DEFINITIONS := [
 	{
 		"id": "baseline.s4_deep_cache_open",
 		"code": "S4",
-		"display_name": "S4 深段样块已回收",
+		"display_name": "S4 裂相样块已回收",
 		"completed_through": "quest.unlock_deep_ruin_cache",
-		"summary": "深段样块已带回，下一步在基地解析并进入第二轮阵列线。",
-		"recommended_for": "深段样块解析、阵列点亮、追袭体与相位导管链路回归。"
+		"summary": "裂相样块已带回，下一步在基地解析并进入第二轮阵列线。",
+		"recommended_for": "裂相样块解析、阵列点亮、追袭体与相位导管链路回归。"
 	},
 	{
 		"id": "baseline.s5_phase_relay_online",

@@ -554,9 +554,9 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 		if target.definition_id == "enemy.ruin_phase_guard":
 			return _enemy_defeat_result(target, drops_message, "外圈回波匣附近的干扰守卫已清空。")
 		if target.definition_id == "enemy.deep_ruin_sentinel":
-			return _enemy_defeat_result(target, drops_message, "深段锁扣前的压制守卫已清空，相位纤丝回收线已打开。")
+			return _enemy_defeat_result(target, drops_message, "裂相锁扣前的压制守卫已清空，相位纤丝回收线已打开。")
 		if target.definition_id == "enemy.deep_ruin_stalker":
-			return _enemy_defeat_result(target, drops_message, "深段阵列后的追袭线已清空，相位导管回收窗口已打开。")
+			return _enemy_defeat_result(target, drops_message, "裂相阵列后的追袭线已清空，相位导管回收窗口已打开。")
 		if target.definition_id == "enemy.deep_fault_hunter":
 			return _enemy_defeat_result(target, drops_message, "更东侧裂相脊的封锁压力已减弱，裂相碎屑回收线已打开。")
 		if target.definition_id == "enemy.phase_well_sentry":
@@ -1096,54 +1096,54 @@ func _inspect_deep_ruin_door(character_state: CharacterState, world_state: World
 func _inspect_deep_ruin_latch(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.assemble_deep_override"):
 		return _failure(
-			"深段锁扣仍被相位回路封住。",
+			"裂相锁扣仍被相位回路封住。",
 			"锁扣未覆写",
-			"先回基地用污染过滤器精炼相位纤丝，再用基础反应器组装深段覆写栓。"
+			"先回基地用污染过滤器精炼相位纤丝，再用基础反应器组装裂相覆写栓。"
 		)
 
 	if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_cache"):
 		return {
 			"success": true,
-			"message": "深段锁扣已覆写：深段样块已经回收，可回基地继续解析第二轮阵列路线。"
+			"message": "裂相锁扣已覆写：裂相样块已经回收，可回基地继续解析第二轮阵列路线。"
 		}
 
 	if not character_state.inventory.has_ref("item.deep_override_key", 1):
 		return _failure(
-			"缺少深段覆写栓，锁扣无法解除。",
+			"缺少裂相覆写栓，锁扣无法解除。",
 			"缺少覆写栓",
-			"回处理点过滤器精炼相位纤丝，再去基础反应器组装深段覆写栓。"
+			"回处理点过滤器精炼相位纤丝，再去基础反应器组装裂相覆写栓。"
 		)
 
 	character_state.inventory.consume_ref("item.deep_override_key", 1)
 	return {
 		"success": true,
-		"message": "已覆写深段锁扣：深段样块匣解封，可带回新的深段样块并继续回基地解析。"
+		"message": "已覆写裂相锁扣：裂相样块匣解封，可带回新的裂相样块并继续回基地解析。"
 	}
 func _inspect_deep_signal_array(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.analyze_deep_core"):
 		return _failure(
-			"深段阵列台仍没有可执行的第二轮路由。",
+			"裂相阵列台仍没有可执行的第二轮路由。",
 			"阵列未点亮",
-			"先回基地用基础反应器解析深段样块，整理出深段路由印片。"
+			"先回基地用基础反应器解析裂相样块，整理出裂相路由印片。"
 		)
 
 	if world_state.quest_state.has_completed_quest("quest.activate_deep_array"):
 		return {
 			"success": true,
-			"message": "深段阵列台已点亮：相位导管回收线已暴露，带回基地后可继续整理读数矩阵。"
+			"message": "裂相阵列台已点亮：相位导管回收线已暴露，带回基地后可继续整理读数矩阵。"
 		}
 
 	if not character_state.inventory.has_ref("item.deep_route_imprint", 1):
 		return _failure(
-			"缺少深段路由印片，阵列台无法重启。",
+			"缺少裂相路由印片，阵列台无法重启。",
 			"缺少路由印片",
-			"回基地确认基础反应器已完成样块解析，并带上深段路由印片返回。"
+			"回基地确认基础反应器已完成样块解析，并带上裂相路由印片返回。"
 		)
 
 	character_state.inventory.consume_ref("item.deep_route_imprint", 1)
 	return {
 		"success": true,
-		"message": "深段路由印片已写入：阵列台点亮，第二轮相位导管回收线已暴露。"
+		"message": "裂相路由印片已写入：裂相阵列台点亮，第二轮相位导管回收线已暴露。"
 	}
 func _inspect_phase_return_anchor(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var anchor_instance_id := "map_object_instance.phase_return_anchor"

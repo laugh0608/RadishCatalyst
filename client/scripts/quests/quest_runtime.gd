@@ -171,7 +171,7 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 	if _activate_missing_post_phase_relay_followup(world_state):
 		log_messages.append("旧进度已接入：回传后的深段后续任务已补入当前目标。")
 	if _activate_missing_second_deep_followup(world_state):
-		log_messages.append("旧进度已接入：深段样块后的第二轮任务已补入当前目标。")
+		log_messages.append("旧进度已接入：裂相样块后的第二轮任务已补入当前目标。")
 	if _activate_missing_deep_ruin_followup(world_state):
 		log_messages.append("旧进度已接入：裂相脊入口门禁写入任务已补入当前目标。")
 	if _activate_missing_outer_ring_followup(world_state):

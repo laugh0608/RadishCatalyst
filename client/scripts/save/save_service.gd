@@ -399,7 +399,7 @@ func _format_slot_details(save_data: Dictionary) -> String:
 			elif completed_quest_ids.has("quest.assemble_deep_signal_matrix"):
 				parts.append("目标：待部署前线回传锚点")
 			elif completed_quest_ids.has("quest.unlock_deep_ruin_cache"):
-				parts.append("目标：待继续解析深段样块")
+				parts.append("目标：待继续解析裂相样块")
 			elif unlocked_effects.has("slice_01_complete"):
 				parts.append("目标：遗迹外圈第一版已完成")
 
