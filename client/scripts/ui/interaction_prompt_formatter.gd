@@ -369,7 +369,7 @@ func format_outer_ring_console_prompt(world_state: WorldState) -> String:
 	if not world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier"):
 		return "外圈中继台：先稳定抖动雾幕，再进入外圈深段。"
 	if world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
-		return "外圈中继台：数据已读取，更深遗迹结构坐标已保留。"
+		return "外圈中继台：数据已读取，裂相结构坐标已保留。"
 	return "按 E 检查：外圈中继台。"
 
 
@@ -383,12 +383,12 @@ func format_signal_echo_cache_prompt(world_state: WorldState) -> String:
 
 func format_deep_ruin_door_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_entrance"):
-		return "深段入口门禁：已写入，可继续向东进入深段。"
+		return "裂相脊入口门禁：已写入，可继续向东进入裂相脊。"
 	if not world_state.quest_state.has_completed_quest("quest.analyze_deep_signal"):
-		return "深段入口门禁：先回基地解析深段回波，拿到更深遗迹坐标。"
+		return "裂相脊入口门禁：先回基地解析深段回波，拿到裂相坐标。"
 	if not character_state.inventory.has_ref("item.deep_ruin_coordinates", 1):
-		return "深段入口门禁：缺少更深遗迹坐标；回基地确认基础反应器解析结果后再来。"
-	return "按 E 写入：更深遗迹坐标，打开深段入口。"
+		return "裂相脊入口门禁：缺少裂相坐标；回基地确认基础反应器解析结果后再来。"
+	return "按 E 写入：裂相坐标，打开裂相脊入口。"
 
 
 func format_deep_ruin_latch_prompt(world_state: WorldState, character_state: CharacterState) -> String:

@@ -383,6 +383,7 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	host._expect_equal(processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world), "recipe.deep_core_imprint", "deep core analysis selects reactor recipe")
 	recipe_world.quest_state.active_quest_ids = ["quest.assemble_deep_override"]
 	host._expect_equal(processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world), "recipe.deep_override_key", "deep override assembly selects reactor recipe")
+	_check_mid_demo_missing_input_hints(processing)
 	recipe_character.inventory.add_item("item.phase_conduit", 2)
 	recipe_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
 	recipe_character.inventory.items["item.basic_parts"] = 1
@@ -764,6 +765,67 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	filter.free()
 
 
+func _check_mid_demo_missing_input_hints(processing: ProcessingSystem) -> void:
+	var phase_anchor_world := WorldState.create_default()
+	phase_anchor_world.quest_state.unlock_effect("recipe.phase_anchor")
+	var phase_anchor_character := CharacterState.create_default()
+	var phase_anchor_status := processing.get_recipe_status("recipe.phase_anchor", phase_anchor_character, phase_anchor_world)
+	host._expect_text_contains(
+		String(phase_anchor_status.get("supply_hint", "")),
+		"回收两处继电残片",
+		"phase anchor missing relay shard points to outer ring"
+	)
+	phase_anchor_character.inventory.add_item("item.relay_shard", 2)
+	phase_anchor_status = processing.get_recipe_status("recipe.phase_anchor", phase_anchor_character, phase_anchor_world)
+	host._expect_text_contains(
+		String(phase_anchor_status.get("supply_hint", "")),
+		"污染浆液来自污染过滤器处理沉积物",
+		"phase anchor missing slurry points to pollution filter"
+	)
+
+	var deep_signal_world := WorldState.create_default()
+	deep_signal_world.quest_state.unlock_effect("recipe.deep_signal_analysis")
+	var deep_signal_status := processing.get_recipe_status("recipe.deep_signal_analysis", CharacterState.create_default(), deep_signal_world)
+	host._expect_text_contains(
+		String(deep_signal_status.get("supply_hint", "")),
+		"回收外圈回波匣",
+		"deep signal analysis missing echo points to outer ring cache"
+	)
+
+	var filter_world := WorldState.create_default()
+	filter_world.quest_state.unlock_effect("recipe.phase_filament_refining")
+	filter_world.add_base_structure(
+		"structure.pollution_filter_build_site",
+		"building.pollution_filter",
+		"region.pollution_edge",
+		"map_object_instance.pollution_filter_build_site"
+	)
+	var filament_status := processing.get_recipe_status("recipe.phase_filament_refining", CharacterState.create_default(), filter_world)
+	host._expect_text_contains(
+		String(filament_status.get("supply_hint", "")),
+		"回收两处相位纤丝",
+		"phase filament refining missing input points to fracture ridge"
+	)
+
+	var override_world := WorldState.create_default()
+	override_world.quest_state.unlock_effect("recipe.deep_override_key")
+	var override_character := CharacterState.create_default()
+	override_character.inventory.items["item.basic_parts"] = 2
+	var override_status := processing.get_recipe_status("recipe.deep_override_key", override_character, override_world)
+	host._expect_text_contains(
+		String(override_status.get("supply_hint", "")),
+		"精炼相位纤丝",
+		"deep override missing resonance filter points to filter"
+	)
+	override_character.inventory.add_item("item.resonance_filter", 1)
+	override_status = processing.get_recipe_status("recipe.deep_override_key", override_character, override_world)
+	host._expect_text_contains(
+		String(override_status.get("supply_hint", "")),
+		"相位纤丝精炼副产",
+		"deep override missing slurry points to filter byproduct"
+	)
+
+
 func check_equipment_processing_runtime() -> void:
 	var processing := ProcessingSystem.new(host.data_registry)
 	var module_world := WorldState.create_default()
@@ -844,7 +906,7 @@ func _check_development_baseline_presenter() -> void:
 	)
 	var presenter := HudDevelopmentBaselinePresenter.new()
 	var selected_text := presenter.format_selected_baseline(definitions[3], 3, definitions.size())
-	host._expect_text_contains(selected_text, "S3 深段门禁已开", "development baseline presenter shows selected baseline name")
+	host._expect_text_contains(selected_text, "S3 裂相脊入口已开", "development baseline presenter shows selected baseline name")
 	host._expect_text_contains(selected_text, "相位纤丝", "development baseline presenter shows baseline summary")
 	host._expect_text_contains(selected_text, "过滤器精炼", "development baseline presenter shows recommended use")
 	host._expect_equal(

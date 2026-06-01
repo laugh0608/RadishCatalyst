@@ -173,7 +173,7 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 	if _activate_missing_second_deep_followup(world_state):
 		log_messages.append("旧进度已接入：深段样块后的第二轮任务已补入当前目标。")
 	if _activate_missing_deep_ruin_followup(world_state):
-		log_messages.append("旧进度已接入：更深遗迹入口门禁写入任务已补入当前目标。")
+		log_messages.append("旧进度已接入：裂相脊入口门禁写入任务已补入当前目标。")
 	if _activate_missing_outer_ring_followup(world_state):
 		log_messages.append("旧进度已接入：外圈中继后的深段回波回收任务已补入当前目标。")
 	if world_state.quest_state.has_active_quest("quest.bring_back_sample"):

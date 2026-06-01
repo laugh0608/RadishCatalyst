@@ -28,10 +28,10 @@ const BASELINE_DEFINITIONS := [
 	{
 		"id": "baseline.s3_deep_entrance_open",
 		"code": "S3",
-		"display_name": "S3 深段门禁已开",
+		"display_name": "S3 裂相脊入口已开",
 		"completed_through": "quest.unlock_deep_ruin_entrance",
-		"summary": "更深遗迹坐标已写入，下一步进入深段回收相位纤丝。",
-		"recommended_for": "深段入口、相位纤丝回收、过滤器精炼和覆写栓链路回归。"
+		"summary": "裂相坐标已写入，下一步进入裂相脊入口回收相位纤丝。",
+		"recommended_for": "裂相脊入口、相位纤丝回收、过滤器精炼和覆写栓链路回归。"
 	},
 	{
 		"id": "baseline.s4_deep_cache_open",

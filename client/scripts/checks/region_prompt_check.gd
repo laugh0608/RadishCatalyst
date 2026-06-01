@@ -95,7 +95,7 @@ func run() -> void:
 	var deep_door_character := CharacterState.create_default()
 	host._expect_text_contains(formatter.format_deep_ruin_door_prompt(deep_door_world, deep_door_character), "先回基地解析深段回波", "deep ruin door blocked prompt")
 	deep_door_world.quest_state.completed_quest_ids.append("quest.analyze_deep_signal")
-	host._expect_text_contains(formatter.format_deep_ruin_door_prompt(deep_door_world, deep_door_character), "缺少更深遗迹坐标", "deep ruin door missing coordinates prompt")
+	host._expect_text_contains(formatter.format_deep_ruin_door_prompt(deep_door_world, deep_door_character), "缺少裂相坐标", "deep ruin door missing coordinates prompt")
 	deep_door_character.inventory.add_item("item.deep_ruin_coordinates", 1)
 	host._expect_text_contains(formatter.format_deep_ruin_door_prompt(deep_door_world, deep_door_character), "按 E 写入", "deep ruin door ready prompt")
 	deep_door_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_entrance")

@@ -724,7 +724,7 @@ func apply_region_gate_bounds(world_state: WorldState) -> String:
 	if _is_deep_ruin_gate_locked(world_state) and player.position.x > DEEP_RUIN_GATE_RETURN_X:
 		player.position.x = DEEP_RUIN_GATE_RETURN_X
 		player.stop_positive_x_until_release()
-		return "深段入口仍未校准：先带着更深遗迹坐标回到门禁写入。"
+		return "裂相脊入口仍未校准：先带着裂相坐标回到门禁写入。"
 
 	if not world_state.unlocked_region_ids.has("region.inner_phase_well") and player.position.x > INNER_PHASE_WELL_GATE_RETURN_X:
 		player.position.x = INNER_PHASE_WELL_GATE_RETURN_X
@@ -1048,11 +1048,11 @@ func _inspect_outer_ring_console(world_state: WorldState) -> Dictionary:
 	if world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
 		return {
 			"success": true,
-			"message": "外圈中继台数据已读取：更深遗迹结构坐标已保留。"
+			"message": "外圈中继台数据已读取：裂相结构坐标已保留。"
 		}
 	return {
 		"success": true,
-		"message": "外圈中继台已接管：更深遗迹结构的稳定回波已定位。"
+		"message": "外圈中继台已接管：裂相结构的稳定回波已定位。"
 	}
 func _inspect_signal_echo_cache(world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
@@ -1068,30 +1068,30 @@ func _inspect_signal_echo_cache(world_state: WorldState) -> Dictionary:
 		}
 	return {
 		"success": true,
-		"message": "已回收外圈回波匣：回基地用基础反应器整理更深遗迹坐标。"
+		"message": "已回收外圈回波匣：回基地用基础反应器整理裂相坐标。"
 	}
 func _inspect_deep_ruin_door(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.analyze_deep_signal"):
 		return _failure(
-			"深段入口门禁仍没有可执行坐标。",
+			"裂相脊入口门禁仍没有可执行坐标。",
 			"入口未校准",
-			"先回基地解析深段回波，整理出更深遗迹坐标。"
+			"先回基地解析深段回波，整理出裂相坐标。"
 		)
 	if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_entrance"):
 		return {
 			"success": true,
-			"message": "深段入口门禁已写入：继续向东进入深段，回收相位纤丝。"
+			"message": "裂相脊入口门禁已写入：继续向东进入裂相脊，回收相位纤丝。"
 		}
 	if not character_state.inventory.has_ref("item.deep_ruin_coordinates", 1):
 		return _failure(
-			"缺少更深遗迹坐标，门禁无法写入。",
+			"缺少裂相坐标，门禁无法写入。",
 			"缺少开门坐标",
-			"回基地确认基础反应器已完成深段回波解析，并带上更深遗迹坐标返回。"
+			"回基地确认基础反应器已完成深段回波解析，并带上裂相坐标返回。"
 		)
 	character_state.inventory.consume_ref("item.deep_ruin_coordinates", 1)
 	return {
 		"success": true,
-		"message": "更深遗迹坐标已写入：深段入口门禁开启。"
+		"message": "裂相坐标已写入：裂相脊入口门禁开启。"
 	}
 func _inspect_deep_ruin_latch(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.assemble_deep_override"):

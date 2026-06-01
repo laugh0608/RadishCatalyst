@@ -363,11 +363,11 @@ func _get_completion_next_step(recipe_id: String, world_state: WorldState = null
 		"recipe.phase_anchor":
 			return "带着稳相信标返回遗迹外圈，在抖动雾幕前部署后再继续深入。"
 		"recipe.deep_signal_analysis":
-			return "带着更深遗迹坐标返回遗迹外圈最东侧，写入深段入口门禁。"
+			return "带着裂相坐标返回封锁遗迹最东侧，写入裂相脊入口门禁。"
 		"recipe.phase_filament_refining":
 			return "把谐振滤芯、副产污染浆液和基础零件送到基础反应器，组装深段覆写栓。"
 		"recipe.deep_override_key":
-			return "带着深段覆写栓返回深段入口，覆写锁扣并取出样块。"
+			return "带着深段覆写栓返回裂相脊入口深处，覆写锁扣并取出样块。"
 		"recipe.deep_core_imprint":
 			return "带着深段路由印片返回深段阵列台，点亮第二轮导管回收线。"
 		"recipe.deep_signal_matrix":
@@ -466,6 +466,9 @@ func _format_missing_input_next_step(recipe: Dictionary, inventory: InventorySta
 
 
 func _format_missing_input_supply_hint(recipe: Dictionary, inventory: InventoryState) -> String:
+	var specific_hint := _format_mid_demo_missing_input_supply_hint(recipe, inventory)
+	if not specific_hint.is_empty():
+		return specific_hint
 	if _get_recipe_input_shortage(recipe, "item.basic_parts", inventory) <= 0.0:
 		return ""
 	if data_registry.get_definition("recipe.process_crystal_ore").is_empty():
@@ -475,6 +478,27 @@ func _format_missing_input_supply_hint(recipe: Dictionary, inventory: InventoryS
 	if _get_inventory_ref_amount("item.crystal_ore", inventory) >= 3.0:
 		return "先检查前哨核心回收和阶段补给批次；当前也可切换到处理晶体矿物，把晶体矿物加工成基础零件。"
 	return "先检查前哨核心回收和阶段补给批次；若仍不足，去晶体矿脉区北侧富晶残脉或处理点入口前的回访矿点采集晶体矿物后加工成基础零件。"
+
+
+func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: InventoryState) -> String:
+	match String(recipe.get("id", "")):
+		"recipe.phase_anchor":
+			if _get_recipe_input_shortage(recipe, "item.relay_shard", inventory) > 0.0:
+				return "先进入封锁遗迹外圈，回收两处继电残片。"
+			if _get_recipe_input_shortage(recipe, "fluid.polluted_slurry", inventory) > 0.0:
+				return "污染浆液来自污染过滤器处理沉积物；回处理点补一次沉积物处理，再回基础反应器组装稳相信标。"
+		"recipe.deep_signal_analysis":
+			if _get_recipe_input_shortage(recipe, "item.signal_echo_trace", inventory) > 0.0:
+				return "先在封锁遗迹深处清理相位守卫，并回收外圈回波匣。"
+		"recipe.phase_filament_refining":
+			if _get_recipe_input_shortage(recipe, "item.phase_filament", inventory) > 0.0:
+				return "先进入裂相脊入口，清理裂相守卫并回收两处相位纤丝。"
+		"recipe.deep_override_key":
+			if _get_recipe_input_shortage(recipe, "item.resonance_filter", inventory) > 0.0:
+				return "先回处理点污染过滤器精炼相位纤丝，得到谐振滤芯。"
+			if _get_recipe_input_shortage(recipe, "fluid.polluted_slurry", inventory) > 0.0:
+				return "污染浆液来自相位纤丝精炼副产；先回处理点过滤器完成精炼，再组装深段覆写栓。"
+	return ""
 
 
 func _get_missing_inputs(recipe: Dictionary, inventory: InventoryState) -> Array[String]:

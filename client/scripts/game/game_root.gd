@@ -440,10 +440,10 @@ func _on_region_gate_blocked(message: String) -> void:
 			message,
 			"需要：回基地用基础反应器组装稳相信标。"
 		))
-	elif message.find("深段入口") >= 0:
+	elif message.find("裂相脊入口") >= 0:
 		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(
 			message,
-			"需要：回基地解析深段回波，带着更深遗迹坐标回来写入门禁。"
+			"需要：回基地解析深段回波，带着裂相坐标回来写入门禁。"
 		))
 	elif message.find("回声台地") >= 0:
 		hud.append_log(interaction_prompt_formatter.format_region_gate_blocked_log(
