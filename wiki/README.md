@@ -61,6 +61,7 @@ Wiki 不记录：
 
 以下页面涉及中后段相位井内容，默认按剧透处理：
 
+- [裂相脊到回声台地生产线](production-lines/fracture-ridge-echo-plateau-line.md)
 - [锚定桥后的前线回稳指南](guides/late-frontier-anchor-field-guide.md)
 - [前线锚点与稳定窗口](mechanics/frontline-anchors-and-stable-windows.md)
 - [锚定桥前线区域](regions/phase-well-east-frontier.md)
