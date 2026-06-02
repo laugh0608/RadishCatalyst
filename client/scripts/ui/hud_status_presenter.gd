@@ -228,6 +228,11 @@ func _format_base_summary_lines(
 			return ["行动台确认稳窗回访：只派发稳窗回波探点"]
 		if active_quest_id == "quest.confirm_supply_frontline_action":
 			return ["行动台确认补给短行动：只派发补给回执标记"]
+		if active_quest_id == "quest.confirm_route_frontline_action":
+			return [
+				"行动台确认巡线短行动：只派发巡线信标",
+				"短行动反馈已归档：第三条行动入口已整理"
+			]
 
 	return ["设备：待命；当前目标先外出推进"]
 
@@ -682,13 +687,13 @@ func _format_active_quest_progress(data_registry: DataRegistry, world_state: Wor
 		if _has_completed_route_frontline_action(world_state):
 			return "巡线短行动已确认；回到锚定桥前线读取巡线信标"
 		if _has_completed_short_action_feedback(world_state):
-			return "短行动反馈已归档，下一趟巡线目标已整理；回基地巡线短行动台确认第三条轻量行动"
+			return "短行动反馈已归档，下一趟巡线目标已整理；回基地前线行动台确认第三条巡线短行动"
 		if _has_completed_supply_return_marker(world_state):
 			return "补给回执读数已带回；回基地基础反应器解析成短行动反馈记录"
 		if _has_completed_supply_frontline_action(world_state):
 			return "补给短行动已确认；回到锚定桥前线读取补给回执标记"
 		if _has_completed_stability_echo_report(world_state):
-			return "前线行动回报已归档，下一趟短行动补给已整理；回基地短行动补给台确认第二条轻量行动"
+			return "前线行动回报已归档，下一趟短行动补给已整理；回基地前线行动台确认第二条轻量行动"
 		if _has_completed_stability_echo_probe(world_state):
 			return "稳窗回波样本已带回；回基地基础反应器解析成前线行动回报"
 		if _has_completed_stability_frontline_action(world_state):

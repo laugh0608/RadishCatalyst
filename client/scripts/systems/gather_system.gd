@@ -385,7 +385,7 @@ func _format_frontline_action_console_result(quest_id: String) -> String:
 		"quest.confirm_supply_frontline_action":
 			return "补给短行动已确认：本趟只派发补给回执标记；用相位回投返回锚定桥前线读取回执。"
 		"quest.confirm_route_frontline_action":
-			return "巡线短行动已确认：用相位回投返回锚定桥前线，读取巡线信标。"
+			return "巡线短行动已确认：本趟只派发巡线信标；用相位回投返回锚定桥前线读取信标。"
 		_:
 			return "前线行动台已确认。"
 
@@ -499,7 +499,7 @@ func _format_frontline_single_use_reading_result(definition_id: String) -> Strin
 		"map_object.stability_echo_probe":
 			return "稳窗回波样本已读取：这趟短回访已完成，回基地用基础反应器解析前线行动回报。"
 		"map_object.supply_return_marker":
-			return "补给回执标记已读取：回基地用基础反应器解析短行动反馈。"
+			return "补给回执标记已读取：第二条短回访已完成，回基地用基础反应器解析短行动反馈。"
 		"map_object.route_signal_marker":
 			return "巡线信标已读取：回基地用基础反应器解析巡线反馈。"
 		_:

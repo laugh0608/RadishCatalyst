@@ -80,6 +80,8 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 			return "把稳窗余响片解析成稳窗读数，做完先回锚场回稳窗确认前线回充，再按序校准稳窗节点。"
 		"recipe.stability_echo_report":
 			return "把稳窗回波样本解析成前线行动回报，做完回前线行动台确认补给短行动。"
+		"recipe.short_action_feedback":
+			return "把补给回执读数解析成短行动反馈记录，做完回前线行动台确认巡线短行动。"
 	return ""
 
 

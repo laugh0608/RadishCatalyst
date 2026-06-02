@@ -429,7 +429,7 @@ func _get_completion_next_step(recipe_id: String, world_state: WorldState = null
 		"recipe.stability_echo_report":
 			return "前线行动回报已归档；回基地前线行动台确认补给短行动，本趟只派发补给回执标记。"
 		"recipe.short_action_feedback":
-			return "短行动反馈已归档；第二条基地确认、前线短目标、回基地反馈闭环已完成，下一步可在巡线短行动台确认第三趟。"
+			return "短行动反馈已归档；第二条基地确认、前线短目标、回基地反馈闭环已完成，回前线行动台确认巡线短行动，本趟只派发巡线信标。"
 		"recipe.route_action_feedback":
 			return "巡线反馈已归档；回基地行动选择台，在稳场补给、相位测绘和压力清障之间选择下一趟短行动。"
 		"recipe.steady_supply_feedback":
@@ -612,6 +612,9 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 		"recipe.stability_echo_report":
 			if _get_recipe_input_shortage(recipe, "item.stability_echo_sample", inventory) > 0.0:
 				return "先从前线行动台确认稳窗回访，再用相位回投返回锚定桥东侧读取稳窗回波探点。"
+		"recipe.short_action_feedback":
+			if _get_recipe_input_shortage(recipe, "item.supply_return_trace", inventory) > 0.0:
+				return "先从前线行动台确认补给短行动，再用相位回投返回锚定桥前线读取补给回执标记。"
 	return ""
 
 

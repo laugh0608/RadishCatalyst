@@ -66,6 +66,15 @@ const FRONTLINE_ACTION_TARGET_PROMPTS := {
 		"effect": "读取后回基地使用基础反应器解析前线行动回报。",
 		"action": "按 E 读取稳窗回波样本"
 	},
+	"map_object.supply_return_marker": {
+		"quest_id": "quest.inspect_supply_return_marker",
+		"objective_type": "inspect",
+		"target_ids": ["map_object.supply_return_marker"],
+		"title": "补给回执标记",
+		"status": "未读取，本趟补给短行动只要求确认这一处回执标记。",
+		"effect": "读取后回基地使用基础反应器解析短行动反馈。",
+		"action": "按 E 读取补给回执"
+	},
 	"map_object.steady_supply_drop_marker": {
 		"quest_id": "quest.inspect_steady_supply_drop",
 		"objective_type": "inspect",

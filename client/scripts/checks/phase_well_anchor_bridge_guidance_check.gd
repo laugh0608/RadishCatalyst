@@ -39,6 +39,7 @@ func run() -> void:
 	_check_s14_s15_baseline_status()
 	_check_stability_calibration_and_frontline_entry()
 	_check_stability_echo_report_supply_entry(processing)
+	_check_short_action_feedback_route_entry(processing)
 
 
 func _check_missing_input_hints(processing: ProcessingSystem) -> void:
@@ -690,4 +691,140 @@ func _check_s17_supply_action_entry() -> void:
 		String(console_result.get("message", "")),
 		"只派发补给回执标记",
 		"supply action console confirmation keeps second visit narrow"
+	)
+
+	var marker_formatter := InteractionPromptFormatter.new(
+		host.data_registry,
+		ProcessingSystem.new(host.data_registry),
+		BuildSystem.new(host.data_registry)
+	)
+	var supply_marker := _make_prompt_interactable(
+		"map_object_instance.supply_return_marker",
+		"map_object.supply_return_marker"
+	)
+	host._expect_text_contains(
+		marker_formatter.format_frontline_action_target_prompt(supply_marker, s17_character, s17_world),
+		"本趟补给短行动只要求确认这一处回执标记",
+		"supply return marker prompt keeps second visit target density narrow"
+	)
+	var marker_result := gather.interact_with_object(
+		supply_marker.instance_id,
+		supply_marker.definition_id,
+		"inspect",
+		s17_character,
+		s17_world
+	)
+	host._expect_equal(bool(marker_result.get("success", false)), true, "supply return marker interaction succeeds")
+	host._expect_text_contains(
+		String(marker_result.get("message", "")),
+		"第二条短回访已完成",
+		"supply return marker result points back to base feedback"
+	)
+	supply_marker.free()
+
+
+func _check_short_action_feedback_route_entry(processing: ProcessingSystem) -> void:
+	host._expect_text_contains(
+		RecipePurposeHints.format_recipe_goal_hint("recipe.short_action_feedback"),
+		"前线行动台确认巡线短行动",
+		"short action feedback purpose points to route action confirmation"
+	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.short_action_feedback"),
+		"只派发巡线信标",
+		"short action feedback completion keeps route action narrow"
+	)
+	var missing_feedback_hint := processing._format_mid_demo_missing_input_supply_hint(
+		host.data_registry.get_definition("recipe.short_action_feedback"),
+		CharacterState.create_default().inventory
+	)
+	host._expect_text_contains(
+		missing_feedback_hint,
+		"读取补给回执标记",
+		"short action feedback missing trace points back to supply marker"
+	)
+
+	_check_short_action_feedback_device_recommendation(processing)
+	_check_s18_route_action_entry()
+
+
+func _check_short_action_feedback_device_recommendation(processing: ProcessingSystem) -> void:
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.process_crystal_ore"
+	reactor.set_recipe_cycle([
+		"recipe.process_crystal_ore",
+		"recipe.short_action_feedback"
+	])
+
+	var reactor_world := WorldState.create_default()
+	reactor_world.quest_state.active_quest_ids = ["quest.analyze_supply_return_trace"]
+	reactor_world.quest_state.unlock_effect("recipe.short_action_feedback")
+	var reactor_character := CharacterState.create_default()
+	reactor_character.inventory.add_item("item.supply_return_trace", 1)
+	var reactor_texts := HudDevicePanelPresenter.new().format_device_panel_texts(
+		host.data_registry,
+		processing,
+		reactor,
+		reactor_character,
+		reactor_world
+	)
+	host._expect_text_contains(
+		String(reactor_texts.get("status", "")),
+		"确认巡线短行动",
+		"reactor device panel explains short action feedback payoff"
+	)
+	host._expect_text_contains(
+		String(reactor_texts.get("recipes", "")),
+		"当前目标",
+		"reactor device panel marks short action feedback as current target"
+	)
+	reactor.free()
+
+
+func _check_s18_route_action_entry() -> void:
+	var builder := DevelopmentBaselineBuilder.new(host.data_registry)
+	var s18_result := builder.create_baseline_state("baseline.s18_short_action_feedback_ready")
+	host._expect_equal(bool(s18_result.get("success", false)), true, "S18 baseline generation for route action entry")
+	if not bool(s18_result.get("success", false)):
+		return
+
+	var s18_world: WorldState = s18_result.get("world_state", null)
+	var s18_character: CharacterState = s18_result.get("character_state", null)
+	if s18_world == null or s18_character == null:
+		host.failures.append("S18 baseline should return world and character states for route action entry")
+		return
+
+	host._expect_equal(
+		s18_world.quest_state.active_quest_ids,
+		["quest.confirm_route_frontline_action"],
+		"S18 baseline starts at route action confirmation"
+	)
+	var s18_status := HudStatusPresenter.new().format_status_text(host.data_registry, s18_world, s18_character)
+	host._expect_text_contains(s18_status, "目标：确认巡线短行动", "S18 status panel points to route action")
+	host._expect_text_contains(s18_status, "行动台确认巡线短行动", "S18 status panel explains action console")
+	host._expect_text_contains(s18_status, "短行动反馈", "S18 status panel keeps feedback visible")
+
+	var console_prompt := BaseActionDispatchPlan.format_console_prompt(
+		"map_object.frontline_action_console",
+		s18_world,
+		s18_character
+	)
+	host._expect_text_contains(console_prompt, "按 E 确认", "route action console prompt exposes confirmation action")
+	host._expect_text_contains(console_prompt, "只派发巡线信标", "route action console prompt keeps third visit narrow")
+
+	var gather := GatherSystem.new(host.data_registry)
+	var console_result := gather.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		"map_object.frontline_action_console",
+		"inspect",
+		s18_character,
+		s18_world
+	)
+	host._expect_equal(bool(console_result.get("success", false)), true, "route action console confirmation succeeds")
+	host._expect_text_contains(
+		String(console_result.get("message", "")),
+		"只派发巡线信标",
+		"route action console confirmation keeps third visit narrow"
 	)

@@ -38,13 +38,13 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		if _has_completed_route_frontline_action(world_state):
 			return "巡线短行动已确认：用相位回投返回锚定桥前线，读取巡线信标。"
 		if _has_completed_short_action_feedback(world_state):
-			return "短行动反馈已归档：回基地巡线短行动台确认第三条轻量行动。"
+			return "短行动反馈已归档：回基地前线行动台确认第三条巡线短行动。"
 		if _has_completed_supply_return_marker(world_state):
 			return "补给回执读数已带回：回基地使用基础反应器，把读数解析成短行动反馈记录。"
 		if _has_completed_supply_frontline_action(world_state):
 			return "补给短行动已确认：用相位回投返回锚定桥前线，读取补给回执标记。"
 		if _has_completed_stability_echo_report(world_state):
-			return "前线行动回报已归档：前哨已整理下一趟短行动补给，回基地短行动补给台确认第二条轻量行动。"
+			return "前线行动回报已归档：前哨已整理下一趟短行动补给，回基地前线行动台确认第二条轻量行动。"
 		if _has_completed_stability_echo_probe(world_state):
 			return "稳窗回波样本已带回：回基地使用基础反应器，把样本解析成前线行动回报。"
 		if _has_completed_stability_frontline_action(world_state):
@@ -287,13 +287,13 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.analyze_stability_echo_sample":
 			return "回基地使用基础反应器，把稳窗回波样本解析成前线行动回报。"
 		"quest.confirm_supply_frontline_action":
-			return "回基地检查短行动补给台，把上一趟回报整理出的补给转成下一趟短目标。"
+			return "回基地检查前线行动台，确认补给短行动；本趟只派发补给回执标记。"
 		"quest.inspect_supply_return_marker":
 			return "用相位回投返回锚定桥前线，读取补给回执标记后回基地。"
 		"quest.analyze_supply_return_trace":
 			return "回基地使用基础反应器，把补给回执读数解析成短行动反馈记录。"
 		"quest.confirm_route_frontline_action":
-			return "回基地检查巡线短行动台，把短行动反馈记录接成第三趟短目标。"
+			return "回基地检查前线行动台，确认巡线短行动；本趟只派发巡线信标。"
 		"quest.inspect_route_signal_marker":
 			return "用相位回投返回锚定桥前线，读取巡线信标后回基地。"
 		"quest.analyze_route_signal_trace":
