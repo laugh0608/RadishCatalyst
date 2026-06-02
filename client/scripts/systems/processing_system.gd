@@ -383,7 +383,7 @@ func _get_completion_next_step(recipe_id: String, world_state: WorldState = null
 		"recipe.phase_well_key":
 			return "带着裂相锁钥返回更东侧裂相锁位，钉住锁位并带回第一份定位器。"
 		"recipe.phase_well_locator_analysis":
-			return "回声路由片已整理完成；继续向东进入新暴露的回声台地边缘，击退哨戒体并回收回声碎屑。"
+			return "回声路由片已整理完成；继续向东进入新暴露的回声台地边缘，先处理两处回声泄压阀，再击退哨戒体并回收回声碎屑。"
 		"recipe.well_flux_stabilization":
 			return "稳流芯和副产污染浆液已筛出；继续这次探针整备，回基地基础反应器组装回声探针。"
 		"recipe.phase_well_probe":
@@ -528,6 +528,14 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 		"recipe.phase_well_locator_analysis":
 			if _get_recipe_input_shortage(recipe, "item.phase_well_locator", inventory) > 0.0:
 				return "先带裂相锁钥返回裂相锁位，钉住锁位并带回第一份回声定位器。"
+		"recipe.well_flux_stabilization":
+			if _get_recipe_input_shortage(recipe, "item.well_flux_shard", inventory) > 0.0:
+				return "先沿回声路由进入回声台地边缘，处理两处回声泄压阀，击退回声哨戒体并回收两处回声碎屑。"
+		"recipe.phase_well_probe":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_route", inventory) > 0.0:
+				return "先回基地基础反应器解析回声定位器，整理出回声路由片。"
+			if _get_recipe_input_shortage(recipe, "item.phase_well_stabilizer", inventory) > 0.0:
+				return "先回处理点污染过滤器稳定回声碎屑，筛出回声稳流芯。"
 	return ""
 
 

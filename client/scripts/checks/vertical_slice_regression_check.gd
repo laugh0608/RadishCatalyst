@@ -319,6 +319,8 @@ func _check_mid_demo_handoff_readability() -> void:
 		"回声台地",
 		"phase well locator purpose points to echo plateau"
 	)
+	host._expect_text_contains(RecipePurposeHints.format_recipe_goal_hint("recipe.well_flux_stabilization"), "回声探针", "well flux purpose points to phase well probe assembly")
+	host._expect_text_contains(RecipePurposeHints.format_recipe_goal_hint("recipe.phase_well_probe"), "回声芯样本", "phase well probe purpose points to core sample readout")
 	reactor.free()
 	filter.free()
 	lens_reactor.free()
@@ -1120,6 +1122,40 @@ func _check_mid_demo_missing_input_hints(processing: ProcessingSystem) -> void:
 		"回声定位器",
 		"phase well locator analysis missing locator points back to phase well lock"
 	)
+	var flux_world := WorldState.create_default()
+	flux_world.quest_state.unlock_effect("recipe.well_flux_stabilization")
+	flux_world.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
+	var flux_status := processing.get_recipe_status(
+		"recipe.well_flux_stabilization",
+		CharacterState.create_default(),
+		flux_world
+	)
+	host._expect_text_contains(
+		String(flux_status.get("supply_hint", "")),
+		"回声泄压阀",
+		"well flux stabilization missing shard points back to vent route"
+	)
+	var probe_world := WorldState.create_default()
+	probe_world.quest_state.unlock_effect("recipe.phase_well_probe")
+	probe_world.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	var probe_status := processing.get_recipe_status(
+		"recipe.phase_well_probe",
+		CharacterState.create_default(),
+		probe_world
+	)
+	host._expect_text_contains(
+		String(probe_status.get("supply_hint", "")),
+		"解析回声定位器",
+		"phase well probe missing route points back to locator analysis"
+	)
+	var probe_character := CharacterState.create_default()
+	probe_character.inventory.add_item("item.phase_well_route", 1)
+	probe_status = processing.get_recipe_status("recipe.phase_well_probe", probe_character, probe_world)
+	host._expect_text_contains(
+		String(probe_status.get("supply_hint", "")),
+		"稳定回声碎屑",
+		"phase well probe missing stabilizer points back to flux stabilization"
+	)
 
 
 func check_equipment_processing_runtime() -> void:
@@ -1310,6 +1346,10 @@ func _check_game_root_development_baseline_factory() -> void:
 		["map_object_instance.phase_return_anchor"],
 		"S7 baseline deployed relay anchors"
 	)
+	var s7_status_presenter := HudStatusPresenter.new()
+	var s7_status_text := s7_status_presenter.format_status_text(host.data_registry, s7_world, s7_character)
+	host._expect_text_contains(s7_status_text, "目标：解析回声定位器", "S7 baseline status names locator analysis")
+	host._expect_text_contains(s7_status_text, "回声定位器 1/1", "S7 baseline status keeps locator as current key resource")
 	game_root.free()
 
 

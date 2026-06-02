@@ -36,6 +36,10 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 			return "把坐标印片和稳定故障芯组装成裂相锁钥，做完返回裂相锁位带回回声定位器。"
 		"recipe.phase_well_locator_analysis":
 			return "把回声定位器解析成回声路由片，做完继续推进更东侧回声台地。"
+		"recipe.well_flux_stabilization":
+			return "把回声碎屑稳定成稳流芯，做完继续去基础反应器组装回声探针。"
+		"recipe.phase_well_probe":
+			return "把回声路由片和稳流芯组装成回声探针，做完返回回声台地读取回声芯样本。"
 	return ""
 
 
