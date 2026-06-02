@@ -401,7 +401,7 @@ func _get_completion_next_step(recipe_id: String, world_state: WorldState = null
 		"recipe.phase_well_shunt":
 			return "带着碎晶分流栓返回更东侧碎晶沟谷断面，勘验断面并带回第一份风蚀张力核。"
 		"recipe.phase_well_spindle_analysis":
-			return "风蚀经片已整理完成；继续向东进入新暴露的风蚀管廊边缘，击退风蚀纠缠体并回收纬束残团。"
+			return "风蚀经片已整理完成；继续向东进入新暴露的风蚀管廊边缘，先检查两处风蚀张力绕轮，再击退纠缠体并回收纬束残团。"
 		"recipe.weft_bundle_stabilization":
 			return "张力肋和副产污染浆液已筛出；继续这次风蚀整备，回基地基础反应器组装风蚀梭栓。"
 		"recipe.phase_well_shuttle":
@@ -558,6 +558,17 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 				return "先回基地基础反应器解析碎晶心核，整理出碎晶脉搏片。"
 			if _get_recipe_input_shortage(recipe, "item.phase_well_damper", inventory) > 0.0:
 				return "先回处理点污染过滤器稳定心棘残片，筛出碎晶抑振骨。"
+		"recipe.phase_well_spindle_analysis":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_spindle", inventory) > 0.0:
+				return "先带碎晶分流栓返回碎晶沟谷，勘验后带回第一份风蚀张力核。"
+		"recipe.weft_bundle_stabilization":
+			if _get_recipe_input_shortage(recipe, "item.weft_bundle", inventory) > 0.0:
+				return "先沿风蚀经片进入风蚀管廊边缘，检查两处风蚀张力绕轮，击退风蚀纠缠体并回收两处纬束残团。"
+		"recipe.phase_well_shuttle":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_warp_sheet", inventory) > 0.0:
+				return "先回基地基础反应器解析风蚀张力核，整理出风蚀经片。"
+			if _get_recipe_input_shortage(recipe, "item.phase_well_tension_rib", inventory) > 0.0:
+				return "先回处理点污染过滤器稳定纬束残团，筛出风蚀张力肋。"
 	return ""
 
 

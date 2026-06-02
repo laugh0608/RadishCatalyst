@@ -52,6 +52,12 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 			return "把心棘残片稳定成碎晶抑振骨，做完继续去基础反应器组装碎晶分流栓。"
 		"recipe.phase_well_shunt":
 			return "把碎晶脉搏片和抑振骨组装成碎晶分流栓，做完返回碎晶沟谷读取风蚀张力核。"
+		"recipe.phase_well_spindle_analysis":
+			return "把风蚀张力核解析成风蚀经片，做完继续推进更东侧风蚀管廊。"
+		"recipe.weft_bundle_stabilization":
+			return "把纬束残团稳定成风蚀张力肋，做完继续去基础反应器组装风蚀梭栓。"
+		"recipe.phase_well_shuttle":
+			return "把风蚀经片和张力肋组装成风蚀梭栓，做完返回风蚀管廊读取锁相织构核。"
 	return ""
 
 

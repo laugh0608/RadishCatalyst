@@ -15,6 +15,7 @@ func run() -> void:
 	_check_relay_tuning_lens(processing)
 	_check_salt_flat_readability(processing)
 	_check_shattered_ravine_readability(processing)
+	_check_wind_conduit_readability(processing)
 	_check_completed_deep_signal_matrix_refreshes_anchor()
 
 
@@ -149,6 +150,24 @@ func _check_shattered_ravine_readability(processing: ProcessingSystem) -> void:
 	shunt_character.inventory.add_item("item.phase_well_pulse_sheet", 1)
 	shunt_status = processing.get_recipe_status("recipe.phase_well_shunt", shunt_character, shunt_world)
 	host._expect_text_contains(String(shunt_status.get("supply_hint", "")), "稳定心棘残片", "phase well shunt missing damper points to spine stabilization")
+
+
+func _check_wind_conduit_readability(processing: ProcessingSystem) -> void:
+	host._expect_text_contains(processing._get_completion_next_step("recipe.phase_well_spindle_analysis"), "风蚀张力绕轮", "phase well spindle completion points to tension spools")
+	host._expect_text_contains(RecipePurposeHints.format_recipe_goal_hint("recipe.weft_bundle_stabilization"), "风蚀梭栓", "weft bundle purpose points to shuttle assembly")
+	host._expect_text_contains(RecipePurposeHints.format_recipe_goal_hint("recipe.phase_well_shuttle"), "锁相织构核", "phase well shuttle purpose points to weave core reward")
+	var weft_world := _create_filter_world("recipe.weft_bundle_stabilization")
+	var weft_status := processing.get_recipe_status("recipe.weft_bundle_stabilization", CharacterState.create_default(), weft_world)
+	host._expect_text_contains(String(weft_status.get("supply_hint", "")), "风蚀张力绕轮", "weft bundle missing input points to tension spools")
+	var shuttle_world := WorldState.create_default()
+	shuttle_world.quest_state.unlock_effect("recipe.phase_well_shuttle")
+	shuttle_world.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	var shuttle_status := processing.get_recipe_status("recipe.phase_well_shuttle", CharacterState.create_default(), shuttle_world)
+	host._expect_text_contains(String(shuttle_status.get("supply_hint", "")), "解析风蚀张力核", "phase well shuttle missing warp sheet points to spindle analysis")
+	var shuttle_character := CharacterState.create_default()
+	shuttle_character.inventory.add_item("item.phase_well_warp_sheet", 1)
+	shuttle_status = processing.get_recipe_status("recipe.phase_well_shuttle", shuttle_character, shuttle_world)
+	host._expect_text_contains(String(shuttle_status.get("supply_hint", "")), "稳定纬束残团", "phase well shuttle missing rib points to weft stabilization")
 
 
 func _create_filter_world(recipe_id: String) -> WorldState:
