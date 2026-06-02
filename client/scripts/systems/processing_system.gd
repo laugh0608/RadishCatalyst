@@ -395,7 +395,7 @@ func _get_completion_next_step(recipe_id: String, world_state: WorldState = null
 		"recipe.phase_well_pike":
 			return "带着盐壳穿钉返回更东侧盐壳浅滩，凿开裂口并带回第一份碎晶心核。"
 		"recipe.phase_well_heart_analysis":
-			return "碎晶脉搏片已整理完成；继续向东进入新暴露的碎晶沟谷边缘，击退碎晶撕裂体并回收心棘残片。"
+			return "碎晶脉搏片已整理完成；继续向东进入新暴露的碎晶沟谷边缘，先写入两处碎晶分流读数，再击退撕裂体并回收心棘残片。"
 		"recipe.heart_spine_stabilization":
 			return "抑振骨和副产污染浆液已筛出；继续这次碎晶整备，回基地基础反应器组装碎晶分流栓。"
 		"recipe.phase_well_shunt":
@@ -547,6 +547,17 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 				return "先回基地基础反应器解析回声芯样本，整理出盐壳频谱片。"
 			if _get_recipe_input_shortage(recipe, "item.phase_well_lattice", inventory) > 0.0:
 				return "先回处理点污染过滤器稳定盐壳余烬，筛出盐壳稳相格。"
+		"recipe.phase_well_heart_analysis":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_heart", inventory) > 0.0:
+				return "先带盐壳穿钉返回盐壳浅滩，凿开后带回第一份碎晶心核。"
+		"recipe.heart_spine_stabilization":
+			if _get_recipe_input_shortage(recipe, "item.heart_spine", inventory) > 0.0:
+				return "先沿碎晶脉搏进入碎晶沟谷边缘，写入两处碎晶分流读数，击退碎晶撕裂体并回收两处心棘残片。"
+		"recipe.phase_well_shunt":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_pulse_sheet", inventory) > 0.0:
+				return "先回基地基础反应器解析碎晶心核，整理出碎晶脉搏片。"
+			if _get_recipe_input_shortage(recipe, "item.phase_well_damper", inventory) > 0.0:
+				return "先回处理点污染过滤器稳定心棘残片，筛出碎晶抑振骨。"
 	return ""
 
 

@@ -14,6 +14,7 @@ func run() -> void:
 	_check_reclaim_basic_parts(processing)
 	_check_relay_tuning_lens(processing)
 	_check_salt_flat_readability(processing)
+	_check_shattered_ravine_readability(processing)
 	_check_completed_deep_signal_matrix_refreshes_anchor()
 
 
@@ -130,6 +131,24 @@ func _check_salt_flat_readability(processing: ProcessingSystem) -> void:
 	pike_character.inventory.add_item("item.phase_well_spectrum", 1)
 	pike_status = processing.get_recipe_status("recipe.phase_well_pike", pike_character, pike_world)
 	host._expect_text_contains(String(pike_status.get("supply_hint", "")), "稳定盐壳余烬", "phase well pike missing lattice points to ash stabilization")
+
+
+func _check_shattered_ravine_readability(processing: ProcessingSystem) -> void:
+	host._expect_text_contains(processing._get_completion_next_step("recipe.phase_well_heart_analysis"), "碎晶分流读数", "phase well heart completion points to shunt readings")
+	host._expect_text_contains(RecipePurposeHints.format_recipe_goal_hint("recipe.heart_spine_stabilization"), "碎晶分流栓", "heart spine purpose points to shunt assembly")
+	host._expect_text_contains(RecipePurposeHints.format_recipe_goal_hint("recipe.phase_well_shunt"), "风蚀张力核", "phase well shunt purpose points to spindle reward")
+	var spine_world := _create_filter_world("recipe.heart_spine_stabilization")
+	var spine_status := processing.get_recipe_status("recipe.heart_spine_stabilization", CharacterState.create_default(), spine_world)
+	host._expect_text_contains(String(spine_status.get("supply_hint", "")), "碎晶分流读数", "heart spine missing input points to shunt readings")
+	var shunt_world := WorldState.create_default()
+	shunt_world.quest_state.unlock_effect("recipe.phase_well_shunt")
+	shunt_world.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	var shunt_status := processing.get_recipe_status("recipe.phase_well_shunt", CharacterState.create_default(), shunt_world)
+	host._expect_text_contains(String(shunt_status.get("supply_hint", "")), "解析碎晶心核", "phase well shunt missing pulse sheet points to heart analysis")
+	var shunt_character := CharacterState.create_default()
+	shunt_character.inventory.add_item("item.phase_well_pulse_sheet", 1)
+	shunt_status = processing.get_recipe_status("recipe.phase_well_shunt", shunt_character, shunt_world)
+	host._expect_text_contains(String(shunt_status.get("supply_hint", "")), "稳定心棘残片", "phase well shunt missing damper points to spine stabilization")
 
 
 func _create_filter_world(recipe_id: String) -> WorldState:

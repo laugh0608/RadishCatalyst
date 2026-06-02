@@ -46,6 +46,12 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 			return "把盐壳余烬稳定成稳相格，做完继续去基础反应器组装盐壳穿钉。"
 		"recipe.phase_well_pike":
 			return "把盐壳频谱片和稳相格组装成盐壳穿钉，做完返回盐壳浅滩读取碎晶心核。"
+		"recipe.phase_well_heart_analysis":
+			return "把碎晶心核解析成碎晶脉搏片，做完继续推进更东侧碎晶沟谷。"
+		"recipe.heart_spine_stabilization":
+			return "把心棘残片稳定成碎晶抑振骨，做完继续去基础反应器组装碎晶分流栓。"
+		"recipe.phase_well_shunt":
+			return "把碎晶脉搏片和抑振骨组装成碎晶分流栓，做完返回碎晶沟谷读取风蚀张力核。"
 	return ""
 
 
