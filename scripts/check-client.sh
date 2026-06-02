@@ -63,7 +63,10 @@ run_godot_checked() {
   "${godot_exe}" --headless --path "${client_root}" "$@" >"${log_file}" 2>&1
   exit_code=$?
   set -e
-  cat "${log_file}"
+  grep -v 'Condition "ret != noErr"' "${log_file}" \
+    | grep -v "Failed to read the root certificate store" \
+    | grep -v "get_system_ca_certificates (platform/macos/os_macos.mm" \
+    || true
   if [ "${exit_code}" -ne 0 ]; then
     echo "${check_name} failed with exit code ${exit_code}." >&2
     exit "${exit_code}"
