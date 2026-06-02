@@ -37,6 +37,7 @@ func run() -> void:
 	_check_s13_baseline_status()
 	_check_stability_readout_guidance(processing)
 	_check_s14_s15_baseline_status()
+	_check_stability_calibration_and_frontline_entry()
 
 
 func _check_missing_input_hints(processing: ProcessingSystem) -> void:
@@ -418,3 +419,167 @@ func _check_s14_s15_baseline_status() -> void:
 			var s15_status := HudStatusPresenter.new().format_status_text(host.data_registry, s15_world, s15_character)
 			host._expect_text_contains(s15_status, "目标：校准稳窗相位序", "S15 status panel points to field calibration")
 			host._expect_text_contains(s15_status, "稳窗读数", "S15 status panel keeps readout visible")
+
+
+func _check_stability_calibration_and_frontline_entry() -> void:
+	var formatter := InteractionPromptFormatter.new(
+		host.data_registry,
+		ProcessingSystem.new(host.data_registry),
+		BuildSystem.new(host.data_registry)
+	)
+	var runtime := PhaseWellFrontierRuntime.new(host.data_registry)
+	var calibration_world := WorldState.create_default()
+	calibration_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
+	calibration_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
+	var calibration_character := CharacterState.create_default()
+	calibration_character.inventory.add_item("item.phase_well_stability_readout", 1)
+
+	var west_node := _make_prompt_interactable(
+		"map_object_instance.phase_well_stability_node_west",
+		"map_object.phase_well_stability_node_west"
+	)
+	var core_node := _make_prompt_interactable(
+		"map_object_instance.phase_well_stability_node_core",
+		"map_object.phase_well_stability_node_core"
+	)
+	var east_node := _make_prompt_interactable(
+		"map_object_instance.phase_well_stability_node_east",
+		"map_object.phase_well_stability_node_east"
+	)
+
+	host._expect_text_contains(
+		formatter.format_stability_calibration_prompt(west_node, calibration_character, calibration_world),
+		"按 E 校准",
+		"west stability node prompt exposes calibration action"
+	)
+	host._expect_text_contains(
+		formatter.format_stability_calibration_prompt(west_node, calibration_character, calibration_world),
+		"西侧、中央、东侧",
+		"west stability node prompt preserves order"
+	)
+	host._expect_text_contains(
+		formatter.format_stability_calibration_prompt(core_node, calibration_character, calibration_world),
+		"相位序未对齐",
+		"core stability node prompt blocks out-of-order calibration"
+	)
+
+	var west_result := runtime.inspect_stability_calibration_node(
+		west_node.instance_id,
+		west_node.definition_id,
+		calibration_character,
+		calibration_world
+	)
+	host._expect_equal(bool(west_result.get("success", false)), true, "west stability node calibration still succeeds")
+	host._expect_text_contains(
+		formatter.format_stability_calibration_prompt(core_node, calibration_character, calibration_world),
+		"按 E 校准：中央稳窗校准点",
+		"core stability node prompt opens after west calibration"
+	)
+	var core_result := runtime.inspect_stability_calibration_node(
+		core_node.instance_id,
+		core_node.definition_id,
+		calibration_character,
+		calibration_world
+	)
+	host._expect_equal(bool(core_result.get("success", false)), true, "core stability node calibration still succeeds")
+	var east_result := runtime.inspect_stability_calibration_node(
+		east_node.instance_id,
+		east_node.definition_id,
+		calibration_character,
+		calibration_world
+	)
+	host._expect_equal(bool(east_result.get("success", false)), true, "east stability node calibration still succeeds")
+	host._expect_text_contains(
+		String(east_result.get("message", "")),
+		"前线行动台确认稳窗回访",
+		"final stability calibration result points to frontline action console"
+	)
+	host._expect_text_contains(
+		String(east_result.get("message", "")),
+		"只派发稳窗回波探点",
+		"final stability calibration result keeps first visit scope narrow"
+	)
+
+	west_node.free()
+	core_node.free()
+	east_node.free()
+
+	_check_s16_frontline_entry_guidance(formatter)
+
+
+func _check_s16_frontline_entry_guidance(formatter: InteractionPromptFormatter) -> void:
+	var builder := DevelopmentBaselineBuilder.new(host.data_registry)
+	var s16_result := builder.create_baseline_state("baseline.s16_phase_well_stability_window_calibrated")
+	host._expect_equal(bool(s16_result.get("success", false)), true, "S16 baseline generation for frontline entry guidance")
+	if not bool(s16_result.get("success", false)):
+		return
+
+	var s16_world: WorldState = s16_result.get("world_state", null)
+	var s16_character: CharacterState = s16_result.get("character_state", null)
+	if s16_world == null or s16_character == null:
+		host.failures.append("S16 baseline should return world and character states for frontline entry guidance")
+		return
+
+	host._expect_equal(
+		s16_world.quest_state.active_quest_ids,
+		["quest.plan_stability_frontline_action"],
+		"S16 baseline starts at frontline action confirmation"
+	)
+	var s16_status := HudStatusPresenter.new().format_status_text(host.data_registry, s16_world, s16_character)
+	host._expect_text_contains(s16_status, "目标：确认前线行动", "S16 status panel points to frontline action confirmation")
+	host._expect_text_contains(s16_status, "行动台确认稳窗回访", "S16 status panel explains base console entry")
+
+	var console_prompt := BaseActionDispatchPlan.format_console_prompt(
+		"map_object.frontline_action_console",
+		s16_world,
+		s16_character
+	)
+	host._expect_text_contains(console_prompt, "按 E 确认", "frontline action console prompt exposes confirmation action")
+	host._expect_text_contains(console_prompt, "只派发稳窗回波探点", "frontline action console prompt keeps first visit narrow")
+
+	var gather := GatherSystem.new(host.data_registry)
+	var console_result := gather.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		"map_object.frontline_action_console",
+		"inspect",
+		s16_character,
+		s16_world
+	)
+	host._expect_equal(bool(console_result.get("success", false)), true, "frontline action console confirmation succeeds")
+	host._expect_text_contains(
+		String(console_result.get("message", "")),
+		"只派发稳窗回波探点",
+		"frontline action console confirmation result keeps first visit narrow"
+	)
+
+	var probe := _make_prompt_interactable(
+		"map_object_instance.stability_echo_probe",
+		"map_object.stability_echo_probe"
+	)
+	host._expect_text_contains(
+		formatter.format_frontline_action_target_prompt(probe, s16_character, s16_world),
+		"本趟稳窗回访只要求确认这一处探点",
+		"stability echo probe prompt keeps target density narrow"
+	)
+	var probe_result := gather.interact_with_object(
+		probe.instance_id,
+		probe.definition_id,
+		"inspect",
+		s16_character,
+		s16_world
+	)
+	host._expect_equal(bool(probe_result.get("success", false)), true, "stability echo probe interaction succeeds")
+	host._expect_text_contains(
+		String(probe_result.get("message", "")),
+		"这趟短回访已完成",
+		"stability echo probe result points back to base analysis"
+	)
+	probe.free()
+
+
+func _make_prompt_interactable(instance_id: String, definition_id: String) -> PrototypeInteractable:
+	var interactable := PrototypeInteractable.new()
+	interactable.instance_id = instance_id
+	interactable.definition_id = definition_id
+	interactable.interaction_type = "inspect"
+	return interactable

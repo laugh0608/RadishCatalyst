@@ -57,6 +57,15 @@ const FIELD_READING_PROMPTS := {
 }
 
 const FRONTLINE_ACTION_TARGET_PROMPTS := {
+	"map_object.stability_echo_probe": {
+		"quest_id": "quest.survey_stability_echo_probe",
+		"objective_type": "inspect",
+		"target_ids": ["map_object.stability_echo_probe"],
+		"title": "稳窗回波探点",
+		"status": "未读取，本趟稳窗回访只要求确认这一处探点。",
+		"effect": "读取后回基地使用基础反应器解析前线行动回报。",
+		"action": "按 E 读取稳窗回波样本"
+	},
 	"map_object.steady_supply_drop_marker": {
 		"quest_id": "quest.inspect_steady_supply_drop",
 		"objective_type": "inspect",
@@ -264,6 +273,10 @@ func can_format_field_reading_prompt(definition_id: String) -> bool:
 	return FIELD_READING_PROMPTS.has(definition_id)
 
 
+func can_format_stability_calibration_prompt(definition_id: String) -> bool:
+	return PhaseWellFrontierRuntime.new(data_registry).is_stability_calibration_node(definition_id)
+
+
 func can_format_frontline_action_target_prompt(definition_id: String) -> bool:
 	return FRONTLINE_ACTION_TARGET_PROMPTS.has(definition_id) or BaseActionDispatchPlan.is_frontline_window_object(definition_id)
 
@@ -337,6 +350,29 @@ func format_field_reading_prompt(interactable: PrototypeInteractable, world_stat
 		"按 E 写入读数"
 	]
 	return "\n".join(parts)
+
+
+func format_stability_calibration_prompt(
+	interactable: PrototypeInteractable,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
+	var runtime := PhaseWellFrontierRuntime.new(data_registry)
+	var title := _get_display_name(interactable.definition_id)
+	if runtime.is_stability_node_calibrated(world_state, interactable.instance_id, interactable.definition_id):
+		if world_state.quest_state.has_completed_quest("quest.calibrate_phase_well_stability_window"):
+			return "%s：已校准；三处稳窗节点已按序写入，回基地在前线行动台确认稳窗回访。" % title
+		return "%s：已校准；继续检查剩余稳窗节点。" % title
+	if not world_state.quest_state.has_completed_quest("quest.analyze_phase_well_echo_shard"):
+		return "%s：缺少稳窗读数；先回基地解析稳窗余响片。" % title
+	if not character_state.inventory.has_ref("item.phase_well_stability_readout", 1):
+		return "%s：缺少稳窗读数；确认余响片解析产物已放入背包，再返回锚定桥东侧。" % title
+	if not runtime.is_stability_calibration_ready(world_state, interactable.definition_id):
+		return "%s：相位序未对齐；先按西侧、中央、东侧顺序写入稳窗读数。" % title
+	var next_step := "完成后继续按西侧、中央、东侧顺序检查下一处节点。"
+	if interactable.definition_id == "map_object.phase_well_stability_node_east":
+		next_step = "完成后回基地，在前线行动台确认稳窗回访；本趟只派发稳窗回波探点。"
+	return "按 E 校准：%s\n顺序：西侧、中央、东侧。\n后续：%s" % [title, next_step]
 
 
 func format_outpost_core_prompt(world_state: WorldState, character_state: CharacterState) -> String:

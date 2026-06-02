@@ -381,7 +381,7 @@ func _get_display_name(definition_id: String) -> String:
 func _format_frontline_action_console_result(quest_id: String) -> String:
 	match quest_id:
 		"quest.plan_stability_frontline_action":
-			return "前线行动台已确认：用相位回投返回锚定桥东侧，读取稳窗回波探点。"
+			return "前线行动台已确认：本趟只派发稳窗回波探点；用相位回投返回锚定桥东侧读取样本。"
 		"quest.confirm_supply_frontline_action":
 			return "补给短行动已确认：用相位回投返回锚定桥前线，读取补给回执标记。"
 		"quest.confirm_route_frontline_action":
@@ -497,7 +497,7 @@ func _is_frontline_single_use_reading(definition_id: String) -> bool:
 func _format_frontline_single_use_reading_result(definition_id: String) -> String:
 	match definition_id:
 		"map_object.stability_echo_probe":
-			return "稳窗回波样本已读取：回基地用基础反应器解析前线行动回报。"
+			return "稳窗回波样本已读取：这趟短回访已完成，回基地用基础反应器解析前线行动回报。"
 		"map_object.supply_return_marker":
 			return "补给回执标记已读取：回基地用基础反应器解析短行动反馈。"
 		"map_object.route_signal_marker":

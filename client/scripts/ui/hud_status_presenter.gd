@@ -224,6 +224,8 @@ func _format_base_summary_lines(
 		var build_summary := _format_current_build_summary(data_registry, active_quest, character_state, world_state)
 		if not build_summary.is_empty():
 			return build_summary
+		if active_quest_id == "quest.plan_stability_frontline_action":
+			return ["行动台确认稳窗回访：只派发稳窗回波探点"]
 
 	return ["设备：待命；当前目标先外出推进"]
 

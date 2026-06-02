@@ -338,7 +338,7 @@ func inspect_stability_calibration_node(
 	return {
 		"success": true,
 		"advance_interaction": true,
-		"message": "三处稳窗校准点已按顺序写入：锚场回稳窗不再只是回充点，后续前线目标可以围绕现场读数顺序展开。"
+		"message": "三处稳窗校准点已按顺序写入：锚场回稳窗不再只是回充点；回基地在前线行动台确认稳窗回访，本趟只派发稳窗回波探点。"
 	}
 
 

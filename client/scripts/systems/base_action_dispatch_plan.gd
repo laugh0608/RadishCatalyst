@@ -577,7 +577,7 @@ static func _format_direction(stage: String, world_state: WorldState) -> String:
 		"frontline_window_complete":
 			return "连续两轮窗口复盘已完成：本轮原型到此收口，不再继续确认下一趟。"
 		"first_ready":
-			return "稳窗相位序已完成现场校准：回基地在行动台确认稳窗回访，把前线窗口转成下一趟外出目标。"
+			return "稳窗相位序已完成现场校准：回基地在行动台确认稳窗回访，本趟只派发锚定桥东侧稳窗回波探点。"
 		"first_dispatched":
 			return "稳窗回访已派发：用相位回投返回锚定桥东侧，读取稳窗回波探点后回基地。"
 		"first_return":
@@ -826,7 +826,7 @@ static func _format_console_action_line(definition_id: String, stage: String, wo
 				"frontline_window_complete":
 					return "本轮已收口；不自动派发下一趟。"
 				"first_ready":
-					return "按 E 确认：稳窗回访。"
+					return "按 E 确认：稳窗回访，只派发稳窗回波探点。"
 				"short_ready":
 					return "按 E 确认：补给短行动。"
 				"route_ready":
