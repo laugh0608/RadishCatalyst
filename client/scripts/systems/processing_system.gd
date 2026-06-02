@@ -418,8 +418,12 @@ func _get_completion_next_step(recipe_id: String, world_state: WorldState = null
 			return "锚定系固肋和副产污染浆液已筛出；继续这次锚定桥整备，回基地基础反应器组装锚定桩。"
 		"recipe.phase_well_tether_spike":
 			return "带着锚定桩返回更东侧锚定桥断面，勘验断面并带回第一份稳场锚核。"
+		"recipe.phase_well_anchor_core_analysis":
+			return "归谱片和锚核落尘已整理完成；先回处理点污染过滤器稳定锚核落尘，再回基地组装稳场校锚桩。"
+		"recipe.anchor_core_dust_stabilization":
+			return "稳场滤囊和副产污染浆液已筛出；继续这次锚场整备，回基地基础反应器组装稳场校锚桩。"
 		"recipe.phase_well_anchor_stake":
-			return "带着稳场校锚桩返回锚定桥东侧锚场回稳窗，部署后完成短守场并收束稳窗余响片。"
+			return "带着稳场校锚桩返回锚定桥东侧锚场回稳窗，部署后先清两处压力钉，再压制稳场守脉体并收束稳窗余响片。"
 		"recipe.phase_well_echo_shard_analysis":
 			return "稳窗读数已整理完成；回到锚定桥东侧锚场回稳窗，可用稳定窗口在前线回充生命与防护。"
 		"recipe.stability_echo_report":
@@ -594,6 +598,14 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 		"recipe.phase_well_anchor_core_analysis":
 			if _get_recipe_input_shortage(recipe, "item.phase_well_anchor_core", inventory) > 0.0:
 				return "先带锚定桩返回锚定桥断面，勘验后带回第一份稳场锚核。"
+		"recipe.anchor_core_dust_stabilization":
+			if _get_recipe_input_shortage(recipe, "item.anchor_core_dust", inventory) > 0.0:
+				return "先回基地基础反应器解析稳场锚核，沉降出锚核落尘。"
+		"recipe.phase_well_anchor_stake":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_return_sheet", inventory) > 0.0:
+				return "先回基地基础反应器解析稳场锚核，整理出归谱片。"
+			if _get_recipe_input_shortage(recipe, "item.anchor_field_filter", inventory) > 0.0:
+				return "先回处理点污染过滤器稳定锚核落尘，筛出稳场滤囊。"
 	return ""
 
 
