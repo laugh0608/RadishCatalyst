@@ -13,6 +13,7 @@ func run() -> void:
 	_check_phase_splinter_refining(processing)
 	_check_reclaim_basic_parts(processing)
 	_check_relay_tuning_lens(processing)
+	_check_salt_flat_readability(processing)
 	_check_completed_deep_signal_matrix_refreshes_anchor()
 
 
@@ -111,6 +112,24 @@ func _check_relay_tuning_lens(processing: ProcessingSystem) -> void:
 	host._expect_equal(int(character.inventory.items.get("item.relay_tuning_lens", 0)), 1, "relay tuning lens grants calibration item")
 	var status := processing.get_recipe_status("recipe.relay_tuning_lens", character, world)
 	host._expect_text_contains(String(status.get("last_next_step", "")), "裂相尖塔", "relay tuning lens panel next step")
+
+
+func _check_salt_flat_readability(processing: ProcessingSystem) -> void:
+	host._expect_text_contains(processing._get_completion_next_step("recipe.phase_well_core_analysis"), "盐壳硬壳", "phase well core completion points to salt crust clearing")
+	host._expect_text_contains(RecipePurposeHints.format_recipe_goal_hint("recipe.well_ash_stabilization"), "盐壳穿钉", "well ash purpose points to pike assembly")
+	host._expect_text_contains(RecipePurposeHints.format_recipe_goal_hint("recipe.phase_well_pike"), "碎晶心核", "phase well pike purpose points to heart reward")
+	var ash_world := _create_filter_world("recipe.well_ash_stabilization")
+	var ash_status := processing.get_recipe_status("recipe.well_ash_stabilization", CharacterState.create_default(), ash_world)
+	host._expect_text_contains(String(ash_status.get("supply_hint", "")), "盐壳硬壳", "well ash missing input points to crust clearing")
+	var pike_world := WorldState.create_default()
+	pike_world.quest_state.unlock_effect("recipe.phase_well_pike")
+	pike_world.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	var pike_status := processing.get_recipe_status("recipe.phase_well_pike", CharacterState.create_default(), pike_world)
+	host._expect_text_contains(String(pike_status.get("supply_hint", "")), "解析回声芯样本", "phase well pike missing spectrum points to core analysis")
+	var pike_character := CharacterState.create_default()
+	pike_character.inventory.add_item("item.phase_well_spectrum", 1)
+	pike_status = processing.get_recipe_status("recipe.phase_well_pike", pike_character, pike_world)
+	host._expect_text_contains(String(pike_status.get("supply_hint", "")), "稳定盐壳余烬", "phase well pike missing lattice points to ash stabilization")
 
 
 func _create_filter_world(recipe_id: String) -> WorldState:

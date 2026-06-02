@@ -40,6 +40,12 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 			return "把回声碎屑稳定成稳流芯，做完继续去基础反应器组装回声探针。"
 		"recipe.phase_well_probe":
 			return "把回声路由片和稳流芯组装成回声探针，做完返回回声台地读取回声芯样本。"
+		"recipe.phase_well_core_analysis":
+			return "把回声芯样本解析成盐壳频谱片，做完继续推进更东侧盐壳浅滩。"
+		"recipe.well_ash_stabilization":
+			return "把盐壳余烬稳定成稳相格，做完继续去基础反应器组装盐壳穿钉。"
+		"recipe.phase_well_pike":
+			return "把盐壳频谱片和稳相格组装成盐壳穿钉，做完返回盐壳浅滩读取碎晶心核。"
 	return ""
 
 

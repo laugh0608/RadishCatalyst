@@ -389,7 +389,7 @@ func _get_completion_next_step(recipe_id: String, world_state: WorldState = null
 		"recipe.phase_well_probe":
 			return "带着回声探针返回更东侧回声台地，读取第一份回声芯样本。"
 		"recipe.phase_well_core_analysis":
-			return "盐壳频谱片已整理完成；继续向东进入新暴露的盐壳浅滩边缘，击退潜伏体并回收盐壳余烬。"
+			return "盐壳频谱片已整理完成；继续向东进入新暴露的盐壳浅滩边缘，先清掉两处盐壳硬壳，再击退潜伏体并回收盐壳余烬。"
 		"recipe.well_ash_stabilization":
 			return "稳相格和副产污染浆液已筛出；继续这次盐壳整备，回基地基础反应器组装盐壳穿钉。"
 		"recipe.phase_well_pike":
@@ -536,6 +536,17 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 				return "先回基地基础反应器解析回声定位器，整理出回声路由片。"
 			if _get_recipe_input_shortage(recipe, "item.phase_well_stabilizer", inventory) > 0.0:
 				return "先回处理点污染过滤器稳定回声碎屑，筛出回声稳流芯。"
+		"recipe.phase_well_core_analysis":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_core", inventory) > 0.0:
+				return "先带回声探针返回更东侧回声台地，读取第一份回声芯样本。"
+		"recipe.well_ash_stabilization":
+			if _get_recipe_input_shortage(recipe, "item.well_ash", inventory) > 0.0:
+				return "先沿盐壳频谱进入盐壳浅滩边缘，清理两处盐壳硬壳，击退盐壳潜伏体并回收两处盐壳余烬。"
+		"recipe.phase_well_pike":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_spectrum", inventory) > 0.0:
+				return "先回基地基础反应器解析回声芯样本，整理出盐壳频谱片。"
+			if _get_recipe_input_shortage(recipe, "item.phase_well_lattice", inventory) > 0.0:
+				return "先回处理点污染过滤器稳定盐壳余烬，筛出盐壳稳相格。"
 	return ""
 
 
