@@ -76,6 +76,8 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 			return "把锚核落尘稳定成稳场滤囊，做完继续去基础反应器组装稳场校锚桩。"
 		"recipe.phase_well_anchor_stake":
 			return "把归谱片和稳场滤囊组装成稳场校锚桩，做完返回锚场回稳窗部署。"
+		"recipe.phase_well_echo_shard_analysis":
+			return "把稳窗余响片解析成稳窗读数，做完先回锚场回稳窗确认前线回充，再按序校准稳窗节点。"
 	return ""
 
 

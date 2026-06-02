@@ -541,7 +541,7 @@ func format_phase_well_anchor_field_prompt(world_state: WorldState, character_st
 			world_state.quest_state.has_completed_quest("quest.analyze_phase_well_echo_shard")
 			or character_state.inventory.has_ref("item.phase_well_stability_readout", 1)
 		):
-			return "按 E 回充：稳窗读数已校准，锚场回稳窗可在前线恢复生命与防护。"
+			return "按 E 回充：稳窗读数已解析，锚场回稳窗可在前线恢复生命与防护；之后按序校准三处稳窗节点。"
 		return "锚场回稳窗：局部稳定窗口已维持；回基地解析稳窗余响片后，可把这里校准成前线回稳点。"
 	if not _has_completed_any(world_state, ["quest.refine_anchor_core_dust", "quest.assemble_phase_well_anchor_stake"]):
 		return "锚场回稳窗：先回基地完成锚场整备，把稳场校锚桩带回来部署。"

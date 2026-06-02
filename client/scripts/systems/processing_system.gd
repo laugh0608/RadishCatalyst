@@ -425,7 +425,7 @@ func _get_completion_next_step(recipe_id: String, world_state: WorldState = null
 		"recipe.phase_well_anchor_stake":
 			return "带着稳场校锚桩返回锚定桥东侧锚场回稳窗，部署后先清两处压力钉，再压制稳场守脉体并收束稳窗余响片。"
 		"recipe.phase_well_echo_shard_analysis":
-			return "稳窗读数已整理完成；回到锚定桥东侧锚场回稳窗，可用稳定窗口在前线回充生命与防护。"
+			return "稳窗读数已整理完成；先回锚场回稳窗确认前线回充，再按西侧、中央、东侧顺序校准三处稳窗节点。"
 		"recipe.stability_echo_report":
 			return "前线行动回报已归档；这条基地确认、前线读取、回基地解析的短行动闭环已完成，下一步可在短行动补给台确认第二趟。"
 		"recipe.short_action_feedback":
@@ -606,6 +606,9 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 				return "先回基地基础反应器解析稳场锚核，整理出归谱片。"
 			if _get_recipe_input_shortage(recipe, "item.anchor_field_filter", inventory) > 0.0:
 				return "先回处理点污染过滤器稳定锚核落尘，筛出稳场滤囊。"
+		"recipe.phase_well_echo_shard_analysis":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_echo_shard", inventory) > 0.0:
+				return "先带稳场校锚桩返回锚定桥东侧，完成锚场回稳窗部署并收束第一份稳窗余响片。"
 	return ""
 
 
