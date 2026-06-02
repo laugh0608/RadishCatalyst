@@ -383,7 +383,7 @@ func _format_frontline_action_console_result(quest_id: String) -> String:
 		"quest.plan_stability_frontline_action":
 			return "前线行动台已确认：本趟只派发稳窗回波探点；用相位回投返回锚定桥东侧读取样本。"
 		"quest.confirm_supply_frontline_action":
-			return "补给短行动已确认：用相位回投返回锚定桥前线，读取补给回执标记。"
+			return "补给短行动已确认：本趟只派发补给回执标记；用相位回投返回锚定桥前线读取回执。"
 		"quest.confirm_route_frontline_action":
 			return "巡线短行动已确认：用相位回投返回锚定桥前线，读取巡线信标。"
 		_:

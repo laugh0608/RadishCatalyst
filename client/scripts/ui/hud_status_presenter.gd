@@ -226,6 +226,8 @@ func _format_base_summary_lines(
 			return build_summary
 		if active_quest_id == "quest.plan_stability_frontline_action":
 			return ["行动台确认稳窗回访：只派发稳窗回波探点"]
+		if active_quest_id == "quest.confirm_supply_frontline_action":
+			return ["行动台确认补给短行动：只派发补给回执标记"]
 
 	return ["设备：待命；当前目标先外出推进"]
 

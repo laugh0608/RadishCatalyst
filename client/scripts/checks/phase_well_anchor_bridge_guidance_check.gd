@@ -38,6 +38,7 @@ func run() -> void:
 	_check_stability_readout_guidance(processing)
 	_check_s14_s15_baseline_status()
 	_check_stability_calibration_and_frontline_entry()
+	_check_stability_echo_report_supply_entry(processing)
 
 
 func _check_missing_input_hints(processing: ProcessingSystem) -> void:
@@ -583,3 +584,110 @@ func _make_prompt_interactable(instance_id: String, definition_id: String) -> Pr
 	interactable.definition_id = definition_id
 	interactable.interaction_type = "inspect"
 	return interactable
+
+
+func _check_stability_echo_report_supply_entry(processing: ProcessingSystem) -> void:
+	host._expect_text_contains(
+		RecipePurposeHints.format_recipe_goal_hint("recipe.stability_echo_report"),
+		"前线行动台确认补给短行动",
+		"stability echo report purpose points to supply action confirmation"
+	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.stability_echo_report"),
+		"只派发补给回执标记",
+		"stability echo report completion keeps supply action narrow"
+	)
+	var missing_report_hint := processing._format_mid_demo_missing_input_supply_hint(
+		host.data_registry.get_definition("recipe.stability_echo_report"),
+		CharacterState.create_default().inventory
+	)
+	host._expect_text_contains(
+		missing_report_hint,
+		"读取稳窗回波探点",
+		"stability echo report missing sample points back to echo probe"
+	)
+
+	_check_stability_echo_report_device_recommendation(processing)
+	_check_s17_supply_action_entry()
+
+
+func _check_stability_echo_report_device_recommendation(processing: ProcessingSystem) -> void:
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.process_crystal_ore"
+	reactor.set_recipe_cycle([
+		"recipe.process_crystal_ore",
+		"recipe.stability_echo_report"
+	])
+
+	var reactor_world := WorldState.create_default()
+	reactor_world.quest_state.active_quest_ids = ["quest.analyze_stability_echo_sample"]
+	reactor_world.quest_state.unlock_effect("recipe.stability_echo_report")
+	var reactor_character := CharacterState.create_default()
+	reactor_character.inventory.add_item("item.stability_echo_sample", 1)
+	var reactor_texts := HudDevicePanelPresenter.new().format_device_panel_texts(
+		host.data_registry,
+		processing,
+		reactor,
+		reactor_character,
+		reactor_world
+	)
+	host._expect_text_contains(
+		String(reactor_texts.get("status", "")),
+		"确认补给短行动",
+		"reactor device panel explains stability echo report payoff"
+	)
+	host._expect_text_contains(
+		String(reactor_texts.get("recipes", "")),
+		"当前目标",
+		"reactor device panel marks stability echo report as current target"
+	)
+	reactor.free()
+
+
+func _check_s17_supply_action_entry() -> void:
+	var builder := DevelopmentBaselineBuilder.new(host.data_registry)
+	var s17_result := builder.create_baseline_state("baseline.s17_frontline_action_report_ready")
+	host._expect_equal(bool(s17_result.get("success", false)), true, "S17 baseline generation for supply action entry")
+	if not bool(s17_result.get("success", false)):
+		return
+
+	var s17_world: WorldState = s17_result.get("world_state", null)
+	var s17_character: CharacterState = s17_result.get("character_state", null)
+	if s17_world == null or s17_character == null:
+		host.failures.append("S17 baseline should return world and character states for supply action entry")
+		return
+
+	host._expect_equal(
+		s17_world.quest_state.active_quest_ids,
+		["quest.confirm_supply_frontline_action"],
+		"S17 baseline starts at supply action confirmation"
+	)
+	var s17_status := HudStatusPresenter.new().format_status_text(host.data_registry, s17_world, s17_character)
+	host._expect_text_contains(s17_status, "目标：确认补给短行动", "S17 status panel points to supply action")
+	host._expect_text_contains(s17_status, "行动台确认补给短行动", "S17 status panel explains action console")
+	host._expect_text_contains(s17_status, "前线行动回报", "S17 status panel keeps report visible")
+
+	var console_prompt := BaseActionDispatchPlan.format_console_prompt(
+		"map_object.frontline_action_console",
+		s17_world,
+		s17_character
+	)
+	host._expect_text_contains(console_prompt, "按 E 确认", "supply action console prompt exposes confirmation action")
+	host._expect_text_contains(console_prompt, "只派发补给回执标记", "supply action console prompt keeps second visit narrow")
+
+	var gather := GatherSystem.new(host.data_registry)
+	var console_result := gather.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		"map_object.frontline_action_console",
+		"inspect",
+		s17_character,
+		s17_world
+	)
+	host._expect_equal(bool(console_result.get("success", false)), true, "supply action console confirmation succeeds")
+	host._expect_text_contains(
+		String(console_result.get("message", "")),
+		"只派发补给回执标记",
+		"supply action console confirmation keeps second visit narrow"
+	)

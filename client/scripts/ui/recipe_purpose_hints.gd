@@ -78,6 +78,8 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 			return "把归谱片和稳场滤囊组装成稳场校锚桩，做完返回锚场回稳窗部署。"
 		"recipe.phase_well_echo_shard_analysis":
 			return "把稳窗余响片解析成稳窗读数，做完先回锚场回稳窗确认前线回充，再按序校准稳窗节点。"
+		"recipe.stability_echo_report":
+			return "把稳窗回波样本解析成前线行动回报，做完回前线行动台确认补给短行动。"
 	return ""
 
 

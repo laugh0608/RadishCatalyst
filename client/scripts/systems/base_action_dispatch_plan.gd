@@ -583,7 +583,7 @@ static func _format_direction(stage: String, world_state: WorldState) -> String:
 		"first_return":
 			return "稳窗回波样本已带回：回基地使用基础反应器，把样本解析成前线行动回报。"
 		"short_ready":
-			return "前线行动回报已归档：回基地在行动台确认补给短行动，把上一趟收益转成下一趟补给目标。"
+			return "前线行动回报已归档：回基地在前线行动台确认补给短行动，本趟只派发补给回执标记。"
 		"short_dispatched":
 			return "补给短行动已派发：用相位回投返回锚定桥前线，读取补给回执标记。"
 		"short_return":
@@ -828,7 +828,7 @@ static func _format_console_action_line(definition_id: String, stage: String, wo
 				"first_ready":
 					return "按 E 确认：稳窗回访，只派发稳窗回波探点。"
 				"short_ready":
-					return "按 E 确认：补给短行动。"
+					return "按 E 确认：补给短行动，只派发补给回执标记。"
 				"route_ready":
 					return "按 E 确认：巡线短行动。"
 				"steady_supply_ready":
