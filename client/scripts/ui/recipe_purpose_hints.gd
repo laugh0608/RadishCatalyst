@@ -64,6 +64,14 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 			return "把边缕残条稳定成锁相框架肋，做完继续去基础反应器组装锁相键栓。"
 		"recipe.phase_well_frame_key":
 			return "把锁相纹谱片和框架肋组装成锁相键栓，做完返回锁相框架读取锚定结核。"
+		"recipe.phase_well_knot_core_analysis":
+			return "把锚定结核解析成锚定系谱片，做完去锚定桥检查两端结点并回收锚索残股。"
+		"recipe.tether_fiber_stabilization":
+			return "把锚索残股稳定成锚定系固肋，做完继续去基础反应器组装锚定桩。"
+		"recipe.phase_well_tether_spike":
+			return "把锚定系谱片和系固肋组装成锚定桩，做完返回锚定桥读取稳场锚核。"
+		"recipe.phase_well_anchor_core_analysis":
+			return "把稳场锚核解析成归谱片和锚核落尘，做完继续推进锚定桥东侧稳场任务。"
 	return ""
 
 

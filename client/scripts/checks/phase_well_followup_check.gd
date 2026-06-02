@@ -1,5 +1,5 @@
 extends RefCounted
-
+const PhaseWellAnchorBridgeGuidanceCheck := preload("res://scripts/checks/phase_well_anchor_bridge_guidance_check.gd")
 var host
 
 
@@ -219,6 +219,7 @@ func run_hud_and_map_checks() -> void:
 	_check_stability_echo_report_progress()
 	_check_base_action_choice_runtime()
 	_check_stability_window_calibration_runtime()
+	PhaseWellAnchorBridgeGuidanceCheck.new(host).run()
 	_check_region_presence_bounds()
 	_check_phase_well_chamber_gate()
 	_check_phase_well_loom_gate()

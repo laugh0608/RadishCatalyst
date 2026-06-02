@@ -413,7 +413,7 @@ func _get_completion_next_step(recipe_id: String, world_state: WorldState = null
 		"recipe.phase_well_frame_key":
 			return "带着锁相键栓返回更东侧锁相框架断面，勘验断面并带回第一份锚定结核。"
 		"recipe.phase_well_knot_core_analysis":
-			return "锚定系谱片已整理完成；继续向东进入新暴露的锚定桥边缘，击退锚定缚结体并回收锚索残股。"
+			return "锚定系谱片已整理完成；继续向东进入新暴露的锚定桥边缘，先检查两处锚定桥结点，再击退锚定缚结体并回收锚索残股。"
 		"recipe.tether_fiber_stabilization":
 			return "锚定系固肋和副产污染浆液已筛出；继续这次锚定桥整备，回基地基础反应器组装锚定桩。"
 		"recipe.phase_well_tether_spike":
@@ -580,6 +580,20 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 				return "先回基地基础反应器解析锁相织构核，整理出锁相纹谱片。"
 			if _get_recipe_input_shortage(recipe, "item.phase_well_frame_rib", inventory) > 0.0:
 				return "先回处理点污染过滤器稳定边缕残条，筛出锁相框架肋。"
+		"recipe.phase_well_knot_core_analysis":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_knot_core", inventory) > 0.0:
+				return "先带锁相键栓返回锁相框架，勘验后带回第一份锚定结核。"
+		"recipe.tether_fiber_stabilization":
+			if _get_recipe_input_shortage(recipe, "item.tether_fiber", inventory) > 0.0:
+				return "先沿锚定系谱进入锚定桥边缘，检查两处锚定桥结点，击退锚定缚结体并回收两处锚索残股。"
+		"recipe.phase_well_tether_spike":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_tether_sheet", inventory) > 0.0:
+				return "先回基地基础反应器解析锚定结核，整理出锚定系谱片。"
+			if _get_recipe_input_shortage(recipe, "item.phase_well_tether_rib", inventory) > 0.0:
+				return "先回处理点污染过滤器稳定锚索残股，筛出锚定系固肋。"
+		"recipe.phase_well_anchor_core_analysis":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_anchor_core", inventory) > 0.0:
+				return "先带锚定桩返回锚定桥断面，勘验后带回第一份稳场锚核。"
 	return ""
 
 
