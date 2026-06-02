@@ -58,6 +58,12 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 			return "把纬束残团稳定成风蚀张力肋，做完继续去基础反应器组装风蚀梭栓。"
 		"recipe.phase_well_shuttle":
 			return "把风蚀经片和张力肋组装成风蚀梭栓，做完返回风蚀管廊读取锁相织构核。"
+		"recipe.phase_well_weave_core_analysis":
+			return "把锁相织构核解析成锁相纹谱片，做完继续推进更东侧锁相框架。"
+		"recipe.selvedge_strip_stabilization":
+			return "把边缕残条稳定成锁相框架肋，做完继续去基础反应器组装锁相键栓。"
+		"recipe.phase_well_frame_key":
+			return "把锁相纹谱片和框架肋组装成锁相键栓，做完返回锁相框架读取锚定结核。"
 	return ""
 
 

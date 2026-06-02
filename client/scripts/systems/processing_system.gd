@@ -407,7 +407,7 @@ func _get_completion_next_step(recipe_id: String, world_state: WorldState = null
 		"recipe.phase_well_shuttle":
 			return "带着风蚀梭栓返回更东侧风蚀管廊断面，勘验断面并带回第一份锁相织构核。"
 		"recipe.phase_well_weave_core_analysis":
-			return "锁相纹谱片已整理完成；继续向东进入新暴露的锁相框架边缘，击退锁相刮裂体并回收边缕残条。"
+			return "锁相纹谱片已整理完成；继续向东进入新暴露的锁相框架边缘，先清理一条锁相侧路障，再击退锁相刮裂体并回收边缕残条。"
 		"recipe.selvedge_strip_stabilization":
 			return "锁相框架肋和副产污染浆液已筛出；继续这次锁相框架整备，回基地基础反应器组装锁相键栓。"
 		"recipe.phase_well_frame_key":
@@ -569,6 +569,17 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 				return "先回基地基础反应器解析风蚀张力核，整理出风蚀经片。"
 			if _get_recipe_input_shortage(recipe, "item.phase_well_tension_rib", inventory) > 0.0:
 				return "先回处理点污染过滤器稳定纬束残团，筛出风蚀张力肋。"
+		"recipe.phase_well_weave_core_analysis":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_weave_core", inventory) > 0.0:
+				return "先带风蚀梭栓返回风蚀管廊，勘验后带回第一份锁相织构核。"
+		"recipe.selvedge_strip_stabilization":
+			if _get_recipe_input_shortage(recipe, "item.selvedge_strip", inventory) > 0.0:
+				return "先沿锁相纹谱进入锁相框架边缘，清理一条锁相侧路障，击退锁相刮裂体并回收两处边缕残条。"
+		"recipe.phase_well_frame_key":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_pattern_sheet", inventory) > 0.0:
+				return "先回基地基础反应器解析锁相织构核，整理出锁相纹谱片。"
+			if _get_recipe_input_shortage(recipe, "item.phase_well_frame_rib", inventory) > 0.0:
+				return "先回处理点污染过滤器稳定边缕残条，筛出锁相框架肋。"
 	return ""
 
 

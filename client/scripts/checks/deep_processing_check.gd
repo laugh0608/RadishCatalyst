@@ -16,6 +16,7 @@ func run() -> void:
 	_check_salt_flat_readability(processing)
 	_check_shattered_ravine_readability(processing)
 	_check_wind_conduit_readability(processing)
+	_check_phase_lock_frame_readability(processing)
 	_check_completed_deep_signal_matrix_refreshes_anchor()
 
 
@@ -168,6 +169,24 @@ func _check_wind_conduit_readability(processing: ProcessingSystem) -> void:
 	shuttle_character.inventory.add_item("item.phase_well_warp_sheet", 1)
 	shuttle_status = processing.get_recipe_status("recipe.phase_well_shuttle", shuttle_character, shuttle_world)
 	host._expect_text_contains(String(shuttle_status.get("supply_hint", "")), "稳定纬束残团", "phase well shuttle missing rib points to weft stabilization")
+
+
+func _check_phase_lock_frame_readability(processing: ProcessingSystem) -> void:
+	host._expect_text_contains(processing._get_completion_next_step("recipe.phase_well_weave_core_analysis"), "锁相侧路障", "phase well weave core completion points to frame route blocker")
+	host._expect_text_contains(RecipePurposeHints.format_recipe_goal_hint("recipe.selvedge_strip_stabilization"), "锁相键栓", "selvedge strip purpose points to frame key assembly")
+	host._expect_text_contains(RecipePurposeHints.format_recipe_goal_hint("recipe.phase_well_frame_key"), "锚定结核", "phase well frame key purpose points to knot core reward")
+	var selvedge_world := _create_filter_world("recipe.selvedge_strip_stabilization")
+	var selvedge_status := processing.get_recipe_status("recipe.selvedge_strip_stabilization", CharacterState.create_default(), selvedge_world)
+	host._expect_text_contains(String(selvedge_status.get("supply_hint", "")), "锁相侧路障", "selvedge strip missing input points to route blocker")
+	var frame_world := WorldState.create_default()
+	frame_world.quest_state.unlock_effect("recipe.phase_well_frame_key")
+	frame_world.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	var frame_status := processing.get_recipe_status("recipe.phase_well_frame_key", CharacterState.create_default(), frame_world)
+	host._expect_text_contains(String(frame_status.get("supply_hint", "")), "解析锁相织构核", "phase well frame key missing pattern sheet points to weave core analysis")
+	var frame_character := CharacterState.create_default()
+	frame_character.inventory.add_item("item.phase_well_pattern_sheet", 1)
+	frame_status = processing.get_recipe_status("recipe.phase_well_frame_key", frame_character, frame_world)
+	host._expect_text_contains(String(frame_status.get("supply_hint", "")), "稳定边缕残条", "phase well frame key missing rib points to selvedge stabilization")
 
 
 func _create_filter_world(recipe_id: String) -> WorldState:
