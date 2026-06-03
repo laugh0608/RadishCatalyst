@@ -435,7 +435,7 @@ func _get_completion_next_step(recipe_id: String, world_state: WorldState = null
 		"recipe.steady_supply_feedback":
 			return "稳场补给反馈已归档；低风险补给选择已经跑通一轮基地选择、前线目标和返回收益。"
 		"recipe.phase_survey_feedback":
-			return "相位测绘反馈已归档；侦测选择已经跑通一轮基地选择、两处前线读数和返回收益。"
+			return "相位测绘反馈已归档；侦测选择已经跑通一轮基地选择、两处前线读数和返回收益，下一步到前线行动台确认测绘路线整备槽。"
 		"recipe.pressure_clearance_feedback":
 			return "压力清障反馈已归档；高风险清障选择已经跑通一轮基地选择、前线清障和返回收益。"
 		_:
@@ -618,6 +618,9 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 		"recipe.route_action_feedback":
 			if _get_recipe_input_shortage(recipe, "item.route_signal_trace", inventory) > 0.0:
 				return "先从前线行动台确认巡线短行动，再用相位回投返回锚定桥前线读取巡线信标。"
+		"recipe.phase_survey_feedback":
+			if _get_recipe_input_shortage(recipe, "item.phase_survey_trace", inventory) > 0.0:
+				return "先选择相位测绘行动，再用相位回投返回锚定桥前线读取西侧和东侧两处相位测绘点。"
 	return ""
 
 

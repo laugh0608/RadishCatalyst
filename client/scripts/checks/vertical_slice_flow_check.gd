@@ -40,6 +40,7 @@ func _run_checks() -> void:
 	_check_pollution_gate_runtime_bounds()
 	BaseActionQueueRotationCheckScript.new(self).run()
 	BaseActionTargetPromptCheckScript.new(self).run()
+	preload("res://scripts/checks/phase_survey_choice_guidance_check.gd").new(self).run()
 	PhaseWellFollowupChecks.new(self).run_hud_and_map_checks()
 	_check_deep_gate_releases_movement_block()
 	_check_new_game_state_reset()

@@ -84,6 +84,8 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 			return "把补给回执读数解析成短行动反馈记录，做完回前线行动台确认巡线短行动。"
 		"recipe.route_action_feedback":
 			return "把巡线信标读数解析成巡线反馈记录，做完回基地行动选择台，在稳场补给、相位测绘和压力清障之间做真实取舍。"
+		"recipe.phase_survey_feedback":
+			return "把两处相位测绘记录解析成路线提示收益，做完到前线行动台确认测绘路线整备槽。"
 	return ""
 
 

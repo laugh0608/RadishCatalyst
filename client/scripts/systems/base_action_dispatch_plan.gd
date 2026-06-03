@@ -675,7 +675,7 @@ static func _format_status_goal(stage: String, world_state: WorldState = null) -
 		"steady_supply_ready":
 			return "补给整备已生效"
 		"phase_survey_ready":
-			return "测绘整备已生效"
+			return "相位测绘反馈已归档"
 		"pressure_clearance_ready":
 			if _is_overpressure_plan(world_state, PLAN_PRESSURE_CLEARANCE):
 				return "高压窗口整备待确认"
