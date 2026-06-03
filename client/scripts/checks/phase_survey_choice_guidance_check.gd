@@ -498,6 +498,30 @@ func _check_s20_survey_departure_window() -> void:
 		"S20 overpressure completion status stops repeat dispatch"
 	)
 
+	var runtime := QuestRuntime.new(host.data_registry)
+	var s21_reconcile_result := runtime.reconcile_active_objectives(world_state, character_state)
+	host._expect_equal(bool(s21_reconcile_result.get("accepted", false)), true, "S20 overpressure archive activates S21 handoff")
+	host._expect_array_has(world_state.unlocked_region_ids, "region.demo_stabilization_core", "S20 archive unlocks demo stabilization core")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.enter_demo_stabilization_core", "S20 archive activates demo core entry quest")
+	var s21_logs := " ".join(s21_reconcile_result.get("log_messages", []))
+	if not s21_logs.contains("核心稳定站已接入"):
+		host.failures.append("S20 archive should log demo core handoff, got %s" % var_to_str(s21_reconcile_result))
+	var s21_status := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	host._expect_text_contains(s21_status, "目标：进入核心稳定站", "S21 handoff status points to demo core entry")
+	host._expect_text_contains(s21_status, "进度：进入 核心稳定站 0/1", "S21 handoff status shows region visit progress")
+	host._expect_text_missing(s21_status, "前线行动台", "S21 handoff status should not point back to action console")
+	var s21_map := HudMapPresenter.new()
+	host._expect_text_contains(
+		s21_map.format_region_markers(world_state, ""),
+		"核心：更东，目标",
+		"S21 handoff map points to demo stabilization core"
+	)
+	host._expect_array_has(
+		s21_map.format_map_marker_labels(world_state, ""),
+		"核心\n目标",
+		"S21 handoff minimap marks demo stabilization core"
+	)
+
 
 func _make_interactable(instance_id: String, definition_id: String) -> PrototypeInteractable:
 	var interactable := PrototypeInteractable.new()
