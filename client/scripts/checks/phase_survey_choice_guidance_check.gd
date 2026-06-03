@@ -363,6 +363,75 @@ func _check_s20_survey_departure_window() -> void:
 	host._expect_equal(bool(blocked_window_result.get("success", true)), false, "S20 pressure window blocks direct interaction before guard defeat")
 	host._expect_text_contains(String(blocked_window_result.get("message", "")), "先靠近守卫按 J 攻击", "S20 pressure window result explains guard blocker")
 
+	var guard_state := world_state.ensure_enemy(
+		BaseActionDispatchPlan.PRESSURE_CLEARANCE_GUARD_INSTANCE_ID,
+		"enemy.pressure_clearance_guard",
+		"region.phase_well_tether",
+		64.0
+	)
+	guard_state["is_defeated"] = true
+	host._expect_equal(
+		BaseActionDispatchPlan.get_frontline_window_blocker(world_state),
+		"",
+		"S20 pressure guard defeat clears shared window blocker"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_progress(world_state),
+		"先在窗口按 E 处理结果",
+		"S20 pressure status points to shared window after guard defeat"
+	)
+	var unblocked_window_prompt := BaseActionDispatchPlan.format_frontline_window_prompt(world_state)
+	host._expect_text_contains(unblocked_window_prompt, "处理结果：防护涂层承接短战斗残压", "S20 pressure window previews coating result after guard defeat")
+	host._expect_text_contains(unblocked_window_prompt, "按 E 处理窗口", "S20 pressure window exposes interaction after guard defeat")
+
+	var pressure_window_result := gather.interact_with_object(
+		"map_object_instance.prepared_frontline_window",
+		"map_object.prepared_frontline_window",
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(pressure_window_result.get("success", false)), true, "S20 pressure shared window interaction succeeds after guard defeat")
+	host._expect_text_contains(String(pressure_window_result.get("message", "")), "前线异常窗口已按压力清障计划处理", "S20 pressure window result explains clearance feedback")
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		"完成态收益：防护涂层样本已改良为下一轮风险回落依据",
+		"S20 pressure resolved window shows defensive payoff"
+	)
+	var pressure_archive_result := gather.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(pressure_archive_result.get("success", false)), true, "S20 pressure window feedback archival succeeds")
+	host._expect_text_contains(String(pressure_archive_result.get("message", "")), "两轮复盘收益已合并为高压窗口目标", "S20 pressure archival opens overpressure target")
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_goal(world_state),
+		"高压窗口整备待确认",
+		"S20 overpressure status goal is visible after pressure archival"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_progress(world_state),
+		"确认高压窗口整备槽",
+		"S20 overpressure status points to manual confirmation"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state).size(),
+		0,
+		"S20 overpressure cannot launch before manual confirmation"
+	)
+	var overpressure_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		world_state,
+		character_state
+	)
+	host._expect_text_contains(overpressure_prompt, "按 E 确认：高压窗口三模块联锁整备槽", "S20 overpressure prompt exposes manual confirmation")
+	host._expect_text_contains(overpressure_prompt, "高压窗口：待确认", "S20 overpressure prompt shows target state")
+	host._expect_text_contains(overpressure_prompt, "复用稳相缓存、透镜校准和防护涂层收益", "S20 overpressure prompt explains three-module carryover")
+	host._expect_text_contains(overpressure_prompt, "三模块联锁", "S20 overpressure prompt names combined module")
+
 
 func _make_interactable(instance_id: String, definition_id: String) -> PrototypeInteractable:
 	var interactable := PrototypeInteractable.new()
