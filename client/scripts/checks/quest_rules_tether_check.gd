@@ -434,10 +434,16 @@ func _check_demo_stabilization_three_step_flow() -> void:
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.enter_demo_stabilization_core", "enter demo core quest completes on region visit")
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.defeat_demo_stabilization_guard", "enter demo core activates guard quest")
 	host._expect_equal(host._result_array_size(result, "completion_feedbacks"), 1, "enter demo core emits completion feedback")
+	var status_text := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(status_text, "目标：击败核心阶段守卫", "enter demo core status points to guard")
+	_expect_text_contains(status_text, "进度：击败 核心阶段守卫 0/1", "enter demo core status shows guard progress")
 
 	result = host.quest_runtime.advance_for_defeated_enemy(world_state, character_state, "enemy.demo_stabilization_guard")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.defeat_demo_stabilization_guard", "demo guard defeat quest completes")
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.write_demo_stabilization_core", "guard defeat activates core write quest")
+	status_text = HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(status_text, "目标：写入核心稳定数据", "guard defeat status points to core write")
+	_expect_text_contains(status_text, "进度：检查 核心稳定设备 0/1", "guard defeat status shows core write progress")
 
 	var blocked_world := WorldState.create_default()
 	blocked_world.quest_state.active_quest_ids = ["quest.write_demo_stabilization_core"]
@@ -452,6 +458,8 @@ func _check_demo_stabilization_three_step_flow() -> void:
 	var blocked_message := String(blocked.get("message", ""))
 	if blocked_message.find("核心阶段守卫") < 0:
 		host.failures.append("core write blocker should mention guard, got %s" % blocked_message)
+	var blocked_feedback: Dictionary = blocked.get("failure_feedback", {})
+	_expect_text_contains(String(blocked_feedback.get("detail", "")), "击败核心阶段守卫", "core write blocker detail explains guard step")
 
 	world_state.ensure_enemy("enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core", 156.0)
 	world_state.update_enemy_health("enemy_instance.demo_stabilization_guard", 0.0, true)
@@ -463,6 +471,8 @@ func _check_demo_stabilization_three_step_flow() -> void:
 		world_state
 	)
 	host._expect_equal(bool(interaction_result.get("success", false)), true, "core write interaction succeeds after guard defeat")
+	_expect_text_contains(String(interaction_result.get("message", "")), "核心稳定数据已写入", "core write interaction explains stable data write")
+	_expect_text_contains(String(interaction_result.get("message", "")), "第一条稳定通道已打开", "core write interaction explains demo payoff")
 	result = host.quest_runtime.advance_for_interaction(
 		world_state,
 		character_state,
@@ -481,6 +491,7 @@ func _check_demo_stabilization_three_step_flow() -> void:
 			host.failures.append("core write completion feedback should be a dictionary, got %s" % var_to_str(feedback))
 			return
 		host._expect_equal(String(feedback.get("panel_title", "")), "Demo 完成", "core write completion uses demo panel title")
+		_expect_text_contains(String(feedback.get("note_text", "")), "首版 demo 主线目标已完成", "core write completion note explains slice completion")
 
 
 func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
@@ -510,6 +521,9 @@ func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
 	result = host.quest_runtime.advance_for_region(world_state, character_state, "region.demo_stabilization_core")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.enter_demo_stabilization_core", "short run completes demo core entry")
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.defeat_demo_stabilization_guard", "short run activates guard objective")
+	var status_text := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(status_text, "目标：击败核心阶段守卫", "short run status points to demo guard")
+	_expect_text_contains(status_text, "进度：击败 核心阶段守卫 0/1", "short run status shows guard objective")
 
 	var repair_before := int(character_state.inventory.items.get("item.repair_gel", 0))
 	var recovery_result := gather_system.interact_with_object(
@@ -530,6 +544,9 @@ func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
 	result = host.quest_runtime.advance_for_defeated_enemy(world_state, character_state, "enemy.demo_stabilization_guard")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.defeat_demo_stabilization_guard", "short run completes guard defeat")
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.write_demo_stabilization_core", "short run activates core write")
+	status_text = HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(status_text, "目标：写入核心稳定数据", "short run status points to core write after guard")
+	_expect_text_contains(status_text, "进度：检查 核心稳定设备 0/1", "short run status shows core write objective")
 	world_state.ensure_enemy("enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core", 156.0)
 	world_state.update_enemy_health("enemy_instance.demo_stabilization_guard", 0.0, true)
 
@@ -541,6 +558,7 @@ func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
 		world_state
 	)
 	host._expect_equal(bool(write_result.get("success", false)), true, "short run writes demo stabilization core")
+	_expect_text_contains(String(write_result.get("message", "")), "核心稳定数据已写入", "short run core write explains stable data")
 	result = host.quest_runtime.advance_for_interaction(
 		world_state,
 		character_state,
@@ -552,3 +570,13 @@ func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
 	)
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.write_demo_stabilization_core", "short run completes demo core write")
 	host._expect_equal(host._result_array_size(result, "completion_feedbacks"), 1, "short run emits demo completion feedback")
+	if host._result_array_size(result, "completion_feedbacks") > 0:
+		var feedbacks: Array = result.get("completion_feedbacks", [])
+		var feedback = feedbacks[0]
+		if feedback is Dictionary:
+			_expect_text_contains(String(feedback.get("note_text", "")), "首版 demo 主线目标已完成", "short run completion explains demo finish")
+
+
+func _expect_text_contains(text: String, expected_text: String, label: String) -> void:
+	if text.find(expected_text) < 0:
+		host.failures.append("%s should contain %s, got %s" % [label, expected_text, text])
