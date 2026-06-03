@@ -222,6 +222,8 @@
 当前意义：
 
 - 文本拼装和展示规则已经从 HUD 主脚本里拆出不少。
+- 通用交互提示、设备加工提示和建造 / 清障阻塞提示由 `InteractionPromptFormatter` 统一组织；建造状态里的下一步建议来自 `BuildSystem`，加工缺料的下一步建议来自 `ProcessingSystem` 状态。
+- 交互反馈读法已有独立检查脚本覆盖，后续补 UI 文案时应优先扩检查脚本，不把断言继续堆回超长垂直切片主检查。
 - 但还没有进入完整 UI 框架或更通用的视图模型体系。
 
 ### 8. 存档层：`SaveService` + `SaveContentValidator`
