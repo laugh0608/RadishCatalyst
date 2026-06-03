@@ -432,6 +432,72 @@ func _check_s20_survey_departure_window() -> void:
 	host._expect_text_contains(overpressure_prompt, "复用稳相缓存、透镜校准和防护涂层收益", "S20 overpressure prompt explains three-module carryover")
 	host._expect_text_contains(overpressure_prompt, "三模块联锁", "S20 overpressure prompt names combined module")
 
+	var overpressure_confirm_result := gather.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(overpressure_confirm_result.get("success", false)), true, "S20 overpressure departure slot confirmation succeeds")
+	host._expect_text_contains(String(overpressure_confirm_result.get("message", "")), "出发整备槽已确认：高压窗口计划", "S20 overpressure confirmation explains plan")
+	host._expect_text_contains(String(overpressure_confirm_result.get("message", "")), "窗口结果预览", "S20 overpressure confirmation previews shared window")
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_progress(world_state),
+		"到相位回投台按 E 出发",
+		"S20 overpressure queued status points to phase relay pad"
+	)
+
+	var overpressure_departure_messages := BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	host._expect_equal(overpressure_departure_messages.size(), 2, "S20 overpressure departure loads combined module")
+	host._expect_text_contains(String(overpressure_departure_messages[0]), "高压窗口计划已执行", "S20 overpressure departure execution names high-pressure plan")
+	host._expect_text_contains(String(overpressure_departure_messages[0]), "三类模块收益", "S20 overpressure departure explains combined payoff")
+	host._expect_text_contains(String(overpressure_departure_messages[1]), "高压窗口不预排下一候选", "S20 overpressure departure avoids another queued loop")
+	host._expect_equal(
+		BaseActionDispatchPlan.get_frontline_window_plan_key(world_state),
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"S20 overpressure departure activates shared pressure-keyed window"
+	)
+	var active_overpressure_prompt := BaseActionDispatchPlan.format_frontline_window_prompt(world_state)
+	host._expect_text_contains(active_overpressure_prompt, "已载入高压窗口计划", "S20 overpressure window prompt shows active plan")
+	host._expect_text_contains(active_overpressure_prompt, "三模块联锁", "S20 overpressure window prompt shows combined module")
+	host._expect_text_contains(active_overpressure_prompt, "高压扰点", "S20 overpressure window prompt shows high-pressure target")
+	host._expect_text_contains(active_overpressure_prompt, "按 E 处理窗口", "S20 overpressure window exposes interaction")
+
+	var overpressure_window_result := gather.interact_with_object(
+		"map_object_instance.prepared_frontline_window",
+		"map_object.prepared_frontline_window",
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(overpressure_window_result.get("success", false)), true, "S20 overpressure shared window interaction succeeds")
+	host._expect_text_contains(String(overpressure_window_result.get("message", "")), "高压异常窗口已压制", "S20 overpressure window result explains stable data")
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_frontline_window_prompt(world_state),
+		"完成态收益：高压窗口稳定数据已归档",
+		"S20 overpressure resolved window shows stable data payoff"
+	)
+	var overpressure_archive_result := gather.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(overpressure_archive_result.get("success", false)), true, "S20 overpressure feedback archival succeeds")
+	host._expect_text_contains(String(overpressure_archive_result.get("message", "")), "高压窗口反馈已归档", "S20 overpressure archival confirms completion")
+	host._expect_equal(
+		BaseActionDispatchPlan.is_frontline_action_console_ready(world_state),
+		false,
+		"S20 overpressure archival closes action console loop"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_progress(world_state),
+		"行动台不再继续确认下一趟",
+		"S20 overpressure completion status stops repeat dispatch"
+	)
+
 
 func _make_interactable(instance_id: String, definition_id: String) -> PrototypeInteractable:
 	var interactable := PrototypeInteractable.new()

@@ -621,11 +621,14 @@ static func _format_direction(stage: String, world_state: WorldState) -> String:
 		"pressure_clearance_return":
 			return "压力清障回执已带回：回基地使用基础反应器，把清障收益解析成下一轮防护整备。"
 		"pressure_clearance_ready":
+			var pressure_status := get_pressure_clearance_status(world_state)
 			if _is_overpressure_plan(world_state, PLAN_PRESSURE_CLEARANCE):
+				if pressure_status == STATUS_QUEUED:
+					return "高压窗口整备槽已确认：下一步到相位回投台按 E 出发，回投时会装入三模块联锁收益。"
 				return "三类模块收益已合并：回基地在前线行动台确认高压窗口整备槽，再从相位回投台外出。"
-			if get_pressure_clearance_status(world_state) == STATUS_USED:
+			if pressure_status == STATUS_USED:
 				return "压力清障反馈已归档：防护整备已经装入本趟出发，后续清障分支可继续沿用行动台。"
-			if get_pressure_clearance_status(world_state) == STATUS_QUEUED:
+			if pressure_status == STATUS_QUEUED:
 				return "压力清障整备槽已确认：下一步到相位回投台按 E 出发，回投时会装入修复凝胶和抗污染药剂。"
 			return "压力清障反馈已归档：回基地在前线行动台确认清障防护整备槽，再从相位回投台外出。"
 		_:
@@ -711,11 +714,14 @@ static func _format_status_progress(stage: String, world_state: WorldState) -> S
 				return "相位测绘整备槽已确认；到相位回投台按 E 出发，回投时载入路线提示"
 			return "相位测绘反馈已归档；到前线行动台按 E 确认测绘路线整备槽"
 		"pressure_clearance_ready":
+			var pressure_status := get_pressure_clearance_status(world_state)
 			if _is_overpressure_plan(world_state, PLAN_PRESSURE_CLEARANCE):
+				if pressure_status == STATUS_QUEUED:
+					return "高压窗口整备槽已确认；到相位回投台按 E 出发，回投时装入三模块联锁收益"
 				return "三类模块收益已合并；到前线行动台按 E 确认高压窗口整备槽"
-			if get_pressure_clearance_status(world_state) == STATUS_USED:
+			if pressure_status == STATUS_USED:
 				return "压力清障反馈已归档；本趟出发已装入修复凝胶和抗污染药剂"
-			if get_pressure_clearance_status(world_state) == STATUS_QUEUED:
+			if pressure_status == STATUS_QUEUED:
 				return "压力清障整备槽已确认；到相位回投台按 E 出发，回投时装入防护补给"
 			return "压力清障反馈已归档；到前线行动台按 E 确认清障防护整备槽"
 		"steady_supply_dispatched":
@@ -786,15 +792,20 @@ static func _format_preparation_lines(stage: String, world_state: WorldState, ch
 			survey_lines.append_array(_format_departure_plan_lines(PLAN_PHASE_SURVEY, world_state))
 			return survey_lines
 		"pressure_clearance_ready":
+			var pressure_status := get_pressure_clearance_status(world_state)
 			if _is_overpressure_plan(world_state, PLAN_PRESSURE_CLEARANCE):
+				var overpressure_line := "高压窗口：待确认；复用稳相缓存、透镜校准和防护涂层收益。"
+				if pressure_status == STATUS_QUEUED:
+					overpressure_line = "高压窗口：整备槽已确认；到相位回投台按 E 出发时装入三模块联锁收益。"
+				if pressure_status == STATUS_USED:
+					overpressure_line = "高压窗口：已装入本趟回投；三模块联锁收益正在前线窗口生效。"
 				var overpressure_lines: Array[String] = [
 					"整备：三类模块收益已归档；基础零件 %d；修复凝胶 %d；抗污染药剂 %d。" % [parts_count, repair_count, vial_count],
-					"高压窗口：待确认；复用稳相缓存、透镜校准和防护涂层收益。"
+					overpressure_line
 				]
 				overpressure_lines.append_array(_format_frontline_window_feedback_lines(world_state))
 				overpressure_lines.append_array(_format_departure_plan_lines(PLAN_PRESSURE_CLEARANCE, world_state))
 				return overpressure_lines
-			var pressure_status := get_pressure_clearance_status(world_state)
 			var pressure_line := "防护整备：待确认；修复凝胶 +1，抗污染药剂 +1。"
 			if pressure_status == STATUS_QUEUED:
 				pressure_line = "防护整备：整备槽已确认；到相位回投台按 E 出发时装入。"
