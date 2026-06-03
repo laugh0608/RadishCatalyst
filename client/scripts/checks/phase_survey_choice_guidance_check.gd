@@ -298,6 +298,70 @@ func _check_s20_survey_departure_window() -> void:
 	host._expect_equal(bool(archive_result.get("success", false)), true, "S20 survey window feedback archival succeeds")
 	host._expect_text_contains(String(archive_result.get("message", "")), "前线异常窗口反馈已归档", "S20 survey archival confirms feedback")
 	host._expect_text_contains(String(archive_result.get("message", "")), "当前计划槽", "S20 survey archival explains next plan slot")
+	host._expect_equal(
+		BaseActionDispatchPlan.get_current_plan_key(world_state),
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"S20 survey archival promotes pressure clearance into current slot"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_next_plan_candidate_key(world_state),
+		BaseActionDispatchPlan.PLAN_STEADY_SUPPLY,
+		"S20 survey archival rotates supply into next candidate"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_pressure_clearance_status(world_state),
+		BaseActionDispatchPlan.STATUS_READY,
+		"S20 survey archival prepares pressure clearance package"
+	)
+
+	var pressure_prompt := BaseActionDispatchPlan.format_console_prompt(
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		world_state,
+		character_state
+	)
+	host._expect_text_contains(pressure_prompt, "按 E 确认：清障防护整备槽", "S20 pressure slot prompt exposes confirmation action")
+	host._expect_text_contains(pressure_prompt, "计划：压力清障", "S20 pressure slot prompt shows current pressure plan")
+	host._expect_text_contains(pressure_prompt, "下一计划候选：低风险补给", "S20 pressure slot prompt shows rotated supply candidate")
+	host._expect_text_contains(pressure_prompt, "透镜校准读数已归档，清障候选会提前标出东侧短时扰动位置", "S20 pressure slot prompt carries survey feedback into clearance")
+
+	var supply_candidate_prompt := BaseActionDispatchPlan.format_console_prompt(
+		"map_object.base_supply_choice_console",
+		world_state,
+		character_state
+	)
+	host._expect_text_contains(supply_candidate_prompt, "下一计划候选已是：低风险补给", "S20 supply candidate prompt shows rotated candidate")
+	host._expect_text_contains(supply_candidate_prompt, "透镜校准读数已归档", "S20 supply candidate prompt explains survey carryover")
+
+	var pressure_confirm_result := gather.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(pressure_confirm_result.get("success", false)), true, "S20 pressure departure slot confirmation succeeds")
+	host._expect_text_contains(String(pressure_confirm_result.get("message", "")), "出发整备槽已确认：压力清障计划", "S20 pressure confirmation explains plan")
+	var pressure_departure_messages := BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	host._expect_equal(pressure_departure_messages.size(), 2, "S20 pressure departure loads defensive package and promotes candidate")
+	host._expect_text_contains(String(pressure_departure_messages[0]), "压力清障防护计划已执行", "S20 pressure departure execution explains guard-first route")
+	host._expect_text_contains(String(pressure_departure_messages[1]), "低风险补给", "S20 pressure departure promotes supply candidate")
+	host._expect_equal(
+		BaseActionDispatchPlan.get_frontline_window_plan_key(world_state),
+		BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE,
+		"S20 pressure departure activates pressure window"
+	)
+	var pressure_window_prompt := BaseActionDispatchPlan.format_frontline_window_prompt(world_state)
+	host._expect_text_contains(pressure_window_prompt, "已载入压力清障计划", "S20 pressure window prompt shows current plan")
+	host._expect_text_contains(pressure_window_prompt, "当前步骤：清障扰动守卫仍在压制异常窗口", "S20 pressure window prompt gates window behind guard")
+	var blocked_window_result := gather.interact_with_object(
+		"map_object_instance.prepared_frontline_window",
+		"map_object.prepared_frontline_window",
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(blocked_window_result.get("success", true)), false, "S20 pressure window blocks direct interaction before guard defeat")
+	host._expect_text_contains(String(blocked_window_result.get("message", "")), "先靠近守卫按 J 攻击", "S20 pressure window result explains guard blocker")
 
 
 func _make_interactable(instance_id: String, definition_id: String) -> PrototypeInteractable:
