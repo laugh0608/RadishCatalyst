@@ -158,6 +158,8 @@ func format_pollution_status(
 
 
 func _get_active_quest_id(world_state: WorldState) -> String:
+	if _is_base_action_choice_state(world_state):
+		return ""
 	if not world_state.quest_state.active_quest_ids.is_empty():
 		return world_state.quest_state.active_quest_ids[0]
 	return ""
@@ -233,8 +235,23 @@ func _format_base_summary_lines(
 				"行动台确认巡线短行动：只派发巡线信标",
 				"短行动反馈已归档：第三条行动入口已整理"
 			]
+	if _is_base_action_choice_state(world_state):
+		return [
+			"行动方案：稳场补给低风险偏整备资源",
+			"相位测绘多读数换路线提示；压力清障高风险换防护收益"
+		]
 
 	return ["设备：待命；当前目标先外出推进"]
+
+
+func _is_base_action_choice_state(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return (
+		world_state.quest_state.has_active_quest("quest.choose_steady_supply_action")
+		and world_state.quest_state.has_active_quest("quest.choose_phase_survey_action")
+		and world_state.quest_state.has_active_quest("quest.choose_pressure_clearance_action")
+	)
 
 
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:

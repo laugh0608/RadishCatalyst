@@ -75,6 +75,15 @@ const FRONTLINE_ACTION_TARGET_PROMPTS := {
 		"effect": "读取后回基地使用基础反应器解析短行动反馈。",
 		"action": "按 E 读取补给回执"
 	},
+	"map_object.route_signal_marker": {
+		"quest_id": "quest.inspect_route_signal_marker",
+		"objective_type": "inspect",
+		"target_ids": ["map_object.route_signal_marker"],
+		"title": "巡线信标",
+		"status": "未读取，本趟巡线短行动只要求确认这一处巡线信标。",
+		"effect": "读取后回基地使用基础反应器解析巡线反馈。",
+		"action": "按 E 读取巡线信标"
+	},
 	"map_object.steady_supply_drop_marker": {
 		"quest_id": "quest.inspect_steady_supply_drop",
 		"objective_type": "inspect",

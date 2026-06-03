@@ -40,6 +40,7 @@ func run() -> void:
 	_check_stability_calibration_and_frontline_entry()
 	_check_stability_echo_report_supply_entry(processing)
 	_check_short_action_feedback_route_entry(processing)
+	_check_route_action_feedback_choice_entry(processing)
 
 
 func _check_missing_input_hints(processing: ProcessingSystem) -> void:
@@ -827,4 +828,172 @@ func _check_s18_route_action_entry() -> void:
 		String(console_result.get("message", "")),
 		"只派发巡线信标",
 		"route action console confirmation keeps third visit narrow"
+	)
+
+	var runtime := QuestRuntime.new(host.data_registry)
+	var advance_result := runtime.advance_for_interaction(
+		s18_world,
+		s18_character,
+		{
+			"definition_id": "map_object.frontline_action_console",
+			"interaction_type": "inspect"
+		},
+		{"success": true}
+	)
+	host._expect_equal(bool(advance_result.get("accepted", false)), true, "route action confirmation advances active quest")
+	host._expect_equal(
+		s18_world.quest_state.active_quest_ids,
+		["quest.inspect_route_signal_marker"],
+		"route action confirmation activates route signal marker"
+	)
+
+	var marker_formatter := InteractionPromptFormatter.new(
+		host.data_registry,
+		ProcessingSystem.new(host.data_registry),
+		BuildSystem.new(host.data_registry)
+	)
+	var route_marker := _make_prompt_interactable(
+		"map_object_instance.route_signal_marker",
+		"map_object.route_signal_marker"
+	)
+	host._expect_text_contains(
+		marker_formatter.format_frontline_action_target_prompt(route_marker, s18_character, s18_world),
+		"一处巡线信标",
+		"route signal marker prompt keeps third visit target density narrow"
+	)
+	var marker_result := gather.interact_with_object(
+		route_marker.instance_id,
+		route_marker.definition_id,
+		"inspect",
+		s18_character,
+		s18_world
+	)
+	host._expect_equal(bool(marker_result.get("success", false)), true, "route signal marker interaction succeeds")
+	host._expect_text_contains(
+		String(marker_result.get("message", "")),
+		"回基地用基础反应器解析巡线反馈",
+		"route signal marker result points back to base analysis"
+	)
+	route_marker.free()
+
+func _check_route_action_feedback_choice_entry(processing: ProcessingSystem) -> void:
+	host._expect_text_contains(
+		RecipePurposeHints.format_recipe_goal_hint("recipe.route_action_feedback"),
+		"基地行动选择",
+		"route action feedback purpose points to base action choice"
+	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.route_action_feedback"),
+		"稳场补给、相位测绘和压力清障",
+		"route action feedback completion points to three base action options"
+	)
+	var missing_feedback_hint := processing._format_mid_demo_missing_input_supply_hint(
+		host.data_registry.get_definition("recipe.route_action_feedback"),
+		CharacterState.create_default().inventory
+	)
+	host._expect_text_contains(
+		missing_feedback_hint,
+		"读取巡线信标",
+		"route action feedback missing trace points back to route marker"
+	)
+
+	_check_route_action_feedback_device_recommendation(processing)
+	_check_s19_base_action_choice_entry()
+
+func _check_route_action_feedback_device_recommendation(processing: ProcessingSystem) -> void:
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.process_crystal_ore"
+	reactor.set_recipe_cycle([
+		"recipe.process_crystal_ore",
+		"recipe.route_action_feedback"
+	])
+
+	var reactor_world := WorldState.create_default()
+	reactor_world.quest_state.active_quest_ids = ["quest.analyze_route_signal_trace"]
+	reactor_world.quest_state.unlock_effect("recipe.route_action_feedback")
+	var reactor_character := CharacterState.create_default()
+	reactor_character.inventory.add_item("item.route_signal_trace", 1)
+	var reactor_texts := HudDevicePanelPresenter.new().format_device_panel_texts(
+		host.data_registry,
+		processing,
+		reactor,
+		reactor_character,
+		reactor_world
+	)
+	host._expect_text_contains(
+		String(reactor_texts.get("status", "")),
+		"基地行动选择台",
+		"reactor device panel explains route action feedback payoff"
+	)
+	host._expect_text_contains(
+		String(reactor_texts.get("recipes", "")),
+		"当前目标",
+		"reactor device panel marks route action feedback as current target"
+	)
+	reactor.free()
+
+func _check_s19_base_action_choice_entry() -> void:
+	var builder := DevelopmentBaselineBuilder.new(host.data_registry)
+	var s19_result := builder.create_baseline_state("baseline.s19_route_action_feedback_ready")
+	host._expect_equal(bool(s19_result.get("success", false)), true, "S19 baseline generation for base action choice entry")
+	if not bool(s19_result.get("success", false)):
+		return
+
+	var s19_world: WorldState = s19_result.get("world_state", null)
+	var s19_character: CharacterState = s19_result.get("character_state", null)
+	if s19_world == null or s19_character == null:
+		host.failures.append("S19 baseline should return world and character states for base action choice entry")
+		return
+
+	host._expect_equal(
+		s19_world.quest_state.active_quest_ids,
+		["quest.choose_steady_supply_action", "quest.choose_phase_survey_action", "quest.choose_pressure_clearance_action"],
+		"S19 baseline starts at base action choices"
+	)
+	var s19_status := HudStatusPresenter.new().format_status_text(host.data_registry, s19_world, s19_character)
+	host._expect_text_contains(s19_status, "目标：基地行动方案待选择", "S19 status panel points to base action choices")
+	host._expect_text_contains(s19_status, "稳场补给低风险", "S19 status panel explains supply option")
+	host._expect_text_contains(s19_status, "压力清障高风险换防护", "S19 status panel explains pressure option")
+
+	var supply_prompt := BaseActionDispatchPlan.format_console_prompt(
+		"map_object.base_supply_choice_console",
+		s19_world,
+		s19_character
+	)
+	host._expect_text_contains(supply_prompt, "按 E 选择：稳场补给方案", "S19 supply choice prompt exposes selection action")
+	host._expect_text_contains(supply_prompt, "方案 B：相位测绘", "S19 supply choice prompt keeps survey alternative visible")
+
+	var survey_prompt := BaseActionDispatchPlan.format_console_prompt(
+		"map_object.base_survey_choice_console",
+		s19_world,
+		s19_character
+	)
+	host._expect_text_contains(survey_prompt, "按 E 选择：相位测绘方案", "S19 survey choice prompt exposes selection action")
+	host._expect_text_contains(survey_prompt, "方案 C：压力清障", "S19 survey choice prompt keeps pressure alternative visible")
+
+	var pressure_prompt := BaseActionDispatchPlan.format_console_prompt(
+		"map_object.base_pressure_choice_console",
+		s19_world,
+		s19_character
+	)
+	host._expect_text_contains(pressure_prompt, "按 E 选择：压力清障方案", "S19 pressure choice prompt exposes selection action")
+	host._expect_text_contains(pressure_prompt, "方案 A：稳场补给", "S19 pressure choice prompt keeps supply alternative visible")
+
+	var runtime := QuestRuntime.new(host.data_registry)
+	var choice_result := runtime.advance_for_interaction(
+		s19_world,
+		s19_character,
+		{
+			"definition_id": "map_object.base_survey_choice_console",
+			"interaction_type": "inspect"
+		},
+		{"success": true}
+	)
+	host._expect_equal(bool(choice_result.get("accepted", false)), true, "S19 survey choice advances active quest")
+	host._expect_equal(
+		s19_world.quest_state.active_quest_ids,
+		["quest.inspect_phase_survey_nodes"],
+		"S19 survey choice closes other options and activates survey targets"
 	)

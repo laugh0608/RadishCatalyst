@@ -615,6 +615,9 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 		"recipe.short_action_feedback":
 			if _get_recipe_input_shortage(recipe, "item.supply_return_trace", inventory) > 0.0:
 				return "先从前线行动台确认补给短行动，再用相位回投返回锚定桥前线读取补给回执标记。"
+		"recipe.route_action_feedback":
+			if _get_recipe_input_shortage(recipe, "item.route_signal_trace", inventory) > 0.0:
+				return "先从前线行动台确认巡线短行动，再用相位回投返回锚定桥前线读取巡线信标。"
 	return ""
 
 
