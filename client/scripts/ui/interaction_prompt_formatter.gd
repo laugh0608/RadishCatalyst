@@ -130,6 +130,26 @@ func _init(registry: DataRegistry, processing: ProcessingSystem, builder: BuildS
 	build_system = builder
 
 
+func format_general_interaction_prompt(
+	interactable: PrototypeInteractable,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
+	var title := _get_display_name(interactable.definition_id)
+	var definition := data_registry.get_definition(interactable.definition_id)
+	var object_state := world_state.get_map_object(interactable.instance_id)
+	var parts: Array[String] = ["对象：%s" % title]
+	parts.append("用途：%s" % _get_general_interaction_purpose(interactable, definition))
+	var reward_line := _format_interaction_reward_line(interactable, definition)
+	if not reward_line.is_empty():
+		parts.append(reward_line)
+	parts.append("状态：%s" % _get_general_interaction_status(interactable, object_state, character_state))
+	var action_line := _get_general_interaction_action(interactable, character_state)
+	if not action_line.is_empty():
+		parts.append("操作：%s" % action_line)
+	return "\n".join(parts)
+
+
 func format_processing_prompt(
 	interactable: PrototypeInteractable,
 	character_state: CharacterState,
@@ -659,6 +679,111 @@ func _get_interaction_tool_status(definition_id: String, character_state: Charac
 	if missing_tags.is_empty():
 		return "可清理"
 	return "缺少能力：%s" % ", ".join(missing_tags)
+
+
+func _get_general_interaction_purpose(interactable: PrototypeInteractable, definition: Dictionary) -> String:
+	match interactable.interaction_type:
+		"gather":
+			match String(definition.get("object_type", "")):
+				"resource_node":
+					return "采集基础资源，带回基地加工或建造。"
+				"salvage_node":
+					return "回收残骸材料，补足基地制造和施工消耗。"
+				"hazard_resource":
+					return "回收污染沉积物，用于过滤器处理和污染边界推进。"
+				"sample_residue":
+					return "回收异常残留，补充样本分析材料。"
+				_:
+					return "回收可用物资，带回基地继续处理。"
+		"sample":
+			return "采集异常样本，回基地解析后推进后续目标。"
+		"inspect":
+			return "检查目标状态，确认当前路线或任务推进条件。"
+		_:
+			return "与当前目标交互，推进任务或获得反馈。"
+
+
+func _format_interaction_reward_line(interactable: PrototypeInteractable, definition: Dictionary) -> String:
+	if interactable.interaction_type == "gather":
+		var drops := _format_refs(definition.get("drops", []))
+		if not drops.is_empty():
+			return "产物：%s" % drops
+	if interactable.interaction_type == "sample":
+		var samples := _format_refs(definition.get("sample_result_refs", []))
+		if not samples.is_empty():
+			return "样本：%s" % samples
+	return ""
+
+
+func _get_general_interaction_status(
+	interactable: PrototypeInteractable,
+	object_state: Dictionary,
+	character_state: CharacterState
+) -> String:
+	if _is_general_interaction_processed(interactable, object_state):
+		match interactable.interaction_type:
+			"gather":
+				return "已回收，现场保留完成态标记。"
+			"sample":
+				return "已采样，样本已进入背包或任务记录。"
+			"inspect":
+				return "已确认，继续查看当前目标。"
+			_:
+				return "已完成。"
+	var tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
+	if tool_status.begins_with("缺少能力"):
+		return "%s，先升级或更换工具。" % tool_status
+	match interactable.interaction_type:
+		"gather":
+			return "可采集。"
+		"sample":
+			return "可采样。"
+		"inspect":
+			return "可检查。"
+		_:
+			return "可交互。"
+
+
+func _get_general_interaction_action(interactable: PrototypeInteractable, character_state: CharacterState) -> String:
+	var tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
+	if tool_status.begins_with("缺少能力"):
+		return ""
+	match interactable.interaction_type:
+		"gather":
+			return "按 E 采集"
+		"sample":
+			return "按 E 采样"
+		"inspect":
+			return "按 E 检查"
+		_:
+			return "按 E 交互"
+
+
+func _is_general_interaction_processed(interactable: PrototypeInteractable, object_state: Dictionary) -> bool:
+	match interactable.interaction_type:
+		"gather":
+			return bool(object_state.get("is_gathered", false))
+		"sample":
+			return bool(object_state.get("is_sampled", false))
+		"inspect":
+			return bool(object_state.get("is_sampled", false))
+		_:
+			return false
+
+
+func _format_refs(refs: Array) -> String:
+	var parts: Array[String] = []
+	for ref in refs:
+		if ref is Dictionary:
+			var definition_id := String(ref.get("id", ""))
+			var amount := float(ref.get("amount", 1.0))
+			if not definition_id.is_empty() and amount > 0.0:
+				parts.append("%s x%s" % [_get_display_name(definition_id), _format_amount(amount)])
+		else:
+			var definition_id := String(ref)
+			if not definition_id.is_empty():
+				parts.append("%s x1" % _get_display_name(definition_id))
+	return "，".join(parts)
 
 
 func _has_completed_any(world_state: WorldState, quest_ids: Array[String]) -> bool:

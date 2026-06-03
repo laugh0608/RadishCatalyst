@@ -12,6 +12,7 @@ func _init(check_host) -> void:
 
 func run() -> void:
 	_check_opening_scene_layer()
+	_check_general_interaction_prompts()
 	_check_interactable_focus_labels()
 	_check_enemy_focus_labels()
 	_check_hud_map_runtime_labels()
@@ -67,6 +68,42 @@ func _check_opening_scene_layer() -> void:
 			and pollution_danger.offset_top >= VerticalSliceMap.POLLUTION_DEEP_Y - 2.0,
 		true,
 		"opening scene pollution belt separates safe construction from danger field"
+	)
+	map.free()
+
+
+func _check_general_interaction_prompts() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	host.root.add_child(map)
+	map.setup(host.data_registry)
+	var formatter := InteractionPromptFormatter.new(
+		host.data_registry,
+		ProcessingSystem.new(host.data_registry),
+		BuildSystem.new(host.data_registry)
+	)
+	var world := WorldState.create_default()
+	var character := CharacterState.create_default()
+	var crystal := map.get_node("Interactables/CrystalCluster") as PrototypeInteractable
+	var wreckage := map.get_node("Interactables/FieldWreckageNorth") as PrototypeInteractable
+	var anomaly := map.get_node("Interactables/AnomalyCrystal") as PrototypeInteractable
+	var crystal_prompt := formatter.format_general_interaction_prompt(crystal, character, world)
+	host._expect_text_contains(crystal_prompt, "对象：晶体簇", "first-hour crystal prompt names focused object")
+	host._expect_text_contains(crystal_prompt, "用途：采集基础资源", "first-hour crystal prompt explains resource use")
+	host._expect_text_contains(crystal_prompt, "产物：晶体矿物 x3", "first-hour crystal prompt lists gathered output")
+	host._expect_text_contains(crystal_prompt, "操作：按 E 采集", "first-hour crystal prompt exposes gather action")
+	var wreckage_prompt := formatter.format_general_interaction_prompt(wreckage, character, world)
+	host._expect_text_contains(wreckage_prompt, "用途：回收残骸材料", "first-hour wreckage prompt explains salvage use")
+	host._expect_text_contains(wreckage_prompt, "产物：导电废件 x2", "first-hour wreckage prompt lists salvage output")
+	var anomaly_prompt := formatter.format_general_interaction_prompt(anomaly, character, world)
+	host._expect_text_contains(anomaly_prompt, "用途：采集异常样本", "first-hour anomaly prompt explains sample use")
+	host._expect_text_contains(anomaly_prompt, "样本：异常样本 x1", "first-hour anomaly prompt lists sample result")
+	host._expect_text_contains(anomaly_prompt, "操作：按 E 采样", "first-hour anomaly prompt exposes sample action")
+	world.ensure_map_object(crystal.instance_id, crystal.definition_id, "region.crystal_vein_field")
+	world.set_map_object_flag(crystal.instance_id, "is_gathered", true)
+	host._expect_text_contains(
+		formatter.format_general_interaction_prompt(crystal, character, world),
+		"状态：已回收",
+		"first-hour gathered crystal prompt shows completed state"
 	)
 	map.free()
 
