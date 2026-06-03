@@ -11,6 +11,7 @@ func _init(check_host) -> void:
 
 
 func run() -> void:
+	_check_opening_scene_layer()
 	_check_interactable_focus_labels()
 	_check_enemy_focus_labels()
 	_check_hud_map_runtime_labels()
@@ -18,6 +19,56 @@ func run() -> void:
 	_check_treatment_entry_gather_feedback()
 	_check_pollution_pressure_consumption()
 	_check_ruin_gate_pressure_gate()
+
+
+func _check_opening_scene_layer() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	host.root.add_child(map)
+	var layer := map.get_node("OpeningSceneLayer") as Node2D
+	var base_deck := map.get_node("OpeningSceneLayer/BaseDeckFloor") as ColorRect
+	var core_pad := map.get_node("OpeningSceneLayer/BaseCorePad") as ColorRect
+	var reactor_pad := map.get_node("OpeningSceneLayer/BaseReactorPad") as ColorRect
+	var supply_pad := map.get_node("OpeningSceneLayer/BaseSupplyPad") as ColorRect
+	var exit_lane := map.get_node("OpeningSceneLayer/BaseExitLane") as ColorRect
+	var crystal_entry := map.get_node("OpeningSceneLayer/CrystalEntryGround") as ColorRect
+	var crystal_scrap := map.get_node("OpeningSceneLayer/CrystalScrapPocket") as ColorRect
+	var pollution_safe := map.get_node("OpeningSceneLayer/PollutionSafeConstructionBelt") as ColorRect
+	var pollution_danger := map.get_node("OpeningSceneLayer/PollutionDangerField") as ColorRect
+	host._expect_equal(layer != null, true, "opening scene readability layer exists")
+	host._expect_equal(
+		base_deck.offset_left <= VerticalSliceMap.PLAY_BOUNDS_MIN.x + 24.0
+			and base_deck.offset_right < VerticalSliceMap.CRYSTAL_REGION_X,
+		true,
+		"opening scene base deck fills the starting platform"
+	)
+	host._expect_equal(
+		core_pad.offset_left < reactor_pad.offset_left and reactor_pad.offset_left < exit_lane.offset_left,
+		true,
+		"opening scene base pads read core to manufacturing to exit"
+	)
+	host._expect_equal(
+		supply_pad.offset_top > reactor_pad.offset_top,
+		true,
+		"opening scene supply pad sits as a lower return lane"
+	)
+	host._expect_equal(
+		crystal_entry.offset_left >= VerticalSliceMap.CRYSTAL_REGION_X
+			and crystal_entry.offset_right <= VerticalSliceMap.POLLUTION_REGION_X,
+		true,
+		"opening scene crystal entry stays inside crystal region"
+	)
+	host._expect_equal(
+		crystal_scrap.offset_top > crystal_entry.offset_bottom,
+		true,
+		"opening scene crystal scrap pocket is visually separate from main mining lane"
+	)
+	host._expect_equal(
+		pollution_safe.offset_top < VerticalSliceMap.POLLUTION_DEEP_Y
+			and pollution_danger.offset_top >= VerticalSliceMap.POLLUTION_DEEP_Y - 2.0,
+		true,
+		"opening scene pollution belt separates safe construction from danger field"
+	)
+	map.free()
 
 
 func _check_interactable_focus_labels() -> void:

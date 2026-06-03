@@ -195,6 +195,134 @@ offset_bottom = 192.0
 text = "→ 核心稳定站"
 horizontal_alignment = 1
 
+[node name="OpeningSceneLayer" type="Node2D" parent="."]
+
+[node name="BaseDeckFloor" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -340.0
+offset_top = -166.0
+offset_right = -54.0
+offset_bottom = 142.0
+color = Color(0.102, 0.18, 0.196, 1)
+
+[node name="BaseCorePad" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -326.0
+offset_top = -126.0
+offset_right = -252.0
+offset_bottom = -58.0
+color = Color(0.122, 0.322, 0.349, 1)
+
+[node name="BaseCorePadLabel" type="Label" parent="OpeningSceneLayer"]
+offset_left = -334.0
+offset_top = -152.0
+offset_right = -240.0
+offset_bottom = -130.0
+text = "核心控制"
+horizontal_alignment = 1
+
+[node name="BaseReactorPad" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -206.0
+offset_top = -104.0
+offset_right = -126.0
+offset_bottom = -26.0
+color = Color(0.249, 0.286, 0.176, 1)
+
+[node name="BaseReactorPadLabel" type="Label" parent="OpeningSceneLayer"]
+offset_left = -222.0
+offset_top = -128.0
+offset_right = -110.0
+offset_bottom = -106.0
+text = "加工设备"
+horizontal_alignment = 1
+
+[node name="BaseSupplyPad" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -222.0
+offset_top = 10.0
+offset_right = -122.0
+offset_bottom = 96.0
+color = Color(0.145, 0.251, 0.282, 1)
+
+[node name="BaseSupplyPadLabel" type="Label" parent="OpeningSceneLayer"]
+offset_left = -230.0
+offset_top = 100.0
+offset_right = -114.0
+offset_bottom = 122.0
+text = "回投 / 补给"
+horizontal_alignment = 1
+
+[node name="BaseLogisticsShelf" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -332.0
+offset_top = 42.0
+offset_right = -264.0
+offset_bottom = 160.0
+color = Color(0.125, 0.149, 0.157, 1)
+
+[node name="BaseLogisticsShelfLabel" type="Label" parent="OpeningSceneLayer"]
+offset_left = -342.0
+offset_top = 18.0
+offset_right = -252.0
+offset_bottom = 40.0
+text = "后续行动"
+horizontal_alignment = 1
+
+[node name="BaseExitLane" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -86.0
+offset_top = -150.0
+offset_right = -28.0
+offset_bottom = 134.0
+color = Color(0.18, 0.247, 0.235, 1)
+
+[node name="BaseExitLaneLabel" type="Label" parent="OpeningSceneLayer"]
+offset_left = -112.0
+offset_top = -178.0
+offset_right = -14.0
+offset_bottom = -154.0
+text = "外勤出口"
+horizontal_alignment = 1
+
+[node name="CrystalEntryGround" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -20.0
+offset_top = -162.0
+offset_right = 238.0
+offset_bottom = 36.0
+color = Color(0.109, 0.173, 0.255, 1)
+
+[node name="CrystalScrapPocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 12.0
+offset_top = 84.0
+offset_right = 232.0
+offset_bottom = 178.0
+color = Color(0.114, 0.145, 0.18, 1)
+
+[node name="CrystalEntryLabel" type="Label" parent="OpeningSceneLayer"]
+offset_left = 12.0
+offset_top = -188.0
+offset_right = 222.0
+offset_bottom = -164.0
+text = "晶体采集线 / 残骸侧路"
+horizontal_alignment = 1
+
+[node name="PollutionSafeConstructionBelt" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 240.0
+offset_top = -188.0
+offset_right = 380.0
+offset_bottom = -70.0
+color = Color(0.216, 0.247, 0.184, 1)
+
+[node name="PollutionDangerField" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 240.0
+offset_top = -38.0
+offset_right = 380.0
+offset_bottom = 178.0
+color = Color(0.312, 0.29, 0.106, 1)
+
+[node name="PollutionBeltLabel" type="Label" parent="OpeningSceneLayer"]
+offset_left = 238.0
+offset_top = -214.0
+offset_right = 382.0
+offset_bottom = -190.0
+text = "施工带 / 污染场"
+horizontal_alignment = 1
+
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(-250, -48)
 
