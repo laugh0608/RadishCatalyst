@@ -13,6 +13,7 @@ func run() -> void:
 	_check_phase_survey_field_targets()
 	_check_phase_survey_feedback_guidance(processing)
 	_check_s20_phase_survey_baseline()
+	_check_s20_survey_departure_window()
 
 
 func _check_phase_survey_choice_entry() -> void:
@@ -211,6 +212,92 @@ func _check_s20_phase_survey_baseline() -> void:
 		"下一计划候选：压力清障",
 		"S20 frontline action console shows next pressure candidate"
 	)
+
+
+func _check_s20_survey_departure_window() -> void:
+	var builder := DevelopmentBaselineBuilder.new(host.data_registry)
+	var s20_result := builder.create_baseline_state("baseline.s20_phase_survey_feedback_ready")
+	host._expect_equal(bool(s20_result.get("success", false)), true, "S20 baseline generation for survey departure window")
+	if not bool(s20_result.get("success", false)):
+		return
+
+	var world_state: WorldState = s20_result.get("world_state", null)
+	var character_state: CharacterState = s20_result.get("character_state", null)
+	if world_state == null or character_state == null:
+		host.failures.append("S20 baseline should return states for survey departure window")
+		return
+
+	var gather := GatherSystem.new(host.data_registry)
+	var slot_result := gather.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(slot_result.get("success", false)), true, "S20 survey departure slot confirmation succeeds")
+	host._expect_text_contains(String(slot_result.get("message", "")), "出发整备槽已确认：信息侦测计划", "S20 survey slot confirmation explains plan")
+	host._expect_text_contains(String(slot_result.get("message", "")), "窗口结果预览", "S20 survey slot confirmation previews shared window")
+	host._expect_equal(
+		BaseActionDispatchPlan.get_survey_intel_status(world_state),
+		BaseActionDispatchPlan.STATUS_QUEUED,
+		"S20 survey intel becomes queued after slot confirmation"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_departure_preparation_prompt(world_state),
+		"本次整备：信息侦测已确认",
+		"S20 relay preparation prompt shows confirmed survey plan"
+	)
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_progress(world_state),
+		"到相位回投台按 E 出发",
+		"S20 queued status points to phase relay pad"
+	)
+
+	var departure_messages := BaseActionDispatchPlan.apply_departure_preparation(world_state, character_state)
+	host._expect_equal(departure_messages.size(), 2, "S20 survey departure loads intel and promotes candidate")
+	host._expect_text_contains(String(departure_messages[0]), "信息侦测计划已执行", "S20 survey departure execution explains route intel")
+	host._expect_text_contains(String(departure_messages[0]), "同一前线异常窗口已载入侦测解法", "S20 survey departure execution points to shared window")
+	host._expect_text_contains(String(departure_messages[1]), "下一计划候选已进入当前计划槽", "S20 survey departure promotes next candidate")
+	host._expect_equal(
+		BaseActionDispatchPlan.is_frontline_window_active(world_state),
+		true,
+		"S20 survey departure activates shared frontline window"
+	)
+	host._expect_equal(
+		BaseActionDispatchPlan.get_frontline_window_plan_key(world_state),
+		BaseActionDispatchPlan.PLAN_PHASE_SURVEY,
+		"S20 survey departure persists window plan"
+	)
+	var window_prompt := BaseActionDispatchPlan.format_frontline_window_prompt(world_state)
+	host._expect_text_contains(window_prompt, "已载入信息侦测计划", "S20 active window prompt shows survey plan")
+	host._expect_text_contains(window_prompt, "两处路线回波", "S20 active window prompt keeps survey target readable")
+	host._expect_text_contains(window_prompt, "按 E 处理窗口", "S20 active window prompt exposes interaction")
+
+	var window_result := gather.interact_with_object(
+		"map_object_instance.prepared_frontline_window",
+		"map_object.prepared_frontline_window",
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(window_result.get("success", false)), true, "S20 survey shared window interaction succeeds")
+	host._expect_text_contains(String(window_result.get("message", "")), "前线异常窗口已按信息侦测计划处理", "S20 survey window result explains feedback")
+	host._expect_text_contains(
+		BaseActionDispatchPlan.format_status_progress(world_state),
+		"按 E 收口本轮结果",
+		"S20 resolved window status asks for feedback archival"
+	)
+	var archive_result := gather.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID,
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(archive_result.get("success", false)), true, "S20 survey window feedback archival succeeds")
+	host._expect_text_contains(String(archive_result.get("message", "")), "前线异常窗口反馈已归档", "S20 survey archival confirms feedback")
+	host._expect_text_contains(String(archive_result.get("message", "")), "当前计划槽", "S20 survey archival explains next plan slot")
 
 
 func _make_interactable(instance_id: String, definition_id: String) -> PrototypeInteractable:
