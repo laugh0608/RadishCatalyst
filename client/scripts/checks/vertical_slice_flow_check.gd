@@ -6,6 +6,7 @@ const BaseActionTargetPromptCheckScript := preload("res://scripts/checks/base_ac
 const FirstHourReadabilityCheckScript := preload("res://scripts/checks/first_hour_readability_check.gd")
 const HudRuntimeHintFlowCheckScript := preload("res://scripts/checks/hud_runtime_hint_flow_check.gd")
 const HudMapMarkerCheckScript := preload("res://scripts/checks/hud_map_marker_check.gd")
+const InteractionFeedbackPromptCheckScript := preload("res://scripts/checks/interaction_feedback_prompt_check.gd")
 const PhaseWellFollowupChecks := preload("res://scripts/checks/phase_well_followup_check.gd")
 const PhaseRelayFlowChecks := preload("res://scripts/checks/phase_relay_flow_check.gd")
 const RegionPromptChecks := preload("res://scripts/checks/region_prompt_check.gd")
@@ -51,7 +52,7 @@ func _run_checks() -> void:
 	_check_treatment_enemy_combat_pressure()
 	_check_pressure_clearance_guard_combat_gate()
 	_check_quest_completion_panel_text()
-	_check_build_prompts()
+	InteractionFeedbackPromptCheckScript.new(self).run()
 	_check_supply_feedback()
 	_check_hud_feedback_presenter()
 	_check_pollution_status_hints()
@@ -840,65 +841,6 @@ func _check_quest_completion_panel_text() -> void:
 		"提示：封锁遗迹通路已恢复",
 		"completion note prefix"
 	)
-func _check_build_prompts() -> void:
-	var build_world := WorldState.create_default()
-	var build_character := CharacterState.create_default()
-	var formatter := InteractionPromptFormatter.new(
-		data_registry,
-		ProcessingSystem.new(data_registry),
-		BuildSystem.new(data_registry)
-	)
-	var rough_ground := PrototypeInteractable.new()
-	rough_ground.definition_id = "map_object.rough_ground"
-	rough_ground.interaction_type = "clear"
-	rough_ground.instance_id = "map_object_instance.rough_ground_north"
-	_expect_text_contains(
-		formatter.format_clear_prompt(rough_ground, build_character, build_world),
-		"阻挡建造",
-		"rough ground prompt"
-	)
-	var foundation_site := PrototypeInteractable.new()
-	foundation_site.definition_id = "building.foundation_t1"
-	foundation_site.interaction_type = "build"
-	foundation_site.instance_id = "map_object_instance.foundation_site_north"
-	foundation_site.prerequisite_instance_id = "map_object_instance.rough_ground_north"
-	_expect_text_contains(
-		formatter.format_build_prompt(foundation_site, build_character, build_world),
-		"地面仍然粗糙",
-		"foundation blocked prompt"
-	)
-	build_world.ensure_map_object("map_object_instance.rough_ground_north", "map_object.rough_ground", "region.pollution_edge")
-	build_world.set_map_object_flag("map_object_instance.rough_ground_north", "is_cleared", true)
-	_expect_text_contains(
-		formatter.format_build_prompt(foundation_site, build_character, build_world),
-		"缺少建造材料",
-		"foundation missing material prompt"
-	)
-	build_character.inventory.add_item("item.foundation_material", 1)
-	_expect_text_contains(
-		formatter.format_build_prompt(foundation_site, build_character, build_world),
-		"按 E 建造",
-		"foundation ready prompt"
-	)
-	var filter_site := PrototypeInteractable.new()
-	filter_site.definition_id = "building.pollution_filter"
-	filter_site.interaction_type = "build"
-	filter_site.instance_id = "map_object_instance.pollution_filter_build_site"
-	_expect_text_contains(
-		formatter.format_build_prompt(filter_site, build_character, build_world),
-		"基础地基：0 / 2",
-		"pollution filter foundation status"
-	)
-	build_world.add_base_structure("structure.foundation_site_north", "building.foundation_t1", "region.pollution_edge")
-	build_world.add_base_structure("structure.foundation_site_south", "building.foundation_t1", "region.pollution_edge")
-	_expect_text_contains(
-		formatter.format_build_prompt(filter_site, build_character, build_world),
-		"缺少建造材料",
-		"pollution filter missing material prompt"
-	)
-	rough_ground.free()
-	foundation_site.free()
-	filter_site.free()
 func _check_supply_feedback() -> void:
 	var supply_character := CharacterState.create_default()
 	supply_character.health = 45.0

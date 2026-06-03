@@ -182,6 +182,10 @@ func format_processing_prompt(
 		status_line = "%s；%s" % [status_line, progress]
 	elif bool(status.get("can_process", false)):
 		status_line = "%s；%s 秒" % [status_line, String(status.get("duration", "0"))]
+	else:
+		var next_step := _get_processing_next_step(status)
+		if not next_step.is_empty():
+			status_line = "%s；下一步：%s" % [status_line, next_step]
 	parts.append(status_line)
 
 	var action_parts: Array[String] = ["Q 详情"]
@@ -204,6 +208,23 @@ func format_processing_log(recipe_id: String, character_state: CharacterState, w
 	]
 
 
+func _get_processing_next_step(status: Dictionary) -> String:
+	var supply_hint := String(status.get("supply_hint", ""))
+	if not supply_hint.is_empty():
+		return supply_hint
+
+	var message := String(status.get("message", ""))
+	if not Array(status.get("missing_inputs", [])).is_empty():
+		return "先采集或回收缺少的原料，再回到设备启动加工。"
+	if message.begins_with("需要先建造："):
+		return "先完成对应建造点，再回到设备启动加工。"
+	if message.find("未解锁") >= 0:
+		return "先完成当前任务目标，解锁该配方后再启动加工。"
+	if message.find("加工中") >= 0:
+		return "等待当前进度完成，靠近设备查看进度。"
+	return ""
+
+
 func format_build_prompt(
 	interactable: PrototypeInteractable,
 	character_state: CharacterState,
@@ -224,8 +245,11 @@ func format_build_prompt(
 	if not foundation_status.is_empty():
 		parts.append(foundation_status)
 	parts.append("状态：%s" % String(status.get("message", "")))
+	var next_step := String(status.get("next_step", ""))
+	if not next_step.is_empty():
+		parts.append("下一步：%s" % next_step)
 	if bool(status.get("can_build", false)):
-		parts.append("按 E 建造")
+		parts.append("操作：按 E 建造")
 	return "\n".join(parts)
 
 
@@ -283,11 +307,11 @@ func format_clear_prompt(
 	var parts: Array[String] = [
 		"地块：%s" % _get_display_name(interactable.definition_id),
 		"状态：未清理，阻挡建造。",
-		"后续：清理后可铺设基础地基。",
+		"下一步：清理后可铺设基础地基。",
 		"工具：%s" % tool_status
 	]
 	if tool_status == "可清理":
-		parts.append("按 E 清理地块")
+		parts.append("操作：按 E 清理地块")
 	return "\n".join(parts)
 
 

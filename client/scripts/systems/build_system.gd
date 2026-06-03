@@ -56,7 +56,8 @@ func get_build_status(
 		return {
 			"can_build": false,
 			"costs": "无",
-			"message": "未知建筑：%s。" % building_id
+			"message": "未知建筑：%s。" % building_id,
+			"next_step": "检查建造点配置或切换到已知建筑。"
 		}
 
 	var site_state := world_state.get_map_object(site_instance_id)
@@ -64,7 +65,8 @@ func get_build_status(
 		return {
 			"can_build": false,
 			"costs": _format_refs(building.get("build_cost", [])),
-			"message": "已建成。"
+			"message": "已建成。",
+			"next_step": "前往下一个建造点或查看当前任务目标。"
 		}
 
 	var requirement_error := _get_requirement_error(building_id, prerequisite_instance_id, world_state)
@@ -73,7 +75,8 @@ func get_build_status(
 			"can_build": false,
 			"costs": _format_refs(building.get("build_cost", [])),
 			"message": requirement_error,
-			"foundation_status": _format_foundation_status(building_id, world_state)
+			"foundation_status": _format_foundation_status(building_id, world_state),
+			"next_step": _get_requirement_hint(building_id)
 		}
 
 	var missing_costs := _get_missing_costs(building, character_state.inventory)
@@ -83,7 +86,8 @@ func get_build_status(
 			"costs": _format_refs(building.get("build_cost", [])),
 			"message": "缺少建造材料：%s。" % ", ".join(missing_costs),
 			"missing_costs": missing_costs,
-			"foundation_status": _format_foundation_status(building_id, world_state)
+			"foundation_status": _format_foundation_status(building_id, world_state),
+			"next_step": _get_cost_hint(building_id)
 		}
 
 	return {
