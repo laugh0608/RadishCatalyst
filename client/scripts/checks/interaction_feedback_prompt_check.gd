@@ -107,10 +107,11 @@ func _check_success_logs_share_interaction_reading() -> void:
 	host._expect_text_contains(started_log, "状态：加工中", "processing start log status")
 	host._expect_text_contains(
 		started_log,
-		"完成去向：产物已放入背包：基础零件 x4",
+		"去向：基础零件 x4",
 		"processing start log destination"
 	)
 	host._expect_text_contains(started_log, "下一步：等待设备完成", "processing start log next step")
+	host._expect_equal(started_log.length() <= 96, true, "processing start log stays short")
 
 	var reactor := PrototypeInteractable.new()
 	reactor.definition_id = "building.basic_reactor"
@@ -127,8 +128,9 @@ func _check_success_logs_share_interaction_reading() -> void:
 	host._expect_equal(completed_results.size(), 1, "processing completion emits one result")
 	var completed_log := log_presenter.format_result_log(completed_results[0])
 	host._expect_text_contains(completed_log, "加工完成：处理晶体矿物", "processing completion log title")
-	host._expect_text_contains(completed_log, "完成去向：产物已放入背包：基础零件 x4", "processing completion destination")
+	host._expect_text_contains(completed_log, "去向：基础零件 x4", "processing completion destination")
 	host._expect_text_contains(completed_log, "下一步：基础零件已补足", "processing completion next step")
+	host._expect_equal(completed_log.length() <= 96, true, "processing completion log stays short")
 	reactor.free()
 
 	var build_system := BuildSystem.new(host.data_registry)
@@ -153,10 +155,11 @@ func _check_success_logs_share_interaction_reading() -> void:
 	host._expect_text_contains(build_log, "状态：已建成", "build completion log status")
 	host._expect_text_contains(
 		build_log,
-		"完成去向：建造结果已写入处理点地基状态",
+		"去向：处理点地基状态",
 		"build completion log destination"
 	)
 	host._expect_text_contains(build_log, "下一步：基础地基：1 / 2", "build completion log next step")
+	host._expect_equal(build_log.length() <= 96, true, "build completion log stays short")
 
 
 func _create_formatter() -> InteractionPromptFormatter:

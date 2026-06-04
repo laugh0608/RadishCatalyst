@@ -27,9 +27,9 @@ func format_success_result_log(result: Dictionary) -> String:
 
 	var title := String(feedback.get("title", "操作完成"))
 	var details: Array[String] = []
-	_append_log_detail(details, "状态", String(feedback.get("status", "")))
-	_append_log_detail(details, "完成去向", String(feedback.get("destination", "")))
-	_append_log_detail(details, "下一步", String(feedback.get("next_step", "")))
+	_append_log_detail(details, "状态", _compact_status(String(feedback.get("status", ""))))
+	_append_log_detail(details, "去向", _compact_destination(String(feedback.get("destination", ""))))
+	_append_log_detail(details, "下一步", _compact_next_step(String(feedback.get("next_step", ""))))
 	if details.is_empty():
 		return title
 	return "%s；%s" % [title, "；".join(details)]
@@ -101,6 +101,44 @@ func _append_log_detail(details: Array[String], label: String, text: String) -> 
 	if text.strip_edges().is_empty():
 		return
 	details.append("%s：%s" % [label, text])
+
+
+func _compact_status(text: String) -> String:
+	return text.strip_edges().trim_suffix("。")
+
+
+func _compact_destination(text: String) -> String:
+	var compact := text.strip_edges()
+	if compact.is_empty():
+		return ""
+	compact = compact.replace("。 副产已放入背包：", "；副产：")
+	compact = compact.replace("产物已放入背包：", "")
+	compact = compact.replace("副产已放入背包：", "副产：")
+	compact = compact.replace("建造结果已写入", "")
+	compact = compact.trim_suffix("。")
+	if compact.is_empty():
+		return ""
+	return _shorten_text(compact, 34)
+
+
+func _compact_next_step(text: String) -> String:
+	var compact := text.strip_edges().trim_suffix("。")
+	if compact.is_empty():
+		return ""
+	var semicolon_index := compact.find("；")
+	if semicolon_index >= 0:
+		compact = compact.substr(0, semicolon_index)
+	var sentence_index := compact.find("。")
+	if sentence_index >= 0:
+		compact = compact.substr(0, sentence_index)
+	compact = compact.replace("按 Q 打开设备面板", "Q 看面板")
+	return _shorten_text(compact, 36)
+
+
+func _shorten_text(text: String, max_length: int) -> String:
+	if text.length() <= max_length:
+		return text
+	return "%s..." % text.substr(0, maxi(0, max_length - 3))
 
 
 func _format_slot_name(slot_id: String) -> String:
