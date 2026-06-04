@@ -135,7 +135,11 @@ func interact_with_object(
 
 	var object_state := world_state.ensure_map_object(instance_id, definition_id, character_state.current_region_id)
 	if _is_already_processed(object_state, interaction_type):
-		return _failure("目标已处理。", "交互未执行", "前往当前目标标记，寻找下一个可交互对象。")
+		return _failure(
+			_format_already_processed_message(definition_id, interaction_type),
+			"目标已处理",
+			"现场完成态颜色和标签表示该对象已处理；前往下一个未处理目标。"
+		)
 	var quest_gate_error := _get_quest_gate_error(definition_id, interaction_type, world_state)
 	if not quest_gate_error.is_empty():
 		return _failure(quest_gate_error, "交互前置不足", _get_quest_gate_detail(definition_id, interaction_type))
@@ -162,7 +166,7 @@ func interact_with_object(
 				return _success("盐壳硬壳已清理：盐壳余烬回收线打开。")
 			if definition_id == "map_object.pressure_clearance_node":
 				return _success("前线压力扰点已清除：带回压力清障回执，回基地用基础反应器解析防护收益。")
-			return _success("地块已清理。")
+			return _success("%s已清理：现场保留已清理标记；现在可以铺设基础地基。" % _get_display_name(definition_id))
 		"inspect":
 			if BaseActionDispatchPlan.is_frontline_window_object(definition_id):
 				if not BaseActionDispatchPlan.is_frontline_window_active(world_state):
@@ -237,10 +241,13 @@ func _gather(instance_id: String, definition: Dictionary, character_state: Chara
 	_set_map_object_flag(world_state, instance_id, String(definition.get("id", "")), "is_gathered", true)
 
 	var result_parts: Array[String] = []
+	var completion_label := _get_gather_completion_label(definition)
+	var object_name := _get_display_name(String(definition.get("id", "")))
 	if rewards.is_empty():
-		result_parts.append("采集完成")
+		result_parts.append("%s%s" % [object_name, completion_label])
 	else:
-		result_parts.append("采集完成：%s" % ", ".join(rewards))
+		result_parts.append("%s%s：%s" % [object_name, completion_label, ", ".join(rewards)])
+	result_parts.append("现场保留%s标记" % completion_label)
 	if protection_drain > 0.0:
 		result_parts.append("污染压力消耗防护 %s%s" % [
 			_format_amount(protection_drain),
@@ -268,8 +275,11 @@ func _sample(instance_id: String, definition: Dictionary, character_state: Chara
 
 	_set_map_object_flag(world_state, instance_id, String(definition.get("id", "")), "is_sampled", true)
 	if rewards.is_empty():
-		return _success("采样完成。")
-	return _success("采样完成：%s" % ", ".join(rewards))
+		return _success("%s已采样：现场保留已采样标记。" % _get_display_name(String(definition.get("id", ""))))
+	return _success("%s已采样：%s；现场保留已采样标记；回基地解析样本。" % [
+		_get_display_name(String(definition.get("id", ""))),
+		", ".join(rewards)
+	])
 
 
 func _grant_refs(refs: Array, character_state: CharacterState) -> Array[String]:
@@ -342,6 +352,31 @@ func _get_first_hour_gather_step_hint(instance_id: String) -> String:
 		"map_object_instance.field_wreckage_foundation_return":
 			return "处理点入口前的残骸缓存已回收；若地基或过滤器缺料，先回基地整理制造"
 	return ""
+
+
+func _get_gather_completion_label(definition: Dictionary) -> String:
+	match String(definition.get("object_type", "")):
+		"resource_node":
+			return "已采集"
+		_:
+			return "已回收"
+
+
+func _format_already_processed_message(definition_id: String, interaction_type: String) -> String:
+	var object_name := _get_display_name(definition_id)
+	match interaction_type:
+		"gather":
+			if definition_id == "map_object.crystal_cluster" or definition_id == "map_object.rich_crystal_vein":
+				return "%s已采集，现场保留已采集标记。" % object_name
+			return "%s已回收，现场保留已回收标记。" % object_name
+		"sample":
+			return "%s已采样，现场保留已采样标记。" % object_name
+		"clear":
+			return "%s已清理，现场保留已清理标记。" % object_name
+		"inspect":
+			return "%s已确认，现场保留完成态标记。" % object_name
+		_:
+			return "%s已处理，现场保留完成态标记。" % object_name
 
 
 func _format_outpost_core_refit_detail(

@@ -144,7 +144,7 @@ func format_general_interaction_prompt(
 	if not reward_line.is_empty():
 		parts.append(reward_line)
 	parts.append("状态：%s" % _get_general_interaction_status(interactable, object_state, character_state))
-	var action_line := _get_general_interaction_action(interactable, character_state)
+	var action_line := _get_general_interaction_action(interactable, object_state, character_state)
 	if not action_line.is_empty():
 		parts.append("操作：%s" % action_line)
 	return "\n".join(parts)
@@ -745,15 +745,7 @@ func _get_general_interaction_status(
 	character_state: CharacterState
 ) -> String:
 	if _is_general_interaction_processed(interactable, object_state):
-		match interactable.interaction_type:
-			"gather":
-				return "已回收，现场保留完成态标记。"
-			"sample":
-				return "已采样，样本已进入背包或任务记录。"
-			"inspect":
-				return "已确认，继续查看当前目标。"
-			_:
-				return "已完成。"
+		return _get_processed_interaction_status(interactable)
 	var tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
 	if tool_status.begins_with("缺少能力"):
 		return "%s，先升级或更换工具。" % tool_status
@@ -768,7 +760,13 @@ func _get_general_interaction_status(
 			return "可交互。"
 
 
-func _get_general_interaction_action(interactable: PrototypeInteractable, character_state: CharacterState) -> String:
+func _get_general_interaction_action(
+	interactable: PrototypeInteractable,
+	object_state: Dictionary,
+	character_state: CharacterState
+) -> String:
+	if _is_general_interaction_processed(interactable, object_state):
+		return ""
 	var tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
 	if tool_status.begins_with("缺少能力"):
 		return ""
@@ -781,6 +779,28 @@ func _get_general_interaction_action(interactable: PrototypeInteractable, charac
 			return "按 E 检查"
 		_:
 			return "按 E 交互"
+
+
+func _get_processed_interaction_status(interactable: PrototypeInteractable) -> String:
+	match interactable.interaction_type:
+		"gather":
+			match interactable.definition_id:
+				"map_object.crystal_cluster", "map_object.rich_crystal_vein":
+					return "已采集，现场保留已采集标记；继续寻找未变暗的晶体。"
+				"map_object.pollution_residue_patch":
+					return "已回收，现场保留已回收标记；回过滤器处理沉积物。"
+				"map_object.field_wreckage":
+					return "已回收，现场保留已回收标记；可回基地制造或继续找未变暗残骸。"
+				"map_object.anomaly_residue_patch":
+					return "已回收，现场保留已回收标记；继续处理样本分析目标。"
+				_:
+					return "已回收，现场保留已回收标记。"
+		"sample":
+			return "已采样，现场保留已采样标记；回基地解析样本。"
+		"inspect":
+			return "已确认，现场保留完成态标记；继续查看当前目标。"
+		_:
+			return "已完成，现场保留完成态标记。"
 
 
 func _is_general_interaction_processed(interactable: PrototypeInteractable, object_state: Dictionary) -> bool:

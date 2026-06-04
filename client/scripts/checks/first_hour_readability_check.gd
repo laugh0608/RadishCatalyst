@@ -16,6 +16,7 @@ func run() -> void:
 	_check_interactable_focus_labels()
 	_check_enemy_focus_labels()
 	_check_core_object_visual_profiles()
+	_check_object_feedback_states()
 	_check_hud_map_runtime_labels()
 	_check_hud_runtime_layout_first_pass()
 	_check_core_loop_layout()
@@ -180,8 +181,13 @@ func _check_general_interaction_prompts() -> void:
 	world.set_map_object_flag(crystal.instance_id, "is_gathered", true)
 	host._expect_text_contains(
 		formatter.format_general_interaction_prompt(crystal, character, world),
-		"状态：已回收",
+		"状态：已采集",
 		"first-hour gathered crystal prompt shows completed state"
+	)
+	host._expect_text_missing(
+		formatter.format_general_interaction_prompt(crystal, character, world),
+		"操作：按 E 采集",
+		"first-hour gathered crystal prompt hides repeat gather action"
 	)
 	map.free()
 
@@ -252,6 +258,68 @@ func _check_core_object_visual_profiles() -> void:
 	host._expect_equal(treatment_enemy.sprite.size, PrototypeEnemy.TREATMENT_ENEMY_SIZE, "enemy visuals distinguish treatment low-pressure guards")
 	host._expect_equal(polluted_enemy.sprite.size, PrototypeEnemy.POLLUTED_ENEMY_SIZE, "enemy visuals distinguish polluted pressure enemies")
 	host._expect_equal(elite_enemy.sprite.size, PrototypeEnemy.ELITE_ENEMY_SIZE, "enemy visuals distinguish elite pressure node")
+	map.free()
+
+
+func _check_object_feedback_states() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	host.root.add_child(map)
+	map.setup(host.data_registry)
+	var formatter := InteractionPromptFormatter.new(
+		host.data_registry,
+		ProcessingSystem.new(host.data_registry),
+		BuildSystem.new(host.data_registry)
+	)
+	var world := WorldState.create_default()
+	var character := CharacterState.create_default()
+	var crystal := map.get_node("Interactables/CrystalCluster") as PrototypeInteractable
+	var wreckage := map.get_node("Interactables/FieldWreckageNorth") as PrototypeInteractable
+	var anomaly := map.get_node("Interactables/AnomalyCrystal") as PrototypeInteractable
+	var residue := map.get_node("Interactables/PollutionResidue") as PrototypeInteractable
+	var rough_ground := map.get_node("Interactables/RoughGroundNorth") as PrototypeInteractable
+	var foundation_site := map.get_node("Interactables/FoundationSiteNorth") as PrototypeInteractable
+
+	world.ensure_map_object(crystal.instance_id, crystal.definition_id, "region.crystal_vein_field")
+	world.set_map_object_flag(crystal.instance_id, "is_gathered", true)
+	world.ensure_map_object(wreckage.instance_id, wreckage.definition_id, "region.crystal_vein_field")
+	world.set_map_object_flag(wreckage.instance_id, "is_gathered", true)
+	world.ensure_map_object(anomaly.instance_id, anomaly.definition_id, "region.crystal_vein_field")
+	world.set_map_object_flag(anomaly.instance_id, "is_sampled", true)
+	world.ensure_map_object(residue.instance_id, residue.definition_id, "region.pollution_edge")
+	world.set_map_object_flag(residue.instance_id, "is_gathered", true)
+	world.ensure_map_object(rough_ground.instance_id, rough_ground.definition_id, "region.pollution_edge")
+	world.set_map_object_flag(rough_ground.instance_id, "is_cleared", true)
+	world.ensure_map_object(foundation_site.instance_id, foundation_site.definition_id, "region.pollution_edge")
+	world.set_map_object_flag(foundation_site.instance_id, "is_built", true)
+	world.map_objects[foundation_site.instance_id]["built_definition_id"] = "building.foundation_t1"
+	map.refresh_world_interactables(world)
+
+	host._expect_equal(crystal.marker.color, PrototypeInteractable.GATHERED_CRYSTAL_COLOR, "object feedback darkens gathered crystal")
+	host._expect_text_contains(crystal.label.text, "已采集", "object feedback labels gathered crystal")
+	host._expect_equal(wreckage.marker.color, PrototypeInteractable.GATHERED_SALVAGE_COLOR, "object feedback recolors salvaged wreckage")
+	host._expect_text_contains(wreckage.label.text, "已回收", "object feedback labels salvaged wreckage")
+	host._expect_equal(anomaly.marker.color, PrototypeInteractable.SAMPLED_ANOMALY_COLOR, "object feedback recolors sampled anomaly")
+	host._expect_text_contains(anomaly.label.text, "已采样", "object feedback labels sampled anomaly")
+	host._expect_equal(residue.marker.color, PrototypeInteractable.GATHERED_RESIDUE_COLOR, "object feedback recolors gathered residue")
+	host._expect_text_contains(residue.label.text, "已回收", "object feedback labels gathered residue")
+	host._expect_equal(rough_ground.marker.color, PrototypeInteractable.CLEARED_GROUND_COLOR, "object feedback recolors cleared rough ground")
+	host._expect_text_contains(rough_ground.label.text, "已清理", "object feedback labels cleared rough ground")
+	host._expect_equal(foundation_site.marker.color, PrototypeInteractable.BUILT_FOUNDATION_COLOR, "object feedback recolors built foundation")
+	host._expect_text_contains(foundation_site.label.text, "基础地基", "object feedback labels built foundation")
+
+	var wreckage_prompt := formatter.format_general_interaction_prompt(wreckage, character, world)
+	host._expect_text_contains(wreckage_prompt, "状态：已回收", "object feedback prompt explains salvaged state")
+	host._expect_text_missing(wreckage_prompt, "操作：按 E 采集", "object feedback prompt hides salvaged action")
+	var anomaly_prompt := formatter.format_general_interaction_prompt(anomaly, character, world)
+	host._expect_text_contains(anomaly_prompt, "状态：已采样", "object feedback prompt explains sampled state")
+	host._expect_text_missing(anomaly_prompt, "操作：按 E 采样", "object feedback prompt hides sampled action")
+	var residue_prompt := formatter.format_general_interaction_prompt(residue, character, world)
+	host._expect_text_contains(residue_prompt, "回过滤器处理沉积物", "object feedback prompt links residue to filter")
+	var rough_prompt := formatter.format_clear_prompt(rough_ground, character, world)
+	host._expect_text_contains(rough_prompt, "状态：已清理", "object feedback clear prompt explains completed ground")
+	var foundation_prompt := formatter.format_build_prompt(foundation_site, character, world)
+	host._expect_text_contains(foundation_prompt, "状态：已建成", "object feedback build prompt explains completed site")
+	host._expect_text_contains(foundation_prompt, "下一个建造点", "object feedback build prompt points to next construction target")
 	map.free()
 
 
@@ -458,6 +526,16 @@ func _check_treatment_entry_gather_feedback() -> void:
 	)
 	host._expect_text_contains(
 		String(crystal_result.get("message", "")),
+		"晶体簇已采集",
+		"first-hour treatment entrance crystal log names completed state"
+	)
+	host._expect_text_contains(
+		String(crystal_result.get("message", "")),
+		"现场保留已采集标记",
+		"first-hour treatment entrance crystal log matches visual state"
+	)
+	host._expect_text_contains(
+		String(crystal_result.get("message", "")),
 		"回基地加工基础零件或地基材料",
 		"first-hour treatment entrance crystal points back to manufacturing"
 	)
@@ -467,6 +545,16 @@ func _check_treatment_entry_gather_feedback() -> void:
 		"gather",
 		character,
 		world
+	)
+	host._expect_text_contains(
+		String(wreckage_result.get("message", "")),
+		"外勤残骸已回收",
+		"first-hour treatment entrance salvage log names completed state"
+	)
+	host._expect_text_contains(
+		String(wreckage_result.get("message", "")),
+		"现场保留已回收标记",
+		"first-hour treatment entrance salvage log matches visual state"
 	)
 	host._expect_text_contains(
 		String(wreckage_result.get("message", "")),
