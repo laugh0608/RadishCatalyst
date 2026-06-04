@@ -16,6 +16,7 @@ func run() -> void:
 	_check_interactable_focus_labels()
 	_check_enemy_focus_labels()
 	_check_hud_map_runtime_labels()
+	_check_hud_runtime_layout_first_pass()
 	_check_core_loop_layout()
 	_check_treatment_entry_gather_feedback()
 	_check_pollution_pressure_consumption()
@@ -166,6 +167,24 @@ func _check_hud_map_runtime_labels() -> void:
 		true,
 		"first-hour minimap marker labels use staggered lanes"
 	)
+	hud.free()
+
+
+func _check_hud_runtime_layout_first_pass() -> void:
+	var hud := PrototypeHudScene.instantiate() as PrototypeHud
+	host.root.add_child(hud)
+	hud._ensure_runtime_nodes()
+	hud._layout_runtime_panels(true)
+	var viewport_size := hud._get_runtime_viewport_size()
+	host._expect_equal(hud.map_panel.size.y <= 190.0, true, "HUD first pass keeps minimap compact")
+	host._expect_equal(hud.status_panel.position.y > hud.map_panel.position.y + hud.map_panel.size.y, true, "HUD first pass stacks objective below minimap")
+	host._expect_equal(hud.status_panel.position.x <= 20.0, true, "HUD first pass keeps objective on the left edge")
+	host._expect_equal(hud.vitals_panel.position.x + hud.vitals_panel.size.x >= viewport_size.x - 20.0, true, "HUD first pass keeps vitals on the right edge")
+	host._expect_equal(hud.vitals_panel.size.y <= 184.0, true, "HUD first pass keeps vitals summary compact")
+	host._expect_equal(absf(hud.prompt_panel.position.x + hud.prompt_panel.size.x * 0.5 - viewport_size.x * 0.5) <= 1.0, true, "HUD first pass centers interaction prompt")
+	host._expect_equal(hud.prompt_panel.size.y <= 144.0, true, "HUD first pass lowers prompt height")
+	host._expect_equal(hud.log_panel.size.y <= 68.0, true, "HUD first pass lowers log height")
+	host._expect_equal(hud.log_panel.position.x + hud.log_panel.size.x < hud.prompt_panel.position.x, true, "HUD first pass keeps log separate from prompt")
 	hud.free()
 
 
