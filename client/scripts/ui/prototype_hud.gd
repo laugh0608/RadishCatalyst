@@ -731,7 +731,7 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	var map_width := clampf(viewport_size.x * 0.24, 500.0, 620.0)
 	var map_height := 190.0
 	var objective_width := map_width
-	var objective_height := 150.0
+	var objective_height := 178.0
 	var vitals_width := clampf(viewport_size.x * 0.20, 380.0, 460.0)
 	var vitals_height := 184.0
 	var prompt_width := clampf(viewport_size.x * 0.32, 620.0, 780.0)
@@ -896,7 +896,7 @@ func _layout_full_label(label: Label, panel: Control, left: float, top: float, f
 func _prepare_wrapped_label(label: Label) -> void:
 	if label == null:
 		return
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	label.clip_text = true
 
 

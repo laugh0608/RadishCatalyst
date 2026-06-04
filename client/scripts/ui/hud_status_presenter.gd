@@ -108,7 +108,7 @@ func format_objective_text(
 	var active_quest_id := _get_active_quest_id(world_state)
 	return "\n".join(
 		["当前目标"]
-		+ _format_objective_lines(data_registry, world_state, active_quest_id)
+		+ _format_objective_lines(data_registry, world_state, active_quest_id, true)
 		+ _format_key_resource_lines(data_registry, world_state, character_state, active_quest_id)
 	)
 
@@ -168,12 +168,22 @@ func _get_active_quest_id(world_state: WorldState) -> String:
 func _format_objective_lines(
 	data_registry: DataRegistry,
 	world_state: WorldState,
-	active_quest_id: String
+	active_quest_id: String,
+	compact: bool = false
 ) -> Array[String]:
-	return [
-		"目标：%s" % _format_goal_name(data_registry, world_state, active_quest_id),
-		"进度：%s" % _format_active_quest_progress(data_registry, world_state, active_quest_id)
-	]
+	var lines: Array[String] = ["目标：%s" % _format_goal_name(data_registry, world_state, active_quest_id)]
+	if not compact:
+		lines.append("进度：%s" % _format_active_quest_progress(data_registry, world_state, active_quest_id))
+		return lines
+
+	var progress_lines := _format_active_quest_progress_lines(data_registry, world_state, active_quest_id)
+	if progress_lines.is_empty():
+		lines.append("进度：无")
+		return lines
+	for index in range(progress_lines.size()):
+		var prefix := "进度：" if index == 0 else "  "
+		lines.append("%s%s" % [prefix, progress_lines[index]])
+	return lines
 
 
 func _format_character_lines(
@@ -216,7 +226,7 @@ func _format_base_summary_lines(
 ) -> Array[String]:
 	var active_structure_summary := _format_active_base_structure(data_registry, world_state)
 	if not active_structure_summary.is_empty():
-		return [active_structure_summary]
+		return active_structure_summary
 
 	var active_quest := data_registry.get_definition(active_quest_id)
 	if not active_quest.is_empty():
@@ -439,7 +449,7 @@ func _get_inventory_amount(inventory: InventoryState, definition_id: String) -> 
 	return float(inventory.items.get(definition_id, 0))
 
 
-func _format_active_base_structure(data_registry: DataRegistry, world_state: WorldState) -> String:
+func _format_active_base_structure(data_registry: DataRegistry, world_state: WorldState) -> Array[String]:
 	for structure in world_state.base_structures.values():
 		if not structure is Dictionary:
 			continue
@@ -447,8 +457,21 @@ func _format_active_base_structure(data_registry: DataRegistry, world_state: Wor
 			continue
 		var recipe_id := String(structure.get("active_recipe_id", ""))
 		var structure_name := _get_display_name(data_registry, String(structure.get("definition_id", "")))
-		return "设备：%s加工中 -> %s" % [structure_name, _get_display_name(data_registry, recipe_id)]
-	return ""
+		var recipe := data_registry.get_definition(recipe_id)
+		var duration := _get_recipe_duration(recipe)
+		var progress_seconds := clampf(float(structure.get("progress_seconds", 0.0)), 0.0, duration)
+		var recipe_name := _get_display_name(data_registry, recipe_id)
+		if recipe_name.is_empty():
+			recipe_name = "当前配方"
+		return [
+			"设备：%s -> %s" % [structure_name, recipe_name],
+			"进度：%s %s/%s 秒；Q 设备面板" % [
+				_format_progress_bar(progress_seconds, duration),
+				_format_amount(progress_seconds),
+				_format_amount(duration)
+			]
+		]
+	return []
 
 
 func _format_current_craft_summary(
@@ -779,6 +802,39 @@ func _format_active_quest_progress(data_registry: DataRegistry, world_state: Wor
 	return "；".join(parts)
 
 
+func _format_active_quest_progress_lines(
+	data_registry: DataRegistry,
+	world_state: WorldState,
+	quest_id: String
+) -> Array[String]:
+	var quest := data_registry.get_definition(quest_id)
+	if quest.is_empty():
+		var fallback_progress := _format_active_quest_progress(data_registry, world_state, quest_id)
+		if fallback_progress == "无":
+			return []
+		return [_shorten_visible_text(fallback_progress, 42)]
+
+	var lines: Array[String] = []
+	for objective in quest.get("objectives", []):
+		if not objective is Dictionary:
+			continue
+
+		var objective_type := String(objective.get("type", ""))
+		var target_id := String(objective.get("target_id", ""))
+		var required_amount := float(objective.get("amount", 1.0))
+		var current_amount := minf(
+			world_state.quest_state.get_objective_progress(quest_id, objective_type, target_id),
+			required_amount
+		)
+		lines.append(_shorten_visible_text("%s%s %s/%s" % [
+			_get_objective_verb(objective_type),
+			_format_objective_target_name(data_registry, quest_id, objective_type, target_id, true),
+			_format_amount(current_amount),
+			_format_amount(required_amount)
+		], 42))
+	return lines
+
+
 func _get_objective_verb(objective_type: String) -> String:
 	match objective_type:
 		"interact":
@@ -809,12 +865,15 @@ func _format_objective_target_name(
 	data_registry: DataRegistry,
 	quest_id: String,
 	objective_type: String,
-	target_id: String
+	target_id: String,
+	compact: bool = false
 ) -> String:
 	var target_name := _get_display_name(data_registry, target_id)
 	var source_hint := _get_objective_source_hint(quest_id, objective_type, target_id)
 	if source_hint.is_empty():
 		return target_name
+	if compact:
+		source_hint = _compact_source_hint(source_hint)
 	return "%s（%s）" % [target_name, source_hint]
 
 
@@ -830,6 +889,51 @@ func _format_amount(amount: float) -> String:
 	if is_equal_approx(amount, roundf(amount)):
 		return str(int(amount))
 	return "%.1f" % amount
+
+
+func _compact_source_hint(source_hint: String) -> String:
+	match source_hint:
+		"基础反应器":
+			return "反应器"
+		"污染过滤器":
+			return "过滤器"
+		"异常残留点":
+			return "残留点"
+		_:
+			return source_hint
+
+
+func _format_progress_bar(current: float, total: float) -> String:
+	var segment_count := 10
+	var ratio := 0.0
+	if total > 0.0:
+		ratio = clampf(current / total, 0.0, 1.0)
+	var filled_count := mini(segment_count, maxi(0, int(floor(ratio * float(segment_count)))))
+	if ratio > 0.0 and filled_count == 0:
+		filled_count = 1
+	return "[%s%s]" % [
+		_repeat_text("#", filled_count),
+		_repeat_text("-", segment_count - filled_count)
+	]
+
+
+func _get_recipe_duration(recipe: Dictionary) -> float:
+	if recipe.is_empty():
+		return 0.1
+	return maxf(0.1, float(recipe.get("duration", 0.1)))
+
+
+func _repeat_text(text: String, count: int) -> String:
+	var parts: Array[String] = []
+	for _index in range(maxi(0, count)):
+		parts.append(text)
+	return "".join(parts)
+
+
+func _shorten_visible_text(text: String, max_length: int) -> String:
+	if text.length() <= max_length:
+		return text
+	return "%s..." % text.substr(0, maxi(0, max_length - 3))
 
 
 func _get_display_name(data_registry: DataRegistry, definition_id: String) -> String:

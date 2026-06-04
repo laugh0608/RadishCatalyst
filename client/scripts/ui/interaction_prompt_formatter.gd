@@ -180,7 +180,11 @@ func format_processing_prompt(
 	var status_line := "状态：%s" % String(status.get("message", ""))
 	var progress := String(status.get("progress", ""))
 	if not progress.is_empty():
-		status_line = "%s；%s" % [status_line, progress]
+		status_line = "%s；进度：%s %s" % [
+			status_line,
+			_format_progress_bar(float(status.get("progress_ratio", 0.0))),
+			progress
+		]
 		var processing_next_step := String(status.get("next_step", ""))
 		if not processing_next_step.is_empty():
 			status_line = "%s；下一步：%s" % [status_line, processing_next_step]
@@ -240,6 +244,24 @@ func _get_processing_next_step(status: Dictionary) -> String:
 	if message.find("加工中") >= 0:
 		return "等待设备完成；靠近设备查看进度，按 Q 打开设备面板。"
 	return ""
+
+
+func _format_progress_bar(ratio: float) -> String:
+	var segment_count := 10
+	var filled_count := mini(segment_count, maxi(0, int(floor(clampf(ratio, 0.0, 1.0) * float(segment_count)))))
+	if ratio > 0.0 and filled_count == 0:
+		filled_count = 1
+	return "[%s%s]" % [
+		_repeat_text("#", filled_count),
+		_repeat_text("-", segment_count - filled_count)
+	]
+
+
+func _repeat_text(text: String, count: int) -> String:
+	var parts: Array[String] = []
+	for _index in range(maxi(0, count)):
+		parts.append(text)
+	return "".join(parts)
 
 
 func format_build_prompt(

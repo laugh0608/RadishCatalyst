@@ -28,8 +28,8 @@ func format_success_result_log(result: Dictionary) -> String:
 	var title := String(feedback.get("title", "操作完成"))
 	var details: Array[String] = []
 	_append_log_detail(details, "状态", _compact_status(String(feedback.get("status", ""))))
-	_append_log_detail(details, "去向", _compact_destination(String(feedback.get("destination", ""))))
 	_append_log_detail(details, "下一步", _compact_next_step(String(feedback.get("next_step", ""))))
+	_append_log_detail(details, "去向", _compact_destination(String(feedback.get("destination", ""))))
 	if details.is_empty():
 		return title
 	return "%s；%s" % [title, "；".join(details)]
@@ -104,7 +104,10 @@ func _append_log_detail(details: Array[String], label: String, text: String) -> 
 
 
 func _compact_status(text: String) -> String:
-	return text.strip_edges().trim_suffix("。")
+	var compact := text.strip_edges().trim_suffix("。")
+	compact = compact.replace("，预计 ", " ")
+	compact = compact.replace(" 秒完成", " 秒")
+	return compact
 
 
 func _compact_destination(text: String) -> String:
@@ -125,13 +128,15 @@ func _compact_next_step(text: String) -> String:
 	var compact := text.strip_edges().trim_suffix("。")
 	if compact.is_empty():
 		return ""
+	if compact.find("等待设备完成") >= 0:
+		return "Q 设备面板查看进度"
 	var semicolon_index := compact.find("；")
 	if semicolon_index >= 0:
 		compact = compact.substr(0, semicolon_index)
 	var sentence_index := compact.find("。")
 	if sentence_index >= 0:
 		compact = compact.substr(0, sentence_index)
-	compact = compact.replace("按 Q 打开设备面板", "Q 看面板")
+	compact = compact.replace("按 Q 打开设备面板", "Q 设备面板")
 	return _shorten_text(compact, 36)
 
 

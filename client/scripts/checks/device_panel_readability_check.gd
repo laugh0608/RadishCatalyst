@@ -133,4 +133,25 @@ func _check_active_processing_panel_uses_running_recipe() -> void:
 	host._expect_text_contains(status, "进度：0 / 6 秒", "active panel shows progress")
 	host._expect_text_contains(status, "下一步：等待设备完成", "active panel shows wait step")
 	host._expect_text_contains(status, "完成后：基础零件已补足", "active panel shows completion followup")
+	var recipes := String(panel_texts.get("recipes", ""))
+	host._expect_text_contains(
+		recipes,
+		"1. 处理晶体矿物：加工中 0 / 6 秒",
+		"active panel recipe list shows progress only on running recipe"
+	)
+	host._expect_text_contains(
+		recipes,
+		"> 2. 组装反应器校准件：设备忙碌",
+		"active panel recipe list marks selected non-running recipe as busy"
+	)
+	host._expect_text_missing(
+		recipes,
+		"组装反应器校准件：加工中",
+		"active panel recipe list does not copy progress to inactive recipe"
+	)
+	host._expect_text_contains(
+		String(panel_texts.get("operations", "")),
+		"E 等待加工完成",
+		"active panel operation points to waiting"
+	)
 	reactor.free()

@@ -110,7 +110,12 @@ func _check_success_logs_share_interaction_reading() -> void:
 		"去向：基础零件 x4",
 		"processing start log destination"
 	)
-	host._expect_text_contains(started_log, "下一步：等待设备完成", "processing start log next step")
+	host._expect_text_contains(started_log, "下一步：Q 设备面板查看进度", "processing start log next step")
+	host._expect_equal(
+		started_log.find("下一步：") < started_log.find("去向："),
+		true,
+		"processing start log shows next step before destination"
+	)
 	host._expect_equal(started_log.length() <= 96, true, "processing start log stays short")
 
 	var reactor := PrototypeInteractable.new()
@@ -122,6 +127,7 @@ func _check_success_logs_share_interaction_reading() -> void:
 	var in_progress_prompt := formatter.format_processing_prompt(reactor, device_character, device_world)
 	host._expect_text_contains(in_progress_prompt, "配方：处理晶体矿物（1/2）", "processing prompt names active recipe")
 	host._expect_text_contains(in_progress_prompt, "状态：加工中：处理晶体矿物", "processing prompt active status")
+	host._expect_text_contains(in_progress_prompt, "进度：[", "processing prompt shows progress bar")
 	host._expect_text_contains(in_progress_prompt, "下一步：等待设备完成", "processing prompt wait step")
 
 	var completed_results := processing.advance_processing(6.0, device_character, device_world)

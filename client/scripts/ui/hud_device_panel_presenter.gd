@@ -94,9 +94,19 @@ func _format_device_recipe_list(
 
 	var rows: Array[String] = ["配方列表："]
 	var current_recipe_id := interactable.get_current_recipe_id()
+	var current_status := processing_system.get_recipe_status(current_recipe_id, character_state, world_state)
+	var active_recipe_id := String(current_status.get("active_recipe_id", ""))
 	for recipe_index in range(recipe_ids.size()):
 		var recipe_id := String(recipe_ids[recipe_index])
-		var status := processing_system.get_recipe_status(recipe_id, character_state, world_state)
+		var recipe_state := ""
+		if active_recipe_id.is_empty():
+			recipe_state = _format_device_recipe_state(
+				processing_system.get_recipe_status(recipe_id, character_state, world_state)
+			)
+		elif recipe_id == active_recipe_id:
+			recipe_state = _format_device_recipe_state(current_status)
+		else:
+			recipe_state = "设备忙碌"
 		var marker := "  "
 		if recipe_id == current_recipe_id:
 			marker = "> "
@@ -108,12 +118,15 @@ func _format_device_recipe_list(
 			recipe_index + 1,
 			_get_display_name(data_registry, recipe_id),
 			recommendation_tag,
-			_format_device_recipe_state(status)
+			recipe_state
 		])
 	return "\n".join(rows)
 
 
 func _format_device_recipe_state(status: Dictionary) -> String:
+	var progress := String(status.get("progress", ""))
+	if not progress.is_empty():
+		return "加工中 %s" % progress
 	if bool(status.get("can_process", false)):
 		return "可加工"
 	var missing_inputs: Array = status.get("missing_inputs", [])
@@ -165,7 +178,9 @@ func _format_next_step(status: Dictionary) -> String:
 
 func _format_device_operations(interactable: PrototypeInteractable, status: Dictionary) -> String:
 	var operations: Array[String] = []
-	if bool(status.get("can_process", false)):
+	if not String(status.get("progress", "")).is_empty():
+		operations.append("E 等待加工完成")
+	elif bool(status.get("can_process", false)):
 		operations.append("E 启动当前配方")
 	else:
 		operations.append("E 尝试当前配方")

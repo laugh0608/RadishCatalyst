@@ -489,6 +489,16 @@ func _check_status_panel_summary() -> void:
 	filter_craft_world.quest_state.active_quest_ids = ["quest.refine_selvedge_strip"]
 	var filter_craft_status_text := presenter.format_status_text(data_registry, filter_craft_world, status_character)
 	_expect_text_contains(filter_craft_status_text, "制造 锁相框架肋（污染过滤器） 0/1", "status shows filter craft source")
+	var processing_world := WorldState.create_default()
+	var processing_character := CharacterState.create_default()
+	var processing := ProcessingSystem.new(data_registry)
+	processing_world.quest_state.unlock_effect("recipe.process_crystal_ore")
+	processing_character.inventory.add_item("item.crystal_ore", 3)
+	processing.process_recipe("recipe.process_crystal_ore", processing_character, processing_world)
+	processing.advance_processing(2.0, processing_character, processing_world)
+	var processing_vitals_text := presenter.format_vitals_text(data_registry, processing_world, processing_character)
+	_expect_text_contains(processing_vitals_text, "进度：[", "vitals summary shows processing progress bar")
+	_expect_text_contains(processing_vitals_text, "Q 设备面板", "vitals summary points to device panel")
 func _check_region_presence_bounds() -> void:
 	var map := VerticalSliceMap.new()
 	_expect_equal(
