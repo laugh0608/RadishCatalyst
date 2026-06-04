@@ -30,13 +30,34 @@ func _check_opening_scene_layer() -> void:
 	var layer := map.get_node("OpeningSceneLayer") as Node2D
 	var base_deck := map.get_node("OpeningSceneLayer/BaseDeckFloor") as ColorRect
 	var core_pad := map.get_node("OpeningSceneLayer/BaseCorePad") as ColorRect
+	var core_marker := map.get_node("OpeningSceneLayer/BaseCoreObjectMarker") as ColorRect
 	var reactor_pad := map.get_node("OpeningSceneLayer/BaseReactorPad") as ColorRect
+	var reactor_marker := map.get_node("OpeningSceneLayer/BaseReactorObjectMarker") as ColorRect
 	var supply_pad := map.get_node("OpeningSceneLayer/BaseSupplyPad") as ColorRect
+	var supply_rail := map.get_node("OpeningSceneLayer/BaseSupplyObjectRail") as ColorRect
 	var exit_lane := map.get_node("OpeningSceneLayer/BaseExitLane") as ColorRect
+	var exit_threshold := map.get_node("OpeningSceneLayer/BaseExitThresholdLine") as ColorRect
 	var crystal_entry := map.get_node("OpeningSceneLayer/CrystalEntryGround") as ColorRect
+	var crystal_vein_track := map.get_node("OpeningSceneLayer/CrystalMainVeinTrack") as ColorRect
 	var crystal_scrap := map.get_node("OpeningSceneLayer/CrystalScrapPocket") as ColorRect
+	var crystal_salvage_pocket := map.get_node("OpeningSceneLayer/CrystalSalvageObjectPocket") as ColorRect
+	var anomaly_pocket := map.get_node("OpeningSceneLayer/CrystalAnomalyPocketMarker") as ColorRect
 	var pollution_safe := map.get_node("OpeningSceneLayer/PollutionSafeConstructionBelt") as ColorRect
+	var pollution_construction_band := map.get_node("OpeningSceneLayer/PollutionConstructionObjectBand") as ColorRect
+	var pollution_filter_marker := map.get_node("OpeningSceneLayer/PollutionFilterObjectMarker") as ColorRect
 	var pollution_danger := map.get_node("OpeningSceneLayer/PollutionDangerField") as ColorRect
+	var pollution_boundary := map.get_node("OpeningSceneLayer/PollutionDangerBoundaryLine") as ColorRect
+	var pollution_residue_pocket := map.get_node("OpeningSceneLayer/PollutionResidueObjectPocket") as ColorRect
+	var outpost_core := map.get_node("Interactables/OutpostCore") as PrototypeInteractable
+	var basic_reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
+	var supply_choice := map.get_node("Interactables/BaseSupplyChoiceConsole") as PrototypeInteractable
+	var crystal_cluster := map.get_node("Interactables/CrystalCluster") as PrototypeInteractable
+	var rich_crystal := map.get_node("Interactables/RichCrystalVeinNorth") as PrototypeInteractable
+	var field_wreckage := map.get_node("Interactables/FieldWreckageNorth") as PrototypeInteractable
+	var anomaly := map.get_node("Interactables/AnomalyCrystal") as PrototypeInteractable
+	var rough_ground := map.get_node("Interactables/RoughGroundNorth") as PrototypeInteractable
+	var filter_site := map.get_node("Interactables/PollutionFilterBuildSite") as PrototypeInteractable
+	var pollution_residue := map.get_node("Interactables/PollutionResidueDeep") as PrototypeInteractable
 	host._expect_equal(layer != null, true, "opening scene readability layer exists")
 	host._expect_equal(
 		base_deck.offset_left <= VerticalSliceMap.PLAY_BOUNDS_MIN.x + 24.0
@@ -50,9 +71,22 @@ func _check_opening_scene_layer() -> void:
 		"opening scene base pads read core to manufacturing to exit"
 	)
 	host._expect_equal(
+		_is_rect_covering_position(core_marker, outpost_core.position)
+			and _is_rect_covering_position(reactor_marker, basic_reactor.position)
+			and _is_rect_covering_position(supply_rail, supply_choice.position),
+		true,
+		"opening scene object markers align with base interactables"
+	)
+	host._expect_equal(
 		supply_pad.offset_top > reactor_pad.offset_top,
 		true,
 		"opening scene supply pad sits as a lower return lane"
+	)
+	host._expect_equal(
+		exit_threshold.offset_left >= VerticalSliceMap.CRYSTAL_GATE_RETURN_X
+			and exit_threshold.offset_right <= VerticalSliceMap.CRYSTAL_REGION_X,
+		true,
+		"opening scene exit threshold sits at the crystal route edge"
 	)
 	host._expect_equal(
 		crystal_entry.offset_left >= VerticalSliceMap.CRYSTAL_REGION_X
@@ -61,9 +95,21 @@ func _check_opening_scene_layer() -> void:
 		"opening scene crystal entry stays inside crystal region"
 	)
 	host._expect_equal(
+		_is_rect_covering_position(crystal_vein_track, crystal_cluster.position)
+			and _is_rect_covering_position(crystal_vein_track, rich_crystal.position),
+		true,
+		"opening scene crystal vein track covers the first resource route"
+	)
+	host._expect_equal(
 		crystal_scrap.offset_top > crystal_entry.offset_bottom,
 		true,
 		"opening scene crystal scrap pocket is visually separate from main mining lane"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(crystal_salvage_pocket, field_wreckage.position)
+			and _is_rect_covering_position(anomaly_pocket, anomaly.position),
+		true,
+		"opening scene salvage and anomaly pockets align with side objects"
 	)
 	host._expect_equal(
 		pollution_safe.offset_top < VerticalSliceMap.POLLUTION_DEEP_Y
@@ -71,7 +117,37 @@ func _check_opening_scene_layer() -> void:
 		true,
 		"opening scene pollution belt separates safe construction from danger field"
 	)
+	host._expect_equal(
+		_is_rect_covering_position(pollution_construction_band, rough_ground.position)
+			and _is_rect_covering_position(pollution_filter_marker, filter_site.position),
+		true,
+		"opening scene construction band aligns with clear and build objects"
+	)
+	host._expect_equal(
+		pollution_boundary.offset_top <= VerticalSliceMap.POLLUTION_DEEP_Y
+			and pollution_boundary.offset_bottom >= VerticalSliceMap.POLLUTION_DEEP_Y
+			and pollution_boundary.offset_left == VerticalSliceMap.POLLUTION_REGION_X,
+		true,
+		"opening scene danger boundary marks the pollution depth line"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(pollution_residue_pocket, pollution_residue.position)
+			and pollution_residue_pocket.offset_top > VerticalSliceMap.POLLUTION_DEEP_Y,
+		true,
+		"opening scene residue pocket stays inside the dangerous pollution field"
+	)
 	map.free()
+
+
+func _is_rect_covering_position(rect: ColorRect, position: Vector2) -> bool:
+	if rect == null:
+		return false
+	return (
+		rect.offset_left <= position.x
+		and rect.offset_right >= position.x
+		and rect.offset_top <= position.y
+		and rect.offset_bottom >= position.y
+	)
 
 
 func _check_general_interaction_prompts() -> void:
