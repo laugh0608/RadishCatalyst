@@ -9,6 +9,10 @@ const FOCUSED_SPRITE_SCALE := Vector2(1.22, 1.22)
 const FOCUSED_SPRITE_MODULATE := Color(1.16, 1.16, 1.16, 1)
 const DEFAULT_SPRITE_MODULATE := Color(1, 1, 1, 1)
 const FOCUSED_Z_INDEX := 18
+const BASIC_ENEMY_SIZE := Vector2(24.0, 24.0)
+const TREATMENT_ENEMY_SIZE := Vector2(28.0, 22.0)
+const POLLUTED_ENEMY_SIZE := Vector2(30.0, 26.0)
+const ELITE_ENEMY_SIZE := Vector2(36.0, 34.0)
 
 var health: float = 20.0
 var max_health: float = 20.0
@@ -41,6 +45,7 @@ func setup(enemy_display_name: String, enemy_max_health: float, category: String
 	if collision_shape != null:
 		collision_shape.disabled = false
 	if sprite != null:
+		_apply_sprite_size(_get_active_size())
 		sprite.color = _get_active_color(category)
 	_update_label()
 
@@ -123,6 +128,8 @@ func set_spawn_enabled(enabled: bool) -> void:
 
 
 func _get_active_color(category: String) -> Color:
+	if definition_id == "enemy.treatment_skitter":
+		return Color(0.88, 0.38, 0.24, 1)
 	match category:
 		"polluted":
 			return Color(0.78, 0.68, 0.22, 1)
@@ -132,3 +139,22 @@ func _get_active_color(category: String) -> Color:
 			return Color(0.38, 0.72, 0.82, 1)
 		_:
 			return Color(0.8, 0.313726, 0.215686, 1)
+
+
+func _get_active_size() -> Vector2:
+	if definition_id == "enemy.treatment_skitter":
+		return TREATMENT_ENEMY_SIZE
+	match enemy_category:
+		"polluted":
+			return POLLUTED_ENEMY_SIZE
+		"elite_node":
+			return ELITE_ENEMY_SIZE
+		_:
+			return BASIC_ENEMY_SIZE
+
+
+func _apply_sprite_size(sprite_size: Vector2) -> void:
+	if sprite == null:
+		return
+	sprite.position = -sprite_size * 0.5
+	sprite.size = sprite_size

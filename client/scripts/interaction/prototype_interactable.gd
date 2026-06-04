@@ -2,6 +2,16 @@ extends Area2D
 class_name PrototypeInteractable
 
 const DEFAULT_MARKER_COLOR := Color(0.862745, 0.737255, 0.266667, 1)
+const CRYSTAL_MARKER_COLOR := Color(0.34, 0.68, 0.96, 1)
+const RICH_CRYSTAL_MARKER_COLOR := Color(0.54, 0.82, 1.0, 1)
+const SALVAGE_MARKER_COLOR := Color(0.62, 0.66, 0.62, 1)
+const ANOMALY_MARKER_COLOR := Color(0.72, 0.42, 0.9, 1)
+const RESIDUE_MARKER_COLOR := Color(0.86, 0.74, 0.22, 1)
+const ROUGH_GROUND_MARKER_COLOR := Color(0.48, 0.42, 0.34, 1)
+const FOUNDATION_SITE_MARKER_COLOR := Color(0.42, 0.56, 0.48, 1)
+const REACTOR_MARKER_COLOR := Color(0.28, 0.78, 0.9, 1)
+const FILTER_MARKER_COLOR := Color(0.64, 0.78, 0.3, 1)
+const GATE_MARKER_COLOR := Color(0.72, 0.56, 0.86, 1)
 const RESTORED_OUTPOST_CORE_COLOR := Color(0.18, 0.86, 0.93, 1)
 const GATHERED_CRYSTAL_COLOR := Color(0.22, 0.42, 0.58, 1)
 const GATHERED_SALVAGE_COLOR := Color(0.48, 0.56, 0.58, 1)
@@ -82,6 +92,7 @@ func setup(display_name: String) -> void:
 		label.offset_left = label_offset.x
 		label.offset_top = label_offset.y
 		label.offset_right = label_offset.x + label_size.x
+	_apply_default_marker_visual()
 	_set_label_text(display_name)
 
 
@@ -190,8 +201,7 @@ func set_default_visual() -> void:
 	consumed = false
 	visible = true
 	monitoring = true
-	if marker != null:
-		marker.color = DEFAULT_MARKER_COLOR
+	_apply_default_marker_visual()
 	_set_label_text(display_name_text)
 
 
@@ -657,6 +667,56 @@ func set_built_visual(built_definition_id: String) -> void:
 		_set_label_text("")
 	else:
 		marker.color = DEFAULT_MARKER_COLOR
+
+
+func _apply_default_marker_visual() -> void:
+	if marker == null:
+		return
+	var visual := _get_default_marker_visual()
+	var marker_size: Vector2 = visual.get("size", Vector2(32.0, 32.0))
+	marker.position = -marker_size * 0.5
+	marker.size = marker_size
+	marker.color = visual.get("color", DEFAULT_MARKER_COLOR)
+
+
+func _get_default_marker_visual() -> Dictionary:
+	match definition_id:
+		"building.outpost_core":
+			return {"size": Vector2(42.0, 42.0), "color": Color(0.34, 0.46, 0.52, 1)}
+		"building.basic_reactor":
+			return {"size": Vector2(40.0, 30.0), "color": REACTOR_MARKER_COLOR}
+		"building.pollution_filter":
+			if interaction_type == "build":
+				return {"size": Vector2(44.0, 28.0), "color": FOUNDATION_SITE_MARKER_COLOR}
+			return {"size": Vector2(44.0, 34.0), "color": FILTER_MARKER_COLOR}
+		"building.foundation_t1":
+			return {"size": Vector2(34.0, 22.0), "color": FOUNDATION_SITE_MARKER_COLOR}
+		"map_object.crystal_cluster":
+			return {"size": Vector2(26.0, 30.0), "color": CRYSTAL_MARKER_COLOR}
+		"map_object.rich_crystal_vein":
+			return {"size": Vector2(34.0, 38.0), "color": RICH_CRYSTAL_MARKER_COLOR}
+		"map_object.field_wreckage":
+			return {"size": Vector2(34.0, 18.0), "color": SALVAGE_MARKER_COLOR}
+		"map_object.anomaly_crystal":
+			return {"size": Vector2(30.0, 34.0), "color": ANOMALY_MARKER_COLOR}
+		"map_object.anomaly_residue_patch":
+			return {"size": Vector2(24.0, 16.0), "color": ANOMALY_MARKER_COLOR}
+		"map_object.pollution_residue_patch":
+			return {"size": Vector2(30.0, 18.0), "color": RESIDUE_MARKER_COLOR}
+		"map_object.rough_ground":
+			return {"size": Vector2(38.0, 20.0), "color": ROUGH_GROUND_MARKER_COLOR}
+		"map_object.ruin_gate":
+			return {"size": Vector2(24.0, 44.0), "color": GATE_MARKER_COLOR}
+		"map_object.phase_relay_pad":
+			return {"size": Vector2(40.0, 24.0), "color": READY_PHASE_RELAY_PAD_COLOR}
+		_:
+			if definition_id.ends_with("_console"):
+				return {"size": Vector2(34.0, 24.0), "color": COMPLETED_FRONTLINE_ACTION_COLOR}
+			if interaction_type == "clear":
+				return {"size": Vector2(38.0, 20.0), "color": ROUGH_GROUND_MARKER_COLOR}
+			if interaction_type == "build":
+				return {"size": Vector2(34.0, 22.0), "color": FOUNDATION_SITE_MARKER_COLOR}
+	return {"size": Vector2(32.0, 32.0), "color": DEFAULT_MARKER_COLOR}
 
 
 func _set_label_text(text: String, min_lines: int = 1) -> void:

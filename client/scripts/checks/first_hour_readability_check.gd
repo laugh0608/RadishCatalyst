@@ -15,6 +15,7 @@ func run() -> void:
 	_check_general_interaction_prompts()
 	_check_interactable_focus_labels()
 	_check_enemy_focus_labels()
+	_check_core_object_visual_profiles()
 	_check_hud_map_runtime_labels()
 	_check_hud_runtime_layout_first_pass()
 	_check_core_loop_layout()
@@ -143,6 +144,38 @@ func _check_enemy_focus_labels() -> void:
 	host._expect_equal(enemy.label.visible, true, "first-hour nearest attack target label is visible")
 	host._expect_equal(enemy.sprite.scale, PrototypeEnemy.FOCUSED_SPRITE_SCALE, "first-hour nearest attack target is enlarged")
 	host._expect_equal(patrol.label.visible, false, "first-hour non-current enemy label remains hidden")
+	map.free()
+
+
+func _check_core_object_visual_profiles() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	host.root.add_child(map)
+	map.setup(host.data_registry)
+	var crystal := map.get_node("Interactables/CrystalCluster") as PrototypeInteractable
+	var rich_crystal := map.get_node("Interactables/RichCrystalVeinNorth") as PrototypeInteractable
+	var wreckage := map.get_node("Interactables/FieldWreckageNorth") as PrototypeInteractable
+	var residue := map.get_node("Interactables/PollutionResidue") as PrototypeInteractable
+	var rough_ground := map.get_node("Interactables/RoughGroundNorth") as PrototypeInteractable
+	var foundation_site := map.get_node("Interactables/FoundationSiteNorth") as PrototypeInteractable
+	var filter_site := map.get_node("Interactables/PollutionFilterBuildSite") as PrototypeInteractable
+	var reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
+	var ruin_gate := map.get_node("Interactables/RuinGate") as PrototypeInteractable
+	host._expect_equal(crystal.marker.size, Vector2(26.0, 30.0), "object visuals make crystal nodes tall resource markers")
+	host._expect_equal(rich_crystal.marker.size, Vector2(34.0, 38.0), "object visuals make rich crystal visibly larger")
+	host._expect_equal(wreckage.marker.size, Vector2(34.0, 18.0), "object visuals make wreckage a low salvage marker")
+	host._expect_equal(residue.marker.size, Vector2(30.0, 18.0), "object visuals make pollution residue a low hazard marker")
+	host._expect_equal(rough_ground.marker.size, Vector2(38.0, 20.0), "object visuals make rough ground a construction blocker marker")
+	host._expect_equal(foundation_site.marker.size, Vector2(34.0, 22.0), "object visuals make foundation sites compact build markers")
+	host._expect_equal(filter_site.marker.size, Vector2(44.0, 28.0), "object visuals make pollution filter build site wider than foundation")
+	host._expect_equal(reactor.marker.size, Vector2(40.0, 30.0), "object visuals make base reactor a device marker")
+	host._expect_equal(ruin_gate.marker.size, Vector2(24.0, 44.0), "object visuals make ruin gate a vertical exit marker")
+
+	var treatment_enemy := map.get_node("Enemies/TreatmentSkitter") as PrototypeEnemy
+	var polluted_enemy := map.get_node("Enemies/PollutedSkitter") as PrototypeEnemy
+	var elite_enemy := map.get_node("Enemies/EliteResidueNode") as PrototypeEnemy
+	host._expect_equal(treatment_enemy.sprite.size, PrototypeEnemy.TREATMENT_ENEMY_SIZE, "enemy visuals distinguish treatment low-pressure guards")
+	host._expect_equal(polluted_enemy.sprite.size, PrototypeEnemy.POLLUTED_ENEMY_SIZE, "enemy visuals distinguish polluted pressure enemies")
+	host._expect_equal(elite_enemy.sprite.size, PrototypeEnemy.ELITE_ENEMY_SIZE, "enemy visuals distinguish elite pressure node")
 	map.free()
 
 
