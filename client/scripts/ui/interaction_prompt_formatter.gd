@@ -157,12 +157,13 @@ func format_processing_prompt(
 ) -> String:
 	var recipe_id := interactable.get_current_recipe_id()
 	var status := processing_system.get_recipe_status(recipe_id, character_state, world_state)
+	var displayed_recipe_id := String(status.get("recipe_id", recipe_id))
 	var parts: Array[String] = ["设备：%s" % _get_display_name(interactable.definition_id)]
-	var recipe_line := "配方：%s" % _get_display_name(recipe_id)
+	var recipe_line := "配方：%s" % _get_display_name(displayed_recipe_id)
 	if interactable.get_recipe_count() > 1:
 		recipe_line = "%s（%d/%d）" % [
 			recipe_line,
-			interactable.get_recipe_position(),
+			_get_recipe_position(interactable, displayed_recipe_id),
 			interactable.get_recipe_count()
 		]
 	parts.append(recipe_line)
@@ -180,6 +181,9 @@ func format_processing_prompt(
 	var progress := String(status.get("progress", ""))
 	if not progress.is_empty():
 		status_line = "%s；%s" % [status_line, progress]
+		var processing_next_step := String(status.get("next_step", ""))
+		if not processing_next_step.is_empty():
+			status_line = "%s；下一步：%s" % [status_line, processing_next_step]
 	elif bool(status.get("can_process", false)):
 		status_line = "%s；%s 秒" % [status_line, String(status.get("duration", "0"))]
 	else:
@@ -199,13 +203,26 @@ func format_processing_prompt(
 
 func format_processing_log(recipe_id: String, character_state: CharacterState, world_state: WorldState) -> String:
 	var status := processing_system.get_recipe_status(recipe_id, character_state, world_state)
-	return "%s：%s 输入：%s；产出：%s；耗时：%s 秒。" % [
-		_get_display_name(recipe_id),
-		String(status.get("message", "")),
-		String(status.get("inputs", "无")),
-		String(status.get("outputs", "无")),
-		String(status.get("duration", "0"))
+	var displayed_recipe_id := String(status.get("recipe_id", recipe_id))
+	var parts: Array[String] = [
+		"%s：%s" % [_get_display_name(displayed_recipe_id), String(status.get("message", ""))],
+		"输入：%s" % String(status.get("inputs", "无")),
+		"产出：%s" % String(status.get("outputs", "无")),
+		"耗时：%s 秒" % String(status.get("duration", "0"))
 	]
+	var next_step := String(status.get("next_step", ""))
+	if not next_step.is_empty():
+		parts.append("下一步：%s" % next_step)
+	return "；".join(parts)
+
+
+func _get_recipe_position(interactable: PrototypeInteractable, recipe_id: String) -> int:
+	if interactable.recipe_ids.is_empty():
+		return interactable.get_recipe_position()
+	var index := interactable.recipe_ids.find(recipe_id)
+	if index < 0:
+		return interactable.get_recipe_position()
+	return index + 1
 
 
 func _get_processing_next_step(status: Dictionary) -> String:
@@ -221,7 +238,7 @@ func _get_processing_next_step(status: Dictionary) -> String:
 	if message.find("未解锁") >= 0:
 		return "先完成当前任务目标，解锁该配方后再启动加工。"
 	if message.find("加工中") >= 0:
-		return "等待当前进度完成，靠近设备查看进度。"
+		return "等待设备完成；靠近设备查看进度，按 Q 打开设备面板。"
 	return ""
 
 

@@ -44,7 +44,8 @@ func process_recipe(recipe_id: String, character_state: CharacterState, world_st
 		"processing_started": true,
 		"recipe_id": recipe_id,
 		"structure_id": structure_id,
-		"message": _format_processing_started_message(recipe, world_state)
+		"message": _format_processing_started_message(recipe, world_state),
+		"success_feedback": _format_processing_started_feedback(recipe, world_state)
 	}
 
 
@@ -80,7 +81,8 @@ func advance_processing(delta_seconds: float, character_state: CharacterState, w
 			"structure_id": String(structure_id),
 			"destination_text": _format_completion_destination(recipe),
 			"next_step_text": _get_completion_next_step(recipe_id, world_state),
-			"message": _format_completion_message(recipe, world_state)
+			"message": _format_completion_message(recipe, world_state),
+			"success_feedback": _format_processing_completion_feedback(recipe, world_state)
 		})
 
 	return completed_results
@@ -112,7 +114,21 @@ func get_recipe_status(recipe_id: String, character_state: CharacterState, world
 
 	var active_structure := _get_active_structure_for_building(String(recipe.get("required_building_id", "")), world_state)
 	if not active_structure.is_empty():
-		return _recipe_status(recipe, false, _format_in_progress_message(active_structure), missing_inputs, active_structure, required_structure, "", world_state)
+		var active_recipe_id := String(active_structure.get("active_recipe_id", ""))
+		var active_recipe := data_registry.get_definition(active_recipe_id)
+		if active_recipe.is_empty():
+			active_recipe = recipe
+		return _recipe_status(
+			active_recipe,
+			false,
+			_format_in_progress_message(active_structure),
+			[],
+			active_structure,
+			required_structure,
+			"",
+			world_state,
+			recipe_id
+		)
 
 	if not lock_message.is_empty():
 		return _recipe_status(recipe, false, lock_message, missing_inputs, {}, required_structure, "", world_state)
@@ -303,6 +319,17 @@ func _format_processing_started_message(recipe: Dictionary, world_state: WorldSt
 	return message
 
 
+func _format_processing_started_feedback(recipe: Dictionary, world_state: WorldState) -> Dictionary:
+	var recipe_id := String(recipe.get("id", ""))
+	return {
+		"title": "加工已启动：%s" % _get_display_name(recipe_id),
+		"status": "加工中，预计 %s 秒完成。" % _format_amount(_get_recipe_duration(recipe)),
+		"destination": _format_completion_destination(recipe),
+		"next_step": _get_processing_wait_next_step(),
+		"completion_next_step": _get_completion_next_step(recipe_id, world_state)
+	}
+
+
 func _format_completion_message(recipe: Dictionary, world_state: WorldState = null) -> String:
 	var recipe_id := String(recipe.get("id", ""))
 	var parts: Array[String] = ["加工完成：%s。" % _get_display_name(recipe_id)]
@@ -313,6 +340,16 @@ func _format_completion_message(recipe: Dictionary, world_state: WorldState = nu
 	if not next_step.is_empty():
 		parts.append("下一步：%s" % next_step)
 	return " ".join(parts)
+
+
+func _format_processing_completion_feedback(recipe: Dictionary, world_state: WorldState) -> Dictionary:
+	var recipe_id := String(recipe.get("id", ""))
+	return {
+		"title": "加工完成：%s" % _get_display_name(recipe_id),
+		"status": "已完成。",
+		"destination": _format_completion_destination(recipe),
+		"next_step": _get_completion_next_step(recipe_id, world_state)
+	}
 
 
 func _format_completion_destination(recipe: Dictionary) -> String:
@@ -452,6 +489,10 @@ func _format_in_progress_message(structure: Dictionary) -> String:
 		_format_amount(progress_seconds),
 		_format_amount(duration)
 	]
+
+
+func _get_processing_wait_next_step() -> String:
+	return "等待设备完成；靠近设备查看进度，按 Q 打开设备面板。"
 
 
 func _format_missing_input_message(recipe: Dictionary, missing_inputs: Array[String], inventory: InventoryState) -> String:
@@ -796,7 +837,8 @@ func _recipe_status(
 	active_structure: Dictionary = {},
 	required_structure: Dictionary = {},
 	supply_hint: String = "",
-	world_state: WorldState = null
+	world_state: WorldState = null,
+	requested_recipe_id: String = ""
 ) -> Dictionary:
 	var active_recipe_id := String(active_structure.get("active_recipe_id", ""))
 	var active_recipe := data_registry.get_definition(active_recipe_id)
@@ -811,15 +853,28 @@ func _recipe_status(
 		if duration > 0.0:
 			progress_ratio = clampf(progress_seconds / duration, 0.0, 1.0)
 
+	var recipe_id := String(recipe.get("id", ""))
+	var completion_next_step := _get_completion_next_step(recipe_id, world_state)
+	var next_step := completion_next_step
+	if not active_structure.is_empty():
+		next_step = _get_processing_wait_next_step()
+	if requested_recipe_id.is_empty():
+		requested_recipe_id = recipe_id
+
 	var result := {
 		"can_process": can_process,
 		"message": message,
+		"recipe_id": recipe_id,
+		"requested_recipe_id": requested_recipe_id,
+		"active_recipe_id": active_recipe_id,
 		"inputs": _format_refs(recipe.get("inputs", [])),
 		"outputs": _format_refs(recipe.get("outputs", [])),
 		"byproducts": _format_refs(recipe.get("byproducts", []), ""),
 		"missing_inputs": missing_inputs,
 		"supply_hint": supply_hint,
-		"next_step": _get_completion_next_step(String(recipe.get("id", "")), world_state),
+		"next_step": next_step,
+		"completion_next_step": completion_next_step,
+		"completion_destination": _format_completion_destination(recipe),
 		"duration": _format_amount(duration),
 		"progress": progress,
 		"progress_ratio": progress_ratio

@@ -547,7 +547,7 @@ func _apply_processing_progress(delta: float) -> bool:
 	var completed_results := processing_system.advance_processing(delta, character_state, world_state)
 	for result in completed_results:
 		var recipe_id := String(result.get("completed_recipe_id", ""))
-		var log_messages: Array[String] = [String(result.get("message", ""))]
+		var log_messages: Array[String] = [hud_log_presenter.format_result_log(result)]
 		_append_quest_runtime_result(
 			log_messages,
 			quest_runtime.advance_for_interaction(

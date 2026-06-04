@@ -14,10 +14,11 @@ func format_device_panel_texts(
 
 	var current_recipe_id := interactable.get_current_recipe_id()
 	var status := processing_system.get_recipe_status(current_recipe_id, character_state, world_state)
+	var displayed_recipe_id := String(status.get("recipe_id", current_recipe_id))
 	var recommended_recipe_id := processing_system.get_recommended_recipe_id(interactable, character_state, world_state)
 	return {
 		"title": "设备面板：%s" % _get_display_name(data_registry, interactable.definition_id),
-		"status": _format_device_status(data_registry, current_recipe_id, status, recommended_recipe_id),
+		"status": _format_device_status(data_registry, displayed_recipe_id, status, recommended_recipe_id),
 		"recipes": _format_device_recipe_list(
 			data_registry,
 			processing_system,
@@ -62,6 +63,9 @@ func _format_device_status(
 	var next_step := _format_next_step(status)
 	if not next_step.is_empty():
 		parts.append("下一步：%s" % next_step)
+	var completion_next_step := String(status.get("completion_next_step", ""))
+	if not progress.is_empty() and not completion_next_step.is_empty():
+		parts.append("完成后：%s" % completion_next_step)
 	var last_completion := String(status.get("last_completion", ""))
 	if not last_completion.is_empty():
 		parts.append(last_completion)

@@ -41,7 +41,12 @@ func build_structure(
 		site_instance_id
 	)
 
-	return _success("建造完成：%s。%s" % [_get_display_name(building_id), _get_build_followup(building_id, world_state)], building_id)
+	var followup := _get_build_followup(building_id, world_state)
+	return _success(
+		"建造完成：%s。%s" % [_get_display_name(building_id), followup],
+		building_id,
+		followup
+	)
 
 
 func get_build_status(
@@ -167,6 +172,16 @@ func _get_build_followup(building_id: String, world_state: WorldState) -> String
 	return ""
 
 
+func _get_build_destination(building_id: String) -> String:
+	match building_id:
+		"building.foundation_t1":
+			return "建造结果已写入处理点地基状态。"
+		"building.pollution_filter":
+			return "污染过滤器已加入处理点设备面板。"
+		_:
+			return "建造结果已写入基地结构状态。"
+
+
 func _format_refs(refs: Array, empty_text: String = "无") -> String:
 	var parts: Array[String] = []
 	for ref in refs:
@@ -215,11 +230,17 @@ func _format_amount(amount: float) -> String:
 	return "%.1f" % amount
 
 
-func _success(message: String, building_id: String) -> Dictionary:
+func _success(message: String, building_id: String, next_step: String = "") -> Dictionary:
 	return {
 		"success": true,
 		"message": message,
-		"built_definition_id": building_id
+		"built_definition_id": building_id,
+		"success_feedback": {
+			"title": "建造完成：%s" % _get_display_name(building_id),
+			"status": "已建成。",
+			"destination": _get_build_destination(building_id),
+			"next_step": next_step
+		}
 	}
 
 

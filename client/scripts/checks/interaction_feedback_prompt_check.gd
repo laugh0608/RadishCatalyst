@@ -10,6 +10,7 @@ func _init(check_host) -> void:
 func run() -> void:
 	_check_build_prompts()
 	_check_processing_missing_prompt()
+	_check_success_logs_share_interaction_reading()
 
 
 func _check_build_prompts() -> void:
@@ -89,6 +90,73 @@ func _check_processing_missing_prompt() -> void:
 	host._expect_text_contains(missing_prompt, "下一步：", "processing prompt shows missing input next step")
 	host._expect_text_missing(missing_prompt, "E 启动加工", "processing prompt hides process action when blocked")
 	reactor.free()
+
+
+func _check_success_logs_share_interaction_reading() -> void:
+	var formatter := _create_formatter()
+	var log_presenter := HudLogPresenter.new(host.data_registry)
+	var processing := ProcessingSystem.new(host.data_registry)
+	var device_world := WorldState.create_default()
+	var device_character := CharacterState.create_default()
+	device_world.quest_state.unlock_effect("recipe.process_crystal_ore")
+	device_character.inventory.add_item("item.crystal_ore", 3)
+
+	var started := processing.process_recipe("recipe.process_crystal_ore", device_character, device_world)
+	var started_log := log_presenter.format_result_log(started)
+	host._expect_text_contains(started_log, "加工已启动：处理晶体矿物", "processing start log title")
+	host._expect_text_contains(started_log, "状态：加工中", "processing start log status")
+	host._expect_text_contains(
+		started_log,
+		"完成去向：产物已放入背包：基础零件 x4",
+		"processing start log destination"
+	)
+	host._expect_text_contains(started_log, "下一步：等待设备完成", "processing start log next step")
+
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.process_crystal_ore"
+	reactor.set_recipe_cycle(["recipe.process_crystal_ore", "recipe.reactor_calibrator"])
+	reactor.select_recipe("recipe.reactor_calibrator")
+	var in_progress_prompt := formatter.format_processing_prompt(reactor, device_character, device_world)
+	host._expect_text_contains(in_progress_prompt, "配方：处理晶体矿物（1/2）", "processing prompt names active recipe")
+	host._expect_text_contains(in_progress_prompt, "状态：加工中：处理晶体矿物", "processing prompt active status")
+	host._expect_text_contains(in_progress_prompt, "下一步：等待设备完成", "processing prompt wait step")
+
+	var completed_results := processing.advance_processing(6.0, device_character, device_world)
+	host._expect_equal(completed_results.size(), 1, "processing completion emits one result")
+	var completed_log := log_presenter.format_result_log(completed_results[0])
+	host._expect_text_contains(completed_log, "加工完成：处理晶体矿物", "processing completion log title")
+	host._expect_text_contains(completed_log, "完成去向：产物已放入背包：基础零件 x4", "processing completion destination")
+	host._expect_text_contains(completed_log, "下一步：基础零件已补足", "processing completion next step")
+	reactor.free()
+
+	var build_system := BuildSystem.new(host.data_registry)
+	var build_world := WorldState.create_default()
+	var build_character := CharacterState.create_default()
+	build_world.ensure_map_object(
+		"map_object_instance.rough_ground_north",
+		"map_object.rough_ground",
+		"region.pollution_edge"
+	)
+	build_world.set_map_object_flag("map_object_instance.rough_ground_north", "is_cleared", true)
+	build_character.inventory.add_item("item.foundation_material", 1)
+	var build_result := build_system.build_structure(
+		"map_object_instance.foundation_site_north",
+		"building.foundation_t1",
+		build_character,
+		build_world,
+		"map_object_instance.rough_ground_north"
+	)
+	var build_log := log_presenter.format_result_log(build_result)
+	host._expect_text_contains(build_log, "建造完成：基础地基", "build completion log title")
+	host._expect_text_contains(build_log, "状态：已建成", "build completion log status")
+	host._expect_text_contains(
+		build_log,
+		"完成去向：建造结果已写入处理点地基状态",
+		"build completion log destination"
+	)
+	host._expect_text_contains(build_log, "下一步：基础地基：1 / 2", "build completion log next step")
 
 
 func _create_formatter() -> InteractionPromptFormatter:

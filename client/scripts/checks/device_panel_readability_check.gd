@@ -10,6 +10,7 @@ func _init(check_host) -> void:
 func run() -> void:
 	_check_basic_reactor_panel_hierarchy()
 	_check_pollution_filter_panel_hierarchy()
+	_check_active_processing_panel_uses_running_recipe()
 
 
 func _check_basic_reactor_panel_hierarchy() -> void:
@@ -100,3 +101,36 @@ func _check_pollution_filter_panel_hierarchy() -> void:
 	)
 	host._expect_text_contains(status, "下一步：抗污染药剂已准备", "pollution filter panel shows field next step")
 	filter.free()
+
+
+func _check_active_processing_panel_uses_running_recipe() -> void:
+	var processing := ProcessingSystem.new(host.data_registry)
+	var presenter := HudDevicePanelPresenter.new()
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.process_crystal_ore"
+	reactor.set_recipe_cycle(["recipe.process_crystal_ore", "recipe.reactor_calibrator"])
+
+	var world := WorldState.create_default()
+	world.quest_state.unlock_effect("recipe.process_crystal_ore")
+	var character := CharacterState.create_default()
+	character.inventory.add_item("item.crystal_ore", 3)
+	var start_result := processing.process_recipe("recipe.process_crystal_ore", character, world)
+	host._expect_equal(bool(start_result.get("success", false)), true, "reactor starts active processing")
+	reactor.select_recipe("recipe.reactor_calibrator")
+
+	var panel_texts := presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		reactor,
+		character,
+		world
+	)
+	var status := String(panel_texts.get("status", ""))
+	host._expect_text_contains(status, "设备状态：加工中", "active panel shows device busy state")
+	host._expect_text_contains(status, "当前配方：处理晶体矿物", "active panel keeps running recipe")
+	host._expect_text_contains(status, "进度：0 / 6 秒", "active panel shows progress")
+	host._expect_text_contains(status, "下一步：等待设备完成", "active panel shows wait step")
+	host._expect_text_contains(status, "完成后：基础零件已补足", "active panel shows completion followup")
+	reactor.free()

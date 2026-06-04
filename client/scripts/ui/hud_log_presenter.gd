@@ -16,8 +16,23 @@ func format_startup_log() -> String:
 
 func format_result_log(result: Dictionary) -> String:
 	if bool(result.get("success", false)):
-		return String(result.get("message", ""))
+		return format_success_result_log(result)
 	return format_failure_result_log(result)
+
+
+func format_success_result_log(result: Dictionary) -> String:
+	var feedback = result.get("success_feedback", {})
+	if not feedback is Dictionary or feedback.is_empty():
+		return String(result.get("message", ""))
+
+	var title := String(feedback.get("title", "操作完成"))
+	var details: Array[String] = []
+	_append_log_detail(details, "状态", String(feedback.get("status", "")))
+	_append_log_detail(details, "完成去向", String(feedback.get("destination", "")))
+	_append_log_detail(details, "下一步", String(feedback.get("next_step", "")))
+	if details.is_empty():
+		return title
+	return "%s；%s" % [title, "；".join(details)]
 
 
 func format_failure_result_log(result: Dictionary) -> String:
@@ -80,6 +95,12 @@ func join_messages(messages: Array[String]) -> String:
 			continue
 		clean_messages.append(message)
 	return " ".join(clean_messages)
+
+
+func _append_log_detail(details: Array[String], label: String, text: String) -> void:
+	if text.strip_edges().is_empty():
+		return
+	details.append("%s：%s" % [label, text])
 
 
 func _format_slot_name(slot_id: String) -> String:
