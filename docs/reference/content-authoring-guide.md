@@ -177,6 +177,8 @@
 
 - `VerticalSliceMap._get_recipes_for_building()` 会按 `required_building_id` 把配方挂到这个设备上。
 - 设备面板、提示、保存中的运行时状态也要能识别这台设备。
+- 设备同一时间只显示一条运行配方进度；配方列表里非运行配方应显示设备忙碌，不要复制当前进度。
+- 加工中提示要同步覆盖 HUD 交互提示、基地摘要、日志短条和 `Q` 设备面板入口。
 
 ### 新增区域或扩地图边界
 
@@ -284,6 +286,8 @@ pwsh ./scripts/check-client-scenes.ps1
 pwsh ./scripts/check-text-files.ps1
 git diff --check
 ```
+
+若改了设备面板、HUD 短条、交互提示或加工进度读法，应补对应 presenter / formatter 检查，再执行 `check-client` 聚合入口。
 
 ### 改了任务链、运行时系统、存档或内容闭环
 
