@@ -601,52 +601,52 @@ autowrap_mode = 3
 
 [node name="DevicePanel" type="ColorRect" parent="."]
 visible = false
-offset_left = 1840.0
-offset_top = 336.0
+offset_left = 1780.0
+offset_top = 276.0
 offset_right = 2480.0
-offset_bottom = 1064.0
+offset_bottom = 1104.0
 color = Color(0.0352941, 0.054902, 0.0588235, 0.94)
 clip_contents = true
 
 [node name="DeviceTitleLabel" type="Label" parent="DevicePanel"]
 offset_left = 22.0
 offset_top = 18.0
-offset_right = 398.0
+offset_right = 520.0
 offset_bottom = 50.0
 text = "设备面板"
 label_settings = SubResource("LabelSettings_prompt")
 autowrap_mode = 3
 
 [node name="DeviceCloseButton" type="Button" parent="DevicePanel"]
-offset_left = 424.0
+offset_left = 560.0
 offset_top = 18.0
-offset_right = 506.0
+offset_right = 642.0
 offset_bottom = 50.0
 text = "关闭"
 
 [node name="DeviceStatusLabel" type="Label" parent="DevicePanel"]
 offset_left = 22.0
 offset_top = 66.0
-offset_right = 506.0
-offset_bottom = 330.0
+offset_right = 642.0
+offset_bottom = 470.0
 text = ""
 label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3
 
 [node name="DeviceRecipeLabel" type="Label" parent="DevicePanel"]
 offset_left = 22.0
-offset_top = 344.0
-offset_right = 506.0
-offset_bottom = 622.0
+offset_top = 488.0
+offset_right = 642.0
+offset_bottom = 746.0
 text = ""
 label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3
 
 [node name="DeviceOperationLabel" type="Label" parent="DevicePanel"]
 offset_left = 22.0
-offset_top = 636.0
-offset_right = 506.0
-offset_bottom = 674.0
+offset_top = 764.0
+offset_right = 642.0
+offset_bottom = 806.0
 text = ""
 label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3

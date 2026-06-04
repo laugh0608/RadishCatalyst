@@ -37,35 +37,40 @@ func _format_device_status(
 	recommended_recipe_id: String
 ) -> String:
 	var parts: Array[String] = [
-		"当前配方：%s" % _get_display_name(data_registry, recipe_id),
-		"状态：%s" % String(status.get("message", "")),
-		"输入：%s" % String(status.get("inputs", "无")),
-		"产出：%s" % String(status.get("outputs", "无"))
+		"设备状态：%s" % _format_device_state(status),
+		"当前配方：%s" % _get_display_name(data_registry, recipe_id)
 	]
 	var purpose_hint := RecipePurposeHints.format_recipe_goal_hint(recipe_id)
 	if not purpose_hint.is_empty():
 		parts.append("用途：%s" % purpose_hint)
 	if not recommended_recipe_id.is_empty():
 		parts.append(_format_recommended_recipe_status(data_registry, recipe_id, recommended_recipe_id))
-	var supply_hint := String(status.get("supply_hint", ""))
-	if not supply_hint.is_empty():
-		parts.append("补给：%s" % supply_hint)
+	parts.append("配方状态：%s" % String(status.get("message", "")))
+	parts.append("输入：%s" % String(status.get("inputs", "无")))
+	parts.append("产出：%s" % String(status.get("outputs", "无")))
 	var byproducts := String(status.get("byproducts", ""))
 	if not byproducts.is_empty():
 		parts.append("副产：%s" % byproducts)
+	parts.append("完成去向：%s" % _format_completion_destination(status))
+	var supply_hint := String(status.get("supply_hint", ""))
+	if not supply_hint.is_empty():
+		parts.append("缺料去向：%s" % supply_hint)
 	parts.append("耗时：%s 秒" % String(status.get("duration", "0")))
 	var progress := String(status.get("progress", ""))
 	if not progress.is_empty():
 		parts.append("进度：%s" % progress)
+	var next_step := _format_next_step(status)
+	if not next_step.is_empty():
+		parts.append("下一步：%s" % next_step)
 	var last_completion := String(status.get("last_completion", ""))
 	if not last_completion.is_empty():
 		parts.append(last_completion)
 	var last_destination := String(status.get("last_destination", ""))
 	if not last_destination.is_empty():
-		parts.append("入库：%s" % last_destination)
+		parts.append("最近入库：%s" % last_destination)
 	var last_next_step := String(status.get("last_next_step", ""))
 	if not last_next_step.is_empty():
-		parts.append("下一步：%s" % last_next_step)
+		parts.append("最近完成建议：%s" % last_next_step)
 	return "\n".join(parts)
 
 
@@ -111,6 +116,47 @@ func _format_device_recipe_state(status: Dictionary) -> String:
 	if not missing_inputs.is_empty():
 		return "缺 %s" % "，".join(missing_inputs)
 	return String(status.get("message", "不可加工")).trim_suffix("。")
+
+
+func _format_device_state(status: Dictionary) -> String:
+	var message := String(status.get("message", ""))
+	if not String(status.get("progress", "")).is_empty():
+		return "加工中"
+	if bool(status.get("can_process", false)):
+		return "可启动"
+	var missing_inputs: Array = status.get("missing_inputs", [])
+	if not missing_inputs.is_empty():
+		return "原料不足"
+	if message.contains("尚未解锁"):
+		return "配方未解锁"
+	if message.contains("需要先建造"):
+		return "设备未就绪"
+	if message.contains("加工中"):
+		return "加工中"
+	return "不可加工"
+
+
+func _format_completion_destination(status: Dictionary) -> String:
+	var parts: Array[String] = []
+	var outputs := String(status.get("outputs", ""))
+	if not outputs.is_empty() and outputs != "无":
+		parts.append("产物入背包：%s" % outputs)
+	var byproducts := String(status.get("byproducts", ""))
+	if not byproducts.is_empty():
+		parts.append("副产入背包：%s" % byproducts)
+	if parts.is_empty():
+		return "本次无新增产物"
+	return "；".join(parts)
+
+
+func _format_next_step(status: Dictionary) -> String:
+	var supply_hint := String(status.get("supply_hint", ""))
+	if not supply_hint.is_empty():
+		return supply_hint
+	var last_next_step := String(status.get("last_next_step", ""))
+	if not last_next_step.is_empty():
+		return last_next_step
+	return String(status.get("next_step", ""))
 
 
 func _format_device_operations(interactable: PrototypeInteractable, status: Dictionary) -> String:

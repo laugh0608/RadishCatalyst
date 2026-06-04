@@ -819,6 +819,7 @@ func _recipe_status(
 		"byproducts": _format_refs(recipe.get("byproducts", []), ""),
 		"missing_inputs": missing_inputs,
 		"supply_hint": supply_hint,
+		"next_step": _get_completion_next_step(String(recipe.get("id", "")), world_state),
 		"duration": _format_amount(duration),
 		"progress": progress,
 		"progress_ratio": progress_ratio
