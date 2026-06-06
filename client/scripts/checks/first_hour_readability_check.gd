@@ -45,6 +45,8 @@ func _check_opening_scene_layer() -> void:
 	var anomaly_pocket := map.get_node("OpeningSceneLayer/CrystalAnomalyPocketMarker") as ColorRect
 	var pollution_safe := map.get_node("OpeningSceneLayer/PollutionSafeConstructionBelt") as ColorRect
 	var pollution_construction_band := map.get_node("OpeningSceneLayer/PollutionConstructionObjectBand") as ColorRect
+	var foundation_north_marker := map.get_node("OpeningSceneLayer/PollutionFoundationNorthMarker") as ColorRect
+	var foundation_south_marker := map.get_node("OpeningSceneLayer/PollutionFoundationSouthMarker") as ColorRect
 	var pollution_filter_marker := map.get_node("OpeningSceneLayer/PollutionFilterObjectMarker") as ColorRect
 	var pollution_danger := map.get_node("OpeningSceneLayer/PollutionDangerField") as ColorRect
 	var pollution_boundary := map.get_node("OpeningSceneLayer/PollutionDangerBoundaryLine") as ColorRect
@@ -57,6 +59,9 @@ func _check_opening_scene_layer() -> void:
 	var field_wreckage := map.get_node("Interactables/FieldWreckageNorth") as PrototypeInteractable
 	var anomaly := map.get_node("Interactables/AnomalyCrystal") as PrototypeInteractable
 	var rough_ground := map.get_node("Interactables/RoughGroundNorth") as PrototypeInteractable
+	var rough_ground_south := map.get_node("Interactables/RoughGroundSouth") as PrototypeInteractable
+	var foundation_site := map.get_node("Interactables/FoundationSiteNorth") as PrototypeInteractable
+	var foundation_site_south := map.get_node("Interactables/FoundationSiteSouth") as PrototypeInteractable
 	var filter_site := map.get_node("Interactables/PollutionFilterBuildSite") as PrototypeInteractable
 	var pollution_residue := map.get_node("Interactables/PollutionResidueDeep") as PrototypeInteractable
 	host._expect_equal(layer != null, true, "opening scene readability layer exists")
@@ -120,9 +125,18 @@ func _check_opening_scene_layer() -> void:
 	)
 	host._expect_equal(
 		_is_rect_covering_position(pollution_construction_band, rough_ground.position)
+			and _is_rect_covering_position(pollution_construction_band, rough_ground_south.position)
 			and _is_rect_covering_position(pollution_filter_marker, filter_site.position),
 		true,
 		"opening scene construction band aligns with clear and build objects"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(foundation_north_marker, foundation_site.position)
+			and _is_rect_covering_position(foundation_south_marker, foundation_site_south.position)
+			and foundation_north_marker.offset_right <= pollution_filter_marker.offset_left + 4.0
+			and foundation_south_marker.offset_left >= pollution_filter_marker.offset_right - 4.0,
+		true,
+		"opening scene foundation markers flank the pollution filter build marker"
 	)
 	host._expect_equal(
 		pollution_boundary.offset_top <= VerticalSliceMap.POLLUTION_DEEP_Y
@@ -278,6 +292,8 @@ func _check_object_feedback_states() -> void:
 	var residue := map.get_node("Interactables/PollutionResidue") as PrototypeInteractable
 	var rough_ground := map.get_node("Interactables/RoughGroundNorth") as PrototypeInteractable
 	var foundation_site := map.get_node("Interactables/FoundationSiteNorth") as PrototypeInteractable
+	var filter_site := map.get_node("Interactables/PollutionFilterBuildSite") as PrototypeInteractable
+	var filter_device := map.get_node("Interactables/PollutionFilter") as PrototypeInteractable
 
 	world.ensure_map_object(crystal.instance_id, crystal.definition_id, "region.crystal_vein_field")
 	world.set_map_object_flag(crystal.instance_id, "is_gathered", true)
@@ -292,6 +308,15 @@ func _check_object_feedback_states() -> void:
 	world.ensure_map_object(foundation_site.instance_id, foundation_site.definition_id, "region.pollution_edge")
 	world.set_map_object_flag(foundation_site.instance_id, "is_built", true)
 	world.map_objects[foundation_site.instance_id]["built_definition_id"] = "building.foundation_t1"
+	world.ensure_map_object(filter_site.instance_id, filter_site.definition_id, "region.pollution_edge")
+	world.set_map_object_flag(filter_site.instance_id, "is_built", true)
+	world.map_objects[filter_site.instance_id]["built_definition_id"] = "building.pollution_filter"
+	world.add_base_structure(
+		"structure.pollution_filter_build_site",
+		"building.pollution_filter",
+		"region.pollution_edge",
+		filter_site.instance_id
+	)
 	map.refresh_world_interactables(world)
 
 	host._expect_equal(crystal.marker.color, PrototypeInteractable.GATHERED_CRYSTAL_COLOR, "object feedback darkens gathered crystal")
@@ -306,6 +331,12 @@ func _check_object_feedback_states() -> void:
 	host._expect_text_contains(rough_ground.label.text, "已清理", "object feedback labels cleared rough ground")
 	host._expect_equal(foundation_site.marker.color, PrototypeInteractable.BUILT_FOUNDATION_COLOR, "object feedback recolors built foundation")
 	host._expect_text_contains(foundation_site.label.text, "基础地基", "object feedback labels built foundation")
+	host._expect_text_contains(foundation_site.label.text, "已铺设", "object feedback labels foundation built state")
+	host._expect_equal(filter_site.marker.color, PrototypeInteractable.BUILT_FILTER_COLOR, "object feedback marks completed filter build site")
+	host._expect_equal(filter_device.visible, true, "object feedback shows pollution filter device after build")
+	host._expect_equal(filter_device.monitoring, true, "object feedback enables pollution filter device after build")
+	host._expect_equal(filter_device.marker.size, Vector2(48.0, 36.0), "object feedback makes online filter larger than build site")
+	host._expect_text_contains(filter_device.label.text, "已上线", "object feedback labels online pollution filter")
 
 	var wreckage_prompt := formatter.format_general_interaction_prompt(wreckage, character, world)
 	host._expect_text_contains(wreckage_prompt, "状态：已回收", "object feedback prompt explains salvaged state")

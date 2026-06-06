@@ -364,6 +364,20 @@ offset_right = 356.0
 offset_bottom = -92.0
 color = Color(0.502, 0.471, 0.247, 1)
 
+[node name="PollutionFoundationNorthMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 246.0
+offset_top = -124.0
+offset_right = 280.0
+offset_bottom = -96.0
+color = Color(0.42, 0.56, 0.48, 1)
+
+[node name="PollutionFoundationSouthMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 322.0
+offset_top = -124.0
+offset_right = 356.0
+offset_bottom = -96.0
+color = Color(0.42, 0.56, 0.48, 1)
+
 [node name="PollutionFilterObjectMarker" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = 276.0
 offset_top = -124.0

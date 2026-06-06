@@ -661,12 +661,25 @@ func set_built_visual(built_definition_id: String) -> void:
 	monitoring = false
 	if built_definition_id == "building.foundation_t1":
 		marker.color = BUILT_FOUNDATION_COLOR
-		_set_label_text("基础地基")
+		_set_label_text("基础地基\n已铺设", 2)
 	elif built_definition_id == "building.pollution_filter":
 		marker.color = BUILT_FILTER_COLOR
 		_set_label_text("")
 	else:
 		marker.color = DEFAULT_MARKER_COLOR
+
+
+func set_operational_pollution_filter_visual() -> void:
+	_ensure_visual_nodes()
+	consumed = false
+	visible = true
+	monitoring = true
+	if marker != null:
+		var marker_size := Vector2(48.0, 36.0)
+		marker.position = -marker_size * 0.5
+		marker.size = marker_size
+		marker.color = FILTER_MARKER_COLOR
+	_set_label_text("%s\n已上线" % display_name_text, 2)
 
 
 func _apply_default_marker_visual() -> void:

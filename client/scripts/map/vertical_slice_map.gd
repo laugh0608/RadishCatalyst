@@ -480,6 +480,8 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				world_state.quest_state.has_active_quest("quest.calibrate_phase_well_stability_window")
 				or world_state.quest_state.has_completed_quest("quest.calibrate_phase_well_stability_window")
 			)
+		if should_enable and interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter":
+			interactable.set_operational_pollution_filter_visual()
 		interactable.set_interaction_enabled(should_enable)
 		if current_interactable == interactable and not should_enable:
 			current_interactable = null
