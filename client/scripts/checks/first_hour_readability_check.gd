@@ -51,6 +51,9 @@ func _check_opening_scene_layer() -> void:
 	var pollution_danger := map.get_node("OpeningSceneLayer/PollutionDangerField") as ColorRect
 	var pollution_boundary := map.get_node("OpeningSceneLayer/PollutionDangerBoundaryLine") as ColorRect
 	var pollution_residue_pocket := map.get_node("OpeningSceneLayer/PollutionResidueObjectPocket") as ColorRect
+	var pollution_entry_residue_marker := map.get_node("OpeningSceneLayer/PollutionEntryResidueMarker") as ColorRect
+	var pollution_entry_pressure_marker := map.get_node("OpeningSceneLayer/PollutionEntryPressureMarker") as ColorRect
+	var pollution_gate_pressure_marker := map.get_node("OpeningSceneLayer/PollutionGatePressureMarker") as ColorRect
 	var outpost_core := map.get_node("Interactables/OutpostCore") as PrototypeInteractable
 	var basic_reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
 	var supply_choice := map.get_node("Interactables/BaseSupplyChoiceConsole") as PrototypeInteractable
@@ -63,7 +66,10 @@ func _check_opening_scene_layer() -> void:
 	var foundation_site := map.get_node("Interactables/FoundationSiteNorth") as PrototypeInteractable
 	var foundation_site_south := map.get_node("Interactables/FoundationSiteSouth") as PrototypeInteractable
 	var filter_site := map.get_node("Interactables/PollutionFilterBuildSite") as PrototypeInteractable
+	var entry_residue := map.get_node("Interactables/PollutionResidue") as PrototypeInteractable
 	var pollution_residue := map.get_node("Interactables/PollutionResidueDeep") as PrototypeInteractable
+	var polluted_enemy := map.get_node("Enemies/PollutedSkitter") as PrototypeEnemy
+	var gate_pressure_enemy := map.get_node("Enemies/PollutedSkitterGatePressure") as PrototypeEnemy
 	host._expect_equal(layer != null, true, "opening scene readability layer exists")
 	host._expect_equal(
 		base_deck.offset_left <= VerticalSliceMap.PLAY_BOUNDS_MIN.x + 24.0
@@ -150,6 +156,22 @@ func _check_opening_scene_layer() -> void:
 			and pollution_residue_pocket.offset_top > VerticalSliceMap.POLLUTION_DEEP_Y,
 		true,
 		"opening scene residue pocket stays inside the dangerous pollution field"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(pollution_entry_residue_marker, entry_residue.position)
+			and _is_rect_covering_position(pollution_entry_pressure_marker, polluted_enemy.position)
+			and _is_rect_covering_position(pollution_gate_pressure_marker, gate_pressure_enemy.position),
+		true,
+		"opening scene danger markers align with entry residue and pressure enemies"
+	)
+	host._expect_equal(
+		pollution_entry_residue_marker.offset_top > pollution_boundary.offset_bottom
+			and pollution_entry_pressure_marker.offset_top > pollution_boundary.offset_bottom
+			and pollution_gate_pressure_marker.offset_top > pollution_boundary.offset_bottom
+			and pollution_entry_residue_marker.offset_left < pollution_entry_pressure_marker.offset_left
+			and pollution_entry_pressure_marker.offset_left < pollution_gate_pressure_marker.offset_left,
+		true,
+		"opening scene danger markers step from residue to first pressure to gate pressure"
 	)
 	map.free()
 
