@@ -138,12 +138,14 @@
 - 特殊 inspect 对象逻辑
 - 敌人阶段生成开关
 - 加载 / 应用运行时对象状态
+- 把交互对象完成态刷新委托给 `InteractableVisualRefresher`
 
 当前重要事实：
 
 - 区域划分是坐标阈值硬编码，不是完全数据驱动。
 - 多个关键门禁逻辑直接写在 `VerticalSliceMap.try_interact()` 和 `_inspect_*()` 分支里。
 - 第一切片实例 ID 约定也由这里的节点命名方式间接决定。
+- 已采集、已部署、已稳定和已校准对象的视觉刷新不再继续堆在地图主脚本里，后续新增完成态应优先扩展刷新器或数据约定。
 
 ### 5. 玩法规则层：`GatherSystem` / `ProcessingSystem` / `BuildSystem`
 
@@ -223,6 +225,7 @@
 
 - 文本拼装和展示规则已经从 HUD 主脚本里拆出不少。
 - 通用交互提示、设备加工提示和建造 / 清障阻塞提示由 `InteractionPromptFormatter` 统一组织；建造状态里的下一步建议来自 `BuildSystem`，加工缺料的下一步建议来自 `ProcessingSystem` 状态。
+- 污染过滤器完成抗污染药剂后的读法应由 `ProcessingSystem`、`InteractionPromptFormatter` 和 `HudStatusPresenter` 保持一致：处理药剂、带药剂回污染边界、清理受扰敌人 / 门前压力点。
 - 交互反馈读法已有独立检查脚本覆盖，后续补 UI 文案时应优先扩检查脚本，不把断言继续堆回超长垂直切片主检查。
 - 但还没有进入完整 UI 框架或更通用的视图模型体系。
 
