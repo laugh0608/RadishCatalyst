@@ -1,6 +1,10 @@
 # CLAUDE.md
 
-本文件为 Claude Code 在 RadishCatalyst 仓库中工作时的指导。其规则应与 `AGENTS.md` 保持基本同步。
+本文件为 Claude Code 在 RadishCatalyst 仓库中工作时的指导。
+
+## 称呼
+
+- 对话结束总结时，请称呼我为 `萝卜`
 
 ## 项目长期定位
 
