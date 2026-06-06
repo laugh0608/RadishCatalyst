@@ -585,6 +585,12 @@ func _format_first_hour_recommended_craft_summary(
 						character_state,
 						"建议配方"
 					)
+		"quest.enter_pollution_edge":
+			if _has_pollution_vial_ready(world_state, character_state):
+				return [
+					"外出链：带药剂回污染边界",
+					"下一步：%s" % _format_pollution_vial_field_step(world_state)
+				]
 	return []
 
 
@@ -797,6 +803,8 @@ func _format_active_quest_progress(data_registry: DataRegistry, world_state: Wor
 			_format_amount(required_amount)
 		])
 
+	if quest_id == "quest.enter_pollution_edge" and _has_pollution_vial_objective_ready(world_state):
+		parts.append(_format_pollution_action_chain_line())
 	if parts.is_empty():
 		return "无"
 	return "；".join(parts)
@@ -832,6 +840,8 @@ func _format_active_quest_progress_lines(
 			_format_amount(current_amount),
 			_format_amount(required_amount)
 		], 42))
+	if quest_id == "quest.enter_pollution_edge" and _has_pollution_vial_objective_ready(world_state):
+		lines.append(_shorten_visible_text(_format_pollution_action_chain_line(), 42))
 	return lines
 
 
@@ -883,6 +893,30 @@ func _get_objective_source_hint(_quest_id: String, objective_type: String, targe
 	if objective_type != "gather_item" and objective_type != "craft_item":
 		return ""
 	return objective_source_resolver.resolve_source_hint(objective_type, target_id)
+
+
+func _has_pollution_vial_ready(world_state: WorldState, character_state: CharacterState) -> bool:
+	if character_state != null and character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+		return true
+	return _has_pollution_vial_objective_ready(world_state)
+
+
+func _has_pollution_vial_objective_ready(world_state: WorldState) -> bool:
+	return world_state.quest_state.get_objective_progress(
+		"quest.enter_pollution_edge",
+		"craft_item",
+		"item.resistance_vial_t1"
+	) >= 1.0
+
+
+func _format_pollution_action_chain_line() -> String:
+	return "链路：处理药剂->带药剂回污染边界->清理受扰敌人/门前压力点"
+
+
+func _format_pollution_vial_field_step(world_state: WorldState) -> String:
+	if world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue") < 4.0:
+		return "补第二批沉积物，再清理受扰敌人和门前压力点"
+	return "清理受扰敌人和门前压力点"
 
 
 func _format_amount(amount: float) -> String:

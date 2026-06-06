@@ -221,8 +221,25 @@ func _check_general_interaction_prompts() -> void:
 		"map_object_instance.pollution_filter_build_site"
 	)
 	var residue_prompt := formatter.format_general_interaction_prompt(residue, character, world)
-	host._expect_text_contains(residue_prompt, "下一步：采完沉积物先回处理点过滤器做抗污染药剂", "first-hour residue prompt links gather to filter")
+	host._expect_text_contains(residue_prompt, "采完沉积物先回处理点过滤器做药剂", "first-hour residue prompt links gather to filter")
 	host._expect_text_contains(residue_prompt, "受扰敌人和门前压力点", "first-hour residue prompt links danger markers to pressure cleanup")
+	world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
+	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", 2)
+	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1)
+	var status_presenter := HudStatusPresenter.new()
+	var pollution_objective_text := status_presenter.format_objective_text(host.data_registry, world, character)
+	host._expect_text_contains(
+		pollution_objective_text,
+		"链路：处理药剂->带药剂回污染边界->清理受扰敌人/门前压力点",
+		"first-hour pollution objective HUD keeps the vial return chain"
+	)
+	var pollution_base_text := status_presenter.format_vitals_text(host.data_registry, world, character)
+	host._expect_text_contains(pollution_base_text, "外出链：带药剂回污染边界", "first-hour base summary points back to field")
+	host._expect_text_contains(
+		pollution_base_text,
+		"补第二批沉积物，再清理受扰敌人和门前压力点",
+		"first-hour base summary points to residue and pressure cleanup"
+	)
 	world.ensure_map_object(crystal.instance_id, crystal.definition_id, "region.crystal_vein_field")
 	world.set_map_object_flag(crystal.instance_id, "is_gathered", true)
 	host._expect_text_contains(

@@ -315,7 +315,7 @@ func _format_processing_started_message(recipe: Dictionary, world_state: WorldSt
 		_format_amount(_get_recipe_duration(recipe))
 	]
 	if recipe_id == "recipe.cleanse_residue" and _should_return_for_second_pollution_residue_batch(world_state):
-		message += " 本次会产出抗污染药剂并留下污染浆液；完成后带药剂回污染边界补第二批沉积物。"
+		message += " 本次会产出抗污染药剂并留下污染浆液；完成后带药剂回污染边界，清理受扰敌人和门前压力点。"
 	return message
 
 
@@ -392,9 +392,7 @@ func _get_completion_next_step(recipe_id: String, world_state: WorldState = null
 		"recipe.foundation_t1":
 			return "前往污染边界北缘清理地块并铺设基础地基；若材料不足，回晶体矿脉区到处理点入口前补晶体或残骸。"
 		"recipe.cleanse_residue":
-			if _should_return_for_second_pollution_residue_batch(world_state):
-				return "抗污染药剂已准备；把它留在快捷栏 2，带药剂回污染边界补第二批沉积物并清理受扰敌人。"
-			return "抗污染药剂已准备；把它留在快捷栏 2，进入遗迹门前或更深污染压力区前用于维持防护。"
+			return _get_pollution_vial_completion_next_step(world_state)
 		"recipe.repair_gel":
 			return "把修复凝胶留在快捷栏 1，前往处理点北缘清障；生命偏低时按 1 使用。"
 		"recipe.phase_anchor":
@@ -896,6 +894,12 @@ func _should_return_for_second_pollution_residue_batch(world_state: WorldState) 
 	if not world_state.quest_state.has_active_quest("quest.enter_pollution_edge"):
 		return false
 	return world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue") < 4.0
+
+
+func _get_pollution_vial_completion_next_step(world_state: WorldState = null) -> String:
+	if _should_return_for_second_pollution_residue_batch(world_state):
+		return "带药剂回污染边界，补第二批沉积物，清理受扰敌人和门前压力点；抗污染药剂留在快捷栏 2。"
+	return "带药剂回污染边界，清理受扰敌人和门前压力点；抗污染药剂留在快捷栏 2，用于维持遗迹门前防护。"
 
 
 func _get_recipe_lock_message(recipe: Dictionary, world_state: WorldState) -> String:

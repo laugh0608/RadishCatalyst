@@ -93,13 +93,19 @@ func _check_pollution_filter_panel_hierarchy() -> void:
 	)
 	host._expect_text_contains(status, "设备状态：可启动", "pollution filter panel shows ready state")
 	host._expect_text_contains(status, "当前配方：处理污染沉积物", "pollution filter panel names current recipe")
+	host._expect_text_contains(
+		status,
+		"处理成药剂 -> 带药剂回污染边界 -> 清理受扰敌人 / 门前压力点",
+		"pollution filter panel purpose shows the full vial return chain"
+	)
 	host._expect_text_contains(status, "副产：污染浆液 x1", "pollution filter panel shows byproduct")
 	host._expect_text_contains(
 		status,
 		"完成去向：产物入背包：抗污染药剂 I x1；副产入背包：污染浆液 x1",
 		"pollution filter panel shows output and byproduct destination"
 	)
-	host._expect_text_contains(status, "下一步：抗污染药剂已准备", "pollution filter panel shows field next step")
+	host._expect_text_contains(status, "下一步：带药剂回污染边界", "pollution filter panel shows field return")
+	host._expect_text_contains(status, "清理受扰敌人和门前压力点", "pollution filter panel shows pressure cleanup")
 	filter.free()
 
 

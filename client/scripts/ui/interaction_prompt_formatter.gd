@@ -492,6 +492,8 @@ func format_ruin_gate_prompt(world_state: WorldState) -> String:
 		return "封锁遗迹入口：先压制污染残核，再确认更深区域信号。"
 	if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):
 		return "遗迹外圈已开放：继续向东进入外圈，回收继电残片。"
+	if _is_gate_pressure_active(world_state):
+		return "封锁遗迹入口：门前受扰敌人仍在压制；带药剂回污染边界，清理门前压力点后再确认入口信号。"
 	return "按 E 确认：封锁遗迹入口信号，打开遗迹外圈通路。"
 
 
@@ -832,11 +834,11 @@ func _get_general_interaction_next_step(
 	if interactable.definition_id != "map_object.pollution_residue_patch":
 		return ""
 	if _is_general_interaction_processed(interactable, object_state):
-		return "回处理点过滤器处理沉积物；药剂就绪后再清理受扰敌人和门前压力点。"
+		return "把沉积物处理成药剂；带药剂回污染边界后清理受扰敌人和门前压力点。"
 	if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
-		return "采完沉积物后清理附近受扰敌人，门前压力点留到药剂和修复凝胶都可用时处理。"
+		return "药剂已在身上；采完沉积物后清理受扰敌人和门前压力点。"
 	if world_state.has_base_structure_definition("building.pollution_filter"):
-		return "采完沉积物先回处理点过滤器做抗污染药剂，再清理受扰敌人和门前压力点。"
+		return "采完沉积物先回处理点过滤器做药剂；带药剂回污染边界后清理受扰敌人和门前压力点。"
 	return "先完成处理点地基和污染过滤器；过滤器上线后沉积物才能转成抗污染药剂。"
 
 
@@ -904,6 +906,13 @@ func _has_anchor_field_pressure_pins_cleared(world_state: WorldState) -> bool:
 		if not bool(world_state.get_map_object(pressure_pin_instance_id).get("is_cleared", false)):
 			return false
 	return true
+
+
+func _is_gate_pressure_active(world_state: WorldState) -> bool:
+	var gate_pressure := world_state.get_enemy("enemy_instance.polluted_skitter_gate_pressure")
+	if gate_pressure.is_empty():
+		return false
+	return not bool(gate_pressure.get("is_defeated", false))
 
 
 func _get_display_name(definition_id: String) -> String:

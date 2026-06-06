@@ -208,6 +208,29 @@ func _check_success_logs_share_interaction_reading() -> void:
 	host._expect_text_contains(filter_build_log, "下一步：过滤器已上线", "filter completion log next step")
 	host._expect_text_contains(filter_build_log, "去向：污染过滤器", "filter completion log destination")
 
+	var filter_processing_world := WorldState.create_default()
+	var filter_processing_character := CharacterState.create_default()
+	filter_processing_world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
+	filter_processing_world.quest_state.unlock_effect("recipe.cleanse_residue")
+	filter_processing_world.add_base_structure(
+		"structure.pollution_filter_build_site",
+		"building.pollution_filter",
+		"region.pollution_edge"
+	)
+	filter_processing_character.inventory.add_item("item.polluted_residue", 2)
+	filter_processing_character.inventory.add_fluid("fluid.basic_solvent", 1.0)
+	var filter_start := processing.process_recipe("recipe.cleanse_residue", filter_processing_character, filter_processing_world)
+	host._expect_equal(bool(filter_start.get("success", false)), true, "pollution filter processing starts")
+	var filter_completed_results := processing.advance_processing(12.0, filter_processing_character, filter_processing_world)
+	host._expect_equal(filter_completed_results.size(), 1, "pollution filter completion emits one result")
+	var filter_completed_log := log_presenter.format_result_log(filter_completed_results[0])
+	host._expect_text_contains(filter_completed_log, "加工完成：处理污染沉积物", "pollution filter completion log title")
+	host._expect_text_contains(filter_completed_log, "下一步：带药剂回污染边界", "pollution filter completion log field return")
+	host._expect_text_contains(filter_completed_log, "清理受扰敌人和门前压力点", "pollution filter completion log pressure cleanup")
+	host._expect_text_contains(filter_completed_log, "去向：抗污染药剂 I x1", "pollution filter completion log vial destination")
+	host._expect_equal(filter_completed_log.count("\n"), 1, "pollution filter completion log uses two-row HUD text")
+	host._expect_equal(filter_completed_log.length() <= 96, true, "pollution filter completion log stays short")
+
 
 func _create_formatter() -> InteractionPromptFormatter:
 	return InteractionPromptFormatter.new(
