@@ -201,6 +201,7 @@ func _check_general_interaction_prompts() -> void:
 	var crystal := map.get_node("Interactables/CrystalCluster") as PrototypeInteractable
 	var wreckage := map.get_node("Interactables/FieldWreckageNorth") as PrototypeInteractable
 	var anomaly := map.get_node("Interactables/AnomalyCrystal") as PrototypeInteractable
+	var residue := map.get_node("Interactables/PollutionResidue") as PrototypeInteractable
 	var crystal_prompt := formatter.format_general_interaction_prompt(crystal, character, world)
 	host._expect_text_contains(crystal_prompt, "对象：晶体簇", "first-hour crystal prompt names focused object")
 	host._expect_text_contains(crystal_prompt, "用途：采集基础资源", "first-hour crystal prompt explains resource use")
@@ -213,6 +214,15 @@ func _check_general_interaction_prompts() -> void:
 	host._expect_text_contains(anomaly_prompt, "用途：采集异常样本", "first-hour anomaly prompt explains sample use")
 	host._expect_text_contains(anomaly_prompt, "样本：异常样本 x1", "first-hour anomaly prompt lists sample result")
 	host._expect_text_contains(anomaly_prompt, "操作：按 E 采样", "first-hour anomaly prompt exposes sample action")
+	world.add_base_structure(
+		"structure.pollution_filter_build_site",
+		"building.pollution_filter",
+		"region.pollution_edge",
+		"map_object_instance.pollution_filter_build_site"
+	)
+	var residue_prompt := formatter.format_general_interaction_prompt(residue, character, world)
+	host._expect_text_contains(residue_prompt, "下一步：采完沉积物先回处理点过滤器做抗污染药剂", "first-hour residue prompt links gather to filter")
+	host._expect_text_contains(residue_prompt, "受扰敌人和门前压力点", "first-hour residue prompt links danger markers to pressure cleanup")
 	world.ensure_map_object(crystal.instance_id, crystal.definition_id, "region.crystal_vein_field")
 	world.set_map_object_flag(crystal.instance_id, "is_gathered", true)
 	host._expect_text_contains(
@@ -255,6 +265,8 @@ func _check_enemy_focus_labels() -> void:
 	map.sync_enemy_states(world)
 	var enemy := map.get_node("Enemies/NativeSkitter") as PrototypeEnemy
 	var patrol := map.get_node("Enemies/NativeSkitterPatrol") as PrototypeEnemy
+	var polluted := map.get_node("Enemies/PollutedSkitter") as PrototypeEnemy
+	var gate_pressure := map.get_node("Enemies/PollutedSkitterGatePressure") as PrototypeEnemy
 	host._expect_equal(enemy.label.visible, false, "first-hour enemy label starts hidden when out of range")
 
 	map.player.position = enemy.position
@@ -262,6 +274,17 @@ func _check_enemy_focus_labels() -> void:
 	host._expect_equal(enemy.label.visible, true, "first-hour nearest attack target label is visible")
 	host._expect_equal(enemy.sprite.scale, PrototypeEnemy.FOCUSED_SPRITE_SCALE, "first-hour nearest attack target is enlarged")
 	host._expect_equal(patrol.label.visible, false, "first-hour non-current enemy label remains hidden")
+
+	map.player.position = polluted.position
+	map.update_current_interactable()
+	host._expect_text_contains(polluted.label.text, "入口压力点", "first-hour polluted enemy focus label names entry pressure")
+
+	world.quest_state.active_quest_ids = ["quest.defeat_elite_node"]
+	map.sync_enemy_states(world)
+	map.player.position = gate_pressure.position
+	map.update_current_interactable()
+	host._expect_text_contains(gate_pressure.label.text, "门前压力点", "first-hour gate pressure enemy label names ruin-gate pressure")
+	host._expect_equal(gate_pressure.label.visible, true, "first-hour gate pressure label is visible when focused")
 	map.free()
 
 

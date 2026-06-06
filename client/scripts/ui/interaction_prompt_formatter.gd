@@ -144,6 +144,9 @@ func format_general_interaction_prompt(
 	if not reward_line.is_empty():
 		parts.append(reward_line)
 	parts.append("状态：%s" % _get_general_interaction_status(interactable, object_state, character_state))
+	var next_step_line := _get_general_interaction_next_step(interactable, object_state, character_state, world_state)
+	if not next_step_line.is_empty():
+		parts.append("下一步：%s" % next_step_line)
 	var action_line := _get_general_interaction_action(interactable, object_state, character_state)
 	if not action_line.is_empty():
 		parts.append("操作：%s" % action_line)
@@ -818,6 +821,23 @@ func _get_general_interaction_action(
 			return "按 E 检查"
 		_:
 			return "按 E 交互"
+
+
+func _get_general_interaction_next_step(
+	interactable: PrototypeInteractable,
+	object_state: Dictionary,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
+	if interactable.definition_id != "map_object.pollution_residue_patch":
+		return ""
+	if _is_general_interaction_processed(interactable, object_state):
+		return "回处理点过滤器处理沉积物；药剂就绪后再清理受扰敌人和门前压力点。"
+	if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+		return "采完沉积物后清理附近受扰敌人，门前压力点留到药剂和修复凝胶都可用时处理。"
+	if world_state.has_base_structure_definition("building.pollution_filter"):
+		return "采完沉积物先回处理点过滤器做抗污染药剂，再清理受扰敌人和门前压力点。"
+	return "先完成处理点地基和污染过滤器；过滤器上线后沉积物才能转成抗污染药剂。"
 
 
 func _get_processed_interaction_status(interactable: PrototypeInteractable) -> String:

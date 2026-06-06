@@ -113,7 +113,23 @@ func mark_defeated() -> void:
 func _update_label() -> void:
 	_ensure_visual_nodes()
 	if label != null:
-		label.text = "%s\nHP %.0f / %.0f" % [display_name, health, max_health]
+		var pressure_label := _get_pressure_focus_label()
+		if pressure_label.is_empty():
+			label.text = "%s\nHP %.0f / %.0f" % [display_name, health, max_health]
+			return
+		label.text = "%s\n%s HP %.0f / %.0f" % [display_name, pressure_label, health, max_health]
+
+
+func _get_pressure_focus_label() -> String:
+	if enemy_category != "polluted":
+		return ""
+	match instance_id:
+		"enemy_instance.polluted_skitter":
+			return "入口压力点"
+		"enemy_instance.polluted_skitter_gate_pressure":
+			return "门前压力点"
+		_:
+			return "深处压力点"
 
 
 func set_spawn_enabled(enabled: bool) -> void:
