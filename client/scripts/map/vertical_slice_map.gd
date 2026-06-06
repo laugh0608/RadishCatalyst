@@ -80,6 +80,7 @@ var data_registry: DataRegistry
 var current_interactable: PrototypeInteractable
 var gather_system: GatherSystem
 var phase_well_frontier_runtime: PhaseWellFrontierRuntime
+var interactable_visual_refresher := InteractableVisualRefresher.new()
 var last_reported_region_id := "region.outpost_platform"
 var last_gate_message := ""
 
@@ -184,6 +185,8 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 	return result
 func refresh_world_interactables(world_state: WorldState) -> void:
 	_ensure_scene_nodes()
+	if interactable_visual_refresher == null:
+		interactable_visual_refresher = InteractableVisualRefresher.new()
 	if phase_well_frontier_runtime != null:
 		phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
 	if interactables_root == null:
@@ -192,201 +195,16 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
 			continue
-		var object_state := world_state.get_map_object(interactable.instance_id)
-		var is_processed := false
-		if interactable.interaction_type == "gather":
-			is_processed = bool(object_state.get("is_gathered", false))
-		if interactable.interaction_type == "sample":
-			is_processed = bool(object_state.get("is_sampled", false))
-		if interactable.interaction_type == "inspect":
-			is_processed = bool(object_state.get("is_sampled", false))
-		if interactable.interaction_type == "clear":
-			is_processed = bool(object_state.get("is_cleared", false))
-		if interactable.interaction_type == "build":
-			is_processed = bool(object_state.get("is_built", false))
-			if is_processed:
-				interactable.set_built_visual(String(object_state.get("built_definition_id", interactable.definition_id)))
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-		if BaseActionDispatchPlan.is_plan_candidate_console_ready(interactable.definition_id, world_state): is_processed = false
-		if interactable.single_use:
-			interactable.consumed = is_processed
-		if interactable.interaction_type == "outpost_core":
-			if world_state.quest_state.has_completed_quest("quest.restore_outpost"):
-				interactable.set_restored_outpost_core_visual()
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.ruin_gate":
-			if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):
-				interactable.set_confirmed_ruin_signal_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.outer_ring_barrier":
-			if world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier"):
-				interactable.set_stabilized_barrier_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.outer_ring_console":
-			if world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
-				interactable.set_secured_console_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.signal_echo_cache":
-			if world_state.quest_state.has_completed_quest("quest.salvage_signal_echo"):
-				interactable.set_recovered_signal_echo_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.deep_ruin_door":
-			if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_entrance"):
-				interactable.set_opened_deep_ruin_door_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.deep_ruin_latch":
-			if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_cache"):
-				interactable.set_overridden_deep_ruin_latch_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.deep_signal_array":
-			if world_state.quest_state.has_completed_quest("quest.activate_deep_array"):
-				interactable.set_activated_deep_signal_array_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_return_anchor":
-			if world_state.is_active_phase_relay_anchor(interactable.instance_id):
-				interactable.set_deployed_phase_return_anchor_visual(true)
-				continue
-			if world_state.has_deployed_phase_relay_anchor(interactable.instance_id):
-				interactable.set_deployed_phase_return_anchor_visual(false)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_relay_pad":
-			if world_state.has_active_phase_relay_anchor():
-				interactable.set_ready_phase_relay_pad_visual(
-					world_state.get_deployed_phase_relay_anchor_count() > 1
-				)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_fault_spire":
-			if world_state.quest_state.has_completed_quest("quest.inspect_phase_fault_spire"):
-				interactable.set_tuned_phase_fault_spire_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_well_lock":
-			if world_state.quest_state.has_completed_quest("quest.unlock_phase_well"):
-				interactable.set_stabilized_phase_well_lock_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.inner_phase_well":
-			if world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well"):
-				interactable.set_stabilized_inner_phase_well_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_well_sink":
-			if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_sink"):
-				interactable.set_stabilized_phase_well_sink_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_well_chamber":
-			if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_chamber"):
-				interactable.set_stabilized_phase_well_chamber_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_well_loom":
-			if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_loom"):
-				interactable.set_stabilized_phase_well_loom_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_well_frame":
-			if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_frame"):
-				interactable.set_stabilized_phase_well_frame_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_well_tether":
-			if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_tether"):
-				interactable.set_stabilized_phase_well_tether_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_well_anchor_field":
-			if phase_well_frontier_runtime == null:
-				interactable.set_default_visual()
-			elif phase_well_frontier_runtime.is_anchor_field_stabilized(world_state):
-				interactable.set_stabilized_phase_well_anchor_field_visual()
-			elif phase_well_frontier_runtime.is_anchor_field_pressure_cleared(world_state):
-				interactable.set_ready_phase_well_anchor_field_visual()
-			elif phase_well_frontier_runtime.is_anchor_field_deployed(world_state):
-				interactable.set_deployed_phase_well_anchor_field_visual()
-			else:
-				interactable.set_default_visual()
-		elif (
-			phase_well_frontier_runtime != null
-			and phase_well_frontier_runtime.is_stability_calibration_node(interactable.definition_id)
-		):
-			if phase_well_frontier_runtime.is_stability_node_calibrated(
-				world_state,
-				interactable.instance_id,
-				interactable.definition_id
-			):
-				interactable.set_calibrated_stability_node_visual()
-			elif phase_well_frontier_runtime.is_stability_calibration_ready(world_state, interactable.definition_id):
-				interactable.set_ready_stability_calibration_visual()
-			else:
-				interactable.set_default_visual()
-		elif interactable.definition_id == BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID and BaseActionDispatchPlan.is_frontline_action_console_ready(world_state):
-			interactable.set_default_visual()
-		elif is_processed and interactable.set_processed_visual():
-			if current_interactable == interactable:
-				current_interactable = null
-				interaction_cleared.emit(interactable)
+		var visual_result := interactable_visual_refresher.refresh_visual_state(
+			interactable,
+			world_state,
+			phase_well_frontier_runtime
+		)
+		if bool(visual_result.get("clear_current", false)) and current_interactable == interactable:
+			current_interactable = null
+			interaction_cleared.emit(interactable)
+		if bool(visual_result.get("skip_enable", false)):
 			continue
-		elif not is_processed:
-			interactable.set_default_visual()
 		var should_enable: bool = not interactable.consumed
 		if interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter":
 			should_enable = should_enable and world_state.has_base_structure_definition("building.pollution_filter")
