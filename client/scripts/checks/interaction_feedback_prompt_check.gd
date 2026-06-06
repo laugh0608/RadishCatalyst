@@ -116,6 +116,7 @@ func _check_success_logs_share_interaction_reading() -> void:
 		true,
 		"processing start log shows next step before destination"
 	)
+	host._expect_equal(started_log.count("\n"), 1, "processing start log uses two-row HUD text")
 	host._expect_equal(started_log.length() <= 96, true, "processing start log stays short")
 
 	var reactor := PrototypeInteractable.new()
@@ -136,6 +137,7 @@ func _check_success_logs_share_interaction_reading() -> void:
 	host._expect_text_contains(completed_log, "加工完成：处理晶体矿物", "processing completion log title")
 	host._expect_text_contains(completed_log, "去向：基础零件 x4", "processing completion destination")
 	host._expect_text_contains(completed_log, "下一步：基础零件已补足", "processing completion next step")
+	host._expect_equal(completed_log.count("\n"), 1, "processing completion log uses two-row HUD text")
 	host._expect_equal(completed_log.length() <= 96, true, "processing completion log stays short")
 	reactor.free()
 
@@ -165,6 +167,7 @@ func _check_success_logs_share_interaction_reading() -> void:
 		"build completion log destination"
 	)
 	host._expect_text_contains(build_log, "下一步：基础地基：1 / 2", "build completion log next step")
+	host._expect_equal(build_log.count("\n"), 1, "build completion log uses two-row HUD text")
 	host._expect_equal(build_log.length() <= 96, true, "build completion log stays short")
 
 

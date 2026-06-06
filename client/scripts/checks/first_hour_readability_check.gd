@@ -360,7 +360,9 @@ func _check_hud_runtime_layout_first_pass() -> void:
 	host._expect_equal(hud.vitals_panel.size.y <= 184.0, true, "HUD first pass keeps vitals summary compact")
 	host._expect_equal(absf(hud.prompt_panel.position.x + hud.prompt_panel.size.x * 0.5 - viewport_size.x * 0.5) <= 1.0, true, "HUD first pass centers interaction prompt")
 	host._expect_equal(hud.prompt_panel.size.y <= 144.0, true, "HUD first pass lowers prompt height")
-	host._expect_equal(hud.log_panel.size.y <= 68.0, true, "HUD first pass lowers log height")
+	host._expect_equal(hud.log_panel.size.y >= 96.0, true, "HUD first pass reserves two log rows")
+	host._expect_equal(hud.log_panel.size.y <= 120.0, true, "HUD first pass keeps log rail compact")
+	host._expect_equal(hud.log_label.size.y >= 60.0, true, "HUD first pass keeps two-row log text visible")
 	host._expect_equal(hud.log_panel.position.x + hud.log_panel.size.x < hud.prompt_panel.position.x, true, "HUD first pass keeps log separate from prompt")
 	hud.free()
 

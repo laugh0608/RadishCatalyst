@@ -27,12 +27,12 @@ func format_success_result_log(result: Dictionary) -> String:
 
 	var title := String(feedback.get("title", "操作完成"))
 	var details: Array[String] = []
-	_append_log_detail(details, "状态", _compact_status(String(feedback.get("status", ""))))
 	_append_log_detail(details, "下一步", _compact_next_step(String(feedback.get("next_step", ""))))
 	_append_log_detail(details, "去向", _compact_destination(String(feedback.get("destination", ""))))
+	_append_log_detail(details, "状态", _compact_status(String(feedback.get("status", ""))))
 	if details.is_empty():
 		return title
-	return "%s；%s" % [title, "；".join(details)]
+	return "%s\n%s" % [title, "；".join(details)]
 
 
 func format_failure_result_log(result: Dictionary) -> String:
