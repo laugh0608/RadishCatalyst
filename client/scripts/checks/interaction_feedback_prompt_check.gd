@@ -38,7 +38,7 @@ func _check_build_prompts() -> void:
 	build_world.set_map_object_flag("map_object_instance.rough_ground_north", "is_cleared", true)
 	var missing_foundation_prompt := formatter.format_build_prompt(foundation_site, build_character, build_world)
 	host._expect_text_contains(missing_foundation_prompt, "缺少建造材料", "foundation missing material prompt")
-	host._expect_text_contains(missing_foundation_prompt, "下一步：回晶体区采集资源", "foundation missing material next step prompt")
+	host._expect_text_contains(missing_foundation_prompt, "基础反应器制造基础地基材料", "foundation missing material next step prompt")
 
 	build_character.inventory.add_item("item.foundation_material", 1)
 	host._expect_text_contains(
@@ -46,22 +46,30 @@ func _check_build_prompts() -> void:
 		"按 E 建造",
 		"foundation ready prompt"
 	)
+	build_world.ensure_map_object(foundation_site.instance_id, foundation_site.definition_id, "region.pollution_edge")
+	build_world.set_map_object_flag(foundation_site.instance_id, "is_built", true)
+	build_world.add_base_structure("structure.foundation_site_north", "building.foundation_t1", "region.pollution_edge")
+	var built_foundation_prompt := formatter.format_build_prompt(foundation_site, build_character, build_world)
+	host._expect_text_contains(built_foundation_prompt, "状态：已建成", "foundation built prompt shows completed state")
+	host._expect_text_contains(
+		built_foundation_prompt,
+		"继续清理并铺设另一块基础地基",
+		"foundation built prompt points to second foundation"
+	)
 
 	var filter_site := PrototypeInteractable.new()
 	filter_site.definition_id = "building.pollution_filter"
 	filter_site.interaction_type = "build"
 	filter_site.instance_id = "map_object_instance.pollution_filter_build_site"
 	var blocked_filter_prompt := formatter.format_build_prompt(filter_site, build_character, build_world)
-	host._expect_text_contains(blocked_filter_prompt, "基础地基：0 / 2", "pollution filter foundation status")
-	host._expect_text_contains(blocked_filter_prompt, "下一步：先铺设 2 块基础地基", "pollution filter foundation next step prompt")
+	host._expect_text_contains(blocked_filter_prompt, "基础地基：1 / 2", "pollution filter partial foundation status")
+	host._expect_text_contains(blocked_filter_prompt, "还差 1 块基础地基", "pollution filter partial foundation next step prompt")
 
-	build_world.add_base_structure("structure.foundation_site_north", "building.foundation_t1", "region.pollution_edge")
 	build_world.add_base_structure("structure.foundation_site_south", "building.foundation_t1", "region.pollution_edge")
-	host._expect_text_contains(
-		formatter.format_build_prompt(filter_site, build_character, build_world),
-		"缺少建造材料",
-		"pollution filter missing material prompt"
-	)
+	var missing_filter_prompt := formatter.format_build_prompt(filter_site, build_character, build_world)
+	host._expect_text_contains(missing_filter_prompt, "基础地基：2 / 2", "pollution filter complete foundation status")
+	host._expect_text_contains(missing_filter_prompt, "缺少建造材料", "pollution filter missing material prompt")
+	host._expect_text_contains(missing_filter_prompt, "补过滤介质和基础零件", "pollution filter missing material next step prompt")
 	rough_ground.free()
 	foundation_site.free()
 	filter_site.free()
@@ -166,9 +174,39 @@ func _check_success_logs_share_interaction_reading() -> void:
 		"去向：处理点地基状态",
 		"build completion log destination"
 	)
-	host._expect_text_contains(build_log, "下一步：基础地基：1 / 2", "build completion log next step")
+	host._expect_text_contains(build_log, "下一步：继续铺设另一块基础地基", "build completion log next step")
 	host._expect_equal(build_log.count("\n"), 1, "build completion log uses two-row HUD text")
 	host._expect_equal(build_log.length() <= 96, true, "build completion log stays short")
+
+	build_world.ensure_map_object(
+		"map_object_instance.rough_ground_south",
+		"map_object.rough_ground",
+		"region.pollution_edge"
+	)
+	build_world.set_map_object_flag("map_object_instance.rough_ground_south", "is_cleared", true)
+	build_character.inventory.add_item("item.foundation_material", 1)
+	var second_build_result := build_system.build_structure(
+		"map_object_instance.foundation_site_south",
+		"building.foundation_t1",
+		build_character,
+		build_world,
+		"map_object_instance.rough_ground_south"
+	)
+	var second_build_log := log_presenter.format_result_log(second_build_result)
+	host._expect_text_contains(second_build_log, "下一步：现在可以建造污染过滤器", "second foundation log points to filter")
+
+	build_character.inventory.add_item("item.basic_parts", 3)
+	build_character.inventory.add_item("item.filter_media", 1)
+	var filter_build_result := build_system.build_structure(
+		"map_object_instance.pollution_filter_build_site",
+		"building.pollution_filter",
+		build_character,
+		build_world
+	)
+	var filter_build_log := log_presenter.format_result_log(filter_build_result)
+	host._expect_text_contains(filter_build_log, "建造完成：污染过滤器", "filter completion log title")
+	host._expect_text_contains(filter_build_log, "下一步：过滤器已上线", "filter completion log next step")
+	host._expect_text_contains(filter_build_log, "去向：污染过滤器", "filter completion log destination")
 
 
 func _create_formatter() -> InteractionPromptFormatter:

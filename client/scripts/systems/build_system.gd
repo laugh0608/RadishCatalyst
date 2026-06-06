@@ -21,11 +21,11 @@ func build_structure(
 
 	var site_state := world_state.ensure_map_object(site_instance_id, building_id, character_state.current_region_id)
 	if bool(site_state.get("is_built", false)):
-		return _failure("该建造点已完成。", "建造未执行", "前往下一个建造点或查看当前任务目标。")
+		return _failure("该建造点已完成。", "建造未执行", _get_built_hint(building_id, world_state))
 
 	var requirement_error := _get_requirement_error(building_id, prerequisite_instance_id, world_state)
 	if not requirement_error.is_empty():
-		return _failure(requirement_error, "建造前置不足", _get_requirement_hint(building_id))
+		return _failure(requirement_error, "建造前置不足", _get_requirement_hint(building_id, world_state))
 
 	var missing_costs := _get_missing_costs(building, character_state.inventory)
 	if not missing_costs.is_empty():
@@ -71,7 +71,8 @@ func get_build_status(
 			"can_build": false,
 			"costs": _format_refs(building.get("build_cost", [])),
 			"message": "已建成。",
-			"next_step": "前往下一个建造点或查看当前任务目标。"
+			"foundation_status": _format_foundation_status(building_id, world_state),
+			"next_step": _get_built_hint(building_id, world_state)
 		}
 
 	var requirement_error := _get_requirement_error(building_id, prerequisite_instance_id, world_state)
@@ -81,7 +82,7 @@ func get_build_status(
 			"costs": _format_refs(building.get("build_cost", [])),
 			"message": requirement_error,
 			"foundation_status": _format_foundation_status(building_id, world_state),
-			"next_step": _get_requirement_hint(building_id)
+			"next_step": _get_requirement_hint(building_id, world_state)
 		}
 
 	var missing_costs := _get_missing_costs(building, character_state.inventory)
@@ -121,20 +122,25 @@ func _get_requirement_error(building_id: String, prerequisite_instance_id: Strin
 	return ""
 
 
-func _get_requirement_hint(building_id: String) -> String:
+func _get_requirement_hint(building_id: String, world_state: WorldState) -> String:
 	match building_id:
 		"building.foundation_t1":
 			return "先清理粗糙地块，再铺设基础地基。"
 		"building.pollution_filter":
-			return "先铺设 2 块基础地基，再建造污染过滤器。"
+			var foundation_count := mini(world_state.count_base_structures("building.foundation_t1"), 2)
+			if foundation_count <= 0:
+				return "先清理两处粗糙地块，并铺设 2 块基础地基。"
+			return "还差 1 块基础地基；清理另一处粗糙地块并铺设。"
 		_:
 			return "先完成该建筑的前置条件。"
 
 
 func _get_cost_hint(building_id: String) -> String:
 	match building_id:
-		"building.foundation_t1", "building.pollution_filter":
-			return "回晶体区采集资源，并用基础反应器补齐建造材料。"
+		"building.foundation_t1":
+			return "回晶体区采集晶体矿物，并用基础反应器制造基础地基材料。"
+		"building.pollution_filter":
+			return "回基地用基础反应器补过滤介质和基础零件，再回处理点建造污染过滤器。"
 		_:
 			return "先补齐该建筑所需材料。"
 
@@ -165,11 +171,22 @@ func _get_build_followup(building_id: String, world_state: WorldState) -> String
 	if building_id == "building.foundation_t1":
 		var foundation_count := mini(world_state.count_base_structures("building.foundation_t1"), 2)
 		if foundation_count < 2:
-			return "基础地基：%d / 2；继续清理并铺设另一块。" % foundation_count
-		return "基础地基：2 / 2；现在可以建造污染过滤器。"
+			return "继续铺设另一块基础地基；当前基础地基：%d / 2。" % foundation_count
+		return "现在可以建造污染过滤器；基础地基：2 / 2。"
 	if building_id == "building.pollution_filter":
 		return "过滤器已上线；回收污染沉积物后可在这里处理抗污染药剂。"
 	return ""
+
+
+func _get_built_hint(building_id: String, world_state: WorldState) -> String:
+	if building_id == "building.foundation_t1":
+		var foundation_count := mini(world_state.count_base_structures("building.foundation_t1"), 2)
+		if foundation_count < 2:
+			return "下一个建造点：继续清理并铺设另一块基础地基；2 块后才能建造污染过滤器。"
+		return "两块基础地基已就绪；去建造污染过滤器。"
+	if building_id == "building.pollution_filter":
+		return "污染过滤器已上线；回收污染沉积物后在设备面板处理抗污染药剂。"
+	return "前往下一个建造点或查看当前任务目标。"
 
 
 func _get_build_destination(building_id: String) -> String:
