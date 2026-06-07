@@ -107,7 +107,7 @@
       "pollution_types": ["pollution.yellow_residue"],
       "weather_pool": ["weather.clear", "weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
-      "quest_refs": ["quest.expand_treatment_point", "quest.enter_pollution_edge", "quest.defeat_elite_node", "quest.unlock_ruin_signal", "quest.refine_phase_splinters"],
+      "quest_refs": ["quest.expand_treatment_point", "quest.enter_pollution_edge", "quest.defeat_elite_node", "quest.unlock_ruin_signal", "quest.scout_ruin_outer_ring", "quest.refine_phase_splinters"],
       "public_level": "public"
     },
     {

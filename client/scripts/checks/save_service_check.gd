@@ -1009,6 +1009,8 @@ func _check_slice_complete_state_persists() -> void:
 		"quest.unlock_ruin_signal|inspect|map_object.ruin_gate": 1,
 		"quest.scout_ruin_outer_ring|visit_region|region.ruin_outer_ring": 1,
 		"quest.scout_ruin_outer_ring|gather_item|item.relay_shard": 2,
+		"quest.scout_ruin_outer_ring|gather_item|item.polluted_residue": 2,
+		"quest.scout_ruin_outer_ring|defeat_enemy|enemy.polluted_skitter": 1,
 		"quest.assemble_phase_anchor|craft_item|item.phase_anchor": 1,
 		"quest.stabilize_outer_ring_barrier|inspect|map_object.outer_ring_barrier": 1,
 		"quest.secure_outer_ring_signal|inspect|map_object.outer_ring_console": 1
@@ -1120,6 +1122,8 @@ func _check_deep_ruin_state_persists() -> void:
 		"quest.unlock_ruin_signal|inspect|map_object.ruin_gate": 1,
 		"quest.scout_ruin_outer_ring|visit_region|region.ruin_outer_ring": 1,
 		"quest.scout_ruin_outer_ring|gather_item|item.relay_shard": 2,
+		"quest.scout_ruin_outer_ring|gather_item|item.polluted_residue": 2,
+		"quest.scout_ruin_outer_ring|defeat_enemy|enemy.polluted_skitter": 1,
 		"quest.assemble_phase_anchor|craft_item|item.phase_anchor": 1,
 		"quest.stabilize_outer_ring_barrier|inspect|map_object.outer_ring_barrier": 1,
 		"quest.secure_outer_ring_signal|inspect|map_object.outer_ring_console": 1,

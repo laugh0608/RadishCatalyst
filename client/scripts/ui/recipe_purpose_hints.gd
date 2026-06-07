@@ -7,7 +7,7 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 		"recipe.process_crystal_ore":
 			return "把晶体矿物转成基础零件，支撑校准件、过滤模块、地基和补给。"
 		"recipe.reclaim_basic_parts":
-			return "把污染处理副产的污染浆液回收成基础零件，让副产物重新服务补给、地基和模块。"
+			return "把污染处理副产的污染浆液回收成基础零件，让副产物重新服务补给、地基、模块和稳相信标。"
 		"recipe.reactor_calibrator":
 			return "校准反应器采样通道，做完就去异常晶体采样。"
 		"recipe.analyze_anomaly_sample":
@@ -22,6 +22,8 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 			return "制造处理点地基材料，做完去处理点北缘铺设两块地基；缺料时回访处理点入口前的晶体和残骸。"
 		"recipe.cleanse_residue":
 			return "把沉积物处理成药剂并留下污染浆液；药剂支撑污染回访，浆液可回基础反应器回收成基础零件。"
+		"recipe.phase_anchor":
+			return "把外圈继电残片、污染浆液和基础零件组装成稳相信标；缺零件时先回收一份浆液。"
 		"recipe.deep_core_imprint":
 			return "把裂相样块解析成路由印片，做完直接返回裂相阵列台点亮第二轮导管回收线。"
 		"recipe.deep_signal_matrix":

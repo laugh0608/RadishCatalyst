@@ -155,7 +155,12 @@
       "description_key": "quest.scout_ruin_outer_ring.desc",
       "quest_type": "main",
       "stage": 12,
-      "objectives": [{"type": "visit_region", "target_id": "region.ruin_outer_ring", "amount": 1}, {"type": "gather_item", "target_id": "item.relay_shard", "amount": 2}],
+      "objectives": [
+        {"type": "visit_region", "target_id": "region.ruin_outer_ring", "amount": 1},
+        {"type": "gather_item", "target_id": "item.relay_shard", "amount": 2},
+        {"type": "gather_item", "target_id": "item.polluted_residue", "amount": 2},
+        {"type": "defeat_enemy", "target_id": "enemy.polluted_skitter", "amount": 1}
+      ],
       "prerequisites": ["quest.unlock_ruin_signal"],
       "rewards": [],
       "unlock_effects": ["recipe.phase_anchor"],

@@ -334,8 +334,8 @@ func _get_pollution_protection_hint(character_state: CharacterState) -> String:
 func _get_pollution_pressure_step_hint(instance_id: String, character_state: CharacterState) -> String:
 	if instance_id == "map_object_instance.pollution_residue_ridge_cache":
 		if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
-			return "门前高压点已回收；防护偏低时按 2 使用抗污染药剂，再清理门前受扰敌人"
-		return "门前高压点已回收；建议回过滤器处理沉积物，补抗污染药剂后再推进"
+			return "污染脊沉积已回收；回过滤器处理成药剂和污染浆液，浆液可回收成信标所需基础零件"
+		return "污染脊沉积已回收；建议回过滤器处理沉积物，补药剂并留下浆液支撑稳相信标"
 	if instance_id == "map_object_instance.pollution_residue_deep":
 		return "深处压力已显著抬升；后续门前点更适合带药剂再处理"
 	return ""

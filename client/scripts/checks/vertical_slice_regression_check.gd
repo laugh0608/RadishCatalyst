@@ -968,7 +968,6 @@ func _check_mid_demo_missing_input_hints(processing: ProcessingSystem) -> void:
 		"污染浆液来自污染过滤器处理沉积物",
 		"phase anchor missing slurry points to pollution filter"
 	)
-
 	var deep_signal_world := WorldState.create_default()
 	deep_signal_world.quest_state.unlock_effect("recipe.deep_signal_analysis")
 	var deep_signal_status := processing.get_recipe_status("recipe.deep_signal_analysis", CharacterState.create_default(), deep_signal_world)

@@ -134,6 +134,10 @@ func _format_completion_note(quest_id: String) -> String:
 			return "污染源点已压制，封锁遗迹入口信号可确认"
 		"quest.unlock_ruin_signal":
 			return "封锁遗迹通路已恢复，可进入封锁遗迹回收继电残片"
+		"quest.scout_ruin_outer_ring":
+			return "外圈继电残片和污染脊沉积物已回收；回基地处理沉积物，必要时把一份污染浆液回收成信标所需基础零件"
+		"quest.assemble_phase_anchor":
+			return "稳相信标已完成；带回遗迹外圈部署后，抖动雾幕才会打开深段通路"
 		"quest.stabilize_outer_ring_barrier":
 			return "稳相信标已部署，封锁遗迹深处通路已稳定"
 		"quest.secure_outer_ring_signal":

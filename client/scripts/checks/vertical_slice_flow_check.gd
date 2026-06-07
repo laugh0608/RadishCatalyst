@@ -134,7 +134,9 @@ func _run_checks() -> void:
 	_expect_array_has(world_state.unlocked_region_ids, "region.ruin_outer_ring", "ruin signal unlocks outer ring region")
 	_complete_active_quest("quest.scout_ruin_outer_ring", [
 		{"type": "visit_region", "target_id": "region.ruin_outer_ring", "amount": 1},
-		{"type": "gather_item", "target_id": "item.relay_shard", "amount": 2}
+		{"type": "gather_item", "target_id": "item.relay_shard", "amount": 2},
+		{"type": "gather_item", "target_id": "item.polluted_residue", "amount": 2},
+		{"type": "defeat_enemy", "target_id": "enemy.polluted_skitter", "amount": 1}
 	])
 	_expect_active_quest("quest.assemble_phase_anchor", "after ruin outer ring scouting")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_anchor", "outer ring scouting unlocks phase anchor recipe")

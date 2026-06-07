@@ -491,7 +491,7 @@ func format_ruin_gate_prompt(world_state: WorldState) -> String:
 	if not world_state.quest_state.has_completed_quest("quest.defeat_elite_node"):
 		return "封锁遗迹入口：先压制污染残核，再确认更深区域信号。"
 	if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):
-		return "遗迹外圈已开放：继续向东进入外圈，回收继电残片。"
+		return "遗迹外圈已开放：继续向东进入外圈，回收继电残片，并处理外圈前污染脊压力。"
 	if _is_gate_pressure_active(world_state):
 		return "封锁遗迹入口：门前受扰敌人仍在压制；带药剂回污染边界，清理门前压力点后再确认入口信号。"
 	return "按 E 确认：封锁遗迹入口信号，打开遗迹外圈通路。"
@@ -503,7 +503,7 @@ func format_outer_ring_barrier_prompt(world_state: WorldState, character_state: 
 	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_anchor"):
 		return "抖动雾幕：先回基地组装稳相信标，再返回部署。"
 	if not character_state.inventory.has_ref("item.phase_anchor", 1):
-		return "抖动雾幕：缺少稳相信标；回基地用基础反应器把继电残片和污染浆液组装后再来。"
+		return "抖动雾幕：缺少稳相信标；回基地把继电残片、污染浆液和基础零件组装后再来。"
 	return "按 E 部署：稳相信标，稳定抖动雾幕。"
 
 

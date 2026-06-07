@@ -382,6 +382,8 @@ func _get_completion_next_step(recipe_id: String, world_state: WorldState = null
 		"recipe.process_crystal_ore":
 			return "基础零件已补足；它们会用于反应器校准、过滤模块和地基。若当前任务还差更高阶配方，可按 R 切换到目标配方。"
 		"recipe.reclaim_basic_parts":
+			if world_state != null and world_state.quest_state.has_active_quest("quest.assemble_phase_anchor"):
+				return "污染浆液已回收成基础零件；继续确认稳相信标是否还留有组装用浆液，不足就回污染脊补沉积物再处理。"
 			return "污染浆液已回收成基础零件；继续补给、地基或模块制造，副产物不再只是库存负担。"
 		"recipe.reactor_calibrator":
 			return "反应器采样通道已校准；前往异常晶体采样并回收周边残留物。"
@@ -529,9 +531,11 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 	match String(recipe.get("id", "")):
 		"recipe.phase_anchor":
 			if _get_recipe_input_shortage(recipe, "item.relay_shard", inventory) > 0.0:
-				return "先进入封锁遗迹外圈，回收两处继电残片。"
+				return "先进入封锁遗迹外圈，回收两处继电残片；外圈前污染脊还会补一份沉积物和受扰守卫。"
 			if _get_recipe_input_shortage(recipe, "fluid.polluted_slurry", inventory) > 0.0:
-				return "污染浆液来自污染过滤器处理沉积物；回处理点补一次沉积物处理，再回基础反应器组装稳相信标。"
+				return "污染浆液来自污染过滤器处理沉积物；外圈污染脊会补沉积物，先回处理点过滤器处理。"
+			if _get_recipe_input_shortage(recipe, "item.basic_parts", inventory) > 0.0:
+				return "基础零件不足：先把一份污染浆液回收成基础零件；若缺组装用浆液，回污染脊补沉积物再处理。"
 		"recipe.deep_signal_analysis":
 			if _get_recipe_input_shortage(recipe, "item.signal_echo_trace", inventory) > 0.0:
 				return "先在封锁遗迹深处清理相位守卫，并回收外圈回波匣。"

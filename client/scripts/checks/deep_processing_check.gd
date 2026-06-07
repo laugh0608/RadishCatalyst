@@ -12,6 +12,7 @@ func run() -> void:
 	_check_phase_filament_refining(processing)
 	_check_phase_splinter_refining(processing)
 	_check_reclaim_basic_parts(processing)
+	_check_phase_anchor_reclaim_hint(processing)
 	_check_relay_tuning_lens(processing)
 	_check_salt_flat_readability(processing)
 	_check_shattered_ravine_readability(processing)
@@ -96,6 +97,21 @@ func _check_reclaim_basic_parts(processing: ProcessingSystem) -> void:
 		host._expect_text_contains(String(completed[0].get("message", "")), "副产物不再只是库存负担", "basic parts reclaim completion log next step")
 	host._expect_equal(int(character.inventory.items.get("item.basic_parts", 0)), 2, "basic parts reclaim grants reusable parts")
 	host._expect_equal(float(character.inventory.fluids.get("fluid.polluted_slurry", 0.0)), 0.0, "basic parts reclaim consumes polluted slurry")
+
+
+func _check_phase_anchor_reclaim_hint(processing: ProcessingSystem) -> void:
+	var world := WorldState.create_default()
+	world.quest_state.unlock_effect("recipe.phase_anchor")
+	var character := CharacterState.create_default()
+	character.inventory.add_item("item.relay_shard", 2)
+	character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
+	character.inventory.items["item.basic_parts"] = 1
+	var status := processing.get_recipe_status("recipe.phase_anchor", character, world)
+	host._expect_text_contains(
+		String(status.get("supply_hint", "")),
+		"先把一份污染浆液回收成基础零件",
+		"phase anchor missing basic parts points to slurry reclaim"
+	)
 
 
 func _check_relay_tuning_lens(processing: ProcessingSystem) -> void:

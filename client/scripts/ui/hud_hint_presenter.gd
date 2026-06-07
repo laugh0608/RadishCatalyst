@@ -134,9 +134,9 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 				return "遗迹门前仍有受扰敌人压制；先用修复凝胶和抗污染药剂撑过门前压力，再检查封锁入口。"
 			return "前往污染边界东侧检查封锁遗迹入口，打开封锁遗迹通路。"
 		"quest.scout_ruin_outer_ring":
-			return "穿过封锁入口进入封锁遗迹，回收两处继电残片。"
+			return "穿过封锁入口进入遗迹外圈，回收继电残片；外圈前污染脊还要补沉积物并清理受扰守卫。"
 		"quest.assemble_phase_anchor":
-			return "回基地使用基础反应器，组装稳相信标。"
+			return "回基地使用基础反应器；基础零件不足时先把一份污染浆液回收成零件，再组装稳相信标。"
 		"quest.stabilize_outer_ring_barrier":
 			return "带着稳相信标返回封锁遗迹，在抖动雾幕前部署后再继续深入。"
 		"quest.secure_outer_ring_signal":
@@ -434,9 +434,9 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 				return "先清理门前受扰敌人；这是药剂和修复凝胶真正改变推进结果的压力点。"
 			return "先确认封锁入口信号，真正把主线推进到封锁遗迹。"
 		"quest.scout_ruin_outer_ring":
-			return "先把外圈继电残片带回基地；它们是下一次深入所需开路物的核心输入。"
+			return "先把外圈继电残片和污染脊沉积物带回基地；沉积物处理出的浆液可补信标零件。"
 		"quest.assemble_phase_anchor":
-			return "稳相信标会直接改变再次深入的结果；污染浆液来自过滤器的上一次处理副产。"
+			return "稳相信标会直接改变再次深入的结果；缺基础零件时先把一份污染浆液回收成零件。"
 		"quest.stabilize_outer_ring_barrier":
 			return "部署稳相信标后，抖动雾幕才会让出封锁遗迹深处通路。"
 		"quest.secure_outer_ring_signal":

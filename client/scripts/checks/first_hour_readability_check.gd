@@ -23,6 +23,7 @@ func run() -> void:
 	_check_treatment_entry_gather_feedback()
 	_check_pollution_pressure_consumption()
 	_check_filter_module_combat_pressure()
+	_check_outer_ring_ridge_spawn_gate()
 	_check_ruin_gate_pressure_gate()
 
 
@@ -636,7 +637,7 @@ func _check_core_loop_layout() -> void:
 	host._expect_equal(
 		ridge_residue.position.x > outer_residue.position.x and ridge_residue.position.x < ruin_gate.position.x,
 		true,
-		"first-hour ridge residue gives a risky optional pickup before the ruin gate"
+		"first-hour ridge residue gives a risky pickup before the ruin gate"
 	)
 	host._expect_equal(
 		ridge_polluted.position.distance_to(ridge_residue.position) <= VerticalSliceMap.ATTACK_RANGE,
@@ -724,7 +725,7 @@ func _check_pollution_pressure_consumption() -> void:
 	)
 	host._expect_equal(bool(no_module_result.get("success", false)), true, "first-hour ridge residue gather succeeds")
 	host._expect_equal(no_module_character.protection, 76.0, "first-hour ridge residue consumes higher unfiltered protection")
-	host._expect_text_contains(String(no_module_result.get("message", "")), "门前高压点", "first-hour ridge residue explains gate pressure")
+	host._expect_text_contains(String(no_module_result.get("message", "")), "污染脊沉积", "first-hour ridge residue explains ridge pressure")
 
 	var module_world := WorldState.create_default()
 	var module_character := CharacterState.create_default()
@@ -760,6 +761,13 @@ func _check_filter_module_combat_pressure() -> void:
 	host._expect_equal(int(roundf(module_character.health * 10.0)), 949, "filter module buffers polluted counter health pressure")
 	host._expect_equal(int(roundf(module_character.protection * 10.0)), 983, "filter module buffers polluted counter protection pressure")
 	host._expect_text_contains(module_message, "防护 -1.7", "filter module counter message shows lower protection pressure")
+
+	enemy.instance_id = "enemy_instance.polluted_skitter_ridge"
+	var ridge_character := CharacterState.create_default()
+	var ridge_message := map._apply_enemy_counterattack(enemy, ridge_character)
+	host._expect_equal(int(roundf(ridge_character.health * 10.0)), 928, "ridge polluted guard adds higher health pressure")
+	host._expect_equal(int(roundf(ridge_character.protection * 10.0)), 964, "ridge polluted guard adds higher protection pressure")
+	host._expect_text_contains(ridge_message, "污染脊守卫压迫更强", "ridge polluted guard counter message explains pressure")
 	enemy.free()
 	map.free()
 
@@ -777,4 +785,25 @@ func _check_ruin_gate_pressure_gate() -> void:
 	gate_world.update_enemy_health("enemy_instance.polluted_skitter_gate_pressure", 0.0, true)
 	var opened_result := map._inspect_ruin_gate(gate_world)
 	host._expect_equal(bool(opened_result.get("success", false)), true, "first-hour ruin gate opens after gate pressure enemy is defeated")
+	map.free()
+
+
+func _check_outer_ring_ridge_spawn_gate() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	host.root.add_child(map)
+	map.setup(host.data_registry)
+	var ridge_residue := map.get_node("Interactables/PollutionResidueRidgeCache") as PrototypeInteractable
+	var ridge_enemy := map.get_node("Enemies/PollutedSkitterRidge") as PrototypeEnemy
+	var locked_world := WorldState.create_default()
+	map.sync_enemy_states(locked_world)
+	map.refresh_world_interactables(locked_world)
+	host._expect_equal(ridge_residue.can_interact(), false, "outer ring ridge residue is gated before outer ring scouting")
+	host._expect_equal(ridge_enemy.can_be_attacked(), false, "outer ring ridge guard is gated before outer ring scouting")
+
+	var scout_world := WorldState.create_default()
+	scout_world.quest_state.active_quest_ids = ["quest.scout_ruin_outer_ring"]
+	map.sync_enemy_states(scout_world)
+	map.refresh_world_interactables(scout_world)
+	host._expect_equal(ridge_residue.can_interact(), true, "outer ring ridge residue opens during outer ring scouting")
+	host._expect_equal(ridge_enemy.can_be_attacked(), true, "outer ring ridge guard spawns during outer ring scouting")
 	map.free()
