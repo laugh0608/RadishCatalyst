@@ -202,7 +202,7 @@
 `quest_refs` 当前不是摆设：
 
 - `scripts/check-client-data.ps1` 会校验直接指向 `region.*` 的任务目标。
-- `scripts/check-client-scenes.ps1` 会按场景中的交互点、加工设备、建造点和敌人所在区域，反推任务必须被哪些区域收录。
+- `scripts/check-client-scenes.ps1` / `scripts/check-client-scenes.py` 会按场景中的交互点、加工设备、建造点和敌人所在区域，反推任务必须被哪些区域收录。
 
 ### `map_objects.json`
 

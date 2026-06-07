@@ -78,10 +78,11 @@ run_godot_checked() {
 }
 
 echo "Running macOS/Linux client checks."
-echo "Coverage: static data, Godot import, save runtime, quest rules and vertical slice flow."
+echo "Coverage: static data, scene references, Godot import, save runtime, quest rules and vertical slice flow."
 echo "Using Godot: ${godot_exe}"
 
 "${python_exe}" "${repo_root}/scripts/check-client-data.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-scenes.py" "${repo_root}"
 run_godot_checked "godot-import" --import --quit --no-header
 run_godot_checked "save-service" --script "${client_root}/scripts/checks/save_service_check.gd" --no-header
 run_godot_checked "quest-rules" --script "${client_root}/scripts/checks/quest_rules_check.gd" --no-header

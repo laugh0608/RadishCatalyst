@@ -21,6 +21,7 @@
 - `client/scripts/core/data_registry.gd`
 - `scripts/check-client-data.ps1`
 - `scripts/check-client-scenes.ps1`
+- `scripts/check-client-scenes.py`
 - `client/scripts/save/save_content_validator.gd`
 
 如果本文与代码不一致，以代码和检查脚本为准，然后回头修本文。

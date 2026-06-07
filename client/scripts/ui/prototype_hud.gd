@@ -779,7 +779,7 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	_set_control_rect(device_panel, Vector2(device_x, device_y), Vector2(device_width, device_height))
 	_set_control_rect(
 		completion_panel,
-		Vector2((viewport_size.x - feedback_width) * 0.5, viewport_size.y - margin - feedback_height - 72.0),
+		Vector2((viewport_size.x - feedback_width) * 0.5, prompt_y - gap - feedback_height),
 		Vector2(feedback_width, feedback_height)
 	)
 	var side_feedback_x := viewport_size.x - margin - feedback_width

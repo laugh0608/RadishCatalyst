@@ -457,7 +457,16 @@ func _check_hud_runtime_layout_first_pass() -> void:
 	host._expect_equal(hud.log_panel.size.y <= 120.0, true, "HUD first pass keeps log rail compact")
 	host._expect_equal(hud.log_label.size.y >= 60.0, true, "HUD first pass keeps two-row log text visible")
 	host._expect_equal(hud.log_panel.position.x + hud.log_panel.size.x < hud.prompt_panel.position.x, true, "HUD first pass keeps log separate from prompt")
+	host._expect_equal(_controls_overlap(hud.completion_panel, hud.prompt_panel), false, "HUD first pass keeps quest feedback above prompt")
+	host._expect_equal(_controls_overlap(hud.device_panel, hud.evacuation_panel), false, "HUD first pass keeps device panel separate from evacuation feedback")
+	host._expect_equal(_controls_overlap(hud.device_panel, hud.supply_feedback_panel), false, "HUD first pass keeps device panel separate from supply feedback")
 	hud.free()
+
+
+func _controls_overlap(a: Control, b: Control) -> bool:
+	if a == null or b == null:
+		return false
+	return Rect2(a.position, a.size).intersects(Rect2(b.position, b.size), false)
 
 
 func _check_core_loop_layout() -> void:
