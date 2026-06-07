@@ -768,9 +768,11 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 	var base_stats: Dictionary = definition.get("base_stats", {})
 	var pressure_multiplier := GATE_PRESSURE_COUNTER_MULT if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure" else 1.0
 	var attack_damage := float(base_stats.get("attack", 0.0)) * pressure_multiplier
+	var damage_types: Array = definition.get("damage_types", [])
+	if damage_types.has("pollution"):
+		attack_damage *= character_state.get_pollution_counter_damage_multiplier(data_registry)
 	var health_damage := character_state.apply_health_damage(attack_damage)
 	var protection_damage := 0.0
-	var damage_types: Array = definition.get("damage_types", [])
 	if damage_types.has("pollution"):
 		protection_damage = character_state.apply_protection_damage(
 			attack_damage * POLLUTION_COUNTER_PRESSURE_MULT * character_state.get_pollution_drain_multiplier(data_registry)

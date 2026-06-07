@@ -106,7 +106,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.make_filter_module":
 			if not character_state.inventory.has_ref("item.filter_media", 1):
 				return "回基地使用基础反应器，先制造过滤介质；随后组装基础过滤模块。"
-			return "回基地使用基础反应器，组装基础过滤模块；启用后会降低污染防护消耗。"
+			return "回基地使用基础反应器，组装基础过滤模块；启用后会降低污染消耗和污染反击压力。"
 		"quest.prepare_treatment_supplies":
 			if target_region_id == "region.outpost_platform":
 				return "回基地用基础反应器调制修复凝胶，它是下一段清障战斗补给。"
@@ -404,7 +404,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 				return "异常残留物用于校验样本，回收两处后再回基地加工分析。"
 			return "靠近基础反应器，切换到异常样本分析配方并等待完成。"
 		"quest.make_filter_module":
-			return "基础反应器负责制造远征产物；过滤模块会降低污染防护消耗，让下一次深入更稳。"
+			return "基础反应器负责制造远征产物；过滤模块会降低污染消耗和污染反击压力，让下一次深入更稳。"
 		"quest.prepare_treatment_supplies":
 			if target_region_id == "region.outpost_platform":
 				return "先调制 1 份修复凝胶；它是下一段清障战斗的生命补给。"
@@ -417,7 +417,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "地基已满足要求，建造污染过滤器来处理沉积物。"
 		"quest.enter_pollution_edge":
 			if String(character_state.equipment.get("suit_module", "")).is_empty():
-				return "启用基础过滤模块后再深入污染区，防护消耗会降低。"
+				return "启用基础过滤模块后再深入污染区，防护消耗和污染反击压力会降低。"
 			if _has_enough_pollution_residue_for_vial(world_state, character_state) and not _has_pollution_vial_ready(world_state, character_state):
 				return "先回处理点过滤器处理沉积物，把抗污染药剂做出来，再继续深入污染区。"
 			if character_state.protection < character_state.max_protection * 0.5:

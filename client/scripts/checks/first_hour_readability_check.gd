@@ -22,6 +22,7 @@ func run() -> void:
 	_check_core_loop_layout()
 	_check_treatment_entry_gather_feedback()
 	_check_pollution_pressure_consumption()
+	_check_filter_module_combat_pressure()
 	_check_ruin_gate_pressure_gate()
 
 
@@ -738,6 +739,29 @@ func _check_pollution_pressure_consumption() -> void:
 	host._expect_equal(bool(module_result.get("success", false)), true, "first-hour filtered ridge residue gather succeeds")
 	host._expect_equal(int(roundf(module_character.protection * 10.0)), 844, "first-hour filter module lowers ridge pressure drain")
 	host._expect_text_contains(String(module_result.get("message", "")), "过滤模块已降低消耗", "first-hour ridge residue logs filter benefit")
+
+
+func _check_filter_module_combat_pressure() -> void:
+	var map := VerticalSliceMap.new()
+	map.data_registry = host.data_registry
+	var enemy := PrototypeEnemy.new()
+	enemy.definition_id = "enemy.polluted_skitter"
+	enemy.display_name = "受扰掠行体"
+
+	var no_module_character := CharacterState.create_default()
+	var no_module_message := map._apply_enemy_counterattack(enemy, no_module_character)
+	host._expect_equal(no_module_character.health, 94.0, "filter module baseline polluted counter health pressure")
+	host._expect_equal(no_module_character.protection, 97.0, "filter module baseline polluted counter protection pressure")
+	host._expect_text_contains(no_module_message, "防护 -3", "filter module baseline counter message")
+
+	var module_character := CharacterState.create_default()
+	module_character.equipment["suit_module"] = "equipment.filter_module_t1"
+	var module_message := map._apply_enemy_counterattack(enemy, module_character)
+	host._expect_equal(int(roundf(module_character.health * 10.0)), 949, "filter module buffers polluted counter health pressure")
+	host._expect_equal(int(roundf(module_character.protection * 10.0)), 983, "filter module buffers polluted counter protection pressure")
+	host._expect_text_contains(module_message, "防护 -1.7", "filter module counter message shows lower protection pressure")
+	enemy.free()
+	map.free()
 
 
 func _check_ruin_gate_pressure_gate() -> void:

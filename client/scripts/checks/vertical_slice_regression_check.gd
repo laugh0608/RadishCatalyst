@@ -34,13 +34,13 @@ func _check_first_hour_guidance_copy() -> void:
 	var character := CharacterState.create_default()
 	host._expect_text_contains(
 		presenter.format_onboarding_hint(world, character, "quest.make_filter_module"),
-		"降低污染防护消耗",
+		"污染反击压力",
 		"filter module onboarding explains field value"
 	)
 	character.inventory.add_item("item.filter_media", 1)
 	host._expect_text_contains(
 		presenter.format_direction_hint(world, character, "quest.make_filter_module"),
-		"降低污染防护消耗",
+		"污染反击压力",
 		"filter module direction explains why crafting matters"
 	)
 	var processing := ProcessingSystem.new(host.data_registry)
@@ -345,9 +345,9 @@ func _check_pollution_gate_pressure_spawn_and_combat() -> void:
 	var combat_character := CharacterState.create_default()
 	combat_character.equipment["suit_module"] = "equipment.filter_module_t1"
 	var counter_message := map._apply_enemy_counterattack(gate_enemy, combat_character)
-	host._expect_equal(int(roundf(combat_character.health * 10.0)), 919, "gate pressure enemy counterattack health pressure")
+	host._expect_equal(int(roundf(combat_character.health * 10.0)), 931, "gate pressure enemy counterattack health pressure")
 	host._expect_equal(combat_character.protection < 100.0, true, "gate pressure enemy counterattack protection pressure")
-	host._expect_text_contains(counter_message, "防护 -2.6", "gate pressure enemy counterattack protection hint")
+	host._expect_text_contains(counter_message, "防护 -2.2", "gate pressure enemy counterattack protection hint")
 	gate_enemy.free()
 	map.free()
 

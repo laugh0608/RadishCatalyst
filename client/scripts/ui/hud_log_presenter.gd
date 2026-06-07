@@ -76,8 +76,8 @@ func format_filter_module_missing_log() -> String:
 
 func format_filter_module_enabled_log(is_pollution_edge_ready: bool) -> String:
 	if is_pollution_edge_ready:
-		return "已启用基础过滤模块，污染边界区已标记，污染防护消耗降低。"
-	return "已启用基础过滤模块。还需要先扩建污染处理点，才能稳定推进污染边界。"
+		return "已启用基础过滤模块，污染边界区已标记，污染消耗和污染反击压力降低。"
+	return "已启用基础过滤模块，污染反击压力降低。还需要先扩建污染处理点，才能稳定推进污染边界。"
 
 
 func format_recommended_recipe_selected_log(recipe_id: String) -> String:

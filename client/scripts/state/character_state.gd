@@ -43,15 +43,11 @@ func equip_suit_module(module_id: String) -> bool:
 
 
 func get_pollution_drain_multiplier(data_registry: DataRegistry) -> float:
-	var multiplier := 1.0
-	for equipment_id in [equipment.get("suit", ""), equipment.get("suit_module", "")]:
-		var definition := data_registry.get_definition(String(equipment_id))
-		if definition.is_empty():
-			continue
+	return _get_equipment_stat_multiplier(data_registry, "pollution_drain_mult")
 
-		var stat_modifiers: Dictionary = definition.get("stat_modifiers", {})
-		multiplier *= float(stat_modifiers.get("pollution_drain_mult", 1.0))
-	return multiplier
+
+func get_pollution_counter_damage_multiplier(data_registry: DataRegistry) -> float:
+	return _get_equipment_stat_multiplier(data_registry, "pollution_counter_damage_mult")
 
 
 func apply_health_damage(amount: float) -> float:
@@ -199,6 +195,18 @@ func _get_supply_refill_hint(item_id: String) -> String:
 
 func _is_supported_quick_slot_item(item_id: String) -> bool:
 	return item_id == "item.repair_gel" or item_id == "item.resistance_vial_t1"
+
+
+func _get_equipment_stat_multiplier(data_registry: DataRegistry, stat_key: String) -> float:
+	var multiplier := 1.0
+	for equipment_id in [equipment.get("suit", ""), equipment.get("suit_module", "")]:
+		var definition := data_registry.get_definition(String(equipment_id))
+		if definition.is_empty():
+			continue
+
+		var stat_modifiers: Dictionary = definition.get("stat_modifiers", {})
+		multiplier *= float(stat_modifiers.get(stat_key, 1.0))
+	return multiplier
 
 
 func _supply_success(message: String, title: String, detail: String) -> Dictionary:

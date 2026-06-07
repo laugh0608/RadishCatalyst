@@ -388,7 +388,7 @@ func _get_completion_next_step(recipe_id: String, world_state: WorldState = null
 		"recipe.make_filter_media":
 			return "切换到基础过滤模块配方，把过滤介质和基础零件组装成远征模块。"
 		"recipe.basic_filter_module":
-			return "按 F 启用基础过滤模块；启用后污染防护消耗降低，处理点北缘清障和沉积物采集会更稳。"
+			return "按 F 启用基础过滤模块；启用后污染消耗和污染反击压力降低，处理点北缘清障和沉积物采集会更稳。"
 		"recipe.foundation_t1":
 			return "前往污染边界北缘清理地块并铺设基础地基；若材料不足，回晶体矿脉区到处理点入口前补晶体或残骸。"
 		"recipe.cleanse_residue":
