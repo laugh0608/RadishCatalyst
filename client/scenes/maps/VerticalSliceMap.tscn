@@ -218,6 +218,13 @@ offset_right = -284.0
 offset_bottom = -76.0
 color = Color(0.34, 0.46, 0.52, 1)
 
+[node name="BaseCoreToReactorFlowLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -284.0
+offset_top = -82.0
+offset_right = -186.0
+offset_bottom = -74.0
+color = Color(0.22, 0.44, 0.43, 1)
+
 [node name="BaseCorePadLabel" type="Label" parent="OpeningSceneLayer"]
 offset_left = -334.0
 offset_top = -152.0
@@ -240,6 +247,13 @@ offset_right = -146.0
 offset_bottom = -52.0
 color = Color(0.576, 0.45, 0.212, 1)
 
+[node name="BaseReactorToExitFlowLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -126.0
+offset_top = -66.0
+offset_right = -86.0
+offset_bottom = -58.0
+color = Color(0.38, 0.45, 0.28, 1)
+
 [node name="BaseReactorPadLabel" type="Label" parent="OpeningSceneLayer"]
 offset_left = -222.0
 offset_top = -128.0
@@ -261,6 +275,13 @@ offset_top = 64.0
 offset_right = -174.0
 offset_bottom = 160.0
 color = Color(0.169, 0.282, 0.306, 1)
+
+[node name="BaseSupplyReturnFlowLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -264.0
+offset_top = 24.0
+offset_right = -214.0
+offset_bottom = 86.0
+color = Color(0.16, 0.36, 0.38, 1)
 
 [node name="BaseSupplyPadLabel" type="Label" parent="OpeningSceneLayer"]
 offset_left = -230.0
@@ -321,6 +342,27 @@ offset_right = 226.0
 offset_bottom = -4.0
 color = Color(0.125, 0.329, 0.478, 1)
 
+[node name="CrystalMainVeinStartAnchor" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 14.0
+offset_top = -102.0
+offset_right = 34.0
+offset_bottom = -74.0
+color = Color(0.46, 0.76, 0.96, 1)
+
+[node name="CrystalMainVeinDeepAnchor" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 138.0
+offset_top = -190.0
+offset_right = 162.0
+offset_bottom = -154.0
+color = Color(0.62, 0.86, 1, 1)
+
+[node name="CrystalSideRouteConnector" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 34.0
+offset_top = 38.0
+offset_right = 206.0
+offset_bottom = 46.0
+color = Color(0.176, 0.282, 0.333, 1)
+
 [node name="CrystalScrapPocket" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = 12.0
 offset_top = 84.0
@@ -341,6 +383,13 @@ offset_top = 118.0
 offset_right = 224.0
 offset_bottom = 166.0
 color = Color(0.478, 0.294, 0.478, 1)
+
+[node name="CrystalAnomalyReturnAnchor" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 184.0
+offset_top = 108.0
+offset_right = 206.0
+offset_bottom = 144.0
+color = Color(0.64, 0.36, 0.68, 1)
 
 [node name="CrystalEntryLabel" type="Label" parent="OpeningSceneLayer"]
 offset_left = 12.0
@@ -399,6 +448,13 @@ offset_right = 380.0
 offset_bottom = -34.0
 color = Color(0.706, 0.635, 0.231, 1)
 
+[node name="PollutionConstructionToDangerStep" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 292.0
+offset_top = -70.0
+offset_right = 304.0
+offset_bottom = -34.0
+color = Color(0.76, 0.64, 0.24, 1)
+
 [node name="PollutionResidueObjectPocket" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = 246.0
 offset_top = 18.0
@@ -419,6 +475,20 @@ offset_top = 60.0
 offset_right = 326.0
 offset_bottom = 90.0
 color = Color(0.72, 0.44, 0.16, 1)
+
+[node name="PollutionPressureRouteLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 274.0
+offset_top = 48.0
+offset_right = 360.0
+offset_bottom = 56.0
+color = Color(0.68, 0.39, 0.16, 1)
+
+[node name="PollutionGatePressurePocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 344.0
+offset_top = 8.0
+offset_right = 380.0
+offset_bottom = 48.0
+color = Color(0.42, 0.22, 0.1, 1)
 
 [node name="PollutionGatePressureMarker" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = 348.0

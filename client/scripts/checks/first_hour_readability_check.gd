@@ -32,17 +32,24 @@ func _check_opening_scene_layer() -> void:
 	var base_deck := map.get_node("OpeningSceneLayer/BaseDeckFloor") as ColorRect
 	var core_pad := map.get_node("OpeningSceneLayer/BaseCorePad") as ColorRect
 	var core_marker := map.get_node("OpeningSceneLayer/BaseCoreObjectMarker") as ColorRect
+	var core_to_reactor_flow := map.get_node("OpeningSceneLayer/BaseCoreToReactorFlowLine") as ColorRect
 	var reactor_pad := map.get_node("OpeningSceneLayer/BaseReactorPad") as ColorRect
 	var reactor_marker := map.get_node("OpeningSceneLayer/BaseReactorObjectMarker") as ColorRect
+	var reactor_to_exit_flow := map.get_node("OpeningSceneLayer/BaseReactorToExitFlowLine") as ColorRect
 	var supply_pad := map.get_node("OpeningSceneLayer/BaseSupplyPad") as ColorRect
 	var supply_rail := map.get_node("OpeningSceneLayer/BaseSupplyObjectRail") as ColorRect
+	var supply_return_flow := map.get_node("OpeningSceneLayer/BaseSupplyReturnFlowLine") as ColorRect
 	var exit_lane := map.get_node("OpeningSceneLayer/BaseExitLane") as ColorRect
 	var exit_threshold := map.get_node("OpeningSceneLayer/BaseExitThresholdLine") as ColorRect
 	var crystal_entry := map.get_node("OpeningSceneLayer/CrystalEntryGround") as ColorRect
 	var crystal_vein_track := map.get_node("OpeningSceneLayer/CrystalMainVeinTrack") as ColorRect
+	var crystal_start_anchor := map.get_node("OpeningSceneLayer/CrystalMainVeinStartAnchor") as ColorRect
+	var crystal_deep_anchor := map.get_node("OpeningSceneLayer/CrystalMainVeinDeepAnchor") as ColorRect
+	var crystal_side_route := map.get_node("OpeningSceneLayer/CrystalSideRouteConnector") as ColorRect
 	var crystal_scrap := map.get_node("OpeningSceneLayer/CrystalScrapPocket") as ColorRect
 	var crystal_salvage_pocket := map.get_node("OpeningSceneLayer/CrystalSalvageObjectPocket") as ColorRect
 	var anomaly_pocket := map.get_node("OpeningSceneLayer/CrystalAnomalyPocketMarker") as ColorRect
+	var anomaly_return_anchor := map.get_node("OpeningSceneLayer/CrystalAnomalyReturnAnchor") as ColorRect
 	var pollution_safe := map.get_node("OpeningSceneLayer/PollutionSafeConstructionBelt") as ColorRect
 	var pollution_construction_band := map.get_node("OpeningSceneLayer/PollutionConstructionObjectBand") as ColorRect
 	var foundation_north_marker := map.get_node("OpeningSceneLayer/PollutionFoundationNorthMarker") as ColorRect
@@ -50,9 +57,12 @@ func _check_opening_scene_layer() -> void:
 	var pollution_filter_marker := map.get_node("OpeningSceneLayer/PollutionFilterObjectMarker") as ColorRect
 	var pollution_danger := map.get_node("OpeningSceneLayer/PollutionDangerField") as ColorRect
 	var pollution_boundary := map.get_node("OpeningSceneLayer/PollutionDangerBoundaryLine") as ColorRect
+	var pollution_step := map.get_node("OpeningSceneLayer/PollutionConstructionToDangerStep") as ColorRect
 	var pollution_residue_pocket := map.get_node("OpeningSceneLayer/PollutionResidueObjectPocket") as ColorRect
 	var pollution_entry_residue_marker := map.get_node("OpeningSceneLayer/PollutionEntryResidueMarker") as ColorRect
 	var pollution_entry_pressure_marker := map.get_node("OpeningSceneLayer/PollutionEntryPressureMarker") as ColorRect
+	var pollution_pressure_route := map.get_node("OpeningSceneLayer/PollutionPressureRouteLine") as ColorRect
+	var pollution_gate_pressure_pocket := map.get_node("OpeningSceneLayer/PollutionGatePressurePocket") as ColorRect
 	var pollution_gate_pressure_marker := map.get_node("OpeningSceneLayer/PollutionGatePressureMarker") as ColorRect
 	var outpost_core := map.get_node("Interactables/OutpostCore") as PrototypeInteractable
 	var basic_reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
@@ -90,6 +100,15 @@ func _check_opening_scene_layer() -> void:
 		"opening scene object markers align with base interactables"
 	)
 	host._expect_equal(
+		core_to_reactor_flow.offset_left >= core_marker.offset_right
+			and core_to_reactor_flow.offset_right <= reactor_marker.offset_left
+			and reactor_to_exit_flow.offset_left >= reactor_marker.offset_right
+			and reactor_to_exit_flow.offset_right <= exit_lane.offset_left
+			and supply_return_flow.offset_top < supply_rail.offset_top,
+		true,
+		"opening scene base flow lines connect core, reactor, return rail and exit"
+	)
+	host._expect_equal(
 		supply_pad.offset_top > reactor_pad.offset_top,
 		true,
 		"opening scene supply pad sits as a lower return lane"
@@ -111,6 +130,15 @@ func _check_opening_scene_layer() -> void:
 			and _is_rect_covering_position(crystal_vein_track, rich_crystal.position),
 		true,
 		"opening scene crystal vein track covers the first resource route"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(crystal_start_anchor, crystal_cluster.position)
+			and _is_rect_covering_position(crystal_deep_anchor, rich_crystal.position)
+			and crystal_side_route.offset_top > crystal_vein_track.offset_bottom
+			and crystal_side_route.offset_bottom < crystal_scrap.offset_top
+			and _is_rect_covering_position(anomaly_return_anchor, anomaly.position),
+		true,
+		"opening scene crystal anchors distinguish main vein, side route and anomaly return"
 	)
 	host._expect_equal(
 		crystal_scrap.offset_top > crystal_entry.offset_bottom,
@@ -152,6 +180,12 @@ func _check_opening_scene_layer() -> void:
 		"opening scene danger boundary marks the pollution depth line"
 	)
 	host._expect_equal(
+		pollution_step.offset_top >= pollution_safe.offset_bottom
+			and pollution_step.offset_bottom <= pollution_danger.offset_top + 4.0,
+		true,
+		"opening scene pollution step links safe construction belt to danger field"
+	)
+	host._expect_equal(
 		_is_rect_covering_position(pollution_residue_pocket, pollution_residue.position)
 			and pollution_residue_pocket.offset_top > VerticalSliceMap.POLLUTION_DEEP_Y,
 		true,
@@ -160,6 +194,7 @@ func _check_opening_scene_layer() -> void:
 	host._expect_equal(
 		_is_rect_covering_position(pollution_entry_residue_marker, entry_residue.position)
 			and _is_rect_covering_position(pollution_entry_pressure_marker, polluted_enemy.position)
+			and _is_rect_covering_position(pollution_gate_pressure_pocket, gate_pressure_enemy.position)
 			and _is_rect_covering_position(pollution_gate_pressure_marker, gate_pressure_enemy.position),
 		true,
 		"opening scene danger markers align with entry residue and pressure enemies"
@@ -169,7 +204,9 @@ func _check_opening_scene_layer() -> void:
 			and pollution_entry_pressure_marker.offset_top > pollution_boundary.offset_bottom
 			and pollution_gate_pressure_marker.offset_top > pollution_boundary.offset_bottom
 			and pollution_entry_residue_marker.offset_left < pollution_entry_pressure_marker.offset_left
-			and pollution_entry_pressure_marker.offset_left < pollution_gate_pressure_marker.offset_left,
+			and pollution_entry_pressure_marker.offset_left < pollution_gate_pressure_marker.offset_left
+			and pollution_pressure_route.offset_left >= pollution_entry_residue_marker.offset_right - 2.0
+			and pollution_pressure_route.offset_right <= pollution_gate_pressure_marker.offset_left + 12.0,
 		true,
 		"opening scene danger markers step from residue to first pressure to gate pressure"
 	)
@@ -382,16 +419,22 @@ func _check_object_feedback_states() -> void:
 	map.refresh_world_interactables(world)
 
 	host._expect_equal(crystal.marker.color, PrototypeInteractable.GATHERED_CRYSTAL_COLOR, "object feedback darkens gathered crystal")
+	host._expect_equal(crystal.marker.size, PrototypeInteractable.GATHERED_CRYSTAL_SIZE, "object feedback flattens gathered crystal")
 	host._expect_text_contains(crystal.label.text, "已采集", "object feedback labels gathered crystal")
 	host._expect_equal(wreckage.marker.color, PrototypeInteractable.GATHERED_SALVAGE_COLOR, "object feedback recolors salvaged wreckage")
+	host._expect_equal(wreckage.marker.size, PrototypeInteractable.GATHERED_SALVAGE_SIZE, "object feedback flattens salvaged wreckage")
 	host._expect_text_contains(wreckage.label.text, "已回收", "object feedback labels salvaged wreckage")
 	host._expect_equal(anomaly.marker.color, PrototypeInteractable.SAMPLED_ANOMALY_COLOR, "object feedback recolors sampled anomaly")
+	host._expect_equal(anomaly.marker.size, PrototypeInteractable.SAMPLED_ANOMALY_SIZE, "object feedback compacts sampled anomaly")
 	host._expect_text_contains(anomaly.label.text, "已采样", "object feedback labels sampled anomaly")
 	host._expect_equal(residue.marker.color, PrototypeInteractable.GATHERED_RESIDUE_COLOR, "object feedback recolors gathered residue")
+	host._expect_equal(residue.marker.size, PrototypeInteractable.GATHERED_RESIDUE_SIZE, "object feedback flattens gathered residue")
 	host._expect_text_contains(residue.label.text, "已回收", "object feedback labels gathered residue")
 	host._expect_equal(rough_ground.marker.color, PrototypeInteractable.CLEARED_GROUND_COLOR, "object feedback recolors cleared rough ground")
+	host._expect_equal(rough_ground.marker.size, PrototypeInteractable.CLEARED_GROUND_SIZE, "object feedback thins cleared rough ground")
 	host._expect_text_contains(rough_ground.label.text, "已清理", "object feedback labels cleared rough ground")
 	host._expect_equal(foundation_site.marker.color, PrototypeInteractable.BUILT_FOUNDATION_COLOR, "object feedback recolors built foundation")
+	host._expect_equal(foundation_site.marker.size, PrototypeInteractable.BUILT_FOUNDATION_SIZE, "object feedback widens built foundation")
 	host._expect_text_contains(foundation_site.label.text, "基础地基", "object feedback labels built foundation")
 	host._expect_text_contains(foundation_site.label.text, "已铺设", "object feedback labels foundation built state")
 	host._expect_equal(filter_site.marker.color, PrototypeInteractable.BUILT_FILTER_COLOR, "object feedback marks completed filter build site")

@@ -55,6 +55,13 @@ const CALIBRATED_STABILITY_NODE_COLOR := Color(0.48, 0.82, 0.92, 1)
 const COMPLETED_FRONTLINE_ACTION_COLOR := Color(0.56, 0.9, 0.78, 1)
 const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
 const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
+const GATHERED_CRYSTAL_SIZE := Vector2(28.0, 12.0)
+const GATHERED_SALVAGE_SIZE := Vector2(30.0, 10.0)
+const GATHERED_RESIDUE_SIZE := Vector2(26.0, 10.0)
+const SAMPLED_ANOMALY_SIZE := Vector2(24.0, 24.0)
+const CLEARED_GROUND_SIZE := Vector2(38.0, 8.0)
+const BUILT_FOUNDATION_SIZE := Vector2(38.0, 24.0)
+const BUILT_FILTER_SITE_SIZE := Vector2(48.0, 30.0)
 const FOCUSED_MARKER_SCALE := Vector2(1.22, 1.22)
 const FOCUSED_MARKER_MODULATE := Color(1.18, 1.18, 1.18, 1)
 const DEFAULT_MARKER_MODULATE := Color(1, 1, 1, 1)
@@ -218,28 +225,28 @@ func set_processed_visual() -> bool:
 		consumed = true
 		visible = true
 		monitoring = false
-		marker.color = GATHERED_CRYSTAL_COLOR
+		_apply_marker_style(GATHERED_CRYSTAL_SIZE, GATHERED_CRYSTAL_COLOR)
 		_set_label_text("%s\n已采集" % display_name_text, 2)
 		return true
 	if interaction_type == "gather" and definition_id == "map_object.field_wreckage":
 		consumed = true
 		visible = true
 		monitoring = false
-		marker.color = GATHERED_SALVAGE_COLOR
+		_apply_marker_style(GATHERED_SALVAGE_SIZE, GATHERED_SALVAGE_COLOR)
 		_set_label_text("%s\n已回收" % display_name_text, 2)
 		return true
 	if interaction_type == "gather" and definition_id == "map_object.anomaly_residue_patch":
 		consumed = true
 		visible = true
 		monitoring = false
-		marker.color = GATHERED_ANOMALY_RESIDUE_COLOR
+		_apply_marker_style(GATHERED_SALVAGE_SIZE, GATHERED_ANOMALY_RESIDUE_COLOR)
 		_set_label_text("%s\n已回收" % display_name_text, 2)
 		return true
 	if interaction_type == "gather" and definition_id == "map_object.pollution_residue_patch":
 		consumed = true
 		visible = true
 		monitoring = false
-		marker.color = GATHERED_RESIDUE_COLOR
+		_apply_marker_style(GATHERED_RESIDUE_SIZE, GATHERED_RESIDUE_COLOR)
 		_set_label_text("%s\n已回收" % display_name_text, 2)
 		return true
 	if interaction_type == "gather" and definition_id == "map_object.relay_shard_cache":
@@ -323,14 +330,14 @@ func set_processed_visual() -> bool:
 		consumed = true
 		visible = true
 		monitoring = false
-		marker.color = SAMPLED_ANOMALY_COLOR
+		_apply_marker_style(SAMPLED_ANOMALY_SIZE, SAMPLED_ANOMALY_COLOR)
 		_set_label_text("%s\n已采样" % display_name_text, 2)
 		return true
 	if interaction_type == "clear" and definition_id == "map_object.rough_ground":
 		consumed = true
 		visible = true
 		monitoring = false
-		marker.color = CLEARED_GROUND_COLOR
+		_apply_marker_style(CLEARED_GROUND_SIZE, CLEARED_GROUND_COLOR)
 		_set_label_text("%s\n已清理" % display_name_text, 2)
 		return true
 	if interaction_type == "clear" and definition_id == "map_object.phase_well_frame_route_blocker":
@@ -660,10 +667,10 @@ func set_built_visual(built_definition_id: String) -> void:
 	visible = true
 	monitoring = false
 	if built_definition_id == "building.foundation_t1":
-		marker.color = BUILT_FOUNDATION_COLOR
+		_apply_marker_style(BUILT_FOUNDATION_SIZE, BUILT_FOUNDATION_COLOR)
 		_set_label_text("基础地基\n已铺设", 2)
 	elif built_definition_id == "building.pollution_filter":
-		marker.color = BUILT_FILTER_COLOR
+		_apply_marker_style(BUILT_FILTER_SITE_SIZE, BUILT_FILTER_COLOR)
 		_set_label_text("")
 	else:
 		marker.color = DEFAULT_MARKER_COLOR
@@ -687,9 +694,15 @@ func _apply_default_marker_visual() -> void:
 		return
 	var visual := _get_default_marker_visual()
 	var marker_size: Vector2 = visual.get("size", Vector2(32.0, 32.0))
+	_apply_marker_style(marker_size, visual.get("color", DEFAULT_MARKER_COLOR))
+
+
+func _apply_marker_style(marker_size: Vector2, color: Color) -> void:
+	if marker == null:
+		return
 	marker.position = -marker_size * 0.5
 	marker.size = marker_size
-	marker.color = visual.get("color", DEFAULT_MARKER_COLOR)
+	marker.color = color
 
 
 func _get_default_marker_visual() -> Dictionary:
