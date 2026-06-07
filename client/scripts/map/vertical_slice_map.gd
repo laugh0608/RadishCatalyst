@@ -10,6 +10,7 @@ const PLAYER_INTERACTION_RANGE := 96.0
 const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
 const POLLUTION_RIDGE_COUNTER_MULT := 1.2
 const GATE_PRESSURE_COUNTER_MULT := 1.35
+const CORE_STABILIZATION_BUFFER_DAMAGE_MULT := 0.55
 const OUTPOST_RESPAWN_POSITION := Vector2(-250, -48)
 const PLAY_BOUNDS_MIN := Vector2(-360, -200)
 const PLAY_BOUNDS_MAX := Vector2(4200, 200)
@@ -784,6 +785,11 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
 		pressure_multiplier = POLLUTION_RIDGE_COUNTER_MULT
 	var attack_damage := float(base_stats.get("attack", 0.0)) * pressure_multiplier
+	var consumed_core_buffer := false
+	if enemy.definition_id == "enemy.demo_stabilization_guard" and character_state.inventory.has_ref("item.core_stabilization_buffer", 1):
+		character_state.inventory.consume_ref("item.core_stabilization_buffer", 1)
+		attack_damage *= CORE_STABILIZATION_BUFFER_DAMAGE_MULT
+		consumed_core_buffer = true
 	var damage_types: Array = definition.get("damage_types", [])
 	if damage_types.has("pollution"):
 		attack_damage *= character_state.get_pollution_counter_damage_multiplier(data_registry)
@@ -803,6 +809,11 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 			message = "%s门前污染压力更高，防护偏低时按 2 使用抗污染药剂，生命偏低时按 1 使用修复凝胶。" % message
 		if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
 			message = "%s污染脊守卫压迫更强，过滤模块会降低生命和防护承压；防护偏低时按 2 使用抗污染药剂。" % message
+		if enemy.definition_id == "enemy.demo_stabilization_guard":
+			if consumed_core_buffer:
+				message = "%s核心稳压缓冲包已消耗，第一段回写压力被削弱；后续仍需用修复凝胶和抗污染药剂兜底。" % message
+			else:
+				message = "%s没有核心稳压缓冲包，回写压力完整命中；建议回基地整备后再战。" % message
 		return message
 	var message := "%s 反击，生命 -%s。" % [enemy.display_name, _format_amount(health_damage)]
 	if enemy.definition_id == "enemy.treatment_skitter":

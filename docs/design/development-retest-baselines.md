@@ -61,15 +61,16 @@
 
 ## 核心稳定站人工短跑基线
 
-核心稳定站三段任务链已登记为代码生成 `S21` 基线。人工短跑优先从 `S21` 切入：确认地图 / HUD 指向 `region.demo_stabilization_core`，再跑核心稳定站终点链。若本地已有高压窗口归档后的普通槽位，也可直接载入该槽位。
+核心稳定站终点链已登记为代码生成 `S21` 基线。人工短跑优先从 `S21` 切入：确认地图 / HUD 指向 `region.demo_stabilization_core`，再跑核心稳定站终点链。若本地已有高压窗口归档后的普通槽位，也可直接载入该槽位。
 
 短跑步骤：
 
 1. 从高压窗口反馈归档后出发，确认当前目标指向核心稳定站，且未要求再新增行动台方案或高压窗口分支。
-2. 进入 `region.demo_stabilization_core`，确认 `quest.enter_demo_stabilization_core` 完成，并激活阶段守卫目标。
-3. 在核心稳定站击败 `enemy.demo_stabilization_guard`，确认核心设备写入目标被激活。
-4. 在 `map_object.demo_stabilization_core` 写入稳定数据，确认 `quest.write_demo_stabilization_core` 完成并出现 demo 完成反馈。
-5. 完成后检查 HUD / 地图 / 任务追踪不再把玩家引回行动台、高压窗口或新的区域入口。
+2. 进入 `region.demo_stabilization_core`，确认 `quest.enter_demo_stabilization_core` 完成，并激活 `quest.prepare_demo_stabilization_buffer`。
+3. 回基地用基础反应器整备 `item.core_stabilization_buffer`，确认核心稳压缓冲包目标完成并激活阶段守卫目标。
+4. 带核心稳压缓冲包回核心稳定站击败 `enemy.demo_stabilization_guard`，确认核心设备写入目标被激活；守卫第一次回写压力应消耗缓冲包并降低生命 / 防护承压。
+5. 在 `map_object.demo_stabilization_core` 写入稳定数据，确认 `quest.write_demo_stabilization_core` 完成并出现 demo 完成反馈。
+6. 完成后检查 HUD / 地图 / 任务追踪不再把玩家引回行动台、高压窗口或新的区域入口。
 
 检查口径：
 

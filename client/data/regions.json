@@ -60,7 +60,8 @@
         "quest.choose_pressure_clearance_action",
         "quest.analyze_steady_supply_trace",
         "quest.analyze_phase_survey_trace",
-        "quest.analyze_pressure_clearance_trace"
+        "quest.analyze_pressure_clearance_trace",
+        "quest.prepare_demo_stabilization_buffer"
       ],
       "public_level": "public"
     },
@@ -253,7 +254,7 @@
       "pollution_types": ["pollution.yellow_residue"],
       "weather_pool": ["weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
-      "quest_refs": ["quest.enter_demo_stabilization_core", "quest.defeat_demo_stabilization_guard", "quest.write_demo_stabilization_core"],
+      "quest_refs": ["quest.enter_demo_stabilization_core", "quest.prepare_demo_stabilization_buffer", "quest.defeat_demo_stabilization_guard", "quest.write_demo_stabilization_core"],
       "public_level": "spoiler"
     }
   ]

@@ -306,6 +306,8 @@ func get_recommended_recipe_id(
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_survey_feedback", world_state)
 		"quest.analyze_pressure_clearance_trace":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.pressure_clearance_feedback", world_state)
+		"quest.prepare_demo_stabilization_buffer":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.core_stabilization_buffer", world_state)
 		_:
 			return ""
 
@@ -401,6 +403,8 @@ func _get_completion_next_step(recipe_id: String, world_state: WorldState = null
 			return "把修复凝胶留在快捷栏 1，前往处理点北缘清障；生命偏低时按 1 使用。"
 		"recipe.phase_anchor":
 			return "带着稳相信标返回遗迹外圈，在抖动雾幕前部署后再继续深入。"
+		"recipe.core_stabilization_buffer":
+			return "核心稳压缓冲包已就绪；带回核心稳定站挑战阶段守卫，第一次回写压力会被缓冲包吸收一段。"
 		"recipe.deep_signal_analysis":
 			return "带着裂相坐标返回封锁遗迹最东侧，写入裂相脊入口门禁。"
 		"recipe.phase_filament_refining":
@@ -539,6 +543,13 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 		"recipe.deep_signal_analysis":
 			if _get_recipe_input_shortage(recipe, "item.signal_echo_trace", inventory) > 0.0:
 				return "先在封锁遗迹深处清理相位守卫，并回收外圈回波匣。"
+		"recipe.core_stabilization_buffer":
+			if _get_recipe_input_shortage(recipe, "item.repair_gel", inventory) > 0.0:
+				return "修复凝胶不足：先在基础反应器调制修复凝胶，或检查核心稳定站侧边补给缓存。"
+			if _get_recipe_input_shortage(recipe, "item.resistance_vial_t1", inventory) > 0.0:
+				return "抗污染药剂不足：回处理点过滤器处理污染沉积物，再整备核心稳压缓冲包。"
+			if _get_recipe_input_shortage(recipe, "item.basic_parts", inventory) > 0.0:
+				return "基础零件不足：处理晶体矿物，或把污染浆液回收成基础零件后再整备缓冲包。"
 		"recipe.phase_filament_refining":
 			if _get_recipe_input_shortage(recipe, "item.phase_filament", inventory) > 0.0:
 				return "先进入裂相脊入口，清理裂相守卫并回收两处相位纤丝。"

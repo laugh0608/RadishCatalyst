@@ -1,5 +1,7 @@
 extends RefCounted
 
+const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
+
 var host
 
 
@@ -17,8 +19,9 @@ func run() -> void:
 	_check_runtime_preserves_manual_phase_relay_anchor_selection()
 	_check_demo_stabilization_event_rules()
 	_check_runtime_activates_demo_stabilization_core_entry()
-	_check_demo_stabilization_three_step_flow()
+	_check_demo_stabilization_four_step_flow()
 	_check_demo_stabilization_short_run_from_overpressure_archive()
+	_check_core_stabilization_buffer_reduces_guard_pressure()
 
 
 func _check_phase_well_knot_core_recipe_progression() -> void:
@@ -393,6 +396,8 @@ func _check_demo_stabilization_event_rules() -> void:
 
 	updates = host.event_rules.get_defeated_enemy_objective_updates("enemy.demo_stabilization_guard")
 	host._expect_update(updates, "set", "quest.defeat_demo_stabilization_guard", "defeat_enemy", "enemy.demo_stabilization_guard", 1.0, "demo guard defeat update")
+	updates = host.event_rules.get_recipe_objective_updates("recipe.core_stabilization_buffer")
+	host._expect_update(updates, "set", "quest.prepare_demo_stabilization_buffer", "craft_item", "item.core_stabilization_buffer", 1.0, "core buffer recipe update")
 
 	updates = host.event_rules.get_interaction_objective_updates(
 		{
@@ -421,7 +426,7 @@ func _check_runtime_activates_demo_stabilization_core_entry() -> void:
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.enter_demo_stabilization_core", "overpressure review activates demo core entry quest")
 
 
-func _check_demo_stabilization_three_step_flow() -> void:
+func _check_demo_stabilization_four_step_flow() -> void:
 	var world_state := WorldState.create_default()
 	var character_state := CharacterState.create_default()
 	var gather_system := GatherSystem.new(host.data_registry)
@@ -432,11 +437,20 @@ func _check_demo_stabilization_three_step_flow() -> void:
 
 	var result: Dictionary = host.quest_runtime.advance_for_region(world_state, character_state, "region.demo_stabilization_core")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.enter_demo_stabilization_core", "enter demo core quest completes on region visit")
-	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.defeat_demo_stabilization_guard", "enter demo core activates guard quest")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.prepare_demo_stabilization_buffer", "enter demo core activates buffer preparation")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.core_stabilization_buffer", "enter demo core unlocks core buffer recipe")
 	host._expect_equal(host._result_array_size(result, "completion_feedbacks"), 1, "enter demo core emits completion feedback")
 	var status_text := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
-	_expect_text_contains(status_text, "目标：击败核心阶段守卫", "enter demo core status points to guard")
-	_expect_text_contains(status_text, "进度：击败 核心阶段守卫 0/1", "enter demo core status shows guard progress")
+	_expect_text_contains(status_text, "目标：整备核心稳压缓冲包", "enter demo core status points to buffer prep")
+	_expect_text_contains(status_text, "进度：制造 核心稳压缓冲包（基础反应器） 0/1", "enter demo core status shows buffer progress")
+
+	result = _complete_core_buffer_preparation(world_state, character_state)
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.prepare_demo_stabilization_buffer", "core buffer prep quest completes")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.defeat_demo_stabilization_guard", "core buffer prep activates guard quest")
+	host._expect_equal(int(character_state.inventory.items.get("item.core_stabilization_buffer", 0)), 1, "core buffer remains in inventory for guard pressure")
+	status_text = HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(status_text, "目标：击败核心阶段守卫", "buffer completion status points to guard")
+	_expect_text_contains(status_text, "进度：击败 核心阶段守卫 0/1", "buffer completion status shows guard progress")
 
 	result = host.quest_runtime.advance_for_defeated_enemy(world_state, character_state, "enemy.demo_stabilization_guard")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.defeat_demo_stabilization_guard", "demo guard defeat quest completes")
@@ -520,10 +534,11 @@ func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
 	character_state.current_region_id = "region.demo_stabilization_core"
 	result = host.quest_runtime.advance_for_region(world_state, character_state, "region.demo_stabilization_core")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.enter_demo_stabilization_core", "short run completes demo core entry")
-	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.defeat_demo_stabilization_guard", "short run activates guard objective")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.prepare_demo_stabilization_buffer", "short run activates buffer objective")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.core_stabilization_buffer", "short run unlocks core buffer recipe")
 	var status_text := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
-	_expect_text_contains(status_text, "目标：击败核心阶段守卫", "short run status points to demo guard")
-	_expect_text_contains(status_text, "进度：击败 核心阶段守卫 0/1", "short run status shows guard objective")
+	_expect_text_contains(status_text, "目标：整备核心稳压缓冲包", "short run status points to buffer prep")
+	_expect_text_contains(status_text, "进度：制造 核心稳压缓冲包（基础反应器） 0/1", "short run status shows buffer objective")
 
 	var repair_before := int(character_state.inventory.items.get("item.repair_gel", 0))
 	var recovery_result := gather_system.interact_with_object(
@@ -540,6 +555,10 @@ func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
 		"short run side recovery grants repair gel"
 	)
 	host._expect_array_missing(world_state.quest_state.completed_quest_ids, "quest.write_demo_stabilization_core", "side recovery should not complete demo")
+
+	result = _complete_core_buffer_preparation(world_state, character_state)
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.prepare_demo_stabilization_buffer", "short run completes buffer prep")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.defeat_demo_stabilization_guard", "short run activates guard after buffer")
 
 	result = host.quest_runtime.advance_for_defeated_enemy(world_state, character_state, "enemy.demo_stabilization_guard")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.defeat_demo_stabilization_guard", "short run completes guard defeat")
@@ -575,6 +594,37 @@ func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
 		var feedback = feedbacks[0]
 		if feedback is Dictionary:
 			_expect_text_contains(String(feedback.get("note_text", "")), "首版 demo 主线目标已完成", "short run completion explains demo finish")
+
+
+func _check_core_stabilization_buffer_reduces_guard_pressure() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	host.root.add_child(map)
+	map.setup(host.data_registry)
+	var guard := map.get_node("Enemies/DemoStabilizationGuard") as PrototypeEnemy
+	var no_buffer_character := CharacterState.create_default()
+	var no_buffer_message := map._apply_enemy_counterattack(guard, no_buffer_character)
+	host._expect_equal(int(roundf(no_buffer_character.health * 10.0)), 800, "core guard full pressure health damage")
+	host._expect_equal(int(roundf(no_buffer_character.protection * 10.0)), 900, "core guard full pressure protection damage")
+	_expect_text_contains(no_buffer_message, "没有核心稳压缓冲包", "core guard no-buffer pressure message")
+
+	var buffered_character := CharacterState.create_default()
+	buffered_character.inventory.add_item("item.core_stabilization_buffer", 1)
+	var buffered_message := map._apply_enemy_counterattack(guard, buffered_character)
+	host._expect_equal(int(roundf(buffered_character.health * 10.0)), 890, "core buffer reduces guard health pressure")
+	host._expect_equal(int(roundf(buffered_character.protection * 10.0)), 945, "core buffer reduces guard protection pressure")
+	host._expect_equal(int(buffered_character.inventory.items.get("item.core_stabilization_buffer", 0)), 0, "core buffer is consumed by first guard pressure")
+	_expect_text_contains(buffered_message, "核心稳压缓冲包已消耗", "core guard buffer pressure message")
+	map.free()
+
+
+func _complete_core_buffer_preparation(world_state: WorldState, character_state: CharacterState) -> Dictionary:
+	character_state.inventory.add_item("item.core_stabilization_buffer", 1)
+	return host.quest_runtime.advance_for_interaction(
+		world_state,
+		character_state,
+		{"interaction_type": "process_recipe", "recipe_id": "recipe.core_stabilization_buffer"},
+		{"success": true, "completed_recipe_id": "recipe.core_stabilization_buffer"}
+	)
 
 
 func _expect_text_contains(text: String, expected_text: String, label: String) -> void:

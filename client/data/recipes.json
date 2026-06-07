@@ -152,6 +152,21 @@
       "public_level": "spoiler"
     },
     {
+      "id": "recipe.core_stabilization_buffer",
+      "display_name_key": "recipe.core_stabilization_buffer.name",
+      "description_key": "recipe.core_stabilization_buffer.desc",
+      "category": "field_supply",
+      "required_building_id": "building.basic_reactor",
+      "inputs": [{"id": "item.repair_gel", "amount": 1}, {"id": "item.resistance_vial_t1", "amount": 1}, {"id": "item.basic_parts", "amount": 2}],
+      "outputs": [{"id": "item.core_stabilization_buffer", "amount": 1}],
+      "byproducts": [],
+      "duration": 7.0,
+      "energy_cost": 3.0,
+      "pollution_delta": 0.0,
+      "unlock_conditions": ["quest.enter_demo_stabilization_core"],
+      "public_level": "spoiler"
+    },
+    {
       "id": "recipe.deep_signal_analysis",
       "display_name_key": "recipe.deep_signal_analysis.name",
       "description_key": "recipe.deep_signal_analysis.desc",

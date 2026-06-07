@@ -38,6 +38,7 @@ const PHASE_RELAY_TETHER_PROGRESS_QUEST_IDS: Array[String] = [
 	"quest.clear_pressure_frontline_hazard",
 	"quest.analyze_pressure_clearance_trace",
 	"quest.enter_demo_stabilization_core",
+	"quest.prepare_demo_stabilization_buffer",
 	"quest.defeat_demo_stabilization_guard",
 	"quest.write_demo_stabilization_core"
 ]
@@ -122,6 +123,8 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 		log_messages.append("旧进度已接入：锚定结核解析配方已补齐。")
 	if _restore_missing_phase_well_anchor_core_analysis_unlock(world_state):
 		log_messages.append("旧进度已接入：稳场锚核解析配方已补齐。")
+	if _restore_missing_core_stabilization_buffer_unlock(world_state):
+		log_messages.append("旧进度已接入：核心稳压缓冲包配方已补齐。")
 	if _restore_missing_phase_well_weave_core_reward(character_state, world_state):
 		log_messages.append("旧进度已接入：风蚀管廊勘验奖励的锁相织构核已补回背包。")
 	if _restore_missing_phase_well_knot_core_reward(character_state, world_state):
@@ -150,6 +153,8 @@ func reconcile_active_objectives(world_state: WorldState, character_state: Chara
 		log_messages.append("旧进度已接入：稳窗读数后的现场校准任务已补入当前目标。")
 	if _activate_missing_demo_stabilization_core_entry(world_state):
 		log_messages.append("核心稳定站已接入：高压窗口稳定数据已归档，最终写入目标已补入当前目标。")
+	if _activate_missing_post_demo_stabilization_core_followup(world_state):
+		log_messages.append("旧进度已接入：核心稳定站后续目标已补入当前目标。")
 	if _activate_missing_post_stability_window_frontline_action(world_state):
 		log_messages.append("旧进度已接入：稳窗校准后的前线行动任务已补入当前目标。")
 	if _activate_missing_post_stability_echo_report_supply_action(world_state):
@@ -280,6 +285,9 @@ func _format_objective_milestone_message(quest_id: String, objective_type: Strin
 				return "污染脊沉积物已够：回处理点过滤器处理，副产浆液可回基础反应器补信标零件。"
 			if objective_type == "defeat_enemy" and target_id == "enemy.polluted_skitter":
 				return "污染脊守卫已清：继续回收继电残片，或回基地整理沉积物和稳相信标材料。"
+		"quest.prepare_demo_stabilization_buffer":
+			if objective_type == "craft_item" and target_id == "item.core_stabilization_buffer":
+				return "核心稳压缓冲包已就绪：返回核心稳定站挑战阶段守卫，第一次回写压力会降低。"
 	return ""
 
 
@@ -770,6 +778,15 @@ func _restore_missing_phase_well_anchor_core_analysis_unlock(world_state: WorldS
 	return true
 
 
+func _restore_missing_core_stabilization_buffer_unlock(world_state: WorldState) -> bool:
+	if not world_state.quest_state.has_completed_quest("quest.enter_demo_stabilization_core"):
+		return false
+	if world_state.quest_state.unlocked_effects.has("recipe.core_stabilization_buffer"):
+		return false
+	world_state.quest_state.unlock_effect("recipe.core_stabilization_buffer")
+	return true
+
+
 func _restore_missing_phase_well_knot_core_reward(character_state: CharacterState, world_state: WorldState) -> bool:
 	if not world_state.quest_state.has_completed_quest("quest.inspect_phase_well_frame"):
 		return false
@@ -976,6 +993,23 @@ func _activate_missing_demo_stabilization_core_entry(world_state: WorldState) ->
 		return false
 	world_state.unlock_region("region.demo_stabilization_core")
 	world_state.quest_state.activate_quest("quest.enter_demo_stabilization_core")
+	return true
+
+
+func _activate_missing_post_demo_stabilization_core_followup(world_state: WorldState) -> bool:
+	if not world_state.quest_state.active_quest_ids.is_empty():
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.enter_demo_stabilization_core"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.defeat_demo_stabilization_guard"):
+		world_state.quest_state.activate_quest("quest.write_demo_stabilization_core")
+		return true
+	if world_state.quest_state.has_completed_quest("quest.prepare_demo_stabilization_buffer"):
+		world_state.quest_state.activate_quest("quest.defeat_demo_stabilization_guard")
+		return true
+	world_state.quest_state.activate_quest("quest.prepare_demo_stabilization_buffer")
 	return true
 
 

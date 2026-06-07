@@ -375,6 +375,8 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 			return [_set_update("quest.analyze_phase_survey_trace", "craft_item", "item.phase_survey_feedback", 1)]
 		"recipe.pressure_clearance_feedback":
 			return [_set_update("quest.analyze_pressure_clearance_trace", "craft_item", "item.pressure_clearance_feedback", 1)]
+		"recipe.core_stabilization_buffer":
+			return [_set_update("quest.prepare_demo_stabilization_buffer", "craft_item", "item.core_stabilization_buffer", 1)]
 		_:
 			return []
 

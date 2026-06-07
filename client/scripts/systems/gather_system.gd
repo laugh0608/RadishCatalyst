@@ -477,7 +477,7 @@ func _get_quest_gate_error(definition_id: String, interaction_type: String, worl
 
 func _get_quest_gate_detail(definition_id: String, interaction_type: String) -> String:
 	if definition_id == "map_object.demo_stabilization_core" and interaction_type == "inspect":
-		return "先进入核心稳定站并击败核心阶段守卫，再回来写入稳定数据。"
+		return "先进入核心稳定站，回基地整备核心稳压缓冲包并击败核心阶段守卫，再回来写入稳定数据。"
 	if definition_id == "map_object.anomaly_crystal" and interaction_type == "sample":
 		return "先完成反应器校准件，再按任务目标采样异常晶体。"
 	if definition_id == "map_object.anomaly_residue_patch" and interaction_type == "gather":

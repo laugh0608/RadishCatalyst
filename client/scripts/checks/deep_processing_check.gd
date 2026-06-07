@@ -13,12 +13,40 @@ func run() -> void:
 	_check_phase_splinter_refining(processing)
 	_check_reclaim_basic_parts(processing)
 	_check_phase_anchor_reclaim_hint(processing)
+	_check_core_stabilization_buffer(processing)
 	_check_relay_tuning_lens(processing)
 	_check_salt_flat_readability(processing)
 	_check_shattered_ravine_readability(processing)
 	_check_wind_conduit_readability(processing)
 	_check_phase_lock_frame_readability(processing)
 	_check_completed_deep_signal_matrix_refreshes_anchor()
+
+
+func _check_core_stabilization_buffer(processing: ProcessingSystem) -> void:
+	host._expect_text_contains(
+		RecipePurposeHints.format_recipe_goal_hint("recipe.core_stabilization_buffer"),
+		"核心守卫第一段回写压力",
+		"core buffer purpose points to guard pressure"
+	)
+	var world := WorldState.create_default()
+	world.quest_state.completed_quest_ids.append("quest.enter_demo_stabilization_core")
+	world.quest_state.active_quest_ids = ["quest.prepare_demo_stabilization_buffer"]
+	world.quest_state.unlock_effect("recipe.core_stabilization_buffer")
+	world.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	var missing_character := CharacterState.create_default()
+	missing_character.inventory.items.erase("item.repair_gel")
+	var missing_status := processing.get_recipe_status("recipe.core_stabilization_buffer", missing_character, world)
+	host._expect_text_contains(String(missing_status.get("supply_hint", "")), "修复凝胶不足", "core buffer missing repair gel hint")
+	var character := CharacterState.create_default()
+	character.inventory.add_item("item.basic_parts", 2)
+	character.inventory.add_item("item.repair_gel", 1)
+	character.inventory.add_item("item.resistance_vial_t1", 1)
+	var start := processing.process_recipe("recipe.core_stabilization_buffer", character, world)
+	host._expect_equal(bool(start.get("success", false)), true, "core buffer processing starts")
+	var completed := processing.advance_processing(8.0, character, world)
+	host._expect_equal(completed.size(), 1, "core buffer processing completes")
+	host._expect_equal(int(character.inventory.items.get("item.core_stabilization_buffer", 0)), 1, "core buffer processing grants item")
+	host._expect_text_contains(String(completed[0].get("next_step_text", "")), "带回核心稳定站挑战阶段守卫", "core buffer completion points back to guard")
 
 
 func _check_completed_deep_signal_matrix_refreshes_anchor() -> void:

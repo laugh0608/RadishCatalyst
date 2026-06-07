@@ -316,6 +316,14 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "用相位回投返回锚定桥前线，先击退清障扰动守卫，再清掉一处压力扰点后回基地。"
 		"quest.analyze_pressure_clearance_trace":
 			return "回基地使用基础反应器，把压力清障回执解析成清障反馈。"
+		"quest.enter_demo_stabilization_core":
+			return "从锚定桥继续向东进入核心稳定站，确认终点前压力和写入平台。"
+		"quest.prepare_demo_stabilization_buffer":
+			return "回基地使用基础反应器，把修复凝胶、抗污染药剂和基础零件整备成核心稳压缓冲包。"
+		"quest.defeat_demo_stabilization_guard":
+			return "带核心稳压缓冲包返回核心稳定站，挑战核心阶段守卫并解除写入平台压制。"
+		"quest.write_demo_stabilization_core":
+			return "靠近核心稳定设备写入稳窗和高压窗口归档数据，完成首版 demo 主线目标。"
 		_:
 			return "按当前目标推进。"
 
@@ -596,6 +604,14 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "清障方案的前线差异是一场短战斗加一处高风险扰点，收益偏修复和抗污染补给。"
 		"quest.analyze_pressure_clearance_trace":
 			return "解析后只给现有防护补给，不新增成功率、队员或装备 loadout。"
+		"quest.enter_demo_stabilization_core":
+			return "先进入核心稳定站识别终点压力；确认后会回基地整备，不直接扩新的后段区域。"
+		"quest.prepare_demo_stabilization_buffer":
+			return "核心稳压缓冲包把修复、抗污染和基础零件合成一次终点前准备，守卫第一段回写压力会因此降低。"
+		"quest.defeat_demo_stabilization_guard":
+			return "这场守卫战验证基地整备能改变终点承压；带缓冲包回去打，而不是只靠提示推进。"
+		"quest.write_demo_stabilization_core":
+			return "最终写入只接管第一条稳定通道，当前阶段不继续扩新区域或前线行动台。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 
