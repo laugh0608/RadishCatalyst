@@ -250,7 +250,7 @@
       "planet_or_world": "world.slice_01",
       "biome_type": "demo_stabilization_core",
       "danger_level": 11,
-      "resources": ["item.phase_well_stability_readout"],
+      "resources": ["item.phase_well_stability_readout", "item.core_write_charge", "item.basic_parts", "item.repair_gel"],
       "pollution_types": ["pollution.yellow_residue"],
       "weather_pool": ["weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],

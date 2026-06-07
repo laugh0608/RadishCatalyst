@@ -46,6 +46,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		]
 		updates.append_array(_get_drop_objective_updates("quest.scout_ruin_outer_ring", "gather_item", "item.relay_shard", definition_id))
 		return updates
+	if interaction_type == "gather" and definition_id == "map_object.demo_stabilization_guard_cache":
+		return _get_drop_objective_updates("quest.write_demo_stabilization_core", "gather_item", "item.core_write_charge", definition_id)
 	if interaction_type == "inspect" and definition_id == "map_object.outer_ring_barrier":
 		return [_set_update("quest.stabilize_outer_ring_barrier", "inspect", "map_object.outer_ring_barrier", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.outer_ring_console":

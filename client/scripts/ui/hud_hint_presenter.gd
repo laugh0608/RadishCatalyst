@@ -329,6 +329,8 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.defeat_demo_stabilization_guard":
 			return "带核心稳压缓冲包返回核心稳定站，挑战核心阶段守卫并解除写入平台压制。"
 		"quest.write_demo_stabilization_core":
+			if world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.core_write_charge") < 1.0:
+				return "击败守卫后先回收核心守卫回写缓存，拿到校验片、零件和补给。"
 			return "靠近核心稳定设备写入稳窗和高压窗口归档数据，完成首版 demo 主线目标。"
 		_:
 			return "按当前目标推进。"
@@ -617,7 +619,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.defeat_demo_stabilization_guard":
 			return "这场守卫战验证基地整备能改变终点承压；带缓冲包回去打，而不是只靠提示推进。"
 		"quest.write_demo_stabilization_core":
-			return "最终写入只接管第一条稳定通道，当前阶段不继续扩新区域或前线行动台。"
+			return "守卫战后的回写缓存把终点战斗收益转成写入校验和补给；最终写入只接管第一条稳定通道。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 

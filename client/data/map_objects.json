@@ -1073,6 +1073,28 @@
       "public_level": "spoiler"
     },
     {
+      "id": "map_object.demo_stabilization_guard_cache",
+      "display_name_key": "map_object.demo_stabilization_guard_cache.name",
+      "description_key": "map_object.demo_stabilization_guard_cache.desc",
+      "object_type": "supply_cache",
+      "interaction_types": ["gather"],
+      "is_destructible": true,
+      "is_collectible": false,
+      "is_sampleable": false,
+      "blocks_movement": false,
+      "blocks_building": true,
+      "required_tool_tags": ["gather_basic"],
+      "drops": [
+        {"id": "item.core_write_charge", "amount": 1},
+        {"id": "item.basic_parts", "amount": 2},
+        {"id": "item.repair_gel", "amount": 1},
+        {"id": "item.resistance_vial_t1", "amount": 1}
+      ],
+      "sample_result_refs": [],
+      "pollution_effect": "",
+      "public_level": "spoiler"
+    },
+    {
       "id": "map_object.demo_stabilization_core",
       "display_name_key": "map_object.demo_stabilization_core.name",
       "description_key": "map_object.demo_stabilization_core.desc",

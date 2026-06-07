@@ -1212,7 +1212,10 @@
       "description_key": "quest.write_demo_stabilization_core.desc",
       "quest_type": "side",
       "stage": 88,
-      "objectives": [{"type": "inspect", "target_id": "map_object.demo_stabilization_core", "amount": 1}],
+      "objectives": [
+        {"type": "gather_item", "target_id": "item.core_write_charge", "amount": 1},
+        {"type": "inspect", "target_id": "map_object.demo_stabilization_core", "amount": 1}
+      ],
       "prerequisites": ["quest.defeat_demo_stabilization_guard"],
       "rewards": [{"id": "item.basic_parts", "amount": 4}],
       "unlock_effects": ["slice_01_complete"],

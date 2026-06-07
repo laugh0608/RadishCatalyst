@@ -1291,6 +1291,13 @@ interaction_type = "gather"
 label_offset = Vector2(-82, 22)
 label_size = Vector2(164, 24)
 
+[node name="DemoStabilizationGuardCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(3926, 70)
+definition_id = "map_object.demo_stabilization_guard_cache"
+interaction_type = "gather"
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
+
 [node name="Enemies" type="Node2D" parent="."]
 
 [node name="NativeSkitter" parent="Enemies" instance=ExtResource("4_enemy")]

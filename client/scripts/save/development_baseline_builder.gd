@@ -250,6 +250,11 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			], "map_object.pollution_residue_patch", "region.pollution_edge")
 			_mark_enemy_defeated(world_state, "enemy_instance.core_buffer_polluted_skitter", "enemy.polluted_skitter", "region.pollution_edge")
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.core_stabilization_buffer")
+		"quest.write_demo_stabilization_core":
+			_mark_objects_gathered(world_state, [
+				"map_object_instance.demo_stabilization_guard_cache"
+			], "map_object.demo_stabilization_guard_cache", "region.demo_stabilization_core")
+			_mark_enemy_defeated(world_state, "enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core")
 		"quest.assemble_phase_anchor":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_anchor")
 		"quest.salvage_signal_echo":

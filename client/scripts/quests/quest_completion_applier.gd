@@ -239,7 +239,7 @@ func _format_completion_note(quest_id: String) -> String:
 		"quest.prepare_demo_stabilization_buffer":
 			return "核心稳压缓冲包已整备；返回核心稳定站挑战阶段守卫"
 		"quest.defeat_demo_stabilization_guard":
-			return "核心阶段守卫已击败；核心稳定设备可以接收稳窗与高压窗口归档数据"
+			return "核心阶段守卫已击败；回写缓存已暴露，先回收校验片和终点前补给"
 		"quest.write_demo_stabilization_core":
 			return "核心稳定站已接管第一条稳定通道；首版 demo 主线目标已完成"
 		_:

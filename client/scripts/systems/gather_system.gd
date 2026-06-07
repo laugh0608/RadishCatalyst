@@ -354,6 +354,8 @@ func _get_first_hour_gather_step_hint(instance_id: String) -> String:
 			return "处理点入口前的回访晶体已补足；回基地加工基础零件或地基材料"
 		"map_object_instance.field_wreckage_foundation_return":
 			return "处理点入口前的残骸缓存已回收；若地基或过滤器缺料，先回基地整理制造"
+		"map_object_instance.demo_stabilization_guard_cache":
+			return "核心写入校验片已回收；带着补给靠近核心稳定设备写入归档数据"
 	return ""
 
 
@@ -462,6 +464,8 @@ func _get_quest_gate_error(definition_id: String, interaction_type: String, worl
 			return "核心稳定设备尚未开放写入。"
 		if not bool(world_state.get_enemy("enemy_instance.demo_stabilization_guard").get("is_defeated", false)):
 			return "核心阶段守卫仍在压制写入平台。"
+		if world_state.quest_state.get_objective_progress("quest.write_demo_stabilization_core", "gather_item", "item.core_write_charge") < 1.0:
+			return "核心写入校验片尚未回收。"
 		return ""
 	if definition_id != "map_object.anomaly_crystal" or interaction_type != "sample":
 		if definition_id != "map_object.anomaly_residue_patch" or interaction_type != "gather":
@@ -480,7 +484,7 @@ func _get_quest_gate_error(definition_id: String, interaction_type: String, worl
 
 func _get_quest_gate_detail(definition_id: String, interaction_type: String) -> String:
 	if definition_id == "map_object.demo_stabilization_core" and interaction_type == "inspect":
-		return "先进入核心稳定站，回基地整备核心稳压缓冲包并击败核心阶段守卫，再回来写入稳定数据。"
+		return "先进入核心稳定站，回基地整备核心稳压缓冲包，击败核心阶段守卫后回收回写缓存，再回来写入稳定数据。"
 	if definition_id == "map_object.anomaly_crystal" and interaction_type == "sample":
 		return "先完成反应器校准件，再按任务目标采样异常晶体。"
 	if definition_id == "map_object.anomaly_residue_patch" and interaction_type == "gather":

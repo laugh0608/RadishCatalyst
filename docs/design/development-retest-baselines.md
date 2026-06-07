@@ -55,7 +55,7 @@
 | `S18` | 短行动反馈已归档，准备确认巡线短行动 | 第二条轻量前线行动完成态、巡线行动入口和核心循环可延展性 |
 | `S19` | 巡线反馈已归档，准备选择基地行动方案 | 第三条轻量前线行动完成态、稳场补给 / 相位测绘 / 压力清障入口 |
 | `S20` | 相位测绘反馈已归档，出发整备槽待风险收益确认 | 基地行动选择、两处测绘点、返回解析、测绘收益、行动台整备确认、候选轮转、风险收益快照和同一窗口反馈 |
-| `S21` | 高压窗口已归档，核心稳定站已开放 | 核心稳定站人工短跑、阶段守卫、侧向补给缓存、核心设备写入和 demo 完成反馈 |
+| `S21` | 高压窗口已归档，核心稳定站已开放 | 核心稳定站人工短跑、阶段守卫、侧向补给缓存、守卫回写缓存、核心设备写入和 demo 完成反馈 |
 
 这些基线对应的是“标准复测起点”，不是玩家正式存档位。
 
@@ -69,8 +69,9 @@
 2. 进入 `region.demo_stabilization_core`，确认 `quest.enter_demo_stabilization_core` 完成，并激活 `quest.prepare_demo_stabilization_buffer`。
 3. 返回污染边界末端回收补料沉积物并清理补料守卫，回处理点过滤出抗污染药剂和污染浆液，再回基地用基础反应器整备 `item.core_stabilization_buffer`。
 4. 确认核心稳压缓冲包目标完成并激活阶段守卫目标；带核心稳压缓冲包回核心稳定站击败 `enemy.demo_stabilization_guard`，守卫第一次回写压力应消耗缓冲包并降低生命 / 防护承压。
-5. 在 `map_object.demo_stabilization_core` 写入稳定数据，确认 `quest.write_demo_stabilization_core` 完成并出现 demo 完成反馈。
-6. 完成后检查 HUD / 地图 / 任务追踪不再把玩家引回行动台、高压窗口或新的区域入口。
+5. 击败守卫后回收 `map_object.demo_stabilization_guard_cache`，确认拿到 `item.core_write_charge`、基础零件和终点前补给；若未回收校验片，核心设备应拒绝写入。
+6. 在 `map_object.demo_stabilization_core` 写入稳定数据，确认 `quest.write_demo_stabilization_core` 完成并出现 demo 完成反馈。
+7. 完成后检查 HUD / 地图 / 任务追踪不再把玩家引回行动台、高压窗口或新的区域入口。
 
 检查口径：
 

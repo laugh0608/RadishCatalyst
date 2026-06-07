@@ -413,6 +413,16 @@ func _check_demo_stabilization_event_rules() -> void:
 
 	updates = host.event_rules.get_interaction_objective_updates(
 		{
+			"definition_id": "map_object.demo_stabilization_guard_cache",
+			"interaction_type": "gather"
+		},
+		{},
+		quest_state
+	)
+	host._expect_update(updates, "add", "quest.write_demo_stabilization_core", "gather_item", "item.core_write_charge", 1.0, "demo guard cache gather update")
+
+	updates = host.event_rules.get_interaction_objective_updates(
+		{
 			"definition_id": "map_object.demo_stabilization_core",
 			"interaction_type": "inspect"
 		},
@@ -469,7 +479,7 @@ func _check_demo_stabilization_four_step_flow() -> void:
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.write_demo_stabilization_core", "guard defeat activates core write quest")
 	status_text = HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
 	_expect_text_contains(status_text, "目标：写入核心稳定数据", "guard defeat status points to core write")
-	_expect_text_contains(status_text, "进度：检查 核心稳定设备 0/1", "guard defeat status shows core write progress")
+	_expect_text_contains(status_text, "收集 核心写入校验片（核心守卫回写缓存） 0/1", "guard defeat status shows guard cache progress")
 
 	var blocked_world := WorldState.create_default()
 	blocked_world.quest_state.active_quest_ids = ["quest.write_demo_stabilization_core"]
@@ -489,6 +499,36 @@ func _check_demo_stabilization_four_step_flow() -> void:
 
 	world_state.ensure_enemy("enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core", 156.0)
 	world_state.update_enemy_health("enemy_instance.demo_stabilization_guard", 0.0, true)
+	var blocked_without_charge := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(blocked_without_charge.get("success", true)), false, "core write should be blocked before guard cache recovery")
+	_expect_text_contains(String(blocked_without_charge.get("message", "")), "核心写入校验片", "core write blocker explains guard cache requirement")
+
+	var cache_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_guard_cache",
+		"map_object.demo_stabilization_guard_cache",
+		"gather",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(cache_result.get("success", false)), true, "guard cache can be gathered after guard defeat")
+	_expect_text_contains(String(cache_result.get("message", "")), "核心写入校验片已回收", "guard cache gather message points to core write")
+	result = host.quest_runtime.advance_for_interaction(
+		world_state,
+		character_state,
+		{
+			"definition_id": "map_object.demo_stabilization_guard_cache",
+			"interaction_type": "gather"
+		},
+		cache_result
+	)
+	if not host._result_logs_contain(result, "核心写入校验片已回收"):
+		host.failures.append("guard cache objective should log next step, got %s" % var_to_str(result))
 	var interaction_result := gather_system.interact_with_object(
 		"map_object_instance.demo_stabilization_core",
 		"map_object.demo_stabilization_core",
@@ -577,9 +617,28 @@ func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.write_demo_stabilization_core", "short run activates core write")
 	status_text = HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
 	_expect_text_contains(status_text, "目标：写入核心稳定数据", "short run status points to core write after guard")
-	_expect_text_contains(status_text, "进度：检查 核心稳定设备 0/1", "short run status shows core write objective")
+	_expect_text_contains(status_text, "收集 核心写入校验片（核心守卫回写缓存） 0/1", "short run status shows guard cache objective")
 	world_state.ensure_enemy("enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core", 156.0)
 	world_state.update_enemy_health("enemy_instance.demo_stabilization_guard", 0.0, true)
+
+	var guard_cache_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_guard_cache",
+		"map_object.demo_stabilization_guard_cache",
+		"gather",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(guard_cache_result.get("success", false)), true, "short run recovers guard cache")
+	host._expect_equal(int(character_state.inventory.items.get("item.core_write_charge", 0)), 1, "short run guard cache grants write charge")
+	result = host.quest_runtime.advance_for_interaction(
+		world_state,
+		character_state,
+		{
+			"definition_id": "map_object.demo_stabilization_guard_cache",
+			"interaction_type": "gather"
+		},
+		guard_cache_result
+	)
 
 	var write_result := gather_system.interact_with_object(
 		"map_object_instance.demo_stabilization_core",

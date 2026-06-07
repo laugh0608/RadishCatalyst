@@ -294,6 +294,15 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer")
 				or world_state.quest_state.has_completed_quest("quest.prepare_demo_stabilization_buffer")
 			)
+		if interactable.instance_id == "map_object_instance.demo_stabilization_guard_cache":
+			should_enable = (
+				should_enable
+				and bool(world_state.get_enemy("enemy_instance.demo_stabilization_guard").get("is_defeated", false))
+				and (
+					world_state.quest_state.has_active_quest("quest.write_demo_stabilization_core")
+					or world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
+				)
+			)
 		if interactable.definition_id == "map_object.phase_relay_pad":
 			should_enable = should_enable and world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor")
 		if interactable.definition_id == "map_object.phase_well_anchor_field":
@@ -415,7 +424,7 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 		if target.definition_id == "enemy.pressure_clearance_guard":
 			return _enemy_defeat_result(target, drops_message, "前线压力扰点的短战斗压制已解除，现在可以清理扰点并带回清障回执。")
 		if target.definition_id == "enemy.demo_stabilization_guard":
-			return _enemy_defeat_result(target, drops_message, "核心阶段守卫已被击败，核心稳定设备现在可以写入稳定数据。")
+			return _enemy_defeat_result(target, drops_message, "核心阶段守卫已被击败；先回收守卫后的回写缓存，再写入核心稳定设备。")
 		return _enemy_defeat_result(target, drops_message)
 
 	var counter_message := _apply_enemy_counterattack(target, character_state)

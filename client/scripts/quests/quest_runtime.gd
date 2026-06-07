@@ -292,6 +292,9 @@ func _format_objective_milestone_message(quest_id: String, objective_type: Strin
 				return "补料点守卫已清：确认沉积物回收后回基地过滤，污染浆液会直接用于核心稳压缓冲包。"
 			if objective_type == "craft_item" and target_id == "item.core_stabilization_buffer":
 				return "核心稳压缓冲包已就绪：返回核心稳定站挑战阶段守卫，第一次回写压力会降低。"
+		"quest.write_demo_stabilization_core":
+			if objective_type == "gather_item" and target_id == "item.core_write_charge":
+				return "核心写入校验片已回收：补给和零件已经带回写入平台，现在可以靠近核心稳定设备写入归档数据。"
 	return ""
 
 
