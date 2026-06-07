@@ -25,7 +25,7 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 		"recipe.phase_anchor":
 			return "把外圈继电残片、污染浆液和基础零件组装成稳相信标；缺零件时先回收一份浆液。"
 		"recipe.core_stabilization_buffer":
-			return "把修复凝胶、抗污染药剂和基础零件整成终点前缓冲包，降低核心守卫第一段回写压力。"
+			return "把修复凝胶、抗污染药剂、污染浆液和基础零件整成终点前缓冲包，降低核心守卫第一段回写压力。"
 		"recipe.deep_core_imprint":
 			return "把裂相样块解析成路由印片，做完直接返回裂相阵列台点亮第二轮导管回收线。"
 		"recipe.deep_signal_matrix":

@@ -27,6 +27,7 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 		"map_object_instance.pollution_residue_outer_pocket": "map_object.pollution_residue_patch",
 		"map_object_instance.pollution_residue_deep": "map_object.pollution_residue_patch",
 		"map_object_instance.pollution_residue_ridge_cache": "map_object.pollution_residue_patch",
+		"map_object_instance.core_buffer_residue_cache": "map_object.pollution_residue_patch",
 		"map_object_instance.rough_ground_north": "map_object.rough_ground",
 	"map_object_instance.rough_ground_south": "map_object.rough_ground",
 	"map_object_instance.foundation_site_north": "building.foundation_t1",
@@ -198,6 +199,10 @@ const PROTOTYPE_ENEMY_SOURCES := {
 			"region_id": "region.pollution_edge"
 		},
 		"enemy_instance.polluted_skitter_ridge": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge"
+		},
+		"enemy_instance.core_buffer_polluted_skitter": {
 			"definition_id": "enemy.polluted_skitter",
 			"region_id": "region.pollution_edge"
 		},

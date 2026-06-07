@@ -235,7 +235,7 @@ func _format_completion_note(quest_id: String) -> String:
 		"quest.analyze_pressure_clearance_trace":
 			return "压力清障反馈已归档；行动台已把本趟风险收益转成下一轮防护整备"
 		"quest.enter_demo_stabilization_core":
-			return "核心稳定站入口已确认；回基地整备核心稳压缓冲包，再挑战阶段守卫"
+			return "核心稳定站入口已确认；先回污染边界补核心缓冲包沉积物，再回基地整备"
 		"quest.prepare_demo_stabilization_buffer":
 			return "核心稳压缓冲包已整备；返回核心稳定站挑战阶段守卫"
 		"quest.defeat_demo_stabilization_guard":

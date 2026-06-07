@@ -286,6 +286,10 @@ func _format_objective_milestone_message(quest_id: String, objective_type: Strin
 			if objective_type == "defeat_enemy" and target_id == "enemy.polluted_skitter":
 				return "污染脊守卫已清：继续回收继电残片，或回基地整理沉积物和稳相信标材料。"
 		"quest.prepare_demo_stabilization_buffer":
+			if objective_type == "gather_item" and target_id == "item.polluted_residue":
+				return "核心缓冲包补料沉积已够：回处理点过滤器处理，保留药剂和污染浆液再回基础反应器整备缓冲包。"
+			if objective_type == "defeat_enemy" and target_id == "enemy.polluted_skitter":
+				return "补料点守卫已清：确认沉积物回收后回基地过滤，污染浆液会直接用于核心稳压缓冲包。"
 			if objective_type == "craft_item" and target_id == "item.core_stabilization_buffer":
 				return "核心稳压缓冲包已就绪：返回核心稳定站挑战阶段守卫，第一次回写压力会降低。"
 	return ""

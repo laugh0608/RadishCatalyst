@@ -157,7 +157,7 @@
       "description_key": "recipe.core_stabilization_buffer.desc",
       "category": "field_supply",
       "required_building_id": "building.basic_reactor",
-      "inputs": [{"id": "item.repair_gel", "amount": 1}, {"id": "item.resistance_vial_t1", "amount": 1}, {"id": "item.basic_parts", "amount": 2}],
+      "inputs": [{"id": "item.repair_gel", "amount": 1}, {"id": "item.resistance_vial_t1", "amount": 1}, {"id": "fluid.polluted_slurry", "amount": 1}, {"id": "item.basic_parts", "amount": 2}],
       "outputs": [{"id": "item.core_stabilization_buffer", "amount": 1}],
       "byproducts": [],
       "duration": 7.0,

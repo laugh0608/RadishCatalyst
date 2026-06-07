@@ -289,6 +289,11 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				world_state.quest_state.has_active_quest("quest.scout_ruin_outer_ring")
 				or world_state.quest_state.has_completed_quest("quest.scout_ruin_outer_ring")
 			)
+		if interactable.instance_id == "map_object_instance.core_buffer_residue_cache":
+			should_enable = should_enable and (
+				world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer")
+				or world_state.quest_state.has_completed_quest("quest.prepare_demo_stabilization_buffer")
+			)
 		if interactable.definition_id == "map_object.phase_relay_pad":
 			should_enable = should_enable and world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor")
 		if interactable.definition_id == "map_object.phase_well_anchor_field":
@@ -379,6 +384,8 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 				followup = "遗迹门前压力减弱，可以继续处理污染残核或确认入口信号。"
 			if target.instance_id == "enemy_instance.polluted_skitter_ridge":
 				followup = "污染脊守卫已清空；把沉积物带回过滤器处理，副产浆液可回收成信标所需基础零件。"
+			if target.instance_id == "enemy_instance.core_buffer_polluted_skitter":
+				followup = "核心缓冲包补料点已安全；回收沉积物后回过滤器处理，留下药剂和污染浆液再回基地整备缓冲包。"
 			return _enemy_defeat_result(target, drops_message, followup)
 		if target.definition_id == "enemy.treatment_skitter":
 			return _enemy_defeat_result(target, drops_message, "处理点清障压力减弱；继续确认另一处威胁或回基地补齐修复凝胶。")
@@ -683,6 +690,11 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 		return world_state.quest_state.has_active_quest("quest.defeat_elite_node") or world_state.quest_state.has_completed_quest("quest.defeat_elite_node")
 	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
 		return world_state.quest_state.has_active_quest("quest.scout_ruin_outer_ring") or world_state.quest_state.has_completed_quest("quest.scout_ruin_outer_ring")
+	if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
+		return (
+			world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer")
+			or world_state.quest_state.has_completed_quest("quest.prepare_demo_stabilization_buffer")
+		)
 	if enemy.definition_id == "enemy.elite_residue_node":
 		return (
 			world_state.quest_state.has_active_quest("quest.defeat_elite_node")
@@ -784,6 +796,8 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 		pressure_multiplier = GATE_PRESSURE_COUNTER_MULT
 	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
 		pressure_multiplier = POLLUTION_RIDGE_COUNTER_MULT
+	if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
+		pressure_multiplier = POLLUTION_RIDGE_COUNTER_MULT
 	var attack_damage := float(base_stats.get("attack", 0.0)) * pressure_multiplier
 	var consumed_core_buffer := false
 	if enemy.definition_id == "enemy.demo_stabilization_guard" and character_state.inventory.has_ref("item.core_stabilization_buffer", 1):
@@ -809,6 +823,8 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 			message = "%s门前污染压力更高，防护偏低时按 2 使用抗污染药剂，生命偏低时按 1 使用修复凝胶。" % message
 		if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
 			message = "%s污染脊守卫压迫更强，过滤模块会降低生命和防护承压；防护偏低时按 2 使用抗污染药剂。" % message
+		if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
+			message = "%s补料点污染压力更强，过滤模块会降低生命和防护承压；清完后把沉积物带回过滤器处理。" % message
 		if enemy.definition_id == "enemy.demo_stabilization_guard":
 			if consumed_core_buffer:
 				message = "%s核心稳压缓冲包已消耗，第一段回写压力被削弱；后续仍需用修复凝胶和抗污染药剂兜底。" % message

@@ -548,8 +548,10 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 				return "修复凝胶不足：先在基础反应器调制修复凝胶，或检查核心稳定站侧边补给缓存。"
 			if _get_recipe_input_shortage(recipe, "item.resistance_vial_t1", inventory) > 0.0:
 				return "抗污染药剂不足：回处理点过滤器处理污染沉积物，再整备核心稳压缓冲包。"
+			if _get_recipe_input_shortage(recipe, "fluid.polluted_slurry", inventory) > 0.0:
+				return "污染浆液不足：回污染边界末端补沉积物并用过滤器处理，保留副产浆液后再整备缓冲包。"
 			if _get_recipe_input_shortage(recipe, "item.basic_parts", inventory) > 0.0:
-				return "基础零件不足：处理晶体矿物，或把污染浆液回收成基础零件后再整备缓冲包。"
+				return "基础零件不足：处理晶体矿物；若有多余污染浆液，再回收成基础零件后整备缓冲包。"
 		"recipe.phase_filament_refining":
 			if _get_recipe_input_shortage(recipe, "item.phase_filament", inventory) > 0.0:
 				return "先进入裂相脊入口，清理裂相守卫并回收两处相位纤丝。"
@@ -716,8 +718,10 @@ func _select_recipe_with_basic_parts_fallback(
 	target_recipe_id: String,
 	world_state: WorldState
 ) -> String:
+	var target_recipe := data_registry.get_definition(target_recipe_id)
 	if _should_refill_basic_parts_before_recipe(target_recipe_id, inventory):
-		var refill_recipe_id := _select_basic_parts_refill_recipe(interactable, inventory, world_state)
+		var reserved_slurry := _get_recipe_input_amount(target_recipe, "fluid.polluted_slurry")
+		var refill_recipe_id := _select_basic_parts_refill_recipe(interactable, inventory, world_state, reserved_slurry)
 		if not refill_recipe_id.is_empty():
 			return refill_recipe_id
 	return _select_if_available(interactable, target_recipe_id)
@@ -726,9 +730,10 @@ func _select_recipe_with_basic_parts_fallback(
 func _select_basic_parts_refill_recipe(
 	interactable: PrototypeInteractable,
 	inventory: InventoryState,
-	world_state: WorldState
+	world_state: WorldState,
+	reserved_polluted_slurry: float = 0.0
 ) -> String:
-	if _get_inventory_ref_amount("fluid.polluted_slurry", inventory) >= 1.0:
+	if _get_inventory_ref_amount("fluid.polluted_slurry", inventory) > reserved_polluted_slurry:
 		var reclaim_recipe_id := _select_if_available(interactable, "recipe.reclaim_basic_parts")
 		if not reclaim_recipe_id.is_empty():
 			var reclaim_recipe := data_registry.get_definition(reclaim_recipe_id)
@@ -747,12 +752,16 @@ func _should_refill_basic_parts_before_recipe(target_recipe_id: String, inventor
 
 
 func _get_recipe_input_shortage(recipe: Dictionary, definition_id: String, inventory: InventoryState) -> float:
+	return maxf(0.0, _get_recipe_input_amount(recipe, definition_id) - _get_inventory_ref_amount(definition_id, inventory))
+
+
+func _get_recipe_input_amount(recipe: Dictionary, definition_id: String) -> float:
 	for input_ref in recipe.get("inputs", []):
 		if not input_ref is Dictionary:
 			continue
 		if String(input_ref.get("id", "")) != definition_id:
 			continue
-		return maxf(0.0, float(input_ref.get("amount", 0.0)) - _get_inventory_ref_amount(definition_id, inventory))
+		return float(input_ref.get("amount", 0.0))
 	return 0.0
 
 

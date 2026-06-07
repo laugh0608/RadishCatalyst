@@ -63,7 +63,7 @@
       "mass": 0.6,
       "rarity": "uncommon",
       "source_refs": ["map_object.pollution_residue_patch"],
-      "used_by_refs": ["recipe.cleanse_residue"],
+      "used_by_refs": ["quest.prepare_demo_stabilization_buffer", "recipe.cleanse_residue"],
       "public_level": "public"
     },
     {

@@ -396,8 +396,20 @@ func _check_demo_stabilization_event_rules() -> void:
 
 	updates = host.event_rules.get_defeated_enemy_objective_updates("enemy.demo_stabilization_guard")
 	host._expect_update(updates, "set", "quest.defeat_demo_stabilization_guard", "defeat_enemy", "enemy.demo_stabilization_guard", 1.0, "demo guard defeat update")
+	updates = host.event_rules.get_defeated_enemy_objective_updates("enemy.polluted_skitter")
+	host._expect_update(updates, "set", "quest.prepare_demo_stabilization_buffer", "defeat_enemy", "enemy.polluted_skitter", 1.0, "core buffer supply guard update")
 	updates = host.event_rules.get_recipe_objective_updates("recipe.core_stabilization_buffer")
 	host._expect_update(updates, "set", "quest.prepare_demo_stabilization_buffer", "craft_item", "item.core_stabilization_buffer", 1.0, "core buffer recipe update")
+
+	updates = host.event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.pollution_residue_patch",
+			"interaction_type": "gather"
+		},
+		{},
+		quest_state
+	)
+	host._expect_update(updates, "add", "quest.prepare_demo_stabilization_buffer", "gather_item", "item.polluted_residue", 2.0, "core buffer residue gather update")
 
 	updates = host.event_rules.get_interaction_objective_updates(
 		{
@@ -442,7 +454,7 @@ func _check_demo_stabilization_four_step_flow() -> void:
 	host._expect_equal(host._result_array_size(result, "completion_feedbacks"), 1, "enter demo core emits completion feedback")
 	var status_text := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
 	_expect_text_contains(status_text, "目标：整备核心稳压缓冲包", "enter demo core status points to buffer prep")
-	_expect_text_contains(status_text, "进度：制造 核心稳压缓冲包（基础反应器） 0/1", "enter demo core status shows buffer progress")
+	_expect_text_contains(status_text, "进度：收集 污染沉积物（污染沉积斑） 0/2", "enter demo core status shows buffer supply progress")
 
 	result = _complete_core_buffer_preparation(world_state, character_state)
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.prepare_demo_stabilization_buffer", "core buffer prep quest completes")
@@ -538,7 +550,7 @@ func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.core_stabilization_buffer", "short run unlocks core buffer recipe")
 	var status_text := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
 	_expect_text_contains(status_text, "目标：整备核心稳压缓冲包", "short run status points to buffer prep")
-	_expect_text_contains(status_text, "进度：制造 核心稳压缓冲包（基础反应器） 0/1", "short run status shows buffer objective")
+	_expect_text_contains(status_text, "进度：收集 污染沉积物（污染沉积斑） 0/2", "short run status shows buffer supply objective")
 
 	var repair_before := int(character_state.inventory.items.get("item.repair_gel", 0))
 	var recovery_result := gather_system.interact_with_object(
@@ -618,7 +630,40 @@ func _check_core_stabilization_buffer_reduces_guard_pressure() -> void:
 
 
 func _complete_core_buffer_preparation(world_state: WorldState, character_state: CharacterState) -> Dictionary:
-	character_state.inventory.add_item("item.core_stabilization_buffer", 1)
+	var gather_system := GatherSystem.new(host.data_registry)
+	var residue_result := gather_system.interact_with_object(
+		"map_object_instance.core_buffer_residue_cache",
+		"map_object.pollution_residue_patch",
+		"gather",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(residue_result.get("success", false)), true, "core buffer residue cache can be gathered")
+	host.quest_runtime.advance_for_interaction(
+		world_state,
+		character_state,
+		{"definition_id": "map_object.pollution_residue_patch", "interaction_type": "gather"},
+		residue_result
+	)
+	host.quest_runtime.advance_for_defeated_enemy(world_state, character_state, "enemy.polluted_skitter")
+
+	world_state.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
+	world_state.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	world_state.quest_state.unlock_effect("recipe.cleanse_residue")
+	world_state.quest_state.unlock_effect("recipe.core_stabilization_buffer")
+	character_state.inventory.add_fluid("fluid.basic_solvent", 1.0)
+	var processing := ProcessingSystem.new(host.data_registry)
+	var cleanse_start := processing.process_recipe("recipe.cleanse_residue", character_state, world_state)
+	host._expect_equal(bool(cleanse_start.get("success", false)), true, "core buffer residue can be filtered into slurry")
+	processing.advance_processing(13.0, character_state, world_state)
+	if not character_state.inventory.has_ref("item.repair_gel", 1):
+		character_state.inventory.add_item("item.repair_gel", 1)
+	var basic_parts_shortage := maxi(0, 2 - int(character_state.inventory.items.get("item.basic_parts", 0)))
+	if basic_parts_shortage > 0:
+		character_state.inventory.add_item("item.basic_parts", basic_parts_shortage)
+	var buffer_start := processing.process_recipe("recipe.core_stabilization_buffer", character_state, world_state)
+	host._expect_equal(bool(buffer_start.get("success", false)), true, "core buffer can be crafted from filtered supply")
+	processing.advance_processing(8.0, character_state, world_state)
 	return host.quest_runtime.advance_for_interaction(
 		world_state,
 		character_state,

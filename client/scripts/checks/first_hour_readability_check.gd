@@ -604,8 +604,10 @@ func _check_core_loop_layout() -> void:
 	var outer_residue := map.get_node("Interactables/PollutionResidueOuterPocket") as PrototypeInteractable
 	var deep_residue := map.get_node("Interactables/PollutionResidueDeep") as PrototypeInteractable
 	var ridge_residue := map.get_node("Interactables/PollutionResidueRidgeCache") as PrototypeInteractable
+	var core_buffer_residue := map.get_node("Interactables/CoreBufferResidueCache") as PrototypeInteractable
 	var polluted := map.get_node("Enemies/PollutedSkitter") as PrototypeEnemy
 	var ridge_polluted := map.get_node("Enemies/PollutedSkitterRidge") as PrototypeEnemy
+	var core_buffer_polluted := map.get_node("Enemies/CoreBufferPollutedSkitter") as PrototypeEnemy
 	var gate_polluted := map.get_node("Enemies/PollutedSkitterGatePressure") as PrototypeEnemy
 	var elite := map.get_node("Enemies/EliteResidueNode") as PrototypeEnemy
 	var ruin_gate := map.get_node("Interactables/RuinGate") as PrototypeInteractable
@@ -643,6 +645,16 @@ func _check_core_loop_layout() -> void:
 		ridge_polluted.position.distance_to(ridge_residue.position) <= VerticalSliceMap.ATTACK_RANGE,
 		true,
 		"first-hour ridge residue is guarded by visible pollution pressure"
+	)
+	host._expect_equal(
+		core_buffer_residue.position.x > ridge_residue.position.x and core_buffer_residue.position.x < VerticalSliceMap.RUIN_OUTER_RING_X,
+		true,
+		"core buffer supply residue extends the pollution edge without entering a new region"
+	)
+	host._expect_equal(
+		core_buffer_polluted.position.distance_to(core_buffer_residue.position) <= VerticalSliceMap.ATTACK_RANGE,
+		true,
+		"core buffer supply residue is guarded by visible pollution pressure"
 	)
 	host._expect_equal(
 		gate_polluted.position.distance_to(ruin_gate.position) <= VerticalSliceMap.ATTACK_RANGE,
@@ -794,11 +806,15 @@ func _check_outer_ring_ridge_spawn_gate() -> void:
 	map.setup(host.data_registry)
 	var ridge_residue := map.get_node("Interactables/PollutionResidueRidgeCache") as PrototypeInteractable
 	var ridge_enemy := map.get_node("Enemies/PollutedSkitterRidge") as PrototypeEnemy
+	var core_buffer_residue := map.get_node("Interactables/CoreBufferResidueCache") as PrototypeInteractable
+	var core_buffer_enemy := map.get_node("Enemies/CoreBufferPollutedSkitter") as PrototypeEnemy
 	var locked_world := WorldState.create_default()
 	map.sync_enemy_states(locked_world)
 	map.refresh_world_interactables(locked_world)
 	host._expect_equal(ridge_residue.can_interact(), false, "outer ring ridge residue is gated before outer ring scouting")
 	host._expect_equal(ridge_enemy.can_be_attacked(), false, "outer ring ridge guard is gated before outer ring scouting")
+	host._expect_equal(core_buffer_residue.can_interact(), false, "core buffer supply residue is gated before buffer preparation")
+	host._expect_equal(core_buffer_enemy.can_be_attacked(), false, "core buffer supply guard is gated before buffer preparation")
 
 	var scout_world := WorldState.create_default()
 	scout_world.quest_state.active_quest_ids = ["quest.scout_ruin_outer_ring"]
@@ -806,4 +822,12 @@ func _check_outer_ring_ridge_spawn_gate() -> void:
 	map.refresh_world_interactables(scout_world)
 	host._expect_equal(ridge_residue.can_interact(), true, "outer ring ridge residue opens during outer ring scouting")
 	host._expect_equal(ridge_enemy.can_be_attacked(), true, "outer ring ridge guard spawns during outer ring scouting")
+	host._expect_equal(core_buffer_residue.can_interact(), false, "core buffer supply residue stays gated during outer ring scouting")
+
+	var buffer_world := WorldState.create_default()
+	buffer_world.quest_state.active_quest_ids = ["quest.prepare_demo_stabilization_buffer"]
+	map.sync_enemy_states(buffer_world)
+	map.refresh_world_interactables(buffer_world)
+	host._expect_equal(core_buffer_residue.can_interact(), true, "core buffer supply residue opens during buffer preparation")
+	host._expect_equal(core_buffer_enemy.can_be_attacked(), true, "core buffer supply guard spawns during buffer preparation")
 	map.free()

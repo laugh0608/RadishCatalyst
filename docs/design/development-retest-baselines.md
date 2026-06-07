@@ -67,8 +67,8 @@
 
 1. 从高压窗口反馈归档后出发，确认当前目标指向核心稳定站，且未要求再新增行动台方案或高压窗口分支。
 2. 进入 `region.demo_stabilization_core`，确认 `quest.enter_demo_stabilization_core` 完成，并激活 `quest.prepare_demo_stabilization_buffer`。
-3. 回基地用基础反应器整备 `item.core_stabilization_buffer`，确认核心稳压缓冲包目标完成并激活阶段守卫目标。
-4. 带核心稳压缓冲包回核心稳定站击败 `enemy.demo_stabilization_guard`，确认核心设备写入目标被激活；守卫第一次回写压力应消耗缓冲包并降低生命 / 防护承压。
+3. 返回污染边界末端回收补料沉积物并清理补料守卫，回处理点过滤出抗污染药剂和污染浆液，再回基地用基础反应器整备 `item.core_stabilization_buffer`。
+4. 确认核心稳压缓冲包目标完成并激活阶段守卫目标；带核心稳压缓冲包回核心稳定站击败 `enemy.demo_stabilization_guard`，守卫第一次回写压力应消耗缓冲包并降低生命 / 防护承压。
 5. 在 `map_object.demo_stabilization_core` 写入稳定数据，确认 `quest.write_demo_stabilization_core` 完成并出现 demo 完成反馈。
 6. 完成后检查 HUD / 地图 / 任务追踪不再把玩家引回行动台、高压窗口或新的区域入口。
 

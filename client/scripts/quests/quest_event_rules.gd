@@ -34,6 +34,7 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		]
 		updates.append_array(_get_drop_objective_updates("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", definition_id))
 		updates.append_array(_get_drop_objective_updates("quest.scout_ruin_outer_ring", "gather_item", "item.polluted_residue", definition_id))
+		updates.append_array(_get_drop_objective_updates("quest.prepare_demo_stabilization_buffer", "gather_item", "item.polluted_residue", definition_id))
 		return updates
 	if interaction_type == "clear" and definition_id == "map_object.rough_ground":
 		return [_add_update("quest.expand_treatment_point", "clear", "map_object.rough_ground", 1)]
@@ -395,7 +396,8 @@ func get_defeated_enemy_objective_updates(enemy_definition_id: String) -> Array[
 	if enemy_definition_id == "enemy.polluted_skitter":
 		return [
 			_set_update("quest.enter_pollution_edge", "defeat_enemy", enemy_definition_id, 1),
-			_set_update("quest.scout_ruin_outer_ring", "defeat_enemy", enemy_definition_id, 1)
+			_set_update("quest.scout_ruin_outer_ring", "defeat_enemy", enemy_definition_id, 1),
+			_set_update("quest.prepare_demo_stabilization_buffer", "defeat_enemy", enemy_definition_id, 1)
 		]
 	if enemy_definition_id == "enemy.elite_residue_node":
 		return [_set_update("quest.defeat_elite_node", "defeat_enemy", enemy_definition_id, 1)]

@@ -319,7 +319,13 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.enter_demo_stabilization_core":
 			return "从锚定桥继续向东进入核心稳定站，确认终点前压力和写入平台。"
 		"quest.prepare_demo_stabilization_buffer":
-			return "回基地使用基础反应器，把修复凝胶、抗污染药剂和基础零件整备成核心稳压缓冲包。"
+			if world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.polluted_residue") < 2.0:
+				return "从核心稳定站退回污染边界末端，回收核心缓冲包补料沉积物。"
+			if world_state.quest_state.get_objective_progress(quest_id, "defeat_enemy", "enemy.polluted_skitter") < 1.0:
+				return "补料点还有受扰守卫；带着过滤模块和药剂清掉压力，再回收路线。"
+			if not character_state.inventory.has_ref("item.resistance_vial_t1", 1) or not character_state.inventory.has_ref("fluid.polluted_slurry", 1):
+				return "回处理点污染过滤器处理补料沉积物，保留抗污染药剂和污染浆液。"
+			return "回基地使用基础反应器，把修复凝胶、抗污染药剂、污染浆液和基础零件整备成核心稳压缓冲包。"
 		"quest.defeat_demo_stabilization_guard":
 			return "带核心稳压缓冲包返回核心稳定站，挑战核心阶段守卫并解除写入平台压制。"
 		"quest.write_demo_stabilization_core":
@@ -607,7 +613,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.enter_demo_stabilization_core":
 			return "先进入核心稳定站识别终点压力；确认后会回基地整备，不直接扩新的后段区域。"
 		"quest.prepare_demo_stabilization_buffer":
-			return "核心稳压缓冲包把修复、抗污染和基础零件合成一次终点前准备，守卫第一段回写压力会因此降低。"
+			return "核心稳压缓冲包把污染边界补料、过滤副产和基地整备接到终点守卫战，守卫第一段回写压力会因此降低。"
 		"quest.defeat_demo_stabilization_guard":
 			return "这场守卫战验证基地整备能改变终点承压；带缓冲包回去打，而不是只靠提示推进。"
 		"quest.write_demo_stabilization_core":

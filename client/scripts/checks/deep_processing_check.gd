@@ -37,15 +37,46 @@ func _check_core_stabilization_buffer(processing: ProcessingSystem) -> void:
 	missing_character.inventory.items.erase("item.repair_gel")
 	var missing_status := processing.get_recipe_status("recipe.core_stabilization_buffer", missing_character, world)
 	host._expect_text_contains(String(missing_status.get("supply_hint", "")), "修复凝胶不足", "core buffer missing repair gel hint")
+	var missing_slurry_character := CharacterState.create_default()
+	missing_slurry_character.inventory.add_item("item.basic_parts", 2)
+	missing_slurry_character.inventory.add_item("item.repair_gel", 1)
+	missing_slurry_character.inventory.add_item("item.resistance_vial_t1", 1)
+	var missing_slurry_status := processing.get_recipe_status("recipe.core_stabilization_buffer", missing_slurry_character, world)
+	host._expect_text_contains(String(missing_slurry_status.get("supply_hint", "")), "污染浆液不足", "core buffer missing slurry hint")
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.core_stabilization_buffer"
+	reactor.set_recipe_cycle(["recipe.core_stabilization_buffer", "recipe.reclaim_basic_parts", "recipe.process_crystal_ore"])
+	world.quest_state.unlock_effect("recipe.reclaim_basic_parts")
+	var missing_parts_character := CharacterState.create_default()
+	missing_parts_character.inventory.add_item("item.repair_gel", 1)
+	missing_parts_character.inventory.add_item("item.resistance_vial_t1", 1)
+	missing_parts_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
+	missing_parts_character.inventory.items["item.basic_parts"] = 0
+	host._expect_equal(
+		processing.get_recommended_recipe_id(reactor, missing_parts_character, world),
+		"recipe.process_crystal_ore",
+		"core buffer prep preserves required slurry when only basic parts are missing"
+	)
+	missing_parts_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
+	host._expect_equal(
+		processing.get_recommended_recipe_id(reactor, missing_parts_character, world),
+		"recipe.reclaim_basic_parts",
+		"core buffer prep uses extra slurry for basic parts"
+	)
+	reactor.free()
 	var character := CharacterState.create_default()
 	character.inventory.add_item("item.basic_parts", 2)
 	character.inventory.add_item("item.repair_gel", 1)
 	character.inventory.add_item("item.resistance_vial_t1", 1)
+	character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
 	var start := processing.process_recipe("recipe.core_stabilization_buffer", character, world)
 	host._expect_equal(bool(start.get("success", false)), true, "core buffer processing starts")
 	var completed := processing.advance_processing(8.0, character, world)
 	host._expect_equal(completed.size(), 1, "core buffer processing completes")
 	host._expect_equal(int(character.inventory.items.get("item.core_stabilization_buffer", 0)), 1, "core buffer processing grants item")
+	host._expect_equal(float(character.inventory.fluids.get("fluid.polluted_slurry", 0.0)), 0.0, "core buffer processing consumes polluted slurry")
 	host._expect_text_contains(String(completed[0].get("next_step_text", "")), "带回核心稳定站挑战阶段守卫", "core buffer completion points back to guard")
 
 

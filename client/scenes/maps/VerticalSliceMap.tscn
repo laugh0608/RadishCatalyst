@@ -708,6 +708,13 @@ definition_id = "map_object.pollution_residue_patch"
 interaction_type = "gather"
 label_offset = Vector2(-68, 22)
 
+[node name="CoreBufferResidueCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(382, 152)
+definition_id = "map_object.pollution_residue_patch"
+interaction_type = "gather"
+label_offset = Vector2(-76, 22)
+label_size = Vector2(152, 24)
+
 [node name="RoughGroundNorth" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(258, -156)
 definition_id = "map_object.rough_ground"
@@ -1316,6 +1323,10 @@ definition_id = "enemy.polluted_skitter"
 
 [node name="PollutedSkitterRidge" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(380, 52)
+definition_id = "enemy.polluted_skitter"
+
+[node name="CoreBufferPollutedSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(386, 126)
 definition_id = "enemy.polluted_skitter"
 
 [node name="PollutedSkitterGatePressure" parent="Enemies" instance=ExtResource("4_enemy")]

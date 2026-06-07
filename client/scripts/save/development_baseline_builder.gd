@@ -244,6 +244,12 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 				"map_object_instance.pollution_residue_ridge_cache"
 			], "map_object.pollution_residue_patch", "region.pollution_edge")
 			_mark_enemy_defeated(world_state, "enemy_instance.polluted_skitter_ridge", "enemy.polluted_skitter", "region.pollution_edge")
+		"quest.prepare_demo_stabilization_buffer":
+			_mark_objects_gathered(world_state, [
+				"map_object_instance.core_buffer_residue_cache"
+			], "map_object.pollution_residue_patch", "region.pollution_edge")
+			_mark_enemy_defeated(world_state, "enemy_instance.core_buffer_polluted_skitter", "enemy.polluted_skitter", "region.pollution_edge")
+			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.core_stabilization_buffer")
 		"quest.assemble_phase_anchor":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_anchor")
 		"quest.salvage_signal_echo":
