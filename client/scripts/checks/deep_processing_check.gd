@@ -93,7 +93,7 @@ func _check_reclaim_basic_parts(processing: ProcessingSystem) -> void:
 	host._expect_equal(completed.size(), 1, "basic parts reclaim processing should complete")
 	if not completed.is_empty():
 		host._expect_text_contains(String(completed[0].get("message", "")), "基础零件 x2", "basic parts reclaim completion log output destination")
-		host._expect_text_contains(String(completed[0].get("message", "")), "回收零件已补足", "basic parts reclaim completion log next step")
+		host._expect_text_contains(String(completed[0].get("message", "")), "副产物不再只是库存负担", "basic parts reclaim completion log next step")
 	host._expect_equal(int(character.inventory.items.get("item.basic_parts", 0)), 2, "basic parts reclaim grants reusable parts")
 	host._expect_equal(float(character.inventory.fluids.get("fluid.polluted_slurry", 0.0)), 0.0, "basic parts reclaim consumes polluted slurry")
 

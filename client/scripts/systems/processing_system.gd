@@ -191,6 +191,8 @@ func get_recommended_recipe_id(
 				return _select_if_available(interactable, "recipe.process_crystal_ore")
 			return ""
 		"quest.enter_pollution_edge":
+			if interactable.definition_id == "building.basic_reactor" and character_state.inventory.has_ref("fluid.polluted_slurry", 1.0):
+				return _select_if_available(interactable, "recipe.reclaim_basic_parts")
 			return _select_if_available(interactable, "recipe.cleanse_residue")
 		"quest.assemble_phase_anchor":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_anchor", world_state)
@@ -380,7 +382,7 @@ func _get_completion_next_step(recipe_id: String, world_state: WorldState = null
 		"recipe.process_crystal_ore":
 			return "基础零件已补足；它们会用于反应器校准、过滤模块和地基。若当前任务还差更高阶配方，可按 R 切换到目标配方。"
 		"recipe.reclaim_basic_parts":
-			return "回收零件已补足；继续当前前线整备配方，或按 R 切回目标配方。"
+			return "污染浆液已回收成基础零件；继续补给、地基或模块制造，副产物不再只是库存负担。"
 		"recipe.reactor_calibrator":
 			return "反应器采样通道已校准；前往异常晶体采样并回收周边残留物。"
 		"recipe.analyze_anomaly_sample":
@@ -517,7 +519,7 @@ func _format_missing_input_supply_hint(recipe: Dictionary, inventory: InventoryS
 	if data_registry.get_definition("recipe.process_crystal_ore").is_empty():
 		return "先检查前哨核心回收和阶段补给批次。"
 	if _get_inventory_ref_amount("fluid.polluted_slurry", inventory) >= 1.0:
-		return "先检查前哨核心回收和阶段补给批次；相位中继锚点部署后，也可切换到回收基础零件，把污染浆液回收成基础零件；若仍不足，去晶体矿脉区北侧富晶残脉采集晶体矿物。"
+		return "先检查前哨核心回收和阶段补给批次；处理点扩建后，可切换到回收基础零件，把污染浆液回收成基础零件；若仍不足，去晶体矿脉区北侧富晶残脉采集晶体矿物。"
 	if _get_inventory_ref_amount("item.crystal_ore", inventory) >= 3.0:
 		return "先检查前哨核心回收和阶段补给批次；当前也可切换到处理晶体矿物，把晶体矿物加工成基础零件。"
 	return "先检查前哨核心回收和阶段补给批次；若仍不足，去晶体矿脉区北侧富晶残脉或处理点入口前的回访矿点采集晶体矿物后加工成基础零件。"

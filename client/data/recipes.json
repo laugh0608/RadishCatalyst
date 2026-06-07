@@ -28,8 +28,8 @@
       "duration": 9.0,
       "energy_cost": 2.0,
       "pollution_delta": -0.1,
-      "unlock_conditions": ["quest.deploy_phase_relay_anchor"],
-      "public_level": "spoiler"
+      "unlock_conditions": ["quest.expand_treatment_point", "quest.deploy_phase_relay_anchor"],
+      "public_level": "public"
     },
     {
       "id": "recipe.make_filter_media",

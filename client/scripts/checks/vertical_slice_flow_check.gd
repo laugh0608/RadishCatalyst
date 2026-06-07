@@ -111,6 +111,7 @@ func _run_checks() -> void:
 	_expect_active_quest("quest.enter_pollution_edge", "after expand treatment point")
 	_expect_array_has(world_state.unlocked_region_ids, "region.pollution_edge", "treatment point unlocks pollution edge region")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.cleanse_residue", "treatment point unlocks residue recipe")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.reclaim_basic_parts", "treatment point unlocks slurry reclaim recipe")
 	_complete_active_quest("quest.enter_pollution_edge", [
 		{"type": "visit_region", "target_id": "region.pollution_edge", "amount": 1},
 		{"type": "gather_item", "target_id": "item.polluted_residue", "amount": 4},
@@ -1325,6 +1326,20 @@ func _check_processing_runtime() -> void:
 		"抗污染药剂",
 		"pollution filter panel next step"
 	)
+	filter_world.quest_state.unlock_effect("recipe.reclaim_basic_parts")
+	filter_world.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	var reclaim_start := processing.process_recipe("recipe.reclaim_basic_parts", filter_character, filter_world)
+	_expect_equal(bool(reclaim_start.get("success", false)), true, "slurry reclaim should start after treatment point")
+	var reclaim_completed := processing.advance_processing(10.0, filter_character, filter_world)
+	_expect_equal(reclaim_completed.size(), 1, "slurry reclaim should complete")
+	_expect_equal(float(filter_character.inventory.fluids.get("fluid.polluted_slurry", 0.0)), 0.0, "slurry reclaim consumes byproduct")
+	_expect_equal(int(filter_character.inventory.items.get("item.basic_parts", 0)), 6, "slurry reclaim grants basic parts")
+	if not reclaim_completed.is_empty():
+		_expect_text_contains(
+			String(reclaim_completed[0].get("message", "")),
+			"副产物不再只是库存负担",
+			"slurry reclaim completion explains byproduct value"
+		)
 func _check_evacuation_feedback() -> void:
 	var map := VerticalSliceMap.new()
 	map.player = PlayerController.new()

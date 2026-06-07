@@ -95,8 +95,8 @@ func _check_pollution_filter_panel_hierarchy() -> void:
 	host._expect_text_contains(status, "当前配方：处理污染沉积物", "pollution filter panel names current recipe")
 	host._expect_text_contains(
 		status,
-		"处理成药剂 -> 带药剂回污染边界 -> 清理受扰敌人 / 门前压力点",
-		"pollution filter panel purpose shows the full vial return chain"
+		"浆液可回基础反应器回收成基础零件",
+		"pollution filter panel purpose shows slurry reclaim value"
 	)
 	host._expect_text_contains(status, "副产：污染浆液 x1", "pollution filter panel shows byproduct")
 	host._expect_text_contains(

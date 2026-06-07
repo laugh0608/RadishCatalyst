@@ -98,7 +98,8 @@ func _check_rejects_active_quest_without_completed_quest_source() -> void:
 		"recipe.basic_filter_module",
 		"recipe.foundation_t1",
 		"region.pollution_edge",
-		"recipe.cleanse_residue"
+		"recipe.cleanse_residue",
+		"recipe.reclaim_basic_parts"
 	]
 	save_data["world"]["unlocked_region_ids"] = [
 		"region.outpost_platform",
@@ -332,6 +333,7 @@ func _mark_slice_complete(save_data: Dictionary) -> void:
 		"recipe.foundation_t1",
 		"region.pollution_edge",
 		"recipe.cleanse_residue",
+		"recipe.reclaim_basic_parts",
 		"region.locked_ruin_gate",
 		"region.ruin_outer_ring",
 		"recipe.phase_anchor",

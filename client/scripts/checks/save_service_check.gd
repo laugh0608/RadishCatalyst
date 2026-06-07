@@ -927,6 +927,7 @@ func _check_slice_end_hook_state_persists() -> void:
 		"recipe.foundation_t1",
 		"region.pollution_edge",
 		"recipe.cleanse_residue",
+		"recipe.reclaim_basic_parts",
 		"region.locked_ruin_gate",
 		"region.ruin_outer_ring"
 	]
@@ -1024,6 +1025,7 @@ func _check_slice_complete_state_persists() -> void:
 		"recipe.foundation_t1",
 		"region.pollution_edge",
 		"recipe.cleanse_residue",
+		"recipe.reclaim_basic_parts",
 		"region.locked_ruin_gate",
 		"region.ruin_outer_ring",
 		"recipe.phase_anchor",
