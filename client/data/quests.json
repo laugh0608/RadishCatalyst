@@ -212,7 +212,7 @@
       "description_key": "quest.salvage_signal_echo.desc",
       "quest_type": "main",
       "stage": 16,
-      "objectives": [{"type": "defeat_enemy", "target_id": "enemy.ruin_phase_guard", "amount": 1}, {"type": "inspect", "target_id": "map_object.signal_echo_cache", "amount": 1}],
+      "objectives": [{"type": "defeat_enemy", "target_id": "enemy.ruin_phase_guard", "amount": 1}, {"type": "gather_item", "target_id": "item.polluted_residue", "amount": 2}, {"type": "inspect", "target_id": "map_object.signal_echo_cache", "amount": 1}],
       "prerequisites": ["quest.secure_outer_ring_signal"],
       "rewards": [{"id": "item.signal_echo_trace", "amount": 1}],
       "unlock_effects": ["recipe.deep_signal_analysis"],

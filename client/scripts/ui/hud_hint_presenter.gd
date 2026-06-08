@@ -142,7 +142,11 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.secure_outer_ring_signal":
 			return "穿过已稳定的抖动雾幕，向东检查封锁遗迹中继台。"
 		"quest.salvage_signal_echo":
-			return "继续留在封锁遗迹深处，清理相位守卫并回收封锁回波匣。"
+			if world_state.quest_state.get_objective_progress(quest_id, "defeat_enemy", "enemy.ruin_phase_guard") < 1.0:
+				return "继续留在封锁遗迹深处，先清理压住回波匣的相位守卫。"
+			if world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.polluted_residue") < 2.0:
+				return "守卫后暴露出污染回波沉积；先回收沉积物，回过滤器处理成药剂和污染浆液。"
+			return "带着已处理路线的污染副产，回收封锁回波匣，再回基地解析裂相坐标。"
 		"quest.analyze_deep_signal":
 			return "回基地使用基础反应器，解析封锁回波并整理裂相坐标。"
 		"quest.unlock_deep_ruin_entrance":
@@ -458,7 +462,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.secure_outer_ring_signal":
 			return "封锁遗迹中继台会给出裂相结构的稳定回波，作为这条第二闭环的收束点。"
 		"quest.salvage_signal_echo":
-			return "相位守卫压着真正的裂相回报；把回波匣带回基地后，才能把这次深入变成下一段入口价值。"
+			return "相位守卫压着真正的裂相回报；战斗后回收污染回波沉积，处理出药剂和浆液，再把回波匣解析成下一段入口价值。"
 		"quest.analyze_deep_signal":
 			return "这次加工不是补给，而是把封锁回波整理成裂相坐标，确认封锁遗迹收益真实反哺下一次远征。"
 		"quest.unlock_deep_ruin_entrance":

@@ -182,7 +182,7 @@
     "quest.secure_outer_ring_signal.name": "确认外圈中继",
     "quest.secure_outer_ring_signal.desc": "穿过已稳定的雾幕，检查遗迹外圈中继台。",
     "quest.salvage_signal_echo.name": "回收深段回波",
-    "quest.salvage_signal_echo.desc": "清理外圈深段的相位守卫，回收中继台旁暴露出的回波匣。",
+    "quest.salvage_signal_echo.desc": "清理外圈深段的相位守卫，回收守卫后暴露的污染回波沉积和中继台旁的回波匣。",
     "quest.analyze_deep_signal.name": "解析深段回波",
     "quest.analyze_deep_signal.desc": "把外圈回波带回基地，用基础反应器整理成裂相坐标。",
     "quest.unlock_deep_ruin_entrance.name": "打开裂相脊入口",

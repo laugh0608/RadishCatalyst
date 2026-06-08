@@ -605,11 +605,14 @@ func _check_core_loop_layout() -> void:
 	var deep_residue := map.get_node("Interactables/PollutionResidueDeep") as PrototypeInteractable
 	var ridge_residue := map.get_node("Interactables/PollutionResidueRidgeCache") as PrototypeInteractable
 	var core_buffer_residue := map.get_node("Interactables/CoreBufferResidueCache") as PrototypeInteractable
+	var outer_echo_residue := map.get_node("Interactables/OuterRingEchoResidueCache") as PrototypeInteractable
+	var signal_echo_cache := map.get_node("Interactables/SignalEchoCache") as PrototypeInteractable
 	var polluted := map.get_node("Enemies/PollutedSkitter") as PrototypeEnemy
 	var ridge_polluted := map.get_node("Enemies/PollutedSkitterRidge") as PrototypeEnemy
 	var core_buffer_polluted := map.get_node("Enemies/CoreBufferPollutedSkitter") as PrototypeEnemy
 	var gate_polluted := map.get_node("Enemies/PollutedSkitterGatePressure") as PrototypeEnemy
 	var elite := map.get_node("Enemies/EliteResidueNode") as PrototypeEnemy
+	var ruin_guard := map.get_node("Enemies/RuinPhaseGuard") as PrototypeEnemy
 	var ruin_gate := map.get_node("Interactables/RuinGate") as PrototypeInteractable
 	host._expect_equal(
 		rough_ground.position.y < VerticalSliceMap.POLLUTION_DEEP_Y and filter_site.position.y < VerticalSliceMap.POLLUTION_DEEP_Y,
@@ -665,6 +668,16 @@ func _check_core_loop_layout() -> void:
 		gate_polluted.position.x > outer_residue.position.x and gate_polluted.position.x < ruin_gate.position.x,
 		true,
 		"first-hour gate pressure sits between residue collection and ruin signal"
+	)
+	host._expect_equal(
+		outer_echo_residue.position.x > signal_echo_cache.position.x,
+		true,
+		"outer ring echo residue is exposed past the signal echo cache after guard pressure"
+	)
+	host._expect_equal(
+		outer_echo_residue.position.distance_to(ruin_guard.position) <= VerticalSliceMap.ATTACK_RANGE,
+		true,
+		"outer ring echo residue is tied to the phase guard combat pocket"
 	)
 	host._expect_equal(
 		ruin_gate.position.x > elite.position.x,
@@ -753,6 +766,19 @@ func _check_pollution_pressure_consumption() -> void:
 	host._expect_equal(int(roundf(module_character.protection * 10.0)), 844, "first-hour filter module lowers ridge pressure drain")
 	host._expect_text_contains(String(module_result.get("message", "")), "过滤模块已降低消耗", "first-hour ridge residue logs filter benefit")
 
+	var echo_world := WorldState.create_default()
+	var echo_character := CharacterState.create_default()
+	var echo_result := gather_system.interact_with_object(
+		"map_object_instance.outer_ring_echo_residue_cache",
+		"map_object.pollution_residue_patch",
+		"gather",
+		echo_character,
+		echo_world
+	)
+	host._expect_equal(bool(echo_result.get("success", false)), true, "outer ring echo residue gather succeeds")
+	host._expect_equal(int(roundf(echo_character.protection * 10.0)), 745, "outer ring echo residue adds high pollution pressure")
+	host._expect_text_contains(String(echo_result.get("message", "")), "污染回波沉积", "outer ring echo residue explains filter return")
+
 
 func _check_filter_module_combat_pressure() -> void:
 	var map := VerticalSliceMap.new()
@@ -806,6 +832,7 @@ func _check_outer_ring_ridge_spawn_gate() -> void:
 	map.setup(host.data_registry)
 	var ridge_residue := map.get_node("Interactables/PollutionResidueRidgeCache") as PrototypeInteractable
 	var ridge_enemy := map.get_node("Enemies/PollutedSkitterRidge") as PrototypeEnemy
+	var outer_echo_residue := map.get_node("Interactables/OuterRingEchoResidueCache") as PrototypeInteractable
 	var core_buffer_residue := map.get_node("Interactables/CoreBufferResidueCache") as PrototypeInteractable
 	var core_buffer_enemy := map.get_node("Enemies/CoreBufferPollutedSkitter") as PrototypeEnemy
 	var locked_world := WorldState.create_default()
@@ -813,6 +840,7 @@ func _check_outer_ring_ridge_spawn_gate() -> void:
 	map.refresh_world_interactables(locked_world)
 	host._expect_equal(ridge_residue.can_interact(), false, "outer ring ridge residue is gated before outer ring scouting")
 	host._expect_equal(ridge_enemy.can_be_attacked(), false, "outer ring ridge guard is gated before outer ring scouting")
+	host._expect_equal(outer_echo_residue.can_interact(), false, "outer ring echo residue is gated before echo salvage")
 	host._expect_equal(core_buffer_residue.can_interact(), false, "core buffer supply residue is gated before buffer preparation")
 	host._expect_equal(core_buffer_enemy.can_be_attacked(), false, "core buffer supply guard is gated before buffer preparation")
 
@@ -822,7 +850,22 @@ func _check_outer_ring_ridge_spawn_gate() -> void:
 	map.refresh_world_interactables(scout_world)
 	host._expect_equal(ridge_residue.can_interact(), true, "outer ring ridge residue opens during outer ring scouting")
 	host._expect_equal(ridge_enemy.can_be_attacked(), true, "outer ring ridge guard spawns during outer ring scouting")
+	host._expect_equal(outer_echo_residue.can_interact(), false, "outer ring echo residue stays gated during outer ring scouting")
 	host._expect_equal(core_buffer_residue.can_interact(), false, "core buffer supply residue stays gated during outer ring scouting")
+
+	var echo_world := WorldState.create_default()
+	echo_world.quest_state.active_quest_ids = ["quest.salvage_signal_echo"]
+	map.sync_enemy_states(echo_world)
+	map.refresh_world_interactables(echo_world)
+	host._expect_equal(outer_echo_residue.can_interact(), false, "outer ring echo residue stays gated before phase guard defeat")
+
+	var post_guard_world := WorldState.create_default()
+	post_guard_world.quest_state.active_quest_ids = ["quest.salvage_signal_echo"]
+	post_guard_world.ensure_enemy("enemy_instance.ruin_phase_guard", "enemy.ruin_phase_guard", "region.ruin_outer_ring", 48.0)
+	post_guard_world.update_enemy_health("enemy_instance.ruin_phase_guard", 0.0, true)
+	map.sync_enemy_states(post_guard_world)
+	map.refresh_world_interactables(post_guard_world)
+	host._expect_equal(outer_echo_residue.can_interact(), true, "outer ring echo residue opens after phase guard defeat")
 
 	var buffer_world := WorldState.create_default()
 	buffer_world.quest_state.active_quest_ids = ["quest.prepare_demo_stabilization_buffer"]

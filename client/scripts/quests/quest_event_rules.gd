@@ -34,6 +34,7 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		]
 		updates.append_array(_get_drop_objective_updates("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", definition_id))
 		updates.append_array(_get_drop_objective_updates("quest.scout_ruin_outer_ring", "gather_item", "item.polluted_residue", definition_id))
+		updates.append_array(_get_drop_objective_updates("quest.salvage_signal_echo", "gather_item", "item.polluted_residue", definition_id))
 		updates.append_array(_get_drop_objective_updates("quest.prepare_demo_stabilization_buffer", "gather_item", "item.polluted_residue", definition_id))
 		return updates
 	if interaction_type == "clear" and definition_id == "map_object.rough_ground":

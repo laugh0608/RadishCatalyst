@@ -810,6 +810,13 @@ single_use = false
 label_offset = Vector2(-94, 22)
 label_size = Vector2(188, 24)
 
+[node name="OuterRingEchoResidueCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(626, 70)
+definition_id = "map_object.pollution_residue_patch"
+interaction_type = "gather"
+label_offset = Vector2(-82, 22)
+label_size = Vector2(164, 24)
+
 [node name="DeepRuinDoor" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(666, -8)
 definition_id = "map_object.deep_ruin_door"

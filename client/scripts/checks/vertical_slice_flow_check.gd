@@ -154,7 +154,11 @@ func _run_checks() -> void:
 	_expect_active_quest("quest.salvage_signal_echo", "after outer ring secure starts echo salvage")
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.secure_outer_ring_signal", "outer ring secure completed")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "slice completion unlock")
-	_complete_active_quest("quest.salvage_signal_echo", [{"type": "defeat_enemy", "target_id": "enemy.ruin_phase_guard", "amount": 1}, {"type": "inspect", "target_id": "map_object.signal_echo_cache", "amount": 1}])
+	_complete_active_quest("quest.salvage_signal_echo", [
+		{"type": "defeat_enemy", "target_id": "enemy.ruin_phase_guard", "amount": 1},
+		{"type": "gather_item", "target_id": "item.polluted_residue", "amount": 2},
+		{"type": "inspect", "target_id": "map_object.signal_echo_cache", "amount": 1}
+	])
 	_expect_active_quest("quest.analyze_deep_signal", "after signal echo salvage")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.deep_signal_analysis", "echo salvage unlocks deep signal recipe")
 	_complete_active_quest("quest.analyze_deep_signal", [{"type": "craft_item", "target_id": "item.deep_ruin_coordinates", "amount": 1}])

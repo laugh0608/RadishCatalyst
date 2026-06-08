@@ -285,6 +285,11 @@ func _format_objective_milestone_message(quest_id: String, objective_type: Strin
 				return "污染脊沉积物已够：回处理点过滤器处理，副产浆液可回基础反应器补信标零件。"
 			if objective_type == "defeat_enemy" and target_id == "enemy.polluted_skitter":
 				return "污染脊守卫已清：继续回收继电残片，或回基地整理沉积物和稳相信标材料。"
+		"quest.salvage_signal_echo":
+			if objective_type == "defeat_enemy" and target_id == "enemy.ruin_phase_guard":
+				return "相位守卫已清：先回收暴露的污染回波沉积，再带回波匣回基地解析。"
+			if objective_type == "gather_item" and target_id == "item.polluted_residue":
+				return "污染回波沉积已够：回过滤器处理成抗污染药剂和污染浆液，再回基地解析回波匣。"
 		"quest.prepare_demo_stabilization_buffer":
 			if objective_type == "gather_item" and target_id == "item.polluted_residue":
 				return "核心缓冲包补料沉积已够：回处理点过滤器处理，保留药剂和污染浆液再回基础反应器整备缓冲包。"

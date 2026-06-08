@@ -289,6 +289,15 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				world_state.quest_state.has_active_quest("quest.scout_ruin_outer_ring")
 				or world_state.quest_state.has_completed_quest("quest.scout_ruin_outer_ring")
 			)
+		if interactable.instance_id == "map_object_instance.outer_ring_echo_residue_cache":
+			should_enable = (
+				should_enable
+				and bool(world_state.get_enemy("enemy_instance.ruin_phase_guard").get("is_defeated", false))
+				and (
+					world_state.quest_state.has_active_quest("quest.salvage_signal_echo")
+					or world_state.quest_state.has_completed_quest("quest.salvage_signal_echo")
+				)
+			)
 		if interactable.instance_id == "map_object_instance.core_buffer_residue_cache":
 			should_enable = should_enable and (
 				world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer")
@@ -399,7 +408,7 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 		if target.definition_id == "enemy.treatment_skitter":
 			return _enemy_defeat_result(target, drops_message, "处理点清障压力减弱；继续确认另一处威胁或回基地补齐修复凝胶。")
 		if target.definition_id == "enemy.ruin_phase_guard":
-			return _enemy_defeat_result(target, drops_message, "外圈回波匣附近的干扰守卫已清空。")
+			return _enemy_defeat_result(target, drops_message, "外圈回波匣附近的干扰守卫已清空；先回收暴露的污染回波沉积，再带回波匣回基地解析。")
 		if target.definition_id == "enemy.deep_ruin_sentinel":
 			return _enemy_defeat_result(target, drops_message, "裂相锁扣前的压制守卫已清空，相位纤丝回收线已打开。")
 		if target.definition_id == "enemy.deep_ruin_stalker":
@@ -937,6 +946,19 @@ func _inspect_signal_echo_cache(world_state: WorldState) -> Dictionary:
 			"目标未就绪",
 			"先检查外圈中继台，锁定深段稳定回波。"
 		)
+	if world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
+		if not bool(world_state.get_enemy("enemy_instance.ruin_phase_guard").get("is_defeated", false)):
+			return _failure(
+				"外圈回波匣仍被相位守卫压制。",
+				"守卫未清",
+				"先清理相位守卫，战斗后会暴露污染回波沉积。"
+			)
+		if world_state.quest_state.get_objective_progress("quest.salvage_signal_echo", "gather_item", "item.polluted_residue") < 2.0:
+			return _failure(
+				"回波匣旁的污染回波沉积尚未回收。",
+				"沉积未回收",
+				"先回收守卫后暴露的沉积物，回过滤器处理成药剂和污染浆液，再带回波匣回基地解析。"
+			)
 	if world_state.quest_state.has_completed_quest("quest.salvage_signal_echo"):
 		return {
 			"success": true,
@@ -944,7 +966,7 @@ func _inspect_signal_echo_cache(world_state: WorldState) -> Dictionary:
 		}
 	return {
 		"success": true,
-		"message": "已回收外圈回波匣：回基地用基础反应器整理裂相坐标。"
+		"message": "已回收外圈回波匣：带着污染处理副产回基地，用基础反应器整理裂相坐标。"
 	}
 func _inspect_deep_ruin_door(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.analyze_deep_signal"):

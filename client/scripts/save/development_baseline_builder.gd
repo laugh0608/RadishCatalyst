@@ -259,6 +259,9 @@ func _apply_completed_quest_runtime_state(world_state: WorldState, quest_id: Str
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.phase_anchor")
 		"quest.salvage_signal_echo":
 			_mark_enemy_defeated(world_state, "enemy_instance.ruin_phase_guard", "enemy.ruin_phase_guard", "region.ruin_outer_ring")
+			_mark_objects_gathered(world_state, [
+				"map_object_instance.outer_ring_echo_residue_cache"
+			], "map_object.pollution_residue_patch", "region.ruin_outer_ring")
 		"quest.analyze_deep_signal":
 			_mark_structure_completed(world_state, "structure.basic_reactor", "recipe.deep_signal_analysis")
 		"quest.harvest_phase_filament":

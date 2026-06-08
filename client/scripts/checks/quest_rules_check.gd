@@ -101,6 +101,7 @@ func _check_interaction_event_objective_updates() -> void:
 	_expect_update(updates, "add", "quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 1.0, "anomaly residue gather update")
 	updates = event_rules.get_interaction_objective_updates({"definition_id": "map_object.pollution_residue_patch", "interaction_type": "gather"}, {}, quest_state)
 	_expect_update(updates, "add", "quest.scout_ruin_outer_ring", "gather_item", "item.polluted_residue", 2.0, "outer ring ridge residue gather update")
+	_expect_update(updates, "add", "quest.salvage_signal_echo", "gather_item", "item.polluted_residue", 2.0, "outer ring echo residue gather update")
 	updates = event_rules.get_interaction_objective_updates(
 		{
 			"definition_id": "map_object.signal_echo_cache",

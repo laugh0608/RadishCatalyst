@@ -92,6 +92,12 @@ func run() -> void:
 	var echo_world := WorldState.create_default()
 	host._expect_text_contains(formatter.format_signal_echo_cache_prompt(echo_world), "先检查外圈中继台", "signal echo cache blocked prompt")
 	echo_world.quest_state.completed_quest_ids.append("quest.secure_outer_ring_signal")
+	echo_world.quest_state.active_quest_ids = ["quest.salvage_signal_echo"]
+	host._expect_text_contains(formatter.format_signal_echo_cache_prompt(echo_world), "相位守卫仍在压制", "signal echo cache guard prompt")
+	echo_world.ensure_enemy("enemy_instance.ruin_phase_guard", "enemy.ruin_phase_guard", "region.ruin_outer_ring", 48.0)
+	echo_world.update_enemy_health("enemy_instance.ruin_phase_guard", 0.0, true)
+	host._expect_text_contains(formatter.format_signal_echo_cache_prompt(echo_world), "污染回波沉积", "signal echo cache residue prompt")
+	echo_world.quest_state.set_objective_progress("quest.salvage_signal_echo", "gather_item", "item.polluted_residue", 2)
 	host._expect_text_contains(formatter.format_signal_echo_cache_prompt(echo_world), "按 E 回收", "signal echo cache ready prompt")
 	echo_world.quest_state.completed_quest_ids.append("quest.salvage_signal_echo")
 	host._expect_text_contains(formatter.format_signal_echo_cache_prompt(echo_world), "已回收", "signal echo cache completed prompt")

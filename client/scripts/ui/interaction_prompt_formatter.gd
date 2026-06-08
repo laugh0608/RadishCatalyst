@@ -520,6 +520,11 @@ func format_signal_echo_cache_prompt(world_state: WorldState) -> String:
 		return "外圈回波匣：先检查外圈中继台，锁定稳定回波。"
 	if world_state.quest_state.has_completed_quest("quest.salvage_signal_echo"):
 		return "外圈回波匣：已回收，回基地解析深段回波。"
+	if world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
+		if not bool(world_state.get_enemy("enemy_instance.ruin_phase_guard").get("is_defeated", false)):
+			return "外圈回波匣：相位守卫仍在压制；先清理守卫。"
+		if world_state.quest_state.get_objective_progress("quest.salvage_signal_echo", "gather_item", "item.polluted_residue") < 2.0:
+			return "外圈回波匣：先回收守卫后暴露的污染回波沉积，再回过滤器处理副产。"
 	return "按 E 回收：外圈回波匣。"
 
 
