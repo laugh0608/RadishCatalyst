@@ -79,6 +79,8 @@
 
 `S2` 回基地解析深段回波时，`recipe.deep_signal_analysis` 应消耗 `item.signal_echo_trace` 和 `fluid.polluted_slurry`；若缺污染浆液，设备缺料提示应指回相位守卫后暴露的污染回波沉积过滤线。
 
+污染过滤器补充：`recipe.cleanse_residue` 完成后的下一步应按当前任务分流；组装稳相信标时指向 `recipe.phase_anchor`，回收深段回波时指向回波匣和裂相坐标解析，核心缓冲包整备时指向 `recipe.core_stabilization_buffer`。
+
 检查口径：
 
 - 自动检查已覆盖区域边界、地图标记、任务规则、守卫门控和核心设备写入事件；若 `pwsh ./scripts/check-client.ps1` 因 Godot 4.6.2 原生崩溃中断，应记录崩溃发生的子检查，不把未完成聚合检查写成通过。

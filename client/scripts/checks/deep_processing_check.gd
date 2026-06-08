@@ -14,6 +14,7 @@ func run() -> void:
 	_check_reclaim_basic_parts(processing)
 	_check_phase_anchor_reclaim_hint(processing)
 	_check_mid_demo_missing_input_hints(processing)
+	_check_pollution_vial_contextual_next_steps(processing)
 	_check_deep_signal_analysis_byproduct_input(processing)
 	_check_core_stabilization_buffer(processing)
 	_check_relay_tuning_lens(processing)
@@ -409,6 +410,52 @@ func _check_deep_signal_analysis_byproduct_input(processing: ProcessingSystem) -
 	host._expect_equal(int(character.inventory.items.get("item.deep_ruin_coordinates", 0)), 1, "deep signal analysis grants coordinates")
 	if not completed.is_empty():
 		host._expect_text_contains(String(completed[0].get("next_step_text", "")), "封锁遗迹最东侧", "deep signal analysis completion points back to door")
+
+
+func _check_pollution_vial_contextual_next_steps(processing: ProcessingSystem) -> void:
+	var anchor_world := _create_filter_world("recipe.cleanse_residue")
+	anchor_world.quest_state.active_quest_ids = ["quest.assemble_phase_anchor"]
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.cleanse_residue", anchor_world),
+		"组装稳相信标",
+		"residue cleansing points anchor prep to phase anchor"
+	)
+
+	var echo_world := _create_filter_world("recipe.cleanse_residue")
+	echo_world.quest_state.active_quest_ids = ["quest.salvage_signal_echo"]
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.cleanse_residue", echo_world),
+		"回收回波匣",
+		"residue cleansing points echo prep back to echo cache"
+	)
+
+	var core_world := _create_filter_world("recipe.cleanse_residue")
+	core_world.quest_state.active_quest_ids = ["quest.prepare_demo_stabilization_buffer"]
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.cleanse_residue", core_world),
+		"整备核心稳压缓冲包",
+		"residue cleansing points core prep to buffer processing"
+	)
+
+	var core_character := CharacterState.create_default()
+	core_character.inventory.add_item("item.polluted_residue", 2)
+	core_character.inventory.add_fluid("fluid.basic_solvent", 1.0)
+	var start := processing.process_recipe("recipe.cleanse_residue", core_character, core_world)
+	host._expect_equal(bool(start.get("success", false)), true, "contextual residue cleansing starts")
+	var completed := processing.advance_processing(20.0, core_character, core_world)
+	host._expect_equal(completed.size(), 1, "contextual residue cleansing completes")
+	if not completed.is_empty():
+		host._expect_text_contains(
+			String(completed[0].get("next_step_text", "")),
+			"药剂留给核心站排压",
+			"contextual residue cleansing completion carries core pressure value"
+		)
+	var status := processing.get_recipe_status("recipe.cleanse_residue", core_character, core_world)
+	host._expect_text_contains(
+		String(status.get("last_next_step", "")),
+		"整备核心稳压缓冲包",
+		"contextual residue cleansing panel carries core next step"
+	)
 
 
 func _check_relay_tuning_lens(processing: ProcessingSystem) -> void:
