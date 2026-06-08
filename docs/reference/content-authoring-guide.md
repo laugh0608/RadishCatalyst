@@ -1,6 +1,6 @@
 # Content Authoring Guide
 
-更新时间：2026-05-09
+更新时间：2026-06-08
 
 ## 目的
 
@@ -31,8 +31,8 @@
 2. `client/data/localization/zh_cn.json`
 3. `client/scenes/maps/VerticalSliceMap.tscn`
 4. `client/scripts/` 里的运行时胶水或特殊规则
-5. `scripts/check-client-*.ps1`
-6. `docs/` 与本周周志
+5. `scripts/check-client-*`
+6. 正式设计 / 说明 / Wiki 文档，阶段性推进再写周志
 
 如果只改了其中一层，很多时候会留下“数据有了，但场景没放”“任务写了，但区域索引没同步”“逻辑可跑，但存档校验不认”的分叉。
 
@@ -82,7 +82,7 @@
   - 在对应任务的 `unlock_effects` 中写同一个 `recipe.*`。
 - 如果配方产物会成为任务目标，`quests.objectives` 里的 `craft_item` 必须直接指向该产物 ID。
 - 如果要让设备靠近时自动切到该配方，还要改 `client/scripts/systems/processing_system.gd` 的 `get_recommended_recipe_id()`。
-- 如果要让完成加工后的“下一步提示”更准确，还要改 `ProcessingRecipeHintFormatter.get_completion_next_step()`。
+- 如果要让完成加工后的“下一步提示”更准确，还要改 `ProcessingRecipeHintFormatter.get_completion_next_step()`；`ProcessingSystem._get_completion_next_step()` 只保留兼容入口。
 
 ### 新增任务
 
@@ -221,16 +221,18 @@
 
 只改数据，不改这里，很多新内容不会真正接上。
 
-### 2. `ProcessingSystem`
+### 2. `ProcessingRecipeHintFormatter`
 
 文件：
 
-- `client/scripts/systems/processing_system.gd`
+- `client/scripts/systems/processing_recipe_hint_formatter.gd`
 
 当前承载：
 
-- 任务相关配方自动推荐
 - 加工完成后的下一步提示
+- 污染过滤器完成后的任务分流去向
+
+`ProcessingSystem` 仍负责设备运行状态、输入消耗、完成发放和配方推荐；不要把新的完成提示长分支重新堆回加工执行系统。
 
 如果新增的是“回基地加工后继续推进”的闭环，而你想让原型保持当前的引导体验，通常要补这里。
 
@@ -316,13 +318,13 @@ git diff --check
 - 运行时职责边界变化：更新 `docs/architecture/runtime-systems-overview.md`
 - 数据字段或内容制作口径变化：更新 `docs/reference/client-data-dictionary.md`
 - 改变常用制作流程：更新本文
-- 阶段性重要推进：追加到本周周志 `docs/devlogs/2026-W19.md`
+- 阶段性重要推进：追加到本周周志
 
 入口文档仍应保持简约，不要把制作细节堆回 `docs/planning/current.md` 或 `docs/README.md`。
 
 ## 当前推荐工作方式
 
-如果只是补一个“最小可玩内容包”，推荐优先级是：
+如果只是补一个可验证内容包，推荐优先级是：
 
 1. 先保证新收益和新门槛真的改变下一次外勤结果。
 2. 再保证任务链、区域索引、存档来源和场景实例同步。
