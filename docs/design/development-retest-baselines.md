@@ -1,6 +1,6 @@
 # Development Retest Baselines
 
-更新时间：2026-06-07
+更新时间：2026-06-08
 
 ## 文档目的
 
@@ -79,7 +79,7 @@
 
 `S2` 回基地解析深段回波时，`recipe.deep_signal_analysis` 应消耗 `item.signal_echo_trace` 和 `fluid.polluted_slurry`；若缺污染浆液，设备缺料提示应指回相位守卫后暴露的污染回波沉积过滤线。
 
-污染过滤器补充：`recipe.cleanse_residue` 完成后的下一步应按当前任务分流；组装稳相信标时指向 `recipe.phase_anchor`，回收深段回波时指向回波匣和裂相坐标解析，核心缓冲包整备时指向 `recipe.core_stabilization_buffer`。
+污染过滤器补充：`recipe.cleanse_residue` 完成后的下一步应按当前任务分流；组装稳相信标时指向 `recipe.phase_anchor`，回收深段回波时指向回波匣和裂相坐标解析，核心缓冲包整备时指向 `recipe.core_stabilization_buffer`，门前压力尚未处理时指向带药剂回污染边界排压。
 
 检查口径：
 
