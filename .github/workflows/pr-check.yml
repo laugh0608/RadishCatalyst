@@ -32,6 +32,14 @@ jobs:
         shell: bash
         run: ./scripts/check-docs.sh
 
+      - name: Check client static data
+        shell: bash
+        run: python3 scripts/check-client-data.py .
+
+      - name: Check client scene references
+        shell: bash
+        run: python3 scripts/check-client-scenes.py .
+
       - name: Check committed diff whitespace
         shell: bash
         run: git diff --check "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}"

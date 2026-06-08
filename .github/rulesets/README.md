@@ -5,7 +5,7 @@
 ## 建议流程
 
 1. 日常开发提交到 `dev` 或功能分支。
-2. 功能、文档、规范类变更默认先合并到 `dev`。
+2. `dev` 是常态开发分支，不要求日常变更以 PR 方式进入 `dev`。
 3. 阶段性稳定后，再从 `dev` 发起到默认分支（当前为 `master`，如切换可适配 `main`）的 Pull Request。
 4. 默认分支 PR 必须通过仓库检查。
 5. 管理员如需绕过规则，也只能通过 Pull Request，不开放直接 push。
@@ -17,7 +17,7 @@
 - 禁止删除分支。
 - 仅允许通过 Pull Request 合并。
 - 要求 1 个审批和已解决会话。
-- 要求 `Repo Hygiene` 检查通过；该 job 覆盖文本卫生、文档篇幅和默认分支 PR 的提交 diff 空白检查。
+- 要求 `Repo Hygiene` 检查通过；该 job 覆盖文本卫生、文档篇幅、客户端静态数据、客户端场景引用和默认分支 PR 的提交 diff 空白检查。
 - GitHub 对 Actions required status checks 当前按 job 名匹配，因此 ruleset 中固定写 job 名。
 - 允许 `merge` 与 `rebase` 两种合并方式，禁用 `squash`。
 - 管理员仅可通过 Pull Request 方式绕过规则，不开放直接 push。
@@ -33,8 +33,12 @@
 
 - Windows：`pwsh ./scripts/check-text-files.ps1`
 - Windows：`pwsh ./scripts/check-docs.ps1`
+- Windows：`pwsh ./scripts/check-client-data.ps1`
+- Windows：`pwsh ./scripts/check-client-scenes.ps1`
 - Linux/macOS/Git Bash：`./scripts/check-text-files.sh`
 - Linux/macOS/Git Bash：`./scripts/check-docs.sh`
+- Linux/macOS/Git Bash：`python3 scripts/check-client-data.py .`
+- Linux/macOS/Git Bash：`python3 scripts/check-client-scenes.py .`
 - 提交前本地仍执行：`git diff --check`
 
 默认分支 PR 的 GitHub Actions 会在 PR base/head 范围内执行 `git diff --check`，避免干净 checkout 中裸命令没有检查对象。

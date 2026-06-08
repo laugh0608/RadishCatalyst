@@ -107,8 +107,8 @@ pwsh ./scripts/check-client.ps1
 
 - 分支与 PR 治理以 `docs/adr/0001-branch-and-pr-governance.md` 为准。
 - `dev` 是日常开发与文档集成分支，`master` / `main` 仅作为稳定主线。
-- 远端分支保护、合并策略、默认目标分支和阶段性例外以 ADR 与仓库实际设置为准。
-- 默认分支 PR 的 `Repo Hygiene` CI 覆盖文本卫生、文档篇幅和提交 diff 空白检查；客户端聚合验证仍按改动范围在本地或手动流程执行。
+- 远端分支保护、合并策略、稳定主线 PR 目标和阶段性例外以 ADR 与仓库实际设置为准。
+- 默认分支 PR 的 `Repo Hygiene` CI 覆盖文本卫生、文档篇幅、客户端静态数据、客户端场景引用和提交 diff 空白检查；需要 Godot 的客户端聚合验证仍按改动范围在本地或手动流程执行。
 
 ## AI 执行边界
 
