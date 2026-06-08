@@ -825,6 +825,7 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 	if enemy.definition_id == "enemy.demo_stabilization_guard" and character_state.inventory.has_ref("item.core_stabilization_buffer", 1):
 		character_state.inventory.consume_ref("item.core_stabilization_buffer", 1)
 		attack_damage *= CORE_STABILIZATION_BUFFER_DAMAGE_MULT
+		_mark_core_stabilization_buffer_used(enemy, world_state)
 		consumed_core_buffer = true
 	var consumed_pressure_vial := false
 	if _should_consume_pollution_pressure_vial(enemy, character_state, world_state):
@@ -895,6 +896,13 @@ func _mark_pollution_pressure_vial_used(enemy: PrototypeEnemy, world_state: Worl
 		var enemy_state := world_state.ensure_enemy(enemy.instance_id, enemy.definition_id, _get_region_id_for_position(enemy.position), enemy.max_health)
 		enemy_state["pressure_vial_used"] = true
 	enemy.set_meta("pressure_vial_used", true)
+
+
+func _mark_core_stabilization_buffer_used(enemy: PrototypeEnemy, world_state: WorldState) -> void:
+	if world_state != null and not enemy.instance_id.is_empty():
+		var enemy_state := world_state.ensure_enemy(enemy.instance_id, enemy.definition_id, _get_region_id_for_position(enemy.position), enemy.max_health)
+		enemy_state["core_buffer_used"] = true
+	enemy.set_meta("core_buffer_used", true)
 
 
 func _is_pollution_pressure_vial_enemy(enemy: PrototypeEnemy) -> bool:

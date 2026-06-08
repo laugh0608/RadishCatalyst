@@ -693,12 +693,15 @@ func _check_core_stabilization_buffer_reduces_guard_pressure() -> void:
 	host._expect_equal(int(roundf(no_buffer_character.protection * 10.0)), 900, "core guard full pressure protection damage")
 	_expect_text_contains(no_buffer_message, "没有核心稳压缓冲包", "core guard no-buffer pressure message")
 
+	var buffered_world := WorldState.create_default()
+	buffered_world.ensure_enemy("enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core", 156.0)
 	var buffered_character := CharacterState.create_default()
 	buffered_character.inventory.add_item("item.core_stabilization_buffer", 1)
-	var buffered_message := map._apply_enemy_counterattack(guard, buffered_character)
+	var buffered_message := map._apply_enemy_counterattack(guard, buffered_character, buffered_world)
 	host._expect_equal(int(roundf(buffered_character.health * 10.0)), 890, "core buffer reduces guard health pressure")
 	host._expect_equal(int(roundf(buffered_character.protection * 10.0)), 945, "core buffer reduces guard protection pressure")
 	host._expect_equal(int(buffered_character.inventory.items.get("item.core_stabilization_buffer", 0)), 0, "core buffer is consumed by first guard pressure")
+	host._expect_equal(bool(buffered_world.get_enemy("enemy_instance.demo_stabilization_guard").get("core_buffer_used", false)), true, "core buffer pressure records guard sync")
 	_expect_text_contains(buffered_message, "核心稳压缓冲包已消耗", "core guard buffer pressure message")
 	map.free()
 
@@ -706,35 +709,67 @@ func _check_core_stabilization_buffer_reduces_guard_pressure() -> void:
 func _check_demo_stabilization_core_write_pressure() -> void:
 	var gather_system := GatherSystem.new(host.data_registry)
 
-	var buffered_world := _create_core_write_ready_world()
-	var buffered_character := CharacterState.create_default()
-	buffered_character.inventory.add_item("item.resistance_vial_t1", 1)
-	var buffered_result := gather_system.interact_with_object(
+	var synced_world := _create_core_write_ready_world()
+	synced_world.get_enemy("enemy_instance.demo_stabilization_guard")["core_buffer_used"] = true
+	var synced_character := CharacterState.create_default()
+	synced_character.inventory.add_item("item.resistance_vial_t1", 1)
+	var synced_result := gather_system.interact_with_object(
 		"map_object_instance.demo_stabilization_core",
 		"map_object.demo_stabilization_core",
 		"inspect",
-		buffered_character,
-		buffered_world
+		synced_character,
+		synced_world
 	)
-	host._expect_equal(bool(buffered_result.get("success", false)), true, "core write with vial succeeds")
-	_expect_text_contains(String(buffered_result.get("message", "")), "抗污染药剂已自动接入写入排压", "core write with vial explains pressure venting")
-	host._expect_equal(int(buffered_character.inventory.items.get("item.resistance_vial_t1", 0)), 0, "core write with vial consumes one vial")
-	host._expect_equal(int(roundf(buffered_character.health * 10.0)), 958, "core write with vial reduces health pressure")
-	host._expect_equal(int(roundf(buffered_character.protection * 10.0)), 937, "core write with vial reduces protection pressure")
+	host._expect_equal(bool(synced_result.get("success", false)), true, "core write with guard sync and vial succeeds")
+	_expect_text_contains(String(synced_result.get("message", "")), "终点前整备同时降低守卫和核心设备承压", "core write reads guard sync")
+	host._expect_equal(int(synced_character.inventory.items.get("item.resistance_vial_t1", 0)), 0, "core write with guard sync consumes one vial")
+	host._expect_equal(int(roundf(synced_character.health * 10.0)), 969, "guard sync and vial reduce write health pressure")
+	host._expect_equal(int(roundf(synced_character.protection * 10.0)), 953, "guard sync and vial reduce write protection pressure")
 
-	var unbuffered_world := _create_core_write_ready_world()
-	var unbuffered_character := CharacterState.create_default()
-	var unbuffered_result := gather_system.interact_with_object(
+	var vial_world := _create_core_write_ready_world()
+	var vial_character := CharacterState.create_default()
+	vial_character.inventory.add_item("item.resistance_vial_t1", 1)
+	var vial_result := gather_system.interact_with_object(
 		"map_object_instance.demo_stabilization_core",
 		"map_object.demo_stabilization_core",
 		"inspect",
-		unbuffered_character,
-		unbuffered_world
+		vial_character,
+		vial_world
 	)
-	host._expect_equal(bool(unbuffered_result.get("success", false)), true, "core write without vial still succeeds")
-	_expect_text_contains(String(unbuffered_result.get("message", "")), "没有抗污染药剂参与排压", "core write without vial explains full pressure")
-	host._expect_equal(int(roundf(unbuffered_character.health * 10.0)), 880, "core write without vial health pressure")
-	host._expect_equal(int(roundf(unbuffered_character.protection * 10.0)), 820, "core write without vial protection pressure")
+	host._expect_equal(bool(vial_result.get("success", false)), true, "core write with vial succeeds")
+	_expect_text_contains(String(vial_result.get("message", "")), "抗污染药剂已自动接入写入排压", "core write with vial explains pressure venting")
+	host._expect_equal(int(vial_character.inventory.items.get("item.resistance_vial_t1", 0)), 0, "core write with vial consumes one vial")
+	host._expect_equal(int(roundf(vial_character.health * 10.0)), 958, "core write with vial reduces health pressure")
+	host._expect_equal(int(roundf(vial_character.protection * 10.0)), 937, "core write with vial reduces protection pressure")
+
+	var synced_no_vial_world := _create_core_write_ready_world()
+	synced_no_vial_world.get_enemy("enemy_instance.demo_stabilization_guard")["core_buffer_used"] = true
+	var synced_no_vial_character := CharacterState.create_default()
+	var synced_no_vial_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"inspect",
+		synced_no_vial_character,
+		synced_no_vial_world
+	)
+	host._expect_equal(bool(synced_no_vial_result.get("success", false)), true, "core write with guard sync and no vial still succeeds")
+	_expect_text_contains(String(synced_no_vial_result.get("message", "")), "核心设备承压低于无准备写入", "core write guard sync without vial explains partial pressure relief")
+	host._expect_equal(int(roundf(synced_no_vial_character.health * 10.0)), 910, "guard sync without vial reduces health pressure")
+	host._expect_equal(int(roundf(synced_no_vial_character.protection * 10.0)), 865, "guard sync without vial reduces protection pressure")
+
+	var plain_world := _create_core_write_ready_world()
+	var plain_character := CharacterState.create_default()
+	var plain_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"inspect",
+		plain_character,
+		plain_world
+	)
+	host._expect_equal(bool(plain_result.get("success", false)), true, "core write without vial still succeeds")
+	_expect_text_contains(String(plain_result.get("message", "")), "没有抗污染药剂参与排压", "core write without vial explains full pressure")
+	host._expect_equal(int(roundf(plain_character.health * 10.0)), 880, "core write without vial health pressure")
+	host._expect_equal(int(roundf(plain_character.protection * 10.0)), 820, "core write without vial protection pressure")
 
 
 func _create_core_write_ready_world() -> WorldState:
