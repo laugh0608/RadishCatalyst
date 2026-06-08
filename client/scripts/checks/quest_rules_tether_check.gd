@@ -22,6 +22,7 @@ func run() -> void:
 	_check_demo_stabilization_four_step_flow()
 	_check_demo_stabilization_short_run_from_overpressure_archive()
 	_check_core_stabilization_buffer_reduces_guard_pressure()
+	_check_demo_stabilization_core_write_pressure()
 
 
 func _check_phase_well_knot_core_recipe_progression() -> void:
@@ -529,6 +530,7 @@ func _check_demo_stabilization_four_step_flow() -> void:
 	)
 	if not host._result_logs_contain(result, "核心写入校验片已回收"):
 		host.failures.append("guard cache objective should log next step, got %s" % var_to_str(result))
+	var vial_before_write := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
 	var interaction_result := gather_system.interact_with_object(
 		"map_object_instance.demo_stabilization_core",
 		"map_object.demo_stabilization_core",
@@ -539,6 +541,8 @@ func _check_demo_stabilization_four_step_flow() -> void:
 	host._expect_equal(bool(interaction_result.get("success", false)), true, "core write interaction succeeds after guard defeat")
 	_expect_text_contains(String(interaction_result.get("message", "")), "核心稳定数据已写入", "core write interaction explains stable data write")
 	_expect_text_contains(String(interaction_result.get("message", "")), "第一条稳定通道已打开", "core write interaction explains demo payoff")
+	_expect_text_contains(String(interaction_result.get("message", "")), "抗污染药剂已自动接入写入排压", "core write consumes guard cache vial for pressure venting")
+	host._expect_equal(int(character_state.inventory.items.get("item.resistance_vial_t1", 0)), maxi(0, vial_before_write - 1), "core write consumes one resistance vial when available")
 	result = host.quest_runtime.advance_for_interaction(
 		world_state,
 		character_state,
@@ -686,6 +690,49 @@ func _check_core_stabilization_buffer_reduces_guard_pressure() -> void:
 	host._expect_equal(int(buffered_character.inventory.items.get("item.core_stabilization_buffer", 0)), 0, "core buffer is consumed by first guard pressure")
 	_expect_text_contains(buffered_message, "核心稳压缓冲包已消耗", "core guard buffer pressure message")
 	map.free()
+
+
+func _check_demo_stabilization_core_write_pressure() -> void:
+	var gather_system := GatherSystem.new(host.data_registry)
+
+	var buffered_world := _create_core_write_ready_world()
+	var buffered_character := CharacterState.create_default()
+	buffered_character.inventory.add_item("item.resistance_vial_t1", 1)
+	var buffered_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"inspect",
+		buffered_character,
+		buffered_world
+	)
+	host._expect_equal(bool(buffered_result.get("success", false)), true, "core write with vial succeeds")
+	_expect_text_contains(String(buffered_result.get("message", "")), "抗污染药剂已自动接入写入排压", "core write with vial explains pressure venting")
+	host._expect_equal(int(buffered_character.inventory.items.get("item.resistance_vial_t1", 0)), 0, "core write with vial consumes one vial")
+	host._expect_equal(int(roundf(buffered_character.health * 10.0)), 958, "core write with vial reduces health pressure")
+	host._expect_equal(int(roundf(buffered_character.protection * 10.0)), 937, "core write with vial reduces protection pressure")
+
+	var unbuffered_world := _create_core_write_ready_world()
+	var unbuffered_character := CharacterState.create_default()
+	var unbuffered_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"inspect",
+		unbuffered_character,
+		unbuffered_world
+	)
+	host._expect_equal(bool(unbuffered_result.get("success", false)), true, "core write without vial still succeeds")
+	_expect_text_contains(String(unbuffered_result.get("message", "")), "没有抗污染药剂参与排压", "core write without vial explains full pressure")
+	host._expect_equal(int(roundf(unbuffered_character.health * 10.0)), 880, "core write without vial health pressure")
+	host._expect_equal(int(roundf(unbuffered_character.protection * 10.0)), 820, "core write without vial protection pressure")
+
+
+func _create_core_write_ready_world() -> WorldState:
+	var world_state := WorldState.create_default()
+	world_state.quest_state.active_quest_ids = ["quest.write_demo_stabilization_core"]
+	world_state.quest_state.set_objective_progress("quest.write_demo_stabilization_core", "gather_item", "item.core_write_charge", 1.0)
+	world_state.ensure_enemy("enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core", 156.0)
+	world_state.update_enemy_health("enemy_instance.demo_stabilization_guard", 0.0, true)
+	return world_state
 
 
 func _complete_core_buffer_preparation(world_state: WorldState, character_state: CharacterState) -> Dictionary:

@@ -2,6 +2,9 @@ extends RefCounted
 class_name GatherSystem
 
 const PROTOTYPE_POLLUTION_PRESSURE_MULT := 15.0
+const DEMO_STABILIZATION_WRITE_HEALTH_PRESSURE := 12.0
+const DEMO_STABILIZATION_WRITE_PROTECTION_PRESSURE := 18.0
+const DEMO_STABILIZATION_WRITE_VIAL_MULT := 0.35
 const POLLUTION_RESIDUE_PRESSURE_BY_INSTANCE := {
 	"map_object_instance.pollution_residue": 1.0,
 	"map_object_instance.pollution_residue_outer_pocket": 1.15,
@@ -206,7 +209,7 @@ func interact_with_object(
 				return _success(_format_frontline_single_use_reading_result(definition_id))
 			if definition_id == "map_object.demo_stabilization_core":
 				_set_map_object_flag(world_state, instance_id, definition_id, "is_sampled", true)
-				return _success("核心稳定数据已写入：锚定桥稳窗和高压窗口归档数据接入核心设备，第一条稳定通道已打开。")
+				return _success("核心稳定数据已写入：锚定桥稳窗和高压窗口归档数据接入核心设备，第一条稳定通道已打开。%s" % _apply_demo_stabilization_write_pressure(character_state))
 			return _success("交互完成。")
 		_:
 			return _success("交互完成。")
@@ -282,6 +285,28 @@ func _sample(instance_id: String, definition: Dictionary, character_state: Chara
 		_get_display_name(String(definition.get("id", ""))),
 		", ".join(rewards)
 	])
+
+
+func _apply_demo_stabilization_write_pressure(character_state: CharacterState) -> String:
+	var used_vial := character_state.inventory.has_ref("item.resistance_vial_t1", 1)
+	var pressure_mult := 1.0
+	if used_vial:
+		character_state.inventory.consume_ref("item.resistance_vial_t1", 1)
+		pressure_mult = DEMO_STABILIZATION_WRITE_VIAL_MULT
+
+	var health_pressure := DEMO_STABILIZATION_WRITE_HEALTH_PRESSURE * pressure_mult * character_state.get_pollution_counter_damage_multiplier(data_registry)
+	var protection_pressure := DEMO_STABILIZATION_WRITE_PROTECTION_PRESSURE * pressure_mult * character_state.get_pollution_drain_multiplier(data_registry)
+	var health_damage := character_state.apply_health_damage(health_pressure)
+	var protection_damage := character_state.apply_protection_damage(protection_pressure)
+	if used_vial:
+		return " 抗污染药剂已自动接入写入排压，生命 -%s，防护 -%s；守卫缓存补给改变了核心设备承压。" % [
+			_format_amount(health_damage),
+			_format_amount(protection_damage)
+		]
+	return " 没有抗污染药剂参与排压，核心写入反冲完整命中，生命 -%s，防护 -%s；下次终点写入前应确认守卫缓存补给。" % [
+		_format_amount(health_damage),
+		_format_amount(protection_damage)
+	]
 
 
 func _grant_refs(refs: Array, character_state: CharacterState) -> Array[String]:
