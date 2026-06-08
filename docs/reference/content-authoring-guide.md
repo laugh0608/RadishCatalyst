@@ -82,7 +82,7 @@
   - 在对应任务的 `unlock_effects` 中写同一个 `recipe.*`。
 - 如果配方产物会成为任务目标，`quests.objectives` 里的 `craft_item` 必须直接指向该产物 ID。
 - 如果要让设备靠近时自动切到该配方，还要改 `client/scripts/systems/processing_system.gd` 的 `get_recommended_recipe_id()`。
-- 如果要让完成加工后的“下一步提示”更准确，还要改 `ProcessingSystem._get_completion_next_step()`。
+- 如果要让完成加工后的“下一步提示”更准确，还要改 `ProcessingRecipeHintFormatter.get_completion_next_step()`。
 
 ### 新增任务
 
