@@ -807,6 +807,24 @@ func _check_filter_module_combat_pressure() -> void:
 	host._expect_equal(int(roundf(ridge_character.protection * 10.0)), 964, "ridge polluted guard adds higher protection pressure")
 	host._expect_text_contains(ridge_message, "污染脊守卫压迫更强", "ridge polluted guard counter message explains pressure")
 
+	enemy.definition_id = "enemy.ruin_phase_guard"
+	enemy.display_name = "相位守卫"
+	enemy.instance_id = "enemy_instance.ruin_phase_guard"
+	var ruin_guard_character := CharacterState.create_default()
+	var ruin_guard_message := map._apply_enemy_counterattack(enemy, ruin_guard_character)
+	host._expect_equal(int(roundf(ruin_guard_character.health * 10.0)), 880, "ruin phase guard echo counter adds health pressure")
+	host._expect_equal(int(roundf(ruin_guard_character.protection * 10.0)), 940, "ruin phase guard echo counter adds protection pressure")
+	host._expect_text_contains(ruin_guard_message, "相位守卫回波夹带污染压力", "ruin phase guard no-module message explains pressure")
+
+	var filtered_ruin_guard_character := CharacterState.create_default()
+	filtered_ruin_guard_character.equipment["suit_module"] = "equipment.filter_module_t1"
+	var filtered_ruin_guard_message := map._apply_enemy_counterattack(enemy, filtered_ruin_guard_character)
+	host._expect_equal(int(roundf(filtered_ruin_guard_character.health * 10.0)), 898, "filter module reduces ruin guard health pressure")
+	host._expect_equal(int(roundf(filtered_ruin_guard_character.protection * 10.0)), 967, "filter module reduces ruin guard protection pressure")
+	host._expect_text_contains(filtered_ruin_guard_message, "基础过滤模块缓冲了外圈回波反击", "ruin phase guard module message explains combat benefit")
+
+	enemy.definition_id = "enemy.polluted_skitter"
+	enemy.display_name = "受扰掠行体"
 	enemy.instance_id = "enemy_instance.polluted_skitter_gate_pressure"
 	var gate_world := WorldState.create_default()
 	gate_world.ensure_enemy(enemy.instance_id, enemy.definition_id, "region.pollution_edge", 30.0)

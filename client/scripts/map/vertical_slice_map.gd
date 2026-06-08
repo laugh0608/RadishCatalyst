@@ -10,6 +10,7 @@ const PLAYER_INTERACTION_RANGE := 96.0
 const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
 const POLLUTION_RIDGE_COUNTER_MULT := 1.2
 const GATE_PRESSURE_COUNTER_MULT := 1.35
+const RUIN_PHASE_GUARD_COUNTER_MULT := 1.2
 const POLLUTION_PRESSURE_VIAL_DAMAGE_MULT := 0.45
 const CORE_STABILIZATION_BUFFER_DAMAGE_MULT := 0.55
 const OUTPOST_RESPAWN_POSITION := Vector2(-250, -48)
@@ -817,6 +818,8 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 		pressure_multiplier = POLLUTION_RIDGE_COUNTER_MULT
 	if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
 		pressure_multiplier = POLLUTION_RIDGE_COUNTER_MULT
+	if enemy.definition_id == "enemy.ruin_phase_guard":
+		pressure_multiplier = RUIN_PHASE_GUARD_COUNTER_MULT
 	var attack_damage := float(base_stats.get("attack", 0.0)) * pressure_multiplier
 	var consumed_core_buffer := false
 	if enemy.definition_id == "enemy.demo_stabilization_guard" and character_state.inventory.has_ref("item.core_stabilization_buffer", 1):
@@ -856,6 +859,11 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 				message = "%s抗污染药剂已自动接入补料点排压，过滤器准备让这场回访战斗更稳；清完后把沉积物带回过滤器处理。" % message
 			else:
 				message = "%s补料点污染压力更强，过滤模块会降低生命和防护承压；清完后把沉积物带回过滤器处理。" % message
+		if enemy.definition_id == "enemy.ruin_phase_guard":
+			if String(character_state.equipment.get("suit_module", "")) == "equipment.filter_module_t1":
+				message = "%s基础过滤模块缓冲了外圈回波反击；战后回收污染回波沉积，再回过滤器处理副产。" % message
+			else:
+				message = "%s相位守卫回波夹带污染压力；基础过滤模块可降低生命和防护承压，战后仍要回收沉积物处理副产。" % message
 		if enemy.definition_id == "enemy.demo_stabilization_guard":
 			if consumed_core_buffer:
 				message = "%s核心稳压缓冲包已消耗，第一段回写压力被削弱；后续仍需用修复凝胶和抗污染药剂兜底。" % message
