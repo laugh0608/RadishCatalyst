@@ -597,8 +597,9 @@ func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
 	_expect_text_contains(status_text, "进度：收集 污染沉积物（污染沉积斑） 0/2", "short run status shows buffer supply objective")
 
 	var repair_before := int(character_state.inventory.items.get("item.repair_gel", 0))
+	var vial_before := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
 	var recovery_result := gather_system.interact_with_object(
-		"map_object_instance.demo_stabilization_recovery_wreckage",
+		"map_object_instance.demo_stabilization_recovery_cache",
 		"map_object.demo_stabilization_recovery_cache",
 		"gather",
 		character_state,
@@ -609,6 +610,16 @@ func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
 		int(character_state.inventory.items.get("item.repair_gel", 0)),
 		repair_before + 1,
 		"short run side recovery grants repair gel"
+	)
+	host._expect_equal(
+		int(character_state.inventory.items.get("item.resistance_vial_t1", 0)),
+		vial_before + 1,
+		"short run side recovery grants resistance vial"
+	)
+	_expect_text_contains(
+		String(recovery_result.get("message", "")),
+		"抗污染药剂",
+		"short run side recovery explains pressure vial supply"
 	)
 	host._expect_array_missing(world_state.quest_state.completed_quest_ids, "quest.write_demo_stabilization_core", "side recovery should not complete demo")
 

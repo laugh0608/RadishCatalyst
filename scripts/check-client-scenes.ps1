@@ -551,7 +551,7 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
     }
 
     $demoCore = $interactables | Where-Object { $_.Name -eq "DemoStabilizationCore" } | Select-Object -First 1
-    $demoRecovery = $interactables | Where-Object { $_.Name -eq "DemoStabilizationRecoveryWreckage" } | Select-Object -First 1
+    $demoRecovery = $interactables | Where-Object { $_.Name -eq "DemoStabilizationRecoveryCache" } | Select-Object -First 1
     $demoGuard = $enemies | Where-Object { $_.Name -eq "DemoStabilizationGuard" } | Select-Object -First 1
     if ($null -eq $demoCore) {
         Add-Error "client/scenes/maps/VerticalSliceMap.tscn: missing demo stabilization core device"

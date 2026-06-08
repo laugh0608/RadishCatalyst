@@ -105,6 +105,7 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.pressure_clearance_node": "map_object.pressure_clearance_node",
 	"map_object_instance.prepared_frontline_window": "map_object.prepared_frontline_window",
 	"map_object_instance.demo_stabilization_recovery_cache": "map_object.demo_stabilization_recovery_cache",
+	"map_object_instance.demo_stabilization_recovery_wreckage": "map_object.demo_stabilization_recovery_cache",
 	"map_object_instance.demo_stabilization_guard_cache": "map_object.demo_stabilization_guard_cache",
 	"map_object_instance.demo_stabilization_core": "map_object.demo_stabilization_core"
 }

@@ -382,6 +382,8 @@ func _get_first_hour_gather_step_hint(instance_id: String) -> String:
 			return "处理点入口前的回访晶体已补足；回基地加工基础零件或地基材料"
 		"map_object_instance.field_wreckage_foundation_return":
 			return "处理点入口前的残骸缓存已回收；若地基或过滤器缺料，先回基地整理制造"
+		"map_object_instance.demo_stabilization_recovery_cache":
+			return "核心站侧边补给已回收；修复凝胶和抗污染药剂可支撑阶段守卫战后的核心写入排压"
 		"map_object_instance.demo_stabilization_guard_cache":
 			return "核心写入校验片已回收；带着补给靠近核心稳定设备写入归档数据"
 	return ""

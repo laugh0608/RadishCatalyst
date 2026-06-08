@@ -72,6 +72,10 @@ func apply_hit(amount: float) -> Dictionary:
 func apply_saved_state(enemy_state: Dictionary) -> void:
 	health = float(enemy_state.get("health", health))
 	defeated = bool(enemy_state.get("is_defeated", false))
+	if bool(enemy_state.get("pressure_vial_used", false)):
+		set_meta("pressure_vial_used", true)
+	elif has_meta("pressure_vial_used"):
+		remove_meta("pressure_vial_used")
 	if defeated:
 		mark_defeated()
 	else:

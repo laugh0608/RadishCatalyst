@@ -608,7 +608,7 @@
   "map_object.prepared_frontline_window.name": "整备异常窗口",
   "map_object.prepared_frontline_window.desc": "锚定桥前线的共享异常窗口，会根据本次已确认整备计划呈现不同目标和反馈。",
   "map_object.demo_stabilization_recovery_cache.name": "核心站补给缓存",
-  "map_object.demo_stabilization_recovery_cache.desc": "核心稳定站侧边残留的应急补给，可在写入核心设备前补一次修复资源。",
+  "map_object.demo_stabilization_recovery_cache.desc": "核心稳定站侧边残留的应急补给，可在写入核心设备前补一次修复资源和抗污染药剂。",
   "map_object.demo_stabilization_guard_cache.name": "核心守卫回写缓存",
   "map_object.demo_stabilization_guard_cache.desc": "核心阶段守卫被击败后暴露的回写缓存，含校验片、零件和终点前补给。",
   "map_object.demo_stabilization_core.name": "核心稳定设备",

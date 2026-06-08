@@ -1291,7 +1291,7 @@ single_use = false
 label_offset = Vector2(-112, 24)
 label_size = Vector2(224, 24)
 
-[node name="DemoStabilizationRecoveryWreckage" parent="Interactables" instance=ExtResource("3_interactable")]
+[node name="DemoStabilizationRecoveryCache" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(3744, 112)
 definition_id = "map_object.demo_stabilization_recovery_cache"
 interaction_type = "gather"

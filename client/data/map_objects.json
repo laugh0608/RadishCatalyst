@@ -1067,7 +1067,7 @@
       "blocks_movement": false,
       "blocks_building": true,
       "required_tool_tags": ["gather_basic"],
-      "drops": [{"id": "item.repair_gel", "amount": 1}],
+      "drops": [{"id": "item.repair_gel", "amount": 1}, {"id": "item.resistance_vial_t1", "amount": 1}],
       "sample_result_refs": [],
       "pollution_effect": "",
       "public_level": "spoiler"

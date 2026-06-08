@@ -140,7 +140,7 @@
       "stack_size": 10,
       "mass": 0.1,
       "rarity": "uncommon",
-      "source_refs": ["recipe.cleanse_residue", "map_object.demo_stabilization_guard_cache"],
+      "source_refs": ["recipe.cleanse_residue", "map_object.demo_stabilization_recovery_cache", "map_object.demo_stabilization_guard_cache"],
       "used_by_refs": ["quest.enter_pollution_edge", "recipe.core_stabilization_buffer"],
       "public_level": "public"
     },

@@ -459,7 +459,7 @@ def check_build_prerequisites(interactables: list[dict[str, str]], errors: list[
 
 def check_demo_core_placement(interactables: list[dict[str, str]], enemies: list[dict[str, str]], errors: list[str]) -> None:
     demo_core = next((item for item in interactables if item["name"] == "DemoStabilizationCore"), None)
-    demo_recovery = next((item for item in interactables if item["name"] == "DemoStabilizationRecoveryWreckage"), None)
+    demo_recovery = next((item for item in interactables if item["name"] == "DemoStabilizationRecoveryCache"), None)
     demo_guard = next((enemy for enemy in enemies if enemy["name"] == "DemoStabilizationGuard"), None)
     if demo_core is None:
         errors.append("client/scenes/maps/VerticalSliceMap.tscn: missing demo stabilization core device")
