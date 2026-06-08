@@ -543,6 +543,8 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 		"recipe.deep_signal_analysis":
 			if _get_recipe_input_shortage(recipe, "item.signal_echo_trace", inventory) > 0.0:
 				return "先在封锁遗迹深处清理相位守卫，并回收外圈回波匣。"
+			if _get_recipe_input_shortage(recipe, "fluid.polluted_slurry", inventory) > 0.0:
+				return "污染浆液不足：先处理守卫后暴露的污染回波沉积，保留过滤副产后再解析裂相坐标。"
 		"recipe.core_stabilization_buffer":
 			if _get_recipe_input_shortage(recipe, "item.repair_gel", inventory) > 0.0:
 				return "修复凝胶不足：先在基础反应器调制修复凝胶，或检查核心稳定站侧边补给缓存。"

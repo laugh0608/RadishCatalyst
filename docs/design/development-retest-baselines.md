@@ -77,6 +77,8 @@
 
 遗迹外圈短跑补充：从 `S2` 进入 `quest.salvage_signal_echo` 时，带基础过滤模块清理 `enemy.ruin_phase_guard` 应明显降低外圈回波反击造成的生命 / 防护承压；无模块仍可清理守卫，但战后更依赖修复凝胶和过滤器处理回波沉积。
 
+`S2` 回基地解析深段回波时，`recipe.deep_signal_analysis` 应消耗 `item.signal_echo_trace` 和 `fluid.polluted_slurry`；若缺污染浆液，设备缺料提示应指回相位守卫后暴露的污染回波沉积过滤线。
+
 检查口径：
 
 - 自动检查已覆盖区域边界、地图标记、任务规则、守卫门控和核心设备写入事件；若 `pwsh ./scripts/check-client.ps1` 因 Godot 4.6.2 原生崩溃中断，应记录崩溃发生的子检查，不把未完成聚合检查写成通过。

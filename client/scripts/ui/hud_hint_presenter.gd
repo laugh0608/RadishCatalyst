@@ -148,7 +148,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 				return "守卫后暴露出污染回波沉积；先回收沉积物，回过滤器处理成药剂和污染浆液。"
 			return "带着已处理路线的污染副产，回收封锁回波匣，再回基地解析裂相坐标。"
 		"quest.analyze_deep_signal":
-			return "回基地使用基础反应器，解析封锁回波并整理裂相坐标。"
+			return "回基地使用基础反应器，把封锁回波和污染处理副产整理成裂相坐标。"
 		"quest.unlock_deep_ruin_entrance":
 			return "带着裂相坐标返回封锁遗迹最东侧，写入裂相脊入口门禁。"
 		"quest.harvest_phase_filament":
@@ -464,7 +464,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.salvage_signal_echo":
 			return "相位守卫压着真正的裂相回报；战斗后回收污染回波沉积，处理出药剂和浆液，再把回波匣解析成下一段入口价值。"
 		"quest.analyze_deep_signal":
-			return "这次加工不是补给，而是把封锁回波整理成裂相坐标，确认封锁遗迹收益真实反哺下一次远征。"
+			return "这次加工不是补给，而是把封锁回波和污染处理副产整理成裂相坐标，确认封锁遗迹收益真实反哺下一次远征。"
 		"quest.unlock_deep_ruin_entrance":
 			return "这一步要把裂相坐标真正写回现场门禁，别让坐标只停在任务列表里。"
 		"quest.harvest_phase_filament":

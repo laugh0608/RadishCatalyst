@@ -172,7 +172,7 @@
       "description_key": "recipe.deep_signal_analysis.desc",
       "category": "analysis",
       "required_building_id": "building.basic_reactor",
-      "inputs": [{"id": "item.signal_echo_trace", "amount": 1}],
+      "inputs": [{"id": "item.signal_echo_trace", "amount": 1}, {"id": "fluid.polluted_slurry", "amount": 1}],
       "outputs": [{"id": "item.deep_ruin_coordinates", "amount": 1}],
       "byproducts": [],
       "duration": 9.0,
