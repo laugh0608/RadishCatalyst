@@ -318,7 +318,8 @@ const ENEMY_ALLOWED_FIELDS := [
 	"health",
 	"max_health",
 	"is_defeated",
-	"drops_granted"
+	"drops_granted",
+	"pressure_vial_used"
 ]
 
 const BASE_STRUCTURE_ALLOWED_FIELDS := [

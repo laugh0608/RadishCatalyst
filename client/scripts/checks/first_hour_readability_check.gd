@@ -806,6 +806,22 @@ func _check_filter_module_combat_pressure() -> void:
 	host._expect_equal(int(roundf(ridge_character.health * 10.0)), 928, "ridge polluted guard adds higher health pressure")
 	host._expect_equal(int(roundf(ridge_character.protection * 10.0)), 964, "ridge polluted guard adds higher protection pressure")
 	host._expect_text_contains(ridge_message, "污染脊守卫压迫更强", "ridge polluted guard counter message explains pressure")
+
+	enemy.instance_id = "enemy_instance.polluted_skitter_gate_pressure"
+	var gate_world := WorldState.create_default()
+	gate_world.ensure_enemy(enemy.instance_id, enemy.definition_id, "region.pollution_edge", 30.0)
+	var vial_character := CharacterState.create_default()
+	vial_character.inventory.add_item("item.resistance_vial_t1", 1)
+	var vial_message := map._apply_enemy_counterattack(enemy, vial_character, gate_world)
+	host._expect_equal(int(vial_character.inventory.items.get("item.resistance_vial_t1", 0)), 0, "gate pressure consumes one vial for pressure venting")
+	host._expect_equal(int(roundf(vial_character.health * 10.0)), 964, "gate pressure vial reduces health pressure")
+	host._expect_equal(int(roundf(vial_character.protection * 10.0)), 982, "gate pressure vial reduces protection pressure")
+	host._expect_equal(bool(gate_world.get_enemy(enemy.instance_id).get("pressure_vial_used", false)), true, "gate pressure records vial venting on enemy state")
+	host._expect_text_contains(vial_message, "抗污染药剂已自动接入门前排压", "gate pressure vial message explains preparation benefit")
+	vial_character.inventory.add_item("item.resistance_vial_t1", 1)
+	var repeated_message := map._apply_enemy_counterattack(enemy, vial_character, gate_world)
+	host._expect_equal(int(vial_character.inventory.items.get("item.resistance_vial_t1", 0)), 1, "gate pressure does not consume vial twice on same enemy")
+	host._expect_text_contains(repeated_message, "门前污染压力更高", "gate pressure repeated counter returns to regular pressure hint")
 	enemy.free()
 	map.free()
 

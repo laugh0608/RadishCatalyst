@@ -128,10 +128,10 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 				return "带着抗污染药剂继续深入污染边界，清理受扰敌人并靠近遗迹门前压力点。"
 			return "向东南进入黄色污染边界，采集沉积物并处理药剂。"
 		"quest.defeat_elite_node":
-			return "污染残核会持续压低防护，带抗污染药剂后继续向东推进。"
+			return "污染残核会持续压低防护；带抗污染药剂继续向东推进，高压污染点会自动接入排压。"
 		"quest.unlock_ruin_signal":
 			if _is_gate_pressure_active(world_state):
-				return "遗迹门前仍有受扰敌人压制；先用修复凝胶和抗污染药剂撑过门前压力，再检查封锁入口。"
+				return "遗迹门前仍有受扰敌人压制；抗污染药剂会接入门前排压，再检查封锁入口。"
 			return "前往污染边界东侧检查封锁遗迹入口，打开封锁遗迹通路。"
 		"quest.scout_ruin_outer_ring":
 			return "穿过封锁入口进入遗迹外圈，回收继电残片；外圈前污染脊还要补沉积物并清理受扰守卫。"
@@ -448,10 +448,10 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 				return "抗污染药剂是遗迹门前压力点的防护缓冲，进入深处前确认快捷栏 2 可用。"
 			return "收集污染沉积物，用过滤器处理药剂，再清理受扰敌人。"
 		"quest.defeat_elite_node":
-			return "污染残核是本轮危险区域挑战；抗污染药剂用于维持防护，修复凝胶用于保命。"
+			return "污染残核是本轮危险区域挑战；抗污染药剂用于维持防护，高压污染点会自动接入排压。"
 		"quest.unlock_ruin_signal":
 			if _is_gate_pressure_active(world_state):
-				return "先清理门前受扰敌人；这是药剂和修复凝胶真正改变推进结果的压力点。"
+				return "先清理门前受扰敌人；药剂会自动接入排压，修复凝胶用于承接生命压力。"
 			return "先确认封锁入口信号，真正把主线推进到封锁遗迹。"
 		"quest.scout_ruin_outer_ring":
 			return "先把外圈继电残片和污染脊沉积物带回基地；沉积物处理出的浆液可补信标零件。"

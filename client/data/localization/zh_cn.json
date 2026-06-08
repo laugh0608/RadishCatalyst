@@ -22,7 +22,7 @@
     "item.foundation_material.name": "地基材料",
     "item.foundation_material.desc": "用于铺设基础地基的结构材料。",
     "item.resistance_vial_t1.name": "抗污染药剂 I",
-    "item.resistance_vial_t1.desc": "短时间降低污染区防护压力的消耗品。",
+    "item.resistance_vial_t1.desc": "短时间降低污染区防护压力的消耗品，高压污染点会自动接入排压。",
     "item.repair_gel.name": "修复凝胶",
     "item.repair_gel.desc": "用于外勤途中恢复生命或装备状态的应急补给。",
     "item.core_stabilization_buffer.name": "核心稳压缓冲包",

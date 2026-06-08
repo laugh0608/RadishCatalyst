@@ -10,6 +10,7 @@ const PLAYER_INTERACTION_RANGE := 96.0
 const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
 const POLLUTION_RIDGE_COUNTER_MULT := 1.2
 const GATE_PRESSURE_COUNTER_MULT := 1.35
+const POLLUTION_PRESSURE_VIAL_DAMAGE_MULT := 0.45
 const CORE_STABILIZATION_BUFFER_DAMAGE_MULT := 0.55
 const OUTPOST_RESPAWN_POSITION := Vector2(-250, -48)
 const PLAY_BOUNDS_MIN := Vector2(-360, -200)
@@ -436,7 +437,7 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 			return _enemy_defeat_result(target, drops_message, "核心阶段守卫已被击败；先回收守卫后的回写缓存，再写入核心稳定设备。")
 		return _enemy_defeat_result(target, drops_message)
 
-	var counter_message := _apply_enemy_counterattack(target, character_state)
+	var counter_message := _apply_enemy_counterattack(target, character_state, world_state)
 	var evacuation_feedback := _evacuate_if_needed(character_state, world_state, "combat")
 	return {
 		"success": true,
@@ -806,7 +807,7 @@ func _enemy_defeat_result(enemy: PrototypeEnemy, drops_message: String, followup
 		"enemy_definition_id": enemy.definition_id,
 		"enemy_defeated": true
 	}
-func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: CharacterState) -> String:
+func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: CharacterState, world_state: WorldState = null) -> String:
 	var definition := data_registry.get_definition(enemy.definition_id)
 	var base_stats: Dictionary = definition.get("base_stats", {})
 	var pressure_multiplier := 1.0
@@ -822,6 +823,12 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 		character_state.inventory.consume_ref("item.core_stabilization_buffer", 1)
 		attack_damage *= CORE_STABILIZATION_BUFFER_DAMAGE_MULT
 		consumed_core_buffer = true
+	var consumed_pressure_vial := false
+	if _should_consume_pollution_pressure_vial(enemy, character_state, world_state):
+		character_state.inventory.consume_ref("item.resistance_vial_t1", 1)
+		_mark_pollution_pressure_vial_used(enemy, world_state)
+		attack_damage *= POLLUTION_PRESSURE_VIAL_DAMAGE_MULT
+		consumed_pressure_vial = true
 	var damage_types: Array = definition.get("damage_types", [])
 	if damage_types.has("pollution"):
 		attack_damage *= character_state.get_pollution_counter_damage_multiplier(data_registry)
@@ -838,11 +845,17 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 			_format_amount(protection_damage)
 		]
 		if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure":
-			message = "%s门前污染压力更高，防护偏低时按 2 使用抗污染药剂，生命偏低时按 1 使用修复凝胶。" % message
+			if consumed_pressure_vial:
+				message = "%s抗污染药剂已自动接入门前排压，过滤器准备让生命和防护承压降低；继续压制入口信号。" % message
+			else:
+				message = "%s门前污染压力更高，防护偏低时按 2 使用抗污染药剂，生命偏低时按 1 使用修复凝胶。" % message
 		if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
 			message = "%s污染脊守卫压迫更强，过滤模块会降低生命和防护承压；防护偏低时按 2 使用抗污染药剂。" % message
 		if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
-			message = "%s补料点污染压力更强，过滤模块会降低生命和防护承压；清完后把沉积物带回过滤器处理。" % message
+			if consumed_pressure_vial:
+				message = "%s抗污染药剂已自动接入补料点排压，过滤器准备让这场回访战斗更稳；清完后把沉积物带回过滤器处理。" % message
+			else:
+				message = "%s补料点污染压力更强，过滤模块会降低生命和防护承压；清完后把沉积物带回过滤器处理。" % message
 		if enemy.definition_id == "enemy.demo_stabilization_guard":
 			if consumed_core_buffer:
 				message = "%s核心稳压缓冲包已消耗，第一段回写压力被削弱；后续仍需用修复凝胶和抗污染药剂兜底。" % message
@@ -853,6 +866,34 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 	if enemy.definition_id == "enemy.treatment_skitter":
 		message = "%s生命偏低时按 1 使用修复凝胶，或回基地再调制补给。" % message
 	return message
+
+
+func _should_consume_pollution_pressure_vial(
+	enemy: PrototypeEnemy,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> bool:
+	if not _is_pollution_pressure_vial_enemy(enemy):
+		return false
+	if not character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+		return false
+	if world_state != null and not enemy.instance_id.is_empty():
+		return not bool(world_state.get_enemy(enemy.instance_id).get("pressure_vial_used", false))
+	return not (enemy.has_meta("pressure_vial_used") and bool(enemy.get_meta("pressure_vial_used")))
+
+
+func _mark_pollution_pressure_vial_used(enemy: PrototypeEnemy, world_state: WorldState) -> void:
+	if world_state != null and not enemy.instance_id.is_empty():
+		var enemy_state := world_state.ensure_enemy(enemy.instance_id, enemy.definition_id, _get_region_id_for_position(enemy.position), enemy.max_health)
+		enemy_state["pressure_vial_used"] = true
+	enemy.set_meta("pressure_vial_used", true)
+
+
+func _is_pollution_pressure_vial_enemy(enemy: PrototypeEnemy) -> bool:
+	return (
+		enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure"
+		or enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter"
+	)
 func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, world_state: WorldState) -> String:
 	if world_state.has_enemy_drops_granted(enemy.instance_id):
 		return ""
