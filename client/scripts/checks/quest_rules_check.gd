@@ -99,6 +99,9 @@ func _check_interaction_event_objective_updates() -> void:
 		quest_state
 	)
 	_expect_update(updates, "add", "quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 1.0, "anomaly residue gather update")
+	updates = event_rules.get_interaction_objective_updates({"definition_id": "map_object.pollution_residue_patch", "interaction_type": "gather"}, {}, quest_state)
+	_expect_update(updates, "add", "quest.scout_ruin_outer_ring", "gather_item", "item.polluted_residue", 2.0, "outer ring ridge residue gather update")
+	_expect_update(updates, "add", "quest.salvage_signal_echo", "gather_item", "item.polluted_residue", 2.0, "outer ring echo residue gather update")
 	updates = event_rules.get_interaction_objective_updates(
 		{
 			"definition_id": "map_object.signal_echo_cache",
@@ -506,15 +509,9 @@ func _check_recipe_build_and_enemy_event_objective_updates() -> void:
 		"treatment enemy defeat update"
 	)
 	_expect_equal(event_rules.get_defeated_enemy_objective_updates("enemy.native_skitter").size(), 0, "ordinary native enemy should not complete treatment prep")
-	_expect_update(
-		event_rules.get_defeated_enemy_objective_updates("enemy.polluted_skitter"),
-		"set",
-		"quest.enter_pollution_edge",
-		"defeat_enemy",
-		"enemy.polluted_skitter",
-		1.0,
-		"polluted enemy defeat update"
-	)
+	var polluted_enemy_updates := event_rules.get_defeated_enemy_objective_updates("enemy.polluted_skitter")
+	_expect_update(polluted_enemy_updates, "set", "quest.enter_pollution_edge", "defeat_enemy", "enemy.polluted_skitter", 1.0, "polluted enemy defeat update")
+	_expect_update(polluted_enemy_updates, "set", "quest.scout_ruin_outer_ring", "defeat_enemy", "enemy.polluted_skitter", 1.0, "outer ring ridge enemy defeat update")
 	_expect_update(
 		event_rules.get_defeated_enemy_objective_updates("enemy.elite_residue_node"),
 		"set",

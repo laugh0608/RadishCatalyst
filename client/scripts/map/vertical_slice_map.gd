@@ -8,7 +8,11 @@ const ATTACK_RANGE := 90.0
 const BASE_ATTACK_DAMAGE := 10.0
 const PLAYER_INTERACTION_RANGE := 96.0
 const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
+const POLLUTION_RIDGE_COUNTER_MULT := 1.2
 const GATE_PRESSURE_COUNTER_MULT := 1.35
+const RUIN_PHASE_GUARD_COUNTER_MULT := 1.2
+const POLLUTION_PRESSURE_VIAL_DAMAGE_MULT := 0.45
+const CORE_STABILIZATION_BUFFER_DAMAGE_MULT := 0.55
 const OUTPOST_RESPAWN_POSITION := Vector2(-250, -48)
 const PLAY_BOUNDS_MIN := Vector2(-360, -200)
 const PLAY_BOUNDS_MAX := Vector2(4200, 200)
@@ -80,6 +84,7 @@ var data_registry: DataRegistry
 var current_interactable: PrototypeInteractable
 var gather_system: GatherSystem
 var phase_well_frontier_runtime: PhaseWellFrontierRuntime
+var interactable_visual_refresher := InteractableVisualRefresher.new()
 var last_reported_region_id := "region.outpost_platform"
 var last_gate_message := ""
 
@@ -184,6 +189,8 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 	return result
 func refresh_world_interactables(world_state: WorldState) -> void:
 	_ensure_scene_nodes()
+	if interactable_visual_refresher == null:
+		interactable_visual_refresher = InteractableVisualRefresher.new()
 	if phase_well_frontier_runtime != null:
 		phase_well_frontier_runtime.sync_anchor_field_progress(world_state)
 	if interactables_root == null:
@@ -192,201 +199,16 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 	for interactable in interactables_root.get_children():
 		if not interactable is PrototypeInteractable:
 			continue
-		var object_state := world_state.get_map_object(interactable.instance_id)
-		var is_processed := false
-		if interactable.interaction_type == "gather":
-			is_processed = bool(object_state.get("is_gathered", false))
-		if interactable.interaction_type == "sample":
-			is_processed = bool(object_state.get("is_sampled", false))
-		if interactable.interaction_type == "inspect":
-			is_processed = bool(object_state.get("is_sampled", false))
-		if interactable.interaction_type == "clear":
-			is_processed = bool(object_state.get("is_cleared", false))
-		if interactable.interaction_type == "build":
-			is_processed = bool(object_state.get("is_built", false))
-			if is_processed:
-				interactable.set_built_visual(String(object_state.get("built_definition_id", interactable.definition_id)))
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-		if BaseActionDispatchPlan.is_plan_candidate_console_ready(interactable.definition_id, world_state): is_processed = false
-		if interactable.single_use:
-			interactable.consumed = is_processed
-		if interactable.interaction_type == "outpost_core":
-			if world_state.quest_state.has_completed_quest("quest.restore_outpost"):
-				interactable.set_restored_outpost_core_visual()
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.ruin_gate":
-			if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):
-				interactable.set_confirmed_ruin_signal_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.outer_ring_barrier":
-			if world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier"):
-				interactable.set_stabilized_barrier_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.outer_ring_console":
-			if world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
-				interactable.set_secured_console_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.signal_echo_cache":
-			if world_state.quest_state.has_completed_quest("quest.salvage_signal_echo"):
-				interactable.set_recovered_signal_echo_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.deep_ruin_door":
-			if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_entrance"):
-				interactable.set_opened_deep_ruin_door_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.deep_ruin_latch":
-			if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_cache"):
-				interactable.set_overridden_deep_ruin_latch_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.deep_signal_array":
-			if world_state.quest_state.has_completed_quest("quest.activate_deep_array"):
-				interactable.set_activated_deep_signal_array_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_return_anchor":
-			if world_state.is_active_phase_relay_anchor(interactable.instance_id):
-				interactable.set_deployed_phase_return_anchor_visual(true)
-				continue
-			if world_state.has_deployed_phase_relay_anchor(interactable.instance_id):
-				interactable.set_deployed_phase_return_anchor_visual(false)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_relay_pad":
-			if world_state.has_active_phase_relay_anchor():
-				interactable.set_ready_phase_relay_pad_visual(
-					world_state.get_deployed_phase_relay_anchor_count() > 1
-				)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_fault_spire":
-			if world_state.quest_state.has_completed_quest("quest.inspect_phase_fault_spire"):
-				interactable.set_tuned_phase_fault_spire_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_well_lock":
-			if world_state.quest_state.has_completed_quest("quest.unlock_phase_well"):
-				interactable.set_stabilized_phase_well_lock_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.inner_phase_well":
-			if world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well"):
-				interactable.set_stabilized_inner_phase_well_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_well_sink":
-			if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_sink"):
-				interactable.set_stabilized_phase_well_sink_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_well_chamber":
-			if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_chamber"):
-				interactable.set_stabilized_phase_well_chamber_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_well_loom":
-			if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_loom"):
-				interactable.set_stabilized_phase_well_loom_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_well_frame":
-			if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_frame"):
-				interactable.set_stabilized_phase_well_frame_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_well_tether":
-			if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_tether"):
-				interactable.set_stabilized_phase_well_tether_visual()
-				if current_interactable == interactable:
-					current_interactable = null
-					interaction_cleared.emit(interactable)
-				continue
-			interactable.set_default_visual()
-		elif interactable.definition_id == "map_object.phase_well_anchor_field":
-			if phase_well_frontier_runtime == null:
-				interactable.set_default_visual()
-			elif phase_well_frontier_runtime.is_anchor_field_stabilized(world_state):
-				interactable.set_stabilized_phase_well_anchor_field_visual()
-			elif phase_well_frontier_runtime.is_anchor_field_pressure_cleared(world_state):
-				interactable.set_ready_phase_well_anchor_field_visual()
-			elif phase_well_frontier_runtime.is_anchor_field_deployed(world_state):
-				interactable.set_deployed_phase_well_anchor_field_visual()
-			else:
-				interactable.set_default_visual()
-		elif (
-			phase_well_frontier_runtime != null
-			and phase_well_frontier_runtime.is_stability_calibration_node(interactable.definition_id)
-		):
-			if phase_well_frontier_runtime.is_stability_node_calibrated(
-				world_state,
-				interactable.instance_id,
-				interactable.definition_id
-			):
-				interactable.set_calibrated_stability_node_visual()
-			elif phase_well_frontier_runtime.is_stability_calibration_ready(world_state, interactable.definition_id):
-				interactable.set_ready_stability_calibration_visual()
-			else:
-				interactable.set_default_visual()
-		elif interactable.definition_id == BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID and BaseActionDispatchPlan.is_frontline_action_console_ready(world_state):
-			interactable.set_default_visual()
-		elif is_processed and interactable.set_processed_visual():
-			if current_interactable == interactable:
-				current_interactable = null
-				interaction_cleared.emit(interactable)
+		var visual_result := interactable_visual_refresher.refresh_visual_state(
+			interactable,
+			world_state,
+			phase_well_frontier_runtime
+		)
+		if bool(visual_result.get("clear_current", false)) and current_interactable == interactable:
+			current_interactable = null
+			interaction_cleared.emit(interactable)
+		if bool(visual_result.get("skip_enable", false)):
 			continue
-		elif not is_processed:
-			interactable.set_default_visual()
 		var should_enable: bool = not interactable.consumed
 		if interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter":
 			should_enable = should_enable and world_state.has_base_structure_definition("building.pollution_filter")
@@ -464,6 +286,34 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			)
 		if interactable.definition_id == "map_object.rich_crystal_vein":
 			should_enable = should_enable and world_state.quest_state.has_completed_quest("quest.scout_crystal_field")
+		if interactable.instance_id == "map_object_instance.pollution_residue_ridge_cache":
+			should_enable = should_enable and (
+				world_state.quest_state.has_active_quest("quest.scout_ruin_outer_ring")
+				or world_state.quest_state.has_completed_quest("quest.scout_ruin_outer_ring")
+			)
+		if interactable.instance_id == "map_object_instance.outer_ring_echo_residue_cache":
+			should_enable = (
+				should_enable
+				and bool(world_state.get_enemy("enemy_instance.ruin_phase_guard").get("is_defeated", false))
+				and (
+					world_state.quest_state.has_active_quest("quest.salvage_signal_echo")
+					or world_state.quest_state.has_completed_quest("quest.salvage_signal_echo")
+				)
+			)
+		if interactable.instance_id == "map_object_instance.core_buffer_residue_cache":
+			should_enable = should_enable and (
+				world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer")
+				or world_state.quest_state.has_completed_quest("quest.prepare_demo_stabilization_buffer")
+			)
+		if interactable.instance_id == "map_object_instance.demo_stabilization_guard_cache":
+			should_enable = (
+				should_enable
+				and bool(world_state.get_enemy("enemy_instance.demo_stabilization_guard").get("is_defeated", false))
+				and (
+					world_state.quest_state.has_active_quest("quest.write_demo_stabilization_core")
+					or world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
+				)
+			)
 		if interactable.definition_id == "map_object.phase_relay_pad":
 			should_enable = should_enable and world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor")
 		if interactable.definition_id == "map_object.phase_well_anchor_field":
@@ -480,6 +330,8 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				world_state.quest_state.has_active_quest("quest.calibrate_phase_well_stability_window")
 				or world_state.quest_state.has_completed_quest("quest.calibrate_phase_well_stability_window")
 			)
+		if should_enable and interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter":
+			interactable.set_operational_pollution_filter_visual()
 		interactable.set_interaction_enabled(should_enable)
 		if current_interactable == interactable and not should_enable:
 			current_interactable = null
@@ -547,12 +399,18 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 	if bool(result.get("defeated", false)):
 		var drops_message := _grant_enemy_drops(target, character_state, world_state)
 		if target.definition_id == "enemy.polluted_skitter":
-			var followup := "遗迹门前压力减弱，可以继续处理污染残核或确认入口信号。" if target.instance_id == "enemy_instance.polluted_skitter_gate_pressure" else "污染处理点周边暂时安全。"
+			var followup := "污染处理点周边暂时安全。"
+			if target.instance_id == "enemy_instance.polluted_skitter_gate_pressure":
+				followup = "遗迹门前压力减弱，可以继续处理污染残核或确认入口信号。"
+			if target.instance_id == "enemy_instance.polluted_skitter_ridge":
+				followup = "污染脊守卫已清空；把沉积物带回过滤器处理，副产浆液可回收成信标所需基础零件。"
+			if target.instance_id == "enemy_instance.core_buffer_polluted_skitter":
+				followup = "核心缓冲包补料点已安全；回收沉积物后回过滤器处理，留下药剂和污染浆液再回基地整备缓冲包。"
 			return _enemy_defeat_result(target, drops_message, followup)
 		if target.definition_id == "enemy.treatment_skitter":
 			return _enemy_defeat_result(target, drops_message, "处理点清障压力减弱；继续确认另一处威胁或回基地补齐修复凝胶。")
 		if target.definition_id == "enemy.ruin_phase_guard":
-			return _enemy_defeat_result(target, drops_message, "外圈回波匣附近的干扰守卫已清空。")
+			return _enemy_defeat_result(target, drops_message, "外圈回波匣附近的干扰守卫已清空；先回收暴露的污染回波沉积，再带回波匣回基地解析。")
 		if target.definition_id == "enemy.deep_ruin_sentinel":
 			return _enemy_defeat_result(target, drops_message, "裂相锁扣前的压制守卫已清空，相位纤丝回收线已打开。")
 		if target.definition_id == "enemy.deep_ruin_stalker":
@@ -577,10 +435,10 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 		if target.definition_id == "enemy.pressure_clearance_guard":
 			return _enemy_defeat_result(target, drops_message, "前线压力扰点的短战斗压制已解除，现在可以清理扰点并带回清障回执。")
 		if target.definition_id == "enemy.demo_stabilization_guard":
-			return _enemy_defeat_result(target, drops_message, "核心阶段守卫已被击败，核心稳定设备现在可以写入稳定数据。")
+			return _enemy_defeat_result(target, drops_message, "核心阶段守卫已被击败；先回收守卫后的回写缓存，再写入核心稳定设备。")
 		return _enemy_defeat_result(target, drops_message)
 
-	var counter_message := _apply_enemy_counterattack(target, character_state)
+	var counter_message := _apply_enemy_counterattack(target, character_state, world_state)
 	var evacuation_feedback := _evacuate_if_needed(character_state, world_state, "combat")
 	return {
 		"success": true,
@@ -850,6 +708,13 @@ func _refresh_enemy_focus_visuals() -> void:
 func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool:
 	if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure":
 		return world_state.quest_state.has_active_quest("quest.defeat_elite_node") or world_state.quest_state.has_completed_quest("quest.defeat_elite_node")
+	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
+		return world_state.quest_state.has_active_quest("quest.scout_ruin_outer_ring") or world_state.quest_state.has_completed_quest("quest.scout_ruin_outer_ring")
+	if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
+		return (
+			world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer")
+			or world_state.quest_state.has_completed_quest("quest.prepare_demo_stabilization_buffer")
+		)
 	if enemy.definition_id == "enemy.elite_residue_node":
 		return (
 			world_state.quest_state.has_active_quest("quest.defeat_elite_node")
@@ -943,14 +808,36 @@ func _enemy_defeat_result(enemy: PrototypeEnemy, drops_message: String, followup
 		"enemy_definition_id": enemy.definition_id,
 		"enemy_defeated": true
 	}
-func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: CharacterState) -> String:
+func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: CharacterState, world_state: WorldState = null) -> String:
 	var definition := data_registry.get_definition(enemy.definition_id)
 	var base_stats: Dictionary = definition.get("base_stats", {})
-	var pressure_multiplier := GATE_PRESSURE_COUNTER_MULT if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure" else 1.0
+	var pressure_multiplier := 1.0
+	if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure":
+		pressure_multiplier = GATE_PRESSURE_COUNTER_MULT
+	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
+		pressure_multiplier = POLLUTION_RIDGE_COUNTER_MULT
+	if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
+		pressure_multiplier = POLLUTION_RIDGE_COUNTER_MULT
+	if enemy.definition_id == "enemy.ruin_phase_guard":
+		pressure_multiplier = RUIN_PHASE_GUARD_COUNTER_MULT
 	var attack_damage := float(base_stats.get("attack", 0.0)) * pressure_multiplier
+	var consumed_core_buffer := false
+	if enemy.definition_id == "enemy.demo_stabilization_guard" and character_state.inventory.has_ref("item.core_stabilization_buffer", 1):
+		character_state.inventory.consume_ref("item.core_stabilization_buffer", 1)
+		attack_damage *= CORE_STABILIZATION_BUFFER_DAMAGE_MULT
+		_mark_core_stabilization_buffer_used(enemy, world_state)
+		consumed_core_buffer = true
+	var consumed_pressure_vial := false
+	if _should_consume_pollution_pressure_vial(enemy, character_state, world_state):
+		character_state.inventory.consume_ref("item.resistance_vial_t1", 1)
+		_mark_pollution_pressure_vial_used(enemy, world_state)
+		attack_damage *= POLLUTION_PRESSURE_VIAL_DAMAGE_MULT
+		consumed_pressure_vial = true
+	var damage_types: Array = definition.get("damage_types", [])
+	if damage_types.has("pollution"):
+		attack_damage *= character_state.get_pollution_counter_damage_multiplier(data_registry)
 	var health_damage := character_state.apply_health_damage(attack_damage)
 	var protection_damage := 0.0
-	var damage_types: Array = definition.get("damage_types", [])
 	if damage_types.has("pollution"):
 		protection_damage = character_state.apply_protection_damage(
 			attack_damage * POLLUTION_COUNTER_PRESSURE_MULT * character_state.get_pollution_drain_multiplier(data_registry)
@@ -962,12 +849,67 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 			_format_amount(protection_damage)
 		]
 		if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure":
-			message = "%s门前污染压力更高，防护偏低时按 2 使用抗污染药剂，生命偏低时按 1 使用修复凝胶。" % message
+			if consumed_pressure_vial:
+				message = "%s抗污染药剂已自动接入门前排压，过滤器准备让生命和防护承压降低；继续压制入口信号。" % message
+			else:
+				message = "%s门前污染压力更高，防护偏低时按 2 使用抗污染药剂，生命偏低时按 1 使用修复凝胶。" % message
+		if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
+			message = "%s污染脊守卫压迫更强，过滤模块会降低生命和防护承压；防护偏低时按 2 使用抗污染药剂。" % message
+		if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
+			if consumed_pressure_vial:
+				message = "%s抗污染药剂已自动接入补料点排压，过滤器准备让这场回访战斗更稳；清完后把沉积物带回过滤器处理。" % message
+			else:
+				message = "%s补料点污染压力更强，过滤模块会降低生命和防护承压；清完后把沉积物带回过滤器处理。" % message
+		if enemy.definition_id == "enemy.ruin_phase_guard":
+			if String(character_state.equipment.get("suit_module", "")) == "equipment.filter_module_t1":
+				message = "%s基础过滤模块缓冲了外圈回波反击；战后回收污染回波沉积，再回过滤器处理副产。" % message
+			else:
+				message = "%s相位守卫回波夹带污染压力；基础过滤模块可降低生命和防护承压，战后仍要回收沉积物处理副产。" % message
+		if enemy.definition_id == "enemy.demo_stabilization_guard":
+			if consumed_core_buffer:
+				message = "%s核心稳压缓冲包已消耗，第一段回写压力被削弱；后续仍需用修复凝胶和抗污染药剂兜底。" % message
+			else:
+				message = "%s没有核心稳压缓冲包，回写压力完整命中；建议回基地整备后再战。" % message
 		return message
 	var message := "%s 反击，生命 -%s。" % [enemy.display_name, _format_amount(health_damage)]
 	if enemy.definition_id == "enemy.treatment_skitter":
 		message = "%s生命偏低时按 1 使用修复凝胶，或回基地再调制补给。" % message
 	return message
+
+
+func _should_consume_pollution_pressure_vial(
+	enemy: PrototypeEnemy,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> bool:
+	if not _is_pollution_pressure_vial_enemy(enemy):
+		return false
+	if not character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+		return false
+	if world_state != null and not enemy.instance_id.is_empty():
+		return not bool(world_state.get_enemy(enemy.instance_id).get("pressure_vial_used", false))
+	return not (enemy.has_meta("pressure_vial_used") and bool(enemy.get_meta("pressure_vial_used")))
+
+
+func _mark_pollution_pressure_vial_used(enemy: PrototypeEnemy, world_state: WorldState) -> void:
+	if world_state != null and not enemy.instance_id.is_empty():
+		var enemy_state := world_state.ensure_enemy(enemy.instance_id, enemy.definition_id, _get_region_id_for_position(enemy.position), enemy.max_health)
+		enemy_state["pressure_vial_used"] = true
+	enemy.set_meta("pressure_vial_used", true)
+
+
+func _mark_core_stabilization_buffer_used(enemy: PrototypeEnemy, world_state: WorldState) -> void:
+	if world_state != null and not enemy.instance_id.is_empty():
+		var enemy_state := world_state.ensure_enemy(enemy.instance_id, enemy.definition_id, _get_region_id_for_position(enemy.position), enemy.max_health)
+		enemy_state["core_buffer_used"] = true
+	enemy.set_meta("core_buffer_used", true)
+
+
+func _is_pollution_pressure_vial_enemy(enemy: PrototypeEnemy) -> bool:
+	return (
+		enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure"
+		or enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter"
+	)
 func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, world_state: WorldState) -> String:
 	if world_state.has_enemy_drops_granted(enemy.instance_id):
 		return ""
@@ -1061,6 +1003,19 @@ func _inspect_signal_echo_cache(world_state: WorldState) -> Dictionary:
 			"目标未就绪",
 			"先检查外圈中继台，锁定深段稳定回波。"
 		)
+	if world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
+		if not bool(world_state.get_enemy("enemy_instance.ruin_phase_guard").get("is_defeated", false)):
+			return _failure(
+				"外圈回波匣仍被相位守卫压制。",
+				"守卫未清",
+				"先清理相位守卫，战斗后会暴露污染回波沉积。"
+			)
+		if world_state.quest_state.get_objective_progress("quest.salvage_signal_echo", "gather_item", "item.polluted_residue") < 2.0:
+			return _failure(
+				"回波匣旁的污染回波沉积尚未回收。",
+				"沉积未回收",
+				"先回收守卫后暴露的沉积物，回过滤器处理成药剂和污染浆液，再带回波匣回基地解析。"
+			)
 	if world_state.quest_state.has_completed_quest("quest.salvage_signal_echo"):
 		return {
 			"success": true,
@@ -1068,7 +1023,7 @@ func _inspect_signal_echo_cache(world_state: WorldState) -> Dictionary:
 		}
 	return {
 		"success": true,
-		"message": "已回收外圈回波匣：回基地用基础反应器整理裂相坐标。"
+		"message": "已回收外圈回波匣：带着污染处理副产回基地，用基础反应器整理裂相坐标。"
 	}
 func _inspect_deep_ruin_door(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.analyze_deep_signal"):

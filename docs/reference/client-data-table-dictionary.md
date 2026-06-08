@@ -141,6 +141,7 @@
 
 - `attack_power`：影响近战攻击伤害。
 - `pollution_drain_mult`：影响污染消耗倍率。
+- `pollution_counter_damage_mult`：影响污染敌人反击造成的生命与防护压力。
 
 当前已接入的 `effects` 语义：
 
@@ -202,7 +203,7 @@
 `quest_refs` 当前不是摆设：
 
 - `scripts/check-client-data.ps1` 会校验直接指向 `region.*` 的任务目标。
-- `scripts/check-client-scenes.ps1` 会按场景中的交互点、加工设备、建造点和敌人所在区域，反推任务必须被哪些区域收录。
+- `scripts/check-client-scenes.ps1` / `scripts/check-client-scenes.py` 会按场景中的交互点、加工设备、建造点和敌人所在区域，反推任务必须被哪些区域收录。
 
 ### `map_objects.json`
 
@@ -254,6 +255,7 @@
 
 - `GatherSystem._apply_pollution_pressure()`
 - `CharacterState.get_pollution_drain_multiplier()`
+- `CharacterState.get_pollution_counter_damage_multiplier()`
 
 共同处理。
 

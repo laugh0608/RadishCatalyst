@@ -172,9 +172,9 @@ autowrap_mode = 3
 [node name="CompletionPanel" type="ColorRect" parent="."]
 visible = false
 offset_left = 970.0
-offset_top = 1088.0
+offset_top = 1006.0
 offset_right = 1530.0
-offset_bottom = 1308.0
+offset_bottom = 1226.0
 color = Color(0.0352941, 0.054902, 0.0588235, 0.94)
 clip_contents = true
 
@@ -311,10 +311,10 @@ autowrap_mode = 3
 [node name="StatusPanel" type="ColorRect" parent="."]
 anchor_left = 0.0
 anchor_right = 0.0
-offset_left = 20.0
-offset_top = 244.0
-offset_right = 540.0
-offset_bottom = 424.0
+offset_left = 18.0
+offset_top = 220.0
+offset_right = 618.0
+offset_bottom = 398.0
 color = Color(0.0352941, 0.054902, 0.0588235, 0.56)
 clip_contents = true
 
@@ -328,10 +328,10 @@ label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3
 
 [node name="VitalsPanel" type="ColorRect" parent="."]
-offset_left = 1980.0
-offset_top = 20.0
-offset_right = 2480.0
-offset_bottom = 268.0
+offset_left = 2022.0
+offset_top = 18.0
+offset_right = 2482.0
+offset_bottom = 202.0
 color = Color(0.0352941, 0.054902, 0.0588235, 0.56)
 clip_contents = true
 
@@ -345,10 +345,10 @@ label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3
 
 [node name="MapPanel" type="ColorRect" parent="."]
-offset_left = 20.0
-offset_top = 20.0
-offset_right = 450.0
-offset_bottom = 228.0
+offset_left = 18.0
+offset_top = 18.0
+offset_right = 618.0
+offset_bottom = 208.0
 color = Color(0.0352941, 0.054902, 0.0588235, 0.54)
 clip_contents = true
 
@@ -583,27 +583,27 @@ autowrap_mode = 3
 [node name="PromptPanel" type="ColorRect" parent="."]
 anchor_left = 0.0
 anchor_right = 0.0
-offset_left = 20.0
-offset_top = 1188.0
-offset_right = 840.0
-offset_bottom = 1380.0
+offset_left = 860.0
+offset_top = 1238.0
+offset_right = 1640.0
+offset_bottom = 1382.0
 color = Color(0.0352941, 0.054902, 0.0588235, 0.58)
 clip_contents = true
 
 [node name="PromptLabel" type="Label" parent="PromptPanel"]
 offset_left = 18.0
 offset_top = 18.0
-offset_right = 802.0
-offset_bottom = 174.0
+offset_right = 762.0
+offset_bottom = 126.0
 text = ""
 label_settings = SubResource("LabelSettings_prompt")
 autowrap_mode = 3
 
 [node name="DevicePanel" type="ColorRect" parent="."]
 visible = false
-offset_left = 1840.0
+offset_left = 1842.0
 offset_top = 336.0
-offset_right = 2480.0
+offset_right = 2482.0
 offset_bottom = 1064.0
 color = Color(0.0352941, 0.054902, 0.0588235, 0.94)
 clip_contents = true
@@ -611,42 +611,42 @@ clip_contents = true
 [node name="DeviceTitleLabel" type="Label" parent="DevicePanel"]
 offset_left = 22.0
 offset_top = 18.0
-offset_right = 398.0
+offset_right = 528.0
 offset_bottom = 50.0
 text = "设备面板"
 label_settings = SubResource("LabelSettings_prompt")
 autowrap_mode = 3
 
 [node name="DeviceCloseButton" type="Button" parent="DevicePanel"]
-offset_left = 424.0
+offset_left = 536.0
 offset_top = 18.0
-offset_right = 506.0
+offset_right = 618.0
 offset_bottom = 50.0
 text = "关闭"
 
 [node name="DeviceStatusLabel" type="Label" parent="DevicePanel"]
 offset_left = 22.0
 offset_top = 66.0
-offset_right = 506.0
-offset_bottom = 330.0
+offset_right = 618.0
+offset_bottom = 310.0
 text = ""
 label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3
 
 [node name="DeviceRecipeLabel" type="Label" parent="DevicePanel"]
 offset_left = 22.0
-offset_top = 344.0
-offset_right = 506.0
-offset_bottom = 622.0
+offset_top = 322.0
+offset_right = 618.0
+offset_bottom = 562.0
 text = ""
 label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3
 
 [node name="DeviceOperationLabel" type="Label" parent="DevicePanel"]
 offset_left = 22.0
-offset_top = 636.0
-offset_right = 506.0
-offset_bottom = 674.0
+offset_top = 650.0
+offset_right = 618.0
+offset_bottom = 692.0
 text = ""
 label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3
@@ -655,18 +655,18 @@ autowrap_mode = 3
 visible = false
 anchor_left = 0.0
 anchor_right = 0.0
-offset_left = 20.0
-offset_top = 1076.0
-offset_right = 840.0
-offset_bottom = 1172.0
+offset_left = 18.0
+offset_top = 1284.0
+offset_right = 698.0
+offset_bottom = 1382.0
 color = Color(0.0352941, 0.054902, 0.0588235, 0.46)
 clip_contents = true
 
 [node name="LogLabel" type="Label" parent="LogPanel"]
 offset_left = 18.0
 offset_top = 18.0
-offset_right = 802.0
-offset_bottom = 78.0
+offset_right = 662.0
+offset_bottom = 80.0
 text = ""
 label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3

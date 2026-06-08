@@ -129,9 +129,9 @@ quest_refs
 public_level
 ```
 
-`quest_refs` 表示该区域承载或强关联的任务，用于地图、HUD 和玩家指引反查。多地点任务应写入每个关键地点，例如先在野外采样、再回基地加工的任务，需要同时出现在野外区域和基地区域中。`scripts/check-client-data.ps1` 会校验任务中直接指向 `region.*` 的目标已被对应区域的 `quest_refs` 收录；`scripts/check-client-scenes.ps1` 会继续按第一切片场景中的交互点、加工设备、建造点和敌人实际所在区域，补查采集、制造、战斗、检查等间接地点关系，避免任务目标、区域索引和地图 / HUD 指引分叉。
+`quest_refs` 表示该区域承载或强关联的任务，用于地图、HUD 和玩家指引反查。多地点任务应写入每个关键地点，例如先在野外采样、再回基地加工的任务，需要同时出现在野外区域和基地区域中。`scripts/check-client-data.ps1` 会校验任务中直接指向 `region.*` 的目标已被对应区域的 `quest_refs` 收录；`scripts/check-client-scenes.ps1` / `scripts/check-client-scenes.py` 会继续按第一切片场景中的交互点、加工设备、建造点和敌人实际所在区域，补查采集、制造、战斗、检查等间接地点关系，避免任务目标、区域索引和地图 / HUD 指引分叉。
 
-当前第一切片仍是固定原型地图，场景实例与任务目标的同步由 `scripts/check-client-scenes.ps1` 兜底：任务中的交互、采样、检查、建造、加工和击败目标必须能在 `VerticalSliceMap.tscn` 找到对应交互点、建造点、加工设备或敌人实例；地图对象掉落数量也会按任务需求做最小核对，避免静态数据正确但场景未放目标。
+当前第一切片仍是固定原型地图，场景实例与任务目标的同步由 `scripts/check-client-scenes.ps1` / `scripts/check-client-scenes.py` 兜底：任务中的交互、采样、检查、建造、加工和击败目标必须能在 `VerticalSliceMap.tscn` 找到对应交互点、建造点、加工设备或敌人实例；地图对象掉落数量也会按任务需求做最小核对，避免静态数据正确但场景未放目标。
 
 地图对象定义描述可交互对象类型。
 

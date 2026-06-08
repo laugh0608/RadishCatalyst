@@ -38,13 +38,13 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		if _has_completed_route_frontline_action(world_state):
 			return "巡线短行动已确认：用相位回投返回锚定桥前线，读取巡线信标。"
 		if _has_completed_short_action_feedback(world_state):
-			return "短行动反馈已归档：回基地巡线短行动台确认第三条轻量行动。"
+			return "短行动反馈已归档：回基地前线行动台确认第三条巡线短行动。"
 		if _has_completed_supply_return_marker(world_state):
 			return "补给回执读数已带回：回基地使用基础反应器，把读数解析成短行动反馈记录。"
 		if _has_completed_supply_frontline_action(world_state):
 			return "补给短行动已确认：用相位回投返回锚定桥前线，读取补给回执标记。"
 		if _has_completed_stability_echo_report(world_state):
-			return "前线行动回报已归档：前哨已整理下一趟短行动补给，回基地短行动补给台确认第二条轻量行动。"
+			return "前线行动回报已归档：前哨已整理下一趟短行动补给，回基地前线行动台确认第二条轻量行动。"
 		if _has_completed_stability_echo_probe(world_state):
 			return "稳窗回波样本已带回：回基地使用基础反应器，把样本解析成前线行动回报。"
 		if _has_completed_stability_frontline_action(world_state):
@@ -106,7 +106,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.make_filter_module":
 			if not character_state.inventory.has_ref("item.filter_media", 1):
 				return "回基地使用基础反应器，先制造过滤介质；随后组装基础过滤模块。"
-			return "回基地使用基础反应器，组装基础过滤模块；启用后会降低污染防护消耗。"
+			return "回基地使用基础反应器，组装基础过滤模块；启用后会降低污染消耗和污染反击压力。"
 		"quest.prepare_treatment_supplies":
 			if target_region_id == "region.outpost_platform":
 				return "回基地用基础反应器调制修复凝胶，它是下一段清障战斗补给。"
@@ -128,23 +128,27 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 				return "带着抗污染药剂继续深入污染边界，清理受扰敌人并靠近遗迹门前压力点。"
 			return "向东南进入黄色污染边界，采集沉积物并处理药剂。"
 		"quest.defeat_elite_node":
-			return "污染残核会持续压低防护，带抗污染药剂后继续向东推进。"
+			return "污染残核会持续压低防护；带抗污染药剂继续向东推进，高压污染点会自动接入排压。"
 		"quest.unlock_ruin_signal":
 			if _is_gate_pressure_active(world_state):
-				return "遗迹门前仍有受扰敌人压制；先用修复凝胶和抗污染药剂撑过门前压力，再检查封锁入口。"
+				return "遗迹门前仍有受扰敌人压制；抗污染药剂会接入门前排压，再检查封锁入口。"
 			return "前往污染边界东侧检查封锁遗迹入口，打开封锁遗迹通路。"
 		"quest.scout_ruin_outer_ring":
-			return "穿过封锁入口进入封锁遗迹，回收两处继电残片。"
+			return "穿过封锁入口进入遗迹外圈，回收继电残片；外圈前污染脊还要补沉积物并清理受扰守卫。"
 		"quest.assemble_phase_anchor":
-			return "回基地使用基础反应器，组装稳相信标。"
+			return "回基地使用基础反应器；基础零件不足时先把一份污染浆液回收成零件，再组装稳相信标。"
 		"quest.stabilize_outer_ring_barrier":
 			return "带着稳相信标返回封锁遗迹，在抖动雾幕前部署后再继续深入。"
 		"quest.secure_outer_ring_signal":
 			return "穿过已稳定的抖动雾幕，向东检查封锁遗迹中继台。"
 		"quest.salvage_signal_echo":
-			return "继续留在封锁遗迹深处，清理相位守卫并回收封锁回波匣。"
+			if world_state.quest_state.get_objective_progress(quest_id, "defeat_enemy", "enemy.ruin_phase_guard") < 1.0:
+				return "继续留在封锁遗迹深处，先清理压住回波匣的相位守卫。"
+			if world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.polluted_residue") < 2.0:
+				return "守卫后暴露出污染回波沉积；先回收沉积物，回过滤器处理成药剂和污染浆液。"
+			return "带着已处理路线的污染副产，回收封锁回波匣，再回基地解析裂相坐标。"
 		"quest.analyze_deep_signal":
-			return "回基地使用基础反应器，解析封锁回波并整理裂相坐标。"
+			return "回基地使用基础反应器，把封锁回波和污染处理副产整理成裂相坐标。"
 		"quest.unlock_deep_ruin_entrance":
 			return "带着裂相坐标返回封锁遗迹最东侧，写入裂相脊入口门禁。"
 		"quest.harvest_phase_filament":
@@ -287,13 +291,13 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.analyze_stability_echo_sample":
 			return "回基地使用基础反应器，把稳窗回波样本解析成前线行动回报。"
 		"quest.confirm_supply_frontline_action":
-			return "回基地检查短行动补给台，把上一趟回报整理出的补给转成下一趟短目标。"
+			return "回基地检查前线行动台，确认补给短行动；本趟只派发补给回执标记。"
 		"quest.inspect_supply_return_marker":
 			return "用相位回投返回锚定桥前线，读取补给回执标记后回基地。"
 		"quest.analyze_supply_return_trace":
 			return "回基地使用基础反应器，把补给回执读数解析成短行动反馈记录。"
 		"quest.confirm_route_frontline_action":
-			return "回基地检查巡线短行动台，把短行动反馈记录接成第三趟短目标。"
+			return "回基地检查前线行动台，确认巡线短行动；本趟只派发巡线信标。"
 		"quest.inspect_route_signal_marker":
 			return "用相位回投返回锚定桥前线，读取巡线信标后回基地。"
 		"quest.analyze_route_signal_trace":
@@ -316,6 +320,22 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "用相位回投返回锚定桥前线，先击退清障扰动守卫，再清掉一处压力扰点后回基地。"
 		"quest.analyze_pressure_clearance_trace":
 			return "回基地使用基础反应器，把压力清障回执解析成清障反馈。"
+		"quest.enter_demo_stabilization_core":
+			return "从锚定桥继续向东进入核心稳定站，确认终点前压力和写入平台。"
+		"quest.prepare_demo_stabilization_buffer":
+			if world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.polluted_residue") < 2.0:
+				return "从核心稳定站退回污染边界末端，回收核心缓冲包补料沉积物。"
+			if world_state.quest_state.get_objective_progress(quest_id, "defeat_enemy", "enemy.polluted_skitter") < 1.0:
+				return "补料点还有受扰守卫；带着过滤模块和药剂清掉压力，再回收路线。"
+			if not character_state.inventory.has_ref("item.resistance_vial_t1", 1) or not character_state.inventory.has_ref("fluid.polluted_slurry", 1):
+				return "回处理点污染过滤器处理补料沉积物，保留抗污染药剂和污染浆液。"
+			return "回基地使用基础反应器，把修复凝胶、抗污染药剂、污染浆液和基础零件整备成核心稳压缓冲包。"
+		"quest.defeat_demo_stabilization_guard":
+			return "带核心稳压缓冲包返回核心稳定站，挑战核心阶段守卫并解除写入平台压制。"
+		"quest.write_demo_stabilization_core":
+			if world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.core_write_charge") < 1.0:
+				return "击败守卫后先回收核心守卫回写缓存，拿到校验片、零件和补给。"
+			return "带着守卫缓存补给靠近核心稳定设备；抗污染药剂会参与写入排压，降低最终承压。"
 		_:
 			return "按当前目标推进。"
 
@@ -404,7 +424,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 				return "异常残留物用于校验样本，回收两处后再回基地加工分析。"
 			return "靠近基础反应器，切换到异常样本分析配方并等待完成。"
 		"quest.make_filter_module":
-			return "基础反应器负责制造远征产物；过滤模块会降低污染防护消耗，让下一次深入更稳。"
+			return "基础反应器负责制造远征产物；过滤模块会降低污染消耗和污染反击压力，让下一次深入更稳。"
 		"quest.prepare_treatment_supplies":
 			if target_region_id == "region.outpost_platform":
 				return "先调制 1 份修复凝胶；它是下一段清障战斗的生命补给。"
@@ -417,7 +437,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "地基已满足要求，建造污染过滤器来处理沉积物。"
 		"quest.enter_pollution_edge":
 			if String(character_state.equipment.get("suit_module", "")).is_empty():
-				return "启用基础过滤模块后再深入污染区，防护消耗会降低。"
+				return "启用基础过滤模块后再深入污染区，防护消耗和污染反击压力会降低。"
 			if _has_enough_pollution_residue_for_vial(world_state, character_state) and not _has_pollution_vial_ready(world_state, character_state):
 				return "先回处理点过滤器处理沉积物，把抗污染药剂做出来，再继续深入污染区。"
 			if character_state.protection < character_state.max_protection * 0.5:
@@ -428,23 +448,23 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 				return "抗污染药剂是遗迹门前压力点的防护缓冲，进入深处前确认快捷栏 2 可用。"
 			return "收集污染沉积物，用过滤器处理药剂，再清理受扰敌人。"
 		"quest.defeat_elite_node":
-			return "污染残核是本轮危险区域挑战；抗污染药剂用于维持防护，修复凝胶用于保命。"
+			return "污染残核是本轮危险区域挑战；抗污染药剂用于维持防护，高压污染点会自动接入排压。"
 		"quest.unlock_ruin_signal":
 			if _is_gate_pressure_active(world_state):
-				return "先清理门前受扰敌人；这是药剂和修复凝胶真正改变推进结果的压力点。"
+				return "先清理门前受扰敌人；药剂会自动接入排压，修复凝胶用于承接生命压力。"
 			return "先确认封锁入口信号，真正把主线推进到封锁遗迹。"
 		"quest.scout_ruin_outer_ring":
-			return "先把外圈继电残片带回基地；它们是下一次深入所需开路物的核心输入。"
+			return "先把外圈继电残片和污染脊沉积物带回基地；沉积物处理出的浆液可补信标零件。"
 		"quest.assemble_phase_anchor":
-			return "稳相信标会直接改变再次深入的结果；污染浆液来自过滤器的上一次处理副产。"
+			return "稳相信标会直接改变再次深入的结果；缺基础零件时先把一份污染浆液回收成零件。"
 		"quest.stabilize_outer_ring_barrier":
 			return "部署稳相信标后，抖动雾幕才会让出封锁遗迹深处通路。"
 		"quest.secure_outer_ring_signal":
 			return "封锁遗迹中继台会给出裂相结构的稳定回波，作为这条第二闭环的收束点。"
 		"quest.salvage_signal_echo":
-			return "相位守卫压着真正的裂相回报；把回波匣带回基地后，才能把这次深入变成下一段入口价值。"
+			return "相位守卫压着真正的裂相回报；战斗后回收污染回波沉积，处理出药剂和浆液，再把回波匣解析成下一段入口价值。"
 		"quest.analyze_deep_signal":
-			return "这次加工不是补给，而是把封锁回波整理成裂相坐标，确认封锁遗迹收益真实反哺下一次远征。"
+			return "这次加工不是补给，而是把封锁回波和污染处理副产整理成裂相坐标，确认封锁遗迹收益真实反哺下一次远征。"
 		"quest.unlock_deep_ruin_entrance":
 			return "这一步要把裂相坐标真正写回现场门禁，别让坐标只停在任务列表里。"
 		"quest.harvest_phase_filament":
@@ -596,6 +616,14 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "清障方案的前线差异是一场短战斗加一处高风险扰点，收益偏修复和抗污染补给。"
 		"quest.analyze_pressure_clearance_trace":
 			return "解析后只给现有防护补给，不新增成功率、队员或装备 loadout。"
+		"quest.enter_demo_stabilization_core":
+			return "先进入核心稳定站识别终点压力；确认后会回基地整备，不直接扩新的后段区域。"
+		"quest.prepare_demo_stabilization_buffer":
+			return "核心稳压缓冲包把污染边界补料、过滤副产和基地整备接到终点守卫战，守卫第一段回写压力会因此降低。"
+		"quest.defeat_demo_stabilization_guard":
+			return "这场守卫战验证基地整备能改变终点承压；带缓冲包回去打，而不是只靠提示推进。"
+		"quest.write_demo_stabilization_core":
+			return "守卫战后的回写缓存把终点战斗收益转成写入校验和补给；抗污染药剂会改变核心设备写入承压。"
 		_:
 			return "按当前目标推进；失败时查看日志和撤离反馈。"
 

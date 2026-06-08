@@ -34,13 +34,13 @@ func _check_first_hour_guidance_copy() -> void:
 	var character := CharacterState.create_default()
 	host._expect_text_contains(
 		presenter.format_onboarding_hint(world, character, "quest.make_filter_module"),
-		"降低污染防护消耗",
+		"污染反击压力",
 		"filter module onboarding explains field value"
 	)
 	character.inventory.add_item("item.filter_media", 1)
 	host._expect_text_contains(
 		presenter.format_direction_hint(world, character, "quest.make_filter_module"),
-		"降低污染防护消耗",
+		"污染反击压力",
 		"filter module direction explains why crafting matters"
 	)
 	var processing := ProcessingSystem.new(host.data_registry)
@@ -319,6 +319,8 @@ func _check_mid_demo_handoff_readability() -> void:
 		"回声台地",
 		"phase well locator purpose points to echo plateau"
 	)
+	host._expect_text_contains(RecipePurposeHints.format_recipe_goal_hint("recipe.well_flux_stabilization"), "回声探针", "well flux purpose points to phase well probe assembly")
+	host._expect_text_contains(RecipePurposeHints.format_recipe_goal_hint("recipe.phase_well_probe"), "回声芯样本", "phase well probe purpose points to core sample readout")
 	reactor.free()
 	filter.free()
 	lens_reactor.free()
@@ -343,9 +345,9 @@ func _check_pollution_gate_pressure_spawn_and_combat() -> void:
 	var combat_character := CharacterState.create_default()
 	combat_character.equipment["suit_module"] = "equipment.filter_module_t1"
 	var counter_message := map._apply_enemy_counterattack(gate_enemy, combat_character)
-	host._expect_equal(int(roundf(combat_character.health * 10.0)), 919, "gate pressure enemy counterattack health pressure")
+	host._expect_equal(int(roundf(combat_character.health * 10.0)), 931, "gate pressure enemy counterattack health pressure")
 	host._expect_equal(combat_character.protection < 100.0, true, "gate pressure enemy counterattack protection pressure")
-	host._expect_text_contains(counter_message, "防护 -2.6", "gate pressure enemy counterattack protection hint")
+	host._expect_text_contains(counter_message, "防护 -2.2", "gate pressure enemy counterattack protection hint")
 	gate_enemy.free()
 	map.free()
 
@@ -567,7 +569,6 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	host._expect_equal(processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world), "recipe.deep_core_imprint", "deep core analysis selects reactor recipe")
 	recipe_world.quest_state.active_quest_ids = ["quest.assemble_deep_override"]
 	host._expect_equal(processing.get_recommended_recipe_id(deep_reactor, recipe_character, recipe_world), "recipe.deep_override_key", "deep override assembly selects reactor recipe")
-	_check_mid_demo_missing_input_hints(processing)
 	recipe_character.inventory.add_item("item.phase_conduit", 2)
 	recipe_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
 	recipe_character.inventory.items["item.basic_parts"] = 1
@@ -949,179 +950,6 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	filter.free()
 
 
-func _check_mid_demo_missing_input_hints(processing: ProcessingSystem) -> void:
-	var phase_anchor_world := WorldState.create_default()
-	phase_anchor_world.quest_state.unlock_effect("recipe.phase_anchor")
-	var phase_anchor_character := CharacterState.create_default()
-	var phase_anchor_status := processing.get_recipe_status("recipe.phase_anchor", phase_anchor_character, phase_anchor_world)
-	host._expect_text_contains(
-		String(phase_anchor_status.get("supply_hint", "")),
-		"回收两处继电残片",
-		"phase anchor missing relay shard points to outer ring"
-	)
-	phase_anchor_character.inventory.add_item("item.relay_shard", 2)
-	phase_anchor_status = processing.get_recipe_status("recipe.phase_anchor", phase_anchor_character, phase_anchor_world)
-	host._expect_text_contains(
-		String(phase_anchor_status.get("supply_hint", "")),
-		"污染浆液来自污染过滤器处理沉积物",
-		"phase anchor missing slurry points to pollution filter"
-	)
-
-	var deep_signal_world := WorldState.create_default()
-	deep_signal_world.quest_state.unlock_effect("recipe.deep_signal_analysis")
-	var deep_signal_status := processing.get_recipe_status("recipe.deep_signal_analysis", CharacterState.create_default(), deep_signal_world)
-	host._expect_text_contains(
-		String(deep_signal_status.get("supply_hint", "")),
-		"回收外圈回波匣",
-		"deep signal analysis missing echo points to outer ring cache"
-	)
-
-	var filter_world := WorldState.create_default()
-	filter_world.quest_state.unlock_effect("recipe.phase_filament_refining")
-	filter_world.add_base_structure(
-		"structure.pollution_filter_build_site",
-		"building.pollution_filter",
-		"region.pollution_edge",
-		"map_object_instance.pollution_filter_build_site"
-	)
-	var filament_status := processing.get_recipe_status("recipe.phase_filament_refining", CharacterState.create_default(), filter_world)
-	host._expect_text_contains(
-		String(filament_status.get("supply_hint", "")),
-		"回收两处相位纤丝",
-		"phase filament refining missing input points to fracture ridge"
-	)
-
-	var override_world := WorldState.create_default()
-	override_world.quest_state.unlock_effect("recipe.deep_override_key")
-	var override_character := CharacterState.create_default()
-	override_character.inventory.items["item.basic_parts"] = 2
-	var override_status := processing.get_recipe_status("recipe.deep_override_key", override_character, override_world)
-	host._expect_text_contains(
-		String(override_status.get("supply_hint", "")),
-		"精炼相位纤丝",
-		"deep override missing resonance filter points to filter"
-	)
-	override_character.inventory.add_item("item.resonance_filter", 1)
-	override_status = processing.get_recipe_status("recipe.deep_override_key", override_character, override_world)
-	host._expect_text_contains(
-		String(override_status.get("supply_hint", "")),
-		"相位纤丝精炼副产",
-		"deep override missing slurry points to filter byproduct"
-	)
-	var deep_core_world := WorldState.create_default()
-	deep_core_world.quest_state.unlock_effect("recipe.deep_core_imprint")
-	var deep_core_status := processing.get_recipe_status("recipe.deep_core_imprint", CharacterState.create_default(), deep_core_world)
-	host._expect_text_contains(
-		String(deep_core_status.get("supply_hint", "")),
-		"取出裂相样块",
-		"deep core missing sample points back to fracture latch"
-	)
-
-	var matrix_world := WorldState.create_default()
-	matrix_world.quest_state.unlock_effect("recipe.deep_signal_matrix")
-	var matrix_status := processing.get_recipe_status("recipe.deep_signal_matrix", CharacterState.create_default(), matrix_world)
-	host._expect_text_contains(
-		String(matrix_status.get("supply_hint", "")),
-		"回收两束相位导管",
-		"deep signal matrix missing conduit points back to array line"
-	)
-	var matrix_character := CharacterState.create_default()
-	matrix_character.inventory.add_item("item.phase_conduit", 2)
-	matrix_status = processing.get_recipe_status("recipe.deep_signal_matrix", matrix_character, matrix_world)
-	host._expect_text_contains(
-		String(matrix_status.get("supply_hint", "")),
-		"整理深段读数矩阵",
-		"deep signal matrix missing slurry points back to refinery source"
-	)
-	var splinter_world := WorldState.create_default()
-	splinter_world.quest_state.unlock_effect("recipe.phase_splinter_refining")
-	splinter_world.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
-	var splinter_status := processing.get_recipe_status("recipe.phase_splinter_refining", CharacterState.create_default(), splinter_world)
-	host._expect_text_contains(
-		String(splinter_status.get("supply_hint", "")),
-		"两处裂相共振读数",
-		"phase splinter refining missing input points back to resonance and hunter route"
-	)
-
-	var lens_world := WorldState.create_default()
-	lens_world.quest_state.unlock_effect("recipe.relay_tuning_lens")
-	var lens_status := processing.get_recipe_status("recipe.relay_tuning_lens", CharacterState.create_default(), lens_world)
-	host._expect_text_contains(
-		String(lens_status.get("supply_hint", "")),
-		"筛成透镜胚片",
-		"relay lens missing blank points back to filter"
-	)
-	var lens_character := CharacterState.create_default()
-	lens_character.inventory.add_item("item.phase_lens_blank", 1)
-	lens_status = processing.get_recipe_status("recipe.relay_tuning_lens", lens_character, lens_world)
-	host._expect_text_contains(
-		String(lens_status.get("supply_hint", "")),
-		"裂相碎屑筛分副产",
-		"relay lens missing slurry points back to splinter filtering byproduct"
-	)
-
-	var inner_trace_world := WorldState.create_default()
-	inner_trace_world.quest_state.unlock_effect("recipe.inner_fault_analysis")
-	var inner_trace_status := processing.get_recipe_status("recipe.inner_fault_analysis", CharacterState.create_default(), inner_trace_world)
-	host._expect_text_contains(
-		String(inner_trace_status.get("supply_hint", "")),
-		"带回内层故障轨迹",
-		"inner fault analysis missing trace points back to spire calibration"
-	)
-
-	var fault_residue_world := WorldState.create_default()
-	fault_residue_world.quest_state.unlock_effect("recipe.fault_residue_stabilization")
-	fault_residue_world.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
-	var fault_residue_status := processing.get_recipe_status(
-		"recipe.fault_residue_stabilization",
-		CharacterState.create_default(),
-		fault_residue_world
-	)
-	host._expect_text_contains(
-		String(fault_residue_status.get("supply_hint", "")),
-		"两处故障脉冲",
-		"fault residue stabilization missing input points back to fault pulse route"
-	)
-
-	var phase_well_key_world := WorldState.create_default()
-	phase_well_key_world.quest_state.unlock_effect("recipe.phase_well_key")
-	var phase_well_key_status := processing.get_recipe_status(
-		"recipe.phase_well_key",
-		CharacterState.create_default(),
-		phase_well_key_world
-	)
-	host._expect_text_contains(
-		String(phase_well_key_status.get("supply_hint", "")),
-		"解析内层故障轨迹",
-		"phase well key missing coordinate points back to inner trace analysis"
-	)
-	var phase_well_key_character := CharacterState.create_default()
-	phase_well_key_character.inventory.add_item("item.phase_well_coordinate", 1)
-	phase_well_key_status = processing.get_recipe_status(
-		"recipe.phase_well_key",
-		phase_well_key_character,
-		phase_well_key_world
-	)
-	host._expect_text_contains(
-		String(phase_well_key_status.get("supply_hint", "")),
-		"稳定故障残渣",
-		"phase well key missing core points back to residue stabilization"
-	)
-
-	var locator_world := WorldState.create_default()
-	locator_world.quest_state.unlock_effect("recipe.phase_well_locator_analysis")
-	var locator_status := processing.get_recipe_status(
-		"recipe.phase_well_locator_analysis",
-		CharacterState.create_default(),
-		locator_world
-	)
-	host._expect_text_contains(
-		String(locator_status.get("supply_hint", "")),
-		"回声定位器",
-		"phase well locator analysis missing locator points back to phase well lock"
-	)
-
-
 func check_equipment_processing_runtime() -> void:
 	var processing := ProcessingSystem.new(host.data_registry)
 	var module_world := WorldState.create_default()
@@ -1310,6 +1138,10 @@ func _check_game_root_development_baseline_factory() -> void:
 		["map_object_instance.phase_return_anchor"],
 		"S7 baseline deployed relay anchors"
 	)
+	var s7_status_presenter := HudStatusPresenter.new()
+	var s7_status_text := s7_status_presenter.format_status_text(host.data_registry, s7_world, s7_character)
+	host._expect_text_contains(s7_status_text, "目标：解析回声定位器", "S7 baseline status names locator analysis")
+	host._expect_text_contains(s7_status_text, "回声定位器 1/1", "S7 baseline status keeps locator as current key resource")
 	game_root.free()
 
 

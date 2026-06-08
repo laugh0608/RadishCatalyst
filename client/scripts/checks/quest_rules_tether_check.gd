@@ -1,5 +1,7 @@
 extends RefCounted
 
+const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
+
 var host
 
 
@@ -17,8 +19,10 @@ func run() -> void:
 	_check_runtime_preserves_manual_phase_relay_anchor_selection()
 	_check_demo_stabilization_event_rules()
 	_check_runtime_activates_demo_stabilization_core_entry()
-	_check_demo_stabilization_three_step_flow()
+	_check_demo_stabilization_four_step_flow()
 	_check_demo_stabilization_short_run_from_overpressure_archive()
+	_check_core_stabilization_buffer_reduces_guard_pressure()
+	_check_demo_stabilization_core_write_pressure()
 
 
 func _check_phase_well_knot_core_recipe_progression() -> void:
@@ -393,6 +397,30 @@ func _check_demo_stabilization_event_rules() -> void:
 
 	updates = host.event_rules.get_defeated_enemy_objective_updates("enemy.demo_stabilization_guard")
 	host._expect_update(updates, "set", "quest.defeat_demo_stabilization_guard", "defeat_enemy", "enemy.demo_stabilization_guard", 1.0, "demo guard defeat update")
+	updates = host.event_rules.get_defeated_enemy_objective_updates("enemy.polluted_skitter")
+	host._expect_update(updates, "set", "quest.prepare_demo_stabilization_buffer", "defeat_enemy", "enemy.polluted_skitter", 1.0, "core buffer supply guard update")
+	updates = host.event_rules.get_recipe_objective_updates("recipe.core_stabilization_buffer")
+	host._expect_update(updates, "set", "quest.prepare_demo_stabilization_buffer", "craft_item", "item.core_stabilization_buffer", 1.0, "core buffer recipe update")
+
+	updates = host.event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.pollution_residue_patch",
+			"interaction_type": "gather"
+		},
+		{},
+		quest_state
+	)
+	host._expect_update(updates, "add", "quest.prepare_demo_stabilization_buffer", "gather_item", "item.polluted_residue", 2.0, "core buffer residue gather update")
+
+	updates = host.event_rules.get_interaction_objective_updates(
+		{
+			"definition_id": "map_object.demo_stabilization_guard_cache",
+			"interaction_type": "gather"
+		},
+		{},
+		quest_state
+	)
+	host._expect_update(updates, "add", "quest.write_demo_stabilization_core", "gather_item", "item.core_write_charge", 1.0, "demo guard cache gather update")
 
 	updates = host.event_rules.get_interaction_objective_updates(
 		{
@@ -421,7 +449,7 @@ func _check_runtime_activates_demo_stabilization_core_entry() -> void:
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.enter_demo_stabilization_core", "overpressure review activates demo core entry quest")
 
 
-func _check_demo_stabilization_three_step_flow() -> void:
+func _check_demo_stabilization_four_step_flow() -> void:
 	var world_state := WorldState.create_default()
 	var character_state := CharacterState.create_default()
 	var gather_system := GatherSystem.new(host.data_registry)
@@ -432,12 +460,27 @@ func _check_demo_stabilization_three_step_flow() -> void:
 
 	var result: Dictionary = host.quest_runtime.advance_for_region(world_state, character_state, "region.demo_stabilization_core")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.enter_demo_stabilization_core", "enter demo core quest completes on region visit")
-	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.defeat_demo_stabilization_guard", "enter demo core activates guard quest")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.prepare_demo_stabilization_buffer", "enter demo core activates buffer preparation")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.core_stabilization_buffer", "enter demo core unlocks core buffer recipe")
 	host._expect_equal(host._result_array_size(result, "completion_feedbacks"), 1, "enter demo core emits completion feedback")
+	var status_text := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(status_text, "目标：整备核心稳压缓冲包", "enter demo core status points to buffer prep")
+	_expect_text_contains(status_text, "进度：收集 污染沉积物（污染沉积斑） 0/2", "enter demo core status shows buffer supply progress")
+
+	result = _complete_core_buffer_preparation(world_state, character_state)
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.prepare_demo_stabilization_buffer", "core buffer prep quest completes")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.defeat_demo_stabilization_guard", "core buffer prep activates guard quest")
+	host._expect_equal(int(character_state.inventory.items.get("item.core_stabilization_buffer", 0)), 1, "core buffer remains in inventory for guard pressure")
+	status_text = HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(status_text, "目标：击败核心阶段守卫", "buffer completion status points to guard")
+	_expect_text_contains(status_text, "进度：击败 核心阶段守卫 0/1", "buffer completion status shows guard progress")
 
 	result = host.quest_runtime.advance_for_defeated_enemy(world_state, character_state, "enemy.demo_stabilization_guard")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.defeat_demo_stabilization_guard", "demo guard defeat quest completes")
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.write_demo_stabilization_core", "guard defeat activates core write quest")
+	status_text = HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(status_text, "目标：写入核心稳定数据", "guard defeat status points to core write")
+	_expect_text_contains(status_text, "收集 核心写入校验片（核心守卫回写缓存） 0/1", "guard defeat status shows guard cache progress")
 
 	var blocked_world := WorldState.create_default()
 	blocked_world.quest_state.active_quest_ids = ["quest.write_demo_stabilization_core"]
@@ -452,9 +495,42 @@ func _check_demo_stabilization_three_step_flow() -> void:
 	var blocked_message := String(blocked.get("message", ""))
 	if blocked_message.find("核心阶段守卫") < 0:
 		host.failures.append("core write blocker should mention guard, got %s" % blocked_message)
+	var blocked_feedback: Dictionary = blocked.get("failure_feedback", {})
+	_expect_text_contains(String(blocked_feedback.get("detail", "")), "击败核心阶段守卫", "core write blocker detail explains guard step")
 
 	world_state.ensure_enemy("enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core", 156.0)
 	world_state.update_enemy_health("enemy_instance.demo_stabilization_guard", 0.0, true)
+	var blocked_without_charge := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(blocked_without_charge.get("success", true)), false, "core write should be blocked before guard cache recovery")
+	_expect_text_contains(String(blocked_without_charge.get("message", "")), "核心写入校验片", "core write blocker explains guard cache requirement")
+
+	var cache_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_guard_cache",
+		"map_object.demo_stabilization_guard_cache",
+		"gather",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(cache_result.get("success", false)), true, "guard cache can be gathered after guard defeat")
+	_expect_text_contains(String(cache_result.get("message", "")), "核心写入校验片已回收", "guard cache gather message points to core write")
+	result = host.quest_runtime.advance_for_interaction(
+		world_state,
+		character_state,
+		{
+			"definition_id": "map_object.demo_stabilization_guard_cache",
+			"interaction_type": "gather"
+		},
+		cache_result
+	)
+	if not host._result_logs_contain(result, "核心写入校验片已回收"):
+		host.failures.append("guard cache objective should log next step, got %s" % var_to_str(result))
+	var vial_before_write := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
 	var interaction_result := gather_system.interact_with_object(
 		"map_object_instance.demo_stabilization_core",
 		"map_object.demo_stabilization_core",
@@ -463,6 +539,10 @@ func _check_demo_stabilization_three_step_flow() -> void:
 		world_state
 	)
 	host._expect_equal(bool(interaction_result.get("success", false)), true, "core write interaction succeeds after guard defeat")
+	_expect_text_contains(String(interaction_result.get("message", "")), "核心稳定数据已写入", "core write interaction explains stable data write")
+	_expect_text_contains(String(interaction_result.get("message", "")), "第一条稳定通道已打开", "core write interaction explains demo payoff")
+	_expect_text_contains(String(interaction_result.get("message", "")), "抗污染药剂已自动接入写入排压", "core write consumes guard cache vial for pressure venting")
+	host._expect_equal(int(character_state.inventory.items.get("item.resistance_vial_t1", 0)), maxi(0, vial_before_write - 1), "core write consumes one resistance vial when available")
 	result = host.quest_runtime.advance_for_interaction(
 		world_state,
 		character_state,
@@ -481,6 +561,7 @@ func _check_demo_stabilization_three_step_flow() -> void:
 			host.failures.append("core write completion feedback should be a dictionary, got %s" % var_to_str(feedback))
 			return
 		host._expect_equal(String(feedback.get("panel_title", "")), "Demo 完成", "core write completion uses demo panel title")
+		_expect_text_contains(String(feedback.get("note_text", "")), "首版 demo 主线目标已完成", "core write completion note explains slice completion")
 
 
 func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
@@ -509,11 +590,16 @@ func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
 	character_state.current_region_id = "region.demo_stabilization_core"
 	result = host.quest_runtime.advance_for_region(world_state, character_state, "region.demo_stabilization_core")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.enter_demo_stabilization_core", "short run completes demo core entry")
-	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.defeat_demo_stabilization_guard", "short run activates guard objective")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.prepare_demo_stabilization_buffer", "short run activates buffer objective")
+	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.core_stabilization_buffer", "short run unlocks core buffer recipe")
+	var status_text := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(status_text, "目标：整备核心稳压缓冲包", "short run status points to buffer prep")
+	_expect_text_contains(status_text, "进度：收集 污染沉积物（污染沉积斑） 0/2", "short run status shows buffer supply objective")
 
 	var repair_before := int(character_state.inventory.items.get("item.repair_gel", 0))
+	var vial_before := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
 	var recovery_result := gather_system.interact_with_object(
-		"map_object_instance.demo_stabilization_recovery_wreckage",
+		"map_object_instance.demo_stabilization_recovery_cache",
 		"map_object.demo_stabilization_recovery_cache",
 		"gather",
 		character_state,
@@ -525,13 +611,49 @@ func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
 		repair_before + 1,
 		"short run side recovery grants repair gel"
 	)
+	host._expect_equal(
+		int(character_state.inventory.items.get("item.resistance_vial_t1", 0)),
+		vial_before + 1,
+		"short run side recovery grants resistance vial"
+	)
+	_expect_text_contains(
+		String(recovery_result.get("message", "")),
+		"抗污染药剂",
+		"short run side recovery explains pressure vial supply"
+	)
 	host._expect_array_missing(world_state.quest_state.completed_quest_ids, "quest.write_demo_stabilization_core", "side recovery should not complete demo")
+
+	result = _complete_core_buffer_preparation(world_state, character_state)
+	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.prepare_demo_stabilization_buffer", "short run completes buffer prep")
+	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.defeat_demo_stabilization_guard", "short run activates guard after buffer")
 
 	result = host.quest_runtime.advance_for_defeated_enemy(world_state, character_state, "enemy.demo_stabilization_guard")
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.defeat_demo_stabilization_guard", "short run completes guard defeat")
 	host._expect_array_has(world_state.quest_state.active_quest_ids, "quest.write_demo_stabilization_core", "short run activates core write")
+	status_text = HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(status_text, "目标：写入核心稳定数据", "short run status points to core write after guard")
+	_expect_text_contains(status_text, "收集 核心写入校验片（核心守卫回写缓存） 0/1", "short run status shows guard cache objective")
 	world_state.ensure_enemy("enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core", 156.0)
 	world_state.update_enemy_health("enemy_instance.demo_stabilization_guard", 0.0, true)
+
+	var guard_cache_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_guard_cache",
+		"map_object.demo_stabilization_guard_cache",
+		"gather",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(guard_cache_result.get("success", false)), true, "short run recovers guard cache")
+	host._expect_equal(int(character_state.inventory.items.get("item.core_write_charge", 0)), 1, "short run guard cache grants write charge")
+	result = host.quest_runtime.advance_for_interaction(
+		world_state,
+		character_state,
+		{
+			"definition_id": "map_object.demo_stabilization_guard_cache",
+			"interaction_type": "gather"
+		},
+		guard_cache_result
+	)
 
 	var write_result := gather_system.interact_with_object(
 		"map_object_instance.demo_stabilization_core",
@@ -541,6 +663,7 @@ func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
 		world_state
 	)
 	host._expect_equal(bool(write_result.get("success", false)), true, "short run writes demo stabilization core")
+	_expect_text_contains(String(write_result.get("message", "")), "核心稳定数据已写入", "short run core write explains stable data")
 	result = host.quest_runtime.advance_for_interaction(
 		world_state,
 		character_state,
@@ -552,3 +675,155 @@ func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
 	)
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.write_demo_stabilization_core", "short run completes demo core write")
 	host._expect_equal(host._result_array_size(result, "completion_feedbacks"), 1, "short run emits demo completion feedback")
+	if host._result_array_size(result, "completion_feedbacks") > 0:
+		var feedbacks: Array = result.get("completion_feedbacks", [])
+		var feedback = feedbacks[0]
+		if feedback is Dictionary:
+			_expect_text_contains(String(feedback.get("note_text", "")), "首版 demo 主线目标已完成", "short run completion explains demo finish")
+
+
+func _check_core_stabilization_buffer_reduces_guard_pressure() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	host.root.add_child(map)
+	map.setup(host.data_registry)
+	var guard := map.get_node("Enemies/DemoStabilizationGuard") as PrototypeEnemy
+	var no_buffer_character := CharacterState.create_default()
+	var no_buffer_message := map._apply_enemy_counterattack(guard, no_buffer_character)
+	host._expect_equal(int(roundf(no_buffer_character.health * 10.0)), 800, "core guard full pressure health damage")
+	host._expect_equal(int(roundf(no_buffer_character.protection * 10.0)), 900, "core guard full pressure protection damage")
+	_expect_text_contains(no_buffer_message, "没有核心稳压缓冲包", "core guard no-buffer pressure message")
+
+	var buffered_world := WorldState.create_default()
+	buffered_world.ensure_enemy("enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core", 156.0)
+	var buffered_character := CharacterState.create_default()
+	buffered_character.inventory.add_item("item.core_stabilization_buffer", 1)
+	var buffered_message := map._apply_enemy_counterattack(guard, buffered_character, buffered_world)
+	host._expect_equal(int(roundf(buffered_character.health * 10.0)), 890, "core buffer reduces guard health pressure")
+	host._expect_equal(int(roundf(buffered_character.protection * 10.0)), 945, "core buffer reduces guard protection pressure")
+	host._expect_equal(int(buffered_character.inventory.items.get("item.core_stabilization_buffer", 0)), 0, "core buffer is consumed by first guard pressure")
+	host._expect_equal(bool(buffered_world.get_enemy("enemy_instance.demo_stabilization_guard").get("core_buffer_used", false)), true, "core buffer pressure records guard sync")
+	_expect_text_contains(buffered_message, "核心稳压缓冲包已消耗", "core guard buffer pressure message")
+	map.free()
+
+
+func _check_demo_stabilization_core_write_pressure() -> void:
+	var gather_system := GatherSystem.new(host.data_registry)
+
+	var synced_world := _create_core_write_ready_world()
+	synced_world.get_enemy("enemy_instance.demo_stabilization_guard")["core_buffer_used"] = true
+	var synced_character := CharacterState.create_default()
+	synced_character.inventory.add_item("item.resistance_vial_t1", 1)
+	var synced_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"inspect",
+		synced_character,
+		synced_world
+	)
+	host._expect_equal(bool(synced_result.get("success", false)), true, "core write with guard sync and vial succeeds")
+	_expect_text_contains(String(synced_result.get("message", "")), "终点前整备同时降低守卫和核心设备承压", "core write reads guard sync")
+	host._expect_equal(int(synced_character.inventory.items.get("item.resistance_vial_t1", 0)), 0, "core write with guard sync consumes one vial")
+	host._expect_equal(int(roundf(synced_character.health * 10.0)), 969, "guard sync and vial reduce write health pressure")
+	host._expect_equal(int(roundf(synced_character.protection * 10.0)), 953, "guard sync and vial reduce write protection pressure")
+
+	var vial_world := _create_core_write_ready_world()
+	var vial_character := CharacterState.create_default()
+	vial_character.inventory.add_item("item.resistance_vial_t1", 1)
+	var vial_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"inspect",
+		vial_character,
+		vial_world
+	)
+	host._expect_equal(bool(vial_result.get("success", false)), true, "core write with vial succeeds")
+	_expect_text_contains(String(vial_result.get("message", "")), "抗污染药剂已自动接入写入排压", "core write with vial explains pressure venting")
+	host._expect_equal(int(vial_character.inventory.items.get("item.resistance_vial_t1", 0)), 0, "core write with vial consumes one vial")
+	host._expect_equal(int(roundf(vial_character.health * 10.0)), 958, "core write with vial reduces health pressure")
+	host._expect_equal(int(roundf(vial_character.protection * 10.0)), 937, "core write with vial reduces protection pressure")
+
+	var synced_no_vial_world := _create_core_write_ready_world()
+	synced_no_vial_world.get_enemy("enemy_instance.demo_stabilization_guard")["core_buffer_used"] = true
+	var synced_no_vial_character := CharacterState.create_default()
+	var synced_no_vial_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"inspect",
+		synced_no_vial_character,
+		synced_no_vial_world
+	)
+	host._expect_equal(bool(synced_no_vial_result.get("success", false)), true, "core write with guard sync and no vial still succeeds")
+	_expect_text_contains(String(synced_no_vial_result.get("message", "")), "核心设备承压低于无准备写入", "core write guard sync without vial explains partial pressure relief")
+	host._expect_equal(int(roundf(synced_no_vial_character.health * 10.0)), 910, "guard sync without vial reduces health pressure")
+	host._expect_equal(int(roundf(synced_no_vial_character.protection * 10.0)), 865, "guard sync without vial reduces protection pressure")
+
+	var plain_world := _create_core_write_ready_world()
+	var plain_character := CharacterState.create_default()
+	var plain_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"inspect",
+		plain_character,
+		plain_world
+	)
+	host._expect_equal(bool(plain_result.get("success", false)), true, "core write without vial still succeeds")
+	_expect_text_contains(String(plain_result.get("message", "")), "没有抗污染药剂参与排压", "core write without vial explains full pressure")
+	host._expect_equal(int(roundf(plain_character.health * 10.0)), 880, "core write without vial health pressure")
+	host._expect_equal(int(roundf(plain_character.protection * 10.0)), 820, "core write without vial protection pressure")
+
+
+func _create_core_write_ready_world() -> WorldState:
+	var world_state := WorldState.create_default()
+	world_state.quest_state.active_quest_ids = ["quest.write_demo_stabilization_core"]
+	world_state.quest_state.set_objective_progress("quest.write_demo_stabilization_core", "gather_item", "item.core_write_charge", 1.0)
+	world_state.ensure_enemy("enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core", 156.0)
+	world_state.update_enemy_health("enemy_instance.demo_stabilization_guard", 0.0, true)
+	return world_state
+
+
+func _complete_core_buffer_preparation(world_state: WorldState, character_state: CharacterState) -> Dictionary:
+	var gather_system := GatherSystem.new(host.data_registry)
+	var residue_result := gather_system.interact_with_object(
+		"map_object_instance.core_buffer_residue_cache",
+		"map_object.pollution_residue_patch",
+		"gather",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(residue_result.get("success", false)), true, "core buffer residue cache can be gathered")
+	host.quest_runtime.advance_for_interaction(
+		world_state,
+		character_state,
+		{"definition_id": "map_object.pollution_residue_patch", "interaction_type": "gather"},
+		residue_result
+	)
+	host.quest_runtime.advance_for_defeated_enemy(world_state, character_state, "enemy.polluted_skitter")
+
+	world_state.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
+	world_state.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	world_state.quest_state.unlock_effect("recipe.cleanse_residue")
+	world_state.quest_state.unlock_effect("recipe.core_stabilization_buffer")
+	character_state.inventory.add_fluid("fluid.basic_solvent", 1.0)
+	var processing := ProcessingSystem.new(host.data_registry)
+	var cleanse_start := processing.process_recipe("recipe.cleanse_residue", character_state, world_state)
+	host._expect_equal(bool(cleanse_start.get("success", false)), true, "core buffer residue can be filtered into slurry")
+	processing.advance_processing(13.0, character_state, world_state)
+	if not character_state.inventory.has_ref("item.repair_gel", 1):
+		character_state.inventory.add_item("item.repair_gel", 1)
+	var basic_parts_shortage := maxi(0, 2 - int(character_state.inventory.items.get("item.basic_parts", 0)))
+	if basic_parts_shortage > 0:
+		character_state.inventory.add_item("item.basic_parts", basic_parts_shortage)
+	var buffer_start := processing.process_recipe("recipe.core_stabilization_buffer", character_state, world_state)
+	host._expect_equal(bool(buffer_start.get("success", false)), true, "core buffer can be crafted from filtered supply")
+	processing.advance_processing(8.0, character_state, world_state)
+	return host.quest_runtime.advance_for_interaction(
+		world_state,
+		character_state,
+		{"interaction_type": "process_recipe", "recipe_id": "recipe.core_stabilization_buffer"},
+		{"success": true, "completed_recipe_id": "recipe.core_stabilization_buffer"}
+	)
+
+
+func _expect_text_contains(text: String, expected_text: String, label: String) -> void:
+	if text.find(expected_text) < 0:
+		host.failures.append("%s should contain %s, got %s" % [label, expected_text, text])

@@ -35,7 +35,7 @@ RadishCatalyst 是刚初始化的新仓库，当前重点不是堆功能，而�
 
 - 禁止直接 push。
 - 必须通过 PR 合并。
-- 必须通过仓库检查。
+- 必须通过仓库检查；默认分支 PR 的 `Repo Hygiene` 覆盖文本卫生、文档篇幅和提交 diff 空白检查。
 - 要求 1 个审批和已解决会话。
 - 当前允许 `merge commit` 与 `rebase merge`，禁用 `squash merge`。
 - 管理员仅可通过 PR 方式绕过规则。
@@ -45,7 +45,7 @@ RadishCatalyst 是刚初始化的新仓库，当前重点不是堆功能，而�
 
 - 允许作为当前阶段默认目标分支。
 - 当前阶段不启用分支保护。
-- 仍建议保留 CI 检查和 PR 习惯，但不作为强制规则。
+- 仍建议保留本地检查和 PR 习惯，但不作为强制规则；日常 `dev` 集成不默认触发 CI。
 
 ## 需要在 GitHub 仓库设置中完成的动作
 
@@ -70,9 +70,14 @@ RadishCatalyst 是刚初始化的新仓库，当前重点不是堆功能，而�
 - 文本编码与文件格式检查脚本：
   - `scripts/check-text-files.ps1`
   - `scripts/check-text-files.sh`
+- 文档篇幅检查脚本：
+  - `scripts/check-docs.ps1`
+  - `scripts/check-docs.sh`
 - 客户端聚合检查脚本：
   - `scripts/check-client.ps1`
   - `scripts/check-client.sh`
+
+当前默认分支 PR 的 CI 只强制仓库卫生、文档篇幅和提交 diff 空白检查。Godot 客户端聚合验证仍按改动范围在本地或手动流程执行，等 GitHub runner 上 Godot 环境稳定后再评估是否纳入必过 CI。
 
 ## 影响
 

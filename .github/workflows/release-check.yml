@@ -23,7 +23,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
-      - name: Check repository hygiene
+      - name: Check text files
         shell: bash
         run: ./scripts/check-text-files.sh
+
+      - name: Check docs
+        shell: bash
+        run: ./scripts/check-docs.sh
+
+      - name: Check latest committed diff whitespace
+        shell: bash
+        run: |
+          if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            git diff --check HEAD^ HEAD
+          else
+            git diff --check "$(git hash-object -t tree /dev/null)" HEAD
+          fi

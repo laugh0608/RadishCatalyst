@@ -47,7 +47,9 @@ Wiki 不记录：
 
 - [首小时外勤入门](guides/first-hour-field-guide.md)
 - [基础零件](items/basic-parts.md)
+- [基础过滤模块](items/basic-filter-module.md)
 - [污染沉积物](items/polluted-residue.md)
+- [污染浆液](items/polluted-slurry.md)
 - [修复凝胶](items/repair-gel.md)
 - [抗污染药剂 I](items/resistance-vial-i.md)
 - [晶体矿物加工](recipes/crystal-ore-processing.md)
@@ -67,6 +69,9 @@ Wiki 不记录：
 - [锚定桥前线区域](regions/phase-well-east-frontier.md)
 - [核心稳定站](regions/core-stabilization-station.md)
 - [相位井锚场回稳生产线](production-lines/phase-well-anchor-field-line.md)
+- [污染边界到核心稳定站生产线](production-lines/pollution-edge-core-stabilization-line.md)
+- [核心稳压缓冲包](items/core-stabilization-buffer.md)
+- [核心写入校验片](items/core-write-charge.md)
 
 其中前线回稳、稳定窗口和锚定桥前线区域页面已覆盖轻量前线行动、基地行动选择、压力清障、风险收益确认、下一次出发整备、行动候选判断、同一前线窗口反馈、高压窗口三模块联锁和核心稳定站 demo 终点。
 

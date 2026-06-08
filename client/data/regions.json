@@ -60,7 +60,8 @@
         "quest.choose_pressure_clearance_action",
         "quest.analyze_steady_supply_trace",
         "quest.analyze_phase_survey_trace",
-        "quest.analyze_pressure_clearance_trace"
+        "quest.analyze_pressure_clearance_trace",
+        "quest.prepare_demo_stabilization_buffer"
       ],
       "public_level": "public"
     },
@@ -107,7 +108,7 @@
       "pollution_types": ["pollution.yellow_residue"],
       "weather_pool": ["weather.clear", "weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
-      "quest_refs": ["quest.expand_treatment_point", "quest.enter_pollution_edge", "quest.defeat_elite_node", "quest.unlock_ruin_signal", "quest.refine_phase_splinters"],
+      "quest_refs": ["quest.expand_treatment_point", "quest.enter_pollution_edge", "quest.defeat_elite_node", "quest.unlock_ruin_signal", "quest.scout_ruin_outer_ring", "quest.salvage_signal_echo", "quest.refine_phase_splinters", "quest.prepare_demo_stabilization_buffer"],
       "public_level": "public"
     },
     {
@@ -135,7 +136,7 @@
       "pollution_types": ["pollution.yellow_residue"],
       "weather_pool": ["weather.clear", "weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
-      "quest_refs": ["quest.scout_ruin_outer_ring", "quest.stabilize_outer_ring_barrier", "quest.secure_outer_ring_signal", "quest.salvage_signal_echo", "quest.unlock_deep_ruin_entrance"],
+      "quest_refs": ["quest.enter_pollution_edge", "quest.scout_ruin_outer_ring", "quest.stabilize_outer_ring_barrier", "quest.secure_outer_ring_signal", "quest.salvage_signal_echo", "quest.prepare_demo_stabilization_buffer", "quest.unlock_deep_ruin_entrance"],
       "public_level": "spoiler"
     },
     {
@@ -249,11 +250,11 @@
       "planet_or_world": "world.slice_01",
       "biome_type": "demo_stabilization_core",
       "danger_level": 11,
-      "resources": ["item.phase_well_stability_readout"],
+      "resources": ["item.phase_well_stability_readout", "item.core_write_charge", "item.basic_parts", "item.repair_gel", "item.resistance_vial_t1"],
       "pollution_types": ["pollution.yellow_residue"],
       "weather_pool": ["weather.acid_mist"],
       "recommended_equipment": ["equipment.filter_module_t1"],
-      "quest_refs": ["quest.enter_demo_stabilization_core", "quest.defeat_demo_stabilization_guard", "quest.write_demo_stabilization_core"],
+      "quest_refs": ["quest.enter_demo_stabilization_core", "quest.prepare_demo_stabilization_buffer", "quest.defeat_demo_stabilization_guard", "quest.write_demo_stabilization_core"],
       "public_level": "spoiler"
     }
   ]

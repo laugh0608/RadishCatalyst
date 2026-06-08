@@ -134,6 +134,10 @@ func _format_completion_note(quest_id: String) -> String:
 			return "污染源点已压制，封锁遗迹入口信号可确认"
 		"quest.unlock_ruin_signal":
 			return "封锁遗迹通路已恢复，可进入封锁遗迹回收继电残片"
+		"quest.scout_ruin_outer_ring":
+			return "外圈继电残片和污染脊沉积物已回收；回基地处理沉积物，必要时把一份污染浆液回收成信标所需基础零件"
+		"quest.assemble_phase_anchor":
+			return "稳相信标已完成；带回遗迹外圈部署后，抖动雾幕才会打开深段通路"
 		"quest.stabilize_outer_ring_barrier":
 			return "稳相信标已部署，封锁遗迹深处通路已稳定"
 		"quest.secure_outer_ring_signal":
@@ -231,9 +235,11 @@ func _format_completion_note(quest_id: String) -> String:
 		"quest.analyze_pressure_clearance_trace":
 			return "压力清障反馈已归档；行动台已把本趟风险收益转成下一轮防护整备"
 		"quest.enter_demo_stabilization_core":
-			return "核心稳定站入口已确认；阶段守卫压住核心设备，需要先清掉守卫"
+			return "核心稳定站入口已确认；先回污染边界补核心缓冲包沉积物，再回基地整备"
+		"quest.prepare_demo_stabilization_buffer":
+			return "核心稳压缓冲包已整备；返回核心稳定站挑战阶段守卫"
 		"quest.defeat_demo_stabilization_guard":
-			return "核心阶段守卫已击败；核心稳定设备可以接收稳窗与高压窗口归档数据"
+			return "核心阶段守卫已击败；回写缓存已暴露，先回收校验片和终点前补给"
 		"quest.write_demo_stabilization_core":
 			return "核心稳定站已接管第一条稳定通道；首版 demo 主线目标已完成"
 		_:

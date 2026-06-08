@@ -2,11 +2,17 @@ extends RefCounted
 class_name GatherSystem
 
 const PROTOTYPE_POLLUTION_PRESSURE_MULT := 15.0
+const DEMO_STABILIZATION_WRITE_HEALTH_PRESSURE := 12.0
+const DEMO_STABILIZATION_WRITE_PROTECTION_PRESSURE := 18.0
+const DEMO_STABILIZATION_WRITE_VIAL_MULT := 0.35
+const DEMO_STABILIZATION_WRITE_CORE_BUFFER_MULT := 0.75
 const POLLUTION_RESIDUE_PRESSURE_BY_INSTANCE := {
 	"map_object_instance.pollution_residue": 1.0,
 	"map_object_instance.pollution_residue_outer_pocket": 1.15,
 	"map_object_instance.pollution_residue_deep": 1.35,
-	"map_object_instance.pollution_residue_ridge_cache": 1.6
+	"map_object_instance.pollution_residue_ridge_cache": 1.6,
+	"map_object_instance.outer_ring_echo_residue_cache": 1.7,
+	"map_object_instance.core_buffer_residue_cache": 1.6
 }
 
 var data_registry: DataRegistry
@@ -135,7 +141,11 @@ func interact_with_object(
 
 	var object_state := world_state.ensure_map_object(instance_id, definition_id, character_state.current_region_id)
 	if _is_already_processed(object_state, interaction_type):
-		return _failure("目标已处理。", "交互未执行", "前往当前目标标记，寻找下一个可交互对象。")
+		return _failure(
+			_format_already_processed_message(definition_id, interaction_type),
+			"目标已处理",
+			"现场完成态颜色和标签表示该对象已处理；前往下一个未处理目标。"
+		)
 	var quest_gate_error := _get_quest_gate_error(definition_id, interaction_type, world_state)
 	if not quest_gate_error.is_empty():
 		return _failure(quest_gate_error, "交互前置不足", _get_quest_gate_detail(definition_id, interaction_type))
@@ -162,7 +172,7 @@ func interact_with_object(
 				return _success("盐壳硬壳已清理：盐壳余烬回收线打开。")
 			if definition_id == "map_object.pressure_clearance_node":
 				return _success("前线压力扰点已清除：带回压力清障回执，回基地用基础反应器解析防护收益。")
-			return _success("地块已清理。")
+			return _success("%s已清理：现场保留已清理标记；现在可以铺设基础地基。" % _get_display_name(definition_id))
 		"inspect":
 			if BaseActionDispatchPlan.is_frontline_window_object(definition_id):
 				if not BaseActionDispatchPlan.is_frontline_window_active(world_state):
@@ -200,7 +210,7 @@ func interact_with_object(
 				return _success(_format_frontline_single_use_reading_result(definition_id))
 			if definition_id == "map_object.demo_stabilization_core":
 				_set_map_object_flag(world_state, instance_id, definition_id, "is_sampled", true)
-				return _success("核心稳定数据已写入：锚定桥稳窗和高压窗口归档数据接入核心设备，第一条稳定通道已打开。")
+				return _success("核心稳定数据已写入：锚定桥稳窗和高压窗口归档数据接入核心设备，第一条稳定通道已打开。%s" % _apply_demo_stabilization_write_pressure(character_state, world_state))
 			return _success("交互完成。")
 		_:
 			return _success("交互完成。")
@@ -237,10 +247,13 @@ func _gather(instance_id: String, definition: Dictionary, character_state: Chara
 	_set_map_object_flag(world_state, instance_id, String(definition.get("id", "")), "is_gathered", true)
 
 	var result_parts: Array[String] = []
+	var completion_label := _get_gather_completion_label(definition)
+	var object_name := _get_display_name(String(definition.get("id", "")))
 	if rewards.is_empty():
-		result_parts.append("采集完成")
+		result_parts.append("%s%s" % [object_name, completion_label])
 	else:
-		result_parts.append("采集完成：%s" % ", ".join(rewards))
+		result_parts.append("%s%s：%s" % [object_name, completion_label, ", ".join(rewards)])
+	result_parts.append("现场保留%s标记" % completion_label)
 	if protection_drain > 0.0:
 		result_parts.append("污染压力消耗防护 %s%s" % [
 			_format_amount(protection_drain),
@@ -268,8 +281,52 @@ func _sample(instance_id: String, definition: Dictionary, character_state: Chara
 
 	_set_map_object_flag(world_state, instance_id, String(definition.get("id", "")), "is_sampled", true)
 	if rewards.is_empty():
-		return _success("采样完成。")
-	return _success("采样完成：%s" % ", ".join(rewards))
+		return _success("%s已采样：现场保留已采样标记。" % _get_display_name(String(definition.get("id", ""))))
+	return _success("%s已采样：%s；现场保留已采样标记；回基地解析样本。" % [
+		_get_display_name(String(definition.get("id", ""))),
+		", ".join(rewards)
+	])
+
+
+func _apply_demo_stabilization_write_pressure(character_state: CharacterState, world_state: WorldState) -> String:
+	var used_vial := character_state.inventory.has_ref("item.resistance_vial_t1", 1)
+	var used_core_buffer := _has_core_stabilization_guard_buffer_sync(world_state)
+	var pressure_mult := 1.0
+	if used_vial:
+		character_state.inventory.consume_ref("item.resistance_vial_t1", 1)
+		pressure_mult *= DEMO_STABILIZATION_WRITE_VIAL_MULT
+	if used_core_buffer:
+		pressure_mult *= DEMO_STABILIZATION_WRITE_CORE_BUFFER_MULT
+
+	var health_pressure := DEMO_STABILIZATION_WRITE_HEALTH_PRESSURE * pressure_mult * character_state.get_pollution_counter_damage_multiplier(data_registry)
+	var protection_pressure := DEMO_STABILIZATION_WRITE_PROTECTION_PRESSURE * pressure_mult * character_state.get_pollution_drain_multiplier(data_registry)
+	var health_damage := character_state.apply_health_damage(health_pressure)
+	var protection_damage := character_state.apply_protection_damage(protection_pressure)
+	if used_vial and used_core_buffer:
+		return " 核心稳压缓冲包留下的回写校准已被设备读取，抗污染药剂已自动接入写入排压，生命 -%s，防护 -%s；终点前整备同时降低守卫和核心设备承压。" % [
+			_format_amount(health_damage),
+			_format_amount(protection_damage)
+		]
+	if used_vial:
+		return " 抗污染药剂已自动接入写入排压，生命 -%s，防护 -%s；守卫缓存补给改变了核心设备承压。" % [
+			_format_amount(health_damage),
+			_format_amount(protection_damage)
+		]
+	if used_core_buffer:
+		return " 核心稳压缓冲包留下的回写校准已被设备读取；没有抗污染药剂参与排压，生命 -%s，防护 -%s；核心设备承压低于无准备写入。" % [
+			_format_amount(health_damage),
+			_format_amount(protection_damage)
+		]
+	return " 没有抗污染药剂参与排压，核心写入反冲完整命中，生命 -%s，防护 -%s；下次终点写入前应确认守卫缓存补给。" % [
+		_format_amount(health_damage),
+		_format_amount(protection_damage)
+	]
+
+
+func _has_core_stabilization_guard_buffer_sync(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return bool(world_state.get_enemy("enemy_instance.demo_stabilization_guard").get("core_buffer_used", false))
 
 
 func _grant_refs(refs: Array, character_state: CharacterState) -> Array[String]:
@@ -322,10 +379,14 @@ func _get_pollution_protection_hint(character_state: CharacterState) -> String:
 
 
 func _get_pollution_pressure_step_hint(instance_id: String, character_state: CharacterState) -> String:
+	if instance_id == "map_object_instance.core_buffer_residue_cache":
+		return "核心缓冲包补料沉积已回收；回过滤器处理成抗污染药剂和污染浆液，再回基础反应器整备缓冲包"
 	if instance_id == "map_object_instance.pollution_residue_ridge_cache":
 		if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
-			return "门前高压点已回收；防护偏低时按 2 使用抗污染药剂，再清理门前受扰敌人"
-		return "门前高压点已回收；建议回过滤器处理沉积物，补抗污染药剂后再推进"
+			return "污染脊沉积已回收；回过滤器处理成药剂和污染浆液，浆液可回收成信标所需基础零件"
+		return "污染脊沉积已回收；建议回过滤器处理沉积物，补药剂并留下浆液支撑稳相信标"
+	if instance_id == "map_object_instance.outer_ring_echo_residue_cache":
+		return "污染回波沉积已回收；回过滤器处理成抗污染药剂和污染浆液，再带回波匣回基地解析裂相坐标"
 	if instance_id == "map_object_instance.pollution_residue_deep":
 		return "深处压力已显著抬升；后续门前点更适合带药剂再处理"
 	return ""
@@ -341,7 +402,36 @@ func _get_first_hour_gather_step_hint(instance_id: String) -> String:
 			return "处理点入口前的回访晶体已补足；回基地加工基础零件或地基材料"
 		"map_object_instance.field_wreckage_foundation_return":
 			return "处理点入口前的残骸缓存已回收；若地基或过滤器缺料，先回基地整理制造"
+		"map_object_instance.demo_stabilization_recovery_cache":
+			return "核心站侧边补给已回收；修复凝胶和抗污染药剂可支撑阶段守卫战后的核心写入排压"
+		"map_object_instance.demo_stabilization_guard_cache":
+			return "核心写入校验片已回收；带着补给靠近核心稳定设备写入归档数据"
 	return ""
+
+
+func _get_gather_completion_label(definition: Dictionary) -> String:
+	match String(definition.get("object_type", "")):
+		"resource_node":
+			return "已采集"
+		_:
+			return "已回收"
+
+
+func _format_already_processed_message(definition_id: String, interaction_type: String) -> String:
+	var object_name := _get_display_name(definition_id)
+	match interaction_type:
+		"gather":
+			if definition_id == "map_object.crystal_cluster" or definition_id == "map_object.rich_crystal_vein":
+				return "%s已采集，现场保留已采集标记。" % object_name
+			return "%s已回收，现场保留已回收标记。" % object_name
+		"sample":
+			return "%s已采样，现场保留已采样标记。" % object_name
+		"clear":
+			return "%s已清理，现场保留已清理标记。" % object_name
+		"inspect":
+			return "%s已确认，现场保留完成态标记。" % object_name
+		_:
+			return "%s已处理，现场保留完成态标记。" % object_name
 
 
 func _format_outpost_core_refit_detail(
@@ -381,11 +471,11 @@ func _get_display_name(definition_id: String) -> String:
 func _format_frontline_action_console_result(quest_id: String) -> String:
 	match quest_id:
 		"quest.plan_stability_frontline_action":
-			return "前线行动台已确认：用相位回投返回锚定桥东侧，读取稳窗回波探点。"
+			return "前线行动台已确认：本趟只派发稳窗回波探点；用相位回投返回锚定桥东侧读取样本。"
 		"quest.confirm_supply_frontline_action":
-			return "补给短行动已确认：用相位回投返回锚定桥前线，读取补给回执标记。"
+			return "补给短行动已确认：本趟只派发补给回执标记；用相位回投返回锚定桥前线读取回执。"
 		"quest.confirm_route_frontline_action":
-			return "巡线短行动已确认：用相位回投返回锚定桥前线，读取巡线信标。"
+			return "巡线短行动已确认：本趟只派发巡线信标；用相位回投返回锚定桥前线读取信标。"
 		_:
 			return "前线行动台已确认。"
 
@@ -424,6 +514,8 @@ func _get_quest_gate_error(definition_id: String, interaction_type: String, worl
 			return "核心稳定设备尚未开放写入。"
 		if not bool(world_state.get_enemy("enemy_instance.demo_stabilization_guard").get("is_defeated", false)):
 			return "核心阶段守卫仍在压制写入平台。"
+		if world_state.quest_state.get_objective_progress("quest.write_demo_stabilization_core", "gather_item", "item.core_write_charge") < 1.0:
+			return "核心写入校验片尚未回收。"
 		return ""
 	if definition_id != "map_object.anomaly_crystal" or interaction_type != "sample":
 		if definition_id != "map_object.anomaly_residue_patch" or interaction_type != "gather":
@@ -442,7 +534,7 @@ func _get_quest_gate_error(definition_id: String, interaction_type: String, worl
 
 func _get_quest_gate_detail(definition_id: String, interaction_type: String) -> String:
 	if definition_id == "map_object.demo_stabilization_core" and interaction_type == "inspect":
-		return "先进入核心稳定站并击败核心阶段守卫，再回来写入稳定数据。"
+		return "先进入核心稳定站，回基地整备核心稳压缓冲包，击败核心阶段守卫后回收回写缓存，再回来写入稳定数据。"
 	if definition_id == "map_object.anomaly_crystal" and interaction_type == "sample":
 		return "先完成反应器校准件，再按任务目标采样异常晶体。"
 	if definition_id == "map_object.anomaly_residue_patch" and interaction_type == "gather":
@@ -497,9 +589,9 @@ func _is_frontline_single_use_reading(definition_id: String) -> bool:
 func _format_frontline_single_use_reading_result(definition_id: String) -> String:
 	match definition_id:
 		"map_object.stability_echo_probe":
-			return "稳窗回波样本已读取：回基地用基础反应器解析前线行动回报。"
+			return "稳窗回波样本已读取：这趟短回访已完成，回基地用基础反应器解析前线行动回报。"
 		"map_object.supply_return_marker":
-			return "补给回执标记已读取：回基地用基础反应器解析短行动反馈。"
+			return "补给回执标记已读取：第二条短回访已完成，回基地用基础反应器解析短行动反馈。"
 		"map_object.route_signal_marker":
 			return "巡线信标已读取：回基地用基础反应器解析巡线反馈。"
 		_:

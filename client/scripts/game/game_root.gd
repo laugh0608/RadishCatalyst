@@ -387,6 +387,9 @@ func _on_interaction_available(interactable: PrototypeInteractable, should_auto_
 	if interactable.definition_id == "map_object.phase_well_anchor_field":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_well_anchor_field_prompt(world_state, character_state))
 		return
+	if interaction_prompt_formatter.can_format_stability_calibration_prompt(interactable.definition_id):
+		hud.show_prompt(interaction_prompt_formatter.format_stability_calibration_prompt(interactable, character_state, world_state))
+		return
 	if interaction_prompt_formatter.can_format_base_action_prompt(interactable.definition_id):
 		hud.show_prompt(interaction_prompt_formatter.format_base_action_prompt(interactable, world_state, character_state))
 		return
@@ -410,7 +413,7 @@ func _on_interaction_available(interactable: PrototypeInteractable, should_auto_
 		hud.show_prompt(interaction_prompt_formatter.format_clear_prompt(interactable, character_state, world_state))
 		return
 
-	hud.show_prompt("按 E 交互：%s" % _get_display_name(interactable.definition_id))
+	hud.show_prompt(interaction_prompt_formatter.format_general_interaction_prompt(interactable, character_state, world_state))
 
 
 func _on_interaction_cleared(_interactable: PrototypeInteractable) -> void:
@@ -544,7 +547,7 @@ func _apply_processing_progress(delta: float) -> bool:
 	var completed_results := processing_system.advance_processing(delta, character_state, world_state)
 	for result in completed_results:
 		var recipe_id := String(result.get("completed_recipe_id", ""))
-		var log_messages: Array[String] = [String(result.get("message", ""))]
+		var log_messages: Array[String] = [hud_log_presenter.format_result_log(result)]
 		_append_quest_runtime_result(
 			log_messages,
 			quest_runtime.advance_for_interaction(
@@ -642,6 +645,9 @@ func _refresh_current_context_prompt() -> void:
 	if interactable.definition_id == "map_object.phase_well_anchor_field":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_well_anchor_field_prompt(world_state, character_state))
 		return
+	if interaction_prompt_formatter.can_format_stability_calibration_prompt(interactable.definition_id):
+		hud.show_prompt(interaction_prompt_formatter.format_stability_calibration_prompt(interactable, character_state, world_state))
+		return
 	if interaction_prompt_formatter.can_format_base_action_prompt(interactable.definition_id):
 		hud.show_prompt(interaction_prompt_formatter.format_base_action_prompt(interactable, world_state, character_state))
 		return
@@ -655,10 +661,14 @@ func _refresh_current_context_prompt() -> void:
 		_maybe_select_followup_recipe(interactable)
 		hud.show_prompt(interaction_prompt_formatter.format_processing_prompt(interactable, character_state, world_state))
 		hud.refresh_device_panel(data_registry, processing_system, interactable, character_state, world_state)
+		return
 	if interactable.interaction_type == "build":
 		hud.show_prompt(interaction_prompt_formatter.format_build_prompt(interactable, character_state, world_state))
+		return
 	if interactable.interaction_type == "clear":
 		hud.show_prompt(interaction_prompt_formatter.format_clear_prompt(interactable, character_state, world_state))
+		return
+	hud.show_prompt(interaction_prompt_formatter.format_general_interaction_prompt(interactable, character_state, world_state))
 
 
 func _should_advance_interaction(context: Dictionary, result: Dictionary) -> bool:

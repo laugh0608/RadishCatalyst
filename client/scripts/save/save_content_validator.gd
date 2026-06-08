@@ -27,6 +27,7 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 		"map_object_instance.pollution_residue_outer_pocket": "map_object.pollution_residue_patch",
 		"map_object_instance.pollution_residue_deep": "map_object.pollution_residue_patch",
 		"map_object_instance.pollution_residue_ridge_cache": "map_object.pollution_residue_patch",
+		"map_object_instance.core_buffer_residue_cache": "map_object.pollution_residue_patch",
 		"map_object_instance.rough_ground_north": "map_object.rough_ground",
 	"map_object_instance.rough_ground_south": "map_object.rough_ground",
 	"map_object_instance.foundation_site_north": "building.foundation_t1",
@@ -36,10 +37,11 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.ruin_gate": "map_object.ruin_gate",
 	"map_object_instance.relay_shard_cache_north": "map_object.relay_shard_cache",
 	"map_object_instance.relay_shard_cache_south": "map_object.relay_shard_cache",
-	"map_object_instance.outer_ring_barrier": "map_object.outer_ring_barrier",
-	"map_object_instance.outer_ring_console": "map_object.outer_ring_console",
-	"map_object_instance.signal_echo_cache": "map_object.signal_echo_cache",
-	"map_object_instance.deep_ruin_door": "map_object.deep_ruin_door",
+		"map_object_instance.outer_ring_barrier": "map_object.outer_ring_barrier",
+		"map_object_instance.outer_ring_console": "map_object.outer_ring_console",
+		"map_object_instance.signal_echo_cache": "map_object.signal_echo_cache",
+		"map_object_instance.outer_ring_echo_residue_cache": "map_object.pollution_residue_patch",
+		"map_object_instance.deep_ruin_door": "map_object.deep_ruin_door",
 	"map_object_instance.phase_filament_cluster_north": "map_object.phase_filament_cluster",
 	"map_object_instance.phase_filament_cluster_south": "map_object.phase_filament_cluster",
 	"map_object_instance.deep_ruin_latch": "map_object.deep_ruin_latch",
@@ -103,6 +105,8 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.pressure_clearance_node": "map_object.pressure_clearance_node",
 	"map_object_instance.prepared_frontline_window": "map_object.prepared_frontline_window",
 	"map_object_instance.demo_stabilization_recovery_cache": "map_object.demo_stabilization_recovery_cache",
+	"map_object_instance.demo_stabilization_recovery_wreckage": "map_object.demo_stabilization_recovery_cache",
+	"map_object_instance.demo_stabilization_guard_cache": "map_object.demo_stabilization_guard_cache",
 	"map_object_instance.demo_stabilization_core": "map_object.demo_stabilization_core"
 }
 
@@ -198,6 +202,10 @@ const PROTOTYPE_ENEMY_SOURCES := {
 			"region_id": "region.pollution_edge"
 		},
 		"enemy_instance.polluted_skitter_ridge": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge"
+		},
+		"enemy_instance.core_buffer_polluted_skitter": {
 			"definition_id": "enemy.polluted_skitter",
 			"region_id": "region.pollution_edge"
 		},
@@ -311,7 +319,9 @@ const ENEMY_ALLOWED_FIELDS := [
 	"health",
 	"max_health",
 	"is_defeated",
-	"drops_granted"
+	"drops_granted",
+	"pressure_vial_used",
+	"core_buffer_used"
 ]
 
 const BASE_STRUCTURE_ALLOWED_FIELDS := [

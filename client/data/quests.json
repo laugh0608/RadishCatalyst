@@ -101,7 +101,7 @@
       "objectives": [{"type": "clear", "target_id": "map_object.rough_ground", "amount": 2}, {"type": "build", "target_id": "building.foundation_t1", "amount": 2}, {"type": "build", "target_id": "building.pollution_filter", "amount": 1}],
       "prerequisites": ["quest.prepare_treatment_supplies"],
       "rewards": [],
-      "unlock_effects": ["region.pollution_edge", "recipe.cleanse_residue"],
+      "unlock_effects": ["region.pollution_edge", "recipe.cleanse_residue", "recipe.reclaim_basic_parts"],
       "next_quest_ids": ["quest.enter_pollution_edge"],
       "public_level": "public"
     },
@@ -155,7 +155,12 @@
       "description_key": "quest.scout_ruin_outer_ring.desc",
       "quest_type": "main",
       "stage": 12,
-      "objectives": [{"type": "visit_region", "target_id": "region.ruin_outer_ring", "amount": 1}, {"type": "gather_item", "target_id": "item.relay_shard", "amount": 2}],
+      "objectives": [
+        {"type": "visit_region", "target_id": "region.ruin_outer_ring", "amount": 1},
+        {"type": "gather_item", "target_id": "item.relay_shard", "amount": 2},
+        {"type": "gather_item", "target_id": "item.polluted_residue", "amount": 2},
+        {"type": "defeat_enemy", "target_id": "enemy.polluted_skitter", "amount": 1}
+      ],
       "prerequisites": ["quest.unlock_ruin_signal"],
       "rewards": [],
       "unlock_effects": ["recipe.phase_anchor"],
@@ -207,7 +212,7 @@
       "description_key": "quest.salvage_signal_echo.desc",
       "quest_type": "main",
       "stage": 16,
-      "objectives": [{"type": "defeat_enemy", "target_id": "enemy.ruin_phase_guard", "amount": 1}, {"type": "inspect", "target_id": "map_object.signal_echo_cache", "amount": 1}],
+      "objectives": [{"type": "defeat_enemy", "target_id": "enemy.ruin_phase_guard", "amount": 1}, {"type": "gather_item", "target_id": "item.polluted_residue", "amount": 2}, {"type": "inspect", "target_id": "map_object.signal_echo_cache", "amount": 1}],
       "prerequisites": ["quest.secure_outer_ring_signal"],
       "rewards": [{"id": "item.signal_echo_trace", "amount": 1}],
       "unlock_effects": ["recipe.deep_signal_analysis"],
@@ -1167,6 +1172,23 @@
       "objectives": [{"type": "visit_region", "target_id": "region.demo_stabilization_core", "amount": 1}],
       "prerequisites": ["quest.calibrate_phase_well_stability_window"],
       "rewards": [],
+      "unlock_effects": ["recipe.core_stabilization_buffer"],
+      "next_quest_ids": ["quest.prepare_demo_stabilization_buffer"],
+      "public_level": "spoiler"
+    },
+    {
+      "id": "quest.prepare_demo_stabilization_buffer",
+      "display_name_key": "quest.prepare_demo_stabilization_buffer.name",
+      "description_key": "quest.prepare_demo_stabilization_buffer.desc",
+      "quest_type": "side",
+      "stage": 86,
+      "objectives": [
+        {"type": "gather_item", "target_id": "item.polluted_residue", "amount": 2},
+        {"type": "defeat_enemy", "target_id": "enemy.polluted_skitter", "amount": 1},
+        {"type": "craft_item", "target_id": "item.core_stabilization_buffer", "amount": 1}
+      ],
+      "prerequisites": ["quest.enter_demo_stabilization_core"],
+      "rewards": [],
       "unlock_effects": [],
       "next_quest_ids": ["quest.defeat_demo_stabilization_guard"],
       "public_level": "spoiler"
@@ -1176,9 +1198,9 @@
       "display_name_key": "quest.defeat_demo_stabilization_guard.name",
       "description_key": "quest.defeat_demo_stabilization_guard.desc",
       "quest_type": "side",
-      "stage": 86,
+      "stage": 87,
       "objectives": [{"type": "defeat_enemy", "target_id": "enemy.demo_stabilization_guard", "amount": 1}],
-      "prerequisites": ["quest.enter_demo_stabilization_core"],
+      "prerequisites": ["quest.prepare_demo_stabilization_buffer"],
       "rewards": [{"id": "item.repair_gel", "amount": 1}, {"id": "item.resistance_vial_t1", "amount": 1}],
       "unlock_effects": [],
       "next_quest_ids": ["quest.write_demo_stabilization_core"],
@@ -1189,8 +1211,11 @@
       "display_name_key": "quest.write_demo_stabilization_core.name",
       "description_key": "quest.write_demo_stabilization_core.desc",
       "quest_type": "side",
-      "stage": 87,
-      "objectives": [{"type": "inspect", "target_id": "map_object.demo_stabilization_core", "amount": 1}],
+      "stage": 88,
+      "objectives": [
+        {"type": "gather_item", "target_id": "item.core_write_charge", "amount": 1},
+        {"type": "inspect", "target_id": "map_object.demo_stabilization_core", "amount": 1}
+      ],
       "prerequisites": ["quest.defeat_demo_stabilization_guard"],
       "rewards": [{"id": "item.basic_parts", "amount": 4}],
       "unlock_effects": ["slice_01_complete"],

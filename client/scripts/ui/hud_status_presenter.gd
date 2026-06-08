@@ -108,7 +108,7 @@ func format_objective_text(
 	var active_quest_id := _get_active_quest_id(world_state)
 	return "\n".join(
 		["当前目标"]
-		+ _format_objective_lines(data_registry, world_state, active_quest_id)
+		+ _format_objective_lines(data_registry, world_state, active_quest_id, true)
 		+ _format_key_resource_lines(data_registry, world_state, character_state, active_quest_id)
 	)
 
@@ -158,6 +158,8 @@ func format_pollution_status(
 
 
 func _get_active_quest_id(world_state: WorldState) -> String:
+	if _is_base_action_choice_state(world_state):
+		return ""
 	if not world_state.quest_state.active_quest_ids.is_empty():
 		return world_state.quest_state.active_quest_ids[0]
 	return ""
@@ -166,12 +168,22 @@ func _get_active_quest_id(world_state: WorldState) -> String:
 func _format_objective_lines(
 	data_registry: DataRegistry,
 	world_state: WorldState,
-	active_quest_id: String
+	active_quest_id: String,
+	compact: bool = false
 ) -> Array[String]:
-	return [
-		"目标：%s" % _format_goal_name(data_registry, world_state, active_quest_id),
-		"进度：%s" % _format_active_quest_progress(data_registry, world_state, active_quest_id)
-	]
+	var lines: Array[String] = ["目标：%s" % _format_goal_name(data_registry, world_state, active_quest_id)]
+	if not compact:
+		lines.append("进度：%s" % _format_active_quest_progress(data_registry, world_state, active_quest_id))
+		return lines
+
+	var progress_lines := _format_active_quest_progress_lines(data_registry, world_state, active_quest_id)
+	if progress_lines.is_empty():
+		lines.append("进度：无")
+		return lines
+	for index in range(progress_lines.size()):
+		var prefix := "进度：" if index == 0 else "  "
+		lines.append("%s%s" % [prefix, progress_lines[index]])
+	return lines
 
 
 func _format_character_lines(
@@ -214,7 +226,7 @@ func _format_base_summary_lines(
 ) -> Array[String]:
 	var active_structure_summary := _format_active_base_structure(data_registry, world_state)
 	if not active_structure_summary.is_empty():
-		return [active_structure_summary]
+		return active_structure_summary
 
 	var active_quest := data_registry.get_definition(active_quest_id)
 	if not active_quest.is_empty():
@@ -224,8 +236,32 @@ func _format_base_summary_lines(
 		var build_summary := _format_current_build_summary(data_registry, active_quest, character_state, world_state)
 		if not build_summary.is_empty():
 			return build_summary
+		if active_quest_id == "quest.plan_stability_frontline_action":
+			return ["行动台确认稳窗回访：只派发稳窗回波探点"]
+		if active_quest_id == "quest.confirm_supply_frontline_action":
+			return ["行动台确认补给短行动：只派发补给回执标记"]
+		if active_quest_id == "quest.confirm_route_frontline_action":
+			return [
+				"行动台确认巡线短行动：只派发巡线信标",
+				"短行动反馈已归档：第三条行动入口已整理"
+			]
+	if _is_base_action_choice_state(world_state):
+		return [
+			"行动方案：稳场补给低风险偏整备资源",
+			"相位测绘多读数换路线提示；压力清障高风险换防护收益"
+		]
 
 	return ["设备：待命；当前目标先外出推进"]
+
+
+func _is_base_action_choice_state(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return (
+		world_state.quest_state.has_active_quest("quest.choose_steady_supply_action")
+		and world_state.quest_state.has_active_quest("quest.choose_phase_survey_action")
+		and world_state.quest_state.has_active_quest("quest.choose_pressure_clearance_action")
+	)
 
 
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
@@ -413,7 +449,7 @@ func _get_inventory_amount(inventory: InventoryState, definition_id: String) -> 
 	return float(inventory.items.get(definition_id, 0))
 
 
-func _format_active_base_structure(data_registry: DataRegistry, world_state: WorldState) -> String:
+func _format_active_base_structure(data_registry: DataRegistry, world_state: WorldState) -> Array[String]:
 	for structure in world_state.base_structures.values():
 		if not structure is Dictionary:
 			continue
@@ -421,8 +457,21 @@ func _format_active_base_structure(data_registry: DataRegistry, world_state: Wor
 			continue
 		var recipe_id := String(structure.get("active_recipe_id", ""))
 		var structure_name := _get_display_name(data_registry, String(structure.get("definition_id", "")))
-		return "设备：%s加工中 -> %s" % [structure_name, _get_display_name(data_registry, recipe_id)]
-	return ""
+		var recipe := data_registry.get_definition(recipe_id)
+		var duration := _get_recipe_duration(recipe)
+		var progress_seconds := clampf(float(structure.get("progress_seconds", 0.0)), 0.0, duration)
+		var recipe_name := _get_display_name(data_registry, recipe_id)
+		if recipe_name.is_empty():
+			recipe_name = "当前配方"
+		return [
+			"设备：%s -> %s" % [structure_name, recipe_name],
+			"进度：%s %s/%s 秒；Q 设备面板" % [
+				_format_progress_bar(progress_seconds, duration),
+				_format_amount(progress_seconds),
+				_format_amount(duration)
+			]
+		]
+	return []
 
 
 func _format_current_craft_summary(
@@ -536,6 +585,12 @@ func _format_first_hour_recommended_craft_summary(
 						character_state,
 						"建议配方"
 					)
+		"quest.enter_pollution_edge":
+			if _has_pollution_vial_ready(world_state, character_state):
+				return [
+					"外出链：带药剂回污染边界",
+					"下一步：%s" % _format_pollution_vial_field_step(world_state)
+				]
 	return []
 
 
@@ -678,13 +733,13 @@ func _format_active_quest_progress(data_registry: DataRegistry, world_state: Wor
 		if _has_completed_route_frontline_action(world_state):
 			return "巡线短行动已确认；回到锚定桥前线读取巡线信标"
 		if _has_completed_short_action_feedback(world_state):
-			return "短行动反馈已归档，下一趟巡线目标已整理；回基地巡线短行动台确认第三条轻量行动"
+			return "短行动反馈已归档，下一趟巡线目标已整理；回基地前线行动台确认第三条巡线短行动"
 		if _has_completed_supply_return_marker(world_state):
 			return "补给回执读数已带回；回基地基础反应器解析成短行动反馈记录"
 		if _has_completed_supply_frontline_action(world_state):
 			return "补给短行动已确认；回到锚定桥前线读取补给回执标记"
 		if _has_completed_stability_echo_report(world_state):
-			return "前线行动回报已归档，下一趟短行动补给已整理；回基地短行动补给台确认第二条轻量行动"
+			return "前线行动回报已归档，下一趟短行动补给已整理；回基地前线行动台确认第二条轻量行动"
 		if _has_completed_stability_echo_probe(world_state):
 			return "稳窗回波样本已带回；回基地基础反应器解析成前线行动回报"
 		if _has_completed_stability_frontline_action(world_state):
@@ -748,9 +803,46 @@ func _format_active_quest_progress(data_registry: DataRegistry, world_state: Wor
 			_format_amount(required_amount)
 		])
 
+	if quest_id == "quest.enter_pollution_edge" and _has_pollution_vial_objective_ready(world_state):
+		parts.append(_format_pollution_action_chain_line())
 	if parts.is_empty():
 		return "无"
 	return "；".join(parts)
+
+
+func _format_active_quest_progress_lines(
+	data_registry: DataRegistry,
+	world_state: WorldState,
+	quest_id: String
+) -> Array[String]:
+	var quest := data_registry.get_definition(quest_id)
+	if quest.is_empty():
+		var fallback_progress := _format_active_quest_progress(data_registry, world_state, quest_id)
+		if fallback_progress == "无":
+			return []
+		return [_shorten_visible_text(fallback_progress, 42)]
+
+	var lines: Array[String] = []
+	for objective in quest.get("objectives", []):
+		if not objective is Dictionary:
+			continue
+
+		var objective_type := String(objective.get("type", ""))
+		var target_id := String(objective.get("target_id", ""))
+		var required_amount := float(objective.get("amount", 1.0))
+		var current_amount := minf(
+			world_state.quest_state.get_objective_progress(quest_id, objective_type, target_id),
+			required_amount
+		)
+		lines.append(_shorten_visible_text("%s%s %s/%s" % [
+			_get_objective_verb(objective_type),
+			_format_objective_target_name(data_registry, quest_id, objective_type, target_id, true),
+			_format_amount(current_amount),
+			_format_amount(required_amount)
+		], 42))
+	if quest_id == "quest.enter_pollution_edge" and _has_pollution_vial_objective_ready(world_state):
+		lines.append(_shorten_visible_text(_format_pollution_action_chain_line(), 42))
+	return lines
 
 
 func _get_objective_verb(objective_type: String) -> String:
@@ -783,12 +875,15 @@ func _format_objective_target_name(
 	data_registry: DataRegistry,
 	quest_id: String,
 	objective_type: String,
-	target_id: String
+	target_id: String,
+	compact: bool = false
 ) -> String:
 	var target_name := _get_display_name(data_registry, target_id)
 	var source_hint := _get_objective_source_hint(quest_id, objective_type, target_id)
 	if source_hint.is_empty():
 		return target_name
+	if compact:
+		source_hint = _compact_source_hint(source_hint)
 	return "%s（%s）" % [target_name, source_hint]
 
 
@@ -800,10 +895,79 @@ func _get_objective_source_hint(_quest_id: String, objective_type: String, targe
 	return objective_source_resolver.resolve_source_hint(objective_type, target_id)
 
 
+func _has_pollution_vial_ready(world_state: WorldState, character_state: CharacterState) -> bool:
+	if character_state != null and character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+		return true
+	return _has_pollution_vial_objective_ready(world_state)
+
+
+func _has_pollution_vial_objective_ready(world_state: WorldState) -> bool:
+	return world_state.quest_state.get_objective_progress(
+		"quest.enter_pollution_edge",
+		"craft_item",
+		"item.resistance_vial_t1"
+	) >= 1.0
+
+
+func _format_pollution_action_chain_line() -> String:
+	return "链路：处理药剂->带药剂回污染边界->清理受扰敌人/门前压力点"
+
+
+func _format_pollution_vial_field_step(world_state: WorldState) -> String:
+	if world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue") < 4.0:
+		return "补第二批沉积物，再清理受扰敌人和门前压力点"
+	return "清理受扰敌人和门前压力点"
+
+
 func _format_amount(amount: float) -> String:
 	if is_equal_approx(amount, roundf(amount)):
 		return str(int(amount))
 	return "%.1f" % amount
+
+
+func _compact_source_hint(source_hint: String) -> String:
+	match source_hint:
+		"基础反应器":
+			return "反应器"
+		"污染过滤器":
+			return "过滤器"
+		"异常残留点":
+			return "残留点"
+		_:
+			return source_hint
+
+
+func _format_progress_bar(current: float, total: float) -> String:
+	var segment_count := 10
+	var ratio := 0.0
+	if total > 0.0:
+		ratio = clampf(current / total, 0.0, 1.0)
+	var filled_count := mini(segment_count, maxi(0, int(floor(ratio * float(segment_count)))))
+	if ratio > 0.0 and filled_count == 0:
+		filled_count = 1
+	return "[%s%s]" % [
+		_repeat_text("#", filled_count),
+		_repeat_text("-", segment_count - filled_count)
+	]
+
+
+func _get_recipe_duration(recipe: Dictionary) -> float:
+	if recipe.is_empty():
+		return 0.1
+	return maxf(0.1, float(recipe.get("duration", 0.1)))
+
+
+func _repeat_text(text: String, count: int) -> String:
+	var parts: Array[String] = []
+	for _index in range(maxi(0, count)):
+		parts.append(text)
+	return "".join(parts)
+
+
+func _shorten_visible_text(text: String, max_length: int) -> String:
+	if text.length() <= max_length:
+		return text
+	return "%s..." % text.substr(0, maxi(0, max_length - 3))
 
 
 func _get_display_name(data_registry: DataRegistry, definition_id: String) -> String:

@@ -57,6 +57,33 @@ const FIELD_READING_PROMPTS := {
 }
 
 const FRONTLINE_ACTION_TARGET_PROMPTS := {
+	"map_object.stability_echo_probe": {
+		"quest_id": "quest.survey_stability_echo_probe",
+		"objective_type": "inspect",
+		"target_ids": ["map_object.stability_echo_probe"],
+		"title": "稳窗回波探点",
+		"status": "未读取，本趟稳窗回访只要求确认这一处探点。",
+		"effect": "读取后回基地使用基础反应器解析前线行动回报。",
+		"action": "按 E 读取稳窗回波样本"
+	},
+	"map_object.supply_return_marker": {
+		"quest_id": "quest.inspect_supply_return_marker",
+		"objective_type": "inspect",
+		"target_ids": ["map_object.supply_return_marker"],
+		"title": "补给回执标记",
+		"status": "未读取，本趟补给短行动只要求确认这一处回执标记。",
+		"effect": "读取后回基地使用基础反应器解析短行动反馈。",
+		"action": "按 E 读取补给回执"
+	},
+	"map_object.route_signal_marker": {
+		"quest_id": "quest.inspect_route_signal_marker",
+		"objective_type": "inspect",
+		"target_ids": ["map_object.route_signal_marker"],
+		"title": "巡线信标",
+		"status": "未读取，本趟巡线短行动只要求确认这一处巡线信标。",
+		"effect": "读取后回基地使用基础反应器解析巡线反馈。",
+		"action": "按 E 读取巡线信标"
+	},
 	"map_object.steady_supply_drop_marker": {
 		"quest_id": "quest.inspect_steady_supply_drop",
 		"objective_type": "inspect",
@@ -103,6 +130,29 @@ func _init(registry: DataRegistry, processing: ProcessingSystem, builder: BuildS
 	build_system = builder
 
 
+func format_general_interaction_prompt(
+	interactable: PrototypeInteractable,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
+	var title := _get_display_name(interactable.definition_id)
+	var definition := data_registry.get_definition(interactable.definition_id)
+	var object_state := world_state.get_map_object(interactable.instance_id)
+	var parts: Array[String] = ["对象：%s" % title]
+	parts.append("用途：%s" % _get_general_interaction_purpose(interactable, definition))
+	var reward_line := _format_interaction_reward_line(interactable, definition)
+	if not reward_line.is_empty():
+		parts.append(reward_line)
+	parts.append("状态：%s" % _get_general_interaction_status(interactable, object_state, character_state))
+	var next_step_line := _get_general_interaction_next_step(interactable, object_state, character_state, world_state)
+	if not next_step_line.is_empty():
+		parts.append("下一步：%s" % next_step_line)
+	var action_line := _get_general_interaction_action(interactable, object_state, character_state)
+	if not action_line.is_empty():
+		parts.append("操作：%s" % action_line)
+	return "\n".join(parts)
+
+
 func format_processing_prompt(
 	interactable: PrototypeInteractable,
 	character_state: CharacterState,
@@ -110,12 +160,13 @@ func format_processing_prompt(
 ) -> String:
 	var recipe_id := interactable.get_current_recipe_id()
 	var status := processing_system.get_recipe_status(recipe_id, character_state, world_state)
+	var displayed_recipe_id := String(status.get("recipe_id", recipe_id))
 	var parts: Array[String] = ["设备：%s" % _get_display_name(interactable.definition_id)]
-	var recipe_line := "配方：%s" % _get_display_name(recipe_id)
+	var recipe_line := "配方：%s" % _get_display_name(displayed_recipe_id)
 	if interactable.get_recipe_count() > 1:
 		recipe_line = "%s（%d/%d）" % [
 			recipe_line,
-			interactable.get_recipe_position(),
+			_get_recipe_position(interactable, displayed_recipe_id),
 			interactable.get_recipe_count()
 		]
 	parts.append(recipe_line)
@@ -132,9 +183,20 @@ func format_processing_prompt(
 	var status_line := "状态：%s" % String(status.get("message", ""))
 	var progress := String(status.get("progress", ""))
 	if not progress.is_empty():
-		status_line = "%s；%s" % [status_line, progress]
+		status_line = "%s；进度：%s %s" % [
+			status_line,
+			_format_progress_bar(float(status.get("progress_ratio", 0.0))),
+			progress
+		]
+		var processing_next_step := String(status.get("next_step", ""))
+		if not processing_next_step.is_empty():
+			status_line = "%s；下一步：%s" % [status_line, processing_next_step]
 	elif bool(status.get("can_process", false)):
 		status_line = "%s；%s 秒" % [status_line, String(status.get("duration", "0"))]
+	else:
+		var next_step := _get_processing_next_step(status)
+		if not next_step.is_empty():
+			status_line = "%s；下一步：%s" % [status_line, next_step]
 	parts.append(status_line)
 
 	var action_parts: Array[String] = ["Q 详情"]
@@ -148,13 +210,61 @@ func format_processing_prompt(
 
 func format_processing_log(recipe_id: String, character_state: CharacterState, world_state: WorldState) -> String:
 	var status := processing_system.get_recipe_status(recipe_id, character_state, world_state)
-	return "%s：%s 输入：%s；产出：%s；耗时：%s 秒。" % [
-		_get_display_name(recipe_id),
-		String(status.get("message", "")),
-		String(status.get("inputs", "无")),
-		String(status.get("outputs", "无")),
-		String(status.get("duration", "0"))
+	var displayed_recipe_id := String(status.get("recipe_id", recipe_id))
+	var parts: Array[String] = [
+		"%s：%s" % [_get_display_name(displayed_recipe_id), String(status.get("message", ""))],
+		"输入：%s" % String(status.get("inputs", "无")),
+		"产出：%s" % String(status.get("outputs", "无")),
+		"耗时：%s 秒" % String(status.get("duration", "0"))
 	]
+	var next_step := String(status.get("next_step", ""))
+	if not next_step.is_empty():
+		parts.append("下一步：%s" % next_step)
+	return "；".join(parts)
+
+
+func _get_recipe_position(interactable: PrototypeInteractable, recipe_id: String) -> int:
+	if interactable.recipe_ids.is_empty():
+		return interactable.get_recipe_position()
+	var index := interactable.recipe_ids.find(recipe_id)
+	if index < 0:
+		return interactable.get_recipe_position()
+	return index + 1
+
+
+func _get_processing_next_step(status: Dictionary) -> String:
+	var supply_hint := String(status.get("supply_hint", ""))
+	if not supply_hint.is_empty():
+		return supply_hint
+
+	var message := String(status.get("message", ""))
+	if not Array(status.get("missing_inputs", [])).is_empty():
+		return "先采集或回收缺少的原料，再回到设备启动加工。"
+	if message.begins_with("需要先建造："):
+		return "先完成对应建造点，再回到设备启动加工。"
+	if message.find("未解锁") >= 0:
+		return "先完成当前任务目标，解锁该配方后再启动加工。"
+	if message.find("加工中") >= 0:
+		return "等待设备完成；靠近设备查看进度，按 Q 打开设备面板。"
+	return ""
+
+
+func _format_progress_bar(ratio: float) -> String:
+	var segment_count := 10
+	var filled_count := mini(segment_count, maxi(0, int(floor(clampf(ratio, 0.0, 1.0) * float(segment_count)))))
+	if ratio > 0.0 and filled_count == 0:
+		filled_count = 1
+	return "[%s%s]" % [
+		_repeat_text("#", filled_count),
+		_repeat_text("-", segment_count - filled_count)
+	]
+
+
+func _repeat_text(text: String, count: int) -> String:
+	var parts: Array[String] = []
+	for _index in range(maxi(0, count)):
+		parts.append(text)
+	return "".join(parts)
 
 
 func format_build_prompt(
@@ -177,8 +287,11 @@ func format_build_prompt(
 	if not foundation_status.is_empty():
 		parts.append(foundation_status)
 	parts.append("状态：%s" % String(status.get("message", "")))
+	var next_step := String(status.get("next_step", ""))
+	if not next_step.is_empty():
+		parts.append("下一步：%s" % next_step)
 	if bool(status.get("can_build", false)):
-		parts.append("按 E 建造")
+		parts.append("操作：按 E 建造")
 	return "\n".join(parts)
 
 
@@ -236,11 +349,11 @@ func format_clear_prompt(
 	var parts: Array[String] = [
 		"地块：%s" % _get_display_name(interactable.definition_id),
 		"状态：未清理，阻挡建造。",
-		"后续：清理后可铺设基础地基。",
+		"下一步：清理后可铺设基础地基。",
 		"工具：%s" % tool_status
 	]
 	if tool_status == "可清理":
-		parts.append("按 E 清理地块")
+		parts.append("操作：按 E 清理地块")
 	return "\n".join(parts)
 
 
@@ -262,6 +375,10 @@ func format_base_action_prompt(
 
 func can_format_field_reading_prompt(definition_id: String) -> bool:
 	return FIELD_READING_PROMPTS.has(definition_id)
+
+
+func can_format_stability_calibration_prompt(definition_id: String) -> bool:
+	return PhaseWellFrontierRuntime.new(data_registry).is_stability_calibration_node(definition_id)
 
 
 func can_format_frontline_action_target_prompt(definition_id: String) -> bool:
@@ -339,6 +456,29 @@ func format_field_reading_prompt(interactable: PrototypeInteractable, world_stat
 	return "\n".join(parts)
 
 
+func format_stability_calibration_prompt(
+	interactable: PrototypeInteractable,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
+	var runtime := PhaseWellFrontierRuntime.new(data_registry)
+	var title := _get_display_name(interactable.definition_id)
+	if runtime.is_stability_node_calibrated(world_state, interactable.instance_id, interactable.definition_id):
+		if world_state.quest_state.has_completed_quest("quest.calibrate_phase_well_stability_window"):
+			return "%s：已校准；三处稳窗节点已按序写入，回基地在前线行动台确认稳窗回访。" % title
+		return "%s：已校准；继续检查剩余稳窗节点。" % title
+	if not world_state.quest_state.has_completed_quest("quest.analyze_phase_well_echo_shard"):
+		return "%s：缺少稳窗读数；先回基地解析稳窗余响片。" % title
+	if not character_state.inventory.has_ref("item.phase_well_stability_readout", 1):
+		return "%s：缺少稳窗读数；确认余响片解析产物已放入背包，再返回锚定桥东侧。" % title
+	if not runtime.is_stability_calibration_ready(world_state, interactable.definition_id):
+		return "%s：相位序未对齐；先按西侧、中央、东侧顺序写入稳窗读数。" % title
+	var next_step := "完成后继续按西侧、中央、东侧顺序检查下一处节点。"
+	if interactable.definition_id == "map_object.phase_well_stability_node_east":
+		next_step = "完成后回基地，在前线行动台确认稳窗回访；本趟只派发稳窗回波探点。"
+	return "按 E 校准：%s\n顺序：西侧、中央、东侧。\n后续：%s" % [title, next_step]
+
+
 func format_outpost_core_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
 		return "按 E 恢复：前哨核心，重启基础导航。"
@@ -351,7 +491,9 @@ func format_ruin_gate_prompt(world_state: WorldState) -> String:
 	if not world_state.quest_state.has_completed_quest("quest.defeat_elite_node"):
 		return "封锁遗迹入口：先压制污染残核，再确认更深区域信号。"
 	if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):
-		return "遗迹外圈已开放：继续向东进入外圈，回收继电残片。"
+		return "遗迹外圈已开放：继续向东进入外圈，回收继电残片，并处理外圈前污染脊压力。"
+	if _is_gate_pressure_active(world_state):
+		return "封锁遗迹入口：门前受扰敌人仍在压制；带药剂回污染边界，清理门前压力点后再确认入口信号。"
 	return "按 E 确认：封锁遗迹入口信号，打开遗迹外圈通路。"
 
 
@@ -361,7 +503,7 @@ func format_outer_ring_barrier_prompt(world_state: WorldState, character_state: 
 	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_anchor"):
 		return "抖动雾幕：先回基地组装稳相信标，再返回部署。"
 	if not character_state.inventory.has_ref("item.phase_anchor", 1):
-		return "抖动雾幕：缺少稳相信标；回基地用基础反应器把继电残片和污染浆液组装后再来。"
+		return "抖动雾幕：缺少稳相信标；回基地把继电残片、污染浆液和基础零件组装后再来。"
 	return "按 E 部署：稳相信标，稳定抖动雾幕。"
 
 
@@ -378,6 +520,11 @@ func format_signal_echo_cache_prompt(world_state: WorldState) -> String:
 		return "外圈回波匣：先检查外圈中继台，锁定稳定回波。"
 	if world_state.quest_state.has_completed_quest("quest.salvage_signal_echo"):
 		return "外圈回波匣：已回收，回基地解析深段回波。"
+	if world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
+		if not bool(world_state.get_enemy("enemy_instance.ruin_phase_guard").get("is_defeated", false)):
+			return "外圈回波匣：相位守卫仍在压制；先清理守卫。"
+		if world_state.quest_state.get_objective_progress("quest.salvage_signal_echo", "gather_item", "item.polluted_residue") < 2.0:
+			return "外圈回波匣：先回收守卫后暴露的污染回波沉积，再回过滤器处理副产。"
 	return "按 E 回收：外圈回波匣。"
 
 
@@ -541,7 +688,7 @@ func format_phase_well_anchor_field_prompt(world_state: WorldState, character_st
 			world_state.quest_state.has_completed_quest("quest.analyze_phase_well_echo_shard")
 			or character_state.inventory.has_ref("item.phase_well_stability_readout", 1)
 		):
-			return "按 E 回充：稳窗读数已校准，锚场回稳窗可在前线恢复生命与防护。"
+			return "按 E 回充：稳窗读数已解析，锚场回稳窗可在前线恢复生命与防护；之后按序校准三处稳窗节点。"
 		return "锚场回稳窗：局部稳定窗口已维持；回基地解析稳窗余响片后，可把这里校准成前线回稳点。"
 	if not _has_completed_any(world_state, ["quest.refine_anchor_core_dust", "quest.assemble_phase_well_anchor_stake"]):
 		return "锚场回稳窗：先回基地完成锚场整备，把稳场校锚桩带回来部署。"
@@ -607,6 +754,164 @@ func _get_interaction_tool_status(definition_id: String, character_state: Charac
 	return "缺少能力：%s" % ", ".join(missing_tags)
 
 
+func _get_general_interaction_purpose(interactable: PrototypeInteractable, definition: Dictionary) -> String:
+	if interactable.definition_id == "map_object.demo_stabilization_core":
+		return "写入稳窗和高压窗口归档数据；抗污染药剂会参与核心设备写入排压。"
+	match interactable.interaction_type:
+		"gather":
+			match String(definition.get("object_type", "")):
+				"resource_node":
+					return "采集基础资源，带回基地加工或建造。"
+				"salvage_node":
+					return "回收残骸材料，补足基地制造和施工消耗。"
+				"hazard_resource":
+					return "回收污染沉积物，用于过滤器处理和污染边界推进。"
+				"sample_residue":
+					return "回收异常残留，补充样本分析材料。"
+				_:
+					return "回收可用物资，带回基地继续处理。"
+		"sample":
+			return "采集异常样本，回基地解析后推进后续目标。"
+		"inspect":
+			return "检查目标状态，确认当前路线或任务推进条件。"
+		_:
+			return "与当前目标交互，推进任务或获得反馈。"
+
+
+func _format_interaction_reward_line(interactable: PrototypeInteractable, definition: Dictionary) -> String:
+	if interactable.interaction_type == "gather":
+		var drops := _format_refs(definition.get("drops", []))
+		if not drops.is_empty():
+			return "产物：%s" % drops
+	if interactable.interaction_type == "sample":
+		var samples := _format_refs(definition.get("sample_result_refs", []))
+		if not samples.is_empty():
+			return "样本：%s" % samples
+	return ""
+
+
+func _get_general_interaction_status(
+	interactable: PrototypeInteractable,
+	object_state: Dictionary,
+	character_state: CharacterState
+) -> String:
+	if _is_general_interaction_processed(interactable, object_state):
+		return _get_processed_interaction_status(interactable)
+	var tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
+	if tool_status.begins_with("缺少能力"):
+		return "%s，先升级或更换工具。" % tool_status
+	if interactable.definition_id == "map_object.demo_stabilization_core":
+		if _is_general_interaction_processed(interactable, object_state):
+			return "已接管，第一条稳定通道已打开。"
+		if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+			return "可写入，抗污染药剂可降低写入反冲。"
+		return "可写入，但缺少抗污染药剂，反冲会完整命中。"
+	match interactable.interaction_type:
+		"gather":
+			return "可采集。"
+		"sample":
+			return "可采样。"
+		"inspect":
+			return "可检查。"
+		_:
+			return "可交互。"
+
+
+func _get_general_interaction_action(
+	interactable: PrototypeInteractable,
+	object_state: Dictionary,
+	character_state: CharacterState
+) -> String:
+	if _is_general_interaction_processed(interactable, object_state):
+		return ""
+	var tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
+	if tool_status.begins_with("缺少能力"):
+		return ""
+	if interactable.definition_id == "map_object.demo_stabilization_core":
+		return "按 E 写入核心稳定数据"
+	match interactable.interaction_type:
+		"gather":
+			return "按 E 采集"
+		"sample":
+			return "按 E 采样"
+		"inspect":
+			return "按 E 检查"
+		_:
+			return "按 E 交互"
+
+
+func _get_general_interaction_next_step(
+	interactable: PrototypeInteractable,
+	object_state: Dictionary,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
+	if interactable.definition_id == "map_object.demo_stabilization_core":
+		if _is_general_interaction_processed(interactable, object_state):
+			return "首版 demo 主线目标已完成；返回基地整理补给。"
+		if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+			return "直接写入，药剂会自动接入排压并降低生命 / 防护损耗。"
+		return "可写入但承压更高；若想降低损耗，先确认守卫缓存或过滤器补给。"
+	if interactable.definition_id != "map_object.pollution_residue_patch":
+		return ""
+	if _is_general_interaction_processed(interactable, object_state):
+		return "把沉积物处理成药剂；带药剂回污染边界后清理受扰敌人和门前压力点。"
+	if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+		return "药剂已在身上；采完沉积物后清理受扰敌人和门前压力点。"
+	if world_state.has_base_structure_definition("building.pollution_filter"):
+		return "采完沉积物先回处理点过滤器做药剂；带药剂回污染边界后清理受扰敌人和门前压力点。"
+	return "先完成处理点地基和污染过滤器；过滤器上线后沉积物才能转成抗污染药剂。"
+
+
+func _get_processed_interaction_status(interactable: PrototypeInteractable) -> String:
+	match interactable.interaction_type:
+		"gather":
+			match interactable.definition_id:
+				"map_object.crystal_cluster", "map_object.rich_crystal_vein":
+					return "已采集，现场保留已采集标记；继续寻找未变暗的晶体。"
+				"map_object.pollution_residue_patch":
+					return "已回收，现场保留已回收标记；回过滤器处理沉积物。"
+				"map_object.field_wreckage":
+					return "已回收，现场保留已回收标记；可回基地制造或继续找未变暗残骸。"
+				"map_object.anomaly_residue_patch":
+					return "已回收，现场保留已回收标记；继续处理样本分析目标。"
+				_:
+					return "已回收，现场保留已回收标记。"
+		"sample":
+			return "已采样，现场保留已采样标记；回基地解析样本。"
+		"inspect":
+			return "已确认，现场保留完成态标记；继续查看当前目标。"
+		_:
+			return "已完成，现场保留完成态标记。"
+
+
+func _is_general_interaction_processed(interactable: PrototypeInteractable, object_state: Dictionary) -> bool:
+	match interactable.interaction_type:
+		"gather":
+			return bool(object_state.get("is_gathered", false))
+		"sample":
+			return bool(object_state.get("is_sampled", false))
+		"inspect":
+			return bool(object_state.get("is_sampled", false))
+		_:
+			return false
+
+
+func _format_refs(refs: Array) -> String:
+	var parts: Array[String] = []
+	for ref in refs:
+		if ref is Dictionary:
+			var definition_id := String(ref.get("id", ""))
+			var amount := float(ref.get("amount", 1.0))
+			if not definition_id.is_empty() and amount > 0.0:
+				parts.append("%s x%s" % [_get_display_name(definition_id), _format_amount(amount)])
+		else:
+			var definition_id := String(ref)
+			if not definition_id.is_empty():
+				parts.append("%s x1" % _get_display_name(definition_id))
+	return "，".join(parts)
+
+
 func _has_completed_any(world_state: WorldState, quest_ids: Array[String]) -> bool:
 	for quest_id in quest_ids:
 		if world_state.quest_state.has_completed_quest(quest_id):
@@ -622,6 +927,13 @@ func _has_anchor_field_pressure_pins_cleared(world_state: WorldState) -> bool:
 		if not bool(world_state.get_map_object(pressure_pin_instance_id).get("is_cleared", false)):
 			return false
 	return true
+
+
+func _is_gate_pressure_active(world_state: WorldState) -> bool:
+	var gate_pressure := world_state.get_enemy("enemy_instance.polluted_skitter_gate_pressure")
+	if gate_pressure.is_empty():
+		return false
+	return not bool(gate_pressure.get("is_defeated", false))
 
 
 func _get_display_name(definition_id: String) -> String:

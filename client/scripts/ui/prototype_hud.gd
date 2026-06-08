@@ -719,25 +719,25 @@ func _ensure_runtime_nodes() -> void:
 
 func _layout_runtime_panels(force: bool = false) -> void:
 	_ensure_runtime_nodes()
-	var viewport_size := get_viewport().get_visible_rect().size
+	var viewport_size := _get_runtime_viewport_size()
 	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
 		return
 	if not force and viewport_size == last_viewport_size:
 		return
 
 	last_viewport_size = viewport_size
-	var margin := 20.0
-	var gap := 16.0
-	var map_width := clampf(viewport_size.x * 0.44, 560.0, 680.0)
-	var map_height := 232.0
-	var objective_width := clampf(viewport_size.x * 0.28, 400.0, 520.0)
-	var objective_height := 180.0
-	var vitals_width := clampf(viewport_size.x * 0.28, 420.0, 500.0)
-	var vitals_height := 248.0
-	var prompt_width := clampf(viewport_size.x * 0.40, 680.0, 820.0)
-	var prompt_height := 192.0
-	var log_width := prompt_width
-	var log_height := 96.0
+	var margin := 18.0
+	var gap := 12.0
+	var map_width := clampf(viewport_size.x * 0.24, 500.0, 620.0)
+	var map_height := 190.0
+	var objective_width := map_width
+	var objective_height := 178.0
+	var vitals_width := clampf(viewport_size.x * 0.20, 380.0, 460.0)
+	var vitals_height := 184.0
+	var prompt_width := clampf(viewport_size.x * 0.32, 620.0, 780.0)
+	var prompt_height := 144.0
+	var log_width := clampf(viewport_size.x * 0.28, 520.0, 680.0)
+	var log_height := 98.0
 	var device_width := clampf(viewport_size.x * 0.34, 520.0, 640.0)
 	var device_height := clampf(viewport_size.y * 0.52, 620.0, 760.0)
 	var feedback_width := clampf(viewport_size.x * 0.24, 460.0, 560.0)
@@ -763,9 +763,10 @@ func _layout_runtime_panels(force: bool = false) -> void:
 			vitals_panel.visible = true
 		_set_control_rect(vitals_panel, Vector2(vitals_x, margin), Vector2(vitals_width, vitals_height))
 
+	var prompt_x := (viewport_size.x - prompt_width) * 0.5
 	var prompt_y := viewport_size.y - margin - prompt_height
-	var log_y := prompt_y - gap - log_height
-	_set_control_rect(prompt_panel, Vector2(margin, prompt_y), Vector2(prompt_width, prompt_height))
+	var log_y := viewport_size.y - margin - log_height
+	_set_control_rect(prompt_panel, Vector2(prompt_x, prompt_y), Vector2(prompt_width, prompt_height))
 	_set_control_rect(log_panel, Vector2(margin, log_y), Vector2(log_width, log_height))
 
 	var device_y := (viewport_size.y - device_height) * 0.5
@@ -778,7 +779,7 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	_set_control_rect(device_panel, Vector2(device_x, device_y), Vector2(device_width, device_height))
 	_set_control_rect(
 		completion_panel,
-		Vector2((viewport_size.x - feedback_width) * 0.5, viewport_size.y - margin - feedback_height - 72.0),
+		Vector2((viewport_size.x - feedback_width) * 0.5, prompt_y - gap - feedback_height),
 		Vector2(feedback_width, feedback_height)
 	)
 	var side_feedback_x := viewport_size.x - margin - feedback_width
@@ -807,6 +808,16 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	_layout_device_panel_labels()
 
 
+func _get_runtime_viewport_size() -> Vector2:
+	var viewport := get_viewport()
+	if viewport != null:
+		return viewport.get_visible_rect().size
+	return Vector2(
+		float(ProjectSettings.get_setting("display/window/size/viewport_width", 2500)),
+		float(ProjectSettings.get_setting("display/window/size/viewport_height", 1400))
+	)
+
+
 func _set_control_rect(control: Control, position: Vector2, size: Vector2) -> void:
 	if control == null:
 		return
@@ -828,11 +839,11 @@ func _layout_map_panel_contents() -> void:
 	if marker_count <= 0:
 		return
 
-	var marker_top := 84.0
-	var marker_size := Vector2(18.0, 20.0)
-	var primary_label_top := 116.0
-	var secondary_label_top := 154.0
-	var label_height := 42.0
+	var marker_top := 76.0
+	var marker_size := Vector2(16.0, 18.0)
+	var primary_label_top := 104.0
+	var secondary_label_top := 138.0
+	var label_height := 32.0
 	var left_margin := 22.0
 	var right_margin := 22.0
 	var usable_width := maxf(0.0, map_panel.size.x - left_margin - right_margin - marker_size.x)
@@ -885,7 +896,7 @@ func _layout_full_label(label: Label, panel: Control, left: float, top: float, f
 func _prepare_wrapped_label(label: Label) -> void:
 	if label == null:
 		return
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	label.clip_text = true
 
 

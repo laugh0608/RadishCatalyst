@@ -44,7 +44,8 @@ func process_recipe(recipe_id: String, character_state: CharacterState, world_st
 		"processing_started": true,
 		"recipe_id": recipe_id,
 		"structure_id": structure_id,
-		"message": _format_processing_started_message(recipe, world_state)
+		"message": _format_processing_started_message(recipe, world_state),
+		"success_feedback": _format_processing_started_feedback(recipe, world_state)
 	}
 
 
@@ -80,7 +81,8 @@ func advance_processing(delta_seconds: float, character_state: CharacterState, w
 			"structure_id": String(structure_id),
 			"destination_text": _format_completion_destination(recipe),
 			"next_step_text": _get_completion_next_step(recipe_id, world_state),
-			"message": _format_completion_message(recipe, world_state)
+			"message": _format_completion_message(recipe, world_state),
+			"success_feedback": _format_processing_completion_feedback(recipe, world_state)
 		})
 
 	return completed_results
@@ -112,7 +114,21 @@ func get_recipe_status(recipe_id: String, character_state: CharacterState, world
 
 	var active_structure := _get_active_structure_for_building(String(recipe.get("required_building_id", "")), world_state)
 	if not active_structure.is_empty():
-		return _recipe_status(recipe, false, _format_in_progress_message(active_structure), missing_inputs, active_structure, required_structure, "", world_state)
+		var active_recipe_id := String(active_structure.get("active_recipe_id", ""))
+		var active_recipe := data_registry.get_definition(active_recipe_id)
+		if active_recipe.is_empty():
+			active_recipe = recipe
+		return _recipe_status(
+			active_recipe,
+			false,
+			_format_in_progress_message(active_structure),
+			[],
+			active_structure,
+			required_structure,
+			"",
+			world_state,
+			recipe_id
+		)
 
 	if not lock_message.is_empty():
 		return _recipe_status(recipe, false, lock_message, missing_inputs, {}, required_structure, "", world_state)
@@ -175,6 +191,8 @@ func get_recommended_recipe_id(
 				return _select_if_available(interactable, "recipe.process_crystal_ore")
 			return ""
 		"quest.enter_pollution_edge":
+			if interactable.definition_id == "building.basic_reactor" and character_state.inventory.has_ref("fluid.polluted_slurry", 1.0):
+				return _select_if_available(interactable, "recipe.reclaim_basic_parts")
 			return _select_if_available(interactable, "recipe.cleanse_residue")
 		"quest.assemble_phase_anchor":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_anchor", world_state)
@@ -288,6 +306,8 @@ func get_recommended_recipe_id(
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_survey_feedback", world_state)
 		"quest.analyze_pressure_clearance_trace":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.pressure_clearance_feedback", world_state)
+		"quest.prepare_demo_stabilization_buffer":
+			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.core_stabilization_buffer", world_state)
 		_:
 			return ""
 
@@ -298,9 +318,20 @@ func _format_processing_started_message(recipe: Dictionary, world_state: WorldSt
 		_get_display_name(recipe_id),
 		_format_amount(_get_recipe_duration(recipe))
 	]
-	if recipe_id == "recipe.cleanse_residue" and _should_return_for_second_pollution_residue_batch(world_state):
-		message += " 本次会产出抗污染药剂并留下污染浆液；完成后带药剂回污染边界补第二批沉积物。"
+	if recipe_id == "recipe.cleanse_residue" and ProcessingRecipeHintFormatter.should_return_for_second_pollution_residue_batch(world_state):
+		message += " 本次会产出抗污染药剂并留下污染浆液；完成后带药剂回污染边界，清理受扰敌人和门前压力点。"
 	return message
+
+
+func _format_processing_started_feedback(recipe: Dictionary, world_state: WorldState) -> Dictionary:
+	var recipe_id := String(recipe.get("id", ""))
+	return {
+		"title": "加工已启动：%s" % _get_display_name(recipe_id),
+		"status": "加工中，预计 %s 秒完成。" % _format_amount(_get_recipe_duration(recipe)),
+		"destination": _format_completion_destination(recipe),
+		"next_step": _get_processing_wait_next_step(),
+		"completion_next_step": _get_completion_next_step(recipe_id, world_state)
+	}
 
 
 func _format_completion_message(recipe: Dictionary, world_state: WorldState = null) -> String:
@@ -313,6 +344,16 @@ func _format_completion_message(recipe: Dictionary, world_state: WorldState = nu
 	if not next_step.is_empty():
 		parts.append("下一步：%s" % next_step)
 	return " ".join(parts)
+
+
+func _format_processing_completion_feedback(recipe: Dictionary, world_state: WorldState) -> Dictionary:
+	var recipe_id := String(recipe.get("id", ""))
+	return {
+		"title": "加工完成：%s" % _get_display_name(recipe_id),
+		"status": "已完成。",
+		"destination": _format_completion_destination(recipe),
+		"next_step": _get_completion_next_step(recipe_id, world_state)
+	}
 
 
 func _format_completion_destination(recipe: Dictionary) -> String:
@@ -339,103 +380,7 @@ func _format_last_completion_status(structure: Dictionary) -> String:
 
 
 func _get_completion_next_step(recipe_id: String, world_state: WorldState = null) -> String:
-	match recipe_id:
-		"recipe.process_crystal_ore":
-			return "基础零件已补足；它们会用于反应器校准、过滤模块和地基。若当前任务还差更高阶配方，可按 R 切换到目标配方。"
-		"recipe.reclaim_basic_parts":
-			return "回收零件已补足；继续当前前线整备配方，或按 R 切回目标配方。"
-		"recipe.reactor_calibrator":
-			return "反应器采样通道已校准；前往异常晶体采样并回收周边残留物。"
-		"recipe.analyze_anomaly_sample":
-			return "样本过滤参数已确认；切换到过滤介质和基础过滤模块配方。"
-		"recipe.make_filter_media":
-			return "切换到基础过滤模块配方，把过滤介质和基础零件组装成远征模块。"
-		"recipe.basic_filter_module":
-			return "按 F 启用基础过滤模块；启用后污染防护消耗降低，处理点北缘清障和沉积物采集会更稳。"
-		"recipe.foundation_t1":
-			return "前往污染边界北缘清理地块并铺设基础地基；若材料不足，回晶体矿脉区到处理点入口前补晶体或残骸。"
-		"recipe.cleanse_residue":
-			if _should_return_for_second_pollution_residue_batch(world_state):
-				return "抗污染药剂已准备；把它留在快捷栏 2，带药剂回污染边界补第二批沉积物并清理受扰敌人。"
-			return "抗污染药剂已准备；把它留在快捷栏 2，进入遗迹门前或更深污染压力区前用于维持防护。"
-		"recipe.repair_gel":
-			return "把修复凝胶留在快捷栏 1，前往处理点北缘清障；生命偏低时按 1 使用。"
-		"recipe.phase_anchor":
-			return "带着稳相信标返回遗迹外圈，在抖动雾幕前部署后再继续深入。"
-		"recipe.deep_signal_analysis":
-			return "带着裂相坐标返回封锁遗迹最东侧，写入裂相脊入口门禁。"
-		"recipe.phase_filament_refining":
-			return "把谐振滤芯、副产污染浆液和基础零件送到基础反应器，组装裂相覆写栓。"
-		"recipe.deep_override_key":
-			return "带着裂相覆写栓返回裂相脊入口深处，覆写锁扣并取出样块。"
-		"recipe.deep_core_imprint":
-			return "带着裂相路由印片返回裂相阵列台，点亮第二轮导管回收线。"
-		"recipe.deep_signal_matrix":
-			return "深段第二轮读数已整理完成；返回深段固定点部署前线回传锚点，并准备从回投台重返前线。"
-		"recipe.phase_splinter_refining":
-			return "透镜胚片和副产污染浆液已筛出；继续这次远征整备，回基地基础反应器调准中继调谐镜。"
-		"recipe.relay_tuning_lens":
-			return "带着中继调谐镜返回更东侧裂相尖塔，逼出第一份内层故障轨迹。"
-		"recipe.inner_fault_analysis":
-			return "裂相坐标印片已整理完成；返回裂相尖塔更东侧，击退潜猎体并回收故障残渣。"
-		"recipe.fault_residue_stabilization":
-			return "稳定故障芯和副产污染浆液已筛出；继续这次裂相锁位整备，回基地基础反应器组装裂相锁钥。"
-		"recipe.phase_well_key":
-			return "带着裂相锁钥返回更东侧裂相锁位，钉住锁位并带回第一份定位器。"
-		"recipe.phase_well_locator_analysis":
-			return "回声路由片已整理完成；继续向东进入新暴露的回声台地边缘，击退哨戒体并回收回声碎屑。"
-		"recipe.well_flux_stabilization":
-			return "稳流芯和副产污染浆液已筛出；继续这次探针整备，回基地基础反应器组装回声探针。"
-		"recipe.phase_well_probe":
-			return "带着回声探针返回更东侧回声台地，读取第一份回声芯样本。"
-		"recipe.phase_well_core_analysis":
-			return "盐壳频谱片已整理完成；继续向东进入新暴露的盐壳浅滩边缘，击退潜伏体并回收盐壳余烬。"
-		"recipe.well_ash_stabilization":
-			return "稳相格和副产污染浆液已筛出；继续这次盐壳整备，回基地基础反应器组装盐壳穿钉。"
-		"recipe.phase_well_pike":
-			return "带着盐壳穿钉返回更东侧盐壳浅滩，凿开裂口并带回第一份碎晶心核。"
-		"recipe.phase_well_heart_analysis":
-			return "碎晶脉搏片已整理完成；继续向东进入新暴露的碎晶沟谷边缘，击退碎晶撕裂体并回收心棘残片。"
-		"recipe.heart_spine_stabilization":
-			return "抑振骨和副产污染浆液已筛出；继续这次碎晶整备，回基地基础反应器组装碎晶分流栓。"
-		"recipe.phase_well_shunt":
-			return "带着碎晶分流栓返回更东侧碎晶沟谷断面，勘验断面并带回第一份风蚀张力核。"
-		"recipe.phase_well_spindle_analysis":
-			return "风蚀经片已整理完成；继续向东进入新暴露的风蚀管廊边缘，击退风蚀纠缠体并回收纬束残团。"
-		"recipe.weft_bundle_stabilization":
-			return "张力肋和副产污染浆液已筛出；继续这次风蚀整备，回基地基础反应器组装风蚀梭栓。"
-		"recipe.phase_well_shuttle":
-			return "带着风蚀梭栓返回更东侧风蚀管廊断面，勘验断面并带回第一份锁相织构核。"
-		"recipe.phase_well_weave_core_analysis":
-			return "锁相纹谱片已整理完成；继续向东进入新暴露的锁相框架边缘，击退锁相刮裂体并回收边缕残条。"
-		"recipe.selvedge_strip_stabilization":
-			return "锁相框架肋和副产污染浆液已筛出；继续这次锁相框架整备，回基地基础反应器组装锁相键栓。"
-		"recipe.phase_well_frame_key":
-			return "带着锁相键栓返回更东侧锁相框架断面，勘验断面并带回第一份锚定结核。"
-		"recipe.phase_well_knot_core_analysis":
-			return "锚定系谱片已整理完成；继续向东进入新暴露的锚定桥边缘，击退锚定缚结体并回收锚索残股。"
-		"recipe.tether_fiber_stabilization":
-			return "锚定系固肋和副产污染浆液已筛出；继续这次锚定桥整备，回基地基础反应器组装锚定桩。"
-		"recipe.phase_well_tether_spike":
-			return "带着锚定桩返回更东侧锚定桥断面，勘验断面并带回第一份稳场锚核。"
-		"recipe.phase_well_anchor_stake":
-			return "带着稳场校锚桩返回锚定桥东侧锚场回稳窗，部署后完成短守场并收束稳窗余响片。"
-		"recipe.phase_well_echo_shard_analysis":
-			return "稳窗读数已整理完成；回到锚定桥东侧锚场回稳窗，可用稳定窗口在前线回充生命与防护。"
-		"recipe.stability_echo_report":
-			return "前线行动回报已归档；这条基地确认、前线读取、回基地解析的短行动闭环已完成，下一步可在短行动补给台确认第二趟。"
-		"recipe.short_action_feedback":
-			return "短行动反馈已归档；第二条基地确认、前线短目标、回基地反馈闭环已完成，下一步可在巡线短行动台确认第三趟。"
-		"recipe.route_action_feedback":
-			return "巡线反馈已归档；回基地行动选择台，在稳场补给、相位测绘和压力清障之间选择下一趟短行动。"
-		"recipe.steady_supply_feedback":
-			return "稳场补给反馈已归档；低风险补给选择已经跑通一轮基地选择、前线目标和返回收益。"
-		"recipe.phase_survey_feedback":
-			return "相位测绘反馈已归档；侦测选择已经跑通一轮基地选择、两处前线读数和返回收益。"
-		"recipe.pressure_clearance_feedback":
-			return "压力清障反馈已归档；高风险清障选择已经跑通一轮基地选择、前线清障和返回收益。"
-		_:
-			return "查看当前任务目标，选择下一次加工或外出行动。"
+	return ProcessingRecipeHintFormatter.get_completion_next_step(recipe_id, world_state)
 
 
 func _format_in_progress_message(structure: Dictionary) -> String:
@@ -448,6 +393,10 @@ func _format_in_progress_message(structure: Dictionary) -> String:
 		_format_amount(progress_seconds),
 		_format_amount(duration)
 	]
+
+
+func _get_processing_wait_next_step() -> String:
+	return "等待设备完成；靠近设备查看进度，按 Q 打开设备面板。"
 
 
 func _format_missing_input_message(recipe: Dictionary, missing_inputs: Array[String], inventory: InventoryState) -> String:
@@ -474,7 +423,7 @@ func _format_missing_input_supply_hint(recipe: Dictionary, inventory: InventoryS
 	if data_registry.get_definition("recipe.process_crystal_ore").is_empty():
 		return "先检查前哨核心回收和阶段补给批次。"
 	if _get_inventory_ref_amount("fluid.polluted_slurry", inventory) >= 1.0:
-		return "先检查前哨核心回收和阶段补给批次；相位中继锚点部署后，也可切换到回收基础零件，把污染浆液回收成基础零件；若仍不足，去晶体矿脉区北侧富晶残脉采集晶体矿物。"
+		return "先检查前哨核心回收和阶段补给批次；处理点扩建后，可切换到回收基础零件，把污染浆液回收成基础零件；若仍不足，去晶体矿脉区北侧富晶残脉采集晶体矿物。"
 	if _get_inventory_ref_amount("item.crystal_ore", inventory) >= 3.0:
 		return "先检查前哨核心回收和阶段补给批次；当前也可切换到处理晶体矿物，把晶体矿物加工成基础零件。"
 	return "先检查前哨核心回收和阶段补给批次；若仍不足，去晶体矿脉区北侧富晶残脉或处理点入口前的回访矿点采集晶体矿物后加工成基础零件。"
@@ -484,12 +433,25 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 	match String(recipe.get("id", "")):
 		"recipe.phase_anchor":
 			if _get_recipe_input_shortage(recipe, "item.relay_shard", inventory) > 0.0:
-				return "先进入封锁遗迹外圈，回收两处继电残片。"
+				return "先进入封锁遗迹外圈，回收两处继电残片；外圈前污染脊还会补一份沉积物和受扰守卫。"
 			if _get_recipe_input_shortage(recipe, "fluid.polluted_slurry", inventory) > 0.0:
-				return "污染浆液来自污染过滤器处理沉积物；回处理点补一次沉积物处理，再回基础反应器组装稳相信标。"
+				return "污染浆液来自污染过滤器处理沉积物；外圈污染脊会补沉积物，先回处理点过滤器处理。"
+			if _get_recipe_input_shortage(recipe, "item.basic_parts", inventory) > 0.0:
+				return "基础零件不足：先把一份污染浆液回收成基础零件；若缺组装用浆液，回污染脊补沉积物再处理。"
 		"recipe.deep_signal_analysis":
 			if _get_recipe_input_shortage(recipe, "item.signal_echo_trace", inventory) > 0.0:
 				return "先在封锁遗迹深处清理相位守卫，并回收外圈回波匣。"
+			if _get_recipe_input_shortage(recipe, "fluid.polluted_slurry", inventory) > 0.0:
+				return "污染浆液不足：先处理守卫后暴露的污染回波沉积，保留过滤副产后再解析裂相坐标。"
+		"recipe.core_stabilization_buffer":
+			if _get_recipe_input_shortage(recipe, "item.repair_gel", inventory) > 0.0:
+				return "修复凝胶不足：先在基础反应器调制修复凝胶，或检查核心稳定站侧边补给缓存。"
+			if _get_recipe_input_shortage(recipe, "item.resistance_vial_t1", inventory) > 0.0:
+				return "抗污染药剂不足：回处理点过滤器处理污染沉积物，再整备核心稳压缓冲包。"
+			if _get_recipe_input_shortage(recipe, "fluid.polluted_slurry", inventory) > 0.0:
+				return "污染浆液不足：回污染边界末端补沉积物并用过滤器处理，保留副产浆液后再整备缓冲包。"
+			if _get_recipe_input_shortage(recipe, "item.basic_parts", inventory) > 0.0:
+				return "基础零件不足：处理晶体矿物；若有多余污染浆液，再回收成基础零件后整备缓冲包。"
 		"recipe.phase_filament_refining":
 			if _get_recipe_input_shortage(recipe, "item.phase_filament", inventory) > 0.0:
 				return "先进入裂相脊入口，清理裂相守卫并回收两处相位纤丝。"
@@ -528,6 +490,95 @@ func _format_mid_demo_missing_input_supply_hint(recipe: Dictionary, inventory: I
 		"recipe.phase_well_locator_analysis":
 			if _get_recipe_input_shortage(recipe, "item.phase_well_locator", inventory) > 0.0:
 				return "先带裂相锁钥返回裂相锁位，钉住锁位并带回第一份回声定位器。"
+		"recipe.well_flux_stabilization":
+			if _get_recipe_input_shortage(recipe, "item.well_flux_shard", inventory) > 0.0:
+				return "先沿回声路由进入回声台地边缘，处理两处回声泄压阀，击退回声哨戒体并回收两处回声碎屑。"
+		"recipe.phase_well_probe":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_route", inventory) > 0.0:
+				return "先回基地基础反应器解析回声定位器，整理出回声路由片。"
+			if _get_recipe_input_shortage(recipe, "item.phase_well_stabilizer", inventory) > 0.0:
+				return "先回处理点污染过滤器稳定回声碎屑，筛出回声稳流芯。"
+		"recipe.phase_well_core_analysis":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_core", inventory) > 0.0:
+				return "先带回声探针返回更东侧回声台地，读取第一份回声芯样本。"
+		"recipe.well_ash_stabilization":
+			if _get_recipe_input_shortage(recipe, "item.well_ash", inventory) > 0.0:
+				return "先沿盐壳频谱进入盐壳浅滩边缘，清理两处盐壳硬壳，击退盐壳潜伏体并回收两处盐壳余烬。"
+		"recipe.phase_well_pike":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_spectrum", inventory) > 0.0:
+				return "先回基地基础反应器解析回声芯样本，整理出盐壳频谱片。"
+			if _get_recipe_input_shortage(recipe, "item.phase_well_lattice", inventory) > 0.0:
+				return "先回处理点污染过滤器稳定盐壳余烬，筛出盐壳稳相格。"
+		"recipe.phase_well_heart_analysis":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_heart", inventory) > 0.0:
+				return "先带盐壳穿钉返回盐壳浅滩，凿开后带回第一份碎晶心核。"
+		"recipe.heart_spine_stabilization":
+			if _get_recipe_input_shortage(recipe, "item.heart_spine", inventory) > 0.0:
+				return "先沿碎晶脉搏进入碎晶沟谷边缘，写入两处碎晶分流读数，击退碎晶撕裂体并回收两处心棘残片。"
+		"recipe.phase_well_shunt":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_pulse_sheet", inventory) > 0.0:
+				return "先回基地基础反应器解析碎晶心核，整理出碎晶脉搏片。"
+			if _get_recipe_input_shortage(recipe, "item.phase_well_damper", inventory) > 0.0:
+				return "先回处理点污染过滤器稳定心棘残片，筛出碎晶抑振骨。"
+		"recipe.phase_well_spindle_analysis":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_spindle", inventory) > 0.0:
+				return "先带碎晶分流栓返回碎晶沟谷，勘验后带回第一份风蚀张力核。"
+		"recipe.weft_bundle_stabilization":
+			if _get_recipe_input_shortage(recipe, "item.weft_bundle", inventory) > 0.0:
+				return "先沿风蚀经片进入风蚀管廊边缘，检查两处风蚀张力绕轮，击退风蚀纠缠体并回收两处纬束残团。"
+		"recipe.phase_well_shuttle":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_warp_sheet", inventory) > 0.0:
+				return "先回基地基础反应器解析风蚀张力核，整理出风蚀经片。"
+			if _get_recipe_input_shortage(recipe, "item.phase_well_tension_rib", inventory) > 0.0:
+				return "先回处理点污染过滤器稳定纬束残团，筛出风蚀张力肋。"
+		"recipe.phase_well_weave_core_analysis":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_weave_core", inventory) > 0.0:
+				return "先带风蚀梭栓返回风蚀管廊，勘验后带回第一份锁相织构核。"
+		"recipe.selvedge_strip_stabilization":
+			if _get_recipe_input_shortage(recipe, "item.selvedge_strip", inventory) > 0.0:
+				return "先沿锁相纹谱进入锁相框架边缘，清理一条锁相侧路障，击退锁相刮裂体并回收两处边缕残条。"
+		"recipe.phase_well_frame_key":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_pattern_sheet", inventory) > 0.0:
+				return "先回基地基础反应器解析锁相织构核，整理出锁相纹谱片。"
+			if _get_recipe_input_shortage(recipe, "item.phase_well_frame_rib", inventory) > 0.0:
+				return "先回处理点污染过滤器稳定边缕残条，筛出锁相框架肋。"
+		"recipe.phase_well_knot_core_analysis":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_knot_core", inventory) > 0.0:
+				return "先带锁相键栓返回锁相框架，勘验后带回第一份锚定结核。"
+		"recipe.tether_fiber_stabilization":
+			if _get_recipe_input_shortage(recipe, "item.tether_fiber", inventory) > 0.0:
+				return "先沿锚定系谱进入锚定桥边缘，检查两处锚定桥结点，击退锚定缚结体并回收两处锚索残股。"
+		"recipe.phase_well_tether_spike":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_tether_sheet", inventory) > 0.0:
+				return "先回基地基础反应器解析锚定结核，整理出锚定系谱片。"
+			if _get_recipe_input_shortage(recipe, "item.phase_well_tether_rib", inventory) > 0.0:
+				return "先回处理点污染过滤器稳定锚索残股，筛出锚定系固肋。"
+		"recipe.phase_well_anchor_core_analysis":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_anchor_core", inventory) > 0.0:
+				return "先带锚定桩返回锚定桥断面，勘验后带回第一份稳场锚核。"
+		"recipe.anchor_core_dust_stabilization":
+			if _get_recipe_input_shortage(recipe, "item.anchor_core_dust", inventory) > 0.0:
+				return "先回基地基础反应器解析稳场锚核，沉降出锚核落尘。"
+		"recipe.phase_well_anchor_stake":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_return_sheet", inventory) > 0.0:
+				return "先回基地基础反应器解析稳场锚核，整理出归谱片。"
+			if _get_recipe_input_shortage(recipe, "item.anchor_field_filter", inventory) > 0.0:
+				return "先回处理点污染过滤器稳定锚核落尘，筛出稳场滤囊。"
+		"recipe.phase_well_echo_shard_analysis":
+			if _get_recipe_input_shortage(recipe, "item.phase_well_echo_shard", inventory) > 0.0:
+				return "先带稳场校锚桩返回锚定桥东侧，完成锚场回稳窗部署并收束第一份稳窗余响片。"
+		"recipe.stability_echo_report":
+			if _get_recipe_input_shortage(recipe, "item.stability_echo_sample", inventory) > 0.0:
+				return "先从前线行动台确认稳窗回访，再用相位回投返回锚定桥东侧读取稳窗回波探点。"
+		"recipe.short_action_feedback":
+			if _get_recipe_input_shortage(recipe, "item.supply_return_trace", inventory) > 0.0:
+				return "先从前线行动台确认补给短行动，再用相位回投返回锚定桥前线读取补给回执标记。"
+		"recipe.route_action_feedback":
+			if _get_recipe_input_shortage(recipe, "item.route_signal_trace", inventory) > 0.0:
+				return "先从前线行动台确认巡线短行动，再用相位回投返回锚定桥前线读取巡线信标。"
+		"recipe.phase_survey_feedback":
+			if _get_recipe_input_shortage(recipe, "item.phase_survey_trace", inventory) > 0.0:
+				return "先选择相位测绘行动，再用相位回投返回锚定桥前线读取西侧和东侧两处相位测绘点。"
 	return ""
 
 
@@ -567,8 +618,10 @@ func _select_recipe_with_basic_parts_fallback(
 	target_recipe_id: String,
 	world_state: WorldState
 ) -> String:
+	var target_recipe := data_registry.get_definition(target_recipe_id)
 	if _should_refill_basic_parts_before_recipe(target_recipe_id, inventory):
-		var refill_recipe_id := _select_basic_parts_refill_recipe(interactable, inventory, world_state)
+		var reserved_slurry := _get_recipe_input_amount(target_recipe, "fluid.polluted_slurry")
+		var refill_recipe_id := _select_basic_parts_refill_recipe(interactable, inventory, world_state, reserved_slurry)
 		if not refill_recipe_id.is_empty():
 			return refill_recipe_id
 	return _select_if_available(interactable, target_recipe_id)
@@ -577,9 +630,10 @@ func _select_recipe_with_basic_parts_fallback(
 func _select_basic_parts_refill_recipe(
 	interactable: PrototypeInteractable,
 	inventory: InventoryState,
-	world_state: WorldState
+	world_state: WorldState,
+	reserved_polluted_slurry: float = 0.0
 ) -> String:
-	if _get_inventory_ref_amount("fluid.polluted_slurry", inventory) >= 1.0:
+	if _get_inventory_ref_amount("fluid.polluted_slurry", inventory) > reserved_polluted_slurry:
 		var reclaim_recipe_id := _select_if_available(interactable, "recipe.reclaim_basic_parts")
 		if not reclaim_recipe_id.is_empty():
 			var reclaim_recipe := data_registry.get_definition(reclaim_recipe_id)
@@ -598,12 +652,16 @@ func _should_refill_basic_parts_before_recipe(target_recipe_id: String, inventor
 
 
 func _get_recipe_input_shortage(recipe: Dictionary, definition_id: String, inventory: InventoryState) -> float:
+	return maxf(0.0, _get_recipe_input_amount(recipe, definition_id) - _get_inventory_ref_amount(definition_id, inventory))
+
+
+func _get_recipe_input_amount(recipe: Dictionary, definition_id: String) -> float:
 	for input_ref in recipe.get("inputs", []):
 		if not input_ref is Dictionary:
 			continue
 		if String(input_ref.get("id", "")) != definition_id:
 			continue
-		return maxf(0.0, float(input_ref.get("amount", 0.0)) - _get_inventory_ref_amount(definition_id, inventory))
+		return float(input_ref.get("amount", 0.0))
 	return 0.0
 
 
@@ -703,7 +761,8 @@ func _recipe_status(
 	active_structure: Dictionary = {},
 	required_structure: Dictionary = {},
 	supply_hint: String = "",
-	world_state: WorldState = null
+	world_state: WorldState = null,
+	requested_recipe_id: String = ""
 ) -> Dictionary:
 	var active_recipe_id := String(active_structure.get("active_recipe_id", ""))
 	var active_recipe := data_registry.get_definition(active_recipe_id)
@@ -718,14 +777,28 @@ func _recipe_status(
 		if duration > 0.0:
 			progress_ratio = clampf(progress_seconds / duration, 0.0, 1.0)
 
+	var recipe_id := String(recipe.get("id", ""))
+	var completion_next_step := _get_completion_next_step(recipe_id, world_state)
+	var next_step := completion_next_step
+	if not active_structure.is_empty():
+		next_step = _get_processing_wait_next_step()
+	if requested_recipe_id.is_empty():
+		requested_recipe_id = recipe_id
+
 	var result := {
 		"can_process": can_process,
 		"message": message,
+		"recipe_id": recipe_id,
+		"requested_recipe_id": requested_recipe_id,
+		"active_recipe_id": active_recipe_id,
 		"inputs": _format_refs(recipe.get("inputs", [])),
 		"outputs": _format_refs(recipe.get("outputs", [])),
 		"byproducts": _format_refs(recipe.get("byproducts", []), ""),
 		"missing_inputs": missing_inputs,
 		"supply_hint": supply_hint,
+		"next_step": next_step,
+		"completion_next_step": completion_next_step,
+		"completion_destination": _format_completion_destination(recipe),
 		"duration": _format_amount(duration),
 		"progress": progress,
 		"progress_ratio": progress_ratio
@@ -739,14 +812,6 @@ func _recipe_status(
 			result["last_destination"] = _format_completion_destination(last_recipe)
 			result["last_next_step"] = _get_completion_next_step(last_recipe_id, world_state)
 	return result
-
-
-func _should_return_for_second_pollution_residue_batch(world_state: WorldState) -> bool:
-	if world_state == null:
-		return false
-	if not world_state.quest_state.has_active_quest("quest.enter_pollution_edge"):
-		return false
-	return world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue") < 4.0
 
 
 func _get_recipe_lock_message(recipe: Dictionary, world_state: WorldState) -> String:

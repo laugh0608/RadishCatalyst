@@ -445,7 +445,7 @@ func _get_system_utc_offset_seconds() -> int:
 	var utc_now := Time.get_datetime_string_from_system(true, true)
 	var local_unix := int(Time.get_unix_time_from_datetime_string(local_now))
 	var utc_unix := int(Time.get_unix_time_from_datetime_string(utc_now))
-	return local_unix - utc_unix
+	return int(round(float(local_unix - utc_unix) / 60.0)) * 60
 
 
 func _has_explicit_timezone_suffix(datetime_text: String) -> bool:

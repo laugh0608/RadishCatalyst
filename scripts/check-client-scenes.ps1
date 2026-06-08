@@ -403,12 +403,12 @@ if (Test-Path -LiteralPath $projectPath -PathType Leaf) {
             $height = $rect.Bottom - $rect.Top
             switch ($panelName) {
                 "MapPanel" {
-                    if ($width -gt 430.0 -or $height -gt 220.0 -or $rect.Left -gt 40.0 -or $rect.Top -gt 40.0 -or $rect.Right -gt 460.0 -or $rect.Bottom -gt 240.0) {
+                    if ($width -gt 640.0 -or $height -gt 220.0 -or $rect.Left -gt 40.0 -or $rect.Top -gt 40.0 -or $rect.Right -gt 660.0 -or $rect.Bottom -gt 240.0) {
                         Add-Error "client/scenes/ui/PrototypeHud.tscn: MapPanel drifted out of distributed HUD map bounds"
                     }
                 }
                 "StatusPanel" {
-                    if ($width -gt 560.0 -or $height -gt 220.0 -or $rect.Left -gt 40.0 -or $rect.Top -lt 180.0 -or $rect.Top -gt 260.0 -or $rect.Right -gt 580.0 -or $rect.Bottom -gt 460.0) {
+                    if ($width -gt 640.0 -or $height -gt 220.0 -or $rect.Left -gt 40.0 -or $rect.Top -lt 180.0 -or $rect.Top -gt 260.0 -or $rect.Right -gt 660.0 -or $rect.Bottom -gt 460.0) {
                         Add-Error "client/scenes/ui/PrototypeHud.tscn: StatusPanel drifted out of distributed HUD objective-card bounds"
                     }
                 }
@@ -418,7 +418,8 @@ if (Test-Path -LiteralPath $projectPath -PathType Leaf) {
                     }
                 }
                 "PromptPanel" {
-                    if ($width -gt 860.0 -or $height -gt 220.0 -or $rect.Left -gt 40.0 -or $rect.Right -gt 860.0 -or $rect.Top -lt ($viewportHeight - 320.0)) {
+                    $promptCenter = ($rect.Left + $rect.Right) * 0.5
+                    if ($width -gt 820.0 -or $height -gt 160.0 -or [Math]::Abs($promptCenter - $viewportWidth * 0.5) -gt 20.0 -or $rect.Top -lt ($viewportHeight - 190.0) -or $rect.Bottom -gt ($viewportHeight - 10.0)) {
                         Add-Error "client/scenes/ui/PrototypeHud.tscn: PromptPanel drifted out of distributed HUD bottom-rail bounds"
                     }
                 }
@@ -550,7 +551,7 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
     }
 
     $demoCore = $interactables | Where-Object { $_.Name -eq "DemoStabilizationCore" } | Select-Object -First 1
-    $demoRecovery = $interactables | Where-Object { $_.Name -eq "DemoStabilizationRecoveryWreckage" } | Select-Object -First 1
+    $demoRecovery = $interactables | Where-Object { $_.Name -eq "DemoStabilizationRecoveryCache" } | Select-Object -First 1
     $demoGuard = $enemies | Where-Object { $_.Name -eq "DemoStabilizationGuard" } | Select-Object -First 1
     if ($null -eq $demoCore) {
         Add-Error "client/scenes/maps/VerticalSliceMap.tscn: missing demo stabilization core device"

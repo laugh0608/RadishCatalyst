@@ -1,0 +1,999 @@
+extends RefCounted
+
+var host
+
+
+func _init(check_host) -> void:
+	host = check_host
+
+
+func run() -> void:
+	var processing := ProcessingSystem.new(host.data_registry)
+	host._expect_text_contains(
+		RecipePurposeHints.format_recipe_goal_hint("recipe.phase_well_knot_core_analysis"),
+		"锚定桥检查两端结点",
+		"knot core analysis purpose points to tether node readings"
+	)
+	host._expect_text_contains(
+		RecipePurposeHints.format_recipe_goal_hint("recipe.tether_fiber_stabilization"),
+		"组装锚定桩",
+		"tether fiber stabilization purpose points to tether spike assembly"
+	)
+	host._expect_text_contains(
+		RecipePurposeHints.format_recipe_goal_hint("recipe.phase_well_tether_spike"),
+		"读取稳场锚核",
+		"tether spike purpose points to anchor core read"
+	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.phase_well_knot_core_analysis"),
+		"两处锚定桥结点",
+		"knot core analysis completion points to tether nodes before fiber recovery"
+	)
+
+	_check_missing_input_hints(processing)
+	_check_device_recommendation(processing)
+	_check_s12_baseline_status()
+	_check_anchor_field_recipe_guidance(processing)
+	_check_s13_baseline_status()
+	_check_stability_readout_guidance(processing)
+	_check_s14_s15_baseline_status()
+	_check_stability_calibration_and_frontline_entry()
+	_check_stability_echo_report_supply_entry(processing)
+	_check_short_action_feedback_route_entry(processing)
+	_check_route_action_feedback_choice_entry(processing)
+
+
+func _check_missing_input_hints(processing: ProcessingSystem) -> void:
+	var empty_inventory := CharacterState.create_default().inventory
+	var missing_knot_hint := processing._format_mid_demo_missing_input_supply_hint(
+		host.data_registry.get_definition("recipe.phase_well_knot_core_analysis"),
+		empty_inventory
+	)
+	host._expect_text_contains(
+		missing_knot_hint,
+		"锁相键栓",
+		"knot core analysis missing input points back to phase well frame read"
+	)
+
+	var missing_tether_hint := processing._format_mid_demo_missing_input_supply_hint(
+		host.data_registry.get_definition("recipe.tether_fiber_stabilization"),
+		empty_inventory
+	)
+	host._expect_text_contains(
+		missing_tether_hint,
+		"锚定桥结点",
+		"tether fiber stabilization missing input points to bridge node readings"
+	)
+
+	var missing_spike_inventory := CharacterState.create_default().inventory
+	missing_spike_inventory.add_item("item.phase_well_tether_sheet", 1)
+	var missing_spike_hint := processing._format_mid_demo_missing_input_supply_hint(
+		host.data_registry.get_definition("recipe.phase_well_tether_spike"),
+		missing_spike_inventory
+	)
+	host._expect_text_contains(
+		missing_spike_hint,
+		"稳定锚索残股",
+		"tether spike missing rib points back to filter step"
+	)
+
+
+func _check_device_recommendation(processing: ProcessingSystem) -> void:
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.process_crystal_ore"
+	reactor.set_recipe_cycle([
+		"recipe.process_crystal_ore",
+		"recipe.phase_well_knot_core_analysis"
+	])
+
+	var device_world := WorldState.create_default()
+	device_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_knot_core"]
+	device_world.quest_state.unlock_effect("recipe.phase_well_knot_core_analysis")
+	var device_character := CharacterState.create_default()
+	device_character.inventory.add_item("item.phase_well_knot_core", 1)
+	var device_texts := HudDevicePanelPresenter.new().format_device_panel_texts(
+		host.data_registry,
+		processing,
+		reactor,
+		device_character,
+		device_world
+	)
+	host._expect_text_contains(
+		String(device_texts.get("status", "")),
+		"锚定桥检查两端结点",
+		"device panel recommended recipe explains anchor bridge node sequence"
+	)
+	host._expect_text_contains(
+		String(device_texts.get("recipes", "")),
+		"当前目标",
+		"device panel marks knot core analysis as current target"
+	)
+	reactor.free()
+
+
+func _check_s12_baseline_status() -> void:
+	var builder := DevelopmentBaselineBuilder.new(host.data_registry)
+	var baseline_result := builder.create_baseline_state("baseline.s12_phase_well_knot_core_ready")
+	host._expect_equal(bool(baseline_result.get("success", false)), true, "S12 baseline generation for anchor bridge guidance")
+	if not bool(baseline_result.get("success", false)):
+		return
+
+	var baseline_world: WorldState = baseline_result.get("world_state", null)
+	var baseline_character: CharacterState = baseline_result.get("character_state", null)
+	if baseline_world == null or baseline_character == null:
+		host.failures.append("S12 baseline should return world and character states for anchor bridge guidance")
+		return
+
+	host._expect_equal(
+		baseline_world.quest_state.active_quest_ids,
+		["quest.analyze_phase_well_knot_core"],
+		"S12 baseline starts at knot core analysis"
+	)
+	var status_text := HudStatusPresenter.new().format_status_text(host.data_registry, baseline_world, baseline_character)
+	host._expect_text_contains(status_text, "目标：解析锚定结核", "S12 status panel points to knot core analysis")
+	host._expect_text_contains(status_text, "锚定系谱片", "S12 status panel shows tether sheet craft target")
+	host._expect_text_contains(status_text, "锚定桥检查两端结点", "S12 status panel keeps anchor bridge recipe purpose")
+
+
+func _check_anchor_field_recipe_guidance(processing: ProcessingSystem) -> void:
+	host._expect_text_contains(
+		RecipePurposeHints.format_recipe_goal_hint("recipe.anchor_core_dust_stabilization"),
+		"组装稳场校锚桩",
+		"anchor dust stabilization purpose points to anchor stake assembly"
+	)
+	host._expect_text_contains(
+		RecipePurposeHints.format_recipe_goal_hint("recipe.phase_well_anchor_stake"),
+		"锚场回稳窗部署",
+		"anchor stake purpose points to field deployment"
+	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.phase_well_anchor_core_analysis"),
+		"稳定锚核落尘",
+		"anchor core analysis completion points to dust stabilization"
+	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.anchor_core_dust_stabilization"),
+		"组装稳场校锚桩",
+		"anchor dust stabilization completion points to anchor stake assembly"
+	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.phase_well_anchor_stake"),
+		"两处压力钉",
+		"anchor stake completion points to pressure pins before warden"
+	)
+
+	_check_anchor_field_missing_input_hints(processing)
+	_check_anchor_field_device_recommendations(processing)
+
+
+func _check_anchor_field_missing_input_hints(processing: ProcessingSystem) -> void:
+	var empty_inventory := CharacterState.create_default().inventory
+	var missing_dust_hint := processing._format_mid_demo_missing_input_supply_hint(
+		host.data_registry.get_definition("recipe.anchor_core_dust_stabilization"),
+		empty_inventory
+	)
+	host._expect_text_contains(
+		missing_dust_hint,
+		"解析稳场锚核",
+		"anchor dust stabilization missing input points to anchor core analysis"
+	)
+
+	var missing_stake_sheet_hint := processing._format_mid_demo_missing_input_supply_hint(
+		host.data_registry.get_definition("recipe.phase_well_anchor_stake"),
+		empty_inventory
+	)
+	host._expect_text_contains(
+		missing_stake_sheet_hint,
+		"解析稳场锚核",
+		"anchor stake missing sheet points to anchor core analysis"
+	)
+
+	var missing_stake_filter_inventory := CharacterState.create_default().inventory
+	missing_stake_filter_inventory.add_item("item.phase_well_return_sheet", 1)
+	var missing_stake_filter_hint := processing._format_mid_demo_missing_input_supply_hint(
+		host.data_registry.get_definition("recipe.phase_well_anchor_stake"),
+		missing_stake_filter_inventory
+	)
+	host._expect_text_contains(
+		missing_stake_filter_hint,
+		"稳定锚核落尘",
+		"anchor stake missing filter points to dust stabilization"
+	)
+
+
+func _check_anchor_field_device_recommendations(processing: ProcessingSystem) -> void:
+	var filter := PrototypeInteractable.new()
+	filter.definition_id = "building.pollution_filter"
+	filter.interaction_type = "process_recipe"
+	filter.recipe_id = "recipe.cleanse_residue"
+	filter.set_recipe_cycle([
+		"recipe.cleanse_residue",
+		"recipe.anchor_core_dust_stabilization"
+	])
+
+	var filter_world := WorldState.create_default()
+	filter_world.quest_state.active_quest_ids = ["quest.refine_anchor_core_dust"]
+	filter_world.quest_state.unlock_effect("recipe.anchor_core_dust_stabilization")
+	var filter_character := CharacterState.create_default()
+	filter_character.inventory.add_item("item.anchor_core_dust", 1)
+	var filter_texts := HudDevicePanelPresenter.new().format_device_panel_texts(
+		host.data_registry,
+		processing,
+		filter,
+		filter_character,
+		filter_world
+	)
+	host._expect_text_contains(
+		String(filter_texts.get("status", "")),
+		"组装稳场校锚桩",
+		"filter device panel explains dust stabilization payoff"
+	)
+	host._expect_text_contains(
+		String(filter_texts.get("recipes", "")),
+		"当前目标",
+		"filter device panel marks dust stabilization as current target"
+	)
+	filter.free()
+
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.process_crystal_ore"
+	reactor.set_recipe_cycle([
+		"recipe.process_crystal_ore",
+		"recipe.phase_well_anchor_stake"
+	])
+
+	var reactor_world := WorldState.create_default()
+	reactor_world.quest_state.active_quest_ids = ["quest.refine_anchor_core_dust"]
+	reactor_world.quest_state.unlock_effect("recipe.phase_well_anchor_stake")
+	var reactor_character := CharacterState.create_default()
+	reactor_character.inventory.add_item("item.phase_well_return_sheet", 1)
+	reactor_character.inventory.add_item("item.anchor_field_filter", 1)
+	reactor_character.inventory.add_item("item.basic_parts", 2)
+	var reactor_texts := HudDevicePanelPresenter.new().format_device_panel_texts(
+		host.data_registry,
+		processing,
+		reactor,
+		reactor_character,
+		reactor_world
+	)
+	host._expect_text_contains(
+		String(reactor_texts.get("status", "")),
+		"锚场回稳窗部署",
+		"reactor device panel explains anchor stake deployment payoff"
+	)
+	host._expect_text_contains(
+		String(reactor_texts.get("recipes", "")),
+		"当前目标",
+		"reactor device panel marks anchor stake as current target"
+	)
+	reactor.free()
+
+
+func _check_s13_baseline_status() -> void:
+	var builder := DevelopmentBaselineBuilder.new(host.data_registry)
+	var baseline_result := builder.create_baseline_state("baseline.s13_phase_well_anchor_core_ready")
+	host._expect_equal(bool(baseline_result.get("success", false)), true, "S13 baseline generation for anchor field guidance")
+	if not bool(baseline_result.get("success", false)):
+		return
+
+	var baseline_world: WorldState = baseline_result.get("world_state", null)
+	var baseline_character: CharacterState = baseline_result.get("character_state", null)
+	if baseline_world == null or baseline_character == null:
+		host.failures.append("S13 baseline should return world and character states for anchor field guidance")
+		return
+
+	host._expect_equal(
+		baseline_world.quest_state.active_quest_ids,
+		["quest.analyze_phase_well_anchor_core"],
+		"S13 baseline starts at anchor core analysis"
+	)
+	var status_text := HudStatusPresenter.new().format_status_text(host.data_registry, baseline_world, baseline_character)
+	host._expect_text_contains(status_text, "目标：解析稳场锚核", "S13 status panel points to anchor core analysis")
+	host._expect_text_contains(status_text, "归谱片", "S13 status panel shows return sheet craft target")
+	host._expect_text_contains(status_text, "锚核落尘", "S13 status panel keeps anchor dust purpose")
+
+
+func _check_stability_readout_guidance(processing: ProcessingSystem) -> void:
+	host._expect_text_contains(
+		RecipePurposeHints.format_recipe_goal_hint("recipe.phase_well_echo_shard_analysis"),
+		"前线回充",
+		"echo shard analysis purpose explains anchor field recovery payoff"
+	)
+	host._expect_text_contains(
+		RecipePurposeHints.format_recipe_goal_hint("recipe.phase_well_echo_shard_analysis"),
+		"按序校准稳窗节点",
+		"echo shard analysis purpose points to stability node calibration"
+	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.phase_well_echo_shard_analysis"),
+		"先回锚场回稳窗确认前线回充",
+		"echo shard analysis completion points to anchor field recovery"
+	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.phase_well_echo_shard_analysis"),
+		"西侧、中央、东侧",
+		"echo shard analysis completion preserves stability node order"
+	)
+
+	var missing_readout_hint := processing._format_mid_demo_missing_input_supply_hint(
+		host.data_registry.get_definition("recipe.phase_well_echo_shard_analysis"),
+		CharacterState.create_default().inventory
+	)
+	host._expect_text_contains(
+		missing_readout_hint,
+		"锚场回稳窗部署",
+		"echo shard analysis missing input points back to anchor field stabilization"
+	)
+
+	_check_stability_readout_device_recommendation(processing)
+	_check_stability_readout_anchor_field_prompt()
+
+
+func _check_stability_readout_device_recommendation(processing: ProcessingSystem) -> void:
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.process_crystal_ore"
+	reactor.set_recipe_cycle([
+		"recipe.process_crystal_ore",
+		"recipe.phase_well_echo_shard_analysis"
+	])
+
+	var reactor_world := WorldState.create_default()
+	reactor_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_echo_shard"]
+	reactor_world.quest_state.unlock_effect("recipe.phase_well_echo_shard_analysis")
+	var reactor_character := CharacterState.create_default()
+	reactor_character.inventory.add_item("item.phase_well_echo_shard", 1)
+	reactor_character.inventory.add_item("item.basic_parts", 2)
+	var reactor_texts := HudDevicePanelPresenter.new().format_device_panel_texts(
+		host.data_registry,
+		processing,
+		reactor,
+		reactor_character,
+		reactor_world
+	)
+	host._expect_text_contains(
+		String(reactor_texts.get("status", "")),
+		"确认前线回充",
+		"reactor device panel explains echo shard readout recovery payoff"
+	)
+	host._expect_text_contains(
+		String(reactor_texts.get("recipes", "")),
+		"当前目标",
+		"reactor device panel marks echo shard analysis as current target"
+	)
+	reactor.free()
+
+
+func _check_stability_readout_anchor_field_prompt() -> void:
+	var prompt_world := WorldState.create_default()
+	prompt_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
+	prompt_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
+	var prompt_character := CharacterState.create_default()
+	prompt_character.inventory.add_item("item.phase_well_stability_readout", 1)
+	var prompt_formatter := InteractionPromptFormatter.new(
+		host.data_registry,
+		ProcessingSystem.new(host.data_registry),
+		BuildSystem.new(host.data_registry)
+	)
+	var prompt_text := prompt_formatter.format_phase_well_anchor_field_prompt(prompt_world, prompt_character)
+	host._expect_text_contains(prompt_text, "按 E 回充", "anchor field prompt exposes readout recovery interaction")
+	host._expect_text_contains(prompt_text, "读数已解析", "anchor field prompt does not imply node calibration is complete")
+	host._expect_text_contains(prompt_text, "按序校准三处稳窗节点", "anchor field prompt points from recovery to field calibration")
+
+
+func _check_s14_s15_baseline_status() -> void:
+	var builder := DevelopmentBaselineBuilder.new(host.data_registry)
+	var s14_result := builder.create_baseline_state("baseline.s14_phase_well_anchor_field_stabilized")
+	host._expect_equal(bool(s14_result.get("success", false)), true, "S14 baseline generation for stability readout guidance")
+	if bool(s14_result.get("success", false)):
+		var s14_world: WorldState = s14_result.get("world_state", null)
+		var s14_character: CharacterState = s14_result.get("character_state", null)
+		if s14_world == null or s14_character == null:
+			host.failures.append("S14 baseline should return world and character states for stability readout guidance")
+		else:
+			host._expect_equal(
+				s14_world.quest_state.active_quest_ids,
+				["quest.analyze_phase_well_echo_shard"],
+				"S14 baseline starts at echo shard analysis"
+			)
+			var s14_status := HudStatusPresenter.new().format_status_text(host.data_registry, s14_world, s14_character)
+			host._expect_text_contains(s14_status, "目标：解析稳窗余响片", "S14 status panel points to echo shard analysis")
+			host._expect_text_contains(s14_status, "稳窗读数", "S14 status panel shows stability readout craft target")
+			host._expect_text_contains(s14_status, "前线回充", "S14 status panel explains readout recovery payoff")
+
+	var s15_result := builder.create_baseline_state("baseline.s15_phase_well_stability_readout_ready")
+	host._expect_equal(bool(s15_result.get("success", false)), true, "S15 baseline generation for stability calibration guidance")
+	if bool(s15_result.get("success", false)):
+		var s15_world: WorldState = s15_result.get("world_state", null)
+		var s15_character: CharacterState = s15_result.get("character_state", null)
+		if s15_world == null or s15_character == null:
+			host.failures.append("S15 baseline should return world and character states for stability calibration guidance")
+		else:
+			host._expect_equal(
+				s15_world.quest_state.active_quest_ids,
+				["quest.calibrate_phase_well_stability_window"],
+				"S15 baseline starts at stability window calibration"
+			)
+			var s15_status := HudStatusPresenter.new().format_status_text(host.data_registry, s15_world, s15_character)
+			host._expect_text_contains(s15_status, "目标：校准稳窗相位序", "S15 status panel points to field calibration")
+			host._expect_text_contains(s15_status, "稳窗读数", "S15 status panel keeps readout visible")
+
+
+func _check_stability_calibration_and_frontline_entry() -> void:
+	var formatter := InteractionPromptFormatter.new(
+		host.data_registry,
+		ProcessingSystem.new(host.data_registry),
+		BuildSystem.new(host.data_registry)
+	)
+	var runtime := PhaseWellFrontierRuntime.new(host.data_registry)
+	var calibration_world := WorldState.create_default()
+	calibration_world.quest_state.completed_quest_ids.append("quest.stabilize_phase_well_anchor_field")
+	calibration_world.quest_state.completed_quest_ids.append("quest.analyze_phase_well_echo_shard")
+	var calibration_character := CharacterState.create_default()
+	calibration_character.inventory.add_item("item.phase_well_stability_readout", 1)
+
+	var west_node := _make_prompt_interactable(
+		"map_object_instance.phase_well_stability_node_west",
+		"map_object.phase_well_stability_node_west"
+	)
+	var core_node := _make_prompt_interactable(
+		"map_object_instance.phase_well_stability_node_core",
+		"map_object.phase_well_stability_node_core"
+	)
+	var east_node := _make_prompt_interactable(
+		"map_object_instance.phase_well_stability_node_east",
+		"map_object.phase_well_stability_node_east"
+	)
+
+	host._expect_text_contains(
+		formatter.format_stability_calibration_prompt(west_node, calibration_character, calibration_world),
+		"按 E 校准",
+		"west stability node prompt exposes calibration action"
+	)
+	host._expect_text_contains(
+		formatter.format_stability_calibration_prompt(west_node, calibration_character, calibration_world),
+		"西侧、中央、东侧",
+		"west stability node prompt preserves order"
+	)
+	host._expect_text_contains(
+		formatter.format_stability_calibration_prompt(core_node, calibration_character, calibration_world),
+		"相位序未对齐",
+		"core stability node prompt blocks out-of-order calibration"
+	)
+
+	var west_result := runtime.inspect_stability_calibration_node(
+		west_node.instance_id,
+		west_node.definition_id,
+		calibration_character,
+		calibration_world
+	)
+	host._expect_equal(bool(west_result.get("success", false)), true, "west stability node calibration still succeeds")
+	host._expect_text_contains(
+		formatter.format_stability_calibration_prompt(core_node, calibration_character, calibration_world),
+		"按 E 校准：中央稳窗校准点",
+		"core stability node prompt opens after west calibration"
+	)
+	var core_result := runtime.inspect_stability_calibration_node(
+		core_node.instance_id,
+		core_node.definition_id,
+		calibration_character,
+		calibration_world
+	)
+	host._expect_equal(bool(core_result.get("success", false)), true, "core stability node calibration still succeeds")
+	var east_result := runtime.inspect_stability_calibration_node(
+		east_node.instance_id,
+		east_node.definition_id,
+		calibration_character,
+		calibration_world
+	)
+	host._expect_equal(bool(east_result.get("success", false)), true, "east stability node calibration still succeeds")
+	host._expect_text_contains(
+		String(east_result.get("message", "")),
+		"前线行动台确认稳窗回访",
+		"final stability calibration result points to frontline action console"
+	)
+	host._expect_text_contains(
+		String(east_result.get("message", "")),
+		"只派发稳窗回波探点",
+		"final stability calibration result keeps first visit scope narrow"
+	)
+
+	west_node.free()
+	core_node.free()
+	east_node.free()
+
+	_check_s16_frontline_entry_guidance(formatter)
+
+
+func _check_s16_frontline_entry_guidance(formatter: InteractionPromptFormatter) -> void:
+	var builder := DevelopmentBaselineBuilder.new(host.data_registry)
+	var s16_result := builder.create_baseline_state("baseline.s16_phase_well_stability_window_calibrated")
+	host._expect_equal(bool(s16_result.get("success", false)), true, "S16 baseline generation for frontline entry guidance")
+	if not bool(s16_result.get("success", false)):
+		return
+
+	var s16_world: WorldState = s16_result.get("world_state", null)
+	var s16_character: CharacterState = s16_result.get("character_state", null)
+	if s16_world == null or s16_character == null:
+		host.failures.append("S16 baseline should return world and character states for frontline entry guidance")
+		return
+
+	host._expect_equal(
+		s16_world.quest_state.active_quest_ids,
+		["quest.plan_stability_frontline_action"],
+		"S16 baseline starts at frontline action confirmation"
+	)
+	var s16_status := HudStatusPresenter.new().format_status_text(host.data_registry, s16_world, s16_character)
+	host._expect_text_contains(s16_status, "目标：确认前线行动", "S16 status panel points to frontline action confirmation")
+	host._expect_text_contains(s16_status, "行动台确认稳窗回访", "S16 status panel explains base console entry")
+
+	var console_prompt := BaseActionDispatchPlan.format_console_prompt(
+		"map_object.frontline_action_console",
+		s16_world,
+		s16_character
+	)
+	host._expect_text_contains(console_prompt, "按 E 确认", "frontline action console prompt exposes confirmation action")
+	host._expect_text_contains(console_prompt, "只派发稳窗回波探点", "frontline action console prompt keeps first visit narrow")
+
+	var gather := GatherSystem.new(host.data_registry)
+	var console_result := gather.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		"map_object.frontline_action_console",
+		"inspect",
+		s16_character,
+		s16_world
+	)
+	host._expect_equal(bool(console_result.get("success", false)), true, "frontline action console confirmation succeeds")
+	host._expect_text_contains(
+		String(console_result.get("message", "")),
+		"只派发稳窗回波探点",
+		"frontline action console confirmation result keeps first visit narrow"
+	)
+
+	var probe := _make_prompt_interactable(
+		"map_object_instance.stability_echo_probe",
+		"map_object.stability_echo_probe"
+	)
+	host._expect_text_contains(
+		formatter.format_frontline_action_target_prompt(probe, s16_character, s16_world),
+		"本趟稳窗回访只要求确认这一处探点",
+		"stability echo probe prompt keeps target density narrow"
+	)
+	var probe_result := gather.interact_with_object(
+		probe.instance_id,
+		probe.definition_id,
+		"inspect",
+		s16_character,
+		s16_world
+	)
+	host._expect_equal(bool(probe_result.get("success", false)), true, "stability echo probe interaction succeeds")
+	host._expect_text_contains(
+		String(probe_result.get("message", "")),
+		"这趟短回访已完成",
+		"stability echo probe result points back to base analysis"
+	)
+	probe.free()
+
+
+func _make_prompt_interactable(instance_id: String, definition_id: String) -> PrototypeInteractable:
+	var interactable := PrototypeInteractable.new()
+	interactable.instance_id = instance_id
+	interactable.definition_id = definition_id
+	interactable.interaction_type = "inspect"
+	return interactable
+
+
+func _check_stability_echo_report_supply_entry(processing: ProcessingSystem) -> void:
+	host._expect_text_contains(
+		RecipePurposeHints.format_recipe_goal_hint("recipe.stability_echo_report"),
+		"前线行动台确认补给短行动",
+		"stability echo report purpose points to supply action confirmation"
+	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.stability_echo_report"),
+		"只派发补给回执标记",
+		"stability echo report completion keeps supply action narrow"
+	)
+	var missing_report_hint := processing._format_mid_demo_missing_input_supply_hint(
+		host.data_registry.get_definition("recipe.stability_echo_report"),
+		CharacterState.create_default().inventory
+	)
+	host._expect_text_contains(
+		missing_report_hint,
+		"读取稳窗回波探点",
+		"stability echo report missing sample points back to echo probe"
+	)
+
+	_check_stability_echo_report_device_recommendation(processing)
+	_check_s17_supply_action_entry()
+
+
+func _check_stability_echo_report_device_recommendation(processing: ProcessingSystem) -> void:
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.process_crystal_ore"
+	reactor.set_recipe_cycle([
+		"recipe.process_crystal_ore",
+		"recipe.stability_echo_report"
+	])
+
+	var reactor_world := WorldState.create_default()
+	reactor_world.quest_state.active_quest_ids = ["quest.analyze_stability_echo_sample"]
+	reactor_world.quest_state.unlock_effect("recipe.stability_echo_report")
+	var reactor_character := CharacterState.create_default()
+	reactor_character.inventory.add_item("item.stability_echo_sample", 1)
+	var reactor_texts := HudDevicePanelPresenter.new().format_device_panel_texts(
+		host.data_registry,
+		processing,
+		reactor,
+		reactor_character,
+		reactor_world
+	)
+	host._expect_text_contains(
+		String(reactor_texts.get("status", "")),
+		"确认补给短行动",
+		"reactor device panel explains stability echo report payoff"
+	)
+	host._expect_text_contains(
+		String(reactor_texts.get("recipes", "")),
+		"当前目标",
+		"reactor device panel marks stability echo report as current target"
+	)
+	reactor.free()
+
+
+func _check_s17_supply_action_entry() -> void:
+	var builder := DevelopmentBaselineBuilder.new(host.data_registry)
+	var s17_result := builder.create_baseline_state("baseline.s17_frontline_action_report_ready")
+	host._expect_equal(bool(s17_result.get("success", false)), true, "S17 baseline generation for supply action entry")
+	if not bool(s17_result.get("success", false)):
+		return
+
+	var s17_world: WorldState = s17_result.get("world_state", null)
+	var s17_character: CharacterState = s17_result.get("character_state", null)
+	if s17_world == null or s17_character == null:
+		host.failures.append("S17 baseline should return world and character states for supply action entry")
+		return
+
+	host._expect_equal(
+		s17_world.quest_state.active_quest_ids,
+		["quest.confirm_supply_frontline_action"],
+		"S17 baseline starts at supply action confirmation"
+	)
+	var s17_status := HudStatusPresenter.new().format_status_text(host.data_registry, s17_world, s17_character)
+	host._expect_text_contains(s17_status, "目标：确认补给短行动", "S17 status panel points to supply action")
+	host._expect_text_contains(s17_status, "行动台确认补给短行动", "S17 status panel explains action console")
+	host._expect_text_contains(s17_status, "前线行动回报", "S17 status panel keeps report visible")
+
+	var console_prompt := BaseActionDispatchPlan.format_console_prompt(
+		"map_object.frontline_action_console",
+		s17_world,
+		s17_character
+	)
+	host._expect_text_contains(console_prompt, "按 E 确认", "supply action console prompt exposes confirmation action")
+	host._expect_text_contains(console_prompt, "只派发补给回执标记", "supply action console prompt keeps second visit narrow")
+
+	var gather := GatherSystem.new(host.data_registry)
+	var console_result := gather.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		"map_object.frontline_action_console",
+		"inspect",
+		s17_character,
+		s17_world
+	)
+	host._expect_equal(bool(console_result.get("success", false)), true, "supply action console confirmation succeeds")
+	host._expect_text_contains(
+		String(console_result.get("message", "")),
+		"只派发补给回执标记",
+		"supply action console confirmation keeps second visit narrow"
+	)
+
+	var marker_formatter := InteractionPromptFormatter.new(
+		host.data_registry,
+		ProcessingSystem.new(host.data_registry),
+		BuildSystem.new(host.data_registry)
+	)
+	var supply_marker := _make_prompt_interactable(
+		"map_object_instance.supply_return_marker",
+		"map_object.supply_return_marker"
+	)
+	host._expect_text_contains(
+		marker_formatter.format_frontline_action_target_prompt(supply_marker, s17_character, s17_world),
+		"本趟补给短行动只要求确认这一处回执标记",
+		"supply return marker prompt keeps second visit target density narrow"
+	)
+	var marker_result := gather.interact_with_object(
+		supply_marker.instance_id,
+		supply_marker.definition_id,
+		"inspect",
+		s17_character,
+		s17_world
+	)
+	host._expect_equal(bool(marker_result.get("success", false)), true, "supply return marker interaction succeeds")
+	host._expect_text_contains(
+		String(marker_result.get("message", "")),
+		"第二条短回访已完成",
+		"supply return marker result points back to base feedback"
+	)
+	supply_marker.free()
+
+
+func _check_short_action_feedback_route_entry(processing: ProcessingSystem) -> void:
+	host._expect_text_contains(
+		RecipePurposeHints.format_recipe_goal_hint("recipe.short_action_feedback"),
+		"前线行动台确认巡线短行动",
+		"short action feedback purpose points to route action confirmation"
+	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.short_action_feedback"),
+		"只派发巡线信标",
+		"short action feedback completion keeps route action narrow"
+	)
+	var missing_feedback_hint := processing._format_mid_demo_missing_input_supply_hint(
+		host.data_registry.get_definition("recipe.short_action_feedback"),
+		CharacterState.create_default().inventory
+	)
+	host._expect_text_contains(
+		missing_feedback_hint,
+		"读取补给回执标记",
+		"short action feedback missing trace points back to supply marker"
+	)
+
+	_check_short_action_feedback_device_recommendation(processing)
+	_check_s18_route_action_entry()
+
+
+func _check_short_action_feedback_device_recommendation(processing: ProcessingSystem) -> void:
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.process_crystal_ore"
+	reactor.set_recipe_cycle([
+		"recipe.process_crystal_ore",
+		"recipe.short_action_feedback"
+	])
+
+	var reactor_world := WorldState.create_default()
+	reactor_world.quest_state.active_quest_ids = ["quest.analyze_supply_return_trace"]
+	reactor_world.quest_state.unlock_effect("recipe.short_action_feedback")
+	var reactor_character := CharacterState.create_default()
+	reactor_character.inventory.add_item("item.supply_return_trace", 1)
+	var reactor_texts := HudDevicePanelPresenter.new().format_device_panel_texts(
+		host.data_registry,
+		processing,
+		reactor,
+		reactor_character,
+		reactor_world
+	)
+	host._expect_text_contains(
+		String(reactor_texts.get("status", "")),
+		"确认巡线短行动",
+		"reactor device panel explains short action feedback payoff"
+	)
+	host._expect_text_contains(
+		String(reactor_texts.get("recipes", "")),
+		"当前目标",
+		"reactor device panel marks short action feedback as current target"
+	)
+	reactor.free()
+
+
+func _check_s18_route_action_entry() -> void:
+	var builder := DevelopmentBaselineBuilder.new(host.data_registry)
+	var s18_result := builder.create_baseline_state("baseline.s18_short_action_feedback_ready")
+	host._expect_equal(bool(s18_result.get("success", false)), true, "S18 baseline generation for route action entry")
+	if not bool(s18_result.get("success", false)):
+		return
+
+	var s18_world: WorldState = s18_result.get("world_state", null)
+	var s18_character: CharacterState = s18_result.get("character_state", null)
+	if s18_world == null or s18_character == null:
+		host.failures.append("S18 baseline should return world and character states for route action entry")
+		return
+
+	host._expect_equal(
+		s18_world.quest_state.active_quest_ids,
+		["quest.confirm_route_frontline_action"],
+		"S18 baseline starts at route action confirmation"
+	)
+	var s18_status := HudStatusPresenter.new().format_status_text(host.data_registry, s18_world, s18_character)
+	host._expect_text_contains(s18_status, "目标：确认巡线短行动", "S18 status panel points to route action")
+	host._expect_text_contains(s18_status, "行动台确认巡线短行动", "S18 status panel explains action console")
+	host._expect_text_contains(s18_status, "短行动反馈", "S18 status panel keeps feedback visible")
+
+	var console_prompt := BaseActionDispatchPlan.format_console_prompt(
+		"map_object.frontline_action_console",
+		s18_world,
+		s18_character
+	)
+	host._expect_text_contains(console_prompt, "按 E 确认", "route action console prompt exposes confirmation action")
+	host._expect_text_contains(console_prompt, "只派发巡线信标", "route action console prompt keeps third visit narrow")
+
+	var gather := GatherSystem.new(host.data_registry)
+	var console_result := gather.interact_with_object(
+		"map_object_instance.frontline_action_console",
+		"map_object.frontline_action_console",
+		"inspect",
+		s18_character,
+		s18_world
+	)
+	host._expect_equal(bool(console_result.get("success", false)), true, "route action console confirmation succeeds")
+	host._expect_text_contains(
+		String(console_result.get("message", "")),
+		"只派发巡线信标",
+		"route action console confirmation keeps third visit narrow"
+	)
+
+	var runtime := QuestRuntime.new(host.data_registry)
+	var advance_result := runtime.advance_for_interaction(
+		s18_world,
+		s18_character,
+		{
+			"definition_id": "map_object.frontline_action_console",
+			"interaction_type": "inspect"
+		},
+		{"success": true}
+	)
+	host._expect_equal(bool(advance_result.get("accepted", false)), true, "route action confirmation advances active quest")
+	host._expect_equal(
+		s18_world.quest_state.active_quest_ids,
+		["quest.inspect_route_signal_marker"],
+		"route action confirmation activates route signal marker"
+	)
+
+	var marker_formatter := InteractionPromptFormatter.new(
+		host.data_registry,
+		ProcessingSystem.new(host.data_registry),
+		BuildSystem.new(host.data_registry)
+	)
+	var route_marker := _make_prompt_interactable(
+		"map_object_instance.route_signal_marker",
+		"map_object.route_signal_marker"
+	)
+	host._expect_text_contains(
+		marker_formatter.format_frontline_action_target_prompt(route_marker, s18_character, s18_world),
+		"一处巡线信标",
+		"route signal marker prompt keeps third visit target density narrow"
+	)
+	var marker_result := gather.interact_with_object(
+		route_marker.instance_id,
+		route_marker.definition_id,
+		"inspect",
+		s18_character,
+		s18_world
+	)
+	host._expect_equal(bool(marker_result.get("success", false)), true, "route signal marker interaction succeeds")
+	host._expect_text_contains(
+		String(marker_result.get("message", "")),
+		"回基地用基础反应器解析巡线反馈",
+		"route signal marker result points back to base analysis"
+	)
+	route_marker.free()
+
+func _check_route_action_feedback_choice_entry(processing: ProcessingSystem) -> void:
+	host._expect_text_contains(
+		RecipePurposeHints.format_recipe_goal_hint("recipe.route_action_feedback"),
+		"基地行动选择",
+		"route action feedback purpose points to base action choice"
+	)
+	host._expect_text_contains(
+		processing._get_completion_next_step("recipe.route_action_feedback"),
+		"稳场补给、相位测绘和压力清障",
+		"route action feedback completion points to three base action options"
+	)
+	var missing_feedback_hint := processing._format_mid_demo_missing_input_supply_hint(
+		host.data_registry.get_definition("recipe.route_action_feedback"),
+		CharacterState.create_default().inventory
+	)
+	host._expect_text_contains(
+		missing_feedback_hint,
+		"读取巡线信标",
+		"route action feedback missing trace points back to route marker"
+	)
+
+	_check_route_action_feedback_device_recommendation(processing)
+	_check_s19_base_action_choice_entry()
+
+func _check_route_action_feedback_device_recommendation(processing: ProcessingSystem) -> void:
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.process_crystal_ore"
+	reactor.set_recipe_cycle([
+		"recipe.process_crystal_ore",
+		"recipe.route_action_feedback"
+	])
+
+	var reactor_world := WorldState.create_default()
+	reactor_world.quest_state.active_quest_ids = ["quest.analyze_route_signal_trace"]
+	reactor_world.quest_state.unlock_effect("recipe.route_action_feedback")
+	var reactor_character := CharacterState.create_default()
+	reactor_character.inventory.add_item("item.route_signal_trace", 1)
+	var reactor_texts := HudDevicePanelPresenter.new().format_device_panel_texts(
+		host.data_registry,
+		processing,
+		reactor,
+		reactor_character,
+		reactor_world
+	)
+	host._expect_text_contains(
+		String(reactor_texts.get("status", "")),
+		"基地行动选择台",
+		"reactor device panel explains route action feedback payoff"
+	)
+	host._expect_text_contains(
+		String(reactor_texts.get("recipes", "")),
+		"当前目标",
+		"reactor device panel marks route action feedback as current target"
+	)
+	reactor.free()
+
+func _check_s19_base_action_choice_entry() -> void:
+	var builder := DevelopmentBaselineBuilder.new(host.data_registry)
+	var s19_result := builder.create_baseline_state("baseline.s19_route_action_feedback_ready")
+	host._expect_equal(bool(s19_result.get("success", false)), true, "S19 baseline generation for base action choice entry")
+	if not bool(s19_result.get("success", false)):
+		return
+
+	var s19_world: WorldState = s19_result.get("world_state", null)
+	var s19_character: CharacterState = s19_result.get("character_state", null)
+	if s19_world == null or s19_character == null:
+		host.failures.append("S19 baseline should return world and character states for base action choice entry")
+		return
+
+	host._expect_equal(
+		s19_world.quest_state.active_quest_ids,
+		["quest.choose_steady_supply_action", "quest.choose_phase_survey_action", "quest.choose_pressure_clearance_action"],
+		"S19 baseline starts at base action choices"
+	)
+	var s19_status := HudStatusPresenter.new().format_status_text(host.data_registry, s19_world, s19_character)
+	host._expect_text_contains(s19_status, "目标：基地行动方案待选择", "S19 status panel points to base action choices")
+	host._expect_text_contains(s19_status, "稳场补给低风险", "S19 status panel explains supply option")
+	host._expect_text_contains(s19_status, "压力清障高风险换防护", "S19 status panel explains pressure option")
+
+	var supply_prompt := BaseActionDispatchPlan.format_console_prompt(
+		"map_object.base_supply_choice_console",
+		s19_world,
+		s19_character
+	)
+	host._expect_text_contains(supply_prompt, "按 E 选择：稳场补给方案", "S19 supply choice prompt exposes selection action")
+	host._expect_text_contains(supply_prompt, "方案 B：相位测绘", "S19 supply choice prompt keeps survey alternative visible")
+
+	var survey_prompt := BaseActionDispatchPlan.format_console_prompt(
+		"map_object.base_survey_choice_console",
+		s19_world,
+		s19_character
+	)
+	host._expect_text_contains(survey_prompt, "按 E 选择：相位测绘方案", "S19 survey choice prompt exposes selection action")
+	host._expect_text_contains(survey_prompt, "方案 C：压力清障", "S19 survey choice prompt keeps pressure alternative visible")
+
+	var pressure_prompt := BaseActionDispatchPlan.format_console_prompt(
+		"map_object.base_pressure_choice_console",
+		s19_world,
+		s19_character
+	)
+	host._expect_text_contains(pressure_prompt, "按 E 选择：压力清障方案", "S19 pressure choice prompt exposes selection action")
+	host._expect_text_contains(pressure_prompt, "方案 A：稳场补给", "S19 pressure choice prompt keeps supply alternative visible")
+
+	var runtime := QuestRuntime.new(host.data_registry)
+	var choice_result := runtime.advance_for_interaction(
+		s19_world,
+		s19_character,
+		{
+			"definition_id": "map_object.base_survey_choice_console",
+			"interaction_type": "inspect"
+		},
+		{"success": true}
+	)
+	host._expect_equal(bool(choice_result.get("accepted", false)), true, "S19 survey choice advances active quest")
+	host._expect_equal(
+		s19_world.quest_state.active_quest_ids,
+		["quest.inspect_phase_survey_nodes"],
+		"S19 survey choice closes other options and activates survey targets"
+	)

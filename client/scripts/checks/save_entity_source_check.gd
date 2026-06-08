@@ -154,6 +154,21 @@ func _check_loads_known_map_object_source() -> void:
 			"region_id": "region.demo_stabilization_core",
 			"is_gathered": true
 		},
+		"map_object_instance.demo_stabilization_recovery_wreckage": {
+			"definition_id": "map_object.demo_stabilization_recovery_cache",
+			"region_id": "region.demo_stabilization_core",
+			"is_gathered": true
+		},
+		"map_object_instance.demo_stabilization_guard_cache": {
+			"definition_id": "map_object.demo_stabilization_guard_cache",
+			"region_id": "region.demo_stabilization_core",
+			"is_gathered": true
+		},
+		"map_object_instance.core_buffer_residue_cache": {
+			"definition_id": "map_object.pollution_residue_patch",
+			"region_id": "region.pollution_edge",
+			"is_gathered": true
+		},
 		"map_object_instance.demo_stabilization_core": {
 			"definition_id": "map_object.demo_stabilization_core",
 			"region_id": "region.demo_stabilization_core",
@@ -244,6 +259,13 @@ func _check_loads_known_enemy_source() -> void:
 			"region_id": "region.demo_stabilization_core",
 			"health": 0,
 			"max_health": 156,
+			"is_defeated": true
+		},
+		"enemy_instance.core_buffer_polluted_skitter": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge",
+			"health": 0,
+			"max_health": 30,
 			"is_defeated": true
 		}
 	}

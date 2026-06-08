@@ -63,7 +63,10 @@ run_godot_checked() {
   "${godot_exe}" --headless --path "${client_root}" "$@" >"${log_file}" 2>&1
   exit_code=$?
   set -e
-  cat "${log_file}"
+  grep -v 'Condition "ret != noErr"' "${log_file}" \
+    | grep -v "Failed to read the root certificate store" \
+    | grep -v "get_system_ca_certificates (platform/macos/os_macos.mm" \
+    || true
   if [ "${exit_code}" -ne 0 ]; then
     echo "${check_name} failed with exit code ${exit_code}." >&2
     exit "${exit_code}"
@@ -75,10 +78,11 @@ run_godot_checked() {
 }
 
 echo "Running macOS/Linux client checks."
-echo "Coverage: static data, Godot import, save runtime, quest rules and vertical slice flow."
+echo "Coverage: static data, scene references, Godot import, save runtime, quest rules and vertical slice flow."
 echo "Using Godot: ${godot_exe}"
 
 "${python_exe}" "${repo_root}/scripts/check-client-data.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-scenes.py" "${repo_root}"
 run_godot_checked "godot-import" --import --quit --no-header
 run_godot_checked "save-service" --script "${client_root}/scripts/checks/save_service_check.gd" --no-header
 run_godot_checked "quest-rules" --script "${client_root}/scripts/checks/quest_rules_check.gd" --no-header

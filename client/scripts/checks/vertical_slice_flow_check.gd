@@ -3,9 +3,11 @@ const GameRootScript := preload("res://scripts/game/game_root.gd")
 const DeepProcessingCheckScript := preload("res://scripts/checks/deep_processing_check.gd")
 const BaseActionQueueRotationCheckScript := preload("res://scripts/checks/base_action_queue_rotation_check.gd")
 const BaseActionTargetPromptCheckScript := preload("res://scripts/checks/base_action_target_prompt_check.gd")
+const DevicePanelReadabilityCheckScript := preload("res://scripts/checks/device_panel_readability_check.gd")
 const FirstHourReadabilityCheckScript := preload("res://scripts/checks/first_hour_readability_check.gd")
 const HudRuntimeHintFlowCheckScript := preload("res://scripts/checks/hud_runtime_hint_flow_check.gd")
 const HudMapMarkerCheckScript := preload("res://scripts/checks/hud_map_marker_check.gd")
+const InteractionFeedbackPromptCheckScript := preload("res://scripts/checks/interaction_feedback_prompt_check.gd")
 const PhaseWellFollowupChecks := preload("res://scripts/checks/phase_well_followup_check.gd")
 const PhaseRelayFlowChecks := preload("res://scripts/checks/phase_relay_flow_check.gd")
 const RegionPromptChecks := preload("res://scripts/checks/region_prompt_check.gd")
@@ -40,6 +42,7 @@ func _run_checks() -> void:
 	_check_pollution_gate_runtime_bounds()
 	BaseActionQueueRotationCheckScript.new(self).run()
 	BaseActionTargetPromptCheckScript.new(self).run()
+	preload("res://scripts/checks/phase_survey_choice_guidance_check.gd").new(self).run()
 	PhaseWellFollowupChecks.new(self).run_hud_and_map_checks()
 	_check_deep_gate_releases_movement_block()
 	_check_new_game_state_reset()
@@ -50,12 +53,13 @@ func _run_checks() -> void:
 	_check_treatment_enemy_combat_pressure()
 	_check_pressure_clearance_guard_combat_gate()
 	_check_quest_completion_panel_text()
-	_check_build_prompts()
+	InteractionFeedbackPromptCheckScript.new(self).run()
 	_check_supply_feedback()
 	_check_hud_feedback_presenter()
 	_check_pollution_status_hints()
 	RegionPromptChecks.new(self).run()
 	PhaseRelayFlowChecks.new(self).run()
+	DevicePanelReadabilityCheckScript.new(self).run()
 	VerticalSliceRegressionChecks.new(self).run_ui_and_recipe_checks()
 	_check_failure_feedback_logs()
 	_check_device_panel_formatting()
@@ -107,6 +111,7 @@ func _run_checks() -> void:
 	_expect_active_quest("quest.enter_pollution_edge", "after expand treatment point")
 	_expect_array_has(world_state.unlocked_region_ids, "region.pollution_edge", "treatment point unlocks pollution edge region")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.cleanse_residue", "treatment point unlocks residue recipe")
+	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.reclaim_basic_parts", "treatment point unlocks slurry reclaim recipe")
 	_complete_active_quest("quest.enter_pollution_edge", [
 		{"type": "visit_region", "target_id": "region.pollution_edge", "amount": 1},
 		{"type": "gather_item", "target_id": "item.polluted_residue", "amount": 4},
@@ -129,7 +134,9 @@ func _run_checks() -> void:
 	_expect_array_has(world_state.unlocked_region_ids, "region.ruin_outer_ring", "ruin signal unlocks outer ring region")
 	_complete_active_quest("quest.scout_ruin_outer_ring", [
 		{"type": "visit_region", "target_id": "region.ruin_outer_ring", "amount": 1},
-		{"type": "gather_item", "target_id": "item.relay_shard", "amount": 2}
+		{"type": "gather_item", "target_id": "item.relay_shard", "amount": 2},
+		{"type": "gather_item", "target_id": "item.polluted_residue", "amount": 2},
+		{"type": "defeat_enemy", "target_id": "enemy.polluted_skitter", "amount": 1}
 	])
 	_expect_active_quest("quest.assemble_phase_anchor", "after ruin outer ring scouting")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.phase_anchor", "outer ring scouting unlocks phase anchor recipe")
@@ -147,7 +154,11 @@ func _run_checks() -> void:
 	_expect_active_quest("quest.salvage_signal_echo", "after outer ring secure starts echo salvage")
 	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.secure_outer_ring_signal", "outer ring secure completed")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "slice_01_complete", "slice completion unlock")
-	_complete_active_quest("quest.salvage_signal_echo", [{"type": "defeat_enemy", "target_id": "enemy.ruin_phase_guard", "amount": 1}, {"type": "inspect", "target_id": "map_object.signal_echo_cache", "amount": 1}])
+	_complete_active_quest("quest.salvage_signal_echo", [
+		{"type": "defeat_enemy", "target_id": "enemy.ruin_phase_guard", "amount": 1},
+		{"type": "gather_item", "target_id": "item.polluted_residue", "amount": 2},
+		{"type": "inspect", "target_id": "map_object.signal_echo_cache", "amount": 1}
+	])
 	_expect_active_quest("quest.analyze_deep_signal", "after signal echo salvage")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.deep_signal_analysis", "echo salvage unlocks deep signal recipe")
 	_complete_active_quest("quest.analyze_deep_signal", [{"type": "craft_item", "target_id": "item.deep_ruin_coordinates", "amount": 1}])
@@ -485,6 +496,16 @@ func _check_status_panel_summary() -> void:
 	filter_craft_world.quest_state.active_quest_ids = ["quest.refine_selvedge_strip"]
 	var filter_craft_status_text := presenter.format_status_text(data_registry, filter_craft_world, status_character)
 	_expect_text_contains(filter_craft_status_text, "制造 锁相框架肋（污染过滤器） 0/1", "status shows filter craft source")
+	var processing_world := WorldState.create_default()
+	var processing_character := CharacterState.create_default()
+	var processing := ProcessingSystem.new(data_registry)
+	processing_world.quest_state.unlock_effect("recipe.process_crystal_ore")
+	processing_character.inventory.add_item("item.crystal_ore", 3)
+	processing.process_recipe("recipe.process_crystal_ore", processing_character, processing_world)
+	processing.advance_processing(2.0, processing_character, processing_world)
+	var processing_vitals_text := presenter.format_vitals_text(data_registry, processing_world, processing_character)
+	_expect_text_contains(processing_vitals_text, "进度：[", "vitals summary shows processing progress bar")
+	_expect_text_contains(processing_vitals_text, "Q 设备面板", "vitals summary points to device panel")
 func _check_region_presence_bounds() -> void:
 	var map := VerticalSliceMap.new()
 	_expect_equal(
@@ -839,65 +860,6 @@ func _check_quest_completion_panel_text() -> void:
 		"提示：封锁遗迹通路已恢复",
 		"completion note prefix"
 	)
-func _check_build_prompts() -> void:
-	var build_world := WorldState.create_default()
-	var build_character := CharacterState.create_default()
-	var formatter := InteractionPromptFormatter.new(
-		data_registry,
-		ProcessingSystem.new(data_registry),
-		BuildSystem.new(data_registry)
-	)
-	var rough_ground := PrototypeInteractable.new()
-	rough_ground.definition_id = "map_object.rough_ground"
-	rough_ground.interaction_type = "clear"
-	rough_ground.instance_id = "map_object_instance.rough_ground_north"
-	_expect_text_contains(
-		formatter.format_clear_prompt(rough_ground, build_character, build_world),
-		"阻挡建造",
-		"rough ground prompt"
-	)
-	var foundation_site := PrototypeInteractable.new()
-	foundation_site.definition_id = "building.foundation_t1"
-	foundation_site.interaction_type = "build"
-	foundation_site.instance_id = "map_object_instance.foundation_site_north"
-	foundation_site.prerequisite_instance_id = "map_object_instance.rough_ground_north"
-	_expect_text_contains(
-		formatter.format_build_prompt(foundation_site, build_character, build_world),
-		"地面仍然粗糙",
-		"foundation blocked prompt"
-	)
-	build_world.ensure_map_object("map_object_instance.rough_ground_north", "map_object.rough_ground", "region.pollution_edge")
-	build_world.set_map_object_flag("map_object_instance.rough_ground_north", "is_cleared", true)
-	_expect_text_contains(
-		formatter.format_build_prompt(foundation_site, build_character, build_world),
-		"缺少建造材料",
-		"foundation missing material prompt"
-	)
-	build_character.inventory.add_item("item.foundation_material", 1)
-	_expect_text_contains(
-		formatter.format_build_prompt(foundation_site, build_character, build_world),
-		"按 E 建造",
-		"foundation ready prompt"
-	)
-	var filter_site := PrototypeInteractable.new()
-	filter_site.definition_id = "building.pollution_filter"
-	filter_site.interaction_type = "build"
-	filter_site.instance_id = "map_object_instance.pollution_filter_build_site"
-	_expect_text_contains(
-		formatter.format_build_prompt(filter_site, build_character, build_world),
-		"基础地基：0 / 2",
-		"pollution filter foundation status"
-	)
-	build_world.add_base_structure("structure.foundation_site_north", "building.foundation_t1", "region.pollution_edge")
-	build_world.add_base_structure("structure.foundation_site_south", "building.foundation_t1", "region.pollution_edge")
-	_expect_text_contains(
-		formatter.format_build_prompt(filter_site, build_character, build_world),
-		"缺少建造材料",
-		"pollution filter missing material prompt"
-	)
-	rough_ground.free()
-	foundation_site.free()
-	filter_site.free()
 func _check_supply_feedback() -> void:
 	var supply_character := CharacterState.create_default()
 	supply_character.health = 45.0
@@ -1370,6 +1332,20 @@ func _check_processing_runtime() -> void:
 		"抗污染药剂",
 		"pollution filter panel next step"
 	)
+	filter_world.quest_state.unlock_effect("recipe.reclaim_basic_parts")
+	filter_world.add_base_structure("structure.basic_reactor", "building.basic_reactor", "region.outpost_platform")
+	var reclaim_start := processing.process_recipe("recipe.reclaim_basic_parts", filter_character, filter_world)
+	_expect_equal(bool(reclaim_start.get("success", false)), true, "slurry reclaim should start after treatment point")
+	var reclaim_completed := processing.advance_processing(10.0, filter_character, filter_world)
+	_expect_equal(reclaim_completed.size(), 1, "slurry reclaim should complete")
+	_expect_equal(float(filter_character.inventory.fluids.get("fluid.polluted_slurry", 0.0)), 0.0, "slurry reclaim consumes byproduct")
+	_expect_equal(int(filter_character.inventory.items.get("item.basic_parts", 0)), 6, "slurry reclaim grants basic parts")
+	if not reclaim_completed.is_empty():
+		_expect_text_contains(
+			String(reclaim_completed[0].get("message", "")),
+			"副产物不再只是库存负担",
+			"slurry reclaim completion explains byproduct value"
+		)
 func _check_evacuation_feedback() -> void:
 	var map := VerticalSliceMap.new()
 	map.player = PlayerController.new()

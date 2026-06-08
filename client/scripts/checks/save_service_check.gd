@@ -857,7 +857,7 @@ func _get_system_utc_offset_seconds() -> int:
 	var utc_now := Time.get_datetime_string_from_system(true, true)
 	var local_unix := int(Time.get_unix_time_from_datetime_string(local_now))
 	var utc_unix := int(Time.get_unix_time_from_datetime_string(utc_now))
-	return local_unix - utc_unix
+	return int(round(float(local_unix - utc_unix) / 60.0)) * 60
 
 
 func _is_number(value) -> bool:
@@ -927,6 +927,7 @@ func _check_slice_end_hook_state_persists() -> void:
 		"recipe.foundation_t1",
 		"region.pollution_edge",
 		"recipe.cleanse_residue",
+		"recipe.reclaim_basic_parts",
 		"region.locked_ruin_gate",
 		"region.ruin_outer_ring"
 	]
@@ -1008,6 +1009,8 @@ func _check_slice_complete_state_persists() -> void:
 		"quest.unlock_ruin_signal|inspect|map_object.ruin_gate": 1,
 		"quest.scout_ruin_outer_ring|visit_region|region.ruin_outer_ring": 1,
 		"quest.scout_ruin_outer_ring|gather_item|item.relay_shard": 2,
+		"quest.scout_ruin_outer_ring|gather_item|item.polluted_residue": 2,
+		"quest.scout_ruin_outer_ring|defeat_enemy|enemy.polluted_skitter": 1,
 		"quest.assemble_phase_anchor|craft_item|item.phase_anchor": 1,
 		"quest.stabilize_outer_ring_barrier|inspect|map_object.outer_ring_barrier": 1,
 		"quest.secure_outer_ring_signal|inspect|map_object.outer_ring_console": 1
@@ -1024,6 +1027,7 @@ func _check_slice_complete_state_persists() -> void:
 		"recipe.foundation_t1",
 		"region.pollution_edge",
 		"recipe.cleanse_residue",
+		"recipe.reclaim_basic_parts",
 		"region.locked_ruin_gate",
 		"region.ruin_outer_ring",
 		"recipe.phase_anchor",
@@ -1118,11 +1122,14 @@ func _check_deep_ruin_state_persists() -> void:
 		"quest.unlock_ruin_signal|inspect|map_object.ruin_gate": 1,
 		"quest.scout_ruin_outer_ring|visit_region|region.ruin_outer_ring": 1,
 		"quest.scout_ruin_outer_ring|gather_item|item.relay_shard": 2,
+		"quest.scout_ruin_outer_ring|gather_item|item.polluted_residue": 2,
+		"quest.scout_ruin_outer_ring|defeat_enemy|enemy.polluted_skitter": 1,
 		"quest.assemble_phase_anchor|craft_item|item.phase_anchor": 1,
 		"quest.stabilize_outer_ring_barrier|inspect|map_object.outer_ring_barrier": 1,
-		"quest.secure_outer_ring_signal|inspect|map_object.outer_ring_console": 1,
-		"quest.salvage_signal_echo|defeat_enemy|enemy.ruin_phase_guard": 1,
-		"quest.salvage_signal_echo|inspect|map_object.signal_echo_cache": 1,
+			"quest.secure_outer_ring_signal|inspect|map_object.outer_ring_console": 1,
+			"quest.salvage_signal_echo|defeat_enemy|enemy.ruin_phase_guard": 1,
+			"quest.salvage_signal_echo|gather_item|item.polluted_residue": 2,
+			"quest.salvage_signal_echo|inspect|map_object.signal_echo_cache": 1,
 		"quest.analyze_deep_signal|craft_item|item.deep_ruin_coordinates": 1,
 		"quest.unlock_deep_ruin_entrance|inspect|map_object.deep_ruin_door": 1,
 		"quest.harvest_phase_filament|visit_region|region.deep_ruin_threshold": 1,

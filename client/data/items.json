@@ -49,8 +49,8 @@
       "stack_size": 99,
       "mass": 0.2,
       "rarity": "common",
-      "source_refs": ["building.outpost_core", "recipe.process_crystal_ore", "recipe.reclaim_basic_parts"],
-      "used_by_refs": ["recipe.basic_filter_module", "recipe.foundation_t1", "recipe.repair_gel"],
+      "source_refs": ["building.outpost_core", "recipe.process_crystal_ore", "recipe.reclaim_basic_parts", "map_object.demo_stabilization_guard_cache"],
+      "used_by_refs": ["recipe.basic_filter_module", "recipe.foundation_t1", "recipe.repair_gel", "recipe.phase_anchor", "recipe.core_stabilization_buffer"],
       "public_level": "public"
     },
     {
@@ -63,7 +63,7 @@
       "mass": 0.6,
       "rarity": "uncommon",
       "source_refs": ["map_object.pollution_residue_patch"],
-      "used_by_refs": ["recipe.cleanse_residue"],
+      "used_by_refs": ["quest.prepare_demo_stabilization_buffer", "recipe.cleanse_residue"],
       "public_level": "public"
     },
     {
@@ -140,8 +140,8 @@
       "stack_size": 10,
       "mass": 0.1,
       "rarity": "uncommon",
-      "source_refs": ["recipe.cleanse_residue"],
-      "used_by_refs": ["quest.enter_pollution_edge"],
+      "source_refs": ["recipe.cleanse_residue", "map_object.demo_stabilization_recovery_cache", "map_object.demo_stabilization_guard_cache"],
+      "used_by_refs": ["quest.enter_pollution_edge", "recipe.core_stabilization_buffer"],
       "public_level": "public"
     },
     {
@@ -153,9 +153,35 @@
       "stack_size": 10,
       "mass": 0.1,
       "rarity": "common",
-      "source_refs": ["recipe.repair_gel", "map_object.demo_stabilization_recovery_cache"],
-      "used_by_refs": ["quest.prepare_treatment_supplies", "quest.defeat_elite_node"],
+      "source_refs": ["recipe.repair_gel", "map_object.demo_stabilization_recovery_cache", "map_object.demo_stabilization_guard_cache"],
+      "used_by_refs": ["quest.prepare_treatment_supplies", "quest.defeat_elite_node", "recipe.core_stabilization_buffer"],
       "public_level": "public"
+    },
+    {
+      "id": "item.core_stabilization_buffer",
+      "display_name_key": "item.core_stabilization_buffer.name",
+      "description_key": "item.core_stabilization_buffer.desc",
+      "category": "consumable",
+      "tags": ["consumable", "core_stabilization", "slice_02"],
+      "stack_size": 5,
+      "mass": 0.2,
+      "rarity": "rare",
+      "source_refs": ["recipe.core_stabilization_buffer"],
+      "used_by_refs": ["quest.prepare_demo_stabilization_buffer", "enemy.demo_stabilization_guard"],
+      "public_level": "public"
+    },
+    {
+      "id": "item.core_write_charge",
+      "display_name_key": "item.core_write_charge.name",
+      "description_key": "item.core_write_charge.desc",
+      "category": "quest_item",
+      "tags": ["core_stabilization", "write_key", "slice_02"],
+      "stack_size": 5,
+      "mass": 0.1,
+      "rarity": "rare",
+      "source_refs": ["map_object.demo_stabilization_guard_cache"],
+      "used_by_refs": ["quest.write_demo_stabilization_core", "map_object.demo_stabilization_core"],
+      "public_level": "spoiler"
     },
     {
       "id": "item.relay_shard",

@@ -33,6 +33,9 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 			_set_update("quest.enter_pollution_edge", "visit_region", "region.pollution_edge", 1)
 		]
 		updates.append_array(_get_drop_objective_updates("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", definition_id))
+		updates.append_array(_get_drop_objective_updates("quest.scout_ruin_outer_ring", "gather_item", "item.polluted_residue", definition_id))
+		updates.append_array(_get_drop_objective_updates("quest.salvage_signal_echo", "gather_item", "item.polluted_residue", definition_id))
+		updates.append_array(_get_drop_objective_updates("quest.prepare_demo_stabilization_buffer", "gather_item", "item.polluted_residue", definition_id))
 		return updates
 	if interaction_type == "clear" and definition_id == "map_object.rough_ground":
 		return [_add_update("quest.expand_treatment_point", "clear", "map_object.rough_ground", 1)]
@@ -44,6 +47,8 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 		]
 		updates.append_array(_get_drop_objective_updates("quest.scout_ruin_outer_ring", "gather_item", "item.relay_shard", definition_id))
 		return updates
+	if interaction_type == "gather" and definition_id == "map_object.demo_stabilization_guard_cache":
+		return _get_drop_objective_updates("quest.write_demo_stabilization_core", "gather_item", "item.core_write_charge", definition_id)
 	if interaction_type == "inspect" and definition_id == "map_object.outer_ring_barrier":
 		return [_set_update("quest.stabilize_outer_ring_barrier", "inspect", "map_object.outer_ring_barrier", 1)]
 	if interaction_type == "inspect" and definition_id == "map_object.outer_ring_console":
@@ -374,6 +379,8 @@ func get_recipe_objective_updates(recipe_id: String) -> Array[Dictionary]:
 			return [_set_update("quest.analyze_phase_survey_trace", "craft_item", "item.phase_survey_feedback", 1)]
 		"recipe.pressure_clearance_feedback":
 			return [_set_update("quest.analyze_pressure_clearance_trace", "craft_item", "item.pressure_clearance_feedback", 1)]
+		"recipe.core_stabilization_buffer":
+			return [_set_update("quest.prepare_demo_stabilization_buffer", "craft_item", "item.core_stabilization_buffer", 1)]
 		_:
 			return []
 
@@ -390,7 +397,11 @@ func get_defeated_enemy_objective_updates(enemy_definition_id: String) -> Array[
 	if enemy_definition_id == "enemy.treatment_skitter":
 		return [_add_update("quest.prepare_treatment_supplies", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.polluted_skitter":
-		return [_set_update("quest.enter_pollution_edge", "defeat_enemy", enemy_definition_id, 1)]
+		return [
+			_set_update("quest.enter_pollution_edge", "defeat_enemy", enemy_definition_id, 1),
+			_set_update("quest.scout_ruin_outer_ring", "defeat_enemy", enemy_definition_id, 1),
+			_set_update("quest.prepare_demo_stabilization_buffer", "defeat_enemy", enemy_definition_id, 1)
+		]
 	if enemy_definition_id == "enemy.elite_residue_node":
 		return [_set_update("quest.defeat_elite_node", "defeat_enemy", enemy_definition_id, 1)]
 	if enemy_definition_id == "enemy.ruin_phase_guard":

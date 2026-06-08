@@ -99,7 +99,7 @@ GameRoot._process()
 例如：
 
 - `ProcessingSystem.get_recommended_recipe_id()`
-- `ProcessingSystem._get_completion_next_step()`
+- `ProcessingRecipeHintFormatter.get_completion_next_step()`（`ProcessingSystem._get_completion_next_step()` 仍是兼容入口）
 - `QuestRuntime.reconcile_active_objectives()`
 
 这部分不是纯坏事，因为当前阶段重点就是尽快做可玩的闭环；但它们应被明确识别，而不是误以为已经完全通用。
