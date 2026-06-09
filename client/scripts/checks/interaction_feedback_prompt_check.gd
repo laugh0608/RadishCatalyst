@@ -11,6 +11,7 @@ func run() -> void:
 	_check_build_prompts()
 	_check_processing_missing_prompt()
 	_check_success_logs_share_interaction_reading()
+	_check_contextual_residue_prompts()
 
 
 func _check_build_prompts() -> void:
@@ -230,6 +231,56 @@ func _check_success_logs_share_interaction_reading() -> void:
 	host._expect_text_contains(filter_completed_log, "去向：抗污染药剂 I x1", "pollution filter completion log vial destination")
 	host._expect_equal(filter_completed_log.count("\n"), 1, "pollution filter completion log uses two-row HUD text")
 	host._expect_equal(filter_completed_log.length() <= 96, true, "pollution filter completion log stays short")
+
+
+func _check_contextual_residue_prompts() -> void:
+	var formatter := _create_formatter()
+	var character := CharacterState.create_default()
+
+	var outer_world := WorldState.create_default()
+	outer_world.quest_state.active_quest_ids = ["quest.salvage_signal_echo"]
+	var outer_residue := _create_residue_interactable("map_object_instance.outer_ring_echo_residue_cache")
+	var outer_prompt := formatter.format_general_interaction_prompt(outer_residue, character, outer_world)
+	host._expect_text_contains(outer_prompt, "过滤器处理", "outer echo residue prompt points to filter")
+	host._expect_text_contains(outer_prompt, "裂相坐标", "outer echo residue prompt points to deep signal analysis")
+	host._expect_text_missing(outer_prompt, "门前压力点", "outer echo residue prompt should not use early pollution route")
+
+	outer_world.ensure_map_object(
+		"map_object_instance.outer_ring_echo_residue_cache",
+		"map_object.pollution_residue_patch",
+		"region.ruin_outer_ring"
+	)
+	outer_world.set_map_object_flag("map_object_instance.outer_ring_echo_residue_cache", "is_gathered", true)
+	var gathered_outer_prompt := formatter.format_general_interaction_prompt(outer_residue, character, outer_world)
+	host._expect_text_contains(gathered_outer_prompt, "污染回波沉积已回收", "gathered outer residue keeps echo wording")
+	host._expect_text_contains(gathered_outer_prompt, "深段回波解析", "gathered outer residue keeps byproduct use")
+
+	var core_world := WorldState.create_default()
+	core_world.quest_state.active_quest_ids = ["quest.prepare_demo_stabilization_buffer"]
+	var core_residue := _create_residue_interactable("map_object_instance.core_buffer_residue_cache")
+	var core_prompt := formatter.format_general_interaction_prompt(core_residue, character, core_world)
+	host._expect_text_contains(core_prompt, "核心稳压缓冲包", "core buffer residue prompt points to buffer prep")
+	host._expect_text_contains(core_prompt, "药剂和污染浆液", "core buffer residue prompt keeps filter outputs")
+	host._expect_text_missing(core_prompt, "门前压力点", "core buffer residue prompt should not use early pollution route")
+
+	var generic_character := CharacterState.create_default()
+	generic_character.inventory.add_item("item.resistance_vial_t1", 1)
+	var generic_world := WorldState.create_default()
+	var generic_residue := _create_residue_interactable("map_object_instance.pollution_residue_deep")
+	var generic_prompt := formatter.format_general_interaction_prompt(generic_residue, generic_character, generic_world)
+	host._expect_text_contains(generic_prompt, "门前压力点", "generic residue prompt keeps early pollution pressure route")
+
+	outer_residue.free()
+	core_residue.free()
+	generic_residue.free()
+
+
+func _create_residue_interactable(instance_id: String) -> PrototypeInteractable:
+	var interactable := PrototypeInteractable.new()
+	interactable.definition_id = "map_object.pollution_residue_patch"
+	interactable.interaction_type = "gather"
+	interactable.instance_id = instance_id
+	return interactable
 
 
 func _create_formatter() -> InteractionPromptFormatter:

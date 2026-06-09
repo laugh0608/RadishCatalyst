@@ -859,6 +859,9 @@ func _get_general_interaction_next_step(
 		return "可写入但承压更高；若想降低损耗，先确认守卫缓存或过滤器补给。"
 	if interactable.definition_id != "map_object.pollution_residue_patch":
 		return ""
+	var contextual_step := _get_pollution_residue_contextual_next_step(interactable, object_state, world_state)
+	if not contextual_step.is_empty():
+		return contextual_step
 	if _is_general_interaction_processed(interactable, object_state):
 		return "把沉积物处理成药剂；带药剂回污染边界后清理受扰敌人和门前压力点。"
 	if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
@@ -866,6 +869,31 @@ func _get_general_interaction_next_step(
 	if world_state.has_base_structure_definition("building.pollution_filter"):
 		return "采完沉积物先回处理点过滤器做药剂；带药剂回污染边界后清理受扰敌人和门前压力点。"
 	return "先完成处理点地基和污染过滤器；过滤器上线后沉积物才能转成抗污染药剂。"
+
+
+func _get_pollution_residue_contextual_next_step(
+	interactable: PrototypeInteractable,
+	object_state: Dictionary,
+	world_state: WorldState
+) -> String:
+	var already_gathered := _is_general_interaction_processed(interactable, object_state)
+	if interactable.instance_id == "map_object_instance.outer_ring_echo_residue_cache":
+		if already_gathered:
+			return "污染回波沉积已回收；回处理点过滤器处理成药剂和污染浆液，浆液会进入深段回波解析。"
+		return "回收后先回处理点过滤器处理，保留污染浆液，再带回波匣回基地解析裂相坐标。"
+	if interactable.instance_id == "map_object_instance.core_buffer_residue_cache":
+		if already_gathered:
+			return "核心缓冲补料沉积已回收；回处理点过滤器处理成药剂和污染浆液，再回基地整备核心稳压缓冲包。"
+		return "回收后回处理点过滤器处理，保留药剂和污染浆液，再回基地整备核心稳压缓冲包。"
+	if interactable.instance_id == "map_object_instance.pollution_residue_ridge_cache":
+		if already_gathered:
+			return "污染脊沉积已回收；回过滤器处理后，药剂支撑外圈承压，浆液可服务稳相信标。"
+		return "采完沉积物后回过滤器处理，药剂支撑外圈承压，浆液可服务稳相信标。"
+	if world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
+		return "这批沉积物服务深段回波线；处理后保留污染浆液，再回基地解析裂相坐标。"
+	if world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer"):
+		return "这批沉积物服务核心缓冲包；处理后保留药剂和污染浆液，再回基地整备缓冲包。"
+	return ""
 
 
 func _get_processed_interaction_status(interactable: PrototypeInteractable) -> String:
