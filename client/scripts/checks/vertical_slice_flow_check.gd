@@ -506,6 +506,11 @@ func _check_status_panel_summary() -> void:
 	scout_world.quest_state.active_quest_ids = ["quest.scout_crystal_field"]
 	var scout_status_text := presenter.format_status_text(data_registry, scout_world, status_character)
 	_expect_text_contains(scout_status_text, "收集 晶体矿物（晶体簇） 0/6", "status shows crystal gather source")
+	var echo_status_world := WorldState.create_default()
+	echo_status_world.quest_state.active_quest_ids = ["quest.salvage_signal_echo"]
+	var echo_status_text := presenter.format_status_text(data_registry, echo_status_world, status_character)
+	_expect_text_contains(echo_status_text, "目标：回收深段回波", "S2 status shows signal echo goal")
+	_expect_text_contains(echo_status_text, "收集 污染沉积物（污染回波沉积） 0/2", "S2 status shows contextual echo residue source")
 	var reactor_craft_world := WorldState.create_default()
 	reactor_craft_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_weave_core"]
 	var reactor_craft_status_text := presenter.format_status_text(data_registry, reactor_craft_world, status_character)

@@ -892,12 +892,27 @@ func _format_objective_target_name(
 	return "%s（%s）" % [target_name, source_hint]
 
 
-func _get_objective_source_hint(_quest_id: String, objective_type: String, target_id: String) -> String:
+func _get_objective_source_hint(quest_id: String, objective_type: String, target_id: String) -> String:
 	if objective_source_resolver == null:
 		return ""
 	if objective_type != "gather_item" and objective_type != "craft_item":
 		return ""
+	var contextual_source_hint := _get_contextual_objective_source_hint(quest_id, objective_type, target_id)
+	if not contextual_source_hint.is_empty():
+		return contextual_source_hint
 	return objective_source_resolver.resolve_source_hint(objective_type, target_id)
+
+
+func _get_contextual_objective_source_hint(quest_id: String, objective_type: String, target_id: String) -> String:
+	if objective_type != "gather_item" or target_id != "item.polluted_residue":
+		return ""
+	match quest_id:
+		"quest.salvage_signal_echo":
+			return "污染回波沉积"
+		"quest.prepare_demo_stabilization_buffer":
+			return "核心缓冲补料沉积"
+		_:
+			return ""
 
 
 func _has_pollution_vial_ready(world_state: WorldState, character_state: CharacterState) -> bool:

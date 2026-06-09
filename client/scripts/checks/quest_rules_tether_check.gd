@@ -465,7 +465,7 @@ func _check_demo_stabilization_four_step_flow() -> void:
 	host._expect_equal(host._result_array_size(result, "completion_feedbacks"), 1, "enter demo core emits completion feedback")
 	var status_text := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
 	_expect_text_contains(status_text, "目标：整备核心稳压缓冲包", "enter demo core status points to buffer prep")
-	_expect_text_contains(status_text, "进度：收集 污染沉积物（污染沉积斑） 0/2", "enter demo core status shows buffer supply progress")
+	_expect_text_contains(status_text, "进度：收集 污染沉积物（核心缓冲补料沉积） 0/2", "enter demo core status shows buffer supply progress")
 
 	result = _complete_core_buffer_preparation(world_state, character_state)
 	host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.prepare_demo_stabilization_buffer", "core buffer prep quest completes")
@@ -594,7 +594,7 @@ func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
 	host._expect_array_has(world_state.quest_state.unlocked_effects, "recipe.core_stabilization_buffer", "short run unlocks core buffer recipe")
 	var status_text := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
 	_expect_text_contains(status_text, "目标：整备核心稳压缓冲包", "short run status points to buffer prep")
-	_expect_text_contains(status_text, "进度：收集 污染沉积物（污染沉积斑） 0/2", "short run status shows buffer supply objective")
+	_expect_text_contains(status_text, "进度：收集 污染沉积物（核心缓冲补料沉积） 0/2", "short run status shows buffer supply objective")
 
 	var repair_before := int(character_state.inventory.items.get("item.repair_gel", 0))
 	var vial_before := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
