@@ -77,7 +77,7 @@
 
 遗迹外圈短跑补充：从 `S2` 进入 `quest.salvage_signal_echo` 时，带基础过滤模块清理 `enemy.ruin_phase_guard` 应明显降低外圈回波反击造成的生命 / 防护承压；无模块仍可清理守卫，但战后更依赖修复凝胶和过滤器处理回波沉积。
 
-`S2` 回基地解析深段回波时，`recipe.deep_signal_analysis` 应消耗 `item.signal_echo_trace` 和 `fluid.polluted_slurry`；若缺污染浆液，设备缺料提示应指回相位守卫后暴露的污染回波沉积过滤线。
+`S2` 回基地解析深段回波时，`recipe.deep_signal_analysis` 应消耗 `item.signal_echo_trace` 和 `fluid.polluted_slurry`；若身上还有污染回波沉积且缺污染浆液，污染过滤器应推荐 `recipe.cleanse_residue`，设备缺料提示应指回相位守卫后暴露的过滤处理线。
 
 污染过滤器补充：`recipe.cleanse_residue` 完成后的下一步应按当前任务分流；组装稳相信标时指向 `recipe.phase_anchor`，回收深段回波时指向回波匣和裂相坐标解析，核心缓冲包整备时指向 `recipe.core_stabilization_buffer`，门前压力尚未处理时指向带药剂回污染边界排压。
 

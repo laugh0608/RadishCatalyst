@@ -121,7 +121,7 @@ static func _get_pollution_vial_completion_next_step(world_state: WorldState = n
 		if world_state.quest_state.has_active_quest("quest.assemble_phase_anchor"):
 			return "污染浆液已就绪；回基地基础反应器组装稳相信标，抗污染药剂留给遗迹外圈承压。"
 		if world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
-			return "污染回波沉积已处理成药剂和污染浆液；保留浆液，回外圈回收回波匣，再回基地解析裂相坐标。"
+			return "污染回波沉积已处理成药剂和污染浆液；浆液就是深段回波解析输入，回外圈回收回波匣后再回基地解析裂相坐标。"
 		if world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer"):
 			return "核心缓冲补料已处理成药剂和污染浆液；回基础反应器整备核心稳压缓冲包，药剂留给核心站排压。"
 	if should_return_for_second_pollution_residue_batch(world_state):

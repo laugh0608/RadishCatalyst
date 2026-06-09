@@ -196,7 +196,13 @@ func get_recommended_recipe_id(
 			return _select_if_available(interactable, "recipe.cleanse_residue")
 		"quest.assemble_phase_anchor":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_anchor", world_state)
+		"quest.salvage_signal_echo":
+			if character_state.inventory.has_ref("item.polluted_residue", 2):
+				return _select_if_available(interactable, "recipe.cleanse_residue")
+			return ""
 		"quest.analyze_deep_signal":
+			if _should_filter_echo_residue_before_deep_signal(interactable, character_state.inventory):
+				return _select_if_available(interactable, "recipe.cleanse_residue")
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_signal_analysis", world_state)
 		"quest.refine_phase_filament":
 			return _select_if_available(interactable, "recipe.phase_filament_refining")
@@ -610,6 +616,17 @@ func _select_if_available(interactable: PrototypeInteractable, recipe_id: String
 	if interactable.has_recipe(recipe_id):
 		return recipe_id
 	return ""
+
+
+func _should_filter_echo_residue_before_deep_signal(
+	interactable: PrototypeInteractable,
+	inventory: InventoryState
+) -> bool:
+	if interactable.definition_id != "building.pollution_filter":
+		return false
+	if inventory.has_ref("fluid.polluted_slurry", 1.0):
+		return false
+	return inventory.has_ref("item.polluted_residue", 2)
 
 
 func _select_recipe_with_basic_parts_fallback(
