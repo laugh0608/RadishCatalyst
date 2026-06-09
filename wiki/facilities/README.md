@@ -4,4 +4,5 @@
 
 ## 当前原型词条
 
+- [基础储存箱](basic-storage.md)
 - [污染过滤器](pollution-filter.md)

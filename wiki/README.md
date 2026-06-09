@@ -57,6 +57,7 @@ Wiki 不记录：
 - [制造基础地基材料](recipes/foundation-material.md)
 - [污染沉积物处理](recipes/pollution-residue-treatment.md)
 - [回收基础零件](recipes/basic-parts-reclamation.md)
+- [基础储存箱](facilities/basic-storage.md)
 - [污染过滤器](facilities/pollution-filter.md)
 - [污染边界区](regions/pollution-edge.md)
 - [污染与外勤补给](mechanics/pollution-and-field-supplies.md)
