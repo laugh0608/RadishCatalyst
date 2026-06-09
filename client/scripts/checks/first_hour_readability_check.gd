@@ -806,6 +806,20 @@ func _check_filter_module_combat_pressure() -> void:
 	host._expect_equal(int(roundf(ridge_character.health * 10.0)), 928, "ridge polluted guard adds higher health pressure")
 	host._expect_equal(int(roundf(ridge_character.protection * 10.0)), 964, "ridge polluted guard adds higher protection pressure")
 	host._expect_text_contains(ridge_message, "污染脊守卫压迫更强", "ridge polluted guard counter message explains pressure")
+	var ridge_vial_world := WorldState.create_default()
+	ridge_vial_world.ensure_enemy(enemy.instance_id, enemy.definition_id, "region.pollution_edge", 30.0)
+	var ridge_vial_character := CharacterState.create_default()
+	ridge_vial_character.inventory.add_item("item.resistance_vial_t1", 1)
+	var ridge_vial_message := map._apply_enemy_counterattack(enemy, ridge_vial_character, ridge_vial_world)
+	host._expect_equal(int(ridge_vial_character.inventory.items.get("item.resistance_vial_t1", 0)), 0, "ridge pressure consumes one vial for pressure venting")
+	host._expect_equal(int(roundf(ridge_vial_character.health * 10.0)), 968, "ridge pressure vial reduces health pressure")
+	host._expect_equal(int(roundf(ridge_vial_character.protection * 10.0)), 984, "ridge pressure vial reduces protection pressure")
+	host._expect_equal(bool(ridge_vial_world.get_enemy(enemy.instance_id).get("pressure_vial_used", false)), true, "ridge pressure records vial venting on enemy state")
+	host._expect_text_contains(ridge_vial_message, "抗污染药剂已自动接入污染脊排压", "ridge pressure vial message explains preparation benefit")
+	ridge_vial_character.inventory.add_item("item.resistance_vial_t1", 1)
+	var repeated_ridge_message := map._apply_enemy_counterattack(enemy, ridge_vial_character, ridge_vial_world)
+	host._expect_equal(int(ridge_vial_character.inventory.items.get("item.resistance_vial_t1", 0)), 1, "ridge pressure does not consume vial twice on same enemy")
+	host._expect_text_contains(repeated_ridge_message, "污染脊守卫压迫更强", "ridge repeated counter returns to regular pressure hint")
 
 	enemy.definition_id = "enemy.ruin_phase_guard"
 	enemy.display_name = "相位守卫"

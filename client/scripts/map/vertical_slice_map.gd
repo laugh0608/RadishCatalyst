@@ -854,7 +854,10 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 			else:
 				message = "%s门前污染压力更高，防护偏低时按 2 使用抗污染药剂，生命偏低时按 1 使用修复凝胶。" % message
 		if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
-			message = "%s污染脊守卫压迫更强，过滤模块会降低生命和防护承压；防护偏低时按 2 使用抗污染药剂。" % message
+			if consumed_pressure_vial:
+				message = "%s抗污染药剂已自动接入污染脊排压，过滤器准备让这段回访战斗更稳；清完后把沉积物带回过滤器处理。" % message
+			else:
+				message = "%s污染脊守卫压迫更强，过滤模块会降低生命和防护承压；防护偏低时按 2 使用抗污染药剂。" % message
 		if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
 			if consumed_pressure_vial:
 				message = "%s抗污染药剂已自动接入补料点排压，过滤器准备让这场回访战斗更稳；清完后把沉积物带回过滤器处理。" % message
@@ -908,6 +911,7 @@ func _mark_core_stabilization_buffer_used(enemy: PrototypeEnemy, world_state: Wo
 func _is_pollution_pressure_vial_enemy(enemy: PrototypeEnemy) -> bool:
 	return (
 		enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure"
+		or enemy.instance_id == "enemy_instance.polluted_skitter_ridge"
 		or enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter"
 	)
 func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, world_state: WorldState) -> String:
