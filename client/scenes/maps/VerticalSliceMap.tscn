@@ -291,6 +291,28 @@ offset_bottom = 122.0
 text = "回投 / 补给"
 horizontal_alignment = 1
 
+[node name="BaseStoragePad" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -286.0
+offset_top = -18.0
+offset_right = -218.0
+offset_bottom = 44.0
+color = Color(0.129, 0.231, 0.22, 1)
+
+[node name="BaseStorageObjectMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -270.0
+offset_top = 0.0
+offset_right = -230.0
+offset_bottom = 24.0
+color = Color(0.36, 0.62, 0.56, 1)
+
+[node name="BaseStoragePadLabel" type="Label" parent="OpeningSceneLayer"]
+offset_left = -300.0
+offset_top = -44.0
+offset_right = -204.0
+offset_bottom = -22.0
+text = "储存扩展"
+horizontal_alignment = 1
+
 [node name="BaseLogisticsShelf" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = -332.0
 offset_top = 42.0
@@ -521,6 +543,14 @@ definition_id = "building.basic_reactor"
 interaction_type = "process_recipe"
 recipe_id = "recipe.process_crystal_ore"
 single_use = false
+
+[node name="BasicStorageBuildSite" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-250, 18)
+definition_id = "building.basic_storage"
+interaction_type = "build"
+recipe_id = ""
+label_offset = Vector2(-92, 22)
+label_size = Vector2(184, 24)
 
 [node name="PhaseRelayPad" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(-180, 42)

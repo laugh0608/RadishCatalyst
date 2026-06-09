@@ -110,6 +110,8 @@ static func _format_pollution_residue_goal_hint(world_state: WorldState = null) 
 
 static func format_build_goal_hint(building_id: String) -> String:
 	match building_id:
+		"building.basic_storage":
+			return "接入前哨整备补给，外出消耗修复凝胶后回基地可补到 1 份。"
 		"building.foundation_t1":
 			return "给污染过滤器提供落点；铺好两块后继续建造污染过滤器。"
 		"building.pollution_filter":

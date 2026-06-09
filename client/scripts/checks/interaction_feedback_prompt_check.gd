@@ -71,9 +71,18 @@ func _check_build_prompts() -> void:
 	host._expect_text_contains(missing_filter_prompt, "基础地基：2 / 2", "pollution filter complete foundation status")
 	host._expect_text_contains(missing_filter_prompt, "缺少建造材料", "pollution filter missing material prompt")
 	host._expect_text_contains(missing_filter_prompt, "补过滤介质和基础零件", "pollution filter missing material next step prompt")
+	var storage_site := PrototypeInteractable.new()
+	storage_site.definition_id = "building.basic_storage"
+	storage_site.interaction_type = "build"
+	storage_site.instance_id = "map_object_instance.basic_storage_build_site"
+	var storage_prompt := formatter.format_build_prompt(storage_site, build_character, build_world)
+	host._expect_text_contains(storage_prompt, "基础储存箱", "basic storage build prompt names storage")
+	host._expect_text_contains(storage_prompt, "按 E 建造", "basic storage build prompt exposes action")
+	host._expect_text_contains(storage_prompt, "修复凝胶", "basic storage build prompt explains refit benefit")
 	rough_ground.free()
 	foundation_site.free()
 	filter_site.free()
+	storage_site.free()
 
 
 func _check_processing_missing_prompt() -> void:
@@ -208,6 +217,55 @@ func _check_success_logs_share_interaction_reading() -> void:
 	host._expect_text_contains(filter_build_log, "建造完成：污染过滤器", "filter completion log title")
 	host._expect_text_contains(filter_build_log, "下一步：过滤器已上线", "filter completion log next step")
 	host._expect_text_contains(filter_build_log, "去向：污染过滤器", "filter completion log destination")
+	var storage_build_world := WorldState.create_default()
+	var storage_build_character := CharacterState.create_default()
+	var storage_build_result := build_system.build_structure(
+		"map_object_instance.basic_storage_build_site",
+		"building.basic_storage",
+		storage_build_character,
+		storage_build_world
+	)
+	var storage_build_log := log_presenter.format_result_log(storage_build_result)
+	host._expect_text_contains(storage_build_log, "建造完成：基础储存箱", "storage completion log title")
+	host._expect_text_contains(storage_build_log, "前哨整备", "storage completion log points to outpost refit")
+	host._expect_equal(
+		storage_build_world.has_base_structure_definition("building.basic_storage"),
+		true,
+		"storage build registers base structure"
+	)
+
+	var outpost_world := WorldState.create_default()
+	outpost_world.quest_state.complete_quest("quest.restore_outpost")
+	outpost_world.add_base_structure(
+		"structure.basic_storage_build_site",
+		"building.basic_storage",
+		"region.outpost_platform",
+		"map_object_instance.basic_storage_build_site"
+	)
+	var outpost_character := CharacterState.create_default()
+	outpost_character.inventory.consume_ref("item.repair_gel", 1)
+	host._expect_text_contains(
+		formatter.format_outpost_core_prompt(outpost_world, outpost_character),
+		"基础储存箱可补修复凝胶",
+		"outpost prompt exposes storage restock"
+	)
+	var outpost_refit_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.outpost_core",
+		"building.outpost_core",
+		"outpost_core",
+		outpost_character,
+		outpost_world
+	)
+	host._expect_text_contains(
+		String(outpost_refit_result.get("message", "")),
+		"基础储存箱补修复凝胶",
+		"outpost refit consumes storage benefit"
+	)
+	host._expect_equal(
+		int(outpost_character.inventory.items.get("item.repair_gel", 0)),
+		1,
+		"outpost storage restocks repair gel to one"
+	)
 
 	var filter_processing_world := WorldState.create_default()
 	var filter_processing_character := CharacterState.create_default()

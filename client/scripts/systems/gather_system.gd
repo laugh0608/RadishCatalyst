@@ -7,6 +7,7 @@ const DEMO_STABILIZATION_WRITE_PROTECTION_PRESSURE := 18.0
 const DEMO_STABILIZATION_WRITE_VIAL_MULT := 0.35
 const DEMO_STABILIZATION_WRITE_CORE_BUFFER_MULT := 0.75
 const DEMO_STABILIZATION_WRITE_RECOVERY_CACHE_MULT := 0.85
+const BASIC_STORAGE_REPAIR_GEL_TARGET := 1
 const POLLUTION_RESIDUE_PRESSURE_BY_INSTANCE := {
 	"map_object_instance.pollution_residue": 1.0,
 	"map_object_instance.pollution_residue_outer_pocket": 1.15,
@@ -221,17 +222,20 @@ func _interact_with_outpost_core(character_state: CharacterState, world_state: W
 	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
 		return _success("前哨核心已恢复，晶体矿脉区已标记。")
 
+	var supply_detail := _restock_basic_storage_supply(character_state, world_state)
 	var restoration := character_state.restore_vitals_to_full()
 	var restored_health := float(restoration.get("restored_health", 0.0))
 	var restored_protection := float(restoration.get("restored_protection", 0.0))
-	if restored_health <= 0.0 and restored_protection <= 0.0:
+	if restored_health <= 0.0 and restored_protection <= 0.0 and supply_detail.is_empty():
 		return _success("前哨核心已在线：生命与防护完整，可继续外出或使用相位回投台。")
 
-	var detail := _format_outpost_core_refit_detail(
-		character_state,
-		restored_health,
-		restored_protection
-	)
+	var detail_parts: Array[String] = []
+	var vitals_detail := _format_outpost_core_refit_detail(character_state, restored_health, restored_protection)
+	if not vitals_detail.is_empty():
+		detail_parts.append(vitals_detail)
+	if not supply_detail.is_empty():
+		detail_parts.append(supply_detail)
+	var detail := "；".join(detail_parts)
 	return {
 		"success": true,
 		"message": "前哨核心整备完成：%s。" % detail,
@@ -240,6 +244,20 @@ func _interact_with_outpost_core(character_state: CharacterState, world_state: W
 			"detail": detail
 		}
 	}
+
+
+func _restock_basic_storage_supply(character_state: CharacterState, world_state: WorldState) -> String:
+	if not world_state.has_base_structure_definition("building.basic_storage"):
+		return ""
+	var current_repair_gel := int(character_state.inventory.items.get("item.repair_gel", 0))
+	if current_repair_gel >= BASIC_STORAGE_REPAIR_GEL_TARGET:
+		return ""
+	var granted_amount := BASIC_STORAGE_REPAIR_GEL_TARGET - current_repair_gel
+	character_state.inventory.add_item("item.repair_gel", granted_amount)
+	return "基础储存箱补修复凝胶 x%d，当前 %d" % [
+		granted_amount,
+		int(character_state.inventory.items.get("item.repair_gel", 0))
+	]
 
 
 func _gather(instance_id: String, definition: Dictionary, character_state: CharacterState, world_state: WorldState) -> Dictionary:

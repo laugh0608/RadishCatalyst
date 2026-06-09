@@ -32,6 +32,7 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.rough_ground_south": "map_object.rough_ground",
 	"map_object_instance.foundation_site_north": "building.foundation_t1",
 	"map_object_instance.foundation_site_south": "building.foundation_t1",
+	"map_object_instance.basic_storage_build_site": "building.basic_storage",
 	"map_object_instance.pollution_filter_build_site": "building.pollution_filter",
 	"map_object_instance.pollution_filter": "building.pollution_filter",
 	"map_object_instance.ruin_gate": "map_object.ruin_gate",
@@ -291,6 +292,10 @@ const PROTOTYPE_BASE_STRUCTURE_SOURCES := {
 	"structure.foundation_site_south": {
 		"definition_id": "building.foundation_t1",
 		"site_instance_id": "map_object_instance.foundation_site_south"
+	},
+	"structure.basic_storage_build_site": {
+		"definition_id": "building.basic_storage",
+		"site_instance_id": "map_object_instance.basic_storage_build_site"
 	},
 	"structure.pollution_filter_build_site": {
 		"definition_id": "building.pollution_filter",

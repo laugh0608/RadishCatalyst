@@ -41,6 +41,8 @@ func _check_opening_scene_layer() -> void:
 	var supply_pad := map.get_node("OpeningSceneLayer/BaseSupplyPad") as ColorRect
 	var supply_rail := map.get_node("OpeningSceneLayer/BaseSupplyObjectRail") as ColorRect
 	var supply_return_flow := map.get_node("OpeningSceneLayer/BaseSupplyReturnFlowLine") as ColorRect
+	var storage_pad := map.get_node("OpeningSceneLayer/BaseStoragePad") as ColorRect
+	var storage_marker := map.get_node("OpeningSceneLayer/BaseStorageObjectMarker") as ColorRect
 	var exit_lane := map.get_node("OpeningSceneLayer/BaseExitLane") as ColorRect
 	var exit_threshold := map.get_node("OpeningSceneLayer/BaseExitThresholdLine") as ColorRect
 	var crystal_entry := map.get_node("OpeningSceneLayer/CrystalEntryGround") as ColorRect
@@ -68,6 +70,7 @@ func _check_opening_scene_layer() -> void:
 	var pollution_gate_pressure_marker := map.get_node("OpeningSceneLayer/PollutionGatePressureMarker") as ColorRect
 	var outpost_core := map.get_node("Interactables/OutpostCore") as PrototypeInteractable
 	var basic_reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
+	var storage_site := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
 	var supply_choice := map.get_node("Interactables/BaseSupplyChoiceConsole") as PrototypeInteractable
 	var crystal_cluster := map.get_node("Interactables/CrystalCluster") as PrototypeInteractable
 	var rich_crystal := map.get_node("Interactables/RichCrystalVeinNorth") as PrototypeInteractable
@@ -93,6 +96,14 @@ func _check_opening_scene_layer() -> void:
 		core_pad.offset_left < reactor_pad.offset_left and reactor_pad.offset_left < exit_lane.offset_left,
 		true,
 		"opening scene base pads read core to manufacturing to exit"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(storage_pad, storage_site.position)
+			and _is_rect_covering_position(storage_marker, storage_site.position)
+			and storage_pad.offset_left > core_pad.offset_left
+			and storage_pad.offset_right < exit_lane.offset_left,
+		true,
+		"opening scene base storage extension adds a buildable logistics pad"
 	)
 	host._expect_equal(
 		_is_rect_covering_position(core_marker, outpost_core.position)
@@ -355,6 +366,7 @@ func _check_core_object_visual_profiles() -> void:
 	var rough_ground := map.get_node("Interactables/RoughGroundNorth") as PrototypeInteractable
 	var foundation_site := map.get_node("Interactables/FoundationSiteNorth") as PrototypeInteractable
 	var filter_site := map.get_node("Interactables/PollutionFilterBuildSite") as PrototypeInteractable
+	var storage_site := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
 	var reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
 	var ruin_gate := map.get_node("Interactables/RuinGate") as PrototypeInteractable
 	host._expect_equal(crystal.marker.size, Vector2(26.0, 30.0), "object visuals make crystal nodes tall resource markers")
@@ -363,6 +375,7 @@ func _check_core_object_visual_profiles() -> void:
 	host._expect_equal(residue.marker.size, Vector2(30.0, 18.0), "object visuals make pollution residue a low hazard marker")
 	host._expect_equal(rough_ground.marker.size, Vector2(38.0, 20.0), "object visuals make rough ground a construction blocker marker")
 	host._expect_equal(foundation_site.marker.size, Vector2(34.0, 22.0), "object visuals make foundation sites compact build markers")
+	host._expect_equal(storage_site.marker.size, Vector2(38.0, 24.0), "object visuals make storage build sites compact logistics markers")
 	host._expect_equal(filter_site.marker.size, Vector2(44.0, 28.0), "object visuals make pollution filter build site wider than foundation")
 	host._expect_equal(reactor.marker.size, Vector2(40.0, 30.0), "object visuals make base reactor a device marker")
 	host._expect_equal(ruin_gate.marker.size, Vector2(24.0, 44.0), "object visuals make ruin gate a vertical exit marker")
@@ -393,6 +406,7 @@ func _check_object_feedback_states() -> void:
 	var residue := map.get_node("Interactables/PollutionResidue") as PrototypeInteractable
 	var rough_ground := map.get_node("Interactables/RoughGroundNorth") as PrototypeInteractable
 	var foundation_site := map.get_node("Interactables/FoundationSiteNorth") as PrototypeInteractable
+	var storage_site := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
 	var filter_site := map.get_node("Interactables/PollutionFilterBuildSite") as PrototypeInteractable
 	var filter_device := map.get_node("Interactables/PollutionFilter") as PrototypeInteractable
 
@@ -409,6 +423,9 @@ func _check_object_feedback_states() -> void:
 	world.ensure_map_object(foundation_site.instance_id, foundation_site.definition_id, "region.pollution_edge")
 	world.set_map_object_flag(foundation_site.instance_id, "is_built", true)
 	world.map_objects[foundation_site.instance_id]["built_definition_id"] = "building.foundation_t1"
+	world.ensure_map_object(storage_site.instance_id, storage_site.definition_id, "region.outpost_platform")
+	world.set_map_object_flag(storage_site.instance_id, "is_built", true)
+	world.map_objects[storage_site.instance_id]["built_definition_id"] = "building.basic_storage"
 	world.ensure_map_object(filter_site.instance_id, filter_site.definition_id, "region.pollution_edge")
 	world.set_map_object_flag(filter_site.instance_id, "is_built", true)
 	world.map_objects[filter_site.instance_id]["built_definition_id"] = "building.pollution_filter"
@@ -439,6 +456,9 @@ func _check_object_feedback_states() -> void:
 	host._expect_equal(foundation_site.marker.size, PrototypeInteractable.BUILT_FOUNDATION_SIZE, "object feedback widens built foundation")
 	host._expect_text_contains(foundation_site.label.text, "基础地基", "object feedback labels built foundation")
 	host._expect_text_contains(foundation_site.label.text, "已铺设", "object feedback labels foundation built state")
+	host._expect_equal(storage_site.marker.color, PrototypeInteractable.BUILT_STORAGE_COLOR, "object feedback recolors built storage")
+	host._expect_text_contains(storage_site.label.text, "基础储存箱", "object feedback labels built storage")
+	host._expect_text_contains(storage_site.label.text, "已接入", "object feedback labels storage benefit")
 	host._expect_equal(filter_site.marker.color, PrototypeInteractable.BUILT_FILTER_COLOR, "object feedback marks completed filter build site")
 	host._expect_equal(filter_device.visible, true, "object feedback shows pollution filter device after build")
 	host._expect_equal(filter_device.monitoring, true, "object feedback enables pollution filter device after build")

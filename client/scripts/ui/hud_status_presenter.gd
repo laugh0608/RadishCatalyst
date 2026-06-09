@@ -250,6 +250,9 @@ func _format_base_summary_lines(
 			"行动方案：稳场补给低风险偏整备资源",
 			"相位测绘多读数换路线提示；压力清障高风险换防护收益"
 		]
+	var storage_summary := _format_basic_storage_summary(world_state, character_state)
+	if not storage_summary.is_empty():
+		return storage_summary
 
 	return ["设备：待命；当前目标先外出推进"]
 
@@ -262,6 +265,14 @@ func _is_base_action_choice_state(world_state: WorldState) -> bool:
 		and world_state.quest_state.has_active_quest("quest.choose_phase_survey_action")
 		and world_state.quest_state.has_active_quest("quest.choose_pressure_clearance_action")
 	)
+
+
+func _format_basic_storage_summary(world_state: WorldState, character_state: CharacterState) -> Array[String]:
+	if not world_state.has_base_structure_definition("building.basic_storage"):
+		return []
+	if not character_state.inventory.has_ref("item.repair_gel", 1):
+		return ["储存箱：回前哨核心可补修复凝胶 x1"]
+	return ["储存箱：修复凝胶备用已接入前哨核心"]
 
 
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
