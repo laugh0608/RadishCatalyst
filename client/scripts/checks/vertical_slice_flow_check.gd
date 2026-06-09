@@ -336,6 +336,24 @@ func _check_onboarding_hints() -> void:
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.scout_ruin_outer_ring", "继电残片", "outer ring scouting hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_phase_anchor", "污染浆液", "phase anchor assembly hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.stabilize_outer_ring_barrier", "稳相信标", "outer ring barrier hint")
+	var echo_direction_world := WorldState.create_default()
+	echo_direction_world.quest_state.active_quest_ids = ["quest.salvage_signal_echo"]
+	echo_direction_world.quest_state.set_objective_progress("quest.salvage_signal_echo", "defeat_enemy", "enemy.ruin_phase_guard", 1)
+	echo_direction_world.quest_state.set_objective_progress("quest.salvage_signal_echo", "gather_item", "item.polluted_residue", 2)
+	var echo_direction_character := CharacterState.create_default()
+	echo_direction_character.inventory.add_item("item.polluted_residue", 2)
+	_expect_text_contains(
+		presenter.format_direction_hint(echo_direction_world, echo_direction_character, "quest.salvage_signal_echo"),
+		"先回处理点污染过滤器处理",
+		"signal echo direction returns to filter before cache when residue is unprocessed"
+	)
+	echo_direction_character.inventory.items.erase("item.polluted_residue")
+	echo_direction_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
+	_expect_text_contains(
+		presenter.format_direction_hint(echo_direction_world, echo_direction_character, "quest.salvage_signal_echo"),
+		"回收封锁回波匣",
+		"signal echo direction returns to cache after slurry is ready"
+	)
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.salvage_signal_echo", "回波匣", "signal echo salvage hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_deep_signal", "裂相坐标", "deep signal analysis hint")
 	_expect_hint_contains(presenter, hint_world, hint_character, "quest.unlock_deep_ruin_entrance", "门禁", "deep ruin entrance hint")

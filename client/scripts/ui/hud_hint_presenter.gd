@@ -146,6 +146,8 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 				return "继续留在封锁遗迹深处，先清理压住回波匣的相位守卫。"
 			if world_state.quest_state.get_objective_progress(quest_id, "gather_item", "item.polluted_residue") < 2.0:
 				return "守卫后暴露出污染回波沉积；先回收沉积物，回过滤器处理成药剂和污染浆液。"
+			if _should_filter_signal_echo_residue(character_state):
+				return "污染回波沉积已回收；先回处理点污染过滤器处理，保留污染浆液给深段回波解析。"
 			return "带着已处理路线的污染副产，回收封锁回波匣，再回基地解析裂相坐标。"
 		"quest.analyze_deep_signal":
 			return "回基地使用基础反应器，把封锁回波和污染处理副产整理成裂相坐标。"
@@ -756,6 +758,12 @@ func _has_enough_pollution_residue_for_vial(world_state: WorldState, character_s
 	if character_state.inventory.has_ref("item.polluted_residue", 2):
 		return true
 	return _get_pollution_residue_progress(world_state) >= 2.0
+
+
+func _should_filter_signal_echo_residue(character_state: CharacterState) -> bool:
+	if character_state.inventory.has_ref("fluid.polluted_slurry", 1):
+		return false
+	return character_state.inventory.has_ref("item.polluted_residue", 2)
 
 
 func _get_pollution_residue_progress(world_state: WorldState) -> float:
