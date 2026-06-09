@@ -849,8 +849,13 @@ func _get_general_interaction_next_step(
 	if interactable.definition_id == "map_object.demo_stabilization_core":
 		if _is_general_interaction_processed(interactable, object_state):
 			return "首版 demo 主线目标已完成；返回基地整理补给。"
+		var has_recovery_cache := _has_demo_stabilization_recovery_cache(world_state)
 		if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+			if has_recovery_cache:
+				return "直接写入，侧边补给和药剂会自动接入排压并降低生命 / 防护损耗。"
 			return "直接写入，药剂会自动接入排压并降低生命 / 防护损耗。"
+		if has_recovery_cache:
+			return "可写入但承压仍高；侧边补给会削弱部分反冲，药剂不足时先确认过滤器或守卫缓存。"
 		return "可写入但承压更高；若想降低损耗，先确认守卫缓存或过滤器补给。"
 	if interactable.definition_id != "map_object.pollution_residue_patch":
 		return ""
@@ -934,6 +939,15 @@ func _is_gate_pressure_active(world_state: WorldState) -> bool:
 	if gate_pressure.is_empty():
 		return false
 	return not bool(gate_pressure.get("is_defeated", false))
+
+
+func _has_demo_stabilization_recovery_cache(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return (
+		bool(world_state.get_map_object("map_object_instance.demo_stabilization_recovery_cache").get("is_gathered", false))
+		or bool(world_state.get_map_object("map_object_instance.demo_stabilization_recovery_wreckage").get("is_gathered", false))
+	)
 
 
 func _get_display_name(definition_id: String) -> String:

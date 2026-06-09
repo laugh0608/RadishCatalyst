@@ -664,6 +664,7 @@ func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
 	)
 	host._expect_equal(bool(write_result.get("success", false)), true, "short run writes demo stabilization core")
 	_expect_text_contains(String(write_result.get("message", "")), "核心稳定数据已写入", "short run core write explains stable data")
+	_expect_text_contains(String(write_result.get("message", "")), "核心站侧边补给", "short run core write reads side recovery cache")
 	result = host.quest_runtime.advance_for_interaction(
 		world_state,
 		character_state,
@@ -708,6 +709,30 @@ func _check_core_stabilization_buffer_reduces_guard_pressure() -> void:
 
 func _check_demo_stabilization_core_write_pressure() -> void:
 	var gather_system := GatherSystem.new(host.data_registry)
+
+	var fully_prepared_world := _create_core_write_ready_world()
+	fully_prepared_world.get_enemy("enemy_instance.demo_stabilization_guard")["core_buffer_used"] = true
+	fully_prepared_world.ensure_map_object(
+		"map_object_instance.demo_stabilization_recovery_cache",
+		"map_object.demo_stabilization_recovery_cache",
+		"region.demo_stabilization_core"
+	)
+	fully_prepared_world.set_map_object_flag("map_object_instance.demo_stabilization_recovery_cache", "is_gathered", true)
+	var fully_prepared_character := CharacterState.create_default()
+	fully_prepared_character.inventory.add_item("item.resistance_vial_t1", 1)
+	var fully_prepared_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"inspect",
+		fully_prepared_character,
+		fully_prepared_world
+	)
+	host._expect_equal(bool(fully_prepared_result.get("success", false)), true, "core write with full terminal preparation succeeds")
+	_expect_text_contains(String(fully_prepared_result.get("message", "")), "核心站侧边补给", "core write reads side recovery cache")
+	_expect_text_contains(String(fully_prepared_result.get("message", "")), "终点前整备同时降低守卫和核心设备承压", "core write explains full preparation payoff")
+	host._expect_equal(int(fully_prepared_character.inventory.items.get("item.resistance_vial_t1", 0)), 0, "core write with full preparation consumes one vial")
+	host._expect_equal(int(roundf(fully_prepared_character.health * 10.0)), 973, "side cache, guard sync and vial reduce write health pressure")
+	host._expect_equal(int(roundf(fully_prepared_character.protection * 10.0)), 960, "side cache, guard sync and vial reduce write protection pressure")
 
 	var synced_world := _create_core_write_ready_world()
 	synced_world.get_enemy("enemy_instance.demo_stabilization_guard")["core_buffer_used"] = true
