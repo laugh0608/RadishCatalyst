@@ -18,7 +18,7 @@ func format_device_panel_texts(
 	var recommended_recipe_id := processing_system.get_recommended_recipe_id(interactable, character_state, world_state)
 	return {
 		"title": "设备面板：%s" % _get_display_name(data_registry, interactable.definition_id),
-		"status": _format_device_status(data_registry, displayed_recipe_id, status, recommended_recipe_id),
+		"status": _format_device_status(data_registry, displayed_recipe_id, status, recommended_recipe_id, world_state),
 		"recipes": _format_device_recipe_list(
 			data_registry,
 			processing_system,
@@ -35,17 +35,18 @@ func _format_device_status(
 	data_registry: DataRegistry,
 	recipe_id: String,
 	status: Dictionary,
-	recommended_recipe_id: String
+	recommended_recipe_id: String,
+	world_state: WorldState
 ) -> String:
 	var parts: Array[String] = [
 		"设备状态：%s" % _format_device_state(status),
 		"当前配方：%s" % _get_display_name(data_registry, recipe_id)
 	]
-	var purpose_hint := RecipePurposeHints.format_recipe_goal_hint(recipe_id)
+	var purpose_hint := RecipePurposeHints.format_recipe_goal_hint(recipe_id, world_state)
 	if not purpose_hint.is_empty():
 		parts.append("用途：%s" % purpose_hint)
 	if not recommended_recipe_id.is_empty():
-		parts.append(_format_recommended_recipe_status(data_registry, recipe_id, recommended_recipe_id))
+		parts.append(_format_recommended_recipe_status(data_registry, recipe_id, recommended_recipe_id, world_state))
 	parts.append("配方状态：%s" % String(status.get("message", "")))
 	parts.append("输入：%s" % String(status.get("inputs", "无")))
 	parts.append("产出：%s" % String(status.get("outputs", "无")))
@@ -190,11 +191,16 @@ func _format_device_operations(interactable: PrototypeInteractable, status: Dict
 	return "操作：%s" % "；".join(operations)
 
 
-func _format_recommended_recipe_status(data_registry: DataRegistry, recipe_id: String, recommended_recipe_id: String) -> String:
+func _format_recommended_recipe_status(
+	data_registry: DataRegistry,
+	recipe_id: String,
+	recommended_recipe_id: String,
+	world_state: WorldState
+) -> String:
 	var recommended_name := _get_display_name(data_registry, recommended_recipe_id)
 	if recipe_id == recommended_recipe_id:
 		return "推荐：当前配方匹配当前目标。"
-	var purpose_hint := RecipePurposeHints.format_recipe_goal_hint(recommended_recipe_id)
+	var purpose_hint := RecipePurposeHints.format_recipe_goal_hint(recommended_recipe_id, world_state)
 	if purpose_hint.is_empty():
 		return "推荐：当前目标建议使用 %s；按 R 切换到标记为“当前目标”的配方。" % recommended_name
 	return "推荐：当前目标建议使用 %s；%s；按 R 切换到标记为“当前目标”的配方。" % [

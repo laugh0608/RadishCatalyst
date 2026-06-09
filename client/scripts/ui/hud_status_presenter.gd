@@ -502,7 +502,7 @@ func _format_current_craft_summary(
 		var recipe := _find_recipe_for_output(data_registry, target_id)
 		if recipe.is_empty():
 			continue
-		return _format_recipe_summary(data_registry, recipe, character_state, "可制造")
+		return _format_recipe_summary(data_registry, recipe, character_state, world_state, "可制造")
 	return []
 
 
@@ -555,6 +555,7 @@ func _format_first_hour_recommended_craft_summary(
 					data_registry,
 					data_registry.get_definition("recipe.make_filter_media"),
 					character_state,
+					world_state,
 					"建议配方"
 				)
 		"quest.expand_treatment_point":
@@ -568,6 +569,7 @@ func _format_first_hour_recommended_craft_summary(
 					data_registry,
 					data_registry.get_definition("recipe.foundation_t1"),
 					character_state,
+					world_state,
 					"建议配方"
 				)
 			if not world_state.has_base_structure_definition("building.pollution_filter"):
@@ -576,6 +578,7 @@ func _format_first_hour_recommended_craft_summary(
 						data_registry,
 						data_registry.get_definition("recipe.make_filter_media"),
 						character_state,
+						world_state,
 						"建议配方"
 					)
 				if _get_build_cost_shortage("building.pollution_filter", "item.basic_parts", data_registry, character_state) > 0.0:
@@ -583,6 +586,7 @@ func _format_first_hour_recommended_craft_summary(
 						data_registry,
 						data_registry.get_definition("recipe.process_crystal_ore"),
 						character_state,
+						world_state,
 						"建议配方"
 					)
 		"quest.enter_pollution_edge":
@@ -598,6 +602,7 @@ func _format_recipe_summary(
 	data_registry: DataRegistry,
 	recipe: Dictionary,
 	character_state: CharacterState,
+	world_state: WorldState,
 	ready_prefix: String
 ) -> Array[String]:
 	if recipe.is_empty():
@@ -613,7 +618,7 @@ func _format_recipe_summary(
 	var output_summary := _format_refs(data_registry, recipe.get("outputs", []), "")
 	if not output_summary.is_empty():
 		result.append("完成后：获得 %s" % output_summary)
-	var purpose_hint := RecipePurposeHints.format_recipe_goal_hint(recipe_id)
+	var purpose_hint := RecipePurposeHints.format_recipe_goal_hint(recipe_id, world_state)
 	if not purpose_hint.is_empty():
 		result.append("用途：%s" % purpose_hint)
 	return result

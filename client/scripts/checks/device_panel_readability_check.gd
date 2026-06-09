@@ -10,6 +10,7 @@ func _init(check_host) -> void:
 func run() -> void:
 	_check_basic_reactor_panel_hierarchy()
 	_check_pollution_filter_panel_hierarchy()
+	_check_contextual_pollution_filter_panel_purpose()
 	_check_active_processing_panel_uses_running_recipe()
 
 
@@ -109,6 +110,66 @@ func _check_pollution_filter_panel_hierarchy() -> void:
 	filter.free()
 
 
+func _check_contextual_pollution_filter_panel_purpose() -> void:
+	var processing := ProcessingSystem.new(host.data_registry)
+	var presenter := HudDevicePanelPresenter.new()
+	var filter := PrototypeInteractable.new()
+	filter.definition_id = "building.pollution_filter"
+	filter.interaction_type = "process_recipe"
+	filter.recipe_id = "recipe.cleanse_residue"
+	filter.set_recipe_cycle(["recipe.cleanse_residue"])
+
+	var echo_world := _create_filter_world("quest.salvage_signal_echo")
+	var echo_character := CharacterState.create_default()
+	echo_character.inventory.add_item("item.polluted_residue", 2)
+	var echo_panel := presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		filter,
+		echo_character,
+		echo_world
+	)
+	var echo_status := String(echo_panel.get("status", ""))
+	host._expect_text_contains(
+		echo_status,
+		"浆液要留给深段回波解析",
+		"outer echo filter panel purpose keeps slurry for deep signal"
+	)
+	host._expect_text_missing(
+		echo_status,
+		"回收成基础零件",
+		"outer echo filter panel purpose avoids generic slurry reclaim"
+	)
+
+	var core_world := _create_filter_world("quest.prepare_demo_stabilization_buffer")
+	var core_character := CharacterState.create_default()
+	core_character.inventory.add_item("item.polluted_residue", 2)
+	var core_panel := presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		filter,
+		core_character,
+		core_world
+	)
+	var core_status := String(core_panel.get("status", ""))
+	host._expect_text_contains(
+		core_status,
+		"污染浆液要留给核心稳压缓冲包",
+		"core buffer filter panel purpose keeps slurry for buffer"
+	)
+	host._expect_text_contains(
+		core_status,
+		"药剂支撑核心站排压",
+		"core buffer filter panel purpose explains vial pressure value"
+	)
+	host._expect_text_missing(
+		core_status,
+		"回收成基础零件",
+		"core buffer filter panel purpose avoids generic slurry reclaim"
+	)
+	filter.free()
+
+
 func _check_active_processing_panel_uses_running_recipe() -> void:
 	var processing := ProcessingSystem.new(host.data_registry)
 	var presenter := HudDevicePanelPresenter.new()
@@ -161,3 +222,11 @@ func _check_active_processing_panel_uses_running_recipe() -> void:
 		"active panel operation points to waiting"
 	)
 	reactor.free()
+
+
+func _create_filter_world(active_quest_id: String) -> WorldState:
+	var world := WorldState.create_default()
+	world.quest_state.active_quest_ids = [active_quest_id]
+	world.quest_state.unlock_effect("recipe.cleanse_residue")
+	world.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
+	return world

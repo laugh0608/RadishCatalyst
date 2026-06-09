@@ -2,7 +2,7 @@ extends RefCounted
 class_name RecipePurposeHints
 
 
-static func format_recipe_goal_hint(recipe_id: String) -> String:
+static func format_recipe_goal_hint(recipe_id: String, world_state: WorldState = null) -> String:
 	match recipe_id:
 		"recipe.process_crystal_ore":
 			return "把晶体矿物转成基础零件，支撑校准件、过滤模块、地基和补给。"
@@ -21,7 +21,7 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 		"recipe.foundation_t1":
 			return "制造处理点地基材料，做完去处理点北缘铺设两块地基；缺料时回访处理点入口前的晶体和残骸。"
 		"recipe.cleanse_residue":
-			return "把沉积物处理成药剂并留下污染浆液；药剂支撑污染回访，浆液可回基础反应器回收成基础零件。"
+			return _format_pollution_residue_goal_hint(world_state)
 		"recipe.phase_anchor":
 			return "把外圈继电残片、污染浆液和基础零件组装成稳相信标；缺零件时先回收一份浆液。"
 		"recipe.core_stabilization_buffer":
@@ -95,6 +95,17 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 		"recipe.phase_survey_feedback":
 			return "把两处相位测绘记录解析成路线提示收益，做完到前线行动台确认测绘路线整备槽。"
 	return ""
+
+
+static func _format_pollution_residue_goal_hint(world_state: WorldState = null) -> String:
+	if world_state != null:
+		if world_state.quest_state.has_active_quest("quest.assemble_phase_anchor"):
+			return "把沉积物处理成药剂并留下污染浆液；药剂支撑遗迹外圈承压，浆液要留给稳相信标组装。"
+		if world_state.quest_state.has_active_quest("quest.salvage_signal_echo") or world_state.quest_state.has_active_quest("quest.analyze_deep_signal"):
+			return "把污染回波沉积处理成药剂并留下污染浆液；药剂支撑外圈承压，浆液要留给深段回波解析。"
+		if world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer"):
+			return "把核心补料沉积处理成药剂并留下污染浆液；污染浆液要留给核心稳压缓冲包，药剂支撑核心站排压。"
+	return "把沉积物处理成药剂并留下污染浆液；药剂支撑污染回访，浆液可回基础反应器回收成基础零件。"
 
 
 static func format_build_goal_hint(building_id: String) -> String:
