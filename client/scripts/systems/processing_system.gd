@@ -324,8 +324,9 @@ func _format_processing_started_message(recipe: Dictionary, world_state: WorldSt
 		_get_display_name(recipe_id),
 		_format_amount(_get_recipe_duration(recipe))
 	]
-	if recipe_id == "recipe.cleanse_residue" and ProcessingRecipeHintFormatter.should_return_for_second_pollution_residue_batch(world_state):
-		message += " 本次会产出抗污染药剂并留下污染浆液；完成后带药剂回污染边界，清理受扰敌人和门前压力点。"
+	var started_appendix := ProcessingRecipeHintFormatter.get_processing_started_appendix(recipe_id, world_state)
+	if not started_appendix.is_empty():
+		message += " %s" % started_appendix
 	return message
 
 

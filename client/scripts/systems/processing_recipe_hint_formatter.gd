@@ -108,12 +108,33 @@ static func get_completion_next_step(recipe_id: String, world_state: WorldState 
 			return "查看当前任务目标，选择下一次加工或外出行动。"
 
 
+static func get_processing_started_appendix(recipe_id: String, world_state: WorldState = null) -> String:
+	match recipe_id:
+		"recipe.cleanse_residue":
+			return _get_pollution_residue_processing_started_appendix(world_state)
+		_:
+			return ""
+
+
 static func should_return_for_second_pollution_residue_batch(world_state: WorldState) -> bool:
 	if world_state == null:
 		return false
 	if not world_state.quest_state.has_active_quest("quest.enter_pollution_edge"):
 		return false
 	return world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue") < 4.0
+
+
+static func _get_pollution_residue_processing_started_appendix(world_state: WorldState = null) -> String:
+	if world_state != null:
+		if world_state.quest_state.has_active_quest("quest.assemble_phase_anchor"):
+			return "本次会产出抗污染药剂并留下污染浆液；完成后回基地基础反应器组装稳相信标，药剂留给遗迹外圈承压。"
+		if world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
+			return "本次会产出抗污染药剂并留下污染浆液；浆液保留给深段回波解析，药剂留给外圈继续承压。"
+		if world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer"):
+			return "本次会产出抗污染药剂并留下污染浆液；完成后回基础反应器整备核心稳压缓冲包，药剂留给核心站排压。"
+	if should_return_for_second_pollution_residue_batch(world_state):
+		return "本次会产出抗污染药剂并留下污染浆液；完成后带药剂回污染边界，清理受扰敌人和门前压力点。"
+	return ""
 
 
 static func _get_pollution_vial_completion_next_step(world_state: WorldState = null) -> String:

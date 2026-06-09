@@ -429,6 +429,16 @@ func _check_pollution_vial_contextual_next_steps(processing: ProcessingSystem) -
 		"深段回波解析输入",
 		"residue cleansing points echo prep back to echo cache"
 	)
+	var echo_character := CharacterState.create_default()
+	echo_character.inventory.add_item("item.polluted_residue", 2)
+	echo_character.inventory.add_fluid("fluid.basic_solvent", 1.0)
+	var echo_start := processing.process_recipe("recipe.cleanse_residue", echo_character, echo_world)
+	host._expect_equal(bool(echo_start.get("success", false)), true, "echo residue cleansing starts")
+	host._expect_text_contains(
+		String(echo_start.get("message", "")),
+		"浆液保留给深段回波解析",
+		"echo residue start message carries byproduct purpose"
+	)
 
 	var core_world := _create_filter_world("recipe.cleanse_residue")
 	core_world.quest_state.active_quest_ids = ["quest.prepare_demo_stabilization_buffer"]
@@ -443,6 +453,16 @@ func _check_pollution_vial_contextual_next_steps(processing: ProcessingSystem) -
 	core_character.inventory.add_fluid("fluid.basic_solvent", 1.0)
 	var start := processing.process_recipe("recipe.cleanse_residue", core_character, core_world)
 	host._expect_equal(bool(start.get("success", false)), true, "contextual residue cleansing starts")
+	host._expect_text_contains(
+		String(start.get("message", "")),
+		"整备核心稳压缓冲包",
+		"contextual residue cleansing start points to core buffer"
+	)
+	host._expect_text_contains(
+		String(start.get("message", "")),
+		"药剂留给核心站排压",
+		"contextual residue cleansing start carries core pressure value"
+	)
 	var completed := processing.advance_processing(20.0, core_character, core_world)
 	host._expect_equal(completed.size(), 1, "contextual residue cleansing completes")
 	if not completed.is_empty():
