@@ -134,20 +134,27 @@ text = "清空"
 [node name="BaselineTitleLabel" type="Label" parent="SavePanel"]
 offset_left = 18.0
 offset_top = 314.0
-offset_right = 290.0
+offset_right = 214.0
 offset_bottom = 342.0
 text = "开发基线"
 label_settings = SubResource("LabelSettings_prompt")
 
 [node name="BaselinePreviousButton" type="Button" parent="SavePanel"]
-offset_left = 298.0
+offset_left = 226.0
 offset_top = 314.0
-offset_right = 364.0
+offset_right = 288.0
 offset_bottom = 346.0
-text = "上一个"
+text = "上个"
+
+[node name="BaselinePlaytestButton" type="Button" parent="SavePanel"]
+offset_left = 300.0
+offset_top = 314.0
+offset_right = 376.0
+offset_bottom = 346.0
+text = "Demo取样"
 
 [node name="BaselineLoadButton" type="Button" parent="SavePanel"]
-offset_left = 376.0
+offset_left = 388.0
 offset_top = 314.0
 offset_right = 442.0
 offset_bottom = 346.0
@@ -158,7 +165,7 @@ offset_left = 454.0
 offset_top = 314.0
 offset_right = 526.0
 offset_bottom = 346.0
-text = "下一个"
+text = "下个"
 
 [node name="BaselineLabel" type="Label" parent="SavePanel"]
 offset_left = 18.0

@@ -887,6 +887,13 @@ func _set_runtime_position(
 
 
 func _format_loaded_message(definition: Dictionary) -> String:
+	var playtest_watch := String(definition.get("demo_playtest_watch", ""))
+	if not playtest_watch.is_empty():
+		return "已载入开发基线 %s：%s 试玩观察：%s 如需长期保留，可直接保存到任一普通槽位。" % [
+			String(definition.get("code", "")),
+			String(definition.get("summary", "")),
+			playtest_watch
+		]
 	return "已载入开发基线 %s：%s 如需长期保留，可直接保存到任一普通槽位。" % [
 		String(definition.get("code", "")),
 		String(definition.get("summary", ""))

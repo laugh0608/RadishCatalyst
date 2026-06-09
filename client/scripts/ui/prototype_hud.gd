@@ -145,6 +145,7 @@ var last_debug_character_state: CharacterState
 @onready var new_game_button: Button = $SavePanel/NewGameButton
 @onready var baseline_label: Label = $SavePanel/BaselineLabel
 @onready var baseline_previous_button: Button = $SavePanel/BaselinePreviousButton
+@onready var baseline_playtest_button: Button = $SavePanel/BaselinePlaytestButton
 @onready var baseline_load_button: Button = $SavePanel/BaselineLoadButton
 @onready var baseline_next_button: Button = $SavePanel/BaselineNextButton
 @onready var save_slot_labels: Array[Label] = [
@@ -182,6 +183,7 @@ func _ready() -> void:
 	_ensure_runtime_nodes()
 	new_game_button.pressed.connect(_on_new_game_pressed)
 	baseline_previous_button.pressed.connect(_on_baseline_previous_pressed)
+	baseline_playtest_button.pressed.connect(_on_baseline_playtest_pressed)
 	baseline_load_button.pressed.connect(_on_baseline_load_pressed)
 	baseline_next_button.pressed.connect(_on_baseline_next_pressed)
 	for index in range(SAVE_SLOT_IDS.size()):
@@ -381,6 +383,7 @@ func update_save_slot_summaries(summaries: Array[Dictionary]) -> void:
 	)
 
 func update_development_baselines(definitions: Array[Dictionary]) -> void:
+	var selected_baseline_id := _get_selected_development_baseline_id()
 	development_baseline_definitions.clear()
 	for definition in definitions:
 		var baseline_definition: Dictionary = definition
@@ -388,11 +391,9 @@ func update_development_baselines(definitions: Array[Dictionary]) -> void:
 	if development_baseline_definitions.is_empty():
 		selected_development_baseline_index = 0
 	else:
-		selected_development_baseline_index = clampi(
-			selected_development_baseline_index,
-			0,
-			development_baseline_definitions.size() - 1
-		)
+		if selected_baseline_id.is_empty():
+			selected_baseline_id = DevelopmentBaselineCatalog.get_default_demo_playtest_baseline_id()
+		_select_development_baseline_by_id(selected_baseline_id)
 	_refresh_development_baseline_panel()
 
 
@@ -419,6 +420,23 @@ func _on_baseline_previous_pressed() -> void:
 		selected_development_baseline_index - 1,
 		development_baseline_definitions.size()
 	)
+	_refresh_development_baseline_panel()
+
+
+func _on_baseline_playtest_pressed() -> void:
+	if development_baseline_definitions.is_empty():
+		return
+	var playtest_ids := DevelopmentBaselineCatalog.get_demo_playtest_baseline_ids()
+	if playtest_ids.is_empty():
+		return
+	var current_id := _get_selected_development_baseline_id()
+	var current_playtest_index := playtest_ids.find(current_id)
+	var next_playtest_id := ""
+	if current_playtest_index < 0:
+		next_playtest_id = DevelopmentBaselineCatalog.get_default_demo_playtest_baseline_id()
+	else:
+		next_playtest_id = playtest_ids[posmod(current_playtest_index + 1, playtest_ids.size())]
+	_select_development_baseline_by_id(next_playtest_id)
 	_refresh_development_baseline_panel()
 
 
@@ -552,6 +570,8 @@ func _refresh_development_baseline_panel() -> void:
 	var has_definitions := not development_baseline_definitions.is_empty()
 	if baseline_previous_button != null:
 		baseline_previous_button.disabled = not has_definitions
+	if baseline_playtest_button != null:
+		baseline_playtest_button.disabled = not _has_available_demo_playtest_baselines()
 	if baseline_load_button != null:
 		baseline_load_button.disabled = not has_definitions
 	if baseline_next_button != null:
@@ -687,6 +707,8 @@ func _ensure_runtime_nodes() -> void:
 		baseline_label = get_node_or_null("SavePanel/BaselineLabel")
 	if baseline_previous_button == null:
 		baseline_previous_button = get_node_or_null("SavePanel/BaselinePreviousButton")
+	if baseline_playtest_button == null:
+		baseline_playtest_button = get_node_or_null("SavePanel/BaselinePlaytestButton")
 	if baseline_load_button == null:
 		baseline_load_button = get_node_or_null("SavePanel/BaselineLoadButton")
 	if baseline_next_button == null:
@@ -928,6 +950,42 @@ func _get_selected_development_baseline() -> Dictionary:
 	if development_baseline_definitions.is_empty():
 		return {}
 	return development_baseline_definitions[selected_development_baseline_index]
+
+
+func _get_selected_development_baseline_id() -> String:
+	return String(_get_selected_development_baseline().get("id", ""))
+
+
+func _select_development_baseline_by_id(baseline_id: String) -> void:
+	if development_baseline_definitions.is_empty():
+		selected_development_baseline_index = 0
+		return
+	var baseline_index := _find_development_baseline_index(baseline_id)
+	if baseline_index >= 0:
+		selected_development_baseline_index = baseline_index
+		return
+	selected_development_baseline_index = clampi(
+		selected_development_baseline_index,
+		0,
+		development_baseline_definitions.size() - 1
+	)
+
+
+func _find_development_baseline_index(baseline_id: String) -> int:
+	if baseline_id.is_empty():
+		return -1
+	for index in range(development_baseline_definitions.size()):
+		var definition := development_baseline_definitions[index]
+		if String(definition.get("id", "")) == baseline_id:
+			return index
+	return -1
+
+
+func _has_available_demo_playtest_baselines() -> bool:
+	for baseline_id in DevelopmentBaselineCatalog.get_demo_playtest_baseline_ids():
+		if _find_development_baseline_index(baseline_id) >= 0:
+			return true
+	return false
 
 
 func _get_selected_gm_resource_id() -> String:
