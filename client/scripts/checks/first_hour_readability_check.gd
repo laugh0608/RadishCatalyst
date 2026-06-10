@@ -2,6 +2,7 @@ extends RefCounted
 
 const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
 const PrototypeHudScene := preload("res://scenes/ui/PrototypeHud.tscn")
+const CrystalSideRouteCheckScript := preload("res://scripts/checks/crystal_side_route_check.gd")
 
 var host
 
@@ -20,6 +21,7 @@ func run() -> void:
 	_check_hud_map_runtime_labels()
 	_check_hud_runtime_layout_first_pass()
 	_check_core_loop_layout()
+	CrystalSideRouteCheckScript.new(host).run(host.root)
 	_check_treatment_entry_gather_feedback()
 	_check_pollution_pressure_consumption()
 	_check_filter_module_combat_pressure()

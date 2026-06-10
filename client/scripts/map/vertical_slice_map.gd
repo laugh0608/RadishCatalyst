@@ -413,6 +413,8 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 			return _enemy_defeat_result(target, drops_message, followup)
 		if target.definition_id == "enemy.treatment_skitter":
 			return _enemy_defeat_result(target, drops_message, "处理点清障压力减弱；继续确认另一处威胁或回基地补齐修复凝胶。")
+		if target.instance_id == "enemy_instance.native_skitter_logistics_guard":
+			return _enemy_defeat_result(target, drops_message, "晶体侧路暂时安全；回收周边晶体和残骸后回基地整理基建材料。")
 		if target.definition_id == "enemy.ruin_phase_guard":
 			return _enemy_defeat_result(target, drops_message, "外圈回波匣附近的干扰守卫已清空；先回收暴露的污染回波沉积，再带回波匣回基地解析。")
 		if target.definition_id == "enemy.deep_ruin_sentinel":

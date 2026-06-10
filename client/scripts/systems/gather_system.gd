@@ -491,8 +491,12 @@ func _get_first_hour_gather_step_hint(instance_id: String) -> String:
 	match instance_id:
 		"map_object_instance.crystal_cluster_treatment_approach":
 			return "这些晶体可回基地加工成过滤模块或地基材料"
+		"map_object_instance.crystal_cluster_logistics_pocket":
+			return "侧路晶体可回基地加工基础零件，支撑储存箱、整备台和后续地基材料"
 		"map_object_instance.field_wreckage_treatment_approach":
 			return "残骸废件可补反应器校准；继续向处理点入口前确认补给余量"
+		"map_object_instance.field_wreckage_logistics_pocket":
+			return "侧路废件可补反应器校准、整备台和后续基建材料"
 		"map_object_instance.crystal_cluster_foundation_return":
 			return "处理点入口前的回访晶体已补足；回基地加工基础零件或地基材料"
 		"map_object_instance.field_wreckage_foundation_return":

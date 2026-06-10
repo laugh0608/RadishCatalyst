@@ -79,6 +79,16 @@ func _check_loads_known_map_object_source() -> void:
 			"region_id": "region.crystal_vein_field",
 			"is_gathered": true
 		},
+		"map_object_instance.crystal_cluster_logistics_pocket": {
+			"definition_id": "map_object.crystal_cluster",
+			"region_id": "region.crystal_vein_field",
+			"is_gathered": true
+		},
+		"map_object_instance.field_wreckage_logistics_pocket": {
+			"definition_id": "map_object.field_wreckage",
+			"region_id": "region.crystal_vein_field",
+			"is_gathered": true
+		},
 		"map_object_instance.pollution_residue_outer_pocket": {
 			"definition_id": "map_object.pollution_residue_patch",
 			"region_id": "region.pollution_edge",
@@ -253,6 +263,14 @@ func _check_loads_known_enemy_source() -> void:
 			"health": 20,
 			"max_health": 20,
 			"is_defeated": false
+		},
+		"enemy_instance.native_skitter_logistics_guard": {
+			"definition_id": "enemy.native_skitter",
+			"region_id": "region.crystal_vein_field",
+			"health": 0,
+			"max_health": 20,
+			"is_defeated": true,
+			"drops_granted": true
 		},
 		"enemy_instance.demo_stabilization_guard": {
 			"definition_id": "enemy.demo_stabilization_guard",
