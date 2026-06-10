@@ -9,6 +9,7 @@ const BASE_ATTACK_DAMAGE := 10.0
 const PLAYER_INTERACTION_RANGE := 96.0
 const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
 const POLLUTION_RIDGE_COUNTER_MULT := 1.2
+const POLLUTION_REVISIT_COUNTER_MULT := 1.15
 const GATE_PRESSURE_COUNTER_MULT := 1.35
 const RUIN_PHASE_GUARD_COUNTER_MULT := 1.2
 const POLLUTION_PRESSURE_VIAL_DAMAGE_MULT := 0.45
@@ -293,6 +294,11 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				world_state.quest_state.has_active_quest("quest.scout_ruin_outer_ring")
 				or world_state.quest_state.has_completed_quest("quest.scout_ruin_outer_ring")
 			)
+		if interactable.instance_id == "map_object_instance.pollution_residue_vial_return_cache":
+			should_enable = should_enable and (
+				world_state.quest_state.has_active_quest("quest.enter_pollution_edge")
+				or world_state.quest_state.has_completed_quest("quest.enter_pollution_edge")
+			)
 		if interactable.instance_id == "map_object_instance.outer_ring_echo_residue_cache":
 			should_enable = (
 				should_enable
@@ -406,6 +412,8 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 			var followup := "污染处理点周边暂时安全。"
 			if target.instance_id == "enemy_instance.polluted_skitter_gate_pressure":
 				followup = "遗迹门前压力减弱，可以继续处理污染残核或确认入口信号。"
+			if target.instance_id == "enemy_instance.polluted_skitter_vial_return_guard":
+				followup = "污染侧翼压力减弱；回收沉积物后回过滤器补药剂和污染浆液，再处理门前或深处压力。"
 			if target.instance_id == "enemy_instance.polluted_skitter_ridge":
 				followup = "污染脊守卫已清空；把沉积物带回过滤器处理，副产浆液可回收成信标所需基础零件。"
 			if target.instance_id == "enemy_instance.core_buffer_polluted_skitter":
@@ -714,6 +722,8 @@ func _refresh_enemy_focus_visuals() -> void:
 func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool:
 	if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure":
 		return world_state.quest_state.has_active_quest("quest.defeat_elite_node") or world_state.quest_state.has_completed_quest("quest.defeat_elite_node")
+	if enemy.instance_id == "enemy_instance.polluted_skitter_vial_return_guard":
+		return world_state.quest_state.has_active_quest("quest.enter_pollution_edge") or world_state.quest_state.has_completed_quest("quest.enter_pollution_edge")
 	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
 		return world_state.quest_state.has_active_quest("quest.scout_ruin_outer_ring") or world_state.quest_state.has_completed_quest("quest.scout_ruin_outer_ring")
 	if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
@@ -820,6 +830,8 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 	var pressure_multiplier := 1.0
 	if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure":
 		pressure_multiplier = GATE_PRESSURE_COUNTER_MULT
+	if enemy.instance_id == "enemy_instance.polluted_skitter_vial_return_guard":
+		pressure_multiplier = POLLUTION_REVISIT_COUNTER_MULT
 	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
 		pressure_multiplier = POLLUTION_RIDGE_COUNTER_MULT
 	if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
@@ -859,6 +871,11 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 				message = "%s抗污染药剂已自动接入门前排压，过滤器准备让生命和防护承压降低；继续压制入口信号。" % message
 			else:
 				message = "%s门前污染压力更高，防护偏低时按 2 使用抗污染药剂，生命偏低时按 1 使用修复凝胶。" % message
+		if enemy.instance_id == "enemy_instance.polluted_skitter_vial_return_guard":
+			if consumed_pressure_vial:
+				message = "%s抗污染药剂已自动接入侧翼排压，过滤器准备让这段回访战斗更稳；清完后回收沉积物再回基地处理。" % message
+			else:
+				message = "%s侧翼污染压力抬升，过滤模块会降低生命和防护承压；带药剂回来会自动接入排压。" % message
 		if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
 			if consumed_pressure_vial:
 				message = "%s抗污染药剂已自动接入污染脊排压，过滤器准备让这段回访战斗更稳；清完后把沉积物带回过滤器处理。" % message
@@ -917,6 +934,7 @@ func _mark_core_stabilization_buffer_used(enemy: PrototypeEnemy, world_state: Wo
 func _is_pollution_pressure_vial_enemy(enemy: PrototypeEnemy) -> bool:
 	return (
 		enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure"
+		or enemy.instance_id == "enemy_instance.polluted_skitter_vial_return_guard"
 		or enemy.instance_id == "enemy_instance.polluted_skitter_ridge"
 		or enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter"
 	)

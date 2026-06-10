@@ -94,6 +94,11 @@ func _check_loads_known_map_object_source() -> void:
 			"region_id": "region.pollution_edge",
 			"is_gathered": true
 		},
+		"map_object_instance.pollution_residue_vial_return_cache": {
+			"definition_id": "map_object.pollution_residue_patch",
+			"region_id": "region.pollution_edge",
+			"is_gathered": true
+		},
 		"map_object_instance.rough_ground_north": {
 			"definition_id": "map_object.rough_ground",
 			"region_id": "region.crystal_vein_field",
@@ -285,6 +290,14 @@ func _check_loads_known_enemy_source() -> void:
 			"health": 0,
 			"max_health": 30,
 			"is_defeated": true
+		},
+		"enemy_instance.polluted_skitter_vial_return_guard": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge",
+			"health": 0,
+			"max_health": 30,
+			"is_defeated": true,
+			"pressure_vial_used": true
 		}
 	}
 	host._write_save_json(save_data)

@@ -13,6 +13,7 @@ const BASIC_FILTER_MODULE_ID := "equipment.filter_module_t1"
 const POLLUTION_RESIDUE_PRESSURE_BY_INSTANCE := {
 	"map_object_instance.pollution_residue": 1.0,
 	"map_object_instance.pollution_residue_outer_pocket": 1.15,
+	"map_object_instance.pollution_residue_vial_return_cache": 1.25,
 	"map_object_instance.pollution_residue_deep": 1.35,
 	"map_object_instance.pollution_residue_ridge_cache": 1.6,
 	"map_object_instance.outer_ring_echo_residue_cache": 1.7,
@@ -480,6 +481,10 @@ func _get_pollution_pressure_step_hint(instance_id: String, character_state: Cha
 		if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
 			return "污染脊沉积已回收；回过滤器处理成药剂和污染浆液，浆液可回收成信标所需基础零件"
 		return "污染脊沉积已回收；建议回过滤器处理沉积物，补药剂并留下浆液支撑稳相信标"
+	if instance_id == "map_object_instance.pollution_residue_vial_return_cache":
+		if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+			return "侧翼沉积已回收；回过滤器处理成下一支药剂和污染浆液，再回污染边界处理门前压力"
+		return "侧翼沉积已回收；建议回过滤器补抗污染药剂，污染浆液也能继续服务后续基建和解析"
 	if instance_id == "map_object_instance.outer_ring_echo_residue_cache":
 		return "污染回波沉积已回收；回过滤器处理成抗污染药剂和污染浆液，再带回波匣回基地解析裂相坐标"
 	if instance_id == "map_object_instance.pollution_residue_deep":

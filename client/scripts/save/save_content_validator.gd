@@ -27,6 +27,7 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 		"map_object_instance.anomaly_residue_east": "map_object.anomaly_residue_patch",
 		"map_object_instance.pollution_residue": "map_object.pollution_residue_patch",
 		"map_object_instance.pollution_residue_outer_pocket": "map_object.pollution_residue_patch",
+		"map_object_instance.pollution_residue_vial_return_cache": "map_object.pollution_residue_patch",
 		"map_object_instance.pollution_residue_deep": "map_object.pollution_residue_patch",
 		"map_object_instance.pollution_residue_ridge_cache": "map_object.pollution_residue_patch",
 		"map_object_instance.core_buffer_residue_cache": "map_object.pollution_residue_patch",
@@ -203,6 +204,10 @@ const PROTOTYPE_ENEMY_SOURCES := {
 		"region_id": "region.crystal_vein_field"
 	},
 		"enemy_instance.polluted_skitter": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge"
+		},
+		"enemy_instance.polluted_skitter_vial_return_guard": {
 			"definition_id": "enemy.polluted_skitter",
 			"region_id": "region.pollution_edge"
 		},

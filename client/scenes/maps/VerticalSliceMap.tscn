@@ -569,6 +569,34 @@ offset_right = 360.0
 offset_bottom = 56.0
 color = Color(0.68, 0.39, 0.16, 1)
 
+[node name="PollutionVialReturnSpurLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 256.0
+offset_top = 108.0
+offset_right = 338.0
+offset_bottom = 116.0
+color = Color(0.615, 0.361, 0.141, 1)
+
+[node name="PollutionVialReturnPocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 250.0
+offset_top = 112.0
+offset_right = 342.0
+offset_bottom = 172.0
+color = Color(0.384, 0.302, 0.094, 1)
+
+[node name="PollutionVialReturnResidueMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 262.0
+offset_top = 134.0
+offset_right = 292.0
+offset_bottom = 164.0
+color = Color(0.72, 0.59, 0.16, 1)
+
+[node name="PollutionVialReturnGuardMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 308.0
+offset_top = 118.0
+offset_right = 336.0
+offset_bottom = 146.0
+color = Color(0.78, 0.39, 0.14, 1)
+
 [node name="PollutionGatePressurePocket" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = 344.0
 offset_top = 8.0
@@ -819,6 +847,13 @@ position = Vector2(304, 96)
 definition_id = "map_object.pollution_residue_patch"
 interaction_type = "gather"
 label_offset = Vector2(-68, 22)
+
+[node name="PollutionResidueVialReturnCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(276, 146)
+definition_id = "map_object.pollution_residue_patch"
+interaction_type = "gather"
+label_offset = Vector2(-76, 22)
+label_size = Vector2(152, 24)
 
 [node name="PollutionResidueDeep" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(344, 158)
@@ -1457,6 +1492,10 @@ definition_id = "enemy.treatment_skitter"
 
 [node name="PollutedSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(310, 76)
+definition_id = "enemy.polluted_skitter"
+
+[node name="PollutedSkitterVialReturnGuard" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(320, 128)
 definition_id = "enemy.polluted_skitter"
 
 [node name="PollutedSkitterDeep" parent="Enemies" instance=ExtResource("4_enemy")]
