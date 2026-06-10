@@ -129,6 +129,7 @@ func _request_recipe_cycle() -> void:
 func _on_player_interaction_requested() -> void:
 	var context := _get_current_interaction_context()
 	var result := vertical_slice_map.try_interact(character_state, world_state)
+	_apply_outfitting_result_progress(result)
 	var log_messages: Array[String] = [hud_log_presenter.format_result_log(result)]
 	if bool(result.get("success", false)) and _should_advance_interaction(context, result):
 		_append_quest_runtime_result(log_messages, quest_runtime.advance_for_interaction(world_state, character_state, context, result))
@@ -359,6 +360,9 @@ func _on_interaction_available(interactable: PrototypeInteractable, should_auto_
 		return
 	if interactable.definition_id == "map_object.phase_relay_pad":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_relay_pad_prompt(world_state))
+		return
+	if interactable.definition_id == "building.field_outfitting_station" and interactable.interaction_type == "inspect":
+		hud.show_prompt(interaction_prompt_formatter.format_outfitting_station_prompt(character_state, world_state))
 		return
 	if interactable.definition_id == "map_object.phase_fault_spire":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_fault_spire_prompt(world_state, character_state))
@@ -618,6 +622,9 @@ func _refresh_current_context_prompt() -> void:
 	if interactable.definition_id == "map_object.phase_relay_pad":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_relay_pad_prompt(world_state))
 		return
+	if interactable.definition_id == "building.field_outfitting_station" and interactable.interaction_type == "inspect":
+		hud.show_prompt(interaction_prompt_formatter.format_outfitting_station_prompt(character_state, world_state))
+		return
 	if interactable.definition_id == "map_object.phase_fault_spire":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_fault_spire_prompt(world_state, character_state))
 		return
@@ -683,6 +690,21 @@ func _mark_pollution_edge_ready() -> bool:
 	var result := quest_runtime.advance_pollution_edge_ready(world_state, character_state)
 	_show_quest_completion_feedbacks(result)
 	return bool(result.get("accepted", false))
+
+
+func _apply_outfitting_result_progress(result: Dictionary) -> void:
+	if not bool(result.get("outfitting_module_enabled", false)):
+		return
+	var edge_result := quest_runtime.advance_pollution_edge_ready(world_state, character_state)
+	_show_quest_completion_feedbacks(edge_result)
+	if not bool(edge_result.get("accepted", false)):
+		return
+	var message := String(result.get("message", ""))
+	result["message"] = "%s 污染边界区已标记。" % message
+	var feedback: Dictionary = result.get("success_feedback", {})
+	if feedback.is_empty():
+		return
+	feedback["destination"] = "污染边界区已标记；处理点可继续推进。"
 
 
 func _select_recommended_recipe(interactable: PrototypeInteractable) -> String:

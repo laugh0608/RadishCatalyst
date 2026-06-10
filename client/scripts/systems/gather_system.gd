@@ -8,6 +8,8 @@ const DEMO_STABILIZATION_WRITE_VIAL_MULT := 0.35
 const DEMO_STABILIZATION_WRITE_CORE_BUFFER_MULT := 0.75
 const DEMO_STABILIZATION_WRITE_RECOVERY_CACHE_MULT := 0.85
 const BASIC_STORAGE_REPAIR_GEL_TARGET := 1
+const FIELD_OUTFITTING_STATION_ID := "building.field_outfitting_station"
+const BASIC_FILTER_MODULE_ID := "equipment.filter_module_t1"
 const POLLUTION_RESIDUE_PRESSURE_BY_INSTANCE := {
 	"map_object_instance.pollution_residue": 1.0,
 	"map_object_instance.pollution_residue_outer_pocket": 1.15,
@@ -95,6 +97,8 @@ func interact_with_object(
 ) -> Dictionary:
 	if interaction_type == "outpost_core":
 		return _interact_with_outpost_core(character_state, world_state)
+	if interaction_type == "inspect" and definition_id == FIELD_OUTFITTING_STATION_ID:
+		return _interact_with_field_outfitting_station(character_state, world_state)
 	if interaction_type == "process_recipe":
 		return processing_system.process_recipe(recipe_id, character_state, world_state)
 	if interaction_type == "build":
@@ -258,6 +262,46 @@ func _restock_basic_storage_supply(character_state: CharacterState, world_state:
 		granted_amount,
 		int(character_state.inventory.items.get("item.repair_gel", 0))
 	]
+
+
+func _interact_with_field_outfitting_station(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not world_state.has_base_structure_definition(FIELD_OUTFITTING_STATION_ID):
+		return _failure(
+			"出发整备台尚未建成。",
+			"整备台未上线",
+			"先在基地平台完成出发整备台建造点。"
+		)
+
+	if String(character_state.equipment.get("suit_module", "")) == BASIC_FILTER_MODULE_ID:
+		return _success_feedback(
+			"出发整备台检查完成：基础过滤模块已装入防护服，污染消耗和污染反击压力已降低。",
+			"出发整备已生效",
+			"基础过滤模块已装入防护服",
+			"继续带模块进入污染边界，或回基地补药剂后再深入。"
+		)
+
+	if not character_state.inventory.has_ref(BASIC_FILTER_MODULE_ID, 1):
+		return _failure(
+			"缺少基础过滤模块。",
+			"整备材料不足",
+			"先用基础反应器组装基础过滤模块，再回整备台装入防护服。"
+		)
+
+	if not character_state.equip_suit_module(BASIC_FILTER_MODULE_ID):
+		return _failure(
+			"基础过滤模块装配失败。",
+			"整备未完成",
+			"检查防护服模块槽和装备库存，再重新尝试。"
+		)
+
+	var result := _success_feedback(
+		"出发整备完成：基础过滤模块已装入防护服，污染消耗和污染反击压力降低。",
+		"出发整备完成",
+		"基础过滤模块已装入防护服",
+		"带模块返回污染边界，处理点和门前压力会读取这项整备收益。"
+	)
+	result["outfitting_module_enabled"] = true
+	return result
 
 
 func _gather(instance_id: String, definition: Dictionary, character_state: CharacterState, world_state: WorldState) -> Dictionary:
@@ -674,6 +718,18 @@ func _success(message: String) -> Dictionary:
 	return {
 		"success": true,
 		"message": message
+	}
+
+
+func _success_feedback(message: String, title: String, status: String, next_step: String) -> Dictionary:
+	return {
+		"success": true,
+		"message": message,
+		"success_feedback": {
+			"title": title,
+			"status": status,
+			"next_step": next_step
+		}
 	}
 
 

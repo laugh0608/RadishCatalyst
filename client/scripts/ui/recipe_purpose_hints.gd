@@ -112,6 +112,8 @@ static func format_build_goal_hint(building_id: String) -> String:
 	match building_id:
 		"building.basic_storage":
 			return "接入前哨整备补给，外出消耗修复凝胶后回基地可补到 1 份。"
+		"building.field_outfitting_station":
+			return "把已制造模块装入防护服，让基地后勤直接改变外勤承压。"
 		"building.foundation_t1":
 			return "给污染过滤器提供落点；铺好两块后继续建造污染过滤器。"
 		"building.pollution_filter":

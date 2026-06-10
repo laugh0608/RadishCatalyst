@@ -10,6 +10,7 @@ const RESIDUE_MARKER_COLOR := Color(0.86, 0.74, 0.22, 1)
 const ROUGH_GROUND_MARKER_COLOR := Color(0.48, 0.42, 0.34, 1)
 const FOUNDATION_SITE_MARKER_COLOR := Color(0.42, 0.56, 0.48, 1)
 const STORAGE_MARKER_COLOR := Color(0.36, 0.62, 0.56, 1)
+const OUTFITTING_MARKER_COLOR := Color(0.66, 0.58, 0.34, 1)
 const REACTOR_MARKER_COLOR := Color(0.28, 0.78, 0.9, 1)
 const FILTER_MARKER_COLOR := Color(0.64, 0.78, 0.3, 1)
 const GATE_MARKER_COLOR := Color(0.72, 0.56, 0.86, 1)
@@ -57,6 +58,7 @@ const COMPLETED_FRONTLINE_ACTION_COLOR := Color(0.56, 0.9, 0.78, 1)
 const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
 const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
 const BUILT_STORAGE_COLOR := Color(0.5, 0.74, 0.66, 1)
+const BUILT_OUTFITTING_COLOR := Color(0.78, 0.68, 0.42, 1)
 const GATHERED_CRYSTAL_SIZE := Vector2(28.0, 12.0)
 const GATHERED_SALVAGE_SIZE := Vector2(30.0, 10.0)
 const GATHERED_RESIDUE_SIZE := Vector2(26.0, 10.0)
@@ -674,6 +676,9 @@ func set_built_visual(built_definition_id: String) -> void:
 	elif built_definition_id == "building.basic_storage":
 		_apply_marker_style(Vector2(42.0, 26.0), BUILT_STORAGE_COLOR)
 		_set_label_text("基础储存箱\n已接入", 2)
+	elif built_definition_id == "building.field_outfitting_station":
+		_apply_marker_style(Vector2(44.0, 28.0), BUILT_OUTFITTING_COLOR)
+		_set_label_text("出发整备台\n已上线", 2)
 	elif built_definition_id == "building.pollution_filter":
 		_apply_marker_style(BUILT_FILTER_SITE_SIZE, BUILT_FILTER_COLOR)
 		_set_label_text("")
@@ -692,6 +697,16 @@ func set_operational_pollution_filter_visual() -> void:
 		marker.size = marker_size
 		marker.color = FILTER_MARKER_COLOR
 	_set_label_text("%s\n已上线" % display_name_text, 2)
+
+
+func set_operational_outfitting_station_visual() -> void:
+	_ensure_visual_nodes()
+	consumed = false
+	visible = true
+	monitoring = true
+	if marker != null:
+		_apply_marker_style(Vector2(44.0, 30.0), OUTFITTING_MARKER_COLOR)
+	_set_label_text("%s\n可整备" % display_name_text, 2)
 
 
 func _apply_default_marker_visual() -> void:
@@ -718,6 +733,10 @@ func _get_default_marker_visual() -> Dictionary:
 			return {"size": Vector2(40.0, 30.0), "color": REACTOR_MARKER_COLOR}
 		"building.basic_storage":
 			return {"size": Vector2(38.0, 24.0), "color": STORAGE_MARKER_COLOR}
+		"building.field_outfitting_station":
+			if interaction_type == "build":
+				return {"size": Vector2(38.0, 24.0), "color": FOUNDATION_SITE_MARKER_COLOR}
+			return {"size": Vector2(40.0, 28.0), "color": OUTFITTING_MARKER_COLOR}
 		"building.pollution_filter":
 			if interaction_type == "build":
 				return {"size": Vector2(44.0, 28.0), "color": FOUNDATION_SITE_MARKER_COLOR}

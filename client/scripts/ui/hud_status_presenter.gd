@@ -250,6 +250,9 @@ func _format_base_summary_lines(
 			"行动方案：稳场补给低风险偏整备资源",
 			"相位测绘多读数换路线提示；压力清障高风险换防护收益"
 		]
+	var outfitting_summary := _format_outfitting_station_summary(world_state, character_state)
+	if not outfitting_summary.is_empty():
+		return outfitting_summary
 	var storage_summary := _format_basic_storage_summary(world_state, character_state)
 	if not storage_summary.is_empty():
 		return storage_summary
@@ -273,6 +276,21 @@ func _format_basic_storage_summary(world_state: WorldState, character_state: Cha
 	if not character_state.inventory.has_ref("item.repair_gel", 1):
 		return ["储存箱：回前哨核心可补修复凝胶 x1"]
 	return ["储存箱：修复凝胶备用已接入前哨核心"]
+
+
+func _format_outfitting_station_summary(world_state: WorldState, character_state: CharacterState) -> Array[String]:
+	if world_state.has_base_structure_definition("building.field_outfitting_station"):
+		if String(character_state.equipment.get("suit_module", "")) == "equipment.filter_module_t1":
+			return ["整备台：基础过滤模块已生效"]
+		if character_state.inventory.has_ref("equipment.filter_module_t1", 1):
+			return ["整备台：回基地按 E 装入基础过滤模块"]
+		return ["整备台：缺基础过滤模块，先用基础反应器组装"]
+	if (
+		character_state.inventory.has_ref("item.basic_parts", 2)
+		and character_state.inventory.has_ref("item.salvage_scrap", 1)
+	):
+		return ["可建造：出发整备台；收益：装配防护服模块"]
+	return []
 
 
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:

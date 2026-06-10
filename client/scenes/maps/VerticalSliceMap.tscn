@@ -552,6 +552,22 @@ recipe_id = ""
 label_offset = Vector2(-92, 22)
 label_size = Vector2(184, 24)
 
+[node name="FieldOutfittingStationBuildSite" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-72, -42)
+definition_id = "building.field_outfitting_station"
+interaction_type = "build"
+recipe_id = ""
+label_offset = Vector2(-92, 22)
+label_size = Vector2(184, 24)
+
+[node name="FieldOutfittingStation" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-72, -42)
+definition_id = "building.field_outfitting_station"
+interaction_type = "inspect"
+single_use = false
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
+
 [node name="PhaseRelayPad" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(-180, 42)
 definition_id = "map_object.phase_relay_pad"

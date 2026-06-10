@@ -212,6 +212,8 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 		var should_enable: bool = not interactable.consumed
 		if interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter":
 			should_enable = should_enable and world_state.has_base_structure_definition("building.pollution_filter")
+		if interactable.interaction_type == "inspect" and interactable.definition_id == "building.field_outfitting_station":
+			should_enable = should_enable and world_state.has_base_structure_definition("building.field_outfitting_station")
 		if INTERACTABLE_QUEST_GATES.has(interactable.definition_id):
 			var gate_quest_id := String(INTERACTABLE_QUEST_GATES[interactable.definition_id])
 			should_enable = should_enable and (
@@ -332,6 +334,8 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			)
 		if should_enable and interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter":
 			interactable.set_operational_pollution_filter_visual()
+		if should_enable and interactable.interaction_type == "inspect" and interactable.definition_id == "building.field_outfitting_station":
+			interactable.set_operational_outfitting_station_visual()
 		interactable.set_interaction_enabled(should_enable)
 		if current_interactable == interactable and not should_enable:
 			current_interactable = null
