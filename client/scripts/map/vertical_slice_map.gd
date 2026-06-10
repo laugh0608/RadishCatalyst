@@ -299,6 +299,7 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				world_state.quest_state.has_active_quest("quest.enter_pollution_edge")
 				or world_state.quest_state.has_completed_quest("quest.enter_pollution_edge")
 			)
+		if interactable.instance_id == "map_object_instance.pollution_residue_slurry_return_cache": should_enable = should_enable and _is_pollution_slurry_return_route_available(world_state)
 		if interactable.instance_id == "map_object_instance.outer_ring_echo_residue_cache":
 			should_enable = (
 				should_enable
@@ -414,6 +415,8 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 				followup = "遗迹门前压力减弱，可以继续处理污染残核或确认入口信号。"
 			if target.instance_id == "enemy_instance.polluted_skitter_vial_return_guard":
 				followup = "污染侧翼压力减弱；回收沉积物后回过滤器补药剂和污染浆液，再处理门前或深处压力。"
+			if target.instance_id == "enemy_instance.polluted_skitter_slurry_return_guard":
+				followup = "副产回收口袋暂时安全；回收沉积物后回过滤器处理，再把多余污染浆液带回基础反应器回收基础零件。"
 			if target.instance_id == "enemy_instance.polluted_skitter_ridge":
 				followup = "污染脊守卫已清空；把沉积物带回过滤器处理，副产浆液可回收成信标所需基础零件。"
 			if target.instance_id == "enemy_instance.core_buffer_polluted_skitter":
@@ -724,6 +727,7 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 		return world_state.quest_state.has_active_quest("quest.defeat_elite_node") or world_state.quest_state.has_completed_quest("quest.defeat_elite_node")
 	if enemy.instance_id == "enemy_instance.polluted_skitter_vial_return_guard":
 		return world_state.quest_state.has_active_quest("quest.enter_pollution_edge") or world_state.quest_state.has_completed_quest("quest.enter_pollution_edge")
+	if enemy.instance_id == "enemy_instance.polluted_skitter_slurry_return_guard": return _is_pollution_slurry_return_route_available(world_state)
 	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
 		return world_state.quest_state.has_active_quest("quest.scout_ruin_outer_ring") or world_state.quest_state.has_completed_quest("quest.scout_ruin_outer_ring")
 	if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
@@ -832,6 +836,8 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 		pressure_multiplier = GATE_PRESSURE_COUNTER_MULT
 	if enemy.instance_id == "enemy_instance.polluted_skitter_vial_return_guard":
 		pressure_multiplier = POLLUTION_REVISIT_COUNTER_MULT
+	if enemy.instance_id == "enemy_instance.polluted_skitter_slurry_return_guard":
+		pressure_multiplier = 1.18
 	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
 		pressure_multiplier = POLLUTION_RIDGE_COUNTER_MULT
 	if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
@@ -876,6 +882,11 @@ func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: Characte
 				message = "%s抗污染药剂已自动接入侧翼排压，过滤器准备让这段回访战斗更稳；清完后回收沉积物再回基地处理。" % message
 			else:
 				message = "%s侧翼污染压力抬升，过滤模块会降低生命和防护承压；带药剂回来会自动接入排压。" % message
+		if enemy.instance_id == "enemy_instance.polluted_skitter_slurry_return_guard":
+			if consumed_pressure_vial:
+				message = "%s抗污染药剂已自动接入副产口袋排压；清完后回收沉积物，回过滤器补浆液，再到基础反应器回收基础零件。" % message
+			else:
+				message = "%s副产口袋污染压力抬升，基础过滤模块会降低承压；带药剂回来会自动接入排压，清完后补沉积物处理浆液。" % message
 		if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
 			if consumed_pressure_vial:
 				message = "%s抗污染药剂已自动接入污染脊排压，过滤器准备让这段回访战斗更稳；清完后把沉积物带回过滤器处理。" % message
@@ -935,9 +946,18 @@ func _is_pollution_pressure_vial_enemy(enemy: PrototypeEnemy) -> bool:
 	return (
 		enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure"
 		or enemy.instance_id == "enemy_instance.polluted_skitter_vial_return_guard"
+		or enemy.instance_id == "enemy_instance.polluted_skitter_slurry_return_guard"
 		or enemy.instance_id == "enemy_instance.polluted_skitter_ridge"
 		or enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter"
 	)
+
+
+func _is_pollution_slurry_return_route_available(world_state: WorldState) -> bool:
+	var first_vial_processed := world_state.quest_state.has_completed_quest("quest.enter_pollution_edge")
+	first_vial_processed = first_vial_processed or world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1") >= 1.0
+	return world_state.has_base_structure_definition("building.pollution_filter") and first_vial_processed
+
+
 func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, world_state: WorldState) -> String:
 	if world_state.has_enemy_drops_granted(enemy.instance_id):
 		return ""

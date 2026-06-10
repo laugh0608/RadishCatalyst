@@ -229,6 +229,13 @@ func _format_base_summary_lines(
 		return active_structure_summary
 
 	var active_quest := data_registry.get_definition(active_quest_id)
+	var slurry_reclaim_summary := _format_pollution_slurry_reclaim_summary(
+		world_state,
+		character_state,
+		active_quest_id
+	)
+	if not slurry_reclaim_summary.is_empty():
+		return slurry_reclaim_summary
 	if not active_quest.is_empty():
 		var craft_summary := _format_current_craft_summary(data_registry, active_quest, character_state, world_state)
 		if not craft_summary.is_empty():
@@ -276,6 +283,24 @@ func _format_basic_storage_summary(world_state: WorldState, character_state: Cha
 	if not character_state.inventory.has_ref("item.repair_gel", 1):
 		return ["储存箱：回前哨核心可补修复凝胶 x1"]
 	return ["储存箱：修复凝胶备用已接入前哨核心"]
+
+
+func _format_pollution_slurry_reclaim_summary(
+	world_state: WorldState,
+	character_state: CharacterState,
+	active_quest_id: String
+) -> Array[String]:
+	if active_quest_id != "quest.enter_pollution_edge" and not active_quest_id.is_empty():
+		return []
+	if not world_state.quest_state.unlocked_effects.has("recipe.reclaim_basic_parts"):
+		return []
+	var slurry_amount := float(character_state.inventory.fluids.get("fluid.polluted_slurry", 0.0))
+	if slurry_amount <= 0.0:
+		return []
+	return [
+		"副产去向：基础反应器可回收污染浆液 x%s -> 基础零件" % _format_amount(slurry_amount),
+		"回收后若还缺药剂 / 浆液，回污染边界副产口袋补沉积物再过滤"
+	]
 
 
 func _format_outfitting_station_summary(world_state: WorldState, character_state: CharacterState) -> Array[String]:
