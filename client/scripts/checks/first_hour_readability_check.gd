@@ -38,6 +38,9 @@ func _check_opening_scene_layer() -> void:
 	var reactor_pad := map.get_node("OpeningSceneLayer/BaseReactorPad") as ColorRect
 	var reactor_marker := map.get_node("OpeningSceneLayer/BaseReactorObjectMarker") as ColorRect
 	var reactor_to_exit_flow := map.get_node("OpeningSceneLayer/BaseReactorToExitFlowLine") as ColorRect
+	var outfitting_pad := map.get_node("OpeningSceneLayer/BaseOutfittingPad") as ColorRect
+	var outfitting_marker := map.get_node("OpeningSceneLayer/BaseOutfittingObjectMarker") as ColorRect
+	var outfitting_to_exit_flow := map.get_node("OpeningSceneLayer/BaseOutfittingToExitFlowLine") as ColorRect
 	var supply_pad := map.get_node("OpeningSceneLayer/BaseSupplyPad") as ColorRect
 	var supply_rail := map.get_node("OpeningSceneLayer/BaseSupplyObjectRail") as ColorRect
 	var supply_return_flow := map.get_node("OpeningSceneLayer/BaseSupplyReturnFlowLine") as ColorRect
@@ -71,6 +74,8 @@ func _check_opening_scene_layer() -> void:
 	var outpost_core := map.get_node("Interactables/OutpostCore") as PrototypeInteractable
 	var basic_reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
 	var storage_site := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
+	var outfitting_site := map.get_node("Interactables/FieldOutfittingStationBuildSite") as PrototypeInteractable
+	var outfitting_station := map.get_node("Interactables/FieldOutfittingStation") as PrototypeInteractable
 	var supply_choice := map.get_node("Interactables/BaseSupplyChoiceConsole") as PrototypeInteractable
 	var crystal_cluster := map.get_node("Interactables/CrystalCluster") as PrototypeInteractable
 	var rich_crystal := map.get_node("Interactables/RichCrystalVeinNorth") as PrototypeInteractable
@@ -106,6 +111,14 @@ func _check_opening_scene_layer() -> void:
 		"opening scene base storage extension adds a buildable logistics pad"
 	)
 	host._expect_equal(
+		_is_rect_covering_position(outfitting_pad, outfitting_site.position)
+			and _is_rect_covering_position(outfitting_marker, outfitting_station.position)
+			and outfitting_pad.offset_left > reactor_pad.offset_left
+			and outfitting_pad.offset_right <= exit_lane.offset_right,
+		true,
+		"opening scene outfitting pad reads as the final preparation stop before departure"
+	)
+	host._expect_equal(
 		_is_rect_covering_position(core_marker, outpost_core.position)
 			and _is_rect_covering_position(reactor_marker, basic_reactor.position)
 			and _is_rect_covering_position(supply_rail, supply_choice.position),
@@ -117,9 +130,11 @@ func _check_opening_scene_layer() -> void:
 			and core_to_reactor_flow.offset_right <= reactor_marker.offset_left
 			and reactor_to_exit_flow.offset_left >= reactor_marker.offset_right
 			and reactor_to_exit_flow.offset_right <= exit_lane.offset_left
+			and outfitting_to_exit_flow.offset_left >= outfitting_marker.offset_right - 2.0
+			and outfitting_to_exit_flow.offset_right <= exit_threshold.offset_left
 			and supply_return_flow.offset_top < supply_rail.offset_top,
 		true,
-		"opening scene base flow lines connect core, reactor, return rail and exit"
+		"opening scene base flow lines connect core, reactor, outfitting, return rail and exit"
 	)
 	host._expect_equal(
 		supply_pad.offset_top > reactor_pad.offset_top,
