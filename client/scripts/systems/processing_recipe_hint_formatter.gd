@@ -9,6 +9,8 @@ static func get_completion_next_step(recipe_id: String, world_state: WorldState 
 		"recipe.reclaim_basic_parts":
 			if world_state != null and world_state.quest_state.has_active_quest("quest.enter_pollution_edge"):
 				return "污染浆液已回收成基础零件；如果药剂或后续浆液不足，回污染边界副产口袋补沉积物，再回过滤器处理。"
+			if world_state != null and world_state.quest_state.has_active_quest("quest.unlock_ruin_signal"):
+				return "污染浆液已回收成基础零件；带基础过滤模块和抗污染药剂回封锁入口确认信号。"
 			if world_state != null and world_state.quest_state.has_active_quest("quest.assemble_phase_anchor"):
 				return "污染浆液已回收成基础零件；继续确认稳相信标是否还留有组装用浆液，不足就回污染脊补沉积物再处理。"
 			return "污染浆液已回收成基础零件；继续补给、地基或模块制造，副产物不再只是库存负担。"

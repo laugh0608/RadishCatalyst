@@ -194,6 +194,10 @@ func get_recommended_recipe_id(
 			if interactable.definition_id == "building.basic_reactor" and character_state.inventory.has_ref("fluid.polluted_slurry", 1.0):
 				return _select_if_available(interactable, "recipe.reclaim_basic_parts")
 			return _select_if_available(interactable, "recipe.cleanse_residue")
+		"quest.unlock_ruin_signal":
+			if interactable.definition_id == "building.basic_reactor" and character_state.inventory.has_ref("fluid.polluted_slurry", 1.0):
+				return _select_if_available(interactable, "recipe.reclaim_basic_parts")
+			return ""
 		"quest.assemble_phase_anchor":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_anchor", world_state)
 		"quest.salvage_signal_echo":

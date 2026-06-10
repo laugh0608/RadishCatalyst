@@ -290,13 +290,18 @@ func _format_pollution_slurry_reclaim_summary(
 	character_state: CharacterState,
 	active_quest_id: String
 ) -> Array[String]:
-	if active_quest_id != "quest.enter_pollution_edge" and not active_quest_id.is_empty():
+	if not ["", "quest.enter_pollution_edge", "quest.unlock_ruin_signal"].has(active_quest_id):
 		return []
 	if not world_state.quest_state.unlocked_effects.has("recipe.reclaim_basic_parts"):
 		return []
 	var slurry_amount := float(character_state.inventory.fluids.get("fluid.polluted_slurry", 0.0))
 	if slurry_amount <= 0.0:
 		return []
+	if active_quest_id == "quest.unlock_ruin_signal":
+		return [
+			"门前整备：基础反应器可回收污染浆液 x%s -> 基础零件" % _format_amount(slurry_amount),
+			"回收后带基础过滤模块和抗污染药剂确认封锁入口信号"
+		]
 	return [
 		"副产去向：基础反应器可回收污染浆液 x%s -> 基础零件" % _format_amount(slurry_amount),
 		"回收后若还缺药剂 / 浆液，回污染边界副产口袋补沉积物再过滤"

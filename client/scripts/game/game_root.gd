@@ -331,7 +331,7 @@ func _on_interaction_available(interactable: PrototypeInteractable, should_auto_
 		hud.show_prompt(interaction_prompt_formatter.format_outpost_core_prompt(world_state, character_state))
 		return
 	if interactable.definition_id == "map_object.ruin_gate":
-		hud.show_prompt(interaction_prompt_formatter.format_ruin_gate_prompt(world_state))
+		hud.show_prompt(interaction_prompt_formatter.format_ruin_gate_prompt(world_state, character_state))
 		return
 	if interactable.definition_id == "map_object.outer_ring_barrier":
 		hud.show_prompt(interaction_prompt_formatter.format_outer_ring_barrier_prompt(world_state, character_state))
@@ -592,7 +592,7 @@ func _refresh_current_context_prompt() -> void:
 		hud.show_prompt(interaction_prompt_formatter.format_outpost_core_prompt(world_state, character_state))
 		return
 	if interactable.definition_id == "map_object.ruin_gate":
-		hud.show_prompt(interaction_prompt_formatter.format_ruin_gate_prompt(world_state))
+		hud.show_prompt(interaction_prompt_formatter.format_ruin_gate_prompt(world_state, character_state))
 		return
 	if interactable.definition_id == "map_object.outer_ring_barrier":
 		hud.show_prompt(interaction_prompt_formatter.format_outer_ring_barrier_prompt(world_state, character_state))

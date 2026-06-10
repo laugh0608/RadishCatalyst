@@ -132,6 +132,8 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.unlock_ruin_signal":
 			if _is_gate_pressure_active(world_state):
 				return "遗迹门前仍有受扰敌人压制；抗污染药剂会接入门前排压，再检查封锁入口。"
+			if character_state.inventory.has_ref("fluid.polluted_slurry", 1.0):
+				return "门前压力已清；可先回基础反应器回收污染浆液，再确认封锁入口信号。"
 			return "前往污染边界东侧检查封锁遗迹入口，打开封锁遗迹通路。"
 		"quest.scout_ruin_outer_ring":
 			return "穿过封锁入口进入遗迹外圈，回收继电残片；外圈前污染脊还要补沉积物并清理受扰守卫。"
@@ -454,6 +456,8 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 		"quest.unlock_ruin_signal":
 			if _is_gate_pressure_active(world_state):
 				return "先清理门前受扰敌人；药剂会自动接入排压，修复凝胶用于承接生命压力。"
+			if character_state.inventory.has_ref("fluid.polluted_slurry", 1.0):
+				return "污染浆液可先回基础反应器回收基础零件；整理后再确认封锁入口信号。"
 			return "先确认封锁入口信号，真正把主线推进到封锁遗迹。"
 		"quest.scout_ruin_outer_ring":
 			return "先把外圈继电残片和污染脊沉积物带回基地；沉积物处理出的浆液可补信标零件。"

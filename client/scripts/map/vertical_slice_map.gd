@@ -120,7 +120,7 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		return _failure("附近没有可交互目标。", "交互未执行", "靠近带名称的目标，等待交互提示出现后再按 E。")
 	var interacted := current_interactable
 	if interacted.definition_id == "map_object.ruin_gate" and interacted.interaction_type == "inspect":
-		return _inspect_ruin_gate(world_state)
+		return _inspect_ruin_gate(world_state, character_state)
 	if interacted.definition_id == "map_object.outer_ring_barrier" and interacted.interaction_type == "inspect":
 		return _inspect_outer_ring_barrier(character_state, world_state)
 	if interacted.definition_id == "map_object.outer_ring_console" and interacted.interaction_type == "inspect":
@@ -980,7 +980,7 @@ func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, 
 	if parts.is_empty():
 		return ""
 	return "获得：%s。" % ", ".join(parts)
-func _inspect_ruin_gate(world_state: WorldState) -> Dictionary:
+func _inspect_ruin_gate(world_state: WorldState, character_state: CharacterState = null) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.defeat_elite_node"):
 		return _failure(
 			"封锁遗迹入口仍被污染信号干扰。",
@@ -1000,7 +1000,7 @@ func _inspect_ruin_gate(world_state: WorldState) -> Dictionary:
 		}
 	return {
 		"success": true,
-		"message": "封锁遗迹入口信号已确认：遗迹外圈通路已恢复。"
+		"message": RuinGateReadinessFormatter.format_unlock_message(character_state)
 	}
 func _is_gate_pressure_active(world_state: WorldState) -> bool:
 	var gate_pressure := world_state.get_enemy("enemy_instance.polluted_skitter_gate_pressure")
