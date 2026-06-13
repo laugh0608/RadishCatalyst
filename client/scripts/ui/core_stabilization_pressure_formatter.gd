@@ -160,6 +160,10 @@ static func format_core_revisit_completion_parts(world_state: WorldState, charac
 		parts.append("抗污染药剂已用于守卫排压，当前 %s" % DepartureSupplyRuntime.format_resistance_vial_count(world_state, character_state))
 	else:
 		parts.append("抗污染药剂待补")
+	if FieldOutfittingRuntime.has_active_core_archive_maintenance(character_state, world_state):
+		parts.append("基地核心归档维护已接入")
+	elif FieldOutfittingRuntime.is_core_archive_maintenance_available(character_state, world_state):
+		parts.append("基地核心归档维护待接入")
 	parts.append("守卫回写缓存已归档" if has_guard_cache(world_state) else "守卫回写缓存未回收")
 	return "；".join(parts)
 
@@ -175,6 +179,11 @@ static func format_core_revisit_next_step(world_state: WorldState, character_sta
 		return "修复凝胶不足；沿外勤出发口回前哨核心补给"
 	if DepartureSupplyRuntime.get_resistance_vial_count(character_state) < DepartureSupplyRuntime.get_resistance_vial_target(world_state):
 		return "抗污染药剂未补满；沿外勤出发口回前哨核心补到 %s 后再打守卫或写入" % _format_full_vial_target(world_state)
+	if (
+		FieldOutfittingRuntime.is_core_archive_maintenance_available(character_state, world_state)
+		and not FieldOutfittingRuntime.is_core_archive_maintained(world_state)
+	):
+		return "核心归档维护未接入；沿外勤出发口回出发整备台完成维护后再复测"
 	return "完成态已确认；可沿外勤出发口回前哨整理下一趟外勤"
 
 

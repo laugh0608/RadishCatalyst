@@ -105,13 +105,57 @@ func _check_completed_core_write_returns_to_departure_readiness() -> void:
 	host._expect_equal(int(character_state.inventory.items.get("item.resistance_vial_t1", 0)), 1, "post-write outpost refills resistance vial")
 
 	character_state.equipment["suit_module"] = "equipment.filter_module_t1"
-	var ready_status_text := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
-	_expect_text_contains(ready_status_text, "从外勤出发口复测核心稳定站", "post-write HUD shows departure exit after refit")
+	var pending_maintenance_status := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(pending_maintenance_status, "模块待归档维护", "post-write HUD points to core archive maintenance")
+	_expect_text_contains(
+		pending_maintenance_status,
+		"到出发整备台接入核心归档维护",
+		"post-write HUD requires outfitting maintenance before departure"
+	)
 
 	var departure_gate := PrototypeInteractable.new()
 	departure_gate.definition_id = "map_object.outpost_departure_gate"
 	departure_gate.interaction_type = "inspect"
 	departure_gate.single_use = false
+	var pending_departure_prompt := formatter.format_general_interaction_prompt(departure_gate, character_state, world_state)
+	_expect_text_contains(pending_departure_prompt, "外勤出发口", "post-write departure gate prompt names the exit")
+	_expect_text_contains(
+		pending_departure_prompt,
+		"先到出发整备台接入核心归档维护",
+		"post-write departure gate blocks departure until archive maintenance"
+	)
+
+	var outfitting_prompt := formatter.format_outfitting_station_prompt(character_state, world_state)
+	_expect_text_contains(outfitting_prompt, "E 接入核心归档维护", "post-write outfitting prompt exposes archive maintenance")
+	var maintenance_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.field_outfitting_station",
+		"building.field_outfitting_station",
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(maintenance_result.get("success", false)), true, "post-write core archive maintenance succeeds")
+	host._expect_equal(
+		bool(maintenance_result.get("core_archive_maintained", false)),
+		true,
+		"post-write outfitting station returns archive maintenance marker"
+	)
+	host._expect_equal(
+		bool(world_state.get_map_object("map_object_instance.field_outfitting_station").get("core_archive_maintained", false)),
+		true,
+		"post-write archive maintenance is stored on outfitting station"
+	)
+	_expect_text_contains(
+		String(maintenance_result.get("message", "")),
+		"核心稳定数据已接入基础过滤模块",
+		"post-write archive maintenance feedback explains tangible module benefit"
+	)
+
+	var ready_status_text := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(ready_status_text, "模块归档维护", "post-write HUD shows maintained archive state")
+	_expect_text_contains(ready_status_text, "核心归档维护已接入，从外勤出发口复测核心稳定站", "post-write HUD shows departure exit after archive maintenance")
+	_expect_text_contains(ready_status_text, "核心归档维护已接入", "post-write HUD explains archive maintenance payoff")
+
 	var departure_prompt := formatter.format_general_interaction_prompt(departure_gate, character_state, world_state)
 	_expect_text_contains(departure_prompt, "外勤出发口", "post-write departure gate prompt names the exit")
 	_expect_text_contains(departure_prompt, "从外勤出发口复测核心稳定站", "post-write departure gate prompt points to core revisit")
@@ -147,6 +191,7 @@ func _check_completed_core_write_returns_to_departure_readiness() -> void:
 	_expect_text_contains(core_revisit_status, "侧边补给已回收", "core revisit HUD shows side supply completion")
 	_expect_text_contains(core_revisit_status, "稳压缓冲包已回写", "core revisit HUD shows buffer writeback completion")
 	_expect_text_contains(core_revisit_status, "抗污染药剂已备", "core revisit HUD shows vial ready state")
+	_expect_text_contains(core_revisit_status, "基地核心归档维护已接入", "core revisit HUD shows base archive maintenance completion")
 	_expect_text_contains(core_revisit_status, "守卫回写缓存已归档", "core revisit HUD shows guard cache completion")
 	_expect_text_contains(core_revisit_status, "压力回看", "core revisit HUD shows pressure readback")
 

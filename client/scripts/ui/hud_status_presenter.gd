@@ -146,7 +146,10 @@ func format_pollution_status(
 		parts.append("%s 生效，消耗 x%.2f" % [
 			_get_display_name(data_registry, module_id),
 			character_state.get_pollution_drain_multiplier(data_registry)
+			* FieldOutfittingRuntime.get_pollution_drain_multiplier(character_state, world_state)
 		])
+		if FieldOutfittingRuntime.has_active_core_archive_maintenance(character_state, world_state):
+			parts.append("核心归档维护已接入")
 
 	if character_state.protection < character_state.max_protection * 0.35:
 		parts.append("防护危险，先用抗污染药剂或撤回基地")

@@ -198,6 +198,7 @@ func run(root: Node) -> void:
 	host._expect_text_contains(station.label.text, "已校准", "built field outfitting station visual label")
 	map.free()
 	_check_outfitting_calibration_pressure_payoff(gather_system)
+	_check_core_archive_maintenance_payoff(root, gather_system, prompt_formatter)
 
 
 func _check_outfitting_calibration_pressure_payoff(gather_system: GatherSystem) -> void:
@@ -316,6 +317,171 @@ func _check_outfitting_calibration_counterattack_payoff() -> void:
 	)
 	uncalibrated_enemy.free()
 	calibrated_enemy.free()
+
+
+func _check_core_archive_maintenance_payoff(
+	root: Node,
+	gather_system: GatherSystem,
+	prompt_formatter: InteractionPromptFormatter
+) -> void:
+	var world := WorldState.create_default()
+	world.quest_state.complete_quest("quest.write_demo_stabilization_core")
+	world.add_base_structure(
+		"structure.field_outfitting_station_build_site",
+		"building.field_outfitting_station",
+		"region.outpost_platform",
+		"map_object_instance.field_outfitting_station_build_site"
+	)
+	var character := CharacterState.create_default()
+	character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	var prompt := prompt_formatter.format_outfitting_station_prompt(character, world)
+	host._expect_text_contains(
+		prompt,
+		"E 接入核心归档维护",
+		"core archive maintenance prompt exposes outfitting action"
+	)
+	var maintenance_result := gather_system.interact_with_object(
+		"map_object_instance.field_outfitting_station",
+		"building.field_outfitting_station",
+		"inspect",
+		character,
+		world
+	)
+	host._expect_equal(bool(maintenance_result.get("success", false)), true, "core archive maintenance succeeds")
+	host._expect_equal(
+		bool(maintenance_result.get("core_archive_maintained", false)),
+		true,
+		"core archive maintenance returns progression marker"
+	)
+	host._expect_equal(
+		FieldOutfittingRuntime.is_core_archive_maintained(world),
+		true,
+		"core archive maintenance writes outfitting station state"
+	)
+	host._expect_text_contains(
+		String(maintenance_result.get("message", "")),
+		"核心稳定数据已接入基础过滤模块",
+		"core archive maintenance feedback explains module connection"
+	)
+	var hud_text := HudStatusPresenter.new().format_vitals_text(host.data_registry, world, character)
+	host._expect_text_contains(hud_text, "出发准备：模块归档维护", "core archive maintenance HUD module state")
+	host._expect_text_contains(hud_text, "核心归档维护已接入", "core archive maintenance HUD payoff")
+
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	map.setup(host.data_registry)
+	map.apply_runtime_state(world, character)
+	var station := map.get_node("Interactables/FieldOutfittingStation") as PrototypeInteractable
+	host._expect_text_contains(station.label.text, "归档维护", "core archive maintenance scene label")
+	map.free()
+
+	_check_core_archive_maintenance_gather_payoff(gather_system)
+	_check_core_archive_maintenance_counterattack_payoff()
+
+
+func _check_core_archive_maintenance_gather_payoff(gather_system: GatherSystem) -> void:
+	var plain_world := _create_core_archive_maintenance_world(false)
+	var plain_character := CharacterState.create_default()
+	plain_character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	var plain_before := plain_character.protection
+	var plain_result := gather_system.interact_with_object(
+		"map_object_instance.core_archive_pressure_plain",
+		"map_object.pollution_residue_patch",
+		"gather",
+		plain_character,
+		plain_world
+	)
+	host._expect_equal(bool(plain_result.get("success", false)), true, "plain core archive gather succeeds")
+	var plain_loss := plain_before - plain_character.protection
+
+	var maintained_world := _create_core_archive_maintenance_world(true)
+	var maintained_character := CharacterState.create_default()
+	maintained_character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	var maintained_before := maintained_character.protection
+	var maintained_result := gather_system.interact_with_object(
+		"map_object_instance.core_archive_pressure_maintained",
+		"map_object.pollution_residue_patch",
+		"gather",
+		maintained_character,
+		maintained_world
+	)
+	host._expect_equal(bool(maintained_result.get("success", false)), true, "maintained core archive gather succeeds")
+	var maintained_loss := maintained_before - maintained_character.protection
+	host._expect_equal(
+		maintained_loss < plain_loss,
+		true,
+		"core archive maintenance lowers pollution gather pressure"
+	)
+	host._expect_text_contains(
+		String(maintained_result.get("message", "")),
+		"核心归档维护已降低消耗",
+		"pollution gather feedback reads core archive maintenance"
+	)
+
+
+func _check_core_archive_maintenance_counterattack_payoff() -> void:
+	var counter_runtime := EnemyCounterattackRuntime.new(host.data_registry)
+	var plain_enemy := PrototypeEnemy.new()
+	plain_enemy.definition_id = "enemy.polluted_skitter"
+	plain_enemy.instance_id = "enemy_instance.core_archive_counter_plain"
+	plain_enemy.display_name = "污染跃蛛"
+	var plain_world := _create_core_archive_maintenance_world(false)
+	var plain_character := CharacterState.create_default()
+	plain_character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	var plain_health_before := plain_character.health
+	var plain_protection_before := plain_character.protection
+	counter_runtime.apply(plain_enemy, plain_character, plain_world, "region.pollution_edge")
+	var plain_health_loss := plain_health_before - plain_character.health
+	var plain_protection_loss := plain_protection_before - plain_character.protection
+
+	var maintained_enemy := PrototypeEnemy.new()
+	maintained_enemy.definition_id = "enemy.polluted_skitter"
+	maintained_enemy.instance_id = "enemy_instance.core_archive_counter_maintained"
+	maintained_enemy.display_name = "污染跃蛛"
+	var maintained_world := _create_core_archive_maintenance_world(true)
+	var maintained_character := CharacterState.create_default()
+	maintained_character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	var maintained_health_before := maintained_character.health
+	var maintained_protection_before := maintained_character.protection
+	var maintained_message := counter_runtime.apply(
+		maintained_enemy,
+		maintained_character,
+		maintained_world,
+		"region.pollution_edge"
+	)
+	var maintained_health_loss := maintained_health_before - maintained_character.health
+	var maintained_protection_loss := maintained_protection_before - maintained_character.protection
+	host._expect_equal(
+		maintained_health_loss < plain_health_loss,
+		true,
+		"core archive maintenance lowers pollution counter health pressure"
+	)
+	host._expect_equal(
+		maintained_protection_loss < plain_protection_loss,
+		true,
+		"core archive maintenance lowers pollution counter protection pressure"
+	)
+	host._expect_text_contains(
+		maintained_message,
+		"核心归档维护已接入",
+		"pollution counter feedback reads core archive maintenance"
+	)
+	plain_enemy.free()
+	maintained_enemy.free()
+
+
+func _create_core_archive_maintenance_world(maintained: bool) -> WorldState:
+	var world := WorldState.create_default()
+	world.quest_state.complete_quest("quest.write_demo_stabilization_core")
+	world.add_base_structure(
+		"structure.field_outfitting_station_build_site",
+		"building.field_outfitting_station",
+		"region.outpost_platform",
+		"map_object_instance.field_outfitting_station_build_site"
+	)
+	if maintained:
+		FieldOutfittingRuntime.mark_core_archive_maintained(world)
+	return world
 
 
 func _check_slurry_buffer_tank(root: Node) -> void:

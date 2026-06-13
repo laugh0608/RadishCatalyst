@@ -168,6 +168,15 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 			* FieldOutfittingRuntime.get_pollution_counter_damage_multiplier(character_state, world_state)
 		)
 		parts.append("防护服：污染消耗 x%.2f；污染反击 x%.2f。" % [drain_mult, counter_mult])
+		if (
+			FieldOutfittingRuntime.is_core_archive_maintenance_available(character_state, world_state)
+			and not FieldOutfittingRuntime.is_core_archive_maintained(world_state)
+		):
+			parts.append("核心归档：可把核心稳定数据接入基础过滤模块维护。")
+			parts.append("操作：E 接入核心归档维护")
+			return "\n".join(parts)
+		if FieldOutfittingRuntime.is_core_archive_maintained(world_state):
+			parts.append("核心归档：维护已接入，污染采集和污染反击承压继续下降。")
 		if FieldOutfittingRuntime.is_module_calibrated(world_state):
 			parts.append("维护：晶体校准已写入，污染采集和污染反击承压继续下降。")
 			parts.append("操作：E 检查整备状态")

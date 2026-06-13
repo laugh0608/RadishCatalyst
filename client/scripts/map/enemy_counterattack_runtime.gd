@@ -66,8 +66,9 @@ func apply(
 			pressure_vial_spend,
 			world_state
 		)
-		if FieldOutfittingRuntime.has_active_module_calibration(character_state, world_state):
-			return "%s 出发整备台校准已接入，污染承压继续下降。" % pollution_message
+		var outfitting_feedback := FieldOutfittingRuntime.format_pollution_pressure_feedback(character_state, world_state)
+		if not outfitting_feedback.is_empty():
+			return "%s %s" % [pollution_message, outfitting_feedback]
 		return pollution_message
 
 	var message := "%s 反击，生命 -%s。" % [enemy.display_name, _format_amount(health_damage)]

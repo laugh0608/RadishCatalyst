@@ -341,7 +341,9 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 		if should_enable and interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter":
 			interactable.set_operational_pollution_filter_visual()
 		if should_enable and interactable.interaction_type == "inspect" and interactable.definition_id == "building.field_outfitting_station":
-			if FieldOutfittingRuntime.is_module_calibrated(world_state):
+			if FieldOutfittingRuntime.is_core_archive_maintained(world_state):
+				interactable.set_core_archive_outfitting_station_visual()
+			elif FieldOutfittingRuntime.is_module_calibrated(world_state):
 				interactable.set_calibrated_outfitting_station_visual()
 			else:
 				interactable.set_operational_outfitting_station_visual()

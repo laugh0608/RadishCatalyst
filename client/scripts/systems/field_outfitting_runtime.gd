@@ -6,10 +6,13 @@ const FIELD_OUTFITTING_STATION_INSTANCE_ID := "map_object_instance.field_outfitt
 const FIELD_OUTFITTING_STATION_REGION_ID := "region.outpost_platform"
 const BASIC_FILTER_MODULE_ID := "equipment.filter_module_t1"
 const MODULE_CALIBRATED_FLAG := "module_calibrated"
+const CORE_ARCHIVE_MAINTAINED_FLAG := "core_archive_maintained"
 const MODULE_CALIBRATION_CRYSTAL_COST := 2
 const MODULE_CALIBRATION_SCRAP_COST := 1
 const MODULE_CALIBRATION_DRAIN_MULT := 0.9
 const MODULE_CALIBRATION_COUNTER_MULT := 0.9
+const CORE_ARCHIVE_MAINTENANCE_DRAIN_MULT := 0.95
+const CORE_ARCHIVE_MAINTENANCE_COUNTER_MULT := 0.95
 
 
 static func has_station_built(world_state: WorldState) -> bool:
@@ -71,6 +74,35 @@ static func mark_module_calibrated(world_state: WorldState) -> void:
 	station_state[MODULE_CALIBRATED_FLAG] = true
 
 
+static func is_core_archive_maintenance_available(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> bool:
+	return (
+		has_station_built(world_state)
+		and has_filter_module_equipped(character_state)
+		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
+	)
+
+
+static func is_core_archive_maintained(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return bool(
+		world_state.get_map_object(FIELD_OUTFITTING_STATION_INSTANCE_ID).get(
+			CORE_ARCHIVE_MAINTAINED_FLAG,
+			false
+		)
+	)
+
+
+static func mark_core_archive_maintained(world_state: WorldState) -> void:
+	var station_state := ensure_station_state(world_state)
+	if station_state.is_empty():
+		return
+	station_state[CORE_ARCHIVE_MAINTAINED_FLAG] = true
+
+
 static func has_active_module_calibration(
 	character_state: CharacterState,
 	world_state: WorldState
@@ -82,19 +114,50 @@ static func has_active_module_calibration(
 	)
 
 
+static func has_active_core_archive_maintenance(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> bool:
+	return (
+		is_core_archive_maintenance_available(character_state, world_state)
+		and is_core_archive_maintained(world_state)
+	)
+
+
 static func get_pollution_drain_multiplier(
 	character_state: CharacterState,
 	world_state: WorldState
 ) -> float:
+	var multiplier := 1.0
 	if has_active_module_calibration(character_state, world_state):
-		return MODULE_CALIBRATION_DRAIN_MULT
-	return 1.0
+		multiplier *= MODULE_CALIBRATION_DRAIN_MULT
+	if has_active_core_archive_maintenance(character_state, world_state):
+		multiplier *= CORE_ARCHIVE_MAINTENANCE_DRAIN_MULT
+	return multiplier
 
 
 static func get_pollution_counter_damage_multiplier(
 	character_state: CharacterState,
 	world_state: WorldState
 ) -> float:
+	var multiplier := 1.0
 	if has_active_module_calibration(character_state, world_state):
-		return MODULE_CALIBRATION_COUNTER_MULT
-	return 1.0
+		multiplier *= MODULE_CALIBRATION_COUNTER_MULT
+	if has_active_core_archive_maintenance(character_state, world_state):
+		multiplier *= CORE_ARCHIVE_MAINTENANCE_COUNTER_MULT
+	return multiplier
+
+
+static func format_pollution_pressure_feedback(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
+	var has_calibration := has_active_module_calibration(character_state, world_state)
+	var has_archive_maintenance := has_active_core_archive_maintenance(character_state, world_state)
+	if has_calibration and has_archive_maintenance:
+		return "出发整备台校准和核心归档维护已接入，污染承压继续下降。"
+	if has_archive_maintenance:
+		return "核心归档维护已接入，污染承压继续下降。"
+	if has_calibration:
+		return "出发整备台校准已接入，污染承压继续下降。"
+	return ""

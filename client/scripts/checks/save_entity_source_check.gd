@@ -118,7 +118,8 @@ func _check_loads_known_map_object_source() -> void:
 		"map_object_instance.field_outfitting_station": {
 			"definition_id": "building.field_outfitting_station",
 			"region_id": "region.outpost_platform",
-			"module_calibrated": true
+			"module_calibrated": true,
+			"core_archive_maintained": true
 		},
 		"map_object_instance.rough_ground_north": {
 			"definition_id": "map_object.rough_ground",

@@ -77,6 +77,8 @@ static func format_departure_gate_next_step(world_state: WorldState, character_s
 		if world_state.has_base_structure_definition("building.field_outfitting_station"):
 			return "先到出发整备台确认基础过滤模块"
 		return "先补建出发整备台，或按当前目标外出"
+	if _should_maintain_core_archive(world_state, character_state):
+		return "先到出发整备台接入核心归档维护"
 	if (
 		world_state.has_base_structure_definition("building.field_outfitting_station")
 		and not FieldOutfittingRuntime.is_module_calibrated(world_state)
@@ -113,6 +115,12 @@ static func format_feedback_detail(world_state: WorldState, character_state: Cha
 
 static func format_module_state(world_state: WorldState, character_state: CharacterState) -> String:
 	if FieldOutfittingRuntime.has_filter_module_equipped(character_state):
+		if FieldOutfittingRuntime.has_active_core_archive_maintenance(character_state, world_state):
+			if FieldOutfittingRuntime.has_active_module_calibration(character_state, world_state):
+				return "模块校准 / 归档维护"
+			return "模块归档维护"
+		if _should_maintain_core_archive(world_state, character_state):
+			return "模块待归档维护"
 		if FieldOutfittingRuntime.has_active_module_calibration(character_state, world_state):
 			return "模块已校准"
 		if world_state.has_base_structure_definition("building.field_outfitting_station"):
@@ -142,6 +150,10 @@ static func format_supply_state(world_state: WorldState, character_state: Charac
 
 
 static func format_pressure_payoff(world_state: WorldState) -> String:
+	if FieldOutfittingRuntime.is_core_archive_maintained(world_state):
+		if FieldOutfittingRuntime.is_module_calibrated(world_state):
+			return "核心归档维护和模块校准已接入，下一趟污染采集、污染战斗和核心站复测承压继续下降"
+		return "核心归档维护已接入，下一趟污染采集和污染战斗承压继续下降"
 	if (
 		FieldOutfittingRuntime.has_station_built(world_state)
 		and FieldOutfittingRuntime.is_module_calibrated(world_state)
@@ -219,6 +231,13 @@ static func _can_build_outfitting_station(character_state: CharacterState) -> bo
 	return (
 		character_state.inventory.has_ref("item.basic_parts", 2)
 		and character_state.inventory.has_ref("item.salvage_scrap", 1)
+	)
+
+
+static func _should_maintain_core_archive(world_state: WorldState, character_state: CharacterState) -> bool:
+	return (
+		FieldOutfittingRuntime.is_core_archive_maintenance_available(character_state, world_state)
+		and not FieldOutfittingRuntime.is_core_archive_maintained(world_state)
 	)
 
 

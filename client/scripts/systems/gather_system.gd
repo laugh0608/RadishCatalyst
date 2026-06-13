@@ -365,7 +365,27 @@ func _interact_with_field_outfitting_station(character_state: CharacterState, wo
 		)
 
 	if FieldOutfittingRuntime.has_filter_module_equipped(character_state):
+		if (
+			FieldOutfittingRuntime.is_core_archive_maintenance_available(character_state, world_state)
+			and not FieldOutfittingRuntime.is_core_archive_maintained(world_state)
+		):
+			FieldOutfittingRuntime.mark_core_archive_maintained(world_state)
+			var archive_result := _success_feedback(
+				"出发整备台完成核心归档维护：核心稳定数据已接入基础过滤模块，下一趟污染采集和污染反击承压继续下降。",
+				"核心归档维护完成",
+				"核心归档维护已接入",
+				"从外勤出发口复测核心稳定站，或回污染边界确认归档维护后的承压读法。"
+			)
+			archive_result["core_archive_maintained"] = true
+			return archive_result
 		if FieldOutfittingRuntime.is_module_calibrated(world_state):
+			if FieldOutfittingRuntime.is_core_archive_maintained(world_state):
+				return _success_feedback(
+					"出发整备台复查完成：基础过滤模块已完成晶体校准，核心归档维护已接入，污染采集和污染反击承压继续下降。",
+					"整备收益已生效",
+					"模块校准 / 核心归档维护已接入",
+					"沿外勤出发口回污染边界或核心稳定站复测，HUD 和战斗读数会读取这项整备收益。"
+				)
 			return _success_feedback(
 				"出发整备台复查完成：基础过滤模块已完成晶体校准，污染采集和污染反击承压继续下降。",
 				"模块校准已生效",
@@ -639,6 +659,13 @@ func _get_pollution_protection_hint(character_state: CharacterState, world_state
 	var module_id := String(character_state.equipment.get("suit_module", ""))
 	if module_id.is_empty():
 		return "，未启用过滤模块"
+	if (
+		FieldOutfittingRuntime.has_active_module_calibration(character_state, world_state)
+		and FieldOutfittingRuntime.has_active_core_archive_maintenance(character_state, world_state)
+	):
+		return "，过滤模块校准和核心归档维护已降低消耗"
+	if FieldOutfittingRuntime.has_active_core_archive_maintenance(character_state, world_state):
+		return "，核心归档维护已降低消耗"
 	if FieldOutfittingRuntime.has_active_module_calibration(character_state, world_state):
 		return "，过滤模块校准已降低消耗"
 	return "，过滤模块已降低消耗"

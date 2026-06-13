@@ -725,6 +725,16 @@ func set_calibrated_outfitting_station_visual() -> void:
 	_set_label_text("%s\n已校准" % display_name_text, 2)
 
 
+func set_core_archive_outfitting_station_visual() -> void:
+	_ensure_visual_nodes()
+	consumed = false
+	visible = true
+	monitoring = true
+	if marker != null:
+		_apply_marker_style(Vector2(48.0, 30.0), CALIBRATED_OUTFITTING_MARKER_COLOR)
+	_set_label_text("%s\n归档维护" % display_name_text, 2)
+
+
 func _apply_default_marker_visual() -> void:
 	if marker == null:
 		return
