@@ -56,6 +56,8 @@ func _check_completed_core_write_returns_to_departure_readiness() -> void:
 	character_state.inventory.items.erase("item.resistance_vial_t1")
 
 	var status_text := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(status_text, "目标：核心写入归档后出发准备", "post-write HUD shows archived departure goal")
+	_expect_text_contains(status_text, "外勤出发口复测核心稳定站", "post-write HUD points ready route to departure exit")
 	_expect_text_contains(status_text, "下一趟出发", "post-write HUD shows next sortie readiness")
 	_expect_text_contains(status_text, "回前哨核心补修复凝胶 / 回前哨核心补抗污染药剂", "post-write HUD shows refill needs")
 
@@ -95,6 +97,10 @@ func _check_completed_core_write_returns_to_departure_readiness() -> void:
 	host._expect_equal(character_state.are_vitals_full(), true, "post-write outpost refit restores vitals")
 	host._expect_equal(int(character_state.inventory.items.get("item.repair_gel", 0)), 1, "post-write outpost refills repair gel")
 	host._expect_equal(int(character_state.inventory.items.get("item.resistance_vial_t1", 0)), 1, "post-write outpost refills resistance vial")
+
+	character_state.equipment["suit_module"] = "equipment.filter_module_t1"
+	var ready_status_text := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(ready_status_text, "从外勤出发口复测核心稳定站", "post-write HUD shows departure exit after refit")
 
 
 func _expect_text_contains(text: String, expected_text: String, label: String) -> void:

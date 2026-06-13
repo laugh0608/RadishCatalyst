@@ -58,6 +58,30 @@ static func format_next_sortie_outpost_line(world_state: WorldState, character_s
 	]
 
 
+static func format_next_sortie_goal_name(world_state: WorldState) -> String:
+	if not should_show_next_sortie(world_state):
+		return ""
+	if world_state.current_region_id != "region.outpost_platform":
+		return "核心写入归档待回前哨"
+	return "核心写入归档后出发准备"
+
+
+static func format_next_sortie_route_line(world_state: WorldState) -> String:
+	if not should_show_next_sortie(world_state):
+		return ""
+	if world_state.current_region_id != "region.outpost_platform":
+		return "核心写入已归档；返回前哨核心补给并整理下一趟外勤"
+	return "核心写入已归档；补给和模块确认后，从外勤出发口复测核心稳定站"
+
+
+static func get_next_sortie_target_region_id(world_state: WorldState) -> String:
+	if not should_show_next_sortie(world_state):
+		return ""
+	if world_state.current_region_id == "region.outpost_platform":
+		return "region.demo_stabilization_core"
+	return "region.outpost_platform"
+
+
 static func format_battle_spend(world_state: WorldState) -> String:
 	var spend_parts: Array[String] = []
 	if has_guard_buffer_sync(world_state):
@@ -122,7 +146,7 @@ static func format_next_sortie_action(world_state: WorldState, character_state: 
 		if world_state.has_base_structure_definition("building.field_outfitting_station"):
 			return "到出发整备台确认基础过滤模块"
 		return "补建出发整备台后再确认模块"
-	return "基础过滤模块和补给可支撑下一趟外勤复测"
+	return "从外勤出发口复测核心稳定站"
 
 
 static func should_show_next_sortie(world_state: WorldState) -> bool:

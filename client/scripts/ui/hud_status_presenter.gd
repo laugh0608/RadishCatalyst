@@ -310,6 +310,9 @@ func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, que
 	var action_goal := BaseActionDispatchPlan.format_status_goal(world_state)
 	if not action_goal.is_empty():
 		return action_goal
+	var next_sortie_goal := CoreGuardAftermathFormatter.format_next_sortie_goal_name(world_state)
+	if not next_sortie_goal.is_empty():
+		return next_sortie_goal
 	if _has_completed_phase_survey_feedback(world_state):
 		return "相位测绘反馈已归档"
 	if _has_completed_steady_supply_feedback(world_state):
@@ -767,6 +770,9 @@ func _format_active_quest_progress(data_registry: DataRegistry, world_state: Wor
 		var action_progress := BaseActionDispatchPlan.format_status_progress(world_state)
 		if not action_progress.is_empty():
 			return action_progress
+		var next_sortie_route := CoreGuardAftermathFormatter.format_next_sortie_route_line(world_state)
+		if not next_sortie_route.is_empty():
+			return next_sortie_route
 		if _has_completed_phase_survey_feedback(world_state):
 			return "相位测绘选择闭环已完成；本轮验证了基地选择、两处前线读数和返回提示收益"
 		if _has_completed_steady_supply_feedback(world_state):

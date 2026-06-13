@@ -239,6 +239,29 @@ func run(root_window: Window) -> void:
 		"核心\n目标",
 		"completed frontline window review marks demo stabilization core as minimap target"
 	)
+	var completed_core_frontline_world := WorldState.create_default()
+	completed_core_frontline_world.current_region_id = "region.demo_stabilization_core"
+	completed_core_frontline_world.unlock_region("region.demo_stabilization_core")
+	completed_core_frontline_world.quest_state.completed_quest_ids.append("quest.write_demo_stabilization_core")
+	host._expect_text_contains(
+		presenter.format_region_markers(completed_core_frontline_world, ""),
+		"基地：西侧，目标",
+		"completed demo core write points map target back to base from front line"
+	)
+	var completed_core_base_world := WorldState.create_default()
+	completed_core_base_world.current_region_id = "region.outpost_platform"
+	completed_core_base_world.unlock_region("region.demo_stabilization_core")
+	completed_core_base_world.quest_state.completed_quest_ids.append("quest.write_demo_stabilization_core")
+	host._expect_text_contains(
+		presenter.format_region_markers(completed_core_base_world, ""),
+		"核心：更东，目标",
+		"completed demo core write points next sortie target back to core from base"
+	)
+	host._expect_array_has(
+		presenter.format_map_marker_labels(completed_core_base_world, ""),
+		"核心\n目标",
+		"completed demo core write keeps core visible as next sortie minimap target"
+	)
 
 	var hud := PrototypeHudScene.instantiate() as PrototypeHud
 	root_window.add_child(hud)
