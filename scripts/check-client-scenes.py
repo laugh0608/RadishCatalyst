@@ -457,7 +457,12 @@ def check_build_prerequisites(interactables: list[dict[str, str]], errors: list[
             )
 
 
-def check_demo_core_placement(interactables: list[dict[str, str]], enemies: list[dict[str, str]], errors: list[str]) -> None:
+def check_demo_core_placement(
+    interactables: list[dict[str, str]],
+    enemies: list[dict[str, str]],
+    scene_nodes: list[dict[str, Any]],
+    errors: list[str],
+) -> None:
     demo_core = next((item for item in interactables if item["name"] == "DemoStabilizationCore"), None)
     demo_recovery = next((item for item in interactables if item["name"] == "DemoStabilizationRecoveryCache"), None)
     demo_guard = next((enemy for enemy in enemies if enemy["name"] == "DemoStabilizationGuard"), None)
@@ -473,6 +478,18 @@ def check_demo_core_placement(interactables: list[dict[str, str]], enemies: list
         errors.append("client/scenes/maps/VerticalSliceMap.tscn: missing demo stabilization guard")
     elif demo_guard["region_id"] != "region.demo_stabilization_core":
         errors.append("client/scenes/maps/VerticalSliceMap.tscn: demo stabilization guard must sit in demo stabilization core region")
+    scene_nodes_by_name = {str(node["name"]): node for node in scene_nodes}
+    for node_name in [
+        "CoreStabilizationApproachLane",
+        "CoreStabilizationRecoveryPocket",
+        "CoreStabilizationGuardPressureZone",
+        "CoreStabilizationWritebackLine",
+        "CoreStabilizationCorePad",
+        "CoreStabilizationPressureLabel",
+    ]:
+        node = scene_nodes_by_name.get(node_name)
+        if node is None or str(node["parent"]) != "OpeningSceneLayer":
+            errors.append(f"client/scenes/maps/VerticalSliceMap.tscn: missing demo stabilization pressure scene node {node_name}")
 
 
 def check_spawn_occlusion(
@@ -728,9 +745,10 @@ def check_vertical_slice_scene(
         return
     regions = load_region_constants(vertical_slice_map_script_path, errors)
     content = read_text(vertical_slice_map_scene_path)
+    scene_nodes = get_scene_nodes(content)
     interactables, enemies, map_context, _, _ = parse_map_scene(content, regions)
     check_build_prerequisites(interactables, errors)
-    check_demo_core_placement(interactables, enemies, errors)
+    check_demo_core_placement(interactables, enemies, scene_nodes, errors)
     check_spawn_occlusion(
         repo_root,
         game_root_scene_path,

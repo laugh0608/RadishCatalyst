@@ -229,6 +229,9 @@ func _format_base_summary_lines(
 		return active_structure_summary
 
 	var active_quest := data_registry.get_definition(active_quest_id)
+	var core_stabilization_summary := CoreStabilizationPressureFormatter.format_hud_summary(world_state, character_state, active_quest_id)
+	if not core_stabilization_summary.is_empty():
+		return core_stabilization_summary
 	var slurry_reclaim_summary := _format_pollution_slurry_reclaim_summary(
 		world_state,
 		character_state,

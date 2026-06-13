@@ -430,12 +430,16 @@ func _format_demo_stabilization_write_pressure(
 		prepared_parts.append("守卫回写缓存")
 	if used_core_buffer:
 		prepared_parts.append("稳压缓冲包")
+	var ready_count := prepared_parts.size()
+	if used_vial:
+		ready_count += 1
 
 	if not prepared_parts.is_empty():
 		var payoff := "核心设备承压低于无准备写入"
 		if used_core_buffer:
 			payoff = "终点前整备同时降低守卫和核心设备承压，核心设备承压低于无准备写入"
-		return " %s已串入写入校准，%s，生命 -%s，防护 -%s；%s。" % [
+		return " 终点准备 %d/4：%s已串入写入校准，%s，生命 -%s，防护 -%s；%s。" % [
+			ready_count,
 			"、".join(prepared_parts),
 			pressure_text,
 			health_text,
@@ -444,12 +448,12 @@ func _format_demo_stabilization_write_pressure(
 		]
 
 	if used_vial:
-		return " %s，生命 -%s，防护 -%s；药剂让核心设备承压低于无准备写入。" % [
+		return " 终点准备 1/4：%s，生命 -%s，防护 -%s；药剂让核心设备承压低于无准备写入。" % [
 			pressure_text,
 			health_text,
 			protection_text
 		]
-	return " 没有抗污染药剂参与排压，核心写入反冲完整命中，生命 -%s，防护 -%s；下次终点写入前应确认守卫缓存补给。" % [
+	return " 终点准备 0/4：没有抗污染药剂参与排压，核心写入反冲完整命中，生命 -%s，防护 -%s；下次终点写入前应确认守卫缓存补给。" % [
 		health_text,
 		protection_text
 	]

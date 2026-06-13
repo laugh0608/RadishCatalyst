@@ -23,6 +23,7 @@ func run() -> void:
 	_check_demo_stabilization_short_run_from_overpressure_archive()
 	_check_core_stabilization_buffer_reduces_guard_pressure()
 	_check_demo_stabilization_core_write_pressure()
+	_check_demo_stabilization_core_prompt_pressure_read()
 
 
 func _check_phase_well_knot_core_recipe_progression() -> void:
@@ -734,6 +735,7 @@ func _check_demo_stabilization_core_write_pressure() -> void:
 		fully_prepared_world
 	)
 	host._expect_equal(bool(fully_prepared_result.get("success", false)), true, "core write with full terminal preparation succeeds")
+	_expect_text_contains(String(fully_prepared_result.get("message", "")), "终点准备 4/4", "core write shows full terminal preparation count")
 	_expect_text_contains(String(fully_prepared_result.get("message", "")), "核心站侧边补给", "core write reads side recovery cache")
 	_expect_text_contains(String(fully_prepared_result.get("message", "")), "守卫回写缓存", "core write reads guard writeback cache")
 	_expect_text_contains(String(fully_prepared_result.get("message", "")), "终点前整备同时降低守卫和核心设备承压", "core write explains full preparation payoff")
@@ -805,6 +807,7 @@ func _check_demo_stabilization_core_write_pressure() -> void:
 		guard_cache_world
 	)
 	host._expect_equal(bool(guard_cache_result.get("success", false)), true, "core write with guard cache only succeeds")
+	_expect_text_contains(String(guard_cache_result.get("message", "")), "终点准备 1/4", "core write guard cache shows partial preparation count")
 	_expect_text_contains(String(guard_cache_result.get("message", "")), "守卫回写缓存", "core write guard cache explains writeback calibration")
 	_expect_text_contains(String(guard_cache_result.get("message", "")), "核心设备承压低于无准备写入", "core write guard cache explains partial pressure relief")
 	host._expect_equal(int(roundf(guard_cache_character.health * 10.0)), 892, "guard cache lowers write health pressure")
@@ -820,9 +823,42 @@ func _check_demo_stabilization_core_write_pressure() -> void:
 		plain_world
 	)
 	host._expect_equal(bool(plain_result.get("success", false)), true, "core write without vial still succeeds")
+	_expect_text_contains(String(plain_result.get("message", "")), "终点准备 0/4", "core write without preparation shows pressure count")
 	_expect_text_contains(String(plain_result.get("message", "")), "没有抗污染药剂参与排压", "core write without vial explains full pressure")
 	host._expect_equal(int(roundf(plain_character.health * 10.0)), 880, "core write without vial health pressure")
 	host._expect_equal(int(roundf(plain_character.protection * 10.0)), 820, "core write without vial protection pressure")
+
+
+func _check_demo_stabilization_core_prompt_pressure_read() -> void:
+	var world_state := _create_core_write_ready_world()
+	world_state.get_enemy("enemy_instance.demo_stabilization_guard")["core_buffer_used"] = true
+	world_state.ensure_map_object(
+		"map_object_instance.demo_stabilization_recovery_cache",
+		"map_object.demo_stabilization_recovery_cache",
+		"region.demo_stabilization_core"
+	)
+	world_state.set_map_object_flag("map_object_instance.demo_stabilization_recovery_cache", "is_gathered", true)
+	world_state.ensure_map_object(
+		"map_object_instance.demo_stabilization_guard_cache",
+		"map_object.demo_stabilization_guard_cache",
+		"region.demo_stabilization_core"
+	)
+	world_state.set_map_object_flag("map_object_instance.demo_stabilization_guard_cache", "is_gathered", true)
+	var character_state := CharacterState.create_default()
+	character_state.inventory.add_item("item.resistance_vial_t1", 1)
+	var core := PrototypeInteractable.new()
+	core.instance_id = "map_object_instance.demo_stabilization_core"
+	core.definition_id = "map_object.demo_stabilization_core"
+	core.interaction_type = "inspect"
+	var formatter := InteractionPromptFormatter.new(
+		host.data_registry,
+		ProcessingSystem.new(host.data_registry),
+		BuildSystem.new(host.data_registry)
+	)
+	var prompt := formatter.format_general_interaction_prompt(core, character_state, world_state)
+	_expect_text_contains(prompt, "终点准备 4/4", "core prompt shows full preparation count")
+	_expect_text_contains(prompt, "侧边补给已取；缓冲回写已接入；药剂在身；守卫缓存已取", "core prompt shows terminal preparation states")
+	core.free()
 
 
 func _create_core_write_ready_world() -> WorldState:

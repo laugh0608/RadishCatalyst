@@ -143,7 +143,7 @@ func format_general_interaction_prompt(
 	var reward_line := _format_interaction_reward_line(interactable, definition)
 	if not reward_line.is_empty():
 		parts.append(reward_line)
-	parts.append("状态：%s" % _get_general_interaction_status(interactable, object_state, character_state))
+	parts.append("状态：%s" % _get_general_interaction_status(interactable, object_state, character_state, world_state))
 	var next_step_line := _get_general_interaction_next_step(interactable, object_state, character_state, world_state)
 	if not next_step_line.is_empty():
 		parts.append("下一步：%s" % next_step_line)
@@ -808,7 +808,7 @@ func _get_interaction_tool_status(definition_id: String, character_state: Charac
 
 func _get_general_interaction_purpose(interactable: PrototypeInteractable, definition: Dictionary) -> String:
 	if interactable.definition_id == "map_object.demo_stabilization_core":
-		return "写入稳窗和高压窗口归档数据；抗污染药剂会参与核心设备写入排压。"
+		return "写入归档数据；侧边补给、缓冲回写、药剂和守卫缓存会改变核心设备承压。"
 	match interactable.interaction_type:
 		"gather":
 			match String(definition.get("object_type", "")):
@@ -845,7 +845,8 @@ func _format_interaction_reward_line(interactable: PrototypeInteractable, defini
 func _get_general_interaction_status(
 	interactable: PrototypeInteractable,
 	object_state: Dictionary,
-	character_state: CharacterState
+	character_state: CharacterState,
+	world_state: WorldState
 ) -> String:
 	if _is_general_interaction_processed(interactable, object_state):
 		return _get_processed_interaction_status(interactable)
@@ -853,11 +854,7 @@ func _get_general_interaction_status(
 	if tool_status.begins_with("缺少能力"):
 		return "%s，先升级或更换工具。" % tool_status
 	if interactable.definition_id == "map_object.demo_stabilization_core":
-		if _is_general_interaction_processed(interactable, object_state):
-			return "已接管，第一条稳定通道已打开。"
-		if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
-			return "可写入，抗污染药剂可降低写入反冲。"
-		return "可写入，但缺少抗污染药剂，反冲会完整命中。"
+		return CoreStabilizationPressureFormatter.format_interaction_status(character_state, world_state, object_state)
 	match interactable.interaction_type:
 		"gather":
 			return "可采集。"
@@ -899,16 +896,7 @@ func _get_general_interaction_next_step(
 	world_state: WorldState
 ) -> String:
 	if interactable.definition_id == "map_object.demo_stabilization_core":
-		if _is_general_interaction_processed(interactable, object_state):
-			return "首版 demo 主线目标已完成；返回基地整理补给。"
-		var has_recovery_cache := _has_demo_stabilization_recovery_cache(world_state)
-		if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
-			if has_recovery_cache:
-				return "直接写入，侧边补给和药剂会自动接入排压并降低生命 / 防护损耗。"
-			return "直接写入，药剂会自动接入排压并降低生命 / 防护损耗。"
-		if has_recovery_cache:
-			return "可写入但承压仍高；侧边补给会削弱部分反冲，药剂不足时先确认过滤器或守卫缓存。"
-		return "可写入但承压更高；若想降低损耗，先确认守卫缓存或过滤器补给。"
+		return CoreStabilizationPressureFormatter.format_interaction_next_step(character_state, world_state, object_state)
 	if interactable.definition_id != "map_object.pollution_residue_patch":
 		return ""
 	var contextual_step := _get_pollution_residue_contextual_next_step(interactable, object_state, world_state)
