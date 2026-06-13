@@ -7,13 +7,17 @@ static func format_hud_summary(world_state: WorldState, character_state: Charact
 		return []
 	if not _has_any_departure_facility(world_state) and not _can_build_outfitting_station(character_state):
 		return []
-	return [
+	var lines: Array[String] = [
 		"出发准备：%s；%s" % [
 			format_module_state(world_state, character_state),
 			format_supply_state(world_state, character_state)
 		],
 		"收益：%s" % format_pressure_payoff(world_state)
 	]
+	var next_sortie_line := CoreGuardAftermathFormatter.format_next_sortie_hud_line(world_state, character_state)
+	if not next_sortie_line.is_empty():
+		lines.append(next_sortie_line)
+	return lines
 
 
 static func format_outpost_core_prompt(world_state: WorldState, character_state: CharacterState) -> String:
@@ -27,6 +31,9 @@ static func format_outpost_core_prompt(world_state: WorldState, character_state:
 	var aftermath_line := CoreGuardAftermathFormatter.format_outpost_line(world_state, character_state)
 	if not aftermath_line.is_empty():
 		parts.append("%s。" % aftermath_line)
+	var next_sortie_line := CoreGuardAftermathFormatter.format_next_sortie_outpost_line(world_state, character_state)
+	if not next_sortie_line.is_empty():
+		parts.append("%s。" % next_sortie_line)
 	if not restock_names.is_empty():
 		parts.append("操作：E 补%s并恢复生命 / 防护。" % " / ".join(restock_names))
 	elif not character_state.are_vitals_full():
@@ -55,6 +62,9 @@ static func format_feedback_detail(world_state: WorldState, character_state: Cha
 	var aftermath_line := CoreGuardAftermathFormatter.format_outpost_line(world_state, character_state)
 	if not aftermath_line.is_empty():
 		parts.append(aftermath_line)
+	var next_sortie_line := CoreGuardAftermathFormatter.format_next_sortie_outpost_line(world_state, character_state)
+	if not next_sortie_line.is_empty():
+		parts.append(next_sortie_line)
 	return "；".join(parts)
 
 
@@ -83,6 +93,8 @@ static func format_supply_state(world_state: WorldState, character_state: Charac
 
 
 static func format_pressure_payoff(world_state: WorldState) -> String:
+	if world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core"):
+		return "核心写入已归档，前哨补给和模块整备用于下一趟外勤复测"
 	if _is_core_stabilization_available(world_state):
 		return "污染承压下降，药剂可参与核心写入排压"
 	if _is_vial_supply_available(world_state):
