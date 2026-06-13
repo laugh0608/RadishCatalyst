@@ -147,7 +147,7 @@ func format_general_interaction_prompt(
 	var next_step_line := _get_general_interaction_next_step(interactable, object_state, character_state, world_state)
 	if not next_step_line.is_empty():
 		parts.append("下一步：%s" % next_step_line)
-	var action_line := _get_general_interaction_action(interactable, object_state, character_state)
+	var action_line := _get_general_interaction_action(interactable, object_state, character_state, world_state)
 	if not action_line.is_empty():
 		parts.append("操作：%s" % action_line)
 	return "\n".join(parts)
@@ -816,15 +816,15 @@ func _get_general_interaction_status(
 	character_state: CharacterState,
 	world_state: WorldState
 ) -> String:
+	if interactable.definition_id == "map_object.demo_stabilization_core":
+		return CoreStabilizationPressureFormatter.format_interaction_status(character_state, world_state, object_state)
 	if _is_general_interaction_processed(interactable, object_state):
-		return _get_processed_interaction_status(interactable)
+		return _get_processed_interaction_status(interactable, character_state, world_state)
 	var tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
 	if tool_status.begins_with("缺少能力"):
 		return "%s，先升级或更换工具。" % tool_status
 	if interactable.definition_id == "map_object.outpost_departure_gate":
 		return DepartureReadinessFormatter.format_departure_gate_status(world_state, character_state)
-	if interactable.definition_id == "map_object.demo_stabilization_core":
-		return CoreStabilizationPressureFormatter.format_interaction_status(character_state, world_state, object_state)
 	match interactable.interaction_type:
 		"gather":
 			return "可采集。"
@@ -839,8 +839,14 @@ func _get_general_interaction_status(
 func _get_general_interaction_action(
 	interactable: PrototypeInteractable,
 	object_state: Dictionary,
-	character_state: CharacterState
+	character_state: CharacterState,
+	world_state: WorldState
 ) -> String:
+	if (
+		interactable.definition_id == "map_object.demo_stabilization_core"
+		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
+	):
+		return "按 E 复测核心稳定设备"
 	if _is_general_interaction_processed(interactable, object_state):
 		return ""
 	var tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
@@ -910,7 +916,18 @@ func _get_pollution_residue_contextual_next_step(
 	return ""
 
 
-func _get_processed_interaction_status(interactable: PrototypeInteractable) -> String:
+func _get_processed_interaction_status(
+	interactable: PrototypeInteractable,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
+	var core_cache_status := CoreStabilizationPressureFormatter.format_completed_cache_status(
+		interactable.definition_id,
+		world_state,
+		character_state
+	)
+	if not core_cache_status.is_empty():
+		return core_cache_status
 	match interactable.interaction_type:
 		"gather":
 			match interactable.definition_id:

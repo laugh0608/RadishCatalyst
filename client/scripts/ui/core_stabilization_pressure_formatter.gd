@@ -14,6 +14,11 @@ static func format_hud_summary(
 	character_state: CharacterState,
 	active_quest_id: String
 ) -> Array[String]:
+	if should_show_core_revisit(world_state):
+		return [
+			"核心站复测：核心设备已接管；%s" % format_core_revisit_completion_parts(world_state, character_state),
+			format_core_revisit_pressure_line(world_state)
+		]
 	if not is_core_stabilization_context(world_state, active_quest_id):
 		return []
 	var ready_line := "准备项：%s" % format_ready_parts(world_state, character_state)
@@ -56,7 +61,10 @@ static func format_interaction_status(
 	object_state: Dictionary
 ) -> String:
 	if is_core_processed(world_state, object_state):
-		return "已接管，第一条稳定通道已打开。"
+		return "已接管，第一条稳定通道已打开；复测完成态：%s；%s。" % [
+			format_core_revisit_completion_parts(world_state, character_state),
+			format_core_revisit_pressure_line(world_state)
+		]
 	if not world_state.quest_state.has_active_quest("quest.write_demo_stabilization_core"):
 		if not bool(world_state.get_enemy("enemy_instance.demo_stabilization_guard").get("is_defeated", false)):
 			return "守卫仍压制写入平台；先完成缓冲包整备并击败核心阶段守卫。"
@@ -77,7 +85,7 @@ static func format_interaction_next_step(
 	object_state: Dictionary
 ) -> String:
 	if is_core_processed(world_state, object_state):
-		return "首版 demo 主线目标已完成；返回基地整理补给。"
+		return format_core_revisit_next_step(world_state, character_state)
 	if not world_state.quest_state.has_active_quest("quest.write_demo_stabilization_core"):
 		return "按任务顺序先处理侧边补给、缓冲包和守卫战，再回收回写缓存。"
 	if world_state.quest_state.get_objective_progress("quest.write_demo_stabilization_core", "gather_item", "item.core_write_charge") < 1.0:
@@ -91,6 +99,14 @@ static func is_core_stabilization_context(world_state: WorldState, active_quest_
 	if CORE_QUEST_IDS.has(active_quest_id):
 		return true
 	return world_state.current_region_id == "region.demo_stabilization_core"
+
+
+static func should_show_core_revisit(world_state: WorldState) -> bool:
+	return (
+		world_state != null
+		and world_state.current_region_id == "region.demo_stabilization_core"
+		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
+	)
 
 
 static func is_core_processed(world_state: WorldState, object_state: Dictionary) -> bool:
@@ -117,6 +133,60 @@ static func format_ready_parts(world_state: WorldState, character_state: Charact
 	parts.append("药剂在身" if character_state.inventory.has_ref("item.resistance_vial_t1", 1) else "药剂不足")
 	parts.append("守卫缓存已取" if has_guard_cache(world_state) else "守卫缓存待取")
 	return "；".join(parts)
+
+
+static func format_core_revisit_completion_parts(world_state: WorldState, character_state: CharacterState) -> String:
+	var parts: Array[String] = []
+	parts.append("侧边补给已回收" if has_recovery_cache(world_state) else "侧边补给未回收")
+	parts.append("稳压缓冲包已回写" if has_guard_buffer_sync(world_state) else "稳压缓冲包未回写")
+	if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+		parts.append("抗污染药剂已备")
+	elif has_guard_vial_pressure(world_state):
+		parts.append("抗污染药剂已用于守卫排压")
+	else:
+		parts.append("抗污染药剂待补")
+	parts.append("守卫回写缓存已归档" if has_guard_cache(world_state) else "守卫回写缓存未回收")
+	return "；".join(parts)
+
+
+static func format_core_revisit_pressure_line(world_state: WorldState) -> String:
+	return "压力回看：%s；复测不会重复消耗补给" % CoreGuardAftermathFormatter.format_battle_spend(world_state)
+
+
+static func format_core_revisit_next_step(world_state: WorldState, character_state: CharacterState) -> String:
+	if not character_state.are_vitals_full():
+		return "生命 / 防护未满；沿外勤出发口回前哨核心恢复后再复测或出发"
+	if not character_state.inventory.has_ref("item.repair_gel", 1):
+		return "修复凝胶不足；沿外勤出发口回前哨核心补给"
+	if not character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+		return "抗污染药剂不足；沿外勤出发口回前哨核心补药剂"
+	return "完成态已确认；可沿外勤出发口回前哨整理下一趟外勤"
+
+
+static func format_core_revisit_feedback_message(world_state: WorldState, character_state: CharacterState) -> String:
+	return "核心稳定站复测：核心设备已接管；%s；%s；下一步：%s。" % [
+		format_core_revisit_completion_parts(world_state, character_state),
+		format_core_revisit_pressure_line(world_state),
+		format_core_revisit_next_step(world_state, character_state)
+	]
+
+
+static func format_completed_cache_status(
+	definition_id: String,
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	if definition_id == "map_object.demo_stabilization_recovery_cache":
+		var usage := "已接入守卫战稳压" if has_guard_side_supply_sync(world_state) else "已作为核心写入准备项保留"
+		if world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core"):
+			return "侧边补给已回收；%s；核心设备复测时会显示为完成态。" % usage
+		return "侧边补给已回收；%s；继续确认守卫和核心设备。" % usage
+	if definition_id == "map_object.demo_stabilization_guard_cache":
+		var charge_state := "校验片在身" if character_state.inventory.has_ref("item.core_write_charge", 1) else "校验片已用于写入或待确认"
+		if world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core"):
+			return "守卫回写缓存已归档；%s；核心设备复测时会显示守卫缓存完成态。" % charge_state
+		return "守卫回写缓存已回收；%s；写入核心设备前确认药剂和生命 / 防护。" % charge_state
+	return ""
 
 
 static func format_guard_pressure_parts(world_state: WorldState, character_state: CharacterState) -> String:

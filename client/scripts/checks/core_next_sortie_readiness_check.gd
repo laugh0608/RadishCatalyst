@@ -42,6 +42,12 @@ func _check_completed_core_write_returns_to_departure_readiness() -> void:
 	world_state.get_enemy("enemy_instance.demo_stabilization_guard")["core_side_supply_used"] = true
 	world_state.get_enemy("enemy_instance.demo_stabilization_guard")["pressure_vial_used"] = true
 	world_state.ensure_map_object(
+		"map_object_instance.demo_stabilization_recovery_cache",
+		"map_object.demo_stabilization_recovery_cache",
+		"region.demo_stabilization_core"
+	)
+	world_state.set_map_object_flag("map_object_instance.demo_stabilization_recovery_cache", "is_gathered", true)
+	world_state.ensure_map_object(
 		"map_object_instance.demo_stabilization_guard_cache",
 		"map_object.demo_stabilization_guard_cache",
 		"region.demo_stabilization_core"
@@ -126,6 +132,97 @@ func _check_completed_core_write_returns_to_departure_readiness() -> void:
 		false,
 		"post-write departure gate remains repeatable"
 	)
+
+	world_state.current_region_id = "region.demo_stabilization_core"
+	character_state.current_region_id = "region.demo_stabilization_core"
+	world_state.ensure_map_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"region.demo_stabilization_core"
+	)
+	world_state.set_map_object_flag("map_object_instance.demo_stabilization_core", "is_sampled", true)
+
+	var core_revisit_status := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(core_revisit_status, "核心站复测", "core revisit HUD names revisit state")
+	_expect_text_contains(core_revisit_status, "侧边补给已回收", "core revisit HUD shows side supply completion")
+	_expect_text_contains(core_revisit_status, "稳压缓冲包已回写", "core revisit HUD shows buffer writeback completion")
+	_expect_text_contains(core_revisit_status, "抗污染药剂已备", "core revisit HUD shows vial ready state")
+	_expect_text_contains(core_revisit_status, "守卫回写缓存已归档", "core revisit HUD shows guard cache completion")
+	_expect_text_contains(core_revisit_status, "压力回看", "core revisit HUD shows pressure readback")
+
+	var core_device := PrototypeInteractable.new()
+	core_device.instance_id = "map_object_instance.demo_stabilization_core"
+	core_device.definition_id = "map_object.demo_stabilization_core"
+	core_device.interaction_type = "inspect"
+	core_device.single_use = false
+	var core_prompt := formatter.format_general_interaction_prompt(core_device, character_state, world_state)
+	_expect_text_contains(core_prompt, "复测完成态", "core revisit prompt shows completed state")
+	_expect_text_contains(core_prompt, "压力回看", "core revisit prompt shows battle pressure readback")
+	_expect_text_contains(core_prompt, "按 E 复测核心稳定设备", "core revisit prompt keeps core device operable")
+	core_device.free()
+
+	var core_revisit_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(core_revisit_result.get("success", false)), true, "post-write core device revisit succeeds")
+	_expect_text_contains(String(core_revisit_result.get("message", "")), "核心稳定站复测", "post-write core revisit has feedback title")
+	_expect_text_contains(String(core_revisit_result.get("message", "")), "守卫战消耗", "post-write core revisit explains guard pressure")
+	_expect_text_contains(String(core_revisit_result.get("message", "")), "复测不会重复消耗补给", "post-write core revisit avoids repeat consumption")
+
+	var recovery_cache := PrototypeInteractable.new()
+	recovery_cache.instance_id = "map_object_instance.demo_stabilization_recovery_cache"
+	recovery_cache.definition_id = "map_object.demo_stabilization_recovery_cache"
+	recovery_cache.interaction_type = "gather"
+	var recovery_prompt := formatter.format_general_interaction_prompt(recovery_cache, character_state, world_state)
+	_expect_text_contains(recovery_prompt, "侧边补给已回收", "core revisit side cache prompt shows completed state")
+	_expect_text_contains(recovery_prompt, "核心设备复测时会显示为完成态", "core revisit side cache prompt links to core device")
+	recovery_cache.free()
+
+	var guard_cache := PrototypeInteractable.new()
+	guard_cache.instance_id = "map_object_instance.demo_stabilization_guard_cache"
+	guard_cache.definition_id = "map_object.demo_stabilization_guard_cache"
+	guard_cache.interaction_type = "gather"
+	var guard_cache_prompt := formatter.format_general_interaction_prompt(guard_cache, character_state, world_state)
+	_expect_text_contains(guard_cache_prompt, "守卫回写缓存已归档", "core revisit guard cache prompt shows completed state")
+	_expect_text_contains(guard_cache_prompt, "守卫缓存完成态", "core revisit guard cache prompt links to core device")
+	guard_cache.free()
+
+	var repeated_recovery_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.demo_stabilization_recovery_cache",
+		"map_object.demo_stabilization_recovery_cache",
+		"gather",
+		character_state,
+		world_state
+	)
+	_expect_text_contains(String(repeated_recovery_result.get("message", "")), "侧边补给已回收", "repeated side cache action keeps completed feedback")
+
+	var repeated_guard_cache_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.demo_stabilization_guard_cache",
+		"map_object.demo_stabilization_guard_cache",
+		"gather",
+		character_state,
+		world_state
+	)
+	_expect_text_contains(String(repeated_guard_cache_result.get("message", "")), "守卫回写缓存已归档", "repeated guard cache action keeps completed feedback")
+
+	var core_revisit_reactor := PrototypeInteractable.new()
+	core_revisit_reactor.definition_id = "building.basic_reactor"
+	core_revisit_reactor.interaction_type = "process_recipe"
+	core_revisit_reactor.recipe_id = "recipe.process_crystal_ore"
+	var core_revisit_panel := HudDevicePanelPresenter.new().format_device_panel_texts(
+		host.data_registry,
+		ProcessingSystem.new(host.data_registry),
+		core_revisit_reactor,
+		character_state,
+		world_state
+	)
+	_expect_text_contains(String(core_revisit_panel.get("status", "")), "核心写入归档", "core revisit device panel keeps archived context")
+	_expect_text_contains(String(core_revisit_panel.get("status", "")), "核心设备复测完成态", "core revisit device panel points back to core device")
+	core_revisit_reactor.free()
 
 
 func _expect_text_contains(text: String, expected_text: String, label: String) -> void:

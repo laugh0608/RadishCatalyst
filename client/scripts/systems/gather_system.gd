@@ -122,6 +122,13 @@ func interact_with_object(
 	if interaction_type == "inspect" and definition_id == OUTPOST_DEPARTURE_GATE_ID:
 		return _inspect_outpost_departure_gate(character_state, world_state)
 
+	if (
+		interaction_type == "inspect"
+		and definition_id == "map_object.demo_stabilization_core"
+		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
+	):
+		return _inspect_completed_demo_stabilization_core(instance_id, definition_id, character_state, world_state)
+
 	if interaction_type == "inspect" and definition_id == BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID:
 		var review_messages := BaseActionDispatchPlan.acknowledge_frontline_window_feedback(world_state)
 		if not review_messages.is_empty():
@@ -156,7 +163,7 @@ func interact_with_object(
 	var object_state := world_state.ensure_map_object(instance_id, definition_id, character_state.current_region_id)
 	if _is_already_processed(object_state, interaction_type):
 		return _failure(
-			_format_already_processed_message(definition_id, interaction_type),
+			_format_already_processed_message(definition_id, interaction_type, character_state, world_state),
 			"目标已处理",
 			"现场完成态颜色和标签表示该对象已处理；前往下一个未处理目标。"
 		)
@@ -273,6 +280,23 @@ func _inspect_outpost_departure_gate(character_state: CharacterState, world_stat
 	return _success_feedback(
 		"外勤出发口检查：%s；下一步：%s。" % [status, next_step],
 		"外勤出发口检查",
+		status,
+		next_step
+	)
+
+
+func _inspect_completed_demo_stabilization_core(
+	instance_id: String,
+	definition_id: String,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> Dictionary:
+	_set_map_object_flag(world_state, instance_id, definition_id, "is_sampled", true)
+	var status := CoreStabilizationPressureFormatter.format_core_revisit_completion_parts(world_state, character_state)
+	var next_step := CoreStabilizationPressureFormatter.format_core_revisit_next_step(world_state, character_state)
+	return _success_feedback(
+		CoreStabilizationPressureFormatter.format_core_revisit_feedback_message(world_state, character_state),
+		"核心稳定站复测",
 		status,
 		next_step
 	)
@@ -606,10 +630,22 @@ func _get_gather_completion_label(definition: Dictionary) -> String:
 			return "已回收"
 
 
-func _format_already_processed_message(definition_id: String, interaction_type: String) -> String:
+func _format_already_processed_message(
+	definition_id: String,
+	interaction_type: String,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
 	var object_name := _get_display_name(definition_id)
 	match interaction_type:
 		"gather":
+			var core_cache_status := CoreStabilizationPressureFormatter.format_completed_cache_status(
+				definition_id,
+				world_state,
+				character_state
+			)
+			if not core_cache_status.is_empty():
+				return "%s：%s" % [object_name, core_cache_status]
 			if definition_id == "map_object.crystal_cluster" or definition_id == "map_object.rich_crystal_vein":
 				return "%s已采集，现场保留已采集标记。" % object_name
 			return "%s已回收，现场保留已回收标记。" % object_name

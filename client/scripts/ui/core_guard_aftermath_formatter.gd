@@ -146,6 +146,8 @@ static func format_next_sortie_action(world_state: WorldState, character_state: 
 		if world_state.has_base_structure_definition("building.field_outfitting_station"):
 			return "到出发整备台确认基础过滤模块"
 		return "补建出发整备台后再确认模块"
+	if world_state.current_region_id == "region.demo_stabilization_core":
+		return "在核心设备复测完成态后回前哨整理下一趟外勤"
 	return "从外勤出发口复测核心稳定站"
 
 
