@@ -773,6 +773,8 @@ func _get_interaction_tool_status(definition_id: String, character_state: Charac
 
 
 func _get_general_interaction_purpose(interactable: PrototypeInteractable, definition: Dictionary) -> String:
+	if interactable.definition_id == "map_object.outpost_departure_gate":
+		return "汇总前哨核心补给、出发整备台模块和地图目标，作为外勤前最后检查。"
 	if interactable.definition_id == "map_object.demo_stabilization_core":
 		return "写入归档数据；侧边补给、缓冲回写、药剂和守卫缓存会改变核心设备承压。"
 	match interactable.interaction_type:
@@ -819,6 +821,8 @@ func _get_general_interaction_status(
 	var tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
 	if tool_status.begins_with("缺少能力"):
 		return "%s，先升级或更换工具。" % tool_status
+	if interactable.definition_id == "map_object.outpost_departure_gate":
+		return DepartureReadinessFormatter.format_departure_gate_status(world_state, character_state)
 	if interactable.definition_id == "map_object.demo_stabilization_core":
 		return CoreStabilizationPressureFormatter.format_interaction_status(character_state, world_state, object_state)
 	match interactable.interaction_type:
@@ -842,6 +846,8 @@ func _get_general_interaction_action(
 	var tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
 	if tool_status.begins_with("缺少能力"):
 		return ""
+	if interactable.definition_id == "map_object.outpost_departure_gate":
+		return "按 E 检查出发准备"
 	if interactable.definition_id == "map_object.demo_stabilization_core":
 		return "按 E 写入核心稳定数据"
 	match interactable.interaction_type:
@@ -861,6 +867,8 @@ func _get_general_interaction_next_step(
 	character_state: CharacterState,
 	world_state: WorldState
 ) -> String:
+	if interactable.definition_id == "map_object.outpost_departure_gate":
+		return DepartureReadinessFormatter.format_departure_gate_next_step(world_state, character_state)
 	if interactable.definition_id == "map_object.demo_stabilization_core":
 		return CoreStabilizationPressureFormatter.format_interaction_next_step(character_state, world_state, object_state)
 	if interactable.definition_id != "map_object.pollution_residue_patch":

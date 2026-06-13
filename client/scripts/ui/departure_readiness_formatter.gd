@@ -53,6 +53,44 @@ static func format_outfitting_station_prompt(world_state: WorldState, character_
 	return "\n".join(parts)
 
 
+static func format_departure_gate_status(world_state: WorldState, character_state: CharacterState) -> String:
+	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
+		return "前哨未恢复；先检查前哨核心"
+	var parts: Array[String] = [
+		"%s；%s" % [
+			format_module_state(world_state, character_state),
+			format_supply_state(world_state, character_state)
+		],
+		"收益：%s" % format_pressure_payoff(world_state)
+	]
+	var next_sortie_line := CoreGuardAftermathFormatter.format_next_sortie_outpost_line(world_state, character_state)
+	if not next_sortie_line.is_empty():
+		parts.append(next_sortie_line)
+	return "；".join(parts)
+
+
+static func format_departure_gate_next_step(world_state: WorldState, character_state: CharacterState) -> String:
+	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
+		return "先按 E 恢复前哨核心，解锁基地出发路线"
+	if not get_restock_supply_names(world_state, character_state).is_empty() or not character_state.are_vitals_full():
+		return "先在前哨核心补给并恢复生命 / 防护"
+	if String(character_state.equipment.get("suit_module", "")) != "equipment.filter_module_t1":
+		if world_state.has_base_structure_definition("building.field_outfitting_station"):
+			return "先到出发整备台确认基础过滤模块"
+		return "先补建出发整备台，或按当前目标外出"
+	var next_sortie_route := CoreGuardAftermathFormatter.format_next_sortie_route_line(world_state)
+	if not next_sortie_route.is_empty():
+		return next_sortie_route
+	return "沿外勤出发口前往地图目标；若地图目标为空，按当前任务追踪推进"
+
+
+static func format_departure_gate_feedback_detail(world_state: WorldState, character_state: CharacterState) -> String:
+	return "%s；下一步：%s" % [
+		format_departure_gate_status(world_state, character_state),
+		format_departure_gate_next_step(world_state, character_state)
+	]
+
+
 static func format_feedback_detail(world_state: WorldState, character_state: CharacterState) -> String:
 	var parts: Array[String] = [
 		format_module_state(world_state, character_state),

@@ -82,6 +82,7 @@ func _check_opening_scene_layer() -> void:
 	var storage_site := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
 	var outfitting_site := map.get_node("Interactables/FieldOutfittingStationBuildSite") as PrototypeInteractable
 	var outfitting_station := map.get_node("Interactables/FieldOutfittingStation") as PrototypeInteractable
+	var departure_gate := map.get_node("Interactables/OutpostDepartureGate") as PrototypeInteractable
 	var supply_choice := map.get_node("Interactables/BaseSupplyChoiceConsole") as PrototypeInteractable
 	var crystal_cluster := map.get_node("Interactables/CrystalCluster") as PrototypeInteractable
 	var rich_crystal := map.get_node("Interactables/RichCrystalVeinNorth") as PrototypeInteractable
@@ -152,6 +153,13 @@ func _check_opening_scene_layer() -> void:
 			and exit_threshold.offset_right <= VerticalSliceMap.CRYSTAL_REGION_X,
 		true,
 		"opening scene exit threshold sits at the crystal route edge"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(exit_lane, departure_gate.position)
+			and departure_gate.definition_id == "map_object.outpost_departure_gate"
+			and departure_gate.single_use == false,
+		true,
+		"opening scene departure gate is a repeatable interactable on the exit lane"
 	)
 	host._expect_equal(
 		crystal_entry.offset_left >= VerticalSliceMap.CRYSTAL_REGION_X

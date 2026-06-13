@@ -12,6 +12,7 @@ const BASIC_STORAGE_REPAIR_GEL_TARGET := 1
 const BASIC_STORAGE_RESISTANCE_VIAL_TARGET := 1
 const FIELD_OUTFITTING_STATION_ID := "building.field_outfitting_station"
 const BASIC_FILTER_MODULE_ID := "equipment.filter_module_t1"
+const OUTPOST_DEPARTURE_GATE_ID := "map_object.outpost_departure_gate"
 const POLLUTION_RESIDUE_PRESSURE_BY_INSTANCE := {
 	"map_object_instance.pollution_residue": 1.0,
 	"map_object_instance.pollution_residue_outer_pocket": 1.15,
@@ -117,6 +118,9 @@ func interact_with_object(
 	var definition := data_registry.get_definition(definition_id)
 	if definition.is_empty():
 		return _failure("未知交互对象：%s。" % definition_id, "交互未完成", "换一个可交互目标，或检查地图对象定义。")
+
+	if interaction_type == "inspect" and definition_id == OUTPOST_DEPARTURE_GATE_ID:
+		return _inspect_outpost_departure_gate(character_state, world_state)
 
 	if interaction_type == "inspect" and definition_id == BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID:
 		var review_messages := BaseActionDispatchPlan.acknowledge_frontline_window_feedback(world_state)
@@ -261,6 +265,17 @@ func _interact_with_outpost_core(character_state: CharacterState, world_state: W
 			"detail": detail
 		}
 	}
+
+
+func _inspect_outpost_departure_gate(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	var status := DepartureReadinessFormatter.format_departure_gate_status(world_state, character_state)
+	var next_step := DepartureReadinessFormatter.format_departure_gate_next_step(world_state, character_state)
+	return _success_feedback(
+		"外勤出发口检查：%s；下一步：%s。" % [status, next_step],
+		"外勤出发口检查",
+		status,
+		next_step
+	)
 
 
 func _restock_basic_storage_supply(character_state: CharacterState, world_state: WorldState) -> String:

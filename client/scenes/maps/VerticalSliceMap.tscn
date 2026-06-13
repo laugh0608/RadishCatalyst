@@ -731,6 +731,14 @@ single_use = false
 label_offset = Vector2(-96, 22)
 label_size = Vector2(192, 24)
 
+[node name="OutpostDepartureGate" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-38, -104)
+definition_id = "map_object.outpost_departure_gate"
+interaction_type = "inspect"
+single_use = false
+label_offset = Vector2(-88, 22)
+label_size = Vector2(176, 24)
+
 [node name="PhaseRelayPad" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(-180, 42)
 definition_id = "map_object.phase_relay_pad"

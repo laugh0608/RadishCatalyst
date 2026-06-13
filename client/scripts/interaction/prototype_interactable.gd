@@ -759,6 +759,8 @@ func _get_default_marker_visual() -> Dictionary:
 			return {"size": Vector2(38.0, 20.0), "color": ROUGH_GROUND_MARKER_COLOR}
 		"map_object.ruin_gate":
 			return {"size": Vector2(24.0, 44.0), "color": GATE_MARKER_COLOR}
+		"map_object.outpost_departure_gate":
+			return {"size": Vector2(28.0, 42.0), "color": READY_PHASE_RELAY_PAD_COLOR}
 		"map_object.phase_relay_pad":
 			return {"size": Vector2(40.0, 24.0), "color": READY_PHASE_RELAY_PAD_COLOR}
 		_:

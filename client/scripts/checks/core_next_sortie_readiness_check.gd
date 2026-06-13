@@ -102,6 +102,31 @@ func _check_completed_core_write_returns_to_departure_readiness() -> void:
 	var ready_status_text := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
 	_expect_text_contains(ready_status_text, "从外勤出发口复测核心稳定站", "post-write HUD shows departure exit after refit")
 
+	var departure_gate := PrototypeInteractable.new()
+	departure_gate.definition_id = "map_object.outpost_departure_gate"
+	departure_gate.interaction_type = "inspect"
+	departure_gate.single_use = false
+	var departure_prompt := formatter.format_general_interaction_prompt(departure_gate, character_state, world_state)
+	_expect_text_contains(departure_prompt, "外勤出发口", "post-write departure gate prompt names the exit")
+	_expect_text_contains(departure_prompt, "从外勤出发口复测核心稳定站", "post-write departure gate prompt points to core revisit")
+	departure_gate.free()
+
+	var departure_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.outpost_departure_gate",
+		"map_object.outpost_departure_gate",
+		"inspect",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(departure_result.get("success", false)), true, "post-write departure gate inspection succeeds")
+	_expect_text_contains(String(departure_result.get("message", "")), "外勤出发口检查", "post-write departure gate inspection has feedback")
+	_expect_text_contains(String(departure_result.get("message", "")), "从外勤出发口复测核心稳定站", "post-write departure gate inspection keeps next target")
+	host._expect_equal(
+		bool(world_state.get_map_object("map_object_instance.outpost_departure_gate").get("is_sampled", false)),
+		false,
+		"post-write departure gate remains repeatable"
+	)
+
 
 func _expect_text_contains(text: String, expected_text: String, label: String) -> void:
 	if text.find(expected_text) < 0:
