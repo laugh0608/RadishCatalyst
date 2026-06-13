@@ -76,6 +76,10 @@ func apply_saved_state(enemy_state: Dictionary) -> void:
 		set_meta("pressure_vial_used", true)
 	elif has_meta("pressure_vial_used"):
 		remove_meta("pressure_vial_used")
+	if bool(enemy_state.get("core_side_supply_used", false)):
+		set_meta("core_side_supply_used", true)
+	elif has_meta("core_side_supply_used"):
+		remove_meta("core_side_supply_used")
 	if defeated:
 		mark_defeated()
 	else:
@@ -125,6 +129,8 @@ func _update_label() -> void:
 
 
 func _get_pressure_focus_label() -> String:
+	if definition_id == "enemy.demo_stabilization_guard":
+		return "核心回写压力"
 	if enemy_category != "polluted":
 		return ""
 	match instance_id:

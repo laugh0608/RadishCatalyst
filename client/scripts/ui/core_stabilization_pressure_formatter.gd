@@ -30,8 +30,8 @@ static func format_hud_summary(
 			]
 		"quest.defeat_demo_stabilization_guard":
 			return [
-				"核心站战斗：缓冲包会削弱守卫第一段回写压力",
-				ready_line
+				"核心站战斗：缓冲包、侧边补给和药剂会削弱守卫第一段压力",
+				"守卫战准备：%s" % format_guard_pressure_parts(world_state, character_state)
 			]
 		"quest.write_demo_stabilization_core":
 			return [
@@ -115,8 +115,34 @@ static func format_ready_parts(world_state: WorldState, character_state: Charact
 	return "；".join(parts)
 
 
+static func format_guard_pressure_parts(world_state: WorldState, character_state: CharacterState) -> String:
+	var parts: Array[String] = []
+	parts.append("侧边补给已接入" if has_guard_side_supply_sync(world_state) else ("侧边补给已取" if has_recovery_cache(world_state) else "侧边补给待取"))
+	if has_guard_buffer_sync(world_state):
+		parts.append("缓冲包已护住守卫战")
+	elif character_state.inventory.has_ref("item.core_stabilization_buffer", 1):
+		parts.append("缓冲包在身")
+	else:
+		parts.append("缓冲包不足")
+	if has_guard_vial_pressure(world_state):
+		parts.append("药剂已守卫排压")
+	elif character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+		parts.append("药剂在身")
+	else:
+		parts.append("药剂不足")
+	return "；".join(parts)
+
+
 static func has_guard_buffer_sync(world_state: WorldState) -> bool:
 	return bool(world_state.get_enemy("enemy_instance.demo_stabilization_guard").get("core_buffer_used", false))
+
+
+static func has_guard_vial_pressure(world_state: WorldState) -> bool:
+	return bool(world_state.get_enemy("enemy_instance.demo_stabilization_guard").get("pressure_vial_used", false))
+
+
+static func has_guard_side_supply_sync(world_state: WorldState) -> bool:
+	return bool(world_state.get_enemy("enemy_instance.demo_stabilization_guard").get("core_side_supply_used", false))
 
 
 static func has_recovery_cache(world_state: WorldState) -> bool:

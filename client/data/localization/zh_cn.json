@@ -616,7 +616,7 @@
   "map_object.demo_stabilization_core.name": "核心稳定设备",
   "map_object.demo_stabilization_core.desc": "核心稳定站中央的写入设备，必须先击败阶段守卫；写入时抗污染药剂可接入排压，降低生命和防护承压。",
   "enemy.demo_stabilization_guard.name": "核心阶段守卫",
-  "enemy.demo_stabilization_guard.desc": "核心稳定站的阶段守卫，压住最终写入平台直到被击败。",
+  "enemy.demo_stabilization_guard.desc": "核心稳定站的阶段守卫，压住最终写入平台；核心稳压缓冲包、侧边补给和抗污染药剂会降低第一段回写压力。",
   "item.steady_supply_trace.name": "稳场补给回执",
   "item.steady_supply_trace.desc": "从补给投放点带回的回执，证明基地选择低风险补给方案后能稳定回收物资。",
   "item.steady_supply_feedback.name": "稳场补给反馈",

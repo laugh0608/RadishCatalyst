@@ -1,0 +1,255 @@
+extends RefCounted
+class_name EnemyCounterattackRuntime
+
+const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
+const POLLUTION_RIDGE_COUNTER_MULT := 1.2
+const POLLUTION_REVISIT_COUNTER_MULT := 1.15
+const GATE_PRESSURE_COUNTER_MULT := 1.35
+const RUIN_PHASE_GUARD_COUNTER_MULT := 1.2
+const POLLUTION_PRESSURE_VIAL_DAMAGE_MULT := 0.45
+const CORE_STABILIZATION_BUFFER_DAMAGE_MULT := 0.55
+const CORE_STABILIZATION_SIDE_SUPPLY_DAMAGE_MULT := 0.8
+
+var data_registry: DataRegistry
+
+
+func _init(registry: DataRegistry) -> void:
+	data_registry = registry
+
+
+func apply(
+	enemy: PrototypeEnemy,
+	character_state: CharacterState,
+	world_state: WorldState = null,
+	enemy_region_id: String = ""
+) -> String:
+	var definition := data_registry.get_definition(enemy.definition_id)
+	var base_stats: Dictionary = definition.get("base_stats", {})
+	var attack_damage := float(base_stats.get("attack", 0.0)) * _get_pressure_multiplier(enemy)
+
+	var consumed_core_buffer := _consume_core_stabilization_buffer(enemy, character_state, world_state, enemy_region_id)
+	if consumed_core_buffer:
+		attack_damage *= CORE_STABILIZATION_BUFFER_DAMAGE_MULT
+
+	var used_core_side_supply := _apply_core_guard_side_supply(enemy, world_state, enemy_region_id)
+	if used_core_side_supply:
+		attack_damage *= CORE_STABILIZATION_SIDE_SUPPLY_DAMAGE_MULT
+
+	var consumed_pressure_vial := _consume_pollution_pressure_vial(enemy, character_state, world_state, enemy_region_id)
+	if consumed_pressure_vial:
+		attack_damage *= POLLUTION_PRESSURE_VIAL_DAMAGE_MULT
+
+	var damage_types: Array = definition.get("damage_types", [])
+	if damage_types.has("pollution"):
+		attack_damage *= character_state.get_pollution_counter_damage_multiplier(data_registry)
+
+	var health_damage := character_state.apply_health_damage(attack_damage)
+	var protection_damage := 0.0
+	if damage_types.has("pollution"):
+		protection_damage = character_state.apply_protection_damage(
+			attack_damage * POLLUTION_COUNTER_PRESSURE_MULT * character_state.get_pollution_drain_multiplier(data_registry)
+		)
+
+	if protection_damage > 0.0:
+		return _format_pollution_counter_message(
+			enemy,
+			character_state,
+			health_damage,
+			protection_damage,
+			consumed_core_buffer,
+			used_core_side_supply,
+			consumed_pressure_vial
+		)
+
+	var message := "%s 反击，生命 -%s。" % [enemy.display_name, _format_amount(health_damage)]
+	if enemy.definition_id == "enemy.treatment_skitter":
+		message = "%s生命偏低时按 1 使用修复凝胶，或回基地再调制补给。" % message
+	return message
+
+
+func _get_pressure_multiplier(enemy: PrototypeEnemy) -> float:
+	if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure":
+		return GATE_PRESSURE_COUNTER_MULT
+	if enemy.instance_id == "enemy_instance.polluted_skitter_vial_return_guard":
+		return POLLUTION_REVISIT_COUNTER_MULT
+	if enemy.instance_id == "enemy_instance.polluted_skitter_slurry_return_guard":
+		return 1.18
+	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
+		return POLLUTION_RIDGE_COUNTER_MULT
+	if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
+		return POLLUTION_RIDGE_COUNTER_MULT
+	if enemy.definition_id == "enemy.ruin_phase_guard":
+		return RUIN_PHASE_GUARD_COUNTER_MULT
+	return 1.0
+
+
+func _consume_core_stabilization_buffer(
+	enemy: PrototypeEnemy,
+	character_state: CharacterState,
+	world_state: WorldState,
+	enemy_region_id: String
+) -> bool:
+	if enemy.definition_id != "enemy.demo_stabilization_guard":
+		return false
+	if not character_state.inventory.has_ref("item.core_stabilization_buffer", 1):
+		return false
+	character_state.inventory.consume_ref("item.core_stabilization_buffer", 1)
+	_mark_enemy_state(enemy, world_state, enemy_region_id, "core_buffer_used")
+	return true
+
+
+func _apply_core_guard_side_supply(enemy: PrototypeEnemy, world_state: WorldState, enemy_region_id: String) -> bool:
+	if enemy.definition_id != "enemy.demo_stabilization_guard":
+		return false
+	if world_state == null or enemy.instance_id.is_empty():
+		return false
+	if not _has_core_stabilization_side_supply(world_state):
+		return false
+	if bool(world_state.get_enemy(enemy.instance_id).get("core_side_supply_used", false)):
+		return false
+	_mark_enemy_state(enemy, world_state, enemy_region_id, "core_side_supply_used")
+	return true
+
+
+func _consume_pollution_pressure_vial(
+	enemy: PrototypeEnemy,
+	character_state: CharacterState,
+	world_state: WorldState,
+	enemy_region_id: String
+) -> bool:
+	if not _is_pollution_pressure_vial_enemy(enemy):
+		return false
+	if not character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+		return false
+	if world_state != null and not enemy.instance_id.is_empty():
+		if bool(world_state.get_enemy(enemy.instance_id).get("pressure_vial_used", false)):
+			return false
+	else:
+		if enemy.has_meta("pressure_vial_used") and bool(enemy.get_meta("pressure_vial_used")):
+			return false
+	character_state.inventory.consume_ref("item.resistance_vial_t1", 1)
+	_mark_enemy_state(enemy, world_state, enemy_region_id, "pressure_vial_used")
+	return true
+
+
+func _mark_enemy_state(enemy: PrototypeEnemy, world_state: WorldState, enemy_region_id: String, flag: String) -> void:
+	if world_state != null and not enemy.instance_id.is_empty():
+		var region_id := enemy_region_id
+		if region_id.is_empty():
+			region_id = world_state.current_region_id
+		var enemy_state := world_state.ensure_enemy(enemy.instance_id, enemy.definition_id, region_id, enemy.max_health)
+		enemy_state[flag] = true
+	enemy.set_meta(flag, true)
+
+
+func _has_core_stabilization_side_supply(world_state: WorldState) -> bool:
+	return (
+		bool(world_state.get_map_object("map_object_instance.demo_stabilization_recovery_cache").get("is_gathered", false))
+		or bool(world_state.get_map_object("map_object_instance.demo_stabilization_recovery_wreckage").get("is_gathered", false))
+	)
+
+
+func _is_pollution_pressure_vial_enemy(enemy: PrototypeEnemy) -> bool:
+	return (
+		enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure"
+		or enemy.instance_id == "enemy_instance.polluted_skitter_vial_return_guard"
+		or enemy.instance_id == "enemy_instance.polluted_skitter_slurry_return_guard"
+		or enemy.instance_id == "enemy_instance.polluted_skitter_ridge"
+		or enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter"
+		or enemy.definition_id == "enemy.demo_stabilization_guard"
+	)
+
+
+func _format_pollution_counter_message(
+	enemy: PrototypeEnemy,
+	character_state: CharacterState,
+	health_damage: float,
+	protection_damage: float,
+	consumed_core_buffer: bool,
+	used_core_side_supply: bool,
+	consumed_pressure_vial: bool
+) -> String:
+	var message := "%s 反击，生命 -%s，防护 -%s。" % [
+		enemy.display_name,
+		_format_amount(health_damage),
+		_format_amount(protection_damage)
+	]
+	match enemy.instance_id:
+		"enemy_instance.polluted_skitter_gate_pressure":
+			return _format_gate_pressure_message(message, consumed_pressure_vial)
+		"enemy_instance.polluted_skitter_vial_return_guard":
+			return _format_vial_return_message(message, consumed_pressure_vial)
+		"enemy_instance.polluted_skitter_slurry_return_guard":
+			return _format_slurry_return_message(message, consumed_pressure_vial)
+		"enemy_instance.polluted_skitter_ridge":
+			return _format_ridge_message(message, consumed_pressure_vial)
+		"enemy_instance.core_buffer_polluted_skitter":
+			return _format_core_buffer_supply_message(message, consumed_pressure_vial)
+	if enemy.definition_id == "enemy.ruin_phase_guard":
+		return _format_ruin_phase_guard_message(message, character_state)
+	if enemy.definition_id == "enemy.demo_stabilization_guard":
+		return _format_core_guard_message(message, consumed_core_buffer, used_core_side_supply, consumed_pressure_vial)
+	return message
+
+
+func _format_gate_pressure_message(message: String, consumed_pressure_vial: bool) -> String:
+	if consumed_pressure_vial:
+		return "%s抗污染药剂已自动接入门前排压，过滤器准备让生命和防护承压降低；继续压制入口信号。" % message
+	return "%s门前污染压力更高，防护偏低时按 2 使用抗污染药剂，生命偏低时按 1 使用修复凝胶。" % message
+
+
+func _format_vial_return_message(message: String, consumed_pressure_vial: bool) -> String:
+	if consumed_pressure_vial:
+		return "%s抗污染药剂已自动接入侧翼排压，过滤器准备让这段回访战斗更稳；清完后回收沉积物再回基地处理。" % message
+	return "%s侧翼污染压力抬升，过滤模块会降低生命和防护承压；带药剂回来会自动接入排压。" % message
+
+
+func _format_slurry_return_message(message: String, consumed_pressure_vial: bool) -> String:
+	if consumed_pressure_vial:
+		return "%s抗污染药剂已自动接入副产口袋排压；清完后回收沉积物，回过滤器补浆液，再到基础反应器回收基础零件。" % message
+	return "%s副产口袋污染压力抬升，基础过滤模块会降低承压；带药剂回来会自动接入排压，清完后补沉积物处理浆液。" % message
+
+
+func _format_ridge_message(message: String, consumed_pressure_vial: bool) -> String:
+	if consumed_pressure_vial:
+		return "%s抗污染药剂已自动接入污染脊排压，过滤器准备让这段回访战斗更稳；清完后把沉积物带回过滤器处理。" % message
+	return "%s污染脊守卫压迫更强，过滤模块会降低生命和防护承压；防护偏低时按 2 使用抗污染药剂。" % message
+
+
+func _format_core_buffer_supply_message(message: String, consumed_pressure_vial: bool) -> String:
+	if consumed_pressure_vial:
+		return "%s抗污染药剂已自动接入补料点排压，过滤器准备让这场回访战斗更稳；清完后把沉积物带回过滤器处理。" % message
+	return "%s补料点污染压力更强，过滤模块会降低生命和防护承压；清完后把沉积物带回过滤器处理。" % message
+
+
+func _format_ruin_phase_guard_message(message: String, character_state: CharacterState) -> String:
+	if String(character_state.equipment.get("suit_module", "")) == "equipment.filter_module_t1":
+		return "%s基础过滤模块缓冲了外圈回波反击；战后回收污染回波沉积，再回过滤器处理副产。" % message
+	return "%s相位守卫回波夹带污染压力；基础过滤模块可降低生命和防护承压，战后仍要回收沉积物处理副产。" % message
+
+
+func _format_core_guard_message(
+	message: String,
+	consumed_core_buffer: bool,
+	used_core_side_supply: bool,
+	consumed_pressure_vial: bool
+) -> String:
+	var core_guard_pressure_parts: Array[String] = []
+	if consumed_core_buffer:
+		core_guard_pressure_parts.append("核心稳压缓冲包已消耗")
+	if used_core_side_supply:
+		core_guard_pressure_parts.append("侧边补给已接入守卫战稳压")
+	if consumed_pressure_vial:
+		core_guard_pressure_parts.append("抗污染药剂已自动接入守卫排压")
+	if not core_guard_pressure_parts.is_empty():
+		return "%s%s，第一段回写压力被削弱；击败守卫后回收缓存，补给会继续支撑核心写入。" % [
+			message,
+			"，".join(core_guard_pressure_parts)
+		]
+	return "%s没有核心稳压缓冲包或药剂排压，回写压力完整命中；建议回基地整备后再战。" % message
+
+
+func _format_amount(amount: float) -> String:
+	if is_equal_approx(amount, roundf(amount)):
+		return str(int(amount))
+	return "%.1f" % amount

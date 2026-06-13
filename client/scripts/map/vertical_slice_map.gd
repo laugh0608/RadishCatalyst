@@ -7,13 +7,6 @@ signal region_gate_blocked(message: String)
 const ATTACK_RANGE := 90.0
 const BASE_ATTACK_DAMAGE := 10.0
 const PLAYER_INTERACTION_RANGE := 96.0
-const POLLUTION_COUNTER_PRESSURE_MULT := 0.5
-const POLLUTION_RIDGE_COUNTER_MULT := 1.2
-const POLLUTION_REVISIT_COUNTER_MULT := 1.15
-const GATE_PRESSURE_COUNTER_MULT := 1.35
-const RUIN_PHASE_GUARD_COUNTER_MULT := 1.2
-const POLLUTION_PRESSURE_VIAL_DAMAGE_MULT := 0.45
-const CORE_STABILIZATION_BUFFER_DAMAGE_MULT := 0.55
 const OUTPOST_RESPAWN_POSITION := Vector2(-250, -48)
 const PLAY_BOUNDS_MIN := Vector2(-360, -200)
 const PLAY_BOUNDS_MAX := Vector2(4200, 200)
@@ -85,6 +78,7 @@ var data_registry: DataRegistry
 var current_interactable: PrototypeInteractable
 var gather_system: GatherSystem
 var phase_well_frontier_runtime: PhaseWellFrontierRuntime
+var enemy_counterattack_runtime: EnemyCounterattackRuntime
 var interactable_visual_refresher := InteractableVisualRefresher.new()
 var last_reported_region_id := "region.outpost_platform"
 var last_gate_message := ""
@@ -104,6 +98,7 @@ func setup(registry: DataRegistry) -> void:
 	data_registry = registry
 	gather_system = GatherSystem.new(data_registry)
 	phase_well_frontier_runtime = PhaseWellFrontierRuntime.new(data_registry)
+	enemy_counterattack_runtime = EnemyCounterattackRuntime.new(data_registry)
 	_setup_interactable_labels()
 	_setup_enemy_labels()
 	_refresh_focus_visuals()
@@ -829,126 +824,13 @@ func _enemy_defeat_result(enemy: PrototypeEnemy, drops_message: String, followup
 		"enemy_defeated": true
 	}
 func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: CharacterState, world_state: WorldState = null) -> String:
-	var definition := data_registry.get_definition(enemy.definition_id)
-	var base_stats: Dictionary = definition.get("base_stats", {})
-	var pressure_multiplier := 1.0
-	if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure":
-		pressure_multiplier = GATE_PRESSURE_COUNTER_MULT
-	if enemy.instance_id == "enemy_instance.polluted_skitter_vial_return_guard":
-		pressure_multiplier = POLLUTION_REVISIT_COUNTER_MULT
-	if enemy.instance_id == "enemy_instance.polluted_skitter_slurry_return_guard":
-		pressure_multiplier = 1.18
-	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
-		pressure_multiplier = POLLUTION_RIDGE_COUNTER_MULT
-	if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
-		pressure_multiplier = POLLUTION_RIDGE_COUNTER_MULT
-	if enemy.definition_id == "enemy.ruin_phase_guard":
-		pressure_multiplier = RUIN_PHASE_GUARD_COUNTER_MULT
-	var attack_damage := float(base_stats.get("attack", 0.0)) * pressure_multiplier
-	var consumed_core_buffer := false
-	if enemy.definition_id == "enemy.demo_stabilization_guard" and character_state.inventory.has_ref("item.core_stabilization_buffer", 1):
-		character_state.inventory.consume_ref("item.core_stabilization_buffer", 1)
-		attack_damage *= CORE_STABILIZATION_BUFFER_DAMAGE_MULT
-		_mark_core_stabilization_buffer_used(enemy, world_state)
-		consumed_core_buffer = true
-	var consumed_pressure_vial := false
-	if _should_consume_pollution_pressure_vial(enemy, character_state, world_state):
-		character_state.inventory.consume_ref("item.resistance_vial_t1", 1)
-		_mark_pollution_pressure_vial_used(enemy, world_state)
-		attack_damage *= POLLUTION_PRESSURE_VIAL_DAMAGE_MULT
-		consumed_pressure_vial = true
-	var damage_types: Array = definition.get("damage_types", [])
-	if damage_types.has("pollution"):
-		attack_damage *= character_state.get_pollution_counter_damage_multiplier(data_registry)
-	var health_damage := character_state.apply_health_damage(attack_damage)
-	var protection_damage := 0.0
-	if damage_types.has("pollution"):
-		protection_damage = character_state.apply_protection_damage(
-			attack_damage * POLLUTION_COUNTER_PRESSURE_MULT * character_state.get_pollution_drain_multiplier(data_registry)
-		)
-	if protection_damage > 0.0:
-		var message := "%s 反击，生命 -%s，防护 -%s。" % [
-			enemy.display_name,
-			_format_amount(health_damage),
-			_format_amount(protection_damage)
-		]
-		if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure":
-			if consumed_pressure_vial:
-				message = "%s抗污染药剂已自动接入门前排压，过滤器准备让生命和防护承压降低；继续压制入口信号。" % message
-			else:
-				message = "%s门前污染压力更高，防护偏低时按 2 使用抗污染药剂，生命偏低时按 1 使用修复凝胶。" % message
-		if enemy.instance_id == "enemy_instance.polluted_skitter_vial_return_guard":
-			if consumed_pressure_vial:
-				message = "%s抗污染药剂已自动接入侧翼排压，过滤器准备让这段回访战斗更稳；清完后回收沉积物再回基地处理。" % message
-			else:
-				message = "%s侧翼污染压力抬升，过滤模块会降低生命和防护承压；带药剂回来会自动接入排压。" % message
-		if enemy.instance_id == "enemy_instance.polluted_skitter_slurry_return_guard":
-			if consumed_pressure_vial:
-				message = "%s抗污染药剂已自动接入副产口袋排压；清完后回收沉积物，回过滤器补浆液，再到基础反应器回收基础零件。" % message
-			else:
-				message = "%s副产口袋污染压力抬升，基础过滤模块会降低承压；带药剂回来会自动接入排压，清完后补沉积物处理浆液。" % message
-		if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
-			if consumed_pressure_vial:
-				message = "%s抗污染药剂已自动接入污染脊排压，过滤器准备让这段回访战斗更稳；清完后把沉积物带回过滤器处理。" % message
-			else:
-				message = "%s污染脊守卫压迫更强，过滤模块会降低生命和防护承压；防护偏低时按 2 使用抗污染药剂。" % message
-		if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
-			if consumed_pressure_vial:
-				message = "%s抗污染药剂已自动接入补料点排压，过滤器准备让这场回访战斗更稳；清完后把沉积物带回过滤器处理。" % message
-			else:
-				message = "%s补料点污染压力更强，过滤模块会降低生命和防护承压；清完后把沉积物带回过滤器处理。" % message
-		if enemy.definition_id == "enemy.ruin_phase_guard":
-			if String(character_state.equipment.get("suit_module", "")) == "equipment.filter_module_t1":
-				message = "%s基础过滤模块缓冲了外圈回波反击；战后回收污染回波沉积，再回过滤器处理副产。" % message
-			else:
-				message = "%s相位守卫回波夹带污染压力；基础过滤模块可降低生命和防护承压，战后仍要回收沉积物处理副产。" % message
-		if enemy.definition_id == "enemy.demo_stabilization_guard":
-			if consumed_core_buffer:
-				message = "%s核心稳压缓冲包已消耗，第一段回写压力被削弱；后续仍需用修复凝胶和抗污染药剂兜底。" % message
-			else:
-				message = "%s没有核心稳压缓冲包，回写压力完整命中；建议回基地整备后再战。" % message
-		return message
-	var message := "%s 反击，生命 -%s。" % [enemy.display_name, _format_amount(health_damage)]
-	if enemy.definition_id == "enemy.treatment_skitter":
-		message = "%s生命偏低时按 1 使用修复凝胶，或回基地再调制补给。" % message
-	return message
-
-
-func _should_consume_pollution_pressure_vial(
-	enemy: PrototypeEnemy,
-	character_state: CharacterState,
-	world_state: WorldState
-) -> bool:
-	if not _is_pollution_pressure_vial_enemy(enemy):
-		return false
-	if not character_state.inventory.has_ref("item.resistance_vial_t1", 1):
-		return false
-	if world_state != null and not enemy.instance_id.is_empty():
-		return not bool(world_state.get_enemy(enemy.instance_id).get("pressure_vial_used", false))
-	return not (enemy.has_meta("pressure_vial_used") and bool(enemy.get_meta("pressure_vial_used")))
-
-
-func _mark_pollution_pressure_vial_used(enemy: PrototypeEnemy, world_state: WorldState) -> void:
-	if world_state != null and not enemy.instance_id.is_empty():
-		var enemy_state := world_state.ensure_enemy(enemy.instance_id, enemy.definition_id, _get_region_id_for_position(enemy.position), enemy.max_health)
-		enemy_state["pressure_vial_used"] = true
-	enemy.set_meta("pressure_vial_used", true)
-
-
-func _mark_core_stabilization_buffer_used(enemy: PrototypeEnemy, world_state: WorldState) -> void:
-	if world_state != null and not enemy.instance_id.is_empty():
-		var enemy_state := world_state.ensure_enemy(enemy.instance_id, enemy.definition_id, _get_region_id_for_position(enemy.position), enemy.max_health)
-		enemy_state["core_buffer_used"] = true
-	enemy.set_meta("core_buffer_used", true)
-
-
-func _is_pollution_pressure_vial_enemy(enemy: PrototypeEnemy) -> bool:
-	return (
-		enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure"
-		or enemy.instance_id == "enemy_instance.polluted_skitter_vial_return_guard"
-		or enemy.instance_id == "enemy_instance.polluted_skitter_slurry_return_guard"
-		or enemy.instance_id == "enemy_instance.polluted_skitter_ridge"
-		or enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter"
+	if enemy_counterattack_runtime == null:
+		enemy_counterattack_runtime = EnemyCounterattackRuntime.new(data_registry)
+	return enemy_counterattack_runtime.apply(
+		enemy,
+		character_state,
+		world_state,
+		_get_region_id_for_position(enemy.position)
 	)
 
 

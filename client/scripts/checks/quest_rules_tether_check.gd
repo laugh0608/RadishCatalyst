@@ -689,11 +689,32 @@ func _check_core_stabilization_buffer_reduces_guard_pressure() -> void:
 	host.root.add_child(map)
 	map.setup(host.data_registry)
 	var guard := map.get_node("Enemies/DemoStabilizationGuard") as PrototypeEnemy
+	guard.set_focus_visual(true)
+	_expect_text_contains(guard.label.text, "核心回写压力", "core guard focus label exposes pressure role")
 	var no_buffer_character := CharacterState.create_default()
 	var no_buffer_message := map._apply_enemy_counterattack(guard, no_buffer_character)
 	host._expect_equal(int(roundf(no_buffer_character.health * 10.0)), 800, "core guard full pressure health damage")
 	host._expect_equal(int(roundf(no_buffer_character.protection * 10.0)), 900, "core guard full pressure protection damage")
 	_expect_text_contains(no_buffer_message, "没有核心稳压缓冲包", "core guard no-buffer pressure message")
+
+	var side_supply_world := WorldState.create_default()
+	side_supply_world.ensure_enemy("enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core", 156.0)
+	side_supply_world.ensure_map_object(
+		"map_object_instance.demo_stabilization_recovery_cache",
+		"map_object.demo_stabilization_recovery_cache",
+		"region.demo_stabilization_core"
+	)
+	side_supply_world.set_map_object_flag("map_object_instance.demo_stabilization_recovery_cache", "is_gathered", true)
+	var side_supply_character := CharacterState.create_default()
+	var side_supply_message := map._apply_enemy_counterattack(guard, side_supply_character, side_supply_world)
+	host._expect_equal(int(roundf(side_supply_character.health * 10.0)), 840, "core side supply lowers guard health pressure")
+	host._expect_equal(int(roundf(side_supply_character.protection * 10.0)), 920, "core side supply lowers guard protection pressure")
+	host._expect_equal(
+		bool(side_supply_world.get_enemy("enemy_instance.demo_stabilization_guard").get("core_side_supply_used", false)),
+		true,
+		"core side supply pressure records guard sync"
+	)
+	_expect_text_contains(side_supply_message, "侧边补给已接入守卫战稳压", "core guard side supply pressure message")
 
 	var buffered_world := WorldState.create_default()
 	buffered_world.ensure_enemy("enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core", 156.0)
@@ -705,6 +726,38 @@ func _check_core_stabilization_buffer_reduces_guard_pressure() -> void:
 	host._expect_equal(int(buffered_character.inventory.items.get("item.core_stabilization_buffer", 0)), 0, "core buffer is consumed by first guard pressure")
 	host._expect_equal(bool(buffered_world.get_enemy("enemy_instance.demo_stabilization_guard").get("core_buffer_used", false)), true, "core buffer pressure records guard sync")
 	_expect_text_contains(buffered_message, "核心稳压缓冲包已消耗", "core guard buffer pressure message")
+
+	var prepared_world := WorldState.create_default()
+	prepared_world.ensure_enemy("enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core", 156.0)
+	prepared_world.ensure_map_object(
+		"map_object_instance.demo_stabilization_recovery_cache",
+		"map_object.demo_stabilization_recovery_cache",
+		"region.demo_stabilization_core"
+	)
+	prepared_world.set_map_object_flag("map_object_instance.demo_stabilization_recovery_cache", "is_gathered", true)
+	var prepared_character := CharacterState.create_default()
+	prepared_character.inventory.add_item("item.core_stabilization_buffer", 1)
+	prepared_character.inventory.add_item("item.resistance_vial_t1", 1)
+	var prepared_message := map._apply_enemy_counterattack(guard, prepared_character, prepared_world)
+	host._expect_equal(int(roundf(prepared_character.health * 10.0)), 960, "core guard full preparation lowers health pressure")
+	host._expect_equal(int(roundf(prepared_character.protection * 10.0)), 980, "core guard full preparation lowers protection pressure")
+	host._expect_equal(int(prepared_character.inventory.items.get("item.core_stabilization_buffer", 0)), 0, "core full preparation consumes buffer")
+	host._expect_equal(int(prepared_character.inventory.items.get("item.resistance_vial_t1", 0)), 0, "core full preparation consumes vial")
+	var prepared_guard_state := prepared_world.get_enemy("enemy_instance.demo_stabilization_guard")
+	host._expect_equal(bool(prepared_guard_state.get("core_buffer_used", false)), true, "core full preparation records buffer sync")
+	host._expect_equal(bool(prepared_guard_state.get("core_side_supply_used", false)), true, "core full preparation records side supply sync")
+	host._expect_equal(bool(prepared_guard_state.get("pressure_vial_used", false)), true, "core full preparation records vial pressure sync")
+	_expect_text_contains(prepared_message, "抗污染药剂已自动接入守卫排压", "core guard vial pressure message")
+
+	prepared_world.current_region_id = "region.demo_stabilization_core"
+	prepared_world.quest_state.active_quest_ids = ["quest.defeat_demo_stabilization_guard"]
+	prepared_character.current_region_id = "region.demo_stabilization_core"
+	var guard_status_text := HudStatusPresenter.new().format_status_text(
+		host.data_registry,
+		prepared_world,
+		prepared_character
+	)
+	_expect_text_contains(guard_status_text, "守卫战准备：侧边补给已接入；缓冲包已护住守卫战；药剂已守卫排压", "core guard HUD shows battle pressure preparation")
 	map.free()
 
 
