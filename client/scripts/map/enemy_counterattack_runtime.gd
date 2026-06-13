@@ -42,16 +42,20 @@ func apply(
 	var damage_types: Array = definition.get("damage_types", [])
 	if damage_types.has("pollution"):
 		attack_damage *= character_state.get_pollution_counter_damage_multiplier(data_registry)
+		attack_damage *= FieldOutfittingRuntime.get_pollution_counter_damage_multiplier(character_state, world_state)
 
 	var health_damage := character_state.apply_health_damage(attack_damage)
 	var protection_damage := 0.0
 	if damage_types.has("pollution"):
 		protection_damage = character_state.apply_protection_damage(
-			attack_damage * POLLUTION_COUNTER_PRESSURE_MULT * character_state.get_pollution_drain_multiplier(data_registry)
+			attack_damage
+			* POLLUTION_COUNTER_PRESSURE_MULT
+			* character_state.get_pollution_drain_multiplier(data_registry)
+			* FieldOutfittingRuntime.get_pollution_drain_multiplier(character_state, world_state)
 		)
 
 	if protection_damage > 0.0:
-		return _format_pollution_counter_message(
+		var pollution_message := _format_pollution_counter_message(
 			enemy,
 			character_state,
 			health_damage,
@@ -60,6 +64,9 @@ func apply(
 			used_core_side_supply,
 			consumed_pressure_vial
 		)
+		if FieldOutfittingRuntime.has_active_module_calibration(character_state, world_state):
+			return "%s 出发整备台校准已接入，污染承压继续下降。" % pollution_message
+		return pollution_message
 
 	var message := "%s 反击，生命 -%s。" % [enemy.display_name, _format_amount(health_damage)]
 	if enemy.definition_id == "enemy.treatment_skitter":

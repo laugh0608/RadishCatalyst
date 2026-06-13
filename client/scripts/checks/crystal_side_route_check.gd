@@ -65,8 +65,8 @@ func _check_side_route_gather_feedback() -> void:
 	host._expect_equal(bool(crystal_result.get("success", false)), true, "crystal logistics pocket gather succeeds")
 	host._expect_text_contains(
 		String(crystal_result.get("message", "")),
-		"支撑储存箱、整备台和后续地基材料",
-		"crystal logistics pocket points gathered ore back to base construction"
+		"维护校准过滤模块",
+		"crystal logistics pocket points gathered ore back to outfitting calibration"
 	)
 	host._expect_equal(
 		int(character.inventory.items.get("item.crystal_ore", 0)),
@@ -83,8 +83,8 @@ func _check_side_route_gather_feedback() -> void:
 	host._expect_equal(bool(wreckage_result.get("success", false)), true, "field wreckage logistics pocket gather succeeds")
 	host._expect_text_contains(
 		String(wreckage_result.get("message", "")),
-		"整备台和后续基建材料",
-		"field wreckage logistics pocket points scrap back to base construction"
+		"维护校准过滤模块",
+		"field wreckage logistics pocket points scrap back to outfitting calibration"
 	)
 	host._expect_equal(
 		int(character.inventory.items.get("item.salvage_scrap", 0)),

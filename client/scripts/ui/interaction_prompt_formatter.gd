@@ -157,14 +157,33 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 	if not world_state.has_base_structure_definition("building.field_outfitting_station"):
 		return "设施：%s\n用途：把基地制造出的模块装入防护服，让外勤承压差异从 HUD 提示变成可操作整备。\n状态：未建成。\n下一步：先完成基地平台的出发整备台建造点。" % _get_display_name("building.field_outfitting_station")
 
-	var module_id := "equipment.filter_module_t1"
 	var parts: Array[String] = [DepartureReadinessFormatter.format_outfitting_station_prompt(world_state, character_state)]
-	if String(character_state.equipment.get("suit_module", "")) == module_id:
-		parts.append("防护服：污染消耗 x%.2f。" % character_state.get_pollution_drain_multiplier(data_registry))
-		parts.append("操作：E 检查整备状态")
+	if FieldOutfittingRuntime.has_filter_module_equipped(character_state):
+		var drain_mult := (
+			character_state.get_pollution_drain_multiplier(data_registry)
+			* FieldOutfittingRuntime.get_pollution_drain_multiplier(character_state, world_state)
+		)
+		var counter_mult := (
+			character_state.get_pollution_counter_damage_multiplier(data_registry)
+			* FieldOutfittingRuntime.get_pollution_counter_damage_multiplier(character_state, world_state)
+		)
+		parts.append("防护服：污染消耗 x%.2f；污染反击 x%.2f。" % [drain_mult, counter_mult])
+		if FieldOutfittingRuntime.is_module_calibrated(world_state):
+			parts.append("维护：晶体校准已写入，污染采集和污染反击承压继续下降。")
+			parts.append("操作：E 检查整备状态")
+			return "\n".join(parts)
+		if FieldOutfittingRuntime.has_calibration_materials(character_state):
+			parts.append("维护：可消耗晶体矿 x%d / 残骸废件 x%d 校准过滤模块。" % [
+				FieldOutfittingRuntime.MODULE_CALIBRATION_CRYSTAL_COST,
+				FieldOutfittingRuntime.MODULE_CALIBRATION_SCRAP_COST
+			])
+			parts.append("操作：E 校准基础过滤模块")
+			return "\n".join(parts)
+		parts.append("下一步：回晶体侧路补晶体矿和残骸废件，再回整备台维护校准。")
+		parts.append("操作：E 查看缺料")
 		return "\n".join(parts)
 
-	if character_state.inventory.has_ref(module_id, 1):
+	if character_state.inventory.has_ref(FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID, 1):
 		parts.append("操作：E 装配基础过滤模块")
 		return "\n".join(parts)
 

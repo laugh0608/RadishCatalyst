@@ -14,6 +14,7 @@ const OUTFITTING_MARKER_COLOR := Color(0.66, 0.58, 0.34, 1)
 const SLURRY_BUFFER_MARKER_COLOR := Color(0.58, 0.64, 0.31, 1)
 const REACTOR_MARKER_COLOR := Color(0.28, 0.78, 0.9, 1)
 const FILTER_MARKER_COLOR := Color(0.64, 0.78, 0.3, 1)
+const CALIBRATED_OUTFITTING_MARKER_COLOR := Color(0.84, 0.78, 0.44, 1)
 const GATE_MARKER_COLOR := Color(0.72, 0.56, 0.86, 1)
 const RESTORED_OUTPOST_CORE_COLOR := Color(0.18, 0.86, 0.93, 1)
 const GATHERED_CRYSTAL_COLOR := Color(0.22, 0.42, 0.58, 1)
@@ -712,6 +713,16 @@ func set_operational_outfitting_station_visual() -> void:
 	if marker != null:
 		_apply_marker_style(Vector2(44.0, 30.0), OUTFITTING_MARKER_COLOR)
 	_set_label_text("%s\n可整备" % display_name_text, 2)
+
+
+func set_calibrated_outfitting_station_visual() -> void:
+	_ensure_visual_nodes()
+	consumed = false
+	visible = true
+	monitoring = true
+	if marker != null:
+		_apply_marker_style(Vector2(46.0, 30.0), CALIBRATED_OUTFITTING_MARKER_COLOR)
+	_set_label_text("%s\n已校准" % display_name_text, 2)
 
 
 func _apply_default_marker_visual() -> void:

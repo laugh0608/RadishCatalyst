@@ -81,6 +81,12 @@ static func format_departure_gate_next_step(world_state: WorldState, character_s
 		if world_state.has_base_structure_definition("building.field_outfitting_station"):
 			return "先到出发整备台确认基础过滤模块"
 		return "先补建出发整备台，或按当前目标外出"
+	if (
+		world_state.has_base_structure_definition("building.field_outfitting_station")
+		and not FieldOutfittingRuntime.is_module_calibrated(world_state)
+		and FieldOutfittingRuntime.has_calibration_materials(character_state)
+	):
+		return "先到出发整备台校准基础过滤模块"
 	var next_sortie_route := CoreGuardAftermathFormatter.format_next_sortie_route_line(world_state)
 	if not next_sortie_route.is_empty():
 		return next_sortie_route
@@ -110,7 +116,13 @@ static func format_feedback_detail(world_state: WorldState, character_state: Cha
 
 
 static func format_module_state(world_state: WorldState, character_state: CharacterState) -> String:
-	if String(character_state.equipment.get("suit_module", "")) == "equipment.filter_module_t1":
+	if FieldOutfittingRuntime.has_filter_module_equipped(character_state):
+		if FieldOutfittingRuntime.has_active_module_calibration(character_state, world_state):
+			return "模块已校准"
+		if world_state.has_base_structure_definition("building.field_outfitting_station"):
+			if FieldOutfittingRuntime.has_calibration_materials(character_state):
+				return "模块可校准"
+			return "模块待校准"
 		return "模块已装"
 	if world_state.has_base_structure_definition("building.field_outfitting_station"):
 		if character_state.inventory.has_ref("equipment.filter_module_t1", 1):
@@ -134,6 +146,17 @@ static func format_supply_state(world_state: WorldState, character_state: Charac
 
 
 static func format_pressure_payoff(world_state: WorldState) -> String:
+	if (
+		FieldOutfittingRuntime.has_station_built(world_state)
+		and FieldOutfittingRuntime.is_module_calibrated(world_state)
+	):
+		if world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core"):
+			return "核心写入已归档，模块校准、补给和整备台用于下一趟外勤复测"
+		if _is_core_stabilization_available(world_state):
+			return "模块校准让污染采集和污染战斗承压继续下降，补给可参与守卫战和核心写入排压"
+		if _has_slurry_buffer_tank(world_state):
+			return "模块校准让污染采集和污染战斗承压继续下降，前哨可补双药剂"
+		return "模块校准让污染采集和污染战斗承压继续下降"
 	if world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core"):
 		if _has_slurry_buffer_tank(world_state):
 			return "核心写入已归档，双药剂补给和模块整备用于下一趟外勤复测"

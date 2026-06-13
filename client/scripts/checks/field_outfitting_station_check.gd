@@ -40,6 +40,11 @@ func run(root: Node) -> void:
 	)
 
 	var gather_system := GatherSystem.new(host.data_registry)
+	var prompt_formatter := InteractionPromptFormatter.new(
+		host.data_registry,
+		ProcessingSystem.new(host.data_registry),
+		build_system
+	)
 	var missing_module := gather_system.interact_with_object(
 		"map_object_instance.field_outfitting_station",
 		"building.field_outfitting_station",
@@ -72,6 +77,67 @@ func run(root: Node) -> void:
 		0,
 		"field outfitting station consumes inventory module"
 	)
+	var missing_calibration_prompt := prompt_formatter.format_outfitting_station_prompt(
+		outfitting_character,
+		outfitting_world
+	)
+	host._expect_text_contains(
+		missing_calibration_prompt,
+		"回晶体侧路补晶体矿和残骸废件",
+		"field outfitting station prompt points missing calibration material to crystal side route"
+	)
+	var missing_calibration := gather_system.interact_with_object(
+		"map_object_instance.field_outfitting_station",
+		"building.field_outfitting_station",
+		"inspect",
+		outfitting_character,
+		outfitting_world
+	)
+	host._expect_failure_feedback(missing_calibration, "维护材料不足", "field outfitting station missing calibration feedback")
+	host._expect_text_contains(
+		String(missing_calibration.get("message", "")),
+		"晶体侧路",
+		"field outfitting station missing calibration points to side route"
+	)
+	outfitting_character.inventory.add_ref("item.crystal_ore", FieldOutfittingRuntime.MODULE_CALIBRATION_CRYSTAL_COST)
+	outfitting_character.inventory.add_ref("item.salvage_scrap", FieldOutfittingRuntime.MODULE_CALIBRATION_SCRAP_COST)
+	var ready_calibration_prompt := prompt_formatter.format_outfitting_station_prompt(
+		outfitting_character,
+		outfitting_world
+	)
+	host._expect_text_contains(
+		ready_calibration_prompt,
+		"E 校准基础过滤模块",
+		"field outfitting station prompt exposes calibration action"
+	)
+	var calibration_result := gather_system.interact_with_object(
+		"map_object_instance.field_outfitting_station",
+		"building.field_outfitting_station",
+		"inspect",
+		outfitting_character,
+		outfitting_world
+	)
+	host._expect_equal(bool(calibration_result.get("success", false)), true, "field outfitting station calibration succeeds")
+	host._expect_equal(
+		bool(calibration_result.get("outfitting_module_calibrated", false)),
+		true,
+		"field outfitting station returns calibration marker"
+	)
+	host._expect_equal(
+		bool(outfitting_world.get_map_object("map_object_instance.field_outfitting_station").get("module_calibrated", false)),
+		true,
+		"field outfitting station stores calibration state"
+	)
+	host._expect_equal(
+		int(outfitting_character.inventory.items.get("item.crystal_ore", 0)),
+		0,
+		"field outfitting station calibration consumes crystal ore"
+	)
+	host._expect_equal(
+		int(outfitting_character.inventory.items.get("item.salvage_scrap", 0)),
+		0,
+		"field outfitting station calibration consumes salvage scrap"
+	)
 	var repeat_result := gather_system.interact_with_object(
 		"map_object_instance.field_outfitting_station",
 		"building.field_outfitting_station",
@@ -81,8 +147,8 @@ func run(root: Node) -> void:
 	)
 	host._expect_text_contains(
 		String(repeat_result.get("message", "")),
-		"已装入防护服",
-		"field outfitting station repeat check keeps equipped status"
+		"已完成晶体校准",
+		"field outfitting station repeat check keeps calibrated status"
 	)
 
 	var status_text := HudStatusPresenter.new().format_vitals_text(
@@ -90,8 +156,8 @@ func run(root: Node) -> void:
 		outfitting_world,
 		outfitting_character
 	)
-	host._expect_text_contains(status_text, "出发准备：模块已装", "field outfitting station HUD summary")
-	host._expect_text_contains(status_text, "收益：模块装配后会降低污染采集和反击压力", "field outfitting station HUD payoff")
+	host._expect_text_contains(status_text, "出发准备：模块已校准", "field outfitting station HUD summary")
+	host._expect_text_contains(status_text, "收益：模块校准让污染采集和污染战斗承压继续下降", "field outfitting station HUD payoff")
 	outfitting_world.add_base_structure(
 		"structure.basic_storage_build_site",
 		"building.basic_storage",
@@ -111,7 +177,7 @@ func run(root: Node) -> void:
 		outfitting_world,
 		outfitting_character
 	)
-	host._expect_text_contains(supply_status_text, "出发准备：模块已装", "field outfitting station keeps module status with supplies")
+	host._expect_text_contains(supply_status_text, "出发准备：模块已校准", "field outfitting station keeps module status with supplies")
 	host._expect_text_contains(
 		supply_status_text,
 		"回前哨核心补修复凝胶 / 抗污染药剂",
@@ -119,7 +185,7 @@ func run(root: Node) -> void:
 	)
 	host._expect_text_contains(
 		supply_status_text,
-		"收益：污染采集和污染战斗承压下降",
+		"收益：模块校准让污染采集和污染战斗承压继续下降",
 		"field outfitting station HUD summary explains pressure payoff"
 	)
 	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
@@ -129,8 +195,127 @@ func run(root: Node) -> void:
 	var station := map.get_node("Interactables/FieldOutfittingStation") as PrototypeInteractable
 	host._expect_equal(station.visible, true, "built field outfitting station is visible")
 	host._expect_equal(station.monitoring, true, "built field outfitting station stays interactable")
-	host._expect_text_contains(station.label.text, "可整备", "built field outfitting station visual label")
+	host._expect_text_contains(station.label.text, "已校准", "built field outfitting station visual label")
 	map.free()
+	_check_outfitting_calibration_pressure_payoff(gather_system)
+
+
+func _check_outfitting_calibration_pressure_payoff(gather_system: GatherSystem) -> void:
+	var uncalibrated_world := WorldState.create_default()
+	uncalibrated_world.add_base_structure(
+		"structure.field_outfitting_station_build_site",
+		"building.field_outfitting_station",
+		"region.outpost_platform",
+		"map_object_instance.field_outfitting_station_build_site"
+	)
+	var uncalibrated_character := CharacterState.create_default()
+	uncalibrated_character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	var uncalibrated_before := uncalibrated_character.protection
+	var uncalibrated_result := gather_system.interact_with_object(
+		"map_object_instance.outfitting_pressure_uncalibrated",
+		"map_object.pollution_residue_patch",
+		"gather",
+		uncalibrated_character,
+		uncalibrated_world
+	)
+	host._expect_equal(bool(uncalibrated_result.get("success", false)), true, "uncalibrated module pollution gather succeeds")
+	var uncalibrated_loss := uncalibrated_before - uncalibrated_character.protection
+
+	var calibrated_world := WorldState.create_default()
+	calibrated_world.add_base_structure(
+		"structure.field_outfitting_station_build_site",
+		"building.field_outfitting_station",
+		"region.outpost_platform",
+		"map_object_instance.field_outfitting_station_build_site"
+	)
+	FieldOutfittingRuntime.mark_module_calibrated(calibrated_world)
+	var calibrated_character := CharacterState.create_default()
+	calibrated_character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	var calibrated_before := calibrated_character.protection
+	var calibrated_result := gather_system.interact_with_object(
+		"map_object_instance.outfitting_pressure_calibrated",
+		"map_object.pollution_residue_patch",
+		"gather",
+		calibrated_character,
+		calibrated_world
+	)
+	host._expect_equal(bool(calibrated_result.get("success", false)), true, "calibrated module pollution gather succeeds")
+	var calibrated_loss := calibrated_before - calibrated_character.protection
+	host._expect_equal(
+		calibrated_loss < uncalibrated_loss,
+		true,
+		"field outfitting station calibration lowers pollution gather pressure"
+	)
+	host._expect_text_contains(
+		String(calibrated_result.get("message", "")),
+		"过滤模块校准已降低消耗",
+		"pollution gather feedback reads outfitting calibration"
+	)
+	_check_outfitting_calibration_counterattack_payoff()
+
+
+func _check_outfitting_calibration_counterattack_payoff() -> void:
+	var counter_runtime := EnemyCounterattackRuntime.new(host.data_registry)
+	var uncalibrated_enemy := PrototypeEnemy.new()
+	uncalibrated_enemy.definition_id = "enemy.polluted_skitter"
+	uncalibrated_enemy.instance_id = "enemy_instance.outfitting_counter_uncalibrated"
+	uncalibrated_enemy.display_name = "污染跃蛛"
+	var uncalibrated_world := WorldState.create_default()
+	uncalibrated_world.add_base_structure(
+		"structure.field_outfitting_station_build_site",
+		"building.field_outfitting_station",
+		"region.outpost_platform",
+		"map_object_instance.field_outfitting_station_build_site"
+	)
+	var uncalibrated_character := CharacterState.create_default()
+	uncalibrated_character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	var uncalibrated_health_before := uncalibrated_character.health
+	var uncalibrated_protection_before := uncalibrated_character.protection
+	counter_runtime.apply(uncalibrated_enemy, uncalibrated_character, uncalibrated_world, "region.pollution_edge")
+	var uncalibrated_health_loss := uncalibrated_health_before - uncalibrated_character.health
+	var uncalibrated_protection_loss := uncalibrated_protection_before - uncalibrated_character.protection
+
+	var calibrated_enemy := PrototypeEnemy.new()
+	calibrated_enemy.definition_id = "enemy.polluted_skitter"
+	calibrated_enemy.instance_id = "enemy_instance.outfitting_counter_calibrated"
+	calibrated_enemy.display_name = "污染跃蛛"
+	var calibrated_world := WorldState.create_default()
+	calibrated_world.add_base_structure(
+		"structure.field_outfitting_station_build_site",
+		"building.field_outfitting_station",
+		"region.outpost_platform",
+		"map_object_instance.field_outfitting_station_build_site"
+	)
+	FieldOutfittingRuntime.mark_module_calibrated(calibrated_world)
+	var calibrated_character := CharacterState.create_default()
+	calibrated_character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	var calibrated_health_before := calibrated_character.health
+	var calibrated_protection_before := calibrated_character.protection
+	var calibrated_message := counter_runtime.apply(
+		calibrated_enemy,
+		calibrated_character,
+		calibrated_world,
+		"region.pollution_edge"
+	)
+	var calibrated_health_loss := calibrated_health_before - calibrated_character.health
+	var calibrated_protection_loss := calibrated_protection_before - calibrated_character.protection
+	host._expect_equal(
+		calibrated_health_loss < uncalibrated_health_loss,
+		true,
+		"field outfitting station calibration lowers pollution counter health pressure"
+	)
+	host._expect_equal(
+		calibrated_protection_loss < uncalibrated_protection_loss,
+		true,
+		"field outfitting station calibration lowers pollution counter protection pressure"
+	)
+	host._expect_text_contains(
+		calibrated_message,
+		"出发整备台校准已接入",
+		"pollution counter feedback reads outfitting calibration"
+	)
+	uncalibrated_enemy.free()
+	calibrated_enemy.free()
 
 
 func _check_slurry_buffer_tank(root: Node) -> void:

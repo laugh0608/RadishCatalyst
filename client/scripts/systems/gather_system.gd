@@ -11,8 +11,8 @@ const DEMO_STABILIZATION_WRITE_GUARD_CACHE_MULT := 0.9
 const BASIC_STORAGE_REPAIR_GEL_TARGET := 1
 const BASIC_STORAGE_RESISTANCE_VIAL_TARGET := 1
 const SLURRY_BUFFER_RESISTANCE_VIAL_TARGET := 2
-const FIELD_OUTFITTING_STATION_ID := "building.field_outfitting_station"
-const BASIC_FILTER_MODULE_ID := "equipment.filter_module_t1"
+const FIELD_OUTFITTING_STATION_ID := FieldOutfittingRuntime.FIELD_OUTFITTING_STATION_ID
+const BASIC_FILTER_MODULE_ID := FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
 const OUTPOST_DEPARTURE_GATE_ID := "map_object.outpost_departure_gate"
 const POLLUTION_RESIDUE_PRESSURE_BY_INSTANCE := {
 	"map_object_instance.pollution_residue": 1.0,
@@ -367,19 +367,45 @@ func _interact_with_field_outfitting_station(character_state: CharacterState, wo
 			"先在基地平台完成出发整备台建造点。"
 		)
 
-	if String(character_state.equipment.get("suit_module", "")) == BASIC_FILTER_MODULE_ID:
-		return _success_feedback(
-			"出发整备台检查完成：基础过滤模块已装入防护服，污染消耗和污染反击压力已降低。",
-			"出发整备已生效",
-			"基础过滤模块已装入防护服",
-			"继续带模块进入污染边界，或回基地补药剂后再深入。"
+	if FieldOutfittingRuntime.has_filter_module_equipped(character_state):
+		if FieldOutfittingRuntime.is_module_calibrated(world_state):
+			return _success_feedback(
+				"出发整备台复查完成：基础过滤模块已完成晶体校准，污染采集和污染反击承压继续下降。",
+				"模块校准已生效",
+				"基础过滤模块已校准",
+				"沿外勤出发口回污染边界或更深区域复测，HUD 和战斗读数会读取这项整备收益。"
+			)
+		if not FieldOutfittingRuntime.has_calibration_materials(character_state):
+			return _failure(
+				"基础过滤模块已装入防护服，但缺少晶体侧路维护材料。",
+				"维护材料不足",
+				"回晶体侧路补晶体矿 x%d 和残骸废件 x%d，再回出发整备台校准模块。"
+					% [
+						FieldOutfittingRuntime.MODULE_CALIBRATION_CRYSTAL_COST,
+						FieldOutfittingRuntime.MODULE_CALIBRATION_SCRAP_COST
+					]
+			)
+		if not FieldOutfittingRuntime.consume_calibration_materials(character_state):
+			return _failure(
+				"基础过滤模块校准失败。",
+				"维护未完成",
+				"确认晶体矿和残骸废件都已放入背包，再重新尝试。"
+			)
+		FieldOutfittingRuntime.mark_module_calibrated(world_state)
+		var calibration_result := _success_feedback(
+			"出发整备台完成维护校准：晶体侧路材料已写入基础过滤模块，污染采集和污染反击承压继续下降。",
+			"模块校准完成",
+			"基础过滤模块已校准",
+			"污染采集、污染敌人反击和出发口 HUD 已读取校准收益。"
 		)
+		calibration_result["outfitting_module_calibrated"] = true
+		return calibration_result
 
 	if not character_state.inventory.has_ref(BASIC_FILTER_MODULE_ID, 1):
 		return _failure(
 			"缺少基础过滤模块。",
 			"整备材料不足",
-			"先用基础反应器组装基础过滤模块，再回整备台装入防护服。"
+			"先用基础反应器组装基础过滤模块；若缺晶体和废件，走晶体侧路补料。"
 		)
 
 	if not character_state.equip_suit_module(BASIC_FILTER_MODULE_ID):
@@ -389,11 +415,21 @@ func _interact_with_field_outfitting_station(character_state: CharacterState, wo
 			"检查防护服模块槽和装备库存，再重新尝试。"
 		)
 
+	if FieldOutfittingRuntime.has_calibration_materials(character_state):
+		var equipped_and_ready := _success_feedback(
+			"出发整备完成：基础过滤模块已装入防护服，晶体侧路材料足够继续校准模块。",
+			"出发整备完成",
+			"基础过滤模块已装入防护服",
+			"再次操作出发整备台可消耗晶体矿和残骸废件完成维护校准。"
+		)
+		equipped_and_ready["outfitting_module_enabled"] = true
+		return equipped_and_ready
+
 	var result := _success_feedback(
 		"出发整备完成：基础过滤模块已装入防护服，污染消耗和污染反击压力降低。",
 		"出发整备完成",
 		"基础过滤模块已装入防护服",
-		"带模块返回污染边界，处理点和门前压力会读取这项整备收益。"
+		"带模块返回污染边界；晶体侧路余料可回整备台维护校准。"
 	)
 	result["outfitting_module_enabled"] = true
 	return result
@@ -401,7 +437,7 @@ func _interact_with_field_outfitting_station(character_state: CharacterState, wo
 
 func _gather(instance_id: String, definition: Dictionary, character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var rewards := _grant_refs(definition.get("drops", []), character_state)
-	var protection_drain := _apply_pollution_pressure(instance_id, definition, character_state)
+	var protection_drain := _apply_pollution_pressure(instance_id, definition, character_state, world_state)
 	_set_map_object_flag(world_state, instance_id, String(definition.get("id", "")), "is_gathered", true)
 
 	var result_parts: Array[String] = []
@@ -415,7 +451,7 @@ func _gather(instance_id: String, definition: Dictionary, character_state: Chara
 	if protection_drain > 0.0:
 		result_parts.append("污染压力消耗防护 %s%s" % [
 			_format_amount(protection_drain),
-			_get_pollution_protection_hint(character_state)
+			_get_pollution_protection_hint(character_state, world_state)
 		])
 		var pressure_hint := _get_pollution_pressure_step_hint(instance_id, character_state)
 		if not pressure_hint.is_empty():
@@ -563,7 +599,12 @@ func _grant_refs(refs: Array, character_state: CharacterState) -> Array[String]:
 	return rewards
 
 
-func _apply_pollution_pressure(instance_id: String, definition: Dictionary, character_state: CharacterState) -> float:
+func _apply_pollution_pressure(
+	instance_id: String,
+	definition: Dictionary,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> float:
 	var pollution_id := String(definition.get("pollution_effect", ""))
 	if pollution_id.is_empty():
 		return 0.0
@@ -581,15 +622,22 @@ func _apply_pollution_pressure(instance_id: String, definition: Dictionary, char
 		return 0.0
 
 	var pressure_multiplier := float(POLLUTION_RESIDUE_PRESSURE_BY_INSTANCE.get(instance_id, 1.0))
-	var actual_drain := base_drain * pressure_multiplier * character_state.get_pollution_drain_multiplier(data_registry)
+	var actual_drain := (
+		base_drain
+		* pressure_multiplier
+		* character_state.get_pollution_drain_multiplier(data_registry)
+		* FieldOutfittingRuntime.get_pollution_drain_multiplier(character_state, world_state)
+	)
 	character_state.protection = maxf(0.0, character_state.protection - actual_drain)
 	return actual_drain
 
 
-func _get_pollution_protection_hint(character_state: CharacterState) -> String:
+func _get_pollution_protection_hint(character_state: CharacterState, world_state: WorldState) -> String:
 	var module_id := String(character_state.equipment.get("suit_module", ""))
 	if module_id.is_empty():
 		return "，未启用过滤模块"
+	if FieldOutfittingRuntime.has_active_module_calibration(character_state, world_state):
+		return "，过滤模块校准已降低消耗"
 	return "，过滤模块已降低消耗"
 
 
@@ -626,11 +674,11 @@ func _get_first_hour_gather_step_hint(
 		"map_object_instance.crystal_cluster_treatment_approach":
 			return "这些晶体可回基地加工成过滤模块或地基材料"
 		"map_object_instance.crystal_cluster_logistics_pocket":
-			return "侧路晶体可回基地加工基础零件，支撑储存箱、整备台和后续地基材料"
+			return "侧路晶体可回基地加工基础零件，也可配合废件在出发整备台维护校准过滤模块"
 		"map_object_instance.field_wreckage_treatment_approach":
 			return "残骸废件可补反应器校准；继续向处理点入口前确认补给余量"
 		"map_object_instance.field_wreckage_logistics_pocket":
-			return "侧路废件可补反应器校准、整备台和后续基建材料"
+			return "侧路废件可补反应器校准，也可配合晶体在出发整备台维护校准过滤模块"
 		"map_object_instance.crystal_cluster_foundation_return":
 			return "处理点入口前的回访晶体已补足；回基地加工基础零件或地基材料"
 		"map_object_instance.field_wreckage_foundation_return":
