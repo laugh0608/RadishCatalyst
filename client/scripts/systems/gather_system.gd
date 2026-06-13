@@ -234,8 +234,16 @@ func _interact_with_outpost_core(character_state: CharacterState, world_state: W
 	var restoration := character_state.restore_vitals_to_full()
 	var restored_health := float(restoration.get("restored_health", 0.0))
 	var restored_protection := float(restoration.get("restored_protection", 0.0))
+	var readiness_detail := DepartureReadinessFormatter.format_feedback_detail(world_state, character_state)
 	if restored_health <= 0.0 and restored_protection <= 0.0 and supply_detail.is_empty():
-		return _success("前哨核心已在线：生命与防护完整，可继续外出或使用相位回投台。")
+		return {
+			"success": true,
+			"message": "前哨核心出发检查：%s。" % readiness_detail,
+			"supply_feedback": {
+				"title": "出发准备检查",
+				"detail": readiness_detail
+			}
+		}
 
 	var detail_parts: Array[String] = []
 	var vitals_detail := _format_outpost_core_refit_detail(character_state, restored_health, restored_protection)
@@ -243,6 +251,7 @@ func _interact_with_outpost_core(character_state: CharacterState, world_state: W
 		detail_parts.append(vitals_detail)
 	if not supply_detail.is_empty():
 		detail_parts.append(supply_detail)
+	detail_parts.append("出发检查：%s" % readiness_detail)
 	var detail := "；".join(detail_parts)
 	return {
 		"success": true,

@@ -154,27 +154,20 @@ func format_general_interaction_prompt(
 
 
 func format_outfitting_station_prompt(character_state: CharacterState, world_state: WorldState) -> String:
-	var parts: Array[String] = ["设施：%s" % _get_display_name("building.field_outfitting_station")]
-	parts.append("用途：把基地制造出的模块装入防护服，让外勤承压差异从 HUD 提示变成可操作整备。")
 	if not world_state.has_base_structure_definition("building.field_outfitting_station"):
-		parts.append("状态：未建成。")
-		parts.append("下一步：先完成基地平台的出发整备台建造点。")
-		return "\n".join(parts)
+		return "设施：%s\n用途：把基地制造出的模块装入防护服，让外勤承压差异从 HUD 提示变成可操作整备。\n状态：未建成。\n下一步：先完成基地平台的出发整备台建造点。" % _get_display_name("building.field_outfitting_station")
 
 	var module_id := "equipment.filter_module_t1"
+	var parts: Array[String] = [DepartureReadinessFormatter.format_outfitting_station_prompt(world_state, character_state)]
 	if String(character_state.equipment.get("suit_module", "")) == module_id:
-		parts.append("状态：基础过滤模块已生效；污染消耗 x%.2f。" % character_state.get_pollution_drain_multiplier(data_registry))
-		parts.append("下一步：带模块进入污染边界，或回基地补药剂后再深入。")
+		parts.append("防护服：污染消耗 x%.2f。" % character_state.get_pollution_drain_multiplier(data_registry))
 		parts.append("操作：E 检查整备状态")
 		return "\n".join(parts)
 
 	if character_state.inventory.has_ref(module_id, 1):
-		parts.append("状态：基础过滤模块待装配。")
-		parts.append("收益：装入后降低污染消耗，并缓冲污染敌人反击。")
 		parts.append("操作：E 装配基础过滤模块")
 		return "\n".join(parts)
 
-	parts.append("状态：缺少基础过滤模块。")
 	parts.append("下一步：用基础反应器组装基础过滤模块，再回整备台装入防护服。")
 	parts.append("操作：E 查看缺料")
 	return "\n".join(parts)
@@ -509,34 +502,7 @@ func format_stability_calibration_prompt(
 func format_outpost_core_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
 		return "按 E 恢复：前哨核心，重启基础导航。"
-	var restock_names := _get_basic_storage_restock_names(world_state, character_state)
-	if not restock_names.is_empty():
-		return "按 E 整备：前哨核心，基础储存箱可补%s。" % " / ".join(restock_names)
-	if character_state.are_vitals_full():
-		return "前哨核心：整备在线；生命与防护完整，可继续外出或使用相位回投台。"
-	return "按 E 整备：前哨核心，恢复生命与防护。"
-
-
-func _get_basic_storage_restock_names(world_state: WorldState, character_state: CharacterState) -> Array[String]:
-	var names: Array[String] = []
-	if not world_state.has_base_structure_definition("building.basic_storage"):
-		return names
-	if not character_state.inventory.has_ref("item.repair_gel", 1):
-		names.append("修复凝胶")
-	if _can_restock_basic_storage_vial(world_state, character_state):
-		names.append("抗污染药剂")
-	return names
-
-
-func _can_restock_basic_storage_vial(world_state: WorldState, character_state: CharacterState) -> bool:
-	return (
-		world_state.has_base_structure_definition("building.pollution_filter")
-		and not character_state.inventory.has_ref("item.resistance_vial_t1", 1)
-		and (
-			world_state.quest_state.has_completed_quest("quest.enter_pollution_edge")
-			or world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1") >= 1.0
-		)
-	)
+	return DepartureReadinessFormatter.format_outpost_core_prompt(world_state, character_state)
 
 
 func format_ruin_gate_prompt(world_state: WorldState, character_state: CharacterState = null) -> String:

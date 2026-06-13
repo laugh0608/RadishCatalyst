@@ -89,7 +89,8 @@ func run(root: Node) -> void:
 		outfitting_world,
 		outfitting_character
 	)
-	host._expect_text_contains(status_text, "整备台：基础过滤模块已生效", "field outfitting station HUD summary")
+	host._expect_text_contains(status_text, "出发准备：模块已装", "field outfitting station HUD summary")
+	host._expect_text_contains(status_text, "收益：模块装配后会降低污染采集和反击压力", "field outfitting station HUD payoff")
 	outfitting_world.add_base_structure(
 		"structure.basic_storage_build_site",
 		"building.basic_storage",
@@ -109,11 +110,16 @@ func run(root: Node) -> void:
 		outfitting_world,
 		outfitting_character
 	)
-	host._expect_text_contains(supply_status_text, "整备台：基础过滤模块已生效", "field outfitting station keeps module status with supplies")
+	host._expect_text_contains(supply_status_text, "出发准备：模块已装", "field outfitting station keeps module status with supplies")
 	host._expect_text_contains(
 		supply_status_text,
-		"出发补给：回前哨核心补修复凝胶 / 抗污染药剂 x1",
+		"回前哨核心补修复凝胶 / 抗污染药剂",
 		"field outfitting station HUD summary includes departure supply restock"
+	)
+	host._expect_text_contains(
+		supply_status_text,
+		"收益：污染采集和污染战斗承压下降",
+		"field outfitting station HUD summary explains pressure payoff"
 	)
 	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
 	root.add_child(map)

@@ -263,9 +263,6 @@ func _format_base_summary_lines(
 	var outfitting_summary := _format_outfitting_station_summary(world_state, character_state)
 	if not outfitting_summary.is_empty():
 		return outfitting_summary
-	var storage_summary := _format_basic_storage_summary(world_state, character_state)
-	if not storage_summary.is_empty():
-		return storage_summary
 
 	return ["设备：待命；当前目标先外出推进"]
 
@@ -278,17 +275,6 @@ func _is_base_action_choice_state(world_state: WorldState) -> bool:
 		and world_state.quest_state.has_active_quest("quest.choose_phase_survey_action")
 		and world_state.quest_state.has_active_quest("quest.choose_pressure_clearance_action")
 	)
-
-
-func _format_basic_storage_summary(world_state: WorldState, character_state: CharacterState) -> Array[String]:
-	if world_state.current_region_id != "region.outpost_platform":
-		return []
-	if not world_state.has_base_structure_definition("building.basic_storage"):
-		return []
-	var supply_summary := _format_departure_supply_summary(world_state, character_state)
-	if not supply_summary.is_empty():
-		return [supply_summary]
-	return []
 
 
 func _format_pollution_slurry_reclaim_summary(
@@ -315,59 +301,7 @@ func _format_pollution_slurry_reclaim_summary(
 
 
 func _format_outfitting_station_summary(world_state: WorldState, character_state: CharacterState) -> Array[String]:
-	if world_state.current_region_id != "region.outpost_platform":
-		return []
-	if world_state.has_base_structure_definition("building.field_outfitting_station"):
-		var supply_summary := _format_departure_supply_summary(world_state, character_state)
-		if String(character_state.equipment.get("suit_module", "")) == "equipment.filter_module_t1":
-			var equipped_lines := ["整备台：基础过滤模块已生效"]
-			if not supply_summary.is_empty():
-				equipped_lines.append(supply_summary)
-			return equipped_lines
-		if character_state.inventory.has_ref("equipment.filter_module_t1", 1):
-			var pending_lines := ["整备台：回基地按 E 装入基础过滤模块"]
-			if not supply_summary.is_empty():
-				pending_lines.append(supply_summary)
-			return pending_lines
-		return ["整备台：缺基础过滤模块，先用基础反应器组装"]
-	if (
-		character_state.inventory.has_ref("item.basic_parts", 2)
-		and character_state.inventory.has_ref("item.salvage_scrap", 1)
-	):
-		return ["可建造：出发整备台；收益：装配防护服模块"]
-	return []
-
-
-func _format_departure_supply_summary(world_state: WorldState, character_state: CharacterState) -> String:
-	if not world_state.has_base_structure_definition("building.basic_storage"):
-		return ""
-
-	var missing_supplies: Array[String] = []
-	var ready_supplies: Array[String] = []
-	if character_state.inventory.has_ref("item.repair_gel", 1):
-		ready_supplies.append("修复凝胶")
-	else:
-		missing_supplies.append("修复凝胶")
-
-	if _is_basic_storage_vial_supply_available(world_state):
-		if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
-			ready_supplies.append("抗污染药剂")
-		else:
-			missing_supplies.append("抗污染药剂")
-
-	if not missing_supplies.is_empty():
-		return "出发补给：回前哨核心补%s x1" % " / ".join(missing_supplies)
-	return "出发补给：%s备用已接入前哨核心" % " / ".join(ready_supplies)
-
-
-func _is_basic_storage_vial_supply_available(world_state: WorldState) -> bool:
-	return (
-		world_state.has_base_structure_definition("building.pollution_filter")
-		and (
-			world_state.quest_state.has_completed_quest("quest.enter_pollution_edge")
-			or world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1") >= 1.0
-		)
-	)
+	return DepartureReadinessFormatter.format_hud_summary(world_state, character_state)
 
 
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:

@@ -246,7 +246,7 @@ func _check_success_logs_share_interaction_reading() -> void:
 	outpost_character.inventory.consume_ref("item.repair_gel", 1)
 	host._expect_text_contains(
 		formatter.format_outpost_core_prompt(outpost_world, outpost_character),
-		"基础储存箱可补修复凝胶",
+		"操作：E 补修复凝胶",
 		"outpost prompt exposes storage restock"
 	)
 	var outpost_refit_result := GatherSystem.new(host.data_registry).interact_with_object(
@@ -261,10 +261,33 @@ func _check_success_logs_share_interaction_reading() -> void:
 		"基础储存箱补修复凝胶",
 		"outpost refit consumes storage benefit"
 	)
+	host._expect_text_contains(
+		String(outpost_refit_result.get("message", "")),
+		"出发检查",
+		"outpost refit includes departure readiness detail"
+	)
 	host._expect_equal(
 		int(outpost_character.inventory.items.get("item.repair_gel", 0)),
 		1,
 		"outpost storage restocks repair gel to one"
+	)
+	var outpost_ready_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.outpost_core",
+		"building.outpost_core",
+		"outpost_core",
+		outpost_character,
+		outpost_world
+	)
+	host._expect_text_contains(
+		String(outpost_ready_result.get("message", "")),
+		"前哨核心出发检查",
+		"outpost core reports readiness when nothing needs restock"
+	)
+	var outpost_ready_feedback: Dictionary = outpost_ready_result.get("supply_feedback", {})
+	host._expect_equal(
+		String(outpost_ready_feedback.get("title", "")),
+		"出发准备检查",
+		"outpost core ready feedback title"
 	)
 
 	var outpost_supply_world := WorldState.create_default()
@@ -286,7 +309,7 @@ func _check_success_logs_share_interaction_reading() -> void:
 	outpost_supply_character.inventory.consume_ref("item.repair_gel", 1)
 	host._expect_text_contains(
 		formatter.format_outpost_core_prompt(outpost_supply_world, outpost_supply_character),
-		"基础储存箱可补修复凝胶 / 抗污染药剂",
+		"操作：E 补修复凝胶 / 抗污染药剂",
 		"outpost prompt exposes storage vial restock"
 	)
 	var outpost_supply_result := GatherSystem.new(host.data_registry).interact_with_object(
