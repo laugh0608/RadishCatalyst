@@ -299,6 +299,8 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 		if interactable.instance_id == "map_object_instance.pollution_residue_slurry_return_cache": should_enable = should_enable and _is_pollution_slurry_return_route_available(world_state)
 		if interactable.instance_id == "map_object_instance.pollution_residue_vial_reserve_cache":
 			should_enable = should_enable and _is_pollution_slurry_return_route_available(world_state)
+		if interactable.instance_id == "map_object_instance.pollution_residue_core_archive_return_cache":
+			should_enable = should_enable and FieldOutfittingRuntime.is_core_archive_maintained(world_state)
 		if interactable.instance_id == "map_object_instance.outer_ring_echo_residue_cache":
 			should_enable = (
 				should_enable
@@ -423,6 +425,8 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 				followup = "副产回收口袋暂时安全；回收沉积物后回过滤器处理，再把多余污染浆液带回基础反应器回收基础零件。"
 			if target.instance_id == "enemy_instance.polluted_skitter_vial_reserve_guard":
 				followup = "药剂储备口袋暂时安全；回收沉积物后回过滤器补药剂和污染浆液，再把多余浆液回基地回收成基础零件。"
+			if target.instance_id == "enemy_instance.polluted_skitter_core_archive_return_guard":
+				followup = "归档维护回访口袋暂时安全；回收沉积物后回过滤器补药剂和污染浆液，确认基地维护已反哺外勤承压。"
 			if target.instance_id == "enemy_instance.polluted_skitter_ridge":
 				followup = "污染脊守卫已清空；把沉积物带回过滤器处理，副产浆液可回收成信标所需基础零件。"
 			if target.instance_id == "enemy_instance.core_buffer_polluted_skitter":
@@ -736,6 +740,8 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 	if enemy.instance_id == "enemy_instance.polluted_skitter_slurry_return_guard": return _is_pollution_slurry_return_route_available(world_state)
 	if enemy.instance_id == "enemy_instance.polluted_skitter_vial_reserve_guard":
 		return _is_pollution_slurry_return_route_available(world_state)
+	if enemy.instance_id == "enemy_instance.polluted_skitter_core_archive_return_guard":
+		return FieldOutfittingRuntime.is_core_archive_maintained(world_state)
 	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
 		return world_state.quest_state.has_active_quest("quest.scout_ruin_outer_ring") or world_state.quest_state.has_completed_quest("quest.scout_ruin_outer_ring")
 	if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":

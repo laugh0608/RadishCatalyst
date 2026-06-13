@@ -682,6 +682,27 @@ offset_right = 310.0
 offset_bottom = 198.0
 color = Color(0.78, 0.37, 0.13, 1)
 
+[node name="PollutionCoreArchiveReturnPocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 296.0
+offset_top = 184.0
+offset_right = 378.0
+offset_bottom = 216.0
+color = Color(0.341, 0.282, 0.098, 1)
+
+[node name="PollutionCoreArchiveResidueMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 306.0
+offset_top = 194.0
+offset_right = 334.0
+offset_bottom = 220.0
+color = Color(0.74, 0.62, 0.18, 1)
+
+[node name="PollutionCoreArchiveGuardMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 342.0
+offset_top = 186.0
+offset_right = 372.0
+offset_bottom = 214.0
+color = Color(0.82, 0.42, 0.16, 1)
+
 [node name="PollutionGatePressurePocket" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = 344.0
 offset_top = 8.0
@@ -1031,6 +1052,13 @@ definition_id = "map_object.pollution_residue_patch"
 interaction_type = "gather"
 label_offset = Vector2(-76, 22)
 label_size = Vector2(152, 24)
+
+[node name="PollutionResidueCoreArchiveReturnCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(322, 206)
+definition_id = "map_object.pollution_residue_patch"
+interaction_type = "gather"
+label_offset = Vector2(-92, -50)
+label_size = Vector2(184, 24)
 
 [node name="RoughGroundNorth" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(258, -156)
@@ -1674,6 +1702,10 @@ definition_id = "enemy.polluted_skitter"
 
 [node name="CoreBufferPollutedSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(386, 126)
+definition_id = "enemy.polluted_skitter"
+
+[node name="PollutedSkitterCoreArchiveReturnGuard" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(356, 200)
 definition_id = "enemy.polluted_skitter"
 
 [node name="PollutedSkitterGatePressure" parent="Enemies" instance=ExtResource("4_enemy")]

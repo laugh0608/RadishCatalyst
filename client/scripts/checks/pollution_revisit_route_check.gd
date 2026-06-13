@@ -22,6 +22,10 @@ func run(root: Node) -> void:
 	_check_vial_reserve_route_gate(root)
 	_check_vial_reserve_residue_feedback()
 	_check_vial_reserve_guard_vial_feedback(root)
+	_check_core_archive_return_route_layout(root)
+	_check_core_archive_return_route_gate(root)
+	_check_core_archive_return_residue_feedback()
+	_check_core_archive_return_guard_feedback(root)
 	_check_double_vial_pressure_spend_and_restock(root)
 	_check_double_vial_core_write_feedback()
 	_check_slurry_reclaim_hud_and_device_panel()
@@ -517,6 +521,111 @@ func _check_double_vial_pressure_spend_and_restock(root: Node) -> void:
 	map.free()
 
 
+func _check_core_archive_return_route_layout(root: Node) -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	map.setup(host.data_registry)
+	var pocket := map.get_node("OpeningSceneLayer/PollutionCoreArchiveReturnPocket") as ColorRect
+	var residue_marker := map.get_node("OpeningSceneLayer/PollutionCoreArchiveResidueMarker") as ColorRect
+	var guard_marker := map.get_node("OpeningSceneLayer/PollutionCoreArchiveGuardMarker") as ColorRect
+	var residue := map.get_node("Interactables/PollutionResidueCoreArchiveReturnCache") as PrototypeInteractable
+	var guard := map.get_node("Enemies/PollutedSkitterCoreArchiveReturnGuard") as PrototypeEnemy
+	host._expect_equal(
+		_is_rect_covering_position(pocket, residue.position)
+			and _is_rect_covering_position(residue_marker, residue.position)
+			and _is_rect_covering_position(guard_marker, guard.position),
+		true,
+		"core archive return route scene markers align with playable objects"
+	)
+	host._expect_equal(
+		guard.position.distance_to(residue.position) <= VerticalSliceMap.ATTACK_RANGE,
+		true,
+		"core archive return residue is tied to nearby pressure combat"
+	)
+	map.free()
+
+
+func _check_core_archive_return_route_gate(root: Node) -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	map.setup(host.data_registry)
+	var residue := map.get_node("Interactables/PollutionResidueCoreArchiveReturnCache") as PrototypeInteractable
+	var guard := map.get_node("Enemies/PollutedSkitterCoreArchiveReturnGuard") as PrototypeEnemy
+	var locked_world := _create_core_archive_return_world(false)
+	map.sync_enemy_states(locked_world)
+	map.refresh_world_interactables(locked_world)
+	host._expect_equal(residue.can_interact(), false, "core archive return residue is gated before archive maintenance")
+	host._expect_equal(guard.can_be_attacked(), false, "core archive return guard is gated before archive maintenance")
+
+	var maintained_world := _create_core_archive_return_world(true)
+	map.sync_enemy_states(maintained_world)
+	map.refresh_world_interactables(maintained_world)
+	host._expect_equal(residue.can_interact(), true, "core archive return residue opens after archive maintenance")
+	host._expect_equal(guard.can_be_attacked(), true, "core archive return guard opens after archive maintenance")
+	map.free()
+
+
+func _check_core_archive_return_residue_feedback() -> void:
+	var gather_system := GatherSystem.new(host.data_registry)
+	var world := _create_core_archive_return_world(true)
+	var character := CharacterState.create_default()
+	character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	var result := gather_system.interact_with_object(
+		"map_object_instance.pollution_residue_core_archive_return_cache",
+		"map_object.pollution_residue_patch",
+		"gather",
+		character,
+		world
+	)
+	host._expect_equal(bool(result.get("success", false)), true, "core archive return residue gather succeeds")
+	host._expect_text_contains(
+		String(result.get("message", "")),
+		"核心归档维护已降低消耗",
+		"core archive return residue reads maintenance pressure payoff"
+	)
+	host._expect_text_contains(
+		String(result.get("message", "")),
+		"归档维护回访沉积已回收",
+		"core archive return residue points back to filter processing"
+	)
+
+
+func _check_core_archive_return_guard_feedback(root: Node) -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	map.setup(host.data_registry)
+	var world := _create_core_archive_return_world(true)
+	var character := CharacterState.create_default()
+	character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	character.inventory.add_item("item.resistance_vial_t1", 2)
+	map.sync_enemy_states(world)
+	map.refresh_world_interactables(world)
+	var guard := map.get_node("Enemies/PollutedSkitterCoreArchiveReturnGuard") as PrototypeEnemy
+	map.player.position = guard.position
+	var result := map.try_attack(character, world)
+	host._expect_text_contains(
+		String(result.get("message", "")),
+		"第 1 份抗污染药剂已自动接入归档维护回访排压",
+		"core archive return guard consumes first vial from double reserve"
+	)
+	host._expect_text_contains(
+		String(result.get("message", "")),
+		"核心归档维护会继续降低这段回访承压",
+		"core archive return guard explains archive maintenance payoff"
+	)
+	host._expect_text_contains(
+		String(result.get("message", "")),
+		"核心归档维护已接入",
+		"core archive return guard reads outfitting maintenance runtime"
+	)
+	host._expect_equal(
+		int(character.inventory.items.get("item.resistance_vial_t1", 0)),
+		1,
+		"core archive return guard spends one vial"
+	)
+	map.free()
+
+
 func _check_double_vial_core_write_feedback() -> void:
 	var gather_system := GatherSystem.new(host.data_registry)
 	var world := _create_double_vial_world()
@@ -585,6 +694,20 @@ func _create_double_vial_world() -> WorldState:
 		"region.outpost_platform",
 		"map_object_instance.slurry_buffer_tank_build_site"
 	)
+	return world
+
+
+func _create_core_archive_return_world(maintained: bool) -> WorldState:
+	var world := _create_double_vial_world()
+	world.quest_state.complete_quest("quest.write_demo_stabilization_core")
+	world.add_base_structure(
+		"structure.field_outfitting_station_build_site",
+		"building.field_outfitting_station",
+		"region.outpost_platform",
+		"map_object_instance.field_outfitting_station_build_site"
+	)
+	if maintained:
+		FieldOutfittingRuntime.mark_core_archive_maintained(world)
 	return world
 
 
