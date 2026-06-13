@@ -69,8 +69,8 @@
 2. 进入 `region.demo_stabilization_core`，确认 `quest.enter_demo_stabilization_core` 完成，并激活 `quest.prepare_demo_stabilization_buffer`。
 3. 返回污染边界末端回收补料沉积物并清理补料守卫，回处理点过滤出抗污染药剂和污染浆液，再回基地用基础反应器整备 `item.core_stabilization_buffer`。
 4. 确认核心稳压缓冲包目标完成并激活阶段守卫目标；带核心稳压缓冲包回核心稳定站后，可先回收侧边补给缓存取得修复凝胶和抗污染药剂，再击败 `enemy.demo_stabilization_guard`，守卫第一次回写压力应消耗缓冲包并降低生命 / 防护承压。
-5. 击败守卫后回收 `map_object.demo_stabilization_guard_cache`，确认拿到 `item.core_write_charge`、基础零件和终点前补给；若未回收校验片，核心设备应拒绝写入。
-6. 在 `map_object.demo_stabilization_core` 写入稳定数据；若已回收核心站侧边补给、阶段守卫反击消耗过核心稳压缓冲包或带有抗污染药剂，设备写入应读取这些终点前整备并降低反冲；没有药剂时仍可完成但承压更高。
+5. 击败守卫后回收 `map_object.demo_stabilization_guard_cache`，确认拿到 `item.core_write_charge`、基础零件、终点前补给和回写校准；若未回收校验片，核心设备应拒绝写入。
+6. 在 `map_object.demo_stabilization_core` 写入稳定数据；若已回收核心站侧边补给、守卫回写缓存、阶段守卫反击消耗过核心稳压缓冲包或带有抗污染药剂，设备写入应读取这些终点前整备并降低反冲；没有药剂时仍可完成但承压更高。
 7. 完成后检查 HUD / 地图 / 任务追踪不再把玩家引回行动台、高压窗口或新的区域入口。
 
 污染边界短跑补充：从 `S1` 后半段或普通进度进入污染边界深处时，带有抗污染药剂攻击污染脊守卫、污染侧翼守卫、副产回收口袋守卫或门前受扰敌人，应自动消耗 1 个药剂并降低首次反击承压；没有药剂时仍可清理敌人，但压力完整命中。

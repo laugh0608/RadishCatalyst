@@ -718,6 +718,12 @@ func _check_demo_stabilization_core_write_pressure() -> void:
 		"region.demo_stabilization_core"
 	)
 	fully_prepared_world.set_map_object_flag("map_object_instance.demo_stabilization_recovery_cache", "is_gathered", true)
+	fully_prepared_world.ensure_map_object(
+		"map_object_instance.demo_stabilization_guard_cache",
+		"map_object.demo_stabilization_guard_cache",
+		"region.demo_stabilization_core"
+	)
+	fully_prepared_world.set_map_object_flag("map_object_instance.demo_stabilization_guard_cache", "is_gathered", true)
 	var fully_prepared_character := CharacterState.create_default()
 	fully_prepared_character.inventory.add_item("item.resistance_vial_t1", 1)
 	var fully_prepared_result := gather_system.interact_with_object(
@@ -729,10 +735,11 @@ func _check_demo_stabilization_core_write_pressure() -> void:
 	)
 	host._expect_equal(bool(fully_prepared_result.get("success", false)), true, "core write with full terminal preparation succeeds")
 	_expect_text_contains(String(fully_prepared_result.get("message", "")), "核心站侧边补给", "core write reads side recovery cache")
+	_expect_text_contains(String(fully_prepared_result.get("message", "")), "守卫回写缓存", "core write reads guard writeback cache")
 	_expect_text_contains(String(fully_prepared_result.get("message", "")), "终点前整备同时降低守卫和核心设备承压", "core write explains full preparation payoff")
 	host._expect_equal(int(fully_prepared_character.inventory.items.get("item.resistance_vial_t1", 0)), 0, "core write with full preparation consumes one vial")
-	host._expect_equal(int(roundf(fully_prepared_character.health * 10.0)), 973, "side cache, guard sync and vial reduce write health pressure")
-	host._expect_equal(int(roundf(fully_prepared_character.protection * 10.0)), 960, "side cache, guard sync and vial reduce write protection pressure")
+	host._expect_equal(int(roundf(fully_prepared_character.health * 10.0)), 976, "side cache, guard cache, guard sync and vial reduce write health pressure")
+	host._expect_equal(int(roundf(fully_prepared_character.protection * 10.0)), 964, "side cache, guard cache, guard sync and vial reduce write protection pressure")
 
 	var synced_world := _create_core_write_ready_world()
 	synced_world.get_enemy("enemy_instance.demo_stabilization_guard")["core_buffer_used"] = true
@@ -781,6 +788,27 @@ func _check_demo_stabilization_core_write_pressure() -> void:
 	_expect_text_contains(String(synced_no_vial_result.get("message", "")), "核心设备承压低于无准备写入", "core write guard sync without vial explains partial pressure relief")
 	host._expect_equal(int(roundf(synced_no_vial_character.health * 10.0)), 910, "guard sync without vial reduces health pressure")
 	host._expect_equal(int(roundf(synced_no_vial_character.protection * 10.0)), 865, "guard sync without vial reduces protection pressure")
+
+	var guard_cache_world := _create_core_write_ready_world()
+	guard_cache_world.ensure_map_object(
+		"map_object_instance.demo_stabilization_guard_cache",
+		"map_object.demo_stabilization_guard_cache",
+		"region.demo_stabilization_core"
+	)
+	guard_cache_world.set_map_object_flag("map_object_instance.demo_stabilization_guard_cache", "is_gathered", true)
+	var guard_cache_character := CharacterState.create_default()
+	var guard_cache_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"inspect",
+		guard_cache_character,
+		guard_cache_world
+	)
+	host._expect_equal(bool(guard_cache_result.get("success", false)), true, "core write with guard cache only succeeds")
+	_expect_text_contains(String(guard_cache_result.get("message", "")), "守卫回写缓存", "core write guard cache explains writeback calibration")
+	_expect_text_contains(String(guard_cache_result.get("message", "")), "核心设备承压低于无准备写入", "core write guard cache explains partial pressure relief")
+	host._expect_equal(int(roundf(guard_cache_character.health * 10.0)), 892, "guard cache lowers write health pressure")
+	host._expect_equal(int(roundf(guard_cache_character.protection * 10.0)), 838, "guard cache lowers write protection pressure")
 
 	var plain_world := _create_core_write_ready_world()
 	var plain_character := CharacterState.create_default()

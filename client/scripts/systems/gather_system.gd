@@ -7,6 +7,7 @@ const DEMO_STABILIZATION_WRITE_PROTECTION_PRESSURE := 18.0
 const DEMO_STABILIZATION_WRITE_VIAL_MULT := 0.35
 const DEMO_STABILIZATION_WRITE_CORE_BUFFER_MULT := 0.75
 const DEMO_STABILIZATION_WRITE_RECOVERY_CACHE_MULT := 0.85
+const DEMO_STABILIZATION_WRITE_GUARD_CACHE_MULT := 0.9
 const BASIC_STORAGE_REPAIR_GEL_TARGET := 1
 const FIELD_OUTFITTING_STATION_ID := "building.field_outfitting_station"
 const BASIC_FILTER_MODULE_ID := "equipment.filter_module_t1"
@@ -357,6 +358,7 @@ func _apply_demo_stabilization_write_pressure(character_state: CharacterState, w
 	var used_vial := character_state.inventory.has_ref("item.resistance_vial_t1", 1)
 	var used_core_buffer := _has_core_stabilization_guard_buffer_sync(world_state)
 	var used_recovery_cache := _has_demo_stabilization_recovery_cache(world_state)
+	var used_guard_cache := _has_demo_stabilization_guard_cache(world_state)
 	var pressure_mult := 1.0
 	if used_vial:
 		character_state.inventory.consume_ref("item.resistance_vial_t1", 1)
@@ -365,49 +367,63 @@ func _apply_demo_stabilization_write_pressure(character_state: CharacterState, w
 		pressure_mult *= DEMO_STABILIZATION_WRITE_CORE_BUFFER_MULT
 	if used_recovery_cache:
 		pressure_mult *= DEMO_STABILIZATION_WRITE_RECOVERY_CACHE_MULT
+	if used_guard_cache:
+		pressure_mult *= DEMO_STABILIZATION_WRITE_GUARD_CACHE_MULT
 
 	var health_pressure := DEMO_STABILIZATION_WRITE_HEALTH_PRESSURE * pressure_mult * character_state.get_pollution_counter_damage_multiplier(data_registry)
 	var protection_pressure := DEMO_STABILIZATION_WRITE_PROTECTION_PRESSURE * pressure_mult * character_state.get_pollution_drain_multiplier(data_registry)
 	var health_damage := character_state.apply_health_damage(health_pressure)
 	var protection_damage := character_state.apply_protection_damage(protection_pressure)
-	if used_vial and used_core_buffer and used_recovery_cache:
-		return " 核心站侧边补给和稳压缓冲包已串入写入校准，抗污染药剂已自动接入写入排压，生命 -%s，防护 -%s；终点前整备同时降低守卫和核心设备承压。" % [
-			_format_amount(health_damage),
-			_format_amount(protection_damage)
-		]
-	if used_vial and used_core_buffer:
-		return " 核心稳压缓冲包留下的回写校准已被设备读取，抗污染药剂已自动接入写入排压，生命 -%s，防护 -%s；终点前整备同时降低守卫和核心设备承压。" % [
-			_format_amount(health_damage),
-			_format_amount(protection_damage)
-		]
-	if used_vial and used_recovery_cache:
-		return " 核心站侧边补给已接入写入冷却，抗污染药剂已自动接入写入排压，生命 -%s，防护 -%s；补给路线让核心设备承压低于仓促写入。" % [
-			_format_amount(health_damage),
-			_format_amount(protection_damage)
-		]
-	if used_vial:
-		return " 抗污染药剂已自动接入写入排压，生命 -%s，防护 -%s；守卫缓存补给改变了核心设备承压。" % [
-			_format_amount(health_damage),
-			_format_amount(protection_damage)
-		]
-	if used_core_buffer and used_recovery_cache:
-		return " 核心站侧边补给和稳压缓冲包校准已被设备读取；没有抗污染药剂参与排压，生命 -%s，防护 -%s；核心设备承压低于无准备写入。" % [
-			_format_amount(health_damage),
-			_format_amount(protection_damage)
-		]
-	if used_core_buffer:
-		return " 核心稳压缓冲包留下的回写校准已被设备读取；没有抗污染药剂参与排压，生命 -%s，防护 -%s；核心设备承压低于无准备写入。" % [
-			_format_amount(health_damage),
-			_format_amount(protection_damage)
-		]
+	return _format_demo_stabilization_write_pressure(
+		used_vial,
+		used_core_buffer,
+		used_recovery_cache,
+		used_guard_cache,
+		health_damage,
+		protection_damage
+	)
+
+
+func _format_demo_stabilization_write_pressure(
+	used_vial: bool,
+	used_core_buffer: bool,
+	used_recovery_cache: bool,
+	used_guard_cache: bool,
+	health_damage: float,
+	protection_damage: float
+) -> String:
+	var health_text := _format_amount(health_damage)
+	var protection_text := _format_amount(protection_damage)
+	var pressure_text := "抗污染药剂已自动接入写入排压" if used_vial else "没有抗污染药剂参与排压"
+	var prepared_parts: Array[String] = []
 	if used_recovery_cache:
-		return " 核心站侧边补给已接入写入冷却；没有抗污染药剂参与排压，生命 -%s，防护 -%s；补给路线降低了部分核心反冲。" % [
-			_format_amount(health_damage),
-			_format_amount(protection_damage)
+		prepared_parts.append("核心站侧边补给")
+	if used_guard_cache:
+		prepared_parts.append("守卫回写缓存")
+	if used_core_buffer:
+		prepared_parts.append("稳压缓冲包")
+
+	if not prepared_parts.is_empty():
+		var payoff := "核心设备承压低于无准备写入"
+		if used_core_buffer:
+			payoff = "终点前整备同时降低守卫和核心设备承压，核心设备承压低于无准备写入"
+		return " %s已串入写入校准，%s，生命 -%s，防护 -%s；%s。" % [
+			"、".join(prepared_parts),
+			pressure_text,
+			health_text,
+			protection_text,
+			payoff
+		]
+
+	if used_vial:
+		return " %s，生命 -%s，防护 -%s；药剂让核心设备承压低于无准备写入。" % [
+			pressure_text,
+			health_text,
+			protection_text
 		]
 	return " 没有抗污染药剂参与排压，核心写入反冲完整命中，生命 -%s，防护 -%s；下次终点写入前应确认守卫缓存补给。" % [
-		_format_amount(health_damage),
-		_format_amount(protection_damage)
+		health_text,
+		protection_text
 	]
 
 
@@ -424,6 +440,12 @@ func _has_demo_stabilization_recovery_cache(world_state: WorldState) -> bool:
 		bool(world_state.get_map_object("map_object_instance.demo_stabilization_recovery_cache").get("is_gathered", false))
 		or bool(world_state.get_map_object("map_object_instance.demo_stabilization_recovery_wreckage").get("is_gathered", false))
 	)
+
+
+func _has_demo_stabilization_guard_cache(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return bool(world_state.get_map_object("map_object_instance.demo_stabilization_guard_cache").get("is_gathered", false))
 
 
 func _grant_refs(refs: Array, character_state: CharacterState) -> Array[String]:
@@ -512,7 +534,7 @@ func _get_first_hour_gather_step_hint(instance_id: String) -> String:
 		"map_object_instance.demo_stabilization_recovery_cache":
 			return "核心站侧边补给已回收；修复凝胶和抗污染药剂可支撑阶段守卫战，并在核心写入时降低反冲"
 		"map_object_instance.demo_stabilization_guard_cache":
-			return "核心写入校验片已回收；带着补给靠近核心稳定设备写入归档数据"
+			return "核心写入校验片已回收，回写校准同步完成；守卫缓存会降低核心写入反冲，带补给靠近核心稳定设备写入归档数据"
 	return ""
 
 
