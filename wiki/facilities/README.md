@@ -7,3 +7,4 @@
 - [基础储存箱](basic-storage.md)
 - [出发整备台](field-outfitting-station.md)
 - [污染过滤器](pollution-filter.md)
+- [污染浆液缓冲罐](slurry-buffer-tank.md)
