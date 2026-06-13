@@ -73,11 +73,11 @@ RadishCatalyst 是刚初始化的新仓库，当前重点不是堆功能，而�
 - 文档篇幅检查脚本：
   - `scripts/check-docs.ps1`
   - `scripts/check-docs.sh`
-- 客户端聚合检查脚本：
+- 客户端默认检查脚本：
   - `scripts/check-client.ps1`
   - `scripts/check-client.sh`
 
-当前默认分支 PR 的 CI 强制仓库卫生、文档篇幅、客户端静态数据、客户端场景引用和提交 diff 空白检查。需要 Godot 可执行文件的客户端聚合验证仍按改动范围在本地或手动流程执行，等 GitHub runner 上 Godot 环境稳定后再评估是否纳入必过 CI。
+当前默认分支 PR 的 CI 强制仓库卫生、文档篇幅、客户端静态数据、客户端场景引用和提交 diff 空白检查。默认 `check-client` 不启动 Godot；需要 Godot 可执行文件的运行时验证按改动范围在本地或手动流程显式执行，等 GitHub runner 上 Godot 环境稳定后再评估是否纳入必过 CI。
 
 ## 影响
 

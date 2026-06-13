@@ -509,17 +509,33 @@ func format_stability_calibration_prompt(
 func format_outpost_core_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
 		return "按 E 恢复：前哨核心，重启基础导航。"
-	if _can_restock_basic_storage_supply(world_state, character_state):
-		return "按 E 整备：前哨核心，基础储存箱可补修复凝胶。"
+	var restock_names := _get_basic_storage_restock_names(world_state, character_state)
+	if not restock_names.is_empty():
+		return "按 E 整备：前哨核心，基础储存箱可补%s。" % " / ".join(restock_names)
 	if character_state.are_vitals_full():
 		return "前哨核心：整备在线；生命与防护完整，可继续外出或使用相位回投台。"
 	return "按 E 整备：前哨核心，恢复生命与防护。"
 
 
-func _can_restock_basic_storage_supply(world_state: WorldState, character_state: CharacterState) -> bool:
+func _get_basic_storage_restock_names(world_state: WorldState, character_state: CharacterState) -> Array[String]:
+	var names: Array[String] = []
+	if not world_state.has_base_structure_definition("building.basic_storage"):
+		return names
+	if not character_state.inventory.has_ref("item.repair_gel", 1):
+		names.append("修复凝胶")
+	if _can_restock_basic_storage_vial(world_state, character_state):
+		names.append("抗污染药剂")
+	return names
+
+
+func _can_restock_basic_storage_vial(world_state: WorldState, character_state: CharacterState) -> bool:
 	return (
-		world_state.has_base_structure_definition("building.basic_storage")
-		and not character_state.inventory.has_ref("item.repair_gel", 1)
+		world_state.has_base_structure_definition("building.pollution_filter")
+		and not character_state.inventory.has_ref("item.resistance_vial_t1", 1)
+		and (
+			world_state.quest_state.has_completed_quest("quest.enter_pollution_edge")
+			or world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1") >= 1.0
+		)
 	)
 
 

@@ -72,7 +72,7 @@
 - 分支与 PR 治理以 `docs/adr/0001-branch-and-pr-governance.md` 为准。
 - `dev` 是日常开发与文档集成分支，`master` / `main` 仅作为稳定主线。
 - 远端分支保护、合并策略、稳定主线 PR 目标和阶段性例外以 ADR 与仓库实际设置为准。
-- 默认分支 PR 的 `Repo Hygiene` CI 覆盖文本卫生、文档篇幅、客户端静态数据、客户端场景引用和提交 diff 空白检查；需要 Godot 的客户端聚合验证仍按改动范围在本地或手动流程执行。
+- 默认分支 PR 的 `Repo Hygiene` CI 覆盖文本卫生、文档篇幅、客户端静态数据、客户端场景引用和提交 diff 空白检查；需要启动 Godot 的运行时验证仍按改动范围在本地或手动流程执行。
 
 ## 验证与检查约定
 
@@ -102,7 +102,7 @@ Linux/macOS、Git Bash 或 macOS zsh 环境可执行：
 ./scripts/check-docs.sh
 ```
 
-客户端聚合验证入口：
+客户端默认检查入口：
 
 ```powershell
 pwsh ./scripts/check-client.ps1
@@ -111,10 +111,22 @@ pwsh ./scripts/check-client.ps1
 Linux/macOS、Git Bash 或 macOS zsh 环境可执行：
 
 ```bash
-./scripts/check-client.sh
+sh ./scripts/check-client.sh
 ```
 
-提交前按改动范围至少执行匹配的最小验证；涉及客户端状态、任务、存档、场景或脚本时，优先执行对应平台的 `check-client` 入口，再执行对应平台的 `check-text-files` 和 `git diff --check`。涉及 `docs/`、根 `README.md`、`AGENTS.md` 或 `CLAUDE.md` 时，额外执行对应平台的 `check-docs`。
+默认 `check-client` 只覆盖客户端静态数据和场景引用，不启动 Godot。需要工程导入或运行项目自定义 GDScript 检查时，确认本机 Godot 可启动后再显式执行：
+
+```powershell
+pwsh ./scripts/check-client.ps1 -WithGodot
+```
+
+```bash
+sh ./scripts/check-client.sh --with-godot
+```
+
+Godot 官方命令行提供 `--import`、`--script` 和脚本级 `--check-only` 等能力，但没有仓库级通用项目检查接口；本仓库的 Godot 运行时验证是通过项目自定义 GDScript 检查脚本实现。
+
+提交前按改动范围至少执行匹配的最小验证；涉及客户端状态、任务、存档、场景或脚本时，优先执行对应平台的默认 `check-client` 入口，再执行对应平台的 `check-text-files` 和 `git diff --check`。涉及 `docs/`、根 `README.md`、`AGENTS.md` 或 `CLAUDE.md` 时，额外执行对应平台的 `check-docs`。
 
 如果未来加入 Godot 导出配置、脚本静态检查或更多自动化测试入口，应同步更新脚本、`docs/`、`AGENTS.md`、`CLAUDE.md` 和 CI。
 
@@ -126,12 +138,12 @@ Linux/macOS、Git Bash 或 macOS zsh 环境可执行：
 - `git status`、`git diff`、`git log` 等只读 Git 操作。
 - `pwsh ./scripts/check-text-files.ps1`、`./scripts/check-text-files.sh`。
 - `pwsh ./scripts/check-docs.ps1`、`./scripts/check-docs.sh`。
-- `pwsh ./scripts/check-client.ps1`、`./scripts/check-client.sh` 及其单项客户端检查脚本。
+- `pwsh ./scripts/check-client.ps1`、`sh ./scripts/check-client.sh` 及不启动 Godot 的单项客户端检查脚本。
 - 简洁明确的提交操作。
 
 ### 需要先告知用户再执行
 
-- 启动 Godot 编辑器、桌面程序或长期运行进程。
+- 启动 Godot 编辑器、桌面程序、`check-client --with-godot` / `-WithGodot` 或单项 Godot 运行时检查。
 - 安装依赖、下载大文件、引入外部资产包。
 - 修改系统环境、注册表、证书、全局 Git 配置或编辑器全局配置。
 - 打包、发布、上传、推送远端分支或创建 Release。

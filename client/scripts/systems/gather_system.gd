@@ -9,6 +9,7 @@ const DEMO_STABILIZATION_WRITE_CORE_BUFFER_MULT := 0.75
 const DEMO_STABILIZATION_WRITE_RECOVERY_CACHE_MULT := 0.85
 const DEMO_STABILIZATION_WRITE_GUARD_CACHE_MULT := 0.9
 const BASIC_STORAGE_REPAIR_GEL_TARGET := 1
+const BASIC_STORAGE_RESISTANCE_VIAL_TARGET := 1
 const FIELD_OUTFITTING_STATION_ID := "building.field_outfitting_station"
 const BASIC_FILTER_MODULE_ID := "equipment.filter_module_t1"
 const POLLUTION_RESIDUE_PRESSURE_BY_INSTANCE := {
@@ -256,15 +257,42 @@ func _interact_with_outpost_core(character_state: CharacterState, world_state: W
 func _restock_basic_storage_supply(character_state: CharacterState, world_state: WorldState) -> String:
 	if not world_state.has_base_structure_definition("building.basic_storage"):
 		return ""
+
+	var detail_parts: Array[String] = []
 	var current_repair_gel := int(character_state.inventory.items.get("item.repair_gel", 0))
-	if current_repair_gel >= BASIC_STORAGE_REPAIR_GEL_TARGET:
-		return ""
-	var granted_amount := BASIC_STORAGE_REPAIR_GEL_TARGET - current_repair_gel
-	character_state.inventory.add_item("item.repair_gel", granted_amount)
-	return "基础储存箱补修复凝胶 x%d，当前 %d" % [
-		granted_amount,
-		int(character_state.inventory.items.get("item.repair_gel", 0))
-	]
+	if current_repair_gel < BASIC_STORAGE_REPAIR_GEL_TARGET:
+		var granted_gel_amount := BASIC_STORAGE_REPAIR_GEL_TARGET - current_repair_gel
+		character_state.inventory.add_item("item.repair_gel", granted_gel_amount)
+		detail_parts.append("基础储存箱补修复凝胶 x%d，当前 %d" % [
+			granted_gel_amount,
+			int(character_state.inventory.items.get("item.repair_gel", 0))
+		])
+
+	if _can_restock_basic_storage_vial(character_state, world_state):
+		var current_vial := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
+		var granted_vial_amount := BASIC_STORAGE_RESISTANCE_VIAL_TARGET - current_vial
+		character_state.inventory.add_item("item.resistance_vial_t1", granted_vial_amount)
+		detail_parts.append("基础储存箱补抗污染药剂 x%d，当前 %d" % [
+			granted_vial_amount,
+			int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
+		])
+
+	return "；".join(detail_parts)
+
+
+func _can_restock_basic_storage_vial(character_state: CharacterState, world_state: WorldState) -> bool:
+	if not world_state.has_base_structure_definition("building.pollution_filter"):
+		return false
+	if not _has_basic_storage_vial_supply_unlocked(world_state):
+		return false
+	return int(character_state.inventory.items.get("item.resistance_vial_t1", 0)) < BASIC_STORAGE_RESISTANCE_VIAL_TARGET
+
+
+func _has_basic_storage_vial_supply_unlocked(world_state: WorldState) -> bool:
+	return (
+		world_state.quest_state.has_completed_quest("quest.enter_pollution_edge")
+		or world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1") >= 1.0
+	)
 
 
 func _interact_with_field_outfitting_station(character_state: CharacterState, world_state: WorldState) -> Dictionary:

@@ -85,7 +85,7 @@
 
 检查口径：
 
-- 自动检查已覆盖区域边界、地图标记、任务规则、守卫门控和核心设备写入事件；若 `pwsh ./scripts/check-client.ps1` 因 Godot 4.6.2 原生崩溃中断，应记录崩溃发生的子检查，不把未完成聚合检查写成通过。
+- 自动检查已覆盖区域边界、地图标记、任务规则、守卫门控和核心设备写入事件；默认 `check-client` 不启动 Godot，导入工程和项目自定义 GDScript 运行时检查需用 `-WithGodot` / `--with-godot` 显式执行。若本机 Godot 无法启动，应记录该运行时检查未执行，不把它写成通过。
 - 人工短跑只阻塞 `P0` / `P1`：崩溃、主线卡死、坏档、任务无法完成、核心资源断档，或 UI 完全无法判断下一步。
 - 文案密度、局部路径拥挤、战斗数值偏软 / 偏硬、资源点数量不足先记入后续核心区域尺度规划，不阻塞 demo 收束阶段。
 - 若后续调整该切点，应同步更新 `DevelopmentBaselineCatalog`、`DevelopmentBaselineBuilder`、`development_baseline_save_check.gd` 和相关 HUD 基线展示检查。

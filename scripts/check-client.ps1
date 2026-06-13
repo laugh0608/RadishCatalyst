@@ -1,12 +1,12 @@
 [CmdletBinding()]
 param(
     [string]$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path,
-    [string]$GodotExe = ""
+    [string]$GodotExe = "",
+    [switch]$WithGodot
 )
 
 $ErrorActionPreference = "Stop"
-. (Join-Path $PSScriptRoot "Resolve-GodotExe.ps1")
-$GodotExe = Resolve-GodotExe -GodotExe $GodotExe
+$runGodotChecks = $WithGodot -or ([Environment]::GetEnvironmentVariable("CHECK_CLIENT_WITH_GODOT") -match "^(1|true|yes)$")
 
 $checks = @(
     @{
@@ -22,40 +22,51 @@ $checks = @(
         Parameters = @{
             RepoRoot = $RepoRoot
         }
-    },
-    @{
-        Name = "client save runtime"
-        Script = "check-client-save.ps1"
-        Parameters = @{
-            RepoRoot = $RepoRoot
-            GodotExe = $GodotExe
-        }
-    },
-    @{
-        Name = "client quest rules"
-        Script = "check-client-quests.ps1"
-        Parameters = @{
-            RepoRoot = $RepoRoot
-            GodotExe = $GodotExe
-        }
-    },
-    @{
-        Name = "vertical slice flow and HUD runtime hints"
-        Script = "check-client-flow.ps1"
-        Parameters = @{
-            RepoRoot = $RepoRoot
-            GodotExe = $GodotExe
-        }
-    },
-    @{
-        Name = "Godot client import"
-        Script = "check-godot-client.ps1"
-        Parameters = @{
-            RepoRoot = $RepoRoot
-            GodotExe = $GodotExe
-        }
     }
 )
+
+if ($runGodotChecks) {
+    . (Join-Path $PSScriptRoot "Resolve-GodotExe.ps1")
+    $GodotExe = Resolve-GodotExe -GodotExe $GodotExe
+
+    $checks += @(
+        @{
+            Name = "Godot client import"
+            Script = "check-godot-client.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "client save runtime"
+            Script = "check-client-save.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "client quest rules"
+            Script = "check-client-quests.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "vertical slice flow and HUD runtime hints"
+            Script = "check-client-flow.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        }
+    )
+}
+else {
+    Write-Host "Skipping Godot runtime checks. Use -WithGodot after confirming Godot can start in this environment."
+}
 
 foreach ($check in $checks) {
     Write-Host "Running $($check.Name)..."

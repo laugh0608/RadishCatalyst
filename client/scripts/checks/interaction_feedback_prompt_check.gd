@@ -267,6 +267,51 @@ func _check_success_logs_share_interaction_reading() -> void:
 		"outpost storage restocks repair gel to one"
 	)
 
+	var outpost_supply_world := WorldState.create_default()
+	outpost_supply_world.quest_state.complete_quest("quest.restore_outpost")
+	outpost_supply_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1.0)
+	outpost_supply_world.add_base_structure(
+		"structure.basic_storage_build_site",
+		"building.basic_storage",
+		"region.outpost_platform",
+		"map_object_instance.basic_storage_build_site"
+	)
+	outpost_supply_world.add_base_structure(
+		"structure.pollution_filter_build_site",
+		"building.pollution_filter",
+		"region.outpost_platform",
+		"map_object_instance.pollution_filter_build_site"
+	)
+	var outpost_supply_character := CharacterState.create_default()
+	outpost_supply_character.inventory.consume_ref("item.repair_gel", 1)
+	host._expect_text_contains(
+		formatter.format_outpost_core_prompt(outpost_supply_world, outpost_supply_character),
+		"基础储存箱可补修复凝胶 / 抗污染药剂",
+		"outpost prompt exposes storage vial restock"
+	)
+	var outpost_supply_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.outpost_core",
+		"building.outpost_core",
+		"outpost_core",
+		outpost_supply_character,
+		outpost_supply_world
+	)
+	host._expect_text_contains(
+		String(outpost_supply_result.get("message", "")),
+		"基础储存箱补抗污染药剂",
+		"outpost refit restocks resistance vial after filter setup"
+	)
+	host._expect_equal(
+		int(outpost_supply_character.inventory.items.get("item.repair_gel", 0)),
+		1,
+		"outpost storage still restocks repair gel with filter setup"
+	)
+	host._expect_equal(
+		int(outpost_supply_character.inventory.items.get("item.resistance_vial_t1", 0)),
+		1,
+		"outpost storage restocks resistance vial to one"
+	)
+
 	var filter_processing_world := WorldState.create_default()
 	var filter_processing_character := CharacterState.create_default()
 	filter_processing_world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]

@@ -90,6 +90,31 @@ func run(root: Node) -> void:
 		outfitting_character
 	)
 	host._expect_text_contains(status_text, "整备台：基础过滤模块已生效", "field outfitting station HUD summary")
+	outfitting_world.add_base_structure(
+		"structure.basic_storage_build_site",
+		"building.basic_storage",
+		"region.outpost_platform",
+		"map_object_instance.basic_storage_build_site"
+	)
+	outfitting_world.add_base_structure(
+		"structure.pollution_filter_build_site",
+		"building.pollution_filter",
+		"region.outpost_platform",
+		"map_object_instance.pollution_filter_build_site"
+	)
+	outfitting_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1.0)
+	outfitting_character.inventory.consume_ref("item.repair_gel", 1)
+	var supply_status_text := HudStatusPresenter.new().format_vitals_text(
+		host.data_registry,
+		outfitting_world,
+		outfitting_character
+	)
+	host._expect_text_contains(supply_status_text, "整备台：基础过滤模块已生效", "field outfitting station keeps module status with supplies")
+	host._expect_text_contains(
+		supply_status_text,
+		"出发补给：回前哨核心补修复凝胶 / 抗污染药剂 x1",
+		"field outfitting station HUD summary includes departure supply restock"
+	)
 	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
 	root.add_child(map)
 	map.setup(host.data_registry)
