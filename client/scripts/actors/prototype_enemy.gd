@@ -140,6 +140,8 @@ func _get_pressure_focus_label() -> String:
 			return "门前压力点"
 		"enemy_instance.polluted_skitter_slurry_return_guard":
 			return "副产回收点"
+		"enemy_instance.polluted_skitter_vial_reserve_guard":
+			return "药剂储备点"
 		"enemy_instance.core_buffer_polluted_skitter":
 			return "补料压力点"
 		_:

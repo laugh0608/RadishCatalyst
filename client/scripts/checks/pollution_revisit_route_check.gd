@@ -18,6 +18,10 @@ func run(root: Node) -> void:
 	_check_slurry_return_route_gate(root)
 	_check_slurry_return_residue_feedback()
 	_check_slurry_return_guard_vial_feedback(root)
+	_check_vial_reserve_route_layout(root)
+	_check_vial_reserve_route_gate(root)
+	_check_vial_reserve_residue_feedback()
+	_check_vial_reserve_guard_vial_feedback(root)
 	_check_slurry_reclaim_hud_and_device_panel()
 
 
@@ -284,6 +288,142 @@ func _check_slurry_return_guard_vial_feedback(root: Node) -> void:
 	map.free()
 
 
+func _check_vial_reserve_route_layout(root: Node) -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	map.setup(host.data_registry)
+	var pocket := map.get_node("OpeningSceneLayer/PollutionVialReservePocket") as ColorRect
+	var residue_marker := map.get_node("OpeningSceneLayer/PollutionVialReserveResidueMarker") as ColorRect
+	var guard_marker := map.get_node("OpeningSceneLayer/PollutionVialReserveGuardMarker") as ColorRect
+	var residue := map.get_node("Interactables/PollutionResidueVialReserveCache") as PrototypeInteractable
+	var guard := map.get_node("Enemies/PollutedSkitterVialReserveGuard") as PrototypeEnemy
+	host._expect_equal(
+		residue.position.x >= VerticalSliceMap.POLLUTION_REGION_X
+			and residue.position.x < VerticalSliceMap.RUIN_OUTER_RING_X
+			and residue.position.y >= VerticalSliceMap.POLLUTION_DEEP_Y,
+		true,
+		"vial reserve residue stays inside pollution edge"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(pocket, residue.position)
+			and _is_rect_covering_position(residue_marker, residue.position)
+			and _is_rect_covering_position(guard_marker, guard.position),
+		true,
+		"vial reserve scene markers align with playable objects"
+	)
+	host._expect_equal(
+		guard.position.distance_to(residue.position) <= VerticalSliceMap.ATTACK_RANGE,
+		true,
+		"vial reserve residue is tied to visible combat"
+	)
+	map.free()
+
+
+func _check_vial_reserve_route_gate(root: Node) -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	map.setup(host.data_registry)
+	var residue := map.get_node("Interactables/PollutionResidueVialReserveCache") as PrototypeInteractable
+	var guard := map.get_node("Enemies/PollutedSkitterVialReserveGuard") as PrototypeEnemy
+	var locked_world := WorldState.create_default()
+	locked_world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
+	locked_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1.0)
+	map.sync_enemy_states(locked_world)
+	map.refresh_world_interactables(locked_world)
+	host._expect_equal(residue.can_interact(), false, "vial reserve residue requires operational pollution filter")
+	host._expect_equal(guard.can_be_attacked(), false, "vial reserve guard requires operational pollution filter")
+	var opened_world := WorldState.create_default()
+	opened_world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
+	opened_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1.0)
+	opened_world.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
+	map.sync_enemy_states(opened_world)
+	map.refresh_world_interactables(opened_world)
+	host._expect_equal(residue.can_interact(), true, "vial reserve residue opens after first vial processing line")
+	host._expect_equal(guard.can_be_attacked(), true, "vial reserve guard opens after first vial processing line")
+	map.free()
+
+
+func _check_vial_reserve_residue_feedback() -> void:
+	var gather_system := GatherSystem.new(host.data_registry)
+	var world := WorldState.create_default()
+	var character := CharacterState.create_default()
+	character.equipment["suit_module"] = "equipment.filter_module_t1"
+	var result := gather_system.interact_with_object(
+		"map_object_instance.pollution_residue_vial_reserve_cache",
+		"map_object.pollution_residue_patch",
+		"gather",
+		character,
+		world
+	)
+	host._expect_equal(bool(result.get("success", false)), true, "vial reserve residue gather succeeds")
+	host._expect_text_contains(
+		String(result.get("message", "")),
+		"药剂储备口袋沉积已回收",
+		"vial reserve residue names the reserve pocket"
+	)
+	host._expect_text_contains(
+		String(result.get("message", "")),
+		"回过滤器补抗污染药剂",
+		"vial reserve residue points back to filter processing"
+	)
+	host._expect_equal(
+		int(character.inventory.items.get("item.polluted_residue", 0)),
+		2,
+		"vial reserve residue grants polluted residue"
+	)
+
+
+func _check_vial_reserve_guard_vial_feedback(root: Node) -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	map.setup(host.data_registry)
+	var world := WorldState.create_default()
+	world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
+	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1.0)
+	world.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
+	var character := CharacterState.create_default()
+	character.inventory.add_item("item.resistance_vial_t1", 1)
+	map.sync_enemy_states(world)
+	var guard := map.get_node("Enemies/PollutedSkitterVialReserveGuard") as PrototypeEnemy
+	map.player.position = guard.position
+	var pressure_result := map.try_attack(character, world)
+	host._expect_equal(bool(pressure_result.get("enemy_defeated", true)), false, "vial reserve guard first hit keeps combat active")
+	host._expect_text_contains(
+		String(pressure_result.get("message", "")),
+		"抗污染药剂已自动接入药剂储备口袋排压",
+		"vial reserve guard consumes vial for reserve pressure"
+	)
+	host._expect_equal(
+		int(character.inventory.items.get("item.resistance_vial_t1", 0)),
+		0,
+		"vial reserve guard consumes one resistance vial"
+	)
+	host._expect_equal(
+		bool(world.get_enemy("enemy_instance.polluted_skitter_vial_reserve_guard").get("pressure_vial_used", false)),
+		true,
+		"vial reserve guard records vial usage"
+	)
+	map.try_attack(character, world)
+	var defeated_result := map.try_attack(character, world)
+	host._expect_equal(bool(defeated_result.get("enemy_defeated", false)), true, "vial reserve guard can be defeated")
+	host._expect_text_contains(
+		String(defeated_result.get("message", "")),
+		"药剂储备口袋暂时安全",
+		"vial reserve guard defeat points back to reserve pocket"
+	)
+	host._expect_equal(
+		bool(world.get_enemy("enemy_instance.polluted_skitter_vial_reserve_guard").get("is_defeated", false)),
+		true,
+		"vial reserve guard defeat is stored in world state"
+	)
+	host._expect_equal(
+		world.has_enemy_drops_granted("enemy_instance.polluted_skitter_vial_reserve_guard"),
+		true,
+		"vial reserve guard drop grant is stored"
+	)
+	map.free()
+
+
 func _check_slurry_reclaim_hud_and_device_panel() -> void:
 	var world := WorldState.create_default()
 	world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
@@ -299,8 +439,8 @@ func _check_slurry_reclaim_hud_and_device_panel() -> void:
 	)
 	host._expect_text_contains(
 		status_text,
-		"副产口袋补沉积物",
-		"HUD base summary points back to slurry return pocket after reclaim"
+		"药剂储备口袋补沉积物",
+		"HUD base summary points back to pollution return pockets after reclaim"
 	)
 
 	var processing := ProcessingSystem.new(host.data_registry)
@@ -328,8 +468,8 @@ func _check_slurry_reclaim_hud_and_device_panel() -> void:
 	if not completed.is_empty():
 		host._expect_text_contains(
 			String(completed[0].get("next_step_text", "")),
-			"副产口袋补沉积物",
-			"slurry reclaim completion points back to field byproduct pocket"
+			"药剂储备口袋补沉积物",
+			"slurry reclaim completion points back to field return pockets"
 		)
 	host._expect_equal(
 		int(character.inventory.items.get("item.basic_parts", 0)),

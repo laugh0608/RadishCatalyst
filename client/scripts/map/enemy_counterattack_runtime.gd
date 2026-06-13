@@ -74,6 +74,8 @@ func _get_pressure_multiplier(enemy: PrototypeEnemy) -> float:
 		return POLLUTION_REVISIT_COUNTER_MULT
 	if enemy.instance_id == "enemy_instance.polluted_skitter_slurry_return_guard":
 		return 1.18
+	if enemy.instance_id == "enemy_instance.polluted_skitter_vial_reserve_guard":
+		return 1.28
 	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
 		return POLLUTION_RIDGE_COUNTER_MULT
 	if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
@@ -154,6 +156,7 @@ func _is_pollution_pressure_vial_enemy(enemy: PrototypeEnemy) -> bool:
 		enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure"
 		or enemy.instance_id == "enemy_instance.polluted_skitter_vial_return_guard"
 		or enemy.instance_id == "enemy_instance.polluted_skitter_slurry_return_guard"
+		or enemy.instance_id == "enemy_instance.polluted_skitter_vial_reserve_guard"
 		or enemy.instance_id == "enemy_instance.polluted_skitter_ridge"
 		or enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter"
 		or enemy.definition_id == "enemy.demo_stabilization_guard"
@@ -181,6 +184,8 @@ func _format_pollution_counter_message(
 			return _format_vial_return_message(message, consumed_pressure_vial)
 		"enemy_instance.polluted_skitter_slurry_return_guard":
 			return _format_slurry_return_message(message, consumed_pressure_vial)
+		"enemy_instance.polluted_skitter_vial_reserve_guard":
+			return _format_vial_reserve_message(message, consumed_pressure_vial)
 		"enemy_instance.polluted_skitter_ridge":
 			return _format_ridge_message(message, consumed_pressure_vial)
 		"enemy_instance.core_buffer_polluted_skitter":
@@ -208,6 +213,12 @@ func _format_slurry_return_message(message: String, consumed_pressure_vial: bool
 	if consumed_pressure_vial:
 		return "%s抗污染药剂已自动接入副产口袋排压；清完后回收沉积物，回过滤器补浆液，再到基础反应器回收基础零件。" % message
 	return "%s副产口袋污染压力抬升，基础过滤模块会降低承压；带药剂回来会自动接入排压，清完后补沉积物处理浆液。" % message
+
+
+func _format_vial_reserve_message(message: String, consumed_pressure_vial: bool) -> String:
+	if consumed_pressure_vial:
+		return "%s抗污染药剂已自动接入药剂储备口袋排压；清完后回收沉积物，回过滤器补下一支药剂和污染浆液。" % message
+	return "%s药剂储备口袋污染压力抬升，建议带药剂回来排压；清完后补沉积物处理下一支药剂。" % message
 
 
 func _format_ridge_message(message: String, consumed_pressure_vial: bool) -> String:

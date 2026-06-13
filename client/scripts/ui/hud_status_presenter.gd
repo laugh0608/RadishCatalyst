@@ -296,7 +296,7 @@ func _format_pollution_slurry_reclaim_summary(
 		]
 	return [
 		"副产去向：基础反应器可回收污染浆液 x%s -> 基础零件" % _format_amount(slurry_amount),
-		"回收后若还缺药剂 / 浆液，回污染边界副产口袋补沉积物再过滤"
+		"回收后若还缺药剂 / 浆液，回污染边界副产口袋或药剂储备口袋补沉积物再过滤"
 	]
 
 

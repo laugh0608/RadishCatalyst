@@ -909,6 +909,10 @@ func _get_pollution_residue_contextual_next_step(
 		if already_gathered:
 			return "污染脊沉积已回收；回过滤器处理后，药剂支撑外圈承压，浆液可服务稳相信标。"
 		return "采完沉积物后回过滤器处理，药剂支撑外圈承压，浆液可服务稳相信标。"
+	if interactable.instance_id == "map_object_instance.pollution_residue_vial_reserve_cache":
+		if already_gathered:
+			return "药剂储备沉积已回收；回过滤器补下一支药剂和污染浆液，多余浆液可回基地反应器回收基础零件。"
+		return "回收后回过滤器补下一支药剂和污染浆液，支撑污染边界后续回访。"
 	if world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
 		return "这批沉积物服务深段回波线；处理后保留污染浆液，再回基地解析裂相坐标。"
 	if world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer"):
