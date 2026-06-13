@@ -9,6 +9,7 @@ func _init(check_host) -> void:
 
 func run() -> void:
 	_check_completed_core_write_returns_to_departure_readiness()
+	_check_core_archive_return_processing_feeds_departure_readiness()
 
 
 func _check_completed_core_write_returns_to_departure_readiness() -> void:
@@ -268,6 +269,164 @@ func _check_completed_core_write_returns_to_departure_readiness() -> void:
 	_expect_text_contains(String(core_revisit_panel.get("status", "")), "核心写入归档", "core revisit device panel keeps archived context")
 	_expect_text_contains(String(core_revisit_panel.get("status", "")), "核心设备复测完成态", "core revisit device panel points back to core device")
 	core_revisit_reactor.free()
+
+
+func _check_core_archive_return_processing_feeds_departure_readiness() -> void:
+	var world_state := _create_core_archive_return_processing_world()
+	var character_state := CharacterState.create_default()
+	character_state.current_region_id = "region.outpost_platform"
+	character_state.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	character_state.inventory.add_item("item.polluted_residue", 2)
+	character_state.inventory.add_ref("fluid.basic_solvent", 1.0)
+	character_state.inventory.items.erase("item.resistance_vial_t1")
+
+	var processing := ProcessingSystem.new(host.data_registry)
+	var start_result := processing.process_recipe("recipe.cleanse_residue", character_state, world_state)
+	host._expect_equal(bool(start_result.get("success", false)), true, "core archive return residue filtering starts")
+	_expect_text_contains(
+		String(start_result.get("message", "")),
+		"归档维护回访沉积",
+		"core archive return filtering start names return residue"
+	)
+
+	var completed := processing.advance_processing(12.0, character_state, world_state)
+	host._expect_equal(completed.size(), 1, "core archive return residue filtering completes")
+	if not completed.is_empty():
+		_expect_text_contains(
+			String(completed[0].get("next_step_text", "")),
+			"归档维护回访沉积已处理",
+			"core archive return filtering completion points to departure readiness"
+		)
+		_expect_text_contains(
+			String(completed[0].get("next_step_text", "")),
+			"回前哨核心把抗污染药剂补到 2/2",
+			"core archive return filtering completion points to double vial restock"
+		)
+	host._expect_equal(
+		int(character_state.inventory.items.get("item.resistance_vial_t1", 0)),
+		1,
+		"core archive return filtering grants one vial before outpost restock"
+	)
+	host._expect_equal(
+		float(character_state.inventory.fluids.get("fluid.polluted_slurry", 0.0)),
+		1.0,
+		"core archive return filtering leaves polluted slurry byproduct"
+	)
+
+	var filter := PrototypeInteractable.new()
+	filter.definition_id = "building.pollution_filter"
+	filter.interaction_type = "process_recipe"
+	filter.recipe_id = "recipe.cleanse_residue"
+	var panel := HudDevicePanelPresenter.new().format_device_panel_texts(
+		host.data_registry,
+		processing,
+		filter,
+		character_state,
+		world_state
+	)
+	_expect_text_contains(
+		String(panel.get("status", "")),
+		"最近完成建议：归档维护回访沉积已处理",
+		"pollution filter panel keeps archive return completion advice"
+	)
+	filter.free()
+
+	var status_text := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(status_text, "回访处理：沉积已过滤", "HUD shows archive return processing state")
+	_expect_text_contains(status_text, "回前哨核心补抗污染药剂到 2/2", "HUD points archive return processing to outpost restock")
+
+	var formatter := InteractionPromptFormatter.new(
+		host.data_registry,
+		processing,
+		BuildSystem.new(host.data_registry)
+	)
+	var outpost_prompt := formatter.format_outpost_core_prompt(world_state, character_state)
+	_expect_text_contains(outpost_prompt, "回访处理：沉积已过滤", "outpost prompt shows archive return processed state")
+
+	var outfitting_prompt := formatter.format_outfitting_station_prompt(character_state, world_state)
+	_expect_text_contains(outfitting_prompt, "回访处理：沉积已过滤", "outfitting station shows archive return processed state")
+
+	var departure_gate := PrototypeInteractable.new()
+	departure_gate.definition_id = "map_object.outpost_departure_gate"
+	departure_gate.interaction_type = "inspect"
+	var departure_prompt := formatter.format_general_interaction_prompt(departure_gate, character_state, world_state)
+	_expect_text_contains(departure_prompt, "回访处理：沉积已过滤", "departure gate shows archive return processed state")
+	_expect_text_contains(departure_prompt, "先在前哨核心补给", "departure gate blocks sortie until double vial restock")
+	departure_gate.free()
+
+	var outpost_result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.outpost_core",
+		"building.outpost_core",
+		"outpost_core",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(outpost_result.get("success", false)), true, "outpost core restocks after archive return filtering")
+	_expect_text_contains(
+		String(outpost_result.get("message", "")),
+		"抗污染药剂 2/2已备",
+		"outpost feedback shows archive return double vial ready state"
+	)
+	host._expect_equal(
+		int(character_state.inventory.items.get("item.resistance_vial_t1", 0)),
+		2,
+		"outpost core refills archive return vial reserve to two"
+	)
+
+	var ready_status_text := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(ready_status_text, "抗污染药剂 2/2已备", "HUD shows double vial ready after archive return restock")
+	_expect_text_contains(
+		ready_status_text,
+		"从外勤出发口复测核心站或回污染边界验证承压",
+		"HUD keeps next sortie route after archive return restock"
+	)
+
+
+func _create_core_archive_return_processing_world() -> WorldState:
+	var world_state := WorldState.create_default()
+	world_state.current_region_id = "region.outpost_platform"
+	world_state.quest_state.completed_quest_ids = [
+		"quest.restore_outpost",
+		"quest.enter_pollution_edge",
+		"quest.write_demo_stabilization_core"
+	]
+	world_state.quest_state.unlock_effect("recipe.cleanse_residue")
+	world_state.add_base_structure(
+		"structure.basic_storage_build_site",
+		"building.basic_storage",
+		"region.outpost_platform",
+		"map_object_instance.basic_storage_build_site"
+	)
+	world_state.add_base_structure(
+		"structure.pollution_filter_build_site",
+		"building.pollution_filter",
+		"region.pollution_edge",
+		"map_object_instance.pollution_filter_build_site"
+	)
+	world_state.add_base_structure(
+		"structure.field_outfitting_station_build_site",
+		"building.field_outfitting_station",
+		"region.outpost_platform",
+		"map_object_instance.field_outfitting_station_build_site"
+	)
+	world_state.add_base_structure(
+		"structure.slurry_buffer_tank_build_site",
+		"building.slurry_buffer_tank",
+		"region.outpost_platform",
+		"map_object_instance.slurry_buffer_tank_build_site"
+	)
+	FieldOutfittingRuntime.mark_core_archive_maintained(world_state)
+	world_state.ensure_map_object(
+		"map_object_instance.pollution_residue_core_archive_return_cache",
+		"map_object.pollution_residue_patch",
+		"region.pollution_edge"
+	)
+	world_state.set_map_object_flag(
+		"map_object_instance.pollution_residue_core_archive_return_cache",
+		"is_gathered",
+		true
+	)
+	return world_state
 
 
 func _expect_text_contains(text: String, expected_text: String, label: String) -> void:

@@ -130,6 +130,8 @@ static func should_return_for_second_pollution_residue_batch(world_state: WorldS
 
 static func _get_pollution_residue_processing_started_appendix(world_state: WorldState = null) -> String:
 	if world_state != null:
+		if _is_core_archive_return_residue_context(world_state):
+			return "本次会把归档维护回访沉积转成抗污染药剂和污染浆液；完成后回前哨核心补满药剂，再从外勤出发口复测核心稳定站。"
 		if world_state.quest_state.has_active_quest("quest.assemble_phase_anchor"):
 			return "本次会产出抗污染药剂并留下污染浆液；完成后回基地基础反应器组装稳相信标，药剂留给遗迹外圈承压。"
 		if world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
@@ -143,6 +145,8 @@ static func _get_pollution_residue_processing_started_appendix(world_state: Worl
 
 static func _get_pollution_vial_completion_next_step(world_state: WorldState = null) -> String:
 	if world_state != null:
+		if _is_core_archive_return_residue_context(world_state):
+			return "归档维护回访沉积已处理成抗污染药剂和污染浆液；回前哨核心把抗污染药剂补到 %s，再从外勤出发口复测核心稳定站或回污染边界确认承压。" % _format_resistance_vial_target(world_state)
 		if world_state.quest_state.has_active_quest("quest.assemble_phase_anchor"):
 			return "污染浆液已就绪；回基地基础反应器组装稳相信标，抗污染药剂留给遗迹外圈承压。"
 		if world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
@@ -152,3 +156,23 @@ static func _get_pollution_vial_completion_next_step(world_state: WorldState = n
 	if should_return_for_second_pollution_residue_batch(world_state):
 		return "带药剂回污染边界，补第二批沉积物，清理受扰敌人和门前压力点；抗污染药剂留在快捷栏 2。"
 	return "带药剂回污染边界，清理受扰敌人和门前压力点；抗污染药剂留在快捷栏 2，用于维持遗迹门前防护。"
+
+
+static func _is_core_archive_return_residue_context(world_state: WorldState) -> bool:
+	return (
+		world_state != null
+		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
+		and FieldOutfittingRuntime.is_core_archive_maintained(world_state)
+		and bool(
+			world_state.get_map_object(
+				"map_object_instance.pollution_residue_core_archive_return_cache"
+			).get("is_gathered", false)
+		)
+	)
+
+
+static func _format_resistance_vial_target(world_state: WorldState) -> String:
+	var target := DepartureSupplyRuntime.get_resistance_vial_target(world_state)
+	if target > DepartureSupplyRuntime.BASIC_RESISTANCE_VIAL_TARGET:
+		return "%d/%d" % [target, target]
+	return "满"

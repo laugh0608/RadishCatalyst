@@ -13,6 +13,9 @@ static func format_hud_summary(world_state: WorldState, character_state: Charact
 		],
 		"收益：%s" % format_pressure_payoff(world_state)
 	]
+	var return_processing_line := format_core_archive_return_processing_line(world_state, character_state)
+	if not return_processing_line.is_empty():
+		lines.append(return_processing_line)
 	var next_sortie_line := CoreGuardAftermathFormatter.format_next_sortie_hud_line(world_state, character_state)
 	if not next_sortie_line.is_empty():
 		lines.append(next_sortie_line)
@@ -27,6 +30,9 @@ static func format_outpost_core_prompt(world_state: WorldState, character_state:
 		format_supply_state(world_state, character_state)
 	])
 	parts.append("收益：%s。" % format_pressure_payoff(world_state))
+	var return_processing_line := format_core_archive_return_processing_line(world_state, character_state)
+	if not return_processing_line.is_empty():
+		parts.append("%s。" % return_processing_line)
 	var aftermath_line := CoreGuardAftermathFormatter.format_outpost_line(world_state, character_state)
 	if not aftermath_line.is_empty():
 		parts.append("%s。" % aftermath_line)
@@ -49,6 +55,9 @@ static func format_outfitting_station_prompt(world_state: WorldState, character_
 		format_supply_state(world_state, character_state)
 	])
 	parts.append("收益：%s。" % format_pressure_payoff(world_state))
+	var return_processing_line := format_core_archive_return_processing_line(world_state, character_state)
+	if not return_processing_line.is_empty():
+		parts.append("%s。" % return_processing_line)
 	return "\n".join(parts)
 
 
@@ -65,6 +74,9 @@ static func format_departure_gate_status(world_state: WorldState, character_stat
 	var next_sortie_line := CoreGuardAftermathFormatter.format_next_sortie_outpost_line(world_state, character_state)
 	if not next_sortie_line.is_empty():
 		parts.append(next_sortie_line)
+	var return_processing_line := format_core_archive_return_processing_line(world_state, character_state)
+	if not return_processing_line.is_empty():
+		parts.append(return_processing_line)
 	return "；".join(parts)
 
 
@@ -110,6 +122,9 @@ static func format_feedback_detail(world_state: WorldState, character_state: Cha
 	var next_sortie_line := CoreGuardAftermathFormatter.format_next_sortie_outpost_line(world_state, character_state)
 	if not next_sortie_line.is_empty():
 		parts.append(next_sortie_line)
+	var return_processing_line := format_core_archive_return_processing_line(world_state, character_state)
+	if not return_processing_line.is_empty():
+		parts.append(return_processing_line)
 	return "；".join(parts)
 
 
@@ -180,6 +195,30 @@ static func format_pressure_payoff(world_state: WorldState) -> String:
 	return "模块装配后会降低污染采集和反击压力"
 
 
+static func format_core_archive_return_processing_line(
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	if not _should_show_core_archive_return_processing(world_state):
+		return ""
+	if not _has_completed_filter_processing(world_state):
+		return "回访处理：归档维护沉积已回收，先回污染过滤器处理成药剂和污染浆液"
+
+	var current_vial := DepartureSupplyRuntime.get_resistance_vial_count(character_state)
+	var target_vial := DepartureSupplyRuntime.get_resistance_vial_target(world_state)
+	if current_vial >= target_vial:
+		return "回访处理：沉积已过滤，抗污染药剂 %d/%d已备；从外勤出发口复测核心站或回污染边界验证承压" % [
+			current_vial,
+			target_vial
+		]
+	if DepartureSupplyRuntime.can_outpost_restock_resistance_vial(world_state, character_state):
+		return "回访处理：沉积已过滤，回前哨核心补抗污染药剂到 %d/%d 后再从出发口复测" % [
+			target_vial,
+			target_vial
+		]
+	return "回访处理：沉积已过滤，确认药剂余量后再从出发口复测"
+
+
 static func get_restock_supply_names(world_state: WorldState, character_state: CharacterState) -> Array[String]:
 	var names: Array[String] = []
 	if not world_state.has_base_structure_definition("building.basic_storage"):
@@ -239,6 +278,32 @@ static func _should_maintain_core_archive(world_state: WorldState, character_sta
 		FieldOutfittingRuntime.is_core_archive_maintenance_available(character_state, world_state)
 		and not FieldOutfittingRuntime.is_core_archive_maintained(world_state)
 	)
+
+
+static func _should_show_core_archive_return_processing(world_state: WorldState) -> bool:
+	return (
+		world_state != null
+		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
+		and FieldOutfittingRuntime.is_core_archive_maintained(world_state)
+		and bool(
+			world_state.get_map_object(
+				"map_object_instance.pollution_residue_core_archive_return_cache"
+			).get("is_gathered", false)
+		)
+	)
+
+
+static func _has_completed_filter_processing(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	for structure in world_state.base_structures.values():
+		if not structure is Dictionary:
+			continue
+		if String(structure.get("definition_id", "")) != "building.pollution_filter":
+			continue
+		if String(structure.get("last_recipe_id", "")) == "recipe.cleanse_residue":
+			return true
+	return false
 
 
 static func _has_slurry_buffer_tank(world_state: WorldState) -> bool:
