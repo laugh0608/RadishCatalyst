@@ -47,6 +47,21 @@
       "public_level": "public"
     },
     {
+      "id": "building.slurry_buffer_tank",
+      "display_name_key": "building.slurry_buffer_tank.name",
+      "description_key": "building.slurry_buffer_tank.desc",
+      "category": "field_supply",
+      "footprint": [2, 2],
+      "build_cost": [{"id": "item.basic_parts", "amount": 2}, {"id": "fluid.polluted_slurry", "amount": 1}],
+      "foundation_requirement": "foundation_or_platform",
+      "allowed_terrain": ["platform", "foundation"],
+      "power_requirement": 0.0,
+      "storage_slots": 4,
+      "recipe_categories": [],
+      "placement_rules": {"requires_flat": true, "allows_pollution": false, "blocks_movement": true},
+      "public_level": "public"
+    },
+    {
       "id": "building.basic_reactor",
       "display_name_key": "building.basic_reactor.name",
       "description_key": "building.basic_reactor.desc",

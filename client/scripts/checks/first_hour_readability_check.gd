@@ -52,6 +52,9 @@ func _check_opening_scene_layer() -> void:
 	var supply_return_flow := map.get_node("OpeningSceneLayer/BaseSupplyReturnFlowLine") as ColorRect
 	var storage_pad := map.get_node("OpeningSceneLayer/BaseStoragePad") as ColorRect
 	var storage_marker := map.get_node("OpeningSceneLayer/BaseStorageObjectMarker") as ColorRect
+	var slurry_buffer_pad := map.get_node("OpeningSceneLayer/BaseSlurryBufferPad") as ColorRect
+	var slurry_buffer_marker := map.get_node("OpeningSceneLayer/BaseSlurryBufferObjectMarker") as ColorRect
+	var slurry_buffer_flow := map.get_node("OpeningSceneLayer/BaseSlurryBufferFlowLine") as ColorRect
 	var exit_lane := map.get_node("OpeningSceneLayer/BaseExitLane") as ColorRect
 	var exit_threshold := map.get_node("OpeningSceneLayer/BaseExitThresholdLine") as ColorRect
 	var crystal_entry := map.get_node("OpeningSceneLayer/CrystalEntryGround") as ColorRect
@@ -80,6 +83,7 @@ func _check_opening_scene_layer() -> void:
 	var outpost_core := map.get_node("Interactables/OutpostCore") as PrototypeInteractable
 	var basic_reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
 	var storage_site := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
+	var slurry_buffer_site := map.get_node("Interactables/SlurryBufferTankBuildSite") as PrototypeInteractable
 	var outfitting_site := map.get_node("Interactables/FieldOutfittingStationBuildSite") as PrototypeInteractable
 	var outfitting_station := map.get_node("Interactables/FieldOutfittingStation") as PrototypeInteractable
 	var departure_gate := map.get_node("Interactables/OutpostDepartureGate") as PrototypeInteractable
@@ -116,6 +120,15 @@ func _check_opening_scene_layer() -> void:
 			and storage_pad.offset_right < exit_lane.offset_left,
 		true,
 		"opening scene base storage extension adds a buildable logistics pad"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(slurry_buffer_pad, slurry_buffer_site.position)
+			and _is_rect_covering_position(slurry_buffer_marker, slurry_buffer_site.position)
+			and slurry_buffer_flow.offset_right <= slurry_buffer_pad.offset_right
+			and slurry_buffer_pad.offset_left > storage_pad.offset_left
+			and slurry_buffer_pad.offset_right < exit_lane.offset_left,
+		true,
+		"opening scene slurry buffer pad adds a pollution byproduct base upgrade slot"
 	)
 	host._expect_equal(
 		_is_rect_covering_position(outfitting_pad, outfitting_site.position)
@@ -436,6 +449,7 @@ func _check_object_feedback_states() -> void:
 	var rough_ground := map.get_node("Interactables/RoughGroundNorth") as PrototypeInteractable
 	var foundation_site := map.get_node("Interactables/FoundationSiteNorth") as PrototypeInteractable
 	var storage_site := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
+	var slurry_buffer_site := map.get_node("Interactables/SlurryBufferTankBuildSite") as PrototypeInteractable
 	var filter_site := map.get_node("Interactables/PollutionFilterBuildSite") as PrototypeInteractable
 	var filter_device := map.get_node("Interactables/PollutionFilter") as PrototypeInteractable
 
@@ -455,6 +469,9 @@ func _check_object_feedback_states() -> void:
 	world.ensure_map_object(storage_site.instance_id, storage_site.definition_id, "region.outpost_platform")
 	world.set_map_object_flag(storage_site.instance_id, "is_built", true)
 	world.map_objects[storage_site.instance_id]["built_definition_id"] = "building.basic_storage"
+	world.ensure_map_object(slurry_buffer_site.instance_id, slurry_buffer_site.definition_id, "region.outpost_platform")
+	world.set_map_object_flag(slurry_buffer_site.instance_id, "is_built", true)
+	world.map_objects[slurry_buffer_site.instance_id]["built_definition_id"] = "building.slurry_buffer_tank"
 	world.ensure_map_object(filter_site.instance_id, filter_site.definition_id, "region.pollution_edge")
 	world.set_map_object_flag(filter_site.instance_id, "is_built", true)
 	world.map_objects[filter_site.instance_id]["built_definition_id"] = "building.pollution_filter"
@@ -488,6 +505,9 @@ func _check_object_feedback_states() -> void:
 	host._expect_equal(storage_site.marker.color, PrototypeInteractable.BUILT_STORAGE_COLOR, "object feedback recolors built storage")
 	host._expect_text_contains(storage_site.label.text, "基础储存箱", "object feedback labels built storage")
 	host._expect_text_contains(storage_site.label.text, "已接入", "object feedback labels storage benefit")
+	host._expect_equal(slurry_buffer_site.marker.color, PrototypeInteractable.BUILT_SLURRY_BUFFER_COLOR, "object feedback recolors built slurry buffer")
+	host._expect_text_contains(slurry_buffer_site.label.text, "浆液缓冲罐", "object feedback labels built slurry buffer")
+	host._expect_text_contains(slurry_buffer_site.label.text, "已接入", "object feedback labels slurry buffer benefit")
 	host._expect_equal(filter_site.marker.color, PrototypeInteractable.BUILT_FILTER_COLOR, "object feedback marks completed filter build site")
 	host._expect_equal(filter_device.visible, true, "object feedback shows pollution filter device after build")
 	host._expect_equal(filter_device.monitoring, true, "object feedback enables pollution filter device after build")

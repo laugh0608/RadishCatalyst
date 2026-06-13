@@ -11,6 +11,7 @@ const ROUGH_GROUND_MARKER_COLOR := Color(0.48, 0.42, 0.34, 1)
 const FOUNDATION_SITE_MARKER_COLOR := Color(0.42, 0.56, 0.48, 1)
 const STORAGE_MARKER_COLOR := Color(0.36, 0.62, 0.56, 1)
 const OUTFITTING_MARKER_COLOR := Color(0.66, 0.58, 0.34, 1)
+const SLURRY_BUFFER_MARKER_COLOR := Color(0.58, 0.64, 0.31, 1)
 const REACTOR_MARKER_COLOR := Color(0.28, 0.78, 0.9, 1)
 const FILTER_MARKER_COLOR := Color(0.64, 0.78, 0.3, 1)
 const GATE_MARKER_COLOR := Color(0.72, 0.56, 0.86, 1)
@@ -59,6 +60,7 @@ const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
 const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
 const BUILT_STORAGE_COLOR := Color(0.5, 0.74, 0.66, 1)
 const BUILT_OUTFITTING_COLOR := Color(0.78, 0.68, 0.42, 1)
+const BUILT_SLURRY_BUFFER_COLOR := Color(0.66, 0.7, 0.36, 1)
 const GATHERED_CRYSTAL_SIZE := Vector2(28.0, 12.0)
 const GATHERED_SALVAGE_SIZE := Vector2(30.0, 10.0)
 const GATHERED_RESIDUE_SIZE := Vector2(26.0, 10.0)
@@ -679,6 +681,9 @@ func set_built_visual(built_definition_id: String) -> void:
 	elif built_definition_id == "building.field_outfitting_station":
 		_apply_marker_style(Vector2(44.0, 28.0), BUILT_OUTFITTING_COLOR)
 		_set_label_text("出发整备台\n已上线", 2)
+	elif built_definition_id == "building.slurry_buffer_tank":
+		_apply_marker_style(Vector2(42.0, 28.0), BUILT_SLURRY_BUFFER_COLOR)
+		_set_label_text("浆液缓冲罐\n已接入", 2)
 	elif built_definition_id == "building.pollution_filter":
 		_apply_marker_style(BUILT_FILTER_SITE_SIZE, BUILT_FILTER_COLOR)
 		_set_label_text("")
@@ -737,6 +742,10 @@ func _get_default_marker_visual() -> Dictionary:
 			if interaction_type == "build":
 				return {"size": Vector2(38.0, 24.0), "color": FOUNDATION_SITE_MARKER_COLOR}
 			return {"size": Vector2(40.0, 28.0), "color": OUTFITTING_MARKER_COLOR}
+		"building.slurry_buffer_tank":
+			if interaction_type == "build":
+				return {"size": Vector2(38.0, 24.0), "color": FOUNDATION_SITE_MARKER_COLOR}
+			return {"size": Vector2(40.0, 28.0), "color": SLURRY_BUFFER_MARKER_COLOR}
 		"building.pollution_filter":
 			if interaction_type == "build":
 				return {"size": Vector2(44.0, 28.0), "color": FOUNDATION_SITE_MARKER_COLOR}

@@ -342,6 +342,35 @@ offset_bottom = -22.0
 text = "储存扩展"
 horizontal_alignment = 1
 
+[node name="BaseSlurryBufferPad" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -168.0
+offset_top = 84.0
+offset_right = -94.0
+offset_bottom = 146.0
+color = Color(0.196, 0.271, 0.176, 1)
+
+[node name="BaseSlurryBufferObjectMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -148.0
+offset_top = 106.0
+offset_right = -112.0
+offset_bottom = 132.0
+color = Color(0.58, 0.64, 0.31, 1)
+
+[node name="BaseSlurryBufferFlowLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -166.0
+offset_top = 70.0
+offset_right = -128.0
+offset_bottom = 78.0
+color = Color(0.39, 0.46, 0.25, 1)
+
+[node name="BaseSlurryBufferPadLabel" type="Label" parent="OpeningSceneLayer"]
+offset_left = -178.0
+offset_top = 144.0
+offset_right = -84.0
+offset_bottom = 164.0
+text = "浆液缓冲"
+horizontal_alignment = 1
+
 [node name="BaseLogisticsShelf" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = -332.0
 offset_top = 42.0
@@ -757,6 +786,14 @@ definition_id = "building.field_outfitting_station"
 interaction_type = "inspect"
 single_use = false
 label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
+
+[node name="SlurryBufferTankBuildSite" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-130, 120)
+definition_id = "building.slurry_buffer_tank"
+interaction_type = "build"
+recipe_id = ""
+label_offset = Vector2(-96, -54)
 label_size = Vector2(192, 24)
 
 [node name="OutpostDepartureGate" parent="Interactables" instance=ExtResource("3_interactable")]

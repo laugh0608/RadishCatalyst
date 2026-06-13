@@ -289,6 +289,16 @@ func _format_pollution_slurry_reclaim_summary(
 	var slurry_amount := float(character_state.inventory.fluids.get("fluid.polluted_slurry", 0.0))
 	if slurry_amount <= 0.0:
 		return []
+	if world_state.has_base_structure_definition("building.slurry_buffer_tank"):
+		return [
+			"后勤收益：污染浆液缓冲罐已接入前哨补给",
+			"前哨核心可把抗污染药剂补到 2 份，再出发承接污染压力"
+		]
+	if active_quest_id != "quest.unlock_ruin_signal":
+		return [
+			"二次收益：可用污染浆液 x%s 建污染浆液缓冲罐" % _format_amount(slurry_amount),
+			"建成后前哨核心可把抗污染药剂补到 2 份，支撑下一趟污染回访"
+		]
 	if active_quest_id == "quest.unlock_ruin_signal":
 		return [
 			"门前整备：基础反应器可回收污染浆液 x%s -> 基础零件" % _format_amount(slurry_amount),

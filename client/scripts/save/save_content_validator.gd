@@ -40,6 +40,7 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.basic_storage_build_site": "building.basic_storage",
 	"map_object_instance.field_outfitting_station_build_site": "building.field_outfitting_station",
 	"map_object_instance.field_outfitting_station": "building.field_outfitting_station",
+	"map_object_instance.slurry_buffer_tank_build_site": "building.slurry_buffer_tank",
 	"map_object_instance.outpost_departure_gate": "map_object.outpost_departure_gate",
 	"map_object_instance.pollution_filter_build_site": "building.pollution_filter",
 	"map_object_instance.pollution_filter": "building.pollution_filter",
@@ -324,6 +325,10 @@ const PROTOTYPE_BASE_STRUCTURE_SOURCES := {
 	"structure.field_outfitting_station_build_site": {
 		"definition_id": "building.field_outfitting_station",
 		"site_instance_id": "map_object_instance.field_outfitting_station_build_site"
+	},
+	"structure.slurry_buffer_tank_build_site": {
+		"definition_id": "building.slurry_buffer_tank",
+		"site_instance_id": "map_object_instance.slurry_buffer_tank_build_site"
 	},
 	"structure.pollution_filter_build_site": {
 		"definition_id": "building.pollution_filter",

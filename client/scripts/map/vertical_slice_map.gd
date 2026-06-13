@@ -210,6 +210,8 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			should_enable = should_enable and world_state.has_base_structure_definition("building.pollution_filter")
 		if interactable.interaction_type == "inspect" and interactable.definition_id == "building.field_outfitting_station":
 			should_enable = should_enable and world_state.has_base_structure_definition("building.field_outfitting_station")
+		if interactable.interaction_type == "build" and interactable.definition_id == "building.slurry_buffer_tank":
+			should_enable = should_enable and _is_pollution_slurry_return_route_available(world_state)
 		if INTERACTABLE_QUEST_GATES.has(interactable.definition_id):
 			var gate_quest_id := String(INTERACTABLE_QUEST_GATES[interactable.definition_id])
 			should_enable = should_enable and (

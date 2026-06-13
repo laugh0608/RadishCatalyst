@@ -1,6 +1,9 @@
 extends RefCounted
 class_name DepartureReadinessFormatter
 
+const BASIC_STORAGE_RESISTANCE_VIAL_TARGET := 1
+const SLURRY_BUFFER_RESISTANCE_VIAL_TARGET := 2
+
 
 static func format_hud_summary(world_state: WorldState, character_state: CharacterState) -> Array[String]:
 	if world_state.current_region_id != "region.outpost_platform":
@@ -132,9 +135,15 @@ static func format_supply_state(world_state: WorldState, character_state: Charac
 
 static func format_pressure_payoff(world_state: WorldState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core"):
+		if _has_slurry_buffer_tank(world_state):
+			return "核心写入已归档，双药剂补给和模块整备用于下一趟外勤复测"
 		return "核心写入已归档，前哨补给和模块整备用于下一趟外勤复测"
 	if _is_core_stabilization_available(world_state):
+		if _has_slurry_buffer_tank(world_state):
+			return "污染承压下降，双药剂补给可连续参与守卫战和核心写入排压"
 		return "污染承压下降，药剂可参与核心写入排压"
+	if _has_slurry_buffer_tank(world_state):
+		return "污染采集和污染战斗承压下降，前哨可补双药剂"
 	if _is_vial_supply_available(world_state):
 		return "污染采集和污染战斗承压下降"
 	return "模块装配后会降低污染采集和反击压力"
@@ -147,7 +156,11 @@ static func get_restock_supply_names(world_state: WorldState, character_state: C
 	if not character_state.inventory.has_ref("item.repair_gel", 1):
 		names.append("修复凝胶")
 	if _can_restock_vial(world_state, character_state):
-		names.append("抗污染药剂")
+		var target_vial := _get_vial_target(world_state)
+		if target_vial > BASIC_STORAGE_RESISTANCE_VIAL_TARGET:
+			names.append("抗污染药剂到 %d" % target_vial)
+		else:
+			names.append("抗污染药剂")
 	return names
 
 
@@ -155,13 +168,20 @@ static func get_ready_supply_names(world_state: WorldState, character_state: Cha
 	var names: Array[String] = []
 	if character_state.inventory.has_ref("item.repair_gel", 1):
 		names.append("修复凝胶")
-	if _is_vial_supply_available(world_state) and character_state.inventory.has_ref("item.resistance_vial_t1", 1):
-		names.append("抗污染药剂")
+	if _is_vial_supply_available(world_state):
+		var current_vial := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
+		var target_vial := _get_vial_target(world_state)
+		if current_vial >= target_vial and target_vial > BASIC_STORAGE_RESISTANCE_VIAL_TARGET:
+			names.append("抗污染药剂 x%d" % current_vial)
+		elif current_vial >= BASIC_STORAGE_RESISTANCE_VIAL_TARGET:
+			names.append("抗污染药剂")
 	return names
 
 
 static func _can_restock_vial(world_state: WorldState, character_state: CharacterState) -> bool:
-	return _is_vial_supply_available(world_state) and not character_state.inventory.has_ref("item.resistance_vial_t1", 1)
+	if not _is_vial_supply_available(world_state):
+		return false
+	return int(character_state.inventory.items.get("item.resistance_vial_t1", 0)) < _get_vial_target(world_state)
 
 
 static func _is_vial_supply_available(world_state: WorldState) -> bool:
@@ -187,6 +207,7 @@ static func _has_any_departure_facility(world_state: WorldState) -> bool:
 	return (
 		world_state.has_base_structure_definition("building.basic_storage")
 		or world_state.has_base_structure_definition("building.field_outfitting_station")
+		or world_state.has_base_structure_definition("building.slurry_buffer_tank")
 	)
 
 
@@ -195,3 +216,13 @@ static func _can_build_outfitting_station(character_state: CharacterState) -> bo
 		character_state.inventory.has_ref("item.basic_parts", 2)
 		and character_state.inventory.has_ref("item.salvage_scrap", 1)
 	)
+
+
+static func _get_vial_target(world_state: WorldState) -> int:
+	if _has_slurry_buffer_tank(world_state):
+		return SLURRY_BUFFER_RESISTANCE_VIAL_TARGET
+	return BASIC_STORAGE_RESISTANCE_VIAL_TARGET
+
+
+static func _has_slurry_buffer_tank(world_state: WorldState) -> bool:
+	return world_state.has_base_structure_definition("building.slurry_buffer_tank")

@@ -125,10 +125,17 @@ static func format_next_sortie_supply_state(world_state: WorldState, character_s
 	else:
 		missing_supplies.append("修复凝胶需回基础反应器调制")
 
-	if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+	var current_vial := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
+	var target_vial := _get_vial_target(world_state)
+	if current_vial >= target_vial and target_vial > 1:
+		ready_supplies.append("抗污染药剂 x%d已备" % current_vial)
+	elif current_vial >= 1 and target_vial <= 1:
 		ready_supplies.append("抗污染药剂已备")
 	elif _can_outpost_restock_vial(world_state):
-		missing_supplies.append("回前哨核心补抗污染药剂")
+		if target_vial > 1:
+			missing_supplies.append("回前哨核心补抗污染药剂到 %d" % target_vial)
+		else:
+			missing_supplies.append("回前哨核心补抗污染药剂")
 	elif world_state.has_base_structure_definition("building.pollution_filter"):
 		missing_supplies.append("抗污染药剂需回过滤器处理")
 
@@ -190,3 +197,9 @@ static func _can_outpost_restock_vial(world_state: WorldState) -> bool:
 			or world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1") >= 1.0
 		)
 	)
+
+
+static func _get_vial_target(world_state: WorldState) -> int:
+	if world_state.has_base_structure_definition("building.slurry_buffer_tank"):
+		return 2
+	return 1

@@ -79,10 +79,26 @@ func _check_build_prompts() -> void:
 	host._expect_text_contains(storage_prompt, "基础储存箱", "basic storage build prompt names storage")
 	host._expect_text_contains(storage_prompt, "按 E 建造", "basic storage build prompt exposes action")
 	host._expect_text_contains(storage_prompt, "修复凝胶", "basic storage build prompt explains refit benefit")
+	var slurry_buffer_site := PrototypeInteractable.new()
+	slurry_buffer_site.definition_id = "building.slurry_buffer_tank"
+	slurry_buffer_site.interaction_type = "build"
+	slurry_buffer_site.instance_id = "map_object_instance.slurry_buffer_tank_build_site"
+	build_world.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
+	var blocked_slurry_buffer_prompt := formatter.format_build_prompt(slurry_buffer_site, build_character, build_world)
+	host._expect_text_contains(
+		blocked_slurry_buffer_prompt,
+		"跑通首支抗污染药剂",
+		"slurry buffer prompt explains first vial prerequisite"
+	)
+	build_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1.0)
+	var missing_slurry_buffer_prompt := formatter.format_build_prompt(slurry_buffer_site, build_character, build_world)
+	host._expect_text_contains(missing_slurry_buffer_prompt, "缺少建造材料", "slurry buffer prompt shows missing costs")
+	host._expect_text_contains(missing_slurry_buffer_prompt, "污染过滤器处理出污染浆液", "slurry buffer prompt points to slurry source")
 	rough_ground.free()
 	foundation_site.free()
 	filter_site.free()
 	storage_site.free()
+	slurry_buffer_site.free()
 
 
 func _check_processing_missing_prompt() -> void:

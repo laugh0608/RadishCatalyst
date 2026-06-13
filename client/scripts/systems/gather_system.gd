@@ -10,6 +10,7 @@ const DEMO_STABILIZATION_WRITE_RECOVERY_CACHE_MULT := 0.85
 const DEMO_STABILIZATION_WRITE_GUARD_CACHE_MULT := 0.9
 const BASIC_STORAGE_REPAIR_GEL_TARGET := 1
 const BASIC_STORAGE_RESISTANCE_VIAL_TARGET := 1
+const SLURRY_BUFFER_RESISTANCE_VIAL_TARGET := 2
 const FIELD_OUTFITTING_STATION_ID := "building.field_outfitting_station"
 const BASIC_FILTER_MODULE_ID := "equipment.filter_module_t1"
 const OUTPOST_DEPARTURE_GATE_ID := "map_object.outpost_departure_gate"
@@ -318,13 +319,21 @@ func _restock_basic_storage_supply(character_state: CharacterState, world_state:
 		])
 
 	if _can_restock_basic_storage_vial(character_state, world_state):
+		var target_vial := _get_basic_storage_vial_target(world_state)
 		var current_vial := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
-		var granted_vial_amount := BASIC_STORAGE_RESISTANCE_VIAL_TARGET - current_vial
+		var granted_vial_amount := target_vial - current_vial
 		character_state.inventory.add_item("item.resistance_vial_t1", granted_vial_amount)
-		detail_parts.append("基础储存箱补抗污染药剂 x%d，当前 %d" % [
-			granted_vial_amount,
-			int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
-		])
+		if target_vial > BASIC_STORAGE_RESISTANCE_VIAL_TARGET:
+			detail_parts.append("基础储存箱经污染浆液缓冲罐补抗污染药剂 x%d，当前 %d / %d" % [
+				granted_vial_amount,
+				int(character_state.inventory.items.get("item.resistance_vial_t1", 0)),
+				target_vial
+			])
+		else:
+			detail_parts.append("基础储存箱补抗污染药剂 x%d，当前 %d" % [
+				granted_vial_amount,
+				int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
+			])
 
 	return "；".join(detail_parts)
 
@@ -334,7 +343,7 @@ func _can_restock_basic_storage_vial(character_state: CharacterState, world_stat
 		return false
 	if not _has_basic_storage_vial_supply_unlocked(world_state):
 		return false
-	return int(character_state.inventory.items.get("item.resistance_vial_t1", 0)) < BASIC_STORAGE_RESISTANCE_VIAL_TARGET
+	return int(character_state.inventory.items.get("item.resistance_vial_t1", 0)) < _get_basic_storage_vial_target(world_state)
 
 
 func _has_basic_storage_vial_supply_unlocked(world_state: WorldState) -> bool:
@@ -342,6 +351,12 @@ func _has_basic_storage_vial_supply_unlocked(world_state: WorldState) -> bool:
 		world_state.quest_state.has_completed_quest("quest.enter_pollution_edge")
 		or world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1") >= 1.0
 	)
+
+
+func _get_basic_storage_vial_target(world_state: WorldState) -> int:
+	if world_state.has_base_structure_definition("building.slurry_buffer_tank"):
+		return SLURRY_BUFFER_RESISTANCE_VIAL_TARGET
+	return BASIC_STORAGE_RESISTANCE_VIAL_TARGET
 
 
 func _interact_with_field_outfitting_station(character_state: CharacterState, world_state: WorldState) -> Dictionary:
