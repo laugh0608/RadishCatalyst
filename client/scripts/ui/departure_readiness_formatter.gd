@@ -24,6 +24,9 @@ static func format_outpost_core_prompt(world_state: WorldState, character_state:
 		format_supply_state(world_state, character_state)
 	])
 	parts.append("收益：%s。" % format_pressure_payoff(world_state))
+	var aftermath_line := CoreGuardAftermathFormatter.format_outpost_line(world_state, character_state)
+	if not aftermath_line.is_empty():
+		parts.append("%s。" % aftermath_line)
 	if not restock_names.is_empty():
 		parts.append("操作：E 补%s并恢复生命 / 防护。" % " / ".join(restock_names))
 	elif not character_state.are_vitals_full():
@@ -44,11 +47,15 @@ static func format_outfitting_station_prompt(world_state: WorldState, character_
 
 
 static func format_feedback_detail(world_state: WorldState, character_state: CharacterState) -> String:
-	return "%s；%s；%s" % [
+	var parts: Array[String] = [
 		format_module_state(world_state, character_state),
 		format_supply_state(world_state, character_state),
 		format_pressure_payoff(world_state)
 	]
+	var aftermath_line := CoreGuardAftermathFormatter.format_outpost_line(world_state, character_state)
+	if not aftermath_line.is_empty():
+		parts.append(aftermath_line)
+	return "；".join(parts)
 
 
 static func format_module_state(world_state: WorldState, character_state: CharacterState) -> String:

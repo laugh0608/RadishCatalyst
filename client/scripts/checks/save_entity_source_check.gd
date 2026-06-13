@@ -311,6 +311,16 @@ func _check_loads_known_enemy_source() -> void:
 			"max_health": 30,
 			"is_defeated": true,
 			"pressure_vial_used": true
+		},
+		"enemy_instance.demo_stabilization_guard": {
+			"definition_id": "enemy.demo_stabilization_guard",
+			"region_id": "region.demo_stabilization_core",
+			"health": 0,
+			"max_health": 156,
+			"is_defeated": true,
+			"core_buffer_used": true,
+			"core_side_supply_used": true,
+			"pressure_vial_used": true
 		}
 	}
 	host._write_save_json(save_data)

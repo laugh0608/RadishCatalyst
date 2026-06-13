@@ -501,6 +501,11 @@ func _check_demo_stabilization_four_step_flow() -> void:
 
 	world_state.ensure_enemy("enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core", 156.0)
 	world_state.update_enemy_health("enemy_instance.demo_stabilization_guard", 0.0, true)
+	world_state.get_enemy("enemy_instance.demo_stabilization_guard")["core_buffer_used"] = true
+	world_state.get_enemy("enemy_instance.demo_stabilization_guard")["core_side_supply_used"] = true
+	world_state.get_enemy("enemy_instance.demo_stabilization_guard")["pressure_vial_used"] = true
+	character_state.health = 82.0
+	character_state.protection = 88.0
 	var blocked_without_charge := gather_system.interact_with_object(
 		"map_object_instance.demo_stabilization_core",
 		"map_object.demo_stabilization_core",
@@ -520,6 +525,8 @@ func _check_demo_stabilization_four_step_flow() -> void:
 	)
 	host._expect_equal(bool(cache_result.get("success", false)), true, "guard cache can be gathered after guard defeat")
 	_expect_text_contains(String(cache_result.get("message", "")), "核心写入校验片已回收", "guard cache gather message points to core write")
+	_expect_text_contains(String(cache_result.get("message", "")), "守卫战消耗", "guard cache gather explains combat spend")
+	_expect_text_contains(String(cache_result.get("message", "")), "回前哨核心恢复生命 / 防护", "guard cache gather points to outpost recovery before write")
 	result = host.quest_runtime.advance_for_interaction(
 		world_state,
 		character_state,
@@ -531,6 +538,18 @@ func _check_demo_stabilization_four_step_flow() -> void:
 	)
 	if not host._result_logs_contain(result, "核心写入校验片已回收"):
 		host.failures.append("guard cache objective should log next step, got %s" % var_to_str(result))
+	status_text = HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(status_text, "战后回收：守卫缓存已取", "guard cache status shows post-combat recovery")
+	_expect_text_contains(status_text, "写入准备：校验片在身", "guard cache status shows write preparation inventory")
+	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
+		world_state.quest_state.completed_quest_ids.append("quest.restore_outpost")
+	var outpost_prompt := InteractionPromptFormatter.new(
+		host.data_registry,
+		ProcessingSystem.new(host.data_registry),
+		BuildSystem.new(host.data_registry)
+	).format_outpost_core_prompt(world_state, character_state)
+	_expect_text_contains(outpost_prompt, "核心站战后", "outpost core prompt shows guard aftermath")
+	_expect_text_contains(outpost_prompt, "守卫战消耗", "outpost core prompt explains core guard spend")
 	var vial_before_write := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
 	var interaction_result := gather_system.interact_with_object(
 		"map_object_instance.demo_stabilization_core",

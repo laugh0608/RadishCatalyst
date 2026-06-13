@@ -18,7 +18,14 @@ func format_device_panel_texts(
 	var recommended_recipe_id := processing_system.get_recommended_recipe_id(interactable, character_state, world_state)
 	return {
 		"title": "设备面板：%s" % _get_display_name(data_registry, interactable.definition_id),
-		"status": _format_device_status(data_registry, displayed_recipe_id, status, recommended_recipe_id, world_state),
+		"status": _format_device_status(
+			data_registry,
+			displayed_recipe_id,
+			status,
+			recommended_recipe_id,
+			world_state,
+			character_state
+		),
 		"recipes": _format_device_recipe_list(
 			data_registry,
 			processing_system,
@@ -36,7 +43,8 @@ func _format_device_status(
 	recipe_id: String,
 	status: Dictionary,
 	recommended_recipe_id: String,
-	world_state: WorldState
+	world_state: WorldState,
+	character_state: CharacterState
 ) -> String:
 	var parts: Array[String] = [
 		"设备状态：%s" % _format_device_state(status),
@@ -45,6 +53,9 @@ func _format_device_status(
 	var purpose_hint := RecipePurposeHints.format_recipe_goal_hint(recipe_id, world_state)
 	if not purpose_hint.is_empty():
 		parts.append("用途：%s" % purpose_hint)
+	var core_aftermath := CoreGuardAftermathFormatter.format_device_line(world_state, character_state)
+	if not core_aftermath.is_empty():
+		parts.append(core_aftermath)
 	if not recommended_recipe_id.is_empty():
 		parts.append(_format_recommended_recipe_status(data_registry, recipe_id, recommended_recipe_id, world_state))
 	parts.append("配方状态：%s" % String(status.get("message", "")))

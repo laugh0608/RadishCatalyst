@@ -11,6 +11,7 @@ func run() -> void:
 	_check_basic_reactor_panel_hierarchy()
 	_check_pollution_filter_panel_hierarchy()
 	_check_contextual_pollution_filter_panel_purpose()
+	_check_core_guard_aftermath_panel_line()
 	_check_active_processing_panel_uses_running_recipe()
 
 
@@ -168,6 +169,45 @@ func _check_contextual_pollution_filter_panel_purpose() -> void:
 		"core buffer filter panel purpose avoids generic slurry reclaim"
 	)
 	filter.free()
+
+
+func _check_core_guard_aftermath_panel_line() -> void:
+	var processing := ProcessingSystem.new(host.data_registry)
+	var presenter := HudDevicePanelPresenter.new()
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.reclaim_basic_parts"
+	reactor.set_recipe_cycle(["recipe.reclaim_basic_parts", "recipe.process_crystal_ore"])
+
+	var world := WorldState.create_default()
+	world.quest_state.active_quest_ids = ["quest.write_demo_stabilization_core"]
+	world.ensure_enemy("enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core", 156.0)
+	world.get_enemy("enemy_instance.demo_stabilization_guard")["core_buffer_used"] = true
+	world.get_enemy("enemy_instance.demo_stabilization_guard")["core_side_supply_used"] = true
+	world.get_enemy("enemy_instance.demo_stabilization_guard")["pressure_vial_used"] = true
+	world.ensure_map_object(
+		"map_object_instance.demo_stabilization_guard_cache",
+		"map_object.demo_stabilization_guard_cache",
+		"region.demo_stabilization_core"
+	)
+	world.set_map_object_flag("map_object_instance.demo_stabilization_guard_cache", "is_gathered", true)
+
+	var character := CharacterState.create_default()
+	character.health = 78.0
+	character.inventory.add_item("item.core_write_charge", 1)
+	character.inventory.add_item("item.resistance_vial_t1", 1)
+	var panel := presenter.format_device_panel_texts(
+		host.data_registry,
+		processing,
+		reactor,
+		character,
+		world
+	)
+	var status := String(panel.get("status", ""))
+	host._expect_text_contains(status, "核心站战后：守卫缓存已补校验片和补给", "device panel shows core guard aftermath")
+	host._expect_text_contains(status, "回前哨核心恢复生命 / 防护", "device panel points post-guard recovery to outpost core")
+	reactor.free()
 
 
 func _check_active_processing_panel_uses_running_recipe() -> void:

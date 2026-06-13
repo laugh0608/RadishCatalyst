@@ -348,7 +348,8 @@ const ENEMY_ALLOWED_FIELDS := [
 	"is_defeated",
 	"drops_granted",
 	"pressure_vial_used",
-	"core_buffer_used"
+	"core_buffer_used",
+	"core_side_supply_used"
 ]
 
 const BASE_STRUCTURE_ALLOWED_FIELDS := [

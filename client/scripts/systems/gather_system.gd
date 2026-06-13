@@ -365,7 +365,7 @@ func _gather(instance_id: String, definition: Dictionary, character_state: Chara
 		var pressure_hint := _get_pollution_pressure_step_hint(instance_id, character_state)
 		if not pressure_hint.is_empty():
 			result_parts.append(pressure_hint)
-	var first_hour_hint := _get_first_hour_gather_step_hint(instance_id)
+	var first_hour_hint := _get_first_hour_gather_step_hint(instance_id, world_state, character_state)
 	if not first_hour_hint.is_empty():
 		result_parts.append(first_hour_hint)
 
@@ -558,7 +558,11 @@ func _get_pollution_pressure_step_hint(instance_id: String, character_state: Cha
 	return ""
 
 
-func _get_first_hour_gather_step_hint(instance_id: String) -> String:
+func _get_first_hour_gather_step_hint(
+	instance_id: String,
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
 	match instance_id:
 		"map_object_instance.crystal_cluster_treatment_approach":
 			return "这些晶体可回基地加工成过滤模块或地基材料"
@@ -575,7 +579,7 @@ func _get_first_hour_gather_step_hint(instance_id: String) -> String:
 		"map_object_instance.demo_stabilization_recovery_cache":
 			return "核心站侧边补给已回收；修复凝胶和抗污染药剂可支撑阶段守卫战，并在核心写入时降低反冲"
 		"map_object_instance.demo_stabilization_guard_cache":
-			return "核心写入校验片已回收，回写校准同步完成；守卫缓存会降低核心写入反冲，带补给靠近核心稳定设备写入归档数据"
+			return CoreGuardAftermathFormatter.format_guard_cache_gather_followup(world_state, character_state)
 	return ""
 
 

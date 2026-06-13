@@ -34,10 +34,14 @@ static func format_hud_summary(
 				"守卫战准备：%s" % format_guard_pressure_parts(world_state, character_state)
 			]
 		"quest.write_demo_stabilization_core":
-			return [
+			var write_lines: Array[String] = [
 				"核心写入承压：侧边补给、缓冲回写、药剂和守卫缓存共同降反冲",
 				ready_line
 			]
+			var aftermath_line := CoreGuardAftermathFormatter.format_hud_line(world_state, character_state)
+			if not aftermath_line.is_empty():
+				write_lines.insert(1, aftermath_line)
+			return write_lines
 	if world_state.current_region_id == "region.demo_stabilization_core":
 		return [
 			"核心站承压：先确认补给、守卫和核心设备",
