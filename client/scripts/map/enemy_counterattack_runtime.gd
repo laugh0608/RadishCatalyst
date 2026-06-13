@@ -35,7 +35,8 @@ func apply(
 	if used_core_side_supply:
 		attack_damage *= CORE_STABILIZATION_SIDE_SUPPLY_DAMAGE_MULT
 
-	var consumed_pressure_vial := _consume_pollution_pressure_vial(enemy, character_state, world_state, enemy_region_id)
+	var pressure_vial_spend := _consume_pollution_pressure_vial(enemy, character_state, world_state, enemy_region_id)
+	var consumed_pressure_vial := bool(pressure_vial_spend.get("consumed", false))
 	if consumed_pressure_vial:
 		attack_damage *= POLLUTION_PRESSURE_VIAL_DAMAGE_MULT
 
@@ -62,7 +63,8 @@ func apply(
 			protection_damage,
 			consumed_core_buffer,
 			used_core_side_supply,
-			consumed_pressure_vial
+			pressure_vial_spend,
+			world_state
 		)
 		if FieldOutfittingRuntime.has_active_module_calibration(character_state, world_state):
 			return "%s 出发整备台校准已接入，污染承压继续下降。" % pollution_message
@@ -125,20 +127,27 @@ func _consume_pollution_pressure_vial(
 	character_state: CharacterState,
 	world_state: WorldState,
 	enemy_region_id: String
-) -> bool:
+) -> Dictionary:
+	var empty_spend := {
+		"consumed": false,
+		"before": DepartureSupplyRuntime.get_resistance_vial_count(character_state),
+		"after": DepartureSupplyRuntime.get_resistance_vial_count(character_state),
+		"target": DepartureSupplyRuntime.get_resistance_vial_target(world_state),
+		"can_outpost_restock": DepartureSupplyRuntime.can_outpost_restock_resistance_vial(world_state, character_state)
+	}
 	if not _is_pollution_pressure_vial_enemy(enemy):
-		return false
-	if not character_state.inventory.has_ref("item.resistance_vial_t1", 1):
-		return false
+		return empty_spend
+	if not character_state.inventory.has_ref(DepartureSupplyRuntime.RESISTANCE_VIAL_ID, 1):
+		return empty_spend
 	if world_state != null and not enemy.instance_id.is_empty():
 		if bool(world_state.get_enemy(enemy.instance_id).get("pressure_vial_used", false)):
-			return false
+			return empty_spend
 	else:
 		if enemy.has_meta("pressure_vial_used") and bool(enemy.get_meta("pressure_vial_used")):
-			return false
-	character_state.inventory.consume_ref("item.resistance_vial_t1", 1)
+			return empty_spend
+	var spend := DepartureSupplyRuntime.consume_resistance_vial(character_state, world_state)
 	_mark_enemy_state(enemy, world_state, enemy_region_id, "pressure_vial_used")
-	return true
+	return spend
 
 
 func _mark_enemy_state(enemy: PrototypeEnemy, world_state: WorldState, enemy_region_id: String, flag: String) -> void:
@@ -177,7 +186,8 @@ func _format_pollution_counter_message(
 	protection_damage: float,
 	consumed_core_buffer: bool,
 	used_core_side_supply: bool,
-	consumed_pressure_vial: bool
+	pressure_vial_spend: Dictionary,
+	world_state: WorldState
 ) -> String:
 	var message := "%s 反击，生命 -%s，防护 -%s。" % [
 		enemy.display_name,
@@ -186,58 +196,124 @@ func _format_pollution_counter_message(
 	]
 	match enemy.instance_id:
 		"enemy_instance.polluted_skitter_gate_pressure":
-			return _format_gate_pressure_message(message, consumed_pressure_vial)
+			return _format_gate_pressure_message(message, pressure_vial_spend, world_state, character_state)
 		"enemy_instance.polluted_skitter_vial_return_guard":
-			return _format_vial_return_message(message, consumed_pressure_vial)
+			return _format_vial_return_message(message, pressure_vial_spend, world_state, character_state)
 		"enemy_instance.polluted_skitter_slurry_return_guard":
-			return _format_slurry_return_message(message, consumed_pressure_vial)
+			return _format_slurry_return_message(message, pressure_vial_spend, world_state, character_state)
 		"enemy_instance.polluted_skitter_vial_reserve_guard":
-			return _format_vial_reserve_message(message, consumed_pressure_vial)
+			return _format_vial_reserve_message(message, pressure_vial_spend, world_state, character_state)
 		"enemy_instance.polluted_skitter_ridge":
-			return _format_ridge_message(message, consumed_pressure_vial)
+			return _format_ridge_message(message, pressure_vial_spend, world_state, character_state)
 		"enemy_instance.core_buffer_polluted_skitter":
-			return _format_core_buffer_supply_message(message, consumed_pressure_vial)
+			return _format_core_buffer_supply_message(message, pressure_vial_spend, world_state, character_state)
 	if enemy.definition_id == "enemy.ruin_phase_guard":
 		return _format_ruin_phase_guard_message(message, character_state)
 	if enemy.definition_id == "enemy.demo_stabilization_guard":
-		return _format_core_guard_message(message, consumed_core_buffer, used_core_side_supply, consumed_pressure_vial)
+		return _format_core_guard_message(message, consumed_core_buffer, used_core_side_supply, pressure_vial_spend)
 	return message
 
 
-func _format_gate_pressure_message(message: String, consumed_pressure_vial: bool) -> String:
-	if consumed_pressure_vial:
-		return "%s抗污染药剂已自动接入门前排压，过滤器准备让生命和防护承压降低；继续压制入口信号。" % message
-	return "%s门前污染压力更高，防护偏低时按 2 使用抗污染药剂，生命偏低时按 1 使用修复凝胶。" % message
+func _format_gate_pressure_message(
+	message: String,
+	pressure_vial_spend: Dictionary,
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	if bool(pressure_vial_spend.get("consumed", false)):
+		return "%s%s，过滤器准备让生命和防护承压降低；继续压制入口信号。" % [
+			message,
+			DepartureSupplyRuntime.format_resistance_vial_pressure_spend(pressure_vial_spend, "门前")
+		]
+	return "%s门前污染压力更高，%s；防护偏低时按 2 使用抗污染药剂，生命偏低时按 1 使用修复凝胶。" % [
+		message,
+		DepartureSupplyRuntime.format_resistance_vial_shortage_for_pressure(world_state, character_state, "门前")
+	]
 
 
-func _format_vial_return_message(message: String, consumed_pressure_vial: bool) -> String:
-	if consumed_pressure_vial:
-		return "%s抗污染药剂已自动接入侧翼排压，过滤器准备让这段回访战斗更稳；清完后回收沉积物再回基地处理。" % message
-	return "%s侧翼污染压力抬升，过滤模块会降低生命和防护承压；带药剂回来会自动接入排压。" % message
+func _format_vial_return_message(
+	message: String,
+	pressure_vial_spend: Dictionary,
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	if bool(pressure_vial_spend.get("consumed", false)):
+		return "%s%s，过滤器准备让这段回访战斗更稳；清完后回收沉积物再回基地处理。" % [
+			message,
+			DepartureSupplyRuntime.format_resistance_vial_pressure_spend(pressure_vial_spend, "侧翼")
+		]
+	return "%s侧翼污染压力抬升，过滤模块会降低生命和防护承压；%s。" % [
+		message,
+		DepartureSupplyRuntime.format_resistance_vial_shortage_for_pressure(world_state, character_state, "侧翼")
+	]
 
 
-func _format_slurry_return_message(message: String, consumed_pressure_vial: bool) -> String:
-	if consumed_pressure_vial:
-		return "%s抗污染药剂已自动接入副产口袋排压；清完后回收沉积物，回过滤器补浆液，再到基础反应器回收基础零件。" % message
-	return "%s副产口袋污染压力抬升，基础过滤模块会降低承压；带药剂回来会自动接入排压，清完后补沉积物处理浆液。" % message
+func _format_slurry_return_message(
+	message: String,
+	pressure_vial_spend: Dictionary,
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	if bool(pressure_vial_spend.get("consumed", false)):
+		return "%s%s；清完后回收沉积物，回过滤器补浆液，再到基础反应器回收基础零件。" % [
+			message,
+			DepartureSupplyRuntime.format_resistance_vial_pressure_spend(pressure_vial_spend, "副产口袋")
+		]
+	return "%s副产口袋污染压力抬升，基础过滤模块会降低承压；%s，清完后补沉积物处理浆液。" % [
+		message,
+		DepartureSupplyRuntime.format_resistance_vial_shortage_for_pressure(world_state, character_state, "副产口袋")
+	]
 
 
-func _format_vial_reserve_message(message: String, consumed_pressure_vial: bool) -> String:
-	if consumed_pressure_vial:
-		return "%s抗污染药剂已自动接入药剂储备口袋排压；清完后回收沉积物，回过滤器补下一支药剂和污染浆液。" % message
-	return "%s药剂储备口袋污染压力抬升，建议带药剂回来排压；清完后补沉积物处理下一支药剂。" % message
+func _format_vial_reserve_message(
+	message: String,
+	pressure_vial_spend: Dictionary,
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	if bool(pressure_vial_spend.get("consumed", false)):
+		return "%s%s；清完后回收沉积物，回过滤器补下一支药剂和污染浆液。" % [
+			message,
+			DepartureSupplyRuntime.format_resistance_vial_pressure_spend(pressure_vial_spend, "药剂储备口袋")
+		]
+	return "%s药剂储备口袋污染压力抬升，%s；清完后补沉积物处理下一支药剂。" % [
+		message,
+		DepartureSupplyRuntime.format_resistance_vial_shortage_for_pressure(world_state, character_state, "药剂储备口袋")
+	]
 
 
-func _format_ridge_message(message: String, consumed_pressure_vial: bool) -> String:
-	if consumed_pressure_vial:
-		return "%s抗污染药剂已自动接入污染脊排压，过滤器准备让这段回访战斗更稳；清完后把沉积物带回过滤器处理。" % message
-	return "%s污染脊守卫压迫更强，过滤模块会降低生命和防护承压；防护偏低时按 2 使用抗污染药剂。" % message
+func _format_ridge_message(
+	message: String,
+	pressure_vial_spend: Dictionary,
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	if bool(pressure_vial_spend.get("consumed", false)):
+		return "%s%s，过滤器准备让这段回访战斗更稳；清完后把沉积物带回过滤器处理。" % [
+			message,
+			DepartureSupplyRuntime.format_resistance_vial_pressure_spend(pressure_vial_spend, "污染脊")
+		]
+	return "%s污染脊守卫压迫更强，过滤模块会降低生命和防护承压；%s。" % [
+		message,
+		DepartureSupplyRuntime.format_resistance_vial_shortage_for_pressure(world_state, character_state, "污染脊")
+	]
 
 
-func _format_core_buffer_supply_message(message: String, consumed_pressure_vial: bool) -> String:
-	if consumed_pressure_vial:
-		return "%s抗污染药剂已自动接入补料点排压，过滤器准备让这场回访战斗更稳；清完后把沉积物带回过滤器处理。" % message
-	return "%s补料点污染压力更强，过滤模块会降低生命和防护承压；清完后把沉积物带回过滤器处理。" % message
+func _format_core_buffer_supply_message(
+	message: String,
+	pressure_vial_spend: Dictionary,
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	if bool(pressure_vial_spend.get("consumed", false)):
+		return "%s%s，过滤器准备让这场回访战斗更稳；清完后把沉积物带回过滤器处理。" % [
+			message,
+			DepartureSupplyRuntime.format_resistance_vial_pressure_spend(pressure_vial_spend, "补料点")
+		]
+	return "%s补料点污染压力更强，过滤模块会降低生命和防护承压；%s，清完后把沉积物带回过滤器处理。" % [
+		message,
+		DepartureSupplyRuntime.format_resistance_vial_shortage_for_pressure(world_state, character_state, "补料点")
+	]
 
 
 func _format_ruin_phase_guard_message(message: String, character_state: CharacterState) -> String:
@@ -250,15 +326,15 @@ func _format_core_guard_message(
 	message: String,
 	consumed_core_buffer: bool,
 	used_core_side_supply: bool,
-	consumed_pressure_vial: bool
+	pressure_vial_spend: Dictionary
 ) -> String:
 	var core_guard_pressure_parts: Array[String] = []
 	if consumed_core_buffer:
 		core_guard_pressure_parts.append("核心稳压缓冲包已消耗")
 	if used_core_side_supply:
 		core_guard_pressure_parts.append("侧边补给已接入守卫战稳压")
-	if consumed_pressure_vial:
-		core_guard_pressure_parts.append("抗污染药剂已自动接入守卫排压")
+	if bool(pressure_vial_spend.get("consumed", false)):
+		core_guard_pressure_parts.append(DepartureSupplyRuntime.format_resistance_vial_pressure_spend(pressure_vial_spend, "守卫"))
 	if not core_guard_pressure_parts.is_empty():
 		return "%s%s，第一段回写压力被削弱；击败守卫后回收缓存，补给会继续支撑核心写入。" % [
 			message,

@@ -22,6 +22,8 @@ func run(root: Node) -> void:
 	_check_vial_reserve_route_gate(root)
 	_check_vial_reserve_residue_feedback()
 	_check_vial_reserve_guard_vial_feedback(root)
+	_check_double_vial_pressure_spend_and_restock(root)
+	_check_double_vial_core_write_feedback()
 	_check_slurry_reclaim_hud_and_device_panel()
 
 
@@ -422,6 +424,168 @@ func _check_vial_reserve_guard_vial_feedback(root: Node) -> void:
 		"vial reserve guard drop grant is stored"
 	)
 	map.free()
+
+
+func _check_double_vial_pressure_spend_and_restock(root: Node) -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	map.setup(host.data_registry)
+	var world := _create_double_vial_world()
+	var character := CharacterState.create_default()
+	character.inventory.add_item("item.resistance_vial_t1", 2)
+	map.sync_enemy_states(world)
+
+	var first_guard := map.get_node("Enemies/PollutedSkitterVialReturnGuard") as PrototypeEnemy
+	map.player.position = first_guard.position
+	var first_pressure_result := map.try_attack(character, world)
+	host._expect_text_contains(
+		String(first_pressure_result.get("message", "")),
+		"第 1 份抗污染药剂已自动接入侧翼排压",
+		"double vial first combat spend names first vial"
+	)
+	host._expect_text_contains(
+		String(first_pressure_result.get("message", "")),
+		"药剂 2/2 -> 1/2",
+		"double vial first combat spend shows remaining reserve"
+	)
+	host._expect_equal(
+		int(character.inventory.items.get("item.resistance_vial_t1", 0)),
+		1,
+		"double vial first combat leaves one vial"
+	)
+	var partial_hud := HudStatusPresenter.new().format_vitals_text(host.data_registry, world, character)
+	host._expect_text_contains(
+		partial_hud,
+		"抗污染药剂到 2（当前 1/2）",
+		"double vial partial HUD points back to outpost restock"
+	)
+
+	var second_guard := map.get_node("Enemies/PollutedSkitterVialReserveGuard") as PrototypeEnemy
+	map.player.position = second_guard.position
+	var second_pressure_result := map.try_attack(character, world)
+	host._expect_text_contains(
+		String(second_pressure_result.get("message", "")),
+		"第 2 份抗污染药剂已自动接入药剂储备口袋排压",
+		"double vial second combat spend names second vial"
+	)
+	host._expect_text_contains(
+		String(second_pressure_result.get("message", "")),
+		"药剂 1/2 -> 0/2",
+		"double vial second combat spend shows empty reserve"
+	)
+	host._expect_text_contains(
+		String(second_pressure_result.get("message", "")),
+		"回前哨核心可补回 2/2",
+		"double vial empty reserve points back to outpost core"
+	)
+	host._expect_equal(
+		int(character.inventory.items.get("item.resistance_vial_t1", 0)),
+		0,
+		"double vial second combat consumes remaining vial"
+	)
+
+	var gather_system := GatherSystem.new(host.data_registry)
+	var gate_result := gather_system.interact_with_object(
+		"map_object_instance.outpost_departure_gate",
+		"map_object.outpost_departure_gate",
+		"inspect",
+		character,
+		world
+	)
+	host._expect_text_contains(
+		String(gate_result.get("message", "")),
+		"抗污染药剂到 2",
+		"departure gate prompts double vial restock after pressure spend"
+	)
+	var outpost_result := gather_system.interact_with_object(
+		"map_object_instance.outpost_core",
+		"building.outpost_core",
+		"outpost_core",
+		character,
+		world
+	)
+	host._expect_text_contains(
+		String(outpost_result.get("message", "")),
+		"药剂 0/2 -> 2/2",
+		"outpost core restores spent double vial reserve"
+	)
+	host._expect_equal(
+		int(character.inventory.items.get("item.resistance_vial_t1", 0)),
+		2,
+		"outpost core restores double vial reserve to target"
+	)
+	map.free()
+
+
+func _check_double_vial_core_write_feedback() -> void:
+	var gather_system := GatherSystem.new(host.data_registry)
+	var world := _create_double_vial_world()
+	world.current_region_id = "region.demo_stabilization_core"
+	world.quest_state.active_quest_ids = ["quest.write_demo_stabilization_core"]
+	world.quest_state.set_objective_progress("quest.write_demo_stabilization_core", "gather_item", "item.core_write_charge", 1.0)
+	world.ensure_enemy(
+		"enemy_instance.demo_stabilization_guard",
+		"enemy.demo_stabilization_guard",
+		"region.demo_stabilization_core",
+		60.0
+	)["is_defeated"] = true
+	var character := CharacterState.create_default()
+	character.current_region_id = "region.demo_stabilization_core"
+	character.inventory.add_item("item.resistance_vial_t1", 2)
+	var write_result := gather_system.interact_with_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"inspect",
+		character,
+		world
+	)
+	host._expect_equal(bool(write_result.get("success", false)), true, "double vial core write succeeds")
+	host._expect_text_contains(
+		String(write_result.get("message", "")),
+		"第 1 份抗污染药剂已自动接入写入排压",
+		"core write names first vial spend from double reserve"
+	)
+	host._expect_text_contains(
+		String(write_result.get("message", "")),
+		"药剂 2/2 -> 1/2",
+		"core write shows remaining double vial reserve"
+	)
+	host._expect_equal(
+		int(character.inventory.items.get("item.resistance_vial_t1", 0)),
+		1,
+		"core write leaves second vial in reserve"
+	)
+	host._expect_text_contains(
+		CoreStabilizationPressureFormatter.format_ready_parts(world, character),
+		"药剂 1/2，建议补满",
+		"core readiness treats partial double vial reserve as not fully ready"
+	)
+
+
+func _create_double_vial_world() -> WorldState:
+	var world := WorldState.create_default()
+	world.quest_state.complete_quest("quest.restore_outpost")
+	world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
+	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1.0)
+	world.add_base_structure(
+		"structure.basic_storage_build_site",
+		"building.basic_storage",
+		"region.outpost_platform",
+		"map_object_instance.basic_storage_build_site"
+	)
+	world.add_base_structure(
+		"structure.pollution_filter_build_site",
+		"building.pollution_filter",
+		"region.pollution_edge",
+		"map_object_instance.pollution_filter_build_site"
+	)
+	world.add_base_structure(
+		"structure.slurry_buffer_tank_build_site",
+		"building.slurry_buffer_tank",
+		"region.outpost_platform",
+		"map_object_instance.slurry_buffer_tank_build_site"
+	)
+	return world
 
 
 func _check_slurry_reclaim_hud_and_device_panel() -> void:

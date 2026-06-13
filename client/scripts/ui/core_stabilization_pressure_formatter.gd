@@ -130,7 +130,16 @@ static func format_ready_parts(world_state: WorldState, character_state: Charact
 	var parts: Array[String] = []
 	parts.append("侧边补给已取" if has_recovery_cache(world_state) else "侧边补给待取")
 	parts.append("缓冲回写已接入" if has_guard_buffer_sync(world_state) else "缓冲包未回写")
-	parts.append("药剂在身" if character_state.inventory.has_ref("item.resistance_vial_t1", 1) else "药剂不足")
+	var current_vial := DepartureSupplyRuntime.get_resistance_vial_count(character_state)
+	var target_vial := DepartureSupplyRuntime.get_resistance_vial_target(world_state)
+	if current_vial >= target_vial and target_vial > 1:
+		parts.append("药剂 %d/%d已备" % [current_vial, target_vial])
+	elif current_vial >= 1 and target_vial > 1:
+		parts.append("药剂 %d/%d，建议补满" % [current_vial, target_vial])
+	elif current_vial >= 1:
+		parts.append("药剂在身")
+	else:
+		parts.append("药剂不足")
 	parts.append("守卫缓存已取" if has_guard_cache(world_state) else "守卫缓存待取")
 	return "；".join(parts)
 
@@ -139,10 +148,16 @@ static func format_core_revisit_completion_parts(world_state: WorldState, charac
 	var parts: Array[String] = []
 	parts.append("侧边补给已回收" if has_recovery_cache(world_state) else "侧边补给未回收")
 	parts.append("稳压缓冲包已回写" if has_guard_buffer_sync(world_state) else "稳压缓冲包未回写")
-	if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+	var current_vial := DepartureSupplyRuntime.get_resistance_vial_count(character_state)
+	var target_vial := DepartureSupplyRuntime.get_resistance_vial_target(world_state)
+	if current_vial >= target_vial and target_vial > 1:
+		parts.append("抗污染药剂 %d/%d已备" % [current_vial, target_vial])
+	elif current_vial >= 1 and target_vial > 1:
+		parts.append("抗污染药剂 %d/%d，建议回前哨补满" % [current_vial, target_vial])
+	elif current_vial >= 1:
 		parts.append("抗污染药剂已备")
 	elif has_guard_vial_pressure(world_state):
-		parts.append("抗污染药剂已用于守卫排压")
+		parts.append("抗污染药剂已用于守卫排压，当前 %s" % DepartureSupplyRuntime.format_resistance_vial_count(world_state, character_state))
 	else:
 		parts.append("抗污染药剂待补")
 	parts.append("守卫回写缓存已归档" if has_guard_cache(world_state) else "守卫回写缓存未回收")
@@ -158,8 +173,8 @@ static func format_core_revisit_next_step(world_state: WorldState, character_sta
 		return "生命 / 防护未满；沿外勤出发口回前哨核心恢复后再复测或出发"
 	if not character_state.inventory.has_ref("item.repair_gel", 1):
 		return "修复凝胶不足；沿外勤出发口回前哨核心补给"
-	if not character_state.inventory.has_ref("item.resistance_vial_t1", 1):
-		return "抗污染药剂不足；沿外勤出发口回前哨核心补药剂"
+	if DepartureSupplyRuntime.get_resistance_vial_count(character_state) < DepartureSupplyRuntime.get_resistance_vial_target(world_state):
+		return "抗污染药剂未补满；沿外勤出发口回前哨核心补到 %s 后再打守卫或写入" % _format_full_vial_target(world_state)
 	return "完成态已确认；可沿外勤出发口回前哨整理下一趟外勤"
 
 
@@ -200,8 +215,10 @@ static func format_guard_pressure_parts(world_state: WorldState, character_state
 		parts.append("缓冲包不足")
 	if has_guard_vial_pressure(world_state):
 		parts.append("药剂已守卫排压")
+	elif DepartureSupplyRuntime.get_resistance_vial_count(character_state) >= DepartureSupplyRuntime.get_resistance_vial_target(world_state):
+		parts.append("药剂 %s已备" % DepartureSupplyRuntime.format_resistance_vial_count(world_state, character_state))
 	elif character_state.inventory.has_ref("item.resistance_vial_t1", 1):
-		parts.append("药剂在身")
+		parts.append("药剂 %s，建议补满" % DepartureSupplyRuntime.format_resistance_vial_count(world_state, character_state))
 	else:
 		parts.append("药剂不足")
 	return "；".join(parts)
@@ -228,3 +245,8 @@ static func has_recovery_cache(world_state: WorldState) -> bool:
 
 static func has_guard_cache(world_state: WorldState) -> bool:
 	return bool(world_state.get_map_object("map_object_instance.demo_stabilization_guard_cache").get("is_gathered", false))
+
+
+static func _format_full_vial_target(world_state: WorldState) -> String:
+	var target := DepartureSupplyRuntime.get_resistance_vial_target(world_state)
+	return "%d/%d" % [target, target]

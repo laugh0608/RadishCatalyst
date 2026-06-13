@@ -8,9 +8,9 @@ const DEMO_STABILIZATION_WRITE_VIAL_MULT := 0.35
 const DEMO_STABILIZATION_WRITE_CORE_BUFFER_MULT := 0.75
 const DEMO_STABILIZATION_WRITE_RECOVERY_CACHE_MULT := 0.85
 const DEMO_STABILIZATION_WRITE_GUARD_CACHE_MULT := 0.9
-const BASIC_STORAGE_REPAIR_GEL_TARGET := 1
-const BASIC_STORAGE_RESISTANCE_VIAL_TARGET := 1
-const SLURRY_BUFFER_RESISTANCE_VIAL_TARGET := 2
+const BASIC_STORAGE_REPAIR_GEL_TARGET := DepartureSupplyRuntime.BASIC_STORAGE_REPAIR_GEL_TARGET
+const BASIC_STORAGE_RESISTANCE_VIAL_TARGET := DepartureSupplyRuntime.BASIC_RESISTANCE_VIAL_TARGET
+const SLURRY_BUFFER_RESISTANCE_VIAL_TARGET := DepartureSupplyRuntime.SLURRY_BUFFER_RESISTANCE_VIAL_TARGET
 const FIELD_OUTFITTING_STATION_ID := FieldOutfittingRuntime.FIELD_OUTFITTING_STATION_ID
 const BASIC_FILTER_MODULE_ID := FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
 const OUTPOST_DEPARTURE_GATE_ID := "map_object.outpost_departure_gate"
@@ -309,54 +309,51 @@ func _restock_basic_storage_supply(character_state: CharacterState, world_state:
 		return ""
 
 	var detail_parts: Array[String] = []
-	var current_repair_gel := int(character_state.inventory.items.get("item.repair_gel", 0))
+	var current_repair_gel := int(character_state.inventory.items.get(DepartureSupplyRuntime.REPAIR_GEL_ID, 0))
 	if current_repair_gel < BASIC_STORAGE_REPAIR_GEL_TARGET:
 		var granted_gel_amount := BASIC_STORAGE_REPAIR_GEL_TARGET - current_repair_gel
-		character_state.inventory.add_item("item.repair_gel", granted_gel_amount)
+		character_state.inventory.add_item(DepartureSupplyRuntime.REPAIR_GEL_ID, granted_gel_amount)
 		detail_parts.append("基础储存箱补修复凝胶 x%d，当前 %d" % [
 			granted_gel_amount,
-			int(character_state.inventory.items.get("item.repair_gel", 0))
+			int(character_state.inventory.items.get(DepartureSupplyRuntime.REPAIR_GEL_ID, 0))
 		])
 
 	if _can_restock_basic_storage_vial(character_state, world_state):
 		var target_vial := _get_basic_storage_vial_target(world_state)
-		var current_vial := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
+		var current_vial := DepartureSupplyRuntime.get_resistance_vial_count(character_state)
 		var granted_vial_amount := target_vial - current_vial
-		character_state.inventory.add_item("item.resistance_vial_t1", granted_vial_amount)
+		character_state.inventory.add_item(DepartureSupplyRuntime.RESISTANCE_VIAL_ID, granted_vial_amount)
+		var restored_vial := DepartureSupplyRuntime.get_resistance_vial_count(character_state)
 		if target_vial > BASIC_STORAGE_RESISTANCE_VIAL_TARGET:
-			detail_parts.append("基础储存箱经污染浆液缓冲罐补抗污染药剂 x%d，当前 %d / %d" % [
+			detail_parts.append("基础储存箱经污染浆液缓冲罐补抗污染药剂 x%d，药剂 %d/%d -> %d/%d" % [
 				granted_vial_amount,
-				int(character_state.inventory.items.get("item.resistance_vial_t1", 0)),
+				current_vial,
+				target_vial,
+				restored_vial,
 				target_vial
 			])
 		else:
-			detail_parts.append("基础储存箱补抗污染药剂 x%d，当前 %d" % [
+			detail_parts.append("基础储存箱补抗污染药剂 x%d，药剂 %d/%d -> %d/%d" % [
 				granted_vial_amount,
-				int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
+				current_vial,
+				target_vial,
+				restored_vial,
+				target_vial
 			])
 
 	return "；".join(detail_parts)
 
 
 func _can_restock_basic_storage_vial(character_state: CharacterState, world_state: WorldState) -> bool:
-	if not world_state.has_base_structure_definition("building.pollution_filter"):
-		return false
-	if not _has_basic_storage_vial_supply_unlocked(world_state):
-		return false
-	return int(character_state.inventory.items.get("item.resistance_vial_t1", 0)) < _get_basic_storage_vial_target(world_state)
+	return DepartureSupplyRuntime.can_outpost_restock_resistance_vial(world_state, character_state)
 
 
 func _has_basic_storage_vial_supply_unlocked(world_state: WorldState) -> bool:
-	return (
-		world_state.quest_state.has_completed_quest("quest.enter_pollution_edge")
-		or world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1") >= 1.0
-	)
+	return DepartureSupplyRuntime.is_resistance_vial_supply_available(world_state)
 
 
 func _get_basic_storage_vial_target(world_state: WorldState) -> int:
-	if world_state.has_base_structure_definition("building.slurry_buffer_tank"):
-		return SLURRY_BUFFER_RESISTANCE_VIAL_TARGET
-	return BASIC_STORAGE_RESISTANCE_VIAL_TARGET
+	return DepartureSupplyRuntime.get_resistance_vial_target(world_state)
 
 
 func _interact_with_field_outfitting_station(character_state: CharacterState, world_state: WorldState) -> Dictionary:
@@ -483,13 +480,13 @@ func _sample(instance_id: String, definition: Dictionary, character_state: Chara
 
 
 func _apply_demo_stabilization_write_pressure(character_state: CharacterState, world_state: WorldState) -> String:
-	var used_vial := character_state.inventory.has_ref("item.resistance_vial_t1", 1)
+	var vial_spend := DepartureSupplyRuntime.consume_resistance_vial(character_state, world_state)
+	var used_vial := bool(vial_spend.get("consumed", false))
 	var used_core_buffer := _has_core_stabilization_guard_buffer_sync(world_state)
 	var used_recovery_cache := _has_demo_stabilization_recovery_cache(world_state)
 	var used_guard_cache := _has_demo_stabilization_guard_cache(world_state)
 	var pressure_mult := 1.0
 	if used_vial:
-		character_state.inventory.consume_ref("item.resistance_vial_t1", 1)
 		pressure_mult *= DEMO_STABILIZATION_WRITE_VIAL_MULT
 	if used_core_buffer:
 		pressure_mult *= DEMO_STABILIZATION_WRITE_CORE_BUFFER_MULT
@@ -503,7 +500,9 @@ func _apply_demo_stabilization_write_pressure(character_state: CharacterState, w
 	var health_damage := character_state.apply_health_damage(health_pressure)
 	var protection_damage := character_state.apply_protection_damage(protection_pressure)
 	return _format_demo_stabilization_write_pressure(
-		used_vial,
+		vial_spend,
+		character_state,
+		world_state,
 		used_core_buffer,
 		used_recovery_cache,
 		used_guard_cache,
@@ -513,7 +512,9 @@ func _apply_demo_stabilization_write_pressure(character_state: CharacterState, w
 
 
 func _format_demo_stabilization_write_pressure(
-	used_vial: bool,
+	vial_spend: Dictionary,
+	character_state: CharacterState,
+	world_state: WorldState,
 	used_core_buffer: bool,
 	used_recovery_cache: bool,
 	used_guard_cache: bool,
@@ -522,7 +523,8 @@ func _format_demo_stabilization_write_pressure(
 ) -> String:
 	var health_text := _format_amount(health_damage)
 	var protection_text := _format_amount(protection_damage)
-	var pressure_text := "抗污染药剂已自动接入写入排压" if used_vial else "没有抗污染药剂参与排压"
+	var used_vial := bool(vial_spend.get("consumed", false))
+	var pressure_text := DepartureSupplyRuntime.format_resistance_vial_pressure_spend(vial_spend, "写入") if used_vial else DepartureSupplyRuntime.format_resistance_vial_shortage_for_pressure(world_state, character_state, "写入")
 	var prepared_parts: Array[String] = []
 	if used_recovery_cache:
 		prepared_parts.append("核心站侧边补给")
@@ -553,7 +555,8 @@ func _format_demo_stabilization_write_pressure(
 			health_text,
 			protection_text
 		]
-	return " 终点准备 0/4：没有抗污染药剂参与排压，核心写入反冲完整命中，生命 -%s，防护 -%s；下次终点写入前应确认守卫缓存补给。" % [
+	return " 终点准备 0/4：%s，核心写入反冲完整命中，生命 -%s，防护 -%s；下次终点写入前应确认守卫缓存补给并回前哨补药剂。" % [
+		pressure_text,
 		health_text,
 		protection_text
 	]

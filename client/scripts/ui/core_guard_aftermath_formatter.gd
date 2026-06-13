@@ -16,7 +16,7 @@ static func format_hud_line(world_state: WorldState, character_state: CharacterS
 		return ""
 	return "战后回收：守卫缓存已取；%s；%s" % [
 		format_battle_spend(world_state),
-		format_cache_ready_state(character_state)
+		format_cache_ready_state(world_state, character_state)
 	]
 
 
@@ -95,11 +95,20 @@ static func format_battle_spend(world_state: WorldState) -> String:
 	return "守卫战消耗：%s" % " / ".join(spend_parts)
 
 
-static func format_cache_ready_state(character_state: CharacterState) -> String:
+static func format_cache_ready_state(world_state: WorldState, character_state: CharacterState) -> String:
 	var ready_parts: Array[String] = []
 	ready_parts.append("校验片在身" if character_state.inventory.has_ref("item.core_write_charge", 1) else "校验片待确认")
 	ready_parts.append("修复凝胶在身" if character_state.inventory.has_ref("item.repair_gel", 1) else "修复凝胶不足")
-	ready_parts.append("药剂在身" if character_state.inventory.has_ref("item.resistance_vial_t1", 1) else "药剂不足")
+	var current_vial := DepartureSupplyRuntime.get_resistance_vial_count(character_state)
+	var target_vial := DepartureSupplyRuntime.get_resistance_vial_target(world_state)
+	if current_vial >= target_vial and target_vial > 1:
+		ready_parts.append("药剂 %d/%d已备" % [current_vial, target_vial])
+	elif current_vial >= 1 and target_vial > 1:
+		ready_parts.append("药剂 %d/%d，建议回前哨补满" % [current_vial, target_vial])
+	elif current_vial >= 1:
+		ready_parts.append("药剂在身")
+	else:
+		ready_parts.append("药剂不足")
 	return "写入准备：%s" % "；".join(ready_parts)
 
 
@@ -108,8 +117,14 @@ static func format_next_preparation(world_state: WorldState, character_state: Ch
 		return "下一步：确认守卫缓存校验片，再靠近核心稳定设备写入"
 	if not character_state.are_vitals_full():
 		return "下一步：回前哨核心恢复生命 / 防护，再带校验片写入核心稳定设备"
-	if not character_state.inventory.has_ref("item.resistance_vial_t1", 1):
-		return "下一步：若要降低写入反冲，回前哨核心补抗污染药剂后再写入"
+	if DepartureSupplyRuntime.get_resistance_vial_count(character_state) < DepartureSupplyRuntime.get_resistance_vial_target(world_state):
+		if DepartureSupplyRuntime.can_outpost_restock_resistance_vial(world_state, character_state):
+			var target_vial := DepartureSupplyRuntime.get_resistance_vial_target(world_state)
+			return "下一步：若要降低守卫 / 写入承压，回前哨核心补满抗污染药剂到 %d/%d 后再写入" % [
+				target_vial,
+				target_vial
+			]
+		return "下一步：若要降低写入反冲，回过滤器补抗污染药剂后再写入"
 	if world_state.quest_state.has_active_quest("quest.write_demo_stabilization_core"):
 		return "下一步：带校验片和补给写入核心稳定设备"
 	return "下一步：整理补给后继续推进核心稳定站"
@@ -125,10 +140,17 @@ static func format_next_sortie_supply_state(world_state: WorldState, character_s
 	else:
 		missing_supplies.append("修复凝胶需回基础反应器调制")
 
-	var current_vial := int(character_state.inventory.items.get("item.resistance_vial_t1", 0))
-	var target_vial := _get_vial_target(world_state)
+	var current_vial := DepartureSupplyRuntime.get_resistance_vial_count(character_state)
+	var target_vial := DepartureSupplyRuntime.get_resistance_vial_target(world_state)
 	if current_vial >= target_vial and target_vial > 1:
 		ready_supplies.append("抗污染药剂 x%d已备" % current_vial)
+	elif current_vial >= 1 and target_vial > 1 and _can_outpost_restock_vial(world_state):
+		missing_supplies.append("抗污染药剂 %d/%d，回前哨核心补到 %d/%d" % [
+			current_vial,
+			target_vial,
+			target_vial,
+			target_vial
+		])
 	elif current_vial >= 1 and target_vial <= 1:
 		ready_supplies.append("抗污染药剂已备")
 	elif _can_outpost_restock_vial(world_state):
@@ -189,17 +211,4 @@ static func has_guard_side_supply_sync(world_state: WorldState) -> bool:
 
 
 static func _can_outpost_restock_vial(world_state: WorldState) -> bool:
-	return (
-		world_state.has_base_structure_definition("building.basic_storage")
-		and world_state.has_base_structure_definition("building.pollution_filter")
-		and (
-			world_state.quest_state.has_completed_quest("quest.enter_pollution_edge")
-			or world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1") >= 1.0
-		)
-	)
-
-
-static func _get_vial_target(world_state: WorldState) -> int:
-	if world_state.has_base_structure_definition("building.slurry_buffer_tank"):
-		return 2
-	return 1
+	return DepartureSupplyRuntime.can_outpost_restock_resistance_vial(world_state)
