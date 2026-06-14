@@ -13,6 +13,7 @@
 ## 与整体规划的关系
 
 - 服务长期核心：“基地服务冒险，冒险反哺基地”。
+- 覆盖 `docs/features/demo-definition-v1.md` 中的角色成长、装备 / 模块、战斗压力和 UI / 存档 / 检查规格。
 - 承接已完成的基地后勤、出发整备台、污染边界、晶体侧路和核心稳定站复测内容。
 - 不横向扩 12 区域外的新空间，不把 Demo 主线改成装备收集或长期养成。
 - 和 `docs/design/character-progression-and-equipment.md`、`docs/design/combat-and-interaction-prototype.md` 保持方向一致，但只取首版 demo 可验证的第一层。

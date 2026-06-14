@@ -12,6 +12,8 @@
 
 当前为「首版 Demo 体验主干建设：角色成长与战斗第一版」。
 
+首版 Demo 完成规格：[Demo Definition V1](../features/demo-definition-v1.md)。
+
 当前活跃专题：[Demo Combat Progression V1](../features/demo-combat-progression-v1.md)。
 
 重点是让基地制造和出发整备带来明确战斗 / 成长差异，不再继续给既有回访链追加同类内容包，也不把基线复核写成下一步主线。
@@ -26,9 +28,10 @@
 ## 下一步读取顺序
 
 1. 读 `docs/planning/current.md` 确认阶段和冻结边界。
-2. 读当前活跃专题 `docs/features/demo-combat-progression-v1.md`，从其中的范围、玩家路径和验收条件派生开发包。
-3. 只在需要历史风险时，读取最新周志中的“风险与未完成项”和“下周建议”。
-4. 按改动范围选读设计、架构和复测基线文档。
+2. 读 `docs/features/demo-definition-v1.md` 确认首版 Demo 完成规格和当前缺口。
+3. 读当前活跃专题 `docs/features/demo-combat-progression-v1.md`，从其中的范围、玩家路径和验收条件派生开发包。
+4. 只在需要历史风险时，读取最新周志中的“风险与未完成项”和“下周建议”。
+5. 按改动范围选读设计、架构和复测基线文档。
 
 ## 当前开发重点
 
@@ -63,6 +66,7 @@
 日常推进必读：
 
 - `docs/planning/current.md`
+- `docs/features/demo-definition-v1.md`
 - `docs/features/demo-combat-progression-v1.md`
 
 按任务选读：

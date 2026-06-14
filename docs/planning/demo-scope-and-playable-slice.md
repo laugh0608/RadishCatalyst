@@ -12,7 +12,7 @@
 - UI baseline 覆盖哪些可读性问题。
 - Demo 内容包如何开工、收口和避免用提示替代开发。
 
-本文不替代 `docs/planning/current.md`。阶段边界、当前不做和退出条件仍以 `current.md` 为准。
+本文不替代 `docs/planning/current.md`。阶段边界、当前不做和退出条件仍以 `current.md` 为准；首版 Demo 的跨系统完成规格见 `docs/features/demo-definition-v1.md`。
 
 ## 计数口径
 

@@ -4,7 +4,7 @@
 
 ## 入口约束
 
-本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。具体功能范围以当前活跃专题为准：
+本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题为准：
 
 - [Demo Combat Progression V1](../features/demo-combat-progression-v1.md)
 
@@ -37,9 +37,9 @@
 
 ## 当前主线
 
-当前只推进 [Demo Combat Progression V1](../features/demo-combat-progression-v1.md)。
+当前只推进 [Demo Combat Progression V1](../features/demo-combat-progression-v1.md)，它覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 中的角色成长、装备 / 模块和战斗压力规格。
 
-下一次代码开发应从该专题的“本轮范围”和“验收条件”选择一个可验证开发包，不再直接从周志条目、历史复盘或局部提示问题派生主线任务。
+下一次代码开发应从 Demo 完成规格和当前专题的“本轮范围”“验收条件”选择一个可验证开发包，不再直接从周志条目、历史复盘或局部提示问题派生主线任务。
 
 首版 Demo 未完成初步阶段的完整玩法、场景和美术前，不进入试玩准备或修 bug 阶段。真实页面 smoke 可以用于对比开发效果，但不能替代功能、场景和玩法专题推进。
 

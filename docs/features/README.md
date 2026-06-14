@@ -19,6 +19,7 @@
 
 ## 当前活跃专题
 
+- [Demo Definition V1](demo-definition-v1.md)：首版 Demo 完成规格表，后续专题必须映射到其中的未完成规格项。
 - [Demo Combat Progression V1](demo-combat-progression-v1.md)：首版 Demo 角色成长与战斗第一版。
 
 ## 专题文档推荐结构

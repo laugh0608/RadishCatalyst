@@ -89,6 +89,7 @@ macOS / Linux / Git Bash / zsh 可执行：
 ## Feature Documents
 
 - [Feature Development Docs](features/README.md)
+- [Demo Definition V1](features/demo-definition-v1.md)
 - [Demo Combat Progression V1](features/demo-combat-progression-v1.md)
 
 ## Planning And Governance
