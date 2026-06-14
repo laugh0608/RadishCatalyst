@@ -141,6 +141,90 @@ offset_right = 382.0
 offset_bottom = 218.0
 color = Color(0.5, 0.42, 0.62, 0.82)
 
+[node name="DemoRoutePresentationLayer" type="Node2D" parent="."]
+
+[node name="DemoRouteBaseBand" type="ColorRect" parent="DemoRoutePresentationLayer"]
+offset_left = -348.0
+offset_top = -178.0
+offset_right = -36.0
+offset_bottom = 156.0
+color = Color(0.12, 0.32, 0.34, 0.3)
+
+[node name="DemoRouteBaseLabel" type="Label" parent="DemoRoutePresentationLayer"]
+offset_left = -330.0
+offset_top = -196.0
+offset_right = -58.0
+offset_bottom = -172.0
+text = "01 基地整备 / 加工与出发"
+horizontal_alignment = 1
+
+[node name="DemoRouteCrystalBand" type="ColorRect" parent="DemoRoutePresentationLayer"]
+offset_left = -22.0
+offset_top = -150.0
+offset_right = 238.0
+offset_bottom = 124.0
+color = Color(0.1, 0.22, 0.38, 0.3)
+
+[node name="DemoRouteCrystalLabel" type="Label" parent="DemoRoutePresentationLayer"]
+offset_left = -8.0
+offset_top = -196.0
+offset_right = 230.0
+offset_bottom = -172.0
+text = "02 晶体采集 / 材料回基地"
+horizontal_alignment = 1
+
+[node name="DemoRoutePollutionBand" type="ColorRect" parent="DemoRoutePresentationLayer"]
+offset_left = 238.0
+offset_top = -88.0
+offset_right = 382.0
+offset_bottom = 176.0
+color = Color(0.34, 0.3, 0.09, 0.3)
+
+[node name="DemoRoutePollutionLabel" type="Label" parent="DemoRoutePresentationLayer"]
+offset_left = 242.0
+offset_top = -112.0
+offset_right = 380.0
+offset_bottom = -88.0
+text = "03 污染排压"
+horizontal_alignment = 1
+
+[node name="DemoRouteRuinBand" type="ColorRect" parent="DemoRoutePresentationLayer"]
+offset_left = 382.0
+offset_top = -154.0
+offset_right = 700.0
+offset_bottom = 132.0
+color = Color(0.24, 0.2, 0.36, 0.3)
+
+[node name="DemoRouteRuinLabel" type="Label" parent="DemoRoutePresentationLayer"]
+offset_left = 404.0
+offset_top = -196.0
+offset_right = 674.0
+offset_bottom = -172.0
+text = "04 遗迹外圈 / 回波与解析"
+horizontal_alignment = 1
+
+[node name="DemoRouteCoreApproachFlow" type="ColorRect" parent="DemoRoutePresentationLayer"]
+offset_left = 700.0
+offset_top = -52.0
+offset_right = 3640.0
+offset_bottom = -38.0
+color = Color(0.38, 0.31, 0.22, 0.52)
+
+[node name="DemoRouteCoreBand" type="ColorRect" parent="DemoRoutePresentationLayer"]
+offset_left = 3640.0
+offset_top = -164.0
+offset_right = 4204.0
+offset_bottom = 156.0
+color = Color(0.12, 0.33, 0.3, 0.3)
+
+[node name="DemoRouteCoreLabel" type="Label" parent="DemoRoutePresentationLayer"]
+offset_left = 3664.0
+offset_top = -196.0
+offset_right = 4180.0
+offset_bottom = -172.0
+text = "05 核心稳定站 / 守卫与写入"
+horizontal_alignment = 1
+
 [node name="BaseDirectionLabel" type="Label" parent="."]
 offset_left = -342.0
 offset_top = 166.0

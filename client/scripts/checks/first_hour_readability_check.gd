@@ -45,6 +45,15 @@ func _check_opening_scene_layer() -> void:
 	var crystal_boundary := map.get_node("RegionBoundaryCrystal") as ColorRect
 	var pollution_boundary_line := map.get_node("RegionBoundaryPollution") as ColorRect
 	var ruin_boundary := map.get_node("RegionBoundaryRuin") as ColorRect
+	var demo_route_layer := map.get_node("DemoRoutePresentationLayer") as Node2D
+	var demo_route_base := map.get_node("DemoRoutePresentationLayer/DemoRouteBaseBand") as ColorRect
+	var demo_route_crystal := map.get_node("DemoRoutePresentationLayer/DemoRouteCrystalBand") as ColorRect
+	var demo_route_pollution := map.get_node("DemoRoutePresentationLayer/DemoRoutePollutionBand") as ColorRect
+	var demo_route_ruin := map.get_node("DemoRoutePresentationLayer/DemoRouteRuinBand") as ColorRect
+	var demo_route_core_flow := map.get_node("DemoRoutePresentationLayer/DemoRouteCoreApproachFlow") as ColorRect
+	var demo_route_core := map.get_node("DemoRoutePresentationLayer/DemoRouteCoreBand") as ColorRect
+	var demo_route_base_label := map.get_node("DemoRoutePresentationLayer/DemoRouteBaseLabel") as Label
+	var demo_route_core_label := map.get_node("DemoRoutePresentationLayer/DemoRouteCoreLabel") as Label
 	var base_deck := map.get_node("OpeningSceneLayer/BaseDeckFloor") as ColorRect
 	var core_pad := map.get_node("OpeningSceneLayer/BaseCorePad") as ColorRect
 	var core_marker := map.get_node("OpeningSceneLayer/BaseCoreObjectMarker") as ColorRect
@@ -130,6 +139,24 @@ func _check_opening_scene_layer() -> void:
 		true,
 		"opening scene region boundaries make route transitions visible"
 	)
+	host._expect_equal(demo_route_layer != null, true, "demo playable route layer exists")
+	host._expect_equal(
+		_is_rect_covering_position(demo_route_base, player.position)
+			and _is_rect_covering_position(demo_route_crystal, crystal_cluster.position)
+			and _is_rect_covering_position(demo_route_pollution, polluted_enemy.position)
+			and _is_rect_covering_position(demo_route_ruin, Vector2(520.0, 0.0))
+			and _is_rect_covering_position(demo_route_core, Vector2(3680.0, 0.0)),
+		true,
+		"demo playable route bands cover the S0 base, crystal, pollution, ruin and core beats"
+	)
+	host._expect_equal(
+		demo_route_core_flow.offset_left <= 700.0
+			and demo_route_core_flow.offset_right >= VerticalSliceMap.DEMO_STABILIZATION_CORE_REGION_X,
+		true,
+		"demo playable route keeps the late approach visually connected to the core station"
+	)
+	host._expect_text_contains(demo_route_base_label.text, "基地整备", "demo route label names the base preparation beat")
+	host._expect_text_contains(demo_route_core_label.text, "核心稳定站", "demo route label names the final station beat")
 	host._expect_equal(
 		base_deck.offset_left <= VerticalSliceMap.PLAY_BOUNDS_MIN.x + 24.0
 			and base_deck.offset_right < VerticalSliceMap.CRYSTAL_REGION_X,
@@ -566,8 +593,12 @@ func _check_object_feedback_states() -> void:
 
 
 func _check_hud_map_runtime_labels() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
 	var hud := PrototypeHudScene.instantiate() as PrototypeHud
+	host.root.add_child(map)
 	host.root.add_child(hud)
+	map.setup(host.data_registry)
+	hud.configure_map_presenter(host.data_registry, map)
 	hud._ensure_runtime_nodes()
 	host._expect_equal(
 		hud._format_map_marker_runtime_label("基地\n当前\n目标"),
@@ -579,6 +610,21 @@ func _check_hud_map_runtime_labels() -> void:
 		"晶体",
 		"first-hour minimap hides low-value locked status text"
 	)
+	var world := WorldState.create_default()
+	var character := CharacterState.create_default()
+	world.current_region_id = "region.outpost_platform"
+	world.quest_state.active_quest_ids = ["quest.scout_crystal_field"]
+	hud.update_status(host.data_registry, world, character)
+	host._expect_text_contains(hud.map_title_label.text, "基地整备", "first-hour minimap title names current S0 route beat")
+	host._expect_text_contains(hud.map_hint_label.text, "晶体采集", "first-hour minimap hint names next S0 route beat")
+	world.current_region_id = "region.ruin_outer_ring"
+	world.quest_state.active_quest_ids = ["quest.salvage_signal_echo"]
+	hud.update_status(host.data_registry, world, character)
+	host._expect_text_contains(hud.map_title_label.text, "遗迹外圈", "first-hour minimap title follows ruin route beat")
+	world.current_region_id = "region.demo_stabilization_core"
+	world.quest_state.active_quest_ids = ["quest.write_demo_stabilization_core"]
+	hud.update_status(host.data_registry, world, character)
+	host._expect_text_contains(hud.map_title_label.text, "核心稳定站", "first-hour minimap title follows core station route beat")
 	hud._set_control_rect(hud.map_panel, Vector2.ZERO, Vector2(560.0, 232.0))
 	hud._layout_map_panel_contents()
 	host._expect_equal(
@@ -587,6 +633,7 @@ func _check_hud_map_runtime_labels() -> void:
 		"first-hour minimap marker labels use staggered lanes"
 	)
 	hud.free()
+	map.free()
 
 
 func _check_hud_runtime_layout_first_pass() -> void:

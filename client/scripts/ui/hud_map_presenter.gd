@@ -5,6 +5,29 @@ const MAP_MARKER_CURRENT_COLOR := Color(0.18, 0.86, 0.93, 1.0)
 const MAP_MARKER_TARGET_COLOR := Color(1.0, 0.78, 0.28, 1.0)
 const MAP_MARKER_UNLOCKED_COLOR := Color(0.55, 0.72, 0.66, 1.0)
 const MAP_MARKER_LOCKED_COLOR := Color(0.28, 0.32, 0.32, 1.0)
+const ROUTE_STAGE_BY_REGION := {
+	"region.outpost_platform": "基地整备",
+	"region.crystal_vein_field": "晶体采集",
+	"region.pollution_edge": "污染排压",
+	"region.ruin_outer_ring": "遗迹外圈",
+	"region.deep_ruin_threshold": "深段推进",
+	"region.inner_phase_well": "深段推进",
+	"region.phase_well_sink": "深段推进",
+	"region.phase_well_chamber": "深段推进",
+	"region.phase_well_loom": "深段推进",
+	"region.phase_well_frame": "深段推进",
+	"region.phase_well_tether": "深段推进",
+	"region.demo_stabilization_core": "核心稳定站"
+}
+const ROUTE_PURPOSE_BY_STAGE := {
+	"基地整备": "加工/补给/确认出发",
+	"晶体采集": "矿物和残骸带回基地",
+	"污染排压": "沉积物过滤成药剂",
+	"遗迹外圈": "回波和沉积物回基地解析",
+	"深段推进": "解析/回投/锚定桥推进",
+	"核心稳定站": "补给/守卫/写入反馈",
+	"外勤推进": "按当前目标推进"
+}
 
 var target_region_resolver: QuestTargetRegionResolver
 
@@ -62,6 +85,18 @@ func format_map_marker_labels(world_state: WorldState, quest_id: String) -> Arra
 	for marker_view in get_marker_view_data(world_state, quest_id):
 		labels.append(String(marker_view.get("label", "")))
 	return labels
+
+
+func format_demo_route_title(world_state: WorldState, _quest_id: String) -> String:
+	return "外勤路线：%s" % _get_route_stage_label(world_state.current_region_id)
+
+
+func format_demo_route_hint(world_state: WorldState, quest_id: String) -> String:
+	var current_stage := _get_route_stage_label(world_state.current_region_id)
+	var target_stage := _get_route_stage_label(_get_quest_target_region_id(world_state, quest_id))
+	if target_stage.is_empty() or target_stage == current_stage:
+		return _get_route_stage_purpose(current_stage)
+	return "目标：%s · %s" % [target_stage, _get_route_stage_purpose(target_stage)]
 
 
 func _get_region_marker_data() -> Array[Dictionary]:
@@ -153,6 +188,18 @@ func _get_map_marker_color(region_id: String, world_state: WorldState, target_re
 	if world_state.unlocked_region_ids.has(region_id):
 		return MAP_MARKER_UNLOCKED_COLOR
 	return MAP_MARKER_LOCKED_COLOR
+
+
+func _get_route_stage_label(region_id: String) -> String:
+	if ROUTE_STAGE_BY_REGION.has(region_id):
+		return String(ROUTE_STAGE_BY_REGION[region_id])
+	return "外勤推进"
+
+
+func _get_route_stage_purpose(stage_label: String) -> String:
+	if ROUTE_PURPOSE_BY_STAGE.has(stage_label):
+		return String(ROUTE_PURPOSE_BY_STAGE[stage_label])
+	return String(ROUTE_PURPOSE_BY_STAGE["外勤推进"])
 
 
 func _get_quest_target_region_id(world_state: WorldState, quest_id: String) -> String:

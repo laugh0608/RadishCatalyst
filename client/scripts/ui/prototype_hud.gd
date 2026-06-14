@@ -531,6 +531,10 @@ func _get_display_name(data_registry: DataRegistry, definition_id: String) -> St
 
 func _update_map_panel(world_state: WorldState, quest_id: String) -> void:
 	_ensure_runtime_nodes()
+	if map_title_label != null:
+		map_title_label.text = map_presenter.format_demo_route_title(world_state, quest_id)
+	if map_hint_label != null:
+		map_hint_label.text = map_presenter.format_demo_route_hint(world_state, quest_id)
 	var marker_view_data := map_presenter.get_marker_view_data(world_state, quest_id)
 	for index in range(mini(marker_view_data.size(), map_marker_rects.size())):
 		if map_marker_rects[index] == null or map_marker_labels[index] == null:
