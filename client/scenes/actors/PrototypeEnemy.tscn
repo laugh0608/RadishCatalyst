@@ -11,6 +11,14 @@ script = ExtResource("1_enemy")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_enemy")
 
+[node name="FocusRing" type="ColorRect" parent="."]
+visible = false
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+color = Color(1, 0.5, 0.24, 0.48)
+
 [node name="Sprite" type="ColorRect" parent="."]
 offset_left = -12.0
 offset_top = -12.0

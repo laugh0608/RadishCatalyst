@@ -181,6 +181,7 @@ signal gm_vitals_refill_requested
 
 func _ready() -> void:
 	_ensure_runtime_nodes()
+	_apply_playtest_panel_style()
 	new_game_button.pressed.connect(_on_new_game_pressed)
 	baseline_previous_button.pressed.connect(_on_baseline_previous_pressed)
 	baseline_playtest_button.pressed.connect(_on_baseline_playtest_pressed)
@@ -741,6 +742,7 @@ func _ensure_runtime_nodes() -> void:
 
 func _layout_runtime_panels(force: bool = false) -> void:
 	_ensure_runtime_nodes()
+	_apply_playtest_panel_style()
 	var viewport_size := _get_runtime_viewport_size()
 	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
 		return
@@ -748,18 +750,18 @@ func _layout_runtime_panels(force: bool = false) -> void:
 		return
 
 	last_viewport_size = viewport_size
-	var margin := 18.0
-	var gap := 12.0
-	var map_width := clampf(viewport_size.x * 0.24, 500.0, 620.0)
-	var map_height := 190.0
+	var margin := 16.0
+	var gap := 10.0
+	var map_width := clampf(viewport_size.x * 0.18, 360.0, 460.0)
+	var map_height := 132.0
 	var objective_width := map_width
-	var objective_height := 178.0
-	var vitals_width := clampf(viewport_size.x * 0.20, 380.0, 460.0)
-	var vitals_height := 184.0
-	var prompt_width := clampf(viewport_size.x * 0.32, 620.0, 780.0)
-	var prompt_height := 144.0
-	var log_width := clampf(viewport_size.x * 0.28, 520.0, 680.0)
-	var log_height := 98.0
+	var objective_height := 136.0
+	var vitals_width := clampf(viewport_size.x * 0.16, 300.0, 380.0)
+	var vitals_height := 118.0
+	var prompt_width := clampf(viewport_size.x * 0.28, 500.0, 640.0)
+	var prompt_height := 88.0
+	var log_width := clampf(viewport_size.x * 0.23, 420.0, 560.0)
+	var log_height := 72.0
 	var device_width := clampf(viewport_size.x * 0.34, 520.0, 640.0)
 	var device_height := clampf(viewport_size.y * 0.52, 620.0, 760.0)
 	var feedback_width := clampf(viewport_size.x * 0.24, 460.0, 560.0)
@@ -821,10 +823,10 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	_set_control_rect(quick_slot_panel, quick_slot_position, Vector2(quick_width, quick_height))
 
 	_layout_map_panel_contents()
-	_layout_full_label(status_label, status_panel, 18.0, 18.0)
-	_layout_full_label(vitals_label, vitals_panel, 18.0, 18.0)
-	_layout_full_label(prompt_label, prompt_panel, 18.0, 18.0)
-	_layout_full_label(log_label, log_panel, 18.0, 18.0)
+	_layout_full_label(status_label, status_panel, 14.0, 14.0)
+	_layout_full_label(vitals_label, vitals_panel, 14.0, 14.0)
+	_layout_full_label(prompt_label, prompt_panel, 14.0, 12.0)
+	_layout_full_label(log_label, log_panel, 14.0, 12.0)
 	_layout_full_label(completion_title_label, completion_panel, 22.0, 16.0, 32.0)
 	_layout_full_label(completion_detail_label, completion_panel, 22.0, 62.0)
 	_layout_device_panel_labels()
@@ -851,23 +853,23 @@ func _layout_map_panel_contents() -> void:
 	if map_panel == null:
 		return
 	if map_title_label != null:
-		map_title_label.position = Vector2(18.0, 14.0)
-		map_title_label.size = Vector2(maxf(0.0, map_panel.size.x - 36.0), 28.0)
+		map_title_label.position = Vector2(14.0, 10.0)
+		map_title_label.size = Vector2(maxf(0.0, map_panel.size.x - 28.0), 24.0)
 	if map_hint_label != null:
-		map_hint_label.position = Vector2(18.0, 46.0)
-		map_hint_label.size = Vector2(maxf(0.0, map_panel.size.x - 36.0), 28.0)
+		map_hint_label.position = Vector2(14.0, 36.0)
+		map_hint_label.size = Vector2(maxf(0.0, map_panel.size.x - 28.0), 22.0)
 
 	var marker_count := mini(map_marker_rects.size(), map_marker_labels.size())
 	if marker_count <= 0:
 		return
 
-	var marker_top := 76.0
-	var marker_size := Vector2(16.0, 18.0)
-	var primary_label_top := 104.0
-	var secondary_label_top := 138.0
-	var label_height := 32.0
-	var left_margin := 22.0
-	var right_margin := 22.0
+	var marker_top := 64.0
+	var marker_size := Vector2(12.0, 14.0)
+	var primary_label_top := 86.0
+	var secondary_label_top := 106.0
+	var label_height := 20.0
+	var left_margin := 18.0
+	var right_margin := 18.0
 	var usable_width := maxf(0.0, map_panel.size.x - left_margin - right_margin - marker_size.x)
 	var step := 0.0
 	if marker_count > 1:
@@ -904,6 +906,17 @@ func _layout_map_panel_contents() -> void:
 	if map_track != null:
 		map_track.position = Vector2(first_center_x, marker_top + marker_size.y * 0.5 - 3.0)
 		map_track.size = Vector2(maxf(0.0, last_center_x - first_center_x), 6.0)
+
+
+func _apply_playtest_panel_style() -> void:
+	var primary_color := Color(0.035, 0.054, 0.059, 0.42)
+	var floating_color := Color(0.035, 0.054, 0.059, 0.88)
+	for panel in [map_panel, status_panel, vitals_panel, prompt_panel, log_panel]:
+		if panel != null:
+			panel.color = primary_color
+	for panel in [device_panel, completion_panel, evacuation_panel, supply_feedback_panel, save_panel, quick_slot_panel]:
+		if panel != null:
+			panel.color = floating_color
 
 
 func _layout_full_label(label: Label, panel: Control, left: float, top: float, forced_height: float = -1.0) -> void:

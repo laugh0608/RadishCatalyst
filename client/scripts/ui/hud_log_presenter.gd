@@ -1,7 +1,7 @@
 extends RefCounted
 class_name HudLogPresenter
 
-const STARTUP_LOG := "前哨已启动。WASD 移动，E 交互，J 攻击，Q 设备面板，F 启用过滤模块，1/2 使用快捷栏；Tab 切换调试面板。先检查前哨核心。"
+const STARTUP_LOG := "前哨已启动。WASD 移动，E 交互，J 攻击，Q 设备面板，1/2 使用补给。先检查前哨核心。"
 
 var data_registry: DataRegistry
 

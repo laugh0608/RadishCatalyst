@@ -995,8 +995,13 @@ func _check_hud_log_presenter() -> void:
 	var startup_log := presenter.format_startup_log()
 	host._expect_text_contains(
 		startup_log,
-		"Tab 切换调试面板",
-		"startup log keeps debug boundary hint"
+		"先检查前哨核心",
+		"startup log points to first player-facing action"
+	)
+	host._expect_text_missing(
+		startup_log,
+		"Tab",
+		"startup log hides debug panel shortcut from first screen"
 	)
 	if startup_log.length() > 80:
 		host.failures.append("startup log should stay compact, got %d chars: %s" % [startup_log.length(), startup_log])

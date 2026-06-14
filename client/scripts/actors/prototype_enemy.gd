@@ -23,6 +23,7 @@ var enemy_category: String = "basic"
 
 @onready var label: Label = $Label
 @onready var sprite: ColorRect = $Sprite
+@onready var focus_ring: ColorRect = $FocusRing
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
 
@@ -31,6 +32,8 @@ func _ensure_visual_nodes() -> void:
 		label = get_node_or_null("Label") as Label
 	if sprite == null:
 		sprite = get_node_or_null("Sprite") as ColorRect
+	if focus_ring == null:
+		focus_ring = get_node_or_null("FocusRing") as ColorRect
 	if collision_shape == null:
 		collision_shape = get_node_or_null("CollisionShape2D") as CollisionShape2D
 
@@ -93,6 +96,12 @@ func can_be_attacked() -> bool:
 func set_focus_visual(focused: bool) -> void:
 	if label != null:
 		label.visible = focused and visible and not defeated
+	if focus_ring != null:
+		focus_ring.visible = focused and visible and not defeated
+		if sprite != null:
+			var ring_size := sprite.size + Vector2(14.0, 14.0)
+			focus_ring.position = sprite.position - Vector2(7.0, 7.0)
+			focus_ring.size = ring_size
 	if sprite != null:
 		sprite.pivot_offset = sprite.size * 0.5
 		sprite.scale = FOCUSED_SPRITE_SCALE if focused else Vector2.ONE
@@ -190,3 +199,6 @@ func _apply_sprite_size(sprite_size: Vector2) -> void:
 		return
 	sprite.position = -sprite_size * 0.5
 	sprite.size = sprite_size
+	if focus_ring != null:
+		focus_ring.position = sprite.position - Vector2(7.0, 7.0)
+		focus_ring.size = sprite_size + Vector2(14.0, 14.0)

@@ -37,6 +37,14 @@ func _check_opening_scene_layer() -> void:
 	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
 	host.root.add_child(map)
 	var layer := map.get_node("OpeningSceneLayer") as Node2D
+	var player := map.get_node("Player") as PlayerController
+	var background := map.get_node("Background") as ColorRect
+	var main_route := map.get_node("MainRouteSpine") as ColorRect
+	var base_to_crystal_route := map.get_node("BaseToCrystalRouteBand") as ColorRect
+	var crystal_to_pollution_route := map.get_node("CrystalToPollutionRouteBand") as ColorRect
+	var crystal_boundary := map.get_node("RegionBoundaryCrystal") as ColorRect
+	var pollution_boundary_line := map.get_node("RegionBoundaryPollution") as ColorRect
+	var ruin_boundary := map.get_node("RegionBoundaryRuin") as ColorRect
 	var base_deck := map.get_node("OpeningSceneLayer/BaseDeckFloor") as ColorRect
 	var core_pad := map.get_node("OpeningSceneLayer/BaseCorePad") as ColorRect
 	var core_marker := map.get_node("OpeningSceneLayer/BaseCoreObjectMarker") as ColorRect
@@ -102,6 +110,26 @@ func _check_opening_scene_layer() -> void:
 	var polluted_enemy := map.get_node("Enemies/PollutedSkitter") as PrototypeEnemy
 	var gate_pressure_enemy := map.get_node("Enemies/PollutedSkitterGatePressure") as PrototypeEnemy
 	host._expect_equal(layer != null, true, "opening scene readability layer exists")
+	host._expect_equal(
+		background.offset_top <= VerticalSliceMap.CAMERA_BOUNDS_MIN.y - 120.0
+			and background.offset_bottom >= VerticalSliceMap.CAMERA_BOUNDS_MAX.y + 120.0,
+		true,
+		"opening scene background fills the camera instead of exposing gray margins"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(main_route, player.position)
+			and _is_rect_covering_position(base_to_crystal_route, Vector2(-40.0, -42.0))
+			and _is_rect_covering_position(crystal_to_pollution_route, Vector2(300.0, -8.0)),
+		true,
+		"opening scene route bands connect base exit, crystal route and pollution approach"
+	)
+	host._expect_equal(
+		crystal_boundary.offset_left < VerticalSliceMap.CRYSTAL_REGION_X
+			and pollution_boundary_line.offset_left < VerticalSliceMap.POLLUTION_REGION_X
+			and ruin_boundary.offset_left < VerticalSliceMap.RUIN_OUTER_RING_X,
+		true,
+		"opening scene region boundaries make route transitions visible"
+	)
 	host._expect_equal(
 		base_deck.offset_left <= VerticalSliceMap.PLAY_BOUNDS_MIN.x + 24.0
 			and base_deck.offset_right < VerticalSliceMap.CRYSTAL_REGION_X,
@@ -356,13 +384,16 @@ func _check_interactable_focus_labels() -> void:
 	var crystal_east := map.get_node("Interactables/CrystalClusterEast") as PrototypeInteractable
 	host._expect_equal(crystal.label.visible, false, "first-hour non-current crystal label starts hidden")
 	host._expect_equal(crystal.marker.scale, Vector2.ONE, "first-hour non-current crystal marker is not enlarged")
+	host._expect_equal(crystal.focus_ring.visible, false, "first-hour non-current crystal focus ring starts hidden")
 
 	map.player.position = crystal.position
 	map.update_current_interactable()
 	host._expect_equal(map.current_interactable, crystal, "first-hour nearest crystal becomes current interactable")
 	host._expect_equal(crystal.label.visible, true, "first-hour current crystal label is visible")
 	host._expect_equal(crystal.marker.scale, PrototypeInteractable.FOCUSED_MARKER_SCALE, "first-hour current crystal marker is enlarged")
+	host._expect_equal(crystal.focus_ring.visible, true, "first-hour current crystal shows focus ring")
 	host._expect_equal(crystal_east.label.visible, false, "first-hour nearby non-current crystal label remains hidden")
+	host._expect_equal(crystal_east.focus_ring.visible, false, "first-hour nearby non-current crystal focus ring remains hidden")
 	map.free()
 
 
@@ -377,16 +408,20 @@ func _check_enemy_focus_labels() -> void:
 	var polluted := map.get_node("Enemies/PollutedSkitter") as PrototypeEnemy
 	var gate_pressure := map.get_node("Enemies/PollutedSkitterGatePressure") as PrototypeEnemy
 	host._expect_equal(enemy.label.visible, false, "first-hour enemy label starts hidden when out of range")
+	host._expect_equal(enemy.focus_ring.visible, false, "first-hour enemy focus ring starts hidden when out of range")
 
 	map.player.position = enemy.position
 	map.update_current_interactable()
 	host._expect_equal(enemy.label.visible, true, "first-hour nearest attack target label is visible")
 	host._expect_equal(enemy.sprite.scale, PrototypeEnemy.FOCUSED_SPRITE_SCALE, "first-hour nearest attack target is enlarged")
+	host._expect_equal(enemy.focus_ring.visible, true, "first-hour nearest attack target shows focus ring")
 	host._expect_equal(patrol.label.visible, false, "first-hour non-current enemy label remains hidden")
+	host._expect_equal(patrol.focus_ring.visible, false, "first-hour non-current enemy focus ring remains hidden")
 
 	map.player.position = polluted.position
 	map.update_current_interactable()
 	host._expect_text_contains(polluted.label.text, "入口压力点", "first-hour polluted enemy focus label names entry pressure")
+	host._expect_equal(polluted.focus_ring.visible, true, "first-hour focused polluted enemy shows pressure focus ring")
 
 	world.quest_state.active_quest_ids = ["quest.defeat_elite_node"]
 	map.sync_enemy_states(world)
@@ -560,16 +595,18 @@ func _check_hud_runtime_layout_first_pass() -> void:
 	hud._ensure_runtime_nodes()
 	hud._layout_runtime_panels(true)
 	var viewport_size := hud._get_runtime_viewport_size()
-	host._expect_equal(hud.map_panel.size.y <= 190.0, true, "HUD first pass keeps minimap compact")
+	host._expect_equal(hud.map_panel.size.y <= 132.0, true, "HUD first pass keeps minimap compact")
 	host._expect_equal(hud.status_panel.position.y > hud.map_panel.position.y + hud.map_panel.size.y, true, "HUD first pass stacks objective below minimap")
 	host._expect_equal(hud.status_panel.position.x <= 20.0, true, "HUD first pass keeps objective on the left edge")
 	host._expect_equal(hud.vitals_panel.position.x + hud.vitals_panel.size.x >= viewport_size.x - 20.0, true, "HUD first pass keeps vitals on the right edge")
-	host._expect_equal(hud.vitals_panel.size.y <= 184.0, true, "HUD first pass keeps vitals summary compact")
+	host._expect_equal(hud.vitals_panel.size.y <= 118.0, true, "HUD first pass keeps vitals summary compact")
 	host._expect_equal(absf(hud.prompt_panel.position.x + hud.prompt_panel.size.x * 0.5 - viewport_size.x * 0.5) <= 1.0, true, "HUD first pass centers interaction prompt")
-	host._expect_equal(hud.prompt_panel.size.y <= 144.0, true, "HUD first pass lowers prompt height")
-	host._expect_equal(hud.log_panel.size.y >= 96.0, true, "HUD first pass reserves two log rows")
-	host._expect_equal(hud.log_panel.size.y <= 120.0, true, "HUD first pass keeps log rail compact")
-	host._expect_equal(hud.log_label.size.y >= 60.0, true, "HUD first pass keeps two-row log text visible")
+	host._expect_equal(hud.prompt_panel.size.y <= 88.0, true, "HUD first pass lowers prompt height")
+	host._expect_equal(hud.log_panel.size.y >= 72.0, true, "HUD first pass reserves compact log text")
+	host._expect_equal(hud.log_panel.size.y <= 84.0, true, "HUD first pass keeps log rail compact")
+	host._expect_equal(hud.log_label.size.y >= 48.0, true, "HUD first pass keeps compact log text visible")
+	host._expect_equal(hud.map_panel.color.a <= 0.45, true, "HUD first pass lowers persistent panel opacity")
+	host._expect_equal(hud.prompt_panel.color.a <= 0.45, true, "HUD first pass lowers prompt panel opacity")
 	host._expect_equal(hud.log_panel.position.x + hud.log_panel.size.x < hud.prompt_panel.position.x, true, "HUD first pass keeps log separate from prompt")
 	host._expect_equal(_controls_overlap(hud.completion_panel, hud.prompt_panel), false, "HUD first pass keeps quest feedback above prompt")
 	host._expect_equal(_controls_overlap(hud.device_panel, hud.evacuation_panel), false, "HUD first pass keeps device panel separate from evacuation feedback")

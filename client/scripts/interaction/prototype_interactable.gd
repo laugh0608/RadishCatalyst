@@ -90,6 +90,7 @@ var display_name_text: String = ""
 
 @onready var label: Label = $Label
 @onready var marker: ColorRect = $Marker
+@onready var focus_ring: ColorRect = $FocusRing
 
 
 func _ensure_visual_nodes() -> void:
@@ -97,6 +98,8 @@ func _ensure_visual_nodes() -> void:
 		label = get_node_or_null("Label") as Label
 	if marker == null:
 		marker = get_node_or_null("Marker") as ColorRect
+	if focus_ring == null:
+		focus_ring = get_node_or_null("FocusRing") as ColorRect
 
 
 func setup(display_name: String) -> void:
@@ -203,6 +206,12 @@ func set_interaction_enabled(enabled: bool) -> void:
 func set_focus_visual(focused: bool) -> void:
 	if label != null:
 		label.visible = focused and visible and not label.text.strip_edges().is_empty()
+	if focus_ring != null:
+		focus_ring.visible = focused and visible
+		if marker != null:
+			var ring_size := marker.size + Vector2(14.0, 14.0)
+			focus_ring.position = marker.position - Vector2(7.0, 7.0)
+			focus_ring.size = ring_size
 	if marker != null:
 		marker.pivot_offset = marker.size * 0.5
 		marker.scale = FOCUSED_MARKER_SCALE if focused else Vector2.ONE
@@ -749,6 +758,9 @@ func _apply_marker_style(marker_size: Vector2, color: Color) -> void:
 	marker.position = -marker_size * 0.5
 	marker.size = marker_size
 	marker.color = color
+	if focus_ring != null:
+		focus_ring.position = marker.position - Vector2(7.0, 7.0)
+		focus_ring.size = marker_size + Vector2(14.0, 14.0)
 
 
 func _get_default_marker_visual() -> Dictionary:
