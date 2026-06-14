@@ -237,6 +237,8 @@ static func format_core_archive_return_processing_line(
 		return "回访路线：核心归档维护已接入；从外勤出发口先回污染边界清出发路线 / 归档维护口袋，再回过滤器补药剂"
 	if not _has_completed_filter_processing(world_state):
 		return "回访处理：归档维护沉积已回收，先回污染过滤器处理成药剂和污染浆液"
+	if _has_unprocessed_core_archive_pressure_retest_residue(world_state, character_state):
+		return "回访处理：复测压力沉积已回收，先回污染过滤器处理成药剂和污染浆液"
 
 	var current_vial := DepartureSupplyRuntime.get_resistance_vial_count(character_state)
 	var target_vial := DepartureSupplyRuntime.get_resistance_vial_target(world_state)
@@ -263,6 +265,8 @@ static func format_core_archive_return_next_step(
 		return "先从外勤出发口回污染边界，清出发路线回访口袋和归档维护回访口袋"
 	if not _has_completed_filter_processing(world_state):
 		return "先回污染过滤器处理归档维护沉积，再补药剂和污染浆液"
+	if _has_unprocessed_core_archive_pressure_retest_residue(world_state, character_state):
+		return "先回污染过滤器处理复测压力沉积，再补药剂和污染浆液"
 	var current_vial := DepartureSupplyRuntime.get_resistance_vial_count(character_state)
 	var target_vial := DepartureSupplyRuntime.get_resistance_vial_target(world_state)
 	if current_vial < target_vial and DepartureSupplyRuntime.can_outpost_restock_resistance_vial(
@@ -412,6 +416,22 @@ static func _has_completed_filter_processing(world_state: WorldState) -> bool:
 		if String(structure.get("last_recipe_id", "")) == "recipe.cleanse_residue":
 			return true
 	return false
+
+
+static func _has_unprocessed_core_archive_pressure_retest_residue(
+	world_state: WorldState,
+	character_state: CharacterState
+) -> bool:
+	if world_state == null or character_state == null:
+		return false
+	return (
+		bool(
+			world_state.get_map_object(
+				"map_object_instance.pollution_residue_core_archive_pressure_retest_cache"
+			).get("is_gathered", false)
+		)
+		and character_state.inventory.has_ref("item.polluted_residue", 2)
+	)
 
 
 static func _has_slurry_buffer_tank(world_state: WorldState) -> bool:

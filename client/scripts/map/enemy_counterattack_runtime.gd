@@ -90,6 +90,8 @@ func _get_pressure_multiplier(enemy: PrototypeEnemy) -> float:
 		return 1.24
 	if enemy.instance_id == "enemy_instance.polluted_skitter_core_archive_return_guard":
 		return 1.32
+	if enemy.instance_id == "enemy_instance.polluted_skitter_core_archive_pressure_retest_guard":
+		return 1.38
 	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
 		return POLLUTION_RIDGE_COUNTER_MULT
 	if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
@@ -180,6 +182,7 @@ func _is_pollution_pressure_vial_enemy(enemy: PrototypeEnemy) -> bool:
 		or enemy.instance_id == "enemy_instance.polluted_skitter_vial_reserve_guard"
 		or enemy.instance_id == "enemy_instance.polluted_skitter_core_archive_route_guard"
 		or enemy.instance_id == "enemy_instance.polluted_skitter_core_archive_return_guard"
+		or enemy.instance_id == "enemy_instance.polluted_skitter_core_archive_pressure_retest_guard"
 		or enemy.instance_id == "enemy_instance.polluted_skitter_ridge"
 		or enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter"
 		or enemy.definition_id == "enemy.demo_stabilization_guard"
@@ -214,6 +217,13 @@ func _format_pollution_counter_message(
 			return _format_core_archive_route_message(message, pressure_vial_spend, world_state, character_state)
 		"enemy_instance.polluted_skitter_core_archive_return_guard":
 			return _format_core_archive_return_message(message, pressure_vial_spend, world_state, character_state)
+		"enemy_instance.polluted_skitter_core_archive_pressure_retest_guard":
+			return _format_core_archive_pressure_retest_message(
+				message,
+				pressure_vial_spend,
+				world_state,
+				character_state
+			)
 		"enemy_instance.polluted_skitter_ridge":
 			return _format_ridge_message(message, pressure_vial_spend, world_state, character_state)
 		"enemy_instance.core_buffer_polluted_skitter":
@@ -324,6 +334,23 @@ func _format_core_archive_return_message(
 	return "%s归档维护回访口袋污染压力抬升，%s；清完后回收沉积物验证基地维护反哺外勤。" % [
 		message,
 		DepartureSupplyRuntime.format_resistance_vial_shortage_for_pressure(world_state, character_state, "归档维护回访")
+	]
+
+
+func _format_core_archive_pressure_retest_message(
+	message: String,
+	pressure_vial_spend: Dictionary,
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	if bool(pressure_vial_spend.get("consumed", false)):
+		return "%s%s；核心归档维护和双药剂会继续降低复测压力点承压，清完后回收沉积物处理成下一趟补给。" % [
+			message,
+			DepartureSupplyRuntime.format_resistance_vial_pressure_spend(pressure_vial_spend, "复测压力点")
+		]
+	return "%s复测压力点污染反扑更强，%s；清完后回收沉积物，回过滤器处理成药剂和污染浆液。" % [
+		message,
+		DepartureSupplyRuntime.format_resistance_vial_shortage_for_pressure(world_state, character_state, "复测压力点")
 	]
 
 

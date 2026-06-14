@@ -303,6 +303,8 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			should_enable = should_enable and FieldOutfittingRuntime.is_core_archive_maintained(world_state)
 		if interactable.instance_id == "map_object_instance.pollution_residue_core_archive_return_cache":
 			should_enable = should_enable and FieldOutfittingRuntime.is_core_archive_maintained(world_state)
+		if interactable.instance_id == "map_object_instance.pollution_residue_core_archive_pressure_retest_cache":
+			should_enable = should_enable and _is_core_archive_pressure_retest_available(world_state)
 		if interactable.instance_id == "map_object_instance.outer_ring_echo_residue_cache":
 			should_enable = (
 				should_enable
@@ -431,6 +433,8 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 				followup = "出发路线回访口袋暂时安全；回收沉积物后回过滤器补满双药剂，再从外勤出发口复测核心稳定站。"
 			if target.instance_id == "enemy_instance.polluted_skitter_core_archive_return_guard":
 				followup = "归档维护回访口袋暂时安全；回收沉积物后回过滤器补药剂和污染浆液，确认基地维护已反哺外勤承压。"
+			if target.instance_id == "enemy_instance.polluted_skitter_core_archive_pressure_retest_guard":
+				followup = "复测压力点暂时安全；回收沉积物后回过滤器补药剂和污染浆液，多余浆液可回基地反应器回收基础零件。"
 			if target.instance_id == "enemy_instance.polluted_skitter_ridge":
 				followup = "污染脊守卫已清空；把沉积物带回过滤器处理，副产浆液可回收成信标所需基础零件。"
 			if target.instance_id == "enemy_instance.core_buffer_polluted_skitter":
@@ -748,6 +752,8 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 		return FieldOutfittingRuntime.is_core_archive_maintained(world_state)
 	if enemy.instance_id == "enemy_instance.polluted_skitter_core_archive_return_guard":
 		return FieldOutfittingRuntime.is_core_archive_maintained(world_state)
+	if enemy.instance_id == "enemy_instance.polluted_skitter_core_archive_pressure_retest_guard":
+		return _is_core_archive_pressure_retest_available(world_state)
 	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
 		return world_state.quest_state.has_active_quest("quest.scout_ruin_outer_ring") or world_state.quest_state.has_completed_quest("quest.scout_ruin_outer_ring")
 	if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
@@ -863,6 +869,30 @@ func _is_pollution_slurry_return_route_available(world_state: WorldState) -> boo
 	var first_vial_processed := world_state.quest_state.has_completed_quest("quest.enter_pollution_edge")
 	first_vial_processed = first_vial_processed or world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1") >= 1.0
 	return world_state.has_base_structure_definition("building.pollution_filter") and first_vial_processed
+
+
+func _is_core_archive_pressure_retest_available(world_state: WorldState) -> bool:
+	return (
+		FieldOutfittingRuntime.is_core_archive_maintained(world_state)
+		and _is_map_object_gathered(world_state, "map_object_instance.pollution_residue_core_archive_route_cache")
+		and _is_map_object_gathered(world_state, "map_object_instance.pollution_residue_core_archive_return_cache")
+		and _has_completed_pollution_filter_processing(world_state)
+	)
+
+
+func _is_map_object_gathered(world_state: WorldState, instance_id: String) -> bool:
+	return bool(world_state.get_map_object(instance_id).get("is_gathered", false))
+
+
+func _has_completed_pollution_filter_processing(world_state: WorldState) -> bool:
+	for structure in world_state.base_structures.values():
+		if not structure is Dictionary:
+			continue
+		if String(structure.get("definition_id", "")) != "building.pollution_filter":
+			continue
+		if String(structure.get("last_recipe_id", "")) == "recipe.cleanse_residue":
+			return true
+	return false
 
 
 func _grant_enemy_drops(enemy: PrototypeEnemy, character_state: CharacterState, world_state: WorldState) -> String:

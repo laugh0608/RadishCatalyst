@@ -31,6 +31,11 @@ func run(root: Node) -> void:
 	_check_core_archive_return_route_gate(root)
 	_check_core_archive_return_residue_feedback()
 	_check_core_archive_return_guard_feedback(root)
+	_check_core_archive_pressure_retest_layout(root)
+	_check_core_archive_pressure_retest_gate(root)
+	_check_core_archive_pressure_retest_guard_feedback(root)
+	_check_core_archive_pressure_retest_residue_feedback(root)
+	_check_core_archive_pressure_retest_processing_feedback()
 	_check_double_vial_pressure_spend_and_restock(root)
 	_check_double_vial_core_write_feedback()
 	_check_slurry_reclaim_hud_and_device_panel()
@@ -777,6 +782,202 @@ func _check_core_archive_return_guard_feedback(root: Node) -> void:
 	map.free()
 
 
+func _check_core_archive_pressure_retest_layout(root: Node) -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	map.setup(host.data_registry)
+	var pocket := map.get_node("OpeningSceneLayer/PollutionCoreArchivePressureRetestPocket") as ColorRect
+	var residue_marker := map.get_node("OpeningSceneLayer/PollutionCoreArchivePressureRetestResidueMarker") as ColorRect
+	var guard_marker := map.get_node("OpeningSceneLayer/PollutionCoreArchivePressureRetestGuardMarker") as ColorRect
+	var line := map.get_node("OpeningSceneLayer/PollutionCoreArchivePressureRetestLine") as ColorRect
+	var return_residue := map.get_node("Interactables/PollutionResidueCoreArchiveReturnCache") as PrototypeInteractable
+	var residue := map.get_node("Interactables/PollutionResidueCoreArchivePressureRetestCache") as PrototypeInteractable
+	var guard := map.get_node("Enemies/PollutedSkitterCoreArchivePressureRetestGuard") as PrototypeEnemy
+	host._expect_equal(
+		residue.position.x > return_residue.position.x
+			and residue.position.x < VerticalSliceMap.RUIN_OUTER_RING_X
+			and residue.position.y >= VerticalSliceMap.POLLUTION_DEEP_Y,
+		true,
+		"core archive pressure retest residue stays after return pocket inside pollution edge"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(pocket, residue.position)
+			and _is_rect_covering_position(residue_marker, residue.position)
+			and _is_rect_covering_position(guard_marker, guard.position)
+			and line.offset_right <= VerticalSliceMap.RUIN_OUTER_RING_X,
+		true,
+		"core archive pressure retest scene markers align with playable objects"
+	)
+	host._expect_equal(
+		guard.position.distance_to(residue.position) <= VerticalSliceMap.ATTACK_RANGE,
+		true,
+		"core archive pressure retest residue is tied to nearby combat"
+	)
+	map.free()
+
+
+func _check_core_archive_pressure_retest_gate(root: Node) -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	map.setup(host.data_registry)
+	var residue := map.get_node("Interactables/PollutionResidueCoreArchivePressureRetestCache") as PrototypeInteractable
+	var guard := map.get_node("Enemies/PollutedSkitterCoreArchivePressureRetestGuard") as PrototypeEnemy
+	var maintained_world := _create_core_archive_return_world(true)
+	map.sync_enemy_states(maintained_world)
+	map.refresh_world_interactables(maintained_world)
+	host._expect_equal(residue.can_interact(), false, "pressure retest residue waits for archive return processing")
+	host._expect_equal(guard.can_be_attacked(), false, "pressure retest guard waits for archive return processing")
+
+	var gathered_world := _create_core_archive_return_world(true)
+	_mark_core_archive_return_residue_gathered(gathered_world)
+	map.sync_enemy_states(gathered_world)
+	map.refresh_world_interactables(gathered_world)
+	host._expect_equal(residue.can_interact(), false, "pressure retest residue waits for filter completion")
+	host._expect_equal(guard.can_be_attacked(), false, "pressure retest guard waits for filter completion")
+
+	var ready_world := _create_core_archive_pressure_retest_world()
+	map.sync_enemy_states(ready_world)
+	map.refresh_world_interactables(ready_world)
+	host._expect_equal(residue.can_interact(), true, "pressure retest residue opens after archive return filtering")
+	host._expect_equal(guard.can_be_attacked(), true, "pressure retest guard opens after archive return filtering")
+	map.free()
+
+
+func _check_core_archive_pressure_retest_guard_feedback(root: Node) -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	map.setup(host.data_registry)
+	var world := _create_core_archive_pressure_retest_world()
+	var character := CharacterState.create_default()
+	character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	character.inventory.add_item("item.resistance_vial_t1", 2)
+	map.sync_enemy_states(world)
+	map.refresh_world_interactables(world)
+	var guard := map.get_node("Enemies/PollutedSkitterCoreArchivePressureRetestGuard") as PrototypeEnemy
+	map.player.position = guard.position
+	var result := map.try_attack(character, world)
+	host._expect_text_contains(
+		String(result.get("message", "")),
+		"第 1 份抗污染药剂已自动接入复测压力点排压",
+		"pressure retest guard consumes first vial"
+	)
+	host._expect_text_contains(
+		String(result.get("message", "")),
+		"核心归档维护和双药剂会继续降低复测压力点承压",
+		"pressure retest guard explains archive and double vial payoff"
+	)
+	host._expect_equal(
+		int(character.inventory.items.get("item.resistance_vial_t1", 0)),
+		1,
+		"pressure retest guard spends one vial"
+	)
+	map.try_attack(character, world)
+	var defeated_result := map.try_attack(character, world)
+	host._expect_equal(bool(defeated_result.get("enemy_defeated", false)), true, "pressure retest guard can be defeated")
+	host._expect_text_contains(
+		String(defeated_result.get("message", "")),
+		"复测压力点暂时安全",
+		"pressure retest guard defeat points to residue processing"
+	)
+	host._expect_equal(
+		bool(world.get_enemy("enemy_instance.polluted_skitter_core_archive_pressure_retest_guard").get("is_defeated", false)),
+		true,
+		"pressure retest guard defeat is stored"
+	)
+	host._expect_equal(
+		world.has_enemy_drops_granted("enemy_instance.polluted_skitter_core_archive_pressure_retest_guard"),
+		true,
+		"pressure retest guard drop grant is stored"
+	)
+	map.free()
+
+
+func _check_core_archive_pressure_retest_residue_feedback(root: Node) -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	map.setup(host.data_registry)
+	var world := _create_core_archive_pressure_retest_world()
+	var character := CharacterState.create_default()
+	character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	var residue := map.get_node("Interactables/PollutionResidueCoreArchivePressureRetestCache") as PrototypeInteractable
+	var prompt := InteractionPromptFormatter.new(
+		host.data_registry,
+		ProcessingSystem.new(host.data_registry),
+		BuildSystem.new(host.data_registry)
+	).format_general_interaction_prompt(residue, character, world)
+	host._expect_text_contains(prompt, "复测压力守卫", "pressure retest prompt names combat precondition")
+	var result := GatherSystem.new(host.data_registry).interact_with_object(
+		"map_object_instance.pollution_residue_core_archive_pressure_retest_cache",
+		"map_object.pollution_residue_patch",
+		"gather",
+		character,
+		world
+	)
+	host._expect_equal(bool(result.get("success", false)), true, "pressure retest residue gather succeeds")
+	host._expect_text_contains(
+		String(result.get("message", "")),
+		"过滤模块校准和核心归档维护已降低消耗",
+		"pressure retest residue reads outfitting pressure payoff"
+	)
+	host._expect_equal(
+		int(character.inventory.items.get("item.polluted_residue", 0)),
+		2,
+		"pressure retest residue grants polluted residue"
+	)
+	map.free()
+
+
+func _check_core_archive_pressure_retest_processing_feedback() -> void:
+	var world := _create_core_archive_pressure_retest_world()
+	world.quest_state.unlock_effect("recipe.cleanse_residue")
+	world.ensure_map_object(
+		"map_object_instance.pollution_residue_core_archive_pressure_retest_cache",
+		"map_object.pollution_residue_patch",
+		"region.pollution_edge"
+	)
+	world.set_map_object_flag("map_object_instance.pollution_residue_core_archive_pressure_retest_cache", "is_gathered", true)
+	var character := CharacterState.create_default()
+	character.inventory.add_item("item.polluted_residue", 2)
+	character.inventory.add_fluid("fluid.basic_solvent", 1.0)
+	var before_line := DepartureReadinessFormatter.format_core_archive_return_processing_line(world, character)
+	host._expect_text_contains(
+		before_line,
+		"复测压力沉积已回收",
+		"departure readiness points unprocessed pressure retest residue back to filter"
+	)
+	var processing := ProcessingSystem.new(host.data_registry)
+	var start := processing.process_recipe("recipe.cleanse_residue", character, world)
+	host._expect_equal(bool(start.get("success", false)), true, "pressure retest residue can start filtering")
+	host._expect_text_contains(
+		String(start.get("message", "")),
+		"复测压力沉积",
+		"pressure retest filtering start names residue source"
+	)
+	var completed := processing.advance_processing(13.0, character, world)
+	host._expect_equal(completed.size(), 1, "pressure retest residue filtering completes")
+	if not completed.is_empty():
+		host._expect_text_contains(
+			String(completed[0].get("next_step_text", "")),
+			"复测压力沉积已处理",
+			"pressure retest filtering completion names processed source"
+		)
+		host._expect_text_contains(
+			String(completed[0].get("next_step_text", "")),
+			"污染浆液回基础反应器回收基础零件",
+			"pressure retest filtering completion points slurry to reactor reclaim"
+		)
+	host._expect_equal(
+		int(character.inventory.items.get("item.resistance_vial_t1", 0)),
+		1,
+		"pressure retest filtering grants resistance vial"
+	)
+	host._expect_equal(
+		float(character.inventory.fluids.get("fluid.polluted_slurry", 0.0)),
+		1.0,
+		"pressure retest filtering grants polluted slurry"
+	)
+
+
 func _check_double_vial_core_write_feedback() -> void:
 	var gather_system := GatherSystem.new(host.data_registry)
 	var world := _create_double_vial_world()
@@ -860,6 +1061,29 @@ func _create_core_archive_return_world(maintained: bool) -> WorldState:
 	if maintained:
 		FieldOutfittingRuntime.mark_core_archive_maintained(world)
 	return world
+
+
+func _create_core_archive_pressure_retest_world() -> WorldState:
+	var world := _create_core_archive_return_world(true)
+	FieldOutfittingRuntime.mark_module_calibrated(world)
+	_mark_core_archive_return_residue_gathered(world)
+	world.set_base_structure_status("structure.pollution_filter_build_site", "completed", "recipe.cleanse_residue")
+	return world
+
+
+func _mark_core_archive_return_residue_gathered(world: WorldState) -> void:
+	world.ensure_map_object(
+		"map_object_instance.pollution_residue_core_archive_route_cache",
+		"map_object.pollution_residue_patch",
+		"region.pollution_edge"
+	)
+	world.ensure_map_object(
+		"map_object_instance.pollution_residue_core_archive_return_cache",
+		"map_object.pollution_residue_patch",
+		"region.pollution_edge"
+	)
+	world.set_map_object_flag("map_object_instance.pollution_residue_core_archive_route_cache", "is_gathered", true)
+	world.set_map_object_flag("map_object_instance.pollution_residue_core_archive_return_cache", "is_gathered", true)
 
 
 func _check_slurry_reclaim_hud_and_device_panel() -> void:

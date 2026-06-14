@@ -187,6 +187,8 @@ static func format_next_sortie_action(world_state: WorldState, character_state: 
 			return "核心归档维护已接入，从外勤出发口先回污染边界处理回访口袋；处理后从外勤出发口复测核心稳定站"
 		if not _has_completed_filter_processing(world_state):
 			return "核心归档维护沉积已回收，先回污染过滤器处理；处理后从外勤出发口复测核心稳定站"
+		if _has_unprocessed_core_archive_pressure_retest_residue(world_state, character_state):
+			return "复测压力沉积已回收，先回污染过滤器处理；处理后补药剂并整理污染浆液收益"
 		return "核心归档维护已接入，从外勤出发口复测核心稳定站"
 	return "从外勤出发口复测核心稳定站"
 
@@ -253,3 +255,19 @@ static func _has_completed_filter_processing(world_state: WorldState) -> bool:
 		if String(structure.get("last_recipe_id", "")) == "recipe.cleanse_residue":
 			return true
 	return false
+
+
+static func _has_unprocessed_core_archive_pressure_retest_residue(
+	world_state: WorldState,
+	character_state: CharacterState
+) -> bool:
+	if world_state == null or character_state == null:
+		return false
+	return (
+		bool(
+			world_state.get_map_object(
+				"map_object_instance.pollution_residue_core_archive_pressure_retest_cache"
+			).get("is_gathered", false)
+		)
+		and character_state.inventory.has_ref("item.polluted_residue", 2)
+	)

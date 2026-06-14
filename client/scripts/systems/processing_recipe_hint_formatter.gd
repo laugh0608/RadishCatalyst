@@ -130,6 +130,8 @@ static func should_return_for_second_pollution_residue_batch(world_state: WorldS
 
 static func _get_pollution_residue_processing_started_appendix(world_state: WorldState = null) -> String:
 	if world_state != null:
+		if _is_core_archive_pressure_retest_context(world_state):
+			return "本次会把复测压力沉积转成抗污染药剂和污染浆液；完成后回前哨核心补药剂，多余污染浆液可回基地基础反应器回收基础零件。"
 		if _is_core_archive_return_residue_context(world_state):
 			return "本次会把归档维护回访沉积转成抗污染药剂和污染浆液；完成后回前哨核心补满药剂，再从外勤出发口复测核心稳定站。"
 		if world_state.quest_state.has_active_quest("quest.assemble_phase_anchor"):
@@ -145,6 +147,8 @@ static func _get_pollution_residue_processing_started_appendix(world_state: Worl
 
 static func _get_pollution_vial_completion_next_step(world_state: WorldState = null) -> String:
 	if world_state != null:
+		if _is_core_archive_pressure_retest_context(world_state):
+			return "复测压力沉积已处理成抗污染药剂和污染浆液；回前哨核心把药剂补到 %s，再把多余污染浆液回基础反应器回收基础零件。" % _format_resistance_vial_target(world_state)
 		if _is_core_archive_return_residue_context(world_state):
 			return "归档维护回访沉积已处理成抗污染药剂和污染浆液；回前哨核心把抗污染药剂补到 %s，再从外勤出发口复测核心稳定站或回污染边界确认承压。" % _format_resistance_vial_target(world_state)
 		if world_state.quest_state.has_active_quest("quest.assemble_phase_anchor"):
@@ -174,6 +178,19 @@ static func _is_core_archive_return_residue_context(world_state: WorldState) -> 
 					"map_object_instance.pollution_residue_core_archive_return_cache"
 				).get("is_gathered", false)
 			)
+		)
+	)
+
+
+static func _is_core_archive_pressure_retest_context(world_state: WorldState) -> bool:
+	return (
+		world_state != null
+		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
+		and FieldOutfittingRuntime.is_core_archive_maintained(world_state)
+		and bool(
+			world_state.get_map_object(
+				"map_object_instance.pollution_residue_core_archive_pressure_retest_cache"
+			).get("is_gathered", false)
 		)
 	)
 
