@@ -1031,18 +1031,18 @@ func _check_development_baseline_presenter() -> void:
 	var definitions := DevelopmentBaselineCatalog.get_baseline_definitions()
 	host._expect_equal(definitions.size(), 22, "development baseline catalog count")
 	host._expect_equal(
-		DevelopmentBaselineCatalog.get_demo_playtest_baseline_ids(),
+		DevelopmentBaselineCatalog.get_demo_baseline_ids(),
 		[
 			"baseline.s0_new_game",
 			"baseline.s2_outer_ring_secured",
 			"baseline.s21_demo_stabilization_core_ready"
 		],
-		"development baseline catalog exposes demo playtest queue"
+		"development baseline catalog exposes demo baseline queue"
 	)
 	host._expect_equal(
-		DevelopmentBaselineCatalog.get_default_demo_playtest_baseline_id(),
+		DevelopmentBaselineCatalog.get_default_demo_baseline_id(),
 		"baseline.s2_outer_ring_secured",
-		"development baseline catalog defaults to S2 demo sampling"
+		"development baseline catalog defaults to S2 demo baseline"
 	)
 	host._expect_equal(
 		String(definitions[0].get("id", "")),
@@ -1054,9 +1054,9 @@ func _check_development_baseline_presenter() -> void:
 	host._expect_text_contains(selected_text, "S3 裂相脊入口已开", "development baseline presenter shows selected baseline name")
 	host._expect_text_contains(selected_text, "相位纤丝", "development baseline presenter shows baseline summary")
 	host._expect_text_contains(selected_text, "过滤器精炼", "development baseline presenter shows recommended use")
-	var playtest_text := presenter.format_selected_baseline(definitions[2], 2, definitions.size())
-	host._expect_text_contains(playtest_text, "Demo取样 2/3", "development baseline presenter marks S2 demo sampling")
-	host._expect_text_contains(playtest_text, "污染浆液去向", "development baseline presenter shows S2 sampling focus")
+	var demo_baseline_text := presenter.format_selected_baseline(definitions[2], 2, definitions.size())
+	host._expect_text_contains(demo_baseline_text, "Demo基线 2/3", "development baseline presenter marks S2 demo baseline")
+	host._expect_text_contains(demo_baseline_text, "污染浆液去向", "development baseline presenter shows S2 baseline focus")
 	host._expect_equal(
 		String(definitions[21].get("id", "")),
 		"baseline.s21_demo_stabilization_core_ready",
@@ -1066,8 +1066,8 @@ func _check_development_baseline_presenter() -> void:
 	var s21_result := builder.create_baseline_state("baseline.s21_demo_stabilization_core_ready")
 	host._expect_text_contains(
 		String(s21_result.get("message", "")),
-		"试玩观察",
-		"development baseline load log includes demo playtest watch point"
+		"开发观察",
+		"development baseline load log includes demo baseline watch point"
 	)
 
 
@@ -1080,19 +1080,19 @@ func _check_development_baseline_hud_entry() -> void:
 		"baseline.s2_outer_ring_secured",
 		"HUD development baseline defaults to S2 demo sampling"
 	)
-	host._expect_text_contains(hud.baseline_label.text, "Demo取样 2/3", "HUD baseline label shows sampling index")
-	host._expect_equal(hud.baseline_playtest_button != null, true, "HUD scene exposes demo sampling baseline button")
-	hud._on_baseline_playtest_pressed()
+	host._expect_text_contains(hud.baseline_label.text, "Demo基线 2/3", "HUD baseline label shows demo baseline index")
+	host._expect_equal(hud.baseline_demo_button != null, true, "HUD scene exposes demo baseline button")
+	hud._on_demo_baseline_pressed()
 	host._expect_equal(
 		String(hud._get_selected_development_baseline().get("id", "")),
 		"baseline.s21_demo_stabilization_core_ready",
-		"HUD demo sampling button jumps from S2 to S21"
+		"HUD demo baseline button jumps from S2 to S21"
 	)
-	hud._on_baseline_playtest_pressed()
+	hud._on_demo_baseline_pressed()
 	host._expect_equal(
 		String(hud._get_selected_development_baseline().get("id", "")),
 		"baseline.s0_new_game",
-		"HUD demo sampling button wraps from S21 to S0"
+		"HUD demo baseline button wraps from S21 to S0"
 	)
 	hud._on_baseline_next_pressed()
 	host._expect_equal(

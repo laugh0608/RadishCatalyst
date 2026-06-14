@@ -145,7 +145,7 @@ var last_debug_character_state: CharacterState
 @onready var new_game_button: Button = $SavePanel/NewGameButton
 @onready var baseline_label: Label = $SavePanel/BaselineLabel
 @onready var baseline_previous_button: Button = $SavePanel/BaselinePreviousButton
-@onready var baseline_playtest_button: Button = $SavePanel/BaselinePlaytestButton
+@onready var baseline_demo_button: Button = $SavePanel/BaselineDemoButton
 @onready var baseline_load_button: Button = $SavePanel/BaselineLoadButton
 @onready var baseline_next_button: Button = $SavePanel/BaselineNextButton
 @onready var save_slot_labels: Array[Label] = [
@@ -181,10 +181,10 @@ signal gm_vitals_refill_requested
 
 func _ready() -> void:
 	_ensure_runtime_nodes()
-	_apply_playtest_panel_style()
+	_apply_runtime_panel_style()
 	new_game_button.pressed.connect(_on_new_game_pressed)
 	baseline_previous_button.pressed.connect(_on_baseline_previous_pressed)
-	baseline_playtest_button.pressed.connect(_on_baseline_playtest_pressed)
+	baseline_demo_button.pressed.connect(_on_demo_baseline_pressed)
 	baseline_load_button.pressed.connect(_on_baseline_load_pressed)
 	baseline_next_button.pressed.connect(_on_baseline_next_pressed)
 	for index in range(SAVE_SLOT_IDS.size()):
@@ -393,7 +393,7 @@ func update_development_baselines(definitions: Array[Dictionary]) -> void:
 		selected_development_baseline_index = 0
 	else:
 		if selected_baseline_id.is_empty():
-			selected_baseline_id = DevelopmentBaselineCatalog.get_default_demo_playtest_baseline_id()
+			selected_baseline_id = DevelopmentBaselineCatalog.get_default_demo_baseline_id()
 		_select_development_baseline_by_id(selected_baseline_id)
 	_refresh_development_baseline_panel()
 
@@ -424,20 +424,20 @@ func _on_baseline_previous_pressed() -> void:
 	_refresh_development_baseline_panel()
 
 
-func _on_baseline_playtest_pressed() -> void:
+func _on_demo_baseline_pressed() -> void:
 	if development_baseline_definitions.is_empty():
 		return
-	var playtest_ids := DevelopmentBaselineCatalog.get_demo_playtest_baseline_ids()
-	if playtest_ids.is_empty():
+	var demo_baseline_ids := DevelopmentBaselineCatalog.get_demo_baseline_ids()
+	if demo_baseline_ids.is_empty():
 		return
 	var current_id := _get_selected_development_baseline_id()
-	var current_playtest_index := playtest_ids.find(current_id)
-	var next_playtest_id := ""
-	if current_playtest_index < 0:
-		next_playtest_id = DevelopmentBaselineCatalog.get_default_demo_playtest_baseline_id()
+	var current_demo_baseline_index := demo_baseline_ids.find(current_id)
+	var next_demo_baseline_id := ""
+	if current_demo_baseline_index < 0:
+		next_demo_baseline_id = DevelopmentBaselineCatalog.get_default_demo_baseline_id()
 	else:
-		next_playtest_id = playtest_ids[posmod(current_playtest_index + 1, playtest_ids.size())]
-	_select_development_baseline_by_id(next_playtest_id)
+		next_demo_baseline_id = demo_baseline_ids[posmod(current_demo_baseline_index + 1, demo_baseline_ids.size())]
+	_select_development_baseline_by_id(next_demo_baseline_id)
 	_refresh_development_baseline_panel()
 
 
@@ -575,8 +575,8 @@ func _refresh_development_baseline_panel() -> void:
 	var has_definitions := not development_baseline_definitions.is_empty()
 	if baseline_previous_button != null:
 		baseline_previous_button.disabled = not has_definitions
-	if baseline_playtest_button != null:
-		baseline_playtest_button.disabled = not _has_available_demo_playtest_baselines()
+	if baseline_demo_button != null:
+		baseline_demo_button.disabled = not _has_available_demo_baselines()
 	if baseline_load_button != null:
 		baseline_load_button.disabled = not has_definitions
 	if baseline_next_button != null:
@@ -712,8 +712,8 @@ func _ensure_runtime_nodes() -> void:
 		baseline_label = get_node_or_null("SavePanel/BaselineLabel")
 	if baseline_previous_button == null:
 		baseline_previous_button = get_node_or_null("SavePanel/BaselinePreviousButton")
-	if baseline_playtest_button == null:
-		baseline_playtest_button = get_node_or_null("SavePanel/BaselinePlaytestButton")
+	if baseline_demo_button == null:
+		baseline_demo_button = get_node_or_null("SavePanel/BaselineDemoButton")
 	if baseline_load_button == null:
 		baseline_load_button = get_node_or_null("SavePanel/BaselineLoadButton")
 	if baseline_next_button == null:
@@ -746,7 +746,7 @@ func _ensure_runtime_nodes() -> void:
 
 func _layout_runtime_panels(force: bool = false) -> void:
 	_ensure_runtime_nodes()
-	_apply_playtest_panel_style()
+	_apply_runtime_panel_style()
 	var viewport_size := _get_runtime_viewport_size()
 	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
 		return
@@ -912,7 +912,7 @@ func _layout_map_panel_contents() -> void:
 		map_track.size = Vector2(maxf(0.0, last_center_x - first_center_x), 6.0)
 
 
-func _apply_playtest_panel_style() -> void:
+func _apply_runtime_panel_style() -> void:
 	var primary_color := Color(0.035, 0.054, 0.059, 0.42)
 	var floating_color := Color(0.035, 0.054, 0.059, 0.88)
 	for panel in [map_panel, status_panel, vitals_panel, prompt_panel, log_panel]:
@@ -998,8 +998,8 @@ func _find_development_baseline_index(baseline_id: String) -> int:
 	return -1
 
 
-func _has_available_demo_playtest_baselines() -> bool:
-	for baseline_id in DevelopmentBaselineCatalog.get_demo_playtest_baseline_ids():
+func _has_available_demo_baselines() -> bool:
+	for baseline_id in DevelopmentBaselineCatalog.get_demo_baseline_ids():
 		if _find_development_baseline_index(baseline_id) >= 0:
 			return true
 	return false

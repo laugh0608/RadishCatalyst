@@ -146,12 +146,12 @@ offset_right = 288.0
 offset_bottom = 346.0
 text = "上个"
 
-[node name="BaselinePlaytestButton" type="Button" parent="SavePanel"]
+[node name="BaselineDemoButton" type="Button" parent="SavePanel"]
 offset_left = 300.0
 offset_top = 314.0
 offset_right = 376.0
 offset_bottom = 346.0
-text = "Demo取样"
+text = "Demo基线"
 
 [node name="BaselineLoadButton" type="Button" parent="SavePanel"]
 offset_left = 388.0
