@@ -20,6 +20,7 @@ func format_device_panel_texts(
 		"title": "设备面板：%s" % _get_display_name(data_registry, interactable.definition_id),
 		"status": _format_device_status(
 			data_registry,
+			interactable.definition_id,
 			displayed_recipe_id,
 			status,
 			recommended_recipe_id,
@@ -40,6 +41,7 @@ func format_device_panel_texts(
 
 func _format_device_status(
 	data_registry: DataRegistry,
+	building_id: String,
 	recipe_id: String,
 	status: Dictionary,
 	recommended_recipe_id: String,
@@ -53,6 +55,12 @@ func _format_device_status(
 	var purpose_hint := RecipePurposeHints.format_recipe_goal_hint(recipe_id, world_state)
 	if not purpose_hint.is_empty():
 		parts.append("用途：%s" % purpose_hint)
+	if (
+		building_id == "building.basic_reactor"
+		and FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state)
+		and not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state)
+	):
+		parts.append(DepartureReadinessFormatter.format_crystal_logistics_return_line(world_state, character_state))
 	var core_aftermath := CoreGuardAftermathFormatter.format_device_line(world_state, character_state)
 	if not core_aftermath.is_empty():
 		parts.append(core_aftermath)

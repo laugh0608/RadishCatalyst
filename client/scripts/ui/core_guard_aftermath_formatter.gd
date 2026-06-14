@@ -66,6 +66,14 @@ static func format_next_sortie_goal_name(world_state: WorldState) -> String:
 		return ""
 	if world_state.current_region_id != "region.outpost_platform":
 		return "核心写入归档待回前哨"
+	if FieldOutfittingRuntime.is_crystal_logistics_return_available(world_state):
+		if not FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state):
+			return "晶体侧路后勤补料待回收"
+		if not FieldOutfittingRuntime.is_logistics_material_processed(world_state):
+			return "基地后勤补料待加工"
+		if not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
+			return "出发整备台维护待确认"
+		return "下一趟外勤准备"
 	return "核心写入归档后出发准备"
 
 
@@ -76,9 +84,13 @@ static func format_next_sortie_route_line(world_state: WorldState) -> String:
 		return "核心写入已归档；返回前哨核心补给并整理下一趟外勤"
 	if _has_core_retest_readout(world_state):
 		if _is_crystal_logistics_return_available(world_state):
-			if not _has_crystal_logistics_return_materials(world_state):
+			if not FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state):
 				return "核心复测读数已带回；从外勤出发口回晶体侧路补后勤材料"
-			return "晶体侧路补料已回收；回前哨核心补给并确认出发整备"
+			if not FieldOutfittingRuntime.is_logistics_material_processed(world_state):
+				return "晶体侧路补料已带回；回基础反应器加工基础零件，再确认整备台维护"
+			if not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
+				return "后勤补料已加工；到出发整备台确认维护材料，再回前哨核心补给"
+			return "后勤补料已处理，整备台维护已确认；回前哨核心补给后准备下一趟外勤"
 		return "核心复测读数已带回；回前哨核心补给并确认出发整备"
 	if _is_core_retest_readout_available(world_state):
 		return "核心写入已归档；从外勤出发口复测核心稳定站并回收复测读数缓存"
@@ -89,8 +101,11 @@ static func get_next_sortie_target_region_id(world_state: WorldState) -> String:
 	if not should_show_next_sortie(world_state):
 		return ""
 	if world_state.current_region_id == "region.outpost_platform":
-		if _is_crystal_logistics_return_available(world_state) and not _has_crystal_logistics_return_materials(world_state):
-			return "region.crystal_vein_field"
+		if _is_crystal_logistics_return_available(world_state):
+			if not FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state):
+				return "region.crystal_vein_field"
+			if not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
+				return "region.outpost_platform"
 		return "region.demo_stabilization_core"
 	return "region.outpost_platform"
 
@@ -206,9 +221,13 @@ static func format_next_sortie_action(world_state: WorldState, character_state: 
 			return "核心归档维护已接入，从外勤出发口复测核心稳定站并回收复测读数缓存"
 		if _has_core_retest_readout(world_state):
 			if _is_crystal_logistics_return_available(world_state):
-				if not _has_crystal_logistics_return_materials(world_state):
+				if not FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state):
 					return "核心复测读数已回收，回晶体侧路补晶体矿和残骸废件"
-				return "晶体侧路补料已回收，回前哨核心补给并确认出发整备"
+				if not FieldOutfittingRuntime.is_logistics_material_processed(world_state):
+					return "晶体侧路补料已带回，回基础反应器加工基础零件，再确认整备台维护"
+				if not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
+					return "基础零件已加工，到出发整备台确认后勤维护"
+				return "后勤补料处理和整备台维护已确认，回前哨核心补给后准备下一趟外勤"
 			return "核心复测读数已回收，回前哨核心补给并确认出发整备"
 		return "核心归档维护已接入，从外勤出发口复测核心稳定站"
 	return "从外勤出发口复测核心稳定站"
@@ -303,21 +322,11 @@ static func _is_core_retest_readout_available(world_state: WorldState) -> bool:
 
 
 static func _is_crystal_logistics_return_available(world_state: WorldState) -> bool:
-	return (
-		world_state != null
-		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
-		and FieldOutfittingRuntime.is_core_archive_maintained(world_state)
-		and _has_core_retest_readout(world_state)
-	)
+	return FieldOutfittingRuntime.is_crystal_logistics_return_available(world_state)
 
 
 static func _has_crystal_logistics_return_materials(world_state: WorldState) -> bool:
-	if world_state == null:
-		return false
-	return (
-		bool(world_state.get_map_object(CRYSTAL_LOGISTICS_RETURN_CRYSTAL_INSTANCE_ID).get("is_gathered", false))
-		and bool(world_state.get_map_object(CRYSTAL_LOGISTICS_RETURN_WRECKAGE_INSTANCE_ID).get("is_gathered", false))
-	)
+	return FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state)
 
 
 static func _has_unprocessed_core_archive_pressure_retest_residue(

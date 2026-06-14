@@ -5,6 +5,18 @@ class_name RecipePurposeHints
 static func format_recipe_goal_hint(recipe_id: String, world_state: WorldState = null) -> String:
 	match recipe_id:
 		"recipe.process_crystal_ore":
+			if (
+				world_state != null
+				and FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state)
+				and not FieldOutfittingRuntime.is_logistics_material_processed(world_state)
+			):
+				return "把晶体侧路带回的补料晶体转成基础零件，随后去出发整备台确认维护材料。"
+			if (
+				world_state != null
+				and FieldOutfittingRuntime.is_logistics_material_processed(world_state)
+				and not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state)
+			):
+				return "后勤补料已加工成基础零件；下一步是到出发整备台确认维护材料。"
 			return "把晶体矿物转成基础零件，支撑校准件、过滤模块、地基和补给。"
 		"recipe.reclaim_basic_parts":
 			return "把污染处理副产的污染浆液回收成基础零件，让副产物重新服务补给、地基、模块和稳相信标。"

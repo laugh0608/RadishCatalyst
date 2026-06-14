@@ -177,6 +177,10 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 			return "\n".join(parts)
 		if FieldOutfittingRuntime.is_core_archive_maintained(world_state):
 			parts.append("核心归档：维护已接入，污染采集和污染反击承压继续下降。")
+		if FieldOutfittingRuntime.should_confirm_logistics_maintenance(character_state, world_state):
+			parts.append("后勤维护：补料已加工成基础零件，待出发整备台确认。")
+			parts.append("操作：E 确认后勤维护")
+			return "\n".join(parts)
 		if FieldOutfittingRuntime.is_module_calibrated(world_state):
 			parts.append("维护：晶体校准已写入，污染采集和污染反击承压继续下降。")
 			parts.append("操作：E 检查整备状态")
@@ -218,6 +222,12 @@ func format_processing_prompt(
 			interactable.get_recipe_count()
 		]
 	parts.append(recipe_line)
+	if (
+		interactable.definition_id == "building.basic_reactor"
+		and FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state)
+		and not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state)
+	):
+		parts.append(DepartureReadinessFormatter.format_crystal_logistics_return_line(world_state, character_state))
 
 	var io_line := "%s -> %s" % [
 		String(status.get("inputs", "无")),
@@ -853,7 +863,7 @@ func _get_general_interaction_status(
 	if interactable.definition_id == "map_object.demo_stabilization_core":
 		return CoreStabilizationPressureFormatter.format_interaction_status(character_state, world_state, object_state)
 	if _is_crystal_logistics_return_object(interactable.instance_id):
-		return _get_crystal_logistics_return_status(interactable, object_state)
+		return _get_crystal_logistics_return_status(interactable, object_state, world_state)
 	if _is_general_interaction_processed(interactable, object_state):
 		return _get_processed_interaction_status(interactable, character_state, world_state)
 	if interactable.definition_id == CoreStabilizationPressureFormatter.RETEST_READOUT_DEFINITION_ID:
@@ -930,7 +940,7 @@ func _get_general_interaction_next_step(
 	if interactable.definition_id == CoreStabilizationPressureFormatter.RETEST_READOUT_DEFINITION_ID:
 		return CoreStabilizationPressureFormatter.format_retest_readout_next_step(world_state, character_state)
 	if _is_crystal_logistics_return_object(interactable.instance_id):
-		return _get_crystal_logistics_return_next_step(interactable, object_state)
+		return _get_crystal_logistics_return_next_step(interactable, object_state, world_state)
 	if interactable.definition_id != "map_object.pollution_residue_patch":
 		return ""
 	var contextual_step := _get_pollution_residue_contextual_next_step(interactable, object_state, world_state)
@@ -995,18 +1005,28 @@ func _is_crystal_logistics_return_object(instance_id: String) -> bool:
 
 func _get_crystal_logistics_return_status(
 	interactable: PrototypeInteractable,
-	object_state: Dictionary
+	object_state: Dictionary,
+	world_state: WorldState
 ) -> String:
 	if _is_general_interaction_processed(interactable, object_state):
+		if FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
+			return "后勤补料已回收并处理；出发整备台维护已确认。"
+		if FieldOutfittingRuntime.is_logistics_material_processed(world_state):
+			return "后勤补料已回收并加工成基础零件；出发整备台维护待确认。"
 		return "后勤补料已回收；现场保留已回收标记。"
 	return "后勤补料可回收；附近守卫仍会压住这条晶体侧路。"
 
 
 func _get_crystal_logistics_return_next_step(
 	interactable: PrototypeInteractable,
-	object_state: Dictionary
+	object_state: Dictionary,
+	world_state: WorldState
 ) -> String:
 	if _is_general_interaction_processed(interactable, object_state):
+		if FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
+			return "后勤补料已处理，整备台维护已确认；回前哨核心补给后准备下一趟外勤。"
+		if FieldOutfittingRuntime.is_logistics_material_processed(world_state):
+			return "后勤补料已加工成基础零件；回出发整备台确认维护材料。"
 		return "后勤补料已回收；回基础反应器加工基础零件，或回出发整备台确认维护材料。"
 	var resource_name := "晶体"
 	if interactable.instance_id == CoreGuardAftermathFormatter.CRYSTAL_LOGISTICS_RETURN_WRECKAGE_INSTANCE_ID:

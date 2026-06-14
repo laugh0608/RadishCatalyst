@@ -239,6 +239,105 @@ func _check_return_route_prompts_and_readiness() -> void:
 	)
 	var completed_prompt := prompt_formatter.format_general_interaction_prompt(crystal, character, world)
 	host._expect_text_contains(completed_prompt, "后勤补料已回收", "completed crystal logistics prompt reads gathered state")
+
+	var reactor := PrototypeInteractable.new()
+	reactor.definition_id = "building.basic_reactor"
+	reactor.interaction_type = "process_recipe"
+	reactor.recipe_id = "recipe.process_crystal_ore"
+	reactor.set_recipe_cycle(["recipe.process_crystal_ore", "recipe.reclaim_basic_parts"])
+	var processing := ProcessingSystem.new(host.data_registry)
+	var reactor_prompt := prompt_formatter.format_processing_prompt(reactor, character, world)
+	host._expect_text_contains(reactor_prompt, "后勤补料：晶体和残骸已回收", "basic reactor prompt reads returned logistics materials")
+	host._expect_text_contains(reactor_prompt, "E 启动加工", "basic reactor prompt exposes logistics material processing action")
+	var reactor_panel := HudDevicePanelPresenter.new().format_device_panel_texts(
+		host.data_registry,
+		processing,
+		reactor,
+		character,
+		world
+	)
+	host._expect_text_contains(
+		String(reactor_panel.get("status", "")),
+		"把晶体侧路带回的补料晶体转成基础零件",
+		"basic reactor panel explains logistics material processing purpose"
+	)
+	host._expect_text_contains(
+		String(reactor_panel.get("recipes", "")),
+		"处理晶体矿物（当前目标）",
+		"basic reactor recommends crystal processing for logistics return"
+	)
+	var start_result := processing.process_recipe("recipe.process_crystal_ore", character, world)
+	host._expect_equal(bool(start_result.get("success", false)), true, "logistics return crystal processing starts")
+	var completed_processing := processing.advance_processing(6.0, character, world)
+	host._expect_equal(completed_processing.size(), 1, "logistics return crystal processing completes")
+	host._expect_equal(
+		FieldOutfittingRuntime.is_logistics_material_processed(world),
+		true,
+		"logistics return crystal processing writes outfitting station state"
+	)
+	host._expect_equal(
+		int(character.inventory.items.get("item.basic_parts", 0)),
+		4,
+		"logistics return crystal processing grants basic parts"
+	)
+	if not completed_processing.is_empty():
+		host._expect_text_contains(
+			String(completed_processing[0].get("next_step_text", "")),
+			"出发整备台确认维护材料",
+			"logistics return processing completion points to outfitting station"
+		)
+	host._expect_text_contains(
+		DepartureReadinessFormatter.format_crystal_logistics_return_line(world, character),
+		"晶体已加工成基础零件",
+		"departure readiness shows processed logistics materials"
+	)
+	host._expect_equal(
+		CoreGuardAftermathFormatter.get_next_sortie_target_region_id(world),
+		"region.outpost_platform",
+		"map target stays on base while logistics maintenance awaits confirmation"
+	)
+
+	var outfitting_prompt := prompt_formatter.format_outfitting_station_prompt(character, world)
+	host._expect_text_contains(outfitting_prompt, "E 确认后勤维护", "outfitting station prompt exposes logistics maintenance confirmation")
+	var maintenance_result := gather_system.interact_with_object(
+		"map_object_instance.field_outfitting_station",
+		"building.field_outfitting_station",
+		"inspect",
+		character,
+		world
+	)
+	host._expect_equal(bool(maintenance_result.get("success", false)), true, "logistics maintenance confirmation succeeds")
+	host._expect_equal(
+		bool(maintenance_result.get("logistics_maintenance_confirmed", false)),
+		true,
+		"logistics maintenance confirmation returns state marker"
+	)
+	host._expect_equal(
+		FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world),
+		true,
+		"logistics maintenance confirmation persists on outfitting station"
+	)
+	host._expect_text_contains(
+		String(maintenance_result.get("message", "")),
+		"维护材料已登记到整备台",
+		"logistics maintenance feedback names outfitting station state"
+	)
+	var confirmed_hud := HudStatusPresenter.new().format_status_text(host.data_registry, world, character)
+	host._expect_text_contains(confirmed_hud, "整备台维护已确认", "HUD shows logistics maintenance confirmation")
+	var departure_gate := PrototypeInteractable.new()
+	departure_gate.definition_id = "map_object.outpost_departure_gate"
+	departure_gate.interaction_type = "inspect"
+	departure_gate.single_use = false
+	var departure_prompt := prompt_formatter.format_general_interaction_prompt(departure_gate, character, world)
+	host._expect_text_contains(departure_prompt, "整备台维护已确认", "departure gate prompt shows logistics maintenance confirmation")
+	host._expect_text_contains(departure_prompt, "准备下一趟外勤", "departure gate prompt points to next sortie")
+	host._expect_equal(
+		CoreGuardAftermathFormatter.get_next_sortie_target_region_id(world),
+		"region.demo_stabilization_core",
+		"map target returns to core station after logistics maintenance confirmation"
+	)
+	departure_gate.free()
+	reactor.free()
 	crystal.free()
 
 
@@ -271,6 +370,7 @@ func _create_crystal_logistics_return_world(ready: bool) -> WorldState:
 	var world := WorldState.create_default()
 	world.current_region_id = "region.outpost_platform"
 	world.quest_state.complete_quest("quest.restore_outpost")
+	world.quest_state.unlock_effect("recipe.process_crystal_ore")
 	world.quest_state.complete_quest("quest.write_demo_stabilization_core")
 	world.add_base_structure(
 		"structure.field_outfitting_station_build_site",

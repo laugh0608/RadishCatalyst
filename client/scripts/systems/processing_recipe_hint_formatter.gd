@@ -5,6 +5,18 @@ class_name ProcessingRecipeHintFormatter
 static func get_completion_next_step(recipe_id: String, world_state: WorldState = null) -> String:
 	match recipe_id:
 		"recipe.process_crystal_ore":
+			if (
+				world_state != null
+				and FieldOutfittingRuntime.is_logistics_material_processed(world_state)
+				and not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state)
+			):
+				return "后勤补料晶体已加工成基础零件；到出发整备台确认维护材料，再回前哨核心补给并从外勤出发口准备下一趟外勤。"
+			if (
+				world_state != null
+				and FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state)
+				and not FieldOutfittingRuntime.is_logistics_material_processed(world_state)
+			):
+				return "后勤补料材料已带回；完成这次基础零件加工后，到出发整备台确认维护材料。"
 			return "基础零件已补足；它们会用于反应器校准、过滤模块和地基。若当前任务还差更高阶配方，可按 R 切换到目标配方。"
 		"recipe.reclaim_basic_parts":
 			if world_state != null and world_state.quest_state.has_active_quest("quest.enter_pollution_edge"):

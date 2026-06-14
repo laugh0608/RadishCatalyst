@@ -373,7 +373,9 @@ const MAP_OBJECT_ALLOWED_FIELDS := [
 	"anchor_field_stabilized",
 	"stability_node_calibrated",
 	"module_calibrated",
-	"core_archive_maintained"
+	"core_archive_maintained",
+	"logistics_material_processed",
+	"logistics_maintenance_confirmed"
 ]
 
 const ENEMY_ALLOWED_FIELDS := [

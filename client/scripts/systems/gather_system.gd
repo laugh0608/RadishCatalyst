@@ -394,8 +394,25 @@ func _interact_with_field_outfitting_station(character_state: CharacterState, wo
 			)
 			archive_result["core_archive_maintained"] = true
 			return archive_result
+		if FieldOutfittingRuntime.should_confirm_logistics_maintenance(character_state, world_state):
+			FieldOutfittingRuntime.mark_logistics_maintenance_confirmed(world_state)
+			var logistics_result := _success_feedback(
+				"出发整备台完成后勤维护确认：晶体侧路补料已在基础反应器加工成基础零件，维护材料已登记到整备台；回前哨核心补给后，从外勤出发口准备下一趟外勤。",
+				"后勤维护已确认",
+				"补料已加工，整备台维护已确认",
+				"回前哨核心补修复凝胶 / 抗污染药剂并恢复生命 / 防护，然后从外勤出发口准备下一趟外勤。"
+			)
+			logistics_result["logistics_maintenance_confirmed"] = true
+			return logistics_result
 		if FieldOutfittingRuntime.is_module_calibrated(world_state):
 			if FieldOutfittingRuntime.is_core_archive_maintained(world_state):
+				if FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
+					return _success_feedback(
+						"出发整备台复查完成：基础过滤模块晶体校准、核心归档维护和后勤补料维护均已确认；下一趟外勤可从前哨核心补给后出发。",
+						"整备收益已确认",
+						"模块校准 / 核心归档 / 后勤维护已确认",
+						"回前哨核心补给并恢复生命 / 防护，再沿外勤出发口准备下一趟外勤。"
+					)
 				return _success_feedback(
 					"出发整备台复查完成：基础过滤模块已完成晶体校准，核心归档维护已接入，污染采集和污染反击承压继续下降。",
 					"整备收益已生效",

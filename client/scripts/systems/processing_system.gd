@@ -75,6 +75,7 @@ func advance_processing(delta_seconds: float, character_state: CharacterState, w
 		_grant_refs(recipe.get("outputs", []), character_state.inventory)
 		_grant_refs(recipe.get("byproducts", []), character_state.inventory)
 		world_state.set_base_structure_status(String(structure_id), "completed", recipe_id)
+		_apply_recipe_completion_side_effect(recipe_id, world_state)
 		completed_results.append({
 			"success": true,
 			"completed_recipe_id": recipe_id,
@@ -160,6 +161,11 @@ func get_recommended_recipe_id(
 	var active_quest_id := ""
 	if not world_state.quest_state.active_quest_ids.is_empty():
 		active_quest_id = String(world_state.quest_state.active_quest_ids[0])
+	if (
+		interactable.definition_id == "building.basic_reactor"
+		and FieldOutfittingRuntime.should_process_logistics_materials(character_state, world_state)
+	):
+		return _select_if_available(interactable, "recipe.process_crystal_ore")
 	match active_quest_id:
 		"quest.scout_crystal_field":
 			return _select_if_available(interactable, "recipe.process_crystal_ore")
@@ -844,6 +850,16 @@ func _get_recipe_lock_message(recipe: Dictionary, world_state: WorldState) -> St
 	if world_state.quest_state.unlocked_effects.has(recipe_id):
 		return ""
 	return "配方尚未解锁：%s。" % _format_unlock_conditions(unlock_conditions)
+
+
+func _apply_recipe_completion_side_effect(recipe_id: String, world_state: WorldState) -> void:
+	if recipe_id != "recipe.process_crystal_ore":
+		return
+	if not FieldOutfittingRuntime.is_crystal_logistics_return_available(world_state):
+		return
+	if not FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state):
+		return
+	FieldOutfittingRuntime.mark_logistics_material_processed(world_state)
 
 
 func _format_unlock_conditions(unlock_conditions: Array) -> String:
