@@ -1129,6 +1129,23 @@
       "public_level": "public"
     },
     {
+      "id": "map_object.demo_stabilization_retest_readout_cache",
+      "display_name_key": "map_object.demo_stabilization_retest_readout_cache.name",
+      "description_key": "map_object.demo_stabilization_retest_readout_cache.desc",
+      "object_type": "supply_cache",
+      "interaction_types": ["gather"],
+      "is_destructible": true,
+      "is_collectible": false,
+      "is_sampleable": false,
+      "blocks_movement": false,
+      "blocks_building": true,
+      "required_tool_tags": ["gather_basic"],
+      "drops": [{"id": "item.basic_parts", "amount": 1}, {"id": "item.repair_gel", "amount": 1}],
+      "sample_result_refs": [],
+      "pollution_effect": "",
+      "public_level": "spoiler"
+    },
+    {
       "id": "map_object.demo_stabilization_core",
       "display_name_key": "map_object.demo_stabilization_core.name",
       "description_key": "map_object.demo_stabilization_core.desc",

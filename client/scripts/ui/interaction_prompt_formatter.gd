@@ -807,6 +807,8 @@ func _get_general_interaction_purpose(interactable: PrototypeInteractable, defin
 		return "把前哨核心、储存箱、浆液缓冲罐、出发整备台和外勤出发口读成一条出发准备路线。"
 	if interactable.definition_id == "map_object.demo_stabilization_core":
 		return "写入归档数据；侧边补给、缓冲回写、药剂和守卫缓存会改变核心设备承压。"
+	if interactable.definition_id == CoreStabilizationPressureFormatter.RETEST_READOUT_DEFINITION_ID:
+		return "回收核心设备完成态后的复测读数和可用补给，带回基地整理下一趟外勤。"
 	match interactable.interaction_type:
 		"gather":
 			match String(definition.get("object_type", "")):
@@ -850,6 +852,12 @@ func _get_general_interaction_status(
 		return CoreStabilizationPressureFormatter.format_interaction_status(character_state, world_state, object_state)
 	if _is_general_interaction_processed(interactable, object_state):
 		return _get_processed_interaction_status(interactable, character_state, world_state)
+	if interactable.definition_id == CoreStabilizationPressureFormatter.RETEST_READOUT_DEFINITION_ID:
+		return CoreStabilizationPressureFormatter.format_completed_cache_status(
+			interactable.definition_id,
+			world_state,
+			character_state
+		)
 	var tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
 	if tool_status.begins_with("缺少能力"):
 		return "%s，先升级或更换工具。" % tool_status
@@ -890,6 +898,8 @@ func _get_general_interaction_action(
 		return "按 E 检查后勤路线"
 	if interactable.definition_id == "map_object.demo_stabilization_core":
 		return "按 E 写入核心稳定数据"
+	if interactable.definition_id == CoreStabilizationPressureFormatter.RETEST_READOUT_DEFINITION_ID:
+		return "按 E 回收复测读数缓存"
 	match interactable.interaction_type:
 		"gather":
 			return "按 E 采集"
@@ -913,6 +923,8 @@ func _get_general_interaction_next_step(
 		return DepartureReadinessFormatter.format_logistics_route_next_step(world_state, character_state)
 	if interactable.definition_id == "map_object.demo_stabilization_core":
 		return CoreStabilizationPressureFormatter.format_interaction_next_step(character_state, world_state, object_state)
+	if interactable.definition_id == CoreStabilizationPressureFormatter.RETEST_READOUT_DEFINITION_ID:
+		return CoreStabilizationPressureFormatter.format_retest_readout_next_step(world_state, character_state)
 	if interactable.definition_id != "map_object.pollution_residue_patch":
 		return ""
 	var contextual_step := _get_pollution_residue_contextual_next_step(interactable, object_state, world_state)

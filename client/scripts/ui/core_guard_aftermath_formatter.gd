@@ -71,6 +71,10 @@ static func format_next_sortie_route_line(world_state: WorldState) -> String:
 		return ""
 	if world_state.current_region_id != "region.outpost_platform":
 		return "核心写入已归档；返回前哨核心补给并整理下一趟外勤"
+	if _has_core_retest_readout(world_state):
+		return "核心复测读数已带回；回前哨核心补给并确认出发整备"
+	if _is_core_retest_readout_available(world_state):
+		return "核心写入已归档；从外勤出发口复测核心稳定站并回收复测读数缓存"
 	return "核心写入已归档；补给和模块确认后，从外勤出发口复测核心稳定站"
 
 
@@ -189,6 +193,10 @@ static func format_next_sortie_action(world_state: WorldState, character_state: 
 			return "核心归档维护沉积已回收，先回污染过滤器处理；处理后从外勤出发口复测核心稳定站"
 		if _has_unprocessed_core_archive_pressure_retest_residue(world_state, character_state):
 			return "复测压力沉积已回收，先回污染过滤器处理；处理后补药剂并整理污染浆液收益"
+		if _is_core_retest_readout_available(world_state) and not _has_core_retest_readout(world_state):
+			return "核心归档维护已接入，从外勤出发口复测核心稳定站并回收复测读数缓存"
+		if _has_core_retest_readout(world_state):
+			return "核心复测读数已回收，回前哨核心补给并确认出发整备"
 		return "核心归档维护已接入，从外勤出发口复测核心稳定站"
 	return "从外勤出发口复测核心稳定站"
 
@@ -255,6 +263,30 @@ static func _has_completed_filter_processing(world_state: WorldState) -> bool:
 		if String(structure.get("last_recipe_id", "")) == "recipe.cleanse_residue":
 			return true
 	return false
+
+
+static func _has_core_retest_readout(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return bool(
+		world_state.get_map_object(
+			"map_object_instance.demo_stabilization_retest_readout_cache"
+		).get("is_gathered", false)
+	)
+
+
+static func _is_core_retest_readout_available(world_state: WorldState) -> bool:
+	return (
+		world_state != null
+		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
+		and FieldOutfittingRuntime.is_core_archive_maintained(world_state)
+		and bool(
+			world_state.get_map_object(
+				"map_object_instance.pollution_residue_core_archive_pressure_retest_cache"
+			).get("is_gathered", false)
+		)
+		and _has_completed_filter_processing(world_state)
+	)
 
 
 static func _has_unprocessed_core_archive_pressure_retest_residue(

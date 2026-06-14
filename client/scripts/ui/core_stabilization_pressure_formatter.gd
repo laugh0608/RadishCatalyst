@@ -7,6 +7,9 @@ const CORE_QUEST_IDS: Array[String] = [
 	"quest.defeat_demo_stabilization_guard",
 	"quest.write_demo_stabilization_core"
 ]
+const RETEST_READOUT_INSTANCE_ID := "map_object_instance.demo_stabilization_retest_readout_cache"
+const RETEST_READOUT_DEFINITION_ID := "map_object.demo_stabilization_retest_readout_cache"
+const PRESSURE_RETEST_RESIDUE_INSTANCE_ID := "map_object_instance.pollution_residue_core_archive_pressure_retest_cache"
 
 
 static func format_hud_summary(
@@ -15,10 +18,14 @@ static func format_hud_summary(
 	active_quest_id: String
 ) -> Array[String]:
 	if should_show_core_revisit(world_state):
-		return [
+		var revisit_lines: Array[String] = [
 			"核心站复测：核心设备已接管；%s" % format_core_revisit_completion_parts(world_state, character_state),
 			format_core_revisit_pressure_line(world_state)
 		]
+		var readout_line := format_retest_readout_status_line(world_state)
+		if not readout_line.is_empty():
+			revisit_lines.append(readout_line)
+		return revisit_lines
 	if not is_core_stabilization_context(world_state, active_quest_id):
 		return []
 	var ready_line := "准备项：%s" % format_ready_parts(world_state, character_state)
@@ -165,6 +172,10 @@ static func format_core_revisit_completion_parts(world_state: WorldState, charac
 	elif FieldOutfittingRuntime.is_core_archive_maintenance_available(character_state, world_state):
 		parts.append("基地核心归档维护待接入")
 	parts.append("守卫回写缓存已归档" if has_guard_cache(world_state) else "守卫回写缓存未回收")
+	if has_retest_readout(world_state):
+		parts.append("复测读数已回收")
+	elif is_retest_readout_available(world_state):
+		parts.append("复测读数待回收")
 	return "；".join(parts)
 
 
@@ -173,6 +184,8 @@ static func format_core_revisit_pressure_line(world_state: WorldState) -> String
 
 
 static func format_core_revisit_next_step(world_state: WorldState, character_state: CharacterState) -> String:
+	if is_retest_readout_available(world_state) and not has_retest_readout(world_state):
+		return "核心复测读数缓存已显形；先回收读数和补给，再沿外勤出发口回前哨整理"
 	if not character_state.are_vitals_full():
 		return "生命 / 防护未满；沿外勤出发口回前哨核心恢复后再复测或出发"
 	if not character_state.inventory.has_ref("item.repair_gel", 1):
@@ -184,6 +197,8 @@ static func format_core_revisit_next_step(world_state: WorldState, character_sta
 		and not FieldOutfittingRuntime.is_core_archive_maintained(world_state)
 	):
 		return "核心归档维护未接入；沿外勤出发口回出发整备台完成维护后再复测"
+	if has_retest_readout(world_state):
+		return "复测读数已带回；沿外勤出发口回前哨核心补给，并在出发整备台确认下一趟路线"
 	return "完成态已确认；可沿外勤出发口回前哨整理下一趟外勤"
 
 
@@ -210,7 +225,31 @@ static func format_completed_cache_status(
 		if world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core"):
 			return "守卫回写缓存已归档；%s；核心设备复测时会显示守卫缓存完成态。" % charge_state
 		return "守卫回写缓存已回收；%s；写入核心设备前确认药剂和生命 / 防护。" % charge_state
+	if definition_id == RETEST_READOUT_DEFINITION_ID:
+		if has_retest_readout(world_state):
+			return "核心复测读数已回收；基础零件和修复凝胶已带回，回前哨核心补给后再确认出发整备。"
+		if is_retest_readout_available(world_state):
+			return "核心复测读数缓存已显形；回收后带基础零件和修复凝胶回前哨整理下一趟外勤。"
+		return "核心复测读数尚未稳定；先完成核心归档维护和污染边界复测压力处理。"
 	return ""
+
+
+static func format_retest_readout_status_line(world_state: WorldState) -> String:
+	if has_retest_readout(world_state):
+		return "复测读数：已回收核心复测读数缓存，基础零件和修复凝胶可带回前哨整理"
+	if is_retest_readout_available(world_state):
+		return "复测读数：核心设备东侧缓存已显形，可回收读数、基础零件和修复凝胶"
+	return ""
+
+
+static func format_retest_readout_next_step(world_state: WorldState, character_state: CharacterState) -> String:
+	if has_retest_readout(world_state):
+		if not character_state.are_vitals_full():
+			return "读数已回收；先回前哨核心恢复生命 / 防护，再整理下一趟外勤"
+		return "读数已回收；回前哨核心补给并在出发整备台确认下一趟路线"
+	if is_retest_readout_available(world_state):
+		return "回收后带基础零件和修复凝胶回前哨核心，整理下一趟外勤"
+	return "先完成核心归档维护和污染边界复测压力处理，再回来读取核心复测缓存"
 
 
 static func format_guard_pressure_parts(world_state: WorldState, character_state: CharacterState) -> String:
@@ -254,6 +293,33 @@ static func has_recovery_cache(world_state: WorldState) -> bool:
 
 static func has_guard_cache(world_state: WorldState) -> bool:
 	return bool(world_state.get_map_object("map_object_instance.demo_stabilization_guard_cache").get("is_gathered", false))
+
+
+static func has_retest_readout(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return bool(world_state.get_map_object(RETEST_READOUT_INSTANCE_ID).get("is_gathered", false))
+
+
+static func is_retest_readout_available(world_state: WorldState) -> bool:
+	return (
+		world_state != null
+		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
+		and FieldOutfittingRuntime.is_core_archive_maintained(world_state)
+		and bool(world_state.get_map_object(PRESSURE_RETEST_RESIDUE_INSTANCE_ID).get("is_gathered", false))
+		and _has_completed_pollution_filter_processing(world_state)
+	)
+
+
+static func _has_completed_pollution_filter_processing(world_state: WorldState) -> bool:
+	for structure in world_state.base_structures.values():
+		if not structure is Dictionary:
+			continue
+		if String(structure.get("definition_id", "")) != "building.pollution_filter":
+			continue
+		if String(structure.get("last_recipe_id", "")) == "recipe.cleanse_residue":
+			return true
+	return false
 
 
 static func _format_full_vial_target(world_state: WorldState) -> String:

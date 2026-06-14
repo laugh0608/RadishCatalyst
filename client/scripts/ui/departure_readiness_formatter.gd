@@ -197,6 +197,8 @@ static func format_supply_state(world_state: WorldState, character_state: Charac
 
 
 static func format_pressure_payoff(world_state: WorldState) -> String:
+	if CoreStabilizationPressureFormatter.has_retest_readout(world_state):
+		return "核心复测读数已带回，核心归档维护、模块校准和补给路线可继续服务下一趟外勤"
 	if FieldOutfittingRuntime.is_core_archive_maintained(world_state):
 		if FieldOutfittingRuntime.is_module_calibrated(world_state):
 			return "核心归档维护和模块校准已接入，下一趟污染采集、污染战斗和核心站复测承压继续下降"
@@ -242,14 +244,17 @@ static func format_core_archive_return_processing_line(
 
 	var current_vial := DepartureSupplyRuntime.get_resistance_vial_count(character_state)
 	var target_vial := DepartureSupplyRuntime.get_resistance_vial_target(world_state)
-	if current_vial >= target_vial:
-		return "回访处理：沉积已过滤，抗污染药剂 %d/%d已备；从外勤出发口复测核心站或回污染边界验证承压" % [
-			current_vial,
-			target_vial
-		]
 	if DepartureSupplyRuntime.can_outpost_restock_resistance_vial(world_state, character_state):
 		return "回访处理：沉积已过滤，回前哨核心补抗污染药剂到 %d/%d 后再从出发口复测" % [
 			target_vial,
+			target_vial
+		]
+	var readout_line := _format_core_retest_readout_line(world_state)
+	if not readout_line.is_empty():
+		return readout_line
+	if current_vial >= target_vial:
+		return "回访处理：沉积已过滤，抗污染药剂 %d/%d已备；从外勤出发口复测核心站或回污染边界验证承压" % [
+			current_vial,
 			target_vial
 		]
 	return "回访处理：沉积已过滤，确认药剂余量后再从出发口复测"
@@ -277,6 +282,13 @@ static func format_core_archive_return_next_step(
 			target_vial,
 			target_vial
 		]
+	if (
+		CoreStabilizationPressureFormatter.is_retest_readout_available(world_state)
+		and not CoreStabilizationPressureFormatter.has_retest_readout(world_state)
+	):
+		return "从外勤出发口复测核心稳定站，回收核心复测读数缓存"
+	if CoreStabilizationPressureFormatter.has_retest_readout(world_state):
+		return "核心复测读数已回收；回前哨核心补给并在出发整备台确认下一趟路线"
 	return ""
 
 
@@ -332,7 +344,18 @@ static func _format_logistics_exit_state(world_state: WorldState, character_stat
 		return "未开放"
 	var core_archive_return_step := format_core_archive_return_next_step(world_state, character_state)
 	if not core_archive_return_step.is_empty():
+		if core_archive_return_step.find("回收核心复测读数缓存") >= 0:
+			return "核心站读数待回收"
+		if core_archive_return_step.find("核心复测读数已回收") >= 0:
+			return "核心读数已带回"
 		return "回访处理待完成"
+	if (
+		CoreStabilizationPressureFormatter.is_retest_readout_available(world_state)
+		and not CoreStabilizationPressureFormatter.has_retest_readout(world_state)
+	):
+		return "核心站读数待回收"
+	if CoreStabilizationPressureFormatter.has_retest_readout(world_state):
+		return "核心读数已带回"
 	var next_sortie_route := CoreGuardAftermathFormatter.format_next_sortie_route_line(world_state)
 	if not next_sortie_route.is_empty():
 		return next_sortie_route
@@ -416,6 +439,14 @@ static func _has_completed_filter_processing(world_state: WorldState) -> bool:
 		if String(structure.get("last_recipe_id", "")) == "recipe.cleanse_residue":
 			return true
 	return false
+
+
+static func _format_core_retest_readout_line(world_state: WorldState) -> String:
+	if CoreStabilizationPressureFormatter.has_retest_readout(world_state):
+		return "核心复测：读数缓存已回收，基础零件和修复凝胶已带回；回前哨核心补给并确认出发整备"
+	if CoreStabilizationPressureFormatter.is_retest_readout_available(world_state):
+		return "核心复测：污染回访处理完成，从外勤出发口回核心稳定站回收复测读数缓存"
+	return ""
 
 
 static func _has_unprocessed_core_archive_pressure_retest_residue(

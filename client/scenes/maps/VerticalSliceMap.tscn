@@ -845,6 +845,27 @@ offset_right = 4078.0
 offset_bottom = 26.0
 color = Color(0.18, 0.72, 0.68, 1)
 
+[node name="CoreStabilizationRetestLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 4058.0
+offset_top = 36.0
+offset_right = 4138.0
+offset_bottom = 46.0
+color = Color(0.42, 0.78, 0.72, 1)
+
+[node name="CoreStabilizationRetestPocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 4100.0
+offset_top = 42.0
+offset_right = 4160.0
+offset_bottom = 104.0
+color = Color(0.2, 0.52, 0.58, 1)
+
+[node name="CoreStabilizationRetestReadoutMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 4120.0
+offset_top = 62.0
+offset_right = 4148.0
+offset_bottom = 92.0
+color = Color(0.78, 0.86, 0.42, 1)
+
 [node name="CoreStabilizationPressureLabel" type="Label" parent="OpeningSceneLayer"]
 offset_left = 3692.0
 offset_top = -126.0
@@ -1756,6 +1777,13 @@ definition_id = "map_object.demo_stabilization_guard_cache"
 interaction_type = "gather"
 label_offset = Vector2(-96, 22)
 label_size = Vector2(192, 24)
+
+[node name="DemoStabilizationRetestReadoutCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(4134, 78)
+definition_id = "map_object.demo_stabilization_retest_readout_cache"
+interaction_type = "gather"
+label_offset = Vector2(-118, 22)
+label_size = Vector2(236, 24)
 
 [node name="Enemies" type="Node2D" parent="."]
 

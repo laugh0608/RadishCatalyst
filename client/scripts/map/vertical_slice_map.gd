@@ -328,6 +328,8 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 					or world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
 				)
 			)
+		if interactable.instance_id == CoreStabilizationPressureFormatter.RETEST_READOUT_INSTANCE_ID:
+			should_enable = should_enable and CoreStabilizationPressureFormatter.is_retest_readout_available(world_state)
 		if interactable.definition_id == "map_object.phase_relay_pad":
 			should_enable = should_enable and world_state.quest_state.has_completed_quest("quest.deploy_phase_relay_anchor")
 		if interactable.definition_id == "map_object.phase_well_anchor_field":

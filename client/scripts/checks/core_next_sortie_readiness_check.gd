@@ -10,6 +10,7 @@ func _init(check_host) -> void:
 func run() -> void:
 	_check_completed_core_write_returns_to_departure_readiness()
 	_check_core_archive_return_processing_feeds_departure_readiness()
+	_check_core_retest_readout_feeds_departure_readiness()
 
 
 func _check_completed_core_write_returns_to_departure_readiness() -> void:
@@ -381,6 +382,66 @@ func _check_core_archive_return_processing_feeds_departure_readiness() -> void:
 	)
 
 
+func _check_core_retest_readout_feeds_departure_readiness() -> void:
+	var world_state := _create_core_retest_readout_world()
+	var character_state := CharacterState.create_default()
+	character_state.current_region_id = "region.demo_stabilization_core"
+	character_state.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	character_state.inventory.items.clear()
+	character_state.inventory.add_item("item.resistance_vial_t1", 2)
+
+	var formatter := InteractionPromptFormatter.new(
+		host.data_registry,
+		ProcessingSystem.new(host.data_registry),
+		BuildSystem.new(host.data_registry)
+	)
+	var readout_cache := PrototypeInteractable.new()
+	readout_cache.instance_id = CoreStabilizationPressureFormatter.RETEST_READOUT_INSTANCE_ID
+	readout_cache.definition_id = CoreStabilizationPressureFormatter.RETEST_READOUT_DEFINITION_ID
+	readout_cache.interaction_type = "gather"
+	var prompt := formatter.format_general_interaction_prompt(readout_cache, character_state, world_state)
+	_expect_text_contains(prompt, "核心复测读数缓存", "core retest readout prompt names cache")
+	_expect_text_contains(prompt, "产物：基础零件 x1，修复凝胶 x1", "core retest readout prompt exposes tangible drops")
+	_expect_text_contains(prompt, "回收后带基础零件和修复凝胶回前哨核心", "core retest readout prompt points back to outpost")
+
+	var core_status := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(core_status, "复测读数待回收", "core retest HUD shows pending readout")
+	_expect_text_contains(core_status, "复测读数：核心设备东侧缓存已显形", "core retest HUD points to readout cache")
+
+	var gather_result := GatherSystem.new(host.data_registry).interact_with_object(
+		CoreStabilizationPressureFormatter.RETEST_READOUT_INSTANCE_ID,
+		CoreStabilizationPressureFormatter.RETEST_READOUT_DEFINITION_ID,
+		"gather",
+		character_state,
+		world_state
+	)
+	host._expect_equal(bool(gather_result.get("success", false)), true, "core retest readout gather succeeds")
+	_expect_text_contains(
+		String(gather_result.get("message", "")),
+		"核心复测读数已回收",
+		"core retest readout gather feedback explains payoff"
+	)
+	host._expect_equal(int(character_state.inventory.items.get("item.basic_parts", 0)), 1, "core retest readout grants basic parts")
+	host._expect_equal(int(character_state.inventory.items.get("item.repair_gel", 0)), 1, "core retest readout grants repair gel")
+
+	var completed_prompt := formatter.format_general_interaction_prompt(readout_cache, character_state, world_state)
+	_expect_text_contains(completed_prompt, "核心复测读数已回收", "core retest completed prompt shows readout state")
+	_expect_text_contains(completed_prompt, "回前哨核心补给后再确认出发整备", "core retest completed prompt points to base readiness")
+	readout_cache.free()
+
+	var completed_core_status := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
+	_expect_text_contains(completed_core_status, "复测读数已回收", "core retest HUD shows readout gathered")
+	_expect_text_contains(completed_core_status, "基础零件和修复凝胶可带回前哨整理", "core retest HUD explains base payoff")
+
+	world_state.current_region_id = "region.outpost_platform"
+	character_state.current_region_id = "region.outpost_platform"
+	var outpost_prompt := formatter.format_outpost_core_prompt(world_state, character_state)
+	_expect_text_contains(outpost_prompt, "核心复测读数已带回", "outpost prompt reads core retest readout payoff")
+	_expect_text_contains(outpost_prompt, "读数缓存已回收", "outpost prompt keeps retest readout processing line")
+	var departure_step := DepartureReadinessFormatter.format_departure_gate_next_step(world_state, character_state)
+	_expect_text_contains(departure_step, "核心复测读数已回收", "departure next step reads core retest readout")
+
+
 func _create_core_archive_return_processing_world() -> WorldState:
 	var world_state := WorldState.create_default()
 	world_state.current_region_id = "region.outpost_platform"
@@ -423,6 +484,39 @@ func _create_core_archive_return_processing_world() -> WorldState:
 		"is_gathered",
 		true
 	)
+	return world_state
+
+
+func _create_core_retest_readout_world() -> WorldState:
+	var world_state := _create_core_archive_return_processing_world()
+	world_state.current_region_id = "region.demo_stabilization_core"
+	world_state.set_base_structure_status(
+		"structure.pollution_filter_build_site",
+		"completed",
+		"recipe.cleanse_residue"
+	)
+	for instance_id in [
+		"map_object_instance.pollution_residue_core_archive_route_cache",
+		"map_object_instance.pollution_residue_core_archive_return_cache",
+		"map_object_instance.pollution_residue_core_archive_pressure_retest_cache"
+	]:
+		world_state.ensure_map_object(instance_id, "map_object.pollution_residue_patch", "region.pollution_edge")
+		world_state.set_map_object_flag(instance_id, "is_gathered", true)
+	world_state.ensure_map_object(
+		"map_object_instance.demo_stabilization_guard_cache",
+		"map_object.demo_stabilization_guard_cache",
+		"region.demo_stabilization_core"
+	)
+	world_state.set_map_object_flag("map_object_instance.demo_stabilization_guard_cache", "is_gathered", true)
+	world_state.ensure_enemy(
+		"enemy_instance.demo_stabilization_guard",
+		"enemy.demo_stabilization_guard",
+		"region.demo_stabilization_core",
+		156.0
+	)
+	world_state.get_enemy("enemy_instance.demo_stabilization_guard")["core_buffer_used"] = true
+	world_state.get_enemy("enemy_instance.demo_stabilization_guard")["core_side_supply_used"] = true
+	world_state.get_enemy("enemy_instance.demo_stabilization_guard")["pressure_vial_used"] = true
 	return world_state
 
 

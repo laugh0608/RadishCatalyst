@@ -737,6 +737,8 @@ func _get_first_hour_gather_step_hint(
 			return "核心站侧边补给已回收；修复凝胶和抗污染药剂可支撑阶段守卫战，并在核心写入时降低反冲"
 		"map_object_instance.demo_stabilization_guard_cache":
 			return CoreGuardAftermathFormatter.format_guard_cache_gather_followup(world_state, character_state)
+		CoreStabilizationPressureFormatter.RETEST_READOUT_INSTANCE_ID:
+			return "核心复测读数已回收；带基础零件和修复凝胶回前哨核心，出发整备台和出发口会显示复测读数收益"
 	return ""
 
 

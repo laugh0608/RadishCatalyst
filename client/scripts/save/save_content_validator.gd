@@ -121,6 +121,7 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.demo_stabilization_recovery_cache": "map_object.demo_stabilization_recovery_cache",
 	"map_object_instance.demo_stabilization_recovery_wreckage": "map_object.demo_stabilization_recovery_cache",
 	"map_object_instance.demo_stabilization_guard_cache": "map_object.demo_stabilization_guard_cache",
+	"map_object_instance.demo_stabilization_retest_readout_cache": "map_object.demo_stabilization_retest_readout_cache",
 	"map_object_instance.demo_stabilization_core": "map_object.demo_stabilization_core"
 }
 

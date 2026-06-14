@@ -200,6 +200,7 @@ func run(root: Node) -> void:
 	_check_outfitting_calibration_pressure_payoff(gather_system)
 	_check_core_archive_maintenance_payoff(root, gather_system, prompt_formatter)
 	_check_logistics_route_sign(root, gather_system, prompt_formatter)
+	_check_core_retest_readout_scene(root, prompt_formatter)
 
 
 func _check_outfitting_calibration_pressure_payoff(gather_system: GatherSystem) -> void:
@@ -486,6 +487,52 @@ func _check_logistics_route_sign(
 	map.free()
 
 
+func _check_core_retest_readout_scene(root: Node, prompt_formatter: InteractionPromptFormatter) -> void:
+	var character := CharacterState.create_default()
+	character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	character.inventory.items["item.repair_gel"] = 1
+	character.inventory.items["item.resistance_vial_t1"] = 2
+
+	var blocked_world := _create_core_retest_readout_scene_world(false)
+	var blocked_map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(blocked_map)
+	blocked_map.setup(host.data_registry)
+	blocked_map.apply_runtime_state(blocked_world, character)
+	var blocked_readout := blocked_map.get_node("Interactables/DemoStabilizationRetestReadoutCache") as PrototypeInteractable
+	host._expect_equal(
+		blocked_readout.visible == false and blocked_readout.monitoring == false,
+		true,
+		"core retest readout cache stays hidden before pollution pressure retest is processed"
+	)
+	blocked_map.free()
+
+	var ready_world := _create_core_retest_readout_scene_world(true)
+	var ready_map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(ready_map)
+	ready_map.setup(host.data_registry)
+	ready_map.apply_runtime_state(ready_world, character)
+	var readout := ready_map.get_node("Interactables/DemoStabilizationRetestReadoutCache") as PrototypeInteractable
+	var pocket := ready_map.get_node("OpeningSceneLayer/CoreStabilizationRetestPocket") as ColorRect
+	var marker := ready_map.get_node("OpeningSceneLayer/CoreStabilizationRetestReadoutMarker") as ColorRect
+	var line := ready_map.get_node("OpeningSceneLayer/CoreStabilizationRetestLine") as ColorRect
+	host._expect_equal(
+		readout.definition_id == CoreStabilizationPressureFormatter.RETEST_READOUT_DEFINITION_ID
+			and readout.visible
+			and readout.monitoring
+			and _is_rect_covering_position(pocket, readout.position)
+			and _is_rect_covering_position(marker, readout.position)
+			and line.offset_left >= 4050.0
+			and line.offset_right <= readout.position.x + 8.0,
+		true,
+		"core retest readout cache appears as a gated core station target"
+	)
+	var prompt := prompt_formatter.format_general_interaction_prompt(readout, character, ready_world)
+	host._expect_text_contains(prompt, "核心复测读数缓存", "core retest scene prompt names readout cache")
+	host._expect_text_contains(prompt, "基础零件 x1，修复凝胶 x1", "core retest scene prompt shows drops")
+	host._expect_text_contains(prompt, "回收后带基础零件和修复凝胶回前哨核心", "core retest scene prompt points back to base")
+	ready_map.free()
+
+
 func _check_core_archive_maintenance_gather_payoff(gather_system: GatherSystem) -> void:
 	var plain_world := _create_core_archive_maintenance_world(false)
 	var plain_character := CharacterState.create_default()
@@ -588,6 +635,37 @@ func _create_core_archive_maintenance_world(maintained: bool) -> WorldState:
 	)
 	if maintained:
 		FieldOutfittingRuntime.mark_core_archive_maintained(world)
+	return world
+
+
+func _create_core_retest_readout_scene_world(ready: bool) -> WorldState:
+	var world := _create_core_archive_maintenance_world(true)
+	world.current_region_id = "region.demo_stabilization_core"
+	world.quest_state.complete_quest("quest.restore_outpost")
+	world.quest_state.complete_quest("quest.enter_pollution_edge")
+	world.add_base_structure(
+		"structure.pollution_filter_build_site",
+		"building.pollution_filter",
+		"region.outpost_platform",
+		"map_object_instance.pollution_filter_build_site"
+	)
+	if not ready:
+		return world
+	world.set_base_structure_status(
+		"structure.pollution_filter_build_site",
+		"completed",
+		"recipe.cleanse_residue"
+	)
+	world.ensure_map_object(
+		"map_object_instance.pollution_residue_core_archive_pressure_retest_cache",
+		"map_object.pollution_residue_patch",
+		"region.pollution_edge"
+	)
+	world.set_map_object_flag(
+		"map_object_instance.pollution_residue_core_archive_pressure_retest_cache",
+		"is_gathered",
+		true
+	)
 	return world
 
 

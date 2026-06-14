@@ -205,6 +205,11 @@ func _check_loads_known_map_object_source() -> void:
 			"region_id": "region.demo_stabilization_core",
 			"is_gathered": true
 		},
+		"map_object_instance.demo_stabilization_retest_readout_cache": {
+			"definition_id": "map_object.demo_stabilization_retest_readout_cache",
+			"region_id": "region.demo_stabilization_core",
+			"is_gathered": true
+		},
 		"map_object_instance.core_buffer_residue_cache": {
 			"definition_id": "map_object.pollution_residue_patch",
 			"region_id": "region.pollution_edge",
