@@ -803,6 +803,8 @@ func _get_interaction_tool_status(definition_id: String, character_state: Charac
 func _get_general_interaction_purpose(interactable: PrototypeInteractable, definition: Dictionary) -> String:
 	if interactable.definition_id == "map_object.outpost_departure_gate":
 		return "汇总前哨核心补给、出发整备台模块和地图目标，作为外勤前最后检查。"
+	if interactable.definition_id == "map_object.outpost_logistics_route_sign":
+		return "把前哨核心、储存箱、浆液缓冲罐、出发整备台和外勤出发口读成一条出发准备路线。"
 	if interactable.definition_id == "map_object.demo_stabilization_core":
 		return "写入归档数据；侧边补给、缓冲回写、药剂和守卫缓存会改变核心设备承压。"
 	match interactable.interaction_type:
@@ -853,6 +855,8 @@ func _get_general_interaction_status(
 		return "%s，先升级或更换工具。" % tool_status
 	if interactable.definition_id == "map_object.outpost_departure_gate":
 		return DepartureReadinessFormatter.format_departure_gate_status(world_state, character_state)
+	if interactable.definition_id == "map_object.outpost_logistics_route_sign":
+		return DepartureReadinessFormatter.format_logistics_route_status(world_state, character_state)
 	match interactable.interaction_type:
 		"gather":
 			return "可采集。"
@@ -882,6 +886,8 @@ func _get_general_interaction_action(
 		return ""
 	if interactable.definition_id == "map_object.outpost_departure_gate":
 		return "按 E 检查出发准备"
+	if interactable.definition_id == "map_object.outpost_logistics_route_sign":
+		return "按 E 检查后勤路线"
 	if interactable.definition_id == "map_object.demo_stabilization_core":
 		return "按 E 写入核心稳定数据"
 	match interactable.interaction_type:
@@ -903,6 +909,8 @@ func _get_general_interaction_next_step(
 ) -> String:
 	if interactable.definition_id == "map_object.outpost_departure_gate":
 		return DepartureReadinessFormatter.format_departure_gate_next_step(world_state, character_state)
+	if interactable.definition_id == "map_object.outpost_logistics_route_sign":
+		return DepartureReadinessFormatter.format_logistics_route_next_step(world_state, character_state)
 	if interactable.definition_id == "map_object.demo_stabilization_core":
 		return CoreStabilizationPressureFormatter.format_interaction_next_step(character_state, world_state, object_state)
 	if interactable.definition_id != "map_object.pollution_residue_patch":

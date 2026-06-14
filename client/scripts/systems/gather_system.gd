@@ -14,6 +14,7 @@ const SLURRY_BUFFER_RESISTANCE_VIAL_TARGET := DepartureSupplyRuntime.SLURRY_BUFF
 const FIELD_OUTFITTING_STATION_ID := FieldOutfittingRuntime.FIELD_OUTFITTING_STATION_ID
 const BASIC_FILTER_MODULE_ID := FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
 const OUTPOST_DEPARTURE_GATE_ID := "map_object.outpost_departure_gate"
+const OUTPOST_LOGISTICS_ROUTE_SIGN_ID := "map_object.outpost_logistics_route_sign"
 const POLLUTION_RESIDUE_PRESSURE_BY_INSTANCE := {
 	"map_object_instance.pollution_residue": 1.0,
 	"map_object_instance.pollution_residue_outer_pocket": 1.15,
@@ -125,6 +126,8 @@ func interact_with_object(
 
 	if interaction_type == "inspect" and definition_id == OUTPOST_DEPARTURE_GATE_ID:
 		return _inspect_outpost_departure_gate(character_state, world_state)
+	if interaction_type == "inspect" and definition_id == OUTPOST_LOGISTICS_ROUTE_SIGN_ID:
+		return _inspect_outpost_logistics_route_sign(character_state, world_state)
 
 	if (
 		interaction_type == "inspect"
@@ -284,6 +287,17 @@ func _inspect_outpost_departure_gate(character_state: CharacterState, world_stat
 	return _success_feedback(
 		"外勤出发口检查：%s；下一步：%s。" % [status, next_step],
 		"外勤出发口检查",
+		status,
+		next_step
+	)
+
+
+func _inspect_outpost_logistics_route_sign(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	var status := DepartureReadinessFormatter.format_logistics_route_status(world_state, character_state)
+	var next_step := DepartureReadinessFormatter.format_logistics_route_next_step(world_state, character_state)
+	return _success_feedback(
+		"后勤路线牌检查：%s；下一步：%s。" % [status, next_step],
+		"后勤路线检查",
 		status,
 		next_step
 	)

@@ -44,6 +44,7 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.field_outfitting_station": "building.field_outfitting_station",
 	"map_object_instance.slurry_buffer_tank_build_site": "building.slurry_buffer_tank",
 	"map_object_instance.outpost_departure_gate": "map_object.outpost_departure_gate",
+	"map_object_instance.outpost_logistics_route_sign": "map_object.outpost_logistics_route_sign",
 	"map_object_instance.pollution_filter_build_site": "building.pollution_filter",
 	"map_object_instance.pollution_filter": "building.pollution_filter",
 	"map_object_instance.ruin_gate": "map_object.ruin_gate",

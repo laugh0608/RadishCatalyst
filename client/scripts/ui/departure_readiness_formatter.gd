@@ -113,6 +113,35 @@ static func format_departure_gate_feedback_detail(world_state: WorldState, chara
 	]
 
 
+static func format_logistics_route_status(world_state: WorldState, character_state: CharacterState) -> String:
+	var parts: Array[String] = [
+		"前哨核心：%s" % _format_logistics_core_state(world_state, character_state),
+		"储存箱：%s" % _format_logistics_storage_state(world_state),
+		"浆液缓冲罐：%s" % _format_logistics_slurry_buffer_state(world_state),
+		"出发整备台：%s" % format_module_state(world_state, character_state),
+		"外勤出发口：%s" % _format_logistics_exit_state(world_state, character_state)
+	]
+	return "；".join(parts)
+
+
+static func format_logistics_route_next_step(world_state: WorldState, character_state: CharacterState) -> String:
+	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
+		return "先恢复前哨核心，后勤路线才会串起补给、整备和出发口"
+	if not world_state.has_base_structure_definition("building.basic_storage"):
+		return "先补建储存箱，让前哨核心能补修复凝胶和抗污染药剂"
+	if not world_state.has_base_structure_definition("building.field_outfitting_station"):
+		if _can_build_outfitting_station(character_state):
+			return "先补建出发整备台，把基础过滤模块纳入出发检查"
+		return format_departure_gate_next_step(world_state, character_state)
+
+	var departure_step := format_departure_gate_next_step(world_state, character_state)
+	if not departure_step.begins_with("沿外勤出发口"):
+		return departure_step
+	if not _has_slurry_buffer_tank(world_state) and _is_vial_supply_available(world_state):
+		return "当前可按出发口推进；下一次回基地用污染浆液补建浆液缓冲罐，把药剂补给提升到 2 份"
+	return departure_step
+
+
 static func format_feedback_detail(world_state: WorldState, character_state: CharacterState) -> String:
 	var parts: Array[String] = [
 		format_module_state(world_state, character_state),
@@ -267,6 +296,45 @@ static func get_ready_supply_names(world_state: WorldState, character_state: Cha
 		if not vial_name.is_empty():
 			names.append(vial_name)
 	return names
+
+
+static func _format_logistics_core_state(world_state: WorldState, character_state: CharacterState) -> String:
+	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
+		return "待恢复"
+	var restock_names := get_restock_supply_names(world_state, character_state)
+	if not restock_names.is_empty():
+		return "待补%s" % " / ".join(restock_names)
+	if not character_state.are_vitals_full():
+		return "待恢复生命 / 防护"
+	return "已恢复"
+
+
+static func _format_logistics_storage_state(world_state: WorldState) -> String:
+	if world_state.has_base_structure_definition("building.basic_storage"):
+		return "已接入补给"
+	return "待建"
+
+
+static func _format_logistics_slurry_buffer_state(world_state: WorldState) -> String:
+	if _has_slurry_buffer_tank(world_state):
+		return "双药剂补给"
+	if _is_vial_supply_available(world_state):
+		return "可补建"
+	return "待污染浆液"
+
+
+static func _format_logistics_exit_state(world_state: WorldState, character_state: CharacterState) -> String:
+	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
+		return "未开放"
+	var core_archive_return_step := format_core_archive_return_next_step(world_state, character_state)
+	if not core_archive_return_step.is_empty():
+		return "回访处理待完成"
+	var next_sortie_route := CoreGuardAftermathFormatter.format_next_sortie_route_line(world_state)
+	if not next_sortie_route.is_empty():
+		return next_sortie_route
+	if _is_core_stabilization_available(world_state):
+		return "核心站复测方向"
+	return "按当前地图目标"
 
 
 static func _can_restock_vial(world_state: WorldState, character_state: CharacterState) -> bool:

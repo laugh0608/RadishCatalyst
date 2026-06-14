@@ -386,6 +386,35 @@ offset_bottom = 40.0
 text = "后续行动"
 horizontal_alignment = 1
 
+[node name="BaseLogisticsRouteSignPad" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -146.0
+offset_top = -34.0
+offset_right = -98.0
+offset_bottom = 24.0
+color = Color(0.162, 0.247, 0.205, 1)
+
+[node name="BaseLogisticsRouteSignMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -138.0
+offset_top = -22.0
+offset_right = -106.0
+offset_bottom = 8.0
+color = Color(0.46, 0.64, 0.48, 1)
+
+[node name="BaseLogisticsRouteFlowLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -218.0
+offset_top = 16.0
+offset_right = -86.0
+offset_bottom = 24.0
+color = Color(0.36, 0.47, 0.35, 1)
+
+[node name="BaseLogisticsRouteSignLabel" type="Label" parent="OpeningSceneLayer"]
+offset_left = -160.0
+offset_top = 24.0
+offset_right = -76.0
+offset_bottom = 44.0
+text = "路线检查"
+horizontal_alignment = 1
+
 [node name="BaseExitLane" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = -86.0
 offset_top = -150.0
@@ -848,6 +877,14 @@ label_size = Vector2(192, 24)
 [node name="OutpostDepartureGate" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(-38, -104)
 definition_id = "map_object.outpost_departure_gate"
+interaction_type = "inspect"
+single_use = false
+label_offset = Vector2(-88, 22)
+label_size = Vector2(176, 24)
+
+[node name="OutpostLogisticsRouteSign" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-122, -8)
+definition_id = "map_object.outpost_logistics_route_sign"
 interaction_type = "inspect"
 single_use = false
 label_offset = Vector2(-88, 22)

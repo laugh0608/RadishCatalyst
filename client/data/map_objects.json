@@ -1112,6 +1112,23 @@
       "public_level": "public"
     },
     {
+      "id": "map_object.outpost_logistics_route_sign",
+      "display_name_key": "map_object.outpost_logistics_route_sign.name",
+      "description_key": "map_object.outpost_logistics_route_sign.desc",
+      "object_type": "departure_route",
+      "interaction_types": ["inspect"],
+      "is_destructible": false,
+      "is_collectible": false,
+      "is_sampleable": false,
+      "blocks_movement": false,
+      "blocks_building": false,
+      "required_tool_tags": [],
+      "drops": [],
+      "sample_result_refs": [],
+      "pollution_effect": "",
+      "public_level": "public"
+    },
+    {
       "id": "map_object.demo_stabilization_core",
       "display_name_key": "map_object.demo_stabilization_core.name",
       "description_key": "map_object.demo_stabilization_core.desc",

@@ -199,6 +199,7 @@ func run(root: Node) -> void:
 	map.free()
 	_check_outfitting_calibration_pressure_payoff(gather_system)
 	_check_core_archive_maintenance_payoff(root, gather_system, prompt_formatter)
+	_check_logistics_route_sign(root, gather_system, prompt_formatter)
 
 
 func _check_outfitting_calibration_pressure_payoff(gather_system: GatherSystem) -> void:
@@ -379,6 +380,112 @@ func _check_core_archive_maintenance_payoff(
 	_check_core_archive_maintenance_counterattack_payoff()
 
 
+func _check_logistics_route_sign(
+	root: Node,
+	gather_system: GatherSystem,
+	prompt_formatter: InteractionPromptFormatter
+) -> void:
+	var world := WorldState.create_default()
+	world.current_region_id = "region.outpost_platform"
+	world.quest_state.complete_quest("quest.restore_outpost")
+	world.quest_state.complete_quest("quest.write_demo_stabilization_core")
+	world.add_base_structure(
+		"structure.basic_storage_build_site",
+		"building.basic_storage",
+		"region.outpost_platform",
+		"map_object_instance.basic_storage_build_site"
+	)
+	world.add_base_structure(
+		"structure.pollution_filter_build_site",
+		"building.pollution_filter",
+		"region.outpost_platform",
+		"map_object_instance.pollution_filter_build_site"
+	)
+	world.add_base_structure(
+		"structure.field_outfitting_station_build_site",
+		"building.field_outfitting_station",
+		"region.outpost_platform",
+		"map_object_instance.field_outfitting_station_build_site"
+	)
+	world.add_base_structure(
+		"structure.slurry_buffer_tank_build_site",
+		"building.slurry_buffer_tank",
+		"region.outpost_platform",
+		"map_object_instance.slurry_buffer_tank_build_site"
+	)
+	world.set_base_structure_status("structure.pollution_filter_build_site", "completed", "recipe.cleanse_residue")
+	FieldOutfittingRuntime.mark_module_calibrated(world)
+	FieldOutfittingRuntime.mark_core_archive_maintained(world)
+	world.ensure_map_object(
+		"map_object_instance.pollution_residue_core_archive_route_cache",
+		"map_object.pollution_residue_patch",
+		"region.pollution_edge"
+	)
+	world.ensure_map_object(
+		"map_object_instance.pollution_residue_core_archive_return_cache",
+		"map_object.pollution_residue_patch",
+		"region.pollution_edge"
+	)
+	world.set_map_object_flag("map_object_instance.pollution_residue_core_archive_route_cache", "is_gathered", true)
+	world.set_map_object_flag("map_object_instance.pollution_residue_core_archive_return_cache", "is_gathered", true)
+
+	var character := CharacterState.create_default()
+	character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	character.inventory.items["item.repair_gel"] = 1
+	character.inventory.items["item.resistance_vial_t1"] = 2
+
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	map.setup(host.data_registry)
+	map.apply_runtime_state(world, character)
+	var route_sign := map.get_node("Interactables/OutpostLogisticsRouteSign") as PrototypeInteractable
+	var route_pad := map.get_node("OpeningSceneLayer/BaseLogisticsRouteSignPad") as ColorRect
+	var route_marker := map.get_node("OpeningSceneLayer/BaseLogisticsRouteSignMarker") as ColorRect
+	var route_flow := map.get_node("OpeningSceneLayer/BaseLogisticsRouteFlowLine") as ColorRect
+	var storage_marker := map.get_node("OpeningSceneLayer/BaseStorageObjectMarker") as ColorRect
+	var exit_lane := map.get_node("OpeningSceneLayer/BaseExitLane") as ColorRect
+	host._expect_equal(
+		route_sign.definition_id == "map_object.outpost_logistics_route_sign"
+			and route_sign.single_use == false
+			and _is_rect_covering_position(route_pad, route_sign.position)
+			and _is_rect_covering_position(route_marker, route_sign.position),
+		true,
+		"logistics route sign is a repeatable base route interactable"
+	)
+	host._expect_equal(
+		route_flow.offset_left >= storage_marker.offset_left
+			and route_flow.offset_right <= exit_lane.offset_left,
+		true,
+		"logistics route sign flow line connects storage lane to departure lane"
+	)
+	var prompt := prompt_formatter.format_general_interaction_prompt(route_sign, character, world)
+	host._expect_text_contains(prompt, "对象：后勤路线牌", "logistics route sign prompt names object")
+	host._expect_text_contains(prompt, "前哨核心：已恢复", "logistics route sign prompt reads outpost core")
+	host._expect_text_contains(prompt, "储存箱：已接入补给", "logistics route sign prompt reads storage")
+	host._expect_text_contains(prompt, "浆液缓冲罐：双药剂补给", "logistics route sign prompt reads slurry buffer")
+	host._expect_text_contains(prompt, "出发整备台：", "logistics route sign prompt reads outfitting station")
+	host._expect_text_contains(prompt, "外勤出发口：", "logistics route sign prompt reads departure gate")
+	host._expect_text_contains(prompt, "操作：按 E 检查后勤路线", "logistics route sign prompt exposes inspect action")
+
+	var result := gather_system.interact_with_object(
+		"map_object_instance.outpost_logistics_route_sign",
+		"map_object.outpost_logistics_route_sign",
+		"inspect",
+		character,
+		world
+	)
+	host._expect_equal(bool(result.get("success", false)), true, "logistics route sign inspect succeeds")
+	host._expect_text_contains(String(result.get("message", "")), "后勤路线牌检查", "logistics route sign feedback names check")
+	host._expect_text_contains(String(result.get("message", "")), "储存箱：已接入补给", "logistics route sign feedback includes storage state")
+	host._expect_text_contains(String(result.get("message", "")), "浆液缓冲罐：双药剂补给", "logistics route sign feedback includes slurry buffer state")
+	host._expect_equal(
+		bool(world.get_map_object("map_object_instance.outpost_logistics_route_sign").get("is_sampled", false)),
+		false,
+		"logistics route sign remains repeatable after inspect"
+	)
+	map.free()
+
+
 func _check_core_archive_maintenance_gather_payoff(gather_system: GatherSystem) -> void:
 	var plain_world := _create_core_archive_maintenance_world(false)
 	var plain_character := CharacterState.create_default()
@@ -482,6 +589,17 @@ func _create_core_archive_maintenance_world(maintained: bool) -> WorldState:
 	if maintained:
 		FieldOutfittingRuntime.mark_core_archive_maintained(world)
 	return world
+
+
+func _is_rect_covering_position(rect: ColorRect, position: Vector2) -> bool:
+	if rect == null:
+		return false
+	return (
+		rect.offset_left <= position.x
+		and rect.offset_right >= position.x
+		and rect.offset_top <= position.y
+		and rect.offset_bottom >= position.y
+	)
 
 
 func _check_slurry_buffer_tank(root: Node) -> void:

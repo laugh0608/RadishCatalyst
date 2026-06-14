@@ -617,6 +617,8 @@
   "map_object.demo_stabilization_guard_cache.desc": "核心阶段守卫被击败后暴露的回写缓存，含校验片、零件和终点前补给；回收后可回前哨整理战后消耗，再接入核心设备写入。",
   "map_object.outpost_departure_gate.name": "外勤出发口",
   "map_object.outpost_departure_gate.desc": "基地平台东侧的外勤出发检查点，会汇总前哨补给、出发整备台模块和下一趟目标方向。",
+  "map_object.outpost_logistics_route_sign.name": "后勤路线牌",
+  "map_object.outpost_logistics_route_sign.desc": "基地后勤区的出发路线检查牌，会把前哨核心、储存箱、浆液缓冲罐、出发整备台和外勤出发口读成一条准备路线。",
   "map_object.demo_stabilization_core.name": "核心稳定设备",
   "map_object.demo_stabilization_core.desc": "核心稳定站中央的写入设备，必须先击败阶段守卫；写入时抗污染药剂可接入排压，降低生命和防护承压。",
   "enemy.demo_stabilization_guard.name": "核心阶段守卫",
