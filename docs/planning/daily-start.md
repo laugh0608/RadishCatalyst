@@ -36,6 +36,7 @@
 ## 当前开发重点
 
 - 只推进当前活跃专题中的首版 demo 级角色成长 / 战斗差异。
+- 下一包优先补第二个可感知差异，让既有整备 / 模块状态在污染边界或遗迹外圈压力中读出变化；若扩到技能 / 装备模块，先建对应子专题。
 - 必须覆盖真实玩家操作路径、HUD / 对象反馈、战斗结果、存档状态和自动检查。
 - 首版 Demo 未完成初步阶段的完整玩法、场景和美术前，不切到试玩准备或修 bug 阶段；真实页面 smoke 只用于对比开发效果。
 - 工程上注意 `vertical_slice_flow_check.gd`、`vertical_slice_map.gd`、`prototype_hud.gd`、`interaction_prompt_formatter.gd` 和相关系统职责边界。
