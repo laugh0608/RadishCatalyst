@@ -439,7 +439,7 @@ func _check_core_retest_readout_feeds_departure_readiness() -> void:
 	_expect_text_contains(outpost_prompt, "核心复测读数已带回", "outpost prompt reads core retest readout payoff")
 	_expect_text_contains(outpost_prompt, "读数缓存已回收", "outpost prompt keeps retest readout processing line")
 	var departure_step := DepartureReadinessFormatter.format_departure_gate_next_step(world_state, character_state)
-	_expect_text_contains(departure_step, "核心复测读数已回收", "departure next step reads core retest readout")
+	_expect_text_contains(departure_step, "晶体侧路补晶体矿和残骸废件", "departure next step routes retest readout into crystal logistics return")
 
 
 func _create_core_archive_return_processing_world() -> WorldState:

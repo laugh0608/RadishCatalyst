@@ -1,6 +1,9 @@
 extends RefCounted
 class_name CoreGuardAftermathFormatter
 
+const CRYSTAL_LOGISTICS_RETURN_CRYSTAL_INSTANCE_ID := "map_object_instance.crystal_cluster_logistics_return"
+const CRYSTAL_LOGISTICS_RETURN_WRECKAGE_INSTANCE_ID := "map_object_instance.field_wreckage_logistics_return"
+
 
 static func format_guard_cache_gather_followup(world_state: WorldState, character_state: CharacterState) -> String:
 	if not has_guard_cache_recovered(world_state):
@@ -72,6 +75,10 @@ static func format_next_sortie_route_line(world_state: WorldState) -> String:
 	if world_state.current_region_id != "region.outpost_platform":
 		return "核心写入已归档；返回前哨核心补给并整理下一趟外勤"
 	if _has_core_retest_readout(world_state):
+		if _is_crystal_logistics_return_available(world_state):
+			if not _has_crystal_logistics_return_materials(world_state):
+				return "核心复测读数已带回；从外勤出发口回晶体侧路补后勤材料"
+			return "晶体侧路补料已回收；回前哨核心补给并确认出发整备"
 		return "核心复测读数已带回；回前哨核心补给并确认出发整备"
 	if _is_core_retest_readout_available(world_state):
 		return "核心写入已归档；从外勤出发口复测核心稳定站并回收复测读数缓存"
@@ -82,6 +89,8 @@ static func get_next_sortie_target_region_id(world_state: WorldState) -> String:
 	if not should_show_next_sortie(world_state):
 		return ""
 	if world_state.current_region_id == "region.outpost_platform":
+		if _is_crystal_logistics_return_available(world_state) and not _has_crystal_logistics_return_materials(world_state):
+			return "region.crystal_vein_field"
 		return "region.demo_stabilization_core"
 	return "region.outpost_platform"
 
@@ -196,6 +205,10 @@ static func format_next_sortie_action(world_state: WorldState, character_state: 
 		if _is_core_retest_readout_available(world_state) and not _has_core_retest_readout(world_state):
 			return "核心归档维护已接入，从外勤出发口复测核心稳定站并回收复测读数缓存"
 		if _has_core_retest_readout(world_state):
+			if _is_crystal_logistics_return_available(world_state):
+				if not _has_crystal_logistics_return_materials(world_state):
+					return "核心复测读数已回收，回晶体侧路补晶体矿和残骸废件"
+				return "晶体侧路补料已回收，回前哨核心补给并确认出发整备"
 			return "核心复测读数已回收，回前哨核心补给并确认出发整备"
 		return "核心归档维护已接入，从外勤出发口复测核心稳定站"
 	return "从外勤出发口复测核心稳定站"
@@ -286,6 +299,24 @@ static func _is_core_retest_readout_available(world_state: WorldState) -> bool:
 			).get("is_gathered", false)
 		)
 		and _has_completed_filter_processing(world_state)
+	)
+
+
+static func _is_crystal_logistics_return_available(world_state: WorldState) -> bool:
+	return (
+		world_state != null
+		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
+		and FieldOutfittingRuntime.is_core_archive_maintained(world_state)
+		and _has_core_retest_readout(world_state)
+	)
+
+
+static func _has_crystal_logistics_return_materials(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return (
+		bool(world_state.get_map_object(CRYSTAL_LOGISTICS_RETURN_CRYSTAL_INSTANCE_ID).get("is_gathered", false))
+		and bool(world_state.get_map_object(CRYSTAL_LOGISTICS_RETURN_WRECKAGE_INSTANCE_ID).get("is_gathered", false))
 	)
 
 

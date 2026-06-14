@@ -809,6 +809,8 @@ func _get_general_interaction_purpose(interactable: PrototypeInteractable, defin
 		return "写入归档数据；侧边补给、缓冲回写、药剂和守卫缓存会改变核心设备承压。"
 	if interactable.definition_id == CoreStabilizationPressureFormatter.RETEST_READOUT_DEFINITION_ID:
 		return "回收核心设备完成态后的复测读数和可用补给，带回基地整理下一趟外勤。"
+	if _is_crystal_logistics_return_object(interactable.instance_id):
+		return "回收后勤补料材料，支撑基础反应器基础零件加工和出发整备台维护材料。"
 	match interactable.interaction_type:
 		"gather":
 			match String(definition.get("object_type", "")):
@@ -850,6 +852,8 @@ func _get_general_interaction_status(
 ) -> String:
 	if interactable.definition_id == "map_object.demo_stabilization_core":
 		return CoreStabilizationPressureFormatter.format_interaction_status(character_state, world_state, object_state)
+	if _is_crystal_logistics_return_object(interactable.instance_id):
+		return _get_crystal_logistics_return_status(interactable, object_state)
 	if _is_general_interaction_processed(interactable, object_state):
 		return _get_processed_interaction_status(interactable, character_state, world_state)
 	if interactable.definition_id == CoreStabilizationPressureFormatter.RETEST_READOUT_DEFINITION_ID:
@@ -925,6 +929,8 @@ func _get_general_interaction_next_step(
 		return CoreStabilizationPressureFormatter.format_interaction_next_step(character_state, world_state, object_state)
 	if interactable.definition_id == CoreStabilizationPressureFormatter.RETEST_READOUT_DEFINITION_ID:
 		return CoreStabilizationPressureFormatter.format_retest_readout_next_step(world_state, character_state)
+	if _is_crystal_logistics_return_object(interactable.instance_id):
+		return _get_crystal_logistics_return_next_step(interactable, object_state)
 	if interactable.definition_id != "map_object.pollution_residue_patch":
 		return ""
 	var contextual_step := _get_pollution_residue_contextual_next_step(interactable, object_state, world_state)
@@ -978,6 +984,34 @@ func _get_pollution_residue_contextual_next_step(
 	if world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer"):
 		return "这批沉积物服务核心缓冲包；处理后保留药剂和污染浆液，再回基地整备缓冲包。"
 	return ""
+
+
+func _is_crystal_logistics_return_object(instance_id: String) -> bool:
+	return (
+		instance_id == CoreGuardAftermathFormatter.CRYSTAL_LOGISTICS_RETURN_CRYSTAL_INSTANCE_ID
+		or instance_id == CoreGuardAftermathFormatter.CRYSTAL_LOGISTICS_RETURN_WRECKAGE_INSTANCE_ID
+	)
+
+
+func _get_crystal_logistics_return_status(
+	interactable: PrototypeInteractable,
+	object_state: Dictionary
+) -> String:
+	if _is_general_interaction_processed(interactable, object_state):
+		return "后勤补料已回收；现场保留已回收标记。"
+	return "后勤补料可回收；附近守卫仍会压住这条晶体侧路。"
+
+
+func _get_crystal_logistics_return_next_step(
+	interactable: PrototypeInteractable,
+	object_state: Dictionary
+) -> String:
+	if _is_general_interaction_processed(interactable, object_state):
+		return "后勤补料已回收；回基础反应器加工基础零件，或回出发整备台确认维护材料。"
+	var resource_name := "晶体"
+	if interactable.instance_id == CoreGuardAftermathFormatter.CRYSTAL_LOGISTICS_RETURN_WRECKAGE_INSTANCE_ID:
+		resource_name = "残骸"
+	return "清掉后勤补料守卫后回收%s；回基地加工基础零件，或回出发整备台确认维护材料。" % resource_name
 
 
 func _get_processed_interaction_status(

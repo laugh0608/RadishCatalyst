@@ -521,6 +521,41 @@ offset_right = 130.0
 offset_bottom = 124.0
 color = Color(0.82, 0.35, 0.24, 1)
 
+[node name="CrystalLogisticsReturnLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 170.0
+offset_top = 158.0
+offset_right = 236.0
+offset_bottom = 166.0
+color = Color(0.156, 0.255, 0.303, 1)
+
+[node name="CrystalLogisticsReturnPocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 176.0
+offset_top = 178.0
+offset_right = 248.0
+offset_bottom = 238.0
+color = Color(0.12, 0.2, 0.26, 1)
+
+[node name="CrystalLogisticsReturnCrystalMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 184.0
+offset_top = 186.0
+offset_right = 210.0
+offset_bottom = 218.0
+color = Color(0.42, 0.7, 0.96, 1)
+
+[node name="CrystalLogisticsReturnSalvageMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 220.0
+offset_top = 210.0
+offset_right = 246.0
+offset_bottom = 232.0
+color = Color(0.56, 0.62, 0.58, 1)
+
+[node name="CrystalLogisticsReturnGuardMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 202.0
+offset_top = 204.0
+offset_right = 226.0
+offset_bottom = 228.0
+color = Color(0.82, 0.35, 0.24, 1)
+
 [node name="CrystalAnomalyPocketMarker" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = 122.0
 offset_top = 118.0
@@ -1062,6 +1097,20 @@ label_size = Vector2(164, 24)
 
 [node name="FieldWreckageLogisticsPocket" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(150, 138)
+definition_id = "map_object.field_wreckage"
+interaction_type = "gather"
+label_offset = Vector2(-82, 22)
+label_size = Vector2(164, 24)
+
+[node name="CrystalClusterLogisticsReturn" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(194, 196)
+definition_id = "map_object.crystal_cluster"
+interaction_type = "gather"
+label_offset = Vector2(-82, 22)
+label_size = Vector2(164, 24)
+
+[node name="FieldWreckageLogisticsReturn" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(232, 218)
 definition_id = "map_object.field_wreckage"
 interaction_type = "gather"
 label_offset = Vector2(-82, 22)
@@ -1797,6 +1846,10 @@ definition_id = "enemy.native_skitter"
 
 [node name="NativeSkitterLogisticsGuard" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(118, 112)
+definition_id = "enemy.native_skitter"
+
+[node name="NativeSkitterLogisticsReturnGuard" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(212, 210)
 definition_id = "enemy.native_skitter"
 
 [node name="TreatmentSkitter" parent="Enemies" instance=ExtResource("4_enemy")]

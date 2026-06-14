@@ -12,12 +12,14 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 		"map_object_instance.crystal_cluster_north_east_reserve": "map_object.crystal_cluster",
 		"map_object_instance.crystal_cluster_side_pocket": "map_object.crystal_cluster",
 		"map_object_instance.crystal_cluster_logistics_pocket": "map_object.crystal_cluster",
+		"map_object_instance.crystal_cluster_logistics_return": "map_object.crystal_cluster",
 		"map_object_instance.rich_crystal_vein_north": "map_object.rich_crystal_vein",
 		"map_object_instance.crystal_cluster_treatment_approach": "map_object.crystal_cluster",
 		"map_object_instance.field_wreckage_north": "map_object.field_wreckage",
 		"map_object_instance.field_wreckage_east": "map_object.field_wreckage",
 		"map_object_instance.field_wreckage_south_pocket": "map_object.field_wreckage",
 		"map_object_instance.field_wreckage_logistics_pocket": "map_object.field_wreckage",
+		"map_object_instance.field_wreckage_logistics_return": "map_object.field_wreckage",
 		"map_object_instance.field_wreckage_gate_cache": "map_object.field_wreckage",
 		"map_object_instance.field_wreckage_treatment_approach": "map_object.field_wreckage",
 		"map_object_instance.crystal_cluster_foundation_return": "map_object.crystal_cluster",
@@ -197,6 +199,10 @@ const PROTOTYPE_ENEMY_SOURCES := {
 		"region_id": "region.crystal_vein_field"
 	},
 	"enemy_instance.native_skitter_logistics_guard": {
+		"definition_id": "enemy.native_skitter",
+		"region_id": "region.crystal_vein_field"
+	},
+	"enemy_instance.native_skitter_logistics_return_guard": {
 		"definition_id": "enemy.native_skitter",
 		"region_id": "region.crystal_vein_field"
 	},

@@ -220,7 +220,8 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			)
 		if interactable.definition_id == BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID:
 			should_enable = should_enable and BaseActionDispatchPlan.is_frontline_action_console_ready(world_state)
-		if BaseActionDispatchPlan.is_frontline_window_object(interactable.definition_id): should_enable = should_enable and BaseActionDispatchPlan.is_frontline_window_active(world_state)
+		if BaseActionDispatchPlan.is_frontline_window_object(interactable.definition_id):
+			should_enable = should_enable and BaseActionDispatchPlan.is_frontline_window_active(world_state)
 		if interactable.definition_id == "map_object.phase_well_frame_route_blocker":
 			should_enable = (
 				should_enable
@@ -296,7 +297,8 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 				world_state.quest_state.has_active_quest("quest.enter_pollution_edge")
 				or world_state.quest_state.has_completed_quest("quest.enter_pollution_edge")
 			)
-		if interactable.instance_id == "map_object_instance.pollution_residue_slurry_return_cache": should_enable = should_enable and _is_pollution_slurry_return_route_available(world_state)
+		if interactable.instance_id == "map_object_instance.pollution_residue_slurry_return_cache":
+			should_enable = should_enable and _is_pollution_slurry_return_route_available(world_state)
 		if interactable.instance_id == "map_object_instance.pollution_residue_vial_reserve_cache":
 			should_enable = should_enable and _is_pollution_slurry_return_route_available(world_state)
 		if interactable.instance_id == "map_object_instance.pollution_residue_core_archive_route_cache":
@@ -305,6 +307,10 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			should_enable = should_enable and FieldOutfittingRuntime.is_core_archive_maintained(world_state)
 		if interactable.instance_id == "map_object_instance.pollution_residue_core_archive_pressure_retest_cache":
 			should_enable = should_enable and _is_core_archive_pressure_retest_available(world_state)
+		if interactable.instance_id == "map_object_instance.crystal_cluster_logistics_return":
+			should_enable = should_enable and _is_crystal_logistics_return_available(world_state)
+		if interactable.instance_id == "map_object_instance.field_wreckage_logistics_return":
+			should_enable = should_enable and _is_crystal_logistics_return_available(world_state)
 		if interactable.instance_id == "map_object_instance.outer_ring_echo_residue_cache":
 			should_enable = (
 				should_enable
@@ -446,6 +452,8 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 			return _enemy_defeat_result(target, drops_message, "处理点清障压力减弱；继续确认另一处威胁或回基地补齐修复凝胶。")
 		if target.instance_id == "enemy_instance.native_skitter_logistics_guard":
 			return _enemy_defeat_result(target, drops_message, "晶体侧路暂时安全；回收周边晶体和残骸后回基地整理基建材料。")
+		if target.instance_id == "enemy_instance.native_skitter_logistics_return_guard":
+			return _enemy_defeat_result(target, drops_message, "后勤补料口袋暂时安全；回收晶体和残骸后回基础反应器加工基础零件，或回出发整备台确认维护材料。")
 		if target.definition_id == "enemy.ruin_phase_guard":
 			return _enemy_defeat_result(target, drops_message, "外圈回波匣附近的干扰守卫已清空；先回收暴露的污染回波沉积，再带回波匣回基地解析。")
 		if target.definition_id == "enemy.deep_ruin_sentinel":
@@ -756,6 +764,8 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 		return FieldOutfittingRuntime.is_core_archive_maintained(world_state)
 	if enemy.instance_id == "enemy_instance.polluted_skitter_core_archive_pressure_retest_guard":
 		return _is_core_archive_pressure_retest_available(world_state)
+	if enemy.instance_id == "enemy_instance.native_skitter_logistics_return_guard":
+		return _is_crystal_logistics_return_available(world_state)
 	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
 		return world_state.quest_state.has_active_quest("quest.scout_ruin_outer_ring") or world_state.quest_state.has_completed_quest("quest.scout_ruin_outer_ring")
 	if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
@@ -879,6 +889,13 @@ func _is_core_archive_pressure_retest_available(world_state: WorldState) -> bool
 		and _is_map_object_gathered(world_state, "map_object_instance.pollution_residue_core_archive_route_cache")
 		and _is_map_object_gathered(world_state, "map_object_instance.pollution_residue_core_archive_return_cache")
 		and _has_completed_pollution_filter_processing(world_state)
+	)
+
+
+func _is_crystal_logistics_return_available(world_state: WorldState) -> bool:
+	return (
+		FieldOutfittingRuntime.is_core_archive_maintained(world_state)
+		and CoreStabilizationPressureFormatter.has_retest_readout(world_state)
 	)
 
 

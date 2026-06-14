@@ -16,6 +16,9 @@ static func format_hud_summary(world_state: WorldState, character_state: Charact
 	var return_processing_line := format_core_archive_return_processing_line(world_state, character_state)
 	if not return_processing_line.is_empty():
 		lines.append(return_processing_line)
+	var crystal_logistics_line := format_crystal_logistics_return_line(world_state, character_state)
+	if not crystal_logistics_line.is_empty():
+		lines.append(crystal_logistics_line)
 	var next_sortie_line := CoreGuardAftermathFormatter.format_next_sortie_hud_line(world_state, character_state)
 	if not next_sortie_line.is_empty():
 		lines.append(next_sortie_line)
@@ -33,6 +36,9 @@ static func format_outpost_core_prompt(world_state: WorldState, character_state:
 	var return_processing_line := format_core_archive_return_processing_line(world_state, character_state)
 	if not return_processing_line.is_empty():
 		parts.append("%s。" % return_processing_line)
+	var crystal_logistics_line := format_crystal_logistics_return_line(world_state, character_state)
+	if not crystal_logistics_line.is_empty():
+		parts.append("%s。" % crystal_logistics_line)
 	var aftermath_line := CoreGuardAftermathFormatter.format_outpost_line(world_state, character_state)
 	if not aftermath_line.is_empty():
 		parts.append("%s。" % aftermath_line)
@@ -58,6 +64,9 @@ static func format_outfitting_station_prompt(world_state: WorldState, character_
 	var return_processing_line := format_core_archive_return_processing_line(world_state, character_state)
 	if not return_processing_line.is_empty():
 		parts.append("%s。" % return_processing_line)
+	var crystal_logistics_line := format_crystal_logistics_return_line(world_state, character_state)
+	if not crystal_logistics_line.is_empty():
+		parts.append("%s。" % crystal_logistics_line)
 	return "\n".join(parts)
 
 
@@ -77,6 +86,9 @@ static func format_departure_gate_status(world_state: WorldState, character_stat
 	var return_processing_line := format_core_archive_return_processing_line(world_state, character_state)
 	if not return_processing_line.is_empty():
 		parts.append(return_processing_line)
+	var crystal_logistics_line := format_crystal_logistics_return_line(world_state, character_state)
+	if not crystal_logistics_line.is_empty():
+		parts.append(crystal_logistics_line)
 	return "；".join(parts)
 
 
@@ -97,6 +109,9 @@ static func format_departure_gate_next_step(world_state: WorldState, character_s
 		and FieldOutfittingRuntime.has_calibration_materials(character_state)
 	):
 		return "先到出发整备台校准基础过滤模块"
+	var crystal_logistics_step := format_crystal_logistics_return_next_step(world_state, character_state)
+	if not crystal_logistics_step.is_empty():
+		return crystal_logistics_step
 	var core_archive_return_step := format_core_archive_return_next_step(world_state, character_state)
 	if not core_archive_return_step.is_empty():
 		return core_archive_return_step
@@ -157,6 +172,9 @@ static func format_feedback_detail(world_state: WorldState, character_state: Cha
 	var return_processing_line := format_core_archive_return_processing_line(world_state, character_state)
 	if not return_processing_line.is_empty():
 		parts.append(return_processing_line)
+	var crystal_logistics_line := format_crystal_logistics_return_line(world_state, character_state)
+	if not crystal_logistics_line.is_empty():
+		parts.append(crystal_logistics_line)
 	return "；".join(parts)
 
 
@@ -292,6 +310,32 @@ static func format_core_archive_return_next_step(
 	return ""
 
 
+static func format_crystal_logistics_return_line(
+	world_state: WorldState,
+	_character_state: CharacterState
+) -> String:
+	if not _should_show_crystal_logistics_return(world_state):
+		return ""
+	var has_crystal := _has_crystal_logistics_return_crystal(world_state)
+	var has_wreckage := _has_crystal_logistics_return_wreckage(world_state)
+	if has_crystal and has_wreckage:
+		return "后勤补料：晶体和残骸已回收；回基础反应器加工基础零件，或回出发整备台确认维护材料"
+	if has_crystal or has_wreckage:
+		return "后勤补料：晶体侧路补料未取齐；继续回收另一处材料后回基地整理"
+	return "后勤补料：核心复测读数已带回，可回晶体侧路补晶体矿 / 残骸废件，支撑基础零件和整备台维护"
+
+
+static func format_crystal_logistics_return_next_step(
+	world_state: WorldState,
+	_character_state: CharacterState
+) -> String:
+	if not _should_show_crystal_logistics_return(world_state):
+		return ""
+	if _has_crystal_logistics_return_materials(world_state):
+		return ""
+	return "从外勤出发口回晶体侧路补晶体矿和残骸废件，再回基地加工基础零件或确认整备台维护材料"
+
+
 static func get_restock_supply_names(world_state: WorldState, character_state: CharacterState) -> Array[String]:
 	var names: Array[String] = []
 	if not world_state.has_base_structure_definition("building.basic_storage"):
@@ -342,6 +386,8 @@ static func _format_logistics_slurry_buffer_state(world_state: WorldState) -> St
 static func _format_logistics_exit_state(world_state: WorldState, character_state: CharacterState) -> String:
 	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
 		return "未开放"
+	if _should_show_crystal_logistics_return(world_state) and not _has_crystal_logistics_return_materials(world_state):
+		return "晶体侧路补料待回收"
 	var core_archive_return_step := format_core_archive_return_next_step(world_state, character_state)
 	if not core_archive_return_step.is_empty():
 		if core_archive_return_step.find("回收核心复测读数缓存") >= 0:
@@ -408,6 +454,42 @@ static func _should_show_core_archive_return_processing(world_state: WorldState)
 		world_state != null
 		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
 		and FieldOutfittingRuntime.is_core_archive_maintained(world_state)
+	)
+
+
+static func _should_show_crystal_logistics_return(world_state: WorldState) -> bool:
+	return (
+		world_state != null
+		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
+		and FieldOutfittingRuntime.is_core_archive_maintained(world_state)
+		and CoreStabilizationPressureFormatter.has_retest_readout(world_state)
+	)
+
+
+static func _has_crystal_logistics_return_crystal(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return bool(
+		world_state.get_map_object(
+			CoreGuardAftermathFormatter.CRYSTAL_LOGISTICS_RETURN_CRYSTAL_INSTANCE_ID
+		).get("is_gathered", false)
+	)
+
+
+static func _has_crystal_logistics_return_wreckage(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return bool(
+		world_state.get_map_object(
+			CoreGuardAftermathFormatter.CRYSTAL_LOGISTICS_RETURN_WRECKAGE_INSTANCE_ID
+		).get("is_gathered", false)
+	)
+
+
+static func _has_crystal_logistics_return_materials(world_state: WorldState) -> bool:
+	return (
+		_has_crystal_logistics_return_crystal(world_state)
+		and _has_crystal_logistics_return_wreckage(world_state)
 	)
 
 
