@@ -323,7 +323,35 @@ func _check_return_route_prompts_and_readiness() -> void:
 		"logistics maintenance feedback names outfitting station state"
 	)
 	var confirmed_hud := HudStatusPresenter.new().format_status_text(host.data_registry, world, character)
+	host._expect_text_contains(
+		confirmed_hud,
+		"模块归档 / 后勤维护",
+		"HUD module state shows logistics maintenance payoff"
+	)
 	host._expect_text_contains(confirmed_hud, "整备台维护已确认", "HUD shows logistics maintenance confirmation")
+	var confirmed_outfitting_prompt := prompt_formatter.format_outfitting_station_prompt(character, world)
+	host._expect_text_contains(
+		confirmed_outfitting_prompt,
+		"后勤维护：已确认",
+		"outfitting station prompt keeps confirmed logistics maintenance visible"
+	)
+	host._expect_text_contains(
+		confirmed_outfitting_prompt,
+		"污染反击 x0.69",
+		"outfitting station prompt shows lowered logistics maintenance counter multiplier"
+	)
+	var restored_world := WorldState.from_dict(world.to_dict())
+	var restored_character := CharacterState.from_dict(character.to_dict())
+	host._expect_equal(
+		FieldOutfittingRuntime.is_logistics_maintenance_confirmed(restored_world),
+		true,
+		"logistics maintenance confirmation survives world state roundtrip"
+	)
+	host._expect_text_contains(
+		DepartureReadinessFormatter.format_departure_gate_status(restored_world, restored_character),
+		"后勤维护",
+		"departure readiness reads saved logistics maintenance state"
+	)
 	var departure_gate := PrototypeInteractable.new()
 	departure_gate.definition_id = "map_object.outpost_departure_gate"
 	departure_gate.interaction_type = "inspect"

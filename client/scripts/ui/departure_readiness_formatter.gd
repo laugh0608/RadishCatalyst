@@ -190,14 +190,23 @@ static func format_feedback_detail(world_state: WorldState, character_state: Cha
 
 static func format_module_state(world_state: WorldState, character_state: CharacterState) -> String:
 	if FieldOutfittingRuntime.has_filter_module_equipped(character_state):
+		var has_logistics_maintenance := FieldOutfittingRuntime.has_active_logistics_maintenance(character_state, world_state)
 		if FieldOutfittingRuntime.has_active_core_archive_maintenance(character_state, world_state):
 			if FieldOutfittingRuntime.has_active_module_calibration(character_state, world_state):
+				if has_logistics_maintenance:
+					return "模块校准 / 归档 / 后勤维护"
 				return "模块校准 / 归档维护"
+			if has_logistics_maintenance:
+				return "模块归档 / 后勤维护"
 			return "模块归档维护"
 		if _should_maintain_core_archive(world_state, character_state):
 			return "模块待归档维护"
 		if FieldOutfittingRuntime.has_active_module_calibration(character_state, world_state):
+			if has_logistics_maintenance:
+				return "模块校准 / 后勤维护"
 			return "模块已校准"
+		if has_logistics_maintenance:
+			return "模块后勤维护"
 		if world_state.has_base_structure_definition("building.field_outfitting_station"):
 			if FieldOutfittingRuntime.has_calibration_materials(character_state):
 				return "模块可校准"
@@ -230,7 +239,7 @@ static func format_pressure_payoff(world_state: WorldState) -> String:
 			return "后勤维护复测沉积已处理，模块校准、核心归档和后勤维护继续服务下一趟外勤"
 		if CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state):
 			return "后勤维护复测沉积已带回，先处理成药剂和污染浆液，再整理下一趟外勤"
-		return "后勤维护已确认，下一趟核心站复测会读取整备台维护收益"
+		return "后勤维护已确认，下一趟核心站复测污染采集和反击承压会继续下降"
 	if CoreStabilizationPressureFormatter.has_retest_readout(world_state):
 		return "核心复测读数已带回，核心归档维护、模块校准和补给路线可继续服务下一趟外勤"
 	if FieldOutfittingRuntime.is_core_archive_maintained(world_state):

@@ -181,6 +181,10 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 			parts.append("后勤维护：补料已加工成基础零件，待出发整备台确认。")
 			parts.append("操作：E 确认后勤维护")
 			return "\n".join(parts)
+		if FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
+			parts.append("后勤维护：已确认，核心站复测污染采集和反击会读取维护收益。")
+			parts.append("操作：E 检查整备状态")
+			return "\n".join(parts)
 		if FieldOutfittingRuntime.is_module_calibrated(world_state):
 			parts.append("维护：晶体校准已写入，污染采集和污染反击承压继续下降。")
 			parts.append("操作：E 检查整备状态")

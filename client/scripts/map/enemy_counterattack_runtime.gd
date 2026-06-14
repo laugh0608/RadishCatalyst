@@ -371,11 +371,11 @@ func _format_logistics_maintenance_retest_message(
 	character_state: CharacterState
 ) -> String:
 	if bool(pressure_vial_spend.get("consumed", false)):
-		return "%s%s；整备台后勤维护会继续降低这段核心站复测承压，清完后回收沉积物回过滤器处理。" % [
+		return "%s%s；整备台后勤维护已压低本次核心站复测承压，清完后回收沉积物回过滤器处理。" % [
 			message,
 			DepartureSupplyRuntime.format_resistance_vial_pressure_spend(pressure_vial_spend, "后勤维护复测")
 		]
-	return "%s后勤维护复测压力抬升，%s；清完后回收沉积物，回过滤器处理成药剂和污染浆液。" % [
+	return "%s后勤维护复测压力抬升，但整备台维护已压低本次基础承压；%s；清完后回收沉积物，回过滤器处理成药剂和污染浆液。" % [
 		message,
 		DepartureSupplyRuntime.format_resistance_vial_shortage_for_pressure(world_state, character_state, "后勤维护复测")
 	]

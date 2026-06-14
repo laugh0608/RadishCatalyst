@@ -78,6 +78,7 @@ func _check_logistics_maintenance_core_retest(
 		"region.demo_stabilization_core",
 		"logistics retest map target stays on core station before residue is gathered"
 	)
+	_check_logistics_maintenance_counter_delta()
 
 	ready_map.player.position = guard.position
 	var first_hit := ready_map.try_attack(character, ready_world)
@@ -227,6 +228,69 @@ func _mark_crystal_logistics_return_gathered(world: WorldState) -> void:
 		"is_gathered",
 		true
 	)
+
+
+func _check_logistics_maintenance_counter_delta() -> void:
+	var counter_runtime := EnemyCounterattackRuntime.new(host.data_registry)
+	var plain_world := _create_logistics_maintenance_core_retest_world(false)
+	var plain_character := _create_logistics_counter_character()
+	var plain_enemy := _create_logistics_retest_enemy()
+	var plain_health_before := plain_character.health
+	var plain_protection_before := plain_character.protection
+	counter_runtime.apply(plain_enemy, plain_character, plain_world, "region.demo_stabilization_core")
+	var plain_health_loss := plain_health_before - plain_character.health
+	var plain_protection_loss := plain_protection_before - plain_character.protection
+
+	var maintained_world := _create_logistics_maintenance_core_retest_world(true)
+	var maintained_character := _create_logistics_counter_character()
+	var maintained_enemy := _create_logistics_retest_enemy()
+	var maintained_health_before := maintained_character.health
+	var maintained_protection_before := maintained_character.protection
+	var maintained_message := counter_runtime.apply(
+		maintained_enemy,
+		maintained_character,
+		maintained_world,
+		"region.demo_stabilization_core"
+	)
+	var maintained_health_loss := maintained_health_before - maintained_character.health
+	var maintained_protection_loss := maintained_protection_before - maintained_character.protection
+	host._expect_equal(
+		maintained_health_loss < plain_health_loss,
+		true,
+		"logistics maintenance lowers core retest counter health pressure"
+	)
+	host._expect_equal(
+		maintained_protection_loss < plain_protection_loss,
+		true,
+		"logistics maintenance lowers core retest counter protection pressure"
+	)
+	host._expect_text_contains(
+		maintained_message,
+		"后勤维护已接入",
+		"logistics maintenance counter feedback reads confirmed maintenance state"
+	)
+	host._expect_text_contains(
+		maintained_message,
+		"整备台维护已压低",
+		"logistics maintenance counter feedback explains lowered pressure"
+	)
+	plain_enemy.free()
+	maintained_enemy.free()
+
+
+func _create_logistics_counter_character() -> CharacterState:
+	var character := CharacterState.create_default()
+	character.current_region_id = "region.demo_stabilization_core"
+	character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	return character
+
+
+func _create_logistics_retest_enemy() -> PrototypeEnemy:
+	var enemy := PrototypeEnemy.new()
+	enemy.definition_id = "enemy.demo_stabilization_logistics_retest_skitter"
+	enemy.instance_id = "enemy_instance.polluted_skitter_logistics_maintenance_retest_guard"
+	enemy.display_name = "核心复测受扰掠行体"
+	return enemy
 
 
 func _is_rect_covering_position(rect: ColorRect, position: Vector2) -> bool:

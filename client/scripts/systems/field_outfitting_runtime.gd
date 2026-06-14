@@ -15,8 +15,8 @@ const MODULE_CALIBRATION_DRAIN_MULT := 0.9
 const MODULE_CALIBRATION_COUNTER_MULT := 0.9
 const CORE_ARCHIVE_MAINTENANCE_DRAIN_MULT := 0.95
 const CORE_ARCHIVE_MAINTENANCE_COUNTER_MULT := 0.95
-const LOGISTICS_MAINTENANCE_DRAIN_MULT := 0.95
-const LOGISTICS_MAINTENANCE_COUNTER_MULT := 0.95
+const LOGISTICS_MAINTENANCE_DRAIN_MULT := 0.85
+const LOGISTICS_MAINTENANCE_COUNTER_MULT := 0.85
 
 
 static func has_station_built(world_state: WorldState) -> bool:
@@ -272,15 +272,15 @@ static func format_pollution_pressure_feedback(
 	var has_archive_maintenance := has_active_core_archive_maintenance(character_state, world_state)
 	var has_logistics_maintenance := has_active_logistics_maintenance(character_state, world_state)
 	if has_calibration and has_archive_maintenance and has_logistics_maintenance:
-		return "出发整备台校准、核心归档维护和后勤维护已接入，污染承压继续下降。"
+		return "出发整备台校准、核心归档维护和后勤维护已接入，污染承压明显下降。"
 	if has_archive_maintenance and has_logistics_maintenance:
-		return "核心归档维护和后勤维护已接入，污染承压继续下降。"
+		return "核心归档维护和后勤维护已接入，污染承压明显下降。"
 	if has_calibration and has_logistics_maintenance:
-		return "出发整备台校准和后勤维护已接入，污染承压继续下降。"
+		return "出发整备台校准和后勤维护已接入，污染承压明显下降。"
 	if has_calibration and has_archive_maintenance:
 		return "出发整备台校准和核心归档维护已接入，污染承压继续下降。"
 	if has_logistics_maintenance:
-		return "后勤维护已接入，污染承压继续下降。"
+		return "后勤维护已接入，污染承压明显下降。"
 	if has_archive_maintenance:
 		return "核心归档维护已接入，污染承压继续下降。"
 	if has_calibration:

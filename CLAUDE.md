@@ -10,7 +10,7 @@
 
 `RadishCatalyst / 异星催化` 是一个以异星化工基地、人物探索战斗、角色成长和后续协作联机为核心方向的 2D / 2.5D 工业科幻 ARPG。
 
-当前阶段、短期重点、当前不做和阶段退出条件以 `docs/planning/current.md` 为准。
+当前阶段、短期重点、当前不做和阶段退出条件以 `docs/planning/current.md` 及其当前活跃专题为准。
 
 语言规范：
 
@@ -78,12 +78,14 @@ Godot 官方命令行提供 `--import`、`--script` 和脚本级 `--check-only` 
 
 1. `docs/planning/daily-start.md`
 2. `docs/planning/current.md`
-3. `docs/devlogs/` 下最新一期周志中的“风险与未完成项”和“下周建议”
+3. `docs/planning/current.md` 指向的当前活跃 `docs/features/*.md`
+4. `docs/devlogs/` 下最新一期周志中的“风险与未完成项”和“下周建议”
 
 按任务选读：
 
 - 项目方向：`docs/product/creative-development-brief.md`
 - 首小时体验：`docs/design/onboarding-and-first-hour.md`
+- 功能专题：`docs/features/README.md`
 - 开发复测基线：`docs/design/development-retest-baselines.md`
 - 联机、存档或边界：`docs/architecture/multiplayer-and-save-architecture.md`
 - 代码结构和重构：`docs/architecture/code-style-and-language-practices.md`
@@ -94,6 +96,7 @@ Godot 官方命令行提供 `--import`、`--script` 和脚本级 `--check-only` 
 
 - 若文档、代码和阶段目标冲突，先判断哪一方过期，再统一修正。
 - 优先更新已有文档，不为一次性讨论创建大量散文档。
+- 玩家可感知功能目标、跨系统开发包或会同时影响玩法 / 场景 / HUD / 状态 / 检查的任务，应优先更新或建立 `docs/features/` 专题文档；规划入口只链接当前专题，不复制详细范围。
 - `docs/planning/daily-start.md`、`docs/planning/current.md`、`docs/README.md`、各目录 `README.md` 等关键入口文档应保持简约，只描述当前阶段、最近进度、下一步重点和必要索引；历史过程、长清单和背景材料应放入周志、专题文档、`docs/reference/` 或 `docs/archive/`，避免新会话读取入口时浪费上下文。
 - 文档按角色控制篇幅：`docs/README.md`、`docs/planning/current.md`、`docs/planning/daily-start.md` 和 `docs/**/README.md` 硬上限 120 行；`docs/` 下其他活跃专题文档建议 280 行内；`docs/devlogs/` 和 `docs/reference/` 建议 350 行内；`docs/archive/` 不设硬上限，但不作为新会话入口。
 - 专题文档接近 220 行时，新增内容优先拆成“总览 + 子文档”，或把历史过程移到周志、`reference/`、`archive/`；不要让单文件同时承担入口、规则、历史和案例四种职责。
@@ -145,7 +148,7 @@ Godot 官方命令行提供 `--import`、`--script` 和脚本级 `--check-only` 
 - 跨工作区编辑历史旧仓库、兄弟仓库、参考仓库或其他项目；确需跨仓库操作时必须先获得明确授权。
 - 把旧仓库代码整包迁入当前仓库。
 - 未经明确要求执行破坏性 Git 操作。
-- 项目范围上的“当前不做”事项以 `docs/planning/current.md` 为准。
+- 项目范围上的“当前不做”事项以 `docs/planning/current.md` 及其当前活跃专题为准。
 
 ## 工程与内容边界
 
@@ -154,7 +157,7 @@ Godot 官方命令行提供 `--import`、`--script` 和脚本级 `--check-only` 
 - 核心设计围绕“基地服务冒险，冒险反哺基地”展开。
 - 化工自动化是项目差异化卖点，但不应成为玩家理解门槛。
 - 战斗、探索、成长与生产链必须形成互相推动的闭环。
-- 当前阶段范围、当前不做和里程碑退出条件以 `docs/planning/current.md` 为准；涉及联机、存档或边界判断时参考 `docs/architecture/multiplayer-and-save-architecture.md`。
+- 当前阶段范围、当前不做和里程碑退出条件以 `docs/planning/current.md` 及其当前活跃专题为准；涉及联机、存档或边界判断时参考 `docs/architecture/multiplayer-and-save-architecture.md`。
 
 ## 代码与文件规范
 
@@ -180,6 +183,7 @@ Godot 官方命令行提供 `--import`、`--script` 和脚本级 `--check-only` 
 - `tools/`：项目脚本、数据处理、构建或导出辅助工具。
 - `scripts/`：仓库检查与自动化脚本。
 - `docs/`：策划、设计、架构、参考与归档文档。
+- `docs/features/`：玩家可感知功能目标的设计与开发专题文档。
 - `wiki/`：未来面向玩家的 Wiki 源内容。
 - `official-tools/`：未来面向玩家的官方辅助工具。
 - `.github/`：PR 模板、GitHub Actions 和 ruleset 模板。
