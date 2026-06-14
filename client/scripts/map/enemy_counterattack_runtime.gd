@@ -86,6 +86,8 @@ func _get_pressure_multiplier(enemy: PrototypeEnemy) -> float:
 		return 1.18
 	if enemy.instance_id == "enemy_instance.polluted_skitter_vial_reserve_guard":
 		return 1.28
+	if enemy.instance_id == "enemy_instance.polluted_skitter_core_archive_route_guard":
+		return 1.24
 	if enemy.instance_id == "enemy_instance.polluted_skitter_core_archive_return_guard":
 		return 1.32
 	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
@@ -176,6 +178,7 @@ func _is_pollution_pressure_vial_enemy(enemy: PrototypeEnemy) -> bool:
 		or enemy.instance_id == "enemy_instance.polluted_skitter_vial_return_guard"
 		or enemy.instance_id == "enemy_instance.polluted_skitter_slurry_return_guard"
 		or enemy.instance_id == "enemy_instance.polluted_skitter_vial_reserve_guard"
+		or enemy.instance_id == "enemy_instance.polluted_skitter_core_archive_route_guard"
 		or enemy.instance_id == "enemy_instance.polluted_skitter_core_archive_return_guard"
 		or enemy.instance_id == "enemy_instance.polluted_skitter_ridge"
 		or enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter"
@@ -207,6 +210,8 @@ func _format_pollution_counter_message(
 			return _format_slurry_return_message(message, pressure_vial_spend, world_state, character_state)
 		"enemy_instance.polluted_skitter_vial_reserve_guard":
 			return _format_vial_reserve_message(message, pressure_vial_spend, world_state, character_state)
+		"enemy_instance.polluted_skitter_core_archive_route_guard":
+			return _format_core_archive_route_message(message, pressure_vial_spend, world_state, character_state)
 		"enemy_instance.polluted_skitter_core_archive_return_guard":
 			return _format_core_archive_return_message(message, pressure_vial_spend, world_state, character_state)
 		"enemy_instance.polluted_skitter_ridge":
@@ -285,6 +290,23 @@ func _format_vial_reserve_message(
 	return "%s药剂储备口袋污染压力抬升，%s；清完后补沉积物处理下一支药剂。" % [
 		message,
 		DepartureSupplyRuntime.format_resistance_vial_shortage_for_pressure(world_state, character_state, "药剂储备口袋")
+	]
+
+
+func _format_core_archive_route_message(
+	message: String,
+	pressure_vial_spend: Dictionary,
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	if bool(pressure_vial_spend.get("consumed", false)):
+		return "%s%s；核心归档维护会继续降低这段出发路线承压，清完后回收沉积物补满药剂。" % [
+			message,
+			DepartureSupplyRuntime.format_resistance_vial_pressure_spend(pressure_vial_spend, "出发路线回访")
+		]
+	return "%s出发路线回访口袋污染压力抬升，%s；清完后回过滤器补药剂，再从出发口复测核心站。" % [
+		message,
+		DepartureSupplyRuntime.format_resistance_vial_shortage_for_pressure(world_state, character_state, "出发路线回访")
 	]
 
 

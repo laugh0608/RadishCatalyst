@@ -22,6 +22,11 @@ func run(root: Node) -> void:
 	_check_vial_reserve_route_gate(root)
 	_check_vial_reserve_residue_feedback()
 	_check_vial_reserve_guard_vial_feedback(root)
+	_check_core_archive_route_layout(root)
+	_check_core_archive_route_gate(root)
+	_check_core_archive_route_residue_feedback()
+	_check_core_archive_route_guard_feedback(root)
+	_check_core_archive_departure_guidance()
 	_check_core_archive_return_route_layout(root)
 	_check_core_archive_return_route_gate(root)
 	_check_core_archive_return_residue_feedback()
@@ -430,6 +435,152 @@ func _check_vial_reserve_guard_vial_feedback(root: Node) -> void:
 	map.free()
 
 
+func _check_core_archive_route_layout(root: Node) -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	map.setup(host.data_registry)
+	var pocket := map.get_node("OpeningSceneLayer/PollutionCoreArchiveRoutePocket") as ColorRect
+	var residue_marker := map.get_node("OpeningSceneLayer/PollutionCoreArchiveRouteResidueMarker") as ColorRect
+	var guard_marker := map.get_node("OpeningSceneLayer/PollutionCoreArchiveRouteGuardMarker") as ColorRect
+	var route_residue := map.get_node("Interactables/PollutionResidueCoreArchiveRouteCache") as PrototypeInteractable
+	var return_residue := map.get_node("Interactables/PollutionResidueCoreArchiveReturnCache") as PrototypeInteractable
+	var guard := map.get_node("Enemies/PollutedSkitterCoreArchiveRouteGuard") as PrototypeEnemy
+	host._expect_equal(
+		route_residue.position.x >= VerticalSliceMap.POLLUTION_REGION_X
+			and route_residue.position.x < return_residue.position.x
+			and route_residue.position.y >= VerticalSliceMap.POLLUTION_DEEP_Y,
+		true,
+		"core archive route residue sits before the deeper archive return pocket"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(pocket, route_residue.position)
+			and _is_rect_covering_position(residue_marker, route_residue.position)
+			and _is_rect_covering_position(guard_marker, guard.position),
+		true,
+		"core archive route scene markers align with playable objects"
+	)
+	host._expect_equal(
+		guard.position.distance_to(route_residue.position) <= VerticalSliceMap.ATTACK_RANGE,
+		true,
+		"core archive route residue is tied to visible pressure combat"
+	)
+	map.free()
+
+
+func _check_core_archive_route_gate(root: Node) -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	map.setup(host.data_registry)
+	var residue := map.get_node("Interactables/PollutionResidueCoreArchiveRouteCache") as PrototypeInteractable
+	var guard := map.get_node("Enemies/PollutedSkitterCoreArchiveRouteGuard") as PrototypeEnemy
+	var locked_world := _create_core_archive_return_world(false)
+	map.sync_enemy_states(locked_world)
+	map.refresh_world_interactables(locked_world)
+	host._expect_equal(residue.can_interact(), false, "core archive route residue is gated before archive maintenance")
+	host._expect_equal(guard.can_be_attacked(), false, "core archive route guard is gated before archive maintenance")
+
+	var maintained_world := _create_core_archive_return_world(true)
+	map.sync_enemy_states(maintained_world)
+	map.refresh_world_interactables(maintained_world)
+	host._expect_equal(residue.can_interact(), true, "core archive route residue opens after archive maintenance")
+	host._expect_equal(guard.can_be_attacked(), true, "core archive route guard opens after archive maintenance")
+	map.free()
+
+
+func _check_core_archive_route_residue_feedback() -> void:
+	var gather_system := GatherSystem.new(host.data_registry)
+	var world := _create_core_archive_return_world(true)
+	var character := CharacterState.create_default()
+	character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	var result := gather_system.interact_with_object(
+		"map_object_instance.pollution_residue_core_archive_route_cache",
+		"map_object.pollution_residue_patch",
+		"gather",
+		character,
+		world
+	)
+	host._expect_equal(bool(result.get("success", false)), true, "core archive route residue gather succeeds")
+	host._expect_text_contains(
+		String(result.get("message", "")),
+		"出发路线回访沉积已回收",
+		"core archive route residue names the departure route pocket"
+	)
+	host._expect_text_contains(
+		String(result.get("message", "")),
+		"回过滤器补满双药剂",
+		"core archive route residue points to filtering and double vial restock"
+	)
+	host._expect_equal(
+		int(character.inventory.items.get("item.polluted_residue", 0)),
+		2,
+		"core archive route residue grants polluted residue"
+	)
+
+
+func _check_core_archive_route_guard_feedback(root: Node) -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	map.setup(host.data_registry)
+	var world := _create_core_archive_return_world(true)
+	var character := CharacterState.create_default()
+	character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	character.inventory.add_item("item.resistance_vial_t1", 2)
+	map.sync_enemy_states(world)
+	map.refresh_world_interactables(world)
+	var guard := map.get_node("Enemies/PollutedSkitterCoreArchiveRouteGuard") as PrototypeEnemy
+	map.player.position = guard.position
+	var result := map.try_attack(character, world)
+	host._expect_text_contains(
+		String(result.get("message", "")),
+		"第 1 份抗污染药剂已自动接入出发路线回访排压",
+		"core archive route guard consumes first vial for route pressure"
+	)
+	host._expect_text_contains(
+		String(result.get("message", "")),
+		"核心归档维护会继续降低这段出发路线承压",
+		"core archive route guard explains archive maintenance payoff"
+	)
+	host._expect_equal(
+		int(character.inventory.items.get("item.resistance_vial_t1", 0)),
+		1,
+		"core archive route guard spends one vial"
+	)
+	map.free()
+
+
+func _check_core_archive_departure_guidance() -> void:
+	var world := _create_core_archive_return_world(true)
+	var character := CharacterState.create_default()
+	character.current_region_id = "region.outpost_platform"
+	character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	character.inventory.add_item("item.repair_gel", 1)
+	character.inventory.add_item("item.resistance_vial_t1", 2)
+	var status_text := HudStatusPresenter.new().format_status_text(host.data_registry, world, character)
+	host._expect_text_contains(
+		status_text,
+		"回访路线：核心归档维护已接入",
+		"HUD points maintained archive to pollution revisit route"
+	)
+	host._expect_text_contains(
+		status_text,
+		"出发路线 / 归档维护口袋",
+		"HUD names both archive return route pockets"
+	)
+	var gather_system := GatherSystem.new(host.data_registry)
+	var gate_result := gather_system.interact_with_object(
+		"map_object_instance.outpost_departure_gate",
+		"map_object.outpost_departure_gate",
+		"inspect",
+		character,
+		world
+	)
+	host._expect_text_contains(
+		String(gate_result.get("message", "")),
+		"先从外勤出发口回污染边界",
+		"departure gate sends maintained archive through pollution revisit first"
+	)
+
+
 func _check_double_vial_pressure_spend_and_restock(root: Node) -> void:
 	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
 	root.add_child(map)
@@ -674,7 +825,7 @@ func _check_double_vial_core_write_feedback() -> void:
 func _create_double_vial_world() -> WorldState:
 	var world := WorldState.create_default()
 	world.quest_state.complete_quest("quest.restore_outpost")
-	world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
+	world.quest_state.complete_quest("quest.enter_pollution_edge")
 	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1.0)
 	world.add_base_structure(
 		"structure.basic_storage_build_site",
@@ -721,13 +872,13 @@ func _check_slurry_reclaim_hud_and_device_panel() -> void:
 	var status_text := HudStatusPresenter.new().format_vitals_text(host.data_registry, world, character)
 	host._expect_text_contains(
 		status_text,
-		"副产去向：基础反应器可回收污染浆液",
-		"HUD base summary points polluted slurry to reactor reclaim"
+		"二次收益：可用污染浆液",
+		"HUD base summary points polluted slurry to slurry buffer payoff"
 	)
 	host._expect_text_contains(
 		status_text,
-		"药剂储备口袋补沉积物",
-		"HUD base summary points back to pollution return pockets after reclaim"
+		"支撑下一趟污染回访",
+		"HUD base summary points slurry payoff to next pollution revisit"
 	)
 
 	var processing := ProcessingSystem.new(host.data_registry)

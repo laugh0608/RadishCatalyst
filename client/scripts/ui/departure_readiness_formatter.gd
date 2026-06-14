@@ -97,6 +97,9 @@ static func format_departure_gate_next_step(world_state: WorldState, character_s
 		and FieldOutfittingRuntime.has_calibration_materials(character_state)
 	):
 		return "先到出发整备台校准基础过滤模块"
+	var core_archive_return_step := format_core_archive_return_next_step(world_state, character_state)
+	if not core_archive_return_step.is_empty():
+		return core_archive_return_step
 	var next_sortie_route := CoreGuardAftermathFormatter.format_next_sortie_route_line(world_state)
 	if not next_sortie_route.is_empty():
 		return next_sortie_route
@@ -201,6 +204,8 @@ static func format_core_archive_return_processing_line(
 ) -> String:
 	if not _should_show_core_archive_return_processing(world_state):
 		return ""
+	if not _has_any_core_archive_return_residue_gathered(world_state):
+		return "回访路线：核心归档维护已接入；从外勤出发口先回污染边界清出发路线 / 归档维护口袋，再回过滤器补药剂"
 	if not _has_completed_filter_processing(world_state):
 		return "回访处理：归档维护沉积已回收，先回污染过滤器处理成药剂和污染浆液"
 
@@ -217,6 +222,29 @@ static func format_core_archive_return_processing_line(
 			target_vial
 		]
 	return "回访处理：沉积已过滤，确认药剂余量后再从出发口复测"
+
+
+static func format_core_archive_return_next_step(
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	if not _should_show_core_archive_return_processing(world_state):
+		return ""
+	if not _has_any_core_archive_return_residue_gathered(world_state):
+		return "先从外勤出发口回污染边界，清出发路线回访口袋和归档维护回访口袋"
+	if not _has_completed_filter_processing(world_state):
+		return "先回污染过滤器处理归档维护沉积，再补药剂和污染浆液"
+	var current_vial := DepartureSupplyRuntime.get_resistance_vial_count(character_state)
+	var target_vial := DepartureSupplyRuntime.get_resistance_vial_target(world_state)
+	if current_vial < target_vial and DepartureSupplyRuntime.can_outpost_restock_resistance_vial(
+		world_state,
+		character_state
+	):
+		return "先在前哨核心补抗污染药剂到 %d/%d，再从出发口复测核心站" % [
+			target_vial,
+			target_vial
+		]
+	return ""
 
 
 static func get_restock_supply_names(world_state: WorldState, character_state: CharacterState) -> Array[String]:
@@ -285,7 +313,19 @@ static func _should_show_core_archive_return_processing(world_state: WorldState)
 		world_state != null
 		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
 		and FieldOutfittingRuntime.is_core_archive_maintained(world_state)
-		and bool(
+	)
+
+
+static func _has_any_core_archive_return_residue_gathered(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return (
+		bool(
+			world_state.get_map_object(
+				"map_object_instance.pollution_residue_core_archive_route_cache"
+			).get("is_gathered", false)
+		)
+		or bool(
 			world_state.get_map_object(
 				"map_object_instance.pollution_residue_core_archive_return_cache"
 			).get("is_gathered", false)

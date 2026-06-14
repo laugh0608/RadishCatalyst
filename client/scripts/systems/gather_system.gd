@@ -20,6 +20,7 @@ const POLLUTION_RESIDUE_PRESSURE_BY_INSTANCE := {
 	"map_object_instance.pollution_residue_vial_return_cache": 1.25,
 	"map_object_instance.pollution_residue_slurry_return_cache": 1.3,
 	"map_object_instance.pollution_residue_vial_reserve_cache": 1.45,
+	"map_object_instance.pollution_residue_core_archive_route_cache": 1.42,
 	"map_object_instance.pollution_residue_core_archive_return_cache": 1.5,
 	"map_object_instance.pollution_residue_deep": 1.35,
 	"map_object_instance.pollution_residue_ridge_cache": 1.6,
@@ -689,6 +690,8 @@ func _get_pollution_pressure_step_hint(instance_id: String, character_state: Cha
 		if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
 			return "药剂储备口袋沉积已回收；回过滤器补下一支抗污染药剂和污染浆液，继续支撑污染边界回访"
 		return "药剂储备口袋沉积已回收；建议回过滤器补抗污染药剂，再把多余污染浆液带回基础反应器回收基础零件"
+	if instance_id == "map_object_instance.pollution_residue_core_archive_route_cache":
+		return "出发路线回访沉积已回收；核心归档维护已降低这段采集承压，回过滤器补满双药剂后再从外勤出发口复测核心稳定站"
 	if instance_id == "map_object_instance.pollution_residue_core_archive_return_cache":
 		return "归档维护回访沉积已回收；核心归档维护已降低这段污染采集承压，回过滤器补药剂和污染浆液后再整理下一趟外勤"
 	if instance_id == "map_object_instance.outer_ring_echo_residue_cache":

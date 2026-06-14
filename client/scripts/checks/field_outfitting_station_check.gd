@@ -609,7 +609,7 @@ func _check_slurry_buffer_tank(root: Node) -> void:
 		supply_character
 	)
 	host._expect_text_contains(hud_text, "抗污染药剂 x2已备", "slurry buffer tank HUD shows double vial ready")
-	host._expect_text_contains(hud_text, "双药剂补给", "slurry buffer tank HUD explains pressure payoff")
+	host._expect_text_contains(hud_text, "前哨可补双药剂", "slurry buffer tank HUD explains pressure payoff")
 	var gate_result := gather_system.interact_with_object(
 		"map_object_instance.outpost_departure_gate",
 		"map_object.outpost_departure_gate",

@@ -931,7 +931,7 @@ func _check_supply_feedback() -> void:
 	_expect_feedback_contains(outpost_result, "生命 +38", "restored outpost core health feedback")
 	_expect_feedback_contains(outpost_result, "防护 +72", "restored outpost core protection feedback")
 	var outpost_full_result := gather_system.interact_with_object("map_object_instance.outpost_core", "building.outpost_core", "outpost_core", outpost_character, outpost_world)
-	_expect_text_contains(String(outpost_full_result.get("message", "")), "生命与防护完整", "restored outpost core keeps ready message at full vitals")
+	_expect_text_contains(String(outpost_full_result.get("message", "")), "前哨核心出发检查", "restored outpost core keeps ready message at full vitals")
 func _check_hud_feedback_presenter() -> void:
 	var presenter := HudFeedbackPresenter.new()
 	var supply_feedback := {

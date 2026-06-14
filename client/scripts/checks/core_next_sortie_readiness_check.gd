@@ -15,11 +15,9 @@ func run() -> void:
 func _check_completed_core_write_returns_to_departure_readiness() -> void:
 	var world_state := WorldState.create_default()
 	world_state.current_region_id = "region.outpost_platform"
-	world_state.quest_state.completed_quest_ids = [
-		"quest.restore_outpost",
-		"quest.enter_pollution_edge",
-		"quest.write_demo_stabilization_core"
-	]
+	world_state.quest_state.complete_quest("quest.restore_outpost")
+	world_state.quest_state.complete_quest("quest.enter_pollution_edge")
+	world_state.quest_state.complete_quest("quest.write_demo_stabilization_core")
 	world_state.add_base_structure(
 		"structure.basic_storage_build_site",
 		"building.basic_storage",
@@ -154,7 +152,8 @@ func _check_completed_core_write_returns_to_departure_readiness() -> void:
 
 	var ready_status_text := HudStatusPresenter.new().format_status_text(host.data_registry, world_state, character_state)
 	_expect_text_contains(ready_status_text, "模块归档维护", "post-write HUD shows maintained archive state")
-	_expect_text_contains(ready_status_text, "核心归档维护已接入，从外勤出发口复测核心稳定站", "post-write HUD shows departure exit after archive maintenance")
+	_expect_text_contains(ready_status_text, "先回污染边界处理回访口袋", "post-write HUD routes archive maintenance through pollution revisit")
+	_expect_text_contains(ready_status_text, "处理后从外勤出发口复测核心稳定站", "post-write HUD still closes on core revisit")
 	_expect_text_contains(ready_status_text, "核心归档维护已接入", "post-write HUD explains archive maintenance payoff")
 
 	var departure_prompt := formatter.format_general_interaction_prompt(departure_gate, character_state, world_state)
@@ -385,11 +384,9 @@ func _check_core_archive_return_processing_feeds_departure_readiness() -> void:
 func _create_core_archive_return_processing_world() -> WorldState:
 	var world_state := WorldState.create_default()
 	world_state.current_region_id = "region.outpost_platform"
-	world_state.quest_state.completed_quest_ids = [
-		"quest.restore_outpost",
-		"quest.enter_pollution_edge",
-		"quest.write_demo_stabilization_core"
-	]
+	world_state.quest_state.complete_quest("quest.restore_outpost")
+	world_state.quest_state.complete_quest("quest.enter_pollution_edge")
+	world_state.quest_state.complete_quest("quest.write_demo_stabilization_core")
 	world_state.quest_state.unlock_effect("recipe.cleanse_residue")
 	world_state.add_base_structure(
 		"structure.basic_storage_build_site",

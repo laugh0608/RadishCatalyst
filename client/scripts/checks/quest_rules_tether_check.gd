@@ -896,7 +896,7 @@ func _check_demo_stabilization_core_write_pressure() -> void:
 	)
 	host._expect_equal(bool(plain_result.get("success", false)), true, "core write without vial still succeeds")
 	_expect_text_contains(String(plain_result.get("message", "")), "终点准备 0/4", "core write without preparation shows pressure count")
-	_expect_text_contains(String(plain_result.get("message", "")), "没有抗污染药剂参与排压", "core write without vial explains full pressure")
+	_expect_text_contains(String(plain_result.get("message", "")), "没有抗污染药剂参与写入排压", "core write without vial explains full pressure")
 	host._expect_equal(int(roundf(plain_character.health * 10.0)), 880, "core write without vial health pressure")
 	host._expect_equal(int(roundf(plain_character.protection * 10.0)), 820, "core write without vial protection pressure")
 

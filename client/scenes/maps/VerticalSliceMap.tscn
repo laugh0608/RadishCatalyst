@@ -682,6 +682,34 @@ offset_right = 310.0
 offset_bottom = 198.0
 color = Color(0.78, 0.37, 0.13, 1)
 
+[node name="PollutionCoreArchiveRouteLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 230.0
+offset_top = 202.0
+offset_right = 316.0
+offset_bottom = 210.0
+color = Color(0.557, 0.36, 0.105, 1)
+
+[node name="PollutionCoreArchiveRoutePocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 228.0
+offset_top = 190.0
+offset_right = 318.0
+offset_bottom = 220.0
+color = Color(0.329, 0.265, 0.086, 1)
+
+[node name="PollutionCoreArchiveRouteResidueMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 234.0
+offset_top = 192.0
+offset_right = 264.0
+offset_bottom = 218.0
+color = Color(0.73, 0.61, 0.17, 1)
+
+[node name="PollutionCoreArchiveRouteGuardMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 282.0
+offset_top = 188.0
+offset_right = 312.0
+offset_bottom = 218.0
+color = Color(0.82, 0.4, 0.14, 1)
+
 [node name="PollutionCoreArchiveReturnPocket" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = 296.0
 offset_top = 184.0
@@ -1033,6 +1061,13 @@ definition_id = "map_object.pollution_residue_patch"
 interaction_type = "gather"
 label_offset = Vector2(-84, -50)
 label_size = Vector2(168, 24)
+
+[node name="PollutionResidueCoreArchiveRouteCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(246, 206)
+definition_id = "map_object.pollution_residue_patch"
+interaction_type = "gather"
+label_offset = Vector2(-92, -50)
+label_size = Vector2(184, 24)
 
 [node name="PollutionResidueDeep" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(344, 158)
@@ -1690,6 +1725,10 @@ definition_id = "enemy.polluted_skitter"
 
 [node name="PollutedSkitterVialReserveGuard" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(292, 184)
+definition_id = "enemy.polluted_skitter"
+
+[node name="PollutedSkitterCoreArchiveRouteGuard" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(286, 204)
 definition_id = "enemy.polluted_skitter"
 
 [node name="PollutedSkitterDeep" parent="Enemies" instance=ExtResource("4_enemy")]

@@ -5,7 +5,7 @@ class_name CoreGuardAftermathFormatter
 static func format_guard_cache_gather_followup(world_state: WorldState, character_state: CharacterState) -> String:
 	if not has_guard_cache_recovered(world_state):
 		return ""
-	return "%s；缓存补回：核心写入校验片 / 基础零件 / 修复凝胶 / 抗污染药剂；%s" % [
+	return "核心写入校验片已回收；%s；缓存补回：核心写入校验片 / 基础零件 / 修复凝胶 / 抗污染药剂；%s" % [
 		format_battle_spend(world_state),
 		format_next_preparation(world_state, character_state)
 	]
@@ -183,6 +183,10 @@ static func format_next_sortie_action(world_state: WorldState, character_state: 
 	if world_state.current_region_id == "region.demo_stabilization_core":
 		return "在核心设备复测完成态后回前哨整理下一趟外勤"
 	if FieldOutfittingRuntime.has_active_core_archive_maintenance(character_state, world_state):
+		if not _has_core_archive_return_residue_gathered(world_state):
+			return "核心归档维护已接入，从外勤出发口先回污染边界处理回访口袋；处理后从外勤出发口复测核心稳定站"
+		if not _has_completed_filter_processing(world_state):
+			return "核心归档维护沉积已回收，先回污染过滤器处理；处理后从外勤出发口复测核心稳定站"
 		return "核心归档维护已接入，从外勤出发口复测核心稳定站"
 	return "从外勤出发口复测核心稳定站"
 
@@ -219,3 +223,33 @@ static func has_guard_side_supply_sync(world_state: WorldState) -> bool:
 
 static func _can_outpost_restock_vial(world_state: WorldState) -> bool:
 	return DepartureSupplyRuntime.can_outpost_restock_resistance_vial(world_state)
+
+
+static func _has_core_archive_return_residue_gathered(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return (
+		bool(
+			world_state.get_map_object(
+				"map_object_instance.pollution_residue_core_archive_route_cache"
+			).get("is_gathered", false)
+		)
+		or bool(
+			world_state.get_map_object(
+				"map_object_instance.pollution_residue_core_archive_return_cache"
+			).get("is_gathered", false)
+		)
+	)
+
+
+static func _has_completed_filter_processing(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	for structure in world_state.base_structures.values():
+		if not structure is Dictionary:
+			continue
+		if String(structure.get("definition_id", "")) != "building.pollution_filter":
+			continue
+		if String(structure.get("last_recipe_id", "")) == "recipe.cleanse_residue":
+			return true
+	return false

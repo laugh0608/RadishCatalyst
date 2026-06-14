@@ -163,10 +163,17 @@ static func _is_core_archive_return_residue_context(world_state: WorldState) -> 
 		world_state != null
 		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
 		and FieldOutfittingRuntime.is_core_archive_maintained(world_state)
-		and bool(
-			world_state.get_map_object(
-				"map_object_instance.pollution_residue_core_archive_return_cache"
-			).get("is_gathered", false)
+		and (
+			bool(
+				world_state.get_map_object(
+					"map_object_instance.pollution_residue_core_archive_route_cache"
+				).get("is_gathered", false)
+			)
+			or bool(
+				world_state.get_map_object(
+					"map_object_instance.pollution_residue_core_archive_return_cache"
+				).get("is_gathered", false)
+			)
 		)
 	)
 

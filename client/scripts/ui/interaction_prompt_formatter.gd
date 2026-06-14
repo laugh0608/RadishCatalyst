@@ -941,6 +941,10 @@ func _get_pollution_residue_contextual_next_step(
 		if already_gathered:
 			return "药剂储备沉积已回收；回过滤器补下一支药剂和污染浆液，多余浆液可回基地反应器回收基础零件。"
 		return "回收后回过滤器补下一支药剂和污染浆液，支撑污染边界后续回访。"
+	if interactable.instance_id == "map_object_instance.pollution_residue_core_archive_route_cache":
+		if already_gathered:
+			return "出发路线回访沉积已回收；回过滤器补满双药剂，再从外勤出发口复测核心稳定站。"
+		return "回收后回过滤器补满双药剂，验证核心归档维护对下一趟污染承压的收益。"
 	if interactable.instance_id == "map_object_instance.pollution_residue_core_archive_return_cache":
 		if already_gathered:
 			return "归档维护回访沉积已回收；回过滤器处理成药剂和污染浆液，前哨核心补满后再从出发口复测。"

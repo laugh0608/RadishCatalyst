@@ -206,6 +206,11 @@ func _check_loads_known_map_object_source() -> void:
 			"region_id": "region.pollution_edge",
 			"is_gathered": true
 		},
+		"map_object_instance.pollution_residue_core_archive_route_cache": {
+			"definition_id": "map_object.pollution_residue_patch",
+			"region_id": "region.pollution_edge",
+			"is_gathered": true
+		},
 		"map_object_instance.demo_stabilization_core": {
 			"definition_id": "map_object.demo_stabilization_core",
 			"region_id": "region.demo_stabilization_core",
@@ -304,7 +309,10 @@ func _check_loads_known_enemy_source() -> void:
 			"region_id": "region.demo_stabilization_core",
 			"health": 0,
 			"max_health": 156,
-			"is_defeated": true
+			"is_defeated": true,
+			"core_buffer_used": true,
+			"core_side_supply_used": true,
+			"pressure_vial_used": true
 		},
 		"enemy_instance.core_buffer_polluted_skitter": {
 			"definition_id": "enemy.polluted_skitter",
@@ -337,14 +345,12 @@ func _check_loads_known_enemy_source() -> void:
 			"is_defeated": true,
 			"pressure_vial_used": true
 		},
-		"enemy_instance.demo_stabilization_guard": {
-			"definition_id": "enemy.demo_stabilization_guard",
-			"region_id": "region.demo_stabilization_core",
+		"enemy_instance.polluted_skitter_core_archive_route_guard": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge",
 			"health": 0,
-			"max_health": 156,
+			"max_health": 30,
 			"is_defeated": true,
-			"core_buffer_used": true,
-			"core_side_supply_used": true,
 			"pressure_vial_used": true
 		}
 	}
