@@ -941,7 +941,10 @@ func _get_general_interaction_next_step(
 		return CoreStabilizationPressureFormatter.format_retest_readout_next_step(world_state, character_state)
 	if _is_crystal_logistics_return_object(interactable.instance_id):
 		return _get_crystal_logistics_return_next_step(interactable, object_state, world_state)
-	if interactable.definition_id != "map_object.pollution_residue_patch":
+	if (
+		interactable.definition_id != "map_object.pollution_residue_patch"
+		and interactable.definition_id != CoreStabilizationPressureFormatter.LOGISTICS_MAINTENANCE_RETEST_RESIDUE_DEFINITION_ID
+	):
 		return ""
 	var contextual_step := _get_pollution_residue_contextual_next_step(interactable, object_state, world_state)
 	if not contextual_step.is_empty():
@@ -989,6 +992,10 @@ func _get_pollution_residue_contextual_next_step(
 		if already_gathered:
 			return "复测压力沉积已回收；回过滤器处理成药剂和污染浆液，多余浆液可回基础反应器回收基础零件。"
 		return "清掉复测压力守卫后回收沉积物；处理后补药剂，并把多余污染浆液转回基地建造和整备收益。"
+	if interactable.instance_id == CoreStabilizationPressureFormatter.LOGISTICS_MAINTENANCE_RETEST_RESIDUE_INSTANCE_ID:
+		if already_gathered:
+			return "后勤维护复测沉积已回收；回过滤器处理成药剂和污染浆液，再回前哨核心补给。"
+		return "清掉后勤维护复测守卫后回收沉积物；这次承压会读取整备台后勤维护收益。"
 	if world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
 		return "这批沉积物服务深段回波线；处理后保留污染浆液，再回基地解析裂相坐标。"
 	if world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer"):

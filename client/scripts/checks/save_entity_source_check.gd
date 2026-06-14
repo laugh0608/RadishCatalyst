@@ -237,6 +237,12 @@ func _check_loads_known_map_object_source() -> void:
 			"region_id": "region.pollution_edge",
 			"is_gathered": true
 		},
+		"map_object_instance.pollution_residue_logistics_maintenance_retest_cache": {
+			"definition_id": "map_object.demo_stabilization_logistics_retest_residue",
+			"region_id": "region.demo_stabilization_core",
+			"is_gathered": true,
+			"logistics_maintenance_retest_processed": true
+		},
 		"map_object_instance.demo_stabilization_core": {
 			"definition_id": "map_object.demo_stabilization_core",
 			"region_id": "region.demo_stabilization_core",
@@ -390,6 +396,14 @@ func _check_loads_known_enemy_source() -> void:
 		"enemy_instance.polluted_skitter_core_archive_pressure_retest_guard": {
 			"definition_id": "enemy.polluted_skitter",
 			"region_id": "region.pollution_edge",
+			"health": 0,
+			"max_health": 30,
+			"is_defeated": true,
+			"pressure_vial_used": true
+		},
+		"enemy_instance.polluted_skitter_logistics_maintenance_retest_guard": {
+			"definition_id": "enemy.demo_stabilization_logistics_retest_skitter",
+			"region_id": "region.demo_stabilization_core",
 			"health": 0,
 			"max_health": 30,
 			"is_defeated": true,

@@ -10,6 +10,9 @@ const CORE_QUEST_IDS: Array[String] = [
 const RETEST_READOUT_INSTANCE_ID := "map_object_instance.demo_stabilization_retest_readout_cache"
 const RETEST_READOUT_DEFINITION_ID := "map_object.demo_stabilization_retest_readout_cache"
 const PRESSURE_RETEST_RESIDUE_INSTANCE_ID := "map_object_instance.pollution_residue_core_archive_pressure_retest_cache"
+const LOGISTICS_MAINTENANCE_RETEST_RESIDUE_INSTANCE_ID := "map_object_instance.pollution_residue_logistics_maintenance_retest_cache"
+const LOGISTICS_MAINTENANCE_RETEST_RESIDUE_DEFINITION_ID := "map_object.demo_stabilization_logistics_retest_residue"
+const LOGISTICS_MAINTENANCE_RETEST_PROCESSED_FLAG := "logistics_maintenance_retest_processed"
 
 
 static func format_hud_summary(
@@ -25,6 +28,9 @@ static func format_hud_summary(
 		var readout_line := format_retest_readout_status_line(world_state)
 		if not readout_line.is_empty():
 			revisit_lines.append(readout_line)
+		var logistics_retest_line := format_logistics_maintenance_retest_status_line(world_state)
+		if not logistics_retest_line.is_empty():
+			revisit_lines.append(logistics_retest_line)
 		return revisit_lines
 	if not is_core_stabilization_context(world_state, active_quest_id):
 		return []
@@ -176,6 +182,13 @@ static func format_core_revisit_completion_parts(world_state: WorldState, charac
 		parts.append("复测读数已回收")
 	elif is_retest_readout_available(world_state):
 		parts.append("复测读数待回收")
+	if FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
+		if is_logistics_maintenance_retest_processed(world_state):
+			parts.append("后勤维护复测沉积已处理")
+		elif has_logistics_maintenance_retest_residue(world_state):
+			parts.append("后勤维护复测沉积待过滤")
+		elif is_logistics_maintenance_retest_available(world_state):
+			parts.append("后勤维护复测压力待清理")
 	return "；".join(parts)
 
 
@@ -186,6 +199,12 @@ static func format_core_revisit_pressure_line(world_state: WorldState) -> String
 static func format_core_revisit_next_step(world_state: WorldState, character_state: CharacterState) -> String:
 	if is_retest_readout_available(world_state) and not has_retest_readout(world_state):
 		return "核心复测读数缓存已显形；先回收读数和补给，再沿外勤出发口回前哨整理"
+	if is_logistics_maintenance_retest_available(world_state):
+		if is_logistics_maintenance_retest_processed(world_state):
+			return "后勤维护复测沉积已处理；沿外勤出发口回前哨核心补给，并确认下一趟外勤准备"
+		if has_logistics_maintenance_retest_residue(world_state):
+			return "后勤维护复测沉积已回收；沿外勤出发口回过滤器处理成药剂和污染浆液，再回前哨整理"
+		return "后勤维护复测压力点已开放；先清掉守卫并回收沉积物，验证整备台维护后的承压收益"
 	if not character_state.are_vitals_full():
 		return "生命 / 防护未满；沿外勤出发口回前哨核心恢复后再复测或出发"
 	if not character_state.inventory.has_ref("item.repair_gel", 1):
@@ -240,6 +259,16 @@ static func format_retest_readout_status_line(world_state: WorldState) -> String
 	if is_retest_readout_available(world_state):
 		return "复测读数：核心设备东侧缓存已显形，可回收读数、基础零件和修复凝胶"
 	return ""
+
+
+static func format_logistics_maintenance_retest_status_line(world_state: WorldState) -> String:
+	if not is_logistics_maintenance_retest_available(world_state):
+		return ""
+	if is_logistics_maintenance_retest_processed(world_state):
+		return "后勤维护复测：沉积已过滤成药剂和污染浆液，回前哨核心补给后可继续准备下一趟外勤"
+	if has_logistics_maintenance_retest_residue(world_state):
+		return "后勤维护复测：压力沉积已回收，先回过滤器处理，再把多余污染浆液带回基地反应器"
+	return "后勤维护复测：核心站维护压力点已开放，清守卫后回收沉积物验证整备收益"
 
 
 static func format_retest_readout_next_step(world_state: WorldState, character_state: CharacterState) -> String:
@@ -299,6 +328,61 @@ static func has_retest_readout(world_state: WorldState) -> bool:
 	if world_state == null:
 		return false
 	return bool(world_state.get_map_object(RETEST_READOUT_INSTANCE_ID).get("is_gathered", false))
+
+
+static func is_logistics_maintenance_retest_available(world_state: WorldState) -> bool:
+	return (
+		world_state != null
+		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
+		and FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state)
+		and has_retest_readout(world_state)
+	)
+
+
+static func has_logistics_maintenance_retest_residue(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return bool(
+		world_state.get_map_object(LOGISTICS_MAINTENANCE_RETEST_RESIDUE_INSTANCE_ID).get(
+			"is_gathered",
+			false
+		)
+	)
+
+
+static func is_logistics_maintenance_retest_processed(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return bool(
+		world_state.get_map_object(LOGISTICS_MAINTENANCE_RETEST_RESIDUE_INSTANCE_ID).get(
+			LOGISTICS_MAINTENANCE_RETEST_PROCESSED_FLAG,
+			false
+		)
+	)
+
+
+static func mark_logistics_maintenance_retest_processed(world_state: WorldState) -> void:
+	if world_state == null:
+		return
+	var residue_state := world_state.ensure_map_object(
+		LOGISTICS_MAINTENANCE_RETEST_RESIDUE_INSTANCE_ID,
+		LOGISTICS_MAINTENANCE_RETEST_RESIDUE_DEFINITION_ID,
+		"region.demo_stabilization_core"
+	)
+	residue_state[LOGISTICS_MAINTENANCE_RETEST_PROCESSED_FLAG] = true
+
+
+static func should_process_logistics_maintenance_retest_residue(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> bool:
+	return (
+		character_state != null
+		and is_logistics_maintenance_retest_available(world_state)
+		and has_logistics_maintenance_retest_residue(world_state)
+		and not is_logistics_maintenance_retest_processed(world_state)
+		and character_state.inventory.has_ref("item.polluted_residue", 2)
+	)
 
 
 static func is_retest_readout_available(world_state: WorldState) -> bool:

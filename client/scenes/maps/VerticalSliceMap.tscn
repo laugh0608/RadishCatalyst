@@ -901,6 +901,34 @@ offset_right = 4148.0
 offset_bottom = 92.0
 color = Color(0.78, 0.86, 0.42, 1)
 
+[node name="CoreStabilizationLogisticsRetestLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 4126.0
+offset_top = -54.0
+offset_right = 4238.0
+offset_bottom = -46.0
+color = Color(0.476, 0.478, 0.225, 1)
+
+[node name="CoreStabilizationLogisticsRetestPocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 4168.0
+offset_top = -72.0
+offset_right = 4256.0
+offset_bottom = -28.0
+color = Color(0.23, 0.287, 0.197, 1)
+
+[node name="CoreStabilizationLogisticsRetestResidueMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 4212.0
+offset_top = -64.0
+offset_right = 4242.0
+offset_bottom = -36.0
+color = Color(0.61, 0.68, 0.28, 1)
+
+[node name="CoreStabilizationLogisticsRetestGuardMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 4174.0
+offset_top = -58.0
+offset_right = 4206.0
+offset_bottom = -28.0
+color = Color(0.7, 0.44, 0.18, 1)
+
 [node name="CoreStabilizationPressureLabel" type="Label" parent="OpeningSceneLayer"]
 offset_left = 3692.0
 offset_top = -126.0
@@ -1834,6 +1862,13 @@ interaction_type = "gather"
 label_offset = Vector2(-118, 22)
 label_size = Vector2(236, 24)
 
+[node name="PollutionResidueLogisticsMaintenanceRetestCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(4228, -52)
+definition_id = "map_object.demo_stabilization_logistics_retest_residue"
+interaction_type = "gather"
+label_offset = Vector2(-118, -52)
+label_size = Vector2(236, 24)
+
 [node name="Enemies" type="Node2D" parent="."]
 
 [node name="NativeSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
@@ -1967,3 +2002,7 @@ definition_id = "enemy.pressure_clearance_guard"
 [node name="DemoStabilizationGuard" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(3870, 18)
 definition_id = "enemy.demo_stabilization_guard"
+
+[node name="PollutedSkitterLogisticsMaintenanceRetestGuard" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(4186, -36)
+definition_id = "enemy.demo_stabilization_logistics_retest_skitter"

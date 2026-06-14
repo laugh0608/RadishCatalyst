@@ -1146,6 +1146,23 @@
       "public_level": "spoiler"
     },
     {
+      "id": "map_object.demo_stabilization_logistics_retest_residue",
+      "display_name_key": "map_object.demo_stabilization_logistics_retest_residue.name",
+      "description_key": "map_object.demo_stabilization_logistics_retest_residue.desc",
+      "object_type": "hazard_resource",
+      "interaction_types": ["gather"],
+      "is_destructible": true,
+      "is_collectible": false,
+      "is_sampleable": false,
+      "blocks_movement": false,
+      "blocks_building": true,
+      "required_tool_tags": ["gather_basic"],
+      "drops": [{"id": "item.polluted_residue", "amount": 2}],
+      "sample_result_refs": [],
+      "pollution_effect": "pollution.yellow_residue",
+      "public_level": "spoiler"
+    },
+    {
       "id": "map_object.demo_stabilization_core",
       "display_name_key": "map_object.demo_stabilization_core.name",
       "description_key": "map_object.demo_stabilization_core.desc",

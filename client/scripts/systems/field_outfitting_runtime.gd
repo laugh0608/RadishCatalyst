@@ -15,6 +15,8 @@ const MODULE_CALIBRATION_DRAIN_MULT := 0.9
 const MODULE_CALIBRATION_COUNTER_MULT := 0.9
 const CORE_ARCHIVE_MAINTENANCE_DRAIN_MULT := 0.95
 const CORE_ARCHIVE_MAINTENANCE_COUNTER_MULT := 0.95
+const LOGISTICS_MAINTENANCE_DRAIN_MULT := 0.95
+const LOGISTICS_MAINTENANCE_COUNTER_MULT := 0.95
 
 
 static func has_station_built(world_state: WorldState) -> bool:
@@ -223,6 +225,17 @@ static func has_active_core_archive_maintenance(
 	)
 
 
+static func has_active_logistics_maintenance(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> bool:
+	return (
+		has_station_built(world_state)
+		and has_filter_module_equipped(character_state)
+		and is_logistics_maintenance_confirmed(world_state)
+	)
+
+
 static func get_pollution_drain_multiplier(
 	character_state: CharacterState,
 	world_state: WorldState
@@ -232,6 +245,8 @@ static func get_pollution_drain_multiplier(
 		multiplier *= MODULE_CALIBRATION_DRAIN_MULT
 	if has_active_core_archive_maintenance(character_state, world_state):
 		multiplier *= CORE_ARCHIVE_MAINTENANCE_DRAIN_MULT
+	if has_active_logistics_maintenance(character_state, world_state):
+		multiplier *= LOGISTICS_MAINTENANCE_DRAIN_MULT
 	return multiplier
 
 
@@ -244,6 +259,8 @@ static func get_pollution_counter_damage_multiplier(
 		multiplier *= MODULE_CALIBRATION_COUNTER_MULT
 	if has_active_core_archive_maintenance(character_state, world_state):
 		multiplier *= CORE_ARCHIVE_MAINTENANCE_COUNTER_MULT
+	if has_active_logistics_maintenance(character_state, world_state):
+		multiplier *= LOGISTICS_MAINTENANCE_COUNTER_MULT
 	return multiplier
 
 
@@ -253,8 +270,17 @@ static func format_pollution_pressure_feedback(
 ) -> String:
 	var has_calibration := has_active_module_calibration(character_state, world_state)
 	var has_archive_maintenance := has_active_core_archive_maintenance(character_state, world_state)
+	var has_logistics_maintenance := has_active_logistics_maintenance(character_state, world_state)
+	if has_calibration and has_archive_maintenance and has_logistics_maintenance:
+		return "出发整备台校准、核心归档维护和后勤维护已接入，污染承压继续下降。"
+	if has_archive_maintenance and has_logistics_maintenance:
+		return "核心归档维护和后勤维护已接入，污染承压继续下降。"
+	if has_calibration and has_logistics_maintenance:
+		return "出发整备台校准和后勤维护已接入，污染承压继续下降。"
 	if has_calibration and has_archive_maintenance:
 		return "出发整备台校准和核心归档维护已接入，污染承压继续下降。"
+	if has_logistics_maintenance:
+		return "后勤维护已接入，污染承压继续下降。"
 	if has_archive_maintenance:
 		return "核心归档维护已接入，污染承压继续下降。"
 	if has_calibration:

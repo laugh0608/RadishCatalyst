@@ -166,6 +166,14 @@ func get_recommended_recipe_id(
 		and FieldOutfittingRuntime.should_process_logistics_materials(character_state, world_state)
 	):
 		return _select_if_available(interactable, "recipe.process_crystal_ore")
+	if (
+		interactable.definition_id == "building.pollution_filter"
+		and CoreStabilizationPressureFormatter.should_process_logistics_maintenance_retest_residue(
+			character_state,
+			world_state
+		)
+	):
+		return _select_if_available(interactable, "recipe.cleanse_residue")
 	match active_quest_id:
 		"quest.scout_crystal_field":
 			return _select_if_available(interactable, "recipe.process_crystal_ore")
@@ -853,13 +861,19 @@ func _get_recipe_lock_message(recipe: Dictionary, world_state: WorldState) -> St
 
 
 func _apply_recipe_completion_side_effect(recipe_id: String, world_state: WorldState) -> void:
-	if recipe_id != "recipe.process_crystal_ore":
+	if recipe_id == "recipe.process_crystal_ore":
+		if not FieldOutfittingRuntime.is_crystal_logistics_return_available(world_state):
+			return
+		if not FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state):
+			return
+		FieldOutfittingRuntime.mark_logistics_material_processed(world_state)
 		return
-	if not FieldOutfittingRuntime.is_crystal_logistics_return_available(world_state):
-		return
-	if not FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state):
-		return
-	FieldOutfittingRuntime.mark_logistics_material_processed(world_state)
+	if recipe_id == "recipe.cleanse_residue":
+		if not CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_available(world_state):
+			return
+		if not CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state):
+			return
+		CoreStabilizationPressureFormatter.mark_logistics_maintenance_retest_processed(world_state)
 
 
 func _format_unlock_conditions(unlock_conditions: Array) -> String:

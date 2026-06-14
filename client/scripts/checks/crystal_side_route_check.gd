@@ -330,7 +330,7 @@ func _check_return_route_prompts_and_readiness() -> void:
 	departure_gate.single_use = false
 	var departure_prompt := prompt_formatter.format_general_interaction_prompt(departure_gate, character, world)
 	host._expect_text_contains(departure_prompt, "整备台维护已确认", "departure gate prompt shows logistics maintenance confirmation")
-	host._expect_text_contains(departure_prompt, "准备下一趟外勤", "departure gate prompt points to next sortie")
+	host._expect_text_contains(departure_prompt, "复测核心站", "departure gate prompt points to core retest pressure")
 	host._expect_equal(
 		CoreGuardAftermathFormatter.get_next_sortie_target_region_id(world),
 		"region.demo_stabilization_core",

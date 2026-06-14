@@ -23,6 +23,8 @@ const POLLUTION_RESIDUE_PRESSURE_BY_INSTANCE := {
 	"map_object_instance.pollution_residue_vial_reserve_cache": 1.45,
 	"map_object_instance.pollution_residue_core_archive_route_cache": 1.42,
 	"map_object_instance.pollution_residue_core_archive_return_cache": 1.5,
+	"map_object_instance.pollution_residue_core_archive_pressure_retest_cache": 1.55,
+	"map_object_instance.pollution_residue_logistics_maintenance_retest_cache": 1.62,
 	"map_object_instance.pollution_residue_deep": 1.35,
 	"map_object_instance.pollution_residue_ridge_cache": 1.6,
 	"map_object_instance.outer_ring_echo_residue_cache": 1.7,
@@ -695,12 +697,30 @@ func _get_pollution_protection_hint(character_state: CharacterState, world_state
 	if (
 		FieldOutfittingRuntime.has_active_module_calibration(character_state, world_state)
 		and FieldOutfittingRuntime.has_active_core_archive_maintenance(character_state, world_state)
+		and FieldOutfittingRuntime.has_active_logistics_maintenance(character_state, world_state)
+	):
+		return "，过滤模块校准、核心归档维护和后勤维护已降低消耗"
+	if (
+		FieldOutfittingRuntime.has_active_core_archive_maintenance(character_state, world_state)
+		and FieldOutfittingRuntime.has_active_logistics_maintenance(character_state, world_state)
+	):
+		return "，核心归档维护和后勤维护已降低消耗"
+	if (
+		FieldOutfittingRuntime.has_active_module_calibration(character_state, world_state)
+		and FieldOutfittingRuntime.has_active_logistics_maintenance(character_state, world_state)
+	):
+		return "，过滤模块校准和后勤维护已降低消耗"
+	if (
+		FieldOutfittingRuntime.has_active_module_calibration(character_state, world_state)
+		and FieldOutfittingRuntime.has_active_core_archive_maintenance(character_state, world_state)
 	):
 		return "，过滤模块校准和核心归档维护已降低消耗"
 	if FieldOutfittingRuntime.has_active_core_archive_maintenance(character_state, world_state):
 		return "，核心归档维护已降低消耗"
 	if FieldOutfittingRuntime.has_active_module_calibration(character_state, world_state):
 		return "，过滤模块校准已降低消耗"
+	if FieldOutfittingRuntime.has_active_logistics_maintenance(character_state, world_state):
+		return "，后勤维护已降低消耗"
 	return "，过滤模块已降低消耗"
 
 
@@ -725,6 +745,8 @@ func _get_pollution_pressure_step_hint(instance_id: String, character_state: Cha
 		return "出发路线回访沉积已回收；核心归档维护已降低这段采集承压，回过滤器补满双药剂后再从外勤出发口复测核心稳定站"
 	if instance_id == "map_object_instance.pollution_residue_core_archive_return_cache":
 		return "归档维护回访沉积已回收；核心归档维护已降低这段污染采集承压，回过滤器补药剂和污染浆液后再整理下一趟外勤"
+	if instance_id == CoreStabilizationPressureFormatter.LOGISTICS_MAINTENANCE_RETEST_RESIDUE_INSTANCE_ID:
+		return "后勤维护复测沉积已回收；回过滤器处理成药剂和污染浆液，再回前哨核心补给并确认下一趟外勤"
 	if instance_id == "map_object_instance.outer_ring_echo_residue_cache":
 		return "污染回波沉积已回收；回过滤器处理成抗污染药剂和污染浆液，再带回波匣回基地解析裂相坐标"
 	if instance_id == "map_object_instance.pollution_residue_deep":

@@ -64,6 +64,8 @@ static func format_next_sortie_outpost_line(world_state: WorldState, character_s
 static func format_next_sortie_goal_name(world_state: WorldState) -> String:
 	if not should_show_next_sortie(world_state):
 		return ""
+	if _should_handle_logistics_maintenance_retest_on_core(world_state):
+		return "后勤维护复测压力待处理"
 	if world_state.current_region_id != "region.outpost_platform":
 		return "核心写入归档待回前哨"
 	if FieldOutfittingRuntime.is_crystal_logistics_return_available(world_state):
@@ -73,6 +75,10 @@ static func format_next_sortie_goal_name(world_state: WorldState) -> String:
 			return "基地后勤补料待加工"
 		if not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
 			return "出发整备台维护待确认"
+		if not CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state):
+			return "核心站后勤维护复测压力"
+		if not CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_processed(world_state):
+			return "后勤维护复测沉积待处理"
 		return "下一趟外勤准备"
 	return "核心写入归档后出发准备"
 
@@ -80,6 +86,10 @@ static func format_next_sortie_goal_name(world_state: WorldState) -> String:
 static func format_next_sortie_route_line(world_state: WorldState) -> String:
 	if not should_show_next_sortie(world_state):
 		return ""
+	if _should_handle_logistics_maintenance_retest_on_core(world_state):
+		if CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state):
+			return "后勤维护复测沉积已回收；返回前哨过滤沉积物，再补给并整理下一趟外勤"
+		return "后勤维护已确认；清核心站复测压力点并回收沉积物，验证整备台维护收益"
 	if world_state.current_region_id != "region.outpost_platform":
 		return "核心写入已归档；返回前哨核心补给并整理下一趟外勤"
 	if _has_core_retest_readout(world_state):
@@ -90,7 +100,11 @@ static func format_next_sortie_route_line(world_state: WorldState) -> String:
 				return "晶体侧路补料已带回；回基础反应器加工基础零件，再确认整备台维护"
 			if not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
 				return "后勤补料已加工；到出发整备台确认维护材料，再回前哨核心补给"
-			return "后勤补料已处理，整备台维护已确认；回前哨核心补给后准备下一趟外勤"
+			if not CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state):
+				return "后勤补料已处理，整备台维护已确认；从外勤出发口复测核心站，清后勤维护压力点"
+			if not CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_processed(world_state):
+				return "后勤维护复测沉积已带回；先回污染过滤器处理成药剂和污染浆液"
+			return "后勤维护复测沉积已处理；回前哨核心补给后准备下一趟外勤"
 		return "核心复测读数已带回；回前哨核心补给并确认出发整备"
 	if _is_core_retest_readout_available(world_state):
 		return "核心写入已归档；从外勤出发口复测核心稳定站并回收复测读数缓存"
@@ -100,11 +114,20 @@ static func format_next_sortie_route_line(world_state: WorldState) -> String:
 static func get_next_sortie_target_region_id(world_state: WorldState) -> String:
 	if not should_show_next_sortie(world_state):
 		return ""
+	if _should_handle_logistics_maintenance_retest_on_core(world_state):
+		if CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state):
+			return "region.outpost_platform"
+		return "region.demo_stabilization_core"
 	if world_state.current_region_id == "region.outpost_platform":
 		if _is_crystal_logistics_return_available(world_state):
 			if not FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state):
 				return "region.crystal_vein_field"
 			if not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
+				return "region.outpost_platform"
+			if (
+				CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state)
+				and not CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_processed(world_state)
+			):
 				return "region.outpost_platform"
 		return "region.demo_stabilization_core"
 	return "region.outpost_platform"
@@ -227,7 +250,11 @@ static func format_next_sortie_action(world_state: WorldState, character_state: 
 					return "晶体侧路补料已带回，回基础反应器加工基础零件，再确认整备台维护"
 				if not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
 					return "基础零件已加工，到出发整备台确认后勤维护"
-				return "后勤补料处理和整备台维护已确认，回前哨核心补给后准备下一趟外勤"
+				if not CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state):
+					return "后勤补料处理和整备台维护已确认，从外勤出发口复测核心站并清后勤维护压力点"
+				if not CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_processed(world_state):
+					return "后勤维护复测沉积已回收，先回污染过滤器处理；处理后补给并整理下一趟外勤"
+				return "后勤维护复测沉积已处理，回前哨核心补给后准备下一趟外勤"
 			return "核心复测读数已回收，回前哨核心补给并确认出发整备"
 		return "核心归档维护已接入，从外勤出发口复测核心稳定站"
 	return "从外勤出发口复测核心稳定站"
@@ -335,6 +362,11 @@ static func _has_unprocessed_core_archive_pressure_retest_residue(
 ) -> bool:
 	if world_state == null or character_state == null:
 		return false
+	if (
+		CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state)
+		and not CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_processed(world_state)
+	):
+		return false
 	return (
 		bool(
 			world_state.get_map_object(
@@ -342,4 +374,13 @@ static func _has_unprocessed_core_archive_pressure_retest_residue(
 			).get("is_gathered", false)
 		)
 		and character_state.inventory.has_ref("item.polluted_residue", 2)
+	)
+
+
+static func _should_handle_logistics_maintenance_retest_on_core(world_state: WorldState) -> bool:
+	return (
+		world_state != null
+		and world_state.current_region_id == "region.demo_stabilization_core"
+		and CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_available(world_state)
+		and not CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_processed(world_state)
 	)

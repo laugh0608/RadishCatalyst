@@ -20,6 +20,10 @@ PANEL_NAMES = [
     "SupplyFeedbackPanel",
 ]
 DEBUG_PANEL_NAMES = {"SavePanel", "QuickSlotPanel"}
+POST_DEMO_OBJECTIVE_REGION_EXEMPT_INSTANCE_IDS = {
+    "map_object_instance.pollution_residue_logistics_maintenance_retest_cache",
+    "enemy_instance.polluted_skitter_logistics_maintenance_retest_guard",
+}
 
 
 def read_text(path: Path) -> str:
@@ -183,6 +187,10 @@ def convert_to_snake_case(name: str) -> str:
 
 def get_map_object_instance_id(node_name: str) -> str:
     return f"map_object_instance.{convert_to_snake_case(node_name)}"
+
+
+def get_enemy_instance_id(node_name: str) -> str:
+    return f"enemy_instance.{convert_to_snake_case(node_name)}"
 
 
 def add_unique_string_value(values_by_key: dict[str, list[str]], key: str, value: str) -> None:
@@ -431,6 +439,7 @@ def parse_map_scene(
             position = get_node_vector2(properties, "position")
             enemies.append({
                 "name": name,
+                "instance_id": get_enemy_instance_id(name),
                 "definition_id": get_node_string(properties, "definition_id"),
                 "region_id": get_map_region_id(position, regions),
             })
@@ -615,6 +624,8 @@ def check_scene_backed_objectives(
                 add_unique_string_value(gather_regions_by_item, crafted_id, region_id)
 
     for interactable in interactables:
+        if interactable["instance_id"] in POST_DEMO_OBJECTIVE_REGION_EXEMPT_INSTANCE_IDS:
+            continue
         map_object = map_objects_by_id.get(interactable["definition_id"])
         if not isinstance(map_object, dict):
             continue
@@ -625,6 +636,8 @@ def check_scene_backed_objectives(
             add_unique_string_value(gather_regions_by_item, str(sample_result_id), interactable["region_id"])
 
     for enemy in enemies:
+        if enemy["instance_id"] in POST_DEMO_OBJECTIVE_REGION_EXEMPT_INSTANCE_IDS:
+            continue
         enemy_definition = enemies_by_id.get(enemy["definition_id"])
         if not isinstance(enemy_definition, dict):
             continue
@@ -671,6 +684,8 @@ def check_scene_backed_objectives(
             if objective_type == "gather_item":
                 scene_gather_amount = 0.0
                 for interactable in interactables:
+                    if interactable["instance_id"] in POST_DEMO_OBJECTIVE_REGION_EXEMPT_INSTANCE_IDS:
+                        continue
                     if interactable["interaction_type"] != "gather":
                         continue
                     map_object = map_objects_by_id.get(interactable["definition_id"])

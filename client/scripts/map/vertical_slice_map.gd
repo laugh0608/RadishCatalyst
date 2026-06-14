@@ -307,6 +307,8 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			should_enable = should_enable and FieldOutfittingRuntime.is_core_archive_maintained(world_state)
 		if interactable.instance_id == "map_object_instance.pollution_residue_core_archive_pressure_retest_cache":
 			should_enable = should_enable and _is_core_archive_pressure_retest_available(world_state)
+		if interactable.instance_id == CoreStabilizationPressureFormatter.LOGISTICS_MAINTENANCE_RETEST_RESIDUE_INSTANCE_ID:
+			should_enable = should_enable and CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_available(world_state)
 		if interactable.instance_id == "map_object_instance.crystal_cluster_logistics_return":
 			should_enable = should_enable and _is_crystal_logistics_return_available(world_state)
 		if interactable.instance_id == "map_object_instance.field_wreckage_logistics_return":
@@ -427,7 +429,10 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 
 	if bool(result.get("defeated", false)):
 		var drops_message := _grant_enemy_drops(target, character_state, world_state)
-		if target.definition_id == "enemy.polluted_skitter":
+		if (
+			target.definition_id == "enemy.polluted_skitter"
+			or target.definition_id == "enemy.demo_stabilization_logistics_retest_skitter"
+		):
 			var followup := "污染处理点周边暂时安全。"
 			if target.instance_id == "enemy_instance.polluted_skitter_gate_pressure":
 				followup = "遗迹门前压力减弱，可以继续处理污染残核或确认入口信号。"
@@ -443,6 +448,8 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 				followup = "归档维护回访口袋暂时安全；回收沉积物后回过滤器补药剂和污染浆液，确认基地维护已反哺外勤承压。"
 			if target.instance_id == "enemy_instance.polluted_skitter_core_archive_pressure_retest_guard":
 				followup = "复测压力点暂时安全；回收沉积物后回过滤器补药剂和污染浆液，多余浆液可回基地反应器回收基础零件。"
+			if target.instance_id == "enemy_instance.polluted_skitter_logistics_maintenance_retest_guard":
+				followup = "后勤维护复测压力暂时安全；回收沉积物后回过滤器处理，再回前哨核心补给并确认下一趟外勤。"
 			if target.instance_id == "enemy_instance.polluted_skitter_ridge":
 				followup = "污染脊守卫已清空；把沉积物带回过滤器处理，副产浆液可回收成信标所需基础零件。"
 			if target.instance_id == "enemy_instance.core_buffer_polluted_skitter":
@@ -764,6 +771,8 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 		return FieldOutfittingRuntime.is_core_archive_maintained(world_state)
 	if enemy.instance_id == "enemy_instance.polluted_skitter_core_archive_pressure_retest_guard":
 		return _is_core_archive_pressure_retest_available(world_state)
+	if enemy.instance_id == "enemy_instance.polluted_skitter_logistics_maintenance_retest_guard":
+		return CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_available(world_state)
 	if enemy.instance_id == "enemy_instance.native_skitter_logistics_return_guard":
 		return _is_crystal_logistics_return_available(world_state)
 	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":

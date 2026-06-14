@@ -111,6 +111,12 @@ static func format_recipe_goal_hint(recipe_id: String, world_state: WorldState =
 
 static func _format_pollution_residue_goal_hint(world_state: WorldState = null) -> String:
 	if world_state != null:
+		if (
+			CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_available(world_state)
+			and CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state)
+			and not CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_processed(world_state)
+		):
+			return "把后勤维护复测沉积处理成药剂并留下污染浆液；完成后回前哨核心补给，再确认下一趟外勤准备。"
 		if world_state.quest_state.has_active_quest("quest.assemble_phase_anchor"):
 			return "把沉积物处理成药剂并留下污染浆液；药剂支撑遗迹外圈承压，浆液要留给稳相信标组装。"
 		if world_state.quest_state.has_active_quest("quest.salvage_signal_echo") or world_state.quest_state.has_active_quest("quest.analyze_deep_signal"):

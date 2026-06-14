@@ -47,6 +47,21 @@
       "public_level": "public"
     },
     {
+      "id": "enemy.demo_stabilization_logistics_retest_skitter",
+      "display_name_key": "enemy.demo_stabilization_logistics_retest_skitter.name",
+      "description_key": "enemy.demo_stabilization_logistics_retest_skitter.desc",
+      "category": "polluted",
+      "faction": "disturbed_ecology",
+      "base_stats": {"max_health": 30, "attack": 6, "move_speed": 95},
+      "behaviors": ["guard_pollution", "melee_chase"],
+      "damage_types": ["physical", "pollution"],
+      "resistances": {"pollution": 0.5},
+      "drop_table_id": "drop.polluted_skitter",
+      "drops": [{"id": "item.polluted_residue", "amount": 1}],
+      "spawn_regions": ["region.demo_stabilization_core"],
+      "public_level": "spoiler"
+    },
+    {
       "id": "enemy.elite_residue_node",
       "display_name_key": "enemy.elite_residue_node.name",
       "description_key": "enemy.elite_residue_node.desc",

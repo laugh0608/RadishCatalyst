@@ -142,6 +142,8 @@ static func should_return_for_second_pollution_residue_batch(world_state: WorldS
 
 static func _get_pollution_residue_processing_started_appendix(world_state: WorldState = null) -> String:
 	if world_state != null:
+		if _is_logistics_maintenance_retest_context(world_state):
+			return "本次会把后勤维护复测沉积转成抗污染药剂和污染浆液；完成后回前哨核心补给，多余污染浆液可回基地基础反应器回收基础零件。"
 		if _is_core_archive_pressure_retest_context(world_state):
 			return "本次会把复测压力沉积转成抗污染药剂和污染浆液；完成后回前哨核心补药剂，多余污染浆液可回基地基础反应器回收基础零件。"
 		if _is_core_archive_return_residue_context(world_state):
@@ -159,6 +161,8 @@ static func _get_pollution_residue_processing_started_appendix(world_state: Worl
 
 static func _get_pollution_vial_completion_next_step(world_state: WorldState = null) -> String:
 	if world_state != null:
+		if _is_logistics_maintenance_retest_context(world_state):
+			return "后勤维护复测沉积已处理成抗污染药剂和污染浆液；回前哨核心把药剂补到 %s，再确认下一趟外勤准备。" % _format_resistance_vial_target(world_state)
 		if _is_core_archive_pressure_retest_context(world_state):
 			return "复测压力沉积已处理成抗污染药剂和污染浆液；回前哨核心把药剂补到 %s，再把多余污染浆液回基础反应器回收基础零件。" % _format_resistance_vial_target(world_state)
 		if _is_core_archive_return_residue_context(world_state):
@@ -191,6 +195,14 @@ static func _is_core_archive_return_residue_context(world_state: WorldState) -> 
 				).get("is_gathered", false)
 			)
 		)
+	)
+
+
+static func _is_logistics_maintenance_retest_context(world_state: WorldState) -> bool:
+	return (
+		world_state != null
+		and CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_available(world_state)
+		and CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state)
 	)
 
 

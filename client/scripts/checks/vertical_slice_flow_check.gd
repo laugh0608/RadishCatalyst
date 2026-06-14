@@ -57,6 +57,7 @@ func _run_checks() -> void:
 	InteractionFeedbackPromptCheckScript.new(self).run()
 	_check_supply_feedback()
 	FieldOutfittingStationCheckScript.new(self).run(root)
+	preload("res://scripts/checks/logistics_maintenance_retest_check.gd").new(self).run(root)
 	_check_hud_feedback_presenter()
 	_check_pollution_status_hints()
 	RegionPromptChecks.new(self).run()
@@ -609,7 +610,6 @@ func _check_pollution_gate_runtime_bounds() -> void:
 	_expect_equal(unlocked_deep_character.current_region_id, "region.deep_ruin_threshold", "unlocked deep ruin gate should update character region")
 	map.player.free()
 	map.free()
-
 
 func _check_deep_gate_releases_movement_block() -> void:
 	var map := VerticalSliceMap.new()
