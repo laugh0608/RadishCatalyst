@@ -1,10 +1,12 @@
 # Demo Combat Progression V1
 
-更新时间：2026-06-14
+更新时间：2026-06-15
 
 ## 用途
 
-本文是当前阶段「首版 Demo 体验主干建设：角色成长与战斗第一版」的功能专题文档。后续相关开发优先以本文为具体范围来源，`docs/planning/current.md` 和 `docs/planning/daily-start.md` 只保留阶段入口与导航。
+本文是当前阶段「首版 Demo 体验主干建设：角色成长与战斗第一版」的阶段级专题文档，负责说明方向、边界和验收口径。
+
+每日代码开发应从本文下挂的可执行细专题派生，不再只从本文件的大方向描述直接开工。当前执行子专题是 [Pollution Edge Maintenance Pressure V1](pollution-edge-maintenance-pressure-v1.md)。
 
 ## 玩家价值
 
@@ -25,6 +27,14 @@
 - 战斗与反馈：`EnemyCounterattackRuntime`、`DepartureReadinessFormatter`、`CoreGuardAftermathFormatter`。
 - 场景与读法：基地后勤区、外勤出发口、污染边界、遗迹外圈和核心稳定站已有对象反馈、HUD / 地图目标和自动检查基础。
 
+## 专题层级
+
+本文只管理角色成长与战斗差异的阶段口径。下挂细专题负责单个设备、模块、场景或玩法包的真实开发范围。
+
+- 当前执行：[Pollution Edge Maintenance Pressure V1](pollution-edge-maintenance-pressure-v1.md)，让后勤维护在污染边界读出第二个承压差异。
+- 已完成第一包：核心站后勤维护复测承压差异，记录在本文“已落地第一包”。
+- 后续若扩到技能、装备模块或单独场景，应先建立对应细专题，再写代码。
+
 ## 本轮范围
 
 优先落地 1 到 2 个首版 demo 级可感知差异：
@@ -43,7 +53,7 @@
 
 ## 下一包建议
 
-- 第二包优先让既有基础过滤模块、后勤维护或整备台状态在污染边界或遗迹外圈压力中读出差异，避免继续加厚同一条核心站归档后回访链。
+- 第二包按 [Pollution Edge Maintenance Pressure V1](pollution-edge-maintenance-pressure-v1.md) 执行：优先让既有基础过滤模块、后勤维护或整备台状态在污染边界压力中读出差异，避免继续加厚同一条核心站归档后回访链。
 - 若第二个差异需要扩到技能 / 装备模块口径，先建立 `demo-character-kit-v1.md` 子专题，再开始代码实现。
 
 ## 当前不做

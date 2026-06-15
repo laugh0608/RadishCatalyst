@@ -1,12 +1,13 @@
 # Current Plan
 
-更新时间：2026-06-14
+更新时间：2026-06-15
 
 ## 入口约束
 
-本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题为准：
+本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题和当前执行子专题为准：
 
 - [Demo Combat Progression V1](../features/demo-combat-progression-v1.md)
+- [Pollution Edge Maintenance Pressure V1](../features/pollution-edge-maintenance-pressure-v1.md)
 
 历史过程、长完成清单和详细复盘优先查看：
 
@@ -37,9 +38,9 @@
 
 ## 当前主线
 
-当前只推进 [Demo Combat Progression V1](../features/demo-combat-progression-v1.md)，它覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 中的角色成长、装备 / 模块和战斗压力规格。
+当前只推进 [Demo Combat Progression V1](../features/demo-combat-progression-v1.md)，它覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 中的角色成长、装备 / 模块和战斗压力规格。代码开发直接以当前执行子专题 [Pollution Edge Maintenance Pressure V1](../features/pollution-edge-maintenance-pressure-v1.md) 为范围源。
 
-下一次代码开发应从 Demo 完成规格和当前专题的“本轮范围”“验收条件”选择一个可验证开发包，不再直接从周志条目、历史复盘或局部提示问题派生主线任务。
+下一次代码开发应从 Demo 完成规格、阶段专题和执行子专题的“本轮范围”“验收条件”选择一个可验证开发包，不再直接从周志条目、历史复盘或局部提示问题派生主线任务。
 
 首版 Demo 未完成初步阶段的完整玩法、场景和美术前，不进入试玩准备或修 bug 阶段。真实页面 smoke 可以用于对比开发效果，但不能替代功能、场景和玩法专题推进。
 
@@ -68,6 +69,7 @@ UI 和场景表现已完成第一轮原型呈现支撑。当前 UI 改动只服�
 允许推进：
 
 - 当前活跃专题内的首版 demo 级角色成长与战斗差异。
+- 当前执行子专题内的基建设备、装备 / 模块、功能玩法或场景压力包。
 - 为该差异调整 UI、场景提示、承压计算、路线节奏和自动检查。
 - 为维护工程边界拆分检查脚本、地图脚本、HUD 脚本、提示 formatter 或系统职责。
 
@@ -96,7 +98,7 @@ Windows 用 `pwsh ./scripts/check-docs.ps1`、`pwsh ./scripts/check-text-files.p
 
 ## 阶段退出条件
 
-- [Demo Combat Progression V1](../features/demo-combat-progression-v1.md) 至少 1 个成长或战斗差异通过真实玩家操作获得，并能改变污染、遗迹或核心守卫中的承压 / 输出 / 防护读法。
+- [Demo Combat Progression V1](../features/demo-combat-progression-v1.md) 及当前执行子专题至少 1 个成长或战斗差异通过真实玩家操作获得，并能改变污染、遗迹或核心守卫中的承压 / 输出 / 防护读法。
 - 该差异覆盖 HUD / 对象反馈、战斗结果、存档状态和自动检查；玩家能读懂回基地整备为什么有价值。
 - 未引入完整装备栏、完整 `loadout`、新资源、新任务链、第 13 区域、行动台或高压窗口扩展。
 - 接近 1500 行硬上限的检查 / 地图 / HUD / 提示脚本已有拆分方案或已完成必要拆分。
