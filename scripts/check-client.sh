@@ -123,6 +123,7 @@ echo "Coverage: static data and scene references."
 "${python_exe}" "${repo_root}/scripts/check-client-industrial-tech-spine.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-scene-art-foundation.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-mainline-completion.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-protective-response.py" "${repo_root}"
 
 if [ "${with_godot}" -ne 1 ]; then
   echo "Skipping Godot runtime checks. Use --with-godot after confirming Godot can start in this environment."
@@ -156,5 +157,6 @@ run_godot_checked "vertical-slice-flow" --script "${client_root}/scripts/checks/
 run_godot_checked "industrial-tech-spine" --script "${client_root}/scripts/checks/industrial_tech_spine_check.gd" --no-header
 run_godot_checked "scene-art-foundation" --script "${client_root}/scripts/checks/scene_art_foundation_check.gd" --no-header
 run_godot_checked "demo-mainline-completion" --script "${client_root}/scripts/checks/demo_mainline_completion_check.gd" --no-header
+run_godot_checked "demo-protective-response" --script "${client_root}/scripts/checks/demo_protective_response_check.gd" --no-header
 
 echo "Client checks passed."

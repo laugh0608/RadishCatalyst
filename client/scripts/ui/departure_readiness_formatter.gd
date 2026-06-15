@@ -7,10 +7,7 @@ static func format_hud_summary(world_state: WorldState, character_state: Charact
 	if not _has_any_departure_facility(world_state) and not _can_build_outfitting_station(character_state):
 		return []
 	var lines: Array[String] = [
-		"出发准备：%s；%s" % [
-			format_module_state(world_state, character_state),
-			format_supply_state(world_state, character_state)
-		],
+		"出发准备：%s" % "；".join(_format_departure_state_parts(world_state, character_state)),
 		"收益：%s" % format_pressure_payoff(world_state)
 	]
 	var return_processing_line := format_core_archive_return_processing_line(world_state, character_state)
@@ -28,10 +25,7 @@ static func format_hud_summary(world_state: WorldState, character_state: Charact
 static func format_outpost_core_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	var restock_names := get_restock_supply_names(world_state, character_state)
 	var parts: Array[String] = ["前哨核心：出发准备检查"]
-	parts.append("状态：%s；%s。" % [
-		format_module_state(world_state, character_state),
-		format_supply_state(world_state, character_state)
-	])
+	parts.append("状态：%s。" % "；".join(_format_departure_state_parts(world_state, character_state)))
 	parts.append("收益：%s。" % format_pressure_payoff(world_state))
 	var return_processing_line := format_core_archive_return_processing_line(world_state, character_state)
 	if not return_processing_line.is_empty():
@@ -56,10 +50,7 @@ static func format_outpost_core_prompt(world_state: WorldState, character_state:
 
 static func format_outfitting_station_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	var parts: Array[String] = ["设施：出发整备台"]
-	parts.append("状态：%s；%s。" % [
-		format_module_state(world_state, character_state),
-		format_supply_state(world_state, character_state)
-	])
+	parts.append("状态：%s。" % "；".join(_format_departure_state_parts(world_state, character_state)))
 	parts.append("收益：%s。" % format_pressure_payoff(world_state))
 	var return_processing_line := format_core_archive_return_processing_line(world_state, character_state)
 	if not return_processing_line.is_empty():
@@ -74,10 +65,7 @@ static func format_departure_gate_status(world_state: WorldState, character_stat
 	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
 		return "前哨未恢复；先检查前哨核心"
 	var parts: Array[String] = [
-		"%s；%s" % [
-			format_module_state(world_state, character_state),
-			format_supply_state(world_state, character_state)
-		],
+		"；".join(_format_departure_state_parts(world_state, character_state)),
 		"收益：%s" % format_pressure_payoff(world_state)
 	]
 	var next_sortie_line := CoreGuardAftermathFormatter.format_next_sortie_outpost_line(world_state, character_state)
@@ -130,6 +118,13 @@ static func format_departure_gate_next_step(world_state: WorldState, character_s
 	var next_sortie_route := CoreGuardAftermathFormatter.format_next_sortie_route_line(world_state)
 	if not next_sortie_route.is_empty():
 		return next_sortie_route
+	if FieldOutfittingRuntime.is_protective_response_ready(world_state):
+		return "防护响应待命；沿外勤出发口进入下一场外勤反击，观察承压变化"
+	if (
+		FieldOutfittingRuntime.has_protective_response_triggered(world_state)
+		or FieldOutfittingRuntime.can_confirm_protective_response(character_state, world_state)
+	):
+		return FieldOutfittingRuntime.format_protective_response_next_step(world_state, character_state)
 	return "沿外勤出发口前往地图目标；若地图目标为空，按当前任务追踪推进"
 
 
@@ -145,7 +140,7 @@ static func format_logistics_route_status(world_state: WorldState, character_sta
 		"前哨核心：%s" % _format_logistics_core_state(world_state, character_state),
 		"储存箱：%s" % _format_logistics_storage_state(world_state),
 		"浆液缓冲罐：%s" % _format_logistics_slurry_buffer_state(world_state),
-		"出发整备台：%s" % format_module_state(world_state, character_state),
+		"出发整备台：%s" % " / ".join(_format_logistics_outfitting_parts(world_state, character_state)),
 		"外勤出发口：%s" % _format_logistics_exit_state(world_state, character_state)
 	]
 	return "；".join(parts)
@@ -175,6 +170,12 @@ static func format_feedback_detail(world_state: WorldState, character_state: Cha
 		format_supply_state(world_state, character_state),
 		format_pressure_payoff(world_state)
 	]
+	var protective_response_state := FieldOutfittingRuntime.format_protective_response_compact_state(
+		world_state,
+		character_state
+	)
+	if not protective_response_state.is_empty():
+		parts.append(protective_response_state)
 	var aftermath_line := CoreGuardAftermathFormatter.format_outpost_line(world_state, character_state)
 	if not aftermath_line.is_empty():
 		parts.append(aftermath_line)
@@ -281,6 +282,37 @@ static func format_pressure_payoff(world_state: WorldState) -> String:
 	if _is_vial_supply_available(world_state):
 		return "污染采集和污染战斗承压下降"
 	return "模块装配后会降低污染采集和反击压力"
+
+
+static func _format_departure_state_parts(
+	world_state: WorldState,
+	character_state: CharacterState
+) -> Array[String]:
+	var parts: Array[String] = [
+		format_module_state(world_state, character_state),
+		format_supply_state(world_state, character_state)
+	]
+	var protective_response_state := FieldOutfittingRuntime.format_protective_response_compact_state(
+		world_state,
+		character_state
+	)
+	if not protective_response_state.is_empty():
+		parts.append(protective_response_state)
+	return parts
+
+
+static func _format_logistics_outfitting_parts(
+	world_state: WorldState,
+	character_state: CharacterState
+) -> Array[String]:
+	var parts: Array[String] = [format_module_state(world_state, character_state)]
+	var protective_response_state := FieldOutfittingRuntime.format_protective_response_compact_state(
+		world_state,
+		character_state
+	)
+	if not protective_response_state.is_empty():
+		parts.append(protective_response_state)
+	return parts
 
 
 static func _should_show_ruin_outer_ring_module_payoff(world_state: WorldState) -> bool:

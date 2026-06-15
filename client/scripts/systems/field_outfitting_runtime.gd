@@ -12,6 +12,8 @@ const CORE_ARCHIVE_MAINTAINED_FLAG := "core_archive_maintained"
 const LOGISTICS_MATERIAL_PROCESSED_FLAG := "logistics_material_processed"
 const LOGISTICS_MAINTENANCE_CONFIRMED_FLAG := "logistics_maintenance_confirmed"
 const LOGISTICS_MAINTENANCE_POLLUTION_RETEST_PROCESSED_FLAG := "logistics_maintenance_pollution_retest_processed"
+const PROTECTIVE_RESPONSE_READY_FLAG := "protective_response_ready"
+const PROTECTIVE_RESPONSE_TRIGGERED_FLAG := "protective_response_triggered"
 const MODULE_CALIBRATION_CRYSTAL_COST := 2
 const MODULE_CALIBRATION_SCRAP_COST := 1
 const MODULE_CALIBRATION_DRAIN_MULT := 0.9
@@ -20,6 +22,7 @@ const CORE_ARCHIVE_MAINTENANCE_DRAIN_MULT := 0.95
 const CORE_ARCHIVE_MAINTENANCE_COUNTER_MULT := 0.95
 const LOGISTICS_MAINTENANCE_DRAIN_MULT := 0.85
 const LOGISTICS_MAINTENANCE_COUNTER_MULT := 0.85
+const PROTECTIVE_RESPONSE_COUNTER_MULT := 0.72
 
 
 static func has_station_built(world_state: WorldState) -> bool:
@@ -33,6 +36,13 @@ static func has_filter_module_equipped(character_state: CharacterState) -> bool:
 	return (
 		character_state != null
 		and String(character_state.equipment.get("suit_module", "")) == BASIC_FILTER_MODULE_ID
+	)
+
+
+static func has_basic_suit_equipped(character_state: CharacterState) -> bool:
+	return (
+		character_state != null
+		and String(character_state.equipment.get("suit", "")) == "equipment.basic_suit"
 	)
 
 
@@ -220,6 +230,113 @@ static func mark_logistics_maintenance_pollution_retest_processed(world_state: W
 	residue_state[LOGISTICS_MAINTENANCE_POLLUTION_RETEST_PROCESSED_FLAG] = true
 
 
+static func is_protective_response_ready(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return bool(
+		world_state.get_map_object(FIELD_OUTFITTING_STATION_INSTANCE_ID).get(
+			PROTECTIVE_RESPONSE_READY_FLAG,
+			false
+		)
+	)
+
+
+static func has_protective_response_triggered(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return bool(
+		world_state.get_map_object(FIELD_OUTFITTING_STATION_INSTANCE_ID).get(
+			PROTECTIVE_RESPONSE_TRIGGERED_FLAG,
+			false
+		)
+	)
+
+
+static func can_confirm_protective_response(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> bool:
+	return _get_protective_response_blocker(character_state, world_state).is_empty()
+
+
+static func mark_protective_response_ready(world_state: WorldState) -> void:
+	var station_state := ensure_station_state(world_state)
+	if station_state.is_empty():
+		return
+	station_state[PROTECTIVE_RESPONSE_READY_FLAG] = true
+	station_state[PROTECTIVE_RESPONSE_TRIGGERED_FLAG] = false
+
+
+static func consume_protective_response(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> bool:
+	if not is_protective_response_ready(world_state):
+		return false
+	if not has_station_built(world_state):
+		return false
+	if not has_basic_suit_equipped(character_state) or not has_filter_module_equipped(character_state):
+		return false
+	var station_state := ensure_station_state(world_state)
+	if station_state.is_empty():
+		return false
+	station_state[PROTECTIVE_RESPONSE_READY_FLAG] = false
+	station_state[PROTECTIVE_RESPONSE_TRIGGERED_FLAG] = true
+	return true
+
+
+static func format_protective_response_compact_state(
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	if is_protective_response_ready(world_state):
+		return "防护响应待命"
+	if has_protective_response_triggered(world_state):
+		if can_confirm_protective_response(character_state, world_state):
+			return "防护响应可复位"
+		return "防护响应已触发"
+	if can_confirm_protective_response(character_state, world_state):
+		return "防护响应可确认"
+	return ""
+
+
+static func format_protective_response_prompt_line(
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	if is_protective_response_ready(world_state):
+		return "防护响应：已待命，下一次外勤反击会读取防护服、过滤模块和前哨补给。"
+	if has_protective_response_triggered(world_state):
+		if can_confirm_protective_response(character_state, world_state):
+			return "防护响应：已触发，当前补给和防护已恢复，可在整备台重新确认。"
+		return "防护响应：已触发；先回前哨核心补给并恢复生命 / 防护，再回整备台复查。"
+	if can_confirm_protective_response(character_state, world_state):
+		return "防护响应：可确认；基础防护服、过滤模块、修复凝胶和抗污染药剂已齐备。"
+	var blocker := _get_protective_response_blocker(character_state, world_state)
+	if blocker.is_empty():
+		return ""
+	return "防护响应：未就绪；%s。" % blocker
+
+
+static func format_protective_response_next_step(
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	if is_protective_response_ready(world_state):
+		return "从外勤出发口进入下一场外勤反击，战斗日志会读出防护响应承压下降。"
+	if has_protective_response_triggered(world_state):
+		if can_confirm_protective_response(character_state, world_state):
+			return "在出发整备台重新确认防护响应，再出发。"
+		return "回前哨核心补修复凝胶 / 抗污染药剂并恢复生命 / 防护，再回整备台复查。"
+	if can_confirm_protective_response(character_state, world_state):
+		return "在出发整备台按 E 确认防护响应。"
+	return _get_protective_response_blocker(character_state, world_state)
+
+
+static func format_protective_response_counter_feedback() -> String:
+	return "防护响应已触发：出发整备台把基础防护服、过滤模块和前哨补给接入本次反击，生命 / 防护承压下降。"
+
+
 static func should_process_logistics_materials(
 	character_state: CharacterState,
 	world_state: WorldState
@@ -289,6 +406,25 @@ static func get_pollution_drain_multiplier(
 	if has_active_logistics_maintenance(character_state, world_state):
 		multiplier *= LOGISTICS_MAINTENANCE_DRAIN_MULT
 	return multiplier
+
+
+static func _get_protective_response_blocker(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
+	if not has_station_built(world_state):
+		return "出发整备台尚未上线"
+	if not has_basic_suit_equipped(character_state):
+		return "需要基础防护服作为响应载体"
+	if not has_filter_module_equipped(character_state):
+		return "需要基础过滤模块装入防护服"
+	if character_state == null or not character_state.inventory.has_ref(DepartureSupplyRuntime.REPAIR_GEL_ID, 1):
+		return "缺少修复凝胶"
+	if not character_state.inventory.has_ref(DepartureSupplyRuntime.RESISTANCE_VIAL_ID, 1):
+		return "缺少抗污染药剂"
+	if not character_state.are_vitals_full():
+		return "需要前哨核心恢复生命 / 防护"
+	return ""
 
 
 static func get_pollution_counter_damage_multiplier(

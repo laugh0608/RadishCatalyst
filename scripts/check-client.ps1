@@ -43,6 +43,13 @@ $checks = @(
         Parameters = @{
             RepoRoot = $RepoRoot
         }
+    },
+    @{
+        Name = "client demo protective response"
+        Script = "check-client-demo-protective-response.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
     }
 )
 

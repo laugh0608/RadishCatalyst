@@ -39,6 +39,11 @@ if (-not (Test-Path -LiteralPath $demoMainlineCompletionCheckScript -PathType Le
     Write-Error "Demo mainline completion check script not found: ${demoMainlineCompletionCheckScript}"
     exit 1
 }
+$demoProtectiveResponseCheckScript = Join-Path $clientRoot "scripts/checks/demo_protective_response_check.gd"
+if (-not (Test-Path -LiteralPath $demoProtectiveResponseCheckScript -PathType Leaf)) {
+    Write-Error "Demo protective response check script not found: ${demoProtectiveResponseCheckScript}"
+    exit 1
+}
 
 $godotRunId = "vertical-slice-flow-{0}-{1}" -f $PID, [DateTime]::UtcNow.ToString("yyyyMMddHHmmssfff")
 $godotHome = Join-Path (Join-Path $RepoRoot ".godot-check-runs") $godotRunId
@@ -99,8 +104,15 @@ try {
         exit $LASTEXITCODE
     }
 
+    $protectiveResponseOutput = & $GodotExe --headless --path $clientRoot --script $demoProtectiveResponseCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $protectiveResponseOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo protective response check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $unexpectedErrors = @(
-        $importOutput + $checkOutput + $industrialCheckOutput + $sceneArtOutput + $demoCompletionOutput |
+        $importOutput + $checkOutput + $industrialCheckOutput + $sceneArtOutput + $demoCompletionOutput + $protectiveResponseOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {

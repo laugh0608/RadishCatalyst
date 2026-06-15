@@ -407,7 +407,25 @@ func _interact_with_field_outfitting_station(character_state: CharacterState, wo
 			)
 			logistics_result["logistics_maintenance_confirmed"] = true
 			return logistics_result
+		if FieldOutfittingRuntime.is_protective_response_ready(world_state):
+			return _success_feedback(
+				"出发整备台复查完成：防护响应已待命，下一次外勤反击会读取基础防护服、过滤模块和前哨补给。",
+				"防护响应待命",
+				"防护响应已待命",
+				FieldOutfittingRuntime.format_protective_response_next_step(world_state, character_state)
+			)
+		if FieldOutfittingRuntime.has_protective_response_triggered(world_state):
+			if FieldOutfittingRuntime.can_confirm_protective_response(character_state, world_state):
+				return _confirm_protective_response(character_state, world_state)
+			return _success_feedback(
+				"出发整备台复查完成：防护响应已在上一场外勤反击中触发；%s" % FieldOutfittingRuntime.format_protective_response_next_step(world_state, character_state),
+				"防护响应已触发",
+				"防护响应已触发",
+				FieldOutfittingRuntime.format_protective_response_next_step(world_state, character_state)
+			)
 		if FieldOutfittingRuntime.is_module_calibrated(world_state):
+			if FieldOutfittingRuntime.can_confirm_protective_response(character_state, world_state):
+				return _confirm_protective_response(character_state, world_state)
 			if FieldOutfittingRuntime.is_core_archive_maintained(world_state):
 				if FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
 					return _success_feedback(
@@ -428,31 +446,33 @@ func _interact_with_field_outfitting_station(character_state: CharacterState, wo
 				"基础过滤模块已校准",
 				"沿外勤出发口回污染边界或更深区域复测，HUD 和战斗读数会读取这项整备收益。"
 			)
-		if not FieldOutfittingRuntime.has_calibration_materials(character_state):
-			return _failure(
-				"基础过滤模块已装入防护服，但缺少晶体侧路维护材料。",
-				"维护材料不足",
-				"回晶体侧路补晶体矿 x%d 和残骸废件 x%d，再回出发整备台校准模块。"
-					% [
-						FieldOutfittingRuntime.MODULE_CALIBRATION_CRYSTAL_COST,
-						FieldOutfittingRuntime.MODULE_CALIBRATION_SCRAP_COST
-					]
+		if FieldOutfittingRuntime.has_calibration_materials(character_state):
+			if not FieldOutfittingRuntime.consume_calibration_materials(character_state):
+				return _failure(
+					"基础过滤模块校准失败。",
+					"维护未完成",
+					"确认晶体矿和残骸废件都已放入背包，再重新尝试。"
+				)
+			FieldOutfittingRuntime.mark_module_calibrated(world_state)
+			var calibration_result := _success_feedback(
+				"出发整备台完成维护校准：晶体侧路材料已写入基础过滤模块，污染采集和污染反击承压继续下降。",
+				"模块校准完成",
+				"基础过滤模块已校准",
+				"污染采集、污染敌人反击和出发口 HUD 已读取校准收益。"
 			)
-		if not FieldOutfittingRuntime.consume_calibration_materials(character_state):
-			return _failure(
-				"基础过滤模块校准失败。",
-				"维护未完成",
-				"确认晶体矿和残骸废件都已放入背包，再重新尝试。"
-			)
-		FieldOutfittingRuntime.mark_module_calibrated(world_state)
-		var calibration_result := _success_feedback(
-			"出发整备台完成维护校准：晶体侧路材料已写入基础过滤模块，污染采集和污染反击承压继续下降。",
-			"模块校准完成",
-			"基础过滤模块已校准",
-			"污染采集、污染敌人反击和出发口 HUD 已读取校准收益。"
+			calibration_result["outfitting_module_calibrated"] = true
+			return calibration_result
+		if FieldOutfittingRuntime.can_confirm_protective_response(character_state, world_state):
+			return _confirm_protective_response(character_state, world_state)
+		return _failure(
+			"基础过滤模块已装入防护服，但缺少晶体侧路维护材料。",
+			"维护材料不足",
+			"回晶体侧路补晶体矿 x%d 和残骸废件 x%d，再回出发整备台校准模块；若要确认防护响应，需要先补齐修复凝胶、抗污染药剂并恢复生命 / 防护。"
+				% [
+					FieldOutfittingRuntime.MODULE_CALIBRATION_CRYSTAL_COST,
+					FieldOutfittingRuntime.MODULE_CALIBRATION_SCRAP_COST
+				]
 		)
-		calibration_result["outfitting_module_calibrated"] = true
-		return calibration_result
 
 	if not character_state.inventory.has_ref(BASIC_FILTER_MODULE_ID, 1):
 		return _failure(
@@ -486,6 +506,21 @@ func _interact_with_field_outfitting_station(character_state: CharacterState, wo
 	)
 	result["outfitting_module_enabled"] = true
 	return result
+
+
+func _confirm_protective_response(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> Dictionary:
+	FieldOutfittingRuntime.mark_protective_response_ready(world_state)
+	var response_result := _success_feedback(
+		"出发整备台确认防护响应：基础防护服、基础过滤模块、修复凝胶和抗污染药剂已串成下一次外勤反击响应；触发后回前哨补给并复查整备台。",
+		"防护响应已待命",
+		"基础防护服 / 过滤模块 / 前哨补给已接入",
+		"从外勤出发口进入下一场外勤反击，战斗反馈会读出防护响应承压下降。"
+	)
+	response_result["protective_response_ready"] = true
+	return response_result
 
 
 func _gather(instance_id: String, definition: Dictionary, character_state: CharacterState, world_state: WorldState) -> Dictionary:

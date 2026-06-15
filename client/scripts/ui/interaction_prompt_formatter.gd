@@ -180,6 +180,12 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 			* FieldOutfittingRuntime.get_pollution_counter_damage_multiplier(character_state, world_state)
 		)
 		parts.append("防护服：污染消耗 x%.2f；污染反击 x%.2f。" % [drain_mult, counter_mult])
+		var protective_response_line := FieldOutfittingRuntime.format_protective_response_prompt_line(
+			world_state,
+			character_state
+		)
+		if not protective_response_line.is_empty():
+			parts.append(protective_response_line)
 		if (
 			FieldOutfittingRuntime.is_core_archive_maintenance_available(character_state, world_state)
 			and not FieldOutfittingRuntime.is_core_archive_maintained(world_state)
@@ -195,9 +201,19 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 			return "\n".join(parts)
 		if FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
 			parts.append("后勤维护：已确认，污染边界、遗迹外圈与核心站复测会读取维护收益。")
-			parts.append("操作：E 检查整备状态")
+		if FieldOutfittingRuntime.is_protective_response_ready(world_state):
+			parts.append("操作：E 检查防护响应")
+			return "\n".join(parts)
+		if FieldOutfittingRuntime.has_protective_response_triggered(world_state):
+			if FieldOutfittingRuntime.can_confirm_protective_response(character_state, world_state):
+				parts.append("操作：E 重新确认防护响应")
+			else:
+				parts.append("操作：E 检查防护响应")
 			return "\n".join(parts)
 		if FieldOutfittingRuntime.is_module_calibrated(world_state):
+			if FieldOutfittingRuntime.can_confirm_protective_response(character_state, world_state):
+				parts.append("操作：E 确认防护响应")
+				return "\n".join(parts)
 			parts.append("维护：晶体校准已写入，污染采集、污染反击和遗迹外圈相位反击承压继续下降。")
 			parts.append("操作：E 检查整备状态")
 			return "\n".join(parts)
@@ -207,6 +223,9 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 				FieldOutfittingRuntime.MODULE_CALIBRATION_SCRAP_COST
 			])
 			parts.append("操作：E 校准基础过滤模块")
+			return "\n".join(parts)
+		if FieldOutfittingRuntime.can_confirm_protective_response(character_state, world_state):
+			parts.append("操作：E 确认防护响应")
 			return "\n".join(parts)
 		parts.append("下一步：回晶体侧路补晶体矿和残骸废件，再回整备台维护校准。")
 		parts.append("操作：E 查看缺料")
