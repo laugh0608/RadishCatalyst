@@ -48,10 +48,24 @@ GameRoot._process()
 玩家攻击
 -> VerticalSliceMap 选最近敌人
 -> 敌人掉血
--> 反击与污染压力
+-> EnemyCounterattackRuntime 读取战术扫描、整备台响应、工具校准、补给和污染压力
 -> 敌人掉落进背包
 -> QuestRuntime 推进 defeat_enemy 目标
 -> 生命或防护归零则触发撤离
+```
+
+### 工具动作与整备状态流
+
+```text
+出发整备台上线 / 基础多用工具装备
+-> CharacterKitRuntime 开放 C 战术扫描
+-> 敌人或污染采集点写入 tactical_scan_marked
+-> 下一次反击或采集消费标记并写回 consumed 状态
+
+出发整备台交互
+-> FieldOutfittingRuntime 写入模块校准、核心归档维护、后勤维护、防护响应或工具打击校准
+-> DepartureReadinessFormatter / InteractionPromptFormatter 读出状态
+-> EnemyCounterattackRuntime / GatherSystem 在下一次外勤中消费或读取收益
 ```
 
 ### 存档流
@@ -104,7 +118,11 @@ GameRoot._process()
 
 这部分不是纯坏事，因为当前阶段重点就是尽快做可玩的闭环；但它们应被明确识别，而不是误以为已经完全通用。
 
-### 4. 存档严格依赖固定实例来源
+### 4. 出发整备台状态是当前角色成长的主要载体
+
+模块校准、核心归档维护、后勤维护、防护响应、工具打击校准和战术扫描标记都写在既有世界对象、敌人或地图对象状态里。它们不是完整装备栏、长期技能树或独立 loadout；新增同类能力时必须先判断是否仍属于整备台状态，还是需要新的角色状态结构。
+
+### 5. 存档严格依赖固定实例来源
 
 新增固定地图内容后，如果不改：
 
