@@ -241,7 +241,7 @@ func _format_completion_note(quest_id: String) -> String:
 		"quest.defeat_demo_stabilization_guard":
 			return "核心阶段守卫已击败；回写缓存已暴露，先回收校验片和终点前补给"
 		"quest.write_demo_stabilization_core":
-			return "核心稳定站已接管第一条稳定通道；首版 demo 主线目标已完成"
+			return DemoMainlineCompletionFormatter.format_completion_note()
 		_:
 			return ""
 

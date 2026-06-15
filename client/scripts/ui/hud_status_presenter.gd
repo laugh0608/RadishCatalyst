@@ -332,7 +332,12 @@ func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, que
 		return action_goal
 	var next_sortie_goal := CoreGuardAftermathFormatter.format_next_sortie_goal_name(world_state)
 	if not next_sortie_goal.is_empty():
+		if DemoMainlineCompletionFormatter.is_demo_complete(world_state):
+			return "%s（首版 Demo 主线已完成）" % next_sortie_goal
 		return next_sortie_goal
+	var demo_completion_goal := DemoMainlineCompletionFormatter.format_goal_name(world_state)
+	if not demo_completion_goal.is_empty():
+		return demo_completion_goal
 	if _has_completed_phase_survey_feedback(world_state):
 		return "相位测绘反馈已归档"
 	if _has_completed_steady_supply_feedback(world_state):
@@ -799,7 +804,12 @@ func _format_active_quest_progress(data_registry: DataRegistry, world_state: Wor
 			return action_progress
 		var next_sortie_route := CoreGuardAftermathFormatter.format_next_sortie_route_line(world_state)
 		if not next_sortie_route.is_empty():
+			if DemoMainlineCompletionFormatter.is_demo_complete(world_state):
+				return "%s；首版 Demo 主线已完成" % next_sortie_route
 			return next_sortie_route
+		var demo_completion_progress := DemoMainlineCompletionFormatter.format_progress_line(world_state)
+		if not demo_completion_progress.is_empty():
+			return demo_completion_progress
 		if _has_completed_phase_survey_feedback(world_state):
 			return "相位测绘选择闭环已完成；本轮验证了基地选择、两处前线读数和返回提示收益"
 		if _has_completed_steady_supply_feedback(world_state):

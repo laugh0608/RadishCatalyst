@@ -92,6 +92,9 @@ func format_demo_route_title(world_state: WorldState, _quest_id: String) -> Stri
 
 
 func format_demo_route_hint(world_state: WorldState, quest_id: String) -> String:
+	var demo_completion_hint := DemoMainlineCompletionFormatter.format_map_route_hint(world_state)
+	if not demo_completion_hint.is_empty():
+		return demo_completion_hint
 	var current_stage := _get_route_stage_label(world_state.current_region_id)
 	var target_region_id := _get_quest_target_region_id(world_state, quest_id)
 	var target_stage := _get_route_stage_label(target_region_id)

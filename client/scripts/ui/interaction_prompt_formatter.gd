@@ -575,10 +575,14 @@ func format_outpost_core_prompt(world_state: WorldState, character_state: Charac
 	)
 	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
 		return "按 E 恢复：前哨核心，重启基础导航。\n%s" % scene_line
-	return "%s\n%s" % [
-		DepartureReadinessFormatter.format_outpost_core_prompt(world_state, character_state),
-		scene_line
+	var parts: Array[String] = [
+		DepartureReadinessFormatter.format_outpost_core_prompt(world_state, character_state)
 	]
+	var completion_line := DemoMainlineCompletionFormatter.format_outpost_core_prompt_line(world_state, character_state)
+	if not completion_line.is_empty():
+		parts.append(completion_line)
+	parts.append(scene_line)
+	return "\n".join(parts)
 
 
 func format_ruin_gate_prompt(world_state: WorldState, character_state: CharacterState = null) -> String:
@@ -911,7 +915,15 @@ func _get_general_interaction_status(
 	world_state: WorldState
 ) -> String:
 	if interactable.definition_id == "map_object.demo_stabilization_core":
-		return CoreStabilizationPressureFormatter.format_interaction_status(character_state, world_state, object_state)
+		var core_status := CoreStabilizationPressureFormatter.format_interaction_status(character_state, world_state, object_state)
+		var demo_completion_status := DemoMainlineCompletionFormatter.format_core_object_status(
+			world_state,
+			character_state,
+			object_state
+		)
+		if not demo_completion_status.is_empty():
+			return "%s；%s" % [demo_completion_status, core_status]
+		return core_status
 	if _is_crystal_logistics_return_object(interactable.instance_id):
 		return _get_crystal_logistics_return_status(interactable, object_state, world_state)
 	if _is_general_interaction_processed(interactable, object_state):
@@ -986,7 +998,15 @@ func _get_general_interaction_next_step(
 	if interactable.definition_id == "map_object.outpost_logistics_route_sign":
 		return DepartureReadinessFormatter.format_logistics_route_next_step(world_state, character_state)
 	if interactable.definition_id == "map_object.demo_stabilization_core":
-		return CoreStabilizationPressureFormatter.format_interaction_next_step(character_state, world_state, object_state)
+		var core_next_step := CoreStabilizationPressureFormatter.format_interaction_next_step(character_state, world_state, object_state)
+		var demo_completion_next_step := DemoMainlineCompletionFormatter.format_core_object_next_step(
+			world_state,
+			character_state,
+			object_state
+		)
+		if not demo_completion_next_step.is_empty():
+			return "%s；%s" % [demo_completion_next_step, core_next_step]
+		return core_next_step
 	if interactable.definition_id == CoreStabilizationPressureFormatter.RETEST_READOUT_DEFINITION_ID:
 		return CoreStabilizationPressureFormatter.format_retest_readout_next_step(world_state, character_state)
 	if _is_crystal_logistics_return_object(interactable.instance_id):

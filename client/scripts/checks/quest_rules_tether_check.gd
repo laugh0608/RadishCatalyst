@@ -581,7 +581,7 @@ func _check_demo_stabilization_four_step_flow() -> void:
 			host.failures.append("core write completion feedback should be a dictionary, got %s" % var_to_str(feedback))
 			return
 		host._expect_equal(String(feedback.get("panel_title", "")), "Demo 完成", "core write completion uses demo panel title")
-		_expect_text_contains(String(feedback.get("note_text", "")), "首版 demo 主线目标已完成", "core write completion note explains slice completion")
+		_expect_text_contains(String(feedback.get("note_text", "")), "首版 Demo 主线目标已完成", "core write completion note explains slice completion")
 
 
 func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
@@ -700,7 +700,7 @@ func _check_demo_stabilization_short_run_from_overpressure_archive() -> void:
 		var feedbacks: Array = result.get("completion_feedbacks", [])
 		var feedback = feedbacks[0]
 		if feedback is Dictionary:
-			_expect_text_contains(String(feedback.get("note_text", "")), "首版 demo 主线目标已完成", "short run completion explains demo finish")
+			_expect_text_contains(String(feedback.get("note_text", "")), "首版 Demo 主线目标已完成", "short run completion explains demo finish")
 
 
 func _check_core_stabilization_buffer_reduces_guard_pressure() -> void:

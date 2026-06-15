@@ -34,6 +34,11 @@ if (-not (Test-Path -LiteralPath $sceneArtFoundationCheckScript -PathType Leaf))
     Write-Error "Scene art foundation check script not found: ${sceneArtFoundationCheckScript}"
     exit 1
 }
+$demoMainlineCompletionCheckScript = Join-Path $clientRoot "scripts/checks/demo_mainline_completion_check.gd"
+if (-not (Test-Path -LiteralPath $demoMainlineCompletionCheckScript -PathType Leaf)) {
+    Write-Error "Demo mainline completion check script not found: ${demoMainlineCompletionCheckScript}"
+    exit 1
+}
 
 $godotRunId = "vertical-slice-flow-{0}-{1}" -f $PID, [DateTime]::UtcNow.ToString("yyyyMMddHHmmssfff")
 $godotHome = Join-Path (Join-Path $RepoRoot ".godot-check-runs") $godotRunId
@@ -87,8 +92,15 @@ try {
         exit $LASTEXITCODE
     }
 
+    $demoCompletionOutput = & $GodotExe --headless --path $clientRoot --script $demoMainlineCompletionCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $demoCompletionOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo mainline completion check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $unexpectedErrors = @(
-        $importOutput + $checkOutput + $industrialCheckOutput + $sceneArtOutput |
+        $importOutput + $checkOutput + $industrialCheckOutput + $sceneArtOutput + $demoCompletionOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {
