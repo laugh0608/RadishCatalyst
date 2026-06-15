@@ -79,6 +79,7 @@ var current_interactable: PrototypeInteractable
 var gather_system: GatherSystem
 var phase_well_frontier_runtime: PhaseWellFrontierRuntime
 var enemy_counterattack_runtime: EnemyCounterattackRuntime
+var character_kit_runtime: CharacterKitRuntime
 var interactable_visual_refresher := InteractableVisualRefresher.new()
 var last_reported_region_id := "region.outpost_platform"
 var last_gate_message := ""
@@ -99,6 +100,7 @@ func setup(registry: DataRegistry) -> void:
 	gather_system = GatherSystem.new(data_registry)
 	phase_well_frontier_runtime = PhaseWellFrontierRuntime.new(data_registry)
 	enemy_counterattack_runtime = EnemyCounterattackRuntime.new(data_registry)
+	character_kit_runtime = CharacterKitRuntime.new(data_registry)
 	_setup_interactable_labels()
 	_setup_enemy_labels()
 	_refresh_focus_visuals()
@@ -512,6 +514,24 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 		"enemy_defeated": false,
 		"evacuation_feedback": evacuation_feedback
 	}
+
+
+func try_tactical_scan(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if character_kit_runtime == null:
+		character_kit_runtime = CharacterKitRuntime.new(data_registry)
+	var target := _get_nearest_attack_target()
+	if target != null:
+		return character_kit_runtime.scan_enemy(
+			target,
+			character_state,
+			world_state,
+			_get_region_id_for_position(target.position)
+		)
+	if current_interactable != null:
+		return character_kit_runtime.scan_interactable(current_interactable, character_state, world_state)
+	return character_kit_runtime.no_target_result(character_state, world_state)
+
+
 func _setup_interactable_labels() -> void:
 	if data_registry == null:
 		return

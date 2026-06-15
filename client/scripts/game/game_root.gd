@@ -40,6 +40,7 @@ func _ready() -> void:
 	vertical_slice_map.refresh_world_interactables(world_state)
 	vertical_slice_map.player.interaction_requested.connect(_on_player_interaction_requested)
 	vertical_slice_map.player.attack_requested.connect(_on_player_attack_requested)
+	vertical_slice_map.player.tactical_scan_requested.connect(_on_player_tactical_scan_requested)
 	vertical_slice_map.player.recipe_cycle_requested.connect(_on_player_recipe_cycle_requested)
 	vertical_slice_map.player.device_panel_toggle_requested.connect(_on_player_device_panel_toggle_requested)
 	vertical_slice_map.player.module_toggle_requested.connect(_on_player_module_toggle_requested)
@@ -155,6 +156,15 @@ func _on_player_attack_requested() -> void:
 	if vertical_slice_map.current_interactable != null:
 		_on_interaction_available(vertical_slice_map.current_interactable)
 	hud.append_log(hud_log_presenter.join_messages(log_messages))
+	_update_hud()
+
+
+func _on_player_tactical_scan_requested() -> void:
+	var result := vertical_slice_map.try_tactical_scan(character_state, world_state)
+	hud.append_log(hud_log_presenter.format_result_log(result))
+	vertical_slice_map.refresh_world_interactables(world_state)
+	if vertical_slice_map.current_interactable != null:
+		_on_interaction_available(vertical_slice_map.current_interactable, false)
 	_update_hud()
 
 

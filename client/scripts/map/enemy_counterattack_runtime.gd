@@ -26,6 +26,9 @@ func apply(
 	var definition := data_registry.get_definition(enemy.definition_id)
 	var base_stats: Dictionary = definition.get("base_stats", {})
 	var attack_damage := float(base_stats.get("attack", 0.0)) * _get_pressure_multiplier(enemy)
+	var consumed_tactical_scan := CharacterKitRuntime.consume_enemy_tactical_scan(enemy, world_state, enemy_region_id)
+	if consumed_tactical_scan:
+		attack_damage *= CharacterKitRuntime.get_tactical_scan_pressure_multiplier(character_state, world_state)
 
 	var consumed_core_buffer := _consume_core_stabilization_buffer(enemy, character_state, world_state, enemy_region_id)
 	if consumed_core_buffer:
@@ -66,6 +69,11 @@ func apply(
 			pressure_vial_spend,
 			world_state
 		)
+		if consumed_tactical_scan:
+			pollution_message = "%s %s" % [
+				pollution_message,
+				CharacterKitRuntime.format_enemy_counter_feedback(character_state, world_state)
+			]
 		if enemy.definition_id == "enemy.ruin_phase_guard":
 			return pollution_message
 		var outfitting_feedback := FieldOutfittingRuntime.format_pollution_pressure_feedback(character_state, world_state)
@@ -76,6 +84,11 @@ func apply(
 	var message := "%s 反击，生命 -%s。" % [enemy.display_name, _format_amount(health_damage)]
 	if enemy.definition_id == "enemy.treatment_skitter":
 		message = "%s生命偏低时按 1 使用修复凝胶，或回基地再调制补给。" % message
+	if consumed_tactical_scan:
+		message = "%s %s" % [
+			message,
+			CharacterKitRuntime.format_enemy_counter_feedback(character_state, world_state)
+		]
 	return message
 
 

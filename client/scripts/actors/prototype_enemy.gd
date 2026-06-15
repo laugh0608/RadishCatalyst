@@ -79,6 +79,7 @@ func apply_saved_state(enemy_state: Dictionary) -> void:
 		set_meta("pressure_vial_used", true)
 	elif has_meta("pressure_vial_used"):
 		remove_meta("pressure_vial_used")
+	set_tactical_scan_marked(bool(enemy_state.get(CharacterKitRuntime.TACTICAL_SCAN_MARKED_FLAG, false)))
 	if bool(enemy_state.get("core_side_supply_used", false)):
 		set_meta("core_side_supply_used", true)
 	elif has_meta("core_side_supply_used"):
@@ -107,6 +108,15 @@ func set_focus_visual(focused: bool) -> void:
 		sprite.scale = FOCUSED_SPRITE_SCALE if focused else Vector2.ONE
 		sprite.modulate = FOCUSED_SPRITE_MODULATE if focused else DEFAULT_SPRITE_MODULATE
 	z_index = FOCUSED_Z_INDEX if focused else 0
+
+
+func set_tactical_scan_marked(marked: bool) -> void:
+	if marked:
+		set_meta(CharacterKitRuntime.TACTICAL_SCAN_MARKED_FLAG, true)
+	else:
+		if has_meta(CharacterKitRuntime.TACTICAL_SCAN_MARKED_FLAG):
+			remove_meta(CharacterKitRuntime.TACTICAL_SCAN_MARKED_FLAG)
+	_update_label()
 
 
 func mark_defeated() -> void:
@@ -138,25 +148,30 @@ func _update_label() -> void:
 
 
 func _get_pressure_focus_label() -> String:
+	var parts: Array[String] = []
+	if has_meta(CharacterKitRuntime.TACTICAL_SCAN_MARKED_FLAG):
+		parts.append("扫描锁定")
 	if definition_id == "enemy.demo_stabilization_guard":
-		return "核心回写压力"
+		parts.append("核心回写压力")
+		return " / ".join(parts)
 	if enemy_category != "polluted":
-		return ""
+		return " / ".join(parts)
 	match instance_id:
 		"enemy_instance.polluted_skitter":
-			return "入口压力点"
+			parts.append("入口压力点")
 		"enemy_instance.polluted_skitter_gate_pressure":
-			return "门前压力点"
+			parts.append("门前压力点")
 		"enemy_instance.polluted_skitter_slurry_return_guard":
-			return "副产回收点"
+			parts.append("副产回收点")
 		"enemy_instance.polluted_skitter_vial_reserve_guard":
-			return "药剂储备点"
+			parts.append("药剂储备点")
 		"enemy_instance.polluted_skitter_logistics_maintenance_pressure_guard":
-			return "后勤维护压力"
+			parts.append("后勤维护压力")
 		"enemy_instance.core_buffer_polluted_skitter":
-			return "补料压力点"
+			parts.append("补料压力点")
 		_:
-			return "深处压力点"
+			parts.append("深处压力点")
+	return " / ".join(parts)
 
 
 func set_spawn_enabled(enabled: bool) -> void:

@@ -490,7 +490,8 @@ func _interact_with_field_outfitting_station(character_state: CharacterState, wo
 
 func _gather(instance_id: String, definition: Dictionary, character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var rewards := _grant_refs(definition.get("drops", []), character_state)
-	var protection_drain := _apply_pollution_pressure(instance_id, definition, character_state, world_state)
+	var pressure_result := _apply_pollution_pressure(instance_id, definition, character_state, world_state)
+	var protection_drain := float(pressure_result.get("protection_drain", 0.0))
 	_set_map_object_flag(world_state, instance_id, String(definition.get("id", "")), "is_gathered", true)
 
 	var result_parts: Array[String] = []
@@ -509,6 +510,8 @@ func _gather(instance_id: String, definition: Dictionary, character_state: Chara
 		var pressure_hint := _get_pollution_pressure_step_hint(instance_id, character_state, world_state)
 		if not pressure_hint.is_empty():
 			result_parts.append(pressure_hint)
+		if bool(pressure_result.get("tactical_scan_used", false)):
+			result_parts.append(CharacterKitRuntime.format_gather_pressure_feedback(character_state, world_state))
 	var first_hour_hint := _get_first_hour_gather_step_hint(instance_id, world_state, character_state)
 	if not first_hour_hint.is_empty():
 		result_parts.append(first_hour_hint)
@@ -663,10 +666,10 @@ func _apply_pollution_pressure(
 	definition: Dictionary,
 	character_state: CharacterState,
 	world_state: WorldState
-) -> float:
+) -> Dictionary:
 	var pollution_id := String(definition.get("pollution_effect", ""))
 	if pollution_id.is_empty():
-		return 0.0
+		return {"protection_drain": 0.0, "tactical_scan_used": false}
 
 	var pollution_definition := data_registry.get_definition(pollution_id)
 	var base_drain := 0.0
@@ -678,17 +681,31 @@ func _apply_pollution_pressure(
 		base_drain += float(hazard_effect.get("amount", 0.0)) * PROTOTYPE_POLLUTION_PRESSURE_MULT
 
 	if base_drain <= 0.0:
-		return 0.0
+		return {"protection_drain": 0.0, "tactical_scan_used": false}
 
 	var pressure_multiplier := float(POLLUTION_RESIDUE_PRESSURE_BY_INSTANCE.get(instance_id, 1.0))
+	var tactical_scan_used := CharacterKitRuntime.consume_map_object_tactical_scan(
+		world_state,
+		instance_id,
+		String(definition.get("id", "")),
+		character_state.current_region_id
+	)
+	var tactical_scan_multiplier := CharacterKitRuntime.get_tactical_scan_pressure_multiplier(
+		character_state,
+		world_state
+	) if tactical_scan_used else 1.0
 	var actual_drain := (
 		base_drain
 		* pressure_multiplier
+		* tactical_scan_multiplier
 		* character_state.get_pollution_drain_multiplier(data_registry)
 		* FieldOutfittingRuntime.get_pollution_drain_multiplier(character_state, world_state)
 	)
 	character_state.protection = maxf(0.0, character_state.protection - actual_drain)
-	return actual_drain
+	return {
+		"protection_drain": actual_drain,
+		"tactical_scan_used": tactical_scan_used
+	}
 
 
 func _get_pollution_protection_hint(character_state: CharacterState, world_state: WorldState) -> String:

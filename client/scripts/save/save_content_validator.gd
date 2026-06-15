@@ -387,7 +387,9 @@ const MAP_OBJECT_ALLOWED_FIELDS := [
 	"logistics_material_processed",
 	"logistics_maintenance_confirmed",
 	"logistics_maintenance_pollution_retest_processed",
-	"logistics_maintenance_retest_processed"
+	"logistics_maintenance_retest_processed",
+	"tactical_scan_marked",
+	"tactical_scan_consumed"
 ]
 
 const ENEMY_ALLOWED_FIELDS := [
@@ -399,7 +401,9 @@ const ENEMY_ALLOWED_FIELDS := [
 	"drops_granted",
 	"pressure_vial_used",
 	"core_buffer_used",
-	"core_side_supply_used"
+	"core_side_supply_used",
+	"tactical_scan_marked",
+	"tactical_scan_consumed"
 ]
 
 const BASE_STRUCTURE_ALLOWED_FIELDS := [

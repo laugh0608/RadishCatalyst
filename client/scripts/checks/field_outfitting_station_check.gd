@@ -201,6 +201,151 @@ func run(root: Node) -> void:
 	_check_core_archive_maintenance_payoff(root, gather_system, prompt_formatter)
 	_check_logistics_route_sign(root, gather_system, prompt_formatter)
 	_check_core_retest_readout_scene(root, prompt_formatter)
+	_check_tactical_scan_tool_action(gather_system)
+
+
+func _check_tactical_scan_tool_action(gather_system: GatherSystem) -> void:
+	var runtime := CharacterKitRuntime.new(host.data_registry)
+	var locked_result := runtime.no_target_result(CharacterState.create_default(), WorldState.create_default())
+	host._expect_equal(bool(locked_result.get("success", true)), false, "tactical scan waits for outfitting station")
+	host._expect_text_contains(
+		String(locked_result.get("message", "")),
+		"出发整备台尚未上线",
+		"tactical scan locked feedback names outfitting station"
+	)
+
+	var baseline_enemy := _create_tactical_scan_enemy()
+	var baseline_world := _create_tactical_scan_world()
+	var baseline_character := _create_tactical_scan_character()
+	var counter_runtime := EnemyCounterattackRuntime.new(host.data_registry)
+	var baseline_health := baseline_character.health
+	counter_runtime.apply(baseline_enemy, baseline_character, baseline_world, "region.crystal_vein_field")
+	var baseline_loss := baseline_health - baseline_character.health
+	baseline_enemy.free()
+
+	var scanned_enemy := _create_tactical_scan_enemy()
+	var scanned_world := _create_tactical_scan_world()
+	var scanned_character := _create_tactical_scan_character()
+	var scan_result := runtime.scan_enemy(
+		scanned_enemy,
+		scanned_character,
+		scanned_world,
+		"region.crystal_vein_field"
+	)
+	host._expect_equal(bool(scan_result.get("success", false)), true, "tactical scan marks enemy")
+	host._expect_equal(
+		bool(scanned_world.get_enemy("enemy_instance.treatment_skitter").get("tactical_scan_marked", false)),
+		true,
+		"tactical scan stores enemy marker"
+	)
+	host._expect_text_contains(scanned_enemy.label.text, "扫描锁定", "tactical scan enemy label shows lock")
+	var scanned_health := scanned_character.health
+	var counter_message := counter_runtime.apply(scanned_enemy, scanned_character, scanned_world, "region.crystal_vein_field")
+	var scanned_loss := scanned_health - scanned_character.health
+	host._expect_equal(scanned_loss < baseline_loss, true, "tactical scan reduces enemy counter damage")
+	host._expect_text_contains(counter_message, "战术扫描已消耗", "tactical scan counter feedback")
+	host._expect_equal(
+		bool(scanned_world.get_enemy("enemy_instance.treatment_skitter").get("tactical_scan_marked", true)),
+		false,
+		"tactical scan enemy marker is consumed"
+	)
+	host._expect_equal(
+		bool(scanned_world.get_enemy("enemy_instance.treatment_skitter").get("tactical_scan_consumed", false)),
+		true,
+		"tactical scan enemy consumed flag persists"
+	)
+	scanned_enemy.free()
+
+	var baseline_gather_world := _create_tactical_scan_world()
+	var baseline_gather_character := _create_tactical_scan_character()
+	var baseline_protection := baseline_gather_character.protection
+	var baseline_gather := gather_system.interact_with_object(
+		"map_object_instance.tactical_scan_baseline_residue",
+		"map_object.pollution_residue_patch",
+		"gather",
+		baseline_gather_character,
+		baseline_gather_world
+	)
+	host._expect_equal(bool(baseline_gather.get("success", false)), true, "baseline tactical scan gather succeeds")
+	var baseline_drain := baseline_protection - baseline_gather_character.protection
+
+	var scanned_gather_world := _create_tactical_scan_world()
+	var scanned_gather_character := _create_tactical_scan_character()
+	var residue := PrototypeInteractable.new()
+	residue.definition_id = "map_object.pollution_residue_patch"
+	residue.instance_id = "map_object_instance.pollution_residue"
+	residue.interaction_type = "gather"
+	var scan_gather_result := runtime.scan_interactable(residue, scanned_gather_character, scanned_gather_world)
+	residue.free()
+	host._expect_equal(bool(scan_gather_result.get("success", false)), true, "tactical scan marks pollution gather")
+	var scanned_protection := scanned_gather_character.protection
+	var scanned_gather := gather_system.interact_with_object(
+		"map_object_instance.pollution_residue",
+		"map_object.pollution_residue_patch",
+		"gather",
+		scanned_gather_character,
+		scanned_gather_world
+	)
+	var scanned_drain := scanned_protection - scanned_gather_character.protection
+	host._expect_equal(bool(scanned_gather.get("success", false)), true, "scanned tactical gather succeeds")
+	host._expect_equal(scanned_drain < baseline_drain, true, "tactical scan reduces gather pressure")
+	host._expect_text_contains(
+		String(scanned_gather.get("message", "")),
+		"战术扫描已消耗",
+		"tactical scan gather feedback"
+	)
+	host._expect_equal(
+		bool(scanned_gather_world.get_map_object("map_object_instance.pollution_residue").get("tactical_scan_consumed", false)),
+		true,
+		"tactical scan map marker consumed flag persists"
+	)
+
+	var hud_status := HudStatusPresenter.new().format_vitals_text(
+		host.data_registry,
+		scanned_gather_world,
+		scanned_gather_character
+	)
+	host._expect_text_contains(hud_status, "工具动作：C 战术扫描可用", "HUD exposes tactical scan tool action")
+	var save_error := SaveContentValidator.new(host.data_registry).validate_save_content({
+		"world": scanned_gather_world.to_dict(),
+		"character": scanned_gather_character.to_dict()
+	})
+	host._expect_equal(save_error, "", "tactical scan runtime state passes save validation")
+
+
+func _create_tactical_scan_world() -> WorldState:
+	var world := WorldState.create_default()
+	var site := world.ensure_map_object(
+		"map_object_instance.field_outfitting_station_build_site",
+		"building.field_outfitting_station",
+		"region.outpost_platform"
+	)
+	site["is_built"] = true
+	site["built_definition_id"] = "building.field_outfitting_station"
+	world.add_base_structure(
+		"structure.field_outfitting_station_build_site",
+		"building.field_outfitting_station",
+		"region.outpost_platform",
+		"map_object_instance.field_outfitting_station_build_site"
+	)
+	return world
+
+
+func _create_tactical_scan_character() -> CharacterState:
+	var character := CharacterState.create_default()
+	character.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	return character
+
+
+func _create_tactical_scan_enemy() -> PrototypeEnemy:
+	var enemy := PrototypeEnemy.new()
+	enemy.definition_id = "enemy.treatment_skitter"
+	enemy.instance_id = "enemy_instance.treatment_skitter"
+	enemy.display_name = "处理点扰动体"
+	enemy.max_health = 35.0
+	enemy.label = Label.new()
+	enemy.add_child(enemy.label)
+	return enemy
 
 
 func _check_outfitting_calibration_pressure_payoff(gather_system: GatherSystem) -> void:

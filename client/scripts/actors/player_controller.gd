@@ -12,6 +12,7 @@ var block_positive_x_until_release := false
 
 signal interaction_requested
 signal attack_requested
+signal tactical_scan_requested
 signal recipe_cycle_requested
 signal device_panel_toggle_requested
 signal module_toggle_requested
@@ -47,6 +48,8 @@ func _physics_process(_delta: float) -> void:
 		interaction_requested.emit()
 	if Input.is_action_just_pressed("attack"):
 		attack_requested.emit()
+	if Input.is_action_just_pressed("tactical_scan"):
+		tactical_scan_requested.emit()
 	if Input.is_action_just_pressed("toggle_device_panel"):
 		device_panel_toggle_requested.emit()
 	if Input.is_action_just_pressed("toggle_module"):

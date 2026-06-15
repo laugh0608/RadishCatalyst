@@ -146,7 +146,7 @@
       "fluid.polluted_slurry.name": "污染浆液",
       "fluid.polluted_slurry.desc": "污染处理产生的危险副产物。",
     "equipment.basic_tool.name": "基础多用工具",
-    "equipment.basic_tool.desc": "支持采集、清理和基础攻击的前哨工具。",
+    "equipment.basic_tool.desc": "支持采集、清理、基础攻击和整备台接入后的战术扫描。",
     "equipment.basic_suit.name": "基础防护服",
     "equipment.basic_suit.desc": "前哨工程战斗员的标准防护装备。",
     "equipment.filter_module_t1.name": "基础过滤模块",

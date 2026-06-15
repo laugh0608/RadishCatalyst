@@ -203,7 +203,8 @@ func _format_character_lines(
 		],
 		"污染：%s" % format_pollution_status(data_registry, world_state, character_state),
 		"快捷栏：%s" % _format_quick_slots(data_registry, character_state),
-		"模块：%s" % _format_equipment_summary(data_registry, character_state)
+		"模块：%s" % _format_equipment_summary(data_registry, character_state),
+		CharacterKitRuntime.format_hud_tool_action_status(character_state, world_state)
 	]
 
 

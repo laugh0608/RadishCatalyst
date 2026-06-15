@@ -6,7 +6,7 @@
 
 本文是当前阶段「首版 Demo 体验主干建设：角色成长与战斗第一版」的阶段级专题文档，负责说明方向、边界和验收口径。
 
-每日代码开发应从本文下挂的可执行细专题派生，不再只从本文件的大方向描述直接开工。最近完成细专题是 [Ruin Outer Ring Module Pressure V1](ruin-outer-ring-module-pressure-v1.md) 和 [Pollution Edge Maintenance Pressure V1](pollution-edge-maintenance-pressure-v1.md)。
+每日代码开发应从本文下挂的可执行细专题派生，不再只从本文件的大方向描述直接开工。最近完成细专题是 [Demo Character Kit V1](demo-character-kit-v1.md)、[Ruin Outer Ring Module Pressure V1](ruin-outer-ring-module-pressure-v1.md) 和 [Pollution Edge Maintenance Pressure V1](pollution-edge-maintenance-pressure-v1.md)。
 
 ## 玩家价值
 
@@ -33,6 +33,7 @@
 
 - 最近完成：[Ruin Outer Ring Module Pressure V1](ruin-outer-ring-module-pressure-v1.md)，已让基础过滤模块、模块校准或后勤维护状态在遗迹外圈读出承压差异。
 - 最近完成：[Pollution Edge Maintenance Pressure V1](pollution-edge-maintenance-pressure-v1.md)，已让后勤维护在污染边界读出第二个承压差异。
+- 最近完成：[Demo Character Kit V1](demo-character-kit-v1.md)，已让基础多用工具接入 `C` 战术扫描，主动标记敌人或污染采集点并降低下一次承压。
 - 已完成第一包：核心站后勤维护复测承压差异，记录在本文“已落地第一包”。
 - 后续若扩到技能、装备模块或单独场景，应先建立对应细专题，再写代码。
 
@@ -54,8 +55,8 @@
 
 ## 下一包建议
 
-- 遗迹外圈模块承压差异已按 [Ruin Outer Ring Module Pressure V1](ruin-outer-ring-module-pressure-v1.md) 落地；下一包应先建立或切换到新的可执行细专题。
-- 若后续需要扩到主动技能、装备槽位或工具动作，先建立 `demo-character-kit-v1.md` 子专题，再开始代码实现。
+- 角色工具动作第一版已按 [Demo Character Kit V1](demo-character-kit-v1.md) 落地；下一包应先建立或切换到新的可执行细专题。
+- 优先从工业基建 / 工艺解锁主干、核心场景与初步美术、主线收束或另一个清晰角色套件动作中选择，不继续堆同一战术扫描倍率。
 
 ## 当前不做
 
