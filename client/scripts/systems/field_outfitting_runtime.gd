@@ -14,6 +14,10 @@ const LOGISTICS_MAINTENANCE_CONFIRMED_FLAG := "logistics_maintenance_confirmed"
 const LOGISTICS_MAINTENANCE_POLLUTION_RETEST_PROCESSED_FLAG := "logistics_maintenance_pollution_retest_processed"
 const PROTECTIVE_RESPONSE_READY_FLAG := "protective_response_ready"
 const PROTECTIVE_RESPONSE_TRIGGERED_FLAG := "protective_response_triggered"
+const TOOL_STRIKE_CALIBRATION_READY_FLAG := "tool_strike_calibration_ready"
+const TOOL_STRIKE_CALIBRATION_TRIGGERED_FLAG := "tool_strike_calibration_triggered"
+const BASIC_TOOL_ID := "equipment.basic_tool"
+const TOOL_STRIKE_CALIBRATION_BASIC_PARTS_COST := 2
 const MODULE_CALIBRATION_CRYSTAL_COST := 2
 const MODULE_CALIBRATION_SCRAP_COST := 1
 const MODULE_CALIBRATION_DRAIN_MULT := 0.9
@@ -23,6 +27,7 @@ const CORE_ARCHIVE_MAINTENANCE_COUNTER_MULT := 0.95
 const LOGISTICS_MAINTENANCE_DRAIN_MULT := 0.85
 const LOGISTICS_MAINTENANCE_COUNTER_MULT := 0.85
 const PROTECTIVE_RESPONSE_COUNTER_MULT := 0.72
+const TOOL_STRIKE_CALIBRATION_COUNTER_MULT := 0.82
 
 
 static func has_station_built(world_state: WorldState) -> bool:
@@ -46,6 +51,13 @@ static func has_basic_suit_equipped(character_state: CharacterState) -> bool:
 	)
 
 
+static func has_basic_tool_equipped(character_state: CharacterState) -> bool:
+	return (
+		character_state != null
+		and String(character_state.equipment.get("tool", "")) == BASIC_TOOL_ID
+	)
+
+
 static func has_calibration_materials(character_state: CharacterState) -> bool:
 	if character_state == null:
 		return false
@@ -60,6 +72,26 @@ static func consume_calibration_materials(character_state: CharacterState) -> bo
 		return false
 	character_state.inventory.consume_ref("item.crystal_ore", MODULE_CALIBRATION_CRYSTAL_COST)
 	character_state.inventory.consume_ref("item.salvage_scrap", MODULE_CALIBRATION_SCRAP_COST)
+	return true
+
+
+static func has_tool_strike_calibration_parts(character_state: CharacterState) -> bool:
+	return (
+		character_state != null
+		and character_state.inventory.has_ref(
+			"item.basic_parts",
+			TOOL_STRIKE_CALIBRATION_BASIC_PARTS_COST
+		)
+	)
+
+
+static func consume_tool_strike_calibration_parts(character_state: CharacterState) -> bool:
+	if not has_tool_strike_calibration_parts(character_state):
+		return false
+	character_state.inventory.consume_ref(
+		"item.basic_parts",
+		TOOL_STRIKE_CALIBRATION_BASIC_PARTS_COST
+	)
 	return true
 
 
@@ -285,6 +317,61 @@ static func consume_protective_response(
 	return true
 
 
+static func is_tool_strike_calibration_ready(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return bool(
+		world_state.get_map_object(FIELD_OUTFITTING_STATION_INSTANCE_ID).get(
+			TOOL_STRIKE_CALIBRATION_READY_FLAG,
+			false
+		)
+	)
+
+
+static func has_tool_strike_calibration_triggered(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return bool(
+		world_state.get_map_object(FIELD_OUTFITTING_STATION_INSTANCE_ID).get(
+			TOOL_STRIKE_CALIBRATION_TRIGGERED_FLAG,
+			false
+		)
+	)
+
+
+static func can_confirm_tool_strike_calibration(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> bool:
+	return _get_tool_strike_calibration_blocker(character_state, world_state).is_empty()
+
+
+static func mark_tool_strike_calibration_ready(world_state: WorldState) -> void:
+	var station_state := ensure_station_state(world_state)
+	if station_state.is_empty():
+		return
+	station_state[TOOL_STRIKE_CALIBRATION_READY_FLAG] = true
+	station_state[TOOL_STRIKE_CALIBRATION_TRIGGERED_FLAG] = false
+
+
+static func consume_tool_strike_calibration(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> bool:
+	if not is_tool_strike_calibration_ready(world_state):
+		return false
+	if not has_station_built(world_state):
+		return false
+	if not has_basic_tool_equipped(character_state):
+		return false
+	var station_state := ensure_station_state(world_state)
+	if station_state.is_empty():
+		return false
+	station_state[TOOL_STRIKE_CALIBRATION_READY_FLAG] = false
+	station_state[TOOL_STRIKE_CALIBRATION_TRIGGERED_FLAG] = true
+	return true
+
+
 static func format_protective_response_compact_state(
 	world_state: WorldState,
 	character_state: CharacterState
@@ -335,6 +422,58 @@ static func format_protective_response_next_step(
 
 static func format_protective_response_counter_feedback() -> String:
 	return "防护响应已触发：出发整备台把基础防护服、过滤模块和前哨补给接入本次反击，生命 / 防护承压下降。"
+
+
+static func format_tool_strike_calibration_compact_state(
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	if is_tool_strike_calibration_ready(world_state):
+		return "工具校准待命"
+	if has_tool_strike_calibration_triggered(world_state):
+		if can_confirm_tool_strike_calibration(character_state, world_state):
+			return "工具校准可复位"
+		return "工具校准已触发"
+	if can_confirm_tool_strike_calibration(character_state, world_state):
+		return "工具校准可确认"
+	return ""
+
+
+static func format_tool_strike_calibration_prompt_line(
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	if is_tool_strike_calibration_ready(world_state):
+		return "工具打击校准：已待命，下一次外勤反击会读取基础多用工具和基础零件校准。"
+	if has_tool_strike_calibration_triggered(world_state):
+		if can_confirm_tool_strike_calibration(character_state, world_state):
+			return "工具打击校准：已触发，当前基础零件足够，可在整备台重新确认。"
+		return "工具打击校准：已触发；先回基础反应器加工基础零件，再回整备台复查。"
+	if can_confirm_tool_strike_calibration(character_state, world_state):
+		return "工具打击校准：可确认；基础多用工具和基础零件已齐备。"
+	var blocker := _get_tool_strike_calibration_blocker(character_state, world_state)
+	if blocker.is_empty():
+		return ""
+	return "工具打击校准：未就绪；%s。" % blocker
+
+
+static func format_tool_strike_calibration_next_step(
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	if is_tool_strike_calibration_ready(world_state):
+		return "从外勤出发口进入下一场外勤反击，战斗日志会读出工具校准输出压制。"
+	if has_tool_strike_calibration_triggered(world_state):
+		if can_confirm_tool_strike_calibration(character_state, world_state):
+			return "在出发整备台重新确认工具打击校准，再出发。"
+		return "回基础反应器加工基础零件，再回出发整备台复查工具打击校准。"
+	if can_confirm_tool_strike_calibration(character_state, world_state):
+		return "在出发整备台按 E 确认工具打击校准。"
+	return _get_tool_strike_calibration_blocker(character_state, world_state)
+
+
+static func format_tool_strike_calibration_counter_feedback() -> String:
+	return "工具打击校准已触发：出发整备台把基础多用工具和基础零件校准接入本次输出压制，生命 / 防护承压下降。"
 
 
 static func should_process_logistics_materials(
@@ -424,6 +563,19 @@ static func _get_protective_response_blocker(
 		return "缺少抗污染药剂"
 	if not character_state.are_vitals_full():
 		return "需要前哨核心恢复生命 / 防护"
+	return ""
+
+
+static func _get_tool_strike_calibration_blocker(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
+	if not has_station_built(world_state):
+		return "出发整备台尚未上线"
+	if not has_basic_tool_equipped(character_state):
+		return "需要基础多用工具作为校准载体"
+	if not has_tool_strike_calibration_parts(character_state):
+		return "缺少基础零件 x%d" % TOOL_STRIKE_CALIBRATION_BASIC_PARTS_COST
 	return ""
 
 

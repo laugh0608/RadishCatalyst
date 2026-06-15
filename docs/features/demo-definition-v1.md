@@ -46,6 +46,7 @@
 | Demo 完成定义 | 本文 | 已建立规格源 |
 | 区域 / 场景范围 | `docs/planning/demo-scope-and-playable-slice.md` | 已定义 12 区域、4 核心区和核心稳定站终点 |
 | 角色成长 / 战斗差异 | `docs/features/demo-combat-progression-v1.md`，最近完成细专题 `docs/features/demo-character-kit-v1.md`、`docs/features/ruin-outer-ring-module-pressure-v1.md` 和 `docs/features/pollution-edge-maintenance-pressure-v1.md` | 已落地第一轮 |
+| 工具打击校准 / 输出整备 | `docs/features/demo-tool-strike-calibration-v1.md` | 已落地第一包 |
 | 工业基建 / 工艺解锁主干 | `docs/features/demo-industrial-tech-spine-v1.md` | 已落地第一包 |
 | 角色技能 / 装备模块第一版 | `docs/features/demo-character-kit-v1.md` | 已落地首个主动工具动作 |
 | 防护响应 / 装备状态 | `docs/features/demo-protective-response-v1.md` | 已落地第一包 |
@@ -74,7 +75,7 @@
 
 ## 当前优先级
 
-当前继续推进首版 Demo 体验主干；`Demo Industrial Tech Spine V1` 已收束工业主干读法，`Demo Scene Art Foundation V1` 已补核心场景与初步美术识别第一包，`Demo Mainline Completion V1` 已收束核心稳定站写入后的 Demo 主线完成读法，`Demo Protective Response V1` 已补第二个装备状态读法。后续根据本文缺口选择下一个专题，优先级通常是：
+当前继续推进首版 Demo 体验主干；`Demo Industrial Tech Spine V1` 已收束工业主干读法，`Demo Scene Art Foundation V1` 已补核心场景与初步美术识别第一包，`Demo Mainline Completion V1` 已收束核心稳定站写入后的 Demo 主线完成读法，`Demo Protective Response V1` 已补第二个装备状态读法，`Demo Tool Strike Calibration V1` 已补工具输出整备读法。后续根据本文缺口选择下一个专题，优先级通常是：
 
 1. 角色成长 / 战斗差异或角色技能 / 装备模块第一版。
 2. 工业基建 / 工艺解锁主干的读法收束。

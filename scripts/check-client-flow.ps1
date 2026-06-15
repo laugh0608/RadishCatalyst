@@ -44,6 +44,11 @@ if (-not (Test-Path -LiteralPath $demoProtectiveResponseCheckScript -PathType Le
     Write-Error "Demo protective response check script not found: ${demoProtectiveResponseCheckScript}"
     exit 1
 }
+$demoToolStrikeCalibrationCheckScript = Join-Path $clientRoot "scripts/checks/demo_tool_strike_calibration_check.gd"
+if (-not (Test-Path -LiteralPath $demoToolStrikeCalibrationCheckScript -PathType Leaf)) {
+    Write-Error "Demo tool strike calibration check script not found: ${demoToolStrikeCalibrationCheckScript}"
+    exit 1
+}
 
 $godotRunId = "vertical-slice-flow-{0}-{1}" -f $PID, [DateTime]::UtcNow.ToString("yyyyMMddHHmmssfff")
 $godotHome = Join-Path (Join-Path $RepoRoot ".godot-check-runs") $godotRunId
@@ -111,8 +116,15 @@ try {
         exit $LASTEXITCODE
     }
 
+    $toolStrikeOutput = & $GodotExe --headless --path $clientRoot --script $demoToolStrikeCalibrationCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $toolStrikeOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo tool strike calibration check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $unexpectedErrors = @(
-        $importOutput + $checkOutput + $industrialCheckOutput + $sceneArtOutput + $demoCompletionOutput + $protectiveResponseOutput |
+        $importOutput + $checkOutput + $industrialCheckOutput + $sceneArtOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {

@@ -47,6 +47,13 @@ func apply(
 	if consumed_protective_response:
 		attack_damage *= FieldOutfittingRuntime.PROTECTIVE_RESPONSE_COUNTER_MULT
 
+	var consumed_tool_strike_calibration := FieldOutfittingRuntime.consume_tool_strike_calibration(
+		character_state,
+		world_state
+	)
+	if consumed_tool_strike_calibration:
+		attack_damage *= FieldOutfittingRuntime.TOOL_STRIKE_CALIBRATION_COUNTER_MULT
+
 	var damage_types: Array = definition.get("damage_types", [])
 	if damage_types.has("pollution"):
 		attack_damage *= character_state.get_pollution_counter_damage_multiplier(data_registry)
@@ -83,6 +90,11 @@ func apply(
 				pollution_message,
 				FieldOutfittingRuntime.format_protective_response_counter_feedback()
 			]
+		if consumed_tool_strike_calibration:
+			pollution_message = "%s %s" % [
+				pollution_message,
+				FieldOutfittingRuntime.format_tool_strike_calibration_counter_feedback()
+			]
 		if enemy.definition_id == "enemy.ruin_phase_guard":
 			return pollution_message
 		var outfitting_feedback := FieldOutfittingRuntime.format_pollution_pressure_feedback(character_state, world_state)
@@ -102,6 +114,11 @@ func apply(
 		message = "%s %s" % [
 			message,
 			FieldOutfittingRuntime.format_protective_response_counter_feedback()
+		]
+	if consumed_tool_strike_calibration:
+		message = "%s %s" % [
+			message,
+			FieldOutfittingRuntime.format_tool_strike_calibration_counter_feedback()
 		]
 	return message
 

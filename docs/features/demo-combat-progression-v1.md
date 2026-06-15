@@ -6,7 +6,7 @@
 
 本文是当前阶段「首版 Demo 体验主干建设：角色成长与战斗第一版」的阶段级专题文档，负责说明方向、边界和验收口径。
 
-每日代码开发应从本文下挂的可执行细专题派生，不再只从本文件的大方向描述直接开工。最近完成细专题包括 [Demo Protective Response V1](demo-protective-response-v1.md)、[Demo Mainline Completion V1](demo-mainline-completion-v1.md)、[Demo Scene Art Foundation V1](demo-scene-art-foundation-v1.md)、[Demo Industrial Tech Spine V1](demo-industrial-tech-spine-v1.md)、[Demo Character Kit V1](demo-character-kit-v1.md)、[Ruin Outer Ring Module Pressure V1](ruin-outer-ring-module-pressure-v1.md) 和 [Pollution Edge Maintenance Pressure V1](pollution-edge-maintenance-pressure-v1.md)。
+每日代码开发应从本文下挂的可执行细专题派生，不再只从本文件的大方向描述直接开工。最近完成细专题包括 [Demo Tool Strike Calibration V1](demo-tool-strike-calibration-v1.md)、[Demo Protective Response V1](demo-protective-response-v1.md)、[Demo Mainline Completion V1](demo-mainline-completion-v1.md)、[Demo Scene Art Foundation V1](demo-scene-art-foundation-v1.md)、[Demo Industrial Tech Spine V1](demo-industrial-tech-spine-v1.md)、[Demo Character Kit V1](demo-character-kit-v1.md)、[Ruin Outer Ring Module Pressure V1](ruin-outer-ring-module-pressure-v1.md) 和 [Pollution Edge Maintenance Pressure V1](pollution-edge-maintenance-pressure-v1.md)。
 
 ## 玩家价值
 
@@ -37,6 +37,7 @@
 - 最近完成：[Demo Industrial Tech Spine V1](demo-industrial-tech-spine-v1.md)，已收束基础反应器、污染过滤器和出发整备台之间的工艺主干读法。
 - 最近完成：[Demo Mainline Completion V1](demo-mainline-completion-v1.md)，已收束核心稳定站写入完成后的 Demo 主线完成读法。
 - 最近完成：[Demo Protective Response V1](demo-protective-response-v1.md)，已把基础防护服、基础过滤模块和前哨补给收束成一次可读防护响应。
+- 最近完成：[Demo Tool Strike Calibration V1](demo-tool-strike-calibration-v1.md)，已把基础多用工具、基础零件和出发整备台收束成一次可读战斗输出整备。
 - 已完成第一包：核心站后勤维护复测承压差异，记录在本文“已落地第一包”。
 - 后续若扩到技能、装备模块或单独场景，应先建立对应细专题，再写代码。
 
@@ -58,8 +59,8 @@
 
 ## 下一包建议
 
-- 角色工具动作、工业主干读法、核心场景识别、主线完成感和防护响应第一包均已落地。
-- 后续优先从新的角色套件动作、装备状态、战斗压力或仍未覆盖的 Demo 完成规格缺口中选择，不继续堆同一战术扫描倍率、同一防护响应或同一完成态提示。
+- 角色工具动作、工业主干读法、核心场景识别、主线完成感、防护响应和工具打击校准第一包均已落地。
+- 后续优先从新的角色套件动作、装备状态、战斗压力或仍未覆盖的 Demo 完成规格缺口中选择，不继续堆同一战术扫描倍率、同一防护响应、同一工具校准或同一完成态提示。
 
 ## 当前不做
 

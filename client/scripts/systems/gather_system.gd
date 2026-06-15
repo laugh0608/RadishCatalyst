@@ -423,9 +423,27 @@ func _interact_with_field_outfitting_station(character_state: CharacterState, wo
 				"防护响应已触发",
 				FieldOutfittingRuntime.format_protective_response_next_step(world_state, character_state)
 			)
+		if FieldOutfittingRuntime.is_tool_strike_calibration_ready(world_state):
+			return _success_feedback(
+				"出发整备台复查完成：工具打击校准已待命，下一次外勤反击会读取基础多用工具和基础零件校准。",
+				"工具校准待命",
+				"工具打击校准已待命",
+				FieldOutfittingRuntime.format_tool_strike_calibration_next_step(world_state, character_state)
+			)
+		if FieldOutfittingRuntime.has_tool_strike_calibration_triggered(world_state):
+			if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+				return _confirm_tool_strike_calibration(character_state, world_state)
+			return _success_feedback(
+				"出发整备台复查完成：工具打击校准已在上一场外勤反击中触发；%s" % FieldOutfittingRuntime.format_tool_strike_calibration_next_step(world_state, character_state),
+				"工具校准已触发",
+				"工具打击校准已触发",
+				FieldOutfittingRuntime.format_tool_strike_calibration_next_step(world_state, character_state)
+			)
 		if FieldOutfittingRuntime.is_module_calibrated(world_state):
 			if FieldOutfittingRuntime.can_confirm_protective_response(character_state, world_state):
 				return _confirm_protective_response(character_state, world_state)
+			if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+				return _confirm_tool_strike_calibration(character_state, world_state)
 			if FieldOutfittingRuntime.is_core_archive_maintained(world_state):
 				if FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
 					return _success_feedback(
@@ -464,48 +482,71 @@ func _interact_with_field_outfitting_station(character_state: CharacterState, wo
 			return calibration_result
 		if FieldOutfittingRuntime.can_confirm_protective_response(character_state, world_state):
 			return _confirm_protective_response(character_state, world_state)
+		if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+			return _confirm_tool_strike_calibration(character_state, world_state)
 		return _failure(
 			"基础过滤模块已装入防护服，但缺少晶体侧路维护材料。",
 			"维护材料不足",
-			"回晶体侧路补晶体矿 x%d 和残骸废件 x%d，再回出发整备台校准模块；若要确认防护响应，需要先补齐修复凝胶、抗污染药剂并恢复生命 / 防护。"
+			"回晶体侧路补晶体矿 x%d 和残骸废件 x%d，再回出发整备台校准模块；基础零件 x%d 可确认工具打击校准。"
 				% [
 					FieldOutfittingRuntime.MODULE_CALIBRATION_CRYSTAL_COST,
-					FieldOutfittingRuntime.MODULE_CALIBRATION_SCRAP_COST
+					FieldOutfittingRuntime.MODULE_CALIBRATION_SCRAP_COST,
+					FieldOutfittingRuntime.TOOL_STRIKE_CALIBRATION_BASIC_PARTS_COST
 				]
 		)
 
-	if not character_state.inventory.has_ref(BASIC_FILTER_MODULE_ID, 1):
-		return _failure(
-			"缺少基础过滤模块。",
-			"整备材料不足",
-			"先用基础反应器组装基础过滤模块；若缺晶体和废件，走晶体侧路补料。"
-		)
+	if character_state.inventory.has_ref(BASIC_FILTER_MODULE_ID, 1):
+		if not character_state.equip_suit_module(BASIC_FILTER_MODULE_ID):
+			return _failure(
+				"基础过滤模块装配失败。",
+				"整备未完成",
+				"检查防护服模块槽和装备库存，再重新尝试。"
+			)
 
-	if not character_state.equip_suit_module(BASIC_FILTER_MODULE_ID):
-		return _failure(
-			"基础过滤模块装配失败。",
-			"整备未完成",
-			"检查防护服模块槽和装备库存，再重新尝试。"
-		)
+		if FieldOutfittingRuntime.has_calibration_materials(character_state):
+			var equipped_and_ready := _success_feedback(
+				"出发整备完成：基础过滤模块已装入防护服，晶体侧路材料足够继续校准模块。",
+				"出发整备完成",
+				"基础过滤模块已装入防护服",
+				"再次操作出发整备台可消耗晶体矿和残骸废件完成维护校准。"
+			)
+			equipped_and_ready["outfitting_module_enabled"] = true
+			return equipped_and_ready
 
-	if FieldOutfittingRuntime.has_calibration_materials(character_state):
-		var equipped_and_ready := _success_feedback(
-			"出发整备完成：基础过滤模块已装入防护服，晶体侧路材料足够继续校准模块。",
+		var result := _success_feedback(
+			"出发整备完成：基础过滤模块已装入防护服，污染消耗和污染反击压力降低。",
 			"出发整备完成",
 			"基础过滤模块已装入防护服",
-			"再次操作出发整备台可消耗晶体矿和残骸废件完成维护校准。"
+			"带模块返回污染边界；晶体侧路余料可回整备台维护校准。"
 		)
-		equipped_and_ready["outfitting_module_enabled"] = true
-		return equipped_and_ready
+		result["outfitting_module_enabled"] = true
+		return result
 
-	var result := _success_feedback(
-		"出发整备完成：基础过滤模块已装入防护服，污染消耗和污染反击压力降低。",
-		"出发整备完成",
-		"基础过滤模块已装入防护服",
-		"带模块返回污染边界；晶体侧路余料可回整备台维护校准。"
+	if FieldOutfittingRuntime.is_tool_strike_calibration_ready(world_state):
+		return _success_feedback(
+			"出发整备台复查完成：工具打击校准已待命，下一次外勤反击会读取基础多用工具和基础零件校准。",
+			"工具校准待命",
+			"工具打击校准已待命",
+			FieldOutfittingRuntime.format_tool_strike_calibration_next_step(world_state, character_state)
+		)
+	if FieldOutfittingRuntime.has_tool_strike_calibration_triggered(world_state):
+		if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+			return _confirm_tool_strike_calibration(character_state, world_state)
+		return _success_feedback(
+			"出发整备台复查完成：工具打击校准已在上一场外勤反击中触发；%s" % FieldOutfittingRuntime.format_tool_strike_calibration_next_step(world_state, character_state),
+			"工具校准已触发",
+			"工具打击校准已触发",
+			FieldOutfittingRuntime.format_tool_strike_calibration_next_step(world_state, character_state)
+		)
+	if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+		return _confirm_tool_strike_calibration(character_state, world_state)
+
+	return _failure(
+		"缺少基础过滤模块。",
+		"整备材料不足",
+		"先用基础反应器组装基础过滤模块；若要校准基础多用工具，需要基础零件 x%d。"
+			% FieldOutfittingRuntime.TOOL_STRIKE_CALIBRATION_BASIC_PARTS_COST
 	)
-	result["outfitting_module_enabled"] = true
-	return result
 
 
 func _confirm_protective_response(
@@ -521,6 +562,27 @@ func _confirm_protective_response(
 	)
 	response_result["protective_response_ready"] = true
 	return response_result
+
+
+func _confirm_tool_strike_calibration(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> Dictionary:
+	if not FieldOutfittingRuntime.consume_tool_strike_calibration_parts(character_state):
+		return _failure(
+			"工具打击校准失败。",
+			"基础零件不足",
+			FieldOutfittingRuntime.format_tool_strike_calibration_next_step(world_state, character_state)
+		)
+	FieldOutfittingRuntime.mark_tool_strike_calibration_ready(world_state)
+	var calibration_result := _success_feedback(
+		"出发整备台确认工具打击校准：基础零件已写入基础多用工具打击头，下一次外勤反击会读取输出压制收益；触发后回基础反应器加工零件并复查整备台。",
+		"工具校准已待命",
+		"基础多用工具 / 基础零件 / 出发整备台已接入",
+		"从外勤出发口进入下一场外勤反击，战斗反馈会读出工具校准输出压制。"
+	)
+	calibration_result["tool_strike_calibration_ready"] = true
+	return calibration_result
 
 
 func _gather(instance_id: String, definition: Dictionary, character_state: CharacterState, world_state: WorldState) -> Dictionary:

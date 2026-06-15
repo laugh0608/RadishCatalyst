@@ -17,9 +17,9 @@ static func format_recipe_goal_hint(recipe_id: String, world_state: WorldState =
 				and not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state)
 			):
 				return "后勤补料已加工成基础零件；下一步是到出发整备台确认维护材料。"
-			return "把晶体矿物转成基础零件，支撑校准件、过滤模块、地基和补给。"
+			return "把晶体矿物转成基础零件，支撑校准件、过滤模块、地基、补给和工具打击校准。"
 		"recipe.reclaim_basic_parts":
-			return "把污染处理副产的污染浆液回收成基础零件，让副产物重新服务补给、地基、模块和稳相信标。"
+			return "把污染处理副产的污染浆液回收成基础零件，让副产物重新服务补给、地基、模块和工具打击校准。"
 		"recipe.reactor_calibrator":
 			return "校准反应器采样通道，做完就去异常晶体采样。"
 		"recipe.analyze_anomaly_sample":

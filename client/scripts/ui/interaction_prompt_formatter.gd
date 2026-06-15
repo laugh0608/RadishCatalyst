@@ -170,6 +170,12 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 	)
 	if not industrial_chain_line.is_empty():
 		parts.append(industrial_chain_line)
+	var tool_strike_line := FieldOutfittingRuntime.format_tool_strike_calibration_prompt_line(
+		world_state,
+		character_state
+	)
+	if not tool_strike_line.is_empty():
+		parts.append(tool_strike_line)
 	if FieldOutfittingRuntime.has_filter_module_equipped(character_state):
 		var drain_mult := (
 			character_state.get_pollution_drain_multiplier(data_registry)
@@ -210,9 +216,21 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 			else:
 				parts.append("操作：E 检查防护响应")
 			return "\n".join(parts)
+		if FieldOutfittingRuntime.is_tool_strike_calibration_ready(world_state):
+			parts.append("操作：E 检查工具打击校准")
+			return "\n".join(parts)
+		if FieldOutfittingRuntime.has_tool_strike_calibration_triggered(world_state):
+			if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+				parts.append("操作：E 重新确认工具打击校准")
+			else:
+				parts.append("操作：E 检查工具打击校准")
+			return "\n".join(parts)
 		if FieldOutfittingRuntime.is_module_calibrated(world_state):
 			if FieldOutfittingRuntime.can_confirm_protective_response(character_state, world_state):
 				parts.append("操作：E 确认防护响应")
+				return "\n".join(parts)
+			if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+				parts.append("操作：E 确认工具打击校准")
 				return "\n".join(parts)
 			parts.append("维护：晶体校准已写入，污染采集、污染反击和遗迹外圈相位反击承压继续下降。")
 			parts.append("操作：E 检查整备状态")
@@ -227,12 +245,28 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 		if FieldOutfittingRuntime.can_confirm_protective_response(character_state, world_state):
 			parts.append("操作：E 确认防护响应")
 			return "\n".join(parts)
+		if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+			parts.append("操作：E 确认工具打击校准")
+			return "\n".join(parts)
 		parts.append("下一步：回晶体侧路补晶体矿和残骸废件，再回整备台维护校准。")
 		parts.append("操作：E 查看缺料")
 		return "\n".join(parts)
 
 	if character_state.inventory.has_ref(FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID, 1):
 		parts.append("操作：E 装配基础过滤模块")
+		return "\n".join(parts)
+
+	if FieldOutfittingRuntime.is_tool_strike_calibration_ready(world_state):
+		parts.append("操作：E 检查工具打击校准")
+		return "\n".join(parts)
+	if FieldOutfittingRuntime.has_tool_strike_calibration_triggered(world_state):
+		if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+			parts.append("操作：E 重新确认工具打击校准")
+		else:
+			parts.append("操作：E 检查工具打击校准")
+		return "\n".join(parts)
+	if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+		parts.append("操作：E 确认工具打击校准")
 		return "\n".join(parts)
 
 	parts.append("下一步：用基础反应器组装基础过滤模块，再回整备台装入防护服。")

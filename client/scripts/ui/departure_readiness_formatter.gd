@@ -93,6 +93,21 @@ static func format_departure_gate_next_step(world_state: WorldState, character_s
 		return "先在前哨核心补给并恢复生命 / 防护"
 	if String(character_state.equipment.get("suit_module", "")) != "equipment.filter_module_t1":
 		if world_state.has_base_structure_definition("building.field_outfitting_station"):
+			if FieldOutfittingRuntime.is_tool_strike_calibration_ready(world_state):
+				return FieldOutfittingRuntime.format_tool_strike_calibration_next_step(
+					world_state,
+					character_state
+				)
+			if character_state.inventory.has_ref("equipment.filter_module_t1", 1):
+				return "先到出发整备台确认基础过滤模块"
+			if (
+				FieldOutfittingRuntime.has_tool_strike_calibration_triggered(world_state)
+				or FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state)
+			):
+				return FieldOutfittingRuntime.format_tool_strike_calibration_next_step(
+					world_state,
+					character_state
+				)
 			return "先到出发整备台确认基础过滤模块"
 		return "先补建出发整备台，或按当前目标外出"
 	if _should_maintain_core_archive(world_state, character_state):
@@ -125,6 +140,19 @@ static func format_departure_gate_next_step(world_state: WorldState, character_s
 		or FieldOutfittingRuntime.can_confirm_protective_response(character_state, world_state)
 	):
 		return FieldOutfittingRuntime.format_protective_response_next_step(world_state, character_state)
+	if FieldOutfittingRuntime.is_tool_strike_calibration_ready(world_state):
+		return FieldOutfittingRuntime.format_tool_strike_calibration_next_step(
+			world_state,
+			character_state
+		)
+	if (
+		FieldOutfittingRuntime.has_tool_strike_calibration_triggered(world_state)
+		or FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state)
+	):
+		return FieldOutfittingRuntime.format_tool_strike_calibration_next_step(
+			world_state,
+			character_state
+		)
 	return "沿外勤出发口前往地图目标；若地图目标为空，按当前任务追踪推进"
 
 
@@ -176,6 +204,12 @@ static func format_feedback_detail(world_state: WorldState, character_state: Cha
 	)
 	if not protective_response_state.is_empty():
 		parts.append(protective_response_state)
+	var tool_strike_state := FieldOutfittingRuntime.format_tool_strike_calibration_compact_state(
+		world_state,
+		character_state
+	)
+	if not tool_strike_state.is_empty():
+		parts.append(tool_strike_state)
 	var aftermath_line := CoreGuardAftermathFormatter.format_outpost_line(world_state, character_state)
 	if not aftermath_line.is_empty():
 		parts.append(aftermath_line)
@@ -298,6 +332,12 @@ static func _format_departure_state_parts(
 	)
 	if not protective_response_state.is_empty():
 		parts.append(protective_response_state)
+	var tool_strike_state := FieldOutfittingRuntime.format_tool_strike_calibration_compact_state(
+		world_state,
+		character_state
+	)
+	if not tool_strike_state.is_empty():
+		parts.append(tool_strike_state)
 	return parts
 
 
@@ -312,6 +352,12 @@ static func _format_logistics_outfitting_parts(
 	)
 	if not protective_response_state.is_empty():
 		parts.append(protective_response_state)
+	var tool_strike_state := FieldOutfittingRuntime.format_tool_strike_calibration_compact_state(
+		world_state,
+		character_state
+	)
+	if not tool_strike_state.is_empty():
+		parts.append(tool_strike_state)
 	return parts
 
 
