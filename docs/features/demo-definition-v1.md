@@ -45,7 +45,7 @@
 | --- | --- | --- |
 | Demo 完成定义 | 本文 | 已建立规格源 |
 | 区域 / 场景范围 | `docs/planning/demo-scope-and-playable-slice.md` | 已定义 12 区域、4 核心区和核心稳定站终点 |
-| 角色成长 / 战斗差异 | `docs/features/demo-combat-progression-v1.md`，当前执行子专题 `docs/features/pollution-edge-maintenance-pressure-v1.md` | 当前活跃专题 |
+| 角色成长 / 战斗差异 | `docs/features/demo-combat-progression-v1.md`，最近执行子专题 `docs/features/pollution-edge-maintenance-pressure-v1.md` | 当前活跃专题 |
 | 工业基建 / 工艺解锁主干 | 后续 `demo-industrial-tech-spine-v1.md` | 待建专题 |
 | 角色技能 / 装备模块第一版 | 后续 `demo-character-kit-v1.md` | 待建专题 |
 | 核心场景与初步美术 | 后续 `demo-scene-art-foundation-v1.md` | 待建专题 |
@@ -73,7 +73,7 @@
 
 ## 当前优先级
 
-当前继续推进 `Demo Combat Progression V1` 及其执行子专题 `Pollution Edge Maintenance Pressure V1`，把第一版角色成长 / 战斗差异做成真实玩家操作路径。完成后再根据本文缺口选择下一个专题，优先级通常是：
+当前继续推进 `Demo Combat Progression V1`；最近执行子专题 `Pollution Edge Maintenance Pressure V1` 已补第二个角色成长 / 战斗差异。完成后再根据本文缺口选择下一个专题，优先级通常是：
 
 1. 第二个角色成长 / 战斗差异或角色技能 / 装备模块第一版。
 2. 工业基建 / 工艺解锁主干的读法收束。

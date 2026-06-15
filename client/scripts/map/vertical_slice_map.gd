@@ -307,6 +307,11 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			should_enable = should_enable and FieldOutfittingRuntime.is_core_archive_maintained(world_state)
 		if interactable.instance_id == "map_object_instance.pollution_residue_core_archive_pressure_retest_cache":
 			should_enable = should_enable and _is_core_archive_pressure_retest_available(world_state)
+		if interactable.instance_id == FieldOutfittingRuntime.LOGISTICS_MAINTENANCE_POLLUTION_RETEST_RESIDUE_INSTANCE_ID:
+			should_enable = (
+				should_enable
+				and FieldOutfittingRuntime.is_logistics_maintenance_pollution_retest_available(world_state)
+			)
 		if interactable.instance_id == CoreStabilizationPressureFormatter.LOGISTICS_MAINTENANCE_RETEST_RESIDUE_INSTANCE_ID:
 			should_enable = should_enable and CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_available(world_state)
 		if interactable.instance_id == "map_object_instance.crystal_cluster_logistics_return":
@@ -448,6 +453,8 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 				followup = "归档维护回访口袋暂时安全；回收沉积物后回过滤器补药剂和污染浆液，确认基地维护已反哺外勤承压。"
 			if target.instance_id == "enemy_instance.polluted_skitter_core_archive_pressure_retest_guard":
 				followup = "复测压力点暂时安全；回收沉积物后回过滤器补药剂和污染浆液，多余浆液可回基地反应器回收基础零件。"
+			if target.instance_id == FieldOutfittingRuntime.LOGISTICS_MAINTENANCE_POLLUTION_RETEST_GUARD_INSTANCE_ID:
+				followup = "污染边界后勤维护复测压力暂时安全；回收沉积物后回过滤器处理，验证整备台维护已反哺污染承压。"
 			if target.instance_id == "enemy_instance.polluted_skitter_logistics_maintenance_retest_guard":
 				followup = "后勤维护复测压力暂时安全；回收沉积物后回过滤器处理，再回前哨核心补给并确认下一趟外勤。"
 			if target.instance_id == "enemy_instance.polluted_skitter_ridge":
@@ -771,6 +778,8 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 		return FieldOutfittingRuntime.is_core_archive_maintained(world_state)
 	if enemy.instance_id == "enemy_instance.polluted_skitter_core_archive_pressure_retest_guard":
 		return _is_core_archive_pressure_retest_available(world_state)
+	if enemy.instance_id == FieldOutfittingRuntime.LOGISTICS_MAINTENANCE_POLLUTION_RETEST_GUARD_INSTANCE_ID:
+		return FieldOutfittingRuntime.is_logistics_maintenance_pollution_retest_available(world_state)
 	if enemy.instance_id == "enemy_instance.polluted_skitter_logistics_maintenance_retest_guard":
 		return CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_available(world_state)
 	if enemy.instance_id == "enemy_instance.native_skitter_logistics_return_guard":

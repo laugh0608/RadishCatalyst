@@ -21,13 +21,13 @@
 
 - 阶段级专题用于说明能力域方向、冻结边界和跨包验收，例如角色成长与战斗第一版。
 - 可执行细专题用于定义一个基建设备、装备 / 模块、功能玩法、场景压力或工程边界包，是每日代码开发的直接范围来源。
-- 当前执行细专题应由阶段入口或阶段级专题显式链接；完成后再切换到下一个细专题。
+- 当前或最近执行细专题应由阶段入口或阶段级专题显式链接；完成后再切换到下一个细专题。
 
 ## 当前活跃专题
 
 - [Demo Definition V1](demo-definition-v1.md)：首版 Demo 完成规格表，后续专题必须映射到其中的未完成规格项。
 - [Demo Combat Progression V1](demo-combat-progression-v1.md)：首版 Demo 角色成长与战斗第一版的阶段级专题。
-- [Pollution Edge Maintenance Pressure V1](pollution-edge-maintenance-pressure-v1.md)：当前执行细专题，验证后勤维护在污染边界形成第二个承压差异。
+- [Pollution Edge Maintenance Pressure V1](pollution-edge-maintenance-pressure-v1.md)：最近执行细专题，已验证后勤维护在污染边界形成第二个承压差异。
 
 ## 专题文档推荐结构
 

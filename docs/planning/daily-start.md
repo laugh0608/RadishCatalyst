@@ -16,7 +16,7 @@
 
 当前活跃专题：[Demo Combat Progression V1](../features/demo-combat-progression-v1.md)。
 
-当前执行子专题：[Pollution Edge Maintenance Pressure V1](../features/pollution-edge-maintenance-pressure-v1.md)。
+最近执行子专题：[Pollution Edge Maintenance Pressure V1](../features/pollution-edge-maintenance-pressure-v1.md)，2026-06-15 已落地。
 
 重点是让基地制造和出发整备带来明确战斗 / 成长差异，不再继续给既有回访链追加同类内容包，也不把基线复核写成下一步主线。
 
@@ -32,14 +32,14 @@
 1. 读 `docs/planning/current.md` 确认阶段和冻结边界。
 2. 读 `docs/features/demo-definition-v1.md` 确认首版 Demo 完成规格和当前缺口。
 3. 读当前活跃专题 `docs/features/demo-combat-progression-v1.md`，确认阶段方向和冻结边界。
-4. 读当前执行子专题 `docs/features/pollution-edge-maintenance-pressure-v1.md`，从其中的范围、玩家路径和验收条件派生开发包。
+4. 读最近执行子专题 `docs/features/pollution-edge-maintenance-pressure-v1.md`，确认已落地范围和不要继续加厚的边界。
 5. 只在需要历史风险时，读取最新周志中的“风险与未完成项”和“下周建议”。
 6. 按改动范围选读设计、架构和复测基线文档。
 
 ## 当前开发重点
 
 - 只推进当前活跃专题中的首版 demo 级角色成长 / 战斗差异。
-- 下一包按 `pollution-edge-maintenance-pressure-v1.md` 执行，让既有整备 / 模块状态在污染边界压力中读出第二个可感知差异；若扩到技能 / 装备模块，先建对应子专题。
+- 下一包不要继续加厚污染边界后勤维护口袋；优先评估遗迹外圈压力差异，或先建立角色技能 / 装备模块细专题。
 - 必须覆盖真实玩家操作路径、HUD / 对象反馈、战斗结果、存档状态和自动检查。
 - 首版 Demo 未完成初步阶段的完整玩法、场景和美术前，不切到试玩准备或修 bug 阶段；真实页面 smoke 只用于对比开发效果。
 - 工程上注意 `vertical_slice_flow_check.gd`、`vertical_slice_map.gd`、`prototype_hud.gd`、`interaction_prompt_formatter.gd` 和相关系统职责边界。

@@ -949,6 +949,34 @@ offset_right = 390.0
 offset_bottom = 168.0
 color = Color(0.86, 0.43, 0.16, 1)
 
+[node name="PollutionLogisticsMaintenanceRetestLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 316.0
+offset_top = 112.0
+offset_right = 374.0
+offset_bottom = 120.0
+color = Color(0.604, 0.404, 0.148, 1)
+
+[node name="PollutionLogisticsMaintenanceRetestPocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 316.0
+offset_top = 96.0
+offset_right = 378.0
+offset_bottom = 132.0
+color = Color(0.365, 0.284, 0.103, 1)
+
+[node name="PollutionLogisticsMaintenanceRetestResidueMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 324.0
+offset_top = 104.0
+offset_right = 350.0
+offset_bottom = 128.0
+color = Color(0.8, 0.66, 0.22, 1)
+
+[node name="PollutionLogisticsMaintenanceRetestGuardMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 354.0
+offset_top = 98.0
+offset_right = 376.0
+offset_bottom = 126.0
+color = Color(0.88, 0.45, 0.17, 1)
+
 [node name="PollutionGatePressurePocket" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = 344.0
 offset_top = 8.0
@@ -1390,6 +1418,13 @@ definition_id = "map_object.pollution_residue_patch"
 interaction_type = "gather"
 label_offset = Vector2(-104, -50)
 label_size = Vector2(208, 24)
+
+[node name="PollutionResidueLogisticsMaintenancePressureCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(338, 116)
+definition_id = "map_object.pollution_residue_patch"
+interaction_type = "gather"
+label_offset = Vector2(-114, -50)
+label_size = Vector2(228, 24)
 
 [node name="RoughGroundNorth" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(258, -156)
@@ -2063,6 +2098,10 @@ definition_id = "enemy.polluted_skitter"
 
 [node name="PollutedSkitterCoreArchivePressureRetestGuard" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(384, 154)
+definition_id = "enemy.polluted_skitter"
+
+[node name="PollutedSkitterLogisticsMaintenancePressureGuard" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(360, 116)
 definition_id = "enemy.polluted_skitter"
 
 [node name="PollutedSkitterGatePressure" parent="Enemies" instance=ExtResource("4_enemy")]

@@ -235,6 +235,13 @@ static func format_supply_state(world_state: WorldState, character_state: Charac
 
 static func format_pressure_payoff(world_state: WorldState) -> String:
 	if FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
+		if (
+			FieldOutfittingRuntime.has_logistics_maintenance_pollution_retest_residue(world_state)
+			and not FieldOutfittingRuntime.is_logistics_maintenance_pollution_retest_processed(world_state)
+		):
+			return "污染边界后勤维护沉积已带回，先处理成药剂和污染浆液，再整理下一趟外勤"
+		if not FieldOutfittingRuntime.has_logistics_maintenance_pollution_retest_residue(world_state):
+			return "后勤维护已确认，下一趟污染边界复测采集和反击承压会继续下降"
 		if CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_processed(world_state):
 			return "后勤维护复测沉积已处理，模块校准、核心归档和后勤维护继续服务下一趟外勤"
 		if CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state):
@@ -282,6 +289,11 @@ static func format_core_archive_return_processing_line(
 		return "回访路线：核心归档维护已接入；从外勤出发口先回污染边界清出发路线 / 归档维护口袋，再回过滤器补药剂"
 	if not _has_completed_filter_processing(world_state):
 		return "回访处理：归档维护沉积已回收，先回污染过滤器处理成药剂和污染浆液"
+	if (
+		FieldOutfittingRuntime.has_logistics_maintenance_pollution_retest_residue(world_state)
+		and not FieldOutfittingRuntime.is_logistics_maintenance_pollution_retest_processed(world_state)
+	):
+		return "先回污染过滤器处理污染边界后勤维护沉积，再补药剂和污染浆液"
 	if (
 		CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state)
 		and not CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_processed(world_state)
@@ -355,6 +367,13 @@ static func format_crystal_logistics_return_line(
 	var has_wreckage := FieldOutfittingRuntime.has_crystal_logistics_return_wreckage(world_state)
 	if has_crystal and has_wreckage:
 		if FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
+			if (
+				FieldOutfittingRuntime.has_logistics_maintenance_pollution_retest_residue(world_state)
+				and not FieldOutfittingRuntime.is_logistics_maintenance_pollution_retest_processed(world_state)
+			):
+				return "污染边界后勤维护复测：沉积已带回，先回污染过滤器处理成药剂和污染浆液"
+			if not FieldOutfittingRuntime.has_logistics_maintenance_pollution_retest_residue(world_state):
+				return "后勤补料：晶体和残骸已加工，整备台维护已确认；从外勤出发口复测污染边界压力点"
 			if CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_processed(world_state):
 				return "后勤维护复测：沉积已过滤成药剂和污染浆液；回前哨核心补给后准备下一趟外勤"
 			if CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state):
@@ -379,6 +398,13 @@ static func format_crystal_logistics_return_next_step(
 			return "先回基础反应器用处理晶体矿物加工基础零件，再到出发整备台确认维护材料"
 		if not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
 			return "先到出发整备台确认后勤维护材料，再回前哨核心补给并准备下一趟外勤"
+		if (
+			FieldOutfittingRuntime.has_logistics_maintenance_pollution_retest_residue(world_state)
+			and not FieldOutfittingRuntime.is_logistics_maintenance_pollution_retest_processed(world_state)
+		):
+			return "先回污染过滤器处理污染边界后勤维护沉积，再补药剂和污染浆液"
+		if not FieldOutfittingRuntime.has_logistics_maintenance_pollution_retest_residue(world_state):
+			return "从外勤出发口复测污染边界压力点，清守卫并回收后勤维护沉积"
 		if CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_processed(world_state):
 			return ""
 		if CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state):
@@ -444,6 +470,13 @@ static func _format_logistics_exit_state(world_state: WorldState, character_stat
 			return "后勤补料待加工"
 		if not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
 			return "整备台维护待确认"
+		if (
+			FieldOutfittingRuntime.has_logistics_maintenance_pollution_retest_residue(world_state)
+			and not FieldOutfittingRuntime.is_logistics_maintenance_pollution_retest_processed(world_state)
+		):
+			return "污染后勤沉积待过滤"
+		if not FieldOutfittingRuntime.has_logistics_maintenance_pollution_retest_residue(world_state):
+			return "污染边界后勤复测待处理"
 		if CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_processed(world_state):
 			return "后勤复测沉积已处理"
 		if CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state):

@@ -4,11 +4,14 @@ class_name FieldOutfittingRuntime
 const FIELD_OUTFITTING_STATION_ID := "building.field_outfitting_station"
 const FIELD_OUTFITTING_STATION_INSTANCE_ID := "map_object_instance.field_outfitting_station"
 const FIELD_OUTFITTING_STATION_REGION_ID := "region.outpost_platform"
+const LOGISTICS_MAINTENANCE_POLLUTION_RETEST_RESIDUE_INSTANCE_ID := "map_object_instance.pollution_residue_logistics_maintenance_pressure_cache"
+const LOGISTICS_MAINTENANCE_POLLUTION_RETEST_GUARD_INSTANCE_ID := "enemy_instance.polluted_skitter_logistics_maintenance_pressure_guard"
 const BASIC_FILTER_MODULE_ID := "equipment.filter_module_t1"
 const MODULE_CALIBRATED_FLAG := "module_calibrated"
 const CORE_ARCHIVE_MAINTAINED_FLAG := "core_archive_maintained"
 const LOGISTICS_MATERIAL_PROCESSED_FLAG := "logistics_material_processed"
 const LOGISTICS_MAINTENANCE_CONFIRMED_FLAG := "logistics_maintenance_confirmed"
+const LOGISTICS_MAINTENANCE_POLLUTION_RETEST_PROCESSED_FLAG := "logistics_maintenance_pollution_retest_processed"
 const MODULE_CALIBRATION_CRYSTAL_COST := 2
 const MODULE_CALIBRATION_SCRAP_COST := 1
 const MODULE_CALIBRATION_DRAIN_MULT := 0.9
@@ -177,6 +180,44 @@ static func mark_logistics_maintenance_confirmed(world_state: WorldState) -> voi
 	if station_state.is_empty():
 		return
 	station_state[LOGISTICS_MAINTENANCE_CONFIRMED_FLAG] = true
+
+
+static func is_logistics_maintenance_pollution_retest_available(world_state: WorldState) -> bool:
+	return is_logistics_maintenance_confirmed(world_state)
+
+
+static func has_logistics_maintenance_pollution_retest_residue(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return bool(
+		world_state.get_map_object(LOGISTICS_MAINTENANCE_POLLUTION_RETEST_RESIDUE_INSTANCE_ID).get(
+			"is_gathered",
+			false
+		)
+	)
+
+
+static func is_logistics_maintenance_pollution_retest_processed(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return bool(
+		world_state.get_map_object(LOGISTICS_MAINTENANCE_POLLUTION_RETEST_RESIDUE_INSTANCE_ID).get(
+			LOGISTICS_MAINTENANCE_POLLUTION_RETEST_PROCESSED_FLAG,
+			false
+		)
+	)
+
+
+static func mark_logistics_maintenance_pollution_retest_processed(world_state: WorldState) -> void:
+	if world_state == null:
+		return
+	var residue_state := world_state.ensure_map_object(
+		LOGISTICS_MAINTENANCE_POLLUTION_RETEST_RESIDUE_INSTANCE_ID,
+		"map_object.pollution_residue_patch",
+		"region.pollution_edge"
+	)
+	residue_state["is_gathered"] = true
+	residue_state[LOGISTICS_MAINTENANCE_POLLUTION_RETEST_PROCESSED_FLAG] = true
 
 
 static func should_process_logistics_materials(

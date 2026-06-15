@@ -204,6 +204,7 @@ func _create_logistics_maintenance_core_retest_world(confirmed: bool) -> WorldSt
 		_mark_crystal_logistics_return_gathered(world)
 		FieldOutfittingRuntime.mark_logistics_material_processed(world)
 		FieldOutfittingRuntime.mark_logistics_maintenance_confirmed(world)
+		FieldOutfittingRuntime.mark_logistics_maintenance_pollution_retest_processed(world)
 	return world
 
 

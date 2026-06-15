@@ -36,6 +36,7 @@ func run(root: Node) -> void:
 	_check_core_archive_pressure_retest_guard_feedback(root)
 	_check_core_archive_pressure_retest_residue_feedback(root)
 	_check_core_archive_pressure_retest_processing_feedback()
+	preload("res://scripts/checks/pollution_maintenance_pressure_check.gd").new(host).run(root)
 	_check_double_vial_pressure_spend_and_restock(root)
 	_check_double_vial_core_write_feedback()
 	_check_slurry_reclaim_hud_and_device_panel()

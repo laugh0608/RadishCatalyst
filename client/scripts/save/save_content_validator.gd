@@ -35,6 +35,7 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 		"map_object_instance.pollution_residue_core_archive_route_cache": "map_object.pollution_residue_patch",
 		"map_object_instance.pollution_residue_core_archive_return_cache": "map_object.pollution_residue_patch",
 		"map_object_instance.pollution_residue_core_archive_pressure_retest_cache": "map_object.pollution_residue_patch",
+		"map_object_instance.pollution_residue_logistics_maintenance_pressure_cache": "map_object.pollution_residue_patch",
 		"map_object_instance.pollution_residue_logistics_maintenance_retest_cache": "map_object.demo_stabilization_logistics_retest_residue",
 		"map_object_instance.pollution_residue_deep": "map_object.pollution_residue_patch",
 		"map_object_instance.pollution_residue_ridge_cache": "map_object.pollution_residue_patch",
@@ -247,6 +248,10 @@ const PROTOTYPE_ENEMY_SOURCES := {
 			"definition_id": "enemy.polluted_skitter",
 			"region_id": "region.pollution_edge"
 		},
+		"enemy_instance.polluted_skitter_logistics_maintenance_pressure_guard": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge"
+		},
 		"enemy_instance.polluted_skitter_logistics_maintenance_retest_guard": {
 			"definition_id": "enemy.demo_stabilization_logistics_retest_skitter",
 			"region_id": "region.demo_stabilization_core"
@@ -381,6 +386,7 @@ const MAP_OBJECT_ALLOWED_FIELDS := [
 	"core_archive_maintained",
 	"logistics_material_processed",
 	"logistics_maintenance_confirmed",
+	"logistics_maintenance_pollution_retest_processed",
 	"logistics_maintenance_retest_processed"
 ]
 

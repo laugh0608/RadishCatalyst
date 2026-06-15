@@ -335,6 +335,7 @@ static func is_logistics_maintenance_retest_available(world_state: WorldState) -
 		world_state != null
 		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
 		and FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state)
+		and FieldOutfittingRuntime.is_logistics_maintenance_pollution_retest_processed(world_state)
 		and has_retest_readout(world_state)
 	)
 

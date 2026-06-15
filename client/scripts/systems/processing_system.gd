@@ -869,6 +869,13 @@ func _apply_recipe_completion_side_effect(recipe_id: String, world_state: WorldS
 		FieldOutfittingRuntime.mark_logistics_material_processed(world_state)
 		return
 	if recipe_id == "recipe.cleanse_residue":
+		if (
+			FieldOutfittingRuntime.is_logistics_maintenance_pollution_retest_available(world_state)
+			and FieldOutfittingRuntime.has_logistics_maintenance_pollution_retest_residue(world_state)
+			and not FieldOutfittingRuntime.is_logistics_maintenance_pollution_retest_processed(world_state)
+		):
+			FieldOutfittingRuntime.mark_logistics_maintenance_pollution_retest_processed(world_state)
+			return
 		if not CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_available(world_state):
 			return
 		if not CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state):

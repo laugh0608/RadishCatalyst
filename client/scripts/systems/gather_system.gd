@@ -24,6 +24,7 @@ const POLLUTION_RESIDUE_PRESSURE_BY_INSTANCE := {
 	"map_object_instance.pollution_residue_core_archive_route_cache": 1.42,
 	"map_object_instance.pollution_residue_core_archive_return_cache": 1.5,
 	"map_object_instance.pollution_residue_core_archive_pressure_retest_cache": 1.55,
+	FieldOutfittingRuntime.LOGISTICS_MAINTENANCE_POLLUTION_RETEST_RESIDUE_INSTANCE_ID: 1.58,
 	"map_object_instance.pollution_residue_logistics_maintenance_retest_cache": 1.62,
 	"map_object_instance.pollution_residue_deep": 1.35,
 	"map_object_instance.pollution_residue_ridge_cache": 1.6,
@@ -745,6 +746,8 @@ func _get_pollution_pressure_step_hint(instance_id: String, character_state: Cha
 		return "出发路线回访沉积已回收；核心归档维护已降低这段采集承压，回过滤器补满双药剂后再从外勤出发口复测核心稳定站"
 	if instance_id == "map_object_instance.pollution_residue_core_archive_return_cache":
 		return "归档维护回访沉积已回收；核心归档维护已降低这段污染采集承压，回过滤器补药剂和污染浆液后再整理下一趟外勤"
+	if instance_id == FieldOutfittingRuntime.LOGISTICS_MAINTENANCE_POLLUTION_RETEST_RESIDUE_INSTANCE_ID:
+		return "污染边界后勤维护沉积已回收；整备台后勤维护已降低这段采集承压，回过滤器处理成药剂和污染浆液后再补给"
 	if instance_id == CoreStabilizationPressureFormatter.LOGISTICS_MAINTENANCE_RETEST_RESIDUE_INSTANCE_ID:
 		return "后勤维护复测沉积已回收；回过滤器处理成药剂和污染浆液，再回前哨核心补给并确认下一趟外勤"
 	if instance_id == "map_object_instance.outer_ring_echo_residue_cache":

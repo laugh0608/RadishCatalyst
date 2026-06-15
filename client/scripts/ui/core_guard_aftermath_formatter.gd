@@ -75,6 +75,10 @@ static func format_next_sortie_goal_name(world_state: WorldState) -> String:
 			return "基地后勤补料待加工"
 		if not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
 			return "出发整备台维护待确认"
+		if not FieldOutfittingRuntime.has_logistics_maintenance_pollution_retest_residue(world_state):
+			return "污染边界后勤维护复测压力"
+		if not FieldOutfittingRuntime.is_logistics_maintenance_pollution_retest_processed(world_state):
+			return "污染边界后勤维护沉积待处理"
 		if not CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state):
 			return "核心站后勤维护复测压力"
 		if not CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_processed(world_state):
@@ -100,6 +104,10 @@ static func format_next_sortie_route_line(world_state: WorldState) -> String:
 				return "晶体侧路补料已带回；回基础反应器加工基础零件，再确认整备台维护"
 			if not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
 				return "后勤补料已加工；到出发整备台确认维护材料，再回前哨核心补给"
+			if not FieldOutfittingRuntime.has_logistics_maintenance_pollution_retest_residue(world_state):
+				return "后勤维护已确认；从外勤出发口复测污染边界压力点，验证整备台维护收益"
+			if not FieldOutfittingRuntime.is_logistics_maintenance_pollution_retest_processed(world_state):
+				return "污染边界后勤维护沉积已带回；先回污染过滤器处理成药剂和污染浆液"
 			if not CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state):
 				return "后勤补料已处理，整备台维护已确认；从外勤出发口复测核心站，清后勤维护压力点"
 			if not CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_processed(world_state):
@@ -123,6 +131,10 @@ static func get_next_sortie_target_region_id(world_state: WorldState) -> String:
 			if not FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state):
 				return "region.crystal_vein_field"
 			if not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
+				return "region.outpost_platform"
+			if not FieldOutfittingRuntime.has_logistics_maintenance_pollution_retest_residue(world_state):
+				return "region.pollution_edge"
+			if not FieldOutfittingRuntime.is_logistics_maintenance_pollution_retest_processed(world_state):
 				return "region.outpost_platform"
 			if (
 				CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state)

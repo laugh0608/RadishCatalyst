@@ -182,7 +182,7 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 			parts.append("操作：E 确认后勤维护")
 			return "\n".join(parts)
 		if FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
-			parts.append("后勤维护：已确认，核心站复测污染采集和反击会读取维护收益。")
+			parts.append("后勤维护：已确认，污染边界与核心站复测污染采集和反击会读取维护收益。")
 			parts.append("操作：E 检查整备状态")
 			return "\n".join(parts)
 		if FieldOutfittingRuntime.is_module_calibrated(world_state):
@@ -996,6 +996,10 @@ func _get_pollution_residue_contextual_next_step(
 		if already_gathered:
 			return "复测压力沉积已回收；回过滤器处理成药剂和污染浆液，多余浆液可回基础反应器回收基础零件。"
 		return "清掉复测压力守卫后回收沉积物；处理后补药剂，并把多余污染浆液转回基地建造和整备收益。"
+	if interactable.instance_id == FieldOutfittingRuntime.LOGISTICS_MAINTENANCE_POLLUTION_RETEST_RESIDUE_INSTANCE_ID:
+		if already_gathered:
+			return "污染边界后勤维护沉积已回收；回过滤器处理成药剂和污染浆液，再回前哨核心补给。"
+		return "清掉污染边界后勤维护复测守卫后回收沉积物；这次承压会读取整备台后勤维护收益。"
 	if interactable.instance_id == CoreStabilizationPressureFormatter.LOGISTICS_MAINTENANCE_RETEST_RESIDUE_INSTANCE_ID:
 		if already_gathered:
 			return "后勤维护复测沉积已回收；回过滤器处理成药剂和污染浆液，再回前哨核心补给。"
