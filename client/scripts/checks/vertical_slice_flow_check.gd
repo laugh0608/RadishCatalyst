@@ -58,6 +58,7 @@ func _run_checks() -> void:
 	_check_supply_feedback()
 	FieldOutfittingStationCheckScript.new(self).run(root)
 	preload("res://scripts/checks/logistics_maintenance_retest_check.gd").new(self).run(root)
+	preload("res://scripts/checks/ruin_outer_ring_module_pressure_check.gd").new(self).run()
 	_check_hud_feedback_presenter()
 	_check_pollution_status_hints()
 	RegionPromptChecks.new(self).run()
@@ -841,7 +842,6 @@ func _check_pressure_clearance_guard_combat_gate() -> void:
 	window_world.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_STATUS_KEY, BaseActionDispatchPlan.STATUS_ACTIVE)
 	window_world.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_PLAN_KEY, BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE)
 	_expect_equal(map._should_enemy_spawn(guard, window_world), true, "pressure clearance guard spawns during pressure window")
-
 	var combat_character := CharacterState.create_default()
 	var counter_message := map._apply_enemy_counterattack(guard, combat_character)
 	_expect_equal(combat_character.health, 88.0, "pressure clearance guard counterattack health pressure")

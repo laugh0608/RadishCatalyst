@@ -4,7 +4,7 @@
 
 ## 入口约束
 
-本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题、当前执行细专题和最近完成边界为准：
+本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题、最近完成细专题和下一次新建 / 切换的执行细专题为准：
 
 - [Demo Combat Progression V1](../features/demo-combat-progression-v1.md)
 - [Ruin Outer Ring Module Pressure V1](../features/ruin-outer-ring-module-pressure-v1.md)
@@ -38,7 +38,7 @@
 
 ## 当前主线
 
-当前只推进 [Demo Combat Progression V1](../features/demo-combat-progression-v1.md)，它覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 中的角色成长、装备 / 模块和战斗压力规格。当前执行细专题是 [Ruin Outer Ring Module Pressure V1](../features/ruin-outer-ring-module-pressure-v1.md)，用于让模块状态在遗迹外圈读出承压差异。最近完成细专题 [Pollution Edge Maintenance Pressure V1](../features/pollution-edge-maintenance-pressure-v1.md) 已在 2026-06-15 落地，后续不继续加厚污染边界口袋。
+当前只推进 [Demo Combat Progression V1](../features/demo-combat-progression-v1.md)，它覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 中的角色成长、装备 / 模块和战斗压力规格。最近完成细专题是 [Ruin Outer Ring Module Pressure V1](../features/ruin-outer-ring-module-pressure-v1.md)，已让模块状态在遗迹外圈读出承压差异；[Pollution Edge Maintenance Pressure V1](../features/pollution-edge-maintenance-pressure-v1.md) 也已在 2026-06-15 落地。后续不继续加厚污染边界或遗迹外圈同一压力点。
 
 下一次代码开发应从 Demo 完成规格、阶段专题和执行子专题的“本轮范围”“验收条件”选择一个可验证开发包，不再直接从周志条目、历史复盘或局部提示问题派生主线任务。
 

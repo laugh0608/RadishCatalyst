@@ -506,7 +506,7 @@ func _gather(instance_id: String, definition: Dictionary, character_state: Chara
 			_format_amount(protection_drain),
 			_get_pollution_protection_hint(character_state, world_state)
 		])
-		var pressure_hint := _get_pollution_pressure_step_hint(instance_id, character_state)
+		var pressure_hint := _get_pollution_pressure_step_hint(instance_id, character_state, world_state)
 		if not pressure_hint.is_empty():
 			result_parts.append(pressure_hint)
 	var first_hour_hint := _get_first_hour_gather_step_hint(instance_id, world_state, character_state)
@@ -725,7 +725,11 @@ func _get_pollution_protection_hint(character_state: CharacterState, world_state
 	return "，过滤模块已降低消耗"
 
 
-func _get_pollution_pressure_step_hint(instance_id: String, character_state: CharacterState) -> String:
+func _get_pollution_pressure_step_hint(
+	instance_id: String,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
 	if instance_id == "map_object_instance.core_buffer_residue_cache":
 		return "核心缓冲包补料沉积已回收；回过滤器处理成抗污染药剂和污染浆液，再回基础反应器整备缓冲包"
 	if instance_id == "map_object_instance.pollution_residue_ridge_cache":
@@ -751,6 +755,8 @@ func _get_pollution_pressure_step_hint(instance_id: String, character_state: Cha
 	if instance_id == CoreStabilizationPressureFormatter.LOGISTICS_MAINTENANCE_RETEST_RESIDUE_INSTANCE_ID:
 		return "后勤维护复测沉积已回收；回过滤器处理成药剂和污染浆液，再回前哨核心补给并确认下一趟外勤"
 	if instance_id == "map_object_instance.outer_ring_echo_residue_cache":
+		if FieldOutfittingRuntime.has_filter_module_equipped(character_state):
+			return "污染回波沉积已回收；%s；回过滤器处理成抗污染药剂和污染浆液，再带回波匣回基地解析裂相坐标" % FieldOutfittingRuntime.format_ruin_outer_ring_pressure_feedback(character_state, world_state).trim_suffix("。")
 		return "污染回波沉积已回收；回过滤器处理成抗污染药剂和污染浆液，再带回波匣回基地解析裂相坐标"
 	if instance_id == "map_object_instance.pollution_residue_deep":
 		return "深处压力已显著抬升；后续门前点更适合带药剂再处理"

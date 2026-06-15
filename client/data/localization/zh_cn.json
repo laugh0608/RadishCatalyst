@@ -150,7 +150,7 @@
     "equipment.basic_suit.name": "基础防护服",
     "equipment.basic_suit.desc": "前哨工程战斗员的标准防护装备。",
     "equipment.filter_module_t1.name": "基础过滤模块",
-    "equipment.filter_module_t1.desc": "装入防护服后可降低污染区防护消耗，并缓冲污染敌人反击。",
+    "equipment.filter_module_t1.desc": "装入防护服后可降低污染区防护消耗，并缓冲污染敌人和遗迹外圈相位反击。",
     "quest.restore_outpost.name": "恢复前哨",
     "quest.restore_outpost.desc": "检查前哨核心，恢复基础库存和设备状态。",
     "quest.scout_crystal_field.name": "勘探晶体矿脉",

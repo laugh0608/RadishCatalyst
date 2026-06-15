@@ -340,7 +340,7 @@ func _on_interaction_available(interactable: PrototypeInteractable, should_auto_
 		hud.show_prompt(interaction_prompt_formatter.format_outer_ring_console_prompt(world_state))
 		return
 	if interactable.definition_id == "map_object.signal_echo_cache":
-		hud.show_prompt(interaction_prompt_formatter.format_signal_echo_cache_prompt(world_state))
+		hud.show_prompt(interaction_prompt_formatter.format_signal_echo_cache_prompt(world_state, character_state))
 		return
 	if interactable.definition_id == "map_object.deep_ruin_door":
 		hud.show_prompt(interaction_prompt_formatter.format_deep_ruin_door_prompt(world_state, character_state))
@@ -601,7 +601,7 @@ func _refresh_current_context_prompt() -> void:
 		hud.show_prompt(interaction_prompt_formatter.format_outer_ring_console_prompt(world_state))
 		return
 	if interactable.definition_id == "map_object.signal_echo_cache":
-		hud.show_prompt(interaction_prompt_formatter.format_signal_echo_cache_prompt(world_state))
+		hud.show_prompt(interaction_prompt_formatter.format_signal_echo_cache_prompt(world_state, character_state))
 		return
 	if interactable.definition_id == "map_object.deep_ruin_door":
 		hud.show_prompt(interaction_prompt_formatter.format_deep_ruin_door_prompt(world_state, character_state))

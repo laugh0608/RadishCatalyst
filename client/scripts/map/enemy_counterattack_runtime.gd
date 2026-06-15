@@ -66,6 +66,8 @@ func apply(
 			pressure_vial_spend,
 			world_state
 		)
+		if enemy.definition_id == "enemy.ruin_phase_guard":
+			return pollution_message
 		var outfitting_feedback := FieldOutfittingRuntime.format_pollution_pressure_feedback(character_state, world_state)
 		if not outfitting_feedback.is_empty():
 			return "%s %s" % [pollution_message, outfitting_feedback]
@@ -249,7 +251,7 @@ func _format_pollution_counter_message(
 		"enemy_instance.core_buffer_polluted_skitter":
 			return _format_core_buffer_supply_message(message, pressure_vial_spend, world_state, character_state)
 	if enemy.definition_id == "enemy.ruin_phase_guard":
-		return _format_ruin_phase_guard_message(message, character_state)
+		return _format_ruin_phase_guard_message(message, character_state, world_state)
 	if enemy.definition_id == "enemy.demo_stabilization_guard":
 		return _format_core_guard_message(message, consumed_core_buffer, used_core_side_supply, pressure_vial_spend)
 	return message
@@ -442,9 +444,16 @@ func _format_core_buffer_supply_message(
 	]
 
 
-func _format_ruin_phase_guard_message(message: String, character_state: CharacterState) -> String:
+func _format_ruin_phase_guard_message(
+	message: String,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
 	if String(character_state.equipment.get("suit_module", "")) == "equipment.filter_module_t1":
-		return "%s基础过滤模块缓冲了外圈回波反击；战后回收污染回波沉积，再回过滤器处理副产。" % message
+		return "%s基础过滤模块缓冲了外圈回波反击；%s；战后回收污染回波沉积，再回过滤器处理副产。" % [
+			message,
+			FieldOutfittingRuntime.format_ruin_outer_ring_pressure_feedback(character_state, world_state).trim_suffix("。")
+		]
 	return "%s相位守卫回波夹带污染压力；基础过滤模块可降低生命和防护承压，战后仍要回收沉积物处理副产。" % message
 
 

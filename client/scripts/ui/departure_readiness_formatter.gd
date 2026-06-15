@@ -115,6 +115,8 @@ static func format_departure_gate_next_step(world_state: WorldState, character_s
 		and FieldOutfittingRuntime.has_calibration_materials(character_state)
 	):
 		return "先到出发整备台校准基础过滤模块"
+	if _should_show_ruin_outer_ring_module_payoff(world_state):
+		return "从外勤出发口回遗迹外圈，清理相位守卫并观察模块承压收益"
 	var crystal_logistics_step := format_crystal_logistics_return_next_step(world_state, character_state)
 	if not crystal_logistics_step.is_empty():
 		return crystal_logistics_step
@@ -246,12 +248,14 @@ static func format_pressure_payoff(world_state: WorldState) -> String:
 			return "后勤维护复测沉积已处理，模块校准、核心归档和后勤维护继续服务下一趟外勤"
 		if CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state):
 			return "后勤维护复测沉积已带回，先处理成药剂和污染浆液，再整理下一趟外勤"
+		if _should_show_ruin_outer_ring_module_payoff(world_state):
+			return "后勤维护已确认，遗迹外圈相位守卫反击和回波沉积处理会读取维护收益"
 		return "后勤维护已确认，下一趟核心站复测污染采集和反击承压会继续下降"
 	if CoreStabilizationPressureFormatter.has_retest_readout(world_state):
 		return "核心复测读数已带回，核心归档维护、模块校准和补给路线可继续服务下一趟外勤"
 	if FieldOutfittingRuntime.is_core_archive_maintained(world_state):
 		if FieldOutfittingRuntime.is_module_calibrated(world_state):
-			return "核心归档维护和模块校准已接入，下一趟污染采集、污染战斗和核心站复测承压继续下降"
+			return "核心归档维护和模块校准已接入，下一趟污染采集、污染战斗和核心站复测承压继续下降，遗迹外圈相位反击也会读取整备收益"
 		return "核心归档维护已接入，下一趟污染采集和污染战斗承压继续下降"
 	if (
 		FieldOutfittingRuntime.has_station_built(world_state)
@@ -260,10 +264,10 @@ static func format_pressure_payoff(world_state: WorldState) -> String:
 		if world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core"):
 			return "核心写入已归档，模块校准、补给和整备台用于下一趟外勤复测"
 		if _is_core_stabilization_available(world_state):
-			return "模块校准让污染采集和污染战斗承压继续下降，补给可参与守卫战和核心写入排压"
+			return "模块校准让污染采集和污染战斗承压继续下降，补给可参与守卫战和核心写入排压，遗迹外圈相位守卫反击也会读取校准收益"
 		if _has_slurry_buffer_tank(world_state):
-			return "模块校准让污染采集和污染战斗承压继续下降，前哨可补双药剂"
-		return "模块校准让污染采集和污染战斗承压继续下降"
+			return "模块校准让污染采集和污染战斗承压继续下降，前哨可补双药剂，遗迹外圈相位反击也会读取校准收益"
+		return "模块校准让污染采集和污染战斗承压继续下降，遗迹外圈相位反击也会读取校准收益"
 	if world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core"):
 		if _has_slurry_buffer_tank(world_state):
 			return "核心写入已归档，双药剂补给和模块整备用于下一趟外勤复测"
@@ -277,6 +281,18 @@ static func format_pressure_payoff(world_state: WorldState) -> String:
 	if _is_vial_supply_available(world_state):
 		return "污染采集和污染战斗承压下降"
 	return "模块装配后会降低污染采集和反击压力"
+
+
+static func _should_show_ruin_outer_ring_module_payoff(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return (
+		world_state.quest_state.has_active_quest("quest.salvage_signal_echo")
+		or (
+			world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal")
+			and not world_state.quest_state.has_completed_quest("quest.salvage_signal_echo")
+		)
+	)
 
 
 static func format_core_archive_return_processing_line(

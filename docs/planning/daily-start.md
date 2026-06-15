@@ -6,7 +6,7 @@
 
 当提示是“根据项目规划和开发进度，今天要来做什么以推进开发”时，优先阅读本文。
 
-本文只提供日常入口和读取顺序；阶段方向以当前活跃专题为准，每日代码范围以当前执行子专题为准。
+本文只提供日常入口和读取顺序；阶段方向以当前活跃专题为准，每日代码范围以当前执行或下一次新建细专题为准。
 
 ## 阶段
 
@@ -16,9 +16,9 @@
 
 当前活跃专题：[Demo Combat Progression V1](../features/demo-combat-progression-v1.md)。
 
-当前执行细专题：[Ruin Outer Ring Module Pressure V1](../features/ruin-outer-ring-module-pressure-v1.md)。
+最近完成细专题：[Ruin Outer Ring Module Pressure V1](../features/ruin-outer-ring-module-pressure-v1.md)，2026-06-15 已落地。
 
-最近完成细专题：[Pollution Edge Maintenance Pressure V1](../features/pollution-edge-maintenance-pressure-v1.md)，2026-06-15 已落地。
+上一完成细专题：[Pollution Edge Maintenance Pressure V1](../features/pollution-edge-maintenance-pressure-v1.md)，2026-06-15 已落地。
 
 重点是让基地制造和出发整备带来明确战斗 / 成长差异，不再继续给既有回访链追加同类内容包，也不把基线复核写成下一步主线。
 
@@ -34,16 +34,16 @@
 1. 读 `docs/planning/current.md` 确认阶段和冻结边界。
 2. 读 `docs/features/demo-definition-v1.md` 确认首版 Demo 完成规格和当前缺口。
 3. 读当前活跃专题 `docs/features/demo-combat-progression-v1.md`，确认阶段方向和冻结边界。
-4. 读当前执行细专题 `docs/features/ruin-outer-ring-module-pressure-v1.md`，确认本轮玩家路径、状态边界和验收条件。
-5. 只在需要确认已落地边界时，读最近完成细专题 `docs/features/pollution-edge-maintenance-pressure-v1.md`。
+4. 读最近完成细专题 `docs/features/ruin-outer-ring-module-pressure-v1.md`，确认已落地范围和不要继续加厚的边界。
+5. 只在需要确认上一包边界时，读 `docs/features/pollution-edge-maintenance-pressure-v1.md`。
 6. 只在需要历史风险时，读取最新周志中的“风险与未完成项”和“下周建议”。
 7. 按改动范围选读设计、架构和复测基线文档。
 
 ## 当前开发重点
 
 - 只推进当前活跃专题中的首版 demo 级角色成长 / 战斗差异。
-- 本轮执行遗迹外圈模块承压差异，让基础过滤模块、模块校准或后勤维护状态影响遗迹外圈压力读法。
-- 不继续加厚污染边界后勤维护口袋；若后续扩到主动技能或装备槽位，先建立角色技能 / 装备模块细专题。
+- 遗迹外圈模块承压差异已落地；下一包先建立或切换到新的基建设备、角色技能 / 装备模块、功能玩法或场景压力细专题。
+- 不继续加厚污染边界后勤维护口袋或遗迹外圈同一压力点；若后续扩到主动技能或装备槽位，先建立角色技能 / 装备模块细专题。
 - 必须覆盖真实玩家操作路径、HUD / 对象反馈、战斗结果、存档状态和自动检查。
 - 首版 Demo 未完成初步阶段的完整玩法、场景和美术前，不切到试玩准备或修 bug 阶段；真实页面 smoke 只用于对比开发效果。
 - 工程上注意 `vertical_slice_flow_check.gd`、`vertical_slice_map.gd`、`prototype_hud.gd`、`interaction_prompt_formatter.gd` 和相关系统职责边界。

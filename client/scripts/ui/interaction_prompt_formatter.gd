@@ -182,11 +182,11 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 			parts.append("操作：E 确认后勤维护")
 			return "\n".join(parts)
 		if FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
-			parts.append("后勤维护：已确认，污染边界与核心站复测污染采集和反击会读取维护收益。")
+			parts.append("后勤维护：已确认，污染边界、遗迹外圈与核心站复测会读取维护收益。")
 			parts.append("操作：E 检查整备状态")
 			return "\n".join(parts)
 		if FieldOutfittingRuntime.is_module_calibrated(world_state):
-			parts.append("维护：晶体校准已写入，污染采集和污染反击承压继续下降。")
+			parts.append("维护：晶体校准已写入，污染采集、污染反击和遗迹外圈相位反击承压继续下降。")
 			parts.append("操作：E 检查整备状态")
 			return "\n".join(parts)
 		if FieldOutfittingRuntime.has_calibration_materials(character_state):
@@ -575,17 +575,29 @@ func format_outer_ring_console_prompt(world_state: WorldState) -> String:
 	return "按 E 检查：外圈中继台。"
 
 
-func format_signal_echo_cache_prompt(world_state: WorldState) -> String:
+func format_signal_echo_cache_prompt(
+	world_state: WorldState,
+	character_state: CharacterState = null
+) -> String:
 	if not world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
 		return "外圈回波匣：先检查外圈中继台，锁定稳定回波。"
 	if world_state.quest_state.has_completed_quest("quest.salvage_signal_echo"):
 		return "外圈回波匣：已回收，回基地解析深段回波。"
 	if world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
 		if not bool(world_state.get_enemy("enemy_instance.ruin_phase_guard").get("is_defeated", false)):
-			return "外圈回波匣：相位守卫仍在压制；先清理守卫。"
+			return "外圈回波匣：相位守卫仍在压制；先清理守卫。%s" % _format_ruin_outer_ring_module_prompt(character_state, world_state)
 		if world_state.quest_state.get_objective_progress("quest.salvage_signal_echo", "gather_item", "item.polluted_residue") < 2.0:
-			return "外圈回波匣：先回收守卫后暴露的污染回波沉积，再回过滤器处理副产。"
+			return "外圈回波匣：先回收守卫后暴露的污染回波沉积，再回过滤器处理副产。%s" % _format_ruin_outer_ring_module_prompt(character_state, world_state)
 	return "按 E 回收：外圈回波匣。"
+
+
+func _format_ruin_outer_ring_module_prompt(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
+	if character_state == null:
+		return ""
+	return " %s" % FieldOutfittingRuntime.format_ruin_outer_ring_pressure_feedback(character_state, world_state)
 
 
 func format_deep_ruin_door_prompt(world_state: WorldState, character_state: CharacterState) -> String:

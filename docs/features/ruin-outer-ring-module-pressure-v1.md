@@ -38,6 +38,13 @@
 
 优先复用既有相位守卫、回波匣或污染回波沉积；只有现有对象无法表达玩家路径时，才允许在 `region.ruin_outer_ring` 内新增一个小压力对象。
 
+## 已落地
+
+- 2026-06-15 已让基础过滤模块、模块校准和后勤维护状态影响遗迹外圈相位守卫反击与污染回波沉积处理压力。
+- `FieldOutfittingRuntime` 统一输出遗迹外圈模块承压反馈；`EnemyCounterattackRuntime` 在相位守卫战斗日志中读出模块、校准和维护收益。
+- 出发整备台、外勤出发口、HUD 提示、回波匣对象提示和回波沉积采集反馈均已说明遗迹外圈会读取当前模块状态。
+- 新增 `ruin_outer_ring_module_pressure_check.gd`，覆盖损耗差异、HUD / 对象 / 战斗反馈、状态来源和序列化字段。
+
 ## 当前不做
 
 - 不新增第 13 区域。
@@ -86,8 +93,14 @@
 - 涉及文档：`./scripts/check-docs.sh`、`./scripts/check-text-files.sh`、`git diff --check`。
 - 若新增或调整 Godot 运行时检查，在确认本机 Godot 可启动后执行 `sh ./scripts/check-client.sh --with-godot`。
 
+本包落地验证记录：
+
+- `sh ./scripts/check-client.sh`
+- `sh ./scripts/check-client.sh --with-godot`
+
 ## 风险与后续决策
 
 - 如果遗迹外圈已有基础过滤模块读法但玩家感知不足，本包应补真实对象、战斗和 HUD 反馈，而不是只改说明文字。
 - 如果模块校准和后勤维护同时影响外圈压力，应区分“基础模块已生效”和“维护进一步降低承压”，避免玩家读成重复奖励。
+- 本包已复用遗迹外圈既有相位守卫、回波匣和污染回波沉积；后续不继续加厚同一压力点，除非出现主线断档或 `P0` / `P1`。
 - 若下一步要扩到主动技能、装备槽位或工具动作，应另建 `demo-character-kit-v1.md`，不把完整角色套件压入本专题。

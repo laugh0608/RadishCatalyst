@@ -327,3 +327,21 @@ static func format_pollution_pressure_feedback(
 	if has_calibration:
 		return "出发整备台校准已接入，污染承压继续下降。"
 	return ""
+
+
+static func format_ruin_outer_ring_pressure_feedback(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
+	if not has_filter_module_equipped(character_state):
+		return "基础过滤模块未装入，外圈相位回波会完整命中生命和防护。"
+	var outfitting_parts: Array[String] = []
+	if has_active_module_calibration(character_state, world_state):
+		outfitting_parts.append("模块校准")
+	if has_active_core_archive_maintenance(character_state, world_state):
+		outfitting_parts.append("核心归档维护")
+	if has_active_logistics_maintenance(character_state, world_state):
+		outfitting_parts.append("后勤维护")
+	if outfitting_parts.is_empty():
+		return "基础过滤模块已装入，外圈相位回波反击承压下降。"
+	return "%s已接入，遗迹外圈相位反击承压继续下降。" % "、".join(outfitting_parts)
