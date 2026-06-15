@@ -46,7 +46,7 @@
 
 当前阶段已完成角色成长、战斗承压、工业主干读法、核心场景识别、主线完成感、防护响应和工具打击校准第一轮支撑；最近完成细专题是 [Demo Tool Strike Calibration V1](../features/demo-tool-strike-calibration-v1.md)、[Demo Protective Response V1](../features/demo-protective-response-v1.md)、[Demo Mainline Completion V1](../features/demo-mainline-completion-v1.md)、[Demo Scene Art Foundation V1](../features/demo-scene-art-foundation-v1.md)、[Demo Industrial Tech Spine V1](../features/demo-industrial-tech-spine-v1.md)、[Demo Character Kit V1](../features/demo-character-kit-v1.md)、[Ruin Outer Ring Module Pressure V1](../features/ruin-outer-ring-module-pressure-v1.md) 和 [Pollution Edge Maintenance Pressure V1](../features/pollution-edge-maintenance-pressure-v1.md)。后续不继续加厚工具打击校准、防护响应、主线完成感、战术扫描、污染边界、遗迹外圈、工业主干或核心场景同一读法点。
 
-下一次代码开发应从 Demo 完成规格、阶段专题和执行子专题的“本轮范围”“验收条件”选择一个可验证开发包，不再直接从周志条目、历史复盘或局部提示问题派生主线任务。
+下一次开发应先对照 Demo 完成规格确认角色成长与战斗第一版是否已满足阶段退出条件；若满足，优先建立功能 / 过渡场景支撑细专题，覆盖非核心区域的机制展示、路线连接、HUD / 对象反馈和检查；若未满足，只补新的非重复角色套件动作、装备状态或战斗压力专题。
 
 首版 Demo 未完成初步阶段的完整玩法、场景和美术前，不进入试玩准备或修 bug 阶段。真实页面 smoke 可以用于对比开发效果，但不能替代功能、场景和玩法专题推进。
 

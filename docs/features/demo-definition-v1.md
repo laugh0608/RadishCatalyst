@@ -75,11 +75,10 @@
 
 ## 当前优先级
 
-当前继续推进首版 Demo 体验主干；`Demo Industrial Tech Spine V1` 已收束工业主干读法，`Demo Scene Art Foundation V1` 已补核心场景与初步美术识别第一包，`Demo Mainline Completion V1` 已收束核心稳定站写入后的 Demo 主线完成读法，`Demo Protective Response V1` 已补第二个装备状态读法，`Demo Tool Strike Calibration V1` 已补工具输出整备读法。后续根据本文缺口选择下一个专题，优先级通常是：
+当前继续推进首版 Demo 体验主干；`Demo Industrial Tech Spine V1` 已收束工业主干读法，`Demo Scene Art Foundation V1` 已补核心场景与初步美术识别第一包，`Demo Mainline Completion V1` 已收束核心稳定站写入后的 Demo 主线完成读法，`Demo Protective Response V1` 已补第二个装备状态读法，`Demo Tool Strike Calibration V1` 已补工具输出整备读法。下一步不继续加厚这些已完成读法点，应先对照本文找仍缺少可执行专题的规格；优先级通常是：
 
-1. 角色成长 / 战斗差异或角色技能 / 装备模块第一版。
-2. 工业基建 / 工艺解锁主干的读法收束。
-3. 核心场景与初步美术识别。
-4. 第二个角色套件动作或装备状态。
+1. 功能 / 过渡场景的机制展示、路线连接和回基地理由。
+2. 12 区域场景识别在非核心区域的延伸。
+3. 若阶段复核发现角色成长 / 战斗第一版仍未满足退出条件，再补新的非重复角色套件动作、装备状态或战斗压力专题。
 
 在首版 Demo 满足本文必达规格前，不切到试玩准备或集中修 bug 阶段。
