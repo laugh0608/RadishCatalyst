@@ -158,6 +158,12 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 		return "设施：%s\n用途：把基地制造出的模块装入防护服，让外勤承压差异从 HUD 提示变成可操作整备。\n状态：未建成。\n下一步：先完成基地平台的出发整备台建造点。" % _get_display_name("building.field_outfitting_station")
 
 	var parts: Array[String] = [DepartureReadinessFormatter.format_outfitting_station_prompt(world_state, character_state)]
+	var industrial_chain_line := IndustrialTechSpineFormatter.format_outfitting_station_prompt_line(
+		world_state,
+		character_state
+	)
+	if not industrial_chain_line.is_empty():
+		parts.append(industrial_chain_line)
 	if FieldOutfittingRuntime.has_filter_module_equipped(character_state):
 		var drain_mult := (
 			character_state.get_pollution_drain_multiplier(data_registry)
@@ -240,6 +246,14 @@ func format_processing_prompt(
 	var byproducts := String(status.get("byproducts", ""))
 	if not byproducts.is_empty():
 		io_line = "%s；副产 %s" % [io_line, byproducts]
+	var industrial_chain_line := IndustrialTechSpineFormatter.format_processing_prompt_line(
+		interactable.definition_id,
+		displayed_recipe_id,
+		world_state,
+		character_state
+	)
+	if not industrial_chain_line.is_empty():
+		io_line = "%s；%s" % [io_line, industrial_chain_line]
 	parts.append(io_line)
 
 	var status_line := "状态：%s" % String(status.get("message", ""))
@@ -282,6 +296,13 @@ func format_processing_log(recipe_id: String, character_state: CharacterState, w
 	var next_step := String(status.get("next_step", ""))
 	if not next_step.is_empty():
 		parts.append("下一步：%s" % next_step)
+	var industrial_chain_line := IndustrialTechSpineFormatter.format_processing_log_line(
+		displayed_recipe_id,
+		world_state,
+		character_state
+	)
+	if not industrial_chain_line.is_empty():
+		parts.append(industrial_chain_line)
 	return "；".join(parts)
 
 

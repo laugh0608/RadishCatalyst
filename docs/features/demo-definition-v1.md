@@ -46,7 +46,7 @@
 | Demo 完成定义 | 本文 | 已建立规格源 |
 | 区域 / 场景范围 | `docs/planning/demo-scope-and-playable-slice.md` | 已定义 12 区域、4 核心区和核心稳定站终点 |
 | 角色成长 / 战斗差异 | `docs/features/demo-combat-progression-v1.md`，最近完成细专题 `docs/features/demo-character-kit-v1.md`、`docs/features/ruin-outer-ring-module-pressure-v1.md` 和 `docs/features/pollution-edge-maintenance-pressure-v1.md` | 当前活跃专题 |
-| 工业基建 / 工艺解锁主干 | 后续 `demo-industrial-tech-spine-v1.md` | 待建专题 |
+| 工业基建 / 工艺解锁主干 | `docs/features/demo-industrial-tech-spine-v1.md` | 当前执行细专题 |
 | 角色技能 / 装备模块第一版 | `docs/features/demo-character-kit-v1.md` | 已落地首个主动工具动作 |
 | 核心场景与初步美术 | 后续 `demo-scene-art-foundation-v1.md` | 待建专题 |
 | 主线收束与完成感 | 后续 `demo-mainline-completion-v1.md` | 待建专题 |

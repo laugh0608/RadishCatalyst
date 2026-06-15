@@ -355,7 +355,8 @@ func _format_processing_started_feedback(recipe: Dictionary, world_state: WorldS
 		"status": "加工中，预计 %s 秒完成。" % _format_amount(_get_recipe_duration(recipe)),
 		"destination": _format_completion_destination(recipe),
 		"next_step": _get_processing_wait_next_step(),
-		"completion_next_step": _get_completion_next_step(recipe_id, world_state)
+		"completion_next_step": _get_completion_next_step(recipe_id, world_state),
+		"industrial_spine": IndustrialTechSpineFormatter.format_result_feedback_line(recipe_id, world_state)
 	}
 
 
@@ -377,7 +378,8 @@ func _format_processing_completion_feedback(recipe: Dictionary, world_state: Wor
 		"title": "加工完成：%s" % _get_display_name(recipe_id),
 		"status": "已完成。",
 		"destination": _format_completion_destination(recipe),
-		"next_step": _get_completion_next_step(recipe_id, world_state)
+		"next_step": _get_completion_next_step(recipe_id, world_state),
+		"industrial_spine": IndustrialTechSpineFormatter.format_result_feedback_line(recipe_id, world_state)
 	}
 
 

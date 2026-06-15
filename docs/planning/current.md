@@ -7,6 +7,7 @@
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题、最近完成细专题和下一次新建 / 切换的执行细专题为准：
 
 - [Demo Combat Progression V1](../features/demo-combat-progression-v1.md)
+- [Demo Industrial Tech Spine V1](../features/demo-industrial-tech-spine-v1.md)
 - [Demo Character Kit V1](../features/demo-character-kit-v1.md)
 - [Ruin Outer Ring Module Pressure V1](../features/ruin-outer-ring-module-pressure-v1.md)
 
@@ -39,7 +40,7 @@
 
 ## 当前主线
 
-当前只推进 [Demo Combat Progression V1](../features/demo-combat-progression-v1.md)，它覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 中的角色成长、装备 / 模块和战斗压力规格。最近完成细专题是 [Demo Character Kit V1](../features/demo-character-kit-v1.md)，已落地 `C` 战术扫描工具动作；[Ruin Outer Ring Module Pressure V1](../features/ruin-outer-ring-module-pressure-v1.md) 和 [Pollution Edge Maintenance Pressure V1](../features/pollution-edge-maintenance-pressure-v1.md) 也已在 2026-06-15 落地。后续不继续加厚战术扫描、污染边界或遗迹外圈同一压力点。
+当前阶段仍以 [Demo Combat Progression V1](../features/demo-combat-progression-v1.md) 统筹角色成长、装备 / 模块和战斗压力规格；本轮执行细专题切换到 [Demo Industrial Tech Spine V1](../features/demo-industrial-tech-spine-v1.md)，收束基础反应器、污染过滤器和出发整备台之间的轻量工艺主干读法。最近完成细专题是 [Demo Character Kit V1](../features/demo-character-kit-v1.md)，已落地 `C` 战术扫描工具动作；[Ruin Outer Ring Module Pressure V1](../features/ruin-outer-ring-module-pressure-v1.md) 和 [Pollution Edge Maintenance Pressure V1](../features/pollution-edge-maintenance-pressure-v1.md) 也已在 2026-06-15 落地。后续不继续加厚战术扫描、污染边界或遗迹外圈同一压力点。
 
 下一次代码开发应从 Demo 完成规格、阶段专题和执行子专题的“本轮范围”“验收条件”选择一个可验证开发包，不再直接从周志条目、历史复盘或局部提示问题派生主线任务。
 

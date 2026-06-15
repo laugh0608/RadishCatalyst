@@ -16,6 +16,8 @@
 
 当前活跃专题：[Demo Combat Progression V1](../features/demo-combat-progression-v1.md)。
 
+当前执行细专题：[Demo Industrial Tech Spine V1](../features/demo-industrial-tech-spine-v1.md)。
+
 最近完成细专题：[Demo Character Kit V1](../features/demo-character-kit-v1.md)，2026-06-15 已落地。
 
 上一完成细专题：[Ruin Outer Ring Module Pressure V1](../features/ruin-outer-ring-module-pressure-v1.md)，2026-06-15 已落地。
@@ -36,15 +38,16 @@
 1. 读 `docs/planning/current.md` 确认阶段和冻结边界。
 2. 读 `docs/features/demo-definition-v1.md` 确认首版 Demo 完成规格和当前缺口。
 3. 读当前活跃专题 `docs/features/demo-combat-progression-v1.md`，确认阶段方向和冻结边界。
-4. 读最近完成细专题 `docs/features/demo-character-kit-v1.md`，确认战术扫描已落地范围和不要继续加厚的边界。
-5. 只在需要确认上一包边界时，读 `docs/features/ruin-outer-ring-module-pressure-v1.md` 和 `docs/features/pollution-edge-maintenance-pressure-v1.md`。
-6. 只在需要历史风险时，读取最新周志中的“风险与未完成项”和“下周建议”。
-7. 按改动范围选读设计、架构和复测基线文档。
+4. 读当前执行细专题 `docs/features/demo-industrial-tech-spine-v1.md`，确认基础反应器 / 污染过滤器 / 出发整备台的本轮读法范围。
+5. 读最近完成细专题 `docs/features/demo-character-kit-v1.md`，确认战术扫描已落地范围和不要继续加厚的边界。
+6. 只在需要确认上一包边界时，读 `docs/features/ruin-outer-ring-module-pressure-v1.md` 和 `docs/features/pollution-edge-maintenance-pressure-v1.md`。
+7. 只在需要历史风险时，读取最新周志中的“风险与未完成项”和“下周建议”。
+8. 按改动范围选读设计、架构和复测基线文档。
 
 ## 当前开发重点
 
 - 只推进当前活跃专题中的首版 demo 级角色成长 / 战斗差异。
-- 角色工具动作第一版已落地；下一包先建立或切换到新的基建设备、工业主干、场景完成度、主线收束或另一个清晰角色套件细专题。
+- 角色工具动作第一版已落地；当前包推进工业主干读法收束，重点是基础反应器、污染过滤器和出发整备台之间的材料去向、整备收益和下一趟外勤价值。
 - 不继续加厚战术扫描、污染边界后勤维护口袋或遗迹外圈同一压力点；若后续扩到第二个主动技能或装备槽位，先明确新的细专题边界。
 - 必须覆盖真实玩家操作路径、HUD / 对象反馈、战斗结果、存档状态和自动检查。
 - 首版 Demo 未完成初步阶段的完整玩法、场景和美术前，不切到试玩准备或修 bug 阶段；真实页面 smoke 只用于对比开发效果。
@@ -78,6 +81,7 @@
 - `docs/planning/current.md`
 - `docs/features/demo-definition-v1.md`
 - `docs/features/demo-combat-progression-v1.md`
+- `docs/features/demo-industrial-tech-spine-v1.md`
 - `docs/features/demo-character-kit-v1.md`
 - `docs/features/ruin-outer-ring-module-pressure-v1.md`
 - `docs/features/pollution-edge-maintenance-pressure-v1.md`

@@ -267,6 +267,9 @@ func _format_base_summary_lines(
 	var outfitting_summary := _format_outfitting_station_summary(world_state, character_state)
 	if not outfitting_summary.is_empty():
 		return outfitting_summary
+	var industrial_summary := IndustrialTechSpineFormatter.format_hud_summary(world_state, character_state)
+	if not industrial_summary.is_empty():
+		return industrial_summary
 
 	return ["设备：待命；当前目标先外出推进"]
 
@@ -678,6 +681,13 @@ func _format_recipe_summary(
 	var purpose_hint := RecipePurposeHints.format_recipe_goal_hint(recipe_id, world_state)
 	if not purpose_hint.is_empty():
 		result.append("用途：%s" % purpose_hint)
+	var industrial_chain_hint := IndustrialTechSpineFormatter.format_recipe_chain_hint(
+		recipe_id,
+		world_state,
+		character_state
+	)
+	if not industrial_chain_hint.is_empty():
+		result.append("工艺主干：%s" % industrial_chain_hint)
 	return result
 
 

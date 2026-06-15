@@ -29,6 +29,7 @@ func format_success_result_log(result: Dictionary) -> String:
 	var details: Array[String] = []
 	_append_log_detail(details, "下一步", _compact_next_step(String(feedback.get("next_step", ""))))
 	_append_log_detail(details, "去向", _compact_destination(String(feedback.get("destination", ""))))
+	_append_log_detail(details, "工艺", _compact_next_step(String(feedback.get("industrial_spine", ""))))
 	_append_log_detail(details, "状态", _compact_status(String(feedback.get("status", ""))))
 	if details.is_empty():
 		return title

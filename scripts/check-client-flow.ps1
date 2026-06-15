@@ -24,6 +24,11 @@ if (-not (Test-Path -LiteralPath $checkScript -PathType Leaf)) {
     Write-Error "Vertical slice flow check script not found: ${checkScript}"
     exit 1
 }
+$industrialTechSpineCheckScript = Join-Path $clientRoot "scripts/checks/industrial_tech_spine_check.gd"
+if (-not (Test-Path -LiteralPath $industrialTechSpineCheckScript -PathType Leaf)) {
+    Write-Error "Industrial tech spine check script not found: ${industrialTechSpineCheckScript}"
+    exit 1
+}
 
 $godotRunId = "vertical-slice-flow-{0}-{1}" -f $PID, [DateTime]::UtcNow.ToString("yyyyMMddHHmmssfff")
 $godotHome = Join-Path (Join-Path $RepoRoot ".godot-check-runs") $godotRunId
@@ -63,8 +68,15 @@ try {
         exit $LASTEXITCODE
     }
 
+    $industrialCheckOutput = & $GodotExe --headless --path $clientRoot --script $industrialTechSpineCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $industrialCheckOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Industrial tech spine check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $unexpectedErrors = @(
-        $importOutput + $checkOutput |
+        $importOutput + $checkOutput + $industrialCheckOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {

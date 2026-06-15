@@ -55,6 +55,14 @@ func _format_device_status(
 	var purpose_hint := RecipePurposeHints.format_recipe_goal_hint(recipe_id, world_state)
 	if not purpose_hint.is_empty():
 		parts.append("用途：%s" % purpose_hint)
+	var industrial_chain_line := IndustrialTechSpineFormatter.format_device_status_line(
+		building_id,
+		recipe_id,
+		world_state,
+		character_state
+	)
+	if not industrial_chain_line.is_empty():
+		parts.append(industrial_chain_line)
 	if (
 		building_id == "building.basic_reactor"
 		and FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state)
