@@ -29,6 +29,11 @@ if (-not (Test-Path -LiteralPath $industrialTechSpineCheckScript -PathType Leaf)
     Write-Error "Industrial tech spine check script not found: ${industrialTechSpineCheckScript}"
     exit 1
 }
+$sceneArtFoundationCheckScript = Join-Path $clientRoot "scripts/checks/scene_art_foundation_check.gd"
+if (-not (Test-Path -LiteralPath $sceneArtFoundationCheckScript -PathType Leaf)) {
+    Write-Error "Scene art foundation check script not found: ${sceneArtFoundationCheckScript}"
+    exit 1
+}
 
 $godotRunId = "vertical-slice-flow-{0}-{1}" -f $PID, [DateTime]::UtcNow.ToString("yyyyMMddHHmmssfff")
 $godotHome = Join-Path (Join-Path $RepoRoot ".godot-check-runs") $godotRunId
@@ -75,8 +80,15 @@ try {
         exit $LASTEXITCODE
     }
 
+    $sceneArtOutput = & $GodotExe --headless --path $clientRoot --script $sceneArtFoundationCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $sceneArtOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Scene art foundation check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $unexpectedErrors = @(
-        $importOutput + $checkOutput + $industrialCheckOutput |
+        $importOutput + $checkOutput + $industrialCheckOutput + $sceneArtOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {

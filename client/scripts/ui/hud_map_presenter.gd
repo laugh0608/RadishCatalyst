@@ -93,10 +93,17 @@ func format_demo_route_title(world_state: WorldState, _quest_id: String) -> Stri
 
 func format_demo_route_hint(world_state: WorldState, quest_id: String) -> String:
 	var current_stage := _get_route_stage_label(world_state.current_region_id)
-	var target_stage := _get_route_stage_label(_get_quest_target_region_id(world_state, quest_id))
-	if target_stage.is_empty() or target_stage == current_stage:
-		return _get_route_stage_purpose(current_stage)
-	return "目标：%s · %s" % [target_stage, _get_route_stage_purpose(target_stage)]
+	var target_region_id := _get_quest_target_region_id(world_state, quest_id)
+	var target_stage := _get_route_stage_label(target_region_id)
+	var hint_region_id := world_state.current_region_id
+	var route_hint := _get_route_stage_purpose(current_stage)
+	if not target_region_id.is_empty() and target_stage != current_stage:
+		hint_region_id = target_region_id
+		route_hint = "目标：%s · %s" % [target_stage, _get_route_stage_purpose(target_stage)]
+	var scene_hint := SceneArtFoundationFormatter.format_map_route_hint(hint_region_id)
+	if scene_hint.is_empty():
+		return route_hint
+	return "%s · %s" % [route_hint, scene_hint]
 
 
 func _get_region_marker_data() -> Array[Dictionary]:

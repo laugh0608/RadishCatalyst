@@ -48,7 +48,7 @@
 | 角色成长 / 战斗差异 | `docs/features/demo-combat-progression-v1.md`，最近完成细专题 `docs/features/demo-character-kit-v1.md`、`docs/features/ruin-outer-ring-module-pressure-v1.md` 和 `docs/features/pollution-edge-maintenance-pressure-v1.md` | 当前活跃专题 |
 | 工业基建 / 工艺解锁主干 | `docs/features/demo-industrial-tech-spine-v1.md` | 当前执行细专题 |
 | 角色技能 / 装备模块第一版 | `docs/features/demo-character-kit-v1.md` | 已落地首个主动工具动作 |
-| 核心场景与初步美术 | 后续 `demo-scene-art-foundation-v1.md` | 待建专题 |
+| 核心场景与初步美术 | `docs/features/demo-scene-art-foundation-v1.md` | 已落地第一包 |
 | 主线收束与完成感 | 后续 `demo-mainline-completion-v1.md` | 待建专题 |
 
 ## 专题拆分规则
@@ -73,7 +73,7 @@
 
 ## 当前优先级
 
-当前继续推进 `Demo Combat Progression V1`；`Ruin Outer Ring Module Pressure V1` 已补遗迹外圈模块承压差异。后续根据本文缺口选择下一个专题，优先级通常是：
+当前继续推进首版 Demo 体验主干；`Demo Industrial Tech Spine V1` 已收束工业主干读法，`Demo Scene Art Foundation V1` 已补核心场景与初步美术识别第一包。后续根据本文缺口选择下一个专题，优先级通常是：
 
 1. 角色成长 / 战斗差异或角色技能 / 装备模块第一版。
 2. 工业基建 / 工艺解锁主干的读法收束。

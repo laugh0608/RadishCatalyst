@@ -140,6 +140,12 @@ func format_general_interaction_prompt(
 	var object_state := world_state.get_map_object(interactable.instance_id)
 	var parts: Array[String] = ["对象：%s" % title]
 	parts.append("用途：%s" % _get_general_interaction_purpose(interactable, definition))
+	var scene_line := SceneArtFoundationFormatter.format_object_scene_line(
+		interactable.definition_id,
+		world_state.current_region_id
+	)
+	if not scene_line.is_empty():
+		parts.append(scene_line)
 	var reward_line := _format_interaction_reward_line(interactable, definition)
 	if not reward_line.is_empty():
 		parts.append(reward_line)
@@ -563,9 +569,16 @@ func format_stability_calibration_prompt(
 
 
 func format_outpost_core_prompt(world_state: WorldState, character_state: CharacterState) -> String:
+	var scene_line := SceneArtFoundationFormatter.format_object_scene_line(
+		"building.outpost_core",
+		world_state.current_region_id
+	)
 	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
-		return "按 E 恢复：前哨核心，重启基础导航。"
-	return DepartureReadinessFormatter.format_outpost_core_prompt(world_state, character_state)
+		return "按 E 恢复：前哨核心，重启基础导航。\n%s" % scene_line
+	return "%s\n%s" % [
+		DepartureReadinessFormatter.format_outpost_core_prompt(world_state, character_state),
+		scene_line
+	]
 
 
 func format_ruin_gate_prompt(world_state: WorldState, character_state: CharacterState = null) -> String:

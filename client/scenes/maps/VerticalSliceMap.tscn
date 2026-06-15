@@ -225,6 +225,68 @@ offset_bottom = -172.0
 text = "05 核心稳定站 / 守卫与写入"
 horizontal_alignment = 1
 
+[node name="SceneArtFoundationLayer" type="Node2D" parent="."]
+
+[node name="SceneArtBaseIdentityBand" type="ColorRect" parent="SceneArtFoundationLayer"]
+offset_left = -336.0
+offset_top = -160.0
+offset_right = -42.0
+offset_bottom = -134.0
+color = Color(0.16, 0.46, 0.48, 0.72)
+
+[node name="SceneArtBaseIdentityLabel" type="Label" parent="SceneArtFoundationLayer"]
+offset_left = -330.0
+offset_top = -158.0
+offset_right = -48.0
+offset_bottom = -136.0
+text = "基地整备回路：核心 / 反应器 / 整备台 / 出发口"
+horizontal_alignment = 1
+
+[node name="SceneArtCrystalIdentityBand" type="ColorRect" parent="SceneArtFoundationLayer"]
+offset_left = -12.0
+offset_top = -154.0
+offset_right = 232.0
+offset_bottom = -128.0
+color = Color(0.12, 0.38, 0.62, 0.72)
+
+[node name="SceneArtCrystalIdentityLabel" type="Label" parent="SceneArtFoundationLayer"]
+offset_left = -8.0
+offset_top = -152.0
+offset_right = 228.0
+offset_bottom = -130.0
+text = "晶体矿脉：资源 / 残骸 -> 基地加工"
+horizontal_alignment = 1
+
+[node name="SceneArtPollutionIdentityBand" type="ColorRect" parent="SceneArtFoundationLayer"]
+offset_left = 244.0
+offset_top = -82.0
+offset_right = 378.0
+offset_bottom = -56.0
+color = Color(0.58, 0.5, 0.12, 0.76)
+
+[node name="SceneArtPollutionIdentityLabel" type="Label" parent="SceneArtFoundationLayer"]
+offset_left = 246.0
+offset_top = -80.0
+offset_right = 376.0
+offset_bottom = -58.0
+text = "污染边界：施工 / 沉积 / 过滤"
+horizontal_alignment = 1
+
+[node name="SceneArtCoreIdentityBand" type="ColorRect" parent="SceneArtFoundationLayer"]
+offset_left = 3662.0
+offset_top = -154.0
+offset_right = 4186.0
+offset_bottom = -128.0
+color = Color(0.16, 0.56, 0.5, 0.72)
+
+[node name="SceneArtCoreIdentityLabel" type="Label" parent="SceneArtFoundationLayer"]
+offset_left = 3668.0
+offset_top = -152.0
+offset_right = 4180.0
+offset_bottom = -130.0
+text = "核心稳定站：补给 / 守卫 / 写入 / Demo 终点"
+horizontal_alignment = 1
+
 [node name="BaseDirectionLabel" type="Label" parent="."]
 offset_left = -342.0
 offset_top = 166.0
