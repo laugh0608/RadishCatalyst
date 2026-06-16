@@ -34,6 +34,11 @@ if (-not (Test-Path -LiteralPath $demoResourceChainStateCheckScript -PathType Le
     Write-Error "Demo resource chain state check script not found: ${demoResourceChainStateCheckScript}"
     exit 1
 }
+$demoSaveStateContractCheckScript = Join-Path $clientRoot "scripts/checks/demo_save_state_contract_check.gd"
+if (-not (Test-Path -LiteralPath $demoSaveStateContractCheckScript -PathType Leaf)) {
+    Write-Error "Demo save state contract check script not found: ${demoSaveStateContractCheckScript}"
+    exit 1
+}
 $sceneArtFoundationCheckScript = Join-Path $clientRoot "scripts/checks/scene_art_foundation_check.gd"
 if (-not (Test-Path -LiteralPath $sceneArtFoundationCheckScript -PathType Leaf)) {
     Write-Error "Scene art foundation check script not found: ${sceneArtFoundationCheckScript}"
@@ -117,6 +122,13 @@ try {
         exit $LASTEXITCODE
     }
 
+    $saveContractOutput = & $GodotExe --headless --path $clientRoot --script $demoSaveStateContractCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $saveContractOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo save state contract check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $sceneArtOutput = & $GodotExe --headless --path $clientRoot --script $sceneArtFoundationCheckScript --no-header 2>&1
     if ($LASTEXITCODE -ne 0) {
         $sceneArtOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
@@ -160,7 +172,7 @@ try {
     }
 
     $unexpectedErrors = @(
-        $importOutput + $checkOutput + $industrialCheckOutput + $resourceChainOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput |
+        $importOutput + $checkOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {

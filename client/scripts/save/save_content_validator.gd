@@ -1076,6 +1076,7 @@ func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[Strin
 		if (
 			not DEFAULT_ACTIVE_QUEST_IDS.has(quest_id)
 			and not _is_quest_activated_by_completed_quest(quest_id, completed_quest_ids)
+			and not _is_quest_activated_by_runtime_state(quest_id, completed_quest_ids, base_action_state)
 		):
 			return "读取存档失败：quest_state.completed_quest_ids 中存在未由默认任务或已完成任务链解锁的任务，当前运行状态已保留。"
 

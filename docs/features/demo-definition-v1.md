@@ -1,6 +1,6 @@
 # Demo Definition V1
 
-更新时间：2026-06-15
+更新时间：2026-06-16
 
 ## 用途
 
@@ -49,6 +49,7 @@
 | 工具打击校准 / 输出整备 | `docs/features/demo-tool-strike-calibration-v1.md` | 已落地第一包 |
 | 工业基建 / 工艺解锁主干 | `docs/features/demo-industrial-tech-spine-v1.md` | 已落地第一包 |
 | 资源链状态 | `docs/features/demo-resource-chain-state-v1.md` | 已落地第一包 |
+| 存档 / 状态 | `docs/features/demo-save-state-contract-v1.md` | 当前执行第一包 |
 | 角色技能 / 装备模块第一版 | `docs/features/demo-character-kit-v1.md` | 已落地首个主动工具动作 |
 | 防护响应 / 装备状态 | `docs/features/demo-protective-response-v1.md` | 已落地第一包 |
 | 核心场景与初步美术 | `docs/features/demo-scene-art-foundation-v1.md` | 已落地第一包 |
@@ -77,10 +78,9 @@
 
 ## 当前优先级
 
-当前继续推进首版 Demo 体验主干；`Demo Industrial Tech Spine V1` 已收束工业主干读法，`Demo Scene Art Foundation V1` 已补核心场景与初步美术识别第一包，`Demo Mainline Completion V1` 已收束核心稳定站写入后的 Demo 主线完成读法，`Demo Protective Response V1` 已补第二个装备状态读法，`Demo Tool Strike Calibration V1` 已补工具输出整备读法。下一步不继续加厚这些已完成读法点，应先对照本文找仍缺少可执行专题的规格；优先级通常是：
+当前继续推进首版 Demo 体验主干；`Demo Resource Chain State V1` 已落地后，剩余明确缺口是「存档 / 状态」规格。下一步不继续加厚已完成读法点，优先推进 `Demo Save State Contract V1`：
 
-1. 功能 / 过渡场景的机制展示、路线连接和回基地理由。
-2. 12 区域场景识别在非核心区域的延伸。
-3. 若阶段复核发现角色成长 / 战斗第一版仍未满足退出条件，再补新的非重复角色套件动作、装备状态或战斗压力专题。
+1. 世界、角色、库存、建筑、任务、区域、敌人和关键整备 / 资源链状态保存读取与校验。
+2. 若存档状态契约收束后仍未满足本文必达规格，再对照未映射缺口建立新的非重复专题。
 
 在首版 Demo 满足本文必达规格前，不切到试玩准备或集中修 bug 阶段。
