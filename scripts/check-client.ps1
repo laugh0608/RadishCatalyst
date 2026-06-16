@@ -52,6 +52,13 @@ $checks = @(
         }
     },
     @{
+        Name = "client demo runtime surface decomposition"
+        Script = "check-client-demo-runtime-surface-decomposition.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client scene art foundation"
         Script = "check-client-scene-art-foundation.ps1"
         Parameters = @{

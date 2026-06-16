@@ -26,7 +26,8 @@
 ## 当前活跃专题
 
 - [Demo Definition V1](demo-definition-v1.md)：首版 Demo 完成规格表，后续专题必须映射到其中的未完成规格项。
-- [Demo Main Path Continuity V1](demo-main-path-continuity-v1.md)：当前执行细专题，覆盖 `S0` 到 `S21` 和核心稳定站终点完成反馈之间的主路径连续性。
+- [Demo Runtime Surface Decomposition V1](demo-runtime-surface-decomposition-v1.md)：当前执行细专题，覆盖主路径连续性第一包落地后的运行时检查承载面拆分。
+- [Demo Main Path Continuity V1](demo-main-path-continuity-v1.md)：最近完成细专题，覆盖 `S0` 到 `S21` 和核心稳定站终点完成反馈之间的主路径连续性。
 - [Demo Save State Contract V1](demo-save-state-contract-v1.md)：最近完成细专题，覆盖 Demo 主路径世界、角色、库存、建筑、任务、区域、敌人和关键整备 / 资源链状态保存读取与校验。
 - [Demo Resource Chain State V1](demo-resource-chain-state-v1.md)：最近完成细专题，2026-06-16 第一包已落地，覆盖核心资源 / 产物的链路状态、HUD / 设备 / 加工反馈和状态序列化检查。
 - [Demo Non-Core Scene Identity V1](demo-non-core-scene-identity-v1.md)：最近完成细专题，2026-06-16 第一包已落地，覆盖 4 个功能区和 4 个过渡区的场景身份、视觉标识、HUD / 对象反馈和专项检查。

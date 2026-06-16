@@ -10,17 +10,15 @@
 
 ## 阶段
 
-当前为「首版 Demo 体验主干建设：主路径连续性第一版」。
+当前为「首版 Demo 体验主干建设：运行时承载面拆分第一版」。
 
 首版 Demo 完成规格：[Demo Definition V1](../features/demo-definition-v1.md)。
 
-当前执行细专题：[Demo Main Path Continuity V1](../features/demo-main-path-continuity-v1.md)，覆盖从新档到核心稳定站终点完成反馈的主路径连续性。
+当前执行细专题：[Demo Runtime Surface Decomposition V1](../features/demo-runtime-surface-decomposition-v1.md)，覆盖主路径连续性第一包落地后的运行时检查承载面拆分。
 
-最近完成细专题：[Demo Save State Contract V1](../features/demo-save-state-contract-v1.md) 与 [Demo Resource Chain State V1](../features/demo-resource-chain-state-v1.md)，2026-06-16 第一包已落地。
+最近完成细专题：[Demo Main Path Continuity V1](../features/demo-main-path-continuity-v1.md)、[Demo Save State Contract V1](../features/demo-save-state-contract-v1.md) 与 [Demo Resource Chain State V1](../features/demo-resource-chain-state-v1.md)，2026-06-16 第一包已落地。
 
-最近完成细专题：[Demo Non-Core Scene Identity V1](../features/demo-non-core-scene-identity-v1.md)，2026-06-16 第一包已落地。
-
-最近完成细专题：[Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md)，2026-06-16 第一包已落地。
+最近完成细专题：[Demo Non-Core Scene Identity V1](../features/demo-non-core-scene-identity-v1.md) 与 [Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md)，2026-06-16 第一包已落地。
 
 最近完成阶段级专题：[Demo Combat Progression V1](../features/demo-combat-progression-v1.md)，2026-06-16 判定达到阶段退出条件。
 
@@ -28,7 +26,7 @@
 
 上一批完成细专题：[Demo Industrial Tech Spine V1](../features/demo-industrial-tech-spine-v1.md)、[Demo Character Kit V1](../features/demo-character-kit-v1.md)、[Ruin Outer Ring Module Pressure V1](../features/ruin-outer-ring-module-pressure-v1.md)、[Pollution Edge Maintenance Pressure V1](../features/pollution-edge-maintenance-pressure-v1.md)，2026-06-15 已落地。
 
-重点是推进主路径连续性第一包；不再继续给存档契约、资源链状态、场景身份、路线支撑、工具打击校准、防护响应、主线完成感、既有战斗 / 工业 / 核心场景读法点追加同类内容包，也不把纯基线复核写成下一步主线。
+重点是推进运行时承载面拆分第一包；不再继续给主路径连续性、存档契约、资源链状态、场景身份、路线支撑、工具打击校准、防护响应、主线完成感、既有战斗 / 工业 / 核心场景读法点追加同类内容包，也不把纯基线复核写成下一步主线。
 
 ## 最近收尾
 
@@ -41,8 +39,8 @@
 
 1. 读 `docs/planning/current.md` 确认阶段和冻结边界。
 2. 读 `docs/features/demo-definition-v1.md` 确认首版 Demo 完成规格和当前缺口。
-3. 读最近完成细专题 `docs/features/demo-tool-strike-calibration-v1.md`，确认不要继续加厚工具打击校准同一状态。
-4. 读当前执行细专题 `docs/features/demo-main-path-continuity-v1.md`，确认本轮主路径连续性范围。
+3. 读当前执行细专题 `docs/features/demo-runtime-surface-decomposition-v1.md`，确认本轮拆分范围。
+4. 读最近完成细专题 `docs/features/demo-main-path-continuity-v1.md`，确认不要继续加厚主路径连续性同一检查包。
 5. 读 `docs/planning/demo-scope-and-playable-slice.md`，确认 12 区域职责表和功能 / 过渡分组。
 6. 只在需要确认完成边界时，读最近完成的战斗、工业、场景和主线细专题。
 7. 只在需要历史风险时，读取最新周志中的“风险与未完成项”和“后续事项”。
@@ -50,14 +48,15 @@
 
 ## 当前开发重点
 
-- 当前推进 Demo 主路径连续性：`S0` 到 `S21` 的代表性基线、核心稳定站终点运行路径、HUD / 地图读法和 `slice_01_complete` 必须连续。
+- 当前推进 Demo 运行时承载面拆分：先把独立提示 / 运行时断言从接近硬上限的大文件拆出，并接入 `check-client`。
+- 主路径连续性第一包已落地：`S0` 到 `S21` 的代表性基线、核心稳定站终点运行路径、HUD / 地图读法和 `slice_01_complete` 已有专项覆盖。
 - 存档状态契约第一包已落地；不继续围绕同一保存读取切面加厚。
 - 资源链状态第一包已落地：核心资源 / 产物已能在 HUD、设备面板、加工结果和状态序列化中读出链路位置。
 - 非核心区域场景识别第一包已落地，不继续围绕同一批区域标签和地貌 / 设施身份加厚。
 - 功能 / 过渡路线支撑第一包已落地，不继续围绕同一套路线职责、当前危险和回基地理由加厚。
 - 角色成长与战斗第一版已满足退出条件；不继续围绕战术扫描、防护响应、工具校准、污染边界、遗迹外圈或核心守卫同一压力点加厚。
 - 主线完成感、工业主干、核心场景识别第一版已落地；不继续围绕这些同一读法点加厚。
-- 新增检查优先走专项文件，避免继续推高 `vertical_slice_flow_check.gd`；路线读法优先走窄职责 formatter，避免继续堆 `vertical_slice_map.gd`。
+- 新增检查必须优先走专项文件，避免继续推高 `vertical_slice_flow_check.gd`；路线读法优先走窄职责 formatter，避免继续堆 `vertical_slice_map.gd`。
 - 不继续加厚战术扫描、工业主干、污染边界后勤维护口袋或遗迹外圈同一压力点；若后续扩到第二个主动技能或装备槽位，先明确新的细专题边界。
 - 不继续加厚工具打击校准或防护响应同一状态；若后续扩到新战斗收益，先明确新的细专题边界。
 - 必须覆盖真实玩家路线、场景节点、HUD / 地图 / 对象反馈、关键状态或存档边界和自动检查。
@@ -91,6 +90,7 @@
 
 - `docs/planning/current.md`
 - `docs/features/demo-definition-v1.md`
+- `docs/features/demo-runtime-surface-decomposition-v1.md`
 - `docs/features/demo-main-path-continuity-v1.md`
 - `docs/features/demo-save-state-contract-v1.md`
 - `docs/features/demo-resource-chain-state-v1.md`

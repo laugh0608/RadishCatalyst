@@ -9,6 +9,7 @@
 - [Demo Resource Chain State V1](../features/demo-resource-chain-state-v1.md)
 - [Demo Save State Contract V1](../features/demo-save-state-contract-v1.md)
 - [Demo Main Path Continuity V1](../features/demo-main-path-continuity-v1.md)
+- [Demo Runtime Surface Decomposition V1](../features/demo-runtime-surface-decomposition-v1.md)
 - [Demo Non-Core Scene Identity V1](../features/demo-non-core-scene-identity-v1.md)
 - [Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md)
 - [Demo Combat Progression V1](../features/demo-combat-progression-v1.md)
@@ -38,19 +39,19 @@
 - 首版 Demo 范围冻结、12 区域封顶、UI baseline、核心稳定站终点链路和早期链路审计。
 - 首小时引导、首小时到 Demo 中段节奏衔接、基地后勤、出发口、污染边界、晶体侧路和核心稳定站复测内容。
 - 2026-06-14：「首版 Demo 可玩内容建设推进」达到收束条件；现有路线已有可操作场景对象、运行逻辑、玩家反馈、存档来源和自动检查证据。
-- 2026-06-16：「角色成长与战斗第一版」「功能 / 过渡路线支撑第一版」「非核心区域场景识别第一版」「资源链状态第一版」与「存档状态契约第一版」达到阶段退出条件；阶段退出判断后转入主路径连续性第一版。
+- 2026-06-16：「角色成长与战斗第一版」「功能 / 过渡路线支撑第一版」「非核心区域场景识别第一版」「资源链状态第一版」「存档状态契约第一版」与「主路径连续性第一版」达到阶段退出条件；阶段退出判断后转入运行时承载面拆分第一版。
 
 当前阶段：
 
 ```text
-首版 Demo 体验主干建设：主路径连续性第一版
+首版 Demo 体验主干建设：运行时承载面拆分第一版
 ```
 
-当前推进口径切到 Demo 主路径连续性：从 `S0` 新档到 `S21` 核心稳定站入口，再到 Demo 终点完成反馈，必须能通过任务、状态、HUD / 地图和运行时事件连续推进。
+当前推进口径切到 Demo 运行时承载面拆分：主路径连续性第一包已落地，下一步先拆出影响后续开发节奏的运行时检查承载面，避免接近硬上限的大文件继续膨胀。
 
 ## 当前主线
 
-当前活跃专题是 [Demo Main Path Continuity V1](../features/demo-main-path-continuity-v1.md)。它承接已完成的 [Demo Save State Contract V1](../features/demo-save-state-contract-v1.md)，覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 的「主线结构」「UI / HUD」和「自动检查」之间的连续性缺口；不继续加厚已完成的存档契约、路线支撑、非核心场景身份或资源链状态同一读法点。
+当前活跃专题是 [Demo Runtime Surface Decomposition V1](../features/demo-runtime-surface-decomposition-v1.md)。它承接已完成的 [Demo Main Path Continuity V1](../features/demo-main-path-continuity-v1.md)，覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 的「自动检查」工程边界；不继续加厚已完成的存档契约、路线支撑、非核心场景身份、资源链状态或主路径连续性同一读法点。
 
 角色成长与战斗第一版已收束；后续不继续加厚工具打击校准、防护响应、主线完成感、战术扫描、污染边界、遗迹外圈、工业主干或核心场景同一读法点。若后续扩到新角色动作、装备状态或战斗压力，必须另建非重复细专题。
 
@@ -64,7 +65,7 @@
 
 ## UI 策略
 
-UI 和场景表现已完成第一轮原型呈现支撑。当前主路径连续性阶段不新增 UI 面板，只验证既有 HUD / 地图 / 对象状态能跟随主路径任务和终点完成态连续读出。
+UI 和场景表现已完成第一轮原型呈现支撑。当前运行时承载面拆分阶段不新增 UI 面板，只迁移既有 HUD / 地图提示检查的承载位置。
 
 不做完整菜单、设置页、背包大重构、完整装备栏、动画过场或大规模美术替换。
 
@@ -80,7 +81,7 @@ UI 和场景表现已完成第一轮原型呈现支撑。当前主路径连续�
 
 允许推进：
 
-- 当前活跃专题内的 Demo 主路径连续性、代表性基线状态、终点运行路径和专项检查。
+- 当前活跃专题内的运行时检查拆分、专项接线检查和必要的 Godot runtime 接线。
 - 必要时新增窄职责 formatter、presenter helper 或专项 check，避免继续推高接近硬上限的大文件。
 - 只修阻塞主线连续性、功能闭合或区域表达的断点。
 
@@ -109,7 +110,7 @@ Windows 用 `pwsh ./scripts/check-docs.ps1`、`pwsh ./scripts/check-text-files.p
 
 ## 阶段退出条件
 
-- [Demo Main Path Continuity V1](../features/demo-main-path-continuity-v1.md) 覆盖 `S0` 到 `S21` 的代表性基线状态和核心稳定站终点运行路径。
-- 任务、区域、库存、建筑、敌人、关键整备、HUD / 地图和 `slice_01_complete` 都在正确阶段出现，不提前或断档。
+- [Demo Runtime Surface Decomposition V1](../features/demo-runtime-surface-decomposition-v1.md) 建立并完成第一包运行时承载面拆分。
+- 开局引导提示运行时检查从 `vertical_slice_flow_check.gd` 拆到独立脚本，并接入默认静态检查与 Godot runtime 检查。
 - 未引入新资源、配方、区域、新任务链、完整背包、完整装备栏或自动化物流。
-- 新增检查走独立专项文件；接近 1500 行硬上限的检查 / 地图 / HUD / 提示脚本不得继续膨胀。
+- `vertical_slice_flow_check.gd` 不再处于 1500 行硬上限，后续主路径检查新增必须走专项文件或明确 helper。

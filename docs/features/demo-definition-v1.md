@@ -50,7 +50,8 @@
 | 工业基建 / 工艺解锁主干 | `docs/features/demo-industrial-tech-spine-v1.md` | 已落地第一包 |
 | 资源链状态 | `docs/features/demo-resource-chain-state-v1.md` | 已落地第一包 |
 | 存档 / 状态 | `docs/features/demo-save-state-contract-v1.md` | 已落地第一包 |
-| 主路径连续性 / 自动检查 | `docs/features/demo-main-path-continuity-v1.md` | 当前执行第一包 |
+| 主路径连续性 / 自动检查 | `docs/features/demo-main-path-continuity-v1.md` | 已落地第一包 |
+| 自动检查 / 工程承载面 | `docs/features/demo-runtime-surface-decomposition-v1.md` | 当前执行第一包 |
 | 角色技能 / 装备模块第一版 | `docs/features/demo-character-kit-v1.md` | 已落地首个主动工具动作 |
 | 防护响应 / 装备状态 | `docs/features/demo-protective-response-v1.md` | 已落地第一包 |
 | 核心场景与初步美术 | `docs/features/demo-scene-art-foundation-v1.md` | 已落地第一包 |
@@ -79,9 +80,9 @@
 
 ## 当前优先级
 
-当前继续推进首版 Demo 体验主干；`Demo Save State Contract V1` 已落地后，下一步不继续加厚已完成读法点，优先推进 `Demo Main Path Continuity V1`：
+当前继续推进首版 Demo 体验主干；`Demo Main Path Continuity V1` 已落地后，下一步不继续加厚已完成读法点，优先推进 `Demo Runtime Surface Decomposition V1`：
 
-1. 从 `S0` 到 `S21` 的代表性基线状态、HUD / 地图读法和核心稳定站终点运行路径连续。
-2. 若主路径连续性收束后仍未满足本文必达规格，再对照未映射缺口建立新的非重复专题。
+1. 先拆出影响后续开发节奏的运行时检查承载面，避免 `vertical_slice_flow_check.gd` 继续停在硬上限。
+2. 若运行时承载面第一包收束后仍未满足本文必达规格，再对照未映射缺口建立新的非重复专题。
 
 在首版 Demo 满足本文必达规格前，不切到试玩准备或集中修 bug 阶段。
