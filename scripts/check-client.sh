@@ -123,6 +123,7 @@ echo "Coverage: static data and scene references."
 "${python_exe}" "${repo_root}/scripts/check-client-industrial-tech-spine.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-resource-chain-state.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-save-state-contract.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-main-path-continuity.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-scene-art-foundation.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-non-core-scene-identity.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-functional-transition-route-support.py" "${repo_root}"
@@ -162,6 +163,7 @@ run_godot_checked "vertical-slice-flow" --script "${client_root}/scripts/checks/
 run_godot_checked "industrial-tech-spine" --script "${client_root}/scripts/checks/industrial_tech_spine_check.gd" --no-header
 run_godot_checked "demo-resource-chain-state" --script "${client_root}/scripts/checks/demo_resource_chain_state_check.gd" --no-header
 run_godot_checked "demo-save-state-contract" --script "${client_root}/scripts/checks/demo_save_state_contract_check.gd" --no-header
+run_godot_checked "demo-main-path-continuity" --script "${client_root}/scripts/checks/demo_main_path_continuity_check.gd" --no-header
 run_godot_checked "scene-art-foundation" --script "${client_root}/scripts/checks/scene_art_foundation_check.gd" --no-header
 run_godot_checked "non-core-scene-identity" --script "${client_root}/scripts/checks/non_core_scene_identity_check.gd" --no-header
 run_godot_checked "functional-transition-route-support" --script "${client_root}/scripts/checks/functional_transition_route_support_check.gd" --no-header

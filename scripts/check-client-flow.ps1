@@ -39,6 +39,11 @@ if (-not (Test-Path -LiteralPath $demoSaveStateContractCheckScript -PathType Lea
     Write-Error "Demo save state contract check script not found: ${demoSaveStateContractCheckScript}"
     exit 1
 }
+$demoMainPathContinuityCheckScript = Join-Path $clientRoot "scripts/checks/demo_main_path_continuity_check.gd"
+if (-not (Test-Path -LiteralPath $demoMainPathContinuityCheckScript -PathType Leaf)) {
+    Write-Error "Demo main path continuity check script not found: ${demoMainPathContinuityCheckScript}"
+    exit 1
+}
 $sceneArtFoundationCheckScript = Join-Path $clientRoot "scripts/checks/scene_art_foundation_check.gd"
 if (-not (Test-Path -LiteralPath $sceneArtFoundationCheckScript -PathType Leaf)) {
     Write-Error "Scene art foundation check script not found: ${sceneArtFoundationCheckScript}"
@@ -129,6 +134,13 @@ try {
         exit $LASTEXITCODE
     }
 
+    $mainPathContinuityOutput = & $GodotExe --headless --path $clientRoot --script $demoMainPathContinuityCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $mainPathContinuityOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo main path continuity check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $sceneArtOutput = & $GodotExe --headless --path $clientRoot --script $sceneArtFoundationCheckScript --no-header 2>&1
     if ($LASTEXITCODE -ne 0) {
         $sceneArtOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
@@ -172,7 +184,7 @@ try {
     }
 
     $unexpectedErrors = @(
-        $importOutput + $checkOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput |
+        $importOutput + $checkOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {

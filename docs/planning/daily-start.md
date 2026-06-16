@@ -10,13 +10,13 @@
 
 ## 阶段
 
-当前为「首版 Demo 体验主干建设：存档状态契约第一版」。
+当前为「首版 Demo 体验主干建设：主路径连续性第一版」。
 
 首版 Demo 完成规格：[Demo Definition V1](../features/demo-definition-v1.md)。
 
-当前执行细专题：[Demo Save State Contract V1](../features/demo-save-state-contract-v1.md)，覆盖 Demo 主路径存档状态契约。
+当前执行细专题：[Demo Main Path Continuity V1](../features/demo-main-path-continuity-v1.md)，覆盖从新档到核心稳定站终点完成反馈的主路径连续性。
 
-最近完成细专题：[Demo Resource Chain State V1](../features/demo-resource-chain-state-v1.md)，2026-06-16 第一包已落地。
+最近完成细专题：[Demo Save State Contract V1](../features/demo-save-state-contract-v1.md) 与 [Demo Resource Chain State V1](../features/demo-resource-chain-state-v1.md)，2026-06-16 第一包已落地。
 
 最近完成细专题：[Demo Non-Core Scene Identity V1](../features/demo-non-core-scene-identity-v1.md)，2026-06-16 第一包已落地。
 
@@ -28,7 +28,7 @@
 
 上一批完成细专题：[Demo Industrial Tech Spine V1](../features/demo-industrial-tech-spine-v1.md)、[Demo Character Kit V1](../features/demo-character-kit-v1.md)、[Ruin Outer Ring Module Pressure V1](../features/ruin-outer-ring-module-pressure-v1.md)、[Pollution Edge Maintenance Pressure V1](../features/pollution-edge-maintenance-pressure-v1.md)，2026-06-15 已落地。
 
-重点是推进存档状态契约第一包；不再继续给资源链状态、场景身份、路线支撑、工具打击校准、防护响应、主线完成感、既有战斗 / 工业 / 核心场景读法点追加同类内容包，也不把基线复核写成下一步主线。
+重点是推进主路径连续性第一包；不再继续给存档契约、资源链状态、场景身份、路线支撑、工具打击校准、防护响应、主线完成感、既有战斗 / 工业 / 核心场景读法点追加同类内容包，也不把纯基线复核写成下一步主线。
 
 ## 最近收尾
 
@@ -42,7 +42,7 @@
 1. 读 `docs/planning/current.md` 确认阶段和冻结边界。
 2. 读 `docs/features/demo-definition-v1.md` 确认首版 Demo 完成规格和当前缺口。
 3. 读最近完成细专题 `docs/features/demo-tool-strike-calibration-v1.md`，确认不要继续加厚工具打击校准同一状态。
-4. 读当前执行细专题 `docs/features/demo-save-state-contract-v1.md`，确认本轮存档状态契约范围。
+4. 读当前执行细专题 `docs/features/demo-main-path-continuity-v1.md`，确认本轮主路径连续性范围。
 5. 读 `docs/planning/demo-scope-and-playable-slice.md`，确认 12 区域职责表和功能 / 过渡分组。
 6. 只在需要确认完成边界时，读最近完成的战斗、工业、场景和主线细专题。
 7. 只在需要历史风险时，读取最新周志中的“风险与未完成项”和“后续事项”。
@@ -50,7 +50,8 @@
 
 ## 当前开发重点
 
-- 当前推进 Demo 主路径存档状态契约：世界、角色、库存、建筑、任务、区域、敌人和关键整备 / 资源链状态必须可保存、读取、复测和校验。
+- 当前推进 Demo 主路径连续性：`S0` 到 `S21` 的代表性基线、核心稳定站终点运行路径、HUD / 地图读法和 `slice_01_complete` 必须连续。
+- 存档状态契约第一包已落地；不继续围绕同一保存读取切面加厚。
 - 资源链状态第一包已落地：核心资源 / 产物已能在 HUD、设备面板、加工结果和状态序列化中读出链路位置。
 - 非核心区域场景识别第一包已落地，不继续围绕同一批区域标签和地貌 / 设施身份加厚。
 - 功能 / 过渡路线支撑第一包已落地，不继续围绕同一套路线职责、当前危险和回基地理由加厚。
@@ -90,6 +91,7 @@
 
 - `docs/planning/current.md`
 - `docs/features/demo-definition-v1.md`
+- `docs/features/demo-main-path-continuity-v1.md`
 - `docs/features/demo-save-state-contract-v1.md`
 - `docs/features/demo-resource-chain-state-v1.md`
 - `docs/features/demo-non-core-scene-identity-v1.md`

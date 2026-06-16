@@ -161,6 +161,8 @@ func format_pollution_status(
 
 
 func _get_active_quest_id(world_state: WorldState) -> String:
+	if DemoMainlineCompletionFormatter.is_demo_complete(world_state):
+		return ""
 	if _is_base_action_choice_state(world_state):
 		return ""
 	if not world_state.quest_state.active_quest_ids.is_empty():
@@ -341,6 +343,13 @@ func _format_outfitting_station_summary(world_state: WorldState, character_state
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if not quest_id.is_empty():
 		return _get_display_name(data_registry, quest_id)
+	if DemoMainlineCompletionFormatter.is_demo_complete(world_state):
+		var completed_next_sortie_goal := CoreGuardAftermathFormatter.format_next_sortie_goal_name(world_state)
+		if not completed_next_sortie_goal.is_empty():
+			return "%s（首版 Demo 主线已完成）" % completed_next_sortie_goal
+		var completed_demo_goal := DemoMainlineCompletionFormatter.format_goal_name(world_state)
+		if not completed_demo_goal.is_empty():
+			return completed_demo_goal
 	var action_goal := BaseActionDispatchPlan.format_status_goal(world_state)
 	if not action_goal.is_empty():
 		return action_goal
@@ -349,9 +358,6 @@ func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, que
 		if DemoMainlineCompletionFormatter.is_demo_complete(world_state):
 			return "%s（首版 Demo 主线已完成）" % next_sortie_goal
 		return next_sortie_goal
-	var demo_completion_goal := DemoMainlineCompletionFormatter.format_goal_name(world_state)
-	if not demo_completion_goal.is_empty():
-		return demo_completion_goal
 	if _has_completed_phase_survey_feedback(world_state):
 		return "相位测绘反馈已归档"
 	if _has_completed_steady_supply_feedback(world_state):
@@ -813,6 +819,13 @@ func _format_quick_slots(data_registry: DataRegistry, character_state: Character
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if DemoMainlineCompletionFormatter.is_demo_complete(world_state):
+			var completed_next_sortie_route := CoreGuardAftermathFormatter.format_next_sortie_route_line(world_state)
+			if not completed_next_sortie_route.is_empty():
+				return "%s；首版 Demo 主线已完成" % completed_next_sortie_route
+			var completed_demo_progress := DemoMainlineCompletionFormatter.format_progress_line(world_state)
+			if not completed_demo_progress.is_empty():
+				return completed_demo_progress
 		var action_progress := BaseActionDispatchPlan.format_status_progress(world_state)
 		if not action_progress.is_empty():
 			return action_progress
@@ -821,9 +834,6 @@ func _format_active_quest_progress(data_registry: DataRegistry, world_state: Wor
 			if DemoMainlineCompletionFormatter.is_demo_complete(world_state):
 				return "%s；首版 Demo 主线已完成" % next_sortie_route
 			return next_sortie_route
-		var demo_completion_progress := DemoMainlineCompletionFormatter.format_progress_line(world_state)
-		if not demo_completion_progress.is_empty():
-			return demo_completion_progress
 		if _has_completed_phase_survey_feedback(world_state):
 			return "相位测绘选择闭环已完成；本轮验证了基地选择、两处前线读数和返回提示收益"
 		if _has_completed_steady_supply_feedback(world_state):
