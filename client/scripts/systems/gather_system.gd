@@ -196,11 +196,11 @@ func interact_with_object(
 		"clear":
 			_set_map_object_flag(world_state, instance_id, definition_id, "is_cleared", true)
 			if definition_id == "map_object.phase_well_anchor_pressure_pin":
-				return _success("锚场压力钉已清理：继续清掉剩余压力钉，稳场守脉体会完全暴露。")
+				return _success(_with_functional_scene_gameplay_followup("锚场压力钉已清理：继续清掉剩余压力钉，稳场守脉体会完全暴露。", definition_id, world_state, character_state.current_region_id))
 			if definition_id == "map_object.phase_well_frame_route_blocker":
-				return _success("锁相框架侧路已清理：边缕残条回收线打开，另一侧路可以保留为未选路线。")
+				return _success(_with_functional_scene_gameplay_followup("锁相框架侧路已清理：边缕残条回收线打开，另一侧路可以保留为未选路线。", definition_id, world_state, character_state.current_region_id))
 			if definition_id == "map_object.well_ash_crust_blocker":
-				return _success("盐壳硬壳已清理：盐壳余烬回收线打开。")
+				return _success(_with_functional_scene_gameplay_followup("盐壳硬壳已清理：盐壳余烬回收线打开。", definition_id, world_state, character_state.current_region_id))
 			if definition_id == "map_object.pressure_clearance_node":
 				return _success("前线压力扰点已清除：带回压力清障回执，回基地用基础反应器解析防护收益。")
 			return _success("%s已清理：现场保留已清理标记；现在可以铺设基础地基。" % _get_display_name(definition_id))
@@ -612,6 +612,13 @@ func _gather(instance_id: String, definition: Dictionary, character_state: Chara
 	var first_hour_hint := _get_first_hour_gather_step_hint(instance_id, world_state, character_state)
 	if not first_hour_hint.is_empty():
 		result_parts.append(first_hour_hint)
+	var gameplay_followup := FunctionalSceneGameplayFormatter.format_result_followup_line(
+		String(definition.get("id", "")),
+		world_state,
+		character_state.current_region_id
+	)
+	if not gameplay_followup.is_empty():
+		result_parts.append(gameplay_followup)
 
 	return _success("%s。" % "；".join(result_parts))
 
@@ -627,12 +634,24 @@ func _sample(instance_id: String, definition: Dictionary, character_state: Chara
 		rewards.append("%s x1" % _get_display_name(definition_id))
 
 	_set_map_object_flag(world_state, instance_id, String(definition.get("id", "")), "is_sampled", true)
+	var result_parts: Array[String] = []
 	if rewards.is_empty():
-		return _success("%s已采样：现场保留已采样标记。" % _get_display_name(String(definition.get("id", ""))))
-	return _success("%s已采样：%s；现场保留已采样标记；回基地解析样本。" % [
-		_get_display_name(String(definition.get("id", ""))),
-		", ".join(rewards)
-	])
+		result_parts.append("%s已采样：现场保留已采样标记" % _get_display_name(String(definition.get("id", ""))))
+	else:
+		result_parts.append("%s已采样：%s" % [
+			_get_display_name(String(definition.get("id", ""))),
+			", ".join(rewards)
+		])
+		result_parts.append("现场保留已采样标记")
+		result_parts.append("回基地解析样本")
+	var gameplay_followup := FunctionalSceneGameplayFormatter.format_result_followup_line(
+		String(definition.get("id", "")),
+		world_state,
+		character_state.current_region_id
+	)
+	if not gameplay_followup.is_empty():
+		result_parts.append(gameplay_followup)
+	return _success("%s。" % "；".join(result_parts))
 
 
 func _apply_demo_stabilization_write_pressure(character_state: CharacterState, world_state: WorldState) -> String:
@@ -1118,12 +1137,28 @@ func _format_field_reading_result(definition_id: String, world_state: WorldState
 	var suffix := String(result.get("partial", "继续检查剩余现场读数点。"))
 	if next_progress >= required:
 		suffix = String(result.get("complete", "现场读数已全部写入。"))
-	return "%s已写入：%s/%s；%s" % [
+	return _with_functional_scene_gameplay_followup("%s已写入：%s/%s；%s" % [
 		String(result.get("step", "现场读数")),
 		_format_amount(next_progress),
 		_format_amount(required),
 		suffix
-	]
+	], definition_id, world_state)
+
+
+func _with_functional_scene_gameplay_followup(
+	message: String,
+	definition_id: String,
+	world_state: WorldState,
+	fallback_region_id: String = ""
+) -> String:
+	var followup := FunctionalSceneGameplayFormatter.format_result_followup_line(
+		definition_id,
+		world_state,
+		fallback_region_id
+	)
+	if followup.is_empty():
+		return message
+	return "%s；%s" % [message.trim_suffix("。"), followup]
 
 
 func _success(message: String) -> Dictionary:

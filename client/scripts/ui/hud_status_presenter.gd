@@ -286,6 +286,9 @@ func _format_base_summary_lines(
 	var scene_summary := SceneArtFoundationFormatter.format_hud_summary(world_state, character_state)
 	if not scene_summary.is_empty():
 		return scene_summary
+	var functional_scene_gameplay_summary := FunctionalSceneGameplayFormatter.format_hud_summary(world_state, character_state)
+	if not functional_scene_gameplay_summary.is_empty():
+		return functional_scene_gameplay_summary
 	var transition_summary := FunctionalTransitionRouteSupportFormatter.format_hud_summary(world_state, character_state)
 	if not transition_summary.is_empty():
 		return transition_summary

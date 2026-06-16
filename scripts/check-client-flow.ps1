@@ -29,6 +29,11 @@ if (-not (Test-Path -LiteralPath $onboardingHintRuntimeCheckScript -PathType Lea
     Write-Error "Onboarding hint runtime check script not found: ${onboardingHintRuntimeCheckScript}"
     exit 1
 }
+$functionalSceneGameplayCheckScript = Join-Path $clientRoot "scripts/checks/functional_scene_gameplay_check.gd"
+if (-not (Test-Path -LiteralPath $functionalSceneGameplayCheckScript -PathType Leaf)) {
+    Write-Error "Functional scene gameplay check script not found: ${functionalSceneGameplayCheckScript}"
+    exit 1
+}
 $industrialTechSpineCheckScript = Join-Path $clientRoot "scripts/checks/industrial_tech_spine_check.gd"
 if (-not (Test-Path -LiteralPath $industrialTechSpineCheckScript -PathType Leaf)) {
     Write-Error "Industrial tech spine check script not found: ${industrialTechSpineCheckScript}"
@@ -125,6 +130,13 @@ try {
         exit $LASTEXITCODE
     }
 
+    $functionalSceneGameplayOutput = & $GodotExe --headless --path $clientRoot --script $functionalSceneGameplayCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $functionalSceneGameplayOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Functional scene gameplay check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $industrialCheckOutput = & $GodotExe --headless --path $clientRoot --script $industrialTechSpineCheckScript --no-header 2>&1
     if ($LASTEXITCODE -ne 0) {
         $industrialCheckOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
@@ -196,7 +208,7 @@ try {
     }
 
     $unexpectedErrors = @(
-        $importOutput + $checkOutput + $onboardingHintOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput |
+        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {

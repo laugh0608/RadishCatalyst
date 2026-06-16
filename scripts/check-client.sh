@@ -125,6 +125,7 @@ echo "Coverage: static data and scene references."
 "${python_exe}" "${repo_root}/scripts/check-client-demo-save-state-contract.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-main-path-continuity.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-runtime-surface-decomposition.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-functional-scene-gameplay.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-scene-art-foundation.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-non-core-scene-identity.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-functional-transition-route-support.py" "${repo_root}"
@@ -162,6 +163,7 @@ run_godot_checked "save-service" --script "${client_root}/scripts/checks/save_se
 run_godot_checked "quest-rules" --script "${client_root}/scripts/checks/quest_rules_check.gd" --no-header
 run_godot_checked "vertical-slice-flow" --script "${client_root}/scripts/checks/vertical_slice_flow_check.gd" --no-header
 run_godot_checked "onboarding-hint-runtime" --script "${client_root}/scripts/checks/onboarding_hint_runtime_check.gd" --no-header
+run_godot_checked "functional-scene-gameplay" --script "${client_root}/scripts/checks/functional_scene_gameplay_check.gd" --no-header
 run_godot_checked "industrial-tech-spine" --script "${client_root}/scripts/checks/industrial_tech_spine_check.gd" --no-header
 run_godot_checked "demo-resource-chain-state" --script "${client_root}/scripts/checks/demo_resource_chain_state_check.gd" --no-header
 run_godot_checked "demo-save-state-contract" --script "${client_root}/scripts/checks/demo_save_state_contract_check.gd" --no-header
