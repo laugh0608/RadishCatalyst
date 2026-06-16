@@ -233,7 +233,8 @@
 
 - 文本拼装和展示规则已经从 HUD 主脚本里拆出不少。
 - 通用交互提示、设备加工提示和建造 / 清障阻塞提示由 `InteractionPromptFormatter` 统一组织；建造状态里的下一步建议来自 `BuildSystem`，加工缺料的下一步建议来自 `ProcessingSystem` 状态。
-- 出发整备、工业主干、核心场景和 Demo 主线完成读法分别由 `DepartureReadinessFormatter`、`IndustrialTechSpineFormatter`、`SceneArtFoundationFormatter` 和 `DemoMainlineCompletionFormatter` 组织；HUD presenter 只消费这些结果。
+- 出发整备、工业主干、核心场景、Demo 主线完成、非核心场景身份、功能 / 过渡路线、资源链状态和功能场景玩法读法分别由窄职责 formatter 组织；HUD presenter 只消费这些结果。
+- 当前新增的 `FunctionalTransitionRouteSupportFormatter`、`NonCoreSceneIdentityFormatter`、`DemoResourceChainStateFormatter` 和 `FunctionalSceneGameplayFormatter` 分别覆盖路线职责、场景身份、资源链位置和现场对象阶段，后续同类读法应继续优先拆成 formatter，而不是回到 HUD 主脚本堆文本。
 - 污染过滤器完成抗污染药剂后的读法应由 `ProcessingSystem`、`InteractionPromptFormatter` 和 `HudStatusPresenter` 保持一致：处理药剂、带药剂回污染边界、清理受扰敌人 / 门前压力点。
 - 交互反馈读法已有独立检查脚本覆盖，后续补 UI 文案时应优先扩检查脚本，不把断言继续堆回超长垂直切片主检查。
 - 但还没有进入完整 UI 框架或更通用的视图模型体系。
@@ -260,6 +261,6 @@
 - 建筑运行时状态合法性
 - 任务目标进度和已完成任务一致性
 
-当前存档系统不是“尽量读就算了”，而是明显偏严格校验。
+当前存档系统不是“尽量读就算了”，而是明显偏严格校验。`demo_save_state_contract_check.gd` 已把 Demo 主路径的世界、角色、库存、建筑、任务、区域、敌人、整备状态和资源链状态纳入保存读取契约复验。
 
 这保证了原型闭环不会靠坏档继续积累，但也意味着新增固定内容时必须同步更新来源表。

@@ -62,6 +62,7 @@ Wiki 不记录：
 - [污染过滤器](facilities/pollution-filter.md)
 - [污染浆液缓冲罐](facilities/slurry-buffer-tank.md)
 - [污染边界区](regions/pollution-edge.md)
+- [功能与过渡区域速览](regions/non-core-field-regions.md)
 - [污染与外勤补给](mechanics/pollution-and-field-supplies.md)
 
 以下页面涉及中后段相位井内容，默认按剧透处理：
@@ -76,7 +77,7 @@ Wiki 不记录：
 - [核心稳压缓冲包](items/core-stabilization-buffer.md)
 - [核心写入校验片](items/core-write-charge.md)
 
-其中前线回稳、稳定窗口和锚定桥前线区域页面已覆盖轻量前线行动、基地行动选择、压力清障、风险收益确认、下一次出发整备、行动候选判断、同一前线窗口反馈、高压窗口三模块联锁和核心稳定站 demo 终点。
+其中功能与过渡区域速览、前线回稳、稳定窗口和锚定桥前线区域页面已覆盖非核心区路线身份、现场对象处理、轻量前线行动、基地行动选择、压力清障、风险收益确认、下一次出发整备、行动候选判断、同一前线窗口反馈、高压窗口三模块联锁和核心稳定站 demo 终点。
 
 ## 编写原则
 

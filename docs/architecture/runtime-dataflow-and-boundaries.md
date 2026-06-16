@@ -39,6 +39,7 @@ GameRoot._process()
 -> GatherSystem / ProcessingSystem / BuildSystem 执行
 -> WorldState / CharacterState 变化
 -> QuestRuntime 根据事件推进任务
+-> 场景身份 / 路线支撑 / 现场玩法 / 资源链 formatter 生成读法
 -> HUD feedback / log / prompt 更新
 ```
 
@@ -132,6 +133,14 @@ GameRoot._process()
 
 很容易出现“能玩，能保存，但读不回来”的问题。
 
+### 6. 读法接线必须随功能一起落地
+
+功能 / 过渡区的场景身份、路线支撑、现场玩法和资源链状态已经由独立 formatter 接入 HUD、地图、对象提示、设备面板和交互结果。新增同类内容时，不能只加静态对象或任务进度；必须同步考虑：
+
+- 对象状态是否写入 `WorldState.map_objects` 或对应运行时状态。
+- HUD / 地图 / 对象提示是否能从真实状态读出当前阶段。
+- 保存读取契约和专项检查是否覆盖新增状态。
+
 ## 当前对扩内容最重要的结论
 
 如果要继续扩第一切片或首小时内容，最关键的不是再加一层抽象，而是守住这条路径：
@@ -142,7 +151,7 @@ GameRoot._process()
 -> 运行时规则
 -> 任务推进
 -> 存档校验
--> HUD 提示
+-> HUD / 地图 / 对象 / 设备读法
 ```
 
 六层里任何一层没跟上，都会在原型阶段很快暴露成断链。
