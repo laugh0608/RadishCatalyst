@@ -14,7 +14,7 @@
 
 首版 Demo 完成规格：[Demo Definition V1](../features/demo-definition-v1.md)。
 
-当前执行细专题：[Demo Functional Scene Gameplay V1](../features/demo-functional-scene-gameplay-v1.md)，覆盖功能 / 过渡区代表性对象处理后的现场阶段、HUD / 提示 / 结果反馈和专项检查。
+最近完成细专题：[Demo Functional Scene Gameplay V1](../features/demo-functional-scene-gameplay-v1.md)，2026-06-16 第一包已落地；明天先做阶段退出判断，再按最新周志决定是否切新专题。
 
 最近完成细专题：[Demo Runtime Surface Decomposition V1](../features/demo-runtime-surface-decomposition-v1.md)、[Demo Main Path Continuity V1](../features/demo-main-path-continuity-v1.md)、[Demo Save State Contract V1](../features/demo-save-state-contract-v1.md) 与 [Demo Resource Chain State V1](../features/demo-resource-chain-state-v1.md)，2026-06-16 第一包已落地。
 
@@ -26,7 +26,7 @@
 
 上一批完成细专题：[Demo Industrial Tech Spine V1](../features/demo-industrial-tech-spine-v1.md)、[Demo Character Kit V1](../features/demo-character-kit-v1.md)、[Ruin Outer Ring Module Pressure V1](../features/ruin-outer-ring-module-pressure-v1.md)、[Pollution Edge Maintenance Pressure V1](../features/pollution-edge-maintenance-pressure-v1.md)，2026-06-15 已落地。
 
-重点是推进功能场景玩法第一包；不再继续给运行时承载面拆分、主路径连续性、存档契约、资源链状态、场景身份、路线支撑、工具打击校准、防护响应、主线完成感、既有战斗 / 工业 / 核心场景读法点追加同类内容包，也不把纯基线复核写成下一步主线。
+明天先复核功能场景玩法第一包是否达到退出条件；若没有更高优先级缺口，建议建立 `Demo Field Loop Payoff V1`，把外勤对象处理结果兑现到基地加工、整备状态和下一趟外勤准备；不继续给既有路线、场景、资源链、存档、主路径、工程拆分或现场阶段读法追加同类内容包。
 
 ## 最近收尾
 
@@ -39,7 +39,7 @@
 
 1. 读 `docs/planning/current.md` 确认阶段和冻结边界。
 2. 读 `docs/features/demo-definition-v1.md` 确认首版 Demo 完成规格和当前缺口。
-3. 读当前执行细专题 `docs/features/demo-functional-scene-gameplay-v1.md`，确认本轮玩法范围。
+3. 读最近完成细专题 `docs/features/demo-functional-scene-gameplay-v1.md`，确认第一包退出条件和后续不再加厚的边界。
 4. 读最近完成细专题 `docs/features/demo-runtime-surface-decomposition-v1.md`，确认不要继续加厚工程拆分同一检查包。
 5. 读 `docs/planning/demo-scope-and-playable-slice.md`，确认 12 区域职责表和功能 / 过渡分组。
 6. 只在需要确认完成边界时，读最近完成的战斗、工业、场景和主线细专题。
@@ -48,7 +48,7 @@
 
 ## 当前开发重点
 
-- 当前推进 Demo 功能场景玩法：代表性对象处理必须形成现场阶段、对象状态、回基地理由和自动检查证据。
+- 当前先做 Demo 功能场景玩法阶段退出判断；若通过，下一步建议切到外勤回基地收益兑现，而不是继续追加同类现场阶段提示。
 - 运行时承载面拆分第一包已落地；后续不继续围绕同一检查承载面加厚。
 - 主路径连续性第一包已落地：`S0` 到 `S21` 的代表性基线、核心稳定站终点运行路径、HUD / 地图读法和 `slice_01_complete` 已有专项覆盖。
 - 存档状态契约第一包已落地；不继续围绕同一保存读取切面加厚。

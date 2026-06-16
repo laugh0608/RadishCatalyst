@@ -52,7 +52,7 @@
 | 存档 / 状态 | `docs/features/demo-save-state-contract-v1.md` | 已落地第一包 |
 | 主路径连续性 / 自动检查 | `docs/features/demo-main-path-continuity-v1.md` | 已落地第一包 |
 | 自动检查 / 工程承载面 | `docs/features/demo-runtime-surface-decomposition-v1.md` | 已落地第一包 |
-| 功能场景玩法 | `docs/features/demo-functional-scene-gameplay-v1.md` | 当前执行第一包 |
+| 功能场景玩法 | `docs/features/demo-functional-scene-gameplay-v1.md` | 已落地第一包 |
 | 角色技能 / 装备模块第一版 | `docs/features/demo-character-kit-v1.md` | 已落地首个主动工具动作 |
 | 防护响应 / 装备状态 | `docs/features/demo-protective-response-v1.md` | 已落地第一包 |
 | 核心场景与初步美术 | `docs/features/demo-scene-art-foundation-v1.md` | 已落地第一包 |
@@ -81,9 +81,9 @@
 
 ## 当前优先级
 
-当前继续推进首版 Demo 体验主干；`Demo Runtime Surface Decomposition V1` 已落地后，下一步不继续加厚已完成读法点，优先推进 `Demo Functional Scene Gameplay V1`：
+当前继续推进首版 Demo 体验主干；`Demo Functional Scene Gameplay V1` 第一包已落地后，下一步先做阶段退出判断。若没有更高优先级缺口，建议建立 `Demo Field Loop Payoff V1`：
 
-1. 让功能 / 过渡区代表性对象处理形成现场阶段、对象状态、HUD / 提示 / 结果反馈和回基地处理理由。
-2. 若功能场景玩法第一包收束后仍未满足本文必达规格，再对照未映射缺口建立新的非重复专题。
+1. 把功能 / 过渡区已处理对象和既有外勤结果兑现到基地加工、整备状态、HUD / 结果反馈和下一趟外勤准备。
+2. 只复用既有资源、配方、区域、任务、对象状态和整备系统，不新增完整背包、完整装备栏、自动化物流或新任务链。
 
 在首版 Demo 满足本文必达规格前，不切到试玩准备或集中修 bug 阶段。
