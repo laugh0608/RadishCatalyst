@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-06-15
+更新时间：2026-06-16
 
 ## 用途
 
@@ -26,7 +26,8 @@
 ## 当前活跃专题
 
 - [Demo Definition V1](demo-definition-v1.md)：首版 Demo 完成规格表，后续专题必须映射到其中的未完成规格项。
-- [Demo Combat Progression V1](demo-combat-progression-v1.md)：首版 Demo 角色成长与战斗第一版的阶段级专题。
+- [Demo Functional Transition Route Support V1](demo-functional-transition-route-support-v1.md)：当前执行细专题，覆盖 4 个功能区和 4 个过渡区的路线支撑、当前危险、回基地理由和专项检查。
+- [Demo Combat Progression V1](demo-combat-progression-v1.md)：最近完成阶段级专题，已完成首版 Demo 角色成长与战斗第一版。
 - [Demo Tool Strike Calibration V1](demo-tool-strike-calibration-v1.md)：最近完成细专题，已把基础多用工具、基础零件和出发整备台收束成一次可读战斗输出整备。
 - [Demo Protective Response V1](demo-protective-response-v1.md)：最近完成细专题，已把基础防护服、基础过滤模块和前哨补给收束成一次可读防护响应。
 - [Demo Scene Art Foundation V1](demo-scene-art-foundation-v1.md)：最近完成细专题，已建立核心区场景与初步美术识别第一包。

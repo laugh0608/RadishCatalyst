@@ -1,6 +1,6 @@
 # Daily Start
 
-更新时间：2026-06-15
+更新时间：2026-06-16
 
 ## 用途
 
@@ -10,27 +10,19 @@
 
 ## 阶段
 
-当前为「首版 Demo 体验主干建设：角色成长与战斗第一版」。
+当前为「首版 Demo 体验主干建设：功能 / 过渡路线支撑第一版」。
 
 首版 Demo 完成规格：[Demo Definition V1](../features/demo-definition-v1.md)。
 
-最近完成细专题：[Demo Tool Strike Calibration V1](../features/demo-tool-strike-calibration-v1.md)，2026-06-15 已落地。
+当前执行细专题：[Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md)，2026-06-16 已建立。
 
-最近完成细专题：[Demo Protective Response V1](../features/demo-protective-response-v1.md)，2026-06-15 已落地。
+最近完成阶段级专题：[Demo Combat Progression V1](../features/demo-combat-progression-v1.md)，2026-06-16 判定达到阶段退出条件。
 
-最近完成细专题：[Demo Mainline Completion V1](../features/demo-mainline-completion-v1.md)，2026-06-15 已落地。
+最近完成细专题：[Demo Tool Strike Calibration V1](../features/demo-tool-strike-calibration-v1.md)、[Demo Protective Response V1](../features/demo-protective-response-v1.md)、[Demo Mainline Completion V1](../features/demo-mainline-completion-v1.md)、[Demo Scene Art Foundation V1](../features/demo-scene-art-foundation-v1.md)，2026-06-15 已落地。
 
-最近完成细专题：[Demo Scene Art Foundation V1](../features/demo-scene-art-foundation-v1.md)，2026-06-15 已落地。
+上一批完成细专题：[Demo Industrial Tech Spine V1](../features/demo-industrial-tech-spine-v1.md)、[Demo Character Kit V1](../features/demo-character-kit-v1.md)、[Ruin Outer Ring Module Pressure V1](../features/ruin-outer-ring-module-pressure-v1.md)、[Pollution Edge Maintenance Pressure V1](../features/pollution-edge-maintenance-pressure-v1.md)，2026-06-15 已落地。
 
-上一完成细专题：[Demo Industrial Tech Spine V1](../features/demo-industrial-tech-spine-v1.md)，2026-06-15 已落地。
-
-再上一完成细专题：[Demo Character Kit V1](../features/demo-character-kit-v1.md)，2026-06-15 已落地。
-
-再之前完成细专题：[Ruin Outer Ring Module Pressure V1](../features/ruin-outer-ring-module-pressure-v1.md)，2026-06-15 已落地。
-
-已完成细专题：[Pollution Edge Maintenance Pressure V1](../features/pollution-edge-maintenance-pressure-v1.md)，2026-06-15 已落地。
-
-重点是继续补齐首版 Demo 体验主干中尚未落地的玩家可感知差异，不再继续给工具打击校准、防护响应、主线完成感、既有战斗 / 工业 / 场景读法点追加同类内容包，也不把基线复核写成下一步主线。
+重点是补齐首版 Demo 非核心功能区和过渡区的路线支撑，不再继续给工具打击校准、防护响应、主线完成感、既有战斗 / 工业 / 核心场景读法点追加同类内容包，也不把基线复核写成下一步主线。
 
 ## 最近收尾
 
@@ -44,24 +36,21 @@
 1. 读 `docs/planning/current.md` 确认阶段和冻结边界。
 2. 读 `docs/features/demo-definition-v1.md` 确认首版 Demo 完成规格和当前缺口。
 3. 读最近完成细专题 `docs/features/demo-tool-strike-calibration-v1.md`，确认不要继续加厚工具打击校准同一状态。
-4. 读最近完成细专题 `docs/features/demo-protective-response-v1.md`，确认不要继续加厚防护响应同一状态。
-5. 读最近完成细专题 `docs/features/demo-mainline-completion-v1.md`，确认不要继续加厚主线完成感同一读法点。
-6. 读最近完成细专题 `docs/features/demo-scene-art-foundation-v1.md`，确认核心场景与初步美术识别已落地范围。
-7. 读阶段级专题 `docs/features/demo-combat-progression-v1.md`，确认角色成长 / 战斗已落地边界。
-8. 只在需要确认上一包边界时，读 `docs/features/ruin-outer-ring-module-pressure-v1.md` 和 `docs/features/pollution-edge-maintenance-pressure-v1.md`。
-9. 只在需要历史风险时，读取最新周志中的“风险与未完成项”和“下周建议”。
-10. 按改动范围选读设计、架构和复测基线文档。
+4. 读当前执行细专题 `docs/features/demo-functional-transition-route-support-v1.md`，确认本轮功能 / 过渡路线支撑范围。
+5. 读 `docs/planning/demo-scope-and-playable-slice.md`，确认 12 区域职责表和功能 / 过渡分组。
+6. 只在需要确认完成边界时，读最近完成的战斗、工业、场景和主线细专题。
+7. 只在需要历史风险时，读取最新周志中的“风险与未完成项”和“后续事项”。
+8. 按改动范围选读设计、架构和复测基线文档。
 
 ## 当前开发重点
 
-- 主线收束与完成感已落地：核心稳定站写入完成后，HUD、地图、对象提示、前哨核心和结果日志能一致读出 Demo 主线完成。
-- 防护响应装备状态已落地：出发整备台确认后，下一次外勤反击能读出防护服、过滤模块和补给带来的承压变化。
-- 工具打击校准已落地：出发整备台确认后，下一次外勤反击能读出基础多用工具和基础零件带来的输出压制收益。
-- 下一步先按 Demo 完成规格判断当前阶段是否达到退出条件；若已满足，优先建立功能 / 过渡路线支撑细专题，覆盖封锁遗迹、裂相脊、回声台地、锚定桥和四个过渡区的路线连接、当前危险、回基地理由和专项检查。
-- 角色工具动作、工业主干读法和核心场景识别第一版已落地；不继续围绕这些同一读法点加厚。
+- 当前先落地功能 / 过渡路线支撑第一包：封锁遗迹、裂相脊、回声台地、锚定桥和四个过渡区都要读出路线职责、当前危险、可观察收益和回基地理由。
+- 角色成长与战斗第一版已满足退出条件；不继续围绕战术扫描、防护响应、工具校准、污染边界、遗迹外圈或核心守卫同一压力点加厚。
+- 主线完成感、工业主干、核心场景识别第一版已落地；不继续围绕这些同一读法点加厚。
+- 新增检查优先走专项文件，避免继续推高 `vertical_slice_flow_check.gd`；路线读法优先走窄职责 formatter，避免继续堆 `vertical_slice_map.gd`。
 - 不继续加厚战术扫描、工业主干、污染边界后勤维护口袋或遗迹外圈同一压力点；若后续扩到第二个主动技能或装备槽位，先明确新的细专题边界。
 - 不继续加厚工具打击校准或防护响应同一状态；若后续扩到新战斗收益，先明确新的细专题边界。
-- 必须覆盖真实玩家操作路径、HUD / 对象反馈、战斗结果、存档状态和自动检查。
+- 必须覆盖真实玩家路线、HUD / 地图 / 对象反馈、关键状态或存档边界和自动检查。
 - 首版 Demo 未完成初步阶段的完整玩法、场景和美术前，不切到试玩准备或修 bug 阶段；真实页面 smoke 只用于对比开发效果。
 - 工程上注意 `vertical_slice_flow_check.gd`、`vertical_slice_map.gd`、`prototype_hud.gd`、`interaction_prompt_formatter.gd` 和相关系统职责边界。
 
@@ -92,17 +81,13 @@
 
 - `docs/planning/current.md`
 - `docs/features/demo-definition-v1.md`
-- `docs/features/demo-tool-strike-calibration-v1.md`
-- `docs/features/demo-protective-response-v1.md`
-- `docs/features/demo-mainline-completion-v1.md`
-- `docs/features/demo-scene-art-foundation-v1.md`
+- `docs/features/demo-functional-transition-route-support-v1.md`
 - `docs/features/demo-combat-progression-v1.md`
-- `docs/features/demo-industrial-tech-spine-v1.md`
-- `docs/features/demo-character-kit-v1.md`
+- `docs/planning/demo-scope-and-playable-slice.md`
 
 按任务选读：
 
-- Demo 范围与 UI baseline：`docs/planning/demo-scope-and-playable-slice.md`
+- 最近完成战斗 / 工业 / 场景细专题：按 `docs/features/README.md` 选读
 - 区域和首小时体验：`docs/design/onboarding-and-first-hour.md`
 - 开发复测基线：`docs/design/development-retest-baselines.md`
 - 代码结构和重构：`docs/architecture/code-style-and-language-practices.md`

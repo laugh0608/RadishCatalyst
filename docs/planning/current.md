@@ -1,11 +1,12 @@
 # Current Plan
 
-更新时间：2026-06-15
+更新时间：2026-06-16
 
 ## 入口约束
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题、最近完成细专题和下一次新建 / 切换的执行细专题为准：
 
+- [Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md)
 - [Demo Combat Progression V1](../features/demo-combat-progression-v1.md)
 - [Demo Tool Strike Calibration V1](../features/demo-tool-strike-calibration-v1.md)
 - [Demo Protective Response V1](../features/demo-protective-response-v1.md)
@@ -33,20 +34,21 @@
 - 首版 Demo 范围冻结、12 区域封顶、UI baseline、核心稳定站终点链路和早期链路审计。
 - 首小时引导、首小时到 Demo 中段节奏衔接、基地后勤、出发口、污染边界、晶体侧路和核心稳定站复测内容。
 - 2026-06-14：「首版 Demo 可玩内容建设推进」达到收束条件；现有路线已有可操作场景对象、运行逻辑、玩家反馈、存档来源和自动检查证据。
+- 2026-06-16：「角色成长与战斗第一版」达到阶段退出条件；战术扫描、防护响应、工具校准、污染 / 遗迹 / 核心承压差异、HUD / 对象反馈、状态和专项检查已形成闭环。
 
 当前阶段：
 
 ```text
-首版 Demo 体验主干建设：角色成长与战斗第一版
+首版 Demo 体验主干建设：功能 / 过渡路线支撑第一版
 ```
 
-当前推进口径从路线可读性与同类内容追加，转向补足玩家继续玩的体验主干：基地制造和出发整备必须带来明确战斗 / 成长差异。
+当前推进口径从角色成长 / 战斗差异，切到非核心功能区和过渡区的路线支撑：玩家必须能读懂封锁遗迹、裂相脊、回声台地、锚定桥和四个过渡区的路线连接、当前危险与回基地理由。
 
 ## 当前主线
 
-当前阶段已完成角色成长、战斗承压、工业主干读法、核心场景识别、主线完成感、防护响应和工具打击校准第一轮支撑；最近完成细专题是 [Demo Tool Strike Calibration V1](../features/demo-tool-strike-calibration-v1.md)、[Demo Protective Response V1](../features/demo-protective-response-v1.md)、[Demo Mainline Completion V1](../features/demo-mainline-completion-v1.md)、[Demo Scene Art Foundation V1](../features/demo-scene-art-foundation-v1.md)、[Demo Industrial Tech Spine V1](../features/demo-industrial-tech-spine-v1.md)、[Demo Character Kit V1](../features/demo-character-kit-v1.md)、[Ruin Outer Ring Module Pressure V1](../features/ruin-outer-ring-module-pressure-v1.md) 和 [Pollution Edge Maintenance Pressure V1](../features/pollution-edge-maintenance-pressure-v1.md)。后续不继续加厚工具打击校准、防护响应、主线完成感、战术扫描、污染边界、遗迹外圈、工业主干或核心场景同一读法点。
+当前活跃专题是 [Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md)。本轮覆盖封锁遗迹、裂相脊、回声台地、锚定桥的机制展示，以及盐壳浅滩、碎晶沟谷、风蚀管廊、锁相框架的路线连接、当前危险、回基地理由、HUD / 对象反馈和专项检查。
 
-下一次开发应先对照 Demo 完成规格确认角色成长与战斗第一版是否已满足阶段退出条件；若满足，优先建立功能 / 过渡路线支撑细专题，覆盖封锁遗迹、裂相脊、回声台地、锚定桥和四个过渡区的机制展示、路线连接、HUD / 对象反馈和检查；若未满足，只补新的非重复角色套件动作、装备状态或战斗压力专题。
+角色成长与战斗第一版已收束；后续不继续加厚工具打击校准、防护响应、主线完成感、战术扫描、污染边界、遗迹外圈、工业主干或核心场景同一读法点。若后续扩到新角色动作、装备状态或战斗压力，必须另建非重复细专题。
 
 首版 Demo 未完成初步阶段的完整玩法、场景和美术前，不进入试玩准备或修 bug 阶段。真实页面 smoke 可以用于对比开发效果，但不能替代功能、场景和玩法专题推进。
 
@@ -58,7 +60,7 @@
 
 ## UI 策略
 
-UI 和场景表现已完成第一轮原型呈现支撑。当前 UI 改动只服务当前活跃专题：制造 / 整备前后状态、模块收益、战斗承压变化和回基地价值要自然出现在 HUD、对象反馈和战斗日志里。
+UI 和场景表现已完成第一轮原型呈现支撑。当前 UI 改动只服务当前活跃专题：非核心区域的路线职责、当前危险、可观察收益和回基地理由要自然出现在 HUD、地图路线和对象反馈里。
 
 不做完整菜单、设置页、背包大重构、完整装备栏、动画过场或大规模美术替换。
 
@@ -74,10 +76,9 @@ UI 和场景表现已完成第一轮原型呈现支撑。当前 UI 改动只服�
 
 允许推进：
 
-- 当前活跃专题内的首版 demo 级角色成长与战斗差异。
-- 新建或切换到当前阶段内的基建设备、装备 / 模块、功能玩法或场景压力细专题。
-- 为该差异调整 UI、场景提示、承压计算、路线节奏和自动检查。
-- 为维护工程边界拆分检查脚本、地图脚本、HUD 脚本、提示 formatter 或系统职责。
+- 当前活跃专题内的功能 / 过渡区域路线支撑、对象提示、HUD / 地图读法和专项检查。
+- 必要时新增窄职责 formatter、presenter helper 或专项 check，避免继续推高接近硬上限的大文件。
+- 只修阻塞主线连续性、功能闭合或区域表达的断点。
 
 ## 节奏规则
 
@@ -104,7 +105,7 @@ Windows 用 `pwsh ./scripts/check-docs.ps1`、`pwsh ./scripts/check-text-files.p
 
 ## 阶段退出条件
 
-- [Demo Combat Progression V1](../features/demo-combat-progression-v1.md) 下至少 1 个成长或战斗差异通过真实玩家操作获得，并能改变污染、遗迹或核心守卫中的承压 / 输出 / 防护读法。
-- 该差异覆盖 HUD / 对象反馈、战斗结果、存档状态和自动检查；玩家能读懂回基地整备为什么有价值。
-- 未引入完整装备栏、完整 `loadout`、新资源、新任务链、第 13 区域、行动台或高压窗口扩展。
-- 接近 1500 行硬上限的检查 / 地图 / HUD / 提示脚本已有拆分方案或已完成必要拆分。
+- [Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md) 覆盖 4 个功能区和 4 个过渡区的路线职责、当前危险和回基地理由。
+- HUD、地图和对象提示至少各有一处能读出非核心区域支撑口径，并有专项检查覆盖。
+- 未引入第 13 区域、独立支线网、新资源、新敌人类型、完整装备栏、行动台或高压窗口扩展。
+- 新增检查和读法优先走独立文件；接近 1500 行硬上限的检查 / 地图 / HUD / 提示脚本不得继续膨胀。
