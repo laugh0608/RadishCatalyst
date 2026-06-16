@@ -14,7 +14,7 @@
 
 首版 Demo 完成规格：[Demo Definition V1](../features/demo-definition-v1.md)。
 
-当前执行细专题：[Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md)，2026-06-16 已建立。
+当前执行细专题：[Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md)，2026-06-16 第一包已落地。
 
 最近完成阶段级专题：[Demo Combat Progression V1](../features/demo-combat-progression-v1.md)，2026-06-16 判定达到阶段退出条件。
 
@@ -44,7 +44,7 @@
 
 ## 当前开发重点
 
-- 当前先落地功能 / 过渡路线支撑第一包：封锁遗迹、裂相脊、回声台地、锚定桥和四个过渡区都要读出路线职责、当前危险、可观察收益和回基地理由。
+- 功能 / 过渡路线支撑第一包已落地：封锁遗迹、裂相脊、回声台地、锚定桥和四个过渡区已能读出路线职责、当前危险、可观察收益和回基地理由。
 - 角色成长与战斗第一版已满足退出条件；不继续围绕战术扫描、防护响应、工具校准、污染边界、遗迹外圈或核心守卫同一压力点加厚。
 - 主线完成感、工业主干、核心场景识别第一版已落地；不继续围绕这些同一读法点加厚。
 - 新增检查优先走专项文件，避免继续推高 `vertical_slice_flow_check.gd`；路线读法优先走窄职责 formatter，避免继续堆 `vertical_slice_map.gd`。

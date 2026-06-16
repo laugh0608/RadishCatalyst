@@ -273,6 +273,9 @@ func _format_base_summary_lines(
 	var scene_summary := SceneArtFoundationFormatter.format_hud_summary(world_state, character_state)
 	if not scene_summary.is_empty():
 		return scene_summary
+	var transition_summary := FunctionalTransitionRouteSupportFormatter.format_hud_summary(world_state, character_state)
+	if not transition_summary.is_empty():
+		return transition_summary
 
 	return ["设备：待命；当前目标先外出推进"]
 

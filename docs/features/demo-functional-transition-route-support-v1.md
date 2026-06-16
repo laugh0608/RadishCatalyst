@@ -8,6 +8,8 @@
 
 本专题服务 [Demo Definition V1](demo-definition-v1.md) 中「功能 / 过渡场景」「区域 / 场景」「UI / HUD」「存档 / 状态」和「自动检查」规格。它不是第 13 区域、不是 8 个区域各自独立系统，也不是试玩准备或集中修 bug。
 
+落地状态：2026-06-16 已完成第一包，新增非核心区域路线支撑 formatter、HUD / 地图读法、对象提示接入和专项自动检查。
+
 ## 玩家价值
 
 玩家离开四个核心区后，应能继续读懂路线：
@@ -39,6 +41,13 @@
 - HUD 地图路线和基地 / 外勤摘要能读出当前非核心区支撑信息。
 - 关键对象提示至少覆盖封锁遗迹入口、裂相脊回传点、回声台地读数点、锚定桥稳定点和 4 个过渡区路线锚点。
 - 新增专项检查，覆盖区域口径、HUD / 地图文本、对象提示和不新增第 13 区域。
+
+## 已落地
+
+- 2026-06-16 新增 `FunctionalTransitionRouteSupportFormatter`，统一维护 4 个功能区和 4 个过渡区的路线职责、当前危险和回基地理由。
+- HUD 地图路线和基地摘要已能在非核心区读出路线支撑信息，核心区仍由 `SceneArtFoundationFormatter` 负责。
+- 专用对象提示已接入封锁遗迹入口、外圈对象、裂相脊回传、回声台地、四个过渡区断面和锚定桥对象。
+- 新增 `functional_transition_route_support_check.gd` 和静态接线检查，默认 `check-client` 与 Godot runtime 检查均已接入。
 
 ## 当前不做
 
@@ -83,6 +92,11 @@
 - 文档阶段：`./scripts/check-docs.sh`、`./scripts/check-text-files.sh`、`git diff --check`。
 - 客户端实现阶段：`sh ./scripts/check-client.sh`。
 - 若新增或调整 Godot 场景节点，再执行 `sh ./scripts/check-client.sh --with-godot`。
+
+本包落地验证记录：
+
+- `sh ./scripts/check-client.sh`
+- `sh ./scripts/check-client.sh --with-godot`
 
 ## 风险与后续决策
 

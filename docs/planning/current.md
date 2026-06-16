@@ -46,7 +46,7 @@
 
 ## 当前主线
 
-当前活跃专题是 [Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md)。本轮覆盖封锁遗迹、裂相脊、回声台地、锚定桥的机制展示，以及盐壳浅滩、碎晶沟谷、风蚀管廊、锁相框架的路线连接、当前危险、回基地理由、HUD / 对象反馈和专项检查。
+当前活跃专题是 [Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md)。第一包已落地：封锁遗迹、裂相脊、回声台地、锚定桥，以及盐壳浅滩、碎晶沟谷、风蚀管廊、锁相框架已具备路线职责、当前危险、回基地理由、HUD / 对象反馈和专项检查。
 
 角色成长与战斗第一版已收束；后续不继续加厚工具打击校准、防护响应、主线完成感、战术扫描、污染边界、遗迹外圈、工业主干或核心场景同一读法点。若后续扩到新角色动作、装备状态或战斗压力，必须另建非重复细专题。
 

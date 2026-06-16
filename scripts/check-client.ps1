@@ -38,6 +38,13 @@ $checks = @(
         }
     },
     @{
+        Name = "client functional transition route support"
+        Script = "check-client-functional-transition-route-support.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client demo mainline completion"
         Script = "check-client-demo-mainline-completion.ps1"
         Parameters = @{

@@ -104,9 +104,12 @@ func format_demo_route_hint(world_state: WorldState, quest_id: String) -> String
 		hint_region_id = target_region_id
 		route_hint = "目标：%s · %s" % [target_stage, _get_route_stage_purpose(target_stage)]
 	var scene_hint := SceneArtFoundationFormatter.format_map_route_hint(hint_region_id)
-	if scene_hint.is_empty():
-		return route_hint
-	return "%s · %s" % [route_hint, scene_hint]
+	if not scene_hint.is_empty():
+		return "%s · %s" % [route_hint, scene_hint]
+	var transition_hint := FunctionalTransitionRouteSupportFormatter.format_map_route_hint(hint_region_id)
+	if not transition_hint.is_empty():
+		return "%s · %s" % [route_hint, transition_hint]
+	return route_hint
 
 
 func _get_region_marker_data() -> Array[Dictionary]:

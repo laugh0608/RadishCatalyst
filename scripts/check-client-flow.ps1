@@ -34,6 +34,11 @@ if (-not (Test-Path -LiteralPath $sceneArtFoundationCheckScript -PathType Leaf))
     Write-Error "Scene art foundation check script not found: ${sceneArtFoundationCheckScript}"
     exit 1
 }
+$functionalTransitionRouteSupportCheckScript = Join-Path $clientRoot "scripts/checks/functional_transition_route_support_check.gd"
+if (-not (Test-Path -LiteralPath $functionalTransitionRouteSupportCheckScript -PathType Leaf)) {
+    Write-Error "Functional transition route support check script not found: ${functionalTransitionRouteSupportCheckScript}"
+    exit 1
+}
 $demoMainlineCompletionCheckScript = Join-Path $clientRoot "scripts/checks/demo_mainline_completion_check.gd"
 if (-not (Test-Path -LiteralPath $demoMainlineCompletionCheckScript -PathType Leaf)) {
     Write-Error "Demo mainline completion check script not found: ${demoMainlineCompletionCheckScript}"
@@ -102,6 +107,13 @@ try {
         exit $LASTEXITCODE
     }
 
+    $functionalTransitionOutput = & $GodotExe --headless --path $clientRoot --script $functionalTransitionRouteSupportCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $functionalTransitionOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Functional transition route support check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $demoCompletionOutput = & $GodotExe --headless --path $clientRoot --script $demoMainlineCompletionCheckScript --no-header 2>&1
     if ($LASTEXITCODE -ne 0) {
         $demoCompletionOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
@@ -124,7 +136,7 @@ try {
     }
 
     $unexpectedErrors = @(
-        $importOutput + $checkOutput + $industrialCheckOutput + $sceneArtOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput |
+        $importOutput + $checkOutput + $industrialCheckOutput + $sceneArtOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {
