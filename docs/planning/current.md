@@ -6,6 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题、最近完成细专题和下一次新建 / 切换的执行细专题为准：
 
+- [Demo Non-Core Scene Identity V1](../features/demo-non-core-scene-identity-v1.md)
 - [Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md)
 - [Demo Combat Progression V1](../features/demo-combat-progression-v1.md)
 - [Demo Tool Strike Calibration V1](../features/demo-tool-strike-calibration-v1.md)
@@ -34,19 +35,19 @@
 - 首版 Demo 范围冻结、12 区域封顶、UI baseline、核心稳定站终点链路和早期链路审计。
 - 首小时引导、首小时到 Demo 中段节奏衔接、基地后勤、出发口、污染边界、晶体侧路和核心稳定站复测内容。
 - 2026-06-14：「首版 Demo 可玩内容建设推进」达到收束条件；现有路线已有可操作场景对象、运行逻辑、玩家反馈、存档来源和自动检查证据。
-- 2026-06-16：「角色成长与战斗第一版」达到阶段退出条件；战术扫描、防护响应、工具校准、污染 / 遗迹 / 核心承压差异、HUD / 对象反馈、状态和专项检查已形成闭环。
+- 2026-06-16：「角色成长与战斗第一版」「功能 / 过渡路线支撑第一版」与「非核心区域场景识别第一版」达到阶段退出条件；非核心 8 区已有路线职责、场景身份、对象读法和专项检查。
 
 当前阶段：
 
 ```text
-首版 Demo 体验主干建设：功能 / 过渡路线支撑第一版
+首版 Demo 体验主干建设：非核心区域场景识别第一版
 ```
 
-当前推进口径从角色成长 / 战斗差异，切到非核心功能区和过渡区的路线支撑：玩家必须能读懂封锁遗迹、裂相脊、回声台地、锚定桥和四个过渡区的路线连接、当前危险与回基地理由。
+当前推进口径从非核心区路线说明，切到场景身份表现：玩家必须能在画面、HUD 和对象提示中区分封锁遗迹、裂相脊、回声台地、锚定桥和四个过渡区的地貌 / 设施身份。
 
 ## 当前主线
 
-当前活跃专题是 [Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md)。第一包已落地：封锁遗迹、裂相脊、回声台地、锚定桥，以及盐壳浅滩、碎晶沟谷、风蚀管廊、锁相框架已具备路线职责、当前危险、回基地理由、HUD / 对象反馈和专项检查。
+当前活跃专题是 [Demo Non-Core Scene Identity V1](../features/demo-non-core-scene-identity-v1.md)，2026-06-16 第一包已落地。下一轮开发前先对照 [Demo Definition V1](../features/demo-definition-v1.md) 判断剩余规格缺口，再建立新的非重复执行细专题；不继续加厚已完成的路线支撑或非核心场景身份同一读法点。
 
 角色成长与战斗第一版已收束；后续不继续加厚工具打击校准、防护响应、主线完成感、战术扫描、污染边界、遗迹外圈、工业主干或核心场景同一读法点。若后续扩到新角色动作、装备状态或战斗压力，必须另建非重复细专题。
 
@@ -60,7 +61,7 @@
 
 ## UI 策略
 
-UI 和场景表现已完成第一轮原型呈现支撑。当前 UI 改动只服务当前活跃专题：非核心区域的路线职责、当前危险、可观察收益和回基地理由要自然出现在 HUD、地图路线和对象反馈里。
+UI 和场景表现已完成第一轮原型呈现支撑。当前 UI 改动只服务当前活跃专题：非核心区域的地貌 / 设施身份要自然出现在场景标识、HUD 地图路线和对象反馈里。
 
 不做完整菜单、设置页、背包大重构、完整装备栏、动画过场或大规模美术替换。
 
@@ -76,7 +77,7 @@ UI 和场景表现已完成第一轮原型呈现支撑。当前 UI 改动只服�
 
 允许推进：
 
-- 当前活跃专题内的功能 / 过渡区域路线支撑、对象提示、HUD / 地图读法和专项检查。
+- 当前活跃专题内的非核心区域场景身份、对象提示、HUD / 地图读法和专项检查。
 - 必要时新增窄职责 formatter、presenter helper 或专项 check，避免继续推高接近硬上限的大文件。
 - 只修阻塞主线连续性、功能闭合或区域表达的断点。
 
@@ -105,7 +106,7 @@ Windows 用 `pwsh ./scripts/check-docs.ps1`、`pwsh ./scripts/check-text-files.p
 
 ## 阶段退出条件
 
-- [Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md) 覆盖 4 个功能区和 4 个过渡区的路线职责、当前危险和回基地理由。
-- HUD、地图和对象提示至少各有一处能读出非核心区域支撑口径，并有专项检查覆盖。
-- 未引入第 13 区域、独立支线网、新资源、新敌人类型、完整装备栏、行动台或高压窗口扩展。
+- [Demo Non-Core Scene Identity V1](../features/demo-non-core-scene-identity-v1.md) 覆盖 4 个功能区和 4 个过渡区的场景身份、视觉标识和对象读法。
+- HUD、地图和对象提示至少各有一处能读出非核心区域场景识别口径，并有专项检查覆盖。
+- 未引入第 13 区域、新任务链、新资源、新敌人类型、完整装备栏、行动台或高压窗口扩展。
 - 新增检查和读法优先走独立文件；接近 1500 行硬上限的检查 / 地图 / HUD / 提示脚本不得继续膨胀。

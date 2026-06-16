@@ -51,6 +51,7 @@
 | 角色技能 / 装备模块第一版 | `docs/features/demo-character-kit-v1.md` | 已落地首个主动工具动作 |
 | 防护响应 / 装备状态 | `docs/features/demo-protective-response-v1.md` | 已落地第一包 |
 | 核心场景与初步美术 | `docs/features/demo-scene-art-foundation-v1.md` | 已落地第一包 |
+| 非核心区域场景识别 | `docs/features/demo-non-core-scene-identity-v1.md` | 已落地第一包 |
 | 主线收束与完成感 | `docs/features/demo-mainline-completion-v1.md` | 已落地第一包 |
 
 ## 专题拆分规则

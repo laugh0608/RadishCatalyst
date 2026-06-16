@@ -146,6 +146,12 @@ func format_general_interaction_prompt(
 	)
 	if not scene_line.is_empty():
 		parts.append(scene_line)
+	var non_core_scene_line := NonCoreSceneIdentityFormatter.format_object_scene_line(
+		interactable.definition_id,
+		world_state.current_region_id
+	)
+	if not non_core_scene_line.is_empty():
+		parts.append(non_core_scene_line)
 	var route_line := FunctionalTransitionRouteSupportFormatter.format_object_route_line(
 		interactable.definition_id,
 		world_state.current_region_id
@@ -605,6 +611,12 @@ func format_field_reading_prompt(interactable: PrototypeInteractable, world_stat
 		interactable.definition_id,
 		world_state.current_region_id
 	)
+	var non_core_scene_line := NonCoreSceneIdentityFormatter.format_object_scene_line(
+		interactable.definition_id,
+		world_state.current_region_id
+	)
+	if not non_core_scene_line.is_empty():
+		parts.append(non_core_scene_line)
 	if not route_line.is_empty():
 		parts.append(route_line)
 	return "\n".join(parts)
@@ -946,10 +958,18 @@ func _get_interaction_tool_status(definition_id: String, character_state: Charac
 
 
 func _with_functional_transition_line(prompt: String, definition_id: String, fallback_region_id: String = "") -> String:
+	var scene_line := NonCoreSceneIdentityFormatter.format_object_scene_line(
+		definition_id,
+		fallback_region_id
+	)
 	var route_line := FunctionalTransitionRouteSupportFormatter.format_object_route_line(
 		definition_id,
 		fallback_region_id
 	)
+	if not scene_line.is_empty() and not route_line.is_empty():
+		return "%s\n%s\n%s" % [prompt, scene_line, route_line]
+	if not scene_line.is_empty():
+		return "%s\n%s" % [prompt, scene_line]
 	if route_line.is_empty():
 		return prompt
 	return "%s\n%s" % [prompt, route_line]

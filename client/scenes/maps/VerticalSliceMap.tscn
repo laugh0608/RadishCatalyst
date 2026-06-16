@@ -287,6 +287,128 @@ offset_bottom = -130.0
 text = "核心稳定站：补给 / 守卫 / 写入 / Demo 终点"
 horizontal_alignment = 1
 
+[node name="NonCoreSceneIdentityLayer" type="Node2D" parent="."]
+
+[node name="NonCoreRuinIdentityBand" type="ColorRect" parent="NonCoreSceneIdentityLayer"]
+offset_left = 394.0
+offset_top = -118.0
+offset_right = 690.0
+offset_bottom = -94.0
+color = Color(0.28, 0.42, 0.34, 0.68)
+
+[node name="NonCoreRuinIdentityLabel" type="Label" parent="NonCoreSceneIdentityLayer"]
+offset_left = 400.0
+offset_top = -116.0
+offset_right = 684.0
+offset_bottom = -96.0
+text = "封锁遗迹：旧设施 / 信号封锁"
+horizontal_alignment = 1
+
+[node name="NonCoreRidgeIdentityBand" type="ColorRect" parent="NonCoreSceneIdentityLayer"]
+offset_left = 708.0
+offset_top = -118.0
+offset_right = 1440.0
+offset_bottom = -94.0
+color = Color(0.38, 0.2, 0.34, 0.66)
+
+[node name="NonCoreRidgeIdentityLabel" type="Label" parent="NonCoreSceneIdentityLayer"]
+offset_left = 716.0
+offset_top = -116.0
+offset_right = 1432.0
+offset_bottom = -96.0
+text = "裂相脊：撕裂地貌 / 前线回传"
+horizontal_alignment = 1
+
+[node name="NonCoreEchoIdentityBand" type="ColorRect" parent="NonCoreSceneIdentityLayer"]
+offset_left = 1468.0
+offset_top = -118.0
+offset_right = 1750.0
+offset_bottom = -94.0
+color = Color(0.22, 0.34, 0.54, 0.68)
+
+[node name="NonCoreEchoIdentityLabel" type="Label" parent="NonCoreSceneIdentityLayer"]
+offset_left = 1474.0
+offset_top = -116.0
+offset_right = 1744.0
+offset_bottom = -96.0
+text = "回声台地：观测残响"
+horizontal_alignment = 1
+
+[node name="NonCoreSaltIdentityBand" type="ColorRect" parent="NonCoreSceneIdentityLayer"]
+offset_left = 1768.0
+offset_top = -118.0
+offset_right = 2030.0
+offset_bottom = -94.0
+color = Color(0.58, 0.52, 0.24, 0.68)
+
+[node name="NonCoreSaltIdentityLabel" type="Label" parent="NonCoreSceneIdentityLayer"]
+offset_left = 1774.0
+offset_top = -116.0
+offset_right = 2024.0
+offset_bottom = -96.0
+text = "盐壳浅滩：化学沉积"
+horizontal_alignment = 1
+
+[node name="NonCoreCrystalRavineIdentityBand" type="ColorRect" parent="NonCoreSceneIdentityLayer"]
+offset_left = 2048.0
+offset_top = -118.0
+offset_right = 2310.0
+offset_bottom = -94.0
+color = Color(0.25, 0.25, 0.64, 0.68)
+
+[node name="NonCoreCrystalRavineIdentityLabel" type="Label" parent="NonCoreSceneIdentityLayer"]
+offset_left = 2054.0
+offset_top = -116.0
+offset_right = 2304.0
+offset_bottom = -96.0
+text = "碎晶沟谷：晶体耦合"
+horizontal_alignment = 1
+
+[node name="NonCoreWindCorridorIdentityBand" type="ColorRect" parent="NonCoreSceneIdentityLayer"]
+offset_left = 2328.0
+offset_top = -118.0
+offset_right = 2590.0
+offset_bottom = -94.0
+color = Color(0.36, 0.4, 0.44, 0.68)
+
+[node name="NonCoreWindCorridorIdentityLabel" type="Label" parent="NonCoreSceneIdentityLayer"]
+offset_left = 2334.0
+offset_top = -116.0
+offset_right = 2584.0
+offset_bottom = -96.0
+text = "风蚀管廊：旧通道"
+horizontal_alignment = 1
+
+[node name="NonCorePhaseFrameIdentityBand" type="ColorRect" parent="NonCoreSceneIdentityLayer"]
+offset_left = 2608.0
+offset_top = -118.0
+offset_right = 2870.0
+offset_bottom = -94.0
+color = Color(0.22, 0.5, 0.38, 0.68)
+
+[node name="NonCorePhaseFrameIdentityLabel" type="Label" parent="NonCoreSceneIdentityLayer"]
+offset_left = 2614.0
+offset_top = -116.0
+offset_right = 2864.0
+offset_bottom = -96.0
+text = "锁相框架：压相设施"
+horizontal_alignment = 1
+
+[node name="NonCoreAnchorBridgeIdentityBand" type="ColorRect" parent="NonCoreSceneIdentityLayer"]
+offset_left = 2888.0
+offset_top = -118.0
+offset_right = 3620.0
+offset_bottom = -94.0
+color = Color(0.16, 0.5, 0.46, 0.68)
+
+[node name="NonCoreAnchorBridgeIdentityLabel" type="Label" parent="NonCoreSceneIdentityLayer"]
+offset_left = 2896.0
+offset_top = -116.0
+offset_right = 3612.0
+offset_bottom = -96.0
+text = "锚定桥：桥体 / 锚索 / 稳定接入"
+horizontal_alignment = 1
+
 [node name="BaseDirectionLabel" type="Label" parent="."]
 offset_left = -342.0
 offset_top = 166.0

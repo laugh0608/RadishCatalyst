@@ -38,6 +38,13 @@ $checks = @(
         }
     },
     @{
+        Name = "client non-core scene identity"
+        Script = "check-client-non-core-scene-identity.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client functional transition route support"
         Script = "check-client-functional-transition-route-support.ps1"
         Parameters = @{

@@ -106,7 +106,12 @@ func format_demo_route_hint(world_state: WorldState, quest_id: String) -> String
 	var scene_hint := SceneArtFoundationFormatter.format_map_route_hint(hint_region_id)
 	if not scene_hint.is_empty():
 		return "%s · %s" % [route_hint, scene_hint]
+	var non_core_scene_hint := NonCoreSceneIdentityFormatter.format_map_route_hint(hint_region_id)
 	var transition_hint := FunctionalTransitionRouteSupportFormatter.format_map_route_hint(hint_region_id)
+	if not non_core_scene_hint.is_empty() and not transition_hint.is_empty():
+		return "%s · %s · %s" % [route_hint, non_core_scene_hint, transition_hint]
+	if not non_core_scene_hint.is_empty():
+		return "%s · %s" % [route_hint, non_core_scene_hint]
 	if not transition_hint.is_empty():
 		return "%s · %s" % [route_hint, transition_hint]
 	return route_hint
