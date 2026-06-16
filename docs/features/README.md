@@ -26,7 +26,8 @@
 ## 当前活跃专题
 
 - [Demo Definition V1](demo-definition-v1.md)：首版 Demo 完成规格表，后续专题必须映射到其中的未完成规格项。
-- [Demo Non-Core Scene Identity V1](demo-non-core-scene-identity-v1.md)：当前执行细专题，2026-06-16 第一包已落地，覆盖 4 个功能区和 4 个过渡区的场景身份、视觉标识、HUD / 对象反馈和专项检查。
+- [Demo Resource Chain State V1](demo-resource-chain-state-v1.md)：当前执行细专题，2026-06-16 第一包已落地，覆盖核心资源 / 产物的链路状态、HUD / 设备 / 加工反馈和状态序列化检查。
+- [Demo Non-Core Scene Identity V1](demo-non-core-scene-identity-v1.md)：最近完成细专题，2026-06-16 第一包已落地，覆盖 4 个功能区和 4 个过渡区的场景身份、视觉标识、HUD / 对象反馈和专项检查。
 - [Demo Functional Transition Route Support V1](demo-functional-transition-route-support-v1.md)：最近完成细专题，已覆盖 4 个功能区和 4 个过渡区的路线支撑、当前危险、回基地理由和专项检查。
 - [Demo Combat Progression V1](demo-combat-progression-v1.md)：最近完成阶段级专题，已完成首版 Demo 角色成长与战斗第一版。
 - [Demo Tool Strike Calibration V1](demo-tool-strike-calibration-v1.md)：最近完成细专题，已把基础多用工具、基础零件和出发整备台收束成一次可读战斗输出整备。

@@ -31,6 +31,13 @@ $checks = @(
         }
     },
     @{
+        Name = "client demo resource chain state"
+        Script = "check-client-demo-resource-chain-state.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client scene art foundation"
         Script = "check-client-scene-art-foundation.ps1"
         Parameters = @{

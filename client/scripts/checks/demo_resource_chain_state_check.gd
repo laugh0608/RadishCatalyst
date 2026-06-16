@@ -1,0 +1,156 @@
+extends SceneTree
+
+var failures: Array[String] = []
+var data_registry := DataRegistry.new()
+
+
+func _init() -> void:
+	if not data_registry.load_all():
+		failures.append("data registry should load all static data")
+	else:
+		_run_checks()
+
+	if failures.is_empty():
+		print("Demo resource chain state checks passed.")
+		_cleanup()
+		quit(0)
+		return
+
+	for failure in failures:
+		push_error(failure)
+	_cleanup()
+	quit(1)
+
+
+func _run_checks() -> void:
+	_check_core_resource_scope()
+	_check_hud_resource_chain_state()
+	_check_device_panel_resource_chain_state()
+	_check_processing_result_resource_chain()
+	_check_resource_chain_state_roundtrip()
+
+
+func _check_core_resource_scope() -> void:
+	var resource_ids := DemoResourceChainStateFormatter.get_core_resource_ids()
+	_expect_equal(resource_ids.size(), 8, "resource chain covers eight core resources")
+	_expect_array_has(resource_ids, "item.crystal_ore", "resource scope includes crystal ore")
+	_expect_array_has(resource_ids, "item.polluted_residue", "resource scope includes polluted residue")
+	_expect_array_has(resource_ids, "fluid.polluted_slurry", "resource scope includes polluted slurry")
+	_expect_array_has(resource_ids, "item.core_stabilization_buffer", "resource scope includes core buffer")
+
+
+func _check_hud_resource_chain_state() -> void:
+	var world := _create_resource_chain_world("quest.prepare_demo_stabilization_buffer")
+	var character := CharacterState.create_default()
+	character.inventory.add_item("item.polluted_residue", 2)
+	character.inventory.add_fluid("fluid.basic_solvent", 1.0)
+
+	var hud_text := HudStatusPresenter.new().format_vitals_text(data_registry, world, character)
+	_expect_text_contains(hud_text, "资源链状态", "HUD shows resource chain state")
+	_expect_text_contains(hud_text, "污染处理待加工", "HUD identifies pollution treatment stage")
+	_expect_text_contains(hud_text, "污染沉积物", "HUD names polluted residue in resource snapshot")
+	_expect_text_contains(hud_text, "抗污染药剂 + 污染浆液", "HUD explains pollution treatment outputs")
+
+
+func _check_device_panel_resource_chain_state() -> void:
+	var world := _create_resource_chain_world("quest.prepare_demo_stabilization_buffer")
+	var character := CharacterState.create_default()
+	character.inventory.add_item("item.polluted_residue", 2)
+	character.inventory.add_fluid("fluid.basic_solvent", 1.0)
+	var filter := _create_processing_interactable("building.pollution_filter", "recipe.cleanse_residue")
+
+	var panel := HudDevicePanelPresenter.new().format_device_panel_texts(
+		data_registry,
+		ProcessingSystem.new(data_registry),
+		filter,
+		character,
+		world
+	)
+	var status := String(panel.get("status", ""))
+	_expect_text_contains(status, "资源链状态", "device panel shows resource chain state")
+	_expect_text_contains(status, "污染处理链", "device panel names pollution processing chain")
+	_expect_text_contains(status, "药剂进快捷补给", "device panel explains vial destination")
+	_expect_text_contains(status, "副产回收", "device panel explains byproduct recovery")
+	filter.free()
+
+
+func _check_processing_result_resource_chain() -> void:
+	var world := _create_resource_chain_world("quest.prepare_demo_stabilization_buffer")
+	var character := CharacterState.create_default()
+	character.inventory.add_item("item.crystal_ore", 3)
+	var processing := ProcessingSystem.new(data_registry)
+
+	var started := processing.process_recipe("recipe.process_crystal_ore", character, world)
+	_expect_equal(bool(started.get("success", false)), true, "solid processing starts")
+	var completed := processing.advance_processing(20.0, character, world)
+	_expect_equal(completed.size(), 1, "solid processing completes")
+	if completed.is_empty():
+		return
+
+	var result_log := HudLogPresenter.new(data_registry).format_result_log(completed[0])
+	_expect_text_contains(result_log, "资源链", "processing result log shows resource chain")
+	_expect_text_contains(result_log, "固体加工链完成", "processing result names solid chain completion")
+	_expect_text_contains(result_log, "基础零件", "processing result keeps parts destination")
+	_expect_equal(int(character.inventory.items.get("item.basic_parts", 0)), 8, "solid processing grants parts")
+
+
+func _check_resource_chain_state_roundtrip() -> void:
+	var world := _create_resource_chain_world("quest.prepare_demo_stabilization_buffer")
+	var character := CharacterState.create_default()
+	character.inventory.add_item("item.basic_parts", 2)
+	character.inventory.add_item("item.repair_gel", 1)
+	character.inventory.add_item("item.resistance_vial_t1", 1)
+	character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
+
+	var restored_world := WorldState.from_dict(world.to_dict())
+	var restored_character := CharacterState.from_dict(character.to_dict())
+	var chain_line := DemoResourceChainStateFormatter.format_chain_state_line(restored_world, restored_character)
+	_expect_text_contains(chain_line, "核心缓冲包原料齐备", "round-trip keeps core buffer readiness")
+	_expect_equal(int(restored_character.inventory.items.get("item.basic_parts", 0)), 6, "round-trip keeps basic parts")
+	_expect_equal(float(restored_character.inventory.fluids.get("fluid.polluted_slurry", 0.0)), 1.0, "round-trip keeps polluted slurry")
+
+
+func _create_resource_chain_world(active_quest_id: String) -> WorldState:
+	var world := WorldState.create_default()
+	world.current_region_id = "region.outpost_platform"
+	world.quest_state.active_quest_ids = [active_quest_id]
+	for recipe_id in [
+		"recipe.cleanse_residue",
+		"recipe.reclaim_basic_parts",
+		"recipe.process_crystal_ore",
+		"recipe.core_stabilization_buffer"
+	]:
+		world.quest_state.unlock_effect(recipe_id)
+	world.add_base_structure("structure.pollution_filter", "building.pollution_filter", "region.pollution_edge")
+	return world
+
+
+func _create_processing_interactable(building_id: String, recipe_id: String) -> PrototypeInteractable:
+	var interactable := PrototypeInteractable.new()
+	interactable.definition_id = building_id
+	interactable.interaction_type = "process_recipe"
+	interactable.recipe_id = recipe_id
+	interactable.set_recipe_cycle([recipe_id])
+	return interactable
+
+
+func _expect_equal(actual, expected, context: String) -> void:
+	if actual == expected:
+		return
+	failures.append("%s: expected %s, got %s" % [context, str(expected), str(actual)])
+
+
+func _expect_array_has(values: Array, expected, context: String) -> void:
+	if values.has(expected):
+		return
+	failures.append("%s: expected array to contain %s, got %s" % [context, str(expected), str(values)])
+
+
+func _expect_text_contains(text: String, expected: String, context: String) -> void:
+	if text.find(expected) >= 0:
+		return
+	failures.append("%s: expected text to contain '%s', got '%s'" % [context, expected, text])
+
+
+func _cleanup() -> void:
+	data_registry.free()

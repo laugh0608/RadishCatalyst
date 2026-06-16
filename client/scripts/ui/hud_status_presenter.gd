@@ -233,8 +233,11 @@ func _format_base_summary_lines(
 		return active_structure_summary
 
 	var active_quest := data_registry.get_definition(active_quest_id)
+	var resource_chain_summary := DemoResourceChainStateFormatter.format_hud_summary(world_state, character_state)
 	var core_stabilization_summary := CoreStabilizationPressureFormatter.format_hud_summary(world_state, character_state, active_quest_id)
 	if not core_stabilization_summary.is_empty():
+		if not resource_chain_summary.is_empty():
+			return resource_chain_summary + core_stabilization_summary
 		return core_stabilization_summary
 	var slurry_reclaim_summary := _format_pollution_slurry_reclaim_summary(
 		world_state,
@@ -242,13 +245,19 @@ func _format_base_summary_lines(
 		active_quest_id
 	)
 	if not slurry_reclaim_summary.is_empty():
+		if not resource_chain_summary.is_empty():
+			return resource_chain_summary + slurry_reclaim_summary
 		return slurry_reclaim_summary
 	if not active_quest.is_empty():
 		var craft_summary := _format_current_craft_summary(data_registry, active_quest, character_state, world_state)
 		if not craft_summary.is_empty():
+			if not resource_chain_summary.is_empty():
+				return resource_chain_summary + craft_summary
 			return craft_summary
 		var build_summary := _format_current_build_summary(data_registry, active_quest, character_state, world_state)
 		if not build_summary.is_empty():
+			if not resource_chain_summary.is_empty():
+				return resource_chain_summary + build_summary
 			return build_summary
 		if active_quest_id == "quest.plan_stability_frontline_action":
 			return ["行动台确认稳窗回访：只派发稳窗回波探点"]
@@ -270,6 +279,8 @@ func _format_base_summary_lines(
 	var industrial_summary := IndustrialTechSpineFormatter.format_hud_summary(world_state, character_state)
 	if not industrial_summary.is_empty():
 		return industrial_summary
+	if not resource_chain_summary.is_empty():
+		return resource_chain_summary
 	var scene_summary := SceneArtFoundationFormatter.format_hud_summary(world_state, character_state)
 	if not scene_summary.is_empty():
 		return scene_summary

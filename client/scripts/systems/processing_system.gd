@@ -356,7 +356,9 @@ func _format_processing_started_feedback(recipe: Dictionary, world_state: WorldS
 		"destination": _format_completion_destination(recipe),
 		"next_step": _get_processing_wait_next_step(),
 		"completion_next_step": _get_completion_next_step(recipe_id, world_state),
-		"industrial_spine": IndustrialTechSpineFormatter.format_result_feedback_line(recipe_id, world_state)
+		"industrial_spine": IndustrialTechSpineFormatter.format_result_feedback_line(recipe_id, world_state),
+		"resource_chain": DemoResourceChainStateFormatter.format_result_feedback_line(recipe_id),
+		"show_resource_chain": _should_show_resource_chain_result_line(recipe_id)
 	}
 
 
@@ -379,8 +381,14 @@ func _format_processing_completion_feedback(recipe: Dictionary, world_state: Wor
 		"status": "已完成。",
 		"destination": _format_completion_destination(recipe),
 		"next_step": _get_completion_next_step(recipe_id, world_state),
-		"industrial_spine": IndustrialTechSpineFormatter.format_result_feedback_line(recipe_id, world_state)
+		"industrial_spine": IndustrialTechSpineFormatter.format_result_feedback_line(recipe_id, world_state),
+		"resource_chain": DemoResourceChainStateFormatter.format_result_feedback_line(recipe_id),
+		"show_resource_chain": _should_show_resource_chain_result_line(recipe_id)
 	}
+
+
+func _should_show_resource_chain_result_line(recipe_id: String) -> bool:
+	return recipe_id == "recipe.process_crystal_ore"
 
 
 func _format_completion_destination(recipe: Dictionary) -> String:

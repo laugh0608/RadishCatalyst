@@ -63,6 +63,14 @@ func _format_device_status(
 	)
 	if not industrial_chain_line.is_empty():
 		parts.append(industrial_chain_line)
+	var resource_chain_line := DemoResourceChainStateFormatter.format_device_status_line(
+		building_id,
+		recipe_id,
+		world_state,
+		character_state
+	)
+	if not resource_chain_line.is_empty():
+		parts.append(resource_chain_line)
 	if (
 		building_id == "building.basic_reactor"
 		and FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state)
