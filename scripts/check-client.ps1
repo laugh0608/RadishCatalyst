@@ -73,6 +73,13 @@ $checks = @(
         }
     },
     @{
+        Name = "client demo endpoint readiness"
+        Script = "check-client-demo-endpoint-readiness.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client scene art foundation"
         Script = "check-client-scene-art-foundation.ps1"
         Parameters = @{

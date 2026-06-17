@@ -236,8 +236,14 @@ func _format_base_summary_lines(
 
 	var active_quest := data_registry.get_definition(active_quest_id)
 	var resource_chain_summary := DemoResourceChainStateFormatter.format_hud_summary(world_state, character_state)
+	var endpoint_readiness_summary := DemoEndpointReadinessFormatter.format_hud_summary(
+		world_state,
+		character_state
+	)
 	var core_stabilization_summary := CoreStabilizationPressureFormatter.format_hud_summary(world_state, character_state, active_quest_id)
 	if not core_stabilization_summary.is_empty():
+		if not endpoint_readiness_summary.is_empty():
+			core_stabilization_summary += endpoint_readiness_summary
 		if not resource_chain_summary.is_empty():
 			return resource_chain_summary + core_stabilization_summary
 		return core_stabilization_summary
@@ -278,6 +284,8 @@ func _format_base_summary_lines(
 	var outfitting_summary := _format_outfitting_station_summary(world_state, character_state)
 	if not outfitting_summary.is_empty():
 		return outfitting_summary
+	if not endpoint_readiness_summary.is_empty():
+		return endpoint_readiness_summary
 	var industrial_summary := IndustrialTechSpineFormatter.format_hud_summary(world_state, character_state)
 	if not industrial_summary.is_empty():
 		return industrial_summary

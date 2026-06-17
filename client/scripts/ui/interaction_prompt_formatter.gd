@@ -1057,6 +1057,12 @@ func _get_general_interaction_status(
 ) -> String:
 	if interactable.definition_id == "map_object.demo_stabilization_core":
 		var core_status := CoreStabilizationPressureFormatter.format_interaction_status(character_state, world_state, object_state)
+		var endpoint_status := DemoEndpointReadinessFormatter.format_core_object_status_line(
+			world_state,
+			character_state
+		)
+		if not endpoint_status.is_empty():
+			core_status = "%s；%s" % [endpoint_status, core_status]
 		var demo_completion_status := DemoMainlineCompletionFormatter.format_core_object_status(
 			world_state,
 			character_state,
@@ -1140,6 +1146,12 @@ func _get_general_interaction_next_step(
 		return DepartureReadinessFormatter.format_logistics_route_next_step(world_state, character_state)
 	if interactable.definition_id == "map_object.demo_stabilization_core":
 		var core_next_step := CoreStabilizationPressureFormatter.format_interaction_next_step(character_state, world_state, object_state)
+		var endpoint_next_step := DemoEndpointReadinessFormatter.format_core_object_next_step(
+			world_state,
+			character_state
+		)
+		if not endpoint_next_step.is_empty():
+			core_next_step = "%s；%s" % [endpoint_next_step, core_next_step]
 		var demo_completion_next_step := DemoMainlineCompletionFormatter.format_core_object_next_step(
 			world_state,
 			character_state,

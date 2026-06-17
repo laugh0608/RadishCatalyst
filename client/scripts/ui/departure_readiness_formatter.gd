@@ -18,6 +18,8 @@ static func format_hud_summary(world_state: WorldState, character_state: Charact
 		lines.append(crystal_logistics_line)
 	for field_loop_line in DemoFieldLoopPayoffFormatter.format_hud_summary(world_state, character_state):
 		lines.append(field_loop_line)
+	for endpoint_line in DemoEndpointReadinessFormatter.format_hud_summary(world_state, character_state):
+		lines.append(endpoint_line)
 	var next_sortie_line := CoreGuardAftermathFormatter.format_next_sortie_hud_line(world_state, character_state)
 	if not next_sortie_line.is_empty():
 		lines.append(next_sortie_line)
@@ -37,6 +39,12 @@ static func format_outpost_core_prompt(world_state: WorldState, character_state:
 		parts.append("%s。" % crystal_logistics_line)
 	for field_loop_line in DemoFieldLoopPayoffFormatter.format_hud_summary(world_state, character_state):
 		parts.append("%s。" % field_loop_line)
+	var endpoint_line := DemoEndpointReadinessFormatter.format_outpost_core_prompt_line(
+		world_state,
+		character_state
+	)
+	if not endpoint_line.is_empty():
+		parts.append("%s。" % endpoint_line)
 	var aftermath_line := CoreGuardAftermathFormatter.format_outpost_line(world_state, character_state)
 	if not aftermath_line.is_empty():
 		parts.append("%s。" % aftermath_line)
@@ -85,6 +93,12 @@ static func format_departure_gate_status(world_state: WorldState, character_stat
 		parts.append(crystal_logistics_line)
 	for field_loop_line in DemoFieldLoopPayoffFormatter.format_hud_summary(world_state, character_state):
 		parts.append(field_loop_line)
+	var endpoint_line := DemoEndpointReadinessFormatter.format_departure_gate_status_line(
+		world_state,
+		character_state
+	)
+	if not endpoint_line.is_empty():
+		parts.append(endpoint_line)
 	return "；".join(parts)
 
 
@@ -132,6 +146,12 @@ static func format_departure_gate_next_step(world_state: WorldState, character_s
 	)
 	if not field_loop_step.is_empty() and not FieldOutfittingRuntime.is_field_loop_payoff_confirmed(world_state):
 		return field_loop_step
+	var endpoint_step := DemoEndpointReadinessFormatter.format_departure_gate_next_step(
+		world_state,
+		character_state
+	)
+	if not endpoint_step.is_empty():
+		return endpoint_step
 	if _should_show_ruin_outer_ring_module_payoff(world_state):
 		return "从外勤出发口回遗迹外圈，清理相位守卫并观察模块承压收益"
 	var crystal_logistics_step := format_crystal_logistics_return_next_step(world_state, character_state)

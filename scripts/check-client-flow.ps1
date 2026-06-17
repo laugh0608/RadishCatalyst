@@ -39,6 +39,11 @@ if (-not (Test-Path -LiteralPath $demoFieldLoopPayoffCheckScript -PathType Leaf)
     Write-Error "Demo field loop payoff check script not found: ${demoFieldLoopPayoffCheckScript}"
     exit 1
 }
+$demoEndpointReadinessCheckScript = Join-Path $clientRoot "scripts/checks/demo_endpoint_readiness_check.gd"
+if (-not (Test-Path -LiteralPath $demoEndpointReadinessCheckScript -PathType Leaf)) {
+    Write-Error "Demo endpoint readiness check script not found: ${demoEndpointReadinessCheckScript}"
+    exit 1
+}
 $industrialTechSpineCheckScript = Join-Path $clientRoot "scripts/checks/industrial_tech_spine_check.gd"
 if (-not (Test-Path -LiteralPath $industrialTechSpineCheckScript -PathType Leaf)) {
     Write-Error "Industrial tech spine check script not found: ${industrialTechSpineCheckScript}"
@@ -146,6 +151,13 @@ try {
     if ($LASTEXITCODE -ne 0) {
         $demoFieldLoopPayoffOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
         Write-Error "Demo field loop payoff check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
+    $demoEndpointReadinessOutput = & $GodotExe --headless --path $clientRoot --script $demoEndpointReadinessCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $demoEndpointReadinessOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo endpoint readiness check failed with exit code ${LASTEXITCODE}."
         exit $LASTEXITCODE
     }
 
