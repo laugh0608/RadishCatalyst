@@ -10,13 +10,13 @@
 
 ## 阶段
 
-当前为「首版 Demo 体验主干建设：终点前综合准备读法第一版」。
+当前为「首版 Demo 体验主干建设：Demo 完成成果整理第一版」。
 
 首版 Demo 完成规格：[Demo Definition V1](../features/demo-definition-v1.md)。
 
-当前活跃细专题：[Demo Endpoint Readiness V1](../features/demo-endpoint-readiness-v1.md)，把核心稳定站写入前的主线、补给、整备、守卫战准备和写入准备汇总到关键操作面。
+当前活跃细专题：[Demo Completion Outcome Readout V1](../features/demo-completion-outcome-readout-v1.md)，把核心稳定站写入后的主线完成、补给收益、整备收益、守卫战记录和复测方向汇总到关键操作面。
 
-最近完成细专题：[Demo Field Loop Payoff V1](../features/demo-field-loop-payoff-v1.md)、[Demo Functional Scene Gameplay V1](../features/demo-functional-scene-gameplay-v1.md)、[Demo Runtime Surface Decomposition V1](../features/demo-runtime-surface-decomposition-v1.md)、[Demo Main Path Continuity V1](../features/demo-main-path-continuity-v1.md) 与 [Demo Save State Contract V1](../features/demo-save-state-contract-v1.md)，2026-06-16 至 2026-06-17 第一包已落地。
+最近完成细专题：[Demo Endpoint Readiness V1](../features/demo-endpoint-readiness-v1.md)、[Demo Field Loop Payoff V1](../features/demo-field-loop-payoff-v1.md)、[Demo Functional Scene Gameplay V1](../features/demo-functional-scene-gameplay-v1.md)、[Demo Runtime Surface Decomposition V1](../features/demo-runtime-surface-decomposition-v1.md) 与 [Demo Main Path Continuity V1](../features/demo-main-path-continuity-v1.md)，2026-06-16 至 2026-06-17 第一包已落地。
 
 最近完成细专题：[Demo Non-Core Scene Identity V1](../features/demo-non-core-scene-identity-v1.md) 与 [Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md)，2026-06-16 第一包已落地。
 
@@ -33,15 +33,15 @@
 
 1. 读 `docs/planning/current.md` 确认阶段和冻结边界。
 2. 读 `docs/features/demo-definition-v1.md` 确认首版 Demo 完成规格和当前缺口。
-3. 读当前活跃细专题 `docs/features/demo-endpoint-readiness-v1.md`，确认玩家路径、状态边界和验收条件。
-4. 只在需要确认上一个阶段边界时，读 `docs/features/demo-field-loop-payoff-v1.md`。
+3. 读当前活跃细专题 `docs/features/demo-completion-outcome-readout-v1.md`，确认玩家路径、状态边界和验收条件。
+4. 只在需要确认上一个阶段边界时，读 `docs/features/demo-endpoint-readiness-v1.md`。
 5. 读 `docs/planning/demo-scope-and-playable-slice.md`，确认 12 区域职责表和功能 / 过渡分组。
 6. 只在需要历史风险时，读取最新周志中的“风险与未完成项”和“后续事项”。
 7. 按改动范围选读设计、架构和复测基线文档。
 
 ## 当前开发重点
 
-- 当前推进 Demo 终点前综合准备读法第一包；把核心稳定站写入前的主线、补给、整备、守卫战准备和写入准备接到 HUD、出发口、前哨核心和核心设备提示。
+- 当前推进 Demo 完成成果整理第一包；把核心稳定站写入后的主线完成、补给收益、整备收益、守卫战记录和复测方向接到 HUD、地图、前哨核心、核心设备提示和完成日志。
 - 外勤回基地收益兑现、功能场景玩法、运行时承载面拆分、主路径连续性和存档状态契约第一包已落地；不继续围绕同一切面加厚。
 - 非核心区域场景识别和功能 / 过渡路线支撑第一包已落地；不继续围绕同一批区域标签、路线职责、当前危险和回基地理由加厚。
 - 角色成长与战斗第一版已满足退出条件；不继续围绕战术扫描、防护响应、工具校准、污染边界、遗迹外圈或核心守卫同一压力点加厚。
@@ -59,7 +59,7 @@
 - 不继续横向新增区域；首版 Demo 到 12 个区域封顶。
 - 不再默认给核心站完成态追加同构回访口袋。
 - 不新增随机成功率、新货币、队员、完整装备栏、完整 `loadout`、完整背包重构、联机入口或大规模美术替换。
-- 不把试玩准备、修 bug 阶段、完整发布准备、大规模 polish、基线复核、静态审计或纯提示修补作为当前阶段目标。
+- 不把试玩准备、修 bug 阶段、完整发布准备、大规模 polish、结算页、基线复核、静态审计或纯提示修补作为当前阶段目标。
 
 ## 阻塞标准
 
@@ -80,8 +80,8 @@
 
 - `docs/planning/current.md`
 - `docs/features/demo-definition-v1.md`
+- `docs/features/demo-completion-outcome-readout-v1.md`
 - `docs/features/demo-endpoint-readiness-v1.md`
-- `docs/features/demo-field-loop-payoff-v1.md`
 - `docs/features/demo-functional-scene-gameplay-v1.md`
 - `docs/features/demo-runtime-surface-decomposition-v1.md`
 - `docs/features/demo-main-path-continuity-v1.md`

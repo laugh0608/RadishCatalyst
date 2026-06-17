@@ -80,6 +80,7 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 ]
 const MAX_VISIBLE_KEY_RESOURCE_COUNT := 2
 const MAX_CONTEXT_RESOURCE_COUNT := 3
+const CompletionOutcomeFormatter := preload("res://scripts/systems/demo_completion_outcome_formatter.gd")
 
 var objective_source_resolver: QuestObjectiveSourceResolver
 var objective_source_registry: DataRegistry
@@ -240,10 +241,16 @@ func _format_base_summary_lines(
 		world_state,
 		character_state
 	)
+	var completion_outcome_summary := CompletionOutcomeFormatter.format_hud_summary(
+		world_state,
+		character_state
+	)
 	var core_stabilization_summary := CoreStabilizationPressureFormatter.format_hud_summary(world_state, character_state, active_quest_id)
 	if not core_stabilization_summary.is_empty():
 		if not endpoint_readiness_summary.is_empty():
 			core_stabilization_summary += endpoint_readiness_summary
+		if not completion_outcome_summary.is_empty():
+			core_stabilization_summary += completion_outcome_summary
 		if not resource_chain_summary.is_empty():
 			return resource_chain_summary + core_stabilization_summary
 		return core_stabilization_summary
@@ -283,9 +290,13 @@ func _format_base_summary_lines(
 		]
 	var outfitting_summary := _format_outfitting_station_summary(world_state, character_state)
 	if not outfitting_summary.is_empty():
+		if not completion_outcome_summary.is_empty():
+			return outfitting_summary + completion_outcome_summary
 		return outfitting_summary
 	if not endpoint_readiness_summary.is_empty():
 		return endpoint_readiness_summary
+	if not completion_outcome_summary.is_empty():
+		return completion_outcome_summary
 	var industrial_summary := IndustrialTechSpineFormatter.format_hud_summary(world_state, character_state)
 	if not industrial_summary.is_empty():
 		return industrial_summary

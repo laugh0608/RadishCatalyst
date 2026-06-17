@@ -26,7 +26,8 @@
 ## 当前与最近专题
 
 - [Demo Definition V1](demo-definition-v1.md)：首版 Demo 完成规格表，后续专题必须映射到其中的未完成规格项。
-- [Demo Endpoint Readiness V1](demo-endpoint-readiness-v1.md)：当前活跃细专题，覆盖核心稳定站写入前的主线、补给、整备、守卫战准备和写入准备读法。
+- [Demo Completion Outcome Readout V1](demo-completion-outcome-readout-v1.md)：当前活跃细专题，覆盖核心稳定站写入后的主线完成、补给收益、整备收益、守卫战记录和复测方向读法。
+- [Demo Endpoint Readiness V1](demo-endpoint-readiness-v1.md)：最近完成细专题，覆盖核心稳定站写入前的主线、补给、整备、守卫战准备和写入准备读法。
 - [Demo Field Loop Payoff V1](demo-field-loop-payoff-v1.md)：最近完成细专题，覆盖外勤对象处理结果回到基地加工、整备状态和下一趟外勤准备。
 - [Demo Functional Scene Gameplay V1](demo-functional-scene-gameplay-v1.md)：最近完成细专题，2026-06-16 第一包已落地，覆盖功能 / 过渡区代表性对象处理后的现场阶段、状态反馈和回基地处理理由。
 - [Demo Runtime Surface Decomposition V1](demo-runtime-surface-decomposition-v1.md)：最近完成细专题，覆盖主路径连续性第一包落地后的运行时检查承载面拆分。
