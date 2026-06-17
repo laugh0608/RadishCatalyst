@@ -108,6 +108,13 @@ $checks = @(
         }
     },
     @{
+        Name = "client demo interaction affordance"
+        Script = "check-client-demo-interaction-affordance.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client scene art foundation"
         Script = "check-client-scene-art-foundation.ps1"
         Parameters = @{

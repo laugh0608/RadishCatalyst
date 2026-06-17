@@ -10,13 +10,13 @@
 
 ## 阶段
 
-当前为「首版 Demo 体验主干建设：交互可辨识度第一版」。
+当前为「首版 Demo 体验主干建设：动作反馈可读性第一版」。
 
 首版 Demo 完成规格：[Demo Definition V1](../features/demo-definition-v1.md)。
 
-当前活跃细专题：[Demo Interaction Affordance V1](../features/demo-interaction-affordance-v1.md)，检查并补齐对象可交互、已处理、缺条件、被阻挡或危险仍在时的画面、焦点标签、HUD / 地图和对象提示一致性。
+当前活跃细专题：[Demo Action Feedback Readability V1](../features/demo-action-feedback-readability-v1.md)，检查并补齐玩家执行采集、清障、建造、加工、整备、战斗和核心写入后的结果文本、HUD / 地图和对象状态一致性。
 
-最近完成细专题：[Demo Combat Evacuation Recovery V1](../features/demo-combat-evacuation-recovery-v1.md)、[Demo Playable Scene Composition V1](../features/demo-playable-scene-composition-v1.md)、[Demo Playable Experience Coherence V1](../features/demo-playable-experience-coherence-v1.md)、[Demo Completion Outcome Readout V1](../features/demo-completion-outcome-readout-v1.md) 与 [Demo Endpoint Readiness V1](../features/demo-endpoint-readiness-v1.md)，2026-06-17 第一包已落地。
+最近完成细专题：[Demo Interaction Affordance V1](../features/demo-interaction-affordance-v1.md)、[Demo Combat Evacuation Recovery V1](../features/demo-combat-evacuation-recovery-v1.md)、[Demo Playable Scene Composition V1](../features/demo-playable-scene-composition-v1.md)、[Demo Playable Experience Coherence V1](../features/demo-playable-experience-coherence-v1.md) 与 [Demo Completion Outcome Readout V1](../features/demo-completion-outcome-readout-v1.md)，2026-06-17 第一包已落地。
 
 最近完成细专题：[Demo Non-Core Scene Identity V1](../features/demo-non-core-scene-identity-v1.md) 与 [Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md)，2026-06-16 第一包已落地。
 
@@ -33,16 +33,16 @@
 
 1. 读 `docs/planning/current.md` 确认阶段和冻结边界。
 2. 读 `docs/features/demo-definition-v1.md` 确认首版 Demo 完成规格和当前缺口。
-3. 读当前活跃细专题 `docs/features/demo-interaction-affordance-v1.md`，确认交互可辨识度、对象状态、HUD / 地图和验收条件。
-4. 只在需要确认上一个阶段边界时，读 `docs/features/demo-combat-evacuation-recovery-v1.md`。
+3. 读当前活跃细专题 `docs/features/demo-action-feedback-readability-v1.md`，确认动作结果、HUD / 地图、对象状态和验收条件。
+4. 只在需要确认上一个阶段边界时，读 `docs/features/demo-interaction-affordance-v1.md`。
 5. 读 `docs/planning/demo-scope-and-playable-slice.md`，确认 12 区域职责表和功能 / 过渡分组。
 6. 只在需要历史风险时，读取最新周志中的“风险与未完成项”和“后续事项”。
 7. 按改动范围选读设计、架构和复测基线文档。
 
 ## 当前开发重点
 
-- 当前推进交互可辨识度第一包；检查并补齐对象可交互、已处理、缺条件、被阻挡或危险仍在时的画面、焦点标签、HUD / 地图和对象提示一致性。
-- 战斗撤离恢复、可玩场景构成、整段体验连贯性和 Demo 完成成果整理第一包已落地；不继续围绕撤离恢复、区域构成、断点清单或核心稳定站写入后完成态加厚。
+- 当前推进动作反馈可读性第一包；检查并补齐关键动作结果、消耗 / 获得、状态写入、HUD / 地图和对象状态一致性。
+- 交互可辨识度、战斗撤离恢复、可玩场景构成、整段体验连贯性和 Demo 完成成果整理第一包已落地；不继续围绕对象可交互状态、撤离恢复、区域构成、断点清单或核心稳定站写入后完成态加厚。
 - 外勤回基地收益兑现、功能场景玩法、运行时承载面拆分、主路径连续性和存档状态契约第一包已落地；不继续围绕同一切面加厚。
 - 非核心区域场景识别和功能 / 过渡路线支撑第一包已落地；不继续围绕同一批区域标签、路线职责、当前危险和回基地理由加厚。
 - 角色成长与战斗第一版已满足退出条件；不继续围绕战术扫描、防护响应、工具校准、污染边界、遗迹外圈或核心守卫同一压力点加厚。
@@ -81,19 +81,9 @@
 
 - `docs/planning/current.md`
 - `docs/features/demo-definition-v1.md`
-- `docs/features/demo-combat-evacuation-recovery-v1.md`
-- `docs/features/demo-playable-scene-composition-v1.md`
-- `docs/features/demo-playable-experience-coherence-v1.md`
-- `docs/features/demo-completion-outcome-readout-v1.md`
-- `docs/features/demo-endpoint-readiness-v1.md`
-- `docs/features/demo-functional-scene-gameplay-v1.md`
-- `docs/features/demo-runtime-surface-decomposition-v1.md`
-- `docs/features/demo-main-path-continuity-v1.md`
-- `docs/features/demo-save-state-contract-v1.md`
-- `docs/features/demo-resource-chain-state-v1.md`
-- `docs/features/demo-non-core-scene-identity-v1.md`
-- `docs/features/demo-functional-transition-route-support-v1.md`
-- `docs/features/demo-combat-progression-v1.md`
+- `docs/features/demo-action-feedback-readability-v1.md`
+- `docs/features/demo-interaction-affordance-v1.md`
+- 最近完成细专题按 `docs/features/README.md` 选读
 - `docs/planning/demo-scope-and-playable-slice.md`
 
 按任务选读：

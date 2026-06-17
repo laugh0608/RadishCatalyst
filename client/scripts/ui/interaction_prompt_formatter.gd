@@ -171,6 +171,14 @@ func format_general_interaction_prompt(
 	)
 	if not gameplay_line.is_empty():
 		parts.append(gameplay_line)
+	var affordance_line := DemoInteractionAffordanceFormatter.format_general_affordance_line(
+		interactable,
+		object_state,
+		world_state,
+		character_state
+	)
+	if not affordance_line.is_empty():
+		parts.append(affordance_line)
 	var reward_line := _format_interaction_reward_line(interactable, definition)
 	if not reward_line.is_empty():
 		parts.append(reward_line)
@@ -186,9 +194,18 @@ func format_general_interaction_prompt(
 
 func format_outfitting_station_prompt(character_state: CharacterState, world_state: WorldState) -> String:
 	if not world_state.has_base_structure_definition("building.field_outfitting_station"):
-		return "设施：%s\n用途：把基地制造出的模块装入防护服，让外勤承压差异从 HUD 提示变成可操作整备。\n状态：未建成。\n下一步：先完成基地平台的出发整备台建造点。" % _get_display_name("building.field_outfitting_station")
+		return "设施：%s\n用途：把基地制造出的模块装入防护服，让外勤承压差异从 HUD 提示变成可操作整备。\n%s\n状态：未建成。\n下一步：先完成基地平台的出发整备台建造点。" % [
+			_get_display_name("building.field_outfitting_station"),
+			DemoInteractionAffordanceFormatter.format_outfitting_station_affordance_line(world_state, character_state)
+		]
 
 	var parts: Array[String] = [DepartureReadinessFormatter.format_outfitting_station_prompt(world_state, character_state)]
+	var affordance_line := DemoInteractionAffordanceFormatter.format_outfitting_station_affordance_line(
+		world_state,
+		character_state
+	)
+	if not affordance_line.is_empty():
+		parts.append(affordance_line)
 	var recovery_line := DemoCombatEvacuationRecoveryFormatter.format_outfitting_station_recovery_line(
 		world_state,
 		character_state
@@ -470,6 +487,9 @@ func format_build_prompt(
 	var foundation_status := String(status.get("foundation_status", ""))
 	if not foundation_status.is_empty():
 		parts.append(foundation_status)
+	var affordance_line := DemoInteractionAffordanceFormatter.format_build_affordance_line(status)
+	if not affordance_line.is_empty():
+		parts.append(affordance_line)
 	parts.append("状态：%s" % String(status.get("message", "")))
 	var next_step := String(status.get("next_step", ""))
 	if not next_step.is_empty():
@@ -527,11 +547,15 @@ func format_clear_prompt(
 	if interactable.definition_id == "map_object.pressure_clearance_node":
 		return format_frontline_action_target_prompt(interactable, character_state, world_state)
 	if bool(object_state.get("is_cleared", false)):
-		return "地块：%s\n状态：已清理，可用于铺设基础地基。" % _get_display_name(interactable.definition_id)
+		return "地块：%s\n%s\n状态：已清理，可用于铺设基础地基。" % [
+			_get_display_name(interactable.definition_id),
+			DemoInteractionAffordanceFormatter.format_clear_affordance_line(object_state, "")
+		]
 
 	var tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
 	var parts: Array[String] = [
 		"地块：%s" % _get_display_name(interactable.definition_id),
+		DemoInteractionAffordanceFormatter.format_clear_affordance_line(object_state, tool_status),
 		"状态：未清理，阻挡建造。",
 		"下一步：清理后可铺设基础地基。",
 		"工具：%s" % tool_status
@@ -692,10 +716,20 @@ func format_outpost_core_prompt(world_state: WorldState, character_state: Charac
 		world_state.current_region_id
 	)
 	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
-		return "按 E 恢复：前哨核心，重启基础导航。\n%s\n%s" % [scene_line, composition_line]
+		return "按 E 恢复：前哨核心，重启基础导航。\n%s\n%s\n%s" % [
+			DemoInteractionAffordanceFormatter.format_outpost_core_affordance_line(world_state, character_state),
+			scene_line,
+			composition_line
+		]
 	var parts: Array[String] = [
 		DepartureReadinessFormatter.format_outpost_core_prompt(world_state, character_state)
 	]
+	var affordance_line := DemoInteractionAffordanceFormatter.format_outpost_core_affordance_line(
+		world_state,
+		character_state
+	)
+	if not affordance_line.is_empty():
+		parts.append(affordance_line)
 	var completion_line := DemoMainlineCompletionFormatter.format_outpost_core_prompt_line(world_state, character_state)
 	if not completion_line.is_empty():
 		parts.append(completion_line)
@@ -759,16 +793,24 @@ func format_signal_echo_cache_prompt(
 	world_state: WorldState,
 	character_state: CharacterState = null
 ) -> String:
+	var affordance_line := DemoInteractionAffordanceFormatter.format_definition_affordance_line(
+		"map_object.signal_echo_cache",
+		"inspect",
+		DemoInteractionAffordanceFormatter.SIGNAL_ECHO_CACHE_INSTANCE_ID,
+		world_state.get_map_object(DemoInteractionAffordanceFormatter.SIGNAL_ECHO_CACHE_INSTANCE_ID),
+		world_state,
+		character_state
+	)
 	if not world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
-		return _with_functional_transition_line("外圈回波匣：先检查外圈中继台，锁定稳定回波。", "map_object.signal_echo_cache", world_state.current_region_id)
+		return _append_affordance_line(_with_functional_transition_line("外圈回波匣：先检查外圈中继台，锁定稳定回波。", "map_object.signal_echo_cache", world_state.current_region_id), affordance_line)
 	if world_state.quest_state.has_completed_quest("quest.salvage_signal_echo"):
-		return _with_functional_transition_line("外圈回波匣：已回收，回基地解析深段回波。", "map_object.signal_echo_cache", world_state.current_region_id)
+		return _append_affordance_line(_with_functional_transition_line("外圈回波匣：已回收，回基地解析深段回波。", "map_object.signal_echo_cache", world_state.current_region_id), affordance_line)
 	if world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
 		if not bool(world_state.get_enemy("enemy_instance.ruin_phase_guard").get("is_defeated", false)):
-			return _with_functional_transition_line("外圈回波匣：相位守卫仍在压制；先清理守卫。%s" % _format_ruin_outer_ring_module_prompt(character_state, world_state), "map_object.signal_echo_cache", world_state.current_region_id)
+			return _append_affordance_line(_with_functional_transition_line("外圈回波匣：相位守卫仍在压制；先清理守卫。%s" % _format_ruin_outer_ring_module_prompt(character_state, world_state), "map_object.signal_echo_cache", world_state.current_region_id), affordance_line)
 		if world_state.quest_state.get_objective_progress("quest.salvage_signal_echo", "gather_item", "item.polluted_residue") < 2.0:
-			return _with_functional_transition_line("外圈回波匣：先回收守卫后暴露的污染回波沉积，再回过滤器处理副产。%s" % _format_ruin_outer_ring_module_prompt(character_state, world_state), "map_object.signal_echo_cache", world_state.current_region_id)
-	return _with_functional_transition_line("按 E 回收：外圈回波匣。", "map_object.signal_echo_cache", world_state.current_region_id)
+			return _append_affordance_line(_with_functional_transition_line("外圈回波匣：先回收守卫后暴露的污染回波沉积，再回过滤器处理副产。%s" % _format_ruin_outer_ring_module_prompt(character_state, world_state), "map_object.signal_echo_cache", world_state.current_region_id), affordance_line)
+	return _append_affordance_line(_with_functional_transition_line("按 E 回收：外圈回波匣。", "map_object.signal_echo_cache", world_state.current_region_id), affordance_line)
 
 
 func _format_ruin_outer_ring_module_prompt(
@@ -1033,6 +1075,12 @@ func _with_functional_transition_line(prompt: String, definition_id: String, fal
 	if not gameplay_line.is_empty():
 		parts.append(gameplay_line)
 	return "\n".join(parts)
+
+
+func _append_affordance_line(prompt: String, affordance_line: String) -> String:
+	if affordance_line.is_empty():
+		return prompt
+	return "%s\n%s" % [prompt, affordance_line]
 
 
 func _get_general_interaction_purpose(interactable: PrototypeInteractable, definition: Dictionary) -> String:

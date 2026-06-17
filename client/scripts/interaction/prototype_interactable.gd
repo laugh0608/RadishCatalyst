@@ -251,6 +251,13 @@ func set_processed_visual() -> bool:
 		_apply_marker_style(GATHERED_SALVAGE_SIZE, GATHERED_SALVAGE_COLOR)
 		_set_label_text("%s\n已回收" % display_name_text, 2)
 		return true
+	if interaction_type == "gather" and definition_id == "map_object.demo_stabilization_guard_cache":
+		consumed = true
+		visible = true
+		monitoring = false
+		_apply_marker_style(GATHERED_SALVAGE_SIZE, GATHERED_RELAY_SHARD_COLOR)
+		_set_label_text("%s\n已回收" % display_name_text, 2)
+		return true
 	if interaction_type == "gather" and definition_id == "map_object.anomaly_residue_patch":
 		consumed = true
 		visible = true
