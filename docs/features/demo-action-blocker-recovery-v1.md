@@ -46,6 +46,12 @@
 - `demo_action_blocker_recovery_check.gd` 与默认静态接线检查已覆盖代表性受阻动作、HUD 日志 / 目标 / 地图提示、对象 / 设备 / 敌人状态和恢复路线。
 - 已通过 `sh ./scripts/check-client.sh` 与 `sh ./scripts/check-client.sh --with-godot`，满足当前阶段第一包退出判断。
 
+## 阶段退出判断
+
+- 2026-06-17 结论：通过。第一包已覆盖本专题要求的代表性受阻路径、恢复路线和专项检查。
+- 退出证据：失败反馈、HUD / 地图、对象状态、设备状态和敌人状态已能互相印证；验证记录包含 `check-client`、`check-client --with-godot`、`check-docs`、`check-text-files` 和 `git diff --check`。
+- 后续不继续围绕同一批失败文案加厚；若发现崩溃、主线卡死、坏档、任务无法完成、关键资源断档或 UI 完全无法判断下一步，再按 `P0` / `P1` 处理。
+
 ## 当前不做
 
 - 不新增资源、配方、区域、任务链、敌人类型、完整背包或完整装备栏。
@@ -73,9 +79,9 @@
 
 ## 验收条件
 
-- `Demo Action Blocker Recovery V1` 建立并作为当前活跃专题。
+- `Demo Action Blocker Recovery V1` 已建立并完成第一包。
 - 代表性受阻动作能和 HUD / 地图、对象状态或场景视觉互相印证。
-- 未引入当前不做事项，新增检查走独立专项文件。
+- 已通过阶段退出判断，未引入当前不做事项，新增检查走独立专项文件。
 
 ## 验证计划
 

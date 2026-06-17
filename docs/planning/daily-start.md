@@ -10,13 +10,13 @@
 
 ## 阶段
 
-当前为「首版 Demo 体验主干建设：受阻动作恢复读法第一版」。
+当前为「首版 Demo 体验主干建设：原型视觉呈现第一版」。
 
 首版 Demo 完成规格：[Demo Definition V1](../features/demo-definition-v1.md)。
 
-当前活跃收口细专题：[Demo Action Blocker Recovery V1](../features/demo-action-blocker-recovery-v1.md)，2026-06-17 第一包已落地；下一次先做阶段退出判断，再从 Demo 完成规格里选择新的非重复缺口。
+当前活跃细专题：[Demo Prototype Visual Pass V1](../features/demo-prototype-visual-pass-v1.md)，用于确认现有 12 区原型画面的视觉优先级、层级和第一包实施范围。
 
-最近完成细专题：[Demo Action Feedback Readability V1](../features/demo-action-feedback-readability-v1.md)、[Demo Interaction Affordance V1](../features/demo-interaction-affordance-v1.md)、[Demo Combat Evacuation Recovery V1](../features/demo-combat-evacuation-recovery-v1.md)、[Demo Playable Scene Composition V1](../features/demo-playable-scene-composition-v1.md) 与 [Demo Playable Experience Coherence V1](../features/demo-playable-experience-coherence-v1.md)，2026-06-17 第一包已落地。
+最近完成细专题：[Demo Action Blocker Recovery V1](../features/demo-action-blocker-recovery-v1.md)、[Demo Action Feedback Readability V1](../features/demo-action-feedback-readability-v1.md)、[Demo Interaction Affordance V1](../features/demo-interaction-affordance-v1.md)、[Demo Combat Evacuation Recovery V1](../features/demo-combat-evacuation-recovery-v1.md) 与 [Demo Playable Scene Composition V1](../features/demo-playable-scene-composition-v1.md)，2026-06-17 第一包已落地。
 
 最近完成细专题：[Demo Non-Core Scene Identity V1](../features/demo-non-core-scene-identity-v1.md) 与 [Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md)，2026-06-16 第一包已落地。
 
@@ -33,16 +33,16 @@
 
 1. 读 `docs/planning/current.md` 确认阶段和冻结边界。
 2. 读 `docs/features/demo-definition-v1.md` 确认首版 Demo 完成规格和当前缺口。
-3. 读当前活跃细专题 `docs/features/demo-action-blocker-recovery-v1.md`，确认受阻动作、失败反馈、恢复路线和验收条件。
-4. 只在需要确认上一个阶段边界时，读 `docs/features/demo-action-feedback-readability-v1.md`。
+3. 读当前活跃细专题 `docs/features/demo-prototype-visual-pass-v1.md`，确认原型视觉优先级、层级、第一包范围和验收条件。
+4. 只在需要确认上一个阶段边界时，读 `docs/features/demo-action-blocker-recovery-v1.md`。
 5. 读 `docs/planning/demo-scope-and-playable-slice.md`，确认 12 区域职责表和功能 / 过渡分组。
 6. 只在需要历史风险时，读取最新周志中的“风险与未完成项”和“后续事项”。
 7. 按改动范围选读设计、架构和复测基线文档。
 
 ## 当前开发重点
 
-- 受阻动作恢复读法第一包已落地；代表性受阻动作已覆盖失败原因、缺口、恢复路线、HUD / 地图和对象状态一致性。
-- 动作反馈可读性、交互可辨识度、战斗撤离恢复、可玩场景构成、整段体验连贯性和 Demo 完成成果整理第一包已落地；不继续围绕动作成功结果、对象可交互状态、撤离恢复、区域构成、断点清单或核心稳定站写入后完成态加厚。
+- 当前推进原型视觉呈现第一版：现有 12 区画面的色彩层级、前后景分离、关键对象、危险 / 设施层和对象状态必须能与 HUD / 地图互相印证。
+- 受阻动作恢复读法、动作反馈可读性、交互可辨识度、战斗撤离恢复、可玩场景构成、整段体验连贯性和 Demo 完成成果整理第一包已落地；不继续围绕失败文案、动作成功结果、对象可交互状态、撤离恢复、区域构成、断点清单或核心稳定站写入后完成态加厚。
 - 外勤回基地收益兑现、功能场景玩法、运行时承载面拆分、主路径连续性和存档状态契约第一包已落地；不继续围绕同一切面加厚。
 - 非核心区域场景识别和功能 / 过渡路线支撑第一包已落地；不继续围绕同一批区域标签、路线职责、当前危险和回基地理由加厚。
 - 角色成长与战斗第一版已满足退出条件；不继续围绕战术扫描、防护响应、工具校准、污染边界、遗迹外圈或核心守卫同一压力点加厚。
@@ -59,7 +59,7 @@
 - 不继续扩前线行动台、候选、窗口复盘、高压窗口或 `base_action_state`，除非出现 `P0` / `P1`。
 - 不继续横向新增区域；首版 Demo 到 12 个区域封顶。
 - 不再默认给核心站完成态追加同构回访口袋。
-- 不新增随机成功率、新货币、队员、完整装备栏、完整 `loadout`、完整背包重构、联机入口或大规模美术替换。
+- 不新增随机成功率、新货币、队员、完整装备栏、完整 `loadout`、完整背包重构、联机入口、最终美术包或大规模美术替换。
 - 不把试玩准备、修 bug 阶段、完整发布准备、大规模 polish、死亡系统、结算页、基线复核、静态审计或纯提示修补作为当前阶段目标。
 
 ## 阻塞标准
@@ -81,8 +81,8 @@
 
 - `docs/planning/current.md`
 - `docs/features/demo-definition-v1.md`
+- `docs/features/demo-prototype-visual-pass-v1.md`
 - `docs/features/demo-action-blocker-recovery-v1.md`
-- `docs/features/demo-action-feedback-readability-v1.md`
 - 最近完成细专题按 `docs/features/README.md` 选读
 - `docs/planning/demo-scope-and-playable-slice.md`
 

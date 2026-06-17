@@ -6,8 +6,8 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题和最近完成细专题为准：
 
-- 当前活跃收口：[Demo Action Blocker Recovery V1](../features/demo-action-blocker-recovery-v1.md)，2026-06-17 第一包已落地，下一次先做阶段退出判断。
-- 最近完成：[Demo Action Feedback Readability V1](../features/demo-action-feedback-readability-v1.md)、[Demo Interaction Affordance V1](../features/demo-interaction-affordance-v1.md)、[Demo Combat Evacuation Recovery V1](../features/demo-combat-evacuation-recovery-v1.md)、[Demo Playable Scene Composition V1](../features/demo-playable-scene-composition-v1.md)、[Demo Playable Experience Coherence V1](../features/demo-playable-experience-coherence-v1.md)
+- 当前活跃专题：[Demo Prototype Visual Pass V1](../features/demo-prototype-visual-pass-v1.md)，用于确认现有原型画面的视觉优先级、层级和第一包实施范围。
+- 最近完成：[Demo Action Blocker Recovery V1](../features/demo-action-blocker-recovery-v1.md)、[Demo Action Feedback Readability V1](../features/demo-action-feedback-readability-v1.md)、[Demo Interaction Affordance V1](../features/demo-interaction-affordance-v1.md)、[Demo Combat Evacuation Recovery V1](../features/demo-combat-evacuation-recovery-v1.md)、[Demo Playable Scene Composition V1](../features/demo-playable-scene-composition-v1.md)
 - 更早完成专题按 [Feature Development Docs](../features/README.md) 索引选读。
 
 历史过程、长完成清单和详细复盘优先查看：
@@ -29,19 +29,19 @@
 - 首小时引导、首小时到 Demo 中段节奏衔接、基地后勤、出发口、污染边界、晶体侧路和核心稳定站复测内容。
 - 2026-06-14：「首版 Demo 可玩内容建设推进」达到收束条件；现有路线已有可操作场景对象、运行逻辑、玩家反馈、存档来源和自动检查证据。
 - 2026-06-16：「角色成长与战斗第一版」「功能 / 过渡路线支撑第一版」「非核心区域场景识别第一版」「资源链状态第一版」「存档状态契约第一版」「主路径连续性第一版」「运行时承载面拆分第一版」与「功能场景玩法第一版」第一包已落地。
-- 2026-06-17：外勤回基地收益兑现、终点前综合准备读法、Demo 完成成果整理、整段体验连贯性、可玩场景构成、战斗撤离恢复、交互可辨识度、动作反馈可读性与受阻动作恢复读法第一包均已落地。
+- 2026-06-17：外勤回基地收益兑现、终点前综合准备读法、Demo 完成成果整理、整段体验连贯性、可玩场景构成、战斗撤离恢复、交互可辨识度、动作反馈可读性与受阻动作恢复读法第一包均已落地；受阻动作恢复读法已通过阶段退出判断。
 
 当前阶段：
 
 ```text
-首版 Demo 体验主干建设：受阻动作恢复读法第一版
+首版 Demo 体验主干建设：原型视觉呈现第一版
 ```
 
-当前推进口径是受阻动作恢复读法收口：玩家尝试采集、清障、建造、加工、整备、战斗或核心写入但被前置、缺料、缺补给、敌人、设备忙碌或已处理状态拦住时，应能从失败反馈、HUD / 地图和对象状态判断为什么没完成、要补什么、去哪恢复。
+当前推进口径是原型视觉呈现第一版：在不新增区域、资源或完整美术包的前提下，检查现有 12 区画面的色彩层级、前后景分离、危险 / 资源 / 设施视觉权重和 HUD / 地图 / 对象反馈是否互相印证。
 
 ## 当前主线
 
-当前活跃收口专题是 [Demo Action Blocker Recovery V1](../features/demo-action-blocker-recovery-v1.md)。它承接已完成的 [Demo Interaction Affordance V1](../features/demo-interaction-affordance-v1.md) 与 [Demo Action Feedback Readability V1](../features/demo-action-feedback-readability-v1.md)，覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 的「UI / HUD」「自动检查」「资源 / 生产链」「工艺 / 科技解锁」和「战斗压力」缺口。
+当前活跃专题是 [Demo Prototype Visual Pass V1](../features/demo-prototype-visual-pass-v1.md)。它承接已完成的核心区场景识别、非核心区场景身份和可玩场景构成，覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 的「区域 / 场景」「核心场景完成度」「功能 / 过渡场景」「UI / HUD」「初步美术」和「自动检查」缺口。
 
 角色成长与战斗第一版已收束；后续不继续加厚工具打击校准、防护响应、主线完成感、战术扫描、污染边界、遗迹外圈、工业主干或核心场景同一读法点。若后续扩到新角色动作、装备状态或战斗压力，必须另建非重复细专题。
 
@@ -55,7 +55,7 @@
 
 ## UI 策略
 
-UI 和场景表现已完成第一轮原型呈现支撑。当前受阻动作恢复读法阶段不新增 UI 面板，只检查和补齐既有失败反馈、HUD、地图、对象提示和场景状态之间的可见一致性。
+UI 和场景表现已完成第一轮原型呈现支撑。当前原型视觉呈现阶段不新增 UI 面板，只检查现有场景视觉、HUD、地图和对象状态之间的可见一致性。
 
 不做完整菜单、设置页、背包大重构、完整装备栏、结算页、动画过场或大规模美术替换。
 
@@ -71,7 +71,7 @@ UI 和场景表现已完成第一轮原型呈现支撑。当前受阻动作恢�
 
 允许推进：
 
-- 受阻动作恢复读法第一包已落地后的阶段退出判断或必要 `P0` / `P1` 修正。
+- 原型视觉呈现第一版的第一包范围确认、实现和必要 `P0` / `P1` 修正。
 - 必要时新增窄职责 formatter、presenter helper 或专项 check，避免继续推高接近硬上限的大文件。
 - 只修阻塞主线连续性、功能闭合或区域表达的断点。
 
@@ -100,7 +100,7 @@ Windows 用 `pwsh ./scripts/check-docs.ps1`、`pwsh ./scripts/check-text-files.p
 
 ## 阶段退出条件
 
-- [Demo Action Blocker Recovery V1](../features/demo-action-blocker-recovery-v1.md) 建立并完成第一包受阻动作恢复读法检查与补齐。
-- 代表性受阻动作能通过失败反馈、HUD / 地图、对象状态或场景视觉检查互相印证。
+- [Demo Prototype Visual Pass V1](../features/demo-prototype-visual-pass-v1.md) 建立并完成第一包原型视觉呈现检查与补齐。
+- 现有 12 区的区域背景、主路方向、关键对象、危险 / 设施层和处理状态能通过场景视觉、HUD / 地图与对象状态互相印证。
 - 未引入新资源、配方、区域、新任务链、新敌人类型、完整背包、完整装备栏、死亡系统、终局菜单、结算页或发布准备流程。
 - 新增检查走独立专项文件；不继续推高 `vertical_slice_flow_check.gd`、`vertical_slice_map.gd`、`prototype_hud.gd` 或 `interaction_prompt_formatter.gd`。
