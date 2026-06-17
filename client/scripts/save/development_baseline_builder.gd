@@ -790,6 +790,13 @@ func _apply_baseline_pose_and_inventory(
 				{},
 				{"fluid.basic_solvent": 2.0}
 			)
+		"baseline.s22_demo_completion_outpost_review":
+			_set_runtime_position(world_state, character_state, "region.outpost_platform", BASELINE_OUTPOST_POSITION)
+			DevelopmentBaselineDemoCompletionState.apply(
+				world_state,
+				character_state,
+				_get_enemy_max_health("enemy.demo_stabilization_guard")
+			)
 
 
 func _mark_objects_gathered(

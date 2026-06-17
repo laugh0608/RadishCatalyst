@@ -129,6 +129,7 @@ echo "Coverage: static data and scene references."
 "${python_exe}" "${repo_root}/scripts/check-client-demo-field-loop-payoff.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-endpoint-readiness.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-completion-outcome-readout.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-playable-experience-coherence.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-scene-art-foundation.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-non-core-scene-identity.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-functional-transition-route-support.py" "${repo_root}"
@@ -170,6 +171,7 @@ run_godot_checked "functional-scene-gameplay" --script "${client_root}/scripts/c
 run_godot_checked "demo-field-loop-payoff" --script "${client_root}/scripts/checks/demo_field_loop_payoff_check.gd" --no-header
 run_godot_checked "demo-endpoint-readiness" --script "${client_root}/scripts/checks/demo_endpoint_readiness_check.gd" --no-header
 run_godot_checked "demo-completion-outcome-readout" --script "${client_root}/scripts/checks/demo_completion_outcome_readout_check.gd" --no-header
+run_godot_checked "demo-playable-experience-coherence" --script "${client_root}/scripts/checks/demo_playable_experience_coherence_check.gd" --no-header
 run_godot_checked "industrial-tech-spine" --script "${client_root}/scripts/checks/industrial_tech_spine_check.gd" --no-header
 run_godot_checked "demo-resource-chain-state" --script "${client_root}/scripts/checks/demo_resource_chain_state_check.gd" --no-header
 run_godot_checked "demo-save-state-contract" --script "${client_root}/scripts/checks/demo_save_state_contract_check.gd" --no-header

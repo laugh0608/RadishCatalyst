@@ -4,7 +4,8 @@ class_name DevelopmentBaselineCatalog
 const DEMO_BASELINE_IDS: Array[String] = [
 	"baseline.s0_new_game",
 	"baseline.s2_outer_ring_secured",
-	"baseline.s21_demo_stabilization_core_ready"
+	"baseline.s21_demo_stabilization_core_ready",
+	"baseline.s22_demo_completion_outpost_review"
 ]
 const DEFAULT_DEMO_BASELINE_ID := "baseline.s2_outer_ring_secured"
 
@@ -192,6 +193,17 @@ const BASELINE_DEFINITIONS := [
 		"demo_baseline_order": 3,
 		"demo_baseline_focus": "侧边补给、缓冲包和三档写入承压。",
 		"demo_baseline_watch": "观察阶段守卫后是否理解先整备再写入，或直接写入的代价。"
+	},
+	{
+		"id": "baseline.s22_demo_completion_outpost_review",
+		"code": "S22",
+		"display_name": "S22 Demo 完成后前哨整理",
+		"completed_through": "quest.analyze_phase_survey_trace",
+		"summary": "核心稳定站已写入完成，玩家已回到前哨整理补给、整备收益和复测记录。",
+		"recommended_for": "Demo 完成后成果整理、HUD / 地图 / 前哨核心读法、存档读取后状态回归。",
+		"demo_baseline_order": 4,
+		"demo_baseline_focus": "完成后回前哨整理，而不是开启新章节或结算页。",
+		"demo_baseline_watch": "观察 HUD、地图和前哨核心是否仍能读出 Demo 已完成与成果整理方向。"
 	}
 ]
 
