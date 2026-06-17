@@ -372,6 +372,28 @@ static func consume_tool_strike_calibration(
 	return true
 
 
+static func is_field_loop_payoff_confirmed(world_state: WorldState) -> bool:
+	return DemoFieldLoopPayoffFormatter.is_payoff_confirmed(world_state)
+
+
+static func should_confirm_field_loop_payoff(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> bool:
+	return DemoFieldLoopPayoffFormatter.can_confirm_payoff(world_state, character_state)
+
+
+static func mark_field_loop_payoff_confirmed(world_state: WorldState) -> void:
+	DemoFieldLoopPayoffFormatter.mark_payoff_confirmed(world_state)
+
+
+static func has_active_field_loop_payoff(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> bool:
+	return DemoFieldLoopPayoffFormatter.has_active_payoff(world_state, character_state)
+
+
 static func format_protective_response_compact_state(
 	world_state: WorldState,
 	character_state: CharacterState
@@ -544,6 +566,8 @@ static func get_pollution_drain_multiplier(
 		multiplier *= CORE_ARCHIVE_MAINTENANCE_DRAIN_MULT
 	if has_active_logistics_maintenance(character_state, world_state):
 		multiplier *= LOGISTICS_MAINTENANCE_DRAIN_MULT
+	if has_active_field_loop_payoff(character_state, world_state):
+		multiplier *= DemoFieldLoopPayoffFormatter.FIELD_LOOP_PAYOFF_PRESSURE_MULT
 	return multiplier
 
 
@@ -590,6 +614,8 @@ static func get_pollution_counter_damage_multiplier(
 		multiplier *= CORE_ARCHIVE_MAINTENANCE_COUNTER_MULT
 	if has_active_logistics_maintenance(character_state, world_state):
 		multiplier *= LOGISTICS_MAINTENANCE_COUNTER_MULT
+	if has_active_field_loop_payoff(character_state, world_state):
+		multiplier *= DemoFieldLoopPayoffFormatter.FIELD_LOOP_PAYOFF_PRESSURE_MULT
 	return multiplier
 
 
@@ -597,23 +623,17 @@ static func format_pollution_pressure_feedback(
 	character_state: CharacterState,
 	world_state: WorldState
 ) -> String:
-	var has_calibration := has_active_module_calibration(character_state, world_state)
-	var has_archive_maintenance := has_active_core_archive_maintenance(character_state, world_state)
-	var has_logistics_maintenance := has_active_logistics_maintenance(character_state, world_state)
-	if has_calibration and has_archive_maintenance and has_logistics_maintenance:
-		return "出发整备台校准、核心归档维护和后勤维护已接入，污染承压明显下降。"
-	if has_archive_maintenance and has_logistics_maintenance:
-		return "核心归档维护和后勤维护已接入，污染承压明显下降。"
-	if has_calibration and has_logistics_maintenance:
-		return "出发整备台校准和后勤维护已接入，污染承压明显下降。"
-	if has_calibration and has_archive_maintenance:
-		return "出发整备台校准和核心归档维护已接入，污染承压继续下降。"
-	if has_logistics_maintenance:
-		return "后勤维护已接入，污染承压明显下降。"
-	if has_archive_maintenance:
-		return "核心归档维护已接入，污染承压继续下降。"
-	if has_calibration:
-		return "出发整备台校准已接入，污染承压继续下降。"
+	var payoff_parts: Array[String] = []
+	if has_active_module_calibration(character_state, world_state):
+		payoff_parts.append("出发整备台校准")
+	if has_active_core_archive_maintenance(character_state, world_state):
+		payoff_parts.append("核心归档维护")
+	if has_active_logistics_maintenance(character_state, world_state):
+		payoff_parts.append("后勤维护")
+	if has_active_field_loop_payoff(character_state, world_state):
+		payoff_parts.append("外勤收益整备")
+	if not payoff_parts.is_empty():
+		return "%s已接入，污染承压明显下降。" % "、".join(payoff_parts)
 	return ""
 
 
@@ -630,6 +650,8 @@ static func format_ruin_outer_ring_pressure_feedback(
 		outfitting_parts.append("核心归档维护")
 	if has_active_logistics_maintenance(character_state, world_state):
 		outfitting_parts.append("后勤维护")
+	if has_active_field_loop_payoff(character_state, world_state):
+		outfitting_parts.append("外勤收益整备")
 	if outfitting_parts.is_empty():
 		return "基础过滤模块已装入，外圈相位回波反击承压下降。"
 	return "%s已接入，遗迹外圈相位反击承压继续下降。" % "、".join(outfitting_parts)

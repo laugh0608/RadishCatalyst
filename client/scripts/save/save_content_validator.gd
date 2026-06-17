@@ -388,6 +388,7 @@ const MAP_OBJECT_ALLOWED_FIELDS := [
 	"logistics_maintenance_confirmed",
 	"logistics_maintenance_pollution_retest_processed",
 	"logistics_maintenance_retest_processed",
+	"field_loop_payoff_confirmed",
 	"tactical_scan_marked",
 	"tactical_scan_consumed"
 ]

@@ -407,6 +407,8 @@ func _interact_with_field_outfitting_station(character_state: CharacterState, wo
 			)
 			logistics_result["logistics_maintenance_confirmed"] = true
 			return logistics_result
+		if FieldOutfittingRuntime.should_confirm_field_loop_payoff(character_state, world_state):
+			return _confirm_field_loop_payoff(world_state)
 		if FieldOutfittingRuntime.is_protective_response_ready(world_state):
 			return _success_feedback(
 				"出发整备台复查完成：防护响应已待命，下一次外勤反击会读取基础防护服、过滤模块和前哨补给。",
@@ -583,6 +585,18 @@ func _confirm_tool_strike_calibration(
 	)
 	calibration_result["tool_strike_calibration_ready"] = true
 	return calibration_result
+
+
+func _confirm_field_loop_payoff(world_state: WorldState) -> Dictionary:
+	FieldOutfittingRuntime.mark_field_loop_payoff_confirmed(world_state)
+	var payoff_result := _success_feedback(
+		DemoFieldLoopPayoffFormatter.format_confirmation_message(),
+		"外勤收益兑现完成",
+		DemoFieldLoopPayoffFormatter.format_confirmation_status(),
+		DemoFieldLoopPayoffFormatter.format_confirmation_next_step()
+	)
+	payoff_result["field_loop_payoff_confirmed"] = true
+	return payoff_result
 
 
 func _gather(instance_id: String, definition: Dictionary, character_state: CharacterState, world_state: WorldState) -> Dictionary:

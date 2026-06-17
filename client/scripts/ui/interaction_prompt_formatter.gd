@@ -189,6 +189,12 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 	)
 	if not industrial_chain_line.is_empty():
 		parts.append(industrial_chain_line)
+	var field_loop_line := DemoFieldLoopPayoffFormatter.format_outfitting_prompt_line(
+		world_state,
+		character_state
+	)
+	if not field_loop_line.is_empty():
+		parts.append(field_loop_line)
 	var tool_strike_line := FieldOutfittingRuntime.format_tool_strike_calibration_prompt_line(
 		world_state,
 		character_state
@@ -226,6 +232,11 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 			return "\n".join(parts)
 		if FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
 			parts.append("后勤维护：已确认，污染边界、遗迹外圈与核心站复测会读取维护收益。")
+		if FieldOutfittingRuntime.should_confirm_field_loop_payoff(character_state, world_state):
+			parts.append("操作：E 确认外勤收益整备")
+			return "\n".join(parts)
+		if FieldOutfittingRuntime.is_field_loop_payoff_confirmed(world_state):
+			parts.append("外勤收益：已兑现，回波匣解析和污染回波沉积处理已登记到下一趟整备。")
 		if FieldOutfittingRuntime.is_protective_response_ready(world_state):
 			parts.append("操作：E 检查防护响应")
 			return "\n".join(parts)

@@ -16,6 +16,8 @@ static func format_hud_summary(world_state: WorldState, character_state: Charact
 	var crystal_logistics_line := format_crystal_logistics_return_line(world_state, character_state)
 	if not crystal_logistics_line.is_empty():
 		lines.append(crystal_logistics_line)
+	for field_loop_line in DemoFieldLoopPayoffFormatter.format_hud_summary(world_state, character_state):
+		lines.append(field_loop_line)
 	var next_sortie_line := CoreGuardAftermathFormatter.format_next_sortie_hud_line(world_state, character_state)
 	if not next_sortie_line.is_empty():
 		lines.append(next_sortie_line)
@@ -33,6 +35,8 @@ static func format_outpost_core_prompt(world_state: WorldState, character_state:
 	var crystal_logistics_line := format_crystal_logistics_return_line(world_state, character_state)
 	if not crystal_logistics_line.is_empty():
 		parts.append("%s。" % crystal_logistics_line)
+	for field_loop_line in DemoFieldLoopPayoffFormatter.format_hud_summary(world_state, character_state):
+		parts.append("%s。" % field_loop_line)
 	var aftermath_line := CoreGuardAftermathFormatter.format_outpost_line(world_state, character_state)
 	if not aftermath_line.is_empty():
 		parts.append("%s。" % aftermath_line)
@@ -58,6 +62,8 @@ static func format_outfitting_station_prompt(world_state: WorldState, character_
 	var crystal_logistics_line := format_crystal_logistics_return_line(world_state, character_state)
 	if not crystal_logistics_line.is_empty():
 		parts.append("%s。" % crystal_logistics_line)
+	for field_loop_line in DemoFieldLoopPayoffFormatter.format_hud_summary(world_state, character_state):
+		parts.append("%s。" % field_loop_line)
 	return "\n".join(parts)
 
 
@@ -77,6 +83,8 @@ static func format_departure_gate_status(world_state: WorldState, character_stat
 	var crystal_logistics_line := format_crystal_logistics_return_line(world_state, character_state)
 	if not crystal_logistics_line.is_empty():
 		parts.append(crystal_logistics_line)
+	for field_loop_line in DemoFieldLoopPayoffFormatter.format_hud_summary(world_state, character_state):
+		parts.append(field_loop_line)
 	return "；".join(parts)
 
 
@@ -118,6 +126,12 @@ static func format_departure_gate_next_step(world_state: WorldState, character_s
 		and FieldOutfittingRuntime.has_calibration_materials(character_state)
 	):
 		return "先到出发整备台校准基础过滤模块"
+	var field_loop_step := DemoFieldLoopPayoffFormatter.format_departure_next_step(
+		world_state,
+		character_state
+	)
+	if not field_loop_step.is_empty() and not FieldOutfittingRuntime.is_field_loop_payoff_confirmed(world_state):
+		return field_loop_step
 	if _should_show_ruin_outer_ring_module_payoff(world_state):
 		return "从外勤出发口回遗迹外圈，清理相位守卫并观察模块承压收益"
 	var crystal_logistics_step := format_crystal_logistics_return_next_step(world_state, character_state)
@@ -210,6 +224,9 @@ static func format_feedback_detail(world_state: WorldState, character_state: Cha
 	)
 	if not tool_strike_state.is_empty():
 		parts.append(tool_strike_state)
+	var field_loop_state := DemoFieldLoopPayoffFormatter.format_compact_state(world_state, character_state)
+	if not field_loop_state.is_empty():
+		parts.append(field_loop_state)
 	var aftermath_line := CoreGuardAftermathFormatter.format_outpost_line(world_state, character_state)
 	if not aftermath_line.is_empty():
 		parts.append(aftermath_line)
@@ -271,6 +288,9 @@ static func format_supply_state(world_state: WorldState, character_state: Charac
 
 
 static func format_pressure_payoff(world_state: WorldState) -> String:
+	var field_loop_payoff := DemoFieldLoopPayoffFormatter.format_pressure_payoff_line(world_state)
+	if not field_loop_payoff.is_empty():
+		return field_loop_payoff
 	if FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
 		if (
 			FieldOutfittingRuntime.has_logistics_maintenance_pollution_retest_residue(world_state)
@@ -338,6 +358,9 @@ static func _format_departure_state_parts(
 	)
 	if not tool_strike_state.is_empty():
 		parts.append(tool_strike_state)
+	var field_loop_state := DemoFieldLoopPayoffFormatter.format_compact_state(world_state, character_state)
+	if not field_loop_state.is_empty():
+		parts.append(field_loop_state)
 	return parts
 
 
@@ -358,6 +381,9 @@ static func _format_logistics_outfitting_parts(
 	)
 	if not tool_strike_state.is_empty():
 		parts.append(tool_strike_state)
+	var field_loop_state := DemoFieldLoopPayoffFormatter.format_compact_state(world_state, character_state)
+	if not field_loop_state.is_empty():
+		parts.append(field_loop_state)
 	return parts
 
 
