@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/map/vertical_slice_map.gd" id="1_map"]
 [ext_resource type="PackedScene" path="res://scenes/actors/Player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/maps/PrototypeInteractable.tscn" id="3_interactable"]
 [ext_resource type="PackedScene" path="res://scenes/actors/PrototypeEnemy.tscn" id="4_enemy"]
+[ext_resource type="Script" path="res://scripts/map/prototype_visual_priority_layer.gd" id="5_visual_priority"]
 
 [node name="VerticalSliceMap" type="Node2D"]
 script = ExtResource("1_map")
@@ -1274,6 +1275,9 @@ offset_right = 4112.0
 offset_bottom = -102.0
 text = "补给→守卫→回写→核心写入"
 horizontal_alignment = 1
+
+[node name="PrototypeVisualPriorityLayer" type="Node2D" parent="."]
+script = ExtResource("5_visual_priority")
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(-250, -48)

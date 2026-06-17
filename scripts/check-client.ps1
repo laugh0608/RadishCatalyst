@@ -169,6 +169,13 @@ $checks = @(
         Parameters = @{
             RepoRoot = $RepoRoot
         }
+    },
+    @{
+        Name = "client demo prototype visual pass"
+        Script = "check-client-demo-prototype-visual-pass.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
     }
 )
 

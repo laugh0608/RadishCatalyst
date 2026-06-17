@@ -36,10 +36,17 @@
 
 ## 第一包实施范围
 
-- 建立现有 12 区视觉优先级表，明确每个区域的背景层、主路层、关键对象层和危险 / 设施层。
-- 补齐代表性视觉状态：可处理、已处理、缺条件、危险仍在、设备可用 / 忙碌、核心写入准备不足。
-- 让 HUD / 地图 / 对象提示与场景视觉保持同一优先级，不新增 UI 面板或完整美术流程。
-- 新增 `demo_prototype_visual_pass_check.gd` 或同等专项检查，覆盖场景节点、对象视觉状态、HUD / 地图互证和 12 区边界。
+- 建立 `PrototypeVisualPriorityProfile`，覆盖现有 12 区的背景层、主路层、关键对象层和危险 / 设施层。
+- 挂入 `PrototypeVisualPriorityLayer`，在 `VerticalSliceMap.tscn` 里生成主路、关键对象和危险 / 设施视觉 cue。
+- 补齐代表性对象视觉状态：可处理、已处理、缺条件、危险仍在、设备可用 / 忙碌、核心写入准备不足。
+- 新增 `demo_prototype_visual_pass_check.gd` 专项检查，覆盖场景节点、对象视觉状态、HUD / 地图互证和 12 区边界。
+
+## 第一包完成状态
+
+- 2026-06-17 已落地：`PrototypeVisualPriorityProfile` 覆盖 12 区视觉优先级表和代表对象状态色。
+- `PrototypeVisualPriorityLayer` 已挂入 `VerticalSliceMap.tscn`，运行时生成每区 3 个视觉 cue，并给现有区域背景写入优先级样式。
+- `PrototypeInteractable` 与 `InteractableVisualRefresher` 已接入建造缺前置、加工设备忙碌、危险仍在、核心写入不足和已处理对象代表状态。
+- `demo_prototype_visual_pass_check.gd` 与默认静态接线检查已覆盖 profile、场景层、对象状态和脚本入口。
 
 ## 当前不做
 

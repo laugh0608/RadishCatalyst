@@ -14,7 +14,7 @@
 
 首版 Demo 完成规格：[Demo Definition V1](../features/demo-definition-v1.md)。
 
-当前活跃细专题：[Demo Prototype Visual Pass V1](../features/demo-prototype-visual-pass-v1.md)，用于确认现有 12 区原型画面的视觉优先级、层级和第一包实施范围。
+当前活跃细专题：[Demo Prototype Visual Pass V1](../features/demo-prototype-visual-pass-v1.md)，2026-06-17 第一包已落地；下一次先做阶段退出判断。
 
 最近完成细专题：[Demo Action Blocker Recovery V1](../features/demo-action-blocker-recovery-v1.md)、[Demo Action Feedback Readability V1](../features/demo-action-feedback-readability-v1.md)、[Demo Interaction Affordance V1](../features/demo-interaction-affordance-v1.md)、[Demo Combat Evacuation Recovery V1](../features/demo-combat-evacuation-recovery-v1.md) 与 [Demo Playable Scene Composition V1](../features/demo-playable-scene-composition-v1.md)，2026-06-17 第一包已落地。
 
@@ -41,7 +41,7 @@
 
 ## 当前开发重点
 
-- 当前推进原型视觉呈现第一版：现有 12 区画面的色彩层级、前后景分离、关键对象、危险 / 设施层和对象状态必须能与 HUD / 地图互相印证。
+- 原型视觉呈现第一包已落地：现有 12 区视觉优先级表、场景视觉 cue、代表对象状态和专项检查已接入；下一次先做阶段退出判断。
 - 受阻动作恢复读法、动作反馈可读性、交互可辨识度、战斗撤离恢复、可玩场景构成、整段体验连贯性和 Demo 完成成果整理第一包已落地；不继续围绕失败文案、动作成功结果、对象可交互状态、撤离恢复、区域构成、断点清单或核心稳定站写入后完成态加厚。
 - 外勤回基地收益兑现、功能场景玩法、运行时承载面拆分、主路径连续性和存档状态契约第一包已落地；不继续围绕同一切面加厚。
 - 非核心区域场景识别和功能 / 过渡路线支撑第一包已落地；不继续围绕同一批区域标签、路线职责、当前危险和回基地理由加厚。

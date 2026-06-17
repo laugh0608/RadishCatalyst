@@ -129,6 +129,11 @@ if (-not (Test-Path -LiteralPath $demoActionBlockerRecoveryCheckScript -PathType
     Write-Error "Demo action blocker recovery check script not found: ${demoActionBlockerRecoveryCheckScript}"
     exit 1
 }
+$demoPrototypeVisualPassCheckScript = Join-Path $clientRoot "scripts/checks/demo_prototype_visual_pass_check.gd"
+if (-not (Test-Path -LiteralPath $demoPrototypeVisualPassCheckScript -PathType Leaf)) {
+    Write-Error "Demo prototype visual pass check script not found: ${demoPrototypeVisualPassCheckScript}"
+    exit 1
+}
 
 $godotRunId = "vertical-slice-flow-{0}-{1}" -f $PID, [DateTime]::UtcNow.ToString("yyyyMMddHHmmssfff")
 $godotHome = Join-Path (Join-Path $RepoRoot ".godot-check-runs") $godotRunId
@@ -315,8 +320,15 @@ try {
         exit $LASTEXITCODE
     }
 
+    $prototypeVisualPassOutput = & $GodotExe --headless --path $clientRoot --script $demoPrototypeVisualPassCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $prototypeVisualPassOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo prototype visual pass check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $unexpectedErrors = @(
-        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoFieldLoopPayoffOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput |
+        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoFieldLoopPayoffOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput + $prototypeVisualPassOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {

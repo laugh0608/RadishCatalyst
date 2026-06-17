@@ -502,6 +502,47 @@ func set_processed_visual() -> bool:
 	return false
 
 
+func set_visual_priority_state(state_id: String, custom_label: String = "") -> bool:
+	_ensure_visual_nodes()
+	var state_profile := PrototypeVisualPriorityProfile.get_state_profile(state_id)
+	if state_profile.is_empty():
+		return false
+	consumed = false
+	visible = true
+	monitoring = bool(state_profile.get("monitoring", true))
+	var marker_size: Vector2 = state_profile.get("marker_size", Vector2(36.0, 28.0))
+	var marker_color: Color = state_profile.get("color", DEFAULT_MARKER_COLOR)
+	_apply_marker_style(marker_size, marker_color)
+	var state_label := custom_label
+	if state_label.is_empty():
+		state_label = String(state_profile.get("label", ""))
+	var display_text := display_name_text
+	if display_text.is_empty():
+		display_text = name
+	_set_label_text("%s\n%s" % [display_text, state_label], 2)
+	return true
+
+
+func set_missing_prerequisite_visual() -> bool:
+	return set_visual_priority_state(PrototypeVisualPriorityProfile.STATE_MISSING_PREREQUISITE)
+
+
+func set_danger_active_visual() -> bool:
+	return set_visual_priority_state(PrototypeVisualPriorityProfile.STATE_DANGER_ACTIVE)
+
+
+func set_device_ready_visual() -> bool:
+	return set_visual_priority_state(PrototypeVisualPriorityProfile.STATE_DEVICE_READY)
+
+
+func set_device_busy_visual() -> bool:
+	return set_visual_priority_state(PrototypeVisualPriorityProfile.STATE_DEVICE_BUSY)
+
+
+func set_core_write_blocked_visual() -> bool:
+	return set_visual_priority_state(PrototypeVisualPriorityProfile.STATE_CORE_WRITE_BLOCKED)
+
+
 func set_confirmed_ruin_signal_visual() -> void:
 	consumed = true
 	visible = true

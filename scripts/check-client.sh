@@ -141,6 +141,7 @@ echo "Coverage: static data and scene references."
 "${python_exe}" "${repo_root}/scripts/check-client-demo-tool-strike-calibration.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-action-feedback-readability.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-action-blocker-recovery.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-prototype-visual-pass.py" "${repo_root}"
 
 if [ "${with_godot}" -ne 1 ]; then
   echo "Skipping Godot runtime checks. Use --with-godot after confirming Godot can start in this environment."
@@ -192,5 +193,6 @@ run_godot_checked "demo-protective-response" --script "${client_root}/scripts/ch
 run_godot_checked "demo-tool-strike-calibration" --script "${client_root}/scripts/checks/demo_tool_strike_calibration_check.gd" --no-header
 run_godot_checked "demo-action-feedback-readability" --script "${client_root}/scripts/checks/demo_action_feedback_readability_check.gd" --no-header
 run_godot_checked "demo-action-blocker-recovery" --script "${client_root}/scripts/checks/demo_action_blocker_recovery_check.gd" --no-header
+run_godot_checked "demo-prototype-visual-pass" --script "${client_root}/scripts/checks/demo_prototype_visual_pass_check.gd" --no-header
 
 echo "Client checks passed."

@@ -62,7 +62,7 @@
 | 交互可辨识度 | `docs/features/demo-interaction-affordance-v1.md` | 已落地第一包 |
 | 动作反馈可读性 | `docs/features/demo-action-feedback-readability-v1.md` | 已落地第一包 |
 | 受阻动作恢复读法 | `docs/features/demo-action-blocker-recovery-v1.md` | 已落地第一包 |
-| 原型视觉呈现 | `docs/features/demo-prototype-visual-pass-v1.md` | 当前活跃 |
+| 原型视觉呈现 | `docs/features/demo-prototype-visual-pass-v1.md` | 当前活跃，第一包已落地 |
 | 角色技能 / 装备模块第一版 | `docs/features/demo-character-kit-v1.md` | 已落地首个主动工具动作 |
 | 防护响应 / 装备状态 | `docs/features/demo-protective-response-v1.md` | 已落地第一包 |
 | 核心场景与初步美术 | `docs/features/demo-scene-art-foundation-v1.md` | 已落地第一包 |
@@ -91,7 +91,7 @@
 
 ## 当前优先级
 
-当前继续推进首版 Demo 体验主干；`Demo Action Blocker Recovery V1` 第一包已通过退出判断，当前活跃专题切到 `Demo Prototype Visual Pass V1`：
+当前继续推进首版 Demo 体验主干；`Demo Prototype Visual Pass V1` 第一包已落地，下一步先做阶段退出判断：
 
 1. 受阻动作恢复读法第一包已覆盖采集、清障、建造、加工、整备、战斗和核心写入被拦住时的失败反馈、HUD、地图和对象状态一致性。
 2. 原型视觉呈现第一包检查现有 12 区的色彩层级、前后景分离、危险 / 资源 / 设施视觉权重，以及场景视觉、HUD / 地图和对象状态互证。
