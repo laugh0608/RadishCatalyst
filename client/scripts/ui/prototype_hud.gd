@@ -244,7 +244,7 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 	if vitals_label != null:
 		vitals_label.text = status_presenter.format_vitals_text(data_registry, world_state, character_state)
 	_update_runtime_hint(world_state, character_state, active_quest_id)
-	_update_map_panel(world_state, active_quest_id)
+	_update_map_panel(world_state, active_quest_id, character_state)
 	last_quick_slots = debug_panel_presenter.update_quick_slot_binding_panel(
 		data_registry,
 		character_state,
@@ -529,12 +529,12 @@ func _get_display_name(data_registry: DataRegistry, definition_id: String) -> St
 	return data_registry.get_text(String(definition.get("display_name_key", definition_id)))
 
 
-func _update_map_panel(world_state: WorldState, quest_id: String) -> void:
+func _update_map_panel(world_state: WorldState, quest_id: String, character_state: CharacterState) -> void:
 	_ensure_runtime_nodes()
 	if map_title_label != null:
 		map_title_label.text = map_presenter.format_demo_route_title(world_state, quest_id)
 	if map_hint_label != null:
-		map_hint_label.text = map_presenter.format_demo_route_hint(world_state, quest_id)
+		map_hint_label.text = map_presenter.format_demo_route_hint(world_state, quest_id, character_state)
 	var marker_view_data := map_presenter.get_marker_view_data(world_state, quest_id)
 	for index in range(mini(marker_view_data.size(), map_marker_rects.size())):
 		if map_marker_rects[index] == null or map_marker_labels[index] == null:

@@ -59,6 +59,11 @@ if (-not (Test-Path -LiteralPath $playableSceneCompositionCheckScript -PathType 
     Write-Error "Playable scene composition check script not found: ${playableSceneCompositionCheckScript}"
     exit 1
 }
+$demoCombatEvacuationRecoveryCheckScript = Join-Path $clientRoot "scripts/checks/demo_combat_evacuation_recovery_check.gd"
+if (-not (Test-Path -LiteralPath $demoCombatEvacuationRecoveryCheckScript -PathType Leaf)) {
+    Write-Error "Demo combat evacuation recovery check script not found: ${demoCombatEvacuationRecoveryCheckScript}"
+    exit 1
+}
 $industrialTechSpineCheckScript = Join-Path $clientRoot "scripts/checks/industrial_tech_spine_check.gd"
 if (-not (Test-Path -LiteralPath $industrialTechSpineCheckScript -PathType Leaf)) {
     Write-Error "Industrial tech spine check script not found: ${industrialTechSpineCheckScript}"
@@ -197,6 +202,13 @@ try {
         exit $LASTEXITCODE
     }
 
+    $demoCombatEvacuationRecoveryOutput = & $GodotExe --headless --path $clientRoot --script $demoCombatEvacuationRecoveryCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $demoCombatEvacuationRecoveryOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo combat evacuation recovery check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $industrialCheckOutput = & $GodotExe --headless --path $clientRoot --script $industrialTechSpineCheckScript --no-header 2>&1
     if ($LASTEXITCODE -ne 0) {
         $industrialCheckOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
@@ -268,7 +280,7 @@ try {
     }
 
     $unexpectedErrors = @(
-        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoFieldLoopPayoffOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput |
+        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoFieldLoopPayoffOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {

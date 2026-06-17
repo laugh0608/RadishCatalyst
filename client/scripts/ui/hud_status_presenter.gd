@@ -245,6 +245,16 @@ func _format_base_summary_lines(
 		world_state,
 		character_state
 	)
+	var evacuation_recovery_summary := DemoCombatEvacuationRecoveryFormatter.format_hud_summary(
+		world_state,
+		character_state
+	)
+	if not evacuation_recovery_summary.is_empty():
+		if not completion_outcome_summary.is_empty():
+			evacuation_recovery_summary += completion_outcome_summary
+		if not resource_chain_summary.is_empty():
+			return resource_chain_summary + evacuation_recovery_summary
+		return evacuation_recovery_summary
 	var core_stabilization_summary := CoreStabilizationPressureFormatter.format_hud_summary(world_state, character_state, active_quest_id)
 	if not core_stabilization_summary.is_empty():
 		if not endpoint_readiness_summary.is_empty():

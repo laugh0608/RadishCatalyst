@@ -189,6 +189,12 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 		return "设施：%s\n用途：把基地制造出的模块装入防护服，让外勤承压差异从 HUD 提示变成可操作整备。\n状态：未建成。\n下一步：先完成基地平台的出发整备台建造点。" % _get_display_name("building.field_outfitting_station")
 
 	var parts: Array[String] = [DepartureReadinessFormatter.format_outfitting_station_prompt(world_state, character_state)]
+	var recovery_line := DemoCombatEvacuationRecoveryFormatter.format_outfitting_station_recovery_line(
+		world_state,
+		character_state
+	)
+	if not recovery_line.is_empty():
+		parts.append(recovery_line)
 	var industrial_chain_line := IndustrialTechSpineFormatter.format_outfitting_station_prompt_line(
 		world_state,
 		character_state
@@ -693,6 +699,12 @@ func format_outpost_core_prompt(world_state: WorldState, character_state: Charac
 	var completion_line := DemoMainlineCompletionFormatter.format_outpost_core_prompt_line(world_state, character_state)
 	if not completion_line.is_empty():
 		parts.append(completion_line)
+	var recovery_line := DemoCombatEvacuationRecoveryFormatter.format_outpost_core_recovery_line(
+		world_state,
+		character_state
+	)
+	if not recovery_line.is_empty():
+		parts.append(recovery_line)
 	parts.append(scene_line)
 	if not composition_line.is_empty():
 		parts.append(composition_line)
@@ -1103,7 +1115,14 @@ func _get_general_interaction_status(
 	if tool_status.begins_with("缺少能力"):
 		return "%s，先升级或更换工具。" % tool_status
 	if interactable.definition_id == "map_object.outpost_departure_gate":
-		return DepartureReadinessFormatter.format_departure_gate_status(world_state, character_state)
+		var recovery_status := DemoCombatEvacuationRecoveryFormatter.format_departure_gate_status_line(
+			world_state,
+			character_state
+		)
+		var departure_status := DepartureReadinessFormatter.format_departure_gate_status(world_state, character_state)
+		if not recovery_status.is_empty():
+			return "%s；%s" % [recovery_status, departure_status]
+		return departure_status
 	if interactable.definition_id == "map_object.outpost_logistics_route_sign":
 		return DepartureReadinessFormatter.format_logistics_route_status(world_state, character_state)
 	match interactable.interaction_type:
@@ -1159,6 +1178,12 @@ func _get_general_interaction_next_step(
 	world_state: WorldState
 ) -> String:
 	if interactable.definition_id == "map_object.outpost_departure_gate":
+		var recovery_next_step := DemoCombatEvacuationRecoveryFormatter.format_departure_gate_next_step(
+			world_state,
+			character_state
+		)
+		if not recovery_next_step.is_empty():
+			return recovery_next_step
 		return DepartureReadinessFormatter.format_departure_gate_next_step(world_state, character_state)
 	if interactable.definition_id == "map_object.outpost_logistics_route_sign":
 		return DepartureReadinessFormatter.format_logistics_route_next_step(world_state, character_state)

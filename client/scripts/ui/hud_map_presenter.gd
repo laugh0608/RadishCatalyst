@@ -91,12 +91,23 @@ func format_demo_route_title(world_state: WorldState, _quest_id: String) -> Stri
 	return "外勤路线：%s" % _get_route_stage_label(world_state.current_region_id)
 
 
-func format_demo_route_hint(world_state: WorldState, quest_id: String) -> String:
+func format_demo_route_hint(
+	world_state: WorldState,
+	quest_id: String,
+	character_state: CharacterState = null
+) -> String:
 	var demo_completion_hint := DemoMainlineCompletionFormatter.format_map_route_hint(world_state)
 	if not demo_completion_hint.is_empty():
 		var completed_composition_hint := PlayableSceneCompositionFormatter.format_map_route_hint(
 			world_state.current_region_id
 		)
+		var completed_recovery_hint := DemoCombatEvacuationRecoveryFormatter.format_map_route_hint(
+			world_state,
+			quest_id,
+			character_state
+		)
+		if not completed_recovery_hint.is_empty():
+			return "%s · %s" % [completed_recovery_hint, demo_completion_hint]
 		if not completed_composition_hint.is_empty():
 			return "%s · %s" % [demo_completion_hint, completed_composition_hint]
 		return demo_completion_hint
@@ -112,7 +123,14 @@ func format_demo_route_hint(world_state: WorldState, quest_id: String) -> String
 	var non_core_scene_hint := NonCoreSceneIdentityFormatter.format_map_route_hint(hint_region_id)
 	var transition_hint := FunctionalTransitionRouteSupportFormatter.format_map_route_hint(hint_region_id)
 	var composition_hint := PlayableSceneCompositionFormatter.format_map_route_hint(hint_region_id)
+	var recovery_hint := DemoCombatEvacuationRecoveryFormatter.format_map_route_hint(
+		world_state,
+		quest_id,
+		character_state
+	)
 	var hint_parts: Array[String] = [route_hint]
+	if not recovery_hint.is_empty():
+		hint_parts.append(recovery_hint)
 	if not scene_hint.is_empty():
 		hint_parts.append(scene_hint)
 	if not non_core_scene_hint.is_empty():

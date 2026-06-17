@@ -101,6 +101,13 @@ $checks = @(
         }
     },
     @{
+        Name = "client demo combat evacuation recovery"
+        Script = "check-client-demo-combat-evacuation-recovery.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client scene art foundation"
         Script = "check-client-scene-art-foundation.ps1"
         Parameters = @{

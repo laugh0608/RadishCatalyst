@@ -1326,45 +1326,23 @@ func _evacuate_if_needed(character_state: CharacterState, world_state: WorldStat
 	if character_state.health > 0.0 and character_state.protection > 0.0:
 		return {}
 
+	var origin_region_id := world_state.current_region_id
 	var health_depleted := character_state.health <= 0.0
 	var protection_depleted := character_state.protection <= 0.0
-	var reason_text := _get_evacuation_reason(health_depleted, protection_depleted)
 	character_state.current_region_id = "region.outpost_platform"
 	world_state.current_region_id = "region.outpost_platform"
 	character_state.health = maxf(character_state.health, character_state.max_health * 0.6)
 	character_state.protection = maxf(character_state.protection, character_state.max_protection * 0.4)
 	player.position = OUTPOST_RESPAWN_POSITION
-	var recovery_text := "已撤回前哨；生命恢复到 %s，防护恢复到 %s" % [
-		_format_amount(character_state.health),
-		_format_amount(character_state.protection)
-	]
-	var retry_text := _get_retry_hint(world_state, reason, health_depleted, protection_depleted)
-
-	return {
-		"title": "撤离前哨",
-		"reason_text": reason_text.trim_suffix("，"),
-		"recovery_text": recovery_text,
-		"retry_text": retry_text,
-		"log_message": " %s%s。%s" % [reason_text, recovery_text, retry_text]
-	}
-func _get_evacuation_reason(health_depleted: bool, protection_depleted: bool) -> String:
-	if health_depleted and protection_depleted:
-		return "生命和防护耗尽，"
-	if health_depleted:
-		return "生命耗尽，"
-	if protection_depleted:
-		return "防护耗尽，"
-	return "状态过低，"
-func _get_retry_hint(world_state: WorldState, reason: String, health_depleted: bool, protection_depleted: bool) -> String:
-	if world_state.quest_state.has_completed_quest("quest.restore_outpost"):
-		return "再尝试前：先按 E 整备前哨核心回满生命与防护；若要前线续战，再补修复凝胶或抗污染药剂。"
-	if protection_depleted:
-		return "再尝试前：启用过滤模块，按 2 使用抗污染药剂，或回基地处理污染沉积物补充药剂。"
-	if health_depleted:
-		return "再尝试前：按 1 使用修复凝胶，或回基地用基础反应器调制补给。"
-	if reason == "pollution":
-		return "再尝试前：检查防护和抗污染药剂。"
-	return "再尝试前：补充快捷栏物品。"
+	character_state.position = OUTPOST_RESPAWN_POSITION
+	return DemoCombatEvacuationRecoveryFormatter.build_feedback(
+		character_state,
+		world_state,
+		reason,
+		origin_region_id,
+		health_depleted,
+		protection_depleted
+	)
 func _format_amount(amount: float) -> String:
 	if is_equal_approx(amount, roundf(amount)):
 		return str(int(amount))
