@@ -94,6 +94,13 @@ $checks = @(
         }
     },
     @{
+        Name = "client demo playable scene composition"
+        Script = "check-client-demo-playable-scene-composition.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client scene art foundation"
         Script = "check-client-scene-art-foundation.ps1"
         Parameters = @{

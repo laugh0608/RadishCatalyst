@@ -158,6 +158,12 @@ func format_general_interaction_prompt(
 	)
 	if not route_line.is_empty():
 		parts.append(route_line)
+	var composition_line := PlayableSceneCompositionFormatter.format_object_composition_line(
+		interactable.definition_id,
+		world_state.current_region_id
+	)
+	if not composition_line.is_empty():
+		parts.append(composition_line)
 	var gameplay_line := FunctionalSceneGameplayFormatter.format_object_gameplay_line(
 		interactable.definition_id,
 		object_state,
@@ -675,8 +681,12 @@ func format_outpost_core_prompt(world_state: WorldState, character_state: Charac
 		"building.outpost_core",
 		world_state.current_region_id
 	)
+	var composition_line := PlayableSceneCompositionFormatter.format_object_composition_line(
+		"building.outpost_core",
+		world_state.current_region_id
+	)
 	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
-		return "按 E 恢复：前哨核心，重启基础导航。\n%s" % scene_line
+		return "按 E 恢复：前哨核心，重启基础导航。\n%s\n%s" % [scene_line, composition_line]
 	var parts: Array[String] = [
 		DepartureReadinessFormatter.format_outpost_core_prompt(world_state, character_state)
 	]
@@ -684,6 +694,8 @@ func format_outpost_core_prompt(world_state: WorldState, character_state: Charac
 	if not completion_line.is_empty():
 		parts.append(completion_line)
 	parts.append(scene_line)
+	if not composition_line.is_empty():
+		parts.append(composition_line)
 	return "\n".join(parts)
 
 
@@ -992,10 +1004,16 @@ func _with_functional_transition_line(prompt: String, definition_id: String, fal
 		definition_id,
 		fallback_region_id
 	)
+	var composition_line := PlayableSceneCompositionFormatter.format_object_composition_line(
+		definition_id,
+		fallback_region_id
+	)
 	if not scene_line.is_empty():
 		parts.append(scene_line)
 	if not route_line.is_empty():
 		parts.append(route_line)
+	if not composition_line.is_empty():
+		parts.append(composition_line)
 	var gameplay_line := FunctionalSceneGameplayFormatter.format_static_object_gameplay_line(
 		definition_id,
 		fallback_region_id

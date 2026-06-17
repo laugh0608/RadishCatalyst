@@ -94,6 +94,11 @@ func format_demo_route_title(world_state: WorldState, _quest_id: String) -> Stri
 func format_demo_route_hint(world_state: WorldState, quest_id: String) -> String:
 	var demo_completion_hint := DemoMainlineCompletionFormatter.format_map_route_hint(world_state)
 	if not demo_completion_hint.is_empty():
+		var completed_composition_hint := PlayableSceneCompositionFormatter.format_map_route_hint(
+			world_state.current_region_id
+		)
+		if not completed_composition_hint.is_empty():
+			return "%s · %s" % [demo_completion_hint, completed_composition_hint]
 		return demo_completion_hint
 	var current_stage := _get_route_stage_label(world_state.current_region_id)
 	var target_region_id := _get_quest_target_region_id(world_state, quest_id)
@@ -104,17 +109,19 @@ func format_demo_route_hint(world_state: WorldState, quest_id: String) -> String
 		hint_region_id = target_region_id
 		route_hint = "目标：%s · %s" % [target_stage, _get_route_stage_purpose(target_stage)]
 	var scene_hint := SceneArtFoundationFormatter.format_map_route_hint(hint_region_id)
-	if not scene_hint.is_empty():
-		return "%s · %s" % [route_hint, scene_hint]
 	var non_core_scene_hint := NonCoreSceneIdentityFormatter.format_map_route_hint(hint_region_id)
 	var transition_hint := FunctionalTransitionRouteSupportFormatter.format_map_route_hint(hint_region_id)
-	if not non_core_scene_hint.is_empty() and not transition_hint.is_empty():
-		return "%s · %s · %s" % [route_hint, non_core_scene_hint, transition_hint]
+	var composition_hint := PlayableSceneCompositionFormatter.format_map_route_hint(hint_region_id)
+	var hint_parts: Array[String] = [route_hint]
+	if not scene_hint.is_empty():
+		hint_parts.append(scene_hint)
 	if not non_core_scene_hint.is_empty():
-		return "%s · %s" % [route_hint, non_core_scene_hint]
+		hint_parts.append(non_core_scene_hint)
 	if not transition_hint.is_empty():
-		return "%s · %s" % [route_hint, transition_hint]
-	return route_hint
+		hint_parts.append(transition_hint)
+	if not composition_hint.is_empty():
+		hint_parts.append(composition_hint)
+	return " · ".join(hint_parts)
 
 
 func _get_region_marker_data() -> Array[Dictionary]:
