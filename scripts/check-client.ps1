@@ -155,6 +155,13 @@ $checks = @(
         Parameters = @{
             RepoRoot = $RepoRoot
         }
+    },
+    @{
+        Name = "client demo action feedback readability"
+        Script = "check-client-demo-action-feedback-readability.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
     }
 )
 

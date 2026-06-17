@@ -33,6 +33,19 @@
 - 检查动作后 HUD / 地图 / 对象提示是否继续指向真实目标，不新增 UI 面板。
 - 新增检查优先放在独立专项文件，不继续推高 `vertical_slice_flow_check.gd`、`vertical_slice_map.gd`、`prototype_hud.gd` 或 `interaction_prompt_formatter.gd`。
 
+## 第一包实施范围
+
+- 新增窄职责 `DemoActionFeedbackFormatter`，为代表性动作结果统一生成 `success_feedback`。
+- 接入采集 / 采样、清障、核心设备写入、敌人击败和前哨核心整理结果；建造与加工沿用既有 `success_feedback` 并纳入专项检查。
+- 专项检查覆盖结果文本、HUD 日志摘要、对象状态、库存 / 资源变化、敌人状态和地图 / HUD 目标读法。
+- 不改 HUD 布局，不新增结果面板，不新增存档 schema。
+
+## 第一包完成状态
+
+- 2026-06-17 已落地：`DemoActionFeedbackFormatter` 接入采集 / 采样、清障、核心写入、敌人击败和前哨核心整理，建造与加工纳入同一专项检查。
+- `demo_action_feedback_readability_check.gd` 与默认静态接线检查已覆盖代表性动作结果、HUD 日志、对象状态和核心写入后回前哨整理。
+- 已通过 `sh ./scripts/check-client.sh` 与 `sh ./scripts/check-client.sh --with-godot`，满足当前阶段退出判断。
+
 ## 当前不做
 
 - 不新增资源、配方、区域、任务链、敌人类型、完整背包或完整装备栏。

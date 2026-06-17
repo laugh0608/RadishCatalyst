@@ -902,8 +902,16 @@ func _enemy_defeat_result(enemy: PrototypeEnemy, drops_message: String, followup
 		"success": true,
 		"message": "击败：%s。%s%s" % [enemy.display_name, drops_message, followup],
 		"enemy_definition_id": enemy.definition_id,
-		"enemy_defeated": true
+		"enemy_defeated": true,
+		"success_feedback": DemoActionFeedbackFormatter.format_enemy_defeat_success_feedback(
+			enemy.display_name,
+			enemy.definition_id,
+			drops_message,
+			followup
+		)
 	}
+
+
 func _apply_enemy_counterattack(enemy: PrototypeEnemy, character_state: CharacterState, world_state: WorldState = null) -> String:
 	if enemy_counterattack_runtime == null:
 		enemy_counterattack_runtime = EnemyCounterattackRuntime.new(data_registry)

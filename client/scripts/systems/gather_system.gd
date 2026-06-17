@@ -196,14 +196,14 @@ func interact_with_object(
 		"clear":
 			_set_map_object_flag(world_state, instance_id, definition_id, "is_cleared", true)
 			if definition_id == "map_object.phase_well_anchor_pressure_pin":
-				return _success(_with_functional_scene_gameplay_followup("锚场压力钉已清理：继续清掉剩余压力钉，稳场守脉体会完全暴露。", definition_id, world_state, character_state.current_region_id))
+				return _clear_success(_with_functional_scene_gameplay_followup("锚场压力钉已清理：继续清掉剩余压力钉，稳场守脉体会完全暴露。", definition_id, world_state, character_state.current_region_id), definition_id)
 			if definition_id == "map_object.phase_well_frame_route_blocker":
-				return _success(_with_functional_scene_gameplay_followup("锁相框架侧路已清理：边缕残条回收线打开，另一侧路可以保留为未选路线。", definition_id, world_state, character_state.current_region_id))
+				return _clear_success(_with_functional_scene_gameplay_followup("锁相框架侧路已清理：边缕残条回收线打开，另一侧路可以保留为未选路线。", definition_id, world_state, character_state.current_region_id), definition_id)
 			if definition_id == "map_object.well_ash_crust_blocker":
-				return _success(_with_functional_scene_gameplay_followup("盐壳硬壳已清理：盐壳余烬回收线打开。", definition_id, world_state, character_state.current_region_id))
+				return _clear_success(_with_functional_scene_gameplay_followup("盐壳硬壳已清理：盐壳余烬回收线打开。", definition_id, world_state, character_state.current_region_id), definition_id)
 			if definition_id == "map_object.pressure_clearance_node":
-				return _success("前线压力扰点已清除：带回压力清障回执，回基地用基础反应器解析防护收益。")
-			return _success("%s已清理：现场保留已清理标记；现在可以铺设基础地基。" % _get_display_name(definition_id))
+				return _clear_success("前线压力扰点已清除：带回压力清障回执，回基地用基础反应器解析防护收益。", definition_id)
+			return _clear_success("%s已清理：现场保留已清理标记；现在可以铺设基础地基。" % _get_display_name(definition_id), definition_id)
 		"inspect":
 			if BaseActionDispatchPlan.is_frontline_window_object(definition_id):
 				if not BaseActionDispatchPlan.is_frontline_window_active(world_state):
@@ -241,7 +241,14 @@ func interact_with_object(
 				return _success(_format_frontline_single_use_reading_result(definition_id))
 			if definition_id == "map_object.demo_stabilization_core":
 				_set_map_object_flag(world_state, instance_id, definition_id, "is_sampled", true)
-				return _success("核心稳定数据已写入：锚定桥稳窗和高压窗口归档数据接入核心设备，第一条稳定通道已打开。%s" % _apply_demo_stabilization_write_pressure(character_state, world_state))
+				var pressure_text := _apply_demo_stabilization_write_pressure(character_state, world_state)
+				var core_result := _success("核心稳定数据已写入：锚定桥稳窗和高压窗口归档数据接入核心设备，第一条稳定通道已打开。%s" % pressure_text)
+				core_result["success_feedback"] = DemoActionFeedbackFormatter.format_core_write_success_feedback(
+					pressure_text,
+					world_state,
+					character_state
+				)
+				return core_result
 			return _success("交互完成。")
 		_:
 			return _success("交互完成。")
@@ -249,7 +256,13 @@ func interact_with_object(
 
 func _interact_with_outpost_core(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
-		return _success("前哨核心已恢复，晶体矿脉区已标记。")
+		var restore_result := _success("前哨核心已恢复，晶体矿脉区已标记。")
+		restore_result["success_feedback"] = DemoActionFeedbackFormatter.format_outpost_core_success_feedback(
+			"前哨核心恢复",
+			"前哨核心已恢复，晶体矿脉区已标记",
+			"从外勤出发口前往晶体矿脉区；HUD / 地图会继续显示当前主线目标。"
+		)
+		return restore_result
 
 	var supply_detail := _restock_basic_storage_supply(character_state, world_state)
 	var restoration := character_state.restore_vitals_to_full()
@@ -260,6 +273,11 @@ func _interact_with_outpost_core(character_state: CharacterState, world_state: W
 		return {
 			"success": true,
 			"message": "前哨核心出发检查：%s。" % readiness_detail,
+			"success_feedback": DemoActionFeedbackFormatter.format_outpost_core_success_feedback(
+				"前哨核心出发检查",
+				readiness_detail,
+				"从外勤出发口继续当前目标；若状态不足，先在前哨核心整备。"
+			),
 			"supply_feedback": {
 				"title": "出发准备检查",
 				"detail": readiness_detail
@@ -277,6 +295,11 @@ func _interact_with_outpost_core(character_state: CharacterState, world_state: W
 	return {
 		"success": true,
 		"message": "前哨核心整备完成：%s。" % detail,
+		"success_feedback": DemoActionFeedbackFormatter.format_outpost_core_success_feedback(
+			"前哨整备完成",
+			detail,
+			"从外勤出发口继续当前目标；HUD / 地图会读取补给和恢复状态。"
+		),
 		"supply_feedback": {
 			"title": "前哨整备完成",
 			"detail": detail
@@ -634,12 +657,23 @@ func _gather(instance_id: String, definition: Dictionary, character_state: Chara
 	if not gameplay_followup.is_empty():
 		result_parts.append(gameplay_followup)
 
-	return _success("%s。" % "；".join(result_parts))
+	var result := _success("%s。" % "；".join(result_parts))
+	result["success_feedback"] = DemoActionFeedbackFormatter.format_gather_success_feedback(
+		object_name,
+		String(definition.get("id", "")),
+		instance_id,
+		rewards,
+		protection_drain,
+		world_state,
+		character_state
+	)
+	return result
 
 
 func _sample(instance_id: String, definition: Dictionary, character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var sample_refs: Array = definition.get("sample_result_refs", [])
 	var rewards: Array[String] = []
+	var object_name := _get_display_name(String(definition.get("id", "")))
 	for sample_id in sample_refs:
 		var definition_id := String(sample_id)
 		if definition_id.is_empty():
@@ -650,10 +684,10 @@ func _sample(instance_id: String, definition: Dictionary, character_state: Chara
 	_set_map_object_flag(world_state, instance_id, String(definition.get("id", "")), "is_sampled", true)
 	var result_parts: Array[String] = []
 	if rewards.is_empty():
-		result_parts.append("%s已采样：现场保留已采样标记" % _get_display_name(String(definition.get("id", ""))))
+		result_parts.append("%s已采样：现场保留已采样标记" % object_name)
 	else:
 		result_parts.append("%s已采样：%s" % [
-			_get_display_name(String(definition.get("id", ""))),
+			object_name,
 			", ".join(rewards)
 		])
 		result_parts.append("现场保留已采样标记")
@@ -665,7 +699,14 @@ func _sample(instance_id: String, definition: Dictionary, character_state: Chara
 	)
 	if not gameplay_followup.is_empty():
 		result_parts.append(gameplay_followup)
-	return _success("%s。" % "；".join(result_parts))
+	var result := _success("%s。" % "；".join(result_parts))
+	result["success_feedback"] = DemoActionFeedbackFormatter.format_sample_success_feedback(
+		object_name,
+		String(definition.get("id", "")),
+		rewards,
+		world_state
+	)
+	return result
 
 
 func _apply_demo_stabilization_write_pressure(character_state: CharacterState, world_state: WorldState) -> String:
@@ -1173,6 +1214,15 @@ func _with_functional_scene_gameplay_followup(
 	if followup.is_empty():
 		return message
 	return "%s；%s" % [message.trim_suffix("。"), followup]
+
+
+func _clear_success(message: String, definition_id: String) -> Dictionary:
+	var result := _success(message)
+	result["success_feedback"] = DemoActionFeedbackFormatter.format_clear_success_feedback(
+		_get_display_name(definition_id),
+		definition_id
+	)
+	return result
 
 
 func _success(message: String) -> Dictionary:
