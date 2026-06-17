@@ -6,8 +6,8 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题和最近完成细专题为准：
 
-- 当前活跃：[Demo Playable Scene Composition V1](../features/demo-playable-scene-composition-v1.md)
-- 最近完成：[Demo Playable Experience Coherence V1](../features/demo-playable-experience-coherence-v1.md)、[Demo Completion Outcome Readout V1](../features/demo-completion-outcome-readout-v1.md)、[Demo Endpoint Readiness V1](../features/demo-endpoint-readiness-v1.md)、[Demo Field Loop Payoff V1](../features/demo-field-loop-payoff-v1.md)、[Demo Functional Scene Gameplay V1](../features/demo-functional-scene-gameplay-v1.md)
+- 当前活跃：[Demo Combat Evacuation Recovery V1](../features/demo-combat-evacuation-recovery-v1.md)
+- 最近完成：[Demo Playable Scene Composition V1](../features/demo-playable-scene-composition-v1.md)、[Demo Playable Experience Coherence V1](../features/demo-playable-experience-coherence-v1.md)、[Demo Completion Outcome Readout V1](../features/demo-completion-outcome-readout-v1.md)、[Demo Endpoint Readiness V1](../features/demo-endpoint-readiness-v1.md)、[Demo Field Loop Payoff V1](../features/demo-field-loop-payoff-v1.md)
 - 更早完成专题按 [Feature Development Docs](../features/README.md) 索引选读。
 
 历史过程、长完成清单和详细复盘优先查看：
@@ -29,19 +29,19 @@
 - 首小时引导、首小时到 Demo 中段节奏衔接、基地后勤、出发口、污染边界、晶体侧路和核心稳定站复测内容。
 - 2026-06-14：「首版 Demo 可玩内容建设推进」达到收束条件；现有路线已有可操作场景对象、运行逻辑、玩家反馈、存档来源和自动检查证据。
 - 2026-06-16：「角色成长与战斗第一版」「功能 / 过渡路线支撑第一版」「非核心区域场景识别第一版」「资源链状态第一版」「存档状态契约第一版」「主路径连续性第一版」「运行时承载面拆分第一版」与「功能场景玩法第一版」第一包已落地。
-- 2026-06-17：功能场景玩法、外勤回基地收益兑现、终点前综合准备读法、Demo 完成成果整理与整段体验连贯性第一包通过阶段退出判断；当前切到可玩场景构成第一版。
+- 2026-06-17：外勤回基地收益兑现、终点前综合准备读法、Demo 完成成果整理、整段体验连贯性与可玩场景构成第一包通过阶段退出判断；当前切到战斗撤离恢复读法第一版。
 
 当前阶段：
 
 ```text
-首版 Demo 体验主干建设：可玩场景构成第一版
+首版 Demo 体验主干建设：战斗撤离恢复读法第一版
 ```
 
-当前推进口径是 12 个既有区域的可玩场景构成：地图、HUD、代表对象反馈和自动检查应能读出前景 / 主路 / 背景关系、关键对象落点和玩家下一步方向。
+当前推进口径是外勤承压后的撤离恢复读法：生命 / 防护耗尽、战斗撤回、前哨恢复、HUD / 地图 / 对象反馈、状态 / 存档和自动检查应能说明原因、保留进度和下一步。
 
 ## 当前主线
 
-当前活跃专题是 [Demo Playable Scene Composition V1](../features/demo-playable-scene-composition-v1.md)。它承接已完成的 [Demo Playable Experience Coherence V1](../features/demo-playable-experience-coherence-v1.md)，覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 的「区域 / 场景」「核心场景完成度」「功能 / 过渡场景」「UI / HUD」「初步美术」和「自动检查」缺口。
+当前活跃专题是 [Demo Combat Evacuation Recovery V1](../features/demo-combat-evacuation-recovery-v1.md)。它承接已完成的 [Demo Playable Scene Composition V1](../features/demo-playable-scene-composition-v1.md)，覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 的「战斗压力」「污染与防护」「UI / HUD」「存档 / 状态」和「自动检查」缺口。
 
 角色成长与战斗第一版已收束；后续不继续加厚工具打击校准、防护响应、主线完成感、战术扫描、污染边界、遗迹外圈、工业主干或核心场景同一读法点。若后续扩到新角色动作、装备状态或战斗压力，必须另建非重复细专题。
 
@@ -55,7 +55,7 @@
 
 ## UI 策略
 
-UI 和场景表现已完成第一轮原型呈现支撑。当前可玩场景构成阶段不新增 UI 面板，只补齐既有 HUD / 地图 / 提示在 12 区域中的画面构成、对象落点和路径读法。
+UI 和场景表现已完成第一轮原型呈现支撑。当前战斗撤离恢复阶段不新增 UI 面板，只补齐既有撤离反馈、HUD、地图、前哨核心、出发口和设备提示在撤回前哨后的读法。
 
 不做完整菜单、设置页、背包大重构、完整装备栏、结算页、动画过场或大规模美术替换。
 
@@ -71,7 +71,7 @@ UI 和场景表现已完成第一轮原型呈现支撑。当前可玩场景构�
 
 允许推进：
 
-- 当前活跃的可玩场景构成第一包。
+- 当前活跃的战斗撤离恢复读法第一包。
 - 必要时新增窄职责 formatter、presenter helper 或专项 check，避免继续推高接近硬上限的大文件。
 - 只修阻塞主线连续性、功能闭合或区域表达的断点。
 
@@ -100,7 +100,7 @@ Windows 用 `pwsh ./scripts/check-docs.ps1`、`pwsh ./scripts/check-text-files.p
 
 ## 阶段退出条件
 
-- [Demo Playable Scene Composition V1](../features/demo-playable-scene-composition-v1.md) 建立并完成第一包可玩场景构成检查与补齐。
-- 12 个既有区域的 HUD 地图提示、代表对象反馈和自动检查能读出画面构成、关键对象落点和下一步方向。
-- 未引入新资源、配方、区域、新任务链、完整背包、完整装备栏、终局菜单、结算页或发布准备流程。
+- [Demo Combat Evacuation Recovery V1](../features/demo-combat-evacuation-recovery-v1.md) 建立并完成第一包战斗撤离恢复检查与补齐。
+- 代表性撤离路径的 HUD、地图、对象反馈、状态 / 存档和自动检查能读出撤离原因、恢复动作、保留进度和下一步目标。
+- 未引入新资源、配方、区域、新任务链、新敌人类型、完整背包、完整装备栏、死亡系统、终局菜单、结算页或发布准备流程。
 - 新增检查走独立专项文件；不继续推高 `vertical_slice_flow_check.gd`、`vertical_slice_map.gd`、`prototype_hud.gd` 或 `interaction_prompt_formatter.gd`。

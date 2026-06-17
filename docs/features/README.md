@@ -26,7 +26,8 @@
 ## 当前与最近专题
 
 - [Demo Definition V1](demo-definition-v1.md)：首版 Demo 完成规格表，后续专题必须映射到其中的未完成规格项。
-- [Demo Playable Scene Composition V1](demo-playable-scene-composition-v1.md)：当前活跃细专题，覆盖 12 个既有区域的画面构成、关键对象落点、HUD / 地图读法和自动检查断点。
+- [Demo Combat Evacuation Recovery V1](demo-combat-evacuation-recovery-v1.md)：当前活跃细专题，覆盖外勤承压后的自动撤回前哨、恢复补给、HUD / 地图 / 对象反馈、状态 / 存档和自动检查断点。
+- [Demo Playable Scene Composition V1](demo-playable-scene-composition-v1.md)：最近完成细专题，覆盖 12 个既有区域的画面构成、关键对象落点、HUD / 地图读法和自动检查断点。
 - [Demo Playable Experience Coherence V1](demo-playable-experience-coherence-v1.md)：最近完成细专题，覆盖从新档到 Demo 完成后回前哨整理的场景、HUD、地图、对象反馈、状态 / 存档和自动检查断点。
 - [Demo Completion Outcome Readout V1](demo-completion-outcome-readout-v1.md)：最近完成细专题，覆盖核心稳定站写入后的主线完成、补给收益、整备收益、守卫战记录和复测方向读法。
 - [Demo Endpoint Readiness V1](demo-endpoint-readiness-v1.md)：最近完成细专题，覆盖核心稳定站写入前的主线、补给、整备、守卫战准备和写入准备读法。

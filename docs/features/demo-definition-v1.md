@@ -57,7 +57,8 @@
 | 终点前综合准备读法 | `docs/features/demo-endpoint-readiness-v1.md` | 已落地第一包 |
 | Demo 完成成果整理 | `docs/features/demo-completion-outcome-readout-v1.md` | 已落地第一包 |
 | 整段体验连贯性 | `docs/features/demo-playable-experience-coherence-v1.md` | 已落地第一包 |
-| 可玩场景构成 | `docs/features/demo-playable-scene-composition-v1.md` | 当前活跃 |
+| 可玩场景构成 | `docs/features/demo-playable-scene-composition-v1.md` | 已落地第一包 |
+| 战斗撤离恢复读法 | `docs/features/demo-combat-evacuation-recovery-v1.md` | 当前活跃 |
 | 角色技能 / 装备模块第一版 | `docs/features/demo-character-kit-v1.md` | 已落地首个主动工具动作 |
 | 防护响应 / 装备状态 | `docs/features/demo-protective-response-v1.md` | 已落地第一包 |
 | 核心场景与初步美术 | `docs/features/demo-scene-art-foundation-v1.md` | 已落地第一包 |
@@ -86,9 +87,9 @@
 
 ## 当前优先级
 
-当前继续推进首版 Demo 体验主干；`Demo Playable Experience Coherence V1` 第一包已通过阶段退出判断，当前活跃专题为 `Demo Playable Scene Composition V1`：
+当前继续推进首版 Demo 体验主干；`Demo Playable Scene Composition V1` 第一包已通过阶段退出判断，当前活跃专题为 `Demo Combat Evacuation Recovery V1`：
 
-1. 检查并补齐 12 个既有区域的画面构成、关键对象落点、HUD / 地图读法和自动检查断点。
-2. 只复用既有任务、对象状态、敌人状态、库存、装备和整备系统，不新增资源、配方、区域、完整背包、完整装备栏、终局菜单、结算页或新任务链。
+1. 检查并补齐生命 / 防护耗尽后的撤离原因、恢复动作、保留进度、HUD / 地图 / 对象反馈、状态 / 存档和自动检查断点。
+2. 只复用既有任务、对象状态、敌人状态、库存、装备、补给和整备系统，不新增资源、配方、区域、完整背包、完整装备栏、死亡系统、终局菜单、结算页或新任务链。
 
 在首版 Demo 满足本文必达规格前，不切到试玩准备或集中修 bug 阶段。
