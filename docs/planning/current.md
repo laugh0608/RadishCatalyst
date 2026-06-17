@@ -6,7 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题和最近完成细专题为准：
 
-- 当前活跃：[Demo Action Blocker Recovery V1](../features/demo-action-blocker-recovery-v1.md)
+- 当前活跃收口：[Demo Action Blocker Recovery V1](../features/demo-action-blocker-recovery-v1.md)，2026-06-17 第一包已落地，下一次先做阶段退出判断。
 - 最近完成：[Demo Action Feedback Readability V1](../features/demo-action-feedback-readability-v1.md)、[Demo Interaction Affordance V1](../features/demo-interaction-affordance-v1.md)、[Demo Combat Evacuation Recovery V1](../features/demo-combat-evacuation-recovery-v1.md)、[Demo Playable Scene Composition V1](../features/demo-playable-scene-composition-v1.md)、[Demo Playable Experience Coherence V1](../features/demo-playable-experience-coherence-v1.md)
 - 更早完成专题按 [Feature Development Docs](../features/README.md) 索引选读。
 
@@ -29,7 +29,7 @@
 - 首小时引导、首小时到 Demo 中段节奏衔接、基地后勤、出发口、污染边界、晶体侧路和核心稳定站复测内容。
 - 2026-06-14：「首版 Demo 可玩内容建设推进」达到收束条件；现有路线已有可操作场景对象、运行逻辑、玩家反馈、存档来源和自动检查证据。
 - 2026-06-16：「角色成长与战斗第一版」「功能 / 过渡路线支撑第一版」「非核心区域场景识别第一版」「资源链状态第一版」「存档状态契约第一版」「主路径连续性第一版」「运行时承载面拆分第一版」与「功能场景玩法第一版」第一包已落地。
-- 2026-06-17：外勤回基地收益兑现、终点前综合准备读法、Demo 完成成果整理、整段体验连贯性、可玩场景构成、战斗撤离恢复、交互可辨识度与动作反馈可读性第一包通过阶段退出判断；当前切到受阻动作恢复读法第一版。
+- 2026-06-17：外勤回基地收益兑现、终点前综合准备读法、Demo 完成成果整理、整段体验连贯性、可玩场景构成、战斗撤离恢复、交互可辨识度、动作反馈可读性与受阻动作恢复读法第一包均已落地。
 
 当前阶段：
 
@@ -37,11 +37,11 @@
 首版 Demo 体验主干建设：受阻动作恢复读法第一版
 ```
 
-当前推进口径是受阻动作恢复读法：玩家尝试采集、清障、建造、加工、整备、战斗或核心写入但被前置、缺料、缺补给、敌人、设备忙碌或已处理状态拦住时，应能从失败反馈、HUD / 地图和对象状态判断为什么没完成、要补什么、去哪恢复。
+当前推进口径是受阻动作恢复读法收口：玩家尝试采集、清障、建造、加工、整备、战斗或核心写入但被前置、缺料、缺补给、敌人、设备忙碌或已处理状态拦住时，应能从失败反馈、HUD / 地图和对象状态判断为什么没完成、要补什么、去哪恢复。
 
 ## 当前主线
 
-当前活跃专题是 [Demo Action Blocker Recovery V1](../features/demo-action-blocker-recovery-v1.md)。它承接已完成的 [Demo Interaction Affordance V1](../features/demo-interaction-affordance-v1.md) 与 [Demo Action Feedback Readability V1](../features/demo-action-feedback-readability-v1.md)，覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 的「UI / HUD」「自动检查」「资源 / 生产链」「工艺 / 科技解锁」和「战斗压力」缺口。
+当前活跃收口专题是 [Demo Action Blocker Recovery V1](../features/demo-action-blocker-recovery-v1.md)。它承接已完成的 [Demo Interaction Affordance V1](../features/demo-interaction-affordance-v1.md) 与 [Demo Action Feedback Readability V1](../features/demo-action-feedback-readability-v1.md)，覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 的「UI / HUD」「自动检查」「资源 / 生产链」「工艺 / 科技解锁」和「战斗压力」缺口。
 
 角色成长与战斗第一版已收束；后续不继续加厚工具打击校准、防护响应、主线完成感、战术扫描、污染边界、遗迹外圈、工业主干或核心场景同一读法点。若后续扩到新角色动作、装备状态或战斗压力，必须另建非重复细专题。
 
@@ -71,7 +71,7 @@ UI 和场景表现已完成第一轮原型呈现支撑。当前受阻动作恢�
 
 允许推进：
 
-- 当前活跃的受阻动作恢复读法第一包。
+- 受阻动作恢复读法第一包已落地后的阶段退出判断或必要 `P0` / `P1` 修正。
 - 必要时新增窄职责 formatter、presenter helper 或专项 check，避免继续推高接近硬上限的大文件。
 - 只修阻塞主线连续性、功能闭合或区域表达的断点。
 

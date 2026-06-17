@@ -33,6 +33,19 @@
 - 检查 HUD / 地图 / 对象状态是否继续指向真实恢复路径，不新增 UI 面板。
 - 新增检查优先放在独立专项文件，不继续推高 `vertical_slice_flow_check.gd`、`vertical_slice_map.gd`、`prototype_hud.gd` 或 `interaction_prompt_formatter.gd`。
 
+## 第一包实施范围
+
+- 新增窄职责 `DemoActionBlockerRecoveryFormatter`，统一代表性失败反馈的原因、缺口和恢复路线字段。
+- 接入采集 / 采样前置不足、已处理对象、建造缺前置 / 缺材料、加工缺原料 / 设备忙碌、补给无法使用和核心写入缺守卫 / 校验片路径。
+- 新增 `demo_action_blocker_recovery_check.gd` 专项检查，覆盖失败反馈、HUD 日志 / 目标 / 地图提示、对象 / 设备 / 敌人状态和恢复路线一致性。
+- 不新增 UI 面板、存档 schema、资源、配方、区域、任务链、敌人类型、完整背包或完整装备栏。
+
+## 第一包完成状态
+
+- 2026-06-17 已落地：`DemoActionBlockerRecoveryFormatter` 接入采集 / 采样、已处理对象、建造、加工、补给和核心写入失败路径。
+- `demo_action_blocker_recovery_check.gd` 与默认静态接线检查已覆盖代表性受阻动作、HUD 日志 / 目标 / 地图提示、对象 / 设备 / 敌人状态和恢复路线。
+- 已通过 `sh ./scripts/check-client.sh` 与 `sh ./scripts/check-client.sh --with-godot`，满足当前阶段第一包退出判断。
+
 ## 当前不做
 
 - 不新增资源、配方、区域、任务链、敌人类型、完整背包或完整装备栏。

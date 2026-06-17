@@ -14,7 +14,7 @@
 
 首版 Demo 完成规格：[Demo Definition V1](../features/demo-definition-v1.md)。
 
-当前活跃细专题：[Demo Action Blocker Recovery V1](../features/demo-action-blocker-recovery-v1.md)，检查并补齐玩家尝试采集、清障、建造、加工、整备、战斗和核心写入但被前置、缺料、缺补给、敌人或设备状态拦住时的失败反馈、HUD / 地图和对象状态一致性。
+当前活跃收口细专题：[Demo Action Blocker Recovery V1](../features/demo-action-blocker-recovery-v1.md)，2026-06-17 第一包已落地；下一次先做阶段退出判断，再从 Demo 完成规格里选择新的非重复缺口。
 
 最近完成细专题：[Demo Action Feedback Readability V1](../features/demo-action-feedback-readability-v1.md)、[Demo Interaction Affordance V1](../features/demo-interaction-affordance-v1.md)、[Demo Combat Evacuation Recovery V1](../features/demo-combat-evacuation-recovery-v1.md)、[Demo Playable Scene Composition V1](../features/demo-playable-scene-composition-v1.md) 与 [Demo Playable Experience Coherence V1](../features/demo-playable-experience-coherence-v1.md)，2026-06-17 第一包已落地。
 
@@ -41,7 +41,7 @@
 
 ## 当前开发重点
 
-- 当前推进受阻动作恢复读法第一包；检查并补齐关键动作失败原因、缺口、恢复路线、HUD / 地图和对象状态一致性。
+- 受阻动作恢复读法第一包已落地；代表性受阻动作已覆盖失败原因、缺口、恢复路线、HUD / 地图和对象状态一致性。
 - 动作反馈可读性、交互可辨识度、战斗撤离恢复、可玩场景构成、整段体验连贯性和 Demo 完成成果整理第一包已落地；不继续围绕动作成功结果、对象可交互状态、撤离恢复、区域构成、断点清单或核心稳定站写入后完成态加厚。
 - 外勤回基地收益兑现、功能场景玩法、运行时承载面拆分、主路径连续性和存档状态契约第一包已落地；不继续围绕同一切面加厚。
 - 非核心区域场景识别和功能 / 过渡路线支撑第一包已落地；不继续围绕同一批区域标签、路线职责、当前危险和回基地理由加厚。

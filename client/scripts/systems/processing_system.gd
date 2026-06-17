@@ -26,14 +26,25 @@ func process_recipe(recipe_id: String, character_state: CharacterState, world_st
 		)
 	var structure: Dictionary = world_state.base_structures.get(structure_id, {})
 	if String(structure.get("status", "idle")) == "in_progress":
-		return _failure(_format_in_progress_message(structure), "设备加工中", "等待进度完成；靠近设备可查看当前进度。")
+		var busy_status := _format_in_progress_message(structure)
+		var busy_feedback := DemoActionBlockerRecoveryFormatter.format_processing_busy_failure(
+			_get_display_name(recipe_id),
+			busy_status,
+			_get_processing_wait_next_step()
+		)
+		return _failure_from_feedback(busy_status, busy_feedback)
 
 	var missing_inputs := _get_missing_inputs(recipe, character_state.inventory)
 	if not missing_inputs.is_empty():
+		var missing_feedback := DemoActionBlockerRecoveryFormatter.format_processing_missing_input_failure(
+			_get_display_name(recipe_id),
+			missing_inputs,
+			_format_missing_input_next_step(recipe, character_state.inventory)
+		)
 		return _failure(
 			_format_missing_input_message(recipe, missing_inputs, character_state.inventory),
-			"原料不足",
-			_format_missing_input_next_step(recipe, character_state.inventory)
+			String(missing_feedback.get("title", "原料不足")),
+			String(missing_feedback.get("detail", ""))
 		)
 
 	_consume_refs(recipe.get("inputs", []), character_state.inventory)
@@ -942,4 +953,12 @@ func _failure(message: String, title: String = "加工未完成", detail: String
 			"title": title,
 			"detail": detail
 		}
+	}
+
+
+func _failure_from_feedback(message: String, feedback: Dictionary) -> Dictionary:
+	return {
+		"success": false,
+		"message": message,
+		"failure_feedback": feedback
 	}

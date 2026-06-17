@@ -216,7 +216,7 @@ func _on_player_module_toggle_requested() -> void:
 
 func _on_player_quick_slot_requested(slot_index: int) -> void:
 	var result := character_state.use_quick_slot(slot_index, data_registry)
-	hud.append_log(String(result.get("message", "")))
+	hud.append_log(hud_log_presenter.format_result_log(result))
 	hud_feedback_presenter.show_supply_feedback(result, hud)
 	_update_hud()
 

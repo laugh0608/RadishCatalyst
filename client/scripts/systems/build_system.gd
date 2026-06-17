@@ -25,11 +25,22 @@ func build_structure(
 
 	var requirement_error := _get_requirement_error(building_id, prerequisite_instance_id, world_state)
 	if not requirement_error.is_empty():
-		return _failure(requirement_error, "建造前置不足", _get_requirement_hint(building_id, world_state))
+		var requirement_feedback := DemoActionBlockerRecoveryFormatter.format_build_prerequisite_failure(
+			_get_display_name(building_id),
+			requirement_error,
+			_get_requirement_gap(building_id, world_state),
+			_get_requirement_hint(building_id, world_state)
+		)
+		return _failure_from_feedback(requirement_error, requirement_feedback)
 
 	var missing_costs := _get_missing_costs(building, character_state.inventory)
 	if not missing_costs.is_empty():
-		return _failure("缺少建造材料：%s。" % ", ".join(missing_costs), "建造材料不足", _get_cost_hint(building_id))
+		var missing_feedback := DemoActionBlockerRecoveryFormatter.format_build_material_failure(
+			_get_display_name(building_id),
+			missing_costs,
+			_get_cost_hint(building_id)
+		)
+		return _failure_from_feedback("缺少建造材料：%s。" % ", ".join(missing_costs), missing_feedback)
 
 	_consume_refs(building.get("build_cost", []), character_state.inventory)
 	world_state.set_map_object_flag(site_instance_id, "is_built", true)
@@ -145,6 +156,20 @@ func _get_requirement_hint(building_id: String, world_state: WorldState) -> Stri
 			return "先用污染过滤器处理沉积物，产出首支抗污染药剂和污染浆液。"
 		_:
 			return "先完成该建筑的前置条件。"
+
+
+func _get_requirement_gap(building_id: String, world_state: WorldState) -> String:
+	match building_id:
+		"building.foundation_t1":
+			return "清障状态仍未写入该地块，建造点还不能铺设。"
+		"building.pollution_filter":
+			return "基础地基：%d / 2。" % mini(world_state.count_base_structures("building.foundation_t1"), 2)
+		"building.slurry_buffer_tank":
+			if not world_state.has_base_structure_definition("building.pollution_filter"):
+				return "污染过滤器尚未建成。"
+			return "首支抗污染药剂尚未通过污染过滤器产出。"
+		_:
+			return "该建筑的前置条件尚未满足。"
 
 
 func _get_cost_hint(building_id: String) -> String:
@@ -330,4 +355,12 @@ func _failure(message: String, title: String = "建造未完成", detail: String
 			"title": title,
 			"detail": detail
 		}
+	}
+
+
+func _failure_from_feedback(message: String, feedback: Dictionary) -> Dictionary:
+	return {
+		"success": false,
+		"message": message,
+		"failure_feedback": feedback
 	}

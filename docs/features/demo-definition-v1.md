@@ -61,7 +61,7 @@
 | 战斗撤离恢复读法 | `docs/features/demo-combat-evacuation-recovery-v1.md` | 已落地第一包 |
 | 交互可辨识度 | `docs/features/demo-interaction-affordance-v1.md` | 已落地第一包 |
 | 动作反馈可读性 | `docs/features/demo-action-feedback-readability-v1.md` | 已落地第一包 |
-| 受阻动作恢复读法 | `docs/features/demo-action-blocker-recovery-v1.md` | 当前活跃 |
+| 受阻动作恢复读法 | `docs/features/demo-action-blocker-recovery-v1.md` | 已落地第一包 |
 | 角色技能 / 装备模块第一版 | `docs/features/demo-character-kit-v1.md` | 已落地首个主动工具动作 |
 | 防护响应 / 装备状态 | `docs/features/demo-protective-response-v1.md` | 已落地第一包 |
 | 核心场景与初步美术 | `docs/features/demo-scene-art-foundation-v1.md` | 已落地第一包 |
@@ -90,9 +90,9 @@
 
 ## 当前优先级
 
-当前继续推进首版 Demo 体验主干；`Demo Action Feedback Readability V1` 第一包已通过阶段退出判断，当前活跃专题为 `Demo Action Blocker Recovery V1`：
+当前继续推进首版 Demo 体验主干；`Demo Action Blocker Recovery V1` 第一包已落地，下一步先做阶段退出判断，再从本文必达规格中选择新的非重复缺口：
 
-1. 检查并补齐采集、清障、建造、加工、整备、战斗和核心写入被拦住时的失败反馈、HUD、地图和对象状态一致性。
+1. 受阻动作恢复读法第一包已覆盖采集、清障、建造、加工、整备、战斗和核心写入被拦住时的失败反馈、HUD、地图和对象状态一致性。
 2. 只复用既有任务、对象状态、敌人状态、库存、装备、补给和整备系统，不新增资源、配方、区域、完整背包、完整装备栏、死亡系统、终局菜单、结算页或新任务链。
 
 在首版 Demo 满足本文必达规格前，不切到试玩准备或集中修 bug 阶段。

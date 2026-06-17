@@ -26,7 +26,7 @@
 ## 当前与最近专题
 
 - [Demo Definition V1](demo-definition-v1.md)：首版 Demo 完成规格表，后续专题必须映射到其中的未完成规格项。
-- [Demo Action Blocker Recovery V1](demo-action-blocker-recovery-v1.md)：当前活跃细专题，覆盖关键动作被前置、缺料、缺补给、敌人或设备状态拦住时的失败反馈、HUD / 地图、对象状态和恢复路线。
+- [Demo Action Blocker Recovery V1](demo-action-blocker-recovery-v1.md)：当前活跃收口细专题，2026-06-17 第一包已落地，覆盖关键动作被前置、缺料、缺补给、敌人或设备状态拦住时的失败反馈、HUD / 地图、对象状态和恢复路线。
 - [Demo Action Feedback Readability V1](demo-action-feedback-readability-v1.md)：最近完成细专题，覆盖关键动作执行后的结果文本、HUD / 地图、对象状态和下一步读法。
 - [Demo Interaction Affordance V1](demo-interaction-affordance-v1.md)：最近完成细专题，覆盖对象可交互、已处理、缺条件、被阻挡或危险仍在时的画面、焦点标签、HUD / 地图和对象提示一致性。
 - [Demo Combat Evacuation Recovery V1](demo-combat-evacuation-recovery-v1.md)：最近完成细专题，覆盖外勤承压后的自动撤回前哨、恢复补给、HUD / 地图 / 对象反馈、状态 / 存档和自动检查断点。

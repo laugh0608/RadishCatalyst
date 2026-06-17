@@ -172,14 +172,26 @@ func interact_with_object(
 
 	var object_state := world_state.ensure_map_object(instance_id, definition_id, character_state.current_region_id)
 	if _is_already_processed(object_state, interaction_type):
-		return _failure(
-			_format_already_processed_message(definition_id, interaction_type, character_state, world_state),
-			"目标已处理",
-			"现场完成态颜色和标签表示该对象已处理；前往下一个未处理目标。"
+		var processed_message := _format_already_processed_message(
+			definition_id,
+			interaction_type,
+			character_state,
+			world_state
 		)
+		var processed_feedback := DemoActionBlockerRecoveryFormatter.format_already_processed_failure(
+			_get_display_name(definition_id),
+			processed_message,
+			_get_already_processed_recovery_route(definition_id, interaction_type)
+		)
+		return _failure_from_feedback(processed_message, processed_feedback)
 	var quest_gate_error := _get_quest_gate_error(definition_id, interaction_type, world_state)
 	if not quest_gate_error.is_empty():
-		return _failure(quest_gate_error, "交互前置不足", _get_quest_gate_detail(definition_id, interaction_type))
+		var quest_gate_feedback := _get_quest_gate_feedback(
+			definition_id,
+			interaction_type,
+			quest_gate_error
+		)
+		return _failure_from_feedback(quest_gate_error, quest_gate_feedback)
 
 	if not _supports_interaction(definition, interaction_type):
 		return _failure("当前目标不支持该交互。", "交互不可用", "换一个可交互目标，或查看附近提示。")
@@ -1113,14 +1125,65 @@ func _get_quest_gate_error(definition_id: String, interaction_type: String, worl
 	return "异常晶体采样通道尚未校准。"
 
 
-func _get_quest_gate_detail(definition_id: String, interaction_type: String) -> String:
+func _get_quest_gate_feedback(
+	definition_id: String,
+	interaction_type: String,
+	quest_gate_error: String
+) -> Dictionary:
 	if definition_id == "map_object.demo_stabilization_core" and interaction_type == "inspect":
+		return DemoActionBlockerRecoveryFormatter.format_core_write_failure(
+			quest_gate_error,
+			_get_quest_gate_detail(definition_id, interaction_type, quest_gate_error)
+		)
+	return DemoActionBlockerRecoveryFormatter.format_interaction_prerequisite_failure(
+		quest_gate_error,
+		_get_quest_gate_gap(definition_id, interaction_type),
+		_get_quest_gate_detail(definition_id, interaction_type, quest_gate_error)
+	)
+
+
+func _get_quest_gate_gap(definition_id: String, interaction_type: String) -> String:
+	if definition_id == "map_object.anomaly_crystal" and interaction_type == "sample":
+		return "异常晶体采样任务尚未成为当前目标。"
+	if definition_id == "map_object.anomaly_residue_patch" and interaction_type == "gather":
+		return "异常晶体样本尚未带回并解析，残留物回收目标未开放。"
+	return "当前任务前置尚未满足。"
+
+
+func _get_quest_gate_detail(
+	definition_id: String,
+	interaction_type: String,
+	quest_gate_error: String = ""
+) -> String:
+	if definition_id == "map_object.demo_stabilization_core" and interaction_type == "inspect":
+		if quest_gate_error.find("守卫") >= 0:
+			return "先击败核心阶段守卫；战斗反馈和 HUD 目标会指向守卫，击败后回收核心写入校验片。"
+		if quest_gate_error.find("校验片") >= 0:
+			return "核心写入校验片缺口未补齐；确认守卫已击败并回收掉落 / 回写缓存，再回核心设备写入。"
+		if quest_gate_error.find("开放") >= 0:
+			return "先推进终点前综合准备和核心稳定站任务，等写入目标开放后再操作核心设备。"
 		return "先进入核心稳定站，回基地整备核心稳压缓冲包，击败核心阶段守卫后回收回写缓存，再回来写入稳定数据。"
 	if definition_id == "map_object.anomaly_crystal" and interaction_type == "sample":
 		return "先完成反应器校准件，再按任务目标采样异常晶体。"
 	if definition_id == "map_object.anomaly_residue_patch" and interaction_type == "gather":
 		return "先带回异常晶体样本，再按分析任务回收周边残留物。"
 	return "先完成当前前置目标，再回来处理这个目标。"
+
+
+func _get_already_processed_recovery_route(definition_id: String, interaction_type: String) -> String:
+	match interaction_type:
+		"clear":
+			if definition_id == "map_object.rough_ground":
+				return "该地块已清理；转到建造点铺设基础地基，或按 HUD / 地图找下一处粗糙地面。"
+			return "清障完成态已保留；转向 HUD / 地图上的下一个未处理路线点。"
+		"gather":
+			return "该资源点已回收；回基地加工已获得材料，或前往地图上的下一个未处理采集点。"
+		"sample":
+			return "样本已写入；回基地解析样本，或按当前 HUD 目标继续。"
+		"inspect":
+			return "该对象已确认；查看 HUD / 地图当前目标，切换到下一处未完成对象。"
+		_:
+			return "现场完成态颜色和标签表示该对象已处理；前往下一个未处理目标。"
 
 
 func _is_already_processed(object_state: Dictionary, interaction_type: String) -> bool:
@@ -1252,4 +1315,12 @@ func _failure(message: String, title: String = "交互未完成", detail: String
 			"title": title,
 			"detail": detail
 		}
+	}
+
+
+func _failure_from_feedback(message: String, feedback: Dictionary) -> Dictionary:
+	return {
+		"success": false,
+		"message": message,
+		"failure_feedback": feedback
 	}
