@@ -1,6 +1,6 @@
 # Demo Definition V1
 
-更新时间：2026-06-17
+更新时间：2026-06-18
 
 ## 用途
 
@@ -62,7 +62,8 @@
 | 交互可辨识度 | `docs/features/demo-interaction-affordance-v1.md` | 已落地第一包 |
 | 动作反馈可读性 | `docs/features/demo-action-feedback-readability-v1.md` | 已落地第一包 |
 | 受阻动作恢复读法 | `docs/features/demo-action-blocker-recovery-v1.md` | 已落地第一包 |
-| 原型视觉呈现 | `docs/features/demo-prototype-visual-pass-v1.md` | 当前活跃，第一包已落地 |
+| 原型视觉呈现 | `docs/features/demo-prototype-visual-pass-v1.md` | 已通过退出判断 |
+| 快捷补给读法 | `docs/features/demo-quick-slot-supply-readability-v1.md` | 当前活跃，第一包已落地 |
 | 角色技能 / 装备模块第一版 | `docs/features/demo-character-kit-v1.md` | 已落地首个主动工具动作 |
 | 防护响应 / 装备状态 | `docs/features/demo-protective-response-v1.md` | 已落地第一包 |
 | 核心场景与初步美术 | `docs/features/demo-scene-art-foundation-v1.md` | 已落地第一包 |
@@ -91,10 +92,10 @@
 
 ## 当前优先级
 
-当前继续推进首版 Demo 体验主干；`Demo Prototype Visual Pass V1` 第一包已落地，下一步先做阶段退出判断：
+当前继续推进首版 Demo 体验主干；`Demo Prototype Visual Pass V1` 已通过退出判断，下一步切到 `Demo Quick Slot Supply Readability V1`：
 
-1. 受阻动作恢复读法第一包已覆盖采集、清障、建造、加工、整备、战斗和核心写入被拦住时的失败反馈、HUD、地图和对象状态一致性。
-2. 原型视觉呈现第一包检查现有 12 区的色彩层级、前后景分离、危险 / 资源 / 设施视觉权重，以及场景视觉、HUD / 地图和对象状态互证。
-3. 只复用既有区域、场景节点、任务、对象状态、敌人状态、库存、装备、补给和整备系统，不新增资源、配方、区域、完整背包、完整装备栏、死亡系统、终局菜单、结算页或新任务链。
+1. 原型视觉呈现已覆盖现有 12 区层级、核心区场地尺度、首小时目标链场景导引和专项检查。
+2. 快捷补给读法只处理现有修复凝胶 / 抗污染药剂在 HUD 快捷栏、补给反馈和失败恢复路线中的可读性。
+3. 只复用既有任务、库存、生命 / 防护、补给和整备系统，不新增资源、配方、区域、完整背包、完整装备栏、死亡系统、终局菜单、结算页或新任务链。
 
 在首版 Demo 满足本文必达规格前，不切到试玩准备或集中修 bug 阶段。

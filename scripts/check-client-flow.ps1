@@ -134,6 +134,11 @@ if (-not (Test-Path -LiteralPath $demoPrototypeVisualPassCheckScript -PathType L
     Write-Error "Demo prototype visual pass check script not found: ${demoPrototypeVisualPassCheckScript}"
     exit 1
 }
+$demoQuickSlotSupplyReadabilityCheckScript = Join-Path $clientRoot "scripts/checks/demo_quick_slot_supply_readability_check.gd"
+if (-not (Test-Path -LiteralPath $demoQuickSlotSupplyReadabilityCheckScript -PathType Leaf)) {
+    Write-Error "Demo quick slot supply readability check script not found: ${demoQuickSlotSupplyReadabilityCheckScript}"
+    exit 1
+}
 
 $godotRunId = "vertical-slice-flow-{0}-{1}" -f $PID, [DateTime]::UtcNow.ToString("yyyyMMddHHmmssfff")
 $godotHome = Join-Path (Join-Path $RepoRoot ".godot-check-runs") $godotRunId
@@ -327,8 +332,15 @@ try {
         exit $LASTEXITCODE
     }
 
+    $quickSlotSupplyReadabilityOutput = & $GodotExe --headless --path $clientRoot --script $demoQuickSlotSupplyReadabilityCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $quickSlotSupplyReadabilityOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo quick slot supply readability check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $unexpectedErrors = @(
-        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoFieldLoopPayoffOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput + $prototypeVisualPassOutput |
+        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoFieldLoopPayoffOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput + $prototypeVisualPassOutput + $quickSlotSupplyReadabilityOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {

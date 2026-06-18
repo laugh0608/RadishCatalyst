@@ -176,6 +176,13 @@ $checks = @(
         Parameters = @{
             RepoRoot = $RepoRoot
         }
+    },
+    @{
+        Name = "client demo quick slot supply readability"
+        Script = "check-client-demo-quick-slot-supply-readability.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
     }
 )
 

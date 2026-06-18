@@ -6,8 +6,8 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题和最近完成细专题为准：
 
-- 当前活跃专题：[Demo Prototype Visual Pass V1](../features/demo-prototype-visual-pass-v1.md)，核心区场地尺度和启动目标导引已推进，当前补首小时目标链场景导引。
-- 最近完成：[Demo Action Blocker Recovery V1](../features/demo-action-blocker-recovery-v1.md)、[Demo Action Feedback Readability V1](../features/demo-action-feedback-readability-v1.md)、[Demo Interaction Affordance V1](../features/demo-interaction-affordance-v1.md)、[Demo Combat Evacuation Recovery V1](../features/demo-combat-evacuation-recovery-v1.md)、[Demo Playable Scene Composition V1](../features/demo-playable-scene-composition-v1.md)
+- 当前活跃专题：[Demo Quick Slot Supply Readability V1](../features/demo-quick-slot-supply-readability-v1.md)，收束现有修复凝胶 / 抗污染药剂在快捷栏中的可用、暂存和缺补给读法。
+- 最近完成：[Demo Prototype Visual Pass V1](../features/demo-prototype-visual-pass-v1.md)、[Demo Action Blocker Recovery V1](../features/demo-action-blocker-recovery-v1.md)、[Demo Action Feedback Readability V1](../features/demo-action-feedback-readability-v1.md)、[Demo Interaction Affordance V1](../features/demo-interaction-affordance-v1.md)、[Demo Combat Evacuation Recovery V1](../features/demo-combat-evacuation-recovery-v1.md)
 - 更早完成专题按 [Feature Development Docs](../features/README.md) 索引选读。
 
 历史过程、长完成清单和详细复盘优先查看：
@@ -30,18 +30,19 @@
 - 2026-06-14：「首版 Demo 可玩内容建设推进」达到收束条件；现有路线已有可操作场景对象、运行逻辑、玩家反馈、存档来源和自动检查证据。
 - 2026-06-16：「角色成长与战斗第一版」「功能 / 过渡路线支撑第一版」「非核心区域场景识别第一版」「资源链状态第一版」「存档状态契约第一版」「主路径连续性第一版」「运行时承载面拆分第一版」与「功能场景玩法第一版」第一包已落地。
 - 2026-06-17：外勤回基地收益兑现、终点前综合准备读法、Demo 完成成果整理、整段体验连贯性、可玩场景构成、战斗撤离恢复、交互可辨识度、动作反馈可读性、受阻动作恢复读法与原型视觉呈现第一包均已落地。
+- 2026-06-18：原型视觉呈现第一版通过退出判断；当前切到快捷补给读法第一版。
 
 当前阶段：
 
 ```text
-首版 Demo 体验主干建设：原型视觉呈现第一版
+首版 Demo 体验主干建设：快捷补给读法第一版
 ```
 
-当前推进口径是原型视觉呈现第一版：不做最终美术或 UI 换皮，先让场景本身能读出当前空间、首小时目标链和该点哪个对象。
+当前推进口径是快捷补给读法第一版：不新增消耗品、背包或 UI 面板，只让现有 `1/2` 快捷栏读出补给可用、暂存和缺口回补设备。
 
 ## 当前主线
 
-当前活跃专题是 [Demo Prototype Visual Pass V1](../features/demo-prototype-visual-pass-v1.md)。它承接已完成的核心区场景识别、非核心区场景身份和可玩场景构成，覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 的「区域 / 场景」「核心场景完成度」「功能 / 过渡场景」「UI / HUD」「初步美术」和「自动检查」缺口。
+当前活跃专题是 [Demo Quick Slot Supply Readability V1](../features/demo-quick-slot-supply-readability-v1.md)。它承接已完成的防护响应、撤离恢复、动作受阻恢复和原型视觉呈现，覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 的「装备 / 模块」「UI / HUD」和「自动检查」缺口。
 
 角色成长与战斗第一版已收束；后续不继续加厚工具打击校准、防护响应、主线完成感、战术扫描、污染边界、遗迹外圈、工业主干或核心场景同一读法点。若后续扩到新角色动作、装备状态或战斗压力，必须另建非重复细专题。
 
@@ -51,12 +52,12 @@
 
 - 首版 Demo 继续按 12 区域封顶。
 - 4 个核心区域、4 个功能区域、4 个过渡区域不再平均加厚。
-- 当前优先让基地平台、晶体矿脉、污染边界和核心稳定站具备真实场地尺度；不把全 12 区一次性重画。
+- 原型视觉呈现第一版已收束；当前不再继续扩视觉 cue、目标箭头或地图提示。
 - 只修阻塞理解、主线连续性、功能闭合或场景表达的断点。
 
 ## UI 策略
 
-UI 和场景表现已完成第一轮原型呈现支撑。当前原型视觉呈现阶段不新增 UI 面板，只检查现有场景视觉、HUD、地图和对象状态之间的可见一致性。
+UI 和场景表现已完成第一轮原型呈现支撑。当前只在既有 HUD 快捷栏行补足现有补给状态，不新增 UI 面板。
 
 不做完整菜单、设置页、背包大重构、完整装备栏、结算页、动画过场或大规模美术替换。
 
@@ -72,9 +73,9 @@ UI 和场景表现已完成第一轮原型呈现支撑。当前原型视觉呈�
 
 允许推进：
 
-- 原型视觉呈现第二包：核心区尺度化、场景地面层和可达路线检查。
+- 快捷补给读法第一包：修复凝胶 / 抗污染药剂数量、可用状态和回补设备短读法。
 - 必要时新增窄职责 formatter、presenter helper 或专项 check，避免继续推高接近硬上限的大文件。
-- 只修阻塞主线连续性、功能闭合或区域表达的断点。
+- 只修阻塞主线连续性、功能闭合、区域表达或快捷补给判断的断点。
 
 ## 节奏规则
 
@@ -101,7 +102,7 @@ Windows 用 `pwsh ./scripts/check-docs.ps1`、`pwsh ./scripts/check-text-files.p
 
 ## 阶段退出条件
 
-- [Demo Prototype Visual Pass V1](../features/demo-prototype-visual-pass-v1.md) 建立并完成第一包原型视觉呈现检查与补齐。
-- 现有 12 区的区域背景、主路方向、关键对象、危险 / 设施层和处理状态能通过场景视觉、HUD / 地图与对象状态互相印证。
+- [Demo Quick Slot Supply Readability V1](../features/demo-quick-slot-supply-readability-v1.md) 建立并完成快捷补给读法检查与补齐。
+- 现有修复凝胶与抗污染药剂能通过 HUD 快捷栏、补给反馈和失败恢复路线互相印证。
 - 未引入新资源、配方、区域、新任务链、新敌人类型、完整背包、完整装备栏、死亡系统、终局菜单、结算页或发布准备流程。
 - 新增检查走独立专项文件；不继续推高 `vertical_slice_flow_check.gd`、`vertical_slice_map.gd`、`prototype_hud.gd` 或 `interaction_prompt_formatter.gd`。

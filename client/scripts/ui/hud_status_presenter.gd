@@ -217,7 +217,7 @@ func _format_character_lines(
 			character_state.max_protection
 		],
 		"污染：%s" % format_pollution_status(data_registry, world_state, character_state),
-		"快捷栏：%s" % _format_quick_slots(data_registry, character_state),
+		"快捷栏：%s" % _format_quick_slots(data_registry, world_state, character_state),
 		"模块：%s" % _format_equipment_summary(data_registry, character_state),
 		CharacterKitRuntime.format_hud_tool_action_status(character_state, world_state)
 	]
@@ -843,22 +843,16 @@ func _format_equipment_summary(data_registry: DataRegistry, character_state: Cha
 	return "；".join(parts)
 
 
-func _format_quick_slots(data_registry: DataRegistry, character_state: CharacterState) -> String:
-	var parts: Array[String] = []
-	for slot_index in range(character_state.quick_slots.size()):
-		var item_id := character_state.quick_slots[slot_index]
-		if item_id.is_empty():
-			parts.append("%d 空" % (slot_index + 1))
-			continue
-
-		parts.append("%d %sx%s" % [
-			slot_index + 1,
-			_get_display_name(data_registry, item_id),
-			int(character_state.inventory.items.get(item_id, 0))
-		])
-	if parts.is_empty():
-		return "无"
-	return "；".join(parts)
+func _format_quick_slots(
+	data_registry: DataRegistry,
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	return DemoQuickSlotSupplyReadabilityFormatter.format_quick_slot_summary(
+		data_registry,
+		world_state,
+		character_state
+	)
 
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
