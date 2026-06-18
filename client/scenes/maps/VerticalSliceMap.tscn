@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/map/vertical_slice_map.gd" id="1_map"]
 [ext_resource type="PackedScene" path="res://scenes/actors/Player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/maps/PrototypeInteractable.tscn" id="3_interactable"]
 [ext_resource type="PackedScene" path="res://scenes/actors/PrototypeEnemy.tscn" id="4_enemy"]
 [ext_resource type="Script" path="res://scripts/map/prototype_visual_priority_layer.gd" id="5_visual_priority"]
+[ext_resource type="Script" path="res://scripts/map/current_objective_guidance_layer.gd" id="6_objective_guidance"]
 
 [node name="VerticalSliceMap" type="Node2D"]
 script = ExtResource("1_map")
@@ -1397,6 +1398,9 @@ horizontal_alignment = 1
 
 [node name="PrototypeVisualPriorityLayer" type="Node2D" parent="."]
 script = ExtResource("5_visual_priority")
+
+[node name="CurrentObjectiveGuidanceLayer" type="Node2D" parent="."]
+script = ExtResource("6_objective_guidance")
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(-250, -48)

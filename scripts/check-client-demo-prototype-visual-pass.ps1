@@ -26,9 +26,17 @@ $requiredTextByFile = @{
         "get_generated_cue_count",
         "PrototypeVisualPriorityProfile.get_region_ids"
     )
+    "client/scripts/map/current_objective_guidance_layer.gd" = @(
+        "class_name CurrentObjectiveGuidanceLayer",
+        "CurrentObjectiveTargetHalo",
+        "CurrentObjectiveOffTargetLabel",
+        "is_target_guidance_visible"
+    )
     "client/scenes/maps/VerticalSliceMap.tscn" = @(
         "res://scripts/map/prototype_visual_priority_layer.gd",
-        "PrototypeVisualPriorityLayer"
+        "PrototypeVisualPriorityLayer",
+        "res://scripts/map/current_objective_guidance_layer.gd",
+        "CurrentObjectiveGuidanceLayer"
     )
     "client/scripts/interaction/prototype_interactable.gd" = @(
         "set_visual_priority_state",
@@ -48,6 +56,7 @@ $requiredTextByFile = @{
         "Demo prototype visual pass checks passed.",
         "_check_visual_priority_profile_coverage",
         "_check_scene_visual_priority_layer",
+        "_check_current_objective_guidance_layer",
         "_check_visual_state_methods",
         "_check_visual_refresher_state_alignment"
     )

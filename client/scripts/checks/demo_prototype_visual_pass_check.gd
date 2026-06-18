@@ -27,6 +27,7 @@ func _init() -> void:
 func _run_checks() -> void:
 	_check_visual_priority_profile_coverage()
 	_check_scene_visual_priority_layer()
+	_check_current_objective_guidance_layer()
 	_check_startup_readability_scope()
 	_check_visual_state_methods()
 	_check_visual_refresher_state_alignment()
@@ -63,6 +64,28 @@ func _check_scene_visual_priority_layer() -> void:
 		_expect_equal(layer.get_generated_cue_count(), 36, "visual priority layer creates three cues per region")
 		for region_id in PrototypeVisualPriorityProfile.get_region_ids():
 			_check_region_cues(map, layer, region_id)
+	map.free()
+
+
+func _check_current_objective_guidance_layer() -> void:
+	var map := _create_setup_map()
+	var layer := map.get_node("CurrentObjectiveGuidanceLayer") as CurrentObjectiveGuidanceLayer
+	var target := map.get_node("Interactables/OutpostCore") as PrototypeInteractable
+	var storage := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
+	_expect_equal(layer != null, true, "current objective guidance layer exists")
+	if layer == null:
+		map.free()
+		return
+
+	layer.refresh_guidance()
+	_expect_equal(layer.is_target_guidance_visible(), true, "startup outpost core target guidance is visible")
+	_expect_equal(layer.get_node_or_null("CurrentObjectiveTargetLabel") != null, true, "current target label exists")
+	storage.set_focus_visual(true)
+	layer.refresh_guidance()
+	_expect_equal(layer.is_off_target_hint_visible(), true, "focused non-target object shows current objective hint")
+	target.set_restored_outpost_core_visual()
+	layer.refresh_guidance()
+	_expect_equal(layer.is_target_guidance_visible(), false, "current objective guidance hides after outpost core restore")
 	map.free()
 
 
