@@ -90,6 +90,10 @@ func _check_opening_scene_layer() -> void:
 	var crystal_salvage_pocket := map.get_node("OpeningSceneLayer/CrystalSalvageObjectPocket") as ColorRect
 	var anomaly_pocket := map.get_node("OpeningSceneLayer/CrystalAnomalyPocketMarker") as ColorRect
 	var anomaly_return_anchor := map.get_node("OpeningSceneLayer/CrystalAnomalyReturnAnchor") as ColorRect
+	var pollution_construction_ground := map.get_node("OpeningSceneLayer/PollutionConstructionYardGround") as ColorRect
+	var pollution_entry_ground := map.get_node("OpeningSceneLayer/PollutionEntryPressureGround") as ColorRect
+	var pollution_deep_field := map.get_node("OpeningSceneLayer/PollutionDeepResidueField") as ColorRect
+	var pollution_return_drain := map.get_node("OpeningSceneLayer/PollutionReturnDrainField") as ColorRect
 	var pollution_safe := map.get_node("OpeningSceneLayer/PollutionSafeConstructionBelt") as ColorRect
 	var pollution_construction_band := map.get_node("OpeningSceneLayer/PollutionConstructionObjectBand") as ColorRect
 	var foundation_north_marker := map.get_node("OpeningSceneLayer/PollutionFoundationNorthMarker") as ColorRect
@@ -104,6 +108,12 @@ func _check_opening_scene_layer() -> void:
 	var pollution_pressure_route := map.get_node("OpeningSceneLayer/PollutionPressureRouteLine") as ColorRect
 	var pollution_gate_pressure_pocket := map.get_node("OpeningSceneLayer/PollutionGatePressurePocket") as ColorRect
 	var pollution_gate_pressure_marker := map.get_node("OpeningSceneLayer/PollutionGatePressureMarker") as ColorRect
+	var core_arrival_yard := map.get_node("OpeningSceneLayer/CoreStabilizationArrivalYard") as ColorRect
+	var core_recovery_yard := map.get_node("OpeningSceneLayer/CoreStabilizationRecoveryYard") as ColorRect
+	var core_guard_ground := map.get_node("OpeningSceneLayer/CoreStabilizationGuardFieldGround") as ColorRect
+	var core_writeback_deck := map.get_node("OpeningSceneLayer/CoreStabilizationWritebackDeck") as ColorRect
+	var core_retest_yard := map.get_node("OpeningSceneLayer/CoreStabilizationRetestYard") as ColorRect
+	var core_logistics_retest_yard := map.get_node("OpeningSceneLayer/CoreStabilizationLogisticsRetestYard") as ColorRect
 	var outpost_core := map.get_node("Interactables/OutpostCore") as PrototypeInteractable
 	var basic_reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
 	var storage_site := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
@@ -124,12 +134,25 @@ func _check_opening_scene_layer() -> void:
 	var foundation_site_south := map.get_node("Interactables/FoundationSiteSouth") as PrototypeInteractable
 	var filter_site := map.get_node("Interactables/PollutionFilterBuildSite") as PrototypeInteractable
 	var entry_residue := map.get_node("Interactables/PollutionResidue") as PrototypeInteractable
+	var vial_return_residue := map.get_node("Interactables/PollutionResidueVialReturnCache") as PrototypeInteractable
+	var core_archive_return_residue := map.get_node("Interactables/PollutionResidueCoreArchiveReturnCache") as PrototypeInteractable
+	var logistics_pressure_residue := map.get_node("Interactables/PollutionResidueLogisticsMaintenancePressureCache") as PrototypeInteractable
 	var pollution_residue := map.get_node("Interactables/PollutionResidueDeep") as PrototypeInteractable
+	var core_buffer_residue := map.get_node("Interactables/CoreBufferResidueCache") as PrototypeInteractable
+	var demo_core := map.get_node("Interactables/DemoStabilizationCore") as PrototypeInteractable
+	var demo_recovery_cache := map.get_node("Interactables/DemoStabilizationRecoveryCache") as PrototypeInteractable
+	var demo_guard_cache := map.get_node("Interactables/DemoStabilizationGuardCache") as PrototypeInteractable
+	var demo_retest_readout := map.get_node("Interactables/DemoStabilizationRetestReadoutCache") as PrototypeInteractable
+	var logistics_retest_residue := map.get_node("Interactables/PollutionResidueLogisticsMaintenanceRetestCache") as PrototypeInteractable
 	var polluted_enemy := map.get_node("Enemies/PollutedSkitter") as PrototypeEnemy
 	var gate_pressure_enemy := map.get_node("Enemies/PollutedSkitterGatePressure") as PrototypeEnemy
+	var demo_guard := map.get_node("Enemies/DemoStabilizationGuard") as PrototypeEnemy
+	var logistics_retest_guard := map.get_node("Enemies/PollutedSkitterLogisticsMaintenanceRetestGuard") as PrototypeEnemy
 	host._expect_equal(layer != null, true, "opening scene readability layer exists")
 	host._expect_equal(
-		background.offset_top <= VerticalSliceMap.CAMERA_BOUNDS_MIN.y - 120.0
+		background.offset_left <= VerticalSliceMap.CAMERA_BOUNDS_MIN.x
+			and background.offset_right >= VerticalSliceMap.CAMERA_BOUNDS_MAX.x + 120.0
+			and background.offset_top <= VerticalSliceMap.CAMERA_BOUNDS_MIN.y - 120.0
 			and background.offset_bottom >= VerticalSliceMap.CAMERA_BOUNDS_MAX.y + 120.0,
 		true,
 		"opening scene background fills the camera instead of exposing gray margins"
@@ -139,6 +162,12 @@ func _check_opening_scene_layer() -> void:
 			and VerticalSliceMap.PLAY_BOUNDS_MAX.y >= 280.0,
 		true,
 		"opening scene play bounds provide first-demo vertical space instead of a flat route strip"
+	)
+	host._expect_equal(
+		VerticalSliceMap.PLAY_BOUNDS_MAX.x >= 4280.0
+			and VerticalSliceMap.CAMERA_BOUNDS_MAX.x >= 4300.0,
+		true,
+		"opening scene play bounds include the final core retest yard"
 	)
 	host._expect_equal(
 		_is_rect_covering_position(main_route, player.position)
@@ -160,7 +189,8 @@ func _check_opening_scene_layer() -> void:
 			and _is_rect_covering_position(demo_route_crystal, crystal_cluster.position)
 			and _is_rect_covering_position(demo_route_pollution, polluted_enemy.position)
 			and _is_rect_covering_position(demo_route_ruin, Vector2(520.0, 0.0))
-			and _is_rect_covering_position(demo_route_core, Vector2(3680.0, 0.0)),
+			and _is_rect_covering_position(demo_route_core, Vector2(3680.0, 0.0))
+			and _is_rect_covering_position(demo_route_core, logistics_retest_residue.position),
 		true,
 		"demo playable route bands cover the S0 base, crystal, pollution, ruin and core beats"
 	)
@@ -303,6 +333,30 @@ func _check_opening_scene_layer() -> void:
 		"opening scene salvage and anomaly pockets align with side objects"
 	)
 	host._expect_equal(
+		pollution_construction_ground.offset_top <= -280.0
+			and _is_rect_covering_position(pollution_construction_ground, rough_ground.position)
+			and _is_rect_covering_position(pollution_construction_ground, foundation_site.position)
+			and _is_rect_covering_position(pollution_construction_ground, filter_site.position),
+		true,
+		"opening scene pollution construction yard covers clearing, foundation and filter work"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(pollution_entry_ground, entry_residue.position)
+			and _is_rect_covering_position(pollution_entry_ground, gate_pressure_enemy.position)
+			and _is_rect_covering_position(pollution_deep_field, polluted_enemy.position)
+			and _is_rect_covering_position(pollution_deep_field, pollution_residue.position),
+		true,
+		"opening scene pollution field has entry pressure and deep residue ground"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(pollution_deep_field, vial_return_residue.position)
+			and _is_rect_covering_position(pollution_return_drain, core_archive_return_residue.position)
+			and _is_rect_covering_position(pollution_return_drain, logistics_pressure_residue.position)
+			and _is_rect_covering_position(pollution_return_drain, core_buffer_residue.position),
+		true,
+		"opening scene pollution return routes sit on reachable drain ground"
+	)
+	host._expect_equal(
 		pollution_safe.offset_top < VerticalSliceMap.POLLUTION_DEEP_Y
 			and pollution_danger.offset_top >= VerticalSliceMap.POLLUTION_DEEP_Y - 2.0,
 		true,
@@ -360,6 +414,29 @@ func _check_opening_scene_layer() -> void:
 			and pollution_pressure_route.offset_right <= pollution_gate_pressure_marker.offset_left + 12.0,
 		true,
 		"opening scene danger markers step from residue to first pressure to gate pressure"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(core_arrival_yard, demo_recovery_cache.position)
+			and _is_rect_covering_position(core_recovery_yard, demo_recovery_cache.position)
+			and _is_rect_covering_position(core_guard_ground, demo_guard.position)
+			and _is_rect_covering_position(core_guard_ground, demo_guard_cache.position),
+		true,
+		"opening scene core station has arrival, recovery and guard yards"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(core_writeback_deck, demo_core.position)
+			and _is_rect_covering_position(core_retest_yard, demo_retest_readout.position)
+			and _is_rect_covering_position(core_logistics_retest_yard, logistics_retest_residue.position)
+			and _is_rect_covering_position(core_logistics_retest_yard, logistics_retest_guard.position),
+		true,
+		"opening scene core station covers writeback, retest and logistics retest yards"
+	)
+	host._expect_equal(
+		demo_core.position.x < logistics_retest_residue.position.x
+			and logistics_retest_residue.position.x <= VerticalSliceMap.PLAY_BOUNDS_MAX.x
+			and logistics_retest_guard.position.x <= VerticalSliceMap.PLAY_BOUNDS_MAX.x,
+		true,
+		"opening scene final core retest objects stay inside playable bounds"
 	)
 	map.free()
 
