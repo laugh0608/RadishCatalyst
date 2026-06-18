@@ -1,12 +1,12 @@
 # Current Plan
 
-更新时间：2026-06-17
+更新时间：2026-06-18
 
 ## 入口约束
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题和最近完成细专题为准：
 
-- 当前活跃专题：[Demo Prototype Visual Pass V1](../features/demo-prototype-visual-pass-v1.md)，2026-06-17 第一包已落地，下一次先做阶段退出判断。
+- 当前活跃专题：[Demo Prototype Visual Pass V1](../features/demo-prototype-visual-pass-v1.md)，第二包开始把基地平台与晶体矿脉首段从示意图推进到可达场地尺度。
 - 最近完成：[Demo Action Blocker Recovery V1](../features/demo-action-blocker-recovery-v1.md)、[Demo Action Feedback Readability V1](../features/demo-action-feedback-readability-v1.md)、[Demo Interaction Affordance V1](../features/demo-interaction-affordance-v1.md)、[Demo Combat Evacuation Recovery V1](../features/demo-combat-evacuation-recovery-v1.md)、[Demo Playable Scene Composition V1](../features/demo-playable-scene-composition-v1.md)
 - 更早完成专题按 [Feature Development Docs](../features/README.md) 索引选读。
 
@@ -37,7 +37,7 @@
 首版 Demo 体验主干建设：原型视觉呈现第一版
 ```
 
-当前推进口径是原型视觉呈现第一版收口：现有 12 区画面的色彩层级、前后景分离、危险 / 资源 / 设施视觉权重和 HUD / 地图 / 对象反馈已接入第一包，下一次先做阶段退出判断。
+当前推进口径是原型视觉呈现第一版第二包：不做最终美术或 UI 换皮，先把核心区首屏和首段外勤从窄条示意推进到可达场地尺度。
 
 ## 当前主线
 
@@ -51,6 +51,7 @@
 
 - 首版 Demo 继续按 12 区域封顶。
 - 4 个核心区域、4 个功能区域、4 个过渡区域不再平均加厚。
+- 当前优先让基地平台、晶体矿脉、污染边界和核心稳定站具备真实场地尺度；不把全 12 区一次性重画。
 - 只修阻塞理解、主线连续性、功能闭合或场景表达的断点。
 
 ## UI 策略
@@ -71,7 +72,7 @@ UI 和场景表现已完成第一轮原型呈现支撑。当前原型视觉呈�
 
 允许推进：
 
-- 原型视觉呈现第一包已落地后的阶段退出判断或必要 `P0` / `P1` 修正。
+- 原型视觉呈现第二包：核心区尺度化、场景地面层和可达路线检查。
 - 必要时新增窄职责 formatter、presenter helper 或专项 check，避免继续推高接近硬上限的大文件。
 - 只修阻塞主线连续性、功能闭合或区域表达的断点。
 

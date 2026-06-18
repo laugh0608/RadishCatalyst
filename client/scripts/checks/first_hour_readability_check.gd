@@ -55,6 +55,10 @@ func _check_opening_scene_layer() -> void:
 	var demo_route_base_label := map.get_node("DemoRoutePresentationLayer/DemoRouteBaseLabel") as Label
 	var demo_route_core_label := map.get_node("DemoRoutePresentationLayer/DemoRouteCoreLabel") as Label
 	var base_deck := map.get_node("OpeningSceneLayer/BaseDeckFloor") as ColorRect
+	var base_upper_service_apron := map.get_node("OpeningSceneLayer/BaseUpperServiceApron") as ColorRect
+	var base_central_work_yard := map.get_node("OpeningSceneLayer/BaseCentralWorkYard") as ColorRect
+	var base_lower_logistics_yard := map.get_node("OpeningSceneLayer/BaseLowerLogisticsYard") as ColorRect
+	var base_departure_causeway := map.get_node("OpeningSceneLayer/BaseDepartureCauseway") as ColorRect
 	var core_pad := map.get_node("OpeningSceneLayer/BaseCorePad") as ColorRect
 	var core_marker := map.get_node("OpeningSceneLayer/BaseCoreObjectMarker") as ColorRect
 	var core_to_reactor_flow := map.get_node("OpeningSceneLayer/BaseCoreToReactorFlowLine") as ColorRect
@@ -75,6 +79,9 @@ func _check_opening_scene_layer() -> void:
 	var exit_lane := map.get_node("OpeningSceneLayer/BaseExitLane") as ColorRect
 	var exit_threshold := map.get_node("OpeningSceneLayer/BaseExitThresholdLine") as ColorRect
 	var crystal_entry := map.get_node("OpeningSceneLayer/CrystalEntryGround") as ColorRect
+	var crystal_north_ridge := map.get_node("OpeningSceneLayer/CrystalNorthRidgeGround") as ColorRect
+	var crystal_central_field := map.get_node("OpeningSceneLayer/CrystalCentralFieldGround") as ColorRect
+	var crystal_south_salvage_yard := map.get_node("OpeningSceneLayer/CrystalSouthSalvageYard") as ColorRect
 	var crystal_vein_track := map.get_node("OpeningSceneLayer/CrystalMainVeinTrack") as ColorRect
 	var crystal_start_anchor := map.get_node("OpeningSceneLayer/CrystalMainVeinStartAnchor") as ColorRect
 	var crystal_deep_anchor := map.get_node("OpeningSceneLayer/CrystalMainVeinDeepAnchor") as ColorRect
@@ -108,6 +115,8 @@ func _check_opening_scene_layer() -> void:
 	var crystal_cluster := map.get_node("Interactables/CrystalCluster") as PrototypeInteractable
 	var rich_crystal := map.get_node("Interactables/RichCrystalVeinNorth") as PrototypeInteractable
 	var field_wreckage := map.get_node("Interactables/FieldWreckageNorth") as PrototypeInteractable
+	var logistics_return_crystal := map.get_node("Interactables/CrystalClusterLogisticsReturn") as PrototypeInteractable
+	var logistics_return_wreckage := map.get_node("Interactables/FieldWreckageLogisticsReturn") as PrototypeInteractable
 	var anomaly := map.get_node("Interactables/AnomalyCrystal") as PrototypeInteractable
 	var rough_ground := map.get_node("Interactables/RoughGroundNorth") as PrototypeInteractable
 	var rough_ground_south := map.get_node("Interactables/RoughGroundSouth") as PrototypeInteractable
@@ -124,6 +133,12 @@ func _check_opening_scene_layer() -> void:
 			and background.offset_bottom >= VerticalSliceMap.CAMERA_BOUNDS_MAX.y + 120.0,
 		true,
 		"opening scene background fills the camera instead of exposing gray margins"
+	)
+	host._expect_equal(
+		VerticalSliceMap.PLAY_BOUNDS_MIN.y <= -320.0
+			and VerticalSliceMap.PLAY_BOUNDS_MAX.y >= 280.0,
+		true,
+		"opening scene play bounds provide first-demo vertical space instead of a flat route strip"
 	)
 	host._expect_equal(
 		_is_rect_covering_position(main_route, player.position)
@@ -159,9 +174,19 @@ func _check_opening_scene_layer() -> void:
 	host._expect_text_contains(demo_route_core_label.text, "核心稳定站", "demo route label names the final station beat")
 	host._expect_equal(
 		base_deck.offset_left <= VerticalSliceMap.PLAY_BOUNDS_MIN.x + 24.0
-			and base_deck.offset_right < VerticalSliceMap.CRYSTAL_REGION_X,
+			and base_deck.offset_right < VerticalSliceMap.CRYSTAL_REGION_X
+			and base_deck.offset_top <= -260.0
+			and base_deck.offset_bottom >= 250.0,
 		true,
 		"opening scene base deck fills the starting platform"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(base_upper_service_apron, outpost_core.position)
+			and _is_rect_covering_position(base_central_work_yard, basic_reactor.position)
+			and _is_rect_covering_position(base_lower_logistics_yard, supply_choice.position)
+			and _is_rect_covering_position(base_departure_causeway, departure_gate.position),
+		true,
+		"opening scene base scale reads as service apron, work yard, logistics yard and departure causeway"
 	)
 	host._expect_equal(
 		core_pad.offset_left < reactor_pad.offset_left and reactor_pad.offset_left < exit_lane.offset_left,
@@ -234,6 +259,22 @@ func _check_opening_scene_layer() -> void:
 			and crystal_entry.offset_right <= VerticalSliceMap.POLLUTION_REGION_X,
 		true,
 		"opening scene crystal entry stays inside crystal region"
+	)
+	host._expect_equal(
+		crystal_entry.offset_top <= -270.0
+			and crystal_south_salvage_yard.offset_bottom >= 260.0
+			and _is_rect_covering_position(crystal_north_ridge, rich_crystal.position)
+			and _is_rect_covering_position(crystal_central_field, crystal_cluster.position)
+			and _is_rect_covering_position(crystal_south_salvage_yard, logistics_return_crystal.position)
+			and _is_rect_covering_position(crystal_south_salvage_yard, logistics_return_wreckage.position),
+		true,
+		"opening scene crystal field has reachable north ridge, central field and south salvage yard"
+	)
+	host._expect_equal(
+		logistics_return_crystal.position.y <= VerticalSliceMap.PLAY_BOUNDS_MAX.y
+			and logistics_return_wreckage.position.y <= VerticalSliceMap.PLAY_BOUNDS_MAX.y,
+		true,
+		"opening scene side-route resources sit inside playable bounds"
 	)
 	host._expect_equal(
 		_is_rect_covering_position(crystal_vein_track, crystal_cluster.position)
