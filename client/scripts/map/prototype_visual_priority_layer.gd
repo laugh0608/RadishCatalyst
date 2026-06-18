@@ -2,15 +2,28 @@ extends Node2D
 class_name PrototypeVisualPriorityLayer
 
 const GENERATED_CUE_PREFIX := "PrototypeVisualPriority"
+const FOCUS_VISIBLE_RADIUS := 500.0
+const UNRESOLVED_FOCUS_POSITION := Vector2(1.0e20, 1.0e20)
+const PLAYABLE_ANNOTATION_LAYER_NAMES := [
+	"DemoRoutePresentationLayer",
+	"SceneArtFoundationLayer",
+	"NonCoreSceneIdentityLayer"
+]
 
 var applied_region_count := 0
 
 
 func _ready() -> void:
+	configure_playable_annotation_visibility()
 	apply_profile()
 
 
+func _process(_delta: float) -> void:
+	refresh_focus_visibility()
+
+
 func apply_profile() -> void:
+	configure_playable_annotation_visibility()
 	_clear_generated_cues()
 	applied_region_count = 0
 	for region_id in PrototypeVisualPriorityProfile.get_region_ids():
@@ -19,6 +32,7 @@ func apply_profile() -> void:
 			continue
 		_apply_region_profile(region_id, profile)
 		applied_region_count += 1
+	refresh_focus_visibility()
 
 
 func get_generated_cue_count() -> int:
@@ -27,6 +41,40 @@ func get_generated_cue_count() -> int:
 		if String(child.name).begins_with(GENERATED_CUE_PREFIX):
 			count += 1
 	return count
+
+
+func get_visible_generated_cue_count() -> int:
+	var count := 0
+	for child in get_children():
+		if String(child.name).begins_with(GENERATED_CUE_PREFIX) and child.visible:
+			count += 1
+	return count
+
+
+func refresh_focus_visibility(focus_position: Vector2 = UNRESOLVED_FOCUS_POSITION) -> void:
+	var resolved_focus := focus_position
+	if resolved_focus == UNRESOLVED_FOCUS_POSITION:
+		resolved_focus = _get_player_position()
+	if resolved_focus == UNRESOLVED_FOCUS_POSITION:
+		return
+	for child in get_children():
+		if not String(child.name).begins_with(GENERATED_CUE_PREFIX):
+			continue
+		if not child is ColorRect:
+			continue
+		var cue := child as ColorRect
+		cue.visible = cue.get_rect().get_center().distance_to(resolved_focus) <= FOCUS_VISIBLE_RADIUS
+
+
+func configure_playable_annotation_visibility() -> void:
+	for layer_name in PLAYABLE_ANNOTATION_LAYER_NAMES:
+		_set_descendant_labels_visible(_get_map_node(layer_name), false)
+	_set_descendant_labels_visible(_get_map_node("OpeningSceneLayer"), false)
+	if get_parent() == null:
+		return
+	for child in get_parent().get_children():
+		if child is Label and String(child.name).ends_with("DirectionLabel"):
+			(child as Label).visible = false
 
 
 func _apply_region_profile(region_id: String, profile: Dictionary) -> void:
@@ -100,6 +148,24 @@ func _get_map_node(path: String) -> Node:
 	if path.is_empty() or get_parent() == null:
 		return null
 	return get_parent().get_node_or_null(path)
+
+
+func _get_player_position() -> Vector2:
+	if get_parent() == null:
+		return UNRESOLVED_FOCUS_POSITION
+	var player := get_parent().get_node_or_null("Player") as Node2D
+	if player == null:
+		return UNRESOLVED_FOCUS_POSITION
+	return player.position
+
+
+func _set_descendant_labels_visible(node: Node, is_visible: bool) -> void:
+	if node == null:
+		return
+	for child in node.get_children():
+		if child is Label:
+			(child as Label).visible = is_visible
+		_set_descendant_labels_visible(child, is_visible)
 
 
 func _clear_generated_cues() -> void:

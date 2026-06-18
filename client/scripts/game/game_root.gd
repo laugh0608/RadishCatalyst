@@ -1,5 +1,7 @@
 extends Node2D
 
+const PLAYTEST_CAMERA_ZOOM := Vector2(1.35, 1.35)
+
 var data_registry: DataRegistry
 var world_state: WorldState
 var character_state: CharacterState
@@ -521,6 +523,7 @@ func _configure_world_camera() -> void:
 	if world_camera == null:
 		return
 	world_camera.make_current()
+	world_camera.zoom = PLAYTEST_CAMERA_ZOOM
 	var bounds := vertical_slice_map.get_camera_bounds_rect_global()
 	world_camera.limit_left = int(floor(bounds.position.x))
 	world_camera.limit_top = int(floor(bounds.position.y))

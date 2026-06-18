@@ -534,7 +534,9 @@ func _update_map_panel(world_state: WorldState, quest_id: String, character_stat
 	if map_title_label != null:
 		map_title_label.text = map_presenter.format_demo_route_title(world_state, quest_id)
 	if map_hint_label != null:
-		map_hint_label.text = map_presenter.format_demo_route_hint(world_state, quest_id, character_state)
+		map_hint_label.text = _format_map_hint_runtime_text(
+			map_presenter.format_demo_route_hint(world_state, quest_id, character_state)
+		)
 	var marker_view_data := map_presenter.get_marker_view_data(world_state, quest_id)
 	for index in range(mini(marker_view_data.size(), map_marker_rects.size())):
 		if map_marker_rects[index] == null or map_marker_labels[index] == null:
@@ -556,6 +558,21 @@ func _format_map_marker_runtime_label(raw_label: String) -> String:
 	if status_rows.is_empty():
 		return String(rows[0])
 	return "%s\n%s" % [String(rows[0]), " / ".join(status_rows)]
+
+
+func _format_map_hint_runtime_text(raw_hint: String) -> String:
+	var compact_parts: Array[String] = []
+	for raw_part in raw_hint.split(" · ", false):
+		var part := String(raw_part).strip_edges()
+		if part.is_empty():
+			continue
+		var semicolon_index := part.find("；")
+		if semicolon_index >= 0:
+			part = part.substr(0, semicolon_index)
+		compact_parts.append(part)
+		if compact_parts.size() >= 2:
+			break
+	return " · ".join(compact_parts)
 
 
 func _update_runtime_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> void:
@@ -757,9 +774,9 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	var margin := 16.0
 	var gap := 10.0
 	var map_width := clampf(viewport_size.x * 0.18, 360.0, 460.0)
-	var map_height := 132.0
+	var map_height := 170.0
 	var objective_width := map_width
-	var objective_height := 136.0
+	var objective_height := 178.0
 	var vitals_width := clampf(viewport_size.x * 0.16, 300.0, 380.0)
 	var vitals_height := 118.0
 	var prompt_width := clampf(viewport_size.x * 0.28, 500.0, 640.0)
@@ -841,8 +858,8 @@ func _get_runtime_viewport_size() -> Vector2:
 	if viewport != null:
 		return viewport.get_visible_rect().size
 	return Vector2(
-		float(ProjectSettings.get_setting("display/window/size/viewport_width", 2500)),
-		float(ProjectSettings.get_setting("display/window/size/viewport_height", 1400))
+		float(ProjectSettings.get_setting("display/window/size/viewport_width", 1920)),
+		float(ProjectSettings.get_setting("display/window/size/viewport_height", 1080))
 	)
 
 
@@ -860,17 +877,17 @@ func _layout_map_panel_contents() -> void:
 		map_title_label.position = Vector2(14.0, 10.0)
 		map_title_label.size = Vector2(maxf(0.0, map_panel.size.x - 28.0), 24.0)
 	if map_hint_label != null:
-		map_hint_label.position = Vector2(14.0, 36.0)
-		map_hint_label.size = Vector2(maxf(0.0, map_panel.size.x - 28.0), 22.0)
+		map_hint_label.position = Vector2(14.0, 38.0)
+		map_hint_label.size = Vector2(maxf(0.0, map_panel.size.x - 28.0), 48.0)
 
 	var marker_count := mini(map_marker_rects.size(), map_marker_labels.size())
 	if marker_count <= 0:
 		return
 
-	var marker_top := 64.0
+	var marker_top := 104.0
 	var marker_size := Vector2(12.0, 14.0)
-	var primary_label_top := 86.0
-	var secondary_label_top := 106.0
+	var primary_label_top := 126.0
+	var secondary_label_top := 146.0
 	var label_height := 20.0
 	var left_margin := 18.0
 	var right_margin := 18.0

@@ -80,10 +80,13 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 ]
 const MAX_VISIBLE_KEY_RESOURCE_COUNT := 2
 const MAX_CONTEXT_RESOURCE_COUNT := 3
+const COMPACT_OBJECTIVE_MAX_LINES := 5
+const HudObjectiveCompactFormatterScript := preload("res://scripts/ui/hud_objective_compact_formatter.gd")
 const CompletionOutcomeFormatter := preload("res://scripts/systems/demo_completion_outcome_formatter.gd")
 
 var objective_source_resolver: QuestObjectiveSourceResolver
 var objective_source_registry: DataRegistry
+var compact_objective_formatter: HudObjectiveCompactFormatter
 
 
 func format_status_text(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> String:
@@ -107,11 +110,20 @@ func format_objective_text(
 ) -> String:
 	_ensure_objective_source_resolver(data_registry)
 	var active_quest_id := _get_active_quest_id(world_state)
-	return "\n".join(
-		["当前目标"]
-		+ _format_objective_lines(data_registry, world_state, active_quest_id, true)
-		+ _format_key_resource_lines(data_registry, world_state, character_state, active_quest_id)
-	)
+	var lines: Array[String] = ["当前目标"]
+	lines.append_array(_get_compact_objective_formatter().format_lines(
+		data_registry,
+		world_state,
+		character_state,
+		active_quest_id,
+		_format_goal_name(data_registry, world_state, active_quest_id),
+		_format_active_quest_progress(data_registry, world_state, active_quest_id)
+	))
+	for key_resource_line in _format_key_resource_lines(data_registry, world_state, character_state, active_quest_id):
+		if lines.size() >= COMPACT_OBJECTIVE_MAX_LINES:
+			break
+		lines.append(key_resource_line)
+	return "\n".join(lines)
 
 
 func format_vitals_text(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> String:
@@ -1244,6 +1256,12 @@ func _has_completed_phase_fault_spire(world_state: WorldState) -> bool:
 
 func _has_completed_inner_phase_well(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well")
+
+
+func _get_compact_objective_formatter() -> HudObjectiveCompactFormatter:
+	if compact_objective_formatter == null:
+		compact_objective_formatter = HudObjectiveCompactFormatterScript.new()
+	return compact_objective_formatter
 
 
 func _ensure_objective_source_resolver(data_registry: DataRegistry) -> void:

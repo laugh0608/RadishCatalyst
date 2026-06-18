@@ -377,8 +377,8 @@ func _check_general_interaction_prompts() -> void:
 	var pollution_objective_text := status_presenter.format_objective_text(host.data_registry, world, character)
 	host._expect_text_contains(
 		pollution_objective_text,
-		"链路：处理药剂->带药剂回污染边界->清理受扰敌人/门前压力点",
-		"first-hour pollution objective HUD keeps the vial return chain"
+		"下一步：带药剂回污染边界，清理敌人/压力点",
+		"first-hour pollution objective HUD keeps the vial return step"
 	)
 	var pollution_base_text := status_presenter.format_vitals_text(host.data_registry, world, character)
 	host._expect_text_contains(pollution_base_text, "外出链：带药剂回污染边界", "first-hour base summary points back to field")
@@ -617,6 +617,11 @@ func _check_hud_map_runtime_labels() -> void:
 	hud.update_status(host.data_registry, world, character)
 	host._expect_text_contains(hud.map_title_label.text, "基地整备", "first-hour minimap title names current S0 route beat")
 	host._expect_text_contains(hud.map_hint_label.text, "晶体采集", "first-hour minimap hint names next S0 route beat")
+	host._expect_text_missing(
+		hud.map_hint_label.text,
+		"前哨核心、基础反应器、出发整备台和出发口",
+		"first-hour minimap keeps long scene explanation out of top-left HUD"
+	)
 	world.current_region_id = "region.ruin_outer_ring"
 	world.quest_state.active_quest_ids = ["quest.salvage_signal_echo"]
 	hud.update_status(host.data_registry, world, character)
@@ -625,8 +630,39 @@ func _check_hud_map_runtime_labels() -> void:
 	world.quest_state.active_quest_ids = ["quest.write_demo_stabilization_core"]
 	hud.update_status(host.data_registry, world, character)
 	host._expect_text_contains(hud.map_title_label.text, "核心稳定站", "first-hour minimap title follows core station route beat")
+	world.current_region_id = "region.outpost_platform"
+	world.quest_state.active_quest_ids = ["quest.calibrate_reactor"]
+	world.quest_state.set_objective_progress("quest.calibrate_reactor", "gather_item", "item.salvage_scrap", 4)
+	character.inventory.add_ref("item.salvage_scrap", 4)
+	character.inventory.add_ref("item.crystal_ore", 1)
+	hud.update_status(host.data_registry, world, character)
+	host._expect_text_contains(
+		hud.status_label.text,
+		"制造 反应器校准件（反应器） 0/1",
+		"first-hour objective HUD shows the hidden craft objective after salvage is complete"
+	)
+	host._expect_text_contains(
+		hud.status_label.text,
+		"下一步：在基础反应器执行组装反应器校准件",
+		"first-hour objective HUD tells the player where to go after salvage reaches 4/4"
+	)
+	host._expect_equal(
+		hud.status_label.text.split("\n").size() <= 5,
+		true,
+		"first-hour objective HUD keeps compact text within the visible card"
+	)
+	host._expect_text_missing(
+		hud.status_label.text,
+		"关键资源",
+		"first-hour objective HUD drops resource details when they would hide the next step"
+	)
 	hud._set_control_rect(hud.map_panel, Vector2.ZERO, Vector2(560.0, 232.0))
 	hud._layout_map_panel_contents()
+	host._expect_equal(
+		hud.map_marker_rects[0].position.y > hud.map_hint_label.position.y + hud.map_hint_label.size.y,
+		true,
+		"first-hour minimap markers start below hint text"
+	)
 	host._expect_equal(
 		hud.map_marker_labels[0].position.y != hud.map_marker_labels[1].position.y,
 		true,
@@ -642,9 +678,16 @@ func _check_hud_runtime_layout_first_pass() -> void:
 	hud._ensure_runtime_nodes()
 	hud._layout_runtime_panels(true)
 	var viewport_size := hud._get_runtime_viewport_size()
-	host._expect_equal(hud.map_panel.size.y <= 132.0, true, "HUD first pass keeps minimap compact")
+	host._expect_equal(hud.map_panel.size.y <= 170.0, true, "HUD first pass keeps minimap within top-left HUD bounds")
+	host._expect_equal(
+		hud.map_marker_rects[0].position.y > hud.map_hint_label.position.y + hud.map_hint_label.size.y,
+		true,
+		"HUD first pass keeps minimap markers below hint text"
+	)
 	host._expect_equal(hud.status_panel.position.y > hud.map_panel.position.y + hud.map_panel.size.y, true, "HUD first pass stacks objective below minimap")
 	host._expect_equal(hud.status_panel.position.x <= 20.0, true, "HUD first pass keeps objective on the left edge")
+	host._expect_equal(hud.status_panel.size.y >= 178.0, true, "HUD first pass reserves room for current objective and next step")
+	host._expect_equal(hud.status_label.size.y >= 150.0, true, "HUD first pass keeps objective text from clipping the next step")
 	host._expect_equal(hud.vitals_panel.position.x + hud.vitals_panel.size.x >= viewport_size.x - 20.0, true, "HUD first pass keeps vitals on the right edge")
 	host._expect_equal(hud.vitals_panel.size.y <= 118.0, true, "HUD first pass keeps vitals summary compact")
 	host._expect_equal(absf(hud.prompt_panel.position.x + hud.prompt_panel.size.x * 0.5 - viewport_size.x * 0.5) <= 1.0, true, "HUD first pass centers interaction prompt")

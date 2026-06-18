@@ -27,6 +27,7 @@ func _init() -> void:
 func _run_checks() -> void:
 	_check_visual_priority_profile_coverage()
 	_check_scene_visual_priority_layer()
+	_check_startup_readability_scope()
 	_check_visual_state_methods()
 	_check_visual_refresher_state_alignment()
 
@@ -65,6 +66,33 @@ func _check_scene_visual_priority_layer() -> void:
 	map.free()
 
 
+func _check_startup_readability_scope() -> void:
+	var map := _create_setup_map()
+	var layer := map.get_node("PrototypeVisualPriorityLayer") as PrototypeVisualPriorityLayer
+	_expect_equal(layer != null, true, "startup visual priority layer exists")
+	if layer != null:
+		layer.apply_profile()
+		layer.refresh_focus_visibility(map.get_player_position())
+		_expect_equal(layer.get_generated_cue_count(), 36, "startup still keeps full visual cue evidence")
+		_expect_equal(layer.get_visible_generated_cue_count(), 6, "startup only shows nearby outpost and crystal cues")
+		_expect_equal(
+			_get_region_cue_visible(layer, "region.pollution_edge", PrototypeVisualPriorityProfile.ROLE_MAIN_ROUTE),
+			false,
+			"startup hides pollution visual cue outside the readable opening frame"
+		)
+		_expect_equal(
+			_get_region_cue_visible(layer, "region.outpost_platform", PrototypeVisualPriorityProfile.ROLE_KEY_OBJECT),
+			true,
+			"startup keeps outpost key object cue visible"
+		)
+	_check_runtime_annotation_hidden(map, "DemoRoutePresentationLayer/DemoRouteBaseLabel")
+	_check_runtime_annotation_hidden(map, "SceneArtFoundationLayer/SceneArtBaseIdentityLabel")
+	_check_runtime_annotation_hidden(map, "NonCoreSceneIdentityLayer/NonCoreRuinIdentityLabel")
+	_check_runtime_annotation_hidden(map, "OpeningSceneLayer/BaseCorePadLabel")
+	_check_runtime_annotation_hidden(map, "BaseDirectionLabel")
+	map.free()
+
+
 func _check_region_cues(map: VerticalSliceMap, layer: PrototypeVisualPriorityLayer, region_id: String) -> void:
 	var profile := PrototypeVisualPriorityProfile.get_region_profile(region_id)
 	var background := map.get_node_or_null(String(profile.get("background_path", ""))) as ColorRect
@@ -95,6 +123,22 @@ func _check_region_cues(map: VerticalSliceMap, layer: PrototypeVisualPriorityLay
 				region_id,
 				"%s %s cue region id" % [region_id, role]
 			)
+
+
+func _get_region_cue_visible(layer: PrototypeVisualPriorityLayer, region_id: String, role: String) -> bool:
+	var cue_name := "PrototypeVisualPriority%s" % PrototypeVisualPriorityProfile.make_cue_name(region_id, role)
+	var cue := layer.get_node_or_null(cue_name) as ColorRect
+	if cue == null:
+		return false
+	return cue.visible
+
+
+func _check_runtime_annotation_hidden(map: VerticalSliceMap, path: String) -> void:
+	var label := map.get_node_or_null(path) as Label
+	_expect_equal(label != null, true, "%s annotation label exists" % path)
+	if label == null:
+		return
+	_expect_equal(label.visible, false, "%s annotation label hidden during playable runtime" % path)
 
 
 func _check_visual_state_methods() -> void:
