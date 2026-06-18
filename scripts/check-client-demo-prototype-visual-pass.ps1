@@ -30,7 +30,9 @@ $requiredTextByFile = @{
         "class_name CurrentObjectiveGuidanceLayer",
         "CurrentObjectiveTargetHalo",
         "CurrentObjectiveOffTargetLabel",
-        "is_target_guidance_visible"
+        "is_target_guidance_visible",
+        "_resolve_current_target",
+        "get_current_target_node"
     )
     "client/scenes/maps/VerticalSliceMap.tscn" = @(
         "res://scripts/map/prototype_visual_priority_layer.gd",
@@ -57,6 +59,8 @@ $requiredTextByFile = @{
         "_check_visual_priority_profile_coverage",
         "_check_scene_visual_priority_layer",
         "_check_current_objective_guidance_layer",
+        "post-restore storage build guidance",
+        "pollution filter processing guidance",
         "_check_visual_state_methods",
         "_check_visual_refresher_state_alignment"
     )

@@ -6,7 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题和最近完成细专题为准：
 
-- 当前活跃专题：[Demo Prototype Visual Pass V1](../features/demo-prototype-visual-pass-v1.md)，核心区场地尺度已推进，当前补当前目标场景导引。
+- 当前活跃专题：[Demo Prototype Visual Pass V1](../features/demo-prototype-visual-pass-v1.md)，核心区场地尺度和启动目标导引已推进，当前补首小时目标链场景导引。
 - 最近完成：[Demo Action Blocker Recovery V1](../features/demo-action-blocker-recovery-v1.md)、[Demo Action Feedback Readability V1](../features/demo-action-feedback-readability-v1.md)、[Demo Interaction Affordance V1](../features/demo-interaction-affordance-v1.md)、[Demo Combat Evacuation Recovery V1](../features/demo-combat-evacuation-recovery-v1.md)、[Demo Playable Scene Composition V1](../features/demo-playable-scene-composition-v1.md)
 - 更早完成专题按 [Feature Development Docs](../features/README.md) 索引选读。
 
@@ -37,7 +37,7 @@
 首版 Demo 体验主干建设：原型视觉呈现第一版
 ```
 
-当前推进口径是原型视觉呈现第一版：不做最终美术或 UI 换皮，先让场景本身能读出当前空间、当前目标和该点哪个对象。
+当前推进口径是原型视觉呈现第一版：不做最终美术或 UI 换皮，先让场景本身能读出当前空间、首小时目标链和该点哪个对象。
 
 ## 当前主线
 

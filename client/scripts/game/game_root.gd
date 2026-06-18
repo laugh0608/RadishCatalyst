@@ -513,6 +513,13 @@ func _update_hud() -> void:
 		character_state,
 		world_state
 	)
+	_refresh_current_objective_guidance()
+
+
+func _refresh_current_objective_guidance() -> void:
+	var guidance := vertical_slice_map.get_node_or_null("CurrentObjectiveGuidanceLayer") as CurrentObjectiveGuidanceLayer
+	if guidance != null:
+		guidance.refresh_guidance(world_state, character_state)
 
 
 func _refresh_save_slot_summaries() -> void:

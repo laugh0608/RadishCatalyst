@@ -72,20 +72,111 @@ func _check_current_objective_guidance_layer() -> void:
 	var layer := map.get_node("CurrentObjectiveGuidanceLayer") as CurrentObjectiveGuidanceLayer
 	var target := map.get_node("Interactables/OutpostCore") as PrototypeInteractable
 	var storage := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
+	var world := WorldState.create_default()
+	var character := CharacterState.create_default()
 	_expect_equal(layer != null, true, "current objective guidance layer exists")
 	if layer == null:
 		map.free()
 		return
 
-	layer.refresh_guidance()
-	_expect_equal(layer.is_target_guidance_visible(), true, "startup outpost core target guidance is visible")
+	map.refresh_world_interactables(world)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "OutpostCore", "前哨核心", "startup outpost core target guidance")
 	_expect_equal(layer.get_node_or_null("CurrentObjectiveTargetLabel") != null, true, "current target label exists")
 	storage.set_focus_visual(true)
-	layer.refresh_guidance()
+	layer.refresh_guidance(world, character)
 	_expect_equal(layer.is_off_target_hint_visible(), true, "focused non-target object shows current objective hint")
+
 	target.set_restored_outpost_core_visual()
-	layer.refresh_guidance()
-	_expect_equal(layer.is_target_guidance_visible(), false, "current objective guidance hides after outpost core restore")
+	world.quest_state.complete_quest("quest.restore_outpost")
+	world.quest_state.activate_quest("quest.scout_crystal_field")
+	map.refresh_world_interactables(world)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "BasicStorageBuildSite", "基础储存箱", "post-restore storage build guidance")
+
+	world.add_base_structure(
+		"structure.basic_storage_build_site",
+		"building.basic_storage",
+		"region.outpost_platform",
+		"map_object_instance.basic_storage_build_site"
+	)
+	map.refresh_world_interactables(world)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "OutpostDepartureGate", "外勤出发口", "scout route departure guidance")
+
+	world.quest_state.set_objective_progress("quest.scout_crystal_field", "visit_region", "region.crystal_vein_field", 1.0)
+	map.refresh_world_interactables(world)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "CrystalCluster", "晶体采集点", "crystal field gather guidance")
+
+	world.quest_state.active_quest_ids = ["quest.calibrate_reactor"]
+	map.refresh_world_interactables(world)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "FieldWreckageNorth", "导电废件", "calibration salvage guidance")
+	world.quest_state.set_objective_progress("quest.calibrate_reactor", "gather_item", "item.salvage_scrap", 4.0)
+	map.refresh_world_interactables(world)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "BasicReactor", "基础反应器", "calibration reactor guidance")
+
+	world.quest_state.active_quest_ids = ["quest.bring_back_sample"]
+	map.refresh_world_interactables(world)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "AnomalyCrystal", "异常晶体", "anomaly sample guidance")
+
+	world.quest_state.active_quest_ids = ["quest.analyze_anomaly_sample"]
+	map.refresh_world_interactables(world)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "AnomalyResidueNorth", "异常残留物", "anomaly residue guidance")
+	world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 2.0)
+	map.refresh_world_interactables(world)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "BasicReactor", "基础反应器", "anomaly analysis reactor guidance")
+
+	world.quest_state.active_quest_ids = ["quest.expand_treatment_point"]
+	map.refresh_world_interactables(world)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "RoughGroundNorth", "粗糙地块", "treatment point first clearing guidance")
+	world.quest_state.set_objective_progress("quest.expand_treatment_point", "clear", "map_object.rough_ground", 2.0)
+	_mark_map_object_flag(world, "map_object_instance.rough_ground_north", "map_object.rough_ground", "is_cleared", true)
+	_mark_map_object_flag(world, "map_object_instance.rough_ground_south", "map_object.rough_ground", "is_cleared", true)
+	map.refresh_world_interactables(world)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "FoundationSiteNorth", "基础地基", "treatment point foundation guidance")
+	world.add_base_structure(
+		"structure.foundation_site_north",
+		"building.foundation_t1",
+		"region.pollution_edge",
+		"map_object_instance.foundation_site_north"
+	)
+	world.add_base_structure(
+		"structure.foundation_site_south",
+		"building.foundation_t1",
+		"region.pollution_edge",
+		"map_object_instance.foundation_site_south"
+	)
+	world.quest_state.set_objective_progress("quest.expand_treatment_point", "build", "building.foundation_t1", 2.0)
+	map.refresh_world_interactables(world)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "PollutionFilterBuildSite", "污染过滤器建造点", "treatment point filter build guidance")
+
+	world.add_base_structure(
+		"structure.pollution_filter_build_site",
+		"building.pollution_filter",
+		"region.pollution_edge",
+		"map_object_instance.pollution_filter_build_site"
+	)
+	world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
+	map.refresh_world_interactables(world)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "OutpostDepartureGate", "外勤出发口", "pollution edge departure guidance")
+	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "visit_region", "region.pollution_edge", 1.0)
+	map.refresh_world_interactables(world)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "PollutionResidue", "污染沉积物", "pollution residue gather guidance")
+	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", 4.0)
+	map.refresh_world_interactables(world)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "PollutionFilter", "污染过滤器", "pollution filter processing guidance")
 	map.free()
 
 
@@ -279,6 +370,31 @@ func _create_test_interactable(
 	interactable.add_child(label)
 	interactable.setup(display_name)
 	return interactable
+
+
+func _expect_guidance_target(
+	layer: CurrentObjectiveGuidanceLayer,
+	expected_node_name: String,
+	expected_label_text: String,
+	context: String
+) -> void:
+	var target := layer.get_current_target_node()
+	_expect_equal(target != null, true, "%s target exists" % context)
+	if target != null:
+		_expect_equal(String(target.name), expected_node_name, "%s target node" % context)
+	_expect_text_contains(layer.get_current_target_label_text(), expected_label_text, "%s target label" % context)
+	_expect_equal(layer.is_target_guidance_visible(), true, "%s target guidance visible" % context)
+
+
+func _mark_map_object_flag(
+	world: WorldState,
+	instance_id: String,
+	definition_id: String,
+	flag_name: String,
+	value: bool
+) -> void:
+	world.ensure_map_object(instance_id, definition_id)
+	world.set_map_object_flag(instance_id, flag_name, value)
 
 
 func _expect_marker_state(interactable: PrototypeInteractable, state_id: String, context: String) -> void:
