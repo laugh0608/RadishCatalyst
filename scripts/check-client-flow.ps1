@@ -139,6 +139,11 @@ if (-not (Test-Path -LiteralPath $demoQuickSlotSupplyReadabilityCheckScript -Pat
     Write-Error "Demo quick slot supply readability check script not found: ${demoQuickSlotSupplyReadabilityCheckScript}"
     exit 1
 }
+$demoSupplyPressurePacingCheckScript = Join-Path $clientRoot "scripts/checks/demo_supply_pressure_pacing_check.gd"
+if (-not (Test-Path -LiteralPath $demoSupplyPressurePacingCheckScript -PathType Leaf)) {
+    Write-Error "Demo supply pressure pacing check script not found: ${demoSupplyPressurePacingCheckScript}"
+    exit 1
+}
 
 $godotRunId = "vertical-slice-flow-{0}-{1}" -f $PID, [DateTime]::UtcNow.ToString("yyyyMMddHHmmssfff")
 $godotHome = Join-Path (Join-Path $RepoRoot ".godot-check-runs") $godotRunId
@@ -339,8 +344,15 @@ try {
         exit $LASTEXITCODE
     }
 
+    $supplyPressurePacingOutput = & $GodotExe --headless --path $clientRoot --script $demoSupplyPressurePacingCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $supplyPressurePacingOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo supply pressure pacing check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $unexpectedErrors = @(
-        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoFieldLoopPayoffOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput + $prototypeVisualPassOutput + $quickSlotSupplyReadabilityOutput |
+        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoFieldLoopPayoffOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput + $prototypeVisualPassOutput + $quickSlotSupplyReadabilityOutput + $supplyPressurePacingOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {
