@@ -257,6 +257,10 @@ func _format_base_summary_lines(
 		world_state,
 		character_state
 	)
+	var core_run_summary := DemoCoreStabilizationRunFormatter.format_hud_summary(
+		world_state,
+		character_state
+	)
 	var completion_outcome_summary := CompletionOutcomeFormatter.format_hud_summary(
 		world_state,
 		character_state
@@ -273,6 +277,8 @@ func _format_base_summary_lines(
 		return evacuation_recovery_summary
 	var core_stabilization_summary := CoreStabilizationPressureFormatter.format_hud_summary(world_state, character_state, active_quest_id)
 	if not core_stabilization_summary.is_empty():
+		if not core_run_summary.is_empty():
+			core_stabilization_summary += core_run_summary
 		if not endpoint_readiness_summary.is_empty():
 			core_stabilization_summary += endpoint_readiness_summary
 		if not completion_outcome_summary.is_empty():
@@ -322,7 +328,11 @@ func _format_base_summary_lines(
 			return outfitting_summary + completion_outcome_summary
 		return outfitting_summary
 	if not endpoint_readiness_summary.is_empty():
+		if not core_run_summary.is_empty():
+			return core_run_summary + endpoint_readiness_summary
 		return endpoint_readiness_summary
+	if not core_run_summary.is_empty():
+		return core_run_summary
 	if not completion_outcome_summary.is_empty():
 		return completion_outcome_summary
 	var industrial_summary := IndustrialTechSpineFormatter.format_hud_summary(world_state, character_state)

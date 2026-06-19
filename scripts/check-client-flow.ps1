@@ -59,6 +59,11 @@ if (-not (Test-Path -LiteralPath $demoCoreApproachHandoffPlayabilityCheckScript 
     Write-Error "Demo core approach handoff playability check script not found: ${demoCoreApproachHandoffPlayabilityCheckScript}"
     exit 1
 }
+$demoCoreStabilizationRunPlayabilityCheckScript = Join-Path $clientRoot "scripts/checks/demo_core_stabilization_run_playability_check.gd"
+if (-not (Test-Path -LiteralPath $demoCoreStabilizationRunPlayabilityCheckScript -PathType Leaf)) {
+    Write-Error "Demo core stabilization run playability check script not found: ${demoCoreStabilizationRunPlayabilityCheckScript}"
+    exit 1
+}
 $demoFieldLoopPayoffCheckScript = Join-Path $clientRoot "scripts/checks/demo_field_loop_payoff_check.gd"
 if (-not (Test-Path -LiteralPath $demoFieldLoopPayoffCheckScript -PathType Leaf)) {
     Write-Error "Demo field loop payoff check script not found: ${demoFieldLoopPayoffCheckScript}"
@@ -269,6 +274,13 @@ try {
     if ($LASTEXITCODE -ne 0) {
         $demoCoreApproachHandoffPlayabilityOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
         Write-Error "Demo core approach handoff playability check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
+    $demoCoreStabilizationRunPlayabilityOutput = & $GodotExe --headless --path $clientRoot --script $demoCoreStabilizationRunPlayabilityCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $demoCoreStabilizationRunPlayabilityOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo core stabilization run playability check failed with exit code ${LASTEXITCODE}."
         exit $LASTEXITCODE
     }
 

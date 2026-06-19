@@ -496,7 +496,11 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 		if target.definition_id == "enemy.pressure_clearance_guard":
 			return _enemy_defeat_result(target, drops_message, "前线压力扰点的短战斗压制已解除，现在可以清理扰点并带回清障回执。")
 		if target.definition_id == "enemy.demo_stabilization_guard":
-			return _enemy_defeat_result(target, drops_message, "核心阶段守卫已被击败；先回收守卫后的回写缓存，再写入核心稳定设备。")
+			return _enemy_defeat_result(
+				target,
+				drops_message,
+				"核心阶段守卫已被击败；先回收守卫后的回写缓存，再写入核心稳定设备。%s" % DemoCoreStabilizationRunFormatter.format_guard_defeat_followup(world_state, character_state)
+			)
 		return _enemy_defeat_result(target, drops_message)
 
 	var counter_message := _apply_enemy_counterattack(target, character_state, world_state)

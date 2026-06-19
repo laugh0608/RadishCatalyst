@@ -650,6 +650,50 @@ offset_right = 4088.0
 offset_bottom = 42.0
 color = Color(0.58, 0.66, 0.36, 0.44)
 
+[node name="CoreStabilizationRunLayer" type="Node2D" parent="."]
+
+[node name="CoreRunEntryCheck" type="ColorRect" parent="CoreStabilizationRunLayer"]
+offset_left = 3652.0
+offset_top = -146.0
+offset_right = 3768.0
+offset_bottom = -74.0
+color = Color(0.42, 0.64, 0.62, 0.46)
+
+[node name="CoreRunSideSupply" type="ColorRect" parent="CoreStabilizationRunLayer"]
+offset_left = 3748.0
+offset_top = 74.0
+offset_right = 3848.0
+offset_bottom = 144.0
+color = Color(0.52, 0.68, 0.42, 0.48)
+
+[node name="CoreRunBufferReturn" type="ColorRect" parent="CoreStabilizationRunLayer"]
+offset_left = 3828.0
+offset_top = -44.0
+offset_right = 3918.0
+offset_bottom = 30.0
+color = Color(0.62, 0.56, 0.34, 0.46)
+
+[node name="CoreRunGuardField" type="ColorRect" parent="CoreStabilizationRunLayer"]
+offset_left = 3902.0
+offset_top = -134.0
+offset_right = 4018.0
+offset_bottom = -54.0
+color = Color(0.68, 0.34, 0.34, 0.48)
+
+[node name="CoreRunGuardCache" type="ColorRect" parent="CoreStabilizationRunLayer"]
+offset_left = 4006.0
+offset_top = 42.0
+offset_right = 4086.0
+offset_bottom = 112.0
+color = Color(0.68, 0.58, 0.34, 0.48)
+
+[node name="CoreRunWritePad" type="ColorRect" parent="CoreStabilizationRunLayer"]
+offset_left = 4104.0
+offset_top = -70.0
+offset_right = 4218.0
+offset_bottom = 42.0
+color = Color(0.42, 0.72, 0.66, 0.5)
+
 [node name="BaseDirectionLabel" type="Label" parent="."]
 offset_left = -342.0
 offset_top = 166.0

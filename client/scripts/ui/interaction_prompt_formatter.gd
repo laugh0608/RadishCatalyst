@@ -197,6 +197,15 @@ func format_general_interaction_prompt(
 	var core_approach_line := DemoCoreApproachHandoffFormatter.format_object_handoff_line(interactable.definition_id, object_state, world_state.current_region_id)
 	if not core_approach_line.is_empty():
 		parts.append(core_approach_line)
+	var core_run_line := DemoCoreStabilizationRunFormatter.format_object_run_line(
+		interactable.definition_id,
+		object_state,
+		world_state,
+		character_state,
+		world_state.current_region_id
+	)
+	if not core_run_line.is_empty():
+		parts.append(core_run_line)
 	var affordance_line := DemoInteractionAffordanceFormatter.format_general_affordance_line(
 		interactable,
 		object_state,

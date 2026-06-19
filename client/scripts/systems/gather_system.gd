@@ -254,7 +254,15 @@ func interact_with_object(
 			if definition_id == "map_object.demo_stabilization_core":
 				_set_map_object_flag(world_state, instance_id, definition_id, "is_sampled", true)
 				var pressure_text := _apply_demo_stabilization_write_pressure(character_state, world_state)
-				var core_result := _success("核心稳定数据已写入：锚定桥稳窗和高压窗口归档数据接入核心设备，第一条稳定通道已打开。%s" % pressure_text)
+				var core_run_followup := DemoCoreStabilizationRunFormatter.format_result_followup_line(
+					definition_id,
+					world_state,
+					character_state
+				)
+				var core_message := "核心稳定数据已写入：锚定桥稳窗和高压窗口归档数据接入核心设备，第一条稳定通道已打开。%s" % pressure_text
+				if not core_run_followup.is_empty():
+					core_message = "%s %s" % [core_message, core_run_followup]
+				var core_result := _success(core_message)
 				core_result["success_feedback"] = DemoActionFeedbackFormatter.format_core_write_success_feedback(
 					pressure_text,
 					world_state,
@@ -668,6 +676,13 @@ func _gather(instance_id: String, definition: Dictionary, character_state: Chara
 	)
 	if not gameplay_followup.is_empty():
 		result_parts.append(gameplay_followup)
+	var core_run_followup := DemoCoreStabilizationRunFormatter.format_result_followup_line(
+		String(definition.get("id", "")),
+		world_state,
+		character_state
+	)
+	if not core_run_followup.is_empty():
+		result_parts.append(core_run_followup)
 
 	var result := _success("%s。" % "；".join(result_parts))
 	result["success_feedback"] = DemoActionFeedbackFormatter.format_gather_success_feedback(

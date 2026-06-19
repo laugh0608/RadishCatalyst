@@ -101,6 +101,13 @@ $checks = @(
         }
     },
     @{
+        Name = "client demo core stabilization run playability"
+        Script = "check-client-demo-core-stabilization-run-playability.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client demo field loop payoff"
         Script = "check-client-demo-field-loop-payoff.ps1"
         Parameters = @{
