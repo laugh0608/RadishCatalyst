@@ -20,7 +20,7 @@
 
 ## 当前已有基础
 
-- `vertical_slice_map.gd` 当前约 1480 行，距离源码硬上限很近。
+- `vertical_slice_map.gd` 拆分前约 1480 行，第一包落地后降至 1383 行，重新低于源码硬上限并留出后续余量。
 - 区域 X 边界、门槛回退、回投坐标、区域判断、交互对象区域归属和 gate 状态混在同一地图脚本中。
 - `check-client` 与 Godot runtime 已覆盖主路径、区域路线、地图提示和多项专题检查，可用于拆分后的行为回归。
 
@@ -33,7 +33,8 @@
 
 ## 当前状态
 
-- 2026-06-19 建立专题：`Demo Interaction Prompt Surface Decomposition V1` 已通过退出判断，下一步落地地图承载面拆分第一包。
+- 2026-06-19 建立专题：`Demo Interaction Prompt Surface Decomposition V1` 已通过退出判断，地图承载面拆分第一包进入落地。
+- 2026-06-19 第一包已落地：新增 `VerticalSliceMapSurface`，`VerticalSliceMap` 保留原方法、信号和玩家路线，区域判断、gate 回退、回投坐标和对象区域归属查询改由窄职责 helper 承载。
 
 ## 当前不做
 
@@ -56,7 +57,7 @@
 
 - HUD / 地图提示文本不因本轮拆分改变。
 - 场景节点、对象实例 ID 和区域 ID 保持稳定。
-- 自动检查新增静态接线和 Godot runtime 代表路径，确保区域判断与 gate 回退不回归。
+- 自动检查新增静态接线和 Godot runtime 代表路径，确保区域判断、gate 回退、回投坐标与对象区域归属不回归。
 
 ## 验收条件
 
@@ -67,6 +68,7 @@
 
 ## 验证计划
 
+- `python scripts/check-client-demo-map-surface-decomposition.py .`
 - `sh ./scripts/check-client.sh`
 - 需要运行时证据时执行 `sh ./scripts/check-client.sh --with-godot`
 - `sh ./scripts/check-docs.sh`

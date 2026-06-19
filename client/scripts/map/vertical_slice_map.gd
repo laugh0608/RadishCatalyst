@@ -634,70 +634,11 @@ func update_region_presence(world_state: WorldState, character_state: CharacterS
 	character_state.current_region_id = region_id
 	region_changed.emit(region_id)
 func apply_region_gate_bounds(world_state: WorldState) -> String:
-	if not world_state.unlocked_region_ids.has("region.crystal_vein_field") and player.position.x > CRYSTAL_GATE_RETURN_X:
-		player.position.x = CRYSTAL_GATE_RETURN_X
+	var gate_block := VerticalSliceMapSurface.resolve_region_gate_block(world_state, player.position)
+	if not gate_block.is_empty():
+		player.position = gate_block["return_position"]
 		player.stop_positive_x_until_release()
-		return "晶体矿脉区尚未标记：先检查前哨核心，恢复基础导航。"
-
-	if (
-		not world_state.unlocked_region_ids.has("region.pollution_edge")
-		and player.position.x > POLLUTION_GATE_RETURN_X
-		and player.position.y >= POLLUTION_DEEP_Y
-	):
-		player.position.x = POLLUTION_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "污染边界尚未稳定：先扩建处理点并启用基础过滤模块。"
-
-	if not world_state.unlocked_region_ids.has("region.ruin_outer_ring") and player.position.x > RUIN_GATE_RETURN_X:
-		player.position.x = RUIN_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "遗迹外圈仍被封锁：先检查封锁遗迹入口，确认外圈通路。"
-
-	if _is_outer_ring_barrier_locked(world_state) and player.position.x > OUTER_RING_BARRIER_X:
-		player.position.x = OUTER_RING_BARRIER_RETURN_X
-		player.stop_positive_x_until_release()
-		return "遗迹外圈深段仍被抖动雾幕阻断：先回基地组装稳相信标，再返回部署。"
-
-	if _is_deep_ruin_gate_locked(world_state) and player.position.x > DEEP_RUIN_GATE_RETURN_X:
-		player.position.x = DEEP_RUIN_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "裂相脊入口仍未校准：先带着裂相坐标回到门禁写入。"
-
-	if not world_state.unlocked_region_ids.has("region.inner_phase_well") and player.position.x > INNER_PHASE_WELL_GATE_RETURN_X:
-		player.position.x = INNER_PHASE_WELL_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "回声台地仍未定位：先回基地解析回声定位器，再回来继续向东推进。"
-
-	if not world_state.unlocked_region_ids.has("region.phase_well_sink") and player.position.x > PHASE_WELL_SINK_GATE_RETURN_X:
-		player.position.x = PHASE_WELL_SINK_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "盐壳浅滩仍未稳定：先回基地解析回声芯样本，再带着新的盐壳穿钉回来继续向东推进。"
-
-	if not world_state.unlocked_region_ids.has("region.phase_well_chamber") and player.position.x > PHASE_WELL_CHAMBER_GATE_RETURN_X:
-		player.position.x = PHASE_WELL_CHAMBER_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "碎晶沟谷断面仍未稳定：先回基地解析碎晶心核，再带着新的碎晶分流栓回来继续向东推进。"
-
-	if not world_state.unlocked_region_ids.has("region.phase_well_loom") and player.position.x > PHASE_WELL_LOOM_GATE_RETURN_X:
-		player.position.x = PHASE_WELL_LOOM_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "风蚀管廊断面仍未稳定：先回基地解析风蚀张力核，再带着新的风蚀梭栓回来继续向东推进。"
-
-	if not world_state.unlocked_region_ids.has("region.phase_well_frame") and player.position.x > PHASE_WELL_FRAME_GATE_RETURN_X:
-		player.position.x = PHASE_WELL_FRAME_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "锁相框架断面仍未稳定：先回基地解析锁相织构核，再带着新的锁相键栓回来继续向东推进。"
-
-	if not world_state.unlocked_region_ids.has("region.phase_well_tether") and player.position.x > PHASE_WELL_TETHER_GATE_RETURN_X:
-		player.position.x = PHASE_WELL_TETHER_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "锚定桥断面仍未稳定：先回基地解析锚定结核，再带着新的锚定桩回来继续向东推进。"
-
-	if not world_state.unlocked_region_ids.has("region.demo_stabilization_core") and player.position.x > DEMO_STABILIZATION_CORE_GATE_RETURN_X:
-		player.position.x = DEMO_STABILIZATION_CORE_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "核心稳定站仍未接管：先完成锚定桥稳定窗口和高压窗口归档。"
-
+		return String(gate_block.get("message", ""))
 	return ""
 func _get_display_name(definition_id: String) -> String:
 	var definition := data_registry.get_definition(definition_id)
@@ -1417,64 +1358,26 @@ func _has_phase_well_field_readings(
 		target_id
 ) >= required_amount
 func _get_phase_relay_pad_return_position() -> Vector2:
-	return _get_interactable_return_position(
-		"map_object_instance.phase_relay_pad",
-		PHASE_RELAY_PAD_FALLBACK_POSITION
-	)
+	_ensure_scene_nodes()
+	return VerticalSliceMapSurface.get_phase_relay_pad_return_position(interactables_root)
 func _get_phase_return_anchor_return_position(anchor_instance_id: String) -> Vector2:
-	return _get_interactable_return_position(
-		anchor_instance_id,
-		PHASE_RETURN_ANCHOR_FALLBACK_POSITION
-	)
+	_ensure_scene_nodes()
+	return VerticalSliceMapSurface.get_phase_return_anchor_return_position(interactables_root, anchor_instance_id)
 func _get_interactable_return_position(instance_id: String, fallback_position: Vector2) -> Vector2:
 	_ensure_scene_nodes()
-	if interactables_root == null:
-		return fallback_position
-	for interactable in interactables_root.get_children():
-		if not interactable is PrototypeInteractable:
-			continue
-		if interactable.instance_id != instance_id:
-			continue
-		return interactable.position + Vector2(0, 30)
-	return fallback_position
+	return VerticalSliceMapSurface.get_interactable_return_position(
+		interactables_root,
+		instance_id,
+		fallback_position
+	)
 func _get_interactable_region_id(instance_id: String, fallback_region_id: String) -> String:
 	_ensure_scene_nodes()
-	if interactables_root == null:
-		return fallback_region_id
-	for interactable in interactables_root.get_children():
-		if not interactable is PrototypeInteractable:
-			continue
-		if interactable.instance_id != instance_id:
-			continue
-		return _get_region_id_for_position(interactable.position)
-	return fallback_region_id
+	return VerticalSliceMapSurface.get_interactable_region_id(
+		interactables_root,
+		instance_id,
+		fallback_region_id
+	)
 func _get_enemy_instance_id(enemy: PrototypeEnemy) -> String:
 	return "enemy_instance.%s" % String(enemy.name).to_snake_case()
 func _get_region_id_for_position(map_position: Vector2) -> String:
-	if map_position.x >= DEMO_STABILIZATION_CORE_REGION_X:
-		return "region.demo_stabilization_core"
-	if map_position.x >= PHASE_WELL_TETHER_REGION_X:
-		return "region.phase_well_tether"
-	if map_position.x >= PHASE_WELL_FRAME_REGION_X:
-		return "region.phase_well_frame"
-	if map_position.x >= PHASE_WELL_LOOM_REGION_X:
-		return "region.phase_well_loom"
-	if map_position.x >= PHASE_WELL_CHAMBER_REGION_X:
-		return "region.phase_well_chamber"
-	if map_position.x >= PHASE_WELL_SINK_REGION_X:
-		return "region.phase_well_sink"
-	if map_position.x >= INNER_PHASE_WELL_REGION_X:
-		return "region.inner_phase_well"
-	if map_position.x >= DEEP_RUIN_REGION_X:
-		return "region.deep_ruin_threshold"
-	if map_position.x >= RUIN_OUTER_RING_X:
-		return "region.ruin_outer_ring"
-	if map_position.x >= POLLUTION_REGION_X and map_position.y >= POLLUTION_DEEP_Y:
-		return "region.pollution_edge"
-	if map_position.x >= CRYSTAL_REGION_X:
-		return "region.crystal_vein_field"
-	return "region.outpost_platform"
-func _is_outer_ring_barrier_locked(world_state: WorldState) -> bool:
-	return not world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier")
-func _is_deep_ruin_gate_locked(world_state: WorldState) -> bool:
-	return not world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_entrance")
+	return VerticalSliceMapSurface.get_region_id_for_position(map_position)

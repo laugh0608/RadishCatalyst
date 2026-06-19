@@ -89,6 +89,11 @@ if (-not (Test-Path -LiteralPath $demoInteractionPromptSurfaceDecompositionCheck
     Write-Error "Demo interaction prompt surface decomposition check script not found: ${demoInteractionPromptSurfaceDecompositionCheckScript}"
     exit 1
 }
+$demoMapSurfaceDecompositionCheckScript = Join-Path $clientRoot "scripts/checks/demo_map_surface_decomposition_check.gd"
+if (-not (Test-Path -LiteralPath $demoMapSurfaceDecompositionCheckScript -PathType Leaf)) {
+    Write-Error "Demo map surface decomposition check script not found: ${demoMapSurfaceDecompositionCheckScript}"
+    exit 1
+}
 $industrialTechSpineCheckScript = Join-Path $clientRoot "scripts/checks/industrial_tech_spine_check.gd"
 if (-not (Test-Path -LiteralPath $industrialTechSpineCheckScript -PathType Leaf)) {
     Write-Error "Industrial tech spine check script not found: ${industrialTechSpineCheckScript}"
@@ -291,6 +296,13 @@ try {
     if ($LASTEXITCODE -ne 0) {
         $demoInteractionPromptSurfaceDecompositionOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
         Write-Error "Demo interaction prompt surface decomposition check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
+    $demoMapSurfaceDecompositionOutput = & $GodotExe --headless --path $clientRoot --script $demoMapSurfaceDecompositionCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $demoMapSurfaceDecompositionOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo map surface decomposition check failed with exit code ${LASTEXITCODE}."
         exit $LASTEXITCODE
     }
 

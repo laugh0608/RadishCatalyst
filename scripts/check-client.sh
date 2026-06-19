@@ -137,6 +137,7 @@ echo "Coverage: static data and scene references."
 "${python_exe}" "${repo_root}/scripts/check-client-demo-combat-evacuation-recovery.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-interaction-affordance.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-interaction-prompt-surface-decomposition.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-map-surface-decomposition.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-scene-art-foundation.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-non-core-scene-identity.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-functional-transition-route-support.py" "${repo_root}"
@@ -191,6 +192,7 @@ run_godot_checked "playable-scene-composition" --script "${client_root}/scripts/
 run_godot_checked "demo-combat-evacuation-recovery" --script "${client_root}/scripts/checks/demo_combat_evacuation_recovery_check.gd" --no-header
 run_godot_checked "demo-interaction-affordance" --script "${client_root}/scripts/checks/demo_interaction_affordance_check.gd" --no-header
 run_godot_checked "demo-interaction-prompt-surface-decomposition" --script "${client_root}/scripts/checks/demo_interaction_prompt_surface_decomposition_check.gd" --no-header
+run_godot_checked "demo-map-surface-decomposition" --script "${client_root}/scripts/checks/demo_map_surface_decomposition_check.gd" --no-header
 run_godot_checked "industrial-tech-spine" --script "${client_root}/scripts/checks/industrial_tech_spine_check.gd" --no-header
 run_godot_checked "demo-resource-chain-state" --script "${client_root}/scripts/checks/demo_resource_chain_state_check.gd" --no-header
 run_godot_checked "demo-save-state-contract" --script "${client_root}/scripts/checks/demo_save_state_contract_check.gd" --no-header
