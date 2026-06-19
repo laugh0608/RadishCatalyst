@@ -16,7 +16,7 @@
 
 当前活跃专题：[Demo Playable Content Substance V1](../features/demo-playable-content-substance-v1.md)，覆盖首版 Demo 场景、角色 / 怪物 UI、初步美术、工业基建和任务节奏的玩家可见实质补强。
 
-最近完成细专题：[Demo Device Panel Operation Readability V1](../features/demo-device-panel-operation-readability-v1.md)、[Demo Core Stabilization Run Playability V1](../features/demo-core-stabilization-run-playability-v1.md)、[Demo Core Approach Handoff Playability V1](../features/demo-core-approach-handoff-playability-v1.md)、[Demo Wind Corridor Transition Playability V1](../features/demo-wind-corridor-transition-playability-v1.md) 与 [Demo Midfield Route Playability V1](../features/demo-midfield-route-playability-v1.md)，2026-06-17 至 2026-06-19 第一包已落地或通过退出判断。
+最近完成细专题：[Demo Core Scene Playable Space V1](../features/demo-core-scene-playable-space-v1.md)、[Demo Device Panel Operation Readability V1](../features/demo-device-panel-operation-readability-v1.md)、[Demo Core Stabilization Run Playability V1](../features/demo-core-stabilization-run-playability-v1.md) 与 [Demo Core Approach Handoff Playability V1](../features/demo-core-approach-handoff-playability-v1.md)，2026-06-17 至 2026-06-19 第一包已落地或通过退出判断。
 
 最近完成细专题：[Demo Non-Core Scene Identity V1](../features/demo-non-core-scene-identity-v1.md) 与 [Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md)，2026-06-16 第一包已落地。
 
@@ -41,7 +41,7 @@
 
 ## 当前开发重点
 
-- 原型视觉呈现第一版只证明基础可读性；当前允许继续做真实场景空间、视觉锚点、危险边界和互动对象落点。
+- 原型视觉呈现和核心场景空间第一包只证明基础可读性；后续若继续推进场景，应优先补对象尺寸、设备造型、危险边界和任务节奏。
 - 快捷补给读法已通过退出判断；不继续扩补给短状态、HUD 行或失败文案。
 - 当前推进首版 Demo 可玩内容实质补强：继续做玩家实际能看到和操作的场景、角色 / 怪物 UI、初步美术、设备 / 生产链和任务节奏。
 - 受阻动作恢复读法、动作反馈可读性、交互可辨识度、战斗撤离恢复、可玩场景构成、整段体验连贯性和 Demo 完成成果整理第一包已落地；不继续围绕失败文案、动作成功结果、对象可交互状态、撤离恢复、区域构成、断点清单或核心稳定站写入后完成态加厚。
