@@ -56,7 +56,7 @@ func process_recipe(recipe_id: String, character_state: CharacterState, world_st
 		"recipe_id": recipe_id,
 		"structure_id": structure_id,
 		"message": _format_processing_started_message(recipe, world_state),
-		"success_feedback": _format_processing_started_feedback(recipe, world_state)
+		"success_feedback": _format_processing_started_feedback(recipe, world_state, character_state)
 	}
 
 
@@ -94,7 +94,7 @@ func advance_processing(delta_seconds: float, character_state: CharacterState, w
 			"destination_text": _format_completion_destination(recipe),
 			"next_step_text": _get_completion_next_step(recipe_id, world_state),
 			"message": _format_completion_message(recipe, world_state),
-			"success_feedback": _format_processing_completion_feedback(recipe, world_state)
+			"success_feedback": _format_processing_completion_feedback(recipe, world_state, character_state)
 		})
 
 	return completed_results
@@ -367,7 +367,7 @@ func _format_processing_started_message(recipe: Dictionary, world_state: WorldSt
 	return message
 
 
-func _format_processing_started_feedback(recipe: Dictionary, world_state: WorldState) -> Dictionary:
+func _format_processing_started_feedback(recipe: Dictionary, world_state: WorldState, character_state: CharacterState) -> Dictionary:
 	var recipe_id := String(recipe.get("id", ""))
 	return {
 		"title": "加工已启动：%s" % _get_display_name(recipe_id),
@@ -377,8 +377,14 @@ func _format_processing_started_feedback(recipe: Dictionary, world_state: WorldS
 		"completion_next_step": _get_completion_next_step(recipe_id, world_state),
 		"industrial_spine": IndustrialTechSpineFormatter.format_result_feedback_line(recipe_id, world_state),
 		"device_operation": DemoDevicePanelOperationFormatter.format_result_feedback_line(recipe_id, world_state),
+		"module_task": DemoIndustrialModuleTaskRhythmFormatter.format_result_feedback_line(
+			recipe_id,
+			world_state,
+			character_state
+		),
 		"resource_chain": DemoResourceChainStateFormatter.format_result_feedback_line(recipe_id),
 		"base_reentry": DemoRouteReturnAndBaseReentryFormatter.format_result_feedback_line(recipe_id, world_state),
+		"show_module_task": _should_show_module_task_result_line(recipe_id),
 		"show_resource_chain": _should_show_resource_chain_result_line(recipe_id)
 	}
 
@@ -395,7 +401,7 @@ func _format_completion_message(recipe: Dictionary, world_state: WorldState = nu
 	return " ".join(parts)
 
 
-func _format_processing_completion_feedback(recipe: Dictionary, world_state: WorldState) -> Dictionary:
+func _format_processing_completion_feedback(recipe: Dictionary, world_state: WorldState, character_state: CharacterState) -> Dictionary:
 	var recipe_id := String(recipe.get("id", ""))
 	return {
 		"title": "加工完成：%s" % _get_display_name(recipe_id),
@@ -404,14 +410,27 @@ func _format_processing_completion_feedback(recipe: Dictionary, world_state: Wor
 		"next_step": _get_completion_next_step(recipe_id, world_state),
 		"industrial_spine": IndustrialTechSpineFormatter.format_result_feedback_line(recipe_id, world_state),
 		"device_operation": DemoDevicePanelOperationFormatter.format_result_feedback_line(recipe_id, world_state),
+		"module_task": DemoIndustrialModuleTaskRhythmFormatter.format_result_feedback_line(
+			recipe_id,
+			world_state,
+			character_state
+		),
 		"resource_chain": DemoResourceChainStateFormatter.format_result_feedback_line(recipe_id),
 		"base_reentry": DemoRouteReturnAndBaseReentryFormatter.format_result_feedback_line(recipe_id, world_state),
+		"show_module_task": _should_show_module_task_result_line(recipe_id),
 		"show_resource_chain": _should_show_resource_chain_result_line(recipe_id)
 	}
 
 
 func _should_show_resource_chain_result_line(recipe_id: String) -> bool:
 	return recipe_id == "recipe.process_crystal_ore"
+
+
+func _should_show_module_task_result_line(recipe_id: String) -> bool:
+	return [
+		"recipe.basic_filter_module",
+		"recipe.core_stabilization_buffer"
+	].has(recipe_id)
 
 
 func _format_completion_destination(recipe: Dictionary) -> String:

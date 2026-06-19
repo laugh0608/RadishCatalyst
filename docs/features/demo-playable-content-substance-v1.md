@@ -37,6 +37,8 @@
 - 新增 `demo_combat_readability_check.gd` 与默认检查接线，覆盖 formatter 文本、攻击结果结构化反馈和 HUD 面板接入；该检查只证明读法路径存在，不替代后续实机体验判断。
 - 2026-06-19 核心场景空间第一包：新增 `DemoCoreSceneSpaceProfile` 与 `DemoCoreSceneSpaceLayer`，把基地、晶体、污染边界和核心稳定站的既有地表、路线、对象锚点、承压区和回基地 / 回收口袋组织成可读场地角色，不新增第 13 区域。
 - 新增 `demo_core_scene_playable_space_check.gd` 与默认检查接线，覆盖四个核心区 profile、运行时场景层、代表对象 / 敌人落点和 12 区域封顶；该检查只证明空间角色接线存在，不替代后续实机体验判断。
+- 2026-06-19 工业模块职责与任务节奏第一包：新增 `DemoIndustrialModuleTaskRhythmFormatter`，把前哨核心、基础反应器、污染过滤器、基础储存箱和出发整备台的职责接入 HUD、建造点、设备面板、处理提示、结果日志和前哨 / 整备台提示。
+- 新增 `demo_industrial_module_task_rhythm_check.gd` 与默认检查接线，覆盖 5 个核心模块、任务节奏阶段、HUD / 建造 / 设备 / 处理反馈和前哨整备路径；该检查只证明职责与节奏接线存在，不替代后续实机体验判断。
 
 ## 本轮范围
 

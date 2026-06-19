@@ -156,6 +156,7 @@ echo "Coverage: static data and scene references."
 "${python_exe}" "${repo_root}/scripts/check-client-demo-supply-pressure-pacing.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-combat-readability.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-core-scene-playable-space.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-industrial-module-task-rhythm.py" "${repo_root}"
 
 if [ "${with_godot}" -ne 1 ]; then
   echo "Skipping Godot runtime checks. Use --with-godot after confirming Godot can start in this environment."
@@ -222,5 +223,6 @@ run_godot_checked "demo-quick-slot-supply-readability" --script "${client_root}/
 run_godot_checked "demo-supply-pressure-pacing" --script "${client_root}/scripts/checks/demo_supply_pressure_pacing_check.gd" --no-header
 run_godot_checked "demo-combat-readability" --script "${client_root}/scripts/checks/demo_combat_readability_check.gd" --no-header
 run_godot_checked "demo-core-scene-playable-space" --script "${client_root}/scripts/checks/demo_core_scene_playable_space_check.gd" --no-header
+run_godot_checked "demo-industrial-module-task-rhythm" --script "${client_root}/scripts/checks/demo_industrial_module_task_rhythm_check.gd" --no-header
 
 echo "Client checks passed."

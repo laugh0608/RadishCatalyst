@@ -80,6 +80,14 @@ func _format_device_status(
 	)
 	if not operation_line.is_empty():
 		parts.append(operation_line)
+	var module_task_line := DemoIndustrialModuleTaskRhythmFormatter.format_device_status_line(
+		building_id,
+		recipe_id,
+		world_state,
+		character_state
+	)
+	if not module_task_line.is_empty():
+		parts.append(module_task_line)
 	var base_reentry_line := DemoRouteReturnAndBaseReentryFormatter.format_device_status_line(
 		building_id,
 		recipe_id,

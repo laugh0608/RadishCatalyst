@@ -66,6 +66,14 @@ func format_processing_prompt(
 	)
 	if not operation_line.is_empty():
 		io_line = "%s；%s" % [io_line, operation_line]
+	var module_task_line := DemoIndustrialModuleTaskRhythmFormatter.format_processing_prompt_line(
+		interactable.definition_id,
+		displayed_recipe_id,
+		world_state,
+		character_state
+	)
+	if not module_task_line.is_empty():
+		io_line = "%s；%s" % [io_line, module_task_line]
 	parts.append(io_line)
 
 	var status_line := "状态：%s" % String(status.get("message", ""))
@@ -123,6 +131,13 @@ func format_processing_log(recipe_id: String, character_state: CharacterState, w
 	)
 	if not operation_line.is_empty():
 		parts.append(operation_line)
+	var module_task_line := DemoIndustrialModuleTaskRhythmFormatter.format_processing_log_line(
+		displayed_recipe_id,
+		world_state,
+		character_state
+	)
+	if not module_task_line.is_empty():
+		parts.append(module_task_line)
 	return "；".join(parts)
 
 

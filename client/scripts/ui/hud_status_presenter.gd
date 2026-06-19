@@ -249,6 +249,7 @@ func _format_base_summary_lines(
 
 	var active_quest := data_registry.get_definition(active_quest_id)
 	var resource_chain_summary := DemoResourceChainStateFormatter.format_hud_summary(world_state, character_state)
+	var module_task_summary := DemoIndustrialModuleTaskRhythmFormatter.format_hud_summary(world_state, character_state)
 	var base_reentry_summary := DemoRouteReturnAndBaseReentryFormatter.format_hud_summary(
 		world_state,
 		character_state
@@ -335,6 +336,10 @@ func _format_base_summary_lines(
 		return core_run_summary
 	if not completion_outcome_summary.is_empty():
 		return completion_outcome_summary
+	if not module_task_summary.is_empty():
+		if not base_reentry_summary.is_empty():
+			return module_task_summary + base_reentry_summary
+		return module_task_summary
 	var industrial_summary := IndustrialTechSpineFormatter.format_hud_summary(world_state, character_state)
 	if not industrial_summary.is_empty():
 		if not base_reentry_summary.is_empty():
@@ -727,6 +732,13 @@ func _format_current_build_summary(
 		var purpose_hint := RecipePurposeHints.format_build_goal_hint(building_id)
 		if not purpose_hint.is_empty():
 			result.append("用途：%s" % purpose_hint)
+		var module_task_hint := DemoIndustrialModuleTaskRhythmFormatter.format_build_task_hint(
+			building_id,
+			world_state,
+			character_state
+		)
+		if not module_task_hint.is_empty():
+			result.append("任务节奏：%s" % module_task_hint)
 		return result
 	return []
 
@@ -817,6 +829,13 @@ func _format_recipe_summary(
 	)
 	if not industrial_chain_hint.is_empty():
 		result.append("工艺主干：%s" % industrial_chain_hint)
+	var module_task_hint := DemoIndustrialModuleTaskRhythmFormatter.format_recipe_task_hint(
+		recipe_id,
+		world_state,
+		character_state
+	)
+	if not module_task_hint.is_empty():
+		result.append("任务节奏：%s" % module_task_hint)
 	return result
 
 

@@ -32,6 +32,8 @@ func format_success_result_log(result: Dictionary) -> String:
 	var industrial_line := _compact_next_step(String(feedback.get("industrial_spine", "")))
 	_append_log_detail(details, "工艺", industrial_line)
 	_append_log_detail(details, "设备", _compact_device_operation(String(feedback.get("device_operation", ""))))
+	if bool(feedback.get("show_module_task", false)):
+		_append_log_detail(details, "任务节奏", _compact_next_step(String(feedback.get("module_task", ""))))
 	if bool(feedback.get("show_resource_chain", false)):
 		_append_log_detail(details, "资源链", _compact_next_step(String(feedback.get("resource_chain", ""))))
 	_append_log_detail(details, "再进入", _compact_next_step(String(feedback.get("base_reentry", ""))))

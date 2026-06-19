@@ -237,6 +237,7 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 	var parts: Array[String] = [DepartureReadinessFormatter.format_outfitting_station_prompt(world_state, character_state)]
 	for line in [
 		DemoDevicePanelOperationFormatter.format_outfitting_station_panel_line(world_state, character_state),
+		DemoIndustrialModuleTaskRhythmFormatter.format_outfitting_station_prompt_line(world_state, character_state),
 		DemoInteractionAffordanceFormatter.format_outfitting_station_affordance_line(world_state, character_state),
 		DemoCombatEvacuationRecoveryFormatter.format_outfitting_station_recovery_line(world_state, character_state),
 		IndustrialTechSpineFormatter.format_outfitting_station_prompt_line(world_state, character_state),
@@ -383,6 +384,14 @@ func format_build_prompt(
 	var affordance_line := DemoInteractionAffordanceFormatter.format_build_affordance_line(status)
 	if not affordance_line.is_empty():
 		parts.append(affordance_line)
+	var module_task_line := DemoIndustrialModuleTaskRhythmFormatter.format_build_prompt_line(
+		interactable.definition_id,
+		status,
+		world_state,
+		character_state
+	)
+	if not module_task_line.is_empty():
+		parts.append(module_task_line)
 	parts.append("状态：%s" % String(status.get("message", "")))
 	var next_step := String(status.get("next_step", ""))
 	if not next_step.is_empty():
@@ -647,6 +656,7 @@ func format_outpost_core_prompt(world_state: WorldState, character_state: Charac
 	]
 	for line in [
 		DemoDevicePanelOperationFormatter.format_outpost_core_panel_line(world_state, character_state),
+		DemoIndustrialModuleTaskRhythmFormatter.format_outpost_core_prompt_line(world_state, character_state),
 		DemoInteractionAffordanceFormatter.format_outpost_core_affordance_line(world_state, character_state),
 		DemoMainlineCompletionFormatter.format_outpost_core_prompt_line(world_state, character_state),
 		DemoCombatEvacuationRecoveryFormatter.format_outpost_core_recovery_line(world_state, character_state)

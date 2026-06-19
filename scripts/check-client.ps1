@@ -274,6 +274,13 @@ $checks = @(
         Parameters = @{
             RepoRoot = $RepoRoot
         }
+    },
+    @{
+        Name = "client demo industrial module task rhythm"
+        Script = "check-client-demo-industrial-module-task-rhythm.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
     }
 )
 

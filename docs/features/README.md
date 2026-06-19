@@ -25,13 +25,14 @@
 
 ## 当前与最近专题
 
-- [Demo Definition V1](demo-definition-v1.md)：首版 Demo 完成规格表，后续专题必须映射到其中的未完成规格项。
-- [Demo Playable Content Substance V1](demo-playable-content-substance-v1.md)：当前活跃专题，覆盖首版 Demo 场景、角色 / 怪物 UI、初步美术、工业基建和任务节奏的玩家可见实质补强。
-- [Demo Core Scene Playable Space V1](demo-core-scene-playable-space-v1.md)：最近完成细专题，覆盖四个核心区的地表、路线、对象锚点、承压区和回收口袋。
+- [Demo Definition V1](demo-definition-v1.md)：首版 Demo 完成规格表，后续专题必须映射到未完成规格项。
+- [Demo Playable Content Substance V1](demo-playable-content-substance-v1.md)：当前活跃专题，覆盖首版 Demo 实质补强。
+- [Demo Industrial Module Task Rhythm V1](demo-industrial-module-task-rhythm-v1.md)：最近完成细专题，覆盖 5 个核心工业模块职责和任务节奏。
+- [Demo Core Scene Playable Space V1](demo-core-scene-playable-space-v1.md)：最近完成细专题，覆盖四个核心区的空间角色和对象落点。
 - [Demo First Playable Acceptance V1](demo-first-playable-acceptance-v1.md)：阶段验收专题暂缓，自动检查通过不足以证明首版 Demo 已达到可试玩候选质量。
-- [Demo Device Panel Operation Readability V1](demo-device-panel-operation-readability-v1.md)：最近完成细专题，覆盖前哨核心、基础反应器、污染过滤器和出发整备台的操作意图、缺料方向、产出去向和完成后路线。
-- [Demo Core Approach Handoff Playability V1](demo-core-approach-handoff-playability-v1.md)：最近完成细专题，覆盖锁相框架 -> 锚定桥 -> 核心稳定站入口的终点前承接、对象落点、回基地理由和自动检查。
-- [Demo Wind Corridor Transition Playability V1](demo-wind-corridor-transition-playability-v1.md)：最近完成细专题，覆盖碎晶沟谷 -> 风蚀管廊 -> 锁相框架入口的过渡路径、资源 / 设施落点、回基地理由和自动检查。
+- [Demo Device Panel Operation Readability V1](demo-device-panel-operation-readability-v1.md)：最近完成细专题，覆盖核心设备面板操作意图、缺料、产出和完成后路线。
+- [Demo Core Approach Handoff Playability V1](demo-core-approach-handoff-playability-v1.md)：最近完成细专题，覆盖终点前承接、对象落点、回基地理由和自动检查。
+- [Demo Wind Corridor Transition Playability V1](demo-wind-corridor-transition-playability-v1.md)：最近完成细专题，覆盖风蚀过渡路径、资源 / 设施落点、回基地理由和自动检查。
 - [Demo Midfield Route Playability V1](demo-midfield-route-playability-v1.md)：最近完成细专题，覆盖回声台地 -> 盐壳浅滩 -> 碎晶沟谷的入口边界、资源 / 设施落点、回基地理由和自动检查。
 - [Demo Map Surface Decomposition V1](demo-map-surface-decomposition-v1.md)：最近完成细专题，已拆分接近硬上限的地图区域 / gate 承载面，支撑后续场景和路线推进。
 - [Demo Interaction Prompt Surface Decomposition V1](demo-interaction-prompt-surface-decomposition-v1.md)：最近完成细专题，已拆分加工设备交互提示承载面，降低大文件行数风险并承接基地再进入读法。

@@ -53,10 +53,16 @@ func build_structure(
 	)
 
 	var followup := _get_build_followup(building_id, world_state)
+	var module_task := DemoIndustrialModuleTaskRhythmFormatter.format_build_result_line(
+		building_id,
+		world_state,
+		character_state
+	)
 	return _success(
 		"建造完成：%s。%s" % [_get_display_name(building_id), followup],
 		building_id,
-		followup
+		followup,
+		module_task
 	)
 
 
@@ -333,17 +339,26 @@ func _format_amount(amount: float) -> String:
 	return "%.1f" % amount
 
 
-func _success(message: String, building_id: String, next_step: String = "") -> Dictionary:
+func _success(
+	message: String,
+	building_id: String,
+	next_step: String = "",
+	module_task: String = ""
+) -> Dictionary:
+	var feedback := {
+		"title": "建造完成：%s" % _get_display_name(building_id),
+		"status": "已建成。",
+		"destination": _get_build_destination(building_id),
+		"next_step": next_step
+	}
+	if not module_task.is_empty():
+		feedback["module_task"] = module_task
+		feedback["show_module_task"] = _should_show_module_task_result_line(building_id)
 	return {
 		"success": true,
 		"message": message,
 		"built_definition_id": building_id,
-		"success_feedback": {
-			"title": "建造完成：%s" % _get_display_name(building_id),
-			"status": "已建成。",
-			"destination": _get_build_destination(building_id),
-			"next_step": next_step
-		}
+		"success_feedback": feedback
 	}
 
 
@@ -364,3 +379,11 @@ func _failure_from_feedback(message: String, feedback: Dictionary) -> Dictionary
 		"message": message,
 		"failure_feedback": feedback
 	}
+
+
+func _should_show_module_task_result_line(building_id: String) -> bool:
+	return [
+		"building.basic_storage",
+		"building.field_outfitting_station",
+		"building.pollution_filter"
+	].has(building_id)
