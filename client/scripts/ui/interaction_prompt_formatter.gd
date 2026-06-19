@@ -180,6 +180,13 @@ func format_general_interaction_prompt(
 	)
 	if not density_line.is_empty():
 		parts.append(density_line)
+	var midfield_route_line := DemoMidfieldRoutePlayabilityFormatter.format_object_route_line(
+		interactable.definition_id,
+		object_state,
+		world_state.current_region_id
+	)
+	if not midfield_route_line.is_empty():
+		parts.append(midfield_route_line)
 	var affordance_line := DemoInteractionAffordanceFormatter.format_general_affordance_line(
 		interactable,
 		object_state,
@@ -399,6 +406,10 @@ func format_clear_prompt(
 			"清障：%s" % _get_display_name(interactable.definition_id),
 			"状态：未清理，盐壳余烬被余烬壳压住。",
 			"后续：清掉两处余烬壳，再处理盐壳潜伏体和盐壳余烬。",
+			DemoMidfieldRoutePlayabilityFormatter.format_static_object_route_line(
+				interactable.definition_id,
+				world_state.current_region_id
+			),
 			"工具：%s" % ash_tool_status
 		]
 		if ash_tool_status == "可清理":
@@ -566,6 +577,13 @@ func format_field_reading_prompt(interactable: PrototypeInteractable, world_stat
 	)
 	if not gameplay_line.is_empty():
 		parts.append(gameplay_line)
+	var midfield_route_line := DemoMidfieldRoutePlayabilityFormatter.format_object_route_line(
+		interactable.definition_id,
+		object_state,
+		world_state.current_region_id
+	)
+	if not midfield_route_line.is_empty():
+		parts.append(midfield_route_line)
 	return "\n".join(parts)
 
 
@@ -966,6 +984,12 @@ func _with_functional_transition_line(prompt: String, definition_id: String, fal
 	)
 	if not density_line.is_empty():
 		parts.append(density_line)
+	var midfield_route_line := DemoMidfieldRoutePlayabilityFormatter.format_static_object_route_line(
+		definition_id,
+		fallback_region_id
+	)
+	if not midfield_route_line.is_empty():
+		parts.append(midfield_route_line)
 	return "\n".join(parts)
 
 

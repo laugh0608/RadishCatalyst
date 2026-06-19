@@ -44,6 +44,11 @@ if (-not (Test-Path -LiteralPath $demoFunctionalTransitionSpatialPlayabilityChec
     Write-Error "Demo functional transition spatial playability check script not found: ${demoFunctionalTransitionSpatialPlayabilityCheckScript}"
     exit 1
 }
+$demoMidfieldRoutePlayabilityCheckScript = Join-Path $clientRoot "scripts/checks/demo_midfield_route_playability_check.gd"
+if (-not (Test-Path -LiteralPath $demoMidfieldRoutePlayabilityCheckScript -PathType Leaf)) {
+    Write-Error "Demo midfield route playability check script not found: ${demoMidfieldRoutePlayabilityCheckScript}"
+    exit 1
+}
 $demoFieldLoopPayoffCheckScript = Join-Path $clientRoot "scripts/checks/demo_field_loop_payoff_check.gd"
 if (-not (Test-Path -LiteralPath $demoFieldLoopPayoffCheckScript -PathType Leaf)) {
     Write-Error "Demo field loop payoff check script not found: ${demoFieldLoopPayoffCheckScript}"
@@ -236,6 +241,13 @@ try {
         exit $LASTEXITCODE
     }
 
+    $demoMidfieldRoutePlayabilityOutput = & $GodotExe --headless --path $clientRoot --script $demoMidfieldRoutePlayabilityCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $demoMidfieldRoutePlayabilityOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo midfield route playability check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $demoFieldLoopPayoffOutput = & $GodotExe --headless --path $clientRoot --script $demoFieldLoopPayoffCheckScript --no-header 2>&1
     if ($LASTEXITCODE -ne 0) {
         $demoFieldLoopPayoffOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
@@ -412,7 +424,7 @@ try {
     }
 
     $unexpectedErrors = @(
-        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoFieldLoopPayoffOutput + $demoRouteReturnAndBaseReentryOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $demoInteractionPromptSurfaceDecompositionOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput + $prototypeVisualPassOutput + $quickSlotSupplyReadabilityOutput + $supplyPressurePacingOutput |
+        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoMidfieldRoutePlayabilityOutput + $demoFieldLoopPayoffOutput + $demoRouteReturnAndBaseReentryOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $demoInteractionPromptSurfaceDecompositionOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput + $prototypeVisualPassOutput + $quickSlotSupplyReadabilityOutput + $supplyPressurePacingOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {

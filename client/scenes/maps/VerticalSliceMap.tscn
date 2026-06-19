@@ -504,6 +504,78 @@ offset_right = 1018.0
 offset_bottom = 42.0
 color = Color(0.62, 0.52, 0.32, 0.42)
 
+[node name="MidfieldRoutePlayabilityLayer" type="Node2D" parent="."]
+
+[node name="EchoEntryLane" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 1468.0
+offset_top = -48.0
+offset_right = 1572.0
+offset_bottom = 18.0
+color = Color(0.22, 0.48, 0.68, 0.42)
+
+[node name="EchoVentBoundary" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 1568.0
+offset_top = -128.0
+offset_right = 1654.0
+offset_bottom = 32.0
+color = Color(0.34, 0.58, 0.76, 0.46)
+
+[node name="EchoResourcePocket" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 1504.0
+offset_top = 42.0
+offset_right = 1688.0
+offset_bottom = 118.0
+color = Color(0.42, 0.62, 0.72, 0.42)
+
+[node name="EchoFacilityPocket" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 1684.0
+offset_top = -48.0
+offset_right = 1746.0
+offset_bottom = 34.0
+color = Color(0.28, 0.66, 0.68, 0.44)
+
+[node name="SaltCrustBoundary" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 1774.0
+offset_top = -44.0
+offset_right = 1834.0
+offset_bottom = 32.0
+color = Color(0.64, 0.5, 0.24, 0.48)
+
+[node name="SaltAshResourcePocket" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 1810.0
+offset_top = -132.0
+offset_right = 1968.0
+offset_bottom = 86.0
+color = Color(0.66, 0.58, 0.3, 0.4)
+
+[node name="SaltSinkFacilityPocket" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 1976.0
+offset_top = -72.0
+offset_right = 2030.0
+offset_bottom = 22.0
+color = Color(0.72, 0.48, 0.24, 0.44)
+
+[node name="CrystalShuntBoundary" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 2088.0
+offset_top = -126.0
+offset_right = 2248.0
+offset_bottom = 84.0
+color = Color(0.46, 0.4, 0.78, 0.46)
+
+[node name="CrystalSpineResourcePocket" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 2156.0
+offset_top = -106.0
+offset_right = 2294.0
+offset_bottom = 108.0
+color = Color(0.58, 0.48, 0.82, 0.4)
+
+[node name="CrystalChamberFacilityPocket" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 2250.0
+offset_top = -54.0
+offset_right = 2310.0
+offset_bottom = 42.0
+color = Color(0.34, 0.58, 0.8, 0.44)
+
 [node name="BaseDirectionLabel" type="Label" parent="."]
 offset_left = -342.0
 offset_top = 166.0

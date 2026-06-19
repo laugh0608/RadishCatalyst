@@ -343,12 +343,15 @@ func _format_base_summary_lines(
 		world_state,
 		character_state
 	)
+	var midfield_route_summary := DemoMidfieldRoutePlayabilityFormatter.format_hud_summary(world_state, character_state)
 	if not functional_scene_gameplay_summary.is_empty():
 		var combined_gameplay_summary := functional_scene_gameplay_summary
 		if not gameplay_density_summary.is_empty():
 			combined_gameplay_summary += gameplay_density_summary
 		if not spatial_playability_summary.is_empty():
 			combined_gameplay_summary += spatial_playability_summary
+		if not midfield_route_summary.is_empty():
+			combined_gameplay_summary += midfield_route_summary
 		return combined_gameplay_summary
 	if not gameplay_density_summary.is_empty():
 		return gameplay_density_summary
@@ -356,9 +359,13 @@ func _format_base_summary_lines(
 	if not transition_summary.is_empty():
 		if not spatial_playability_summary.is_empty():
 			return transition_summary + spatial_playability_summary
+		if not midfield_route_summary.is_empty():
+			return transition_summary + midfield_route_summary
 		return transition_summary
 	if not spatial_playability_summary.is_empty():
 		return spatial_playability_summary
+	if not midfield_route_summary.is_empty():
+		return midfield_route_summary
 
 	return ["设备：待命；当前目标先外出推进"]
 
