@@ -52,7 +52,7 @@
 | 存档 / 状态 | `docs/features/demo-save-state-contract-v1.md` | 已落地第一包 |
 | 主路径连续性 / 自动检查 | `docs/features/demo-main-path-continuity-v1.md` | 已落地第一包 |
 | 自动检查 / 工程承载面 | `docs/features/demo-runtime-surface-decomposition-v1.md`、`docs/features/demo-interaction-prompt-surface-decomposition-v1.md`、`docs/features/demo-map-surface-decomposition-v1.md` | 地图承载面已通过退出判断 |
-| 功能场景玩法 | `docs/features/demo-functional-scene-gameplay-v1.md`、`docs/features/demo-functional-scene-gameplay-density-v1.md`、`docs/features/demo-functional-transition-spatial-playability-v1.md`、`docs/features/demo-midfield-route-playability-v1.md` | 中段路线当前活跃 |
+| 功能场景玩法 | `docs/features/demo-functional-scene-gameplay-v1.md`、`docs/features/demo-functional-scene-gameplay-density-v1.md`、`docs/features/demo-functional-transition-spatial-playability-v1.md`、`docs/features/demo-midfield-route-playability-v1.md`、`docs/features/demo-wind-corridor-transition-playability-v1.md` | 风蚀过渡当前活跃 |
 | 外勤回基地收益兑现 | `docs/features/demo-field-loop-payoff-v1.md` | 已落地第一包 |
 | 终点前综合准备读法 | `docs/features/demo-endpoint-readiness-v1.md` | 已落地第一包 |
 | Demo 完成成果整理 | `docs/features/demo-completion-outcome-readout-v1.md` | 已落地第一包 |
@@ -93,11 +93,11 @@
 
 ## 当前优先级
 
-当前继续推进首版 Demo 体验主干；`Demo Map Surface Decomposition V1` 已通过退出判断，下一步切到 `Demo Midfield Route Playability V1`：
+当前继续推进首版 Demo 体验主干；`Demo Midfield Route Playability V1` 已通过退出判断，下一步切到 `Demo Wind Corridor Transition Playability V1`：
 
 1. 原型视觉呈现已覆盖现有 12 区层级、核心区场地尺度、首小时目标链场景导引和专项检查。
 2. 快捷补给读法已覆盖现有修复凝胶 / 抗污染药剂在 HUD 快捷栏、补给反馈和失败恢复路线中的可读性。
 3. 补给节奏与承压价值已验证既有补给在制作、消耗、补回和关键压力节点中的真实价值。
-4. 功能 / 过渡场景玩法密度、可达空间、基地再进入读法、交互提示承载面和地图承载面均已通过退出判断；当前推进回声台地 -> 盐壳浅滩 -> 碎晶沟谷的中段异常地貌可玩路径。
+4. 功能 / 过渡场景玩法密度、可达空间、中段路线、基地再进入读法、交互提示承载面和地图承载面均已通过退出判断；当前推进碎晶沟谷 -> 风蚀管廊 -> 锁相框架入口的过渡可玩路径。
 
 在首版 Demo 满足本文必达规格前，不切到试玩准备或集中修 bug 阶段。

@@ -87,6 +87,13 @@ $checks = @(
         }
     },
     @{
+        Name = "client demo wind corridor transition playability"
+        Script = "check-client-demo-wind-corridor-transition-playability.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client demo field loop payoff"
         Script = "check-client-demo-field-loop-payoff.ps1"
         Parameters = @{

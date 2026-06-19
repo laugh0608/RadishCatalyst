@@ -187,6 +187,13 @@ func format_general_interaction_prompt(
 	)
 	if not midfield_route_line.is_empty():
 		parts.append(midfield_route_line)
+	var wind_transition_line := DemoWindCorridorTransitionPlayabilityFormatter.format_object_route_line(
+		interactable.definition_id,
+		object_state,
+		world_state.current_region_id
+	)
+	if not wind_transition_line.is_empty():
+		parts.append(wind_transition_line)
 	var affordance_line := DemoInteractionAffordanceFormatter.format_general_affordance_line(
 		interactable,
 		object_state,
@@ -423,6 +430,10 @@ func format_clear_prompt(
 			"侧路：%s" % _get_display_name(interactable.definition_id),
 			"状态：未清理，边缕残条回收线不稳定。",
 			"后续：任选一条侧路清理，再回收两处边缕残条。",
+			DemoWindCorridorTransitionPlayabilityFormatter.format_static_object_route_line(
+				interactable.definition_id,
+				world_state.current_region_id
+			),
 			"工具：%s" % frame_tool_status
 		]
 		if frame_tool_status == "可清理":
@@ -584,6 +595,13 @@ func format_field_reading_prompt(interactable: PrototypeInteractable, world_stat
 	)
 	if not midfield_route_line.is_empty():
 		parts.append(midfield_route_line)
+	var wind_transition_line := DemoWindCorridorTransitionPlayabilityFormatter.format_object_route_line(
+		interactable.definition_id,
+		object_state,
+		world_state.current_region_id
+	)
+	if not wind_transition_line.is_empty():
+		parts.append(wind_transition_line)
 	return "\n".join(parts)
 
 
@@ -990,6 +1008,12 @@ func _with_functional_transition_line(prompt: String, definition_id: String, fal
 	)
 	if not midfield_route_line.is_empty():
 		parts.append(midfield_route_line)
+	var wind_transition_line := DemoWindCorridorTransitionPlayabilityFormatter.format_static_object_route_line(
+		definition_id,
+		fallback_region_id
+	)
+	if not wind_transition_line.is_empty():
+		parts.append(wind_transition_line)
 	return "\n".join(parts)
 
 

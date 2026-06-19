@@ -66,6 +66,7 @@
 ## 第一包完成状态
 
 - 2026-06-19 第一包已落地：新增 `DemoMidfieldRoutePlayabilityFormatter`、`MidfieldRoutePlayabilityLayer`、静态接线检查和 Godot runtime 检查，HUD、地图、对象提示和交互结果已接入回声台地 -> 盐壳浅滩 -> 碎晶沟谷读法。
+- 2026-06-19 退出判断通过：验收条件已有实现与自动检查证据，未发现阻塞阶段的 `P0` / `P1`，后续不继续围绕同一批中段对象加厚。
 
 ## 验收条件
 

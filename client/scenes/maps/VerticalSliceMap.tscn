@@ -576,6 +576,43 @@ offset_right = 2310.0
 offset_bottom = 42.0
 color = Color(0.34, 0.58, 0.8, 0.44)
 
+[node name="WindCorridorTransitionPlayabilityLayer" type="Node2D" parent="."]
+
+[node name="WindEntryLane" type="ColorRect" parent="WindCorridorTransitionPlayabilityLayer"]
+offset_left = 2328.0
+offset_top = -50.0
+offset_right = 2392.0
+offset_bottom = 18.0
+color = Color(0.42, 0.5, 0.55, 0.42)
+
+[node name="WindTensionBoundary" type="ColorRect" parent="WindCorridorTransitionPlayabilityLayer"]
+offset_left = 2344.0
+offset_top = -106.0
+offset_right = 2526.0
+offset_bottom = 104.0
+color = Color(0.52, 0.55, 0.64, 0.46)
+
+[node name="WindWeftResourcePocket" type="ColorRect" parent="WindCorridorTransitionPlayabilityLayer"]
+offset_left = 2418.0
+offset_top = -128.0
+offset_right = 2568.0
+offset_bottom = 96.0
+color = Color(0.62, 0.56, 0.42, 0.4)
+
+[node name="WindLoomFacilityPocket" type="ColorRect" parent="WindCorridorTransitionPlayabilityLayer"]
+offset_left = 2536.0
+offset_top = -54.0
+offset_right = 2590.0
+offset_bottom = 42.0
+color = Color(0.48, 0.62, 0.66, 0.44)
+
+[node name="FrameEntryBoundary" type="ColorRect" parent="WindCorridorTransitionPlayabilityLayer"]
+offset_left = 2608.0
+offset_top = -44.0
+offset_right = 2662.0
+offset_bottom = 38.0
+color = Color(0.28, 0.62, 0.44, 0.44)
+
 [node name="BaseDirectionLabel" type="Label" parent="."]
 offset_left = -342.0
 offset_top = 166.0
