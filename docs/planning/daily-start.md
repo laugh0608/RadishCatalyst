@@ -10,13 +10,13 @@
 
 ## 阶段
 
-当前为「首版 Demo 体验主干建设：设备面板操作读法第一版」。
+当前为「首版 Demo 阶段验收与集中修正准备第一版」。
 
 首版 Demo 完成规格：[Demo Definition V1](../features/demo-definition-v1.md)。
 
-当前活跃细专题：[Demo Device Panel Operation Readability V1](../features/demo-device-panel-operation-readability-v1.md)，覆盖前哨核心、基础反应器、污染过滤器和出发整备台的操作意图、缺料方向、产出去向和完成后路线。
+当前活跃专题：[Demo First Playable Acceptance V1](../features/demo-first-playable-acceptance-v1.md)，覆盖首版 Demo 体验主干建设后的阶段验收、自动检查证据和后续 `P0` / `P1` 修正边界。
 
-最近完成细专题：[Demo Core Stabilization Run Playability V1](../features/demo-core-stabilization-run-playability-v1.md)、[Demo Core Approach Handoff Playability V1](../features/demo-core-approach-handoff-playability-v1.md)、[Demo Wind Corridor Transition Playability V1](../features/demo-wind-corridor-transition-playability-v1.md)、[Demo Midfield Route Playability V1](../features/demo-midfield-route-playability-v1.md) 与 [Demo Map Surface Decomposition V1](../features/demo-map-surface-decomposition-v1.md)，2026-06-17 至 2026-06-19 第一包已落地或通过退出判断。
+最近完成细专题：[Demo Device Panel Operation Readability V1](../features/demo-device-panel-operation-readability-v1.md)、[Demo Core Stabilization Run Playability V1](../features/demo-core-stabilization-run-playability-v1.md)、[Demo Core Approach Handoff Playability V1](../features/demo-core-approach-handoff-playability-v1.md)、[Demo Wind Corridor Transition Playability V1](../features/demo-wind-corridor-transition-playability-v1.md) 与 [Demo Midfield Route Playability V1](../features/demo-midfield-route-playability-v1.md)，2026-06-17 至 2026-06-19 第一包已落地或通过退出判断。
 
 最近完成细专题：[Demo Non-Core Scene Identity V1](../features/demo-non-core-scene-identity-v1.md) 与 [Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md)，2026-06-16 第一包已落地。
 
@@ -33,8 +33,8 @@
 
 1. 读 `docs/planning/current.md` 确认阶段和冻结边界。
 2. 读 `docs/features/demo-definition-v1.md` 确认首版 Demo 完成规格和当前缺口。
-3. 读当前活跃细专题 `docs/features/demo-device-panel-operation-readability-v1.md`，确认四个既有设备、玩家操作路径、结果日志和检查范围。
-4. 只在需要确认上一个阶段边界时，读 `docs/features/demo-core-stabilization-run-playability-v1.md`、`docs/features/demo-wind-corridor-transition-playability-v1.md` 和 `docs/features/demo-map-surface-decomposition-v1.md`。
+3. 读当前活跃专题 `docs/features/demo-first-playable-acceptance-v1.md`，确认阶段验收、自动检查证据和后续阻塞修正边界。
+4. 只在需要确认上一阶段边界时，读 `docs/features/demo-device-panel-operation-readability-v1.md`、`docs/features/demo-core-stabilization-run-playability-v1.md` 和 `docs/features/demo-map-surface-decomposition-v1.md`。
 5. 读 `docs/planning/demo-scope-and-playable-slice.md`，确认 12 区域职责表和功能 / 过渡分组。
 6. 只在需要历史风险时，读取最新周志中的“风险与未完成项”和“后续事项”。
 7. 按改动范围选读设计、架构和复测基线文档。
@@ -43,7 +43,7 @@
 
 - 原型视觉呈现第一版已通过退出判断；不继续堆视觉 cue、目标箭头、HUD 目标提示或对象提示。
 - 快捷补给读法已通过退出判断；不继续扩补给短状态、HUD 行或失败文案。
-- 当前推进设备面板操作读法：前哨核心、基础反应器、污染过滤器和出发整备台必须读出真实设备职责、缺料方向、产出去向和完成后路线。
+- 当前推进首版 Demo 阶段验收：不再默认开新内容包，先执行自动检查、复核基线，并为后续人工实机复测记录阻塞边界。
 - 受阻动作恢复读法、动作反馈可读性、交互可辨识度、战斗撤离恢复、可玩场景构成、整段体验连贯性和 Demo 完成成果整理第一包已落地；不继续围绕失败文案、动作成功结果、对象可交互状态、撤离恢复、区域构成、断点清单或核心稳定站写入后完成态加厚。
 - 外勤回基地收益兑现、功能场景玩法、运行时承载面拆分、主路径连续性和存档状态契约第一包已落地；不继续围绕同一切面加厚。
 - 非核心区域场景识别和功能 / 过渡路线支撑第一包已落地；不继续围绕同一批区域标签、路线职责、当前危险和回基地理由加厚。
@@ -52,8 +52,8 @@
 - 新增检查必须优先走专项文件，避免继续推高 `vertical_slice_flow_check.gd`；路线读法优先走窄职责 formatter，避免继续堆 `vertical_slice_map.gd`。
 - 不继续加厚战术扫描、工业主干、污染边界后勤维护口袋或遗迹外圈同一压力点；若后续扩到第二个主动技能或装备槽位，先明确新的细专题边界。
 - 不继续加厚工具打击校准或防护响应同一状态；若后续扩到新战斗收益，先明确新的细专题边界。
-- 必须覆盖真实玩家中段路线、场景落点、HUD / 对象反馈和自动检查；不因本轮新增存档 schema。
-- 首版 Demo 未完成初步阶段的完整玩法、场景和美术前，不切到试玩准备或修 bug 阶段；真实页面 smoke 只用于对比开发效果。
+- 后续只修崩溃、主线卡死、坏档、任务无法完成、关键资源断档或 UI 完全无法判断下一步；其他问题进入验收 backlog。
+- 真实页面 smoke 和人工实机复测用于发现阻塞问题；不再用同类文案、同类设备读法或同类路线提示替代阶段验收。
 - 工程上注意 `vertical_slice_flow_check.gd`、`vertical_slice_map.gd`、`prototype_hud.gd`、`interaction_prompt_formatter.gd` 和相关系统职责边界。
 
 ## 当前不做
@@ -83,6 +83,7 @@
 
 - `docs/planning/current.md`
 - `docs/features/demo-definition-v1.md`
+- `docs/features/demo-first-playable-acceptance-v1.md`
 - `docs/features/demo-device-panel-operation-readability-v1.md`
 - `docs/features/demo-core-stabilization-run-playability-v1.md`
 - `docs/features/demo-core-approach-handoff-playability-v1.md`

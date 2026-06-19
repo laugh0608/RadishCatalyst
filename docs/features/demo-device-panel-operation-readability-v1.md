@@ -71,7 +71,7 @@
 
 ## 第一包完成状态
 
-- 2026-06-19 第一包已落地：新增 `DemoDevicePanelOperationFormatter`、静态检查和 Godot runtime 检查，并接入设备面板、加工提示、Q 详情、前哨核心 / 出发整备台提示和核心缓冲包加工结果日志。
+- 2026-06-19 第一包已落地并通过退出判断：新增 `DemoDevicePanelOperationFormatter`、静态检查和 Godot runtime 检查，并接入设备面板、加工提示、Q 详情、前哨核心 / 出发整备台提示和核心缓冲包加工结果日志。
 
 ## 验收条件
 

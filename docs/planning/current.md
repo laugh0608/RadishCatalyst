@@ -6,8 +6,8 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题和最近完成细专题为准：
 
-- 当前活跃专题：[Demo Device Panel Operation Readability V1](../features/demo-device-panel-operation-readability-v1.md)，覆盖前哨核心、基础反应器、污染过滤器和出发整备台的操作意图、缺料方向、产出去向和完成后路线。
-- 最近完成：[Demo Core Stabilization Run Playability V1](../features/demo-core-stabilization-run-playability-v1.md)、[Demo Core Approach Handoff Playability V1](../features/demo-core-approach-handoff-playability-v1.md)、[Demo Wind Corridor Transition Playability V1](../features/demo-wind-corridor-transition-playability-v1.md)、[Demo Midfield Route Playability V1](../features/demo-midfield-route-playability-v1.md)、[Demo Map Surface Decomposition V1](../features/demo-map-surface-decomposition-v1.md)
+- 当前活跃专题：[Demo First Playable Acceptance V1](../features/demo-first-playable-acceptance-v1.md)，覆盖首版 Demo 体验主干建设后的阶段验收、自动检查证据和后续 `P0` / `P1` 修正边界。
+- 最近完成：[Demo Device Panel Operation Readability V1](../features/demo-device-panel-operation-readability-v1.md)、[Demo Core Stabilization Run Playability V1](../features/demo-core-stabilization-run-playability-v1.md)、[Demo Core Approach Handoff Playability V1](../features/demo-core-approach-handoff-playability-v1.md)、[Demo Wind Corridor Transition Playability V1](../features/demo-wind-corridor-transition-playability-v1.md)、[Demo Midfield Route Playability V1](../features/demo-midfield-route-playability-v1.md)
 - 更早完成专题按 [Feature Development Docs](../features/README.md) 索引选读。
 
 历史过程、长完成清单和详细复盘优先查看：
@@ -31,23 +31,23 @@
 - 2026-06-16：「角色成长与战斗第一版」「功能 / 过渡路线支撑第一版」「非核心区域场景识别第一版」「资源链状态第一版」「存档状态契约第一版」「主路径连续性第一版」「运行时承载面拆分第一版」与「功能场景玩法第一版」第一包已落地。
 - 2026-06-17：外勤回基地收益兑现、终点前综合准备读法、Demo 完成成果整理、整段体验连贯性、可玩场景构成、战斗撤离恢复、交互可辨识度、动作反馈可读性、受阻动作恢复读法与原型视觉呈现第一包均已落地。
 - 2026-06-18：原型视觉呈现、快捷补给读法和补给节奏与承压价值第一版均通过退出判断。
-- 2026-06-19：功能 / 过渡场景玩法密度、可达空间、基地再进入读法、交互提示承载面、地图承载面、中段 / 风蚀 / 核心入口承接和核心稳定站内路径均已完成第一包，当前切到设备面板操作读法第一版。
+- 2026-06-19：功能 / 过渡场景玩法密度、可达空间、基地再进入读法、交互提示承载面、地图承载面、中段 / 风蚀 / 核心入口承接、核心稳定站内路径和设备面板操作读法均已完成第一包；体验主干建设自动化退出判断通过，当前切到首版 Demo 阶段验收。
 
 当前阶段：
 
 ```text
-首版 Demo 体验主干建设：设备面板操作读法第一版
+首版 Demo 阶段验收与集中修正准备第一版
 ```
 
-当前推进口径是设备面板操作读法第一版：不新增资源、配方、设备、区域、任务链或 UI 面板，先把前哨核心、基础反应器、污染过滤器和出发整备台的操作意图、缺料方向、产出去向和完成后路线落到既有提示、设备面板、结果日志与检查。
+当前推进口径是首版 Demo 阶段验收：不再默认开新内容包，先用自动检查、S0 / S21 / S22 基线和后续人工实机复测确认 Demo 是否可进入集中修正和试玩准备前节奏。
 
 ## 当前主线
 
-当前活跃专题是 [Demo Device Panel Operation Readability V1](../features/demo-device-panel-operation-readability-v1.md)。它承接已完成的核心稳定站内路径，覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 的「UI / HUD」「工业基建模块」「资源 / 生产链」和「自动检查」缺口。
+当前活跃专题是 [Demo First Playable Acceptance V1](../features/demo-first-playable-acceptance-v1.md)。它承接已完成的体验主干建设，覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 的阶段验收、自动检查证据和后续阻塞修正边界。
 
 角色成长与战斗第一版已收束；后续不继续加厚工具打击校准、防护响应、主线完成感、战术扫描、污染边界、遗迹外圈、工业主干或核心场景同一读法点。若后续扩到新角色动作、装备状态或战斗压力，必须另建非重复细专题。
 
-首版 Demo 未完成初步阶段的完整玩法、场景和美术前，不进入试玩准备或修 bug 阶段。真实页面 smoke 可以用于对比开发效果，但不能替代功能、场景和玩法专题推进。
+体验主干建设已经进入阶段验收；后续不再默认扩新机制、新区域或同类读法包。真实页面 smoke 和人工实机复测用于发现阻塞问题，但不替代自动检查和阶段验收记录。
 
 ## 区域策略
 
@@ -74,7 +74,7 @@ UI 和场景表现已完成第一轮原型呈现支撑。当前复用既有 HUD 
 
 允许推进：
 
-- 设备面板操作读法第一包：四个既有设备接入操作意图、缺料方向、产出去向和完成后路线，不新增 UI 面板或状态字段。
+- 首版 Demo 阶段验收：执行自动检查、复核基线和后续人工实机复测，只修 `P0` / `P1` 阻塞项。
 - 必要时新增窄职责 formatter、presenter helper 或专项 check，避免继续推高接近硬上限的大文件。
 - 只修阻塞主线连续性、功能闭合、区域表达或玩法密度判断的断点。
 
@@ -103,7 +103,7 @@ Windows 用 `pwsh ./scripts/check-docs.ps1`、`pwsh ./scripts/check-text-files.p
 
 ## 阶段退出条件
 
-- [Demo Device Panel Operation Readability V1](../features/demo-device-panel-operation-readability-v1.md) 建立并完成设备面板操作读法第一包。
-- 前哨核心、基础反应器、污染过滤器和出发整备台在既有提示、设备面板、Q 详情和加工结果日志中能读出职责、缺料、产出和下一站。
+- [Demo First Playable Acceptance V1](../features/demo-first-playable-acceptance-v1.md) 建立并完成自动化阶段退出判断。
+- [Demo Definition V1](../features/demo-definition-v1.md) 的必达规格均能对应到已落地专题、运行时路径或检查证据。
 - 未引入新资源、配方、设备、区域、新任务链、新敌人类型、完整背包、完整装备栏、死亡系统、终局菜单、结算页或发布准备流程。
-- 新增检查走独立专项文件；`vertical_slice_map.gd`、`processing_system.gd` 和 `interaction_prompt_formatter.gd` 保持低于既有行数预算。
+- 后续只允许 `P0` / `P1` 阻塞修正或明确的验收补证；不再默认扩内容体量。
