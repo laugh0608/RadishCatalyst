@@ -7,7 +7,7 @@
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题和最近完成细专题为准：
 
 - 当前活跃专题：[Demo Playable Content Substance V1](../features/demo-playable-content-substance-v1.md)，覆盖首版 Demo 场景、角色 / 怪物 UI、初步美术、工业基建和任务节奏的玩家可见实质补强。
-- 最近完成：[Demo Industrial Module Task Rhythm V1](../features/demo-industrial-module-task-rhythm-v1.md)、[Demo Core Scene Playable Space V1](../features/demo-core-scene-playable-space-v1.md)、[Demo Device Panel Operation Readability V1](../features/demo-device-panel-operation-readability-v1.md)、[Demo Core Stabilization Run Playability V1](../features/demo-core-stabilization-run-playability-v1.md)
+- 最近完成：[Demo Initial Art Identity V1](../features/demo-initial-art-identity-v1.md)、[Demo Industrial Module Task Rhythm V1](../features/demo-industrial-module-task-rhythm-v1.md)、[Demo Core Scene Playable Space V1](../features/demo-core-scene-playable-space-v1.md)、[Demo Device Panel Operation Readability V1](../features/demo-device-panel-operation-readability-v1.md)
 - 更早完成专题按 [Feature Development Docs](../features/README.md) 索引选读。
 
 历史过程、长完成清单和详细复盘优先查看：
@@ -31,7 +31,7 @@
 - 2026-06-16：「角色成长与战斗第一版」「功能 / 过渡路线支撑第一版」「非核心区域场景识别第一版」「资源链状态第一版」「存档状态契约第一版」「主路径连续性第一版」「运行时承载面拆分第一版」与「功能场景玩法第一版」第一包已落地。
 - 2026-06-17：外勤回基地收益兑现、终点前综合准备读法、Demo 完成成果整理、整段体验连贯性、可玩场景构成、战斗撤离恢复、交互可辨识度、动作反馈可读性、受阻动作恢复读法与原型视觉呈现第一包均已落地。
 - 2026-06-18：原型视觉呈现、快捷补给读法和补给节奏与承压价值第一版均通过退出判断。
-- 2026-06-19：功能 / 过渡场景玩法密度、可达空间、基地再进入读法、交互提示承载面、地图承载面、中段 / 风蚀 / 核心入口承接、核心稳定站内路径和设备面板操作读法均已完成第一包；随后撤回“自动检查通过即可进入验收”的判断，切回首版 Demo 可玩内容实质补强，并完成角色 / 怪物 UI、核心场景空间和工业模块职责与任务节奏第一包。
+- 2026-06-19：功能 / 过渡场景玩法密度、可达空间、基地再进入读法、交互提示承载面、地图承载面、中段 / 风蚀 / 核心入口承接、核心稳定站内路径和设备面板操作读法均已完成第一包；随后撤回“自动检查通过即可进入验收”的判断，切回首版 Demo 可玩内容实质补强，并完成角色 / 怪物 UI、核心场景空间、工业模块职责与任务节奏和初步美术识别第一包。
 
 当前阶段：
 
@@ -45,7 +45,7 @@
 
 当前活跃专题是 [Demo Playable Content Substance V1](../features/demo-playable-content-substance-v1.md)。它承接已完成的第一包建设，回到 [Demo Definition V1](../features/demo-definition-v1.md) 中尚未被真实体验证明的场景、角色 / 怪物 UI、初步美术、工业基建、资源 / 生产链、战斗压力和任务节奏。
 
-角色成长与战斗第一版只证明了第一轮能力和压力点存在；角色 / 怪物 UI 第一包已补战斗现场面板、敌人威胁 / 状态标签和命中承压反馈，核心场景空间第一包已补四个核心区的地表、路线、对象锚点、承压区和回基地 / 回收口袋，工业模块职责与任务节奏第一包已补 5 个核心模块在 HUD、建造、设备和结果反馈中的可读职责，后续仍必须落到玩家可见实现。
+角色成长与战斗第一版只证明了第一轮能力和压力点存在；角色 / 怪物 UI 第一包已补战斗现场面板、敌人威胁 / 状态标签和命中承压反馈，核心场景空间第一包已补四个核心区的地表、路线、对象锚点、承压区和回基地 / 回收口袋，工业模块职责与任务节奏第一包已补 5 个核心模块在 HUD、建造、设备和结果反馈中的可读职责，初步美术识别第一包已补设备 / 资源 / 危险 / 核心目标现场身份，后续仍必须落到玩家可见实现。
 
 体验主干建设尚未达到试玩准备判断标准；真实页面 smoke、自动检查和人工实机复测只能提供证据，不能替代场景、美术、设备、任务和战斗 UI 的实质开发。
 

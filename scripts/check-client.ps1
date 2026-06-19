@@ -281,6 +281,13 @@ $checks = @(
         Parameters = @{
             RepoRoot = $RepoRoot
         }
+    },
+    @{
+        Name = "client demo initial art identity"
+        Script = "check-client-demo-initial-art-identity.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
     }
 )
 

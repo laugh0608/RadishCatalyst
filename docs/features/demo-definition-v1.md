@@ -44,7 +44,7 @@
 | 规格项 | 专题文档 | 状态 |
 | --- | --- | --- |
 | Demo 完成定义 | 本文 | 已建立规格源 |
-| 可玩内容实质补强 | `docs/features/demo-playable-content-substance-v1.md` | 当前活跃，角色 / 怪物 UI、核心场景空间和工业模块职责与任务节奏第一包已落地，后续继续补场景、美术、设备表现和任务差异 |
+| 可玩内容实质补强 | `docs/features/demo-playable-content-substance-v1.md` | 当前活跃，角色 / 怪物 UI、核心场景空间、工业模块职责与任务节奏和初步美术识别第一包已落地，后续继续补场景、设备表现和任务差异 |
 | 阶段验收 | `docs/features/demo-first-playable-acceptance-v1.md` | 暂缓，自动检查通过不足以证明可试玩候选质量 |
 | 区域 / 场景范围 | `docs/planning/demo-scope-and-playable-slice.md` | 已定义 12 区域、4 核心区和核心稳定站终点 |
 | 角色成长 / 战斗差异 | `docs/features/demo-combat-progression-v1.md`，最近完成细专题 `docs/features/demo-character-kit-v1.md`、`docs/features/ruin-outer-ring-module-pressure-v1.md` 和 `docs/features/pollution-edge-maintenance-pressure-v1.md` | 已落地第一轮 |
@@ -70,7 +70,7 @@
 | 补给节奏与承压价值 | `docs/features/demo-supply-pressure-pacing-v1.md` | 已通过退出判断 |
 | 角色技能 / 装备模块第一版 | `docs/features/demo-character-kit-v1.md` | 已落地首个主动工具动作 |
 | 防护响应 / 装备状态 | `docs/features/demo-protective-response-v1.md` | 已落地第一包 |
-| 核心场景与初步美术 | `docs/features/demo-scene-art-foundation-v1.md` | 已落地第一包 |
+| 核心场景与初步美术 | `docs/features/demo-scene-art-foundation-v1.md`、`docs/features/demo-initial-art-identity-v1.md` | 场景基础已落地，现场身份第一包已落地 |
 | 非核心区域场景识别 | `docs/features/demo-non-core-scene-identity-v1.md` | 已落地第一包 |
 | 主线收束与完成感 | `docs/features/demo-mainline-completion-v1.md` | 已落地第一包 |
 
@@ -101,6 +101,6 @@
 1. 原型视觉呈现已覆盖现有 12 区层级、核心区场地尺度、首小时目标链场景导引和专项检查。
 2. 快捷补给读法已覆盖现有修复凝胶 / 抗污染药剂在 HUD 快捷栏、补给反馈和失败恢复路线中的可读性。
 3. 补给节奏与承压价值已验证既有补给在制作、消耗、补回和关键压力节点中的真实价值。
-4. 功能 / 过渡场景玩法密度、可达空间、中段路线、风蚀过渡、基地再进入读法、交互提示承载面、地图承载面、核心入口承接、核心稳定站内路径、设备面板读法、角色 / 怪物 UI、核心场景空间和工业模块职责与任务节奏均已完成第一包；当前继续做玩家可见场景、美术、设备表现和任务差异开发。
+4. 功能 / 过渡场景玩法密度、可达空间、中段路线、风蚀过渡、基地再进入读法、交互提示承载面、地图承载面、核心入口承接、核心稳定站内路径、设备面板读法、角色 / 怪物 UI、核心场景空间、工业模块职责与任务节奏和初步美术识别均已完成第一包；当前继续做玩家可见场景、设备表现和任务差异开发。
 
 在首版 Demo 满足本文必达规格前，不切到试玩准备或集中修 bug 阶段。
