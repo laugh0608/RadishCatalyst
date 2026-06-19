@@ -6,7 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题和最近完成细专题为准：
 
-- 当前活跃专题：[Demo First Playable Acceptance V1](../features/demo-first-playable-acceptance-v1.md)，覆盖首版 Demo 体验主干建设后的阶段验收、自动检查证据和后续 `P0` / `P1` 修正边界。
+- 当前活跃专题：[Demo Playable Content Substance V1](../features/demo-playable-content-substance-v1.md)，覆盖首版 Demo 场景、角色 / 怪物 UI、初步美术、工业基建和任务节奏的玩家可见实质补强。
 - 最近完成：[Demo Device Panel Operation Readability V1](../features/demo-device-panel-operation-readability-v1.md)、[Demo Core Stabilization Run Playability V1](../features/demo-core-stabilization-run-playability-v1.md)、[Demo Core Approach Handoff Playability V1](../features/demo-core-approach-handoff-playability-v1.md)、[Demo Wind Corridor Transition Playability V1](../features/demo-wind-corridor-transition-playability-v1.md)、[Demo Midfield Route Playability V1](../features/demo-midfield-route-playability-v1.md)
 - 更早完成专题按 [Feature Development Docs](../features/README.md) 索引选读。
 
@@ -31,34 +31,34 @@
 - 2026-06-16：「角色成长与战斗第一版」「功能 / 过渡路线支撑第一版」「非核心区域场景识别第一版」「资源链状态第一版」「存档状态契约第一版」「主路径连续性第一版」「运行时承载面拆分第一版」与「功能场景玩法第一版」第一包已落地。
 - 2026-06-17：外勤回基地收益兑现、终点前综合准备读法、Demo 完成成果整理、整段体验连贯性、可玩场景构成、战斗撤离恢复、交互可辨识度、动作反馈可读性、受阻动作恢复读法与原型视觉呈现第一包均已落地。
 - 2026-06-18：原型视觉呈现、快捷补给读法和补给节奏与承压价值第一版均通过退出判断。
-- 2026-06-19：功能 / 过渡场景玩法密度、可达空间、基地再进入读法、交互提示承载面、地图承载面、中段 / 风蚀 / 核心入口承接、核心稳定站内路径和设备面板操作读法均已完成第一包；体验主干建设自动化退出判断通过，当前切到首版 Demo 阶段验收。
+- 2026-06-19：功能 / 过渡场景玩法密度、可达空间、基地再进入读法、交互提示承载面、地图承载面、中段 / 风蚀 / 核心入口承接、核心稳定站内路径和设备面板操作读法均已完成第一包；随后撤回“自动检查通过即可进入验收”的判断，当前切回首版 Demo 可玩内容实质补强。
 
 当前阶段：
 
 ```text
-首版 Demo 阶段验收与集中修正准备第一版
+首版 Demo 可玩内容实质补强第一版
 ```
 
-当前推进口径是首版 Demo 阶段验收：不再默认开新内容包，先用自动检查、S0 / S21 / S22 基线和后续人工实机复测确认 Demo 是否可进入集中修正和试玩准备前节奏。
+当前推进口径是首版 Demo 可玩内容实质补强：继续开发玩家实际能看到和操作的场景、角色 / 怪物 UI、初步美术、设备 / 生产链和任务节奏，不再把自动检查通过等同于可试玩候选。
 
 ## 当前主线
 
-当前活跃专题是 [Demo First Playable Acceptance V1](../features/demo-first-playable-acceptance-v1.md)。它承接已完成的体验主干建设，覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 的阶段验收、自动检查证据和后续阻塞修正边界。
+当前活跃专题是 [Demo Playable Content Substance V1](../features/demo-playable-content-substance-v1.md)。它承接已完成的第一包建设，回到 [Demo Definition V1](../features/demo-definition-v1.md) 中尚未被真实体验证明的场景、角色 / 怪物 UI、初步美术、工业基建、资源 / 生产链、战斗压力和任务节奏。
 
-角色成长与战斗第一版已收束；后续不继续加厚工具打击校准、防护响应、主线完成感、战术扫描、污染边界、遗迹外圈、工业主干或核心场景同一读法点。若后续扩到新角色动作、装备状态或战斗压力，必须另建非重复细专题。
+角色成长与战斗第一版只证明了第一轮能力和压力点存在；后续可以继续做角色 / 怪物 UI、战斗现场反馈和装备状态读法，但必须落到玩家可见实现，不继续堆同类文案或数值倍率。
 
-体验主干建设已经进入阶段验收；后续不再默认扩新机制、新区域或同类读法包。真实页面 smoke 和人工实机复测用于发现阻塞问题，但不替代自动检查和阶段验收记录。
+体验主干建设尚未达到试玩准备判断标准；真实页面 smoke、自动检查和人工实机复测只能提供证据，不能替代场景、美术、设备、任务和战斗 UI 的实质开发。
 
 ## 区域策略
 
 - 首版 Demo 继续按 12 区域封顶。
 - 4 个核心区域、4 个功能区域、4 个过渡区域不再平均加厚。
-- 原型视觉呈现第一版已收束；当前不再继续扩视觉 cue、目标箭头或地图提示。
-- 只修阻塞理解、主线连续性、功能闭合或场景表达的断点。
+- 原型视觉呈现第一版已完成基础检查；当前允许继续做实际场景空间、视觉锚点、危险边界和互动对象落点。
+- 不继续堆视觉 cue、目标箭头或地图提示来替代场景建设。
 
 ## UI 策略
 
-UI 和场景表现已完成第一轮原型呈现支撑。当前复用既有 HUD 快捷栏、补给反馈和战斗 / 交互结果，不新增 UI 面板。
+UI 和场景表现只完成第一轮原型支撑。当前允许补强 HUD、战斗现场、敌人状态和对象反馈中的玩家判断信息，但不做完整菜单或高保真组件库。
 
 不做完整菜单、设置页、背包大重构、完整装备栏、结算页、动画过场或大规模美术替换。
 
@@ -69,18 +69,18 @@ UI 和场景表现已完成第一轮原型呈现支撑。当前复用既有 HUD 
 - 前线行动台、候选、窗口复盘、高压窗口和 `base_action_state` 保持冻结，只修 `P0` / `P1`。
 - 不新增第 13 区域，不平均扩 12 个区域，不继续给核心站完成态追加同构回访口袋。
 - 不新增随机成功率、新货币、队员、完整装备栏、完整 `loadout`、联机入口或完整长期成长系统。
-- 不把试玩准备、修 bug 阶段、发布准备或大规模 polish 作为当前阶段目标。
+- 不把试玩准备、修 bug 阶段、发布准备或大规模 polish 作为当前阶段目标；当前仍是首版 Demo 内容开发。
 - 不迁移稳定数据 ID；旧 ID 先作为存档、任务和数据兼容层保留。
 
 允许推进：
 
-- 首版 Demo 阶段验收：执行自动检查、复核基线和后续人工实机复测，只修 `P0` / `P1` 阻塞项。
+- 可玩内容实质补强：开发场景空间、角色 / 怪物 UI、初步美术识别、计划内设备职责和任务节奏差异。
 - 必要时新增窄职责 formatter、presenter helper 或专项 check，避免继续推高接近硬上限的大文件。
-- 只修阻塞主线连续性、功能闭合、区域表达或玩法密度判断的断点。
+- 可以修阻塞主线连续性、功能闭合、区域表达或玩法密度判断的断点，也可以补齐首版 Demo 必达规格内的玩家可见缺口。
 
 ## 节奏规则
 
-个人开发阶段只做足以判断方向的完成度。一个阶段达到退出条件后，必须及时进入下一阶段；不允许因为 `P2` / `P3` 细节、局部读法、文案密度或状态字段洁癖无限打磨。
+个人开发阶段只做足以判断方向的完成度，但不能把“有检查、有提示、有第一包”误判成首版 Demo 已可试玩。一个阶段真正达到退出条件后，必须及时进入下一阶段；不允许因为 `P2` / `P3` 细节、局部读法、文案密度或状态字段洁癖无限打磨。
 
 只让这些问题阻塞阶段：
 
@@ -103,7 +103,7 @@ Windows 用 `pwsh ./scripts/check-docs.ps1`、`pwsh ./scripts/check-text-files.p
 
 ## 阶段退出条件
 
-- [Demo First Playable Acceptance V1](../features/demo-first-playable-acceptance-v1.md) 建立并完成自动化阶段退出判断。
-- [Demo Definition V1](../features/demo-definition-v1.md) 的必达规格均能对应到已落地专题、运行时路径或检查证据。
-- 未引入新资源、配方、设备、区域、新任务链、新敌人类型、完整背包、完整装备栏、死亡系统、终局菜单、结算页或发布准备流程。
-- 后续只允许 `P0` / `P1` 阻塞修正或明确的验收补证；不再默认扩内容体量。
+- [Demo Playable Content Substance V1](../features/demo-playable-content-substance-v1.md) 第一轮玩家可见补强落地，不能只停在规划或检查。
+- [Demo Definition V1](../features/demo-definition-v1.md) 的场景、角色 / 怪物 UI、初步美术、工业模块和任务节奏缺口被重新标注并至少完成一个实质补强包。
+- 未引入规格外资源、配方、设备、区域、任务链、敌人类型、完整背包、完整装备栏、死亡系统、终局菜单、结算页或发布准备流程。
+- 后续再重新启动 [Demo First Playable Acceptance V1](../features/demo-first-playable-acceptance-v1.md)，由人工实机体验和自动检查共同判断是否进入试玩准备。

@@ -26,7 +26,8 @@
 ## 当前与最近专题
 
 - [Demo Definition V1](demo-definition-v1.md)：首版 Demo 完成规格表，后续专题必须映射到其中的未完成规格项。
-- [Demo First Playable Acceptance V1](demo-first-playable-acceptance-v1.md)：当前活跃专题，覆盖首版 Demo 体验主干建设后的阶段验收、自动检查和后续 `P0` / `P1` 修正边界。
+- [Demo Playable Content Substance V1](demo-playable-content-substance-v1.md)：当前活跃专题，覆盖首版 Demo 场景、角色 / 怪物 UI、初步美术、工业基建和任务节奏的玩家可见实质补强。
+- [Demo First Playable Acceptance V1](demo-first-playable-acceptance-v1.md)：阶段验收专题暂缓，自动检查通过不足以证明首版 Demo 已达到可试玩候选质量。
 - [Demo Device Panel Operation Readability V1](demo-device-panel-operation-readability-v1.md)：最近完成细专题，覆盖前哨核心、基础反应器、污染过滤器和出发整备台的操作意图、缺料方向、产出去向和完成后路线。
 - [Demo Core Approach Handoff Playability V1](demo-core-approach-handoff-playability-v1.md)：最近完成细专题，覆盖锁相框架 -> 锚定桥 -> 核心稳定站入口的终点前承接、对象落点、回基地理由和自动检查。
 - [Demo Wind Corridor Transition Playability V1](demo-wind-corridor-transition-playability-v1.md)：最近完成细专题，覆盖碎晶沟谷 -> 风蚀管廊 -> 锁相框架入口的过渡路径、资源 / 设施落点、回基地理由和自动检查。

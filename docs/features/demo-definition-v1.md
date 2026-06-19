@@ -44,7 +44,8 @@
 | 规格项 | 专题文档 | 状态 |
 | --- | --- | --- |
 | Demo 完成定义 | 本文 | 已建立规格源 |
-| 阶段验收 | `docs/features/demo-first-playable-acceptance-v1.md` | 当前活跃，自动化退出判断与后续阻塞修正边界 |
+| 可玩内容实质补强 | `docs/features/demo-playable-content-substance-v1.md` | 当前活跃，补场景、角色 / 怪物 UI、初步美术、设备职责和任务节奏 |
+| 阶段验收 | `docs/features/demo-first-playable-acceptance-v1.md` | 暂缓，自动检查通过不足以证明可试玩候选质量 |
 | 区域 / 场景范围 | `docs/planning/demo-scope-and-playable-slice.md` | 已定义 12 区域、4 核心区和核心稳定站终点 |
 | 角色成长 / 战斗差异 | `docs/features/demo-combat-progression-v1.md`，最近完成细专题 `docs/features/demo-character-kit-v1.md`、`docs/features/ruin-outer-ring-module-pressure-v1.md` 和 `docs/features/pollution-edge-maintenance-pressure-v1.md` | 已落地第一轮 |
 | 工具打击校准 / 输出整备 | `docs/features/demo-tool-strike-calibration-v1.md` | 已落地第一包 |
@@ -95,11 +96,11 @@
 
 ## 当前优先级
 
-当前继续推进首版 Demo 阶段验收；`Demo Device Panel Operation Readability V1` 已通过退出判断，下一步切到 `Demo First Playable Acceptance V1`：
+当前继续推进首版 Demo 可玩内容实质补强；`Demo Device Panel Operation Readability V1` 已通过退出判断，但不能把各专题第一包和自动检查通过等同于试玩准备：
 
 1. 原型视觉呈现已覆盖现有 12 区层级、核心区场地尺度、首小时目标链场景导引和专项检查。
 2. 快捷补给读法已覆盖现有修复凝胶 / 抗污染药剂在 HUD 快捷栏、补给反馈和失败恢复路线中的可读性。
 3. 补给节奏与承压价值已验证既有补给在制作、消耗、补回和关键压力节点中的真实价值。
-4. 功能 / 过渡场景玩法密度、可达空间、中段路线、风蚀过渡、基地再进入读法、交互提示承载面、地图承载面、核心入口承接、核心稳定站内路径和设备面板读法均已完成第一包；当前进入首版 Demo 阶段验收，只修阻塞主线、功能闭合、坏档、关键资源断档或 UI 完全无法判断下一步的问题。
+4. 功能 / 过渡场景玩法密度、可达空间、中段路线、风蚀过渡、基地再进入读法、交互提示承载面、地图承载面、核心入口承接、核心稳定站内路径和设备面板读法均已完成第一包；当前回到场景、角色 / 怪物 UI、初步美术、计划内设备职责和任务节奏的玩家可见开发。
 
 在首版 Demo 满足本文必达规格前，不切到试玩准备或集中修 bug 阶段。
