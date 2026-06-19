@@ -20,6 +20,8 @@ var display_name: String = ""
 var instance_id: String = ""
 var defeated: bool = false
 var enemy_category: String = "basic"
+var readability_threat_label: String = ""
+var readability_pressure_label: String = ""
 
 @onready var label: Label = $Label
 @onready var sprite: ColorRect = $Sprite
@@ -50,6 +52,12 @@ func setup(enemy_display_name: String, enemy_max_health: float, category: String
 	if sprite != null:
 		_apply_sprite_size(_get_active_size())
 		sprite.color = _get_active_color(category)
+	_update_label()
+
+
+func configure_readability_tags(threat_label: String, pressure_label: String) -> void:
+	readability_threat_label = threat_label
+	readability_pressure_label = pressure_label
 	_update_label()
 
 
@@ -119,6 +127,13 @@ func set_tactical_scan_marked(marked: bool) -> void:
 	_update_label()
 
 
+func get_combat_status_label() -> String:
+	var pressure_label := _get_pressure_focus_label()
+	if pressure_label.is_empty():
+		return "近战压制"
+	return pressure_label
+
+
 func mark_defeated() -> void:
 	_ensure_visual_nodes()
 	defeated = true
@@ -140,11 +155,20 @@ func mark_defeated() -> void:
 func _update_label() -> void:
 	_ensure_visual_nodes()
 	if label != null:
-		var pressure_label := _get_pressure_focus_label()
+		var threat_label := readability_threat_label
+		if threat_label.is_empty():
+			threat_label = "威胁未知"
+		var pressure_label := readability_pressure_label
 		if pressure_label.is_empty():
-			label.text = "%s\nHP %.0f / %.0f" % [display_name, health, max_health]
-			return
-		label.text = "%s\n%s HP %.0f / %.0f" % [display_name, pressure_label, health, max_health]
+			pressure_label = "承压未知"
+		label.text = "%s\nHP %.0f / %.0f\n%s · %s\n%s" % [
+			display_name,
+			health,
+			max_health,
+			threat_label,
+			pressure_label,
+			get_combat_status_label()
+		]
 
 
 func _get_pressure_focus_label() -> String:

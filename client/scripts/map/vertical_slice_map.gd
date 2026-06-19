@@ -424,7 +424,11 @@ func _cycle_phase_relay_anchor(world_state: WorldState) -> Dictionary:
 func try_attack(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var target := _get_nearest_attack_target()
 	if target == null:
-		return _failure("攻击挥空：附近没有敌人。", "攻击未命中", "靠近敌人后再攻击，或回到当前目标区域。")
+		var failure := _failure("攻击挥空：附近没有敌人。", "攻击未命中", "靠近敌人后再攻击，或回到当前目标区域。")
+		failure["combat_feedback"] = DemoCombatReadabilityFormatter.format_no_target_feedback(
+			String(failure.get("message", ""))
+		)
+		return failure
 
 	var damage := _get_attack_damage(character_state)
 	var result := target.apply_hit(damage)
@@ -503,7 +507,11 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 			)
 		return _enemy_defeat_result(target, drops_message)
 
+	var health_before_counter := character_state.health
+	var protection_before_counter := character_state.protection
 	var counter_message := _apply_enemy_counterattack(target, character_state, world_state)
+	var health_after_counter := character_state.health
+	var protection_after_counter := character_state.protection
 	var evacuation_feedback := _evacuate_if_needed(character_state, world_state, "combat")
 	return {
 		"success": true,
@@ -516,8 +524,22 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 		],
 		"enemy_definition_id": target.definition_id,
 		"enemy_defeated": false,
-		"evacuation_feedback": evacuation_feedback
+		"evacuation_feedback": evacuation_feedback,
+		"combat_feedback": DemoCombatReadabilityFormatter.format_hit_feedback(
+			target,
+			damage,
+			float(result.get("health", 0.0)),
+			health_before_counter,
+			health_after_counter,
+			protection_before_counter,
+			protection_after_counter,
+			counter_message
+		)
 	}
+
+
+func get_current_combat_target() -> PrototypeEnemy:
+	return _get_nearest_attack_target()
 
 
 func try_tactical_scan(character_state: CharacterState, world_state: WorldState) -> Dictionary:
@@ -563,6 +585,10 @@ func _setup_enemy_labels() -> void:
 		var max_health := float(definition.get("base_stats", {}).get("max_health", 20.0))
 		enemy.instance_id = _get_enemy_instance_id(enemy)
 		enemy.setup(_get_display_name(enemy.definition_id), max_health, String(definition.get("category", "basic")))
+		enemy.configure_readability_tags(
+			DemoCombatReadabilityFormatter.format_enemy_threat_label(data_registry, enemy),
+			DemoCombatReadabilityFormatter.format_enemy_pressure_label(data_registry, enemy)
+		)
 func sync_enemy_states(world_state: WorldState) -> void:
 	_ensure_scene_nodes()
 	if phase_well_frontier_runtime != null:
@@ -848,6 +874,7 @@ func _enemy_defeat_result(enemy: PrototypeEnemy, drops_message: String, followup
 		"message": "击败：%s。%s%s" % [enemy.display_name, drops_message, followup],
 		"enemy_definition_id": enemy.definition_id,
 		"enemy_defeated": true,
+		"combat_feedback": DemoCombatReadabilityFormatter.format_defeat_feedback(enemy, drops_message, followup),
 		"success_feedback": DemoActionFeedbackFormatter.format_enemy_defeat_success_feedback(
 			enemy.display_name,
 			enemy.definition_id,

@@ -154,6 +154,7 @@ func _on_player_attack_requested() -> void:
 			quest_runtime.advance_for_defeated_enemy(world_state, character_state, String(result.get("enemy_definition_id", "")))
 		)
 	hud_feedback_presenter.show_evacuation_feedback(result, hud)
+	hud_feedback_presenter.show_combat_feedback(result, hud)
 	vertical_slice_map.refresh_world_interactables(world_state)
 	if vertical_slice_map.current_interactable != null:
 		_on_interaction_available(vertical_slice_map.current_interactable)
@@ -506,6 +507,12 @@ func _on_region_gate_blocked(message: String) -> void:
 
 func _update_hud() -> void:
 	hud.update_status(data_registry, world_state, character_state)
+	hud.update_combat_readability(
+		data_registry,
+		world_state,
+		character_state,
+		vertical_slice_map.get_current_combat_target()
+	)
 	hud.refresh_device_panel(
 		data_registry,
 		processing_system,

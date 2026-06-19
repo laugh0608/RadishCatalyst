@@ -44,7 +44,7 @@
 | 规格项 | 专题文档 | 状态 |
 | --- | --- | --- |
 | Demo 完成定义 | 本文 | 已建立规格源 |
-| 可玩内容实质补强 | `docs/features/demo-playable-content-substance-v1.md` | 当前活跃，补场景、角色 / 怪物 UI、初步美术、设备职责和任务节奏 |
+| 可玩内容实质补强 | `docs/features/demo-playable-content-substance-v1.md` | 当前活跃，角色 / 怪物 UI 第一包已补战斗现场读法，后续继续补场景、初步美术、设备职责和任务节奏 |
 | 阶段验收 | `docs/features/demo-first-playable-acceptance-v1.md` | 暂缓，自动检查通过不足以证明可试玩候选质量 |
 | 区域 / 场景范围 | `docs/planning/demo-scope-and-playable-slice.md` | 已定义 12 区域、4 核心区和核心稳定站终点 |
 | 角色成长 / 战斗差异 | `docs/features/demo-combat-progression-v1.md`，最近完成细专题 `docs/features/demo-character-kit-v1.md`、`docs/features/ruin-outer-ring-module-pressure-v1.md` 和 `docs/features/pollution-edge-maintenance-pressure-v1.md` | 已落地第一轮 |

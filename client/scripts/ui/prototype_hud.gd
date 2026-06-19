@@ -45,13 +45,16 @@ const GM_RESOURCE_CANDIDATES: Array[String] = [
 	"item.phase_well_anchor_core"
 ]
 const SUPPLY_FEEDBACK_SECONDS := 4.0
+const COMBAT_FEEDBACK_SECONDS := 5.0
 const QUEST_COMPLETION_FEEDBACK_SECONDS := 7.0
 const LOG_FEEDBACK_SECONDS := 6.0
 
 var last_quick_slots: Array[String] = []
 var supply_feedback_remaining_seconds := 0.0
+var combat_feedback_remaining_seconds := 0.0
 var quest_completion_feedback_remaining_seconds := 0.0
 var log_feedback_remaining_seconds := 0.0
+var last_combat_feedback: Dictionary = {}
 var debug_panels_visible := false
 var last_viewport_size := Vector2.ZERO
 var device_panel_presenter := HudDevicePanelPresenter.new()
@@ -74,6 +77,7 @@ var last_debug_character_state: CharacterState
 @onready var quick_slot_panel: ColorRect = $QuickSlotPanel
 @onready var status_panel: ColorRect = $StatusPanel
 @onready var vitals_panel: ColorRect = $VitalsPanel
+@onready var combat_panel: ColorRect = $CombatPanel
 @onready var map_panel: ColorRect = $MapPanel
 @onready var map_title_label: Label = $MapPanel/MapTitleLabel
 @onready var map_hint_label: Label = $MapPanel/MapHintLabel
@@ -83,6 +87,7 @@ var last_debug_character_state: CharacterState
 @onready var log_panel: ColorRect = $LogPanel
 @onready var status_label: Label = $StatusPanel/StatusLabel
 @onready var vitals_label: Label = $VitalsPanel/VitalsLabel
+@onready var combat_label: Label = $CombatPanel/CombatLabel
 @onready var prompt_label: Label = $PromptPanel/PromptLabel
 @onready var log_label: Label = $LogPanel/LogLabel
 @onready var map_marker_rects: Array[ColorRect] = [
@@ -226,6 +231,9 @@ func _update_timed_panel_visibility(delta: float) -> void:
 	supply_feedback_remaining_seconds = maxf(0.0, supply_feedback_remaining_seconds - delta)
 	if supply_feedback_remaining_seconds <= 0.0:
 		supply_feedback_panel.visible = false
+	combat_feedback_remaining_seconds = maxf(0.0, combat_feedback_remaining_seconds - delta)
+	if combat_feedback_remaining_seconds <= 0.0:
+		last_combat_feedback.clear()
 	quest_completion_feedback_remaining_seconds = maxf(0.0, quest_completion_feedback_remaining_seconds - delta)
 	if quest_completion_feedback_remaining_seconds <= 0.0:
 		completion_panel.visible = false
@@ -251,6 +259,30 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 		quick_slot_binding_labels
 	)
 	_refresh_gm_panel()
+
+
+func update_combat_readability(
+	data_registry: DataRegistry,
+	world_state: WorldState,
+	character_state: CharacterState,
+	focused_enemy: PrototypeEnemy
+) -> void:
+	_ensure_runtime_nodes()
+	if combat_panel == null or combat_label == null:
+		return
+	var has_target := focused_enemy != null and focused_enemy.can_be_attacked()
+	var has_recent_feedback := not last_combat_feedback.is_empty()
+	if not has_target and not has_recent_feedback:
+		combat_panel.visible = false
+		return
+	combat_label.text = DemoCombatReadabilityFormatter.format_panel_text(
+		data_registry,
+		world_state,
+		character_state,
+		focused_enemy,
+		last_combat_feedback
+	)
+	combat_panel.visible = true
 
 
 func _get_active_quest_id(world_state: WorldState) -> String:
@@ -289,8 +321,11 @@ func clear_runtime_feedback() -> void:
 	completion_panel.visible = false
 	evacuation_panel.visible = false
 	supply_feedback_panel.visible = false
+	combat_panel.visible = false
 	quest_completion_feedback_remaining_seconds = 0.0
 	supply_feedback_remaining_seconds = 0.0
+	combat_feedback_remaining_seconds = 0.0
+	last_combat_feedback.clear()
 
 
 func show_quest_completion(feedback: Dictionary) -> void:
@@ -326,6 +361,15 @@ func show_supply_feedback(feedback: Dictionary) -> void:
 	supply_feedback_detail_label.text = String(texts.get("detail", ""))
 	supply_feedback_panel.visible = true
 	supply_feedback_remaining_seconds = SUPPLY_FEEDBACK_SECONDS
+
+
+func show_combat_feedback(feedback: Dictionary) -> void:
+	_ensure_runtime_nodes()
+	if feedback.is_empty():
+		return
+
+	last_combat_feedback = feedback.duplicate(true)
+	combat_feedback_remaining_seconds = COMBAT_FEEDBACK_SECONDS
 
 
 func show_device_panel(
@@ -619,6 +663,8 @@ func _ensure_runtime_nodes() -> void:
 		status_panel = get_node_or_null("StatusPanel")
 	if vitals_panel == null:
 		vitals_panel = get_node_or_null("VitalsPanel")
+	if combat_panel == null:
+		combat_panel = get_node_or_null("CombatPanel")
 	if map_panel == null:
 		map_panel = get_node_or_null("MapPanel")
 	if map_title_label == null:
@@ -637,6 +683,8 @@ func _ensure_runtime_nodes() -> void:
 		status_label = get_node_or_null("StatusPanel/StatusLabel")
 	if vitals_label == null:
 		vitals_label = get_node_or_null("VitalsPanel/VitalsLabel")
+	if combat_label == null:
+		combat_label = get_node_or_null("CombatPanel/CombatLabel")
 	if prompt_label == null:
 		prompt_label = get_node_or_null("PromptPanel/PromptLabel")
 	if log_label == null:
@@ -779,6 +827,8 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	var objective_height := 178.0
 	var vitals_width := clampf(viewport_size.x * 0.16, 300.0, 380.0)
 	var vitals_height := 118.0
+	var combat_width := clampf(viewport_size.x * 0.21, 380.0, 500.0)
+	var combat_height := 164.0
 	var prompt_width := clampf(viewport_size.x * 0.28, 500.0, 640.0)
 	var prompt_height := 88.0
 	var log_width := clampf(viewport_size.x * 0.23, 420.0, 560.0)
@@ -813,6 +863,14 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	var log_y := viewport_size.y - margin - log_height
 	_set_control_rect(prompt_panel, Vector2(prompt_x, prompt_y), Vector2(prompt_width, prompt_height))
 	_set_control_rect(log_panel, Vector2(margin, log_y), Vector2(log_width, log_height))
+	var combat_x := viewport_size.x - margin - combat_width
+	if debug_panels_visible:
+		combat_x = maxf(margin + log_width + gap, save_position.x - gap - combat_width)
+	_set_control_rect(
+		combat_panel,
+		Vector2(combat_x, prompt_y - gap - combat_height),
+		Vector2(combat_width, combat_height)
+	)
 
 	var device_y := (viewport_size.y - device_height) * 0.5
 	if debug_panels_visible:
@@ -846,6 +904,7 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	_layout_map_panel_contents()
 	_layout_full_label(status_label, status_panel, 14.0, 14.0)
 	_layout_full_label(vitals_label, vitals_panel, 14.0, 14.0)
+	_layout_full_label(combat_label, combat_panel, 14.0, 12.0)
 	_layout_full_label(prompt_label, prompt_panel, 14.0, 12.0)
 	_layout_full_label(log_label, log_panel, 14.0, 12.0)
 	_layout_full_label(completion_title_label, completion_panel, 22.0, 16.0, 32.0)
@@ -932,7 +991,7 @@ func _layout_map_panel_contents() -> void:
 func _apply_runtime_panel_style() -> void:
 	var primary_color := Color(0.035, 0.054, 0.059, 0.42)
 	var floating_color := Color(0.035, 0.054, 0.059, 0.88)
-	for panel in [map_panel, status_panel, vitals_panel, prompt_panel, log_panel]:
+	for panel in [map_panel, status_panel, vitals_panel, combat_panel, prompt_panel, log_panel]:
 		if panel != null:
 			panel.color = primary_color
 	for panel in [device_panel, completion_panel, evacuation_panel, supply_feedback_panel, save_panel, quick_slot_panel]:
