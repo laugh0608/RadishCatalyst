@@ -73,6 +73,13 @@ $checks = @(
         }
     },
     @{
+        Name = "client demo functional transition spatial playability"
+        Script = "check-client-demo-functional-transition-spatial-playability.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client demo field loop payoff"
         Script = "check-client-demo-field-loop-payoff.ps1"
         Parameters = @{

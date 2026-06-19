@@ -39,6 +39,11 @@ if (-not (Test-Path -LiteralPath $demoFunctionalSceneGameplayDensityCheckScript 
     Write-Error "Demo functional scene gameplay density check script not found: ${demoFunctionalSceneGameplayDensityCheckScript}"
     exit 1
 }
+$demoFunctionalTransitionSpatialPlayabilityCheckScript = Join-Path $clientRoot "scripts/checks/demo_functional_transition_spatial_playability_check.gd"
+if (-not (Test-Path -LiteralPath $demoFunctionalTransitionSpatialPlayabilityCheckScript -PathType Leaf)) {
+    Write-Error "Demo functional transition spatial playability check script not found: ${demoFunctionalTransitionSpatialPlayabilityCheckScript}"
+    exit 1
+}
 $demoFieldLoopPayoffCheckScript = Join-Path $clientRoot "scripts/checks/demo_field_loop_payoff_check.gd"
 if (-not (Test-Path -LiteralPath $demoFieldLoopPayoffCheckScript -PathType Leaf)) {
     Write-Error "Demo field loop payoff check script not found: ${demoFieldLoopPayoffCheckScript}"
@@ -206,6 +211,13 @@ try {
     if ($LASTEXITCODE -ne 0) {
         $demoFunctionalSceneGameplayDensityOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
         Write-Error "Demo functional scene gameplay density check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
+    $demoFunctionalTransitionSpatialPlayabilityOutput = & $GodotExe --headless --path $clientRoot --script $demoFunctionalTransitionSpatialPlayabilityCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $demoFunctionalTransitionSpatialPlayabilityOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo functional transition spatial playability check failed with exit code ${LASTEXITCODE}."
         exit $LASTEXITCODE
     }
 

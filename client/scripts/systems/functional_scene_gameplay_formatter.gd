@@ -251,16 +251,28 @@ static func format_result_followup_line(
 		_world_state,
 		fallback_region_id
 	)
+	var spatial_followup := DemoFunctionalTransitionSpatialPlayabilityFormatter.format_result_followup_line(
+		definition_id,
+		_world_state,
+		fallback_region_id
+	)
 	if info.is_empty():
-		return density_followup
+		if density_followup.is_empty():
+			return spatial_followup
+		if spatial_followup.is_empty():
+			return density_followup
+		return "%s；%s" % [density_followup, spatial_followup]
 	var followup := "现场阶段：%s已完成；%s；回基地：%s" % [
 		String(info.get("title", "")),
 		String(info.get("complete", "")),
 		_get_region_text(String(info.get("region_id", "")), "return")
 	]
-	if density_followup.is_empty():
-		return followup
-	return "%s；%s" % [followup, density_followup]
+	var followup_parts: Array[String] = [followup]
+	if not density_followup.is_empty():
+		followup_parts.append(density_followup)
+	if not spatial_followup.is_empty():
+		followup_parts.append(spatial_followup)
+	return "；".join(followup_parts)
 
 
 static func get_region_id_for_definition(definition_id: String) -> String:

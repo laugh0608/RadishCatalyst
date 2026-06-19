@@ -142,12 +142,22 @@ static func format_object_route_line(definition_id: String, fallback_region_id: 
 	if region_id.is_empty() and REGION_IDS.has(fallback_region_id):
 		region_id = fallback_region_id
 	if region_id.is_empty():
-		return ""
-	return "路线支撑：%s；%s；回基地：%s" % [
+		return DemoFunctionalTransitionSpatialPlayabilityFormatter.format_static_object_spatial_line(
+			definition_id,
+			fallback_region_id
+		)
+	var route_line := "路线支撑：%s；%s；回基地：%s" % [
 		_get_info_text(region_id, "title"),
 		_get_info_text(region_id, "object_reason"),
 		_get_info_text(region_id, "return_reason")
 	]
+	var spatial_line := DemoFunctionalTransitionSpatialPlayabilityFormatter.format_static_object_spatial_line(
+		definition_id,
+		region_id
+	)
+	if spatial_line.is_empty():
+		return route_line
+	return "%s\n%s" % [route_line, spatial_line]
 
 
 static func get_region_id_for_definition(definition_id: String) -> String:

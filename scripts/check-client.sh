@@ -127,6 +127,7 @@ echo "Coverage: static data and scene references."
 "${python_exe}" "${repo_root}/scripts/check-client-demo-runtime-surface-decomposition.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-functional-scene-gameplay.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-functional-scene-gameplay-density.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-functional-transition-spatial-playability.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-field-loop-payoff.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-endpoint-readiness.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-completion-outcome-readout.py" "${repo_root}"
@@ -178,6 +179,7 @@ run_godot_checked "vertical-slice-flow" --script "${client_root}/scripts/checks/
 run_godot_checked "onboarding-hint-runtime" --script "${client_root}/scripts/checks/onboarding_hint_runtime_check.gd" --no-header
 run_godot_checked "functional-scene-gameplay" --script "${client_root}/scripts/checks/functional_scene_gameplay_check.gd" --no-header
 run_godot_checked "demo-functional-scene-gameplay-density" --script "${client_root}/scripts/checks/demo_functional_scene_gameplay_density_check.gd" --no-header
+run_godot_checked "demo-functional-transition-spatial-playability" --script "${client_root}/scripts/checks/demo_functional_transition_spatial_playability_check.gd" --no-header
 run_godot_checked "demo-field-loop-payoff" --script "${client_root}/scripts/checks/demo_field_loop_payoff_check.gd" --no-header
 run_godot_checked "demo-endpoint-readiness" --script "${client_root}/scripts/checks/demo_endpoint_readiness_check.gd" --no-header
 run_godot_checked "demo-completion-outcome-readout" --script "${client_root}/scripts/checks/demo_completion_outcome_readout_check.gd" --no-header
