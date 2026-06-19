@@ -6,8 +6,8 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题和最近完成细专题为准：
 
-- 当前活跃专题：[Demo Route Return And Base Reentry Readability V1](../features/demo-route-return-and-base-reentry-readability-v1.md)，验证外勤结果回到基地后，HUD / 地图 / 设备 / 对象提示能读出去哪个设备处理、收益改变了什么、下一次从哪里出发。
-- 最近完成：[Demo Functional Transition Spatial Playability V1](../features/demo-functional-transition-spatial-playability-v1.md)、[Demo Functional Scene Gameplay Density V1](../features/demo-functional-scene-gameplay-density-v1.md)、[Demo Supply Pressure Pacing V1](../features/demo-supply-pressure-pacing-v1.md)、[Demo Quick Slot Supply Readability V1](../features/demo-quick-slot-supply-readability-v1.md)、[Demo Prototype Visual Pass V1](../features/demo-prototype-visual-pass-v1.md)
+- 当前活跃专题：[Demo Interaction Prompt Surface Decomposition V1](../features/demo-interaction-prompt-surface-decomposition-v1.md)，拆分已接近硬上限的交互提示承载面，先把加工设备提示迁到窄职责 formatter。
+- 最近完成：[Demo Route Return And Base Reentry Readability V1](../features/demo-route-return-and-base-reentry-readability-v1.md)、[Demo Functional Transition Spatial Playability V1](../features/demo-functional-transition-spatial-playability-v1.md)、[Demo Functional Scene Gameplay Density V1](../features/demo-functional-scene-gameplay-density-v1.md)、[Demo Supply Pressure Pacing V1](../features/demo-supply-pressure-pacing-v1.md)、[Demo Quick Slot Supply Readability V1](../features/demo-quick-slot-supply-readability-v1.md)
 - 更早完成专题按 [Feature Development Docs](../features/README.md) 索引选读。
 
 历史过程、长完成清单和详细复盘优先查看：
@@ -31,19 +31,19 @@
 - 2026-06-16：「角色成长与战斗第一版」「功能 / 过渡路线支撑第一版」「非核心区域场景识别第一版」「资源链状态第一版」「存档状态契约第一版」「主路径连续性第一版」「运行时承载面拆分第一版」与「功能场景玩法第一版」第一包已落地。
 - 2026-06-17：外勤回基地收益兑现、终点前综合准备读法、Demo 完成成果整理、整段体验连贯性、可玩场景构成、战斗撤离恢复、交互可辨识度、动作反馈可读性、受阻动作恢复读法与原型视觉呈现第一包均已落地。
 - 2026-06-18：原型视觉呈现、快捷补给读法和补给节奏与承压价值第一版均通过退出判断。
-- 2026-06-19：功能 / 过渡场景玩法密度与可达空间第一版均通过退出判断，当前切到外勤返回与基地再进入读法第一版。
+- 2026-06-19：功能 / 过渡场景玩法密度、可达空间、外勤返回与基地再进入读法均通过退出判断，当前切到交互提示承载面拆分第一版。
 
 当前阶段：
 
 ```text
-首版 Demo 体验主干建设：外勤返回与基地再进入读法第一版
+首版 Demo 体验主干建设：交互提示承载面拆分第一版
 ```
 
-当前推进口径是外勤返回与基地再进入读法第一版：不新增资源、配方、设备、区域、任务链或敌人类型，只验证既有外勤结果回基地后能读出处理设备、收益变化、下一次出发入口和自动检查证据。
+当前推进口径是交互提示承载面拆分第一版：不新增资源、配方、设备、区域、任务链或敌人类型，先拆出加工设备交互提示，降低 `interaction_prompt_formatter.gd` 行数风险，并承接基地再进入读法。
 
 ## 当前主线
 
-当前活跃专题是 [Demo Route Return And Base Reentry Readability V1](../features/demo-route-return-and-base-reentry-readability-v1.md)。它承接已完成的外勤收益兑现、资源链状态、工业主干和功能 / 过渡场景专题，覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 的「工艺 / 科技解锁」「工业基建模块」「资源 / 生产链」「UI / HUD」「存档 / 状态」和「自动检查」缺口。
+当前活跃专题是 [Demo Interaction Prompt Surface Decomposition V1](../features/demo-interaction-prompt-surface-decomposition-v1.md)。它承接已完成的基地再进入读法与运行时承载面拆分原则，覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 的「UI / HUD」「自动检查」和工程承载面缺口。
 
 角色成长与战斗第一版已收束；后续不继续加厚工具打击校准、防护响应、主线完成感、战术扫描、污染边界、遗迹外圈、工业主干或核心场景同一读法点。若后续扩到新角色动作、装备状态或战斗压力，必须另建非重复细专题。
 
@@ -74,7 +74,7 @@ UI 和场景表现已完成第一轮原型呈现支撑。当前复用既有 HUD 
 
 允许推进：
 
-- 外勤返回与基地再进入读法第一包：既有外勤结果回基地后的处理设备、收益变化、下一次出发入口和自动检查。
+- 交互提示承载面拆分第一包：加工设备提示迁出 `interaction_prompt_formatter.gd`，保留原入口并接入基地再进入读法。
 - 必要时新增窄职责 formatter、presenter helper 或专项 check，避免继续推高接近硬上限的大文件。
 - 只修阻塞主线连续性、功能闭合、区域表达或玩法密度判断的断点。
 
@@ -103,7 +103,7 @@ Windows 用 `pwsh ./scripts/check-docs.ps1`、`pwsh ./scripts/check-text-files.p
 
 ## 阶段退出条件
 
-- [Demo Route Return And Base Reentry Readability V1](../features/demo-route-return-and-base-reentry-readability-v1.md) 建立并完成外勤返回与基地再进入代表状态检查。
-- HUD、地图、设备提示、对象提示和结果反馈能读出处理点、收益变化、下一次出发入口和回基地理由。
+- [Demo Interaction Prompt Surface Decomposition V1](../features/demo-interaction-prompt-surface-decomposition-v1.md) 建立并完成加工设备交互提示拆分。
+- 加工设备提示、加工日志和基地再进入代表状态读法保持一致，`interaction_prompt_formatter.gd` 明显低于硬上限。
 - 未引入新资源、配方、设备、区域、新任务链、新敌人类型、完整背包、完整装备栏、死亡系统、终局菜单、结算页或发布准备流程。
 - 新增检查走独立专项文件；不继续推高 `vertical_slice_flow_check.gd`、`vertical_slice_map.gd`、`prototype_hud.gd` 或 `interaction_prompt_formatter.gd`。

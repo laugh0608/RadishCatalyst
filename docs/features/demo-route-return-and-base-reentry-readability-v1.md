@@ -41,6 +41,7 @@
 - 2026-06-19 第一包已落地：新增 `DemoRouteReturnAndBaseReentryFormatter`，覆盖污染沉积物、污染浆液、回波痕迹、裂相坐标和相位回投锚点的基地再进入读法。
 - HUD、地图、设备面板、推荐配方和加工结果日志已接入；通用交互提示暂不继续加厚，后续若接入应先拆 `interaction_prompt_formatter.gd` 的职责。
 - 新增 `demo_route_return_and_base_reentry_check.gd` 与静态接线检查，并接入默认 `check-client` 和 Godot runtime 检查。
+- 2026-06-19 退出判断通过：代表状态、自动检查和文档边界均满足验收；后续切到交互提示承载面拆分，不继续给同一批返回态加厚。
 
 ## 当前不做
 

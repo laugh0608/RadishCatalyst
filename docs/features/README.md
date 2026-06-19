@@ -26,7 +26,8 @@
 ## 当前与最近专题
 
 - [Demo Definition V1](demo-definition-v1.md)：首版 Demo 完成规格表，后续专题必须映射到其中的未完成规格项。
-- [Demo Route Return And Base Reentry Readability V1](demo-route-return-and-base-reentry-readability-v1.md)：当前活跃细专题，覆盖外勤结果回基地后的处理设备、收益变化、下一次出发入口和自动检查。
+- [Demo Interaction Prompt Surface Decomposition V1](demo-interaction-prompt-surface-decomposition-v1.md)：当前活跃细专题，拆分加工设备交互提示承载面，降低大文件行数风险并承接基地再进入读法。
+- [Demo Route Return And Base Reentry Readability V1](demo-route-return-and-base-reentry-readability-v1.md)：最近完成细专题，覆盖外勤结果回基地后的处理设备、收益变化、下一次出发入口和自动检查。
 - [Demo Functional Transition Spatial Playability V1](demo-functional-transition-spatial-playability-v1.md)：最近完成细专题，覆盖封锁遗迹到裂相脊代表路径的入口、可走边界、危险 / 资源 / 设施落点、回基地理由和自动检查。
 - [Demo Functional Scene Gameplay Density V1](demo-functional-scene-gameplay-density-v1.md)：最近完成细专题，覆盖锁相框架和锚定桥代表小循环的操作密度、HUD / 对象反馈和自动检查。
 - [Demo Supply Pressure Pacing V1](demo-supply-pressure-pacing-v1.md)：最近完成细专题，覆盖现有修复凝胶 / 抗污染药剂在制作、消耗、补回和关键压力节点中的真实价值。
