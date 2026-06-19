@@ -71,6 +71,14 @@ func _format_device_status(
 	)
 	if not resource_chain_line.is_empty():
 		parts.append(resource_chain_line)
+	var base_reentry_line := DemoRouteReturnAndBaseReentryFormatter.format_device_status_line(
+		building_id,
+		recipe_id,
+		world_state,
+		character_state
+	)
+	if not base_reentry_line.is_empty():
+		parts.append(base_reentry_line)
 	if (
 		building_id == "building.basic_reactor"
 		and FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state)

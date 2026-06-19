@@ -185,6 +185,14 @@ func get_recommended_recipe_id(
 		)
 	):
 		return _select_if_available(interactable, "recipe.cleanse_residue")
+	if active_quest_id.is_empty():
+		var base_reentry_recipe_id := DemoRouteReturnAndBaseReentryFormatter.get_recommended_recipe_id_for_device(
+			interactable.definition_id,
+			character_state,
+			world_state
+		)
+		if not base_reentry_recipe_id.is_empty():
+			return _select_if_available(interactable, base_reentry_recipe_id)
 	match active_quest_id:
 		"quest.scout_crystal_field":
 			return _select_if_available(interactable, "recipe.process_crystal_ore")
@@ -369,6 +377,7 @@ func _format_processing_started_feedback(recipe: Dictionary, world_state: WorldS
 		"completion_next_step": _get_completion_next_step(recipe_id, world_state),
 		"industrial_spine": IndustrialTechSpineFormatter.format_result_feedback_line(recipe_id, world_state),
 		"resource_chain": DemoResourceChainStateFormatter.format_result_feedback_line(recipe_id),
+		"base_reentry": DemoRouteReturnAndBaseReentryFormatter.format_result_feedback_line(recipe_id, world_state),
 		"show_resource_chain": _should_show_resource_chain_result_line(recipe_id)
 	}
 
@@ -394,6 +403,7 @@ func _format_processing_completion_feedback(recipe: Dictionary, world_state: Wor
 		"next_step": _get_completion_next_step(recipe_id, world_state),
 		"industrial_spine": IndustrialTechSpineFormatter.format_result_feedback_line(recipe_id, world_state),
 		"resource_chain": DemoResourceChainStateFormatter.format_result_feedback_line(recipe_id),
+		"base_reentry": DemoRouteReturnAndBaseReentryFormatter.format_result_feedback_line(recipe_id, world_state),
 		"show_resource_chain": _should_show_resource_chain_result_line(recipe_id)
 	}
 

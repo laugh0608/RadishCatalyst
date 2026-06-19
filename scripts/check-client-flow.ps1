@@ -49,6 +49,11 @@ if (-not (Test-Path -LiteralPath $demoFieldLoopPayoffCheckScript -PathType Leaf)
     Write-Error "Demo field loop payoff check script not found: ${demoFieldLoopPayoffCheckScript}"
     exit 1
 }
+$demoRouteReturnAndBaseReentryCheckScript = Join-Path $clientRoot "scripts/checks/demo_route_return_and_base_reentry_check.gd"
+if (-not (Test-Path -LiteralPath $demoRouteReturnAndBaseReentryCheckScript -PathType Leaf)) {
+    Write-Error "Demo route return and base reentry check script not found: ${demoRouteReturnAndBaseReentryCheckScript}"
+    exit 1
+}
 $demoEndpointReadinessCheckScript = Join-Path $clientRoot "scripts/checks/demo_endpoint_readiness_check.gd"
 if (-not (Test-Path -LiteralPath $demoEndpointReadinessCheckScript -PathType Leaf)) {
     Write-Error "Demo endpoint readiness check script not found: ${demoEndpointReadinessCheckScript}"
@@ -228,6 +233,13 @@ try {
         exit $LASTEXITCODE
     }
 
+    $demoRouteReturnAndBaseReentryOutput = & $GodotExe --headless --path $clientRoot --script $demoRouteReturnAndBaseReentryCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $demoRouteReturnAndBaseReentryOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo route return and base reentry check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $demoEndpointReadinessOutput = & $GodotExe --headless --path $clientRoot --script $demoEndpointReadinessCheckScript --no-header 2>&1
     if ($LASTEXITCODE -ne 0) {
         $demoEndpointReadinessOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
@@ -376,7 +388,7 @@ try {
     }
 
     $unexpectedErrors = @(
-        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoFieldLoopPayoffOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput + $prototypeVisualPassOutput + $quickSlotSupplyReadabilityOutput + $supplyPressurePacingOutput |
+        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoFieldLoopPayoffOutput + $demoRouteReturnAndBaseReentryOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput + $prototypeVisualPassOutput + $quickSlotSupplyReadabilityOutput + $supplyPressurePacingOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {

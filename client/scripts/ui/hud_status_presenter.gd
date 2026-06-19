@@ -249,6 +249,10 @@ func _format_base_summary_lines(
 
 	var active_quest := data_registry.get_definition(active_quest_id)
 	var resource_chain_summary := DemoResourceChainStateFormatter.format_hud_summary(world_state, character_state)
+	var base_reentry_summary := DemoRouteReturnAndBaseReentryFormatter.format_hud_summary(
+		world_state,
+		character_state
+	)
 	var endpoint_readiness_summary := DemoEndpointReadinessFormatter.format_hud_summary(
 		world_state,
 		character_state
@@ -312,6 +316,8 @@ func _format_base_summary_lines(
 		]
 	var outfitting_summary := _format_outfitting_station_summary(world_state, character_state)
 	if not outfitting_summary.is_empty():
+		if not base_reentry_summary.is_empty():
+			outfitting_summary += base_reentry_summary
 		if not completion_outcome_summary.is_empty():
 			return outfitting_summary + completion_outcome_summary
 		return outfitting_summary
@@ -321,8 +327,12 @@ func _format_base_summary_lines(
 		return completion_outcome_summary
 	var industrial_summary := IndustrialTechSpineFormatter.format_hud_summary(world_state, character_state)
 	if not industrial_summary.is_empty():
+		if not base_reentry_summary.is_empty():
+			return industrial_summary + base_reentry_summary
 		return industrial_summary
 	if not resource_chain_summary.is_empty():
+		if not base_reentry_summary.is_empty():
+			return resource_chain_summary + base_reentry_summary
 		return resource_chain_summary
 	var scene_summary := SceneArtFoundationFormatter.format_hud_summary(world_state, character_state)
 	if not scene_summary.is_empty():

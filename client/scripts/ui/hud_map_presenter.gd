@@ -131,9 +131,15 @@ func format_demo_route_hint(
 		quest_id,
 		character_state
 	)
+	var base_reentry_hint := DemoRouteReturnAndBaseReentryFormatter.format_map_route_hint(
+		world_state,
+		character_state
+	)
 	var hint_parts: Array[String] = [route_hint]
 	if not recovery_hint.is_empty():
 		hint_parts.append(recovery_hint)
+	if not base_reentry_hint.is_empty():
+		hint_parts.append(base_reentry_hint)
 	if not scene_hint.is_empty():
 		hint_parts.append(scene_hint)
 	if not non_core_scene_hint.is_empty():

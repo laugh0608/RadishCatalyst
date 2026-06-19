@@ -48,11 +48,11 @@
 | 角色成长 / 战斗差异 | `docs/features/demo-combat-progression-v1.md`，最近完成细专题 `docs/features/demo-character-kit-v1.md`、`docs/features/ruin-outer-ring-module-pressure-v1.md` 和 `docs/features/pollution-edge-maintenance-pressure-v1.md` | 已落地第一轮 |
 | 工具打击校准 / 输出整备 | `docs/features/demo-tool-strike-calibration-v1.md` | 已落地第一包 |
 | 工业基建 / 工艺解锁主干 | `docs/features/demo-industrial-tech-spine-v1.md` | 已落地第一包 |
-| 资源链状态 | `docs/features/demo-resource-chain-state-v1.md` | 已落地第一包 |
+| 资源链状态 / 基地再进入 | `docs/features/demo-resource-chain-state-v1.md`、`docs/features/demo-route-return-and-base-reentry-readability-v1.md` | 资源链已落地第一包，基地再进入当前活跃 |
 | 存档 / 状态 | `docs/features/demo-save-state-contract-v1.md` | 已落地第一包 |
 | 主路径连续性 / 自动检查 | `docs/features/demo-main-path-continuity-v1.md` | 已落地第一包 |
 | 自动检查 / 工程承载面 | `docs/features/demo-runtime-surface-decomposition-v1.md` | 已落地第一包 |
-| 功能场景玩法 | `docs/features/demo-functional-scene-gameplay-v1.md`、`docs/features/demo-functional-scene-gameplay-density-v1.md`、`docs/features/demo-functional-transition-spatial-playability-v1.md` | 玩法密度已通过退出判断，可达空间第一包当前活跃 |
+| 功能场景玩法 | `docs/features/demo-functional-scene-gameplay-v1.md`、`docs/features/demo-functional-scene-gameplay-density-v1.md`、`docs/features/demo-functional-transition-spatial-playability-v1.md` | 玩法密度与可达空间已通过退出判断 |
 | 外勤回基地收益兑现 | `docs/features/demo-field-loop-payoff-v1.md` | 已落地第一包 |
 | 终点前综合准备读法 | `docs/features/demo-endpoint-readiness-v1.md` | 已落地第一包 |
 | Demo 完成成果整理 | `docs/features/demo-completion-outcome-readout-v1.md` | 已落地第一包 |
@@ -93,11 +93,11 @@
 
 ## 当前优先级
 
-当前继续推进首版 Demo 体验主干；`Demo Functional Scene Gameplay Density V1` 已通过退出判断，下一步切到 `Demo Functional Transition Spatial Playability V1`：
+当前继续推进首版 Demo 体验主干；`Demo Functional Transition Spatial Playability V1` 已通过退出判断，下一步切到 `Demo Route Return And Base Reentry Readability V1`：
 
 1. 原型视觉呈现已覆盖现有 12 区层级、核心区场地尺度、首小时目标链场景导引和专项检查。
 2. 快捷补给读法已覆盖现有修复凝胶 / 抗污染药剂在 HUD 快捷栏、补给反馈和失败恢复路线中的可读性。
 3. 补给节奏与承压价值已验证既有补给在制作、消耗、补回和关键压力节点中的真实价值。
-4. 功能 / 过渡场景玩法密度已验证锁相框架和锚定桥代表小循环；功能 / 过渡场景可达空间只验证封锁遗迹到裂相脊代表路径的入口、边界和落点，不新增资源、配方、区域、完整背包、完整装备栏、死亡系统、终局菜单、结算页或新任务链。
+4. 功能 / 过渡场景玩法密度和可达空间已通过退出判断；外勤返回与基地再进入读法只验证既有外勤结果回基地后的处理设备、收益变化和下一次出发入口，不新增资源、配方、区域、完整背包、完整装备栏、死亡系统、终局菜单、结算页或新任务链。
 
 在首版 Demo 满足本文必达规格前，不切到试玩准备或集中修 bug 阶段。

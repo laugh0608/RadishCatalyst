@@ -33,6 +33,7 @@ func format_success_result_log(result: Dictionary) -> String:
 	_append_log_detail(details, "工艺", industrial_line)
 	if bool(feedback.get("show_resource_chain", false)):
 		_append_log_detail(details, "资源链", _compact_next_step(String(feedback.get("resource_chain", ""))))
+	_append_log_detail(details, "再进入", _compact_next_step(String(feedback.get("base_reentry", ""))))
 	_append_log_detail(details, "状态", _compact_status(String(feedback.get("status", ""))))
 	if details.is_empty():
 		return title

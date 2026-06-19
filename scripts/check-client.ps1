@@ -87,6 +87,13 @@ $checks = @(
         }
     },
     @{
+        Name = "client demo route return and base reentry"
+        Script = "check-client-demo-route-return-and-base-reentry.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client demo endpoint readiness"
         Script = "check-client-demo-endpoint-readiness.ps1"
         Parameters = @{
