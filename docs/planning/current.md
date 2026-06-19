@@ -1,13 +1,13 @@
 # Current Plan
 
-更新时间：2026-06-18
+更新时间：2026-06-19
 
 ## 入口约束
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题和最近完成细专题为准：
 
-- 当前活跃专题：[Demo Supply Pressure Pacing V1](../features/demo-supply-pressure-pacing-v1.md)，验证现有修复凝胶 / 抗污染药剂的获得节奏、消耗时机和承压价值。
-- 最近完成：[Demo Quick Slot Supply Readability V1](../features/demo-quick-slot-supply-readability-v1.md)、[Demo Prototype Visual Pass V1](../features/demo-prototype-visual-pass-v1.md)、[Demo Action Blocker Recovery V1](../features/demo-action-blocker-recovery-v1.md)、[Demo Action Feedback Readability V1](../features/demo-action-feedback-readability-v1.md)、[Demo Interaction Affordance V1](../features/demo-interaction-affordance-v1.md)
+- 当前活跃专题：[Demo Functional Scene Gameplay Density V1](../features/demo-functional-scene-gameplay-density-v1.md)，验证锁相框架和锚定桥代表小循环的操作密度、HUD / 对象反馈和自动检查。
+- 最近完成：[Demo Supply Pressure Pacing V1](../features/demo-supply-pressure-pacing-v1.md)、[Demo Quick Slot Supply Readability V1](../features/demo-quick-slot-supply-readability-v1.md)、[Demo Prototype Visual Pass V1](../features/demo-prototype-visual-pass-v1.md)、[Demo Action Blocker Recovery V1](../features/demo-action-blocker-recovery-v1.md)、[Demo Action Feedback Readability V1](../features/demo-action-feedback-readability-v1.md)
 - 更早完成专题按 [Feature Development Docs](../features/README.md) 索引选读。
 
 历史过程、长完成清单和详细复盘优先查看：
@@ -30,19 +30,19 @@
 - 2026-06-14：「首版 Demo 可玩内容建设推进」达到收束条件；现有路线已有可操作场景对象、运行逻辑、玩家反馈、存档来源和自动检查证据。
 - 2026-06-16：「角色成长与战斗第一版」「功能 / 过渡路线支撑第一版」「非核心区域场景识别第一版」「资源链状态第一版」「存档状态契约第一版」「主路径连续性第一版」「运行时承载面拆分第一版」与「功能场景玩法第一版」第一包已落地。
 - 2026-06-17：外勤回基地收益兑现、终点前综合准备读法、Demo 完成成果整理、整段体验连贯性、可玩场景构成、战斗撤离恢复、交互可辨识度、动作反馈可读性、受阻动作恢复读法与原型视觉呈现第一包均已落地。
-- 2026-06-18：原型视觉呈现第一版和快捷补给读法第一版均通过退出判断；当前切到补给节奏与承压价值第一版。
+- 2026-06-18：原型视觉呈现、快捷补给读法和补给节奏与承压价值第一版均通过退出判断；2026-06-19 当前切到功能 / 过渡场景玩法密度第一版。
 
 当前阶段：
 
 ```text
-首版 Demo 体验主干建设：补给节奏与承压价值第一版
+首版 Demo 体验主干建设：功能 / 过渡场景玩法密度第一版
 ```
 
-当前推进口径是补给节奏与承压价值第一版：不新增消耗品、UI 面板、目标箭头或任务链，只验证现有修复凝胶 / 抗污染药剂在真实压力节点中的获得、消耗、补回和减压价值。
+当前推进口径是功能 / 过渡场景玩法密度第一版：不新增区域、资源、配方、任务链或敌人类型，只验证锁相框架与锚定桥代表小循环能形成连续操作、回基地理由和自动检查证据。
 
 ## 当前主线
 
-当前活跃专题是 [Demo Supply Pressure Pacing V1](../features/demo-supply-pressure-pacing-v1.md)。它承接已完成的快捷补给读法，覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 的「装备 / 模块」「战斗压力」「污染与防护」「UI / HUD」和「自动检查」缺口。
+当前活跃专题是 [Demo Functional Scene Gameplay Density V1](../features/demo-functional-scene-gameplay-density-v1.md)。它承接已完成的功能场景玩法第一包，覆盖 [Demo Definition V1](../features/demo-definition-v1.md) 的「功能 / 过渡场景」「UI / HUD」「存档 / 状态」和「自动检查」缺口。
 
 角色成长与战斗第一版已收束；后续不继续加厚工具打击校准、防护响应、主线完成感、战术扫描、污染边界、遗迹外圈、工业主干或核心场景同一读法点。若后续扩到新角色动作、装备状态或战斗压力，必须另建非重复细专题。
 
@@ -73,9 +73,9 @@ UI 和场景表现已完成第一轮原型呈现支撑。当前复用既有 HUD 
 
 允许推进：
 
-- 补给节奏与承压价值第一包：修复凝胶 / 抗污染药剂在制作、消耗、补回和关键压力节点中的真实价值检查。
+- 功能 / 过渡场景玩法密度第一包：锁相框架与锚定桥小循环的 HUD、对象提示、交互结果和自动检查。
 - 必要时新增窄职责 formatter、presenter helper 或专项 check，避免继续推高接近硬上限的大文件。
-- 只修阻塞主线连续性、功能闭合、区域表达或补给承压价值判断的断点。
+- 只修阻塞主线连续性、功能闭合、区域表达或玩法密度判断的断点。
 
 ## 节奏规则
 
@@ -102,7 +102,7 @@ Windows 用 `pwsh ./scripts/check-docs.ps1`、`pwsh ./scripts/check-text-files.p
 
 ## 阶段退出条件
 
-- [Demo Supply Pressure Pacing V1](../features/demo-supply-pressure-pacing-v1.md) 建立并完成补给获得节奏、消耗时机、前哨补回和压力价值检查。
-- 现有修复凝胶与抗污染药剂能在治疗点、门前污染压力、前哨核心整备和核心写入压力中互相印证。
+- [Demo Functional Scene Gameplay Density V1](../features/demo-functional-scene-gameplay-density-v1.md) 建立并完成锁相框架与锚定桥代表小循环检查。
+- HUD、对象提示和交互结果能读出小循环步骤、进度、下一步和回基地理由。
 - 未引入新资源、配方、区域、新任务链、新敌人类型、完整背包、完整装备栏、死亡系统、终局菜单、结算页或发布准备流程。
 - 新增检查走独立专项文件；不继续推高 `vertical_slice_flow_check.gd`、`vertical_slice_map.gd`、`prototype_hud.gd` 或 `interaction_prompt_formatter.gd`。

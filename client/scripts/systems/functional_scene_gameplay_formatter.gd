@@ -246,13 +246,21 @@ static func format_result_followup_line(
 	fallback_region_id: String = ""
 ) -> String:
 	var info := _get_object_info(definition_id, fallback_region_id)
+	var density_followup := DemoFunctionalSceneGameplayDensityFormatter.format_result_followup_line(
+		definition_id,
+		_world_state,
+		fallback_region_id
+	)
 	if info.is_empty():
-		return ""
-	return "现场阶段：%s已完成；%s；回基地：%s" % [
+		return density_followup
+	var followup := "现场阶段：%s已完成；%s；回基地：%s" % [
 		String(info.get("title", "")),
 		String(info.get("complete", "")),
 		_get_region_text(String(info.get("region_id", "")), "return")
 	]
+	if density_followup.is_empty():
+		return followup
+	return "%s；%s" % [followup, density_followup]
 
 
 static func get_region_id_for_definition(definition_id: String) -> String:

@@ -171,6 +171,13 @@ func format_general_interaction_prompt(
 	)
 	if not gameplay_line.is_empty():
 		parts.append(gameplay_line)
+	var density_line := DemoFunctionalSceneGameplayDensityFormatter.format_object_density_line(
+		interactable.definition_id,
+		object_state,
+		world_state.current_region_id
+	)
+	if not density_line.is_empty():
+		parts.append(density_line)
 	var affordance_line := DemoInteractionAffordanceFormatter.format_general_affordance_line(
 		interactable,
 		object_state,
@@ -1074,6 +1081,12 @@ func _with_functional_transition_line(prompt: String, definition_id: String, fal
 	)
 	if not gameplay_line.is_empty():
 		parts.append(gameplay_line)
+	var density_line := DemoFunctionalSceneGameplayDensityFormatter.format_static_object_density_line(
+		definition_id,
+		fallback_region_id
+	)
+	if not density_line.is_empty():
+		parts.append(density_line)
 	return "\n".join(parts)
 
 

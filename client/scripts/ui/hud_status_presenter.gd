@@ -328,8 +328,13 @@ func _format_base_summary_lines(
 	if not scene_summary.is_empty():
 		return scene_summary
 	var functional_scene_gameplay_summary := FunctionalSceneGameplayFormatter.format_hud_summary(world_state, character_state)
+	var gameplay_density_summary := DemoFunctionalSceneGameplayDensityFormatter.format_hud_summary(world_state, character_state)
 	if not functional_scene_gameplay_summary.is_empty():
+		if not gameplay_density_summary.is_empty():
+			return functional_scene_gameplay_summary + gameplay_density_summary
 		return functional_scene_gameplay_summary
+	if not gameplay_density_summary.is_empty():
+		return gameplay_density_summary
 	var transition_summary := FunctionalTransitionRouteSupportFormatter.format_hud_summary(world_state, character_state)
 	if not transition_summary.is_empty():
 		return transition_summary

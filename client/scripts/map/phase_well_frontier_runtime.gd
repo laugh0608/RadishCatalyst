@@ -163,7 +163,7 @@ func inspect_frame(character_state: CharacterState, world_state: WorldState) -> 
 	character_state.inventory.consume_ref(PHASE_WELL_FRAME_KEY_ITEM_ID, 1)
 	return {
 		"success": true,
-		"message": "锁相键栓已写入：锁相框架断面开始析出锚定结核，更东侧更深收益再次抬升。"
+		"message": _with_density_followup("锁相键栓已写入：锁相框架断面开始析出锚定结核，锚定桥前置收益已经形成。", "map_object.phase_well_frame", world_state, "region.phase_well_frame")
 	}
 
 
@@ -194,7 +194,7 @@ func inspect_tether(character_state: CharacterState, world_state: WorldState) ->
 	character_state.inventory.consume_ref(PHASE_WELL_TETHER_SPIKE_ITEM_ID, 1)
 	return {
 		"success": true,
-		"message": "锚定桩已写入：锚定桥断面开始析出稳场锚核，这条结核后的新收益线已经被真正钉住。"
+		"message": _with_density_followup("锚定桩已写入：锚定桥断面开始析出稳场锚核，这条结核后的新收益线已经被真正钉住。", "map_object.phase_well_tether", world_state, "region.phase_well_tether")
 	}
 
 
@@ -522,6 +522,17 @@ func _failure(message: String, title: String, detail: String) -> Dictionary:
 		"title": title,
 		"detail": detail
 	}
+
+
+func _with_density_followup(message: String, definition_id: String, world_state: WorldState, fallback_region_id: String) -> String:
+	var followup := DemoFunctionalSceneGameplayDensityFormatter.format_result_followup_line(
+		definition_id,
+		world_state,
+		fallback_region_id
+	)
+	if followup.is_empty():
+		return message
+	return "%s %s" % [message, followup]
 
 
 func _format_amount(amount: float) -> String:
