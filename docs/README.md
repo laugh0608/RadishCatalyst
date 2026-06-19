@@ -47,6 +47,7 @@ macOS / Linux / Git Bash / zsh 可执行：
 
 - `product/`：当前项目方向、产品定义、玩法支柱与开发准备总纲。
 - `design/`：玩法系统、资源链、地图、角色成长等后续执行设计文档。
+- `features/`：玩家可感知功能目标的设计与开发专题文档。
 - `architecture/`：会影响工程结构、数据边界、联机与存档设计的前置架构文档。
 - `planning/`：当前阶段、优先级、范围边界和短期计划。
 - `adr/`：长期影响仓库治理、架构或流程的决策记录。
@@ -84,6 +85,12 @@ macOS / Linux / Git Bash / zsh 可执行：
 - [Narrative And Quest Framework](design/narrative-and-quest-framework.md)
 - [Onboarding And First Hour](design/onboarding-and-first-hour.md)
 - [Resources And Process Chain](design/resources-and-process-chain.md)
+
+## Feature Documents
+
+- [Feature Development Docs](features/README.md)
+- [Demo Definition V1](features/demo-definition-v1.md)
+- [Demo Combat Progression V1](features/demo-combat-progression-v1.md)
 
 ## Planning And Governance
 

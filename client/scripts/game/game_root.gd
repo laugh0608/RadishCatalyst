@@ -1,5 +1,7 @@
 extends Node2D
 
+const PLAYTEST_CAMERA_ZOOM := Vector2(1.35, 1.35)
+
 var data_registry: DataRegistry
 var world_state: WorldState
 var character_state: CharacterState
@@ -40,6 +42,7 @@ func _ready() -> void:
 	vertical_slice_map.refresh_world_interactables(world_state)
 	vertical_slice_map.player.interaction_requested.connect(_on_player_interaction_requested)
 	vertical_slice_map.player.attack_requested.connect(_on_player_attack_requested)
+	vertical_slice_map.player.tactical_scan_requested.connect(_on_player_tactical_scan_requested)
 	vertical_slice_map.player.recipe_cycle_requested.connect(_on_player_recipe_cycle_requested)
 	vertical_slice_map.player.device_panel_toggle_requested.connect(_on_player_device_panel_toggle_requested)
 	vertical_slice_map.player.module_toggle_requested.connect(_on_player_module_toggle_requested)
@@ -129,6 +132,7 @@ func _request_recipe_cycle() -> void:
 func _on_player_interaction_requested() -> void:
 	var context := _get_current_interaction_context()
 	var result := vertical_slice_map.try_interact(character_state, world_state)
+	_apply_outfitting_result_progress(result)
 	var log_messages: Array[String] = [hud_log_presenter.format_result_log(result)]
 	if bool(result.get("success", false)) and _should_advance_interaction(context, result):
 		_append_quest_runtime_result(log_messages, quest_runtime.advance_for_interaction(world_state, character_state, context, result))
@@ -154,6 +158,15 @@ func _on_player_attack_requested() -> void:
 	if vertical_slice_map.current_interactable != null:
 		_on_interaction_available(vertical_slice_map.current_interactable)
 	hud.append_log(hud_log_presenter.join_messages(log_messages))
+	_update_hud()
+
+
+func _on_player_tactical_scan_requested() -> void:
+	var result := vertical_slice_map.try_tactical_scan(character_state, world_state)
+	hud.append_log(hud_log_presenter.format_result_log(result))
+	vertical_slice_map.refresh_world_interactables(world_state)
+	if vertical_slice_map.current_interactable != null:
+		_on_interaction_available(vertical_slice_map.current_interactable, false)
 	_update_hud()
 
 
@@ -205,7 +218,7 @@ func _on_player_module_toggle_requested() -> void:
 
 func _on_player_quick_slot_requested(slot_index: int) -> void:
 	var result := character_state.use_quick_slot(slot_index, data_registry)
-	hud.append_log(String(result.get("message", "")))
+	hud.append_log(hud_log_presenter.format_result_log(result))
 	hud_feedback_presenter.show_supply_feedback(result, hud)
 	_update_hud()
 
@@ -330,7 +343,7 @@ func _on_interaction_available(interactable: PrototypeInteractable, should_auto_
 		hud.show_prompt(interaction_prompt_formatter.format_outpost_core_prompt(world_state, character_state))
 		return
 	if interactable.definition_id == "map_object.ruin_gate":
-		hud.show_prompt(interaction_prompt_formatter.format_ruin_gate_prompt(world_state))
+		hud.show_prompt(interaction_prompt_formatter.format_ruin_gate_prompt(world_state, character_state))
 		return
 	if interactable.definition_id == "map_object.outer_ring_barrier":
 		hud.show_prompt(interaction_prompt_formatter.format_outer_ring_barrier_prompt(world_state, character_state))
@@ -339,7 +352,7 @@ func _on_interaction_available(interactable: PrototypeInteractable, should_auto_
 		hud.show_prompt(interaction_prompt_formatter.format_outer_ring_console_prompt(world_state))
 		return
 	if interactable.definition_id == "map_object.signal_echo_cache":
-		hud.show_prompt(interaction_prompt_formatter.format_signal_echo_cache_prompt(world_state))
+		hud.show_prompt(interaction_prompt_formatter.format_signal_echo_cache_prompt(world_state, character_state))
 		return
 	if interactable.definition_id == "map_object.deep_ruin_door":
 		hud.show_prompt(interaction_prompt_formatter.format_deep_ruin_door_prompt(world_state, character_state))
@@ -359,6 +372,9 @@ func _on_interaction_available(interactable: PrototypeInteractable, should_auto_
 		return
 	if interactable.definition_id == "map_object.phase_relay_pad":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_relay_pad_prompt(world_state))
+		return
+	if interactable.definition_id == "building.field_outfitting_station" and interactable.interaction_type == "inspect":
+		hud.show_prompt(interaction_prompt_formatter.format_outfitting_station_prompt(character_state, world_state))
 		return
 	if interactable.definition_id == "map_object.phase_fault_spire":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_fault_spire_prompt(world_state, character_state))
@@ -497,6 +513,13 @@ func _update_hud() -> void:
 		character_state,
 		world_state
 	)
+	_refresh_current_objective_guidance()
+
+
+func _refresh_current_objective_guidance() -> void:
+	var guidance := vertical_slice_map.get_node_or_null("CurrentObjectiveGuidanceLayer") as CurrentObjectiveGuidanceLayer
+	if guidance != null:
+		guidance.refresh_guidance(world_state, character_state)
 
 
 func _refresh_save_slot_summaries() -> void:
@@ -507,6 +530,7 @@ func _configure_world_camera() -> void:
 	if world_camera == null:
 		return
 	world_camera.make_current()
+	world_camera.zoom = PLAYTEST_CAMERA_ZOOM
 	var bounds := vertical_slice_map.get_camera_bounds_rect_global()
 	world_camera.limit_left = int(floor(bounds.position.x))
 	world_camera.limit_top = int(floor(bounds.position.y))
@@ -588,7 +612,7 @@ func _refresh_current_context_prompt() -> void:
 		hud.show_prompt(interaction_prompt_formatter.format_outpost_core_prompt(world_state, character_state))
 		return
 	if interactable.definition_id == "map_object.ruin_gate":
-		hud.show_prompt(interaction_prompt_formatter.format_ruin_gate_prompt(world_state))
+		hud.show_prompt(interaction_prompt_formatter.format_ruin_gate_prompt(world_state, character_state))
 		return
 	if interactable.definition_id == "map_object.outer_ring_barrier":
 		hud.show_prompt(interaction_prompt_formatter.format_outer_ring_barrier_prompt(world_state, character_state))
@@ -597,7 +621,7 @@ func _refresh_current_context_prompt() -> void:
 		hud.show_prompt(interaction_prompt_formatter.format_outer_ring_console_prompt(world_state))
 		return
 	if interactable.definition_id == "map_object.signal_echo_cache":
-		hud.show_prompt(interaction_prompt_formatter.format_signal_echo_cache_prompt(world_state))
+		hud.show_prompt(interaction_prompt_formatter.format_signal_echo_cache_prompt(world_state, character_state))
 		return
 	if interactable.definition_id == "map_object.deep_ruin_door":
 		hud.show_prompt(interaction_prompt_formatter.format_deep_ruin_door_prompt(world_state, character_state))
@@ -617,6 +641,9 @@ func _refresh_current_context_prompt() -> void:
 		return
 	if interactable.definition_id == "map_object.phase_relay_pad":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_relay_pad_prompt(world_state))
+		return
+	if interactable.definition_id == "building.field_outfitting_station" and interactable.interaction_type == "inspect":
+		hud.show_prompt(interaction_prompt_formatter.format_outfitting_station_prompt(character_state, world_state))
 		return
 	if interactable.definition_id == "map_object.phase_fault_spire":
 		hud.show_prompt(interaction_prompt_formatter.format_phase_fault_spire_prompt(world_state, character_state))
@@ -683,6 +710,21 @@ func _mark_pollution_edge_ready() -> bool:
 	var result := quest_runtime.advance_pollution_edge_ready(world_state, character_state)
 	_show_quest_completion_feedbacks(result)
 	return bool(result.get("accepted", false))
+
+
+func _apply_outfitting_result_progress(result: Dictionary) -> void:
+	if not bool(result.get("outfitting_module_enabled", false)):
+		return
+	var edge_result := quest_runtime.advance_pollution_edge_ready(world_state, character_state)
+	_show_quest_completion_feedbacks(edge_result)
+	if not bool(edge_result.get("accepted", false)):
+		return
+	var message := String(result.get("message", ""))
+	result["message"] = "%s 污染边界区已标记。" % message
+	var feedback: Dictionary = result.get("success_feedback", {})
+	if feedback.is_empty():
+		return
+	feedback["destination"] = "污染边界区已标记；处理点可继续推进。"
 
 
 func _select_recommended_recipe(interactable: PrototypeInteractable) -> String:

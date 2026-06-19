@@ -5,6 +5,29 @@ const MAP_MARKER_CURRENT_COLOR := Color(0.18, 0.86, 0.93, 1.0)
 const MAP_MARKER_TARGET_COLOR := Color(1.0, 0.78, 0.28, 1.0)
 const MAP_MARKER_UNLOCKED_COLOR := Color(0.55, 0.72, 0.66, 1.0)
 const MAP_MARKER_LOCKED_COLOR := Color(0.28, 0.32, 0.32, 1.0)
+const ROUTE_STAGE_BY_REGION := {
+	"region.outpost_platform": "基地整备",
+	"region.crystal_vein_field": "晶体采集",
+	"region.pollution_edge": "污染排压",
+	"region.ruin_outer_ring": "遗迹外圈",
+	"region.deep_ruin_threshold": "深段推进",
+	"region.inner_phase_well": "深段推进",
+	"region.phase_well_sink": "深段推进",
+	"region.phase_well_chamber": "深段推进",
+	"region.phase_well_loom": "深段推进",
+	"region.phase_well_frame": "深段推进",
+	"region.phase_well_tether": "深段推进",
+	"region.demo_stabilization_core": "核心稳定站"
+}
+const ROUTE_PURPOSE_BY_STAGE := {
+	"基地整备": "加工/补给/确认出发",
+	"晶体采集": "矿物和残骸带回基地",
+	"污染排压": "沉积物过滤成药剂",
+	"遗迹外圈": "回波和沉积物回基地解析",
+	"深段推进": "解析/回投/锚定桥推进",
+	"核心稳定站": "补给/守卫/写入反馈",
+	"外勤推进": "按当前目标推进"
+}
 
 var target_region_resolver: QuestTargetRegionResolver
 
@@ -62,6 +85,61 @@ func format_map_marker_labels(world_state: WorldState, quest_id: String) -> Arra
 	for marker_view in get_marker_view_data(world_state, quest_id):
 		labels.append(String(marker_view.get("label", "")))
 	return labels
+
+
+func format_demo_route_title(world_state: WorldState, _quest_id: String) -> String:
+	return "外勤路线：%s" % _get_route_stage_label(world_state.current_region_id)
+
+
+func format_demo_route_hint(
+	world_state: WorldState,
+	quest_id: String,
+	character_state: CharacterState = null
+) -> String:
+	var demo_completion_hint := DemoMainlineCompletionFormatter.format_map_route_hint(world_state)
+	if not demo_completion_hint.is_empty():
+		var completed_composition_hint := PlayableSceneCompositionFormatter.format_map_route_hint(
+			world_state.current_region_id
+		)
+		var completed_recovery_hint := DemoCombatEvacuationRecoveryFormatter.format_map_route_hint(
+			world_state,
+			quest_id,
+			character_state
+		)
+		if not completed_recovery_hint.is_empty():
+			return "%s · %s" % [completed_recovery_hint, demo_completion_hint]
+		if not completed_composition_hint.is_empty():
+			return "%s · %s" % [demo_completion_hint, completed_composition_hint]
+		return demo_completion_hint
+	var current_stage := _get_route_stage_label(world_state.current_region_id)
+	var target_region_id := _get_quest_target_region_id(world_state, quest_id)
+	var target_stage := _get_route_stage_label(target_region_id)
+	var hint_region_id := world_state.current_region_id
+	var route_hint := _get_route_stage_purpose(current_stage)
+	if not target_region_id.is_empty() and target_stage != current_stage:
+		hint_region_id = target_region_id
+		route_hint = "目标：%s · %s" % [target_stage, _get_route_stage_purpose(target_stage)]
+	var scene_hint := SceneArtFoundationFormatter.format_map_route_hint(hint_region_id)
+	var non_core_scene_hint := NonCoreSceneIdentityFormatter.format_map_route_hint(hint_region_id)
+	var transition_hint := FunctionalTransitionRouteSupportFormatter.format_map_route_hint(hint_region_id)
+	var composition_hint := PlayableSceneCompositionFormatter.format_map_route_hint(hint_region_id)
+	var recovery_hint := DemoCombatEvacuationRecoveryFormatter.format_map_route_hint(
+		world_state,
+		quest_id,
+		character_state
+	)
+	var hint_parts: Array[String] = [route_hint]
+	if not recovery_hint.is_empty():
+		hint_parts.append(recovery_hint)
+	if not scene_hint.is_empty():
+		hint_parts.append(scene_hint)
+	if not non_core_scene_hint.is_empty():
+		hint_parts.append(non_core_scene_hint)
+	if not transition_hint.is_empty():
+		hint_parts.append(transition_hint)
+	if not composition_hint.is_empty():
+		hint_parts.append(composition_hint)
+	return " · ".join(hint_parts)
 
 
 func _get_region_marker_data() -> Array[Dictionary]:
@@ -155,6 +233,18 @@ func _get_map_marker_color(region_id: String, world_state: WorldState, target_re
 	return MAP_MARKER_LOCKED_COLOR
 
 
+func _get_route_stage_label(region_id: String) -> String:
+	if ROUTE_STAGE_BY_REGION.has(region_id):
+		return String(ROUTE_STAGE_BY_REGION[region_id])
+	return "外勤推进"
+
+
+func _get_route_stage_purpose(stage_label: String) -> String:
+	if ROUTE_PURPOSE_BY_STAGE.has(stage_label):
+		return String(ROUTE_PURPOSE_BY_STAGE[stage_label])
+	return String(ROUTE_PURPOSE_BY_STAGE["外勤推进"])
+
+
 func _get_quest_target_region_id(world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
 		return _get_runtime_followup_region_id(world_state)
@@ -173,6 +263,9 @@ func _get_runtime_followup_region_id(world_state: WorldState) -> String:
 	var dispatch_route_region_id := BaseActionDispatchPlan.get_route_target_region_id(world_state)
 	if not dispatch_route_region_id.is_empty():
 		return dispatch_route_region_id
+	var next_sortie_target_region_id := CoreGuardAftermathFormatter.get_next_sortie_target_region_id(world_state)
+	if not next_sortie_target_region_id.is_empty():
+		return next_sortie_target_region_id
 	if world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core"):
 		return ""
 	if _has_completed_frontline_window_review(world_state):

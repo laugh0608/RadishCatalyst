@@ -132,10 +132,10 @@ func run() -> void:
 	var outpost_prompt_character := CharacterState.create_default()
 	host._expect_text_contains(formatter.format_outpost_core_prompt(outpost_prompt_world, outpost_prompt_character), "按 E 恢复", "outpost core restore prompt")
 	outpost_prompt_world.quest_state.completed_quest_ids.append("quest.restore_outpost")
-	host._expect_text_contains(formatter.format_outpost_core_prompt(outpost_prompt_world, outpost_prompt_character), "整备在线", "outpost core ready prompt at full vitals")
+	host._expect_text_contains(formatter.format_outpost_core_prompt(outpost_prompt_world, outpost_prompt_character), "出发准备检查", "outpost core ready prompt at full vitals")
 	outpost_prompt_character.health = 74.0
 	outpost_prompt_character.protection = 56.0
-	host._expect_text_contains(formatter.format_outpost_core_prompt(outpost_prompt_world, outpost_prompt_character), "按 E 整备", "outpost core refill prompt")
+	host._expect_text_contains(formatter.format_outpost_core_prompt(outpost_prompt_world, outpost_prompt_character), "操作：E 恢复生命 / 防护", "outpost core refill prompt")
 	var relay_anchor_world := WorldState.create_default()
 	var relay_anchor_character := CharacterState.create_default()
 	host._expect_text_contains(formatter.format_phase_return_anchor_prompt(relay_anchor_world, relay_anchor_character), "先回基地整理深段读数矩阵", "phase relay anchor blocked prompt")

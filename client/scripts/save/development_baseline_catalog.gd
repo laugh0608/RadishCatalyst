@@ -1,6 +1,14 @@
 extends RefCounted
 class_name DevelopmentBaselineCatalog
 
+const DEMO_BASELINE_IDS: Array[String] = [
+	"baseline.s0_new_game",
+	"baseline.s2_outer_ring_secured",
+	"baseline.s21_demo_stabilization_core_ready",
+	"baseline.s22_demo_completion_outpost_review"
+]
+const DEFAULT_DEMO_BASELINE_ID := "baseline.s2_outer_ring_secured"
+
 const BASELINE_DEFINITIONS := [
 	{
 		"id": "baseline.s0_new_game",
@@ -8,7 +16,10 @@ const BASELINE_DEFINITIONS := [
 		"display_name": "S0 新档",
 		"completed_through": "",
 		"summary": "从恢复前哨开始，覆盖完整冷启动主线。",
-		"recommended_for": "全链路空档复测、早期目标理解、共享系统回归。"
+		"recommended_for": "全链路空档复测、早期目标理解、共享系统回归。",
+		"demo_baseline_order": 1,
+		"demo_baseline_focus": "冷启动回基地、制造和再次外出判断。",
+		"demo_baseline_watch": "观察首屏 HUD、前哨核心、晶体区和处理点入口。"
 	},
 	{
 		"id": "baseline.s1_treatment_ready",
@@ -23,7 +34,10 @@ const BASELINE_DEFINITIONS := [
 		"code": "S2 外圈中继已确认",
 		"completed_through": "quest.secure_outer_ring_signal",
 		"summary": "遗迹外圈主闭环已完成，下一步回收外圈回波匣。",
-		"recommended_for": "外圈回波匣、深段回波、基地解析与第二闭环入口回归。"
+		"recommended_for": "外圈回波匣、深段回波、基地解析与第二闭环入口回归。",
+		"demo_baseline_order": 2,
+		"demo_baseline_focus": "外圈承压、沉积过滤和污染浆液去向。",
+		"demo_baseline_watch": "观察是否知道先处理沉积物，再带污染浆液回基地解析。"
 	},
 	{
 		"id": "baseline.s3_deep_entrance_open",
@@ -175,7 +189,21 @@ const BASELINE_DEFINITIONS := [
 		"display_name": "S21 核心稳定站已开放",
 		"completed_through": "quest.analyze_phase_survey_trace",
 		"summary": "高压窗口稳定数据已归档，核心稳定站已解锁，下一步从锚定桥进入核心稳定站。",
-		"recommended_for": "核心稳定站人工短跑、阶段守卫、侧向补给缓存、核心设备写入和 demo 完成反馈。"
+		"recommended_for": "核心稳定站局部开发复测、阶段守卫、侧向补给缓存、核心设备写入和 demo 完成反馈。",
+		"demo_baseline_order": 3,
+		"demo_baseline_focus": "侧边补给、缓冲包和三档写入承压。",
+		"demo_baseline_watch": "观察阶段守卫后是否理解先整备再写入，或直接写入的代价。"
+	},
+	{
+		"id": "baseline.s22_demo_completion_outpost_review",
+		"code": "S22",
+		"display_name": "S22 Demo 完成后前哨整理",
+		"completed_through": "quest.analyze_phase_survey_trace",
+		"summary": "核心稳定站已写入完成，玩家已回到前哨整理补给、整备收益和复测记录。",
+		"recommended_for": "Demo 完成后成果整理、HUD / 地图 / 前哨核心读法、存档读取后状态回归。",
+		"demo_baseline_order": 4,
+		"demo_baseline_focus": "完成后回前哨整理，而不是开启新章节或结算页。",
+		"demo_baseline_watch": "观察 HUD、地图和前哨核心是否仍能读出 Demo 已完成与成果整理方向。"
 	}
 ]
 
@@ -196,6 +224,10 @@ static func get_baseline_ids() -> Array[String]:
 	return baseline_ids
 
 
+static func get_demo_baseline_ids() -> Array[String]:
+	return DEMO_BASELINE_IDS.duplicate()
+
+
 static func get_definition(baseline_id: String) -> Dictionary:
 	for definition in BASELINE_DEFINITIONS:
 		var candidate: Dictionary = definition
@@ -209,3 +241,7 @@ static func get_default_baseline_id() -> String:
 		return ""
 	var first_definition: Dictionary = BASELINE_DEFINITIONS[0]
 	return String(first_definition.get("id", ""))
+
+
+static func get_default_demo_baseline_id() -> String:
+	return DEFAULT_DEMO_BASELINE_ID

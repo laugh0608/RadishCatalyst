@@ -2,6 +2,9 @@ extends RefCounted
 
 const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
 const PrototypeHudScene := preload("res://scenes/ui/PrototypeHud.tscn")
+const CrystalSideRouteCheckScript := preload("res://scripts/checks/crystal_side_route_check.gd")
+const PollutionGatePreparationCheckScript := preload("res://scripts/checks/pollution_gate_preparation_check.gd")
+const PollutionRevisitRouteCheckScript := preload("res://scripts/checks/pollution_revisit_route_check.gd")
 
 var host
 
@@ -20,6 +23,9 @@ func run() -> void:
 	_check_hud_map_runtime_labels()
 	_check_hud_runtime_layout_first_pass()
 	_check_core_loop_layout()
+	CrystalSideRouteCheckScript.new(host).run(host.root)
+	PollutionGatePreparationCheckScript.new(host).run()
+	PollutionRevisitRouteCheckScript.new(host).run(host.root)
 	_check_treatment_entry_gather_feedback()
 	_check_pollution_pressure_consumption()
 	_check_filter_module_combat_pressure()
@@ -31,19 +37,51 @@ func _check_opening_scene_layer() -> void:
 	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
 	host.root.add_child(map)
 	var layer := map.get_node("OpeningSceneLayer") as Node2D
+	var player := map.get_node("Player") as PlayerController
+	var background := map.get_node("Background") as ColorRect
+	var main_route := map.get_node("MainRouteSpine") as ColorRect
+	var base_to_crystal_route := map.get_node("BaseToCrystalRouteBand") as ColorRect
+	var crystal_to_pollution_route := map.get_node("CrystalToPollutionRouteBand") as ColorRect
+	var crystal_boundary := map.get_node("RegionBoundaryCrystal") as ColorRect
+	var pollution_boundary_line := map.get_node("RegionBoundaryPollution") as ColorRect
+	var ruin_boundary := map.get_node("RegionBoundaryRuin") as ColorRect
+	var demo_route_layer := map.get_node("DemoRoutePresentationLayer") as Node2D
+	var demo_route_base := map.get_node("DemoRoutePresentationLayer/DemoRouteBaseBand") as ColorRect
+	var demo_route_crystal := map.get_node("DemoRoutePresentationLayer/DemoRouteCrystalBand") as ColorRect
+	var demo_route_pollution := map.get_node("DemoRoutePresentationLayer/DemoRoutePollutionBand") as ColorRect
+	var demo_route_ruin := map.get_node("DemoRoutePresentationLayer/DemoRouteRuinBand") as ColorRect
+	var demo_route_core_flow := map.get_node("DemoRoutePresentationLayer/DemoRouteCoreApproachFlow") as ColorRect
+	var demo_route_core := map.get_node("DemoRoutePresentationLayer/DemoRouteCoreBand") as ColorRect
+	var demo_route_base_label := map.get_node("DemoRoutePresentationLayer/DemoRouteBaseLabel") as Label
+	var demo_route_core_label := map.get_node("DemoRoutePresentationLayer/DemoRouteCoreLabel") as Label
 	var base_deck := map.get_node("OpeningSceneLayer/BaseDeckFloor") as ColorRect
+	var base_upper_service_apron := map.get_node("OpeningSceneLayer/BaseUpperServiceApron") as ColorRect
+	var base_central_work_yard := map.get_node("OpeningSceneLayer/BaseCentralWorkYard") as ColorRect
+	var base_lower_logistics_yard := map.get_node("OpeningSceneLayer/BaseLowerLogisticsYard") as ColorRect
+	var base_departure_causeway := map.get_node("OpeningSceneLayer/BaseDepartureCauseway") as ColorRect
 	var core_pad := map.get_node("OpeningSceneLayer/BaseCorePad") as ColorRect
 	var core_marker := map.get_node("OpeningSceneLayer/BaseCoreObjectMarker") as ColorRect
 	var core_to_reactor_flow := map.get_node("OpeningSceneLayer/BaseCoreToReactorFlowLine") as ColorRect
 	var reactor_pad := map.get_node("OpeningSceneLayer/BaseReactorPad") as ColorRect
 	var reactor_marker := map.get_node("OpeningSceneLayer/BaseReactorObjectMarker") as ColorRect
 	var reactor_to_exit_flow := map.get_node("OpeningSceneLayer/BaseReactorToExitFlowLine") as ColorRect
+	var outfitting_pad := map.get_node("OpeningSceneLayer/BaseOutfittingPad") as ColorRect
+	var outfitting_marker := map.get_node("OpeningSceneLayer/BaseOutfittingObjectMarker") as ColorRect
+	var outfitting_to_exit_flow := map.get_node("OpeningSceneLayer/BaseOutfittingToExitFlowLine") as ColorRect
 	var supply_pad := map.get_node("OpeningSceneLayer/BaseSupplyPad") as ColorRect
 	var supply_rail := map.get_node("OpeningSceneLayer/BaseSupplyObjectRail") as ColorRect
 	var supply_return_flow := map.get_node("OpeningSceneLayer/BaseSupplyReturnFlowLine") as ColorRect
+	var storage_pad := map.get_node("OpeningSceneLayer/BaseStoragePad") as ColorRect
+	var storage_marker := map.get_node("OpeningSceneLayer/BaseStorageObjectMarker") as ColorRect
+	var slurry_buffer_pad := map.get_node("OpeningSceneLayer/BaseSlurryBufferPad") as ColorRect
+	var slurry_buffer_marker := map.get_node("OpeningSceneLayer/BaseSlurryBufferObjectMarker") as ColorRect
+	var slurry_buffer_flow := map.get_node("OpeningSceneLayer/BaseSlurryBufferFlowLine") as ColorRect
 	var exit_lane := map.get_node("OpeningSceneLayer/BaseExitLane") as ColorRect
 	var exit_threshold := map.get_node("OpeningSceneLayer/BaseExitThresholdLine") as ColorRect
 	var crystal_entry := map.get_node("OpeningSceneLayer/CrystalEntryGround") as ColorRect
+	var crystal_north_ridge := map.get_node("OpeningSceneLayer/CrystalNorthRidgeGround") as ColorRect
+	var crystal_central_field := map.get_node("OpeningSceneLayer/CrystalCentralFieldGround") as ColorRect
+	var crystal_south_salvage_yard := map.get_node("OpeningSceneLayer/CrystalSouthSalvageYard") as ColorRect
 	var crystal_vein_track := map.get_node("OpeningSceneLayer/CrystalMainVeinTrack") as ColorRect
 	var crystal_start_anchor := map.get_node("OpeningSceneLayer/CrystalMainVeinStartAnchor") as ColorRect
 	var crystal_deep_anchor := map.get_node("OpeningSceneLayer/CrystalMainVeinDeepAnchor") as ColorRect
@@ -52,6 +90,10 @@ func _check_opening_scene_layer() -> void:
 	var crystal_salvage_pocket := map.get_node("OpeningSceneLayer/CrystalSalvageObjectPocket") as ColorRect
 	var anomaly_pocket := map.get_node("OpeningSceneLayer/CrystalAnomalyPocketMarker") as ColorRect
 	var anomaly_return_anchor := map.get_node("OpeningSceneLayer/CrystalAnomalyReturnAnchor") as ColorRect
+	var pollution_construction_ground := map.get_node("OpeningSceneLayer/PollutionConstructionYardGround") as ColorRect
+	var pollution_entry_ground := map.get_node("OpeningSceneLayer/PollutionEntryPressureGround") as ColorRect
+	var pollution_deep_field := map.get_node("OpeningSceneLayer/PollutionDeepResidueField") as ColorRect
+	var pollution_return_drain := map.get_node("OpeningSceneLayer/PollutionReturnDrainField") as ColorRect
 	var pollution_safe := map.get_node("OpeningSceneLayer/PollutionSafeConstructionBelt") as ColorRect
 	var pollution_construction_band := map.get_node("OpeningSceneLayer/PollutionConstructionObjectBand") as ColorRect
 	var foundation_north_marker := map.get_node("OpeningSceneLayer/PollutionFoundationNorthMarker") as ColorRect
@@ -66,12 +108,25 @@ func _check_opening_scene_layer() -> void:
 	var pollution_pressure_route := map.get_node("OpeningSceneLayer/PollutionPressureRouteLine") as ColorRect
 	var pollution_gate_pressure_pocket := map.get_node("OpeningSceneLayer/PollutionGatePressurePocket") as ColorRect
 	var pollution_gate_pressure_marker := map.get_node("OpeningSceneLayer/PollutionGatePressureMarker") as ColorRect
+	var core_arrival_yard := map.get_node("OpeningSceneLayer/CoreStabilizationArrivalYard") as ColorRect
+	var core_recovery_yard := map.get_node("OpeningSceneLayer/CoreStabilizationRecoveryYard") as ColorRect
+	var core_guard_ground := map.get_node("OpeningSceneLayer/CoreStabilizationGuardFieldGround") as ColorRect
+	var core_writeback_deck := map.get_node("OpeningSceneLayer/CoreStabilizationWritebackDeck") as ColorRect
+	var core_retest_yard := map.get_node("OpeningSceneLayer/CoreStabilizationRetestYard") as ColorRect
+	var core_logistics_retest_yard := map.get_node("OpeningSceneLayer/CoreStabilizationLogisticsRetestYard") as ColorRect
 	var outpost_core := map.get_node("Interactables/OutpostCore") as PrototypeInteractable
 	var basic_reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
+	var storage_site := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
+	var slurry_buffer_site := map.get_node("Interactables/SlurryBufferTankBuildSite") as PrototypeInteractable
+	var outfitting_site := map.get_node("Interactables/FieldOutfittingStationBuildSite") as PrototypeInteractable
+	var outfitting_station := map.get_node("Interactables/FieldOutfittingStation") as PrototypeInteractable
+	var departure_gate := map.get_node("Interactables/OutpostDepartureGate") as PrototypeInteractable
 	var supply_choice := map.get_node("Interactables/BaseSupplyChoiceConsole") as PrototypeInteractable
 	var crystal_cluster := map.get_node("Interactables/CrystalCluster") as PrototypeInteractable
 	var rich_crystal := map.get_node("Interactables/RichCrystalVeinNorth") as PrototypeInteractable
 	var field_wreckage := map.get_node("Interactables/FieldWreckageNorth") as PrototypeInteractable
+	var logistics_return_crystal := map.get_node("Interactables/CrystalClusterLogisticsReturn") as PrototypeInteractable
+	var logistics_return_wreckage := map.get_node("Interactables/FieldWreckageLogisticsReturn") as PrototypeInteractable
 	var anomaly := map.get_node("Interactables/AnomalyCrystal") as PrototypeInteractable
 	var rough_ground := map.get_node("Interactables/RoughGroundNorth") as PrototypeInteractable
 	var rough_ground_south := map.get_node("Interactables/RoughGroundSouth") as PrototypeInteractable
@@ -79,20 +134,119 @@ func _check_opening_scene_layer() -> void:
 	var foundation_site_south := map.get_node("Interactables/FoundationSiteSouth") as PrototypeInteractable
 	var filter_site := map.get_node("Interactables/PollutionFilterBuildSite") as PrototypeInteractable
 	var entry_residue := map.get_node("Interactables/PollutionResidue") as PrototypeInteractable
+	var vial_return_residue := map.get_node("Interactables/PollutionResidueVialReturnCache") as PrototypeInteractable
+	var core_archive_return_residue := map.get_node("Interactables/PollutionResidueCoreArchiveReturnCache") as PrototypeInteractable
+	var logistics_pressure_residue := map.get_node("Interactables/PollutionResidueLogisticsMaintenancePressureCache") as PrototypeInteractable
 	var pollution_residue := map.get_node("Interactables/PollutionResidueDeep") as PrototypeInteractable
+	var core_buffer_residue := map.get_node("Interactables/CoreBufferResidueCache") as PrototypeInteractable
+	var demo_core := map.get_node("Interactables/DemoStabilizationCore") as PrototypeInteractable
+	var demo_recovery_cache := map.get_node("Interactables/DemoStabilizationRecoveryCache") as PrototypeInteractable
+	var demo_guard_cache := map.get_node("Interactables/DemoStabilizationGuardCache") as PrototypeInteractable
+	var demo_retest_readout := map.get_node("Interactables/DemoStabilizationRetestReadoutCache") as PrototypeInteractable
+	var logistics_retest_residue := map.get_node("Interactables/PollutionResidueLogisticsMaintenanceRetestCache") as PrototypeInteractable
 	var polluted_enemy := map.get_node("Enemies/PollutedSkitter") as PrototypeEnemy
 	var gate_pressure_enemy := map.get_node("Enemies/PollutedSkitterGatePressure") as PrototypeEnemy
+	var demo_guard := map.get_node("Enemies/DemoStabilizationGuard") as PrototypeEnemy
+	var logistics_retest_guard := map.get_node("Enemies/PollutedSkitterLogisticsMaintenanceRetestGuard") as PrototypeEnemy
 	host._expect_equal(layer != null, true, "opening scene readability layer exists")
 	host._expect_equal(
+		background.offset_left <= VerticalSliceMap.CAMERA_BOUNDS_MIN.x
+			and background.offset_right >= VerticalSliceMap.CAMERA_BOUNDS_MAX.x + 120.0
+			and background.offset_top <= VerticalSliceMap.CAMERA_BOUNDS_MIN.y - 120.0
+			and background.offset_bottom >= VerticalSliceMap.CAMERA_BOUNDS_MAX.y + 120.0,
+		true,
+		"opening scene background fills the camera instead of exposing gray margins"
+	)
+	host._expect_equal(
+		VerticalSliceMap.PLAY_BOUNDS_MIN.y <= -320.0
+			and VerticalSliceMap.PLAY_BOUNDS_MAX.y >= 280.0,
+		true,
+		"opening scene play bounds provide first-demo vertical space instead of a flat route strip"
+	)
+	host._expect_equal(
+		VerticalSliceMap.PLAY_BOUNDS_MAX.x >= 4280.0
+			and VerticalSliceMap.CAMERA_BOUNDS_MAX.x >= 4300.0,
+		true,
+		"opening scene play bounds include the final core retest yard"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(main_route, player.position)
+			and _is_rect_covering_position(base_to_crystal_route, Vector2(-40.0, -42.0))
+			and _is_rect_covering_position(crystal_to_pollution_route, Vector2(300.0, -8.0)),
+		true,
+		"opening scene route bands connect base exit, crystal route and pollution approach"
+	)
+	host._expect_equal(
+		crystal_boundary.offset_left < VerticalSliceMap.CRYSTAL_REGION_X
+			and pollution_boundary_line.offset_left < VerticalSliceMap.POLLUTION_REGION_X
+			and ruin_boundary.offset_left < VerticalSliceMap.RUIN_OUTER_RING_X,
+		true,
+		"opening scene region boundaries make route transitions visible"
+	)
+	host._expect_equal(demo_route_layer != null, true, "demo playable route layer exists")
+	host._expect_equal(
+		_is_rect_covering_position(demo_route_base, player.position)
+			and _is_rect_covering_position(demo_route_crystal, crystal_cluster.position)
+			and _is_rect_covering_position(demo_route_pollution, polluted_enemy.position)
+			and _is_rect_covering_position(demo_route_ruin, Vector2(520.0, 0.0))
+			and _is_rect_covering_position(demo_route_core, Vector2(3680.0, 0.0))
+			and _is_rect_covering_position(demo_route_core, logistics_retest_residue.position),
+		true,
+		"demo playable route bands cover the S0 base, crystal, pollution, ruin and core beats"
+	)
+	host._expect_equal(
+		demo_route_core_flow.offset_left <= 700.0
+			and demo_route_core_flow.offset_right >= VerticalSliceMap.DEMO_STABILIZATION_CORE_REGION_X,
+		true,
+		"demo playable route keeps the late approach visually connected to the core station"
+	)
+	host._expect_text_contains(demo_route_base_label.text, "基地整备", "demo route label names the base preparation beat")
+	host._expect_text_contains(demo_route_core_label.text, "核心稳定站", "demo route label names the final station beat")
+	host._expect_equal(
 		base_deck.offset_left <= VerticalSliceMap.PLAY_BOUNDS_MIN.x + 24.0
-			and base_deck.offset_right < VerticalSliceMap.CRYSTAL_REGION_X,
+			and base_deck.offset_right < VerticalSliceMap.CRYSTAL_REGION_X
+			and base_deck.offset_top <= -260.0
+			and base_deck.offset_bottom >= 250.0,
 		true,
 		"opening scene base deck fills the starting platform"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(base_upper_service_apron, outpost_core.position)
+			and _is_rect_covering_position(base_central_work_yard, basic_reactor.position)
+			and _is_rect_covering_position(base_lower_logistics_yard, supply_choice.position)
+			and _is_rect_covering_position(base_departure_causeway, departure_gate.position),
+		true,
+		"opening scene base scale reads as service apron, work yard, logistics yard and departure causeway"
 	)
 	host._expect_equal(
 		core_pad.offset_left < reactor_pad.offset_left and reactor_pad.offset_left < exit_lane.offset_left,
 		true,
 		"opening scene base pads read core to manufacturing to exit"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(storage_pad, storage_site.position)
+			and _is_rect_covering_position(storage_marker, storage_site.position)
+			and storage_pad.offset_left > core_pad.offset_left
+			and storage_pad.offset_right < exit_lane.offset_left,
+		true,
+		"opening scene base storage extension adds a buildable logistics pad"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(slurry_buffer_pad, slurry_buffer_site.position)
+			and _is_rect_covering_position(slurry_buffer_marker, slurry_buffer_site.position)
+			and slurry_buffer_flow.offset_right <= slurry_buffer_pad.offset_right
+			and slurry_buffer_pad.offset_left > storage_pad.offset_left
+			and slurry_buffer_pad.offset_right < exit_lane.offset_left,
+		true,
+		"opening scene slurry buffer pad adds a pollution byproduct base upgrade slot"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(outfitting_pad, outfitting_site.position)
+			and _is_rect_covering_position(outfitting_marker, outfitting_station.position)
+			and outfitting_pad.offset_left > reactor_pad.offset_left
+			and outfitting_pad.offset_right <= exit_lane.offset_right,
+		true,
+		"opening scene outfitting pad reads as the final preparation stop before departure"
 	)
 	host._expect_equal(
 		_is_rect_covering_position(core_marker, outpost_core.position)
@@ -106,9 +260,11 @@ func _check_opening_scene_layer() -> void:
 			and core_to_reactor_flow.offset_right <= reactor_marker.offset_left
 			and reactor_to_exit_flow.offset_left >= reactor_marker.offset_right
 			and reactor_to_exit_flow.offset_right <= exit_lane.offset_left
+			and outfitting_to_exit_flow.offset_left >= outfitting_marker.offset_right - 2.0
+			and outfitting_to_exit_flow.offset_right <= exit_threshold.offset_left
 			and supply_return_flow.offset_top < supply_rail.offset_top,
 		true,
-		"opening scene base flow lines connect core, reactor, return rail and exit"
+		"opening scene base flow lines connect core, reactor, outfitting, return rail and exit"
 	)
 	host._expect_equal(
 		supply_pad.offset_top > reactor_pad.offset_top,
@@ -122,10 +278,33 @@ func _check_opening_scene_layer() -> void:
 		"opening scene exit threshold sits at the crystal route edge"
 	)
 	host._expect_equal(
+		_is_rect_covering_position(exit_lane, departure_gate.position)
+			and departure_gate.definition_id == "map_object.outpost_departure_gate"
+			and departure_gate.single_use == false,
+		true,
+		"opening scene departure gate is a repeatable interactable on the exit lane"
+	)
+	host._expect_equal(
 		crystal_entry.offset_left >= VerticalSliceMap.CRYSTAL_REGION_X
 			and crystal_entry.offset_right <= VerticalSliceMap.POLLUTION_REGION_X,
 		true,
 		"opening scene crystal entry stays inside crystal region"
+	)
+	host._expect_equal(
+		crystal_entry.offset_top <= -270.0
+			and crystal_south_salvage_yard.offset_bottom >= 260.0
+			and _is_rect_covering_position(crystal_north_ridge, rich_crystal.position)
+			and _is_rect_covering_position(crystal_central_field, crystal_cluster.position)
+			and _is_rect_covering_position(crystal_south_salvage_yard, logistics_return_crystal.position)
+			and _is_rect_covering_position(crystal_south_salvage_yard, logistics_return_wreckage.position),
+		true,
+		"opening scene crystal field has reachable north ridge, central field and south salvage yard"
+	)
+	host._expect_equal(
+		logistics_return_crystal.position.y <= VerticalSliceMap.PLAY_BOUNDS_MAX.y
+			and logistics_return_wreckage.position.y <= VerticalSliceMap.PLAY_BOUNDS_MAX.y,
+		true,
+		"opening scene side-route resources sit inside playable bounds"
 	)
 	host._expect_equal(
 		_is_rect_covering_position(crystal_vein_track, crystal_cluster.position)
@@ -152,6 +331,30 @@ func _check_opening_scene_layer() -> void:
 			and _is_rect_covering_position(anomaly_pocket, anomaly.position),
 		true,
 		"opening scene salvage and anomaly pockets align with side objects"
+	)
+	host._expect_equal(
+		pollution_construction_ground.offset_top <= -280.0
+			and _is_rect_covering_position(pollution_construction_ground, rough_ground.position)
+			and _is_rect_covering_position(pollution_construction_ground, foundation_site.position)
+			and _is_rect_covering_position(pollution_construction_ground, filter_site.position),
+		true,
+		"opening scene pollution construction yard covers clearing, foundation and filter work"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(pollution_entry_ground, entry_residue.position)
+			and _is_rect_covering_position(pollution_entry_ground, gate_pressure_enemy.position)
+			and _is_rect_covering_position(pollution_deep_field, polluted_enemy.position)
+			and _is_rect_covering_position(pollution_deep_field, pollution_residue.position),
+		true,
+		"opening scene pollution field has entry pressure and deep residue ground"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(pollution_deep_field, vial_return_residue.position)
+			and _is_rect_covering_position(pollution_return_drain, core_archive_return_residue.position)
+			and _is_rect_covering_position(pollution_return_drain, logistics_pressure_residue.position)
+			and _is_rect_covering_position(pollution_return_drain, core_buffer_residue.position),
+		true,
+		"opening scene pollution return routes sit on reachable drain ground"
 	)
 	host._expect_equal(
 		pollution_safe.offset_top < VerticalSliceMap.POLLUTION_DEEP_Y
@@ -212,6 +415,29 @@ func _check_opening_scene_layer() -> void:
 		true,
 		"opening scene danger markers step from residue to first pressure to gate pressure"
 	)
+	host._expect_equal(
+		_is_rect_covering_position(core_arrival_yard, demo_recovery_cache.position)
+			and _is_rect_covering_position(core_recovery_yard, demo_recovery_cache.position)
+			and _is_rect_covering_position(core_guard_ground, demo_guard.position)
+			and _is_rect_covering_position(core_guard_ground, demo_guard_cache.position),
+		true,
+		"opening scene core station has arrival, recovery and guard yards"
+	)
+	host._expect_equal(
+		_is_rect_covering_position(core_writeback_deck, demo_core.position)
+			and _is_rect_covering_position(core_retest_yard, demo_retest_readout.position)
+			and _is_rect_covering_position(core_logistics_retest_yard, logistics_retest_residue.position)
+			and _is_rect_covering_position(core_logistics_retest_yard, logistics_retest_guard.position),
+		true,
+		"opening scene core station covers writeback, retest and logistics retest yards"
+	)
+	host._expect_equal(
+		demo_core.position.x < logistics_retest_residue.position.x
+			and logistics_retest_residue.position.x <= VerticalSliceMap.PLAY_BOUNDS_MAX.x
+			and logistics_retest_guard.position.x <= VerticalSliceMap.PLAY_BOUNDS_MAX.x,
+		true,
+		"opening scene final core retest objects stay inside playable bounds"
+	)
 	map.free()
 
 
@@ -269,8 +495,8 @@ func _check_general_interaction_prompts() -> void:
 	var pollution_objective_text := status_presenter.format_objective_text(host.data_registry, world, character)
 	host._expect_text_contains(
 		pollution_objective_text,
-		"链路：处理药剂->带药剂回污染边界->清理受扰敌人/门前压力点",
-		"first-hour pollution objective HUD keeps the vial return chain"
+		"下一步：带药剂回污染边界，清理敌人/压力点",
+		"first-hour pollution objective HUD keeps the vial return step"
 	)
 	var pollution_base_text := status_presenter.format_vitals_text(host.data_registry, world, character)
 	host._expect_text_contains(pollution_base_text, "外出链：带药剂回污染边界", "first-hour base summary points back to field")
@@ -303,13 +529,16 @@ func _check_interactable_focus_labels() -> void:
 	var crystal_east := map.get_node("Interactables/CrystalClusterEast") as PrototypeInteractable
 	host._expect_equal(crystal.label.visible, false, "first-hour non-current crystal label starts hidden")
 	host._expect_equal(crystal.marker.scale, Vector2.ONE, "first-hour non-current crystal marker is not enlarged")
+	host._expect_equal(crystal.focus_ring.visible, false, "first-hour non-current crystal focus ring starts hidden")
 
 	map.player.position = crystal.position
 	map.update_current_interactable()
 	host._expect_equal(map.current_interactable, crystal, "first-hour nearest crystal becomes current interactable")
 	host._expect_equal(crystal.label.visible, true, "first-hour current crystal label is visible")
 	host._expect_equal(crystal.marker.scale, PrototypeInteractable.FOCUSED_MARKER_SCALE, "first-hour current crystal marker is enlarged")
+	host._expect_equal(crystal.focus_ring.visible, true, "first-hour current crystal shows focus ring")
 	host._expect_equal(crystal_east.label.visible, false, "first-hour nearby non-current crystal label remains hidden")
+	host._expect_equal(crystal_east.focus_ring.visible, false, "first-hour nearby non-current crystal focus ring remains hidden")
 	map.free()
 
 
@@ -324,16 +553,20 @@ func _check_enemy_focus_labels() -> void:
 	var polluted := map.get_node("Enemies/PollutedSkitter") as PrototypeEnemy
 	var gate_pressure := map.get_node("Enemies/PollutedSkitterGatePressure") as PrototypeEnemy
 	host._expect_equal(enemy.label.visible, false, "first-hour enemy label starts hidden when out of range")
+	host._expect_equal(enemy.focus_ring.visible, false, "first-hour enemy focus ring starts hidden when out of range")
 
 	map.player.position = enemy.position
 	map.update_current_interactable()
 	host._expect_equal(enemy.label.visible, true, "first-hour nearest attack target label is visible")
 	host._expect_equal(enemy.sprite.scale, PrototypeEnemy.FOCUSED_SPRITE_SCALE, "first-hour nearest attack target is enlarged")
+	host._expect_equal(enemy.focus_ring.visible, true, "first-hour nearest attack target shows focus ring")
 	host._expect_equal(patrol.label.visible, false, "first-hour non-current enemy label remains hidden")
+	host._expect_equal(patrol.focus_ring.visible, false, "first-hour non-current enemy focus ring remains hidden")
 
 	map.player.position = polluted.position
 	map.update_current_interactable()
 	host._expect_text_contains(polluted.label.text, "入口压力点", "first-hour polluted enemy focus label names entry pressure")
+	host._expect_equal(polluted.focus_ring.visible, true, "first-hour focused polluted enemy shows pressure focus ring")
 
 	world.quest_state.active_quest_ids = ["quest.defeat_elite_node"]
 	map.sync_enemy_states(world)
@@ -355,6 +588,7 @@ func _check_core_object_visual_profiles() -> void:
 	var rough_ground := map.get_node("Interactables/RoughGroundNorth") as PrototypeInteractable
 	var foundation_site := map.get_node("Interactables/FoundationSiteNorth") as PrototypeInteractable
 	var filter_site := map.get_node("Interactables/PollutionFilterBuildSite") as PrototypeInteractable
+	var storage_site := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
 	var reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
 	var ruin_gate := map.get_node("Interactables/RuinGate") as PrototypeInteractable
 	host._expect_equal(crystal.marker.size, Vector2(26.0, 30.0), "object visuals make crystal nodes tall resource markers")
@@ -363,6 +597,7 @@ func _check_core_object_visual_profiles() -> void:
 	host._expect_equal(residue.marker.size, Vector2(30.0, 18.0), "object visuals make pollution residue a low hazard marker")
 	host._expect_equal(rough_ground.marker.size, Vector2(38.0, 20.0), "object visuals make rough ground a construction blocker marker")
 	host._expect_equal(foundation_site.marker.size, Vector2(34.0, 22.0), "object visuals make foundation sites compact build markers")
+	host._expect_equal(storage_site.marker.size, Vector2(38.0, 24.0), "object visuals make storage build sites compact logistics markers")
 	host._expect_equal(filter_site.marker.size, Vector2(44.0, 28.0), "object visuals make pollution filter build site wider than foundation")
 	host._expect_equal(reactor.marker.size, Vector2(40.0, 30.0), "object visuals make base reactor a device marker")
 	host._expect_equal(ruin_gate.marker.size, Vector2(24.0, 44.0), "object visuals make ruin gate a vertical exit marker")
@@ -393,6 +628,8 @@ func _check_object_feedback_states() -> void:
 	var residue := map.get_node("Interactables/PollutionResidue") as PrototypeInteractable
 	var rough_ground := map.get_node("Interactables/RoughGroundNorth") as PrototypeInteractable
 	var foundation_site := map.get_node("Interactables/FoundationSiteNorth") as PrototypeInteractable
+	var storage_site := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
+	var slurry_buffer_site := map.get_node("Interactables/SlurryBufferTankBuildSite") as PrototypeInteractable
 	var filter_site := map.get_node("Interactables/PollutionFilterBuildSite") as PrototypeInteractable
 	var filter_device := map.get_node("Interactables/PollutionFilter") as PrototypeInteractable
 
@@ -409,6 +646,12 @@ func _check_object_feedback_states() -> void:
 	world.ensure_map_object(foundation_site.instance_id, foundation_site.definition_id, "region.pollution_edge")
 	world.set_map_object_flag(foundation_site.instance_id, "is_built", true)
 	world.map_objects[foundation_site.instance_id]["built_definition_id"] = "building.foundation_t1"
+	world.ensure_map_object(storage_site.instance_id, storage_site.definition_id, "region.outpost_platform")
+	world.set_map_object_flag(storage_site.instance_id, "is_built", true)
+	world.map_objects[storage_site.instance_id]["built_definition_id"] = "building.basic_storage"
+	world.ensure_map_object(slurry_buffer_site.instance_id, slurry_buffer_site.definition_id, "region.outpost_platform")
+	world.set_map_object_flag(slurry_buffer_site.instance_id, "is_built", true)
+	world.map_objects[slurry_buffer_site.instance_id]["built_definition_id"] = "building.slurry_buffer_tank"
 	world.ensure_map_object(filter_site.instance_id, filter_site.definition_id, "region.pollution_edge")
 	world.set_map_object_flag(filter_site.instance_id, "is_built", true)
 	world.map_objects[filter_site.instance_id]["built_definition_id"] = "building.pollution_filter"
@@ -439,6 +682,12 @@ func _check_object_feedback_states() -> void:
 	host._expect_equal(foundation_site.marker.size, PrototypeInteractable.BUILT_FOUNDATION_SIZE, "object feedback widens built foundation")
 	host._expect_text_contains(foundation_site.label.text, "基础地基", "object feedback labels built foundation")
 	host._expect_text_contains(foundation_site.label.text, "已铺设", "object feedback labels foundation built state")
+	host._expect_equal(storage_site.marker.color, PrototypeInteractable.BUILT_STORAGE_COLOR, "object feedback recolors built storage")
+	host._expect_text_contains(storage_site.label.text, "基础储存箱", "object feedback labels built storage")
+	host._expect_text_contains(storage_site.label.text, "已接入", "object feedback labels storage benefit")
+	host._expect_equal(slurry_buffer_site.marker.color, PrototypeInteractable.BUILT_SLURRY_BUFFER_COLOR, "object feedback recolors built slurry buffer")
+	host._expect_text_contains(slurry_buffer_site.label.text, "浆液缓冲罐", "object feedback labels built slurry buffer")
+	host._expect_text_contains(slurry_buffer_site.label.text, "已接入", "object feedback labels slurry buffer benefit")
 	host._expect_equal(filter_site.marker.color, PrototypeInteractable.BUILT_FILTER_COLOR, "object feedback marks completed filter build site")
 	host._expect_equal(filter_device.visible, true, "object feedback shows pollution filter device after build")
 	host._expect_equal(filter_device.monitoring, true, "object feedback enables pollution filter device after build")
@@ -462,8 +711,12 @@ func _check_object_feedback_states() -> void:
 
 
 func _check_hud_map_runtime_labels() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
 	var hud := PrototypeHudScene.instantiate() as PrototypeHud
+	host.root.add_child(map)
 	host.root.add_child(hud)
+	map.setup(host.data_registry)
+	hud.configure_map_presenter(host.data_registry, map)
 	hud._ensure_runtime_nodes()
 	host._expect_equal(
 		hud._format_map_marker_runtime_label("基地\n当前\n目标"),
@@ -475,14 +728,66 @@ func _check_hud_map_runtime_labels() -> void:
 		"晶体",
 		"first-hour minimap hides low-value locked status text"
 	)
+	var world := WorldState.create_default()
+	var character := CharacterState.create_default()
+	world.current_region_id = "region.outpost_platform"
+	world.quest_state.active_quest_ids = ["quest.scout_crystal_field"]
+	hud.update_status(host.data_registry, world, character)
+	host._expect_text_contains(hud.map_title_label.text, "基地整备", "first-hour minimap title names current S0 route beat")
+	host._expect_text_contains(hud.map_hint_label.text, "晶体采集", "first-hour minimap hint names next S0 route beat")
+	host._expect_text_missing(
+		hud.map_hint_label.text,
+		"前哨核心、基础反应器、出发整备台和出发口",
+		"first-hour minimap keeps long scene explanation out of top-left HUD"
+	)
+	world.current_region_id = "region.ruin_outer_ring"
+	world.quest_state.active_quest_ids = ["quest.salvage_signal_echo"]
+	hud.update_status(host.data_registry, world, character)
+	host._expect_text_contains(hud.map_title_label.text, "遗迹外圈", "first-hour minimap title follows ruin route beat")
+	world.current_region_id = "region.demo_stabilization_core"
+	world.quest_state.active_quest_ids = ["quest.write_demo_stabilization_core"]
+	hud.update_status(host.data_registry, world, character)
+	host._expect_text_contains(hud.map_title_label.text, "核心稳定站", "first-hour minimap title follows core station route beat")
+	world.current_region_id = "region.outpost_platform"
+	world.quest_state.active_quest_ids = ["quest.calibrate_reactor"]
+	world.quest_state.set_objective_progress("quest.calibrate_reactor", "gather_item", "item.salvage_scrap", 4)
+	character.inventory.add_ref("item.salvage_scrap", 4)
+	character.inventory.add_ref("item.crystal_ore", 1)
+	hud.update_status(host.data_registry, world, character)
+	host._expect_text_contains(
+		hud.status_label.text,
+		"制造 反应器校准件（反应器） 0/1",
+		"first-hour objective HUD shows the hidden craft objective after salvage is complete"
+	)
+	host._expect_text_contains(
+		hud.status_label.text,
+		"下一步：在基础反应器执行组装反应器校准件",
+		"first-hour objective HUD tells the player where to go after salvage reaches 4/4"
+	)
+	host._expect_equal(
+		hud.status_label.text.split("\n").size() <= 5,
+		true,
+		"first-hour objective HUD keeps compact text within the visible card"
+	)
+	host._expect_text_missing(
+		hud.status_label.text,
+		"关键资源",
+		"first-hour objective HUD drops resource details when they would hide the next step"
+	)
 	hud._set_control_rect(hud.map_panel, Vector2.ZERO, Vector2(560.0, 232.0))
 	hud._layout_map_panel_contents()
+	host._expect_equal(
+		hud.map_marker_rects[0].position.y > hud.map_hint_label.position.y + hud.map_hint_label.size.y,
+		true,
+		"first-hour minimap markers start below hint text"
+	)
 	host._expect_equal(
 		hud.map_marker_labels[0].position.y != hud.map_marker_labels[1].position.y,
 		true,
 		"first-hour minimap marker labels use staggered lanes"
 	)
 	hud.free()
+	map.free()
 
 
 func _check_hud_runtime_layout_first_pass() -> void:
@@ -491,16 +796,25 @@ func _check_hud_runtime_layout_first_pass() -> void:
 	hud._ensure_runtime_nodes()
 	hud._layout_runtime_panels(true)
 	var viewport_size := hud._get_runtime_viewport_size()
-	host._expect_equal(hud.map_panel.size.y <= 190.0, true, "HUD first pass keeps minimap compact")
+	host._expect_equal(hud.map_panel.size.y <= 170.0, true, "HUD first pass keeps minimap within top-left HUD bounds")
+	host._expect_equal(
+		hud.map_marker_rects[0].position.y > hud.map_hint_label.position.y + hud.map_hint_label.size.y,
+		true,
+		"HUD first pass keeps minimap markers below hint text"
+	)
 	host._expect_equal(hud.status_panel.position.y > hud.map_panel.position.y + hud.map_panel.size.y, true, "HUD first pass stacks objective below minimap")
 	host._expect_equal(hud.status_panel.position.x <= 20.0, true, "HUD first pass keeps objective on the left edge")
+	host._expect_equal(hud.status_panel.size.y >= 178.0, true, "HUD first pass reserves room for current objective and next step")
+	host._expect_equal(hud.status_label.size.y >= 150.0, true, "HUD first pass keeps objective text from clipping the next step")
 	host._expect_equal(hud.vitals_panel.position.x + hud.vitals_panel.size.x >= viewport_size.x - 20.0, true, "HUD first pass keeps vitals on the right edge")
-	host._expect_equal(hud.vitals_panel.size.y <= 184.0, true, "HUD first pass keeps vitals summary compact")
+	host._expect_equal(hud.vitals_panel.size.y <= 118.0, true, "HUD first pass keeps vitals summary compact")
 	host._expect_equal(absf(hud.prompt_panel.position.x + hud.prompt_panel.size.x * 0.5 - viewport_size.x * 0.5) <= 1.0, true, "HUD first pass centers interaction prompt")
-	host._expect_equal(hud.prompt_panel.size.y <= 144.0, true, "HUD first pass lowers prompt height")
-	host._expect_equal(hud.log_panel.size.y >= 96.0, true, "HUD first pass reserves two log rows")
-	host._expect_equal(hud.log_panel.size.y <= 120.0, true, "HUD first pass keeps log rail compact")
-	host._expect_equal(hud.log_label.size.y >= 60.0, true, "HUD first pass keeps two-row log text visible")
+	host._expect_equal(hud.prompt_panel.size.y <= 88.0, true, "HUD first pass lowers prompt height")
+	host._expect_equal(hud.log_panel.size.y >= 72.0, true, "HUD first pass reserves compact log text")
+	host._expect_equal(hud.log_panel.size.y <= 84.0, true, "HUD first pass keeps log rail compact")
+	host._expect_equal(hud.log_label.size.y >= 48.0, true, "HUD first pass keeps compact log text visible")
+	host._expect_equal(hud.map_panel.color.a <= 0.45, true, "HUD first pass lowers persistent panel opacity")
+	host._expect_equal(hud.prompt_panel.color.a <= 0.45, true, "HUD first pass lowers prompt panel opacity")
 	host._expect_equal(hud.log_panel.position.x + hud.log_panel.size.x < hud.prompt_panel.position.x, true, "HUD first pass keeps log separate from prompt")
 	host._expect_equal(_controls_overlap(hud.completion_panel, hud.prompt_panel), false, "HUD first pass keeps quest feedback above prompt")
 	host._expect_equal(_controls_overlap(hud.device_panel, hud.evacuation_panel), false, "HUD first pass keeps device panel separate from evacuation feedback")
@@ -806,6 +1120,20 @@ func _check_filter_module_combat_pressure() -> void:
 	host._expect_equal(int(roundf(ridge_character.health * 10.0)), 928, "ridge polluted guard adds higher health pressure")
 	host._expect_equal(int(roundf(ridge_character.protection * 10.0)), 964, "ridge polluted guard adds higher protection pressure")
 	host._expect_text_contains(ridge_message, "污染脊守卫压迫更强", "ridge polluted guard counter message explains pressure")
+	var ridge_vial_world := WorldState.create_default()
+	ridge_vial_world.ensure_enemy(enemy.instance_id, enemy.definition_id, "region.pollution_edge", 30.0)
+	var ridge_vial_character := CharacterState.create_default()
+	ridge_vial_character.inventory.add_item("item.resistance_vial_t1", 1)
+	var ridge_vial_message := map._apply_enemy_counterattack(enemy, ridge_vial_character, ridge_vial_world)
+	host._expect_equal(int(ridge_vial_character.inventory.items.get("item.resistance_vial_t1", 0)), 0, "ridge pressure consumes one vial for pressure venting")
+	host._expect_equal(int(roundf(ridge_vial_character.health * 10.0)), 968, "ridge pressure vial reduces health pressure")
+	host._expect_equal(int(roundf(ridge_vial_character.protection * 10.0)), 984, "ridge pressure vial reduces protection pressure")
+	host._expect_equal(bool(ridge_vial_world.get_enemy(enemy.instance_id).get("pressure_vial_used", false)), true, "ridge pressure records vial venting on enemy state")
+	host._expect_text_contains(ridge_vial_message, "抗污染药剂已自动接入污染脊排压", "ridge pressure vial message explains preparation benefit")
+	ridge_vial_character.inventory.add_item("item.resistance_vial_t1", 1)
+	var repeated_ridge_message := map._apply_enemy_counterattack(enemy, ridge_vial_character, ridge_vial_world)
+	host._expect_equal(int(ridge_vial_character.inventory.items.get("item.resistance_vial_t1", 0)), 1, "ridge pressure does not consume vial twice on same enemy")
+	host._expect_text_contains(repeated_ridge_message, "污染脊守卫压迫更强", "ridge repeated counter returns to regular pressure hint")
 
 	enemy.definition_id = "enemy.ruin_phase_guard"
 	enemy.display_name = "相位守卫"

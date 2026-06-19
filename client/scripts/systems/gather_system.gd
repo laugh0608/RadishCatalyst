@@ -6,9 +6,26 @@ const DEMO_STABILIZATION_WRITE_HEALTH_PRESSURE := 12.0
 const DEMO_STABILIZATION_WRITE_PROTECTION_PRESSURE := 18.0
 const DEMO_STABILIZATION_WRITE_VIAL_MULT := 0.35
 const DEMO_STABILIZATION_WRITE_CORE_BUFFER_MULT := 0.75
+const DEMO_STABILIZATION_WRITE_RECOVERY_CACHE_MULT := 0.85
+const DEMO_STABILIZATION_WRITE_GUARD_CACHE_MULT := 0.9
+const BASIC_STORAGE_REPAIR_GEL_TARGET := DepartureSupplyRuntime.BASIC_STORAGE_REPAIR_GEL_TARGET
+const BASIC_STORAGE_RESISTANCE_VIAL_TARGET := DepartureSupplyRuntime.BASIC_RESISTANCE_VIAL_TARGET
+const SLURRY_BUFFER_RESISTANCE_VIAL_TARGET := DepartureSupplyRuntime.SLURRY_BUFFER_RESISTANCE_VIAL_TARGET
+const FIELD_OUTFITTING_STATION_ID := FieldOutfittingRuntime.FIELD_OUTFITTING_STATION_ID
+const BASIC_FILTER_MODULE_ID := FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+const OUTPOST_DEPARTURE_GATE_ID := "map_object.outpost_departure_gate"
+const OUTPOST_LOGISTICS_ROUTE_SIGN_ID := "map_object.outpost_logistics_route_sign"
 const POLLUTION_RESIDUE_PRESSURE_BY_INSTANCE := {
 	"map_object_instance.pollution_residue": 1.0,
 	"map_object_instance.pollution_residue_outer_pocket": 1.15,
+	"map_object_instance.pollution_residue_vial_return_cache": 1.25,
+	"map_object_instance.pollution_residue_slurry_return_cache": 1.3,
+	"map_object_instance.pollution_residue_vial_reserve_cache": 1.45,
+	"map_object_instance.pollution_residue_core_archive_route_cache": 1.42,
+	"map_object_instance.pollution_residue_core_archive_return_cache": 1.5,
+	"map_object_instance.pollution_residue_core_archive_pressure_retest_cache": 1.55,
+	FieldOutfittingRuntime.LOGISTICS_MAINTENANCE_POLLUTION_RETEST_RESIDUE_INSTANCE_ID: 1.58,
+	"map_object_instance.pollution_residue_logistics_maintenance_retest_cache": 1.62,
 	"map_object_instance.pollution_residue_deep": 1.35,
 	"map_object_instance.pollution_residue_ridge_cache": 1.6,
 	"map_object_instance.outer_ring_echo_residue_cache": 1.7,
@@ -93,6 +110,8 @@ func interact_with_object(
 ) -> Dictionary:
 	if interaction_type == "outpost_core":
 		return _interact_with_outpost_core(character_state, world_state)
+	if interaction_type == "inspect" and definition_id == FIELD_OUTFITTING_STATION_ID:
+		return _interact_with_field_outfitting_station(character_state, world_state)
 	if interaction_type == "process_recipe":
 		return processing_system.process_recipe(recipe_id, character_state, world_state)
 	if interaction_type == "build":
@@ -107,6 +126,18 @@ func interact_with_object(
 	var definition := data_registry.get_definition(definition_id)
 	if definition.is_empty():
 		return _failure("未知交互对象：%s。" % definition_id, "交互未完成", "换一个可交互目标，或检查地图对象定义。")
+
+	if interaction_type == "inspect" and definition_id == OUTPOST_DEPARTURE_GATE_ID:
+		return _inspect_outpost_departure_gate(character_state, world_state)
+	if interaction_type == "inspect" and definition_id == OUTPOST_LOGISTICS_ROUTE_SIGN_ID:
+		return _inspect_outpost_logistics_route_sign(character_state, world_state)
+
+	if (
+		interaction_type == "inspect"
+		and definition_id == "map_object.demo_stabilization_core"
+		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
+	):
+		return _inspect_completed_demo_stabilization_core(instance_id, definition_id, character_state, world_state)
 
 	if interaction_type == "inspect" and definition_id == BaseActionDispatchPlan.FRONTLINE_ACTION_CONSOLE_ID:
 		var review_messages := BaseActionDispatchPlan.acknowledge_frontline_window_feedback(world_state)
@@ -141,14 +172,26 @@ func interact_with_object(
 
 	var object_state := world_state.ensure_map_object(instance_id, definition_id, character_state.current_region_id)
 	if _is_already_processed(object_state, interaction_type):
-		return _failure(
-			_format_already_processed_message(definition_id, interaction_type),
-			"目标已处理",
-			"现场完成态颜色和标签表示该对象已处理；前往下一个未处理目标。"
+		var processed_message := _format_already_processed_message(
+			definition_id,
+			interaction_type,
+			character_state,
+			world_state
 		)
+		var processed_feedback := DemoActionBlockerRecoveryFormatter.format_already_processed_failure(
+			_get_display_name(definition_id),
+			processed_message,
+			_get_already_processed_recovery_route(definition_id, interaction_type)
+		)
+		return _failure_from_feedback(processed_message, processed_feedback)
 	var quest_gate_error := _get_quest_gate_error(definition_id, interaction_type, world_state)
 	if not quest_gate_error.is_empty():
-		return _failure(quest_gate_error, "交互前置不足", _get_quest_gate_detail(definition_id, interaction_type))
+		var quest_gate_feedback := _get_quest_gate_feedback(
+			definition_id,
+			interaction_type,
+			quest_gate_error
+		)
+		return _failure_from_feedback(quest_gate_error, quest_gate_feedback)
 
 	if not _supports_interaction(definition, interaction_type):
 		return _failure("当前目标不支持该交互。", "交互不可用", "换一个可交互目标，或查看附近提示。")
@@ -165,14 +208,14 @@ func interact_with_object(
 		"clear":
 			_set_map_object_flag(world_state, instance_id, definition_id, "is_cleared", true)
 			if definition_id == "map_object.phase_well_anchor_pressure_pin":
-				return _success("锚场压力钉已清理：继续清掉剩余压力钉，稳场守脉体会完全暴露。")
+				return _clear_success(_with_functional_scene_gameplay_followup("锚场压力钉已清理：继续清掉剩余压力钉，稳场守脉体会完全暴露。", definition_id, world_state, character_state.current_region_id), definition_id)
 			if definition_id == "map_object.phase_well_frame_route_blocker":
-				return _success("锁相框架侧路已清理：边缕残条回收线打开，另一侧路可以保留为未选路线。")
+				return _clear_success(_with_functional_scene_gameplay_followup("锁相框架侧路已清理：边缕残条回收线打开，另一侧路可以保留为未选路线。", definition_id, world_state, character_state.current_region_id), definition_id)
 			if definition_id == "map_object.well_ash_crust_blocker":
-				return _success("盐壳硬壳已清理：盐壳余烬回收线打开。")
+				return _clear_success(_with_functional_scene_gameplay_followup("盐壳硬壳已清理：盐壳余烬回收线打开。", definition_id, world_state, character_state.current_region_id), definition_id)
 			if definition_id == "map_object.pressure_clearance_node":
-				return _success("前线压力扰点已清除：带回压力清障回执，回基地用基础反应器解析防护收益。")
-			return _success("%s已清理：现场保留已清理标记；现在可以铺设基础地基。" % _get_display_name(definition_id))
+				return _clear_success("前线压力扰点已清除：带回压力清障回执，回基地用基础反应器解析防护收益。", definition_id)
+			return _clear_success("%s已清理：现场保留已清理标记；现在可以铺设基础地基。" % _get_display_name(definition_id), definition_id)
 		"inspect":
 			if BaseActionDispatchPlan.is_frontline_window_object(definition_id):
 				if not BaseActionDispatchPlan.is_frontline_window_active(world_state):
@@ -210,7 +253,14 @@ func interact_with_object(
 				return _success(_format_frontline_single_use_reading_result(definition_id))
 			if definition_id == "map_object.demo_stabilization_core":
 				_set_map_object_flag(world_state, instance_id, definition_id, "is_sampled", true)
-				return _success("核心稳定数据已写入：锚定桥稳窗和高压窗口归档数据接入核心设备，第一条稳定通道已打开。%s" % _apply_demo_stabilization_write_pressure(character_state, world_state))
+				var pressure_text := _apply_demo_stabilization_write_pressure(character_state, world_state)
+				var core_result := _success("核心稳定数据已写入：锚定桥稳窗和高压窗口归档数据接入核心设备，第一条稳定通道已打开。%s" % pressure_text)
+				core_result["success_feedback"] = DemoActionFeedbackFormatter.format_core_write_success_feedback(
+					pressure_text,
+					world_state,
+					character_state
+				)
+				return core_result
 			return _success("交互完成。")
 		_:
 			return _success("交互完成。")
@@ -218,22 +268,50 @@ func interact_with_object(
 
 func _interact_with_outpost_core(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
-		return _success("前哨核心已恢复，晶体矿脉区已标记。")
+		var restore_result := _success("前哨核心已恢复，晶体矿脉区已标记。")
+		restore_result["success_feedback"] = DemoActionFeedbackFormatter.format_outpost_core_success_feedback(
+			"前哨核心恢复",
+			"前哨核心已恢复，晶体矿脉区已标记",
+			"从外勤出发口前往晶体矿脉区；HUD / 地图会继续显示当前主线目标。"
+		)
+		return restore_result
 
+	var supply_detail := _restock_basic_storage_supply(character_state, world_state)
 	var restoration := character_state.restore_vitals_to_full()
 	var restored_health := float(restoration.get("restored_health", 0.0))
 	var restored_protection := float(restoration.get("restored_protection", 0.0))
-	if restored_health <= 0.0 and restored_protection <= 0.0:
-		return _success("前哨核心已在线：生命与防护完整，可继续外出或使用相位回投台。")
+	var readiness_detail := DepartureReadinessFormatter.format_feedback_detail(world_state, character_state)
+	if restored_health <= 0.0 and restored_protection <= 0.0 and supply_detail.is_empty():
+		return {
+			"success": true,
+			"message": "前哨核心出发检查：%s。" % readiness_detail,
+			"success_feedback": DemoActionFeedbackFormatter.format_outpost_core_success_feedback(
+				"前哨核心出发检查",
+				readiness_detail,
+				"从外勤出发口继续当前目标；若状态不足，先在前哨核心整备。"
+			),
+			"supply_feedback": {
+				"title": "出发准备检查",
+				"detail": readiness_detail
+			}
+		}
 
-	var detail := _format_outpost_core_refit_detail(
-		character_state,
-		restored_health,
-		restored_protection
-	)
+	var detail_parts: Array[String] = []
+	var vitals_detail := _format_outpost_core_refit_detail(character_state, restored_health, restored_protection)
+	if not vitals_detail.is_empty():
+		detail_parts.append(vitals_detail)
+	if not supply_detail.is_empty():
+		detail_parts.append(supply_detail)
+	detail_parts.append("出发检查：%s" % readiness_detail)
+	var detail := "；".join(detail_parts)
 	return {
 		"success": true,
 		"message": "前哨核心整备完成：%s。" % detail,
+		"success_feedback": DemoActionFeedbackFormatter.format_outpost_core_success_feedback(
+			"前哨整备完成",
+			detail,
+			"从外勤出发口继续当前目标；HUD / 地图会读取补给和恢复状态。"
+		),
 		"supply_feedback": {
 			"title": "前哨整备完成",
 			"detail": detail
@@ -241,9 +319,325 @@ func _interact_with_outpost_core(character_state: CharacterState, world_state: W
 	}
 
 
+func _inspect_outpost_departure_gate(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	var status := DepartureReadinessFormatter.format_departure_gate_status(world_state, character_state)
+	var next_step := DepartureReadinessFormatter.format_departure_gate_next_step(world_state, character_state)
+	return _success_feedback(
+		"外勤出发口检查：%s；下一步：%s。" % [status, next_step],
+		"外勤出发口检查",
+		status,
+		next_step
+	)
+
+
+func _inspect_outpost_logistics_route_sign(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	var status := DepartureReadinessFormatter.format_logistics_route_status(world_state, character_state)
+	var next_step := DepartureReadinessFormatter.format_logistics_route_next_step(world_state, character_state)
+	return _success_feedback(
+		"后勤路线牌检查：%s；下一步：%s。" % [status, next_step],
+		"后勤路线检查",
+		status,
+		next_step
+	)
+
+
+func _inspect_completed_demo_stabilization_core(
+	instance_id: String,
+	definition_id: String,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> Dictionary:
+	_set_map_object_flag(world_state, instance_id, definition_id, "is_sampled", true)
+	var status := CoreStabilizationPressureFormatter.format_core_revisit_completion_parts(world_state, character_state)
+	var next_step := CoreStabilizationPressureFormatter.format_core_revisit_next_step(world_state, character_state)
+	return _success_feedback(
+		CoreStabilizationPressureFormatter.format_core_revisit_feedback_message(world_state, character_state),
+		"核心稳定站复测",
+		status,
+		next_step
+	)
+
+
+func _restock_basic_storage_supply(character_state: CharacterState, world_state: WorldState) -> String:
+	if not world_state.has_base_structure_definition("building.basic_storage"):
+		return ""
+
+	var detail_parts: Array[String] = []
+	var current_repair_gel := int(character_state.inventory.items.get(DepartureSupplyRuntime.REPAIR_GEL_ID, 0))
+	if current_repair_gel < BASIC_STORAGE_REPAIR_GEL_TARGET:
+		var granted_gel_amount := BASIC_STORAGE_REPAIR_GEL_TARGET - current_repair_gel
+		character_state.inventory.add_item(DepartureSupplyRuntime.REPAIR_GEL_ID, granted_gel_amount)
+		detail_parts.append("基础储存箱补修复凝胶 x%d，当前 %d" % [
+			granted_gel_amount,
+			int(character_state.inventory.items.get(DepartureSupplyRuntime.REPAIR_GEL_ID, 0))
+		])
+
+	if _can_restock_basic_storage_vial(character_state, world_state):
+		var target_vial := _get_basic_storage_vial_target(world_state)
+		var current_vial := DepartureSupplyRuntime.get_resistance_vial_count(character_state)
+		var granted_vial_amount := target_vial - current_vial
+		character_state.inventory.add_item(DepartureSupplyRuntime.RESISTANCE_VIAL_ID, granted_vial_amount)
+		var restored_vial := DepartureSupplyRuntime.get_resistance_vial_count(character_state)
+		if target_vial > BASIC_STORAGE_RESISTANCE_VIAL_TARGET:
+			detail_parts.append("基础储存箱经污染浆液缓冲罐补抗污染药剂 x%d，药剂 %d/%d -> %d/%d" % [
+				granted_vial_amount,
+				current_vial,
+				target_vial,
+				restored_vial,
+				target_vial
+			])
+		else:
+			detail_parts.append("基础储存箱补抗污染药剂 x%d，药剂 %d/%d -> %d/%d" % [
+				granted_vial_amount,
+				current_vial,
+				target_vial,
+				restored_vial,
+				target_vial
+			])
+
+	return "；".join(detail_parts)
+
+
+func _can_restock_basic_storage_vial(character_state: CharacterState, world_state: WorldState) -> bool:
+	return DepartureSupplyRuntime.can_outpost_restock_resistance_vial(world_state, character_state)
+
+
+func _has_basic_storage_vial_supply_unlocked(world_state: WorldState) -> bool:
+	return DepartureSupplyRuntime.is_resistance_vial_supply_available(world_state)
+
+
+func _get_basic_storage_vial_target(world_state: WorldState) -> int:
+	return DepartureSupplyRuntime.get_resistance_vial_target(world_state)
+
+
+func _interact_with_field_outfitting_station(character_state: CharacterState, world_state: WorldState) -> Dictionary:
+	if not world_state.has_base_structure_definition(FIELD_OUTFITTING_STATION_ID):
+		return _failure(
+			"出发整备台尚未建成。",
+			"整备台未上线",
+			"先在基地平台完成出发整备台建造点。"
+		)
+
+	if FieldOutfittingRuntime.has_filter_module_equipped(character_state):
+		if (
+			FieldOutfittingRuntime.is_core_archive_maintenance_available(character_state, world_state)
+			and not FieldOutfittingRuntime.is_core_archive_maintained(world_state)
+		):
+			FieldOutfittingRuntime.mark_core_archive_maintained(world_state)
+			var archive_result := _success_feedback(
+				"出发整备台完成核心归档维护：核心稳定数据已接入基础过滤模块，下一趟污染采集和污染反击承压继续下降。",
+				"核心归档维护完成",
+				"核心归档维护已接入",
+				"从外勤出发口复测核心稳定站，或回污染边界确认归档维护后的承压读法。"
+			)
+			archive_result["core_archive_maintained"] = true
+			return archive_result
+		if FieldOutfittingRuntime.should_confirm_logistics_maintenance(character_state, world_state):
+			FieldOutfittingRuntime.mark_logistics_maintenance_confirmed(world_state)
+			var logistics_result := _success_feedback(
+				"出发整备台完成后勤维护确认：晶体侧路补料已在基础反应器加工成基础零件，维护材料已登记到整备台；回前哨核心补给后，从外勤出发口准备下一趟外勤。",
+				"后勤维护已确认",
+				"补料已加工，整备台维护已确认",
+				"回前哨核心补修复凝胶 / 抗污染药剂并恢复生命 / 防护，然后从外勤出发口准备下一趟外勤。"
+			)
+			logistics_result["logistics_maintenance_confirmed"] = true
+			return logistics_result
+		if FieldOutfittingRuntime.should_confirm_field_loop_payoff(character_state, world_state):
+			return _confirm_field_loop_payoff(world_state)
+		if FieldOutfittingRuntime.is_protective_response_ready(world_state):
+			return _success_feedback(
+				"出发整备台复查完成：防护响应已待命，下一次外勤反击会读取基础防护服、过滤模块和前哨补给。",
+				"防护响应待命",
+				"防护响应已待命",
+				FieldOutfittingRuntime.format_protective_response_next_step(world_state, character_state)
+			)
+		if FieldOutfittingRuntime.has_protective_response_triggered(world_state):
+			if FieldOutfittingRuntime.can_confirm_protective_response(character_state, world_state):
+				return _confirm_protective_response(character_state, world_state)
+			return _success_feedback(
+				"出发整备台复查完成：防护响应已在上一场外勤反击中触发；%s" % FieldOutfittingRuntime.format_protective_response_next_step(world_state, character_state),
+				"防护响应已触发",
+				"防护响应已触发",
+				FieldOutfittingRuntime.format_protective_response_next_step(world_state, character_state)
+			)
+		if FieldOutfittingRuntime.is_tool_strike_calibration_ready(world_state):
+			return _success_feedback(
+				"出发整备台复查完成：工具打击校准已待命，下一次外勤反击会读取基础多用工具和基础零件校准。",
+				"工具校准待命",
+				"工具打击校准已待命",
+				FieldOutfittingRuntime.format_tool_strike_calibration_next_step(world_state, character_state)
+			)
+		if FieldOutfittingRuntime.has_tool_strike_calibration_triggered(world_state):
+			if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+				return _confirm_tool_strike_calibration(character_state, world_state)
+			return _success_feedback(
+				"出发整备台复查完成：工具打击校准已在上一场外勤反击中触发；%s" % FieldOutfittingRuntime.format_tool_strike_calibration_next_step(world_state, character_state),
+				"工具校准已触发",
+				"工具打击校准已触发",
+				FieldOutfittingRuntime.format_tool_strike_calibration_next_step(world_state, character_state)
+			)
+		if FieldOutfittingRuntime.is_module_calibrated(world_state):
+			if FieldOutfittingRuntime.can_confirm_protective_response(character_state, world_state):
+				return _confirm_protective_response(character_state, world_state)
+			if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+				return _confirm_tool_strike_calibration(character_state, world_state)
+			if FieldOutfittingRuntime.is_core_archive_maintained(world_state):
+				if FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
+					return _success_feedback(
+						"出发整备台复查完成：基础过滤模块晶体校准、核心归档维护和后勤补料维护均已确认；下一趟外勤可从前哨核心补给后出发。",
+						"整备收益已确认",
+						"模块校准 / 核心归档 / 后勤维护已确认",
+						"回前哨核心补给并恢复生命 / 防护，再沿外勤出发口准备下一趟外勤。"
+					)
+				return _success_feedback(
+					"出发整备台复查完成：基础过滤模块已完成晶体校准，核心归档维护已接入，污染采集和污染反击承压继续下降。",
+					"整备收益已生效",
+					"模块校准 / 核心归档维护已接入",
+					"沿外勤出发口回污染边界或核心稳定站复测，HUD 和战斗读数会读取这项整备收益。"
+				)
+			return _success_feedback(
+				"出发整备台复查完成：基础过滤模块已完成晶体校准，污染采集和污染反击承压继续下降。",
+				"模块校准已生效",
+				"基础过滤模块已校准",
+				"沿外勤出发口回污染边界或更深区域复测，HUD 和战斗读数会读取这项整备收益。"
+			)
+		if FieldOutfittingRuntime.has_calibration_materials(character_state):
+			if not FieldOutfittingRuntime.consume_calibration_materials(character_state):
+				return _failure(
+					"基础过滤模块校准失败。",
+					"维护未完成",
+					"确认晶体矿和残骸废件都已放入背包，再重新尝试。"
+				)
+			FieldOutfittingRuntime.mark_module_calibrated(world_state)
+			var calibration_result := _success_feedback(
+				"出发整备台完成维护校准：晶体侧路材料已写入基础过滤模块，污染采集和污染反击承压继续下降。",
+				"模块校准完成",
+				"基础过滤模块已校准",
+				"污染采集、污染敌人反击和出发口 HUD 已读取校准收益。"
+			)
+			calibration_result["outfitting_module_calibrated"] = true
+			return calibration_result
+		if FieldOutfittingRuntime.can_confirm_protective_response(character_state, world_state):
+			return _confirm_protective_response(character_state, world_state)
+		if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+			return _confirm_tool_strike_calibration(character_state, world_state)
+		return _failure(
+			"基础过滤模块已装入防护服，但缺少晶体侧路维护材料。",
+			"维护材料不足",
+			"回晶体侧路补晶体矿 x%d 和残骸废件 x%d，再回出发整备台校准模块；基础零件 x%d 可确认工具打击校准。"
+				% [
+					FieldOutfittingRuntime.MODULE_CALIBRATION_CRYSTAL_COST,
+					FieldOutfittingRuntime.MODULE_CALIBRATION_SCRAP_COST,
+					FieldOutfittingRuntime.TOOL_STRIKE_CALIBRATION_BASIC_PARTS_COST
+				]
+		)
+
+	if character_state.inventory.has_ref(BASIC_FILTER_MODULE_ID, 1):
+		if not character_state.equip_suit_module(BASIC_FILTER_MODULE_ID):
+			return _failure(
+				"基础过滤模块装配失败。",
+				"整备未完成",
+				"检查防护服模块槽和装备库存，再重新尝试。"
+			)
+
+		if FieldOutfittingRuntime.has_calibration_materials(character_state):
+			var equipped_and_ready := _success_feedback(
+				"出发整备完成：基础过滤模块已装入防护服，晶体侧路材料足够继续校准模块。",
+				"出发整备完成",
+				"基础过滤模块已装入防护服",
+				"再次操作出发整备台可消耗晶体矿和残骸废件完成维护校准。"
+			)
+			equipped_and_ready["outfitting_module_enabled"] = true
+			return equipped_and_ready
+
+		var result := _success_feedback(
+			"出发整备完成：基础过滤模块已装入防护服，污染消耗和污染反击压力降低。",
+			"出发整备完成",
+			"基础过滤模块已装入防护服",
+			"带模块返回污染边界；晶体侧路余料可回整备台维护校准。"
+		)
+		result["outfitting_module_enabled"] = true
+		return result
+
+	if FieldOutfittingRuntime.is_tool_strike_calibration_ready(world_state):
+		return _success_feedback(
+			"出发整备台复查完成：工具打击校准已待命，下一次外勤反击会读取基础多用工具和基础零件校准。",
+			"工具校准待命",
+			"工具打击校准已待命",
+			FieldOutfittingRuntime.format_tool_strike_calibration_next_step(world_state, character_state)
+		)
+	if FieldOutfittingRuntime.has_tool_strike_calibration_triggered(world_state):
+		if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+			return _confirm_tool_strike_calibration(character_state, world_state)
+		return _success_feedback(
+			"出发整备台复查完成：工具打击校准已在上一场外勤反击中触发；%s" % FieldOutfittingRuntime.format_tool_strike_calibration_next_step(world_state, character_state),
+			"工具校准已触发",
+			"工具打击校准已触发",
+			FieldOutfittingRuntime.format_tool_strike_calibration_next_step(world_state, character_state)
+		)
+	if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+		return _confirm_tool_strike_calibration(character_state, world_state)
+
+	return _failure(
+		"缺少基础过滤模块。",
+		"整备材料不足",
+		"先用基础反应器组装基础过滤模块；若要校准基础多用工具，需要基础零件 x%d。"
+			% FieldOutfittingRuntime.TOOL_STRIKE_CALIBRATION_BASIC_PARTS_COST
+	)
+
+
+func _confirm_protective_response(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> Dictionary:
+	FieldOutfittingRuntime.mark_protective_response_ready(world_state)
+	var response_result := _success_feedback(
+		"出发整备台确认防护响应：基础防护服、基础过滤模块、修复凝胶和抗污染药剂已串成下一次外勤反击响应；触发后回前哨补给并复查整备台。",
+		"防护响应已待命",
+		"基础防护服 / 过滤模块 / 前哨补给已接入",
+		"从外勤出发口进入下一场外勤反击，战斗反馈会读出防护响应承压下降。"
+	)
+	response_result["protective_response_ready"] = true
+	return response_result
+
+
+func _confirm_tool_strike_calibration(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> Dictionary:
+	if not FieldOutfittingRuntime.consume_tool_strike_calibration_parts(character_state):
+		return _failure(
+			"工具打击校准失败。",
+			"基础零件不足",
+			FieldOutfittingRuntime.format_tool_strike_calibration_next_step(world_state, character_state)
+		)
+	FieldOutfittingRuntime.mark_tool_strike_calibration_ready(world_state)
+	var calibration_result := _success_feedback(
+		"出发整备台确认工具打击校准：基础零件已写入基础多用工具打击头，下一次外勤反击会读取输出压制收益；触发后回基础反应器加工零件并复查整备台。",
+		"工具校准已待命",
+		"基础多用工具 / 基础零件 / 出发整备台已接入",
+		"从外勤出发口进入下一场外勤反击，战斗反馈会读出工具校准输出压制。"
+	)
+	calibration_result["tool_strike_calibration_ready"] = true
+	return calibration_result
+
+
+func _confirm_field_loop_payoff(world_state: WorldState) -> Dictionary:
+	FieldOutfittingRuntime.mark_field_loop_payoff_confirmed(world_state)
+	var payoff_result := _success_feedback(
+		DemoFieldLoopPayoffFormatter.format_confirmation_message(),
+		"外勤收益兑现完成",
+		DemoFieldLoopPayoffFormatter.format_confirmation_status(),
+		DemoFieldLoopPayoffFormatter.format_confirmation_next_step()
+	)
+	payoff_result["field_loop_payoff_confirmed"] = true
+	return payoff_result
+
+
 func _gather(instance_id: String, definition: Dictionary, character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var rewards := _grant_refs(definition.get("drops", []), character_state)
-	var protection_drain := _apply_pollution_pressure(instance_id, definition, character_state)
+	var pressure_result := _apply_pollution_pressure(instance_id, definition, character_state, world_state)
+	var protection_drain := float(pressure_result.get("protection_drain", 0.0))
 	_set_map_object_flag(world_state, instance_id, String(definition.get("id", "")), "is_gathered", true)
 
 	var result_parts: Array[String] = []
@@ -257,21 +651,41 @@ func _gather(instance_id: String, definition: Dictionary, character_state: Chara
 	if protection_drain > 0.0:
 		result_parts.append("污染压力消耗防护 %s%s" % [
 			_format_amount(protection_drain),
-			_get_pollution_protection_hint(character_state)
+			_get_pollution_protection_hint(character_state, world_state)
 		])
-		var pressure_hint := _get_pollution_pressure_step_hint(instance_id, character_state)
+		var pressure_hint := _get_pollution_pressure_step_hint(instance_id, character_state, world_state)
 		if not pressure_hint.is_empty():
 			result_parts.append(pressure_hint)
-	var first_hour_hint := _get_first_hour_gather_step_hint(instance_id)
+		if bool(pressure_result.get("tactical_scan_used", false)):
+			result_parts.append(CharacterKitRuntime.format_gather_pressure_feedback(character_state, world_state))
+	var first_hour_hint := _get_first_hour_gather_step_hint(instance_id, world_state, character_state)
 	if not first_hour_hint.is_empty():
 		result_parts.append(first_hour_hint)
+	var gameplay_followup := FunctionalSceneGameplayFormatter.format_result_followup_line(
+		String(definition.get("id", "")),
+		world_state,
+		character_state.current_region_id
+	)
+	if not gameplay_followup.is_empty():
+		result_parts.append(gameplay_followup)
 
-	return _success("%s。" % "；".join(result_parts))
+	var result := _success("%s。" % "；".join(result_parts))
+	result["success_feedback"] = DemoActionFeedbackFormatter.format_gather_success_feedback(
+		object_name,
+		String(definition.get("id", "")),
+		instance_id,
+		rewards,
+		protection_drain,
+		world_state,
+		character_state
+	)
+	return result
 
 
 func _sample(instance_id: String, definition: Dictionary, character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var sample_refs: Array = definition.get("sample_result_refs", [])
 	var rewards: Array[String] = []
+	var object_name := _get_display_name(String(definition.get("id", "")))
 	for sample_id in sample_refs:
 		var definition_id := String(sample_id)
 		if definition_id.is_empty():
@@ -280,46 +694,113 @@ func _sample(instance_id: String, definition: Dictionary, character_state: Chara
 		rewards.append("%s x1" % _get_display_name(definition_id))
 
 	_set_map_object_flag(world_state, instance_id, String(definition.get("id", "")), "is_sampled", true)
+	var result_parts: Array[String] = []
 	if rewards.is_empty():
-		return _success("%s已采样：现场保留已采样标记。" % _get_display_name(String(definition.get("id", ""))))
-	return _success("%s已采样：%s；现场保留已采样标记；回基地解析样本。" % [
-		_get_display_name(String(definition.get("id", ""))),
-		", ".join(rewards)
-	])
+		result_parts.append("%s已采样：现场保留已采样标记" % object_name)
+	else:
+		result_parts.append("%s已采样：%s" % [
+			object_name,
+			", ".join(rewards)
+		])
+		result_parts.append("现场保留已采样标记")
+		result_parts.append("回基地解析样本")
+	var gameplay_followup := FunctionalSceneGameplayFormatter.format_result_followup_line(
+		String(definition.get("id", "")),
+		world_state,
+		character_state.current_region_id
+	)
+	if not gameplay_followup.is_empty():
+		result_parts.append(gameplay_followup)
+	var result := _success("%s。" % "；".join(result_parts))
+	result["success_feedback"] = DemoActionFeedbackFormatter.format_sample_success_feedback(
+		object_name,
+		String(definition.get("id", "")),
+		rewards,
+		world_state
+	)
+	return result
 
 
 func _apply_demo_stabilization_write_pressure(character_state: CharacterState, world_state: WorldState) -> String:
-	var used_vial := character_state.inventory.has_ref("item.resistance_vial_t1", 1)
+	var vial_spend := DepartureSupplyRuntime.consume_resistance_vial(character_state, world_state)
+	var used_vial := bool(vial_spend.get("consumed", false))
 	var used_core_buffer := _has_core_stabilization_guard_buffer_sync(world_state)
+	var used_recovery_cache := _has_demo_stabilization_recovery_cache(world_state)
+	var used_guard_cache := _has_demo_stabilization_guard_cache(world_state)
 	var pressure_mult := 1.0
 	if used_vial:
-		character_state.inventory.consume_ref("item.resistance_vial_t1", 1)
 		pressure_mult *= DEMO_STABILIZATION_WRITE_VIAL_MULT
 	if used_core_buffer:
 		pressure_mult *= DEMO_STABILIZATION_WRITE_CORE_BUFFER_MULT
+	if used_recovery_cache:
+		pressure_mult *= DEMO_STABILIZATION_WRITE_RECOVERY_CACHE_MULT
+	if used_guard_cache:
+		pressure_mult *= DEMO_STABILIZATION_WRITE_GUARD_CACHE_MULT
 
 	var health_pressure := DEMO_STABILIZATION_WRITE_HEALTH_PRESSURE * pressure_mult * character_state.get_pollution_counter_damage_multiplier(data_registry)
 	var protection_pressure := DEMO_STABILIZATION_WRITE_PROTECTION_PRESSURE * pressure_mult * character_state.get_pollution_drain_multiplier(data_registry)
 	var health_damage := character_state.apply_health_damage(health_pressure)
 	var protection_damage := character_state.apply_protection_damage(protection_pressure)
-	if used_vial and used_core_buffer:
-		return " 核心稳压缓冲包留下的回写校准已被设备读取，抗污染药剂已自动接入写入排压，生命 -%s，防护 -%s；终点前整备同时降低守卫和核心设备承压。" % [
-			_format_amount(health_damage),
-			_format_amount(protection_damage)
-		]
-	if used_vial:
-		return " 抗污染药剂已自动接入写入排压，生命 -%s，防护 -%s；守卫缓存补给改变了核心设备承压。" % [
-			_format_amount(health_damage),
-			_format_amount(protection_damage)
-		]
+	return _format_demo_stabilization_write_pressure(
+		vial_spend,
+		character_state,
+		world_state,
+		used_core_buffer,
+		used_recovery_cache,
+		used_guard_cache,
+		health_damage,
+		protection_damage
+	)
+
+
+func _format_demo_stabilization_write_pressure(
+	vial_spend: Dictionary,
+	character_state: CharacterState,
+	world_state: WorldState,
+	used_core_buffer: bool,
+	used_recovery_cache: bool,
+	used_guard_cache: bool,
+	health_damage: float,
+	protection_damage: float
+) -> String:
+	var health_text := _format_amount(health_damage)
+	var protection_text := _format_amount(protection_damage)
+	var used_vial := bool(vial_spend.get("consumed", false))
+	var pressure_text := DepartureSupplyRuntime.format_resistance_vial_pressure_spend(vial_spend, "写入") if used_vial else DepartureSupplyRuntime.format_resistance_vial_shortage_for_pressure(world_state, character_state, "写入")
+	var prepared_parts: Array[String] = []
+	if used_recovery_cache:
+		prepared_parts.append("核心站侧边补给")
+	if used_guard_cache:
+		prepared_parts.append("守卫回写缓存")
 	if used_core_buffer:
-		return " 核心稳压缓冲包留下的回写校准已被设备读取；没有抗污染药剂参与排压，生命 -%s，防护 -%s；核心设备承压低于无准备写入。" % [
-			_format_amount(health_damage),
-			_format_amount(protection_damage)
+		prepared_parts.append("稳压缓冲包")
+	var ready_count := prepared_parts.size()
+	if used_vial:
+		ready_count += 1
+
+	if not prepared_parts.is_empty():
+		var payoff := "核心设备承压低于无准备写入"
+		if used_core_buffer:
+			payoff = "终点前整备同时降低守卫和核心设备承压，核心设备承压低于无准备写入"
+		return " 终点准备 %d/4：%s已串入写入校准，%s，生命 -%s，防护 -%s；%s。" % [
+			ready_count,
+			"、".join(prepared_parts),
+			pressure_text,
+			health_text,
+			protection_text,
+			payoff
 		]
-	return " 没有抗污染药剂参与排压，核心写入反冲完整命中，生命 -%s，防护 -%s；下次终点写入前应确认守卫缓存补给。" % [
-		_format_amount(health_damage),
-		_format_amount(protection_damage)
+
+	if used_vial:
+		return " 终点准备 1/4：%s，生命 -%s，防护 -%s；药剂让核心设备承压低于无准备写入。" % [
+			pressure_text,
+			health_text,
+			protection_text
+		]
+	return " 终点准备 0/4：%s，核心写入反冲完整命中，生命 -%s，防护 -%s；下次终点写入前应确认守卫缓存补给并回前哨补药剂。" % [
+		pressure_text,
+		health_text,
+		protection_text
 	]
 
 
@@ -327,6 +808,21 @@ func _has_core_stabilization_guard_buffer_sync(world_state: WorldState) -> bool:
 	if world_state == null:
 		return false
 	return bool(world_state.get_enemy("enemy_instance.demo_stabilization_guard").get("core_buffer_used", false))
+
+
+func _has_demo_stabilization_recovery_cache(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return (
+		bool(world_state.get_map_object("map_object_instance.demo_stabilization_recovery_cache").get("is_gathered", false))
+		or bool(world_state.get_map_object("map_object_instance.demo_stabilization_recovery_wreckage").get("is_gathered", false))
+	)
+
+
+func _has_demo_stabilization_guard_cache(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return bool(world_state.get_map_object("map_object_instance.demo_stabilization_guard_cache").get("is_gathered", false))
 
 
 func _grant_refs(refs: Array, character_state: CharacterState) -> Array[String]:
@@ -348,10 +844,15 @@ func _grant_refs(refs: Array, character_state: CharacterState) -> Array[String]:
 	return rewards
 
 
-func _apply_pollution_pressure(instance_id: String, definition: Dictionary, character_state: CharacterState) -> float:
+func _apply_pollution_pressure(
+	instance_id: String,
+	definition: Dictionary,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> Dictionary:
 	var pollution_id := String(definition.get("pollution_effect", ""))
 	if pollution_id.is_empty():
-		return 0.0
+		return {"protection_drain": 0.0, "tactical_scan_used": false}
 
 	var pollution_definition := data_registry.get_definition(pollution_id)
 	var base_drain := 0.0
@@ -363,49 +864,129 @@ func _apply_pollution_pressure(instance_id: String, definition: Dictionary, char
 		base_drain += float(hazard_effect.get("amount", 0.0)) * PROTOTYPE_POLLUTION_PRESSURE_MULT
 
 	if base_drain <= 0.0:
-		return 0.0
+		return {"protection_drain": 0.0, "tactical_scan_used": false}
 
 	var pressure_multiplier := float(POLLUTION_RESIDUE_PRESSURE_BY_INSTANCE.get(instance_id, 1.0))
-	var actual_drain := base_drain * pressure_multiplier * character_state.get_pollution_drain_multiplier(data_registry)
+	var tactical_scan_used := CharacterKitRuntime.consume_map_object_tactical_scan(
+		world_state,
+		instance_id,
+		String(definition.get("id", "")),
+		character_state.current_region_id
+	)
+	var tactical_scan_multiplier := CharacterKitRuntime.get_tactical_scan_pressure_multiplier(
+		character_state,
+		world_state
+	) if tactical_scan_used else 1.0
+	var actual_drain := (
+		base_drain
+		* pressure_multiplier
+		* tactical_scan_multiplier
+		* character_state.get_pollution_drain_multiplier(data_registry)
+		* FieldOutfittingRuntime.get_pollution_drain_multiplier(character_state, world_state)
+	)
 	character_state.protection = maxf(0.0, character_state.protection - actual_drain)
-	return actual_drain
+	return {
+		"protection_drain": actual_drain,
+		"tactical_scan_used": tactical_scan_used
+	}
 
 
-func _get_pollution_protection_hint(character_state: CharacterState) -> String:
+func _get_pollution_protection_hint(character_state: CharacterState, world_state: WorldState) -> String:
 	var module_id := String(character_state.equipment.get("suit_module", ""))
 	if module_id.is_empty():
 		return "，未启用过滤模块"
+	if (
+		FieldOutfittingRuntime.has_active_module_calibration(character_state, world_state)
+		and FieldOutfittingRuntime.has_active_core_archive_maintenance(character_state, world_state)
+		and FieldOutfittingRuntime.has_active_logistics_maintenance(character_state, world_state)
+	):
+		return "，过滤模块校准、核心归档维护和后勤维护已降低消耗"
+	if (
+		FieldOutfittingRuntime.has_active_core_archive_maintenance(character_state, world_state)
+		and FieldOutfittingRuntime.has_active_logistics_maintenance(character_state, world_state)
+	):
+		return "，核心归档维护和后勤维护已降低消耗"
+	if (
+		FieldOutfittingRuntime.has_active_module_calibration(character_state, world_state)
+		and FieldOutfittingRuntime.has_active_logistics_maintenance(character_state, world_state)
+	):
+		return "，过滤模块校准和后勤维护已降低消耗"
+	if (
+		FieldOutfittingRuntime.has_active_module_calibration(character_state, world_state)
+		and FieldOutfittingRuntime.has_active_core_archive_maintenance(character_state, world_state)
+	):
+		return "，过滤模块校准和核心归档维护已降低消耗"
+	if FieldOutfittingRuntime.has_active_core_archive_maintenance(character_state, world_state):
+		return "，核心归档维护已降低消耗"
+	if FieldOutfittingRuntime.has_active_module_calibration(character_state, world_state):
+		return "，过滤模块校准已降低消耗"
+	if FieldOutfittingRuntime.has_active_logistics_maintenance(character_state, world_state):
+		return "，后勤维护已降低消耗"
 	return "，过滤模块已降低消耗"
 
 
-func _get_pollution_pressure_step_hint(instance_id: String, character_state: CharacterState) -> String:
+func _get_pollution_pressure_step_hint(
+	instance_id: String,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
 	if instance_id == "map_object_instance.core_buffer_residue_cache":
 		return "核心缓冲包补料沉积已回收；回过滤器处理成抗污染药剂和污染浆液，再回基础反应器整备缓冲包"
 	if instance_id == "map_object_instance.pollution_residue_ridge_cache":
 		if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
 			return "污染脊沉积已回收；回过滤器处理成药剂和污染浆液，浆液可回收成信标所需基础零件"
 		return "污染脊沉积已回收；建议回过滤器处理沉积物，补药剂并留下浆液支撑稳相信标"
+	if instance_id == "map_object_instance.pollution_residue_vial_return_cache":
+		if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+			return "侧翼沉积已回收；回过滤器处理成下一支药剂和污染浆液，再回污染边界处理门前压力"
+		return "侧翼沉积已回收；建议回过滤器补抗污染药剂，污染浆液也能继续服务后续基建和解析"
+	if instance_id == "map_object_instance.pollution_residue_slurry_return_cache":
+		return "副产回收口袋沉积已回收；回过滤器补一份药剂和污染浆液，再到基础反应器把多余浆液回收成基础零件"
+	if instance_id == "map_object_instance.pollution_residue_vial_reserve_cache":
+		if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
+			return "药剂储备口袋沉积已回收；回过滤器补下一支抗污染药剂和污染浆液，继续支撑污染边界回访"
+		return "药剂储备口袋沉积已回收；建议回过滤器补抗污染药剂，再把多余污染浆液带回基础反应器回收基础零件"
+	if instance_id == "map_object_instance.pollution_residue_core_archive_route_cache":
+		return "出发路线回访沉积已回收；核心归档维护已降低这段采集承压，回过滤器补满双药剂后再从外勤出发口复测核心稳定站"
+	if instance_id == "map_object_instance.pollution_residue_core_archive_return_cache":
+		return "归档维护回访沉积已回收；核心归档维护已降低这段污染采集承压，回过滤器补药剂和污染浆液后再整理下一趟外勤"
+	if instance_id == FieldOutfittingRuntime.LOGISTICS_MAINTENANCE_POLLUTION_RETEST_RESIDUE_INSTANCE_ID:
+		return "污染边界后勤维护沉积已回收；整备台后勤维护已降低这段采集承压，回过滤器处理成药剂和污染浆液后再补给"
+	if instance_id == CoreStabilizationPressureFormatter.LOGISTICS_MAINTENANCE_RETEST_RESIDUE_INSTANCE_ID:
+		return "后勤维护复测沉积已回收；回过滤器处理成药剂和污染浆液，再回前哨核心补给并确认下一趟外勤"
 	if instance_id == "map_object_instance.outer_ring_echo_residue_cache":
+		if FieldOutfittingRuntime.has_filter_module_equipped(character_state):
+			return "污染回波沉积已回收；%s；回过滤器处理成抗污染药剂和污染浆液，再带回波匣回基地解析裂相坐标" % FieldOutfittingRuntime.format_ruin_outer_ring_pressure_feedback(character_state, world_state).trim_suffix("。")
 		return "污染回波沉积已回收；回过滤器处理成抗污染药剂和污染浆液，再带回波匣回基地解析裂相坐标"
 	if instance_id == "map_object_instance.pollution_residue_deep":
 		return "深处压力已显著抬升；后续门前点更适合带药剂再处理"
 	return ""
 
 
-func _get_first_hour_gather_step_hint(instance_id: String) -> String:
+func _get_first_hour_gather_step_hint(
+	instance_id: String,
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
 	match instance_id:
 		"map_object_instance.crystal_cluster_treatment_approach":
 			return "这些晶体可回基地加工成过滤模块或地基材料"
+		"map_object_instance.crystal_cluster_logistics_pocket":
+			return "侧路晶体可回基地加工基础零件，也可配合废件在出发整备台维护校准过滤模块"
 		"map_object_instance.field_wreckage_treatment_approach":
 			return "残骸废件可补反应器校准；继续向处理点入口前确认补给余量"
+		"map_object_instance.field_wreckage_logistics_pocket":
+			return "侧路废件可补反应器校准，也可配合晶体在出发整备台维护校准过滤模块"
 		"map_object_instance.crystal_cluster_foundation_return":
 			return "处理点入口前的回访晶体已补足；回基地加工基础零件或地基材料"
 		"map_object_instance.field_wreckage_foundation_return":
 			return "处理点入口前的残骸缓存已回收；若地基或过滤器缺料，先回基地整理制造"
 		"map_object_instance.demo_stabilization_recovery_cache":
-			return "核心站侧边补给已回收；修复凝胶和抗污染药剂可支撑阶段守卫战后的核心写入排压"
+			return "核心站侧边补给已回收；修复凝胶和抗污染药剂可支撑阶段守卫战，并在核心写入时降低反冲"
 		"map_object_instance.demo_stabilization_guard_cache":
-			return "核心写入校验片已回收；带着补给靠近核心稳定设备写入归档数据"
+			return CoreGuardAftermathFormatter.format_guard_cache_gather_followup(world_state, character_state)
+		CoreStabilizationPressureFormatter.RETEST_READOUT_INSTANCE_ID:
+			return "核心复测读数已回收；带基础零件和修复凝胶回前哨核心，出发整备台和出发口会显示复测读数收益"
 	return ""
 
 
@@ -417,10 +998,22 @@ func _get_gather_completion_label(definition: Dictionary) -> String:
 			return "已回收"
 
 
-func _format_already_processed_message(definition_id: String, interaction_type: String) -> String:
+func _format_already_processed_message(
+	definition_id: String,
+	interaction_type: String,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
 	var object_name := _get_display_name(definition_id)
 	match interaction_type:
 		"gather":
+			var core_cache_status := CoreStabilizationPressureFormatter.format_completed_cache_status(
+				definition_id,
+				world_state,
+				character_state
+			)
+			if not core_cache_status.is_empty():
+				return "%s：%s" % [object_name, core_cache_status]
 			if definition_id == "map_object.crystal_cluster" or definition_id == "map_object.rich_crystal_vein":
 				return "%s已采集，现场保留已采集标记。" % object_name
 			return "%s已回收，现场保留已回收标记。" % object_name
@@ -532,14 +1125,65 @@ func _get_quest_gate_error(definition_id: String, interaction_type: String, worl
 	return "异常晶体采样通道尚未校准。"
 
 
-func _get_quest_gate_detail(definition_id: String, interaction_type: String) -> String:
+func _get_quest_gate_feedback(
+	definition_id: String,
+	interaction_type: String,
+	quest_gate_error: String
+) -> Dictionary:
 	if definition_id == "map_object.demo_stabilization_core" and interaction_type == "inspect":
+		return DemoActionBlockerRecoveryFormatter.format_core_write_failure(
+			quest_gate_error,
+			_get_quest_gate_detail(definition_id, interaction_type, quest_gate_error)
+		)
+	return DemoActionBlockerRecoveryFormatter.format_interaction_prerequisite_failure(
+		quest_gate_error,
+		_get_quest_gate_gap(definition_id, interaction_type),
+		_get_quest_gate_detail(definition_id, interaction_type, quest_gate_error)
+	)
+
+
+func _get_quest_gate_gap(definition_id: String, interaction_type: String) -> String:
+	if definition_id == "map_object.anomaly_crystal" and interaction_type == "sample":
+		return "异常晶体采样任务尚未成为当前目标。"
+	if definition_id == "map_object.anomaly_residue_patch" and interaction_type == "gather":
+		return "异常晶体样本尚未带回并解析，残留物回收目标未开放。"
+	return "当前任务前置尚未满足。"
+
+
+func _get_quest_gate_detail(
+	definition_id: String,
+	interaction_type: String,
+	quest_gate_error: String = ""
+) -> String:
+	if definition_id == "map_object.demo_stabilization_core" and interaction_type == "inspect":
+		if quest_gate_error.find("守卫") >= 0:
+			return "先击败核心阶段守卫；战斗反馈和 HUD 目标会指向守卫，击败后回收核心写入校验片。"
+		if quest_gate_error.find("校验片") >= 0:
+			return "核心写入校验片缺口未补齐；确认守卫已击败并回收掉落 / 回写缓存，再回核心设备写入。"
+		if quest_gate_error.find("开放") >= 0:
+			return "先推进终点前综合准备和核心稳定站任务，等写入目标开放后再操作核心设备。"
 		return "先进入核心稳定站，回基地整备核心稳压缓冲包，击败核心阶段守卫后回收回写缓存，再回来写入稳定数据。"
 	if definition_id == "map_object.anomaly_crystal" and interaction_type == "sample":
 		return "先完成反应器校准件，再按任务目标采样异常晶体。"
 	if definition_id == "map_object.anomaly_residue_patch" and interaction_type == "gather":
 		return "先带回异常晶体样本，再按分析任务回收周边残留物。"
 	return "先完成当前前置目标，再回来处理这个目标。"
+
+
+func _get_already_processed_recovery_route(definition_id: String, interaction_type: String) -> String:
+	match interaction_type:
+		"clear":
+			if definition_id == "map_object.rough_ground":
+				return "该地块已清理；转到建造点铺设基础地基，或按 HUD / 地图找下一处粗糙地面。"
+			return "清障完成态已保留；转向 HUD / 地图上的下一个未处理路线点。"
+		"gather":
+			return "该资源点已回收；回基地加工已获得材料，或前往地图上的下一个未处理采集点。"
+		"sample":
+			return "样本已写入；回基地解析样本，或按当前 HUD 目标继续。"
+		"inspect":
+			return "该对象已确认；查看 HUD / 地图当前目标，切换到下一处未完成对象。"
+		_:
+			return "现场完成态颜色和标签表示该对象已处理；前往下一个未处理目标。"
 
 
 func _is_already_processed(object_state: Dictionary, interaction_type: String) -> bool:
@@ -611,18 +1255,55 @@ func _format_field_reading_result(definition_id: String, world_state: WorldState
 	var suffix := String(result.get("partial", "继续检查剩余现场读数点。"))
 	if next_progress >= required:
 		suffix = String(result.get("complete", "现场读数已全部写入。"))
-	return "%s已写入：%s/%s；%s" % [
+	return _with_functional_scene_gameplay_followup("%s已写入：%s/%s；%s" % [
 		String(result.get("step", "现场读数")),
 		_format_amount(next_progress),
 		_format_amount(required),
 		suffix
-	]
+	], definition_id, world_state)
+
+
+func _with_functional_scene_gameplay_followup(
+	message: String,
+	definition_id: String,
+	world_state: WorldState,
+	fallback_region_id: String = ""
+) -> String:
+	var followup := FunctionalSceneGameplayFormatter.format_result_followup_line(
+		definition_id,
+		world_state,
+		fallback_region_id
+	)
+	if followup.is_empty():
+		return message
+	return "%s；%s" % [message.trim_suffix("。"), followup]
+
+
+func _clear_success(message: String, definition_id: String) -> Dictionary:
+	var result := _success(message)
+	result["success_feedback"] = DemoActionFeedbackFormatter.format_clear_success_feedback(
+		_get_display_name(definition_id),
+		definition_id
+	)
+	return result
 
 
 func _success(message: String) -> Dictionary:
 	return {
 		"success": true,
 		"message": message
+	}
+
+
+func _success_feedback(message: String, title: String, status: String, next_step: String) -> Dictionary:
+	return {
+		"success": true,
+		"message": message,
+		"success_feedback": {
+			"title": title,
+			"status": status,
+			"next_step": next_step
+		}
 	}
 
 
@@ -634,4 +1315,12 @@ func _failure(message: String, title: String = "交互未完成", detail: String
 			"title": title,
 			"detail": detail
 		}
+	}
+
+
+func _failure_from_feedback(message: String, feedback: Dictionary) -> Dictionary:
+	return {
+		"success": false,
+		"message": message,
+		"failure_feedback": feedback
 	}

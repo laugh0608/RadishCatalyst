@@ -145,6 +145,7 @@ var last_debug_character_state: CharacterState
 @onready var new_game_button: Button = $SavePanel/NewGameButton
 @onready var baseline_label: Label = $SavePanel/BaselineLabel
 @onready var baseline_previous_button: Button = $SavePanel/BaselinePreviousButton
+@onready var baseline_demo_button: Button = $SavePanel/BaselineDemoButton
 @onready var baseline_load_button: Button = $SavePanel/BaselineLoadButton
 @onready var baseline_next_button: Button = $SavePanel/BaselineNextButton
 @onready var save_slot_labels: Array[Label] = [
@@ -180,8 +181,10 @@ signal gm_vitals_refill_requested
 
 func _ready() -> void:
 	_ensure_runtime_nodes()
+	_apply_runtime_panel_style()
 	new_game_button.pressed.connect(_on_new_game_pressed)
 	baseline_previous_button.pressed.connect(_on_baseline_previous_pressed)
+	baseline_demo_button.pressed.connect(_on_demo_baseline_pressed)
 	baseline_load_button.pressed.connect(_on_baseline_load_pressed)
 	baseline_next_button.pressed.connect(_on_baseline_next_pressed)
 	for index in range(SAVE_SLOT_IDS.size()):
@@ -241,7 +244,7 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 	if vitals_label != null:
 		vitals_label.text = status_presenter.format_vitals_text(data_registry, world_state, character_state)
 	_update_runtime_hint(world_state, character_state, active_quest_id)
-	_update_map_panel(world_state, active_quest_id)
+	_update_map_panel(world_state, active_quest_id, character_state)
 	last_quick_slots = debug_panel_presenter.update_quick_slot_binding_panel(
 		data_registry,
 		character_state,
@@ -381,6 +384,7 @@ func update_save_slot_summaries(summaries: Array[Dictionary]) -> void:
 	)
 
 func update_development_baselines(definitions: Array[Dictionary]) -> void:
+	var selected_baseline_id := _get_selected_development_baseline_id()
 	development_baseline_definitions.clear()
 	for definition in definitions:
 		var baseline_definition: Dictionary = definition
@@ -388,11 +392,9 @@ func update_development_baselines(definitions: Array[Dictionary]) -> void:
 	if development_baseline_definitions.is_empty():
 		selected_development_baseline_index = 0
 	else:
-		selected_development_baseline_index = clampi(
-			selected_development_baseline_index,
-			0,
-			development_baseline_definitions.size() - 1
-		)
+		if selected_baseline_id.is_empty():
+			selected_baseline_id = DevelopmentBaselineCatalog.get_default_demo_baseline_id()
+		_select_development_baseline_by_id(selected_baseline_id)
 	_refresh_development_baseline_panel()
 
 
@@ -419,6 +421,23 @@ func _on_baseline_previous_pressed() -> void:
 		selected_development_baseline_index - 1,
 		development_baseline_definitions.size()
 	)
+	_refresh_development_baseline_panel()
+
+
+func _on_demo_baseline_pressed() -> void:
+	if development_baseline_definitions.is_empty():
+		return
+	var demo_baseline_ids := DevelopmentBaselineCatalog.get_demo_baseline_ids()
+	if demo_baseline_ids.is_empty():
+		return
+	var current_id := _get_selected_development_baseline_id()
+	var current_demo_baseline_index := demo_baseline_ids.find(current_id)
+	var next_demo_baseline_id := ""
+	if current_demo_baseline_index < 0:
+		next_demo_baseline_id = DevelopmentBaselineCatalog.get_default_demo_baseline_id()
+	else:
+		next_demo_baseline_id = demo_baseline_ids[posmod(current_demo_baseline_index + 1, demo_baseline_ids.size())]
+	_select_development_baseline_by_id(next_demo_baseline_id)
 	_refresh_development_baseline_panel()
 
 
@@ -510,8 +529,14 @@ func _get_display_name(data_registry: DataRegistry, definition_id: String) -> St
 	return data_registry.get_text(String(definition.get("display_name_key", definition_id)))
 
 
-func _update_map_panel(world_state: WorldState, quest_id: String) -> void:
+func _update_map_panel(world_state: WorldState, quest_id: String, character_state: CharacterState) -> void:
 	_ensure_runtime_nodes()
+	if map_title_label != null:
+		map_title_label.text = map_presenter.format_demo_route_title(world_state, quest_id)
+	if map_hint_label != null:
+		map_hint_label.text = _format_map_hint_runtime_text(
+			map_presenter.format_demo_route_hint(world_state, quest_id, character_state)
+		)
 	var marker_view_data := map_presenter.get_marker_view_data(world_state, quest_id)
 	for index in range(mini(marker_view_data.size(), map_marker_rects.size())):
 		if map_marker_rects[index] == null or map_marker_labels[index] == null:
@@ -535,6 +560,21 @@ func _format_map_marker_runtime_label(raw_label: String) -> String:
 	return "%s\n%s" % [String(rows[0]), " / ".join(status_rows)]
 
 
+func _format_map_hint_runtime_text(raw_hint: String) -> String:
+	var compact_parts: Array[String] = []
+	for raw_part in raw_hint.split(" · ", false):
+		var part := String(raw_part).strip_edges()
+		if part.is_empty():
+			continue
+		var semicolon_index := part.find("；")
+		if semicolon_index >= 0:
+			part = part.substr(0, semicolon_index)
+		compact_parts.append(part)
+		if compact_parts.size() >= 2:
+			break
+	return " · ".join(compact_parts)
+
+
 func _update_runtime_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> void:
 	runtime_hint_text = hint_presenter.format_runtime_hint(world_state, character_state, quest_id)
 	_refresh_prompt_label()
@@ -552,6 +592,8 @@ func _refresh_development_baseline_panel() -> void:
 	var has_definitions := not development_baseline_definitions.is_empty()
 	if baseline_previous_button != null:
 		baseline_previous_button.disabled = not has_definitions
+	if baseline_demo_button != null:
+		baseline_demo_button.disabled = not _has_available_demo_baselines()
 	if baseline_load_button != null:
 		baseline_load_button.disabled = not has_definitions
 	if baseline_next_button != null:
@@ -687,6 +729,8 @@ func _ensure_runtime_nodes() -> void:
 		baseline_label = get_node_or_null("SavePanel/BaselineLabel")
 	if baseline_previous_button == null:
 		baseline_previous_button = get_node_or_null("SavePanel/BaselinePreviousButton")
+	if baseline_demo_button == null:
+		baseline_demo_button = get_node_or_null("SavePanel/BaselineDemoButton")
 	if baseline_load_button == null:
 		baseline_load_button = get_node_or_null("SavePanel/BaselineLoadButton")
 	if baseline_next_button == null:
@@ -719,6 +763,7 @@ func _ensure_runtime_nodes() -> void:
 
 func _layout_runtime_panels(force: bool = false) -> void:
 	_ensure_runtime_nodes()
+	_apply_runtime_panel_style()
 	var viewport_size := _get_runtime_viewport_size()
 	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
 		return
@@ -726,18 +771,18 @@ func _layout_runtime_panels(force: bool = false) -> void:
 		return
 
 	last_viewport_size = viewport_size
-	var margin := 18.0
-	var gap := 12.0
-	var map_width := clampf(viewport_size.x * 0.24, 500.0, 620.0)
-	var map_height := 190.0
+	var margin := 16.0
+	var gap := 10.0
+	var map_width := clampf(viewport_size.x * 0.18, 360.0, 460.0)
+	var map_height := 170.0
 	var objective_width := map_width
 	var objective_height := 178.0
-	var vitals_width := clampf(viewport_size.x * 0.20, 380.0, 460.0)
-	var vitals_height := 184.0
-	var prompt_width := clampf(viewport_size.x * 0.32, 620.0, 780.0)
-	var prompt_height := 144.0
-	var log_width := clampf(viewport_size.x * 0.28, 520.0, 680.0)
-	var log_height := 98.0
+	var vitals_width := clampf(viewport_size.x * 0.16, 300.0, 380.0)
+	var vitals_height := 118.0
+	var prompt_width := clampf(viewport_size.x * 0.28, 500.0, 640.0)
+	var prompt_height := 88.0
+	var log_width := clampf(viewport_size.x * 0.23, 420.0, 560.0)
+	var log_height := 72.0
 	var device_width := clampf(viewport_size.x * 0.34, 520.0, 640.0)
 	var device_height := clampf(viewport_size.y * 0.52, 620.0, 760.0)
 	var feedback_width := clampf(viewport_size.x * 0.24, 460.0, 560.0)
@@ -799,10 +844,10 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	_set_control_rect(quick_slot_panel, quick_slot_position, Vector2(quick_width, quick_height))
 
 	_layout_map_panel_contents()
-	_layout_full_label(status_label, status_panel, 18.0, 18.0)
-	_layout_full_label(vitals_label, vitals_panel, 18.0, 18.0)
-	_layout_full_label(prompt_label, prompt_panel, 18.0, 18.0)
-	_layout_full_label(log_label, log_panel, 18.0, 18.0)
+	_layout_full_label(status_label, status_panel, 14.0, 14.0)
+	_layout_full_label(vitals_label, vitals_panel, 14.0, 14.0)
+	_layout_full_label(prompt_label, prompt_panel, 14.0, 12.0)
+	_layout_full_label(log_label, log_panel, 14.0, 12.0)
 	_layout_full_label(completion_title_label, completion_panel, 22.0, 16.0, 32.0)
 	_layout_full_label(completion_detail_label, completion_panel, 22.0, 62.0)
 	_layout_device_panel_labels()
@@ -813,8 +858,8 @@ func _get_runtime_viewport_size() -> Vector2:
 	if viewport != null:
 		return viewport.get_visible_rect().size
 	return Vector2(
-		float(ProjectSettings.get_setting("display/window/size/viewport_width", 2500)),
-		float(ProjectSettings.get_setting("display/window/size/viewport_height", 1400))
+		float(ProjectSettings.get_setting("display/window/size/viewport_width", 1920)),
+		float(ProjectSettings.get_setting("display/window/size/viewport_height", 1080))
 	)
 
 
@@ -829,23 +874,23 @@ func _layout_map_panel_contents() -> void:
 	if map_panel == null:
 		return
 	if map_title_label != null:
-		map_title_label.position = Vector2(18.0, 14.0)
-		map_title_label.size = Vector2(maxf(0.0, map_panel.size.x - 36.0), 28.0)
+		map_title_label.position = Vector2(14.0, 10.0)
+		map_title_label.size = Vector2(maxf(0.0, map_panel.size.x - 28.0), 24.0)
 	if map_hint_label != null:
-		map_hint_label.position = Vector2(18.0, 46.0)
-		map_hint_label.size = Vector2(maxf(0.0, map_panel.size.x - 36.0), 28.0)
+		map_hint_label.position = Vector2(14.0, 38.0)
+		map_hint_label.size = Vector2(maxf(0.0, map_panel.size.x - 28.0), 48.0)
 
 	var marker_count := mini(map_marker_rects.size(), map_marker_labels.size())
 	if marker_count <= 0:
 		return
 
-	var marker_top := 76.0
-	var marker_size := Vector2(16.0, 18.0)
-	var primary_label_top := 104.0
-	var secondary_label_top := 138.0
-	var label_height := 32.0
-	var left_margin := 22.0
-	var right_margin := 22.0
+	var marker_top := 104.0
+	var marker_size := Vector2(12.0, 14.0)
+	var primary_label_top := 126.0
+	var secondary_label_top := 146.0
+	var label_height := 20.0
+	var left_margin := 18.0
+	var right_margin := 18.0
 	var usable_width := maxf(0.0, map_panel.size.x - left_margin - right_margin - marker_size.x)
 	var step := 0.0
 	if marker_count > 1:
@@ -882,6 +927,17 @@ func _layout_map_panel_contents() -> void:
 	if map_track != null:
 		map_track.position = Vector2(first_center_x, marker_top + marker_size.y * 0.5 - 3.0)
 		map_track.size = Vector2(maxf(0.0, last_center_x - first_center_x), 6.0)
+
+
+func _apply_runtime_panel_style() -> void:
+	var primary_color := Color(0.035, 0.054, 0.059, 0.42)
+	var floating_color := Color(0.035, 0.054, 0.059, 0.88)
+	for panel in [map_panel, status_panel, vitals_panel, prompt_panel, log_panel]:
+		if panel != null:
+			panel.color = primary_color
+	for panel in [device_panel, completion_panel, evacuation_panel, supply_feedback_panel, save_panel, quick_slot_panel]:
+		if panel != null:
+			panel.color = floating_color
 
 
 func _layout_full_label(label: Label, panel: Control, left: float, top: float, forced_height: float = -1.0) -> void:
@@ -928,6 +984,42 @@ func _get_selected_development_baseline() -> Dictionary:
 	if development_baseline_definitions.is_empty():
 		return {}
 	return development_baseline_definitions[selected_development_baseline_index]
+
+
+func _get_selected_development_baseline_id() -> String:
+	return String(_get_selected_development_baseline().get("id", ""))
+
+
+func _select_development_baseline_by_id(baseline_id: String) -> void:
+	if development_baseline_definitions.is_empty():
+		selected_development_baseline_index = 0
+		return
+	var baseline_index := _find_development_baseline_index(baseline_id)
+	if baseline_index >= 0:
+		selected_development_baseline_index = baseline_index
+		return
+	selected_development_baseline_index = clampi(
+		selected_development_baseline_index,
+		0,
+		development_baseline_definitions.size() - 1
+	)
+
+
+func _find_development_baseline_index(baseline_id: String) -> int:
+	if baseline_id.is_empty():
+		return -1
+	for index in range(development_baseline_definitions.size()):
+		var definition := development_baseline_definitions[index]
+		if String(definition.get("id", "")) == baseline_id:
+			return index
+	return -1
+
+
+func _has_available_demo_baselines() -> bool:
+	for baseline_id in DevelopmentBaselineCatalog.get_demo_baseline_ids():
+		if _find_development_baseline_index(baseline_id) >= 0:
+			return true
+	return false
 
 
 func _get_selected_gm_resource_id() -> String:

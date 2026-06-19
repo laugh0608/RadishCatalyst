@@ -1,6 +1,6 @@
 # Content Authoring Guide
 
-更新时间：2026-06-08
+更新时间：2026-06-15
 
 ## 目的
 
@@ -236,7 +236,16 @@
 
 如果新增的是“回基地加工后继续推进”的闭环，而你想让原型保持当前的引导体验，通常要补这里。
 
-### 3. `QuestRuntime`
+### 3. `FieldOutfittingRuntime` / `CharacterKitRuntime`
+
+文件：
+
+- `client/scripts/systems/field_outfitting_runtime.gd`
+- `client/scripts/systems/character_kit_runtime.gd`
+
+当前承载出发整备台模块、维护、防护响应、工具打击校准，以及 `C` 战术扫描的前置、标记、消费和承压倍率。新增整备收益时，优先把状态判断放在这里，再让战斗、采集、HUD 和检查脚本读取同一口径。
+
+### 4. `QuestRuntime`
 
 文件：
 
@@ -249,7 +258,7 @@
 
 如果你修改了已存在任务的中段结构，旧存档是否还能平滑读进来，需要看这里。
 
-### 4. `SaveContentValidator`
+### 5. `SaveContentValidator`
 
 文件：
 

@@ -5,7 +5,7 @@
 ## 关联信息
 
 - 关联 Issue / 任务：
-- 目标分支：`dev` / `master` / `main`（如非 `dev`，请说明原因）
+- 目标分支：`master` / `main`
 - 变更类型：
   - [ ] 功能
   - [ ] 修复
@@ -21,7 +21,7 @@
 - [ ] 如修改了架构、阶段边界、流程或规范，已同步更新 `docs/` / `AGENTS.md` / `CLAUDE.md`
 - [ ] 如属于本周重要推进，已追加到 `docs/devlogs/YYYY-Www.md`
 - [ ] 未直接向 `master` / `main` 提交常规功能改动
-- [ ] 默认目标分支为 `dev`；只有阶段性集成或发版时才面向 `master` / `main`
+- [ ] 本 PR 来自 `dev` 或明确说明了例外来源
 
 ## 验证记录
 
@@ -32,6 +32,8 @@ pwsh ./scripts/check-text-files.ps1
 pwsh ./scripts/check-docs.ps1
 ./scripts/check-text-files.sh
 ./scripts/check-docs.sh
+python3 scripts/check-client-data.py .
+python3 scripts/check-client-scenes.py .
 ./scripts/check-client.sh
 git diff --check
 ```

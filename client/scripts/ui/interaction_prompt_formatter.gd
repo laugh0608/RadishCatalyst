@@ -140,16 +140,196 @@ func format_general_interaction_prompt(
 	var object_state := world_state.get_map_object(interactable.instance_id)
 	var parts: Array[String] = ["对象：%s" % title]
 	parts.append("用途：%s" % _get_general_interaction_purpose(interactable, definition))
+	var scene_line := SceneArtFoundationFormatter.format_object_scene_line(
+		interactable.definition_id,
+		world_state.current_region_id
+	)
+	if not scene_line.is_empty():
+		parts.append(scene_line)
+	var non_core_scene_line := NonCoreSceneIdentityFormatter.format_object_scene_line(
+		interactable.definition_id,
+		world_state.current_region_id
+	)
+	if not non_core_scene_line.is_empty():
+		parts.append(non_core_scene_line)
+	var route_line := FunctionalTransitionRouteSupportFormatter.format_object_route_line(
+		interactable.definition_id,
+		world_state.current_region_id
+	)
+	if not route_line.is_empty():
+		parts.append(route_line)
+	var composition_line := PlayableSceneCompositionFormatter.format_object_composition_line(
+		interactable.definition_id,
+		world_state.current_region_id
+	)
+	if not composition_line.is_empty():
+		parts.append(composition_line)
+	var gameplay_line := FunctionalSceneGameplayFormatter.format_object_gameplay_line(
+		interactable.definition_id,
+		object_state,
+		world_state.current_region_id
+	)
+	if not gameplay_line.is_empty():
+		parts.append(gameplay_line)
+	var affordance_line := DemoInteractionAffordanceFormatter.format_general_affordance_line(
+		interactable,
+		object_state,
+		world_state,
+		character_state
+	)
+	if not affordance_line.is_empty():
+		parts.append(affordance_line)
 	var reward_line := _format_interaction_reward_line(interactable, definition)
 	if not reward_line.is_empty():
 		parts.append(reward_line)
-	parts.append("状态：%s" % _get_general_interaction_status(interactable, object_state, character_state))
+	parts.append("状态：%s" % _get_general_interaction_status(interactable, object_state, character_state, world_state))
 	var next_step_line := _get_general_interaction_next_step(interactable, object_state, character_state, world_state)
 	if not next_step_line.is_empty():
 		parts.append("下一步：%s" % next_step_line)
-	var action_line := _get_general_interaction_action(interactable, object_state, character_state)
+	var action_line := _get_general_interaction_action(interactable, object_state, character_state, world_state)
 	if not action_line.is_empty():
 		parts.append("操作：%s" % action_line)
+	return "\n".join(parts)
+
+
+func format_outfitting_station_prompt(character_state: CharacterState, world_state: WorldState) -> String:
+	if not world_state.has_base_structure_definition("building.field_outfitting_station"):
+		return "设施：%s\n用途：把基地制造出的模块装入防护服，让外勤承压差异从 HUD 提示变成可操作整备。\n%s\n状态：未建成。\n下一步：先完成基地平台的出发整备台建造点。" % [
+			_get_display_name("building.field_outfitting_station"),
+			DemoInteractionAffordanceFormatter.format_outfitting_station_affordance_line(world_state, character_state)
+		]
+
+	var parts: Array[String] = [DepartureReadinessFormatter.format_outfitting_station_prompt(world_state, character_state)]
+	var affordance_line := DemoInteractionAffordanceFormatter.format_outfitting_station_affordance_line(
+		world_state,
+		character_state
+	)
+	if not affordance_line.is_empty():
+		parts.append(affordance_line)
+	var recovery_line := DemoCombatEvacuationRecoveryFormatter.format_outfitting_station_recovery_line(
+		world_state,
+		character_state
+	)
+	if not recovery_line.is_empty():
+		parts.append(recovery_line)
+	var industrial_chain_line := IndustrialTechSpineFormatter.format_outfitting_station_prompt_line(
+		world_state,
+		character_state
+	)
+	if not industrial_chain_line.is_empty():
+		parts.append(industrial_chain_line)
+	var field_loop_line := DemoFieldLoopPayoffFormatter.format_outfitting_prompt_line(
+		world_state,
+		character_state
+	)
+	if not field_loop_line.is_empty():
+		parts.append(field_loop_line)
+	var tool_strike_line := FieldOutfittingRuntime.format_tool_strike_calibration_prompt_line(
+		world_state,
+		character_state
+	)
+	if not tool_strike_line.is_empty():
+		parts.append(tool_strike_line)
+	if FieldOutfittingRuntime.has_filter_module_equipped(character_state):
+		var drain_mult := (
+			character_state.get_pollution_drain_multiplier(data_registry)
+			* FieldOutfittingRuntime.get_pollution_drain_multiplier(character_state, world_state)
+		)
+		var counter_mult := (
+			character_state.get_pollution_counter_damage_multiplier(data_registry)
+			* FieldOutfittingRuntime.get_pollution_counter_damage_multiplier(character_state, world_state)
+		)
+		parts.append("防护服：污染消耗 x%.2f；污染反击 x%.2f。" % [drain_mult, counter_mult])
+		var protective_response_line := FieldOutfittingRuntime.format_protective_response_prompt_line(
+			world_state,
+			character_state
+		)
+		if not protective_response_line.is_empty():
+			parts.append(protective_response_line)
+		if (
+			FieldOutfittingRuntime.is_core_archive_maintenance_available(character_state, world_state)
+			and not FieldOutfittingRuntime.is_core_archive_maintained(world_state)
+		):
+			parts.append("核心归档：可把核心稳定数据接入基础过滤模块维护。")
+			parts.append("操作：E 接入核心归档维护")
+			return "\n".join(parts)
+		if FieldOutfittingRuntime.is_core_archive_maintained(world_state):
+			parts.append("核心归档：维护已接入，污染采集和污染反击承压继续下降。")
+		if FieldOutfittingRuntime.should_confirm_logistics_maintenance(character_state, world_state):
+			parts.append("后勤维护：补料已加工成基础零件，待出发整备台确认。")
+			parts.append("操作：E 确认后勤维护")
+			return "\n".join(parts)
+		if FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
+			parts.append("后勤维护：已确认，污染边界、遗迹外圈与核心站复测会读取维护收益。")
+		if FieldOutfittingRuntime.should_confirm_field_loop_payoff(character_state, world_state):
+			parts.append("操作：E 确认外勤收益整备")
+			return "\n".join(parts)
+		if FieldOutfittingRuntime.is_field_loop_payoff_confirmed(world_state):
+			parts.append("外勤收益：已兑现，回波匣解析和污染回波沉积处理已登记到下一趟整备。")
+		if FieldOutfittingRuntime.is_protective_response_ready(world_state):
+			parts.append("操作：E 检查防护响应")
+			return "\n".join(parts)
+		if FieldOutfittingRuntime.has_protective_response_triggered(world_state):
+			if FieldOutfittingRuntime.can_confirm_protective_response(character_state, world_state):
+				parts.append("操作：E 重新确认防护响应")
+			else:
+				parts.append("操作：E 检查防护响应")
+			return "\n".join(parts)
+		if FieldOutfittingRuntime.is_tool_strike_calibration_ready(world_state):
+			parts.append("操作：E 检查工具打击校准")
+			return "\n".join(parts)
+		if FieldOutfittingRuntime.has_tool_strike_calibration_triggered(world_state):
+			if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+				parts.append("操作：E 重新确认工具打击校准")
+			else:
+				parts.append("操作：E 检查工具打击校准")
+			return "\n".join(parts)
+		if FieldOutfittingRuntime.is_module_calibrated(world_state):
+			if FieldOutfittingRuntime.can_confirm_protective_response(character_state, world_state):
+				parts.append("操作：E 确认防护响应")
+				return "\n".join(parts)
+			if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+				parts.append("操作：E 确认工具打击校准")
+				return "\n".join(parts)
+			parts.append("维护：晶体校准已写入，污染采集、污染反击和遗迹外圈相位反击承压继续下降。")
+			parts.append("操作：E 检查整备状态")
+			return "\n".join(parts)
+		if FieldOutfittingRuntime.has_calibration_materials(character_state):
+			parts.append("维护：可消耗晶体矿 x%d / 残骸废件 x%d 校准过滤模块。" % [
+				FieldOutfittingRuntime.MODULE_CALIBRATION_CRYSTAL_COST,
+				FieldOutfittingRuntime.MODULE_CALIBRATION_SCRAP_COST
+			])
+			parts.append("操作：E 校准基础过滤模块")
+			return "\n".join(parts)
+		if FieldOutfittingRuntime.can_confirm_protective_response(character_state, world_state):
+			parts.append("操作：E 确认防护响应")
+			return "\n".join(parts)
+		if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+			parts.append("操作：E 确认工具打击校准")
+			return "\n".join(parts)
+		parts.append("下一步：回晶体侧路补晶体矿和残骸废件，再回整备台维护校准。")
+		parts.append("操作：E 查看缺料")
+		return "\n".join(parts)
+
+	if character_state.inventory.has_ref(FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID, 1):
+		parts.append("操作：E 装配基础过滤模块")
+		return "\n".join(parts)
+
+	if FieldOutfittingRuntime.is_tool_strike_calibration_ready(world_state):
+		parts.append("操作：E 检查工具打击校准")
+		return "\n".join(parts)
+	if FieldOutfittingRuntime.has_tool_strike_calibration_triggered(world_state):
+		if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+			parts.append("操作：E 重新确认工具打击校准")
+		else:
+			parts.append("操作：E 检查工具打击校准")
+		return "\n".join(parts)
+	if FieldOutfittingRuntime.can_confirm_tool_strike_calibration(character_state, world_state):
+		parts.append("操作：E 确认工具打击校准")
+		return "\n".join(parts)
+
+	parts.append("下一步：用基础反应器组装基础过滤模块，再回整备台装入防护服。")
+	parts.append("操作：E 查看缺料")
 	return "\n".join(parts)
 
 
@@ -170,6 +350,12 @@ func format_processing_prompt(
 			interactable.get_recipe_count()
 		]
 	parts.append(recipe_line)
+	if (
+		interactable.definition_id == "building.basic_reactor"
+		and FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state)
+		and not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state)
+	):
+		parts.append(DepartureReadinessFormatter.format_crystal_logistics_return_line(world_state, character_state))
 
 	var io_line := "%s -> %s" % [
 		String(status.get("inputs", "无")),
@@ -178,6 +364,14 @@ func format_processing_prompt(
 	var byproducts := String(status.get("byproducts", ""))
 	if not byproducts.is_empty():
 		io_line = "%s；副产 %s" % [io_line, byproducts]
+	var industrial_chain_line := IndustrialTechSpineFormatter.format_processing_prompt_line(
+		interactable.definition_id,
+		displayed_recipe_id,
+		world_state,
+		character_state
+	)
+	if not industrial_chain_line.is_empty():
+		io_line = "%s；%s" % [io_line, industrial_chain_line]
 	parts.append(io_line)
 
 	var status_line := "状态：%s" % String(status.get("message", ""))
@@ -220,6 +414,13 @@ func format_processing_log(recipe_id: String, character_state: CharacterState, w
 	var next_step := String(status.get("next_step", ""))
 	if not next_step.is_empty():
 		parts.append("下一步：%s" % next_step)
+	var industrial_chain_line := IndustrialTechSpineFormatter.format_processing_log_line(
+		displayed_recipe_id,
+		world_state,
+		character_state
+	)
+	if not industrial_chain_line.is_empty():
+		parts.append(industrial_chain_line)
 	return "；".join(parts)
 
 
@@ -286,6 +487,9 @@ func format_build_prompt(
 	var foundation_status := String(status.get("foundation_status", ""))
 	if not foundation_status.is_empty():
 		parts.append(foundation_status)
+	var affordance_line := DemoInteractionAffordanceFormatter.format_build_affordance_line(status)
+	if not affordance_line.is_empty():
+		parts.append(affordance_line)
 	parts.append("状态：%s" % String(status.get("message", "")))
 	var next_step := String(status.get("next_step", ""))
 	if not next_step.is_empty():
@@ -343,11 +547,15 @@ func format_clear_prompt(
 	if interactable.definition_id == "map_object.pressure_clearance_node":
 		return format_frontline_action_target_prompt(interactable, character_state, world_state)
 	if bool(object_state.get("is_cleared", false)):
-		return "地块：%s\n状态：已清理，可用于铺设基础地基。" % _get_display_name(interactable.definition_id)
+		return "地块：%s\n%s\n状态：已清理，可用于铺设基础地基。" % [
+			_get_display_name(interactable.definition_id),
+			DemoInteractionAffordanceFormatter.format_clear_affordance_line(object_state, "")
+		]
 
 	var tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
 	var parts: Array[String] = [
 		"地块：%s" % _get_display_name(interactable.definition_id),
+		DemoInteractionAffordanceFormatter.format_clear_affordance_line(object_state, tool_status),
 		"状态：未清理，阻挡建造。",
 		"下一步：清理后可铺设基础地基。",
 		"工具：%s" % tool_status
@@ -453,6 +661,25 @@ func format_field_reading_prompt(interactable: PrototypeInteractable, world_stat
 		"作用：%s" % String(prompt.get("effect", "写入后会推进当前现场目标。")),
 		"按 E 写入读数"
 	]
+	var route_line := FunctionalTransitionRouteSupportFormatter.format_object_route_line(
+		interactable.definition_id,
+		world_state.current_region_id
+	)
+	var non_core_scene_line := NonCoreSceneIdentityFormatter.format_object_scene_line(
+		interactable.definition_id,
+		world_state.current_region_id
+	)
+	if not non_core_scene_line.is_empty():
+		parts.append(non_core_scene_line)
+	if not route_line.is_empty():
+		parts.append(route_line)
+	var gameplay_line := FunctionalSceneGameplayFormatter.format_object_gameplay_line(
+		interactable.definition_id,
+		object_state,
+		world_state.current_region_id
+	)
+	if not gameplay_line.is_empty():
+		parts.append(gameplay_line)
 	return "\n".join(parts)
 
 
@@ -480,82 +707,149 @@ func format_stability_calibration_prompt(
 
 
 func format_outpost_core_prompt(world_state: WorldState, character_state: CharacterState) -> String:
+	var scene_line := SceneArtFoundationFormatter.format_object_scene_line(
+		"building.outpost_core",
+		world_state.current_region_id
+	)
+	var composition_line := PlayableSceneCompositionFormatter.format_object_composition_line(
+		"building.outpost_core",
+		world_state.current_region_id
+	)
 	if not world_state.quest_state.has_completed_quest("quest.restore_outpost"):
-		return "按 E 恢复：前哨核心，重启基础导航。"
-	if character_state.are_vitals_full():
-		return "前哨核心：整备在线；生命与防护完整，可继续外出或使用相位回投台。"
-	return "按 E 整备：前哨核心，恢复生命与防护。"
+		return "按 E 恢复：前哨核心，重启基础导航。\n%s\n%s\n%s" % [
+			DemoInteractionAffordanceFormatter.format_outpost_core_affordance_line(world_state, character_state),
+			scene_line,
+			composition_line
+		]
+	var parts: Array[String] = [
+		DepartureReadinessFormatter.format_outpost_core_prompt(world_state, character_state)
+	]
+	var affordance_line := DemoInteractionAffordanceFormatter.format_outpost_core_affordance_line(
+		world_state,
+		character_state
+	)
+	if not affordance_line.is_empty():
+		parts.append(affordance_line)
+	var completion_line := DemoMainlineCompletionFormatter.format_outpost_core_prompt_line(world_state, character_state)
+	if not completion_line.is_empty():
+		parts.append(completion_line)
+	var recovery_line := DemoCombatEvacuationRecoveryFormatter.format_outpost_core_recovery_line(
+		world_state,
+		character_state
+	)
+	if not recovery_line.is_empty():
+		parts.append(recovery_line)
+	parts.append(scene_line)
+	if not composition_line.is_empty():
+		parts.append(composition_line)
+	return "\n".join(parts)
 
 
-func format_ruin_gate_prompt(world_state: WorldState) -> String:
+func format_ruin_gate_prompt(world_state: WorldState, character_state: CharacterState = null) -> String:
 	if not world_state.quest_state.has_completed_quest("quest.defeat_elite_node"):
-		return "封锁遗迹入口：先压制污染残核，再确认更深区域信号。"
+		return _with_functional_transition_line(
+			"封锁遗迹入口：先压制污染残核，再确认更深区域信号。",
+			"map_object.ruin_gate",
+			world_state.current_region_id
+		)
 	if world_state.quest_state.has_completed_quest("quest.unlock_ruin_signal"):
-		return "遗迹外圈已开放：继续向东进入外圈，回收继电残片，并处理外圈前污染脊压力。"
+		return _with_functional_transition_line(
+			"遗迹外圈已开放：继续向东进入外圈，回收继电残片，并处理外圈前污染脊压力。",
+			"map_object.ruin_gate",
+			world_state.current_region_id
+		)
 	if _is_gate_pressure_active(world_state):
-		return "封锁遗迹入口：门前受扰敌人仍在压制；带药剂回污染边界，清理门前压力点后再确认入口信号。"
-	return "按 E 确认：封锁遗迹入口信号，打开遗迹外圈通路。"
+		return _with_functional_transition_line(
+			"封锁遗迹入口：门前受扰敌人仍在压制；带药剂回污染边界，清理门前压力点后再确认入口信号。",
+			"map_object.ruin_gate",
+			world_state.current_region_id
+		)
+	return _with_functional_transition_line(
+		RuinGateReadinessFormatter.format_ready_prompt(character_state),
+		"map_object.ruin_gate",
+		world_state.current_region_id
+	)
 
 
 func format_outer_ring_barrier_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier"):
-		return "抖动雾幕：已稳定，可继续向东检查外圈中继台。"
+		return _with_functional_transition_line("抖动雾幕：已稳定，可继续向东检查外圈中继台。", "map_object.outer_ring_barrier", world_state.current_region_id)
 	if not world_state.quest_state.has_completed_quest("quest.assemble_phase_anchor"):
-		return "抖动雾幕：先回基地组装稳相信标，再返回部署。"
+		return _with_functional_transition_line("抖动雾幕：先回基地组装稳相信标，再返回部署。", "map_object.outer_ring_barrier", world_state.current_region_id)
 	if not character_state.inventory.has_ref("item.phase_anchor", 1):
-		return "抖动雾幕：缺少稳相信标；回基地把继电残片、污染浆液和基础零件组装后再来。"
-	return "按 E 部署：稳相信标，稳定抖动雾幕。"
+		return _with_functional_transition_line("抖动雾幕：缺少稳相信标；回基地把继电残片、污染浆液和基础零件组装后再来。", "map_object.outer_ring_barrier", world_state.current_region_id)
+	return _with_functional_transition_line("按 E 部署：稳相信标，稳定抖动雾幕。", "map_object.outer_ring_barrier", world_state.current_region_id)
 
 
 func format_outer_ring_console_prompt(world_state: WorldState) -> String:
 	if not world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier"):
-		return "外圈中继台：先稳定抖动雾幕，再进入外圈深段。"
+		return _with_functional_transition_line("外圈中继台：先稳定抖动雾幕，再进入外圈深段。", "map_object.outer_ring_console", world_state.current_region_id)
 	if world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
-		return "外圈中继台：数据已读取，裂相结构坐标已保留。"
-	return "按 E 检查：外圈中继台。"
+		return _with_functional_transition_line("外圈中继台：数据已读取，裂相结构坐标已保留。", "map_object.outer_ring_console", world_state.current_region_id)
+	return _with_functional_transition_line("按 E 检查：外圈中继台。", "map_object.outer_ring_console", world_state.current_region_id)
 
 
-func format_signal_echo_cache_prompt(world_state: WorldState) -> String:
+func format_signal_echo_cache_prompt(
+	world_state: WorldState,
+	character_state: CharacterState = null
+) -> String:
+	var affordance_line := DemoInteractionAffordanceFormatter.format_definition_affordance_line(
+		"map_object.signal_echo_cache",
+		"inspect",
+		DemoInteractionAffordanceFormatter.SIGNAL_ECHO_CACHE_INSTANCE_ID,
+		world_state.get_map_object(DemoInteractionAffordanceFormatter.SIGNAL_ECHO_CACHE_INSTANCE_ID),
+		world_state,
+		character_state
+	)
 	if not world_state.quest_state.has_completed_quest("quest.secure_outer_ring_signal"):
-		return "外圈回波匣：先检查外圈中继台，锁定稳定回波。"
+		return _append_affordance_line(_with_functional_transition_line("外圈回波匣：先检查外圈中继台，锁定稳定回波。", "map_object.signal_echo_cache", world_state.current_region_id), affordance_line)
 	if world_state.quest_state.has_completed_quest("quest.salvage_signal_echo"):
-		return "外圈回波匣：已回收，回基地解析深段回波。"
+		return _append_affordance_line(_with_functional_transition_line("外圈回波匣：已回收，回基地解析深段回波。", "map_object.signal_echo_cache", world_state.current_region_id), affordance_line)
 	if world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
 		if not bool(world_state.get_enemy("enemy_instance.ruin_phase_guard").get("is_defeated", false)):
-			return "外圈回波匣：相位守卫仍在压制；先清理守卫。"
+			return _append_affordance_line(_with_functional_transition_line("外圈回波匣：相位守卫仍在压制；先清理守卫。%s" % _format_ruin_outer_ring_module_prompt(character_state, world_state), "map_object.signal_echo_cache", world_state.current_region_id), affordance_line)
 		if world_state.quest_state.get_objective_progress("quest.salvage_signal_echo", "gather_item", "item.polluted_residue") < 2.0:
-			return "外圈回波匣：先回收守卫后暴露的污染回波沉积，再回过滤器处理副产。"
-	return "按 E 回收：外圈回波匣。"
+			return _append_affordance_line(_with_functional_transition_line("外圈回波匣：先回收守卫后暴露的污染回波沉积，再回过滤器处理副产。%s" % _format_ruin_outer_ring_module_prompt(character_state, world_state), "map_object.signal_echo_cache", world_state.current_region_id), affordance_line)
+	return _append_affordance_line(_with_functional_transition_line("按 E 回收：外圈回波匣。", "map_object.signal_echo_cache", world_state.current_region_id), affordance_line)
+
+
+func _format_ruin_outer_ring_module_prompt(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
+	if character_state == null:
+		return ""
+	return " %s" % FieldOutfittingRuntime.format_ruin_outer_ring_pressure_feedback(character_state, world_state)
 
 
 func format_deep_ruin_door_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_entrance"):
-		return "裂相脊入口门禁：已写入，可继续向东进入裂相脊。"
+		return _with_functional_transition_line("裂相脊入口门禁：已写入，可继续向东进入裂相脊。", "map_object.deep_ruin_door", world_state.current_region_id)
 	if not world_state.quest_state.has_completed_quest("quest.analyze_deep_signal"):
-		return "裂相脊入口门禁：先回基地解析深段回波，拿到裂相坐标。"
+		return _with_functional_transition_line("裂相脊入口门禁：先回基地解析深段回波，拿到裂相坐标。", "map_object.deep_ruin_door", world_state.current_region_id)
 	if not character_state.inventory.has_ref("item.deep_ruin_coordinates", 1):
-		return "裂相脊入口门禁：缺少裂相坐标；回基地确认基础反应器解析结果后再来。"
-	return "按 E 写入：裂相坐标，打开裂相脊入口。"
+		return _with_functional_transition_line("裂相脊入口门禁：缺少裂相坐标；回基地确认基础反应器解析结果后再来。", "map_object.deep_ruin_door", world_state.current_region_id)
+	return _with_functional_transition_line("按 E 写入：裂相坐标，打开裂相脊入口。", "map_object.deep_ruin_door", world_state.current_region_id)
 
 
 func format_deep_ruin_latch_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_cache"):
-		return "裂相锁扣：已覆写，裂相样块已回收。"
+		return _with_functional_transition_line("裂相锁扣：已覆写，裂相样块已回收。", "map_object.deep_ruin_latch", world_state.current_region_id)
 	if not world_state.quest_state.has_completed_quest("quest.assemble_deep_override"):
-		return "裂相锁扣：先回基地精炼相位纤丝并组装裂相覆写栓。"
+		return _with_functional_transition_line("裂相锁扣：先回基地精炼相位纤丝并组装裂相覆写栓。", "map_object.deep_ruin_latch", world_state.current_region_id)
 	if not character_state.inventory.has_ref("item.deep_override_key", 1):
-		return "裂相锁扣：缺少裂相覆写栓；回过滤器精炼纤丝，再去反应器组装。"
-	return "按 E 覆写：裂相锁扣。"
+		return _with_functional_transition_line("裂相锁扣：缺少裂相覆写栓；回过滤器精炼纤丝，再去反应器组装。", "map_object.deep_ruin_latch", world_state.current_region_id)
+	return _with_functional_transition_line("按 E 覆写：裂相锁扣。", "map_object.deep_ruin_latch", world_state.current_region_id)
 
 
 func format_deep_signal_array_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.activate_deep_array"):
-		return "裂相阵列台：已点亮，第二轮导管回收线已暴露。"
+		return _with_functional_transition_line("裂相阵列台：已点亮，第二轮导管回收线已暴露。", "map_object.deep_signal_array", world_state.current_region_id)
 	if not world_state.quest_state.has_completed_quest("quest.analyze_deep_core"):
-		return "裂相阵列台：先回基地解析裂相样块，整理出路由印片。"
+		return _with_functional_transition_line("裂相阵列台：先回基地解析裂相样块，整理出路由印片。", "map_object.deep_signal_array", world_state.current_region_id)
 	if not character_state.inventory.has_ref("item.deep_route_imprint", 1):
-		return "裂相阵列台：缺少裂相路由印片；回基地确认基础反应器解析结果后再来。"
-	return "按 E 写入：裂相路由印片，点亮裂相阵列台。"
+		return _with_functional_transition_line("裂相阵列台：缺少裂相路由印片；回基地确认基础反应器解析结果后再来。", "map_object.deep_signal_array", world_state.current_region_id)
+	return _with_functional_transition_line("按 E 写入：裂相路由印片，点亮裂相阵列台。", "map_object.deep_signal_array", world_state.current_region_id)
 
 
 func format_phase_return_anchor_prompt(
@@ -569,13 +863,13 @@ func format_phase_return_anchor_prompt(
 			if not world_state.is_active_phase_relay_anchor(anchor_instance_id):
 				recalibration_hint = "；回传后会把基地当前落点切回这里"
 		if world_state.quest_state.has_active_quest("quest.reenter_phase_frontline"):
-			return "按 E 回传：前线回传锚点，返回基地相位回投台，再从回投台重返更东侧裂相脊%s。" % recalibration_hint
-		return "按 E 回传：前线回传锚点，快速返回基地相位回投台%s。" % recalibration_hint
+			return _with_functional_transition_line("按 E 回传：前线回传锚点，返回基地相位回投台，再从回投台重返更东侧裂相脊%s。" % recalibration_hint, "map_object.phase_return_anchor", world_state.current_region_id)
+		return _with_functional_transition_line("按 E 回传：前线回传锚点，快速返回基地相位回投台%s。" % recalibration_hint, "map_object.phase_return_anchor", world_state.current_region_id)
 	if not world_state.quest_state.has_completed_quest("quest.assemble_deep_signal_matrix"):
-		return "前线回传锚点：先回基地整理深段读数矩阵，再返回深段部署。"
+		return _with_functional_transition_line("前线回传锚点：先回基地整理深段读数矩阵，再返回深段部署。", "map_object.phase_return_anchor", world_state.current_region_id)
 	if not character_state.inventory.has_ref("item.deep_signal_matrix", 1):
-		return "前线回传锚点：缺少深段读数矩阵；回基地确认基础反应器整理结果后再来。"
-	return "按 E 部署：深段读数矩阵，激活前线回传锚点。"
+		return _with_functional_transition_line("前线回传锚点：缺少深段读数矩阵；回基地确认基础反应器整理结果后再来。", "map_object.phase_return_anchor", world_state.current_region_id)
+	return _with_functional_transition_line("按 E 部署：深段读数矩阵，激活前线回传锚点。", "map_object.phase_return_anchor", world_state.current_region_id)
 
 
 func format_phase_relay_pad_prompt(world_state: WorldState) -> String:
@@ -597,85 +891,85 @@ func format_phase_relay_pad_prompt(world_state: WorldState) -> String:
 
 func format_phase_fault_spire_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_fault_spire"):
-		return "裂相尖塔：已校准，第一份内层故障轨迹已带回基地；下一步回基地解析更东侧裂相锁位。"
+		return _with_functional_transition_line("裂相尖塔：已校准，第一份内层故障轨迹已带回基地；下一步回基地解析更东侧裂相锁位。", "map_object.phase_fault_spire", world_state.current_region_id)
 	if not (
 		world_state.quest_state.has_completed_quest("quest.refine_phase_splinters")
 		or world_state.quest_state.has_completed_quest("quest.tune_relay_lens")
 	):
-		return "裂相尖塔：先回基地完成中继调谐镜整备，再回来校准内层回波。"
+		return _with_functional_transition_line("裂相尖塔：先回基地完成中继调谐镜整备，再回来校准内层回波。", "map_object.phase_fault_spire", world_state.current_region_id)
 	if not character_state.inventory.has_ref("item.relay_tuning_lens", 1):
-		return "裂相尖塔：缺少中继调谐镜；回基地确认基础反应器组装结果后再来。"
-	return "按 E 校准：裂相尖塔，带回内层故障轨迹。"
+		return _with_functional_transition_line("裂相尖塔：缺少中继调谐镜；回基地确认基础反应器组装结果后再来。", "map_object.phase_fault_spire", world_state.current_region_id)
+	return _with_functional_transition_line("按 E 校准：裂相尖塔，带回内层故障轨迹。", "map_object.phase_fault_spire", world_state.current_region_id)
 
 
 func format_phase_well_lock_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.unlock_phase_well"):
-		return "裂相锁位：已钉住，第一份回声定位器已带回基地；下一步回基地解析定位器。"
+		return _with_functional_transition_line("裂相锁位：已钉住，第一份回声定位器已带回基地；下一步回基地解析定位器。", "map_object.phase_well_lock", world_state.current_region_id)
 	if not (world_state.quest_state.has_completed_quest("quest.refine_fault_residue") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_key")):
-		return "裂相锁位：先回基地完成裂相锁钥整备，再回来钉住锁位。"
+		return _with_functional_transition_line("裂相锁位：先回基地完成裂相锁钥整备，再回来钉住锁位。", "map_object.phase_well_lock", world_state.current_region_id)
 	if not character_state.inventory.has_ref("item.phase_well_key", 1):
-		return "裂相锁位：缺少裂相锁钥；回基地确认基础反应器组装结果后再来。"
-	return "按 E 锁定：裂相锁位，带回回声定位器。"
+		return _with_functional_transition_line("裂相锁位：缺少裂相锁钥；回基地确认基础反应器组装结果后再来。", "map_object.phase_well_lock", world_state.current_region_id)
+	return _with_functional_transition_line("按 E 锁定：裂相锁位，带回回声定位器。", "map_object.phase_well_lock", world_state.current_region_id)
 
 
 func format_inner_phase_well_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well"):
-		return "回声台地：回声芯样本已带回；先回基地解析这份样本，再回来继续推进更东侧盐壳浅滩。"
+		return _with_functional_transition_line("回声台地：回声芯样本已带回；先回基地解析这份样本，再回来继续推进更东侧盐壳浅滩。", "map_object.inner_phase_well", world_state.current_region_id)
 	if not (world_state.quest_state.has_completed_quest("quest.refine_well_flux") or world_state.quest_state.has_completed_quest("quest.assemble_phase_well_probe")):
-		return "回声台地：先回基地完成回声探针整备，再回来读取回声芯样本。"
+		return _with_functional_transition_line("回声台地：先回基地完成回声探针整备，再回来读取回声芯样本。", "map_object.inner_phase_well", world_state.current_region_id)
 	if not character_state.inventory.has_ref("item.phase_well_probe", 1):
-		return "回声台地：缺少回声探针；回基地确认基础反应器组装结果后再来。"
-	return "按 E 勘验：回声台地。"
+		return _with_functional_transition_line("回声台地：缺少回声探针；回基地确认基础反应器组装结果后再来。", "map_object.inner_phase_well", world_state.current_region_id)
+	return _with_functional_transition_line("按 E 勘验：回声台地。", "map_object.inner_phase_well", world_state.current_region_id)
 
 
 func format_phase_well_sink_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_sink"):
-		return "盐壳浅滩：已凿开，第一份碎晶心核已带回基地；下一步回基地解析并继续推进碎晶沟谷断面。"
+		return _with_functional_transition_line("盐壳浅滩：已凿开，第一份碎晶心核已带回基地；下一步回基地解析并继续推进碎晶沟谷断面。", "map_object.phase_well_sink", world_state.current_region_id)
 	if not _has_completed_any(world_state, ["quest.refine_well_ash", "quest.assemble_phase_well_pike"]):
-		return "盐壳浅滩：先回基地完成盐壳整备，把盐壳穿钉带回来凿开更东侧裂口。"
+		return _with_functional_transition_line("盐壳浅滩：先回基地完成盐壳整备，把盐壳穿钉带回来凿开更东侧裂口。", "map_object.phase_well_sink", world_state.current_region_id)
 	if not character_state.inventory.has_ref("item.phase_well_pike", 1):
-		return "盐壳浅滩：缺少盐壳穿钉；回基地确认基础反应器组装结果后再来。"
-	return "按 E 凿开：盐壳浅滩。"
+		return _with_functional_transition_line("盐壳浅滩：缺少盐壳穿钉；回基地确认基础反应器组装结果后再来。", "map_object.phase_well_sink", world_state.current_region_id)
+	return _with_functional_transition_line("按 E 凿开：盐壳浅滩。", "map_object.phase_well_sink", world_state.current_region_id)
 
 
 func format_phase_well_chamber_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_chamber"):
-		return "碎晶沟谷断面：已勘验，第一份风蚀张力核已带回基地；下一步回基地解析并继续推进风蚀管廊断面。"
+		return _with_functional_transition_line("碎晶沟谷断面：已勘验，第一份风蚀张力核已带回基地；下一步回基地解析并继续推进风蚀管廊断面。", "map_object.phase_well_chamber", world_state.current_region_id)
 	if not _has_completed_any(world_state, ["quest.refine_heart_spine", "quest.assemble_phase_well_shunt"]):
-		return "碎晶沟谷断面：先回基地完成碎晶整备，把碎晶分流栓带回来勘验更东侧断面。"
+		return _with_functional_transition_line("碎晶沟谷断面：先回基地完成碎晶整备，把碎晶分流栓带回来勘验更东侧断面。", "map_object.phase_well_chamber", world_state.current_region_id)
 	if not character_state.inventory.has_ref("item.phase_well_shunt", 1):
-		return "碎晶沟谷断面：缺少碎晶分流栓；回基地确认基础反应器组装结果后再来。"
-	return "按 E 勘验：碎晶沟谷断面。"
+		return _with_functional_transition_line("碎晶沟谷断面：缺少碎晶分流栓；回基地确认基础反应器组装结果后再来。", "map_object.phase_well_chamber", world_state.current_region_id)
+	return _with_functional_transition_line("按 E 勘验：碎晶沟谷断面。", "map_object.phase_well_chamber", world_state.current_region_id)
 
 
 func format_phase_well_loom_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_loom"):
-		return "风蚀管廊断面：已勘验，第一份锁相织构核已带回基地；下一步回基地解析并继续推进锁相框架断面。"
+		return _with_functional_transition_line("风蚀管廊断面：已勘验，第一份锁相织构核已带回基地；下一步回基地解析并继续推进锁相框架断面。", "map_object.phase_well_loom", world_state.current_region_id)
 	if not _has_completed_any(world_state, ["quest.refine_weft_bundle", "quest.assemble_phase_well_shuttle"]):
-		return "风蚀管廊断面：先回基地完成风蚀整备，把风蚀梭栓带回来勘验更东侧断面。"
+		return _with_functional_transition_line("风蚀管廊断面：先回基地完成风蚀整备，把风蚀梭栓带回来勘验更东侧断面。", "map_object.phase_well_loom", world_state.current_region_id)
 	if not character_state.inventory.has_ref("item.phase_well_shuttle", 1):
-		return "风蚀管廊断面：缺少风蚀梭栓；回基地确认基础反应器组装结果后再来。"
-	return "按 E 勘验：风蚀管廊断面。"
+		return _with_functional_transition_line("风蚀管廊断面：缺少风蚀梭栓；回基地确认基础反应器组装结果后再来。", "map_object.phase_well_loom", world_state.current_region_id)
+	return _with_functional_transition_line("按 E 勘验：风蚀管廊断面。", "map_object.phase_well_loom", world_state.current_region_id)
 
 
 func format_phase_well_frame_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_frame"):
-		return "锁相框架断面：已勘验，第一份锚定结核已带回基地；下一步回基地解析并继续推进锚定桥断面。"
+		return _with_functional_transition_line("锁相框架断面：已勘验，第一份锚定结核已带回基地；下一步回基地解析并继续推进锚定桥断面。", "map_object.phase_well_frame", world_state.current_region_id)
 	if not _has_completed_any(world_state, ["quest.refine_selvedge_strip", "quest.assemble_phase_well_frame_key"]):
-		return "锁相框架断面：先回基地完成锁相框架整备，把锁相键栓带回来勘验更东侧断面。"
+		return _with_functional_transition_line("锁相框架断面：先回基地完成锁相框架整备，把锁相键栓带回来勘验更东侧断面。", "map_object.phase_well_frame", world_state.current_region_id)
 	if not character_state.inventory.has_ref("item.phase_well_frame_key", 1):
-		return "锁相框架断面：缺少锁相键栓；回基地确认基础反应器组装结果后再来。"
-	return "按 E 勘验：锁相框架断面。"
+		return _with_functional_transition_line("锁相框架断面：缺少锁相键栓；回基地确认基础反应器组装结果后再来。", "map_object.phase_well_frame", world_state.current_region_id)
+	return _with_functional_transition_line("按 E 勘验：锁相框架断面。", "map_object.phase_well_frame", world_state.current_region_id)
 
 
 func format_phase_well_tether_prompt(world_state: WorldState, character_state: CharacterState) -> String:
 	if world_state.quest_state.has_completed_quest("quest.inspect_phase_well_tether"):
-		return "锚定桥断面：已勘验，第一份稳场锚核已带回基地；下一步回基地完成锚场整备。"
+		return _with_functional_transition_line("锚定桥断面：已勘验，第一份稳场锚核已带回基地；下一步回基地完成锚场整备。", "map_object.phase_well_tether", world_state.current_region_id)
 	if not _has_completed_any(world_state, ["quest.refine_tether_fiber", "quest.assemble_phase_well_tether_spike"]):
-		return "锚定桥断面：先回基地完成锚定桥整备，把锚定桩带回来勘验更东侧断面。"
+		return _with_functional_transition_line("锚定桥断面：先回基地完成锚定桥整备，把锚定桩带回来勘验更东侧断面。", "map_object.phase_well_tether", world_state.current_region_id)
 	if not character_state.inventory.has_ref("item.phase_well_tether_spike", 1):
-		return "锚定桥断面：缺少锚定桩；回基地确认基础反应器组装结果后再来。"
-	return "按 E 勘验：锚定桥断面。"
+		return _with_functional_transition_line("锚定桥断面：缺少锚定桩；回基地确认基础反应器组装结果后再来。", "map_object.phase_well_tether", world_state.current_region_id)
+	return _with_functional_transition_line("按 E 勘验：锚定桥断面。", "map_object.phase_well_tether", world_state.current_region_id)
 
 
 func format_phase_well_anchor_field_prompt(world_state: WorldState, character_state: CharacterState) -> String:
@@ -688,19 +982,19 @@ func format_phase_well_anchor_field_prompt(world_state: WorldState, character_st
 			world_state.quest_state.has_completed_quest("quest.analyze_phase_well_echo_shard")
 			or character_state.inventory.has_ref("item.phase_well_stability_readout", 1)
 		):
-			return "按 E 回充：稳窗读数已解析，锚场回稳窗可在前线恢复生命与防护；之后按序校准三处稳窗节点。"
-		return "锚场回稳窗：局部稳定窗口已维持；回基地解析稳窗余响片后，可把这里校准成前线回稳点。"
+			return _with_functional_transition_line("按 E 回充：稳窗读数已解析，锚场回稳窗可在前线恢复生命与防护；之后按序校准三处稳窗节点。", "map_object.phase_well_anchor_field", world_state.current_region_id)
+		return _with_functional_transition_line("锚场回稳窗：局部稳定窗口已维持；回基地解析稳窗余响片后，可把这里校准成前线回稳点。", "map_object.phase_well_anchor_field", world_state.current_region_id)
 	if not _has_completed_any(world_state, ["quest.refine_anchor_core_dust", "quest.assemble_phase_well_anchor_stake"]):
-		return "锚场回稳窗：先回基地完成锚场整备，把稳场校锚桩带回来部署。"
+		return _with_functional_transition_line("锚场回稳窗：先回基地完成锚场整备，把稳场校锚桩带回来部署。", "map_object.phase_well_anchor_field", world_state.current_region_id)
 	if not deployed:
 		if not character_state.inventory.has_ref("item.phase_well_anchor_stake", 1):
-			return "锚场回稳窗：缺少稳场校锚桩；回基地确认基础反应器组装结果后再来。"
-		return "按 E 部署：锚场回稳窗。"
+			return _with_functional_transition_line("锚场回稳窗：缺少稳场校锚桩；回基地确认基础反应器组装结果后再来。", "map_object.phase_well_anchor_field", world_state.current_region_id)
+		return _with_functional_transition_line("按 E 部署：锚场回稳窗。", "map_object.phase_well_anchor_field", world_state.current_region_id)
 	if not pressure_cleared:
 		if not _has_anchor_field_pressure_pins_cleared(world_state):
-			return "锚场回稳窗：回稳中；先清掉两处压力钉，再压制稳场守脉体。校锚桩会保留在现场，失败后可直接重试。"
-		return "锚场回稳窗：回稳中；先清掉稳场守脉体，再回来收束稳定窗口。校锚桩会保留在现场，失败后可直接重试。"
-	return "按 E 收束：锚场回稳窗。"
+			return _with_functional_transition_line("锚场回稳窗：回稳中；先清掉两处压力钉，再压制稳场守脉体。校锚桩会保留在现场，失败后可直接重试。", "map_object.phase_well_anchor_field", world_state.current_region_id)
+		return _with_functional_transition_line("锚场回稳窗：回稳中；先清掉稳场守脉体，再回来收束稳定窗口。校锚桩会保留在现场，失败后可直接重试。", "map_object.phase_well_anchor_field", world_state.current_region_id)
+	return _with_functional_transition_line("按 E 收束：锚场回稳窗。", "map_object.phase_well_anchor_field", world_state.current_region_id)
 
 
 func format_pollution_entry_warning(character_state: CharacterState) -> String:
@@ -754,9 +1048,52 @@ func _get_interaction_tool_status(definition_id: String, character_state: Charac
 	return "缺少能力：%s" % ", ".join(missing_tags)
 
 
+func _with_functional_transition_line(prompt: String, definition_id: String, fallback_region_id: String = "") -> String:
+	var parts: Array[String] = [prompt]
+	var scene_line := NonCoreSceneIdentityFormatter.format_object_scene_line(
+		definition_id,
+		fallback_region_id
+	)
+	var route_line := FunctionalTransitionRouteSupportFormatter.format_object_route_line(
+		definition_id,
+		fallback_region_id
+	)
+	var composition_line := PlayableSceneCompositionFormatter.format_object_composition_line(
+		definition_id,
+		fallback_region_id
+	)
+	if not scene_line.is_empty():
+		parts.append(scene_line)
+	if not route_line.is_empty():
+		parts.append(route_line)
+	if not composition_line.is_empty():
+		parts.append(composition_line)
+	var gameplay_line := FunctionalSceneGameplayFormatter.format_static_object_gameplay_line(
+		definition_id,
+		fallback_region_id
+	)
+	if not gameplay_line.is_empty():
+		parts.append(gameplay_line)
+	return "\n".join(parts)
+
+
+func _append_affordance_line(prompt: String, affordance_line: String) -> String:
+	if affordance_line.is_empty():
+		return prompt
+	return "%s\n%s" % [prompt, affordance_line]
+
+
 func _get_general_interaction_purpose(interactable: PrototypeInteractable, definition: Dictionary) -> String:
+	if interactable.definition_id == "map_object.outpost_departure_gate":
+		return "汇总前哨核心补给、出发整备台模块和地图目标，作为外勤前最后检查。"
+	if interactable.definition_id == "map_object.outpost_logistics_route_sign":
+		return "把前哨核心、储存箱、浆液缓冲罐、出发整备台和外勤出发口读成一条出发准备路线。"
 	if interactable.definition_id == "map_object.demo_stabilization_core":
-		return "写入稳窗和高压窗口归档数据；抗污染药剂会参与核心设备写入排压。"
+		return "写入归档数据；侧边补给、缓冲回写、药剂和守卫缓存会改变核心设备承压。"
+	if interactable.definition_id == CoreStabilizationPressureFormatter.RETEST_READOUT_DEFINITION_ID:
+		return "回收核心设备完成态后的复测读数和可用补给，带回基地整理下一趟外勤。"
+	if _is_crystal_logistics_return_object(interactable.instance_id):
+		return "回收后勤补料材料，支撑基础反应器基础零件加工和出发整备台维护材料。"
 	match interactable.interaction_type:
 		"gather":
 			match String(definition.get("object_type", "")):
@@ -793,19 +1130,49 @@ func _format_interaction_reward_line(interactable: PrototypeInteractable, defini
 func _get_general_interaction_status(
 	interactable: PrototypeInteractable,
 	object_state: Dictionary,
-	character_state: CharacterState
+	character_state: CharacterState,
+	world_state: WorldState
 ) -> String:
+	if interactable.definition_id == "map_object.demo_stabilization_core":
+		var core_status := CoreStabilizationPressureFormatter.format_interaction_status(character_state, world_state, object_state)
+		var endpoint_status := DemoEndpointReadinessFormatter.format_core_object_status_line(
+			world_state,
+			character_state
+		)
+		if not endpoint_status.is_empty():
+			core_status = "%s；%s" % [endpoint_status, core_status]
+		var demo_completion_status := DemoMainlineCompletionFormatter.format_core_object_status(
+			world_state,
+			character_state,
+			object_state
+		)
+		if not demo_completion_status.is_empty():
+			return "%s；%s" % [demo_completion_status, core_status]
+		return core_status
+	if _is_crystal_logistics_return_object(interactable.instance_id):
+		return _get_crystal_logistics_return_status(interactable, object_state, world_state)
 	if _is_general_interaction_processed(interactable, object_state):
-		return _get_processed_interaction_status(interactable)
+		return _get_processed_interaction_status(interactable, character_state, world_state)
+	if interactable.definition_id == CoreStabilizationPressureFormatter.RETEST_READOUT_DEFINITION_ID:
+		return CoreStabilizationPressureFormatter.format_completed_cache_status(
+			interactable.definition_id,
+			world_state,
+			character_state
+		)
 	var tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
 	if tool_status.begins_with("缺少能力"):
 		return "%s，先升级或更换工具。" % tool_status
-	if interactable.definition_id == "map_object.demo_stabilization_core":
-		if _is_general_interaction_processed(interactable, object_state):
-			return "已接管，第一条稳定通道已打开。"
-		if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
-			return "可写入，抗污染药剂可降低写入反冲。"
-		return "可写入，但缺少抗污染药剂，反冲会完整命中。"
+	if interactable.definition_id == "map_object.outpost_departure_gate":
+		var recovery_status := DemoCombatEvacuationRecoveryFormatter.format_departure_gate_status_line(
+			world_state,
+			character_state
+		)
+		var departure_status := DepartureReadinessFormatter.format_departure_gate_status(world_state, character_state)
+		if not recovery_status.is_empty():
+			return "%s；%s" % [recovery_status, departure_status]
+		return departure_status
+	if interactable.definition_id == "map_object.outpost_logistics_route_sign":
+		return DepartureReadinessFormatter.format_logistics_route_status(world_state, character_state)
 	match interactable.interaction_type:
 		"gather":
 			return "可采集。"
@@ -820,15 +1187,27 @@ func _get_general_interaction_status(
 func _get_general_interaction_action(
 	interactable: PrototypeInteractable,
 	object_state: Dictionary,
-	character_state: CharacterState
+	character_state: CharacterState,
+	world_state: WorldState
 ) -> String:
+	if (
+		interactable.definition_id == "map_object.demo_stabilization_core"
+		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
+	):
+		return "按 E 复测核心稳定设备"
 	if _is_general_interaction_processed(interactable, object_state):
 		return ""
 	var tool_status := _get_interaction_tool_status(interactable.definition_id, character_state)
 	if tool_status.begins_with("缺少能力"):
 		return ""
+	if interactable.definition_id == "map_object.outpost_departure_gate":
+		return "按 E 检查出发准备"
+	if interactable.definition_id == "map_object.outpost_logistics_route_sign":
+		return "按 E 检查后勤路线"
 	if interactable.definition_id == "map_object.demo_stabilization_core":
 		return "按 E 写入核心稳定数据"
+	if interactable.definition_id == CoreStabilizationPressureFormatter.RETEST_READOUT_DEFINITION_ID:
+		return "按 E 回收复测读数缓存"
 	match interactable.interaction_type:
 		"gather":
 			return "按 E 采集"
@@ -846,14 +1225,44 @@ func _get_general_interaction_next_step(
 	character_state: CharacterState,
 	world_state: WorldState
 ) -> String:
+	if interactable.definition_id == "map_object.outpost_departure_gate":
+		var recovery_next_step := DemoCombatEvacuationRecoveryFormatter.format_departure_gate_next_step(
+			world_state,
+			character_state
+		)
+		if not recovery_next_step.is_empty():
+			return recovery_next_step
+		return DepartureReadinessFormatter.format_departure_gate_next_step(world_state, character_state)
+	if interactable.definition_id == "map_object.outpost_logistics_route_sign":
+		return DepartureReadinessFormatter.format_logistics_route_next_step(world_state, character_state)
 	if interactable.definition_id == "map_object.demo_stabilization_core":
-		if _is_general_interaction_processed(interactable, object_state):
-			return "首版 demo 主线目标已完成；返回基地整理补给。"
-		if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
-			return "直接写入，药剂会自动接入排压并降低生命 / 防护损耗。"
-		return "可写入但承压更高；若想降低损耗，先确认守卫缓存或过滤器补给。"
-	if interactable.definition_id != "map_object.pollution_residue_patch":
+		var core_next_step := CoreStabilizationPressureFormatter.format_interaction_next_step(character_state, world_state, object_state)
+		var endpoint_next_step := DemoEndpointReadinessFormatter.format_core_object_next_step(
+			world_state,
+			character_state
+		)
+		if not endpoint_next_step.is_empty():
+			core_next_step = "%s；%s" % [endpoint_next_step, core_next_step]
+		var demo_completion_next_step := DemoMainlineCompletionFormatter.format_core_object_next_step(
+			world_state,
+			character_state,
+			object_state
+		)
+		if not demo_completion_next_step.is_empty():
+			return "%s；%s" % [demo_completion_next_step, core_next_step]
+		return core_next_step
+	if interactable.definition_id == CoreStabilizationPressureFormatter.RETEST_READOUT_DEFINITION_ID:
+		return CoreStabilizationPressureFormatter.format_retest_readout_next_step(world_state, character_state)
+	if _is_crystal_logistics_return_object(interactable.instance_id):
+		return _get_crystal_logistics_return_next_step(interactable, object_state, world_state)
+	if (
+		interactable.definition_id != "map_object.pollution_residue_patch"
+		and interactable.definition_id != CoreStabilizationPressureFormatter.LOGISTICS_MAINTENANCE_RETEST_RESIDUE_DEFINITION_ID
+	):
 		return ""
+	var contextual_step := _get_pollution_residue_contextual_next_step(interactable, object_state, world_state)
+	if not contextual_step.is_empty():
+		return contextual_step
 	if _is_general_interaction_processed(interactable, object_state):
 		return "把沉积物处理成药剂；带药剂回污染边界后清理受扰敌人和门前压力点。"
 	if character_state.inventory.has_ref("item.resistance_vial_t1", 1):
@@ -863,7 +1272,105 @@ func _get_general_interaction_next_step(
 	return "先完成处理点地基和污染过滤器；过滤器上线后沉积物才能转成抗污染药剂。"
 
 
-func _get_processed_interaction_status(interactable: PrototypeInteractable) -> String:
+func _get_pollution_residue_contextual_next_step(
+	interactable: PrototypeInteractable,
+	object_state: Dictionary,
+	world_state: WorldState
+) -> String:
+	var already_gathered := _is_general_interaction_processed(interactable, object_state)
+	if interactable.instance_id == "map_object_instance.outer_ring_echo_residue_cache":
+		if already_gathered:
+			return "污染回波沉积已回收；回处理点过滤器处理成药剂和污染浆液，浆液会进入深段回波解析。"
+		return "回收后先回处理点过滤器处理，保留污染浆液，再带回波匣回基地解析裂相坐标。"
+	if interactable.instance_id == "map_object_instance.core_buffer_residue_cache":
+		if already_gathered:
+			return "核心缓冲补料沉积已回收；回处理点过滤器处理成药剂和污染浆液，再回基地整备核心稳压缓冲包。"
+		return "回收后回处理点过滤器处理，保留药剂和污染浆液，再回基地整备核心稳压缓冲包。"
+	if interactable.instance_id == "map_object_instance.pollution_residue_ridge_cache":
+		if already_gathered:
+			return "污染脊沉积已回收；回过滤器处理后，药剂支撑外圈承压，浆液可服务稳相信标。"
+		return "采完沉积物后回过滤器处理，药剂支撑外圈承压，浆液可服务稳相信标。"
+	if interactable.instance_id == "map_object_instance.pollution_residue_vial_reserve_cache":
+		if already_gathered:
+			return "药剂储备沉积已回收；回过滤器补下一支药剂和污染浆液，多余浆液可回基地反应器回收基础零件。"
+		return "回收后回过滤器补下一支药剂和污染浆液，支撑污染边界后续回访。"
+	if interactable.instance_id == "map_object_instance.pollution_residue_core_archive_route_cache":
+		if already_gathered:
+			return "出发路线回访沉积已回收；回过滤器补满双药剂，再从外勤出发口复测核心稳定站。"
+		return "回收后回过滤器补满双药剂，验证核心归档维护对下一趟污染承压的收益。"
+	if interactable.instance_id == "map_object_instance.pollution_residue_core_archive_return_cache":
+		if already_gathered:
+			return "归档维护回访沉积已回收；回过滤器处理成药剂和污染浆液，前哨核心补满后再从出发口复测。"
+		return "回收后回过滤器处理成药剂和污染浆液，验证核心归档维护反哺下一趟污染承压。"
+	if interactable.instance_id == "map_object_instance.pollution_residue_core_archive_pressure_retest_cache":
+		if already_gathered:
+			return "复测压力沉积已回收；回过滤器处理成药剂和污染浆液，多余浆液可回基础反应器回收基础零件。"
+		return "清掉复测压力守卫后回收沉积物；处理后补药剂，并把多余污染浆液转回基地建造和整备收益。"
+	if interactable.instance_id == FieldOutfittingRuntime.LOGISTICS_MAINTENANCE_POLLUTION_RETEST_RESIDUE_INSTANCE_ID:
+		if already_gathered:
+			return "污染边界后勤维护沉积已回收；回过滤器处理成药剂和污染浆液，再回前哨核心补给。"
+		return "清掉污染边界后勤维护复测守卫后回收沉积物；这次承压会读取整备台后勤维护收益。"
+	if interactable.instance_id == CoreStabilizationPressureFormatter.LOGISTICS_MAINTENANCE_RETEST_RESIDUE_INSTANCE_ID:
+		if already_gathered:
+			return "后勤维护复测沉积已回收；回过滤器处理成药剂和污染浆液，再回前哨核心补给。"
+		return "清掉后勤维护复测守卫后回收沉积物；这次承压会读取整备台后勤维护收益。"
+	if world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
+		return "这批沉积物服务深段回波线；处理后保留污染浆液，再回基地解析裂相坐标。"
+	if world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer"):
+		return "这批沉积物服务核心缓冲包；处理后保留药剂和污染浆液，再回基地整备缓冲包。"
+	return ""
+
+
+func _is_crystal_logistics_return_object(instance_id: String) -> bool:
+	return (
+		instance_id == CoreGuardAftermathFormatter.CRYSTAL_LOGISTICS_RETURN_CRYSTAL_INSTANCE_ID
+		or instance_id == CoreGuardAftermathFormatter.CRYSTAL_LOGISTICS_RETURN_WRECKAGE_INSTANCE_ID
+	)
+
+
+func _get_crystal_logistics_return_status(
+	interactable: PrototypeInteractable,
+	object_state: Dictionary,
+	world_state: WorldState
+) -> String:
+	if _is_general_interaction_processed(interactable, object_state):
+		if FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
+			return "后勤补料已回收并处理；出发整备台维护已确认。"
+		if FieldOutfittingRuntime.is_logistics_material_processed(world_state):
+			return "后勤补料已回收并加工成基础零件；出发整备台维护待确认。"
+		return "后勤补料已回收；现场保留已回收标记。"
+	return "后勤补料可回收；附近守卫仍会压住这条晶体侧路。"
+
+
+func _get_crystal_logistics_return_next_step(
+	interactable: PrototypeInteractable,
+	object_state: Dictionary,
+	world_state: WorldState
+) -> String:
+	if _is_general_interaction_processed(interactable, object_state):
+		if FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state):
+			return "后勤补料已处理，整备台维护已确认；回前哨核心补给后准备下一趟外勤。"
+		if FieldOutfittingRuntime.is_logistics_material_processed(world_state):
+			return "后勤补料已加工成基础零件；回出发整备台确认维护材料。"
+		return "后勤补料已回收；回基础反应器加工基础零件，或回出发整备台确认维护材料。"
+	var resource_name := "晶体"
+	if interactable.instance_id == CoreGuardAftermathFormatter.CRYSTAL_LOGISTICS_RETURN_WRECKAGE_INSTANCE_ID:
+		resource_name = "残骸"
+	return "清掉后勤补料守卫后回收%s；回基地加工基础零件，或回出发整备台确认维护材料。" % resource_name
+
+
+func _get_processed_interaction_status(
+	interactable: PrototypeInteractable,
+	character_state: CharacterState,
+	world_state: WorldState
+) -> String:
+	var core_cache_status := CoreStabilizationPressureFormatter.format_completed_cache_status(
+		interactable.definition_id,
+		world_state,
+		character_state
+	)
+	if not core_cache_status.is_empty():
+		return core_cache_status
 	match interactable.interaction_type:
 		"gather":
 			match interactable.definition_id:
@@ -934,6 +1441,15 @@ func _is_gate_pressure_active(world_state: WorldState) -> bool:
 	if gate_pressure.is_empty():
 		return false
 	return not bool(gate_pressure.get("is_defeated", false))
+
+
+func _has_demo_stabilization_recovery_cache(world_state: WorldState) -> bool:
+	if world_state == null:
+		return false
+	return (
+		bool(world_state.get_map_object("map_object_instance.demo_stabilization_recovery_cache").get("is_gathered", false))
+		or bool(world_state.get_map_object("map_object_instance.demo_stabilization_recovery_wreckage").get("is_gathered", false))
+	)
 
 
 func _get_display_name(definition_id: String) -> String:

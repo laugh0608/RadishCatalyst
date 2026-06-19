@@ -221,13 +221,19 @@ func _supply_success(message: String, title: String, detail: String) -> Dictiona
 
 
 func _supply_failure(message: String, title: String, detail: String) -> Dictionary:
+	var failure_feedback := DemoActionBlockerRecoveryFormatter.format_supply_failure(
+		title,
+		message,
+		detail
+	)
 	return {
 		"success": false,
 		"message": message,
 		"supply_feedback": {
 			"title": title,
 			"detail": detail
-		}
+		},
+		"failure_feedback": failure_feedback
 	}
 
 

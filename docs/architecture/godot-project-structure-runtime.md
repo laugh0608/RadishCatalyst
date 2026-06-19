@@ -98,23 +98,33 @@ Godot `Autoload` 应少而清楚。
 
 ## 当前验证入口
 
-当前客户端原型的最小验证入口：
+当前客户端原型的默认验证入口：
 
 ```powershell
-pwsh ./scripts/check-client-data.ps1
-pwsh ./scripts/check-client-scenes.ps1
-pwsh ./scripts/check-client-save.ps1
-pwsh ./scripts/check-client-quests.ps1
-pwsh ./scripts/check-client-flow.ps1
-pwsh ./scripts/check-godot-client.ps1
+pwsh ./scripts/check-client.ps1
 pwsh ./scripts/check-text-files.ps1
 ```
 
-`check-godot-client.ps1` 当前使用 Godot 4.6.2 console 的 `--import --quit` 完成项目导入和全局类注册验证。`--headless --path ... --quit` 和 `--check-only --script` 在当前 Windows / Godot 4.6.2 环境会触发引擎层崩溃，因此暂不作为门禁。
+```bash
+sh ./scripts/check-client.sh
+./scripts/check-text-files.sh
+```
 
-`check-client-save.ps1` 当前会先执行一次 Godot 导入，再通过 `client/scripts/checks/save_service_check.gd` 运行 `SaveService` 读写和备份校验，并将 Godot 配置、数据、缓存和 `user://` 存档目录隔离到 `.godot-check-home/save-service/` 下。
+默认 `check-client` 不启动 Godot，只覆盖客户端静态数据和场景引用；这是 CI 与日常提交前的便携基线。
 
-`check-client-quests.ps1` 当前会先执行一次 Godot 导入，再通过 `client/scripts/checks/quest_rules_check.gd` 直接复验 `QuestEventRules`、`QuestProgressRules` 和 `QuestCompletionRules`，并将 Godot 配置、数据和缓存隔离到 `.godot-check-home/quest-rules/` 下。
+需要工程导入或项目自定义 GDScript 运行时检查时，确认本机 Godot 可启动后显式执行：
+
+```powershell
+pwsh ./scripts/check-client.ps1 -WithGodot
+```
+
+```bash
+sh ./scripts/check-client.sh --with-godot
+```
+
+Godot 官方命令行提供 `--import`、`--script` 和脚本级 `--check-only`；它们不是仓库级通用项目检查接口。`--check-only` 只能围绕传入脚本做解析类检查，不能替代本项目的任务、存档、HUD 和场景流程验证。
+
+`check-godot-client.ps1` 使用 Godot 的 `--import --quit` 完成项目导入和全局类注册验证。`check-client-save.ps1`、`check-client-quests.ps1` 和 `check-client-flow.ps1` 分别通过 `client/scripts/checks/save_service_check.gd`、`quest_rules_check.gd` 和 `vertical_slice_flow_check.gd` 运行项目自定义检查，并把 Godot 配置、数据、缓存和 `user://` 存档目录隔离到 `.godot-check-runs/` 下。
 
 `check-client-data.ps1` 当前除了基础 JSON、引用和本地化键，还会校验配方解锁来源、任务激活来源、区域任务索引、主线任务图、任务目标来源和切片完成终点。`check-client-scenes.ps1` 当前除了资源引用、脚本 UID 和 HUD 面板布局，还会校验 `VerticalSliceMap.tscn` 中任务目标对应的交互点、建造点、加工设备、敌人实例和地图对象掉落数量。
 
@@ -128,7 +138,7 @@ pwsh ./scripts/check-text-files.ps1
 - 与编辑器和场景工作流贴合。
 - 当前项目首版重点是验证玩法闭环，不是高性能后端计算。
 - 避免额外引入 C# / .NET 工具链复杂度和平台兼容风险。
-- Windows、Web 试玩和 Android 远期评估的共同客户端基线更适合先用 GDScript。
+- Windows、Web 技术验证和 Android 远期评估的共同客户端基线更适合先用 GDScript。
 
 只有在后续出现明确需求时，才评估 C#：
 
@@ -145,7 +155,7 @@ pwsh ./scripts/check-text-files.ps1
 - 官方 WebApp 后端。
 - 后续服务端、房间服务或专用服务器。
 
-当前不建议把 Godot 客户端核心押到 C#，尤其是在 Web 试玩仍作为可选传播渠道保留时。
+当前不建议把 Godot 客户端核心押到 C#，尤其是在 Web 技术验证仍作为可选传播渠道保留时。
 
 如果未来要在客户端引入 C#，必须先复核平台影响，并同步更新平台兼容、存档模型和工程结构文档。
 

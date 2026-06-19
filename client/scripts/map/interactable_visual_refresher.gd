@@ -17,6 +17,11 @@ func refresh_visual_state(
 	if interactable.single_use:
 		interactable.consumed = is_processed
 
+	if not is_processed:
+		var priority_result := _apply_visual_priority_state(interactable, world_state)
+		if not priority_result.is_empty():
+			return priority_result
+
 	var special_result := _apply_special_visual(interactable, world_state, phase_well_frontier_runtime)
 	if not special_result.is_empty():
 		return special_result
@@ -40,6 +45,79 @@ func _is_processed(interactable: PrototypeInteractable, object_state: Dictionary
 	if interactable.interaction_type == "build":
 		return bool(object_state.get("is_built", false))
 	return false
+
+
+func _apply_visual_priority_state(interactable: PrototypeInteractable, world_state: WorldState) -> Dictionary:
+	if _is_core_write_blocked(interactable, world_state):
+		interactable.set_core_write_blocked_visual()
+		return _priority_result(PrototypeVisualPriorityProfile.STATE_CORE_WRITE_BLOCKED)
+	if _is_danger_active(interactable, world_state):
+		interactable.set_danger_active_visual()
+		return _priority_result(PrototypeVisualPriorityProfile.STATE_DANGER_ACTIVE)
+	if _is_build_prerequisite_blocked(interactable, world_state):
+		interactable.set_missing_prerequisite_visual()
+		return _priority_result(PrototypeVisualPriorityProfile.STATE_MISSING_PREREQUISITE)
+	if _is_processing_busy(interactable, world_state):
+		interactable.set_device_busy_visual()
+		return _priority_result(PrototypeVisualPriorityProfile.STATE_DEVICE_BUSY)
+	if _is_processing_ready(interactable, world_state):
+		interactable.set_device_ready_visual()
+		return _priority_result(PrototypeVisualPriorityProfile.STATE_DEVICE_READY)
+	return {}
+
+
+func _is_build_prerequisite_blocked(interactable: PrototypeInteractable, world_state: WorldState) -> bool:
+	if interactable.interaction_type != "build":
+		return false
+	if not interactable.prerequisite_instance_id.is_empty():
+		return not bool(world_state.get_map_object(interactable.prerequisite_instance_id).get("is_cleared", false))
+	if interactable.definition_id == "building.pollution_filter":
+		return world_state.count_base_structures("building.foundation_t1") < 2
+	if interactable.definition_id == "building.slurry_buffer_tank":
+		return not world_state.has_base_structure_definition("building.pollution_filter")
+	return false
+
+
+func _is_processing_busy(interactable: PrototypeInteractable, world_state: WorldState) -> bool:
+	if interactable.interaction_type != "process_recipe":
+		return false
+	var structure_id := world_state.get_base_structure_id_for_definition(interactable.definition_id)
+	if structure_id.is_empty():
+		return false
+	var structure: Dictionary = world_state.base_structures.get(structure_id, {})
+	return String(structure.get("status", "idle")) == "in_progress"
+
+
+func _is_processing_ready(interactable: PrototypeInteractable, world_state: WorldState) -> bool:
+	if interactable.interaction_type != "process_recipe":
+		return false
+	if _is_processing_busy(interactable, world_state):
+		return false
+	return not world_state.get_base_structure_id_for_definition(interactable.definition_id).is_empty()
+
+
+func _is_danger_active(interactable: PrototypeInteractable, world_state: WorldState) -> bool:
+	if interactable.definition_id != "map_object.signal_echo_cache":
+		return false
+	if not world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
+		return false
+	return not bool(world_state.get_enemy("enemy_instance.ruin_phase_guard").get("is_defeated", false))
+
+
+func _is_core_write_blocked(interactable: PrototypeInteractable, world_state: WorldState) -> bool:
+	if interactable.definition_id != "map_object.demo_stabilization_core":
+		return false
+	if world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core"):
+		return false
+	if not world_state.quest_state.has_active_quest("quest.write_demo_stabilization_core"):
+		return false
+	if not bool(world_state.get_enemy("enemy_instance.demo_stabilization_guard").get("is_defeated", false)):
+		return true
+	return world_state.quest_state.get_objective_progress(
+		"quest.write_demo_stabilization_core",
+		"gather_item",
+		"item.core_write_charge"
+	) < 1.0
 
 
 func _apply_special_visual(
@@ -238,6 +316,12 @@ func _apply_stability_calibration_visual(
 		interactable.set_ready_stability_calibration_visual()
 	else:
 		interactable.set_default_visual()
+
+
+func _priority_result(state_id: String) -> Dictionary:
+	return {
+		"visual_priority_state": state_id
+	}
 
 
 func _result(skip_enable: bool, clear_current: bool) -> Dictionary:

@@ -11,11 +11,15 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 		"map_object_instance.crystal_cluster_west_reserve": "map_object.crystal_cluster",
 		"map_object_instance.crystal_cluster_north_east_reserve": "map_object.crystal_cluster",
 		"map_object_instance.crystal_cluster_side_pocket": "map_object.crystal_cluster",
+		"map_object_instance.crystal_cluster_logistics_pocket": "map_object.crystal_cluster",
+		"map_object_instance.crystal_cluster_logistics_return": "map_object.crystal_cluster",
 		"map_object_instance.rich_crystal_vein_north": "map_object.rich_crystal_vein",
 		"map_object_instance.crystal_cluster_treatment_approach": "map_object.crystal_cluster",
 		"map_object_instance.field_wreckage_north": "map_object.field_wreckage",
 		"map_object_instance.field_wreckage_east": "map_object.field_wreckage",
 		"map_object_instance.field_wreckage_south_pocket": "map_object.field_wreckage",
+		"map_object_instance.field_wreckage_logistics_pocket": "map_object.field_wreckage",
+		"map_object_instance.field_wreckage_logistics_return": "map_object.field_wreckage",
 		"map_object_instance.field_wreckage_gate_cache": "map_object.field_wreckage",
 		"map_object_instance.field_wreckage_treatment_approach": "map_object.field_wreckage",
 		"map_object_instance.crystal_cluster_foundation_return": "map_object.crystal_cluster",
@@ -25,6 +29,14 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 		"map_object_instance.anomaly_residue_east": "map_object.anomaly_residue_patch",
 		"map_object_instance.pollution_residue": "map_object.pollution_residue_patch",
 		"map_object_instance.pollution_residue_outer_pocket": "map_object.pollution_residue_patch",
+		"map_object_instance.pollution_residue_vial_return_cache": "map_object.pollution_residue_patch",
+		"map_object_instance.pollution_residue_slurry_return_cache": "map_object.pollution_residue_patch",
+		"map_object_instance.pollution_residue_vial_reserve_cache": "map_object.pollution_residue_patch",
+		"map_object_instance.pollution_residue_core_archive_route_cache": "map_object.pollution_residue_patch",
+		"map_object_instance.pollution_residue_core_archive_return_cache": "map_object.pollution_residue_patch",
+		"map_object_instance.pollution_residue_core_archive_pressure_retest_cache": "map_object.pollution_residue_patch",
+		"map_object_instance.pollution_residue_logistics_maintenance_pressure_cache": "map_object.pollution_residue_patch",
+		"map_object_instance.pollution_residue_logistics_maintenance_retest_cache": "map_object.demo_stabilization_logistics_retest_residue",
 		"map_object_instance.pollution_residue_deep": "map_object.pollution_residue_patch",
 		"map_object_instance.pollution_residue_ridge_cache": "map_object.pollution_residue_patch",
 		"map_object_instance.core_buffer_residue_cache": "map_object.pollution_residue_patch",
@@ -32,6 +44,12 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.rough_ground_south": "map_object.rough_ground",
 	"map_object_instance.foundation_site_north": "building.foundation_t1",
 	"map_object_instance.foundation_site_south": "building.foundation_t1",
+	"map_object_instance.basic_storage_build_site": "building.basic_storage",
+	"map_object_instance.field_outfitting_station_build_site": "building.field_outfitting_station",
+	"map_object_instance.field_outfitting_station": "building.field_outfitting_station",
+	"map_object_instance.slurry_buffer_tank_build_site": "building.slurry_buffer_tank",
+	"map_object_instance.outpost_departure_gate": "map_object.outpost_departure_gate",
+	"map_object_instance.outpost_logistics_route_sign": "map_object.outpost_logistics_route_sign",
 	"map_object_instance.pollution_filter_build_site": "building.pollution_filter",
 	"map_object_instance.pollution_filter": "building.pollution_filter",
 	"map_object_instance.ruin_gate": "map_object.ruin_gate",
@@ -107,6 +125,7 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 	"map_object_instance.demo_stabilization_recovery_cache": "map_object.demo_stabilization_recovery_cache",
 	"map_object_instance.demo_stabilization_recovery_wreckage": "map_object.demo_stabilization_recovery_cache",
 	"map_object_instance.demo_stabilization_guard_cache": "map_object.demo_stabilization_guard_cache",
+	"map_object_instance.demo_stabilization_retest_readout_cache": "map_object.demo_stabilization_retest_readout_cache",
 	"map_object_instance.demo_stabilization_core": "map_object.demo_stabilization_core"
 }
 
@@ -181,6 +200,14 @@ const PROTOTYPE_ENEMY_SOURCES := {
 		"definition_id": "enemy.native_skitter",
 		"region_id": "region.crystal_vein_field"
 	},
+	"enemy_instance.native_skitter_logistics_guard": {
+		"definition_id": "enemy.native_skitter",
+		"region_id": "region.crystal_vein_field"
+	},
+	"enemy_instance.native_skitter_logistics_return_guard": {
+		"definition_id": "enemy.native_skitter",
+		"region_id": "region.crystal_vein_field"
+	},
 	"enemy_instance.treatment_skitter": {
 		"definition_id": "enemy.treatment_skitter",
 		"region_id": "region.crystal_vein_field"
@@ -196,6 +223,38 @@ const PROTOTYPE_ENEMY_SOURCES := {
 		"enemy_instance.polluted_skitter": {
 			"definition_id": "enemy.polluted_skitter",
 			"region_id": "region.pollution_edge"
+		},
+		"enemy_instance.polluted_skitter_vial_return_guard": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge"
+		},
+		"enemy_instance.polluted_skitter_slurry_return_guard": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge"
+		},
+		"enemy_instance.polluted_skitter_vial_reserve_guard": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge"
+		},
+		"enemy_instance.polluted_skitter_core_archive_route_guard": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge"
+		},
+		"enemy_instance.polluted_skitter_core_archive_return_guard": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge"
+		},
+		"enemy_instance.polluted_skitter_core_archive_pressure_retest_guard": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge"
+		},
+		"enemy_instance.polluted_skitter_logistics_maintenance_pressure_guard": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge"
+		},
+		"enemy_instance.polluted_skitter_logistics_maintenance_retest_guard": {
+			"definition_id": "enemy.demo_stabilization_logistics_retest_skitter",
+			"region_id": "region.demo_stabilization_core"
 		},
 		"enemy_instance.polluted_skitter_deep": {
 			"definition_id": "enemy.polluted_skitter",
@@ -292,6 +351,18 @@ const PROTOTYPE_BASE_STRUCTURE_SOURCES := {
 		"definition_id": "building.foundation_t1",
 		"site_instance_id": "map_object_instance.foundation_site_south"
 	},
+	"structure.basic_storage_build_site": {
+		"definition_id": "building.basic_storage",
+		"site_instance_id": "map_object_instance.basic_storage_build_site"
+	},
+	"structure.field_outfitting_station_build_site": {
+		"definition_id": "building.field_outfitting_station",
+		"site_instance_id": "map_object_instance.field_outfitting_station_build_site"
+	},
+	"structure.slurry_buffer_tank_build_site": {
+		"definition_id": "building.slurry_buffer_tank",
+		"site_instance_id": "map_object_instance.slurry_buffer_tank_build_site"
+	},
 	"structure.pollution_filter_build_site": {
 		"definition_id": "building.pollution_filter",
 		"site_instance_id": "map_object_instance.pollution_filter_build_site"
@@ -310,7 +381,16 @@ const MAP_OBJECT_ALLOWED_FIELDS := [
 	"anchor_field_pressure_active",
 	"anchor_field_pressure_cleared",
 	"anchor_field_stabilized",
-	"stability_node_calibrated"
+	"stability_node_calibrated",
+	"module_calibrated",
+	"core_archive_maintained",
+	"logistics_material_processed",
+	"logistics_maintenance_confirmed",
+	"logistics_maintenance_pollution_retest_processed",
+	"logistics_maintenance_retest_processed",
+	"field_loop_payoff_confirmed",
+	"tactical_scan_marked",
+	"tactical_scan_consumed"
 ]
 
 const ENEMY_ALLOWED_FIELDS := [
@@ -321,7 +401,10 @@ const ENEMY_ALLOWED_FIELDS := [
 	"is_defeated",
 	"drops_granted",
 	"pressure_vial_used",
-	"core_buffer_used"
+	"core_buffer_used",
+	"core_side_supply_used",
+	"tactical_scan_marked",
+	"tactical_scan_consumed"
 ]
 
 const BASE_STRUCTURE_ALLOWED_FIELDS := [
@@ -994,6 +1077,7 @@ func _validate_quest_relationships(quest_state, unlocked_region_ids: Array[Strin
 		if (
 			not DEFAULT_ACTIVE_QUEST_IDS.has(quest_id)
 			and not _is_quest_activated_by_completed_quest(quest_id, completed_quest_ids)
+			and not _is_quest_activated_by_runtime_state(quest_id, completed_quest_ids, base_action_state)
 		):
 			return "读取存档失败：quest_state.completed_quest_ids 中存在未由默认任务或已完成任务链解锁的任务，当前运行状态已保留。"
 

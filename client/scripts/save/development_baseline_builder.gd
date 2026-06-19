@@ -790,6 +790,13 @@ func _apply_baseline_pose_and_inventory(
 				{},
 				{"fluid.basic_solvent": 2.0}
 			)
+		"baseline.s22_demo_completion_outpost_review":
+			_set_runtime_position(world_state, character_state, "region.outpost_platform", BASELINE_OUTPOST_POSITION)
+			DevelopmentBaselineDemoCompletionState.apply(
+				world_state,
+				character_state,
+				_get_enemy_max_health("enemy.demo_stabilization_guard")
+			)
 
 
 func _mark_objects_gathered(
@@ -887,6 +894,13 @@ func _set_runtime_position(
 
 
 func _format_loaded_message(definition: Dictionary) -> String:
+	var development_watch := String(definition.get("demo_baseline_watch", ""))
+	if not development_watch.is_empty():
+		return "已载入开发基线 %s：%s 开发观察：%s 如需长期保留，可直接保存到任一普通槽位。" % [
+			String(definition.get("code", "")),
+			String(definition.get("summary", "")),
+			development_watch
+		]
 	return "已载入开发基线 %s：%s 如需长期保留，可直接保存到任一普通槽位。" % [
 		String(definition.get("code", "")),
 		String(definition.get("summary", ""))

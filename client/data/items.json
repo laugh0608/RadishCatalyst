@@ -49,8 +49,8 @@
       "stack_size": 99,
       "mass": 0.2,
       "rarity": "common",
-      "source_refs": ["building.outpost_core", "recipe.process_crystal_ore", "recipe.reclaim_basic_parts", "map_object.demo_stabilization_guard_cache"],
-      "used_by_refs": ["recipe.basic_filter_module", "recipe.foundation_t1", "recipe.repair_gel", "recipe.phase_anchor", "recipe.core_stabilization_buffer"],
+      "source_refs": ["building.outpost_core", "recipe.process_crystal_ore", "recipe.reclaim_basic_parts", "map_object.demo_stabilization_guard_cache", "map_object.demo_stabilization_retest_readout_cache"],
+      "used_by_refs": ["building.basic_storage", "building.slurry_buffer_tank", "building.pollution_filter", "recipe.basic_filter_module", "recipe.foundation_t1", "recipe.repair_gel", "recipe.phase_anchor", "recipe.core_stabilization_buffer"],
       "public_level": "public"
     },
     {
@@ -153,7 +153,7 @@
       "stack_size": 10,
       "mass": 0.1,
       "rarity": "common",
-      "source_refs": ["recipe.repair_gel", "map_object.demo_stabilization_recovery_cache", "map_object.demo_stabilization_guard_cache"],
+      "source_refs": ["recipe.repair_gel", "map_object.demo_stabilization_recovery_cache", "map_object.demo_stabilization_guard_cache", "map_object.demo_stabilization_retest_readout_cache"],
       "used_by_refs": ["quest.prepare_treatment_supplies", "quest.defeat_elite_node", "recipe.core_stabilization_buffer"],
       "public_level": "public"
     },

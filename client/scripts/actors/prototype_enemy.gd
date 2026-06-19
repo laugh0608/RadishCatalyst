@@ -23,6 +23,7 @@ var enemy_category: String = "basic"
 
 @onready var label: Label = $Label
 @onready var sprite: ColorRect = $Sprite
+@onready var focus_ring: ColorRect = $FocusRing
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
 
@@ -31,6 +32,8 @@ func _ensure_visual_nodes() -> void:
 		label = get_node_or_null("Label") as Label
 	if sprite == null:
 		sprite = get_node_or_null("Sprite") as ColorRect
+	if focus_ring == null:
+		focus_ring = get_node_or_null("FocusRing") as ColorRect
 	if collision_shape == null:
 		collision_shape = get_node_or_null("CollisionShape2D") as CollisionShape2D
 
@@ -76,6 +79,11 @@ func apply_saved_state(enemy_state: Dictionary) -> void:
 		set_meta("pressure_vial_used", true)
 	elif has_meta("pressure_vial_used"):
 		remove_meta("pressure_vial_used")
+	set_tactical_scan_marked(bool(enemy_state.get(CharacterKitRuntime.TACTICAL_SCAN_MARKED_FLAG, false)))
+	if bool(enemy_state.get("core_side_supply_used", false)):
+		set_meta("core_side_supply_used", true)
+	elif has_meta("core_side_supply_used"):
+		remove_meta("core_side_supply_used")
 	if defeated:
 		mark_defeated()
 	else:
@@ -89,11 +97,26 @@ func can_be_attacked() -> bool:
 func set_focus_visual(focused: bool) -> void:
 	if label != null:
 		label.visible = focused and visible and not defeated
+	if focus_ring != null:
+		focus_ring.visible = focused and visible and not defeated
+		if sprite != null:
+			var ring_size := sprite.size + Vector2(14.0, 14.0)
+			focus_ring.position = sprite.position - Vector2(7.0, 7.0)
+			focus_ring.size = ring_size
 	if sprite != null:
 		sprite.pivot_offset = sprite.size * 0.5
 		sprite.scale = FOCUSED_SPRITE_SCALE if focused else Vector2.ONE
 		sprite.modulate = FOCUSED_SPRITE_MODULATE if focused else DEFAULT_SPRITE_MODULATE
 	z_index = FOCUSED_Z_INDEX if focused else 0
+
+
+func set_tactical_scan_marked(marked: bool) -> void:
+	if marked:
+		set_meta(CharacterKitRuntime.TACTICAL_SCAN_MARKED_FLAG, true)
+	else:
+		if has_meta(CharacterKitRuntime.TACTICAL_SCAN_MARKED_FLAG):
+			remove_meta(CharacterKitRuntime.TACTICAL_SCAN_MARKED_FLAG)
+	_update_label()
 
 
 func mark_defeated() -> void:
@@ -125,17 +148,30 @@ func _update_label() -> void:
 
 
 func _get_pressure_focus_label() -> String:
+	var parts: Array[String] = []
+	if has_meta(CharacterKitRuntime.TACTICAL_SCAN_MARKED_FLAG):
+		parts.append("扫描锁定")
+	if definition_id == "enemy.demo_stabilization_guard":
+		parts.append("核心回写压力")
+		return " / ".join(parts)
 	if enemy_category != "polluted":
-		return ""
+		return " / ".join(parts)
 	match instance_id:
 		"enemy_instance.polluted_skitter":
-			return "入口压力点"
+			parts.append("入口压力点")
 		"enemy_instance.polluted_skitter_gate_pressure":
-			return "门前压力点"
+			parts.append("门前压力点")
+		"enemy_instance.polluted_skitter_slurry_return_guard":
+			parts.append("副产回收点")
+		"enemy_instance.polluted_skitter_vial_reserve_guard":
+			parts.append("药剂储备点")
+		"enemy_instance.polluted_skitter_logistics_maintenance_pressure_guard":
+			parts.append("后勤维护压力")
 		"enemy_instance.core_buffer_polluted_skitter":
-			return "补料压力点"
+			parts.append("补料压力点")
 		_:
-			return "深处压力点"
+			parts.append("深处压力点")
+	return " / ".join(parts)
 
 
 func set_spawn_enabled(enabled: bool) -> void:
@@ -180,3 +216,6 @@ func _apply_sprite_size(sprite_size: Vector2) -> void:
 		return
 	sprite.position = -sprite_size * 0.5
 	sprite.size = sprite_size
+	if focus_ring != null:
+		focus_ring.position = sprite.position - Vector2(7.0, 7.0)
+		focus_ring.size = sprite_size + Vector2(14.0, 14.0)

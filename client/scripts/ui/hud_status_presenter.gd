@@ -80,9 +80,13 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 ]
 const MAX_VISIBLE_KEY_RESOURCE_COUNT := 2
 const MAX_CONTEXT_RESOURCE_COUNT := 3
+const COMPACT_OBJECTIVE_MAX_LINES := 5
+const HudObjectiveCompactFormatterScript := preload("res://scripts/ui/hud_objective_compact_formatter.gd")
+const CompletionOutcomeFormatter := preload("res://scripts/systems/demo_completion_outcome_formatter.gd")
 
 var objective_source_resolver: QuestObjectiveSourceResolver
 var objective_source_registry: DataRegistry
+var compact_objective_formatter: HudObjectiveCompactFormatter
 
 
 func format_status_text(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> String:
@@ -106,11 +110,20 @@ func format_objective_text(
 ) -> String:
 	_ensure_objective_source_resolver(data_registry)
 	var active_quest_id := _get_active_quest_id(world_state)
-	return "\n".join(
-		["当前目标"]
-		+ _format_objective_lines(data_registry, world_state, active_quest_id, true)
-		+ _format_key_resource_lines(data_registry, world_state, character_state, active_quest_id)
-	)
+	var lines: Array[String] = ["当前目标"]
+	lines.append_array(_get_compact_objective_formatter().format_lines(
+		data_registry,
+		world_state,
+		character_state,
+		active_quest_id,
+		_format_goal_name(data_registry, world_state, active_quest_id),
+		_format_active_quest_progress(data_registry, world_state, active_quest_id)
+	))
+	for key_resource_line in _format_key_resource_lines(data_registry, world_state, character_state, active_quest_id):
+		if lines.size() >= COMPACT_OBJECTIVE_MAX_LINES:
+			break
+		lines.append(key_resource_line)
+	return "\n".join(lines)
 
 
 func format_vitals_text(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> String:
@@ -146,7 +159,10 @@ func format_pollution_status(
 		parts.append("%s 生效，消耗 x%.2f" % [
 			_get_display_name(data_registry, module_id),
 			character_state.get_pollution_drain_multiplier(data_registry)
+			* FieldOutfittingRuntime.get_pollution_drain_multiplier(character_state, world_state)
 		])
+		if FieldOutfittingRuntime.has_active_core_archive_maintenance(character_state, world_state):
+			parts.append("核心归档维护已接入")
 
 	if character_state.protection < character_state.max_protection * 0.35:
 		parts.append("防护危险，先用抗污染药剂或撤回基地")
@@ -158,6 +174,8 @@ func format_pollution_status(
 
 
 func _get_active_quest_id(world_state: WorldState) -> String:
+	if DemoMainlineCompletionFormatter.is_demo_complete(world_state):
+		return ""
 	if _is_base_action_choice_state(world_state):
 		return ""
 	if not world_state.quest_state.active_quest_ids.is_empty():
@@ -199,8 +217,9 @@ func _format_character_lines(
 			character_state.max_protection
 		],
 		"污染：%s" % format_pollution_status(data_registry, world_state, character_state),
-		"快捷栏：%s" % _format_quick_slots(data_registry, character_state),
-		"模块：%s" % _format_equipment_summary(data_registry, character_state)
+		"快捷栏：%s" % _format_quick_slots(data_registry, world_state, character_state),
+		"模块：%s" % _format_equipment_summary(data_registry, character_state),
+		CharacterKitRuntime.format_hud_tool_action_status(character_state, world_state)
 	]
 
 
@@ -229,12 +248,53 @@ func _format_base_summary_lines(
 		return active_structure_summary
 
 	var active_quest := data_registry.get_definition(active_quest_id)
+	var resource_chain_summary := DemoResourceChainStateFormatter.format_hud_summary(world_state, character_state)
+	var endpoint_readiness_summary := DemoEndpointReadinessFormatter.format_hud_summary(
+		world_state,
+		character_state
+	)
+	var completion_outcome_summary := CompletionOutcomeFormatter.format_hud_summary(
+		world_state,
+		character_state
+	)
+	var evacuation_recovery_summary := DemoCombatEvacuationRecoveryFormatter.format_hud_summary(
+		world_state,
+		character_state
+	)
+	if not evacuation_recovery_summary.is_empty():
+		if not completion_outcome_summary.is_empty():
+			evacuation_recovery_summary += completion_outcome_summary
+		if not resource_chain_summary.is_empty():
+			return resource_chain_summary + evacuation_recovery_summary
+		return evacuation_recovery_summary
+	var core_stabilization_summary := CoreStabilizationPressureFormatter.format_hud_summary(world_state, character_state, active_quest_id)
+	if not core_stabilization_summary.is_empty():
+		if not endpoint_readiness_summary.is_empty():
+			core_stabilization_summary += endpoint_readiness_summary
+		if not completion_outcome_summary.is_empty():
+			core_stabilization_summary += completion_outcome_summary
+		if not resource_chain_summary.is_empty():
+			return resource_chain_summary + core_stabilization_summary
+		return core_stabilization_summary
+	var slurry_reclaim_summary := _format_pollution_slurry_reclaim_summary(
+		world_state,
+		character_state,
+		active_quest_id
+	)
+	if not slurry_reclaim_summary.is_empty():
+		if not resource_chain_summary.is_empty():
+			return resource_chain_summary + slurry_reclaim_summary
+		return slurry_reclaim_summary
 	if not active_quest.is_empty():
 		var craft_summary := _format_current_craft_summary(data_registry, active_quest, character_state, world_state)
 		if not craft_summary.is_empty():
+			if not resource_chain_summary.is_empty():
+				return resource_chain_summary + craft_summary
 			return craft_summary
 		var build_summary := _format_current_build_summary(data_registry, active_quest, character_state, world_state)
 		if not build_summary.is_empty():
+			if not resource_chain_summary.is_empty():
+				return resource_chain_summary + build_summary
 			return build_summary
 		if active_quest_id == "quest.plan_stability_frontline_action":
 			return ["行动台确认稳窗回访：只派发稳窗回波探点"]
@@ -250,6 +310,29 @@ func _format_base_summary_lines(
 			"行动方案：稳场补给低风险偏整备资源",
 			"相位测绘多读数换路线提示；压力清障高风险换防护收益"
 		]
+	var outfitting_summary := _format_outfitting_station_summary(world_state, character_state)
+	if not outfitting_summary.is_empty():
+		if not completion_outcome_summary.is_empty():
+			return outfitting_summary + completion_outcome_summary
+		return outfitting_summary
+	if not endpoint_readiness_summary.is_empty():
+		return endpoint_readiness_summary
+	if not completion_outcome_summary.is_empty():
+		return completion_outcome_summary
+	var industrial_summary := IndustrialTechSpineFormatter.format_hud_summary(world_state, character_state)
+	if not industrial_summary.is_empty():
+		return industrial_summary
+	if not resource_chain_summary.is_empty():
+		return resource_chain_summary
+	var scene_summary := SceneArtFoundationFormatter.format_hud_summary(world_state, character_state)
+	if not scene_summary.is_empty():
+		return scene_summary
+	var functional_scene_gameplay_summary := FunctionalSceneGameplayFormatter.format_hud_summary(world_state, character_state)
+	if not functional_scene_gameplay_summary.is_empty():
+		return functional_scene_gameplay_summary
+	var transition_summary := FunctionalTransitionRouteSupportFormatter.format_hud_summary(world_state, character_state)
+	if not transition_summary.is_empty():
+		return transition_summary
 
 	return ["设备：待命；当前目标先外出推进"]
 
@@ -264,12 +347,61 @@ func _is_base_action_choice_state(world_state: WorldState) -> bool:
 	)
 
 
+func _format_pollution_slurry_reclaim_summary(
+	world_state: WorldState,
+	character_state: CharacterState,
+	active_quest_id: String
+) -> Array[String]:
+	if not ["", "quest.enter_pollution_edge", "quest.unlock_ruin_signal"].has(active_quest_id):
+		return []
+	if not world_state.quest_state.unlocked_effects.has("recipe.reclaim_basic_parts"):
+		return []
+	var slurry_amount := float(character_state.inventory.fluids.get("fluid.polluted_slurry", 0.0))
+	if slurry_amount <= 0.0:
+		return []
+	if world_state.has_base_structure_definition("building.slurry_buffer_tank"):
+		return [
+			"后勤收益：污染浆液缓冲罐已接入前哨补给",
+			"前哨核心可把抗污染药剂补到 2 份，再出发承接污染压力"
+		]
+	if active_quest_id != "quest.unlock_ruin_signal":
+		return [
+			"二次收益：可用污染浆液 x%s 建污染浆液缓冲罐" % _format_amount(slurry_amount),
+			"建成后前哨核心可把抗污染药剂补到 2 份，支撑下一趟污染回访"
+		]
+	if active_quest_id == "quest.unlock_ruin_signal":
+		return [
+			"门前整备：基础反应器可回收污染浆液 x%s -> 基础零件" % _format_amount(slurry_amount),
+			"回收后带基础过滤模块和抗污染药剂确认封锁入口信号"
+		]
+	return [
+		"副产去向：基础反应器可回收污染浆液 x%s -> 基础零件" % _format_amount(slurry_amount),
+		"回收后若还缺药剂 / 浆液，回污染边界副产口袋或药剂储备口袋补沉积物再过滤"
+	]
+
+
+func _format_outfitting_station_summary(world_state: WorldState, character_state: CharacterState) -> Array[String]:
+	return DepartureReadinessFormatter.format_hud_summary(world_state, character_state)
+
+
 func _format_goal_name(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if not quest_id.is_empty():
 		return _get_display_name(data_registry, quest_id)
+	if DemoMainlineCompletionFormatter.is_demo_complete(world_state):
+		var completed_next_sortie_goal := CoreGuardAftermathFormatter.format_next_sortie_goal_name(world_state)
+		if not completed_next_sortie_goal.is_empty():
+			return "%s（首版 Demo 主线已完成）" % completed_next_sortie_goal
+		var completed_demo_goal := DemoMainlineCompletionFormatter.format_goal_name(world_state)
+		if not completed_demo_goal.is_empty():
+			return completed_demo_goal
 	var action_goal := BaseActionDispatchPlan.format_status_goal(world_state)
 	if not action_goal.is_empty():
 		return action_goal
+	var next_sortie_goal := CoreGuardAftermathFormatter.format_next_sortie_goal_name(world_state)
+	if not next_sortie_goal.is_empty():
+		if DemoMainlineCompletionFormatter.is_demo_complete(world_state):
+			return "%s（首版 Demo 主线已完成）" % next_sortie_goal
+		return next_sortie_goal
 	if _has_completed_phase_survey_feedback(world_state):
 		return "相位测绘反馈已归档"
 	if _has_completed_steady_supply_feedback(world_state):
@@ -502,7 +634,7 @@ func _format_current_craft_summary(
 		var recipe := _find_recipe_for_output(data_registry, target_id)
 		if recipe.is_empty():
 			continue
-		return _format_recipe_summary(data_registry, recipe, character_state, "可制造")
+		return _format_recipe_summary(data_registry, recipe, character_state, world_state, "可制造")
 	return []
 
 
@@ -555,6 +687,7 @@ func _format_first_hour_recommended_craft_summary(
 					data_registry,
 					data_registry.get_definition("recipe.make_filter_media"),
 					character_state,
+					world_state,
 					"建议配方"
 				)
 		"quest.expand_treatment_point":
@@ -568,6 +701,7 @@ func _format_first_hour_recommended_craft_summary(
 					data_registry,
 					data_registry.get_definition("recipe.foundation_t1"),
 					character_state,
+					world_state,
 					"建议配方"
 				)
 			if not world_state.has_base_structure_definition("building.pollution_filter"):
@@ -576,6 +710,7 @@ func _format_first_hour_recommended_craft_summary(
 						data_registry,
 						data_registry.get_definition("recipe.make_filter_media"),
 						character_state,
+						world_state,
 						"建议配方"
 					)
 				if _get_build_cost_shortage("building.pollution_filter", "item.basic_parts", data_registry, character_state) > 0.0:
@@ -583,6 +718,7 @@ func _format_first_hour_recommended_craft_summary(
 						data_registry,
 						data_registry.get_definition("recipe.process_crystal_ore"),
 						character_state,
+						world_state,
 						"建议配方"
 					)
 		"quest.enter_pollution_edge":
@@ -598,6 +734,7 @@ func _format_recipe_summary(
 	data_registry: DataRegistry,
 	recipe: Dictionary,
 	character_state: CharacterState,
+	world_state: WorldState,
 	ready_prefix: String
 ) -> Array[String]:
 	if recipe.is_empty():
@@ -613,9 +750,16 @@ func _format_recipe_summary(
 	var output_summary := _format_refs(data_registry, recipe.get("outputs", []), "")
 	if not output_summary.is_empty():
 		result.append("完成后：获得 %s" % output_summary)
-	var purpose_hint := RecipePurposeHints.format_recipe_goal_hint(recipe_id)
+	var purpose_hint := RecipePurposeHints.format_recipe_goal_hint(recipe_id, world_state)
 	if not purpose_hint.is_empty():
 		result.append("用途：%s" % purpose_hint)
+	var industrial_chain_hint := IndustrialTechSpineFormatter.format_recipe_chain_hint(
+		recipe_id,
+		world_state,
+		character_state
+	)
+	if not industrial_chain_hint.is_empty():
+		result.append("工艺主干：%s" % industrial_chain_hint)
 	return result
 
 
@@ -699,29 +843,35 @@ func _format_equipment_summary(data_registry: DataRegistry, character_state: Cha
 	return "；".join(parts)
 
 
-func _format_quick_slots(data_registry: DataRegistry, character_state: CharacterState) -> String:
-	var parts: Array[String] = []
-	for slot_index in range(character_state.quick_slots.size()):
-		var item_id := character_state.quick_slots[slot_index]
-		if item_id.is_empty():
-			parts.append("%d 空" % (slot_index + 1))
-			continue
-
-		parts.append("%d %sx%s" % [
-			slot_index + 1,
-			_get_display_name(data_registry, item_id),
-			int(character_state.inventory.items.get(item_id, 0))
-		])
-	if parts.is_empty():
-		return "无"
-	return "；".join(parts)
+func _format_quick_slots(
+	data_registry: DataRegistry,
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	return DemoQuickSlotSupplyReadabilityFormatter.format_quick_slot_summary(
+		data_registry,
+		world_state,
+		character_state
+	)
 
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
 	if quest_id.is_empty():
+		if DemoMainlineCompletionFormatter.is_demo_complete(world_state):
+			var completed_next_sortie_route := CoreGuardAftermathFormatter.format_next_sortie_route_line(world_state)
+			if not completed_next_sortie_route.is_empty():
+				return "%s；首版 Demo 主线已完成" % completed_next_sortie_route
+			var completed_demo_progress := DemoMainlineCompletionFormatter.format_progress_line(world_state)
+			if not completed_demo_progress.is_empty():
+				return completed_demo_progress
 		var action_progress := BaseActionDispatchPlan.format_status_progress(world_state)
 		if not action_progress.is_empty():
 			return action_progress
+		var next_sortie_route := CoreGuardAftermathFormatter.format_next_sortie_route_line(world_state)
+		if not next_sortie_route.is_empty():
+			if DemoMainlineCompletionFormatter.is_demo_complete(world_state):
+				return "%s；首版 Demo 主线已完成" % next_sortie_route
+			return next_sortie_route
 		if _has_completed_phase_survey_feedback(world_state):
 			return "相位测绘选择闭环已完成；本轮验证了基地选择、两处前线读数和返回提示收益"
 		if _has_completed_steady_supply_feedback(world_state):
@@ -887,12 +1037,27 @@ func _format_objective_target_name(
 	return "%s（%s）" % [target_name, source_hint]
 
 
-func _get_objective_source_hint(_quest_id: String, objective_type: String, target_id: String) -> String:
+func _get_objective_source_hint(quest_id: String, objective_type: String, target_id: String) -> String:
 	if objective_source_resolver == null:
 		return ""
 	if objective_type != "gather_item" and objective_type != "craft_item":
 		return ""
+	var contextual_source_hint := _get_contextual_objective_source_hint(quest_id, objective_type, target_id)
+	if not contextual_source_hint.is_empty():
+		return contextual_source_hint
 	return objective_source_resolver.resolve_source_hint(objective_type, target_id)
+
+
+func _get_contextual_objective_source_hint(quest_id: String, objective_type: String, target_id: String) -> String:
+	if objective_type != "gather_item" or target_id != "item.polluted_residue":
+		return ""
+	match quest_id:
+		"quest.salvage_signal_echo":
+			return "污染回波沉积"
+		"quest.prepare_demo_stabilization_buffer":
+			return "核心缓冲补料沉积"
+		_:
+			return ""
 
 
 func _has_pollution_vial_ready(world_state: WorldState, character_state: CharacterState) -> bool:
@@ -1085,6 +1250,12 @@ func _has_completed_phase_fault_spire(world_state: WorldState) -> bool:
 
 func _has_completed_inner_phase_well(world_state: WorldState) -> bool:
 	return world_state.quest_state.has_completed_quest("quest.inspect_inner_phase_well")
+
+
+func _get_compact_objective_formatter() -> HudObjectiveCompactFormatter:
+	if compact_objective_formatter == null:
+		compact_objective_formatter = HudObjectiveCompactFormatterScript.new()
+	return compact_objective_formatter
 
 
 func _ensure_objective_source_resolver(data_registry: DataRegistry) -> void:

@@ -32,7 +32,7 @@ func apply_completion(world_state: WorldState, character_state: CharacterState, 
 	var next_quest_ids: Array = completion_result.get("next_quest_ids", [])
 	var next_quest_names := _format_next_quest_names(next_quest_ids)
 	var unlock_messages := _format_unlock_effects(unlock_effects)
-	var note_text := _format_completion_note(quest_id)
+	var note_text := _format_completion_note(quest_id, world_state, character_state)
 	var quest_name := _get_display_name(quest_id)
 	var title := "任务完成：%s" % quest_name
 	var panel_title := "任务完成"
@@ -110,7 +110,11 @@ func _format_unlock_effects(unlock_effects: Array) -> Array[String]:
 	return unlock_messages
 
 
-func _format_completion_note(quest_id: String) -> String:
+func _format_completion_note(
+	quest_id: String,
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
 	match quest_id:
 		"quest.restore_outpost":
 			return "前哨核心恢复，基础反应器已上线；下一步出门采集晶体矿物作为第一批加工输入"
@@ -241,7 +245,7 @@ func _format_completion_note(quest_id: String) -> String:
 		"quest.defeat_demo_stabilization_guard":
 			return "核心阶段守卫已击败；回写缓存已暴露，先回收校验片和终点前补给"
 		"quest.write_demo_stabilization_core":
-			return "核心稳定站已接管第一条稳定通道；首版 demo 主线目标已完成"
+			return DemoMainlineCompletionFormatter.format_completion_note_for_state(world_state, character_state)
 		_:
 			return ""
 

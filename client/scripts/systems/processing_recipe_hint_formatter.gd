@@ -5,8 +5,24 @@ class_name ProcessingRecipeHintFormatter
 static func get_completion_next_step(recipe_id: String, world_state: WorldState = null) -> String:
 	match recipe_id:
 		"recipe.process_crystal_ore":
+			if (
+				world_state != null
+				and FieldOutfittingRuntime.is_logistics_material_processed(world_state)
+				and not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state)
+			):
+				return "后勤补料晶体已加工成基础零件；到出发整备台确认维护材料，再回前哨核心补给并从外勤出发口准备下一趟外勤。"
+			if (
+				world_state != null
+				and FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state)
+				and not FieldOutfittingRuntime.is_logistics_material_processed(world_state)
+			):
+				return "后勤补料材料已带回；完成这次基础零件加工后，到出发整备台确认维护材料。"
 			return "基础零件已补足；它们会用于反应器校准、过滤模块和地基。若当前任务还差更高阶配方，可按 R 切换到目标配方。"
 		"recipe.reclaim_basic_parts":
+			if world_state != null and world_state.quest_state.has_active_quest("quest.enter_pollution_edge"):
+				return "污染浆液已回收成基础零件；如果药剂或后续浆液不足，回污染边界副产口袋或药剂储备口袋补沉积物，再回过滤器处理。"
+			if world_state != null and world_state.quest_state.has_active_quest("quest.unlock_ruin_signal"):
+				return "污染浆液已回收成基础零件；带基础过滤模块和抗污染药剂回封锁入口确认信号。"
 			if world_state != null and world_state.quest_state.has_active_quest("quest.assemble_phase_anchor"):
 				return "污染浆液已回收成基础零件；继续确认稳相信标是否还留有组装用浆液，不足就回污染脊补沉积物再处理。"
 			return "污染浆液已回收成基础零件；继续补给、地基或模块制造，副产物不再只是库存负担。"
@@ -108,6 +124,14 @@ static func get_completion_next_step(recipe_id: String, world_state: WorldState 
 			return "查看当前任务目标，选择下一次加工或外出行动。"
 
 
+static func get_processing_started_appendix(recipe_id: String, world_state: WorldState = null) -> String:
+	match recipe_id:
+		"recipe.cleanse_residue":
+			return _get_pollution_residue_processing_started_appendix(world_state)
+		_:
+			return ""
+
+
 static func should_return_for_second_pollution_residue_batch(world_state: WorldState) -> bool:
 	if world_state == null:
 		return false
@@ -116,14 +140,100 @@ static func should_return_for_second_pollution_residue_batch(world_state: WorldS
 	return world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue") < 4.0
 
 
+static func _get_pollution_residue_processing_started_appendix(world_state: WorldState = null) -> String:
+	if world_state != null:
+		if _is_logistics_maintenance_pollution_retest_context(world_state):
+			return "本次会把污染边界后勤维护沉积转成抗污染药剂和污染浆液；完成后回前哨核心补给，再从出发口复测核心站。"
+		if _is_logistics_maintenance_retest_context(world_state):
+			return "本次会把后勤维护复测沉积转成抗污染药剂和污染浆液；完成后回前哨核心补给，多余污染浆液可回基地基础反应器回收基础零件。"
+		if _is_core_archive_pressure_retest_context(world_state):
+			return "本次会把复测压力沉积转成抗污染药剂和污染浆液；完成后回前哨核心补药剂，多余污染浆液可回基地基础反应器回收基础零件。"
+		if _is_core_archive_return_residue_context(world_state):
+			return "本次会把归档维护回访沉积转成抗污染药剂和污染浆液；完成后回前哨核心补满药剂，再从外勤出发口复测核心稳定站。"
+		if world_state.quest_state.has_active_quest("quest.assemble_phase_anchor"):
+			return "本次会产出抗污染药剂并留下污染浆液；完成后回基地基础反应器组装稳相信标，药剂留给遗迹外圈承压。"
+		if world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
+			return "本次会产出抗污染药剂并留下污染浆液；浆液保留给深段回波解析，药剂留给外圈继续承压。"
+		if world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer"):
+			return "本次会产出抗污染药剂并留下污染浆液；完成后回基础反应器整备核心稳压缓冲包，药剂留给核心站排压。"
+	if should_return_for_second_pollution_residue_batch(world_state):
+		return "本次会产出抗污染药剂并留下污染浆液；完成后带药剂回污染边界，清理受扰敌人和门前压力点。"
+	return ""
+
+
 static func _get_pollution_vial_completion_next_step(world_state: WorldState = null) -> String:
 	if world_state != null:
+		if _is_logistics_maintenance_pollution_retest_context(world_state):
+			return "污染边界后勤维护沉积已处理成抗污染药剂和污染浆液；回前哨核心把药剂补到 %s，再从外勤出发口复测核心站压力点。" % _format_resistance_vial_target(world_state)
+		if _is_logistics_maintenance_retest_context(world_state):
+			return "后勤维护复测沉积已处理成抗污染药剂和污染浆液；回前哨核心把药剂补到 %s，再确认下一趟外勤准备。" % _format_resistance_vial_target(world_state)
+		if _is_core_archive_pressure_retest_context(world_state):
+			return "复测压力沉积已处理成抗污染药剂和污染浆液；回前哨核心把药剂补到 %s，再把多余污染浆液回基础反应器回收基础零件。" % _format_resistance_vial_target(world_state)
+		if _is_core_archive_return_residue_context(world_state):
+			return "归档维护回访沉积已处理成抗污染药剂和污染浆液；回前哨核心把抗污染药剂补到 %s，再从外勤出发口复测核心稳定站或回污染边界确认承压。" % _format_resistance_vial_target(world_state)
 		if world_state.quest_state.has_active_quest("quest.assemble_phase_anchor"):
 			return "污染浆液已就绪；回基地基础反应器组装稳相信标，抗污染药剂留给遗迹外圈承压。"
 		if world_state.quest_state.has_active_quest("quest.salvage_signal_echo"):
-			return "污染回波沉积已处理成药剂和污染浆液；保留浆液，回外圈回收回波匣，再回基地解析裂相坐标。"
+			return "污染回波沉积已处理成药剂和污染浆液；浆液就是深段回波解析输入，回外圈回收回波匣后再回基地解析裂相坐标。"
 		if world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer"):
 			return "核心缓冲补料已处理成药剂和污染浆液；回基础反应器整备核心稳压缓冲包，药剂留给核心站排压。"
 	if should_return_for_second_pollution_residue_batch(world_state):
 		return "带药剂回污染边界，补第二批沉积物，清理受扰敌人和门前压力点；抗污染药剂留在快捷栏 2。"
 	return "带药剂回污染边界，清理受扰敌人和门前压力点；抗污染药剂留在快捷栏 2，用于维持遗迹门前防护。"
+
+
+static func _is_core_archive_return_residue_context(world_state: WorldState) -> bool:
+	return (
+		world_state != null
+		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
+		and FieldOutfittingRuntime.is_core_archive_maintained(world_state)
+		and (
+			bool(
+				world_state.get_map_object(
+					"map_object_instance.pollution_residue_core_archive_route_cache"
+				).get("is_gathered", false)
+			)
+			or bool(
+				world_state.get_map_object(
+					"map_object_instance.pollution_residue_core_archive_return_cache"
+				).get("is_gathered", false)
+			)
+		)
+	)
+
+
+static func _is_logistics_maintenance_retest_context(world_state: WorldState) -> bool:
+	return (
+		world_state != null
+		and CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_available(world_state)
+		and CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state)
+	)
+
+
+static func _is_logistics_maintenance_pollution_retest_context(world_state: WorldState) -> bool:
+	return (
+		world_state != null
+		and FieldOutfittingRuntime.is_logistics_maintenance_pollution_retest_available(world_state)
+		and FieldOutfittingRuntime.has_logistics_maintenance_pollution_retest_residue(world_state)
+		and not FieldOutfittingRuntime.is_logistics_maintenance_pollution_retest_processed(world_state)
+	)
+
+
+static func _is_core_archive_pressure_retest_context(world_state: WorldState) -> bool:
+	return (
+		world_state != null
+		and world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core")
+		and FieldOutfittingRuntime.is_core_archive_maintained(world_state)
+		and bool(
+			world_state.get_map_object(
+				"map_object_instance.pollution_residue_core_archive_pressure_retest_cache"
+			).get("is_gathered", false)
+		)
+	)
+
+
+static func _format_resistance_vial_target(world_state: WorldState) -> String:
+	var target := DepartureSupplyRuntime.get_resistance_vial_target(world_state)
+	if target > DepartureSupplyRuntime.BASIC_RESISTANCE_VIAL_TARGET:
+		return "%d/%d" % [target, target]
+	return "满"

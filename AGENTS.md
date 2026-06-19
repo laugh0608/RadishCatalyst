@@ -4,7 +4,7 @@
 
 ## 称呼
 
-- 对话结束总结时，请称呼我为 `萝卜`
+- 对话开始或结束总结时，请称呼我为 `萝卜SAMA`
 
 ## 语言规范
 
@@ -16,7 +16,7 @@
 
 `RadishCatalyst / 异星催化` 是一个以异星化工基地、人物探索战斗、角色成长和后续协作联机为核心方向的 2D / 2.5D 工业科幻 ARPG。
 
-当前阶段、短期重点、当前不做和阶段退出条件以 `docs/planning/current.md` 为准。
+当前阶段、短期重点、当前不做和阶段退出条件以 `docs/planning/current.md` 及其当前活跃专题为准。
 
 ## 文档真相源
 
@@ -24,12 +24,14 @@
 
 1. `docs/planning/daily-start.md`
 2. `docs/planning/current.md`
-3. `docs/devlogs/` 下最新一期周志中的“风险与未完成项”和“下周建议”
+3. `docs/planning/current.md` 指向的当前活跃 `docs/features/*.md`
+4. `docs/devlogs/` 下最新一期周志中的“风险与未完成项”和“下周建议”
 
 按任务选读：
 
 - 项目方向：`docs/product/creative-development-brief.md`
 - 首小时体验：`docs/design/onboarding-and-first-hour.md`
+- 功能专题：`docs/features/README.md`
 - 开发复测基线：`docs/design/development-retest-baselines.md`
 - 联机、存档或边界：`docs/architecture/multiplayer-and-save-architecture.md`
 - 代码结构和重构：`docs/architecture/code-style-and-language-practices.md`
@@ -40,6 +42,7 @@
 
 - 若文档、代码和阶段目标冲突，先判断哪一方过期，再统一修正。
 - 优先更新已有文档，不为一次性讨论创建大量散文档。
+- 玩家可感知功能目标、跨系统开发包或会同时影响玩法 / 场景 / HUD / 状态 / 检查的任务，应优先更新或建立 `docs/features/` 专题文档；规划入口只链接当前专题，不复制详细范围。
 - `docs/planning/daily-start.md`、`docs/planning/current.md`、`docs/README.md`、各目录 `README.md` 等关键入口文档应保持简约，只描述当前阶段、最近进度、下一步重点和必要索引；历史过程、长清单和背景材料应放入周志、专题文档、`docs/reference/` 或 `docs/archive/`，避免新会话读取入口时浪费上下文。
 - 文档按角色控制篇幅：`docs/README.md`、`docs/planning/current.md`、`docs/planning/daily-start.md` 和 `docs/**/README.md` 硬上限 120 行；`docs/` 下其他活跃专题文档建议 280 行内；`docs/devlogs/` 和 `docs/reference/` 建议 350 行内；`docs/archive/` 不设硬上限，但不作为新会话入口。
 - 专题文档接近 220 行时，新增内容优先拆成“总览 + 子文档”，或把历史过程移到周志、`reference/`、`archive/`；不要让单文件同时承担入口、规则、历史和案例四种职责。
@@ -49,12 +52,20 @@
 - 玩家可见知识库内容放在 `wiki/`，不要混入开发者内部规划。
 - 面向玩家的官方辅助工具放在 `official-tools/`，不要和仓库脚本目录 `tools/` 混淆。
 
+## 开发节奏
+
+- 当前常态节奏为“功能设计文档先行”：玩家可感知功能目标、跨系统开发包或阶段性玩法推进，先确认或建立对应 `docs/features/` 专题，再拆具体实现任务。
+- 回答“下一步做什么”时，应先判断要推进哪个功能设计文档；若当前阶段已满足退出条件，优先切换或建立下一个专题，而不是继续追加同层内容包。
+- `docs/planning/` 负责阶段方向、当前边界、冻结项和退出条件；阶段级专题负责能力域方向和跨包验收；可执行细专题负责玩家路径、状态 / 存档、HUD / 场景反馈、自动检查和具体实施范围。
+- 没有对应专题时，先补短设计与开发边界；只有单点文案、局部修错或不影响玩法 / 状态 / 检查的小改动，才可直接沿现有专题实施。
+
 ## 协作流程
 
 - 开始任务前，先检查工作区状态，并阅读与任务直接相关的文档。
 - 若用户明确要求直接修改，且范围清晰、风险可控，则直接实施。
 - 若用户没有明确要求直接修改，编写代码前应先说明方案。
 - 若需求不明确，或改动会影响架构、阶段边界、接口口径、验证基线，则先说明判断并做必要澄清。
+- 首版 Demo 未完成初步阶段的完整玩法、场景和美术前，不主动把下一步切到试玩准备或修 bug 阶段；真实页面 smoke 只作为开发效果核对手段，不替代功能、场景和玩法专题推进。
 - 每次新增/修改功能、修复 bug 或处理其他任务时，优先从根因、长期维护性和系统一致性出发，选择更完整、更稳妥的治理方案；不要把“最小修复”当作默认优先级，也不要无节制地层层增加兜底来掩盖问题。
 - 每做完一个可分割子步骤，应进行匹配的最小验证。
 - 人工复测默认优先使用开发复测基线定位对应段落；只有涉及早期链路、共享任务 / HUD / 地图提示、存档迁移兼容或较大功能包收口时，再强制回到 `S0` 全链路空档复测。
@@ -71,8 +82,8 @@
 
 - 分支与 PR 治理以 `docs/adr/0001-branch-and-pr-governance.md` 为准。
 - `dev` 是日常开发与文档集成分支，`master` / `main` 仅作为稳定主线。
-- 远端分支保护、合并策略、默认目标分支和阶段性例外以 ADR 与仓库实际设置为准。
-- 默认分支 PR 的 `Repo Hygiene` CI 覆盖文本卫生、文档篇幅和提交 diff 空白检查；客户端聚合验证仍按改动范围在本地或手动流程执行。
+- 远端分支保护、合并策略、稳定主线 PR 目标和阶段性例外以 ADR 与仓库实际设置为准。
+- 默认分支 PR 的 `Repo Hygiene` CI 覆盖文本卫生、文档篇幅、客户端静态数据、客户端场景引用和提交 diff 空白检查；需要启动 Godot 的运行时验证仍按改动范围在本地或手动流程执行。
 
 ## 验证与检查约定
 
@@ -102,7 +113,7 @@ Linux/macOS、Git Bash 或 macOS zsh 环境可执行：
 ./scripts/check-docs.sh
 ```
 
-客户端聚合验证入口：
+客户端默认检查入口：
 
 ```powershell
 pwsh ./scripts/check-client.ps1
@@ -111,10 +122,22 @@ pwsh ./scripts/check-client.ps1
 Linux/macOS、Git Bash 或 macOS zsh 环境可执行：
 
 ```bash
-./scripts/check-client.sh
+sh ./scripts/check-client.sh
 ```
 
-提交前按改动范围至少执行匹配的最小验证；涉及客户端状态、任务、存档、场景或脚本时，优先执行对应平台的 `check-client` 入口，再执行对应平台的 `check-text-files` 和 `git diff --check`。涉及 `docs/`、根 `README.md`、`AGENTS.md` 或 `CLAUDE.md` 时，额外执行对应平台的 `check-docs`。
+默认 `check-client` 只覆盖客户端静态数据和场景引用，不启动 Godot。需要工程导入或运行项目自定义 GDScript 检查时，确认本机 Godot 可启动后再显式执行：
+
+```powershell
+pwsh ./scripts/check-client.ps1 -WithGodot
+```
+
+```bash
+sh ./scripts/check-client.sh --with-godot
+```
+
+Godot 官方命令行提供 `--import`、`--script` 和脚本级 `--check-only` 等能力，但没有仓库级通用项目检查接口；本仓库的 Godot 运行时验证是通过项目自定义 GDScript 检查脚本实现。
+
+提交前按改动范围至少执行匹配的最小验证；涉及客户端状态、任务、存档、场景或脚本时，优先执行对应平台的默认 `check-client` 入口，再执行对应平台的 `check-text-files` 和 `git diff --check`。涉及 `docs/`、根 `README.md`、`AGENTS.md` 或 `CLAUDE.md` 时，额外执行对应平台的 `check-docs`。
 
 如果未来加入 Godot 导出配置、脚本静态检查或更多自动化测试入口，应同步更新脚本、`docs/`、`AGENTS.md`、`CLAUDE.md` 和 CI。
 
@@ -126,12 +149,12 @@ Linux/macOS、Git Bash 或 macOS zsh 环境可执行：
 - `git status`、`git diff`、`git log` 等只读 Git 操作。
 - `pwsh ./scripts/check-text-files.ps1`、`./scripts/check-text-files.sh`。
 - `pwsh ./scripts/check-docs.ps1`、`./scripts/check-docs.sh`。
-- `pwsh ./scripts/check-client.ps1`、`./scripts/check-client.sh` 及其单项客户端检查脚本。
+- `pwsh ./scripts/check-client.ps1`、`sh ./scripts/check-client.sh` 及不启动 Godot 的单项客户端检查脚本。
 - 简洁明确的提交操作。
 
 ### 需要先告知用户再执行
 
-- 启动 Godot 编辑器、桌面程序或长期运行进程。
+- 启动 Godot 编辑器、桌面程序、`check-client --with-godot` / `-WithGodot` 或单项 Godot 运行时检查。
 - 安装依赖、下载大文件、引入外部资产包。
 - 修改系统环境、注册表、证书、全局 Git 配置或编辑器全局配置。
 - 打包、发布、上传、推送远端分支或创建 Release。
@@ -141,7 +164,7 @@ Linux/macOS、Git Bash 或 macOS zsh 环境可执行：
 - 跨工作区编辑历史旧仓库、兄弟仓库、参考仓库或其他项目；确需跨仓库操作时必须先获得明确授权。
 - 把旧仓库代码整包迁入当前仓库。
 - 未经明确要求执行破坏性 Git 操作。
-- 项目范围上的“当前不做”事项以 `docs/planning/current.md` 为准。
+- 项目范围上的“当前不做”事项以 `docs/planning/current.md` 及其当前活跃专题为准。
 
 ## 工程与内容边界
 
@@ -150,7 +173,7 @@ Linux/macOS、Git Bash 或 macOS zsh 环境可执行：
 - 核心设计围绕“基地服务冒险，冒险反哺基地”展开。
 - 化工自动化是项目差异化卖点，但不应成为玩家理解门槛。
 - 战斗、探索、成长与生产链必须形成互相推动的闭环。
-- 当前阶段范围、当前不做和里程碑退出条件以 `docs/planning/current.md` 为准；涉及联机、存档或边界判断时参考 `docs/architecture/multiplayer-and-save-architecture.md`。
+- 当前阶段范围、当前不做和里程碑退出条件以 `docs/planning/current.md` 及其当前活跃专题为准；涉及联机、存档或边界判断时参考 `docs/architecture/multiplayer-and-save-architecture.md`。
 
 ## 代码与文件规范
 
@@ -176,6 +199,7 @@ Linux/macOS、Git Bash 或 macOS zsh 环境可执行：
 - `tools/`：项目脚本、数据处理、构建或导出辅助工具。
 - `scripts/`：仓库检查与自动化脚本。
 - `docs/`：策划、设计、架构、参考与归档文档。
+- `docs/features/`：玩家可感知功能目标的设计与开发专题文档。
 - `wiki/`：未来面向玩家的 Wiki 源内容。
 - `official-tools/`：未来面向玩家的官方辅助工具。
 - `.github/`：PR 模板、GitHub Actions 和 ruleset 模板。

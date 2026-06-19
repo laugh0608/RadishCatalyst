@@ -15,6 +15,7 @@ func run() -> void:
 	_check_phase_anchor_reclaim_hint(processing)
 	_check_mid_demo_missing_input_hints(processing)
 	_check_pollution_vial_contextual_next_steps(processing)
+	_check_signal_echo_filter_recommendation(processing)
 	_check_deep_signal_analysis_byproduct_input(processing)
 	_check_core_stabilization_buffer(processing)
 	_check_relay_tuning_lens(processing)
@@ -425,8 +426,18 @@ func _check_pollution_vial_contextual_next_steps(processing: ProcessingSystem) -
 	echo_world.quest_state.active_quest_ids = ["quest.salvage_signal_echo"]
 	host._expect_text_contains(
 		processing._get_completion_next_step("recipe.cleanse_residue", echo_world),
-		"回收回波匣",
+		"深段回波解析输入",
 		"residue cleansing points echo prep back to echo cache"
+	)
+	var echo_character := CharacterState.create_default()
+	echo_character.inventory.add_item("item.polluted_residue", 2)
+	echo_character.inventory.add_fluid("fluid.basic_solvent", 1.0)
+	var echo_start := processing.process_recipe("recipe.cleanse_residue", echo_character, echo_world)
+	host._expect_equal(bool(echo_start.get("success", false)), true, "echo residue cleansing starts")
+	host._expect_text_contains(
+		String(echo_start.get("message", "")),
+		"浆液保留给深段回波解析",
+		"echo residue start message carries byproduct purpose"
 	)
 
 	var core_world := _create_filter_world("recipe.cleanse_residue")
@@ -442,6 +453,16 @@ func _check_pollution_vial_contextual_next_steps(processing: ProcessingSystem) -
 	core_character.inventory.add_fluid("fluid.basic_solvent", 1.0)
 	var start := processing.process_recipe("recipe.cleanse_residue", core_character, core_world)
 	host._expect_equal(bool(start.get("success", false)), true, "contextual residue cleansing starts")
+	host._expect_text_contains(
+		String(start.get("message", "")),
+		"整备核心稳压缓冲包",
+		"contextual residue cleansing start points to core buffer"
+	)
+	host._expect_text_contains(
+		String(start.get("message", "")),
+		"药剂留给核心站排压",
+		"contextual residue cleansing start carries core pressure value"
+	)
 	var completed := processing.advance_processing(20.0, core_character, core_world)
 	host._expect_equal(completed.size(), 1, "contextual residue cleansing completes")
 	if not completed.is_empty():
@@ -456,6 +477,32 @@ func _check_pollution_vial_contextual_next_steps(processing: ProcessingSystem) -
 		"整备核心稳压缓冲包",
 		"contextual residue cleansing panel carries core next step"
 	)
+
+
+func _check_signal_echo_filter_recommendation(processing: ProcessingSystem) -> void:
+	var filter := PrototypeInteractable.new()
+	filter.definition_id = "building.pollution_filter"
+	filter.interaction_type = "process_recipe"
+	filter.recipe_id = "recipe.cleanse_residue"
+	filter.set_recipe_cycle(["recipe.cleanse_residue"])
+
+	var world := WorldState.create_default()
+	world.quest_state.active_quest_ids = ["quest.salvage_signal_echo"]
+	var character := CharacterState.create_default()
+	character.inventory.add_item("item.polluted_residue", 2)
+	host._expect_equal(
+		processing.get_recommended_recipe_id(filter, character, world),
+		"recipe.cleanse_residue",
+		"signal echo salvage recommends filtering echo residue"
+	)
+
+	world.quest_state.active_quest_ids = ["quest.analyze_deep_signal"]
+	host._expect_equal(
+		processing.get_recommended_recipe_id(filter, character, world),
+		"recipe.cleanse_residue",
+		"deep signal analysis recommends filtering held residue before reactor analysis"
+	)
+	filter.free()
 
 
 func _check_relay_tuning_lens(processing: ProcessingSystem) -> void:

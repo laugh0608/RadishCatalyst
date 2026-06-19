@@ -2,12 +2,24 @@ extends RefCounted
 class_name RecipePurposeHints
 
 
-static func format_recipe_goal_hint(recipe_id: String) -> String:
+static func format_recipe_goal_hint(recipe_id: String, world_state: WorldState = null) -> String:
 	match recipe_id:
 		"recipe.process_crystal_ore":
-			return "把晶体矿物转成基础零件，支撑校准件、过滤模块、地基和补给。"
+			if (
+				world_state != null
+				and FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state)
+				and not FieldOutfittingRuntime.is_logistics_material_processed(world_state)
+			):
+				return "把晶体侧路带回的补料晶体转成基础零件，随后去出发整备台确认维护材料。"
+			if (
+				world_state != null
+				and FieldOutfittingRuntime.is_logistics_material_processed(world_state)
+				and not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state)
+			):
+				return "后勤补料已加工成基础零件；下一步是到出发整备台确认维护材料。"
+			return "把晶体矿物转成基础零件，支撑校准件、过滤模块、地基、补给和工具打击校准。"
 		"recipe.reclaim_basic_parts":
-			return "把污染处理副产的污染浆液回收成基础零件，让副产物重新服务补给、地基、模块和稳相信标。"
+			return "把污染处理副产的污染浆液回收成基础零件，让副产物重新服务补给、地基、模块和工具打击校准。"
 		"recipe.reactor_calibrator":
 			return "校准反应器采样通道，做完就去异常晶体采样。"
 		"recipe.analyze_anomaly_sample":
@@ -21,7 +33,7 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 		"recipe.foundation_t1":
 			return "制造处理点地基材料，做完去处理点北缘铺设两块地基；缺料时回访处理点入口前的晶体和残骸。"
 		"recipe.cleanse_residue":
-			return "把沉积物处理成药剂并留下污染浆液；药剂支撑污染回访，浆液可回基础反应器回收成基础零件。"
+			return _format_pollution_residue_goal_hint(world_state)
 		"recipe.phase_anchor":
 			return "把外圈继电残片、污染浆液和基础零件组装成稳相信标；缺零件时先回收一份浆液。"
 		"recipe.core_stabilization_buffer":
@@ -97,8 +109,37 @@ static func format_recipe_goal_hint(recipe_id: String) -> String:
 	return ""
 
 
+static func _format_pollution_residue_goal_hint(world_state: WorldState = null) -> String:
+	if world_state != null:
+		if (
+			FieldOutfittingRuntime.is_logistics_maintenance_pollution_retest_available(world_state)
+			and FieldOutfittingRuntime.has_logistics_maintenance_pollution_retest_residue(world_state)
+			and not FieldOutfittingRuntime.is_logistics_maintenance_pollution_retest_processed(world_state)
+		):
+			return "把污染边界后勤维护沉积处理成药剂并留下污染浆液；完成后回前哨核心补给，再复测核心站。"
+		if (
+			CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_available(world_state)
+			and CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state)
+			and not CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_processed(world_state)
+		):
+			return "把后勤维护复测沉积处理成药剂并留下污染浆液；完成后回前哨核心补给，再确认下一趟外勤准备。"
+		if world_state.quest_state.has_active_quest("quest.assemble_phase_anchor"):
+			return "把沉积物处理成药剂并留下污染浆液；药剂支撑遗迹外圈承压，浆液要留给稳相信标组装。"
+		if world_state.quest_state.has_active_quest("quest.salvage_signal_echo") or world_state.quest_state.has_active_quest("quest.analyze_deep_signal"):
+			return "把污染回波沉积处理成药剂并留下污染浆液；药剂支撑外圈承压，浆液要留给深段回波解析。"
+		if world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer"):
+			return "把核心补料沉积处理成药剂并留下污染浆液；污染浆液要留给核心稳压缓冲包，药剂支撑核心站排压。"
+	return "把沉积物处理成药剂并留下污染浆液；药剂支撑污染回访，浆液可回基础反应器回收成基础零件。"
+
+
 static func format_build_goal_hint(building_id: String) -> String:
 	match building_id:
+		"building.basic_storage":
+			return "接入前哨整备补给，外出消耗修复凝胶后回基地可补到 1 份。"
+		"building.field_outfitting_station":
+			return "把已制造模块装入防护服，让基地后勤直接改变外勤承压。"
+		"building.slurry_buffer_tank":
+			return "把污染过滤副产接进前哨补给，让回基地整备能携带两份抗污染药剂。"
 		"building.foundation_t1":
 			return "给污染过滤器提供落点；铺好两块后继续建造污染过滤器。"
 		"building.pollution_filter":

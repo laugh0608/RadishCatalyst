@@ -2,7 +2,7 @@
 
 RadishCatalyst Godot 客户端工程目录。
 
-当前工程使用普通版 Godot 4.x 初始化，首版脚本默认使用 GDScript。核心游戏主平台为 Windows 桌面版，Web 试玩和 Android 仅保留后续评估空间。
+当前工程使用普通版 Godot 4.x 初始化，首版脚本默认使用 GDScript。核心游戏主平台为 Windows 桌面版，Web 技术验证和 Android 仅保留后续评估空间。
 
 ## 目录职责
 

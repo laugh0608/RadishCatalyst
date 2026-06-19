@@ -2,6 +2,7 @@ extends SceneTree
 
 const QuestRulesTetherCheckScript := preload("res://scripts/checks/quest_rules_tether_check.gd")
 const QuestRulesDeepFieldCheckScript := preload("res://scripts/checks/quest_rules_deep_field_check.gd")
+const CoreNextSortieReadinessCheckScript := preload("res://scripts/checks/core_next_sortie_readiness_check.gd")
 var failures: Array[String] = []
 var data_registry := DataRegistry.new()
 var event_rules: QuestEventRules
@@ -55,6 +56,7 @@ func _run_checks() -> void:
 	_check_runtime_restores_phase_well_weave_core_followup()
 	QuestRulesDeepFieldCheckScript.new(self).run()
 	QuestRulesTetherCheckScript.new(self).run()
+	CoreNextSortieReadinessCheckScript.new(self).run()
 	_check_runtime_syncs_progression_vitals_and_late_anchor()
 	_check_active_objective_progress_is_capped()
 	_check_inactive_objective_progress_is_ignored()

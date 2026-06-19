@@ -571,6 +571,19 @@ if (Test-Path -LiteralPath $verticalSliceMapScenePath -PathType Leaf) {
     elseif ($demoGuard.RegionId -ne "region.demo_stabilization_core") {
         Add-Error "client/scenes/maps/VerticalSliceMap.tscn: demo stabilization guard must sit in demo stabilization core region"
     }
+    foreach ($nodeName in @(
+        "CoreStabilizationApproachLane",
+        "CoreStabilizationRecoveryPocket",
+        "CoreStabilizationGuardPressureZone",
+        "CoreStabilizationWritebackLine",
+        "CoreStabilizationCorePad",
+        "CoreStabilizationPressureLabel"
+    )) {
+        $sceneNode = $mapNodes | Where-Object { $_.Name -eq $nodeName -and $_.Parent -eq "OpeningSceneLayer" } | Select-Object -First 1
+        if ($null -eq $sceneNode) {
+            Add-Error "client/scenes/maps/VerticalSliceMap.tscn: missing demo stabilization pressure scene node $nodeName"
+        }
+    }
 
     if ((Test-Path -LiteralPath $gameRootScenePath -PathType Leaf) -and $null -ne $playerPosition -and $null -ne $outpostCorePosition -and $null -ne $panelsByName) {
         $gameRootContent = Get-Content -LiteralPath $gameRootScenePath -Raw

@@ -79,10 +79,63 @@ func _check_loads_known_map_object_source() -> void:
 			"region_id": "region.crystal_vein_field",
 			"is_gathered": true
 		},
+		"map_object_instance.crystal_cluster_logistics_pocket": {
+			"definition_id": "map_object.crystal_cluster",
+			"region_id": "region.crystal_vein_field",
+			"is_gathered": true
+		},
+		"map_object_instance.field_wreckage_logistics_pocket": {
+			"definition_id": "map_object.field_wreckage",
+			"region_id": "region.crystal_vein_field",
+			"is_gathered": true
+		},
+		"map_object_instance.crystal_cluster_logistics_return": {
+			"definition_id": "map_object.crystal_cluster",
+			"region_id": "region.crystal_vein_field",
+			"is_gathered": true
+		},
+		"map_object_instance.field_wreckage_logistics_return": {
+			"definition_id": "map_object.field_wreckage",
+			"region_id": "region.crystal_vein_field",
+			"is_gathered": true
+		},
 		"map_object_instance.pollution_residue_outer_pocket": {
 			"definition_id": "map_object.pollution_residue_patch",
 			"region_id": "region.pollution_edge",
 			"is_gathered": true
+		},
+		"map_object_instance.pollution_residue_vial_return_cache": {
+			"definition_id": "map_object.pollution_residue_patch",
+			"region_id": "region.pollution_edge",
+			"is_gathered": true
+		},
+		"map_object_instance.pollution_residue_slurry_return_cache": {
+			"definition_id": "map_object.pollution_residue_patch",
+			"region_id": "region.pollution_edge",
+			"is_gathered": true
+		},
+		"map_object_instance.pollution_residue_vial_reserve_cache": {
+			"definition_id": "map_object.pollution_residue_patch",
+			"region_id": "region.pollution_edge",
+			"is_gathered": true
+		},
+		"map_object_instance.slurry_buffer_tank_build_site": {
+			"definition_id": "building.slurry_buffer_tank",
+			"region_id": "region.outpost_platform",
+			"is_built": true,
+			"built_definition_id": "building.slurry_buffer_tank"
+		},
+		"map_object_instance.outpost_logistics_route_sign": {
+			"definition_id": "map_object.outpost_logistics_route_sign",
+			"region_id": "region.outpost_platform"
+		},
+		"map_object_instance.field_outfitting_station": {
+			"definition_id": "building.field_outfitting_station",
+			"region_id": "region.outpost_platform",
+			"module_calibrated": true,
+			"core_archive_maintained": true,
+			"logistics_material_processed": true,
+			"logistics_maintenance_confirmed": true
 		},
 		"map_object_instance.rough_ground_north": {
 			"definition_id": "map_object.rough_ground",
@@ -164,10 +217,37 @@ func _check_loads_known_map_object_source() -> void:
 			"region_id": "region.demo_stabilization_core",
 			"is_gathered": true
 		},
+		"map_object_instance.demo_stabilization_retest_readout_cache": {
+			"definition_id": "map_object.demo_stabilization_retest_readout_cache",
+			"region_id": "region.demo_stabilization_core",
+			"is_gathered": true
+		},
 		"map_object_instance.core_buffer_residue_cache": {
 			"definition_id": "map_object.pollution_residue_patch",
 			"region_id": "region.pollution_edge",
 			"is_gathered": true
+		},
+		"map_object_instance.pollution_residue_core_archive_route_cache": {
+			"definition_id": "map_object.pollution_residue_patch",
+			"region_id": "region.pollution_edge",
+			"is_gathered": true
+		},
+		"map_object_instance.pollution_residue_core_archive_pressure_retest_cache": {
+			"definition_id": "map_object.pollution_residue_patch",
+			"region_id": "region.pollution_edge",
+			"is_gathered": true
+		},
+		"map_object_instance.pollution_residue_logistics_maintenance_pressure_cache": {
+			"definition_id": "map_object.pollution_residue_patch",
+			"region_id": "region.pollution_edge",
+			"is_gathered": true,
+			"logistics_maintenance_pollution_retest_processed": true
+		},
+		"map_object_instance.pollution_residue_logistics_maintenance_retest_cache": {
+			"definition_id": "map_object.demo_stabilization_logistics_retest_residue",
+			"region_id": "region.demo_stabilization_core",
+			"is_gathered": true,
+			"logistics_maintenance_retest_processed": true
 		},
 		"map_object_instance.demo_stabilization_core": {
 			"definition_id": "map_object.demo_stabilization_core",
@@ -254,12 +334,31 @@ func _check_loads_known_enemy_source() -> void:
 			"max_health": 20,
 			"is_defeated": false
 		},
+		"enemy_instance.native_skitter_logistics_guard": {
+			"definition_id": "enemy.native_skitter",
+			"region_id": "region.crystal_vein_field",
+			"health": 0,
+			"max_health": 20,
+			"is_defeated": true,
+			"drops_granted": true
+		},
+		"enemy_instance.native_skitter_logistics_return_guard": {
+			"definition_id": "enemy.native_skitter",
+			"region_id": "region.crystal_vein_field",
+			"health": 0,
+			"max_health": 20,
+			"is_defeated": true,
+			"drops_granted": true
+		},
 		"enemy_instance.demo_stabilization_guard": {
 			"definition_id": "enemy.demo_stabilization_guard",
 			"region_id": "region.demo_stabilization_core",
 			"health": 0,
 			"max_health": 156,
-			"is_defeated": true
+			"is_defeated": true,
+			"core_buffer_used": true,
+			"core_side_supply_used": true,
+			"pressure_vial_used": true
 		},
 		"enemy_instance.core_buffer_polluted_skitter": {
 			"definition_id": "enemy.polluted_skitter",
@@ -267,6 +366,62 @@ func _check_loads_known_enemy_source() -> void:
 			"health": 0,
 			"max_health": 30,
 			"is_defeated": true
+		},
+		"enemy_instance.polluted_skitter_vial_return_guard": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge",
+			"health": 0,
+			"max_health": 30,
+			"is_defeated": true,
+			"pressure_vial_used": true
+		},
+		"enemy_instance.polluted_skitter_slurry_return_guard": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge",
+			"health": 0,
+			"max_health": 30,
+			"is_defeated": true,
+			"pressure_vial_used": true
+		},
+		"enemy_instance.polluted_skitter_vial_reserve_guard": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge",
+			"health": 0,
+			"max_health": 30,
+			"is_defeated": true,
+			"pressure_vial_used": true
+		},
+		"enemy_instance.polluted_skitter_core_archive_route_guard": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge",
+			"health": 0,
+			"max_health": 30,
+			"is_defeated": true,
+			"pressure_vial_used": true
+		},
+		"enemy_instance.polluted_skitter_core_archive_pressure_retest_guard": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge",
+			"health": 0,
+			"max_health": 30,
+			"is_defeated": true,
+			"pressure_vial_used": true
+		},
+		"enemy_instance.polluted_skitter_logistics_maintenance_pressure_guard": {
+			"definition_id": "enemy.polluted_skitter",
+			"region_id": "region.pollution_edge",
+			"health": 0,
+			"max_health": 30,
+			"is_defeated": true,
+			"pressure_vial_used": true
+		},
+		"enemy_instance.polluted_skitter_logistics_maintenance_retest_guard": {
+			"definition_id": "enemy.demo_stabilization_logistics_retest_skitter",
+			"region_id": "region.demo_stabilization_core",
+			"health": 0,
+			"max_health": 30,
+			"is_defeated": true,
+			"pressure_vial_used": true
 		}
 	}
 	host._write_save_json(save_data)

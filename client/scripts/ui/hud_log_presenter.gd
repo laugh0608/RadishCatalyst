@@ -1,7 +1,7 @@
 extends RefCounted
 class_name HudLogPresenter
 
-const STARTUP_LOG := "前哨已启动。WASD 移动，E 交互，J 攻击，Q 设备面板，F 启用过滤模块，1/2 使用快捷栏；Tab 切换调试面板。先检查前哨核心。"
+const STARTUP_LOG := "前哨已启动。WASD 移动，E 交互，J 攻击，Q 设备面板，1/2 使用补给。先检查前哨核心。"
 
 var data_registry: DataRegistry
 
@@ -29,6 +29,10 @@ func format_success_result_log(result: Dictionary) -> String:
 	var details: Array[String] = []
 	_append_log_detail(details, "下一步", _compact_next_step(String(feedback.get("next_step", ""))))
 	_append_log_detail(details, "去向", _compact_destination(String(feedback.get("destination", ""))))
+	var industrial_line := _compact_next_step(String(feedback.get("industrial_spine", "")))
+	_append_log_detail(details, "工艺", industrial_line)
+	if bool(feedback.get("show_resource_chain", false)):
+		_append_log_detail(details, "资源链", _compact_next_step(String(feedback.get("resource_chain", ""))))
 	_append_log_detail(details, "状态", _compact_status(String(feedback.get("status", ""))))
 	if details.is_empty():
 		return title

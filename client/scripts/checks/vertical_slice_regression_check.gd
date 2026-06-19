@@ -1,6 +1,7 @@
 extends RefCounted
 
 const GameRootScript := preload("res://scripts/game/game_root.gd")
+const PrototypeHudScene := preload("res://scenes/ui/PrototypeHud.tscn")
 const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
 
 var host
@@ -19,6 +20,7 @@ func run_ui_and_recipe_checks() -> void:
 	_check_first_hour_base_return_manufacturing_readability()
 	_check_mid_demo_handoff_readability()
 	_check_development_baseline_presenter()
+	_check_development_baseline_hud_entry()
 	_check_demo_stabilization_baseline_status_panel()
 	_check_game_root_development_baseline_factory()
 	_check_game_root_gm_tools()
@@ -993,8 +995,13 @@ func _check_hud_log_presenter() -> void:
 	var startup_log := presenter.format_startup_log()
 	host._expect_text_contains(
 		startup_log,
-		"Tab 切换调试面板",
-		"startup log keeps debug boundary hint"
+		"先检查前哨核心",
+		"startup log points to first player-facing action"
+	)
+	host._expect_text_missing(
+		startup_log,
+		"Tab",
+		"startup log hides debug panel shortcut from first screen"
 	)
 	if startup_log.length() > 80:
 		host.failures.append("startup log should stay compact, got %d chars: %s" % [startup_log.length(), startup_log])
@@ -1022,7 +1029,22 @@ func _check_hud_log_presenter() -> void:
 
 func _check_development_baseline_presenter() -> void:
 	var definitions := DevelopmentBaselineCatalog.get_baseline_definitions()
-	host._expect_equal(definitions.size(), 22, "development baseline catalog count")
+	host._expect_equal(definitions.size(), 23, "development baseline catalog count")
+	host._expect_equal(
+		DevelopmentBaselineCatalog.get_demo_baseline_ids(),
+		[
+			"baseline.s0_new_game",
+			"baseline.s2_outer_ring_secured",
+			"baseline.s21_demo_stabilization_core_ready",
+			"baseline.s22_demo_completion_outpost_review"
+		],
+		"development baseline catalog exposes demo baseline queue"
+	)
+	host._expect_equal(
+		DevelopmentBaselineCatalog.get_default_demo_baseline_id(),
+		"baseline.s2_outer_ring_secured",
+		"development baseline catalog defaults to S2 demo baseline"
+	)
 	host._expect_equal(
 		String(definitions[0].get("id", "")),
 		"baseline.s0_new_game",
@@ -1033,11 +1055,59 @@ func _check_development_baseline_presenter() -> void:
 	host._expect_text_contains(selected_text, "S3 裂相脊入口已开", "development baseline presenter shows selected baseline name")
 	host._expect_text_contains(selected_text, "相位纤丝", "development baseline presenter shows baseline summary")
 	host._expect_text_contains(selected_text, "过滤器精炼", "development baseline presenter shows recommended use")
+	var demo_baseline_text := presenter.format_selected_baseline(definitions[2], 2, definitions.size())
+	host._expect_text_contains(demo_baseline_text, "Demo基线 2/4", "development baseline presenter marks S2 demo baseline")
+	host._expect_text_contains(demo_baseline_text, "污染浆液去向", "development baseline presenter shows S2 baseline focus")
 	host._expect_equal(
-		String(definitions[21].get("id", "")),
-		"baseline.s21_demo_stabilization_core_ready",
-		"development baseline catalog ends at S21"
+		String(definitions[22].get("id", "")),
+		"baseline.s22_demo_completion_outpost_review",
+		"development baseline catalog ends at S22"
 	)
+	var builder := DevelopmentBaselineBuilder.new(host.data_registry)
+	var s21_result := builder.create_baseline_state("baseline.s21_demo_stabilization_core_ready")
+	host._expect_text_contains(
+		String(s21_result.get("message", "")),
+		"开发观察",
+		"development baseline load log includes demo baseline watch point"
+	)
+
+
+func _check_development_baseline_hud_entry() -> void:
+	var hud := PrototypeHudScene.instantiate() as PrototypeHud
+	host.root.add_child(hud)
+	hud.update_development_baselines(DevelopmentBaselineCatalog.get_baseline_definitions())
+	host._expect_equal(
+		String(hud._get_selected_development_baseline().get("id", "")),
+		"baseline.s2_outer_ring_secured",
+		"HUD development baseline defaults to S2 demo sampling"
+	)
+	host._expect_text_contains(hud.baseline_label.text, "Demo基线 2/4", "HUD baseline label shows demo baseline index")
+	host._expect_equal(hud.baseline_demo_button != null, true, "HUD scene exposes demo baseline button")
+	hud._on_demo_baseline_pressed()
+	host._expect_equal(
+		String(hud._get_selected_development_baseline().get("id", "")),
+		"baseline.s21_demo_stabilization_core_ready",
+		"HUD demo baseline button jumps from S2 to S21"
+	)
+	hud._on_demo_baseline_pressed()
+	host._expect_equal(
+		String(hud._get_selected_development_baseline().get("id", "")),
+		"baseline.s22_demo_completion_outpost_review",
+		"HUD demo baseline button jumps from S21 to S22"
+	)
+	hud._on_demo_baseline_pressed()
+	host._expect_equal(
+		String(hud._get_selected_development_baseline().get("id", "")),
+		"baseline.s0_new_game",
+		"HUD demo baseline button wraps from S22 to S0"
+	)
+	hud._on_baseline_next_pressed()
+	host._expect_equal(
+		String(hud._get_selected_development_baseline().get("id", "")),
+		"baseline.s1_treatment_ready",
+		"HUD baseline next button still walks the full catalog"
+	)
+	hud.free()
 
 
 func _check_demo_stabilization_baseline_status_panel() -> void:
@@ -1058,7 +1128,8 @@ func _check_demo_stabilization_baseline_status_panel() -> void:
 	host._expect_text_contains(status_text, "目标：进入核心稳定站", "S21 status shows demo core entry target")
 	host._expect_text_contains(status_text, "进度：进入 核心稳定站 0/1", "S21 status shows demo core region progress")
 	host._expect_text_contains(status_text, "关键资源：基础零件x16", "S21 status keeps compact key resources")
-	host._expect_text_contains(status_text, "设备：待命；当前目标先外出推进", "S21 status keeps base summary from pulling player back")
+	host._expect_text_contains(status_text, "核心站承压：先进入终点读侧边补给、守卫和核心设备", "S21 status shows terminal pressure read")
+	host._expect_text_contains(status_text, "准备项：侧边补给待取；缓冲包未回写；药剂在身；守卫缓存待取", "S21 status shows terminal preparation state")
 	host._expect_text_contains(status_text, "模块：基础多用工具；基础防护服；基础过滤模块", "S21 status keeps combat module visible")
 	host._expect_text_missing(status_text, "前线行动台", "S21 status should not point back to action console")
 	host._expect_text_missing(status_text, "高压窗口", "S21 status should not reopen overpressure window")

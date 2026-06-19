@@ -9,8 +9,12 @@ const ANOMALY_MARKER_COLOR := Color(0.72, 0.42, 0.9, 1)
 const RESIDUE_MARKER_COLOR := Color(0.86, 0.74, 0.22, 1)
 const ROUGH_GROUND_MARKER_COLOR := Color(0.48, 0.42, 0.34, 1)
 const FOUNDATION_SITE_MARKER_COLOR := Color(0.42, 0.56, 0.48, 1)
+const STORAGE_MARKER_COLOR := Color(0.36, 0.62, 0.56, 1)
+const OUTFITTING_MARKER_COLOR := Color(0.66, 0.58, 0.34, 1)
+const SLURRY_BUFFER_MARKER_COLOR := Color(0.58, 0.64, 0.31, 1)
 const REACTOR_MARKER_COLOR := Color(0.28, 0.78, 0.9, 1)
 const FILTER_MARKER_COLOR := Color(0.64, 0.78, 0.3, 1)
+const CALIBRATED_OUTFITTING_MARKER_COLOR := Color(0.84, 0.78, 0.44, 1)
 const GATE_MARKER_COLOR := Color(0.72, 0.56, 0.86, 1)
 const RESTORED_OUTPOST_CORE_COLOR := Color(0.18, 0.86, 0.93, 1)
 const GATHERED_CRYSTAL_COLOR := Color(0.22, 0.42, 0.58, 1)
@@ -55,6 +59,9 @@ const CALIBRATED_STABILITY_NODE_COLOR := Color(0.48, 0.82, 0.92, 1)
 const COMPLETED_FRONTLINE_ACTION_COLOR := Color(0.56, 0.9, 0.78, 1)
 const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
 const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
+const BUILT_STORAGE_COLOR := Color(0.5, 0.74, 0.66, 1)
+const BUILT_OUTFITTING_COLOR := Color(0.78, 0.68, 0.42, 1)
+const BUILT_SLURRY_BUFFER_COLOR := Color(0.66, 0.7, 0.36, 1)
 const GATHERED_CRYSTAL_SIZE := Vector2(28.0, 12.0)
 const GATHERED_SALVAGE_SIZE := Vector2(30.0, 10.0)
 const GATHERED_RESIDUE_SIZE := Vector2(26.0, 10.0)
@@ -83,6 +90,7 @@ var display_name_text: String = ""
 
 @onready var label: Label = $Label
 @onready var marker: ColorRect = $Marker
+@onready var focus_ring: ColorRect = $FocusRing
 
 
 func _ensure_visual_nodes() -> void:
@@ -90,6 +98,8 @@ func _ensure_visual_nodes() -> void:
 		label = get_node_or_null("Label") as Label
 	if marker == null:
 		marker = get_node_or_null("Marker") as ColorRect
+	if focus_ring == null:
+		focus_ring = get_node_or_null("FocusRing") as ColorRect
 
 
 func setup(display_name: String) -> void:
@@ -196,6 +206,12 @@ func set_interaction_enabled(enabled: bool) -> void:
 func set_focus_visual(focused: bool) -> void:
 	if label != null:
 		label.visible = focused and visible and not label.text.strip_edges().is_empty()
+	if focus_ring != null:
+		focus_ring.visible = focused and visible
+		if marker != null:
+			var ring_size := marker.size + Vector2(14.0, 14.0)
+			focus_ring.position = marker.position - Vector2(7.0, 7.0)
+			focus_ring.size = ring_size
 	if marker != null:
 		marker.pivot_offset = marker.size * 0.5
 		marker.scale = FOCUSED_MARKER_SCALE if focused else Vector2.ONE
@@ -233,6 +249,13 @@ func set_processed_visual() -> bool:
 		visible = true
 		monitoring = false
 		_apply_marker_style(GATHERED_SALVAGE_SIZE, GATHERED_SALVAGE_COLOR)
+		_set_label_text("%s\n已回收" % display_name_text, 2)
+		return true
+	if interaction_type == "gather" and definition_id == "map_object.demo_stabilization_guard_cache":
+		consumed = true
+		visible = true
+		monitoring = false
+		_apply_marker_style(GATHERED_SALVAGE_SIZE, GATHERED_RELAY_SHARD_COLOR)
 		_set_label_text("%s\n已回收" % display_name_text, 2)
 		return true
 	if interaction_type == "gather" and definition_id == "map_object.anomaly_residue_patch":
@@ -479,6 +502,47 @@ func set_processed_visual() -> bool:
 	return false
 
 
+func set_visual_priority_state(state_id: String, custom_label: String = "") -> bool:
+	_ensure_visual_nodes()
+	var state_profile := PrototypeVisualPriorityProfile.get_state_profile(state_id)
+	if state_profile.is_empty():
+		return false
+	consumed = false
+	visible = true
+	monitoring = bool(state_profile.get("monitoring", true))
+	var marker_size: Vector2 = state_profile.get("marker_size", Vector2(36.0, 28.0))
+	var marker_color: Color = state_profile.get("color", DEFAULT_MARKER_COLOR)
+	_apply_marker_style(marker_size, marker_color)
+	var state_label := custom_label
+	if state_label.is_empty():
+		state_label = String(state_profile.get("label", ""))
+	var display_text := display_name_text
+	if display_text.is_empty():
+		display_text = name
+	_set_label_text("%s\n%s" % [display_text, state_label], 2)
+	return true
+
+
+func set_missing_prerequisite_visual() -> bool:
+	return set_visual_priority_state(PrototypeVisualPriorityProfile.STATE_MISSING_PREREQUISITE)
+
+
+func set_danger_active_visual() -> bool:
+	return set_visual_priority_state(PrototypeVisualPriorityProfile.STATE_DANGER_ACTIVE)
+
+
+func set_device_ready_visual() -> bool:
+	return set_visual_priority_state(PrototypeVisualPriorityProfile.STATE_DEVICE_READY)
+
+
+func set_device_busy_visual() -> bool:
+	return set_visual_priority_state(PrototypeVisualPriorityProfile.STATE_DEVICE_BUSY)
+
+
+func set_core_write_blocked_visual() -> bool:
+	return set_visual_priority_state(PrototypeVisualPriorityProfile.STATE_CORE_WRITE_BLOCKED)
+
+
 func set_confirmed_ruin_signal_visual() -> void:
 	consumed = true
 	visible = true
@@ -669,6 +733,15 @@ func set_built_visual(built_definition_id: String) -> void:
 	if built_definition_id == "building.foundation_t1":
 		_apply_marker_style(BUILT_FOUNDATION_SIZE, BUILT_FOUNDATION_COLOR)
 		_set_label_text("基础地基\n已铺设", 2)
+	elif built_definition_id == "building.basic_storage":
+		_apply_marker_style(Vector2(42.0, 26.0), BUILT_STORAGE_COLOR)
+		_set_label_text("基础储存箱\n已接入", 2)
+	elif built_definition_id == "building.field_outfitting_station":
+		_apply_marker_style(Vector2(44.0, 28.0), BUILT_OUTFITTING_COLOR)
+		_set_label_text("出发整备台\n已上线", 2)
+	elif built_definition_id == "building.slurry_buffer_tank":
+		_apply_marker_style(Vector2(42.0, 28.0), BUILT_SLURRY_BUFFER_COLOR)
+		_set_label_text("浆液缓冲罐\n已接入", 2)
 	elif built_definition_id == "building.pollution_filter":
 		_apply_marker_style(BUILT_FILTER_SITE_SIZE, BUILT_FILTER_COLOR)
 		_set_label_text("")
@@ -689,6 +762,36 @@ func set_operational_pollution_filter_visual() -> void:
 	_set_label_text("%s\n已上线" % display_name_text, 2)
 
 
+func set_operational_outfitting_station_visual() -> void:
+	_ensure_visual_nodes()
+	consumed = false
+	visible = true
+	monitoring = true
+	if marker != null:
+		_apply_marker_style(Vector2(44.0, 30.0), OUTFITTING_MARKER_COLOR)
+	_set_label_text("%s\n可整备" % display_name_text, 2)
+
+
+func set_calibrated_outfitting_station_visual() -> void:
+	_ensure_visual_nodes()
+	consumed = false
+	visible = true
+	monitoring = true
+	if marker != null:
+		_apply_marker_style(Vector2(46.0, 30.0), CALIBRATED_OUTFITTING_MARKER_COLOR)
+	_set_label_text("%s\n已校准" % display_name_text, 2)
+
+
+func set_core_archive_outfitting_station_visual() -> void:
+	_ensure_visual_nodes()
+	consumed = false
+	visible = true
+	monitoring = true
+	if marker != null:
+		_apply_marker_style(Vector2(48.0, 30.0), CALIBRATED_OUTFITTING_MARKER_COLOR)
+	_set_label_text("%s\n归档维护" % display_name_text, 2)
+
+
 func _apply_default_marker_visual() -> void:
 	if marker == null:
 		return
@@ -703,6 +806,9 @@ func _apply_marker_style(marker_size: Vector2, color: Color) -> void:
 	marker.position = -marker_size * 0.5
 	marker.size = marker_size
 	marker.color = color
+	if focus_ring != null:
+		focus_ring.position = marker.position - Vector2(7.0, 7.0)
+		focus_ring.size = marker_size + Vector2(14.0, 14.0)
 
 
 func _get_default_marker_visual() -> Dictionary:
@@ -711,6 +817,16 @@ func _get_default_marker_visual() -> Dictionary:
 			return {"size": Vector2(42.0, 42.0), "color": Color(0.34, 0.46, 0.52, 1)}
 		"building.basic_reactor":
 			return {"size": Vector2(40.0, 30.0), "color": REACTOR_MARKER_COLOR}
+		"building.basic_storage":
+			return {"size": Vector2(38.0, 24.0), "color": STORAGE_MARKER_COLOR}
+		"building.field_outfitting_station":
+			if interaction_type == "build":
+				return {"size": Vector2(38.0, 24.0), "color": FOUNDATION_SITE_MARKER_COLOR}
+			return {"size": Vector2(40.0, 28.0), "color": OUTFITTING_MARKER_COLOR}
+		"building.slurry_buffer_tank":
+			if interaction_type == "build":
+				return {"size": Vector2(38.0, 24.0), "color": FOUNDATION_SITE_MARKER_COLOR}
+			return {"size": Vector2(40.0, 28.0), "color": SLURRY_BUFFER_MARKER_COLOR}
 		"building.pollution_filter":
 			if interaction_type == "build":
 				return {"size": Vector2(44.0, 28.0), "color": FOUNDATION_SITE_MARKER_COLOR}
@@ -733,6 +849,8 @@ func _get_default_marker_visual() -> Dictionary:
 			return {"size": Vector2(38.0, 20.0), "color": ROUGH_GROUND_MARKER_COLOR}
 		"map_object.ruin_gate":
 			return {"size": Vector2(24.0, 44.0), "color": GATE_MARKER_COLOR}
+		"map_object.outpost_departure_gate":
+			return {"size": Vector2(28.0, 42.0), "color": READY_PHASE_RELAY_PAD_COLOR}
 		"map_object.phase_relay_pad":
 			return {"size": Vector2(40.0, 24.0), "color": READY_PHASE_RELAY_PAD_COLOR}
 		_:

@@ -26,14 +26,25 @@ func process_recipe(recipe_id: String, character_state: CharacterState, world_st
 		)
 	var structure: Dictionary = world_state.base_structures.get(structure_id, {})
 	if String(structure.get("status", "idle")) == "in_progress":
-		return _failure(_format_in_progress_message(structure), "设备加工中", "等待进度完成；靠近设备可查看当前进度。")
+		var busy_status := _format_in_progress_message(structure)
+		var busy_feedback := DemoActionBlockerRecoveryFormatter.format_processing_busy_failure(
+			_get_display_name(recipe_id),
+			busy_status,
+			_get_processing_wait_next_step()
+		)
+		return _failure_from_feedback(busy_status, busy_feedback)
 
 	var missing_inputs := _get_missing_inputs(recipe, character_state.inventory)
 	if not missing_inputs.is_empty():
+		var missing_feedback := DemoActionBlockerRecoveryFormatter.format_processing_missing_input_failure(
+			_get_display_name(recipe_id),
+			missing_inputs,
+			_format_missing_input_next_step(recipe, character_state.inventory)
+		)
 		return _failure(
 			_format_missing_input_message(recipe, missing_inputs, character_state.inventory),
-			"原料不足",
-			_format_missing_input_next_step(recipe, character_state.inventory)
+			String(missing_feedback.get("title", "原料不足")),
+			String(missing_feedback.get("detail", ""))
 		)
 
 	_consume_refs(recipe.get("inputs", []), character_state.inventory)
@@ -75,6 +86,7 @@ func advance_processing(delta_seconds: float, character_state: CharacterState, w
 		_grant_refs(recipe.get("outputs", []), character_state.inventory)
 		_grant_refs(recipe.get("byproducts", []), character_state.inventory)
 		world_state.set_base_structure_status(String(structure_id), "completed", recipe_id)
+		_apply_recipe_completion_side_effect(recipe_id, world_state)
 		completed_results.append({
 			"success": true,
 			"completed_recipe_id": recipe_id,
@@ -160,6 +172,19 @@ func get_recommended_recipe_id(
 	var active_quest_id := ""
 	if not world_state.quest_state.active_quest_ids.is_empty():
 		active_quest_id = String(world_state.quest_state.active_quest_ids[0])
+	if (
+		interactable.definition_id == "building.basic_reactor"
+		and FieldOutfittingRuntime.should_process_logistics_materials(character_state, world_state)
+	):
+		return _select_if_available(interactable, "recipe.process_crystal_ore")
+	if (
+		interactable.definition_id == "building.pollution_filter"
+		and CoreStabilizationPressureFormatter.should_process_logistics_maintenance_retest_residue(
+			character_state,
+			world_state
+		)
+	):
+		return _select_if_available(interactable, "recipe.cleanse_residue")
 	match active_quest_id:
 		"quest.scout_crystal_field":
 			return _select_if_available(interactable, "recipe.process_crystal_ore")
@@ -194,9 +219,19 @@ func get_recommended_recipe_id(
 			if interactable.definition_id == "building.basic_reactor" and character_state.inventory.has_ref("fluid.polluted_slurry", 1.0):
 				return _select_if_available(interactable, "recipe.reclaim_basic_parts")
 			return _select_if_available(interactable, "recipe.cleanse_residue")
+		"quest.unlock_ruin_signal":
+			if interactable.definition_id == "building.basic_reactor" and character_state.inventory.has_ref("fluid.polluted_slurry", 1.0):
+				return _select_if_available(interactable, "recipe.reclaim_basic_parts")
+			return ""
 		"quest.assemble_phase_anchor":
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.phase_anchor", world_state)
+		"quest.salvage_signal_echo":
+			if character_state.inventory.has_ref("item.polluted_residue", 2):
+				return _select_if_available(interactable, "recipe.cleanse_residue")
+			return ""
 		"quest.analyze_deep_signal":
+			if _should_filter_echo_residue_before_deep_signal(interactable, character_state.inventory):
+				return _select_if_available(interactable, "recipe.cleanse_residue")
 			return _select_recipe_with_basic_parts_fallback(interactable, character_state.inventory, "recipe.deep_signal_analysis", world_state)
 		"quest.refine_phase_filament":
 			return _select_if_available(interactable, "recipe.phase_filament_refining")
@@ -318,8 +353,9 @@ func _format_processing_started_message(recipe: Dictionary, world_state: WorldSt
 		_get_display_name(recipe_id),
 		_format_amount(_get_recipe_duration(recipe))
 	]
-	if recipe_id == "recipe.cleanse_residue" and ProcessingRecipeHintFormatter.should_return_for_second_pollution_residue_batch(world_state):
-		message += " 本次会产出抗污染药剂并留下污染浆液；完成后带药剂回污染边界，清理受扰敌人和门前压力点。"
+	var started_appendix := ProcessingRecipeHintFormatter.get_processing_started_appendix(recipe_id, world_state)
+	if not started_appendix.is_empty():
+		message += " %s" % started_appendix
 	return message
 
 
@@ -330,7 +366,10 @@ func _format_processing_started_feedback(recipe: Dictionary, world_state: WorldS
 		"status": "加工中，预计 %s 秒完成。" % _format_amount(_get_recipe_duration(recipe)),
 		"destination": _format_completion_destination(recipe),
 		"next_step": _get_processing_wait_next_step(),
-		"completion_next_step": _get_completion_next_step(recipe_id, world_state)
+		"completion_next_step": _get_completion_next_step(recipe_id, world_state),
+		"industrial_spine": IndustrialTechSpineFormatter.format_result_feedback_line(recipe_id, world_state),
+		"resource_chain": DemoResourceChainStateFormatter.format_result_feedback_line(recipe_id),
+		"show_resource_chain": _should_show_resource_chain_result_line(recipe_id)
 	}
 
 
@@ -352,8 +391,15 @@ func _format_processing_completion_feedback(recipe: Dictionary, world_state: Wor
 		"title": "加工完成：%s" % _get_display_name(recipe_id),
 		"status": "已完成。",
 		"destination": _format_completion_destination(recipe),
-		"next_step": _get_completion_next_step(recipe_id, world_state)
+		"next_step": _get_completion_next_step(recipe_id, world_state),
+		"industrial_spine": IndustrialTechSpineFormatter.format_result_feedback_line(recipe_id, world_state),
+		"resource_chain": DemoResourceChainStateFormatter.format_result_feedback_line(recipe_id),
+		"show_resource_chain": _should_show_resource_chain_result_line(recipe_id)
 	}
+
+
+func _should_show_resource_chain_result_line(recipe_id: String) -> bool:
+	return recipe_id == "recipe.process_crystal_ore"
 
 
 func _format_completion_destination(recipe: Dictionary) -> String:
@@ -612,6 +658,17 @@ func _select_if_available(interactable: PrototypeInteractable, recipe_id: String
 	return ""
 
 
+func _should_filter_echo_residue_before_deep_signal(
+	interactable: PrototypeInteractable,
+	inventory: InventoryState
+) -> bool:
+	if interactable.definition_id != "building.pollution_filter":
+		return false
+	if inventory.has_ref("fluid.polluted_slurry", 1.0):
+		return false
+	return inventory.has_ref("item.polluted_residue", 2)
+
+
 func _select_recipe_with_basic_parts_fallback(
 	interactable: PrototypeInteractable,
 	inventory: InventoryState,
@@ -824,6 +881,29 @@ func _get_recipe_lock_message(recipe: Dictionary, world_state: WorldState) -> St
 	return "配方尚未解锁：%s。" % _format_unlock_conditions(unlock_conditions)
 
 
+func _apply_recipe_completion_side_effect(recipe_id: String, world_state: WorldState) -> void:
+	if recipe_id == "recipe.process_crystal_ore":
+		if not FieldOutfittingRuntime.is_crystal_logistics_return_available(world_state):
+			return
+		if not FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state):
+			return
+		FieldOutfittingRuntime.mark_logistics_material_processed(world_state)
+		return
+	if recipe_id == "recipe.cleanse_residue":
+		if (
+			FieldOutfittingRuntime.is_logistics_maintenance_pollution_retest_available(world_state)
+			and FieldOutfittingRuntime.has_logistics_maintenance_pollution_retest_residue(world_state)
+			and not FieldOutfittingRuntime.is_logistics_maintenance_pollution_retest_processed(world_state)
+		):
+			FieldOutfittingRuntime.mark_logistics_maintenance_pollution_retest_processed(world_state)
+			return
+		if not CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_available(world_state):
+			return
+		if not CoreStabilizationPressureFormatter.has_logistics_maintenance_retest_residue(world_state):
+			return
+		CoreStabilizationPressureFormatter.mark_logistics_maintenance_retest_processed(world_state)
+
+
 func _format_unlock_conditions(unlock_conditions: Array) -> String:
 	var parts: Array[String] = []
 	for unlock_condition in unlock_conditions:
@@ -873,4 +953,12 @@ func _failure(message: String, title: String = "加工未完成", detail: String
 			"title": title,
 			"detail": detail
 		}
+	}
+
+
+func _failure_from_feedback(message: String, feedback: Dictionary) -> Dictionary:
+	return {
+		"success": false,
+		"message": message,
+		"failure_feedback": feedback
 	}

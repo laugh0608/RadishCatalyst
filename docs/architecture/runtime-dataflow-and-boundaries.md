@@ -39,6 +39,7 @@ GameRoot._process()
 -> GatherSystem / ProcessingSystem / BuildSystem 执行
 -> WorldState / CharacterState 变化
 -> QuestRuntime 根据事件推进任务
+-> 场景身份 / 路线支撑 / 现场玩法 / 资源链 formatter 生成读法
 -> HUD feedback / log / prompt 更新
 ```
 
@@ -48,10 +49,24 @@ GameRoot._process()
 玩家攻击
 -> VerticalSliceMap 选最近敌人
 -> 敌人掉血
--> 反击与污染压力
+-> EnemyCounterattackRuntime 读取战术扫描、整备台响应、工具校准、补给和污染压力
 -> 敌人掉落进背包
 -> QuestRuntime 推进 defeat_enemy 目标
 -> 生命或防护归零则触发撤离
+```
+
+### 工具动作与整备状态流
+
+```text
+出发整备台上线 / 基础多用工具装备
+-> CharacterKitRuntime 开放 C 战术扫描
+-> 敌人或污染采集点写入 tactical_scan_marked
+-> 下一次反击或采集消费标记并写回 consumed 状态
+
+出发整备台交互
+-> FieldOutfittingRuntime 写入模块校准、核心归档维护、后勤维护、防护响应或工具打击校准
+-> DepartureReadinessFormatter / InteractionPromptFormatter 读出状态
+-> EnemyCounterattackRuntime / GatherSystem 在下一次外勤中消费或读取收益
 ```
 
 ### 存档流
@@ -104,7 +119,11 @@ GameRoot._process()
 
 这部分不是纯坏事，因为当前阶段重点就是尽快做可玩的闭环；但它们应被明确识别，而不是误以为已经完全通用。
 
-### 4. 存档严格依赖固定实例来源
+### 4. 出发整备台状态是当前角色成长的主要载体
+
+模块校准、核心归档维护、后勤维护、防护响应、工具打击校准和战术扫描标记都写在既有世界对象、敌人或地图对象状态里。它们不是完整装备栏、长期技能树或独立 loadout；新增同类能力时必须先判断是否仍属于整备台状态，还是需要新的角色状态结构。
+
+### 5. 存档严格依赖固定实例来源
 
 新增固定地图内容后，如果不改：
 
@@ -113,6 +132,14 @@ GameRoot._process()
 - `PROTOTYPE_BASE_STRUCTURE_SOURCES`
 
 很容易出现“能玩，能保存，但读不回来”的问题。
+
+### 6. 读法接线必须随功能一起落地
+
+功能 / 过渡区的场景身份、路线支撑、现场玩法和资源链状态已经由独立 formatter 接入 HUD、地图、对象提示、设备面板和交互结果。新增同类内容时，不能只加静态对象或任务进度；必须同步考虑：
+
+- 对象状态是否写入 `WorldState.map_objects` 或对应运行时状态。
+- HUD / 地图 / 对象提示是否能从真实状态读出当前阶段。
+- 保存读取契约和专项检查是否覆盖新增状态。
 
 ## 当前对扩内容最重要的结论
 
@@ -124,7 +151,7 @@ GameRoot._process()
 -> 运行时规则
 -> 任务推进
 -> 存档校验
--> HUD 提示
+-> HUD / 地图 / 对象 / 设备读法
 ```
 
 六层里任何一层没跟上，都会在原型阶段很快暴露成断链。

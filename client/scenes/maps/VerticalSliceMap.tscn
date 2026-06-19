@@ -1,103 +1,415 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/map/vertical_slice_map.gd" id="1_map"]
 [ext_resource type="PackedScene" path="res://scenes/actors/Player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/maps/PrototypeInteractable.tscn" id="3_interactable"]
 [ext_resource type="PackedScene" path="res://scenes/actors/PrototypeEnemy.tscn" id="4_enemy"]
+[ext_resource type="Script" path="res://scripts/map/prototype_visual_priority_layer.gd" id="5_visual_priority"]
+[ext_resource type="Script" path="res://scripts/map/current_objective_guidance_layer.gd" id="6_objective_guidance"]
 
 [node name="VerticalSliceMap" type="Node2D"]
 script = ExtResource("1_map")
 
 [node name="Background" type="ColorRect" parent="."]
 offset_left = -620.0
-offset_top = -360.0
-offset_right = 4220.0
-offset_bottom = 360.0
-color = Color(0.101961, 0.133333, 0.141176, 1)
+offset_top = -620.0
+offset_right = 4420.0
+offset_bottom = 620.0
+color = Color(0.071, 0.091, 0.096, 1)
 
 [node name="RegionBase" type="ColorRect" parent="."]
 offset_left = -360.0
-offset_top = -200.0
+offset_top = -320.0
 offset_right = -20.0
-offset_bottom = 200.0
-color = Color(0.176471, 0.258824, 0.278431, 1)
+offset_bottom = 280.0
+color = Color(0.126, 0.198, 0.21, 1)
 
 [node name="RegionCrystal" type="ColorRect" parent="."]
 offset_left = -20.0
-offset_top = -200.0
+offset_top = -320.0
 offset_right = 240.0
-offset_bottom = 200.0
-color = Color(0.14902, 0.211765, 0.301961, 1)
+offset_bottom = 280.0
+color = Color(0.102, 0.154, 0.226, 1)
 
 [node name="RegionPollution" type="ColorRect" parent="."]
 offset_left = 240.0
-offset_top = -40.0
+offset_top = -320.0
 offset_right = 380.0
-offset_bottom = 200.0
-color = Color(0.258824, 0.247059, 0.12549, 1)
+offset_bottom = 280.0
+color = Color(0.207, 0.194, 0.083, 1)
 
 [node name="RegionRuinOuterRing" type="ColorRect" parent="."]
 offset_left = 380.0
-offset_top = -200.0
+offset_top = -320.0
 offset_right = 700.0
-offset_bottom = 200.0
-color = Color(0.180392, 0.180392, 0.247059, 1)
+offset_bottom = 280.0
+color = Color(0.137, 0.137, 0.198, 1)
 
 [node name="RegionDeepRuin" type="ColorRect" parent="."]
 offset_left = 700.0
-offset_top = -200.0
+offset_top = -320.0
 offset_right = 1460.0
-offset_bottom = 200.0
-color = Color(0.223529, 0.176471, 0.211765, 1)
+offset_bottom = 280.0
+color = Color(0.171, 0.13, 0.163, 1)
 
 [node name="RegionInnerPhaseWell" type="ColorRect" parent="."]
 offset_left = 1460.0
-offset_top = -200.0
+offset_top = -320.0
 offset_right = 1760.0
-offset_bottom = 200.0
-color = Color(0.172549, 0.188235, 0.258824, 1)
+offset_bottom = 280.0
+color = Color(0.129, 0.145, 0.211, 1)
 
 [node name="RegionPhaseWellSink" type="ColorRect" parent="."]
 offset_left = 1760.0
-offset_top = -200.0
+offset_top = -320.0
 offset_right = 2040.0
-offset_bottom = 200.0
-color = Color(0.239216, 0.176471, 0.145098, 1)
+offset_bottom = 280.0
+color = Color(0.187, 0.133, 0.106, 1)
 
 [node name="RegionPhaseWellChamber" type="ColorRect" parent="."]
 offset_left = 2040.0
-offset_top = -200.0
+offset_top = -320.0
 offset_right = 2320.0
-offset_bottom = 200.0
-color = Color(0.258824, 0.145098, 0.160784, 1)
+offset_bottom = 280.0
+color = Color(0.204, 0.106, 0.118, 1)
 
 [node name="RegionPhaseWellLoom" type="ColorRect" parent="."]
 offset_left = 2320.0
-offset_top = -200.0
+offset_top = -320.0
 offset_right = 2600.0
-offset_bottom = 200.0
-color = Color(0.282353, 0.176471, 0.14902, 1)
+offset_bottom = 280.0
+color = Color(0.219, 0.132, 0.111, 1)
 
 [node name="RegionPhaseWellFrame" type="ColorRect" parent="."]
 offset_left = 2600.0
-offset_top = -200.0
+offset_top = -320.0
 offset_right = 2880.0
-offset_bottom = 200.0
-color = Color(0.313726, 0.211765, 0.164706, 1)
+offset_bottom = 280.0
+color = Color(0.239, 0.157, 0.122, 1)
 
 [node name="RegionPhaseWellTether" type="ColorRect" parent="."]
 offset_left = 2880.0
-offset_top = -200.0
+offset_top = -320.0
 offset_right = 3640.0
-offset_bottom = 200.0
-color = Color(0.337255, 0.235294, 0.184314, 1)
+offset_bottom = 280.0
+color = Color(0.259, 0.174, 0.135, 1)
 
 [node name="RegionDemoStabilizationCore" type="ColorRect" parent="."]
 offset_left = 3640.0
-offset_top = -200.0
-offset_right = 4200.0
-offset_bottom = 200.0
-color = Color(0.211765, 0.317647, 0.294118, 1)
+offset_top = -320.0
+offset_right = 4280.0
+offset_bottom = 280.0
+color = Color(0.146, 0.246, 0.226, 1)
+
+[node name="MainRouteSpine" type="ColorRect" parent="."]
+offset_left = -350.0
+offset_top = -96.0
+offset_right = 4280.0
+offset_bottom = 108.0
+color = Color(0.105, 0.126, 0.118, 1)
+
+[node name="BaseToCrystalRouteBand" type="ColorRect" parent="."]
+offset_left = -84.0
+offset_top = -54.0
+offset_right = 240.0
+offset_bottom = -28.0
+color = Color(0.132, 0.23, 0.238, 1)
+
+[node name="CrystalToPollutionRouteBand" type="ColorRect" parent="."]
+offset_left = 206.0
+offset_top = -26.0
+offset_right = 382.0
+offset_bottom = 4.0
+color = Color(0.172, 0.219, 0.17, 1)
+
+[node name="RegionBoundaryCrystal" type="ColorRect" parent="."]
+offset_left = -22.0
+offset_top = -282.0
+offset_right = -18.0
+offset_bottom = 264.0
+color = Color(0.4, 0.62, 0.62, 0.82)
+
+[node name="RegionBoundaryPollution" type="ColorRect" parent="."]
+offset_left = 238.0
+offset_top = -282.0
+offset_right = 242.0
+offset_bottom = 264.0
+color = Color(0.66, 0.58, 0.24, 0.82)
+
+[node name="RegionBoundaryRuin" type="ColorRect" parent="."]
+offset_left = 378.0
+offset_top = -282.0
+offset_right = 382.0
+offset_bottom = 264.0
+color = Color(0.5, 0.42, 0.62, 0.82)
+
+[node name="DemoRoutePresentationLayer" type="Node2D" parent="."]
+
+[node name="DemoRouteBaseBand" type="ColorRect" parent="DemoRoutePresentationLayer"]
+offset_left = -348.0
+offset_top = -178.0
+offset_right = -36.0
+offset_bottom = 156.0
+color = Color(0.12, 0.32, 0.34, 0.3)
+
+[node name="DemoRouteBaseLabel" type="Label" parent="DemoRoutePresentationLayer"]
+offset_left = -330.0
+offset_top = -196.0
+offset_right = -58.0
+offset_bottom = -172.0
+text = "01 基地整备 / 加工与出发"
+horizontal_alignment = 1
+
+[node name="DemoRouteCrystalBand" type="ColorRect" parent="DemoRoutePresentationLayer"]
+offset_left = -22.0
+offset_top = -150.0
+offset_right = 238.0
+offset_bottom = 124.0
+color = Color(0.1, 0.22, 0.38, 0.3)
+
+[node name="DemoRouteCrystalLabel" type="Label" parent="DemoRoutePresentationLayer"]
+offset_left = -8.0
+offset_top = -196.0
+offset_right = 230.0
+offset_bottom = -172.0
+text = "02 晶体采集 / 材料回基地"
+horizontal_alignment = 1
+
+[node name="DemoRoutePollutionBand" type="ColorRect" parent="DemoRoutePresentationLayer"]
+offset_left = 238.0
+offset_top = -248.0
+offset_right = 382.0
+offset_bottom = 258.0
+color = Color(0.34, 0.3, 0.09, 0.3)
+
+[node name="DemoRoutePollutionLabel" type="Label" parent="DemoRoutePresentationLayer"]
+offset_left = 242.0
+offset_top = -112.0
+offset_right = 380.0
+offset_bottom = -88.0
+text = "03 污染排压"
+horizontal_alignment = 1
+
+[node name="DemoRouteRuinBand" type="ColorRect" parent="DemoRoutePresentationLayer"]
+offset_left = 382.0
+offset_top = -154.0
+offset_right = 700.0
+offset_bottom = 132.0
+color = Color(0.24, 0.2, 0.36, 0.3)
+
+[node name="DemoRouteRuinLabel" type="Label" parent="DemoRoutePresentationLayer"]
+offset_left = 404.0
+offset_top = -196.0
+offset_right = 674.0
+offset_bottom = -172.0
+text = "04 遗迹外圈 / 回波与解析"
+horizontal_alignment = 1
+
+[node name="DemoRouteCoreApproachFlow" type="ColorRect" parent="DemoRoutePresentationLayer"]
+offset_left = 700.0
+offset_top = -52.0
+offset_right = 3640.0
+offset_bottom = -38.0
+color = Color(0.38, 0.31, 0.22, 0.52)
+
+[node name="DemoRouteCoreBand" type="ColorRect" parent="DemoRoutePresentationLayer"]
+offset_left = 3640.0
+offset_top = -252.0
+offset_right = 4280.0
+offset_bottom = 244.0
+color = Color(0.12, 0.33, 0.3, 0.3)
+
+[node name="DemoRouteCoreLabel" type="Label" parent="DemoRoutePresentationLayer"]
+offset_left = 3664.0
+offset_top = -196.0
+offset_right = 4256.0
+offset_bottom = -172.0
+text = "05 核心稳定站 / 守卫与写入"
+horizontal_alignment = 1
+
+[node name="SceneArtFoundationLayer" type="Node2D" parent="."]
+
+[node name="SceneArtBaseIdentityBand" type="ColorRect" parent="SceneArtFoundationLayer"]
+offset_left = -336.0
+offset_top = -160.0
+offset_right = -42.0
+offset_bottom = -134.0
+color = Color(0.16, 0.46, 0.48, 0.72)
+
+[node name="SceneArtBaseIdentityLabel" type="Label" parent="SceneArtFoundationLayer"]
+offset_left = -330.0
+offset_top = -158.0
+offset_right = -48.0
+offset_bottom = -136.0
+text = "基地整备回路：核心 / 反应器 / 整备台 / 出发口"
+horizontal_alignment = 1
+
+[node name="SceneArtCrystalIdentityBand" type="ColorRect" parent="SceneArtFoundationLayer"]
+offset_left = -12.0
+offset_top = -154.0
+offset_right = 232.0
+offset_bottom = -128.0
+color = Color(0.12, 0.38, 0.62, 0.72)
+
+[node name="SceneArtCrystalIdentityLabel" type="Label" parent="SceneArtFoundationLayer"]
+offset_left = -8.0
+offset_top = -152.0
+offset_right = 228.0
+offset_bottom = -130.0
+text = "晶体矿脉：资源 / 残骸 -> 基地加工"
+horizontal_alignment = 1
+
+[node name="SceneArtPollutionIdentityBand" type="ColorRect" parent="SceneArtFoundationLayer"]
+offset_left = 244.0
+offset_top = -82.0
+offset_right = 378.0
+offset_bottom = -56.0
+color = Color(0.58, 0.5, 0.12, 0.76)
+
+[node name="SceneArtPollutionIdentityLabel" type="Label" parent="SceneArtFoundationLayer"]
+offset_left = 246.0
+offset_top = -80.0
+offset_right = 376.0
+offset_bottom = -58.0
+text = "污染边界：施工 / 沉积 / 过滤"
+horizontal_alignment = 1
+
+[node name="SceneArtCoreIdentityBand" type="ColorRect" parent="SceneArtFoundationLayer"]
+offset_left = 3662.0
+offset_top = -154.0
+offset_right = 4186.0
+offset_bottom = -128.0
+color = Color(0.16, 0.56, 0.5, 0.72)
+
+[node name="SceneArtCoreIdentityLabel" type="Label" parent="SceneArtFoundationLayer"]
+offset_left = 3668.0
+offset_top = -152.0
+offset_right = 4180.0
+offset_bottom = -130.0
+text = "核心稳定站：补给 / 守卫 / 写入 / Demo 终点"
+horizontal_alignment = 1
+
+[node name="NonCoreSceneIdentityLayer" type="Node2D" parent="."]
+
+[node name="NonCoreRuinIdentityBand" type="ColorRect" parent="NonCoreSceneIdentityLayer"]
+offset_left = 394.0
+offset_top = -118.0
+offset_right = 690.0
+offset_bottom = -94.0
+color = Color(0.28, 0.42, 0.34, 0.68)
+
+[node name="NonCoreRuinIdentityLabel" type="Label" parent="NonCoreSceneIdentityLayer"]
+offset_left = 400.0
+offset_top = -116.0
+offset_right = 684.0
+offset_bottom = -96.0
+text = "封锁遗迹：旧设施 / 信号封锁"
+horizontal_alignment = 1
+
+[node name="NonCoreRidgeIdentityBand" type="ColorRect" parent="NonCoreSceneIdentityLayer"]
+offset_left = 708.0
+offset_top = -118.0
+offset_right = 1440.0
+offset_bottom = -94.0
+color = Color(0.38, 0.2, 0.34, 0.66)
+
+[node name="NonCoreRidgeIdentityLabel" type="Label" parent="NonCoreSceneIdentityLayer"]
+offset_left = 716.0
+offset_top = -116.0
+offset_right = 1432.0
+offset_bottom = -96.0
+text = "裂相脊：撕裂地貌 / 前线回传"
+horizontal_alignment = 1
+
+[node name="NonCoreEchoIdentityBand" type="ColorRect" parent="NonCoreSceneIdentityLayer"]
+offset_left = 1468.0
+offset_top = -118.0
+offset_right = 1750.0
+offset_bottom = -94.0
+color = Color(0.22, 0.34, 0.54, 0.68)
+
+[node name="NonCoreEchoIdentityLabel" type="Label" parent="NonCoreSceneIdentityLayer"]
+offset_left = 1474.0
+offset_top = -116.0
+offset_right = 1744.0
+offset_bottom = -96.0
+text = "回声台地：观测残响"
+horizontal_alignment = 1
+
+[node name="NonCoreSaltIdentityBand" type="ColorRect" parent="NonCoreSceneIdentityLayer"]
+offset_left = 1768.0
+offset_top = -118.0
+offset_right = 2030.0
+offset_bottom = -94.0
+color = Color(0.58, 0.52, 0.24, 0.68)
+
+[node name="NonCoreSaltIdentityLabel" type="Label" parent="NonCoreSceneIdentityLayer"]
+offset_left = 1774.0
+offset_top = -116.0
+offset_right = 2024.0
+offset_bottom = -96.0
+text = "盐壳浅滩：化学沉积"
+horizontal_alignment = 1
+
+[node name="NonCoreCrystalRavineIdentityBand" type="ColorRect" parent="NonCoreSceneIdentityLayer"]
+offset_left = 2048.0
+offset_top = -118.0
+offset_right = 2310.0
+offset_bottom = -94.0
+color = Color(0.25, 0.25, 0.64, 0.68)
+
+[node name="NonCoreCrystalRavineIdentityLabel" type="Label" parent="NonCoreSceneIdentityLayer"]
+offset_left = 2054.0
+offset_top = -116.0
+offset_right = 2304.0
+offset_bottom = -96.0
+text = "碎晶沟谷：晶体耦合"
+horizontal_alignment = 1
+
+[node name="NonCoreWindCorridorIdentityBand" type="ColorRect" parent="NonCoreSceneIdentityLayer"]
+offset_left = 2328.0
+offset_top = -118.0
+offset_right = 2590.0
+offset_bottom = -94.0
+color = Color(0.36, 0.4, 0.44, 0.68)
+
+[node name="NonCoreWindCorridorIdentityLabel" type="Label" parent="NonCoreSceneIdentityLayer"]
+offset_left = 2334.0
+offset_top = -116.0
+offset_right = 2584.0
+offset_bottom = -96.0
+text = "风蚀管廊：旧通道"
+horizontal_alignment = 1
+
+[node name="NonCorePhaseFrameIdentityBand" type="ColorRect" parent="NonCoreSceneIdentityLayer"]
+offset_left = 2608.0
+offset_top = -118.0
+offset_right = 2870.0
+offset_bottom = -94.0
+color = Color(0.22, 0.5, 0.38, 0.68)
+
+[node name="NonCorePhaseFrameIdentityLabel" type="Label" parent="NonCoreSceneIdentityLayer"]
+offset_left = 2614.0
+offset_top = -116.0
+offset_right = 2864.0
+offset_bottom = -96.0
+text = "锁相框架：压相设施"
+horizontal_alignment = 1
+
+[node name="NonCoreAnchorBridgeIdentityBand" type="ColorRect" parent="NonCoreSceneIdentityLayer"]
+offset_left = 2888.0
+offset_top = -118.0
+offset_right = 3620.0
+offset_bottom = -94.0
+color = Color(0.16, 0.5, 0.46, 0.68)
+
+[node name="NonCoreAnchorBridgeIdentityLabel" type="Label" parent="NonCoreSceneIdentityLayer"]
+offset_left = 2896.0
+offset_top = -116.0
+offset_right = 3612.0
+offset_bottom = -96.0
+text = "锚定桥：桥体 / 锚索 / 稳定接入"
+horizontal_alignment = 1
 
 [node name="BaseDirectionLabel" type="Label" parent="."]
 offset_left = -342.0
@@ -199,10 +511,38 @@ horizontal_alignment = 1
 
 [node name="BaseDeckFloor" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = -340.0
-offset_top = -166.0
+offset_top = -272.0
 offset_right = -54.0
-offset_bottom = 142.0
+offset_bottom = 260.0
 color = Color(0.102, 0.18, 0.196, 1)
+
+[node name="BaseUpperServiceApron" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -336.0
+offset_top = -258.0
+offset_right = -46.0
+offset_bottom = -62.0
+color = Color(0.082, 0.145, 0.161, 1)
+
+[node name="BaseCentralWorkYard" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -330.0
+offset_top = -166.0
+offset_right = -52.0
+offset_bottom = 68.0
+color = Color(0.094, 0.162, 0.175, 1)
+
+[node name="BaseLowerLogisticsYard" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -334.0
+offset_top = 72.0
+offset_right = -48.0
+offset_bottom = 248.0
+color = Color(0.077, 0.123, 0.13, 1)
+
+[node name="BaseDepartureCauseway" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -92.0
+offset_top = -220.0
+offset_right = -24.0
+offset_bottom = 196.0
+color = Color(0.126, 0.19, 0.18, 1)
 
 [node name="BaseCorePad" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = -326.0
@@ -262,6 +602,35 @@ offset_bottom = -106.0
 text = "加工设备"
 horizontal_alignment = 1
 
+[node name="BaseOutfittingPad" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -116.0
+offset_top = -82.0
+offset_right = -48.0
+offset_bottom = -2.0
+color = Color(0.235, 0.22, 0.157, 1)
+
+[node name="BaseOutfittingObjectMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -94.0
+offset_top = -56.0
+offset_right = -50.0
+offset_bottom = -28.0
+color = Color(0.66, 0.58, 0.34, 1)
+
+[node name="BaseOutfittingToExitFlowLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -50.0
+offset_top = -44.0
+offset_right = -34.0
+offset_bottom = -36.0
+color = Color(0.46, 0.42, 0.24, 1)
+
+[node name="BaseOutfittingPadLabel" type="Label" parent="OpeningSceneLayer"]
+offset_left = -128.0
+offset_top = -106.0
+offset_right = -32.0
+offset_bottom = -84.0
+text = "出发整备"
+horizontal_alignment = 1
+
 [node name="BaseSupplyPad" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = -222.0
 offset_top = 10.0
@@ -273,7 +642,7 @@ color = Color(0.145, 0.251, 0.282, 1)
 offset_left = -328.0
 offset_top = 64.0
 offset_right = -174.0
-offset_bottom = 160.0
+offset_bottom = 232.0
 color = Color(0.169, 0.282, 0.306, 1)
 
 [node name="BaseSupplyReturnFlowLine" type="ColorRect" parent="OpeningSceneLayer"]
@@ -291,6 +660,57 @@ offset_bottom = 122.0
 text = "回投 / 补给"
 horizontal_alignment = 1
 
+[node name="BaseStoragePad" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -286.0
+offset_top = -18.0
+offset_right = -218.0
+offset_bottom = 44.0
+color = Color(0.129, 0.231, 0.22, 1)
+
+[node name="BaseStorageObjectMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -270.0
+offset_top = 0.0
+offset_right = -230.0
+offset_bottom = 24.0
+color = Color(0.36, 0.62, 0.56, 1)
+
+[node name="BaseStoragePadLabel" type="Label" parent="OpeningSceneLayer"]
+offset_left = -300.0
+offset_top = -44.0
+offset_right = -204.0
+offset_bottom = -22.0
+text = "储存扩展"
+horizontal_alignment = 1
+
+[node name="BaseSlurryBufferPad" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -168.0
+offset_top = 84.0
+offset_right = -94.0
+offset_bottom = 146.0
+color = Color(0.196, 0.271, 0.176, 1)
+
+[node name="BaseSlurryBufferObjectMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -148.0
+offset_top = 106.0
+offset_right = -112.0
+offset_bottom = 132.0
+color = Color(0.58, 0.64, 0.31, 1)
+
+[node name="BaseSlurryBufferFlowLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -166.0
+offset_top = 70.0
+offset_right = -128.0
+offset_bottom = 78.0
+color = Color(0.39, 0.46, 0.25, 1)
+
+[node name="BaseSlurryBufferPadLabel" type="Label" parent="OpeningSceneLayer"]
+offset_left = -178.0
+offset_top = 144.0
+offset_right = -84.0
+offset_bottom = 164.0
+text = "浆液缓冲"
+horizontal_alignment = 1
+
 [node name="BaseLogisticsShelf" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = -332.0
 offset_top = 42.0
@@ -306,18 +726,47 @@ offset_bottom = 40.0
 text = "后续行动"
 horizontal_alignment = 1
 
+[node name="BaseLogisticsRouteSignPad" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -146.0
+offset_top = -34.0
+offset_right = -98.0
+offset_bottom = 24.0
+color = Color(0.162, 0.247, 0.205, 1)
+
+[node name="BaseLogisticsRouteSignMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -138.0
+offset_top = -22.0
+offset_right = -106.0
+offset_bottom = 8.0
+color = Color(0.46, 0.64, 0.48, 1)
+
+[node name="BaseLogisticsRouteFlowLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -218.0
+offset_top = 16.0
+offset_right = -86.0
+offset_bottom = 24.0
+color = Color(0.36, 0.47, 0.35, 1)
+
+[node name="BaseLogisticsRouteSignLabel" type="Label" parent="OpeningSceneLayer"]
+offset_left = -160.0
+offset_top = 24.0
+offset_right = -76.0
+offset_bottom = 44.0
+text = "路线检查"
+horizontal_alignment = 1
+
 [node name="BaseExitLane" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = -86.0
-offset_top = -150.0
+offset_top = -216.0
 offset_right = -28.0
-offset_bottom = 134.0
+offset_bottom = 196.0
 color = Color(0.18, 0.247, 0.235, 1)
 
 [node name="BaseExitThresholdLine" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = -34.0
-offset_top = -150.0
+offset_top = -216.0
 offset_right = -24.0
-offset_bottom = 134.0
+offset_bottom = 196.0
 color = Color(0.337, 0.525, 0.431, 1)
 
 [node name="BaseExitLaneLabel" type="Label" parent="OpeningSceneLayer"]
@@ -325,19 +774,40 @@ offset_left = -112.0
 offset_top = -178.0
 offset_right = -14.0
 offset_bottom = -154.0
-text = "外勤出口"
+text = "外勤出发口"
 horizontal_alignment = 1
 
 [node name="CrystalEntryGround" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = -20.0
-offset_top = -162.0
+offset_top = -278.0
 offset_right = 238.0
-offset_bottom = 36.0
+offset_bottom = 82.0
 color = Color(0.109, 0.173, 0.255, 1)
+
+[node name="CrystalNorthRidgeGround" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -12.0
+offset_top = -268.0
+offset_right = 230.0
+offset_bottom = -168.0
+color = Color(0.087, 0.14, 0.22, 1)
+
+[node name="CrystalCentralFieldGround" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -14.0
+offset_top = -160.0
+offset_right = 236.0
+offset_bottom = 78.0
+color = Color(0.09, 0.16, 0.246, 1)
+
+[node name="CrystalSouthSalvageYard" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = -10.0
+offset_top = 84.0
+offset_right = 252.0
+offset_bottom = 264.0
+color = Color(0.072, 0.104, 0.135, 1)
 
 [node name="CrystalMainVeinTrack" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = 4.0
-offset_top = -188.0
+offset_top = -252.0
 offset_right = 226.0
 offset_bottom = -4.0
 color = Color(0.125, 0.329, 0.478, 1)
@@ -367,15 +837,85 @@ color = Color(0.176, 0.282, 0.333, 1)
 offset_left = 12.0
 offset_top = 84.0
 offset_right = 232.0
-offset_bottom = 178.0
+offset_bottom = 258.0
 color = Color(0.114, 0.145, 0.18, 1)
 
 [node name="CrystalSalvageObjectPocket" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = 28.0
 offset_top = 98.0
 offset_right = 226.0
-offset_bottom = 172.0
+offset_bottom = 242.0
 color = Color(0.286, 0.318, 0.322, 1)
+
+[node name="CrystalLogisticsSpurLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 74.0
+offset_top = 62.0
+offset_right = 170.0
+offset_bottom = 70.0
+color = Color(0.156, 0.255, 0.303, 1)
+
+[node name="CrystalLogisticsResourcePocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 72.0
+offset_top = 72.0
+offset_right = 176.0
+offset_bottom = 156.0
+color = Color(0.129, 0.22, 0.286, 1)
+
+[node name="CrystalLogisticsCrystalMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 80.0
+offset_top = 76.0
+offset_right = 106.0
+offset_bottom = 108.0
+color = Color(0.42, 0.7, 0.96, 1)
+
+[node name="CrystalLogisticsSalvageMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 130.0
+offset_top = 126.0
+offset_right = 172.0
+offset_bottom = 146.0
+color = Color(0.56, 0.62, 0.58, 1)
+
+[node name="CrystalLogisticsGuardMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 106.0
+offset_top = 100.0
+offset_right = 130.0
+offset_bottom = 124.0
+color = Color(0.82, 0.35, 0.24, 1)
+
+[node name="CrystalLogisticsReturnLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 170.0
+offset_top = 158.0
+offset_right = 236.0
+offset_bottom = 166.0
+color = Color(0.156, 0.255, 0.303, 1)
+
+[node name="CrystalLogisticsReturnPocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 176.0
+offset_top = 174.0
+offset_right = 248.0
+offset_bottom = 254.0
+color = Color(0.12, 0.2, 0.26, 1)
+
+[node name="CrystalLogisticsReturnCrystalMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 184.0
+offset_top = 186.0
+offset_right = 210.0
+offset_bottom = 218.0
+color = Color(0.42, 0.7, 0.96, 1)
+
+[node name="CrystalLogisticsReturnSalvageMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 220.0
+offset_top = 210.0
+offset_right = 246.0
+offset_bottom = 232.0
+color = Color(0.56, 0.62, 0.58, 1)
+
+[node name="CrystalLogisticsReturnGuardMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 202.0
+offset_top = 204.0
+offset_right = 226.0
+offset_bottom = 228.0
+color = Color(0.82, 0.35, 0.24, 1)
 
 [node name="CrystalAnomalyPocketMarker" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = 122.0
@@ -399,16 +939,44 @@ offset_bottom = -164.0
 text = "晶体采集线 / 残骸侧路"
 horizontal_alignment = 1
 
-[node name="PollutionSafeConstructionBelt" type="ColorRect" parent="OpeningSceneLayer"]
+[node name="PollutionConstructionYardGround" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = 240.0
-offset_top = -188.0
+offset_top = -292.0
 offset_right = 380.0
 offset_bottom = -70.0
+color = Color(0.181, 0.205, 0.136, 1)
+
+[node name="PollutionEntryPressureGround" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 240.0
+offset_top = -70.0
+offset_right = 382.0
+offset_bottom = 104.0
+color = Color(0.218, 0.198, 0.092, 1)
+
+[node name="PollutionDeepResidueField" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 240.0
+offset_top = 56.0
+offset_right = 382.0
+offset_bottom = 252.0
+color = Color(0.255, 0.222, 0.074, 1)
+
+[node name="PollutionReturnDrainField" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 298.0
+offset_top = 86.0
+offset_right = 390.0
+offset_bottom = 242.0
+color = Color(0.194, 0.153, 0.064, 1)
+
+[node name="PollutionSafeConstructionBelt" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 240.0
+offset_top = -276.0
+offset_right = 380.0
+offset_bottom = -64.0
 color = Color(0.216, 0.247, 0.184, 1)
 
 [node name="PollutionConstructionObjectBand" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = 246.0
-offset_top = -168.0
+offset_top = -226.0
 offset_right = 356.0
 offset_bottom = -92.0
 color = Color(0.502, 0.471, 0.247, 1)
@@ -437,8 +1005,8 @@ color = Color(0.431, 0.573, 0.275, 1)
 [node name="PollutionDangerField" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = 240.0
 offset_top = -38.0
-offset_right = 380.0
-offset_bottom = 178.0
+offset_right = 390.0
+offset_bottom = 252.0
 color = Color(0.312, 0.29, 0.106, 1)
 
 [node name="PollutionDangerBoundaryLine" type="ColorRect" parent="OpeningSceneLayer"]
@@ -450,7 +1018,7 @@ color = Color(0.706, 0.635, 0.231, 1)
 
 [node name="PollutionConstructionToDangerStep" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = 292.0
-offset_top = -70.0
+offset_top = -64.0
 offset_right = 304.0
 offset_bottom = -34.0
 color = Color(0.76, 0.64, 0.24, 1)
@@ -459,7 +1027,7 @@ color = Color(0.76, 0.64, 0.24, 1)
 offset_left = 246.0
 offset_top = 18.0
 offset_right = 370.0
-offset_bottom = 172.0
+offset_bottom = 244.0
 color = Color(0.443, 0.4, 0.118, 1)
 
 [node name="PollutionEntryResidueMarker" type="ColorRect" parent="OpeningSceneLayer"]
@@ -483,6 +1051,195 @@ offset_right = 360.0
 offset_bottom = 56.0
 color = Color(0.68, 0.39, 0.16, 1)
 
+[node name="PollutionVialReturnSpurLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 256.0
+offset_top = 108.0
+offset_right = 338.0
+offset_bottom = 116.0
+color = Color(0.615, 0.361, 0.141, 1)
+
+[node name="PollutionVialReturnPocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 250.0
+offset_top = 112.0
+offset_right = 342.0
+offset_bottom = 172.0
+color = Color(0.384, 0.302, 0.094, 1)
+
+[node name="PollutionVialReturnResidueMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 262.0
+offset_top = 134.0
+offset_right = 292.0
+offset_bottom = 164.0
+color = Color(0.72, 0.59, 0.16, 1)
+
+[node name="PollutionVialReturnGuardMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 308.0
+offset_top = 118.0
+offset_right = 336.0
+offset_bottom = 146.0
+color = Color(0.78, 0.39, 0.14, 1)
+
+[node name="PollutionSlurryReturnSpurLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 330.0
+offset_top = 150.0
+offset_right = 376.0
+offset_bottom = 158.0
+color = Color(0.482, 0.318, 0.094, 1)
+
+[node name="PollutionSlurryReturnPocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 330.0
+offset_top = 146.0
+offset_right = 378.0
+offset_bottom = 212.0
+color = Color(0.341, 0.263, 0.078, 1)
+
+[node name="PollutionSlurryReturnResidueMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 342.0
+offset_top = 164.0
+offset_right = 370.0
+offset_bottom = 190.0
+color = Color(0.68, 0.56, 0.14, 1)
+
+[node name="PollutionSlurryReturnGuardMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 348.0
+offset_top = 136.0
+offset_right = 376.0
+offset_bottom = 164.0
+color = Color(0.76, 0.36, 0.13, 1)
+
+[node name="PollutionVialReserveSpurLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 244.0
+offset_top = 180.0
+offset_right = 316.0
+offset_bottom = 188.0
+color = Color(0.521, 0.344, 0.1, 1)
+
+[node name="PollutionVialReservePocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 240.0
+offset_top = 168.0
+offset_right = 320.0
+offset_bottom = 200.0
+color = Color(0.322, 0.251, 0.073, 1)
+
+[node name="PollutionVialReserveResidueMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 246.0
+offset_top = 176.0
+offset_right = 276.0
+offset_bottom = 200.0
+color = Color(0.7, 0.58, 0.15, 1)
+
+[node name="PollutionVialReserveGuardMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 280.0
+offset_top = 168.0
+offset_right = 310.0
+offset_bottom = 198.0
+color = Color(0.78, 0.37, 0.13, 1)
+
+[node name="PollutionCoreArchiveRouteLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 230.0
+offset_top = 202.0
+offset_right = 316.0
+offset_bottom = 210.0
+color = Color(0.557, 0.36, 0.105, 1)
+
+[node name="PollutionCoreArchiveRoutePocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 228.0
+offset_top = 190.0
+offset_right = 318.0
+offset_bottom = 238.0
+color = Color(0.329, 0.265, 0.086, 1)
+
+[node name="PollutionCoreArchiveRouteResidueMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 234.0
+offset_top = 192.0
+offset_right = 264.0
+offset_bottom = 218.0
+color = Color(0.73, 0.61, 0.17, 1)
+
+[node name="PollutionCoreArchiveRouteGuardMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 282.0
+offset_top = 188.0
+offset_right = 312.0
+offset_bottom = 218.0
+color = Color(0.82, 0.4, 0.14, 1)
+
+[node name="PollutionCoreArchiveReturnPocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 296.0
+offset_top = 184.0
+offset_right = 378.0
+offset_bottom = 232.0
+color = Color(0.341, 0.282, 0.098, 1)
+
+[node name="PollutionCoreArchiveResidueMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 306.0
+offset_top = 194.0
+offset_right = 334.0
+offset_bottom = 220.0
+color = Color(0.74, 0.62, 0.18, 1)
+
+[node name="PollutionCoreArchiveGuardMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 342.0
+offset_top = 186.0
+offset_right = 372.0
+offset_bottom = 214.0
+color = Color(0.82, 0.42, 0.16, 1)
+
+[node name="PollutionCoreArchivePressureRetestLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 334.0
+offset_top = 174.0
+offset_right = 388.0
+offset_bottom = 182.0
+color = Color(0.592, 0.386, 0.123, 1)
+
+[node name="PollutionCoreArchivePressureRetestPocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 350.0
+offset_top = 148.0
+offset_right = 390.0
+offset_bottom = 186.0
+color = Color(0.376, 0.268, 0.086, 1)
+
+[node name="PollutionCoreArchivePressureRetestResidueMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 358.0
+offset_top = 164.0
+offset_right = 386.0
+offset_bottom = 186.0
+color = Color(0.78, 0.64, 0.2, 1)
+
+[node name="PollutionCoreArchivePressureRetestGuardMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 370.0
+offset_top = 142.0
+offset_right = 390.0
+offset_bottom = 168.0
+color = Color(0.86, 0.43, 0.16, 1)
+
+[node name="PollutionLogisticsMaintenanceRetestLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 316.0
+offset_top = 112.0
+offset_right = 374.0
+offset_bottom = 120.0
+color = Color(0.604, 0.404, 0.148, 1)
+
+[node name="PollutionLogisticsMaintenanceRetestPocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 316.0
+offset_top = 96.0
+offset_right = 378.0
+offset_bottom = 132.0
+color = Color(0.365, 0.284, 0.103, 1)
+
+[node name="PollutionLogisticsMaintenanceRetestResidueMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 324.0
+offset_top = 104.0
+offset_right = 350.0
+offset_bottom = 128.0
+color = Color(0.8, 0.66, 0.22, 1)
+
+[node name="PollutionLogisticsMaintenanceRetestGuardMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 354.0
+offset_top = 98.0
+offset_right = 376.0
+offset_bottom = 126.0
+color = Color(0.88, 0.45, 0.17, 1)
+
 [node name="PollutionGatePressurePocket" type="ColorRect" parent="OpeningSceneLayer"]
 offset_left = 344.0
 offset_top = 8.0
@@ -499,11 +1256,151 @@ color = Color(0.78, 0.5, 0.18, 1)
 
 [node name="PollutionBeltLabel" type="Label" parent="OpeningSceneLayer"]
 offset_left = 238.0
-offset_top = -214.0
+offset_top = -304.0
 offset_right = 382.0
-offset_bottom = -190.0
+offset_bottom = -280.0
 text = "施工带 / 污染场"
 horizontal_alignment = 1
+
+[node name="CoreStabilizationArrivalYard" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 3650.0
+offset_top = -254.0
+offset_right = 3816.0
+offset_bottom = 166.0
+color = Color(0.105, 0.223, 0.208, 1)
+
+[node name="CoreStabilizationRecoveryYard" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 3688.0
+offset_top = 54.0
+offset_right = 3808.0
+offset_bottom = 176.0
+color = Color(0.137, 0.292, 0.242, 1)
+
+[node name="CoreStabilizationGuardFieldGround" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 3798.0
+offset_top = -176.0
+offset_right = 3960.0
+offset_bottom = 142.0
+color = Color(0.202, 0.185, 0.13, 1)
+
+[node name="CoreStabilizationWritebackDeck" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 3920.0
+offset_top = -156.0
+offset_right = 4094.0
+offset_bottom = 128.0
+color = Color(0.134, 0.338, 0.31, 1)
+
+[node name="CoreStabilizationRetestYard" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 4088.0
+offset_top = -104.0
+offset_right = 4172.0
+offset_bottom = 136.0
+color = Color(0.112, 0.265, 0.312, 1)
+
+[node name="CoreStabilizationLogisticsRetestYard" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 4160.0
+offset_top = -174.0
+offset_right = 4270.0
+offset_bottom = -12.0
+color = Color(0.178, 0.224, 0.154, 1)
+
+[node name="CoreStabilizationApproachLane" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 3658.0
+offset_top = -116.0
+offset_right = 4078.0
+offset_bottom = -98.0
+color = Color(0.22, 0.46, 0.42, 1)
+
+[node name="CoreStabilizationRecoveryPocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 3710.0
+offset_top = 78.0
+offset_right = 3788.0
+offset_bottom = 158.0
+color = Color(0.32, 0.62, 0.5, 1)
+
+[node name="CoreStabilizationGuardPressureZone" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 3820.0
+offset_top = -86.0
+offset_right = 3944.0
+offset_bottom = 96.0
+color = Color(0.58, 0.3, 0.18, 1)
+
+[node name="CoreStabilizationWritebackLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 3908.0
+offset_top = 54.0
+offset_right = 4046.0
+offset_bottom = 64.0
+color = Color(0.82, 0.6, 0.24, 1)
+
+[node name="CoreStabilizationCorePad" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 3988.0
+offset_top = -92.0
+offset_right = 4088.0
+offset_bottom = 42.0
+color = Color(0.18, 0.72, 0.68, 1)
+
+[node name="CoreStabilizationRetestLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 4058.0
+offset_top = 48.0
+offset_right = 4142.0
+offset_bottom = 58.0
+color = Color(0.42, 0.78, 0.72, 1)
+
+[node name="CoreStabilizationRetestPocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 4098.0
+offset_top = 40.0
+offset_right = 4166.0
+offset_bottom = 120.0
+color = Color(0.2, 0.52, 0.58, 1)
+
+[node name="CoreStabilizationRetestReadoutMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 4120.0
+offset_top = 62.0
+offset_right = 4148.0
+offset_bottom = 92.0
+color = Color(0.78, 0.86, 0.42, 1)
+
+[node name="CoreStabilizationLogisticsRetestLine" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 4118.0
+offset_top = -62.0
+offset_right = 4256.0
+offset_bottom = -52.0
+color = Color(0.476, 0.478, 0.225, 1)
+
+[node name="CoreStabilizationLogisticsRetestPocket" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 4160.0
+offset_top = -84.0
+offset_right = 4266.0
+offset_bottom = -18.0
+color = Color(0.23, 0.287, 0.197, 1)
+
+[node name="CoreStabilizationLogisticsRetestResidueMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 4212.0
+offset_top = -64.0
+offset_right = 4242.0
+offset_bottom = -36.0
+color = Color(0.61, 0.68, 0.28, 1)
+
+[node name="CoreStabilizationLogisticsRetestGuardMarker" type="ColorRect" parent="OpeningSceneLayer"]
+offset_left = 4174.0
+offset_top = -58.0
+offset_right = 4206.0
+offset_bottom = -28.0
+color = Color(0.7, 0.44, 0.18, 1)
+
+[node name="CoreStabilizationPressureLabel" type="Label" parent="OpeningSceneLayer"]
+offset_left = 3692.0
+offset_top = -292.0
+offset_right = 4112.0
+offset_bottom = -268.0
+text = "补给→守卫→回写→核心写入"
+horizontal_alignment = 1
+
+[node name="PrototypeVisualPriorityLayer" type="Node2D" parent="."]
+script = ExtResource("5_visual_priority")
+
+[node name="CurrentObjectiveGuidanceLayer" type="Node2D" parent="."]
+script = ExtResource("6_objective_guidance")
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(-250, -48)
@@ -521,6 +1418,54 @@ definition_id = "building.basic_reactor"
 interaction_type = "process_recipe"
 recipe_id = "recipe.process_crystal_ore"
 single_use = false
+
+[node name="BasicStorageBuildSite" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-250, 18)
+definition_id = "building.basic_storage"
+interaction_type = "build"
+recipe_id = ""
+label_offset = Vector2(-92, 22)
+label_size = Vector2(184, 24)
+
+[node name="FieldOutfittingStationBuildSite" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-72, -42)
+definition_id = "building.field_outfitting_station"
+interaction_type = "build"
+recipe_id = ""
+label_offset = Vector2(-92, 22)
+label_size = Vector2(184, 24)
+
+[node name="FieldOutfittingStation" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-72, -42)
+definition_id = "building.field_outfitting_station"
+interaction_type = "inspect"
+single_use = false
+label_offset = Vector2(-96, 22)
+label_size = Vector2(192, 24)
+
+[node name="SlurryBufferTankBuildSite" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-130, 120)
+definition_id = "building.slurry_buffer_tank"
+interaction_type = "build"
+recipe_id = ""
+label_offset = Vector2(-96, -54)
+label_size = Vector2(192, 24)
+
+[node name="OutpostDepartureGate" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-38, -104)
+definition_id = "map_object.outpost_departure_gate"
+interaction_type = "inspect"
+single_use = false
+label_offset = Vector2(-88, 22)
+label_size = Vector2(176, 24)
+
+[node name="OutpostLogisticsRouteSign" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(-122, -8)
+definition_id = "map_object.outpost_logistics_route_sign"
+interaction_type = "inspect"
+single_use = false
+label_offset = Vector2(-88, 22)
+label_size = Vector2(176, 24)
 
 [node name="PhaseRelayPad" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(-180, 42)
@@ -601,6 +1546,13 @@ interaction_type = "gather"
 label_offset = Vector2(-82, 22)
 label_size = Vector2(164, 24)
 
+[node name="CrystalClusterLogisticsPocket" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(92, 92)
+definition_id = "map_object.crystal_cluster"
+interaction_type = "gather"
+label_offset = Vector2(-82, 22)
+label_size = Vector2(164, 24)
+
 [node name="RichCrystalVeinNorth" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(150, -176)
 definition_id = "map_object.rich_crystal_vein"
@@ -631,6 +1583,27 @@ label_size = Vector2(164, 24)
 
 [node name="FieldWreckageSouthPocket" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(40, 160)
+definition_id = "map_object.field_wreckage"
+interaction_type = "gather"
+label_offset = Vector2(-82, 22)
+label_size = Vector2(164, 24)
+
+[node name="FieldWreckageLogisticsPocket" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(150, 138)
+definition_id = "map_object.field_wreckage"
+interaction_type = "gather"
+label_offset = Vector2(-82, 22)
+label_size = Vector2(164, 24)
+
+[node name="CrystalClusterLogisticsReturn" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(194, 196)
+definition_id = "map_object.crystal_cluster"
+interaction_type = "gather"
+label_offset = Vector2(-82, 22)
+label_size = Vector2(164, 24)
+
+[node name="FieldWreckageLogisticsReturn" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(232, 218)
 definition_id = "map_object.field_wreckage"
 interaction_type = "gather"
 label_offset = Vector2(-82, 22)
@@ -696,6 +1669,34 @@ definition_id = "map_object.pollution_residue_patch"
 interaction_type = "gather"
 label_offset = Vector2(-68, 22)
 
+[node name="PollutionResidueVialReturnCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(276, 146)
+definition_id = "map_object.pollution_residue_patch"
+interaction_type = "gather"
+label_offset = Vector2(-76, 22)
+label_size = Vector2(152, 24)
+
+[node name="PollutionResidueSlurryReturnCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(354, 176)
+definition_id = "map_object.pollution_residue_patch"
+interaction_type = "gather"
+label_offset = Vector2(-82, 22)
+label_size = Vector2(164, 24)
+
+[node name="PollutionResidueVialReserveCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(260, 188)
+definition_id = "map_object.pollution_residue_patch"
+interaction_type = "gather"
+label_offset = Vector2(-84, -50)
+label_size = Vector2(168, 24)
+
+[node name="PollutionResidueCoreArchiveRouteCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(246, 206)
+definition_id = "map_object.pollution_residue_patch"
+interaction_type = "gather"
+label_offset = Vector2(-92, -50)
+label_size = Vector2(184, 24)
+
 [node name="PollutionResidueDeep" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(344, 158)
 definition_id = "map_object.pollution_residue_patch"
@@ -714,6 +1715,27 @@ definition_id = "map_object.pollution_residue_patch"
 interaction_type = "gather"
 label_offset = Vector2(-76, 22)
 label_size = Vector2(152, 24)
+
+[node name="PollutionResidueCoreArchiveReturnCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(322, 206)
+definition_id = "map_object.pollution_residue_patch"
+interaction_type = "gather"
+label_offset = Vector2(-92, -50)
+label_size = Vector2(184, 24)
+
+[node name="PollutionResidueCoreArchivePressureRetestCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(372, 176)
+definition_id = "map_object.pollution_residue_patch"
+interaction_type = "gather"
+label_offset = Vector2(-104, -50)
+label_size = Vector2(208, 24)
+
+[node name="PollutionResidueLogisticsMaintenancePressureCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(338, 116)
+definition_id = "map_object.pollution_residue_patch"
+interaction_type = "gather"
+label_offset = Vector2(-114, -50)
+label_size = Vector2(228, 24)
 
 [node name="RoughGroundNorth" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(258, -156)
@@ -1305,6 +2327,20 @@ interaction_type = "gather"
 label_offset = Vector2(-96, 22)
 label_size = Vector2(192, 24)
 
+[node name="DemoStabilizationRetestReadoutCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(4134, 78)
+definition_id = "map_object.demo_stabilization_retest_readout_cache"
+interaction_type = "gather"
+label_offset = Vector2(-118, 22)
+label_size = Vector2(236, 24)
+
+[node name="PollutionResidueLogisticsMaintenanceRetestCache" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(4228, -52)
+definition_id = "map_object.demo_stabilization_logistics_retest_residue"
+interaction_type = "gather"
+label_offset = Vector2(-118, -52)
+label_size = Vector2(236, 24)
+
 [node name="Enemies" type="Node2D" parent="."]
 
 [node name="NativeSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
@@ -1313,6 +2349,14 @@ definition_id = "enemy.native_skitter"
 
 [node name="NativeSkitterPatrol" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(84, -144)
+definition_id = "enemy.native_skitter"
+
+[node name="NativeSkitterLogisticsGuard" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(118, 112)
+definition_id = "enemy.native_skitter"
+
+[node name="NativeSkitterLogisticsReturnGuard" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(212, 210)
 definition_id = "enemy.native_skitter"
 
 [node name="TreatmentSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
@@ -1331,6 +2375,22 @@ definition_id = "enemy.treatment_skitter"
 position = Vector2(310, 76)
 definition_id = "enemy.polluted_skitter"
 
+[node name="PollutedSkitterVialReturnGuard" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(320, 128)
+definition_id = "enemy.polluted_skitter"
+
+[node name="PollutedSkitterSlurryReturnGuard" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(360, 150)
+definition_id = "enemy.polluted_skitter"
+
+[node name="PollutedSkitterVialReserveGuard" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(292, 184)
+definition_id = "enemy.polluted_skitter"
+
+[node name="PollutedSkitterCoreArchiveRouteGuard" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(286, 204)
+definition_id = "enemy.polluted_skitter"
+
 [node name="PollutedSkitterDeep" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(300, 160)
 definition_id = "enemy.polluted_skitter"
@@ -1341,6 +2401,18 @@ definition_id = "enemy.polluted_skitter"
 
 [node name="CoreBufferPollutedSkitter" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(386, 126)
+definition_id = "enemy.polluted_skitter"
+
+[node name="PollutedSkitterCoreArchiveReturnGuard" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(356, 200)
+definition_id = "enemy.polluted_skitter"
+
+[node name="PollutedSkitterCoreArchivePressureRetestGuard" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(384, 154)
+definition_id = "enemy.polluted_skitter"
+
+[node name="PollutedSkitterLogisticsMaintenancePressureGuard" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(360, 116)
 definition_id = "enemy.polluted_skitter"
 
 [node name="PollutedSkitterGatePressure" parent="Enemies" instance=ExtResource("4_enemy")]
@@ -1406,3 +2478,7 @@ definition_id = "enemy.pressure_clearance_guard"
 [node name="DemoStabilizationGuard" parent="Enemies" instance=ExtResource("4_enemy")]
 position = Vector2(3870, 18)
 definition_id = "enemy.demo_stabilization_guard"
+
+[node name="PollutedSkitterLogisticsMaintenanceRetestGuard" parent="Enemies" instance=ExtResource("4_enemy")]
+position = Vector2(4186, -36)
+definition_id = "enemy.demo_stabilization_logistics_retest_skitter"

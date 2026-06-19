@@ -50,6 +50,8 @@
 pwsh ./scripts/check-client.ps1
 ```
 
+默认 `check-client` 不启动 Godot；需要工程导入或项目自定义 GDScript 运行时检查时，确认本机 Godot 可启动后执行 `pwsh ./scripts/check-client.ps1 -WithGodot` 或 `sh ./scripts/check-client.sh --with-godot`。
+
 提交前执行：
 
 ```powershell

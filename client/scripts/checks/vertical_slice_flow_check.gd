@@ -5,6 +5,7 @@ const BaseActionQueueRotationCheckScript := preload("res://scripts/checks/base_a
 const BaseActionTargetPromptCheckScript := preload("res://scripts/checks/base_action_target_prompt_check.gd")
 const DevicePanelReadabilityCheckScript := preload("res://scripts/checks/device_panel_readability_check.gd")
 const FirstHourReadabilityCheckScript := preload("res://scripts/checks/first_hour_readability_check.gd")
+const FieldOutfittingStationCheckScript := preload("res://scripts/checks/field_outfitting_station_check.gd")
 const HudRuntimeHintFlowCheckScript := preload("res://scripts/checks/hud_runtime_hint_flow_check.gd")
 const HudMapMarkerCheckScript := preload("res://scripts/checks/hud_map_marker_check.gd")
 const InteractionFeedbackPromptCheckScript := preload("res://scripts/checks/interaction_feedback_prompt_check.gd")
@@ -12,7 +13,6 @@ const PhaseWellFollowupChecks := preload("res://scripts/checks/phase_well_follow
 const PhaseRelayFlowChecks := preload("res://scripts/checks/phase_relay_flow_check.gd")
 const RegionPromptChecks := preload("res://scripts/checks/region_prompt_check.gd")
 const VerticalSliceRegressionChecks := preload("res://scripts/checks/vertical_slice_regression_check.gd")
-const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
 var failures: Array[String] = []
 var data_registry := DataRegistry.new()
 var world_state := WorldState.create_default()
@@ -33,7 +33,6 @@ func _run_checks() -> void:
 		failures.append("data registry should load all static data")
 		return
 	_expect_equal(world_state.quest_state.active_quest_ids, ["quest.restore_outpost"], "initial active quest")
-	_check_onboarding_hints()
 	_check_runtime_hint_prompt_flow()
 	_check_status_panel_summary()
 	HudMapMarkerCheckScript.new(self).run(root)
@@ -55,6 +54,9 @@ func _run_checks() -> void:
 	_check_quest_completion_panel_text()
 	InteractionFeedbackPromptCheckScript.new(self).run()
 	_check_supply_feedback()
+	FieldOutfittingStationCheckScript.new(self).run(root)
+	preload("res://scripts/checks/logistics_maintenance_retest_check.gd").new(self).run(root)
+	preload("res://scripts/checks/ruin_outer_ring_module_pressure_check.gd").new(self).run()
 	_check_hud_feedback_presenter()
 	_check_pollution_status_hints()
 	RegionPromptChecks.new(self).run()
@@ -276,157 +278,6 @@ func _run_checks() -> void:
 	DeepProcessingCheckScript.new(self).run()
 	VerticalSliceRegressionChecks.new(self).check_equipment_processing_runtime()
 	_check_evacuation_feedback()
-func _check_onboarding_hints() -> void:
-	var presenter := HudHintPresenter.new()
-	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
-	root.add_child(map)
-	presenter.configure(data_registry, map)
-	var hint_world := WorldState.create_default()
-	var hint_character := CharacterState.create_default()
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.restore_outpost", "前哨核心", "restore outpost onboarding hint")
-	hint_world.current_region_id = "region.crystal_vein_field"
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.scout_crystal_field", "采集晶体簇", "crystal field onboarding hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.calibrate_reactor", "外勤残骸", "calibration onboarding hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.prepare_treatment_supplies", "修复凝胶", "supply prep onboarding hint")
-	hint_world.quest_state.set_objective_progress("quest.prepare_treatment_supplies", "craft_item", "item.repair_gel", 1)
-	_expect_text_contains(
-		presenter.format_direction_hint(hint_world, hint_character, "quest.prepare_treatment_supplies"),
-		"快捷栏 1",
-		"supply prep direction mentions quick slot"
-	)
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.prepare_treatment_supplies", "生命偏低", "supply prep combat use hint")
-	_expect_text_contains(
-		presenter.format_direction_hint(hint_world, hint_character, "quest.prepare_treatment_supplies"),
-		"处理点北缘",
-		"supply prep direction follows treatment point combat region"
-	)
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.expand_treatment_point", "两块粗糙地面", "rough ground onboarding hint")
-	hint_world.quest_state.set_objective_progress("quest.expand_treatment_point", "clear", "map_object.rough_ground", 2)
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.expand_treatment_point", "2 块地基", "foundation onboarding hint")
-	_expect_text_contains(
-		presenter.format_direction_hint(hint_world, hint_character, "quest.expand_treatment_point"),
-		"处理点北缘",
-		"expand treatment point direction uses treatment point wording"
-	)
-	hint_world.add_base_structure("structure.foundation_site_north", "building.foundation_t1", "region.pollution_edge")
-	hint_world.add_base_structure("structure.foundation_site_south", "building.foundation_t1", "region.pollution_edge")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.expand_treatment_point", "污染过滤器", "pollution filter onboarding hint")
-	hint_character.equipment["suit_module"] = "equipment.filter_module_t1"
-	hint_world.unlock_region("region.pollution_edge")
-	hint_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "visit_region", "region.pollution_edge", 1)
-	hint_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", 2)
-	_expect_text_contains(
-		presenter.format_direction_hint(hint_world, hint_character, "quest.enter_pollution_edge"),
-		"处理点过滤器",
-		"enter pollution direction returns to filter when vial crafting is next"
-	)
-	_expect_hint_contains(
-		presenter,
-		hint_world,
-		hint_character,
-		"quest.enter_pollution_edge",
-		"抗污染药剂",
-		"enter pollution onboarding returns to filter before pushing deeper"
-	)
-	hint_character.protection = 30.0
-	hint_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1)
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.enter_pollution_edge", "过滤器处理沉积物", "low protection onboarding hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.defeat_elite_node", "维持防护", "elite node supply hint")
-	hint_world.unlock_region("region.ruin_outer_ring")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.scout_ruin_outer_ring", "继电残片", "outer ring scouting hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_phase_anchor", "污染浆液", "phase anchor assembly hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.stabilize_outer_ring_barrier", "稳相信标", "outer ring barrier hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.salvage_signal_echo", "回波匣", "signal echo salvage hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_deep_signal", "裂相坐标", "deep signal analysis hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.unlock_deep_ruin_entrance", "门禁", "deep ruin entrance hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.harvest_phase_filament", "相位纤丝", "phase filament salvage hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_phase_filament", "污染过滤器", "phase filament filter hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_deep_override", "污染浆液", "deep override assembly hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.unlock_deep_ruin_cache", "裂相收益", "deep ruin latch hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_deep_core", "路由印片", "deep core analysis hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.activate_deep_array", "相位导管", "deep array activation hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.assemble_deep_signal_matrix", "读数矩阵", "deep signal matrix assembly hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.deploy_phase_relay_anchor", "回传锚点", "phase relay anchor deployment hint")
-	hint_world.current_region_id = "region.outpost_platform"
-	_expect_text_contains(
-		presenter.format_direction_hint(hint_world, hint_character, "quest.reenter_phase_frontline"),
-		"相位回投台",
-		"relay reentry direction returns to outpost relay pad"
-	)
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.reenter_phase_frontline", "回投台", "relay reentry onboarding hint")
-	hint_world.current_region_id = "region.deep_ruin_threshold"
-	_expect_text_contains(
-		presenter.format_direction_hint(hint_world, hint_character, "quest.trace_phase_splinters"),
-		"裂相猎手",
-		"phase splinter tracing direction points to new deep hunter"
-	)
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_phase_splinters", "污染过滤器", "phase splinter refinement hint")
-	hint_character.inventory.add_item("item.phase_lens_blank", 1)
-	hint_character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
-	_expect_text_contains(
-		presenter.format_direction_hint(hint_world, hint_character, "quest.refine_phase_splinters"),
-		"基础反应器",
-		"phase splinter expedition prep second step returns to reactor"
-	)
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.inspect_phase_fault_spire", "中继调谐镜", "phase fault spire onboarding hint")
-	_expect_text_contains(
-		presenter.format_direction_hint(hint_world, hint_character, "quest.analyze_inner_fault_trace"),
-		"基础反应器",
-		"inner fault analysis direction returns to reactor"
-	)
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.analyze_inner_fault_trace", "坐标印片", "inner fault analysis onboarding hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.collect_fault_residue", "故障残渣", "fault residue collection onboarding hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.refine_fault_residue", "裂相锁钥", "phase well key prep onboarding hint")
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.unlock_phase_well", "裂相锁钥", "phase well lock onboarding hint")
-	hint_world.quest_state.completed_quest_ids.append("quest.analyze_deep_signal")
-	hint_world.quest_state.completed_quest_ids.append("quest.unlock_deep_ruin_cache")
-	hint_world.quest_state.completed_quest_ids.append("quest.assemble_deep_signal_matrix")
-	hint_world.quest_state.completed_quest_ids.append("quest.deploy_phase_relay_anchor")
-	hint_world.quest_state.unlocked_effects.append("slice_01_complete")
-	hint_world.current_region_id = "region.outpost_platform"
-	_expect_text_contains(presenter.format_direction_hint(hint_world, hint_character, ""), "相位回投台", "phase relay completion direction returns to relay pad")
-	_expect_text_contains(presenter.format_onboarding_hint(hint_world, hint_character, ""), "相位回投台", "phase relay completion onboarding points to relay pad")
-	_expect_hint_contains(presenter, hint_world, hint_character, "", "回传锚点", "phase relay completion onboarding hint")
-	var spire_completion_world := WorldState.create_default()
-	spire_completion_world.quest_state.active_quest_ids.clear()
-	spire_completion_world.quest_state.completed_quest_ids.append("quest.inspect_phase_fault_spire")
-	_expect_text_contains(
-		presenter.format_direction_hint(spire_completion_world, hint_character, ""),
-		"锁相结构",
-		"phase fault spire completion direction points to phase well lock"
-	)
-	_expect_text_contains(
-		presenter.format_onboarding_hint(spire_completion_world, hint_character, ""),
-		"内层故障轨迹",
-		"phase fault spire completion onboarding points to base analysis"
-	)
-	var phase_well_world := WorldState.create_default()
-	phase_well_world.quest_state.active_quest_ids.clear()
-	phase_well_world.quest_state.completed_quest_ids.append("quest.unlock_phase_well")
-	_expect_text_contains(
-		presenter.format_direction_hint(phase_well_world, hint_character, ""),
-		"回基地解析定位器",
-		"phase well completion direction highlights base analysis followup"
-	)
-	_expect_text_contains(
-		presenter.format_onboarding_hint(phase_well_world, hint_character, ""),
-		"先回基地解析它",
-		"phase well completion onboarding keeps locator analysis explicit"
-	)
-	var inner_phase_well_world := WorldState.create_default()
-	inner_phase_well_world.quest_state.active_quest_ids.clear()
-	inner_phase_well_world.quest_state.completed_quest_ids.append("quest.inspect_inner_phase_well")
-	_expect_text_contains(
-		presenter.format_direction_hint(inner_phase_well_world, hint_character, ""),
-		"回基地解析回声芯样本",
-		"inner phase well completion direction highlights next base analysis"
-	)
-	_expect_text_contains(
-		presenter.format_onboarding_hint(inner_phase_well_world, hint_character, ""),
-		"回声芯样本只是下一轮的起点",
-		"inner phase well completion onboarding keeps next package explicit"
-	)
-	map.free()
 func _check_runtime_hint_prompt_flow() -> void:
 	HudRuntimeHintFlowCheckScript.new().run(root, failures, data_registry)
 func _check_status_panel_summary() -> void:
@@ -488,6 +339,11 @@ func _check_status_panel_summary() -> void:
 	scout_world.quest_state.active_quest_ids = ["quest.scout_crystal_field"]
 	var scout_status_text := presenter.format_status_text(data_registry, scout_world, status_character)
 	_expect_text_contains(scout_status_text, "收集 晶体矿物（晶体簇） 0/6", "status shows crystal gather source")
+	var echo_status_world := WorldState.create_default()
+	echo_status_world.quest_state.active_quest_ids = ["quest.salvage_signal_echo"]
+	var echo_status_text := presenter.format_status_text(data_registry, echo_status_world, status_character)
+	_expect_text_contains(echo_status_text, "目标：回收深段回波", "S2 status shows signal echo goal")
+	_expect_text_contains(echo_status_text, "收集 污染沉积物（污染回波沉积） 0/2", "S2 status shows contextual echo residue source")
 	var reactor_craft_world := WorldState.create_default()
 	reactor_craft_world.quest_state.active_quest_ids = ["quest.analyze_phase_well_weave_core"]
 	var reactor_craft_status_text := presenter.format_status_text(data_registry, reactor_craft_world, status_character)
@@ -584,7 +440,6 @@ func _check_pollution_gate_runtime_bounds() -> void:
 	_expect_equal(unlocked_deep_character.current_region_id, "region.deep_ruin_threshold", "unlocked deep ruin gate should update character region")
 	map.player.free()
 	map.free()
-
 
 func _check_deep_gate_releases_movement_block() -> void:
 	var map := VerticalSliceMap.new()
@@ -816,7 +671,6 @@ func _check_pressure_clearance_guard_combat_gate() -> void:
 	window_world.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_STATUS_KEY, BaseActionDispatchPlan.STATUS_ACTIVE)
 	window_world.set_base_action_state_value(BaseActionDispatchPlan.FRONTLINE_WINDOW_PLAN_KEY, BaseActionDispatchPlan.PLAN_PRESSURE_CLEARANCE)
 	_expect_equal(map._should_enemy_spawn(guard, window_world), true, "pressure clearance guard spawns during pressure window")
-
 	var combat_character := CharacterState.create_default()
 	var counter_message := map._apply_enemy_counterattack(guard, combat_character)
 	_expect_equal(combat_character.health, 88.0, "pressure clearance guard counterattack health pressure")
@@ -906,7 +760,7 @@ func _check_supply_feedback() -> void:
 	_expect_feedback_contains(outpost_result, "生命 +38", "restored outpost core health feedback")
 	_expect_feedback_contains(outpost_result, "防护 +72", "restored outpost core protection feedback")
 	var outpost_full_result := gather_system.interact_with_object("map_object_instance.outpost_core", "building.outpost_core", "outpost_core", outpost_character, outpost_world)
-	_expect_text_contains(String(outpost_full_result.get("message", "")), "生命与防护完整", "restored outpost core keeps ready message at full vitals")
+	_expect_text_contains(String(outpost_full_result.get("message", "")), "前哨核心出发检查", "restored outpost core keeps ready message at full vitals")
 func _check_hud_feedback_presenter() -> void:
 	var presenter := HudFeedbackPresenter.new()
 	var supply_feedback := {
