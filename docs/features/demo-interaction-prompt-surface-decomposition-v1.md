@@ -36,6 +36,7 @@
 - 2026-06-19 第一包已落地：新增 `ProcessingInteractionPromptFormatter`，`InteractionPromptFormatter` 保留原入口并委托加工提示 / 加工日志。
 - `interaction_prompt_formatter.gd` 已从 1494 行降到 1373 行；加工设备提示已接入基地再进入读法。
 - 新增 `demo_interaction_prompt_surface_decomposition_check.gd` 与静态接线检查，并接入默认 `check-client` 和 Godot runtime 检查。
+- 2026-06-19 退出判断通过：加工提示、加工日志、基地再进入代表状态、行数预算和检查入口均满足验收；后续切到地图承载面拆分。
 
 ## 当前不做
 
@@ -82,3 +83,4 @@
 
 - 若后续仍需要扩前哨核心、出发口或深段对象提示，应继续按职责拆分，而不是把逻辑塞回 `interaction_prompt_formatter.gd`。
 - 若只发现局部文案顺序或低优先级提示密度问题，记录到后续 polish，不阻塞本专题。
+- 本专题已通过退出判断；不继续围绕同一批加工提示加厚，下一步处理 `vertical_slice_map.gd` 接近硬上限的问题。

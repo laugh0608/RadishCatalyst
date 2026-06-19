@@ -48,10 +48,10 @@
 | 角色成长 / 战斗差异 | `docs/features/demo-combat-progression-v1.md`，最近完成细专题 `docs/features/demo-character-kit-v1.md`、`docs/features/ruin-outer-ring-module-pressure-v1.md` 和 `docs/features/pollution-edge-maintenance-pressure-v1.md` | 已落地第一轮 |
 | 工具打击校准 / 输出整备 | `docs/features/demo-tool-strike-calibration-v1.md` | 已落地第一包 |
 | 工业基建 / 工艺解锁主干 | `docs/features/demo-industrial-tech-spine-v1.md` | 已落地第一包 |
-| 资源链状态 / 基地再进入 | `docs/features/demo-resource-chain-state-v1.md`、`docs/features/demo-route-return-and-base-reentry-readability-v1.md` | 资源链已落地第一包，基地再进入当前活跃 |
+| 资源链状态 / 基地再进入 | `docs/features/demo-resource-chain-state-v1.md`、`docs/features/demo-route-return-and-base-reentry-readability-v1.md` | 资源链已落地，基地再进入已通过退出判断 |
 | 存档 / 状态 | `docs/features/demo-save-state-contract-v1.md` | 已落地第一包 |
 | 主路径连续性 / 自动检查 | `docs/features/demo-main-path-continuity-v1.md` | 已落地第一包 |
-| 自动检查 / 工程承载面 | `docs/features/demo-runtime-surface-decomposition-v1.md`、`docs/features/demo-interaction-prompt-surface-decomposition-v1.md` | 交互提示承载面当前活跃 |
+| 自动检查 / 工程承载面 | `docs/features/demo-runtime-surface-decomposition-v1.md`、`docs/features/demo-interaction-prompt-surface-decomposition-v1.md`、`docs/features/demo-map-surface-decomposition-v1.md` | 地图承载面当前活跃 |
 | 功能场景玩法 | `docs/features/demo-functional-scene-gameplay-v1.md`、`docs/features/demo-functional-scene-gameplay-density-v1.md`、`docs/features/demo-functional-transition-spatial-playability-v1.md` | 玩法密度与可达空间已通过退出判断 |
 | 外勤回基地收益兑现 | `docs/features/demo-field-loop-payoff-v1.md` | 已落地第一包 |
 | 终点前综合准备读法 | `docs/features/demo-endpoint-readiness-v1.md` | 已落地第一包 |
@@ -59,7 +59,7 @@
 | 整段体验连贯性 | `docs/features/demo-playable-experience-coherence-v1.md` | 已落地第一包 |
 | 可玩场景构成 | `docs/features/demo-playable-scene-composition-v1.md` | 已落地第一包 |
 | 战斗撤离恢复读法 | `docs/features/demo-combat-evacuation-recovery-v1.md` | 已落地第一包 |
-| 交互可辨识度 / 提示承载面 | `docs/features/demo-interaction-affordance-v1.md`、`docs/features/demo-interaction-prompt-surface-decomposition-v1.md` | 交互可辨识度已落地，提示承载面当前活跃 |
+| 交互可辨识度 / 提示承载面 | `docs/features/demo-interaction-affordance-v1.md`、`docs/features/demo-interaction-prompt-surface-decomposition-v1.md` | 交互可辨识度已落地，提示承载面已通过退出判断 |
 | 动作反馈可读性 | `docs/features/demo-action-feedback-readability-v1.md` | 已落地第一包 |
 | 受阻动作恢复读法 | `docs/features/demo-action-blocker-recovery-v1.md` | 已落地第一包 |
 | 原型视觉呈现 | `docs/features/demo-prototype-visual-pass-v1.md` | 已通过退出判断 |
@@ -93,11 +93,11 @@
 
 ## 当前优先级
 
-当前继续推进首版 Demo 体验主干；`Demo Route Return And Base Reentry Readability V1` 已通过退出判断，下一步切到 `Demo Interaction Prompt Surface Decomposition V1`：
+当前继续推进首版 Demo 体验主干；`Demo Interaction Prompt Surface Decomposition V1` 已通过退出判断，下一步切到 `Demo Map Surface Decomposition V1`：
 
 1. 原型视觉呈现已覆盖现有 12 区层级、核心区场地尺度、首小时目标链场景导引和专项检查。
 2. 快捷补给读法已覆盖现有修复凝胶 / 抗污染药剂在 HUD 快捷栏、补给反馈和失败恢复路线中的可读性。
 3. 补给节奏与承压价值已验证既有补给在制作、消耗、补回和关键压力节点中的真实价值。
-4. 功能 / 过渡场景玩法密度、可达空间和基地再进入读法已通过退出判断；当前先拆加工设备交互提示承载面，降低大文件风险并支撑后续对象提示扩展。
+4. 功能 / 过渡场景玩法密度、可达空间、基地再进入读法和交互提示承载面均已通过退出判断；当前先拆地图区域 / gate 承载面，避免后续场景路线推进继续推高 `vertical_slice_map.gd`。
 
 在首版 Demo 满足本文必达规格前，不切到试玩准备或集中修 bug 阶段。
