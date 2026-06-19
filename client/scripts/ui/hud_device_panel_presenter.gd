@@ -71,6 +71,14 @@ func _format_device_status(
 	)
 	if not resource_chain_line.is_empty():
 		parts.append(resource_chain_line)
+	var field_task_line := DemoFieldTaskDifferentiationFormatter.format_device_status_line(
+		building_id,
+		recipe_id,
+		world_state,
+		character_state
+	)
+	if not field_task_line.is_empty():
+		parts.append(field_task_line)
 	var operation_line := DemoDevicePanelOperationFormatter.format_device_status_line(
 		building_id,
 		recipe_id,

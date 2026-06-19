@@ -452,6 +452,8 @@ func _interact_with_field_outfitting_station(character_state: CharacterState, wo
 			return logistics_result
 		if FieldOutfittingRuntime.should_confirm_field_loop_payoff(character_state, world_state):
 			return _confirm_field_loop_payoff(world_state)
+		if FieldOutfittingRuntime.can_confirm_field_task_differentiation(character_state, world_state):
+			return _confirm_field_task_differentiation(world_state)
 		if FieldOutfittingRuntime.is_protective_response_ready(world_state):
 			return _success_feedback(
 				"出发整备台复查完成：防护响应已待命，下一次外勤反击会读取基础防护服、过滤模块和前哨补给。",
@@ -642,6 +644,22 @@ func _confirm_field_loop_payoff(world_state: WorldState) -> Dictionary:
 	return payoff_result
 
 
+func _confirm_field_task_differentiation(world_state: WorldState) -> Dictionary:
+	FieldOutfittingRuntime.mark_field_task_differentiation_confirmed(world_state)
+	var task_result := _success_feedback(
+		DemoFieldTaskDifferentiationFormatter.format_confirmation_message(),
+		"任务差异登记完成",
+		DemoFieldTaskDifferentiationFormatter.format_confirmation_status(),
+		DemoFieldTaskDifferentiationFormatter.format_confirmation_next_step()
+	)
+	task_result["field_task_differentiation_confirmed"] = true
+	var feedback: Dictionary = task_result.get("success_feedback", {})
+	feedback["field_task"] = DemoFieldTaskDifferentiationFormatter.format_confirmation_status()
+	feedback["show_field_task"] = true
+	task_result["success_feedback"] = feedback
+	return task_result
+
+
 func _gather(instance_id: String, definition: Dictionary, character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var rewards := _grant_refs(definition.get("drops", []), character_state)
 	var pressure_result := _apply_pollution_pressure(instance_id, definition, character_state, world_state)
@@ -683,6 +701,14 @@ func _gather(instance_id: String, definition: Dictionary, character_state: Chara
 	)
 	if not core_run_followup.is_empty():
 		result_parts.append(core_run_followup)
+	var field_task_followup := DemoFieldTaskDifferentiationFormatter.format_gather_result_line(
+		String(definition.get("id", "")),
+		instance_id,
+		world_state,
+		character_state
+	)
+	if not field_task_followup.is_empty():
+		result_parts.append(field_task_followup)
 
 	var result := _success("%s。" % "；".join(result_parts))
 	result["success_feedback"] = DemoActionFeedbackFormatter.format_gather_success_feedback(
@@ -694,6 +720,11 @@ func _gather(instance_id: String, definition: Dictionary, character_state: Chara
 		world_state,
 		character_state
 	)
+	var feedback: Dictionary = result.get("success_feedback", {})
+	if not field_task_followup.is_empty():
+		feedback["field_task"] = field_task_followup
+		feedback["show_field_task"] = true
+	result["success_feedback"] = feedback
 	return result
 
 
@@ -726,6 +757,11 @@ func _sample(instance_id: String, definition: Dictionary, character_state: Chara
 	)
 	if not gameplay_followup.is_empty():
 		result_parts.append(gameplay_followup)
+	var field_task_followup := DemoFieldTaskDifferentiationFormatter.format_sample_result_line(
+		String(definition.get("id", ""))
+	)
+	if not field_task_followup.is_empty():
+		result_parts.append(field_task_followup)
 	var result := _success("%s。" % "；".join(result_parts))
 	result["success_feedback"] = DemoActionFeedbackFormatter.format_sample_success_feedback(
 		object_name,
@@ -733,6 +769,11 @@ func _sample(instance_id: String, definition: Dictionary, character_state: Chara
 		rewards,
 		world_state
 	)
+	var feedback: Dictionary = result.get("success_feedback", {})
+	if not field_task_followup.is_empty():
+		feedback["field_task"] = field_task_followup
+		feedback["show_field_task"] = true
+	result["success_feedback"] = feedback
 	return result
 
 

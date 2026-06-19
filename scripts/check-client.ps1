@@ -288,6 +288,13 @@ $checks = @(
         Parameters = @{
             RepoRoot = $RepoRoot
         }
+    },
+    @{
+        Name = "client demo field task differentiation"
+        Script = "check-client-demo-field-task-differentiation.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
     }
 )
 

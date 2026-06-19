@@ -16,7 +16,7 @@
 
 当前活跃专题：[Demo Playable Content Substance V1](../features/demo-playable-content-substance-v1.md)，覆盖首版 Demo 场景、角色 / 怪物 UI、初步美术、工业基建和任务节奏的玩家可见实质补强。
 
-最近完成细专题：[Demo Initial Art Identity V1](../features/demo-initial-art-identity-v1.md)、[Demo Industrial Module Task Rhythm V1](../features/demo-industrial-module-task-rhythm-v1.md)、[Demo Core Scene Playable Space V1](../features/demo-core-scene-playable-space-v1.md) 与 [Demo Device Panel Operation Readability V1](../features/demo-device-panel-operation-readability-v1.md)，2026-06-17 至 2026-06-19 第一包已落地或通过退出判断。
+最近完成细专题：[Demo Field Task Differentiation V1](../features/demo-field-task-differentiation-v1.md)、[Demo Initial Art Identity V1](../features/demo-initial-art-identity-v1.md)、[Demo Industrial Module Task Rhythm V1](../features/demo-industrial-module-task-rhythm-v1.md) 与 [Demo Core Scene Playable Space V1](../features/demo-core-scene-playable-space-v1.md)，2026-06-19 第一包已落地。
 
 最近完成细专题：[Demo Non-Core Scene Identity V1](../features/demo-non-core-scene-identity-v1.md) 与 [Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md)，2026-06-16 第一包已落地。
 
@@ -43,7 +43,7 @@
 
 - 原型视觉呈现和核心场景空间第一包只证明基础可读性；后续若继续推进场景，应优先补对象尺寸、设备造型、危险边界和任务节奏。
 - 快捷补给读法已通过退出判断；不继续扩补给短状态、HUD 行或失败文案。
-- 当前推进首版 Demo 可玩内容实质补强：工业模块职责与任务节奏、初步美术识别第一包已落地，后续继续做玩家实际能看到和操作的场景、设备表现和任务差异。
+- 当前推进首版 Demo 可玩内容实质补强：工业模块职责与任务节奏、初步美术识别、资源处理与外勤任务差异第一包已落地，后续继续做玩家实际能看到和操作的场景、设备表现和任务差异。
 - 受阻动作恢复读法、动作反馈可读性、交互可辨识度、战斗撤离恢复、可玩场景构成、整段体验连贯性和 Demo 完成成果整理第一包已落地；不继续围绕失败文案、动作成功结果、对象可交互状态、撤离恢复、区域构成、断点清单或核心稳定站写入后完成态加厚。
 - 外勤回基地收益兑现、功能场景玩法、运行时承载面拆分、主路径连续性和存档状态契约第一包已落地；不继续围绕同一切面加厚。
 - 非核心区域场景识别和功能 / 过渡路线支撑第一包已落地；不继续围绕同一批区域标签、路线职责、当前危险和回基地理由加厚。

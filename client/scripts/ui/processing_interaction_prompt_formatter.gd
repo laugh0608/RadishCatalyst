@@ -49,6 +49,14 @@ func format_processing_prompt(
 	)
 	if not industrial_chain_line.is_empty():
 		io_line = "%s；%s" % [io_line, industrial_chain_line]
+	var field_task_line := DemoFieldTaskDifferentiationFormatter.format_processing_prompt_line(
+		interactable.definition_id,
+		displayed_recipe_id,
+		world_state,
+		character_state
+	)
+	if not field_task_line.is_empty():
+		io_line = "%s；%s" % [io_line, field_task_line]
 	var base_reentry_line := DemoRouteReturnAndBaseReentryFormatter.format_device_status_line(
 		interactable.definition_id,
 		displayed_recipe_id,
@@ -123,6 +131,13 @@ func format_processing_log(recipe_id: String, character_state: CharacterState, w
 	)
 	if not industrial_chain_line.is_empty():
 		parts.append(industrial_chain_line)
+	var field_task_line := DemoFieldTaskDifferentiationFormatter.format_processing_log_line(
+		displayed_recipe_id,
+		world_state,
+		character_state
+	)
+	if not field_task_line.is_empty():
+		parts.append(field_task_line)
 	var operation_line := DemoDevicePanelOperationFormatter.format_processing_log_line(
 		displayed_recipe_id,
 		status,

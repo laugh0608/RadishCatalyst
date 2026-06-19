@@ -41,6 +41,8 @@
 - 新增 `demo_industrial_module_task_rhythm_check.gd` 与默认检查接线，覆盖 5 个核心模块、任务节奏阶段、HUD / 建造 / 设备 / 处理反馈和前哨整备路径；该检查只证明职责与节奏接线存在，不替代后续实机体验判断。
 - 2026-06-19 初步美术识别与设备现场表现第一包：新增 `DemoInitialArtIdentityLayer`，为 5 个核心设备、晶体矿物、污染沉积物、污染压力和核心稳定站生成现场轮廓 / 状态条与材质身份，不新增第 13 区域。
 - 新增 `demo_initial_art_identity_check.gd` 与默认检查接线，覆盖 profile、地图层、生成形状、锚点元数据和 12 区域封顶；该检查只证明现场身份接线存在，不替代最终美术判断。
+- 2026-06-19 资源处理与外勤任务差异第一包：新增 `DemoFieldTaskDifferentiationFormatter`，把晶体、污染沉积和核心准备接到采集反馈、对象提示、设备面板、处理结果、HUD 和出发整备台登记状态。
+- 新增 `demo_field_task_differentiation_check.gd` 与默认检查接线，覆盖真实采集、设备处理、HUD、整备台确认和状态 round-trip；该检查只证明任务差异接线存在，不替代实机体验判断。
 
 ## 本轮范围
 

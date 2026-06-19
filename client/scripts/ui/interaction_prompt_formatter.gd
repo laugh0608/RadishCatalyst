@@ -217,6 +217,14 @@ func format_general_interaction_prompt(
 	var reward_line := _format_interaction_reward_line(interactable, definition)
 	if not reward_line.is_empty():
 		parts.append(reward_line)
+	var field_task_line := DemoFieldTaskDifferentiationFormatter.format_object_task_line(
+		interactable.definition_id,
+		object_state,
+		world_state,
+		character_state
+	)
+	if not field_task_line.is_empty():
+		parts.append(field_task_line)
 	parts.append("状态：%s" % _get_general_interaction_status(interactable, object_state, character_state, world_state))
 	var next_step_line := _get_general_interaction_next_step(interactable, object_state, character_state, world_state)
 	if not next_step_line.is_empty():
@@ -242,6 +250,7 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 		DemoCombatEvacuationRecoveryFormatter.format_outfitting_station_recovery_line(world_state, character_state),
 		IndustrialTechSpineFormatter.format_outfitting_station_prompt_line(world_state, character_state),
 		DemoFieldLoopPayoffFormatter.format_outfitting_prompt_line(world_state, character_state),
+		DemoFieldTaskDifferentiationFormatter.format_outfitting_prompt_line(world_state, character_state),
 		FieldOutfittingRuntime.format_tool_strike_calibration_prompt_line(world_state, character_state)
 	]:
 		var prompt_line := String(line)
@@ -283,6 +292,9 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 			return "\n".join(parts)
 		if FieldOutfittingRuntime.is_field_loop_payoff_confirmed(world_state):
 			parts.append("外勤收益：已兑现，回波匣解析和污染回波沉积处理已登记到下一趟整备。")
+		if FieldOutfittingRuntime.can_confirm_field_task_differentiation(character_state, world_state):
+			parts.append("操作：E 登记任务差异")
+			return "\n".join(parts)
 		if FieldOutfittingRuntime.is_protective_response_ready(world_state):
 			parts.append("操作：E 检查防护响应")
 			return "\n".join(parts)

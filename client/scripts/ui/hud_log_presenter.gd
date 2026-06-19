@@ -36,6 +36,8 @@ func format_success_result_log(result: Dictionary) -> String:
 		_append_log_detail(details, "任务节奏", _compact_next_step(String(feedback.get("module_task", ""))))
 	if bool(feedback.get("show_resource_chain", false)):
 		_append_log_detail(details, "资源链", _compact_next_step(String(feedback.get("resource_chain", ""))))
+	if bool(feedback.get("show_field_task", false)) and not title.begins_with("加工"):
+		_append_log_detail(details, "任务差异", _compact_next_step(String(feedback.get("field_task", ""))))
 	_append_log_detail(details, "再进入", _compact_next_step(String(feedback.get("base_reentry", ""))))
 	_append_log_detail(details, "状态", _compact_status(String(feedback.get("status", ""))))
 	if details.is_empty():

@@ -27,12 +27,13 @@
 
 - [Demo Definition V1](demo-definition-v1.md)：首版 Demo 规格表，后续专题必须映射到未完成规格项。
 - [Demo Playable Content Substance V1](demo-playable-content-substance-v1.md)：当前活跃专题，覆盖 Demo 实质补强。
-- [Demo Initial Art Identity V1](demo-initial-art-identity-v1.md)：最近完成细专题，覆盖设备、资源、危险和核心目标现场身份。
-- [Demo Industrial Module Task Rhythm V1](demo-industrial-module-task-rhythm-v1.md)：最近完成细专题，覆盖 5 个核心工业模块职责和任务节奏。
-- [Demo Core Scene Playable Space V1](demo-core-scene-playable-space-v1.md)：最近完成细专题，覆盖四个核心区的空间角色和对象落点。
-- [Demo First Playable Acceptance V1](demo-first-playable-acceptance-v1.md)：阶段验收专题暂缓，自动检查通过不足以证明可试玩候选质量。
-- [Demo Device Panel Operation Readability V1](demo-device-panel-operation-readability-v1.md)：最近完成细专题，覆盖核心设备面板操作意图、缺料、产出和完成后路线。
-- [Demo Core Approach Handoff Playability V1](demo-core-approach-handoff-playability-v1.md)：最近完成细专题，覆盖终点前承接、对象落点、回基地理由和自动检查。
+- [Demo Field Task Differentiation V1](demo-field-task-differentiation-v1.md)：最近完成，覆盖任务差异。
+- [Demo Initial Art Identity V1](demo-initial-art-identity-v1.md)：最近完成，覆盖现场身份。
+- [Demo Industrial Module Task Rhythm V1](demo-industrial-module-task-rhythm-v1.md)：最近完成，覆盖 5 个核心模块职责。
+- [Demo Core Scene Playable Space V1](demo-core-scene-playable-space-v1.md)：最近完成，覆盖核心区空间角色。
+- [Demo First Playable Acceptance V1](demo-first-playable-acceptance-v1.md)：阶段验收专题暂缓。
+- [Demo Device Panel Operation Readability V1](demo-device-panel-operation-readability-v1.md)：最近完成，覆盖设备面板读法。
+- [Demo Core Approach Handoff Playability V1](demo-core-approach-handoff-playability-v1.md)：最近完成，覆盖终点前承接。
 - [Demo Wind Corridor Transition Playability V1](demo-wind-corridor-transition-playability-v1.md)：最近完成细专题，覆盖风蚀过渡路径、资源 / 设施落点、回基地理由和自动检查。
 - [Demo Midfield Route Playability V1](demo-midfield-route-playability-v1.md)：最近完成细专题，覆盖中段入口边界、资源 / 设施落点、回基地理由和自动检查。
 - [Demo Map Surface Decomposition V1](demo-map-surface-decomposition-v1.md)：最近完成细专题，已拆分接近硬上限的地图区域 / gate 承载面，支撑后续场景和路线推进。

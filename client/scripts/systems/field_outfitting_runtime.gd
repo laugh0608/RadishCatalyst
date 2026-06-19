@@ -16,6 +16,7 @@ const PROTECTIVE_RESPONSE_READY_FLAG := "protective_response_ready"
 const PROTECTIVE_RESPONSE_TRIGGERED_FLAG := "protective_response_triggered"
 const TOOL_STRIKE_CALIBRATION_READY_FLAG := "tool_strike_calibration_ready"
 const TOOL_STRIKE_CALIBRATION_TRIGGERED_FLAG := "tool_strike_calibration_triggered"
+const FIELD_TASK_DIFFERENTIATION_CONFIRMED_FLAG := DemoFieldTaskDifferentiationFormatter.FIELD_TASK_CONFIRMED_FLAG
 const BASIC_TOOL_ID := "equipment.basic_tool"
 const TOOL_STRIKE_CALIBRATION_BASIC_PARTS_COST := 2
 const MODULE_CALIBRATION_CRYSTAL_COST := 2
@@ -392,6 +393,21 @@ static func has_active_field_loop_payoff(
 	world_state: WorldState
 ) -> bool:
 	return DemoFieldLoopPayoffFormatter.has_active_payoff(world_state, character_state)
+
+
+static func is_field_task_differentiation_confirmed(world_state: WorldState) -> bool:
+	return DemoFieldTaskDifferentiationFormatter.is_confirmed(world_state)
+
+
+static func can_confirm_field_task_differentiation(
+	character_state: CharacterState,
+	world_state: WorldState
+) -> bool:
+	return DemoFieldTaskDifferentiationFormatter.can_confirm(world_state, character_state)
+
+
+static func mark_field_task_differentiation_confirmed(world_state: WorldState) -> void:
+	DemoFieldTaskDifferentiationFormatter.mark_confirmed(world_state)
 
 
 static func format_protective_response_compact_state(

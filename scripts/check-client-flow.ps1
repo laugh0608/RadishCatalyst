@@ -214,6 +214,11 @@ if (-not (Test-Path -LiteralPath $demoInitialArtIdentityCheckScript -PathType Le
     Write-Error "Demo initial art identity check script not found: ${demoInitialArtIdentityCheckScript}"
     exit 1
 }
+$demoFieldTaskDifferentiationCheckScript = Join-Path $clientRoot "scripts/checks/demo_field_task_differentiation_check.gd"
+if (-not (Test-Path -LiteralPath $demoFieldTaskDifferentiationCheckScript -PathType Leaf)) {
+    Write-Error "Demo field task differentiation check script not found: ${demoFieldTaskDifferentiationCheckScript}"
+    exit 1
+}
 
 $godotRunId = "vertical-slice-flow-{0}-{1}" -f $PID, [DateTime]::UtcNow.ToString("yyyyMMddHHmmssfff")
 $godotHome = Join-Path (Join-Path $RepoRoot ".godot-check-runs") $godotRunId
@@ -519,8 +524,15 @@ try {
         exit $LASTEXITCODE
     }
 
+    $fieldTaskDifferentiationOutput = & $GodotExe --headless --path $clientRoot --script $demoFieldTaskDifferentiationCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $fieldTaskDifferentiationOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo field task differentiation check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $unexpectedErrors = @(
-        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoMidfieldRoutePlayabilityOutput + $demoWindCorridorTransitionPlayabilityOutput + $demoCoreApproachHandoffPlayabilityOutput + $demoDevicePanelOperationReadabilityOutput + $demoFieldLoopPayoffOutput + $demoRouteReturnAndBaseReentryOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $demoInteractionPromptSurfaceDecompositionOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput + $prototypeVisualPassOutput + $quickSlotSupplyReadabilityOutput + $supplyPressurePacingOutput + $combatReadabilityOutput + $coreScenePlayableSpaceOutput + $industrialModuleTaskRhythmOutput + $initialArtIdentityOutput |
+        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoMidfieldRoutePlayabilityOutput + $demoWindCorridorTransitionPlayabilityOutput + $demoCoreApproachHandoffPlayabilityOutput + $demoDevicePanelOperationReadabilityOutput + $demoFieldLoopPayoffOutput + $demoRouteReturnAndBaseReentryOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $demoInteractionPromptSurfaceDecompositionOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput + $prototypeVisualPassOutput + $quickSlotSupplyReadabilityOutput + $supplyPressurePacingOutput + $combatReadabilityOutput + $coreScenePlayableSpaceOutput + $industrialModuleTaskRhythmOutput + $initialArtIdentityOutput + $fieldTaskDifferentiationOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {
