@@ -266,6 +266,11 @@ static func format_result_followup_line(
 		_world_state,
 		fallback_region_id
 	)
+	var core_approach_followup := DemoCoreApproachHandoffFormatter.format_result_followup_line(
+		definition_id,
+		_world_state,
+		fallback_region_id
+	)
 	if info.is_empty():
 		var detached_followups: Array[String] = []
 		if not density_followup.is_empty():
@@ -276,6 +281,8 @@ static func format_result_followup_line(
 			detached_followups.append(midfield_followup)
 		if not wind_followup.is_empty():
 			detached_followups.append(wind_followup)
+		if not core_approach_followup.is_empty():
+			detached_followups.append(core_approach_followup)
 		return "；".join(detached_followups)
 	var followup := "现场阶段：%s已完成；%s；回基地：%s" % [
 		String(info.get("title", "")),
@@ -291,6 +298,8 @@ static func format_result_followup_line(
 		followup_parts.append(midfield_followup)
 	if not wind_followup.is_empty():
 		followup_parts.append(wind_followup)
+	if not core_approach_followup.is_empty():
+		followup_parts.append(core_approach_followup)
 	return "；".join(followup_parts)
 
 

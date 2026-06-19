@@ -127,6 +127,7 @@ func format_demo_route_hint(
 	)
 	var midfield_route_hint := DemoMidfieldRoutePlayabilityFormatter.format_map_route_hint(hint_region_id)
 	var wind_transition_hint := DemoWindCorridorTransitionPlayabilityFormatter.format_map_route_hint(hint_region_id)
+	var core_approach_hint := DemoCoreApproachHandoffFormatter.format_map_route_hint(hint_region_id)
 	var composition_hint := PlayableSceneCompositionFormatter.format_map_route_hint(hint_region_id)
 	var recovery_hint := DemoCombatEvacuationRecoveryFormatter.format_map_route_hint(
 		world_state,
@@ -154,6 +155,8 @@ func format_demo_route_hint(
 		hint_parts.append(midfield_route_hint)
 	if not wind_transition_hint.is_empty():
 		hint_parts.append(wind_transition_hint)
+	if not core_approach_hint.is_empty():
+		hint_parts.append(core_approach_hint)
 	if not composition_hint.is_empty():
 		hint_parts.append(composition_hint)
 	return " · ".join(hint_parts)

@@ -194,6 +194,9 @@ func format_general_interaction_prompt(
 	)
 	if not wind_transition_line.is_empty():
 		parts.append(wind_transition_line)
+	var core_approach_line := DemoCoreApproachHandoffFormatter.format_object_handoff_line(interactable.definition_id, object_state, world_state.current_region_id)
+	if not core_approach_line.is_empty():
+		parts.append(core_approach_line)
 	var affordance_line := DemoInteractionAffordanceFormatter.format_general_affordance_line(
 		interactable,
 		object_state,
@@ -430,10 +433,8 @@ func format_clear_prompt(
 			"侧路：%s" % _get_display_name(interactable.definition_id),
 			"状态：未清理，边缕残条回收线不稳定。",
 			"后续：任选一条侧路清理，再回收两处边缕残条。",
-			DemoWindCorridorTransitionPlayabilityFormatter.format_static_object_route_line(
-				interactable.definition_id,
-				world_state.current_region_id
-			),
+			DemoWindCorridorTransitionPlayabilityFormatter.format_static_object_route_line(interactable.definition_id, world_state.current_region_id),
+			DemoCoreApproachHandoffFormatter.format_static_object_handoff_line(interactable.definition_id, world_state.current_region_id),
 			"工具：%s" % frame_tool_status
 		]
 		if frame_tool_status == "可清理":
@@ -447,6 +448,7 @@ func format_clear_prompt(
 			"压力钉：%s" % _get_display_name(interactable.definition_id),
 			"状态：未清理，稳场守脉体还没有完全暴露。",
 			"后续：清掉两处压力钉，再压制稳场守脉体。",
+			DemoCoreApproachHandoffFormatter.format_static_object_handoff_line(interactable.definition_id, world_state.current_region_id),
 			"工具：%s" % pin_tool_status
 		]
 		if pin_tool_status == "可清理":
@@ -602,6 +604,9 @@ func format_field_reading_prompt(interactable: PrototypeInteractable, world_stat
 	)
 	if not wind_transition_line.is_empty():
 		parts.append(wind_transition_line)
+	var core_approach_line := DemoCoreApproachHandoffFormatter.format_object_handoff_line(interactable.definition_id, object_state, world_state.current_region_id)
+	if not core_approach_line.is_empty():
+		parts.append(core_approach_line)
 	return "\n".join(parts)
 
 
@@ -612,20 +617,24 @@ func format_stability_calibration_prompt(
 ) -> String:
 	var runtime := PhaseWellFrontierRuntime.new(data_registry)
 	var title := _get_display_name(interactable.definition_id)
+	var prompt := ""
 	if runtime.is_stability_node_calibrated(world_state, interactable.instance_id, interactable.definition_id):
 		if world_state.quest_state.has_completed_quest("quest.calibrate_phase_well_stability_window"):
-			return "%s：已校准；三处稳窗节点已按序写入，回基地在前线行动台确认稳窗回访。" % title
-		return "%s：已校准；继续检查剩余稳窗节点。" % title
-	if not world_state.quest_state.has_completed_quest("quest.analyze_phase_well_echo_shard"):
-		return "%s：缺少稳窗读数；先回基地解析稳窗余响片。" % title
-	if not character_state.inventory.has_ref("item.phase_well_stability_readout", 1):
-		return "%s：缺少稳窗读数；确认余响片解析产物已放入背包，再返回锚定桥东侧。" % title
-	if not runtime.is_stability_calibration_ready(world_state, interactable.definition_id):
-		return "%s：相位序未对齐；先按西侧、中央、东侧顺序写入稳窗读数。" % title
-	var next_step := "完成后继续按西侧、中央、东侧顺序检查下一处节点。"
-	if interactable.definition_id == "map_object.phase_well_stability_node_east":
-		next_step = "完成后回基地，在前线行动台确认稳窗回访；本趟只派发稳窗回波探点。"
-	return "按 E 校准：%s\n顺序：西侧、中央、东侧。\n后续：%s" % [title, next_step]
+			prompt = "%s：已校准；三处稳窗节点已按序写入，回基地在前线行动台确认稳窗回访。" % title
+		else:
+			prompt = "%s：已校准；继续检查剩余稳窗节点。" % title
+	elif not world_state.quest_state.has_completed_quest("quest.analyze_phase_well_echo_shard"):
+		prompt = "%s：缺少稳窗读数；先回基地解析稳窗余响片。" % title
+	elif not character_state.inventory.has_ref("item.phase_well_stability_readout", 1):
+		prompt = "%s：缺少稳窗读数；确认余响片解析产物已放入背包，再返回锚定桥东侧。" % title
+	elif not runtime.is_stability_calibration_ready(world_state, interactable.definition_id):
+		prompt = "%s：相位序未对齐；先按西侧、中央、东侧顺序写入稳窗读数。" % title
+	else:
+		var next_step := "完成后继续按西侧、中央、东侧顺序检查下一处节点。"
+		if interactable.definition_id == "map_object.phase_well_stability_node_east":
+			next_step = "完成后回基地，在前线行动台确认稳窗回访；本趟只派发稳窗回波探点。"
+		prompt = "按 E 校准：%s\n顺序：西侧、中央、东侧。\n后续：%s" % [title, next_step]
+	return _append_affordance_line(prompt, DemoCoreApproachHandoffFormatter.format_static_object_handoff_line(interactable.definition_id, world_state.current_region_id))
 
 
 func format_outpost_core_prompt(world_state: WorldState, character_state: CharacterState) -> String:
@@ -1014,6 +1023,9 @@ func _with_functional_transition_line(prompt: String, definition_id: String, fal
 	)
 	if not wind_transition_line.is_empty():
 		parts.append(wind_transition_line)
+	var core_approach_line := DemoCoreApproachHandoffFormatter.format_static_object_handoff_line(definition_id, fallback_region_id)
+	if not core_approach_line.is_empty():
+		parts.append(core_approach_line)
 	return "\n".join(parts)
 
 

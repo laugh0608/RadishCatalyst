@@ -94,6 +94,13 @@ $checks = @(
         }
     },
     @{
+        Name = "client demo core approach handoff playability"
+        Script = "check-client-demo-core-approach-handoff-playability.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client demo field loop payoff"
         Script = "check-client-demo-field-loop-payoff.ps1"
         Parameters = @{

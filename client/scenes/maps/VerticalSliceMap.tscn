@@ -613,6 +613,43 @@ offset_right = 2662.0
 offset_bottom = 38.0
 color = Color(0.28, 0.62, 0.44, 0.44)
 
+[node name="CoreApproachHandoffLayer" type="Node2D" parent="."]
+
+[node name="FrameExitHandoff" type="ColorRect" parent="CoreApproachHandoffLayer"]
+offset_left = 2660.0
+offset_top = -118.0
+offset_right = 2868.0
+offset_bottom = 104.0
+color = Color(0.48, 0.38, 0.66, 0.44)
+
+[node name="TetherBridgeHandoff" type="ColorRect" parent="CoreApproachHandoffLayer"]
+offset_left = 2902.0
+offset_top = -142.0
+offset_right = 3238.0
+offset_bottom = 142.0
+color = Color(0.36, 0.56, 0.64, 0.42)
+
+[node name="AnchorFieldHandoff" type="ColorRect" parent="CoreApproachHandoffLayer"]
+offset_left = 3294.0
+offset_top = -154.0
+offset_right = 3538.0
+offset_bottom = 112.0
+color = Color(0.32, 0.62, 0.52, 0.44)
+
+[node name="CoreEntryThreshold" type="ColorRect" parent="CoreApproachHandoffLayer"]
+offset_left = 3642.0
+offset_top = -78.0
+offset_right = 3748.0
+offset_bottom = 84.0
+color = Color(0.6, 0.52, 0.3, 0.42)
+
+[node name="CoreDeviceHandoff" type="ColorRect" parent="CoreApproachHandoffLayer"]
+offset_left = 3988.0
+offset_top = -86.0
+offset_right = 4088.0
+offset_bottom = 42.0
+color = Color(0.58, 0.66, 0.36, 0.44)
+
 [node name="BaseDirectionLabel" type="Label" parent="."]
 offset_left = -342.0
 offset_top = 166.0

@@ -345,6 +345,7 @@ func _format_base_summary_lines(
 	)
 	var midfield_route_summary := DemoMidfieldRoutePlayabilityFormatter.format_hud_summary(world_state, character_state)
 	var wind_transition_summary := DemoWindCorridorTransitionPlayabilityFormatter.format_hud_summary(world_state, character_state)
+	var core_approach_summary := DemoCoreApproachHandoffFormatter.format_hud_summary(world_state, character_state)
 	if not functional_scene_gameplay_summary.is_empty():
 		var combined_gameplay_summary := functional_scene_gameplay_summary
 		if not gameplay_density_summary.is_empty():
@@ -355,6 +356,8 @@ func _format_base_summary_lines(
 			combined_gameplay_summary += midfield_route_summary
 		if not wind_transition_summary.is_empty():
 			combined_gameplay_summary += wind_transition_summary
+		if not core_approach_summary.is_empty():
+			combined_gameplay_summary += core_approach_summary
 		return combined_gameplay_summary
 	if not gameplay_density_summary.is_empty():
 		return gameplay_density_summary
@@ -366,6 +369,8 @@ func _format_base_summary_lines(
 			return transition_summary + midfield_route_summary
 		if not wind_transition_summary.is_empty():
 			return transition_summary + wind_transition_summary
+		if not core_approach_summary.is_empty():
+			return transition_summary + core_approach_summary
 		return transition_summary
 	if not spatial_playability_summary.is_empty():
 		return spatial_playability_summary
@@ -373,6 +378,8 @@ func _format_base_summary_lines(
 		return midfield_route_summary
 	if not wind_transition_summary.is_empty():
 		return wind_transition_summary
+	if not core_approach_summary.is_empty():
+		return core_approach_summary
 
 	return ["设备：待命；当前目标先外出推进"]
 

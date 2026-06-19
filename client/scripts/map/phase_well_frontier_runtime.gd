@@ -214,12 +214,22 @@ func inspect_anchor_field(character_state: CharacterState, world_state: WorldSta
 			return {
 				"success": true,
 				"advance_interaction": false,
-				"message": "锚场回稳窗已按稳窗读数校准：局部稳定窗口会在前线回充生命与防护。%s" % readout_recovery_message
+				"message": _with_core_approach_followup(
+					"锚场回稳窗已按稳窗读数校准：局部稳定窗口会在前线回充生命与防护。%s" % readout_recovery_message,
+					ANCHOR_FIELD_MAP_OBJECT_ID,
+					world_state,
+					ANCHOR_FIELD_REGION_ID
+				)
 			}
 		return {
 			"success": true,
 			"advance_interaction": false,
-			"message": "锚场回稳窗已稳定：锚定桥东侧的局部稳定窗口仍在维持；回基地解析稳窗余响片后，可把这里校准成前线回稳点。"
+			"message": _with_core_approach_followup(
+				"锚场回稳窗已稳定：锚定桥东侧的局部稳定窗口仍在维持；回基地解析稳窗余响片后，可把这里校准成前线回稳点。",
+				ANCHOR_FIELD_MAP_OBJECT_ID,
+				world_state,
+				ANCHOR_FIELD_REGION_ID
+			)
 		}
 
 	if (
@@ -249,7 +259,12 @@ func inspect_anchor_field(character_state: CharacterState, world_state: WorldSta
 		return {
 			"success": true,
 			"advance_interaction": false,
-			"message": "稳场校锚桩已部署：锚场回稳开始重写锚定桥东侧读数，先清掉两处压力钉，稳场守脉体才会完全暴露。校锚桩会保留在现场，失败后可直接重试，不必回基地重做。"
+			"message": _with_core_approach_followup(
+				"稳场校锚桩已部署：锚场回稳开始重写锚定桥东侧读数，先清掉两处压力钉，稳场守脉体才会完全暴露。校锚桩会保留在现场，失败后可直接重试，不必回基地重做。",
+				ANCHOR_FIELD_MAP_OBJECT_ID,
+				world_state,
+				ANCHOR_FIELD_REGION_ID
+			)
 		}
 
 	if not is_anchor_field_pressure_cleared(world_state):
@@ -279,7 +294,12 @@ func inspect_anchor_field(character_state: CharacterState, world_state: WorldSta
 	return {
 		"success": true,
 		"advance_interaction": true,
-		"message": "锚场回稳完成：锚定桥东侧留下了可持续的局部稳定窗口，第一份稳窗余响片已被收束带回基地。%s" % recovery_message
+		"message": _with_core_approach_followup(
+			"锚场回稳完成：锚定桥东侧留下了可持续的局部稳定窗口，第一份稳窗余响片已被收束带回基地。%s" % recovery_message,
+			ANCHOR_FIELD_MAP_OBJECT_ID,
+			world_state,
+			ANCHOR_FIELD_REGION_ID
+		)
 	}
 
 
@@ -318,7 +338,12 @@ func inspect_stability_calibration_node(
 		return {
 			"success": true,
 			"advance_interaction": false,
-			"message": "%s 已完成校准；继续检查剩余稳窗校准点。" % _get_stability_node_label(node_index)
+			"message": _with_core_approach_followup(
+				"%s 已完成校准；继续检查剩余稳窗校准点。" % _get_stability_node_label(node_index),
+				definition_id,
+				world_state,
+				ANCHOR_FIELD_REGION_ID
+			)
 		}
 
 	if not _are_previous_stability_nodes_calibrated(world_state, node_index):
@@ -333,12 +358,22 @@ func inspect_stability_calibration_node(
 		return {
 			"success": true,
 			"advance_interaction": true,
-			"message": "%s 已写入稳窗读数；继续按现场相位序校准下一处节点。" % _get_stability_node_label(node_index)
+			"message": _with_core_approach_followup(
+				"%s 已写入稳窗读数；继续按现场相位序校准下一处节点。" % _get_stability_node_label(node_index),
+				definition_id,
+				world_state,
+				ANCHOR_FIELD_REGION_ID
+			)
 		}
 	return {
 		"success": true,
 		"advance_interaction": true,
-		"message": "三处稳窗校准点已按顺序写入：锚场回稳窗不再只是回充点；回基地在前线行动台确认稳窗回访，本趟只派发稳窗回波探点。"
+		"message": _with_core_approach_followup(
+			"三处稳窗校准点已按顺序写入：锚场回稳窗不再只是回充点；回基地在前线行动台确认稳窗回访，本趟只派发稳窗回波探点。",
+			definition_id,
+			world_state,
+			ANCHOR_FIELD_REGION_ID
+		)
 	}
 
 
@@ -525,7 +560,33 @@ func _failure(message: String, title: String, detail: String) -> Dictionary:
 
 
 func _with_density_followup(message: String, definition_id: String, world_state: WorldState, fallback_region_id: String) -> String:
-	var followup := DemoFunctionalSceneGameplayDensityFormatter.format_result_followup_line(
+	var followups: Array[String] = []
+	var density_followup := DemoFunctionalSceneGameplayDensityFormatter.format_result_followup_line(
+		definition_id,
+		world_state,
+		fallback_region_id
+	)
+	if not density_followup.is_empty():
+		followups.append(density_followup)
+	var core_approach_followup := DemoCoreApproachHandoffFormatter.format_result_followup_line(
+		definition_id,
+		world_state,
+		fallback_region_id
+	)
+	if not core_approach_followup.is_empty():
+		followups.append(core_approach_followup)
+	if followups.is_empty():
+		return message
+	return "%s %s" % [message, "；".join(followups)]
+
+
+func _with_core_approach_followup(
+	message: String,
+	definition_id: String,
+	world_state: WorldState,
+	fallback_region_id: String
+) -> String:
+	var followup := DemoCoreApproachHandoffFormatter.format_result_followup_line(
 		definition_id,
 		world_state,
 		fallback_region_id
