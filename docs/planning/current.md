@@ -7,6 +7,7 @@
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题和最近完成细专题为准：
 
 - 当前活跃专题：[Demo Playable Content Substance V1](../features/demo-playable-content-substance-v1.md)，覆盖首版 Demo 场景、角色 / 怪物 UI、初步美术、工业基建和任务节奏的玩家可见实质补强。
+- 明日建议细专题：[Demo Scene Device Pressure Staging V1](../features/demo-scene-device-pressure-staging-v1.md)，覆盖场景设备、危险边界、对象尺寸和任务现场编排。
 - 最近完成：[Demo Field Task Differentiation V1](../features/demo-field-task-differentiation-v1.md)、[Demo Initial Art Identity V1](../features/demo-initial-art-identity-v1.md)、[Demo Industrial Module Task Rhythm V1](../features/demo-industrial-module-task-rhythm-v1.md)、[Demo Core Scene Playable Space V1](../features/demo-core-scene-playable-space-v1.md)
 - 更早完成专题按 [Feature Development Docs](../features/README.md) 索引选读。
 
@@ -45,7 +46,7 @@
 
 当前活跃专题是 [Demo Playable Content Substance V1](../features/demo-playable-content-substance-v1.md)。它承接已完成的第一包建设，回到 [Demo Definition V1](../features/demo-definition-v1.md) 中尚未被真实体验证明的场景、角色 / 怪物 UI、初步美术、工业基建、资源 / 生产链、战斗压力和任务节奏。
 
-角色成长与战斗第一版只证明了第一轮能力和压力点存在；角色 / 怪物 UI、核心场景空间、工业模块职责与任务节奏、初步美术识别和资源处理与外勤任务差异第一包已补战斗现场、核心空间、设备职责、现场身份和资源处理去向，后续仍必须落到玩家可见实现。
+角色成长与战斗第一版只证明了第一轮能力和压力点存在；角色 / 怪物 UI、核心场景空间、工业模块职责与任务节奏、初步美术识别和资源处理与外勤任务差异第一包已补战斗现场、核心空间、设备职责、现场身份和资源处理去向，明日优先把这些结果推进到场景设备、危险边界、对象尺寸和任务现场编排。
 
 体验主干建设尚未达到试玩准备判断标准；真实页面 smoke、自动检查和人工实机复测只能提供证据，不能替代场景、美术、设备、任务和战斗 UI 的实质开发。
 
