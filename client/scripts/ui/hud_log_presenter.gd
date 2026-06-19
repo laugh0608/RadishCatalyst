@@ -31,6 +31,7 @@ func format_success_result_log(result: Dictionary) -> String:
 	_append_log_detail(details, "去向", _compact_destination(String(feedback.get("destination", ""))))
 	var industrial_line := _compact_next_step(String(feedback.get("industrial_spine", "")))
 	_append_log_detail(details, "工艺", industrial_line)
+	_append_log_detail(details, "设备", _compact_device_operation(String(feedback.get("device_operation", ""))))
 	if bool(feedback.get("show_resource_chain", false)):
 		_append_log_detail(details, "资源链", _compact_next_step(String(feedback.get("resource_chain", ""))))
 	_append_log_detail(details, "再进入", _compact_next_step(String(feedback.get("base_reentry", ""))))
@@ -143,6 +144,19 @@ func _compact_next_step(text: String) -> String:
 		compact = compact.substr(0, sentence_index)
 	compact = compact.replace("按 Q 打开设备面板", "Q 设备面板")
 	return _shorten_text(compact, 36)
+
+
+func _compact_device_operation(text: String) -> String:
+	var compact := text.strip_edges().trim_suffix("。")
+	if compact.is_empty():
+		return ""
+	compact = compact.replace("设备操作完成：", "")
+	compact = compact.replace("设备操作：", "")
+	compact = compact.replace(
+		"核心稳压缓冲包完成后回核心稳定站按入口确认、侧边补给、阶段守卫、回写缓存继续",
+		"核心缓冲包完成后回核心站：入口确认、侧边补给、阶段守卫、回写缓存"
+	)
+	return _shorten_text(compact, 44)
 
 
 func _shorten_text(text: String, max_length: int) -> String:

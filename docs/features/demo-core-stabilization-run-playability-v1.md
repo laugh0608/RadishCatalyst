@@ -72,7 +72,7 @@
 
 ## 第一包完成状态
 
-- 2026-06-19 第一包已落地：新增核心稳定站内路径 formatter、`CoreStabilizationRunLayer`、静态检查和 Godot runtime 检查，并接入 HUD、地图、对象提示、缓存 / 守卫 / 核心写入结果。
+- 2026-06-19 第一包已落地并通过退出判断：新增核心稳定站内路径 formatter、`CoreStabilizationRunLayer`、静态检查和 Godot runtime 检查，并接入 HUD、地图、对象提示、缓存 / 守卫 / 核心写入结果。
 
 ## 验收条件
 

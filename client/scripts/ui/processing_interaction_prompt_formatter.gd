@@ -57,6 +57,15 @@ func format_processing_prompt(
 	)
 	if not base_reentry_line.is_empty():
 		io_line = "%s；%s" % [io_line, base_reentry_line]
+	var operation_line := DemoDevicePanelOperationFormatter.format_processing_prompt_line(
+		interactable.definition_id,
+		displayed_recipe_id,
+		status,
+		world_state,
+		character_state
+	)
+	if not operation_line.is_empty():
+		io_line = "%s；%s" % [io_line, operation_line]
 	parts.append(io_line)
 
 	var status_line := "状态：%s" % String(status.get("message", ""))
@@ -106,6 +115,14 @@ func format_processing_log(recipe_id: String, character_state: CharacterState, w
 	)
 	if not industrial_chain_line.is_empty():
 		parts.append(industrial_chain_line)
+	var operation_line := DemoDevicePanelOperationFormatter.format_processing_log_line(
+		displayed_recipe_id,
+		status,
+		world_state,
+		character_state
+	)
+	if not operation_line.is_empty():
+		parts.append(operation_line)
 	return "；".join(parts)
 
 

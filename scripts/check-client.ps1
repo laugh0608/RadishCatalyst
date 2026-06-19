@@ -108,6 +108,13 @@ $checks = @(
         }
     },
     @{
+        Name = "client demo device panel operation readability"
+        Script = "check-client-demo-device-panel-operation-readability.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client demo field loop payoff"
         Script = "check-client-demo-field-loop-payoff.ps1"
         Parameters = @{

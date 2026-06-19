@@ -132,6 +132,7 @@ echo "Coverage: static data and scene references."
 "${python_exe}" "${repo_root}/scripts/check-client-demo-wind-corridor-transition-playability.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-core-approach-handoff-playability.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-core-stabilization-run-playability.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-device-panel-operation-readability.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-field-loop-payoff.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-route-return-and-base-reentry.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-endpoint-readiness.py" "${repo_root}"
@@ -191,6 +192,7 @@ run_godot_checked "demo-midfield-route-playability" --script "${client_root}/scr
 run_godot_checked "demo-wind-corridor-transition-playability" --script "${client_root}/scripts/checks/demo_wind_corridor_transition_playability_check.gd" --no-header
 run_godot_checked "demo-core-approach-handoff-playability" --script "${client_root}/scripts/checks/demo_core_approach_handoff_playability_check.gd" --no-header
 run_godot_checked "demo-core-stabilization-run-playability" --script "${client_root}/scripts/checks/demo_core_stabilization_run_playability_check.gd" --no-header
+run_godot_checked "demo-device-panel-operation-readability" --script "${client_root}/scripts/checks/demo_device_panel_operation_readability_check.gd" --no-header
 run_godot_checked "demo-field-loop-payoff" --script "${client_root}/scripts/checks/demo_field_loop_payoff_check.gd" --no-header
 run_godot_checked "demo-route-return-and-base-reentry" --script "${client_root}/scripts/checks/demo_route_return_and_base_reentry_check.gd" --no-header
 run_godot_checked "demo-endpoint-readiness" --script "${client_root}/scripts/checks/demo_endpoint_readiness_check.gd" --no-header

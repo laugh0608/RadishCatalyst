@@ -52,7 +52,8 @@
 | 存档 / 状态 | `docs/features/demo-save-state-contract-v1.md` | 已落地第一包 |
 | 主路径连续性 / 自动检查 | `docs/features/demo-main-path-continuity-v1.md` | 已落地第一包 |
 | 自动检查 / 工程承载面 | `docs/features/demo-runtime-surface-decomposition-v1.md`、`docs/features/demo-interaction-prompt-surface-decomposition-v1.md`、`docs/features/demo-map-surface-decomposition-v1.md` | 地图承载面已通过退出判断 |
-| 功能场景玩法 | `docs/features/demo-functional-scene-gameplay-v1.md`、`docs/features/demo-functional-scene-gameplay-density-v1.md`、`docs/features/demo-functional-transition-spatial-playability-v1.md`、`docs/features/demo-midfield-route-playability-v1.md`、`docs/features/demo-wind-corridor-transition-playability-v1.md`、`docs/features/demo-core-approach-handoff-playability-v1.md`、`docs/features/demo-core-stabilization-run-playability-v1.md` | 核心稳定站内路径当前活跃 |
+| 功能场景玩法 | `docs/features/demo-functional-scene-gameplay-v1.md`、`docs/features/demo-functional-scene-gameplay-density-v1.md`、`docs/features/demo-functional-transition-spatial-playability-v1.md`、`docs/features/demo-midfield-route-playability-v1.md`、`docs/features/demo-wind-corridor-transition-playability-v1.md`、`docs/features/demo-core-approach-handoff-playability-v1.md`、`docs/features/demo-core-stabilization-run-playability-v1.md` | 核心稳定站内路径已落地第一包 |
+| UI / HUD 设备面板 | `docs/features/demo-device-panel-operation-readability-v1.md` | 当前活跃，覆盖既有设备操作读法 |
 | 外勤回基地收益兑现 | `docs/features/demo-field-loop-payoff-v1.md` | 已落地第一包 |
 | 终点前综合准备读法 | `docs/features/demo-endpoint-readiness-v1.md` | 已落地第一包 |
 | Demo 完成成果整理 | `docs/features/demo-completion-outcome-readout-v1.md` | 已落地第一包 |
@@ -93,11 +94,11 @@
 
 ## 当前优先级
 
-当前继续推进首版 Demo 体验主干；`Demo Wind Corridor Transition Playability V1` 已通过退出判断，下一步切到 `Demo Core Approach Handoff Playability V1`：
+当前继续推进首版 Demo 体验主干；`Demo Core Stabilization Run Playability V1` 第一包已落地，下一步切到 `Demo Device Panel Operation Readability V1`：
 
 1. 原型视觉呈现已覆盖现有 12 区层级、核心区场地尺度、首小时目标链场景导引和专项检查。
 2. 快捷补给读法已覆盖现有修复凝胶 / 抗污染药剂在 HUD 快捷栏、补给反馈和失败恢复路线中的可读性。
 3. 补给节奏与承压价值已验证既有补给在制作、消耗、补回和关键压力节点中的真实价值。
-4. 功能 / 过渡场景玩法密度、可达空间、中段路线、风蚀过渡、基地再进入读法、交互提示承载面、地图承载面和核心入口承接均已通过退出判断；当前推进核心稳定站内入口确认 -> 侧边补给 -> 稳压缓冲包 -> 阶段守卫 -> 回写缓存 -> 核心写入的实际操作顺序。
+4. 功能 / 过渡场景玩法密度、可达空间、中段路线、风蚀过渡、基地再进入读法、交互提示承载面、地图承载面、核心入口承接和核心稳定站内路径均已完成第一包；当前推进前哨核心、基础反应器、污染过滤器和出发整备台的设备面板操作读法。
 
 在首版 Demo 满足本文必达规格前，不切到试玩准备或集中修 bug 阶段。

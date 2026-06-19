@@ -26,7 +26,8 @@
 ## 当前与最近专题
 
 - [Demo Definition V1](demo-definition-v1.md)：首版 Demo 完成规格表，后续专题必须映射到其中的未完成规格项。
-- [Demo Core Stabilization Run Playability V1](demo-core-stabilization-run-playability-v1.md)：当前活跃细专题，覆盖核心稳定站内入口确认、侧边补给、稳压缓冲包、阶段守卫、回写缓存和核心写入的实际操作顺序。
+- [Demo Device Panel Operation Readability V1](demo-device-panel-operation-readability-v1.md)：当前活跃细专题，覆盖前哨核心、基础反应器、污染过滤器和出发整备台的操作意图、缺料方向、产出去向和完成后路线。
+- [Demo Core Stabilization Run Playability V1](demo-core-stabilization-run-playability-v1.md)：最近完成细专题，覆盖核心稳定站内入口确认、侧边补给、稳压缓冲包、阶段守卫、回写缓存和核心写入的实际操作顺序。
 - [Demo Core Approach Handoff Playability V1](demo-core-approach-handoff-playability-v1.md)：最近完成细专题，覆盖锁相框架 -> 锚定桥 -> 核心稳定站入口的终点前承接、对象落点、回基地理由和自动检查。
 - [Demo Wind Corridor Transition Playability V1](demo-wind-corridor-transition-playability-v1.md)：最近完成细专题，覆盖碎晶沟谷 -> 风蚀管廊 -> 锁相框架入口的过渡路径、资源 / 设施落点、回基地理由和自动检查。
 - [Demo Midfield Route Playability V1](demo-midfield-route-playability-v1.md)：最近完成细专题，覆盖回声台地 -> 盐壳浅滩 -> 碎晶沟谷的入口边界、资源 / 设施落点、回基地理由和自动检查。

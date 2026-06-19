@@ -376,6 +376,7 @@ func _format_processing_started_feedback(recipe: Dictionary, world_state: WorldS
 		"next_step": _get_processing_wait_next_step(),
 		"completion_next_step": _get_completion_next_step(recipe_id, world_state),
 		"industrial_spine": IndustrialTechSpineFormatter.format_result_feedback_line(recipe_id, world_state),
+		"device_operation": DemoDevicePanelOperationFormatter.format_result_feedback_line(recipe_id, world_state),
 		"resource_chain": DemoResourceChainStateFormatter.format_result_feedback_line(recipe_id),
 		"base_reentry": DemoRouteReturnAndBaseReentryFormatter.format_result_feedback_line(recipe_id, world_state),
 		"show_resource_chain": _should_show_resource_chain_result_line(recipe_id)
@@ -402,6 +403,7 @@ func _format_processing_completion_feedback(recipe: Dictionary, world_state: Wor
 		"destination": _format_completion_destination(recipe),
 		"next_step": _get_completion_next_step(recipe_id, world_state),
 		"industrial_spine": IndustrialTechSpineFormatter.format_result_feedback_line(recipe_id, world_state),
+		"device_operation": DemoDevicePanelOperationFormatter.format_result_feedback_line(recipe_id, world_state),
 		"resource_chain": DemoResourceChainStateFormatter.format_result_feedback_line(recipe_id),
 		"base_reentry": DemoRouteReturnAndBaseReentryFormatter.format_result_feedback_line(recipe_id, world_state),
 		"show_resource_chain": _should_show_resource_chain_result_line(recipe_id)

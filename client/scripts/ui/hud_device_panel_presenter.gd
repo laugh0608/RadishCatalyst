@@ -71,6 +71,15 @@ func _format_device_status(
 	)
 	if not resource_chain_line.is_empty():
 		parts.append(resource_chain_line)
+	var operation_line := DemoDevicePanelOperationFormatter.format_device_status_line(
+		building_id,
+		recipe_id,
+		status,
+		world_state,
+		character_state
+	)
+	if not operation_line.is_empty():
+		parts.append(operation_line)
 	var base_reentry_line := DemoRouteReturnAndBaseReentryFormatter.format_device_status_line(
 		building_id,
 		recipe_id,

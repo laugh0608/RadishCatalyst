@@ -235,36 +235,17 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 		]
 
 	var parts: Array[String] = [DepartureReadinessFormatter.format_outfitting_station_prompt(world_state, character_state)]
-	var affordance_line := DemoInteractionAffordanceFormatter.format_outfitting_station_affordance_line(
-		world_state,
-		character_state
-	)
-	if not affordance_line.is_empty():
-		parts.append(affordance_line)
-	var recovery_line := DemoCombatEvacuationRecoveryFormatter.format_outfitting_station_recovery_line(
-		world_state,
-		character_state
-	)
-	if not recovery_line.is_empty():
-		parts.append(recovery_line)
-	var industrial_chain_line := IndustrialTechSpineFormatter.format_outfitting_station_prompt_line(
-		world_state,
-		character_state
-	)
-	if not industrial_chain_line.is_empty():
-		parts.append(industrial_chain_line)
-	var field_loop_line := DemoFieldLoopPayoffFormatter.format_outfitting_prompt_line(
-		world_state,
-		character_state
-	)
-	if not field_loop_line.is_empty():
-		parts.append(field_loop_line)
-	var tool_strike_line := FieldOutfittingRuntime.format_tool_strike_calibration_prompt_line(
-		world_state,
-		character_state
-	)
-	if not tool_strike_line.is_empty():
-		parts.append(tool_strike_line)
+	for line in [
+		DemoDevicePanelOperationFormatter.format_outfitting_station_panel_line(world_state, character_state),
+		DemoInteractionAffordanceFormatter.format_outfitting_station_affordance_line(world_state, character_state),
+		DemoCombatEvacuationRecoveryFormatter.format_outfitting_station_recovery_line(world_state, character_state),
+		IndustrialTechSpineFormatter.format_outfitting_station_prompt_line(world_state, character_state),
+		DemoFieldLoopPayoffFormatter.format_outfitting_prompt_line(world_state, character_state),
+		FieldOutfittingRuntime.format_tool_strike_calibration_prompt_line(world_state, character_state)
+	]:
+		var prompt_line := String(line)
+		if not prompt_line.is_empty():
+			parts.append(prompt_line)
 	if FieldOutfittingRuntime.has_filter_module_equipped(character_state):
 		var drain_mult := (
 			character_state.get_pollution_drain_multiplier(data_registry)
@@ -664,21 +645,15 @@ func format_outpost_core_prompt(world_state: WorldState, character_state: Charac
 	var parts: Array[String] = [
 		DepartureReadinessFormatter.format_outpost_core_prompt(world_state, character_state)
 	]
-	var affordance_line := DemoInteractionAffordanceFormatter.format_outpost_core_affordance_line(
-		world_state,
-		character_state
-	)
-	if not affordance_line.is_empty():
-		parts.append(affordance_line)
-	var completion_line := DemoMainlineCompletionFormatter.format_outpost_core_prompt_line(world_state, character_state)
-	if not completion_line.is_empty():
-		parts.append(completion_line)
-	var recovery_line := DemoCombatEvacuationRecoveryFormatter.format_outpost_core_recovery_line(
-		world_state,
-		character_state
-	)
-	if not recovery_line.is_empty():
-		parts.append(recovery_line)
+	for line in [
+		DemoDevicePanelOperationFormatter.format_outpost_core_panel_line(world_state, character_state),
+		DemoInteractionAffordanceFormatter.format_outpost_core_affordance_line(world_state, character_state),
+		DemoMainlineCompletionFormatter.format_outpost_core_prompt_line(world_state, character_state),
+		DemoCombatEvacuationRecoveryFormatter.format_outpost_core_recovery_line(world_state, character_state)
+	]:
+		var prompt_line := String(line)
+		if not prompt_line.is_empty():
+			parts.append(prompt_line)
 	parts.append(scene_line)
 	if not composition_line.is_empty():
 		parts.append(composition_line)
