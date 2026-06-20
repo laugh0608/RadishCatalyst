@@ -574,6 +574,8 @@ func _check_interactable_focus_labels() -> void:
 	map.update_current_interactable()
 	host._expect_equal(map.current_interactable, crystal, "first-hour nearest crystal becomes current interactable")
 	host._expect_equal(crystal.label.visible, true, "first-hour current crystal label is visible")
+	host._expect_equal(crystal.label.text.split("\n").size() <= 2, true, "first-hour current crystal label stays short")
+	host._expect_equal(crystal.label.offset_left > crystal.marker.position.x + crystal.marker.size.x, true, "first-hour current crystal label is placed beside the marker")
 	host._expect_equal(crystal.marker.scale, PrototypeInteractable.FOCUSED_MARKER_SCALE, "first-hour current crystal marker is enlarged")
 	host._expect_equal(crystal.focus_ring.visible, true, "first-hour current crystal shows focus ring")
 	host._expect_equal(crystal_east.label.visible, false, "first-hour nearby non-current crystal label remains hidden")
@@ -597,6 +599,8 @@ func _check_enemy_focus_labels() -> void:
 	map.player.position = enemy.position
 	map.update_current_interactable()
 	host._expect_equal(enemy.label.visible, true, "first-hour nearest attack target label is visible")
+	host._expect_equal(enemy.label.text.split("\n").size() <= 2, true, "first-hour nearest attack target label stays short")
+	host._expect_equal(enemy.label.offset_left > enemy.sprite.position.x + enemy.sprite.size.x, true, "first-hour nearest attack target label is placed beside the marker")
 	host._expect_equal(enemy.sprite.scale, PrototypeEnemy.FOCUSED_SPRITE_SCALE, "first-hour nearest attack target is enlarged")
 	host._expect_equal(enemy.focus_ring.visible, true, "first-hour nearest attack target shows focus ring")
 	host._expect_equal(patrol.label.visible, false, "first-hour non-current enemy label remains hidden")

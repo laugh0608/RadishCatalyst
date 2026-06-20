@@ -13,6 +13,9 @@ const BASIC_ENEMY_SIZE := Vector2(24.0, 24.0)
 const TREATMENT_ENEMY_SIZE := Vector2(28.0, 22.0)
 const POLLUTED_ENEMY_SIZE := Vector2(30.0, 26.0)
 const ELITE_ENEMY_SIZE := Vector2(36.0, 34.0)
+const ENEMY_LABEL_FONT_SIZE := 9
+const ENEMY_FOCUS_LABEL_WIDTH := 120.0
+const ENEMY_FOCUS_LABEL_LINE_HEIGHT := 13.0
 
 var health: float = 20.0
 var max_health: float = 20.0
@@ -105,6 +108,8 @@ func can_be_attacked() -> bool:
 func set_focus_visual(focused: bool) -> void:
 	if label != null:
 		label.visible = focused and visible and not defeated
+		if focused:
+			_layout_focus_label()
 	if focus_ring != null:
 		focus_ring.visible = focused and visible and not defeated
 		if sprite != null:
@@ -155,18 +160,11 @@ func mark_defeated() -> void:
 func _update_label() -> void:
 	_ensure_visual_nodes()
 	if label != null:
-		var threat_label := readability_threat_label
-		if threat_label.is_empty():
-			threat_label = "威胁未知"
-		var pressure_label := readability_pressure_label
-		if pressure_label.is_empty():
-			pressure_label = "承压未知"
-		label.text = "%s\nHP %.0f / %.0f\n%s · %s\n%s" % [
+		_style_label()
+		label.text = "%s\nHP %.0f/%.0f · %s" % [
 			display_name,
 			health,
 			max_health,
-			threat_label,
-			pressure_label,
 			get_combat_status_label()
 		]
 
@@ -243,3 +241,23 @@ func _apply_sprite_size(sprite_size: Vector2) -> void:
 	if focus_ring != null:
 		focus_ring.position = sprite.position - Vector2(7.0, 7.0)
 		focus_ring.size = sprite_size + Vector2(14.0, 14.0)
+
+
+func _style_label() -> void:
+	if label == null:
+		return
+	label.add_theme_font_size_override("font_size", ENEMY_LABEL_FONT_SIZE)
+	label.add_theme_color_override("font_color", Color(0.96, 0.9, 0.82, 0.78))
+	label.add_theme_color_override("font_shadow_color", Color(0.05, 0.02, 0.02, 0.58))
+	label.add_theme_constant_override("shadow_offset_x", 1)
+	label.add_theme_constant_override("shadow_offset_y", 1)
+
+
+func _layout_focus_label() -> void:
+	if label == null or sprite == null:
+		return
+	var line_count := maxi(label.text.split("\n").size(), 1)
+	label.offset_left = sprite.position.x + sprite.size.x + 8.0
+	label.offset_top = sprite.position.y - 2.0
+	label.offset_right = label.offset_left + ENEMY_FOCUS_LABEL_WIDTH
+	label.offset_bottom = label.offset_top + ENEMY_FOCUS_LABEL_LINE_HEIGHT * line_count

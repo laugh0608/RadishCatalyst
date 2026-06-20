@@ -83,9 +83,17 @@ func _check_current_objective_guidance_layer() -> void:
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "OutpostCore", "前哨核心", "startup outpost core target guidance")
 	_expect_equal(layer.get_node_or_null("CurrentObjectiveTargetLabel") != null, true, "current target label exists")
+	_expect_equal(layer.is_target_name_label_visible(), false, "near current target hides scene text label")
+	map.player.position = target.position + Vector2(-180.0, 0.0)
+	layer.refresh_guidance(world, character)
+	_expect_equal(layer.is_target_name_label_visible(), true, "distant current target can show a short scene label")
+	_expect_equal(layer.get_target_name_label_text(), "前哨核心", "distant current target label omits redundant prefix")
+	map.player.position = storage.position
 	storage.set_focus_visual(true)
 	layer.refresh_guidance(world, character)
 	_expect_equal(layer.is_off_target_hint_visible(), true, "focused non-target object shows current objective hint")
+	var off_target_label := layer.get_node("CurrentObjectiveOffTargetLabel") as Label
+	_expect_equal(off_target_label.text, "目标→", "off-target hint uses a short scene chip")
 
 	target.set_restored_outpost_core_visual()
 	world.quest_state.complete_quest("quest.restore_outpost")

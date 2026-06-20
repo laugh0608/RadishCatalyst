@@ -11,8 +11,9 @@ const TARGET_LABEL_NAME := "CurrentObjectiveTargetLabel"
 const OFF_TARGET_LABEL_NAME := "CurrentObjectiveOffTargetLabel"
 const TARGET_COLOR := Color(0.28, 0.96, 1.0, 0.38)
 const TARGET_PIN_COLOR := Color(0.82, 1.0, 0.95, 0.82)
-const ROUTE_COLOR := Color(0.38, 0.94, 0.96, 0.34)
-const GUIDANCE_LABEL_FONT_SIZE := 10
+const ROUTE_COLOR := Color(0.38, 0.94, 0.96, 0.24)
+const GUIDANCE_LABEL_FONT_SIZE := 9
+const TARGET_LABEL_MIN_DISTANCE := 116.0
 const OUTPOST_CORE_TARGET := {"path": "Interactables/OutpostCore", "label": "前哨核心"}
 const BASIC_STORAGE_TARGET := {"path": "Interactables/BasicStorageBuildSite", "label": "基础储存箱"}
 const BASIC_REACTOR_TARGET := {"path": "Interactables/BasicReactor", "label": "基础反应器"}
@@ -82,6 +83,18 @@ func is_off_target_hint_visible() -> bool:
 	return off_target_label != null and off_target_label.visible
 
 
+func is_target_name_label_visible() -> bool:
+	_ensure_visual_nodes()
+	return target_label != null and target_label.visible
+
+
+func get_target_name_label_text() -> String:
+	_ensure_visual_nodes()
+	if target_label == null:
+		return ""
+	return target_label.text
+
+
 func get_current_target_node() -> PrototypeInteractable:
 	return current_target
 
@@ -116,8 +129,8 @@ func _create_label(node_name: String, text: String) -> Label:
 	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", GUIDANCE_LABEL_FONT_SIZE)
-	label.add_theme_color_override("font_color", Color(0.88, 0.96, 0.94, 0.86))
-	label.add_theme_color_override("font_shadow_color", Color(0.02, 0.04, 0.045, 0.8))
+	label.add_theme_color_override("font_color", Color(0.88, 0.96, 0.94, 0.66))
+	label.add_theme_color_override("font_shadow_color", Color(0.02, 0.04, 0.045, 0.56))
 	label.add_theme_constant_override("shadow_offset_x", 1)
 	label.add_theme_constant_override("shadow_offset_y", 1)
 	label.visible = false
@@ -134,10 +147,11 @@ func _set_target_visuals_visible(visible: bool) -> void:
 
 
 func _position_target_visuals(target: PrototypeInteractable) -> void:
-	_set_rect(target_halo, target.position + Vector2(-34.0, -34.0), Vector2(68.0, 68.0))
-	_set_rect(target_pin, target.position + Vector2(-4.0, -48.0), Vector2(8.0, 20.0))
-	target_label.text = "目标：%s" % current_target_label_text
-	_set_label_rect(target_label, target.position + Vector2(-58.0, -70.0), Vector2(116.0, 18.0))
+	_set_rect(target_halo, target.position + Vector2(-30.0, -30.0), Vector2(60.0, 60.0))
+	_set_rect(target_pin, target.position + Vector2(-3.0, -44.0), Vector2(6.0, 16.0))
+	target_label.text = current_target_label_text
+	_set_label_rect(target_label, target.position + Vector2(18.0, -58.0), Vector2(92.0, 16.0))
+	target_label.visible = _should_show_target_name_label(target)
 
 
 func _position_route_visuals(target: PrototypeInteractable) -> void:
@@ -149,8 +163,8 @@ func _position_route_visuals(target: PrototypeInteractable) -> void:
 	var start := player.position
 	var end := target.position
 	var corner := Vector2(end.x, start.y)
-	_set_rect_between(route_horizontal, start, corner, 6.0)
-	_set_rect_between(route_vertical, corner, end, 6.0)
+	_set_rect_between(route_horizontal, start, corner, 4.0)
+	_set_rect_between(route_vertical, corner, end, 4.0)
 
 
 func _refresh_off_target_hint(target: PrototypeInteractable) -> void:
@@ -158,8 +172,8 @@ func _refresh_off_target_hint(target: PrototypeInteractable) -> void:
 	if focused == null:
 		off_target_label.visible = false
 		return
-	off_target_label.text = "→ %s" % current_target_label_text
-	_set_label_rect(off_target_label, focused.position + Vector2(-46.0, -48.0), Vector2(92.0, 18.0))
+	off_target_label.text = "目标→"
+	_set_label_rect(off_target_label, focused.position + Vector2(18.0, -34.0), Vector2(48.0, 16.0))
 	off_target_label.visible = true
 
 
@@ -318,6 +332,13 @@ func _is_target_active(target: PrototypeInteractable) -> bool:
 		if label != null and label.text.find("已恢复") >= 0:
 			return false
 	return true
+
+
+func _should_show_target_name_label(target: PrototypeInteractable) -> bool:
+	var player := _get_player()
+	if player == null:
+		return true
+	return player.position.distance_to(target.position) > TARGET_LABEL_MIN_DISTANCE
 
 
 func _is_interactable_focused(interactable: PrototypeInteractable) -> bool:
