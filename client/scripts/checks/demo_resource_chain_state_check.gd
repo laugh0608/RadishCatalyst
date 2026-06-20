@@ -30,6 +30,7 @@ func _run_checks() -> void:
 	_check_device_panel_resource_chain_state()
 	_check_processing_result_resource_chain()
 	_check_first_industrial_chain_hud_and_visual_state()
+	_check_crystal_resource_visual_layer()
 	_check_resource_chain_state_roundtrip()
 
 
@@ -120,6 +121,31 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	_expect_equal(layer.has_chain_shape("chain.reactor_work_window.ready"), true, "industrial visual layer marks reactor working")
 	_expect_equal(layer.has_chain_shape("chain.storage_repair_gel_slot.ready"), true, "industrial visual layer marks repair gel storage")
 	_expect_equal(layer.has_chain_shape("chain.outfitting_supply_state.ready"), true, "industrial visual layer marks outfitting supply ready")
+	map.free()
+
+
+func _check_crystal_resource_visual_layer() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	var layer := map.get_node_or_null("DemoCrystalResourceVisualLayer") as DemoCrystalResourceVisualLayer
+	_expect_equal(layer != null, true, "crystal resource visual layer exists")
+	if layer == null:
+		map.free()
+		return
+
+	layer.apply_visuals()
+	_expect_equal(layer.get_resource_shape_count() >= 9, true, "crystal visual layer registers resource shapes")
+	_expect_equal(layer.get_flow_count() >= 4, true, "crystal visual layer registers resource flow lines")
+	_expect_equal(layer.has_resource_shape("crystal.main_vein"), true, "crystal visual layer marks main vein")
+	_expect_equal(layer.has_resource_shape("crystal.rich_vein"), true, "crystal visual layer marks rich vein")
+	_expect_equal(layer.has_resource_shape("salvage.south_pocket"), true, "crystal visual layer marks salvage pocket")
+	_expect_equal(layer.has_flow_shape("flow.crystal_to_base"), true, "crystal visual layer marks return flow")
+	_expect_equal(layer.get_muted_resource_marker_count() >= 8, true, "crystal visual layer mutes old resource markers")
+
+	var legacy_track := map.get_node("OpeningSceneLayer/CrystalMainVeinTrack") as ColorRect
+	var legacy_pocket := map.get_node("OpeningSceneLayer/CrystalSalvageObjectPocket") as ColorRect
+	_expect_equal(legacy_track.color.a <= 0.055, true, "crystal visual layer de-emphasizes old vein block")
+	_expect_equal(legacy_pocket.color.a <= 0.055, true, "crystal visual layer de-emphasizes old salvage block")
 	map.free()
 
 

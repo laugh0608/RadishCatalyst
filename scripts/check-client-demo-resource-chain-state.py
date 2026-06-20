@@ -28,6 +28,17 @@ REQUIRED_TEXT_BY_FILE = {
         "show_resource_chain",
         "DemoResourceChainStateFormatter.format_result_feedback_line",
     ],
+    "client/scripts/map/demo_crystal_resource_visual_layer.gd": [
+        "class_name DemoCrystalResourceVisualLayer",
+        "crystal.main_vein",
+        "crystal.rich_vein",
+        "_deemphasize_legacy_crystal_blocks",
+        "map_object.rich_crystal_vein",
+    ],
+    "client/scenes/maps/VerticalSliceMap.tscn": [
+        "DemoCrystalResourceVisualLayer",
+        "demo_crystal_resource_visual_layer.gd",
+    ],
     "client/scripts/ui/hud_log_presenter.gd": [
         '"资源链"',
         "resource_chain",
@@ -38,6 +49,7 @@ REQUIRED_TEXT_BY_FILE = {
         "_check_hud_resource_chain_state",
         "_check_device_panel_resource_chain_state",
         "_check_processing_result_resource_chain",
+        "_check_crystal_resource_visual_layer",
         "_check_resource_chain_state_roundtrip",
     ],
     "scripts/check-client.sh": [
