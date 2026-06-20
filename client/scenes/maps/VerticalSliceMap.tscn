@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/map/vertical_slice_map.gd" id="1_map"]
 [ext_resource type="PackedScene" path="res://scenes/actors/Player.tscn" id="2_player"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/map/current_objective_guidance_layer.gd" id="6_objective_guidance"]
 [ext_resource type="Script" path="res://scripts/map/demo_core_scene_space_layer.gd" id="7_core_scene_space"]
 [ext_resource type="Script" path="res://scripts/map/demo_initial_art_identity_layer.gd" id="8_initial_art_identity"]
+[ext_resource type="Script" path="res://scripts/map/demo_industrial_base_visual_layer.gd" id="9_industrial_base_visual"]
 
 [node name="VerticalSliceMap" type="Node2D"]
 script = ExtResource("1_map")
@@ -1686,6 +1687,9 @@ script = ExtResource("7_core_scene_space")
 
 [node name="DemoInitialArtIdentityLayer" type="Node2D" parent="."]
 script = ExtResource("8_initial_art_identity")
+
+[node name="DemoIndustrialBaseVisualLayer" type="Node2D" parent="."]
+script = ExtResource("9_industrial_base_visual")
 
 [node name="PrototypeVisualPriorityLayer" type="Node2D" parent="."]
 script = ExtResource("5_visual_priority")

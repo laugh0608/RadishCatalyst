@@ -96,7 +96,7 @@ func _ensure_visual_nodes() -> void:
 	target_pin = _create_color_rect(TARGET_PIN_NAME, TARGET_PIN_COLOR)
 	route_horizontal = _create_color_rect(ROUTE_HORIZONTAL_NAME, ROUTE_COLOR)
 	route_vertical = _create_color_rect(ROUTE_VERTICAL_NAME, ROUTE_COLOR)
-	target_label = _create_label(TARGET_LABEL_NAME, "当前目标：前哨核心")
+	target_label = _create_label(TARGET_LABEL_NAME, "目标：前哨核心")
 	off_target_label = _create_label(OFF_TARGET_LABEL_NAME, "")
 
 
@@ -128,10 +128,10 @@ func _set_target_visuals_visible(visible: bool) -> void:
 
 
 func _position_target_visuals(target: PrototypeInteractable) -> void:
-	_set_rect(target_halo, target.position + Vector2(-46.0, -46.0), Vector2(92.0, 92.0))
-	_set_rect(target_pin, target.position + Vector2(-6.0, -72.0), Vector2(12.0, 32.0))
-	target_label.text = "当前目标：%s" % current_target_label_text
-	_set_label_rect(target_label, target.position + Vector2(-92.0, -112.0), Vector2(184.0, 26.0))
+	_set_rect(target_halo, target.position + Vector2(-38.0, -38.0), Vector2(76.0, 76.0))
+	_set_rect(target_pin, target.position + Vector2(-4.0, -56.0), Vector2(8.0, 24.0))
+	target_label.text = "目标：%s" % current_target_label_text
+	_set_label_rect(target_label, target.position + Vector2(-74.0, -82.0), Vector2(148.0, 22.0))
 
 
 func _position_route_visuals(target: PrototypeInteractable) -> void:
@@ -143,8 +143,8 @@ func _position_route_visuals(target: PrototypeInteractable) -> void:
 	var start := player.position
 	var end := target.position
 	var corner := Vector2(end.x, start.y)
-	_set_rect_between(route_horizontal, start, corner, 8.0)
-	_set_rect_between(route_vertical, corner, end, 8.0)
+	_set_rect_between(route_horizontal, start, corner, 6.0)
+	_set_rect_between(route_vertical, corner, end, 6.0)
 
 
 func _refresh_off_target_hint(target: PrototypeInteractable) -> void:
@@ -152,8 +152,8 @@ func _refresh_off_target_hint(target: PrototypeInteractable) -> void:
 	if focused == null:
 		off_target_label.visible = false
 		return
-	off_target_label.text = "不是当前目标\n先去%s" % current_target_label_text
-	_set_label_rect(off_target_label, focused.position + Vector2(-92.0, -82.0), Vector2(184.0, 42.0))
+	off_target_label.text = "先去：%s" % current_target_label_text
+	_set_label_rect(off_target_label, focused.position + Vector2(-66.0, -58.0), Vector2(132.0, 22.0))
 	off_target_label.visible = true
 
 
