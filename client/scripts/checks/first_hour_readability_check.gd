@@ -182,18 +182,21 @@ func _check_opening_scene_layer() -> void:
 	if focus_depth != null:
 		focus_depth.refresh_focus_depth(player.position)
 		host._expect_equal(
-			focus_depth.get_scene_focus_alpha("RegionBase") >= 0.35
-				and focus_depth.get_scene_focus_alpha("RegionCrystal") >= 0.35
-				and focus_depth.get_scene_focus_alpha("RegionPollution") <= 0.1
-				and focus_depth.get_scene_focus_alpha("DemoRoutePresentationLayer/DemoRoutePollutionBand") <= 0.04,
+			focus_depth.get_scene_focus_alpha("RegionBase") >= 0.28
+				and focus_depth.get_scene_focus_alpha("RegionCrystal") >= 0.28
+				and focus_depth.get_scene_focus_alpha("RegionPollution") <= 0.06
+				and focus_depth.get_scene_focus_alpha("DemoRoutePresentationLayer/DemoRoutePollutionBand") <= 0.02
+				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/BaseDeckFloor") >= 0.58
+				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/CrystalCentralFieldGround") <= 0.05,
 			true,
-			"opening scene focus depth keeps start and next region readable while muting distant pollution blocks"
+			"opening scene focus depth keeps start readable while muting distant region and crystal field blocks"
 		)
 		focus_depth.refresh_focus_depth(crystal_cluster.position)
 		host._expect_equal(
-			focus_depth.get_scene_focus_alpha("RegionPollution") >= 0.35
-				and focus_depth.get_scene_focus_alpha("RegionRuinOuterRing") <= 0.1
-				and focus_depth.get_scene_focus_alpha("DemoRoutePresentationLayer/DemoRouteRuinBand") <= 0.04,
+			focus_depth.get_scene_focus_alpha("RegionPollution") >= 0.28
+				and focus_depth.get_scene_focus_alpha("RegionRuinOuterRing") <= 0.06
+				and focus_depth.get_scene_focus_alpha("DemoRoutePresentationLayer/DemoRouteRuinBand") <= 0.02
+				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/CrystalCentralFieldGround") >= 0.58,
 			true,
 			"opening scene focus depth shifts emphasis to crystal and pollution without exposing the ruin flowchart"
 		)
@@ -473,7 +476,7 @@ func _check_runtime_camera_focus() -> void:
 	var game_root := GameRootScript.new()
 	var camera_zoom := game_root.get_playtest_camera_zoom()
 	host._expect_equal(
-		camera_zoom.x > 1.75 and camera_zoom.y > 1.75,
+		camera_zoom.x > 2.0 and camera_zoom.y > 2.0,
 		true,
 		"runtime camera starts close enough to frame the current playable region"
 	)

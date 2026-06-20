@@ -1,6 +1,6 @@
 extends Node2D
 
-const PLAYTEST_CAMERA_ZOOM := Vector2(1.8, 1.8)
+const PLAYTEST_CAMERA_ZOOM := Vector2(2.05, 2.05)
 
 var data_registry: DataRegistry
 var world_state: WorldState

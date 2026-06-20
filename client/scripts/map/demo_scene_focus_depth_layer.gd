@@ -1,15 +1,18 @@
 extends Node2D
 class_name DemoSceneFocusDepthLayer
 
-const NEAR_REGION_ALPHA := 0.38
-const DISTANT_REGION_ALPHA := 0.08
-const NEAR_ROUTE_ALPHA := 0.11
-const DISTANT_ROUTE_ALPHA := 0.025
-const NEAR_BOUNDARY_ALPHA := 0.54
-const DISTANT_BOUNDARY_ALPHA := 0.12
+const NEAR_REGION_ALPHA := 0.3
+const DISTANT_REGION_ALPHA := 0.045
+const NEAR_ROUTE_ALPHA := 0.075
+const DISTANT_ROUTE_ALPHA := 0.012
+const NEAR_BOUNDARY_ALPHA := 0.44
+const DISTANT_BOUNDARY_ALPHA := 0.08
+const NEAR_SCENE_GROUND_ALPHA := 0.62
+const DISTANT_SCENE_GROUND_ALPHA := 0.035
 const REGION_FOCUS_DISTANCE := 260.0
 const ROUTE_FOCUS_DISTANCE := 170.0
 const BOUNDARY_FOCUS_DISTANCE := 260.0
+const SCENE_GROUND_FOCUS_DISTANCE := 180.0
 
 const REGION_RECT_PATHS := [
 	"RegionBase",
@@ -41,6 +44,32 @@ const BOUNDARY_RECT_PATHS := [
 	"RegionBoundaryPollution",
 	"RegionBoundaryRuin"
 ]
+const SCENE_GROUND_RECT_PATHS := [
+	"OpeningSceneLayer/BaseDeckFloor",
+	"OpeningSceneLayer/BaseUpperServiceApron",
+	"OpeningSceneLayer/BaseCentralWorkYard",
+	"OpeningSceneLayer/BaseLowerLogisticsYard",
+	"OpeningSceneLayer/BaseDepartureCauseway",
+	"OpeningSceneLayer/BaseExitLane",
+	"OpeningSceneLayer/CrystalEntryGround",
+	"OpeningSceneLayer/CrystalNorthRidgeGround",
+	"OpeningSceneLayer/CrystalCentralFieldGround",
+	"OpeningSceneLayer/CrystalSouthSalvageYard",
+	"OpeningSceneLayer/CrystalMainVeinTrack",
+	"OpeningSceneLayer/CrystalScrapPocket",
+	"OpeningSceneLayer/PollutionConstructionYardGround",
+	"OpeningSceneLayer/PollutionEntryPressureGround",
+	"OpeningSceneLayer/PollutionDeepResidueField",
+	"OpeningSceneLayer/PollutionReturnDrainField",
+	"OpeningSceneLayer/PollutionSafeConstructionBelt",
+	"OpeningSceneLayer/PollutionDangerField",
+	"OpeningSceneLayer/CoreStabilizationArrivalYard",
+	"OpeningSceneLayer/CoreStabilizationRecoveryYard",
+	"OpeningSceneLayer/CoreStabilizationGuardFieldGround",
+	"OpeningSceneLayer/CoreStabilizationWritebackDeck",
+	"OpeningSceneLayer/CoreStabilizationRetestYard",
+	"OpeningSceneLayer/CoreStabilizationLogisticsRetestYard"
+]
 
 
 func _ready() -> void:
@@ -55,6 +84,13 @@ func refresh_focus_depth(focus_position: Vector2) -> void:
 	_apply_focus_alpha(REGION_RECT_PATHS, focus_position, REGION_FOCUS_DISTANCE, NEAR_REGION_ALPHA, DISTANT_REGION_ALPHA)
 	_apply_focus_alpha(ROUTE_RECT_PATHS, focus_position, ROUTE_FOCUS_DISTANCE, NEAR_ROUTE_ALPHA, DISTANT_ROUTE_ALPHA)
 	_apply_focus_alpha(BOUNDARY_RECT_PATHS, focus_position, BOUNDARY_FOCUS_DISTANCE, NEAR_BOUNDARY_ALPHA, DISTANT_BOUNDARY_ALPHA)
+	_apply_focus_alpha(
+		SCENE_GROUND_RECT_PATHS,
+		focus_position,
+		SCENE_GROUND_FOCUS_DISTANCE,
+		NEAR_SCENE_GROUND_ALPHA,
+		DISTANT_SCENE_GROUND_ALPHA
+	)
 
 
 func get_scene_focus_alpha(rect_path: String) -> float:

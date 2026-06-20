@@ -91,9 +91,9 @@ func _check_current_objective_guidance_layer() -> void:
 	map.player.position = storage.position
 	storage.set_focus_visual(true)
 	layer.refresh_guidance(world, character)
-	_expect_equal(layer.is_off_target_hint_visible(), true, "focused non-target object shows current objective hint")
+	_expect_equal(layer.is_off_target_hint_visible(), false, "focused non-target object does not add center text over the scene")
 	var off_target_label := layer.get_node("CurrentObjectiveOffTargetLabel") as Label
-	_expect_equal(off_target_label.text, "目标→", "off-target hint uses a short scene chip")
+	_expect_equal(off_target_label.text, "", "off-target hint text stays empty")
 
 	target.set_restored_outpost_core_visual()
 	world.quest_state.complete_quest("quest.restore_outpost")

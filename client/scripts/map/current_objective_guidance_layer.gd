@@ -171,10 +171,10 @@ func _refresh_off_target_hint(target: PrototypeInteractable) -> void:
 	var focused := _get_focused_non_target_interactable(target)
 	if focused == null:
 		off_target_label.visible = false
+		off_target_label.text = ""
 		return
-	off_target_label.text = "目标→"
-	_set_label_rect(off_target_label, focused.position + Vector2(18.0, -34.0), Vector2(48.0, 16.0))
-	off_target_label.visible = true
+	off_target_label.text = ""
+	off_target_label.visible = false
 
 
 func _set_rect(rect: ColorRect, top_left: Vector2, size: Vector2) -> void:
