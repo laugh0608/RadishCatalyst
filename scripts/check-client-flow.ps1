@@ -129,6 +129,11 @@ if (-not (Test-Path -LiteralPath $demoResourceChainStateCheckScript -PathType Le
     Write-Error "Demo resource chain state check script not found: ${demoResourceChainStateCheckScript}"
     exit 1
 }
+$demoPollutionBoundaryVisualCheckScript = Join-Path $clientRoot "scripts/checks/demo_pollution_boundary_visual_check.gd"
+if (-not (Test-Path -LiteralPath $demoPollutionBoundaryVisualCheckScript -PathType Leaf)) {
+    Write-Error "Demo pollution boundary visual check script not found: ${demoPollutionBoundaryVisualCheckScript}"
+    exit 1
+}
 $demoSaveStateContractCheckScript = Join-Path $clientRoot "scripts/checks/demo_save_state_contract_check.gd"
 if (-not (Test-Path -LiteralPath $demoSaveStateContractCheckScript -PathType Leaf)) {
     Write-Error "Demo save state contract check script not found: ${demoSaveStateContractCheckScript}"
@@ -405,6 +410,13 @@ try {
         exit $LASTEXITCODE
     }
 
+    $pollutionBoundaryVisualOutput = & $GodotExe --headless --path $clientRoot --script $demoPollutionBoundaryVisualCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $pollutionBoundaryVisualOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo pollution boundary visual check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $saveContractOutput = & $GodotExe --headless --path $clientRoot --script $demoSaveStateContractCheckScript --no-header 2>&1
     if ($LASTEXITCODE -ne 0) {
         $saveContractOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
@@ -532,7 +544,7 @@ try {
     }
 
     $unexpectedErrors = @(
-        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoMidfieldRoutePlayabilityOutput + $demoWindCorridorTransitionPlayabilityOutput + $demoCoreApproachHandoffPlayabilityOutput + $demoDevicePanelOperationReadabilityOutput + $demoFieldLoopPayoffOutput + $demoRouteReturnAndBaseReentryOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $demoInteractionPromptSurfaceDecompositionOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput + $prototypeVisualPassOutput + $quickSlotSupplyReadabilityOutput + $supplyPressurePacingOutput + $combatReadabilityOutput + $coreScenePlayableSpaceOutput + $industrialModuleTaskRhythmOutput + $initialArtIdentityOutput + $fieldTaskDifferentiationOutput |
+        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoMidfieldRoutePlayabilityOutput + $demoWindCorridorTransitionPlayabilityOutput + $demoCoreApproachHandoffPlayabilityOutput + $demoDevicePanelOperationReadabilityOutput + $demoFieldLoopPayoffOutput + $demoRouteReturnAndBaseReentryOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $demoInteractionPromptSurfaceDecompositionOutput + $industrialCheckOutput + $resourceChainOutput + $pollutionBoundaryVisualOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput + $prototypeVisualPassOutput + $quickSlotSupplyReadabilityOutput + $supplyPressurePacingOutput + $combatReadabilityOutput + $coreScenePlayableSpaceOutput + $industrialModuleTaskRhythmOutput + $initialArtIdentityOutput + $fieldTaskDifferentiationOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {

@@ -38,6 +38,13 @@ $checks = @(
         }
     },
     @{
+        Name = "client demo pollution boundary visual"
+        Script = "check-client-demo-pollution-boundary-visual.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client demo save state contract"
         Script = "check-client-demo-save-state-contract.ps1"
         Parameters = @{
