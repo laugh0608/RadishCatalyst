@@ -34,6 +34,10 @@ $requiredTextByFile = @{
         "class_name DemoCrystalResourceVisualLayer",
         "crystal.main_vein",
         "crystal.rich_vein",
+        "get_terrain_material_shape_count",
+        "terrain.crystal.harvest_face",
+        "terrain.crystal.scrap_recovery_yard",
+        "terrain.crystal.base_loading_mouth",
         "_deemphasize_legacy_crystal_blocks",
         "map_object.rich_crystal_vein"
     )
@@ -61,6 +65,8 @@ $requiredTextByFile = @{
         "_check_device_panel_resource_chain_state",
         "_check_processing_result_resource_chain",
         "_check_crystal_resource_visual_layer",
+        "crystal visual layer registers mining terrain materials",
+        "terrain.crystal.return_cart_lane",
         "_check_pollution_chain_hud_and_visual_state",
         "pollution_chain.core_prep_route.ready",
         "_check_resource_chain_state_roundtrip"

@@ -5,16 +5,23 @@ const RESOURCE_SHAPE_PREFIX := "DemoCrystalResourceVisual"
 const ROLE_RESOURCE := "resource"
 const ROLE_FLOW := "flow"
 const ROLE_SALVAGE := "salvage"
+const ROLE_TERRAIN := "terrain"
 const FOCUS_VISIBLE_MIN_X := -80.0
 
 const FIELD_FRAME := Color(0.32, 0.58, 0.62, 0.32)
 const FIELD_FILL := Color(0.06, 0.12, 0.15, 0.16)
+const ORE_FACE_FILL := Color(0.06, 0.18, 0.2, 0.2)
+const ORE_FACE_LINE := Color(0.38, 0.78, 0.86, 0.42)
+const CUT_SCARP_LINE := Color(0.72, 0.96, 1.0, 0.34)
 const CRYSTAL_LINE := Color(0.42, 0.88, 0.98, 0.78)
 const CRYSTAL_FILL := Color(0.25, 0.78, 0.95, 0.44)
 const RICH_CRYSTAL_LINE := Color(0.76, 0.94, 1.0, 0.86)
 const SALVAGE_LINE := Color(0.72, 0.78, 0.68, 0.58)
 const SALVAGE_FILL := Color(0.36, 0.42, 0.34, 0.26)
+const SCRAP_YARD_FILL := Color(0.14, 0.18, 0.14, 0.22)
+const SCRAP_YARD_EDGE := Color(0.64, 0.72, 0.58, 0.36)
 const RETURN_FLOW := Color(0.72, 0.88, 0.58, 0.66)
+const RETURN_RAIL := Color(0.76, 0.88, 0.64, 0.48)
 const ANOMALY_LINE := Color(0.68, 0.42, 0.72, 0.5)
 const WARNING_DIM := Color(0.9, 0.42, 0.28, 0.42)
 
@@ -56,6 +63,7 @@ const RESOURCE_DEFINITION_IDS := {
 
 var resource_shape_ids: Array[String] = []
 var flow_shape_ids: Array[String] = []
+var terrain_material_shape_ids: Array[String] = []
 var muted_resource_marker_count := 0
 
 
@@ -75,6 +83,7 @@ func apply_visuals() -> void:
 	_mute_crystal_identity_blocks()
 	_register_resource_shapes()
 	_register_flow_shapes()
+	_register_terrain_material_shapes()
 	_tone_down_resource_interactable_markers()
 	queue_redraw()
 
@@ -85,6 +94,10 @@ func get_resource_shape_count() -> int:
 
 func get_flow_count() -> int:
 	return flow_shape_ids.size()
+
+
+func get_terrain_material_shape_count() -> int:
+	return terrain_material_shape_ids.size()
 
 
 func get_muted_resource_marker_count() -> int:
@@ -99,12 +112,17 @@ func has_flow_shape(shape_id: String) -> bool:
 	return flow_shape_ids.has(shape_id)
 
 
+func has_terrain_material_shape(shape_id: String) -> bool:
+	return terrain_material_shape_ids.has(shape_id)
+
+
 func refresh_focus_visibility(player_position: Vector2) -> void:
 	visible = player_position.x >= FOCUS_VISIBLE_MIN_X
 
 
 func _draw() -> void:
 	_draw_field_frame()
+	_draw_mining_material_surface()
 	_draw_main_vein()
 	_draw_crystal_clusters()
 	_draw_salvage_pockets()
@@ -122,6 +140,96 @@ func _draw_field_frame() -> void:
 	for y in [-206.0, -126.0, -36.0, 116.0, 206.0]:
 		draw_line(Vector2(-8.0, y), Vector2(224.0, y), Color(0.34, 0.52, 0.54, 0.16), 1.2, true)
 	draw_line(Vector2(-8.0, -72.0), Vector2(108.0, -72.0), Color(0.35, 0.9, 0.98, 0.34), 4.0, true)
+
+
+func _draw_mining_material_surface() -> void:
+	_draw_harvest_face_floor()
+	_draw_rich_seam_ridges()
+	_draw_cut_scarps()
+	_draw_scrap_recovery_yard()
+	_draw_return_cart_lane()
+	_draw_base_loading_mouth()
+
+
+func _draw_harvest_face_floor() -> void:
+	var face := PackedVector2Array([
+		Vector2(6.0, -214.0),
+		Vector2(64.0, -252.0),
+		Vector2(166.0, -236.0),
+		Vector2(224.0, -184.0),
+		Vector2(210.0, -110.0),
+		Vector2(112.0, -80.0),
+		Vector2(22.0, -116.0),
+		Vector2(6.0, -214.0)
+	])
+	draw_colored_polygon(face, ORE_FACE_FILL)
+	draw_polyline(face, ORE_FACE_LINE, 2.0, true)
+	for y in [-220.0, -194.0, -166.0, -136.0, -108.0]:
+		draw_line(Vector2(22.0, y), Vector2(204.0, y + 28.0), Color(ORE_FACE_LINE.r, ORE_FACE_LINE.g, ORE_FACE_LINE.b, 0.18), 1.2, true)
+	for point in [Vector2(44.0, -188.0), Vector2(86.0, -210.0), Vector2(138.0, -190.0), Vector2(184.0, -156.0)]:
+		draw_circle(point, 3.0, Color(0.74, 0.96, 1.0, 0.36))
+
+
+func _draw_rich_seam_ridges() -> void:
+	var ridge_points := [
+		[Vector2(88.0, -236.0), Vector2(136.0, -218.0), Vector2(190.0, -174.0)],
+		[Vector2(58.0, -180.0), Vector2(124.0, -160.0), Vector2(214.0, -148.0)],
+		[Vector2(120.0, -114.0), Vector2(160.0, -88.0), Vector2(198.0, -42.0)]
+	]
+	for points in ridge_points:
+		draw_polyline(PackedVector2Array(points), Color(0.08, 0.14, 0.16, 0.42), 4.6, true)
+		draw_polyline(PackedVector2Array(points), Color(RICH_CRYSTAL_LINE.r, RICH_CRYSTAL_LINE.g, RICH_CRYSTAL_LINE.b, 0.34), 1.6, true)
+	for point in [Vector2(150.0, -176.0), Vector2(198.0, -158.0), Vector2(174.0, -18.0)]:
+		draw_arc(point, 18.0, PI * 0.15, PI * 1.8, 24, Color(0.78, 0.96, 1.0, 0.2), 1.2, true)
+
+
+func _draw_cut_scarps() -> void:
+	for pair in [
+		[Vector2(28.0, -96.0), Vector2(96.0, -74.0)],
+		[Vector2(94.0, -68.0), Vector2(174.0, -42.0)],
+		[Vector2(110.0, 4.0), Vector2(206.0, 28.0)]
+	]:
+		var from_point: Vector2 = pair[0]
+		var to_point: Vector2 = pair[1]
+		draw_line(from_point, to_point, Color(0.02, 0.06, 0.07, 0.38), 4.2, true)
+		draw_line(from_point, to_point, CUT_SCARP_LINE, 1.5, true)
+		var mid := from_point.lerp(to_point, 0.5)
+		draw_line(mid + Vector2(-10.0, -8.0), mid + Vector2(12.0, 8.0), Color(CUT_SCARP_LINE.r, CUT_SCARP_LINE.g, CUT_SCARP_LINE.b, 0.24), 1.0, true)
+
+
+func _draw_scrap_recovery_yard() -> void:
+	var yard := Rect2(Vector2(18.0, 92.0), Vector2(230.0, 150.0))
+	draw_rect(yard, SCRAP_YARD_FILL, true)
+	draw_rect(yard, SCRAP_YARD_EDGE, false, 1.5, true)
+	for y in [116.0, 150.0, 184.0, 218.0]:
+		draw_line(Vector2(28.0, y), Vector2(238.0, y), Color(SCRAP_YARD_EDGE.r, SCRAP_YARD_EDGE.g, SCRAP_YARD_EDGE.b, 0.2), 1.0, true)
+	for x in [58.0, 112.0, 166.0, 220.0]:
+		draw_line(Vector2(x, 102.0), Vector2(x + 12.0, 232.0), Color(SCRAP_YARD_EDGE.r, SCRAP_YARD_EDGE.g, SCRAP_YARD_EDGE.b, 0.16), 1.0, true)
+	for rect in [
+		Rect2(Vector2(68.0, 116.0), Vector2(22.0, 14.0)),
+		Rect2(Vector2(130.0, 150.0), Vector2(26.0, 16.0)),
+		Rect2(Vector2(196.0, 206.0), Vector2(24.0, 14.0))
+	]:
+		draw_rect(rect, Color(0.42, 0.48, 0.36, 0.34), true)
+		draw_rect(rect, SALVAGE_LINE, false, 1.0, true)
+
+
+func _draw_return_cart_lane() -> void:
+	var lane_points := [Vector2(206.0, 200.0), Vector2(120.0, 158.0), Vector2(28.0, 90.0), Vector2(-42.0, 18.0)]
+	draw_polyline(PackedVector2Array(lane_points), Color(0.02, 0.04, 0.035, 0.5), 8.0, true)
+	draw_polyline(PackedVector2Array(lane_points), RETURN_RAIL, 2.0, true)
+	for point in [Vector2(170.0, 182.0), Vector2(92.0, 138.0), Vector2(24.0, 90.0), Vector2(-22.0, 38.0)]:
+		draw_line(point + Vector2(-8.0, -5.0), point + Vector2(8.0, 5.0), Color(RETURN_RAIL.r, RETURN_RAIL.g, RETURN_RAIL.b, 0.34), 1.0, true)
+		draw_circle(point, 2.5, Color(0.86, 0.94, 0.68, 0.32))
+
+
+func _draw_base_loading_mouth() -> void:
+	var mouth := Rect2(Vector2(-86.0, -4.0), Vector2(38.0, 44.0))
+	draw_rect(mouth, Color(0.06, 0.1, 0.08, 0.42), true)
+	draw_rect(mouth, RETURN_FLOW, false, 1.8, true)
+	draw_line(Vector2(-80.0, 6.0), Vector2(-54.0, 6.0), Color(RETURN_FLOW.r, RETURN_FLOW.g, RETURN_FLOW.b, 0.5), 1.3, true)
+	draw_line(Vector2(-80.0, 18.0), Vector2(-54.0, 18.0), Color(RETURN_FLOW.r, RETURN_FLOW.g, RETURN_FLOW.b, 0.5), 1.3, true)
+	draw_line(Vector2(-80.0, 30.0), Vector2(-54.0, 30.0), Color(RETURN_FLOW.r, RETURN_FLOW.g, RETURN_FLOW.b, 0.5), 1.3, true)
 
 
 func _draw_main_vein() -> void:
@@ -242,6 +350,17 @@ func _register_flow_shapes() -> void:
 		"flow.salvage_to_base",
 		"flow.crystal_branch",
 		"flow.salvage_branch"
+	]
+
+
+func _register_terrain_material_shapes() -> void:
+	terrain_material_shape_ids = [
+		"terrain.crystal.harvest_face",
+		"terrain.crystal.rich_seam_ridges",
+		"terrain.crystal.cut_scarps",
+		"terrain.crystal.scrap_recovery_yard",
+		"terrain.crystal.return_cart_lane",
+		"terrain.crystal.base_loading_mouth"
 	]
 
 

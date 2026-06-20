@@ -11,6 +11,10 @@ REQUIRED_TEXT_BY_FILE = {
         "boundary.pressure_gate",
         "residue.entry_patch",
         "flow.filter_to_base_return",
+        "get_terrain_material_shape_count",
+        "terrain.pollution.sediment_fan",
+        "terrain.pollution.filter_gravel_bed",
+        "terrain.pollution.output_slurry_basin",
         "pollution_chain.boundary_residue_queue",
         "pollution_chain.boundary_core_prep_route",
         "refresh_focus_visibility",
@@ -28,9 +32,12 @@ REQUIRED_TEXT_BY_FILE = {
         "_check_pollution_boundary_chain_state_visuals",
         "_check_pollution_boundary_visual_priority_replaces_old_blocks",
         "_check_pollution_boundary_runtime_anchors_are_tagged",
+        "pollution boundary registers terrain material shapes",
+        "terrain.pollution.recovery_loading_pad",
     ],
     "docs/devlogs/2026-W25.md": [
         "污染处理边界视觉第一轮",
+        "晶体矿脉与污染边界地貌材质第二轮",
         "DemoPollutionBoundaryVisualLayer",
     ],
     "scripts/check-client.sh": [
