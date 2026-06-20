@@ -134,6 +134,11 @@ if (-not (Test-Path -LiteralPath $demoPollutionBoundaryVisualCheckScript -PathTy
     Write-Error "Demo pollution boundary visual check script not found: ${demoPollutionBoundaryVisualCheckScript}"
     exit 1
 }
+$demoCoreStabilizationVisualCheckScript = Join-Path $clientRoot "scripts/checks/demo_core_stabilization_visual_check.gd"
+if (-not (Test-Path -LiteralPath $demoCoreStabilizationVisualCheckScript -PathType Leaf)) {
+    Write-Error "Demo core stabilization visual check script not found: ${demoCoreStabilizationVisualCheckScript}"
+    exit 1
+}
 $demoSaveStateContractCheckScript = Join-Path $clientRoot "scripts/checks/demo_save_state_contract_check.gd"
 if (-not (Test-Path -LiteralPath $demoSaveStateContractCheckScript -PathType Leaf)) {
     Write-Error "Demo save state contract check script not found: ${demoSaveStateContractCheckScript}"
@@ -417,6 +422,13 @@ try {
         exit $LASTEXITCODE
     }
 
+    $coreStabilizationVisualOutput = & $GodotExe --headless --path $clientRoot --script $demoCoreStabilizationVisualCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $coreStabilizationVisualOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo core stabilization visual check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $saveContractOutput = & $GodotExe --headless --path $clientRoot --script $demoSaveStateContractCheckScript --no-header 2>&1
     if ($LASTEXITCODE -ne 0) {
         $saveContractOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
@@ -544,7 +556,7 @@ try {
     }
 
     $unexpectedErrors = @(
-        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoMidfieldRoutePlayabilityOutput + $demoWindCorridorTransitionPlayabilityOutput + $demoCoreApproachHandoffPlayabilityOutput + $demoDevicePanelOperationReadabilityOutput + $demoFieldLoopPayoffOutput + $demoRouteReturnAndBaseReentryOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $demoInteractionPromptSurfaceDecompositionOutput + $industrialCheckOutput + $resourceChainOutput + $pollutionBoundaryVisualOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput + $prototypeVisualPassOutput + $quickSlotSupplyReadabilityOutput + $supplyPressurePacingOutput + $combatReadabilityOutput + $coreScenePlayableSpaceOutput + $industrialModuleTaskRhythmOutput + $initialArtIdentityOutput + $fieldTaskDifferentiationOutput |
+        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoMidfieldRoutePlayabilityOutput + $demoWindCorridorTransitionPlayabilityOutput + $demoCoreApproachHandoffPlayabilityOutput + $demoDevicePanelOperationReadabilityOutput + $demoFieldLoopPayoffOutput + $demoRouteReturnAndBaseReentryOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $demoInteractionPromptSurfaceDecompositionOutput + $industrialCheckOutput + $resourceChainOutput + $pollutionBoundaryVisualOutput + $coreStabilizationVisualOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput + $prototypeVisualPassOutput + $quickSlotSupplyReadabilityOutput + $supplyPressurePacingOutput + $combatReadabilityOutput + $coreScenePlayableSpaceOutput + $industrialModuleTaskRhythmOutput + $initialArtIdentityOutput + $fieldTaskDifferentiationOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {

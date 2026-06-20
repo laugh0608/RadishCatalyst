@@ -32,6 +32,7 @@ REQUIRED_TEXT_BY_FILE = {
         "class_name DemoCrystalResourceVisualLayer",
         "crystal.main_vein",
         "crystal.rich_vein",
+        "refresh_focus_visibility",
         "_deemphasize_legacy_crystal_blocks",
         "map_object.rich_crystal_vein",
     ],
@@ -50,6 +51,7 @@ REQUIRED_TEXT_BY_FILE = {
         "_check_device_panel_resource_chain_state",
         "_check_processing_result_resource_chain",
         "_check_crystal_resource_visual_layer",
+        "crystal visual layer stays hidden at startup objective",
         "_check_resource_chain_state_roundtrip",
     ],
     "scripts/check-client.sh": [

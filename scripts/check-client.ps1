@@ -45,6 +45,13 @@ $checks = @(
         }
     },
     @{
+        Name = "client demo core stabilization visual"
+        Script = "check-client-demo-core-stabilization-visual.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client demo save state contract"
         Script = "check-client-demo-save-state-contract.ps1"
         Parameters = @{

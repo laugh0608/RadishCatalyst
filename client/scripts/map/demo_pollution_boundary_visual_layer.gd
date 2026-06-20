@@ -6,6 +6,7 @@ const ROLE_FILTER_SITE := "filter_site"
 const ROLE_RESIDUE := "residue"
 const ROLE_ROUTE := "route"
 const ROLE_PRESSURE_GATE := "pressure_gate"
+const FOCUS_VISIBLE_MIN_X := 180.0
 
 const FIELD_FILL := Color(0.1, 0.12, 0.07, 0.18)
 const FIELD_LINE := Color(0.72, 0.72, 0.3, 0.34)
@@ -98,9 +99,11 @@ var muted_interactable_marker_count := 0
 
 func _ready() -> void:
 	apply_visuals()
+	refresh_focus_visibility(_get_player_position())
 
 
 func _process(_delta: float) -> void:
+	refresh_focus_visibility(_get_player_position())
 	_tone_down_pollution_interactable_markers()
 
 
@@ -136,6 +139,10 @@ func has_boundary_shape(shape_id: String) -> bool:
 
 func has_flow_shape(shape_id: String) -> bool:
 	return flow_shape_ids.has(shape_id)
+
+
+func refresh_focus_visibility(player_position: Vector2) -> void:
+	visible = player_position.x >= FOCUS_VISIBLE_MIN_X
 
 
 func _draw() -> void:
@@ -342,3 +349,12 @@ func _get_map_node(path: String) -> Node:
 	if path.is_empty() or get_parent() == null:
 		return null
 	return get_parent().get_node_or_null(path)
+
+
+func _get_player_position() -> Vector2:
+	if get_parent() == null:
+		return Vector2.ZERO
+	var player := get_parent().get_node_or_null("Player") as Node2D
+	if player == null:
+		return Vector2.ZERO
+	return player.position

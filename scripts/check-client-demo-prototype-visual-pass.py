@@ -59,6 +59,7 @@ REQUIRED_TEXT_BY_FILE = {
         "_check_current_objective_guidance_layer",
         "post-restore storage build guidance",
         "pollution filter processing guidance",
+        "_check_scene_visual_layer_focus_visibility",
         "_check_visual_state_methods",
         "_check_visual_refresher_state_alignment",
     ],

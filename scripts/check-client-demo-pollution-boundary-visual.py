@@ -10,6 +10,7 @@ REQUIRED_TEXT_BY_FILE = {
         "boundary.pressure_gate",
         "residue.entry_patch",
         "flow.filter_to_base_return",
+        "refresh_focus_visibility",
         "_deemphasize_legacy_pollution_blocks",
         "map_object.pollution_residue_patch",
     ],
@@ -20,6 +21,7 @@ REQUIRED_TEXT_BY_FILE = {
     "client/scripts/checks/demo_pollution_boundary_visual_check.gd": [
         "Demo pollution boundary visual checks passed.",
         "_check_pollution_boundary_layer_exists_and_registers_visuals",
+        "_check_pollution_boundary_focus_visibility",
         "_check_pollution_boundary_visual_priority_replaces_old_blocks",
         "_check_pollution_boundary_runtime_anchors_are_tagged",
     ],

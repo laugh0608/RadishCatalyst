@@ -20,6 +20,7 @@ func _init() -> void:
 
 func _run_checks() -> void:
 	_check_pollution_boundary_layer_exists_and_registers_visuals()
+	_check_pollution_boundary_focus_visibility()
 	_check_pollution_boundary_visual_priority_replaces_old_blocks()
 	_check_pollution_boundary_runtime_anchors_are_tagged()
 
@@ -42,6 +43,19 @@ func _check_pollution_boundary_layer_exists_and_registers_visuals() -> void:
 	_expect_equal(layer.has_boundary_shape("residue.entry_patch"), true, "entry residue patch visual exists")
 	_expect_equal(layer.has_flow_shape("flow.residue_to_filter"), true, "residue to filter route exists")
 	_expect_equal(layer.has_flow_shape("flow.filter_to_base_return"), true, "filter to base logistics route exists")
+	map.free()
+
+
+func _check_pollution_boundary_focus_visibility() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	var layer := map.get_node("DemoPollutionBoundaryVisualLayer") as DemoPollutionBoundaryVisualLayer
+	layer.apply_visuals()
+
+	layer.refresh_focus_visibility(Vector2(-250, -48))
+	_expect_equal(layer.visible, false, "pollution boundary visual layer stays hidden at startup objective")
+	layer.refresh_focus_visibility(Vector2(258, 34))
+	_expect_equal(layer.visible, true, "pollution boundary visual layer appears inside pollution treatment boundary")
 	map.free()
 
 

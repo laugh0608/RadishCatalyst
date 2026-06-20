@@ -5,6 +5,7 @@ const RESOURCE_SHAPE_PREFIX := "DemoCrystalResourceVisual"
 const ROLE_RESOURCE := "resource"
 const ROLE_FLOW := "flow"
 const ROLE_SALVAGE := "salvage"
+const FOCUS_VISIBLE_MIN_X := -80.0
 
 const FIELD_FRAME := Color(0.32, 0.58, 0.62, 0.32)
 const FIELD_FILL := Color(0.06, 0.12, 0.15, 0.16)
@@ -60,9 +61,11 @@ var muted_resource_marker_count := 0
 
 func _ready() -> void:
 	apply_visuals()
+	refresh_focus_visibility(_get_player_position())
 
 
 func _process(_delta: float) -> void:
+	refresh_focus_visibility(_get_player_position())
 	_tone_down_resource_interactable_markers()
 	_mute_crystal_identity_blocks()
 
@@ -94,6 +97,10 @@ func has_resource_shape(shape_id: String) -> bool:
 
 func has_flow_shape(shape_id: String) -> bool:
 	return flow_shape_ids.has(shape_id)
+
+
+func refresh_focus_visibility(player_position: Vector2) -> void:
+	visible = player_position.x >= FOCUS_VISIBLE_MIN_X
 
 
 func _draw() -> void:
@@ -290,3 +297,12 @@ func _get_map_node(path: String) -> Node:
 	if path.is_empty() or get_parent() == null:
 		return null
 	return get_parent().get_node_or_null(path)
+
+
+func _get_player_position() -> Vector2:
+	if get_parent() == null:
+		return Vector2.ZERO
+	var player := get_parent().get_node_or_null("Player") as Node2D
+	if player == null:
+		return Vector2.ZERO
+	return player.position

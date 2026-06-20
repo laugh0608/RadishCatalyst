@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/map/vertical_slice_map.gd" id="1_map"]
 [ext_resource type="PackedScene" path="res://scenes/actors/Player.tscn" id="2_player"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://scripts/map/demo_industrial_base_visual_layer.gd" id="9_industrial_base_visual"]
 [ext_resource type="Script" path="res://scripts/map/demo_crystal_resource_visual_layer.gd" id="10_crystal_resource_visual"]
 [ext_resource type="Script" path="res://scripts/map/demo_pollution_boundary_visual_layer.gd" id="11_pollution_boundary_visual"]
+[ext_resource type="Script" path="res://scripts/map/demo_core_stabilization_visual_layer.gd" id="12_core_stabilization_visual"]
 
 [node name="VerticalSliceMap" type="Node2D"]
 script = ExtResource("1_map")
@@ -1698,6 +1699,9 @@ script = ExtResource("10_crystal_resource_visual")
 
 [node name="DemoPollutionBoundaryVisualLayer" type="Node2D" parent="."]
 script = ExtResource("11_pollution_boundary_visual")
+
+[node name="DemoCoreStabilizationVisualLayer" type="Node2D" parent="."]
+script = ExtResource("12_core_stabilization_visual")
 
 [node name="PrototypeVisualPriorityLayer" type="Node2D" parent="."]
 script = ExtResource("5_visual_priority")

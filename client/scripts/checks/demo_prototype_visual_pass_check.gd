@@ -199,12 +199,37 @@ func _check_startup_readability_scope() -> void:
 			true,
 			"startup keeps outpost key object cue visible"
 		)
+	_check_scene_visual_layer_focus_visibility(map)
 	_check_runtime_annotation_hidden(map, "DemoRoutePresentationLayer/DemoRouteBaseLabel")
 	_check_runtime_annotation_hidden(map, "SceneArtFoundationLayer/SceneArtBaseIdentityLabel")
 	_check_runtime_annotation_hidden(map, "NonCoreSceneIdentityLayer/NonCoreRuinIdentityLabel")
 	_check_runtime_annotation_hidden(map, "OpeningSceneLayer/BaseCorePadLabel")
 	_check_runtime_annotation_hidden(map, "BaseDirectionLabel")
 	map.free()
+
+
+func _check_scene_visual_layer_focus_visibility(map: VerticalSliceMap) -> void:
+	var crystal_layer := map.get_node("DemoCrystalResourceVisualLayer") as DemoCrystalResourceVisualLayer
+	var pollution_layer := map.get_node("DemoPollutionBoundaryVisualLayer") as DemoPollutionBoundaryVisualLayer
+	var core_layer := map.get_node("DemoCoreStabilizationVisualLayer") as DemoCoreStabilizationVisualLayer
+
+	crystal_layer.refresh_focus_visibility(Vector2(-250, -48))
+	pollution_layer.refresh_focus_visibility(Vector2(-250, -48))
+	core_layer.refresh_focus_visibility(Vector2(-250, -48))
+	_expect_equal(crystal_layer.visible, false, "startup hides crystal resource detail layer until field departure")
+	_expect_equal(pollution_layer.visible, false, "startup hides pollution treatment detail layer")
+	_expect_equal(core_layer.visible, false, "startup hides terminal station detail layer")
+
+	crystal_layer.refresh_focus_visibility(Vector2(-38, -104))
+	pollution_layer.refresh_focus_visibility(Vector2(-38, -104))
+	_expect_equal(crystal_layer.visible, true, "field departure reveals crystal resource detail layer")
+	_expect_equal(pollution_layer.visible, false, "field departure still hides pollution treatment detail layer")
+
+	pollution_layer.refresh_focus_visibility(Vector2(258, 34))
+	_expect_equal(pollution_layer.visible, true, "pollution approach reveals treatment boundary detail layer")
+
+	core_layer.refresh_focus_visibility(Vector2(3744, 112))
+	_expect_equal(core_layer.visible, true, "terminal approach reveals core stabilization detail layer")
 
 
 func _check_region_cues(map: VerticalSliceMap, layer: PrototypeVisualPriorityLayer, region_id: String) -> void:
