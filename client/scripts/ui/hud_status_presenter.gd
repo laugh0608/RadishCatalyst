@@ -81,6 +81,7 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 const MAX_VISIBLE_KEY_RESOURCE_COUNT := 2
 const MAX_CONTEXT_RESOURCE_COUNT := 3
 const COMPACT_OBJECTIVE_MAX_LINES := 5
+const RUNTIME_STATUS_MAX_CHARACTERS := 34
 const HudObjectiveCompactFormatterScript := preload("res://scripts/ui/hud_objective_compact_formatter.gd")
 const CompletionOutcomeFormatter := preload("res://scripts/systems/demo_completion_outcome_formatter.gd")
 
@@ -134,6 +135,29 @@ func format_vitals_text(data_registry: DataRegistry, world_state: WorldState, ch
 		+ ["角色状态"]
 		+ _format_character_lines(data_registry, world_state, character_state)
 	)
+
+
+func format_runtime_vitals_text(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> String:
+	_ensure_objective_source_resolver(data_registry)
+	var active_quest_id := _get_active_quest_id(world_state)
+	var base_lines := _format_base_summary_lines(data_registry, world_state, character_state, active_quest_id)
+	var device_line := "设备 待命"
+	if not base_lines.is_empty():
+		device_line = "设备 %s" % _trim_runtime_status_line(String(base_lines[0]), RUNTIME_STATUS_MAX_CHARACTERS - 3)
+	return "\n".join([
+		"生命 %.0f/%.0f  防护 %.0f/%.0f" % [
+			character_state.health,
+			character_state.max_health,
+			character_state.protection,
+			character_state.max_protection
+		],
+		"补给 %s" % _format_runtime_quick_supply(data_registry, character_state),
+		"关键材料 %s" % _trim_runtime_status_line(
+			_format_contextual_key_resources(data_registry, world_state, character_state, active_quest_id),
+			RUNTIME_STATUS_MAX_CHARACTERS - 5
+		),
+		device_line
+	])
 
 
 func format_pollution_status(
@@ -944,6 +968,32 @@ func _format_quick_slots(
 		world_state,
 		character_state
 	)
+
+
+func _format_runtime_quick_supply(data_registry: DataRegistry, character_state: CharacterState) -> String:
+	if character_state == null:
+		return "无"
+	var parts: Array[String] = []
+	for index in range(mini(character_state.quick_slots.size(), 2)):
+		var item_id := String(character_state.quick_slots[index])
+		if item_id.is_empty():
+			parts.append("%d 空" % (index + 1))
+			continue
+		parts.append("%d %s x%d" % [
+			index + 1,
+			_get_display_name(data_registry, item_id),
+			int(character_state.inventory.items.get(item_id, 0))
+		])
+	if parts.is_empty():
+		return "无"
+	return " | ".join(parts)
+
+
+func _trim_runtime_status_line(text: String, max_characters: int) -> String:
+	var trimmed := text.strip_edges()
+	if trimmed.length() <= max_characters:
+		return trimmed
+	return "%s..." % trimmed.substr(0, maxi(0, max_characters - 3))
 
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:

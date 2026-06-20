@@ -1,6 +1,7 @@
 extends RefCounted
 
 const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
+const GameRootScript := preload("res://scripts/game/game_root.gd")
 const PrototypeHudScene := preload("res://scenes/ui/PrototypeHud.tscn")
 const CrystalSideRouteCheckScript := preload("res://scripts/checks/crystal_side_route_check.gd")
 const PollutionGatePreparationCheckScript := preload("res://scripts/checks/pollution_gate_preparation_check.gd")
@@ -15,6 +16,7 @@ func _init(check_host) -> void:
 
 func run() -> void:
 	_check_opening_scene_layer()
+	_check_runtime_camera_focus()
 	_check_general_interaction_prompts()
 	_check_interactable_focus_labels()
 	_check_enemy_focus_labels()
@@ -55,6 +57,7 @@ func _check_opening_scene_layer() -> void:
 	var demo_route_core := map.get_node("DemoRoutePresentationLayer/DemoRouteCoreBand") as ColorRect
 	var demo_route_base_label := map.get_node("DemoRoutePresentationLayer/DemoRouteBaseLabel") as Label
 	var demo_route_core_label := map.get_node("DemoRoutePresentationLayer/DemoRouteCoreLabel") as Label
+	var focus_depth := map.get_node("DemoSceneFocusDepthLayer") as DemoSceneFocusDepthLayer
 	var base_deck := map.get_node("OpeningSceneLayer/BaseDeckFloor") as ColorRect
 	var base_upper_service_apron := map.get_node("OpeningSceneLayer/BaseUpperServiceApron") as ColorRect
 	var base_central_work_yard := map.get_node("OpeningSceneLayer/BaseCentralWorkYard") as ColorRect
@@ -175,6 +178,25 @@ func _check_opening_scene_layer() -> void:
 		true,
 		"opening scene camera lifts the starting base composition out of the lower HUD zone"
 	)
+	host._expect_equal(focus_depth != null, true, "opening scene focus depth layer exists")
+	if focus_depth != null:
+		focus_depth.refresh_focus_depth(player.position)
+		host._expect_equal(
+			focus_depth.get_scene_focus_alpha("RegionBase") >= 0.35
+				and focus_depth.get_scene_focus_alpha("RegionCrystal") >= 0.35
+				and focus_depth.get_scene_focus_alpha("RegionPollution") <= 0.1
+				and focus_depth.get_scene_focus_alpha("DemoRoutePresentationLayer/DemoRoutePollutionBand") <= 0.04,
+			true,
+			"opening scene focus depth keeps start and next region readable while muting distant pollution blocks"
+		)
+		focus_depth.refresh_focus_depth(crystal_cluster.position)
+		host._expect_equal(
+			focus_depth.get_scene_focus_alpha("RegionPollution") >= 0.35
+				and focus_depth.get_scene_focus_alpha("RegionRuinOuterRing") <= 0.1
+				and focus_depth.get_scene_focus_alpha("DemoRoutePresentationLayer/DemoRouteRuinBand") <= 0.04,
+			true,
+			"opening scene focus depth shifts emphasis to crystal and pollution without exposing the ruin flowchart"
+		)
 	host._expect_equal(
 		_is_rect_covering_position(main_route, player.position)
 			and _is_rect_covering_position(base_to_crystal_route, Vector2(-40.0, -42.0))
@@ -445,6 +467,17 @@ func _check_opening_scene_layer() -> void:
 		"opening scene final core retest objects stay inside playable bounds"
 	)
 	map.free()
+
+
+func _check_runtime_camera_focus() -> void:
+	var game_root := GameRootScript.new()
+	var camera_zoom := game_root.get_playtest_camera_zoom()
+	host._expect_equal(
+		camera_zoom.x > 1.75 and camera_zoom.y > 1.75,
+		true,
+		"runtime camera starts close enough to frame the current playable region"
+	)
+	game_root.free()
 
 
 func _is_rect_covering_position(rect: ColorRect, position: Vector2) -> bool:
@@ -741,6 +774,16 @@ func _check_hud_map_runtime_labels() -> void:
 	hud.update_status(host.data_registry, world, character)
 	host._expect_text_contains(hud.map_title_label.text, "基地整备", "first-hour minimap title names current S0 route beat")
 	host._expect_text_contains(hud.map_hint_label.text, "晶体采集", "first-hour minimap hint names next S0 route beat")
+	host._expect_text_contains(hud.vitals_label.text, "生命", "first-hour runtime status card keeps health visible")
+	host._expect_text_contains(hud.vitals_label.text, "防护", "first-hour runtime status card keeps protection visible")
+	host._expect_text_contains(hud.vitals_label.text, "补给", "first-hour runtime status card keeps quick supplies visible")
+	host._expect_text_contains(hud.vitals_label.text, "关键材料", "first-hour runtime status card keeps key materials visible")
+	host._expect_text_contains(hud.vitals_label.text, "设备", "first-hour runtime status card keeps device state visible")
+	host._expect_equal(
+		hud.vitals_label.text.split("\n").size() <= 4,
+		true,
+		"first-hour runtime status card stays within four short lines"
+	)
 	host._expect_text_missing(
 		hud.map_hint_label.text,
 		"前哨核心、基础反应器、出发整备台和出发口",
@@ -788,9 +831,9 @@ func _check_hud_map_runtime_labels() -> void:
 		"first-hour minimap markers start below hint text"
 	)
 	host._expect_equal(
-		hud.map_marker_labels[0].position.y != hud.map_marker_labels[1].position.y,
-		true,
-		"first-hour minimap marker labels use staggered lanes"
+		hud.map_marker_labels[1].visible,
+		false,
+		"first-hour minimap hides non-current plain labels in the compact route strip"
 	)
 	hud.free()
 	map.free()
@@ -802,26 +845,29 @@ func _check_hud_runtime_layout_first_pass() -> void:
 	hud._ensure_runtime_nodes()
 	hud._layout_runtime_panels(true)
 	var viewport_size := hud._get_runtime_viewport_size()
-	host._expect_equal(hud.map_panel.size.y <= 170.0, true, "HUD first pass keeps minimap within top-left HUD bounds")
+	host._expect_equal(hud.status_panel.position.y <= 20.0, true, "HUD first pass puts current objective in the top-left priority card")
+	host._expect_equal(hud.status_panel.size.y <= 136.0, true, "HUD first pass keeps current objective card compact")
+	host._expect_equal(hud.map_panel.position.y > hud.status_panel.position.y + hud.status_panel.size.y, true, "HUD first pass puts route strip below current objective")
+	host._expect_equal(hud.map_panel.size.y <= 110.0, true, "HUD first pass compacts minimap into a route strip")
 	host._expect_equal(
 		hud.map_marker_rects[0].position.y > hud.map_hint_label.position.y + hud.map_hint_label.size.y,
 		true,
 		"HUD first pass keeps minimap markers below hint text"
 	)
-	host._expect_equal(hud.status_panel.position.y > hud.map_panel.position.y + hud.map_panel.size.y, true, "HUD first pass stacks objective below minimap")
 	host._expect_equal(hud.status_panel.position.x <= 20.0, true, "HUD first pass keeps objective on the left edge")
-	host._expect_equal(hud.status_panel.size.y >= 178.0, true, "HUD first pass reserves room for current objective and next step")
-	host._expect_equal(hud.status_label.size.y >= 150.0, true, "HUD first pass keeps objective text from clipping the next step")
+	host._expect_equal(hud.status_label.size.y >= 104.0, true, "HUD first pass keeps objective text visible in the compact card")
 	host._expect_equal(hud.vitals_panel.position.x + hud.vitals_panel.size.x >= viewport_size.x - 20.0, true, "HUD first pass keeps vitals on the right edge")
-	host._expect_equal(hud.vitals_panel.size.y <= 118.0, true, "HUD first pass keeps vitals summary compact")
+	host._expect_equal(hud.vitals_panel.size.y <= 124.0, true, "HUD first pass keeps runtime status summary compact")
+	host._expect_equal(hud.vitals_label.size.y <= 96.0, true, "HUD first pass reserves only short status text in the right card")
 	host._expect_equal(hud.prompt_panel.position.x <= 20.0, true, "HUD first pass keeps prompt on the left bottom rail")
-	host._expect_equal(hud.prompt_panel.size.x <= 440.0, true, "HUD first pass keeps prompt from covering the scene center")
-	host._expect_equal(hud.prompt_panel.size.y <= 60.0, true, "HUD first pass lowers prompt height")
-	host._expect_equal(hud.log_panel.size.y >= 56.0, true, "HUD first pass reserves compact log text")
-	host._expect_equal(hud.log_panel.size.y <= 64.0, true, "HUD first pass keeps log rail compact")
-	host._expect_equal(hud.log_label.size.y >= 34.0, true, "HUD first pass keeps compact log text visible")
-	host._expect_equal(hud.map_panel.color.a <= 0.45, true, "HUD first pass lowers persistent panel opacity")
-	host._expect_equal(hud.prompt_panel.color.a <= 0.45, true, "HUD first pass lowers prompt panel opacity")
+	host._expect_equal(hud.prompt_panel.size.x <= 420.0, true, "HUD first pass keeps prompt from covering the scene center")
+	host._expect_equal(hud.prompt_panel.size.y <= 52.0, true, "HUD first pass lowers prompt height")
+	host._expect_equal(hud.log_panel.size.y >= 48.0, true, "HUD first pass reserves compact log text")
+	host._expect_equal(hud.log_panel.size.y <= 52.0, true, "HUD first pass keeps log rail compact")
+	host._expect_equal(hud.log_label.size.y >= 26.0, true, "HUD first pass keeps compact log text visible")
+	host._expect_equal(hud.map_panel.color.a <= 0.36, true, "HUD first pass lowers persistent panel opacity")
+	host._expect_equal(hud.prompt_panel.color.a <= 0.36, true, "HUD first pass lowers prompt panel opacity")
+	host._expect_equal(hud.map_marker_labels[1].visible, false, "HUD first pass hides non-current route labels")
 	host._expect_equal(hud.log_panel.position.x > hud.prompt_panel.position.x + hud.prompt_panel.size.x, true, "HUD first pass keeps log separate from prompt")
 	host._expect_equal(_controls_overlap(hud.completion_panel, hud.prompt_panel), false, "HUD first pass keeps quest feedback above prompt")
 	host._expect_equal(_controls_overlap(hud.device_panel, hud.evacuation_panel), false, "HUD first pass keeps device panel separate from evacuation feedback")

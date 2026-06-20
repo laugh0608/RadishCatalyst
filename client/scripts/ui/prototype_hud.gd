@@ -250,7 +250,7 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 	if status_label != null:
 		status_label.text = status_presenter.format_objective_text(data_registry, world_state, character_state)
 	if vitals_label != null:
-		vitals_label.text = status_presenter.format_vitals_text(data_registry, world_state, character_state)
+		vitals_label.text = status_presenter.format_runtime_vitals_text(data_registry, world_state, character_state)
 	_update_runtime_hint(world_state, character_state, active_quest_id)
 	_update_map_panel(world_state, active_quest_id, character_state)
 	last_quick_slots = debug_panel_presenter.update_quick_slot_binding_panel(
@@ -821,18 +821,18 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	last_viewport_size = viewport_size
 	var margin := 16.0
 	var gap := 10.0
-	var map_width := clampf(viewport_size.x * 0.18, 360.0, 460.0)
-	var map_height := 170.0
-	var objective_width := map_width
-	var objective_height := 178.0
-	var vitals_width := clampf(viewport_size.x * 0.16, 300.0, 380.0)
-	var vitals_height := 118.0
+	var objective_width := clampf(viewport_size.x * 0.2, 360.0, 430.0)
+	var objective_height := 132.0
+	var map_width := objective_width
+	var map_height := 104.0
+	var vitals_width := clampf(viewport_size.x * 0.18, 340.0, 420.0)
+	var vitals_height := 122.0
 	var combat_width := clampf(viewport_size.x * 0.21, 380.0, 500.0)
 	var combat_height := 164.0
-	var prompt_width := clampf(viewport_size.x * 0.2, 360.0, 440.0)
-	var prompt_height := 58.0
+	var prompt_width := clampf(viewport_size.x * 0.2, 340.0, 420.0)
+	var prompt_height := 50.0
 	var log_width := clampf(viewport_size.x * 0.2, 360.0, 440.0)
-	var log_height := 60.0
+	var log_height := 50.0
 	var device_width := clampf(viewport_size.x * 0.34, 520.0, 640.0)
 	var device_height := clampf(viewport_size.y * 0.52, 620.0, 760.0)
 	var feedback_width := clampf(viewport_size.x * 0.24, 460.0, 560.0)
@@ -851,8 +851,8 @@ func _layout_runtime_panels(force: bool = false) -> void:
 		var shifted_vitals_x := save_position.x - gap - vitals_width
 		vitals_x = maxf(margin + objective_width + gap, shifted_vitals_x)
 
-	_set_control_rect(map_panel, Vector2(margin, margin), Vector2(map_width, map_height))
-	_set_control_rect(status_panel, Vector2(margin, map_panel.position.y + map_panel.size.y + gap), Vector2(objective_width, objective_height))
+	_set_control_rect(status_panel, Vector2(margin, margin), Vector2(objective_width, objective_height))
+	_set_control_rect(map_panel, Vector2(margin, status_panel.position.y + status_panel.size.y + gap), Vector2(map_width, map_height))
 	if vitals_panel != null:
 		if not debug_panels_visible:
 			vitals_panel.visible = true
@@ -937,17 +937,17 @@ func _layout_map_panel_contents() -> void:
 		map_title_label.size = Vector2(maxf(0.0, map_panel.size.x - 28.0), 24.0)
 	if map_hint_label != null:
 		map_hint_label.position = Vector2(14.0, 38.0)
-		map_hint_label.size = Vector2(maxf(0.0, map_panel.size.x - 28.0), 48.0)
+		map_hint_label.size = Vector2(maxf(0.0, map_panel.size.x - 28.0), 30.0)
 
 	var marker_count := mini(map_marker_rects.size(), map_marker_labels.size())
 	if marker_count <= 0:
 		return
 
-	var marker_top := 104.0
-	var marker_size := Vector2(12.0, 14.0)
-	var primary_label_top := 126.0
-	var secondary_label_top := 146.0
-	var label_height := 20.0
+	var marker_top := 76.0
+	var marker_size := Vector2(10.0, 12.0)
+	var primary_label_top := 88.0
+	var secondary_label_top := 88.0
+	var label_height := 16.0
 	var left_margin := 18.0
 	var right_margin := 18.0
 	var usable_width := maxf(0.0, map_panel.size.x - left_margin - right_margin - marker_size.x)
@@ -975,6 +975,7 @@ func _layout_map_panel_contents() -> void:
 			maxf(4.0, map_panel.size.x - label_width - 4.0)
 		)
 		var label_top := primary_label_top if index % 2 == 0 else secondary_label_top
+		marker_label.visible = String(marker_label.text).find("\n") >= 0
 		marker_label.position = Vector2(label_x, label_top)
 		marker_label.size = Vector2(label_width, label_height)
 		_prepare_wrapped_label(marker_label)
@@ -989,8 +990,8 @@ func _layout_map_panel_contents() -> void:
 
 
 func _apply_runtime_panel_style() -> void:
-	var primary_color := Color(0.035, 0.054, 0.059, 0.42)
-	var floating_color := Color(0.035, 0.054, 0.059, 0.88)
+	var primary_color := Color(0.035, 0.054, 0.059, 0.34)
+	var floating_color := Color(0.035, 0.054, 0.059, 0.82)
 	for panel in [map_panel, status_panel, vitals_panel, combat_panel, prompt_panel, log_panel]:
 		if panel != null:
 			panel.color = primary_color
