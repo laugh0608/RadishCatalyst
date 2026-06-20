@@ -193,12 +193,29 @@ func _check_opening_scene_layer() -> void:
 		)
 		focus_depth.refresh_focus_depth(crystal_cluster.position)
 		host._expect_equal(
-			focus_depth.get_scene_focus_alpha("RegionPollution") <= 0.19
+			focus_depth.get_scene_focus_alpha("RegionCrystal") <= 0.09
+				and focus_depth.get_scene_focus_alpha("RegionPollution") <= 0.09
 				and focus_depth.get_scene_focus_alpha("RegionRuinOuterRing") <= 0.02
 				and focus_depth.get_scene_focus_alpha("DemoRoutePresentationLayer/DemoRouteRuinBand") <= 0.006
-				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/CrystalCentralFieldGround") <= 0.23,
+				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/CrystalCentralFieldGround") <= 0.06,
 			true,
 			"opening scene focus depth keeps crystal readable without bringing large field blocks back"
+		)
+		focus_depth.refresh_focus_depth(entry_residue.position)
+		host._expect_equal(
+			focus_depth.get_scene_focus_alpha("RegionPollution") <= 0.09
+				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/PollutionDangerField") <= 0.06
+				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/PollutionDeepResidueField") <= 0.06,
+			true,
+			"opening scene focus depth keeps pollution material blocks behind treatment visuals"
+		)
+		focus_depth.refresh_focus_depth(demo_core.position)
+		host._expect_equal(
+			focus_depth.get_scene_focus_alpha("RegionDemoStabilizationCore") <= 0.09
+				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/CoreStabilizationWritebackDeck") <= 0.06
+				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/CoreStabilizationLogisticsRetestYard") <= 0.06,
+			true,
+			"opening scene focus depth keeps core terminal old blocks behind station visuals"
 		)
 	host._expect_equal(
 		_is_rect_covering_position(main_route, player.position)

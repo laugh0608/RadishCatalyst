@@ -8,13 +8,16 @@ const ROLE_SALVAGE := "salvage"
 const ROLE_TERRAIN := "terrain"
 const FOCUS_VISIBLE_MIN_X := -80.0
 
-const FIELD_FRAME := Color(0.32, 0.58, 0.62, 0.32)
-const FIELD_FILL := Color(0.06, 0.12, 0.15, 0.08)
-const ORE_FACE_FILL := Color(0.06, 0.18, 0.2, 0.16)
-const ORE_FACE_LINE := Color(0.38, 0.78, 0.86, 0.42)
+const FIELD_FRAME := Color(0.32, 0.58, 0.62, 0.24)
+const FIELD_FILL := Color(0.06, 0.12, 0.15, 0.032)
+const ORE_FACE_FILL := Color(0.06, 0.18, 0.2, 0.055)
+const ORE_FACE_LINE := Color(0.38, 0.78, 0.86, 0.28)
 const CUT_SCARP_LINE := Color(0.72, 0.96, 1.0, 0.34)
 const CRYSTAL_LINE := Color(0.42, 0.88, 0.98, 0.78)
 const CRYSTAL_FILL := Color(0.25, 0.78, 0.95, 0.44)
+const MINE_ISLAND_FILL := Color(0.08, 0.22, 0.26, 0.16)
+const MINE_ISLAND_LINE := Color(0.56, 0.9, 0.98, 0.34)
+const DARK_CUT_CHANNEL := Color(0.01, 0.035, 0.045, 0.56)
 const ORE_CHIP_FILL := Color(0.16, 0.36, 0.42, 0.18)
 const ORE_CHIP_LINE := Color(0.54, 0.86, 0.94, 0.22)
 const MINE_BENCH_LINE := Color(0.68, 0.92, 0.96, 0.24)
@@ -148,6 +151,8 @@ func _draw_field_frame() -> void:
 
 func _draw_mining_material_surface() -> void:
 	_draw_harvest_face_floor()
+	_draw_mine_face_islands()
+	_draw_dark_cut_channels()
 	_draw_broken_ore_tiles()
 	_draw_rich_seam_ridges()
 	_draw_cut_scarps()
@@ -173,9 +178,63 @@ func _draw_harvest_face_floor() -> void:
 	draw_colored_polygon(face, ORE_FACE_FILL)
 	draw_polyline(face, ORE_FACE_LINE, 2.0, true)
 	for y in [-220.0, -194.0, -166.0, -136.0, -108.0]:
-		draw_line(Vector2(22.0, y), Vector2(204.0, y + 28.0), Color(ORE_FACE_LINE.r, ORE_FACE_LINE.g, ORE_FACE_LINE.b, 0.18), 1.2, true)
+		draw_line(Vector2(22.0, y), Vector2(204.0, y + 28.0), Color(ORE_FACE_LINE.r, ORE_FACE_LINE.g, ORE_FACE_LINE.b, 0.12), 1.0, true)
 	for point in [Vector2(44.0, -188.0), Vector2(86.0, -210.0), Vector2(138.0, -190.0), Vector2(184.0, -156.0)]:
 		draw_circle(point, 3.0, Color(0.74, 0.96, 1.0, 0.36))
+
+
+func _draw_mine_face_islands() -> void:
+	for island in [
+		[
+			Vector2(18.0, -216.0),
+			Vector2(66.0, -246.0),
+			Vector2(122.0, -232.0),
+			Vector2(104.0, -188.0),
+			Vector2(36.0, -184.0),
+			Vector2(18.0, -216.0)
+		],
+		[
+			Vector2(122.0, -220.0),
+			Vector2(178.0, -206.0),
+			Vector2(216.0, -168.0),
+			Vector2(188.0, -132.0),
+			Vector2(134.0, -150.0),
+			Vector2(122.0, -220.0)
+		],
+		[
+			Vector2(28.0, -134.0),
+			Vector2(90.0, -156.0),
+			Vector2(152.0, -126.0),
+			Vector2(132.0, -82.0),
+			Vector2(52.0, -90.0),
+			Vector2(28.0, -134.0)
+		],
+		[
+			Vector2(92.0, -56.0),
+			Vector2(160.0, -46.0),
+			Vector2(218.0, -4.0),
+			Vector2(178.0, 26.0),
+			Vector2(110.0, 0.0),
+			Vector2(92.0, -56.0)
+		]
+	]:
+		var polygon := PackedVector2Array(island)
+		draw_polyline(polygon, DARK_CUT_CHANNEL, 5.0, true)
+		draw_colored_polygon(polygon, MINE_ISLAND_FILL)
+		draw_polyline(polygon, MINE_ISLAND_LINE, 1.5, true)
+		var center := _polygon_center(polygon)
+		draw_line(center + Vector2(-20.0, -8.0), center + Vector2(24.0, 10.0), Color(MINE_ISLAND_LINE.r, MINE_ISLAND_LINE.g, MINE_ISLAND_LINE.b, 0.22), 1.0, true)
+
+
+func _draw_dark_cut_channels() -> void:
+	for channel in [
+		[Vector2(110.0, -236.0), Vector2(116.0, -178.0), Vector2(108.0, -124.0), Vector2(118.0, -72.0)],
+		[Vector2(22.0, -172.0), Vector2(76.0, -168.0), Vector2(144.0, -144.0), Vector2(212.0, -108.0)],
+		[Vector2(48.0, -80.0), Vector2(106.0, -62.0), Vector2(174.0, -32.0), Vector2(216.0, 4.0)]
+	]:
+		var points := PackedVector2Array(channel)
+		draw_polyline(points, DARK_CUT_CHANNEL, 6.0, true)
+		draw_polyline(points, Color(0.42, 0.74, 0.82, 0.14), 1.2, true)
 
 
 func _draw_broken_ore_tiles() -> void:
@@ -405,6 +464,16 @@ func _draw_flow(points: Array[Vector2], color: Color, width: float) -> void:
 	draw_polyline(PackedVector2Array(points), color, width, true)
 
 
+func _polygon_center(points: PackedVector2Array) -> Vector2:
+	var sum := Vector2.ZERO
+	var count := points.size() - 1
+	if count < 1:
+		count = 1
+	for index in range(count):
+		sum += points[index]
+	return sum / float(count)
+
+
 func _register_resource_shapes() -> void:
 	resource_shape_ids = [
 		"crystal.main_vein",
@@ -431,6 +500,8 @@ func _register_flow_shapes() -> void:
 func _register_terrain_material_shapes() -> void:
 	terrain_material_shape_ids = [
 		"terrain.crystal.harvest_face",
+		"terrain.crystal.mine_face_islands",
+		"terrain.crystal.dark_cut_channels",
 		"terrain.crystal.fractured_ore_tiles",
 		"terrain.crystal.rich_seam_ridges",
 		"terrain.crystal.cut_scarps",
@@ -446,7 +517,7 @@ func _register_terrain_material_shapes() -> void:
 func _deemphasize_legacy_crystal_blocks() -> void:
 	var region := _get_map_node("RegionCrystal") as ColorRect
 	if region != null:
-		region.color = Color(0.05, 0.09, 0.12, 0.34)
+		region.color = Color(0.05, 0.09, 0.12, 0.18)
 	var demo_route_band := _get_map_node("DemoRoutePresentationLayer/DemoRouteCrystalBand") as ColorRect
 	if demo_route_band != null:
 		demo_route_band.color = Color(demo_route_band.color.r, demo_route_band.color.g, demo_route_band.color.b, 0.035)
@@ -455,10 +526,10 @@ func _deemphasize_legacy_crystal_blocks() -> void:
 		route_label.visible = false
 	var base_route := _get_map_node("BaseToCrystalRouteBand") as ColorRect
 	if base_route != null:
-		base_route.color.a = minf(base_route.color.a, 0.12)
+		base_route.color.a = minf(base_route.color.a, 0.08)
 	var pollution_route := _get_map_node("CrystalToPollutionRouteBand") as ColorRect
 	if pollution_route != null:
-		pollution_route.color.a = minf(pollution_route.color.a, 0.1)
+		pollution_route.color.a = minf(pollution_route.color.a, 0.055)
 
 	var layer := _get_map_node("OpeningSceneLayer")
 	if layer == null:
@@ -466,11 +537,11 @@ func _deemphasize_legacy_crystal_blocks() -> void:
 	for node_name in LEGACY_CRYSTAL_PANELS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
-			rect.color.a = minf(rect.color.a, 0.065)
+			rect.color.a = minf(rect.color.a, 0.04)
 	for node_name in LEGACY_CRYSTAL_MARKERS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
-			rect.color.a = minf(rect.color.a, 0.055)
+			rect.color.a = minf(rect.color.a, 0.035)
 
 
 func _mute_crystal_identity_blocks() -> void:

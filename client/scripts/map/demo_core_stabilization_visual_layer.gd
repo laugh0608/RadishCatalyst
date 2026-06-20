@@ -9,12 +9,12 @@ const ROLE_RETEST := "retest"
 const ROLE_LOGISTICS := "logistics"
 const FOCUS_VISIBLE_MIN_X := 3300.0
 
-const STATION_FILL := Color(0.07, 0.14, 0.15, 0.14)
+const STATION_FILL := Color(0.07, 0.14, 0.15, 0.07)
 const STATION_FRAME := Color(0.42, 0.76, 0.72, 0.38)
 const APPROACH_LINE := Color(0.48, 0.9, 0.82, 0.74)
 const RECOVERY_LINE := Color(0.68, 0.9, 0.5, 0.76)
 const GUARD_LINE := Color(0.95, 0.42, 0.24, 0.82)
-const GUARD_FILL := Color(0.42, 0.12, 0.08, 0.12)
+const GUARD_FILL := Color(0.42, 0.12, 0.08, 0.08)
 const WRITEBACK_LINE := Color(0.9, 0.72, 0.28, 0.78)
 const CORE_LIGHT := Color(0.34, 0.96, 0.9, 0.9)
 const RETEST_LINE := Color(0.56, 0.86, 0.96, 0.78)
@@ -23,6 +23,7 @@ const RETURN_LINE := Color(0.62, 0.9, 0.66, 0.68)
 const PRESSURE_LINE := Color(0.96, 0.36, 0.18, 0.74)
 const WORKFACE_LINE := Color(0.62, 0.86, 0.78, 0.42)
 const SERVICE_DECK_FILL := Color(0.08, 0.18, 0.17, 0.18)
+const LOCAL_PAD_FILL := Color(0.08, 0.2, 0.19, 0.12)
 
 const LEGACY_CORE_PANELS := [
 	"CoreStabilizationArrivalYard",
@@ -150,10 +151,10 @@ func _draw_station_surfaces() -> void:
 	var station_rect := Rect2(Vector2(3648.0, -224.0), Vector2(610.0, 404.0))
 	draw_rect(station_rect, STATION_FILL, true)
 	draw_rect(station_rect, STATION_FRAME, false, 2.0, true)
-	draw_rect(Rect2(Vector2(3660.0, -146.0), Vector2(150.0, 250.0)), Color(0.08, 0.2, 0.2, 0.14), true)
+	draw_rect(Rect2(Vector2(3660.0, -146.0), Vector2(150.0, 250.0)), Color(0.08, 0.2, 0.2, 0.08), true)
 	draw_rect(Rect2(Vector2(3810.0, -154.0), Vector2(166.0, 228.0)), GUARD_FILL, true)
-	draw_rect(Rect2(Vector2(3978.0, -144.0), Vector2(136.0, 188.0)), Color(0.08, 0.24, 0.22, 0.16), true)
-	draw_rect(Rect2(Vector2(4114.0, -102.0), Vector2(140.0, 196.0)), Color(0.08, 0.2, 0.22, 0.12), true)
+	draw_rect(Rect2(Vector2(3978.0, -144.0), Vector2(136.0, 188.0)), Color(0.08, 0.24, 0.22, 0.08), true)
+	draw_rect(Rect2(Vector2(4114.0, -102.0), Vector2(140.0, 196.0)), Color(0.08, 0.2, 0.22, 0.055), true)
 	for y in [-188.0, -112.0, -36.0, 42.0, 122.0]:
 		draw_line(Vector2(3660.0, y), Vector2(4246.0, y), Color(0.34, 0.56, 0.54, 0.16), 1.2, true)
 	for x in [3778.0, 3936.0, 4088.0, 4196.0]:
@@ -164,6 +165,9 @@ func _draw_station_workface_details() -> void:
 	_draw_service_deck(Rect2(Vector2(3690.0, -66.0), Vector2(126.0, 98.0)))
 	_draw_service_deck(Rect2(Vector2(3908.0, -104.0), Vector2(118.0, 86.0)))
 	_draw_service_deck(Rect2(Vector2(4058.0, 26.0), Vector2(102.0, 72.0)))
+	_draw_writeback_service_ring()
+	_draw_retest_reader_bank()
+	_draw_output_bus_nodes()
 	for route in [
 		[Vector2(3714.0, -24.0), Vector2(3796.0, -8.0), Vector2(3886.0, 18.0)],
 		[Vector2(3894.0, -70.0), Vector2(3998.0, -34.0), Vector2(4088.0, 34.0)],
@@ -183,6 +187,46 @@ func _draw_service_deck(rect: Rect2) -> void:
 	while x < rect.position.x + rect.size.x - 8.0:
 		draw_line(Vector2(x, rect.position.y + 8.0), Vector2(x + 16.0, rect.position.y + rect.size.y - 8.0), Color(WORKFACE_LINE.r, WORKFACE_LINE.g, WORKFACE_LINE.b, 0.14), 1.0, true)
 		x += 28.0
+
+
+func _draw_writeback_service_ring() -> void:
+	var center := Vector2(4038.0, -24.0)
+	for radius in [54.0, 74.0]:
+		draw_arc(center, radius, PI * 0.1, PI * 1.85, 48, Color(CORE_LIGHT.r, CORE_LIGHT.g, CORE_LIGHT.b, 0.22), 1.5, true)
+	for angle in [PI * 0.15, PI * 0.62, PI * 1.12, PI * 1.58]:
+		var outer := center + Vector2(cos(angle), sin(angle)) * 78.0
+		var inner := center + Vector2(cos(angle), sin(angle)) * 48.0
+		draw_line(inner, outer, Color(CORE_LIGHT.r, CORE_LIGHT.g, CORE_LIGHT.b, 0.28), 1.3, true)
+	for pad in [
+		Rect2(Vector2(3978.0, -112.0), Vector2(42.0, 22.0)),
+		Rect2(Vector2(4072.0, -96.0), Vector2(34.0, 26.0)),
+		Rect2(Vector2(4082.0, 28.0), Vector2(42.0, 24.0)),
+		Rect2(Vector2(3970.0, 42.0), Vector2(38.0, 22.0))
+	]:
+		draw_rect(pad, LOCAL_PAD_FILL, true)
+		draw_rect(pad, Color(CORE_LIGHT.r, CORE_LIGHT.g, CORE_LIGHT.b, 0.22), false, 1.0, true)
+
+
+func _draw_retest_reader_bank() -> void:
+	for rect in [
+		Rect2(Vector2(4132.0, 30.0), Vector2(32.0, 26.0)),
+		Rect2(Vector2(4174.0, 24.0), Vector2(36.0, 28.0)),
+		Rect2(Vector2(4214.0, -44.0), Vector2(28.0, 34.0))
+	]:
+		draw_rect(rect, Color(0.07, 0.16, 0.18, 0.18), true)
+		draw_rect(rect, Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, 0.32), false, 1.0, true)
+		draw_line(rect.position + Vector2(6.0, rect.size.y * 0.5), rect.position + Vector2(rect.size.x - 6.0, rect.size.y * 0.5), Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, 0.28), 1.0, true)
+
+
+func _draw_output_bus_nodes() -> void:
+	for route in [
+		[Vector2(4038.0, -24.0), Vector2(4114.0, -38.0), Vector2(4228.0, -52.0)],
+		[Vector2(4038.0, -24.0), Vector2(4118.0, 18.0), Vector2(4134.0, 78.0)]
+	]:
+		draw_polyline(PackedVector2Array(route), Color(0.02, 0.04, 0.04, 0.38), 5.0, true)
+		draw_polyline(PackedVector2Array(route), Color(WRITEBACK_LINE.r, WRITEBACK_LINE.g, WRITEBACK_LINE.b, 0.26), 1.4, true)
+	for point in [Vector2(4114.0, -38.0), Vector2(4228.0, -52.0), Vector2(4118.0, 18.0), Vector2(4134.0, 78.0)]:
+		draw_circle(point, 5.0, Color(WRITEBACK_LINE.r, WRITEBACK_LINE.g, WRITEBACK_LINE.b, 0.26))
 
 
 func _draw_station_routes() -> void:
@@ -268,13 +312,16 @@ func _register_station_shapes() -> void:
 	station_shape_ids = [
 		"station.arrival_threshold",
 		"station.central_maintenance_deck",
+		"station.writeback_service_ring",
 		"station.recovery_supply",
 		"station.guard_pressure_field",
 		"station.writeback_device",
 		"station.guard_cache",
 		"station.retest_readout",
+		"station.retest_reader_bank",
 		"station.logistics_retest_pocket",
 		"station.energy_confluence_nodes",
+		"station.output_bus_nodes",
 		"station.return_service_lane"
 	]
 
@@ -294,10 +341,10 @@ func _deemphasize_legacy_core_blocks() -> void:
 	muted_legacy_block_count = 0
 	var region := _get_map_node("RegionDemoStabilizationCore") as ColorRect
 	if region != null:
-		region.color = Color(0.06, 0.12, 0.12, 0.24)
+		region.color = Color(0.06, 0.12, 0.12, 0.09)
 	var route_band := _get_map_node("DemoRoutePresentationLayer/DemoRouteCoreBand") as ColorRect
 	if route_band != null:
-		route_band.color.a = minf(route_band.color.a, 0.1)
+		route_band.color = Color(route_band.color.r, route_band.color.g, route_band.color.b, minf(route_band.color.a, 0.035))
 	var route_label := _get_map_node("DemoRoutePresentationLayer/DemoRouteCoreLabel") as Label
 	if route_label != null:
 		route_label.visible = false
@@ -310,12 +357,12 @@ func _deemphasize_legacy_core_blocks() -> void:
 		for node_name in LEGACY_CORE_PANELS:
 			var rect := opening_layer.get_node_or_null(String(node_name)) as ColorRect
 			if rect != null:
-				rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.06))
+				rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.035))
 				muted_legacy_block_count += 1
 		for node_name in LEGACY_CORE_MARKERS:
 			var rect := opening_layer.get_node_or_null(String(node_name)) as ColorRect
 			if rect != null:
-				rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.03))
+				rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.02))
 				muted_legacy_block_count += 1
 		var pressure_label := opening_layer.get_node_or_null("CoreStabilizationPressureLabel") as Label
 		if pressure_label != null:
@@ -326,7 +373,7 @@ func _deemphasize_legacy_core_blocks() -> void:
 		for node_name in RUN_LAYER_BLOCKS:
 			var rect := run_layer.get_node_or_null(String(node_name)) as ColorRect
 			if rect != null:
-				rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.045))
+				rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.03))
 				muted_legacy_block_count += 1
 
 

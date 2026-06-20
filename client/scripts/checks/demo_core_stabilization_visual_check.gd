@@ -35,14 +35,17 @@ func _check_core_visual_layer_exists_and_registers_station_shapes() -> void:
 		return
 
 	layer.apply_visuals()
-	_expect_equal(layer.get_station_shape_count() >= 10, true, "core visual layer registers terminal station shapes")
+	_expect_equal(layer.get_station_shape_count() >= 13, true, "core visual layer registers terminal station shapes")
 	_expect_equal(layer.get_flow_count() >= 6, true, "core visual layer registers terminal station flows")
 	_expect_equal(layer.has_station_shape("station.arrival_threshold"), true, "core visual layer marks arrival threshold")
 	_expect_equal(layer.has_station_shape("station.central_maintenance_deck"), true, "core visual layer marks central maintenance deck")
+	_expect_equal(layer.has_station_shape("station.writeback_service_ring"), true, "core visual layer marks writeback service ring")
 	_expect_equal(layer.has_station_shape("station.guard_pressure_field"), true, "core visual layer marks guard pressure field")
 	_expect_equal(layer.has_station_shape("station.writeback_device"), true, "core visual layer marks writeback device")
 	_expect_equal(layer.has_station_shape("station.energy_confluence_nodes"), true, "core visual layer marks energy confluence nodes")
 	_expect_equal(layer.has_station_shape("station.retest_readout"), true, "core visual layer marks retest readout")
+	_expect_equal(layer.has_station_shape("station.retest_reader_bank"), true, "core visual layer marks retest reader bank")
+	_expect_equal(layer.has_station_shape("station.output_bus_nodes"), true, "core visual layer marks output bus nodes")
 	_expect_equal(layer.has_flow_shape("flow.guard_cache_to_core"), true, "core visual layer marks guard cache to core route")
 	_expect_equal(layer.has_flow_shape("flow.core_return_to_base"), true, "core visual layer marks return logistics route")
 	map.free()
@@ -73,12 +76,14 @@ func _check_core_visual_layer_replaces_old_terminal_blocks() -> void:
 	var old_guard := map.get_node("OpeningSceneLayer/CoreStabilizationGuardPressureZone") as ColorRect
 	var old_core_pad := map.get_node("OpeningSceneLayer/CoreStabilizationCorePad") as ColorRect
 	var run_write_pad := map.get_node("CoreStabilizationRunLayer/CoreRunWritePad") as ColorRect
+	var route_band := map.get_node("DemoRoutePresentationLayer/DemoRouteCoreBand") as ColorRect
 	var pressure_label := map.get_node("OpeningSceneLayer/CoreStabilizationPressureLabel") as Label
 	var route_label := map.get_node("DemoRoutePresentationLayer/DemoRouteCoreLabel") as Label
 	var core_interactable := map.get_node("Interactables/DemoStabilizationCore") as PrototypeInteractable
-	_expect_equal(old_guard.color.a <= 0.07, true, "old core guard field no longer dominates")
-	_expect_equal(old_core_pad.color.a <= 0.035, true, "old core pad marker no longer dominates")
-	_expect_equal(run_write_pad.color.a <= 0.05, true, "old run layer write pad no longer dominates")
+	_expect_equal(old_guard.color.a <= 0.04, true, "old core guard field no longer dominates")
+	_expect_equal(old_core_pad.color.a <= 0.025, true, "old core pad marker no longer dominates")
+	_expect_equal(run_write_pad.color.a <= 0.035, true, "old run layer write pad no longer dominates")
+	_expect_equal(route_band.color.a <= 0.04, true, "old core route band no longer dominates")
 	_expect_equal(pressure_label.visible, false, "old core pressure long label hidden")
 	_expect_equal(route_label.visible, false, "old core route label hidden")
 	_expect_equal(_get_marker_alpha(core_interactable) <= 0.08, true, "core interactable marker is muted")

@@ -1,21 +1,26 @@
 extends Node2D
 class_name DemoSceneFocusDepthLayer
 
-const NEAR_REGION_ALPHA := 0.18
-const DISTANT_REGION_ALPHA := 0.018
-const NEAR_ROUTE_ALPHA := 0.035
+const NEAR_BASE_REGION_ALPHA := 0.18
+const NEAR_EXPEDITION_REGION_ALPHA := 0.085
+const DISTANT_REGION_ALPHA := 0.012
+const NEAR_BASE_ROUTE_ALPHA := 0.035
+const NEAR_EXPEDITION_ROUTE_ALPHA := 0.018
 const DISTANT_ROUTE_ALPHA := 0.004
 const NEAR_BOUNDARY_ALPHA := 0.3
 const DISTANT_BOUNDARY_ALPHA := 0.035
-const NEAR_SCENE_GROUND_ALPHA := 0.22
+const NEAR_BASE_SCENE_GROUND_ALPHA := 0.22
+const NEAR_EXPEDITION_SCENE_GROUND_ALPHA := 0.052
 const DISTANT_SCENE_GROUND_ALPHA := 0.006
 const REGION_FOCUS_DISTANCE := 260.0
 const ROUTE_FOCUS_DISTANCE := 120.0
 const BOUNDARY_FOCUS_DISTANCE := 260.0
 const SCENE_GROUND_FOCUS_DISTANCE := 140.0
 
-const REGION_RECT_PATHS := [
-	"RegionBase",
+const BASE_REGION_RECT_PATHS := [
+	"RegionBase"
+]
+const EXPEDITION_REGION_RECT_PATHS := [
 	"RegionCrystal",
 	"RegionPollution",
 	"RegionRuinOuterRing",
@@ -28,11 +33,13 @@ const REGION_RECT_PATHS := [
 	"RegionPhaseWellTether",
 	"RegionDemoStabilizationCore"
 ]
-const ROUTE_RECT_PATHS := [
+const BASE_ROUTE_RECT_PATHS := [
 	"MainRouteSpine",
 	"BaseToCrystalRouteBand",
+	"DemoRoutePresentationLayer/DemoRouteBaseBand"
+]
+const EXPEDITION_ROUTE_RECT_PATHS := [
 	"CrystalToPollutionRouteBand",
-	"DemoRoutePresentationLayer/DemoRouteBaseBand",
 	"DemoRoutePresentationLayer/DemoRouteCrystalBand",
 	"DemoRoutePresentationLayer/DemoRoutePollutionBand",
 	"DemoRoutePresentationLayer/DemoRouteRuinBand",
@@ -44,13 +51,15 @@ const BOUNDARY_RECT_PATHS := [
 	"RegionBoundaryPollution",
 	"RegionBoundaryRuin"
 ]
-const SCENE_GROUND_RECT_PATHS := [
+const BASE_SCENE_GROUND_RECT_PATHS := [
 	"OpeningSceneLayer/BaseDeckFloor",
 	"OpeningSceneLayer/BaseUpperServiceApron",
 	"OpeningSceneLayer/BaseCentralWorkYard",
 	"OpeningSceneLayer/BaseLowerLogisticsYard",
 	"OpeningSceneLayer/BaseDepartureCauseway",
-	"OpeningSceneLayer/BaseExitLane",
+	"OpeningSceneLayer/BaseExitLane"
+]
+const EXPEDITION_SCENE_GROUND_RECT_PATHS := [
 	"OpeningSceneLayer/CrystalEntryGround",
 	"OpeningSceneLayer/CrystalNorthRidgeGround",
 	"OpeningSceneLayer/CrystalCentralFieldGround",
@@ -81,14 +90,23 @@ func _process(_delta: float) -> void:
 
 
 func refresh_focus_depth(focus_position: Vector2) -> void:
-	_apply_focus_alpha(REGION_RECT_PATHS, focus_position, REGION_FOCUS_DISTANCE, NEAR_REGION_ALPHA, DISTANT_REGION_ALPHA)
-	_apply_focus_alpha(ROUTE_RECT_PATHS, focus_position, ROUTE_FOCUS_DISTANCE, NEAR_ROUTE_ALPHA, DISTANT_ROUTE_ALPHA)
+	_apply_focus_alpha(BASE_REGION_RECT_PATHS, focus_position, REGION_FOCUS_DISTANCE, NEAR_BASE_REGION_ALPHA, DISTANT_REGION_ALPHA)
+	_apply_focus_alpha(EXPEDITION_REGION_RECT_PATHS, focus_position, REGION_FOCUS_DISTANCE, NEAR_EXPEDITION_REGION_ALPHA, DISTANT_REGION_ALPHA)
+	_apply_focus_alpha(BASE_ROUTE_RECT_PATHS, focus_position, ROUTE_FOCUS_DISTANCE, NEAR_BASE_ROUTE_ALPHA, DISTANT_ROUTE_ALPHA)
+	_apply_focus_alpha(EXPEDITION_ROUTE_RECT_PATHS, focus_position, ROUTE_FOCUS_DISTANCE, NEAR_EXPEDITION_ROUTE_ALPHA, DISTANT_ROUTE_ALPHA)
 	_apply_focus_alpha(BOUNDARY_RECT_PATHS, focus_position, BOUNDARY_FOCUS_DISTANCE, NEAR_BOUNDARY_ALPHA, DISTANT_BOUNDARY_ALPHA)
 	_apply_focus_alpha(
-		SCENE_GROUND_RECT_PATHS,
+		BASE_SCENE_GROUND_RECT_PATHS,
 		focus_position,
 		SCENE_GROUND_FOCUS_DISTANCE,
-		NEAR_SCENE_GROUND_ALPHA,
+		NEAR_BASE_SCENE_GROUND_ALPHA,
+		DISTANT_SCENE_GROUND_ALPHA
+	)
+	_apply_focus_alpha(
+		EXPEDITION_SCENE_GROUND_RECT_PATHS,
+		focus_position,
+		SCENE_GROUND_FOCUS_DISTANCE,
+		NEAR_EXPEDITION_SCENE_GROUND_ALPHA,
 		DISTANT_SCENE_GROUND_ALPHA
 	)
 
