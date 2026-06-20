@@ -9,18 +9,20 @@ const ROLE_RETEST := "retest"
 const ROLE_LOGISTICS := "logistics"
 const FOCUS_VISIBLE_MIN_X := 3300.0
 
-const STATION_FILL := Color(0.07, 0.14, 0.15, 0.2)
+const STATION_FILL := Color(0.07, 0.14, 0.15, 0.14)
 const STATION_FRAME := Color(0.42, 0.76, 0.72, 0.38)
 const APPROACH_LINE := Color(0.48, 0.9, 0.82, 0.74)
 const RECOVERY_LINE := Color(0.68, 0.9, 0.5, 0.76)
 const GUARD_LINE := Color(0.95, 0.42, 0.24, 0.82)
-const GUARD_FILL := Color(0.42, 0.12, 0.08, 0.18)
+const GUARD_FILL := Color(0.42, 0.12, 0.08, 0.12)
 const WRITEBACK_LINE := Color(0.9, 0.72, 0.28, 0.78)
 const CORE_LIGHT := Color(0.34, 0.96, 0.9, 0.9)
 const RETEST_LINE := Color(0.56, 0.86, 0.96, 0.78)
 const LOGISTICS_LINE := Color(0.74, 0.82, 0.34, 0.72)
 const RETURN_LINE := Color(0.62, 0.9, 0.66, 0.68)
 const PRESSURE_LINE := Color(0.96, 0.36, 0.18, 0.74)
+const WORKFACE_LINE := Color(0.62, 0.86, 0.78, 0.42)
+const SERVICE_DECK_FILL := Color(0.08, 0.18, 0.17, 0.18)
 
 const LEGACY_CORE_PANELS := [
 	"CoreStabilizationArrivalYard",
@@ -136,6 +138,7 @@ func refresh_focus_visibility(player_position: Vector2) -> void:
 
 func _draw() -> void:
 	_draw_station_surfaces()
+	_draw_station_workface_details()
 	_draw_station_routes()
 	_draw_recovery_supply()
 	_draw_guard_field()
@@ -147,14 +150,39 @@ func _draw_station_surfaces() -> void:
 	var station_rect := Rect2(Vector2(3648.0, -224.0), Vector2(610.0, 404.0))
 	draw_rect(station_rect, STATION_FILL, true)
 	draw_rect(station_rect, STATION_FRAME, false, 2.0, true)
-	draw_rect(Rect2(Vector2(3660.0, -146.0), Vector2(150.0, 250.0)), Color(0.08, 0.2, 0.2, 0.22), true)
+	draw_rect(Rect2(Vector2(3660.0, -146.0), Vector2(150.0, 250.0)), Color(0.08, 0.2, 0.2, 0.14), true)
 	draw_rect(Rect2(Vector2(3810.0, -154.0), Vector2(166.0, 228.0)), GUARD_FILL, true)
-	draw_rect(Rect2(Vector2(3978.0, -144.0), Vector2(136.0, 188.0)), Color(0.08, 0.24, 0.22, 0.24), true)
-	draw_rect(Rect2(Vector2(4114.0, -102.0), Vector2(140.0, 196.0)), Color(0.08, 0.2, 0.22, 0.2), true)
+	draw_rect(Rect2(Vector2(3978.0, -144.0), Vector2(136.0, 188.0)), Color(0.08, 0.24, 0.22, 0.16), true)
+	draw_rect(Rect2(Vector2(4114.0, -102.0), Vector2(140.0, 196.0)), Color(0.08, 0.2, 0.22, 0.12), true)
 	for y in [-188.0, -112.0, -36.0, 42.0, 122.0]:
 		draw_line(Vector2(3660.0, y), Vector2(4246.0, y), Color(0.34, 0.56, 0.54, 0.16), 1.2, true)
 	for x in [3778.0, 3936.0, 4088.0, 4196.0]:
 		draw_line(Vector2(x, -210.0), Vector2(x, 168.0), Color(0.34, 0.56, 0.54, 0.14), 1.2, true)
+
+
+func _draw_station_workface_details() -> void:
+	_draw_service_deck(Rect2(Vector2(3690.0, -66.0), Vector2(126.0, 98.0)))
+	_draw_service_deck(Rect2(Vector2(3908.0, -104.0), Vector2(118.0, 86.0)))
+	_draw_service_deck(Rect2(Vector2(4058.0, 26.0), Vector2(102.0, 72.0)))
+	for route in [
+		[Vector2(3714.0, -24.0), Vector2(3796.0, -8.0), Vector2(3886.0, 18.0)],
+		[Vector2(3894.0, -70.0), Vector2(3998.0, -34.0), Vector2(4088.0, 34.0)],
+		[Vector2(3714.0, 82.0), Vector2(3838.0, 52.0), Vector2(3956.0, 66.0)]
+	]:
+		draw_polyline(PackedVector2Array(route), Color(0.02, 0.04, 0.04, 0.4), 5.0, true)
+		draw_polyline(PackedVector2Array(route), WORKFACE_LINE, 1.6, true)
+	for point in [Vector2(3796.0, -8.0), Vector2(3886.0, 18.0), Vector2(3998.0, -34.0), Vector2(4088.0, 34.0), Vector2(3838.0, 52.0)]:
+		draw_circle(point, 6.0, Color(WORKFACE_LINE.r, WORKFACE_LINE.g, WORKFACE_LINE.b, 0.26))
+		draw_arc(point, 12.0, 0.0, TAU, 24, Color(WORKFACE_LINE.r, WORKFACE_LINE.g, WORKFACE_LINE.b, 0.22), 1.1, true)
+
+
+func _draw_service_deck(rect: Rect2) -> void:
+	draw_rect(rect, SERVICE_DECK_FILL, true)
+	draw_rect(rect, WORKFACE_LINE, false, 1.2, true)
+	var x := rect.position.x + 14.0
+	while x < rect.position.x + rect.size.x - 8.0:
+		draw_line(Vector2(x, rect.position.y + 8.0), Vector2(x + 16.0, rect.position.y + rect.size.y - 8.0), Color(WORKFACE_LINE.r, WORKFACE_LINE.g, WORKFACE_LINE.b, 0.14), 1.0, true)
+		x += 28.0
 
 
 func _draw_station_routes() -> void:
@@ -239,12 +267,14 @@ func _draw_route(points: Array[Vector2], color: Color, width: float) -> void:
 func _register_station_shapes() -> void:
 	station_shape_ids = [
 		"station.arrival_threshold",
+		"station.central_maintenance_deck",
 		"station.recovery_supply",
 		"station.guard_pressure_field",
 		"station.writeback_device",
 		"station.guard_cache",
 		"station.retest_readout",
 		"station.logistics_retest_pocket",
+		"station.energy_confluence_nodes",
 		"station.return_service_lane"
 	]
 
@@ -264,7 +294,7 @@ func _deemphasize_legacy_core_blocks() -> void:
 	muted_legacy_block_count = 0
 	var region := _get_map_node("RegionDemoStabilizationCore") as ColorRect
 	if region != null:
-		region.color = Color(0.08, 0.16, 0.16, 0.66)
+		region.color = Color(0.06, 0.12, 0.12, 0.24)
 	var route_band := _get_map_node("DemoRoutePresentationLayer/DemoRouteCoreBand") as ColorRect
 	if route_band != null:
 		route_band.color.a = minf(route_band.color.a, 0.1)
@@ -280,12 +310,12 @@ func _deemphasize_legacy_core_blocks() -> void:
 		for node_name in LEGACY_CORE_PANELS:
 			var rect := opening_layer.get_node_or_null(String(node_name)) as ColorRect
 			if rect != null:
-				rect.color.a = minf(rect.color.a, 0.11)
+				rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.06))
 				muted_legacy_block_count += 1
 		for node_name in LEGACY_CORE_MARKERS:
 			var rect := opening_layer.get_node_or_null(String(node_name)) as ColorRect
 			if rect != null:
-				rect.color.a = minf(rect.color.a, 0.05)
+				rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.03))
 				muted_legacy_block_count += 1
 		var pressure_label := opening_layer.get_node_or_null("CoreStabilizationPressureLabel") as Label
 		if pressure_label != null:
@@ -296,7 +326,7 @@ func _deemphasize_legacy_core_blocks() -> void:
 		for node_name in RUN_LAYER_BLOCKS:
 			var rect := run_layer.get_node_or_null(String(node_name)) as ColorRect
 			if rect != null:
-				rect.color.a = minf(rect.color.a, 0.08)
+				rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.045))
 				muted_legacy_block_count += 1
 
 

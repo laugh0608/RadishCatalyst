@@ -9,21 +9,21 @@ const ROLE_PRESSURE_GATE := "pressure_gate"
 const ROLE_TERRAIN := "terrain"
 const FOCUS_VISIBLE_MIN_X := 180.0
 
-const FIELD_FILL := Color(0.08, 0.1, 0.06, 0.075)
+const FIELD_FILL := Color(0.08, 0.1, 0.06, 0.045)
 const FIELD_LINE := Color(0.72, 0.72, 0.3, 0.2)
-const SEDIMENT_FILL := Color(0.42, 0.36, 0.1, 0.16)
+const SEDIMENT_FILL := Color(0.42, 0.36, 0.1, 0.12)
 const SEDIMENT_LINE := Color(0.86, 0.72, 0.22, 0.34)
 const BUND_LINE := Color(0.94, 0.58, 0.22, 0.46)
 const GRAVEL_FILL := Color(0.16, 0.2, 0.14, 0.24)
 const GRAVEL_LINE := Color(0.66, 0.74, 0.52, 0.34)
-const CONSTRUCTION_FILL := Color(0.13, 0.18, 0.13, 0.16)
+const CONSTRUCTION_FILL := Color(0.13, 0.18, 0.13, 0.09)
 const CONSTRUCTION_LINE := Color(0.62, 0.72, 0.54, 0.52)
 const FILTER_LINE := Color(0.86, 0.94, 0.34, 0.94)
 const FILTER_FILL := Color(0.22, 0.3, 0.1, 0.34)
 const RESIDUE_LINE := Color(0.86, 0.72, 0.22, 0.74)
 const RESIDUE_FILL := Color(0.5, 0.4, 0.08, 0.2)
 const DANGER_LINE := Color(0.94, 0.46, 0.18, 0.74)
-const DANGER_FILL := Color(0.42, 0.16, 0.06, 0.07)
+const DANGER_FILL := Color(0.42, 0.16, 0.06, 0.035)
 const ROUTE_TO_FILTER := Color(0.88, 0.7, 0.26, 0.48)
 const ROUTE_TO_BASE := Color(0.66, 0.86, 0.52, 0.46)
 const SLURRY_ROUTE := Color(0.78, 0.42, 0.18, 0.36)
@@ -264,11 +264,15 @@ func _draw_boundary_field() -> void:
 
 func _draw_pollution_material_surface() -> void:
 	_draw_sediment_fans()
+	_draw_segmented_settling_cells()
 	_draw_settling_layers()
 	_draw_danger_bunds()
+	_draw_broken_danger_bund_segments()
 	_draw_filter_worksite_gravel()
+	_draw_filter_rubble_cells()
 	_draw_filter_input_output_site()
 	_draw_recovery_loading_pad()
+	_draw_recovery_crate_stacks()
 
 
 func _draw_sediment_fans() -> void:
@@ -305,11 +309,34 @@ func _draw_settling_layers() -> void:
 		draw_line(Vector2(x, -22.0), Vector2(x + 8.0, 224.0), Color(0.52, 0.42, 0.12, 0.14), 1.0, true)
 
 
+func _draw_segmented_settling_cells() -> void:
+	for cell in [
+		Rect2(Vector2(258.0, 18.0), Vector2(44.0, 54.0)),
+		Rect2(Vector2(312.0, 28.0), Vector2(48.0, 50.0)),
+		Rect2(Vector2(262.0, 102.0), Vector2(54.0, 48.0)),
+		Rect2(Vector2(320.0, 142.0), Vector2(42.0, 54.0)),
+		Rect2(Vector2(262.0, 178.0), Vector2(38.0, 42.0))
+	]:
+		draw_rect(cell, Color(0.32, 0.26, 0.08, 0.11), true)
+		draw_rect(cell, Color(SEDIMENT_LINE.r, SEDIMENT_LINE.g, SEDIMENT_LINE.b, 0.18), false, 1.0, true)
+		draw_line(cell.position + Vector2(4.0, cell.size.y * 0.5), cell.position + Vector2(cell.size.x - 4.0, cell.size.y * 0.5 + 5.0), Color(SEDIMENT_LINE.r, SEDIMENT_LINE.g, SEDIMENT_LINE.b, 0.14), 1.0, true)
+
+
 func _draw_danger_bunds() -> void:
 	_draw_route([Vector2(246.0, -42.0), Vector2(306.0, -52.0), Vector2(382.0, -36.0)], BUND_LINE, 2.4)
 	_draw_route([Vector2(382.0, -24.0), Vector2(390.0, 42.0), Vector2(382.0, 112.0)], Color(BUND_LINE.r, BUND_LINE.g, BUND_LINE.b, 0.36), 2.0)
 	for point in [Vector2(268.0, -44.0), Vector2(310.0, -50.0), Vector2(354.0, -42.0), Vector2(386.0, 38.0)]:
 		draw_line(point + Vector2(-7.0, -6.0), point + Vector2(7.0, 6.0), Color(0.96, 0.72, 0.28, 0.34), 1.2, true)
+
+
+func _draw_broken_danger_bund_segments() -> void:
+	for segment in [
+		[Vector2(252.0, -16.0), Vector2(288.0, -8.0), Vector2(318.0, 6.0)],
+		[Vector2(334.0, 12.0), Vector2(366.0, 34.0), Vector2(376.0, 74.0)],
+		[Vector2(276.0, 92.0), Vector2(320.0, 118.0), Vector2(370.0, 128.0)]
+	]:
+		draw_polyline(PackedVector2Array(segment), Color(0.08, 0.04, 0.025, 0.38), 5.0, true)
+		draw_polyline(PackedVector2Array(segment), Color(DANGER_LINE.r, DANGER_LINE.g, DANGER_LINE.b, 0.34), 1.5, true)
 
 
 func _draw_filter_worksite_gravel() -> void:
@@ -320,6 +347,19 @@ func _draw_filter_worksite_gravel() -> void:
 		draw_line(Vector2(272.0, y), Vector2(330.0, y + 12.0), Color(GRAVEL_LINE.r, GRAVEL_LINE.g, GRAVEL_LINE.b, 0.18), 1.0, true)
 	for point in [Vector2(274.0, -148.0), Vector2(330.0, -148.0), Vector2(274.0, -58.0), Vector2(330.0, -58.0)]:
 		draw_circle(point, 2.8, Color(CONSTRUCTION_LINE.r, CONSTRUCTION_LINE.g, CONSTRUCTION_LINE.b, 0.48))
+
+
+func _draw_filter_rubble_cells() -> void:
+	for rect in [
+		Rect2(Vector2(250.0, -206.0), Vector2(34.0, 22.0)),
+		Rect2(Vector2(300.0, -222.0), Vector2(44.0, 26.0)),
+		Rect2(Vector2(344.0, -176.0), Vector2(28.0, 34.0)),
+		Rect2(Vector2(252.0, -74.0), Vector2(24.0, 18.0)),
+		Rect2(Vector2(338.0, -58.0), Vector2(30.0, 22.0))
+	]:
+		draw_rect(rect, Color(0.16, 0.2, 0.14, 0.16), true)
+		draw_rect(rect, Color(GRAVEL_LINE.r, GRAVEL_LINE.g, GRAVEL_LINE.b, 0.2), false, 1.0, true)
+		draw_circle(rect.position + rect.size * 0.48, 2.4, Color(GRAVEL_LINE.r, GRAVEL_LINE.g, GRAVEL_LINE.b, 0.28))
 
 
 func _draw_filter_input_output_site() -> void:
@@ -344,6 +384,16 @@ func _draw_recovery_loading_pad() -> void:
 	for x in [320.0, 338.0, 356.0]:
 		draw_line(Vector2(x, 190.0), Vector2(x + 8.0, 222.0), Color(ROUTE_TO_BASE.r, ROUTE_TO_BASE.g, ROUTE_TO_BASE.b, 0.22), 1.0, true)
 	draw_circle(Vector2(336.0, 206.0), 5.0, Color(CHAIN_SLURRY.r, CHAIN_SLURRY.g, CHAIN_SLURRY.b, 0.36))
+
+
+func _draw_recovery_crate_stacks() -> void:
+	for rect in [
+		Rect2(Vector2(314.0, 188.0), Vector2(18.0, 14.0)),
+		Rect2(Vector2(338.0, 192.0), Vector2(18.0, 14.0)),
+		Rect2(Vector2(324.0, 210.0), Vector2(24.0, 12.0))
+	]:
+		draw_rect(rect, Color(0.2, 0.24, 0.12, 0.24), true)
+		draw_rect(rect, Color(ROUTE_TO_BASE.r, ROUTE_TO_BASE.g, ROUTE_TO_BASE.b, 0.32), false, 1.0, true)
 
 
 func _draw_treatment_routes() -> void:
@@ -529,13 +579,17 @@ func _register_flow_shapes() -> void:
 func _register_terrain_material_shapes() -> void:
 	terrain_material_shape_ids = [
 		"terrain.pollution.sediment_fan",
+		"terrain.pollution.segmented_settling_cells",
 		"terrain.pollution.settling_layers",
 		"terrain.pollution.danger_bund",
+		"terrain.pollution.segmented_danger_bund",
 		"terrain.pollution.filter_gravel_bed",
+		"terrain.pollution.filter_rubble_cells",
 		"terrain.pollution.input_trench",
 		"terrain.pollution.output_vial_rack",
 		"terrain.pollution.output_slurry_basin",
 		"terrain.pollution.recovery_loading_pad",
+		"terrain.pollution.recovery_crate_stacks",
 		"terrain.pollution.core_prep_tap"
 	]
 
@@ -596,7 +650,7 @@ func _deemphasize_legacy_pollution_blocks() -> void:
 	muted_legacy_block_count = 0
 	var region := _get_map_node("RegionPollution") as ColorRect
 	if region != null:
-		region.color = Color(0.08, 0.09, 0.055, 0.18)
+		region.color = Color(0.07, 0.075, 0.045, 0.1)
 	var route_band := _get_map_node("DemoRoutePresentationLayer/DemoRoutePollutionBand") as ColorRect
 	if route_band != null:
 		route_band.color.a = minf(route_band.color.a, 0.018)
@@ -610,12 +664,12 @@ func _deemphasize_legacy_pollution_blocks() -> void:
 	for node_name in LEGACY_POLLUTION_PANELS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
-			rect.color.a = minf(rect.color.a, 0.026)
+			rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.014))
 			muted_legacy_block_count += 1
 	for node_name in LEGACY_POLLUTION_MARKERS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
-			rect.color.a = minf(rect.color.a, 0.018)
+			rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.01))
 			muted_legacy_block_count += 1
 	var belt_label := layer.get_node_or_null("PollutionBeltLabel") as Label
 	if belt_label != null:

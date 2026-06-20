@@ -9,12 +9,15 @@ const ROLE_TERRAIN := "terrain"
 const FOCUS_VISIBLE_MIN_X := -80.0
 
 const FIELD_FRAME := Color(0.32, 0.58, 0.62, 0.32)
-const FIELD_FILL := Color(0.06, 0.12, 0.15, 0.16)
-const ORE_FACE_FILL := Color(0.06, 0.18, 0.2, 0.2)
+const FIELD_FILL := Color(0.06, 0.12, 0.15, 0.08)
+const ORE_FACE_FILL := Color(0.06, 0.18, 0.2, 0.16)
 const ORE_FACE_LINE := Color(0.38, 0.78, 0.86, 0.42)
 const CUT_SCARP_LINE := Color(0.72, 0.96, 1.0, 0.34)
 const CRYSTAL_LINE := Color(0.42, 0.88, 0.98, 0.78)
 const CRYSTAL_FILL := Color(0.25, 0.78, 0.95, 0.44)
+const ORE_CHIP_FILL := Color(0.16, 0.36, 0.42, 0.18)
+const ORE_CHIP_LINE := Color(0.54, 0.86, 0.94, 0.22)
+const MINE_BENCH_LINE := Color(0.68, 0.92, 0.96, 0.24)
 const RICH_CRYSTAL_LINE := Color(0.76, 0.94, 1.0, 0.86)
 const SALVAGE_LINE := Color(0.72, 0.78, 0.68, 0.58)
 const SALVAGE_FILL := Color(0.36, 0.42, 0.34, 0.26)
@@ -22,6 +25,7 @@ const SCRAP_YARD_FILL := Color(0.14, 0.18, 0.14, 0.22)
 const SCRAP_YARD_EDGE := Color(0.64, 0.72, 0.58, 0.36)
 const RETURN_FLOW := Color(0.72, 0.88, 0.58, 0.66)
 const RETURN_RAIL := Color(0.76, 0.88, 0.64, 0.48)
+const LOADING_TIE := Color(0.74, 0.86, 0.62, 0.26)
 const ANOMALY_LINE := Color(0.68, 0.42, 0.72, 0.5)
 const WARNING_DIM := Color(0.9, 0.42, 0.28, 0.42)
 
@@ -144,10 +148,14 @@ func _draw_field_frame() -> void:
 
 func _draw_mining_material_surface() -> void:
 	_draw_harvest_face_floor()
+	_draw_broken_ore_tiles()
 	_draw_rich_seam_ridges()
 	_draw_cut_scarps()
+	_draw_mine_bench_steps()
 	_draw_scrap_recovery_yard()
+	_draw_salvage_sorting_lanes()
 	_draw_return_cart_lane()
+	_draw_loading_sleepers()
 	_draw_base_loading_mouth()
 
 
@@ -168,6 +176,46 @@ func _draw_harvest_face_floor() -> void:
 		draw_line(Vector2(22.0, y), Vector2(204.0, y + 28.0), Color(ORE_FACE_LINE.r, ORE_FACE_LINE.g, ORE_FACE_LINE.b, 0.18), 1.2, true)
 	for point in [Vector2(44.0, -188.0), Vector2(86.0, -210.0), Vector2(138.0, -190.0), Vector2(184.0, -156.0)]:
 		draw_circle(point, 3.0, Color(0.74, 0.96, 1.0, 0.36))
+
+
+func _draw_broken_ore_tiles() -> void:
+	for tile in [
+		[
+			Vector2(24.0, -220.0),
+			Vector2(72.0, -236.0),
+			Vector2(108.0, -216.0),
+			Vector2(92.0, -180.0),
+			Vector2(34.0, -186.0),
+			Vector2(24.0, -220.0)
+		],
+		[
+			Vector2(104.0, -206.0),
+			Vector2(166.0, -214.0),
+			Vector2(208.0, -176.0),
+			Vector2(186.0, -140.0),
+			Vector2(130.0, -154.0),
+			Vector2(104.0, -206.0)
+		],
+		[
+			Vector2(36.0, -128.0),
+			Vector2(96.0, -148.0),
+			Vector2(146.0, -126.0),
+			Vector2(114.0, -92.0),
+			Vector2(48.0, -96.0),
+			Vector2(36.0, -128.0)
+		],
+		[
+			Vector2(132.0, -88.0),
+			Vector2(196.0, -72.0),
+			Vector2(222.0, -26.0),
+			Vector2(176.0, 4.0),
+			Vector2(126.0, -28.0),
+			Vector2(132.0, -88.0)
+		]
+	]:
+		var polygon := PackedVector2Array(tile)
+		draw_colored_polygon(polygon, ORE_CHIP_FILL)
+		draw_polyline(polygon, ORE_CHIP_LINE, 1.1, true)
 
 
 func _draw_rich_seam_ridges() -> void:
@@ -197,6 +245,16 @@ func _draw_cut_scarps() -> void:
 		draw_line(mid + Vector2(-10.0, -8.0), mid + Vector2(12.0, 8.0), Color(CUT_SCARP_LINE.r, CUT_SCARP_LINE.g, CUT_SCARP_LINE.b, 0.24), 1.0, true)
 
 
+func _draw_mine_bench_steps() -> void:
+	for points in [
+		[Vector2(18.0, -242.0), Vector2(62.0, -260.0), Vector2(156.0, -246.0), Vector2(224.0, -194.0)],
+		[Vector2(16.0, -176.0), Vector2(74.0, -164.0), Vector2(148.0, -142.0), Vector2(218.0, -118.0)],
+		[Vector2(24.0, -76.0), Vector2(88.0, -54.0), Vector2(164.0, -34.0), Vector2(224.0, -8.0)]
+	]:
+		draw_polyline(PackedVector2Array(points), Color(0.02, 0.06, 0.07, 0.34), 4.0, true)
+		draw_polyline(PackedVector2Array(points), MINE_BENCH_LINE, 1.4, true)
+
+
 func _draw_scrap_recovery_yard() -> void:
 	var yard := Rect2(Vector2(18.0, 92.0), Vector2(230.0, 150.0))
 	draw_rect(yard, SCRAP_YARD_FILL, true)
@@ -214,6 +272,18 @@ func _draw_scrap_recovery_yard() -> void:
 		draw_rect(rect, SALVAGE_LINE, false, 1.0, true)
 
 
+func _draw_salvage_sorting_lanes() -> void:
+	for lane in [
+		[Vector2(44.0, 104.0), Vector2(112.0, 126.0), Vector2(206.0, 118.0)],
+		[Vector2(34.0, 156.0), Vector2(104.0, 168.0), Vector2(216.0, 206.0)],
+		[Vector2(72.0, 222.0), Vector2(136.0, 198.0), Vector2(226.0, 232.0)]
+	]:
+		draw_polyline(PackedVector2Array(lane), Color(0.02, 0.04, 0.035, 0.36), 4.4, true)
+		draw_polyline(PackedVector2Array(lane), Color(SALVAGE_LINE.r, SALVAGE_LINE.g, SALVAGE_LINE.b, 0.36), 1.2, true)
+	for point in [Vector2(80.0, 116.0), Vector2(146.0, 134.0), Vector2(114.0, 168.0), Vector2(198.0, 210.0)]:
+		draw_circle(point, 3.2, Color(0.78, 0.86, 0.64, 0.24))
+
+
 func _draw_return_cart_lane() -> void:
 	var lane_points := [Vector2(206.0, 200.0), Vector2(120.0, 158.0), Vector2(28.0, 90.0), Vector2(-42.0, 18.0)]
 	draw_polyline(PackedVector2Array(lane_points), Color(0.02, 0.04, 0.035, 0.5), 8.0, true)
@@ -221,6 +291,11 @@ func _draw_return_cart_lane() -> void:
 	for point in [Vector2(170.0, 182.0), Vector2(92.0, 138.0), Vector2(24.0, 90.0), Vector2(-22.0, 38.0)]:
 		draw_line(point + Vector2(-8.0, -5.0), point + Vector2(8.0, 5.0), Color(RETURN_RAIL.r, RETURN_RAIL.g, RETURN_RAIL.b, 0.34), 1.0, true)
 		draw_circle(point, 2.5, Color(0.86, 0.94, 0.68, 0.32))
+
+
+func _draw_loading_sleepers() -> void:
+	for point in [Vector2(182.0, 188.0), Vector2(146.0, 168.0), Vector2(108.0, 146.0), Vector2(68.0, 120.0), Vector2(30.0, 92.0), Vector2(-10.0, 54.0)]:
+		draw_line(point + Vector2(-10.0, -5.0), point + Vector2(10.0, 5.0), LOADING_TIE, 1.4, true)
 
 
 func _draw_base_loading_mouth() -> void:
@@ -356,10 +431,14 @@ func _register_flow_shapes() -> void:
 func _register_terrain_material_shapes() -> void:
 	terrain_material_shape_ids = [
 		"terrain.crystal.harvest_face",
+		"terrain.crystal.fractured_ore_tiles",
 		"terrain.crystal.rich_seam_ridges",
 		"terrain.crystal.cut_scarps",
+		"terrain.crystal.mine_bench_steps",
 		"terrain.crystal.scrap_recovery_yard",
+		"terrain.crystal.salvage_sorting_lanes",
 		"terrain.crystal.return_cart_lane",
+		"terrain.crystal.loading_sleepers",
 		"terrain.crystal.base_loading_mouth"
 	]
 
@@ -367,7 +446,19 @@ func _register_terrain_material_shapes() -> void:
 func _deemphasize_legacy_crystal_blocks() -> void:
 	var region := _get_map_node("RegionCrystal") as ColorRect
 	if region != null:
-		region.color = Color(0.07, 0.12, 0.17, 0.72)
+		region.color = Color(0.05, 0.09, 0.12, 0.34)
+	var demo_route_band := _get_map_node("DemoRoutePresentationLayer/DemoRouteCrystalBand") as ColorRect
+	if demo_route_band != null:
+		demo_route_band.color = Color(demo_route_band.color.r, demo_route_band.color.g, demo_route_band.color.b, 0.035)
+	var route_label := _get_map_node("DemoRoutePresentationLayer/DemoRouteCrystalLabel") as Label
+	if route_label != null:
+		route_label.visible = false
+	var base_route := _get_map_node("BaseToCrystalRouteBand") as ColorRect
+	if base_route != null:
+		base_route.color.a = minf(base_route.color.a, 0.12)
+	var pollution_route := _get_map_node("CrystalToPollutionRouteBand") as ColorRect
+	if pollution_route != null:
+		pollution_route.color.a = minf(pollution_route.color.a, 0.1)
 
 	var layer := _get_map_node("OpeningSceneLayer")
 	if layer == null:
@@ -375,7 +466,7 @@ func _deemphasize_legacy_crystal_blocks() -> void:
 	for node_name in LEGACY_CRYSTAL_PANELS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
-			rect.color.a = minf(rect.color.a, 0.12)
+			rect.color.a = minf(rect.color.a, 0.065)
 	for node_name in LEGACY_CRYSTAL_MARKERS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
