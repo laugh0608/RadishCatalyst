@@ -29,6 +29,7 @@ func _run_checks() -> void:
 	_check_scene_visual_priority_layer()
 	_check_current_objective_guidance_layer()
 	_check_startup_readability_scope()
+	_check_playable_space_and_actor_silhouettes()
 	_check_visual_state_methods()
 	_check_visual_refresher_state_alignment()
 
@@ -238,6 +239,34 @@ func _check_scene_visual_layer_focus_visibility(map: VerticalSliceMap) -> void:
 
 	core_layer.refresh_focus_visibility(Vector2(3744, 112))
 	_expect_equal(core_layer.visible, true, "terminal approach reveals core stabilization detail layer")
+
+
+func _check_playable_space_and_actor_silhouettes() -> void:
+	var map := _create_setup_map()
+	var base_layer := map.get_node("DemoIndustrialBaseVisualLayer") as DemoIndustrialBaseVisualLayer
+	base_layer.apply_visuals()
+	_expect_equal(base_layer.get_playable_space_shape_count() >= 11, true, "base visual layer registers playable space shapes")
+	_expect_equal(base_layer.has_playable_space_shape("space.walkway.core_to_reactor"), true, "base space shows core to reactor walkway")
+	_expect_equal(base_layer.has_playable_space_shape("space.walkway.departure_staging_lane"), true, "base space shows departure staging lane")
+	_expect_equal(base_layer.has_playable_space_shape("space.device_zone.basic_reactor"), true, "base space shows reactor equipment zone")
+	_expect_equal(base_layer.has_playable_space_shape("space.player_start.staging_pad"), true, "base space shows player start staging pad")
+	_expect_equal(base_layer.has_playable_space_shape("space.safety_threshold.departure_gate"), true, "base space shows departure safety threshold")
+
+	var player := map.get_node("Player") as PlayerController
+	_expect_equal(player.get_visual_part_count() >= 6, true, "player uses multiple readable silhouette parts")
+	_expect_equal(player.has_visual_part("suit.helmet"), true, "player silhouette has helmet")
+	_expect_equal(player.has_visual_part("suit.backpack"), true, "player silhouette has backpack")
+	_expect_equal(player.has_visual_part("tool.forward_arm"), true, "player silhouette has forward tool arm")
+
+	var treatment_enemy := map.get_node("Enemies/TreatmentSkitter") as PrototypeEnemy
+	var polluted_enemy := map.get_node("Enemies/PollutedSkitter") as PrototypeEnemy
+	var elite_enemy := map.get_node("Enemies/EliteResidueNode") as PrototypeEnemy
+	_expect_equal(treatment_enemy.get_silhouette_part_count() >= 6, true, "treatment enemy has silhouette parts")
+	_expect_equal(treatment_enemy.get_silhouette_profile(), "treatment", "treatment enemy uses treatment silhouette")
+	_expect_equal(polluted_enemy.get_silhouette_profile(), "polluted", "polluted enemy uses polluted silhouette")
+	_expect_equal(elite_enemy.get_silhouette_profile(), "elite", "elite node uses elite silhouette")
+	_expect_equal(polluted_enemy.has_silhouette_part("enemy_shape.pressure_core"), true, "enemy silhouette has pressure core")
+	map.free()
 
 
 func _check_region_cues(map: VerticalSliceMap, layer: PrototypeVisualPriorityLayer, region_id: String) -> void:

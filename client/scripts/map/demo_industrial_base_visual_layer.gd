@@ -7,9 +7,16 @@ const ROLE_DEVICE := "device"
 const ROLE_FLOW := "flow"
 const ROLE_STATUS := "status"
 const ROLE_CHAIN := "chain"
+const ROLE_SPACE := "space"
 
 const DECK_LINE := Color(0.38, 0.64, 0.66, 0.34)
 const DECK_FILL := Color(0.08, 0.16, 0.17, 0.18)
+const WALKWAY_FILL := Color(0.11, 0.24, 0.22, 0.22)
+const WALKWAY_EDGE := Color(0.58, 0.86, 0.78, 0.36)
+const DEVICE_ZONE_FILL := Color(0.76, 0.62, 0.24, 0.12)
+const DEVICE_ZONE_EDGE := Color(0.84, 0.76, 0.34, 0.36)
+const STAGING_FILL := Color(0.2, 0.34, 0.32, 0.2)
+const STAGING_EDGE := Color(0.72, 0.92, 0.84, 0.44)
 const DEVICE_FRAME := Color(0.72, 0.92, 0.88, 0.86)
 const DEVICE_DIM := Color(0.36, 0.5, 0.48, 0.38)
 const DEVICE_PANEL := Color(0.28, 0.46, 0.44, 0.48)
@@ -80,6 +87,7 @@ var device_shape_ids: Array[String] = []
 var flow_shape_ids: Array[String] = []
 var chain_shape_ids: Array[String] = []
 var detail_shape_ids: Array[String] = []
+var playable_space_shape_ids: Array[String] = []
 var pollution_chain_shape_ids: Array[String] = []
 var chain_state: Dictionary = {}
 var pollution_chain_state: Dictionary = {}
@@ -96,6 +104,7 @@ func apply_visuals() -> void:
 	_mute_device_identity_blocks()
 	_register_device_shapes()
 	_register_device_detail_shapes()
+	_register_playable_space_shapes()
 	_register_flow_shapes()
 	_tag_device_anchors()
 	_tone_down_core_interactable_markers()
@@ -173,6 +182,14 @@ func has_detail_shape(shape_id: String) -> bool:
 	return detail_shape_ids.has(shape_id)
 
 
+func get_playable_space_shape_count() -> int:
+	return playable_space_shape_ids.size()
+
+
+func has_playable_space_shape(shape_id: String) -> bool:
+	return playable_space_shape_ids.has(shape_id)
+
+
 func get_chain_state_shape_count() -> int:
 	return applied_chain_state_count
 
@@ -191,6 +208,7 @@ func has_pollution_chain_shape(shape_id: String) -> bool:
 
 func _draw() -> void:
 	_draw_base_deck()
+	_draw_playable_space_layout()
 	_draw_base_detail()
 	_draw_flow_network()
 	_draw_outpost_core()
@@ -221,6 +239,59 @@ func _draw_base_detail() -> void:
 	_draw_hazard_stripe(Vector2(-72.0, -210.0), Vector2(-72.0, 180.0))
 	draw_rect(Rect2(Vector2(-318.0, -138.0), Vector2(42.0, 18.0)), DEVICE_PANEL, true)
 	draw_rect(Rect2(Vector2(-304.0, 116.0), Vector2(78.0, 16.0)), DEVICE_PANEL, true)
+
+
+func _draw_playable_space_layout() -> void:
+	_draw_walkway(Rect2(Vector2(-322.0, -134.0), Vector2(210.0, 54.0)), Vector2.RIGHT)
+	_draw_walkway(Rect2(Vector2(-290.0, -62.0), Vector2(178.0, 52.0)), Vector2.RIGHT)
+	_draw_walkway(Rect2(Vector2(-292.0, 42.0), Vector2(236.0, 54.0)), Vector2.RIGHT)
+	_draw_walkway(Rect2(Vector2(-92.0, -144.0), Vector2(48.0, 128.0)), Vector2.DOWN)
+	_draw_device_zone(Rect2(Vector2(-330.0, -130.0), Vector2(62.0, 78.0)))
+	_draw_device_zone(Rect2(Vector2(-214.0, -130.0), Vector2(102.0, 116.0)))
+	_draw_device_zone(Rect2(Vector2(-306.0, -34.0), Vector2(110.0, 106.0)))
+	_draw_device_zone(Rect2(Vector2(-128.0, -96.0), Vector2(96.0, 104.0)))
+	_draw_device_zone(Rect2(Vector2(232.0, -154.0), Vector2(126.0, 96.0)))
+	_draw_staging_pad(Vector2(-250.0, -48.0))
+	_draw_departure_staging_lane()
+
+
+func _draw_walkway(rect: Rect2, flow_direction: Vector2) -> void:
+	draw_rect(rect, WALKWAY_FILL, true)
+	draw_rect(rect, WALKWAY_EDGE, false, 1.4, true)
+	if absf(flow_direction.x) >= absf(flow_direction.y):
+		var y := rect.position.y + rect.size.y * 0.5
+		draw_line(Vector2(rect.position.x + 8.0, y), Vector2(rect.end.x - 8.0, y), Color(WALKWAY_EDGE.r, WALKWAY_EDGE.g, WALKWAY_EDGE.b, 0.24), 1.2, true)
+		for x in range(int(rect.position.x) + 18, int(rect.end.x), 28):
+			draw_line(Vector2(float(x), rect.position.y + 8.0), Vector2(float(x) + 10.0, rect.end.y - 8.0), Color(WALKWAY_EDGE.r, WALKWAY_EDGE.g, WALKWAY_EDGE.b, 0.18), 1.0, true)
+	else:
+		var x := rect.position.x + rect.size.x * 0.5
+		draw_line(Vector2(x, rect.position.y + 8.0), Vector2(x, rect.end.y - 8.0), Color(WALKWAY_EDGE.r, WALKWAY_EDGE.g, WALKWAY_EDGE.b, 0.24), 1.2, true)
+		for y in range(int(rect.position.y) + 18, int(rect.end.y), 28):
+			draw_line(Vector2(rect.position.x + 8.0, float(y)), Vector2(rect.end.x - 8.0, float(y) + 10.0), Color(WALKWAY_EDGE.r, WALKWAY_EDGE.g, WALKWAY_EDGE.b, 0.18), 1.0, true)
+
+
+func _draw_device_zone(rect: Rect2) -> void:
+	draw_rect(rect, DEVICE_ZONE_FILL, true)
+	draw_rect(rect, DEVICE_ZONE_EDGE, false, 1.2, true)
+	for x in range(int(rect.position.x) + 10, int(rect.end.x), 18):
+		draw_line(Vector2(float(x), rect.position.y + 4.0), Vector2(float(x) + 8.0, rect.position.y + 16.0), Color(DEVICE_ZONE_EDGE.r, DEVICE_ZONE_EDGE.g, DEVICE_ZONE_EDGE.b, 0.24), 1.0, true)
+		draw_line(Vector2(float(x), rect.end.y - 16.0), Vector2(float(x) + 8.0, rect.end.y - 4.0), Color(DEVICE_ZONE_EDGE.r, DEVICE_ZONE_EDGE.g, DEVICE_ZONE_EDGE.b, 0.2), 1.0, true)
+
+
+func _draw_staging_pad(center: Vector2) -> void:
+	var pad := Rect2(center + Vector2(-28.0, -22.0), Vector2(56.0, 44.0))
+	draw_rect(pad, STAGING_FILL, true)
+	draw_rect(pad, STAGING_EDGE, false, 1.6, true)
+	draw_arc(center, 20.0, PI * 0.12, PI * 1.9, 28, Color(STAGING_EDGE.r, STAGING_EDGE.g, STAGING_EDGE.b, 0.42), 1.4, true)
+	draw_line(center + Vector2(-14.0, 14.0), center + Vector2(16.0, -14.0), Color(STAGING_EDGE.r, STAGING_EDGE.g, STAGING_EDGE.b, 0.2), 1.0, true)
+
+
+func _draw_departure_staging_lane() -> void:
+	var lane := Rect2(Vector2(-82.0, -126.0), Vector2(34.0, 84.0))
+	draw_rect(lane, Color(0.08, 0.18, 0.16, 0.18), true)
+	draw_rect(lane, STAGING_EDGE, false, 1.4, true)
+	for y in [-112.0, -88.0, -64.0]:
+		draw_line(Vector2(-76.0, y), Vector2(-54.0, y), Color(0.86, 0.78, 0.36, 0.38), 1.8, true)
 
 
 func _draw_flow_network() -> void:
@@ -564,6 +635,22 @@ func _register_device_detail_shapes() -> void:
 		"device.field_outfitting_station.module_rack",
 		"device.departure_gate.pressure_door",
 		"flow.material_port_nodes"
+	]
+
+
+func _register_playable_space_shapes() -> void:
+	playable_space_shape_ids = [
+		"space.walkway.core_to_reactor",
+		"space.walkway.storage_to_outfitting",
+		"space.walkway.lower_logistics",
+		"space.walkway.departure_staging_lane",
+		"space.device_zone.outpost_core",
+		"space.device_zone.basic_reactor",
+		"space.device_zone.basic_storage",
+		"space.device_zone.outfitting_station",
+		"space.device_zone.pollution_filter",
+		"space.player_start.staging_pad",
+		"space.safety_threshold.departure_gate"
 	]
 
 

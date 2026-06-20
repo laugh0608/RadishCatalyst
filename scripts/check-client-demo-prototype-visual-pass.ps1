@@ -34,6 +34,24 @@ $requiredTextByFile = @{
         "_resolve_current_target",
         "get_current_target_node"
     )
+    "client/scripts/map/demo_industrial_base_visual_layer.gd" = @(
+        "get_playable_space_shape_count",
+        "space.walkway.core_to_reactor",
+        "space.device_zone.basic_reactor",
+        "space.player_start.staging_pad"
+    )
+    "client/scripts/actors/player_controller.gd" = @(
+        "get_visual_part_count",
+        "suit.helmet",
+        "suit.backpack",
+        "tool.forward_arm"
+    )
+    "client/scripts/actors/prototype_enemy.gd" = @(
+        "get_silhouette_profile",
+        "enemy_shape.pressure_core",
+        "_draw_polluted_silhouette",
+        "_draw_elite_silhouette"
+    )
     "client/scenes/maps/VerticalSliceMap.tscn" = @(
         "res://scripts/map/prototype_visual_priority_layer.gd",
         "PrototypeVisualPriorityLayer",
@@ -61,6 +79,8 @@ $requiredTextByFile = @{
         "_check_current_objective_guidance_layer",
         "post-restore storage build guidance",
         "pollution filter processing guidance",
+        "_check_scene_visual_layer_focus_visibility",
+        "_check_playable_space_and_actor_silhouettes",
         "_check_visual_state_methods",
         "_check_visual_refresher_state_alignment"
     )
