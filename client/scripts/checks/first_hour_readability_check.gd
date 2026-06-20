@@ -36,6 +36,7 @@ func run() -> void:
 func _check_opening_scene_layer() -> void:
 	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
 	host.root.add_child(map)
+	map._ensure_scene_nodes()
 	var layer := map.get_node("OpeningSceneLayer") as Node2D
 	var player := map.get_node("Player") as PlayerController
 	var background := map.get_node("Background") as ColorRect
@@ -168,6 +169,11 @@ func _check_opening_scene_layer() -> void:
 			and VerticalSliceMap.CAMERA_BOUNDS_MAX.x >= 4300.0,
 		true,
 		"opening scene play bounds include the final core retest yard"
+	)
+	host._expect_equal(
+		map.get_camera_focus_global_position().y >= player.global_position.y + 68.0,
+		true,
+		"opening scene camera lifts the starting base composition out of the lower HUD zone"
 	)
 	host._expect_equal(
 		_is_rect_covering_position(main_route, player.position)
@@ -808,14 +814,15 @@ func _check_hud_runtime_layout_first_pass() -> void:
 	host._expect_equal(hud.status_label.size.y >= 150.0, true, "HUD first pass keeps objective text from clipping the next step")
 	host._expect_equal(hud.vitals_panel.position.x + hud.vitals_panel.size.x >= viewport_size.x - 20.0, true, "HUD first pass keeps vitals on the right edge")
 	host._expect_equal(hud.vitals_panel.size.y <= 118.0, true, "HUD first pass keeps vitals summary compact")
-	host._expect_equal(absf(hud.prompt_panel.position.x + hud.prompt_panel.size.x * 0.5 - viewport_size.x * 0.5) <= 1.0, true, "HUD first pass centers interaction prompt")
-	host._expect_equal(hud.prompt_panel.size.y <= 88.0, true, "HUD first pass lowers prompt height")
-	host._expect_equal(hud.log_panel.size.y >= 72.0, true, "HUD first pass reserves compact log text")
-	host._expect_equal(hud.log_panel.size.y <= 84.0, true, "HUD first pass keeps log rail compact")
-	host._expect_equal(hud.log_label.size.y >= 48.0, true, "HUD first pass keeps compact log text visible")
+	host._expect_equal(hud.prompt_panel.position.x <= 20.0, true, "HUD first pass keeps prompt on the left bottom rail")
+	host._expect_equal(hud.prompt_panel.size.x <= 440.0, true, "HUD first pass keeps prompt from covering the scene center")
+	host._expect_equal(hud.prompt_panel.size.y <= 60.0, true, "HUD first pass lowers prompt height")
+	host._expect_equal(hud.log_panel.size.y >= 56.0, true, "HUD first pass reserves compact log text")
+	host._expect_equal(hud.log_panel.size.y <= 64.0, true, "HUD first pass keeps log rail compact")
+	host._expect_equal(hud.log_label.size.y >= 34.0, true, "HUD first pass keeps compact log text visible")
 	host._expect_equal(hud.map_panel.color.a <= 0.45, true, "HUD first pass lowers persistent panel opacity")
 	host._expect_equal(hud.prompt_panel.color.a <= 0.45, true, "HUD first pass lowers prompt panel opacity")
-	host._expect_equal(hud.log_panel.position.x + hud.log_panel.size.x < hud.prompt_panel.position.x, true, "HUD first pass keeps log separate from prompt")
+	host._expect_equal(hud.log_panel.position.x > hud.prompt_panel.position.x + hud.prompt_panel.size.x, true, "HUD first pass keeps log separate from prompt")
 	host._expect_equal(_controls_overlap(hud.completion_panel, hud.prompt_panel), false, "HUD first pass keeps quest feedback above prompt")
 	host._expect_equal(_controls_overlap(hud.device_panel, hud.evacuation_panel), false, "HUD first pass keeps device panel separate from evacuation feedback")
 	host._expect_equal(_controls_overlap(hud.device_panel, hud.supply_feedback_panel), false, "HUD first pass keeps device panel separate from supply feedback")

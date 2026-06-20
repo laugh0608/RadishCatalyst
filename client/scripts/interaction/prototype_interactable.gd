@@ -73,6 +73,7 @@ const FOCUSED_MARKER_SCALE := Vector2(1.22, 1.22)
 const FOCUSED_MARKER_MODULATE := Color(1.18, 1.18, 1.18, 1)
 const DEFAULT_MARKER_MODULATE := Color(1, 1, 1, 1)
 const FOCUSED_Z_INDEX := 20
+const INTERACTABLE_LABEL_FONT_SIZE := 10
 
 @export var definition_id: String = ""
 @export var interaction_type: String = "inspect"
@@ -106,6 +107,7 @@ func setup(display_name: String) -> void:
 	_ensure_visual_nodes()
 	display_name_text = display_name
 	if label != null:
+		_style_label()
 		label.offset_left = label_offset.x
 		label.offset_top = label_offset.y
 		label.offset_right = label_offset.x + label_size.x
@@ -867,5 +869,14 @@ func _set_label_text(text: String, min_lines: int = 1) -> void:
 	_ensure_visual_nodes()
 	if label == null:
 		return
+	_style_label()
 	label.text = text
 	label.offset_bottom = label_offset.y + label_size.y * maxi(min_lines, 1)
+
+
+func _style_label() -> void:
+	label.add_theme_font_size_override("font_size", INTERACTABLE_LABEL_FONT_SIZE)
+	label.add_theme_color_override("font_color", Color(0.9, 0.96, 0.9, 0.9))
+	label.add_theme_color_override("font_shadow_color", Color(0.02, 0.04, 0.04, 0.82))
+	label.add_theme_constant_override("shadow_offset_x", 1)
+	label.add_theme_constant_override("shadow_offset_y", 1)

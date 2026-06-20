@@ -418,13 +418,12 @@ if (Test-Path -LiteralPath $projectPath -PathType Leaf) {
                     }
                 }
                 "PromptPanel" {
-                    $promptCenter = ($rect.Left + $rect.Right) * 0.5
-                    if ($width -gt 820.0 -or $height -gt 160.0 -or [Math]::Abs($promptCenter - $viewportWidth * 0.5) -gt 20.0 -or $rect.Top -lt ($viewportHeight - 190.0) -or $rect.Bottom -gt ($viewportHeight - 10.0)) {
+                    if ($width -gt 460.0 -or $height -gt 90.0 -or $rect.Left -gt 40.0 -or $rect.Top -lt ($viewportHeight - 190.0) -or $rect.Bottom -gt ($viewportHeight - 10.0)) {
                         Add-Error "client/scenes/ui/PrototypeHud.tscn: PromptPanel drifted out of distributed HUD bottom-rail bounds"
                     }
                 }
                 "LogPanel" {
-                    if ($width -gt 860.0 -or $height -gt 120.0 -or $rect.Left -gt 40.0 -or $rect.Right -gt 860.0 -or $rect.Top -lt ($viewportHeight - 400.0)) {
+                    if ($width -gt 460.0 -or $height -gt 120.0 -or $rect.Left -lt 440.0 -or $rect.Right -gt 940.0 -or $rect.Top -lt ($viewportHeight - 400.0)) {
                         Add-Error "client/scenes/ui/PrototypeHud.tscn: LogPanel drifted out of distributed HUD log-rail bounds"
                     }
                 }

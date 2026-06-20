@@ -8,8 +8,8 @@ const ROLE_FLOW := "flow"
 const ROLE_STATUS := "status"
 const ROLE_PIPE := "pipe"
 
-const METAL_DECK := Color(0.082, 0.12, 0.125, 1.0)
-const METAL_RIM := Color(0.18, 0.28, 0.3, 1.0)
+const METAL_DECK := Color(0.09, 0.14, 0.145, 0.62)
+const METAL_RIM := Color(0.2, 0.32, 0.34, 0.68)
 const ALLOY_BODY := Color(0.18, 0.36, 0.38, 1.0)
 const ALLOY_LIGHT := Color(0.62, 0.92, 0.88, 1.0)
 const REACTOR_BODY := Color(0.34, 0.31, 0.18, 1.0)
@@ -81,15 +81,18 @@ func _create_base_deck_detail() -> void:
 	_add_rect("deck.base_rim_left", ROLE_DECK, Rect2(Vector2(-338.0, -264.0), Vector2(8.0, 512.0)), METAL_RIM)
 	_add_rect("deck.base_rim_bottom", ROLE_DECK, Rect2(Vector2(-338.0, 240.0), Vector2(284.0, 8.0)), METAL_RIM)
 	_add_rect("deck.work_yard_panel_a", ROLE_DECK, Rect2(Vector2(-318.0, -146.0), Vector2(64.0, 72.0)), METAL_DECK)
-	_add_rect("deck.work_yard_panel_b", ROLE_DECK, Rect2(Vector2(-238.0, -126.0), Vector2(78.0, 86.0)), Color(0.098, 0.15, 0.152, 1.0))
-	_add_rect("deck.work_yard_panel_c", ROLE_DECK, Rect2(Vector2(-150.0, -110.0), Vector2(86.0, 92.0)), Color(0.108, 0.143, 0.13, 1.0))
-	_add_rect("deck.logistics_panel", ROLE_DECK, Rect2(Vector2(-316.0, 86.0), Vector2(204.0, 126.0)), Color(0.07, 0.102, 0.11, 1.0))
-	_add_rect("deck.departure_threshold", ROLE_DECK, Rect2(Vector2(-70.0, -198.0), Vector2(24.0, 372.0)), Color(0.24, 0.32, 0.3, 1.0))
+	_add_rect("deck.work_yard_panel_b", ROLE_DECK, Rect2(Vector2(-238.0, -126.0), Vector2(78.0, 86.0)), Color(0.098, 0.15, 0.152, 0.6))
+	_add_rect("deck.work_yard_panel_c", ROLE_DECK, Rect2(Vector2(-150.0, -110.0), Vector2(86.0, 92.0)), Color(0.108, 0.143, 0.13, 0.56))
+	_add_rect("deck.logistics_rail_top", ROLE_DECK, Rect2(Vector2(-316.0, 96.0), Vector2(188.0, 10.0)), Color(0.18, 0.28, 0.25, 0.75))
+	_add_rect("deck.logistics_rail_bottom", ROLE_DECK, Rect2(Vector2(-316.0, 184.0), Vector2(188.0, 10.0)), Color(0.18, 0.28, 0.25, 0.75))
+	_add_rect("deck.logistics_crate_a", ROLE_DECK, Rect2(Vector2(-298.0, 118.0), Vector2(42.0, 30.0)), Color(0.24, 0.44, 0.38, 0.72))
+	_add_rect("deck.logistics_crate_b", ROLE_DECK, Rect2(Vector2(-246.0, 126.0), Vector2(46.0, 26.0)), Color(0.32, 0.5, 0.42, 0.68))
+	_add_rect("deck.departure_threshold", ROLE_DECK, Rect2(Vector2(-70.0, -198.0), Vector2(18.0, 372.0)), Color(0.24, 0.32, 0.3, 0.72))
 
 
 func _create_outpost_core() -> void:
 	var device_id := "device.outpost_core"
-	_add_rect("%s.plate" % device_id, ROLE_DEVICE, Rect2(Vector2(-332.0, -134.0), Vector2(90.0, 82.0)), Color(0.086, 0.18, 0.19, 1.0))
+	_add_rect("%s.plate" % device_id, ROLE_DEVICE, Rect2(Vector2(-328.0, -130.0), Vector2(82.0, 74.0)), Color(0.09, 0.19, 0.2, 0.72))
 	_add_rect("%s.body" % device_id, ROLE_DEVICE, Rect2(Vector2(-318.0, -116.0), Vector2(42.0, 44.0)), ALLOY_BODY)
 	_add_rect("%s.tower" % device_id, ROLE_DEVICE, Rect2(Vector2(-304.0, -138.0), Vector2(14.0, 28.0)), Color(0.2, 0.46, 0.48, 1.0))
 	_add_rect("%s.beacon" % device_id, ROLE_STATUS, Rect2(Vector2(-312.0, -144.0), Vector2(30.0, 6.0)), ALLOY_LIGHT)
@@ -100,7 +103,7 @@ func _create_outpost_core() -> void:
 
 func _create_basic_reactor() -> void:
 	var device_id := "device.basic_reactor"
-	_add_rect("%s.plate" % device_id, ROLE_DEVICE, Rect2(Vector2(-214.0, -116.0), Vector2(98.0, 96.0)), Color(0.155, 0.156, 0.106, 1.0))
+	_add_rect("%s.plate" % device_id, ROLE_DEVICE, Rect2(Vector2(-206.0, -110.0), Vector2(82.0, 86.0)), Color(0.15, 0.15, 0.1, 0.7))
 	_add_rect("%s.left_tank" % device_id, ROLE_DEVICE, Rect2(Vector2(-208.0, -88.0), Vector2(18.0, 42.0)), Color(0.28, 0.26, 0.18, 1.0))
 	_add_rect("%s.body" % device_id, ROLE_DEVICE, Rect2(Vector2(-186.0, -102.0), Vector2(42.0, 70.0)), REACTOR_BODY)
 	_add_rect("%s.heat_window" % device_id, ROLE_STATUS, Rect2(Vector2(-176.0, -94.0), Vector2(20.0, 56.0)), REACTOR_HEAT)
@@ -112,8 +115,8 @@ func _create_basic_reactor() -> void:
 
 func _create_basic_storage() -> void:
 	var device_id := "device.basic_storage"
-	_add_rect("%s.plate" % device_id, ROLE_DEVICE, Rect2(Vector2(-296.0, -28.0), Vector2(92.0, 88.0)), Color(0.085, 0.16, 0.14, 1.0))
-	_add_rect("%s.body" % device_id, ROLE_DEVICE, Rect2(Vector2(-286.0, -18.0), Vector2(72.0, 64.0)), STORAGE_BODY)
+	_add_rect("%s.plate" % device_id, ROLE_DEVICE, Rect2(Vector2(-292.0, -24.0), Vector2(84.0, 76.0)), Color(0.085, 0.16, 0.14, 0.72))
+	_add_rect("%s.body" % device_id, ROLE_DEVICE, Rect2(Vector2(-282.0, -14.0), Vector2(64.0, 54.0)), STORAGE_BODY)
 	_add_rect("%s.crate_a" % device_id, ROLE_STATUS, Rect2(Vector2(-278.0, -10.0), Vector2(26.0, 24.0)), Color(0.36, 0.66, 0.54, 1.0))
 	_add_rect("%s.crate_b" % device_id, ROLE_STATUS, Rect2(Vector2(-246.0, -8.0), Vector2(24.0, 22.0)), Color(0.46, 0.74, 0.6, 1.0))
 	_add_rect("%s.crate_c" % device_id, ROLE_STATUS, Rect2(Vector2(-276.0, 20.0), Vector2(48.0, 18.0)), STORAGE_LIGHT)
@@ -123,7 +126,7 @@ func _create_basic_storage() -> void:
 
 func _create_field_outfitting_station() -> void:
 	var device_id := "device.field_outfitting_station"
-	_add_rect("%s.plate" % device_id, ROLE_DEVICE, Rect2(Vector2(-122.0, -88.0), Vector2(86.0, 94.0)), Color(0.17, 0.15, 0.102, 1.0))
+	_add_rect("%s.plate" % device_id, ROLE_DEVICE, Rect2(Vector2(-118.0, -84.0), Vector2(76.0, 86.0)), Color(0.17, 0.15, 0.102, 0.72))
 	_add_rect("%s.bench" % device_id, ROLE_DEVICE, Rect2(Vector2(-112.0, -58.0), Vector2(64.0, 28.0)), OUTFITTING_BODY)
 	_add_rect("%s.left_gantry" % device_id, ROLE_DEVICE, Rect2(Vector2(-116.0, -82.0), Vector2(8.0, 78.0)), Color(0.5, 0.44, 0.26, 1.0))
 	_add_rect("%s.right_gantry" % device_id, ROLE_DEVICE, Rect2(Vector2(-48.0, -82.0), Vector2(8.0, 78.0)), Color(0.5, 0.44, 0.26, 1.0))
@@ -135,7 +138,7 @@ func _create_field_outfitting_station() -> void:
 
 func _create_pollution_filter() -> void:
 	var device_id := "device.pollution_filter"
-	_add_rect("%s.plate" % device_id, ROLE_DEVICE, Rect2(Vector2(260.0, -148.0), Vector2(82.0, 74.0)), Color(0.18, 0.196, 0.095, 1.0))
+	_add_rect("%s.plate" % device_id, ROLE_DEVICE, Rect2(Vector2(264.0, -144.0), Vector2(74.0, 66.0)), Color(0.18, 0.196, 0.095, 0.72))
 	_add_rect("%s.body" % device_id, ROLE_DEVICE, Rect2(Vector2(278.0, -136.0), Vector2(34.0, 54.0)), FILTER_BODY)
 	_add_rect("%s.media_stack" % device_id, ROLE_STATUS, Rect2(Vector2(286.0, -128.0), Vector2(18.0, 38.0)), FILTER_LIGHT)
 	_add_rect("%s.inlet_tank" % device_id, ROLE_DEVICE, Rect2(Vector2(262.0, -124.0), Vector2(18.0, 34.0)), Color(0.44, 0.46, 0.18, 1.0))

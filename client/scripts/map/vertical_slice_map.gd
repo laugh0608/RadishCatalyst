@@ -15,6 +15,8 @@ const CAMERA_BOUNDS_MAX := Vector2(4300, 460)
 const CRYSTAL_REGION_X := -20.0
 const CRYSTAL_GATE_RETURN_X := -35.0
 const POLLUTION_REGION_X := 240.0
+const BASE_CAMERA_VERTICAL_OFFSET := 72.0
+const BASE_CAMERA_OFFSET_FADE_END_X := POLLUTION_REGION_X
 const POLLUTION_GATE_X := 260.0
 const POLLUTION_DEEP_Y := -40.0
 const POLLUTION_GATE_RETURN_X := 235.0
@@ -635,11 +637,19 @@ func apply_runtime_state(world_state: WorldState, character_state: CharacterStat
 func get_player_position() -> Vector2:
 	return player.position
 func get_camera_focus_global_position() -> Vector2:
-	return player.global_position
+	var focus_position := player.position + Vector2(0.0, _get_base_camera_vertical_offset(player.position.x))
+	return to_global(focus_position)
 func get_camera_bounds_rect_global() -> Rect2:
 	var top_left := to_global(CAMERA_BOUNDS_MIN)
 	var bottom_right := to_global(CAMERA_BOUNDS_MAX)
 	return Rect2(top_left, bottom_right - top_left)
+func _get_base_camera_vertical_offset(player_x: float) -> float:
+	if player_x <= CRYSTAL_REGION_X:
+		return BASE_CAMERA_VERTICAL_OFFSET
+	if player_x >= BASE_CAMERA_OFFSET_FADE_END_X:
+		return 0.0
+	var fade_ratio := (player_x - CRYSTAL_REGION_X) / (BASE_CAMERA_OFFSET_FADE_END_X - CRYSTAL_REGION_X)
+	return lerpf(BASE_CAMERA_VERTICAL_OFFSET, 0.0, fade_ratio)
 func update_region_presence(world_state: WorldState, character_state: CharacterState) -> void:
 	player.clamp_to_play_bounds(PLAY_BOUNDS_MIN, PLAY_BOUNDS_MAX)
 	var gate_message := apply_region_gate_bounds(world_state)

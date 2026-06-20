@@ -829,10 +829,10 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	var vitals_height := 118.0
 	var combat_width := clampf(viewport_size.x * 0.21, 380.0, 500.0)
 	var combat_height := 164.0
-	var prompt_width := clampf(viewport_size.x * 0.28, 500.0, 640.0)
-	var prompt_height := 88.0
-	var log_width := clampf(viewport_size.x * 0.23, 420.0, 560.0)
-	var log_height := 72.0
+	var prompt_width := clampf(viewport_size.x * 0.2, 360.0, 440.0)
+	var prompt_height := 58.0
+	var log_width := clampf(viewport_size.x * 0.2, 360.0, 440.0)
+	var log_height := 60.0
 	var device_width := clampf(viewport_size.x * 0.34, 520.0, 640.0)
 	var device_height := clampf(viewport_size.y * 0.52, 620.0, 760.0)
 	var feedback_width := clampf(viewport_size.x * 0.24, 460.0, 560.0)
@@ -858,11 +858,11 @@ func _layout_runtime_panels(force: bool = false) -> void:
 			vitals_panel.visible = true
 		_set_control_rect(vitals_panel, Vector2(vitals_x, margin), Vector2(vitals_width, vitals_height))
 
-	var prompt_x := (viewport_size.x - prompt_width) * 0.5
+	var prompt_x := margin
 	var prompt_y := viewport_size.y - margin - prompt_height
 	var log_y := viewport_size.y - margin - log_height
 	_set_control_rect(prompt_panel, Vector2(prompt_x, prompt_y), Vector2(prompt_width, prompt_height))
-	_set_control_rect(log_panel, Vector2(margin, log_y), Vector2(log_width, log_height))
+	_set_control_rect(log_panel, Vector2(prompt_x + prompt_width + gap, log_y), Vector2(log_width, log_height))
 	var combat_x := viewport_size.x - margin - combat_width
 	if debug_panels_visible:
 		combat_x = maxf(margin + log_width + gap, save_position.x - gap - combat_width)

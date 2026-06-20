@@ -335,17 +335,16 @@ def check_hud_layout(
         ):
             errors.append("client/scenes/ui/PrototypeHud.tscn: VitalsPanel drifted out of distributed HUD vitals-card bounds")
         if panel_name == "PromptPanel":
-            prompt_center = (rect["left"] + rect["right"]) * 0.5
             if (
-                width > 820.0 or height > 160.0
-                or abs(prompt_center - viewport_width * 0.5) > 20.0
+                width > 460.0 or height > 90.0
+                or rect["left"] > 40.0
                 or rect["top"] < viewport_height - 190.0
                 or rect["bottom"] > viewport_height - 10.0
             ):
                 errors.append("client/scenes/ui/PrototypeHud.tscn: PromptPanel drifted out of distributed HUD bottom-rail bounds")
         if panel_name == "LogPanel" and (
-            width > 860.0 or height > 120.0 or rect["left"] > 40.0
-            or rect["right"] > 860.0 or rect["top"] < viewport_height - 400.0
+            width > 460.0 or height > 120.0 or rect["left"] < 440.0
+            or rect["right"] > 940.0 or rect["top"] < viewport_height - 400.0
         ):
             errors.append("client/scenes/ui/PrototypeHud.tscn: LogPanel drifted out of distributed HUD log-rail bounds")
 
