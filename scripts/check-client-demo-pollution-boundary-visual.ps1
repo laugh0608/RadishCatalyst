@@ -8,10 +8,13 @@ $ErrorActionPreference = "Stop"
 $requiredTextByFile = @{
     "client/scripts/map/demo_pollution_boundary_visual_layer.gd" = @(
         "class_name DemoPollutionBoundaryVisualLayer",
+        "refresh_pollution_chain_state",
         "boundary.filter_build_site",
         "boundary.pressure_gate",
         "residue.entry_patch",
         "flow.filter_to_base_return",
+        "pollution_chain.boundary_residue_queue",
+        "pollution_chain.boundary_core_prep_route",
         "_deemphasize_legacy_pollution_blocks",
         "map_object.pollution_residue_patch"
     )
@@ -22,6 +25,7 @@ $requiredTextByFile = @{
     "client/scripts/checks/demo_pollution_boundary_visual_check.gd" = @(
         "Demo pollution boundary visual checks passed.",
         "_check_pollution_boundary_layer_exists_and_registers_visuals",
+        "_check_pollution_boundary_chain_state_visuals",
         "_check_pollution_boundary_visual_priority_replaces_old_blocks",
         "_check_pollution_boundary_runtime_anchors_are_tagged"
     )

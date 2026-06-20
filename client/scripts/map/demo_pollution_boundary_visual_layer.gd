@@ -22,6 +22,12 @@ const ROUTE_TO_FILTER := Color(0.88, 0.7, 0.26, 0.74)
 const ROUTE_TO_BASE := Color(0.66, 0.86, 0.52, 0.72)
 const SLURRY_ROUTE := Color(0.78, 0.42, 0.18, 0.58)
 const GATE_CORE := Color(0.72, 0.46, 0.88, 0.78)
+const CHAIN_DIM := Color(0.24, 0.28, 0.16, 0.36)
+const CHAIN_WINDOW := Color(1.0, 0.62, 0.24, 0.78)
+const CHAIN_ROUTE_DARK := Color(0.03, 0.04, 0.03, 0.58)
+const CHAIN_VIAL := Color(0.72, 0.92, 0.38, 0.86)
+const CHAIN_SLURRY := Color(0.82, 0.42, 0.18, 0.78)
+const CHAIN_CORE_PREP := Color(0.74, 0.58, 0.9, 0.84)
 
 const LEGACY_POLLUTION_PANELS := [
 	"PollutionConstructionYardGround",
@@ -93,8 +99,11 @@ const POLLUTION_ANCHOR_PATHS := {
 
 var boundary_shape_ids: Array[String] = []
 var flow_shape_ids: Array[String] = []
+var pollution_chain_shape_ids: Array[String] = []
 var muted_legacy_block_count := 0
 var muted_interactable_marker_count := 0
+var applied_pollution_chain_state_count := 0
+var pollution_chain_state: Dictionary = {}
 
 
 func _ready() -> void:
@@ -114,6 +123,63 @@ func apply_visuals() -> void:
 	_mute_pollution_identity_shapes()
 	_tag_pollution_anchors()
 	_tone_down_pollution_interactable_markers()
+	queue_redraw()
+
+
+func refresh_pollution_chain_state(world_state: WorldState, character_state: CharacterState) -> void:
+	pollution_chain_shape_ids.clear()
+	applied_pollution_chain_state_count = 0
+	if world_state == null or character_state == null:
+		pollution_chain_state.clear()
+		queue_redraw()
+		return
+	var inventory := character_state.inventory
+	if not _has_pollution_chain_context(world_state, inventory):
+		pollution_chain_state.clear()
+		queue_redraw()
+		return
+	var filter_state := _get_base_structure_for_definition(world_state, "building.pollution_filter")
+	var reactor_state := _get_base_structure_for_definition(world_state, "building.basic_reactor")
+	var filter_active := (
+		String(filter_state.get("status", "")) == "in_progress"
+		and String(filter_state.get("active_recipe_id", "")) == "recipe.cleanse_residue"
+	)
+	var reclaim_active := (
+		String(reactor_state.get("status", "")) == "in_progress"
+		and String(reactor_state.get("active_recipe_id", "")) == "recipe.reclaim_basic_parts"
+	)
+	var core_prep_active := (
+		String(reactor_state.get("status", "")) == "in_progress"
+		and String(reactor_state.get("active_recipe_id", "")) == "recipe.core_stabilization_buffer"
+	)
+	var residue_ready := inventory.has_ref("item.polluted_residue", 2)
+	var vial_ready := inventory.has_ref("item.resistance_vial_t1", 1)
+	var slurry_ready := inventory.has_ref("fluid.polluted_slurry", 1.0)
+	var core_prep_ready := (
+		inventory.has_ref("item.repair_gel", 1)
+		and inventory.has_ref("item.resistance_vial_t1", 1)
+		and inventory.has_ref("fluid.polluted_slurry", 1.0)
+		and inventory.has_ref("item.basic_parts", 2)
+	)
+	pollution_chain_state = {
+		"residue_ready": residue_ready,
+		"filter_ready": world_state.has_base_structure_definition("building.pollution_filter") and residue_ready,
+		"filter_active": filter_active,
+		"vial_ready": vial_ready,
+		"slurry_ready": slurry_ready,
+		"recycle_ready": slurry_ready and world_state.has_base_structure_definition("building.basic_reactor"),
+		"reclaim_active": reclaim_active,
+		"core_prep_ready": core_prep_ready,
+		"core_prep_active": core_prep_active
+	}
+	_register_pollution_chain_shape("pollution_chain.boundary_residue_queue.%s" % _state_suffix(residue_ready))
+	_register_pollution_chain_shape("pollution_chain.boundary_filter_window.%s" % _state_suffix(filter_active))
+	_register_pollution_chain_shape("pollution_chain.boundary_vial_output.%s" % _state_suffix(vial_ready))
+	_register_pollution_chain_shape("pollution_chain.boundary_slurry_output.%s" % _state_suffix(slurry_ready))
+	_register_pollution_chain_shape("pollution_chain.boundary_base_return_route.%s" % _state_suffix(vial_ready or filter_active))
+	_register_pollution_chain_shape("pollution_chain.boundary_slurry_split_route.%s" % _state_suffix(slurry_ready or filter_active))
+	_register_pollution_chain_shape("pollution_chain.boundary_recycle_route.%s" % _state_suffix(bool(pollution_chain_state["recycle_ready"]) or reclaim_active))
+	_register_pollution_chain_shape("pollution_chain.boundary_core_prep_route.%s" % _state_suffix(core_prep_ready or core_prep_active))
 	queue_redraw()
 
 
@@ -141,6 +207,14 @@ func has_flow_shape(shape_id: String) -> bool:
 	return flow_shape_ids.has(shape_id)
 
 
+func get_pollution_chain_state_shape_count() -> int:
+	return applied_pollution_chain_state_count
+
+
+func has_pollution_chain_shape(shape_id: String) -> bool:
+	return pollution_chain_shape_ids.has(shape_id)
+
+
 func refresh_focus_visibility(player_position: Vector2) -> void:
 	visible = player_position.x >= FOCUS_VISIBLE_MIN_X
 
@@ -151,6 +225,7 @@ func _draw() -> void:
 	_draw_filter_construction_site()
 	_draw_residue_patches()
 	_draw_pressure_gate()
+	_draw_pollution_chain_state()
 
 
 func _draw_boundary_field() -> void:
@@ -209,6 +284,74 @@ func _draw_pressure_gate() -> void:
 	draw_line(Vector2(366.0, 24.0), Vector2(386.0, 24.0), GATE_CORE, 2.4, true)
 	draw_line(Vector2(366.0, 66.0), Vector2(386.0, 66.0), GATE_CORE, 2.4, true)
 	draw_circle(Vector2(372.0, 24.0), 5.2, DANGER_LINE)
+
+
+func _draw_pollution_chain_state() -> void:
+	if pollution_chain_state.is_empty():
+		return
+	var residue_ready := bool(pollution_chain_state.get("residue_ready", false))
+	var filter_ready := bool(pollution_chain_state.get("filter_ready", false))
+	var filter_active := bool(pollution_chain_state.get("filter_active", false))
+	var vial_ready := bool(pollution_chain_state.get("vial_ready", false))
+	var slurry_ready := bool(pollution_chain_state.get("slurry_ready", false))
+	var recycle_ready := bool(pollution_chain_state.get("recycle_ready", false))
+	var reclaim_active := bool(pollution_chain_state.get("reclaim_active", false))
+	var core_prep_ready := bool(pollution_chain_state.get("core_prep_ready", false))
+	var core_prep_active := bool(pollution_chain_state.get("core_prep_active", false))
+	_draw_chain_slot(Rect2(Vector2(250.0, 18.0), Vector2(30.0, 18.0)), residue_ready, RESIDUE_LINE)
+	_draw_chain_flow_band([Vector2(258.0, 34.0), Vector2(278.0, -12.0), Vector2(296.0, -84.0)], residue_ready or filter_ready or filter_active, RESIDUE_LINE, 4.2)
+	_draw_boundary_filter_window(filter_ready, filter_active)
+	_draw_boundary_output_slot(Rect2(Vector2(320.0, -134.0), Vector2(28.0, 18.0)), vial_ready, CHAIN_VIAL)
+	_draw_boundary_output_slot(Rect2(Vector2(320.0, -104.0), Vector2(28.0, 18.0)), slurry_ready, CHAIN_SLURRY)
+	_draw_chain_flow_band([Vector2(334.0, -124.0), Vector2(298.0, -110.0), Vector2(222.0, -108.0), Vector2(118.0, -86.0)], vial_ready or filter_active, CHAIN_VIAL, 3.6)
+	_draw_chain_flow_band([Vector2(334.0, -96.0), Vector2(314.0, 52.0), Vector2(336.0, 206.0)], slurry_ready or filter_active, CHAIN_SLURRY, 3.4)
+	_draw_chain_flow_band([Vector2(336.0, 206.0), Vector2(260.0, 188.0), Vector2(212.0, 136.0)], recycle_ready or reclaim_active, ROUTE_TO_BASE, 3.0)
+	_draw_chain_flow_band([Vector2(336.0, 206.0), Vector2(372.0, 176.0), Vector2(382.0, 24.0)], core_prep_ready or core_prep_active, CHAIN_CORE_PREP, 3.0)
+	_draw_status_pip(Vector2(258.0, 34.0), residue_ready, RESIDUE_LINE)
+	_draw_status_pip(Vector2(300.0, -110.0), filter_active, FILTER_LINE)
+	_draw_status_pip(Vector2(350.0, -124.0), vial_ready, CHAIN_VIAL)
+	_draw_status_pip(Vector2(350.0, -96.0), slurry_ready, CHAIN_SLURRY)
+	_draw_status_pip(Vector2(336.0, 206.0), slurry_ready, CHAIN_SLURRY)
+	_draw_status_pip(Vector2(212.0, 136.0), recycle_ready or reclaim_active, ROUTE_TO_BASE)
+	_draw_status_pip(Vector2(382.0, 24.0), core_prep_ready or core_prep_active, CHAIN_CORE_PREP)
+
+
+func _draw_boundary_filter_window(filter_ready: bool, filter_active: bool) -> void:
+	var color := FILTER_LINE if filter_active else RESIDUE_LINE
+	var window := Rect2(Vector2(286.0, -130.0), Vector2(24.0, 48.0))
+	draw_rect(window.grow(4.0), _state_color(color, filter_ready or filter_active, 0.16, 0.05), true)
+	draw_rect(window, _state_color(CHAIN_WINDOW, filter_active, 0.5, 0.12), true)
+	draw_rect(window, _state_color(color, filter_active, 0.86, 0.26), false, 1.8, true)
+	for y in [-122.0, -108.0, -94.0]:
+		draw_line(Vector2(290.0, y), Vector2(306.0, y + 7.0), _state_color(color, filter_active, 0.72, 0.16), 1.5, true)
+
+
+func _draw_boundary_output_slot(rect: Rect2, is_ready: bool, color: Color) -> void:
+	_draw_chain_slot(rect, is_ready, color)
+	draw_line(rect.position + Vector2(6.0, 5.0), rect.position + Vector2(22.0, 13.0), _state_color(color, is_ready, 0.78, 0.14), 1.8, true)
+	draw_line(rect.position + Vector2(22.0, 5.0), rect.position + Vector2(6.0, 13.0), _state_color(color, is_ready, 0.58, 0.1), 1.8, true)
+
+
+func _draw_chain_slot(rect: Rect2, is_ready: bool, color: Color) -> void:
+	draw_rect(rect, Color(0.03, 0.04, 0.025, 0.52), true)
+	draw_rect(rect, _state_color(color, is_ready, 0.24, 0.08), true)
+	draw_rect(rect, _state_color(color, is_ready, 0.82, 0.22), false, 1.5, true)
+
+
+func _draw_chain_flow_band(points: Array[Vector2], is_ready: bool, color: Color, width: float) -> void:
+	draw_polyline(PackedVector2Array(points), CHAIN_ROUTE_DARK, width + 3.0, true)
+	draw_polyline(PackedVector2Array(points), _state_color(color, is_ready, 0.7, 0.14), width, true)
+	for point in points:
+		draw_circle(point, width * 0.5, _state_color(color, is_ready, 0.72, 0.14))
+
+
+func _draw_status_pip(position: Vector2, is_ready: bool, color: Color) -> void:
+	draw_circle(position, 4.8, color if is_ready else CHAIN_DIM)
+	draw_arc(position, 7.6, 0.0, TAU, 20, Color(color.r, color.g, color.b, 0.34), 1.3, true)
+
+
+func _state_color(color: Color, is_ready: bool, ready_alpha: float, idle_alpha: float) -> Color:
+	return Color(color.r, color.g, color.b, ready_alpha if is_ready else idle_alpha)
 
 
 func _draw_residue_patch(center: Vector2, scale: float) -> void:
@@ -275,14 +418,66 @@ func _register_flow_shapes() -> void:
 	]
 
 
+func _register_pollution_chain_shape(shape_id: String) -> void:
+	if pollution_chain_shape_ids.has(shape_id):
+		return
+	pollution_chain_shape_ids.append(shape_id)
+	applied_pollution_chain_state_count = pollution_chain_shape_ids.size()
+
+
+func _get_base_structure_for_definition(world_state: WorldState, building_id: String) -> Dictionary:
+	for structure in world_state.base_structures.values():
+		if not structure is Dictionary:
+			continue
+		if String(structure.get("definition_id", "")) == building_id:
+			return structure
+	return {}
+
+
+func _has_pollution_chain_context(world_state: WorldState, inventory: InventoryState) -> bool:
+	if world_state == null or inventory == null:
+		return false
+	if (
+		inventory.has_ref("item.polluted_residue", 1)
+		or inventory.has_ref("item.resistance_vial_t1", 1)
+		or inventory.has_ref("fluid.polluted_slurry", 1.0)
+		or _is_recipe_active(world_state, "building.pollution_filter", "recipe.cleanse_residue")
+		or _is_recipe_active(world_state, "building.basic_reactor", "recipe.reclaim_basic_parts")
+		or _is_recipe_active(world_state, "building.basic_reactor", "recipe.core_stabilization_buffer")
+	):
+		return true
+	for quest_id in [
+		"quest.expand_treatment_point",
+		"quest.enter_pollution_edge",
+		"quest.unlock_ruin_signal",
+		"quest.prepare_demo_stabilization_buffer",
+		"quest.write_demo_stabilization_core"
+	]:
+		if world_state.quest_state.has_active_quest(quest_id):
+			return true
+	return false
+
+
+func _is_recipe_active(world_state: WorldState, building_id: String, recipe_id: String) -> bool:
+	var structure := _get_base_structure_for_definition(world_state, building_id)
+	return (
+		String(structure.get("status", "")) == "in_progress"
+		and String(structure.get("active_recipe_id", "")) == recipe_id
+	)
+
+
+func _state_suffix(is_ready: bool) -> String:
+	return "ready" if is_ready else "idle"
+
+
 func _deemphasize_legacy_pollution_blocks() -> void:
 	muted_legacy_block_count = 0
 	var region := _get_map_node("RegionPollution") as ColorRect
 	if region != null:
-		region.color = Color(0.11, 0.12, 0.07, 0.62)
+		region.color = Color(0.11, 0.12, 0.07, 0.54)
 	var route_band := _get_map_node("DemoRoutePresentationLayer/DemoRoutePollutionBand") as ColorRect
 	if route_band != null:
-		route_band.color.a = minf(route_band.color.a, 0.1)
+		route_band.color.a = minf(route_band.color.a, 0.08)
 	var route_label := _get_map_node("DemoRoutePresentationLayer/DemoRoutePollutionLabel") as Label
 	if route_label != null:
 		route_label.visible = false
@@ -293,12 +488,12 @@ func _deemphasize_legacy_pollution_blocks() -> void:
 	for node_name in LEGACY_POLLUTION_PANELS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
-			rect.color.a = minf(rect.color.a, 0.11)
+			rect.color.a = minf(rect.color.a, 0.085)
 			muted_legacy_block_count += 1
 	for node_name in LEGACY_POLLUTION_MARKERS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
-			rect.color.a = minf(rect.color.a, 0.045)
+			rect.color.a = minf(rect.color.a, 0.035)
 			muted_legacy_block_count += 1
 	var belt_label := layer.get_node_or_null("PollutionBeltLabel") as Label
 	if belt_label != null:
@@ -341,7 +536,7 @@ func _tone_down_pollution_interactable_markers() -> void:
 		if marker == null:
 			marker = interactable.get_node_or_null("Marker") as ColorRect
 		if marker != null:
-			marker.color.a = 0.075
+			marker.color.a = 0.06
 			muted_interactable_marker_count += 1
 
 

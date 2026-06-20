@@ -36,6 +36,15 @@ REQUIRED_TEXT_BY_FILE = {
         "_deemphasize_legacy_crystal_blocks",
         "map_object.rich_crystal_vein",
     ],
+    "client/scripts/map/demo_industrial_base_visual_layer.gd": [
+        "class_name DemoIndustrialBaseVisualLayer",
+        "refresh_pollution_chain_state",
+        "pollution_chain.residue_input_slot",
+        "pollution_chain.filter_process_window",
+        "pollution_chain.vial_output_slot",
+        "pollution_chain.slurry_byproduct_slot",
+        "pollution_chain.core_prep_route",
+    ],
     "client/scenes/maps/VerticalSliceMap.tscn": [
         "DemoCrystalResourceVisualLayer",
         "demo_crystal_resource_visual_layer.gd",
@@ -52,6 +61,8 @@ REQUIRED_TEXT_BY_FILE = {
         "_check_processing_result_resource_chain",
         "_check_crystal_resource_visual_layer",
         "crystal visual layer stays hidden at startup objective",
+        "_check_pollution_chain_hud_and_visual_state",
+        "pollution_chain.core_prep_route.ready",
         "_check_resource_chain_state_roundtrip",
     ],
     "scripts/check-client.sh": [

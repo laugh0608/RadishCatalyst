@@ -21,6 +21,7 @@ func _init() -> void:
 func _run_checks() -> void:
 	_check_pollution_boundary_layer_exists_and_registers_visuals()
 	_check_pollution_boundary_focus_visibility()
+	_check_pollution_boundary_chain_state_visuals()
 	_check_pollution_boundary_visual_priority_replaces_old_blocks()
 	_check_pollution_boundary_runtime_anchors_are_tagged()
 
@@ -59,6 +60,35 @@ func _check_pollution_boundary_focus_visibility() -> void:
 	map.free()
 
 
+func _check_pollution_boundary_chain_state_visuals() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	var layer := map.get_node("DemoPollutionBoundaryVisualLayer") as DemoPollutionBoundaryVisualLayer
+	layer.apply_visuals()
+	var world := WorldState.create_default()
+	world.quest_state.active_quest_ids = ["quest.prepare_demo_stabilization_buffer"]
+	world.add_base_structure("structure.pollution_filter", "building.pollution_filter", "region.pollution_edge")
+	world.set_base_structure_status("structure.pollution_filter", "in_progress", "recipe.cleanse_residue")
+	var character := CharacterState.create_default()
+	character.inventory.add_item("item.polluted_residue", 2)
+	character.inventory.add_item("item.resistance_vial_t1", 1)
+	character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
+	character.inventory.add_item("item.basic_parts", 2)
+	character.inventory.add_item("item.repair_gel", 1)
+
+	layer.refresh_pollution_chain_state(world, character)
+	_expect_equal(layer.get_pollution_chain_state_shape_count() >= 8, true, "pollution boundary visual layer creates dynamic chain shapes")
+	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.boundary_residue_queue.ready"), true, "pollution boundary marks residue queue")
+	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.boundary_filter_window.ready"), true, "pollution boundary marks filter process window")
+	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.boundary_vial_output.ready"), true, "pollution boundary marks vial output")
+	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.boundary_slurry_output.ready"), true, "pollution boundary marks slurry output")
+	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.boundary_base_return_route.ready"), true, "pollution boundary marks base return route")
+	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.boundary_slurry_split_route.ready"), true, "pollution boundary marks slurry split route")
+	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.boundary_recycle_route.ready"), true, "pollution boundary marks slurry recycle route")
+	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.boundary_core_prep_route.ready"), true, "pollution boundary marks core prep route")
+	map.free()
+
+
 func _check_pollution_boundary_visual_priority_replaces_old_blocks() -> void:
 	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
 	root.add_child(map)
@@ -71,14 +101,16 @@ func _check_pollution_boundary_visual_priority_replaces_old_blocks() -> void:
 	var old_residue := map.get_node("OpeningSceneLayer/PollutionEntryResidueMarker") as ColorRect
 	var belt_label := map.get_node("OpeningSceneLayer/PollutionBeltLabel") as Label
 	var route_label := map.get_node("DemoRoutePresentationLayer/DemoRoutePollutionLabel") as Label
+	var route_band := map.get_node("DemoRoutePresentationLayer/DemoRoutePollutionBand") as ColorRect
 	var residue_interactable := map.get_node("Interactables/PollutionResidue") as PrototypeInteractable
 	var filter_build_site := map.get_node("Interactables/PollutionFilterBuildSite") as PrototypeInteractable
-	_expect_equal(old_danger.color.a <= 0.11, true, "old pollution field no longer dominates")
-	_expect_equal(old_residue.color.a <= 0.05, true, "old pollution marker no longer dominates")
+	_expect_equal(old_danger.color.a <= 0.09, true, "old pollution field no longer dominates")
+	_expect_equal(old_residue.color.a <= 0.04, true, "old pollution marker no longer dominates")
+	_expect_equal(route_band.color.a <= 0.08, true, "old pollution route band no longer dominates")
 	_expect_equal(belt_label.visible, false, "old pollution belt label hidden")
 	_expect_equal(route_label.visible, false, "old route label hidden")
-	_expect_equal(_get_marker_alpha(residue_interactable) <= 0.08, true, "residue interactable marker is muted")
-	_expect_equal(_get_marker_alpha(filter_build_site) <= 0.08, true, "filter build site marker is muted")
+	_expect_equal(_get_marker_alpha(residue_interactable) <= 0.065, true, "residue interactable marker is muted")
+	_expect_equal(_get_marker_alpha(filter_build_site) <= 0.065, true, "filter build site marker is muted")
 	map.free()
 
 

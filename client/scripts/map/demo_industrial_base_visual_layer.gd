@@ -30,6 +30,11 @@ const CHAIN_READY := Color(0.92, 0.9, 0.42, 0.92)
 const CHAIN_INPUT := Color(0.28, 0.84, 0.96, 0.94)
 const CHAIN_PRODUCT := Color(0.64, 0.92, 0.56, 0.9)
 const CHAIN_WINDOW := Color(1.0, 0.62, 0.24, 0.86)
+const CHAIN_POLLUTION := Color(0.82, 0.78, 0.25, 0.88)
+const CHAIN_SOLVENT := Color(0.36, 0.74, 0.86, 0.84)
+const CHAIN_SLURRY := Color(0.78, 0.42, 0.18, 0.82)
+const CHAIN_VIAL := Color(0.72, 0.92, 0.38, 0.9)
+const CHAIN_CORE_PREP := Color(0.74, 0.58, 0.9, 0.88)
 const CHAIN_ROUTE_DARK := Color(0.02, 0.04, 0.035, 0.72)
 
 const DEVICE_ANCHORS := {
@@ -75,7 +80,10 @@ var device_shape_ids: Array[String] = []
 var flow_shape_ids: Array[String] = []
 var chain_shape_ids: Array[String] = []
 var detail_shape_ids: Array[String] = []
+var pollution_chain_shape_ids: Array[String] = []
 var chain_state: Dictionary = {}
+var pollution_chain_state: Dictionary = {}
+var applied_pollution_chain_state_count := 0
 
 
 func _ready() -> void:
@@ -96,10 +104,13 @@ func apply_visuals() -> void:
 
 func refresh_chain_state(world_state: WorldState, character_state: CharacterState) -> void:
 	chain_shape_ids.clear()
+	pollution_chain_shape_ids.clear()
 	applied_chain_state_count = 0
+	applied_pollution_chain_state_count = 0
 	_tone_down_core_interactable_markers()
 	if world_state == null or character_state == null:
 		chain_state.clear()
+		pollution_chain_state.clear()
 		queue_redraw()
 		return
 	var inventory := character_state.inventory
@@ -128,6 +139,14 @@ func refresh_chain_state(world_state: WorldState, character_state: CharacterStat
 	_register_chain_shape("chain.parts_output_tray.%s" % _state_suffix(bool(chain_state["parts_ready"])))
 	_register_chain_shape("chain.repair_gel_cylinder.%s" % _state_suffix(bool(chain_state["gel_ready"])))
 	_register_chain_shape("chain.outfitting_launch_bus.%s" % _state_suffix(bool(chain_state["station_ready"]) and bool(chain_state["gel_ready"])))
+	_refresh_pollution_chain_visual_state(world_state, character_state)
+	queue_redraw()
+
+
+func refresh_pollution_chain_state(world_state: WorldState, character_state: CharacterState) -> void:
+	pollution_chain_shape_ids.clear()
+	applied_pollution_chain_state_count = 0
+	_refresh_pollution_chain_visual_state(world_state, character_state)
 	queue_redraw()
 
 
@@ -162,6 +181,14 @@ func has_chain_shape(shape_id: String) -> bool:
 	return chain_shape_ids.has(shape_id)
 
 
+func get_pollution_chain_state_shape_count() -> int:
+	return applied_pollution_chain_state_count
+
+
+func has_pollution_chain_shape(shape_id: String) -> bool:
+	return pollution_chain_shape_ids.has(shape_id)
+
+
 func _draw() -> void:
 	_draw_base_deck()
 	_draw_base_detail()
@@ -173,6 +200,7 @@ func _draw() -> void:
 	_draw_departure_gate()
 	_draw_pollution_filter()
 	_draw_chain_state()
+	_draw_pollution_chain_state()
 
 
 func _draw_base_deck() -> void:
@@ -361,6 +389,137 @@ func _draw_chain_flow_band(points: Array[Vector2], is_ready: bool, color: Color,
 		draw_circle(point, width * 0.55, _state_color(color, is_ready, 0.74, 0.14))
 
 
+func _refresh_pollution_chain_visual_state(world_state: WorldState, character_state: CharacterState) -> void:
+	if world_state == null or character_state == null:
+		pollution_chain_state.clear()
+		return
+	var inventory := character_state.inventory
+	if not _has_pollution_chain_context(world_state, inventory):
+		pollution_chain_state.clear()
+		return
+	var filter_state := _get_base_structure_for_definition(world_state, "building.pollution_filter")
+	var reactor_state := _get_base_structure_for_definition(world_state, "building.basic_reactor")
+	var filter_active := (
+		String(filter_state.get("status", "")) == "in_progress"
+		and String(filter_state.get("active_recipe_id", "")) == "recipe.cleanse_residue"
+	)
+	var reclaim_active := (
+		String(reactor_state.get("status", "")) == "in_progress"
+		and String(reactor_state.get("active_recipe_id", "")) == "recipe.reclaim_basic_parts"
+	)
+	var core_prep_active := (
+		String(reactor_state.get("status", "")) == "in_progress"
+		and String(reactor_state.get("active_recipe_id", "")) == "recipe.core_stabilization_buffer"
+	)
+	var residue_ready := inventory.has_ref("item.polluted_residue", 2)
+	var solvent_ready := inventory.has_ref("fluid.basic_solvent", 1.0)
+	var vial_ready := inventory.has_ref("item.resistance_vial_t1", 1)
+	var slurry_ready := inventory.has_ref("fluid.polluted_slurry", 1.0)
+	var core_prep_ready := (
+		inventory.has_ref("item.repair_gel", 1)
+		and inventory.has_ref("item.resistance_vial_t1", 1)
+		and inventory.has_ref("fluid.polluted_slurry", 1.0)
+		and inventory.has_ref("item.basic_parts", 2)
+	)
+	pollution_chain_state = {
+		"residue_ready": residue_ready,
+		"solvent_ready": solvent_ready,
+		"filter_ready": world_state.has_base_structure_definition("building.pollution_filter") and residue_ready and solvent_ready,
+		"filter_active": filter_active,
+		"vial_ready": vial_ready,
+		"slurry_ready": slurry_ready,
+		"slurry_buffer_ready": world_state.has_base_structure_definition("building.slurry_buffer_tank"),
+		"recycle_ready": slurry_ready and world_state.has_base_structure_definition("building.basic_reactor"),
+		"reclaim_active": reclaim_active,
+		"core_prep_ready": core_prep_ready,
+		"core_prep_active": core_prep_active
+	}
+	_register_pollution_chain_shape("pollution_chain.residue_input_slot.%s" % _state_suffix(residue_ready))
+	_register_pollution_chain_shape("pollution_chain.solvent_input_slot.%s" % _state_suffix(solvent_ready))
+	_register_pollution_chain_shape("pollution_chain.filter_process_window.%s" % _state_suffix(filter_active))
+	_register_pollution_chain_shape("pollution_chain.vial_output_slot.%s" % _state_suffix(vial_ready))
+	_register_pollution_chain_shape("pollution_chain.slurry_byproduct_slot.%s" % _state_suffix(slurry_ready))
+	_register_pollution_chain_shape("pollution_chain.vial_to_outfitting_route.%s" % _state_suffix(vial_ready or filter_active))
+	_register_pollution_chain_shape("pollution_chain.slurry_return_route.%s" % _state_suffix(slurry_ready or filter_active))
+	_register_pollution_chain_shape("pollution_chain.slurry_recycle_route.%s" % _state_suffix(bool(pollution_chain_state["recycle_ready"]) or reclaim_active))
+	_register_pollution_chain_shape("pollution_chain.core_prep_route.%s" % _state_suffix(core_prep_ready or core_prep_active))
+
+
+func _draw_pollution_chain_state() -> void:
+	if pollution_chain_state.is_empty():
+		return
+	var residue_ready := bool(pollution_chain_state.get("residue_ready", false))
+	var solvent_ready := bool(pollution_chain_state.get("solvent_ready", false))
+	var filter_ready := bool(pollution_chain_state.get("filter_ready", false))
+	var filter_active := bool(pollution_chain_state.get("filter_active", false))
+	var vial_ready := bool(pollution_chain_state.get("vial_ready", false))
+	var slurry_ready := bool(pollution_chain_state.get("slurry_ready", false))
+	var slurry_buffer_ready := bool(pollution_chain_state.get("slurry_buffer_ready", false))
+	var recycle_ready := bool(pollution_chain_state.get("recycle_ready", false))
+	var reclaim_active := bool(pollution_chain_state.get("reclaim_active", false))
+	var core_prep_ready := bool(pollution_chain_state.get("core_prep_ready", false))
+	var core_prep_active := bool(pollution_chain_state.get("core_prep_active", false))
+	_draw_pollution_input_slots(residue_ready, solvent_ready)
+	_draw_chain_flow_band([Vector2(258.0, 34.0), Vector2(278.0, -18.0), Vector2(288.0, -84.0)], residue_ready or filter_ready or filter_active, CHAIN_POLLUTION, 4.0)
+	_draw_chain_flow_band([Vector2(-250.0, 18.0), Vector2(-88.0, 18.0), Vector2(160.0, -58.0), Vector2(288.0, -104.0)], solvent_ready, CHAIN_SOLVENT, 3.2)
+	_draw_filter_process_window(filter_ready, filter_active)
+	_draw_pollution_outputs(vial_ready, slurry_ready)
+	_draw_chain_flow_band([Vector2(334.0, -124.0), Vector2(222.0, -108.0), Vector2(106.0, -84.0), Vector2(-44.0, -44.0)], vial_ready or filter_active, CHAIN_VIAL, 4.0)
+	_draw_chain_flow_band([Vector2(334.0, -96.0), Vector2(240.0, 44.0), Vector2(72.0, 98.0), Vector2(-130.0, 120.0)], slurry_ready or filter_active, CHAIN_SLURRY, 3.8)
+	_draw_pollution_slurry_buffer_state(slurry_ready, slurry_buffer_ready)
+	_draw_chain_flow_band([Vector2(-130.0, 120.0), Vector2(-166.0, 42.0), Vector2(-166.0, -26.0)], recycle_ready or reclaim_active, CHAIN_PRODUCT, 3.6)
+	_draw_chain_flow_band([Vector2(-130.0, 120.0), Vector2(-98.0, 78.0), Vector2(-74.0, -12.0), Vector2(-44.0, -40.0)], core_prep_ready or core_prep_active, CHAIN_CORE_PREP, 3.6)
+	_draw_status_pip(Vector2(256.0, -102.0), residue_ready, CHAIN_POLLUTION)
+	_draw_status_pip(Vector2(256.0, -78.0), solvent_ready, CHAIN_SOLVENT)
+	_draw_status_pip(Vector2(300.0, -110.0), filter_active, FILTER_LIGHT)
+	_draw_status_pip(Vector2(348.0, -124.0), vial_ready, CHAIN_VIAL)
+	_draw_status_pip(Vector2(348.0, -96.0), slurry_ready, CHAIN_SLURRY)
+	_draw_status_pip(Vector2(-130.0, 120.0), slurry_ready, CHAIN_SLURRY)
+	_draw_status_pip(Vector2(-166.0, -26.0), recycle_ready or reclaim_active, CHAIN_PRODUCT)
+	_draw_status_pip(Vector2(-52.0, -40.0), core_prep_ready or core_prep_active, CHAIN_CORE_PREP)
+
+
+func _draw_pollution_input_slots(residue_ready: bool, solvent_ready: bool) -> void:
+	var residue_slot := Rect2(Vector2(244.0, -112.0), Vector2(28.0, 18.0))
+	var solvent_slot := Rect2(Vector2(244.0, -88.0), Vector2(28.0, 18.0))
+	_draw_chain_slot(residue_slot, residue_ready, CHAIN_POLLUTION)
+	_draw_chain_slot(solvent_slot, solvent_ready, CHAIN_SOLVENT)
+	draw_circle(Vector2(252.0, -103.0), 3.2, _state_color(CHAIN_POLLUTION, residue_ready, 0.84, 0.16))
+	draw_circle(Vector2(264.0, -103.0), 3.2, _state_color(CHAIN_POLLUTION, residue_ready, 0.66, 0.14))
+	draw_line(Vector2(250.0, -80.0), Vector2(266.0, -80.0), _state_color(CHAIN_SOLVENT, solvent_ready, 0.86, 0.16), 2.2, true)
+	draw_line(Vector2(258.0, -86.0), Vector2(258.0, -74.0), _state_color(CHAIN_SOLVENT, solvent_ready, 0.7, 0.12), 2.0, true)
+
+
+func _draw_filter_process_window(filter_ready: bool, filter_active: bool) -> void:
+	var process_color := FILTER_LIGHT if filter_active else CHAIN_POLLUTION
+	var window := Rect2(Vector2(286.0, -130.0), Vector2(24.0, 44.0))
+	draw_rect(window.grow(4.0), _state_color(process_color, filter_ready or filter_active, 0.18, 0.06), true)
+	draw_rect(window, _state_color(CHAIN_WINDOW, filter_active, 0.5, 0.12), true)
+	draw_rect(window, _state_color(process_color, filter_active, 0.86, 0.28), false, 1.8, true)
+	for y in [-122.0, -110.0, -98.0]:
+		draw_line(Vector2(290.0, y), Vector2(306.0, y + 6.0), _state_color(process_color, filter_active, 0.72, 0.18), 1.6, true)
+
+
+func _draw_pollution_outputs(vial_ready: bool, slurry_ready: bool) -> void:
+	var vial_slot := Rect2(Vector2(322.0, -132.0), Vector2(26.0, 18.0))
+	var slurry_slot := Rect2(Vector2(322.0, -104.0), Vector2(26.0, 18.0))
+	_draw_chain_slot(vial_slot, vial_ready, CHAIN_VIAL)
+	draw_line(Vector2(328.0, -128.0), Vector2(342.0, -118.0), _state_color(CHAIN_VIAL, vial_ready, 0.82, 0.16), 2.0, true)
+	draw_line(Vector2(342.0, -128.0), Vector2(328.0, -118.0), _state_color(CHAIN_VIAL, vial_ready, 0.64, 0.12), 2.0, true)
+	_draw_chain_slot(slurry_slot, slurry_ready, CHAIN_SLURRY)
+	draw_circle(Vector2(330.0, -95.0), 3.0, _state_color(CHAIN_SLURRY, slurry_ready, 0.86, 0.16))
+	draw_circle(Vector2(340.0, -95.0), 3.0, _state_color(CHAIN_SLURRY, slurry_ready, 0.66, 0.12))
+
+
+func _draw_pollution_slurry_buffer_state(slurry_ready: bool, slurry_buffer_ready: bool) -> void:
+	var tank := Rect2(Vector2(-148.0, 104.0), Vector2(36.0, 32.0))
+	draw_rect(tank, Color(0.05, 0.06, 0.035, 0.5), true)
+	draw_rect(tank, _state_color(CHAIN_SLURRY, slurry_ready or slurry_buffer_ready, 0.52, 0.16), false, 1.8, true)
+	draw_line(Vector2(-140.0, 112.0), Vector2(-120.0, 112.0), _state_color(CHAIN_SLURRY, slurry_ready, 0.7, 0.12), 2.0, true)
+	draw_line(Vector2(-140.0, 124.0), Vector2(-120.0, 124.0), _state_color(CHAIN_SLURRY, slurry_ready, 0.54, 0.1), 2.0, true)
+	draw_circle(Vector2(-112.0, 120.0), 4.0, _state_color(CHAIN_SLURRY, slurry_ready, 0.76, 0.14))
+
+
 func _draw_status_pip(position: Vector2, is_ready: bool, color: Color) -> void:
 	draw_circle(position, 5.0, color if is_ready else CHAIN_DIM)
 	draw_arc(position, 8.0, 0.0, TAU, 20, Color(color.r, color.g, color.b, 0.36), 1.4, true)
@@ -426,6 +585,13 @@ func _register_chain_shape(shape_id: String) -> void:
 	applied_chain_state_count = chain_shape_ids.size()
 
 
+func _register_pollution_chain_shape(shape_id: String) -> void:
+	if pollution_chain_shape_ids.has(shape_id):
+		return
+	pollution_chain_shape_ids.append(shape_id)
+	applied_pollution_chain_state_count = pollution_chain_shape_ids.size()
+
+
 func _get_base_structure_for_definition(world_state: WorldState, building_id: String) -> Dictionary:
 	for structure in world_state.base_structures.values():
 		if not structure is Dictionary:
@@ -433,6 +599,38 @@ func _get_base_structure_for_definition(world_state: WorldState, building_id: St
 		if String(structure.get("definition_id", "")) == building_id:
 			return structure
 	return {}
+
+
+func _has_pollution_chain_context(world_state: WorldState, inventory: InventoryState) -> bool:
+	if world_state == null or inventory == null:
+		return false
+	if (
+		inventory.has_ref("item.polluted_residue", 1)
+		or inventory.has_ref("item.resistance_vial_t1", 1)
+		or inventory.has_ref("fluid.polluted_slurry", 1.0)
+		or _is_recipe_active(world_state, "building.pollution_filter", "recipe.cleanse_residue")
+		or _is_recipe_active(world_state, "building.basic_reactor", "recipe.reclaim_basic_parts")
+		or _is_recipe_active(world_state, "building.basic_reactor", "recipe.core_stabilization_buffer")
+	):
+		return true
+	for quest_id in [
+		"quest.expand_treatment_point",
+		"quest.enter_pollution_edge",
+		"quest.unlock_ruin_signal",
+		"quest.prepare_demo_stabilization_buffer",
+		"quest.write_demo_stabilization_core"
+	]:
+		if world_state.quest_state.has_active_quest(quest_id):
+			return true
+	return false
+
+
+func _is_recipe_active(world_state: WorldState, building_id: String, recipe_id: String) -> bool:
+	var structure := _get_base_structure_for_definition(world_state, building_id)
+	return (
+		String(structure.get("status", "")) == "in_progress"
+		and String(structure.get("active_recipe_id", "")) == recipe_id
+	)
 
 
 func _state_suffix(is_ready: bool) -> String:

@@ -30,6 +30,7 @@ func _run_checks() -> void:
 	_check_device_panel_resource_chain_state()
 	_check_processing_result_resource_chain()
 	_check_first_industrial_chain_hud_and_visual_state()
+	_check_pollution_chain_hud_and_visual_state()
 	_check_crystal_resource_visual_layer()
 	_check_resource_chain_state_roundtrip()
 
@@ -134,6 +135,42 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	_expect_equal(layer.has_chain_shape("chain.parts_output_tray.ready"), true, "industrial visual layer marks parts output tray")
 	_expect_equal(layer.has_chain_shape("chain.repair_gel_cylinder.ready"), true, "industrial visual layer marks repair gel cylinder")
 	_expect_equal(layer.has_chain_shape("chain.outfitting_launch_bus.ready"), true, "industrial visual layer marks outfitting launch bus")
+	map.free()
+
+
+func _check_pollution_chain_hud_and_visual_state() -> void:
+	var world := _create_resource_chain_world("quest.prepare_demo_stabilization_buffer")
+	world.set_base_structure_status("structure.pollution_filter", "in_progress", "recipe.cleanse_residue")
+	var character := CharacterState.create_default()
+	character.inventory.add_item("item.polluted_residue", 2)
+	character.inventory.add_fluid("fluid.basic_solvent", 1.0)
+	character.inventory.add_item("item.resistance_vial_t1", 1)
+	character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
+	character.inventory.add_item("item.basic_parts", 2)
+	character.inventory.add_item("item.repair_gel", 1)
+
+	var hud_character := CharacterState.create_default()
+	hud_character.inventory.add_item("item.polluted_residue", 2)
+	hud_character.inventory.add_fluid("fluid.basic_solvent", 1.0)
+	var hud_text := HudStatusPresenter.new().format_vitals_text(data_registry, world, hud_character)
+	_expect_text_contains(hud_text, "污染处理待加工", "HUD keeps pollution chain state visible")
+	_expect_text_contains(hud_text, "污染沉积物可进污染过滤器", "HUD names pollution filter route")
+
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	var layer := map.get_node("DemoIndustrialBaseVisualLayer") as DemoIndustrialBaseVisualLayer
+	layer.apply_visuals()
+	layer.refresh_chain_state(world, character)
+	_expect_equal(layer.get_pollution_chain_state_shape_count() >= 9, true, "industrial visual layer creates pollution chain state shapes")
+	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.residue_input_slot.ready"), true, "industrial visual layer marks pollution residue input")
+	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.solvent_input_slot.ready"), true, "industrial visual layer marks solvent input")
+	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.filter_process_window.ready"), true, "industrial visual layer marks pollution filter processing window")
+	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.vial_output_slot.ready"), true, "industrial visual layer marks resistance vial output")
+	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.slurry_byproduct_slot.ready"), true, "industrial visual layer marks polluted slurry byproduct")
+	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.vial_to_outfitting_route.ready"), true, "industrial visual layer marks vial route to outfitting")
+	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.slurry_return_route.ready"), true, "industrial visual layer marks slurry return route")
+	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.slurry_recycle_route.ready"), true, "industrial visual layer marks slurry recycle route")
+	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.core_prep_route.ready"), true, "industrial visual layer marks core preparation route")
 	map.free()
 
 

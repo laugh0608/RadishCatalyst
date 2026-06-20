@@ -528,6 +528,9 @@ func _refresh_industrial_base_visuals() -> void:
 	var visual_layer := vertical_slice_map.get_node_or_null("DemoIndustrialBaseVisualLayer") as DemoIndustrialBaseVisualLayer
 	if visual_layer != null:
 		visual_layer.refresh_chain_state(world_state, character_state)
+	var pollution_layer := vertical_slice_map.get_node_or_null("DemoPollutionBoundaryVisualLayer") as DemoPollutionBoundaryVisualLayer
+	if pollution_layer != null:
+		pollution_layer.refresh_pollution_chain_state(world_state, character_state)
 
 
 func _refresh_current_objective_guidance() -> void:
