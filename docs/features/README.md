@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-06-19
+更新时间：2026-06-20
 
 ## 用途
 
@@ -26,8 +26,9 @@
 ## 当前与最近专题
 
 - [Demo Definition V1](demo-definition-v1.md)：首版 Demo 规格表，后续专题必须映射到未完成规格项。
-- [Demo Playable Content Substance V1](demo-playable-content-substance-v1.md)：当前活跃专题，覆盖 Demo 实质补强。
-- [Demo Scene Device Pressure Staging V1](demo-scene-device-pressure-staging-v1.md)：明日建议细专题，覆盖场景设备、危险边界、对象尺寸和任务现场编排。
+- [Demo Industrial Base Visual And Scene V1](demo-industrial-base-visual-and-scene-v1.md)：当前活跃专题，覆盖工业基地视觉、场景化、HUD 视觉和第一条工业链可视化。
+- [Demo Playable Content Substance V1](demo-playable-content-substance-v1.md)：最近完成口径修正，确认自动检查和第一包不能替代可试玩画面质量。
+- [Demo Scene Device Pressure Staging V1](demo-scene-device-pressure-staging-v1.md)：暂缓，不再作为明日建议；后续若启用，必须服务工业基地视觉与场景化。
 - [Demo Field Task Differentiation V1](demo-field-task-differentiation-v1.md)：最近完成，覆盖任务差异。
 - [Demo Initial Art Identity V1](demo-initial-art-identity-v1.md)：最近完成，覆盖现场身份。
 - [Demo Industrial Module Task Rhythm V1](demo-industrial-module-task-rhythm-v1.md)：最近完成，覆盖 5 个核心模块职责。

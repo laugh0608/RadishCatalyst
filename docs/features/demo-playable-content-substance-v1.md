@@ -1,12 +1,12 @@
 # Demo Playable Content Substance V1
 
-更新时间：2026-06-19
+更新时间：2026-06-20
 
 ## 用途
 
-本文定义首版 Demo 可玩内容实质补强第一版。它修正“自动检查通过就等于可进入试玩准备”的错误判断，重新把当前阶段落回玩家可见开发任务。
+本文记录首版 Demo 可玩内容实质补强第一版。它修正“自动检查通过就等于可进入试玩准备”的错误判断，并在 2026-06-20 被 [Demo Industrial Base Visual And Scene V1](demo-industrial-base-visual-and-scene-v1.md) 承接。
 
-本专题覆盖 [Demo Definition V1](demo-definition-v1.md) 中尚未被真实体验证明的规格：场景完成度、角色 / 怪物 UI、初步美术识别、工业基建模块、资源 / 生产链、战斗压力和任务节奏。
+后续不再沿本文继续泛化补读法；当前优先把工业基地、HUD、场景和第一条工业链做成玩家可见画面。
 
 ## 玩家价值
 
@@ -103,6 +103,6 @@
 ## 风险与后续决策
 
 - 最大风险是继续用提示、检查和专题名称替代真实可玩内容；本专题明确禁止这种判断。
-- 明日建议优先执行 `Demo Scene Device Pressure Staging V1`，把已完成的战斗读法、核心空间、工业模块、初步美术和外勤任务差异推进到场景设备、危险边界、对象尺寸和任务现场编排。
+- 后续优先执行 `Demo Industrial Base Visual And Scene V1`，把工业基地、HUD 和第一条工业链推进到可试玩画面；`Demo Scene Device Pressure Staging V1` 暂缓。
 - 若补强发现首版 Demo 必达规格本身过大，应回到 `Demo Definition V1` 调整规格，而不是假装已经完成。
 - 阶段验收只能在玩家可见内容补强后重新启动。

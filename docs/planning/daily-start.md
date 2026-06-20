@@ -1,68 +1,62 @@
 # Daily Start
 
-更新时间：2026-06-19
+更新时间：2026-06-20
 
 ## 用途
 
 当提示是“根据项目规划和开发进度，今天要来做什么以推进开发”时，优先阅读本文。
 
-本文只提供日常入口和读取顺序；阶段方向以当前活跃专题为准，每日代码范围以当前执行或下一次新建细专题为准。
+本文只提供日常入口和读取顺序；阶段方向以当前活跃专题为准，每日代码范围以当前执行包为准。
 
 ## 阶段
 
-当前为「首版 Demo 可玩内容实质补强第一版」。
+当前为「首版 Demo 工业基地视觉与场景化第一版」。
 
 首版 Demo 完成规格：[Demo Definition V1](../features/demo-definition-v1.md)。
 
-当前活跃专题：[Demo Playable Content Substance V1](../features/demo-playable-content-substance-v1.md)，覆盖首版 Demo 场景、角色 / 怪物 UI、初步美术、工业基建和任务节奏的玩家可见实质补强。
+当前活跃专题：[Demo Industrial Base Visual And Scene V1](../features/demo-industrial-base-visual-and-scene-v1.md)，覆盖工业基地视觉、场景化、HUD 视觉和第一条工业链可视化。
 
-明日建议细专题：[Demo Scene Device Pressure Staging V1](../features/demo-scene-device-pressure-staging-v1.md)，覆盖场景设备、危险边界、对象尺寸和任务现场编排。
+视觉方向参考：[Visual And UI Direction](../product/visual-and-ui-direction.md)。
 
-最近完成细专题：[Demo Field Task Differentiation V1](../features/demo-field-task-differentiation-v1.md)、[Demo Initial Art Identity V1](../features/demo-initial-art-identity-v1.md)、[Demo Industrial Module Task Rhythm V1](../features/demo-industrial-module-task-rhythm-v1.md) 与 [Demo Core Scene Playable Space V1](../features/demo-core-scene-playable-space-v1.md)，2026-06-19 第一包已落地。
-
-最近完成细专题：[Demo Non-Core Scene Identity V1](../features/demo-non-core-scene-identity-v1.md) 与 [Demo Functional Transition Route Support V1](../features/demo-functional-transition-route-support-v1.md)，2026-06-16 第一包已落地。
-
-更早完成专题按 [Feature Development Docs](../features/README.md) 索引选读；不继续给既有路线、资源链、存档、主路径或工程拆分追加同类文案包，但允许围绕首版 Demo 必达规格补真实场景、战斗 UI、设备职责和任务节奏。
+最近完成专题：[Demo Playable Content Substance V1](../features/demo-playable-content-substance-v1.md)、[Demo Field Task Differentiation V1](../features/demo-field-task-differentiation-v1.md)、[Demo Initial Art Identity V1](../features/demo-initial-art-identity-v1.md)、[Demo Industrial Module Task Rhythm V1](../features/demo-industrial-module-task-rhythm-v1.md) 与 [Demo Core Scene Playable Space V1](../features/demo-core-scene-playable-space-v1.md) 已落地第一包，但不能替代可试玩画面质量。
 
 ## 最近收尾
 
-- 早期复测、资源循环、基地行动、窗口复盘、装备与战斗反哺基地原型均已通过检查或局部复测。
-- 首版 Demo 已完成范围冻结、12 区域封顶、UI baseline、核心稳定站终点链路和早期链路审计。
-- 首小时引导、Demo 中段衔接、基地后勤、晶体侧路、污染边界、核心稳定站复测和整段原型呈现已完成第一轮建设。
-- 2026-06-14 阶段口径复核结论：继续加厚同一条核心站归档后回访链收益递减，阶段转入角色成长与战斗第一版。
+- `S0` 到 Demo 终点的主路径、存档状态、设备面板、加工、过滤、整备、战斗反馈和自动检查证据已建立。
+- 2026-06-19 已撤回“自动检查通过即可进入验收”的判断。
+- 2026-06-20 复核当前交付目标：内部朋友试玩或完整实机演示；核心参考《The Riftbreaker》的工业基地主导体验，探索 / 战斗服务基地。
+- 当前最大缺口从“路径是否存在”切到“画面是否像游戏、基地是否像工业基地、HUD 是否像玩家界面”。
 
 ## 下一步读取顺序
 
-1. 读 `docs/planning/current.md` 确认阶段和冻结边界。
-2. 读 `docs/features/demo-definition-v1.md` 确认首版 Demo 完成规格和当前缺口。
-3. 读当前活跃专题 `docs/features/demo-playable-content-substance-v1.md`，确认场景、角色 / 怪物 UI、美术、设备和任务节奏的实质补强范围。
-4. 只在需要确认上一阶段边界时，读 `docs/features/demo-first-playable-acceptance-v1.md`、`docs/features/demo-device-panel-operation-readability-v1.md` 和 `docs/features/demo-map-surface-decomposition-v1.md`。
-5. 读 `docs/planning/demo-scope-and-playable-slice.md`，确认 12 区域职责表和功能 / 过渡分组。
-6. 只在需要历史风险时，读取最新周志中的“风险与未完成项”和“后续事项”。
+1. 读 `docs/planning/current.md` 确认阶段、冻结边界和退出条件。
+2. 读 `docs/features/demo-industrial-base-visual-and-scene-v1.md`，确认基地平台、HUD 和第一条工业链的视觉范围。
+3. 读 `docs/product/visual-and-ui-direction.md`，确认低保真美术和 UI 气质。
+4. 读 `docs/features/demo-definition-v1.md`，确认首版 Demo 必达规格。
+5. 只在需要确认 12 区职责时，读 `docs/planning/demo-scope-and-playable-slice.md`。
+6. 只在需要历史风险时，读取最新周志中的“风险与未完成项”和“下周建议”。
 7. 按改动范围选读设计、架构和复测基线文档。
 
 ## 当前开发重点
 
-- 原型视觉呈现和核心场景空间第一包只证明基础可读性；后续若继续推进场景，应优先补对象尺寸、设备造型、危险边界和任务节奏。
-- 快捷补给读法已通过退出判断；不继续扩补给短状态、HUD 行或失败文案。
-- 当前推进首版 Demo 可玩内容实质补强：工业模块职责与任务节奏、初步美术识别、资源处理与外勤任务差异第一包已落地，明日优先补场景设备、危险边界、对象尺寸和任务现场编排。
-- 受阻动作恢复读法、动作反馈可读性、交互可辨识度、战斗撤离恢复、可玩场景构成、整段体验连贯性和 Demo 完成成果整理第一包已落地；不继续围绕失败文案、动作成功结果、对象可交互状态、撤离恢复、区域构成、断点清单或核心稳定站写入后完成态加厚。
-- 外勤回基地收益兑现、功能场景玩法、运行时承载面拆分、主路径连续性和存档状态契约第一包已落地；不继续围绕同一切面加厚。
-- 非核心区域场景识别和功能 / 过渡路线支撑第一包已落地；不继续围绕同一批区域标签、路线职责、当前危险和回基地理由加厚。
-- 角色成长与战斗第一版只完成第一轮；角色 / 怪物 UI 第一包已补战斗现场 HUD、敌人威胁 / 状态标签和命中承压反馈，后续若继续推进装备状态或新战斗收益，不能继续堆同类倍率。
-- 主线完成感、工业主干、核心场景识别第一版已落地；后续若继续推进，必须补真实设备职责、场景空间或任务节奏，不继续围绕同一读法点加厚。
-- 新增检查必须优先走专项文件，避免继续推高 `vertical_slice_flow_check.gd`；路线读法优先走窄职责 formatter，避免继续堆 `vertical_slice_map.gd`。
-- 不继续加厚战术扫描、工业主干、污染边界后勤维护口袋或遗迹外圈同一压力点；若后续扩到第二个主动技能或装备槽位，先明确新的细专题边界。
-- 不继续加厚工具打击校准或防护响应同一状态；若后续扩到新战斗收益，先明确新的细专题边界。
-- 不再把自动检查通过等同于可试玩候选；真实页面 smoke 和人工实机复测用于发现缺口，但当前仍要继续做玩家可见开发。
-- 不用同类文案、同类设备读法或同类路线提示替代真实场景、战斗 UI、设备职责和任务节奏。
-- 工程上注意 `vertical_slice_flow_check.gd`、`vertical_slice_map.gd`、`prototype_hud.gd`、`interaction_prompt_formatter.gd` 和相关系统职责边界。
+- 优先做基地平台视觉重建：前哨核心、基础反应器、污染过滤器、基础储存箱和出发整备台要有设备轮廓、底座、材质色、状态层和工业关系。
+- 优先收束 HUD 视觉：第一视野只保留当前目标、生命 / 防护 / 补给、关键材料、设备状态和警告；调试面板和长说明不能主导画面。
+- 优先做第一条工业链可视化：`晶体 / 残骸 -> 基础反应器 -> 基础零件 / 修复凝胶 -> 出发整备收益`。
+- 污染链作为第二优先：`污染沉积 -> 污染过滤器 -> 抗污染药剂 + 污染浆液 -> 回收 / 核心准备`。
+- 每个区域后续都必须回答它给基地提供什么资源、解锁、设备输入、风险或稳定工程价值。
+
+## 防跑偏规则
+
+- 当前阶段没有场景、设备、HUD 或工业链视觉结果的文本、formatter、检查和“第一包”不算主线进展。
+- 新增 helper / formatter / check 只能支撑可见实现，不能成为开发包主体。
+- 不再用同类目标箭头、地图提示、长文案、状态字段或检查接线替代场景建设。
+- 低保真可以接受，但不能继续把 `ColorRect + Label` 的 debug 流程图当作首版 Demo 可试玩画面目标。
+- 每个开发包开工前先说明截图或实机中会看到什么变化；收口时优先核对画面观感，再补自动检查。
 
 ## 当前不做
 
 - 不继续扩前线行动台、候选、窗口复盘、高压窗口或 `base_action_state`，除非出现 `P0` / `P1`。
 - 不继续横向新增区域；首版 Demo 到 12 个区域封顶。
-- 不再默认给核心站完成态追加同构回访口袋。
 - 不新增随机成功率、新货币、队员、完整装备栏、完整 `loadout`、完整背包重构、联机入口、最终美术包或大规模美术替换。
 - 不把试玩准备、修 bug 阶段、完整发布准备、大规模 polish、死亡系统、结算页、基线复核、静态审计或纯提示修补作为当前阶段目标。
 
@@ -76,6 +70,7 @@
 - 任务无法完成
 - 关键资源断档
 - UI 完全无法判断下一步
+- 首屏或基地平台仍主要表现为 debug 色块和长文本
 
 其他问题进入 backlog 或后续 polish。
 
@@ -84,24 +79,9 @@
 日常推进必读：
 
 - `docs/planning/current.md`
+- `docs/features/demo-industrial-base-visual-and-scene-v1.md`
+- `docs/product/visual-and-ui-direction.md`
 - `docs/features/demo-definition-v1.md`
-- `docs/features/demo-playable-content-substance-v1.md`
-- `docs/features/demo-first-playable-acceptance-v1.md`
-- `docs/features/demo-device-panel-operation-readability-v1.md`
-- `docs/features/demo-core-stabilization-run-playability-v1.md`
-- `docs/features/demo-core-approach-handoff-playability-v1.md`
-- `docs/features/demo-wind-corridor-transition-playability-v1.md`
-- `docs/features/demo-midfield-route-playability-v1.md`
-- `docs/features/demo-map-surface-decomposition-v1.md`
-- `docs/features/demo-interaction-prompt-surface-decomposition-v1.md`
-- `docs/features/demo-route-return-and-base-reentry-readability-v1.md`
-- `docs/features/demo-functional-transition-spatial-playability-v1.md`
-- `docs/features/demo-functional-scene-gameplay-density-v1.md`
-- `docs/features/demo-supply-pressure-pacing-v1.md`
-- `docs/features/demo-quick-slot-supply-readability-v1.md`
-- `docs/features/demo-prototype-visual-pass-v1.md`
-- `docs/features/demo-action-blocker-recovery-v1.md`
-- 最近完成细专题按 `docs/features/README.md` 选读
 - `docs/planning/demo-scope-and-playable-slice.md`
 
 按任务选读：

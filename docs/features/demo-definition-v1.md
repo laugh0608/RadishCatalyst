@@ -1,6 +1,6 @@
 # Demo Definition V1
 
-更新时间：2026-06-19
+更新时间：2026-06-20
 
 ## 用途
 
@@ -44,7 +44,8 @@
 | 规格项 | 专题文档 | 状态 |
 | --- | --- | --- |
 | Demo 完成定义 | 本文 | 已建立规格源 |
-| 可玩内容实质补强 | `docs/features/demo-playable-content-substance-v1.md`、`docs/features/demo-scene-device-pressure-staging-v1.md` | 当前活跃，角色 / 怪物 UI、核心场景空间、工业模块职责与任务节奏、初步美术识别和资源处理与外勤任务差异第一包已落地，明日建议补场景设备、危险边界、对象尺寸和任务现场编排 |
+| 工业基地视觉与场景化 | `docs/features/demo-industrial-base-visual-and-scene-v1.md` | 当前活跃，覆盖基地平台视觉、HUD 视觉、第一条工业链可视化和 12 区工业职责复核 |
+| 可玩内容实质补强 | `docs/features/demo-playable-content-substance-v1.md`、`docs/features/demo-scene-device-pressure-staging-v1.md` | 已完成口径修正；场景设备编排暂缓，后续必须服务工业基地视觉与场景化 |
 | 阶段验收 | `docs/features/demo-first-playable-acceptance-v1.md` | 暂缓，自动检查通过不足以证明可试玩候选质量 |
 | 区域 / 场景范围 | `docs/planning/demo-scope-and-playable-slice.md` | 已定义 12 区域、4 核心区和核心稳定站终点 |
 | 角色成长 / 战斗差异 | `docs/features/demo-combat-progression-v1.md`，最近完成细专题 `docs/features/demo-character-kit-v1.md`、`docs/features/ruin-outer-ring-module-pressure-v1.md` 和 `docs/features/pollution-edge-maintenance-pressure-v1.md` | 已落地第一轮 |
@@ -96,11 +97,11 @@
 
 ## 当前优先级
 
-当前继续推进首版 Demo 可玩内容实质补强；`Demo Device Panel Operation Readability V1` 已通过退出判断，但不能把各专题第一包和自动检查通过等同于试玩准备：
+当前继续推进首版 Demo 工业基地视觉与场景化；`Demo Device Panel Operation Readability V1` 已通过退出判断，但不能把各专题第一包和自动检查通过等同于试玩准备：
 
 1. 原型视觉呈现已覆盖现有 12 区层级、核心区场地尺度、首小时目标链场景导引和专项检查。
 2. 快捷补给读法已覆盖现有修复凝胶 / 抗污染药剂在 HUD 快捷栏、补给反馈和失败恢复路线中的可读性。
 3. 补给节奏与承压价值已验证既有补给在制作、消耗、补回和关键压力节点中的真实价值。
-4. 功能 / 过渡场景玩法密度、可达空间、中段路线、风蚀过渡、基地再进入读法、交互提示承载面、地图承载面、核心入口承接、核心稳定站内路径、设备面板读法、角色 / 怪物 UI、核心场景空间、工业模块职责与任务节奏、初步美术识别和资源处理与外勤任务差异均已完成第一包；当前继续做玩家可见场景设备、危险边界、对象尺寸和任务现场编排开发。
+4. 功能 / 过渡场景玩法密度、可达空间、中段路线、风蚀过渡、基地再进入读法、交互提示承载面、地图承载面、核心入口承接、核心稳定站内路径、设备面板读法、角色 / 怪物 UI、核心场景空间、工业模块职责与任务节奏、初步美术识别和资源处理与外勤任务差异均已完成第一包；当前优先把基地平台、HUD 和第一条工业链做成不像 debug 色块的玩家可见画面。
 
 在首版 Demo 满足本文必达规格前，不切到试玩准备或集中修 bug 阶段。

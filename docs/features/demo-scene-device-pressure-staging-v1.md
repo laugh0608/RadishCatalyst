@@ -1,12 +1,12 @@
 # Demo Scene Device Pressure Staging V1
 
-更新时间：2026-06-19
+更新时间：2026-06-20
 
 ## 用途
 
-本文定义场景设备与危险边界现场编排第一包。它承接 `Demo Playable Content Substance V1`，把已完成的战斗读法、核心空间、工业模块、初步美术和外勤任务差异推进到玩家能在现场判断的设备位置、危险边界、对象尺寸和操作顺序。
+本文定义场景设备与危险边界现场编排第一包。2026-06-20 后它暂缓，不再作为明日建议；当前优先由 [Demo Industrial Base Visual And Scene V1](demo-industrial-base-visual-and-scene-v1.md) 承接工业基地视觉、HUD 视觉和第一条工业链可视化。
 
-本专题只作为明日开发范围建议和边界，不代表首版 Demo 进入验收或试玩准备。
+若后续重新启用本文，必须服务工业基地视觉与场景化，不能只把已有提示换入口。
 
 ## 玩家价值
 

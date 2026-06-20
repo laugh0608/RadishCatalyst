@@ -1,14 +1,14 @@
 # Current Plan
 
-更新时间：2026-06-19
+更新时间：2026-06-20
 
 ## 入口约束
 
-本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题和最近完成细专题为准：
+本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题为准：
 
-- 当前活跃专题：[Demo Playable Content Substance V1](../features/demo-playable-content-substance-v1.md)，覆盖首版 Demo 场景、角色 / 怪物 UI、初步美术、工业基建和任务节奏的玩家可见实质补强。
-- 明日建议细专题：[Demo Scene Device Pressure Staging V1](../features/demo-scene-device-pressure-staging-v1.md)，覆盖场景设备、危险边界、对象尺寸和任务现场编排。
-- 最近完成：[Demo Field Task Differentiation V1](../features/demo-field-task-differentiation-v1.md)、[Demo Initial Art Identity V1](../features/demo-initial-art-identity-v1.md)、[Demo Industrial Module Task Rhythm V1](../features/demo-industrial-module-task-rhythm-v1.md)、[Demo Core Scene Playable Space V1](../features/demo-core-scene-playable-space-v1.md)
+- 当前活跃专题：[Demo Industrial Base Visual And Scene V1](../features/demo-industrial-base-visual-and-scene-v1.md)，覆盖工业基地视觉、场景化、HUD 视觉和第一条工业链可视化。
+- 参考视觉源：[Visual And UI Direction](../product/visual-and-ui-direction.md)。
+- 最近完成：[Demo Playable Content Substance V1](../features/demo-playable-content-substance-v1.md)、[Demo Field Task Differentiation V1](../features/demo-field-task-differentiation-v1.md)、[Demo Initial Art Identity V1](../features/demo-initial-art-identity-v1.md)、[Demo Industrial Module Task Rhythm V1](../features/demo-industrial-module-task-rhythm-v1.md)
 - 更早完成专题按 [Feature Development Docs](../features/README.md) 索引选读。
 
 历史过程、长完成清单和详细复盘优先查看：
@@ -16,10 +16,7 @@
 - `docs/planning/daily-start.md`
 - `docs/devlogs/README.md` 中列出的最新一期周志
 - `docs/planning/demo-scope-and-playable-slice.md`
-- `docs/design/onboarding-and-first-hour.md`
 - `docs/design/development-retest-baselines.md`
-
-`AGENTS.md` 和 `CLAUDE.md` 只保留长期协作约束与稳定入口引用；当前阶段、当前不做、当前验证重点和退出条件统一以本文和当前活跃专题为准。
 
 ## 阶段状态
 
@@ -27,41 +24,43 @@
 
 - `S0` 早期复测、资源循环、基地行动、窗口复盘、装备与战斗反哺基地原型。
 - 首版 Demo 范围冻结、12 区域封顶、UI baseline、核心稳定站终点链路和早期链路审计。
-- 首小时引导、首小时到 Demo 中段节奏衔接、基地后勤、出发口、污染边界、晶体侧路和核心稳定站复测内容。
 - 2026-06-14：「首版 Demo 可玩内容建设推进」达到收束条件；现有路线已有可操作场景对象、运行逻辑、玩家反馈、存档来源和自动检查证据。
-- 2026-06-16：「角色成长与战斗第一版」「功能 / 过渡路线支撑第一版」「非核心区域场景识别第一版」「资源链状态第一版」「存档状态契约第一版」「主路径连续性第一版」「运行时承载面拆分第一版」与「功能场景玩法第一版」第一包已落地。
-- 2026-06-17：外勤回基地收益兑现、终点前综合准备读法、Demo 完成成果整理、整段体验连贯性、可玩场景构成、战斗撤离恢复、交互可辨识度、动作反馈可读性、受阻动作恢复读法与原型视觉呈现第一包均已落地。
-- 2026-06-18：原型视觉呈现、快捷补给读法和补给节奏与承压价值第一版均通过退出判断。
-- 2026-06-19：功能 / 过渡场景玩法密度、可达空间、基地再进入读法、交互提示承载面、地图承载面、中段 / 风蚀 / 核心入口承接、核心稳定站内路径和设备面板操作读法均已完成第一包；随后撤回“自动检查通过即可进入验收”的判断，切回首版 Demo 可玩内容实质补强，并完成角色 / 怪物 UI、核心场景空间、工业模块职责与任务节奏、初步美术识别和资源处理与外勤任务差异第一包。
+- 2026-06-16 至 2026-06-19：角色 / 战斗、路线支撑、资源链、存档契约、主路径连续性、功能场景玩法、可玩场景构成、动作反馈、受阻恢复、原型视觉、设备面板、核心站路径、工业模块职责、初步美术识别和外勤任务差异均已落地第一包。
+- 2026-06-19：撤回“自动检查通过即可进入验收”的判断，确认第一包与检查证据不足以证明玩家可试玩质量。
+- 2026-06-20：与用户复核交付目标为内部朋友试玩或完整实机演示；项目核心回到“工业基地为主，探索 / 战斗服务基地”，当前优先解决色块场景、debug 式 HUD 和工业基地视觉不足。
 
 当前阶段：
 
 ```text
-首版 Demo 可玩内容实质补强第一版
+首版 Demo 工业基地视觉与场景化第一版
 ```
 
-当前推进口径是首版 Demo 可玩内容实质补强：继续开发玩家实际能看到和操作的场景、角色 / 怪物 UI、初步美术、设备 / 生产链和任务节奏，不再把自动检查通过等同于可试玩候选。
+当前推进口径：先把基地、工业设备、HUD 和第一条生产链做成玩家能看懂的画面，再继续判断 12 区和验收。自动检查、formatter、提示文案、目标箭头和专题名称只能作为支撑，不能作为当前阶段主线成果。
 
 ## 当前主线
 
-当前活跃专题是 [Demo Playable Content Substance V1](../features/demo-playable-content-substance-v1.md)。它承接已完成的第一包建设，回到 [Demo Definition V1](../features/demo-definition-v1.md) 中尚未被真实体验证明的场景、角色 / 怪物 UI、初步美术、工业基建、资源 / 生产链、战斗压力和任务节奏。
+当前活跃专题是 [Demo Industrial Base Visual And Scene V1](../features/demo-industrial-base-visual-and-scene-v1.md)。它优先推进三件事：
 
-角色成长与战斗第一版只证明了第一轮能力和压力点存在；角色 / 怪物 UI、核心场景空间、工业模块职责与任务节奏、初步美术识别和资源处理与外勤任务差异第一包已补战斗现场、核心空间、设备职责、现场身份和资源处理去向，明日优先把这些结果推进到场景设备、危险边界、对象尺寸和任务现场编排。
+- 基地平台视觉重建：前哨核心、基础反应器、污染过滤器、基础储存箱和出发整备台要形成工业设施轮廓、底座、材质色、状态层和设备关系。
+- HUD 视觉收束：第一视野从调试面板和长说明切回游戏 UI，保留当前目标、生命 / 防护 / 补给、关键材料、设备状态和警告。
+- 第一条工业链可视化：优先做 `晶体 / 残骸 -> 基础反应器 -> 基础零件 / 修复凝胶 -> 出发整备收益`，污染链作为第二优先。
 
-体验主干建设尚未达到试玩准备判断标准；真实页面 smoke、自动检查和人工实机复测只能提供证据，不能替代场景、美术、设备、任务和战斗 UI 的实质开发。
+体验主干建设尚未达到试玩准备判断标准；真实页面 smoke、自动检查和人工实机复测只能提供证据，不能替代工业基地、场景、美术和 UI 的实质开发。
 
 ## 区域策略
 
 - 首版 Demo 继续按 12 区域封顶。
-- 4 个核心区域、4 个功能区域、4 个过渡区域不再平均加厚。
-- 原型视觉呈现和核心场景空间第一包已完成基础检查；后续允许继续补对象尺寸、设备造型、危险边界和任务节奏，但不继续堆同类场景提示。
-- 不继续堆视觉 cue、目标箭头或地图提示来替代场景建设。
+- 4 个核心区域、4 个功能区域、4 个过渡区域不平均加厚。
+- 当前优先基地平台；随后用同一视觉语言处理晶体矿脉、污染边界和核心稳定站。
+- 每个区域必须回答它给基地提供什么资源、解锁、设备输入、风险或稳定工程价值；无法回答的区域只做过渡，不继续堆同类读法。
+- 不继续用视觉 cue、目标箭头、地图提示或长标签替代场景建设。
 
-## UI 策略
+## 视觉与 UI 策略
 
-UI 和场景表现只完成第一轮原型支撑。当前允许补强 HUD、战斗现场、敌人状态和对象反馈中的玩家判断信息，但不做完整菜单或高保真组件库。
-
-不做完整菜单、设置页、背包大重构、完整装备栏、结算页、动画过场或大规模美术替换。
+- 首版 Demo 不能以 `ColorRect + Label` 的 debug 流程图作为可试玩画面目标。
+- 低保真允许，但设备、资源、污染、敌人和核心目标至少要有轮廓、材质色、状态和用途关系。
+- HUD 要像游戏 UI，不像开发面板；开发基线、GM 控件和长说明不能主导第一视野。
+- 场景内提示优先使用高亮、短标签、图标或描边，避免大字遮挡玩家操作。
 
 ## 冻结与放宽
 
@@ -75,36 +74,28 @@ UI 和场景表现只完成第一轮原型支撑。当前允许补强 HUD、战�
 
 允许推进：
 
-- 可玩内容实质补强：开发场景空间、角色 / 怪物 UI、初步美术识别、计划内设备职责和任务节奏差异。
-- 必要时新增窄职责 formatter、presenter helper 或专项 check，避免继续推高接近硬上限的大文件。
-- 可以修阻塞主线连续性、功能闭合、区域表达或玩法密度判断的断点，也可以补齐首版 Demo 必达规格内的玩家可见缺口。
+- 工业基地视觉、低保真资产、设备轮廓、管线 / 物流 / 介质流向、地貌材质、HUD 视觉层级和玩家 / 敌人基础轮廓。
+- 围绕第一条工业链补真实场景对象、状态表现和 UI 反馈。
+- 必要时新增窄职责 helper、presenter 或 check，但只能支撑可见实现，不能成为开发包主体。
 
 ## 节奏规则
 
-个人开发阶段只做足以判断方向的完成度，但不能把“有检查、有提示、有第一包”误判成首版 Demo 已可试玩。一个阶段真正达到退出条件后，必须及时进入下一阶段；不允许因为 `P2` / `P3` 细节、局部读法、文案密度或状态字段洁癖无限打磨。
+当前阶段的进展以玩家可见画面为准：没有场景、设备、HUD 或工业链视觉结果的文本、formatter、检查和“第一包”不算阶段主线完成。
 
-只让这些问题阻塞阶段：
+每个开发包开工前先说明截图或实机中会看到什么变化；收口时优先用实机观感和最小验证判断，再补文档与检查。一个阶段真正达到退出条件后，必须及时切换，不允许因为 `P2` / `P3` 细节、局部读法、文案密度或状态字段洁癖无限打磨。
 
-- 崩溃
-- 主线卡死
-- 坏档
-- 任务无法完成
-- 关键资源断档
-- UI 完全无法判断下一步
-
-其他问题进入 backlog 或后续 polish。
+只让这些问题阻塞阶段：崩溃、主线卡死、坏档、任务无法完成、关键资源断档、UI 完全无法判断下一步，或首屏 / 基地平台仍主要表现为 debug 色块和长文本。
 
 ## 当前默认验证
 
 客户端相关改动优先执行默认检查：Windows 用 `pwsh ./scripts/check-client.ps1`，macOS / Linux / Git Bash 用 `sh ./scripts/check-client.sh`；该入口不启动 Godot。需要导入工程或运行项目自定义 GDScript 检查时，确认本机 Godot 可启动后加 `-WithGodot` / `--with-godot`。
 
-涉及文档、规划、协作规则或仓库入口时额外执行：
-
-Windows 用 `pwsh ./scripts/check-docs.ps1`、`pwsh ./scripts/check-text-files.ps1`；macOS / Linux / Git Bash 用 `./scripts/check-docs.sh`、`./scripts/check-text-files.sh`；最后执行 `git diff --check`。
+涉及文档、规划、协作规则或仓库入口时额外执行：Windows 用 `pwsh ./scripts/check-docs.ps1`、`pwsh ./scripts/check-text-files.ps1`；macOS / Linux / Git Bash 用 `./scripts/check-docs.sh`、`./scripts/check-text-files.sh`；最后执行 `git diff --check`。
 
 ## 阶段退出条件
 
-- [Demo Playable Content Substance V1](../features/demo-playable-content-substance-v1.md) 第一轮玩家可见补强落地，不能只停在规划或检查。
-- [Demo Definition V1](../features/demo-definition-v1.md) 的场景、角色 / 怪物 UI、初步美术、工业模块和任务节奏缺口被重新标注并至少完成一个实质补强包。
-- 未引入规格外资源、配方、设备、区域、任务链、敌人类型、完整背包、完整装备栏、死亡系统、终局菜单、结算页或发布准备流程。
+- [Demo Industrial Base Visual And Scene V1](../features/demo-industrial-base-visual-and-scene-v1.md) 第一轮玩家可见补强落地，不能只停在规划、检查或文字提示。
+- 基地平台截图能识别 5 个核心设备和它们的工业关系，HUD 第一视野不再由调试面板和长说明主导。
+- 至少一条工业链从外勤资源、基地加工到整备收益形成可见闭环。
+- 未引入规格外资源、配方、设备、区域、任务链、敌人类型、完整背包、完整装备栏、死亡系统、结算页或发布准备流程。
 - 后续再重新启动 [Demo First Playable Acceptance V1](../features/demo-first-playable-acceptance-v1.md)，由人工实机体验和自动检查共同判断是否进入试玩准备。
