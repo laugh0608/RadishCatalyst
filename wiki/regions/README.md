@@ -4,6 +4,7 @@
 
 ## 当前原型词条
 
+- [晶体矿脉区](crystal-vein-field.md)
 - [污染边界区](pollution-edge.md)
 - [功能与过渡区域速览](non-core-field-regions.md)
 - [锚定桥前线区域](phase-well-east-frontier.md)
