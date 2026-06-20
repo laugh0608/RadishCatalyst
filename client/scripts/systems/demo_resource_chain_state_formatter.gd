@@ -71,6 +71,8 @@ static func format_chain_state_line(world_state: WorldState, character_state: Ch
 		return "过滤模块原料齐备：基础零件 + 过滤介质可组装基础过滤模块，再到出发整备台装入。"
 	if FieldOutfittingRuntime.has_filter_module_equipped(character_state):
 		return "外勤整备链已接入：基础过滤模块、药剂和修复凝胶支撑下一趟承压。"
+	if _has_first_industrial_chain_context(world_state, inventory):
+		return _format_first_industrial_chain_line(world_state, character_state)
 	if inventory.has_ref(CRYSTAL_ORE_ID, 3):
 		return "固体加工待启动：晶体矿物可进基础反应器转成基础零件。"
 	if _has_any_core_resource(inventory) or _has_resource_chain_quest(world_state):
@@ -151,9 +153,68 @@ static func _should_show_summary(world_state: WorldState, character_state: Chara
 		or inventory.has_ref(CORE_BUFFER_ID, 1)
 		or _has_filter_module_inputs(inventory)
 		or _has_core_buffer_inputs(inventory)
+		or _has_first_industrial_chain_context(world_state, inventory)
 	):
 		return true
 	return _has_resource_chain_quest(world_state)
+
+
+static func _has_first_industrial_chain_context(world_state: WorldState, inventory: InventoryState) -> bool:
+	if world_state == null or inventory == null:
+		return false
+	if (
+		inventory.has_ref(CRYSTAL_ORE_ID, 1)
+		or _has_active_reactor_recipe(world_state, "recipe.process_crystal_ore")
+		or _has_active_reactor_recipe(world_state, "recipe.repair_gel")
+		or (
+			FieldOutfittingRuntime.has_station_built(world_state)
+			and (
+				inventory.has_ref(REPAIR_GEL_ID, 1)
+				or inventory.has_ref(BASIC_PARTS_ID, 2)
+			)
+		)
+	):
+		return true
+	for quest_id in [
+		"quest.scout_crystal_field",
+		"quest.calibrate_reactor",
+		"quest.build_basic_storage"
+	]:
+		if world_state.quest_state.has_active_quest(quest_id):
+			return true
+	return false
+
+
+static func _format_first_industrial_chain_line(
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	var inventory := character_state.inventory
+	if _has_active_reactor_recipe(world_state, "recipe.process_crystal_ore"):
+		return "固体链加工中：晶体矿物 -> 基础反应器 -> 基础零件。"
+	if _has_active_reactor_recipe(world_state, "recipe.repair_gel"):
+		return "补给链加工中：基础零件 + 基础溶剂 -> 修复凝胶。"
+	if inventory.has_ref(CRYSTAL_ORE_ID, 3):
+		return "固体链待加工：晶体矿物可进基础反应器转基础零件。"
+	if inventory.has_ref(REPAIR_GEL_ID, 1) and FieldOutfittingRuntime.has_station_built(world_state):
+		return "外勤整备可用：修复凝胶和基础零件已接到出发整备台。"
+	if inventory.has_ref(REPAIR_GEL_ID, 1):
+		return "外勤补给已入库：修复凝胶待接入出发整备台。"
+	if inventory.has_ref(BASIC_PARTS_ID, 2):
+		return "固体链已有产物：基础零件可建储存箱 / 整备台或调制修复凝胶。"
+	return "固体链待补料：晶体 / 残骸回基地后进入基础反应器。"
+
+
+static func _has_active_reactor_recipe(world_state: WorldState, recipe_id: String) -> bool:
+	for structure in world_state.base_structures.values():
+		if not structure is Dictionary:
+			continue
+		if String(structure.get("definition_id", "")) != BASIC_REACTOR_ID:
+			continue
+		if String(structure.get("status", "")) != "in_progress":
+			continue
+		return String(structure.get("active_recipe_id", "")) == recipe_id
+	return false
 
 
 static func _has_resource_chain_quest(world_state: WorldState) -> bool:

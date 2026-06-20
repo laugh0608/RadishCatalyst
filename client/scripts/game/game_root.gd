@@ -520,7 +520,14 @@ func _update_hud() -> void:
 		character_state,
 		world_state
 	)
+	_refresh_industrial_base_visuals()
 	_refresh_current_objective_guidance()
+
+
+func _refresh_industrial_base_visuals() -> void:
+	var visual_layer := vertical_slice_map.get_node_or_null("DemoIndustrialBaseVisualLayer") as DemoIndustrialBaseVisualLayer
+	if visual_layer != null:
+		visual_layer.refresh_chain_state(world_state, character_state)
 
 
 func _refresh_current_objective_guidance() -> void:

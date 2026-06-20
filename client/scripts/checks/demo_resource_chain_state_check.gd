@@ -1,5 +1,7 @@
 extends SceneTree
 
+const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
+
 var failures: Array[String] = []
 var data_registry := DataRegistry.new()
 
@@ -27,6 +29,7 @@ func _run_checks() -> void:
 	_check_hud_resource_chain_state()
 	_check_device_panel_resource_chain_state()
 	_check_processing_result_resource_chain()
+	_check_first_industrial_chain_hud_and_visual_state()
 	_check_resource_chain_state_roundtrip()
 
 
@@ -92,6 +95,32 @@ func _check_processing_result_resource_chain() -> void:
 	_expect_text_contains(result_log, "固体加工链完成", "processing result names solid chain completion")
 	_expect_text_contains(result_log, "基础零件", "processing result keeps parts destination")
 	_expect_equal(int(character.inventory.items.get("item.basic_parts", 0)), 8, "solid processing grants parts")
+
+
+func _check_first_industrial_chain_hud_and_visual_state() -> void:
+	var world := _create_resource_chain_world("quest.prepare_treatment_supplies")
+	world.add_base_structure("structure.basic_storage", "building.basic_storage", "region.outpost_platform")
+	world.add_base_structure("structure.field_outfitting_station", "building.field_outfitting_station", "region.outpost_platform")
+	world.set_base_structure_status("structure.basic_reactor", "in_progress", "recipe.process_crystal_ore")
+	var character := CharacterState.create_default()
+	character.inventory.add_item("item.crystal_ore", 3)
+	character.inventory.add_item("item.salvage_scrap", 1)
+
+	var hud_text := HudStatusPresenter.new().format_vitals_text(data_registry, world, character)
+	_expect_text_contains(hud_text, "固体链加工中", "HUD shows first industrial chain state")
+	_expect_text_contains(hud_text, "晶体矿物 -> 基础反应器 -> 基础零件", "HUD names the first industrial chain route")
+
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	var layer := map.get_node("DemoIndustrialBaseVisualLayer") as DemoIndustrialBaseVisualLayer
+	layer.apply_visuals()
+	layer.refresh_chain_state(world, character)
+	_expect_equal(layer.get_chain_state_shape_count() >= 6, true, "industrial visual layer creates first chain state shapes")
+	_expect_equal(layer.has_chain_shape("chain.crystal_input.ready"), true, "industrial visual layer marks crystal input ready")
+	_expect_equal(layer.has_chain_shape("chain.reactor_work_window.ready"), true, "industrial visual layer marks reactor working")
+	_expect_equal(layer.has_chain_shape("chain.storage_repair_gel_slot.ready"), true, "industrial visual layer marks repair gel storage")
+	_expect_equal(layer.has_chain_shape("chain.outfitting_supply_state.ready"), true, "industrial visual layer marks outfitting supply ready")
+	map.free()
 
 
 func _check_resource_chain_state_roundtrip() -> void:
