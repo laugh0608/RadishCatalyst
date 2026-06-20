@@ -124,6 +124,7 @@ echo "Coverage: static data and scene references."
 "${python_exe}" "${repo_root}/scripts/check-client-demo-resource-chain-state.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-pollution-boundary-visual.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-core-stabilization-visual.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-region-industrial-value.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-save-state-contract.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-main-path-continuity.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-runtime-surface-decomposition.py" "${repo_root}"
@@ -214,6 +215,7 @@ run_godot_checked "industrial-tech-spine" --script "${client_root}/scripts/check
 run_godot_checked "demo-resource-chain-state" --script "${client_root}/scripts/checks/demo_resource_chain_state_check.gd" --no-header
 run_godot_checked "demo-pollution-boundary-visual" --script "${client_root}/scripts/checks/demo_pollution_boundary_visual_check.gd" --no-header
 run_godot_checked "demo-core-stabilization-visual" --script "${client_root}/scripts/checks/demo_core_stabilization_visual_check.gd" --no-header
+run_godot_checked "demo-region-industrial-value" --script "${client_root}/scripts/checks/demo_region_industrial_value_check.gd" --no-header
 run_godot_checked "demo-save-state-contract" --script "${client_root}/scripts/checks/demo_save_state_contract_check.gd" --no-header
 run_godot_checked "demo-main-path-continuity" --script "${client_root}/scripts/checks/demo_main_path_continuity_check.gd" --no-header
 run_godot_checked "scene-art-foundation" --script "${client_root}/scripts/checks/scene_art_foundation_check.gd" --no-header

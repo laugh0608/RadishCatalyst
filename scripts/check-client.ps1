@@ -52,6 +52,13 @@ $checks = @(
         }
     },
     @{
+        Name = "client demo region industrial value"
+        Script = "check-client-demo-region-industrial-value.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client demo save state contract"
         Script = "check-client-demo-save-state-contract.ps1"
         Parameters = @{

@@ -161,7 +161,7 @@ func _update_label() -> void:
 	_ensure_visual_nodes()
 	if label != null:
 		_style_label()
-		label.text = "%s\nHP %.0f/%.0f · %s" % [
+		label.text = "%s\nHP %.0f/%.0f / %s" % [
 			display_name,
 			health,
 			max_health,

@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/map/vertical_slice_map.gd" id="1_map"]
 [ext_resource type="PackedScene" path="res://scenes/actors/Player.tscn" id="2_player"]
@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://scripts/map/demo_pollution_boundary_visual_layer.gd" id="11_pollution_boundary_visual"]
 [ext_resource type="Script" path="res://scripts/map/demo_core_stabilization_visual_layer.gd" id="12_core_stabilization_visual"]
 [ext_resource type="Script" path="res://scripts/map/demo_scene_focus_depth_layer.gd" id="13_scene_focus_depth"]
+[ext_resource type="Script" path="res://scripts/map/demo_region_industrial_value_layer.gd" id="14_region_industrial_value"]
 
 [node name="VerticalSliceMap" type="Node2D"]
 script = ExtResource("1_map")
@@ -1709,6 +1710,9 @@ script = ExtResource("13_scene_focus_depth")
 
 [node name="PrototypeVisualPriorityLayer" type="Node2D" parent="."]
 script = ExtResource("5_visual_priority")
+
+[node name="DemoRegionIndustrialValueLayer" type="Node2D" parent="."]
+script = ExtResource("14_region_industrial_value")
 
 [node name="CurrentObjectiveGuidanceLayer" type="Node2D" parent="."]
 script = ExtResource("6_objective_guidance")

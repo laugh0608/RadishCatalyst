@@ -104,9 +104,9 @@ func _check_pollution_boundary_visual_priority_replaces_old_blocks() -> void:
 	var route_band := map.get_node("DemoRoutePresentationLayer/DemoRoutePollutionBand") as ColorRect
 	var residue_interactable := map.get_node("Interactables/PollutionResidue") as PrototypeInteractable
 	var filter_build_site := map.get_node("Interactables/PollutionFilterBuildSite") as PrototypeInteractable
-	_expect_equal(old_danger.color.a <= 0.09, true, "old pollution field no longer dominates")
-	_expect_equal(old_residue.color.a <= 0.04, true, "old pollution marker no longer dominates")
-	_expect_equal(route_band.color.a <= 0.08, true, "old pollution route band no longer dominates")
+	_expect_equal(old_danger.color.a <= 0.03, true, "old pollution field no longer dominates")
+	_expect_equal(old_residue.color.a <= 0.02, true, "old pollution marker no longer dominates")
+	_expect_equal(route_band.color.a <= 0.02, true, "old pollution route band no longer dominates")
 	_expect_equal(belt_label.visible, false, "old pollution belt label hidden")
 	_expect_equal(route_label.visible, false, "old route label hidden")
 	_expect_equal(_get_marker_alpha(residue_interactable) <= 0.065, true, "residue interactable marker is muted")

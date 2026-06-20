@@ -19,12 +19,12 @@ static func format_panel_text(
 	]
 	if enemy != null and enemy.can_be_attacked():
 		lines.append(_format_enemy_line(data_registry, enemy))
-		lines.append("敌人状态：%s" % _format_enemy_status_label(enemy))
+		lines.append("MODE: %s" % _format_enemy_status_label(enemy))
 	else:
-		lines.append("敌人：未锁定；靠近目标进入攻击范围")
+		lines.append("目标: NONE / close range")
 	var recent_lines := format_recent_feedback_lines(recent_feedback)
 	lines.append_array(recent_lines)
-	return "\n".join(lines)
+	return _sanitize_combat_panel_text("\n".join(lines))
 
 
 static func format_enemy_threat_label(data_registry: DataRegistry, enemy: PrototypeEnemy) -> String:
@@ -54,7 +54,7 @@ static func format_enemy_pressure_label(data_registry: DataRegistry, enemy: Prot
 
 
 static func format_hit_feedback(
-	enemy: PrototypeEnemy,
+	_enemy: PrototypeEnemy,
 	damage: float,
 	enemy_health: float,
 	health_before: float,
@@ -65,8 +65,7 @@ static func format_hit_feedback(
 ) -> Dictionary:
 	return {
 		"title": "命中反馈",
-		"summary": "命中 %s：-%s，敌人 HP %s" % [
-			enemy.display_name,
+		"summary": "命中: -%s, HP %s" % [
 			_format_amount(damage),
 			_format_amount(enemy_health)
 		],
@@ -80,7 +79,7 @@ static func format_hit_feedback(
 	}
 
 
-static func format_defeat_feedback(enemy: PrototypeEnemy, drops_message: String, followup: String = "") -> Dictionary:
+static func format_defeat_feedback(_enemy: PrototypeEnemy, drops_message: String, followup: String = "") -> Dictionary:
 	var details: Array[String] = ["敌人反击停止"]
 	if not drops_message.strip_edges().is_empty():
 		details.append(_strip_sentence_end(drops_message))
@@ -88,8 +87,8 @@ static func format_defeat_feedback(enemy: PrototypeEnemy, drops_message: String,
 		details.append(_strip_sentence_end(followup))
 	return {
 		"title": "击败反馈",
-		"summary": "击败 %s" % enemy.display_name,
-		"pressure": "；".join(details),
+		"summary": "击败目标",
+		"pressure": _sanitize_combat_panel_text(" / ".join(details)),
 		"counter": ""
 	}
 
@@ -97,9 +96,9 @@ static func format_defeat_feedback(enemy: PrototypeEnemy, drops_message: String,
 static func format_no_target_feedback(message: String) -> Dictionary:
 	return {
 		"title": "攻击未命中",
-		"summary": "未锁定敌人",
-		"pressure": _strip_sentence_end(message),
-		"counter": "靠近带生命条的敌人后再攻击"
+		"summary": "NO TARGET",
+		"pressure": _sanitize_combat_panel_text(_strip_sentence_end(message)),
+		"counter": "close range"
 	}
 
 
@@ -109,15 +108,15 @@ static func format_recent_feedback_lines(feedback: Dictionary) -> Array[String]:
 	var lines: Array[String] = []
 	var summary := String(feedback.get("summary", "")).strip_edges()
 	if not summary.is_empty():
-		lines.append("最近：%s" % summary)
+		lines.append("最近: %s" % _sanitize_combat_panel_text(summary))
 	var pressure := String(feedback.get("pressure", "")).strip_edges()
 	if not pressure.is_empty():
-		lines.append("承压：%s" % pressure)
+		lines.append("承压: %s" % _sanitize_combat_panel_text(pressure))
 	return lines
 
 
 static func _format_player_vitals_line(character_state: CharacterState) -> String:
-	return "自身：生命 %.0f/%.0f %s；防护 %.0f/%.0f %s" % [
+	return "自身: 生命 %.0f/%.0f %s / SP %.0f/%.0f %s" % [
 		character_state.health,
 		character_state.max_health,
 		_format_ratio_state(character_state.health, character_state.max_health),
@@ -142,8 +141,8 @@ static func _format_quick_supply_line(data_registry: DataRegistry, character_sta
 			_format_supply_state(item_id, count, character_state)
 		])
 	if parts.is_empty():
-		return "补给：未绑定"
-	return "补给：%s" % "；".join(parts)
+		return "补给: none"
+	return "补给: %s" % " / ".join(parts)
 
 
 static func _format_supply_state(item_id: String, count: float, character_state: CharacterState) -> String:
@@ -162,29 +161,35 @@ static func _format_supply_state(item_id: String, count: float, character_state:
 			return "可用"
 		"item.resistance_vial_t1":
 			if character_state.protection < character_state.max_protection * MEDIUM_RATIO:
-				return "防护低可用"
+				return "SP低可用"
 			return "可用"
 		_:
 			return "可用"
 
 
 static func _format_enemy_line(data_registry: DataRegistry, enemy: PrototypeEnemy) -> String:
-	return "敌人：%s HP %.0f/%.0f；%s；%s" % [
-		enemy.display_name,
+	return "目标: HP %.0f/%.0f / %s / %s" % [
 		enemy.health,
 		enemy.max_health,
 		format_enemy_threat_label(data_registry, enemy),
-		format_enemy_pressure_label(data_registry, enemy)
+		_sanitize_combat_panel_text(format_enemy_pressure_label(data_registry, enemy))
 	]
 
 
 static func _format_enemy_status_label(enemy: PrototypeEnemy) -> String:
 	if enemy == null:
-		return "未锁定"
+		return "NONE"
 	var status := enemy.get_combat_status_label()
-	if status.strip_edges().is_empty():
-		return "近战压制"
-	return status
+	var parts: Array[String] = []
+	if status.contains("扫描锁定"):
+		parts.append("SCAN")
+	if status.contains("压力"):
+		parts.append("PRESSURE")
+	if status.contains("回写"):
+		parts.append("CORE")
+	if parts.is_empty():
+		parts.append("ACTIVE")
+	return " / ".join(parts)
 
 
 static func _format_ratio_state(value: float, maximum: float) -> String:
@@ -192,10 +197,10 @@ static func _format_ratio_state(value: float, maximum: float) -> String:
 		return "未知"
 	var ratio := value / maximum
 	if ratio <= LOW_RATIO:
-		return "危险"
+		return "LOW"
 	if ratio <= MEDIUM_RATIO:
-		return "警戒"
-	return "稳定"
+		return "WARN"
+	return "OK"
 
 
 static func _format_pressure_delta(
@@ -209,7 +214,7 @@ static func _format_pressure_delta(
 	if health_loss <= 0.0 and protection_loss <= 0.0:
 		return "未承受反击"
 	if protection_loss > 0.0:
-		return "生命 -%s；防护 -%s" % [
+		return "生命 -%s / SP -%s" % [
 			_format_amount(health_loss),
 			_format_amount(protection_loss)
 		]
@@ -243,6 +248,41 @@ static func _format_amount(amount: float) -> String:
 	if is_equal_approx(amount, roundf(amount)):
 		return str(int(amount))
 	return "%.1f" % amount
+
+
+static func _sanitize_combat_panel_text(text: String) -> String:
+	var sanitized := text
+	var replacements := [
+		["核心复测受扰掠行体", "目标"],
+		["核心阶段守卫", "目标"],
+		["原生掠行体", "目标"],
+		["处理点掠行体", "目标"],
+		["受扰掠行体", "目标"],
+		["核心回写压力", "CORE"],
+		["门前压力点", "PRESSURE"],
+		["入口压力点", "PRESSURE"],
+		["副产回收点", "PRESSURE"],
+		["药剂储备点", "PRESSURE"],
+		["近战压制", "ACTIVE"],
+		["扫描锁定", "SCAN"],
+		["防护", "SP"],
+		["稳定", "OK"],
+		["警戒", "WARN"],
+		["危险", "LOW"],
+		["敌人", "目标"],
+		["：", ":"],
+		["；", " / "],
+		["，", ","],
+		["。", ""],
+		["·", " / "],
+		["→", "->"],
+		["Ⅰ", "I"],
+		["Ⅱ", "II"],
+		["Ⅲ", "III"]
+	]
+	for replacement in replacements:
+		sanitized = sanitized.replace(String(replacement[0]), String(replacement[1]))
+	return sanitized
 
 
 static func _strip_sentence_end(text: String) -> String:

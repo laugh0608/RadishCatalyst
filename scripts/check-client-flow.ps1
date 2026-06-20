@@ -139,6 +139,11 @@ if (-not (Test-Path -LiteralPath $demoCoreStabilizationVisualCheckScript -PathTy
     Write-Error "Demo core stabilization visual check script not found: ${demoCoreStabilizationVisualCheckScript}"
     exit 1
 }
+$demoRegionIndustrialValueCheckScript = Join-Path $clientRoot "scripts/checks/demo_region_industrial_value_check.gd"
+if (-not (Test-Path -LiteralPath $demoRegionIndustrialValueCheckScript -PathType Leaf)) {
+    Write-Error "Demo region industrial value check script not found: ${demoRegionIndustrialValueCheckScript}"
+    exit 1
+}
 $demoSaveStateContractCheckScript = Join-Path $clientRoot "scripts/checks/demo_save_state_contract_check.gd"
 if (-not (Test-Path -LiteralPath $demoSaveStateContractCheckScript -PathType Leaf)) {
     Write-Error "Demo save state contract check script not found: ${demoSaveStateContractCheckScript}"
@@ -429,6 +434,13 @@ try {
         exit $LASTEXITCODE
     }
 
+    $regionIndustrialValueOutput = & $GodotExe --headless --path $clientRoot --script $demoRegionIndustrialValueCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $regionIndustrialValueOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo region industrial value check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $saveContractOutput = & $GodotExe --headless --path $clientRoot --script $demoSaveStateContractCheckScript --no-header 2>&1
     if ($LASTEXITCODE -ne 0) {
         $saveContractOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
@@ -556,7 +568,7 @@ try {
     }
 
     $unexpectedErrors = @(
-        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoMidfieldRoutePlayabilityOutput + $demoWindCorridorTransitionPlayabilityOutput + $demoCoreApproachHandoffPlayabilityOutput + $demoDevicePanelOperationReadabilityOutput + $demoFieldLoopPayoffOutput + $demoRouteReturnAndBaseReentryOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $demoInteractionPromptSurfaceDecompositionOutput + $industrialCheckOutput + $resourceChainOutput + $pollutionBoundaryVisualOutput + $coreStabilizationVisualOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput + $prototypeVisualPassOutput + $quickSlotSupplyReadabilityOutput + $supplyPressurePacingOutput + $combatReadabilityOutput + $coreScenePlayableSpaceOutput + $industrialModuleTaskRhythmOutput + $initialArtIdentityOutput + $fieldTaskDifferentiationOutput |
+        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoMidfieldRoutePlayabilityOutput + $demoWindCorridorTransitionPlayabilityOutput + $demoCoreApproachHandoffPlayabilityOutput + $demoDevicePanelOperationReadabilityOutput + $demoFieldLoopPayoffOutput + $demoRouteReturnAndBaseReentryOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $demoInteractionPromptSurfaceDecompositionOutput + $industrialCheckOutput + $resourceChainOutput + $pollutionBoundaryVisualOutput + $coreStabilizationVisualOutput + $regionIndustrialValueOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput + $prototypeVisualPassOutput + $quickSlotSupplyReadabilityOutput + $supplyPressurePacingOutput + $combatReadabilityOutput + $coreScenePlayableSpaceOutput + $industrialModuleTaskRhythmOutput + $initialArtIdentityOutput + $fieldTaskDifferentiationOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {

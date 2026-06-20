@@ -8,19 +8,19 @@ const ROLE_ROUTE := "route"
 const ROLE_PRESSURE_GATE := "pressure_gate"
 const FOCUS_VISIBLE_MIN_X := 180.0
 
-const FIELD_FILL := Color(0.1, 0.12, 0.07, 0.18)
-const FIELD_LINE := Color(0.72, 0.72, 0.3, 0.34)
-const CONSTRUCTION_FILL := Color(0.13, 0.18, 0.13, 0.28)
-const CONSTRUCTION_LINE := Color(0.62, 0.72, 0.54, 0.58)
-const FILTER_LINE := Color(0.8, 0.88, 0.3, 0.86)
-const FILTER_FILL := Color(0.25, 0.34, 0.1, 0.44)
-const RESIDUE_LINE := Color(0.84, 0.74, 0.23, 0.78)
-const RESIDUE_FILL := Color(0.52, 0.44, 0.08, 0.3)
-const DANGER_LINE := Color(0.94, 0.48, 0.18, 0.8)
-const DANGER_FILL := Color(0.42, 0.18, 0.08, 0.16)
-const ROUTE_TO_FILTER := Color(0.88, 0.7, 0.26, 0.74)
-const ROUTE_TO_BASE := Color(0.66, 0.86, 0.52, 0.72)
-const SLURRY_ROUTE := Color(0.78, 0.42, 0.18, 0.58)
+const FIELD_FILL := Color(0.08, 0.1, 0.06, 0.075)
+const FIELD_LINE := Color(0.72, 0.72, 0.3, 0.2)
+const CONSTRUCTION_FILL := Color(0.13, 0.18, 0.13, 0.16)
+const CONSTRUCTION_LINE := Color(0.62, 0.72, 0.54, 0.52)
+const FILTER_LINE := Color(0.86, 0.94, 0.34, 0.94)
+const FILTER_FILL := Color(0.22, 0.3, 0.1, 0.34)
+const RESIDUE_LINE := Color(0.86, 0.72, 0.22, 0.74)
+const RESIDUE_FILL := Color(0.5, 0.4, 0.08, 0.2)
+const DANGER_LINE := Color(0.94, 0.46, 0.18, 0.74)
+const DANGER_FILL := Color(0.42, 0.16, 0.06, 0.07)
+const ROUTE_TO_FILTER := Color(0.88, 0.7, 0.26, 0.48)
+const ROUTE_TO_BASE := Color(0.66, 0.86, 0.52, 0.46)
+const SLURRY_ROUTE := Color(0.78, 0.42, 0.18, 0.36)
 const GATE_CORE := Color(0.72, 0.46, 0.88, 0.78)
 const CHAIN_DIM := Color(0.24, 0.28, 0.16, 0.36)
 const CHAIN_WINDOW := Color(1.0, 0.62, 0.24, 0.78)
@@ -236,6 +236,8 @@ func _draw_boundary_field() -> void:
 	draw_rect(construction_rect, CONSTRUCTION_FILL, true)
 	draw_rect(construction_rect, CONSTRUCTION_LINE, false, 2.0, true)
 	draw_rect(danger_rect, DANGER_FILL, true)
+	for y in [-218.0, -154.0, -94.0]:
+		draw_line(Vector2(252.0, y), Vector2(362.0, y), Color(0.58, 0.68, 0.52, 0.16), 1.1, true)
 	_draw_hazard_boundary(Vector2(242.0, -38.0), Vector2(384.0, -38.0))
 	for x in [260.0, 298.0, 336.0]:
 		draw_line(Vector2(x, -244.0), Vector2(x, -104.0), Color(0.58, 0.68, 0.52, 0.18), 1.4, true)
@@ -244,13 +246,13 @@ func _draw_boundary_field() -> void:
 
 
 func _draw_treatment_routes() -> void:
-	_draw_route([Vector2(258.0, 34.0), Vector2(278.0, -12.0), Vector2(298.0, -72.0)], ROUTE_TO_FILTER, 3.4)
-	_draw_route([Vector2(344.0, 158.0), Vector2(330.0, 78.0), Vector2(306.0, -70.0)], SLURRY_ROUTE, 2.8)
-	_draw_route([Vector2(298.0, -110.0), Vector2(222.0, -108.0), Vector2(118.0, -86.0), Vector2(-44.0, -44.0)], ROUTE_TO_BASE, 3.2)
-	_draw_route([Vector2(304.0, 96.0), Vector2(314.0, 152.0), Vector2(336.0, 206.0)], SLURRY_ROUTE, 2.5)
-	_draw_route([Vector2(342.0, 24.0), Vector2(382.0, 24.0)], DANGER_LINE, 3.0)
+	_draw_route([Vector2(258.0, 34.0), Vector2(278.0, -12.0), Vector2(298.0, -72.0)], ROUTE_TO_FILTER, 2.6)
+	_draw_route([Vector2(344.0, 158.0), Vector2(330.0, 78.0), Vector2(306.0, -70.0)], SLURRY_ROUTE, 2.0)
+	_draw_route([Vector2(298.0, -110.0), Vector2(222.0, -108.0), Vector2(118.0, -86.0), Vector2(-44.0, -44.0)], ROUTE_TO_BASE, 2.2)
+	_draw_route([Vector2(304.0, 96.0), Vector2(314.0, 152.0), Vector2(336.0, 206.0)], SLURRY_ROUTE, 1.8)
+	_draw_route([Vector2(342.0, 24.0), Vector2(382.0, 24.0)], DANGER_LINE, 2.4)
 	for point in [Vector2(298.0, -72.0), Vector2(222.0, -108.0), Vector2(304.0, 96.0), Vector2(382.0, 24.0)]:
-		draw_circle(point, 4.2, Color(0.88, 0.86, 0.48, 0.62))
+		draw_circle(point, 3.4, Color(0.88, 0.86, 0.48, 0.42))
 
 
 func _draw_filter_construction_site() -> void:
@@ -258,11 +260,16 @@ func _draw_filter_construction_site() -> void:
 	draw_rect(Rect2(Vector2(252.0, -126.0), Vector2(34.0, 34.0)), CONSTRUCTION_LINE, false, 1.8, true)
 	draw_rect(Rect2(Vector2(318.0, -126.0), Vector2(34.0, 34.0)), Color(0.2, 0.26, 0.18, 0.34), true)
 	draw_rect(Rect2(Vector2(318.0, -126.0), Vector2(34.0, 34.0)), CONSTRUCTION_LINE, false, 1.8, true)
+	draw_rect(Rect2(Vector2(276.0, -148.0), Vector2(46.0, 82.0)), Color(0.025, 0.035, 0.022, 0.52), true)
+	draw_rect(Rect2(Vector2(276.0, -148.0), Vector2(46.0, 82.0)), Color(FILTER_LINE.r, FILTER_LINE.g, FILTER_LINE.b, 0.42), false, 4.2, true)
 	draw_rect(Rect2(Vector2(280.0, -140.0), Vector2(38.0, 66.0)), FILTER_FILL, true)
-	draw_rect(Rect2(Vector2(280.0, -140.0), Vector2(38.0, 66.0)), FILTER_LINE, false, 2.2, true)
+	draw_rect(Rect2(Vector2(280.0, -140.0), Vector2(38.0, 66.0)), FILTER_LINE, false, 2.8, true)
 	draw_line(Vector2(290.0, -130.0), Vector2(290.0, -84.0), FILTER_LINE, 3.8, true)
 	draw_line(Vector2(306.0, -130.0), Vector2(306.0, -84.0), FILTER_LINE, 3.8, true)
-	draw_line(Vector2(284.0, -74.0), Vector2(314.0, -74.0), Color(0.92, 0.78, 0.28, 0.74), 3.0, true)
+	draw_line(Vector2(252.0, -102.0), Vector2(280.0, -102.0), Color(0.86, 0.72, 0.22, 0.72), 4.0, true)
+	draw_line(Vector2(318.0, -124.0), Vector2(352.0, -124.0), CHAIN_VIAL, 3.4, true)
+	draw_line(Vector2(318.0, -96.0), Vector2(352.0, -96.0), CHAIN_SLURRY, 3.2, true)
+	draw_line(Vector2(284.0, -74.0), Vector2(314.0, -74.0), Color(0.92, 0.78, 0.28, 0.82), 3.0, true)
 	draw_circle(Vector2(298.0, -148.0), 5.0, Color(0.9, 0.92, 0.38, 0.78))
 
 
@@ -474,10 +481,10 @@ func _deemphasize_legacy_pollution_blocks() -> void:
 	muted_legacy_block_count = 0
 	var region := _get_map_node("RegionPollution") as ColorRect
 	if region != null:
-		region.color = Color(0.11, 0.12, 0.07, 0.54)
+		region.color = Color(0.08, 0.09, 0.055, 0.18)
 	var route_band := _get_map_node("DemoRoutePresentationLayer/DemoRoutePollutionBand") as ColorRect
 	if route_band != null:
-		route_band.color.a = minf(route_band.color.a, 0.08)
+		route_band.color.a = minf(route_band.color.a, 0.018)
 	var route_label := _get_map_node("DemoRoutePresentationLayer/DemoRoutePollutionLabel") as Label
 	if route_label != null:
 		route_label.visible = false
@@ -488,12 +495,12 @@ func _deemphasize_legacy_pollution_blocks() -> void:
 	for node_name in LEGACY_POLLUTION_PANELS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
-			rect.color.a = minf(rect.color.a, 0.085)
+			rect.color.a = minf(rect.color.a, 0.026)
 			muted_legacy_block_count += 1
 	for node_name in LEGACY_POLLUTION_MARKERS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
-			rect.color.a = minf(rect.color.a, 0.035)
+			rect.color.a = minf(rect.color.a, 0.018)
 			muted_legacy_block_count += 1
 	var belt_label := layer.get_node_or_null("PollutionBeltLabel") as Label
 	if belt_label != null:
