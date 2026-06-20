@@ -55,6 +55,7 @@ func _ready() -> void:
 	hud.new_game_requested.connect(_on_hud_new_game_requested)
 	hud.quick_slot_binding_requested.connect(_on_hud_quick_slot_binding_requested)
 	hud.development_baseline_requested.connect(_on_hud_development_baseline_requested)
+	hud.visual_review_checkpoint_requested.connect(_on_hud_visual_review_checkpoint_requested)
 	hud.gm_resource_adjust_requested.connect(_on_hud_gm_resource_adjust_requested)
 	hud.gm_vitals_refill_requested.connect(_on_hud_gm_vitals_refill_requested)
 	vertical_slice_map.interaction_available.connect(_on_interaction_available)
@@ -274,6 +275,23 @@ func _on_hud_development_baseline_requested(baseline_id: String) -> void:
 	_update_hud()
 
 
+func _on_hud_visual_review_checkpoint_requested(checkpoint_id: String) -> void:
+	var result := create_visual_review_checkpoint_state(checkpoint_id)
+	if not bool(result.get("success", false)):
+		hud.append_log(hud_log_presenter.format_result_log(result))
+		_update_hud()
+		return
+
+	world_state = result.get("world_state", WorldState.create_default())
+	character_state = result.get("character_state", CharacterState.create_default())
+	vertical_slice_map.apply_runtime_state(world_state, character_state)
+	_sync_world_camera()
+	hud.clear_runtime_feedback()
+	hud.append_log(hud_log_presenter.format_result_log(result))
+	_refresh_save_slot_summaries()
+	_update_hud()
+
+
 func _on_hud_gm_resource_adjust_requested(definition_id: String, delta: float) -> void:
 	var result := _apply_gm_resource_delta(definition_id, delta)
 	hud.append_log(String(result.get("message", "")))
@@ -337,6 +355,15 @@ func create_development_baseline_state(baseline_id: String) -> Dictionary:
 			"message": "开发基线生成器尚未初始化。"
 		}
 	return development_baseline_builder.create_baseline_state(baseline_id)
+
+
+func create_visual_review_checkpoint_state(checkpoint_id: String) -> Dictionary:
+	if development_baseline_builder == null:
+		return {
+			"success": false,
+			"message": "截图定位生成器尚未初始化。"
+		}
+	return development_baseline_builder.create_visual_review_checkpoint_state(checkpoint_id)
 
 
 func _on_interaction_available(interactable: PrototypeInteractable, should_auto_select_recipe: bool = true) -> void:

@@ -67,7 +67,9 @@ var development_baseline_presenter := HudDevelopmentBaselinePresenter.new()
 var context_prompt_text := ""
 var runtime_hint_text := ""
 var development_baseline_definitions: Array[Dictionary] = []
+var visual_review_checkpoint_definitions: Array[Dictionary] = []
 var selected_development_baseline_index := 0
+var selected_visual_review_checkpoint_index := 0
 var selected_gm_resource_index := 0
 var last_debug_data_registry: DataRegistry
 var last_debug_character_state: CharacterState
@@ -153,6 +155,10 @@ var last_debug_character_state: CharacterState
 @onready var baseline_demo_button: Button = $SavePanel/BaselineDemoButton
 @onready var baseline_load_button: Button = $SavePanel/BaselineLoadButton
 @onready var baseline_next_button: Button = $SavePanel/BaselineNextButton
+@onready var visual_checkpoint_label: Label = $SavePanel/VisualCheckpointLabel
+@onready var visual_checkpoint_previous_button: Button = $SavePanel/VisualCheckpointPreviousButton
+@onready var visual_checkpoint_load_button: Button = $SavePanel/VisualCheckpointLoadButton
+@onready var visual_checkpoint_next_button: Button = $SavePanel/VisualCheckpointNextButton
 @onready var save_slot_labels: Array[Label] = [
 	$SavePanel/Slot01Label,
 	$SavePanel/Slot02Label,
@@ -180,6 +186,7 @@ signal delete_slot_requested(slot_id: String)
 signal new_game_requested
 signal quick_slot_binding_requested(slot_index: int, item_id: String)
 signal development_baseline_requested(baseline_id: String)
+signal visual_review_checkpoint_requested(checkpoint_id: String)
 signal gm_resource_adjust_requested(definition_id: String, delta: float)
 signal gm_vitals_refill_requested
 
@@ -192,6 +199,9 @@ func _ready() -> void:
 	baseline_demo_button.pressed.connect(_on_demo_baseline_pressed)
 	baseline_load_button.pressed.connect(_on_baseline_load_pressed)
 	baseline_next_button.pressed.connect(_on_baseline_next_pressed)
+	visual_checkpoint_previous_button.pressed.connect(_on_visual_checkpoint_previous_pressed)
+	visual_checkpoint_load_button.pressed.connect(_on_visual_checkpoint_load_pressed)
+	visual_checkpoint_next_button.pressed.connect(_on_visual_checkpoint_next_pressed)
 	for index in range(SAVE_SLOT_IDS.size()):
 		save_slot_buttons[index].pressed.connect(_on_save_slot_pressed.bind(index))
 		load_slot_buttons[index].pressed.connect(_on_load_slot_pressed.bind(index))
@@ -205,6 +215,9 @@ func _ready() -> void:
 	gm_refill_button.pressed.connect(_on_gm_refill_pressed)
 	evacuation_close_button.pressed.connect(_on_evacuation_close_pressed)
 	device_close_button.pressed.connect(hide_device_panel)
+	visual_review_checkpoint_definitions = DevelopmentBaselineCatalog.get_visual_review_checkpoint_definitions()
+	_select_visual_review_checkpoint_by_id(DevelopmentBaselineCatalog.get_default_visual_review_checkpoint_id())
+	_refresh_visual_review_checkpoint_panel()
 	_layout_runtime_panels(true)
 	_set_debug_panels_visible(false)
 
@@ -501,6 +514,33 @@ func _on_baseline_next_pressed() -> void:
 	_refresh_development_baseline_panel()
 
 
+func _on_visual_checkpoint_previous_pressed() -> void:
+	if visual_review_checkpoint_definitions.is_empty():
+		return
+	selected_visual_review_checkpoint_index = posmod(
+		selected_visual_review_checkpoint_index - 1,
+		visual_review_checkpoint_definitions.size()
+	)
+	_refresh_visual_review_checkpoint_panel()
+
+
+func _on_visual_checkpoint_load_pressed() -> void:
+	var definition := _get_selected_visual_review_checkpoint()
+	if definition.is_empty():
+		return
+	visual_review_checkpoint_requested.emit(String(definition.get("id", "")))
+
+
+func _on_visual_checkpoint_next_pressed() -> void:
+	if visual_review_checkpoint_definitions.is_empty():
+		return
+	selected_visual_review_checkpoint_index = posmod(
+		selected_visual_review_checkpoint_index + 1,
+		visual_review_checkpoint_definitions.size()
+	)
+	_refresh_visual_review_checkpoint_panel()
+
+
 func _on_quick_slot_binding_pressed(slot_index: int) -> void:
 	var current_item_id := ""
 	if slot_index < last_quick_slots.size():
@@ -643,6 +683,33 @@ func _refresh_development_baseline_panel() -> void:
 	if baseline_next_button != null:
 		baseline_next_button.disabled = not has_definitions
 
+
+func _refresh_visual_review_checkpoint_panel() -> void:
+	_ensure_runtime_nodes()
+	var definition := _get_selected_visual_review_checkpoint()
+	if visual_checkpoint_label != null:
+		visual_checkpoint_label.text = _format_selected_visual_review_checkpoint(definition)
+	var has_definitions := not visual_review_checkpoint_definitions.is_empty()
+	if visual_checkpoint_previous_button != null:
+		visual_checkpoint_previous_button.disabled = not has_definitions
+	if visual_checkpoint_load_button != null:
+		visual_checkpoint_load_button.disabled = not has_definitions
+	if visual_checkpoint_next_button != null:
+		visual_checkpoint_next_button.disabled = not has_definitions
+
+
+func _format_selected_visual_review_checkpoint(definition: Dictionary) -> String:
+	if definition.is_empty():
+		return "截图定位读取中..."
+	return "%d/%d %s\n%s\n观察：%s" % [
+		selected_visual_review_checkpoint_index + 1,
+		maxi(visual_review_checkpoint_definitions.size(), 1),
+		String(definition.get("display_name", "截图定位")),
+		String(definition.get("summary", "")),
+		String(definition.get("watch", ""))
+	]
+
+
 func _refresh_prompt_label() -> void:
 	_ensure_runtime_nodes()
 	if prompt_label == null:
@@ -783,6 +850,14 @@ func _ensure_runtime_nodes() -> void:
 		baseline_load_button = get_node_or_null("SavePanel/BaselineLoadButton")
 	if baseline_next_button == null:
 		baseline_next_button = get_node_or_null("SavePanel/BaselineNextButton")
+	if visual_checkpoint_label == null:
+		visual_checkpoint_label = get_node_or_null("SavePanel/VisualCheckpointLabel")
+	if visual_checkpoint_previous_button == null:
+		visual_checkpoint_previous_button = get_node_or_null("SavePanel/VisualCheckpointPreviousButton")
+	if visual_checkpoint_load_button == null:
+		visual_checkpoint_load_button = get_node_or_null("SavePanel/VisualCheckpointLoadButton")
+	if visual_checkpoint_next_button == null:
+		visual_checkpoint_next_button = get_node_or_null("SavePanel/VisualCheckpointNextButton")
 	if save_slot_labels.is_empty() or save_slot_labels[0] == null:
 		save_slot_labels = [
 			get_node_or_null("SavePanel/Slot01Label"),
@@ -838,7 +913,7 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	var feedback_width := clampf(viewport_size.x * 0.24, 460.0, 560.0)
 	var feedback_height := 220.0
 	var save_width := 544.0
-	var save_height := 454.0
+	var save_height := 584.0
 	var quick_width := 368.0
 	var quick_height := 322.0
 	var save_position := Vector2(viewport_size.x - margin - save_width, margin)
@@ -1046,6 +1121,12 @@ func _get_selected_development_baseline() -> Dictionary:
 	return development_baseline_definitions[selected_development_baseline_index]
 
 
+func _get_selected_visual_review_checkpoint() -> Dictionary:
+	if visual_review_checkpoint_definitions.is_empty():
+		return {}
+	return visual_review_checkpoint_definitions[selected_visual_review_checkpoint_index]
+
+
 func _get_selected_development_baseline_id() -> String:
 	return String(_get_selected_development_baseline().get("id", ""))
 
@@ -1071,6 +1152,31 @@ func _find_development_baseline_index(baseline_id: String) -> int:
 	for index in range(development_baseline_definitions.size()):
 		var definition := development_baseline_definitions[index]
 		if String(definition.get("id", "")) == baseline_id:
+			return index
+	return -1
+
+
+func _select_visual_review_checkpoint_by_id(checkpoint_id: String) -> void:
+	if visual_review_checkpoint_definitions.is_empty():
+		selected_visual_review_checkpoint_index = 0
+		return
+	var checkpoint_index := _find_visual_review_checkpoint_index(checkpoint_id)
+	if checkpoint_index >= 0:
+		selected_visual_review_checkpoint_index = checkpoint_index
+		return
+	selected_visual_review_checkpoint_index = clampi(
+		selected_visual_review_checkpoint_index,
+		0,
+		visual_review_checkpoint_definitions.size() - 1
+	)
+
+
+func _find_visual_review_checkpoint_index(checkpoint_id: String) -> int:
+	if checkpoint_id.is_empty():
+		return -1
+	for index in range(visual_review_checkpoint_definitions.size()):
+		var definition := visual_review_checkpoint_definitions[index]
+		if String(definition.get("id", "")) == checkpoint_id:
 			return index
 	return -1
 

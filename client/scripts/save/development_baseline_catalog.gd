@@ -8,6 +8,56 @@ const DEMO_BASELINE_IDS: Array[String] = [
 	"baseline.s22_demo_completion_outpost_review"
 ]
 const DEFAULT_DEMO_BASELINE_ID := "baseline.s2_outer_ring_secured"
+const VISUAL_REVIEW_CHECKPOINT_IDS: Array[String] = [
+	"visual_review.outpost_base",
+	"visual_review.crystal_mine",
+	"visual_review.pollution_boundary",
+	"visual_review.core_station"
+]
+const DEFAULT_VISUAL_REVIEW_CHECKPOINT_ID := "visual_review.outpost_base"
+
+const VISUAL_REVIEW_CHECKPOINT_DEFINITIONS := [
+	{
+		"id": "visual_review.outpost_base",
+		"code": "V0",
+		"display_name": "基地首屏",
+		"baseline_id": "baseline.s0_new_game",
+		"region_id": "region.outpost_platform",
+		"position": Vector2(-250.0, -48.0),
+		"summary": "前哨核心、基础反应器、储存、整备台和出发门。",
+		"watch": "观察基地设备轮廓、地面格栅、维护线和工业链输入 / 输出是否清楚。"
+	},
+	{
+		"id": "visual_review.crystal_mine",
+		"code": "V1",
+		"display_name": "晶体矿脉",
+		"baseline_id": "baseline.s1_treatment_ready",
+		"region_id": "region.crystal_vein_field",
+		"position": Vector2(150.0, -176.0),
+		"summary": "可采集矿面、富矿脊线、残骸回收场和回基地装车轨。",
+		"watch": "观察晶体区是否像资源场，而不是蓝色大块和旧交互标记。"
+	},
+	{
+		"id": "visual_review.pollution_boundary",
+		"code": "V2",
+		"display_name": "污染边界",
+		"baseline_id": "baseline.s1_treatment_ready",
+		"region_id": "region.pollution_edge",
+		"position": Vector2(298.0, -72.0),
+		"summary": "污染沉积、危险边界、过滤施工、处理输入 / 输出和回收现场。",
+		"watch": "观察污染区是否像处理边界和回收现场，而不是黄绿色旧色块。"
+	},
+	{
+		"id": "visual_review.core_station",
+		"code": "V3",
+		"display_name": "核心稳定站",
+		"baseline_id": "baseline.s21_demo_stabilization_core_ready",
+		"region_id": "region.demo_stabilization_core",
+		"position": Vector2(3744.0, 112.0),
+		"summary": "终点入口、侧边补给、守卫压力场、回写缓存和核心写入装置。",
+		"watch": "观察终点工程现场是否成立，后续视觉第二轮优先看这里。"
+	}
+]
 
 const BASELINE_DEFINITIONS := [
 	{
@@ -228,6 +278,26 @@ static func get_demo_baseline_ids() -> Array[String]:
 	return DEMO_BASELINE_IDS.duplicate()
 
 
+static func get_visual_review_checkpoint_definitions() -> Array[Dictionary]:
+	var definitions: Array[Dictionary] = []
+	for definition in VISUAL_REVIEW_CHECKPOINT_DEFINITIONS:
+		var checkpoint_definition: Dictionary = definition
+		definitions.append(checkpoint_definition.duplicate(true))
+	return definitions
+
+
+static func get_visual_review_checkpoint_ids() -> Array[String]:
+	return VISUAL_REVIEW_CHECKPOINT_IDS.duplicate()
+
+
+static func get_visual_review_checkpoint_definition(checkpoint_id: String) -> Dictionary:
+	for definition in VISUAL_REVIEW_CHECKPOINT_DEFINITIONS:
+		var candidate: Dictionary = definition
+		if String(candidate.get("id", "")) == checkpoint_id:
+			return candidate.duplicate(true)
+	return {}
+
+
 static func get_definition(baseline_id: String) -> Dictionary:
 	for definition in BASELINE_DEFINITIONS:
 		var candidate: Dictionary = definition
@@ -245,3 +315,7 @@ static func get_default_baseline_id() -> String:
 
 static func get_default_demo_baseline_id() -> String:
 	return DEFAULT_DEMO_BASELINE_ID
+
+
+static func get_default_visual_review_checkpoint_id() -> String:
+	return DEFAULT_VISUAL_REVIEW_CHECKPOINT_ID

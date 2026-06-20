@@ -127,6 +127,29 @@ func create_baseline_state(baseline_id: String) -> Dictionary:
 	}
 
 
+func create_visual_review_checkpoint_state(checkpoint_id: String) -> Dictionary:
+	var checkpoint_definition := DevelopmentBaselineCatalog.get_visual_review_checkpoint_definition(checkpoint_id)
+	if checkpoint_definition.is_empty():
+		return _failure("未找到截图定位点：%s。" % checkpoint_id)
+
+	var baseline_id := String(checkpoint_definition.get("baseline_id", ""))
+	var result := create_baseline_state(baseline_id)
+	if not bool(result.get("success", false)):
+		return result
+
+	var world_state: WorldState = result.get("world_state", null)
+	var character_state: CharacterState = result.get("character_state", null)
+	if world_state == null or character_state == null:
+		return _failure("截图定位点生成失败：%s 没有返回运行状态。" % checkpoint_id)
+
+	var position: Vector2 = checkpoint_definition.get("position", character_state.position)
+	var region_id := String(checkpoint_definition.get("region_id", character_state.current_region_id))
+	_set_runtime_position(world_state, character_state, region_id, position)
+	result["message"] = _format_visual_review_checkpoint_message(checkpoint_definition)
+	result["visual_review_checkpoint_definition"] = checkpoint_definition
+	return result
+
+
 func _complete_progress_until(
 	world_state: WorldState,
 	character_state: CharacterState,
@@ -904,6 +927,14 @@ func _format_loaded_message(definition: Dictionary) -> String:
 	return "已载入开发基线 %s：%s 如需长期保留，可直接保存到任一普通槽位。" % [
 		String(definition.get("code", "")),
 		String(definition.get("summary", ""))
+	]
+
+
+func _format_visual_review_checkpoint_message(definition: Dictionary) -> String:
+	return "已载入截图定位 %s：%s 观察：%s 可直接截图，必要时再保存到普通槽位。" % [
+		String(definition.get("display_name", "")),
+		String(definition.get("summary", "")),
+		String(definition.get("watch", ""))
 	]
 
 

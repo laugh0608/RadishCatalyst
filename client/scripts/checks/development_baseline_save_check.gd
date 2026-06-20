@@ -388,6 +388,66 @@ func run() -> void:
 				"高压窗口反馈已归档",
 				"S21 baseline should keep overpressure archive feedback"
 			)
+	_check_visual_review_checkpoints()
+
+
+func _check_visual_review_checkpoints() -> void:
+	for definition in DevelopmentBaselineCatalog.get_visual_review_checkpoint_definitions():
+		var checkpoint_id := String(definition.get("id", ""))
+		var label := "visual review checkpoint %s" % checkpoint_id
+		if checkpoint_id.is_empty():
+			host.failures.append("visual review checkpoint should define id")
+			continue
+
+		var result: Dictionary = host.development_baseline_builder.create_visual_review_checkpoint_state(checkpoint_id)
+		host._expect_success(result, "%s create" % label)
+		if not bool(result.get("success", false)):
+			continue
+
+		host._expect_text_contains(
+			String(result.get("message", "")),
+			"已载入截图定位",
+			"%s message" % label
+		)
+		var returned_definition: Dictionary = result.get("visual_review_checkpoint_definition", {})
+		host._expect_equal(
+			String(returned_definition.get("id", "")),
+			checkpoint_id,
+			"%s returned definition" % label
+		)
+
+		var world_state: WorldState = result.get("world_state", null)
+		var character_state: CharacterState = result.get("character_state", null)
+		if world_state == null or character_state == null:
+			host.failures.append("%s should return world and character states" % label)
+			continue
+
+		var expected_region_id := String(definition.get("region_id", ""))
+		var expected_position: Vector2 = definition.get("position", Vector2.ZERO)
+		host._expect_equal(world_state.current_region_id, expected_region_id, "%s world region" % label)
+		host._expect_equal(character_state.current_region_id, expected_region_id, "%s character region" % label)
+		_expect_position_close(character_state.position, expected_position, "%s character position" % label)
+
+		var slot_id := "visual_review_check_%s" % checkpoint_id.replace(".", "_")
+		host._remove_slot_files(slot_id)
+		host._expect_success(
+			host.save_service.save_game_for_slot(slot_id, world_state, character_state),
+			"%s save" % label
+		)
+		var load_result: Dictionary = host.save_service.load_game_for_slot(slot_id)
+		host._expect_success(load_result, "%s load" % label)
+		if bool(load_result.get("success", false)):
+			var loaded_world: WorldState = load_result["world_state"]
+			var loaded_character: CharacterState = load_result["character_state"]
+			host._expect_equal(loaded_world.current_region_id, expected_region_id, "%s loaded world region" % label)
+			host._expect_equal(loaded_character.current_region_id, expected_region_id, "%s loaded character region" % label)
+			_expect_position_close(loaded_character.position, expected_position, "%s loaded character position" % label)
+		host._remove_slot_files(slot_id)
+
+
+func _expect_position_close(actual: Vector2, expected: Vector2, context: String) -> void:
+	if actual.distance_to(expected) > 0.1:
+		host.failures.append("%s expected %s, got %s" % [context, var_to_str(expected), var_to_str(actual)])
 
 
 func _expect_frontline_action_console_interaction_advances(
