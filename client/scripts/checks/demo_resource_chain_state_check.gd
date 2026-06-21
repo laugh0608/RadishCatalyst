@@ -151,14 +151,95 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	_expect_equal(first_path_layer.is_first_path_visible_at(Vector2(112.0, -112.0)), true, "first industrial path layer is visible at crystal pickup")
 	_expect_equal(first_path_layer.is_first_path_visible_at(Vector2(3744.0, 112.0)), false, "first industrial path layer does not cover the core station")
 	first_path_layer.refresh_path_state(world, character)
-	_expect_equal(first_path_layer.get_path_state_shape_count() >= 7, true, "first industrial path layer creates state shapes")
+	_expect_equal(first_path_layer.get_path_state_shape_count() >= 8, true, "first industrial path layer creates state shapes")
+	_expect_equal(
+		first_path_layer.get_active_stage(),
+		DemoFirstIndustrialPathVisualLayer.STAGE_REACTOR_PROCESSING,
+		"first industrial path layer marks the current reactor operation stage"
+	)
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.crystal_pickup.ready"), true, "first industrial path layer marks crystal state")
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.salvage_pickup.ready"), true, "first industrial path layer marks salvage state")
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.base_receiving_bay.ready"), true, "first industrial path layer marks base receiving state")
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.reactor_work_window.ready"), true, "first industrial path layer marks reactor state")
-	_expect_equal(first_path_layer.has_path_state_shape("first_path.storage_output.ready"), true, "first industrial path layer marks storage state")
-	_expect_equal(first_path_layer.has_path_state_shape("first_path.outfitting_handoff.ready"), true, "first industrial path layer marks outfitting state")
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.storage_output.idle"), true, "first industrial path layer waits for completed output before storage")
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.outfitting_handoff.idle"), true, "first industrial path layer waits for crafted supply before outfitting")
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.stage.reactor_processing"), true, "first industrial path layer records reactor operation stage")
+	_check_first_industrial_path_stage_changes(first_path_layer)
 	map.free()
+
+
+func _check_first_industrial_path_stage_changes(first_path_layer: DemoFirstIndustrialPathVisualLayer) -> void:
+	var stage_world := _create_resource_chain_world("quest.prepare_treatment_supplies")
+	var stage_character := CharacterState.create_default()
+
+	first_path_layer.refresh_path_state(stage_world, stage_character)
+	_expect_equal(
+		first_path_layer.get_active_stage(),
+		DemoFirstIndustrialPathVisualLayer.STAGE_FIELD_PICKUP,
+		"first industrial path keeps starting supplies from skipping field pickup"
+	)
+
+	stage_character.inventory.items.clear()
+	stage_character.inventory.fluids.clear()
+
+	first_path_layer.refresh_path_state(stage_world, stage_character)
+	_expect_equal(
+		first_path_layer.get_active_stage(),
+		DemoFirstIndustrialPathVisualLayer.STAGE_FIELD_PICKUP,
+		"first industrial path starts by pointing to field pickup"
+	)
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.stage.field_pickup"), true, "first path records field pickup stage")
+
+	stage_character.current_region_id = "region.crystal_vein_field"
+	stage_character.position = Vector2(112.0, -112.0)
+	stage_character.inventory.add_item("item.crystal_ore", 3)
+	first_path_layer.refresh_path_state(stage_world, stage_character)
+	_expect_equal(
+		first_path_layer.get_active_stage(),
+		DemoFirstIndustrialPathVisualLayer.STAGE_RETURN_TO_BASE,
+		"first industrial path points gathered resources back to base"
+	)
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.stage.return_to_base"), true, "first path records return stage")
+
+	stage_character.current_region_id = "region.outpost_platform"
+	stage_character.position = Vector2(-250.0, -48.0)
+	first_path_layer.refresh_path_state(stage_world, stage_character)
+	_expect_equal(
+		first_path_layer.get_active_stage(),
+		DemoFirstIndustrialPathVisualLayer.STAGE_BASE_RECEIVING,
+		"first industrial path moves returned resources into base receiving"
+	)
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.stage.base_receiving"), true, "first path records base receiving stage")
+
+	stage_world.set_base_structure_status("structure.basic_reactor", "in_progress", "recipe.process_crystal_ore")
+	first_path_layer.refresh_path_state(stage_world, stage_character)
+	_expect_equal(
+		first_path_layer.get_active_stage(),
+		DemoFirstIndustrialPathVisualLayer.STAGE_REACTOR_PROCESSING,
+		"first industrial path moves resources into reactor processing"
+	)
+
+	stage_world.set_base_structure_status("structure.basic_reactor", "completed", "recipe.process_crystal_ore")
+	stage_character.inventory.items.clear()
+	stage_character.inventory.add_item("item.basic_parts", 1)
+	first_path_layer.refresh_path_state(stage_world, stage_character)
+	_expect_equal(
+		first_path_layer.get_active_stage(),
+		DemoFirstIndustrialPathVisualLayer.STAGE_STORAGE_OUTPUT,
+		"first industrial path moves finished output into storage"
+	)
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.stage.storage_output"), true, "first path records storage output stage")
+
+	stage_world.add_base_structure("structure.field_outfitting_station", "building.field_outfitting_station", "region.outpost_platform")
+	stage_world.set_base_structure_status("structure.basic_reactor", "completed", "recipe.repair_gel")
+	stage_character.inventory.add_item("item.repair_gel", 1)
+	first_path_layer.refresh_path_state(stage_world, stage_character)
+	_expect_equal(
+		first_path_layer.get_active_stage(),
+		DemoFirstIndustrialPathVisualLayer.STAGE_OUTFITTING_READY,
+		"first industrial path moves supplies into outfitting handoff"
+	)
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.stage.outfitting_ready"), true, "first path records outfitting stage")
 
 
 func _check_pollution_chain_hud_and_visual_state() -> void:

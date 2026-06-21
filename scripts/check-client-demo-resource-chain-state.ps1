@@ -52,10 +52,14 @@ $requiredTextByFile = @{
     )
     "client/scripts/map/demo_first_industrial_path_visual_layer.gd" = @(
         "class_name DemoFirstIndustrialPathVisualLayer",
+        "STAGE_REACTOR_PROCESSING",
         "first_path.primary_player_lane",
         "first_path.base_receiving_bay",
         "first_path.reactor_work_window",
         "first_path.outfitting_handoff",
+        "first_path.stage_feedback_lane",
+        "first_path.stage.%s",
+        "_has_first_path_output_context",
         "_quiet_global_planning_layers"
     )
     "client/scenes/maps/VerticalSliceMap.tscn" = @(
@@ -76,6 +80,10 @@ $requiredTextByFile = @{
         "_check_processing_result_resource_chain",
         "_check_crystal_resource_visual_layer",
         "first industrial path layer registers the playable path slice",
+        "_check_first_industrial_path_stage_changes",
+        "first_path.stage.reactor_processing",
+        "STAGE_OUTFITTING_READY",
+        "starting supplies from skipping field pickup",
         "crystal visual layer registers mining terrain materials",
         "terrain.crystal.return_cart_lane",
         "_check_pollution_chain_hud_and_visual_state",

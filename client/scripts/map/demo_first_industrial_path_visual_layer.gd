@@ -17,6 +17,13 @@ const OUTFITTING_ACCENT := Color(0.92, 0.74, 0.3, 0.86)
 const SLOT_DARK := Color(0.02, 0.04, 0.035, 0.64)
 const READY_DIM := Color(0.22, 0.3, 0.28, 0.34)
 
+const STAGE_FIELD_PICKUP := "field_pickup"
+const STAGE_RETURN_TO_BASE := "return_to_base"
+const STAGE_BASE_RECEIVING := "base_receiving"
+const STAGE_REACTOR_PROCESSING := "reactor_processing"
+const STAGE_STORAGE_OUTPUT := "storage_output"
+const STAGE_OUTFITTING_READY := "outfitting_ready"
+
 const PATH_POINTS := [
 	Vector2(132.0, -124.0),
 	Vector2(48.0, -100.0),
@@ -63,10 +70,14 @@ func refresh_path_state(world_state: WorldState, character_state: CharacterState
 		and String(reactor_state.get("active_recipe_id", "")) in ["recipe.process_crystal_ore", "recipe.repair_gel"]
 	)
 	var inputs_ready := inventory.has_ref("item.crystal_ore", 3) or inventory.has_ref("item.salvage_scrap", 1)
-	var storage_ready := inventory.has_ref("item.basic_parts", 1) or inventory.has_ref("item.repair_gel", 1)
+	var storage_ready := (
+		(inventory.has_ref("item.basic_parts", 1) or inventory.has_ref("item.repair_gel", 1))
+		and _has_first_path_output_context(world_state)
+	)
 	var outfitting_ready := (
 		world_state.has_base_structure_definition("building.field_outfitting_station")
 		and inventory.has_ref("item.repair_gel", 1)
+		and _has_repair_gel_output_context(world_state)
 	)
 	path_state = {
 		"crystal_ready": inventory.has_ref("item.crystal_ore", 3),
@@ -74,7 +85,8 @@ func refresh_path_state(world_state: WorldState, character_state: CharacterState
 		"inputs_ready": inputs_ready,
 		"reactor_active": reactor_active,
 		"storage_ready": storage_ready,
-		"outfitting_ready": outfitting_ready
+		"outfitting_ready": outfitting_ready,
+		"active_stage": _resolve_active_stage(character_state, inputs_ready, reactor_active, storage_ready, outfitting_ready)
 	}
 	_register_path_state_shape("first_path.crystal_pickup.%s" % _state_suffix(bool(path_state["crystal_ready"])))
 	_register_path_state_shape("first_path.salvage_pickup.%s" % _state_suffix(bool(path_state["salvage_ready"])))
@@ -83,6 +95,7 @@ func refresh_path_state(world_state: WorldState, character_state: CharacterState
 	_register_path_state_shape("first_path.reactor_work_window.%s" % _state_suffix(reactor_active))
 	_register_path_state_shape("first_path.storage_output.%s" % _state_suffix(storage_ready))
 	_register_path_state_shape("first_path.outfitting_handoff.%s" % _state_suffix(outfitting_ready))
+	_register_path_state_shape("first_path.stage.%s" % get_active_stage())
 	queue_redraw()
 
 
@@ -114,9 +127,14 @@ func get_muted_planning_layer_count() -> int:
 	return muted_planning_layer_count
 
 
+func get_active_stage() -> String:
+	return String(path_state.get("active_stage", ""))
+
+
 func _draw() -> void:
 	_draw_workspace_focus()
 	_draw_primary_path_floor()
+	_draw_stage_feedback()
 	_draw_resource_workspots()
 	_draw_base_receiving_bay()
 	_draw_reactor_feed_station()
@@ -146,6 +164,54 @@ func _draw_primary_path_floor() -> void:
 		var normal := Vector2(-direction.y, direction.x)
 		var center := from.lerp(to, 0.52)
 		draw_line(center - normal * 5.0, center + normal * 5.0, Color(PATH_MARK.r, PATH_MARK.g, PATH_MARK.b, 0.32), 1.2, true)
+
+
+func _draw_stage_feedback() -> void:
+	if path_state.is_empty():
+		return
+	match get_active_stage():
+		STAGE_FIELD_PICKUP:
+			_draw_active_stage_lane([Vector2(-42.0, -42.0), Vector2(-74.0, -14.0), Vector2(-42.0, -106.0), Vector2(48.0, -100.0), Vector2(132.0, -124.0)], CRYSTAL_ACCENT)
+			_draw_stage_pulse(Vector2(132.0, -124.0), CRYSTAL_ACCENT, 28.0)
+			_draw_stage_pulse(Vector2(54.0, 112.0), SALVAGE_ACCENT, 22.0)
+		STAGE_RETURN_TO_BASE:
+			_draw_active_stage_lane([Vector2(132.0, -124.0), Vector2(48.0, -100.0), Vector2(-42.0, -106.0), Vector2(-214.0, -112.0)], CRYSTAL_ACCENT)
+			_draw_stage_pulse(Vector2(-214.0, -112.0), CRYSTAL_ACCENT, 24.0)
+		STAGE_BASE_RECEIVING:
+			_draw_active_stage_lane([Vector2(-214.0, -112.0), Vector2(-194.0, -108.0), Vector2(-178.0, -92.0)], SALVAGE_ACCENT)
+			_draw_stage_pulse(Vector2(-214.0, -112.0), SALVAGE_ACCENT, 24.0)
+		STAGE_REACTOR_PROCESSING:
+			_draw_active_stage_lane([Vector2(-194.0, -108.0), Vector2(-178.0, -92.0), Vector2(-166.0, -66.0)], REACTOR_ACCENT)
+			_draw_stage_pulse(Vector2(-166.0, -66.0), REACTOR_ACCENT, 31.0)
+		STAGE_STORAGE_OUTPUT:
+			_draw_active_stage_lane([Vector2(-148.0, -38.0), Vector2(-170.0, 10.0), Vector2(-250.0, 18.0)], PRODUCT_ACCENT)
+			_draw_stage_pulse(Vector2(-250.0, 18.0), PRODUCT_ACCENT, 26.0)
+		STAGE_OUTFITTING_READY:
+			_draw_active_stage_lane([Vector2(-250.0, 18.0), Vector2(-128.0, 54.0), Vector2(-74.0, -14.0), Vector2(-42.0, -42.0)], OUTFITTING_ACCENT)
+			_draw_stage_pulse(Vector2(-74.0, -14.0), OUTFITTING_ACCENT, 26.0)
+
+
+func _draw_active_stage_lane(points: Array, color: Color) -> void:
+	_draw_lane(points, 15.0, Color(color.r, color.g, color.b, 0.24), Color(color.r, color.g, color.b, 0.72))
+	_draw_stage_chevrons(points, color)
+
+
+func _draw_stage_chevrons(points: Array, color: Color) -> void:
+	for index in range(points.size() - 1):
+		var from: Vector2 = points[index]
+		var to: Vector2 = points[index + 1]
+		var direction := (to - from).normalized()
+		var normal := Vector2(-direction.y, direction.x)
+		for ratio in [0.34, 0.68]:
+			var center := from.lerp(to, ratio)
+			draw_line(center - direction * 7.0 - normal * 4.0, center + direction * 4.0, Color(color.r, color.g, color.b, 0.58), 1.4, true)
+			draw_line(center - direction * 7.0 + normal * 4.0, center + direction * 4.0, Color(color.r, color.g, color.b, 0.58), 1.4, true)
+
+
+func _draw_stage_pulse(center: Vector2, color: Color, radius: float) -> void:
+	draw_circle(center, radius * 0.52, Color(color.r, color.g, color.b, 0.1))
+	draw_arc(center, radius, PI * 0.12, PI * 1.9, 34, Color(color.r, color.g, color.b, 0.58), 2.2, true)
+	draw_arc(center, radius + 6.0, PI * 0.52, PI * 1.36, 24, Color(color.r, color.g, color.b, 0.32), 1.4, true)
 
 
 func _draw_resource_workspots() -> void:
@@ -258,7 +324,10 @@ func _register_path_shapes() -> void:
 		"first_path.reactor_work_window",
 		"first_path.storage_output_shelf",
 		"first_path.outfitting_handoff_rack",
-		"first_path.departure_supply_bus"
+		"first_path.departure_supply_bus",
+		"first_path.stage_feedback_lane",
+		"first_path.stage_feedback_station",
+		"first_path.operation_state_pips"
 	]
 
 
@@ -293,6 +362,48 @@ func _get_base_structure_for_definition(world_state: WorldState, building_id: St
 		if String(structure.get("definition_id", "")) == building_id:
 			return structure
 	return {}
+
+
+func _has_first_path_output_context(world_state: WorldState) -> bool:
+	var reactor_state := _get_base_structure_for_definition(world_state, "building.basic_reactor")
+	var last_recipe_id := String(reactor_state.get("last_recipe_id", ""))
+	return (
+		last_recipe_id in ["recipe.process_crystal_ore", "recipe.repair_gel"]
+		or _has_repair_gel_output_context(world_state)
+	)
+
+
+func _has_repair_gel_output_context(world_state: WorldState) -> bool:
+	var reactor_state := _get_base_structure_for_definition(world_state, "building.basic_reactor")
+	if String(reactor_state.get("last_recipe_id", "")) == "recipe.repair_gel":
+		return true
+	if world_state.quest_state.has_completed_quest("quest.prepare_treatment_supplies"):
+		return true
+	return world_state.quest_state.get_objective_progress(
+		"quest.prepare_treatment_supplies",
+		"craft_item",
+		"item.repair_gel"
+	) >= 1.0
+
+
+func _resolve_active_stage(
+	character_state: CharacterState,
+	inputs_ready: bool,
+	reactor_active: bool,
+	storage_ready: bool,
+	outfitting_ready: bool
+) -> String:
+	if reactor_active:
+		return STAGE_REACTOR_PROCESSING
+	if inputs_ready:
+		if character_state.current_region_id == "region.crystal_vein_field" or character_state.position.x > -20.0:
+			return STAGE_RETURN_TO_BASE
+		return STAGE_BASE_RECEIVING
+	if outfitting_ready:
+		return STAGE_OUTFITTING_READY
+	if storage_ready:
+		return STAGE_STORAGE_OUTPUT
+	return STAGE_FIELD_PICKUP
 
 
 func _state_suffix(is_ready: bool) -> String:
