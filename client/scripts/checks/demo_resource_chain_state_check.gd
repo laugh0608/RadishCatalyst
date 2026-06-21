@@ -138,13 +138,20 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	_expect_equal(layer.has_chain_shape("chain.outfitting_launch_bus.ready"), true, "industrial visual layer marks outfitting launch bus")
 
 	first_path_layer.apply_visuals()
-	_expect_equal(first_path_layer.get_path_shape_count() >= 11, true, "first industrial path layer registers the playable path slice")
+	_expect_equal(first_path_layer.get_path_shape_count() >= 18, true, "first industrial path layer registers the playable path slice")
 	_expect_equal(first_path_layer.has_path_shape("first_path.primary_player_lane"), true, "first industrial path layer marks the player route")
+	_expect_equal(first_path_layer.has_path_shape("first_path.local_material_patches"), true, "first industrial path layer adds local ground and material patches")
+	_expect_equal(first_path_layer.has_path_shape("first_path.crystal_cut_workface"), true, "first industrial path layer marks the crystal cut workface")
+	_expect_equal(first_path_layer.has_path_shape("first_path.salvage_sorting_workface"), true, "first industrial path layer marks the salvage sorting workface")
 	_expect_equal(first_path_layer.has_path_shape("first_path.crystal_pickup_pad"), true, "first industrial path layer marks crystal pickup")
 	_expect_equal(first_path_layer.has_path_shape("first_path.salvage_pickup_pad"), true, "first industrial path layer marks salvage pickup")
 	_expect_equal(first_path_layer.has_path_shape("first_path.base_receiving_bay"), true, "first industrial path layer marks base receiving bay")
+	_expect_equal(first_path_layer.has_path_shape("first_path.base_receiving_logistics_port"), true, "first industrial path layer marks the base receiving port")
+	_expect_equal(first_path_layer.has_path_shape("first_path.reactor_input_workbench"), true, "first industrial path layer marks the reactor input workbench")
 	_expect_equal(first_path_layer.has_path_shape("first_path.reactor_feed_hopper"), true, "first industrial path layer marks reactor feed")
+	_expect_equal(first_path_layer.has_path_shape("first_path.storage_output_bins"), true, "first industrial path layer marks storage output bins")
 	_expect_equal(first_path_layer.has_path_shape("first_path.storage_output_shelf"), true, "first industrial path layer marks storage output")
+	_expect_equal(first_path_layer.has_path_shape("first_path.outfitting_departure_port"), true, "first industrial path layer marks the outfitting departure port")
 	_expect_equal(first_path_layer.has_path_shape("first_path.outfitting_handoff_rack"), true, "first industrial path layer marks outfitting handoff")
 	_expect_equal(first_path_layer.has_path_shape("first_path.context_clarity_mask"), true, "first industrial path layer applies a local clarity mask")
 	_expect_equal(first_path_layer.has_path_shape("first_path.single_signal_stage"), true, "first industrial path layer uses one active stage signal")
@@ -222,6 +229,15 @@ func _check_first_industrial_path_stage_changes(first_path_layer: DemoFirstIndus
 		"first industrial path moves returned resources into base receiving"
 	)
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.stage.base_receiving"), true, "first path records base receiving stage")
+
+	stage_character.position = Vector2(-166.0, -66.0)
+	first_path_layer.refresh_path_state(stage_world, stage_character)
+	_expect_equal(
+		first_path_layer.get_active_stage(),
+		DemoFirstIndustrialPathVisualLayer.STAGE_REACTOR_FEED,
+		"first industrial path moves returned resources from receiving into reactor feed"
+	)
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.stage.reactor_feed"), true, "first path records reactor feed stage")
 
 	stage_world.set_base_structure_status("structure.basic_reactor", "in_progress", "recipe.process_crystal_ore")
 	first_path_layer.refresh_path_state(stage_world, stage_character)
