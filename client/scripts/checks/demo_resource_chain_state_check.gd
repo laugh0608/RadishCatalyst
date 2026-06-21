@@ -115,6 +115,7 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
 	root.add_child(map)
 	var layer := map.get_node("DemoIndustrialBaseVisualLayer") as DemoIndustrialBaseVisualLayer
+	var first_path_layer := map.get_node("DemoFirstIndustrialPathVisualLayer") as DemoFirstIndustrialPathVisualLayer
 	layer.apply_visuals()
 	_expect_equal(layer.get_detail_shape_count() >= 9, true, "industrial base visual layer registers device and floor detail shapes")
 	_expect_equal(layer.has_detail_shape("floor.service_grates"), true, "industrial base visual layer marks floor service grates")
@@ -135,6 +136,28 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	_expect_equal(layer.has_chain_shape("chain.parts_output_tray.ready"), true, "industrial visual layer marks parts output tray")
 	_expect_equal(layer.has_chain_shape("chain.repair_gel_cylinder.ready"), true, "industrial visual layer marks repair gel cylinder")
 	_expect_equal(layer.has_chain_shape("chain.outfitting_launch_bus.ready"), true, "industrial visual layer marks outfitting launch bus")
+
+	first_path_layer.apply_visuals()
+	_expect_equal(first_path_layer.get_path_shape_count() >= 11, true, "first industrial path layer registers the playable path slice")
+	_expect_equal(first_path_layer.has_path_shape("first_path.primary_player_lane"), true, "first industrial path layer marks the player route")
+	_expect_equal(first_path_layer.has_path_shape("first_path.crystal_pickup_pad"), true, "first industrial path layer marks crystal pickup")
+	_expect_equal(first_path_layer.has_path_shape("first_path.salvage_pickup_pad"), true, "first industrial path layer marks salvage pickup")
+	_expect_equal(first_path_layer.has_path_shape("first_path.base_receiving_bay"), true, "first industrial path layer marks base receiving bay")
+	_expect_equal(first_path_layer.has_path_shape("first_path.reactor_feed_hopper"), true, "first industrial path layer marks reactor feed")
+	_expect_equal(first_path_layer.has_path_shape("first_path.storage_output_shelf"), true, "first industrial path layer marks storage output")
+	_expect_equal(first_path_layer.has_path_shape("first_path.outfitting_handoff_rack"), true, "first industrial path layer marks outfitting handoff")
+	_expect_equal(first_path_layer.get_muted_planning_layer_count() >= 3, true, "first industrial path layer pushes global planning layers into the background")
+	_expect_equal(first_path_layer.is_first_path_visible_at(Vector2(-250.0, -48.0)), true, "first industrial path layer is visible at base start")
+	_expect_equal(first_path_layer.is_first_path_visible_at(Vector2(112.0, -112.0)), true, "first industrial path layer is visible at crystal pickup")
+	_expect_equal(first_path_layer.is_first_path_visible_at(Vector2(3744.0, 112.0)), false, "first industrial path layer does not cover the core station")
+	first_path_layer.refresh_path_state(world, character)
+	_expect_equal(first_path_layer.get_path_state_shape_count() >= 7, true, "first industrial path layer creates state shapes")
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.crystal_pickup.ready"), true, "first industrial path layer marks crystal state")
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.salvage_pickup.ready"), true, "first industrial path layer marks salvage state")
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.base_receiving_bay.ready"), true, "first industrial path layer marks base receiving state")
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.reactor_work_window.ready"), true, "first industrial path layer marks reactor state")
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.storage_output.ready"), true, "first industrial path layer marks storage state")
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.outfitting_handoff.ready"), true, "first industrial path layer marks outfitting state")
 	map.free()
 
 

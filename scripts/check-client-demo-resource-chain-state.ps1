@@ -50,9 +50,19 @@ $requiredTextByFile = @{
         "pollution_chain.slurry_byproduct_slot",
         "pollution_chain.core_prep_route"
     )
+    "client/scripts/map/demo_first_industrial_path_visual_layer.gd" = @(
+        "class_name DemoFirstIndustrialPathVisualLayer",
+        "first_path.primary_player_lane",
+        "first_path.base_receiving_bay",
+        "first_path.reactor_work_window",
+        "first_path.outfitting_handoff",
+        "_quiet_global_planning_layers"
+    )
     "client/scenes/maps/VerticalSliceMap.tscn" = @(
         "DemoCrystalResourceVisualLayer",
-        "demo_crystal_resource_visual_layer.gd"
+        "demo_crystal_resource_visual_layer.gd",
+        "DemoFirstIndustrialPathVisualLayer",
+        "demo_first_industrial_path_visual_layer.gd"
     )
     "client/scripts/ui/hud_log_presenter.gd" = @(
         '"资源链"',
@@ -65,6 +75,7 @@ $requiredTextByFile = @{
         "_check_device_panel_resource_chain_state",
         "_check_processing_result_resource_chain",
         "_check_crystal_resource_visual_layer",
+        "first industrial path layer registers the playable path slice",
         "crystal visual layer registers mining terrain materials",
         "terrain.crystal.return_cart_lane",
         "_check_pollution_chain_hud_and_visual_state",
