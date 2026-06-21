@@ -26,6 +26,8 @@ const PRODUCT_ACCENT := Color(0.58, 0.88, 0.52, 0.3)
 const OUTFITTING_ACCENT := Color(0.92, 0.74, 0.3, 0.32)
 const SLOT_DARK := Color(0.02, 0.04, 0.035, 0.64)
 const READY_DIM := Color(0.22, 0.28, 0.26, 0.22)
+const HAND_SAMPLE_ACCENT := Color(0.82, 0.96, 1.0, 0.42)
+const AUTO_MINER_ACCENT := Color(0.7, 0.9, 0.82, 0.38)
 
 const FIRST_PATH_CONTEXT_LAYER_ALPHAS := [
 	{"path": "OpeningSceneLayer", "alpha": 0.12},
@@ -119,6 +121,8 @@ func refresh_path_state(world_state: WorldState, character_state: CharacterState
 		"active_stage": _resolve_active_stage(character_state, inputs_ready, reactor_active, storage_ready, outfitting_ready)
 	}
 	_register_path_state_shape("first_path.crystal_pickup.%s" % _state_suffix(bool(path_state["crystal_ready"])))
+	_register_path_state_shape("first_path.hand_sample.%s" % _state_suffix(bool(path_state["crystal_ready"])))
+	_register_path_state_shape("first_path.auto_miner_output.%s" % _state_suffix(bool(path_state["crystal_ready"])))
 	_register_path_state_shape("first_path.salvage_pickup.%s" % _state_suffix(bool(path_state["salvage_ready"])))
 	_register_path_state_shape("first_path.base_receiving_bay.%s" % _state_suffix(inputs_ready))
 	_register_path_state_shape("first_path.reactor_feed.%s" % _state_suffix(inputs_ready or reactor_active))
@@ -230,6 +234,8 @@ func _draw_crystal_cut_workface() -> void:
 	for x in [96.0, 116.0, 136.0, 156.0]:
 		draw_rect(Rect2(Vector2(x, -94.0), Vector2(12.0, 5.0)), WORKFACE_EDGE, true)
 	_draw_logistics_port(Vector2(86.0, -118.0), CRYSTAL_ACCENT)
+	_draw_hand_sample_point(center + Vector2(-48.0, 24.0))
+	_draw_auto_miner_workface(center)
 
 
 func _draw_salvage_sorting_workface() -> void:
@@ -301,8 +307,9 @@ func _draw_stage_feedback() -> void:
 		return
 	match get_active_stage():
 		STAGE_FIELD_PICKUP:
-			_draw_active_stage_lane([Vector2(-42.0, -42.0), Vector2(-74.0, -14.0), Vector2(-42.0, -106.0), Vector2(48.0, -100.0), Vector2(132.0, -124.0)])
-			_draw_stage_pulse(Vector2(132.0, -124.0), 28.0)
+			_draw_active_stage_lane([Vector2(-42.0, -42.0), Vector2(-74.0, -14.0), Vector2(-42.0, -106.0), Vector2(54.0, -100.0), Vector2(84.0, -100.0), Vector2(132.0, -124.0)])
+			_draw_stage_pulse(Vector2(84.0, -100.0), 18.0)
+			_draw_stage_pulse(Vector2(132.0, -124.0), 26.0)
 			_draw_stage_pulse(Vector2(54.0, 112.0), 22.0)
 		STAGE_RETURN_TO_BASE:
 			_draw_active_stage_lane([Vector2(132.0, -124.0), Vector2(48.0, -100.0), Vector2(-42.0, -106.0), Vector2(-214.0, -112.0)])
@@ -353,6 +360,7 @@ func _draw_resource_workspots() -> void:
 	_draw_lane([Vector2(54.0, 112.0), Vector2(8.0, 68.0), Vector2(-42.0, -106.0)], 9.0, Color(0.14, 0.16, 0.12, 0.14), Color(SALVAGE_ACCENT.r, SALVAGE_ACCENT.g, SALVAGE_ACCENT.b, 0.22))
 	for offset in [Vector2(-12.0, -8.0), Vector2(8.0, -2.0), Vector2(0.0, 10.0)]:
 		_draw_crystal_shard(Vector2(132.0, -124.0) + offset, 0.78)
+	_draw_lane([Vector2(132.0, -124.0), Vector2(114.0, -104.0), Vector2(86.0, -118.0)], 6.0, Color(AUTO_MINER_ACCENT.r, AUTO_MINER_ACCENT.g, AUTO_MINER_ACCENT.b, 0.12), Color(AUTO_MINER_ACCENT.r, AUTO_MINER_ACCENT.g, AUTO_MINER_ACCENT.b, 0.3))
 	for rect in [
 		Rect2(Vector2(42.0, 100.0), Vector2(22.0, 14.0)),
 		Rect2(Vector2(66.0, 116.0), Vector2(18.0, 12.0))
@@ -401,6 +409,7 @@ func _draw_path_state() -> void:
 	if path_state.is_empty():
 		return
 	var active_stage := get_active_stage()
+	_draw_ready_pip(Vector2(84.0, -100.0), bool(path_state.get("crystal_ready", false)), active_stage == STAGE_FIELD_PICKUP)
 	_draw_ready_pip(Vector2(132.0, -124.0), bool(path_state.get("crystal_ready", false)), active_stage == STAGE_FIELD_PICKUP or active_stage == STAGE_RETURN_TO_BASE)
 	_draw_ready_pip(Vector2(54.0, 112.0), bool(path_state.get("salvage_ready", false)), active_stage == STAGE_FIELD_PICKUP)
 	_draw_ready_pip(Vector2(-214.0, -112.0), bool(path_state.get("inputs_ready", false)), active_stage == STAGE_RETURN_TO_BASE or active_stage == STAGE_BASE_RECEIVING)
@@ -426,6 +435,27 @@ func _draw_resource_pad(center: Vector2, color: Color, is_crystal: bool) -> void
 		draw_line(center + Vector2(-18.0, 12.0), center + Vector2(20.0, -14.0), Color(color.r, color.g, color.b, 0.18), 1.4, true)
 	else:
 		draw_line(center + Vector2(-18.0, -12.0), center + Vector2(18.0, 12.0), Color(color.r, color.g, color.b, 0.16), 1.4, true)
+
+
+func _draw_hand_sample_point(center: Vector2) -> void:
+	draw_circle(center, 9.0, Color(HAND_SAMPLE_ACCENT.r, HAND_SAMPLE_ACCENT.g, HAND_SAMPLE_ACCENT.b, 0.12))
+	draw_arc(center, 13.0, -0.2, PI * 1.55, 26, HAND_SAMPLE_ACCENT, 1.4, true)
+	draw_line(center + Vector2(-8.0, 6.0), center + Vector2(8.0, -8.0), HAND_SAMPLE_ACCENT, 1.8, true)
+	draw_circle(center + Vector2(8.0, -8.0), 3.0, Color(HAND_SAMPLE_ACCENT.r, HAND_SAMPLE_ACCENT.g, HAND_SAMPLE_ACCENT.b, 0.72))
+
+
+func _draw_auto_miner_workface(center: Vector2) -> void:
+	var base := Rect2(center + Vector2(-8.0, -12.0), Vector2(38.0, 24.0))
+	draw_rect(base, Color(0.04, 0.08, 0.075, 0.72), true)
+	draw_rect(base, Color(AUTO_MINER_ACCENT.r, AUTO_MINER_ACCENT.g, AUTO_MINER_ACCENT.b, 0.34), false, 1.4, true)
+	for leg in [Vector2(-12.0, 12.0), Vector2(30.0, 12.0), Vector2(-12.0, -12.0)]:
+		draw_line(center + leg, center + leg + Vector2(-10.0 if leg.x < 0.0 else 10.0, 18.0 if leg.y > 0.0 else -18.0), Color(AUTO_MINER_ACCENT.r, AUTO_MINER_ACCENT.g, AUTO_MINER_ACCENT.b, 0.24), 2.0, true)
+	draw_arc(center + Vector2(10.0, -2.0), 18.0, PI * 0.12, PI * 1.78, 30, Color(AUTO_MINER_ACCENT.r, AUTO_MINER_ACCENT.g, AUTO_MINER_ACCENT.b, 0.42), 2.2, true)
+	draw_line(center + Vector2(24.0, -2.0), center + Vector2(42.0, -18.0), Color(AUTO_MINER_ACCENT.r, AUTO_MINER_ACCENT.g, AUTO_MINER_ACCENT.b, 0.34), 2.0, true)
+	var output := Rect2(center + Vector2(-58.0, -2.0), Vector2(28.0, 14.0))
+	draw_rect(output, WORKFACE_DARK, true)
+	draw_rect(output, Color(AUTO_MINER_ACCENT.r, AUTO_MINER_ACCENT.g, AUTO_MINER_ACCENT.b, 0.34), false, 1.2, true)
+	draw_line(center + Vector2(-8.0, 2.0), center + Vector2(-30.0, 4.0), Color(AUTO_MINER_ACCENT.r, AUTO_MINER_ACCENT.g, AUTO_MINER_ACCENT.b, 0.26), 2.0, true)
 
 
 func _draw_crystal_shard(center: Vector2, scale: float) -> void:
@@ -456,6 +486,9 @@ func _register_path_shapes() -> void:
 		"first_path.primary_player_lane",
 		"first_path.local_material_patches",
 		"first_path.crystal_cut_workface",
+		"first_path.hand_sample_point",
+		"first_path.auto_miner_workface",
+		"first_path.auto_miner_output_tray",
 		"first_path.salvage_sorting_workface",
 		"first_path.crystal_pickup_pad",
 		"first_path.salvage_pickup_pad",

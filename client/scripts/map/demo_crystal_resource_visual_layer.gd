@@ -30,6 +30,10 @@ const OLD_FIELD_VOID_FILL := Color(0.01, 0.026, 0.032, 0.58)
 const OLD_FIELD_VOID_LINE := Color(0.24, 0.5, 0.54, 0.12)
 const HARVEST_PAD_FILL := Color(0.07, 0.13, 0.14, 0.2)
 const HARVEST_PAD_LINE := Color(0.68, 0.94, 1.0, 0.32)
+const HAND_SAMPLE_POINT := Color(0.82, 0.96, 1.0, 0.44)
+const AUTO_MINER_BODY := Color(0.1, 0.18, 0.16, 0.66)
+const AUTO_MINER_LINE := Color(0.72, 0.94, 0.84, 0.46)
+const AUTO_MINER_OUTPUT := Color(0.78, 0.9, 0.64, 0.44)
 const RICH_CRYSTAL_LINE := Color(0.76, 0.94, 1.0, 0.86)
 const SALVAGE_LINE := Color(0.72, 0.78, 0.68, 0.58)
 const SALVAGE_FILL := Color(0.36, 0.42, 0.34, 0.26)
@@ -163,6 +167,7 @@ func _draw() -> void:
 	_draw_mining_material_surface()
 	_draw_main_vein()
 	_draw_crystal_clusters()
+	_draw_collection_equipment()
 	_draw_salvage_pockets()
 	_draw_return_flows()
 	_draw_anomaly_pocket()
@@ -459,6 +464,48 @@ func _draw_local_harvest_work_pads() -> void:
 		draw_circle(point, 3.2, Color(0.82, 0.96, 1.0, 0.34))
 
 
+func _draw_collection_equipment() -> void:
+	_draw_hand_sampling_probe(Vector2(24.0, -88.0))
+	_draw_field_auto_miner(Vector2(112.0, -142.0), 1.0)
+	_draw_field_auto_miner(Vector2(170.0, -82.0), 0.82)
+	_draw_output_loading_tray(Vector2(92.0, -38.0))
+	_draw_output_loading_tray(Vector2(194.0, 196.0), 0.86)
+	_draw_flow([Vector2(112.0, -142.0), Vector2(104.0, -86.0), Vector2(92.0, -38.0)], AUTO_MINER_OUTPUT, 2.6)
+	_draw_flow([Vector2(170.0, -82.0), Vector2(142.0, -38.0), Vector2(92.0, -38.0)], Color(AUTO_MINER_OUTPUT.r, AUTO_MINER_OUTPUT.g, AUTO_MINER_OUTPUT.b, 0.34), 2.0)
+
+
+func _draw_hand_sampling_probe(center: Vector2) -> void:
+	draw_circle(center, 10.0, Color(HAND_SAMPLE_POINT.r, HAND_SAMPLE_POINT.g, HAND_SAMPLE_POINT.b, 0.1))
+	draw_arc(center, 15.0, PI * 0.08, PI * 1.78, 28, HAND_SAMPLE_POINT, 1.3, true)
+	draw_line(center + Vector2(-10.0, 8.0), center + Vector2(8.0, -8.0), HAND_SAMPLE_POINT, 1.8, true)
+	draw_circle(center + Vector2(8.0, -8.0), 3.2, Color(HAND_SAMPLE_POINT.r, HAND_SAMPLE_POINT.g, HAND_SAMPLE_POINT.b, 0.72))
+
+
+func _draw_field_auto_miner(center: Vector2, scale: float) -> void:
+	var body := Rect2(center + Vector2(-18.0, -12.0) * scale, Vector2(38.0, 24.0) * scale)
+	draw_rect(body, AUTO_MINER_BODY, true)
+	draw_rect(body, Color(AUTO_MINER_LINE.r, AUTO_MINER_LINE.g, AUTO_MINER_LINE.b, 0.46), false, 1.3, true)
+	for leg in [Vector2(-18.0, 10.0), Vector2(18.0, 10.0), Vector2(-14.0, -10.0)]:
+		var foot_offset := Vector2(-12.0 if leg.x < 0.0 else 12.0, 18.0 if leg.y > 0.0 else -18.0) * scale
+		draw_line(center + leg * scale, center + leg * scale + foot_offset, Color(AUTO_MINER_LINE.r, AUTO_MINER_LINE.g, AUTO_MINER_LINE.b, 0.26), 2.0 * scale, true)
+	var head := center + Vector2(20.0, -6.0) * scale
+	draw_arc(head, 18.0 * scale, PI * 0.08, PI * 1.86, 30, AUTO_MINER_LINE, 2.2 * scale, true)
+	draw_line(head + Vector2(12.0, 0.0) * scale, head + Vector2(30.0, -14.0) * scale, AUTO_MINER_LINE, 2.0 * scale, true)
+	draw_circle(head + Vector2(30.0, -14.0) * scale, 3.2 * scale, Color(0.88, 1.0, 0.9, 0.48))
+	var output := Rect2(center + Vector2(-46.0, -4.0) * scale, Vector2(24.0, 12.0) * scale)
+	draw_rect(output, Color(0.02, 0.04, 0.035, 0.6), true)
+	draw_rect(output, AUTO_MINER_OUTPUT, false, 1.0 * scale, true)
+	draw_line(center + Vector2(-18.0, 2.0) * scale, center + Vector2(-24.0, 2.0) * scale, AUTO_MINER_OUTPUT, 1.8 * scale, true)
+
+
+func _draw_output_loading_tray(center: Vector2, scale: float = 1.0) -> void:
+	var tray := Rect2(center + Vector2(-18.0, -9.0) * scale, Vector2(36.0, 18.0) * scale)
+	draw_rect(tray, Color(0.04, 0.07, 0.055, 0.56), true)
+	draw_rect(tray, AUTO_MINER_OUTPUT, false, 1.4 * scale, true)
+	for x in [-10.0, 0.0, 10.0]:
+		draw_circle(center + Vector2(x, 0.0) * scale, 2.8 * scale, Color(AUTO_MINER_OUTPUT.r, AUTO_MINER_OUTPUT.g, AUTO_MINER_OUTPUT.b, 0.42))
+
+
 func _draw_rich_seam_ridges() -> void:
 	var ridge_points := [
 		[Vector2(88.0, -236.0), Vector2(136.0, -218.0), Vector2(190.0, -174.0)],
@@ -660,6 +707,10 @@ func _register_resource_shapes() -> void:
 	resource_shape_ids = [
 		"crystal.main_vein",
 		"crystal.rich_vein",
+		"crystal.hand_sample_probe",
+		"crystal.auto_miner.primary",
+		"crystal.auto_miner.secondary",
+		"crystal.auto_miner.output_tray",
 		"crystal.cluster.entry",
 		"crystal.cluster.side_pocket",
 		"crystal.cluster.logistics_return",
@@ -673,6 +724,7 @@ func _register_resource_shapes() -> void:
 func _register_flow_shapes() -> void:
 	flow_shape_ids = [
 		"flow.crystal_to_base",
+		"flow.auto_miner_to_loading_tray",
 		"flow.salvage_to_base",
 		"flow.crystal_branch",
 		"flow.salvage_branch"
