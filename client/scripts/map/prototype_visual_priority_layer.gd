@@ -2,7 +2,10 @@ extends Node2D
 class_name PrototypeVisualPriorityLayer
 
 const GENERATED_CUE_PREFIX := "PrototypeVisualPriority"
-const FOCUS_VISIBLE_RADIUS := 500.0
+const FOCUS_VISIBLE_RADIUS := 460.0
+const FOCUS_PRIMARY_RADIUS := 220.0
+const FOCUSED_CUE_ALPHA_MULTIPLIER := 0.42
+const DIM_CUE_ALPHA_MULTIPLIER := 0.1
 const UNRESOLVED_FOCUS_POSITION := Vector2(1.0e20, 1.0e20)
 const PLAYABLE_ANNOTATION_LAYER_NAMES := [
 	"DemoRoutePresentationLayer",
@@ -51,6 +54,14 @@ func get_visible_generated_cue_count() -> int:
 	return count
 
 
+func get_cue_alpha(region_id: String, role: String) -> float:
+	var cue_name := "%s%s" % [GENERATED_CUE_PREFIX, PrototypeVisualPriorityProfile.make_cue_name(region_id, role)]
+	var cue := get_node_or_null(cue_name) as ColorRect
+	if cue == null:
+		return -1.0
+	return cue.color.a
+
+
 func refresh_focus_visibility(focus_position: Vector2 = UNRESOLVED_FOCUS_POSITION) -> void:
 	var resolved_focus := focus_position
 	if resolved_focus == UNRESOLVED_FOCUS_POSITION:
@@ -63,7 +74,10 @@ func refresh_focus_visibility(focus_position: Vector2 = UNRESOLVED_FOCUS_POSITIO
 		if not child is ColorRect:
 			continue
 		var cue := child as ColorRect
-		cue.visible = cue.get_rect().get_center().distance_to(resolved_focus) <= FOCUS_VISIBLE_RADIUS
+		var distance := cue.get_rect().get_center().distance_to(resolved_focus)
+		cue.visible = distance <= FOCUS_VISIBLE_RADIUS
+		if cue.visible:
+			_apply_focus_alpha(cue, distance)
 
 
 func configure_playable_annotation_visibility() -> void:
@@ -141,7 +155,16 @@ func _create_priority_cue(region_id: String, role: String, rect: Rect2, color: C
 	cue.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cue.set_meta("visual_priority_region_id", region_id)
 	cue.set_meta("visual_priority_role", role)
+	cue.set_meta("visual_priority_base_color", color)
 	add_child(cue)
+
+
+func _apply_focus_alpha(cue: ColorRect, distance: float) -> void:
+	var base_color: Color = cue.get_meta("visual_priority_base_color", cue.color)
+	var alpha_multiplier := FOCUSED_CUE_ALPHA_MULTIPLIER
+	if distance > FOCUS_PRIMARY_RADIUS:
+		alpha_multiplier = DIM_CUE_ALPHA_MULTIPLIER
+	cue.color = Color(base_color.r, base_color.g, base_color.b, base_color.a * alpha_multiplier)
 
 
 func _get_map_node(path: String) -> Node:

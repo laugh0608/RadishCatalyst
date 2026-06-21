@@ -73,9 +73,9 @@ const FOCUSED_MARKER_SCALE := Vector2(1.22, 1.22)
 const FOCUSED_MARKER_MODULATE := Color(1.18, 1.18, 1.18, 1)
 const DEFAULT_MARKER_MODULATE := Color(1, 1, 1, 1)
 const FOCUSED_Z_INDEX := 20
-const INTERACTABLE_LABEL_FONT_SIZE := 9
-const FOCUS_LABEL_WIDTH := 118.0
-const FOCUS_LABEL_LINE_HEIGHT := 13.0
+const INTERACTABLE_LABEL_FONT_SIZE := 8
+const FOCUS_LABEL_WIDTH := 96.0
+const FOCUS_LABEL_LINE_HEIGHT := 11.0
 
 @export var definition_id: String = ""
 @export var interaction_type: String = "inspect"
@@ -880,17 +880,18 @@ func _set_label_text(text: String, min_lines: int = 1) -> void:
 
 func _style_label() -> void:
 	label.add_theme_font_size_override("font_size", INTERACTABLE_LABEL_FONT_SIZE)
-	label.add_theme_color_override("font_color", Color(0.9, 0.96, 0.9, 0.74))
+	label.add_theme_color_override("font_color", Color(0.9, 0.96, 0.9, 0.68))
 	label.add_theme_color_override("font_shadow_color", Color(0.02, 0.04, 0.04, 0.58))
 	label.add_theme_constant_override("shadow_offset_x", 1)
 	label.add_theme_constant_override("shadow_offset_y", 1)
+	label.clip_text = true
 
 
 func _layout_focus_label() -> void:
 	if label == null or marker == null:
 		return
-	var line_count := maxi(label.text.split("\n").size(), 1)
+	var line_count := clampi(label.text.split("\n").size(), 1, 2)
 	label.offset_left = marker.position.x + marker.size.x + 8.0
-	label.offset_top = marker.position.y - 2.0
+	label.offset_top = marker.position.y + 1.0
 	label.offset_right = label.offset_left + FOCUS_LABEL_WIDTH
 	label.offset_bottom = label.offset_top + FOCUS_LABEL_LINE_HEIGHT * line_count

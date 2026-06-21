@@ -1,10 +1,10 @@
 extends Node2D
 class_name DemoRegionIndustrialValueLayer
 
-const FOCUS_VISIBLE_RADIUS := 300.0
-const ROUTE_VISIBLE_RADIUS := 170.0
-const VALUE_NODE_ROUTE_ALPHA := 0.28
-const VALUE_NODE_DIM_ALPHA := 0.055
+const FOCUS_VISIBLE_RADIUS := 210.0
+const ROUTE_VISIBLE_RADIUS := 100.0
+const VALUE_NODE_ROUTE_ALPHA := 0.18
+const VALUE_NODE_DIM_ALPHA := 0.018
 
 const ROLE_RESOURCE := "resource"
 const ROLE_RISK := "risk"

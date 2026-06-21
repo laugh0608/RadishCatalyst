@@ -85,7 +85,7 @@ func _check_current_objective_guidance_layer() -> void:
 	_expect_guidance_target(layer, "OutpostCore", "前哨核心", "startup outpost core target guidance")
 	_expect_equal(layer.get_node_or_null("CurrentObjectiveTargetLabel") != null, true, "current target label exists")
 	_expect_equal(layer.is_target_name_label_visible(), false, "near current target hides scene text label")
-	map.player.position = target.position + Vector2(-180.0, 0.0)
+	map.player.position = target.position + Vector2(-220.0, 0.0)
 	layer.refresh_guidance(world, character)
 	_expect_equal(layer.is_target_name_label_visible(), true, "distant current target can show a short scene label")
 	_expect_equal(layer.get_target_name_label_text(), "前哨核心", "distant current target label omits redundant prefix")
@@ -198,6 +198,14 @@ func _check_startup_readability_scope() -> void:
 		layer.refresh_focus_visibility(map.get_player_position())
 		_expect_equal(layer.get_generated_cue_count(), 36, "startup still keeps full visual cue evidence")
 		_expect_equal(layer.get_visible_generated_cue_count(), 6, "startup only shows nearby outpost and crystal cues")
+		_expect_equal(
+			layer.get_cue_alpha(
+				"region.crystal_vein_field",
+				PrototypeVisualPriorityProfile.ROLE_KEY_OBJECT
+			) <= 0.06,
+			true,
+			"startup keeps adjacent crystal cue dim enough not to dominate the base first screen"
+		)
 		_expect_equal(
 			_get_region_cue_visible(layer, "region.pollution_edge", PrototypeVisualPriorityProfile.ROLE_MAIN_ROUTE),
 			false,

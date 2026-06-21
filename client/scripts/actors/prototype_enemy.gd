@@ -13,9 +13,9 @@ const BASIC_ENEMY_SIZE := Vector2(24.0, 24.0)
 const TREATMENT_ENEMY_SIZE := Vector2(28.0, 22.0)
 const POLLUTED_ENEMY_SIZE := Vector2(30.0, 26.0)
 const ELITE_ENEMY_SIZE := Vector2(36.0, 34.0)
-const ENEMY_LABEL_FONT_SIZE := 9
-const ENEMY_FOCUS_LABEL_WIDTH := 120.0
-const ENEMY_FOCUS_LABEL_LINE_HEIGHT := 13.0
+const ENEMY_LABEL_FONT_SIZE := 8
+const ENEMY_FOCUS_LABEL_WIDTH := 96.0
+const ENEMY_FOCUS_LABEL_LINE_HEIGHT := 11.0
 const ENEMY_VISUAL_PART_IDS := [
 	"enemy_shape.shadow",
 	"enemy_shape.body",
@@ -174,7 +174,7 @@ func _update_label() -> void:
 	_ensure_visual_nodes()
 	if label != null:
 		_style_label()
-		label.text = "%s\nHP %.0f/%.0f / %s" % [
+		label.text = "%s\nHP %.0f/%.0f %s" % [
 			display_name,
 			health,
 			max_health,
@@ -395,17 +395,18 @@ func _style_label() -> void:
 	if label == null:
 		return
 	label.add_theme_font_size_override("font_size", ENEMY_LABEL_FONT_SIZE)
-	label.add_theme_color_override("font_color", Color(0.96, 0.9, 0.82, 0.78))
+	label.add_theme_color_override("font_color", Color(0.96, 0.9, 0.82, 0.68))
 	label.add_theme_color_override("font_shadow_color", Color(0.05, 0.02, 0.02, 0.58))
 	label.add_theme_constant_override("shadow_offset_x", 1)
 	label.add_theme_constant_override("shadow_offset_y", 1)
+	label.clip_text = true
 
 
 func _layout_focus_label() -> void:
 	if label == null or sprite == null:
 		return
-	var line_count := maxi(label.text.split("\n").size(), 1)
+	var line_count := clampi(label.text.split("\n").size(), 1, 2)
 	label.offset_left = sprite.position.x + sprite.size.x + 8.0
-	label.offset_top = sprite.position.y - 2.0
+	label.offset_top = sprite.position.y + 1.0
 	label.offset_right = label.offset_left + ENEMY_FOCUS_LABEL_WIDTH
 	label.offset_bottom = label.offset_top + ENEMY_FOCUS_LABEL_LINE_HEIGHT * line_count
