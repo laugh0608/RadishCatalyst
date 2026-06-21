@@ -186,11 +186,12 @@ func _check_crystal_resource_visual_layer() -> void:
 	layer.apply_visuals()
 	_expect_equal(layer.get_resource_shape_count() >= 9, true, "crystal visual layer registers resource shapes")
 	_expect_equal(layer.get_flow_count() >= 4, true, "crystal visual layer registers resource flow lines")
-	_expect_equal(layer.get_terrain_material_shape_count() >= 14, true, "crystal visual layer registers mining terrain materials")
+	_expect_equal(layer.get_terrain_material_shape_count() >= 16, true, "crystal visual layer registers mining terrain materials")
 	layer.refresh_focus_visibility(Vector2(-250, -48))
 	_expect_equal(layer.visible, false, "crystal visual layer stays hidden at startup objective")
 	layer.refresh_focus_visibility(Vector2(-38, -104))
 	_expect_equal(layer.visible, true, "crystal visual layer appears when player reaches field departure")
+	_expect_equal(layer.get_muted_departure_focus_count() >= 1, true, "crystal visual layer suppresses departure gate focus label in field view")
 	layer.refresh_focus_visibility(Vector2(258, 34))
 	_expect_equal(layer.visible, false, "crystal visual layer steps back after entering pollution treatment boundary")
 	_expect_equal(layer.has_resource_shape("crystal.main_vein"), true, "crystal visual layer marks main vein")
@@ -199,6 +200,8 @@ func _check_crystal_resource_visual_layer() -> void:
 	_expect_equal(layer.has_flow_shape("flow.crystal_to_base"), true, "crystal visual layer marks return flow")
 	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.harvest_face"), true, "crystal visual layer marks harvestable mine face")
 	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.broken_mine_shadow_patches"), true, "crystal visual layer breaks the old blue ore field with irregular mine patches")
+	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.mine_cutout_baffles"), true, "crystal visual layer cuts dark baffles through the old blue ore field")
+	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.old_field_voids"), true, "crystal visual layer cuts old blue field into dark local voids")
 	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.mine_face_islands"), true, "crystal visual layer splits harvest face into mine islands")
 	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.dark_cut_channels"), true, "crystal visual layer cuts dark channels through old ore block")
 	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.fractured_ore_tiles"), true, "crystal visual layer breaks old ore block into fractured tiles")
@@ -211,13 +214,17 @@ func _check_crystal_resource_visual_layer() -> void:
 	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.loading_sleepers"), true, "crystal visual layer marks loading sleepers")
 	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.base_loading_mouth"), true, "crystal visual layer marks base loading mouth")
 	_expect_equal(layer.get_muted_resource_marker_count() >= 8, true, "crystal visual layer mutes old resource markers")
+	_expect_equal(layer.get_muted_legacy_block_count() >= 20, true, "crystal visual layer hides old rectangular crystal blocks")
+	_expect_equal(layer.get_muted_departure_label_count() >= 1, true, "crystal visual layer mutes old base departure label")
 
 	var legacy_track := map.get_node("OpeningSceneLayer/CrystalMainVeinTrack") as ColorRect
 	var legacy_pocket := map.get_node("OpeningSceneLayer/CrystalSalvageObjectPocket") as ColorRect
 	var route_band := map.get_node("DemoRoutePresentationLayer/DemoRouteCrystalBand") as ColorRect
-	_expect_equal(legacy_track.color.a <= 0.01, true, "crystal visual layer de-emphasizes old vein block")
-	_expect_equal(legacy_pocket.color.a <= 0.01, true, "crystal visual layer de-emphasizes old salvage block")
-	_expect_equal(route_band.color.a <= 0.012, true, "crystal visual layer de-emphasizes old route block")
+	var departure_label := map.get_node("OpeningSceneLayer/BaseExitLaneLabel") as Label
+	_expect_equal(legacy_track.color.a <= 0.002 and not legacy_track.visible, true, "crystal visual layer hides old vein block")
+	_expect_equal(legacy_pocket.color.a <= 0.002 and not legacy_pocket.visible, true, "crystal visual layer hides old salvage block")
+	_expect_equal(route_band.color.a <= 0.001 and not route_band.visible, true, "crystal visual layer hides old route block")
+	_expect_equal(departure_label.visible, false, "crystal visual layer hides static departure label over the crystal view")
 	map.free()
 
 

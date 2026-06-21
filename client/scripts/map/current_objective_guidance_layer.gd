@@ -14,6 +14,7 @@ const TARGET_PIN_COLOR := Color(0.82, 1.0, 0.95, 0.82)
 const ROUTE_COLOR := Color(0.38, 0.94, 0.96, 0.12)
 const GUIDANCE_LABEL_FONT_SIZE := 9
 const TARGET_LABEL_MIN_DISTANCE := 180.0
+const FIELD_GUIDANCE_SUPPRESSION_X := -40.0
 const OUTPOST_CORE_TARGET := {"path": "Interactables/OutpostCore", "label": "前哨核心"}
 const BASIC_STORAGE_TARGET := {"path": "Interactables/BasicStorageBuildSite", "label": "基础储存箱"}
 const BASIC_REACTOR_TARGET := {"path": "Interactables/BasicReactor", "label": "基础反应器"}
@@ -147,6 +148,11 @@ func _set_target_visuals_visible(visible: bool) -> void:
 
 
 func _position_target_visuals(target: PrototypeInteractable) -> void:
+	if _should_suppress_base_gate_guidance_in_field(target):
+		target_halo.visible = false
+		target_pin.visible = false
+		target_label.visible = false
+		return
 	_set_rect(target_halo, target.position + Vector2(-30.0, -30.0), Vector2(60.0, 60.0))
 	_set_rect(target_pin, target.position + Vector2(-3.0, -44.0), Vector2(6.0, 16.0))
 	target_label.text = current_target_label_text
@@ -155,6 +161,10 @@ func _position_target_visuals(target: PrototypeInteractable) -> void:
 
 
 func _position_route_visuals(target: PrototypeInteractable) -> void:
+	if _should_suppress_base_gate_guidance_in_field(target):
+		route_horizontal.visible = false
+		route_vertical.visible = false
+		return
 	var player := _get_player()
 	if player == null:
 		route_horizontal.visible = false
@@ -339,6 +349,15 @@ func _should_show_target_name_label(target: PrototypeInteractable) -> bool:
 	if player == null:
 		return true
 	return player.position.distance_to(target.position) > TARGET_LABEL_MIN_DISTANCE
+
+
+func _should_suppress_base_gate_guidance_in_field(target: PrototypeInteractable) -> bool:
+	if target == null or String(target.name) != "OutpostDepartureGate":
+		return false
+	var player := _get_player()
+	if player == null:
+		return false
+	return player.position.x >= FIELD_GUIDANCE_SUPPRESSION_X
 
 
 func _is_interactable_focused(interactable: PrototypeInteractable) -> bool:

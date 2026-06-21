@@ -73,6 +73,8 @@ func _check_current_objective_guidance_layer() -> void:
 	var layer := map.get_node("CurrentObjectiveGuidanceLayer") as CurrentObjectiveGuidanceLayer
 	var target := map.get_node("Interactables/OutpostCore") as PrototypeInteractable
 	var storage := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
+	var departure_gate := map.get_node("Interactables/OutpostDepartureGate") as PrototypeInteractable
+	var crystal_layer := map.get_node("DemoCrystalResourceVisualLayer") as DemoCrystalResourceVisualLayer
 	var world := WorldState.create_default()
 	var character := CharacterState.create_default()
 	_expect_equal(layer != null, true, "current objective guidance layer exists")
@@ -112,6 +114,28 @@ func _check_current_objective_guidance_layer() -> void:
 	map.refresh_world_interactables(world)
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "OutpostDepartureGate", "外勤出发口", "scout route departure guidance")
+	map.player.position = departure_gate.position
+	map.update_current_interactable()
+	crystal_layer.refresh_focus_visibility(map.player.position)
+	_expect_equal(map.current_interactable != null, true, "crystal threshold has a logical interactable")
+	if map.current_interactable != null:
+		_expect_equal(
+			String(map.current_interactable.name),
+			"OutpostDepartureGate",
+			"crystal threshold still keeps departure gate as logical interactable"
+		)
+	_expect_equal(
+		(departure_gate.get_node("Label") as Label).visible,
+		false,
+		"crystal threshold hides departure gate interactable label over resource visuals"
+	)
+	_expect_equal(
+		(departure_gate.get_node("FocusRing") as ColorRect).visible,
+		false,
+		"crystal threshold hides departure gate focus ring over resource visuals"
+	)
+	map.player.position = VerticalSliceMap.OUTPOST_RESPAWN_POSITION
+	map.update_current_interactable()
 
 	world.quest_state.set_objective_progress("quest.scout_crystal_field", "visit_region", "region.crystal_vein_field", 1.0)
 	map.refresh_world_interactables(world)
@@ -178,6 +202,19 @@ func _check_current_objective_guidance_layer() -> void:
 	map.refresh_world_interactables(world)
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "OutpostDepartureGate", "外勤出发口", "pollution edge departure guidance")
+	map.player.position = Vector2(92.0, -104.0)
+	layer.refresh_guidance(world, character)
+	_expect_equal(
+		String(layer.get_current_target_node().name),
+		"OutpostDepartureGate",
+		"field position keeps departure gate as logical target"
+	)
+	_expect_equal(
+		layer.is_target_guidance_visible(),
+		false,
+		"field position hides departure gate scene guidance instead of drawing a long return route"
+	)
+	map.player.position = VerticalSliceMap.OUTPOST_RESPAWN_POSITION
 	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "visit_region", "region.pollution_edge", 1.0)
 	map.refresh_world_interactables(world)
 	layer.refresh_guidance(world, character)
@@ -216,11 +253,46 @@ func _check_startup_readability_scope() -> void:
 			true,
 			"startup keeps outpost key object cue visible"
 		)
+		layer.refresh_focus_visibility(Vector2(112.0, -112.0))
+		_expect_equal(
+			layer.get_cue_alpha(
+				"region.crystal_vein_field",
+				PrototypeVisualPriorityProfile.ROLE_KEY_OBJECT
+			) <= 0.05
+				and layer.get_cue_alpha(
+					"region.crystal_vein_field",
+					PrototypeVisualPriorityProfile.ROLE_MAIN_ROUTE
+				) <= 0.05
+				and layer.get_cue_alpha(
+					"region.crystal_vein_field",
+					PrototypeVisualPriorityProfile.ROLE_HAZARD_OR_FACILITY
+				) <= 0.05,
+			true,
+			"crystal focus keeps visual priority cues below the resource artwork instead of drawing a blue block"
+		)
+		layer.refresh_focus_visibility(Vector2(298.0, -72.0))
+		_expect_equal(
+			layer.get_cue_alpha(
+				"region.pollution_edge",
+				PrototypeVisualPriorityProfile.ROLE_KEY_OBJECT
+			) <= 0.05
+				and layer.get_cue_alpha(
+					"region.pollution_edge",
+					PrototypeVisualPriorityProfile.ROLE_MAIN_ROUTE
+				) <= 0.05
+				and layer.get_cue_alpha(
+					"region.pollution_edge",
+					PrototypeVisualPriorityProfile.ROLE_HAZARD_OR_FACILITY
+				) <= 0.05,
+			true,
+			"pollution focus keeps visual priority cues below treatment artwork instead of drawing a yellow block"
+		)
 	_check_scene_visual_layer_focus_visibility(map)
 	_check_runtime_annotation_hidden(map, "DemoRoutePresentationLayer/DemoRouteBaseLabel")
 	_check_runtime_annotation_hidden(map, "SceneArtFoundationLayer/SceneArtBaseIdentityLabel")
 	_check_runtime_annotation_hidden(map, "NonCoreSceneIdentityLayer/NonCoreRuinIdentityLabel")
 	_check_runtime_annotation_hidden(map, "OpeningSceneLayer/BaseCorePadLabel")
+	_check_runtime_annotation_hidden(map, "OpeningSceneLayer/BaseExitLaneLabel")
 	_check_runtime_annotation_hidden(map, "BaseDirectionLabel")
 	map.free()
 

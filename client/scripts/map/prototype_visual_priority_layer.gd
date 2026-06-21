@@ -6,6 +6,10 @@ const FOCUS_VISIBLE_RADIUS := 460.0
 const FOCUS_PRIMARY_RADIUS := 220.0
 const FOCUSED_CUE_ALPHA_MULTIPLIER := 0.42
 const DIM_CUE_ALPHA_MULTIPLIER := 0.1
+const CRYSTAL_CUE_FOCUSED_ALPHA_MULTIPLIER := 0.07
+const CRYSTAL_CUE_DIM_ALPHA_MULTIPLIER := 0.03
+const POLLUTION_CUE_FOCUSED_ALPHA_MULTIPLIER := 0.08
+const POLLUTION_CUE_DIM_ALPHA_MULTIPLIER := 0.025
 const UNRESOLVED_FOCUS_POSITION := Vector2(1.0e20, 1.0e20)
 const PLAYABLE_ANNOTATION_LAYER_NAMES := [
 	"DemoRoutePresentationLayer",
@@ -161,10 +165,28 @@ func _create_priority_cue(region_id: String, role: String, rect: Rect2, color: C
 
 func _apply_focus_alpha(cue: ColorRect, distance: float) -> void:
 	var base_color: Color = cue.get_meta("visual_priority_base_color", cue.color)
-	var alpha_multiplier := FOCUSED_CUE_ALPHA_MULTIPLIER
+	var alpha_multiplier := _get_focused_alpha_multiplier(cue)
 	if distance > FOCUS_PRIMARY_RADIUS:
-		alpha_multiplier = DIM_CUE_ALPHA_MULTIPLIER
+		alpha_multiplier = _get_dim_alpha_multiplier(cue)
 	cue.color = Color(base_color.r, base_color.g, base_color.b, base_color.a * alpha_multiplier)
+
+
+func _get_focused_alpha_multiplier(cue: ColorRect) -> float:
+	var region_id := String(cue.get_meta("visual_priority_region_id", ""))
+	if region_id == "region.crystal_vein_field":
+		return CRYSTAL_CUE_FOCUSED_ALPHA_MULTIPLIER
+	if region_id == "region.pollution_edge":
+		return POLLUTION_CUE_FOCUSED_ALPHA_MULTIPLIER
+	return FOCUSED_CUE_ALPHA_MULTIPLIER
+
+
+func _get_dim_alpha_multiplier(cue: ColorRect) -> float:
+	var region_id := String(cue.get_meta("visual_priority_region_id", ""))
+	if region_id == "region.crystal_vein_field":
+		return CRYSTAL_CUE_DIM_ALPHA_MULTIPLIER
+	if region_id == "region.pollution_edge":
+		return POLLUTION_CUE_DIM_ALPHA_MULTIPLIER
+	return DIM_CUE_ALPHA_MULTIPLIER
 
 
 func _get_map_node(path: String) -> Node:

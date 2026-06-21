@@ -9,21 +9,25 @@ const ROLE_TERRAIN := "terrain"
 const FOCUS_VISIBLE_MIN_X := -80.0
 const FOCUS_VISIBLE_MAX_X := 220.0
 
-const FIELD_FRAME := Color(0.32, 0.58, 0.62, 0.12)
-const FIELD_FILL := Color(0.06, 0.12, 0.15, 0.006)
-const ORE_FACE_FILL := Color(0.06, 0.18, 0.2, 0.012)
-const ORE_FACE_LINE := Color(0.38, 0.78, 0.86, 0.14)
+const FIELD_FRAME := Color(0.32, 0.58, 0.62, 0.045)
+const FIELD_FILL := Color(0.06, 0.12, 0.15, 0.0)
+const ORE_FACE_FILL := Color(0.06, 0.18, 0.2, 0.0)
+const ORE_FACE_LINE := Color(0.38, 0.78, 0.86, 0.055)
 const CUT_SCARP_LINE := Color(0.72, 0.96, 1.0, 0.34)
 const CRYSTAL_LINE := Color(0.42, 0.88, 0.98, 0.78)
 const CRYSTAL_FILL := Color(0.25, 0.78, 0.95, 0.44)
-const MINE_ISLAND_FILL := Color(0.08, 0.22, 0.26, 0.075)
-const MINE_ISLAND_LINE := Color(0.56, 0.9, 0.98, 0.3)
+const MINE_ISLAND_FILL := Color(0.08, 0.22, 0.26, 0.028)
+const MINE_ISLAND_LINE := Color(0.56, 0.9, 0.98, 0.24)
 const DARK_CUT_CHANNEL := Color(0.01, 0.035, 0.045, 0.56)
-const ORE_CHIP_FILL := Color(0.16, 0.36, 0.42, 0.12)
-const ORE_CHIP_LINE := Color(0.54, 0.86, 0.94, 0.22)
+const ORE_CHIP_FILL := Color(0.16, 0.36, 0.42, 0.044)
+const ORE_CHIP_LINE := Color(0.54, 0.86, 0.94, 0.18)
 const MINE_BENCH_LINE := Color(0.68, 0.92, 0.96, 0.24)
-const BROKEN_MINE_SHADOW_FILL := Color(0.02, 0.07, 0.08, 0.26)
-const BROKEN_MINE_SHADOW_LINE := Color(0.28, 0.56, 0.62, 0.18)
+const BROKEN_MINE_SHADOW_FILL := Color(0.02, 0.07, 0.08, 0.36)
+const BROKEN_MINE_SHADOW_LINE := Color(0.28, 0.56, 0.62, 0.22)
+const MINE_CUTOUT_FILL := Color(0.012, 0.034, 0.04, 0.64)
+const MINE_CUTOUT_LINE := Color(0.22, 0.48, 0.54, 0.16)
+const OLD_FIELD_VOID_FILL := Color(0.01, 0.026, 0.032, 0.58)
+const OLD_FIELD_VOID_LINE := Color(0.24, 0.5, 0.54, 0.12)
 const HARVEST_PAD_FILL := Color(0.07, 0.13, 0.14, 0.2)
 const HARVEST_PAD_LINE := Color(0.68, 0.94, 1.0, 0.32)
 const RICH_CRYSTAL_LINE := Color(0.76, 0.94, 1.0, 0.86)
@@ -65,6 +69,10 @@ const LEGACY_CRYSTAL_MARKERS := [
 	"CrystalAnomalyReturnAnchor"
 ]
 
+const BASE_DEPARTURE_LABELS := [
+	"BaseExitLaneLabel"
+]
+
 const RESOURCE_DEFINITION_IDS := {
 	"map_object.crystal_cluster": true,
 	"map_object.rich_crystal_vein": true,
@@ -77,6 +85,9 @@ var resource_shape_ids: Array[String] = []
 var flow_shape_ids: Array[String] = []
 var terrain_material_shape_ids: Array[String] = []
 var muted_resource_marker_count := 0
+var muted_legacy_block_count := 0
+var muted_departure_label_count := 0
+var muted_departure_focus_count := 0
 
 
 func _ready() -> void:
@@ -88,10 +99,12 @@ func _process(_delta: float) -> void:
 	refresh_focus_visibility(_get_player_position())
 	_tone_down_resource_interactable_markers()
 	_mute_crystal_identity_blocks()
+	_mute_base_departure_labels()
 
 
 func apply_visuals() -> void:
 	_deemphasize_legacy_crystal_blocks()
+	_mute_base_departure_labels()
 	_mute_crystal_identity_blocks()
 	_register_resource_shapes()
 	_register_flow_shapes()
@@ -116,6 +129,18 @@ func get_muted_resource_marker_count() -> int:
 	return muted_resource_marker_count
 
 
+func get_muted_legacy_block_count() -> int:
+	return muted_legacy_block_count
+
+
+func get_muted_departure_label_count() -> int:
+	return muted_departure_label_count
+
+
+func get_muted_departure_focus_count() -> int:
+	return muted_departure_focus_count
+
+
 func has_resource_shape(shape_id: String) -> bool:
 	return resource_shape_ids.has(shape_id)
 
@@ -130,6 +155,7 @@ func has_terrain_material_shape(shape_id: String) -> bool:
 
 func refresh_focus_visibility(player_position: Vector2) -> void:
 	visible = player_position.x >= FOCUS_VISIBLE_MIN_X and player_position.x <= FOCUS_VISIBLE_MAX_X
+	_mute_departure_interactable_focus(player_position)
 
 
 func _draw() -> void:
@@ -146,17 +172,19 @@ func _draw_field_frame() -> void:
 	var field_rect := Rect2(Vector2(-18.0, -270.0), Vector2(250.0, 332.0))
 	var salvage_rect := Rect2(Vector2(-10.0, 80.0), Vector2(258.0, 178.0))
 	draw_rect(field_rect, FIELD_FILL, true)
-	draw_rect(field_rect, FIELD_FRAME, false, 1.2, true)
-	draw_rect(salvage_rect, Color(0.05, 0.09, 0.1, 0.1), true)
-	draw_rect(salvage_rect, Color(0.44, 0.58, 0.52, 0.18), false, 1.3, true)
+	_draw_corner_frame(field_rect, FIELD_FRAME, 28.0, 1.0)
+	draw_rect(salvage_rect, Color(0.05, 0.09, 0.1, 0.035), true)
+	_draw_corner_frame(salvage_rect, Color(0.44, 0.58, 0.52, 0.09), 30.0, 1.1)
 	for y in [-206.0, -126.0, -36.0, 116.0, 206.0]:
-		draw_line(Vector2(-8.0, y), Vector2(224.0, y), Color(0.34, 0.52, 0.54, 0.08), 1.0, true)
-	draw_line(Vector2(-8.0, -72.0), Vector2(108.0, -72.0), Color(0.35, 0.9, 0.98, 0.2), 2.4, true)
+		draw_line(Vector2(-8.0, y), Vector2(88.0, y), Color(0.34, 0.52, 0.54, 0.045), 1.0, true)
+	draw_line(Vector2(8.0, -72.0), Vector2(96.0, -72.0), Color(0.35, 0.9, 0.98, 0.11), 1.8, true)
 
 
 func _draw_mining_material_surface() -> void:
 	_draw_harvest_face_floor()
 	_draw_broken_mine_shadow_patches()
+	_draw_mine_cutout_baffles()
+	_draw_old_field_voids()
 	_draw_mine_face_islands()
 	_draw_dark_cut_channels()
 	_draw_broken_ore_tiles()
@@ -314,6 +342,101 @@ func _draw_broken_mine_shadow_patches() -> void:
 		var polygon := PackedVector2Array(patch)
 		draw_colored_polygon(polygon, BROKEN_MINE_SHADOW_FILL)
 		draw_polyline(polygon, BROKEN_MINE_SHADOW_LINE, 1.1, true)
+
+
+func _draw_mine_cutout_baffles() -> void:
+	for baffle in [
+		[
+			Vector2(-16.0, -252.0),
+			Vector2(22.0, -246.0),
+			Vector2(14.0, -94.0),
+			Vector2(-18.0, -106.0),
+			Vector2(-16.0, -252.0)
+		],
+		[
+			Vector2(72.0, -252.0),
+			Vector2(228.0, -246.0),
+			Vector2(228.0, -218.0),
+			Vector2(128.0, -224.0),
+			Vector2(74.0, -204.0),
+			Vector2(72.0, -252.0)
+		],
+		[
+			Vector2(194.0, -176.0),
+			Vector2(232.0, -148.0),
+			Vector2(232.0, -70.0),
+			Vector2(180.0, -92.0),
+			Vector2(194.0, -176.0)
+		],
+		[
+			Vector2(12.0, -36.0),
+			Vector2(92.0, -28.0),
+			Vector2(118.0, 30.0),
+			Vector2(20.0, 22.0),
+			Vector2(12.0, -36.0)
+		],
+		[
+			Vector2(118.0, -132.0),
+			Vector2(160.0, -118.0),
+			Vector2(116.0, -78.0),
+			Vector2(78.0, -94.0),
+			Vector2(118.0, -132.0)
+		]
+	]:
+		var polygon := PackedVector2Array(baffle)
+		draw_colored_polygon(polygon, MINE_CUTOUT_FILL)
+		draw_polyline(polygon, MINE_CUTOUT_LINE, 1.0, true)
+
+
+func _draw_old_field_voids() -> void:
+	for void_patch in [
+		[
+			Vector2(20.0, -246.0),
+			Vector2(62.0, -238.0),
+			Vector2(48.0, -190.0),
+			Vector2(12.0, -204.0),
+			Vector2(20.0, -246.0)
+		],
+		[
+			Vector2(90.0, -186.0),
+			Vector2(150.0, -174.0),
+			Vector2(138.0, -126.0),
+			Vector2(72.0, -142.0),
+			Vector2(90.0, -186.0)
+		],
+		[
+			Vector2(156.0, -116.0),
+			Vector2(222.0, -92.0),
+			Vector2(206.0, -42.0),
+			Vector2(144.0, -66.0),
+			Vector2(156.0, -116.0)
+		],
+		[
+			Vector2(38.0, -52.0),
+			Vector2(104.0, -36.0),
+			Vector2(96.0, 12.0),
+			Vector2(30.0, 2.0),
+			Vector2(38.0, -52.0)
+		]
+	]:
+		var polygon := PackedVector2Array(void_patch)
+		draw_colored_polygon(polygon, OLD_FIELD_VOID_FILL)
+		draw_polyline(polygon, OLD_FIELD_VOID_LINE, 1.0, true)
+
+
+func _draw_corner_frame(rect: Rect2, color: Color, corner_length: float, width: float) -> void:
+	var left := rect.position.x
+	var right := rect.position.x + rect.size.x
+	var top := rect.position.y
+	var bottom := rect.position.y + rect.size.y
+	draw_line(Vector2(left, top), Vector2(left + corner_length, top), color, width, true)
+	draw_line(Vector2(left, top), Vector2(left, top + corner_length), color, width, true)
+	draw_line(Vector2(right, top), Vector2(right - corner_length, top), color, width, true)
+	draw_line(Vector2(right, top), Vector2(right, top + corner_length), color, width, true)
+	draw_line(Vector2(left, bottom), Vector2(left + corner_length, bottom), color, width, true)
+	draw_line(Vector2(left, bottom), Vector2(left, bottom - corner_length), color, width, true)
+	draw_line(Vector2(right, bottom), Vector2(right - corner_length, bottom), color, width, true)
+	draw_line(Vector2(right, bottom), Vector2(right, bottom - corner_length), color, width, true)
 
 
 func _draw_local_harvest_work_pads() -> void:
@@ -560,6 +683,8 @@ func _register_terrain_material_shapes() -> void:
 	terrain_material_shape_ids = [
 		"terrain.crystal.harvest_face",
 		"terrain.crystal.broken_mine_shadow_patches",
+		"terrain.crystal.mine_cutout_baffles",
+		"terrain.crystal.old_field_voids",
 		"terrain.crystal.mine_face_islands",
 		"terrain.crystal.dark_cut_channels",
 		"terrain.crystal.fractured_ore_tiles",
@@ -576,21 +701,23 @@ func _register_terrain_material_shapes() -> void:
 
 
 func _deemphasize_legacy_crystal_blocks() -> void:
+	muted_legacy_block_count = 0
 	var region := _get_map_node("RegionCrystal") as ColorRect
 	if region != null:
 		region.color = Color(0.05, 0.09, 0.12, 0.045)
 	var demo_route_band := _get_map_node("DemoRoutePresentationLayer/DemoRouteCrystalBand") as ColorRect
 	if demo_route_band != null:
-		demo_route_band.color = Color(demo_route_band.color.r, demo_route_band.color.g, demo_route_band.color.b, 0.01)
+		demo_route_band.color = Color(demo_route_band.color.r, demo_route_band.color.g, demo_route_band.color.b, 0.0)
+		demo_route_band.visible = false
 	var route_label := _get_map_node("DemoRoutePresentationLayer/DemoRouteCrystalLabel") as Label
 	if route_label != null:
 		route_label.visible = false
 	var base_route := _get_map_node("BaseToCrystalRouteBand") as ColorRect
 	if base_route != null:
-		base_route.color.a = minf(base_route.color.a, 0.024)
+		base_route.color.a = minf(base_route.color.a, 0.004)
 	var pollution_route := _get_map_node("CrystalToPollutionRouteBand") as ColorRect
 	if pollution_route != null:
-		pollution_route.color.a = minf(pollution_route.color.a, 0.008)
+		pollution_route.color.a = minf(pollution_route.color.a, 0.002)
 
 	var layer := _get_map_node("OpeningSceneLayer")
 	if layer == null:
@@ -598,11 +725,47 @@ func _deemphasize_legacy_crystal_blocks() -> void:
 	for node_name in LEGACY_CRYSTAL_PANELS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
-			rect.color.a = minf(rect.color.a, 0.008)
+			rect.color.a = minf(rect.color.a, 0.001)
+			rect.visible = false
+			muted_legacy_block_count += 1
 	for node_name in LEGACY_CRYSTAL_MARKERS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
-			rect.color.a = minf(rect.color.a, 0.008)
+			rect.color.a = minf(rect.color.a, 0.001)
+			rect.visible = false
+			muted_legacy_block_count += 1
+
+
+func _mute_base_departure_labels() -> void:
+	muted_departure_label_count = 0
+	var layer := _get_map_node("OpeningSceneLayer")
+	if layer == null:
+		return
+	for node_name in BASE_DEPARTURE_LABELS:
+		var label := layer.get_node_or_null(String(node_name)) as Label
+		if label != null:
+			label.visible = false
+			muted_departure_label_count += 1
+
+
+func _mute_departure_interactable_focus(player_position: Vector2) -> void:
+	muted_departure_focus_count = 0
+	if not visible:
+		return
+	var gate := _get_map_node("Interactables/OutpostDepartureGate") as PrototypeInteractable
+	if gate == null:
+		return
+	var label := gate.get_node_or_null("Label") as Label
+	if label != null:
+		label.visible = false
+	var focus_ring := gate.get_node_or_null("FocusRing") as ColorRect
+	if focus_ring != null:
+		focus_ring.visible = false
+	var marker := gate.get_node_or_null("Marker") as ColorRect
+	if marker != null:
+		marker.scale = Vector2.ONE
+	if player_position.x >= FOCUS_VISIBLE_MIN_X:
+		muted_departure_focus_count = 1
 
 
 func _mute_crystal_identity_blocks() -> void:

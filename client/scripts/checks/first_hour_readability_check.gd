@@ -187,17 +187,17 @@ func _check_opening_scene_layer() -> void:
 				and focus_depth.get_scene_focus_alpha("RegionPollution") <= 0.02
 				and focus_depth.get_scene_focus_alpha("DemoRoutePresentationLayer/DemoRoutePollutionBand") <= 0.006
 				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/BaseDeckFloor") <= 0.23
-				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/CrystalCentralFieldGround") <= 0.01,
+				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/CrystalCentralFieldGround") <= 0.006,
 			true,
 			"opening scene focus depth keeps start readable while muting distant region and crystal field blocks"
 		)
 		focus_depth.refresh_focus_depth(crystal_cluster.position)
 		host._expect_equal(
-			focus_depth.get_scene_focus_alpha("RegionCrystal") <= 0.09
+			focus_depth.get_scene_focus_alpha("RegionCrystal") <= 0.008
 				and focus_depth.get_scene_focus_alpha("RegionPollution") <= 0.09
 				and focus_depth.get_scene_focus_alpha("RegionRuinOuterRing") <= 0.02
 				and focus_depth.get_scene_focus_alpha("DemoRoutePresentationLayer/DemoRouteRuinBand") <= 0.006
-				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/CrystalCentralFieldGround") <= 0.008,
+				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/CrystalCentralFieldGround") <= 0.005,
 			true,
 			"opening scene focus depth keeps crystal readable without bringing large field blocks back"
 		)
@@ -206,10 +206,12 @@ func _check_opening_scene_layer() -> void:
 			focus_depth.get_scene_focus_alpha("RegionPollution") <= 0.09
 				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/PollutionDangerField") <= 0.06
 				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/PollutionDeepResidueField") <= 0.007
-				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/CrystalCentralFieldGround") <= 0.004
-				and focus_depth.get_scene_focus_alpha("CrystalToPollutionRouteBand") <= 0.002,
+				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/CrystalCentralFieldGround") <= 0.002
+				and focus_depth.get_scene_focus_alpha("MainRouteSpine") <= 0.001
+				and focus_depth.get_scene_focus_alpha("BaseToCrystalRouteBand") <= 0.001
+				and focus_depth.get_scene_focus_alpha("CrystalToPollutionRouteBand") <= 0.001,
 			true,
-			"opening scene focus depth keeps pollution material blocks behind treatment visuals and clears crystal carryover"
+			"opening scene focus depth keeps pollution material blocks behind treatment visuals and clears long route carryover"
 		)
 		focus_depth.refresh_focus_depth(demo_core.position)
 		host._expect_equal(

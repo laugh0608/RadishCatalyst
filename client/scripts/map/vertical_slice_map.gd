@@ -86,7 +86,6 @@ var interactable_visual_refresher := InteractableVisualRefresher.new()
 var last_reported_region_id := "region.outpost_platform"
 var last_gate_message := ""
 
-
 func _ensure_scene_nodes() -> void:
 	if player == null:
 		player = get_node_or_null("Player") as PlayerController
@@ -758,6 +757,7 @@ func _refresh_interactable_focus_visuals() -> void:
 	for interactable in interactables_root.get_children():
 		if interactable is PrototypeInteractable:
 			interactable.set_focus_visual(interactable == current_interactable and interactable.can_interact())
+
 func _refresh_enemy_focus_visuals() -> void:
 	var focused_enemy := _get_nearest_attack_target()
 	if enemies_root == null:

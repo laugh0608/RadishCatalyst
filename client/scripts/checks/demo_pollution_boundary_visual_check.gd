@@ -38,7 +38,7 @@ func _check_pollution_boundary_layer_exists_and_registers_visuals() -> void:
 	layer.apply_visuals()
 	_expect_equal(layer.get_boundary_shape_count() >= 13, true, "pollution boundary registers treatment shapes")
 	_expect_equal(layer.get_flow_count() >= 5, true, "pollution boundary registers treatment routes")
-	_expect_equal(layer.get_terrain_material_shape_count() >= 18, true, "pollution boundary registers terrain material shapes")
+	_expect_equal(layer.get_terrain_material_shape_count() >= 19, true, "pollution boundary registers terrain material shapes")
 	_expect_equal(layer.has_boundary_shape("boundary.filter_build_site"), true, "filter construction site visual exists")
 	_expect_equal(layer.has_boundary_shape("boundary.pressure_gate"), true, "pressure gate visual exists")
 	_expect_equal(layer.has_boundary_shape("boundary.hazard_boundary"), true, "danger boundary visual exists")
@@ -51,6 +51,7 @@ func _check_pollution_boundary_layer_exists_and_registers_visuals() -> void:
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.danger_bund"), true, "pollution danger bund material exists")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.local_danger_pockets"), true, "pollution danger field is split into local pockets")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.segmented_danger_bund"), true, "pollution danger bund is segmented")
+	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.dark_break_cells"), true, "pollution field is cut by dark material breaks")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.filter_gravel_bed"), true, "pollution filter worksite gravel exists")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.filter_bed_partitions"), true, "pollution filter worksite is split into partitions")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.filter_rubble_cells"), true, "pollution filter worksite has rubble cells")
@@ -68,12 +69,17 @@ func _check_pollution_boundary_focus_visibility() -> void:
 	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
 	root.add_child(map)
 	var layer := map.get_node("DemoPollutionBoundaryVisualLayer") as DemoPollutionBoundaryVisualLayer
+	var carryover_wreckage := map.get_node("Interactables/FieldWreckageTreatmentApproach") as PrototypeInteractable
 	layer.apply_visuals()
 
 	layer.refresh_focus_visibility(Vector2(-250, -48))
 	_expect_equal(layer.visible, false, "pollution boundary visual layer stays hidden at startup objective")
+	carryover_wreckage.set_focus_visual(true)
 	layer.refresh_focus_visibility(Vector2(258, 34))
 	_expect_equal(layer.visible, true, "pollution boundary visual layer appears inside pollution treatment boundary")
+	_expect_equal(layer.get_muted_cross_region_focus_count() >= 1, true, "pollution focus mutes carryover crystal and wreckage labels")
+	_expect_equal((carryover_wreckage.get_node("Label") as Label).visible, false, "pollution focus hides carryover wreckage label")
+	_expect_equal((carryover_wreckage.get_node("FocusRing") as ColorRect).visible, false, "pollution focus hides carryover wreckage focus ring")
 	layer.refresh_focus_visibility(Vector2(900, 34))
 	_expect_equal(layer.visible, false, "pollution boundary visual layer steps back after leaving treatment boundary")
 	map.free()
@@ -123,9 +129,12 @@ func _check_pollution_boundary_visual_priority_replaces_old_blocks() -> void:
 	var route_band := map.get_node("DemoRoutePresentationLayer/DemoRoutePollutionBand") as ColorRect
 	var residue_interactable := map.get_node("Interactables/PollutionResidue") as PrototypeInteractable
 	var filter_build_site := map.get_node("Interactables/PollutionFilterBuildSite") as PrototypeInteractable
-	_expect_equal(old_danger.color.a <= 0.006, true, "old pollution field no longer dominates")
-	_expect_equal(old_residue.color.a <= 0.005, true, "old pollution marker no longer dominates")
-	_expect_equal(route_band.color.a <= 0.005, true, "old pollution route band no longer dominates")
+	_expect_equal(old_danger.visible, false, "old pollution field is removed from the treatment view")
+	_expect_equal(old_residue.visible, false, "old pollution marker is removed from the treatment view")
+	_expect_equal(route_band.visible, false, "old pollution route band is removed from the treatment view")
+	_expect_equal(old_danger.color.a <= 0.001, true, "old pollution field no longer dominates")
+	_expect_equal(old_residue.color.a <= 0.001, true, "old pollution marker no longer dominates")
+	_expect_equal(route_band.color.a <= 0.001, true, "old pollution route band no longer dominates")
 	_expect_equal(belt_label.visible, false, "old pollution belt label hidden")
 	_expect_equal(route_label.visible, false, "old route label hidden")
 	_expect_equal(_get_marker_alpha(residue_interactable) <= 0.045, true, "residue interactable marker is muted")

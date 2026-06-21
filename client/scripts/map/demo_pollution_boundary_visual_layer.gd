@@ -10,22 +10,22 @@ const ROLE_TERRAIN := "terrain"
 const FOCUS_VISIBLE_MIN_X := 180.0
 const FOCUS_VISIBLE_MAX_X := 620.0
 
-const FIELD_FILL := Color(0.08, 0.1, 0.06, 0.014)
-const FIELD_LINE := Color(0.72, 0.72, 0.3, 0.11)
-const SEDIMENT_FILL := Color(0.42, 0.36, 0.1, 0.08)
-const SEDIMENT_LINE := Color(0.86, 0.72, 0.22, 0.34)
+const FIELD_FILL := Color(0.08, 0.1, 0.06, 0.0)
+const FIELD_LINE := Color(0.72, 0.72, 0.3, 0.055)
+const SEDIMENT_FILL := Color(0.42, 0.36, 0.1, 0.038)
+const SEDIMENT_LINE := Color(0.86, 0.72, 0.22, 0.28)
 const BUND_LINE := Color(0.94, 0.58, 0.22, 0.46)
 const GRAVEL_FILL := Color(0.16, 0.2, 0.14, 0.24)
 const GRAVEL_LINE := Color(0.66, 0.74, 0.52, 0.34)
-const CONSTRUCTION_FILL := Color(0.13, 0.18, 0.13, 0.055)
+const CONSTRUCTION_FILL := Color(0.13, 0.18, 0.13, 0.028)
 const CONSTRUCTION_LINE := Color(0.62, 0.72, 0.54, 0.52)
 const FILTER_LINE := Color(0.86, 0.94, 0.34, 0.94)
-const FILTER_FILL := Color(0.22, 0.3, 0.1, 0.34)
+const FILTER_FILL := Color(0.22, 0.3, 0.1, 0.24)
 const RESIDUE_LINE := Color(0.86, 0.72, 0.22, 0.74)
-const RESIDUE_FILL := Color(0.5, 0.4, 0.08, 0.2)
+const RESIDUE_FILL := Color(0.5, 0.4, 0.08, 0.15)
 const DANGER_LINE := Color(0.94, 0.46, 0.18, 0.74)
-const DANGER_FILL := Color(0.42, 0.16, 0.06, 0.006)
-const DANGER_POCKET_FILL := Color(0.5, 0.18, 0.08, 0.12)
+const DANGER_FILL := Color(0.42, 0.16, 0.06, 0.0)
+const DANGER_POCKET_FILL := Color(0.5, 0.18, 0.08, 0.082)
 const ROUTE_TO_FILTER := Color(0.88, 0.7, 0.26, 0.4)
 const ROUTE_TO_BASE := Color(0.66, 0.86, 0.52, 0.28)
 const SLURRY_ROUTE := Color(0.78, 0.42, 0.18, 0.28)
@@ -96,6 +96,13 @@ const POLLUTION_INTERACTABLE_DEFINITION_IDS := {
 	"map_object.ruin_gate": true
 }
 
+const CRYSTAL_CARRYOVER_INTERACTABLE_DEFINITION_IDS := {
+	"map_object.field_wreckage": true,
+	"map_object.crystal_cluster": true,
+	"map_object.rich_crystal_vein": true,
+	"map_object.anomaly_crystal": true
+}
+
 const POLLUTION_ANCHOR_PATHS := {
 	"Interactables/PollutionFilterBuildSite": ROLE_FILTER_SITE,
 	"Interactables/PollutionFilter": ROLE_FILTER_SITE,
@@ -111,6 +118,7 @@ var terrain_material_shape_ids: Array[String] = []
 var pollution_chain_shape_ids: Array[String] = []
 var muted_legacy_block_count := 0
 var muted_interactable_marker_count := 0
+var muted_cross_region_focus_count := 0
 var applied_pollution_chain_state_count := 0
 var pollution_chain_state: Dictionary = {}
 
@@ -123,6 +131,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	refresh_focus_visibility(_get_player_position())
 	_tone_down_pollution_interactable_markers()
+	_mute_crystal_carryover_focus()
 
 
 func apply_visuals() -> void:
@@ -213,6 +222,10 @@ func get_muted_interactable_marker_count() -> int:
 	return muted_interactable_marker_count
 
 
+func get_muted_cross_region_focus_count() -> int:
+	return muted_cross_region_focus_count
+
+
 func has_boundary_shape(shape_id: String) -> bool:
 	return boundary_shape_ids.has(shape_id)
 
@@ -235,6 +248,7 @@ func has_pollution_chain_shape(shape_id: String) -> bool:
 
 func refresh_focus_visibility(player_position: Vector2) -> void:
 	visible = player_position.x >= FOCUS_VISIBLE_MIN_X and player_position.x <= FOCUS_VISIBLE_MAX_X
+	_mute_crystal_carryover_focus()
 
 
 func _draw() -> void:
@@ -250,19 +264,20 @@ func _draw() -> void:
 func _draw_boundary_field() -> void:
 	var construction_rect := Rect2(Vector2(246.0, -254.0), Vector2(122.0, 160.0))
 	var danger_rect := Rect2(Vector2(246.0, -32.0), Vector2(136.0, 272.0))
-	draw_rect(Rect2(Vector2(242.0, -276.0), Vector2(144.0, 520.0)), FIELD_FILL, true)
-	draw_rect(Rect2(Vector2(242.0, -276.0), Vector2(144.0, 520.0)), FIELD_LINE, false, 1.8, true)
+	var field_rect := Rect2(Vector2(242.0, -276.0), Vector2(144.0, 520.0))
+	draw_rect(field_rect, FIELD_FILL, true)
+	_draw_corner_frame(field_rect, FIELD_LINE, 18.0, 1.4)
 	draw_rect(construction_rect, CONSTRUCTION_FILL, true)
-	draw_rect(construction_rect, CONSTRUCTION_LINE, false, 2.0, true)
+	_draw_corner_frame(construction_rect, Color(CONSTRUCTION_LINE.r, CONSTRUCTION_LINE.g, CONSTRUCTION_LINE.b, 0.32), 15.0, 1.3)
 	draw_rect(danger_rect, DANGER_FILL, true)
-	draw_rect(danger_rect, Color(DANGER_LINE.r, DANGER_LINE.g, DANGER_LINE.b, 0.16), false, 1.2, true)
+	_draw_corner_frame(danger_rect, Color(DANGER_LINE.r, DANGER_LINE.g, DANGER_LINE.b, 0.13), 15.0, 1.0)
 	for y in [-218.0, -154.0, -94.0]:
-		draw_line(Vector2(252.0, y), Vector2(362.0, y), Color(0.58, 0.68, 0.52, 0.16), 1.1, true)
+		draw_line(Vector2(254.0, y), Vector2(326.0, y), Color(0.58, 0.68, 0.52, 0.09), 1.0, true)
 	_draw_hazard_boundary(Vector2(242.0, -38.0), Vector2(384.0, -38.0))
 	for x in [260.0, 298.0, 336.0]:
-		draw_line(Vector2(x, -244.0), Vector2(x, -104.0), Color(0.58, 0.68, 0.52, 0.18), 1.4, true)
+		draw_line(Vector2(x, -238.0), Vector2(x, -142.0), Color(0.58, 0.68, 0.52, 0.095), 1.0, true)
 	for y in [36.0, 104.0, 172.0, 226.0]:
-		draw_line(Vector2(250.0, y), Vector2(376.0, y), Color(0.58, 0.5, 0.14, 0.18), 1.2, true)
+		draw_line(Vector2(258.0, y), Vector2(344.0, y), Color(0.58, 0.5, 0.14, 0.1), 1.0, true)
 
 
 func _draw_pollution_material_surface() -> void:
@@ -273,6 +288,7 @@ func _draw_pollution_material_surface() -> void:
 	_draw_danger_bunds()
 	_draw_local_danger_pockets()
 	_draw_broken_danger_bund_segments()
+	_draw_dark_field_breaks()
 	_draw_filter_worksite_gravel()
 	_draw_filter_bed_partitions()
 	_draw_filter_rubble_cells()
@@ -325,9 +341,9 @@ func _draw_segmented_settling_cells() -> void:
 		Rect2(Vector2(320.0, 142.0), Vector2(42.0, 54.0)),
 		Rect2(Vector2(262.0, 178.0), Vector2(38.0, 42.0))
 	]:
-		draw_rect(cell, Color(0.32, 0.26, 0.08, 0.11), true)
-		draw_rect(cell, Color(SEDIMENT_LINE.r, SEDIMENT_LINE.g, SEDIMENT_LINE.b, 0.18), false, 1.0, true)
-		draw_line(cell.position + Vector2(4.0, cell.size.y * 0.5), cell.position + Vector2(cell.size.x - 4.0, cell.size.y * 0.5 + 5.0), Color(SEDIMENT_LINE.r, SEDIMENT_LINE.g, SEDIMENT_LINE.b, 0.14), 1.0, true)
+		draw_rect(cell, Color(0.32, 0.26, 0.08, 0.068), true)
+		draw_rect(cell, Color(SEDIMENT_LINE.r, SEDIMENT_LINE.g, SEDIMENT_LINE.b, 0.14), false, 1.0, true)
+		draw_line(cell.position + Vector2(4.0, cell.size.y * 0.5), cell.position + Vector2(cell.size.x - 4.0, cell.size.y * 0.5 + 5.0), Color(SEDIMENT_LINE.r, SEDIMENT_LINE.g, SEDIMENT_LINE.b, 0.1), 1.0, true)
 
 
 func _draw_local_settling_islands() -> void:
@@ -359,8 +375,8 @@ func _draw_local_settling_islands() -> void:
 	]:
 		var polygon := PackedVector2Array(island)
 		draw_polyline(polygon, Color(0.08, 0.06, 0.025, 0.36), 5.0, true)
-		draw_colored_polygon(polygon, Color(SEDIMENT_FILL.r, SEDIMENT_FILL.g, SEDIMENT_FILL.b, 0.11))
-		draw_polyline(polygon, Color(SEDIMENT_LINE.r, SEDIMENT_LINE.g, SEDIMENT_LINE.b, 0.24), 1.2, true)
+		draw_colored_polygon(polygon, Color(SEDIMENT_FILL.r, SEDIMENT_FILL.g, SEDIMENT_FILL.b, 0.072))
+		draw_polyline(polygon, Color(SEDIMENT_LINE.r, SEDIMENT_LINE.g, SEDIMENT_LINE.b, 0.2), 1.2, true)
 
 
 func _draw_danger_bunds() -> void:
@@ -411,6 +427,18 @@ func _draw_local_danger_pockets() -> void:
 		draw_polyline(polygon, Color(0.08, 0.035, 0.02, 0.44), 5.4, true)
 		draw_colored_polygon(polygon, DANGER_POCKET_FILL)
 		draw_polyline(polygon, Color(DANGER_LINE.r, DANGER_LINE.g, DANGER_LINE.b, 0.28), 1.3, true)
+
+
+func _draw_dark_field_breaks() -> void:
+	for rect in [
+		Rect2(Vector2(250.0, -226.0), Vector2(42.0, 30.0)),
+		Rect2(Vector2(318.0, -226.0), Vector2(44.0, 46.0)),
+		Rect2(Vector2(260.0, -8.0), Vector2(34.0, 38.0)),
+		Rect2(Vector2(332.0, 58.0), Vector2(36.0, 48.0)),
+		Rect2(Vector2(252.0, 214.0), Vector2(54.0, 22.0))
+	]:
+		draw_rect(rect, Color(0.012, 0.018, 0.016, 0.38), true)
+		draw_rect(rect, Color(0.42, 0.52, 0.38, 0.06), false, 0.8, true)
 
 
 func _draw_filter_worksite_gravel() -> void:
@@ -659,6 +687,21 @@ func _draw_hazard_boundary(from: Vector2, to: Vector2) -> void:
 		x += 20.0
 
 
+func _draw_corner_frame(rect: Rect2, color: Color, corner_length: float, width: float) -> void:
+	var left := rect.position.x
+	var top := rect.position.y
+	var right := rect.position.x + rect.size.x
+	var bottom := rect.position.y + rect.size.y
+	draw_line(Vector2(left, top), Vector2(left + corner_length, top), color, width, true)
+	draw_line(Vector2(left, top), Vector2(left, top + corner_length), color, width, true)
+	draw_line(Vector2(right - corner_length, top), Vector2(right, top), color, width, true)
+	draw_line(Vector2(right, top), Vector2(right, top + corner_length), color, width, true)
+	draw_line(Vector2(left, bottom - corner_length), Vector2(left, bottom), color, width, true)
+	draw_line(Vector2(left, bottom), Vector2(left + corner_length, bottom), color, width, true)
+	draw_line(Vector2(right - corner_length, bottom), Vector2(right, bottom), color, width, true)
+	draw_line(Vector2(right, bottom - corner_length), Vector2(right, bottom), color, width, true)
+
+
 func _draw_route(points: Array[Vector2], color: Color, width: float) -> void:
 	draw_polyline(PackedVector2Array(points), Color(0.03, 0.04, 0.03, 0.52), width + 2.8, true)
 	draw_polyline(PackedVector2Array(points), color, width, true)
@@ -701,6 +744,7 @@ func _register_terrain_material_shapes() -> void:
 		"terrain.pollution.danger_bund",
 		"terrain.pollution.local_danger_pockets",
 		"terrain.pollution.segmented_danger_bund",
+		"terrain.pollution.dark_break_cells",
 		"terrain.pollution.filter_gravel_bed",
 		"terrain.pollution.filter_bed_partitions",
 		"terrain.pollution.filter_rubble_cells",
@@ -774,7 +818,8 @@ func _deemphasize_legacy_pollution_blocks() -> void:
 		region.color = Color(0.07, 0.075, 0.045, 0.032)
 	var route_band := _get_map_node("DemoRoutePresentationLayer/DemoRoutePollutionBand") as ColorRect
 	if route_band != null:
-		route_band.color = Color(route_band.color.r, route_band.color.g, route_band.color.b, minf(route_band.color.a, 0.004))
+		route_band.visible = false
+		route_band.color = Color(route_band.color.r, route_band.color.g, route_band.color.b, 0.0)
 	var route_label := _get_map_node("DemoRoutePresentationLayer/DemoRoutePollutionLabel") as Label
 	if route_label != null:
 		route_label.visible = false
@@ -785,12 +830,14 @@ func _deemphasize_legacy_pollution_blocks() -> void:
 	for node_name in LEGACY_POLLUTION_PANELS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
-			rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.005))
+			rect.visible = false
+			rect.color = Color(rect.color.r, rect.color.g, rect.color.b, 0.0)
 			muted_legacy_block_count += 1
 	for node_name in LEGACY_POLLUTION_MARKERS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
-			rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.004))
+			rect.visible = false
+			rect.color = Color(rect.color.r, rect.color.g, rect.color.b, 0.0)
 			muted_legacy_block_count += 1
 	var belt_label := layer.get_node_or_null("PollutionBeltLabel") as Label
 	if belt_label != null:
@@ -835,6 +882,39 @@ func _tone_down_pollution_interactable_markers() -> void:
 		if marker != null:
 			marker.color.a = 0.04
 			muted_interactable_marker_count += 1
+
+
+func _mute_crystal_carryover_focus() -> void:
+	muted_cross_region_focus_count = 0
+	if not visible:
+		return
+	var interactables := _get_map_node("Interactables")
+	if interactables == null:
+		return
+	for child in interactables.get_children():
+		var interactable := child as PrototypeInteractable
+		if interactable == null:
+			continue
+		if not CRYSTAL_CARRYOVER_INTERACTABLE_DEFINITION_IDS.has(interactable.definition_id):
+			continue
+		var muted := false
+		var label := interactable.get_node_or_null("Label") as Label
+		if label != null:
+			label.visible = false
+			muted = true
+		var focus_ring := interactable.get_node_or_null("FocusRing") as ColorRect
+		if focus_ring != null:
+			focus_ring.visible = false
+			muted = true
+		var marker := interactable.marker
+		if marker == null:
+			marker = interactable.get_node_or_null("Marker") as ColorRect
+		if marker != null:
+			marker.color.a = minf(marker.color.a, 0.032)
+			marker.scale = Vector2.ONE
+			muted = true
+		if muted:
+			muted_cross_region_focus_count += 1
 
 
 func _get_map_node(path: String) -> Node:
