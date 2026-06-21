@@ -11,6 +11,8 @@ const DEFAULT_DEMO_BASELINE_ID := "baseline.s2_outer_ring_secured"
 const VISUAL_REVIEW_CHECKPOINT_IDS: Array[String] = [
 	"visual_review.outpost_base",
 	"visual_review.crystal_mine",
+	"visual_review.crystal_collector_output",
+	"visual_review.base_handoff",
 	"visual_review.pollution_boundary",
 	"visual_review.core_station"
 ]
@@ -36,6 +38,26 @@ const VISUAL_REVIEW_CHECKPOINT_DEFINITIONS := [
 		"position": Vector2(150.0, -176.0),
 		"summary": "可采集矿面、富矿脊线、残骸回收场和回基地装车轨。",
 		"watch": "观察晶体区是否像资源场，而不是蓝色大块和旧交互标记。"
+	},
+	{
+		"id": "visual_review.crystal_collector_output",
+		"code": "V1A",
+		"display_name": "采集器输出",
+		"baseline_id": "baseline.s1_treatment_ready",
+		"region_id": "region.crystal_vein_field",
+		"position": Vector2(116.0, -124.0),
+		"summary": "手持采样、基础晶体采集器、输出托盘和回基地装车口。",
+		"watch": "观察采集器建成后矿面、输出托盘和回基地物流端口是否能读出。"
+	},
+	{
+		"id": "visual_review.base_handoff",
+		"code": "V1B",
+		"display_name": "入库整备交接",
+		"baseline_id": "baseline.s1_treatment_ready",
+		"region_id": "region.outpost_platform",
+		"position": Vector2(-166.0, -66.0),
+		"summary": "采集器产物回基地后进入反应器、储存箱和出发整备台交接。",
+		"watch": "观察收料、反应器进料、产物入库和出发整备端口是否连成同一段路径。"
 	},
 	{
 		"id": "visual_review.pollution_boundary",

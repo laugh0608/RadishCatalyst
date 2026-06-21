@@ -1879,6 +1879,20 @@ interaction_type = "gather"
 label_offset = Vector2(-82, -52)
 label_size = Vector2(164, 24)
 
+[node name="CrystalCollectorBuildSite" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(134, -126)
+definition_id = "building.crystal_collector_t1"
+interaction_type = "build"
+label_offset = Vector2(-88, -52)
+label_size = Vector2(176, 24)
+
+[node name="CrystalCollectorOutput" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(86, -118)
+definition_id = "map_object.crystal_collector_output"
+interaction_type = "gather"
+label_offset = Vector2(-82, -52)
+label_size = Vector2(164, 24)
+
 [node name="CrystalClusterTreatmentApproach" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(266, -122)
 definition_id = "map_object.crystal_cluster"

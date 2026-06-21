@@ -11,6 +11,8 @@ const REPAIR_GEL_ID := "item.repair_gel"
 const CORE_BUFFER_ID := "item.core_stabilization_buffer"
 const BASIC_REACTOR_ID := "building.basic_reactor"
 const POLLUTION_FILTER_ID := "building.pollution_filter"
+const CRYSTAL_COLLECTOR_ID := "building.crystal_collector_t1"
+const CRYSTAL_COLLECTOR_OUTPUT_INSTANCE_ID := "map_object_instance.crystal_collector_output"
 
 const CORE_RESOURCE_IDS: Array[String] = [
 	CRYSTAL_ORE_ID,
@@ -61,6 +63,8 @@ static func format_chain_state_line(world_state: WorldState, character_state: Ch
 		return "核心整备完成：核心稳压缓冲包已在背包，带回核心稳定站挑战阶段守卫。"
 	if _has_core_buffer_inputs(inventory):
 		return "核心缓冲包原料齐备：到基础反应器启动核心稳压缓冲包。"
+	if _has_crystal_collector_output_ready(world_state):
+		return "采集设备待收料：基础晶体采集器输出托盘可收取晶体矿物，再送基础反应器。"
 	if inventory.has_ref(POLLUTED_RESIDUE_ID, 2):
 		return "污染处理待加工：污染沉积物可进污染过滤器，产出抗污染药剂 + 污染浆液。"
 	if inventory.has_ref(POLLUTED_SLURRY_ID, 1):
@@ -153,6 +157,7 @@ static func _should_show_summary(world_state: WorldState, character_state: Chara
 		or inventory.has_ref(CORE_BUFFER_ID, 1)
 		or _has_filter_module_inputs(inventory)
 		or _has_core_buffer_inputs(inventory)
+		or _has_crystal_collector_output_ready(world_state)
 		or _has_first_industrial_chain_context(world_state, inventory)
 	):
 		return true
@@ -164,6 +169,7 @@ static func _has_first_industrial_chain_context(world_state: WorldState, invento
 		return false
 	if (
 		inventory.has_ref(CRYSTAL_ORE_ID, 1)
+		or _has_crystal_collector_output_ready(world_state)
 		or _has_active_reactor_recipe(world_state, "recipe.process_crystal_ore")
 		or _has_active_reactor_recipe(world_state, "recipe.repair_gel")
 		or (
@@ -196,6 +202,8 @@ static func _format_first_industrial_chain_line(
 		return "补给链加工中：基础零件 + 基础溶剂 -> 修复凝胶。"
 	if inventory.has_ref(CRYSTAL_ORE_ID, 3):
 		return "固体链待加工：晶体矿物可进基础反应器转基础零件。"
+	if _has_crystal_collector_output_ready(world_state):
+		return "采集器托盘待收：收料后回基础反应器入料，再进入储存箱 / 整备台。"
 	if inventory.has_ref(REPAIR_GEL_ID, 1) and FieldOutfittingRuntime.has_station_built(world_state):
 		return "外勤整备可用：修复凝胶和基础零件已接到出发整备台。"
 	if inventory.has_ref(REPAIR_GEL_ID, 1):
@@ -215,6 +223,13 @@ static func _has_active_reactor_recipe(world_state: WorldState, recipe_id: Strin
 			continue
 		return String(structure.get("active_recipe_id", "")) == recipe_id
 	return false
+
+
+static func _has_crystal_collector_output_ready(world_state: WorldState) -> bool:
+	if world_state == null or not world_state.has_base_structure_definition(CRYSTAL_COLLECTOR_ID):
+		return false
+	var output_state := world_state.get_map_object(CRYSTAL_COLLECTOR_OUTPUT_INSTANCE_ID)
+	return not bool(output_state.get("is_gathered", false))
 
 
 static func _has_resource_chain_quest(world_state: WorldState) -> bool:

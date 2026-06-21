@@ -211,12 +211,11 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 		if bool(visual_result.get("skip_enable", false)):
 			continue
 		var should_enable: bool = not interactable.consumed
-		if interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter":
-			should_enable = should_enable and world_state.has_base_structure_definition("building.pollution_filter")
-		if interactable.interaction_type == "inspect" and interactable.definition_id == "building.field_outfitting_station":
-			should_enable = should_enable and world_state.has_base_structure_definition("building.field_outfitting_station")
-		if interactable.interaction_type == "build" and interactable.definition_id == "building.slurry_buffer_tank":
-			should_enable = should_enable and _is_pollution_slurry_return_route_available(world_state)
+		if interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter": should_enable = should_enable and world_state.has_base_structure_definition("building.pollution_filter")
+		if interactable.interaction_type == "inspect" and interactable.definition_id == "building.field_outfitting_station": should_enable = should_enable and world_state.has_base_structure_definition("building.field_outfitting_station")
+		if interactable.interaction_type == "build" and interactable.definition_id == "building.slurry_buffer_tank": should_enable = should_enable and _is_pollution_slurry_return_route_available(world_state)
+		if interactable.interaction_type == "build" and interactable.definition_id == "building.crystal_collector_t1": should_enable = should_enable and world_state.quest_state.has_completed_quest("quest.restore_outpost")
+		if interactable.instance_id == "map_object_instance.crystal_collector_output": should_enable = should_enable and world_state.has_base_structure_definition("building.crystal_collector_t1")
 		if INTERACTABLE_QUEST_GATES.has(interactable.definition_id):
 			var gate_quest_id := String(INTERACTABLE_QUEST_GATES[interactable.definition_id])
 			should_enable = should_enable and (

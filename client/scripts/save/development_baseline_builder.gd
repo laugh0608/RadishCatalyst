@@ -145,9 +145,46 @@ func create_visual_review_checkpoint_state(checkpoint_id: String) -> Dictionary:
 	var position: Vector2 = checkpoint_definition.get("position", character_state.position)
 	var region_id := String(checkpoint_definition.get("region_id", character_state.current_region_id))
 	_set_runtime_position(world_state, character_state, region_id, position)
+	_apply_visual_review_checkpoint_state(checkpoint_id, world_state, character_state)
 	result["message"] = _format_visual_review_checkpoint_message(checkpoint_definition)
 	result["visual_review_checkpoint_definition"] = checkpoint_definition
 	return result
+
+
+func _apply_visual_review_checkpoint_state(
+	checkpoint_id: String,
+	world_state: WorldState,
+	character_state: CharacterState
+) -> void:
+	match checkpoint_id:
+		"visual_review.crystal_collector_output":
+			_mark_crystal_collector_ready(world_state)
+		"visual_review.base_handoff":
+			_mark_crystal_collector_ready(world_state)
+			_mark_object_gathered(
+				world_state,
+				"map_object_instance.crystal_collector_output",
+				"map_object.crystal_collector_output",
+				"region.crystal_vein_field"
+			)
+			character_state.inventory.add_item("item.crystal_ore", 3)
+			character_state.inventory.add_item("item.basic_parts", 2)
+			character_state.inventory.add_item("item.repair_gel", 1)
+
+
+func _mark_crystal_collector_ready(world_state: WorldState) -> void:
+	_mark_structure_built(
+		world_state,
+		"structure.crystal_collector_build_site",
+		"building.crystal_collector_t1",
+		"region.crystal_vein_field",
+		"map_object_instance.crystal_collector_build_site"
+	)
+	world_state.ensure_map_object(
+		"map_object_instance.crystal_collector_output",
+		"map_object.crystal_collector_output",
+		"region.crystal_vein_field"
+	)
 
 
 func _complete_progress_until(

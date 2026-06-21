@@ -10,6 +10,8 @@ const RESIDUE_MARKER_COLOR := Color(0.86, 0.74, 0.22, 1)
 const ROUGH_GROUND_MARKER_COLOR := Color(0.48, 0.42, 0.34, 1)
 const FOUNDATION_SITE_MARKER_COLOR := Color(0.42, 0.56, 0.48, 1)
 const STORAGE_MARKER_COLOR := Color(0.36, 0.62, 0.56, 1)
+const CRYSTAL_COLLECTOR_MARKER_COLOR := Color(0.48, 0.72, 0.62, 1)
+const CRYSTAL_COLLECTOR_OUTPUT_COLOR := Color(0.62, 0.82, 0.74, 1)
 const OUTFITTING_MARKER_COLOR := Color(0.66, 0.58, 0.34, 1)
 const SLURRY_BUFFER_MARKER_COLOR := Color(0.58, 0.64, 0.31, 1)
 const REACTOR_MARKER_COLOR := Color(0.28, 0.78, 0.9, 1)
@@ -61,6 +63,7 @@ const COMPLETED_FRONTLINE_ACTION_COLOR := Color(0.56, 0.9, 0.78, 1)
 const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
 const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
 const BUILT_STORAGE_COLOR := Color(0.5, 0.74, 0.66, 1)
+const BUILT_CRYSTAL_COLLECTOR_COLOR := Color(0.56, 0.78, 0.66, 1)
 const BUILT_OUTFITTING_COLOR := Color(0.78, 0.68, 0.42, 1)
 const BUILT_SLURRY_BUFFER_COLOR := Color(0.66, 0.7, 0.36, 1)
 const GATHERED_CRYSTAL_SIZE := Vector2(28.0, 12.0)
@@ -250,6 +253,13 @@ func set_processed_visual() -> bool:
 		monitoring = false
 		_apply_marker_style(GATHERED_CRYSTAL_SIZE, GATHERED_CRYSTAL_COLOR)
 		_set_label_text("%s\n已采集" % display_name_text, 2)
+		return true
+	if interaction_type == "gather" and definition_id == "map_object.crystal_collector_output":
+		consumed = true
+		visible = true
+		monitoring = false
+		_apply_marker_style(Vector2(30.0, 12.0), GATHERED_CRYSTAL_COLOR)
+		_set_label_text("%s\n空托盘" % display_name_text, 2)
 		return true
 	if interaction_type == "gather" and definition_id == "map_object.field_wreckage":
 		consumed = true
@@ -743,6 +753,9 @@ func set_built_visual(built_definition_id: String) -> void:
 	elif built_definition_id == "building.basic_storage":
 		_apply_marker_style(Vector2(42.0, 26.0), BUILT_STORAGE_COLOR)
 		_set_label_text("基础储存箱\n已接入", 2)
+	elif built_definition_id == "building.crystal_collector_t1":
+		_apply_marker_style(Vector2(46.0, 24.0), BUILT_CRYSTAL_COLLECTOR_COLOR)
+		_set_label_text("晶体采集器\n已上线", 2)
 	elif built_definition_id == "building.field_outfitting_station":
 		_apply_marker_style(Vector2(44.0, 28.0), BUILT_OUTFITTING_COLOR)
 		_set_label_text("出发整备台\n已上线", 2)
@@ -826,6 +839,10 @@ func _get_default_marker_visual() -> Dictionary:
 			return {"size": Vector2(40.0, 30.0), "color": REACTOR_MARKER_COLOR}
 		"building.basic_storage":
 			return {"size": Vector2(38.0, 24.0), "color": STORAGE_MARKER_COLOR}
+		"building.crystal_collector_t1":
+			if interaction_type == "build":
+				return {"size": Vector2(42.0, 22.0), "color": FOUNDATION_SITE_MARKER_COLOR}
+			return {"size": Vector2(44.0, 24.0), "color": CRYSTAL_COLLECTOR_MARKER_COLOR}
 		"building.field_outfitting_station":
 			if interaction_type == "build":
 				return {"size": Vector2(38.0, 24.0), "color": FOUNDATION_SITE_MARKER_COLOR}
@@ -844,6 +861,8 @@ func _get_default_marker_visual() -> Dictionary:
 			return {"size": Vector2(26.0, 30.0), "color": CRYSTAL_MARKER_COLOR}
 		"map_object.rich_crystal_vein":
 			return {"size": Vector2(34.0, 38.0), "color": RICH_CRYSTAL_MARKER_COLOR}
+		"map_object.crystal_collector_output":
+			return {"size": Vector2(32.0, 14.0), "color": CRYSTAL_COLLECTOR_OUTPUT_COLOR}
 		"map_object.field_wreckage":
 			return {"size": Vector2(34.0, 18.0), "color": SALVAGE_MARKER_COLOR}
 		"map_object.anomaly_crystal":

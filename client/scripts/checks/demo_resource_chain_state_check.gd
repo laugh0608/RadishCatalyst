@@ -30,6 +30,7 @@ func _run_checks() -> void:
 	_check_device_panel_resource_chain_state()
 	_check_processing_result_resource_chain()
 	_check_first_industrial_chain_hud_and_visual_state()
+	_check_crystal_collector_runtime_chain()
 	_check_pollution_chain_hud_and_visual_state()
 	_check_crystal_resource_visual_layer()
 	_check_resource_chain_state_roundtrip()
@@ -275,6 +276,73 @@ func _check_first_industrial_path_stage_changes(first_path_layer: DemoFirstIndus
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.stage.outfitting_ready"), true, "first path records outfitting stage")
 
 
+func _check_crystal_collector_runtime_chain() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	map.setup(data_registry)
+	var build_site := map.get_node("Interactables/CrystalCollectorBuildSite") as PrototypeInteractable
+	var output := map.get_node("Interactables/CrystalCollectorOutput") as PrototypeInteractable
+
+	var new_world := WorldState.create_default()
+	map.refresh_world_interactables(new_world)
+	_expect_equal(build_site.visible, false, "crystal collector build site stays out of new-game core focus")
+	_expect_equal(output.visible, false, "crystal collector output stays hidden before the collector is built")
+
+	var world := _create_resource_chain_world("quest.scout_crystal_field")
+	var character := CharacterState.create_default()
+	character.current_region_id = "region.crystal_vein_field"
+	character.position = Vector2(132.0, -126.0)
+	character.inventory.add_item("item.basic_parts", 2)
+	character.inventory.add_item("item.salvage_scrap", 1)
+	map.refresh_world_interactables(world)
+	_expect_equal(build_site.visible, true, "crystal collector build site appears after outpost restoration")
+	_expect_equal(output.visible, false, "crystal collector output waits for built collector")
+
+	var build_result := BuildSystem.new(data_registry).build_structure(
+		"map_object_instance.crystal_collector_build_site",
+		"building.crystal_collector_t1",
+		character,
+		world
+	)
+	_expect_equal(bool(build_result.get("success", false)), true, "crystal collector can be built from field materials")
+	_expect_equal(
+		world.has_base_structure_definition("building.crystal_collector_t1"),
+		true,
+		"crystal collector writes a base structure"
+	)
+	map.refresh_world_interactables(world)
+	_expect_equal(output.visible, true, "crystal collector output appears after the collector is built")
+
+	var ready_line := DemoResourceChainStateFormatter.format_chain_state_line(world, character)
+	_expect_text_contains(ready_line, "采集设备待收料", "resource chain notices collector output before pickup")
+
+	var gather_result := GatherSystem.new(data_registry).interact_with_object(
+		"map_object_instance.crystal_collector_output",
+		"map_object.crystal_collector_output",
+		"gather",
+		character,
+		world
+	)
+	_expect_equal(bool(gather_result.get("success", false)), true, "collector output can be gathered")
+	_expect_text_contains(String(gather_result.get("message", "")), "已收取", "collector output uses pickup completion wording")
+	_expect_equal(int(character.inventory.items.get("item.crystal_ore", 0)) >= 3, true, "collector output grants crystal ore")
+	_expect_equal(
+		bool(world.get_map_object("map_object_instance.crystal_collector_output").get("is_gathered", false)),
+		true,
+		"collector output writes gathered state"
+	)
+
+	var quest_updates := QuestEventRules.new(data_registry).get_interaction_objective_updates(
+		{"definition_id": "map_object.crystal_collector_output", "interaction_type": "gather"},
+		gather_result,
+		world.quest_state
+	)
+	_expect_equal(_has_update_target(quest_updates, "quest.scout_crystal_field", "item.crystal_ore"), true, "collector output feeds crystal field objective updates")
+	var after_line := DemoResourceChainStateFormatter.format_chain_state_line(world, character)
+	_expect_text_contains(after_line, "固体链待加工", "resource chain moves gathered collector output to reactor input")
+	map.free()
+
+
 func _check_pollution_chain_hud_and_visual_state() -> void:
 	var world := _create_resource_chain_world("quest.prepare_demo_stabilization_buffer")
 	world.set_base_structure_status("structure.pollution_filter", "in_progress", "recipe.cleanse_residue")
@@ -421,6 +489,15 @@ func _expect_array_has(values: Array, expected, context: String) -> void:
 	if values.has(expected):
 		return
 	failures.append("%s: expected array to contain %s, got %s" % [context, str(expected), str(values)])
+
+
+func _has_update_target(updates: Array, quest_id: String, target_id: String) -> bool:
+	for update in updates:
+		if not update is Dictionary:
+			continue
+		if String(update.get("quest_id", "")) == quest_id and String(update.get("target_id", "")) == target_id:
+			return true
+	return false
 
 
 func _expect_text_contains(text: String, expected: String, context: String) -> void:

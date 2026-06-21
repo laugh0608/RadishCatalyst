@@ -5,6 +5,7 @@ const OUTPOST_CORE_ID := "building.outpost_core"
 const BASIC_REACTOR_ID := "building.basic_reactor"
 const POLLUTION_FILTER_ID := "building.pollution_filter"
 const BASIC_STORAGE_ID := "building.basic_storage"
+const CRYSTAL_COLLECTOR_ID := "building.crystal_collector_t1"
 const FIELD_OUTFITTING_STATION_ID := "building.field_outfitting_station"
 const BASIC_FILTER_MODULE_ID := "equipment.filter_module_t1"
 
@@ -226,6 +227,8 @@ static func format_build_task_hint(
 	match building_id:
 		BASIC_STORAGE_ID:
 			return "基础储存箱接入前哨核心补修复凝胶，是每趟外勤回基地后的补给落点。"
+		CRYSTAL_COLLECTOR_ID:
+			return "基础晶体采集器把重复采矿交给矿面设备，玩家转为收料并回基地入料。"
 		FIELD_OUTFITTING_STATION_ID:
 			return "出发整备台把基地制造出的模块装进防护服，让污染承压差异进入下一趟外勤。"
 		POLLUTION_FILTER_ID:
@@ -244,6 +247,8 @@ static func format_build_result_line(
 	match building_id:
 		BASIC_STORAGE_ID:
 			return "储存箱已成为补给落点；回前哨核心时修复凝胶会按储存箱目标补回。"
+		CRYSTAL_COLLECTOR_ID:
+			return "采集器已成为晶体矿面的稳定出料点；下一步收取托盘并回基础反应器入料。"
 		FIELD_OUTFITTING_STATION_ID:
 			return "整备台已成为模块装配点；过滤模块完成后在这里装入防护服。"
 		POLLUTION_FILTER_ID:
@@ -291,6 +296,8 @@ static func _format_building_role(
 			return "污染过滤器把污染沉积物转成药剂和污染浆液，药剂回补给，浆液回核心准备。"
 		BASIC_STORAGE_ID:
 			return "基础储存箱承接修复凝胶和药剂补给，让前哨核心可稳定补回。"
+		CRYSTAL_COLLECTOR_ID:
+			return "基础晶体采集器把晶体矿面变成设备出料点，输出托盘回到基础反应器。"
 		FIELD_OUTFITTING_STATION_ID:
 			return "出发整备台把模块装进防护服，让设备产出变成外勤承压差异。"
 		_:

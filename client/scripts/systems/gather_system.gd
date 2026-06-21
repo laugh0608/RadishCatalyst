@@ -1035,6 +1035,8 @@ func _get_first_hour_gather_step_hint(
 			return "侧路废件可补反应器校准，也可配合晶体在出发整备台维护校准过滤模块"
 		"map_object_instance.crystal_cluster_foundation_return":
 			return "处理点入口前的回访晶体已补足；回基地加工基础零件或地基材料"
+		"map_object_instance.crystal_collector_output":
+			return "采集器输出已收取；沿装车轨回基础反应器，把晶体矿物加工成基础零件"
 		"map_object_instance.field_wreckage_foundation_return":
 			return "处理点入口前的残骸缓存已回收；若地基或过滤器缺料，先回基地整理制造"
 		"map_object_instance.demo_stabilization_recovery_cache":
@@ -1050,6 +1052,8 @@ func _get_gather_completion_label(definition: Dictionary) -> String:
 	match String(definition.get("object_type", "")):
 		"resource_node":
 			return "已采集"
+		"resource_output":
+			return "已收取"
 		_:
 			return "已回收"
 
@@ -1072,6 +1076,8 @@ func _format_already_processed_message(
 				return "%s：%s" % [object_name, core_cache_status]
 			if definition_id == "map_object.crystal_cluster" or definition_id == "map_object.rich_crystal_vein":
 				return "%s已采集，现场保留已采集标记。" % object_name
+			if definition_id == "map_object.crystal_collector_output":
+				return "%s已收取，现场保留空托盘标记。" % object_name
 			return "%s已回收，现场保留已回收标记。" % object_name
 		"sample":
 			return "%s已采样，现场保留已采样标记。" % object_name

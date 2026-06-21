@@ -1052,6 +1052,8 @@ func _get_general_interaction_purpose(interactable: PrototypeInteractable, defin
 		return "回收核心设备完成态后的复测读数和可用补给，带回基地整理下一趟外勤。"
 	if _is_crystal_logistics_return_object(interactable.instance_id):
 		return "回收后勤补料材料，支撑基础反应器基础零件加工和出发整备台维护材料。"
+	if interactable.definition_id == "map_object.crystal_collector_output":
+		return "收取采集设备输出，把重复采矿交给矿面设备和回基地收料。"
 	match interactable.interaction_type:
 		"gather":
 			match String(definition.get("object_type", "")):
@@ -1166,6 +1168,8 @@ func _get_general_interaction_action(
 		return "按 E 写入核心稳定数据"
 	if interactable.definition_id == CoreStabilizationPressureFormatter.RETEST_READOUT_DEFINITION_ID:
 		return "按 E 回收复测读数缓存"
+	if interactable.definition_id == "map_object.crystal_collector_output":
+		return "按 E 收取输出"
 	match interactable.interaction_type:
 		"gather":
 			return "按 E 采集"
@@ -1213,6 +1217,10 @@ func _get_general_interaction_next_step(
 		return CoreStabilizationPressureFormatter.format_retest_readout_next_step(world_state, character_state)
 	if _is_crystal_logistics_return_object(interactable.instance_id):
 		return _get_crystal_logistics_return_next_step(interactable, object_state, world_state)
+	if interactable.definition_id == "map_object.crystal_collector_output":
+		if _is_general_interaction_processed(interactable, object_state):
+			return "输出托盘已收取；回基础反应器加工晶体矿，或等待后续采集器循环扩展。"
+		return "收取后回基础反应器加工成基础零件，再接入储存箱 / 整备台。"
 	if (
 		interactable.definition_id != "map_object.pollution_residue_patch"
 		and interactable.definition_id != CoreStabilizationPressureFormatter.LOGISTICS_MAINTENANCE_RETEST_RESIDUE_DEFINITION_ID
@@ -1334,6 +1342,8 @@ func _get_processed_interaction_status(
 			match interactable.definition_id:
 				"map_object.crystal_cluster", "map_object.rich_crystal_vein":
 					return "已采集，现场保留已采集标记；继续寻找未变暗的晶体。"
+				"map_object.crystal_collector_output":
+					return "已收取，输出托盘保留为空托盘；回基础反应器加工晶体矿。"
 				"map_object.pollution_residue_patch":
 					return "已回收，现场保留已回收标记；回过滤器处理沉积物。"
 				"map_object.field_wreckage":

@@ -28,6 +28,8 @@ const SLOT_DARK := Color(0.02, 0.04, 0.035, 0.64)
 const READY_DIM := Color(0.22, 0.28, 0.26, 0.22)
 const HAND_SAMPLE_ACCENT := Color(0.82, 0.96, 1.0, 0.42)
 const AUTO_MINER_ACCENT := Color(0.7, 0.9, 0.82, 0.38)
+const CRYSTAL_COLLECTOR_ID := "building.crystal_collector_t1"
+const CRYSTAL_COLLECTOR_OUTPUT_INSTANCE_ID := "map_object_instance.crystal_collector_output"
 
 const FIRST_PATH_CONTEXT_LAYER_ALPHAS := [
 	{"path": "OpeningSceneLayer", "alpha": 0.12},
@@ -101,6 +103,14 @@ func refresh_path_state(world_state: WorldState, character_state: CharacterState
 		String(reactor_state.get("status", "")) == "in_progress"
 		and String(reactor_state.get("active_recipe_id", "")) in ["recipe.process_crystal_ore", "recipe.repair_gel"]
 	)
+	var collector_built := world_state.has_base_structure_definition(CRYSTAL_COLLECTOR_ID)
+	var collector_output_state := world_state.get_map_object(CRYSTAL_COLLECTOR_OUTPUT_INSTANCE_ID)
+	var collector_output_ready := collector_built and not bool(collector_output_state.get("is_gathered", false))
+	var collector_build_ready := (
+		not collector_built
+		and inventory.has_ref("item.basic_parts", 2)
+		and inventory.has_ref("item.salvage_scrap", 1)
+	)
 	var inputs_ready := inventory.has_ref("item.crystal_ore", 3) or inventory.has_ref("item.salvage_scrap", 1)
 	var storage_ready := (
 		(inventory.has_ref("item.basic_parts", 1) or inventory.has_ref("item.repair_gel", 1))
@@ -114,6 +124,8 @@ func refresh_path_state(world_state: WorldState, character_state: CharacterState
 	path_state = {
 		"crystal_ready": inventory.has_ref("item.crystal_ore", 3),
 		"salvage_ready": inventory.has_ref("item.salvage_scrap", 1),
+		"collector_build_ready": collector_build_ready,
+		"collector_output_ready": collector_output_ready,
 		"inputs_ready": inputs_ready,
 		"reactor_active": reactor_active,
 		"storage_ready": storage_ready,
@@ -122,7 +134,8 @@ func refresh_path_state(world_state: WorldState, character_state: CharacterState
 	}
 	_register_path_state_shape("first_path.crystal_pickup.%s" % _state_suffix(bool(path_state["crystal_ready"])))
 	_register_path_state_shape("first_path.hand_sample.%s" % _state_suffix(bool(path_state["crystal_ready"])))
-	_register_path_state_shape("first_path.auto_miner_output.%s" % _state_suffix(bool(path_state["crystal_ready"])))
+	_register_path_state_shape("first_path.collector_build.%s" % _state_suffix(collector_build_ready))
+	_register_path_state_shape("first_path.auto_miner_output.%s" % _state_suffix(collector_output_ready or bool(path_state["crystal_ready"])))
 	_register_path_state_shape("first_path.salvage_pickup.%s" % _state_suffix(bool(path_state["salvage_ready"])))
 	_register_path_state_shape("first_path.base_receiving_bay.%s" % _state_suffix(inputs_ready))
 	_register_path_state_shape("first_path.reactor_feed.%s" % _state_suffix(inputs_ready or reactor_active))
@@ -411,6 +424,8 @@ func _draw_path_state() -> void:
 	var active_stage := get_active_stage()
 	_draw_ready_pip(Vector2(84.0, -100.0), bool(path_state.get("crystal_ready", false)), active_stage == STAGE_FIELD_PICKUP)
 	_draw_ready_pip(Vector2(132.0, -124.0), bool(path_state.get("crystal_ready", false)), active_stage == STAGE_FIELD_PICKUP or active_stage == STAGE_RETURN_TO_BASE)
+	_draw_ready_pip(Vector2(132.0, -146.0), bool(path_state.get("collector_build_ready", false)), active_stage == STAGE_FIELD_PICKUP)
+	_draw_ready_pip(Vector2(86.0, -118.0), bool(path_state.get("collector_output_ready", false)), active_stage == STAGE_FIELD_PICKUP)
 	_draw_ready_pip(Vector2(54.0, 112.0), bool(path_state.get("salvage_ready", false)), active_stage == STAGE_FIELD_PICKUP)
 	_draw_ready_pip(Vector2(-214.0, -112.0), bool(path_state.get("inputs_ready", false)), active_stage == STAGE_RETURN_TO_BASE or active_stage == STAGE_BASE_RECEIVING)
 	_draw_ready_pip(Vector2(-184.0, -114.0), bool(path_state.get("inputs_ready", false)), active_stage == STAGE_REACTOR_FEED)
