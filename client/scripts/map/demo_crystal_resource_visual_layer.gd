@@ -9,20 +9,22 @@ const ROLE_TERRAIN := "terrain"
 const FOCUS_VISIBLE_MIN_X := -80.0
 const FOCUS_VISIBLE_MAX_X := 220.0
 
-const FIELD_FRAME := Color(0.32, 0.58, 0.62, 0.18)
-const FIELD_FILL := Color(0.06, 0.12, 0.15, 0.018)
-const ORE_FACE_FILL := Color(0.06, 0.18, 0.2, 0.026)
-const ORE_FACE_LINE := Color(0.38, 0.78, 0.86, 0.2)
+const FIELD_FRAME := Color(0.32, 0.58, 0.62, 0.12)
+const FIELD_FILL := Color(0.06, 0.12, 0.15, 0.006)
+const ORE_FACE_FILL := Color(0.06, 0.18, 0.2, 0.012)
+const ORE_FACE_LINE := Color(0.38, 0.78, 0.86, 0.14)
 const CUT_SCARP_LINE := Color(0.72, 0.96, 1.0, 0.34)
 const CRYSTAL_LINE := Color(0.42, 0.88, 0.98, 0.78)
 const CRYSTAL_FILL := Color(0.25, 0.78, 0.95, 0.44)
-const MINE_ISLAND_FILL := Color(0.08, 0.22, 0.26, 0.11)
-const MINE_ISLAND_LINE := Color(0.56, 0.9, 0.98, 0.34)
+const MINE_ISLAND_FILL := Color(0.08, 0.22, 0.26, 0.075)
+const MINE_ISLAND_LINE := Color(0.56, 0.9, 0.98, 0.3)
 const DARK_CUT_CHANNEL := Color(0.01, 0.035, 0.045, 0.56)
-const ORE_CHIP_FILL := Color(0.16, 0.36, 0.42, 0.18)
+const ORE_CHIP_FILL := Color(0.16, 0.36, 0.42, 0.12)
 const ORE_CHIP_LINE := Color(0.54, 0.86, 0.94, 0.22)
 const MINE_BENCH_LINE := Color(0.68, 0.92, 0.96, 0.24)
-const HARVEST_PAD_FILL := Color(0.07, 0.13, 0.14, 0.24)
+const BROKEN_MINE_SHADOW_FILL := Color(0.02, 0.07, 0.08, 0.26)
+const BROKEN_MINE_SHADOW_LINE := Color(0.28, 0.56, 0.62, 0.18)
+const HARVEST_PAD_FILL := Color(0.07, 0.13, 0.14, 0.2)
 const HARVEST_PAD_LINE := Color(0.68, 0.94, 1.0, 0.32)
 const RICH_CRYSTAL_LINE := Color(0.76, 0.94, 1.0, 0.86)
 const SALVAGE_LINE := Color(0.72, 0.78, 0.68, 0.58)
@@ -144,16 +146,17 @@ func _draw_field_frame() -> void:
 	var field_rect := Rect2(Vector2(-18.0, -270.0), Vector2(250.0, 332.0))
 	var salvage_rect := Rect2(Vector2(-10.0, 80.0), Vector2(258.0, 178.0))
 	draw_rect(field_rect, FIELD_FILL, true)
-	draw_rect(field_rect, FIELD_FRAME, false, 2.0, true)
-	draw_rect(salvage_rect, Color(0.05, 0.09, 0.1, 0.18), true)
-	draw_rect(salvage_rect, Color(0.44, 0.58, 0.52, 0.24), false, 1.8, true)
+	draw_rect(field_rect, FIELD_FRAME, false, 1.2, true)
+	draw_rect(salvage_rect, Color(0.05, 0.09, 0.1, 0.1), true)
+	draw_rect(salvage_rect, Color(0.44, 0.58, 0.52, 0.18), false, 1.3, true)
 	for y in [-206.0, -126.0, -36.0, 116.0, 206.0]:
-		draw_line(Vector2(-8.0, y), Vector2(224.0, y), Color(0.34, 0.52, 0.54, 0.16), 1.2, true)
-	draw_line(Vector2(-8.0, -72.0), Vector2(108.0, -72.0), Color(0.35, 0.9, 0.98, 0.34), 4.0, true)
+		draw_line(Vector2(-8.0, y), Vector2(224.0, y), Color(0.34, 0.52, 0.54, 0.08), 1.0, true)
+	draw_line(Vector2(-8.0, -72.0), Vector2(108.0, -72.0), Color(0.35, 0.9, 0.98, 0.2), 2.4, true)
 
 
 func _draw_mining_material_surface() -> void:
 	_draw_harvest_face_floor()
+	_draw_broken_mine_shadow_patches()
 	_draw_mine_face_islands()
 	_draw_dark_cut_channels()
 	_draw_broken_ore_tiles()
@@ -279,6 +282,38 @@ func _draw_broken_ore_tiles() -> void:
 		var polygon := PackedVector2Array(tile)
 		draw_colored_polygon(polygon, ORE_CHIP_FILL)
 		draw_polyline(polygon, ORE_CHIP_LINE, 1.1, true)
+
+
+func _draw_broken_mine_shadow_patches() -> void:
+	for patch in [
+		[
+			Vector2(34.0, -232.0),
+			Vector2(92.0, -246.0),
+			Vector2(138.0, -220.0),
+			Vector2(98.0, -186.0),
+			Vector2(42.0, -194.0),
+			Vector2(34.0, -232.0)
+		],
+		[
+			Vector2(116.0, -174.0),
+			Vector2(204.0, -158.0),
+			Vector2(224.0, -104.0),
+			Vector2(170.0, -72.0),
+			Vector2(110.0, -104.0),
+			Vector2(116.0, -174.0)
+		],
+		[
+			Vector2(30.0, -78.0),
+			Vector2(104.0, -58.0),
+			Vector2(166.0, -18.0),
+			Vector2(110.0, 22.0),
+			Vector2(40.0, -8.0),
+			Vector2(30.0, -78.0)
+		]
+	]:
+		var polygon := PackedVector2Array(patch)
+		draw_colored_polygon(polygon, BROKEN_MINE_SHADOW_FILL)
+		draw_polyline(polygon, BROKEN_MINE_SHADOW_LINE, 1.1, true)
 
 
 func _draw_local_harvest_work_pads() -> void:
@@ -524,6 +559,7 @@ func _register_flow_shapes() -> void:
 func _register_terrain_material_shapes() -> void:
 	terrain_material_shape_ids = [
 		"terrain.crystal.harvest_face",
+		"terrain.crystal.broken_mine_shadow_patches",
 		"terrain.crystal.mine_face_islands",
 		"terrain.crystal.dark_cut_channels",
 		"terrain.crystal.fractured_ore_tiles",
@@ -545,16 +581,16 @@ func _deemphasize_legacy_crystal_blocks() -> void:
 		region.color = Color(0.05, 0.09, 0.12, 0.045)
 	var demo_route_band := _get_map_node("DemoRoutePresentationLayer/DemoRouteCrystalBand") as ColorRect
 	if demo_route_band != null:
-		demo_route_band.color = Color(demo_route_band.color.r, demo_route_band.color.g, demo_route_band.color.b, 0.018)
+		demo_route_band.color = Color(demo_route_band.color.r, demo_route_band.color.g, demo_route_band.color.b, 0.01)
 	var route_label := _get_map_node("DemoRoutePresentationLayer/DemoRouteCrystalLabel") as Label
 	if route_label != null:
 		route_label.visible = false
 	var base_route := _get_map_node("BaseToCrystalRouteBand") as ColorRect
 	if base_route != null:
-		base_route.color.a = minf(base_route.color.a, 0.035)
+		base_route.color.a = minf(base_route.color.a, 0.024)
 	var pollution_route := _get_map_node("CrystalToPollutionRouteBand") as ColorRect
 	if pollution_route != null:
-		pollution_route.color.a = minf(pollution_route.color.a, 0.018)
+		pollution_route.color.a = minf(pollution_route.color.a, 0.008)
 
 	var layer := _get_map_node("OpeningSceneLayer")
 	if layer == null:
@@ -562,11 +598,11 @@ func _deemphasize_legacy_crystal_blocks() -> void:
 	for node_name in LEGACY_CRYSTAL_PANELS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
-			rect.color.a = minf(rect.color.a, 0.018)
+			rect.color.a = minf(rect.color.a, 0.008)
 	for node_name in LEGACY_CRYSTAL_MARKERS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
-			rect.color.a = minf(rect.color.a, 0.018)
+			rect.color.a = minf(rect.color.a, 0.008)
 
 
 func _mute_crystal_identity_blocks() -> void:
@@ -595,7 +631,7 @@ func _tone_down_resource_interactable_markers() -> void:
 		if marker == null:
 			marker = interactable.get_node_or_null("Marker") as ColorRect
 		if marker != null:
-			marker.color.a = 0.08
+			marker.color.a = 0.055
 			muted_resource_marker_count += 1
 
 

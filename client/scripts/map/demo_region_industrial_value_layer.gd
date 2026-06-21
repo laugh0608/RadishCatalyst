@@ -2,9 +2,9 @@ extends Node2D
 class_name DemoRegionIndustrialValueLayer
 
 const FOCUS_VISIBLE_RADIUS := 210.0
-const ROUTE_VISIBLE_RADIUS := 100.0
-const VALUE_NODE_ROUTE_ALPHA := 0.18
-const VALUE_NODE_DIM_ALPHA := 0.018
+const ROUTE_VISIBLE_RADIUS := 72.0
+const VALUE_NODE_ROUTE_ALPHA := 0.12
+const VALUE_NODE_DIM_ALPHA := 0.008
 
 const ROLE_RESOURCE := "resource"
 const ROLE_RISK := "risk"
@@ -17,8 +17,8 @@ const RISK_COLOR := Color(0.9, 0.38, 0.2, 0.82)
 const UNLOCK_COLOR := Color(0.7, 0.58, 0.92, 0.82)
 const STABILITY_COLOR := Color(0.52, 0.9, 0.72, 0.84)
 const LOGISTICS_COLOR := Color(0.88, 0.7, 0.28, 0.8)
-const ROUTE_DARK := Color(0.02, 0.04, 0.04, 0.46)
-const NODE_DARK := Color(0.03, 0.045, 0.04, 0.56)
+const ROUTE_DARK := Color(0.02, 0.04, 0.04, 0.32)
+const NODE_DARK := Color(0.03, 0.045, 0.04, 0.46)
 
 const REGION_VALUE_PROFILES := {
 	"region.outpost_platform": {
@@ -183,8 +183,8 @@ func _draw_value_route(points: Array, color: Color, alpha: float) -> void:
 	var vector_points := PackedVector2Array()
 	for point in points:
 		vector_points.append(point)
-	draw_polyline(vector_points, Color(ROUTE_DARK.r, ROUTE_DARK.g, ROUTE_DARK.b, ROUTE_DARK.a * alpha), 5.4, true)
-	draw_polyline(vector_points, Color(color.r, color.g, color.b, VALUE_NODE_ROUTE_ALPHA * alpha), 3.2, true)
+	draw_polyline(vector_points, Color(ROUTE_DARK.r, ROUTE_DARK.g, ROUTE_DARK.b, ROUTE_DARK.a * alpha), 3.8, true)
+	draw_polyline(vector_points, Color(color.r, color.g, color.b, VALUE_NODE_ROUTE_ALPHA * alpha), 2.0, true)
 	for point in vector_points:
 		draw_circle(point, 3.3, Color(color.r, color.g, color.b, 0.52 * alpha))
 

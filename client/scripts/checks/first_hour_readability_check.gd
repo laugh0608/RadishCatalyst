@@ -197,7 +197,7 @@ func _check_opening_scene_layer() -> void:
 				and focus_depth.get_scene_focus_alpha("RegionPollution") <= 0.09
 				and focus_depth.get_scene_focus_alpha("RegionRuinOuterRing") <= 0.02
 				and focus_depth.get_scene_focus_alpha("DemoRoutePresentationLayer/DemoRouteRuinBand") <= 0.006
-				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/CrystalCentralFieldGround") <= 0.06,
+				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/CrystalCentralFieldGround") <= 0.008,
 			true,
 			"opening scene focus depth keeps crystal readable without bringing large field blocks back"
 		)
@@ -205,9 +205,11 @@ func _check_opening_scene_layer() -> void:
 		host._expect_equal(
 			focus_depth.get_scene_focus_alpha("RegionPollution") <= 0.09
 				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/PollutionDangerField") <= 0.06
-				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/PollutionDeepResidueField") <= 0.06,
+				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/PollutionDeepResidueField") <= 0.007
+				and focus_depth.get_scene_focus_alpha("OpeningSceneLayer/CrystalCentralFieldGround") <= 0.004
+				and focus_depth.get_scene_focus_alpha("CrystalToPollutionRouteBand") <= 0.002,
 			true,
-			"opening scene focus depth keeps pollution material blocks behind treatment visuals"
+			"opening scene focus depth keeps pollution material blocks behind treatment visuals and clears crystal carryover"
 		)
 		focus_depth.refresh_focus_depth(demo_core.position)
 		host._expect_equal(
@@ -620,6 +622,7 @@ func _check_enemy_focus_labels() -> void:
 	map.update_current_interactable()
 	host._expect_equal(enemy.label.visible, true, "first-hour nearest attack target label is visible")
 	host._expect_equal(enemy.label.text.split("\n").size() <= 2, true, "first-hour nearest attack target label stays short")
+	host._expect_equal(enemy.label.text.find("HP") < 0, true, "first-hour enemy scene label leaves HP to combat HUD")
 	host._expect_equal(enemy.label.offset_left > enemy.sprite.position.x + enemy.sprite.size.x, true, "first-hour nearest attack target label is placed beside the marker")
 	host._expect_equal(enemy.sprite.scale, PrototypeEnemy.FOCUSED_SPRITE_SCALE, "first-hour nearest attack target is enlarged")
 	host._expect_equal(enemy.focus_ring.visible, true, "first-hour nearest attack target shows focus ring")

@@ -2,16 +2,19 @@ extends Node2D
 class_name DemoSceneFocusDepthLayer
 
 const NEAR_BASE_REGION_ALPHA := 0.18
-const NEAR_EXPEDITION_REGION_ALPHA := 0.032
+const NEAR_EXPEDITION_REGION_ALPHA := 0.022
 const DISTANT_REGION_ALPHA := 0.006
 const NEAR_BASE_ROUTE_ALPHA := 0.024
 const NEAR_EXPEDITION_ROUTE_ALPHA := 0.004
-const DISTANT_ROUTE_ALPHA := 0.002
+const DISTANT_ROUTE_ALPHA := 0.001
 const NEAR_BOUNDARY_ALPHA := 0.22
 const DISTANT_BOUNDARY_ALPHA := 0.018
 const NEAR_BASE_SCENE_GROUND_ALPHA := 0.18
-const NEAR_EXPEDITION_SCENE_GROUND_ALPHA := 0.012
-const DISTANT_SCENE_GROUND_ALPHA := 0.003
+const NEAR_EXPEDITION_SCENE_GROUND_ALPHA := 0.006
+const DISTANT_SCENE_GROUND_ALPHA := 0.0015
+const POLLUTION_FOCUS_MIN_X := 180.0
+const CRYSTAL_CARRYOVER_SCENE_GROUND_ALPHA := 0.002
+const CRYSTAL_CARRYOVER_ROUTE_ALPHA := 0.0008
 const REGION_FOCUS_DISTANCE := 160.0
 const ROUTE_FOCUS_DISTANCE := 70.0
 const BOUNDARY_FOCUS_DISTANCE := 180.0
@@ -46,6 +49,10 @@ const EXPEDITION_ROUTE_RECT_PATHS := [
 	"DemoRoutePresentationLayer/DemoRouteCoreApproachFlow",
 	"DemoRoutePresentationLayer/DemoRouteCoreBand"
 ]
+const CRYSTAL_ROUTE_RECT_PATHS := [
+	"CrystalToPollutionRouteBand",
+	"DemoRoutePresentationLayer/DemoRouteCrystalBand"
+]
 const BOUNDARY_RECT_PATHS := [
 	"RegionBoundaryCrystal",
 	"RegionBoundaryPollution",
@@ -79,6 +86,14 @@ const EXPEDITION_SCENE_GROUND_RECT_PATHS := [
 	"OpeningSceneLayer/CoreStabilizationRetestYard",
 	"OpeningSceneLayer/CoreStabilizationLogisticsRetestYard"
 ]
+const CRYSTAL_SCENE_GROUND_RECT_PATHS := [
+	"OpeningSceneLayer/CrystalEntryGround",
+	"OpeningSceneLayer/CrystalNorthRidgeGround",
+	"OpeningSceneLayer/CrystalCentralFieldGround",
+	"OpeningSceneLayer/CrystalSouthSalvageYard",
+	"OpeningSceneLayer/CrystalMainVeinTrack",
+	"OpeningSceneLayer/CrystalScrapPocket"
+]
 
 
 func _ready() -> void:
@@ -109,6 +124,9 @@ func refresh_focus_depth(focus_position: Vector2) -> void:
 		NEAR_EXPEDITION_SCENE_GROUND_ALPHA,
 		DISTANT_SCENE_GROUND_ALPHA
 	)
+	if focus_position.x >= POLLUTION_FOCUS_MIN_X:
+		_apply_constant_alpha(CRYSTAL_ROUTE_RECT_PATHS, CRYSTAL_CARRYOVER_ROUTE_ALPHA)
+		_apply_constant_alpha(CRYSTAL_SCENE_GROUND_RECT_PATHS, CRYSTAL_CARRYOVER_SCENE_GROUND_ALPHA)
 
 
 func get_scene_focus_alpha(rect_path: String) -> float:
@@ -131,6 +149,16 @@ func _apply_focus_alpha(
 			continue
 		var color := rect.color
 		color.a = near_alpha if _is_rect_near_focus(rect, focus_position, focus_distance) else distant_alpha
+		rect.color = color
+
+
+func _apply_constant_alpha(rect_paths: Array, alpha: float) -> void:
+	for rect_path in rect_paths:
+		var rect := _get_color_rect(String(rect_path))
+		if rect == null:
+			continue
+		var color := rect.color
+		color.a = alpha
 		rect.color = color
 
 

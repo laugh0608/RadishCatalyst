@@ -186,7 +186,7 @@ func _check_crystal_resource_visual_layer() -> void:
 	layer.apply_visuals()
 	_expect_equal(layer.get_resource_shape_count() >= 9, true, "crystal visual layer registers resource shapes")
 	_expect_equal(layer.get_flow_count() >= 4, true, "crystal visual layer registers resource flow lines")
-	_expect_equal(layer.get_terrain_material_shape_count() >= 13, true, "crystal visual layer registers mining terrain materials")
+	_expect_equal(layer.get_terrain_material_shape_count() >= 14, true, "crystal visual layer registers mining terrain materials")
 	layer.refresh_focus_visibility(Vector2(-250, -48))
 	_expect_equal(layer.visible, false, "crystal visual layer stays hidden at startup objective")
 	layer.refresh_focus_visibility(Vector2(-38, -104))
@@ -198,6 +198,7 @@ func _check_crystal_resource_visual_layer() -> void:
 	_expect_equal(layer.has_resource_shape("salvage.south_pocket"), true, "crystal visual layer marks salvage pocket")
 	_expect_equal(layer.has_flow_shape("flow.crystal_to_base"), true, "crystal visual layer marks return flow")
 	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.harvest_face"), true, "crystal visual layer marks harvestable mine face")
+	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.broken_mine_shadow_patches"), true, "crystal visual layer breaks the old blue ore field with irregular mine patches")
 	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.mine_face_islands"), true, "crystal visual layer splits harvest face into mine islands")
 	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.dark_cut_channels"), true, "crystal visual layer cuts dark channels through old ore block")
 	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.fractured_ore_tiles"), true, "crystal visual layer breaks old ore block into fractured tiles")
@@ -214,9 +215,9 @@ func _check_crystal_resource_visual_layer() -> void:
 	var legacy_track := map.get_node("OpeningSceneLayer/CrystalMainVeinTrack") as ColorRect
 	var legacy_pocket := map.get_node("OpeningSceneLayer/CrystalSalvageObjectPocket") as ColorRect
 	var route_band := map.get_node("DemoRoutePresentationLayer/DemoRouteCrystalBand") as ColorRect
-	_expect_equal(legacy_track.color.a <= 0.02, true, "crystal visual layer de-emphasizes old vein block")
-	_expect_equal(legacy_pocket.color.a <= 0.02, true, "crystal visual layer de-emphasizes old salvage block")
-	_expect_equal(route_band.color.a <= 0.02, true, "crystal visual layer de-emphasizes old route block")
+	_expect_equal(legacy_track.color.a <= 0.01, true, "crystal visual layer de-emphasizes old vein block")
+	_expect_equal(legacy_pocket.color.a <= 0.01, true, "crystal visual layer de-emphasizes old salvage block")
+	_expect_equal(route_band.color.a <= 0.012, true, "crystal visual layer de-emphasizes old route block")
 	map.free()
 
 
