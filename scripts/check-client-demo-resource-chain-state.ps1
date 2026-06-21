@@ -59,6 +59,10 @@ $requiredTextByFile = @{
         "first_path.outfitting_handoff",
         "first_path.stage_feedback_lane",
         "first_path.stage.%s",
+        "first_path.context_clarity_mask",
+        "first_path.single_signal_stage",
+        "CurrentObjectiveGuidanceLayer",
+        "_set_context_layers_muted",
         "_has_first_path_output_context",
         "_quiet_global_planning_layers"
     )
@@ -84,6 +88,7 @@ $requiredTextByFile = @{
         "first_path.stage.reactor_processing",
         "STAGE_OUTFITTING_READY",
         "starting supplies from skipping field pickup",
+        "restores background layers outside its scope",
         "crystal visual layer registers mining terrain materials",
         "terrain.crystal.return_cart_lane",
         "_check_pollution_chain_hud_and_visual_state",

@@ -4,18 +4,34 @@ class_name DemoFirstIndustrialPathVisualLayer
 const FOCUS_MIN_X := -360.0
 const FOCUS_MAX_X := 260.0
 
-const WORKSPACE_WASH := Color(0.016, 0.026, 0.026, 0.18)
-const PATH_DARK := Color(0.018, 0.036, 0.032, 0.72)
-const PATH_FILL := Color(0.18, 0.32, 0.26, 0.28)
-const PATH_EDGE := Color(0.58, 0.78, 0.52, 0.5)
-const PATH_MARK := Color(0.88, 0.76, 0.32, 0.5)
-const CRYSTAL_ACCENT := Color(0.34, 0.78, 0.86, 0.82)
-const SALVAGE_ACCENT := Color(0.84, 0.7, 0.34, 0.78)
-const REACTOR_ACCENT := Color(1.0, 0.58, 0.22, 0.86)
-const PRODUCT_ACCENT := Color(0.58, 0.88, 0.52, 0.82)
-const OUTFITTING_ACCENT := Color(0.92, 0.74, 0.3, 0.86)
+const WORKSPACE_WASH := Color(0.006, 0.014, 0.014, 0.42)
+const PATH_DARK := Color(0.008, 0.018, 0.018, 0.86)
+const PATH_FILL := Color(0.13, 0.19, 0.17, 0.16)
+const PATH_EDGE := Color(0.42, 0.54, 0.48, 0.24)
+const PATH_MARK := Color(0.62, 0.58, 0.42, 0.24)
+const CONTEXT_FILL := Color(0.022, 0.038, 0.034, 0.58)
+const CONTEXT_EDGE := Color(0.42, 0.52, 0.46, 0.28)
+const CONTEXT_DASH := Color(0.56, 0.54, 0.38, 0.18)
+const SIGNAL_ACCENT := Color(0.96, 0.74, 0.28, 0.9)
+const SIGNAL_SOFT := Color(0.96, 0.74, 0.28, 0.2)
+const COMPLETE_DOT := Color(0.46, 0.64, 0.52, 0.58)
+const CRYSTAL_ACCENT := Color(0.34, 0.78, 0.86, 0.32)
+const SALVAGE_ACCENT := Color(0.84, 0.7, 0.34, 0.3)
+const REACTOR_ACCENT := Color(1.0, 0.58, 0.22, 0.34)
+const PRODUCT_ACCENT := Color(0.58, 0.88, 0.52, 0.3)
+const OUTFITTING_ACCENT := Color(0.92, 0.74, 0.3, 0.32)
 const SLOT_DARK := Color(0.02, 0.04, 0.035, 0.64)
-const READY_DIM := Color(0.22, 0.3, 0.28, 0.34)
+const READY_DIM := Color(0.22, 0.28, 0.26, 0.22)
+
+const FIRST_PATH_CONTEXT_LAYER_ALPHAS := [
+	{"path": "OpeningSceneLayer", "alpha": 0.2},
+	{"path": "DemoIndustrialBaseVisualLayer", "alpha": 0.38},
+	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.18},
+	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.08},
+	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.12},
+	{"path": "DemoRoutePresentationLayer", "alpha": 0.05},
+	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.12}
+]
 
 const STAGE_FIELD_PICKUP := "field_pickup"
 const STAGE_RETURN_TO_BASE := "return_to_base"
@@ -40,6 +56,7 @@ var path_shape_ids: Array[String] = []
 var path_state_shape_ids: Array[String] = []
 var muted_planning_layer_count := 0
 var path_state: Dictionary = {}
+var context_layer_original_modulates: Dictionary = {}
 
 
 func _ready() -> void:
@@ -100,7 +117,9 @@ func refresh_path_state(world_state: WorldState, character_state: CharacterState
 
 
 func refresh_focus_visibility(player_position: Vector2) -> void:
-	visible = is_first_path_visible_at(player_position)
+	var should_show := is_first_path_visible_at(player_position)
+	visible = should_show
+	_set_context_layers_muted(should_show)
 
 
 func is_first_path_visible_at(player_position: Vector2) -> bool:
@@ -134,11 +153,11 @@ func get_active_stage() -> String:
 func _draw() -> void:
 	_draw_workspace_focus()
 	_draw_primary_path_floor()
-	_draw_stage_feedback()
 	_draw_resource_workspots()
 	_draw_base_receiving_bay()
 	_draw_reactor_feed_station()
 	_draw_storage_and_outfitting_handoff()
+	_draw_stage_feedback()
 	_draw_path_state()
 
 
@@ -150,7 +169,7 @@ func _draw_workspace_focus() -> void:
 		Rect2(Vector2(24.0, -208.0), Vector2(188.0, 52.0)),
 		Rect2(Vector2(44.0, 92.0), Vector2(164.0, 72.0))
 	]:
-		draw_rect(rect, Color(0.012, 0.022, 0.023, 0.2), true)
+		draw_rect(rect, Color(0.012, 0.022, 0.023, 0.28), true)
 
 
 func _draw_primary_path_floor() -> void:
@@ -171,123 +190,127 @@ func _draw_stage_feedback() -> void:
 		return
 	match get_active_stage():
 		STAGE_FIELD_PICKUP:
-			_draw_active_stage_lane([Vector2(-42.0, -42.0), Vector2(-74.0, -14.0), Vector2(-42.0, -106.0), Vector2(48.0, -100.0), Vector2(132.0, -124.0)], CRYSTAL_ACCENT)
-			_draw_stage_pulse(Vector2(132.0, -124.0), CRYSTAL_ACCENT, 28.0)
-			_draw_stage_pulse(Vector2(54.0, 112.0), SALVAGE_ACCENT, 22.0)
+			_draw_active_stage_lane([Vector2(-42.0, -42.0), Vector2(-74.0, -14.0), Vector2(-42.0, -106.0), Vector2(48.0, -100.0), Vector2(132.0, -124.0)])
+			_draw_stage_pulse(Vector2(132.0, -124.0), 28.0)
+			_draw_stage_pulse(Vector2(54.0, 112.0), 22.0)
 		STAGE_RETURN_TO_BASE:
-			_draw_active_stage_lane([Vector2(132.0, -124.0), Vector2(48.0, -100.0), Vector2(-42.0, -106.0), Vector2(-214.0, -112.0)], CRYSTAL_ACCENT)
-			_draw_stage_pulse(Vector2(-214.0, -112.0), CRYSTAL_ACCENT, 24.0)
+			_draw_active_stage_lane([Vector2(132.0, -124.0), Vector2(48.0, -100.0), Vector2(-42.0, -106.0), Vector2(-214.0, -112.0)])
+			_draw_stage_pulse(Vector2(-214.0, -112.0), 24.0)
 		STAGE_BASE_RECEIVING:
-			_draw_active_stage_lane([Vector2(-214.0, -112.0), Vector2(-194.0, -108.0), Vector2(-178.0, -92.0)], SALVAGE_ACCENT)
-			_draw_stage_pulse(Vector2(-214.0, -112.0), SALVAGE_ACCENT, 24.0)
+			_draw_active_stage_lane([Vector2(-214.0, -112.0), Vector2(-194.0, -108.0), Vector2(-178.0, -92.0)])
+			_draw_stage_pulse(Vector2(-214.0, -112.0), 24.0)
 		STAGE_REACTOR_PROCESSING:
-			_draw_active_stage_lane([Vector2(-194.0, -108.0), Vector2(-178.0, -92.0), Vector2(-166.0, -66.0)], REACTOR_ACCENT)
-			_draw_stage_pulse(Vector2(-166.0, -66.0), REACTOR_ACCENT, 31.0)
+			_draw_active_stage_lane([Vector2(-194.0, -108.0), Vector2(-178.0, -92.0), Vector2(-166.0, -66.0)])
+			_draw_stage_pulse(Vector2(-166.0, -66.0), 31.0)
 		STAGE_STORAGE_OUTPUT:
-			_draw_active_stage_lane([Vector2(-148.0, -38.0), Vector2(-170.0, 10.0), Vector2(-250.0, 18.0)], PRODUCT_ACCENT)
-			_draw_stage_pulse(Vector2(-250.0, 18.0), PRODUCT_ACCENT, 26.0)
+			_draw_active_stage_lane([Vector2(-148.0, -38.0), Vector2(-170.0, 10.0), Vector2(-250.0, 18.0)])
+			_draw_stage_pulse(Vector2(-250.0, 18.0), 26.0)
 		STAGE_OUTFITTING_READY:
-			_draw_active_stage_lane([Vector2(-250.0, 18.0), Vector2(-128.0, 54.0), Vector2(-74.0, -14.0), Vector2(-42.0, -42.0)], OUTFITTING_ACCENT)
-			_draw_stage_pulse(Vector2(-74.0, -14.0), OUTFITTING_ACCENT, 26.0)
+			_draw_active_stage_lane([Vector2(-250.0, 18.0), Vector2(-128.0, 54.0), Vector2(-74.0, -14.0), Vector2(-42.0, -42.0)])
+			_draw_stage_pulse(Vector2(-74.0, -14.0), 26.0)
 
 
-func _draw_active_stage_lane(points: Array, color: Color) -> void:
-	_draw_lane(points, 15.0, Color(color.r, color.g, color.b, 0.24), Color(color.r, color.g, color.b, 0.72))
-	_draw_stage_chevrons(points, color)
+func _draw_active_stage_lane(points: Array) -> void:
+	_draw_lane(points, 12.0, SIGNAL_SOFT, SIGNAL_ACCENT)
+	_draw_stage_chevrons(points)
 
 
-func _draw_stage_chevrons(points: Array, color: Color) -> void:
+func _draw_stage_chevrons(points: Array) -> void:
 	for index in range(points.size() - 1):
 		var from: Vector2 = points[index]
 		var to: Vector2 = points[index + 1]
 		var direction := (to - from).normalized()
 		var normal := Vector2(-direction.y, direction.x)
-		for ratio in [0.34, 0.68]:
+		for ratio in [0.54]:
 			var center := from.lerp(to, ratio)
-			draw_line(center - direction * 7.0 - normal * 4.0, center + direction * 4.0, Color(color.r, color.g, color.b, 0.58), 1.4, true)
-			draw_line(center - direction * 7.0 + normal * 4.0, center + direction * 4.0, Color(color.r, color.g, color.b, 0.58), 1.4, true)
+			draw_line(center - direction * 8.0 - normal * 4.0, center + direction * 5.0, SIGNAL_ACCENT, 1.8, true)
+			draw_line(center - direction * 8.0 + normal * 4.0, center + direction * 5.0, SIGNAL_ACCENT, 1.8, true)
 
 
-func _draw_stage_pulse(center: Vector2, color: Color, radius: float) -> void:
-	draw_circle(center, radius * 0.52, Color(color.r, color.g, color.b, 0.1))
-	draw_arc(center, radius, PI * 0.12, PI * 1.9, 34, Color(color.r, color.g, color.b, 0.58), 2.2, true)
-	draw_arc(center, radius + 6.0, PI * 0.52, PI * 1.36, 24, Color(color.r, color.g, color.b, 0.32), 1.4, true)
+func _draw_stage_pulse(center: Vector2, radius: float) -> void:
+	draw_circle(center, 4.8, SIGNAL_ACCENT)
+	draw_arc(center, radius, PI * 0.12, PI * 1.9, 34, SIGNAL_ACCENT, 2.4, true)
+	draw_arc(center, radius + 6.0, PI * 0.52, PI * 1.36, 24, Color(SIGNAL_ACCENT.r, SIGNAL_ACCENT.g, SIGNAL_ACCENT.b, 0.38), 1.5, true)
 
 
 func _draw_resource_workspots() -> void:
 	_draw_resource_pad(Vector2(132.0, -124.0), CRYSTAL_ACCENT, true)
 	_draw_resource_pad(Vector2(54.0, 112.0), SALVAGE_ACCENT, false)
-	_draw_lane([Vector2(54.0, 112.0), Vector2(8.0, 68.0), Vector2(-42.0, -106.0)], 11.0, Color(0.22, 0.26, 0.18, 0.24), SALVAGE_ACCENT)
+	_draw_lane([Vector2(54.0, 112.0), Vector2(8.0, 68.0), Vector2(-42.0, -106.0)], 9.0, Color(0.14, 0.16, 0.12, 0.14), Color(SALVAGE_ACCENT.r, SALVAGE_ACCENT.g, SALVAGE_ACCENT.b, 0.22))
 	for offset in [Vector2(-12.0, -8.0), Vector2(8.0, -2.0), Vector2(0.0, 10.0)]:
 		_draw_crystal_shard(Vector2(132.0, -124.0) + offset, 0.78)
 	for rect in [
 		Rect2(Vector2(42.0, 100.0), Vector2(22.0, 14.0)),
 		Rect2(Vector2(66.0, 116.0), Vector2(18.0, 12.0))
 	]:
-		draw_rect(rect, Color(SALVAGE_ACCENT.r, SALVAGE_ACCENT.g, SALVAGE_ACCENT.b, 0.25), true)
-		draw_rect(rect, Color(SALVAGE_ACCENT.r, SALVAGE_ACCENT.g, SALVAGE_ACCENT.b, 0.58), false, 1.2, true)
+		draw_rect(rect, Color(SALVAGE_ACCENT.r, SALVAGE_ACCENT.g, SALVAGE_ACCENT.b, 0.1), true)
+		draw_rect(rect, Color(SALVAGE_ACCENT.r, SALVAGE_ACCENT.g, SALVAGE_ACCENT.b, 0.24), false, 1.2, true)
 
 
 func _draw_base_receiving_bay() -> void:
 	var bay := Rect2(Vector2(-236.0, -132.0), Vector2(48.0, 42.0))
-	draw_rect(bay, Color(0.05, 0.08, 0.07, 0.56), true)
-	draw_rect(bay, Color(CRYSTAL_ACCENT.r, CRYSTAL_ACCENT.g, CRYSTAL_ACCENT.b, 0.48), false, 1.8, true)
-	draw_line(Vector2(-226.0, -122.0), Vector2(-198.0, -98.0), Color(CRYSTAL_ACCENT.r, CRYSTAL_ACCENT.g, CRYSTAL_ACCENT.b, 0.42), 2.2, true)
-	draw_line(Vector2(-228.0, -98.0), Vector2(-198.0, -122.0), Color(SALVAGE_ACCENT.r, SALVAGE_ACCENT.g, SALVAGE_ACCENT.b, 0.34), 1.8, true)
+	draw_rect(bay, CONTEXT_FILL, true)
+	draw_rect(bay, CONTEXT_EDGE, false, 1.6, true)
+	draw_line(Vector2(-226.0, -122.0), Vector2(-198.0, -98.0), CONTEXT_DASH, 1.8, true)
+	draw_line(Vector2(-228.0, -98.0), Vector2(-198.0, -122.0), CONTEXT_DASH, 1.4, true)
 	draw_rect(Rect2(Vector2(-250.0, -112.0), Vector2(14.0, 16.0)), Color(PATH_EDGE.r, PATH_EDGE.g, PATH_EDGE.b, 0.24), true)
-	draw_circle(Vector2(-194.0, -108.0), 4.4, Color(CRYSTAL_ACCENT.r, CRYSTAL_ACCENT.g, CRYSTAL_ACCENT.b, 0.5))
+	draw_circle(Vector2(-194.0, -108.0), 4.4, CONTEXT_EDGE)
 
 
 func _draw_reactor_feed_station() -> void:
 	var hopper := Rect2(Vector2(-184.0, -116.0), Vector2(38.0, 28.0))
 	draw_rect(hopper, SLOT_DARK, true)
-	draw_rect(hopper, Color(REACTOR_ACCENT.r, REACTOR_ACCENT.g, REACTOR_ACCENT.b, 0.54), false, 1.7, true)
-	_draw_lane([Vector2(-194.0, -108.0), Vector2(-178.0, -92.0), Vector2(-166.0, -66.0)], 10.0, Color(REACTOR_ACCENT.r, REACTOR_ACCENT.g, REACTOR_ACCENT.b, 0.18), REACTOR_ACCENT)
-	draw_rect(Rect2(Vector2(-176.0, -86.0), Vector2(24.0, 40.0)), Color(REACTOR_ACCENT.r, REACTOR_ACCENT.g, REACTOR_ACCENT.b, 0.12), true)
-	draw_rect(Rect2(Vector2(-176.0, -86.0), Vector2(24.0, 40.0)), Color(REACTOR_ACCENT.r, REACTOR_ACCENT.g, REACTOR_ACCENT.b, 0.58), false, 1.8, true)
+	draw_rect(hopper, CONTEXT_EDGE, false, 1.6, true)
+	_draw_lane([Vector2(-194.0, -108.0), Vector2(-178.0, -92.0), Vector2(-166.0, -66.0)], 8.0, Color(REACTOR_ACCENT.r, REACTOR_ACCENT.g, REACTOR_ACCENT.b, 0.08), Color(REACTOR_ACCENT.r, REACTOR_ACCENT.g, REACTOR_ACCENT.b, 0.22))
+	draw_rect(Rect2(Vector2(-176.0, -86.0), Vector2(24.0, 40.0)), Color(REACTOR_ACCENT.r, REACTOR_ACCENT.g, REACTOR_ACCENT.b, 0.08), true)
+	draw_rect(Rect2(Vector2(-176.0, -86.0), Vector2(24.0, 40.0)), CONTEXT_EDGE, false, 1.6, true)
 	for y in [-78.0, -66.0, -54.0]:
-		draw_line(Vector2(-172.0, y), Vector2(-156.0, y + 6.0), Color(REACTOR_ACCENT.r, REACTOR_ACCENT.g, REACTOR_ACCENT.b, 0.4), 1.4, true)
+		draw_line(Vector2(-172.0, y), Vector2(-156.0, y + 6.0), CONTEXT_DASH, 1.2, true)
 
 
 func _draw_storage_and_outfitting_handoff() -> void:
 	var storage := Rect2(Vector2(-284.0, 4.0), Vector2(68.0, 56.0))
-	draw_rect(storage, Color(0.04, 0.08, 0.06, 0.5), true)
-	draw_rect(storage, Color(PRODUCT_ACCENT.r, PRODUCT_ACCENT.g, PRODUCT_ACCENT.b, 0.46), false, 1.7, true)
+	draw_rect(storage, CONTEXT_FILL, true)
+	draw_rect(storage, CONTEXT_EDGE, false, 1.6, true)
 	for index in range(3):
 		var x := -274.0 + float(index) * 18.0
-		draw_rect(Rect2(Vector2(x, 14.0), Vector2(12.0, 10.0)), Color(PRODUCT_ACCENT.r, PRODUCT_ACCENT.g, PRODUCT_ACCENT.b, 0.32), true)
-		draw_rect(Rect2(Vector2(x, 34.0), Vector2(12.0, 10.0)), Color(OUTFITTING_ACCENT.r, OUTFITTING_ACCENT.g, OUTFITTING_ACCENT.b, 0.28), true)
+		draw_rect(Rect2(Vector2(x, 14.0), Vector2(12.0, 10.0)), Color(PRODUCT_ACCENT.r, PRODUCT_ACCENT.g, PRODUCT_ACCENT.b, 0.14), true)
+		draw_rect(Rect2(Vector2(x, 34.0), Vector2(12.0, 10.0)), Color(OUTFITTING_ACCENT.r, OUTFITTING_ACCENT.g, OUTFITTING_ACCENT.b, 0.12), true)
 	var handoff := Rect2(Vector2(-106.0, -32.0), Vector2(56.0, 30.0))
 	draw_rect(handoff, SLOT_DARK, true)
-	draw_rect(handoff, OUTFITTING_ACCENT, false, 1.7, true)
-	draw_line(Vector2(-98.0, -16.0), Vector2(-56.0, -16.0), Color(OUTFITTING_ACCENT.r, OUTFITTING_ACCENT.g, OUTFITTING_ACCENT.b, 0.44), 2.4, true)
-	draw_line(Vector2(-48.0, -38.0), Vector2(-30.0, -38.0), Color(OUTFITTING_ACCENT.r, OUTFITTING_ACCENT.g, OUTFITTING_ACCENT.b, 0.5), 3.0, true)
+	draw_rect(handoff, CONTEXT_EDGE, false, 1.6, true)
+	draw_line(Vector2(-98.0, -16.0), Vector2(-56.0, -16.0), CONTEXT_DASH, 1.8, true)
+	draw_line(Vector2(-48.0, -38.0), Vector2(-30.0, -38.0), CONTEXT_DASH, 2.0, true)
 
 
 func _draw_path_state() -> void:
 	if path_state.is_empty():
 		return
-	_draw_ready_pip(Vector2(132.0, -124.0), bool(path_state.get("crystal_ready", false)), CRYSTAL_ACCENT)
-	_draw_ready_pip(Vector2(54.0, 112.0), bool(path_state.get("salvage_ready", false)), SALVAGE_ACCENT)
-	_draw_ready_pip(Vector2(-214.0, -112.0), bool(path_state.get("inputs_ready", false)), CRYSTAL_ACCENT)
-	_draw_ready_pip(Vector2(-166.0, -66.0), bool(path_state.get("reactor_active", false)), REACTOR_ACCENT)
-	_draw_ready_pip(Vector2(-250.0, 18.0), bool(path_state.get("storage_ready", false)), PRODUCT_ACCENT)
-	_draw_ready_pip(Vector2(-74.0, -14.0), bool(path_state.get("outfitting_ready", false)), OUTFITTING_ACCENT)
+	var active_stage := get_active_stage()
+	_draw_ready_pip(Vector2(132.0, -124.0), bool(path_state.get("crystal_ready", false)), active_stage == STAGE_FIELD_PICKUP or active_stage == STAGE_RETURN_TO_BASE)
+	_draw_ready_pip(Vector2(54.0, 112.0), bool(path_state.get("salvage_ready", false)), active_stage == STAGE_FIELD_PICKUP)
+	_draw_ready_pip(Vector2(-214.0, -112.0), bool(path_state.get("inputs_ready", false)), active_stage == STAGE_RETURN_TO_BASE or active_stage == STAGE_BASE_RECEIVING)
+	_draw_ready_pip(Vector2(-166.0, -66.0), bool(path_state.get("reactor_active", false)), active_stage == STAGE_REACTOR_PROCESSING)
+	_draw_ready_pip(Vector2(-250.0, 18.0), bool(path_state.get("storage_ready", false)), active_stage == STAGE_STORAGE_OUTPUT)
+	_draw_ready_pip(Vector2(-74.0, -14.0), bool(path_state.get("outfitting_ready", false)), active_stage == STAGE_OUTFITTING_READY)
 
 
-func _draw_ready_pip(position: Vector2, is_ready: bool, color: Color) -> void:
-	draw_circle(position, 6.0, color if is_ready else READY_DIM)
-	draw_arc(position, 10.0, 0.0, TAU, 24, Color(color.r, color.g, color.b, 0.42), 1.4, true)
+func _draw_ready_pip(position: Vector2, is_ready: bool, is_active: bool) -> void:
+	var pip_color := SIGNAL_ACCENT if is_active else COMPLETE_DOT if is_ready else READY_DIM
+	var radius := 6.8 if is_active else 4.6
+	draw_circle(position, radius, pip_color)
+	if is_active:
+		draw_arc(position, 12.0, 0.0, TAU, 24, SIGNAL_ACCENT, 1.6, true)
 
 
 func _draw_resource_pad(center: Vector2, color: Color, is_crystal: bool) -> void:
 	var pad := Rect2(center + Vector2(-26.0, -20.0), Vector2(52.0, 40.0))
-	draw_rect(pad, Color(0.03, 0.05, 0.045, 0.54), true)
-	draw_rect(pad, Color(color.r, color.g, color.b, 0.44), false, 1.6, true)
+	draw_rect(pad, CONTEXT_FILL, true)
+	draw_rect(pad, Color(color.r, color.g, color.b, 0.22), false, 1.4, true)
 	if is_crystal:
-		draw_line(center + Vector2(-18.0, 12.0), center + Vector2(20.0, -14.0), Color(color.r, color.g, color.b, 0.34), 1.5, true)
+		draw_line(center + Vector2(-18.0, 12.0), center + Vector2(20.0, -14.0), Color(color.r, color.g, color.b, 0.18), 1.4, true)
 	else:
-		draw_line(center + Vector2(-18.0, -12.0), center + Vector2(18.0, 12.0), Color(color.r, color.g, color.b, 0.28), 1.4, true)
+		draw_line(center + Vector2(-18.0, -12.0), center + Vector2(18.0, 12.0), Color(color.r, color.g, color.b, 0.16), 1.4, true)
 
 
 func _draw_crystal_shard(center: Vector2, scale: float) -> void:
@@ -299,8 +322,8 @@ func _draw_crystal_shard(center: Vector2, scale: float) -> void:
 		center + Vector2(-10.0, -4.0) * scale,
 		center + Vector2(0.0, -12.0) * scale
 	])
-	draw_colored_polygon(shard, Color(CRYSTAL_ACCENT.r, CRYSTAL_ACCENT.g, CRYSTAL_ACCENT.b, 0.22))
-	draw_polyline(shard, Color(CRYSTAL_ACCENT.r, CRYSTAL_ACCENT.g, CRYSTAL_ACCENT.b, 0.7), 1.4, true)
+	draw_colored_polygon(shard, Color(CRYSTAL_ACCENT.r, CRYSTAL_ACCENT.g, CRYSTAL_ACCENT.b, 0.1))
+	draw_polyline(shard, Color(CRYSTAL_ACCENT.r, CRYSTAL_ACCENT.g, CRYSTAL_ACCENT.b, 0.28), 1.2, true)
 
 
 func _draw_lane(points: Array, width: float, fill_color: Color, edge_color: Color) -> void:
@@ -325,8 +348,10 @@ func _register_path_shapes() -> void:
 		"first_path.storage_output_shelf",
 		"first_path.outfitting_handoff_rack",
 		"first_path.departure_supply_bus",
+		"first_path.context_clarity_mask",
 		"first_path.stage_feedback_lane",
 		"first_path.stage_feedback_station",
+		"first_path.single_signal_stage",
 		"first_path.operation_state_pips"
 	]
 
@@ -338,21 +363,43 @@ func _register_path_state_shape(shape_id: String) -> void:
 
 
 func _quiet_global_planning_layers() -> void:
+	_set_context_layers_muted(is_first_path_visible_at(_get_player_position()))
+
+
+func _set_context_layers_muted(should_mute: bool) -> void:
+	if not should_mute:
+		_restore_context_layers()
+		return
 	muted_planning_layer_count = 0
-	_apply_layer_alpha("PrototypeVisualPriorityLayer", 0.18)
-	_apply_layer_alpha("DemoRegionIndustrialValueLayer", 0.28)
-	_apply_layer_alpha("DemoRoutePresentationLayer", 0.16)
+	for layer_profile in FIRST_PATH_CONTEXT_LAYER_ALPHAS:
+		var path := String(layer_profile.get("path", ""))
+		var alpha := float(layer_profile.get("alpha", 1.0))
+		if _apply_layer_alpha(path, alpha):
+			muted_planning_layer_count += 1
 
 
-func _apply_layer_alpha(path: String, alpha: float) -> void:
+func _apply_layer_alpha(path: String, alpha: float) -> bool:
 	var node := _get_map_node(path)
 	var canvas_item := node as CanvasItem
 	if canvas_item == null:
-		return
-	var color := canvas_item.modulate
-	color.a = minf(color.a, alpha)
+		return false
+	if not context_layer_original_modulates.has(path):
+		context_layer_original_modulates[path] = canvas_item.modulate
+	var original_color: Color = context_layer_original_modulates.get(path, canvas_item.modulate)
+	var color := original_color
+	color.a = minf(original_color.a, alpha)
 	canvas_item.modulate = color
-	muted_planning_layer_count += 1
+	return true
+
+
+func _restore_context_layers() -> void:
+	for path in context_layer_original_modulates.keys():
+		var node := _get_map_node(String(path))
+		var canvas_item := node as CanvasItem
+		if canvas_item != null:
+			canvas_item.modulate = context_layer_original_modulates[path]
+	context_layer_original_modulates.clear()
+	muted_planning_layer_count = 0
 
 
 func _get_base_structure_for_definition(world_state: WorldState, building_id: String) -> Dictionary:
