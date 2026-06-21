@@ -43,6 +43,11 @@ const CHAIN_SLURRY := Color(0.78, 0.42, 0.18, 0.82)
 const CHAIN_VIAL := Color(0.72, 0.92, 0.38, 0.9)
 const CHAIN_CORE_PREP := Color(0.74, 0.58, 0.9, 0.88)
 const CHAIN_ROUTE_DARK := Color(0.02, 0.04, 0.035, 0.72)
+const STARTUP_VEIL := Color(0.002, 0.006, 0.006, 0.66)
+const STARTUP_DECK_FILL := Color(0.035, 0.09, 0.09, 0.44)
+const STARTUP_CORE_FOCUS := Color(0.62, 1.0, 0.9, 0.78)
+const STARTUP_DISABLED_LINE := Color(0.3, 0.38, 0.34, 0.16)
+const STARTUP_DISABLED_FILL := Color(0.05, 0.07, 0.055, 0.18)
 
 const DEVICE_ANCHORS := {
 	"device.outpost_core": "Interactables/OutpostCore",
@@ -80,6 +85,21 @@ const LEGACY_BASE_PANELS := [
 	"BaseExitLane"
 ]
 
+const STARTUP_MUTED_INTERACTABLE_PATHS := [
+	"Interactables/BasicReactor",
+	"Interactables/BasicStorageBuildSite",
+	"Interactables/FieldOutfittingStationBuildSite",
+	"Interactables/FieldOutfittingStation",
+	"Interactables/SlurryBufferTankBuildSite",
+	"Interactables/OutpostDepartureGate",
+	"Interactables/OutpostLogisticsRouteSign",
+	"Interactables/PhaseRelayPad",
+	"Interactables/FrontlineActionConsole",
+	"Interactables/BaseSupplyChoiceConsole",
+	"Interactables/BaseSurveyChoiceConsole",
+	"Interactables/BasePressureChoiceConsole"
+]
+
 var applied_device_count := 0
 var applied_flow_count := 0
 var applied_chain_state_count := 0
@@ -89,9 +109,11 @@ var chain_shape_ids: Array[String] = []
 var detail_shape_ids: Array[String] = []
 var playable_space_shape_ids: Array[String] = []
 var pollution_chain_shape_ids: Array[String] = []
+var startup_restore_shape_ids: Array[String] = []
 var chain_state: Dictionary = {}
 var pollution_chain_state: Dictionary = {}
 var applied_pollution_chain_state_count := 0
+var outpost_core_restored := false
 
 
 func _ready() -> void:
@@ -106,18 +128,29 @@ func apply_visuals() -> void:
 	_register_device_detail_shapes()
 	_register_playable_space_shapes()
 	_register_flow_shapes()
+	_register_startup_restore_shapes()
 	_tag_device_anchors()
 	_tone_down_core_interactable_markers()
 	queue_redraw()
 
 
 func refresh_chain_state(world_state: WorldState, character_state: CharacterState) -> void:
+	if startup_restore_shape_ids.is_empty():
+		_register_startup_restore_shapes()
 	chain_shape_ids.clear()
 	pollution_chain_shape_ids.clear()
 	applied_chain_state_count = 0
 	applied_pollution_chain_state_count = 0
 	_tone_down_core_interactable_markers()
 	if world_state == null or character_state == null:
+		outpost_core_restored = false
+		chain_state.clear()
+		pollution_chain_state.clear()
+		queue_redraw()
+		return
+	outpost_core_restored = world_state.quest_state.has_completed_quest("quest.restore_outpost")
+	_mute_startup_side_interactables(not outpost_core_restored)
+	if not outpost_core_restored:
 		chain_state.clear()
 		pollution_chain_state.clear()
 		queue_redraw()
@@ -206,7 +239,22 @@ func has_pollution_chain_shape(shape_id: String) -> bool:
 	return pollution_chain_shape_ids.has(shape_id)
 
 
+func is_startup_restore_focus_active() -> bool:
+	return not outpost_core_restored
+
+
+func get_startup_restore_shape_count() -> int:
+	return startup_restore_shape_ids.size()
+
+
+func has_startup_restore_shape(shape_id: String) -> bool:
+	return startup_restore_shape_ids.has(shape_id)
+
+
 func _draw() -> void:
+	if not outpost_core_restored:
+		_draw_startup_restore_focus()
+		return
 	_draw_base_deck()
 	_draw_playable_space_layout()
 	_draw_base_detail()
@@ -219,6 +267,58 @@ func _draw() -> void:
 	_draw_pollution_filter()
 	_draw_chain_state()
 	_draw_pollution_chain_state()
+
+
+func _draw_startup_restore_focus() -> void:
+	draw_rect(Rect2(Vector2(-360.0, -270.0), Vector2(760.0, 560.0)), STARTUP_VEIL, true)
+	var focus_deck := Rect2(Vector2(-338.0, -174.0), Vector2(174.0, 154.0))
+	draw_rect(focus_deck, STARTUP_DECK_FILL, true)
+	draw_rect(focus_deck, Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.24), false, 2.0, true)
+	for x in [-316.0, -286.0, -256.0, -226.0, -196.0]:
+		draw_line(Vector2(x, -160.0), Vector2(x, -36.0), Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.08), 1.0, true)
+	for y in [-148.0, -118.0, -88.0, -58.0]:
+		draw_line(Vector2(-324.0, y), Vector2(-178.0, y), Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.08), 1.0, true)
+	_draw_startup_outpost_core()
+	_draw_startup_player_stand()
+	_draw_startup_disabled_device_silhouettes()
+	_draw_startup_restore_cable()
+
+
+func _draw_startup_outpost_core() -> void:
+	var center := Vector2(-300.0, -92.0)
+	draw_circle(center, 30.0, Color(0.06, 0.2, 0.19, 0.72))
+	draw_arc(center, 42.0, PI * 0.08, PI * 1.9, 42, Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.45), 4.0, true)
+	draw_arc(center, 28.0, 0.0, TAU, 40, STARTUP_CORE_FOCUS, 3.0, true)
+	draw_arc(center, 15.0, 0.0, TAU, 28, Color(0.86, 1.0, 0.92, 0.82), 2.0, true)
+	draw_rect(Rect2(center + Vector2(-10.0, -52.0), Vector2(20.0, 34.0)), Color(0.78, 1.0, 0.92, 0.82), true)
+	draw_rect(Rect2(center + Vector2(-48.0, 20.0), Vector2(34.0, 20.0)), Color(0.1, 0.2, 0.18, 0.76), true)
+	draw_rect(Rect2(center + Vector2(-48.0, 20.0), Vector2(34.0, 20.0)), STARTUP_CORE_FOCUS, false, 1.6, true)
+
+
+func _draw_startup_player_stand() -> void:
+	var stand := Rect2(Vector2(-276.0, -70.0), Vector2(72.0, 46.0))
+	draw_rect(stand, Color(0.08, 0.17, 0.16, 0.56), true)
+	draw_rect(stand, Color(0.82, 1.0, 0.92, 0.24), false, 1.4, true)
+	draw_line(Vector2(-264.0, -48.0), Vector2(-214.0, -48.0), Color(0.82, 1.0, 0.92, 0.18), 2.0, true)
+	for x in [-258.0, -238.0, -218.0]:
+		draw_line(Vector2(x, -64.0), Vector2(x + 8.0, -30.0), Color(0.82, 1.0, 0.92, 0.12), 1.0, true)
+
+
+func _draw_startup_disabled_device_silhouettes() -> void:
+	for rect in [
+		Rect2(Vector2(-190.0, -112.0), Vector2(58.0, 88.0)),
+		Rect2(Vector2(-292.0, -10.0), Vector2(80.0, 56.0)),
+		Rect2(Vector2(-120.0, -82.0), Vector2(72.0, 42.0))
+	]:
+		draw_rect(rect, STARTUP_DISABLED_FILL, true)
+		draw_rect(rect, STARTUP_DISABLED_LINE, false, 1.2, true)
+	for point in [Vector2(-166.0, -66.0), Vector2(-250.0, 18.0), Vector2(-74.0, -58.0)]:
+		draw_circle(point, 4.0, STARTUP_DISABLED_LINE)
+
+
+func _draw_startup_restore_cable() -> void:
+	_draw_pipe([Vector2(-276.0, -92.0), Vector2(-238.0, -84.0), Vector2(-214.0, -54.0)], Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.28), 4.0)
+	draw_circle(Vector2(-214.0, -54.0), 5.0, Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.36))
 
 
 func _draw_base_deck() -> void:
@@ -735,6 +835,31 @@ func _tag_device_anchors() -> void:
 			continue
 		node.set_meta("industrial_base_device_id", device_id)
 		node.set_meta("industrial_base_visual_role", ROLE_DEVICE)
+
+
+func _register_startup_restore_shapes() -> void:
+	startup_restore_shape_ids = [
+		"startup_restore.focus_veil",
+		"startup_restore.core_service_deck",
+		"startup_restore.outpost_core_focus",
+		"startup_restore.player_stand",
+		"startup_restore.disabled_reactor_silhouette",
+		"startup_restore.disabled_storage_silhouette",
+		"startup_restore.disabled_outfitting_silhouette",
+		"startup_restore.restore_cable"
+	]
+
+
+func _mute_startup_side_interactables(should_mute: bool) -> void:
+	for path in STARTUP_MUTED_INTERACTABLE_PATHS:
+		var interactable := _get_map_node(String(path)) as PrototypeInteractable
+		if interactable == null:
+			continue
+		var color := interactable.modulate
+		color.a = 0.0 if should_mute else 1.0
+		interactable.modulate = color
+		if should_mute:
+			interactable.set_focus_visual(false)
 
 
 func _tone_down_core_interactable_markers() -> void:

@@ -613,7 +613,7 @@ func sync_enemy_states(world_state: WorldState) -> void:
 			max_health
 		)
 		enemy.apply_saved_state(enemy_state)
-		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state))
+		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state) and not _should_hide_enemy_for_startup_core_focus(world_state))
 	_refresh_focus_visuals()
 func refresh_enemy_spawns(world_state: WorldState) -> void:
 	_ensure_scene_nodes()
@@ -625,7 +625,7 @@ func refresh_enemy_spawns(world_state: WorldState) -> void:
 	for enemy in enemies_root.get_children():
 		if not enemy is PrototypeEnemy:
 			continue
-		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state))
+		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state) and not _should_hide_enemy_for_startup_core_focus(world_state))
 	_refresh_enemy_focus_visuals()
 func apply_runtime_state(world_state: WorldState, character_state: CharacterState) -> void:
 	current_interactable = null
@@ -755,6 +755,16 @@ func _refresh_enemy_focus_visuals() -> void:
 	for enemy in enemies_root.get_children():
 		if enemy is PrototypeEnemy:
 			enemy.set_focus_visual(enemy == focused_enemy)
+
+
+func _should_hide_enemy_for_startup_core_focus(world_state: WorldState) -> bool:
+	if world_state == null or player == null:
+		return false
+	if not world_state.quest_state.has_active_quest("quest.restore_outpost") or world_state.quest_state.has_completed_quest("quest.restore_outpost"):
+		return false
+	if world_state.quest_state.active_quest_ids.size() != 1 or not world_state.quest_state.completed_quest_ids.is_empty():
+		return false
+	return player.position.distance_to(OUTPOST_RESPAWN_POSITION) <= 160.0
 func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool:
 	if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure":
 		return world_state.quest_state.has_active_quest("quest.defeat_elite_node") or world_state.quest_state.has_completed_quest("quest.defeat_elite_node")

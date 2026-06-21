@@ -623,6 +623,11 @@ func _check_enemy_focus_labels() -> void:
 	var patrol := map.get_node("Enemies/NativeSkitterPatrol") as PrototypeEnemy
 	var polluted := map.get_node("Enemies/PollutedSkitter") as PrototypeEnemy
 	var gate_pressure := map.get_node("Enemies/PollutedSkitterGatePressure") as PrototypeEnemy
+	host._expect_equal(enemy.visible, false, "first-hour startup hides field enemies before outpost restore")
+	host._expect_equal(polluted.visible, false, "first-hour startup hides pollution enemies before outpost restore")
+
+	world.quest_state.complete_quest("quest.restore_outpost")
+	map.sync_enemy_states(world)
 	host._expect_equal(enemy.label.visible, false, "first-hour enemy label starts hidden when out of range")
 	host._expect_equal(enemy.focus_ring.visible, false, "first-hour enemy focus ring starts hidden when out of range")
 

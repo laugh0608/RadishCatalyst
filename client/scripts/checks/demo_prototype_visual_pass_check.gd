@@ -237,19 +237,17 @@ func _check_current_objective_guidance_layer() -> void:
 func _check_startup_readability_scope() -> void:
 	var map := _create_setup_map()
 	var layer := map.get_node("PrototypeVisualPriorityLayer") as PrototypeVisualPriorityLayer
+	var base_layer := map.get_node("DemoIndustrialBaseVisualLayer") as DemoIndustrialBaseVisualLayer
 	_expect_equal(layer != null, true, "startup visual priority layer exists")
 	if layer != null:
 		layer.apply_profile()
 		layer.refresh_focus_visibility(map.get_player_position())
 		_expect_equal(layer.get_generated_cue_count(), 36, "startup still keeps full visual cue evidence")
-		_expect_equal(layer.get_visible_generated_cue_count(), 6, "startup only shows nearby outpost and crystal cues")
+		_expect_equal(layer.get_visible_generated_cue_count(), 1, "startup only shows the outpost core cue")
 		_expect_equal(
-			layer.get_cue_alpha(
-				"region.crystal_vein_field",
-				PrototypeVisualPriorityProfile.ROLE_KEY_OBJECT
-			) <= 0.06,
+			not _get_region_cue_visible(layer, "region.crystal_vein_field", PrototypeVisualPriorityProfile.ROLE_KEY_OBJECT),
 			true,
-			"startup keeps adjacent crystal cue dim enough not to dominate the base first screen"
+			"startup hides adjacent crystal cue until the first field step"
 		)
 		_expect_equal(
 			_get_region_cue_visible(layer, "region.pollution_edge", PrototypeVisualPriorityProfile.ROLE_MAIN_ROUTE),
@@ -295,6 +293,16 @@ func _check_startup_readability_scope() -> void:
 			true,
 			"pollution focus keeps visual priority cues below treatment artwork instead of drawing a yellow block"
 		)
+	if base_layer != null:
+		base_layer.refresh_chain_state(WorldState.create_default(), CharacterState.create_default())
+		_expect_equal(base_layer.is_startup_restore_focus_active(), true, "startup base visual layer uses the core restore focus view")
+		_expect_equal(base_layer.get_startup_restore_shape_count() >= 8, true, "startup base visual layer registers restore focus shapes")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.outpost_core_focus"), true, "startup restore view marks the outpost core")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.disabled_reactor_silhouette"), true, "startup restore view keeps reactor as a muted silhouette")
+		var reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
+		var storage := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
+		_expect_equal(reactor.modulate.a <= 0.01, true, "startup mutes reactor interactable marker")
+		_expect_equal(storage.modulate.a <= 0.01, true, "startup mutes storage interactable marker")
 	_check_scene_visual_layer_focus_visibility(map)
 	_check_runtime_annotation_hidden(map, "DemoRoutePresentationLayer/DemoRouteBaseLabel")
 	_check_runtime_annotation_hidden(map, "SceneArtFoundationLayer/SceneArtBaseIdentityLabel")

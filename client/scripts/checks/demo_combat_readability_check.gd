@@ -57,9 +57,9 @@ func _check_attack_result_carries_combat_feedback() -> void:
 	map.setup(data_registry)
 	var world := WorldState.create_default()
 	var character := CharacterState.create_default()
-	map.sync_enemy_states(world)
 	var enemy := map.get_node("Enemies/NativeSkitter") as PrototypeEnemy
 	map.player.position = enemy.position
+	map.sync_enemy_states(world)
 
 	var result := map.try_attack(character, world)
 	_expect_equal(bool(result.get("success", false)), true, "first combat hit succeeds")

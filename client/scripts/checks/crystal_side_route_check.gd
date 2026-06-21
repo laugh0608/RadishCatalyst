@@ -102,9 +102,9 @@ func _check_side_route_guard_feedback(root: Node) -> void:
 	map.setup(host.data_registry)
 	var world := WorldState.create_default()
 	var character := CharacterState.create_default()
-	map.sync_enemy_states(world)
 	var guard := map.get_node("Enemies/NativeSkitterLogisticsGuard") as PrototypeEnemy
 	map.player.position = guard.position
+	map.sync_enemy_states(world)
 	map.try_attack(character, world)
 	var defeated_result := map.try_attack(character, world)
 	host._expect_equal(bool(defeated_result.get("enemy_defeated", false)), true, "crystal logistics guard can be defeated")
