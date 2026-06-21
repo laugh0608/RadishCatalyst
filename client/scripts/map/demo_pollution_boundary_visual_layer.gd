@@ -8,9 +8,10 @@ const ROLE_ROUTE := "route"
 const ROLE_PRESSURE_GATE := "pressure_gate"
 const ROLE_TERRAIN := "terrain"
 const FOCUS_VISIBLE_MIN_X := 180.0
+const FOCUS_VISIBLE_MAX_X := 620.0
 
-const FIELD_FILL := Color(0.08, 0.1, 0.06, 0.024)
-const FIELD_LINE := Color(0.72, 0.72, 0.3, 0.16)
+const FIELD_FILL := Color(0.08, 0.1, 0.06, 0.014)
+const FIELD_LINE := Color(0.72, 0.72, 0.3, 0.11)
 const SEDIMENT_FILL := Color(0.42, 0.36, 0.1, 0.08)
 const SEDIMENT_LINE := Color(0.86, 0.72, 0.22, 0.34)
 const BUND_LINE := Color(0.94, 0.58, 0.22, 0.46)
@@ -23,15 +24,15 @@ const FILTER_FILL := Color(0.22, 0.3, 0.1, 0.34)
 const RESIDUE_LINE := Color(0.86, 0.72, 0.22, 0.74)
 const RESIDUE_FILL := Color(0.5, 0.4, 0.08, 0.2)
 const DANGER_LINE := Color(0.94, 0.46, 0.18, 0.74)
-const DANGER_FILL := Color(0.42, 0.16, 0.06, 0.012)
+const DANGER_FILL := Color(0.42, 0.16, 0.06, 0.006)
 const DANGER_POCKET_FILL := Color(0.5, 0.18, 0.08, 0.12)
-const ROUTE_TO_FILTER := Color(0.88, 0.7, 0.26, 0.48)
-const ROUTE_TO_BASE := Color(0.66, 0.86, 0.52, 0.46)
-const SLURRY_ROUTE := Color(0.78, 0.42, 0.18, 0.36)
+const ROUTE_TO_FILTER := Color(0.88, 0.7, 0.26, 0.4)
+const ROUTE_TO_BASE := Color(0.66, 0.86, 0.52, 0.28)
+const SLURRY_ROUTE := Color(0.78, 0.42, 0.18, 0.28)
 const GATE_CORE := Color(0.72, 0.46, 0.88, 0.78)
 const CHAIN_DIM := Color(0.24, 0.28, 0.16, 0.36)
 const CHAIN_WINDOW := Color(1.0, 0.62, 0.24, 0.78)
-const CHAIN_ROUTE_DARK := Color(0.03, 0.04, 0.03, 0.58)
+const CHAIN_ROUTE_DARK := Color(0.03, 0.04, 0.03, 0.42)
 const CHAIN_VIAL := Color(0.72, 0.92, 0.38, 0.86)
 const CHAIN_SLURRY := Color(0.82, 0.42, 0.18, 0.78)
 const CHAIN_CORE_PREP := Color(0.74, 0.58, 0.9, 0.84)
@@ -233,7 +234,7 @@ func has_pollution_chain_shape(shape_id: String) -> bool:
 
 
 func refresh_focus_visibility(player_position: Vector2) -> void:
-	visible = player_position.x >= FOCUS_VISIBLE_MIN_X
+	visible = player_position.x >= FOCUS_VISIBLE_MIN_X and player_position.x <= FOCUS_VISIBLE_MAX_X
 
 
 func _draw() -> void:
@@ -276,6 +277,7 @@ func _draw_pollution_material_surface() -> void:
 	_draw_filter_bed_partitions()
 	_draw_filter_rubble_cells()
 	_draw_filter_input_output_site()
+	_draw_local_service_ports()
 	_draw_output_service_islands()
 	_draw_recovery_loading_pad()
 	_draw_recovery_crate_stacks()
@@ -461,6 +463,26 @@ func _draw_filter_input_output_site() -> void:
 	draw_line(Vector2(360.0, -66.0), Vector2(382.0, 24.0), Color(CHAIN_CORE_PREP.r, CHAIN_CORE_PREP.g, CHAIN_CORE_PREP.b, 0.34), 2.4, true)
 
 
+func _draw_local_service_ports() -> void:
+	for rect in [
+		Rect2(Vector2(218.0, -116.0), Vector2(34.0, 16.0)),
+		Rect2(Vector2(238.0, -86.0), Vector2(28.0, 18.0)),
+		Rect2(Vector2(354.0, -126.0), Vector2(30.0, 16.0)),
+		Rect2(Vector2(352.0, -98.0), Vector2(32.0, 18.0))
+	]:
+		draw_rect(rect, Color(0.06, 0.08, 0.05, 0.32), true)
+		draw_rect(rect, Color(ROUTE_TO_BASE.r, ROUTE_TO_BASE.g, ROUTE_TO_BASE.b, 0.32), false, 1.0, true)
+		draw_line(
+			rect.position + Vector2(4.0, rect.size.y * 0.5),
+			rect.position + Vector2(rect.size.x - 4.0, rect.size.y * 0.5),
+			Color(ROUTE_TO_BASE.r, ROUTE_TO_BASE.g, ROUTE_TO_BASE.b, 0.34),
+			1.2,
+			true
+		)
+	for point in [Vector2(234.0, -108.0), Vector2(252.0, -78.0), Vector2(370.0, -118.0), Vector2(370.0, -88.0)]:
+		draw_circle(point, 2.8, Color(0.86, 0.92, 0.54, 0.38))
+
+
 func _draw_output_service_islands() -> void:
 	for rect in [
 		Rect2(Vector2(318.0, -150.0), Vector2(50.0, 32.0)),
@@ -493,10 +515,10 @@ func _draw_recovery_crate_stacks() -> void:
 func _draw_treatment_routes() -> void:
 	_draw_route([Vector2(258.0, 34.0), Vector2(278.0, -12.0), Vector2(298.0, -72.0)], ROUTE_TO_FILTER, 2.6)
 	_draw_route([Vector2(344.0, 158.0), Vector2(330.0, 78.0), Vector2(306.0, -70.0)], SLURRY_ROUTE, 2.0)
-	_draw_route([Vector2(298.0, -110.0), Vector2(222.0, -108.0), Vector2(118.0, -86.0), Vector2(-44.0, -44.0)], ROUTE_TO_BASE, 2.2)
+	_draw_route([Vector2(298.0, -110.0), Vector2(250.0, -108.0), Vector2(220.0, -98.0)], ROUTE_TO_BASE, 1.8)
 	_draw_route([Vector2(304.0, 96.0), Vector2(314.0, 152.0), Vector2(336.0, 206.0)], SLURRY_ROUTE, 1.8)
 	_draw_route([Vector2(342.0, 24.0), Vector2(382.0, 24.0)], DANGER_LINE, 2.4)
-	for point in [Vector2(298.0, -72.0), Vector2(222.0, -108.0), Vector2(304.0, 96.0), Vector2(382.0, 24.0)]:
+	for point in [Vector2(298.0, -72.0), Vector2(220.0, -98.0), Vector2(304.0, 96.0), Vector2(382.0, 24.0)]:
 		draw_circle(point, 3.4, Color(0.88, 0.86, 0.48, 0.42))
 
 
@@ -555,7 +577,7 @@ func _draw_pollution_chain_state() -> void:
 	_draw_boundary_filter_window(filter_ready, filter_active)
 	_draw_boundary_output_slot(Rect2(Vector2(320.0, -134.0), Vector2(28.0, 18.0)), vial_ready, CHAIN_VIAL)
 	_draw_boundary_output_slot(Rect2(Vector2(320.0, -104.0), Vector2(28.0, 18.0)), slurry_ready, CHAIN_SLURRY)
-	_draw_chain_flow_band([Vector2(334.0, -124.0), Vector2(298.0, -110.0), Vector2(222.0, -108.0), Vector2(118.0, -86.0)], vial_ready or filter_active, CHAIN_VIAL, 3.6)
+	_draw_chain_flow_band([Vector2(334.0, -124.0), Vector2(298.0, -110.0), Vector2(250.0, -108.0), Vector2(220.0, -98.0)], vial_ready or filter_active, CHAIN_VIAL, 3.2)
 	_draw_chain_flow_band([Vector2(334.0, -96.0), Vector2(314.0, 52.0), Vector2(336.0, 206.0)], slurry_ready or filter_active, CHAIN_SLURRY, 3.4)
 	_draw_chain_flow_band([Vector2(336.0, 206.0), Vector2(260.0, 188.0), Vector2(212.0, 136.0)], recycle_ready or reclaim_active, ROUTE_TO_BASE, 3.0)
 	_draw_chain_flow_band([Vector2(336.0, 206.0), Vector2(372.0, 176.0), Vector2(382.0, 24.0)], core_prep_ready or core_prep_active, CHAIN_CORE_PREP, 3.0)
@@ -683,6 +705,7 @@ func _register_terrain_material_shapes() -> void:
 		"terrain.pollution.filter_bed_partitions",
 		"terrain.pollution.filter_rubble_cells",
 		"terrain.pollution.input_trench",
+		"terrain.pollution.local_service_ports",
 		"terrain.pollution.output_vial_rack",
 		"terrain.pollution.output_slurry_basin",
 		"terrain.pollution.output_service_islands",
@@ -748,10 +771,10 @@ func _deemphasize_legacy_pollution_blocks() -> void:
 	muted_legacy_block_count = 0
 	var region := _get_map_node("RegionPollution") as ColorRect
 	if region != null:
-		region.color = Color(0.07, 0.075, 0.045, 0.065)
+		region.color = Color(0.07, 0.075, 0.045, 0.032)
 	var route_band := _get_map_node("DemoRoutePresentationLayer/DemoRoutePollutionBand") as ColorRect
 	if route_band != null:
-		route_band.color = Color(route_band.color.r, route_band.color.g, route_band.color.b, minf(route_band.color.a, 0.008))
+		route_band.color = Color(route_band.color.r, route_band.color.g, route_band.color.b, minf(route_band.color.a, 0.004))
 	var route_label := _get_map_node("DemoRoutePresentationLayer/DemoRoutePollutionLabel") as Label
 	if route_label != null:
 		route_label.visible = false
@@ -762,12 +785,12 @@ func _deemphasize_legacy_pollution_blocks() -> void:
 	for node_name in LEGACY_POLLUTION_PANELS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
-			rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.009))
+			rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.005))
 			muted_legacy_block_count += 1
 	for node_name in LEGACY_POLLUTION_MARKERS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
-			rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.007))
+			rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.004))
 			muted_legacy_block_count += 1
 	var belt_label := layer.get_node_or_null("PollutionBeltLabel") as Label
 	if belt_label != null:
@@ -810,7 +833,7 @@ func _tone_down_pollution_interactable_markers() -> void:
 		if marker == null:
 			marker = interactable.get_node_or_null("Marker") as ColorRect
 		if marker != null:
-			marker.color.a = 0.06
+			marker.color.a = 0.04
 			muted_interactable_marker_count += 1
 
 

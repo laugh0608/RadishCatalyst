@@ -38,7 +38,7 @@ func _check_pollution_boundary_layer_exists_and_registers_visuals() -> void:
 	layer.apply_visuals()
 	_expect_equal(layer.get_boundary_shape_count() >= 13, true, "pollution boundary registers treatment shapes")
 	_expect_equal(layer.get_flow_count() >= 5, true, "pollution boundary registers treatment routes")
-	_expect_equal(layer.get_terrain_material_shape_count() >= 17, true, "pollution boundary registers terrain material shapes")
+	_expect_equal(layer.get_terrain_material_shape_count() >= 18, true, "pollution boundary registers terrain material shapes")
 	_expect_equal(layer.has_boundary_shape("boundary.filter_build_site"), true, "filter construction site visual exists")
 	_expect_equal(layer.has_boundary_shape("boundary.pressure_gate"), true, "pressure gate visual exists")
 	_expect_equal(layer.has_boundary_shape("boundary.hazard_boundary"), true, "danger boundary visual exists")
@@ -55,6 +55,7 @@ func _check_pollution_boundary_layer_exists_and_registers_visuals() -> void:
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.filter_bed_partitions"), true, "pollution filter worksite is split into partitions")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.filter_rubble_cells"), true, "pollution filter worksite has rubble cells")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.input_trench"), true, "pollution filter input trench exists")
+	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.local_service_ports"), true, "pollution filter uses local service ports instead of a cross-map route")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.output_vial_rack"), true, "pollution vial output rack exists")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.output_slurry_basin"), true, "pollution slurry output basin exists")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.output_service_islands"), true, "pollution outputs sit on local service islands")
@@ -73,6 +74,8 @@ func _check_pollution_boundary_focus_visibility() -> void:
 	_expect_equal(layer.visible, false, "pollution boundary visual layer stays hidden at startup objective")
 	layer.refresh_focus_visibility(Vector2(258, 34))
 	_expect_equal(layer.visible, true, "pollution boundary visual layer appears inside pollution treatment boundary")
+	layer.refresh_focus_visibility(Vector2(900, 34))
+	_expect_equal(layer.visible, false, "pollution boundary visual layer steps back after leaving treatment boundary")
 	map.free()
 
 
@@ -120,13 +123,13 @@ func _check_pollution_boundary_visual_priority_replaces_old_blocks() -> void:
 	var route_band := map.get_node("DemoRoutePresentationLayer/DemoRoutePollutionBand") as ColorRect
 	var residue_interactable := map.get_node("Interactables/PollutionResidue") as PrototypeInteractable
 	var filter_build_site := map.get_node("Interactables/PollutionFilterBuildSite") as PrototypeInteractable
-	_expect_equal(old_danger.color.a <= 0.01, true, "old pollution field no longer dominates")
-	_expect_equal(old_residue.color.a <= 0.008, true, "old pollution marker no longer dominates")
-	_expect_equal(route_band.color.a <= 0.01, true, "old pollution route band no longer dominates")
+	_expect_equal(old_danger.color.a <= 0.006, true, "old pollution field no longer dominates")
+	_expect_equal(old_residue.color.a <= 0.005, true, "old pollution marker no longer dominates")
+	_expect_equal(route_band.color.a <= 0.005, true, "old pollution route band no longer dominates")
 	_expect_equal(belt_label.visible, false, "old pollution belt label hidden")
 	_expect_equal(route_label.visible, false, "old route label hidden")
-	_expect_equal(_get_marker_alpha(residue_interactable) <= 0.065, true, "residue interactable marker is muted")
-	_expect_equal(_get_marker_alpha(filter_build_site) <= 0.065, true, "filter build site marker is muted")
+	_expect_equal(_get_marker_alpha(residue_interactable) <= 0.045, true, "residue interactable marker is muted")
+	_expect_equal(_get_marker_alpha(filter_build_site) <= 0.045, true, "filter build site marker is muted")
 	map.free()
 
 

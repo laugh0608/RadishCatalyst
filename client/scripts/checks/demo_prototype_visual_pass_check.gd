@@ -243,7 +243,9 @@ func _check_scene_visual_layer_focus_visibility(map: VerticalSliceMap) -> void:
 	_expect_equal(pollution_layer.visible, false, "field departure still hides pollution treatment detail layer")
 
 	pollution_layer.refresh_focus_visibility(Vector2(258, 34))
+	crystal_layer.refresh_focus_visibility(Vector2(258, 34))
 	_expect_equal(pollution_layer.visible, true, "pollution approach reveals treatment boundary detail layer")
+	_expect_equal(crystal_layer.visible, false, "pollution approach hides crystal resource detail layer")
 
 	core_layer.refresh_focus_visibility(Vector2(3744, 112))
 	_expect_equal(core_layer.visible, true, "terminal approach reveals core stabilization detail layer")

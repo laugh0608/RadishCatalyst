@@ -7,20 +7,23 @@ const ROLE_FLOW := "flow"
 const ROLE_SALVAGE := "salvage"
 const ROLE_TERRAIN := "terrain"
 const FOCUS_VISIBLE_MIN_X := -80.0
+const FOCUS_VISIBLE_MAX_X := 220.0
 
-const FIELD_FRAME := Color(0.32, 0.58, 0.62, 0.24)
-const FIELD_FILL := Color(0.06, 0.12, 0.15, 0.032)
-const ORE_FACE_FILL := Color(0.06, 0.18, 0.2, 0.055)
-const ORE_FACE_LINE := Color(0.38, 0.78, 0.86, 0.28)
+const FIELD_FRAME := Color(0.32, 0.58, 0.62, 0.18)
+const FIELD_FILL := Color(0.06, 0.12, 0.15, 0.018)
+const ORE_FACE_FILL := Color(0.06, 0.18, 0.2, 0.026)
+const ORE_FACE_LINE := Color(0.38, 0.78, 0.86, 0.2)
 const CUT_SCARP_LINE := Color(0.72, 0.96, 1.0, 0.34)
 const CRYSTAL_LINE := Color(0.42, 0.88, 0.98, 0.78)
 const CRYSTAL_FILL := Color(0.25, 0.78, 0.95, 0.44)
-const MINE_ISLAND_FILL := Color(0.08, 0.22, 0.26, 0.16)
+const MINE_ISLAND_FILL := Color(0.08, 0.22, 0.26, 0.11)
 const MINE_ISLAND_LINE := Color(0.56, 0.9, 0.98, 0.34)
 const DARK_CUT_CHANNEL := Color(0.01, 0.035, 0.045, 0.56)
 const ORE_CHIP_FILL := Color(0.16, 0.36, 0.42, 0.18)
 const ORE_CHIP_LINE := Color(0.54, 0.86, 0.94, 0.22)
 const MINE_BENCH_LINE := Color(0.68, 0.92, 0.96, 0.24)
+const HARVEST_PAD_FILL := Color(0.07, 0.13, 0.14, 0.24)
+const HARVEST_PAD_LINE := Color(0.68, 0.94, 1.0, 0.32)
 const RICH_CRYSTAL_LINE := Color(0.76, 0.94, 1.0, 0.86)
 const SALVAGE_LINE := Color(0.72, 0.78, 0.68, 0.58)
 const SALVAGE_FILL := Color(0.36, 0.42, 0.34, 0.26)
@@ -124,7 +127,7 @@ func has_terrain_material_shape(shape_id: String) -> bool:
 
 
 func refresh_focus_visibility(player_position: Vector2) -> void:
-	visible = player_position.x >= FOCUS_VISIBLE_MIN_X
+	visible = player_position.x >= FOCUS_VISIBLE_MIN_X and player_position.x <= FOCUS_VISIBLE_MAX_X
 
 
 func _draw() -> void:
@@ -154,6 +157,7 @@ func _draw_mining_material_surface() -> void:
 	_draw_mine_face_islands()
 	_draw_dark_cut_channels()
 	_draw_broken_ore_tiles()
+	_draw_local_harvest_work_pads()
 	_draw_rich_seam_ridges()
 	_draw_cut_scarps()
 	_draw_mine_bench_steps()
@@ -275,6 +279,26 @@ func _draw_broken_ore_tiles() -> void:
 		var polygon := PackedVector2Array(tile)
 		draw_colored_polygon(polygon, ORE_CHIP_FILL)
 		draw_polyline(polygon, ORE_CHIP_LINE, 1.1, true)
+
+
+func _draw_local_harvest_work_pads() -> void:
+	for pad in [
+		Rect2(Vector2(30.0, -174.0), Vector2(42.0, 18.0)),
+		Rect2(Vector2(114.0, -188.0), Vector2(50.0, 18.0)),
+		Rect2(Vector2(150.0, -92.0), Vector2(42.0, 18.0)),
+		Rect2(Vector2(72.0, -18.0), Vector2(46.0, 18.0))
+	]:
+		draw_rect(pad, HARVEST_PAD_FILL, true)
+		draw_rect(pad, HARVEST_PAD_LINE, false, 1.1, true)
+		draw_line(
+			pad.position + Vector2(6.0, pad.size.y * 0.5),
+			pad.position + Vector2(pad.size.x - 6.0, pad.size.y * 0.5 - 3.0),
+			Color(HARVEST_PAD_LINE.r, HARVEST_PAD_LINE.g, HARVEST_PAD_LINE.b, 0.32),
+			1.2,
+			true
+		)
+	for point in [Vector2(50.0, -164.0), Vector2(138.0, -180.0), Vector2(172.0, -84.0), Vector2(94.0, -10.0)]:
+		draw_circle(point, 3.2, Color(0.82, 0.96, 1.0, 0.34))
 
 
 func _draw_rich_seam_ridges() -> void:
@@ -503,6 +527,7 @@ func _register_terrain_material_shapes() -> void:
 		"terrain.crystal.mine_face_islands",
 		"terrain.crystal.dark_cut_channels",
 		"terrain.crystal.fractured_ore_tiles",
+		"terrain.crystal.local_harvest_work_pads",
 		"terrain.crystal.rich_seam_ridges",
 		"terrain.crystal.cut_scarps",
 		"terrain.crystal.mine_bench_steps",
@@ -517,19 +542,19 @@ func _register_terrain_material_shapes() -> void:
 func _deemphasize_legacy_crystal_blocks() -> void:
 	var region := _get_map_node("RegionCrystal") as ColorRect
 	if region != null:
-		region.color = Color(0.05, 0.09, 0.12, 0.18)
+		region.color = Color(0.05, 0.09, 0.12, 0.045)
 	var demo_route_band := _get_map_node("DemoRoutePresentationLayer/DemoRouteCrystalBand") as ColorRect
 	if demo_route_band != null:
-		demo_route_band.color = Color(demo_route_band.color.r, demo_route_band.color.g, demo_route_band.color.b, 0.035)
+		demo_route_band.color = Color(demo_route_band.color.r, demo_route_band.color.g, demo_route_band.color.b, 0.018)
 	var route_label := _get_map_node("DemoRoutePresentationLayer/DemoRouteCrystalLabel") as Label
 	if route_label != null:
 		route_label.visible = false
 	var base_route := _get_map_node("BaseToCrystalRouteBand") as ColorRect
 	if base_route != null:
-		base_route.color.a = minf(base_route.color.a, 0.08)
+		base_route.color.a = minf(base_route.color.a, 0.035)
 	var pollution_route := _get_map_node("CrystalToPollutionRouteBand") as ColorRect
 	if pollution_route != null:
-		pollution_route.color.a = minf(pollution_route.color.a, 0.055)
+		pollution_route.color.a = minf(pollution_route.color.a, 0.018)
 
 	var layer := _get_map_node("OpeningSceneLayer")
 	if layer == null:
@@ -537,11 +562,11 @@ func _deemphasize_legacy_crystal_blocks() -> void:
 	for node_name in LEGACY_CRYSTAL_PANELS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
-			rect.color.a = minf(rect.color.a, 0.04)
+			rect.color.a = minf(rect.color.a, 0.018)
 	for node_name in LEGACY_CRYSTAL_MARKERS:
 		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
 		if rect != null:
-			rect.color.a = minf(rect.color.a, 0.035)
+			rect.color.a = minf(rect.color.a, 0.018)
 
 
 func _mute_crystal_identity_blocks() -> void:

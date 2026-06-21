@@ -14,8 +14,8 @@ const TREATMENT_ENEMY_SIZE := Vector2(28.0, 22.0)
 const POLLUTED_ENEMY_SIZE := Vector2(30.0, 26.0)
 const ELITE_ENEMY_SIZE := Vector2(36.0, 34.0)
 const ENEMY_LABEL_FONT_SIZE := 8
-const ENEMY_FOCUS_LABEL_WIDTH := 96.0
-const ENEMY_FOCUS_LABEL_LINE_HEIGHT := 11.0
+const ENEMY_FOCUS_LABEL_WIDTH := 88.0
+const ENEMY_FOCUS_LABEL_LINE_HEIGHT := 10.0
 const ENEMY_VISUAL_PART_IDS := [
 	"enemy_shape.shadow",
 	"enemy_shape.body",
@@ -174,11 +174,10 @@ func _update_label() -> void:
 	_ensure_visual_nodes()
 	if label != null:
 		_style_label()
-		label.text = "%s\nHP %.0f/%.0f %s" % [
-			display_name,
+		label.text = "%s HP %.0f/%.0f" % [
+			_get_scene_focus_status_label(),
 			health,
-			max_health,
-			get_combat_status_label()
+			max_health
 		]
 	queue_redraw()
 
@@ -208,6 +207,13 @@ func _get_pressure_focus_label() -> String:
 		_:
 			parts.append("深处压力点")
 	return " / ".join(parts)
+
+
+func _get_scene_focus_status_label() -> String:
+	var status_label := get_combat_status_label()
+	if status_label.is_empty():
+		return display_name
+	return status_label
 
 
 func set_spawn_enabled(enabled: bool) -> void:
