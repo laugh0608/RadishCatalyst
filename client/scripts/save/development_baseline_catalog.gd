@@ -43,9 +43,9 @@ const VISUAL_REVIEW_CHECKPOINT_DEFINITIONS := [
 		"id": "visual_review.crystal_collector_output",
 		"code": "V1A",
 		"display_name": "采集器输出",
-		"baseline_id": "baseline.s1_treatment_ready",
+		"baseline_id": "baseline.s0_new_game",
 		"region_id": "region.crystal_vein_field",
-		"position": Vector2(116.0, -124.0),
+		"position": Vector2(96.0, -118.0),
 		"summary": "手持采样、基础晶体采集器、输出托盘和回基地装车口。",
 		"watch": "观察采集器建成后矿面、输出托盘和回基地物流端口是否能读出。"
 	},
@@ -53,9 +53,9 @@ const VISUAL_REVIEW_CHECKPOINT_DEFINITIONS := [
 		"id": "visual_review.base_handoff",
 		"code": "V1B",
 		"display_name": "入库整备交接",
-		"baseline_id": "baseline.s1_treatment_ready",
+		"baseline_id": "baseline.s0_new_game",
 		"region_id": "region.outpost_platform",
-		"position": Vector2(-166.0, -66.0),
+		"position": Vector2(-118.0, -24.0),
 		"summary": "采集器产物回基地后进入反应器、储存箱和出发整备台交接。",
 		"watch": "观察收料、反应器进料、产物入库和出发整备端口是否连成同一段路径。"
 	},

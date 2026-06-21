@@ -24,6 +24,7 @@ const BASIC_STORAGE_TARGET := {"path": "Interactables/BasicStorageBuildSite", "l
 const BASIC_REACTOR_TARGET := {"path": "Interactables/BasicReactor", "label": "基础反应器"}
 const OUTPOST_GATE_TARGET := {"path": "Interactables/OutpostDepartureGate", "label": "外勤出发口"}
 const CRYSTAL_CLUSTER_TARGET := {"path": "Interactables/CrystalCluster", "label": "晶体采集点"}
+const CRYSTAL_COLLECTOR_OUTPUT_TARGET := {"path": "Interactables/CrystalCollectorOutput", "label": "采集器输出"}
 const FIELD_WRECKAGE_TARGET := {"path": "Interactables/FieldWreckageNorth", "label": "导电废件"}
 const ANOMALY_CRYSTAL_TARGET := {"path": "Interactables/AnomalyCrystal", "label": "异常晶体"}
 const ANOMALY_RESIDUE_TARGET := {"path": "Interactables/AnomalyResidueNorth", "label": "异常残留物"}
@@ -258,6 +259,8 @@ func _resolve_current_target() -> Dictionary:
 func _resolve_scout_crystal_target(world_state: WorldState) -> Dictionary:
 	if _quest_progress(world_state, "quest.scout_crystal_field", "visit_region", "region.crystal_vein_field") < 1.0:
 		return OUTPOST_GATE_TARGET
+	if _should_guide_crystal_collector_output(world_state):
+		return CRYSTAL_COLLECTOR_OUTPUT_TARGET
 	return CRYSTAL_CLUSTER_TARGET
 
 
@@ -315,6 +318,13 @@ func _should_guide_basic_storage(world_state: WorldState) -> bool:
 		_quest_progress(world_state, "quest.scout_crystal_field", "visit_region", "region.crystal_vein_field") <= 0.0
 		and _quest_progress(world_state, "quest.scout_crystal_field", "gather_item", "item.crystal_ore") <= 0.0
 	)
+
+
+func _should_guide_crystal_collector_output(world_state: WorldState) -> bool:
+	if not world_state.has_base_structure_definition("building.crystal_collector_t1"):
+		return false
+	var output_state := world_state.get_map_object("map_object_instance.crystal_collector_output")
+	return not bool(output_state.get("is_gathered", false))
 
 
 func _get_target_from_info(target_info: Dictionary) -> PrototypeInteractable:

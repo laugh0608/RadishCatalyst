@@ -31,6 +31,7 @@ func _run_checks() -> void:
 	_check_processing_result_resource_chain()
 	_check_first_industrial_chain_hud_and_visual_state()
 	_check_crystal_collector_runtime_chain()
+	_check_visual_review_checkpoint_path_states()
 	_check_pollution_chain_hud_and_visual_state()
 	_check_crystal_resource_visual_layer()
 	_check_resource_chain_state_roundtrip()
@@ -340,6 +341,45 @@ func _check_crystal_collector_runtime_chain() -> void:
 	_expect_equal(_has_update_target(quest_updates, "quest.scout_crystal_field", "item.crystal_ore"), true, "collector output feeds crystal field objective updates")
 	var after_line := DemoResourceChainStateFormatter.format_chain_state_line(world, character)
 	_expect_text_contains(after_line, "固体链待加工", "resource chain moves gathered collector output to reactor input")
+	map.free()
+
+
+func _check_visual_review_checkpoint_path_states() -> void:
+	var builder := DevelopmentBaselineBuilder.new(data_registry)
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	var first_path_layer := map.get_node("DemoFirstIndustrialPathVisualLayer") as DemoFirstIndustrialPathVisualLayer
+	first_path_layer.apply_visuals()
+
+	var collector_result := builder.create_visual_review_checkpoint_state("visual_review.crystal_collector_output")
+	_expect_equal(bool(collector_result.get("success", false)), true, "collector output visual checkpoint builds")
+	if bool(collector_result.get("success", false)):
+		first_path_layer.refresh_path_state(collector_result["world_state"], collector_result["character_state"])
+		_expect_equal(
+			first_path_layer.get_active_stage(),
+			DemoFirstIndustrialPathVisualLayer.STAGE_FIELD_PICKUP,
+			"collector output visual checkpoint stays in field pickup stage"
+		)
+		_expect_equal(
+			first_path_layer.has_path_state_shape("first_path.auto_miner_output.ready"),
+			true,
+			"collector output visual checkpoint marks miner tray ready"
+		)
+
+	var handoff_result := builder.create_visual_review_checkpoint_state("visual_review.base_handoff")
+	_expect_equal(bool(handoff_result.get("success", false)), true, "base handoff visual checkpoint builds")
+	if bool(handoff_result.get("success", false)):
+		first_path_layer.refresh_path_state(handoff_result["world_state"], handoff_result["character_state"])
+		_expect_equal(
+			first_path_layer.get_active_stage(),
+			DemoFirstIndustrialPathVisualLayer.STAGE_OUTFITTING_READY,
+			"base handoff visual checkpoint lands on outfitting handoff stage"
+		)
+		_expect_equal(
+			first_path_layer.has_path_state_shape("first_path.outfitting_handoff.ready"),
+			true,
+			"base handoff visual checkpoint marks outfitting handoff ready"
+		)
 	map.free()
 
 

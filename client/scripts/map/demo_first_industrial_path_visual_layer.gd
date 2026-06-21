@@ -33,12 +33,12 @@ const CRYSTAL_COLLECTOR_OUTPUT_INSTANCE_ID := "map_object_instance.crystal_colle
 
 const FIRST_PATH_CONTEXT_LAYER_ALPHAS := [
 	{"path": "OpeningSceneLayer", "alpha": 0.12},
-	{"path": "DemoIndustrialBaseVisualLayer", "alpha": 0.46},
-	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.12},
-	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.045},
-	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.06},
-	{"path": "DemoRoutePresentationLayer", "alpha": 0.025},
-	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.28}
+	{"path": "DemoIndustrialBaseVisualLayer", "alpha": 0.42},
+	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.08},
+	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.035},
+	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.045},
+	{"path": "DemoRoutePresentationLayer", "alpha": 0.015},
+	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.18}
 ]
 
 const STAGE_FIELD_PICKUP := "field_pickup"

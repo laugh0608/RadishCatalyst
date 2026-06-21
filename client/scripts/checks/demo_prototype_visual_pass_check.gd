@@ -150,6 +150,21 @@ func _check_current_objective_guidance_layer() -> void:
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "CrystalCluster", "晶体采集点", "crystal field gather guidance")
 
+	world.add_base_structure(
+		"structure.crystal_collector_build_site",
+		"building.crystal_collector_t1",
+		"region.crystal_vein_field",
+		"map_object_instance.crystal_collector_build_site"
+	)
+	world.ensure_map_object(
+		"map_object_instance.crystal_collector_output",
+		"map_object.crystal_collector_output",
+		"region.crystal_vein_field"
+	)
+	map.refresh_world_interactables(world)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "CrystalCollectorOutput", "采集器输出", "built collector output guidance")
+
 	world.quest_state.active_quest_ids = ["quest.calibrate_reactor"]
 	map.refresh_world_interactables(world)
 	layer.refresh_guidance(world, character)

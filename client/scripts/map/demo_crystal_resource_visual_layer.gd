@@ -80,6 +80,7 @@ const BASE_DEPARTURE_LABELS := [
 const RESOURCE_DEFINITION_IDS := {
 	"map_object.crystal_cluster": true,
 	"map_object.rich_crystal_vein": true,
+	"map_object.crystal_collector_output": true,
 	"map_object.field_wreckage": true,
 	"map_object.anomaly_crystal": true,
 	"map_object.anomaly_residue_patch": true

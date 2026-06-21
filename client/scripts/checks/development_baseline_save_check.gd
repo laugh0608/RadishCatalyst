@@ -427,6 +427,7 @@ func _check_visual_review_checkpoints() -> void:
 		host._expect_equal(world_state.current_region_id, expected_region_id, "%s world region" % label)
 		host._expect_equal(character_state.current_region_id, expected_region_id, "%s character region" % label)
 		_expect_position_close(character_state.position, expected_position, "%s character position" % label)
+		_check_visual_review_checkpoint_runtime_state(checkpoint_id, world_state, character_state, label)
 
 		var slot_id := "visual_review_check_%s" % checkpoint_id.replace(".", "_")
 		host._remove_slot_files(slot_id)
@@ -443,6 +444,41 @@ func _check_visual_review_checkpoints() -> void:
 			host._expect_equal(loaded_character.current_region_id, expected_region_id, "%s loaded character region" % label)
 			_expect_position_close(loaded_character.position, expected_position, "%s loaded character position" % label)
 		host._remove_slot_files(slot_id)
+
+
+func _check_visual_review_checkpoint_runtime_state(
+	checkpoint_id: String,
+	world_state: WorldState,
+	character_state: CharacterState,
+	label: String
+) -> void:
+	match checkpoint_id:
+		"visual_review.crystal_collector_output":
+			host._expect_equal(world_state.quest_state.active_quest_ids, ["quest.scout_crystal_field"], "%s active quest" % label)
+			host._expect_array_missing(world_state.quest_state.completed_quest_ids, "quest.enter_pollution_edge", "%s avoids pollution chain" % label)
+			host._expect_equal(world_state.has_base_structure_definition("building.crystal_collector_t1"), true, "%s collector built" % label)
+			host._expect_equal(
+				bool(world_state.get_map_object("map_object_instance.crystal_collector_output").get("is_gathered", false)),
+				false,
+				"%s collector output stays ready"
+			)
+			host._expect_text_contains(
+				DemoResourceChainStateFormatter.format_chain_state_line(world_state, character_state),
+				"采集设备待收料",
+				"%s resource chain line"
+			)
+		"visual_review.base_handoff":
+			host._expect_equal(world_state.quest_state.active_quest_ids, ["quest.calibrate_reactor"], "%s active quest" % label)
+			host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.scout_crystal_field", "%s completed scout" % label)
+			host._expect_array_missing(world_state.quest_state.completed_quest_ids, "quest.enter_pollution_edge", "%s avoids pollution chain" % label)
+			host._expect_equal(world_state.has_base_structure_definition("building.basic_storage"), true, "%s storage built" % label)
+			host._expect_equal(world_state.has_base_structure_definition("building.field_outfitting_station"), true, "%s outfitting built" % label)
+			host._expect_equal(int(character_state.inventory.items.get("item.crystal_ore", 0)), 0, "%s keeps reactor feed cleared" % label)
+			host._expect_text_contains(
+				DemoResourceChainStateFormatter.format_chain_state_line(world_state, character_state),
+				"外勤整备可用",
+				"%s resource chain line"
+			)
 
 
 func _expect_position_close(actual: Vector2, expected: Vector2, context: String) -> void:
