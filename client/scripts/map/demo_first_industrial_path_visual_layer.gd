@@ -30,7 +30,7 @@ const FIRST_PATH_CONTEXT_LAYER_ALPHAS := [
 	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.08},
 	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.12},
 	{"path": "DemoRoutePresentationLayer", "alpha": 0.05},
-	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.12}
+	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.5}
 ]
 
 const STAGE_FIELD_PICKUP := "field_pickup"
@@ -57,6 +57,7 @@ var path_state_shape_ids: Array[String] = []
 var muted_planning_layer_count := 0
 var path_state: Dictionary = {}
 var context_layer_original_modulates: Dictionary = {}
+var first_path_available := false
 
 
 func _ready() -> void:
@@ -76,8 +77,15 @@ func apply_visuals() -> void:
 
 func refresh_path_state(world_state: WorldState, character_state: CharacterState) -> void:
 	path_state_shape_ids.clear()
+	first_path_available = _is_first_path_available(world_state)
 	if world_state == null or character_state == null:
 		path_state.clear()
+		refresh_focus_visibility(_get_player_position())
+		queue_redraw()
+		return
+	if not first_path_available:
+		path_state.clear()
+		refresh_focus_visibility(character_state.position)
 		queue_redraw()
 		return
 	var inventory := character_state.inventory
@@ -123,7 +131,11 @@ func refresh_focus_visibility(player_position: Vector2) -> void:
 
 
 func is_first_path_visible_at(player_position: Vector2) -> bool:
-	return player_position.x >= FOCUS_MIN_X and player_position.x <= FOCUS_MAX_X
+	return first_path_available and player_position.x >= FOCUS_MIN_X and player_position.x <= FOCUS_MAX_X
+
+
+func is_first_path_available() -> bool:
+	return first_path_available
 
 
 func get_path_shape_count() -> int:
@@ -418,6 +430,10 @@ func _has_first_path_output_context(world_state: WorldState) -> bool:
 		last_recipe_id in ["recipe.process_crystal_ore", "recipe.repair_gel"]
 		or _has_repair_gel_output_context(world_state)
 	)
+
+
+func _is_first_path_available(world_state: WorldState) -> bool:
+	return world_state != null and world_state.quest_state.has_completed_quest("quest.restore_outpost")
 
 
 func _has_repair_gel_output_context(world_state: WorldState) -> bool:

@@ -121,6 +121,10 @@ func has_visual_part(part_id: String) -> bool:
 	return PLAYER_VISUAL_PART_IDS.has(part_id)
 
 
+func get_facing_direction() -> Vector2:
+	return _safe_facing_direction()
+
+
 func _draw_oriented_rect(center: Vector2, forward: Vector2, half_length: float, half_width: float, color: Color) -> void:
 	var side := forward.orthogonal()
 	var points := PackedVector2Array([

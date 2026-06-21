@@ -11,9 +11,13 @@ const TARGET_LABEL_NAME := "CurrentObjectiveTargetLabel"
 const OFF_TARGET_LABEL_NAME := "CurrentObjectiveOffTargetLabel"
 const TARGET_COLOR := Color(0.28, 0.96, 1.0, 0.28)
 const TARGET_PIN_COLOR := Color(0.82, 1.0, 0.95, 0.82)
+const STARTUP_TARGET_COLOR := Color(0.42, 1.0, 0.92, 0.4)
+const STARTUP_TARGET_PIN_COLOR := Color(0.92, 1.0, 0.9, 0.92)
 const ROUTE_COLOR := Color(0.38, 0.94, 0.96, 0.12)
 const GUIDANCE_LABEL_FONT_SIZE := 9
 const TARGET_LABEL_MIN_DISTANCE := 180.0
+const DEFAULT_TARGET_HALO_SIZE := Vector2(60.0, 60.0)
+const STARTUP_TARGET_HALO_SIZE := Vector2(76.0, 76.0)
 const FIELD_GUIDANCE_SUPPRESSION_X := -40.0
 const OUTPOST_CORE_TARGET := {"path": "Interactables/OutpostCore", "label": "前哨核心"}
 const BASIC_STORAGE_TARGET := {"path": "Interactables/BasicStorageBuildSite", "label": "基础储存箱"}
@@ -153,7 +157,10 @@ func _position_target_visuals(target: PrototypeInteractable) -> void:
 		target_pin.visible = false
 		target_label.visible = false
 		return
-	_set_rect(target_halo, target.position + Vector2(-30.0, -30.0), Vector2(60.0, 60.0))
+	var halo_size := _get_target_halo_size(target)
+	target_halo.color = _get_target_halo_color(target)
+	target_pin.color = _get_target_pin_color(target)
+	_set_rect(target_halo, target.position - halo_size * 0.5, halo_size)
 	_set_rect(target_pin, target.position + Vector2(-3.0, -44.0), Vector2(6.0, 16.0))
 	target_label.text = current_target_label_text
 	_set_label_rect(target_label, target.position + Vector2(18.0, -58.0), Vector2(92.0, 16.0))
@@ -349,6 +356,32 @@ func _should_show_target_name_label(target: PrototypeInteractable) -> bool:
 	if player == null:
 		return true
 	return player.position.distance_to(target.position) > TARGET_LABEL_MIN_DISTANCE
+
+
+func _get_target_halo_size(target: PrototypeInteractable) -> Vector2:
+	if _is_startup_outpost_core_target(target):
+		return STARTUP_TARGET_HALO_SIZE
+	return DEFAULT_TARGET_HALO_SIZE
+
+
+func _get_target_halo_color(target: PrototypeInteractable) -> Color:
+	if _is_startup_outpost_core_target(target):
+		return STARTUP_TARGET_COLOR
+	return TARGET_COLOR
+
+
+func _get_target_pin_color(target: PrototypeInteractable) -> Color:
+	if _is_startup_outpost_core_target(target):
+		return STARTUP_TARGET_PIN_COLOR
+	return TARGET_PIN_COLOR
+
+
+func _is_startup_outpost_core_target(target: PrototypeInteractable) -> bool:
+	return (
+		target != null
+		and String(target.name) == "OutpostCore"
+		and _has_active_quest(current_world_state, "quest.restore_outpost")
+	)
 
 
 func _should_suppress_base_gate_guidance_in_field(target: PrototypeInteractable) -> bool:

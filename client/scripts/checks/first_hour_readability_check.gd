@@ -588,8 +588,14 @@ func _check_interactable_focus_labels() -> void:
 	host.root.add_child(map)
 	map.setup(host.data_registry)
 	map.refresh_world_interactables(WorldState.create_default())
+	var outpost_core := map.get_node("Interactables/OutpostCore") as PrototypeInteractable
 	var crystal := map.get_node("Interactables/CrystalCluster") as PrototypeInteractable
 	var crystal_east := map.get_node("Interactables/CrystalClusterEast") as PrototypeInteractable
+	var storage_site := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
+	var reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
+	host._expect_equal(map.current_interactable, outpost_core, "first-hour startup interaction focuses the outpost core objective")
+	host._expect_equal(storage_site.focus_ring.visible, false, "first-hour startup storage site does not steal focus")
+	host._expect_equal(reactor.focus_ring.visible, false, "first-hour startup reactor does not steal focus")
 	host._expect_equal(crystal.label.visible, false, "first-hour non-current crystal label starts hidden")
 	host._expect_equal(crystal.marker.scale, Vector2.ONE, "first-hour non-current crystal marker is not enlarged")
 	host._expect_equal(crystal.focus_ring.visible, false, "first-hour non-current crystal focus ring starts hidden")

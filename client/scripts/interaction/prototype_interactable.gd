@@ -16,6 +16,7 @@ const REACTOR_MARKER_COLOR := Color(0.28, 0.78, 0.9, 1)
 const FILTER_MARKER_COLOR := Color(0.64, 0.78, 0.3, 1)
 const CALIBRATED_OUTFITTING_MARKER_COLOR := Color(0.84, 0.78, 0.44, 1)
 const GATE_MARKER_COLOR := Color(0.72, 0.56, 0.86, 1)
+const OUTPOST_CORE_MARKER_COLOR := Color(0.28, 0.72, 0.76, 1)
 const RESTORED_OUTPOST_CORE_COLOR := Color(0.18, 0.86, 0.93, 1)
 const GATHERED_CRYSTAL_COLOR := Color(0.22, 0.42, 0.58, 1)
 const GATHERED_SALVAGE_COLOR := Color(0.48, 0.56, 0.58, 1)
@@ -820,7 +821,7 @@ func _apply_marker_style(marker_size: Vector2, color: Color) -> void:
 func _get_default_marker_visual() -> Dictionary:
 	match definition_id:
 		"building.outpost_core":
-			return {"size": Vector2(42.0, 42.0), "color": Color(0.34, 0.46, 0.52, 1)}
+			return {"size": Vector2(48.0, 48.0), "color": OUTPOST_CORE_MARKER_COLOR}
 		"building.basic_reactor":
 			return {"size": Vector2(40.0, 30.0), "color": REACTOR_MARKER_COLOR}
 		"building.basic_storage":

@@ -83,6 +83,7 @@ var phase_well_frontier_runtime: PhaseWellFrontierRuntime
 var enemy_counterattack_runtime: EnemyCounterattackRuntime
 var character_kit_runtime: CharacterKitRuntime
 var interactable_visual_refresher := InteractableVisualRefresher.new()
+var current_world_state: WorldState
 var last_reported_region_id := "region.outpost_platform"
 var last_gate_message := ""
 
@@ -188,6 +189,7 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 	return result
 func refresh_world_interactables(world_state: WorldState) -> void:
 	_ensure_scene_nodes()
+	current_world_state = world_state
 	if interactable_visual_refresher == null:
 		interactable_visual_refresher = InteractableVisualRefresher.new()
 	if phase_well_frontier_runtime != null:
@@ -706,23 +708,11 @@ func _on_interactable_body_exited(body: Node2D, interactable: PrototypeInteracta
 		return
 	update_current_interactable()
 func _get_nearest_interactable() -> PrototypeInteractable:
-	var nearest_interactable: PrototypeInteractable = null
-	var nearest_distance := INF
 	if player == null or interactables_root == null:
-		return nearest_interactable
+		return null
+	return InteractableTargetSelector.select_interactable(player, interactables_root, current_world_state)
 
-	for interactable in interactables_root.get_children():
-		if not interactable is PrototypeInteractable or not interactable.can_interact():
-			continue
 
-		var distance := player.position.distance_to(interactable.position)
-		if distance > PLAYER_INTERACTION_RANGE or distance >= nearest_distance:
-			continue
-
-		nearest_interactable = interactable
-		nearest_distance = distance
-
-	return nearest_interactable
 func _has_nearby_phase_relay_pad() -> bool:
 	if player == null or interactables_root == null:
 		return false

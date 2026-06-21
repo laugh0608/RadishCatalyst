@@ -148,7 +148,13 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	_expect_equal(first_path_layer.has_path_shape("first_path.outfitting_handoff_rack"), true, "first industrial path layer marks outfitting handoff")
 	_expect_equal(first_path_layer.has_path_shape("first_path.context_clarity_mask"), true, "first industrial path layer applies a local clarity mask")
 	_expect_equal(first_path_layer.has_path_shape("first_path.single_signal_stage"), true, "first industrial path layer uses one active stage signal")
+	first_path_layer.refresh_path_state(WorldState.create_default(), CharacterState.create_default())
+	_expect_equal(first_path_layer.is_first_path_available(), false, "first industrial path layer waits for outpost restoration")
+	_expect_equal(first_path_layer.is_first_path_visible_at(Vector2(-250.0, -48.0)), false, "first industrial path layer does not preempt the first outpost core interaction")
+	_expect_equal(first_path_layer.visible, false, "first industrial path layer starts hidden before the core is restored")
+	first_path_layer.refresh_path_state(world, character)
 	first_path_layer.refresh_focus_visibility(Vector2(-250.0, -48.0))
+	_expect_equal(first_path_layer.is_first_path_available(), true, "first industrial path layer opens after outpost restoration")
 	_expect_equal(first_path_layer.get_muted_planning_layer_count() >= 6, true, "first industrial path layer pushes overlapping visual layers into the background")
 	_expect_equal(first_path_layer.is_first_path_visible_at(Vector2(-250.0, -48.0)), true, "first industrial path layer is visible at base start")
 	_expect_equal(first_path_layer.is_first_path_visible_at(Vector2(112.0, -112.0)), true, "first industrial path layer is visible at crystal pickup")
@@ -157,7 +163,6 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	_expect_equal(first_path_layer.visible, false, "first industrial path layer hides at core station")
 	_expect_equal(first_path_layer.get_muted_planning_layer_count(), 0, "first industrial path layer restores background layers outside its scope")
 	first_path_layer.refresh_focus_visibility(Vector2(-250.0, -48.0))
-	first_path_layer.refresh_path_state(world, character)
 	_expect_equal(first_path_layer.get_path_state_shape_count() >= 8, true, "first industrial path layer creates state shapes")
 	_expect_equal(
 		first_path_layer.get_active_stage(),
@@ -359,6 +364,8 @@ func _create_resource_chain_world(active_quest_id: String) -> WorldState:
 	var world := WorldState.create_default()
 	world.current_region_id = "region.outpost_platform"
 	world.quest_state.active_quest_ids = [active_quest_id]
+	if not world.quest_state.completed_quest_ids.has("quest.restore_outpost"):
+		world.quest_state.completed_quest_ids.append("quest.restore_outpost")
 	for recipe_id in [
 		"recipe.cleanse_residue",
 		"recipe.reclaim_basic_parts",

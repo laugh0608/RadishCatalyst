@@ -73,6 +73,7 @@ func _check_current_objective_guidance_layer() -> void:
 	var layer := map.get_node("CurrentObjectiveGuidanceLayer") as CurrentObjectiveGuidanceLayer
 	var target := map.get_node("Interactables/OutpostCore") as PrototypeInteractable
 	var storage := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
+	var reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
 	var departure_gate := map.get_node("Interactables/OutpostDepartureGate") as PrototypeInteractable
 	var crystal_layer := map.get_node("DemoCrystalResourceVisualLayer") as DemoCrystalResourceVisualLayer
 	var world := WorldState.create_default()
@@ -83,6 +84,10 @@ func _check_current_objective_guidance_layer() -> void:
 		return
 
 	map.refresh_world_interactables(world)
+	map.update_current_interactable()
+	_expect_equal(map.current_interactable, target, "startup interaction prefers current outpost core objective")
+	_expect_equal(storage.focus_ring.visible, false, "startup storage does not steal the first interaction focus")
+	_expect_equal(reactor.focus_ring.visible, false, "startup reactor does not steal the first interaction focus")
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "OutpostCore", "前哨核心", "startup outpost core target guidance")
 	_expect_equal(layer.get_node_or_null("CurrentObjectiveTargetLabel") != null, true, "current target label exists")
@@ -101,7 +106,10 @@ func _check_current_objective_guidance_layer() -> void:
 	target.set_restored_outpost_core_visual()
 	world.quest_state.complete_quest("quest.restore_outpost")
 	world.quest_state.activate_quest("quest.scout_crystal_field")
+	map.player.position = VerticalSliceMap.OUTPOST_RESPAWN_POSITION
 	map.refresh_world_interactables(world)
+	map.update_current_interactable()
+	_expect_equal(map.current_interactable, null, "post-restore start does not auto-focus side devices before approach")
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "BasicStorageBuildSite", "基础储存箱", "post-restore storage build guidance")
 
