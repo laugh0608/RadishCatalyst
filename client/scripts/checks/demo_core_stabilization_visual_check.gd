@@ -47,6 +47,7 @@ func _check_core_visual_layer_exists_and_registers_station_shapes() -> void:
 	_expect_equal(layer.has_station_shape("station.retest_readout"), true, "core visual layer marks retest readout")
 	_expect_equal(layer.has_station_shape("station.retest_reader_bank"), true, "core visual layer marks retest reader bank")
 	_expect_equal(layer.has_station_shape("station.output_bus_nodes"), true, "core visual layer marks output bus nodes")
+	_expect_equal(layer.has_station_shape("station.logistics_return_dock"), true, "core visual layer marks logistics return dock")
 	_expect_equal(layer.has_station_shape("station.core_status_lights"), true, "core visual layer marks runtime status lights")
 	_expect_equal(layer.has_station_shape("station.core_pressure_warning"), true, "core visual layer marks pressure warning feedback")
 	_expect_equal(layer.has_station_shape("station.core_write_feedback"), true, "core visual layer marks core write feedback")
@@ -54,6 +55,7 @@ func _check_core_visual_layer_exists_and_registers_station_shapes() -> void:
 	_expect_equal(layer.has_flow_shape("flow.core_return_to_base"), true, "core visual layer marks return logistics route")
 	_expect_equal(layer.has_flow_shape("flow.core_runtime_status_lights"), true, "core visual layer marks runtime status light flow")
 	_expect_equal(layer.has_flow_shape("flow.core_runtime_write_feedback"), true, "core visual layer marks runtime write feedback flow")
+	_expect_equal(layer.has_flow_shape("flow.core_runtime_logistics_return"), true, "core visual layer marks runtime logistics return flow")
 	map.free()
 
 
@@ -112,6 +114,9 @@ func _check_core_visual_runtime_state_feedback() -> void:
 	_expect_equal(layer.has_core_station_state_shape("core_station.device.guard_cache.ready"), true, "core visual marks guard cache ready")
 	_expect_equal(layer.has_core_station_state_shape("core_station.pressure.guard.cleared"), true, "core visual marks guard pressure cleared")
 	_expect_equal(layer.has_core_station_state_shape("core_station.device.writeback.ready"), true, "core visual marks writeback ready")
+	_expect_equal(layer.has_core_station_state_shape("core_station.feedback.recovery_supply.ready"), true, "core visual marks recovery supply feedback")
+	_expect_equal(layer.has_core_station_state_shape("core_station.feedback.guard_pressure_relief.cleared"), true, "core visual marks cleared guard pressure feedback")
+	_expect_equal(layer.has_core_station_state_shape("core_station.feedback.writeback_cache.ready"), true, "core visual marks writeback cache feedback")
 	_expect_equal(layer.has_core_station_state_shape("core_station.flow.guard_cache_to_core.ready"), true, "core visual marks guard cache to core flow")
 	_expect_equal(layer.has_core_station_state_shape("core_station.flow.core_write.active"), true, "core visual marks active core write flow")
 
@@ -119,8 +124,14 @@ func _check_core_visual_runtime_state_feedback() -> void:
 	world.quest_state.complete_quest("quest.write_demo_stabilization_core")
 	layer.refresh_core_station_state(world, character)
 	_expect_equal(layer.has_core_station_state_shape("core_station.device.writeback.completed"), true, "core visual marks writeback completed")
+	_expect_equal(layer.has_core_station_state_shape("core_station.device.guard_cache.completed"), true, "core visual marks guard cache archived after write")
 	_expect_equal(layer.has_core_station_state_shape("core_station.device.retest.ready"), true, "core visual marks retest ready after write")
+	_expect_equal(layer.has_core_station_state_shape("core_station.device.logistics.ready"), true, "core visual marks logistics return ready after write")
+	_expect_equal(layer.has_core_station_state_shape("core_station.feedback.core_write.completed"), true, "core visual marks completed write feedback")
+	_expect_equal(layer.has_core_station_state_shape("core_station.feedback.retest_readout.ready"), true, "core visual marks retest readout feedback")
+	_expect_equal(layer.has_core_station_state_shape("core_station.feedback.logistics_return.ready"), true, "core visual marks logistics return feedback")
 	_expect_equal(layer.has_core_station_state_shape("core_station.flow.core_to_retest.ready"), true, "core visual marks core to retest flow after write")
+	_expect_equal(layer.has_core_station_state_shape("core_station.flow.logistics_return.ready"), true, "core visual marks local logistics return flow after write")
 	map.free()
 
 

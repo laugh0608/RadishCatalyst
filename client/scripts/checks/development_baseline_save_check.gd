@@ -479,6 +479,42 @@ func _check_visual_review_checkpoint_runtime_state(
 				"外勤整备可用",
 				"%s resource chain line"
 			)
+		"visual_review.core_station":
+			host._expect_array_has(
+				world_state.quest_state.completed_quest_ids,
+				"quest.write_demo_stabilization_core",
+				"%s completed core write quest" % label
+			)
+			host._expect_equal(
+				bool(world_state.get_map_object("map_object_instance.demo_stabilization_recovery_cache").get("is_gathered", false)),
+				true,
+				"%s marks recovery supply gathered"
+			)
+			host._expect_equal(
+				bool(world_state.get_enemy("enemy_instance.demo_stabilization_guard").get("is_defeated", false)),
+				true,
+				"%s marks guard pressure cleared"
+			)
+			host._expect_equal(
+				bool(world_state.get_map_object("map_object_instance.demo_stabilization_guard_cache").get("is_gathered", false)),
+				true,
+				"%s marks guard writeback cache gathered"
+			)
+			host._expect_equal(
+				bool(world_state.get_map_object("map_object_instance.demo_stabilization_core").get("is_sampled", false)),
+				true,
+				"%s marks core write completed"
+			)
+			host._expect_equal(
+				CoreStabilizationPressureFormatter.has_retest_readout(world_state),
+				true,
+				"%s marks retest readout recovered"
+			)
+			host._expect_equal(
+				CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_processed(world_state),
+				true,
+				"%s marks logistics return processed"
+			)
 
 
 func _expect_position_close(actual: Vector2, expected: Vector2, context: String) -> void:

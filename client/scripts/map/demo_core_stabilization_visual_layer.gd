@@ -134,11 +134,14 @@ func refresh_core_station_state(world_state: WorldState, character_state: Charac
 		bool(guard_state.get("is_defeated", false))
 		or quest_state.has_completed_quest("quest.defeat_demo_stabilization_guard")
 	)
+	var recovery_cache := world_state.get_map_object("map_object_instance.demo_stabilization_recovery_cache")
 	var guard_cache := world_state.get_map_object("map_object_instance.demo_stabilization_guard_cache")
 	var core_object := world_state.get_map_object("map_object_instance.demo_stabilization_core")
 	var retest_readout := world_state.get_map_object("map_object_instance.demo_stabilization_retest_readout_cache")
+	var recovery_cache_ready := bool(recovery_cache.get("is_gathered", false))
 	var buffer_ready := (
-		inventory.has_ref("item.core_stabilization_buffer", 1)
+		recovery_cache_ready
+		or inventory.has_ref("item.core_stabilization_buffer", 1)
 		or quest_state.has_completed_quest("quest.prepare_demo_stabilization_buffer")
 	)
 	var write_charge_ready := (
@@ -152,17 +155,36 @@ func refresh_core_station_state(world_state: WorldState, character_state: Charac
 		or quest_state.has_completed_quest("quest.write_demo_stabilization_core")
 	)
 	var write_ready := guard_defeated and guard_cache_ready and write_charge_ready and write_quest_active and not core_written
-	var retest_ready := core_written or bool(retest_readout.get("is_gathered", false))
-	var recovery_state := CORE_STATE_READY if buffer_ready else CORE_STATE_WAITING
-	var guard_cache_state := CORE_STATE_READY if guard_cache_ready else CORE_STATE_WAITING
+	var retest_readout_gathered := bool(retest_readout.get("is_gathered", false))
+	var retest_ready := core_written or retest_readout_gathered
+	var logistics_retest_processed := CoreStabilizationPressureFormatter.is_logistics_maintenance_retest_processed(world_state)
+	var logistics_return_ready := core_written or logistics_retest_processed
+	var recovery_state := CORE_STATE_WAITING
+	if recovery_cache_ready:
+		recovery_state = CORE_STATE_COMPLETED
+	elif buffer_ready:
+		recovery_state = CORE_STATE_READY
+	var guard_cache_state := CORE_STATE_WAITING
+	if core_written and guard_cache_ready:
+		guard_cache_state = CORE_STATE_COMPLETED
+	elif guard_cache_ready:
+		guard_cache_state = CORE_STATE_READY
 	var guard_pressure_state := CORE_STATE_CLEARED if guard_defeated else CORE_STATE_PRESSURE
 	var writeback_state := CORE_STATE_WAITING
 	if core_written:
 		writeback_state = CORE_STATE_COMPLETED
 	elif write_ready:
 		writeback_state = CORE_STATE_READY
-	var retest_state := CORE_STATE_READY if retest_ready else CORE_STATE_WAITING
-	var logistics_state := CORE_STATE_READY if core_written else CORE_STATE_WAITING
+	var retest_state := CORE_STATE_WAITING
+	if retest_readout_gathered:
+		retest_state = CORE_STATE_COMPLETED
+	elif retest_ready:
+		retest_state = CORE_STATE_READY
+	var logistics_state := CORE_STATE_WAITING
+	if logistics_retest_processed:
+		logistics_state = CORE_STATE_COMPLETED
+	elif logistics_return_ready:
+		logistics_state = CORE_STATE_READY
 
 	core_station_state = {
 		"recovery_state": recovery_state,
@@ -175,7 +197,8 @@ func refresh_core_station_state(world_state: WorldState, character_state: Charac
 		"guard_defeated": guard_defeated,
 		"write_ready": write_ready,
 		"core_written": core_written,
-		"retest_ready": retest_ready
+		"retest_ready": retest_ready,
+		"logistics_return_ready": logistics_return_ready
 	}
 	_register_core_station_state_shape("core_station.device.recovery.%s" % recovery_state)
 	_register_core_station_state_shape("core_station.device.guard_cache.%s" % guard_cache_state)
@@ -183,11 +206,18 @@ func refresh_core_station_state(world_state: WorldState, character_state: Charac
 	_register_core_station_state_shape("core_station.device.writeback.%s" % writeback_state)
 	_register_core_station_state_shape("core_station.device.retest.%s" % retest_state)
 	_register_core_station_state_shape("core_station.device.logistics.%s" % logistics_state)
+	_register_core_station_state_shape("core_station.feedback.recovery_supply.%s" % recovery_state)
+	_register_core_station_state_shape("core_station.feedback.guard_pressure_relief.%s" % guard_pressure_state)
+	_register_core_station_state_shape("core_station.feedback.writeback_cache.%s" % guard_cache_state)
+	_register_core_station_state_shape("core_station.feedback.core_write.%s" % writeback_state)
+	_register_core_station_state_shape("core_station.feedback.retest_readout.%s" % retest_state)
+	_register_core_station_state_shape("core_station.feedback.logistics_return.%s" % logistics_state)
 	_register_core_station_state_shape("core_station.flow.recovery_to_guard.%s" % _core_ready_suffix(buffer_ready))
 	_register_core_station_state_shape("core_station.flow.guard_cache_to_core.%s" % _core_ready_suffix(write_ready or core_written))
 	_register_core_station_state_shape("core_station.flow.core_write.%s" % _core_activity_suffix(write_ready))
 	_register_core_station_state_shape("core_station.flow.core_to_retest.%s" % _core_ready_suffix(core_written))
 	_register_core_station_state_shape("core_station.flow.retest_to_logistics.%s" % _core_ready_suffix(core_written))
+	_register_core_station_state_shape("core_station.flow.logistics_return.%s" % _core_ready_suffix(logistics_return_ready))
 	queue_redraw()
 
 
@@ -330,7 +360,7 @@ func _draw_station_routes() -> void:
 	_draw_route([Vector2(3870.0, 18.0), Vector2(3926.0, 70.0), Vector2(4038.0, -24.0)], WRITEBACK_LINE, 3.4)
 	_draw_route([Vector2(4038.0, -24.0), Vector2(4134.0, 78.0)], RETEST_LINE, 3.0)
 	_draw_route([Vector2(4134.0, 78.0), Vector2(4228.0, -52.0), Vector2(4108.0, -112.0)], LOGISTICS_LINE, 2.8)
-	_draw_route([Vector2(3744.0, 112.0), Vector2(3608.0, 124.0), Vector2(3420.0, 104.0), Vector2(298.0, -110.0)], RETURN_LINE, 2.8)
+	_draw_route([Vector2(3744.0, 112.0), Vector2(3616.0, 124.0), Vector2(3478.0, 96.0)], RETURN_LINE, 2.8)
 	for point in [Vector2(3748.0, -36.0), Vector2(3926.0, 70.0), Vector2(4038.0, -24.0), Vector2(4134.0, 78.0)]:
 		draw_circle(point, 4.4, Color(0.8, 0.96, 0.86, 0.66))
 
@@ -385,22 +415,102 @@ func _draw_core_station_state() -> void:
 	var logistics_state := String(core_station_state.get("logistics_state", CORE_STATE_WAITING))
 	var write_ready := bool(core_station_state.get("write_ready", false))
 	var core_written := bool(core_station_state.get("core_written", false))
+	var logistics_return_ready := bool(core_station_state.get("logistics_return_ready", false))
 	_draw_core_status_strip(Vector2(3718.0, 70.0), recovery_state, RECOVERY_LINE)
 	_draw_core_material_slot(Rect2(Vector2(3724.0, 98.0), Vector2(40.0, 26.0)), recovery_state, RECOVERY_LINE)
+	_draw_recovery_supply_feedback(recovery_state)
 	_draw_core_pressure_state(Vector2(3870.0, 18.0), guard_pressure_state)
+	_draw_guard_pressure_relief_feedback(Vector2(3870.0, 18.0), guard_pressure_state)
 	_draw_core_status_strip(Vector2(3906.0, 50.0), guard_cache_state, WRITEBACK_LINE)
 	_draw_core_material_slot(Rect2(Vector2(3908.0, 62.0), Vector2(38.0, 22.0)), guard_cache_state, WRITEBACK_LINE)
+	_draw_writeback_cache_feedback(guard_cache_state)
 	_draw_core_status_strip(Vector2(4018.0, -104.0), writeback_state, CORE_LIGHT)
 	_draw_core_material_slot(Rect2(Vector2(4016.0, -40.0), Vector2(44.0, 30.0)), writeback_state, CORE_LIGHT)
+	_draw_core_write_feedback(writeback_state)
 	_draw_core_status_strip(Vector2(4118.0, 96.0), retest_state, RETEST_LINE)
 	_draw_core_material_slot(Rect2(Vector2(4118.0, 62.0), Vector2(36.0, 24.0)), retest_state, RETEST_LINE)
+	_draw_retest_readout_feedback(retest_state)
 	_draw_core_status_strip(Vector2(4190.0, -98.0), logistics_state, LOGISTICS_LINE)
 	_draw_core_material_slot(Rect2(Vector2(4214.0, -62.0), Vector2(36.0, 24.0)), logistics_state, LOGISTICS_LINE)
+	_draw_logistics_return_feedback(logistics_state)
 	if write_ready:
 		_draw_core_state_flow([Vector2(3926.0, 70.0), Vector2(3988.0, 24.0), Vector2(4038.0, -24.0)], CORE_LIGHT, 4.6)
 	if core_written:
 		_draw_core_state_flow([Vector2(4038.0, -24.0), Vector2(4118.0, 18.0), Vector2(4134.0, 78.0)], RETEST_LINE, 3.8)
 		_draw_core_state_flow([Vector2(4134.0, 78.0), Vector2(4228.0, -52.0)], LOGISTICS_LINE, 3.2)
+	if logistics_return_ready:
+		_draw_core_state_flow([Vector2(4228.0, -52.0), Vector2(4146.0, -88.0), Vector2(4108.0, -118.0)], LOGISTICS_LINE, 3.0)
+		_draw_core_state_flow([Vector2(4108.0, -118.0), Vector2(3998.0, -126.0), Vector2(3886.0, -112.0)], RETURN_LINE, 2.8)
+
+
+func _draw_recovery_supply_feedback(state: String) -> void:
+	if not _is_core_ready_state(state):
+		return
+	for center in [Vector2(3720.0, 112.0), Vector2(3768.0, 126.0)]:
+		draw_rect(Rect2(center + Vector2(-13.0, -8.0), Vector2(26.0, 16.0)), Color(RECOVERY_LINE.r, RECOVERY_LINE.g, RECOVERY_LINE.b, 0.3), true)
+		draw_rect(Rect2(center + Vector2(-13.0, -8.0), Vector2(26.0, 16.0)), Color(RECOVERY_LINE.r, RECOVERY_LINE.g, RECOVERY_LINE.b, 0.64), false, 1.0, true)
+		draw_line(center + Vector2(-7.0, 0.0), center + Vector2(7.0, 0.0), Color(RECOVERY_LINE.r, RECOVERY_LINE.g, RECOVERY_LINE.b, 0.72), 1.2, true)
+		draw_line(center + Vector2(0.0, -5.0), center + Vector2(0.0, 5.0), Color(RECOVERY_LINE.r, RECOVERY_LINE.g, RECOVERY_LINE.b, 0.72), 1.2, true)
+
+
+func _draw_guard_pressure_relief_feedback(center: Vector2, state: String) -> void:
+	if state != CORE_STATE_CLEARED:
+		return
+	for angle in [PI * 0.18, PI * 0.42, PI * 1.18, PI * 1.42]:
+		var from := center + Vector2(cos(angle), sin(angle)) * 54.0
+		var to := center + Vector2(cos(angle), sin(angle)) * 80.0
+		draw_line(from, to, Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.72), 2.0, true)
+	draw_arc(center, 88.0, PI * 0.1, PI * 0.38, 12, Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.52), 1.8, true)
+	draw_arc(center, 88.0, PI * 1.1, PI * 1.38, 12, Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.52), 1.8, true)
+
+
+func _draw_writeback_cache_feedback(state: String) -> void:
+	if not _is_core_ready_state(state):
+		return
+	for rect in [
+		Rect2(Vector2(3888.0, 76.0), Vector2(24.0, 14.0)),
+		Rect2(Vector2(3918.0, 82.0), Vector2(26.0, 14.0))
+	]:
+		draw_rect(rect, Color(WRITEBACK_LINE.r, WRITEBACK_LINE.g, WRITEBACK_LINE.b, 0.24), true)
+		draw_rect(rect, Color(WRITEBACK_LINE.r, WRITEBACK_LINE.g, WRITEBACK_LINE.b, 0.64), false, 1.0, true)
+		draw_line(rect.position + Vector2(5.0, rect.size.y * 0.5), rect.position + Vector2(rect.size.x - 5.0, rect.size.y * 0.5), Color(WRITEBACK_LINE.r, WRITEBACK_LINE.g, WRITEBACK_LINE.b, 0.7), 1.0, true)
+
+
+func _draw_core_write_feedback(state: String) -> void:
+	if state == CORE_STATE_WAITING:
+		return
+	var center := Vector2(4038.0, -24.0)
+	var alpha := 0.86 if state == CORE_STATE_COMPLETED else 0.58
+	for radius in [24.0, 44.0, 64.0]:
+		draw_arc(center, radius, PI * 0.08, PI * 1.88, 48, Color(CORE_LIGHT.r, CORE_LIGHT.g, CORE_LIGHT.b, alpha * 0.5), 1.4, true)
+	if state == CORE_STATE_COMPLETED:
+		draw_circle(center, 10.0, Color(CORE_LIGHT.r, CORE_LIGHT.g, CORE_LIGHT.b, 0.68))
+
+
+func _draw_retest_readout_feedback(state: String) -> void:
+	if not _is_core_ready_state(state):
+		return
+	var bar_color := Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, 0.72 if state == CORE_STATE_COMPLETED else 0.52)
+	for index in range(4):
+		var x := 4118.0 + float(index) * 11.0
+		var height := 8.0 + float(index % 2) * 5.0
+		draw_line(Vector2(x, 84.0), Vector2(x, 84.0 - height), bar_color, 1.7, true)
+	draw_arc(Vector2(4134.0, 78.0), 30.0, PI * 0.08, PI * 0.86, 20, bar_color, 1.2, true)
+
+
+func _draw_logistics_return_feedback(state: String) -> void:
+	var ready := _is_core_ready_state(state)
+	var dock_alpha := 0.62 if ready else 0.2
+	var dock_rect := Rect2(Vector2(4070.0, -134.0), Vector2(78.0, 34.0))
+	draw_rect(dock_rect, Color(LOGISTICS_LINE.r, LOGISTICS_LINE.g, LOGISTICS_LINE.b, dock_alpha * 0.32), true)
+	draw_rect(dock_rect, Color(LOGISTICS_LINE.r, LOGISTICS_LINE.g, LOGISTICS_LINE.b, dock_alpha), false, 1.2, true)
+	for x in [4088.0, 4110.0, 4132.0]:
+		draw_line(Vector2(x, -132.0), Vector2(x + 12.0, -102.0), Color(LOGISTICS_LINE.r, LOGISTICS_LINE.g, LOGISTICS_LINE.b, dock_alpha * 0.48), 1.0, true)
+	if not ready:
+		return
+	for center in [Vector2(4102.0, -116.0), Vector2(4130.0, -118.0)]:
+		draw_rect(Rect2(center + Vector2(-8.0, -6.0), Vector2(16.0, 12.0)), Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.38), true)
+		draw_rect(Rect2(center + Vector2(-8.0, -6.0), Vector2(16.0, 12.0)), Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.68), false, 0.9, true)
 
 
 func _draw_core_status_strip(origin: Vector2, state: String, color: Color) -> void:
@@ -485,6 +595,7 @@ func _register_station_shapes() -> void:
 		"station.retest_readout",
 		"station.retest_reader_bank",
 		"station.logistics_retest_pocket",
+		"station.logistics_return_dock",
 		"station.energy_confluence_nodes",
 		"station.output_bus_nodes",
 		"station.return_service_lane",
@@ -503,7 +614,8 @@ func _register_flow_shapes() -> void:
 		"flow.retest_to_logistics",
 		"flow.core_return_to_base",
 		"flow.core_runtime_status_lights",
-		"flow.core_runtime_write_feedback"
+		"flow.core_runtime_write_feedback",
+		"flow.core_runtime_logistics_return"
 	]
 
 
