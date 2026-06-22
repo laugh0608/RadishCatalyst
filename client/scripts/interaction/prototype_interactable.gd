@@ -76,7 +76,9 @@ const BUILT_FILTER_SITE_SIZE := Vector2(48.0, 30.0)
 const FOCUSED_MARKER_SCALE := Vector2(1.22, 1.22)
 const FOCUSED_MARKER_MODULATE := Color(1.18, 1.18, 1.18, 1)
 const DEFAULT_MARKER_MODULATE := Color(1, 1, 1, 1)
+const FIRST_PATH_FOCUS_MARKER_MODULATE := Color(0.92, 1.0, 0.96, 0.7)
 const FOCUSED_Z_INDEX := 20
+const FIRST_PATH_FOCUS_Z_INDEX := 2
 const INTERACTABLE_LABEL_FONT_SIZE := 8
 const FOCUS_LABEL_WIDTH := 96.0
 const FOCUS_LABEL_LINE_HEIGHT := 11.0
@@ -211,22 +213,33 @@ func set_interaction_enabled(enabled: bool) -> void:
 	monitoring = enabled
 
 
-func set_focus_visual(focused: bool) -> void:
+func set_focus_visual(focused: bool, compact_first_industrial_path: bool = false) -> void:
+	var should_show_full_focus := focused and not compact_first_industrial_path
 	if label != null:
-		label.visible = focused and visible and not label.text.strip_edges().is_empty()
-		if focused:
+		label.visible = should_show_full_focus and visible and not label.text.strip_edges().is_empty()
+		if should_show_full_focus:
 			_layout_focus_label()
 	if focus_ring != null:
-		focus_ring.visible = focused and visible
+		focus_ring.visible = should_show_full_focus and visible
 		if marker != null:
 			var ring_size := marker.size + Vector2(14.0, 14.0)
 			focus_ring.position = marker.position - Vector2(7.0, 7.0)
 			focus_ring.size = ring_size
 	if marker != null:
 		marker.pivot_offset = marker.size * 0.5
-		marker.scale = FOCUSED_MARKER_SCALE if focused else Vector2.ONE
-		marker.modulate = FOCUSED_MARKER_MODULATE if focused else DEFAULT_MARKER_MODULATE
-	z_index = FOCUSED_Z_INDEX if focused else 0
+		marker.scale = FOCUSED_MARKER_SCALE if should_show_full_focus else Vector2.ONE
+		if should_show_full_focus:
+			marker.modulate = FOCUSED_MARKER_MODULATE
+		elif focused and compact_first_industrial_path:
+			marker.modulate = FIRST_PATH_FOCUS_MARKER_MODULATE
+		else:
+			marker.modulate = DEFAULT_MARKER_MODULATE
+	if should_show_full_focus:
+		z_index = FOCUSED_Z_INDEX
+	elif focused and compact_first_industrial_path:
+		z_index = FIRST_PATH_FOCUS_Z_INDEX
+	else:
+		z_index = 0
 
 
 func set_default_visual() -> void:

@@ -16,8 +16,8 @@ const LOGISTICS_PORT := Color(0.7, 0.76, 0.58, 0.42)
 const CONTEXT_FILL := Color(0.022, 0.038, 0.034, 0.58)
 const CONTEXT_EDGE := Color(0.42, 0.52, 0.46, 0.28)
 const CONTEXT_DASH := Color(0.56, 0.54, 0.38, 0.18)
-const SIGNAL_ACCENT := Color(0.96, 0.74, 0.28, 0.9)
-const SIGNAL_SOFT := Color(0.96, 0.74, 0.28, 0.2)
+const SIGNAL_ACCENT := Color(0.96, 0.74, 0.28, 0.72)
+const SIGNAL_SOFT := Color(0.96, 0.74, 0.28, 0.1)
 const COMPLETE_DOT := Color(0.46, 0.64, 0.52, 0.58)
 const CRYSTAL_ACCENT := Color(0.34, 0.78, 0.86, 0.32)
 const SALVAGE_ACCENT := Color(0.84, 0.7, 0.34, 0.3)
@@ -28,17 +28,36 @@ const SLOT_DARK := Color(0.02, 0.04, 0.035, 0.64)
 const READY_DIM := Color(0.22, 0.28, 0.26, 0.22)
 const HAND_SAMPLE_ACCENT := Color(0.82, 0.96, 1.0, 0.42)
 const AUTO_MINER_ACCENT := Color(0.7, 0.9, 0.82, 0.38)
+const FALLOFF_MASK := Color(0.002, 0.006, 0.006, 0.48)
+const FALLOFF_SOFT := Color(0.002, 0.006, 0.006, 0.34)
+const STATUS_WAITING := "waiting"
+const STATUS_BUILD_READY := "build_ready"
+const STATUS_RUNNING := "running"
+const STATUS_OUTPUT_READY := "output_ready"
+const STATUS_LOADED := "loaded"
+const STATUS_INPUT_READY := "input_ready"
+const STATUS_PROCESSING := "processing"
+const STATUS_PRODUCT_READY := "product_ready"
+const STATUS_SUPPLY_READY := "supply_ready"
+const STATUS_LOCKED := "locked"
+const STATUS_IDLE_LIGHT := Color(0.22, 0.28, 0.26, 0.24)
+const STATUS_READY_LIGHT := Color(0.96, 0.78, 0.34, 0.74)
+const STATUS_ACTIVE_LIGHT := Color(0.42, 0.96, 0.86, 0.76)
+const STATUS_OUTPUT_LIGHT := Color(0.58, 0.88, 0.52, 0.68)
 const CRYSTAL_COLLECTOR_ID := "building.crystal_collector_t1"
 const CRYSTAL_COLLECTOR_OUTPUT_INSTANCE_ID := "map_object_instance.crystal_collector_output"
 
 const FIRST_PATH_CONTEXT_LAYER_ALPHAS := [
-	{"path": "OpeningSceneLayer", "alpha": 0.12},
-	{"path": "DemoIndustrialBaseVisualLayer", "alpha": 0.42},
-	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.08},
-	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.035},
-	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.045},
-	{"path": "DemoRoutePresentationLayer", "alpha": 0.015},
-	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.18}
+	{"path": "OpeningSceneLayer", "alpha": 0.05},
+	{"path": "DemoIndustrialBaseVisualLayer", "alpha": 0.34},
+	{"path": "DemoCrystalResourceVisualLayer", "alpha": 0.16},
+	{"path": "DemoPollutionBoundaryVisualLayer", "alpha": 0.035},
+	{"path": "DemoCoreStabilizationVisualLayer", "alpha": 0.025},
+	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.055},
+	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.02},
+	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.025},
+	{"path": "DemoRoutePresentationLayer", "alpha": 0.0},
+	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.11}
 ]
 
 const STAGE_FIELD_PICKUP := "field_pickup"
@@ -130,6 +149,11 @@ func refresh_path_state(world_state: WorldState, character_state: CharacterState
 		"reactor_active": reactor_active,
 		"storage_ready": storage_ready,
 		"outfitting_ready": outfitting_ready,
+		"collector_device_state": _resolve_collector_device_state(collector_built, collector_build_ready, collector_output_ready),
+		"receiving_device_state": STATUS_LOADED if inputs_ready else STATUS_WAITING,
+		"reactor_device_state": _resolve_reactor_device_state(inputs_ready, reactor_active, storage_ready),
+		"storage_device_state": STATUS_PRODUCT_READY if storage_ready else STATUS_WAITING,
+		"outfitting_device_state": _resolve_outfitting_device_state(world_state, outfitting_ready),
 		"active_stage": _resolve_active_stage(character_state, inputs_ready, reactor_active, storage_ready, outfitting_ready)
 	}
 	_register_path_state_shape("first_path.crystal_pickup.%s" % _state_suffix(bool(path_state["crystal_ready"])))
@@ -142,6 +166,12 @@ func refresh_path_state(world_state: WorldState, character_state: CharacterState
 	_register_path_state_shape("first_path.reactor_work_window.%s" % _state_suffix(reactor_active))
 	_register_path_state_shape("first_path.storage_output.%s" % _state_suffix(storage_ready))
 	_register_path_state_shape("first_path.outfitting_handoff.%s" % _state_suffix(outfitting_ready))
+	if collector_output_ready:
+		_register_path_state_shape("first_path.auto_miner_output.current_stage")
+	if outfitting_ready:
+		_register_path_state_shape("first_path.handoff_ports.ready")
+	_register_device_state_shapes()
+	_register_resource_flow_shapes()
 	_register_path_state_shape("first_path.stage.%s" % get_active_stage())
 	queue_redraw()
 
@@ -186,12 +216,14 @@ func get_active_stage() -> String:
 
 func _draw() -> void:
 	_draw_workspace_focus()
+	_draw_context_falloff()
 	_draw_primary_path_floor()
 	_draw_local_work_surfaces()
 	_draw_resource_workspots()
 	_draw_base_receiving_bay()
 	_draw_reactor_feed_station()
 	_draw_storage_and_outfitting_handoff()
+	_draw_device_status_and_resource_flow()
 	_draw_stage_feedback()
 	_draw_path_state()
 
@@ -205,6 +237,12 @@ func _draw_workspace_focus() -> void:
 		Rect2(Vector2(44.0, 92.0), Vector2(164.0, 72.0))
 	]:
 		draw_rect(rect, Color(0.012, 0.022, 0.023, 0.28), true)
+
+
+func _draw_context_falloff() -> void:
+	draw_rect(Rect2(Vector2(266.0, -320.0), Vector2(560.0, 640.0)), FALLOFF_MASK, true)
+	draw_rect(Rect2(Vector2(-620.0, -320.0), Vector2(252.0, 640.0)), FALLOFF_SOFT, true)
+	draw_rect(Rect2(Vector2(232.0, -320.0), Vector2(34.0, 640.0)), Color(FALLOFF_MASK.r, FALLOFF_MASK.g, FALLOFF_MASK.b, 0.22), true)
 
 
 func _draw_primary_path_floor() -> void:
@@ -269,33 +307,45 @@ func _draw_salvage_sorting_workface() -> void:
 
 
 func _draw_base_receiving_workface() -> void:
-	var bay := Rect2(Vector2(-252.0, -142.0), Vector2(78.0, 62.0))
+	var bay := Rect2(Vector2(-256.0, -146.0), Vector2(88.0, 70.0))
 	draw_rect(bay, WORKFACE_FILL, true)
-	draw_rect(bay, WORKFACE_EDGE, false, 1.4, true)
+	draw_rect(bay, Color(LOGISTICS_PORT.r, LOGISTICS_PORT.g, LOGISTICS_PORT.b, 0.36), false, 1.8, true)
 	for y in [-128.0, -112.0, -96.0]:
-		draw_line(Vector2(-244.0, y), Vector2(-186.0, y), Color(WORKFACE_EDGE.r, WORKFACE_EDGE.g, WORKFACE_EDGE.b, 0.16), 1.0, true)
+		draw_line(Vector2(-246.0, y), Vector2(-182.0, y), Color(WORKFACE_EDGE.r, WORKFACE_EDGE.g, WORKFACE_EDGE.b, 0.22), 1.2, true)
 	_draw_logistics_port(Vector2(-214.0, -112.0), LOGISTICS_PORT)
-	draw_rect(Rect2(Vector2(-236.0, -136.0), Vector2(18.0, 10.0)), Color(CRYSTAL_ACCENT.r, CRYSTAL_ACCENT.g, CRYSTAL_ACCENT.b, 0.12), true)
-	draw_rect(Rect2(Vector2(-214.0, -136.0), Vector2(18.0, 10.0)), Color(SALVAGE_ACCENT.r, SALVAGE_ACCENT.g, SALVAGE_ACCENT.b, 0.12), true)
+	draw_rect(Rect2(Vector2(-240.0, -138.0), Vector2(22.0, 12.0)), Color(CRYSTAL_ACCENT.r, CRYSTAL_ACCENT.g, CRYSTAL_ACCENT.b, 0.18), true)
+	draw_rect(Rect2(Vector2(-212.0, -138.0), Vector2(22.0, 12.0)), Color(SALVAGE_ACCENT.r, SALVAGE_ACCENT.g, SALVAGE_ACCENT.b, 0.16), true)
+	draw_line(Vector2(-250.0, -112.0), Vector2(-232.0, -112.0), Color(LOGISTICS_PORT.r, LOGISTICS_PORT.g, LOGISTICS_PORT.b, 0.3), 2.6, true)
+	draw_circle(Vector2(-174.0, -112.0), 5.0, Color(REACTOR_ACCENT.r, REACTOR_ACCENT.g, REACTOR_ACCENT.b, 0.28))
 
 
 func _draw_reactor_input_workface() -> void:
-	var workbench := Rect2(Vector2(-192.0, -132.0), Vector2(68.0, 36.0))
+	var workbench := Rect2(Vector2(-196.0, -134.0), Vector2(76.0, 40.0))
 	draw_rect(workbench, WORKFACE_FILL, true)
-	draw_rect(workbench, Color(REACTOR_ACCENT.r, REACTOR_ACCENT.g, REACTOR_ACCENT.b, 0.22), false, 1.4, true)
+	draw_rect(workbench, Color(REACTOR_ACCENT.r, REACTOR_ACCENT.g, REACTOR_ACCENT.b, 0.3), false, 1.8, true)
 	_draw_logistics_port(Vector2(-184.0, -114.0), REACTOR_ACCENT)
 	_draw_logistics_port(Vector2(-134.0, -114.0), PRODUCT_ACCENT)
-	draw_line(Vector2(-174.0, -114.0), Vector2(-144.0, -114.0), Color(REACTOR_ACCENT.r, REACTOR_ACCENT.g, REACTOR_ACCENT.b, 0.16), 2.0, true)
+	draw_line(Vector2(-174.0, -114.0), Vector2(-144.0, -114.0), Color(REACTOR_ACCENT.r, REACTOR_ACCENT.g, REACTOR_ACCENT.b, 0.24), 2.6, true)
+	var hopper := PackedVector2Array([
+		Vector2(-186.0, -130.0),
+		Vector2(-158.0, -130.0),
+		Vector2(-166.0, -116.0),
+		Vector2(-178.0, -116.0),
+		Vector2(-186.0, -130.0)
+	])
+	draw_colored_polygon(hopper, Color(REACTOR_ACCENT.r, REACTOR_ACCENT.g, REACTOR_ACCENT.b, 0.12))
+	draw_polyline(hopper, Color(REACTOR_ACCENT.r, REACTOR_ACCENT.g, REACTOR_ACCENT.b, 0.32), 1.2, true)
 
 
 func _draw_storage_output_workface() -> void:
-	var shelf := Rect2(Vector2(-296.0, -2.0), Vector2(92.0, 74.0))
+	var shelf := Rect2(Vector2(-300.0, -6.0), Vector2(100.0, 82.0))
 	draw_rect(shelf, Color(PRODUCT_ACCENT.r, PRODUCT_ACCENT.g, PRODUCT_ACCENT.b, 0.05), true)
-	draw_rect(shelf, Color(PRODUCT_ACCENT.r, PRODUCT_ACCENT.g, PRODUCT_ACCENT.b, 0.18), false, 1.2, true)
+	draw_rect(shelf, Color(PRODUCT_ACCENT.r, PRODUCT_ACCENT.g, PRODUCT_ACCENT.b, 0.28), false, 1.6, true)
 	for y in [16.0, 40.0]:
-		draw_line(Vector2(-288.0, y), Vector2(-212.0, y), Color(PRODUCT_ACCENT.r, PRODUCT_ACCENT.g, PRODUCT_ACCENT.b, 0.16), 1.2, true)
+		draw_line(Vector2(-290.0, y), Vector2(-210.0, y), Color(PRODUCT_ACCENT.r, PRODUCT_ACCENT.g, PRODUCT_ACCENT.b, 0.2), 1.4, true)
 	for x in [-280.0, -252.0, -224.0]:
-		draw_rect(Rect2(Vector2(x, 48.0), Vector2(16.0, 12.0)), Color(PRODUCT_ACCENT.r, PRODUCT_ACCENT.g, PRODUCT_ACCENT.b, 0.12), true)
+		draw_rect(Rect2(Vector2(x, 48.0), Vector2(16.0, 12.0)), Color(PRODUCT_ACCENT.r, PRODUCT_ACCENT.g, PRODUCT_ACCENT.b, 0.18), true)
+		draw_rect(Rect2(Vector2(x, 48.0), Vector2(16.0, 12.0)), Color(PRODUCT_ACCENT.r, PRODUCT_ACCENT.g, PRODUCT_ACCENT.b, 0.24), false, 1.0, true)
 	_draw_logistics_port(Vector2(-206.0, 18.0), PRODUCT_ACCENT)
 
 
@@ -320,32 +370,49 @@ func _draw_stage_feedback() -> void:
 		return
 	match get_active_stage():
 		STAGE_FIELD_PICKUP:
-			_draw_active_stage_lane([Vector2(-42.0, -42.0), Vector2(-74.0, -14.0), Vector2(-42.0, -106.0), Vector2(54.0, -100.0), Vector2(84.0, -100.0), Vector2(132.0, -124.0)])
-			_draw_stage_pulse(Vector2(84.0, -100.0), 18.0)
-			_draw_stage_pulse(Vector2(132.0, -124.0), 26.0)
-			_draw_stage_pulse(Vector2(54.0, 112.0), 22.0)
+			_draw_field_pickup_stage_feedback()
 		STAGE_RETURN_TO_BASE:
-			_draw_active_stage_lane([Vector2(132.0, -124.0), Vector2(48.0, -100.0), Vector2(-42.0, -106.0), Vector2(-214.0, -112.0)])
+			_draw_active_stage_lane([Vector2(132.0, -124.0), Vector2(74.0, -116.0), Vector2(6.0, -112.0), Vector2(-214.0, -112.0)])
 			_draw_stage_pulse(Vector2(-214.0, -112.0), 24.0)
 		STAGE_BASE_RECEIVING:
-			_draw_active_stage_lane([Vector2(-214.0, -112.0), Vector2(-194.0, -108.0), Vector2(-178.0, -92.0)])
+			_draw_active_stage_lane([Vector2(-214.0, -112.0), Vector2(-194.0, -108.0)])
 			_draw_stage_pulse(Vector2(-214.0, -112.0), 24.0)
 		STAGE_REACTOR_FEED:
-			_draw_active_stage_lane([Vector2(-214.0, -112.0), Vector2(-194.0, -108.0), Vector2(-178.0, -92.0), Vector2(-166.0, -66.0)])
+			_draw_active_stage_lane([Vector2(-214.0, -112.0), Vector2(-194.0, -108.0), Vector2(-184.0, -114.0)])
 			_draw_stage_pulse(Vector2(-184.0, -114.0), 22.0)
 		STAGE_REACTOR_PROCESSING:
-			_draw_active_stage_lane([Vector2(-194.0, -108.0), Vector2(-178.0, -92.0), Vector2(-166.0, -66.0)])
+			_draw_active_stage_lane([Vector2(-184.0, -114.0), Vector2(-176.0, -86.0), Vector2(-166.0, -66.0)])
 			_draw_stage_pulse(Vector2(-166.0, -66.0), 31.0)
 		STAGE_STORAGE_OUTPUT:
-			_draw_active_stage_lane([Vector2(-148.0, -38.0), Vector2(-170.0, 10.0), Vector2(-250.0, 18.0)])
+			_draw_active_stage_lane([Vector2(-148.0, -38.0), Vector2(-206.0, 18.0), Vector2(-250.0, 18.0)])
 			_draw_stage_pulse(Vector2(-250.0, 18.0), 26.0)
 		STAGE_OUTFITTING_READY:
-			_draw_active_stage_lane([Vector2(-250.0, 18.0), Vector2(-128.0, 54.0), Vector2(-74.0, -14.0), Vector2(-42.0, -42.0)])
+			_draw_handoff_stage_feedback()
 			_draw_stage_pulse(Vector2(-74.0, -14.0), 26.0)
 
 
+func _draw_field_pickup_stage_feedback() -> void:
+	if bool(path_state.get("collector_output_ready", false)):
+		_draw_active_stage_lane([Vector2(132.0, -124.0), Vector2(114.0, -104.0), Vector2(86.0, -118.0)])
+		_draw_stage_pulse(Vector2(86.0, -118.0), 18.0)
+		_draw_stage_pulse(Vector2(132.0, -124.0), 18.0)
+		return
+	if bool(path_state.get("collector_build_ready", false)):
+		_draw_active_stage_lane([Vector2(132.0, -124.0), Vector2(132.0, -146.0)])
+		_draw_stage_pulse(Vector2(132.0, -146.0), 18.0)
+		return
+	_draw_active_stage_lane([Vector2(84.0, -100.0), Vector2(132.0, -124.0)])
+	_draw_stage_pulse(Vector2(84.0, -100.0), 16.0)
+	_draw_stage_pulse(Vector2(132.0, -124.0), 22.0)
+
+
+func _draw_handoff_stage_feedback() -> void:
+	_draw_handoff_port_chain()
+	_draw_active_stage_lane([Vector2(-250.0, 18.0), Vector2(-168.0, 28.0), Vector2(-92.0, -2.0), Vector2(-74.0, -14.0)])
+
+
 func _draw_active_stage_lane(points: Array) -> void:
-	_draw_lane(points, 12.0, SIGNAL_SOFT, SIGNAL_ACCENT)
+	_draw_lane(points, 7.0, SIGNAL_SOFT, SIGNAL_ACCENT)
 	_draw_stage_chevrons(points)
 
 
@@ -355,16 +422,37 @@ func _draw_stage_chevrons(points: Array) -> void:
 		var to: Vector2 = points[index + 1]
 		var direction := (to - from).normalized()
 		var normal := Vector2(-direction.y, direction.x)
-		for ratio in [0.54]:
+		if from.distance_to(to) < 30.0:
+			continue
+		for ratio in [0.58]:
 			var center := from.lerp(to, ratio)
-			draw_line(center - direction * 8.0 - normal * 4.0, center + direction * 5.0, SIGNAL_ACCENT, 1.8, true)
-			draw_line(center - direction * 8.0 + normal * 4.0, center + direction * 5.0, SIGNAL_ACCENT, 1.8, true)
+			draw_line(center - direction * 6.0 - normal * 3.0, center + direction * 4.0, SIGNAL_ACCENT, 1.4, true)
+			draw_line(center - direction * 6.0 + normal * 3.0, center + direction * 4.0, SIGNAL_ACCENT, 1.4, true)
 
 
 func _draw_stage_pulse(center: Vector2, radius: float) -> void:
-	draw_circle(center, 4.8, SIGNAL_ACCENT)
-	draw_arc(center, radius, PI * 0.12, PI * 1.9, 34, SIGNAL_ACCENT, 2.4, true)
-	draw_arc(center, radius + 6.0, PI * 0.52, PI * 1.36, 24, Color(SIGNAL_ACCENT.r, SIGNAL_ACCENT.g, SIGNAL_ACCENT.b, 0.38), 1.5, true)
+	draw_circle(center, 4.2, SIGNAL_ACCENT)
+	draw_arc(center, radius, PI * 0.12, PI * 1.9, 30, SIGNAL_ACCENT, 1.8, true)
+	draw_arc(center, radius + 5.0, PI * 0.52, PI * 1.36, 20, Color(SIGNAL_ACCENT.r, SIGNAL_ACCENT.g, SIGNAL_ACCENT.b, 0.28), 1.2, true)
+
+
+func _draw_handoff_port_chain() -> void:
+	var ports := [
+		{"position": Vector2(-214.0, -112.0), "color": LOGISTICS_PORT},
+		{"position": Vector2(-184.0, -114.0), "color": REACTOR_ACCENT},
+		{"position": Vector2(-250.0, 18.0), "color": PRODUCT_ACCENT},
+		{"position": Vector2(-74.0, -14.0), "color": OUTFITTING_ACCENT}
+	]
+	for index in range(ports.size() - 1):
+		var from: Vector2 = ports[index]["position"]
+		var to: Vector2 = ports[index + 1]["position"]
+		draw_line(from, to, Color(SIGNAL_ACCENT.r, SIGNAL_ACCENT.g, SIGNAL_ACCENT.b, 0.14), 3.0, true)
+	for port in ports:
+		var position: Vector2 = port["position"]
+		var color: Color = port["color"]
+		draw_circle(position, 9.0, Color(color.r, color.g, color.b, 0.13))
+		draw_arc(position, 13.0, 0.0, TAU, 24, Color(color.r, color.g, color.b, 0.38), 1.4, true)
+		draw_rect(Rect2(position + Vector2(-5.0, -5.0), Vector2(10.0, 10.0)), Color(color.r, color.g, color.b, 0.24), true)
 
 
 func _draw_resource_workspots() -> void:
@@ -416,6 +504,109 @@ func _draw_storage_and_outfitting_handoff() -> void:
 	draw_rect(handoff, CONTEXT_EDGE, false, 1.6, true)
 	draw_line(Vector2(-98.0, -16.0), Vector2(-56.0, -16.0), CONTEXT_DASH, 1.8, true)
 	draw_line(Vector2(-48.0, -38.0), Vector2(-30.0, -38.0), CONTEXT_DASH, 2.0, true)
+
+
+func _draw_device_status_and_resource_flow() -> void:
+	if path_state.is_empty():
+		return
+	_draw_resource_flow_state()
+	_draw_status_light_strip(Vector2(144.0, -158.0), String(path_state.get("collector_device_state", STATUS_WAITING)), AUTO_MINER_ACCENT)
+	_draw_status_light_strip(Vector2(-256.0, -158.0), String(path_state.get("receiving_device_state", STATUS_WAITING)), LOGISTICS_PORT)
+	_draw_status_light_strip(Vector2(-194.0, -144.0), String(path_state.get("reactor_device_state", STATUS_WAITING)), REACTOR_ACCENT)
+	_draw_status_light_strip(Vector2(-302.0, -18.0), String(path_state.get("storage_device_state", STATUS_WAITING)), PRODUCT_ACCENT)
+	_draw_status_light_strip(Vector2(-112.0, -58.0), String(path_state.get("outfitting_device_state", STATUS_LOCKED)), OUTFITTING_ACCENT)
+	_draw_material_slot(Rect2(Vector2(78.0, -130.0), Vector2(26.0, 9.0)), AUTO_MINER_ACCENT, bool(path_state.get("collector_output_ready", false)))
+	_draw_material_slot(Rect2(Vector2(-242.0, -142.0), Vector2(22.0, 9.0)), CRYSTAL_ACCENT, bool(path_state.get("inputs_ready", false)))
+	_draw_material_slot(Rect2(Vector2(-214.0, -142.0), Vector2(22.0, 9.0)), SALVAGE_ACCENT, bool(path_state.get("salvage_ready", false)))
+	_draw_material_slot(Rect2(Vector2(-180.0, -132.0), Vector2(18.0, 8.0)), REACTOR_ACCENT, bool(path_state.get("inputs_ready", false)) or bool(path_state.get("reactor_active", false)))
+	_draw_material_slot(Rect2(Vector2(-290.0, 64.0), Vector2(20.0, 8.0)), PRODUCT_ACCENT, bool(path_state.get("storage_ready", false)))
+	_draw_material_slot(Rect2(Vector2(-104.0, -8.0), Vector2(20.0, 8.0)), OUTFITTING_ACCENT, bool(path_state.get("outfitting_ready", false)))
+
+
+func _draw_resource_flow_state() -> void:
+	var active_stage := get_active_stage()
+	if bool(path_state.get("collector_output_ready", false)):
+		_draw_resource_flow([Vector2(132.0, -124.0), Vector2(114.0, -104.0), Vector2(86.0, -118.0)], AUTO_MINER_ACCENT, active_stage == STAGE_FIELD_PICKUP)
+	if bool(path_state.get("inputs_ready", false)):
+		_draw_resource_flow([Vector2(86.0, -118.0), Vector2(6.0, -112.0), Vector2(-214.0, -112.0)], CRYSTAL_ACCENT, active_stage in [STAGE_RETURN_TO_BASE, STAGE_BASE_RECEIVING])
+		_draw_resource_flow([Vector2(-214.0, -112.0), Vector2(-194.0, -108.0), Vector2(-184.0, -114.0)], REACTOR_ACCENT, active_stage in [STAGE_REACTOR_FEED, STAGE_REACTOR_PROCESSING])
+	if bool(path_state.get("reactor_active", false)):
+		_draw_processing_core(Vector2(-166.0, -66.0))
+	if bool(path_state.get("storage_ready", false)):
+		_draw_resource_flow([Vector2(-134.0, -114.0), Vector2(-206.0, 18.0), Vector2(-250.0, 18.0)], PRODUCT_ACCENT, active_stage == STAGE_STORAGE_OUTPUT)
+	if bool(path_state.get("outfitting_ready", false)):
+		_draw_resource_flow([Vector2(-250.0, 18.0), Vector2(-168.0, 28.0), Vector2(-74.0, -14.0)], OUTFITTING_ACCENT, active_stage == STAGE_OUTFITTING_READY)
+
+
+func _draw_resource_flow(points: Array, color: Color, is_active: bool) -> void:
+	var fill_alpha := 0.13 if is_active else 0.06
+	var edge_alpha := 0.36 if is_active else 0.16
+	_draw_lane(points, 4.2, Color(color.r, color.g, color.b, fill_alpha), Color(color.r, color.g, color.b, edge_alpha))
+	if not is_active:
+		return
+	for index in range(points.size() - 1):
+		var from: Vector2 = points[index]
+		var to: Vector2 = points[index + 1]
+		for ratio in [0.38, 0.68]:
+			var center := from.lerp(to, ratio)
+			draw_circle(center, 3.0, Color(color.r, color.g, color.b, 0.58))
+
+
+func _draw_processing_core(center: Vector2) -> void:
+	draw_circle(center, 12.0, Color(REACTOR_ACCENT.r, REACTOR_ACCENT.g, REACTOR_ACCENT.b, 0.1))
+	draw_arc(center, 17.0, PI * 0.08, PI * 1.86, 32, Color(REACTOR_ACCENT.r, REACTOR_ACCENT.g, REACTOR_ACCENT.b, 0.42), 1.8, true)
+	draw_arc(center, 23.0, PI * 0.42, PI * 1.28, 22, Color(STATUS_ACTIVE_LIGHT.r, STATUS_ACTIVE_LIGHT.g, STATUS_ACTIVE_LIGHT.b, 0.38), 1.2, true)
+
+
+func _draw_status_light_strip(origin: Vector2, state: String, accent: Color) -> void:
+	var panel := Rect2(origin, Vector2(34.0, 10.0))
+	draw_rect(panel, Color(0.01, 0.018, 0.016, 0.74), true)
+	draw_rect(panel, Color(accent.r, accent.g, accent.b, 0.2), false, 1.0, true)
+	var lit_count := _get_status_lit_count(state)
+	var light_color := _get_status_light_color(state, accent)
+	for index in range(3):
+		var center := origin + Vector2(7.0 + float(index) * 10.0, 5.0)
+		var color := light_color if index < lit_count else STATUS_IDLE_LIGHT
+		draw_circle(center, 2.8, color)
+	if _is_active_device_state(state):
+		draw_arc(origin + Vector2(17.0, 5.0), 22.0, 0.0, TAU, 28, Color(light_color.r, light_color.g, light_color.b, 0.24), 1.1, true)
+
+
+func _draw_material_slot(rect: Rect2, color: Color, is_filled: bool) -> void:
+	draw_rect(rect, Color(0.01, 0.018, 0.016, 0.62), true)
+	if is_filled:
+		draw_rect(rect.grow(-2.0), Color(color.r, color.g, color.b, 0.34), true)
+	draw_rect(rect, Color(color.r, color.g, color.b, 0.28 if is_filled else 0.12), false, 1.0, true)
+
+
+func _get_status_lit_count(state: String) -> int:
+	match state:
+		STATUS_LOCKED:
+			return 0
+		STATUS_RUNNING, STATUS_PROCESSING:
+			return 3
+		STATUS_BUILD_READY, STATUS_OUTPUT_READY, STATUS_LOADED, STATUS_INPUT_READY, STATUS_PRODUCT_READY, STATUS_SUPPLY_READY:
+			return 2
+		_:
+			return 1
+
+
+func _get_status_light_color(state: String, accent: Color) -> Color:
+	match state:
+		STATUS_RUNNING, STATUS_PROCESSING:
+			return STATUS_ACTIVE_LIGHT
+		STATUS_PRODUCT_READY, STATUS_SUPPLY_READY:
+			return STATUS_OUTPUT_LIGHT
+		STATUS_BUILD_READY, STATUS_OUTPUT_READY, STATUS_LOADED, STATUS_INPUT_READY:
+			return STATUS_READY_LIGHT
+		STATUS_LOCKED:
+			return STATUS_IDLE_LIGHT
+		_:
+			return Color(accent.r, accent.g, accent.b, 0.34)
+
+
+func _is_active_device_state(state: String) -> bool:
+	return state == STATUS_RUNNING or state == STATUS_PROCESSING
 
 
 func _draw_path_state() -> void:
@@ -498,6 +689,7 @@ func _draw_lane(points: Array, width: float, fill_color: Color, edge_color: Colo
 func _register_path_shapes() -> void:
 	path_shape_ids = [
 		"first_path.workspace_focus_wash",
+		"first_path.context_side_falloff",
 		"first_path.primary_player_lane",
 		"first_path.local_material_patches",
 		"first_path.crystal_cut_workface",
@@ -521,8 +713,13 @@ func _register_path_shapes() -> void:
 		"first_path.context_clarity_mask",
 		"first_path.stage_feedback_lane",
 		"first_path.stage_feedback_station",
+		"first_path.collector_output_local_signal",
+		"first_path.handoff_port_chain",
 		"first_path.single_signal_stage",
-		"first_path.operation_state_pips"
+		"first_path.operation_state_pips",
+		"first_path.device_status_lights",
+		"first_path.resource_flow_packets",
+		"first_path.material_state_slots"
 	]
 
 
@@ -579,6 +776,56 @@ func _get_base_structure_for_definition(world_state: WorldState, building_id: St
 		if String(structure.get("definition_id", "")) == building_id:
 			return structure
 	return {}
+
+
+func _resolve_collector_device_state(collector_built: bool, collector_build_ready: bool, collector_output_ready: bool) -> String:
+	if collector_output_ready:
+		return STATUS_OUTPUT_READY
+	if collector_built:
+		return STATUS_RUNNING
+	if collector_build_ready:
+		return STATUS_BUILD_READY
+	return STATUS_WAITING
+
+
+func _resolve_reactor_device_state(inputs_ready: bool, reactor_active: bool, storage_ready: bool) -> String:
+	if reactor_active:
+		return STATUS_PROCESSING
+	if storage_ready:
+		return STATUS_PRODUCT_READY
+	if inputs_ready:
+		return STATUS_INPUT_READY
+	return STATUS_WAITING
+
+
+func _resolve_outfitting_device_state(world_state: WorldState, outfitting_ready: bool) -> String:
+	if outfitting_ready:
+		return STATUS_SUPPLY_READY
+	if world_state.has_base_structure_definition("building.field_outfitting_station"):
+		return STATUS_WAITING
+	return STATUS_LOCKED
+
+
+func _register_device_state_shapes() -> void:
+	_register_path_state_shape("first_path.device.collector.%s" % String(path_state.get("collector_device_state", STATUS_WAITING)))
+	_register_path_state_shape("first_path.device.receiving.%s" % String(path_state.get("receiving_device_state", STATUS_WAITING)))
+	_register_path_state_shape("first_path.device.reactor.%s" % String(path_state.get("reactor_device_state", STATUS_WAITING)))
+	_register_path_state_shape("first_path.device.storage.%s" % String(path_state.get("storage_device_state", STATUS_WAITING)))
+	_register_path_state_shape("first_path.device.outfitting.%s" % String(path_state.get("outfitting_device_state", STATUS_LOCKED)))
+
+
+func _register_resource_flow_shapes() -> void:
+	if bool(path_state.get("collector_output_ready", false)):
+		_register_path_state_shape("first_path.flow.auto_miner_to_tray.ready")
+	if bool(path_state.get("inputs_ready", false)):
+		_register_path_state_shape("first_path.flow.field_to_receiving.ready")
+		_register_path_state_shape("first_path.flow.receiving_to_reactor.ready")
+	if bool(path_state.get("reactor_active", false)):
+		_register_path_state_shape("first_path.flow.reactor_processing.active")
+	if bool(path_state.get("storage_ready", false)):
+		_register_path_state_shape("first_path.flow.reactor_to_storage.ready")
+	if bool(path_state.get("outfitting_ready", false)):
+		_register_path_state_shape("first_path.flow.storage_to_outfitting.ready")
 
 
 func _has_first_path_output_context(world_state: WorldState) -> bool:

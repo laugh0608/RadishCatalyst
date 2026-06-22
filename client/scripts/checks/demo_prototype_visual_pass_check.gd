@@ -76,6 +76,7 @@ func _check_current_objective_guidance_layer() -> void:
 	var reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
 	var departure_gate := map.get_node("Interactables/OutpostDepartureGate") as PrototypeInteractable
 	var crystal_layer := map.get_node("DemoCrystalResourceVisualLayer") as DemoCrystalResourceVisualLayer
+	var first_path_layer := map.get_node("DemoFirstIndustrialPathVisualLayer") as DemoFirstIndustrialPathVisualLayer
 	var world := WorldState.create_default()
 	var character := CharacterState.create_default()
 	_expect_equal(layer != null, true, "current objective guidance layer exists")
@@ -164,6 +165,34 @@ func _check_current_objective_guidance_layer() -> void:
 	map.refresh_world_interactables(world)
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "CrystalCollectorOutput", "采集器输出", "built collector output guidance")
+	map.player.position = Vector2(96.0, -118.0)
+	character.position = map.player.position
+	character.current_region_id = "region.crystal_vein_field"
+	first_path_layer.refresh_path_state(world, character)
+	first_path_layer.refresh_focus_visibility(map.player.position)
+	layer.refresh_guidance(world, character)
+	map.sync_enemy_states(world)
+	map.update_current_interactable()
+	_expect_guidance_target(layer, "CrystalCollectorOutput", "采集器输出", "collector output compact guidance target")
+	_expect_equal(layer.is_first_path_compact_guidance_active(), true, "first industrial path compacts current target guidance")
+	_expect_equal(layer.is_target_route_visible(), false, "first industrial path hides long current target route")
+	var collector_output := map.get_node("Interactables/CrystalCollectorOutput") as PrototypeInteractable
+	_expect_equal(map.current_interactable, collector_output, "first industrial path still keeps collector output as logical focus")
+	_expect_equal(collector_output.label.visible, false, "first industrial path hides current interactable label")
+	_expect_equal(collector_output.focus_ring.visible, false, "first industrial path hides current interactable focus ring")
+	_expect_equal(collector_output.marker.scale, Vector2.ONE, "first industrial path does not enlarge the current marker over devices")
+	_expect_equal(collector_output.marker.modulate.a < 1.0, true, "first industrial path lowers current marker weight")
+	var field_patrol := map.get_node("Enemies/NativeSkitterPatrol") as PrototypeEnemy
+	_expect_equal(field_patrol.modulate.a < 1.0, true, "first industrial path mutes nearby enemy pressure")
+	_expect_equal(field_patrol.label.visible, false, "first industrial path hides nearby enemy label")
+	map.player.position = Vector2(320.0, -118.0)
+	first_path_layer.refresh_focus_visibility(map.player.position)
+	map.update_current_interactable()
+	_expect_equal(field_patrol.modulate, PrototypeEnemy.DEFAULT_CONTEXT_MODULATE, "leaving first industrial path restores enemy context weight")
+	map.player.position = VerticalSliceMap.OUTPOST_RESPAWN_POSITION
+	character.position = map.player.position
+	character.current_region_id = "region.outpost_platform"
+	first_path_layer.refresh_focus_visibility(map.player.position)
 
 	world.quest_state.active_quest_ids = ["quest.calibrate_reactor"]
 	map.refresh_world_interactables(world)

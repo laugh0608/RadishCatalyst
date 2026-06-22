@@ -8,6 +8,8 @@ const DEFEATED_POLLUTED_COLOR := Color(0.34, 0.32, 0.16, 1)
 const FOCUSED_SPRITE_SCALE := Vector2(1.22, 1.22)
 const FOCUSED_SPRITE_MODULATE := Color(1.16, 1.16, 1.16, 1)
 const DEFAULT_SPRITE_MODULATE := Color(1, 1, 1, 1)
+const DEFAULT_CONTEXT_MODULATE := Color(1, 1, 1, 1)
+const FIRST_PATH_CONTEXT_MODULATE := Color(1, 1, 1, 0.22)
 const FOCUSED_Z_INDEX := 18
 const BASIC_ENEMY_SIZE := Vector2(24.0, 24.0)
 const TREATMENT_ENEMY_SIZE := Vector2(28.0, 22.0)
@@ -131,6 +133,17 @@ func set_focus_visual(focused: bool) -> void:
 		sprite.scale = FOCUSED_SPRITE_SCALE if focused else Vector2.ONE
 		sprite.modulate = FOCUSED_SPRITE_MODULATE if focused else DEFAULT_SPRITE_MODULATE
 	z_index = FOCUSED_Z_INDEX if focused else 0
+	queue_redraw()
+
+
+func set_context_muted(muted: bool) -> void:
+	modulate = FIRST_PATH_CONTEXT_MODULATE if muted else DEFAULT_CONTEXT_MODULATE
+	if muted:
+		if label != null:
+			label.visible = false
+		if focus_ring != null:
+			focus_ring.visible = false
+		z_index = 0
 	queue_redraw()
 
 

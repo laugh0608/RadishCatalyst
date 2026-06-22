@@ -142,6 +142,7 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	first_path_layer.apply_visuals()
 	_expect_equal(first_path_layer.get_path_shape_count() >= 18, true, "first industrial path layer registers the playable path slice")
 	_expect_equal(first_path_layer.has_path_shape("first_path.primary_player_lane"), true, "first industrial path layer marks the player route")
+	_expect_equal(first_path_layer.has_path_shape("first_path.context_side_falloff"), true, "first industrial path layer dims adjacent planning context")
 	_expect_equal(first_path_layer.has_path_shape("first_path.local_material_patches"), true, "first industrial path layer adds local ground and material patches")
 	_expect_equal(first_path_layer.has_path_shape("first_path.crystal_cut_workface"), true, "first industrial path layer marks the crystal cut workface")
 	_expect_equal(first_path_layer.has_path_shape("first_path.hand_sample_point"), true, "first industrial path layer marks the player hand sampling point")
@@ -159,7 +160,12 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	_expect_equal(first_path_layer.has_path_shape("first_path.outfitting_departure_port"), true, "first industrial path layer marks the outfitting departure port")
 	_expect_equal(first_path_layer.has_path_shape("first_path.outfitting_handoff_rack"), true, "first industrial path layer marks outfitting handoff")
 	_expect_equal(first_path_layer.has_path_shape("first_path.context_clarity_mask"), true, "first industrial path layer applies a local clarity mask")
+	_expect_equal(first_path_layer.has_path_shape("first_path.collector_output_local_signal"), true, "first industrial path layer keeps collector output signal local")
+	_expect_equal(first_path_layer.has_path_shape("first_path.handoff_port_chain"), true, "first industrial path layer registers base handoff ports")
 	_expect_equal(first_path_layer.has_path_shape("first_path.single_signal_stage"), true, "first industrial path layer uses one active stage signal")
+	_expect_equal(first_path_layer.has_path_shape("first_path.device_status_lights"), true, "first industrial path layer registers device status lights")
+	_expect_equal(first_path_layer.has_path_shape("first_path.resource_flow_packets"), true, "first industrial path layer registers resource flow packets")
+	_expect_equal(first_path_layer.has_path_shape("first_path.material_state_slots"), true, "first industrial path layer registers material state slots")
 	first_path_layer.refresh_path_state(WorldState.create_default(), CharacterState.create_default())
 	_expect_equal(first_path_layer.is_first_path_available(), false, "first industrial path layer waits for outpost restoration")
 	_expect_equal(first_path_layer.is_first_path_visible_at(Vector2(-250.0, -48.0)), false, "first industrial path layer does not preempt the first outpost core interaction")
@@ -189,6 +195,11 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.reactor_work_window.ready"), true, "first industrial path layer marks reactor state")
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.storage_output.idle"), true, "first industrial path layer waits for completed output before storage")
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.outfitting_handoff.idle"), true, "first industrial path layer waits for crafted supply before outfitting")
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.device.receiving.loaded"), true, "first industrial path layer marks receiving bay loaded")
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.device.reactor.processing"), true, "first industrial path layer marks reactor processing status")
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.flow.field_to_receiving.ready"), true, "first industrial path layer marks resource return flow")
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.flow.receiving_to_reactor.ready"), true, "first industrial path layer marks receiving to reactor flow")
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.flow.reactor_processing.active"), true, "first industrial path layer marks active reactor flow")
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.stage.reactor_processing"), true, "first industrial path layer records reactor operation stage")
 	_check_first_industrial_path_stage_changes(first_path_layer)
 	map.free()
@@ -365,6 +376,21 @@ func _check_visual_review_checkpoint_path_states() -> void:
 			true,
 			"collector output visual checkpoint marks miner tray ready"
 		)
+		_expect_equal(
+			first_path_layer.has_path_state_shape("first_path.auto_miner_output.current_stage"),
+			true,
+			"collector output visual checkpoint uses local miner tray stage"
+		)
+		_expect_equal(
+			first_path_layer.has_path_state_shape("first_path.device.collector.output_ready"),
+			true,
+			"collector output visual checkpoint marks collector output status"
+		)
+		_expect_equal(
+			first_path_layer.has_path_state_shape("first_path.flow.auto_miner_to_tray.ready"),
+			true,
+			"collector output visual checkpoint marks miner-to-tray resource flow"
+		)
 
 	var handoff_result := builder.create_visual_review_checkpoint_state("visual_review.base_handoff")
 	_expect_equal(bool(handoff_result.get("success", false)), true, "base handoff visual checkpoint builds")
@@ -379,6 +405,26 @@ func _check_visual_review_checkpoint_path_states() -> void:
 			first_path_layer.has_path_state_shape("first_path.outfitting_handoff.ready"),
 			true,
 			"base handoff visual checkpoint marks outfitting handoff ready"
+		)
+		_expect_equal(
+			first_path_layer.has_path_state_shape("first_path.handoff_ports.ready"),
+			true,
+			"base handoff visual checkpoint marks port chain ready"
+		)
+		_expect_equal(
+			first_path_layer.has_path_state_shape("first_path.device.storage.product_ready"),
+			true,
+			"base handoff visual checkpoint marks storage output status"
+		)
+		_expect_equal(
+			first_path_layer.has_path_state_shape("first_path.device.outfitting.supply_ready"),
+			true,
+			"base handoff visual checkpoint marks outfitting supply status"
+		)
+		_expect_equal(
+			first_path_layer.has_path_state_shape("first_path.flow.storage_to_outfitting.ready"),
+			true,
+			"base handoff visual checkpoint marks storage-to-outfitting flow"
 		)
 	map.free()
 

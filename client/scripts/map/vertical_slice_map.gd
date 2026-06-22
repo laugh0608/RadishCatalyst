@@ -743,17 +743,25 @@ func _refresh_focus_visuals() -> void:
 func _refresh_interactable_focus_visuals() -> void:
 	if interactables_root == null:
 		return
+	var compact_first_path_focus := _is_first_industrial_path_focus_active()
 	for interactable in interactables_root.get_children():
 		if interactable is PrototypeInteractable:
-			interactable.set_focus_visual(interactable == current_interactable and interactable.can_interact())
+			interactable.set_focus_visual(interactable == current_interactable and interactable.can_interact(), compact_first_path_focus)
 
 func _refresh_enemy_focus_visuals() -> void:
 	var focused_enemy := _get_nearest_attack_target()
 	if enemies_root == null:
 		return
+	var compact_first_path_focus := _is_first_industrial_path_focus_active()
 	for enemy in enemies_root.get_children():
 		if enemy is PrototypeEnemy:
-			enemy.set_focus_visual(enemy == focused_enemy)
+			enemy.set_focus_visual(enemy == focused_enemy and not compact_first_path_focus)
+			enemy.set_context_muted(compact_first_path_focus)
+
+
+func _is_first_industrial_path_focus_active() -> bool:
+	var first_path_layer := get_node_or_null("DemoFirstIndustrialPathVisualLayer") as DemoFirstIndustrialPathVisualLayer
+	return player != null and first_path_layer != null and first_path_layer.is_first_path_visible_at(player.position)
 
 
 func _should_hide_enemy_for_startup_core_focus(world_state: WorldState) -> bool:
@@ -764,11 +772,13 @@ func _should_hide_enemy_for_startup_core_focus(world_state: WorldState) -> bool:
 	if world_state.quest_state.active_quest_ids.size() != 1 or not world_state.quest_state.completed_quest_ids.is_empty():
 		return false
 	return player.position.distance_to(OUTPOST_RESPAWN_POSITION) <= 160.0
+func _is_quest_active_or_completed(world_state: WorldState, quest_id: String) -> bool:
+	return world_state.quest_state.has_active_quest(quest_id) or world_state.quest_state.has_completed_quest(quest_id)
 func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool:
 	if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure":
-		return world_state.quest_state.has_active_quest("quest.defeat_elite_node") or world_state.quest_state.has_completed_quest("quest.defeat_elite_node")
+		return _is_quest_active_or_completed(world_state, "quest.defeat_elite_node")
 	if enemy.instance_id == "enemy_instance.polluted_skitter_vial_return_guard":
-		return world_state.quest_state.has_active_quest("quest.enter_pollution_edge") or world_state.quest_state.has_completed_quest("quest.enter_pollution_edge")
+		return _is_quest_active_or_completed(world_state, "quest.enter_pollution_edge")
 	if enemy.instance_id == "enemy_instance.polluted_skitter_slurry_return_guard": return _is_pollution_slurry_return_route_available(world_state)
 	if enemy.instance_id == "enemy_instance.polluted_skitter_vial_reserve_guard":
 		return _is_pollution_slurry_return_route_available(world_state)
@@ -785,67 +795,31 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 	if enemy.instance_id == "enemy_instance.native_skitter_logistics_return_guard":
 		return _is_crystal_logistics_return_available(world_state)
 	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
-		return world_state.quest_state.has_active_quest("quest.scout_ruin_outer_ring") or world_state.quest_state.has_completed_quest("quest.scout_ruin_outer_ring")
+		return _is_quest_active_or_completed(world_state, "quest.scout_ruin_outer_ring")
 	if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
-		return (
-			world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer")
-			or world_state.quest_state.has_completed_quest("quest.prepare_demo_stabilization_buffer")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.prepare_demo_stabilization_buffer")
 	if enemy.definition_id == "enemy.elite_residue_node":
-		return (
-			world_state.quest_state.has_active_quest("quest.defeat_elite_node")
-			or world_state.quest_state.has_completed_quest("quest.defeat_elite_node")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.defeat_elite_node")
 	if enemy.definition_id == "enemy.ruin_phase_guard":
-		return (
-			world_state.quest_state.has_active_quest("quest.salvage_signal_echo")
-			or world_state.quest_state.has_completed_quest("quest.salvage_signal_echo")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.salvage_signal_echo")
 	if enemy.definition_id == "enemy.deep_ruin_sentinel":
-		return (
-			world_state.quest_state.has_active_quest("quest.harvest_phase_filament")
-			or world_state.quest_state.has_completed_quest("quest.harvest_phase_filament")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.harvest_phase_filament")
 	if enemy.definition_id == "enemy.deep_ruin_stalker":
-		return (
-			world_state.quest_state.has_active_quest("quest.activate_deep_array")
-			or world_state.quest_state.has_completed_quest("quest.activate_deep_array")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.activate_deep_array")
 	if enemy.definition_id == "enemy.deep_fault_hunter":
-		return (
-			world_state.quest_state.has_active_quest("quest.trace_phase_splinters")
-			or world_state.quest_state.has_completed_quest("quest.trace_phase_splinters")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.trace_phase_splinters")
 	if enemy.definition_id == "enemy.phase_well_sentry":
-		return (
-			world_state.quest_state.has_active_quest("quest.collect_well_flux")
-			or world_state.quest_state.has_completed_quest("quest.collect_well_flux")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.collect_well_flux")
 	if enemy.definition_id == "enemy.phase_well_lurker":
-		return (
-			world_state.quest_state.has_active_quest("quest.collect_well_ash")
-			or world_state.quest_state.has_completed_quest("quest.collect_well_ash")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.collect_well_ash")
 	if enemy.definition_id == "enemy.phase_well_reaver":
-		return (
-			world_state.quest_state.has_active_quest("quest.collect_heart_spine")
-			or world_state.quest_state.has_completed_quest("quest.collect_heart_spine")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.collect_heart_spine")
 	if enemy.definition_id == "enemy.phase_well_tangler":
-		return (
-			world_state.quest_state.has_active_quest("quest.collect_weft_bundle")
-			or world_state.quest_state.has_completed_quest("quest.collect_weft_bundle")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.collect_weft_bundle")
 	if enemy.definition_id == "enemy.phase_well_raker":
-		return (
-			world_state.quest_state.has_active_quest("quest.collect_selvedge_strip")
-			or world_state.quest_state.has_completed_quest("quest.collect_selvedge_strip")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.collect_selvedge_strip")
 	if enemy.definition_id == "enemy.phase_well_binder":
-		return (
-			world_state.quest_state.has_active_quest("quest.collect_tether_fiber")
-			or world_state.quest_state.has_completed_quest("quest.collect_tether_fiber")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.collect_tether_fiber")
 	if enemy.definition_id == "enemy.phase_well_warden":
 		return phase_well_frontier_runtime != null and phase_well_frontier_runtime.should_spawn_anchor_field_enemy(world_state)
 	if enemy.definition_id == "enemy.pressure_clearance_guard":
@@ -858,10 +832,7 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 			)
 		)
 	if enemy.definition_id == "enemy.demo_stabilization_guard":
-		return (
-			world_state.quest_state.has_active_quest("quest.defeat_demo_stabilization_guard")
-			or world_state.quest_state.has_completed_quest("quest.defeat_demo_stabilization_guard")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.defeat_demo_stabilization_guard")
 	if enemy.definition_id != "enemy.treatment_skitter":
 		return true
 	var quest_state := world_state.quest_state
