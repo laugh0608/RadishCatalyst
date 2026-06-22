@@ -274,10 +274,11 @@ func _draw() -> void:
 
 func _draw_station_surfaces() -> void:
 	var station_rect := Rect2(Vector2(3648.0, -224.0), Vector2(610.0, 404.0))
+	var guard_fill := Color(0.08, 0.18, 0.16, 0.05) if _is_guard_pressure_cleared() else GUARD_FILL
 	draw_rect(station_rect, STATION_FILL, true)
 	draw_rect(station_rect, STATION_FRAME, false, 2.0, true)
 	draw_rect(Rect2(Vector2(3660.0, -146.0), Vector2(150.0, 250.0)), Color(0.08, 0.2, 0.2, 0.08), true)
-	draw_rect(Rect2(Vector2(3810.0, -154.0), Vector2(166.0, 228.0)), GUARD_FILL, true)
+	draw_rect(Rect2(Vector2(3810.0, -154.0), Vector2(166.0, 228.0)), guard_fill, true)
 	draw_rect(Rect2(Vector2(3978.0, -144.0), Vector2(136.0, 188.0)), Color(0.08, 0.24, 0.22, 0.08), true)
 	draw_rect(Rect2(Vector2(4114.0, -102.0), Vector2(140.0, 196.0)), Color(0.08, 0.2, 0.22, 0.055), true)
 	for y in [-188.0, -112.0, -36.0, 42.0, 122.0]:
@@ -355,13 +356,20 @@ func _draw_output_bus_nodes() -> void:
 
 
 func _draw_station_routes() -> void:
-	_draw_route([Vector2(3648.0, -36.0), Vector2(3748.0, -36.0), Vector2(3832.0, -22.0)], APPROACH_LINE, 3.4)
-	_draw_route([Vector2(3744.0, 112.0), Vector2(3834.0, 82.0), Vector2(3918.0, 70.0)], RECOVERY_LINE, 3.0)
-	_draw_route([Vector2(3870.0, 18.0), Vector2(3926.0, 70.0), Vector2(4038.0, -24.0)], WRITEBACK_LINE, 3.4)
-	_draw_route([Vector2(4038.0, -24.0), Vector2(4134.0, 78.0)], RETEST_LINE, 3.0)
-	_draw_route([Vector2(4134.0, 78.0), Vector2(4228.0, -52.0), Vector2(4108.0, -112.0)], LOGISTICS_LINE, 2.8)
-	_draw_route([Vector2(3744.0, 112.0), Vector2(3616.0, 124.0), Vector2(3478.0, 96.0)], RETURN_LINE, 2.8)
-	for point in [Vector2(3748.0, -36.0), Vector2(3926.0, 70.0), Vector2(4038.0, -24.0), Vector2(4134.0, 78.0)]:
+	if not _is_core_written():
+		_draw_route([Vector2(3648.0, -36.0), Vector2(3748.0, -36.0), Vector2(3832.0, -22.0)], APPROACH_LINE, 3.4)
+		_draw_route([Vector2(3744.0, 112.0), Vector2(3834.0, 82.0), Vector2(3918.0, 70.0)], RECOVERY_LINE, 3.0)
+		_draw_route([Vector2(3870.0, 18.0), Vector2(3926.0, 70.0), Vector2(4038.0, -24.0)], WRITEBACK_LINE, 3.4)
+		_draw_route([Vector2(4038.0, -24.0), Vector2(4134.0, 78.0)], RETEST_LINE, 3.0)
+		_draw_route([Vector2(4134.0, 78.0), Vector2(4228.0, -52.0), Vector2(4108.0, -112.0)], LOGISTICS_LINE, 2.8)
+		_draw_route([Vector2(3744.0, 112.0), Vector2(3616.0, 124.0), Vector2(3478.0, 96.0)], RETURN_LINE, 2.8)
+		for point in [Vector2(3748.0, -36.0), Vector2(3926.0, 70.0), Vector2(4038.0, -24.0), Vector2(4134.0, 78.0)]:
+			draw_circle(point, 4.4, Color(0.8, 0.96, 0.86, 0.66))
+		return
+	_draw_route([Vector2(4038.0, -24.0), Vector2(4092.0, 22.0), Vector2(4134.0, 78.0)], Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, 0.34), 1.8)
+	_draw_route([Vector2(4134.0, 78.0), Vector2(4184.0, 16.0), Vector2(4228.0, -52.0)], Color(LOGISTICS_LINE.r, LOGISTICS_LINE.g, LOGISTICS_LINE.b, 0.32), 1.6)
+	_draw_route([Vector2(4228.0, -52.0), Vector2(4162.0, -88.0), Vector2(4108.0, -112.0)], Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.28), 1.4)
+	for point in [Vector2(4038.0, -24.0), Vector2(4134.0, 78.0), Vector2(4228.0, -52.0)]:
 		draw_circle(point, 4.4, Color(0.8, 0.96, 0.86, 0.66))
 
 
@@ -373,6 +381,9 @@ func _draw_recovery_supply() -> void:
 
 func _draw_guard_field() -> void:
 	var center := Vector2(3870.0, 18.0)
+	if _is_guard_pressure_cleared():
+		_draw_cleared_guard_field(center)
+		return
 	draw_arc(center, 64.0, 0.0, TAU, 52, PRESSURE_LINE, 2.0, true)
 	draw_arc(center, 38.0, 0.0, TAU, 42, Color(0.9, 0.34, 0.2, 0.34), 1.8, true)
 	for angle in [0.0, PI * 0.33, PI * 0.66, PI, PI * 1.33, PI * 1.66]:
@@ -381,6 +392,22 @@ func _draw_guard_field() -> void:
 		draw_line(from, to, PRESSURE_LINE, 1.8, true)
 	draw_rect(Rect2(Vector2(3828.0, -12.0), Vector2(84.0, 60.0)), Color(0.36, 0.12, 0.08, 0.18), true)
 	draw_rect(Rect2(Vector2(3828.0, -12.0), Vector2(84.0, 60.0)), GUARD_LINE, false, 1.8, true)
+
+
+func _draw_cleared_guard_field(center: Vector2) -> void:
+	draw_rect(Rect2(Vector2(3832.0, -8.0), Vector2(76.0, 52.0)), Color(0.08, 0.18, 0.15, 0.1), true)
+	draw_rect(Rect2(Vector2(3832.0, -8.0), Vector2(76.0, 52.0)), Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.32), false, 1.0, true)
+	for arc_range in [
+		[PI * 0.08, PI * 0.32],
+		[PI * 0.72, PI * 0.96],
+		[PI * 1.18, PI * 1.42],
+		[PI * 1.72, PI * 1.94]
+	]:
+		draw_arc(center, 62.0, float(arc_range[0]), float(arc_range[1]), 12, Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.34), 1.5, true)
+	for angle in [PI * 0.2, PI * 0.85, PI * 1.22, PI * 1.82]:
+		var from := center + Vector2(cos(angle), sin(angle)) * 42.0
+		var to := center + Vector2(cos(angle), sin(angle)) * 58.0
+		draw_line(from, to, Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.28), 1.2, true)
 
 
 func _draw_writeback_device() -> void:
@@ -490,11 +517,19 @@ func _draw_core_write_feedback(state: String) -> void:
 func _draw_retest_readout_feedback(state: String) -> void:
 	if not _is_core_ready_state(state):
 		return
+	var panel_alpha := 0.72 if state == CORE_STATE_COMPLETED else 0.54
+	var panel := Rect2(Vector2(4096.0, 44.0), Vector2(86.0, 62.0))
+	draw_rect(panel, Color(0.04, 0.12, 0.15, 0.42), true)
+	draw_rect(panel, Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, panel_alpha), false, 1.5, true)
+	draw_line(Vector2(4108.0, 60.0), Vector2(4168.0, 60.0), Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, 0.44), 1.2, true)
+	draw_line(Vector2(4108.0, 92.0), Vector2(4168.0, 92.0), Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, 0.28), 1.0, true)
 	var bar_color := Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, 0.72 if state == CORE_STATE_COMPLETED else 0.52)
 	for index in range(4):
-		var x := 4118.0 + float(index) * 11.0
-		var height := 8.0 + float(index % 2) * 5.0
-		draw_line(Vector2(x, 84.0), Vector2(x, 84.0 - height), bar_color, 1.7, true)
+		var x := 4114.0 + float(index) * 13.0
+		var height := 16.0 + float(index % 2) * 8.0
+		draw_line(Vector2(x, 88.0), Vector2(x, 88.0 - height), bar_color, 2.0, true)
+	for point in [Vector2(4164.0, 72.0), Vector2(4172.0, 80.0), Vector2(4160.0, 88.0)]:
+		draw_circle(point, 3.0, Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, panel_alpha))
 	draw_arc(Vector2(4134.0, 78.0), 30.0, PI * 0.08, PI * 0.86, 20, bar_color, 1.2, true)
 
 
@@ -538,6 +573,14 @@ func _draw_core_material_slot(rect: Rect2, state: String, color: Color) -> void:
 
 func _draw_core_pressure_state(center: Vector2, state: String) -> void:
 	var cleared := state == CORE_STATE_CLEARED
+	if cleared:
+		for arc_range in [
+			[PI * 0.04, PI * 0.22],
+			[PI * 0.82, PI * 1.0],
+			[PI * 1.25, PI * 1.48]
+		]:
+			draw_arc(center, 70.0, float(arc_range[0]), float(arc_range[1]), 10, Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.36), 1.3, true)
+		return
 	var color := RETURN_LINE if cleared else PRESSURE_LINE
 	draw_arc(center, 74.0, 0.0, TAU, 54, Color(color.r, color.g, color.b, 0.54 if cleared else 0.72), 2.0, true)
 	draw_arc(center, 46.0, 0.0, TAU, 42, Color(color.r, color.g, color.b, 0.28 if cleared else 0.44), 1.6, true)
@@ -590,9 +633,11 @@ func _register_station_shapes() -> void:
 		"station.writeback_service_ring",
 		"station.recovery_supply",
 		"station.guard_pressure_field",
+		"station.guard_pressure_resolved",
 		"station.writeback_device",
 		"station.guard_cache",
 		"station.retest_readout",
+		"station.retest_readout_panel",
 		"station.retest_reader_bank",
 		"station.logistics_retest_pocket",
 		"station.logistics_return_dock",
@@ -615,7 +660,8 @@ func _register_flow_shapes() -> void:
 		"flow.core_return_to_base",
 		"flow.core_runtime_status_lights",
 		"flow.core_runtime_write_feedback",
-		"flow.core_runtime_logistics_return"
+		"flow.core_runtime_logistics_return",
+		"flow.completed_core_local_routes"
 	]
 
 
@@ -686,6 +732,14 @@ func _is_core_ready_state(state: String) -> bool:
 		CORE_STATE_COMPLETED,
 		CORE_STATE_CLEARED
 	]
+
+
+func _is_core_written() -> bool:
+	return bool(core_station_state.get("core_written", false))
+
+
+func _is_guard_pressure_cleared() -> bool:
+	return String(core_station_state.get("guard_pressure_state", CORE_STATE_PRESSURE)) == CORE_STATE_CLEARED
 
 
 func _deemphasize_legacy_core_blocks() -> void:

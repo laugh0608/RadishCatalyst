@@ -42,9 +42,11 @@ func _check_core_visual_layer_exists_and_registers_station_shapes() -> void:
 	_expect_equal(layer.has_station_shape("station.central_maintenance_deck"), true, "core visual layer marks central maintenance deck")
 	_expect_equal(layer.has_station_shape("station.writeback_service_ring"), true, "core visual layer marks writeback service ring")
 	_expect_equal(layer.has_station_shape("station.guard_pressure_field"), true, "core visual layer marks guard pressure field")
+	_expect_equal(layer.has_station_shape("station.guard_pressure_resolved"), true, "core visual layer marks resolved guard pressure")
 	_expect_equal(layer.has_station_shape("station.writeback_device"), true, "core visual layer marks writeback device")
 	_expect_equal(layer.has_station_shape("station.energy_confluence_nodes"), true, "core visual layer marks energy confluence nodes")
 	_expect_equal(layer.has_station_shape("station.retest_readout"), true, "core visual layer marks retest readout")
+	_expect_equal(layer.has_station_shape("station.retest_readout_panel"), true, "core visual layer marks independent retest readout panel")
 	_expect_equal(layer.has_station_shape("station.retest_reader_bank"), true, "core visual layer marks retest reader bank")
 	_expect_equal(layer.has_station_shape("station.output_bus_nodes"), true, "core visual layer marks output bus nodes")
 	_expect_equal(layer.has_station_shape("station.logistics_return_dock"), true, "core visual layer marks logistics return dock")
@@ -56,6 +58,7 @@ func _check_core_visual_layer_exists_and_registers_station_shapes() -> void:
 	_expect_equal(layer.has_flow_shape("flow.core_runtime_status_lights"), true, "core visual layer marks runtime status light flow")
 	_expect_equal(layer.has_flow_shape("flow.core_runtime_write_feedback"), true, "core visual layer marks runtime write feedback flow")
 	_expect_equal(layer.has_flow_shape("flow.core_runtime_logistics_return"), true, "core visual layer marks runtime logistics return flow")
+	_expect_equal(layer.has_flow_shape("flow.completed_core_local_routes"), true, "core visual layer marks completed local route scope")
 	map.free()
 
 
