@@ -2,7 +2,7 @@ extends Node2D
 class_name DemoFirstIndustrialPathVisualLayer
 
 const FOCUS_MIN_X := -360.0
-const FOCUS_MAX_X := 260.0
+const FOCUS_MAX_X := 160.0
 
 const WORKSPACE_WASH := Color(0.006, 0.014, 0.014, 0.42)
 const PATH_DARK := Color(0.008, 0.018, 0.018, 0.86)

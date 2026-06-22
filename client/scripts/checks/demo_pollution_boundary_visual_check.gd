@@ -76,18 +76,46 @@ func _check_pollution_boundary_focus_visibility() -> void:
 	var carryover_wreckage := map.get_node("Interactables/FieldWreckageTreatmentApproach") as PrototypeInteractable
 	var cross_route := map.get_node("CrystalToPollutionRouteBand") as ColorRect
 	var treatment_enemy := map.get_node("Enemies/TreatmentSkitter") as PrototypeEnemy
+	var crystal_layer := map.get_node("DemoCrystalResourceVisualLayer") as DemoCrystalResourceVisualLayer
+	var first_path_layer := map.get_node("DemoFirstIndustrialPathVisualLayer") as DemoFirstIndustrialPathVisualLayer
+	var opening_layer := map.get_node("OpeningSceneLayer") as CanvasItem
+	var scene_art_layer := map.get_node("SceneArtFoundationLayer") as CanvasItem
+	var non_core_identity_layer := map.get_node("NonCoreSceneIdentityLayer") as CanvasItem
+	var functional_transition_layer := map.get_node("FunctionalTransitionSpatialPlayabilityLayer") as CanvasItem
+	var midfield_route_layer := map.get_node("MidfieldRoutePlayabilityLayer") as CanvasItem
+	var wind_corridor_layer := map.get_node("WindCorridorTransitionPlayabilityLayer") as CanvasItem
+	var core_handoff_layer := map.get_node("CoreApproachHandoffLayer") as CanvasItem
+	var route_presentation_layer := map.get_node("DemoRoutePresentationLayer") as CanvasItem
+	var region_value_layer := map.get_node("DemoRegionIndustrialValueLayer") as CanvasItem
+	var objective_layer := map.get_node("CurrentObjectiveGuidanceLayer") as CurrentObjectiveGuidanceLayer
+	objective_layer.refresh_guidance()
+	var objective_route := objective_layer.get_node_or_null("CurrentObjectiveRouteHorizontal") as ColorRect
 	layer.apply_visuals()
 
 	layer.refresh_focus_visibility(Vector2(-250, -48))
 	_expect_equal(layer.visible, false, "pollution boundary visual layer stays hidden at startup objective")
 	_expect_equal(layer.is_pollution_focus_visible_at(Vector2(-250, -48)), false, "pollution focus helper rejects startup objective")
 	carryover_wreckage.set_focus_visual(true)
-	layer.refresh_focus_visibility(Vector2(258, 34))
+	crystal_layer.refresh_focus_visibility(Vector2(168, 34))
+	layer.refresh_focus_visibility(Vector2(168, 34))
 	_expect_equal(layer.visible, true, "pollution boundary visual layer appears inside pollution treatment boundary")
-	_expect_equal(layer.is_pollution_focus_visible_at(Vector2(258, 34)), true, "pollution focus helper accepts treatment boundary")
+	_expect_equal(layer.is_pollution_focus_visible_at(Vector2(168, 34)), true, "pollution focus helper accepts treatment boundary")
+	_expect_equal(crystal_layer.visible, false, "pollution focus keeps crystal resource layer out of the boundary frame")
 	_expect_equal(layer.get_muted_cross_region_focus_count() >= 1, true, "pollution focus mutes carryover crystal and wreckage labels")
 	_expect_equal(layer.get_muted_pollution_focus_distraction_count() >= 8, true, "pollution focus mutes cross-screen route and enemy pressure")
+	_expect_equal(layer.get_muted_pollution_focus_context_layer_count() >= 14, true, "pollution focus mutes neighboring visual context layers")
+	_expect_equal(opening_layer.modulate.a <= 0.013, true, "pollution focus lowers old opening scene layer")
+	_expect_equal(scene_art_layer.modulate.a <= 0.001, true, "pollution focus hides scene identity bands")
+	_expect_equal(non_core_identity_layer.modulate.a <= 0.001, true, "pollution focus hides non-core identity bands")
+	_expect_equal(functional_transition_layer.modulate.a <= 0.001, true, "pollution focus hides far transition playability blocks")
+	_expect_equal(midfield_route_layer.modulate.a <= 0.001, true, "pollution focus hides midfield route blocks")
+	_expect_equal(wind_corridor_layer.modulate.a <= 0.001, true, "pollution focus hides wind corridor blocks")
+	_expect_equal(core_handoff_layer.modulate.a <= 0.001, true, "pollution focus hides core handoff blocks")
+	_expect_equal(first_path_layer.modulate.a <= 0.001, true, "pollution focus hides first industrial path layer")
+	_expect_equal(route_presentation_layer.modulate.a <= 0.001, true, "pollution focus hides route presentation layer")
+	_expect_equal(region_value_layer.modulate.a <= 0.026, true, "pollution focus lowers region value layer")
 	_expect_equal(cross_route.color.a <= 0.001, true, "pollution focus lowers crystal-to-pollution context route")
+	_expect_equal(objective_route != null and objective_route.color.a <= 0.001, true, "pollution focus lowers current objective route")
 	_expect_equal(treatment_enemy.modulate.a <= 0.23, true, "pollution focus lowers treatment enemy pressure")
 	_expect_equal((treatment_enemy.get_node("Label") as Label).visible, false, "pollution focus hides treatment enemy label")
 	_expect_equal((carryover_wreckage.get_node("Label") as Label).visible, false, "pollution focus hides carryover wreckage label")

@@ -25,6 +25,8 @@ const STARTUP_TARGET_HALO_SIZE := Vector2(76.0, 76.0)
 const FIRST_PATH_TARGET_HALO_SIZE := Vector2(42.0, 42.0)
 const POLLUTION_TARGET_HALO_SIZE := Vector2(38.0, 38.0)
 const FIELD_GUIDANCE_SUPPRESSION_X := -40.0
+const POLLUTION_GUIDANCE_MIN_X := 140.0
+const POLLUTION_GUIDANCE_MAX_X := 620.0
 const POLLUTION_COMPACT_TARGET_NAMES := {
 	"PollutionFilterBuildSite": true,
 	"PollutionResidue": true,
@@ -461,14 +463,20 @@ func _should_use_first_path_compact_guidance(target: PrototypeInteractable) -> b
 
 
 func _should_use_pollution_compact_guidance(target: PrototypeInteractable) -> bool:
-	if target == null or not POLLUTION_COMPACT_TARGET_NAMES.has(String(target.name)):
+	if target == null or _is_startup_outpost_core_target(target):
 		return false
 	var player := _get_player()
-	var pollution_layer := _get_map_node("DemoPollutionBoundaryVisualLayer") as DemoPollutionBoundaryVisualLayer
+	if player == null or not _is_pollution_guidance_position(player.position):
+		return false
+	if POLLUTION_COMPACT_TARGET_NAMES.has(String(target.name)):
+		return true
+	return _has_active_quest(current_world_state, "quest.enter_pollution_edge")
+
+
+func _is_pollution_guidance_position(player_position: Vector2) -> bool:
 	return (
-		player != null
-		and pollution_layer != null
-		and pollution_layer.is_pollution_focus_visible_at(player.position)
+		player_position.x >= POLLUTION_GUIDANCE_MIN_X
+		and player_position.x <= POLLUTION_GUIDANCE_MAX_X
 	)
 
 

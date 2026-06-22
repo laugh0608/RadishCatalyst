@@ -7,7 +7,7 @@ const ROLE_FLOW := "flow"
 const ROLE_SALVAGE := "salvage"
 const ROLE_TERRAIN := "terrain"
 const FOCUS_VISIBLE_MIN_X := -80.0
-const FOCUS_VISIBLE_MAX_X := 220.0
+const FOCUS_VISIBLE_MAX_X := 160.0
 
 const FIELD_FRAME := Color(0.32, 0.58, 0.62, 0.045)
 const FIELD_FILL := Color(0.06, 0.12, 0.15, 0.0)

@@ -7,7 +7,7 @@ const ROLE_RESIDUE := "residue"
 const ROLE_ROUTE := "route"
 const ROLE_PRESSURE_GATE := "pressure_gate"
 const ROLE_TERRAIN := "terrain"
-const FOCUS_VISIBLE_MIN_X := 180.0
+const FOCUS_VISIBLE_MIN_X := 160.0
 const FOCUS_VISIBLE_MAX_X := 620.0
 const POLLUTION_FOCUS_CONTEXT_ROUTE_ALPHA := 0.0005
 const POLLUTION_FOCUS_CONTEXT_ENEMY_ALPHA := 0.22
@@ -18,7 +18,10 @@ const POLLUTION_FOCUS_CONTEXT_ROUTE_PATHS := [
 	"DemoRoutePresentationLayer/DemoRouteBaseBand",
 	"DemoRoutePresentationLayer/DemoRouteCrystalBand",
 	"DemoRoutePresentationLayer/DemoRoutePollutionBand",
-	"DemoRoutePresentationLayer/DemoRouteRuinBand"
+	"DemoRoutePresentationLayer/DemoRouteRuinBand",
+	"CurrentObjectiveGuidanceLayer/CurrentObjectiveRouteHorizontal",
+	"CurrentObjectiveGuidanceLayer/CurrentObjectiveRouteVertical",
+	"CurrentObjectiveGuidanceLayer/CurrentObjectiveTargetPin"
 ]
 const POLLUTION_FOCUS_CONTEXT_LABEL_PATHS := [
 	"BaseDirectionLabel",
@@ -31,7 +34,27 @@ const POLLUTION_FOCUS_CONTEXT_LABEL_PATHS := [
 	"DemoRoutePresentationLayer/DemoRouteRuinLabel",
 	"SceneArtFoundationLayer/SceneArtCrystalIdentityLabel",
 	"SceneArtFoundationLayer/SceneArtPollutionIdentityLabel",
-	"NonCoreSceneIdentityLayer/NonCoreRuinIdentityLabel"
+	"NonCoreSceneIdentityLayer/NonCoreRuinIdentityLabel",
+	"CurrentObjectiveGuidanceLayer/CurrentObjectiveTargetLabel",
+	"CurrentObjectiveGuidanceLayer/CurrentObjectiveOffTargetLabel"
+]
+const POLLUTION_FOCUS_CONTEXT_LAYER_ALPHAS := [
+	{"path": "OpeningSceneLayer", "alpha": 0.012},
+	{"path": "SceneArtFoundationLayer", "alpha": 0.0},
+	{"path": "NonCoreSceneIdentityLayer", "alpha": 0.0},
+	{"path": "FunctionalTransitionSpatialPlayabilityLayer", "alpha": 0.0},
+	{"path": "MidfieldRoutePlayabilityLayer", "alpha": 0.0},
+	{"path": "WindCorridorTransitionPlayabilityLayer", "alpha": 0.0},
+	{"path": "CoreApproachHandoffLayer", "alpha": 0.0},
+	{"path": "CoreStabilizationRunLayer", "alpha": 0.0},
+	{"path": "DemoIndustrialBaseVisualLayer", "alpha": 0.024},
+	{"path": "DemoCrystalResourceVisualLayer", "alpha": 0.0},
+	{"path": "DemoFirstIndustrialPathVisualLayer", "alpha": 0.0},
+	{"path": "DemoCoreStabilizationVisualLayer", "alpha": 0.016},
+	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.018},
+	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.01},
+	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.025},
+	{"path": "DemoRoutePresentationLayer", "alpha": 0.0}
 ]
 
 const FIELD_FILL := Color(0.08, 0.1, 0.06, 0.0)
@@ -152,11 +175,14 @@ var muted_legacy_block_count := 0
 var muted_interactable_marker_count := 0
 var muted_cross_region_focus_count := 0
 var muted_pollution_focus_distraction_count := 0
+var muted_pollution_focus_context_layer_count := 0
 var applied_pollution_chain_state_count := 0
 var pollution_chain_state: Dictionary = {}
+var context_layer_original_modulates: Dictionary = {}
 
 
 func _ready() -> void:
+	process_priority = 100
 	apply_visuals()
 	refresh_focus_visibility(_get_player_position())
 
@@ -293,6 +319,10 @@ func get_muted_pollution_focus_distraction_count() -> int:
 	return muted_pollution_focus_distraction_count
 
 
+func get_muted_pollution_focus_context_layer_count() -> int:
+	return muted_pollution_focus_context_layer_count
+
+
 func has_boundary_shape(shape_id: String) -> bool:
 	return boundary_shape_ids.has(shape_id)
 
@@ -315,6 +345,7 @@ func has_pollution_chain_shape(shape_id: String) -> bool:
 
 func refresh_focus_visibility(player_position: Vector2) -> void:
 	visible = is_pollution_focus_visible_at(player_position)
+	_update_pollution_focus_context_layers()
 	_mute_crystal_carryover_focus()
 	_mute_pollution_focus_distractions()
 
@@ -1125,6 +1156,45 @@ func _hide_focus_context_labels() -> int:
 		label.visible = false
 		muted_count += 1
 	return muted_count
+
+
+func _update_pollution_focus_context_layers() -> void:
+	if not visible:
+		_restore_pollution_focus_context_layers()
+		return
+	muted_pollution_focus_context_layer_count = 0
+	for layer_profile in POLLUTION_FOCUS_CONTEXT_LAYER_ALPHAS:
+		var path := String(layer_profile.get("path", ""))
+		var alpha := float(layer_profile.get("alpha", 1.0))
+		if _apply_context_layer_alpha(path, alpha):
+			muted_pollution_focus_context_layer_count += 1
+
+
+func _apply_context_layer_alpha(path: String, alpha: float) -> bool:
+	var node := _get_map_node(path)
+	var canvas_item := node as CanvasItem
+	if canvas_item == null:
+		return false
+	if not context_layer_original_modulates.has(path):
+		context_layer_original_modulates[path] = canvas_item.modulate
+	var original_color: Color = context_layer_original_modulates.get(path, canvas_item.modulate)
+	var color := original_color
+	color.a = minf(original_color.a, alpha)
+	canvas_item.modulate = color
+	return true
+
+
+func _restore_pollution_focus_context_layers() -> void:
+	if context_layer_original_modulates.is_empty():
+		muted_pollution_focus_context_layer_count = 0
+		return
+	for path in context_layer_original_modulates.keys():
+		var node := _get_map_node(String(path))
+		var canvas_item := node as CanvasItem
+		if canvas_item != null:
+			canvas_item.modulate = context_layer_original_modulates[path]
+	context_layer_original_modulates.clear()
+	muted_pollution_focus_context_layer_count = 0
 
 
 func _mute_focus_enemy_pressure() -> int:
