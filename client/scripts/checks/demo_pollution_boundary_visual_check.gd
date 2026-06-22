@@ -51,6 +51,7 @@ func _check_pollution_boundary_layer_exists_and_registers_visuals() -> void:
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.sediment_fan"), true, "pollution sediment fan material exists")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.segmented_settling_cells"), true, "pollution settling field is split into cells")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.local_settling_islands"), true, "pollution settling field has local material islands")
+	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.local_processing_workspace"), true, "pollution boundary has a local processing workspace")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.danger_bund"), true, "pollution danger bund material exists")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.local_danger_pockets"), true, "pollution danger field is split into local pockets")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.segmented_danger_bund"), true, "pollution danger bund is segmented")
@@ -73,14 +74,22 @@ func _check_pollution_boundary_focus_visibility() -> void:
 	root.add_child(map)
 	var layer := map.get_node("DemoPollutionBoundaryVisualLayer") as DemoPollutionBoundaryVisualLayer
 	var carryover_wreckage := map.get_node("Interactables/FieldWreckageTreatmentApproach") as PrototypeInteractable
+	var cross_route := map.get_node("CrystalToPollutionRouteBand") as ColorRect
+	var treatment_enemy := map.get_node("Enemies/TreatmentSkitter") as PrototypeEnemy
 	layer.apply_visuals()
 
 	layer.refresh_focus_visibility(Vector2(-250, -48))
 	_expect_equal(layer.visible, false, "pollution boundary visual layer stays hidden at startup objective")
+	_expect_equal(layer.is_pollution_focus_visible_at(Vector2(-250, -48)), false, "pollution focus helper rejects startup objective")
 	carryover_wreckage.set_focus_visual(true)
 	layer.refresh_focus_visibility(Vector2(258, 34))
 	_expect_equal(layer.visible, true, "pollution boundary visual layer appears inside pollution treatment boundary")
+	_expect_equal(layer.is_pollution_focus_visible_at(Vector2(258, 34)), true, "pollution focus helper accepts treatment boundary")
 	_expect_equal(layer.get_muted_cross_region_focus_count() >= 1, true, "pollution focus mutes carryover crystal and wreckage labels")
+	_expect_equal(layer.get_muted_pollution_focus_distraction_count() >= 8, true, "pollution focus mutes cross-screen route and enemy pressure")
+	_expect_equal(cross_route.color.a <= 0.001, true, "pollution focus lowers crystal-to-pollution context route")
+	_expect_equal(treatment_enemy.modulate.a <= 0.23, true, "pollution focus lowers treatment enemy pressure")
+	_expect_equal((treatment_enemy.get_node("Label") as Label).visible, false, "pollution focus hides treatment enemy label")
 	_expect_equal((carryover_wreckage.get_node("Label") as Label).visible, false, "pollution focus hides carryover wreckage label")
 	_expect_equal((carryover_wreckage.get_node("FocusRing") as ColorRect).visible, false, "pollution focus hides carryover wreckage focus ring")
 	layer.refresh_focus_visibility(Vector2(900, 34))

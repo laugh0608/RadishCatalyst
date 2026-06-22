@@ -77,6 +77,7 @@ func _check_current_objective_guidance_layer() -> void:
 	var departure_gate := map.get_node("Interactables/OutpostDepartureGate") as PrototypeInteractable
 	var crystal_layer := map.get_node("DemoCrystalResourceVisualLayer") as DemoCrystalResourceVisualLayer
 	var first_path_layer := map.get_node("DemoFirstIndustrialPathVisualLayer") as DemoFirstIndustrialPathVisualLayer
+	var pollution_layer := map.get_node("DemoPollutionBoundaryVisualLayer") as DemoPollutionBoundaryVisualLayer
 	var world := WorldState.create_default()
 	var character := CharacterState.create_default()
 	_expect_equal(layer != null, true, "current objective guidance layer exists")
@@ -271,6 +272,15 @@ func _check_current_objective_guidance_layer() -> void:
 	map.refresh_world_interactables(world)
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "PollutionResidue", "污染沉积物", "pollution residue gather guidance")
+	map.player.position = Vector2(258.0, 34.0)
+	character.position = map.player.position
+	character.current_region_id = "region.pollution_edge"
+	pollution_layer.refresh_focus_visibility(map.player.position)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "PollutionResidue", "污染沉积物", "pollution boundary compact residue target")
+	_expect_equal(layer.is_pollution_compact_guidance_active(), true, "pollution boundary compacts current target guidance")
+	_expect_equal(layer.is_target_route_visible(), false, "pollution boundary hides long current target route")
+	_expect_equal(layer.is_target_name_label_visible(), false, "pollution boundary hides current target scene label")
 	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", 4.0)
 	map.refresh_world_interactables(world)
 	layer.refresh_guidance(world, character)

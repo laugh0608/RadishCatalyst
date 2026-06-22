@@ -9,6 +9,30 @@ const ROLE_PRESSURE_GATE := "pressure_gate"
 const ROLE_TERRAIN := "terrain"
 const FOCUS_VISIBLE_MIN_X := 180.0
 const FOCUS_VISIBLE_MAX_X := 620.0
+const POLLUTION_FOCUS_CONTEXT_ROUTE_ALPHA := 0.0005
+const POLLUTION_FOCUS_CONTEXT_ENEMY_ALPHA := 0.22
+const POLLUTION_FOCUS_CONTEXT_ROUTE_PATHS := [
+	"MainRouteSpine",
+	"BaseToCrystalRouteBand",
+	"CrystalToPollutionRouteBand",
+	"DemoRoutePresentationLayer/DemoRouteBaseBand",
+	"DemoRoutePresentationLayer/DemoRouteCrystalBand",
+	"DemoRoutePresentationLayer/DemoRoutePollutionBand",
+	"DemoRoutePresentationLayer/DemoRouteRuinBand"
+]
+const POLLUTION_FOCUS_CONTEXT_LABEL_PATHS := [
+	"BaseDirectionLabel",
+	"CrystalDirectionLabel",
+	"PollutionDirectionLabel",
+	"RuinDirectionLabel",
+	"DemoRoutePresentationLayer/DemoRouteBaseLabel",
+	"DemoRoutePresentationLayer/DemoRouteCrystalLabel",
+	"DemoRoutePresentationLayer/DemoRoutePollutionLabel",
+	"DemoRoutePresentationLayer/DemoRouteRuinLabel",
+	"SceneArtFoundationLayer/SceneArtCrystalIdentityLabel",
+	"SceneArtFoundationLayer/SceneArtPollutionIdentityLabel",
+	"NonCoreSceneIdentityLayer/NonCoreRuinIdentityLabel"
+]
 
 const FIELD_FILL := Color(0.08, 0.1, 0.06, 0.0)
 const FIELD_LINE := Color(0.72, 0.72, 0.3, 0.055)
@@ -127,6 +151,7 @@ var pollution_chain_shape_ids: Array[String] = []
 var muted_legacy_block_count := 0
 var muted_interactable_marker_count := 0
 var muted_cross_region_focus_count := 0
+var muted_pollution_focus_distraction_count := 0
 var applied_pollution_chain_state_count := 0
 var pollution_chain_state: Dictionary = {}
 
@@ -140,6 +165,7 @@ func _process(_delta: float) -> void:
 	refresh_focus_visibility(_get_player_position())
 	_tone_down_pollution_interactable_markers()
 	_mute_crystal_carryover_focus()
+	_mute_pollution_focus_distractions()
 
 
 func apply_visuals() -> void:
@@ -150,6 +176,7 @@ func apply_visuals() -> void:
 	_mute_pollution_identity_shapes()
 	_tag_pollution_anchors()
 	_tone_down_pollution_interactable_markers()
+	_mute_pollution_focus_distractions()
 	queue_redraw()
 
 
@@ -262,6 +289,10 @@ func get_muted_cross_region_focus_count() -> int:
 	return muted_cross_region_focus_count
 
 
+func get_muted_pollution_focus_distraction_count() -> int:
+	return muted_pollution_focus_distraction_count
+
+
 func has_boundary_shape(shape_id: String) -> bool:
 	return boundary_shape_ids.has(shape_id)
 
@@ -283,11 +314,17 @@ func has_pollution_chain_shape(shape_id: String) -> bool:
 
 
 func refresh_focus_visibility(player_position: Vector2) -> void:
-	visible = player_position.x >= FOCUS_VISIBLE_MIN_X and player_position.x <= FOCUS_VISIBLE_MAX_X
+	visible = is_pollution_focus_visible_at(player_position)
 	_mute_crystal_carryover_focus()
+	_mute_pollution_focus_distractions()
+
+
+func is_pollution_focus_visible_at(player_position: Vector2) -> bool:
+	return player_position.x >= FOCUS_VISIBLE_MIN_X and player_position.x <= FOCUS_VISIBLE_MAX_X
 
 
 func _draw() -> void:
+	_draw_local_processing_workspace()
 	_draw_boundary_field()
 	_draw_pollution_material_surface()
 	_draw_treatment_routes()
@@ -295,6 +332,15 @@ func _draw() -> void:
 	_draw_residue_patches()
 	_draw_pressure_gate()
 	_draw_pollution_chain_state()
+
+
+func _draw_local_processing_workspace() -> void:
+	var workspace := Rect2(Vector2(226.0, -220.0), Vector2(174.0, 476.0))
+	var device_lane := Rect2(Vector2(250.0, -166.0), Vector2(126.0, 408.0))
+	draw_rect(workspace, Color(0.004, 0.01, 0.008, 0.38), true)
+	_draw_corner_frame(workspace, Color(0.66, 0.72, 0.46, 0.09), 20.0, 1.1)
+	draw_rect(device_lane, Color(0.036, 0.044, 0.025, 0.24), true)
+	draw_rect(device_lane, Color(0.64, 0.7, 0.38, 0.08), false, 1.0, true)
 
 
 func _draw_boundary_field() -> void:
@@ -831,6 +877,7 @@ func _register_flow_shapes() -> void:
 
 func _register_terrain_material_shapes() -> void:
 	terrain_material_shape_ids = [
+		"terrain.pollution.local_processing_workspace",
 		"terrain.pollution.sediment_fan",
 		"terrain.pollution.segmented_settling_cells",
 		"terrain.pollution.local_settling_islands",
@@ -1047,6 +1094,66 @@ func _mute_crystal_carryover_focus() -> void:
 			muted = true
 		if muted:
 			muted_cross_region_focus_count += 1
+
+
+func _mute_pollution_focus_distractions() -> void:
+	muted_pollution_focus_distraction_count = 0
+	if not visible:
+		return
+	muted_pollution_focus_distraction_count += _mute_focus_context_route_rects()
+	muted_pollution_focus_distraction_count += _hide_focus_context_labels()
+	muted_pollution_focus_distraction_count += _mute_focus_enemy_pressure()
+
+
+func _mute_focus_context_route_rects() -> int:
+	var muted_count := 0
+	for path in POLLUTION_FOCUS_CONTEXT_ROUTE_PATHS:
+		var rect := _get_map_node(String(path)) as ColorRect
+		if rect == null:
+			continue
+		rect.color.a = minf(rect.color.a, POLLUTION_FOCUS_CONTEXT_ROUTE_ALPHA)
+		muted_count += 1
+	return muted_count
+
+
+func _hide_focus_context_labels() -> int:
+	var muted_count := 0
+	for path in POLLUTION_FOCUS_CONTEXT_LABEL_PATHS:
+		var label := _get_map_node(String(path)) as Label
+		if label == null:
+			continue
+		label.visible = false
+		muted_count += 1
+	return muted_count
+
+
+func _mute_focus_enemy_pressure() -> int:
+	var enemies := _get_map_node("Enemies")
+	if enemies == null:
+		return 0
+	var muted_count := 0
+	for child in enemies.get_children():
+		var enemy := child as PrototypeEnemy
+		if enemy == null:
+			continue
+		enemy.modulate.a = minf(enemy.modulate.a, POLLUTION_FOCUS_CONTEXT_ENEMY_ALPHA)
+		var sprite := enemy.sprite
+		if sprite == null:
+			sprite = enemy.get_node_or_null("Sprite") as ColorRect
+		if sprite != null:
+			sprite.color.a = minf(sprite.color.a, 0.42)
+		var label := enemy.label
+		if label == null:
+			label = enemy.get_node_or_null("Label") as Label
+		if label != null:
+			label.visible = false
+		var focus_ring := enemy.focus_ring
+		if focus_ring == null:
+			focus_ring = enemy.get_node_or_null("FocusRing") as ColorRect
+		if focus_ring != null:
+			focus_ring.visible = false
+		muted_count += 1
+	return muted_count
 
 
 func _get_map_node(path: String) -> Node:

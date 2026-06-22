@@ -16,12 +16,20 @@ const STARTUP_TARGET_PIN_COLOR := Color(0.92, 1.0, 0.9, 0.92)
 const ROUTE_COLOR := Color(0.38, 0.94, 0.96, 0.12)
 const FIRST_PATH_TARGET_COLOR := Color(0.92, 0.74, 0.28, 0.16)
 const FIRST_PATH_TARGET_PIN_COLOR := Color(0.92, 0.74, 0.28, 0.34)
+const POLLUTION_TARGET_COLOR := Color(0.86, 0.94, 0.34, 0.14)
+const POLLUTION_TARGET_PIN_COLOR := Color(0.86, 0.94, 0.34, 0.3)
 const GUIDANCE_LABEL_FONT_SIZE := 9
 const TARGET_LABEL_MIN_DISTANCE := 180.0
 const DEFAULT_TARGET_HALO_SIZE := Vector2(60.0, 60.0)
 const STARTUP_TARGET_HALO_SIZE := Vector2(76.0, 76.0)
 const FIRST_PATH_TARGET_HALO_SIZE := Vector2(42.0, 42.0)
+const POLLUTION_TARGET_HALO_SIZE := Vector2(38.0, 38.0)
 const FIELD_GUIDANCE_SUPPRESSION_X := -40.0
+const POLLUTION_COMPACT_TARGET_NAMES := {
+	"PollutionFilterBuildSite": true,
+	"PollutionResidue": true,
+	"PollutionFilter": true
+}
 const OUTPOST_CORE_TARGET := {"path": "Interactables/OutpostCore", "label": "前哨核心"}
 const BASIC_STORAGE_TARGET := {"path": "Interactables/BasicStorageBuildSite", "label": "基础储存箱"}
 const BASIC_REACTOR_TARGET := {"path": "Interactables/BasicReactor", "label": "基础反应器"}
@@ -109,6 +117,10 @@ func is_first_path_compact_guidance_active() -> bool:
 	return _should_use_first_path_compact_guidance(current_target)
 
 
+func is_pollution_compact_guidance_active() -> bool:
+	return _should_use_pollution_compact_guidance(current_target)
+
+
 func get_target_name_label_text() -> String:
 	_ensure_visual_nodes()
 	if target_label == null:
@@ -174,19 +186,34 @@ func _position_target_visuals(target: PrototypeInteractable) -> void:
 		target_label.visible = false
 		return
 	var compact_first_path := _should_use_first_path_compact_guidance(target)
-	var halo_size := FIRST_PATH_TARGET_HALO_SIZE if compact_first_path else _get_target_halo_size(target)
-	target_halo.color = FIRST_PATH_TARGET_COLOR if compact_first_path else _get_target_halo_color(target)
-	target_pin.color = FIRST_PATH_TARGET_PIN_COLOR if compact_first_path else _get_target_pin_color(target)
+	var compact_pollution := _should_use_pollution_compact_guidance(target)
+	var halo_size := _get_target_halo_size(target)
+	if compact_first_path:
+		halo_size = FIRST_PATH_TARGET_HALO_SIZE
+	elif compact_pollution:
+		halo_size = POLLUTION_TARGET_HALO_SIZE
+	target_halo.color = _get_target_halo_color(target)
+	target_pin.color = _get_target_pin_color(target)
+	if compact_first_path:
+		target_halo.color = FIRST_PATH_TARGET_COLOR
+		target_pin.color = FIRST_PATH_TARGET_PIN_COLOR
+	elif compact_pollution:
+		target_halo.color = POLLUTION_TARGET_COLOR
+		target_pin.color = POLLUTION_TARGET_PIN_COLOR
 	_set_rect(target_halo, target.position - halo_size * 0.5, halo_size)
 	_set_rect(target_pin, target.position + Vector2(-3.0, -44.0), Vector2(6.0, 16.0))
-	target_pin.visible = not compact_first_path
+	target_pin.visible = not compact_first_path and not compact_pollution
 	target_label.text = current_target_label_text
 	_set_label_rect(target_label, target.position + Vector2(18.0, -58.0), Vector2(92.0, 16.0))
-	target_label.visible = false if compact_first_path else _should_show_target_name_label(target)
+	target_label.visible = false if compact_first_path or compact_pollution else _should_show_target_name_label(target)
 
 
 func _position_route_visuals(target: PrototypeInteractable) -> void:
-	if _should_suppress_base_gate_guidance_in_field(target) or _should_use_first_path_compact_guidance(target):
+	if (
+		_should_suppress_base_gate_guidance_in_field(target)
+		or _should_use_first_path_compact_guidance(target)
+		or _should_use_pollution_compact_guidance(target)
+	):
 		route_horizontal.visible = false
 		route_vertical.visible = false
 		return
@@ -430,6 +457,18 @@ func _should_use_first_path_compact_guidance(target: PrototypeInteractable) -> b
 		and first_path_layer != null
 		and first_path_layer.is_first_path_available()
 		and first_path_layer.is_first_path_visible_at(player.position)
+	)
+
+
+func _should_use_pollution_compact_guidance(target: PrototypeInteractable) -> bool:
+	if target == null or not POLLUTION_COMPACT_TARGET_NAMES.has(String(target.name)):
+		return false
+	var player := _get_player()
+	var pollution_layer := _get_map_node("DemoPollutionBoundaryVisualLayer") as DemoPollutionBoundaryVisualLayer
+	return (
+		player != null
+		and pollution_layer != null
+		and pollution_layer.is_pollution_focus_visible_at(player.position)
 	)
 
 
