@@ -21,6 +21,7 @@ func _init() -> void:
 func _run_checks() -> void:
 	_check_core_visual_layer_exists_and_registers_station_shapes()
 	_check_core_visual_focus_visibility()
+	_check_core_visual_runtime_state_feedback()
 	_check_core_visual_layer_replaces_old_terminal_blocks()
 	_check_core_visual_runtime_anchors_are_tagged()
 
@@ -46,8 +47,13 @@ func _check_core_visual_layer_exists_and_registers_station_shapes() -> void:
 	_expect_equal(layer.has_station_shape("station.retest_readout"), true, "core visual layer marks retest readout")
 	_expect_equal(layer.has_station_shape("station.retest_reader_bank"), true, "core visual layer marks retest reader bank")
 	_expect_equal(layer.has_station_shape("station.output_bus_nodes"), true, "core visual layer marks output bus nodes")
+	_expect_equal(layer.has_station_shape("station.core_status_lights"), true, "core visual layer marks runtime status lights")
+	_expect_equal(layer.has_station_shape("station.core_pressure_warning"), true, "core visual layer marks pressure warning feedback")
+	_expect_equal(layer.has_station_shape("station.core_write_feedback"), true, "core visual layer marks core write feedback")
 	_expect_equal(layer.has_flow_shape("flow.guard_cache_to_core"), true, "core visual layer marks guard cache to core route")
 	_expect_equal(layer.has_flow_shape("flow.core_return_to_base"), true, "core visual layer marks return logistics route")
+	_expect_equal(layer.has_flow_shape("flow.core_runtime_status_lights"), true, "core visual layer marks runtime status light flow")
+	_expect_equal(layer.has_flow_shape("flow.core_runtime_write_feedback"), true, "core visual layer marks runtime write feedback flow")
 	map.free()
 
 
@@ -61,6 +67,60 @@ func _check_core_visual_focus_visibility() -> void:
 	_expect_equal(layer.visible, false, "core stabilization visual layer stays hidden at startup objective")
 	layer.refresh_focus_visibility(Vector2(3744, 112))
 	_expect_equal(layer.visible, true, "core stabilization visual layer appears inside terminal station")
+	map.free()
+
+
+func _check_core_visual_runtime_state_feedback() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	var layer := map.get_node("DemoCoreStabilizationVisualLayer") as DemoCoreStabilizationVisualLayer
+	layer.apply_visuals()
+	var world := WorldState.create_default()
+	world.current_region_id = "region.demo_stabilization_core"
+	world.unlock_region("region.demo_stabilization_core")
+	world.quest_state.complete_quest("quest.enter_demo_stabilization_core")
+	world.quest_state.complete_quest("quest.prepare_demo_stabilization_buffer")
+	world.quest_state.complete_quest("quest.defeat_demo_stabilization_guard")
+	world.quest_state.active_quest_ids = ["quest.write_demo_stabilization_core"]
+	world.quest_state.set_objective_progress("quest.write_demo_stabilization_core", "gather_item", "item.core_write_charge", 1.0)
+	world.ensure_enemy("enemy_instance.demo_stabilization_guard", "enemy.demo_stabilization_guard", "region.demo_stabilization_core", 156.0)
+	world.update_enemy_health("enemy_instance.demo_stabilization_guard", 0.0, true)
+	world.ensure_map_object(
+		"map_object_instance.demo_stabilization_guard_cache",
+		"map_object.demo_stabilization_guard_cache",
+		"region.demo_stabilization_core"
+	)
+	world.set_map_object_flag("map_object_instance.demo_stabilization_guard_cache", "is_gathered", true)
+	world.ensure_map_object(
+		"map_object_instance.demo_stabilization_core",
+		"map_object.demo_stabilization_core",
+		"region.demo_stabilization_core"
+	)
+	world.ensure_map_object(
+		"map_object_instance.demo_stabilization_retest_readout_cache",
+		"map_object.demo_stabilization_retest_readout_cache",
+		"region.demo_stabilization_core"
+	)
+	var character := CharacterState.create_default()
+	character.current_region_id = "region.demo_stabilization_core"
+	character.inventory.add_item("item.core_stabilization_buffer", 1)
+	character.inventory.add_item("item.core_write_charge", 1)
+
+	layer.refresh_core_station_state(world, character)
+	_expect_equal(layer.get_core_station_state_shape_count() >= 11, true, "core visual layer creates runtime station state shapes")
+	_expect_equal(layer.has_core_station_state_shape("core_station.device.recovery.ready"), true, "core visual marks recovery supply ready")
+	_expect_equal(layer.has_core_station_state_shape("core_station.device.guard_cache.ready"), true, "core visual marks guard cache ready")
+	_expect_equal(layer.has_core_station_state_shape("core_station.pressure.guard.cleared"), true, "core visual marks guard pressure cleared")
+	_expect_equal(layer.has_core_station_state_shape("core_station.device.writeback.ready"), true, "core visual marks writeback ready")
+	_expect_equal(layer.has_core_station_state_shape("core_station.flow.guard_cache_to_core.ready"), true, "core visual marks guard cache to core flow")
+	_expect_equal(layer.has_core_station_state_shape("core_station.flow.core_write.active"), true, "core visual marks active core write flow")
+
+	world.set_map_object_flag("map_object_instance.demo_stabilization_core", "is_sampled", true)
+	world.quest_state.complete_quest("quest.write_demo_stabilization_core")
+	layer.refresh_core_station_state(world, character)
+	_expect_equal(layer.has_core_station_state_shape("core_station.device.writeback.completed"), true, "core visual marks writeback completed")
+	_expect_equal(layer.has_core_station_state_shape("core_station.device.retest.ready"), true, "core visual marks retest ready after write")
+	_expect_equal(layer.has_core_station_state_shape("core_station.flow.core_to_retest.ready"), true, "core visual marks core to retest flow after write")
 	map.free()
 
 

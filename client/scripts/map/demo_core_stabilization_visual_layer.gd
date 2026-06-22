@@ -24,6 +24,13 @@ const PRESSURE_LINE := Color(0.96, 0.36, 0.18, 0.74)
 const WORKFACE_LINE := Color(0.62, 0.86, 0.78, 0.42)
 const SERVICE_DECK_FILL := Color(0.08, 0.18, 0.17, 0.18)
 const LOCAL_PAD_FILL := Color(0.08, 0.2, 0.19, 0.12)
+const STATUS_PANEL_FILL := Color(0.018, 0.03, 0.03, 0.62)
+const STATUS_IDLE_LIGHT := Color(0.14, 0.2, 0.2, 0.32)
+const CORE_STATE_WAITING := "waiting"
+const CORE_STATE_READY := "ready"
+const CORE_STATE_COMPLETED := "completed"
+const CORE_STATE_PRESSURE := "pressure"
+const CORE_STATE_CLEARED := "cleared"
 
 const LEGACY_CORE_PANELS := [
 	"CoreStabilizationArrivalYard",
@@ -78,9 +85,12 @@ const CORE_ANCHOR_PATHS := {
 
 var station_shape_ids: Array[String] = []
 var flow_shape_ids: Array[String] = []
+var core_station_state_shape_ids: Array[String] = []
 var muted_legacy_block_count := 0
 var muted_interactable_marker_count := 0
 var muted_enemy_sprite_count := 0
+var applied_core_station_state_count := 0
+var core_station_state: Dictionary = {}
 
 
 func _ready() -> void:
@@ -102,6 +112,82 @@ func apply_visuals() -> void:
 	_tag_core_anchors()
 	_tone_down_core_interactable_markers()
 	_tone_down_core_enemy_sprites()
+	queue_redraw()
+
+
+func refresh_core_station_state(world_state: WorldState, character_state: CharacterState) -> void:
+	core_station_state_shape_ids.clear()
+	applied_core_station_state_count = 0
+	if world_state == null or character_state == null:
+		core_station_state.clear()
+		queue_redraw()
+		return
+	if not _has_core_station_context(world_state, character_state):
+		core_station_state.clear()
+		queue_redraw()
+		return
+
+	var inventory := character_state.inventory
+	var quest_state := world_state.quest_state
+	var guard_state := world_state.get_enemy("enemy_instance.demo_stabilization_guard")
+	var guard_defeated := (
+		bool(guard_state.get("is_defeated", false))
+		or quest_state.has_completed_quest("quest.defeat_demo_stabilization_guard")
+	)
+	var guard_cache := world_state.get_map_object("map_object_instance.demo_stabilization_guard_cache")
+	var core_object := world_state.get_map_object("map_object_instance.demo_stabilization_core")
+	var retest_readout := world_state.get_map_object("map_object_instance.demo_stabilization_retest_readout_cache")
+	var buffer_ready := (
+		inventory.has_ref("item.core_stabilization_buffer", 1)
+		or quest_state.has_completed_quest("quest.prepare_demo_stabilization_buffer")
+	)
+	var write_charge_ready := (
+		inventory.has_ref("item.core_write_charge", 1)
+		or quest_state.get_objective_progress("quest.write_demo_stabilization_core", "gather_item", "item.core_write_charge") >= 1.0
+	)
+	var guard_cache_ready := bool(guard_cache.get("is_gathered", false)) or write_charge_ready
+	var write_quest_active := quest_state.has_active_quest("quest.write_demo_stabilization_core")
+	var core_written := (
+		bool(core_object.get("is_sampled", false))
+		or quest_state.has_completed_quest("quest.write_demo_stabilization_core")
+	)
+	var write_ready := guard_defeated and guard_cache_ready and write_charge_ready and write_quest_active and not core_written
+	var retest_ready := core_written or bool(retest_readout.get("is_gathered", false))
+	var recovery_state := CORE_STATE_READY if buffer_ready else CORE_STATE_WAITING
+	var guard_cache_state := CORE_STATE_READY if guard_cache_ready else CORE_STATE_WAITING
+	var guard_pressure_state := CORE_STATE_CLEARED if guard_defeated else CORE_STATE_PRESSURE
+	var writeback_state := CORE_STATE_WAITING
+	if core_written:
+		writeback_state = CORE_STATE_COMPLETED
+	elif write_ready:
+		writeback_state = CORE_STATE_READY
+	var retest_state := CORE_STATE_READY if retest_ready else CORE_STATE_WAITING
+	var logistics_state := CORE_STATE_READY if core_written else CORE_STATE_WAITING
+
+	core_station_state = {
+		"recovery_state": recovery_state,
+		"guard_cache_state": guard_cache_state,
+		"guard_pressure_state": guard_pressure_state,
+		"writeback_state": writeback_state,
+		"retest_state": retest_state,
+		"logistics_state": logistics_state,
+		"buffer_ready": buffer_ready,
+		"guard_defeated": guard_defeated,
+		"write_ready": write_ready,
+		"core_written": core_written,
+		"retest_ready": retest_ready
+	}
+	_register_core_station_state_shape("core_station.device.recovery.%s" % recovery_state)
+	_register_core_station_state_shape("core_station.device.guard_cache.%s" % guard_cache_state)
+	_register_core_station_state_shape("core_station.pressure.guard.%s" % guard_pressure_state)
+	_register_core_station_state_shape("core_station.device.writeback.%s" % writeback_state)
+	_register_core_station_state_shape("core_station.device.retest.%s" % retest_state)
+	_register_core_station_state_shape("core_station.device.logistics.%s" % logistics_state)
+	_register_core_station_state_shape("core_station.flow.recovery_to_guard.%s" % _core_ready_suffix(buffer_ready))
+	_register_core_station_state_shape("core_station.flow.guard_cache_to_core.%s" % _core_ready_suffix(write_ready or core_written))
+	_register_core_station_state_shape("core_station.flow.core_write.%s" % _core_activity_suffix(write_ready))
+	_register_core_station_state_shape("core_station.flow.core_to_retest.%s" % _core_ready_suffix(core_written))
+	_register_core_station_state_shape("core_station.flow.retest_to_logistics.%s" % _core_ready_suffix(core_written))
 	queue_redraw()
 
 
@@ -133,6 +219,14 @@ func has_flow_shape(shape_id: String) -> bool:
 	return flow_shape_ids.has(shape_id)
 
 
+func get_core_station_state_shape_count() -> int:
+	return applied_core_station_state_count
+
+
+func has_core_station_state_shape(shape_id: String) -> bool:
+	return core_station_state_shape_ids.has(shape_id)
+
+
 func refresh_focus_visibility(player_position: Vector2) -> void:
 	visible = player_position.x >= FOCUS_VISIBLE_MIN_X
 
@@ -145,6 +239,7 @@ func _draw() -> void:
 	_draw_guard_field()
 	_draw_writeback_device()
 	_draw_retest_and_logistics()
+	_draw_core_station_state()
 
 
 func _draw_station_surfaces() -> void:
@@ -279,6 +374,76 @@ func _draw_retest_and_logistics() -> void:
 	draw_line(Vector2(4206.0, -80.0), Vector2(4206.0, -18.0), LOGISTICS_LINE, 2.0, true)
 
 
+func _draw_core_station_state() -> void:
+	if core_station_state.is_empty():
+		return
+	var recovery_state := String(core_station_state.get("recovery_state", CORE_STATE_WAITING))
+	var guard_cache_state := String(core_station_state.get("guard_cache_state", CORE_STATE_WAITING))
+	var guard_pressure_state := String(core_station_state.get("guard_pressure_state", CORE_STATE_PRESSURE))
+	var writeback_state := String(core_station_state.get("writeback_state", CORE_STATE_WAITING))
+	var retest_state := String(core_station_state.get("retest_state", CORE_STATE_WAITING))
+	var logistics_state := String(core_station_state.get("logistics_state", CORE_STATE_WAITING))
+	var write_ready := bool(core_station_state.get("write_ready", false))
+	var core_written := bool(core_station_state.get("core_written", false))
+	_draw_core_status_strip(Vector2(3718.0, 70.0), recovery_state, RECOVERY_LINE)
+	_draw_core_material_slot(Rect2(Vector2(3724.0, 98.0), Vector2(40.0, 26.0)), recovery_state, RECOVERY_LINE)
+	_draw_core_pressure_state(Vector2(3870.0, 18.0), guard_pressure_state)
+	_draw_core_status_strip(Vector2(3906.0, 50.0), guard_cache_state, WRITEBACK_LINE)
+	_draw_core_material_slot(Rect2(Vector2(3908.0, 62.0), Vector2(38.0, 22.0)), guard_cache_state, WRITEBACK_LINE)
+	_draw_core_status_strip(Vector2(4018.0, -104.0), writeback_state, CORE_LIGHT)
+	_draw_core_material_slot(Rect2(Vector2(4016.0, -40.0), Vector2(44.0, 30.0)), writeback_state, CORE_LIGHT)
+	_draw_core_status_strip(Vector2(4118.0, 96.0), retest_state, RETEST_LINE)
+	_draw_core_material_slot(Rect2(Vector2(4118.0, 62.0), Vector2(36.0, 24.0)), retest_state, RETEST_LINE)
+	_draw_core_status_strip(Vector2(4190.0, -98.0), logistics_state, LOGISTICS_LINE)
+	_draw_core_material_slot(Rect2(Vector2(4214.0, -62.0), Vector2(36.0, 24.0)), logistics_state, LOGISTICS_LINE)
+	if write_ready:
+		_draw_core_state_flow([Vector2(3926.0, 70.0), Vector2(3988.0, 24.0), Vector2(4038.0, -24.0)], CORE_LIGHT, 4.6)
+	if core_written:
+		_draw_core_state_flow([Vector2(4038.0, -24.0), Vector2(4118.0, 18.0), Vector2(4134.0, 78.0)], RETEST_LINE, 3.8)
+		_draw_core_state_flow([Vector2(4134.0, 78.0), Vector2(4228.0, -52.0)], LOGISTICS_LINE, 3.2)
+
+
+func _draw_core_status_strip(origin: Vector2, state: String, color: Color) -> void:
+	var rect := Rect2(origin, Vector2(34.0, 14.0))
+	draw_rect(rect, STATUS_PANEL_FILL, true)
+	draw_rect(rect, Color(color.r, color.g, color.b, 0.26), false, 1.0, true)
+	var light_count := _core_status_light_count(state)
+	for index in range(3):
+		var light_position := origin + Vector2(8.0 + float(index) * 10.0, 7.0)
+		var light_color := _core_status_light_color(state, color) if index < light_count else STATUS_IDLE_LIGHT
+		draw_circle(light_position, 3.4, light_color)
+
+
+func _draw_core_material_slot(rect: Rect2, state: String, color: Color) -> void:
+	var ready := _is_core_ready_state(state)
+	draw_rect(rect, Color(0.018, 0.028, 0.028, 0.58), true)
+	draw_rect(rect, Color(color.r, color.g, color.b, 0.23 if ready else 0.05), true)
+	draw_rect(rect, Color(color.r, color.g, color.b, 0.74 if ready else 0.18), false, 1.2, true)
+	if not ready:
+		return
+	var center := rect.position + rect.size * 0.5
+	draw_line(center + Vector2(-rect.size.x * 0.34, 0.0), center + Vector2(rect.size.x * 0.34, 0.0), Color(color.r, color.g, color.b, 0.6), 1.4, true)
+	draw_circle(center, minf(rect.size.x, rect.size.y) * 0.16, Color(color.r, color.g, color.b, 0.54))
+
+
+func _draw_core_pressure_state(center: Vector2, state: String) -> void:
+	var cleared := state == CORE_STATE_CLEARED
+	var color := RETURN_LINE if cleared else PRESSURE_LINE
+	draw_arc(center, 74.0, 0.0, TAU, 54, Color(color.r, color.g, color.b, 0.54 if cleared else 0.72), 2.0, true)
+	draw_arc(center, 46.0, 0.0, TAU, 42, Color(color.r, color.g, color.b, 0.28 if cleared else 0.44), 1.6, true)
+	for angle in [0.0, PI * 0.5, PI, PI * 1.5]:
+		var from := center + Vector2(cos(angle), sin(angle)) * 52.0
+		var to := center + Vector2(cos(angle), sin(angle)) * 74.0
+		draw_line(from, to, Color(color.r, color.g, color.b, 0.5), 1.4, true)
+
+
+func _draw_core_state_flow(points: Array[Vector2], color: Color, width: float) -> void:
+	draw_polyline(PackedVector2Array(points), Color(0.02, 0.04, 0.04, 0.54), width + 3.0, true)
+	draw_polyline(PackedVector2Array(points), Color(color.r, color.g, color.b, 0.72), width, true)
+	for point in points:
+		draw_circle(point, width * 0.55, Color(color.r, color.g, color.b, 0.62))
+
+
 func _draw_supply_crate(center: Vector2, scale: float) -> void:
 	var rect := Rect2(center + Vector2(-18.0, -12.0) * scale, Vector2(36.0, 24.0) * scale)
 	draw_rect(rect, Color(0.2, 0.34, 0.18, 0.36), true)
@@ -322,7 +487,10 @@ func _register_station_shapes() -> void:
 		"station.logistics_retest_pocket",
 		"station.energy_confluence_nodes",
 		"station.output_bus_nodes",
-		"station.return_service_lane"
+		"station.return_service_lane",
+		"station.core_status_lights",
+		"station.core_pressure_warning",
+		"station.core_write_feedback"
 	]
 
 
@@ -333,7 +501,78 @@ func _register_flow_shapes() -> void:
 		"flow.guard_cache_to_core",
 		"flow.core_to_retest",
 		"flow.retest_to_logistics",
-		"flow.core_return_to_base"
+		"flow.core_return_to_base",
+		"flow.core_runtime_status_lights",
+		"flow.core_runtime_write_feedback"
+	]
+
+
+func _register_core_station_state_shape(shape_id: String) -> void:
+	if core_station_state_shape_ids.has(shape_id):
+		return
+	core_station_state_shape_ids.append(shape_id)
+	applied_core_station_state_count = core_station_state_shape_ids.size()
+
+
+func _has_core_station_context(world_state: WorldState, character_state: CharacterState) -> bool:
+	if world_state.current_region_id == "region.demo_stabilization_core":
+		return true
+	if character_state.current_region_id == "region.demo_stabilization_core":
+		return true
+	if world_state.unlocked_region_ids.has("region.demo_stabilization_core"):
+		return true
+	if character_state.inventory.has_ref("item.core_stabilization_buffer", 1):
+		return true
+	if character_state.inventory.has_ref("item.core_write_charge", 1):
+		return true
+	for quest_id in [
+		"quest.enter_demo_stabilization_core",
+		"quest.prepare_demo_stabilization_buffer",
+		"quest.defeat_demo_stabilization_guard",
+		"quest.write_demo_stabilization_core"
+	]:
+		if world_state.quest_state.has_active_quest(quest_id) or world_state.quest_state.has_completed_quest(quest_id):
+			return true
+	return false
+
+
+func _core_ready_suffix(is_ready: bool) -> String:
+	return "ready" if is_ready else "idle"
+
+
+func _core_activity_suffix(is_active: bool) -> String:
+	return "active" if is_active else "idle"
+
+
+func _core_status_light_count(state: String) -> int:
+	match state:
+		CORE_STATE_READY, CORE_STATE_CLEARED:
+			return 2
+		CORE_STATE_COMPLETED:
+			return 3
+		CORE_STATE_PRESSURE:
+			return 1
+		_:
+			return 0
+
+
+func _core_status_light_color(state: String, color: Color) -> Color:
+	match state:
+		CORE_STATE_COMPLETED:
+			return Color(color.r, color.g, color.b, 0.92)
+		CORE_STATE_READY, CORE_STATE_CLEARED:
+			return Color(color.r, color.g, color.b, 0.72)
+		CORE_STATE_PRESSURE:
+			return Color(PRESSURE_LINE.r, PRESSURE_LINE.g, PRESSURE_LINE.b, 0.72)
+		_:
+			return STATUS_IDLE_LIGHT
+
+
+func _is_core_ready_state(state: String) -> bool:
+	return state in [
+		CORE_STATE_READY,
+		CORE_STATE_COMPLETED,
+		CORE_STATE_CLEARED
 	]
 
 
