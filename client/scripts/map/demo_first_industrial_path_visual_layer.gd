@@ -46,6 +46,8 @@ const STATUS_ACTIVE_LIGHT := Color(0.42, 0.96, 0.86, 0.76)
 const STATUS_OUTPUT_LIGHT := Color(0.58, 0.88, 0.52, 0.68)
 const CRYSTAL_COLLECTOR_ID := "building.crystal_collector_t1"
 const CRYSTAL_COLLECTOR_OUTPUT_INSTANCE_ID := "map_object_instance.crystal_collector_output"
+const FIRST_PATH_CONTEXT_ROUTE_ALPHA := 0.0005
+const FIRST_PATH_CONTEXT_BOUNDARY_ALPHA := 0.004
 
 const FIRST_PATH_CONTEXT_LAYER_ALPHAS := [
 	{"path": "OpeningSceneLayer", "alpha": 0.05},
@@ -57,7 +59,26 @@ const FIRST_PATH_CONTEXT_LAYER_ALPHAS := [
 	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.02},
 	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.025},
 	{"path": "DemoRoutePresentationLayer", "alpha": 0.0},
-	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.11}
+	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.045}
+]
+
+const FIRST_PATH_CONTEXT_ROUTE_PATHS := [
+	"MainRouteSpine",
+	"BaseToCrystalRouteBand",
+	"CrystalToPollutionRouteBand",
+	"DemoRoutePresentationLayer/DemoRouteBaseBand",
+	"DemoRoutePresentationLayer/DemoRouteCrystalBand",
+	"DemoRoutePresentationLayer/DemoRoutePollutionBand",
+	"DemoRoutePresentationLayer/DemoRouteRuinBand",
+	"CurrentObjectiveGuidanceLayer/CurrentObjectiveRouteHorizontal",
+	"CurrentObjectiveGuidanceLayer/CurrentObjectiveRouteVertical",
+	"CurrentObjectiveGuidanceLayer/CurrentObjectiveTargetPin"
+]
+
+const FIRST_PATH_CONTEXT_BOUNDARY_PATHS := [
+	"RegionBoundaryCrystal",
+	"RegionBoundaryPollution",
+	"RegionBoundaryRuin"
 ]
 
 const STAGE_FIELD_PICKUP := "field_pickup"
@@ -83,6 +104,7 @@ const PATH_POINTS := [
 var path_shape_ids: Array[String] = []
 var path_state_shape_ids: Array[String] = []
 var muted_planning_layer_count := 0
+var muted_context_rect_count := 0
 var path_state: Dictionary = {}
 var context_layer_original_modulates: Dictionary = {}
 var first_path_available := false
@@ -180,6 +202,7 @@ func refresh_focus_visibility(player_position: Vector2) -> void:
 	var should_show := is_first_path_visible_at(player_position)
 	visible = should_show
 	_set_context_layers_muted(should_show)
+	_mute_first_path_context_rects(should_show)
 
 
 func is_first_path_visible_at(player_position: Vector2) -> bool:
@@ -208,6 +231,10 @@ func has_path_state_shape(shape_id: String) -> bool:
 
 func get_muted_planning_layer_count() -> int:
 	return muted_planning_layer_count
+
+
+func get_muted_context_rect_count() -> int:
+	return muted_context_rect_count
 
 
 func get_active_stage() -> String:
@@ -745,6 +772,24 @@ func _set_context_layers_muted(should_mute: bool) -> void:
 			muted_planning_layer_count += 1
 
 
+func _mute_first_path_context_rects(should_mute: bool) -> void:
+	muted_context_rect_count = 0
+	if not should_mute:
+		return
+	for path in FIRST_PATH_CONTEXT_ROUTE_PATHS:
+		var rect := _get_map_node(String(path)) as ColorRect
+		if rect == null:
+			continue
+		rect.color.a = minf(rect.color.a, FIRST_PATH_CONTEXT_ROUTE_ALPHA)
+		muted_context_rect_count += 1
+	for path in FIRST_PATH_CONTEXT_BOUNDARY_PATHS:
+		var rect := _get_map_node(String(path)) as ColorRect
+		if rect == null:
+			continue
+		rect.color.a = minf(rect.color.a, FIRST_PATH_CONTEXT_BOUNDARY_ALPHA)
+		muted_context_rect_count += 1
+
+
 func _apply_layer_alpha(path: String, alpha: float) -> bool:
 	var node := _get_map_node(path)
 	var canvas_item := node as CanvasItem
@@ -767,6 +812,7 @@ func _restore_context_layers() -> void:
 			canvas_item.modulate = context_layer_original_modulates[path]
 	context_layer_original_modulates.clear()
 	muted_planning_layer_count = 0
+	muted_context_rect_count = 0
 
 
 func _get_base_structure_for_definition(world_state: WorldState, building_id: String) -> Dictionary:

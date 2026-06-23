@@ -10,6 +10,7 @@ const ROLE_TERRAIN := "terrain"
 const FOCUS_VISIBLE_MIN_X := 160.0
 const FOCUS_VISIBLE_MAX_X := 620.0
 const POLLUTION_FOCUS_CONTEXT_ROUTE_ALPHA := 0.0005
+const POLLUTION_FOCUS_CONTEXT_BOUNDARY_ALPHA := 0.004
 const POLLUTION_FOCUS_CONTEXT_ENEMY_ALPHA := 0.22
 const POLLUTION_FOCUS_CONTEXT_ROUTE_PATHS := [
 	"MainRouteSpine",
@@ -22,6 +23,11 @@ const POLLUTION_FOCUS_CONTEXT_ROUTE_PATHS := [
 	"CurrentObjectiveGuidanceLayer/CurrentObjectiveRouteHorizontal",
 	"CurrentObjectiveGuidanceLayer/CurrentObjectiveRouteVertical",
 	"CurrentObjectiveGuidanceLayer/CurrentObjectiveTargetPin"
+]
+const POLLUTION_FOCUS_CONTEXT_BOUNDARY_PATHS := [
+	"RegionBoundaryCrystal",
+	"RegionBoundaryPollution",
+	"RegionBoundaryRuin"
 ]
 const POLLUTION_FOCUS_CONTEXT_LABEL_PATHS := [
 	"BaseDirectionLabel",
@@ -1132,6 +1138,7 @@ func _mute_pollution_focus_distractions() -> void:
 	if not visible:
 		return
 	muted_pollution_focus_distraction_count += _mute_focus_context_route_rects()
+	muted_pollution_focus_distraction_count += _mute_focus_context_boundary_rects()
 	muted_pollution_focus_distraction_count += _hide_focus_context_labels()
 	muted_pollution_focus_distraction_count += _mute_focus_enemy_pressure()
 
@@ -1143,6 +1150,17 @@ func _mute_focus_context_route_rects() -> int:
 		if rect == null:
 			continue
 		rect.color.a = minf(rect.color.a, POLLUTION_FOCUS_CONTEXT_ROUTE_ALPHA)
+		muted_count += 1
+	return muted_count
+
+
+func _mute_focus_context_boundary_rects() -> int:
+	var muted_count := 0
+	for path in POLLUTION_FOCUS_CONTEXT_BOUNDARY_PATHS:
+		var rect := _get_map_node(String(path)) as ColorRect
+		if rect == null:
+			continue
+		rect.color.a = minf(rect.color.a, POLLUTION_FOCUS_CONTEXT_BOUNDARY_ALPHA)
 		muted_count += 1
 	return muted_count
 

@@ -8,6 +8,45 @@ const ROLE_SALVAGE := "salvage"
 const ROLE_TERRAIN := "terrain"
 const FOCUS_VISIBLE_MIN_X := -80.0
 const FOCUS_VISIBLE_MAX_X := 160.0
+const CRYSTAL_FOCUS_CONTEXT_ROUTE_ALPHA := 0.0005
+const CRYSTAL_FOCUS_CONTEXT_BOUNDARY_ALPHA := 0.004
+
+const CRYSTAL_FOCUS_CONTEXT_LAYER_ALPHAS := [
+	{"path": "OpeningSceneLayer", "alpha": 0.035},
+	{"path": "SceneArtFoundationLayer", "alpha": 0.0},
+	{"path": "NonCoreSceneIdentityLayer", "alpha": 0.0},
+	{"path": "FunctionalTransitionSpatialPlayabilityLayer", "alpha": 0.0},
+	{"path": "MidfieldRoutePlayabilityLayer", "alpha": 0.0},
+	{"path": "WindCorridorTransitionPlayabilityLayer", "alpha": 0.0},
+	{"path": "CoreApproachHandoffLayer", "alpha": 0.0},
+	{"path": "CoreStabilizationRunLayer", "alpha": 0.0},
+	{"path": "DemoIndustrialBaseVisualLayer", "alpha": 0.055},
+	{"path": "DemoPollutionBoundaryVisualLayer", "alpha": 0.0},
+	{"path": "DemoCoreStabilizationVisualLayer", "alpha": 0.0},
+	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.01},
+	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.012},
+	{"path": "DemoRoutePresentationLayer", "alpha": 0.0},
+	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.045}
+]
+
+const CRYSTAL_FOCUS_CONTEXT_ROUTE_PATHS := [
+	"MainRouteSpine",
+	"BaseToCrystalRouteBand",
+	"CrystalToPollutionRouteBand",
+	"DemoRoutePresentationLayer/DemoRouteBaseBand",
+	"DemoRoutePresentationLayer/DemoRouteCrystalBand",
+	"DemoRoutePresentationLayer/DemoRoutePollutionBand",
+	"DemoRoutePresentationLayer/DemoRouteRuinBand",
+	"CurrentObjectiveGuidanceLayer/CurrentObjectiveRouteHorizontal",
+	"CurrentObjectiveGuidanceLayer/CurrentObjectiveRouteVertical",
+	"CurrentObjectiveGuidanceLayer/CurrentObjectiveTargetPin"
+]
+
+const CRYSTAL_FOCUS_CONTEXT_BOUNDARY_PATHS := [
+	"RegionBoundaryCrystal",
+	"RegionBoundaryPollution",
+	"RegionBoundaryRuin"
+]
 
 const FIELD_FRAME := Color(0.32, 0.58, 0.62, 0.045)
 const FIELD_FILL := Color(0.06, 0.12, 0.15, 0.0)
@@ -93,9 +132,13 @@ var muted_resource_marker_count := 0
 var muted_legacy_block_count := 0
 var muted_departure_label_count := 0
 var muted_departure_focus_count := 0
+var muted_crystal_focus_context_layer_count := 0
+var muted_crystal_focus_context_rect_count := 0
+var context_layer_original_modulates: Dictionary = {}
 
 
 func _ready() -> void:
+	process_priority = 80
 	apply_visuals()
 	refresh_focus_visibility(_get_player_position())
 
@@ -146,6 +189,14 @@ func get_muted_departure_focus_count() -> int:
 	return muted_departure_focus_count
 
 
+func get_muted_crystal_focus_context_layer_count() -> int:
+	return muted_crystal_focus_context_layer_count
+
+
+func get_muted_crystal_focus_context_rect_count() -> int:
+	return muted_crystal_focus_context_rect_count
+
+
 func has_resource_shape(shape_id: String) -> bool:
 	return resource_shape_ids.has(shape_id)
 
@@ -161,6 +212,8 @@ func has_terrain_material_shape(shape_id: String) -> bool:
 func refresh_focus_visibility(player_position: Vector2) -> void:
 	visible = player_position.x >= FOCUS_VISIBLE_MIN_X and player_position.x <= FOCUS_VISIBLE_MAX_X
 	_mute_departure_interactable_focus(player_position)
+	_update_crystal_focus_context_layers()
+	_mute_crystal_focus_context_rects()
 
 
 func _draw() -> void:
@@ -819,6 +872,65 @@ func _mute_departure_interactable_focus(player_position: Vector2) -> void:
 		marker.scale = Vector2.ONE
 	if player_position.x >= FOCUS_VISIBLE_MIN_X:
 		muted_departure_focus_count = 1
+
+
+func _update_crystal_focus_context_layers() -> void:
+	if not visible:
+		_restore_crystal_focus_context_layers()
+		return
+	muted_crystal_focus_context_layer_count = 0
+	for layer_profile in CRYSTAL_FOCUS_CONTEXT_LAYER_ALPHAS:
+		var path := String(layer_profile.get("path", ""))
+		var alpha := float(layer_profile.get("alpha", 1.0))
+		if _apply_context_layer_alpha(path, alpha):
+			muted_crystal_focus_context_layer_count += 1
+
+
+func _mute_crystal_focus_context_rects() -> void:
+	muted_crystal_focus_context_rect_count = 0
+	if not visible:
+		return
+	for path in CRYSTAL_FOCUS_CONTEXT_ROUTE_PATHS:
+		var rect := _get_map_node(String(path)) as ColorRect
+		if rect == null:
+			continue
+		rect.color.a = minf(rect.color.a, CRYSTAL_FOCUS_CONTEXT_ROUTE_ALPHA)
+		muted_crystal_focus_context_rect_count += 1
+	for path in CRYSTAL_FOCUS_CONTEXT_BOUNDARY_PATHS:
+		var rect := _get_map_node(String(path)) as ColorRect
+		if rect == null:
+			continue
+		rect.color.a = minf(rect.color.a, CRYSTAL_FOCUS_CONTEXT_BOUNDARY_ALPHA)
+		muted_crystal_focus_context_rect_count += 1
+
+
+func _apply_context_layer_alpha(path: String, alpha: float) -> bool:
+	var node := _get_map_node(path)
+	var canvas_item := node as CanvasItem
+	if canvas_item == null:
+		return false
+	if not context_layer_original_modulates.has(path):
+		context_layer_original_modulates[path] = canvas_item.modulate
+	var original_color: Color = context_layer_original_modulates.get(path, canvas_item.modulate)
+	var color := original_color
+	color.a = minf(original_color.a, alpha)
+	canvas_item.modulate = color
+	return true
+
+
+func _restore_crystal_focus_context_layers() -> void:
+	if context_layer_original_modulates.is_empty():
+		muted_crystal_focus_context_layer_count = 0
+		muted_crystal_focus_context_rect_count = 0
+		return
+	for path in context_layer_original_modulates.keys():
+		var node := _get_map_node(String(path))
+		var canvas_item := node as CanvasItem
+		if canvas_item != null:
+			canvas_item.modulate = context_layer_original_modulates[path]
+	context_layer_original_modulates.clear()
+	muted_crystal_focus_context_layer_count = 0
+	muted_crystal_focus_context_rect_count = 0
 
 
 func _mute_crystal_identity_blocks() -> void:

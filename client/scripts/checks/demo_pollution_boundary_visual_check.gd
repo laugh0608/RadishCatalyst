@@ -75,6 +75,8 @@ func _check_pollution_boundary_focus_visibility() -> void:
 	var layer := map.get_node("DemoPollutionBoundaryVisualLayer") as DemoPollutionBoundaryVisualLayer
 	var carryover_wreckage := map.get_node("Interactables/FieldWreckageTreatmentApproach") as PrototypeInteractable
 	var cross_route := map.get_node("CrystalToPollutionRouteBand") as ColorRect
+	var pollution_boundary := map.get_node("RegionBoundaryPollution") as ColorRect
+	var ruin_boundary := map.get_node("RegionBoundaryRuin") as ColorRect
 	var treatment_enemy := map.get_node("Enemies/TreatmentSkitter") as PrototypeEnemy
 	var crystal_layer := map.get_node("DemoCrystalResourceVisualLayer") as DemoCrystalResourceVisualLayer
 	var first_path_layer := map.get_node("DemoFirstIndustrialPathVisualLayer") as DemoFirstIndustrialPathVisualLayer
@@ -115,6 +117,8 @@ func _check_pollution_boundary_focus_visibility() -> void:
 	_expect_equal(route_presentation_layer.modulate.a <= 0.001, true, "pollution focus hides route presentation layer")
 	_expect_equal(region_value_layer.modulate.a <= 0.026, true, "pollution focus lowers region value layer")
 	_expect_equal(cross_route.color.a <= 0.001, true, "pollution focus lowers crystal-to-pollution context route")
+	_expect_equal(pollution_boundary.color.a <= 0.006, true, "pollution focus lowers pollution edge boundary frame")
+	_expect_equal(ruin_boundary.color.a <= 0.006, true, "pollution focus lowers ruin edge boundary frame")
 	_expect_equal(objective_route != null and objective_route.color.a <= 0.001, true, "pollution focus lowers current objective route")
 	_expect_equal(treatment_enemy.modulate.a <= 0.23, true, "pollution focus lowers treatment enemy pressure")
 	_expect_equal((treatment_enemy.get_node("Label") as Label).visible, false, "pollution focus hides treatment enemy label")
