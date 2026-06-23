@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-06-20
+更新时间：2026-06-23
 
 ## 用途
 
@@ -26,7 +26,11 @@
 ## 当前与最近专题
 
 - [Demo Definition V1](demo-definition-v1.md)：首版 Demo 规格表，后续专题必须映射到未完成规格项。
-- [Demo Industrial Base Visual And Scene V1](demo-industrial-base-visual-and-scene-v1.md)：当前活跃专题，覆盖工业基地视觉、场景化、HUD 视觉和第一条工业链可视化。
+- [Demo First Playable Slice Assembly V1](demo-first-playable-slice-assembly-v1.md)：当前活跃专题，覆盖 20 到 30 分钟可玩纵切装配。
+- [Demo Playable UI And Art Pass V1](demo-playable-ui-and-art-pass-v1.md)：当前执行线，覆盖玩家第一视野、低保真美术、正式 HUD 和核心场景主读法。
+- [Demo Core Loop Playable V1](demo-core-loop-playable-v1.md)：当前执行线，覆盖采集、加工、设备启用、整备、污染承压、短战斗和核心写入闭环。
+- [Demo Narrative Beats V1](demo-narrative-beats-v1.md)：当前执行线，覆盖开场事故、基地恢复、污染信号、核心稳定和结尾钩子。
+- [Demo Industrial Base Visual And Scene V1](demo-industrial-base-visual-and-scene-v1.md)：最近活跃视觉专题，未完成观感问题并入 UI / Art pass，不再作为单点截图微调主线。
 - [Demo Playable Content Substance V1](demo-playable-content-substance-v1.md)：最近完成口径修正，确认自动检查和第一包不能替代可试玩画面质量。
 - [Demo Scene Device Pressure Staging V1](demo-scene-device-pressure-staging-v1.md)：暂缓，不再作为明日建议；后续若启用，必须服务工业基地视觉与场景化。
 - [Demo Field Task Differentiation V1](demo-field-task-differentiation-v1.md)：最近完成，覆盖任务差异。

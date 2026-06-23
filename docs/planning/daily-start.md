@@ -10,67 +10,66 @@
 
 ## 阶段
 
-当前为「首版 Demo 工业基地视觉与场景化第一版」。
+当前为「首版 Demo 可玩纵切装配第一版」。
 
 首版 Demo 完成规格：[Demo Definition V1](../features/demo-definition-v1.md)。
 
-当前活跃专题：[Demo Industrial Base Visual And Scene V1](../features/demo-industrial-base-visual-and-scene-v1.md)，覆盖工业基地视觉、场景化、HUD 视觉和第一条工业链可视化。
+当前活跃专题：[Demo First Playable Slice Assembly V1](../features/demo-first-playable-slice-assembly-v1.md)，覆盖 20 到 30 分钟可玩路径装配。
+
+当前执行线：
+
+- [Demo Playable UI And Art Pass V1](../features/demo-playable-ui-and-art-pass-v1.md)
+- [Demo Core Loop Playable V1](../features/demo-core-loop-playable-v1.md)
+- [Demo Narrative Beats V1](../features/demo-narrative-beats-v1.md)
 
 视觉方向参考：[Visual And UI Direction](../product/visual-and-ui-direction.md)。
-
-最近完成专题：[Demo Playable Content Substance V1](../features/demo-playable-content-substance-v1.md)、[Demo Field Task Differentiation V1](../features/demo-field-task-differentiation-v1.md)、[Demo Initial Art Identity V1](../features/demo-initial-art-identity-v1.md)、[Demo Industrial Module Task Rhythm V1](../features/demo-industrial-module-task-rhythm-v1.md) 与 [Demo Core Scene Playable Space V1](../features/demo-core-scene-playable-space-v1.md) 已落地第一包，但不能替代可试玩画面质量。
 
 ## 最近收尾
 
 - `S0` 到 Demo 终点的主路径、存档状态、设备面板、加工、过滤、整备、战斗反馈和自动检查证据已建立。
 - 2026-06-19 已撤回“自动检查通过即可进入验收”的判断。
-- 2026-06-20 复核当前交付目标：内部朋友试玩或完整实机演示；核心参考《The Riftbreaker》的工业基地主导体验，探索 / 战斗服务基地。
-- 当前最大缺口从“路径是否存在”切到“画面是否像游戏、基地是否像工业基地、HUD 是否像玩家界面”。
-- 2026-06-20 已完成基地工业视觉、HUD / 交互遮挡收束、第一条工业链动态状态、污染链动态视觉、12 区工业价值、角色 / 敌人轮廓、晶体 / 污染 / 核心地貌材质、开发截图定位入口和远征旧地貌降权第一轮。
-- 2026-06-21 已基于多轮定位截图继续完成晶体 / 污染主次治理：2 号晶体点位的旧蓝底、蓝色大 cue、横向路线和出发口对象 / 静态标签进一步退场；3 号污染边界的跨区残骸标签、蓝色长路线和旧黄绿底板继续降权。新截图复核后，当前转向第一条工业路径横切；首段阶段反馈已从多色叠加改成背景降权、局部工作面、低饱和轮廓和单主信号。根据新档首屏截图反馈，前哨核心恢复前改为专用核心恢复视图；恢复后资源段已补手持采样点、采集器工作面、出料托盘和回基地装车端口，并把 3 / 4 号截图点改成采集器出料和基地交接专用状态。
-- 2026-06-22 复核 3 / 4 号读法后停止同层截图微调，已完成第一工业路径交互层级收束，并补设备状态灯、物料槽和短资源流第一包；同一视觉语言已延伸到污染链、敌压警告和核心写入反馈。
-- 2026-06-22 5 号污染边界复核通过：跨区蓝绿横带、旧路线和非当前区域色块已退场；当前不继续围绕 5 号调参。
-- 2026-06-22 6 号核心稳定站完成恢复补给、守卫压力解除、回写缓存、核心写入、复测读数和物流回流的可见状态反馈，并已把完成态从红色压力主导收束为站内短线、复测面板和回流端口。
-- 2026-06-23 6 号核心稳定站新截图复核通过：红色压力退到背景，核心写入、复测读数和站内回流形成可读完成态；当前不继续围绕 6 号调参。
+- 2026-06-20 复核交付目标为内部朋友试玩或完整实机演示；核心回到“工业基地为主，探索 / 战斗服务基地”。
+- 2026-06-20 至 2026-06-23 已完成基地工业视觉、HUD 层级、第一条工业链、污染链、角色 / 敌人轮廓、晶体 / 污染 / 核心地貌材质和核心稳定站完成态多轮推进。
+- 2026-06-23 阶段复盘确认：继续围绕单点截图降噪会让项目回到读法修补；当前切到可玩纵切装配。
 
 ## 下一步读取顺序
 
 1. 读 `docs/planning/current.md` 确认阶段、冻结边界和退出条件。
-2. 读 `docs/features/demo-industrial-base-visual-and-scene-v1.md`，确认基地平台、HUD 和第一条工业链的视觉范围。
-3. 读 `docs/product/visual-and-ui-direction.md`，确认低保真美术和 UI 气质。
-4. 读 `docs/features/demo-definition-v1.md`，确认首版 Demo 必达规格。
-5. 只在需要确认 12 区职责时，读 `docs/planning/demo-scope-and-playable-slice.md`。
-6. 只在需要历史风险时，读取最新周志中的“风险与未完成项”和“下周建议”。
-7. 按改动范围选读设计、架构和复测基线文档。
+2. 读 `docs/features/demo-first-playable-slice-assembly-v1.md`，确认纵切路径。
+3. 按执行包读取 UI / Art、核心循环或叙事节拍专题。
+4. 读 `docs/product/visual-and-ui-direction.md`，确认低保真美术和 UI 气质。
+5. 读 `docs/features/demo-definition-v1.md`，确认首版 Demo 必达规格。
+6. 只在需要确认 12 区职责时，读 `docs/planning/demo-scope-and-playable-slice.md`。
+7. 只在需要历史风险时，读取最新周志中的“风险与未完成项”和“下周建议”。
+8. 按改动范围选读设计、架构和复测基线文档。
 
 ## 当前开发重点
 
-- 当前不切换专题；第一工业路径、污染边界和 6 号核心稳定站完成态已通过截图复核，下一步进入本专题阶段复核。
-- 已落地的低保真图形层要继续服务玩家路径：基地生产、资源采集、污染处理、核心写入和回基地收益。
-- 如果仍出现旧大色块、长条路线或旧交互标记抢画面，优先修视觉层级和场景构成，不转去扩提示文案或检查清单。
-- 每个区域后续都必须回答它给基地提供什么资源、解锁、设备输入、风险或稳定工程价值。
+- 不再把 2 / 3 / 5 截图点降噪作为主线；若仍影响纵切核心路径，纳入 UI / Art pass。
+- 把新档到核心稳定站的既有系统压成 20 到 30 分钟可跑体验。
+- 优先处理玩家第一视野：HUD、角色、敌人、设备、资源、污染、核心站和短反馈。
+- 每个开发包必须回答：玩家会看到什么、做什么、理解什么。
 
-## 明天事项
+## 今日事项
 
-- 按「首版 Demo 工业基地视觉与场景化第一版」验收条件做阶段复核：基地 5 个设备、HUD 第一视野、第一工业链、污染边界和核心稳定站是否统一读法。
-- 若阶段复核通过，更新当前专题收口判断，再决定是否重新启动 `Demo First Playable Acceptance V1`。
-- 若阶段复核只发现 `P2` / `P3` 局部观感问题，记录到后续 polish，不继续单点截图调参。
-- 同步保留运行时检查，只验证可见实现是否接入，不把检查本身作为阶段进度。
+1. 先做 UI / Art pass 的第一包：隐藏默认开发噪声，明确基地首屏、晶体矿脉、污染边界和核心稳定站四个核心画面的玩家主读法。
+2. 同步梳理核心循环路径中哪些步骤过长、过文本化或只靠任务表推进。
+3. 叙事只写短工程节拍，不新增长对白和复杂设定。
 
 ## 防跑偏规则
 
-- 当前阶段没有场景、设备、HUD 或工业链视觉结果的文本、formatter、检查和“第一包”不算主线进展。
+- 当前阶段没有玩家可见画面、操作、反馈或叙事节拍的文本、formatter、检查和“第一包”不算主线进展。
 - 新增 helper / formatter / check 只能支撑可见实现，不能成为开发包主体。
 - 不再用同类目标箭头、地图提示、长文案、状态字段或检查接线替代场景建设。
 - 低保真可以接受，但不能继续把 `ColorRect + Label` 的 debug 流程图当作首版 Demo 可试玩画面目标。
-- 每个开发包开工前先说明截图或实机中会看到什么变化；收口时优先核对画面观感，再补自动检查。
+- 阶段退出后必须重启首次可玩验收专题，而不是直接进入修 bug。
 
 ## 当前不做
 
 - 不继续扩前线行动台、候选、窗口复盘、高压窗口或 `base_action_state`，除非出现 `P0` / `P1`。
-- 不继续横向新增区域；首版 Demo 到 12 个区域封顶。
-- 不新增随机成功率、新货币、队员、完整装备栏、完整 `loadout`、完整背包重构、联机入口、最终美术包或大规模美术替换。
-- 不把试玩准备、修 bug 阶段、完整发布准备、大规模 polish、死亡系统、结算页、基线复核、静态审计或纯提示修补作为当前阶段目标。
+- 不横向新增区域；首版 Demo 到 12 个区域封顶。
+- 不新增随机成功率、新货币、队员、完整装备栏、完整 `loadout`、完整背包重构、联机入口、最终美术包或发布流程。
+- 不把试玩准备、修 bug 阶段、大规模 polish、死亡系统、结算页、基线复核、静态审计或纯提示修补作为当前阶段目标。
 
 ## 阻塞标准
 
@@ -91,18 +90,17 @@
 日常推进必读：
 
 - `docs/planning/current.md`
-- `docs/features/demo-industrial-base-visual-and-scene-v1.md`
+- `docs/features/demo-first-playable-slice-assembly-v1.md`
 - `docs/product/visual-and-ui-direction.md`
 - `docs/features/demo-definition-v1.md`
-- `docs/planning/demo-scope-and-playable-slice.md`
 
 按任务选读：
 
-- 最近完成战斗 / 工业 / 场景细专题：按 `docs/features/README.md` 选读
+- UI / Art：`docs/features/demo-playable-ui-and-art-pass-v1.md`
+- 核心循环：`docs/features/demo-core-loop-playable-v1.md`
+- 叙事节拍：`docs/features/demo-narrative-beats-v1.md`
 - 区域和首小时体验：`docs/design/onboarding-and-first-hour.md`
 - 开发复测基线：`docs/design/development-retest-baselines.md`
-- 代码结构和重构：`docs/architecture/code-style-and-language-practices.md`
-- 存档、联机或边界：`docs/architecture/multiplayer-and-save-architecture.md`
 
 ## 验证入口
 
