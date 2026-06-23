@@ -20,6 +20,7 @@ func _init() -> void:
 
 func _run_checks() -> void:
 	_check_pollution_boundary_layer_exists_and_registers_visuals()
+	_check_pollution_boundary_operation_relation_shapes()
 	_check_pollution_boundary_focus_visibility()
 	_check_pollution_boundary_chain_state_visuals()
 	_check_pollution_boundary_visual_priority_replaces_old_blocks()
@@ -66,6 +67,21 @@ func _check_pollution_boundary_layer_exists_and_registers_visuals() -> void:
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.output_service_islands"), true, "pollution outputs sit on local service islands")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.recovery_loading_pad"), true, "pollution recovery loading pad exists")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.recovery_crate_stacks"), true, "pollution recovery loading pad has crate stacks")
+	map.free()
+
+
+func _check_pollution_boundary_operation_relation_shapes() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	var layer := map.get_node("DemoPollutionBoundaryVisualLayer") as DemoPollutionBoundaryVisualLayer
+	layer.apply_visuals()
+
+	_expect_equal(layer.get_flow_count() >= 13, true, "pollution boundary registers operation relation routes")
+	_expect_equal(layer.has_flow_shape("operation_relation.pollution.residue_to_filter"), true, "pollution relation links residue queue to filter")
+	_expect_equal(layer.has_flow_shape("operation_relation.pollution.filter_outputs"), true, "pollution relation marks filter output split")
+	_expect_equal(layer.has_flow_shape("operation_relation.pollution.vial_return"), true, "pollution relation links vial output back to base")
+	_expect_equal(layer.has_flow_shape("operation_relation.pollution.slurry_split"), true, "pollution relation links slurry output to return routes")
+	_expect_equal(layer.has_flow_shape("operation_relation.pollution.core_prep_pressure_port"), true, "pollution relation marks core prep pressure port")
 	map.free()
 
 

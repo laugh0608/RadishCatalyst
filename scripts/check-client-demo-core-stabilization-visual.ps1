@@ -12,6 +12,8 @@ $requiredTextByFile = @{
         "station.writeback_device",
         "station.retest_readout",
         "flow.core_return_to_base",
+        "operation_relation.core.guard_cache_to_write_device",
+        "operation_relation.core.logistics_return",
         "_deemphasize_legacy_core_blocks",
         "map_object.demo_stabilization_core"
     )
@@ -22,6 +24,8 @@ $requiredTextByFile = @{
     "client/scripts/checks/demo_core_stabilization_visual_check.gd" = @(
         "Demo core stabilization visual checks passed.",
         "_check_core_visual_layer_exists_and_registers_station_shapes",
+        "_check_core_visual_operation_relation_shapes",
+        "core relation links guard cache to write device",
         "_check_core_visual_layer_replaces_old_terminal_blocks",
         "_check_core_visual_runtime_anchors_are_tagged"
     )

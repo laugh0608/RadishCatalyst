@@ -267,6 +267,7 @@ func _draw() -> void:
 	_draw_pollution_filter()
 	_draw_chain_state()
 	_draw_pollution_chain_state()
+	_draw_operation_relation_overlay()
 
 
 func _draw_startup_restore_focus() -> void:
@@ -650,6 +651,52 @@ func _draw_pollution_chain_state() -> void:
 	_draw_status_pip(Vector2(-52.0, -40.0), core_prep_ready or core_prep_active, CHAIN_CORE_PREP)
 
 
+func _draw_operation_relation_overlay() -> void:
+	_draw_relation_track([Vector2(-300.0, -92.0), Vector2(-238.0, -92.0), Vector2(-184.0, -92.0)], CORE_LIGHT)
+	_draw_relation_track([Vector2(-148.0, -38.0), Vector2(-170.0, 10.0), Vector2(-250.0, 18.0)], _product_relation_color())
+	_draw_relation_track([Vector2(-250.0, 54.0), Vector2(-128.0, 54.0), Vector2(-74.0, -14.0)], OUTFITTING_LIGHT)
+	_draw_relation_track([Vector2(334.0, -124.0), Vector2(222.0, -108.0), Vector2(106.0, -84.0), Vector2(-74.0, -14.0)], CHAIN_VIAL)
+	_draw_relation_track([Vector2(334.0, -96.0), Vector2(240.0, 44.0), Vector2(72.0, 98.0), Vector2(-130.0, 120.0), Vector2(-166.0, -26.0)], CHAIN_SLURRY)
+	_draw_relation_track([Vector2(-130.0, 120.0), Vector2(-98.0, 78.0), Vector2(-74.0, -14.0), Vector2(-44.0, -40.0)], CHAIN_CORE_PREP)
+	for port in [
+		{"position": Vector2(-300.0, -92.0), "color": CORE_LIGHT},
+		{"position": Vector2(-184.0, -92.0), "color": REACTOR_LIGHT},
+		{"position": Vector2(-250.0, 18.0), "color": STORAGE_LIGHT},
+		{"position": Vector2(-74.0, -14.0), "color": OUTFITTING_LIGHT},
+		{"position": Vector2(334.0, -124.0), "color": CHAIN_VIAL},
+		{"position": Vector2(334.0, -96.0), "color": CHAIN_SLURRY},
+		{"position": Vector2(-130.0, 120.0), "color": CHAIN_SLURRY}
+	]:
+		var position: Vector2 = port["position"]
+		var color: Color = port["color"]
+		_draw_relation_port(position, color)
+
+
+func _draw_relation_track(points: Array[Vector2], color: Color) -> void:
+	draw_polyline(PackedVector2Array(points), Color(0.01, 0.024, 0.022, 0.68), 6.0, true)
+	draw_polyline(PackedVector2Array(points), Color(color.r, color.g, color.b, 0.2), 2.0, true)
+	for index in range(points.size() - 1):
+		var from := points[index]
+		var to := points[index + 1]
+		if from.distance_to(to) < 36.0:
+			continue
+		var direction := (to - from).normalized()
+		var normal := Vector2(-direction.y, direction.x)
+		var center := from.lerp(to, 0.58)
+		draw_line(center - direction * 5.0 - normal * 3.0, center + direction * 4.0, Color(color.r, color.g, color.b, 0.34), 1.2, true)
+		draw_line(center - direction * 5.0 + normal * 3.0, center + direction * 4.0, Color(color.r, color.g, color.b, 0.34), 1.2, true)
+
+
+func _draw_relation_port(position: Vector2, color: Color) -> void:
+	draw_circle(position, 7.0, Color(color.r, color.g, color.b, 0.12))
+	draw_arc(position, 10.0, 0.0, TAU, 22, Color(color.r, color.g, color.b, 0.28), 1.0, true)
+	draw_rect(Rect2(position + Vector2(-3.5, -3.5), Vector2(7.0, 7.0)), Color(color.r, color.g, color.b, 0.22), true)
+
+
+func _product_relation_color() -> Color:
+	return Color(PIPE_PRODUCT.r, PIPE_PRODUCT.g, PIPE_PRODUCT.b, 0.78)
+
+
 func _draw_pollution_input_slots(residue_ready: bool, solvent_ready: bool) -> void:
 	var residue_slot := Rect2(Vector2(244.0, -112.0), Vector2(28.0, 18.0))
 	var solvent_slot := Rect2(Vector2(244.0, -88.0), Vector2(28.0, 18.0))
@@ -734,7 +781,14 @@ func _register_device_detail_shapes() -> void:
 		"device.basic_storage.shelf_bins",
 		"device.field_outfitting_station.module_rack",
 		"device.departure_gate.pressure_door",
-		"flow.material_port_nodes"
+		"flow.material_port_nodes",
+		"operation_relation.core_restore_to_reactor",
+		"operation_relation.reactor_to_storage",
+		"operation_relation.storage_to_outfitting",
+		"operation_relation.filter_to_outfitting",
+		"operation_relation.slurry_to_reactor_reclaim",
+		"operation_relation.slurry_to_core_prep",
+		"operation_relation.device_role_ports"
 	]
 
 

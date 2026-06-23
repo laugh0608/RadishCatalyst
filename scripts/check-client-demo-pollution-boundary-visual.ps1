@@ -13,6 +13,8 @@ $requiredTextByFile = @{
         "boundary.pressure_gate",
         "residue.entry_patch",
         "flow.filter_to_base_return",
+        "operation_relation.pollution.residue_to_filter",
+        "operation_relation.pollution.slurry_split",
         "get_terrain_material_shape_count",
         "terrain.pollution.sediment_fan",
         "terrain.pollution.filter_gravel_bed",
@@ -29,7 +31,9 @@ $requiredTextByFile = @{
     "client/scripts/checks/demo_pollution_boundary_visual_check.gd" = @(
         "Demo pollution boundary visual checks passed.",
         "_check_pollution_boundary_layer_exists_and_registers_visuals",
+        "_check_pollution_boundary_operation_relation_shapes",
         "_check_pollution_boundary_chain_state_visuals",
+        "pollution relation links slurry output to return routes",
         "_check_pollution_boundary_visual_priority_replaces_old_blocks",
         "_check_pollution_boundary_runtime_anchors_are_tagged",
         "pollution boundary registers terrain material shapes",

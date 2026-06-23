@@ -285,6 +285,7 @@ func _draw() -> void:
 	_draw_writeback_device()
 	_draw_retest_and_logistics()
 	_draw_core_station_state()
+	_draw_operation_relation_overlay()
 
 
 func _draw_station_surfaces() -> void:
@@ -628,6 +629,45 @@ func _draw_core_state_flow(points: Array[Vector2], color: Color, width: float) -
 		draw_circle(point, width * 0.55, Color(color.r, color.g, color.b, 0.62))
 
 
+func _draw_operation_relation_overlay() -> void:
+	_draw_relation_track([Vector2(3744.0, 112.0), Vector2(3834.0, 82.0), Vector2(3926.0, 70.0)], RECOVERY_LINE)
+	_draw_relation_track([Vector2(3926.0, 70.0), Vector2(3988.0, 24.0), Vector2(4038.0, -24.0)], WRITEBACK_LINE)
+	_draw_relation_track([Vector2(4038.0, -24.0), Vector2(4118.0, 18.0), Vector2(4134.0, 78.0)], RETEST_LINE)
+	_draw_relation_track([Vector2(4134.0, 78.0), Vector2(4228.0, -52.0), Vector2(4108.0, -118.0)], LOGISTICS_LINE)
+	for port in [
+		{"position": Vector2(3744.0, 112.0), "color": RECOVERY_LINE},
+		{"position": Vector2(3926.0, 70.0), "color": WRITEBACK_LINE},
+		{"position": Vector2(4038.0, -24.0), "color": CORE_LIGHT},
+		{"position": Vector2(4134.0, 78.0), "color": RETEST_LINE},
+		{"position": Vector2(4228.0, -52.0), "color": LOGISTICS_LINE},
+		{"position": Vector2(4108.0, -118.0), "color": RETURN_LINE}
+	]:
+		var position: Vector2 = port["position"]
+		var color: Color = port["color"]
+		_draw_relation_port(position, color)
+
+
+func _draw_relation_track(points: Array[Vector2], color: Color) -> void:
+	draw_polyline(PackedVector2Array(points), Color(0.012, 0.026, 0.026, 0.68), 6.0, true)
+	draw_polyline(PackedVector2Array(points), Color(color.r, color.g, color.b, 0.22), 2.0, true)
+	for index in range(points.size() - 1):
+		var from := points[index]
+		var to := points[index + 1]
+		if from.distance_to(to) < 36.0:
+			continue
+		var direction := (to - from).normalized()
+		var normal := Vector2(-direction.y, direction.x)
+		var center := from.lerp(to, 0.62)
+		draw_line(center - direction * 5.0 - normal * 3.0, center + direction * 4.0, Color(color.r, color.g, color.b, 0.34), 1.1, true)
+		draw_line(center - direction * 5.0 + normal * 3.0, center + direction * 4.0, Color(color.r, color.g, color.b, 0.34), 1.1, true)
+
+
+func _draw_relation_port(position: Vector2, color: Color) -> void:
+	draw_circle(position, 7.2, Color(color.r, color.g, color.b, 0.12))
+	draw_arc(position, 10.4, 0.0, TAU, 22, Color(color.r, color.g, color.b, 0.28), 1.0, true)
+	draw_rect(Rect2(position + Vector2(-3.5, -3.5), Vector2(7.0, 7.0)), Color(color.r, color.g, color.b, 0.22), true)
+
+
 func _draw_supply_crate(center: Vector2, scale: float) -> void:
 	var rect := Rect2(center + Vector2(-18.0, -12.0) * scale, Vector2(36.0, 24.0) * scale)
 	draw_rect(rect, Color(0.2, 0.34, 0.18, 0.36), true)
@@ -694,7 +734,12 @@ func _register_flow_shapes() -> void:
 		"flow.core_runtime_status_lights",
 		"flow.core_runtime_write_feedback",
 		"flow.core_runtime_logistics_return",
-		"flow.completed_core_local_routes"
+		"flow.completed_core_local_routes",
+		"operation_relation.core.recovery_to_guard_cache",
+		"operation_relation.core.guard_cache_to_write_device",
+		"operation_relation.core.write_device_to_retest",
+		"operation_relation.core.logistics_return",
+		"operation_relation.core.role_ports"
 	]
 
 

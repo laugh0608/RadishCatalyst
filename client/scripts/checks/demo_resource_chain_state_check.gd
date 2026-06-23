@@ -30,6 +30,7 @@ func _run_checks() -> void:
 	_check_device_panel_resource_chain_state()
 	_check_processing_result_resource_chain()
 	_check_first_industrial_chain_hud_and_visual_state()
+	_check_operation_relation_visual_shapes()
 	_check_crystal_collector_runtime_chain()
 	_check_visual_review_checkpoint_path_states()
 	_check_pollution_chain_hud_and_visual_state()
@@ -208,6 +209,32 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.flow.reactor_processing.active"), true, "first industrial path layer marks active reactor flow")
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.stage.reactor_processing"), true, "first industrial path layer records reactor operation stage")
 	_check_first_industrial_path_stage_changes(first_path_layer)
+	map.free()
+
+
+func _check_operation_relation_visual_shapes() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	var base_layer := map.get_node("DemoIndustrialBaseVisualLayer") as DemoIndustrialBaseVisualLayer
+	var first_path_layer := map.get_node("DemoFirstIndustrialPathVisualLayer") as DemoFirstIndustrialPathVisualLayer
+	base_layer.apply_visuals()
+	first_path_layer.apply_visuals()
+
+	_expect_equal(base_layer.get_detail_shape_count() >= 16, true, "industrial base registers operation relation details")
+	_expect_equal(base_layer.has_detail_shape("operation_relation.core_restore_to_reactor"), true, "base visual links restored core to reactor")
+	_expect_equal(base_layer.has_detail_shape("operation_relation.reactor_to_storage"), true, "base visual links reactor output to storage")
+	_expect_equal(base_layer.has_detail_shape("operation_relation.storage_to_outfitting"), true, "base visual links storage to outfitting")
+	_expect_equal(base_layer.has_detail_shape("operation_relation.filter_to_outfitting"), true, "base visual links filter vial output to outfitting")
+	_expect_equal(base_layer.has_detail_shape("operation_relation.slurry_to_reactor_reclaim"), true, "base visual links slurry return to reactor reclaim")
+	_expect_equal(base_layer.has_detail_shape("operation_relation.slurry_to_core_prep"), true, "base visual links slurry return to core prep")
+	_expect_equal(base_layer.has_detail_shape("operation_relation.device_role_ports"), true, "base visual marks relation ports on devices")
+
+	_expect_equal(first_path_layer.has_path_shape("first_path.operation_relation.collector_to_receiving"), true, "first path links collector output to receiving")
+	_expect_equal(first_path_layer.has_path_shape("first_path.operation_relation.salvage_to_receiving"), true, "first path links salvage pickup to receiving")
+	_expect_equal(first_path_layer.has_path_shape("first_path.operation_relation.receiving_to_reactor"), true, "first path links receiving bay to reactor")
+	_expect_equal(first_path_layer.has_path_shape("first_path.operation_relation.reactor_to_storage"), true, "first path links reactor to storage")
+	_expect_equal(first_path_layer.has_path_shape("first_path.operation_relation.storage_to_outfitting"), true, "first path links storage to outfitting")
+	_expect_equal(first_path_layer.has_path_shape("first_path.operation_relation.device_role_ports"), true, "first path marks operation relation ports")
 	map.free()
 
 

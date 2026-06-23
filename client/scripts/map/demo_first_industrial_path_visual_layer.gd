@@ -250,6 +250,7 @@ func _draw() -> void:
 	_draw_base_receiving_bay()
 	_draw_reactor_feed_station()
 	_draw_storage_and_outfitting_handoff()
+	_draw_operation_relation_overlay()
 	_draw_device_status_and_resource_flow()
 	_draw_stage_feedback()
 	_draw_path_state()
@@ -480,6 +481,51 @@ func _draw_handoff_port_chain() -> void:
 		draw_circle(position, 9.0, Color(color.r, color.g, color.b, 0.13))
 		draw_arc(position, 13.0, 0.0, TAU, 24, Color(color.r, color.g, color.b, 0.38), 1.4, true)
 		draw_rect(Rect2(position + Vector2(-5.0, -5.0), Vector2(10.0, 10.0)), Color(color.r, color.g, color.b, 0.24), true)
+
+
+func _draw_operation_relation_overlay() -> void:
+	_draw_relation_track([Vector2(132.0, -124.0), Vector2(114.0, -104.0), Vector2(86.0, -118.0)], AUTO_MINER_ACCENT)
+	_draw_relation_track([Vector2(86.0, -118.0), Vector2(8.0, -112.0), Vector2(-214.0, -112.0)], CRYSTAL_ACCENT)
+	_draw_relation_track([Vector2(54.0, 112.0), Vector2(8.0, 68.0), Vector2(-42.0, -106.0), Vector2(-214.0, -112.0)], SALVAGE_ACCENT)
+	_draw_relation_track([Vector2(-214.0, -112.0), Vector2(-194.0, -108.0), Vector2(-184.0, -114.0)], REACTOR_ACCENT)
+	_draw_relation_track([Vector2(-134.0, -114.0), Vector2(-206.0, 18.0), Vector2(-250.0, 18.0)], PRODUCT_ACCENT)
+	_draw_relation_track([Vector2(-250.0, 18.0), Vector2(-168.0, 28.0), Vector2(-74.0, -14.0)], OUTFITTING_ACCENT)
+	for port in [
+		{"position": Vector2(132.0, -124.0), "color": AUTO_MINER_ACCENT},
+		{"position": Vector2(86.0, -118.0), "color": CRYSTAL_ACCENT},
+		{"position": Vector2(54.0, 112.0), "color": SALVAGE_ACCENT},
+		{"position": Vector2(-214.0, -112.0), "color": LOGISTICS_PORT},
+		{"position": Vector2(-184.0, -114.0), "color": REACTOR_ACCENT},
+		{"position": Vector2(-250.0, 18.0), "color": PRODUCT_ACCENT},
+		{"position": Vector2(-74.0, -14.0), "color": OUTFITTING_ACCENT}
+	]:
+		var position: Vector2 = port["position"]
+		var color: Color = port["color"]
+		_draw_relation_port(position, color)
+
+
+func _draw_relation_track(points: Array, color: Color) -> void:
+	var vector_points := PackedVector2Array()
+	for point in points:
+		vector_points.append(point)
+	draw_polyline(vector_points, Color(0.006, 0.014, 0.012, 0.74), 6.2, true)
+	draw_polyline(vector_points, Color(color.r, color.g, color.b, 0.2), 2.2, true)
+	for index in range(points.size() - 1):
+		var from: Vector2 = points[index]
+		var to: Vector2 = points[index + 1]
+		if from.distance_to(to) < 34.0:
+			continue
+		var direction := (to - from).normalized()
+		var normal := Vector2(-direction.y, direction.x)
+		var center := from.lerp(to, 0.64)
+		draw_line(center - direction * 5.0 - normal * 3.0, center + direction * 4.0, Color(color.r, color.g, color.b, 0.34), 1.2, true)
+		draw_line(center - direction * 5.0 + normal * 3.0, center + direction * 4.0, Color(color.r, color.g, color.b, 0.34), 1.2, true)
+
+
+func _draw_relation_port(position: Vector2, color: Color) -> void:
+	draw_circle(position, 7.6, Color(color.r, color.g, color.b, 0.13))
+	draw_arc(position, 10.8, 0.0, TAU, 22, Color(color.r, color.g, color.b, 0.26), 1.1, true)
+	draw_rect(Rect2(position + Vector2(-3.6, -3.6), Vector2(7.2, 7.2)), Color(color.r, color.g, color.b, 0.22), true)
 
 
 func _draw_resource_workspots() -> void:
@@ -742,6 +788,12 @@ func _register_path_shapes() -> void:
 		"first_path.stage_feedback_station",
 		"first_path.collector_output_local_signal",
 		"first_path.handoff_port_chain",
+		"first_path.operation_relation.collector_to_receiving",
+		"first_path.operation_relation.salvage_to_receiving",
+		"first_path.operation_relation.receiving_to_reactor",
+		"first_path.operation_relation.reactor_to_storage",
+		"first_path.operation_relation.storage_to_outfitting",
+		"first_path.operation_relation.device_role_ports",
 		"first_path.single_signal_stage",
 		"first_path.operation_state_pips",
 		"first_path.device_status_lights",

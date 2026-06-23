@@ -369,6 +369,7 @@ func _draw() -> void:
 	_draw_residue_patches()
 	_draw_pressure_gate()
 	_draw_pollution_chain_state()
+	_draw_operation_relation_overlay()
 
 
 func _draw_local_processing_workspace() -> void:
@@ -738,6 +739,46 @@ func _draw_pollution_chain_state() -> void:
 	_draw_pollution_device_status()
 
 
+func _draw_operation_relation_overlay() -> void:
+	_draw_relation_track([Vector2(258.0, 34.0), Vector2(278.0, -12.0), Vector2(296.0, -84.0)], RESIDUE_LINE)
+	_draw_relation_track([Vector2(318.0, -124.0), Vector2(352.0, -124.0), Vector2(220.0, -98.0)], CHAIN_VIAL)
+	_draw_relation_track([Vector2(318.0, -96.0), Vector2(352.0, -96.0), Vector2(336.0, 206.0)], CHAIN_SLURRY)
+	_draw_relation_track([Vector2(336.0, 206.0), Vector2(260.0, 188.0), Vector2(212.0, 136.0)], ROUTE_TO_BASE)
+	_draw_relation_track([Vector2(336.0, 206.0), Vector2(372.0, 176.0), Vector2(382.0, 24.0)], CHAIN_CORE_PREP)
+	for port in [
+		{"position": Vector2(258.0, 34.0), "color": RESIDUE_LINE},
+		{"position": Vector2(296.0, -84.0), "color": FILTER_LINE},
+		{"position": Vector2(352.0, -124.0), "color": CHAIN_VIAL},
+		{"position": Vector2(352.0, -96.0), "color": CHAIN_SLURRY},
+		{"position": Vector2(336.0, 206.0), "color": CHAIN_SLURRY},
+		{"position": Vector2(382.0, 24.0), "color": CHAIN_CORE_PREP}
+	]:
+		var position: Vector2 = port["position"]
+		var color: Color = port["color"]
+		_draw_relation_port(position, color)
+
+
+func _draw_relation_track(points: Array[Vector2], color: Color) -> void:
+	draw_polyline(PackedVector2Array(points), Color(0.028, 0.032, 0.018, 0.64), 5.8, true)
+	draw_polyline(PackedVector2Array(points), Color(color.r, color.g, color.b, 0.22), 2.0, true)
+	for index in range(points.size() - 1):
+		var from := points[index]
+		var to := points[index + 1]
+		if from.distance_to(to) < 34.0:
+			continue
+		var direction := (to - from).normalized()
+		var normal := Vector2(-direction.y, direction.x)
+		var center := from.lerp(to, 0.62)
+		draw_line(center - direction * 5.0 - normal * 3.0, center + direction * 4.0, Color(color.r, color.g, color.b, 0.34), 1.1, true)
+		draw_line(center - direction * 5.0 + normal * 3.0, center + direction * 4.0, Color(color.r, color.g, color.b, 0.34), 1.1, true)
+
+
+func _draw_relation_port(position: Vector2, color: Color) -> void:
+	draw_circle(position, 7.0, Color(color.r, color.g, color.b, 0.12))
+	draw_arc(position, 10.0, 0.0, TAU, 22, Color(color.r, color.g, color.b, 0.28), 1.0, true)
+	draw_rect(Rect2(position + Vector2(-3.4, -3.4), Vector2(6.8, 6.8)), Color(color.r, color.g, color.b, 0.22), true)
+
+
 func _draw_pollution_device_status() -> void:
 	var residue_state := String(pollution_chain_state.get("residue_device_state", STATUS_WAITING))
 	var filter_state := String(pollution_chain_state.get("filter_device_state", STATUS_WAITING))
@@ -908,7 +949,12 @@ func _register_flow_shapes() -> void:
 		"flow.pressure_gate_route",
 		"flow.pollution_status_lights",
 		"flow.pollution_material_state_slots",
-		"flow.pollution_pressure_warning_nodes"
+		"flow.pollution_pressure_warning_nodes",
+		"operation_relation.pollution.residue_to_filter",
+		"operation_relation.pollution.filter_outputs",
+		"operation_relation.pollution.vial_return",
+		"operation_relation.pollution.slurry_split",
+		"operation_relation.pollution.core_prep_pressure_port"
 	]
 
 

@@ -20,6 +20,7 @@ func _init() -> void:
 
 func _run_checks() -> void:
 	_check_core_visual_layer_exists_and_registers_station_shapes()
+	_check_core_visual_operation_relation_shapes()
 	_check_core_visual_focus_visibility()
 	_check_core_visual_runtime_state_feedback()
 	_check_core_visual_layer_replaces_old_terminal_blocks()
@@ -61,6 +62,21 @@ func _check_core_visual_layer_exists_and_registers_station_shapes() -> void:
 	_expect_equal(layer.has_flow_shape("flow.core_runtime_write_feedback"), true, "core visual layer marks runtime write feedback flow")
 	_expect_equal(layer.has_flow_shape("flow.core_runtime_logistics_return"), true, "core visual layer marks runtime logistics return flow")
 	_expect_equal(layer.has_flow_shape("flow.completed_core_local_routes"), true, "core visual layer marks completed local route scope")
+	map.free()
+
+
+func _check_core_visual_operation_relation_shapes() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	var layer := map.get_node("DemoCoreStabilizationVisualLayer") as DemoCoreStabilizationVisualLayer
+	layer.apply_visuals()
+
+	_expect_equal(layer.get_flow_count() >= 16, true, "core visual layer registers operation relation routes")
+	_expect_equal(layer.has_flow_shape("operation_relation.core.recovery_to_guard_cache"), true, "core relation links recovery supply to guard cache")
+	_expect_equal(layer.has_flow_shape("operation_relation.core.guard_cache_to_write_device"), true, "core relation links guard cache to write device")
+	_expect_equal(layer.has_flow_shape("operation_relation.core.write_device_to_retest"), true, "core relation links write device to retest")
+	_expect_equal(layer.has_flow_shape("operation_relation.core.logistics_return"), true, "core relation links retest to logistics return")
+	_expect_equal(layer.has_flow_shape("operation_relation.core.role_ports"), true, "core relation marks station role ports")
 	map.free()
 
 
