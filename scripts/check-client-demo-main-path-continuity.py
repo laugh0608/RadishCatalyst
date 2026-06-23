@@ -19,7 +19,25 @@ REQUIRED_TEXT_BY_FILE = {
         "ProcessingSystem",
         "EnemyCounterattackRuntime",
         "_check_baseline_main_path_milestones",
+        "_check_first_playable_core_loop_rhythm",
         "_check_s21_to_demo_completion_path",
+        "DemoCoreLoopRhythmFormatter",
+    ],
+    "client/scripts/systems/demo_core_loop_rhythm_formatter.gd": [
+        "class_name DemoCoreLoopRhythmFormatter",
+        "format_hud_summary",
+        "get_stage_id",
+        "format_result_feedback_line",
+        "核心循环",
+        "循环接力",
+    ],
+    "client/scripts/ui/hud_status_presenter.gd": [
+        "DemoCoreLoopRhythmFormatter.format_hud_summary",
+    ],
+    "client/scripts/systems/processing_system.gd": [
+        "core_loop",
+        "show_core_loop",
+        "DemoCoreLoopRhythmFormatter.format_result_feedback_line",
     ],
     "scripts/check-client.sh": [
         "check-client-demo-main-path-continuity.py",

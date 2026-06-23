@@ -377,16 +377,14 @@ func _format_processing_started_feedback(recipe: Dictionary, world_state: WorldS
 		"completion_next_step": _get_completion_next_step(recipe_id, world_state),
 		"industrial_spine": IndustrialTechSpineFormatter.format_result_feedback_line(recipe_id, world_state),
 		"device_operation": DemoDevicePanelOperationFormatter.format_result_feedback_line(recipe_id, world_state),
-		"module_task": DemoIndustrialModuleTaskRhythmFormatter.format_result_feedback_line(
-			recipe_id,
-			world_state,
-			character_state
-		),
+		"module_task": DemoIndustrialModuleTaskRhythmFormatter.format_result_feedback_line(recipe_id, world_state, character_state),
 		"resource_chain": DemoResourceChainStateFormatter.format_result_feedback_line(recipe_id),
+		"core_loop": DemoCoreLoopRhythmFormatter.format_result_feedback_line(recipe_id, world_state, character_state),
 		"field_task": DemoFieldTaskDifferentiationFormatter.format_result_feedback_line(recipe_id, world_state, character_state),
 		"base_reentry": DemoRouteReturnAndBaseReentryFormatter.format_result_feedback_line(recipe_id, world_state),
 		"show_module_task": _should_show_module_task_result_line(recipe_id),
 		"show_resource_chain": _should_show_resource_chain_result_line(recipe_id),
+		"show_core_loop": DemoCoreLoopRhythmFormatter.should_show_result_line(recipe_id),
 		"show_field_task": DemoFieldTaskDifferentiationFormatter.should_show_result_line(recipe_id)
 	}
 
@@ -412,16 +410,14 @@ func _format_processing_completion_feedback(recipe: Dictionary, world_state: Wor
 		"next_step": _get_completion_next_step(recipe_id, world_state),
 		"industrial_spine": IndustrialTechSpineFormatter.format_result_feedback_line(recipe_id, world_state),
 		"device_operation": DemoDevicePanelOperationFormatter.format_result_feedback_line(recipe_id, world_state),
-		"module_task": DemoIndustrialModuleTaskRhythmFormatter.format_result_feedback_line(
-			recipe_id,
-			world_state,
-			character_state
-		),
+		"module_task": DemoIndustrialModuleTaskRhythmFormatter.format_result_feedback_line(recipe_id, world_state, character_state),
 		"resource_chain": DemoResourceChainStateFormatter.format_result_feedback_line(recipe_id),
+		"core_loop": DemoCoreLoopRhythmFormatter.format_result_feedback_line(recipe_id, world_state, character_state),
 		"field_task": DemoFieldTaskDifferentiationFormatter.format_result_feedback_line(recipe_id, world_state, character_state),
 		"base_reentry": DemoRouteReturnAndBaseReentryFormatter.format_result_feedback_line(recipe_id, world_state),
 		"show_module_task": _should_show_module_task_result_line(recipe_id),
 		"show_resource_chain": _should_show_resource_chain_result_line(recipe_id),
+		"show_core_loop": DemoCoreLoopRhythmFormatter.should_show_result_line(recipe_id),
 		"show_field_task": DemoFieldTaskDifferentiationFormatter.should_show_result_line(recipe_id)
 	}
 

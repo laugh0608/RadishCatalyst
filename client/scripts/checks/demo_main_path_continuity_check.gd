@@ -1,6 +1,7 @@
 extends SceneTree
 
 const OUTPOST_REGION_ID := "region.outpost_platform"
+const POLLUTION_REGION_ID := "region.pollution_edge"
 const CORE_REGION_ID := "region.demo_stabilization_core"
 const TETHER_REGION_ID := "region.phase_well_tether"
 const CORE_BUFFER_RECIPE_ID := "recipe.core_stabilization_buffer"
@@ -40,6 +41,7 @@ func _init() -> void:
 
 func _run_checks() -> void:
 	_check_baseline_main_path_milestones()
+	_check_first_playable_core_loop_rhythm()
 	_check_s21_to_demo_completion_path()
 
 
@@ -143,6 +145,198 @@ func _check_s21_to_demo_completion_path() -> void:
 	_apply_guard_pressure_and_complete_guard(world_state, character_state)
 	_complete_core_write(world_state, character_state)
 	_check_completed_demo_readout(world_state, character_state)
+
+
+func _check_first_playable_core_loop_rhythm() -> void:
+	var baseline_result := baseline_builder.create_baseline_state("baseline.s0_new_game")
+	_expect_success(baseline_result, "S0 baseline creates first playable core loop state")
+	if not bool(baseline_result.get("success", false)):
+		return
+
+	var world_state: WorldState = baseline_result.get("world_state", null)
+	var character_state: CharacterState = baseline_result.get("character_state", null)
+	if world_state == null or character_state == null:
+		failures.append("S0 core loop baseline should return world and character states")
+		return
+
+	var gather_system := GatherSystem.new(data_registry)
+	_expect_core_loop_stage(
+		world_state,
+		character_state,
+		DemoCoreLoopRhythmFormatter.STAGE_OUTPOST_START,
+		"S0 core loop starts at outpost restore"
+	)
+	var startup_status := HudStatusPresenter.new().format_status_text(data_registry, world_state, character_state)
+	_expect_text_contains(startup_status, "核心循环", "S0 HUD shows core loop rhythm")
+
+	var restore_result := gather_system.interact_with_object(
+		"map_object_instance.outpost_core",
+		"building.outpost_core",
+		"outpost_core",
+		character_state,
+		world_state
+	)
+	_expect_success(restore_result, "outpost core restore starts first loop")
+	quest_runtime.advance_for_interaction(
+		world_state,
+		character_state,
+		{"definition_id": "building.outpost_core", "interaction_type": "outpost_core"},
+		restore_result
+	)
+	_expect_array_has(world_state.quest_state.active_quest_ids, "quest.scout_crystal_field", "restore activates crystal field scout")
+	_expect_core_loop_stage(
+		world_state,
+		character_state,
+		DemoCoreLoopRhythmFormatter.STAGE_FIELD_INPUT,
+		"restore points core loop to field input"
+	)
+
+	world_state.current_region_id = "region.crystal_vein_field"
+	character_state.current_region_id = "region.crystal_vein_field"
+	for crystal_instance_id in [
+		"map_object_instance.core_loop_crystal_cluster_a",
+		"map_object_instance.core_loop_crystal_cluster_b"
+	]:
+		var crystal_result := gather_system.interact_with_object(
+			String(crystal_instance_id),
+			"map_object.crystal_cluster",
+			"gather",
+			character_state,
+			world_state
+		)
+		_expect_success(crystal_result, "crystal gather feeds first loop")
+		quest_runtime.advance_for_interaction(
+			world_state,
+			character_state,
+			{"definition_id": "map_object.crystal_cluster", "interaction_type": "gather"},
+			crystal_result
+		)
+	_expect_array_has(world_state.quest_state.completed_quest_ids, "quest.scout_crystal_field", "crystal field scout completes after real gathers")
+	_expect_core_loop_stage(
+		world_state,
+		character_state,
+		DemoCoreLoopRhythmFormatter.STAGE_BASE_PROCESSING,
+		"crystal gather points core loop to base processing"
+	)
+
+	world_state.current_region_id = OUTPOST_REGION_ID
+	character_state.current_region_id = OUTPOST_REGION_ID
+	var crystal_start := processing_system.process_recipe("recipe.process_crystal_ore", character_state, world_state)
+	_expect_success(crystal_start, "crystal ore processing starts during first loop")
+	_expect_core_loop_stage(
+		world_state,
+		character_state,
+		DemoCoreLoopRhythmFormatter.STAGE_BASE_PROCESSING,
+		"active reactor keeps core loop at base processing"
+	)
+	var crystal_completed := processing_system.advance_processing(7.0, character_state, world_state)
+	_expect_processing_completed(crystal_completed, "recipe.process_crystal_ore", "crystal ore processing completes during first loop")
+	if not crystal_completed.is_empty():
+		var crystal_feedback: Dictionary = crystal_completed[0].get("success_feedback", {})
+		_expect_text_contains(
+			String(crystal_feedback.get("core_loop", "")),
+			"基地加工完成",
+			"crystal processing feedback names base processing payoff"
+		)
+
+	world_state.quest_state.active_quest_ids = ["quest.prepare_treatment_supplies"]
+	world_state.quest_state.completed_quest_ids.append("quest.make_filter_module")
+	world_state.quest_state.unlock_effect("recipe.repair_gel")
+	_expect_core_loop_stage(
+		world_state,
+		character_state,
+		DemoCoreLoopRhythmFormatter.STAGE_OUTFITTING,
+		"treatment supply prep moves core loop to outfitting"
+	)
+	var repair_start := processing_system.process_recipe("recipe.repair_gel", character_state, world_state)
+	_expect_success(repair_start, "repair gel processing starts during first loop")
+	var repair_completed := processing_system.advance_processing(6.0, character_state, world_state)
+	_expect_processing_completed(repair_completed, "recipe.repair_gel", "repair gel processing completes during first loop")
+	if not repair_completed.is_empty():
+		var repair_quest_result := quest_runtime.advance_for_interaction(
+			world_state,
+			character_state,
+			{"interaction_type": "process_recipe", "recipe_id": "recipe.repair_gel"},
+			repair_completed[0]
+		)
+		_expect_equal(
+			world_state.quest_state.get_objective_progress(
+				"quest.prepare_treatment_supplies",
+				"craft_item",
+				"item.repair_gel"
+			),
+			1.0,
+			"repair gel processing advances treatment supply objective"
+		)
+		_expect_equal(bool(repair_quest_result.get("accepted", false)), true, "repair gel quest runtime accepts processing update")
+		var repair_feedback: Dictionary = repair_completed[0].get("success_feedback", {})
+		_expect_text_contains(
+			String(repair_feedback.get("core_loop", "")),
+			"整备收益已入包",
+			"repair gel feedback names outfitting payoff"
+		)
+
+	world_state.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
+	world_state.quest_state.complete_quest("quest.expand_treatment_point")
+	world_state.quest_state.unlock_effect("recipe.cleanse_residue")
+	world_state.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", POLLUTION_REGION_ID)
+	character_state.inventory.add_item("item.polluted_residue", 2)
+	_expect_core_loop_stage(
+		world_state,
+		character_state,
+		DemoCoreLoopRhythmFormatter.STAGE_POLLUTION_PRESSURE,
+		"pollution edge quest moves core loop to pollution pressure"
+	)
+	var cleanse_start := processing_system.process_recipe(CLEANSE_RECIPE_ID, character_state, world_state)
+	_expect_success(cleanse_start, "pollution residue filtering starts during first loop")
+	var cleanse_completed := processing_system.advance_processing(13.0, character_state, world_state)
+	_expect_processing_completed(cleanse_completed, CLEANSE_RECIPE_ID, "pollution residue filtering completes during first loop")
+	if not cleanse_completed.is_empty():
+		quest_runtime.advance_for_interaction(
+			world_state,
+			character_state,
+			{"interaction_type": "process_recipe", "recipe_id": CLEANSE_RECIPE_ID},
+			cleanse_completed[0]
+		)
+		var cleanse_log := HudLogPresenter.new(data_registry).format_result_log(cleanse_completed[0])
+		var cleanse_feedback: Dictionary = cleanse_completed[0].get("success_feedback", {})
+		_expect_text_contains(
+			String(cleanse_feedback.get("core_loop", "")),
+			"污染承压收益已入包",
+			"cleanse feedback names pollution pressure payoff"
+		)
+		_expect_text_contains(cleanse_log, "去向：抗污染药剂 I x1", "cleanse log keeps compact vial destination")
+		_expect_inventory_has(character_state, "item.resistance_vial_t1", "cleanse grants resistance vial")
+		_expect_equal(
+			character_state.inventory.has_ref("fluid.polluted_slurry", 1.0),
+			true,
+			"cleanse grants polluted slurry for core preparation"
+		)
+
+	world_state.quest_state.active_quest_ids = ["quest.prepare_demo_stabilization_buffer"]
+	world_state.quest_state.unlock_effect(CORE_BUFFER_RECIPE_ID)
+	if not character_state.inventory.has_ref("item.repair_gel", 1):
+		character_state.inventory.add_item("item.repair_gel", 1)
+	if not character_state.inventory.has_ref("item.basic_parts", 2):
+		character_state.inventory.add_item("item.basic_parts", 2)
+	_expect_core_loop_stage(
+		world_state,
+		character_state,
+		DemoCoreLoopRhythmFormatter.STAGE_CORE_WRITE,
+		"core buffer prep moves core loop to core write"
+	)
+	var buffer_start := processing_system.process_recipe(CORE_BUFFER_RECIPE_ID, character_state, world_state)
+	_expect_success(buffer_start, "core buffer processing starts from first loop resources")
+	var buffer_completed := processing_system.advance_processing(8.0, character_state, world_state)
+	_expect_processing_completed(buffer_completed, CORE_BUFFER_RECIPE_ID, "core buffer processing completes from first loop resources")
+	if not buffer_completed.is_empty():
+		var buffer_feedback: Dictionary = buffer_completed[0].get("success_feedback", {})
+		_expect_text_contains(
+			String(buffer_feedback.get("core_loop", "")),
+			"核心写入准备就绪",
+			"core buffer feedback names core write readiness"
+		)
+		_expect_inventory_has(character_state, "item.core_stabilization_buffer", "core buffer enters inventory")
 
 
 func _enter_demo_stabilization_core(world_state: WorldState, character_state: CharacterState) -> void:
@@ -441,6 +635,28 @@ func _expect_success(result: Dictionary, message: String) -> void:
 func _expect_completion_feedback_count(result: Dictionary, expected_count: int, message: String) -> void:
 	var feedbacks: Array = result.get("completion_feedbacks", [])
 	_expect_equal(feedbacks.size(), expected_count, message)
+
+
+func _expect_processing_completed(results: Array[Dictionary], recipe_id: String, message: String) -> void:
+	if results.is_empty():
+		failures.append("%s: no processing completion result" % message)
+		return
+	_expect_equal(String(results[0].get("completed_recipe_id", "")), recipe_id, message)
+
+
+func _expect_core_loop_stage(
+	world_state: WorldState,
+	character_state: CharacterState,
+	stage_id: String,
+	message: String
+) -> void:
+	_expect_equal(DemoCoreLoopRhythmFormatter.get_stage_id(world_state, character_state), stage_id, message)
+	var summary := DemoCoreLoopRhythmFormatter.format_hud_summary(world_state, character_state)
+	if summary.is_empty():
+		failures.append("%s: core loop summary is empty" % message)
+		return
+	_expect_text_contains(summary[0], "核心循环", "%s summary title" % message)
+	_expect_text_contains(summary[0], DemoCoreLoopRhythmFormatter.format_stage_label(stage_id), "%s summary stage" % message)
 
 
 func _expect_inventory_has(character_state: CharacterState, definition_id: String, message: String) -> void:
