@@ -21,6 +21,16 @@ REQUIRED_TEXT_BY_FILE = {
     ],
     "client/scripts/ui/hud_status_presenter.gd": [
         "DemoQuickSlotSupplyReadabilityFormatter.format_quick_slot_summary",
+        "format_player_quick_supply_text",
+    ],
+    "client/scripts/ui/prototype_hud.gd": [
+        "quick_supply_panel",
+        "quick_supply_label",
+        "format_player_quick_supply_text",
+    ],
+    "client/scenes/ui/PrototypeHud.tscn": [
+        "QuickSupplyPanel",
+        "QuickSupplyLabel",
     ],
     "client/scripts/checks/demo_quick_slot_supply_readability_check.gd": [
         "Demo quick slot supply readability checks passed.",

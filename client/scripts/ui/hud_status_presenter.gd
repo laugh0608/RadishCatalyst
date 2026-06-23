@@ -160,6 +160,14 @@ func format_runtime_vitals_text(data_registry: DataRegistry, world_state: WorldS
 	])
 
 
+func format_player_quick_supply_text(
+	data_registry: DataRegistry,
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	return "快捷补给\n%s" % _format_quick_slots(data_registry, world_state, character_state)
+
+
 func format_pollution_status(
 	data_registry: DataRegistry,
 	world_state: WorldState,

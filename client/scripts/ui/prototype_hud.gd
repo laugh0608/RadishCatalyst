@@ -79,6 +79,7 @@ var last_debug_character_state: CharacterState
 @onready var quick_slot_panel: ColorRect = $QuickSlotPanel
 @onready var status_panel: ColorRect = $StatusPanel
 @onready var vitals_panel: ColorRect = $VitalsPanel
+@onready var quick_supply_panel: ColorRect = $QuickSupplyPanel
 @onready var combat_panel: ColorRect = $CombatPanel
 @onready var map_panel: ColorRect = $MapPanel
 @onready var map_title_label: Label = $MapPanel/MapTitleLabel
@@ -89,6 +90,7 @@ var last_debug_character_state: CharacterState
 @onready var log_panel: ColorRect = $LogPanel
 @onready var status_label: Label = $StatusPanel/StatusLabel
 @onready var vitals_label: Label = $VitalsPanel/VitalsLabel
+@onready var quick_supply_label: Label = $QuickSupplyPanel/QuickSupplyLabel
 @onready var combat_label: Label = $CombatPanel/CombatLabel
 @onready var prompt_label: Label = $PromptPanel/PromptLabel
 @onready var log_label: Label = $LogPanel/LogLabel
@@ -264,6 +266,8 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 		status_label.text = status_presenter.format_objective_text(data_registry, world_state, character_state)
 	if vitals_label != null:
 		vitals_label.text = status_presenter.format_runtime_vitals_text(data_registry, world_state, character_state)
+	if quick_supply_label != null:
+		quick_supply_label.text = status_presenter.format_player_quick_supply_text(data_registry, world_state, character_state)
 	_update_runtime_hint(world_state, character_state, active_quest_id)
 	_update_map_panel(world_state, active_quest_id, character_state)
 	last_quick_slots = debug_panel_presenter.update_quick_slot_binding_panel(
@@ -730,6 +734,8 @@ func _ensure_runtime_nodes() -> void:
 		status_panel = get_node_or_null("StatusPanel")
 	if vitals_panel == null:
 		vitals_panel = get_node_or_null("VitalsPanel")
+	if quick_supply_panel == null:
+		quick_supply_panel = get_node_or_null("QuickSupplyPanel")
 	if combat_panel == null:
 		combat_panel = get_node_or_null("CombatPanel")
 	if map_panel == null:
@@ -750,6 +756,8 @@ func _ensure_runtime_nodes() -> void:
 		status_label = get_node_or_null("StatusPanel/StatusLabel")
 	if vitals_label == null:
 		vitals_label = get_node_or_null("VitalsPanel/VitalsLabel")
+	if quick_supply_label == null:
+		quick_supply_label = get_node_or_null("QuickSupplyPanel/QuickSupplyLabel")
 	if combat_label == null:
 		combat_label = get_node_or_null("CombatPanel/CombatLabel")
 	if prompt_label == null:
@@ -902,6 +910,8 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	var map_height := 104.0
 	var vitals_width := clampf(viewport_size.x * 0.18, 340.0, 420.0)
 	var vitals_height := 122.0
+	var quick_supply_width := vitals_width
+	var quick_supply_height := 64.0
 	var combat_width := clampf(viewport_size.x * 0.21, 380.0, 500.0)
 	var combat_height := 164.0
 	var prompt_width := clampf(viewport_size.x * 0.2, 340.0, 420.0)
@@ -932,6 +942,13 @@ func _layout_runtime_panels(force: bool = false) -> void:
 		if not debug_panels_visible:
 			vitals_panel.visible = true
 		_set_control_rect(vitals_panel, Vector2(vitals_x, margin), Vector2(vitals_width, vitals_height))
+	if quick_supply_panel != null:
+		quick_supply_panel.visible = true
+		_set_control_rect(
+			quick_supply_panel,
+			Vector2(vitals_x, margin + vitals_height + gap),
+			Vector2(quick_supply_width, quick_supply_height)
+		)
 
 	var prompt_x := margin
 	var prompt_y := viewport_size.y - margin - prompt_height
@@ -979,6 +996,7 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	_layout_map_panel_contents()
 	_layout_full_label(status_label, status_panel, 14.0, 14.0)
 	_layout_full_label(vitals_label, vitals_panel, 14.0, 14.0)
+	_layout_full_label(quick_supply_label, quick_supply_panel, 14.0, 10.0)
 	_layout_full_label(combat_label, combat_panel, 14.0, 12.0)
 	_layout_full_label(prompt_label, prompt_panel, 14.0, 12.0)
 	_layout_full_label(log_label, log_panel, 14.0, 12.0)
@@ -1067,7 +1085,7 @@ func _layout_map_panel_contents() -> void:
 func _apply_runtime_panel_style() -> void:
 	var primary_color := Color(0.035, 0.054, 0.059, 0.34)
 	var floating_color := Color(0.035, 0.054, 0.059, 0.82)
-	for panel in [map_panel, status_panel, vitals_panel, combat_panel, prompt_panel, log_panel]:
+	for panel in [map_panel, status_panel, vitals_panel, quick_supply_panel, combat_panel, prompt_panel, log_panel]:
 		if panel != null:
 			panel.color = primary_color
 	for panel in [device_panel, completion_panel, evacuation_panel, supply_feedback_panel, save_panel, quick_slot_panel]:

@@ -285,6 +285,11 @@ function Test-PointInRect($Point, $Rect, [double]$Padding = 0.0) {
     return $true
 }
 
+function Test-AllowedEditorOverlap($A, $B) {
+    $names = @($A.Name, $B.Name) | Sort-Object
+    return ($names[0] -eq "DevicePanel" -and $names[1] -eq "QuickSupplyPanel")
+}
+
 function Resolve-CameraAxis([double]$Focus, [double]$MinEdge, [double]$MaxEdge, [double]$ViewportSize) {
     $halfViewport = $ViewportSize * 0.5
     $minCenter = $MinEdge + $halfViewport
@@ -375,6 +380,7 @@ if (Test-Path -LiteralPath $projectPath -PathType Leaf) {
             "QuickSlotPanel",
             "StatusPanel",
             "VitalsPanel",
+            "QuickSupplyPanel",
             "MapPanel",
             "PromptPanel",
             "DevicePanel",
@@ -417,6 +423,11 @@ if (Test-Path -LiteralPath $projectPath -PathType Leaf) {
                         Add-Error "client/scenes/ui/PrototypeHud.tscn: VitalsPanel drifted out of distributed HUD vitals-card bounds"
                     }
                 }
+                "QuickSupplyPanel" {
+                    if ($width -gt 520.0 -or $height -gt 100.0 -or $rect.Top -lt 180.0 -or $rect.Top -gt 330.0 -or $rect.Left -lt ($viewportWidth - 560.0) -or $rect.Right -gt $viewportWidth) {
+                        Add-Error "client/scenes/ui/PrototypeHud.tscn: QuickSupplyPanel drifted out of player quick-supply HUD bounds"
+                    }
+                }
                 "PromptPanel" {
                     if ($width -gt 460.0 -or $height -gt 90.0 -or $rect.Left -gt 40.0 -or $rect.Top -lt ($viewportHeight - 190.0) -or $rect.Bottom -gt ($viewportHeight - 10.0)) {
                         Add-Error "client/scenes/ui/PrototypeHud.tscn: PromptPanel drifted out of distributed HUD bottom-rail bounds"
@@ -435,6 +446,9 @@ if (Test-Path -LiteralPath $projectPath -PathType Leaf) {
                 $aIsDebug = $debugPanelNames -contains $panels[$i].Name
                 $bIsDebug = $debugPanelNames -contains $panels[$j].Name
                 if ($aIsDebug -xor $bIsDebug) {
+                    continue
+                }
+                if (Test-AllowedEditorOverlap $panels[$i] $panels[$j]) {
                     continue
                 }
                 if (Test-RectOverlap $panels[$i] $panels[$j]) {

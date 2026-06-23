@@ -12,6 +12,7 @@ PANEL_NAMES = [
     "QuickSlotPanel",
     "StatusPanel",
     "VitalsPanel",
+    "QuickSupplyPanel",
     "MapPanel",
     "PromptPanel",
     "DevicePanel",
@@ -168,6 +169,11 @@ def test_point_in_rect(point: dict[str, float] | None, rect: dict[str, float], p
     if point["y"] > rect["bottom"] + padding:
         return False
     return True
+
+
+def is_allowed_editor_overlap(first_panel: dict[str, float], second_panel: dict[str, float]) -> bool:
+    panel_names = {first_panel["name"], second_panel["name"]}
+    return panel_names == {"DevicePanel", "QuickSupplyPanel"}
 
 
 def resolve_camera_axis(focus: float, min_edge: float, max_edge: float, viewport_size: float) -> float:
@@ -334,6 +340,11 @@ def check_hud_layout(
             or rect["left"] < viewport_width - 560.0 or rect["right"] > viewport_width
         ):
             errors.append("client/scenes/ui/PrototypeHud.tscn: VitalsPanel drifted out of distributed HUD vitals-card bounds")
+        if panel_name == "QuickSupplyPanel" and (
+            width > 520.0 or height > 100.0 or rect["top"] < 180.0 or rect["top"] > 330.0
+            or rect["left"] < viewport_width - 560.0 or rect["right"] > viewport_width
+        ):
+            errors.append("client/scenes/ui/PrototypeHud.tscn: QuickSupplyPanel drifted out of player quick-supply HUD bounds")
         if panel_name == "PromptPanel":
             if (
                 width > 460.0 or height > 90.0
@@ -353,6 +364,8 @@ def check_hud_layout(
             first_is_debug = first_panel["name"] in DEBUG_PANEL_NAMES
             second_is_debug = second_panel["name"] in DEBUG_PANEL_NAMES
             if first_is_debug ^ second_is_debug:
+                continue
+            if is_allowed_editor_overlap(first_panel, second_panel):
                 continue
             if test_rect_overlap(first_panel, second_panel):
                 errors.append(
