@@ -18,15 +18,19 @@ const FIRST_PATH_TARGET_COLOR := Color(0.92, 0.74, 0.28, 0.16)
 const FIRST_PATH_TARGET_PIN_COLOR := Color(0.92, 0.74, 0.28, 0.34)
 const POLLUTION_TARGET_COLOR := Color(0.86, 0.94, 0.34, 0.14)
 const POLLUTION_TARGET_PIN_COLOR := Color(0.86, 0.94, 0.34, 0.3)
+const CORE_STATION_TARGET_COLOR := Color(0.34, 0.96, 0.9, 0.12)
+const CORE_STATION_TARGET_PIN_COLOR := Color(0.34, 0.96, 0.9, 0.26)
 const GUIDANCE_LABEL_FONT_SIZE := 9
 const TARGET_LABEL_MIN_DISTANCE := 180.0
 const DEFAULT_TARGET_HALO_SIZE := Vector2(60.0, 60.0)
 const STARTUP_TARGET_HALO_SIZE := Vector2(76.0, 76.0)
 const FIRST_PATH_TARGET_HALO_SIZE := Vector2(42.0, 42.0)
 const POLLUTION_TARGET_HALO_SIZE := Vector2(38.0, 38.0)
+const CORE_STATION_TARGET_HALO_SIZE := Vector2(42.0, 42.0)
 const FIELD_GUIDANCE_SUPPRESSION_X := -40.0
 const POLLUTION_GUIDANCE_MIN_X := 140.0
 const POLLUTION_GUIDANCE_MAX_X := 620.0
+const CORE_STATION_GUIDANCE_MIN_X := 3300.0
 const POLLUTION_COMPACT_TARGET_NAMES := {
 	"PollutionFilterBuildSite": true,
 	"PollutionResidue": true,
@@ -123,6 +127,10 @@ func is_pollution_compact_guidance_active() -> bool:
 	return _should_use_pollution_compact_guidance(current_target)
 
 
+func is_core_station_compact_guidance_active() -> bool:
+	return _should_use_core_station_compact_guidance(current_target)
+
+
 func get_target_name_label_text() -> String:
 	_ensure_visual_nodes()
 	if target_label == null:
@@ -189,11 +197,14 @@ func _position_target_visuals(target: PrototypeInteractable) -> void:
 		return
 	var compact_first_path := _should_use_first_path_compact_guidance(target)
 	var compact_pollution := _should_use_pollution_compact_guidance(target)
+	var compact_core_station := _should_use_core_station_compact_guidance(target)
 	var halo_size := _get_target_halo_size(target)
 	if compact_first_path:
 		halo_size = FIRST_PATH_TARGET_HALO_SIZE
 	elif compact_pollution:
 		halo_size = POLLUTION_TARGET_HALO_SIZE
+	elif compact_core_station:
+		halo_size = CORE_STATION_TARGET_HALO_SIZE
 	target_halo.color = _get_target_halo_color(target)
 	target_pin.color = _get_target_pin_color(target)
 	if compact_first_path:
@@ -202,12 +213,15 @@ func _position_target_visuals(target: PrototypeInteractable) -> void:
 	elif compact_pollution:
 		target_halo.color = POLLUTION_TARGET_COLOR
 		target_pin.color = POLLUTION_TARGET_PIN_COLOR
+	elif compact_core_station:
+		target_halo.color = CORE_STATION_TARGET_COLOR
+		target_pin.color = CORE_STATION_TARGET_PIN_COLOR
 	_set_rect(target_halo, target.position - halo_size * 0.5, halo_size)
 	_set_rect(target_pin, target.position + Vector2(-3.0, -44.0), Vector2(6.0, 16.0))
-	target_pin.visible = not compact_first_path and not compact_pollution
+	target_pin.visible = not compact_first_path and not compact_pollution and not compact_core_station
 	target_label.text = current_target_label_text
 	_set_label_rect(target_label, target.position + Vector2(18.0, -58.0), Vector2(92.0, 16.0))
-	target_label.visible = false if compact_first_path or compact_pollution else _should_show_target_name_label(target)
+	target_label.visible = false if compact_first_path or compact_pollution or compact_core_station else _should_show_target_name_label(target)
 
 
 func _position_route_visuals(target: PrototypeInteractable) -> void:
@@ -215,6 +229,7 @@ func _position_route_visuals(target: PrototypeInteractable) -> void:
 		_should_suppress_base_gate_guidance_in_field(target)
 		or _should_use_first_path_compact_guidance(target)
 		or _should_use_pollution_compact_guidance(target)
+		or _should_use_core_station_compact_guidance(target)
 	):
 		route_horizontal.visible = false
 		route_vertical.visible = false
@@ -471,6 +486,15 @@ func _should_use_pollution_compact_guidance(target: PrototypeInteractable) -> bo
 	if POLLUTION_COMPACT_TARGET_NAMES.has(String(target.name)):
 		return true
 	return _has_active_quest(current_world_state, "quest.enter_pollution_edge")
+
+
+func _should_use_core_station_compact_guidance(target: PrototypeInteractable) -> bool:
+	if target == null or _is_startup_outpost_core_target(target):
+		return false
+	var player := _get_player()
+	if player == null or player.position.x < CORE_STATION_GUIDANCE_MIN_X:
+		return false
+	return String(target.get_meta("core_stabilization_visual_scope", "")) == "terminal_station"
 
 
 func _is_pollution_guidance_position(player_position: Vector2) -> bool:

@@ -43,6 +43,7 @@ func _check_core_visual_layer_exists_and_registers_station_shapes() -> void:
 	_expect_equal(layer.has_station_shape("station.writeback_service_ring"), true, "core visual layer marks writeback service ring")
 	_expect_equal(layer.has_station_shape("station.guard_pressure_field"), true, "core visual layer marks guard pressure field")
 	_expect_equal(layer.has_station_shape("station.guard_pressure_resolved"), true, "core visual layer marks resolved guard pressure")
+	_expect_equal(layer.has_station_shape("station.completed_guard_residue_wash"), true, "core visual layer marks completed guard residue wash")
 	_expect_equal(layer.has_station_shape("station.writeback_device"), true, "core visual layer marks writeback device")
 	_expect_equal(layer.has_station_shape("station.energy_confluence_nodes"), true, "core visual layer marks energy confluence nodes")
 	_expect_equal(layer.has_station_shape("station.retest_readout"), true, "core visual layer marks retest readout")
@@ -55,6 +56,7 @@ func _check_core_visual_layer_exists_and_registers_station_shapes() -> void:
 	_expect_equal(layer.has_station_shape("station.core_write_feedback"), true, "core visual layer marks core write feedback")
 	_expect_equal(layer.has_flow_shape("flow.guard_cache_to_core"), true, "core visual layer marks guard cache to core route")
 	_expect_equal(layer.has_flow_shape("flow.core_return_to_base"), true, "core visual layer marks return logistics route")
+	_expect_equal(layer.has_flow_shape("flow.core_local_completed_return"), true, "core visual layer marks completed local return scope")
 	_expect_equal(layer.has_flow_shape("flow.core_runtime_status_lights"), true, "core visual layer marks runtime status light flow")
 	_expect_equal(layer.has_flow_shape("flow.core_runtime_write_feedback"), true, "core visual layer marks runtime write feedback flow")
 	_expect_equal(layer.has_flow_shape("flow.core_runtime_logistics_return"), true, "core visual layer marks runtime logistics return flow")
@@ -72,6 +74,7 @@ func _check_core_visual_focus_visibility() -> void:
 	_expect_equal(layer.visible, false, "core stabilization visual layer stays hidden at startup objective")
 	layer.refresh_focus_visibility(Vector2(3744, 112))
 	_expect_equal(layer.visible, true, "core stabilization visual layer appears inside terminal station")
+	_expect_equal(layer.get_muted_core_focus_context_layer_count() >= 3, true, "core station focus mutes neighboring context layers")
 	map.free()
 
 
@@ -151,13 +154,15 @@ func _check_core_visual_layer_replaces_old_terminal_blocks() -> void:
 	var old_core_pad := map.get_node("OpeningSceneLayer/CoreStabilizationCorePad") as ColorRect
 	var run_write_pad := map.get_node("CoreStabilizationRunLayer/CoreRunWritePad") as ColorRect
 	var route_band := map.get_node("DemoRoutePresentationLayer/DemoRouteCoreBand") as ColorRect
+	var approach_flow := map.get_node("DemoRoutePresentationLayer/DemoRouteCoreApproachFlow") as ColorRect
 	var pressure_label := map.get_node("OpeningSceneLayer/CoreStabilizationPressureLabel") as Label
 	var route_label := map.get_node("DemoRoutePresentationLayer/DemoRouteCoreLabel") as Label
 	var core_interactable := map.get_node("Interactables/DemoStabilizationCore") as PrototypeInteractable
 	_expect_equal(old_guard.color.a <= 0.04, true, "old core guard field no longer dominates")
 	_expect_equal(old_core_pad.color.a <= 0.025, true, "old core pad marker no longer dominates")
 	_expect_equal(run_write_pad.color.a <= 0.035, true, "old run layer write pad no longer dominates")
-	_expect_equal(route_band.color.a <= 0.04, true, "old core route band no longer dominates")
+	_expect_equal(route_band.color.a <= 0.01, true, "old core route band no longer dominates")
+	_expect_equal(approach_flow.color.a <= 0.01, true, "old core approach flow no longer draws a cross-screen line")
 	_expect_equal(pressure_label.visible, false, "old core pressure long label hidden")
 	_expect_equal(route_label.visible, false, "old core route label hidden")
 	_expect_equal(_get_marker_alpha(core_interactable) <= 0.08, true, "core interactable marker is muted")

@@ -26,6 +26,13 @@ const SERVICE_DECK_FILL := Color(0.08, 0.18, 0.17, 0.18)
 const LOCAL_PAD_FILL := Color(0.08, 0.2, 0.19, 0.12)
 const STATUS_PANEL_FILL := Color(0.018, 0.03, 0.03, 0.62)
 const STATUS_IDLE_LIGHT := Color(0.14, 0.2, 0.2, 0.32)
+const CORE_FOCUS_CONTEXT_LAYER_ALPHAS := [
+	{"path": "DemoRoutePresentationLayer", "alpha": 0.0},
+	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.012},
+	{"path": "CoreApproachHandoffLayer", "alpha": 0.0},
+	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.055},
+	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.035}
+]
 const CORE_STATE_WAITING := "waiting"
 const CORE_STATE_READY := "ready"
 const CORE_STATE_COMPLETED := "completed"
@@ -89,8 +96,10 @@ var core_station_state_shape_ids: Array[String] = []
 var muted_legacy_block_count := 0
 var muted_interactable_marker_count := 0
 var muted_enemy_sprite_count := 0
+var muted_core_focus_context_layer_count := 0
 var applied_core_station_state_count := 0
 var core_station_state: Dictionary = {}
+var context_layer_original_modulates: Dictionary = {}
 
 
 func _ready() -> void:
@@ -100,6 +109,7 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	refresh_focus_visibility(_get_player_position())
+	_update_core_focus_context_layers()
 	_tone_down_core_interactable_markers()
 	_tone_down_core_enemy_sprites()
 
@@ -241,6 +251,10 @@ func get_muted_enemy_sprite_count() -> int:
 	return muted_enemy_sprite_count
 
 
+func get_muted_core_focus_context_layer_count() -> int:
+	return muted_core_focus_context_layer_count
+
+
 func has_station_shape(shape_id: String) -> bool:
 	return station_shape_ids.has(shape_id)
 
@@ -259,6 +273,7 @@ func has_core_station_state_shape(shape_id: String) -> bool:
 
 func refresh_focus_visibility(player_position: Vector2) -> void:
 	visible = player_position.x >= FOCUS_VISIBLE_MIN_X
+	_update_core_focus_context_layers()
 
 
 func _draw() -> void:
@@ -274,17 +289,30 @@ func _draw() -> void:
 
 func _draw_station_surfaces() -> void:
 	var station_rect := Rect2(Vector2(3648.0, -224.0), Vector2(610.0, 404.0))
-	var guard_fill := Color(0.08, 0.18, 0.16, 0.05) if _is_guard_pressure_cleared() else GUARD_FILL
 	draw_rect(station_rect, STATION_FILL, true)
 	draw_rect(station_rect, STATION_FRAME, false, 2.0, true)
 	draw_rect(Rect2(Vector2(3660.0, -146.0), Vector2(150.0, 250.0)), Color(0.08, 0.2, 0.2, 0.08), true)
-	draw_rect(Rect2(Vector2(3810.0, -154.0), Vector2(166.0, 228.0)), guard_fill, true)
+	if _is_guard_pressure_cleared():
+		_draw_completed_guard_residue_wash()
+	else:
+		draw_rect(Rect2(Vector2(3810.0, -154.0), Vector2(166.0, 228.0)), GUARD_FILL, true)
 	draw_rect(Rect2(Vector2(3978.0, -144.0), Vector2(136.0, 188.0)), Color(0.08, 0.24, 0.22, 0.08), true)
 	draw_rect(Rect2(Vector2(4114.0, -102.0), Vector2(140.0, 196.0)), Color(0.08, 0.2, 0.22, 0.055), true)
 	for y in [-188.0, -112.0, -36.0, 42.0, 122.0]:
 		draw_line(Vector2(3660.0, y), Vector2(4246.0, y), Color(0.34, 0.56, 0.54, 0.16), 1.2, true)
 	for x in [3778.0, 3936.0, 4088.0, 4196.0]:
 		draw_line(Vector2(x, -210.0), Vector2(x, 168.0), Color(0.34, 0.56, 0.54, 0.14), 1.2, true)
+
+
+func _draw_completed_guard_residue_wash() -> void:
+	draw_rect(Rect2(Vector2(3810.0, -154.0), Vector2(166.0, 228.0)), Color(0.004, 0.01, 0.01, 0.24), true)
+	for rect in [
+		Rect2(Vector2(3832.0, -72.0), Vector2(48.0, 12.0)),
+		Rect2(Vector2(3888.0, -18.0), Vector2(58.0, 10.0)),
+		Rect2(Vector2(3848.0, 48.0), Vector2(44.0, 10.0))
+	]:
+		draw_rect(rect, Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.16), true)
+		draw_rect(rect, Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.24), false, 0.9, true)
 
 
 func _draw_station_workface_details() -> void:
@@ -299,8 +327,10 @@ func _draw_station_workface_details() -> void:
 		[Vector2(3894.0, -70.0), Vector2(3998.0, -34.0), Vector2(4088.0, 34.0)],
 		[Vector2(3714.0, 82.0), Vector2(3838.0, 52.0), Vector2(3956.0, 66.0)]
 	]:
-		draw_polyline(PackedVector2Array(route), Color(0.02, 0.04, 0.04, 0.4), 5.0, true)
-		draw_polyline(PackedVector2Array(route), WORKFACE_LINE, 1.6, true)
+		var completed_alpha := 0.18 if _is_core_written() else WORKFACE_LINE.a
+		var completed_width := 1.0 if _is_core_written() else 1.6
+		draw_polyline(PackedVector2Array(route), Color(0.02, 0.04, 0.04, 0.22 if _is_core_written() else 0.4), 4.0 if _is_core_written() else 5.0, true)
+		draw_polyline(PackedVector2Array(route), Color(WORKFACE_LINE.r, WORKFACE_LINE.g, WORKFACE_LINE.b, completed_alpha), completed_width, true)
 	for point in [Vector2(3796.0, -8.0), Vector2(3886.0, 18.0), Vector2(3998.0, -34.0), Vector2(4088.0, 34.0), Vector2(3838.0, 52.0)]:
 		draw_circle(point, 6.0, Color(WORKFACE_LINE.r, WORKFACE_LINE.g, WORKFACE_LINE.b, 0.26))
 		draw_arc(point, 12.0, 0.0, TAU, 24, Color(WORKFACE_LINE.r, WORKFACE_LINE.g, WORKFACE_LINE.b, 0.22), 1.1, true)
@@ -466,8 +496,7 @@ func _draw_core_station_state() -> void:
 		_draw_core_state_flow([Vector2(4038.0, -24.0), Vector2(4118.0, 18.0), Vector2(4134.0, 78.0)], RETEST_LINE, 3.8)
 		_draw_core_state_flow([Vector2(4134.0, 78.0), Vector2(4228.0, -52.0)], LOGISTICS_LINE, 3.2)
 	if logistics_return_ready:
-		_draw_core_state_flow([Vector2(4228.0, -52.0), Vector2(4146.0, -88.0), Vector2(4108.0, -118.0)], LOGISTICS_LINE, 3.0)
-		_draw_core_state_flow([Vector2(4108.0, -118.0), Vector2(3998.0, -126.0), Vector2(3886.0, -112.0)], RETURN_LINE, 2.8)
+		_draw_core_state_flow([Vector2(4228.0, -52.0), Vector2(4168.0, -86.0), Vector2(4108.0, -118.0)], LOGISTICS_LINE, 2.8)
 
 
 func _draw_recovery_supply_feedback(state: String) -> void:
@@ -517,20 +546,22 @@ func _draw_core_write_feedback(state: String) -> void:
 func _draw_retest_readout_feedback(state: String) -> void:
 	if not _is_core_ready_state(state):
 		return
-	var panel_alpha := 0.72 if state == CORE_STATE_COMPLETED else 0.54
-	var panel := Rect2(Vector2(4096.0, 44.0), Vector2(86.0, 62.0))
-	draw_rect(panel, Color(0.04, 0.12, 0.15, 0.42), true)
-	draw_rect(panel, Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, panel_alpha), false, 1.5, true)
-	draw_line(Vector2(4108.0, 60.0), Vector2(4168.0, 60.0), Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, 0.44), 1.2, true)
-	draw_line(Vector2(4108.0, 92.0), Vector2(4168.0, 92.0), Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, 0.28), 1.0, true)
+	var panel_alpha := 0.86 if state == CORE_STATE_COMPLETED else 0.66
+	var panel := Rect2(Vector2(4088.0, 38.0), Vector2(108.0, 76.0))
+	draw_rect(panel, Color(0.004, 0.012, 0.014, 0.72), true)
+	draw_rect(panel, Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, panel_alpha), false, 2.0, true)
+	draw_line(Vector2(4102.0, 56.0), Vector2(4180.0, 56.0), Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, 0.58), 1.3, true)
+	draw_line(Vector2(4102.0, 96.0), Vector2(4180.0, 96.0), Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, 0.34), 1.0, true)
 	var bar_color := Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, 0.72 if state == CORE_STATE_COMPLETED else 0.52)
-	for index in range(4):
-		var x := 4114.0 + float(index) * 13.0
+	for index in range(5):
+		var x := 4110.0 + float(index) * 14.0
 		var height := 16.0 + float(index % 2) * 8.0
-		draw_line(Vector2(x, 88.0), Vector2(x, 88.0 - height), bar_color, 2.0, true)
-	for point in [Vector2(4164.0, 72.0), Vector2(4172.0, 80.0), Vector2(4160.0, 88.0)]:
-		draw_circle(point, 3.0, Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, panel_alpha))
-	draw_arc(Vector2(4134.0, 78.0), 30.0, PI * 0.08, PI * 0.86, 20, bar_color, 1.2, true)
+		draw_line(Vector2(x, 88.0), Vector2(x, 88.0 - height), bar_color, 2.2, true)
+	for point in [Vector2(4168.0, 70.0), Vector2(4178.0, 80.0), Vector2(4166.0, 90.0)]:
+		draw_circle(point, 3.4, Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, panel_alpha))
+	draw_line(Vector2(4078.0, 54.0), Vector2(4088.0, 54.0), Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, 0.54), 1.4, true)
+	draw_line(Vector2(4196.0, 72.0), Vector2(4218.0, -28.0), Color(RETEST_LINE.r, RETEST_LINE.g, RETEST_LINE.b, 0.34), 1.1, true)
+	draw_arc(Vector2(4142.0, 78.0), 34.0, PI * 0.08, PI * 0.86, 20, bar_color, 1.4, true)
 
 
 func _draw_logistics_return_feedback(state: String) -> void:
@@ -634,6 +665,7 @@ func _register_station_shapes() -> void:
 		"station.recovery_supply",
 		"station.guard_pressure_field",
 		"station.guard_pressure_resolved",
+		"station.completed_guard_residue_wash",
 		"station.writeback_device",
 		"station.guard_cache",
 		"station.retest_readout",
@@ -658,6 +690,7 @@ func _register_flow_shapes() -> void:
 		"flow.core_to_retest",
 		"flow.retest_to_logistics",
 		"flow.core_return_to_base",
+		"flow.core_local_completed_return",
 		"flow.core_runtime_status_lights",
 		"flow.core_runtime_write_feedback",
 		"flow.core_runtime_logistics_return",
@@ -749,7 +782,10 @@ func _deemphasize_legacy_core_blocks() -> void:
 		region.color = Color(0.06, 0.12, 0.12, 0.09)
 	var route_band := _get_map_node("DemoRoutePresentationLayer/DemoRouteCoreBand") as ColorRect
 	if route_band != null:
-		route_band.color = Color(route_band.color.r, route_band.color.g, route_band.color.b, minf(route_band.color.a, 0.035))
+		route_band.color = Color(route_band.color.r, route_band.color.g, route_band.color.b, minf(route_band.color.a, 0.008))
+	var approach_flow := _get_map_node("DemoRoutePresentationLayer/DemoRouteCoreApproachFlow") as ColorRect
+	if approach_flow != null:
+		approach_flow.color = Color(approach_flow.color.r, approach_flow.color.g, approach_flow.color.b, minf(approach_flow.color.a, 0.006))
 	var route_label := _get_map_node("DemoRoutePresentationLayer/DemoRouteCoreLabel") as Label
 	if route_label != null:
 		route_label.visible = false
@@ -762,12 +798,12 @@ func _deemphasize_legacy_core_blocks() -> void:
 		for node_name in LEGACY_CORE_PANELS:
 			var rect := opening_layer.get_node_or_null(String(node_name)) as ColorRect
 			if rect != null:
-				rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.035))
+				rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.014))
 				muted_legacy_block_count += 1
 		for node_name in LEGACY_CORE_MARKERS:
 			var rect := opening_layer.get_node_or_null(String(node_name)) as ColorRect
 			if rect != null:
-				rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.02))
+				rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.008))
 				muted_legacy_block_count += 1
 		var pressure_label := opening_layer.get_node_or_null("CoreStabilizationPressureLabel") as Label
 		if pressure_label != null:
@@ -778,8 +814,47 @@ func _deemphasize_legacy_core_blocks() -> void:
 		for node_name in RUN_LAYER_BLOCKS:
 			var rect := run_layer.get_node_or_null(String(node_name)) as ColorRect
 			if rect != null:
-				rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.03))
+				rect.color = Color(rect.color.r, rect.color.g, rect.color.b, minf(rect.color.a, 0.012))
 				muted_legacy_block_count += 1
+
+
+func _update_core_focus_context_layers() -> void:
+	if not visible:
+		_restore_core_focus_context_layers()
+		return
+	muted_core_focus_context_layer_count = 0
+	for layer_profile in CORE_FOCUS_CONTEXT_LAYER_ALPHAS:
+		var path := String(layer_profile.get("path", ""))
+		var alpha := float(layer_profile.get("alpha", 1.0))
+		if _apply_context_layer_alpha(path, alpha):
+			muted_core_focus_context_layer_count += 1
+
+
+func _apply_context_layer_alpha(path: String, alpha: float) -> bool:
+	var node := _get_map_node(path)
+	var canvas_item := node as CanvasItem
+	if canvas_item == null:
+		return false
+	if not context_layer_original_modulates.has(path):
+		context_layer_original_modulates[path] = canvas_item.modulate
+	var original_color: Color = context_layer_original_modulates.get(path, canvas_item.modulate)
+	var color := original_color
+	color.a = minf(original_color.a, alpha)
+	canvas_item.modulate = color
+	return true
+
+
+func _restore_core_focus_context_layers() -> void:
+	if context_layer_original_modulates.is_empty():
+		muted_core_focus_context_layer_count = 0
+		return
+	for path in context_layer_original_modulates.keys():
+		var node := _get_map_node(String(path))
+		var canvas_item := node as CanvasItem
+		if canvas_item != null:
+			canvas_item.modulate = context_layer_original_modulates[path]
+	context_layer_original_modulates.clear()
+	muted_core_focus_context_layer_count = 0
 
 
 func _mute_core_identity_shapes() -> void:
