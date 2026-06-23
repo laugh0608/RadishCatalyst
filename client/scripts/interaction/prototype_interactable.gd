@@ -1,6 +1,7 @@
 extends Area2D
 class_name PrototypeInteractable
 
+const SemanticSilhouette := preload("res://scripts/interaction/prototype_interactable_semantic_silhouette.gd")
 const DEFAULT_MARKER_COLOR := Color(0.862745, 0.737255, 0.266667, 1)
 const CRYSTAL_MARKER_COLOR := Color(0.34, 0.68, 0.96, 1)
 const RICH_CRYSTAL_MARKER_COLOR := Color(0.54, 0.82, 1.0, 1)
@@ -82,6 +83,13 @@ const FIRST_PATH_FOCUS_Z_INDEX := 2
 const INTERACTABLE_LABEL_FONT_SIZE := 8
 const FOCUS_LABEL_WIDTH := 96.0
 const FOCUS_LABEL_LINE_HEIGHT := 11.0
+const SILHOUETTE_OUTPOST_CORE := SemanticSilhouette.SILHOUETTE_OUTPOST_CORE
+const SILHOUETTE_BASIC_REACTOR := SemanticSilhouette.SILHOUETTE_BASIC_REACTOR
+const SILHOUETTE_BASIC_STORAGE := SemanticSilhouette.SILHOUETTE_BASIC_STORAGE
+const SILHOUETTE_FIELD_OUTFITTING_STATION := SemanticSilhouette.SILHOUETTE_FIELD_OUTFITTING_STATION
+const SILHOUETTE_POLLUTION_FILTER := SemanticSilhouette.SILHOUETTE_POLLUTION_FILTER
+const SILHOUETTE_CRYSTAL_COLLECTOR := SemanticSilhouette.SILHOUETTE_CRYSTAL_COLLECTOR
+const SILHOUETTE_CORE_WRITE_DEVICE := SemanticSilhouette.SILHOUETTE_CORE_WRITE_DEVICE
 
 @export var definition_id: String = ""
 @export var interaction_type: String = "inspect"
@@ -193,6 +201,22 @@ func get_recipe_position() -> int:
 	return recipe_index + 1
 
 
+func get_semantic_silhouette_id() -> String:
+	return SemanticSilhouette.get_silhouette_id(definition_id)
+
+
+func get_semantic_silhouette_part_ids() -> Array[String]:
+	return SemanticSilhouette.get_part_ids(get_semantic_silhouette_id())
+
+
+func get_semantic_silhouette_part_count() -> int:
+	return get_semantic_silhouette_part_ids().size()
+
+
+func has_semantic_silhouette_part(part_id: String) -> bool:
+	return get_semantic_silhouette_part_ids().has(part_id)
+
+
 func mark_consumed() -> void:
 	if interaction_type == "outpost_core":
 		set_restored_outpost_core_visual()
@@ -240,6 +264,10 @@ func set_focus_visual(focused: bool, compact_first_industrial_path: bool = false
 		z_index = FIRST_PATH_FOCUS_Z_INDEX
 	else:
 		z_index = 0
+
+
+func _draw() -> void:
+	SemanticSilhouette.draw(self, get_semantic_silhouette_id())
 
 
 func set_default_visual() -> void:
@@ -842,6 +870,7 @@ func _apply_marker_style(marker_size: Vector2, color: Color) -> void:
 	if focus_ring != null:
 		focus_ring.position = marker.position - Vector2(7.0, 7.0)
 		focus_ring.size = marker_size + Vector2(14.0, 14.0)
+	queue_redraw()
 
 
 func _get_default_marker_visual() -> Dictionary:

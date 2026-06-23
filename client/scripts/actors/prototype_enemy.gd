@@ -24,7 +24,9 @@ const ENEMY_VISUAL_PART_IDS := [
 	"enemy_shape.head",
 	"enemy_shape.limbs",
 	"enemy_shape.category_accent",
-	"enemy_shape.pressure_core"
+	"enemy_shape.pressure_core",
+	"enemy_shape.threat_eye",
+	"enemy_shape.category_spines"
 ]
 
 var health: float = 20.0
@@ -267,6 +269,7 @@ func _draw() -> void:
 			_draw_ruin_guard_silhouette(size, active_color)
 		_:
 			_draw_basic_silhouette(size, active_color)
+	_draw_enemy_status_detail(size, active_color)
 
 
 func get_silhouette_part_count() -> int:
@@ -397,6 +400,33 @@ func _draw_ruin_guard_silhouette(size: Vector2, color: Color) -> void:
 	_draw_polygon_with_outline(body, color, Color(0.62, 0.94, 1.0, 0.78))
 	draw_line(Vector2(-size.x * 0.2, -size.y * 0.36), Vector2(size.x * 0.2, size.y * 0.34), Color(0.76, 0.98, 1.0, 0.52), 2.0, true)
 	draw_circle(Vector2(size.x * 0.1, -size.y * 0.08), 4.0, Color(0.08, 0.22, 0.24, 0.86))
+
+
+func _draw_enemy_status_detail(size: Vector2, color: Color) -> void:
+	match get_silhouette_profile():
+		"polluted":
+			for angle in [PI * 0.08, PI * 0.72, PI * 1.34]:
+				var from := Vector2(cos(angle), sin(angle)) * size.x * 0.36
+				var to := Vector2(cos(angle), sin(angle)) * size.x * 0.62
+				draw_line(from, to, Color(0.92, 0.82, 0.24, 0.72), 1.8, true)
+			draw_circle(Vector2(size.x * 0.12, -size.y * 0.18), 2.8, Color(1.0, 0.88, 0.28, 0.88))
+		"treatment":
+			draw_line(Vector2(-size.x * 0.44, -size.y * 0.3), Vector2(-size.x * 0.58, -size.y * 0.46), Color(color.r, color.g, color.b, 0.66), 1.7, true)
+			draw_line(Vector2(size.x * 0.18, -size.y * 0.42), Vector2(size.x * 0.32, -size.y * 0.56), Color(color.r, color.g, color.b, 0.66), 1.7, true)
+			draw_circle(Vector2(size.x * 0.28, -size.y * 0.08), 2.6, Color(0.72, 1.0, 0.96, 0.88))
+		"elite":
+			for angle in [PI * 0.25, PI * 0.75, PI * 1.25, PI * 1.75]:
+				var from := Vector2(cos(angle), sin(angle)) * size.x * 0.42
+				var to := Vector2(cos(angle), sin(angle)) * size.x * 0.64
+				draw_line(from, to, Color(1.0, 0.74, 0.34, 0.72), 1.8, true)
+			draw_circle(Vector2.ZERO, 3.2, Color(1.0, 0.84, 0.3, 0.86))
+		"ruin_guard":
+			draw_line(Vector2(size.x * 0.36, -size.y * 0.24), Vector2(size.x * 0.58, -size.y * 0.42), Color(0.76, 0.98, 1.0, 0.72), 1.7, true)
+			draw_circle(Vector2(size.x * 0.16, -size.y * 0.1), 2.8, Color(0.78, 1.0, 1.0, 0.86))
+		_:
+			draw_line(Vector2(-size.x * 0.34, -size.y * 0.1), Vector2(-size.x * 0.54, -size.y * 0.28), Color(color.r, color.g, color.b, 0.62), 1.6, true)
+			draw_line(Vector2(size.x * 0.34, -size.y * 0.1), Vector2(size.x * 0.54, -size.y * 0.28), Color(color.r, color.g, color.b, 0.62), 1.6, true)
+			draw_circle(Vector2(0.0, -size.y * 0.14), 2.6, Color(1.0, 0.72, 0.42, 0.84))
 
 
 func _draw_polygon_with_outline(points: PackedVector2Array, fill: Color, outline: Color) -> void:

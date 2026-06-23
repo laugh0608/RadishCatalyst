@@ -41,12 +41,15 @@ REQUIRED_TEXT_BY_FILE = {
     "client/scripts/actors/player_controller.gd": [
         "get_visual_part_count",
         "suit.helmet",
+        "suit.visor",
         "suit.backpack",
         "tool.forward_arm",
+        "tool.cutter_tip",
     ],
     "client/scripts/actors/prototype_enemy.gd": [
         "get_silhouette_profile",
         "enemy_shape.pressure_core",
+        "enemy_shape.threat_eye",
         "_draw_polluted_silhouette",
         "_draw_elite_silhouette",
     ],
@@ -62,6 +65,14 @@ REQUIRED_TEXT_BY_FILE = {
         "set_danger_active_visual",
         "set_device_busy_visual",
         "set_core_write_blocked_visual",
+        "get_semantic_silhouette_id",
+        "SemanticSilhouette.draw",
+    ],
+    "client/scripts/interaction/prototype_interactable_semantic_silhouette.gd": [
+        "class_name PrototypeInteractableSemanticSilhouette",
+        "SILHOUETTE_CORE_WRITE_DEVICE",
+        "semantic.crystal_collector.output_tray",
+        "_draw_core_write_device_silhouette",
     ],
     "client/scripts/map/interactable_visual_refresher.gd": [
         "_apply_visual_priority_state",
@@ -79,6 +90,7 @@ REQUIRED_TEXT_BY_FILE = {
         "pollution filter processing guidance",
         "_check_scene_visual_layer_focus_visibility",
         "_check_playable_space_and_actor_silhouettes",
+        "_check_key_object_semantic_silhouettes",
         "_check_visual_state_methods",
         "_check_visual_refresher_state_alignment",
     ],

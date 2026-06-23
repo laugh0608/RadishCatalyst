@@ -11,9 +11,12 @@ const TOOL_COLOR := Color(0.96, 0.76, 0.32, 0.95)
 const PLAYER_VISUAL_PART_IDS := [
 	"suit.torso",
 	"suit.helmet",
+	"suit.visor",
 	"suit.backpack",
 	"suit.boots",
+	"suit.status_light",
 	"tool.forward_arm",
+	"tool.cutter_tip",
 	"direction.work_light"
 ]
 
@@ -85,7 +88,10 @@ func _draw() -> void:
 	_draw_oriented_rect(-forward * 12.0, forward, 6.5, 8.0, PACK_COLOR)
 	draw_circle(forward * 9.0, 8.0, BODY_OUTLINE_COLOR)
 	draw_circle(forward * 9.0, 5.6, SUIT_DARK)
+	draw_line(forward * 13.0 + side * -4.0, forward * 13.0 + side * 4.0, Color(0.72, 1.0, 1.0, 0.88), 1.6, true)
+	draw_circle(forward * 1.0 - side * 5.2, 2.4, Color(0.92, 0.98, 0.72, 0.9))
 	draw_line(forward * 3.0 + side * 8.0, forward * 19.0 + side * 8.0, TOOL_COLOR, 4.0, true)
+	draw_line(forward * 19.0 + side * 8.0, forward * 26.0 + side * 11.0, Color(1.0, 0.9, 0.42, 0.92), 2.6, true)
 	draw_line(forward * 18.0 + side * 8.0, forward * 25.0 + side * 8.0, DIRECTION_COLOR, 2.0, true)
 	draw_line(-forward * 15.0 + side * 5.0, -forward * 22.0 + side * 8.0, SUIT_PANEL, 3.0, true)
 	draw_line(-forward * 15.0 - side * 5.0, -forward * 22.0 - side * 8.0, SUIT_PANEL, 3.0, true)

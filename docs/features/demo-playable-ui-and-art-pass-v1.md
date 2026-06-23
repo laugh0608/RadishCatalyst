@@ -40,6 +40,12 @@
 - 已将底部行动日志压缩为一行结果摘要，完整文本保留为 HUD 元素 tooltip，设备面板和完成反馈继续承担详细说明。
 - 已补 Godot 运行时检查，确认长 prompt / log 不含换行且受长度上限约束。
 
+## 2026-06-23 第三包
+
+- 已给玩家、敌人和关键交互对象补低保真语义轮廓：玩家增加面罩、状态灯和工具尖端，敌人增加威胁眼和类别棘刺。
+- `PrototypeInteractable` 现在委托 `PrototypeInteractableSemanticSilhouette`，按 `definition_id` 为前哨核心、基础反应器、储存箱、出发整备台、污染过滤器、晶体采集器和核心写入设备绘制本地剪影、端口和状态灯。
+- 已补 `demo_prototype_visual_pass_check.gd`，覆盖九类关键对象的语义轮廓 ID 与局部结构，不新增区域、资源、配方、任务链或 UI 组件库。
+
 ## 本轮范围
 
 1. HUD 玩家化：

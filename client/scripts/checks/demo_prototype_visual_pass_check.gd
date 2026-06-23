@@ -30,6 +30,7 @@ func _run_checks() -> void:
 	_check_current_objective_guidance_layer()
 	_check_startup_readability_scope()
 	_check_playable_space_and_actor_silhouettes()
+	_check_key_object_semantic_silhouettes()
 	_check_visual_state_methods()
 	_check_visual_refresher_state_alignment()
 
@@ -409,8 +410,10 @@ func _check_playable_space_and_actor_silhouettes() -> void:
 	var player := map.get_node("Player") as PlayerController
 	_expect_equal(player.get_visual_part_count() >= 6, true, "player uses multiple readable silhouette parts")
 	_expect_equal(player.has_visual_part("suit.helmet"), true, "player silhouette has helmet")
+	_expect_equal(player.has_visual_part("suit.visor"), true, "player silhouette has visor")
 	_expect_equal(player.has_visual_part("suit.backpack"), true, "player silhouette has backpack")
 	_expect_equal(player.has_visual_part("tool.forward_arm"), true, "player silhouette has forward tool arm")
+	_expect_equal(player.has_visual_part("tool.cutter_tip"), true, "player silhouette has cutter tip")
 
 	var treatment_enemy := map.get_node("Enemies/TreatmentSkitter") as PrototypeEnemy
 	var polluted_enemy := map.get_node("Enemies/PollutedSkitter") as PrototypeEnemy
@@ -420,6 +423,72 @@ func _check_playable_space_and_actor_silhouettes() -> void:
 	_expect_equal(polluted_enemy.get_silhouette_profile(), "polluted", "polluted enemy uses polluted silhouette")
 	_expect_equal(elite_enemy.get_silhouette_profile(), "elite", "elite node uses elite silhouette")
 	_expect_equal(polluted_enemy.has_silhouette_part("enemy_shape.pressure_core"), true, "enemy silhouette has pressure core")
+	_expect_equal(polluted_enemy.has_silhouette_part("enemy_shape.threat_eye"), true, "enemy silhouette has threat eye")
+	map.free()
+
+
+func _check_key_object_semantic_silhouettes() -> void:
+	var map := _create_setup_map()
+	var key_objects := [
+		{
+			"path": "Interactables/OutpostCore",
+			"silhouette_id": PrototypeInteractable.SILHOUETTE_OUTPOST_CORE,
+			"part": "semantic.outpost_core.status_lights"
+		},
+		{
+			"path": "Interactables/BasicReactor",
+			"silhouette_id": PrototypeInteractable.SILHOUETTE_BASIC_REACTOR,
+			"part": "semantic.basic_reactor.heat_chamber"
+		},
+		{
+			"path": "Interactables/BasicStorageBuildSite",
+			"silhouette_id": PrototypeInteractable.SILHOUETTE_BASIC_STORAGE,
+			"part": "semantic.basic_storage.shelf_bins"
+		},
+		{
+			"path": "Interactables/FieldOutfittingStation",
+			"silhouette_id": PrototypeInteractable.SILHOUETTE_FIELD_OUTFITTING_STATION,
+			"part": "semantic.field_outfitting_station.module_rack"
+		},
+		{
+			"path": "Interactables/PollutionFilter",
+			"silhouette_id": PrototypeInteractable.SILHOUETTE_POLLUTION_FILTER,
+			"part": "semantic.pollution_filter.twin_columns"
+		},
+		{
+			"path": "Interactables/CrystalCollectorBuildSite",
+			"silhouette_id": PrototypeInteractable.SILHOUETTE_CRYSTAL_COLLECTOR,
+			"part": "semantic.crystal_collector.output_tray"
+		},
+		{
+			"path": "Interactables/DemoStabilizationCore",
+			"silhouette_id": PrototypeInteractable.SILHOUETTE_CORE_WRITE_DEVICE,
+			"part": "semantic.core_write_device.write_ring"
+		}
+	]
+	for object_profile in key_objects:
+		var object := map.get_node(String(object_profile["path"])) as PrototypeInteractable
+		_expect_equal(
+			object.get_semantic_silhouette_id(),
+			String(object_profile["silhouette_id"]),
+			"%s uses semantic silhouette id" % object_profile["path"]
+		)
+		_expect_equal(
+			object.get_semantic_silhouette_part_count() >= 3,
+			true,
+			"%s exposes multiple semantic silhouette parts" % object_profile["path"]
+		)
+		_expect_equal(
+			object.has_semantic_silhouette_part(String(object_profile["part"])),
+			true,
+			"%s exposes role-specific semantic part" % object_profile["path"]
+		)
+	var collector_output := map.get_node("Interactables/CrystalCollectorOutput") as PrototypeInteractable
+	_expect_equal(
+		collector_output.get_semantic_silhouette_id(),
+		PrototypeInteractable.SILHOUETTE_CRYSTAL_COLLECTOR,
+		"collector output shares collector semantic silhouette"
+	)
 	map.free()
 
 
