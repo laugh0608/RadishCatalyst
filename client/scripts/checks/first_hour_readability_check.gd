@@ -924,6 +924,23 @@ func _check_hud_runtime_layout_first_pass() -> void:
 	host._expect_equal(_controls_overlap(hud.device_panel, hud.quick_supply_panel), false, "HUD first pass keeps device panel separate from player quick supply")
 	host._expect_equal(_controls_overlap(hud.device_panel, hud.evacuation_panel), false, "HUD first pass keeps device panel separate from evacuation feedback")
 	host._expect_equal(_controls_overlap(hud.device_panel, hud.supply_feedback_panel), false, "HUD first pass keeps device panel separate from supply feedback")
+	hud.show_prompt("对象：污染沉积物\n用途：回收污染样本并带回过滤器\n状态：可回收\n下一步：采完沉积物先回处理点过滤器做药剂\n操作：按 E 回收污染沉积物")
+	host._expect_equal(hud.prompt_label.text.find("\n") < 0, true, "HUD first pass compacts long interaction prompts into one bottom line")
+	host._expect_equal(
+		hud.prompt_label.text.length() <= PrototypeHud.PROMPT_RUNTIME_MAX_CHARACTERS,
+		true,
+		"HUD first pass caps compact interaction prompt length"
+	)
+	host._expect_text_contains(hud.prompt_label.text, "对象：污染沉积物", "HUD first pass keeps the interaction target in the compact prompt")
+	host._expect_text_contains(hud.prompt_label.text, "操作：按 E", "HUD first pass keeps the action affordance in the compact prompt")
+	hud.append_log("核心稳定写入完成\n下一步：返回前哨核心回传结果并整理下一批外勤补给\n状态：复测读数和物流回流已写入")
+	host._expect_equal(hud.log_label.text.find("\n") < 0, true, "HUD first pass compacts long action logs into one bottom line")
+	host._expect_equal(
+		hud.log_label.text.length() <= PrototypeHud.LOG_RUNTIME_MAX_CHARACTERS,
+		true,
+		"HUD first pass caps compact action log length"
+	)
+	host._expect_text_contains(hud.log_label.text, "核心稳定写入完成", "HUD first pass keeps action result title in the compact log")
 	hud._set_debug_panels_visible(true)
 	host._expect_equal(_controls_overlap(hud.quick_supply_panel, hud.save_panel), false, "HUD first pass shifts player quick supply when debug save panel opens")
 	hud._set_debug_panels_visible(false)

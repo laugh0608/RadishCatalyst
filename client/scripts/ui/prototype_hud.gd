@@ -48,6 +48,9 @@ const SUPPLY_FEEDBACK_SECONDS := 4.0
 const COMBAT_FEEDBACK_SECONDS := 5.0
 const QUEST_COMPLETION_FEEDBACK_SECONDS := 7.0
 const LOG_FEEDBACK_SECONDS := 6.0
+const PROMPT_RUNTIME_MAX_CHARACTERS := 34
+const LOG_RUNTIME_MAX_CHARACTERS := 44
+const RUNTIME_TEXT_ELLIPSIS := "..."
 
 var last_quick_slots: Array[String] = []
 var supply_feedback_remaining_seconds := 0.0
@@ -323,11 +326,13 @@ func clear_prompt() -> void:
 
 func append_log(text: String) -> void:
 	_ensure_runtime_nodes()
+	var display_text := _format_bottom_rail_text(text, LOG_RUNTIME_MAX_CHARACTERS)
 	if log_label != null:
-		log_label.text = text
+		log_label.text = display_text
+		log_label.tooltip_text = text.strip_edges()
 	if log_panel != null:
-		log_panel.visible = not text.strip_edges().is_empty()
-	log_feedback_remaining_seconds = LOG_FEEDBACK_SECONDS if not text.strip_edges().is_empty() else 0.0
+		log_panel.visible = not display_text.is_empty()
+	log_feedback_remaining_seconds = LOG_FEEDBACK_SECONDS if not display_text.is_empty() else 0.0
 
 
 func clear_runtime_feedback() -> void:
@@ -718,10 +723,79 @@ func _refresh_prompt_label() -> void:
 	_ensure_runtime_nodes()
 	if prompt_label == null:
 		return
+	var source_text := context_prompt_text
 	if not context_prompt_text.strip_edges().is_empty():
-		prompt_label.text = context_prompt_text
-		return
-	prompt_label.text = runtime_hint_text
+		prompt_label.text = _format_prompt_rail_text(context_prompt_text)
+	else:
+		source_text = runtime_hint_text
+		prompt_label.text = _format_bottom_rail_text(runtime_hint_text, PROMPT_RUNTIME_MAX_CHARACTERS)
+	prompt_label.tooltip_text = source_text.strip_edges()
+
+
+func _format_prompt_rail_text(text: String) -> String:
+	var clean_lines := _get_clean_runtime_lines(text)
+	var title := ""
+	var status := ""
+	var next_step := ""
+	var action := ""
+	for line in clean_lines:
+		if title.is_empty() and (
+			line.begins_with("对象：")
+				or line.begins_with("设施：")
+				or line.begins_with("设备：")
+				or line.begins_with("目标：")
+				or line.begins_with("敌人：")
+		):
+			title = line
+		elif status.is_empty() and line.begins_with("状态："):
+			status = line
+		elif next_step.is_empty() and line.begins_with("下一步："):
+			next_step = line
+		elif action.is_empty() and line.begins_with("操作："):
+			action = line
+
+	var parts: Array[String] = []
+	if not title.is_empty():
+		parts.append(title)
+	if not action.is_empty():
+		parts.append(action)
+	elif not status.is_empty():
+		parts.append(status)
+	if parts.size() < 2 and not next_step.is_empty():
+		parts.append(next_step)
+	if parts.is_empty():
+		return _format_bottom_rail_text(text, PROMPT_RUNTIME_MAX_CHARACTERS)
+	return _shorten_runtime_text("；".join(parts), PROMPT_RUNTIME_MAX_CHARACTERS)
+
+
+func _format_bottom_rail_text(text: String, max_characters: int) -> String:
+	var compact := "；".join(_get_clean_runtime_lines(text))
+	compact = compact.replace(" 下一步：", "；下一步：")
+	compact = compact.replace(" 状态：", "；状态：")
+	compact = compact.replace(" 操作：", "；操作：")
+	while compact.find("  ") >= 0:
+		compact = compact.replace("  ", " ")
+	while compact.find("；；") >= 0:
+		compact = compact.replace("；；", "；")
+	return _shorten_runtime_text(compact.strip_edges(), max_characters)
+
+
+func _get_clean_runtime_lines(text: String) -> Array[String]:
+	var lines: Array[String] = []
+	var normalized := text.replace("\r\n", "\n").replace("\r", "\n")
+	for raw_line in normalized.split("\n", false):
+		var line := String(raw_line).strip_edges()
+		if line.is_empty():
+			continue
+		lines.append(line)
+	return lines
+
+
+func _shorten_runtime_text(text: String, max_characters: int) -> String:
+	if text.length() <= max_characters:
+		return text
+	var visible_characters := maxi(0, max_characters - RUNTIME_TEXT_ELLIPSIS.length())
+	return "%s%s" % [text.substr(0, visible_characters), RUNTIME_TEXT_ELLIPSIS]
 
 func _ensure_runtime_nodes() -> void:
 	if save_panel == null:
@@ -998,8 +1072,8 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	_layout_full_label(vitals_label, vitals_panel, 14.0, 14.0)
 	_layout_full_label(quick_supply_label, quick_supply_panel, 14.0, 10.0)
 	_layout_full_label(combat_label, combat_panel, 14.0, 12.0)
-	_layout_full_label(prompt_label, prompt_panel, 14.0, 12.0)
-	_layout_full_label(log_label, log_panel, 14.0, 12.0)
+	_layout_bottom_rail_label(prompt_label, prompt_panel, 14.0, 12.0)
+	_layout_bottom_rail_label(log_label, log_panel, 14.0, 12.0)
 	_layout_full_label(completion_title_label, completion_panel, 22.0, 16.0, 32.0)
 	_layout_full_label(completion_detail_label, completion_panel, 22.0, 62.0)
 	_layout_device_panel_labels()
@@ -1100,6 +1174,15 @@ func _layout_full_label(label: Label, panel: Control, left: float, top: float, f
 	label.size.x = maxf(0.0, panel.size.x - left * 2.0)
 	label.size.y = forced_height if forced_height > 0.0 else maxf(0.0, panel.size.y - top * 2.0)
 	_prepare_wrapped_label(label)
+
+
+func _layout_bottom_rail_label(label: Label, panel: Control, left: float, top: float) -> void:
+	_layout_full_label(label, panel, left, top)
+	if label == null:
+		return
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	label.max_lines_visible = 1
+	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 
 
 func _prepare_wrapped_label(label: Label) -> void:
