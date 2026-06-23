@@ -95,10 +95,18 @@ func _check_current_objective_guidance_layer() -> void:
 	_expect_guidance_target(layer, "OutpostCore", "前哨核心", "startup outpost core target guidance")
 	_expect_equal(layer.get_node_or_null("CurrentObjectiveTargetLabel") != null, true, "current target label exists")
 	_expect_equal(layer.is_target_name_label_visible(), false, "near current target hides scene text label")
+	_expect_equal(layer.get_focus_readability_shape_count() >= 5, true, "current objective layer registers focus readability shapes")
+	_expect_equal(layer.has_focus_readability_shape("focus_readability.local_workface_frame"), true, "current objective layer registers local workface frame")
+	_expect_equal(layer.has_focus_readability_shape("focus_readability.short_player_tether"), true, "current objective layer registers short player tether")
+	_expect_equal(layer.is_local_focus_frame_visible(), true, "startup current objective shows a local focus frame")
+	_expect_equal(layer.is_short_focus_tether_visible(), true, "startup current objective uses a short local tether")
+	_expect_equal(layer.get_current_focus_readability_mode(), "startup_core", "startup current objective uses core restore focus mode")
 	map.player.position = target.position + Vector2(-220.0, 0.0)
 	layer.refresh_guidance(world, character)
 	_expect_equal(layer.is_target_name_label_visible(), true, "distant current target can show a short scene label")
 	_expect_equal(layer.get_target_name_label_text(), "前哨核心", "distant current target label omits redundant prefix")
+	_expect_equal(layer.is_local_focus_frame_visible(), true, "distant target keeps local focus frame on the target")
+	_expect_equal(layer.is_short_focus_tether_visible(), false, "distant target does not draw a long player tether")
 	map.player.position = storage.position
 	storage.set_focus_visual(true)
 	layer.refresh_guidance(world, character)
@@ -177,6 +185,8 @@ func _check_current_objective_guidance_layer() -> void:
 	map.update_current_interactable()
 	_expect_guidance_target(layer, "CrystalCollectorOutput", "采集器输出", "collector output compact guidance target")
 	_expect_equal(layer.is_first_path_compact_guidance_active(), true, "first industrial path compacts current target guidance")
+	_expect_equal(layer.is_local_focus_frame_visible(), true, "first industrial path keeps a local objective focus frame")
+	_expect_equal(layer.get_current_focus_readability_mode(), "first_path", "first industrial path uses local focus readability mode")
 	_expect_equal(layer.is_target_route_visible(), false, "first industrial path hides long current target route")
 	var collector_output := map.get_node("Interactables/CrystalCollectorOutput") as PrototypeInteractable
 	_expect_equal(map.current_interactable, collector_output, "first industrial path still keeps collector output as logical focus")
@@ -268,6 +278,7 @@ func _check_current_objective_guidance_layer() -> void:
 		false,
 		"field position hides departure gate scene guidance instead of drawing a long return route"
 	)
+	_expect_equal(layer.is_local_focus_frame_visible(), false, "field position does not keep a hidden departure focus frame")
 	map.player.position = VerticalSliceMap.OUTPOST_RESPAWN_POSITION
 	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "visit_region", "region.pollution_edge", 1.0)
 	map.refresh_world_interactables(world)
@@ -284,10 +295,28 @@ func _check_current_objective_guidance_layer() -> void:
 	_expect_equal(layer.is_pollution_compact_guidance_active(), true, "pollution boundary compacts current target guidance")
 	_expect_equal(layer.is_target_route_visible(), false, "pollution boundary hides long current target route")
 	_expect_equal(layer.is_target_name_label_visible(), false, "pollution boundary hides current target scene label")
+	_expect_equal(layer.is_local_focus_frame_visible(), true, "pollution boundary keeps local current target focus frame")
+	_expect_equal(layer.get_current_focus_readability_mode(), "pollution", "pollution boundary uses local focus readability mode")
 	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", 4.0)
 	map.refresh_world_interactables(world)
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "PollutionFilter", "污染过滤器", "pollution filter processing guidance")
+
+	world.current_region_id = "region.demo_stabilization_core"
+	world.unlock_region("region.demo_stabilization_core")
+	world.quest_state.active_quest_ids = ["quest.write_demo_stabilization_core"]
+	world.quest_state.set_objective_progress("quest.write_demo_stabilization_core", "gather_item", "item.core_write_charge", 1.0)
+	map.player.position = Vector2(4038.0, -24.0)
+	character.position = map.player.position
+	character.current_region_id = "region.demo_stabilization_core"
+	map.refresh_world_interactables(world)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "DemoStabilizationCore", "核心写入设备", "core write local guidance")
+	_expect_equal(layer.is_core_station_compact_guidance_active(), true, "core station compacts current target guidance")
+	_expect_equal(layer.is_target_route_visible(), false, "core station hides long current target route")
+	_expect_equal(layer.is_local_focus_frame_visible(), true, "core station keeps local current target focus frame")
+	_expect_equal(layer.is_short_focus_tether_visible(), true, "core station uses a short local tether near write device")
+	_expect_equal(layer.get_current_focus_readability_mode(), "core_station", "core station uses local focus readability mode")
 	map.free()
 
 

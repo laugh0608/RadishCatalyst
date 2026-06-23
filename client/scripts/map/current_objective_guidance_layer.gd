@@ -36,6 +36,14 @@ const POLLUTION_COMPACT_TARGET_NAMES := {
 	"PollutionResidue": true,
 	"PollutionFilter": true
 }
+const SHORT_FOCUS_TETHER_MAX_DISTANCE := 112.0
+const FOCUS_READABILITY_SHAPES := [
+	"focus_readability.local_workface_frame",
+	"focus_readability.target_role_port",
+	"focus_readability.short_player_tether",
+	"focus_readability.stage_ticks",
+	"focus_readability.compact_context_frame"
+]
 const OUTPOST_CORE_TARGET := {"path": "Interactables/OutpostCore", "label": "前哨核心"}
 const BASIC_STORAGE_TARGET := {"path": "Interactables/BasicStorageBuildSite", "label": "基础储存箱"}
 const BASIC_REACTOR_TARGET := {"path": "Interactables/BasicReactor", "label": "基础反应器"}
@@ -52,6 +60,7 @@ const FOUNDATION_SOUTH_TARGET := {"path": "Interactables/FoundationSiteSouth", "
 const POLLUTION_FILTER_BUILD_TARGET := {"path": "Interactables/PollutionFilterBuildSite", "label": "污染过滤器建造点"}
 const POLLUTION_RESIDUE_TARGET := {"path": "Interactables/PollutionResidue", "label": "污染沉积物"}
 const POLLUTION_FILTER_TARGET := {"path": "Interactables/PollutionFilter", "label": "污染过滤器"}
+const DEMO_STABILIZATION_CORE_TARGET := {"path": "Interactables/DemoStabilizationCore", "label": "核心写入设备"}
 const NO_TARGET := {"path": "", "label": ""}
 
 var target_halo: ColorRect
@@ -64,6 +73,9 @@ var current_world_state: WorldState
 var current_character_state: CharacterState
 var current_target: PrototypeInteractable
 var current_target_label_text := "前哨核心"
+var local_focus_frame_visible := false
+var short_focus_tether_visible := false
+var current_focus_readability_mode := "default"
 
 
 func _ready() -> void:
@@ -93,7 +105,9 @@ func refresh_guidance(world_state: WorldState = null, character_state: Character
 
 	_position_target_visuals(target)
 	_position_route_visuals(target)
+	_refresh_focus_readability_state(target)
 	_refresh_off_target_hint(target)
+	queue_redraw()
 
 
 func is_target_guidance_visible() -> bool:
@@ -146,6 +160,41 @@ func get_current_target_label_text() -> String:
 	return current_target_label_text
 
 
+func get_focus_readability_shape_count() -> int:
+	return FOCUS_READABILITY_SHAPES.size()
+
+
+func has_focus_readability_shape(shape_id: String) -> bool:
+	return FOCUS_READABILITY_SHAPES.has(shape_id)
+
+
+func is_local_focus_frame_visible() -> bool:
+	return local_focus_frame_visible
+
+
+func is_short_focus_tether_visible() -> bool:
+	return short_focus_tether_visible
+
+
+func get_current_focus_readability_mode() -> String:
+	return current_focus_readability_mode
+
+
+func _draw() -> void:
+	if not local_focus_frame_visible or current_target == null:
+		return
+	var color := _get_focus_readability_color(current_target)
+	var frame_size := _get_focus_readability_frame_size(current_target)
+	var frame := Rect2(current_target.position - frame_size * 0.5, frame_size)
+	_draw_focus_corner_frame(frame, color)
+	_draw_focus_role_port(current_target.position, color)
+	_draw_focus_stage_ticks(frame, color)
+	if short_focus_tether_visible:
+		var player := _get_player()
+		if player != null:
+			_draw_short_focus_tether(player.position, current_target.position, color)
+
+
 func _ensure_visual_nodes() -> void:
 	if target_halo != null:
 		return
@@ -187,6 +236,11 @@ func _set_target_visuals_visible(visible: bool) -> void:
 			node.visible = visible
 	if off_target_label != null and not visible:
 		off_target_label.visible = false
+	if not visible:
+		local_focus_frame_visible = false
+		short_focus_tether_visible = false
+		current_focus_readability_mode = "hidden"
+		queue_redraw()
 
 
 func _position_target_visuals(target: PrototypeInteractable) -> void:
@@ -311,6 +365,8 @@ func _resolve_current_target() -> Dictionary:
 			return _resolve_treatment_point_target(world_state)
 		"quest.enter_pollution_edge":
 			return _resolve_pollution_edge_target(world_state)
+		"quest.write_demo_stabilization_core":
+			return DEMO_STABILIZATION_CORE_TARGET
 
 	if not _has_completed_quest(world_state, "quest.restore_outpost"):
 		return OUTPOST_CORE_TARGET
@@ -494,7 +550,10 @@ func _should_use_core_station_compact_guidance(target: PrototypeInteractable) ->
 	var player := _get_player()
 	if player == null or player.position.x < CORE_STATION_GUIDANCE_MIN_X:
 		return false
-	return String(target.get_meta("core_stabilization_visual_scope", "")) == "terminal_station"
+	return (
+		String(target.get_meta("core_stabilization_visual_scope", "")) == "terminal_station"
+		or String(target.name) == "DemoStabilizationCore"
+	)
 
 
 func _is_pollution_guidance_position(player_position: Vector2) -> bool:
@@ -507,6 +566,97 @@ func _is_pollution_guidance_position(player_position: Vector2) -> bool:
 func _is_interactable_focused(interactable: PrototypeInteractable) -> bool:
 	var focus_ring := interactable.get_node_or_null("FocusRing") as ColorRect
 	return focus_ring != null and focus_ring.visible
+
+
+func _refresh_focus_readability_state(target: PrototypeInteractable) -> void:
+	if target == null or _should_suppress_base_gate_guidance_in_field(target):
+		local_focus_frame_visible = false
+		short_focus_tether_visible = false
+		current_focus_readability_mode = "hidden"
+		return
+	local_focus_frame_visible = true
+	current_focus_readability_mode = _resolve_focus_readability_mode(target)
+	var player := _get_player()
+	short_focus_tether_visible = (
+		player != null
+		and player.position.distance_to(target.position) <= SHORT_FOCUS_TETHER_MAX_DISTANCE
+	)
+
+
+func _resolve_focus_readability_mode(target: PrototypeInteractable) -> String:
+	if _is_startup_outpost_core_target(target):
+		return "startup_core"
+	if _should_use_first_path_compact_guidance(target):
+		return "first_path"
+	if _should_use_pollution_compact_guidance(target):
+		return "pollution"
+	if _should_use_core_station_compact_guidance(target):
+		return "core_station"
+	return "default"
+
+
+func _get_focus_readability_color(target: PrototypeInteractable) -> Color:
+	match _resolve_focus_readability_mode(target):
+		"startup_core":
+			return STARTUP_TARGET_PIN_COLOR
+		"first_path":
+			return FIRST_PATH_TARGET_PIN_COLOR
+		"pollution":
+			return POLLUTION_TARGET_PIN_COLOR
+		"core_station":
+			return CORE_STATION_TARGET_PIN_COLOR
+		_:
+			return TARGET_PIN_COLOR
+
+
+func _get_focus_readability_frame_size(target: PrototypeInteractable) -> Vector2:
+	match _resolve_focus_readability_mode(target):
+		"startup_core":
+			return Vector2(86.0, 74.0)
+		"first_path":
+			return Vector2(58.0, 46.0)
+		"pollution":
+			return Vector2(54.0, 48.0)
+		"core_station":
+			return Vector2(68.0, 78.0)
+		_:
+			return Vector2(70.0, 58.0)
+
+
+func _draw_focus_corner_frame(frame: Rect2, color: Color) -> void:
+	var corner := minf(frame.size.x, frame.size.y) * 0.24
+	var line_color := Color(color.r, color.g, color.b, 0.38)
+	var fill_color := Color(color.r, color.g, color.b, 0.05)
+	draw_rect(frame, fill_color, true)
+	draw_line(frame.position, frame.position + Vector2(corner, 0.0), line_color, 1.5, true)
+	draw_line(frame.position, frame.position + Vector2(0.0, corner), line_color, 1.5, true)
+	draw_line(Vector2(frame.end.x, frame.position.y), Vector2(frame.end.x - corner, frame.position.y), line_color, 1.5, true)
+	draw_line(Vector2(frame.end.x, frame.position.y), Vector2(frame.end.x, frame.position.y + corner), line_color, 1.5, true)
+	draw_line(Vector2(frame.position.x, frame.end.y), Vector2(frame.position.x + corner, frame.end.y), line_color, 1.5, true)
+	draw_line(Vector2(frame.position.x, frame.end.y), Vector2(frame.position.x, frame.end.y - corner), line_color, 1.5, true)
+	draw_line(frame.end, frame.end - Vector2(corner, 0.0), line_color, 1.5, true)
+	draw_line(frame.end, frame.end - Vector2(0.0, corner), line_color, 1.5, true)
+
+
+func _draw_focus_role_port(center: Vector2, color: Color) -> void:
+	draw_circle(center, 5.2, Color(color.r, color.g, color.b, 0.18))
+	draw_arc(center, 10.0, 0.0, TAU, 22, Color(color.r, color.g, color.b, 0.32), 1.1, true)
+	draw_rect(Rect2(center + Vector2(-3.0, -3.0), Vector2(6.0, 6.0)), Color(color.r, color.g, color.b, 0.24), true)
+
+
+func _draw_focus_stage_ticks(frame: Rect2, color: Color) -> void:
+	var tick_color := Color(color.r, color.g, color.b, 0.32)
+	var base := Vector2(frame.position.x + 8.0, frame.end.y - 6.0)
+	for index in range(3):
+		var x := base.x + float(index) * 9.0
+		draw_line(Vector2(x, base.y), Vector2(x + 5.0, base.y), tick_color, 1.2, true)
+
+
+func _draw_short_focus_tether(from: Vector2, to: Vector2, color: Color) -> void:
+	draw_line(from, to, Color(0.01, 0.025, 0.024, 0.56), 5.0, true)
+	draw_line(from, to, Color(color.r, color.g, color.b, 0.24), 2.0, true)
+	var center := from.lerp(to, 0.62)
+	draw_circle(center, 3.0, Color(color.r, color.g, color.b, 0.34))
 
 
 func _get_map_node(path: String) -> Node:

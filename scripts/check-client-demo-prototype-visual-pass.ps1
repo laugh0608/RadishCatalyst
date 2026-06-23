@@ -32,7 +32,10 @@ $requiredTextByFile = @{
         "CurrentObjectiveOffTargetLabel",
         "is_target_guidance_visible",
         "_resolve_current_target",
-        "get_current_target_node"
+        "get_current_target_node",
+        "FOCUS_READABILITY_SHAPES",
+        "focus_readability.local_workface_frame",
+        "DEMO_STABILIZATION_CORE_TARGET"
     )
     "client/scripts/map/demo_industrial_base_visual_layer.gd" = @(
         "get_playable_space_shape_count",
@@ -90,6 +93,8 @@ $requiredTextByFile = @{
         "_check_current_objective_guidance_layer",
         "post-restore storage build guidance",
         "pollution filter processing guidance",
+        "core write local guidance",
+        "first industrial path uses local focus readability mode",
         "_check_scene_visual_layer_focus_visibility",
         "_check_playable_space_and_actor_silhouettes",
         "_check_key_object_semantic_silhouettes",
