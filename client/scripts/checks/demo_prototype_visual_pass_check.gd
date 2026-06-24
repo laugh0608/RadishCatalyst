@@ -1,6 +1,7 @@
 extends SceneTree
 
 const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
+const ALPHA_CHECK_EPSILON := 0.00001
 
 var failures: Array[String] = []
 var data_registry := DataRegistry.new()
@@ -189,11 +190,20 @@ func _check_current_objective_guidance_layer() -> void:
 	_expect_equal(layer.get_current_focus_readability_mode(), "first_path", "first industrial path uses local focus readability mode")
 	_expect_equal(layer.is_target_route_visible(), false, "first industrial path hides long current target route")
 	var collector_output := map.get_node("Interactables/CrystalCollectorOutput") as PrototypeInteractable
+	var first_path_crystal_region := map.get_node("RegionCrystal") as ColorRect
+	var first_path_pollution_region := map.get_node("RegionPollution") as ColorRect
+	var first_path_crystal_boundary := map.get_node("RegionBoundaryCrystal") as ColorRect
+	var first_path_pollution_boundary := map.get_node("RegionBoundaryPollution") as ColorRect
 	_expect_equal(map.current_interactable, collector_output, "first industrial path still keeps collector output as logical focus")
 	_expect_equal(collector_output.label.visible, false, "first industrial path hides current interactable label")
 	_expect_equal(collector_output.focus_ring.visible, false, "first industrial path hides current interactable focus ring")
 	_expect_equal(collector_output.marker.scale, Vector2.ONE, "first industrial path does not enlarge the current marker over devices")
 	_expect_equal(collector_output.marker.modulate.a < 1.0, true, "first industrial path lowers current marker weight")
+	_expect_equal(first_path_layer.get_muted_context_rect_count() >= 16, true, "first industrial path mutes old region panels, routes, and boundary frames")
+	_expect_equal(_is_rect_alpha_at_most(first_path_crystal_region, 0.003), true, "first industrial path keeps the blue crystal panel behind the equipment tray")
+	_expect_equal(_is_rect_alpha_at_most(first_path_pollution_region, 0.0006), true, "first industrial path suppresses the yellow pollution panel")
+	_expect_equal(_is_rect_alpha_at_most(first_path_crystal_boundary, 0.0008), true, "first industrial path lowers the crystal boundary frame")
+	_expect_equal(_is_rect_alpha_at_most(first_path_pollution_boundary, 0.0008), true, "first industrial path lowers the pollution boundary frame")
 	var field_patrol := map.get_node("Enemies/NativeSkitterPatrol") as PrototypeEnemy
 	_expect_equal(field_patrol.modulate.a < 1.0, true, "first industrial path mutes nearby enemy pressure")
 	_expect_equal(field_patrol.label.visible, false, "first industrial path hides nearby enemy label")
@@ -413,6 +423,12 @@ func _check_scene_visual_layer_focus_visibility(map: VerticalSliceMap) -> void:
 	var crystal_layer := map.get_node("DemoCrystalResourceVisualLayer") as DemoCrystalResourceVisualLayer
 	var pollution_layer := map.get_node("DemoPollutionBoundaryVisualLayer") as DemoPollutionBoundaryVisualLayer
 	var core_layer := map.get_node("DemoCoreStabilizationVisualLayer") as DemoCoreStabilizationVisualLayer
+	var scene_focus_layer := map.get_node("DemoSceneFocusDepthLayer") as DemoSceneFocusDepthLayer
+	var crystal_region := map.get_node("RegionCrystal") as ColorRect
+	var pollution_region := map.get_node("RegionPollution") as ColorRect
+	var crystal_boundary := map.get_node("RegionBoundaryCrystal") as ColorRect
+	var pollution_boundary := map.get_node("RegionBoundaryPollution") as ColorRect
+	var crystal_to_pollution_route := map.get_node("CrystalToPollutionRouteBand") as ColorRect
 
 	crystal_layer.refresh_focus_visibility(Vector2(-250, -48))
 	pollution_layer.refresh_focus_visibility(Vector2(-250, -48))
@@ -425,6 +441,16 @@ func _check_scene_visual_layer_focus_visibility(map: VerticalSliceMap) -> void:
 	pollution_layer.refresh_focus_visibility(Vector2(-38, -104))
 	_expect_equal(crystal_layer.visible, true, "field departure reveals crystal resource detail layer")
 	_expect_equal(pollution_layer.visible, false, "field departure still hides pollution treatment detail layer")
+
+	scene_focus_layer.refresh_focus_depth(Vector2(112, -112))
+	crystal_layer.refresh_focus_visibility(Vector2(112, -112))
+	pollution_layer.refresh_focus_visibility(Vector2(112, -112))
+	_expect_equal(crystal_layer.get_muted_crystal_focus_context_rect_count() >= 12, true, "crystal focus mutes old region panels, routes, and boundary frames")
+	_expect_equal(_is_rect_alpha_at_most(crystal_region, 0.003), true, "crystal focus lowers the old blue region panel below the mine face")
+	_expect_equal(_is_rect_alpha_at_most(pollution_region, 0.0006), true, "crystal focus suppresses the yellow pollution preview panel")
+	_expect_equal(_is_rect_alpha_at_most(crystal_boundary, 0.0006), true, "crystal focus lowers the crystal boundary frame below the ore surface")
+	_expect_equal(_is_rect_alpha_at_most(pollution_boundary, 0.0006), true, "crystal focus lowers the pollution boundary frame below the ore surface")
+	_expect_equal(_is_rect_alpha_at_most(crystal_to_pollution_route, 0.0005), true, "crystal focus keeps the pollution context route behind local workfaces")
 
 	pollution_layer.refresh_focus_visibility(Vector2(258, 34))
 	crystal_layer.refresh_focus_visibility(Vector2(258, 34))
@@ -569,6 +595,10 @@ func _get_region_cue_visible(layer: PrototypeVisualPriorityLayer, region_id: Str
 	if cue == null:
 		return false
 	return cue.visible
+
+
+func _is_rect_alpha_at_most(rect: ColorRect, max_alpha: float) -> bool:
+	return rect != null and rect.color.a <= max_alpha + ALPHA_CHECK_EPSILON
 
 
 func _check_runtime_annotation_hidden(map: VerticalSliceMap, path: String) -> void:

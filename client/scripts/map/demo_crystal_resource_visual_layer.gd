@@ -9,7 +9,7 @@ const ROLE_TERRAIN := "terrain"
 const FOCUS_VISIBLE_MIN_X := -80.0
 const FOCUS_VISIBLE_MAX_X := 160.0
 const CRYSTAL_FOCUS_CONTEXT_ROUTE_ALPHA := 0.0005
-const CRYSTAL_FOCUS_CONTEXT_BOUNDARY_ALPHA := 0.0015
+const CRYSTAL_FOCUS_CONTEXT_BOUNDARY_ALPHA := 0.0006
 const CRYSTAL_FOCUS_CONTEXT_MARKER_ALPHA := 0.028
 const CRYSTAL_FOCUS_LOCAL_MARKER_DISTANCE := 250.0
 
@@ -26,8 +26,8 @@ const CRYSTAL_FOCUS_CONTEXT_LAYER_ALPHAS := [
 	{"path": "DemoPollutionBoundaryVisualLayer", "alpha": 0.0},
 	{"path": "DemoCoreStabilizationVisualLayer", "alpha": 0.0},
 	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.006},
-	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.01},
-	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.004},
+	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.006},
+	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.002},
 	{"path": "DemoRoutePresentationLayer", "alpha": 0.0},
 	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.032}
 ]
@@ -910,18 +910,22 @@ func _mute_crystal_focus_context_rects() -> void:
 	muted_crystal_focus_context_rect_count = 0
 	if not visible:
 		return
+	muted_crystal_focus_context_rect_count += _mute_context_rect("RegionCrystal", 0.003)
+	muted_crystal_focus_context_rect_count += _mute_context_rect("RegionPollution", 0.0006)
 	for path in CRYSTAL_FOCUS_CONTEXT_ROUTE_PATHS:
-		var rect := _get_map_node(String(path)) as ColorRect
-		if rect == null:
-			continue
-		rect.color.a = minf(rect.color.a, CRYSTAL_FOCUS_CONTEXT_ROUTE_ALPHA)
-		muted_crystal_focus_context_rect_count += 1
+		muted_crystal_focus_context_rect_count += _mute_context_rect(String(path), CRYSTAL_FOCUS_CONTEXT_ROUTE_ALPHA)
 	for path in CRYSTAL_FOCUS_CONTEXT_BOUNDARY_PATHS:
-		var rect := _get_map_node(String(path)) as ColorRect
-		if rect == null:
-			continue
-		rect.color.a = minf(rect.color.a, CRYSTAL_FOCUS_CONTEXT_BOUNDARY_ALPHA)
-		muted_crystal_focus_context_rect_count += 1
+		muted_crystal_focus_context_rect_count += _mute_context_rect(String(path), CRYSTAL_FOCUS_CONTEXT_BOUNDARY_ALPHA)
+
+
+func _mute_context_rect(path: String, alpha: float) -> int:
+	var rect := _get_map_node(path) as ColorRect
+	if rect == null:
+		return 0
+	var color := rect.color
+	color.a = minf(color.a, alpha)
+	rect.color = color
+	return 1
 
 
 func _mute_crystal_focus_context_interactable_markers(player_position: Vector2) -> void:

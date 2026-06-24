@@ -47,7 +47,7 @@ const STATUS_OUTPUT_LIGHT := Color(0.58, 0.88, 0.52, 0.68)
 const CRYSTAL_COLLECTOR_ID := "building.crystal_collector_t1"
 const CRYSTAL_COLLECTOR_OUTPUT_INSTANCE_ID := "map_object_instance.crystal_collector_output"
 const FIRST_PATH_CONTEXT_ROUTE_ALPHA := 0.0005
-const FIRST_PATH_CONTEXT_BOUNDARY_ALPHA := 0.002
+const FIRST_PATH_CONTEXT_BOUNDARY_ALPHA := 0.0008
 const FIRST_PATH_CONTEXT_MARKER_ALPHA := 0.026
 const FIRST_PATH_LOCAL_MARKER_DISTANCE := 320.0
 
@@ -55,11 +55,11 @@ const FIRST_PATH_CONTEXT_LAYER_ALPHAS := [
 	{"path": "OpeningSceneLayer", "alpha": 0.018},
 	{"path": "DemoIndustrialBaseVisualLayer", "alpha": 0.24},
 	{"path": "DemoCrystalResourceVisualLayer", "alpha": 0.12},
-	{"path": "DemoPollutionBoundaryVisualLayer", "alpha": 0.012},
+	{"path": "DemoPollutionBoundaryVisualLayer", "alpha": 0.004},
 	{"path": "DemoCoreStabilizationVisualLayer", "alpha": 0.008},
 	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.018},
-	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.012},
-	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.004},
+	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.008},
+	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.002},
 	{"path": "DemoRoutePresentationLayer", "alpha": 0.0},
 	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.035}
 ]
@@ -854,18 +854,23 @@ func _mute_first_path_context_rects(should_mute: bool) -> void:
 	muted_context_rect_count = 0
 	if not should_mute:
 		return
+	muted_context_rect_count += _mute_context_rect("RegionBase", 0.004)
+	muted_context_rect_count += _mute_context_rect("RegionCrystal", 0.003)
+	muted_context_rect_count += _mute_context_rect("RegionPollution", 0.0006)
 	for path in FIRST_PATH_CONTEXT_ROUTE_PATHS:
-		var rect := _get_map_node(String(path)) as ColorRect
-		if rect == null:
-			continue
-		rect.color.a = minf(rect.color.a, FIRST_PATH_CONTEXT_ROUTE_ALPHA)
-		muted_context_rect_count += 1
+		muted_context_rect_count += _mute_context_rect(String(path), FIRST_PATH_CONTEXT_ROUTE_ALPHA)
 	for path in FIRST_PATH_CONTEXT_BOUNDARY_PATHS:
-		var rect := _get_map_node(String(path)) as ColorRect
-		if rect == null:
-			continue
-		rect.color.a = minf(rect.color.a, FIRST_PATH_CONTEXT_BOUNDARY_ALPHA)
-		muted_context_rect_count += 1
+		muted_context_rect_count += _mute_context_rect(String(path), FIRST_PATH_CONTEXT_BOUNDARY_ALPHA)
+
+
+func _mute_context_rect(path: String, alpha: float) -> int:
+	var rect := _get_map_node(path) as ColorRect
+	if rect == null:
+		return 0
+	var color := rect.color
+	color.a = minf(color.a, alpha)
+	rect.color = color
+	return 1
 
 
 func _mute_first_path_context_interactable_markers(should_mute: bool, player_position: Vector2) -> void:
