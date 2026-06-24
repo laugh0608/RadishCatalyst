@@ -142,6 +142,7 @@ echo "Coverage: static data and scene references."
 "${python_exe}" "${repo_root}/scripts/check-client-demo-completion-outcome-readout.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-playable-experience-coherence.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-playable-scene-composition.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-startup-shell.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-combat-evacuation-recovery.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-interaction-affordance.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-interaction-prompt-surface-decomposition.py" "${repo_root}"
@@ -207,6 +208,7 @@ run_godot_checked "demo-endpoint-readiness" --script "${client_root}/scripts/che
 run_godot_checked "demo-completion-outcome-readout" --script "${client_root}/scripts/checks/demo_completion_outcome_readout_check.gd" --no-header
 run_godot_checked "demo-playable-experience-coherence" --script "${client_root}/scripts/checks/demo_playable_experience_coherence_check.gd" --no-header
 run_godot_checked "playable-scene-composition" --script "${client_root}/scripts/checks/playable_scene_composition_check.gd" --no-header
+run_godot_checked "demo-startup-shell" --script "${client_root}/scripts/checks/demo_startup_shell_check.gd" --no-header
 run_godot_checked "demo-combat-evacuation-recovery" --script "${client_root}/scripts/checks/demo_combat_evacuation_recovery_check.gd" --no-header
 run_godot_checked "demo-interaction-affordance" --script "${client_root}/scripts/checks/demo_interaction_affordance_check.gd" --no-header
 run_godot_checked "demo-interaction-prompt-surface-decomposition" --script "${client_root}/scripts/checks/demo_interaction_prompt_surface_decomposition_check.gd" --no-header

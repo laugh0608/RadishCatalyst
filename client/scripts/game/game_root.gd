@@ -3,6 +3,7 @@ extends Node2D
 const PLAYTEST_CAMERA_ZOOM := Vector2(2.05, 2.05)
 
 var data_registry: DataRegistry
+var startup_load_slot_id := ""
 var world_state: WorldState
 var character_state: CharacterState
 var save_service := SaveService.new()
@@ -68,7 +69,10 @@ func _ready() -> void:
 	hud.append_log(hud_log_presenter.format_startup_log())
 	hud.update_development_baselines(development_baseline_builder.get_baseline_definitions())
 	_refresh_save_slot_summaries()
-	_update_hud()
+	if startup_load_slot_id.is_empty():
+		_update_hud()
+	else:
+		_load_from_slot(startup_load_slot_id)
 
 
 func _process(delta: float) -> void:

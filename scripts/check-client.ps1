@@ -178,6 +178,13 @@ $checks = @(
         }
     },
     @{
+        Name = "client demo startup shell"
+        Script = "check-client-demo-startup-shell.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client demo combat evacuation recovery"
         Script = "check-client-demo-combat-evacuation-recovery.ps1"
         Parameters = @{
