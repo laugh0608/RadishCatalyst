@@ -93,7 +93,7 @@ static func format_outpost_core_prompt_line(
 
 
 static func format_completion_note() -> String:
-	return "核心稳定站已接管第一条稳定通道；首版 Demo 主线目标已完成，回前哨可整理补给、整备和复测记录"
+	return "核心稳定站已接管第一条稳定通道；首版 Demo 主线目标已完成，回前哨可整理补给、整备和复测记录；%s" % DemoNarrativeBeatFormatter.format_completion_hook_line()
 
 
 static func format_completion_note_for_state(

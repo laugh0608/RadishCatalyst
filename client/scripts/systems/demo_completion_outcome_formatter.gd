@@ -32,7 +32,8 @@ static func format_hud_summary(world_state: WorldState, character_state: Charact
 		return []
 	return [
 		"Demo 成果：%s" % format_outcome_summary(world_state, character_state),
-		"成果整理：%s" % format_outpost_review_line(world_state, character_state)
+		"成果整理：%s" % format_outpost_review_line(world_state, character_state),
+		"结尾钩子：%s" % DemoNarrativeBeatFormatter.format_completion_hook_line()
 	]
 
 
@@ -80,10 +81,11 @@ static func format_outpost_core_prompt_line(world_state: WorldState, character_s
 
 static func format_completion_note(world_state: WorldState, character_state: CharacterState) -> String:
 	if not is_completion_outcome_context(world_state):
-		return "核心稳定站已接管第一条稳定通道；首版 Demo 主线目标已完成，回前哨可整理补给、整备和复测记录"
-	return "%s；首版 Demo 主线目标已完成；回前哨可整理补给、整备和复测记录；%s；不新增必需后续任务。" % [
+		return "核心稳定站已接管第一条稳定通道；首版 Demo 主线目标已完成，回前哨可整理补给、整备和复测记录；%s" % DemoNarrativeBeatFormatter.format_completion_hook_line()
+	return "%s；首版 Demo 主线目标已完成；回前哨可整理补给、整备和复测记录；%s；%s；不新增必需后续任务。" % [
 		format_outcome_summary(world_state, character_state),
-		format_outpost_review_line(world_state, character_state)
+		format_outpost_review_line(world_state, character_state),
+		DemoNarrativeBeatFormatter.format_completion_hook_line()
 	]
 
 

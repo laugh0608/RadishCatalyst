@@ -117,23 +117,23 @@ func _format_completion_note(
 ) -> String:
 	match quest_id:
 		"quest.restore_outpost":
-			return "前哨核心恢复，基础反应器已上线；下一步出门采集晶体矿物作为第一批加工输入"
+			return "前哨核心从低功率切回基础运行，基础反应器已上线；下一步出门采集晶体矿物作为第一批加工输入"
 		"quest.scout_crystal_field":
-			return "第一批外勤资源已带回；回基地用基础反应器把资源转成校准和补给能力"
+			return "晶体矿物已带回；它不是直接补给，回基地用基础反应器转成校准和补给能力"
 		"quest.calibrate_reactor":
-			return "反应器采样通道已校准；下一趟去异常晶体采样，带回可分析的样本"
+			return "反应器采样通道已校准；前哨能把外勤材料转成分析能力，下一趟去异常晶体采样"
 		"quest.bring_back_sample":
 			return "异常样本已确认；继续回收周边残留物，回基地才能完成样本分析"
 		"quest.analyze_anomaly_sample":
-			return "样本分析给出过滤参数；用基地产物制造过滤模块，才能更稳地推进污染区"
+			return "异常样本给出过滤参数；污染边界不是单纯路障，用基地产物制造过滤模块后再推进"
 		"quest.make_filter_module":
 			return "基础过滤模块会降低污染区防护消耗；启用后再准备处理点补给和地基，下一趟外出容错更高"
 		"quest.prepare_treatment_supplies":
 			return "修复凝胶已准备，处理点北缘威胁已清理；下一步铺设地基并启用污染过滤器，把沉积物转成药剂"
 		"quest.expand_treatment_point":
-			return "污染过滤器已上线；处理沉积物可调制抗污染药剂，支撑遗迹门前和更深污染压力"
+			return "污染过滤器已上线；沉积物可转成药剂，前哨开始把外部污染纳入处理链"
 		"quest.enter_pollution_edge":
-			return "污染沉积物已转成药剂补给；带着药剂继续压制遗迹门前和更深处的污染源点"
+			return "污染沉积物已转成药剂补给；受扰生态证明事故仍在外扩，带药剂继续压制门前压力"
 		"quest.defeat_elite_node":
 			return "污染源点已压制，封锁遗迹入口信号可确认"
 		"quest.unlock_ruin_signal":
@@ -239,11 +239,11 @@ func _format_completion_note(
 		"quest.analyze_pressure_clearance_trace":
 			return "压力清障反馈已归档；行动台已把本趟风险收益转成下一轮防护整备"
 		"quest.enter_demo_stabilization_core":
-			return "核心稳定站入口已确认；先回污染边界补核心缓冲包沉积物，再回基地整备"
+			return "核心稳定站入口已确认；这里是旧稳定工程节点，先补核心缓冲包材料再回基地整备"
 		"quest.prepare_demo_stabilization_buffer":
 			return "核心稳压缓冲包已整备；返回核心稳定站挑战阶段守卫"
 		"quest.defeat_demo_stabilization_guard":
-			return "核心阶段守卫已击败；回写缓存已暴露，先回收校验片和终点前补给"
+			return "核心阶段守卫已击败；旧稳定工程的回写缓存已暴露，先回收校验片和终点前补给"
 		"quest.write_demo_stabilization_core":
 			return DemoMainlineCompletionFormatter.format_completion_note_for_state(world_state, character_state)
 		_:

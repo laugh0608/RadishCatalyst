@@ -168,6 +168,8 @@ func _check_first_playable_core_loop_rhythm() -> void:
 	)
 	var startup_status := HudStatusPresenter.new().format_status_text(data_registry, world_state, character_state)
 	_expect_text_contains(startup_status, "核心循环", "S0 HUD shows core loop rhythm")
+	_expect_text_contains(startup_status, "现场记录", "S0 HUD shows narrative beat")
+	_expect_text_contains(startup_status, "前哨核心低功率", "S0 narrative beat names outpost accident")
 
 	var restore_result := gather_system.interact_with_object(
 		"map_object_instance.outpost_core",
@@ -190,6 +192,8 @@ func _check_first_playable_core_loop_rhythm() -> void:
 		DemoCoreLoopRhythmFormatter.STAGE_FIELD_INPUT,
 		"restore points core loop to field input"
 	)
+	var restore_status := HudStatusPresenter.new().format_status_text(data_registry, world_state, character_state)
+	_expect_text_contains(restore_status, "晶体矿脉是基础工艺输入", "restore HUD points narrative to crystal input")
 
 	world_state.current_region_id = "region.crystal_vein_field"
 	character_state.current_region_id = "region.crystal_vein_field"
@@ -218,6 +222,8 @@ func _check_first_playable_core_loop_rhythm() -> void:
 		DemoCoreLoopRhythmFormatter.STAGE_BASE_PROCESSING,
 		"crystal gather points core loop to base processing"
 	)
+	var crystal_status := HudStatusPresenter.new().format_status_text(data_registry, world_state, character_state)
+	_expect_text_contains(crystal_status, "第一批晶体和废件", "crystal completion HUD names base recovery beat")
 
 	world_state.current_region_id = OUTPOST_REGION_ID
 	character_state.current_region_id = OUTPOST_REGION_ID
@@ -287,6 +293,8 @@ func _check_first_playable_core_loop_rhythm() -> void:
 		DemoCoreLoopRhythmFormatter.STAGE_POLLUTION_PRESSURE,
 		"pollution edge quest moves core loop to pollution pressure"
 	)
+	var pollution_status := HudStatusPresenter.new().format_status_text(data_registry, world_state, character_state)
+	_expect_text_contains(pollution_status, "污染沉积和受扰生态", "pollution HUD names abnormal spread beat")
 	var cleanse_start := processing_system.process_recipe(CLEANSE_RECIPE_ID, character_state, world_state)
 	_expect_success(cleanse_start, "pollution residue filtering starts during first loop")
 	var cleanse_completed := processing_system.advance_processing(13.0, character_state, world_state)
@@ -325,6 +333,8 @@ func _check_first_playable_core_loop_rhythm() -> void:
 		DemoCoreLoopRhythmFormatter.STAGE_CORE_WRITE,
 		"core buffer prep moves core loop to core write"
 	)
+	var core_status := HudStatusPresenter.new().format_status_text(data_registry, world_state, character_state)
+	_expect_text_contains(core_status, "核心稳定站是旧稳定工程节点", "core HUD names stabilization narrative beat")
 	var buffer_start := processing_system.process_recipe(CORE_BUFFER_RECIPE_ID, character_state, world_state)
 	_expect_success(buffer_start, "core buffer processing starts from first loop resources")
 	var buffer_completed := processing_system.advance_processing(8.0, character_state, world_state)
@@ -535,11 +545,13 @@ func _complete_core_write(world_state: WorldState, character_state: CharacterSta
 		return
 	_expect_equal(String(feedback.get("panel_title", "")), "Demo 完成", "core write feedback uses demo completion panel")
 	_expect_text_contains(String(feedback.get("note_text", "")), "首版 Demo 主线目标已完成", "core write feedback explains demo completion")
+	_expect_text_contains(String(feedback.get("note_text", "")), "异常源头仍未解释", "core write feedback leaves narrative hook")
 
 
 func _check_completed_demo_readout(world_state: WorldState, character_state: CharacterState) -> void:
 	var status_text := HudStatusPresenter.new().format_status_text(data_registry, world_state, character_state)
 	_expect_text_contains(status_text, "首版 Demo 主线已完成", "completed HUD names demo mainline completion")
+	_expect_text_contains(status_text, "结尾钩子", "completed HUD shows narrative hook")
 	var route_hint := HudMapPresenter.new().format_demo_route_hint(world_state, "")
 	_expect_text_contains(route_hint, "Demo 终点已完成", "completed map route names demo endpoint completion")
 	_expect_equal(world_state.quest_state.active_quest_ids.is_empty(), true, "demo completion leaves no required follow-up quest")

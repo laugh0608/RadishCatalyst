@@ -277,6 +277,9 @@ func _format_base_summary_lines(
 ) -> Array[String]:
 	var resource_chain_summary := DemoResourceChainStateFormatter.format_hud_summary(world_state, character_state)
 	var core_loop_summary := DemoCoreLoopRhythmFormatter.format_hud_summary(world_state, character_state)
+	var narrative_summary := DemoNarrativeBeatFormatter.format_hud_summary(world_state, character_state)
+	if not core_loop_summary.is_empty() and not narrative_summary.is_empty():
+		core_loop_summary[0] = "%s；%s" % [core_loop_summary[0], narrative_summary[0]]
 	if not core_loop_summary.is_empty():
 		resource_chain_summary += core_loop_summary
 	var active_structure_summary := _format_active_base_structure(data_registry, world_state)
