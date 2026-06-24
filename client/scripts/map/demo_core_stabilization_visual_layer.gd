@@ -26,6 +26,8 @@ const SERVICE_DECK_FILL := Color(0.08, 0.18, 0.17, 0.18)
 const LOCAL_PAD_FILL := Color(0.08, 0.2, 0.19, 0.12)
 const STATUS_PANEL_FILL := Color(0.018, 0.03, 0.03, 0.62)
 const STATUS_IDLE_LIGHT := Color(0.14, 0.2, 0.2, 0.32)
+const ARCHIVE_SPINE_LINE := Color(0.38, 0.62, 0.58, 0.2)
+const ANOMALY_HOOK_LINE := Color(0.78, 0.58, 0.96, 0.34)
 const CORE_FOCUS_CONTEXT_LAYER_ALPHAS := [
 	{"path": "DemoRoutePresentationLayer", "alpha": 0.0},
 	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.012},
@@ -303,6 +305,7 @@ func _draw_station_surfaces() -> void:
 		draw_line(Vector2(3660.0, y), Vector2(4246.0, y), Color(0.34, 0.56, 0.54, 0.16), 1.2, true)
 	for x in [3778.0, 3936.0, 4088.0, 4196.0]:
 		draw_line(Vector2(x, -210.0), Vector2(x, 168.0), Color(0.34, 0.56, 0.54, 0.14), 1.2, true)
+	_draw_archived_stabilization_spine()
 
 
 func _draw_completed_guard_residue_wash() -> void:
@@ -323,6 +326,8 @@ func _draw_station_workface_details() -> void:
 	_draw_writeback_service_ring()
 	_draw_retest_reader_bank()
 	_draw_output_bus_nodes()
+	_draw_stability_window_hook()
+	_draw_unresolved_anomaly_probe()
 	for route in [
 		[Vector2(3714.0, -24.0), Vector2(3796.0, -8.0), Vector2(3886.0, 18.0)],
 		[Vector2(3894.0, -70.0), Vector2(3998.0, -34.0), Vector2(4088.0, 34.0)],
@@ -335,6 +340,45 @@ func _draw_station_workface_details() -> void:
 	for point in [Vector2(3796.0, -8.0), Vector2(3886.0, 18.0), Vector2(3998.0, -34.0), Vector2(4088.0, 34.0), Vector2(3838.0, 52.0)]:
 		draw_circle(point, 6.0, Color(WORKFACE_LINE.r, WORKFACE_LINE.g, WORKFACE_LINE.b, 0.26))
 		draw_arc(point, 12.0, 0.0, TAU, 24, Color(WORKFACE_LINE.r, WORKFACE_LINE.g, WORKFACE_LINE.b, 0.22), 1.1, true)
+
+
+func _draw_archived_stabilization_spine() -> void:
+	var spine_points := PackedVector2Array([
+		Vector2(3672.0, 142.0),
+		Vector2(3796.0, 118.0),
+		Vector2(3924.0, 102.0),
+		Vector2(4042.0, 116.0),
+		Vector2(4172.0, 84.0)
+	])
+	draw_polyline(spine_points, Color(0.012, 0.026, 0.026, 0.44), 7.0, true)
+	draw_polyline(spine_points, ARCHIVE_SPINE_LINE, 1.4, true)
+	for point in [Vector2(3796.0, 118.0), Vector2(3924.0, 102.0), Vector2(4042.0, 116.0)]:
+		draw_rect(Rect2(point + Vector2(-8.0, -5.0), Vector2(16.0, 10.0)), Color(ARCHIVE_SPINE_LINE.r, ARCHIVE_SPINE_LINE.g, ARCHIVE_SPINE_LINE.b, 0.18), true)
+		draw_rect(Rect2(point + Vector2(-8.0, -5.0), Vector2(16.0, 10.0)), Color(ARCHIVE_SPINE_LINE.r, ARCHIVE_SPINE_LINE.g, ARCHIVE_SPINE_LINE.b, 0.28), false, 0.8, true)
+
+
+func _draw_stability_window_hook() -> void:
+	var hook_points := PackedVector2Array([
+		Vector2(4038.0, -24.0),
+		Vector2(4118.0, 18.0),
+		Vector2(4134.0, 78.0),
+		Vector2(4218.0, -28.0),
+		Vector2(4252.0, -126.0)
+	])
+	draw_polyline(hook_points, Color(0.012, 0.026, 0.026, 0.46), 5.0, true)
+	draw_polyline(hook_points, Color(ANOMALY_HOOK_LINE.r, ANOMALY_HOOK_LINE.g, ANOMALY_HOOK_LINE.b, 0.24), 1.5, true)
+	for point in [Vector2(4134.0, 78.0), Vector2(4218.0, -28.0), Vector2(4252.0, -126.0)]:
+		draw_arc(point, 11.0, 0.0, TAU, 22, Color(ANOMALY_HOOK_LINE.r, ANOMALY_HOOK_LINE.g, ANOMALY_HOOK_LINE.b, 0.24), 1.0, true)
+
+
+func _draw_unresolved_anomaly_probe() -> void:
+	var probe := Rect2(Vector2(4232.0, -154.0), Vector2(40.0, 46.0))
+	draw_rect(probe, Color(0.08, 0.04, 0.12, 0.22), true)
+	draw_rect(probe, ANOMALY_HOOK_LINE, false, 1.2, true)
+	draw_line(Vector2(4252.0, -154.0), Vector2(4252.0, -108.0), Color(ANOMALY_HOOK_LINE.r, ANOMALY_HOOK_LINE.g, ANOMALY_HOOK_LINE.b, 0.28), 1.0, true)
+	for y in [-144.0, -132.0, -120.0]:
+		draw_line(Vector2(4240.0, y), Vector2(4264.0, y + 5.0), Color(ANOMALY_HOOK_LINE.r, ANOMALY_HOOK_LINE.g, ANOMALY_HOOK_LINE.b, 0.24), 1.0, true)
+	draw_circle(Vector2(4252.0, -126.0), 5.0, Color(ANOMALY_HOOK_LINE.r, ANOMALY_HOOK_LINE.g, ANOMALY_HOOK_LINE.b, 0.38))
 
 
 func _draw_service_deck(rect: Rect2) -> void:
@@ -634,13 +678,15 @@ func _draw_operation_relation_overlay() -> void:
 	_draw_relation_track([Vector2(3926.0, 70.0), Vector2(3988.0, 24.0), Vector2(4038.0, -24.0)], WRITEBACK_LINE)
 	_draw_relation_track([Vector2(4038.0, -24.0), Vector2(4118.0, 18.0), Vector2(4134.0, 78.0)], RETEST_LINE)
 	_draw_relation_track([Vector2(4134.0, 78.0), Vector2(4228.0, -52.0), Vector2(4108.0, -118.0)], LOGISTICS_LINE)
+	_draw_relation_track([Vector2(4134.0, 78.0), Vector2(4218.0, -28.0), Vector2(4252.0, -126.0)], ANOMALY_HOOK_LINE)
 	for port in [
 		{"position": Vector2(3744.0, 112.0), "color": RECOVERY_LINE},
 		{"position": Vector2(3926.0, 70.0), "color": WRITEBACK_LINE},
 		{"position": Vector2(4038.0, -24.0), "color": CORE_LIGHT},
 		{"position": Vector2(4134.0, 78.0), "color": RETEST_LINE},
 		{"position": Vector2(4228.0, -52.0), "color": LOGISTICS_LINE},
-		{"position": Vector2(4108.0, -118.0), "color": RETURN_LINE}
+		{"position": Vector2(4108.0, -118.0), "color": RETURN_LINE},
+		{"position": Vector2(4252.0, -126.0), "color": ANOMALY_HOOK_LINE}
 	]:
 		var position: Vector2 = port["position"]
 		var color: Color = port["color"]
@@ -718,7 +764,10 @@ func _register_station_shapes() -> void:
 		"station.return_service_lane",
 		"station.core_status_lights",
 		"station.core_pressure_warning",
-		"station.core_write_feedback"
+		"station.core_write_feedback",
+		"station.archived_stabilization_spine",
+		"station.stability_window_hook",
+		"station.unresolved_anomaly_probe"
 	]
 
 
@@ -735,11 +784,13 @@ func _register_flow_shapes() -> void:
 		"flow.core_runtime_write_feedback",
 		"flow.core_runtime_logistics_return",
 		"flow.completed_core_local_routes",
+		"flow.stability_window_hook",
 		"operation_relation.core.recovery_to_guard_cache",
 		"operation_relation.core.guard_cache_to_write_device",
 		"operation_relation.core.write_device_to_retest",
 		"operation_relation.core.logistics_return",
-		"operation_relation.core.role_ports"
+		"operation_relation.core.role_ports",
+		"operation_relation.core.unresolved_anomaly_hook"
 	]
 
 

@@ -48,6 +48,8 @@ const STARTUP_DECK_FILL := Color(0.035, 0.09, 0.09, 0.44)
 const STARTUP_CORE_FOCUS := Color(0.62, 1.0, 0.9, 0.78)
 const STARTUP_DISABLED_LINE := Color(0.3, 0.38, 0.34, 0.16)
 const STARTUP_DISABLED_FILL := Color(0.05, 0.07, 0.055, 0.18)
+const STARTUP_WARNING := Color(1.0, 0.56, 0.22, 0.58)
+const STARTUP_RECOVERY_SIGNAL := Color(0.72, 1.0, 0.7, 0.62)
 
 const DEVICE_ANCHORS := {
 	"device.outpost_core": "Interactables/OutpostCore",
@@ -282,6 +284,8 @@ func _draw_startup_restore_focus() -> void:
 	_draw_startup_outpost_core()
 	_draw_startup_player_stand()
 	_draw_startup_disabled_device_silhouettes()
+	_draw_startup_low_power_alarm()
+	_draw_startup_disabled_supply_bus()
 	_draw_startup_restore_cable()
 
 
@@ -322,6 +326,34 @@ func _draw_startup_restore_cable() -> void:
 	draw_circle(Vector2(-214.0, -54.0), 5.0, Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.36))
 
 
+func _draw_startup_low_power_alarm() -> void:
+	var alarm_panel := Rect2(Vector2(-330.0, -188.0), Vector2(118.0, 18.0))
+	draw_rect(alarm_panel, Color(0.18, 0.08, 0.04, 0.34), true)
+	draw_rect(alarm_panel, STARTUP_WARNING, false, 1.1, true)
+	for index in range(4):
+		var x := alarm_panel.position.x + 10.0 + float(index) * 24.0
+		var alpha := 0.54 if index == 0 else 0.22
+		draw_circle(Vector2(x, alarm_panel.position.y + 9.0), 3.8, Color(STARTUP_WARNING.r, STARTUP_WARNING.g, STARTUP_WARNING.b, alpha))
+	for y in [-168.0, -154.0, -140.0]:
+		draw_line(Vector2(-318.0, y), Vector2(-284.0, y + 8.0), Color(STARTUP_WARNING.r, STARTUP_WARNING.g, STARTUP_WARNING.b, 0.18), 1.0, true)
+
+
+func _draw_startup_disabled_supply_bus() -> void:
+	_draw_pipe(
+		[Vector2(-272.0, -92.0), Vector2(-238.0, -118.0), Vector2(-190.0, -118.0)],
+		Color(STARTUP_DISABLED_LINE.r, STARTUP_DISABLED_LINE.g, STARTUP_DISABLED_LINE.b, 0.34),
+		2.6
+	)
+	_draw_pipe(
+		[Vector2(-272.0, -68.0), Vector2(-246.0, -18.0), Vector2(-212.0, 18.0)],
+		Color(STARTUP_DISABLED_LINE.r, STARTUP_DISABLED_LINE.g, STARTUP_DISABLED_LINE.b, 0.28),
+		2.4
+	)
+	for point in [Vector2(-232.0, -118.0), Vector2(-214.0, -118.0), Vector2(-244.0, -20.0)]:
+		draw_line(point + Vector2(-5.0, -5.0), point + Vector2(5.0, 5.0), STARTUP_WARNING, 1.2, true)
+		draw_line(point + Vector2(-5.0, 5.0), point + Vector2(5.0, -5.0), STARTUP_WARNING, 1.2, true)
+
+
 func _draw_base_deck() -> void:
 	var base_rect := Rect2(Vector2(-336.0, -258.0), Vector2(282.0, 500.0))
 	draw_rect(base_rect, DECK_FILL, true)
@@ -340,6 +372,26 @@ func _draw_base_detail() -> void:
 	_draw_hazard_stripe(Vector2(-72.0, -210.0), Vector2(-72.0, 180.0))
 	draw_rect(Rect2(Vector2(-318.0, -138.0), Vector2(42.0, 18.0)), DEVICE_PANEL, true)
 	draw_rect(Rect2(Vector2(-304.0, 116.0), Vector2(78.0, 16.0)), DEVICE_PANEL, true)
+	_draw_restored_base_narrative_marks()
+
+
+func _draw_restored_base_narrative_marks() -> void:
+	_draw_pipe(
+		[Vector2(-318.0, -92.0), Vector2(-284.0, -138.0), Vector2(-212.0, -138.0), Vector2(-166.0, -112.0)],
+		Color(STARTUP_RECOVERY_SIGNAL.r, STARTUP_RECOVERY_SIGNAL.g, STARTUP_RECOVERY_SIGNAL.b, 0.34),
+		2.2
+	)
+	for rect in [
+		Rect2(Vector2(-328.0, -154.0), Vector2(22.0, 12.0)),
+		Rect2(Vector2(-292.0, -154.0), Vector2(28.0, 12.0)),
+		Rect2(Vector2(-252.0, -154.0), Vector2(24.0, 12.0))
+	]:
+		draw_rect(rect, Color(0.04, 0.1, 0.08, 0.42), true)
+		draw_rect(rect, STARTUP_RECOVERY_SIGNAL, false, 0.9, true)
+	draw_circle(Vector2(-166.0, -112.0), 4.6, Color(STARTUP_RECOVERY_SIGNAL.r, STARTUP_RECOVERY_SIGNAL.g, STARTUP_RECOVERY_SIGNAL.b, 0.58))
+	draw_rect(Rect2(Vector2(-296.0, 78.0), Vector2(86.0, 12.0)), Color(0.05, 0.09, 0.07, 0.34), true)
+	for x in [-286.0, -268.0, -250.0, -232.0]:
+		draw_line(Vector2(x, 80.0), Vector2(x + 8.0, 88.0), Color(STORAGE_LIGHT.r, STORAGE_LIGHT.g, STORAGE_LIGHT.b, 0.28), 1.0, true)
 
 
 func _draw_playable_space_layout() -> void:
@@ -788,7 +840,10 @@ func _register_device_detail_shapes() -> void:
 		"operation_relation.filter_to_outfitting",
 		"operation_relation.slurry_to_reactor_reclaim",
 		"operation_relation.slurry_to_core_prep",
-		"operation_relation.device_role_ports"
+		"operation_relation.device_role_ports",
+		"story.outpost.recovered_power_bus",
+		"story.outpost.reactor_cold_start_marks",
+		"story.outpost.storage_recovery_manifest"
 	]
 
 
@@ -900,6 +955,8 @@ func _register_startup_restore_shapes() -> void:
 		"startup_restore.disabled_reactor_silhouette",
 		"startup_restore.disabled_storage_silhouette",
 		"startup_restore.disabled_outfitting_silhouette",
+		"startup_restore.low_power_alarm",
+		"startup_restore.disabled_supply_bus",
 		"startup_restore.restore_cable"
 	]
 

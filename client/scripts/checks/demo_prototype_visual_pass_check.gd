@@ -380,15 +380,25 @@ func _check_startup_readability_scope() -> void:
 			"pollution focus keeps visual priority cues below treatment artwork instead of drawing a yellow block"
 		)
 	if base_layer != null:
+		base_layer.apply_visuals()
 		base_layer.refresh_chain_state(WorldState.create_default(), CharacterState.create_default())
 		_expect_equal(base_layer.is_startup_restore_focus_active(), true, "startup base visual layer uses the core restore focus view")
-		_expect_equal(base_layer.get_startup_restore_shape_count() >= 8, true, "startup base visual layer registers restore focus shapes")
+		_expect_equal(base_layer.get_startup_restore_shape_count() >= 10, true, "startup base visual layer registers restore focus shapes")
 		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.outpost_core_focus"), true, "startup restore view marks the outpost core")
 		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.disabled_reactor_silhouette"), true, "startup restore view keeps reactor as a muted silhouette")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.low_power_alarm"), true, "startup restore view shows low power alarm evidence")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.disabled_supply_bus"), true, "startup restore view shows disabled supply bus evidence")
 		var reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
 		var storage := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
 		_expect_equal(reactor.modulate.a <= 0.01, true, "startup mutes reactor interactable marker")
 		_expect_equal(storage.modulate.a <= 0.01, true, "startup mutes storage interactable marker")
+		var restored_world := WorldState.create_default()
+		restored_world.quest_state.complete_quest("quest.restore_outpost")
+		base_layer.refresh_chain_state(restored_world, CharacterState.create_default())
+		_expect_equal(not base_layer.is_startup_restore_focus_active(), true, "restored base visual layer leaves startup focus")
+		_expect_equal(base_layer.has_detail_shape("story.outpost.recovered_power_bus"), true, "base restored view keeps recovered power bus evidence")
+		_expect_equal(base_layer.has_detail_shape("story.outpost.reactor_cold_start_marks"), true, "base restored view keeps reactor cold start evidence")
+		_expect_equal(base_layer.has_detail_shape("story.outpost.storage_recovery_manifest"), true, "base restored view keeps storage recovery evidence")
 	_check_scene_visual_layer_focus_visibility(map)
 	_check_runtime_annotation_hidden(map, "DemoRoutePresentationLayer/DemoRouteBaseLabel")
 	_check_runtime_annotation_hidden(map, "SceneArtFoundationLayer/SceneArtBaseIdentityLabel")

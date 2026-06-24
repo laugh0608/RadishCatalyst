@@ -79,6 +79,7 @@ const RESIDUE_FILL := Color(0.5, 0.4, 0.08, 0.15)
 const DANGER_LINE := Color(0.94, 0.46, 0.18, 0.74)
 const DANGER_FILL := Color(0.42, 0.16, 0.06, 0.0)
 const DANGER_POCKET_FILL := Color(0.5, 0.18, 0.08, 0.082)
+const ECOLOGY_SCAR_LINE := Color(0.18, 0.28, 0.18, 0.22)
 const ROUTE_TO_FILTER := Color(0.88, 0.7, 0.26, 0.4)
 const ROUTE_TO_BASE := Color(0.66, 0.86, 0.52, 0.28)
 const SLURRY_ROUTE := Color(0.78, 0.42, 0.18, 0.28)
@@ -402,9 +403,11 @@ func _draw_boundary_field() -> void:
 
 func _draw_pollution_material_surface() -> void:
 	_draw_sediment_fans()
+	_draw_accident_sediment_traces()
 	_draw_segmented_settling_cells()
 	_draw_local_settling_islands()
 	_draw_settling_layers()
+	_draw_ecology_damage_scars()
 	_draw_danger_bunds()
 	_draw_local_danger_pockets()
 	_draw_broken_danger_bund_segments()
@@ -413,6 +416,7 @@ func _draw_pollution_material_surface() -> void:
 	_draw_filter_bed_partitions()
 	_draw_filter_rubble_cells()
 	_draw_filter_input_output_site()
+	_draw_filter_conversion_ports()
 	_draw_local_service_ports()
 	_draw_output_service_islands()
 	_draw_recovery_loading_pad()
@@ -444,6 +448,18 @@ func _draw_sediment_fans() -> void:
 		draw_polyline(polygon, SEDIMENT_LINE, 1.4, true)
 	for point in [Vector2(276.0, 46.0), Vector2(322.0, 30.0), Vector2(338.0, 156.0), Vector2(292.0, 184.0)]:
 		draw_circle(point, 4.0, Color(0.92, 0.78, 0.26, 0.26))
+
+
+func _draw_accident_sediment_traces() -> void:
+	for route in [
+		[Vector2(374.0, 72.0), Vector2(338.0, 48.0), Vector2(298.0, 28.0), Vector2(258.0, 34.0)],
+		[Vector2(366.0, 156.0), Vector2(330.0, 126.0), Vector2(300.0, 96.0), Vector2(272.0, 82.0)],
+		[Vector2(344.0, 214.0), Vector2(314.0, 192.0), Vector2(284.0, 178.0)]
+	]:
+		draw_polyline(PackedVector2Array(route), Color(0.06, 0.04, 0.018, 0.32), 5.0, true)
+		draw_polyline(PackedVector2Array(route), Color(RESIDUE_LINE.r, RESIDUE_LINE.g, RESIDUE_LINE.b, 0.18), 1.2, true)
+	for point in [Vector2(350.0, 68.0), Vector2(320.0, 118.0), Vector2(304.0, 186.0)]:
+		draw_line(point + Vector2(-9.0, -4.0), point + Vector2(9.0, 4.0), Color(DANGER_LINE.r, DANGER_LINE.g, DANGER_LINE.b, 0.2), 1.1, true)
 
 
 func _draw_settling_layers() -> void:
@@ -497,6 +513,18 @@ func _draw_local_settling_islands() -> void:
 		draw_polyline(polygon, Color(0.08, 0.06, 0.025, 0.36), 5.0, true)
 		draw_colored_polygon(polygon, Color(SEDIMENT_FILL.r, SEDIMENT_FILL.g, SEDIMENT_FILL.b, 0.072))
 		draw_polyline(polygon, Color(SEDIMENT_LINE.r, SEDIMENT_LINE.g, SEDIMENT_LINE.b, 0.2), 1.2, true)
+
+
+func _draw_ecology_damage_scars() -> void:
+	for origin in [
+		Vector2(248.0, 112.0),
+		Vector2(294.0, 140.0),
+		Vector2(360.0, 86.0),
+		Vector2(364.0, 196.0)
+	]:
+		draw_line(origin + Vector2(-12.0, 0.0), origin + Vector2(12.0, 0.0), ECOLOGY_SCAR_LINE, 1.0, true)
+		draw_line(origin + Vector2(-8.0, -8.0), origin + Vector2(8.0, 8.0), ECOLOGY_SCAR_LINE, 1.0, true)
+		draw_arc(origin, 13.0, PI * 0.12, PI * 0.86, 12, Color(ECOLOGY_SCAR_LINE.r, ECOLOGY_SCAR_LINE.g, ECOLOGY_SCAR_LINE.b, 0.18), 1.0, true)
 
 
 func _draw_danger_bunds() -> void:
@@ -611,6 +639,22 @@ func _draw_filter_input_output_site() -> void:
 	draw_line(Vector2(360.0, -66.0), Vector2(382.0, 24.0), Color(CHAIN_CORE_PREP.r, CHAIN_CORE_PREP.g, CHAIN_CORE_PREP.b, 0.34), 2.4, true)
 
 
+func _draw_filter_conversion_ports() -> void:
+	for port in [
+		{"center": Vector2(282.0, -102.0), "color": RESIDUE_LINE},
+		{"center": Vector2(316.0, -124.0), "color": CHAIN_VIAL},
+		{"center": Vector2(316.0, -96.0), "color": CHAIN_SLURRY}
+	]:
+		var center: Vector2 = port["center"]
+		var color: Color = port["color"]
+		draw_arc(center, 13.0, 0.0, TAU, 24, Color(color.r, color.g, color.b, 0.32), 1.1, true)
+		draw_rect(Rect2(center + Vector2(-4.0, -4.0), Vector2(8.0, 8.0)), Color(color.r, color.g, color.b, 0.24), true)
+		draw_line(center + Vector2(-9.0, 0.0), center + Vector2(9.0, 0.0), Color(color.r, color.g, color.b, 0.34), 1.0, true)
+	_draw_route([Vector2(258.0, 34.0), Vector2(270.0, -34.0), Vector2(282.0, -102.0)], Color(RESIDUE_LINE.r, RESIDUE_LINE.g, RESIDUE_LINE.b, 0.26), 1.5)
+	_draw_route([Vector2(316.0, -124.0), Vector2(348.0, -124.0), Vector2(372.0, -114.0)], Color(CHAIN_VIAL.r, CHAIN_VIAL.g, CHAIN_VIAL.b, 0.24), 1.3)
+	_draw_route([Vector2(316.0, -96.0), Vector2(350.0, -84.0), Vector2(370.0, -56.0)], Color(CHAIN_SLURRY.r, CHAIN_SLURRY.g, CHAIN_SLURRY.b, 0.22), 1.3)
+
+
 func _draw_local_service_ports() -> void:
 	for rect in [
 		Rect2(Vector2(218.0, -116.0), Vector2(34.0, 16.0)),
@@ -662,6 +706,7 @@ func _draw_recovery_crate_stacks() -> void:
 
 func _draw_treatment_routes() -> void:
 	_draw_route([Vector2(258.0, 34.0), Vector2(278.0, -12.0), Vector2(298.0, -72.0)], ROUTE_TO_FILTER, 2.6)
+	_draw_route([Vector2(366.0, 156.0), Vector2(322.0, 104.0), Vector2(282.0, -102.0)], Color(RESIDUE_LINE.r, RESIDUE_LINE.g, RESIDUE_LINE.b, 0.2), 1.7)
 	_draw_route([Vector2(344.0, 158.0), Vector2(330.0, 78.0), Vector2(306.0, -70.0)], SLURRY_ROUTE, 2.0)
 	_draw_route([Vector2(298.0, -110.0), Vector2(250.0, -108.0), Vector2(220.0, -98.0)], ROUTE_TO_BASE, 1.8)
 	_draw_route([Vector2(304.0, 96.0), Vector2(314.0, 152.0), Vector2(336.0, 206.0)], SLURRY_ROUTE, 1.8)
@@ -740,12 +785,15 @@ func _draw_pollution_chain_state() -> void:
 
 
 func _draw_operation_relation_overlay() -> void:
+	_draw_relation_track([Vector2(366.0, 156.0), Vector2(322.0, 104.0), Vector2(282.0, -102.0)], RESIDUE_LINE)
 	_draw_relation_track([Vector2(258.0, 34.0), Vector2(278.0, -12.0), Vector2(296.0, -84.0)], RESIDUE_LINE)
 	_draw_relation_track([Vector2(318.0, -124.0), Vector2(352.0, -124.0), Vector2(220.0, -98.0)], CHAIN_VIAL)
 	_draw_relation_track([Vector2(318.0, -96.0), Vector2(352.0, -96.0), Vector2(336.0, 206.0)], CHAIN_SLURRY)
 	_draw_relation_track([Vector2(336.0, 206.0), Vector2(260.0, 188.0), Vector2(212.0, 136.0)], ROUTE_TO_BASE)
+	_draw_relation_track([Vector2(282.0, -102.0), Vector2(318.0, -124.0), Vector2(318.0, -96.0)], FILTER_LINE)
 	_draw_relation_track([Vector2(336.0, 206.0), Vector2(372.0, 176.0), Vector2(382.0, 24.0)], CHAIN_CORE_PREP)
 	for port in [
+		{"position": Vector2(366.0, 156.0), "color": RESIDUE_LINE},
 		{"position": Vector2(258.0, 34.0), "color": RESIDUE_LINE},
 		{"position": Vector2(296.0, -84.0), "color": FILTER_LINE},
 		{"position": Vector2(352.0, -124.0), "color": CHAIN_VIAL},
@@ -950,11 +998,15 @@ func _register_flow_shapes() -> void:
 		"flow.pollution_status_lights",
 		"flow.pollution_material_state_slots",
 		"flow.pollution_pressure_warning_nodes",
+		"flow.contamination_to_filter_story",
+		"flow.filter_conversion_feedback",
 		"operation_relation.pollution.residue_to_filter",
 		"operation_relation.pollution.filter_outputs",
 		"operation_relation.pollution.vial_return",
 		"operation_relation.pollution.slurry_split",
-		"operation_relation.pollution.core_prep_pressure_port"
+		"operation_relation.pollution.core_prep_pressure_port",
+		"operation_relation.pollution.contamination_to_filter_story",
+		"operation_relation.pollution.filter_conversion_feedback"
 	]
 
 
@@ -962,9 +1014,11 @@ func _register_terrain_material_shapes() -> void:
 	terrain_material_shape_ids = [
 		"terrain.pollution.local_processing_workspace",
 		"terrain.pollution.sediment_fan",
+		"terrain.pollution.accident_sediment_traces",
 		"terrain.pollution.segmented_settling_cells",
 		"terrain.pollution.local_settling_islands",
 		"terrain.pollution.settling_layers",
+		"terrain.pollution.ecology_damage_scars",
 		"terrain.pollution.danger_bund",
 		"terrain.pollution.local_danger_pockets",
 		"terrain.pollution.segmented_danger_bund",
@@ -973,6 +1027,7 @@ func _register_terrain_material_shapes() -> void:
 		"terrain.pollution.filter_bed_partitions",
 		"terrain.pollution.filter_rubble_cells",
 		"terrain.pollution.input_trench",
+		"terrain.pollution.filter_conversion_ports",
 		"terrain.pollution.local_service_ports",
 		"terrain.pollution.output_vial_rack",
 		"terrain.pollution.output_slurry_basin",

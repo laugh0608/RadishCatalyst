@@ -37,7 +37,7 @@ func _check_core_visual_layer_exists_and_registers_station_shapes() -> void:
 		return
 
 	layer.apply_visuals()
-	_expect_equal(layer.get_station_shape_count() >= 13, true, "core visual layer registers terminal station shapes")
+	_expect_equal(layer.get_station_shape_count() >= 23, true, "core visual layer registers terminal station shapes")
 	_expect_equal(layer.get_flow_count() >= 6, true, "core visual layer registers terminal station flows")
 	_expect_equal(layer.has_station_shape("station.arrival_threshold"), true, "core visual layer marks arrival threshold")
 	_expect_equal(layer.has_station_shape("station.central_maintenance_deck"), true, "core visual layer marks central maintenance deck")
@@ -55,6 +55,9 @@ func _check_core_visual_layer_exists_and_registers_station_shapes() -> void:
 	_expect_equal(layer.has_station_shape("station.core_status_lights"), true, "core visual layer marks runtime status lights")
 	_expect_equal(layer.has_station_shape("station.core_pressure_warning"), true, "core visual layer marks pressure warning feedback")
 	_expect_equal(layer.has_station_shape("station.core_write_feedback"), true, "core visual layer marks core write feedback")
+	_expect_equal(layer.has_station_shape("station.archived_stabilization_spine"), true, "core visual layer marks old stabilization spine")
+	_expect_equal(layer.has_station_shape("station.stability_window_hook"), true, "core visual layer marks stability window hook")
+	_expect_equal(layer.has_station_shape("station.unresolved_anomaly_probe"), true, "core visual layer marks unresolved anomaly probe")
 	_expect_equal(layer.has_flow_shape("flow.guard_cache_to_core"), true, "core visual layer marks guard cache to core route")
 	_expect_equal(layer.has_flow_shape("flow.core_return_to_base"), true, "core visual layer marks return logistics route")
 	_expect_equal(layer.has_flow_shape("flow.core_local_completed_return"), true, "core visual layer marks completed local return scope")
@@ -62,6 +65,7 @@ func _check_core_visual_layer_exists_and_registers_station_shapes() -> void:
 	_expect_equal(layer.has_flow_shape("flow.core_runtime_write_feedback"), true, "core visual layer marks runtime write feedback flow")
 	_expect_equal(layer.has_flow_shape("flow.core_runtime_logistics_return"), true, "core visual layer marks runtime logistics return flow")
 	_expect_equal(layer.has_flow_shape("flow.completed_core_local_routes"), true, "core visual layer marks completed local route scope")
+	_expect_equal(layer.has_flow_shape("flow.stability_window_hook"), true, "core visual layer marks stability window hook flow")
 	map.free()
 
 
@@ -71,12 +75,13 @@ func _check_core_visual_operation_relation_shapes() -> void:
 	var layer := map.get_node("DemoCoreStabilizationVisualLayer") as DemoCoreStabilizationVisualLayer
 	layer.apply_visuals()
 
-	_expect_equal(layer.get_flow_count() >= 16, true, "core visual layer registers operation relation routes")
+	_expect_equal(layer.get_flow_count() >= 18, true, "core visual layer registers operation relation routes")
 	_expect_equal(layer.has_flow_shape("operation_relation.core.recovery_to_guard_cache"), true, "core relation links recovery supply to guard cache")
 	_expect_equal(layer.has_flow_shape("operation_relation.core.guard_cache_to_write_device"), true, "core relation links guard cache to write device")
 	_expect_equal(layer.has_flow_shape("operation_relation.core.write_device_to_retest"), true, "core relation links write device to retest")
 	_expect_equal(layer.has_flow_shape("operation_relation.core.logistics_return"), true, "core relation links retest to logistics return")
 	_expect_equal(layer.has_flow_shape("operation_relation.core.role_ports"), true, "core relation marks station role ports")
+	_expect_equal(layer.has_flow_shape("operation_relation.core.unresolved_anomaly_hook"), true, "core relation marks unresolved anomaly hook")
 	map.free()
 
 
