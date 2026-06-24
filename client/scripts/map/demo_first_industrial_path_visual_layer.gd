@@ -47,19 +47,19 @@ const STATUS_OUTPUT_LIGHT := Color(0.58, 0.88, 0.52, 0.68)
 const CRYSTAL_COLLECTOR_ID := "building.crystal_collector_t1"
 const CRYSTAL_COLLECTOR_OUTPUT_INSTANCE_ID := "map_object_instance.crystal_collector_output"
 const FIRST_PATH_CONTEXT_ROUTE_ALPHA := 0.0005
-const FIRST_PATH_CONTEXT_BOUNDARY_ALPHA := 0.004
+const FIRST_PATH_CONTEXT_BOUNDARY_ALPHA := 0.002
 
 const FIRST_PATH_CONTEXT_LAYER_ALPHAS := [
-	{"path": "OpeningSceneLayer", "alpha": 0.05},
-	{"path": "DemoIndustrialBaseVisualLayer", "alpha": 0.34},
-	{"path": "DemoCrystalResourceVisualLayer", "alpha": 0.16},
-	{"path": "DemoPollutionBoundaryVisualLayer", "alpha": 0.035},
-	{"path": "DemoCoreStabilizationVisualLayer", "alpha": 0.025},
-	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.055},
-	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.02},
-	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.025},
+	{"path": "OpeningSceneLayer", "alpha": 0.032},
+	{"path": "DemoIndustrialBaseVisualLayer", "alpha": 0.24},
+	{"path": "DemoCrystalResourceVisualLayer", "alpha": 0.12},
+	{"path": "DemoPollutionBoundaryVisualLayer", "alpha": 0.018},
+	{"path": "DemoCoreStabilizationVisualLayer", "alpha": 0.008},
+	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.018},
+	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.012},
+	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.008},
 	{"path": "DemoRoutePresentationLayer", "alpha": 0.0},
-	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.045}
+	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.035}
 ]
 
 const FIRST_PATH_CONTEXT_ROUTE_PATHS := [

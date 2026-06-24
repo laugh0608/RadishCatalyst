@@ -179,7 +179,7 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	_expect_equal(first_path_layer.get_muted_planning_layer_count() >= 6, true, "first industrial path layer pushes overlapping visual layers into the background")
 	_expect_equal(first_path_layer.get_muted_context_rect_count() >= 10, true, "first industrial path layer suppresses cross-region route rectangles")
 	_expect_equal(first_path_main_route.color.a <= 0.001, true, "first industrial path layer lowers the global route spine")
-	_expect_equal(first_path_crystal_boundary.color.a <= 0.006, true, "first industrial path layer lowers region boundary frames")
+	_expect_equal(first_path_crystal_boundary.color.a <= 0.003, true, "first industrial path layer lowers region boundary frames")
 	_expect_equal(first_path_layer.is_first_path_visible_at(Vector2(-250.0, -48.0)), true, "first industrial path layer is visible at base start")
 	_expect_equal(first_path_layer.is_first_path_visible_at(Vector2(112.0, -112.0)), true, "first industrial path layer is visible at crystal pickup")
 	_expect_equal(first_path_layer.is_first_path_visible_at(Vector2(168.0, 34.0)), false, "first industrial path layer steps back before pollution treatment boundary")
@@ -516,12 +516,16 @@ func _check_crystal_resource_visual_layer() -> void:
 	layer.refresh_focus_visibility(Vector2(-38, -104))
 	var crystal_focus_route := map.get_node("MainRouteSpine") as ColorRect
 	var crystal_focus_boundary := map.get_node("RegionBoundaryPollution") as ColorRect
+	var crystal_focus_depth_layer := map.get_node("DemoSceneFocusDepthLayer") as CanvasItem
+	var crystal_focus_region_value_layer := map.get_node("DemoRegionIndustrialValueLayer") as CanvasItem
 	_expect_equal(layer.visible, true, "crystal visual layer appears when player reaches field departure")
 	_expect_equal(layer.get_muted_departure_focus_count() >= 1, true, "crystal visual layer suppresses departure gate focus label in field view")
-	_expect_equal(layer.get_muted_crystal_focus_context_layer_count() >= 10, true, "crystal visual layer mutes neighboring visual context layers")
+	_expect_equal(layer.get_muted_crystal_focus_context_layer_count() >= 11, true, "crystal visual layer mutes neighboring visual context layers")
 	_expect_equal(layer.get_muted_crystal_focus_context_rect_count() >= 10, true, "crystal visual layer suppresses cross-region route rectangles")
 	_expect_equal(crystal_focus_route.color.a <= 0.001, true, "crystal visual layer lowers the global route spine")
-	_expect_equal(crystal_focus_boundary.color.a <= 0.006, true, "crystal visual layer lowers neighboring region boundary frames")
+	_expect_equal(crystal_focus_boundary.color.a <= 0.003, true, "crystal visual layer lowers neighboring region boundary frames")
+	_expect_equal(crystal_focus_depth_layer.modulate.a <= 0.007, true, "crystal visual layer lowers scene depth frames")
+	_expect_equal(crystal_focus_region_value_layer.modulate.a <= 0.005, true, "crystal visual layer lowers region value blocks")
 	layer.refresh_focus_visibility(Vector2(168, 34))
 	_expect_equal(layer.visible, false, "crystal visual layer steps back after entering pollution treatment boundary")
 	_expect_equal(layer.has_resource_shape("crystal.main_vein"), true, "crystal visual layer marks main vein")

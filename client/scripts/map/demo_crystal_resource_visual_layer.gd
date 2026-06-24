@@ -9,10 +9,10 @@ const ROLE_TERRAIN := "terrain"
 const FOCUS_VISIBLE_MIN_X := -80.0
 const FOCUS_VISIBLE_MAX_X := 160.0
 const CRYSTAL_FOCUS_CONTEXT_ROUTE_ALPHA := 0.0005
-const CRYSTAL_FOCUS_CONTEXT_BOUNDARY_ALPHA := 0.004
+const CRYSTAL_FOCUS_CONTEXT_BOUNDARY_ALPHA := 0.0015
 
 const CRYSTAL_FOCUS_CONTEXT_LAYER_ALPHAS := [
-	{"path": "OpeningSceneLayer", "alpha": 0.035},
+	{"path": "OpeningSceneLayer", "alpha": 0.02},
 	{"path": "SceneArtFoundationLayer", "alpha": 0.0},
 	{"path": "NonCoreSceneIdentityLayer", "alpha": 0.0},
 	{"path": "FunctionalTransitionSpatialPlayabilityLayer", "alpha": 0.0},
@@ -20,13 +20,14 @@ const CRYSTAL_FOCUS_CONTEXT_LAYER_ALPHAS := [
 	{"path": "WindCorridorTransitionPlayabilityLayer", "alpha": 0.0},
 	{"path": "CoreApproachHandoffLayer", "alpha": 0.0},
 	{"path": "CoreStabilizationRunLayer", "alpha": 0.0},
-	{"path": "DemoIndustrialBaseVisualLayer", "alpha": 0.055},
+	{"path": "DemoIndustrialBaseVisualLayer", "alpha": 0.032},
 	{"path": "DemoPollutionBoundaryVisualLayer", "alpha": 0.0},
 	{"path": "DemoCoreStabilizationVisualLayer", "alpha": 0.0},
+	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.006},
 	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.01},
-	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.012},
+	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.004},
 	{"path": "DemoRoutePresentationLayer", "alpha": 0.0},
-	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.045}
+	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.032}
 ]
 
 const CRYSTAL_FOCUS_CONTEXT_ROUTE_PATHS := [
@@ -48,19 +49,19 @@ const CRYSTAL_FOCUS_CONTEXT_BOUNDARY_PATHS := [
 	"RegionBoundaryRuin"
 ]
 
-const FIELD_FRAME := Color(0.32, 0.58, 0.62, 0.045)
+const FIELD_FRAME := Color(0.32, 0.58, 0.62, 0.075)
 const FIELD_FILL := Color(0.06, 0.12, 0.15, 0.0)
-const ORE_FACE_FILL := Color(0.06, 0.18, 0.2, 0.0)
-const ORE_FACE_LINE := Color(0.38, 0.78, 0.86, 0.055)
+const ORE_FACE_FILL := Color(0.06, 0.18, 0.2, 0.045)
+const ORE_FACE_LINE := Color(0.38, 0.78, 0.86, 0.13)
 const CUT_SCARP_LINE := Color(0.72, 0.96, 1.0, 0.34)
 const CRYSTAL_LINE := Color(0.42, 0.88, 0.98, 0.78)
 const CRYSTAL_FILL := Color(0.25, 0.78, 0.95, 0.44)
-const MINE_ISLAND_FILL := Color(0.08, 0.22, 0.26, 0.028)
-const MINE_ISLAND_LINE := Color(0.56, 0.9, 0.98, 0.24)
+const MINE_ISLAND_FILL := Color(0.08, 0.22, 0.26, 0.064)
+const MINE_ISLAND_LINE := Color(0.56, 0.9, 0.98, 0.34)
 const DARK_CUT_CHANNEL := Color(0.01, 0.035, 0.045, 0.56)
-const ORE_CHIP_FILL := Color(0.16, 0.36, 0.42, 0.044)
-const ORE_CHIP_LINE := Color(0.54, 0.86, 0.94, 0.18)
-const MINE_BENCH_LINE := Color(0.68, 0.92, 0.96, 0.24)
+const ORE_CHIP_FILL := Color(0.16, 0.36, 0.42, 0.072)
+const ORE_CHIP_LINE := Color(0.54, 0.86, 0.94, 0.26)
+const MINE_BENCH_LINE := Color(0.68, 0.92, 0.96, 0.3)
 const BROKEN_MINE_SHADOW_FILL := Color(0.02, 0.07, 0.08, 0.36)
 const BROKEN_MINE_SHADOW_LINE := Color(0.28, 0.56, 0.62, 0.22)
 const MINE_CUTOUT_FILL := Color(0.012, 0.034, 0.04, 0.64)
