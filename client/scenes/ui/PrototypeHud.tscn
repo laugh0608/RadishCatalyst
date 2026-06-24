@@ -406,6 +406,24 @@ text = "快捷补给"
 label_settings = SubResource("LabelSettings_status")
 autowrap_mode = 3
 
+[node name="ActionSummaryPanel" type="ColorRect" parent="."]
+offset_left = 600.0
+offset_top = 936.0
+offset_right = 1320.0
+offset_bottom = 994.0
+color = Color(0.028, 0.045, 0.048, 0.46)
+clip_contents = true
+
+[node name="ActionSummaryLabel" type="Label" parent="ActionSummaryPanel"]
+offset_left = 16.0
+offset_top = 8.0
+offset_right = 704.0
+offset_bottom = 50.0
+text = "当前：基地现场
+下一步：靠近可操作对象"
+label_settings = SubResource("LabelSettings_status")
+autowrap_mode = 3
+
 [node name="CombatPanel" type="ColorRect" parent="."]
 visible = false
 offset_left = 1388.0

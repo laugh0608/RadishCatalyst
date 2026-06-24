@@ -66,9 +66,12 @@ var feedback_presenter := HudFeedbackPresenter.new()
 var map_presenter := HudMapPresenter.new()
 var status_presenter := HudStatusPresenter.new()
 var hint_presenter := HudHintPresenter.new()
+var action_summary_presenter := HudActionSummaryPresenter.new()
 var development_baseline_presenter := HudDevelopmentBaselinePresenter.new()
 var context_prompt_text := ""
 var runtime_hint_text := ""
+var objective_summary_text := ""
+var last_log_summary_text := ""
 var development_baseline_definitions: Array[Dictionary] = []
 var visual_review_checkpoint_definitions: Array[Dictionary] = []
 var selected_development_baseline_index := 0
@@ -83,6 +86,7 @@ var last_debug_character_state: CharacterState
 @onready var status_panel: ColorRect = $StatusPanel
 @onready var vitals_panel: ColorRect = $VitalsPanel
 @onready var quick_supply_panel: ColorRect = $QuickSupplyPanel
+@onready var action_summary_panel: ColorRect = $ActionSummaryPanel
 @onready var combat_panel: ColorRect = $CombatPanel
 @onready var map_panel: ColorRect = $MapPanel
 @onready var map_title_label: Label = $MapPanel/MapTitleLabel
@@ -94,6 +98,7 @@ var last_debug_character_state: CharacterState
 @onready var status_label: Label = $StatusPanel/StatusLabel
 @onready var vitals_label: Label = $VitalsPanel/VitalsLabel
 @onready var quick_supply_label: Label = $QuickSupplyPanel/QuickSupplyLabel
+@onready var action_summary_label: Label = $ActionSummaryPanel/ActionSummaryLabel
 @onready var combat_label: Label = $CombatPanel/CombatLabel
 @onready var prompt_label: Label = $PromptPanel/PromptLabel
 @onready var log_label: Label = $LogPanel/LogLabel
@@ -224,6 +229,7 @@ func _ready() -> void:
 	_select_visual_review_checkpoint_by_id(DevelopmentBaselineCatalog.get_default_visual_review_checkpoint_id())
 	_refresh_visual_review_checkpoint_panel()
 	_layout_runtime_panels(true)
+	_refresh_action_summary_label()
 	_set_debug_panels_visible(false)
 
 
@@ -258,6 +264,9 @@ func _update_timed_panel_visibility(delta: float) -> void:
 	log_feedback_remaining_seconds = maxf(0.0, log_feedback_remaining_seconds - delta)
 	if log_feedback_remaining_seconds <= 0.0 and log_panel != null:
 		log_panel.visible = false
+		if not last_log_summary_text.is_empty():
+			last_log_summary_text = ""
+			_refresh_action_summary_label()
 
 
 func update_status(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> void:
@@ -265,8 +274,10 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 	last_debug_data_registry = data_registry
 	last_debug_character_state = character_state
 	var active_quest_id := _get_active_quest_id(world_state)
+	var objective_text := status_presenter.format_objective_text(data_registry, world_state, character_state)
 	if status_label != null:
-		status_label.text = status_presenter.format_objective_text(data_registry, world_state, character_state)
+		status_label.text = objective_text
+	objective_summary_text = objective_text
 	if vitals_label != null:
 		vitals_label.text = status_presenter.format_runtime_vitals_text(data_registry, world_state, character_state)
 	if quick_supply_label != null:
@@ -316,29 +327,35 @@ func show_prompt(text: String) -> void:
 	_ensure_runtime_nodes()
 	context_prompt_text = text
 	_refresh_prompt_label()
+	_refresh_action_summary_label()
 
 
 func clear_prompt() -> void:
 	_ensure_runtime_nodes()
 	context_prompt_text = ""
 	_refresh_prompt_label()
+	_refresh_action_summary_label()
 
 
 func append_log(text: String) -> void:
 	_ensure_runtime_nodes()
 	var display_text := _format_bottom_rail_text(text, LOG_RUNTIME_MAX_CHARACTERS)
+	last_log_summary_text = display_text
 	if log_label != null:
 		log_label.text = display_text
 		log_label.tooltip_text = text.strip_edges()
 	if log_panel != null:
 		log_panel.visible = not display_text.is_empty()
 	log_feedback_remaining_seconds = LOG_FEEDBACK_SECONDS if not display_text.is_empty() else 0.0
+	_refresh_action_summary_label()
 
 
 func clear_runtime_feedback() -> void:
 	context_prompt_text = ""
 	runtime_hint_text = ""
+	last_log_summary_text = ""
 	_refresh_prompt_label()
+	_refresh_action_summary_label()
 	hide_device_panel()
 	completion_panel.visible = false
 	evacuation_panel.visible = false
@@ -671,6 +688,7 @@ func _format_map_hint_runtime_text(raw_hint: String) -> String:
 func _update_runtime_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> void:
 	runtime_hint_text = hint_presenter.format_runtime_hint(world_state, character_state, quest_id)
 	_refresh_prompt_label()
+	_refresh_action_summary_label()
 
 
 func _refresh_development_baseline_panel() -> void:
@@ -730,6 +748,26 @@ func _refresh_prompt_label() -> void:
 		source_text = runtime_hint_text
 		prompt_label.text = _format_bottom_rail_text(runtime_hint_text, PROMPT_RUNTIME_MAX_CHARACTERS)
 	prompt_label.tooltip_text = source_text.strip_edges()
+
+
+func _refresh_action_summary_label() -> void:
+	_ensure_runtime_nodes()
+	if action_summary_label == null:
+		return
+	action_summary_label.text = action_summary_presenter.format_label_text(
+		objective_summary_text,
+		context_prompt_text,
+		runtime_hint_text,
+		last_log_summary_text
+	)
+	action_summary_label.tooltip_text = action_summary_presenter.format_tooltip_text(
+		objective_summary_text,
+		context_prompt_text,
+		runtime_hint_text,
+		last_log_summary_text
+	)
+	if action_summary_panel != null:
+		action_summary_panel.visible = true
 
 
 func _format_prompt_rail_text(text: String) -> String:
@@ -810,6 +848,8 @@ func _ensure_runtime_nodes() -> void:
 		vitals_panel = get_node_or_null("VitalsPanel")
 	if quick_supply_panel == null:
 		quick_supply_panel = get_node_or_null("QuickSupplyPanel")
+	if action_summary_panel == null:
+		action_summary_panel = get_node_or_null("ActionSummaryPanel")
 	if combat_panel == null:
 		combat_panel = get_node_or_null("CombatPanel")
 	if map_panel == null:
@@ -832,6 +872,8 @@ func _ensure_runtime_nodes() -> void:
 		vitals_label = get_node_or_null("VitalsPanel/VitalsLabel")
 	if quick_supply_label == null:
 		quick_supply_label = get_node_or_null("QuickSupplyPanel/QuickSupplyLabel")
+	if action_summary_label == null:
+		action_summary_label = get_node_or_null("ActionSummaryPanel/ActionSummaryLabel")
 	if combat_label == null:
 		combat_label = get_node_or_null("CombatPanel/CombatLabel")
 	if prompt_label == null:
@@ -992,6 +1034,8 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	var prompt_height := 50.0
 	var log_width := clampf(viewport_size.x * 0.2, 360.0, 440.0)
 	var log_height := 50.0
+	var action_summary_width := clampf(viewport_size.x * 0.32, 560.0, 720.0)
+	var action_summary_height := 58.0
 	var device_width := clampf(viewport_size.x * 0.34, 520.0, 640.0)
 	var device_height := clampf(viewport_size.y * 0.52, 620.0, 760.0)
 	var feedback_width := clampf(viewport_size.x * 0.24, 460.0, 560.0)
@@ -1027,8 +1071,19 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	var prompt_x := margin
 	var prompt_y := viewport_size.y - margin - prompt_height
 	var log_y := viewport_size.y - margin - log_height
+	var action_summary_position := Vector2(
+		(viewport_size.x - action_summary_width) * 0.5,
+		prompt_y - gap - action_summary_height
+	)
 	_set_control_rect(prompt_panel, Vector2(prompt_x, prompt_y), Vector2(prompt_width, prompt_height))
 	_set_control_rect(log_panel, Vector2(prompt_x + prompt_width + gap, log_y), Vector2(log_width, log_height))
+	_set_control_rect(
+		action_summary_panel,
+		action_summary_position,
+		Vector2(action_summary_width, action_summary_height)
+	)
+	if action_summary_panel != null:
+		action_summary_panel.visible = true
 	var combat_x := viewport_size.x - margin - combat_width
 	if debug_panels_visible:
 		combat_x = maxf(margin + log_width + gap, save_position.x - gap - combat_width)
@@ -1074,6 +1129,7 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	_layout_full_label(combat_label, combat_panel, 14.0, 12.0)
 	_layout_bottom_rail_label(prompt_label, prompt_panel, 14.0, 12.0)
 	_layout_bottom_rail_label(log_label, log_panel, 14.0, 12.0)
+	_layout_action_summary_label(action_summary_label, action_summary_panel, 16.0, 8.0)
 	_layout_full_label(completion_title_label, completion_panel, 22.0, 16.0, 32.0)
 	_layout_full_label(completion_detail_label, completion_panel, 22.0, 62.0)
 	_layout_device_panel_labels()
@@ -1158,10 +1214,13 @@ func _layout_map_panel_contents() -> void:
 
 func _apply_runtime_panel_style() -> void:
 	var primary_color := Color(0.035, 0.054, 0.059, 0.34)
+	var action_color := Color(0.028, 0.045, 0.048, 0.46)
 	var floating_color := Color(0.035, 0.054, 0.059, 0.82)
 	for panel in [map_panel, status_panel, vitals_panel, quick_supply_panel, combat_panel, prompt_panel, log_panel]:
 		if panel != null:
 			panel.color = primary_color
+	if action_summary_panel != null:
+		action_summary_panel.color = action_color
 	for panel in [device_panel, completion_panel, evacuation_panel, supply_feedback_panel, save_panel, quick_slot_panel]:
 		if panel != null:
 			panel.color = floating_color
@@ -1182,6 +1241,15 @@ func _layout_bottom_rail_label(label: Label, panel: Control, left: float, top: f
 		return
 	label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	label.max_lines_visible = 1
+	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+
+
+func _layout_action_summary_label(label: Label, panel: Control, left: float, top: float) -> void:
+	_layout_full_label(label, panel, left, top)
+	if label == null:
+		return
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.max_lines_visible = 2
 	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 
 

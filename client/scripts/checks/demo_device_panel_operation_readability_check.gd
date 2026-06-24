@@ -83,6 +83,9 @@ func _check_core_buffer_device_panel_operation_line() -> void:
 		world
 	)
 	var ready_status := String(ready_panel.get("status", ""))
+	_expect_text_contains(ready_status, "现场状态：可启动", "core buffer panel leads with field state")
+	_expect_text_contains(ready_status, "输入输出：", "core buffer panel leads with input and output flow")
+	_expect_text_contains(ready_status, "下一步：", "core buffer panel keeps the next action near the top")
 	_expect_text_contains(ready_status, "设备状态：可启动", "core buffer panel is ready")
 	_expect_text_contains(ready_status, "完成后回核心稳定站", "core buffer panel explains route after processing")
 	_expect_text_contains(String(ready_panel.get("operations", "")), "E 启动当前配方", "core buffer panel exposes start operation")
