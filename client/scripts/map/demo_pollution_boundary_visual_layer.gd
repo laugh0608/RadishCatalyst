@@ -12,6 +12,8 @@ const FOCUS_VISIBLE_MAX_X := 620.0
 const POLLUTION_FOCUS_CONTEXT_ROUTE_ALPHA := 0.0005
 const POLLUTION_FOCUS_CONTEXT_BOUNDARY_ALPHA := 0.0015
 const POLLUTION_FOCUS_CONTEXT_ENEMY_ALPHA := 0.22
+const POLLUTION_FOCUS_CONTEXT_MARKER_ALPHA := 0.026
+const POLLUTION_FOCUS_LOCAL_MARKER_DISTANCE := 240.0
 const POLLUTION_FOCUS_CONTEXT_ROUTE_PATHS := [
 	"MainRouteSpine",
 	"BaseToCrystalRouteBand",
@@ -45,7 +47,7 @@ const POLLUTION_FOCUS_CONTEXT_LABEL_PATHS := [
 	"CurrentObjectiveGuidanceLayer/CurrentObjectiveOffTargetLabel"
 ]
 const POLLUTION_FOCUS_CONTEXT_LAYER_ALPHAS := [
-	{"path": "OpeningSceneLayer", "alpha": 0.006},
+	{"path": "OpeningSceneLayer", "alpha": 0.004},
 	{"path": "SceneArtFoundationLayer", "alpha": 0.0},
 	{"path": "NonCoreSceneIdentityLayer", "alpha": 0.0},
 	{"path": "FunctionalTransitionSpatialPlayabilityLayer", "alpha": 0.0},
@@ -183,6 +185,7 @@ var muted_interactable_marker_count := 0
 var muted_cross_region_focus_count := 0
 var muted_pollution_focus_distraction_count := 0
 var muted_pollution_focus_context_layer_count := 0
+var muted_pollution_focus_context_marker_count := 0
 var applied_pollution_chain_state_count := 0
 var pollution_chain_state: Dictionary = {}
 var context_layer_original_modulates: Dictionary = {}
@@ -330,6 +333,10 @@ func get_muted_pollution_focus_context_layer_count() -> int:
 	return muted_pollution_focus_context_layer_count
 
 
+func get_muted_pollution_focus_context_marker_count() -> int:
+	return muted_pollution_focus_context_marker_count
+
+
 func has_boundary_shape(shape_id: String) -> bool:
 	return boundary_shape_ids.has(shape_id)
 
@@ -355,6 +362,7 @@ func refresh_focus_visibility(player_position: Vector2) -> void:
 	_update_pollution_focus_context_layers()
 	_mute_crystal_carryover_focus()
 	_mute_pollution_focus_distractions()
+	_mute_pollution_focus_context_interactable_markers(player_position)
 
 
 func is_pollution_focus_visible_at(player_position: Vector2) -> bool:
@@ -1243,6 +1251,43 @@ func _mute_pollution_focus_distractions() -> void:
 	muted_pollution_focus_distraction_count += _mute_focus_enemy_pressure()
 
 
+func _mute_pollution_focus_context_interactable_markers(player_position: Vector2) -> void:
+	muted_pollution_focus_context_marker_count = 0
+	if not visible:
+		return
+	var interactables := _get_map_node("Interactables")
+	if interactables == null:
+		return
+	for child in interactables.get_children():
+		var interactable := child as PrototypeInteractable
+		if interactable == null:
+			continue
+		var marker := interactable.marker
+		if marker == null:
+			marker = interactable.get_node_or_null("Marker") as ColorRect
+		if marker == null:
+			continue
+		if _is_pollution_focus_local_marker(interactable, player_position):
+			continue
+		var marker_modulate := marker.modulate
+		marker_modulate.a = minf(marker_modulate.a, POLLUTION_FOCUS_CONTEXT_MARKER_ALPHA)
+		marker.modulate = marker_modulate
+		marker.scale = Vector2.ONE
+		var label := interactable.get_node_or_null("Label") as Label
+		if label != null:
+			label.visible = false
+		var focus_ring := interactable.get_node_or_null("FocusRing") as ColorRect
+		if focus_ring != null:
+			focus_ring.visible = false
+		muted_pollution_focus_context_marker_count += 1
+
+
+func _is_pollution_focus_local_marker(interactable: PrototypeInteractable, player_position: Vector2) -> bool:
+	if not POLLUTION_INTERACTABLE_DEFINITION_IDS.has(interactable.definition_id):
+		return false
+	return interactable.position.distance_to(player_position) <= POLLUTION_FOCUS_LOCAL_MARKER_DISTANCE
+
+
 func _mute_focus_context_route_rects() -> int:
 	var muted_count := 0
 	for path in POLLUTION_FOCUS_CONTEXT_ROUTE_PATHS:
@@ -1305,6 +1350,7 @@ func _apply_context_layer_alpha(path: String, alpha: float) -> bool:
 func _restore_pollution_focus_context_layers() -> void:
 	if context_layer_original_modulates.is_empty():
 		muted_pollution_focus_context_layer_count = 0
+		muted_pollution_focus_context_marker_count = 0
 		return
 	for path in context_layer_original_modulates.keys():
 		var node := _get_map_node(String(path))
@@ -1313,6 +1359,7 @@ func _restore_pollution_focus_context_layers() -> void:
 			canvas_item.modulate = context_layer_original_modulates[path]
 	context_layer_original_modulates.clear()
 	muted_pollution_focus_context_layer_count = 0
+	muted_pollution_focus_context_marker_count = 0
 
 
 func _mute_focus_enemy_pressure() -> int:

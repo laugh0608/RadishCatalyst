@@ -48,16 +48,18 @@ const CRYSTAL_COLLECTOR_ID := "building.crystal_collector_t1"
 const CRYSTAL_COLLECTOR_OUTPUT_INSTANCE_ID := "map_object_instance.crystal_collector_output"
 const FIRST_PATH_CONTEXT_ROUTE_ALPHA := 0.0005
 const FIRST_PATH_CONTEXT_BOUNDARY_ALPHA := 0.002
+const FIRST_PATH_CONTEXT_MARKER_ALPHA := 0.026
+const FIRST_PATH_LOCAL_MARKER_DISTANCE := 320.0
 
 const FIRST_PATH_CONTEXT_LAYER_ALPHAS := [
-	{"path": "OpeningSceneLayer", "alpha": 0.032},
+	{"path": "OpeningSceneLayer", "alpha": 0.018},
 	{"path": "DemoIndustrialBaseVisualLayer", "alpha": 0.24},
 	{"path": "DemoCrystalResourceVisualLayer", "alpha": 0.12},
-	{"path": "DemoPollutionBoundaryVisualLayer", "alpha": 0.018},
+	{"path": "DemoPollutionBoundaryVisualLayer", "alpha": 0.012},
 	{"path": "DemoCoreStabilizationVisualLayer", "alpha": 0.008},
 	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.018},
 	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.012},
-	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.008},
+	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.004},
 	{"path": "DemoRoutePresentationLayer", "alpha": 0.0},
 	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.035}
 ]
@@ -101,16 +103,35 @@ const PATH_POINTS := [
 	Vector2(-42.0, -42.0)
 ]
 
+const FIRST_PATH_LOCAL_INTERACTABLE_DEFINITION_IDS := {
+	"building.outpost_core": true,
+	"building.basic_reactor": true,
+	"building.basic_storage": true,
+	"building.field_outfitting_station": true,
+	"building.slurry_buffer_tank": true,
+	"map_object.outpost_departure_gate": true,
+	"map_object.outpost_logistics_route_sign": true,
+	"map_object.crystal_cluster": true,
+	"map_object.rich_crystal_vein": true,
+	"building.crystal_collector_t1": true,
+	"map_object.crystal_collector_output": true,
+	"map_object.field_wreckage": true,
+	"map_object.anomaly_crystal": true,
+	"map_object.anomaly_residue_patch": true
+}
+
 var path_shape_ids: Array[String] = []
 var path_state_shape_ids: Array[String] = []
 var muted_planning_layer_count := 0
 var muted_context_rect_count := 0
+var muted_context_marker_count := 0
 var path_state: Dictionary = {}
 var context_layer_original_modulates: Dictionary = {}
 var first_path_available := false
 
 
 func _ready() -> void:
+	process_priority = 90
 	apply_visuals()
 	refresh_focus_visibility(_get_player_position())
 
@@ -203,6 +224,7 @@ func refresh_focus_visibility(player_position: Vector2) -> void:
 	visible = should_show
 	_set_context_layers_muted(should_show)
 	_mute_first_path_context_rects(should_show)
+	_mute_first_path_context_interactable_markers(should_show, player_position)
 
 
 func is_first_path_visible_at(player_position: Vector2) -> bool:
@@ -235,6 +257,10 @@ func get_muted_planning_layer_count() -> int:
 
 func get_muted_context_rect_count() -> int:
 	return muted_context_rect_count
+
+
+func get_muted_context_marker_count() -> int:
+	return muted_context_marker_count
 
 
 func get_active_stage() -> String:
@@ -842,6 +868,43 @@ func _mute_first_path_context_rects(should_mute: bool) -> void:
 		muted_context_rect_count += 1
 
 
+func _mute_first_path_context_interactable_markers(should_mute: bool, player_position: Vector2) -> void:
+	muted_context_marker_count = 0
+	if not should_mute:
+		return
+	var interactables := _get_map_node("Interactables")
+	if interactables == null:
+		return
+	for child in interactables.get_children():
+		var interactable := child as PrototypeInteractable
+		if interactable == null:
+			continue
+		var marker := interactable.marker
+		if marker == null:
+			marker = interactable.get_node_or_null("Marker") as ColorRect
+		if marker == null:
+			continue
+		if _is_first_path_local_marker(interactable, player_position):
+			continue
+		var marker_modulate := marker.modulate
+		marker_modulate.a = minf(marker_modulate.a, FIRST_PATH_CONTEXT_MARKER_ALPHA)
+		marker.modulate = marker_modulate
+		marker.scale = Vector2.ONE
+		var label := interactable.get_node_or_null("Label") as Label
+		if label != null:
+			label.visible = false
+		var focus_ring := interactable.get_node_or_null("FocusRing") as ColorRect
+		if focus_ring != null:
+			focus_ring.visible = false
+		muted_context_marker_count += 1
+
+
+func _is_first_path_local_marker(interactable: PrototypeInteractable, player_position: Vector2) -> bool:
+	if not FIRST_PATH_LOCAL_INTERACTABLE_DEFINITION_IDS.has(interactable.definition_id):
+		return false
+	return interactable.position.distance_to(player_position) <= FIRST_PATH_LOCAL_MARKER_DISTANCE
+
+
 func _apply_layer_alpha(path: String, alpha: float) -> bool:
 	var node := _get_map_node(path)
 	var canvas_item := node as CanvasItem
@@ -865,6 +928,7 @@ func _restore_context_layers() -> void:
 	context_layer_original_modulates.clear()
 	muted_planning_layer_count = 0
 	muted_context_rect_count = 0
+	muted_context_marker_count = 0
 
 
 func _get_base_structure_for_definition(world_state: WorldState, building_id: String) -> Dictionary:

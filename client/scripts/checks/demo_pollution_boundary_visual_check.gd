@@ -129,6 +129,7 @@ func _check_pollution_boundary_focus_visibility() -> void:
 	_expect_equal(layer.get_muted_cross_region_focus_count() >= 1, true, "pollution focus mutes carryover crystal and wreckage labels")
 	_expect_equal(layer.get_muted_pollution_focus_distraction_count() >= 8, true, "pollution focus mutes cross-screen route and enemy pressure")
 	_expect_equal(layer.get_muted_pollution_focus_context_layer_count() >= 14, true, "pollution focus mutes neighboring visual context layers")
+	_expect_equal(layer.get_muted_pollution_focus_context_marker_count() >= 10, true, "pollution focus suppresses non-local interactable markers")
 	_expect_equal(opening_layer.modulate.a <= 0.013, true, "pollution focus lowers old opening scene layer")
 	_expect_equal(scene_art_layer.modulate.a <= 0.001, true, "pollution focus hides scene identity bands")
 	_expect_equal(non_core_identity_layer.modulate.a <= 0.001, true, "pollution focus hides non-core identity bands")

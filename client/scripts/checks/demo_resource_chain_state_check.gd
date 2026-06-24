@@ -398,7 +398,8 @@ func _check_visual_review_checkpoint_path_states() -> void:
 	var collector_result := builder.create_visual_review_checkpoint_state("visual_review.crystal_collector_output")
 	_expect_equal(bool(collector_result.get("success", false)), true, "collector output visual checkpoint builds")
 	if bool(collector_result.get("success", false)):
-		first_path_layer.refresh_path_state(collector_result["world_state"], collector_result["character_state"])
+		var collector_character_state := collector_result["character_state"] as CharacterState
+		first_path_layer.refresh_path_state(collector_result["world_state"], collector_character_state)
 		_expect_equal(
 			first_path_layer.get_active_stage(),
 			DemoFirstIndustrialPathVisualLayer.STAGE_FIELD_PICKUP,
@@ -423,6 +424,12 @@ func _check_visual_review_checkpoint_path_states() -> void:
 			first_path_layer.has_path_state_shape("first_path.flow.auto_miner_to_tray.ready"),
 			true,
 			"collector output visual checkpoint marks miner-to-tray resource flow"
+		)
+		first_path_layer.refresh_focus_visibility(collector_character_state.position)
+		_expect_equal(
+			first_path_layer.get_muted_context_marker_count() >= 10,
+			true,
+			"first industrial path checkpoint suppresses non-local interactable markers"
 		)
 
 	var handoff_result := builder.create_visual_review_checkpoint_state("visual_review.base_handoff")
@@ -522,6 +529,7 @@ func _check_crystal_resource_visual_layer() -> void:
 	_expect_equal(layer.get_muted_departure_focus_count() >= 1, true, "crystal visual layer suppresses departure gate focus label in field view")
 	_expect_equal(layer.get_muted_crystal_focus_context_layer_count() >= 11, true, "crystal visual layer mutes neighboring visual context layers")
 	_expect_equal(layer.get_muted_crystal_focus_context_rect_count() >= 10, true, "crystal visual layer suppresses cross-region route rectangles")
+	_expect_equal(layer.get_muted_crystal_focus_context_marker_count() >= 10, true, "crystal visual layer suppresses non-local interactable markers")
 	_expect_equal(crystal_focus_route.color.a <= 0.001, true, "crystal visual layer lowers the global route spine")
 	_expect_equal(crystal_focus_boundary.color.a <= 0.003, true, "crystal visual layer lowers neighboring region boundary frames")
 	_expect_equal(crystal_focus_depth_layer.modulate.a <= 0.007, true, "crystal visual layer lowers scene depth frames")

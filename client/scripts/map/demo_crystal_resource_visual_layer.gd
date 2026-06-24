@@ -10,9 +10,11 @@ const FOCUS_VISIBLE_MIN_X := -80.0
 const FOCUS_VISIBLE_MAX_X := 160.0
 const CRYSTAL_FOCUS_CONTEXT_ROUTE_ALPHA := 0.0005
 const CRYSTAL_FOCUS_CONTEXT_BOUNDARY_ALPHA := 0.0015
+const CRYSTAL_FOCUS_CONTEXT_MARKER_ALPHA := 0.028
+const CRYSTAL_FOCUS_LOCAL_MARKER_DISTANCE := 250.0
 
 const CRYSTAL_FOCUS_CONTEXT_LAYER_ALPHAS := [
-	{"path": "OpeningSceneLayer", "alpha": 0.02},
+	{"path": "OpeningSceneLayer", "alpha": 0.012},
 	{"path": "SceneArtFoundationLayer", "alpha": 0.0},
 	{"path": "NonCoreSceneIdentityLayer", "alpha": 0.0},
 	{"path": "FunctionalTransitionSpatialPlayabilityLayer", "alpha": 0.0},
@@ -126,6 +128,17 @@ const RESOURCE_DEFINITION_IDS := {
 	"map_object.anomaly_residue_patch": true
 }
 
+const CRYSTAL_FOCUS_LOCAL_INTERACTABLE_DEFINITION_IDS := {
+	"map_object.outpost_departure_gate": true,
+	"map_object.crystal_cluster": true,
+	"map_object.rich_crystal_vein": true,
+	"building.crystal_collector_t1": true,
+	"map_object.crystal_collector_output": true,
+	"map_object.field_wreckage": true,
+	"map_object.anomaly_crystal": true,
+	"map_object.anomaly_residue_patch": true
+}
+
 var resource_shape_ids: Array[String] = []
 var flow_shape_ids: Array[String] = []
 var terrain_material_shape_ids: Array[String] = []
@@ -135,6 +148,7 @@ var muted_departure_label_count := 0
 var muted_departure_focus_count := 0
 var muted_crystal_focus_context_layer_count := 0
 var muted_crystal_focus_context_rect_count := 0
+var muted_crystal_focus_context_marker_count := 0
 var context_layer_original_modulates: Dictionary = {}
 
 
@@ -198,6 +212,10 @@ func get_muted_crystal_focus_context_rect_count() -> int:
 	return muted_crystal_focus_context_rect_count
 
 
+func get_muted_crystal_focus_context_marker_count() -> int:
+	return muted_crystal_focus_context_marker_count
+
+
 func has_resource_shape(shape_id: String) -> bool:
 	return resource_shape_ids.has(shape_id)
 
@@ -215,6 +233,7 @@ func refresh_focus_visibility(player_position: Vector2) -> void:
 	_mute_departure_interactable_focus(player_position)
 	_update_crystal_focus_context_layers()
 	_mute_crystal_focus_context_rects()
+	_mute_crystal_focus_context_interactable_markers(player_position)
 
 
 func _draw() -> void:
@@ -905,6 +924,43 @@ func _mute_crystal_focus_context_rects() -> void:
 		muted_crystal_focus_context_rect_count += 1
 
 
+func _mute_crystal_focus_context_interactable_markers(player_position: Vector2) -> void:
+	muted_crystal_focus_context_marker_count = 0
+	if not visible:
+		return
+	var interactables := _get_map_node("Interactables")
+	if interactables == null:
+		return
+	for child in interactables.get_children():
+		var interactable := child as PrototypeInteractable
+		if interactable == null:
+			continue
+		var marker := interactable.marker
+		if marker == null:
+			marker = interactable.get_node_or_null("Marker") as ColorRect
+		if marker == null:
+			continue
+		if _is_crystal_focus_local_marker(interactable, player_position):
+			continue
+		var marker_modulate := marker.modulate
+		marker_modulate.a = minf(marker_modulate.a, CRYSTAL_FOCUS_CONTEXT_MARKER_ALPHA)
+		marker.modulate = marker_modulate
+		marker.scale = Vector2.ONE
+		var label := interactable.get_node_or_null("Label") as Label
+		if label != null:
+			label.visible = false
+		var focus_ring := interactable.get_node_or_null("FocusRing") as ColorRect
+		if focus_ring != null:
+			focus_ring.visible = false
+		muted_crystal_focus_context_marker_count += 1
+
+
+func _is_crystal_focus_local_marker(interactable: PrototypeInteractable, player_position: Vector2) -> bool:
+	if not CRYSTAL_FOCUS_LOCAL_INTERACTABLE_DEFINITION_IDS.has(interactable.definition_id):
+		return false
+	return interactable.position.distance_to(player_position) <= CRYSTAL_FOCUS_LOCAL_MARKER_DISTANCE
+
+
 func _apply_context_layer_alpha(path: String, alpha: float) -> bool:
 	var node := _get_map_node(path)
 	var canvas_item := node as CanvasItem
@@ -923,6 +979,7 @@ func _restore_crystal_focus_context_layers() -> void:
 	if context_layer_original_modulates.is_empty():
 		muted_crystal_focus_context_layer_count = 0
 		muted_crystal_focus_context_rect_count = 0
+		muted_crystal_focus_context_marker_count = 0
 		return
 	for path in context_layer_original_modulates.keys():
 		var node := _get_map_node(String(path))
@@ -932,6 +989,7 @@ func _restore_crystal_focus_context_layers() -> void:
 	context_layer_original_modulates.clear()
 	muted_crystal_focus_context_layer_count = 0
 	muted_crystal_focus_context_rect_count = 0
+	muted_crystal_focus_context_marker_count = 0
 
 
 func _mute_crystal_identity_blocks() -> void:
