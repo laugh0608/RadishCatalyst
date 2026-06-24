@@ -565,7 +565,7 @@ func _check_general_interaction_prompts() -> void:
 	host._expect_text_contains(pollution_base_text, "外出链：带药剂回污染边界", "first-hour base summary points back to field")
 	host._expect_text_contains(
 		pollution_base_text,
-		"补第二批沉积物，再清理受扰敌人和门前压力点",
+		"清理受扰敌人和门前压力点",
 		"first-hour base summary points to residue and pressure cleanup"
 	)
 	world.ensure_map_object(crystal.instance_id, crystal.definition_id, "region.crystal_vein_field")
@@ -785,7 +785,7 @@ func _check_object_feedback_states() -> void:
 	host._expect_text_contains(rough_prompt, "状态：已清理", "object feedback clear prompt explains completed ground")
 	var foundation_prompt := formatter.format_build_prompt(foundation_site, character, world)
 	host._expect_text_contains(foundation_prompt, "状态：已建成", "object feedback build prompt explains completed site")
-	host._expect_text_contains(foundation_prompt, "下一个建造点", "object feedback build prompt points to next construction target")
+	host._expect_text_contains(foundation_prompt, "基础地基已就绪", "object feedback build prompt points to next construction target")
 	map.free()
 
 
@@ -845,8 +845,8 @@ func _check_hud_map_runtime_labels() -> void:
 	host._expect_text_contains(hud.map_title_label.text, "核心稳定站", "first-hour minimap title follows core station route beat")
 	world.current_region_id = "region.outpost_platform"
 	world.quest_state.active_quest_ids = ["quest.calibrate_reactor"]
-	world.quest_state.set_objective_progress("quest.calibrate_reactor", "gather_item", "item.salvage_scrap", 4)
-	character.inventory.add_ref("item.salvage_scrap", 4)
+	world.quest_state.set_objective_progress("quest.calibrate_reactor", "gather_item", "item.salvage_scrap", 2)
+	character.inventory.add_ref("item.salvage_scrap", 2)
 	character.inventory.add_ref("item.crystal_ore", 1)
 	hud.update_status(host.data_registry, world, character)
 	host._expect_text_contains(

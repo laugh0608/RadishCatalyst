@@ -382,13 +382,13 @@ func _resolve_scout_crystal_target(world_state: WorldState) -> Dictionary:
 
 
 func _resolve_calibrate_reactor_target(world_state: WorldState) -> Dictionary:
-	if _quest_progress(world_state, "quest.calibrate_reactor", "gather_item", "item.salvage_scrap") < 4.0:
+	if _quest_progress(world_state, "quest.calibrate_reactor", "gather_item", "item.salvage_scrap") < 2.0:
 		return FIELD_WRECKAGE_TARGET
 	return BASIC_REACTOR_TARGET
 
 
 func _resolve_anomaly_analysis_target(world_state: WorldState) -> Dictionary:
-	if _quest_progress(world_state, "quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue") < 2.0:
+	if _quest_progress(world_state, "quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue") < 1.0:
 		return ANOMALY_RESIDUE_TARGET
 	return BASIC_REACTOR_TARGET
 
@@ -402,13 +402,9 @@ func _resolve_treatment_supply_target(world_state: WorldState) -> Dictionary:
 func _resolve_treatment_point_target(world_state: WorldState) -> Dictionary:
 	if _quest_progress(world_state, "quest.expand_treatment_point", "clear", "map_object.rough_ground") < 1.0:
 		return ROUGH_GROUND_NORTH_TARGET
-	if _quest_progress(world_state, "quest.expand_treatment_point", "clear", "map_object.rough_ground") < 2.0:
-		return ROUGH_GROUND_SOUTH_TARGET
 	var foundation_count := world_state.count_base_structures("building.foundation_t1")
 	if foundation_count < 1:
 		return FOUNDATION_NORTH_TARGET
-	if foundation_count < 2:
-		return FOUNDATION_SOUTH_TARGET
 	if not world_state.has_base_structure_definition("building.pollution_filter"):
 		return POLLUTION_FILTER_BUILD_TARGET
 	return OUTPOST_GATE_TARGET
@@ -417,7 +413,7 @@ func _resolve_treatment_point_target(world_state: WorldState) -> Dictionary:
 func _resolve_pollution_edge_target(world_state: WorldState) -> Dictionary:
 	if _quest_progress(world_state, "quest.enter_pollution_edge", "visit_region", "region.pollution_edge") < 1.0:
 		return OUTPOST_GATE_TARGET
-	if _quest_progress(world_state, "quest.enter_pollution_edge", "gather_item", "item.polluted_residue") < 4.0:
+	if _quest_progress(world_state, "quest.enter_pollution_edge", "gather_item", "item.polluted_residue") < 2.0:
 		return POLLUTION_RESIDUE_TARGET
 	if _quest_progress(world_state, "quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1") < 1.0:
 		return POLLUTION_FILTER_TARGET

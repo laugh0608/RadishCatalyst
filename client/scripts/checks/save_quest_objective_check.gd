@@ -112,9 +112,15 @@ func _check_rejects_completed_quest_with_partial_objective_progress() -> void:
 	save_data["world"]["quest_state"]["objective_progress"] = {
 		"quest.restore_outpost|interact|building.outpost_core": 1,
 		"quest.scout_crystal_field|visit_region|region.crystal_vein_field": 1,
-		"quest.scout_crystal_field|gather_item|item.crystal_ore": 3
+		"quest.scout_crystal_field|gather_item|item.crystal_ore": 2
 	}
-	save_data["world"]["quest_state"]["unlocked_effects"] = ["region.outpost_platform", "region.crystal_vein_field", "recipe.process_crystal_ore", "recipe.repair_gel"]
+	save_data["world"]["quest_state"]["unlocked_effects"] = [
+		"region.outpost_platform",
+		"region.crystal_vein_field",
+		"recipe.process_crystal_ore",
+		"recipe.repair_gel",
+		"recipe.reactor_calibrator"
+	]
 	save_data["world"]["unlocked_region_ids"] = ["region.outpost_platform", "region.crystal_vein_field"]
 	host._write_save_json(save_data)
 	host._expect_failure_message(host.save_service.load_game(), "已完成任务目标进度不足", "completed quest with partial objective progress")
@@ -135,8 +141,8 @@ func _check_loads_legacy_sample_return_objective_progress() -> void:
 	save_data["world"]["quest_state"]["objective_progress"] = {
 		"quest.restore_outpost|interact|building.outpost_core": 1,
 		"quest.scout_crystal_field|visit_region|region.crystal_vein_field": 1,
-		"quest.scout_crystal_field|gather_item|item.crystal_ore": 6,
-		"quest.calibrate_reactor|gather_item|item.salvage_scrap": 4,
+		"quest.scout_crystal_field|gather_item|item.crystal_ore": 3,
+		"quest.calibrate_reactor|gather_item|item.salvage_scrap": 2,
 		"quest.calibrate_reactor|craft_item|item.reactor_calibrator": 1,
 		"quest.bring_back_sample|sample_object|map_object.anomaly_crystal": 1,
 		"quest.bring_back_sample|return_region|region.outpost_platform": 1

@@ -196,7 +196,7 @@ static func format_recipe_task_hint(
 		"recipe.repair_gel":
 			return "修复凝胶进入储存箱 / 前哨核心补给，服务下一趟外勤承压。"
 		"recipe.foundation_t1":
-			return "地基服务污染过滤器建造，2 块后处理点才能上线。"
+			return "地基服务污染过滤器建造，铺好后处理点才能上线。"
 		"recipe.cleanse_residue":
 			return "药剂进快捷补给，污染浆液留给核心缓冲包或后续副产回收。"
 		"recipe.core_stabilization_buffer":
@@ -234,7 +234,7 @@ static func format_build_task_hint(
 		POLLUTION_FILTER_ID:
 			return "污染过滤器把污染沉积物转成抗污染药剂和污染浆液，连接污染推进与核心准备。"
 		"building.foundation_t1":
-			return "基础地基服务污染过滤器上线，两块地基后处理点才从清障进入加工。"
+			return "基础地基服务污染过滤器上线，铺好地基后处理点才从清障进入加工。"
 		_:
 			return ""
 
@@ -254,9 +254,9 @@ static func format_build_result_line(
 		POLLUTION_FILTER_ID:
 			return "污染过滤器已成为处理点设备；污染沉积物现在能转成药剂和污染浆液。"
 		"building.foundation_t1":
-			if world_state != null and world_state.count_base_structures("building.foundation_t1") >= 2:
-				return "两块基础地基已就绪；下一步建污染过滤器接通污染处理。"
-			return "基础地基已写入处理点；继续补齐两块地基后建污染过滤器。"
+			if world_state != null and world_state.count_base_structures("building.foundation_t1") >= 1:
+				return "基础地基已就绪；下一步建污染过滤器接通污染处理。"
+			return "基础地基已写入处理点；继续建污染过滤器。"
 		_:
 			return ""
 

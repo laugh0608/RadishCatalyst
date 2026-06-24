@@ -146,7 +146,7 @@ static func format_recipe_chain_hint(
 		"recipe.reclaim_basic_parts":
 			return "污染浆液 -> 基础零件；污染副产被回收后可补过滤模块、整备台维护和下一趟外勤补给。"
 		"recipe.make_filter_media":
-			return "晶体矿物 + 基础溶剂 -> 过滤介质；过滤介质继续进入基础过滤模块或污染过滤器建设。"
+			return "基础零件 + 基础溶剂 -> 过滤介质；过滤介质继续进入基础过滤模块或污染过滤器建设。"
 		"recipe.basic_filter_module":
 			return "基础零件 + 过滤介质 -> 基础过滤模块；到出发整备台装入防护服后服务污染采集和反击承压。"
 		"recipe.cleanse_residue":

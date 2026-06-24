@@ -814,7 +814,7 @@ func _format_first_hour_recommended_craft_summary(
 				world_state.quest_state.get_objective_progress(quest_id, "build", "building.foundation_t1"),
 				float(world_state.count_base_structures("building.foundation_t1"))
 			)
-			var pending_foundations := maxi(0, 2 - int(foundation_progress))
+			var pending_foundations := maxi(0, 1 - int(foundation_progress))
 			if _get_inventory_amount(character_state.inventory, "item.foundation_material") < float(pending_foundations):
 				return _format_recipe_summary(
 					data_registry,
@@ -1231,8 +1231,8 @@ func _format_pollution_action_chain_line() -> String:
 
 
 func _format_pollution_vial_field_step(world_state: WorldState) -> String:
-	if world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue") < 4.0:
-		return "补第二批沉积物，再清理受扰敌人和门前压力点"
+	if world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue") < 2.0:
+		return "补齐沉积物，再清理受扰敌人和门前压力点"
 	return "清理受扰敌人和门前压力点"
 
 

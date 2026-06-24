@@ -33,11 +33,11 @@ func _check_basic_reactor_panel_hierarchy() -> void:
 	var world := WorldState.create_default()
 	world.quest_state.active_quest_ids = ["quest.analyze_anomaly_sample"]
 	world.quest_state.unlock_effect("recipe.analyze_anomaly_sample")
-	world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 2)
+	world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 1)
 
 	var character := CharacterState.create_default()
 	character.inventory.add_item("item.anomaly_sample", 1)
-	character.inventory.add_item("item.anomaly_residue", 2)
+	character.inventory.add_item("item.anomaly_residue", 1)
 	var panel_texts := presenter.format_device_panel_texts(
 		host.data_registry,
 		processing,

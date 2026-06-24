@@ -1,6 +1,8 @@
 extends RefCounted
 class_name BuildSystem
 
+const REQUIRED_POLLUTION_FILTER_FOUNDATIONS := 1
+
 var data_registry: DataRegistry
 
 
@@ -133,8 +135,8 @@ func _get_requirement_error(building_id: String, prerequisite_instance_id: Strin
 		return ""
 
 	if building_id == "building.pollution_filter":
-		if world_state.count_base_structures("building.foundation_t1") < 2:
-			return "污染过滤器需要先铺设 2 块基础地基。"
+		if world_state.count_base_structures("building.foundation_t1") < REQUIRED_POLLUTION_FILTER_FOUNDATIONS:
+			return "污染过滤器需要先铺设基础地基。"
 		return ""
 
 	if building_id == "building.slurry_buffer_tank":
@@ -156,10 +158,13 @@ func _get_requirement_hint(building_id: String, world_state: WorldState) -> Stri
 		"building.foundation_t1":
 			return "先清理粗糙地块，再铺设基础地基。"
 		"building.pollution_filter":
-			var foundation_count := mini(world_state.count_base_structures("building.foundation_t1"), 2)
+			var foundation_count := mini(
+				world_state.count_base_structures("building.foundation_t1"),
+				REQUIRED_POLLUTION_FILTER_FOUNDATIONS
+			)
 			if foundation_count <= 0:
-				return "先清理两处粗糙地块，并铺设 2 块基础地基。"
-			return "还差 1 块基础地基；清理另一处粗糙地块并铺设。"
+				return "先清理一处粗糙地块，并铺设基础地基。"
+			return "基础地基已就绪；继续建造污染过滤器。"
 		"building.slurry_buffer_tank":
 			if not world_state.has_base_structure_definition("building.pollution_filter"):
 				return "先在处理点建成污染过滤器，再回收沉积物处理出污染浆液。"
@@ -175,7 +180,10 @@ func _get_requirement_gap(building_id: String, world_state: WorldState) -> Strin
 		"building.foundation_t1":
 			return "清障状态仍未写入该地块，建造点还不能铺设。"
 		"building.pollution_filter":
-			return "基础地基：%d / 2。" % mini(world_state.count_base_structures("building.foundation_t1"), 2)
+			return "基础地基：%d / %d。" % [
+				mini(world_state.count_base_structures("building.foundation_t1"), REQUIRED_POLLUTION_FILTER_FOUNDATIONS),
+				REQUIRED_POLLUTION_FILTER_FOUNDATIONS
+			]
 		"building.slurry_buffer_tank":
 			if not world_state.has_base_structure_definition("building.pollution_filter"):
 				return "污染过滤器尚未建成。"
@@ -215,10 +223,7 @@ func _get_ready_build_hint(building_id: String, world_state: WorldState) -> Stri
 		"building.crystal_collector_t1":
 			return "建成后采集器输出托盘会出晶体矿物；收取后回基地入基础反应器。"
 		"building.foundation_t1":
-			var foundation_count := mini(world_state.count_base_structures("building.foundation_t1"), 2)
-			if foundation_count <= 0:
-				return "建成后继续铺另一块基础地基，2 块后可建污染过滤器。"
-			return "建成后基础地基达到 2 / 2，可继续建污染过滤器。"
+			return "建成后基础地基达到 1 / 1，可继续建污染过滤器。"
 		"building.pollution_filter":
 			return "建成后可处理污染沉积物，把药剂和污染浆液接入后续外勤。"
 	return ""
@@ -243,7 +248,10 @@ func _get_missing_costs(building: Dictionary, inventory: InventoryState) -> Arra
 func _format_foundation_status(building_id: String, world_state: WorldState) -> String:
 	if building_id != "building.pollution_filter":
 		return ""
-	return "基础地基：%d / 2" % mini(world_state.count_base_structures("building.foundation_t1"), 2)
+	return "基础地基：%d / %d" % [
+		mini(world_state.count_base_structures("building.foundation_t1"), REQUIRED_POLLUTION_FILTER_FOUNDATIONS),
+		REQUIRED_POLLUTION_FILTER_FOUNDATIONS
+	]
 
 
 func _get_build_followup(building_id: String, world_state: WorldState) -> String:
@@ -256,10 +264,7 @@ func _get_build_followup(building_id: String, world_state: WorldState) -> String
 	if building_id == "building.crystal_collector_t1":
 		return "基础晶体采集器已接入矿面；到输出托盘收料，再回基础反应器加工。"
 	if building_id == "building.foundation_t1":
-		var foundation_count := mini(world_state.count_base_structures("building.foundation_t1"), 2)
-		if foundation_count < 2:
-			return "继续铺设另一块基础地基；当前基础地基：%d / 2。" % foundation_count
-		return "现在可以建造污染过滤器；基础地基：2 / 2。"
+		return "现在可以建造污染过滤器；基础地基：1 / 1。"
 	if building_id == "building.pollution_filter":
 		return "过滤器已上线；回收污染沉积物后可在这里处理抗污染药剂。"
 	return ""
@@ -275,10 +280,7 @@ func _get_built_hint(building_id: String, world_state: WorldState) -> String:
 	if building_id == "building.crystal_collector_t1":
 		return "基础晶体采集器已上线；到矿面输出托盘收取晶体矿物，再回基地入料。"
 	if building_id == "building.foundation_t1":
-		var foundation_count := mini(world_state.count_base_structures("building.foundation_t1"), 2)
-		if foundation_count < 2:
-			return "下一个建造点：继续清理并铺设另一块基础地基；2 块后才能建造污染过滤器。"
-		return "两块基础地基已就绪；去建造污染过滤器。"
+		return "基础地基已就绪；去建造污染过滤器。"
 	if building_id == "building.pollution_filter":
 		return "污染过滤器已上线；回收污染沉积物后在设备面板处理抗污染药剂。"
 	return "前往下一个建造点或查看当前任务目标。"

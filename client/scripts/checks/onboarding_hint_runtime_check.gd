@@ -42,9 +42,9 @@ func _check_onboarding_hints() -> void:
 		"处理点北缘",
 		"supply prep direction follows treatment point combat region"
 	)
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.expand_treatment_point", "两块粗糙地面", "rough ground onboarding hint")
-	hint_world.quest_state.set_objective_progress("quest.expand_treatment_point", "clear", "map_object.rough_ground", 2)
-	_expect_hint_contains(presenter, hint_world, hint_character, "quest.expand_treatment_point", "2 块地基", "foundation onboarding hint")
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.expand_treatment_point", "一块粗糙地面", "rough ground onboarding hint")
+	hint_world.quest_state.set_objective_progress("quest.expand_treatment_point", "clear", "map_object.rough_ground", 1)
+	_expect_hint_contains(presenter, hint_world, hint_character, "quest.expand_treatment_point", "基础地基", "foundation onboarding hint")
 	_expect_text_contains(
 		presenter.format_direction_hint(hint_world, hint_character, "quest.expand_treatment_point"),
 		"处理点北缘",

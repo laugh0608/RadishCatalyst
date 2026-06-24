@@ -42,8 +42,8 @@ static func _prepare_base_handoff(world_state: WorldState, character_state: Char
 		"recipe.reactor_calibrator"
 	]
 	world_state.quest_state.set_objective_progress("quest.scout_crystal_field", "visit_region", CRYSTAL_FIELD_ID, 1.0)
-	world_state.quest_state.set_objective_progress("quest.scout_crystal_field", "gather_item", "item.crystal_ore", 6.0)
-	world_state.quest_state.set_objective_progress("quest.calibrate_reactor", "gather_item", "item.salvage_scrap", 4.0)
+	world_state.quest_state.set_objective_progress("quest.scout_crystal_field", "gather_item", "item.crystal_ore", 3.0)
+	world_state.quest_state.set_objective_progress("quest.calibrate_reactor", "gather_item", "item.salvage_scrap", 2.0)
 	_mark_crystal_collector_ready(world_state)
 	_mark_object_gathered(world_state, CRYSTAL_COLLECTOR_OUTPUT_INSTANCE_ID, CRYSTAL_COLLECTOR_OUTPUT_ID, CRYSTAL_FIELD_ID)
 	_mark_base_handoff_structures(world_state)

@@ -31,7 +31,7 @@ static func format_recipe_goal_hint(recipe_id: String, world_state: WorldState =
 		"recipe.repair_gel":
 			return "准备下一段处理点战斗补给，生命偏低时按 1 使用。"
 		"recipe.foundation_t1":
-			return "制造处理点地基材料，做完去处理点北缘铺设两块地基；缺料时回访处理点入口前的晶体和残骸。"
+			return "制造处理点地基材料，做完去处理点北缘铺设地基；缺料时回访处理点入口前的残骸。"
 		"recipe.cleanse_residue":
 			return _format_pollution_residue_goal_hint(world_state)
 		"recipe.phase_anchor":
@@ -141,7 +141,7 @@ static func format_build_goal_hint(building_id: String) -> String:
 		"building.slurry_buffer_tank":
 			return "把污染过滤副产接进前哨补给，让回基地整备能携带两份抗污染药剂。"
 		"building.foundation_t1":
-			return "给污染过滤器提供落点；铺好两块后继续建造污染过滤器。"
+			return "给污染过滤器提供落点；铺好地基后继续建造污染过滤器。"
 		"building.pollution_filter":
 			return "把污染沉积物处理成抗污染药剂，支撑再次深入污染边界。"
 	return ""

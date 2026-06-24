@@ -197,11 +197,11 @@ func get_recommended_recipe_id(
 		"quest.scout_crystal_field":
 			return _select_if_available(interactable, "recipe.process_crystal_ore")
 		"quest.calibrate_reactor":
-			if world_state.quest_state.get_objective_progress(active_quest_id, "gather_item", "item.salvage_scrap") >= 4.0:
+			if world_state.quest_state.get_objective_progress(active_quest_id, "gather_item", "item.salvage_scrap") >= 2.0:
 				return _select_if_available(interactable, "recipe.reactor_calibrator")
 			return ""
 		"quest.analyze_anomaly_sample":
-			if world_state.quest_state.get_objective_progress(active_quest_id, "gather_item", "item.anomaly_residue") >= 2.0:
+			if world_state.quest_state.get_objective_progress(active_quest_id, "gather_item", "item.anomaly_residue") >= 1.0:
 				return _select_if_available(interactable, "recipe.analyze_anomaly_sample")
 			return ""
 		"quest.make_filter_module":
@@ -213,7 +213,7 @@ func get_recommended_recipe_id(
 				return _select_if_available(interactable, "recipe.repair_gel")
 			return ""
 		"quest.expand_treatment_point":
-			var pending_foundations := maxi(0, 2 - world_state.count_base_structures("building.foundation_t1"))
+			var pending_foundations := maxi(0, 1 - world_state.count_base_structures("building.foundation_t1"))
 			if _get_inventory_ref_amount("item.foundation_material", character_state.inventory) < pending_foundations:
 				return _select_if_available(interactable, "recipe.foundation_t1")
 			if world_state.has_base_structure_definition("building.pollution_filter"):
