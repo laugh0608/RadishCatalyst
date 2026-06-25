@@ -57,6 +57,7 @@ func _check_opening_scene_layer() -> void:
 	var demo_route_core := map.get_node("DemoRoutePresentationLayer/DemoRouteCoreBand") as ColorRect
 	var demo_route_base_label := map.get_node("DemoRoutePresentationLayer/DemoRouteBaseLabel") as Label
 	var demo_route_core_label := map.get_node("DemoRoutePresentationLayer/DemoRouteCoreLabel") as Label
+	var base_visual_layer := map.get_node("DemoIndustrialBaseVisualLayer") as DemoIndustrialBaseVisualLayer
 	var focus_depth := map.get_node("DemoSceneFocusDepthLayer") as DemoSceneFocusDepthLayer
 	var base_deck := map.get_node("OpeningSceneLayer/BaseDeckFloor") as ColorRect
 	var base_upper_service_apron := map.get_node("OpeningSceneLayer/BaseUpperServiceApron") as ColorRect
@@ -179,6 +180,13 @@ func _check_opening_scene_layer() -> void:
 		"opening scene camera lifts the starting base composition out of the lower HUD zone"
 	)
 	host._expect_equal(focus_depth != null, true, "opening scene focus depth layer exists")
+	host._expect_equal(base_visual_layer != null, true, "opening scene base visual layer exists")
+	if base_visual_layer != null:
+		base_visual_layer.refresh_chain_state(WorldState.create_default(), CharacterState.create_default())
+		host._expect_equal(layer.visible, false, "startup first screen hides the old opening planning layer")
+		host._expect_equal(main_route.visible, false, "startup first screen hides the old cross-screen route band")
+		host._expect_equal(crystal_boundary.visible, false, "startup first screen hides the old crystal boundary frame")
+		host._expect_equal(demo_route_layer.visible, false, "startup first screen hides the old route presentation layer")
 	if focus_depth != null:
 		focus_depth.refresh_focus_depth(player.position)
 		host._expect_equal(

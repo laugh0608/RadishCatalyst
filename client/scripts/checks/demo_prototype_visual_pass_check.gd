@@ -401,14 +401,27 @@ func _check_startup_readability_scope() -> void:
 		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.global_planning_layers_muted"), true, "startup restore view records global planning mute")
 		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.local_worksite_buffer"), true, "startup restore view replaces the wide planning rectangle with a local worksite buffer")
 		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.soft_context_falloff"), true, "startup restore view softens empty far context")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.hangar_floor_plates"), true, "startup restore view uses hangar floor plates instead of a planning grid")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.debug_context_hidden"), true, "startup restore view removes debug context from rendering")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.core_machine_plinth"), true, "startup restore view gives the core a machine plinth")
 		_expect_equal(base_layer.get_startup_context_mute_count() >= 20, true, "startup restore view mutes route, region and far context layers")
 		var scene_focus_layer := map.get_node("DemoSceneFocusDepthLayer") as DemoSceneFocusDepthLayer
+		var opening_layer := map.get_node("OpeningSceneLayer") as Node2D
+		var base_region := map.get_node("RegionBase") as ColorRect
 		var crystal_region := map.get_node("RegionCrystal") as ColorRect
 		var crystal_boundary := map.get_node("RegionBoundaryCrystal") as ColorRect
 		var route_spine := map.get_node("MainRouteSpine") as ColorRect
 		var base_to_crystal_route := map.get_node("BaseToCrystalRouteBand") as ColorRect
+		var route_layer := map.get_node("DemoRoutePresentationLayer") as Node2D
 		if scene_focus_layer != null:
 			scene_focus_layer.refresh_focus_depth(map.get_player_position())
+		_expect_equal(opening_layer.visible, false, "startup restore hides the old opening scene planning layer")
+		_expect_equal(base_region.visible, false, "startup restore hides the old base region block")
+		_expect_equal(route_layer.visible, false, "startup restore hides the old route presentation layer")
+		_expect_equal(crystal_region.visible, false, "startup restore removes the old blue crystal region panel from rendering")
+		_expect_equal(crystal_boundary.visible, false, "startup restore removes the vertical crystal boundary frame from rendering")
+		_expect_equal(route_spine.visible, false, "startup restore removes the cross-screen main route band from rendering")
+		_expect_equal(base_to_crystal_route.visible, false, "startup restore removes the blue route strip from rendering")
 		_expect_equal(_is_rect_alpha_at_most(crystal_region, 0.0001), true, "startup restore suppresses the old blue crystal region panel")
 		_expect_equal(_is_rect_alpha_at_most(crystal_boundary, 0.0001), true, "startup restore suppresses the vertical crystal boundary frame")
 		_expect_equal(_is_rect_alpha_at_most(route_spine, 0.0001), true, "startup restore suppresses the cross-screen main route band")
@@ -421,6 +434,8 @@ func _check_startup_readability_scope() -> void:
 		restored_world.quest_state.complete_quest("quest.restore_outpost")
 		base_layer.refresh_chain_state(restored_world, CharacterState.create_default())
 		_expect_equal(not base_layer.is_startup_restore_focus_active(), true, "restored base visual layer leaves startup focus")
+		_expect_equal(opening_layer.visible, true, "restored base visual layer restores the opening scene layer")
+		_expect_equal(route_spine.visible, true, "restored base visual layer restores the route spine for later route scopes")
 		_expect_equal(base_layer.has_detail_shape("story.outpost.recovered_power_bus"), true, "base restored view keeps recovered power bus evidence")
 		_expect_equal(base_layer.has_detail_shape("story.outpost.reactor_cold_start_marks"), true, "base restored view keeps reactor cold start evidence")
 		_expect_equal(base_layer.has_detail_shape("story.outpost.storage_recovery_manifest"), true, "base restored view keeps storage recovery evidence")

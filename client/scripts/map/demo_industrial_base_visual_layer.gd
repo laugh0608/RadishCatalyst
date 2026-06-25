@@ -45,13 +45,17 @@ const CHAIN_VIAL := Color(0.72, 0.92, 0.38, 0.9)
 const CHAIN_CORE_PREP := Color(0.74, 0.58, 0.9, 0.88)
 const CHAIN_ROUTE_DARK := Color(0.02, 0.04, 0.035, 0.72)
 const STARTUP_CONTEXT_FALLOFF := Color(0.006, 0.016, 0.016, 0.3)
-const STARTUP_DECK_FILL := Color(0.035, 0.09, 0.09, 0.5)
+const STARTUP_DECK_FILL := Color(0.042, 0.088, 0.082, 0.54)
 const STARTUP_CORE_FOCUS := Color(0.62, 1.0, 0.9, 0.78)
 const STARTUP_WORKSITE_EDGE := Color(0.46, 0.76, 0.7, 0.22)
 const STARTUP_DISABLED_LINE := Color(0.3, 0.38, 0.34, 0.16)
 const STARTUP_DISABLED_FILL := Color(0.05, 0.07, 0.055, 0.18)
 const STARTUP_WARNING := Color(1.0, 0.56, 0.22, 0.58)
 const STARTUP_RECOVERY_SIGNAL := Color(0.72, 1.0, 0.7, 0.62)
+const STARTUP_FLOOR_PLATE := Color(0.08, 0.15, 0.14, 0.42)
+const STARTUP_FLOOR_EDGE := Color(0.5, 0.72, 0.66, 0.16)
+const STARTUP_MACHINE_SHADOW := Color(0.004, 0.012, 0.012, 0.46)
+const STARTUP_PIPE_COLD := Color(0.36, 0.48, 0.43, 0.2)
 
 const DEVICE_ANCHORS := {
 	"device.outpost_core": "Interactables/OutpostCore",
@@ -105,7 +109,7 @@ const STARTUP_MUTED_INTERACTABLE_PATHS := [
 ]
 
 const STARTUP_CONTEXT_LAYER_ALPHAS := [
-	{"path": "OpeningSceneLayer", "alpha": 0.018},
+	{"path": "OpeningSceneLayer", "alpha": 0.0},
 	{"path": "SceneArtFoundationLayer", "alpha": 0.0},
 	{"path": "NonCoreSceneIdentityLayer", "alpha": 0.0},
 	{"path": "FunctionalTransitionSpatialPlayabilityLayer", "alpha": 0.0},
@@ -114,11 +118,44 @@ const STARTUP_CONTEXT_LAYER_ALPHAS := [
 	{"path": "DemoPollutionBoundaryVisualLayer", "alpha": 0.0},
 	{"path": "DemoCoreStabilizationVisualLayer", "alpha": 0.0},
 	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.0},
-	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.035},
+	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.0},
 	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.0},
 	{"path": "DemoFirstIndustrialPathVisualLayer", "alpha": 0.0},
 	{"path": "DemoRoutePresentationLayer", "alpha": 0.0},
-	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.42}
+	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.32}
+]
+
+const STARTUP_HIDDEN_CONTEXT_PATHS := [
+	"OpeningSceneLayer",
+	"SceneArtFoundationLayer",
+	"NonCoreSceneIdentityLayer",
+	"FunctionalTransitionSpatialPlayabilityLayer",
+	"MidfieldRoutePlayabilityLayer",
+	"WindCorridorTransitionPlayabilityLayer",
+	"CoreApproachHandoffLayer",
+	"CoreStabilizationRunLayer",
+	"PrototypeVisualPriorityLayer",
+	"DemoRegionIndustrialValueLayer",
+	"DemoFirstIndustrialPathVisualLayer",
+	"DemoRoutePresentationLayer",
+	"RegionBase",
+	"RegionCrystal",
+	"RegionPollution",
+	"RegionRuinOuterRing",
+	"RegionDeepRuin",
+	"RegionInnerPhaseWell",
+	"RegionPhaseWellSink",
+	"RegionPhaseWellChamber",
+	"RegionPhaseWellLoom",
+	"RegionPhaseWellFrame",
+	"RegionPhaseWellTether",
+	"RegionDemoStabilizationCore",
+	"MainRouteSpine",
+	"BaseToCrystalRouteBand",
+	"CrystalToPollutionRouteBand",
+	"RegionBoundaryCrystal",
+	"RegionBoundaryPollution",
+	"RegionBoundaryRuin"
 ]
 
 const STARTUP_CONTEXT_RECT_ALPHAS := [
@@ -165,6 +202,7 @@ var outpost_core_restored := false
 var startup_context_mute_count := 0
 var startup_context_layer_original_modulates: Dictionary = {}
 var startup_context_rect_original_colors: Dictionary = {}
+var startup_context_original_visibility: Dictionary = {}
 
 
 func _ready() -> void:
@@ -182,6 +220,7 @@ func apply_visuals() -> void:
 	_register_startup_restore_shapes()
 	_tag_device_anchors()
 	_tone_down_core_interactable_markers()
+	_set_startup_context_muted(not outpost_core_restored)
 	queue_redraw()
 
 
@@ -333,13 +372,6 @@ func _draw() -> void:
 
 func _draw_startup_restore_focus() -> void:
 	_draw_startup_local_context_buffer()
-	var focus_deck := Rect2(Vector2(-338.0, -174.0), Vector2(174.0, 154.0))
-	draw_rect(focus_deck, STARTUP_DECK_FILL, true)
-	draw_rect(focus_deck, Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.24), false, 2.0, true)
-	for x in [-316.0, -286.0, -256.0, -226.0, -196.0]:
-		draw_line(Vector2(x, -160.0), Vector2(x, -36.0), Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.08), 1.0, true)
-	for y in [-148.0, -118.0, -88.0, -58.0]:
-		draw_line(Vector2(-324.0, y), Vector2(-178.0, y), Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.08), 1.0, true)
 	_draw_startup_outpost_core()
 	_draw_startup_player_stand()
 	_draw_startup_disabled_device_silhouettes()
@@ -349,27 +381,109 @@ func _draw_startup_restore_focus() -> void:
 
 
 func _draw_startup_local_context_buffer() -> void:
-	var worksite := Rect2(Vector2(-352.0, -214.0), Vector2(338.0, 326.0))
-	draw_rect(worksite, Color(0.018, 0.044, 0.042, 0.42), true)
-	draw_rect(worksite, STARTUP_WORKSITE_EDGE, false, 1.5, true)
-	draw_rect(Rect2(Vector2(-356.0, -234.0), Vector2(346.0, 20.0)), STARTUP_CONTEXT_FALLOFF, true)
-	draw_rect(Rect2(Vector2(-356.0, 112.0), Vector2(346.0, 32.0)), STARTUP_CONTEXT_FALLOFF, true)
-	draw_rect(Rect2(Vector2(-14.0, -190.0), Vector2(78.0, 244.0)), Color(0.006, 0.016, 0.014, 0.2), true)
-	for y in [-192.0, -132.0, -72.0, -12.0, 48.0]:
-		draw_line(Vector2(-344.0, y), Vector2(-24.0, y + 10.0), Color(STARTUP_WORKSITE_EDGE.r, STARTUP_WORKSITE_EDGE.g, STARTUP_WORKSITE_EDGE.b, 0.08), 1.0, true)
-	for x in [-326.0, -286.0, -246.0, -206.0, -166.0, -126.0, -86.0, -46.0]:
-		draw_line(Vector2(x, -202.0), Vector2(x + 10.0, 96.0), Color(STARTUP_WORKSITE_EDGE.r, STARTUP_WORKSITE_EDGE.g, STARTUP_WORKSITE_EDGE.b, 0.065), 1.0, true)
+	_draw_startup_floor_backdrop()
+	_draw_startup_floor_plates()
+	_draw_startup_damage_marks()
+	_draw_startup_edge_falloff()
+
+
+func _draw_startup_floor_backdrop() -> void:
+	var hangar_poly := PackedVector2Array([
+		Vector2(-382.0, -238.0),
+		Vector2(-86.0, -246.0),
+		Vector2(-18.0, -174.0),
+		Vector2(-24.0, 96.0),
+		Vector2(-120.0, 154.0),
+		Vector2(-366.0, 128.0)
+	])
+	draw_colored_polygon(hangar_poly, Color(0.02, 0.046, 0.043, 0.62))
+	draw_polyline(hangar_poly, Color(STARTUP_WORKSITE_EDGE.r, STARTUP_WORKSITE_EDGE.g, STARTUP_WORKSITE_EDGE.b, 0.1), 1.2, true)
+	draw_rect(Rect2(Vector2(-392.0, -270.0), Vector2(392.0, 36.0)), STARTUP_CONTEXT_FALLOFF, true)
+	draw_rect(Rect2(Vector2(-386.0, 128.0), Vector2(342.0, 42.0)), STARTUP_CONTEXT_FALLOFF, true)
+	draw_rect(Rect2(Vector2(-42.0, -206.0), Vector2(78.0, 292.0)), Color(0.004, 0.014, 0.014, 0.24), true)
+
+
+func _draw_startup_floor_plates() -> void:
+	for plate in [
+		Rect2(Vector2(-342.0, -168.0), Vector2(94.0, 76.0)),
+		Rect2(Vector2(-246.0, -166.0), Vector2(86.0, 82.0)),
+		Rect2(Vector2(-332.0, -86.0), Vector2(112.0, 68.0)),
+		Rect2(Vector2(-218.0, -82.0), Vector2(116.0, 68.0)),
+		Rect2(Vector2(-292.0, -12.0), Vector2(116.0, 72.0)),
+		Rect2(Vector2(-174.0, -10.0), Vector2(88.0, 54.0))
+	]:
+		draw_rect(plate, STARTUP_FLOOR_PLATE, true)
+		draw_rect(plate, STARTUP_FLOOR_EDGE, false, 1.0, true)
+		_draw_startup_plate_seams(plate)
+	_draw_contact_shadow_rect(Vector2(-300.0, -82.0), Vector2(104.0, 34.0))
+	_draw_contact_shadow_rect(Vector2(-232.0, -46.0), Vector2(84.0, 24.0))
+	_draw_contact_shadow_rect(Vector2(-166.0, -70.0), Vector2(74.0, 28.0))
+
+
+func _draw_startup_plate_seams(plate: Rect2) -> void:
+	for x in range(int(plate.position.x) + 22, int(plate.end.x), 32):
+		draw_line(
+			Vector2(float(x), plate.position.y + 6.0),
+			Vector2(float(x) + 5.0, plate.end.y - 6.0),
+			Color(STARTUP_FLOOR_EDGE.r, STARTUP_FLOOR_EDGE.g, STARTUP_FLOOR_EDGE.b, 0.08),
+			1.0,
+			true
+		)
+	for y in range(int(plate.position.y) + 24, int(plate.end.y), 28):
+		draw_line(
+			Vector2(plate.position.x + 7.0, float(y)),
+			Vector2(plate.end.x - 7.0, float(y)),
+			Color(STARTUP_FLOOR_EDGE.r, STARTUP_FLOOR_EDGE.g, STARTUP_FLOOR_EDGE.b, 0.07),
+			1.0,
+			true
+		)
+
+
+func _draw_startup_damage_marks() -> void:
+	for segment in [
+		[Vector2(-340.0, -134.0), Vector2(-308.0, -122.0)],
+		[Vector2(-286.0, -142.0), Vector2(-246.0, -130.0)],
+		[Vector2(-222.0, -116.0), Vector2(-192.0, -96.0)],
+		[Vector2(-198.0, -8.0), Vector2(-164.0, 10.0)],
+		[Vector2(-306.0, 42.0), Vector2(-268.0, 52.0)]
+	]:
+		draw_line(segment[0], segment[1], STARTUP_PIPE_COLD, 2.0, true)
+	for point in [Vector2(-308.0, -122.0), Vector2(-222.0, -116.0), Vector2(-164.0, 10.0)]:
+		draw_line(point + Vector2(-5.0, -5.0), point + Vector2(5.0, 5.0), Color(STARTUP_WARNING.r, STARTUP_WARNING.g, STARTUP_WARNING.b, 0.28), 1.2, true)
+		draw_line(point + Vector2(-5.0, 5.0), point + Vector2(5.0, -5.0), Color(STARTUP_WARNING.r, STARTUP_WARNING.g, STARTUP_WARNING.b, 0.28), 1.2, true)
+
+
+func _draw_startup_edge_falloff() -> void:
+	draw_rect(Rect2(Vector2(-420.0, -300.0), Vector2(86.0, 520.0)), Color(0.002, 0.01, 0.01, 0.2), true)
+	draw_rect(Rect2(Vector2(-18.0, -260.0), Vector2(96.0, 420.0)), Color(0.002, 0.01, 0.01, 0.28), true)
+	draw_rect(Rect2(Vector2(-380.0, -250.0), Vector2(328.0, 22.0)), Color(0.004, 0.012, 0.012, 0.28), true)
+
+
+func _draw_contact_shadow_rect(center: Vector2, size: Vector2) -> void:
+	var rect := Rect2(center - size * 0.5, size)
+	draw_rect(rect, STARTUP_MACHINE_SHADOW, true)
+	draw_rect(rect.grow(-5.0), Color(STARTUP_MACHINE_SHADOW.r, STARTUP_MACHINE_SHADOW.g, STARTUP_MACHINE_SHADOW.b, 0.2), true)
 
 
 func _draw_startup_outpost_core() -> void:
 	var center := Vector2(-300.0, -92.0)
-	draw_circle(center, 30.0, Color(0.06, 0.2, 0.19, 0.72))
-	draw_arc(center, 42.0, PI * 0.08, PI * 1.9, 42, Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.45), 4.0, true)
-	draw_arc(center, 28.0, 0.0, TAU, 40, STARTUP_CORE_FOCUS, 3.0, true)
-	draw_arc(center, 15.0, 0.0, TAU, 28, Color(0.86, 1.0, 0.92, 0.82), 2.0, true)
-	draw_rect(Rect2(center + Vector2(-10.0, -52.0), Vector2(20.0, 34.0)), Color(0.78, 1.0, 0.92, 0.82), true)
-	draw_rect(Rect2(center + Vector2(-48.0, 20.0), Vector2(34.0, 20.0)), Color(0.1, 0.2, 0.18, 0.76), true)
-	draw_rect(Rect2(center + Vector2(-48.0, 20.0), Vector2(34.0, 20.0)), STARTUP_CORE_FOCUS, false, 1.6, true)
+	draw_rect(Rect2(center + Vector2(-44.0, 28.0), Vector2(88.0, 16.0)), Color(0.014, 0.036, 0.034, 0.86), true)
+	draw_rect(Rect2(center + Vector2(-44.0, 28.0), Vector2(88.0, 16.0)), Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.32), false, 1.3, true)
+	draw_circle(center, 34.0, Color(0.032, 0.112, 0.106, 0.82))
+	draw_circle(center, 24.0, Color(0.08, 0.24, 0.2, 0.64))
+	draw_arc(center, 44.0, PI * 0.08, PI * 1.9, 42, Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.42), 3.0, true)
+	draw_arc(center, 28.0, 0.0, TAU, 40, Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.72), 2.8, true)
+	draw_arc(center, 15.0, 0.0, TAU, 28, Color(0.86, 1.0, 0.92, 0.78), 2.0, true)
+	for point in [
+		center + Vector2(-38.0, -10.0),
+		center + Vector2(30.0, -10.0),
+		center + Vector2(-22.0, 28.0),
+		center + Vector2(22.0, 28.0)
+	]:
+		draw_rect(Rect2(point + Vector2(-4.0, -6.0), Vector2(8.0, 12.0)), Color(0.16, 0.28, 0.25, 0.7), true)
+	draw_rect(Rect2(center + Vector2(-10.0, -52.0), Vector2(20.0, 32.0)), Color(0.78, 1.0, 0.92, 0.72), true)
+	draw_rect(Rect2(center + Vector2(-50.0, 14.0), Vector2(36.0, 22.0)), Color(0.1, 0.2, 0.18, 0.78), true)
+	draw_rect(Rect2(center + Vector2(-50.0, 14.0), Vector2(36.0, 22.0)), Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.42), false, 1.4, true)
 
 
 func _draw_startup_player_stand() -> void:
@@ -1024,7 +1138,10 @@ func _register_startup_restore_shapes() -> void:
 	startup_restore_shape_ids = [
 		"startup_restore.focus_veil",
 		"startup_restore.core_service_deck",
+		"startup_restore.hangar_floor_plates",
+		"startup_restore.debug_context_hidden",
 		"startup_restore.outpost_core_focus",
+		"startup_restore.core_machine_plinth",
 		"startup_restore.player_stand",
 		"startup_restore.disabled_reactor_silhouette",
 		"startup_restore.disabled_storage_silhouette",
@@ -1081,12 +1198,26 @@ func _set_startup_context_muted(should_mute: bool) -> void:
 		startup_context_mute_count = 0
 		return
 	startup_context_mute_count = 0
+	for path in STARTUP_HIDDEN_CONTEXT_PATHS:
+		if _apply_startup_visibility(String(path), false):
+			startup_context_mute_count += 1
 	for profile in STARTUP_CONTEXT_LAYER_ALPHAS:
 		if _apply_startup_layer_alpha(String(profile.get("path", "")), float(profile.get("alpha", 1.0))):
 			startup_context_mute_count += 1
 	for profile in STARTUP_CONTEXT_RECT_ALPHAS:
 		if _apply_startup_rect_alpha(String(profile.get("path", "")), float(profile.get("alpha", 1.0))):
 			startup_context_mute_count += 1
+
+
+func _apply_startup_visibility(path: String, is_visible: bool) -> bool:
+	var node := _get_map_node(path)
+	var canvas_item := node as CanvasItem
+	if canvas_item == null:
+		return false
+	if not startup_context_original_visibility.has(path):
+		startup_context_original_visibility[path] = canvas_item.visible
+	canvas_item.visible = is_visible
+	return true
 
 
 func _apply_startup_layer_alpha(path: String, alpha: float) -> bool:
@@ -1117,6 +1248,12 @@ func _apply_startup_rect_alpha(path: String, alpha: float) -> bool:
 
 
 func _restore_startup_context_layers() -> void:
+	for path in startup_context_original_visibility.keys():
+		var node := _get_map_node(String(path))
+		var canvas_item := node as CanvasItem
+		if canvas_item != null:
+			canvas_item.visible = bool(startup_context_original_visibility[path])
+	startup_context_original_visibility.clear()
 	for path in startup_context_layer_original_modulates.keys():
 		var node := _get_map_node(String(path))
 		var canvas_item := node as CanvasItem
