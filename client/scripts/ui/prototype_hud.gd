@@ -48,7 +48,7 @@ const SUPPLY_FEEDBACK_SECONDS := 4.0
 const COMBAT_FEEDBACK_SECONDS := 5.0
 const QUEST_COMPLETION_FEEDBACK_SECONDS := 7.0
 const LOG_FEEDBACK_SECONDS := 6.0
-const PROMPT_RUNTIME_MAX_CHARACTERS := 34
+const PROMPT_RUNTIME_MAX_CHARACTERS := 42
 const LOG_RUNTIME_MAX_CHARACTERS := 44
 const RUNTIME_TEXT_ELLIPSIS := "..."
 const MINIMAP_MARKER_ANCHORS := [
@@ -65,6 +65,10 @@ const MINIMAP_MARKER_ANCHORS := [
 	Vector2(0.32, 0.66),
 	Vector2(0.2, 0.42)
 ]
+const MINIMAP_PRIMARY_MARKER_INDICES := [0, 1, 2, 11]
+const MINIMAP_ACTIVE_MARKER_SIZE := Vector2(12.0, 12.0)
+const MINIMAP_PRIMARY_MARKER_SIZE := Vector2(8.0, 8.0)
+const MINIMAP_SECONDARY_MARKER_SIZE := Vector2(6.0, 6.0)
 
 var last_quick_slots: Array[String] = []
 var supply_feedback_remaining_seconds := 0.0
@@ -666,8 +670,17 @@ func _update_map_panel(world_state: WorldState, quest_id: String, character_stat
 		if map_marker_rects[index] == null or map_marker_labels[index] == null:
 			continue
 		var marker_view := marker_view_data[index]
+		var marker_text := _format_map_marker_runtime_label(String(marker_view.get("label", "")))
+		var should_show_marker := _should_show_minimap_marker(index, marker_text)
 		map_marker_rects[index].color = marker_view.get("color", Color.WHITE)
-		map_marker_labels[index].text = _format_map_marker_runtime_label(String(marker_view.get("label", "")))
+		map_marker_rects[index].visible = should_show_marker
+		map_marker_labels[index].text = marker_text
+		map_marker_labels[index].visible = should_show_marker and _should_show_minimap_label(index, marker_text)
+	for index in range(marker_view_data.size(), map_marker_rects.size()):
+		if map_marker_rects[index] != null:
+			map_marker_rects[index].visible = false
+		if map_marker_labels[index] != null:
+			map_marker_labels[index].visible = false
 
 
 func _format_map_marker_runtime_label(raw_label: String) -> String:
@@ -1044,8 +1057,8 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	var quick_supply_height := 74.0
 	var combat_width := clampf(viewport_size.x * 0.21, 380.0, 500.0)
 	var combat_height := 164.0
-	var prompt_width := clampf(viewport_size.x * 0.2, 340.0, 420.0)
-	var prompt_height := 50.0
+	var prompt_width := clampf(viewport_size.x * 0.25, 430.0, 560.0)
+	var prompt_height := 58.0
 	var log_width := clampf(viewport_size.x * 0.2, 360.0, 440.0)
 	var log_height := 50.0
 	var action_summary_width := clampf(viewport_size.x * 0.32, 560.0, 720.0)
@@ -1089,6 +1102,10 @@ func _layout_runtime_panels(force: bool = false) -> void:
 		)
 
 	var prompt_x := quick_supply_panel.position.x + quick_supply_width + gap if quick_supply_panel != null else margin
+	var log_left := prompt_x + prompt_width + gap
+	var log_right_limit := map_position.x - gap
+	if log_right_limit > log_left:
+		log_width = minf(log_width, log_right_limit - log_left)
 	var prompt_y := viewport_size.y - margin - prompt_height
 	var log_y := viewport_size.y - margin - log_height
 	var action_summary_position := Vector2(
@@ -1198,7 +1215,6 @@ func _layout_map_panel_contents() -> void:
 		map_track.size = map_area.size
 		map_track.color = Color(0.04, 0.07, 0.073, 0.58)
 
-	var marker_size := Vector2(10.0, 10.0)
 	var label_width := 74.0
 	var label_height := 32.0
 
@@ -1207,6 +1223,12 @@ func _layout_map_panel_contents() -> void:
 		var marker_label := map_marker_labels[index]
 		if marker_rect == null or marker_label == null:
 			continue
+		var marker_text := String(marker_label.text)
+		marker_rect.visible = _should_show_minimap_marker(index, marker_text)
+		if not marker_rect.visible:
+			marker_label.visible = false
+			continue
+		var marker_size := _get_minimap_marker_size(index, marker_text)
 
 		var anchor := _get_minimap_marker_anchor(index)
 		var marker_center := map_area.position + Vector2(anchor.x * map_area.size.x, anchor.y * map_area.size.y)
@@ -1223,7 +1245,7 @@ func _layout_map_panel_contents() -> void:
 			map_area.position.y,
 			maxf(map_area.position.y, map_panel.size.y - label_height - 4.0)
 		)
-		marker_label.visible = String(marker_label.text).find("\n") >= 0
+		marker_label.visible = _should_show_minimap_label(index, marker_text)
 		marker_label.position = Vector2(label_x, label_top)
 		marker_label.size = Vector2(label_width, label_height)
 		_prepare_wrapped_label(marker_label)
@@ -1235,15 +1257,44 @@ func _get_minimap_marker_anchor(index: int) -> Vector2:
 	return Vector2(0.5, 0.5)
 
 
+func _get_minimap_marker_size(index: int, marker_text: String) -> Vector2:
+	if _is_active_minimap_marker(marker_text):
+		return MINIMAP_ACTIVE_MARKER_SIZE
+	if _is_primary_minimap_marker(index):
+		return MINIMAP_PRIMARY_MARKER_SIZE
+	return MINIMAP_SECONDARY_MARKER_SIZE
+
+
+func _should_show_minimap_marker(index: int, marker_text: String) -> bool:
+	return _is_primary_minimap_marker(index) or _is_active_minimap_marker(marker_text)
+
+
+func _should_show_minimap_label(index: int, marker_text: String) -> bool:
+	if marker_text.strip_edges().is_empty():
+		return false
+	return _is_primary_minimap_marker(index) or _is_active_minimap_marker(marker_text)
+
+
+func _is_primary_minimap_marker(index: int) -> bool:
+	return MINIMAP_PRIMARY_MARKER_INDICES.has(index)
+
+
+func _is_active_minimap_marker(marker_text: String) -> bool:
+	return marker_text.find("\n") >= 0
+
+
 func _apply_runtime_panel_style() -> void:
 	var primary_color := Color(0.035, 0.054, 0.059, 0.3)
 	var action_color := Color(0.028, 0.045, 0.048, 0.46)
+	var prompt_color := Color(0.06, 0.052, 0.032, 0.58)
 	var floating_color := Color(0.035, 0.054, 0.059, 0.82)
 	for panel in [map_panel, status_panel, vitals_panel, quick_supply_panel, combat_panel, prompt_panel, log_panel]:
 		if panel != null:
 			panel.color = primary_color
 	if map_panel != null:
 		map_panel.color = Color(0.028, 0.048, 0.052, 0.32)
+	if prompt_panel != null:
+		prompt_panel.color = prompt_color
 	if action_summary_panel != null:
 		action_summary_panel.color = action_color
 	for panel in [device_panel, completion_panel, evacuation_panel, supply_feedback_panel, save_panel, quick_slot_panel]:

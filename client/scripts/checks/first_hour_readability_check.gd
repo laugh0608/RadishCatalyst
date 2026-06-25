@@ -878,8 +878,8 @@ func _check_hud_map_runtime_labels() -> void:
 	)
 	host._expect_equal(
 		hud.map_marker_labels[1].visible,
-		false,
-		"first-hour minimap hides non-current plain labels in the compact map"
+		true,
+		"first-hour minimap keeps the primary crystal label readable"
 	)
 	hud.free()
 	map.free()
@@ -924,14 +924,16 @@ func _check_hud_runtime_layout_first_pass() -> void:
 	)
 	host._expect_equal(_controls_overlap(hud.quick_supply_panel, hud.vitals_panel), false, "HUD first pass keeps quick supply separate from vitals")
 	host._expect_equal(hud.prompt_panel.position.x > hud.quick_supply_panel.position.x + hud.quick_supply_panel.size.x, true, "HUD first pass keeps prompt to the right of quick supply")
-	host._expect_equal(hud.prompt_panel.size.x <= 420.0, true, "HUD first pass keeps prompt from covering the scene center")
-	host._expect_equal(hud.prompt_panel.size.y <= 52.0, true, "HUD first pass lowers prompt height")
+	host._expect_equal(hud.prompt_panel.size.x >= 430.0, true, "HUD first pass gives the current interaction prompt enough width")
+	host._expect_equal(hud.prompt_panel.size.x <= 560.0, true, "HUD first pass keeps prompt from becoming a bottom overlay")
+	host._expect_equal(hud.prompt_panel.size.y <= 60.0, true, "HUD first pass keeps prompt height compact")
 	host._expect_equal(hud.log_panel.size.y >= 48.0, true, "HUD first pass reserves compact log text")
 	host._expect_equal(hud.log_panel.size.y <= 52.0, true, "HUD first pass keeps log rail compact")
 	host._expect_equal(hud.log_label.size.y >= 26.0, true, "HUD first pass keeps compact log text visible")
 	host._expect_equal(hud.map_panel.color.a <= 0.36, true, "HUD first pass lowers persistent panel opacity")
-	host._expect_equal(hud.prompt_panel.color.a <= 0.36, true, "HUD first pass lowers prompt panel opacity")
-	host._expect_equal(hud.map_marker_labels[1].visible, false, "HUD first pass hides non-current route labels")
+	host._expect_equal(hud.prompt_panel.color.a >= 0.5, true, "HUD first pass keeps the current interaction prompt legible")
+	host._expect_equal(hud.map_marker_labels[1].visible, true, "HUD first pass keeps primary crystal label visible")
+	host._expect_equal(hud.map_marker_labels[3].visible, false, "HUD first pass hides non-core route labels")
 	host._expect_equal(hud.log_panel.position.x > hud.prompt_panel.position.x + hud.prompt_panel.size.x, true, "HUD first pass keeps log separate from prompt")
 	host._expect_equal(_controls_overlap(hud.completion_panel, hud.prompt_panel), false, "HUD first pass keeps quest feedback above prompt")
 	host._expect_equal(_controls_overlap(hud.device_panel, hud.quick_supply_panel), false, "HUD first pass keeps device panel separate from player quick supply")

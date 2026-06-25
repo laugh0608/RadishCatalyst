@@ -3,6 +3,7 @@ class_name DemoFirstIndustrialPathVisualLayer
 
 const FOCUS_MIN_X := -360.0
 const FOCUS_MAX_X := 160.0
+const CRYSTAL_LOCAL_FOCUS_MIN_X := -80.0
 
 const WORKSPACE_WASH := Color(0.006, 0.014, 0.014, 0.42)
 const PATH_DARK := Color(0.008, 0.018, 0.018, 0.86)
@@ -222,12 +223,22 @@ func refresh_path_state(world_state: WorldState, character_state: CharacterState
 func refresh_focus_visibility(player_position: Vector2) -> void:
 	var should_show := is_first_path_visible_at(player_position)
 	visible = should_show
+	if first_path_available and _is_crystal_local_focus_position(player_position):
+		_restore_context_layer("DemoCrystalResourceVisualLayer")
+		muted_planning_layer_count = 0
+		muted_context_rect_count = 0
+		muted_context_marker_count = 0
+		return
 	_set_context_layers_muted(should_show)
 	_mute_first_path_context_rects(should_show)
 	_mute_first_path_context_interactable_markers(should_show, player_position)
 
 
 func is_first_path_visible_at(player_position: Vector2) -> bool:
+	return should_use_compact_guidance_at(player_position) and not _is_crystal_local_focus_position(player_position)
+
+
+func should_use_compact_guidance_at(player_position: Vector2) -> bool:
 	return first_path_available and player_position.x >= FOCUS_MIN_X and player_position.x <= FOCUS_MAX_X
 
 
@@ -934,6 +945,20 @@ func _restore_context_layers() -> void:
 	muted_planning_layer_count = 0
 	muted_context_rect_count = 0
 	muted_context_marker_count = 0
+
+
+func _restore_context_layer(path: String) -> void:
+	if not context_layer_original_modulates.has(path):
+		return
+	var node := _get_map_node(path)
+	var canvas_item := node as CanvasItem
+	if canvas_item != null:
+		canvas_item.modulate = context_layer_original_modulates[path]
+	context_layer_original_modulates.erase(path)
+
+
+func _is_crystal_local_focus_position(player_position: Vector2) -> bool:
+	return player_position.x >= CRYSTAL_LOCAL_FOCUS_MIN_X and player_position.x <= FOCUS_MAX_X
 
 
 func _get_base_structure_for_definition(world_state: WorldState, building_id: String) -> Dictionary:

@@ -181,6 +181,7 @@ func _check_current_objective_guidance_layer() -> void:
 	character.current_region_id = "region.crystal_vein_field"
 	first_path_layer.refresh_path_state(world, character)
 	first_path_layer.refresh_focus_visibility(map.player.position)
+	crystal_layer.refresh_focus_visibility(map.player.position)
 	layer.refresh_guidance(world, character)
 	map.sync_enemy_states(world)
 	map.update_current_interactable()
@@ -190,23 +191,22 @@ func _check_current_objective_guidance_layer() -> void:
 	_expect_equal(layer.get_current_focus_readability_mode(), "first_path", "first industrial path uses local focus readability mode")
 	_expect_equal(layer.is_target_route_visible(), false, "first industrial path hides long current target route")
 	var collector_output := map.get_node("Interactables/CrystalCollectorOutput") as PrototypeInteractable
-	var first_path_crystal_region := map.get_node("RegionCrystal") as ColorRect
-	var first_path_pollution_region := map.get_node("RegionPollution") as ColorRect
-	var first_path_crystal_boundary := map.get_node("RegionBoundaryCrystal") as ColorRect
-	var first_path_pollution_boundary := map.get_node("RegionBoundaryPollution") as ColorRect
+	var crystal_focus_region := map.get_node("RegionCrystal") as ColorRect
+	var crystal_focus_pollution_region := map.get_node("RegionPollution") as ColorRect
+	var crystal_focus_boundary := map.get_node("RegionBoundaryCrystal") as ColorRect
+	var crystal_focus_pollution_boundary := map.get_node("RegionBoundaryPollution") as ColorRect
 	_expect_equal(map.current_interactable, collector_output, "first industrial path still keeps collector output as logical focus")
-	_expect_equal(collector_output.label.visible, false, "first industrial path hides current interactable label")
-	_expect_equal(collector_output.focus_ring.visible, false, "first industrial path hides current interactable focus ring")
-	_expect_equal(collector_output.marker.scale, Vector2.ONE, "first industrial path does not enlarge the current marker over devices")
-	_expect_equal(collector_output.marker.modulate.a < 1.0, true, "first industrial path lowers current marker weight")
-	_expect_equal(first_path_layer.get_muted_context_rect_count() >= 16, true, "first industrial path mutes old region panels, routes, and boundary frames")
-	_expect_equal(_is_rect_alpha_at_most(first_path_crystal_region, 0.003), true, "first industrial path keeps the blue crystal panel behind the equipment tray")
-	_expect_equal(_is_rect_alpha_at_most(first_path_pollution_region, 0.0006), true, "first industrial path suppresses the yellow pollution panel")
-	_expect_equal(_is_rect_alpha_at_most(first_path_crystal_boundary, 0.0008), true, "first industrial path lowers the crystal boundary frame")
-	_expect_equal(_is_rect_alpha_at_most(first_path_pollution_boundary, 0.0008), true, "first industrial path lowers the pollution boundary frame")
+	_expect_equal(first_path_layer.visible, false, "crystal workface keeps the full first industrial path hidden")
+	_expect_equal(collector_output.label.visible, true, "crystal workface keeps the current interactable label readable")
+	_expect_equal(collector_output.focus_ring.visible, true, "crystal workface keeps the current interactable focus ring readable")
+	_expect_equal(collector_output.marker.scale != Vector2.ONE, true, "crystal workface enlarges the current interaction marker")
+	_expect_equal(crystal_layer.get_muted_crystal_focus_context_rect_count() >= 12, true, "crystal workface mutes old region panels, routes, and boundary frames")
+	_expect_equal(_is_rect_alpha_at_most(crystal_focus_region, 0.003), true, "crystal workface keeps the blue crystal panel behind the ore surface")
+	_expect_equal(_is_rect_alpha_at_most(crystal_focus_pollution_region, 0.0006), true, "crystal workface suppresses the yellow pollution panel")
+	_expect_equal(_is_rect_alpha_at_most(crystal_focus_boundary, 0.0006), true, "crystal workface lowers the crystal boundary frame")
+	_expect_equal(_is_rect_alpha_at_most(crystal_focus_pollution_boundary, 0.0006), true, "crystal workface lowers the pollution boundary frame")
 	var field_patrol := map.get_node("Enemies/NativeSkitterPatrol") as PrototypeEnemy
-	_expect_equal(field_patrol.modulate.a < 1.0, true, "first industrial path mutes nearby enemy pressure")
-	_expect_equal(field_patrol.label.visible, false, "first industrial path hides nearby enemy label")
+	_expect_equal(field_patrol.modulate, PrototypeEnemy.DEFAULT_CONTEXT_MODULATE, "crystal workface leaves enemy pressure readable without the path overlay")
 	map.player.position = Vector2(320.0, -118.0)
 	first_path_layer.refresh_focus_visibility(map.player.position)
 	map.update_current_interactable()
@@ -399,7 +399,20 @@ func _check_startup_readability_scope() -> void:
 		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.low_power_alarm"), true, "startup restore view shows low power alarm evidence")
 		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.disabled_supply_bus"), true, "startup restore view shows disabled supply bus evidence")
 		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.global_planning_layers_muted"), true, "startup restore view records global planning mute")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.local_worksite_buffer"), true, "startup restore view replaces the wide planning rectangle with a local worksite buffer")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.soft_context_falloff"), true, "startup restore view softens empty far context")
 		_expect_equal(base_layer.get_startup_context_mute_count() >= 20, true, "startup restore view mutes route, region and far context layers")
+		var scene_focus_layer := map.get_node("DemoSceneFocusDepthLayer") as DemoSceneFocusDepthLayer
+		var crystal_region := map.get_node("RegionCrystal") as ColorRect
+		var crystal_boundary := map.get_node("RegionBoundaryCrystal") as ColorRect
+		var route_spine := map.get_node("MainRouteSpine") as ColorRect
+		var base_to_crystal_route := map.get_node("BaseToCrystalRouteBand") as ColorRect
+		if scene_focus_layer != null:
+			scene_focus_layer.refresh_focus_depth(map.get_player_position())
+		_expect_equal(_is_rect_alpha_at_most(crystal_region, 0.0001), true, "startup restore suppresses the old blue crystal region panel")
+		_expect_equal(_is_rect_alpha_at_most(crystal_boundary, 0.0001), true, "startup restore suppresses the vertical crystal boundary frame")
+		_expect_equal(_is_rect_alpha_at_most(route_spine, 0.0001), true, "startup restore suppresses the cross-screen main route band")
+		_expect_equal(_is_rect_alpha_at_most(base_to_crystal_route, 0.0001), true, "startup restore suppresses the blue route strip")
 		var reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
 		var storage := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
 		_expect_equal(reactor.modulate.a <= 0.01, true, "startup mutes reactor interactable marker")

@@ -525,7 +525,7 @@ func _should_use_first_path_compact_guidance(target: PrototypeInteractable) -> b
 		player != null
 		and first_path_layer != null
 		and first_path_layer.is_first_path_available()
-		and first_path_layer.is_first_path_visible_at(player.position)
+		and first_path_layer.should_use_compact_guidance_at(player.position)
 	)
 
 

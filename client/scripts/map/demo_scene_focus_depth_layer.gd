@@ -23,6 +23,10 @@ const REGION_FOCUS_DISTANCE := 160.0
 const ROUTE_FOCUS_DISTANCE := 70.0
 const BOUNDARY_FOCUS_DISTANCE := 180.0
 const SCENE_GROUND_FOCUS_DISTANCE := 70.0
+const STARTUP_CORE_FOCUS_MAX_X := -140.0
+const STARTUP_BASE_REGION_ALPHA := 0.004
+const STARTUP_BASE_SCENE_GROUND_ALPHA := 0.006
+const STARTUP_CONTEXT_ALPHA := 0.0
 
 const BASE_REGION_RECT_PATHS := [
 	"RegionBase"
@@ -113,6 +117,9 @@ func _process(_delta: float) -> void:
 
 
 func refresh_focus_depth(focus_position: Vector2) -> void:
+	if _is_startup_restore_focus_active(focus_position):
+		_apply_startup_restore_focus_alpha()
+		return
 	_apply_focus_alpha(BASE_REGION_RECT_PATHS, focus_position, REGION_FOCUS_DISTANCE, NEAR_BASE_REGION_ALPHA, DISTANT_REGION_ALPHA)
 	_apply_focus_alpha(EXPEDITION_REGION_RECT_PATHS, focus_position, REGION_FOCUS_DISTANCE, NEAR_EXPEDITION_REGION_ALPHA, DISTANT_REGION_ALPHA)
 	_apply_focus_alpha(BASE_ROUTE_RECT_PATHS, focus_position, ROUTE_FOCUS_DISTANCE, NEAR_BASE_ROUTE_ALPHA, DISTANT_ROUTE_ALPHA)
@@ -145,6 +152,28 @@ func get_scene_focus_alpha(rect_path: String) -> float:
 	if rect == null:
 		return -1.0
 	return rect.color.a
+
+
+func _apply_startup_restore_focus_alpha() -> void:
+	_apply_constant_alpha(BASE_REGION_RECT_PATHS, STARTUP_BASE_REGION_ALPHA)
+	_apply_constant_alpha(EXPEDITION_REGION_RECT_PATHS, STARTUP_CONTEXT_ALPHA)
+	_apply_constant_alpha(BASE_ROUTE_RECT_PATHS, STARTUP_CONTEXT_ALPHA)
+	_apply_constant_alpha(EXPEDITION_ROUTE_RECT_PATHS, STARTUP_CONTEXT_ALPHA)
+	_apply_constant_alpha(BOUNDARY_RECT_PATHS, STARTUP_CONTEXT_ALPHA)
+	_apply_constant_alpha(BASE_SCENE_GROUND_RECT_PATHS, STARTUP_BASE_SCENE_GROUND_ALPHA)
+	_apply_constant_alpha(EXPEDITION_SCENE_GROUND_RECT_PATHS, STARTUP_CONTEXT_ALPHA)
+
+
+func _is_startup_restore_focus_active(focus_position: Vector2) -> bool:
+	if focus_position.x > STARTUP_CORE_FOCUS_MAX_X:
+		return false
+	var map_root := get_parent()
+	if map_root == null:
+		return true
+	var base_layer := map_root.get_node_or_null("DemoIndustrialBaseVisualLayer") as DemoIndustrialBaseVisualLayer
+	if base_layer == null:
+		return true
+	return base_layer.is_startup_restore_focus_active()
 
 
 func _apply_focus_alpha(

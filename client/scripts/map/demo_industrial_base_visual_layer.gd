@@ -44,9 +44,10 @@ const CHAIN_SLURRY := Color(0.78, 0.42, 0.18, 0.82)
 const CHAIN_VIAL := Color(0.72, 0.92, 0.38, 0.9)
 const CHAIN_CORE_PREP := Color(0.74, 0.58, 0.9, 0.88)
 const CHAIN_ROUTE_DARK := Color(0.02, 0.04, 0.035, 0.72)
-const STARTUP_VEIL := Color(0.002, 0.006, 0.006, 0.66)
-const STARTUP_DECK_FILL := Color(0.035, 0.09, 0.09, 0.44)
+const STARTUP_CONTEXT_FALLOFF := Color(0.006, 0.016, 0.016, 0.3)
+const STARTUP_DECK_FILL := Color(0.035, 0.09, 0.09, 0.5)
 const STARTUP_CORE_FOCUS := Color(0.62, 1.0, 0.9, 0.78)
+const STARTUP_WORKSITE_EDGE := Color(0.46, 0.76, 0.7, 0.22)
 const STARTUP_DISABLED_LINE := Color(0.3, 0.38, 0.34, 0.16)
 const STARTUP_DISABLED_FILL := Color(0.05, 0.07, 0.055, 0.18)
 const STARTUP_WARNING := Color(1.0, 0.56, 0.22, 0.58)
@@ -104,12 +105,16 @@ const STARTUP_MUTED_INTERACTABLE_PATHS := [
 ]
 
 const STARTUP_CONTEXT_LAYER_ALPHAS := [
-	{"path": "OpeningSceneLayer", "alpha": 0.055},
+	{"path": "OpeningSceneLayer", "alpha": 0.018},
+	{"path": "SceneArtFoundationLayer", "alpha": 0.0},
+	{"path": "NonCoreSceneIdentityLayer", "alpha": 0.0},
+	{"path": "FunctionalTransitionSpatialPlayabilityLayer", "alpha": 0.0},
+	{"path": "MidfieldRoutePlayabilityLayer", "alpha": 0.0},
 	{"path": "DemoCrystalResourceVisualLayer", "alpha": 0.0},
 	{"path": "DemoPollutionBoundaryVisualLayer", "alpha": 0.0},
 	{"path": "DemoCoreStabilizationVisualLayer", "alpha": 0.0},
-	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.02},
-	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.1},
+	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.0},
+	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.035},
 	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.0},
 	{"path": "DemoFirstIndustrialPathVisualLayer", "alpha": 0.0},
 	{"path": "DemoRoutePresentationLayer", "alpha": 0.0},
@@ -327,7 +332,7 @@ func _draw() -> void:
 
 
 func _draw_startup_restore_focus() -> void:
-	draw_rect(Rect2(Vector2(-360.0, -270.0), Vector2(760.0, 560.0)), STARTUP_VEIL, true)
+	_draw_startup_local_context_buffer()
 	var focus_deck := Rect2(Vector2(-338.0, -174.0), Vector2(174.0, 154.0))
 	draw_rect(focus_deck, STARTUP_DECK_FILL, true)
 	draw_rect(focus_deck, Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.24), false, 2.0, true)
@@ -341,6 +346,19 @@ func _draw_startup_restore_focus() -> void:
 	_draw_startup_low_power_alarm()
 	_draw_startup_disabled_supply_bus()
 	_draw_startup_restore_cable()
+
+
+func _draw_startup_local_context_buffer() -> void:
+	var worksite := Rect2(Vector2(-352.0, -214.0), Vector2(338.0, 326.0))
+	draw_rect(worksite, Color(0.018, 0.044, 0.042, 0.42), true)
+	draw_rect(worksite, STARTUP_WORKSITE_EDGE, false, 1.5, true)
+	draw_rect(Rect2(Vector2(-356.0, -234.0), Vector2(346.0, 20.0)), STARTUP_CONTEXT_FALLOFF, true)
+	draw_rect(Rect2(Vector2(-356.0, 112.0), Vector2(346.0, 32.0)), STARTUP_CONTEXT_FALLOFF, true)
+	draw_rect(Rect2(Vector2(-14.0, -190.0), Vector2(78.0, 244.0)), Color(0.006, 0.016, 0.014, 0.2), true)
+	for y in [-192.0, -132.0, -72.0, -12.0, 48.0]:
+		draw_line(Vector2(-344.0, y), Vector2(-24.0, y + 10.0), Color(STARTUP_WORKSITE_EDGE.r, STARTUP_WORKSITE_EDGE.g, STARTUP_WORKSITE_EDGE.b, 0.08), 1.0, true)
+	for x in [-326.0, -286.0, -246.0, -206.0, -166.0, -126.0, -86.0, -46.0]:
+		draw_line(Vector2(x, -202.0), Vector2(x + 10.0, 96.0), Color(STARTUP_WORKSITE_EDGE.r, STARTUP_WORKSITE_EDGE.g, STARTUP_WORKSITE_EDGE.b, 0.065), 1.0, true)
 
 
 func _draw_startup_outpost_core() -> void:
@@ -1016,7 +1034,8 @@ func _register_startup_restore_shapes() -> void:
 		"startup_restore.restore_cable",
 		"startup_restore.global_planning_layers_muted",
 		"startup_restore.non_core_markers_muted",
-		"startup_restore.wide_first_screen_frame"
+		"startup_restore.local_worksite_buffer",
+		"startup_restore.soft_context_falloff"
 	]
 
 

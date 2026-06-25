@@ -181,7 +181,8 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	_expect_equal(first_path_main_route.color.a <= 0.001, true, "first industrial path layer lowers the global route spine")
 	_expect_equal(first_path_crystal_boundary.color.a <= 0.003, true, "first industrial path layer lowers region boundary frames")
 	_expect_equal(first_path_layer.is_first_path_visible_at(Vector2(-250.0, -48.0)), true, "first industrial path layer is visible at base start")
-	_expect_equal(first_path_layer.is_first_path_visible_at(Vector2(112.0, -112.0)), true, "first industrial path layer is visible at crystal pickup")
+	_expect_equal(first_path_layer.is_first_path_visible_at(Vector2(112.0, -112.0)), false, "first industrial path layer steps back inside the crystal workface")
+	_expect_equal(first_path_layer.should_use_compact_guidance_at(Vector2(112.0, -112.0)), true, "first industrial path still supports compact guidance in the crystal workface")
 	_expect_equal(first_path_layer.is_first_path_visible_at(Vector2(168.0, 34.0)), false, "first industrial path layer steps back before pollution treatment boundary")
 	_expect_equal(first_path_layer.is_first_path_visible_at(Vector2(3744.0, 112.0)), false, "first industrial path layer does not cover the core station")
 	first_path_layer.refresh_focus_visibility(Vector2(3744.0, 112.0))
@@ -393,6 +394,7 @@ func _check_visual_review_checkpoint_path_states() -> void:
 	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
 	root.add_child(map)
 	var first_path_layer := map.get_node("DemoFirstIndustrialPathVisualLayer") as DemoFirstIndustrialPathVisualLayer
+	var crystal_layer := map.get_node("DemoCrystalResourceVisualLayer") as DemoCrystalResourceVisualLayer
 	first_path_layer.apply_visuals()
 
 	var collector_result := builder.create_visual_review_checkpoint_state("visual_review.crystal_collector_output")
@@ -426,10 +428,21 @@ func _check_visual_review_checkpoint_path_states() -> void:
 			"collector output visual checkpoint marks miner-to-tray resource flow"
 		)
 		first_path_layer.refresh_focus_visibility(collector_character_state.position)
+		crystal_layer.refresh_focus_visibility(collector_character_state.position)
 		_expect_equal(
-			first_path_layer.get_muted_context_marker_count() >= 10,
+			first_path_layer.visible,
+			false,
+			"collector output checkpoint keeps the full first industrial path out of the crystal workface"
+		)
+		_expect_equal(
+			first_path_layer.should_use_compact_guidance_at(collector_character_state.position),
 			true,
-			"first industrial path checkpoint suppresses non-local interactable markers"
+			"collector output checkpoint still allows compact objective guidance"
+		)
+		_expect_equal(
+			crystal_layer.get_muted_crystal_focus_context_marker_count() >= 10,
+			true,
+			"crystal resource checkpoint suppresses non-local interactable markers"
 		)
 
 	var handoff_result := builder.create_visual_review_checkpoint_state("visual_review.base_handoff")

@@ -23,6 +23,7 @@ const CRYSTAL_FOCUS_CONTEXT_LAYER_ALPHAS := [
 	{"path": "CoreApproachHandoffLayer", "alpha": 0.0},
 	{"path": "CoreStabilizationRunLayer", "alpha": 0.0},
 	{"path": "DemoIndustrialBaseVisualLayer", "alpha": 0.032},
+	{"path": "DemoFirstIndustrialPathVisualLayer", "alpha": 0.0},
 	{"path": "DemoPollutionBoundaryVisualLayer", "alpha": 0.0},
 	{"path": "DemoCoreStabilizationVisualLayer", "alpha": 0.0},
 	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.006},
@@ -153,7 +154,7 @@ var context_layer_original_modulates: Dictionary = {}
 
 
 func _ready() -> void:
-	process_priority = 80
+	process_priority = 100
 	apply_visuals()
 	refresh_focus_visibility(_get_player_position())
 

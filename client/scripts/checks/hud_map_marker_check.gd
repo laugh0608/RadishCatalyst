@@ -282,6 +282,10 @@ func run(root_window: Window) -> void:
 		host.failures.append("prototype hud scene should include demo stabilization core label node")
 	hud._set_control_rect(hud.map_panel, Vector2.ZERO, Vector2(448.0, 208.0))
 	hud._layout_map_panel_contents()
+	host._expect_equal(hud.map_marker_rects[1].visible, true, "prototype hud compact minimap keeps crystal marker visible")
+	host._expect_equal(hud.map_marker_labels[1].visible, true, "prototype hud compact minimap keeps crystal label visible")
+	host._expect_equal(hud.map_marker_rects[3].visible, false, "prototype hud compact minimap hides non-core locked marker")
+	host._expect_equal(hud.map_marker_labels[3].visible, false, "prototype hud compact minimap hides non-core locked label")
 	for label in hud.map_marker_labels:
 		_assert_control_within_panel(label, hud.map_panel, "prototype hud minimap label")
 	hud.free()
@@ -294,6 +298,8 @@ func _assert_control_within_panel(control: Control, panel: Control, label: Strin
 		return
 	if panel == null:
 		host.failures.append("%s panel should exist" % label)
+		return
+	if not control.visible:
 		return
 	if control.position.x < -0.01 or control.position.y < -0.01:
 		host.failures.append("%s should stay within panel bounds, got position %s" % [label, var_to_str(control.position)])
