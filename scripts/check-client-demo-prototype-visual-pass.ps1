@@ -43,6 +43,12 @@ $requiredTextByFile = @{
         "space.device_zone.basic_reactor",
         "space.player_start.staging_pad"
     )
+    "client/scripts/map/demo_base_startup_presentation_layer.gd" = @(
+        "class_name DemoBaseStartupPresentationLayer",
+        "startup_presentation.opaque_scene_backdrop",
+        "startup_presentation.hangar_floor",
+        "refresh_startup_state"
+    )
     "client/scripts/actors/player_controller.gd" = @(
         "get_visual_part_count",
         "suit.helmet",
@@ -62,7 +68,9 @@ $requiredTextByFile = @{
         "res://scripts/map/prototype_visual_priority_layer.gd",
         "PrototypeVisualPriorityLayer",
         "res://scripts/map/current_objective_guidance_layer.gd",
-        "CurrentObjectiveGuidanceLayer"
+        "CurrentObjectiveGuidanceLayer",
+        "res://scripts/map/demo_base_startup_presentation_layer.gd",
+        "DemoBaseStartupPresentationLayer"
     )
     "client/scripts/interaction/prototype_interactable.gd" = @(
         "set_visual_priority_state",
@@ -94,6 +102,7 @@ $requiredTextByFile = @{
         "post-restore storage build guidance",
         "pollution filter processing guidance",
         "core write local guidance",
+        "startup presentation covers old debug map blocks",
         "first industrial path uses local focus readability mode",
         "_check_scene_visual_layer_focus_visibility",
         "_check_playable_space_and_actor_silhouettes",

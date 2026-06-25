@@ -334,6 +334,7 @@ func _check_startup_readability_scope() -> void:
 	var map := _create_setup_map()
 	var layer := map.get_node("PrototypeVisualPriorityLayer") as PrototypeVisualPriorityLayer
 	var base_layer := map.get_node("DemoIndustrialBaseVisualLayer") as DemoIndustrialBaseVisualLayer
+	var startup_layer := map.get_node("DemoBaseStartupPresentationLayer") as DemoBaseStartupPresentationLayer
 	_expect_equal(layer != null, true, "startup visual priority layer exists")
 	if layer != null:
 		layer.apply_profile()
@@ -389,6 +390,19 @@ func _check_startup_readability_scope() -> void:
 			true,
 			"pollution focus keeps visual priority cues below treatment artwork instead of drawing a yellow block"
 		)
+	_expect_equal(startup_layer != null, true, "startup first screen presentation layer exists")
+	if startup_layer != null:
+		startup_layer.refresh_startup_state(WorldState.create_default())
+		_expect_equal(startup_layer.visible, true, "startup first screen uses a dedicated presentation layer")
+		_expect_equal(startup_layer.is_startup_active(), true, "startup presentation layer is active before core restore")
+		_expect_equal(startup_layer.get_presentation_shape_count() >= 8, true, "startup presentation layer registers scene artwork shapes")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.opaque_scene_backdrop"), true, "startup presentation covers old debug map blocks")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.hangar_floor"), true, "startup presentation draws a local hangar floor")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.floor_material_tiles"), true, "startup presentation adds floor material tiles")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.core_machine_body"), true, "startup presentation gives the core a machine body")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.cold_cable_runs"), true, "startup presentation uses local cables instead of cross-screen routes")
+		var player := map.get_node("Player") as PlayerController
+		_expect_equal(startup_layer.z_index < player.z_index, true, "startup presentation stays below player and interaction focus")
 	if base_layer != null:
 		base_layer.apply_visuals()
 		base_layer.refresh_chain_state(WorldState.create_default(), CharacterState.create_default())
@@ -433,6 +447,10 @@ func _check_startup_readability_scope() -> void:
 		var restored_world := WorldState.create_default()
 		restored_world.quest_state.complete_quest("quest.restore_outpost")
 		base_layer.refresh_chain_state(restored_world, CharacterState.create_default())
+		if startup_layer != null:
+			startup_layer.refresh_startup_state(restored_world)
+			_expect_equal(startup_layer.visible, false, "restored base hides the startup presentation layer")
+			_expect_equal(startup_layer.is_startup_active(), false, "restored base deactivates startup presentation")
 		_expect_equal(not base_layer.is_startup_restore_focus_active(), true, "restored base visual layer leaves startup focus")
 		_expect_equal(opening_layer.visible, true, "restored base visual layer restores the opening scene layer")
 		_expect_equal(route_spine.visible, true, "restored base visual layer restores the route spine for later route scopes")

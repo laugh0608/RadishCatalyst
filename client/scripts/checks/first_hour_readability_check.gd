@@ -58,6 +58,7 @@ func _check_opening_scene_layer() -> void:
 	var demo_route_base_label := map.get_node("DemoRoutePresentationLayer/DemoRouteBaseLabel") as Label
 	var demo_route_core_label := map.get_node("DemoRoutePresentationLayer/DemoRouteCoreLabel") as Label
 	var base_visual_layer := map.get_node("DemoIndustrialBaseVisualLayer") as DemoIndustrialBaseVisualLayer
+	var startup_presentation := map.get_node("DemoBaseStartupPresentationLayer") as DemoBaseStartupPresentationLayer
 	var focus_depth := map.get_node("DemoSceneFocusDepthLayer") as DemoSceneFocusDepthLayer
 	var base_deck := map.get_node("OpeningSceneLayer/BaseDeckFloor") as ColorRect
 	var base_upper_service_apron := map.get_node("OpeningSceneLayer/BaseUpperServiceApron") as ColorRect
@@ -181,12 +182,21 @@ func _check_opening_scene_layer() -> void:
 	)
 	host._expect_equal(focus_depth != null, true, "opening scene focus depth layer exists")
 	host._expect_equal(base_visual_layer != null, true, "opening scene base visual layer exists")
+	host._expect_equal(startup_presentation != null, true, "opening scene startup presentation layer exists")
 	if base_visual_layer != null:
 		base_visual_layer.refresh_chain_state(WorldState.create_default(), CharacterState.create_default())
 		host._expect_equal(layer.visible, false, "startup first screen hides the old opening planning layer")
 		host._expect_equal(main_route.visible, false, "startup first screen hides the old cross-screen route band")
 		host._expect_equal(crystal_boundary.visible, false, "startup first screen hides the old crystal boundary frame")
 		host._expect_equal(demo_route_layer.visible, false, "startup first screen hides the old route presentation layer")
+	if startup_presentation != null:
+		startup_presentation.refresh_startup_state(WorldState.create_default())
+		host._expect_equal(startup_presentation.visible, true, "startup first screen shows the dedicated base presentation layer")
+		host._expect_equal(startup_presentation.has_presentation_shape("startup_presentation.opaque_scene_backdrop"), true, "startup presentation covers old region color blocks")
+		host._expect_equal(startup_presentation.has_presentation_shape("startup_presentation.hangar_floor"), true, "startup presentation provides the base floor as the first read")
+		host._expect_equal(startup_presentation.has_presentation_shape("startup_presentation.core_machine_plinth"), true, "startup presentation anchors the core as machinery")
+		host._expect_equal(startup_presentation.has_presentation_shape("startup_presentation.local_shadows"), true, "startup presentation adds local shadows for game-scene depth")
+		host._expect_equal(startup_presentation.z_index < player.z_index, true, "startup presentation stays below the playable actor")
 	if focus_depth != null:
 		focus_depth.refresh_focus_depth(player.position)
 		host._expect_equal(

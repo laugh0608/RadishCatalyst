@@ -187,9 +187,20 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		result["message"] = "%s%s" % [String(result.get("message", "")), String(evacuation_feedback.get("log_message", ""))]
 		result["evacuation_feedback"] = evacuation_feedback
 	return result
+
+
+func _refresh_startup_presentation(world_state: WorldState) -> void:
+	var startup_layer := get_node_or_null("DemoBaseStartupPresentationLayer") as DemoBaseStartupPresentationLayer
+	if startup_layer == null:
+		return
+
+	startup_layer.refresh_startup_state(world_state)
+
+
 func refresh_world_interactables(world_state: WorldState) -> void:
 	_ensure_scene_nodes()
 	current_world_state = world_state
+	_refresh_startup_presentation(world_state)
 	if interactable_visual_refresher == null:
 		interactable_visual_refresher = InteractableVisualRefresher.new()
 	if phase_well_frontier_runtime != null:
