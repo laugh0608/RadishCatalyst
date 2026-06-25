@@ -7,7 +7,7 @@
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题为准：
 
 - 当前活跃专题：[Demo First Playable Slice Assembly V1](../features/demo-first-playable-slice-assembly-v1.md)，覆盖首版 Demo 20 到 30 分钟可玩纵切装配。
-- 当前执行线：[Demo Playable UI And Art Pass V1](../features/demo-playable-ui-and-art-pass-v1.md)、[Demo Core Loop Playable V1](../features/demo-core-loop-playable-v1.md)、[Demo Narrative Beats V1](../features/demo-narrative-beats-v1.md)。
+- 当前执行线：[Demo Playable UI And Art Pass V1](../features/demo-playable-ui-and-art-pass-v1.md)（首屏当前细专题：[Demo First Screen Assetized Scene V1](../features/demo-first-screen-assetized-scene-v1.md)）、[Demo Core Loop Playable V1](../features/demo-core-loop-playable-v1.md)、[Demo Narrative Beats V1](../features/demo-narrative-beats-v1.md)。
 - 视觉承接：[Demo Industrial Base Visual And Scene V1](../features/demo-industrial-base-visual-and-scene-v1.md) 的未完成观感问题并入 UI / Art pass，不再作为单点截图微调主线。
 - 参考视觉源：[Visual And UI Direction](../product/visual-and-ui-direction.md)。
 
@@ -34,7 +34,7 @@
 首版 Demo 可玩纵切装配第一版
 ```
 
-当前推进口径：先让默认画面像一款可玩的 2D / 2.5D 工业科幻 ARPG，而不是 debug 流程图或原型图层。既有任务、状态、场景、HUD、工业链、污染挑战、核心稳定站和叙事仍服务 20 到 30 分钟 Demo 路径，但在默认画面明显像游戏前，不转向完整路径体感复核、试玩准备或验收。自动检查、formatter、提示文案、目标箭头、截图点、读法和状态整理只能作为支撑，不能作为当前阶段主线成果。
+当前推进口径：先让默认画面像一款可玩的 2D / 2.5D 工业科幻 ARPG，而不是 debug 流程图或原型图层。第十四到十七包已证明继续叠程序几何图层收益不足，首屏下一步切到低保真资产化场景重建；在默认画面明显像游戏前，不转向完整路径体感复核、试玩准备或验收。
 
 ## 当前主线
 
@@ -48,7 +48,7 @@
 
 三条执行线：
 
-- UI 与低保真美术：启动界面、基地首屏低保真工作现场、首屏取景 / 常驻 HUD、残余规划层、晶体局部交互、首屏调试图剥离、首屏专用呈现层、主体交互锚点重画、玩家修复动作、角色化与核心设备实物化已补；下一步先实机复核新档首屏是否真正像游戏画面，若成立再推进基地入料、反应器和整备交接段。
+- UI 与低保真美术：首屏程序绘制原型已收束；当前不再继续追加同类线框包，转入首屏低保真资产化场景重建。若资产化首屏成立，再推进基地入料、反应器和整备交接段。
 - 核心循环：让采集、加工、设备启用、整备、污染承压、短战斗和核心写入形成可操作闭环。
 - 叙事节拍：用开场事故、基地恢复、污染信号、核心稳定、场景证据和结尾悬念替代任务表式推进。
 
@@ -63,7 +63,7 @@
 
 ## 视觉与 UI 策略
 
-- 首版 Demo 不能以 `ColorRect + Label` 的 debug 流程图作为可试玩画面目标。
+- 首版 Demo 不能以 `ColorRect + Label`、`draw_line` / `draw_rect` 叠线或 debug 流程图作为可试玩画面目标。
 - HUD 要像游戏 UI，不像开发面板；开发基线、GM 控件和长说明默认隐藏或折叠。
 - 低保真允许，但玩家、敌人、设备、资源、污染和核心目标至少要有轮廓、材质色、状态和用途关系。
 - 当前 UI / Art 优先级是低保真游戏画面成型：角色、敌人、设备、地面、材质、阴影、空间层次和操作动作反馈优先于新增说明、状态字段或设备面板字段。
@@ -88,7 +88,7 @@
 
 当前阶段的进展以玩家可见体验为准：没有场景、角色、敌人、设备、地面、操作、反馈或叙事节拍结果的文本、formatter、检查和“第一包”不算主线完成。
 
-默认画面仍不像游戏时，不把下一步切到完整路径体感复核、读法整理、UI 字段整理、设备面板字段整理或纯检查补充；这些工作只有在支撑画面成型时才进入范围。
+默认画面仍不像游戏时，不把下一步切到完整路径体感复核、读法整理、UI 字段整理、设备面板字段整理、纯检查补充或同类线框叠层；这些工作只有在支撑资产化场景成型时才进入范围。
 
 每个开发包开工前先说明实机里会看到什么、玩家会做什么、完成后玩家能理解什么。收口时优先用实机跑通和截图 / 录像观感判断，再补文档与检查。
 
