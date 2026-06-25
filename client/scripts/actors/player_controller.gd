@@ -11,6 +11,7 @@ const TOOL_COLOR := Color(0.96, 0.76, 0.32, 0.95)
 const BOOT_COLOR := Color(0.08, 0.18, 0.18, 0.94)
 const HARNESS_COLOR := Color(0.84, 0.94, 0.88, 0.54)
 const PLAYER_VISUAL_PART_IDS := [
+	"suit.body_mass",
 	"suit.torso",
 	"suit.helmet",
 	"suit.visor",
@@ -90,6 +91,7 @@ func _draw() -> void:
 	var forward := _safe_facing_direction()
 	var side := forward.orthogonal()
 	draw_circle(Vector2.ZERO, 18.0, Color(0.02, 0.05, 0.05, 0.38))
+	_draw_oriented_rect(-forward * 4.0, forward, 14.5, 10.0, Color(0.010, 0.034, 0.036, 0.70))
 	_draw_oriented_rect(-forward * 4.0, forward, 13.0, 9.0, BODY_OUTLINE_COLOR)
 	_draw_oriented_rect(-forward * 4.0, forward, 10.5, 6.8, BODY_COLOR)
 	_draw_oriented_rect(-forward * 12.0, forward, 6.5, 8.0, PACK_COLOR)
@@ -113,7 +115,8 @@ func _draw() -> void:
 	draw_line(-forward * 15.0 - side * 5.0, -forward * 22.0 - side * 8.0, BOOT_COLOR, 4.0, true)
 	draw_line(forward * 10.0 + side * 4.8, forward * 15.0 + side * 9.0, SUIT_PANEL, 2.2, true)
 	draw_line(forward * 10.0 - side * 4.8, forward * 15.0 - side * 9.0, SUIT_PANEL, 2.2, true)
-	draw_arc(Vector2.ZERO, 24.0, 0.0, TAU, 32, Color(0.82, 0.96, 0.96, 0.62), 1.5, true)
+	draw_arc(Vector2.ZERO, 22.0, -PI * 0.62, PI * 0.62, 20, Color(0.82, 0.96, 0.96, 0.28), 1.2, true)
+	draw_arc(Vector2.ZERO, 20.0, PI * 0.78, PI * 1.18, 8, Color(0.82, 0.96, 0.96, 0.18), 1.0, true)
 
 
 func stop_positive_x_until_release() -> void:

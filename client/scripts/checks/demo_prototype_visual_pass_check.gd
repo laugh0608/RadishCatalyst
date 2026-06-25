@@ -411,6 +411,10 @@ func _check_startup_readability_scope() -> void:
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.broken_pipe_runs"), true, "startup presentation adds broken pipe runs around the first screen")
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.player_repair_action"), true, "startup presentation shows the player repair action")
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.depth_shadow_layers"), true, "startup presentation adds depth shadow layers")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.damaged_core_equipment"), true, "startup presentation turns the core into damaged equipment")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.player_character_pose"), true, "startup presentation gives the repair action a readable player pose")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.high_priority_floor_material"), true, "startup presentation adds high-priority floor material around the action")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.close_repair_feedback"), true, "startup presentation adds close repair feedback at the port")
 		var player := map.get_node("Player") as PlayerController
 		_expect_equal(startup_layer.z_index < player.z_index, true, "startup presentation stays below the player actor")
 	if base_layer != null:
@@ -542,6 +546,7 @@ func _check_playable_space_and_actor_silhouettes() -> void:
 
 	var player := map.get_node("Player") as PlayerController
 	_expect_equal(player.get_visual_part_count() >= 13, true, "player uses multiple readable silhouette parts")
+	_expect_equal(player.has_visual_part("suit.body_mass"), true, "player silhouette has readable body mass")
 	_expect_equal(player.has_visual_part("suit.helmet"), true, "player silhouette has helmet")
 	_expect_equal(player.has_visual_part("suit.visor"), true, "player silhouette has visor")
 	_expect_equal(player.has_visual_part("suit.backpack"), true, "player silhouette has backpack")

@@ -52,10 +52,15 @@ $requiredTextByFile = @{
         "startup_presentation.core_reactor_housing",
         "startup_presentation.perimeter_industrial_assets",
         "startup_presentation.player_repair_action",
+        "startup_presentation.damaged_core_equipment",
+        "startup_presentation.player_character_pose",
+        "startup_presentation.high_priority_floor_material",
+        "startup_presentation.close_repair_feedback",
         "refresh_startup_state"
     )
     "client/scripts/actors/player_controller.gd" = @(
         "get_visual_part_count",
+        "suit.body_mass",
         "suit.helmet",
         "suit.visor",
         "suit.backpack",

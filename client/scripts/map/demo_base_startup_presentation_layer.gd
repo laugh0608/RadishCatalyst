@@ -20,6 +20,10 @@ const PRESENTATION_SHAPES := {
 	"startup_presentation.broken_pipe_runs": true,
 	"startup_presentation.player_repair_action": true,
 	"startup_presentation.depth_shadow_layers": true,
+	"startup_presentation.damaged_core_equipment": true,
+	"startup_presentation.player_character_pose": true,
+	"startup_presentation.high_priority_floor_material": true,
+	"startup_presentation.close_repair_feedback": true,
 }
 
 const BACKDROP_RECT := Rect2(Vector2(-760.0, -420.0), Vector2(1520.0, 840.0))
@@ -62,14 +66,18 @@ func _draw() -> void:
 	_draw_local_shadows()
 	_draw_hangar_floor()
 	_draw_floor_material_breakup()
+	_draw_high_priority_floor_material()
 	_draw_device_silhouettes()
 	_draw_perimeter_industrial_assets()
 	_draw_broken_pipe_runs()
 	_draw_cable_runs()
 	_draw_core_machine()
+	_draw_damaged_core_equipment()
 	_draw_player_work_pad()
 	_draw_diegetic_repair_anchor()
+	_draw_player_character_pose()
 	_draw_player_repair_action()
+	_draw_close_repair_feedback()
 
 
 func _should_show_startup_presentation(world_state: WorldState) -> bool:
@@ -270,15 +278,169 @@ func _draw_diegetic_repair_anchor() -> void:
 
 
 func _draw_player_repair_action() -> void:
-	var tool_origin := Vector2(-248.0, -48.0)
+	var tool_origin := PLAYER_PAD_CENTER + Vector2(-20.0, -5.0)
 	var repair_port := CORE_CENTER + Vector2(62.0, 12.0)
-	draw_line(tool_origin, repair_port, Color(0.0, 0.010, 0.008, 0.42), 5.0, true)
-	draw_line(tool_origin, repair_port, Color(0.96, 0.76, 0.34, 0.34), 2.0, true)
-	draw_line(tool_origin + Vector2(4.0, -4.0), repair_port + Vector2(-6.0, -2.0), Color(0.72, 0.96, 0.78, 0.18), 1.4, true)
+	var cable_path := [
+		PLAYER_PAD_CENTER + Vector2(18.0, 10.0),
+		PLAYER_PAD_CENTER + Vector2(-2.0, -4.0),
+		tool_origin,
+		repair_port,
+	]
+	_draw_cable(cable_path, Color(0.12, 0.22, 0.18, 0.88), 5.0)
+	draw_line(tool_origin, repair_port, Color(0.96, 0.76, 0.34, 0.42), 2.0, true)
+	draw_line(tool_origin + Vector2(4.0, -4.0), repair_port + Vector2(-6.0, -2.0), Color(0.72, 0.96, 0.78, 0.24), 1.4, true)
 	for point in [tool_origin + Vector2(8.0, -5.0), repair_port + Vector2(-8.0, 2.0), repair_port + Vector2(4.0, -8.0)]:
-		draw_circle(point, 2.6, Color(0.98, 0.78, 0.34, 0.62))
+		draw_circle(point, 2.8, Color(0.98, 0.78, 0.34, 0.68))
 	for offset in [Vector2(-18.0, 12.0), Vector2(-4.0, 16.0), Vector2(12.0, 14.0)]:
-		draw_circle(tool_origin + offset, 2.0, Color(0.70, 0.94, 0.82, 0.26))
+		draw_circle(tool_origin + offset, 2.0, Color(0.70, 0.94, 0.82, 0.30))
+
+
+func _draw_high_priority_floor_material() -> void:
+	var service_trench := PackedVector2Array([
+		Vector2(-410.0, -36.0),
+		Vector2(-338.0, -62.0),
+		Vector2(-248.0, -45.0),
+		Vector2(-182.0, -20.0),
+		Vector2(-206.0, 8.0),
+		Vector2(-308.0, -20.0),
+		Vector2(-388.0, 12.0),
+	])
+	draw_colored_polygon(service_trench, Color(0.012, 0.028, 0.027, 0.82))
+	_draw_polyline_closed(
+		[
+			service_trench[0],
+			service_trench[1],
+			service_trench[2],
+			service_trench[3],
+			service_trench[4],
+			service_trench[5],
+			service_trench[6],
+		],
+		Color(0.34, 0.66, 0.58, 0.24),
+		1.4
+	)
+	for x_offset in [-88.0, -48.0, -8.0, 32.0, 72.0]:
+		draw_line(
+			CORE_CENTER + Vector2(x_offset, 52.0),
+			CORE_CENTER + Vector2(x_offset + 22.0, 74.0),
+			Color(0.34, 0.58, 0.50, 0.18),
+			1.6,
+			true
+		)
+
+	for bolt in [
+		CORE_CENTER + Vector2(-72.0, -36.0),
+		CORE_CENTER + Vector2(68.0, -34.0),
+		CORE_CENTER + Vector2(-84.0, 50.0),
+		CORE_CENTER + Vector2(74.0, 48.0),
+		PLAYER_PAD_CENTER + Vector2(-52.0, -22.0),
+		PLAYER_PAD_CENTER + Vector2(52.0, 22.0),
+	]:
+		draw_circle(bolt, 2.8, Color(0.52, 0.72, 0.62, 0.28))
+		draw_circle(bolt + Vector2(0.8, -0.8), 1.0, Color(0.02, 0.04, 0.04, 0.68))
+
+	for streak in [
+		[Vector2(-370.0, -90.0), Vector2(-330.0, -72.0), Vector2(-290.0, -86.0)],
+		[Vector2(-284.0, -2.0), Vector2(-246.0, 8.0), Vector2(-198.0, 4.0)],
+		[Vector2(-178.0, -72.0), Vector2(-130.0, -60.0), Vector2(-92.0, -62.0)],
+	]:
+		draw_polyline(PackedVector2Array(streak), Color(0.48, 0.72, 0.62, 0.17), 1.4, true)
+
+	draw_rect(Rect2(CORE_CENTER + Vector2(58.0, 54.0), Vector2(58.0, 12.0)), Color(0.002, 0.010, 0.010, 0.34), true)
+
+
+func _draw_damaged_core_equipment() -> void:
+	var left_panel := PackedVector2Array([
+		CORE_CENTER + Vector2(-83.0, -24.0),
+		CORE_CENTER + Vector2(-62.0, -51.0),
+		CORE_CENTER + Vector2(-30.0, -57.0),
+		CORE_CENTER + Vector2(-18.0, -42.0),
+		CORE_CENTER + Vector2(-46.0, -30.0),
+		CORE_CENTER + Vector2(-56.0, 2.0),
+		CORE_CENTER + Vector2(-78.0, 6.0),
+	])
+	var right_panel := PackedVector2Array([
+		CORE_CENTER + Vector2(28.0, -52.0),
+		CORE_CENTER + Vector2(58.0, -34.0),
+		CORE_CENTER + Vector2(74.0, -6.0),
+		CORE_CENTER + Vector2(58.0, 14.0),
+		CORE_CENTER + Vector2(34.0, 6.0),
+		CORE_CENTER + Vector2(40.0, -26.0),
+	])
+	draw_colored_polygon(left_panel, Color(0.088, 0.150, 0.118, 0.96))
+	draw_colored_polygon(right_panel, Color(0.086, 0.140, 0.116, 0.90))
+	_draw_polyline_closed([left_panel[0], left_panel[1], left_panel[2], left_panel[3], left_panel[4], left_panel[5], left_panel[6]], Color(0.62, 0.92, 0.72, 0.30), 1.8)
+	_draw_polyline_closed([right_panel[0], right_panel[1], right_panel[2], right_panel[3], right_panel[4], right_panel[5]], Color(0.62, 0.92, 0.72, 0.26), 1.8)
+
+	for crack in [
+		[CORE_CENTER + Vector2(-64.0, -38.0), CORE_CENTER + Vector2(-48.0, -24.0), CORE_CENTER + Vector2(-54.0, -6.0)],
+		[CORE_CENTER + Vector2(51.0, -28.0), CORE_CENTER + Vector2(42.0, -10.0), CORE_CENTER + Vector2(58.0, 4.0)],
+	]:
+		draw_polyline(PackedVector2Array(crack), Color(0.02, 0.035, 0.030, 0.72), 2.0, true)
+
+	for vent_y in [-18.0, -8.0, 2.0]:
+		draw_line(
+			CORE_CENTER + Vector2(-74.0, vent_y),
+			CORE_CENTER + Vector2(-48.0, vent_y - 2.0),
+			Color(0.70, 0.94, 0.76, 0.18),
+			1.6,
+			true
+		)
+
+	var exposed_port := CORE_CENTER + Vector2(62.0, 12.0)
+	draw_circle(exposed_port, 15.0, Color(0.010, 0.022, 0.020, 0.78))
+	draw_arc(exposed_port, 16.0, PI * 0.05, PI * 1.70, 26, Color(0.94, 0.70, 0.30, 0.56), 2.2, true)
+	draw_rect(Rect2(exposed_port + Vector2(-4.0, -11.0), Vector2(8.0, 22.0)), Color(0.76, 0.88, 0.66, 0.18), true)
+	for angle in [PI * 0.22, PI * 0.78, PI * 1.26]:
+		draw_circle(exposed_port + Vector2(cos(angle), sin(angle)) * 12.0, 2.2, Color(0.96, 0.76, 0.34, 0.54))
+
+
+func _draw_player_character_pose() -> void:
+	var body_center := PLAYER_PAD_CENTER + Vector2(8.0, -4.0)
+	var forward := (CORE_CENTER - body_center).normalized()
+	var side := forward.orthogonal()
+	_draw_soft_shadow(body_center + Vector2(8.0, 22.0), Vector2(78.0, 26.0), 0.30)
+	_draw_oriented_rect(body_center - forward * 10.0, forward, 11.0, 8.0, Color(0.008, 0.022, 0.023, 0.84))
+	_draw_oriented_rect(body_center - forward * 10.0, forward, 8.0, 5.8, Color(0.16, 0.64, 0.66, 0.58))
+	_draw_oriented_rect(body_center - forward * 22.0, forward, 7.0, 7.0, Color(0.08, 0.20, 0.18, 0.66))
+	draw_circle(body_center + forward * 2.0, 8.0, Color(0.86, 0.96, 0.94, 0.62))
+	draw_circle(body_center + forward * 2.0, 5.6, Color(0.030, 0.070, 0.074, 0.88))
+	draw_line(
+		body_center + forward * 7.0 - side * 4.0,
+		body_center + forward * 7.0 + side * 4.0,
+		Color(0.72, 0.98, 0.98, 0.62),
+		1.6,
+		true
+	)
+	var tool_hand := PLAYER_PAD_CENTER + Vector2(-18.0, -8.0)
+	_draw_oriented_rect(body_center + forward * 4.0 + side * 8.0, forward, 11.0, 2.3, Color(0.88, 0.72, 0.34, 0.62))
+	draw_line(body_center + forward * 9.0 + side * 8.0, tool_hand, Color(0.98, 0.78, 0.36, 0.68), 3.0, true)
+	draw_line(body_center - forward * 4.0 - side * 8.0, body_center + forward * 9.0 - side * 9.0, Color(0.70, 0.92, 0.86, 0.42), 2.4, true)
+	draw_line(body_center - forward * 18.0 + side * 4.5, body_center - forward * 29.0 + side * 8.0, Color(0.04, 0.12, 0.12, 0.82), 4.0, true)
+	draw_line(body_center - forward * 18.0 - side * 4.5, body_center - forward * 28.0 - side * 7.0, Color(0.04, 0.12, 0.12, 0.82), 4.0, true)
+	draw_circle(body_center - forward * 8.0 - side * 5.2, 2.2, Color(0.98, 0.86, 0.48, 0.70))
+	draw_line(tool_hand, tool_hand + forward * 18.0, Color(0.98, 0.82, 0.38, 0.76), 2.2, true)
+
+
+func _draw_close_repair_feedback() -> void:
+	var repair_port := CORE_CENTER + Vector2(62.0, 12.0)
+	var tool_tip := PLAYER_PAD_CENTER + Vector2(-25.0, -9.0)
+	draw_line(tool_tip, repair_port, Color(1.0, 0.86, 0.42, 0.40), 2.6, true)
+	draw_arc(repair_port, 22.0, PI * 0.12, PI * 0.88, 14, Color(0.98, 0.82, 0.38, 0.38), 1.6, true)
+	draw_arc(repair_port, 28.0, PI * 1.04, PI * 1.42, 10, Color(0.70, 0.98, 0.82, 0.22), 1.2, true)
+	for spark in [
+		Vector2(-8.0, -10.0),
+		Vector2(3.0, -14.0),
+		Vector2(12.0, -2.0),
+		Vector2(-12.0, 7.0),
+	]:
+		draw_line(repair_port + spark, repair_port + spark * 1.38, Color(1.0, 0.80, 0.32, 0.62), 1.8, true)
+	for point in [
+		PLAYER_PAD_CENTER + Vector2(-34.0, -18.0),
+		PLAYER_PAD_CENTER + Vector2(-44.0, -4.0),
+		CORE_CENTER + Vector2(82.0, 30.0),
+	]:
+		draw_circle(point, 2.0, Color(0.70, 0.98, 0.82, 0.34))
 
 
 func _draw_floor_plate(rect: Rect2) -> void:
@@ -364,6 +526,22 @@ func _draw_maintenance_crate(center: Vector2, size: Vector2) -> void:
 	draw_rect(rect, Color(0.034, 0.064, 0.056, 0.46), true)
 	draw_rect(rect, Color(0.30, 0.50, 0.42, 0.20), false, 1.0)
 	draw_line(rect.position + Vector2(6.0, 7.0), rect.end - Vector2(7.0, 7.0), Color(0.30, 0.50, 0.42, 0.12), 1.0)
+
+
+func _draw_oriented_rect(center: Vector2, forward: Vector2, half_length: float, half_width: float, color: Color) -> void:
+	var safe_forward := forward
+	if safe_forward.length_squared() <= 0.001:
+		safe_forward = Vector2.LEFT
+	else:
+		safe_forward = safe_forward.normalized()
+	var side := safe_forward.orthogonal()
+	var points := PackedVector2Array([
+		center + safe_forward * half_length + side * half_width,
+		center + safe_forward * half_length - side * half_width,
+		center - safe_forward * half_length - side * half_width,
+		center - safe_forward * half_length + side * half_width,
+	])
+	draw_colored_polygon(points, color)
 
 
 func _draw_disabled_machine(center: Vector2, size: Vector2, fill_color: Color, edge_color: Color) -> void:
