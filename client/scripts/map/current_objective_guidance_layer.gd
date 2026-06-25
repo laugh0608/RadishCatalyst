@@ -11,8 +11,8 @@ const TARGET_LABEL_NAME := "CurrentObjectiveTargetLabel"
 const OFF_TARGET_LABEL_NAME := "CurrentObjectiveOffTargetLabel"
 const TARGET_COLOR := Color(0.28, 0.96, 1.0, 0.28)
 const TARGET_PIN_COLOR := Color(0.82, 1.0, 0.95, 0.82)
-const STARTUP_TARGET_COLOR := Color(0.42, 1.0, 0.92, 0.4)
-const STARTUP_TARGET_PIN_COLOR := Color(0.92, 1.0, 0.9, 0.92)
+const STARTUP_TARGET_COLOR := Color(0.92, 0.78, 0.36, 0.12)
+const STARTUP_TARGET_PIN_COLOR := Color(0.96, 0.78, 0.36, 0.48)
 const ROUTE_COLOR := Color(0.38, 0.94, 0.96, 0.12)
 const FIRST_PATH_TARGET_COLOR := Color(0.92, 0.74, 0.28, 0.16)
 const FIRST_PATH_TARGET_PIN_COLOR := Color(0.92, 0.74, 0.28, 0.34)
@@ -42,7 +42,8 @@ const FOCUS_READABILITY_SHAPES := [
 	"focus_readability.target_role_port",
 	"focus_readability.short_player_tether",
 	"focus_readability.stage_ticks",
-	"focus_readability.compact_context_frame"
+	"focus_readability.compact_context_frame",
+	"focus_readability.startup_repair_port"
 ]
 const OUTPOST_CORE_TARGET := {"path": "Interactables/OutpostCore", "label": "前哨核心"}
 const BASIC_STORAGE_TARGET := {"path": "Interactables/BasicStorageBuildSite", "label": "基础储存箱"}
@@ -184,6 +185,13 @@ func _draw() -> void:
 	if not local_focus_frame_visible or current_target == null:
 		return
 	var color := _get_focus_readability_color(current_target)
+	if current_focus_readability_mode == "startup_core":
+		_draw_startup_repair_focus(current_target.position, color)
+		if short_focus_tether_visible:
+			var startup_player := _get_player()
+			if startup_player != null:
+				_draw_startup_repair_tether(startup_player.position, current_target.position + Vector2(72.0, 14.0), color)
+		return
 	var frame_size := _get_focus_readability_frame_size(current_target)
 	var frame := Rect2(current_target.position - frame_size * 0.5, frame_size)
 	_draw_focus_corner_frame(frame, color)
@@ -261,6 +269,15 @@ func _position_target_visuals(target: PrototypeInteractable) -> void:
 		halo_size = CORE_STATION_TARGET_HALO_SIZE
 	target_halo.color = _get_target_halo_color(target)
 	target_pin.color = _get_target_pin_color(target)
+	if _is_startup_outpost_core_target(target):
+		halo_size = Vector2(26.0, 26.0)
+		_set_rect(target_halo, target.position + Vector2(58.0, 1.0), halo_size)
+		_set_rect(target_pin, target.position + Vector2(69.0, 6.0), Vector2(4.0, 12.0))
+		target_pin.visible = false
+		target_label.text = current_target_label_text
+		_set_label_rect(target_label, target.position + Vector2(26.0, -62.0), Vector2(92.0, 16.0))
+		target_label.visible = _should_show_target_name_label(target)
+		return
 	if compact_first_path:
 		target_halo.color = FIRST_PATH_TARGET_COLOR
 		target_pin.color = FIRST_PATH_TARGET_PIN_COLOR
@@ -281,6 +298,7 @@ func _position_target_visuals(target: PrototypeInteractable) -> void:
 func _position_route_visuals(target: PrototypeInteractable) -> void:
 	if (
 		_should_suppress_base_gate_guidance_in_field(target)
+		or _is_startup_outpost_core_target(target)
 		or _should_use_first_path_compact_guidance(target)
 		or _should_use_pollution_compact_guidance(target)
 		or _should_use_core_station_compact_guidance(target)
@@ -653,6 +671,24 @@ func _draw_short_focus_tether(from: Vector2, to: Vector2, color: Color) -> void:
 	draw_line(from, to, Color(color.r, color.g, color.b, 0.24), 2.0, true)
 	var center := from.lerp(to, 0.62)
 	draw_circle(center, 3.0, Color(color.r, color.g, color.b, 0.34))
+
+
+func _draw_startup_repair_focus(center: Vector2, color: Color) -> void:
+	var port := center + Vector2(72.0, 14.0)
+	draw_circle(port, 10.0, Color(color.r, color.g, color.b, 0.10))
+	draw_arc(port, 14.0, PI * 0.10, PI * 1.72, 24, Color(color.r, color.g, color.b, 0.42), 1.4, true)
+	draw_circle(port, 4.0, Color(color.r, color.g, color.b, 0.56))
+	for offset in [Vector2(-18.0, -12.0), Vector2(16.0, -12.0), Vector2(-16.0, 14.0), Vector2(18.0, 14.0)]:
+		var direction := -1.0 if offset.x < 0.0 else 1.0
+		draw_line(center + offset, center + offset + Vector2(direction * 10.0, 0.0), Color(color.r, color.g, color.b, 0.20), 1.2, true)
+	draw_line(center + Vector2(42.0, 30.0), port + Vector2(-8.0, 3.0), Color(color.r, color.g, color.b, 0.26), 1.8, true)
+
+
+func _draw_startup_repair_tether(from: Vector2, to: Vector2, color: Color) -> void:
+	draw_line(from, to, Color(0.01, 0.018, 0.016, 0.48), 4.0, true)
+	draw_line(from, to, Color(color.r, color.g, color.b, 0.18), 1.6, true)
+	var center := from.lerp(to, 0.68)
+	draw_circle(center, 2.4, Color(color.r, color.g, color.b, 0.30))
 
 
 func _get_map_node(path: String) -> Node:

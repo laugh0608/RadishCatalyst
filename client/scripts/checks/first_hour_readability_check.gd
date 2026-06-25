@@ -196,6 +196,10 @@ func _check_opening_scene_layer() -> void:
 		host._expect_equal(startup_presentation.has_presentation_shape("startup_presentation.hangar_floor"), true, "startup presentation provides the base floor as the first read")
 		host._expect_equal(startup_presentation.has_presentation_shape("startup_presentation.core_machine_plinth"), true, "startup presentation anchors the core as machinery")
 		host._expect_equal(startup_presentation.has_presentation_shape("startup_presentation.local_shadows"), true, "startup presentation adds local shadows for game-scene depth")
+		host._expect_equal(startup_presentation.has_presentation_shape("startup_presentation.core_reactor_housing"), true, "startup presentation replaces the UI core marker with a reactor housing")
+		host._expect_equal(startup_presentation.has_presentation_shape("startup_presentation.diegetic_repair_port"), true, "startup presentation exposes a repair port instead of an orange debug mark")
+		host._expect_equal(startup_presentation.has_presentation_shape("startup_presentation.player_service_rig"), true, "startup presentation gives the player a readable work position")
+		host._expect_equal(startup_presentation.has_presentation_shape("startup_presentation.floor_debris_and_bolts"), true, "startup presentation adds material breakup to the first-screen floor")
 		host._expect_equal(startup_presentation.z_index < player.z_index, true, "startup presentation stays below the playable actor")
 	if focus_depth != null:
 		focus_depth.refresh_focus_depth(player.position)

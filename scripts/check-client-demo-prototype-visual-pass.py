@@ -33,6 +33,7 @@ REQUIRED_TEXT_BY_FILE = {
         "get_current_target_node",
         "FOCUS_READABILITY_SHAPES",
         "focus_readability.local_workface_frame",
+        "focus_readability.startup_repair_port",
         "DEMO_STABILIZATION_CORE_TARGET",
     ],
     "client/scripts/map/demo_industrial_base_visual_layer.gd": [
@@ -45,6 +46,8 @@ REQUIRED_TEXT_BY_FILE = {
         "class_name DemoBaseStartupPresentationLayer",
         "startup_presentation.opaque_scene_backdrop",
         "startup_presentation.hangar_floor",
+        "startup_presentation.diegetic_repair_port",
+        "startup_presentation.core_reactor_housing",
         "refresh_startup_state",
     ],
     "client/scripts/actors/player_controller.gd": [
@@ -101,6 +104,7 @@ REQUIRED_TEXT_BY_FILE = {
         "pollution filter processing guidance",
         "core write local guidance",
         "startup presentation covers old debug map blocks",
+        "startup current objective does not draw a cross-screen route",
         "first industrial path uses local focus readability mode",
         "_check_scene_visual_layer_focus_visibility",
         "_check_playable_space_and_actor_silhouettes",
