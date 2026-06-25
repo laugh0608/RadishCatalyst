@@ -1,12 +1,6 @@
 # RadishCatalyst Documentation
 
-本目录收纳 RadishCatalyst / 异星催化 的开发者文档：策划、设计、架构、规划、参考资料与归档材料。
-
-玩家可见知识库源内容放在仓库根目录 `wiki/`。
-
-面向玩家的官方辅助工具放在仓库根目录 `official-tools/`。
-
-仓库许可条款以根目录 [LICENSE](../LICENSE) 为准。
+本目录收纳 RadishCatalyst / 异星催化 的开发者文档：策划、设计、架构、规划、参考资料与归档材料。玩家可见知识库源内容放在仓库根目录 `wiki/`，面向玩家的官方辅助工具放在仓库根目录 `official-tools/`，许可条款以根目录 [LICENSE](../LICENSE) 为准。
 
 ## Entry Document Constraints
 
@@ -50,6 +44,7 @@ macOS / Linux / Git Bash / zsh 可执行：
 - `features/`：玩家可感知功能目标的设计与开发专题文档。
 - `architecture/`：会影响工程结构、数据边界、联机与存档设计的前置架构文档。
 - `planning/`：当前阶段、优先级、范围边界和短期计划。
+- `process/`：开发协作流程、决策闸门和执行规则。
 - `adr/`：长期影响仓库治理、架构或流程的决策记录。
 - `devlogs/`：按周记录开发推进、关键决策、验证和风险。
 - `reference/`：早期方案、外部建议、同类方向分析等可参考资料。
@@ -99,6 +94,7 @@ macOS / Linux / Git Bash / zsh 可执行：
 - [Demo Scope And Playable Slice](planning/demo-scope-and-playable-slice.md)
 - [Vertical Slice](planning/vertical-slice.md)
 - [Milestone Review Checklist](planning/milestone-review-checklist.md)
+- [Development Decision Gates](process/development-decision-gates.md)
 - [Architecture Decision Records](adr/README.md)
 - [Development Logs](devlogs/README.md)
 
