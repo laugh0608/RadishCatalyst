@@ -409,6 +409,16 @@ func _check_startup_readability_scope() -> void:
 		_expect_equal(base_layer.has_detail_shape("story.outpost.recovered_power_bus"), true, "base restored view keeps recovered power bus evidence")
 		_expect_equal(base_layer.has_detail_shape("story.outpost.reactor_cold_start_marks"), true, "base restored view keeps reactor cold start evidence")
 		_expect_equal(base_layer.has_detail_shape("story.outpost.storage_recovery_manifest"), true, "base restored view keeps storage recovery evidence")
+		_expect_equal(base_layer.has_detail_shape("first_screen.floor.plate_seams"), true, "base first screen has floor plate seams")
+		_expect_equal(base_layer.has_detail_shape("first_screen.floor.local_contact_shadows"), true, "base first screen has local contact shadows")
+		_expect_equal(base_layer.has_detail_shape("first_screen.floor.disconnected_bus_scars"), true, "base first screen has disconnected bus scars")
+		_expect_equal(base_layer.has_detail_shape("first_screen.device.outpost_core.machine_base"), true, "base first screen gives the core a machine base")
+		_expect_equal(base_layer.has_detail_shape("first_screen.device.basic_reactor.feed_hopper"), true, "base first screen gives the reactor a feed hopper")
+		_expect_equal(base_layer.has_detail_shape("first_screen.device.basic_storage.cargo_trays"), true, "base first screen gives storage cargo trays")
+		_expect_equal(base_layer.has_detail_shape("first_screen.device.field_outfitting_station.suit_frame"), true, "base first screen gives outfitting a suit frame")
+		_expect_equal(base_layer.has_detail_shape("first_screen.action_feedback.core_inspection_pulse"), true, "base first screen has core inspection feedback")
+		_expect_equal(base_layer.has_detail_shape("first_screen.action_feedback.reactor_port_wake"), true, "base first screen has reactor port feedback")
+		_expect_equal(base_layer.has_detail_shape("first_screen.action_feedback.storage_outfitting_handshake"), true, "base first screen has storage to outfitting feedback")
 	_check_scene_visual_layer_focus_visibility(map)
 	_check_runtime_annotation_hidden(map, "DemoRoutePresentationLayer/DemoRouteBaseLabel")
 	_check_runtime_annotation_hidden(map, "SceneArtFoundationLayer/SceneArtBaseIdentityLabel")
@@ -473,12 +483,17 @@ func _check_playable_space_and_actor_silhouettes() -> void:
 	_expect_equal(base_layer.has_playable_space_shape("space.safety_threshold.departure_gate"), true, "base space shows departure safety threshold")
 
 	var player := map.get_node("Player") as PlayerController
-	_expect_equal(player.get_visual_part_count() >= 6, true, "player uses multiple readable silhouette parts")
+	_expect_equal(player.get_visual_part_count() >= 13, true, "player uses multiple readable silhouette parts")
 	_expect_equal(player.has_visual_part("suit.helmet"), true, "player silhouette has helmet")
 	_expect_equal(player.has_visual_part("suit.visor"), true, "player silhouette has visor")
 	_expect_equal(player.has_visual_part("suit.backpack"), true, "player silhouette has backpack")
+	_expect_equal(player.has_visual_part("suit.shoulder_plates"), true, "player silhouette has shoulder plates")
+	_expect_equal(player.has_visual_part("suit.tool_harness"), true, "player silhouette has tool harness")
+	_expect_equal(player.has_visual_part("stance.forward_boot"), true, "player silhouette has a forward stance boot")
 	_expect_equal(player.has_visual_part("tool.forward_arm"), true, "player silhouette has forward tool arm")
+	_expect_equal(player.has_visual_part("tool.rear_brace"), true, "player silhouette has rear tool brace")
 	_expect_equal(player.has_visual_part("tool.cutter_tip"), true, "player silhouette has cutter tip")
+	_expect_equal(player.has_visual_part("direction.helmet_beacon"), true, "player silhouette has a helmet beacon")
 
 	var treatment_enemy := map.get_node("Enemies/TreatmentSkitter") as PrototypeEnemy
 	var polluted_enemy := map.get_node("Enemies/PollutedSkitter") as PrototypeEnemy
@@ -498,37 +513,44 @@ func _check_key_object_semantic_silhouettes() -> void:
 		{
 			"path": "Interactables/OutpostCore",
 			"silhouette_id": PrototypeInteractable.SILHOUETTE_OUTPOST_CORE,
-			"part": "semantic.outpost_core.status_lights"
+			"part": "semantic.outpost_core.status_lights",
+			"extra_part": "semantic.outpost_core.machine_base"
 		},
 		{
 			"path": "Interactables/BasicReactor",
 			"silhouette_id": PrototypeInteractable.SILHOUETTE_BASIC_REACTOR,
-			"part": "semantic.basic_reactor.heat_chamber"
+			"part": "semantic.basic_reactor.heat_chamber",
+			"extra_part": "semantic.basic_reactor.feed_hopper"
 		},
 		{
 			"path": "Interactables/BasicStorageBuildSite",
 			"silhouette_id": PrototypeInteractable.SILHOUETTE_BASIC_STORAGE,
-			"part": "semantic.basic_storage.shelf_bins"
+			"part": "semantic.basic_storage.shelf_bins",
+			"extra_part": "semantic.basic_storage.cargo_tray"
 		},
 		{
 			"path": "Interactables/FieldOutfittingStation",
 			"silhouette_id": PrototypeInteractable.SILHOUETTE_FIELD_OUTFITTING_STATION,
-			"part": "semantic.field_outfitting_station.module_rack"
+			"part": "semantic.field_outfitting_station.module_rack",
+			"extra_part": "semantic.field_outfitting_station.suit_frame"
 		},
 		{
 			"path": "Interactables/PollutionFilter",
 			"silhouette_id": PrototypeInteractable.SILHOUETTE_POLLUTION_FILTER,
-			"part": "semantic.pollution_filter.twin_columns"
+			"part": "semantic.pollution_filter.twin_columns",
+			"extra_part": "semantic.pollution_filter.clean_output"
 		},
 		{
 			"path": "Interactables/CrystalCollectorBuildSite",
 			"silhouette_id": PrototypeInteractable.SILHOUETTE_CRYSTAL_COLLECTOR,
-			"part": "semantic.crystal_collector.output_tray"
+			"part": "semantic.crystal_collector.output_tray",
+			"extra_part": "semantic.crystal_collector.drill_arm"
 		},
 		{
 			"path": "Interactables/DemoStabilizationCore",
 			"silhouette_id": PrototypeInteractable.SILHOUETTE_CORE_WRITE_DEVICE,
-			"part": "semantic.core_write_device.write_ring"
+			"part": "semantic.core_write_device.write_ring",
+			"extra_part": "semantic.core_write_device.verify_panel"
 		}
 	]
 	for object_profile in key_objects:
@@ -547,6 +569,11 @@ func _check_key_object_semantic_silhouettes() -> void:
 			object.has_semantic_silhouette_part(String(object_profile["part"])),
 			true,
 			"%s exposes role-specific semantic part" % object_profile["path"]
+		)
+		_expect_equal(
+			object.has_semantic_silhouette_part(String(object_profile["extra_part"])),
+			true,
+			"%s exposes first-screen machine detail part" % object_profile["path"]
 		)
 	var collector_output := map.get_node("Interactables/CrystalCollectorOutput") as PrototypeInteractable
 	_expect_equal(

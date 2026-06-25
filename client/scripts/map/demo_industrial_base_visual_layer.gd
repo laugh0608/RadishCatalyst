@@ -2,6 +2,7 @@ extends Node2D
 class_name DemoIndustrialBaseVisualLayer
 
 const GENERATED_PREFIX := "DemoIndustrialBaseVisual"
+const FirstScreenArtPass := preload("res://scripts/map/demo_base_first_screen_art_pass.gd")
 const ROLE_DECK := "deck"
 const ROLE_DEVICE := "device"
 const ROLE_FLOW := "flow"
@@ -258,6 +259,7 @@ func _draw() -> void:
 		_draw_startup_restore_focus()
 		return
 	_draw_base_deck()
+	FirstScreenArtPass.draw_floor_and_shadows(self)
 	_draw_playable_space_layout()
 	_draw_base_detail()
 	_draw_flow_network()
@@ -265,11 +267,13 @@ func _draw() -> void:
 	_draw_basic_reactor()
 	_draw_basic_storage()
 	_draw_field_outfitting_station()
+	FirstScreenArtPass.draw_machine_overlays(self)
 	_draw_departure_gate()
 	_draw_pollution_filter()
 	_draw_chain_state()
 	_draw_pollution_chain_state()
 	_draw_operation_relation_overlay()
+	FirstScreenArtPass.draw_operation_feedback(self)
 
 
 func _draw_startup_restore_focus() -> void:
@@ -845,6 +849,8 @@ func _register_device_detail_shapes() -> void:
 		"story.outpost.reactor_cold_start_marks",
 		"story.outpost.storage_recovery_manifest"
 	]
+	for shape_id in FirstScreenArtPass.get_detail_shape_ids():
+		detail_shape_ids.append(shape_id)
 
 
 func _register_playable_space_shapes() -> void:
