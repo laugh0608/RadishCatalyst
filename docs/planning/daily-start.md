@@ -55,9 +55,9 @@
 
 ## 明日事项（2026-06-26）
 
-1. 推进 `Demo First Screen Assetized Scene V1` 第一包：资产语言与渲染方式，明确首屏哪些用 sprite / atlas / tile，哪些仍可程序绘制。
-2. 随后推进首屏地貌与生态底图：浅色岩地、金属平台、晶体簇、污染滩、边缘岩石和基础阴影。
-3. 若 5 号污染边界再次抢主读法，只做污染边界局部收束，不把 6 号已通过画面重新打开。
+1. 先按 `Development Decision Gates` 回答首屏资产化第一包的玩家结果、实现介质、成功证据、失败判据和文档落点。
+2. 推进 `Demo First Screen Assetized Scene V1` 第一包：资产语言与渲染方式，明确首屏哪些用 sprite / atlas / tile，哪些仍可程序绘制。
+3. 随后推进首屏地貌与生态底图：浅色岩地、金属平台、晶体簇、污染滩、边缘岩石和基础阴影。
 
 ## 防跑偏规则
 
@@ -102,6 +102,7 @@
 按任务选读：
 
 - UI / Art：`docs/features/demo-playable-ui-and-art-pass-v1.md`
+- 流程闸门：`docs/process/development-decision-gates.md`
 - 核心循环：`docs/features/demo-core-loop-playable-v1.md`
 - 叙事节拍：`docs/features/demo-narrative-beats-v1.md`
 - 区域和首小时体验：`docs/design/onboarding-and-first-hour.md`
