@@ -407,6 +407,10 @@ func _check_startup_readability_scope() -> void:
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.diegetic_repair_port"), true, "startup presentation uses a diegetic repair port")
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.player_service_rig"), true, "startup presentation anchors the player on a service rig")
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.floor_debris_and_bolts"), true, "startup presentation breaks up the flat floor with material detail")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.perimeter_industrial_assets"), true, "startup presentation fills empty space with low-priority industrial assets")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.broken_pipe_runs"), true, "startup presentation adds broken pipe runs around the first screen")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.player_repair_action"), true, "startup presentation shows the player repair action")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.depth_shadow_layers"), true, "startup presentation adds depth shadow layers")
 		var player := map.get_node("Player") as PlayerController
 		_expect_equal(startup_layer.z_index < player.z_index, true, "startup presentation stays below the player actor")
 	if base_layer != null:

@@ -50,6 +50,8 @@ $requiredTextByFile = @{
         "startup_presentation.hangar_floor",
         "startup_presentation.diegetic_repair_port",
         "startup_presentation.core_reactor_housing",
+        "startup_presentation.perimeter_industrial_assets",
+        "startup_presentation.player_repair_action",
         "refresh_startup_state"
     )
     "client/scripts/actors/player_controller.gd" = @(
@@ -107,6 +109,7 @@ $requiredTextByFile = @{
         "core write local guidance",
         "startup presentation covers old debug map blocks",
         "startup current objective does not draw a cross-screen route",
+        "startup presentation fills empty space with low-priority industrial assets",
         "first industrial path uses local focus readability mode",
         "_check_scene_visual_layer_focus_visibility",
         "_check_playable_space_and_actor_silhouettes",

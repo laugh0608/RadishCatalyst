@@ -16,6 +16,10 @@ const PRESENTATION_SHAPES := {
 	"startup_presentation.diegetic_repair_port": true,
 	"startup_presentation.player_service_rig": true,
 	"startup_presentation.floor_debris_and_bolts": true,
+	"startup_presentation.perimeter_industrial_assets": true,
+	"startup_presentation.broken_pipe_runs": true,
+	"startup_presentation.player_repair_action": true,
+	"startup_presentation.depth_shadow_layers": true,
 }
 
 const BACKDROP_RECT := Rect2(Vector2(-760.0, -420.0), Vector2(1520.0, 840.0))
@@ -59,10 +63,13 @@ func _draw() -> void:
 	_draw_hangar_floor()
 	_draw_floor_material_breakup()
 	_draw_device_silhouettes()
+	_draw_perimeter_industrial_assets()
+	_draw_broken_pipe_runs()
 	_draw_cable_runs()
 	_draw_core_machine()
 	_draw_player_work_pad()
 	_draw_diegetic_repair_anchor()
+	_draw_player_repair_action()
 
 
 func _should_show_startup_presentation(world_state: WorldState) -> bool:
@@ -78,6 +85,9 @@ func _draw_scene_backdrop() -> void:
 	draw_rect(Rect2(Vector2(330.0, -420.0), Vector2(430.0, 840.0)), Color(0.012, 0.018, 0.019, 0.78), true)
 	draw_rect(Rect2(Vector2(-700.0, -318.0), Vector2(1360.0, 34.0)), Color(0.018, 0.031, 0.032, 0.92), true)
 	draw_rect(Rect2(Vector2(-700.0, 252.0), Vector2(1360.0, 48.0)), Color(0.018, 0.028, 0.028, 0.94), true)
+	draw_rect(Rect2(Vector2(180.0, -250.0), Vector2(260.0, 40.0)), Color(0.0, 0.006, 0.006, 0.20), true)
+	draw_rect(Rect2(Vector2(-110.0, 226.0), Vector2(300.0, 44.0)), Color(0.0, 0.006, 0.006, 0.22), true)
+	draw_rect(Rect2(Vector2(250.0, 154.0), Vector2(250.0, 36.0)), Color(0.0, 0.006, 0.006, 0.18), true)
 
 
 func _draw_local_shadows() -> void:
@@ -87,6 +97,9 @@ func _draw_local_shadows() -> void:
 	_draw_soft_shadow(Vector2(-268.0, 92.0), Vector2(300.0, 82.0), 0.26)
 	_draw_soft_shadow(Vector2(-316.0, -76.0), Vector2(150.0, 116.0), 0.24)
 	_draw_soft_shadow(Vector2(-222.0, -42.0), Vector2(140.0, 62.0), 0.32)
+	_draw_soft_shadow(Vector2(150.0, -76.0), Vector2(178.0, 70.0), 0.24)
+	_draw_soft_shadow(Vector2(102.0, 130.0), Vector2(250.0, 64.0), 0.22)
+	_draw_soft_shadow(Vector2(320.0, 40.0), Vector2(210.0, 56.0), 0.20)
 
 
 func _draw_hangar_floor() -> void:
@@ -173,54 +186,54 @@ func _draw_cable_runs() -> void:
 
 
 func _draw_core_machine() -> void:
-	_draw_soft_shadow(CORE_CENTER + Vector2(5.0, 42.0), Vector2(180.0, 68.0), 0.52)
+	_draw_soft_shadow(CORE_CENTER + Vector2(4.0, 36.0), Vector2(152.0, 58.0), 0.46)
 	var plinth := PackedVector2Array([
-		CORE_CENTER + Vector2(-82.0, 34.0),
-		CORE_CENTER + Vector2(64.0, 34.0),
-		CORE_CENTER + Vector2(82.0, 54.0),
-		CORE_CENTER + Vector2(44.0, 70.0),
-		CORE_CENTER + Vector2(-68.0, 68.0),
-		CORE_CENTER + Vector2(-92.0, 50.0),
+		CORE_CENTER + Vector2(-68.0, 28.0),
+		CORE_CENTER + Vector2(54.0, 28.0),
+		CORE_CENTER + Vector2(70.0, 45.0),
+		CORE_CENTER + Vector2(36.0, 58.0),
+		CORE_CENTER + Vector2(-56.0, 57.0),
+		CORE_CENTER + Vector2(-76.0, 42.0),
 	])
 	draw_colored_polygon(plinth, Color(0.024, 0.054, 0.050, 0.98))
-	_draw_polyline_closed([plinth[0], plinth[1], plinth[2], plinth[3], plinth[4], plinth[5]], Color(0.42, 0.82, 0.70, 0.32), 2.0)
+	_draw_polyline_closed([plinth[0], plinth[1], plinth[2], plinth[3], plinth[4], plinth[5]], Color(0.42, 0.82, 0.70, 0.26), 1.8)
 
 	var housing := PackedVector2Array([
-		CORE_CENTER + Vector2(-72.0, -34.0),
-		CORE_CENTER + Vector2(-42.0, -64.0),
-		CORE_CENTER + Vector2(36.0, -62.0),
-		CORE_CENTER + Vector2(68.0, -30.0),
-		CORE_CENTER + Vector2(64.0, 34.0),
-		CORE_CENTER + Vector2(28.0, 58.0),
-		CORE_CENTER + Vector2(-46.0, 54.0),
-		CORE_CENTER + Vector2(-74.0, 18.0),
+		CORE_CENTER + Vector2(-60.0, -29.0),
+		CORE_CENTER + Vector2(-35.0, -54.0),
+		CORE_CENTER + Vector2(30.0, -52.0),
+		CORE_CENTER + Vector2(58.0, -25.0),
+		CORE_CENTER + Vector2(54.0, 28.0),
+		CORE_CENTER + Vector2(24.0, 49.0),
+		CORE_CENTER + Vector2(-38.0, 45.0),
+		CORE_CENTER + Vector2(-62.0, 15.0),
 	])
 	draw_colored_polygon(housing, Color(0.074, 0.132, 0.104, 0.98))
-	_draw_polyline_closed([housing[0], housing[1], housing[2], housing[3], housing[4], housing[5], housing[6], housing[7]], Color(0.58, 0.86, 0.68, 0.38), 2.0)
+	_draw_polyline_closed([housing[0], housing[1], housing[2], housing[3], housing[4], housing[5], housing[6], housing[7]], Color(0.58, 0.86, 0.68, 0.30), 1.8)
 
-	draw_circle(CORE_CENTER, 45.0, Color(0.19, 0.34, 0.24, 0.62))
-	draw_circle(CORE_CENTER, 31.0, Color(0.52, 0.76, 0.38, 0.38))
-	draw_arc(CORE_CENTER, 43.0, PI * 0.08, PI * 1.88, 46, Color(0.78, 0.96, 0.58, 0.46), 3.0, true)
-	draw_arc(CORE_CENTER, 24.0, 0.0, TAU, 38, Color(0.90, 1.0, 0.70, 0.72), 2.4, true)
-	draw_circle(CORE_CENTER, 8.0, Color(0.96, 0.84, 0.42, 0.92))
+	draw_circle(CORE_CENTER, 38.0, Color(0.16, 0.30, 0.22, 0.58))
+	draw_circle(CORE_CENTER, 25.0, Color(0.48, 0.68, 0.34, 0.30))
+	draw_arc(CORE_CENTER, 36.0, PI * 0.08, PI * 1.88, 42, Color(0.72, 0.88, 0.52, 0.38), 2.5, true)
+	draw_arc(CORE_CENTER, 19.0, 0.0, TAU, 34, Color(0.86, 0.96, 0.66, 0.58), 2.0, true)
+	draw_circle(CORE_CENTER, 6.0, Color(0.96, 0.78, 0.36, 0.82))
 
 	for angle in [0.0, PI * 0.5, PI, PI * 1.5]:
-		var marker_center := CORE_CENTER + Vector2(cos(angle), sin(angle)) * 47.0
-		draw_rect(Rect2(marker_center - Vector2(9.0, 5.0), Vector2(18.0, 10.0)), Color(0.18, 0.30, 0.24, 0.78), true)
-		draw_rect(Rect2(marker_center - Vector2(9.0, 5.0), Vector2(18.0, 10.0)), Color(0.70, 0.96, 0.76, 0.28), false, 1.0)
+		var marker_center := CORE_CENTER + Vector2(cos(angle), sin(angle)) * 39.0
+		draw_rect(Rect2(marker_center - Vector2(7.0, 4.0), Vector2(14.0, 8.0)), Color(0.18, 0.30, 0.24, 0.76), true)
+		draw_rect(Rect2(marker_center - Vector2(7.0, 4.0), Vector2(14.0, 8.0)), Color(0.70, 0.96, 0.76, 0.22), false, 1.0)
 
-	draw_line(CORE_CENTER + Vector2(-54.0, -42.0), CORE_CENTER + Vector2(-84.0, -72.0), Color(0.33, 0.58, 0.52, 0.46), 4.0)
-	draw_line(CORE_CENTER + Vector2(50.0, -40.0), CORE_CENTER + Vector2(78.0, -72.0), Color(0.33, 0.58, 0.52, 0.42), 4.0)
-	draw_rect(Rect2(CORE_CENTER + Vector2(-18.0, -90.0), Vector2(36.0, 44.0)), Color(0.42, 0.88, 0.76, 0.24), true)
-	draw_rect(Rect2(CORE_CENTER + Vector2(-10.0, -80.0), Vector2(20.0, 26.0)), Color(0.90, 1.0, 0.78, 0.22), true)
+	draw_line(CORE_CENTER + Vector2(-46.0, -36.0), CORE_CENTER + Vector2(-72.0, -62.0), Color(0.33, 0.58, 0.52, 0.36), 3.4)
+	draw_line(CORE_CENTER + Vector2(42.0, -34.0), CORE_CENTER + Vector2(66.0, -60.0), Color(0.33, 0.58, 0.52, 0.34), 3.4)
+	draw_rect(Rect2(CORE_CENTER + Vector2(-15.0, -76.0), Vector2(30.0, 36.0)), Color(0.42, 0.88, 0.76, 0.18), true)
+	draw_rect(Rect2(CORE_CENTER + Vector2(-8.0, -68.0), Vector2(16.0, 21.0)), Color(0.90, 1.0, 0.78, 0.16), true)
 
 	for point in [
-		CORE_CENTER + Vector2(-56.0, 44.0),
-		CORE_CENTER + Vector2(-24.0, 54.0),
-		CORE_CENTER + Vector2(20.0, 54.0),
-		CORE_CENTER + Vector2(52.0, 42.0),
+		CORE_CENTER + Vector2(-46.0, 37.0),
+		CORE_CENTER + Vector2(-20.0, 45.0),
+		CORE_CENTER + Vector2(16.0, 45.0),
+		CORE_CENTER + Vector2(44.0, 35.0),
 	]:
-		draw_circle(point, 3.4, Color(0.94, 0.70, 0.34, 0.58))
+		draw_circle(point, 3.0, Color(0.94, 0.70, 0.34, 0.48))
 
 
 func _draw_player_work_pad() -> void:
@@ -256,6 +269,18 @@ func _draw_diegetic_repair_anchor() -> void:
 		draw_circle(point, 3.0, Color(0.96, 0.78, 0.35, 0.52))
 
 
+func _draw_player_repair_action() -> void:
+	var tool_origin := Vector2(-248.0, -48.0)
+	var repair_port := CORE_CENTER + Vector2(62.0, 12.0)
+	draw_line(tool_origin, repair_port, Color(0.0, 0.010, 0.008, 0.42), 5.0, true)
+	draw_line(tool_origin, repair_port, Color(0.96, 0.76, 0.34, 0.34), 2.0, true)
+	draw_line(tool_origin + Vector2(4.0, -4.0), repair_port + Vector2(-6.0, -2.0), Color(0.72, 0.96, 0.78, 0.18), 1.4, true)
+	for point in [tool_origin + Vector2(8.0, -5.0), repair_port + Vector2(-8.0, 2.0), repair_port + Vector2(4.0, -8.0)]:
+		draw_circle(point, 2.6, Color(0.98, 0.78, 0.34, 0.62))
+	for offset in [Vector2(-18.0, 12.0), Vector2(-4.0, 16.0), Vector2(12.0, 14.0)]:
+		draw_circle(tool_origin + offset, 2.0, Color(0.70, 0.94, 0.82, 0.26))
+
+
 func _draw_floor_plate(rect: Rect2) -> void:
 	draw_rect(rect, Color(0.028, 0.056, 0.052, 0.62), true)
 	draw_rect(rect, Color(0.22, 0.40, 0.35, 0.20), false, 1.0)
@@ -287,8 +312,58 @@ func _draw_floor_material_breakup() -> void:
 		Rect2(Vector2(-356.0, 52.0), Vector2(58.0, 16.0)),
 		Rect2(Vector2(-134.0, -158.0), Vector2(72.0, 18.0)),
 		Rect2(Vector2(92.0, 132.0), Vector2(62.0, 14.0)),
+		Rect2(Vector2(232.0, -34.0), Vector2(90.0, 18.0)),
+		Rect2(Vector2(176.0, 168.0), Vector2(84.0, 14.0)),
 	]:
 		draw_rect(stain, Color(0.002, 0.010, 0.010, 0.24), true)
+
+
+func _draw_perimeter_industrial_assets() -> void:
+	_draw_low_priority_machine_island(Vector2(330.0, -44.0), Vector2(132.0, 70.0), 0.22)
+	_draw_low_priority_machine_island(Vector2(206.0, 132.0), Vector2(150.0, 58.0), 0.20)
+	_draw_low_priority_machine_island(Vector2(-68.0, 168.0), Vector2(136.0, 50.0), 0.18)
+	_draw_maintenance_crate(Vector2(-154.0, -154.0), Vector2(46.0, 26.0))
+	_draw_maintenance_crate(Vector2(-54.0, -196.0), Vector2(38.0, 24.0))
+	_draw_maintenance_crate(Vector2(238.0, 60.0), Vector2(44.0, 24.0))
+	for point in [Vector2(288.0, 18.0), Vector2(370.0, -78.0), Vector2(138.0, 176.0), Vector2(-18.0, 208.0)]:
+		draw_circle(point, 8.0, Color(0.08, 0.18, 0.16, 0.24))
+		draw_circle(point, 3.2, Color(0.30, 0.52, 0.42, 0.22))
+
+
+func _draw_broken_pipe_runs() -> void:
+	_draw_pipe([Vector2(-482.0, 54.0), Vector2(-452.0, 8.0), Vector2(-408.0, -22.0)], Color(0.16, 0.32, 0.30, 0.46), 7.0)
+	_draw_pipe([Vector2(262.0, -88.0), Vector2(326.0, -108.0), Vector2(420.0, -110.0)], Color(0.12, 0.25, 0.24, 0.34), 6.0)
+	_draw_pipe([Vector2(76.0, 192.0), Vector2(126.0, 212.0), Vector2(190.0, 196.0)], Color(0.10, 0.22, 0.20, 0.32), 5.0)
+	for crack in [
+		[Vector2(282.0, 70.0), Vector2(326.0, 84.0), Vector2(376.0, 70.0)],
+		[Vector2(-34.0, 186.0), Vector2(16.0, 202.0), Vector2(72.0, 184.0)],
+		[Vector2(188.0, -152.0), Vector2(242.0, -168.0), Vector2(308.0, -160.0)],
+	]:
+		draw_polyline(PackedVector2Array(crack), Color(0.18, 0.34, 0.30, 0.20), 1.8, true)
+
+
+func _draw_low_priority_machine_island(center: Vector2, size: Vector2, alpha: float) -> void:
+	var half := size * 0.5
+	var points := PackedVector2Array([
+		center + Vector2(-half.x, -half.y + 14.0),
+		center + Vector2(-half.x + 20.0, -half.y),
+		center + Vector2(half.x - 18.0, -half.y + 4.0),
+		center + Vector2(half.x, -half.y + 24.0),
+		center + Vector2(half.x - 12.0, half.y - 6.0),
+		center + Vector2(-half.x + 12.0, half.y),
+		center + Vector2(-half.x, half.y - 18.0),
+	])
+	draw_colored_polygon(points, Color(0.028, 0.062, 0.058, alpha))
+	_draw_polyline_closed([points[0], points[1], points[2], points[3], points[4], points[5], points[6]], Color(0.22, 0.42, 0.36, alpha * 0.58), 1.4)
+	draw_line(center + Vector2(-half.x + 24.0, -half.y + 22.0), center + Vector2(half.x - 26.0, -half.y + 18.0), Color(0.20, 0.38, 0.34, alpha * 0.42), 3.0)
+	draw_line(center + Vector2(-half.x + 30.0, half.y - 18.0), center + Vector2(half.x - 28.0, half.y - 12.0), Color(0.20, 0.38, 0.34, alpha * 0.34), 1.2)
+
+
+func _draw_maintenance_crate(center: Vector2, size: Vector2) -> void:
+	var rect := Rect2(center - size * 0.5, size)
+	draw_rect(rect, Color(0.034, 0.064, 0.056, 0.46), true)
+	draw_rect(rect, Color(0.30, 0.50, 0.42, 0.20), false, 1.0)
+	draw_line(rect.position + Vector2(6.0, 7.0), rect.end - Vector2(7.0, 7.0), Color(0.30, 0.50, 0.42, 0.12), 1.0)
 
 
 func _draw_disabled_machine(center: Vector2, size: Vector2, fill_color: Color, edge_color: Color) -> void:

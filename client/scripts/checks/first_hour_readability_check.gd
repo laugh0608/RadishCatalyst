@@ -200,6 +200,10 @@ func _check_opening_scene_layer() -> void:
 		host._expect_equal(startup_presentation.has_presentation_shape("startup_presentation.diegetic_repair_port"), true, "startup presentation exposes a repair port instead of an orange debug mark")
 		host._expect_equal(startup_presentation.has_presentation_shape("startup_presentation.player_service_rig"), true, "startup presentation gives the player a readable work position")
 		host._expect_equal(startup_presentation.has_presentation_shape("startup_presentation.floor_debris_and_bolts"), true, "startup presentation adds material breakup to the first-screen floor")
+		host._expect_equal(startup_presentation.has_presentation_shape("startup_presentation.perimeter_industrial_assets"), true, "startup presentation fills surrounding space without restoring the debug map")
+		host._expect_equal(startup_presentation.has_presentation_shape("startup_presentation.broken_pipe_runs"), true, "startup presentation uses broken pipe runs as low-priority scene context")
+		host._expect_equal(startup_presentation.has_presentation_shape("startup_presentation.player_repair_action"), true, "startup presentation makes the player repair action visible")
+		host._expect_equal(startup_presentation.has_presentation_shape("startup_presentation.depth_shadow_layers"), true, "startup presentation keeps depth instead of a flat dark field")
 		host._expect_equal(startup_presentation.z_index < player.z_index, true, "startup presentation stays below the playable actor")
 	if focus_depth != null:
 		focus_depth.refresh_focus_depth(player.position)
