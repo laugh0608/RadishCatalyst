@@ -497,9 +497,9 @@ func _check_runtime_camera_focus() -> void:
 	var game_root := GameRootScript.new()
 	var camera_zoom := game_root.get_playtest_camera_zoom()
 	host._expect_equal(
-		camera_zoom.x > 2.0 and camera_zoom.y > 2.0,
+		camera_zoom.x >= 1.7 and camera_zoom.x <= 1.85 and camera_zoom.y >= 1.7 and camera_zoom.y <= 1.85,
 		true,
-		"runtime camera starts close enough to frame the current playable region"
+		"runtime camera starts slightly wider for the base first screen"
 	)
 	game_root.free()
 
@@ -879,7 +879,7 @@ func _check_hud_map_runtime_labels() -> void:
 	host._expect_equal(
 		hud.map_marker_labels[1].visible,
 		false,
-		"first-hour minimap hides non-current plain labels in the compact route strip"
+		"first-hour minimap hides non-current plain labels in the compact map"
 	)
 	hud.free()
 	map.free()
@@ -893,8 +893,17 @@ func _check_hud_runtime_layout_first_pass() -> void:
 	var viewport_size := hud._get_runtime_viewport_size()
 	host._expect_equal(hud.status_panel.position.y <= 20.0, true, "HUD first pass puts current objective in the top-left priority card")
 	host._expect_equal(hud.status_panel.size.y <= 136.0, true, "HUD first pass keeps current objective card compact")
-	host._expect_equal(hud.map_panel.position.y > hud.status_panel.position.y + hud.status_panel.size.y, true, "HUD first pass puts route strip below current objective")
-	host._expect_equal(hud.map_panel.size.y <= 110.0, true, "HUD first pass compacts minimap into a route strip")
+	host._expect_equal(
+		hud.map_panel.position.x + hud.map_panel.size.x >= viewport_size.x - 20.0,
+		true,
+		"HUD first pass anchors minimap to the right edge"
+	)
+	host._expect_equal(
+		hud.map_panel.position.y + hud.map_panel.size.y >= viewport_size.y - 20.0,
+		true,
+		"HUD first pass anchors minimap to the lower edge"
+	)
+	host._expect_equal(hud.map_panel.size.y >= 190.0, true, "HUD first pass gives minimap a readable map area")
 	host._expect_equal(
 		hud.map_marker_rects[0].position.y > hud.map_hint_label.position.y + hud.map_hint_label.size.y,
 		true,
@@ -903,14 +912,18 @@ func _check_hud_runtime_layout_first_pass() -> void:
 	host._expect_equal(hud.status_panel.position.x <= 20.0, true, "HUD first pass keeps objective on the left edge")
 	host._expect_equal(hud.status_label.size.y >= 104.0, true, "HUD first pass keeps objective text visible in the compact card")
 	host._expect_equal(hud.vitals_panel.position.x + hud.vitals_panel.size.x >= viewport_size.x - 20.0, true, "HUD first pass keeps vitals on the right edge")
-	host._expect_equal(hud.vitals_panel.size.y <= 124.0, true, "HUD first pass keeps runtime status summary compact")
+	host._expect_equal(hud.vitals_panel.size.y <= 100.0, true, "HUD first pass keeps runtime status summary compact")
 	host._expect_equal(hud.vitals_label.size.y <= 96.0, true, "HUD first pass reserves only short status text in the right card")
 	host._expect_equal(hud.quick_supply_panel.visible, true, "HUD first pass keeps player quick supply visible by default")
 	host._expect_equal(hud.quick_slot_panel.visible, false, "HUD first pass keeps debug quick-slot binding hidden by default")
-	host._expect_equal(hud.quick_supply_panel.position.x, hud.vitals_panel.position.x, "HUD first pass aligns quick supply with vitals")
-	host._expect_equal(hud.quick_supply_panel.position.y > hud.vitals_panel.position.y + hud.vitals_panel.size.y, true, "HUD first pass places quick supply below vitals")
+	host._expect_equal(hud.quick_supply_panel.position.x <= 20.0, true, "HUD first pass anchors quick supply to the left edge")
+	host._expect_equal(
+		hud.quick_supply_panel.position.y + hud.quick_supply_panel.size.y >= viewport_size.y - 20.0,
+		true,
+		"HUD first pass anchors quick supply to the lower edge"
+	)
 	host._expect_equal(_controls_overlap(hud.quick_supply_panel, hud.vitals_panel), false, "HUD first pass keeps quick supply separate from vitals")
-	host._expect_equal(hud.prompt_panel.position.x <= 20.0, true, "HUD first pass keeps prompt on the left bottom rail")
+	host._expect_equal(hud.prompt_panel.position.x > hud.quick_supply_panel.position.x + hud.quick_supply_panel.size.x, true, "HUD first pass keeps prompt to the right of quick supply")
 	host._expect_equal(hud.prompt_panel.size.x <= 420.0, true, "HUD first pass keeps prompt from covering the scene center")
 	host._expect_equal(hud.prompt_panel.size.y <= 52.0, true, "HUD first pass lowers prompt height")
 	host._expect_equal(hud.log_panel.size.y >= 48.0, true, "HUD first pass reserves compact log text")

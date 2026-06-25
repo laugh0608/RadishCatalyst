@@ -398,6 +398,8 @@ func _check_startup_readability_scope() -> void:
 		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.disabled_reactor_silhouette"), true, "startup restore view keeps reactor as a muted silhouette")
 		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.low_power_alarm"), true, "startup restore view shows low power alarm evidence")
 		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.disabled_supply_bus"), true, "startup restore view shows disabled supply bus evidence")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.global_planning_layers_muted"), true, "startup restore view records global planning mute")
+		_expect_equal(base_layer.get_startup_context_mute_count() >= 20, true, "startup restore view mutes route, region and far context layers")
 		var reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
 		var storage := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
 		_expect_equal(reactor.modulate.a <= 0.01, true, "startup mutes reactor interactable marker")

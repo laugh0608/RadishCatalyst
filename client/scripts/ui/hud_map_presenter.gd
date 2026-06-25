@@ -88,7 +88,7 @@ func format_map_marker_labels(world_state: WorldState, quest_id: String) -> Arra
 
 
 func format_demo_route_title(world_state: WorldState, _quest_id: String) -> String:
-	return "外勤路线：%s" % _get_route_stage_label(world_state.current_region_id)
+	return "小地图：%s" % _get_route_stage_label(world_state.current_region_id)
 
 
 func format_demo_route_hint(

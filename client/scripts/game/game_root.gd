@@ -1,6 +1,6 @@
 extends Node2D
 
-const PLAYTEST_CAMERA_ZOOM := Vector2(2.05, 2.05)
+const PLAYTEST_CAMERA_ZOOM := Vector2(1.76, 1.76)
 
 var data_registry: DataRegistry
 var startup_load_slot_id := ""

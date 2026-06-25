@@ -103,6 +103,46 @@ const STARTUP_MUTED_INTERACTABLE_PATHS := [
 	"Interactables/BasePressureChoiceConsole"
 ]
 
+const STARTUP_CONTEXT_LAYER_ALPHAS := [
+	{"path": "OpeningSceneLayer", "alpha": 0.055},
+	{"path": "DemoCrystalResourceVisualLayer", "alpha": 0.0},
+	{"path": "DemoPollutionBoundaryVisualLayer", "alpha": 0.0},
+	{"path": "DemoCoreStabilizationVisualLayer", "alpha": 0.0},
+	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.02},
+	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.1},
+	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.0},
+	{"path": "DemoFirstIndustrialPathVisualLayer", "alpha": 0.0},
+	{"path": "DemoRoutePresentationLayer", "alpha": 0.0},
+	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.42}
+]
+
+const STARTUP_CONTEXT_RECT_ALPHAS := [
+	{"path": "RegionBase", "alpha": 0.006},
+	{"path": "RegionCrystal", "alpha": 0.0},
+	{"path": "RegionPollution", "alpha": 0.0},
+	{"path": "RegionRuinOuterRing", "alpha": 0.0},
+	{"path": "RegionDeepRuin", "alpha": 0.0},
+	{"path": "RegionInnerPhaseWell", "alpha": 0.0},
+	{"path": "RegionPhaseWellSink", "alpha": 0.0},
+	{"path": "RegionPhaseWellChamber", "alpha": 0.0},
+	{"path": "RegionPhaseWellLoom", "alpha": 0.0},
+	{"path": "RegionPhaseWellFrame", "alpha": 0.0},
+	{"path": "RegionPhaseWellTether", "alpha": 0.0},
+	{"path": "RegionDemoStabilizationCore", "alpha": 0.0},
+	{"path": "MainRouteSpine", "alpha": 0.0},
+	{"path": "BaseToCrystalRouteBand", "alpha": 0.0},
+	{"path": "CrystalToPollutionRouteBand", "alpha": 0.0},
+	{"path": "RegionBoundaryCrystal", "alpha": 0.0},
+	{"path": "RegionBoundaryPollution", "alpha": 0.0},
+	{"path": "RegionBoundaryRuin", "alpha": 0.0},
+	{"path": "DemoRoutePresentationLayer/DemoRouteBaseBand", "alpha": 0.0},
+	{"path": "DemoRoutePresentationLayer/DemoRouteCrystalBand", "alpha": 0.0},
+	{"path": "DemoRoutePresentationLayer/DemoRoutePollutionBand", "alpha": 0.0},
+	{"path": "DemoRoutePresentationLayer/DemoRouteRuinBand", "alpha": 0.0},
+	{"path": "CurrentObjectiveGuidanceLayer/CurrentObjectiveRouteHorizontal", "alpha": 0.0},
+	{"path": "CurrentObjectiveGuidanceLayer/CurrentObjectiveRouteVertical", "alpha": 0.0}
+]
+
 var applied_device_count := 0
 var applied_flow_count := 0
 var applied_chain_state_count := 0
@@ -117,6 +157,9 @@ var chain_state: Dictionary = {}
 var pollution_chain_state: Dictionary = {}
 var applied_pollution_chain_state_count := 0
 var outpost_core_restored := false
+var startup_context_mute_count := 0
+var startup_context_layer_original_modulates: Dictionary = {}
+var startup_context_rect_original_colors: Dictionary = {}
 
 
 func _ready() -> void:
@@ -149,10 +192,13 @@ func refresh_chain_state(world_state: WorldState, character_state: CharacterStat
 		outpost_core_restored = false
 		chain_state.clear()
 		pollution_chain_state.clear()
+		_set_startup_context_muted(true)
 		queue_redraw()
 		return
 	outpost_core_restored = world_state.quest_state.has_completed_quest("quest.restore_outpost")
+	_set_startup_context_muted(not outpost_core_restored)
 	_mute_startup_side_interactables(not outpost_core_restored)
+	_mute_startup_non_core_interactables(not outpost_core_restored)
 	if not outpost_core_restored:
 		chain_state.clear()
 		pollution_chain_state.clear()
@@ -248,6 +294,10 @@ func is_startup_restore_focus_active() -> bool:
 
 func get_startup_restore_shape_count() -> int:
 	return startup_restore_shape_ids.size()
+
+
+func get_startup_context_mute_count() -> int:
+	return startup_context_mute_count
 
 
 func has_startup_restore_shape(shape_id: String) -> bool:
@@ -963,7 +1013,10 @@ func _register_startup_restore_shapes() -> void:
 		"startup_restore.disabled_outfitting_silhouette",
 		"startup_restore.low_power_alarm",
 		"startup_restore.disabled_supply_bus",
-		"startup_restore.restore_cable"
+		"startup_restore.restore_cable",
+		"startup_restore.global_planning_layers_muted",
+		"startup_restore.non_core_markers_muted",
+		"startup_restore.wide_first_screen_frame"
 	]
 
 
@@ -979,6 +1032,21 @@ func _mute_startup_side_interactables(should_mute: bool) -> void:
 			interactable.set_focus_visual(false)
 
 
+func _mute_startup_non_core_interactables(should_mute: bool) -> void:
+	var interactables := _get_map_node("Interactables")
+	if interactables == null:
+		return
+	for child in interactables.get_children():
+		var interactable := child as PrototypeInteractable
+		if interactable == null or interactable.name == "OutpostCore":
+			continue
+		var color := interactable.modulate
+		color.a = 0.0 if should_mute else 1.0
+		interactable.modulate = color
+		if should_mute:
+			interactable.set_focus_visual(false)
+
+
 func _tone_down_core_interactable_markers() -> void:
 	for path in DEVICE_ANCHORS.values():
 		var interactable := _get_map_node(String(path)) as PrototypeInteractable
@@ -986,6 +1054,61 @@ func _tone_down_core_interactable_markers() -> void:
 			continue
 		if interactable.marker != null:
 			interactable.marker.color.a = 0.08
+
+
+func _set_startup_context_muted(should_mute: bool) -> void:
+	if not should_mute:
+		_restore_startup_context_layers()
+		startup_context_mute_count = 0
+		return
+	startup_context_mute_count = 0
+	for profile in STARTUP_CONTEXT_LAYER_ALPHAS:
+		if _apply_startup_layer_alpha(String(profile.get("path", "")), float(profile.get("alpha", 1.0))):
+			startup_context_mute_count += 1
+	for profile in STARTUP_CONTEXT_RECT_ALPHAS:
+		if _apply_startup_rect_alpha(String(profile.get("path", "")), float(profile.get("alpha", 1.0))):
+			startup_context_mute_count += 1
+
+
+func _apply_startup_layer_alpha(path: String, alpha: float) -> bool:
+	var node := _get_map_node(path)
+	var canvas_item := node as CanvasItem
+	if canvas_item == null:
+		return false
+	if not startup_context_layer_original_modulates.has(path):
+		startup_context_layer_original_modulates[path] = canvas_item.modulate
+	var original_color: Color = startup_context_layer_original_modulates.get(path, canvas_item.modulate)
+	var color := original_color
+	color.a = minf(original_color.a, alpha)
+	canvas_item.modulate = color
+	return true
+
+
+func _apply_startup_rect_alpha(path: String, alpha: float) -> bool:
+	var rect := _get_map_node(path) as ColorRect
+	if rect == null:
+		return false
+	if not startup_context_rect_original_colors.has(path):
+		startup_context_rect_original_colors[path] = rect.color
+	var original_color: Color = startup_context_rect_original_colors.get(path, rect.color)
+	var color := original_color
+	color.a = minf(original_color.a, alpha)
+	rect.color = color
+	return true
+
+
+func _restore_startup_context_layers() -> void:
+	for path in startup_context_layer_original_modulates.keys():
+		var node := _get_map_node(String(path))
+		var canvas_item := node as CanvasItem
+		if canvas_item != null:
+			canvas_item.modulate = startup_context_layer_original_modulates[path]
+	startup_context_layer_original_modulates.clear()
+	for path in startup_context_rect_original_colors.keys():
+		var rect := _get_map_node(String(path)) as ColorRect
+		if rect != null:
+			rect.color = startup_context_rect_original_colors[path]
+	startup_context_rect_original_colors.clear()
 
 
 func _deemphasize_legacy_base_blocks() -> void:

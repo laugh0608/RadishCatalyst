@@ -51,6 +51,20 @@ const LOG_FEEDBACK_SECONDS := 6.0
 const PROMPT_RUNTIME_MAX_CHARACTERS := 34
 const LOG_RUNTIME_MAX_CHARACTERS := 44
 const RUNTIME_TEXT_ELLIPSIS := "..."
+const MINIMAP_MARKER_ANCHORS := [
+	Vector2(0.18, 0.58),
+	Vector2(0.3, 0.36),
+	Vector2(0.5, 0.68),
+	Vector2(0.66, 0.48),
+	Vector2(0.78, 0.34),
+	Vector2(0.84, 0.5),
+	Vector2(0.78, 0.66),
+	Vector2(0.66, 0.76),
+	Vector2(0.52, 0.42),
+	Vector2(0.42, 0.74),
+	Vector2(0.32, 0.66),
+	Vector2(0.2, 0.42)
+]
 
 var last_quick_slots: Array[String] = []
 var supply_feedback_remaining_seconds := 0.0
@@ -1020,14 +1034,14 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	last_viewport_size = viewport_size
 	var margin := 16.0
 	var gap := 10.0
-	var objective_width := clampf(viewport_size.x * 0.2, 360.0, 430.0)
+	var objective_width := clampf(viewport_size.x * 0.18, 320.0, 370.0)
 	var objective_height := 132.0
-	var map_width := objective_width
-	var map_height := 104.0
+	var map_width := clampf(viewport_size.x * 0.14, 242.0, 280.0)
+	var map_height := clampf(viewport_size.y * 0.2, 198.0, 224.0)
 	var vitals_width := clampf(viewport_size.x * 0.18, 340.0, 420.0)
-	var vitals_height := 122.0
-	var quick_supply_width := vitals_width
-	var quick_supply_height := 64.0
+	var vitals_height := 98.0
+	var quick_supply_width := clampf(viewport_size.x * 0.18, 320.0, 360.0)
+	var quick_supply_height := 74.0
 	var combat_width := clampf(viewport_size.x * 0.21, 380.0, 500.0)
 	var combat_height := 164.0
 	var prompt_width := clampf(viewport_size.x * 0.2, 340.0, 420.0)
@@ -1055,7 +1069,13 @@ func _layout_runtime_panels(force: bool = false) -> void:
 		vitals_x = maxf(margin + objective_width + gap, shifted_vitals_x)
 
 	_set_control_rect(status_panel, Vector2(margin, margin), Vector2(objective_width, objective_height))
-	_set_control_rect(map_panel, Vector2(margin, status_panel.position.y + status_panel.size.y + gap), Vector2(map_width, map_height))
+	var map_position := Vector2(
+		viewport_size.x - margin - map_width,
+		viewport_size.y - margin - map_height
+	)
+	if debug_panels_visible:
+		map_position.x = maxf(margin, save_position.x - gap - map_width)
+	_set_control_rect(map_panel, map_position, Vector2(map_width, map_height))
 	if vitals_panel != null:
 		if not debug_panels_visible:
 			vitals_panel.visible = true
@@ -1064,11 +1084,11 @@ func _layout_runtime_panels(force: bool = false) -> void:
 		quick_supply_panel.visible = true
 		_set_control_rect(
 			quick_supply_panel,
-			Vector2(vitals_x, margin + vitals_height + gap),
+			Vector2(margin, viewport_size.y - margin - quick_supply_height),
 			Vector2(quick_supply_width, quick_supply_height)
 		)
 
-	var prompt_x := margin
+	var prompt_x := quick_supply_panel.position.x + quick_supply_width + gap if quick_supply_panel != null else margin
 	var prompt_y := viewport_size.y - margin - prompt_height
 	var log_y := viewport_size.y - margin - log_height
 	var action_summary_position := Vector2(
@@ -1085,15 +1105,18 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	if action_summary_panel != null:
 		action_summary_panel.visible = true
 	var combat_x := viewport_size.x - margin - combat_width
+	var combat_y := prompt_y - gap - combat_height
 	if debug_panels_visible:
 		combat_x = maxf(margin + log_width + gap, save_position.x - gap - combat_width)
+	if map_panel != null and Rect2(Vector2(combat_x, combat_y), Vector2(combat_width, combat_height)).intersects(Rect2(map_panel.position, map_panel.size), false):
+		combat_y = maxf(margin + vitals_height + gap, map_panel.position.y - gap - combat_height)
 	_set_control_rect(
 		combat_panel,
-		Vector2(combat_x, prompt_y - gap - combat_height),
+		Vector2(combat_x, combat_y),
 		Vector2(combat_width, combat_height)
 	)
 
-	var device_y := (viewport_size.y - device_height) * 0.5
+	var device_y := maxf(margin + vitals_height + gap, (viewport_size.y - device_height) * 0.5 - 24.0)
 	if debug_panels_visible:
 		device_y = minf(
 			viewport_size.y - margin - device_height,
@@ -1159,27 +1182,25 @@ func _layout_map_panel_contents() -> void:
 		map_title_label.position = Vector2(14.0, 10.0)
 		map_title_label.size = Vector2(maxf(0.0, map_panel.size.x - 28.0), 24.0)
 	if map_hint_label != null:
-		map_hint_label.position = Vector2(14.0, 38.0)
-		map_hint_label.size = Vector2(maxf(0.0, map_panel.size.x - 28.0), 30.0)
+		map_hint_label.position = Vector2(14.0, 36.0)
+		map_hint_label.size = Vector2(maxf(0.0, map_panel.size.x - 28.0), 28.0)
 
 	var marker_count := mini(map_marker_rects.size(), map_marker_labels.size())
 	if marker_count <= 0:
 		return
 
-	var marker_top := 76.0
-	var marker_size := Vector2(10.0, 12.0)
-	var primary_label_top := 88.0
-	var secondary_label_top := 88.0
-	var label_height := 16.0
-	var left_margin := 18.0
-	var right_margin := 18.0
-	var usable_width := maxf(0.0, map_panel.size.x - left_margin - right_margin - marker_size.x)
-	var step := 0.0
-	if marker_count > 1:
-		step = usable_width / float(marker_count - 1)
-	var label_width := clampf(step * 1.7, 64.0, 96.0)
-	var first_center_x := left_margin + marker_size.x * 0.5
-	var last_center_x := first_center_x
+	var map_area := Rect2(
+		Vector2(18.0, 70.0),
+		Vector2(maxf(0.0, map_panel.size.x - 36.0), maxf(0.0, map_panel.size.y - 88.0))
+	)
+	if map_track != null:
+		map_track.position = map_area.position
+		map_track.size = map_area.size
+		map_track.color = Color(0.04, 0.07, 0.073, 0.58)
+
+	var marker_size := Vector2(10.0, 10.0)
+	var label_width := 74.0
+	var label_height := 32.0
 
 	for index in range(marker_count):
 		var marker_rect := map_marker_rects[index]
@@ -1187,38 +1208,42 @@ func _layout_map_panel_contents() -> void:
 		if marker_rect == null or marker_label == null:
 			continue
 
-		var marker_x := left_margin + step * float(index)
-		marker_rect.position = Vector2(marker_x, marker_top)
+		var anchor := _get_minimap_marker_anchor(index)
+		var marker_center := map_area.position + Vector2(anchor.x * map_area.size.x, anchor.y * map_area.size.y)
+		marker_rect.position = marker_center - marker_size * 0.5
 		marker_rect.size = marker_size
 
-		var marker_center_x := marker_x + marker_size.x * 0.5
 		var label_x := clampf(
-			marker_center_x - label_width * 0.5,
+			marker_center.x - label_width * 0.5,
 			4.0,
 			maxf(4.0, map_panel.size.x - label_width - 4.0)
 		)
-		var label_top := primary_label_top if index % 2 == 0 else secondary_label_top
+		var label_top := clampf(
+			marker_center.y + 8.0,
+			map_area.position.y,
+			maxf(map_area.position.y, map_panel.size.y - label_height - 4.0)
+		)
 		marker_label.visible = String(marker_label.text).find("\n") >= 0
 		marker_label.position = Vector2(label_x, label_top)
 		marker_label.size = Vector2(label_width, label_height)
 		_prepare_wrapped_label(marker_label)
 
-		if index == 0:
-			first_center_x = marker_center_x
-		last_center_x = marker_center_x
 
-	if map_track != null:
-		map_track.position = Vector2(first_center_x, marker_top + marker_size.y * 0.5 - 3.0)
-		map_track.size = Vector2(maxf(0.0, last_center_x - first_center_x), 6.0)
+func _get_minimap_marker_anchor(index: int) -> Vector2:
+	if index >= 0 and index < MINIMAP_MARKER_ANCHORS.size():
+		return MINIMAP_MARKER_ANCHORS[index]
+	return Vector2(0.5, 0.5)
 
 
 func _apply_runtime_panel_style() -> void:
-	var primary_color := Color(0.035, 0.054, 0.059, 0.34)
+	var primary_color := Color(0.035, 0.054, 0.059, 0.3)
 	var action_color := Color(0.028, 0.045, 0.048, 0.46)
 	var floating_color := Color(0.035, 0.054, 0.059, 0.82)
 	for panel in [map_panel, status_panel, vitals_panel, quick_supply_panel, combat_panel, prompt_panel, log_panel]:
 		if panel != null:
 			panel.color = primary_color
+	if map_panel != null:
+		map_panel.color = Color(0.028, 0.048, 0.052, 0.32)
 	if action_summary_panel != null:
 		action_summary_panel.color = action_color
 	for panel in [device_panel, completion_panel, evacuation_panel, supply_feedback_panel, save_panel, quick_slot_panel]:
