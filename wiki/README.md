@@ -61,6 +61,7 @@ Wiki 不记录：
 - [出发整备台](facilities/field-outfitting-station.md)
 - [污染过滤器](facilities/pollution-filter.md)
 - [污染浆液缓冲罐](facilities/slurry-buffer-tank.md)
+- [晶体矿脉区](regions/crystal-vein-field.md)
 - [污染边界区](regions/pollution-edge.md)
 - [功能与过渡区域速览](regions/non-core-field-regions.md)
 - [交互反馈与受阻恢复](mechanics/interaction-feedback-and-recovery.md)

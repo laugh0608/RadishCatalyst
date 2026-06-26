@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-06-18
+更新时间：2026-06-25
 
 ## 用途
 
@@ -25,26 +25,48 @@
 
 ## 当前与最近专题
 
-- [Demo Definition V1](demo-definition-v1.md)：首版 Demo 完成规格表，后续专题必须映射到其中的未完成规格项。
-- [Demo Supply Pressure Pacing V1](demo-supply-pressure-pacing-v1.md)：当前活跃细专题，覆盖现有修复凝胶 / 抗污染药剂在制作、消耗、补回和关键压力节点中的真实价值。
-- [Demo Quick Slot Supply Readability V1](demo-quick-slot-supply-readability-v1.md)：最近完成细专题，已覆盖现有修复凝胶 / 抗污染药剂在 HUD 快捷栏、补给反馈和失败恢复路线中的可用、暂存和缺补给读法。
-- [Demo Prototype Visual Pass V1](demo-prototype-visual-pass-v1.md)：最近完成细专题，已推进原型视觉优先级、核心区场地尺度和首小时目标链场景导引，覆盖现有 12 区原型画面的色彩层级、前后景分离、危险 / 资源 / 设施视觉权重和 HUD / 地图 / 对象状态互证。
-- [Demo Action Blocker Recovery V1](demo-action-blocker-recovery-v1.md)：最近完成细专题，2026-06-17 第一包已落地并通过退出判断，覆盖关键动作被前置、缺料、缺补给、敌人或设备状态拦住时的失败反馈、HUD / 地图、对象状态和恢复路线。
-- [Demo Action Feedback Readability V1](demo-action-feedback-readability-v1.md)：最近完成细专题，覆盖关键动作执行后的结果文本、HUD / 地图、对象状态和下一步读法。
-- [Demo Interaction Affordance V1](demo-interaction-affordance-v1.md)：最近完成细专题，覆盖对象可交互、已处理、缺条件、被阻挡或危险仍在时的画面、焦点标签、HUD / 地图和对象提示一致性。
-- [Demo Combat Evacuation Recovery V1](demo-combat-evacuation-recovery-v1.md)：最近完成细专题，覆盖外勤承压后的自动撤回前哨、恢复补给、HUD / 地图 / 对象反馈、状态 / 存档和自动检查断点。
-- [Demo Playable Scene Composition V1](demo-playable-scene-composition-v1.md)：最近完成细专题，覆盖 12 个既有区域的画面构成、关键对象落点、HUD / 地图读法和自动检查断点。
-- [Demo Playable Experience Coherence V1](demo-playable-experience-coherence-v1.md)：最近完成细专题，覆盖从新档到 Demo 完成后回前哨整理的场景、HUD、地图、对象反馈、状态 / 存档和自动检查断点。
-- [Demo Completion Outcome Readout V1](demo-completion-outcome-readout-v1.md)：最近完成细专题，覆盖核心稳定站写入后的主线完成、补给收益、整备收益、守卫战记录和复测方向读法。
-- [Demo Endpoint Readiness V1](demo-endpoint-readiness-v1.md)：最近完成细专题，覆盖核心稳定站写入前的主线、补给、整备、守卫战准备和写入准备读法。
-- [Demo Field Loop Payoff V1](demo-field-loop-payoff-v1.md)：最近完成细专题，覆盖外勤对象处理结果回到基地加工、整备状态和下一趟外勤准备。
-- [Demo Functional Scene Gameplay V1](demo-functional-scene-gameplay-v1.md)：最近完成细专题，2026-06-16 第一包已落地，覆盖功能 / 过渡区代表性对象处理后的现场阶段、状态反馈和回基地处理理由。
-- [Demo Runtime Surface Decomposition V1](demo-runtime-surface-decomposition-v1.md)：最近完成细专题，覆盖主路径连续性第一包落地后的运行时检查承载面拆分。
-- [Demo Main Path Continuity V1](demo-main-path-continuity-v1.md)：最近完成细专题，覆盖 `S0` 到 `S21` 和核心稳定站终点完成反馈之间的主路径连续性。
-- [Demo Save State Contract V1](demo-save-state-contract-v1.md)：最近完成细专题，覆盖 Demo 主路径世界、角色、库存、建筑、任务、区域、敌人和关键整备 / 资源链状态保存读取与校验。
-- [Demo Resource Chain State V1](demo-resource-chain-state-v1.md)：最近完成细专题，2026-06-16 第一包已落地，覆盖核心资源 / 产物的链路状态、HUD / 设备 / 加工反馈和状态序列化检查。
-- [Demo Non-Core Scene Identity V1](demo-non-core-scene-identity-v1.md)：最近完成细专题，2026-06-16 第一包已落地，覆盖 4 个功能区和 4 个过渡区的场景身份、视觉标识、HUD / 对象反馈和专项检查。
-- [Demo Functional Transition Route Support V1](demo-functional-transition-route-support-v1.md)：最近完成细专题，已覆盖 4 个功能区和 4 个过渡区的路线支撑、当前危险、回基地理由和专项检查。
+- [Demo Definition V1](demo-definition-v1.md)：首版 Demo 规格表，后续专题必须映射到未完成规格项。
+- [Demo First Playable Slice Assembly V1](demo-first-playable-slice-assembly-v1.md)：当前活跃专题，覆盖 20 到 30 分钟可玩纵切装配。
+- [Demo Playable UI And Art Pass V1](demo-playable-ui-and-art-pass-v1.md)：当前执行线，覆盖玩家第一视野、低保真美术、正式 HUD 和核心场景主读法。
+- [Demo First Screen Assetized Scene V1](demo-first-screen-assetized-scene-v1.md)：当前 UI / Art 细专题，覆盖新档首屏低保真资产化场景重建。
+- [Demo Core Loop Playable V1](demo-core-loop-playable-v1.md)：当前执行线，覆盖采集、加工、设备启用、整备、污染承压、短战斗和核心写入闭环。
+- [Demo Narrative Beats V1](demo-narrative-beats-v1.md)：当前执行线，覆盖开场事故、基地恢复、污染信号、核心稳定和结尾钩子。
+- [Demo Industrial Base Visual And Scene V1](demo-industrial-base-visual-and-scene-v1.md)：最近活跃视觉专题，未完成观感问题并入 UI / Art pass，不再作为单点截图微调主线。
+- [Demo Playable Content Substance V1](demo-playable-content-substance-v1.md)：最近完成口径修正，确认自动检查和第一包不能替代可试玩画面质量。
+- [Demo Scene Device Pressure Staging V1](demo-scene-device-pressure-staging-v1.md)：暂缓，不再作为明日建议；后续若启用，必须服务工业基地视觉与场景化。
+- [Demo Field Task Differentiation V1](demo-field-task-differentiation-v1.md)：最近完成，覆盖任务差异。
+- [Demo Initial Art Identity V1](demo-initial-art-identity-v1.md)：最近完成，覆盖现场身份。
+- [Demo Industrial Module Task Rhythm V1](demo-industrial-module-task-rhythm-v1.md)：最近完成，覆盖 5 个核心模块职责。
+- [Demo Core Scene Playable Space V1](demo-core-scene-playable-space-v1.md)：最近完成，覆盖核心区空间角色。
+- [Demo First Playable Acceptance V1](demo-first-playable-acceptance-v1.md)：阶段验收专题暂缓。
+- [Demo Device Panel Operation Readability V1](demo-device-panel-operation-readability-v1.md)：最近完成，覆盖设备面板读法。
+- [Demo Core Approach Handoff Playability V1](demo-core-approach-handoff-playability-v1.md)：最近完成，覆盖终点前承接。
+- [Demo Wind Corridor Transition Playability V1](demo-wind-corridor-transition-playability-v1.md)：最近完成，覆盖风蚀过渡路径。
+- [Demo Midfield Route Playability V1](demo-midfield-route-playability-v1.md)：最近完成，覆盖中段入口边界。
+- [Demo Map Surface Decomposition V1](demo-map-surface-decomposition-v1.md)：最近完成，拆分地图区域 / gate 承载面。
+- [Demo Interaction Prompt Surface Decomposition V1](demo-interaction-prompt-surface-decomposition-v1.md)：最近完成，拆分加工设备交互提示承载面。
+- [Demo Route Return And Base Reentry Readability V1](demo-route-return-and-base-reentry-readability-v1.md)：最近完成，覆盖外勤回基地处理入口。
+- [Demo Functional Transition Spatial Playability V1](demo-functional-transition-spatial-playability-v1.md)：最近完成，覆盖功能 / 过渡代表路径空间。
+- [Demo Functional Scene Gameplay Density V1](demo-functional-scene-gameplay-density-v1.md)：最近完成，覆盖代表小循环操作密度。
+- [Demo Supply Pressure Pacing V1](demo-supply-pressure-pacing-v1.md)：最近完成，覆盖补给制作、消耗和补回价值。
+- [Demo Quick Slot Supply Readability V1](demo-quick-slot-supply-readability-v1.md)：最近完成，覆盖快捷补给 HUD 读法。
+- [Demo Prototype Visual Pass V1](demo-prototype-visual-pass-v1.md)：最近完成，覆盖原型视觉优先级和场地尺度。
+- [Demo Action Blocker Recovery V1](demo-action-blocker-recovery-v1.md)：最近完成，覆盖关键动作受阻后的恢复路线。
+- [Demo Action Feedback Readability V1](demo-action-feedback-readability-v1.md)：最近完成，覆盖关键动作结果读法。
+- [Demo Interaction Affordance V1](demo-interaction-affordance-v1.md)：最近完成，覆盖对象交互状态一致性。
+- [Demo Combat Evacuation Recovery V1](demo-combat-evacuation-recovery-v1.md)：最近完成，覆盖外勤承压撤回与恢复。
+- [Demo Playable Scene Composition V1](demo-playable-scene-composition-v1.md)：最近完成，覆盖 12 区画面构成。
+- [Demo Playable Experience Coherence V1](demo-playable-experience-coherence-v1.md)：最近完成，覆盖整段体验断点检查。
+- [Demo Completion Outcome Readout V1](demo-completion-outcome-readout-v1.md)：最近完成，覆盖核心写入后成果读法。
+- [Demo Endpoint Readiness V1](demo-endpoint-readiness-v1.md)：最近完成，覆盖终点前综合准备。
+- [Demo Field Loop Payoff V1](demo-field-loop-payoff-v1.md)：最近完成，覆盖外勤结果回基地兑现。
+- [Demo Functional Scene Gameplay V1](demo-functional-scene-gameplay-v1.md)：最近完成，覆盖功能 / 过渡区对象处理。
+- [Demo Runtime Surface Decomposition V1](demo-runtime-surface-decomposition-v1.md)：最近完成，拆分运行时检查承载面。
+- [Demo Main Path Continuity V1](demo-main-path-continuity-v1.md)：最近完成，覆盖 `S0` 到 `S21` 主路径连续性。
+- [Demo Save State Contract V1](demo-save-state-contract-v1.md)：最近完成，覆盖 Demo 主路径状态保存读取。
+- [Demo Resource Chain State V1](demo-resource-chain-state-v1.md)：最近完成，覆盖资源链状态与序列化检查。
+- [Demo Non-Core Scene Identity V1](demo-non-core-scene-identity-v1.md)：最近完成，覆盖功能 / 过渡区场景身份。
+- [Demo Functional Transition Route Support V1](demo-functional-transition-route-support-v1.md)：最近完成，覆盖功能 / 过渡区路线支撑。
 - [Demo Combat Progression V1](demo-combat-progression-v1.md)：最近完成阶段级专题，已完成首版 Demo 角色成长与战斗第一版。
 - [Demo Tool Strike Calibration V1](demo-tool-strike-calibration-v1.md)：最近完成细专题，已把基础多用工具、基础零件和出发整备台收束成一次可读战斗输出整备。
 - [Demo Protective Response V1](demo-protective-response-v1.md)：最近完成细专题，已把基础防护服、基础过滤模块和前哨补给收束成一次可读防护响应。

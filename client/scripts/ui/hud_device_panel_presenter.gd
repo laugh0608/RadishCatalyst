@@ -48,10 +48,17 @@ func _format_device_status(
 	world_state: WorldState,
 	character_state: CharacterState
 ) -> String:
+	var device_state := _format_device_state(status)
+	var recipe_name := _get_display_name(data_registry, recipe_id)
+	var next_step := _format_next_step(status)
 	var parts: Array[String] = [
-		"设备状态：%s" % _format_device_state(status),
-		"当前配方：%s" % _get_display_name(data_registry, recipe_id)
+		"现场状态：%s / %s" % [device_state, recipe_name],
+		"输入输出：%s" % _format_io_summary(status),
+		"设备状态：%s" % device_state,
+		"当前配方：%s" % recipe_name
 	]
+	if not next_step.is_empty():
+		parts.insert(2, "下一步：%s" % next_step)
 	var purpose_hint := RecipePurposeHints.format_recipe_goal_hint(recipe_id, world_state)
 	if not purpose_hint.is_empty():
 		parts.append("用途：%s" % purpose_hint)
@@ -71,6 +78,39 @@ func _format_device_status(
 	)
 	if not resource_chain_line.is_empty():
 		parts.append(resource_chain_line)
+	var field_task_line := DemoFieldTaskDifferentiationFormatter.format_device_status_line(
+		building_id,
+		recipe_id,
+		world_state,
+		character_state
+	)
+	if not field_task_line.is_empty():
+		parts.append(field_task_line)
+	var operation_line := DemoDevicePanelOperationFormatter.format_device_status_line(
+		building_id,
+		recipe_id,
+		status,
+		world_state,
+		character_state
+	)
+	if not operation_line.is_empty():
+		parts.append(operation_line)
+	var module_task_line := DemoIndustrialModuleTaskRhythmFormatter.format_device_status_line(
+		building_id,
+		recipe_id,
+		world_state,
+		character_state
+	)
+	if not module_task_line.is_empty():
+		parts.append(module_task_line)
+	var base_reentry_line := DemoRouteReturnAndBaseReentryFormatter.format_device_status_line(
+		building_id,
+		recipe_id,
+		world_state,
+		character_state
+	)
+	if not base_reentry_line.is_empty():
+		parts.append(base_reentry_line)
 	if (
 		building_id == "building.basic_reactor"
 		and FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state)
@@ -96,9 +136,6 @@ func _format_device_status(
 	var progress := String(status.get("progress", ""))
 	if not progress.is_empty():
 		parts.append("进度：%s" % progress)
-	var next_step := _format_next_step(status)
-	if not next_step.is_empty():
-		parts.append("下一步：%s" % next_step)
 	var completion_next_step := String(status.get("completion_next_step", ""))
 	if not progress.is_empty() and not completion_next_step.is_empty():
 		parts.append("完成后：%s" % completion_next_step)
@@ -200,6 +237,15 @@ func _format_completion_destination(status: Dictionary) -> String:
 	if parts.is_empty():
 		return "本次无新增产物"
 	return "；".join(parts)
+
+
+func _format_io_summary(status: Dictionary) -> String:
+	var input_text := String(status.get("inputs", "无"))
+	var output_parts: Array[String] = [String(status.get("outputs", "无"))]
+	var byproducts := String(status.get("byproducts", ""))
+	if not byproducts.is_empty():
+		output_parts.append("副产 %s" % byproducts)
+	return "%s -> %s" % [input_text, "；".join(output_parts)]
 
 
 func _format_next_step(status: Dictionary) -> String:

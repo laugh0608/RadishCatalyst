@@ -1,8 +1,9 @@
 extends Node2D
 
-const PLAYTEST_CAMERA_ZOOM := Vector2(1.35, 1.35)
+const PLAYTEST_CAMERA_ZOOM := Vector2(1.76, 1.76)
 
 var data_registry: DataRegistry
+var startup_load_slot_id := ""
 var world_state: WorldState
 var character_state: CharacterState
 var save_service := SaveService.new()
@@ -55,6 +56,7 @@ func _ready() -> void:
 	hud.new_game_requested.connect(_on_hud_new_game_requested)
 	hud.quick_slot_binding_requested.connect(_on_hud_quick_slot_binding_requested)
 	hud.development_baseline_requested.connect(_on_hud_development_baseline_requested)
+	hud.visual_review_checkpoint_requested.connect(_on_hud_visual_review_checkpoint_requested)
 	hud.gm_resource_adjust_requested.connect(_on_hud_gm_resource_adjust_requested)
 	hud.gm_vitals_refill_requested.connect(_on_hud_gm_vitals_refill_requested)
 	vertical_slice_map.interaction_available.connect(_on_interaction_available)
@@ -67,7 +69,10 @@ func _ready() -> void:
 	hud.append_log(hud_log_presenter.format_startup_log())
 	hud.update_development_baselines(development_baseline_builder.get_baseline_definitions())
 	_refresh_save_slot_summaries()
-	_update_hud()
+	if startup_load_slot_id.is_empty():
+		_update_hud()
+	else:
+		_load_from_slot(startup_load_slot_id)
 
 
 func _process(delta: float) -> void:
@@ -154,6 +159,7 @@ func _on_player_attack_requested() -> void:
 			quest_runtime.advance_for_defeated_enemy(world_state, character_state, String(result.get("enemy_definition_id", "")))
 		)
 	hud_feedback_presenter.show_evacuation_feedback(result, hud)
+	hud_feedback_presenter.show_combat_feedback(result, hud)
 	vertical_slice_map.refresh_world_interactables(world_state)
 	if vertical_slice_map.current_interactable != null:
 		_on_interaction_available(vertical_slice_map.current_interactable)
@@ -273,6 +279,23 @@ func _on_hud_development_baseline_requested(baseline_id: String) -> void:
 	_update_hud()
 
 
+func _on_hud_visual_review_checkpoint_requested(checkpoint_id: String) -> void:
+	var result := create_visual_review_checkpoint_state(checkpoint_id)
+	if not bool(result.get("success", false)):
+		hud.append_log(hud_log_presenter.format_result_log(result))
+		_update_hud()
+		return
+
+	world_state = result.get("world_state", WorldState.create_default())
+	character_state = result.get("character_state", CharacterState.create_default())
+	vertical_slice_map.apply_runtime_state(world_state, character_state)
+	_sync_world_camera()
+	hud.clear_runtime_feedback()
+	hud.append_log(hud_log_presenter.format_result_log(result))
+	_refresh_save_slot_summaries()
+	_update_hud()
+
+
 func _on_hud_gm_resource_adjust_requested(definition_id: String, delta: float) -> void:
 	var result := _apply_gm_resource_delta(definition_id, delta)
 	hud.append_log(String(result.get("message", "")))
@@ -336,6 +359,15 @@ func create_development_baseline_state(baseline_id: String) -> Dictionary:
 			"message": "开发基线生成器尚未初始化。"
 		}
 	return development_baseline_builder.create_baseline_state(baseline_id)
+
+
+func create_visual_review_checkpoint_state(checkpoint_id: String) -> Dictionary:
+	if development_baseline_builder == null:
+		return {
+			"success": false,
+			"message": "截图定位生成器尚未初始化。"
+		}
+	return development_baseline_builder.create_visual_review_checkpoint_state(checkpoint_id)
 
 
 func _on_interaction_available(interactable: PrototypeInteractable, should_auto_select_recipe: bool = true) -> void:
@@ -506,6 +538,12 @@ func _on_region_gate_blocked(message: String) -> void:
 
 func _update_hud() -> void:
 	hud.update_status(data_registry, world_state, character_state)
+	hud.update_combat_readability(
+		data_registry,
+		world_state,
+		character_state,
+		vertical_slice_map.get_current_combat_target()
+	)
 	hud.refresh_device_panel(
 		data_registry,
 		processing_system,
@@ -513,7 +551,23 @@ func _update_hud() -> void:
 		character_state,
 		world_state
 	)
+	_refresh_industrial_base_visuals()
 	_refresh_current_objective_guidance()
+
+
+func _refresh_industrial_base_visuals() -> void:
+	var visual_layer := vertical_slice_map.get_node_or_null("DemoIndustrialBaseVisualLayer") as DemoIndustrialBaseVisualLayer
+	if visual_layer != null:
+		visual_layer.refresh_chain_state(world_state, character_state)
+	var first_path_layer := vertical_slice_map.get_node_or_null("DemoFirstIndustrialPathVisualLayer") as DemoFirstIndustrialPathVisualLayer
+	if first_path_layer != null:
+		first_path_layer.refresh_path_state(world_state, character_state)
+	var pollution_layer := vertical_slice_map.get_node_or_null("DemoPollutionBoundaryVisualLayer") as DemoPollutionBoundaryVisualLayer
+	if pollution_layer != null:
+		pollution_layer.refresh_pollution_chain_state(world_state, character_state)
+	var core_layer := vertical_slice_map.get_node_or_null("DemoCoreStabilizationVisualLayer") as DemoCoreStabilizationVisualLayer
+	if core_layer != null:
+		core_layer.refresh_core_station_state(world_state, character_state)
 
 
 func _refresh_current_objective_guidance() -> void:
@@ -530,12 +584,16 @@ func _configure_world_camera() -> void:
 	if world_camera == null:
 		return
 	world_camera.make_current()
-	world_camera.zoom = PLAYTEST_CAMERA_ZOOM
+	world_camera.zoom = get_playtest_camera_zoom()
 	var bounds := vertical_slice_map.get_camera_bounds_rect_global()
 	world_camera.limit_left = int(floor(bounds.position.x))
 	world_camera.limit_top = int(floor(bounds.position.y))
 	world_camera.limit_right = int(ceil(bounds.position.x + bounds.size.x))
 	world_camera.limit_bottom = int(ceil(bounds.position.y + bounds.size.y))
+
+
+func get_playtest_camera_zoom() -> Vector2:
+	return PLAYTEST_CAMERA_ZOOM
 
 
 func _sync_world_camera() -> void:

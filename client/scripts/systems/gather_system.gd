@@ -254,7 +254,15 @@ func interact_with_object(
 			if definition_id == "map_object.demo_stabilization_core":
 				_set_map_object_flag(world_state, instance_id, definition_id, "is_sampled", true)
 				var pressure_text := _apply_demo_stabilization_write_pressure(character_state, world_state)
-				var core_result := _success("核心稳定数据已写入：锚定桥稳窗和高压窗口归档数据接入核心设备，第一条稳定通道已打开。%s" % pressure_text)
+				var core_run_followup := DemoCoreStabilizationRunFormatter.format_result_followup_line(
+					definition_id,
+					world_state,
+					character_state
+				)
+				var core_message := "核心稳定数据已写入：锚定桥稳窗和高压窗口归档数据接入核心设备，第一条稳定通道已打开。%s" % pressure_text
+				if not core_run_followup.is_empty():
+					core_message = "%s %s" % [core_message, core_run_followup]
+				var core_result := _success(core_message)
 				core_result["success_feedback"] = DemoActionFeedbackFormatter.format_core_write_success_feedback(
 					pressure_text,
 					world_state,
@@ -444,6 +452,8 @@ func _interact_with_field_outfitting_station(character_state: CharacterState, wo
 			return logistics_result
 		if FieldOutfittingRuntime.should_confirm_field_loop_payoff(character_state, world_state):
 			return _confirm_field_loop_payoff(world_state)
+		if FieldOutfittingRuntime.can_confirm_field_task_differentiation(character_state, world_state):
+			return _confirm_field_task_differentiation(world_state)
 		if FieldOutfittingRuntime.is_protective_response_ready(world_state):
 			return _success_feedback(
 				"出发整备台复查完成：防护响应已待命，下一次外勤反击会读取基础防护服、过滤模块和前哨补给。",
@@ -634,6 +644,22 @@ func _confirm_field_loop_payoff(world_state: WorldState) -> Dictionary:
 	return payoff_result
 
 
+func _confirm_field_task_differentiation(world_state: WorldState) -> Dictionary:
+	FieldOutfittingRuntime.mark_field_task_differentiation_confirmed(world_state)
+	var task_result := _success_feedback(
+		DemoFieldTaskDifferentiationFormatter.format_confirmation_message(),
+		"任务差异登记完成",
+		DemoFieldTaskDifferentiationFormatter.format_confirmation_status(),
+		DemoFieldTaskDifferentiationFormatter.format_confirmation_next_step()
+	)
+	task_result["field_task_differentiation_confirmed"] = true
+	var feedback: Dictionary = task_result.get("success_feedback", {})
+	feedback["field_task"] = DemoFieldTaskDifferentiationFormatter.format_confirmation_status()
+	feedback["show_field_task"] = true
+	task_result["success_feedback"] = feedback
+	return task_result
+
+
 func _gather(instance_id: String, definition: Dictionary, character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var rewards := _grant_refs(definition.get("drops", []), character_state)
 	var pressure_result := _apply_pollution_pressure(instance_id, definition, character_state, world_state)
@@ -668,6 +694,21 @@ func _gather(instance_id: String, definition: Dictionary, character_state: Chara
 	)
 	if not gameplay_followup.is_empty():
 		result_parts.append(gameplay_followup)
+	var core_run_followup := DemoCoreStabilizationRunFormatter.format_result_followup_line(
+		String(definition.get("id", "")),
+		world_state,
+		character_state
+	)
+	if not core_run_followup.is_empty():
+		result_parts.append(core_run_followup)
+	var field_task_followup := DemoFieldTaskDifferentiationFormatter.format_gather_result_line(
+		String(definition.get("id", "")),
+		instance_id,
+		world_state,
+		character_state
+	)
+	if not field_task_followup.is_empty():
+		result_parts.append(field_task_followup)
 
 	var result := _success("%s。" % "；".join(result_parts))
 	result["success_feedback"] = DemoActionFeedbackFormatter.format_gather_success_feedback(
@@ -679,6 +720,11 @@ func _gather(instance_id: String, definition: Dictionary, character_state: Chara
 		world_state,
 		character_state
 	)
+	var feedback: Dictionary = result.get("success_feedback", {})
+	if not field_task_followup.is_empty():
+		feedback["field_task"] = field_task_followup
+		feedback["show_field_task"] = true
+	result["success_feedback"] = feedback
 	return result
 
 
@@ -711,6 +757,11 @@ func _sample(instance_id: String, definition: Dictionary, character_state: Chara
 	)
 	if not gameplay_followup.is_empty():
 		result_parts.append(gameplay_followup)
+	var field_task_followup := DemoFieldTaskDifferentiationFormatter.format_sample_result_line(
+		String(definition.get("id", ""))
+	)
+	if not field_task_followup.is_empty():
+		result_parts.append(field_task_followup)
 	var result := _success("%s。" % "；".join(result_parts))
 	result["success_feedback"] = DemoActionFeedbackFormatter.format_sample_success_feedback(
 		object_name,
@@ -718,6 +769,11 @@ func _sample(instance_id: String, definition: Dictionary, character_state: Chara
 		rewards,
 		world_state
 	)
+	var feedback: Dictionary = result.get("success_feedback", {})
+	if not field_task_followup.is_empty():
+		feedback["field_task"] = field_task_followup
+		feedback["show_field_task"] = true
+	result["success_feedback"] = feedback
 	return result
 
 
@@ -979,6 +1035,8 @@ func _get_first_hour_gather_step_hint(
 			return "侧路废件可补反应器校准，也可配合晶体在出发整备台维护校准过滤模块"
 		"map_object_instance.crystal_cluster_foundation_return":
 			return "处理点入口前的回访晶体已补足；回基地加工基础零件或地基材料"
+		"map_object_instance.crystal_collector_output":
+			return "采集器输出已收取；沿装车轨回基础反应器，把晶体矿物加工成基础零件"
 		"map_object_instance.field_wreckage_foundation_return":
 			return "处理点入口前的残骸缓存已回收；若地基或过滤器缺料，先回基地整理制造"
 		"map_object_instance.demo_stabilization_recovery_cache":
@@ -994,6 +1052,8 @@ func _get_gather_completion_label(definition: Dictionary) -> String:
 	match String(definition.get("object_type", "")):
 		"resource_node":
 			return "已采集"
+		"resource_output":
+			return "已收取"
 		_:
 			return "已回收"
 
@@ -1016,6 +1076,8 @@ func _format_already_processed_message(
 				return "%s：%s" % [object_name, core_cache_status]
 			if definition_id == "map_object.crystal_cluster" or definition_id == "map_object.rich_crystal_vein":
 				return "%s已采集，现场保留已采集标记。" % object_name
+			if definition_id == "map_object.crystal_collector_output":
+				return "%s已收取，现场保留空托盘标记。" % object_name
 			return "%s已回收，现场保留已回收标记。" % object_name
 		"sample":
 			return "%s已采样，现场保留已采样标记。" % object_name

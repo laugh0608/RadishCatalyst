@@ -17,7 +17,7 @@ static func get_completion_next_step(recipe_id: String, world_state: WorldState 
 				and not FieldOutfittingRuntime.is_logistics_material_processed(world_state)
 			):
 				return "后勤补料材料已带回；完成这次基础零件加工后，到出发整备台确认维护材料。"
-			return "基础零件已补足；它们会用于反应器校准、过滤模块和地基。若当前任务还差更高阶配方，可按 R 切换到目标配方。"
+			return "基础零件已补足；它们会用于过滤介质、过滤模块、地基和污染过滤器。若当前任务还差更高阶配方，可按 R 切换到目标配方。"
 		"recipe.reclaim_basic_parts":
 			if world_state != null and world_state.quest_state.has_active_quest("quest.enter_pollution_edge"):
 				return "污染浆液已回收成基础零件；如果药剂或后续浆液不足，回污染边界副产口袋或药剂储备口袋补沉积物，再回过滤器处理。"
@@ -35,7 +35,7 @@ static func get_completion_next_step(recipe_id: String, world_state: WorldState 
 		"recipe.basic_filter_module":
 			return "按 F 启用基础过滤模块；启用后污染消耗和污染反击压力降低，处理点北缘清障和沉积物采集会更稳。"
 		"recipe.foundation_t1":
-			return "前往污染边界北缘清理地块并铺设基础地基；若材料不足，回晶体矿脉区到处理点入口前补晶体或残骸。"
+			return "前往污染边界北缘清理地块并铺设基础地基；若材料不足，回处理点入口前补残骸或晶体。"
 		"recipe.cleanse_residue":
 			return _get_pollution_vial_completion_next_step(world_state)
 		"recipe.repair_gel":
@@ -137,7 +137,7 @@ static func should_return_for_second_pollution_residue_batch(world_state: WorldS
 		return false
 	if not world_state.quest_state.has_active_quest("quest.enter_pollution_edge"):
 		return false
-	return world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue") < 4.0
+	return world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue") < 2.0
 
 
 static func _get_pollution_residue_processing_started_appendix(world_state: WorldState = null) -> String:
@@ -178,7 +178,7 @@ static func _get_pollution_vial_completion_next_step(world_state: WorldState = n
 		if world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer"):
 			return "核心缓冲补料已处理成药剂和污染浆液；回基础反应器整备核心稳压缓冲包，药剂留给核心站排压。"
 	if should_return_for_second_pollution_residue_batch(world_state):
-		return "带药剂回污染边界，补第二批沉积物，清理受扰敌人和门前压力点；抗污染药剂留在快捷栏 2。"
+		return "带药剂回污染边界，补沉积物并清理受扰敌人和门前压力点；抗污染药剂留在快捷栏 2。"
 	return "带药剂回污染边界，清理受扰敌人和门前压力点；抗污染药剂留在快捷栏 2，用于维持遗迹门前防护。"
 
 

@@ -81,6 +81,7 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 const MAX_VISIBLE_KEY_RESOURCE_COUNT := 2
 const MAX_CONTEXT_RESOURCE_COUNT := 3
 const COMPACT_OBJECTIVE_MAX_LINES := 5
+const RUNTIME_STATUS_MAX_CHARACTERS := 34
 const HudObjectiveCompactFormatterScript := preload("res://scripts/ui/hud_objective_compact_formatter.gd")
 const CompletionOutcomeFormatter := preload("res://scripts/systems/demo_completion_outcome_formatter.gd")
 
@@ -134,6 +135,37 @@ func format_vitals_text(data_registry: DataRegistry, world_state: WorldState, ch
 		+ ["角色状态"]
 		+ _format_character_lines(data_registry, world_state, character_state)
 	)
+
+
+func format_runtime_vitals_text(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> String:
+	_ensure_objective_source_resolver(data_registry)
+	var active_quest_id := _get_active_quest_id(world_state)
+	var base_lines := _format_base_summary_lines(data_registry, world_state, character_state, active_quest_id)
+	var device_line := "设备 待命"
+	if not base_lines.is_empty():
+		device_line = "设备 %s" % _trim_runtime_status_line(String(base_lines[0]), RUNTIME_STATUS_MAX_CHARACTERS - 3)
+	return "\n".join([
+		"生命 %.0f/%.0f  防护 %.0f/%.0f" % [
+			character_state.health,
+			character_state.max_health,
+			character_state.protection,
+			character_state.max_protection
+		],
+		"补给 %s" % _format_runtime_quick_supply(data_registry, character_state),
+		"关键材料 %s" % _trim_runtime_status_line(
+			_format_contextual_key_resources(data_registry, world_state, character_state, active_quest_id),
+			RUNTIME_STATUS_MAX_CHARACTERS - 5
+		),
+		device_line
+	])
+
+
+func format_player_quick_supply_text(
+	data_registry: DataRegistry,
+	world_state: WorldState,
+	character_state: CharacterState
+) -> String:
+	return "快捷补给\n%s" % _format_quick_slots(data_registry, world_state, character_state)
 
 
 func format_pollution_status(
@@ -243,13 +275,34 @@ func _format_base_summary_lines(
 	character_state: CharacterState,
 	active_quest_id: String
 ) -> Array[String]:
+	var resource_chain_summary := DemoResourceChainStateFormatter.format_hud_summary(world_state, character_state)
+	var core_loop_summary := DemoCoreLoopRhythmFormatter.format_hud_summary(world_state, character_state)
+	var narrative_summary := DemoNarrativeBeatFormatter.format_hud_summary(world_state, character_state)
+	if not core_loop_summary.is_empty() and not narrative_summary.is_empty():
+		core_loop_summary[0] = "%s；%s" % [core_loop_summary[0], narrative_summary[0]]
+	if not core_loop_summary.is_empty():
+		resource_chain_summary += core_loop_summary
 	var active_structure_summary := _format_active_base_structure(data_registry, world_state)
 	if not active_structure_summary.is_empty():
+		if not resource_chain_summary.is_empty():
+			return resource_chain_summary + active_structure_summary
 		return active_structure_summary
 
 	var active_quest := data_registry.get_definition(active_quest_id)
-	var resource_chain_summary := DemoResourceChainStateFormatter.format_hud_summary(world_state, character_state)
+	var field_task_summary := DemoFieldTaskDifferentiationFormatter.format_hud_summary(
+		world_state,
+		character_state
+	)
+	var module_task_summary := DemoIndustrialModuleTaskRhythmFormatter.format_hud_summary(world_state, character_state)
+	var base_reentry_summary := DemoRouteReturnAndBaseReentryFormatter.format_hud_summary(
+		world_state,
+		character_state
+	)
 	var endpoint_readiness_summary := DemoEndpointReadinessFormatter.format_hud_summary(
+		world_state,
+		character_state
+	)
+	var core_run_summary := DemoCoreStabilizationRunFormatter.format_hud_summary(
 		world_state,
 		character_state
 	)
@@ -269,6 +322,8 @@ func _format_base_summary_lines(
 		return evacuation_recovery_summary
 	var core_stabilization_summary := CoreStabilizationPressureFormatter.format_hud_summary(world_state, character_state, active_quest_id)
 	if not core_stabilization_summary.is_empty():
+		if not core_run_summary.is_empty():
+			core_stabilization_summary += core_run_summary
 		if not endpoint_readiness_summary.is_empty():
 			core_stabilization_summary += endpoint_readiness_summary
 		if not completion_outcome_summary.is_empty():
@@ -312,27 +367,87 @@ func _format_base_summary_lines(
 		]
 	var outfitting_summary := _format_outfitting_station_summary(world_state, character_state)
 	if not outfitting_summary.is_empty():
+		if not field_task_summary.is_empty():
+			outfitting_summary = field_task_summary + outfitting_summary
+		if not base_reentry_summary.is_empty():
+			outfitting_summary += base_reentry_summary
 		if not completion_outcome_summary.is_empty():
 			return outfitting_summary + completion_outcome_summary
 		return outfitting_summary
 	if not endpoint_readiness_summary.is_empty():
+		if not core_run_summary.is_empty():
+			return core_run_summary + endpoint_readiness_summary
 		return endpoint_readiness_summary
+	if not core_run_summary.is_empty():
+		return core_run_summary
 	if not completion_outcome_summary.is_empty():
 		return completion_outcome_summary
+	if not field_task_summary.is_empty():
+		var combined_field_task_summary := field_task_summary
+		if not resource_chain_summary.is_empty():
+			combined_field_task_summary += resource_chain_summary
+		if not base_reentry_summary.is_empty():
+			combined_field_task_summary += base_reentry_summary
+		return combined_field_task_summary
+	if not module_task_summary.is_empty():
+		if not base_reentry_summary.is_empty():
+			return module_task_summary + base_reentry_summary
+		return module_task_summary
 	var industrial_summary := IndustrialTechSpineFormatter.format_hud_summary(world_state, character_state)
 	if not industrial_summary.is_empty():
+		if not base_reentry_summary.is_empty():
+			return industrial_summary + base_reentry_summary
 		return industrial_summary
 	if not resource_chain_summary.is_empty():
+		if not base_reentry_summary.is_empty():
+			return resource_chain_summary + base_reentry_summary
 		return resource_chain_summary
 	var scene_summary := SceneArtFoundationFormatter.format_hud_summary(world_state, character_state)
 	if not scene_summary.is_empty():
 		return scene_summary
 	var functional_scene_gameplay_summary := FunctionalSceneGameplayFormatter.format_hud_summary(world_state, character_state)
+	var gameplay_density_summary := DemoFunctionalSceneGameplayDensityFormatter.format_hud_summary(world_state, character_state)
+	var spatial_playability_summary := DemoFunctionalTransitionSpatialPlayabilityFormatter.format_hud_summary(
+		world_state,
+		character_state
+	)
+	var midfield_route_summary := DemoMidfieldRoutePlayabilityFormatter.format_hud_summary(world_state, character_state)
+	var wind_transition_summary := DemoWindCorridorTransitionPlayabilityFormatter.format_hud_summary(world_state, character_state)
+	var core_approach_summary := DemoCoreApproachHandoffFormatter.format_hud_summary(world_state, character_state)
 	if not functional_scene_gameplay_summary.is_empty():
-		return functional_scene_gameplay_summary
+		var combined_gameplay_summary := functional_scene_gameplay_summary
+		if not gameplay_density_summary.is_empty():
+			combined_gameplay_summary += gameplay_density_summary
+		if not spatial_playability_summary.is_empty():
+			combined_gameplay_summary += spatial_playability_summary
+		if not midfield_route_summary.is_empty():
+			combined_gameplay_summary += midfield_route_summary
+		if not wind_transition_summary.is_empty():
+			combined_gameplay_summary += wind_transition_summary
+		if not core_approach_summary.is_empty():
+			combined_gameplay_summary += core_approach_summary
+		return combined_gameplay_summary
+	if not gameplay_density_summary.is_empty():
+		return gameplay_density_summary
 	var transition_summary := FunctionalTransitionRouteSupportFormatter.format_hud_summary(world_state, character_state)
 	if not transition_summary.is_empty():
+		if not spatial_playability_summary.is_empty():
+			return transition_summary + spatial_playability_summary
+		if not midfield_route_summary.is_empty():
+			return transition_summary + midfield_route_summary
+		if not wind_transition_summary.is_empty():
+			return transition_summary + wind_transition_summary
+		if not core_approach_summary.is_empty():
+			return transition_summary + core_approach_summary
 		return transition_summary
+	if not spatial_playability_summary.is_empty():
+		return spatial_playability_summary
+	if not midfield_route_summary.is_empty():
+		return midfield_route_summary
+	if not wind_transition_summary.is_empty():
+		return wind_transition_summary
+	if not core_approach_summary.is_empty():
+		return core_approach_summary
 
 	return ["设备：待命；当前目标先外出推进"]
 
@@ -670,6 +785,13 @@ func _format_current_build_summary(
 		var purpose_hint := RecipePurposeHints.format_build_goal_hint(building_id)
 		if not purpose_hint.is_empty():
 			result.append("用途：%s" % purpose_hint)
+		var module_task_hint := DemoIndustrialModuleTaskRhythmFormatter.format_build_task_hint(
+			building_id,
+			world_state,
+			character_state
+		)
+		if not module_task_hint.is_empty():
+			result.append("任务节奏：%s" % module_task_hint)
 		return result
 	return []
 
@@ -695,7 +817,7 @@ func _format_first_hour_recommended_craft_summary(
 				world_state.quest_state.get_objective_progress(quest_id, "build", "building.foundation_t1"),
 				float(world_state.count_base_structures("building.foundation_t1"))
 			)
-			var pending_foundations := maxi(0, 2 - int(foundation_progress))
+			var pending_foundations := maxi(0, 1 - int(foundation_progress))
 			if _get_inventory_amount(character_state.inventory, "item.foundation_material") < float(pending_foundations):
 				return _format_recipe_summary(
 					data_registry,
@@ -760,6 +882,13 @@ func _format_recipe_summary(
 	)
 	if not industrial_chain_hint.is_empty():
 		result.append("工艺主干：%s" % industrial_chain_hint)
+	var module_task_hint := DemoIndustrialModuleTaskRhythmFormatter.format_recipe_task_hint(
+		recipe_id,
+		world_state,
+		character_state
+	)
+	if not module_task_hint.is_empty():
+		result.append("任务节奏：%s" % module_task_hint)
 	return result
 
 
@@ -853,6 +982,32 @@ func _format_quick_slots(
 		world_state,
 		character_state
 	)
+
+
+func _format_runtime_quick_supply(data_registry: DataRegistry, character_state: CharacterState) -> String:
+	if character_state == null:
+		return "无"
+	var parts: Array[String] = []
+	for index in range(mini(character_state.quick_slots.size(), 2)):
+		var item_id := String(character_state.quick_slots[index])
+		if item_id.is_empty():
+			parts.append("%d 空" % (index + 1))
+			continue
+		parts.append("%d %s x%d" % [
+			index + 1,
+			_get_display_name(data_registry, item_id),
+			int(character_state.inventory.items.get(item_id, 0))
+		])
+	if parts.is_empty():
+		return "无"
+	return " | ".join(parts)
+
+
+func _trim_runtime_status_line(text: String, max_characters: int) -> String:
+	var trimmed := text.strip_edges()
+	if trimmed.length() <= max_characters:
+		return trimmed
+	return "%s..." % trimmed.substr(0, maxi(0, max_characters - 3))
 
 
 func _format_active_quest_progress(data_registry: DataRegistry, world_state: WorldState, quest_id: String) -> String:
@@ -1079,8 +1234,8 @@ func _format_pollution_action_chain_line() -> String:
 
 
 func _format_pollution_vial_field_step(world_state: WorldState) -> String:
-	if world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue") < 4.0:
-		return "补第二批沉积物，再清理受扰敌人和门前压力点"
+	if world_state.quest_state.get_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue") < 2.0:
+		return "补齐沉积物，再清理受扰敌人和门前压力点"
 	return "清理受扰敌人和门前压力点"
 
 

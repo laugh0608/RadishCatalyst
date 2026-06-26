@@ -88,7 +88,7 @@ func format_map_marker_labels(world_state: WorldState, quest_id: String) -> Arra
 
 
 func format_demo_route_title(world_state: WorldState, _quest_id: String) -> String:
-	return "外勤路线：%s" % _get_route_stage_label(world_state.current_region_id)
+	return "小地图：%s" % _get_route_stage_label(world_state.current_region_id)
 
 
 func format_demo_route_hint(
@@ -122,21 +122,49 @@ func format_demo_route_hint(
 	var scene_hint := SceneArtFoundationFormatter.format_map_route_hint(hint_region_id)
 	var non_core_scene_hint := NonCoreSceneIdentityFormatter.format_map_route_hint(hint_region_id)
 	var transition_hint := FunctionalTransitionRouteSupportFormatter.format_map_route_hint(hint_region_id)
+	var spatial_playability_hint := DemoFunctionalTransitionSpatialPlayabilityFormatter.format_map_route_hint(
+		hint_region_id
+	)
+	var midfield_route_hint := DemoMidfieldRoutePlayabilityFormatter.format_map_route_hint(hint_region_id)
+	var wind_transition_hint := DemoWindCorridorTransitionPlayabilityFormatter.format_map_route_hint(hint_region_id)
+	var core_approach_hint := DemoCoreApproachHandoffFormatter.format_map_route_hint(hint_region_id)
+	var core_run_hint := DemoCoreStabilizationRunFormatter.format_map_route_hint(
+		world_state,
+		hint_region_id,
+		quest_id,
+		character_state
+	)
 	var composition_hint := PlayableSceneCompositionFormatter.format_map_route_hint(hint_region_id)
 	var recovery_hint := DemoCombatEvacuationRecoveryFormatter.format_map_route_hint(
 		world_state,
 		quest_id,
 		character_state
 	)
+	var base_reentry_hint := DemoRouteReturnAndBaseReentryFormatter.format_map_route_hint(
+		world_state,
+		character_state
+	)
 	var hint_parts: Array[String] = [route_hint]
 	if not recovery_hint.is_empty():
 		hint_parts.append(recovery_hint)
+	if not base_reentry_hint.is_empty():
+		hint_parts.append(base_reentry_hint)
 	if not scene_hint.is_empty():
 		hint_parts.append(scene_hint)
 	if not non_core_scene_hint.is_empty():
 		hint_parts.append(non_core_scene_hint)
 	if not transition_hint.is_empty():
 		hint_parts.append(transition_hint)
+	if not spatial_playability_hint.is_empty():
+		hint_parts.append(spatial_playability_hint)
+	if not midfield_route_hint.is_empty():
+		hint_parts.append(midfield_route_hint)
+	if not wind_transition_hint.is_empty():
+		hint_parts.append(wind_transition_hint)
+	if not core_approach_hint.is_empty():
+		hint_parts.append(core_approach_hint)
+	if not core_run_hint.is_empty():
+		hint_parts.append(core_run_hint)
 	if not composition_hint.is_empty():
 		hint_parts.append(composition_hint)
 	return " · ".join(hint_parts)

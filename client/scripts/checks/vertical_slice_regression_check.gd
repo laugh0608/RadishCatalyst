@@ -48,7 +48,7 @@ func _check_first_hour_guidance_copy() -> void:
 	var processing := ProcessingSystem.new(host.data_registry)
 	host._expect_text_contains(
 		processing._get_completion_next_step("recipe.process_crystal_ore"),
-		"反应器校准、过滤模块和地基",
+		"过滤介质、过滤模块、地基和污染过滤器",
 		"crystal processing completion explains base use"
 	)
 	host._expect_text_contains(
@@ -79,16 +79,16 @@ func _check_first_hour_guidance_copy() -> void:
 	)
 	host._expect_text_contains(
 		processing._get_completion_next_step("recipe.cleanse_residue", pollution_world),
-		"第二批沉积物",
+		"清理受扰敌人",
 		"first residue cleansing completion points to the stocked return route"
 	)
 	pollution_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1)
 	host._expect_text_contains(
 		presenter.format_onboarding_hint(pollution_world, pollution_character, "quest.enter_pollution_edge"),
-		"第二批沉积物",
+		"遗迹门前压力点",
 		"pollution onboarding returns to residue route after first vial"
 	)
-	pollution_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", 4)
+	pollution_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", 2)
 	host._expect_text_contains(
 		presenter.format_onboarding_hint(pollution_world, pollution_character, "quest.enter_pollution_edge"),
 		"遗迹门前压力点",
@@ -113,7 +113,7 @@ func _check_first_hour_base_return_manufacturing_readability() -> void:
 	var analysis_world := WorldState.create_default()
 	analysis_world.quest_state.active_quest_ids = ["quest.analyze_anomaly_sample"]
 	analysis_world.quest_state.unlock_effect("recipe.analyze_anomaly_sample")
-	analysis_world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 2)
+	analysis_world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 1)
 	var analysis_character := CharacterState.create_default()
 	var panel_texts := device_panel_presenter.format_device_panel_texts(
 		host.data_registry,
@@ -402,7 +402,7 @@ func _check_first_hour_objective_milestones() -> void:
 	var calibrate_world := WorldState.create_default()
 	calibrate_world.quest_state.active_quest_ids = ["quest.calibrate_reactor"]
 	var calibrate_result := runtime.apply_objective_updates(calibrate_world, character, [
-		{"quest_id": "quest.calibrate_reactor", "objective_type": "gather_item", "target_id": "item.salvage_scrap", "amount": 4.0, "mode": "add"}
+		{"quest_id": "quest.calibrate_reactor", "objective_type": "gather_item", "target_id": "item.salvage_scrap", "amount": 2.0, "mode": "add"}
 	])
 	host._expect_text_contains(
 		" ".join(calibrate_result.get("log_messages", [])),
@@ -422,7 +422,7 @@ func _check_first_hour_objective_milestones() -> void:
 	var pollution_world := WorldState.create_default()
 	pollution_world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
 	var pollution_result := runtime.apply_objective_updates(pollution_world, character, [
-		{"quest_id": "quest.enter_pollution_edge", "objective_type": "gather_item", "target_id": "item.polluted_residue", "amount": 4.0, "mode": "add"}
+		{"quest_id": "quest.enter_pollution_edge", "objective_type": "gather_item", "target_id": "item.polluted_residue", "amount": 2.0, "mode": "add"}
 	])
 	host._expect_text_contains(
 		" ".join(pollution_result.get("log_messages", [])),
@@ -434,7 +434,7 @@ func _check_first_hour_objective_milestones() -> void:
 	])
 	host._expect_text_contains(
 		" ".join(vial_result.get("log_messages", [])),
-		"第二批沉积物",
+		"清理受扰敌人",
 		"resistance vial milestone explains stocked return route"
 	)
 
@@ -460,7 +460,7 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		"recipe.anchor_core_dust_stabilization"
 	])
 	recipe_world.quest_state.active_quest_ids = ["quest.analyze_anomaly_sample"]
-	recipe_world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 2)
+	recipe_world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 1)
 	host._expect_equal(
 		processing.get_recommended_recipe_id(reactor, recipe_character, recipe_world),
 		"recipe.analyze_anomaly_sample",
@@ -493,12 +493,6 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 		"region.pollution_edge",
 		"map_object_instance.foundation_site_north"
 	)
-	recipe_world.add_base_structure(
-		"structure.foundation_site_south",
-		"building.foundation_t1",
-		"region.pollution_edge",
-		"map_object_instance.foundation_site_south"
-	)
 	host._expect_equal(
 		processing.get_recommended_recipe_id(reactor, recipe_character, recipe_world),
 		"recipe.make_filter_media",
@@ -508,8 +502,8 @@ func check_task_recipe_selection(reactor: PrototypeInteractable, processing: Pro
 	recipe_character.inventory.items["item.basic_parts"] = 2
 	host._expect_equal(
 		processing.get_recommended_recipe_id(reactor, recipe_character, recipe_world),
-		"recipe.process_crystal_ore",
-		"expand treatment point falls back to basic parts after filter media"
+		"",
+		"expand treatment point stops recommending extra processing after filter materials"
 	)
 	recipe_world.quest_state.active_quest_ids = ["quest.refine_phase_filament"]
 	host._expect_equal(

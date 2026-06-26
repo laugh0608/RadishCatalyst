@@ -1,6 +1,7 @@
 extends SceneTree
 
 const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
+const ALPHA_CHECK_EPSILON := 0.00001
 
 var failures: Array[String] = []
 var data_registry := DataRegistry.new()
@@ -29,6 +30,8 @@ func _run_checks() -> void:
 	_check_scene_visual_priority_layer()
 	_check_current_objective_guidance_layer()
 	_check_startup_readability_scope()
+	_check_playable_space_and_actor_silhouettes()
+	_check_key_object_semantic_silhouettes()
 	_check_visual_state_methods()
 	_check_visual_refresher_state_alignment()
 
@@ -72,6 +75,11 @@ func _check_current_objective_guidance_layer() -> void:
 	var layer := map.get_node("CurrentObjectiveGuidanceLayer") as CurrentObjectiveGuidanceLayer
 	var target := map.get_node("Interactables/OutpostCore") as PrototypeInteractable
 	var storage := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
+	var reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
+	var departure_gate := map.get_node("Interactables/OutpostDepartureGate") as PrototypeInteractable
+	var crystal_layer := map.get_node("DemoCrystalResourceVisualLayer") as DemoCrystalResourceVisualLayer
+	var first_path_layer := map.get_node("DemoFirstIndustrialPathVisualLayer") as DemoFirstIndustrialPathVisualLayer
+	var pollution_layer := map.get_node("DemoPollutionBoundaryVisualLayer") as DemoPollutionBoundaryVisualLayer
 	var world := WorldState.create_default()
 	var character := CharacterState.create_default()
 	_expect_equal(layer != null, true, "current objective guidance layer exists")
@@ -80,17 +88,42 @@ func _check_current_objective_guidance_layer() -> void:
 		return
 
 	map.refresh_world_interactables(world)
+	map.update_current_interactable()
+	_expect_equal(map.current_interactable, target, "startup interaction prefers current outpost core objective")
+	_expect_equal(storage.focus_ring.visible, false, "startup storage does not steal the first interaction focus")
+	_expect_equal(reactor.focus_ring.visible, false, "startup reactor does not steal the first interaction focus")
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "OutpostCore", "前哨核心", "startup outpost core target guidance")
 	_expect_equal(layer.get_node_or_null("CurrentObjectiveTargetLabel") != null, true, "current target label exists")
+	_expect_equal(layer.is_target_name_label_visible(), false, "near current target hides scene text label")
+	_expect_equal(layer.get_focus_readability_shape_count() >= 5, true, "current objective layer registers focus readability shapes")
+	_expect_equal(layer.has_focus_readability_shape("focus_readability.local_workface_frame"), true, "current objective layer registers local workface frame")
+	_expect_equal(layer.has_focus_readability_shape("focus_readability.short_player_tether"), true, "current objective layer registers short player tether")
+	_expect_equal(layer.has_focus_readability_shape("focus_readability.startup_repair_port"), true, "current objective layer registers startup repair port")
+	_expect_equal(layer.is_local_focus_frame_visible(), true, "startup current objective shows a local focus frame")
+	_expect_equal(layer.is_short_focus_tether_visible(), true, "startup current objective uses a short local tether")
+	_expect_equal(layer.get_current_focus_readability_mode(), "startup_core", "startup current objective uses core restore focus mode")
+	_expect_equal(layer.is_target_route_visible(), false, "startup current objective does not draw a cross-screen route")
+	map.player.position = target.position + Vector2(-220.0, 0.0)
+	layer.refresh_guidance(world, character)
+	_expect_equal(layer.is_target_name_label_visible(), true, "distant current target can show a short scene label")
+	_expect_equal(layer.get_target_name_label_text(), "前哨核心", "distant current target label omits redundant prefix")
+	_expect_equal(layer.is_local_focus_frame_visible(), true, "distant target keeps local focus frame on the target")
+	_expect_equal(layer.is_short_focus_tether_visible(), false, "distant target does not draw a long player tether")
+	map.player.position = storage.position
 	storage.set_focus_visual(true)
 	layer.refresh_guidance(world, character)
-	_expect_equal(layer.is_off_target_hint_visible(), true, "focused non-target object shows current objective hint")
+	_expect_equal(layer.is_off_target_hint_visible(), false, "focused non-target object does not add center text over the scene")
+	var off_target_label := layer.get_node("CurrentObjectiveOffTargetLabel") as Label
+	_expect_equal(off_target_label.text, "", "off-target hint text stays empty")
 
 	target.set_restored_outpost_core_visual()
 	world.quest_state.complete_quest("quest.restore_outpost")
 	world.quest_state.activate_quest("quest.scout_crystal_field")
+	map.player.position = VerticalSliceMap.OUTPOST_RESPAWN_POSITION
 	map.refresh_world_interactables(world)
+	map.update_current_interactable()
+	_expect_equal(map.current_interactable, null, "post-restore start does not auto-focus side devices before approach")
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "BasicStorageBuildSite", "基础储存箱", "post-restore storage build guidance")
 
@@ -103,17 +136,93 @@ func _check_current_objective_guidance_layer() -> void:
 	map.refresh_world_interactables(world)
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "OutpostDepartureGate", "外勤出发口", "scout route departure guidance")
+	map.player.position = departure_gate.position
+	map.update_current_interactable()
+	crystal_layer.refresh_focus_visibility(map.player.position)
+	_expect_equal(map.current_interactable != null, true, "crystal threshold has a logical interactable")
+	if map.current_interactable != null:
+		_expect_equal(
+			String(map.current_interactable.name),
+			"OutpostDepartureGate",
+			"crystal threshold still keeps departure gate as logical interactable"
+		)
+	_expect_equal(
+		(departure_gate.get_node("Label") as Label).visible,
+		false,
+		"crystal threshold hides departure gate interactable label over resource visuals"
+	)
+	_expect_equal(
+		(departure_gate.get_node("FocusRing") as ColorRect).visible,
+		false,
+		"crystal threshold hides departure gate focus ring over resource visuals"
+	)
+	map.player.position = VerticalSliceMap.OUTPOST_RESPAWN_POSITION
+	map.update_current_interactable()
 
 	world.quest_state.set_objective_progress("quest.scout_crystal_field", "visit_region", "region.crystal_vein_field", 1.0)
 	map.refresh_world_interactables(world)
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "CrystalCluster", "晶体采集点", "crystal field gather guidance")
 
+	world.add_base_structure(
+		"structure.crystal_collector_build_site",
+		"building.crystal_collector_t1",
+		"region.crystal_vein_field",
+		"map_object_instance.crystal_collector_build_site"
+	)
+	world.ensure_map_object(
+		"map_object_instance.crystal_collector_output",
+		"map_object.crystal_collector_output",
+		"region.crystal_vein_field"
+	)
+	map.refresh_world_interactables(world)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "CrystalCollectorOutput", "采集器输出", "built collector output guidance")
+	map.player.position = Vector2(96.0, -118.0)
+	character.position = map.player.position
+	character.current_region_id = "region.crystal_vein_field"
+	first_path_layer.refresh_path_state(world, character)
+	first_path_layer.refresh_focus_visibility(map.player.position)
+	crystal_layer.refresh_focus_visibility(map.player.position)
+	layer.refresh_guidance(world, character)
+	map.sync_enemy_states(world)
+	map.update_current_interactable()
+	_expect_guidance_target(layer, "CrystalCollectorOutput", "采集器输出", "collector output compact guidance target")
+	_expect_equal(layer.is_first_path_compact_guidance_active(), true, "first industrial path compacts current target guidance")
+	_expect_equal(layer.is_local_focus_frame_visible(), true, "first industrial path keeps a local objective focus frame")
+	_expect_equal(layer.get_current_focus_readability_mode(), "first_path", "first industrial path uses local focus readability mode")
+	_expect_equal(layer.is_target_route_visible(), false, "first industrial path hides long current target route")
+	var collector_output := map.get_node("Interactables/CrystalCollectorOutput") as PrototypeInteractable
+	var crystal_focus_region := map.get_node("RegionCrystal") as ColorRect
+	var crystal_focus_pollution_region := map.get_node("RegionPollution") as ColorRect
+	var crystal_focus_boundary := map.get_node("RegionBoundaryCrystal") as ColorRect
+	var crystal_focus_pollution_boundary := map.get_node("RegionBoundaryPollution") as ColorRect
+	_expect_equal(map.current_interactable, collector_output, "first industrial path still keeps collector output as logical focus")
+	_expect_equal(first_path_layer.visible, false, "crystal workface keeps the full first industrial path hidden")
+	_expect_equal(collector_output.label.visible, true, "crystal workface keeps the current interactable label readable")
+	_expect_equal(collector_output.focus_ring.visible, true, "crystal workface keeps the current interactable focus ring readable")
+	_expect_equal(collector_output.marker.scale != Vector2.ONE, true, "crystal workface enlarges the current interaction marker")
+	_expect_equal(crystal_layer.get_muted_crystal_focus_context_rect_count() >= 12, true, "crystal workface mutes old region panels, routes, and boundary frames")
+	_expect_equal(_is_rect_alpha_at_most(crystal_focus_region, 0.003), true, "crystal workface keeps the blue crystal panel behind the ore surface")
+	_expect_equal(_is_rect_alpha_at_most(crystal_focus_pollution_region, 0.0006), true, "crystal workface suppresses the yellow pollution panel")
+	_expect_equal(_is_rect_alpha_at_most(crystal_focus_boundary, 0.0006), true, "crystal workface lowers the crystal boundary frame")
+	_expect_equal(_is_rect_alpha_at_most(crystal_focus_pollution_boundary, 0.0006), true, "crystal workface lowers the pollution boundary frame")
+	var field_patrol := map.get_node("Enemies/NativeSkitterPatrol") as PrototypeEnemy
+	_expect_equal(field_patrol.modulate, PrototypeEnemy.DEFAULT_CONTEXT_MODULATE, "crystal workface leaves enemy pressure readable without the path overlay")
+	map.player.position = Vector2(320.0, -118.0)
+	first_path_layer.refresh_focus_visibility(map.player.position)
+	map.update_current_interactable()
+	_expect_equal(field_patrol.modulate, PrototypeEnemy.DEFAULT_CONTEXT_MODULATE, "leaving first industrial path restores enemy context weight")
+	map.player.position = VerticalSliceMap.OUTPOST_RESPAWN_POSITION
+	character.position = map.player.position
+	character.current_region_id = "region.outpost_platform"
+	first_path_layer.refresh_focus_visibility(map.player.position)
+
 	world.quest_state.active_quest_ids = ["quest.calibrate_reactor"]
 	map.refresh_world_interactables(world)
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "FieldWreckageNorth", "导电废件", "calibration salvage guidance")
-	world.quest_state.set_objective_progress("quest.calibrate_reactor", "gather_item", "item.salvage_scrap", 4.0)
+	world.quest_state.set_objective_progress("quest.calibrate_reactor", "gather_item", "item.salvage_scrap", 2.0)
 	map.refresh_world_interactables(world)
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "BasicReactor", "基础反应器", "calibration reactor guidance")
@@ -127,7 +236,7 @@ func _check_current_objective_guidance_layer() -> void:
 	map.refresh_world_interactables(world)
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "AnomalyResidueNorth", "异常残留物", "anomaly residue guidance")
-	world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 2.0)
+	world.quest_state.set_objective_progress("quest.analyze_anomaly_sample", "gather_item", "item.anomaly_residue", 1.0)
 	map.refresh_world_interactables(world)
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "BasicReactor", "基础反应器", "anomaly analysis reactor guidance")
@@ -136,7 +245,7 @@ func _check_current_objective_guidance_layer() -> void:
 	map.refresh_world_interactables(world)
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "RoughGroundNorth", "粗糙地块", "treatment point first clearing guidance")
-	world.quest_state.set_objective_progress("quest.expand_treatment_point", "clear", "map_object.rough_ground", 2.0)
+	world.quest_state.set_objective_progress("quest.expand_treatment_point", "clear", "map_object.rough_ground", 1.0)
 	_mark_map_object_flag(world, "map_object_instance.rough_ground_north", "map_object.rough_ground", "is_cleared", true)
 	_mark_map_object_flag(world, "map_object_instance.rough_ground_south", "map_object.rough_ground", "is_cleared", true)
 	map.refresh_world_interactables(world)
@@ -154,7 +263,7 @@ func _check_current_objective_guidance_layer() -> void:
 		"region.pollution_edge",
 		"map_object_instance.foundation_site_south"
 	)
-	world.quest_state.set_objective_progress("quest.expand_treatment_point", "build", "building.foundation_t1", 2.0)
+	world.quest_state.set_objective_progress("quest.expand_treatment_point", "build", "building.foundation_t1", 1.0)
 	map.refresh_world_interactables(world)
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "PollutionFilterBuildSite", "污染过滤器建造点", "treatment point filter build guidance")
@@ -169,26 +278,76 @@ func _check_current_objective_guidance_layer() -> void:
 	map.refresh_world_interactables(world)
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "OutpostDepartureGate", "外勤出发口", "pollution edge departure guidance")
+	map.player.position = Vector2(92.0, -104.0)
+	layer.refresh_guidance(world, character)
+	_expect_equal(
+		String(layer.get_current_target_node().name),
+		"OutpostDepartureGate",
+		"field position keeps departure gate as logical target"
+	)
+	_expect_equal(
+		layer.is_target_guidance_visible(),
+		false,
+		"field position hides departure gate scene guidance instead of drawing a long return route"
+	)
+	_expect_equal(layer.is_local_focus_frame_visible(), false, "field position does not keep a hidden departure focus frame")
+	map.player.position = VerticalSliceMap.OUTPOST_RESPAWN_POSITION
 	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "visit_region", "region.pollution_edge", 1.0)
 	map.refresh_world_interactables(world)
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "PollutionResidue", "污染沉积物", "pollution residue gather guidance")
-	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", 4.0)
+	map.player.position = Vector2(168.0, 34.0)
+	character.position = map.player.position
+	character.current_region_id = "region.pollution_edge"
+	first_path_layer.refresh_focus_visibility(map.player.position)
+	pollution_layer.refresh_focus_visibility(map.player.position)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "PollutionResidue", "污染沉积物", "pollution boundary compact residue target")
+	_expect_equal(first_path_layer.visible, false, "pollution boundary keeps first industrial path out of the treatment frame")
+	_expect_equal(layer.is_pollution_compact_guidance_active(), true, "pollution boundary compacts current target guidance")
+	_expect_equal(layer.is_target_route_visible(), false, "pollution boundary hides long current target route")
+	_expect_equal(layer.is_target_name_label_visible(), false, "pollution boundary hides current target scene label")
+	_expect_equal(layer.is_local_focus_frame_visible(), true, "pollution boundary keeps local current target focus frame")
+	_expect_equal(layer.get_current_focus_readability_mode(), "pollution", "pollution boundary uses local focus readability mode")
+	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", 2.0)
 	map.refresh_world_interactables(world)
 	layer.refresh_guidance(world, character)
 	_expect_guidance_target(layer, "PollutionFilter", "污染过滤器", "pollution filter processing guidance")
+
+	world.current_region_id = "region.demo_stabilization_core"
+	world.unlock_region("region.demo_stabilization_core")
+	world.quest_state.active_quest_ids = ["quest.write_demo_stabilization_core"]
+	world.quest_state.set_objective_progress("quest.write_demo_stabilization_core", "gather_item", "item.core_write_charge", 1.0)
+	map.player.position = Vector2(4038.0, -24.0)
+	character.position = map.player.position
+	character.current_region_id = "region.demo_stabilization_core"
+	map.refresh_world_interactables(world)
+	layer.refresh_guidance(world, character)
+	_expect_guidance_target(layer, "DemoStabilizationCore", "核心写入设备", "core write local guidance")
+	_expect_equal(layer.is_core_station_compact_guidance_active(), true, "core station compacts current target guidance")
+	_expect_equal(layer.is_target_route_visible(), false, "core station hides long current target route")
+	_expect_equal(layer.is_local_focus_frame_visible(), true, "core station keeps local current target focus frame")
+	_expect_equal(layer.is_short_focus_tether_visible(), true, "core station uses a short local tether near write device")
+	_expect_equal(layer.get_current_focus_readability_mode(), "core_station", "core station uses local focus readability mode")
 	map.free()
 
 
 func _check_startup_readability_scope() -> void:
 	var map := _create_setup_map()
 	var layer := map.get_node("PrototypeVisualPriorityLayer") as PrototypeVisualPriorityLayer
+	var base_layer := map.get_node("DemoIndustrialBaseVisualLayer") as DemoIndustrialBaseVisualLayer
+	var startup_layer := map.get_node("DemoBaseStartupPresentationLayer") as DemoBaseStartupPresentationLayer
 	_expect_equal(layer != null, true, "startup visual priority layer exists")
 	if layer != null:
 		layer.apply_profile()
 		layer.refresh_focus_visibility(map.get_player_position())
 		_expect_equal(layer.get_generated_cue_count(), 36, "startup still keeps full visual cue evidence")
-		_expect_equal(layer.get_visible_generated_cue_count(), 6, "startup only shows nearby outpost and crystal cues")
+		_expect_equal(layer.get_visible_generated_cue_count(), 1, "startup only shows the outpost core cue")
+		_expect_equal(
+			not _get_region_cue_visible(layer, "region.crystal_vein_field", PrototypeVisualPriorityProfile.ROLE_KEY_OBJECT),
+			true,
+			"startup hides adjacent crystal cue until the first field step"
+		)
 		_expect_equal(
 			_get_region_cue_visible(layer, "region.pollution_edge", PrototypeVisualPriorityProfile.ROLE_MAIN_ROUTE),
 			false,
@@ -199,11 +358,292 @@ func _check_startup_readability_scope() -> void:
 			true,
 			"startup keeps outpost key object cue visible"
 		)
+		layer.refresh_focus_visibility(Vector2(112.0, -112.0))
+		_expect_equal(
+			layer.get_cue_alpha(
+				"region.crystal_vein_field",
+				PrototypeVisualPriorityProfile.ROLE_KEY_OBJECT
+			) <= 0.05
+				and layer.get_cue_alpha(
+					"region.crystal_vein_field",
+					PrototypeVisualPriorityProfile.ROLE_MAIN_ROUTE
+				) <= 0.05
+				and layer.get_cue_alpha(
+					"region.crystal_vein_field",
+					PrototypeVisualPriorityProfile.ROLE_HAZARD_OR_FACILITY
+				) <= 0.05,
+			true,
+			"crystal focus keeps visual priority cues below the resource artwork instead of drawing a blue block"
+		)
+		layer.refresh_focus_visibility(Vector2(298.0, -72.0))
+		_expect_equal(
+			layer.get_cue_alpha(
+				"region.pollution_edge",
+				PrototypeVisualPriorityProfile.ROLE_KEY_OBJECT
+			) <= 0.05
+				and layer.get_cue_alpha(
+					"region.pollution_edge",
+					PrototypeVisualPriorityProfile.ROLE_MAIN_ROUTE
+				) <= 0.05
+				and layer.get_cue_alpha(
+					"region.pollution_edge",
+					PrototypeVisualPriorityProfile.ROLE_HAZARD_OR_FACILITY
+				) <= 0.05,
+			true,
+			"pollution focus keeps visual priority cues below treatment artwork instead of drawing a yellow block"
+		)
+	_expect_equal(startup_layer != null, true, "startup first screen presentation layer exists")
+	if startup_layer != null:
+		startup_layer.refresh_startup_state(WorldState.create_default())
+		_expect_equal(startup_layer.visible, true, "startup first screen uses a dedicated presentation layer")
+		_expect_equal(startup_layer.is_startup_active(), true, "startup presentation layer is active before core restore")
+		_expect_equal(startup_layer.get_presentation_shape_count() >= 8, true, "startup presentation layer registers scene artwork shapes")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.opaque_scene_backdrop"), true, "startup presentation covers old debug map blocks")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.hangar_floor"), true, "startup presentation draws a local hangar floor")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.floor_material_tiles"), true, "startup presentation adds floor material tiles")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.core_machine_body"), true, "startup presentation gives the core a machine body")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.cold_cable_runs"), true, "startup presentation uses local cables instead of cross-screen routes")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.core_reactor_housing"), true, "startup presentation gives the core a non-UI reactor housing")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.diegetic_repair_port"), true, "startup presentation uses a diegetic repair port")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.player_service_rig"), true, "startup presentation anchors the player on a service rig")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.floor_debris_and_bolts"), true, "startup presentation breaks up the flat floor with material detail")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.perimeter_industrial_assets"), true, "startup presentation fills empty space with low-priority industrial assets")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.broken_pipe_runs"), true, "startup presentation adds broken pipe runs around the first screen")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.player_repair_action"), true, "startup presentation shows the player repair action")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.depth_shadow_layers"), true, "startup presentation adds depth shadow layers")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.damaged_core_equipment"), true, "startup presentation turns the core into damaged equipment")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.player_character_pose"), true, "startup presentation gives the repair action a readable player pose")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.high_priority_floor_material"), true, "startup presentation adds high-priority floor material around the action")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.close_repair_feedback"), true, "startup presentation adds close repair feedback at the port")
+		var player := map.get_node("Player") as PlayerController
+		_expect_equal(startup_layer.z_index < player.z_index, true, "startup presentation stays below the player actor")
+	if base_layer != null:
+		base_layer.apply_visuals()
+		base_layer.refresh_chain_state(WorldState.create_default(), CharacterState.create_default())
+		_expect_equal(base_layer.is_startup_restore_focus_active(), true, "startup base visual layer uses the core restore focus view")
+		_expect_equal(base_layer.get_startup_restore_shape_count() >= 10, true, "startup base visual layer registers restore focus shapes")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.outpost_core_focus"), true, "startup restore view marks the outpost core")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.disabled_reactor_silhouette"), true, "startup restore view keeps reactor as a muted silhouette")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.low_power_alarm"), true, "startup restore view shows low power alarm evidence")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.disabled_supply_bus"), true, "startup restore view shows disabled supply bus evidence")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.global_planning_layers_muted"), true, "startup restore view records global planning mute")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.local_worksite_buffer"), true, "startup restore view replaces the wide planning rectangle with a local worksite buffer")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.soft_context_falloff"), true, "startup restore view softens empty far context")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.hangar_floor_plates"), true, "startup restore view uses hangar floor plates instead of a planning grid")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.debug_context_hidden"), true, "startup restore view removes debug context from rendering")
+		_expect_equal(base_layer.has_startup_restore_shape("startup_restore.core_machine_plinth"), true, "startup restore view gives the core a machine plinth")
+		_expect_equal(base_layer.get_startup_context_mute_count() >= 20, true, "startup restore view mutes route, region and far context layers")
+		var scene_focus_layer := map.get_node("DemoSceneFocusDepthLayer") as DemoSceneFocusDepthLayer
+		var opening_layer := map.get_node("OpeningSceneLayer") as Node2D
+		var base_region := map.get_node("RegionBase") as ColorRect
+		var crystal_region := map.get_node("RegionCrystal") as ColorRect
+		var crystal_boundary := map.get_node("RegionBoundaryCrystal") as ColorRect
+		var route_spine := map.get_node("MainRouteSpine") as ColorRect
+		var base_to_crystal_route := map.get_node("BaseToCrystalRouteBand") as ColorRect
+		var route_layer := map.get_node("DemoRoutePresentationLayer") as Node2D
+		if scene_focus_layer != null:
+			scene_focus_layer.refresh_focus_depth(map.get_player_position())
+		_expect_equal(opening_layer.visible, false, "startup restore hides the old opening scene planning layer")
+		_expect_equal(base_region.visible, false, "startup restore hides the old base region block")
+		_expect_equal(route_layer.visible, false, "startup restore hides the old route presentation layer")
+		_expect_equal(crystal_region.visible, false, "startup restore removes the old blue crystal region panel from rendering")
+		_expect_equal(crystal_boundary.visible, false, "startup restore removes the vertical crystal boundary frame from rendering")
+		_expect_equal(route_spine.visible, false, "startup restore removes the cross-screen main route band from rendering")
+		_expect_equal(base_to_crystal_route.visible, false, "startup restore removes the blue route strip from rendering")
+		_expect_equal(_is_rect_alpha_at_most(crystal_region, 0.0001), true, "startup restore suppresses the old blue crystal region panel")
+		_expect_equal(_is_rect_alpha_at_most(crystal_boundary, 0.0001), true, "startup restore suppresses the vertical crystal boundary frame")
+		_expect_equal(_is_rect_alpha_at_most(route_spine, 0.0001), true, "startup restore suppresses the cross-screen main route band")
+		_expect_equal(_is_rect_alpha_at_most(base_to_crystal_route, 0.0001), true, "startup restore suppresses the blue route strip")
+		var reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
+		var storage := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
+		_expect_equal(reactor.modulate.a <= 0.01, true, "startup mutes reactor interactable marker")
+		_expect_equal(storage.modulate.a <= 0.01, true, "startup mutes storage interactable marker")
+		var restored_world := WorldState.create_default()
+		restored_world.quest_state.complete_quest("quest.restore_outpost")
+		base_layer.refresh_chain_state(restored_world, CharacterState.create_default())
+		if startup_layer != null:
+			startup_layer.refresh_startup_state(restored_world)
+			_expect_equal(startup_layer.visible, false, "restored base hides the startup presentation layer")
+			_expect_equal(startup_layer.is_startup_active(), false, "restored base deactivates startup presentation")
+		_expect_equal(not base_layer.is_startup_restore_focus_active(), true, "restored base visual layer leaves startup focus")
+		_expect_equal(opening_layer.visible, true, "restored base visual layer restores the opening scene layer")
+		_expect_equal(route_spine.visible, true, "restored base visual layer restores the route spine for later route scopes")
+		_expect_equal(base_layer.has_detail_shape("story.outpost.recovered_power_bus"), true, "base restored view keeps recovered power bus evidence")
+		_expect_equal(base_layer.has_detail_shape("story.outpost.reactor_cold_start_marks"), true, "base restored view keeps reactor cold start evidence")
+		_expect_equal(base_layer.has_detail_shape("story.outpost.storage_recovery_manifest"), true, "base restored view keeps storage recovery evidence")
+		_expect_equal(base_layer.has_detail_shape("first_screen.floor.plate_seams"), true, "base first screen has floor plate seams")
+		_expect_equal(base_layer.has_detail_shape("first_screen.floor.local_contact_shadows"), true, "base first screen has local contact shadows")
+		_expect_equal(base_layer.has_detail_shape("first_screen.floor.disconnected_bus_scars"), true, "base first screen has disconnected bus scars")
+		_expect_equal(base_layer.has_detail_shape("first_screen.device.outpost_core.machine_base"), true, "base first screen gives the core a machine base")
+		_expect_equal(base_layer.has_detail_shape("first_screen.device.basic_reactor.feed_hopper"), true, "base first screen gives the reactor a feed hopper")
+		_expect_equal(base_layer.has_detail_shape("first_screen.device.basic_storage.cargo_trays"), true, "base first screen gives storage cargo trays")
+		_expect_equal(base_layer.has_detail_shape("first_screen.device.field_outfitting_station.suit_frame"), true, "base first screen gives outfitting a suit frame")
+		_expect_equal(base_layer.has_detail_shape("first_screen.action_feedback.core_inspection_pulse"), true, "base first screen has core inspection feedback")
+		_expect_equal(base_layer.has_detail_shape("first_screen.action_feedback.reactor_port_wake"), true, "base first screen has reactor port feedback")
+		_expect_equal(base_layer.has_detail_shape("first_screen.action_feedback.storage_outfitting_handshake"), true, "base first screen has storage to outfitting feedback")
+	_check_scene_visual_layer_focus_visibility(map)
 	_check_runtime_annotation_hidden(map, "DemoRoutePresentationLayer/DemoRouteBaseLabel")
 	_check_runtime_annotation_hidden(map, "SceneArtFoundationLayer/SceneArtBaseIdentityLabel")
 	_check_runtime_annotation_hidden(map, "NonCoreSceneIdentityLayer/NonCoreRuinIdentityLabel")
 	_check_runtime_annotation_hidden(map, "OpeningSceneLayer/BaseCorePadLabel")
+	_check_runtime_annotation_hidden(map, "OpeningSceneLayer/BaseExitLaneLabel")
 	_check_runtime_annotation_hidden(map, "BaseDirectionLabel")
+	map.free()
+
+
+func _check_scene_visual_layer_focus_visibility(map: VerticalSliceMap) -> void:
+	var crystal_layer := map.get_node("DemoCrystalResourceVisualLayer") as DemoCrystalResourceVisualLayer
+	var pollution_layer := map.get_node("DemoPollutionBoundaryVisualLayer") as DemoPollutionBoundaryVisualLayer
+	var core_layer := map.get_node("DemoCoreStabilizationVisualLayer") as DemoCoreStabilizationVisualLayer
+	var scene_focus_layer := map.get_node("DemoSceneFocusDepthLayer") as DemoSceneFocusDepthLayer
+	var crystal_region := map.get_node("RegionCrystal") as ColorRect
+	var pollution_region := map.get_node("RegionPollution") as ColorRect
+	var crystal_boundary := map.get_node("RegionBoundaryCrystal") as ColorRect
+	var pollution_boundary := map.get_node("RegionBoundaryPollution") as ColorRect
+	var crystal_to_pollution_route := map.get_node("CrystalToPollutionRouteBand") as ColorRect
+
+	crystal_layer.refresh_focus_visibility(Vector2(-250, -48))
+	pollution_layer.refresh_focus_visibility(Vector2(-250, -48))
+	core_layer.refresh_focus_visibility(Vector2(-250, -48))
+	_expect_equal(crystal_layer.visible, false, "startup hides crystal resource detail layer until field departure")
+	_expect_equal(pollution_layer.visible, false, "startup hides pollution treatment detail layer")
+	_expect_equal(core_layer.visible, false, "startup hides terminal station detail layer")
+
+	crystal_layer.refresh_focus_visibility(Vector2(-38, -104))
+	pollution_layer.refresh_focus_visibility(Vector2(-38, -104))
+	_expect_equal(crystal_layer.visible, true, "field departure reveals crystal resource detail layer")
+	_expect_equal(pollution_layer.visible, false, "field departure still hides pollution treatment detail layer")
+
+	scene_focus_layer.refresh_focus_depth(Vector2(112, -112))
+	crystal_layer.refresh_focus_visibility(Vector2(112, -112))
+	pollution_layer.refresh_focus_visibility(Vector2(112, -112))
+	_expect_equal(crystal_layer.get_muted_crystal_focus_context_rect_count() >= 12, true, "crystal focus mutes old region panels, routes, and boundary frames")
+	_expect_equal(_is_rect_alpha_at_most(crystal_region, 0.003), true, "crystal focus lowers the old blue region panel below the mine face")
+	_expect_equal(_is_rect_alpha_at_most(pollution_region, 0.0006), true, "crystal focus suppresses the yellow pollution preview panel")
+	_expect_equal(_is_rect_alpha_at_most(crystal_boundary, 0.0006), true, "crystal focus lowers the crystal boundary frame below the ore surface")
+	_expect_equal(_is_rect_alpha_at_most(pollution_boundary, 0.0006), true, "crystal focus lowers the pollution boundary frame below the ore surface")
+	_expect_equal(_is_rect_alpha_at_most(crystal_to_pollution_route, 0.0005), true, "crystal focus keeps the pollution context route behind local workfaces")
+
+	pollution_layer.refresh_focus_visibility(Vector2(258, 34))
+	crystal_layer.refresh_focus_visibility(Vector2(258, 34))
+	_expect_equal(pollution_layer.visible, true, "pollution approach reveals treatment boundary detail layer")
+	_expect_equal(crystal_layer.visible, false, "pollution approach hides crystal resource detail layer")
+
+	core_layer.refresh_focus_visibility(Vector2(3744, 112))
+	_expect_equal(core_layer.visible, true, "terminal approach reveals core stabilization detail layer")
+
+
+func _check_playable_space_and_actor_silhouettes() -> void:
+	var map := _create_setup_map()
+	var base_layer := map.get_node("DemoIndustrialBaseVisualLayer") as DemoIndustrialBaseVisualLayer
+	base_layer.apply_visuals()
+	_expect_equal(base_layer.get_playable_space_shape_count() >= 11, true, "base visual layer registers playable space shapes")
+	_expect_equal(base_layer.has_playable_space_shape("space.walkway.core_to_reactor"), true, "base space shows core to reactor walkway")
+	_expect_equal(base_layer.has_playable_space_shape("space.walkway.departure_staging_lane"), true, "base space shows departure staging lane")
+	_expect_equal(base_layer.has_playable_space_shape("space.device_zone.basic_reactor"), true, "base space shows reactor equipment zone")
+	_expect_equal(base_layer.has_playable_space_shape("space.player_start.staging_pad"), true, "base space shows player start staging pad")
+	_expect_equal(base_layer.has_playable_space_shape("space.safety_threshold.departure_gate"), true, "base space shows departure safety threshold")
+
+	var player := map.get_node("Player") as PlayerController
+	_expect_equal(player.get_visual_part_count() >= 13, true, "player uses multiple readable silhouette parts")
+	_expect_equal(player.has_visual_part("suit.body_mass"), true, "player silhouette has readable body mass")
+	_expect_equal(player.has_visual_part("suit.helmet"), true, "player silhouette has helmet")
+	_expect_equal(player.has_visual_part("suit.visor"), true, "player silhouette has visor")
+	_expect_equal(player.has_visual_part("suit.backpack"), true, "player silhouette has backpack")
+	_expect_equal(player.has_visual_part("suit.shoulder_plates"), true, "player silhouette has shoulder plates")
+	_expect_equal(player.has_visual_part("suit.tool_harness"), true, "player silhouette has tool harness")
+	_expect_equal(player.has_visual_part("stance.forward_boot"), true, "player silhouette has a forward stance boot")
+	_expect_equal(player.has_visual_part("tool.forward_arm"), true, "player silhouette has forward tool arm")
+	_expect_equal(player.has_visual_part("tool.rear_brace"), true, "player silhouette has rear tool brace")
+	_expect_equal(player.has_visual_part("tool.cutter_tip"), true, "player silhouette has cutter tip")
+	_expect_equal(player.has_visual_part("direction.helmet_beacon"), true, "player silhouette has a helmet beacon")
+
+	var treatment_enemy := map.get_node("Enemies/TreatmentSkitter") as PrototypeEnemy
+	var polluted_enemy := map.get_node("Enemies/PollutedSkitter") as PrototypeEnemy
+	var elite_enemy := map.get_node("Enemies/EliteResidueNode") as PrototypeEnemy
+	_expect_equal(treatment_enemy.get_silhouette_part_count() >= 6, true, "treatment enemy has silhouette parts")
+	_expect_equal(treatment_enemy.get_silhouette_profile(), "treatment", "treatment enemy uses treatment silhouette")
+	_expect_equal(polluted_enemy.get_silhouette_profile(), "polluted", "polluted enemy uses polluted silhouette")
+	_expect_equal(elite_enemy.get_silhouette_profile(), "elite", "elite node uses elite silhouette")
+	_expect_equal(polluted_enemy.has_silhouette_part("enemy_shape.pressure_core"), true, "enemy silhouette has pressure core")
+	_expect_equal(polluted_enemy.has_silhouette_part("enemy_shape.threat_eye"), true, "enemy silhouette has threat eye")
+	map.free()
+
+
+func _check_key_object_semantic_silhouettes() -> void:
+	var map := _create_setup_map()
+	var key_objects := [
+		{
+			"path": "Interactables/OutpostCore",
+			"silhouette_id": PrototypeInteractable.SILHOUETTE_OUTPOST_CORE,
+			"part": "semantic.outpost_core.status_lights",
+			"extra_part": "semantic.outpost_core.machine_base"
+		},
+		{
+			"path": "Interactables/BasicReactor",
+			"silhouette_id": PrototypeInteractable.SILHOUETTE_BASIC_REACTOR,
+			"part": "semantic.basic_reactor.heat_chamber",
+			"extra_part": "semantic.basic_reactor.feed_hopper"
+		},
+		{
+			"path": "Interactables/BasicStorageBuildSite",
+			"silhouette_id": PrototypeInteractable.SILHOUETTE_BASIC_STORAGE,
+			"part": "semantic.basic_storage.shelf_bins",
+			"extra_part": "semantic.basic_storage.cargo_tray"
+		},
+		{
+			"path": "Interactables/FieldOutfittingStation",
+			"silhouette_id": PrototypeInteractable.SILHOUETTE_FIELD_OUTFITTING_STATION,
+			"part": "semantic.field_outfitting_station.module_rack",
+			"extra_part": "semantic.field_outfitting_station.suit_frame"
+		},
+		{
+			"path": "Interactables/PollutionFilter",
+			"silhouette_id": PrototypeInteractable.SILHOUETTE_POLLUTION_FILTER,
+			"part": "semantic.pollution_filter.twin_columns",
+			"extra_part": "semantic.pollution_filter.clean_output"
+		},
+		{
+			"path": "Interactables/CrystalCollectorBuildSite",
+			"silhouette_id": PrototypeInteractable.SILHOUETTE_CRYSTAL_COLLECTOR,
+			"part": "semantic.crystal_collector.output_tray",
+			"extra_part": "semantic.crystal_collector.drill_arm"
+		},
+		{
+			"path": "Interactables/DemoStabilizationCore",
+			"silhouette_id": PrototypeInteractable.SILHOUETTE_CORE_WRITE_DEVICE,
+			"part": "semantic.core_write_device.write_ring",
+			"extra_part": "semantic.core_write_device.verify_panel"
+		}
+	]
+	for object_profile in key_objects:
+		var object := map.get_node(String(object_profile["path"])) as PrototypeInteractable
+		_expect_equal(
+			object.get_semantic_silhouette_id(),
+			String(object_profile["silhouette_id"]),
+			"%s uses semantic silhouette id" % object_profile["path"]
+		)
+		_expect_equal(
+			object.get_semantic_silhouette_part_count() >= 3,
+			true,
+			"%s exposes multiple semantic silhouette parts" % object_profile["path"]
+		)
+		_expect_equal(
+			object.has_semantic_silhouette_part(String(object_profile["part"])),
+			true,
+			"%s exposes role-specific semantic part" % object_profile["path"]
+		)
+		_expect_equal(
+			object.has_semantic_silhouette_part(String(object_profile["extra_part"])),
+			true,
+			"%s exposes first-screen machine detail part" % object_profile["path"]
+		)
+	var collector_output := map.get_node("Interactables/CrystalCollectorOutput") as PrototypeInteractable
+	_expect_equal(
+		collector_output.get_semantic_silhouette_id(),
+		PrototypeInteractable.SILHOUETTE_CRYSTAL_COLLECTOR,
+		"collector output shares collector semantic silhouette"
+	)
 	map.free()
 
 
@@ -245,6 +685,10 @@ func _get_region_cue_visible(layer: PrototypeVisualPriorityLayer, region_id: Str
 	if cue == null:
 		return false
 	return cue.visible
+
+
+func _is_rect_alpha_at_most(rect: ColorRect, max_alpha: float) -> bool:
+	return rect != null and rect.color.a <= max_alpha + ALPHA_CHECK_EPSILON
 
 
 func _check_runtime_annotation_hidden(map: VerticalSliceMap, path: String) -> void:

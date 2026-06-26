@@ -54,8 +54,8 @@ func _check_build_prompts() -> void:
 	host._expect_text_contains(built_foundation_prompt, "状态：已建成", "foundation built prompt shows completed state")
 	host._expect_text_contains(
 		built_foundation_prompt,
-		"继续清理并铺设另一块基础地基",
-		"foundation built prompt points to second foundation"
+		"基础地基已就绪",
+		"foundation built prompt points to pollution filter"
 	)
 
 	var filter_site := PrototypeInteractable.new()
@@ -63,12 +63,8 @@ func _check_build_prompts() -> void:
 	filter_site.interaction_type = "build"
 	filter_site.instance_id = "map_object_instance.pollution_filter_build_site"
 	var blocked_filter_prompt := formatter.format_build_prompt(filter_site, build_character, build_world)
-	host._expect_text_contains(blocked_filter_prompt, "基础地基：1 / 2", "pollution filter partial foundation status")
-	host._expect_text_contains(blocked_filter_prompt, "还差 1 块基础地基", "pollution filter partial foundation next step prompt")
-
-	build_world.add_base_structure("structure.foundation_site_south", "building.foundation_t1", "region.pollution_edge")
 	var missing_filter_prompt := formatter.format_build_prompt(filter_site, build_character, build_world)
-	host._expect_text_contains(missing_filter_prompt, "基础地基：2 / 2", "pollution filter complete foundation status")
+	host._expect_text_contains(missing_filter_prompt, "基础地基：1 / 1", "pollution filter complete foundation status")
 	host._expect_text_contains(missing_filter_prompt, "缺少建造材料", "pollution filter missing material prompt")
 	host._expect_text_contains(missing_filter_prompt, "补过滤介质和基础零件", "pollution filter missing material next step prompt")
 	var storage_site := PrototypeInteractable.new()
@@ -200,7 +196,7 @@ func _check_success_logs_share_interaction_reading() -> void:
 		"去向：处理点地基状态",
 		"build completion log destination"
 	)
-	host._expect_text_contains(build_log, "下一步：继续铺设另一块基础地基", "build completion log next step")
+	host._expect_text_contains(build_log, "下一步：现在可以建造污染过滤器", "build completion log next step")
 	host._expect_equal(build_log.count("\n"), 1, "build completion log uses two-row HUD text")
 	host._expect_equal(build_log.length() <= 96, true, "build completion log stays short")
 
@@ -221,7 +217,7 @@ func _check_success_logs_share_interaction_reading() -> void:
 	var second_build_log := log_presenter.format_result_log(second_build_result)
 	host._expect_text_contains(second_build_log, "下一步：现在可以建造污染过滤器", "second foundation log points to filter")
 
-	build_character.inventory.add_item("item.basic_parts", 3)
+	build_character.inventory.add_item("item.basic_parts", 2)
 	build_character.inventory.add_item("item.filter_media", 1)
 	var filter_build_result := build_system.build_structure(
 		"map_object_instance.pollution_filter_build_site",

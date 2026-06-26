@@ -36,6 +36,23 @@
       "public_level": "public"
     },
     {
+      "id": "map_object.crystal_collector_output",
+      "display_name_key": "map_object.crystal_collector_output.name",
+      "description_key": "map_object.crystal_collector_output.desc",
+      "object_type": "resource_output",
+      "interaction_types": ["gather"],
+      "is_destructible": false,
+      "is_collectible": true,
+      "is_sampleable": false,
+      "blocks_movement": false,
+      "blocks_building": false,
+      "required_tool_tags": [],
+      "drops": [{"id": "item.crystal_ore", "amount": 3}],
+      "sample_result_refs": [],
+      "pollution_effect": "",
+      "public_level": "public"
+    },
+    {
       "id": "map_object.field_wreckage",
       "display_name_key": "map_object.field_wreckage.name",
       "description_key": "map_object.field_wreckage.desc",

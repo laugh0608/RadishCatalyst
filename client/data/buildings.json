@@ -47,6 +47,21 @@
       "public_level": "public"
     },
     {
+      "id": "building.crystal_collector_t1",
+      "display_name_key": "building.crystal_collector_t1.name",
+      "description_key": "building.crystal_collector_t1.desc",
+      "category": "resource_extraction",
+      "footprint": [2, 1],
+      "build_cost": [{"id": "item.basic_parts", "amount": 2}, {"id": "item.salvage_scrap", "amount": 1}],
+      "foundation_requirement": "field_anchor",
+      "allowed_terrain": ["crystal_field"],
+      "power_requirement": 0.0,
+      "storage_slots": 1,
+      "recipe_categories": [],
+      "placement_rules": {"requires_flat": false, "allows_pollution": false, "blocks_movement": true},
+      "public_level": "public"
+    },
+    {
       "id": "building.slurry_buffer_tank",
       "display_name_key": "building.slurry_buffer_tank.name",
       "description_key": "building.slurry_buffer_tank.desc",
@@ -82,7 +97,7 @@
       "description_key": "building.pollution_filter.desc",
       "category": "pollution_treatment",
       "footprint": [2, 2],
-      "build_cost": [{"id": "item.basic_parts", "amount": 3}, {"id": "item.filter_media", "amount": 1}],
+      "build_cost": [{"id": "item.basic_parts", "amount": 2}, {"id": "item.filter_media", "amount": 1}],
       "foundation_requirement": "foundation",
       "allowed_terrain": ["foundation"],
       "power_requirement": 3.0,

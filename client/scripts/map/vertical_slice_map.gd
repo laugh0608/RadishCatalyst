@@ -15,6 +15,8 @@ const CAMERA_BOUNDS_MAX := Vector2(4300, 460)
 const CRYSTAL_REGION_X := -20.0
 const CRYSTAL_GATE_RETURN_X := -35.0
 const POLLUTION_REGION_X := 240.0
+const BASE_CAMERA_VERTICAL_OFFSET := 72.0
+const BASE_CAMERA_OFFSET_FADE_END_X := POLLUTION_REGION_X
 const POLLUTION_GATE_X := 260.0
 const POLLUTION_DEEP_Y := -40.0
 const POLLUTION_GATE_RETURN_X := 235.0
@@ -81,9 +83,9 @@ var phase_well_frontier_runtime: PhaseWellFrontierRuntime
 var enemy_counterattack_runtime: EnemyCounterattackRuntime
 var character_kit_runtime: CharacterKitRuntime
 var interactable_visual_refresher := InteractableVisualRefresher.new()
+var current_world_state: WorldState
 var last_reported_region_id := "region.outpost_platform"
 var last_gate_message := ""
-
 
 func _ensure_scene_nodes() -> void:
 	if player == null:
@@ -185,8 +187,20 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		result["message"] = "%s%s" % [String(result.get("message", "")), String(evacuation_feedback.get("log_message", ""))]
 		result["evacuation_feedback"] = evacuation_feedback
 	return result
+
+
+func _refresh_startup_presentation(world_state: WorldState) -> void:
+	var startup_layer := get_node_or_null("DemoBaseStartupPresentationLayer") as DemoBaseStartupPresentationLayer
+	if startup_layer == null:
+		return
+
+	startup_layer.refresh_startup_state(world_state)
+
+
 func refresh_world_interactables(world_state: WorldState) -> void:
 	_ensure_scene_nodes()
+	current_world_state = world_state
+	_refresh_startup_presentation(world_state)
 	if interactable_visual_refresher == null:
 		interactable_visual_refresher = InteractableVisualRefresher.new()
 	if phase_well_frontier_runtime != null:
@@ -208,12 +222,11 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 		if bool(visual_result.get("skip_enable", false)):
 			continue
 		var should_enable: bool = not interactable.consumed
-		if interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter":
-			should_enable = should_enable and world_state.has_base_structure_definition("building.pollution_filter")
-		if interactable.interaction_type == "inspect" and interactable.definition_id == "building.field_outfitting_station":
-			should_enable = should_enable and world_state.has_base_structure_definition("building.field_outfitting_station")
-		if interactable.interaction_type == "build" and interactable.definition_id == "building.slurry_buffer_tank":
-			should_enable = should_enable and _is_pollution_slurry_return_route_available(world_state)
+		if interactable.interaction_type == "process_recipe" and interactable.definition_id == "building.pollution_filter": should_enable = should_enable and world_state.has_base_structure_definition("building.pollution_filter")
+		if interactable.interaction_type == "inspect" and interactable.definition_id == "building.field_outfitting_station": should_enable = should_enable and world_state.has_base_structure_definition("building.field_outfitting_station")
+		if interactable.interaction_type == "build" and interactable.definition_id == "building.slurry_buffer_tank": should_enable = should_enable and _is_pollution_slurry_return_route_available(world_state)
+		if interactable.interaction_type == "build" and interactable.definition_id == "building.crystal_collector_t1": should_enable = should_enable and world_state.quest_state.has_completed_quest("quest.restore_outpost")
+		if interactable.instance_id == "map_object_instance.crystal_collector_output": should_enable = should_enable and world_state.has_base_structure_definition("building.crystal_collector_t1")
 		if INTERACTABLE_QUEST_GATES.has(interactable.definition_id):
 			var gate_quest_id := String(INTERACTABLE_QUEST_GATES[interactable.definition_id])
 			should_enable = should_enable and (
@@ -424,7 +437,11 @@ func _cycle_phase_relay_anchor(world_state: WorldState) -> Dictionary:
 func try_attack(character_state: CharacterState, world_state: WorldState) -> Dictionary:
 	var target := _get_nearest_attack_target()
 	if target == null:
-		return _failure("攻击挥空：附近没有敌人。", "攻击未命中", "靠近敌人后再攻击，或回到当前目标区域。")
+		var failure := _failure("攻击挥空：附近没有敌人。", "攻击未命中", "靠近敌人后再攻击，或回到当前目标区域。")
+		failure["combat_feedback"] = DemoCombatReadabilityFormatter.format_no_target_feedback(
+			String(failure.get("message", ""))
+		)
+		return failure
 
 	var damage := _get_attack_damage(character_state)
 	var result := target.apply_hit(damage)
@@ -496,10 +513,18 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 		if target.definition_id == "enemy.pressure_clearance_guard":
 			return _enemy_defeat_result(target, drops_message, "前线压力扰点的短战斗压制已解除，现在可以清理扰点并带回清障回执。")
 		if target.definition_id == "enemy.demo_stabilization_guard":
-			return _enemy_defeat_result(target, drops_message, "核心阶段守卫已被击败；先回收守卫后的回写缓存，再写入核心稳定设备。")
+			return _enemy_defeat_result(
+				target,
+				drops_message,
+				"核心阶段守卫已被击败；先回收守卫后的回写缓存，再写入核心稳定设备。%s" % DemoCoreStabilizationRunFormatter.format_guard_defeat_followup(world_state, character_state)
+			)
 		return _enemy_defeat_result(target, drops_message)
 
+	var health_before_counter := character_state.health
+	var protection_before_counter := character_state.protection
 	var counter_message := _apply_enemy_counterattack(target, character_state, world_state)
+	var health_after_counter := character_state.health
+	var protection_after_counter := character_state.protection
 	var evacuation_feedback := _evacuate_if_needed(character_state, world_state, "combat")
 	return {
 		"success": true,
@@ -512,8 +537,22 @@ func try_attack(character_state: CharacterState, world_state: WorldState) -> Dic
 		],
 		"enemy_definition_id": target.definition_id,
 		"enemy_defeated": false,
-		"evacuation_feedback": evacuation_feedback
+		"evacuation_feedback": evacuation_feedback,
+		"combat_feedback": DemoCombatReadabilityFormatter.format_hit_feedback(
+			target,
+			damage,
+			float(result.get("health", 0.0)),
+			health_before_counter,
+			health_after_counter,
+			protection_before_counter,
+			protection_after_counter,
+			counter_message
+		)
 	}
+
+
+func get_current_combat_target() -> PrototypeEnemy:
+	return _get_nearest_attack_target()
 
 
 func try_tactical_scan(character_state: CharacterState, world_state: WorldState) -> Dictionary:
@@ -559,6 +598,10 @@ func _setup_enemy_labels() -> void:
 		var max_health := float(definition.get("base_stats", {}).get("max_health", 20.0))
 		enemy.instance_id = _get_enemy_instance_id(enemy)
 		enemy.setup(_get_display_name(enemy.definition_id), max_health, String(definition.get("category", "basic")))
+		enemy.configure_readability_tags(
+			DemoCombatReadabilityFormatter.format_enemy_threat_label(data_registry, enemy),
+			DemoCombatReadabilityFormatter.format_enemy_pressure_label(data_registry, enemy)
+		)
 func sync_enemy_states(world_state: WorldState) -> void:
 	_ensure_scene_nodes()
 	if phase_well_frontier_runtime != null:
@@ -580,7 +623,7 @@ func sync_enemy_states(world_state: WorldState) -> void:
 			max_health
 		)
 		enemy.apply_saved_state(enemy_state)
-		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state))
+		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state) and not _should_hide_enemy_for_startup_core_focus(world_state))
 	_refresh_focus_visuals()
 func refresh_enemy_spawns(world_state: WorldState) -> void:
 	_ensure_scene_nodes()
@@ -592,7 +635,7 @@ func refresh_enemy_spawns(world_state: WorldState) -> void:
 	for enemy in enemies_root.get_children():
 		if not enemy is PrototypeEnemy:
 			continue
-		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state))
+		enemy.set_spawn_enabled(_should_enemy_spawn(enemy, world_state) and not _should_hide_enemy_for_startup_core_focus(world_state))
 	_refresh_enemy_focus_visuals()
 func apply_runtime_state(world_state: WorldState, character_state: CharacterState) -> void:
 	current_interactable = null
@@ -605,11 +648,19 @@ func apply_runtime_state(world_state: WorldState, character_state: CharacterStat
 func get_player_position() -> Vector2:
 	return player.position
 func get_camera_focus_global_position() -> Vector2:
-	return player.global_position
+	var focus_position := player.position + Vector2(0.0, _get_base_camera_vertical_offset(player.position.x))
+	return to_global(focus_position)
 func get_camera_bounds_rect_global() -> Rect2:
 	var top_left := to_global(CAMERA_BOUNDS_MIN)
 	var bottom_right := to_global(CAMERA_BOUNDS_MAX)
 	return Rect2(top_left, bottom_right - top_left)
+func _get_base_camera_vertical_offset(player_x: float) -> float:
+	if player_x <= CRYSTAL_REGION_X:
+		return BASE_CAMERA_VERTICAL_OFFSET
+	if player_x >= BASE_CAMERA_OFFSET_FADE_END_X:
+		return 0.0
+	var fade_ratio := (player_x - CRYSTAL_REGION_X) / (BASE_CAMERA_OFFSET_FADE_END_X - CRYSTAL_REGION_X)
+	return lerpf(BASE_CAMERA_VERTICAL_OFFSET, 0.0, fade_ratio)
 func update_region_presence(world_state: WorldState, character_state: CharacterState) -> void:
 	player.clamp_to_play_bounds(PLAY_BOUNDS_MIN, PLAY_BOUNDS_MAX)
 	var gate_message := apply_region_gate_bounds(world_state)
@@ -634,70 +685,11 @@ func update_region_presence(world_state: WorldState, character_state: CharacterS
 	character_state.current_region_id = region_id
 	region_changed.emit(region_id)
 func apply_region_gate_bounds(world_state: WorldState) -> String:
-	if not world_state.unlocked_region_ids.has("region.crystal_vein_field") and player.position.x > CRYSTAL_GATE_RETURN_X:
-		player.position.x = CRYSTAL_GATE_RETURN_X
+	var gate_block := VerticalSliceMapSurface.resolve_region_gate_block(world_state, player.position)
+	if not gate_block.is_empty():
+		player.position = gate_block["return_position"]
 		player.stop_positive_x_until_release()
-		return "晶体矿脉区尚未标记：先检查前哨核心，恢复基础导航。"
-
-	if (
-		not world_state.unlocked_region_ids.has("region.pollution_edge")
-		and player.position.x > POLLUTION_GATE_RETURN_X
-		and player.position.y >= POLLUTION_DEEP_Y
-	):
-		player.position.x = POLLUTION_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "污染边界尚未稳定：先扩建处理点并启用基础过滤模块。"
-
-	if not world_state.unlocked_region_ids.has("region.ruin_outer_ring") and player.position.x > RUIN_GATE_RETURN_X:
-		player.position.x = RUIN_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "遗迹外圈仍被封锁：先检查封锁遗迹入口，确认外圈通路。"
-
-	if _is_outer_ring_barrier_locked(world_state) and player.position.x > OUTER_RING_BARRIER_X:
-		player.position.x = OUTER_RING_BARRIER_RETURN_X
-		player.stop_positive_x_until_release()
-		return "遗迹外圈深段仍被抖动雾幕阻断：先回基地组装稳相信标，再返回部署。"
-
-	if _is_deep_ruin_gate_locked(world_state) and player.position.x > DEEP_RUIN_GATE_RETURN_X:
-		player.position.x = DEEP_RUIN_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "裂相脊入口仍未校准：先带着裂相坐标回到门禁写入。"
-
-	if not world_state.unlocked_region_ids.has("region.inner_phase_well") and player.position.x > INNER_PHASE_WELL_GATE_RETURN_X:
-		player.position.x = INNER_PHASE_WELL_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "回声台地仍未定位：先回基地解析回声定位器，再回来继续向东推进。"
-
-	if not world_state.unlocked_region_ids.has("region.phase_well_sink") and player.position.x > PHASE_WELL_SINK_GATE_RETURN_X:
-		player.position.x = PHASE_WELL_SINK_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "盐壳浅滩仍未稳定：先回基地解析回声芯样本，再带着新的盐壳穿钉回来继续向东推进。"
-
-	if not world_state.unlocked_region_ids.has("region.phase_well_chamber") and player.position.x > PHASE_WELL_CHAMBER_GATE_RETURN_X:
-		player.position.x = PHASE_WELL_CHAMBER_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "碎晶沟谷断面仍未稳定：先回基地解析碎晶心核，再带着新的碎晶分流栓回来继续向东推进。"
-
-	if not world_state.unlocked_region_ids.has("region.phase_well_loom") and player.position.x > PHASE_WELL_LOOM_GATE_RETURN_X:
-		player.position.x = PHASE_WELL_LOOM_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "风蚀管廊断面仍未稳定：先回基地解析风蚀张力核，再带着新的风蚀梭栓回来继续向东推进。"
-
-	if not world_state.unlocked_region_ids.has("region.phase_well_frame") and player.position.x > PHASE_WELL_FRAME_GATE_RETURN_X:
-		player.position.x = PHASE_WELL_FRAME_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "锁相框架断面仍未稳定：先回基地解析锁相织构核，再带着新的锁相键栓回来继续向东推进。"
-
-	if not world_state.unlocked_region_ids.has("region.phase_well_tether") and player.position.x > PHASE_WELL_TETHER_GATE_RETURN_X:
-		player.position.x = PHASE_WELL_TETHER_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "锚定桥断面仍未稳定：先回基地解析锚定结核，再带着新的锚定桩回来继续向东推进。"
-
-	if not world_state.unlocked_region_ids.has("region.demo_stabilization_core") and player.position.x > DEMO_STABILIZATION_CORE_GATE_RETURN_X:
-		player.position.x = DEMO_STABILIZATION_CORE_GATE_RETURN_X
-		player.stop_positive_x_until_release()
-		return "核心稳定站仍未接管：先完成锚定桥稳定窗口和高压窗口归档。"
-
+		return String(gate_block.get("message", ""))
 	return ""
 func _get_display_name(definition_id: String) -> String:
 	var definition := data_registry.get_definition(definition_id)
@@ -726,23 +718,11 @@ func _on_interactable_body_exited(body: Node2D, interactable: PrototypeInteracta
 		return
 	update_current_interactable()
 func _get_nearest_interactable() -> PrototypeInteractable:
-	var nearest_interactable: PrototypeInteractable = null
-	var nearest_distance := INF
 	if player == null or interactables_root == null:
-		return nearest_interactable
+		return null
+	return InteractableTargetSelector.select_interactable(player, interactables_root, current_world_state)
 
-	for interactable in interactables_root.get_children():
-		if not interactable is PrototypeInteractable or not interactable.can_interact():
-			continue
 
-		var distance := player.position.distance_to(interactable.position)
-		if distance > PLAYER_INTERACTION_RANGE or distance >= nearest_distance:
-			continue
-
-		nearest_interactable = interactable
-		nearest_distance = distance
-
-	return nearest_interactable
 func _has_nearby_phase_relay_pad() -> bool:
 	if player == null or interactables_root == null:
 		return false
@@ -774,21 +754,42 @@ func _refresh_focus_visuals() -> void:
 func _refresh_interactable_focus_visuals() -> void:
 	if interactables_root == null:
 		return
+	var compact_first_path_focus := _is_first_industrial_path_focus_active()
 	for interactable in interactables_root.get_children():
 		if interactable is PrototypeInteractable:
-			interactable.set_focus_visual(interactable == current_interactable and interactable.can_interact())
+			interactable.set_focus_visual(interactable == current_interactable and interactable.can_interact(), compact_first_path_focus)
+
 func _refresh_enemy_focus_visuals() -> void:
 	var focused_enemy := _get_nearest_attack_target()
 	if enemies_root == null:
 		return
+	var compact_first_path_focus := _is_first_industrial_path_focus_active()
 	for enemy in enemies_root.get_children():
 		if enemy is PrototypeEnemy:
-			enemy.set_focus_visual(enemy == focused_enemy)
+			enemy.set_focus_visual(enemy == focused_enemy and not compact_first_path_focus)
+			enemy.set_context_muted(compact_first_path_focus)
+
+
+func _is_first_industrial_path_focus_active() -> bool:
+	var first_path_layer := get_node_or_null("DemoFirstIndustrialPathVisualLayer") as DemoFirstIndustrialPathVisualLayer
+	return player != null and first_path_layer != null and first_path_layer.is_first_path_visible_at(player.position)
+
+
+func _should_hide_enemy_for_startup_core_focus(world_state: WorldState) -> bool:
+	if world_state == null or player == null:
+		return false
+	if not world_state.quest_state.has_active_quest("quest.restore_outpost") or world_state.quest_state.has_completed_quest("quest.restore_outpost"):
+		return false
+	if world_state.quest_state.active_quest_ids.size() != 1 or not world_state.quest_state.completed_quest_ids.is_empty():
+		return false
+	return player.position.distance_to(OUTPOST_RESPAWN_POSITION) <= 160.0
+func _is_quest_active_or_completed(world_state: WorldState, quest_id: String) -> bool:
+	return world_state.quest_state.has_active_quest(quest_id) or world_state.quest_state.has_completed_quest(quest_id)
 func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool:
 	if enemy.instance_id == "enemy_instance.polluted_skitter_gate_pressure":
-		return world_state.quest_state.has_active_quest("quest.defeat_elite_node") or world_state.quest_state.has_completed_quest("quest.defeat_elite_node")
+		return _is_quest_active_or_completed(world_state, "quest.defeat_elite_node")
 	if enemy.instance_id == "enemy_instance.polluted_skitter_vial_return_guard":
-		return world_state.quest_state.has_active_quest("quest.enter_pollution_edge") or world_state.quest_state.has_completed_quest("quest.enter_pollution_edge")
+		return _is_quest_active_or_completed(world_state, "quest.enter_pollution_edge")
 	if enemy.instance_id == "enemy_instance.polluted_skitter_slurry_return_guard": return _is_pollution_slurry_return_route_available(world_state)
 	if enemy.instance_id == "enemy_instance.polluted_skitter_vial_reserve_guard":
 		return _is_pollution_slurry_return_route_available(world_state)
@@ -805,67 +806,31 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 	if enemy.instance_id == "enemy_instance.native_skitter_logistics_return_guard":
 		return _is_crystal_logistics_return_available(world_state)
 	if enemy.instance_id == "enemy_instance.polluted_skitter_ridge":
-		return world_state.quest_state.has_active_quest("quest.scout_ruin_outer_ring") or world_state.quest_state.has_completed_quest("quest.scout_ruin_outer_ring")
+		return _is_quest_active_or_completed(world_state, "quest.scout_ruin_outer_ring")
 	if enemy.instance_id == "enemy_instance.core_buffer_polluted_skitter":
-		return (
-			world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer")
-			or world_state.quest_state.has_completed_quest("quest.prepare_demo_stabilization_buffer")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.prepare_demo_stabilization_buffer")
 	if enemy.definition_id == "enemy.elite_residue_node":
-		return (
-			world_state.quest_state.has_active_quest("quest.defeat_elite_node")
-			or world_state.quest_state.has_completed_quest("quest.defeat_elite_node")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.defeat_elite_node")
 	if enemy.definition_id == "enemy.ruin_phase_guard":
-		return (
-			world_state.quest_state.has_active_quest("quest.salvage_signal_echo")
-			or world_state.quest_state.has_completed_quest("quest.salvage_signal_echo")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.salvage_signal_echo")
 	if enemy.definition_id == "enemy.deep_ruin_sentinel":
-		return (
-			world_state.quest_state.has_active_quest("quest.harvest_phase_filament")
-			or world_state.quest_state.has_completed_quest("quest.harvest_phase_filament")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.harvest_phase_filament")
 	if enemy.definition_id == "enemy.deep_ruin_stalker":
-		return (
-			world_state.quest_state.has_active_quest("quest.activate_deep_array")
-			or world_state.quest_state.has_completed_quest("quest.activate_deep_array")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.activate_deep_array")
 	if enemy.definition_id == "enemy.deep_fault_hunter":
-		return (
-			world_state.quest_state.has_active_quest("quest.trace_phase_splinters")
-			or world_state.quest_state.has_completed_quest("quest.trace_phase_splinters")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.trace_phase_splinters")
 	if enemy.definition_id == "enemy.phase_well_sentry":
-		return (
-			world_state.quest_state.has_active_quest("quest.collect_well_flux")
-			or world_state.quest_state.has_completed_quest("quest.collect_well_flux")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.collect_well_flux")
 	if enemy.definition_id == "enemy.phase_well_lurker":
-		return (
-			world_state.quest_state.has_active_quest("quest.collect_well_ash")
-			or world_state.quest_state.has_completed_quest("quest.collect_well_ash")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.collect_well_ash")
 	if enemy.definition_id == "enemy.phase_well_reaver":
-		return (
-			world_state.quest_state.has_active_quest("quest.collect_heart_spine")
-			or world_state.quest_state.has_completed_quest("quest.collect_heart_spine")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.collect_heart_spine")
 	if enemy.definition_id == "enemy.phase_well_tangler":
-		return (
-			world_state.quest_state.has_active_quest("quest.collect_weft_bundle")
-			or world_state.quest_state.has_completed_quest("quest.collect_weft_bundle")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.collect_weft_bundle")
 	if enemy.definition_id == "enemy.phase_well_raker":
-		return (
-			world_state.quest_state.has_active_quest("quest.collect_selvedge_strip")
-			or world_state.quest_state.has_completed_quest("quest.collect_selvedge_strip")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.collect_selvedge_strip")
 	if enemy.definition_id == "enemy.phase_well_binder":
-		return (
-			world_state.quest_state.has_active_quest("quest.collect_tether_fiber")
-			or world_state.quest_state.has_completed_quest("quest.collect_tether_fiber")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.collect_tether_fiber")
 	if enemy.definition_id == "enemy.phase_well_warden":
 		return phase_well_frontier_runtime != null and phase_well_frontier_runtime.should_spawn_anchor_field_enemy(world_state)
 	if enemy.definition_id == "enemy.pressure_clearance_guard":
@@ -878,10 +843,7 @@ func _should_enemy_spawn(enemy: PrototypeEnemy, world_state: WorldState) -> bool
 			)
 		)
 	if enemy.definition_id == "enemy.demo_stabilization_guard":
-		return (
-			world_state.quest_state.has_active_quest("quest.defeat_demo_stabilization_guard")
-			or world_state.quest_state.has_completed_quest("quest.defeat_demo_stabilization_guard")
-		)
+		return _is_quest_active_or_completed(world_state, "quest.defeat_demo_stabilization_guard")
 	if enemy.definition_id != "enemy.treatment_skitter":
 		return true
 	var quest_state := world_state.quest_state
@@ -903,6 +865,7 @@ func _enemy_defeat_result(enemy: PrototypeEnemy, drops_message: String, followup
 		"message": "击败：%s。%s%s" % [enemy.display_name, drops_message, followup],
 		"enemy_definition_id": enemy.definition_id,
 		"enemy_defeated": true,
+		"combat_feedback": DemoCombatReadabilityFormatter.format_defeat_feedback(enemy, drops_message, followup),
 		"success_feedback": DemoActionFeedbackFormatter.format_enemy_defeat_success_feedback(
 			enemy.display_name,
 			enemy.definition_id,
@@ -1417,64 +1380,26 @@ func _has_phase_well_field_readings(
 		target_id
 ) >= required_amount
 func _get_phase_relay_pad_return_position() -> Vector2:
-	return _get_interactable_return_position(
-		"map_object_instance.phase_relay_pad",
-		PHASE_RELAY_PAD_FALLBACK_POSITION
-	)
+	_ensure_scene_nodes()
+	return VerticalSliceMapSurface.get_phase_relay_pad_return_position(interactables_root)
 func _get_phase_return_anchor_return_position(anchor_instance_id: String) -> Vector2:
-	return _get_interactable_return_position(
-		anchor_instance_id,
-		PHASE_RETURN_ANCHOR_FALLBACK_POSITION
-	)
+	_ensure_scene_nodes()
+	return VerticalSliceMapSurface.get_phase_return_anchor_return_position(interactables_root, anchor_instance_id)
 func _get_interactable_return_position(instance_id: String, fallback_position: Vector2) -> Vector2:
 	_ensure_scene_nodes()
-	if interactables_root == null:
-		return fallback_position
-	for interactable in interactables_root.get_children():
-		if not interactable is PrototypeInteractable:
-			continue
-		if interactable.instance_id != instance_id:
-			continue
-		return interactable.position + Vector2(0, 30)
-	return fallback_position
+	return VerticalSliceMapSurface.get_interactable_return_position(
+		interactables_root,
+		instance_id,
+		fallback_position
+	)
 func _get_interactable_region_id(instance_id: String, fallback_region_id: String) -> String:
 	_ensure_scene_nodes()
-	if interactables_root == null:
-		return fallback_region_id
-	for interactable in interactables_root.get_children():
-		if not interactable is PrototypeInteractable:
-			continue
-		if interactable.instance_id != instance_id:
-			continue
-		return _get_region_id_for_position(interactable.position)
-	return fallback_region_id
+	return VerticalSliceMapSurface.get_interactable_region_id(
+		interactables_root,
+		instance_id,
+		fallback_region_id
+	)
 func _get_enemy_instance_id(enemy: PrototypeEnemy) -> String:
 	return "enemy_instance.%s" % String(enemy.name).to_snake_case()
 func _get_region_id_for_position(map_position: Vector2) -> String:
-	if map_position.x >= DEMO_STABILIZATION_CORE_REGION_X:
-		return "region.demo_stabilization_core"
-	if map_position.x >= PHASE_WELL_TETHER_REGION_X:
-		return "region.phase_well_tether"
-	if map_position.x >= PHASE_WELL_FRAME_REGION_X:
-		return "region.phase_well_frame"
-	if map_position.x >= PHASE_WELL_LOOM_REGION_X:
-		return "region.phase_well_loom"
-	if map_position.x >= PHASE_WELL_CHAMBER_REGION_X:
-		return "region.phase_well_chamber"
-	if map_position.x >= PHASE_WELL_SINK_REGION_X:
-		return "region.phase_well_sink"
-	if map_position.x >= INNER_PHASE_WELL_REGION_X:
-		return "region.inner_phase_well"
-	if map_position.x >= DEEP_RUIN_REGION_X:
-		return "region.deep_ruin_threshold"
-	if map_position.x >= RUIN_OUTER_RING_X:
-		return "region.ruin_outer_ring"
-	if map_position.x >= POLLUTION_REGION_X and map_position.y >= POLLUTION_DEEP_Y:
-		return "region.pollution_edge"
-	if map_position.x >= CRYSTAL_REGION_X:
-		return "region.crystal_vein_field"
-	return "region.outpost_platform"
-func _is_outer_ring_barrier_locked(world_state: WorldState) -> bool:
-	return not world_state.quest_state.has_completed_quest("quest.stabilize_outer_ring_barrier")
-func _is_deep_ruin_gate_locked(world_state: WorldState) -> bool:
-	return not world_state.quest_state.has_completed_quest("quest.unlock_deep_ruin_entrance")
+	return VerticalSliceMapSurface.get_region_id_for_position(map_position)

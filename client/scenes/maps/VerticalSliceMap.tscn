@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/map/vertical_slice_map.gd" id="1_map"]
 [ext_resource type="PackedScene" path="res://scenes/actors/Player.tscn" id="2_player"]
@@ -6,6 +6,16 @@
 [ext_resource type="PackedScene" path="res://scenes/actors/PrototypeEnemy.tscn" id="4_enemy"]
 [ext_resource type="Script" path="res://scripts/map/prototype_visual_priority_layer.gd" id="5_visual_priority"]
 [ext_resource type="Script" path="res://scripts/map/current_objective_guidance_layer.gd" id="6_objective_guidance"]
+[ext_resource type="Script" path="res://scripts/map/demo_core_scene_space_layer.gd" id="7_core_scene_space"]
+[ext_resource type="Script" path="res://scripts/map/demo_initial_art_identity_layer.gd" id="8_initial_art_identity"]
+[ext_resource type="Script" path="res://scripts/map/demo_industrial_base_visual_layer.gd" id="9_industrial_base_visual"]
+[ext_resource type="Script" path="res://scripts/map/demo_crystal_resource_visual_layer.gd" id="10_crystal_resource_visual"]
+[ext_resource type="Script" path="res://scripts/map/demo_pollution_boundary_visual_layer.gd" id="11_pollution_boundary_visual"]
+[ext_resource type="Script" path="res://scripts/map/demo_core_stabilization_visual_layer.gd" id="12_core_stabilization_visual"]
+[ext_resource type="Script" path="res://scripts/map/demo_scene_focus_depth_layer.gd" id="13_scene_focus_depth"]
+[ext_resource type="Script" path="res://scripts/map/demo_region_industrial_value_layer.gd" id="14_region_industrial_value"]
+[ext_resource type="Script" path="res://scripts/map/demo_first_industrial_path_visual_layer.gd" id="15_first_path_visual"]
+[ext_resource type="Script" path="res://scripts/map/demo_base_startup_presentation_layer.gd" id="16_startup_presentation"]
 
 [node name="VerticalSliceMap" type="Node2D"]
 script = ExtResource("1_map")
@@ -410,6 +420,289 @@ offset_right = 3612.0
 offset_bottom = -96.0
 text = "锚定桥：桥体 / 锚索 / 稳定接入"
 horizontal_alignment = 1
+
+[node name="FunctionalTransitionSpatialPlayabilityLayer" type="Node2D" parent="."]
+
+[node name="RuinEntranceLane" type="ColorRect" parent="FunctionalTransitionSpatialPlayabilityLayer"]
+offset_left = 386.0
+offset_top = 4.0
+offset_right = 510.0
+offset_bottom = 44.0
+color = Color(0.38, 0.52, 0.42, 0.42)
+
+[node name="RuinNorthResourcePocket" type="ColorRect" parent="FunctionalTransitionSpatialPlayabilityLayer"]
+offset_left = 420.0
+offset_top = -108.0
+offset_right = 472.0
+offset_bottom = -60.0
+color = Color(0.56, 0.64, 0.42, 0.44)
+
+[node name="RuinSouthResourcePocket" type="ColorRect" parent="FunctionalTransitionSpatialPlayabilityLayer"]
+offset_left = 458.0
+offset_top = 62.0
+offset_right = 510.0
+offset_bottom = 108.0
+color = Color(0.56, 0.64, 0.42, 0.44)
+
+[node name="RuinBarrierBoundary" type="ColorRect" parent="FunctionalTransitionSpatialPlayabilityLayer"]
+offset_left = 494.0
+offset_top = -42.0
+offset_right = 542.0
+offset_bottom = 22.0
+color = Color(0.52, 0.38, 0.58, 0.5)
+
+[node name="RuinFacilityPocket" type="ColorRect" parent="FunctionalTransitionSpatialPlayabilityLayer"]
+offset_left = 562.0
+offset_top = -92.0
+offset_right = 626.0
+offset_bottom = -38.0
+color = Color(0.34, 0.62, 0.68, 0.44)
+
+[node name="RuinHazardReturnPocket" type="ColorRect" parent="FunctionalTransitionSpatialPlayabilityLayer"]
+offset_left = 586.0
+offset_top = -18.0
+offset_right = 650.0
+offset_bottom = 90.0
+color = Color(0.62, 0.36, 0.36, 0.48)
+
+[node name="RidgeEntranceLane" type="ColorRect" parent="FunctionalTransitionSpatialPlayabilityLayer"]
+offset_left = 664.0
+offset_top = -28.0
+offset_right = 820.0
+offset_bottom = 26.0
+color = Color(0.44, 0.34, 0.58, 0.42)
+
+[node name="RidgeNorthResourcePocket" type="ColorRect" parent="FunctionalTransitionSpatialPlayabilityLayer"]
+offset_left = 720.0
+offset_top = -118.0
+offset_right = 788.0
+offset_bottom = -74.0
+color = Color(0.58, 0.48, 0.74, 0.44)
+
+[node name="RidgeSouthResourcePocket" type="ColorRect" parent="FunctionalTransitionSpatialPlayabilityLayer"]
+offset_left = 768.0
+offset_top = 66.0
+offset_right = 836.0
+offset_bottom = 112.0
+color = Color(0.58, 0.48, 0.74, 0.44)
+
+[node name="RidgeLatchBoundary" type="ColorRect" parent="FunctionalTransitionSpatialPlayabilityLayer"]
+offset_left = 790.0
+offset_top = -44.0
+offset_right = 834.0
+offset_bottom = 16.0
+color = Color(0.54, 0.32, 0.5, 0.5)
+
+[node name="RidgeFacilityPocket" type="ColorRect" parent="FunctionalTransitionSpatialPlayabilityLayer"]
+offset_left = 858.0
+offset_top = -118.0
+offset_right = 914.0
+offset_bottom = -70.0
+color = Color(0.34, 0.58, 0.72, 0.44)
+
+[node name="RidgeReturnAnchorPocket" type="ColorRect" parent="FunctionalTransitionSpatialPlayabilityLayer"]
+offset_left = 836.0
+offset_top = 72.0
+offset_right = 894.0
+offset_bottom = 122.0
+color = Color(0.32, 0.64, 0.58, 0.44)
+
+[node name="RidgeConduitResourceLane" type="ColorRect" parent="FunctionalTransitionSpatialPlayabilityLayer"]
+offset_left = 904.0
+offset_top = -38.0
+offset_right = 1018.0
+offset_bottom = 42.0
+color = Color(0.62, 0.52, 0.32, 0.42)
+
+[node name="MidfieldRoutePlayabilityLayer" type="Node2D" parent="."]
+
+[node name="EchoEntryLane" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 1468.0
+offset_top = -48.0
+offset_right = 1572.0
+offset_bottom = 18.0
+color = Color(0.22, 0.48, 0.68, 0.42)
+
+[node name="EchoVentBoundary" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 1568.0
+offset_top = -128.0
+offset_right = 1654.0
+offset_bottom = 32.0
+color = Color(0.34, 0.58, 0.76, 0.46)
+
+[node name="EchoResourcePocket" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 1504.0
+offset_top = 42.0
+offset_right = 1688.0
+offset_bottom = 118.0
+color = Color(0.42, 0.62, 0.72, 0.42)
+
+[node name="EchoFacilityPocket" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 1684.0
+offset_top = -48.0
+offset_right = 1746.0
+offset_bottom = 34.0
+color = Color(0.28, 0.66, 0.68, 0.44)
+
+[node name="SaltCrustBoundary" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 1774.0
+offset_top = -44.0
+offset_right = 1834.0
+offset_bottom = 32.0
+color = Color(0.64, 0.5, 0.24, 0.48)
+
+[node name="SaltAshResourcePocket" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 1810.0
+offset_top = -132.0
+offset_right = 1968.0
+offset_bottom = 86.0
+color = Color(0.66, 0.58, 0.3, 0.4)
+
+[node name="SaltSinkFacilityPocket" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 1976.0
+offset_top = -72.0
+offset_right = 2030.0
+offset_bottom = 22.0
+color = Color(0.72, 0.48, 0.24, 0.44)
+
+[node name="CrystalShuntBoundary" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 2088.0
+offset_top = -126.0
+offset_right = 2248.0
+offset_bottom = 84.0
+color = Color(0.46, 0.4, 0.78, 0.46)
+
+[node name="CrystalSpineResourcePocket" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 2156.0
+offset_top = -106.0
+offset_right = 2294.0
+offset_bottom = 108.0
+color = Color(0.58, 0.48, 0.82, 0.4)
+
+[node name="CrystalChamberFacilityPocket" type="ColorRect" parent="MidfieldRoutePlayabilityLayer"]
+offset_left = 2250.0
+offset_top = -54.0
+offset_right = 2310.0
+offset_bottom = 42.0
+color = Color(0.34, 0.58, 0.8, 0.44)
+
+[node name="WindCorridorTransitionPlayabilityLayer" type="Node2D" parent="."]
+
+[node name="WindEntryLane" type="ColorRect" parent="WindCorridorTransitionPlayabilityLayer"]
+offset_left = 2328.0
+offset_top = -50.0
+offset_right = 2392.0
+offset_bottom = 18.0
+color = Color(0.42, 0.5, 0.55, 0.42)
+
+[node name="WindTensionBoundary" type="ColorRect" parent="WindCorridorTransitionPlayabilityLayer"]
+offset_left = 2344.0
+offset_top = -106.0
+offset_right = 2526.0
+offset_bottom = 104.0
+color = Color(0.52, 0.55, 0.64, 0.46)
+
+[node name="WindWeftResourcePocket" type="ColorRect" parent="WindCorridorTransitionPlayabilityLayer"]
+offset_left = 2418.0
+offset_top = -128.0
+offset_right = 2568.0
+offset_bottom = 96.0
+color = Color(0.62, 0.56, 0.42, 0.4)
+
+[node name="WindLoomFacilityPocket" type="ColorRect" parent="WindCorridorTransitionPlayabilityLayer"]
+offset_left = 2536.0
+offset_top = -54.0
+offset_right = 2590.0
+offset_bottom = 42.0
+color = Color(0.48, 0.62, 0.66, 0.44)
+
+[node name="FrameEntryBoundary" type="ColorRect" parent="WindCorridorTransitionPlayabilityLayer"]
+offset_left = 2608.0
+offset_top = -44.0
+offset_right = 2662.0
+offset_bottom = 38.0
+color = Color(0.28, 0.62, 0.44, 0.44)
+
+[node name="CoreApproachHandoffLayer" type="Node2D" parent="."]
+
+[node name="FrameExitHandoff" type="ColorRect" parent="CoreApproachHandoffLayer"]
+offset_left = 2660.0
+offset_top = -118.0
+offset_right = 2868.0
+offset_bottom = 104.0
+color = Color(0.48, 0.38, 0.66, 0.44)
+
+[node name="TetherBridgeHandoff" type="ColorRect" parent="CoreApproachHandoffLayer"]
+offset_left = 2902.0
+offset_top = -142.0
+offset_right = 3238.0
+offset_bottom = 142.0
+color = Color(0.36, 0.56, 0.64, 0.42)
+
+[node name="AnchorFieldHandoff" type="ColorRect" parent="CoreApproachHandoffLayer"]
+offset_left = 3294.0
+offset_top = -154.0
+offset_right = 3538.0
+offset_bottom = 112.0
+color = Color(0.32, 0.62, 0.52, 0.44)
+
+[node name="CoreEntryThreshold" type="ColorRect" parent="CoreApproachHandoffLayer"]
+offset_left = 3642.0
+offset_top = -78.0
+offset_right = 3748.0
+offset_bottom = 84.0
+color = Color(0.6, 0.52, 0.3, 0.42)
+
+[node name="CoreDeviceHandoff" type="ColorRect" parent="CoreApproachHandoffLayer"]
+offset_left = 3988.0
+offset_top = -86.0
+offset_right = 4088.0
+offset_bottom = 42.0
+color = Color(0.58, 0.66, 0.36, 0.44)
+
+[node name="CoreStabilizationRunLayer" type="Node2D" parent="."]
+
+[node name="CoreRunEntryCheck" type="ColorRect" parent="CoreStabilizationRunLayer"]
+offset_left = 3652.0
+offset_top = -146.0
+offset_right = 3768.0
+offset_bottom = -74.0
+color = Color(0.42, 0.64, 0.62, 0.46)
+
+[node name="CoreRunSideSupply" type="ColorRect" parent="CoreStabilizationRunLayer"]
+offset_left = 3748.0
+offset_top = 74.0
+offset_right = 3848.0
+offset_bottom = 144.0
+color = Color(0.52, 0.68, 0.42, 0.48)
+
+[node name="CoreRunBufferReturn" type="ColorRect" parent="CoreStabilizationRunLayer"]
+offset_left = 3828.0
+offset_top = -44.0
+offset_right = 3918.0
+offset_bottom = 30.0
+color = Color(0.62, 0.56, 0.34, 0.46)
+
+[node name="CoreRunGuardField" type="ColorRect" parent="CoreStabilizationRunLayer"]
+offset_left = 3902.0
+offset_top = -134.0
+offset_right = 4018.0
+offset_bottom = -54.0
+color = Color(0.68, 0.34, 0.34, 0.48)
+
+[node name="CoreRunGuardCache" type="ColorRect" parent="CoreStabilizationRunLayer"]
+offset_left = 4006.0
+offset_top = 42.0
+offset_right = 4086.0
+offset_bottom = 112.0
+color = Color(0.68, 0.58, 0.34, 0.48)
+
+[node name="CoreRunWritePad" type="ColorRect" parent="CoreStabilizationRunLayer"]
+offset_left = 4104.0
+offset_top = -70.0
+offset_right = 4218.0
+offset_bottom = 42.0
+color = Color(0.42, 0.72, 0.66, 0.5)
 
 [node name="BaseDirectionLabel" type="Label" parent="."]
 offset_left = -342.0
@@ -1396,11 +1689,41 @@ offset_bottom = -268.0
 text = "补给→守卫→回写→核心写入"
 horizontal_alignment = 1
 
+[node name="DemoCoreSceneSpaceLayer" type="Node2D" parent="."]
+script = ExtResource("7_core_scene_space")
+
+[node name="DemoInitialArtIdentityLayer" type="Node2D" parent="."]
+script = ExtResource("8_initial_art_identity")
+
+[node name="DemoIndustrialBaseVisualLayer" type="Node2D" parent="."]
+script = ExtResource("9_industrial_base_visual")
+
+[node name="DemoCrystalResourceVisualLayer" type="Node2D" parent="."]
+script = ExtResource("10_crystal_resource_visual")
+
+[node name="DemoPollutionBoundaryVisualLayer" type="Node2D" parent="."]
+script = ExtResource("11_pollution_boundary_visual")
+
+[node name="DemoCoreStabilizationVisualLayer" type="Node2D" parent="."]
+script = ExtResource("12_core_stabilization_visual")
+
+[node name="DemoSceneFocusDepthLayer" type="Node2D" parent="."]
+script = ExtResource("13_scene_focus_depth")
+
 [node name="PrototypeVisualPriorityLayer" type="Node2D" parent="."]
 script = ExtResource("5_visual_priority")
 
+[node name="DemoRegionIndustrialValueLayer" type="Node2D" parent="."]
+script = ExtResource("14_region_industrial_value")
+
+[node name="DemoFirstIndustrialPathVisualLayer" type="Node2D" parent="."]
+script = ExtResource("15_first_path_visual")
+
 [node name="CurrentObjectiveGuidanceLayer" type="Node2D" parent="."]
 script = ExtResource("6_objective_guidance")
+
+[node name="DemoBaseStartupPresentationLayer" type="Node2D" parent="."]
+script = ExtResource("16_startup_presentation")
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(-250, -48)
@@ -1556,6 +1879,20 @@ label_size = Vector2(164, 24)
 [node name="RichCrystalVeinNorth" parent="Interactables" instance=ExtResource("3_interactable")]
 position = Vector2(150, -176)
 definition_id = "map_object.rich_crystal_vein"
+interaction_type = "gather"
+label_offset = Vector2(-82, -52)
+label_size = Vector2(164, 24)
+
+[node name="CrystalCollectorBuildSite" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(134, -126)
+definition_id = "building.crystal_collector_t1"
+interaction_type = "build"
+label_offset = Vector2(-88, -52)
+label_size = Vector2(176, 24)
+
+[node name="CrystalCollectorOutput" parent="Interactables" instance=ExtResource("3_interactable")]
+position = Vector2(86, -118)
+definition_id = "map_object.crystal_collector_output"
 interaction_type = "gather"
 label_offset = Vector2(-82, -52)
 label_size = Vector2(164, 24)

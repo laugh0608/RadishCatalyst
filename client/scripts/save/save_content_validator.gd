@@ -14,6 +14,8 @@ const PROTOTYPE_MAP_OBJECT_SOURCES := {
 		"map_object_instance.crystal_cluster_logistics_pocket": "map_object.crystal_cluster",
 		"map_object_instance.crystal_cluster_logistics_return": "map_object.crystal_cluster",
 		"map_object_instance.rich_crystal_vein_north": "map_object.rich_crystal_vein",
+		"map_object_instance.crystal_collector_build_site": "building.crystal_collector_t1",
+		"map_object_instance.crystal_collector_output": "map_object.crystal_collector_output",
 		"map_object_instance.crystal_cluster_treatment_approach": "map_object.crystal_cluster",
 		"map_object_instance.field_wreckage_north": "map_object.field_wreckage",
 		"map_object_instance.field_wreckage_east": "map_object.field_wreckage",
@@ -358,6 +360,10 @@ const PROTOTYPE_BASE_STRUCTURE_SOURCES := {
 	"structure.field_outfitting_station_build_site": {
 		"definition_id": "building.field_outfitting_station",
 		"site_instance_id": "map_object_instance.field_outfitting_station_build_site"
+	},
+	"structure.crystal_collector_build_site": {
+		"definition_id": "building.crystal_collector_t1",
+		"site_instance_id": "map_object_instance.crystal_collector_build_site"
 	},
 	"structure.slurry_buffer_tank_build_site": {
 		"definition_id": "building.slurry_buffer_tank",

@@ -16,6 +16,13 @@ func show_supply_feedback(result: Dictionary, hud: PrototypeHud) -> void:
 	hud.show_supply_feedback(feedback)
 
 
+func show_combat_feedback(result: Dictionary, hud: PrototypeHud) -> void:
+	var feedback := get_combat_feedback(result)
+	if feedback.is_empty():
+		return
+	hud.show_combat_feedback(feedback)
+
+
 func format_quest_completion_panel_texts(feedback: Dictionary) -> Dictionary:
 	if feedback.is_empty():
 		return {}
@@ -54,6 +61,13 @@ func get_evacuation_feedback(result: Dictionary) -> Dictionary:
 
 func get_supply_feedback(result: Dictionary) -> Dictionary:
 	var feedback = result.get("supply_feedback", {})
+	if feedback is Dictionary:
+		return feedback
+	return {}
+
+
+func get_combat_feedback(result: Dictionary) -> Dictionary:
+	var feedback = result.get("combat_feedback", {})
 	if feedback is Dictionary:
 		return feedback
 	return {}

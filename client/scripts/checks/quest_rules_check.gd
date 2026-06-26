@@ -1351,7 +1351,7 @@ func _check_active_objective_progress_is_capped() -> void:
 	)
 	_expect_equal(
 		quest_state.get_objective_progress("quest.scout_crystal_field", "gather_item", "item.crystal_ore"),
-		6.0,
+		3.0,
 		"active objective progress capped"
 	)
 
@@ -1394,8 +1394,8 @@ func _mark_bring_back_sample_active_with_pre_sampled_anomaly(world_state: WorldS
 	world_state.quest_state.objective_progress = {
 		"quest.restore_outpost|interact|building.outpost_core": 1,
 		"quest.scout_crystal_field|visit_region|region.crystal_vein_field": 1,
-		"quest.scout_crystal_field|gather_item|item.crystal_ore": 6,
-		"quest.calibrate_reactor|gather_item|item.salvage_scrap": 4,
+		"quest.scout_crystal_field|gather_item|item.crystal_ore": 3,
+		"quest.calibrate_reactor|gather_item|item.salvage_scrap": 2,
 		"quest.calibrate_reactor|craft_item|item.reactor_calibrator": 1
 	}
 	world_state.quest_state.unlocked_effects = [

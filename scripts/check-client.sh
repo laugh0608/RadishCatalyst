@@ -122,17 +122,31 @@ echo "Coverage: static data and scene references."
 "${python_exe}" "${repo_root}/scripts/check-client-scenes.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-industrial-tech-spine.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-resource-chain-state.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-pollution-boundary-visual.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-core-stabilization-visual.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-region-industrial-value.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-save-state-contract.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-main-path-continuity.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-runtime-surface-decomposition.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-functional-scene-gameplay.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-functional-scene-gameplay-density.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-functional-transition-spatial-playability.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-midfield-route-playability.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-wind-corridor-transition-playability.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-core-approach-handoff-playability.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-core-stabilization-run-playability.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-device-panel-operation-readability.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-field-loop-payoff.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-route-return-and-base-reentry.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-endpoint-readiness.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-completion-outcome-readout.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-playable-experience-coherence.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-playable-scene-composition.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-startup-shell.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-combat-evacuation-recovery.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-interaction-affordance.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-interaction-prompt-surface-decomposition.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-map-surface-decomposition.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-scene-art-foundation.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-non-core-scene-identity.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-functional-transition-route-support.py" "${repo_root}"
@@ -144,6 +158,11 @@ echo "Coverage: static data and scene references."
 "${python_exe}" "${repo_root}/scripts/check-client-demo-prototype-visual-pass.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-quick-slot-supply-readability.py" "${repo_root}"
 "${python_exe}" "${repo_root}/scripts/check-client-demo-supply-pressure-pacing.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-combat-readability.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-core-scene-playable-space.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-industrial-module-task-rhythm.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-initial-art-identity.py" "${repo_root}"
+"${python_exe}" "${repo_root}/scripts/check-client-demo-field-task-differentiation.py" "${repo_root}"
 
 if [ "${with_godot}" -ne 1 ]; then
   echo "Skipping Godot runtime checks. Use --with-godot after confirming Godot can start in this environment."
@@ -176,15 +195,29 @@ run_godot_checked "quest-rules" --script "${client_root}/scripts/checks/quest_ru
 run_godot_checked "vertical-slice-flow" --script "${client_root}/scripts/checks/vertical_slice_flow_check.gd" --no-header
 run_godot_checked "onboarding-hint-runtime" --script "${client_root}/scripts/checks/onboarding_hint_runtime_check.gd" --no-header
 run_godot_checked "functional-scene-gameplay" --script "${client_root}/scripts/checks/functional_scene_gameplay_check.gd" --no-header
+run_godot_checked "demo-functional-scene-gameplay-density" --script "${client_root}/scripts/checks/demo_functional_scene_gameplay_density_check.gd" --no-header
+run_godot_checked "demo-functional-transition-spatial-playability" --script "${client_root}/scripts/checks/demo_functional_transition_spatial_playability_check.gd" --no-header
+run_godot_checked "demo-midfield-route-playability" --script "${client_root}/scripts/checks/demo_midfield_route_playability_check.gd" --no-header
+run_godot_checked "demo-wind-corridor-transition-playability" --script "${client_root}/scripts/checks/demo_wind_corridor_transition_playability_check.gd" --no-header
+run_godot_checked "demo-core-approach-handoff-playability" --script "${client_root}/scripts/checks/demo_core_approach_handoff_playability_check.gd" --no-header
+run_godot_checked "demo-core-stabilization-run-playability" --script "${client_root}/scripts/checks/demo_core_stabilization_run_playability_check.gd" --no-header
+run_godot_checked "demo-device-panel-operation-readability" --script "${client_root}/scripts/checks/demo_device_panel_operation_readability_check.gd" --no-header
 run_godot_checked "demo-field-loop-payoff" --script "${client_root}/scripts/checks/demo_field_loop_payoff_check.gd" --no-header
+run_godot_checked "demo-route-return-and-base-reentry" --script "${client_root}/scripts/checks/demo_route_return_and_base_reentry_check.gd" --no-header
 run_godot_checked "demo-endpoint-readiness" --script "${client_root}/scripts/checks/demo_endpoint_readiness_check.gd" --no-header
 run_godot_checked "demo-completion-outcome-readout" --script "${client_root}/scripts/checks/demo_completion_outcome_readout_check.gd" --no-header
 run_godot_checked "demo-playable-experience-coherence" --script "${client_root}/scripts/checks/demo_playable_experience_coherence_check.gd" --no-header
 run_godot_checked "playable-scene-composition" --script "${client_root}/scripts/checks/playable_scene_composition_check.gd" --no-header
+run_godot_checked "demo-startup-shell" --script "${client_root}/scripts/checks/demo_startup_shell_check.gd" --no-header
 run_godot_checked "demo-combat-evacuation-recovery" --script "${client_root}/scripts/checks/demo_combat_evacuation_recovery_check.gd" --no-header
 run_godot_checked "demo-interaction-affordance" --script "${client_root}/scripts/checks/demo_interaction_affordance_check.gd" --no-header
+run_godot_checked "demo-interaction-prompt-surface-decomposition" --script "${client_root}/scripts/checks/demo_interaction_prompt_surface_decomposition_check.gd" --no-header
+run_godot_checked "demo-map-surface-decomposition" --script "${client_root}/scripts/checks/demo_map_surface_decomposition_check.gd" --no-header
 run_godot_checked "industrial-tech-spine" --script "${client_root}/scripts/checks/industrial_tech_spine_check.gd" --no-header
 run_godot_checked "demo-resource-chain-state" --script "${client_root}/scripts/checks/demo_resource_chain_state_check.gd" --no-header
+run_godot_checked "demo-pollution-boundary-visual" --script "${client_root}/scripts/checks/demo_pollution_boundary_visual_check.gd" --no-header
+run_godot_checked "demo-core-stabilization-visual" --script "${client_root}/scripts/checks/demo_core_stabilization_visual_check.gd" --no-header
+run_godot_checked "demo-region-industrial-value" --script "${client_root}/scripts/checks/demo_region_industrial_value_check.gd" --no-header
 run_godot_checked "demo-save-state-contract" --script "${client_root}/scripts/checks/demo_save_state_contract_check.gd" --no-header
 run_godot_checked "demo-main-path-continuity" --script "${client_root}/scripts/checks/demo_main_path_continuity_check.gd" --no-header
 run_godot_checked "scene-art-foundation" --script "${client_root}/scripts/checks/scene_art_foundation_check.gd" --no-header
@@ -198,5 +231,10 @@ run_godot_checked "demo-action-blocker-recovery" --script "${client_root}/script
 run_godot_checked "demo-prototype-visual-pass" --script "${client_root}/scripts/checks/demo_prototype_visual_pass_check.gd" --no-header
 run_godot_checked "demo-quick-slot-supply-readability" --script "${client_root}/scripts/checks/demo_quick_slot_supply_readability_check.gd" --no-header
 run_godot_checked "demo-supply-pressure-pacing" --script "${client_root}/scripts/checks/demo_supply_pressure_pacing_check.gd" --no-header
+run_godot_checked "demo-combat-readability" --script "${client_root}/scripts/checks/demo_combat_readability_check.gd" --no-header
+run_godot_checked "demo-core-scene-playable-space" --script "${client_root}/scripts/checks/demo_core_scene_playable_space_check.gd" --no-header
+run_godot_checked "demo-industrial-module-task-rhythm" --script "${client_root}/scripts/checks/demo_industrial_module_task_rhythm_check.gd" --no-header
+run_godot_checked "demo-initial-art-identity" --script "${client_root}/scripts/checks/demo_initial_art_identity_check.gd" --no-header
+run_godot_checked "demo-field-task-differentiation" --script "${client_root}/scripts/checks/demo_field_task_differentiation_check.gd" --no-header
 
 echo "Client checks passed."

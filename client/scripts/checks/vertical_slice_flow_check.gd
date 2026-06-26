@@ -74,12 +74,12 @@ func _run_checks() -> void:
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.process_crystal_ore", "restore unlocks crystal recipe")
 	_complete_active_quest("quest.scout_crystal_field", [
 		{"type": "visit_region", "target_id": "region.crystal_vein_field", "amount": 1},
-		{"type": "gather_item", "target_id": "item.crystal_ore", "amount": 6}
+		{"type": "gather_item", "target_id": "item.crystal_ore", "amount": 3}
 	])
 	_expect_active_quest("quest.calibrate_reactor", "after scout crystal field")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.reactor_calibrator", "scout unlocks reactor calibrator recipe")
 	_complete_active_quest("quest.calibrate_reactor", [
-		{"type": "gather_item", "target_id": "item.salvage_scrap", "amount": 4},
+		{"type": "gather_item", "target_id": "item.salvage_scrap", "amount": 2},
 		{"type": "craft_item", "target_id": "item.reactor_calibrator", "amount": 1}
 	])
 	_expect_active_quest("quest.bring_back_sample", "after calibrate reactor")
@@ -89,7 +89,7 @@ func _run_checks() -> void:
 	_expect_active_quest("quest.analyze_anomaly_sample", "after bring back sample")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.analyze_anomaly_sample", "sample unlocks analysis recipe")
 	_complete_active_quest("quest.analyze_anomaly_sample", [
-		{"type": "gather_item", "target_id": "item.anomaly_residue", "amount": 2},
+		{"type": "gather_item", "target_id": "item.anomaly_residue", "amount": 1},
 		{"type": "craft_item", "target_id": "item.sample_analysis", "amount": 1}
 	])
 	_expect_active_quest("quest.make_filter_module", "after sample analysis")
@@ -101,13 +101,13 @@ func _run_checks() -> void:
 	_expect_active_quest("quest.prepare_treatment_supplies", "after make filter module")
 	_complete_active_quest("quest.prepare_treatment_supplies", [
 		{"type": "craft_item", "target_id": "item.repair_gel", "amount": 1},
-		{"type": "defeat_enemy", "target_id": "enemy.treatment_skitter", "amount": 2}
+		{"type": "defeat_enemy", "target_id": "enemy.treatment_skitter", "amount": 1}
 	])
 	_expect_active_quest("quest.expand_treatment_point", "after prepare treatment supplies")
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.foundation_t1", "supplies unlock foundation recipe")
 	_complete_active_quest("quest.expand_treatment_point", [
-		{"type": "clear", "target_id": "map_object.rough_ground", "amount": 2},
-		{"type": "build", "target_id": "building.foundation_t1", "amount": 2},
+		{"type": "clear", "target_id": "map_object.rough_ground", "amount": 1},
+		{"type": "build", "target_id": "building.foundation_t1", "amount": 1},
 		{"type": "build", "target_id": "building.pollution_filter", "amount": 1}
 	])
 	_expect_active_quest("quest.enter_pollution_edge", "after expand treatment point")
@@ -116,7 +116,7 @@ func _run_checks() -> void:
 	_expect_array_has(world_state.quest_state.unlocked_effects, "recipe.reclaim_basic_parts", "treatment point unlocks slurry reclaim recipe")
 	_complete_active_quest("quest.enter_pollution_edge", [
 		{"type": "visit_region", "target_id": "region.pollution_edge", "amount": 1},
-		{"type": "gather_item", "target_id": "item.polluted_residue", "amount": 4},
+		{"type": "gather_item", "target_id": "item.polluted_residue", "amount": 2},
 		{"type": "craft_item", "target_id": "item.resistance_vial_t1", "amount": 1},
 		{"type": "defeat_enemy", "target_id": "enemy.polluted_skitter", "amount": 1}
 	])
@@ -334,11 +334,11 @@ func _check_status_panel_summary() -> void:
 	var calibration_world := WorldState.create_default()
 	calibration_world.quest_state.active_quest_ids = ["quest.calibrate_reactor"]
 	var calibration_status_text := presenter.format_status_text(data_registry, calibration_world, status_character)
-	_expect_text_contains(calibration_status_text, "收集 导电废件（外勤残骸） 0/4", "status shows conductive scrap source")
+	_expect_text_contains(calibration_status_text, "收集 导电废件（外勤残骸） 0/2", "status shows conductive scrap source")
 	var scout_world := WorldState.create_default()
 	scout_world.quest_state.active_quest_ids = ["quest.scout_crystal_field"]
 	var scout_status_text := presenter.format_status_text(data_registry, scout_world, status_character)
-	_expect_text_contains(scout_status_text, "收集 晶体矿物（晶体簇） 0/6", "status shows crystal gather source")
+	_expect_text_contains(scout_status_text, "收集 晶体矿物（晶体簇） 0/3", "status shows crystal gather source")
 	var echo_status_world := WorldState.create_default()
 	echo_status_world.quest_state.active_quest_ids = ["quest.salvage_signal_echo"]
 	var echo_status_text := presenter.format_status_text(data_registry, echo_status_world, status_character)

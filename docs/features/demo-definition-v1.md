@@ -1,6 +1,6 @@
 # Demo Definition V1
 
-更新时间：2026-06-18
+更新时间：2026-06-20
 
 ## 用途
 
@@ -44,30 +44,34 @@
 | 规格项 | 专题文档 | 状态 |
 | --- | --- | --- |
 | Demo 完成定义 | 本文 | 已建立规格源 |
+| 工业基地视觉与场景化 | `docs/features/demo-industrial-base-visual-and-scene-v1.md` | 当前活跃，覆盖基地平台视觉、HUD 视觉、第一条工业链可视化和 12 区工业职责复核 |
+| 可玩内容实质补强 | `docs/features/demo-playable-content-substance-v1.md`、`docs/features/demo-scene-device-pressure-staging-v1.md` | 已完成口径修正；场景设备编排暂缓，后续必须服务工业基地视觉与场景化 |
+| 阶段验收 | `docs/features/demo-first-playable-acceptance-v1.md` | 暂缓，自动检查通过不足以证明可试玩候选质量 |
 | 区域 / 场景范围 | `docs/planning/demo-scope-and-playable-slice.md` | 已定义 12 区域、4 核心区和核心稳定站终点 |
 | 角色成长 / 战斗差异 | `docs/features/demo-combat-progression-v1.md`，最近完成细专题 `docs/features/demo-character-kit-v1.md`、`docs/features/ruin-outer-ring-module-pressure-v1.md` 和 `docs/features/pollution-edge-maintenance-pressure-v1.md` | 已落地第一轮 |
 | 工具打击校准 / 输出整备 | `docs/features/demo-tool-strike-calibration-v1.md` | 已落地第一包 |
-| 工业基建 / 工艺解锁主干 | `docs/features/demo-industrial-tech-spine-v1.md` | 已落地第一包 |
-| 资源链状态 | `docs/features/demo-resource-chain-state-v1.md` | 已落地第一包 |
+| 工业基建 / 工艺解锁主干 | `docs/features/demo-industrial-tech-spine-v1.md`、`docs/features/demo-industrial-module-task-rhythm-v1.md` | 工艺主干已落地，工业模块职责与任务节奏第一包已落地 |
+| 资源链状态 / 基地再进入 | `docs/features/demo-resource-chain-state-v1.md`、`docs/features/demo-field-task-differentiation-v1.md`、`docs/features/demo-route-return-and-base-reentry-readability-v1.md` | 资源链与任务差异已落地，基地再进入已通过退出判断 |
 | 存档 / 状态 | `docs/features/demo-save-state-contract-v1.md` | 已落地第一包 |
 | 主路径连续性 / 自动检查 | `docs/features/demo-main-path-continuity-v1.md` | 已落地第一包 |
-| 自动检查 / 工程承载面 | `docs/features/demo-runtime-surface-decomposition-v1.md` | 已落地第一包 |
-| 功能场景玩法 | `docs/features/demo-functional-scene-gameplay-v1.md` | 已落地第一包 |
+| 自动检查 / 工程承载面 | `docs/features/demo-runtime-surface-decomposition-v1.md`、`docs/features/demo-interaction-prompt-surface-decomposition-v1.md`、`docs/features/demo-map-surface-decomposition-v1.md` | 地图承载面已通过退出判断 |
+| 功能场景玩法 | `docs/features/demo-functional-scene-gameplay-v1.md`、`docs/features/demo-functional-scene-gameplay-density-v1.md`、`docs/features/demo-functional-transition-spatial-playability-v1.md`、`docs/features/demo-midfield-route-playability-v1.md`、`docs/features/demo-wind-corridor-transition-playability-v1.md`、`docs/features/demo-core-approach-handoff-playability-v1.md`、`docs/features/demo-core-stabilization-run-playability-v1.md` | 核心稳定站内路径已落地第一包 |
+| UI / HUD 设备面板 | `docs/features/demo-device-panel-operation-readability-v1.md` | 已通过退出判断 |
 | 外勤回基地收益兑现 | `docs/features/demo-field-loop-payoff-v1.md` | 已落地第一包 |
 | 终点前综合准备读法 | `docs/features/demo-endpoint-readiness-v1.md` | 已落地第一包 |
 | Demo 完成成果整理 | `docs/features/demo-completion-outcome-readout-v1.md` | 已落地第一包 |
 | 整段体验连贯性 | `docs/features/demo-playable-experience-coherence-v1.md` | 已落地第一包 |
 | 可玩场景构成 | `docs/features/demo-playable-scene-composition-v1.md` | 已落地第一包 |
 | 战斗撤离恢复读法 | `docs/features/demo-combat-evacuation-recovery-v1.md` | 已落地第一包 |
-| 交互可辨识度 | `docs/features/demo-interaction-affordance-v1.md` | 已落地第一包 |
+| 交互可辨识度 / 提示承载面 | `docs/features/demo-interaction-affordance-v1.md`、`docs/features/demo-interaction-prompt-surface-decomposition-v1.md` | 交互可辨识度已落地，提示承载面已通过退出判断 |
 | 动作反馈可读性 | `docs/features/demo-action-feedback-readability-v1.md` | 已落地第一包 |
 | 受阻动作恢复读法 | `docs/features/demo-action-blocker-recovery-v1.md` | 已落地第一包 |
 | 原型视觉呈现 | `docs/features/demo-prototype-visual-pass-v1.md` | 已通过退出判断 |
 | 快捷补给读法 | `docs/features/demo-quick-slot-supply-readability-v1.md` | 已通过退出判断 |
-| 补给节奏与承压价值 | `docs/features/demo-supply-pressure-pacing-v1.md` | 当前活跃，第一包已落地 |
+| 补给节奏与承压价值 | `docs/features/demo-supply-pressure-pacing-v1.md` | 已通过退出判断 |
 | 角色技能 / 装备模块第一版 | `docs/features/demo-character-kit-v1.md` | 已落地首个主动工具动作 |
 | 防护响应 / 装备状态 | `docs/features/demo-protective-response-v1.md` | 已落地第一包 |
-| 核心场景与初步美术 | `docs/features/demo-scene-art-foundation-v1.md` | 已落地第一包 |
+| 核心场景与初步美术 | `docs/features/demo-scene-art-foundation-v1.md`、`docs/features/demo-initial-art-identity-v1.md` | 场景基础已落地，现场身份第一包已落地 |
 | 非核心区域场景识别 | `docs/features/demo-non-core-scene-identity-v1.md` | 已落地第一包 |
 | 主线收束与完成感 | `docs/features/demo-mainline-completion-v1.md` | 已落地第一包 |
 
@@ -93,11 +97,11 @@
 
 ## 当前优先级
 
-当前继续推进首版 Demo 体验主干；`Demo Quick Slot Supply Readability V1` 已通过退出判断，下一步切到 `Demo Supply Pressure Pacing V1`：
+当前继续推进首版 Demo 工业基地视觉与场景化；`Demo Device Panel Operation Readability V1` 已通过退出判断，但不能把各专题第一包和自动检查通过等同于试玩准备：
 
 1. 原型视觉呈现已覆盖现有 12 区层级、核心区场地尺度、首小时目标链场景导引和专项检查。
 2. 快捷补给读法已覆盖现有修复凝胶 / 抗污染药剂在 HUD 快捷栏、补给反馈和失败恢复路线中的可读性。
-3. 补给节奏与承压价值只验证既有补给在制作、消耗、补回和关键压力节点中的真实价值。
-4. 只复用既有任务、库存、生命 / 防护、补给和整备系统，不新增资源、配方、区域、完整背包、完整装备栏、死亡系统、终局菜单、结算页或新任务链。
+3. 补给节奏与承压价值已验证既有补给在制作、消耗、补回和关键压力节点中的真实价值。
+4. 功能 / 过渡场景玩法密度、可达空间、中段路线、风蚀过渡、基地再进入读法、交互提示承载面、地图承载面、核心入口承接、核心稳定站内路径、设备面板读法、角色 / 怪物 UI、核心场景空间、工业模块职责与任务节奏、初步美术识别和资源处理与外勤任务差异均已完成第一包；当前优先把基地平台、HUD 和第一条工业链做成不像 debug 色块的玩家可见画面。
 
 在首版 Demo 满足本文必达规格前，不切到试玩准备或集中修 bug 阶段。

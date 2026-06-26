@@ -269,17 +269,17 @@ func _format_objective_milestone_message(quest_id: String, objective_type: Strin
 				return "异常残留物已够：回基地使用基础反应器，把样本分析成过滤模块参数。"
 		"quest.prepare_treatment_supplies":
 			if objective_type == "craft_item" and target_id == "item.repair_gel":
-				return "修复凝胶已就绪：带上快捷栏 1 的补给，去处理点北缘连续清理两处掠行体。"
+				return "修复凝胶已就绪：带上快捷栏 1 的补给，去处理点北缘清理掠行体。"
 		"quest.expand_treatment_point":
 			if objective_type == "clear" and target_id == "map_object.rough_ground":
-				return "处理点地面已清理：回基地制造基础地基材料，再回来铺设 2 块地基。"
+				return "处理点地面已清理：回基地制造基础地基材料，再回来铺设地基。"
 			if objective_type == "build" and target_id == "building.foundation_t1":
-				return "两块地基已铺好：继续建造污染过滤器，之后才能把沉积物处理成药剂。"
+				return "地基已铺好：继续建造污染过滤器，之后才能把沉积物处理成药剂。"
 		"quest.enter_pollution_edge":
 			if objective_type == "gather_item" and target_id == "item.polluted_residue":
 				return "污染沉积物已够：回处理点过滤器处理成抗污染药剂，再继续深入污染边界。"
 			if objective_type == "craft_item" and target_id == "item.resistance_vial_t1":
-				return "抗污染药剂已就绪：按 2 可补防护，带药剂回污染边界补第二批沉积物并清理受扰敌人，之后再压制遗迹门前压力点。"
+				return "抗污染药剂已就绪：按 2 可补防护，带药剂回污染边界清理受扰敌人，之后再压制遗迹门前压力点。"
 		"quest.scout_ruin_outer_ring":
 			if objective_type == "gather_item" and target_id == "item.polluted_residue":
 				return "污染脊沉积物已够：回处理点过滤器处理，副产浆液可回基础反应器补信标零件。"

@@ -34,9 +34,49 @@ if (-not (Test-Path -LiteralPath $functionalSceneGameplayCheckScript -PathType L
     Write-Error "Functional scene gameplay check script not found: ${functionalSceneGameplayCheckScript}"
     exit 1
 }
+$demoFunctionalSceneGameplayDensityCheckScript = Join-Path $clientRoot "scripts/checks/demo_functional_scene_gameplay_density_check.gd"
+if (-not (Test-Path -LiteralPath $demoFunctionalSceneGameplayDensityCheckScript -PathType Leaf)) {
+    Write-Error "Demo functional scene gameplay density check script not found: ${demoFunctionalSceneGameplayDensityCheckScript}"
+    exit 1
+}
+$demoFunctionalTransitionSpatialPlayabilityCheckScript = Join-Path $clientRoot "scripts/checks/demo_functional_transition_spatial_playability_check.gd"
+if (-not (Test-Path -LiteralPath $demoFunctionalTransitionSpatialPlayabilityCheckScript -PathType Leaf)) {
+    Write-Error "Demo functional transition spatial playability check script not found: ${demoFunctionalTransitionSpatialPlayabilityCheckScript}"
+    exit 1
+}
+$demoMidfieldRoutePlayabilityCheckScript = Join-Path $clientRoot "scripts/checks/demo_midfield_route_playability_check.gd"
+if (-not (Test-Path -LiteralPath $demoMidfieldRoutePlayabilityCheckScript -PathType Leaf)) {
+    Write-Error "Demo midfield route playability check script not found: ${demoMidfieldRoutePlayabilityCheckScript}"
+    exit 1
+}
+$demoWindCorridorTransitionPlayabilityCheckScript = Join-Path $clientRoot "scripts/checks/demo_wind_corridor_transition_playability_check.gd"
+if (-not (Test-Path -LiteralPath $demoWindCorridorTransitionPlayabilityCheckScript -PathType Leaf)) {
+    Write-Error "Demo wind corridor transition playability check script not found: ${demoWindCorridorTransitionPlayabilityCheckScript}"
+    exit 1
+}
+$demoCoreApproachHandoffPlayabilityCheckScript = Join-Path $clientRoot "scripts/checks/demo_core_approach_handoff_playability_check.gd"
+if (-not (Test-Path -LiteralPath $demoCoreApproachHandoffPlayabilityCheckScript -PathType Leaf)) {
+    Write-Error "Demo core approach handoff playability check script not found: ${demoCoreApproachHandoffPlayabilityCheckScript}"
+    exit 1
+}
+$demoCoreStabilizationRunPlayabilityCheckScript = Join-Path $clientRoot "scripts/checks/demo_core_stabilization_run_playability_check.gd"
+if (-not (Test-Path -LiteralPath $demoCoreStabilizationRunPlayabilityCheckScript -PathType Leaf)) {
+    Write-Error "Demo core stabilization run playability check script not found: ${demoCoreStabilizationRunPlayabilityCheckScript}"
+    exit 1
+}
+$demoDevicePanelOperationReadabilityCheckScript = Join-Path $clientRoot "scripts/checks/demo_device_panel_operation_readability_check.gd"
+if (-not (Test-Path -LiteralPath $demoDevicePanelOperationReadabilityCheckScript -PathType Leaf)) {
+    Write-Error "Demo device panel operation readability check script not found: ${demoDevicePanelOperationReadabilityCheckScript}"
+    exit 1
+}
 $demoFieldLoopPayoffCheckScript = Join-Path $clientRoot "scripts/checks/demo_field_loop_payoff_check.gd"
 if (-not (Test-Path -LiteralPath $demoFieldLoopPayoffCheckScript -PathType Leaf)) {
     Write-Error "Demo field loop payoff check script not found: ${demoFieldLoopPayoffCheckScript}"
+    exit 1
+}
+$demoRouteReturnAndBaseReentryCheckScript = Join-Path $clientRoot "scripts/checks/demo_route_return_and_base_reentry_check.gd"
+if (-not (Test-Path -LiteralPath $demoRouteReturnAndBaseReentryCheckScript -PathType Leaf)) {
+    Write-Error "Demo route return and base reentry check script not found: ${demoRouteReturnAndBaseReentryCheckScript}"
     exit 1
 }
 $demoEndpointReadinessCheckScript = Join-Path $clientRoot "scripts/checks/demo_endpoint_readiness_check.gd"
@@ -59,6 +99,11 @@ if (-not (Test-Path -LiteralPath $playableSceneCompositionCheckScript -PathType 
     Write-Error "Playable scene composition check script not found: ${playableSceneCompositionCheckScript}"
     exit 1
 }
+$demoStartupShellCheckScript = Join-Path $clientRoot "scripts/checks/demo_startup_shell_check.gd"
+if (-not (Test-Path -LiteralPath $demoStartupShellCheckScript -PathType Leaf)) {
+    Write-Error "Demo startup shell check script not found: ${demoStartupShellCheckScript}"
+    exit 1
+}
 $demoCombatEvacuationRecoveryCheckScript = Join-Path $clientRoot "scripts/checks/demo_combat_evacuation_recovery_check.gd"
 if (-not (Test-Path -LiteralPath $demoCombatEvacuationRecoveryCheckScript -PathType Leaf)) {
     Write-Error "Demo combat evacuation recovery check script not found: ${demoCombatEvacuationRecoveryCheckScript}"
@@ -69,6 +114,16 @@ if (-not (Test-Path -LiteralPath $demoInteractionAffordanceCheckScript -PathType
     Write-Error "Demo interaction affordance check script not found: ${demoInteractionAffordanceCheckScript}"
     exit 1
 }
+$demoInteractionPromptSurfaceDecompositionCheckScript = Join-Path $clientRoot "scripts/checks/demo_interaction_prompt_surface_decomposition_check.gd"
+if (-not (Test-Path -LiteralPath $demoInteractionPromptSurfaceDecompositionCheckScript -PathType Leaf)) {
+    Write-Error "Demo interaction prompt surface decomposition check script not found: ${demoInteractionPromptSurfaceDecompositionCheckScript}"
+    exit 1
+}
+$demoMapSurfaceDecompositionCheckScript = Join-Path $clientRoot "scripts/checks/demo_map_surface_decomposition_check.gd"
+if (-not (Test-Path -LiteralPath $demoMapSurfaceDecompositionCheckScript -PathType Leaf)) {
+    Write-Error "Demo map surface decomposition check script not found: ${demoMapSurfaceDecompositionCheckScript}"
+    exit 1
+}
 $industrialTechSpineCheckScript = Join-Path $clientRoot "scripts/checks/industrial_tech_spine_check.gd"
 if (-not (Test-Path -LiteralPath $industrialTechSpineCheckScript -PathType Leaf)) {
     Write-Error "Industrial tech spine check script not found: ${industrialTechSpineCheckScript}"
@@ -77,6 +132,21 @@ if (-not (Test-Path -LiteralPath $industrialTechSpineCheckScript -PathType Leaf)
 $demoResourceChainStateCheckScript = Join-Path $clientRoot "scripts/checks/demo_resource_chain_state_check.gd"
 if (-not (Test-Path -LiteralPath $demoResourceChainStateCheckScript -PathType Leaf)) {
     Write-Error "Demo resource chain state check script not found: ${demoResourceChainStateCheckScript}"
+    exit 1
+}
+$demoPollutionBoundaryVisualCheckScript = Join-Path $clientRoot "scripts/checks/demo_pollution_boundary_visual_check.gd"
+if (-not (Test-Path -LiteralPath $demoPollutionBoundaryVisualCheckScript -PathType Leaf)) {
+    Write-Error "Demo pollution boundary visual check script not found: ${demoPollutionBoundaryVisualCheckScript}"
+    exit 1
+}
+$demoCoreStabilizationVisualCheckScript = Join-Path $clientRoot "scripts/checks/demo_core_stabilization_visual_check.gd"
+if (-not (Test-Path -LiteralPath $demoCoreStabilizationVisualCheckScript -PathType Leaf)) {
+    Write-Error "Demo core stabilization visual check script not found: ${demoCoreStabilizationVisualCheckScript}"
+    exit 1
+}
+$demoRegionIndustrialValueCheckScript = Join-Path $clientRoot "scripts/checks/demo_region_industrial_value_check.gd"
+if (-not (Test-Path -LiteralPath $demoRegionIndustrialValueCheckScript -PathType Leaf)) {
+    Write-Error "Demo region industrial value check script not found: ${demoRegionIndustrialValueCheckScript}"
     exit 1
 }
 $demoSaveStateContractCheckScript = Join-Path $clientRoot "scripts/checks/demo_save_state_contract_check.gd"
@@ -144,6 +214,31 @@ if (-not (Test-Path -LiteralPath $demoSupplyPressurePacingCheckScript -PathType 
     Write-Error "Demo supply pressure pacing check script not found: ${demoSupplyPressurePacingCheckScript}"
     exit 1
 }
+$demoCombatReadabilityCheckScript = Join-Path $clientRoot "scripts/checks/demo_combat_readability_check.gd"
+if (-not (Test-Path -LiteralPath $demoCombatReadabilityCheckScript -PathType Leaf)) {
+    Write-Error "Demo combat readability check script not found: ${demoCombatReadabilityCheckScript}"
+    exit 1
+}
+$demoCoreScenePlayableSpaceCheckScript = Join-Path $clientRoot "scripts/checks/demo_core_scene_playable_space_check.gd"
+if (-not (Test-Path -LiteralPath $demoCoreScenePlayableSpaceCheckScript -PathType Leaf)) {
+    Write-Error "Demo core scene playable space check script not found: ${demoCoreScenePlayableSpaceCheckScript}"
+    exit 1
+}
+$demoIndustrialModuleTaskRhythmCheckScript = Join-Path $clientRoot "scripts/checks/demo_industrial_module_task_rhythm_check.gd"
+if (-not (Test-Path -LiteralPath $demoIndustrialModuleTaskRhythmCheckScript -PathType Leaf)) {
+    Write-Error "Demo industrial module task rhythm check script not found: ${demoIndustrialModuleTaskRhythmCheckScript}"
+    exit 1
+}
+$demoInitialArtIdentityCheckScript = Join-Path $clientRoot "scripts/checks/demo_initial_art_identity_check.gd"
+if (-not (Test-Path -LiteralPath $demoInitialArtIdentityCheckScript -PathType Leaf)) {
+    Write-Error "Demo initial art identity check script not found: ${demoInitialArtIdentityCheckScript}"
+    exit 1
+}
+$demoFieldTaskDifferentiationCheckScript = Join-Path $clientRoot "scripts/checks/demo_field_task_differentiation_check.gd"
+if (-not (Test-Path -LiteralPath $demoFieldTaskDifferentiationCheckScript -PathType Leaf)) {
+    Write-Error "Demo field task differentiation check script not found: ${demoFieldTaskDifferentiationCheckScript}"
+    exit 1
+}
 
 $godotRunId = "vertical-slice-flow-{0}-{1}" -f $PID, [DateTime]::UtcNow.ToString("yyyyMMddHHmmssfff")
 $godotHome = Join-Path (Join-Path $RepoRoot ".godot-check-runs") $godotRunId
@@ -197,10 +292,66 @@ try {
         exit $LASTEXITCODE
     }
 
+    $demoFunctionalSceneGameplayDensityOutput = & $GodotExe --headless --path $clientRoot --script $demoFunctionalSceneGameplayDensityCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $demoFunctionalSceneGameplayDensityOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo functional scene gameplay density check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
+    $demoFunctionalTransitionSpatialPlayabilityOutput = & $GodotExe --headless --path $clientRoot --script $demoFunctionalTransitionSpatialPlayabilityCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $demoFunctionalTransitionSpatialPlayabilityOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo functional transition spatial playability check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
+    $demoMidfieldRoutePlayabilityOutput = & $GodotExe --headless --path $clientRoot --script $demoMidfieldRoutePlayabilityCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $demoMidfieldRoutePlayabilityOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo midfield route playability check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
+    $demoWindCorridorTransitionPlayabilityOutput = & $GodotExe --headless --path $clientRoot --script $demoWindCorridorTransitionPlayabilityCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $demoWindCorridorTransitionPlayabilityOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo wind corridor transition playability check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
+    $demoCoreApproachHandoffPlayabilityOutput = & $GodotExe --headless --path $clientRoot --script $demoCoreApproachHandoffPlayabilityCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $demoCoreApproachHandoffPlayabilityOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo core approach handoff playability check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
+    $demoCoreStabilizationRunPlayabilityOutput = & $GodotExe --headless --path $clientRoot --script $demoCoreStabilizationRunPlayabilityCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $demoCoreStabilizationRunPlayabilityOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo core stabilization run playability check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
+    $demoDevicePanelOperationReadabilityOutput = & $GodotExe --headless --path $clientRoot --script $demoDevicePanelOperationReadabilityCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $demoDevicePanelOperationReadabilityOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo device panel operation readability check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $demoFieldLoopPayoffOutput = & $GodotExe --headless --path $clientRoot --script $demoFieldLoopPayoffCheckScript --no-header 2>&1
     if ($LASTEXITCODE -ne 0) {
         $demoFieldLoopPayoffOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
         Write-Error "Demo field loop payoff check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
+    $demoRouteReturnAndBaseReentryOutput = & $GodotExe --headless --path $clientRoot --script $demoRouteReturnAndBaseReentryCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $demoRouteReturnAndBaseReentryOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo route return and base reentry check failed with exit code ${LASTEXITCODE}."
         exit $LASTEXITCODE
     }
 
@@ -232,6 +383,13 @@ try {
         exit $LASTEXITCODE
     }
 
+    $demoStartupShellOutput = & $GodotExe --headless --path $clientRoot --script $demoStartupShellCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $demoStartupShellOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo startup shell check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $demoCombatEvacuationRecoveryOutput = & $GodotExe --headless --path $clientRoot --script $demoCombatEvacuationRecoveryCheckScript --no-header 2>&1
     if ($LASTEXITCODE -ne 0) {
         $demoCombatEvacuationRecoveryOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
@@ -246,6 +404,20 @@ try {
         exit $LASTEXITCODE
     }
 
+    $demoInteractionPromptSurfaceDecompositionOutput = & $GodotExe --headless --path $clientRoot --script $demoInteractionPromptSurfaceDecompositionCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $demoInteractionPromptSurfaceDecompositionOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo interaction prompt surface decomposition check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
+    $demoMapSurfaceDecompositionOutput = & $GodotExe --headless --path $clientRoot --script $demoMapSurfaceDecompositionCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $demoMapSurfaceDecompositionOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo map surface decomposition check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $industrialCheckOutput = & $GodotExe --headless --path $clientRoot --script $industrialTechSpineCheckScript --no-header 2>&1
     if ($LASTEXITCODE -ne 0) {
         $industrialCheckOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
@@ -257,6 +429,27 @@ try {
     if ($LASTEXITCODE -ne 0) {
         $resourceChainOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
         Write-Error "Demo resource chain state check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
+    $pollutionBoundaryVisualOutput = & $GodotExe --headless --path $clientRoot --script $demoPollutionBoundaryVisualCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $pollutionBoundaryVisualOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo pollution boundary visual check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
+    $coreStabilizationVisualOutput = & $GodotExe --headless --path $clientRoot --script $demoCoreStabilizationVisualCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $coreStabilizationVisualOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo core stabilization visual check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
+    $regionIndustrialValueOutput = & $GodotExe --headless --path $clientRoot --script $demoRegionIndustrialValueCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $regionIndustrialValueOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo region industrial value check failed with exit code ${LASTEXITCODE}."
         exit $LASTEXITCODE
     }
 
@@ -351,8 +544,43 @@ try {
         exit $LASTEXITCODE
     }
 
+    $combatReadabilityOutput = & $GodotExe --headless --path $clientRoot --script $demoCombatReadabilityCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $combatReadabilityOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo combat readability check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
+    $coreScenePlayableSpaceOutput = & $GodotExe --headless --path $clientRoot --script $demoCoreScenePlayableSpaceCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $coreScenePlayableSpaceOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo core scene playable space check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
+    $industrialModuleTaskRhythmOutput = & $GodotExe --headless --path $clientRoot --script $demoIndustrialModuleTaskRhythmCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $industrialModuleTaskRhythmOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo industrial module task rhythm check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
+    $initialArtIdentityOutput = & $GodotExe --headless --path $clientRoot --script $demoInitialArtIdentityCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $initialArtIdentityOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo initial art identity check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
+    $fieldTaskDifferentiationOutput = & $GodotExe --headless --path $clientRoot --script $demoFieldTaskDifferentiationCheckScript --no-header 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $fieldTaskDifferentiationOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
+        Write-Error "Demo field task differentiation check failed with exit code ${LASTEXITCODE}."
+        exit $LASTEXITCODE
+    }
+
     $unexpectedErrors = @(
-        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoFieldLoopPayoffOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $industrialCheckOutput + $resourceChainOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput + $prototypeVisualPassOutput + $quickSlotSupplyReadabilityOutput + $supplyPressurePacingOutput |
+        $importOutput + $checkOutput + $onboardingHintOutput + $functionalSceneGameplayOutput + $demoMidfieldRoutePlayabilityOutput + $demoWindCorridorTransitionPlayabilityOutput + $demoCoreApproachHandoffPlayabilityOutput + $demoDevicePanelOperationReadabilityOutput + $demoFieldLoopPayoffOutput + $demoRouteReturnAndBaseReentryOutput + $demoEndpointReadinessOutput + $demoCompletionOutcomeOutput + $demoCoherenceOutput + $playableSceneCompositionOutput + $demoStartupShellOutput + $demoCombatEvacuationRecoveryOutput + $demoInteractionAffordanceOutput + $demoInteractionPromptSurfaceDecompositionOutput + $industrialCheckOutput + $resourceChainOutput + $pollutionBoundaryVisualOutput + $coreStabilizationVisualOutput + $regionIndustrialValueOutput + $saveContractOutput + $mainPathContinuityOutput + $sceneArtOutput + $nonCoreSceneOutput + $functionalTransitionOutput + $demoCompletionOutput + $protectiveResponseOutput + $toolStrikeOutput + $actionFeedbackOutput + $actionBlockerOutput + $prototypeVisualPassOutput + $quickSlotSupplyReadabilityOutput + $supplyPressurePacingOutput + $combatReadabilityOutput + $coreScenePlayableSpaceOutput + $industrialModuleTaskRhythmOutput + $initialArtIdentityOutput + $fieldTaskDifferentiationOutput |
             Where-Object { $_ -match "^ERROR:" -and $_ -notmatch "Failed to read the root certificate store" }
     )
     if ($unexpectedErrors.Count -gt 0) {

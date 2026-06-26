@@ -1,6 +1,7 @@
 extends Area2D
 class_name PrototypeInteractable
 
+const SemanticSilhouette := preload("res://scripts/interaction/prototype_interactable_semantic_silhouette.gd")
 const DEFAULT_MARKER_COLOR := Color(0.862745, 0.737255, 0.266667, 1)
 const CRYSTAL_MARKER_COLOR := Color(0.34, 0.68, 0.96, 1)
 const RICH_CRYSTAL_MARKER_COLOR := Color(0.54, 0.82, 1.0, 1)
@@ -10,12 +11,15 @@ const RESIDUE_MARKER_COLOR := Color(0.86, 0.74, 0.22, 1)
 const ROUGH_GROUND_MARKER_COLOR := Color(0.48, 0.42, 0.34, 1)
 const FOUNDATION_SITE_MARKER_COLOR := Color(0.42, 0.56, 0.48, 1)
 const STORAGE_MARKER_COLOR := Color(0.36, 0.62, 0.56, 1)
+const CRYSTAL_COLLECTOR_MARKER_COLOR := Color(0.48, 0.72, 0.62, 1)
+const CRYSTAL_COLLECTOR_OUTPUT_COLOR := Color(0.62, 0.82, 0.74, 1)
 const OUTFITTING_MARKER_COLOR := Color(0.66, 0.58, 0.34, 1)
 const SLURRY_BUFFER_MARKER_COLOR := Color(0.58, 0.64, 0.31, 1)
 const REACTOR_MARKER_COLOR := Color(0.28, 0.78, 0.9, 1)
 const FILTER_MARKER_COLOR := Color(0.64, 0.78, 0.3, 1)
 const CALIBRATED_OUTFITTING_MARKER_COLOR := Color(0.84, 0.78, 0.44, 1)
 const GATE_MARKER_COLOR := Color(0.72, 0.56, 0.86, 1)
+const OUTPOST_CORE_MARKER_COLOR := Color(0.28, 0.72, 0.76, 1)
 const RESTORED_OUTPOST_CORE_COLOR := Color(0.18, 0.86, 0.93, 1)
 const GATHERED_CRYSTAL_COLOR := Color(0.22, 0.42, 0.58, 1)
 const GATHERED_SALVAGE_COLOR := Color(0.48, 0.56, 0.58, 1)
@@ -60,6 +64,7 @@ const COMPLETED_FRONTLINE_ACTION_COLOR := Color(0.56, 0.9, 0.78, 1)
 const BUILT_FOUNDATION_COLOR := Color(0.55, 0.6, 0.55, 1)
 const BUILT_FILTER_COLOR := Color(0.72, 0.78, 0.38, 1)
 const BUILT_STORAGE_COLOR := Color(0.5, 0.74, 0.66, 1)
+const BUILT_CRYSTAL_COLLECTOR_COLOR := Color(0.56, 0.78, 0.66, 1)
 const BUILT_OUTFITTING_COLOR := Color(0.78, 0.68, 0.42, 1)
 const BUILT_SLURRY_BUFFER_COLOR := Color(0.66, 0.7, 0.36, 1)
 const GATHERED_CRYSTAL_SIZE := Vector2(28.0, 12.0)
@@ -72,7 +77,19 @@ const BUILT_FILTER_SITE_SIZE := Vector2(48.0, 30.0)
 const FOCUSED_MARKER_SCALE := Vector2(1.22, 1.22)
 const FOCUSED_MARKER_MODULATE := Color(1.18, 1.18, 1.18, 1)
 const DEFAULT_MARKER_MODULATE := Color(1, 1, 1, 1)
+const FIRST_PATH_FOCUS_MARKER_MODULATE := Color(0.92, 1.0, 0.96, 0.7)
 const FOCUSED_Z_INDEX := 20
+const FIRST_PATH_FOCUS_Z_INDEX := 2
+const INTERACTABLE_LABEL_FONT_SIZE := 8
+const FOCUS_LABEL_WIDTH := 96.0
+const FOCUS_LABEL_LINE_HEIGHT := 11.0
+const SILHOUETTE_OUTPOST_CORE := SemanticSilhouette.SILHOUETTE_OUTPOST_CORE
+const SILHOUETTE_BASIC_REACTOR := SemanticSilhouette.SILHOUETTE_BASIC_REACTOR
+const SILHOUETTE_BASIC_STORAGE := SemanticSilhouette.SILHOUETTE_BASIC_STORAGE
+const SILHOUETTE_FIELD_OUTFITTING_STATION := SemanticSilhouette.SILHOUETTE_FIELD_OUTFITTING_STATION
+const SILHOUETTE_POLLUTION_FILTER := SemanticSilhouette.SILHOUETTE_POLLUTION_FILTER
+const SILHOUETTE_CRYSTAL_COLLECTOR := SemanticSilhouette.SILHOUETTE_CRYSTAL_COLLECTOR
+const SILHOUETTE_CORE_WRITE_DEVICE := SemanticSilhouette.SILHOUETTE_CORE_WRITE_DEVICE
 
 @export var definition_id: String = ""
 @export var interaction_type: String = "inspect"
@@ -106,6 +123,7 @@ func setup(display_name: String) -> void:
 	_ensure_visual_nodes()
 	display_name_text = display_name
 	if label != null:
+		_style_label()
 		label.offset_left = label_offset.x
 		label.offset_top = label_offset.y
 		label.offset_right = label_offset.x + label_size.x
@@ -183,6 +201,22 @@ func get_recipe_position() -> int:
 	return recipe_index + 1
 
 
+func get_semantic_silhouette_id() -> String:
+	return SemanticSilhouette.get_silhouette_id(definition_id)
+
+
+func get_semantic_silhouette_part_ids() -> Array[String]:
+	return SemanticSilhouette.get_part_ids(get_semantic_silhouette_id())
+
+
+func get_semantic_silhouette_part_count() -> int:
+	return get_semantic_silhouette_part_ids().size()
+
+
+func has_semantic_silhouette_part(part_id: String) -> bool:
+	return get_semantic_silhouette_part_ids().has(part_id)
+
+
 func mark_consumed() -> void:
 	if interaction_type == "outpost_core":
 		set_restored_outpost_core_visual()
@@ -203,20 +237,37 @@ func set_interaction_enabled(enabled: bool) -> void:
 	monitoring = enabled
 
 
-func set_focus_visual(focused: bool) -> void:
+func set_focus_visual(focused: bool, compact_first_industrial_path: bool = false) -> void:
+	var should_show_full_focus := focused and not compact_first_industrial_path
 	if label != null:
-		label.visible = focused and visible and not label.text.strip_edges().is_empty()
+		label.visible = should_show_full_focus and visible and not label.text.strip_edges().is_empty()
+		if should_show_full_focus:
+			_layout_focus_label()
 	if focus_ring != null:
-		focus_ring.visible = focused and visible
+		focus_ring.visible = should_show_full_focus and visible
 		if marker != null:
 			var ring_size := marker.size + Vector2(14.0, 14.0)
 			focus_ring.position = marker.position - Vector2(7.0, 7.0)
 			focus_ring.size = ring_size
 	if marker != null:
 		marker.pivot_offset = marker.size * 0.5
-		marker.scale = FOCUSED_MARKER_SCALE if focused else Vector2.ONE
-		marker.modulate = FOCUSED_MARKER_MODULATE if focused else DEFAULT_MARKER_MODULATE
-	z_index = FOCUSED_Z_INDEX if focused else 0
+		marker.scale = FOCUSED_MARKER_SCALE if should_show_full_focus else Vector2.ONE
+		if should_show_full_focus:
+			marker.modulate = FOCUSED_MARKER_MODULATE
+		elif focused and compact_first_industrial_path:
+			marker.modulate = FIRST_PATH_FOCUS_MARKER_MODULATE
+		else:
+			marker.modulate = DEFAULT_MARKER_MODULATE
+	if should_show_full_focus:
+		z_index = FOCUSED_Z_INDEX
+	elif focused and compact_first_industrial_path:
+		z_index = FIRST_PATH_FOCUS_Z_INDEX
+	else:
+		z_index = 0
+
+
+func _draw() -> void:
+	SemanticSilhouette.draw(self, get_semantic_silhouette_id())
 
 
 func set_default_visual() -> void:
@@ -243,6 +294,13 @@ func set_processed_visual() -> bool:
 		monitoring = false
 		_apply_marker_style(GATHERED_CRYSTAL_SIZE, GATHERED_CRYSTAL_COLOR)
 		_set_label_text("%s\n已采集" % display_name_text, 2)
+		return true
+	if interaction_type == "gather" and definition_id == "map_object.crystal_collector_output":
+		consumed = true
+		visible = true
+		monitoring = false
+		_apply_marker_style(Vector2(30.0, 12.0), GATHERED_CRYSTAL_COLOR)
+		_set_label_text("%s\n空托盘" % display_name_text, 2)
 		return true
 	if interaction_type == "gather" and definition_id == "map_object.field_wreckage":
 		consumed = true
@@ -736,6 +794,9 @@ func set_built_visual(built_definition_id: String) -> void:
 	elif built_definition_id == "building.basic_storage":
 		_apply_marker_style(Vector2(42.0, 26.0), BUILT_STORAGE_COLOR)
 		_set_label_text("基础储存箱\n已接入", 2)
+	elif built_definition_id == "building.crystal_collector_t1":
+		_apply_marker_style(Vector2(46.0, 24.0), BUILT_CRYSTAL_COLLECTOR_COLOR)
+		_set_label_text("晶体采集器\n已上线", 2)
 	elif built_definition_id == "building.field_outfitting_station":
 		_apply_marker_style(Vector2(44.0, 28.0), BUILT_OUTFITTING_COLOR)
 		_set_label_text("出发整备台\n已上线", 2)
@@ -809,16 +870,21 @@ func _apply_marker_style(marker_size: Vector2, color: Color) -> void:
 	if focus_ring != null:
 		focus_ring.position = marker.position - Vector2(7.0, 7.0)
 		focus_ring.size = marker_size + Vector2(14.0, 14.0)
+	queue_redraw()
 
 
 func _get_default_marker_visual() -> Dictionary:
 	match definition_id:
 		"building.outpost_core":
-			return {"size": Vector2(42.0, 42.0), "color": Color(0.34, 0.46, 0.52, 1)}
+			return {"size": Vector2(48.0, 48.0), "color": OUTPOST_CORE_MARKER_COLOR}
 		"building.basic_reactor":
 			return {"size": Vector2(40.0, 30.0), "color": REACTOR_MARKER_COLOR}
 		"building.basic_storage":
 			return {"size": Vector2(38.0, 24.0), "color": STORAGE_MARKER_COLOR}
+		"building.crystal_collector_t1":
+			if interaction_type == "build":
+				return {"size": Vector2(42.0, 22.0), "color": FOUNDATION_SITE_MARKER_COLOR}
+			return {"size": Vector2(44.0, 24.0), "color": CRYSTAL_COLLECTOR_MARKER_COLOR}
 		"building.field_outfitting_station":
 			if interaction_type == "build":
 				return {"size": Vector2(38.0, 24.0), "color": FOUNDATION_SITE_MARKER_COLOR}
@@ -837,6 +903,8 @@ func _get_default_marker_visual() -> Dictionary:
 			return {"size": Vector2(26.0, 30.0), "color": CRYSTAL_MARKER_COLOR}
 		"map_object.rich_crystal_vein":
 			return {"size": Vector2(34.0, 38.0), "color": RICH_CRYSTAL_MARKER_COLOR}
+		"map_object.crystal_collector_output":
+			return {"size": Vector2(32.0, 14.0), "color": CRYSTAL_COLLECTOR_OUTPUT_COLOR}
 		"map_object.field_wreckage":
 			return {"size": Vector2(34.0, 18.0), "color": SALVAGE_MARKER_COLOR}
 		"map_object.anomaly_crystal":
@@ -867,5 +935,25 @@ func _set_label_text(text: String, min_lines: int = 1) -> void:
 	_ensure_visual_nodes()
 	if label == null:
 		return
+	_style_label()
 	label.text = text
 	label.offset_bottom = label_offset.y + label_size.y * maxi(min_lines, 1)
+
+
+func _style_label() -> void:
+	label.add_theme_font_size_override("font_size", INTERACTABLE_LABEL_FONT_SIZE)
+	label.add_theme_color_override("font_color", Color(0.9, 0.96, 0.9, 0.68))
+	label.add_theme_color_override("font_shadow_color", Color(0.02, 0.04, 0.04, 0.58))
+	label.add_theme_constant_override("shadow_offset_x", 1)
+	label.add_theme_constant_override("shadow_offset_y", 1)
+	label.clip_text = true
+
+
+func _layout_focus_label() -> void:
+	if label == null or marker == null:
+		return
+	var line_count := clampi(label.text.split("\n").size(), 1, 2)
+	label.offset_left = marker.position.x + marker.size.x + 8.0
+	label.offset_top = marker.position.y + 1.0
+	label.offset_right = label.offset_left + FOCUS_LABEL_WIDTH
+	label.offset_bottom = label.offset_top + FOCUS_LABEL_LINE_HEIGHT * line_count

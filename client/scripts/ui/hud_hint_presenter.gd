@@ -101,7 +101,7 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			return "采样完成，继续回收异常晶体周边残留点。"
 		"quest.analyze_anomaly_sample":
 			if target_region_id != "region.outpost_platform":
-				return "回到异常晶体周边，回收两处异常残留点。"
+				return "回到异常晶体周边，回收一处异常残留点。"
 			return "回基地使用基础反应器，分析异常样本。"
 		"quest.make_filter_module":
 			if not character_state.inventory.has_ref("item.filter_media", 1):
@@ -110,10 +110,10 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 		"quest.prepare_treatment_supplies":
 			if target_region_id == "region.outpost_platform":
 				return "回基地用基础反应器调制修复凝胶，它是下一段清障战斗补给。"
-			return "确认快捷栏 1 带修复凝胶，前往处理点北缘连续清理两处掠行体。"
+			return "确认快捷栏 1 带修复凝胶，前往处理点北缘清理掠行体。"
 		"quest.expand_treatment_point":
-			if world_state.quest_state.get_objective_progress(quest_id, "clear", "map_object.rough_ground") < 2.0:
-				return "前往处理点北缘，先清理两块粗糙地面，再铺设地基。"
+			if world_state.quest_state.get_objective_progress(quest_id, "clear", "map_object.rough_ground") < 1.0:
+				return "前往处理点北缘，先清理一块粗糙地面，再铺设地基。"
 			return "前往处理点北缘，清理地块、铺设地基并建造过滤器。"
 		"quest.enter_pollution_edge":
 			if not world_state.unlocked_region_ids.has("region.pollution_edge"):
@@ -123,8 +123,8 @@ func format_direction_hint(world_state: WorldState, character_state: CharacterSt
 			if character_state.protection < character_state.max_protection * 0.5:
 				return "防护偏低，按 2 使用抗污染药剂；药剂来自过滤器处理沉积物。"
 			if _has_pollution_vial_ready(world_state, character_state):
-				if _get_pollution_residue_progress(world_state) < 4.0:
-					return "带着抗污染药剂回污染边界补第二批沉积物，并清理路上的受扰敌人。"
+				if _get_pollution_residue_progress(world_state) < 2.0:
+					return "带着抗污染药剂回污染边界补沉积物，并清理路上的受扰敌人。"
 				return "带着抗污染药剂继续深入污染边界，清理受扰敌人并靠近遗迹门前压力点。"
 			return "向东南进入黄色污染边界，采集沉积物并处理药剂。"
 		"quest.defeat_elite_node":
@@ -419,7 +419,7 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "采集晶体簇；遇到掠行体时先用基础攻击处理威胁。"
 		"quest.calibrate_reactor":
 			if target_region_id != "region.outpost_platform":
-				return "外勤残骸提供导电废件；回收两处残骸后回基地加工校准件。"
+				return "外勤残骸提供导电废件；回收一处残骸后回基地加工校准件。"
 			return "靠近基础反应器，切换到反应器校准件配方并等待加工完成。"
 		"quest.bring_back_sample":
 			if world_state.quest_state.get_objective_progress(quest_id, "sample_object", "map_object.anomaly_crystal") <= 0.0:
@@ -427,19 +427,19 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			return "采样已完成，先在周边回收残留物，再回基地加工分析。"
 		"quest.analyze_anomaly_sample":
 			if target_region_id != "region.outpost_platform":
-				return "异常残留物用于校验样本，回收两处后再回基地加工分析。"
+				return "异常残留物用于校验样本，回收一处后再回基地加工分析。"
 			return "靠近基础反应器，切换到异常样本分析配方并等待完成。"
 		"quest.make_filter_module":
 			return "基础反应器负责制造远征产物；过滤模块会降低污染消耗和污染反击压力，让下一次深入更稳。"
 		"quest.prepare_treatment_supplies":
 			if target_region_id == "region.outpost_platform":
 				return "先调制 1 份修复凝胶；它是下一段清障战斗的生命补给。"
-			return "带上修复凝胶，生命偏低时按 1 使用，再清理处理点北缘两处原生掠行体。"
+			return "带上修复凝胶，生命偏低时按 1 使用，再清理处理点北缘原生掠行体。"
 		"quest.expand_treatment_point":
-			if world_state.quest_state.get_objective_progress(quest_id, "clear", "map_object.rough_ground") < 2.0:
-				return "先清理处理点北缘两块粗糙地面；清完后再回基地制造基础地基材料。"
-			if world_state.count_base_structures("building.foundation_t1") < 2:
-				return "污染过滤器不能直接落地，先清理地块并铺设 2 块地基。"
+			if world_state.quest_state.get_objective_progress(quest_id, "clear", "map_object.rough_ground") < 1.0:
+				return "先清理处理点北缘一块粗糙地面；清完后再回基地制造基础地基材料。"
+			if world_state.count_base_structures("building.foundation_t1") < 1:
+				return "污染过滤器不能直接落地，先清理地块并铺设基础地基。"
 			return "地基已满足要求，建造污染过滤器来处理沉积物。"
 		"quest.enter_pollution_edge":
 			if String(character_state.equipment.get("suit_module", "")).is_empty():
@@ -449,8 +449,8 @@ func format_onboarding_hint(world_state: WorldState, character_state: CharacterS
 			if character_state.protection < character_state.max_protection * 0.5:
 				return "防护偏低，先使用抗污染药剂；缺药剂就回污染过滤器处理沉积物。"
 			if _has_pollution_vial_ready(world_state, character_state):
-				if _get_pollution_residue_progress(world_state) < 4.0:
-					return "药剂已准备好；先带它回污染边界补第二批沉积物，再推进遗迹门前压力点。"
+				if _get_pollution_residue_progress(world_state) < 2.0:
+					return "药剂已准备好；先带它回污染边界补沉积物，再推进遗迹门前压力点。"
 				return "抗污染药剂是遗迹门前压力点的防护缓冲，进入深处前确认快捷栏 2 可用。"
 			return "收集污染沉积物，用过滤器处理药剂，再清理受扰敌人。"
 		"quest.defeat_elite_node":

@@ -38,6 +38,27 @@ $checks = @(
         }
     },
     @{
+        Name = "client demo pollution boundary visual"
+        Script = "check-client-demo-pollution-boundary-visual.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
+        Name = "client demo core stabilization visual"
+        Script = "check-client-demo-core-stabilization-visual.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
+        Name = "client demo region industrial value"
+        Script = "check-client-demo-region-industrial-value.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client demo save state contract"
         Script = "check-client-demo-save-state-contract.ps1"
         Parameters = @{
@@ -66,8 +87,64 @@ $checks = @(
         }
     },
     @{
+        Name = "client demo functional scene gameplay density"
+        Script = "check-client-demo-functional-scene-gameplay-density.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
+        Name = "client demo functional transition spatial playability"
+        Script = "check-client-demo-functional-transition-spatial-playability.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
+        Name = "client demo midfield route playability"
+        Script = "check-client-demo-midfield-route-playability.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
+        Name = "client demo wind corridor transition playability"
+        Script = "check-client-demo-wind-corridor-transition-playability.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
+        Name = "client demo core approach handoff playability"
+        Script = "check-client-demo-core-approach-handoff-playability.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
+        Name = "client demo core stabilization run playability"
+        Script = "check-client-demo-core-stabilization-run-playability.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
+        Name = "client demo device panel operation readability"
+        Script = "check-client-demo-device-panel-operation-readability.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client demo field loop payoff"
         Script = "check-client-demo-field-loop-payoff.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
+        Name = "client demo route return and base reentry"
+        Script = "check-client-demo-route-return-and-base-reentry.ps1"
         Parameters = @{
             RepoRoot = $RepoRoot
         }
@@ -101,6 +178,13 @@ $checks = @(
         }
     },
     @{
+        Name = "client demo startup shell"
+        Script = "check-client-demo-startup-shell.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
         Name = "client demo combat evacuation recovery"
         Script = "check-client-demo-combat-evacuation-recovery.ps1"
         Parameters = @{
@@ -110,6 +194,20 @@ $checks = @(
     @{
         Name = "client demo interaction affordance"
         Script = "check-client-demo-interaction-affordance.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
+        Name = "client demo interaction prompt surface decomposition"
+        Script = "check-client-demo-interaction-prompt-surface-decomposition.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
+        Name = "client demo map surface decomposition"
+        Script = "check-client-demo-map-surface-decomposition.ps1"
         Parameters = @{
             RepoRoot = $RepoRoot
         }
@@ -187,6 +285,41 @@ $checks = @(
     @{
         Name = "client demo supply pressure pacing"
         Script = "check-client-demo-supply-pressure-pacing.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
+        Name = "client demo combat readability"
+        Script = "check-client-demo-combat-readability.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
+        Name = "client demo core scene playable space"
+        Script = "check-client-demo-core-scene-playable-space.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
+        Name = "client demo industrial module task rhythm"
+        Script = "check-client-demo-industrial-module-task-rhythm.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
+        Name = "client demo initial art identity"
+        Script = "check-client-demo-initial-art-identity.ps1"
+        Parameters = @{
+            RepoRoot = $RepoRoot
+        }
+    },
+    @{
+        Name = "client demo field task differentiation"
+        Script = "check-client-demo-field-task-differentiation.ps1"
         Parameters = @{
             RepoRoot = $RepoRoot
         }

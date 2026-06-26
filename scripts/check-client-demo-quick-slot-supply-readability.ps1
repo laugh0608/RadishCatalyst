@@ -22,11 +22,26 @@ $requiredTextByFile = @{
         "防护低可用"
     )
     "client/scripts/ui/hud_status_presenter.gd" = @(
-        "DemoQuickSlotSupplyReadabilityFormatter.format_quick_slot_summary"
+        "DemoQuickSlotSupplyReadabilityFormatter.format_quick_slot_summary",
+        "format_player_quick_supply_text"
+    )
+    "client/scripts/ui/prototype_hud.gd" = @(
+        "quick_supply_panel",
+        "quick_supply_label",
+        "action_summary_panel",
+        "action_summary_label",
+        "format_player_quick_supply_text"
+    )
+    "client/scenes/ui/PrototypeHud.tscn" = @(
+        "QuickSupplyPanel",
+        "QuickSupplyLabel",
+        "ActionSummaryPanel",
+        "ActionSummaryLabel"
     )
     "client/scripts/checks/demo_quick_slot_supply_readability_check.gd" = @(
         "Demo quick slot supply readability checks passed.",
         "_check_default_quick_slot_readability",
+        "_check_default_hud_action_summary_surface",
         "_check_pressure_quick_slot_readability",
         "_check_supply_success_updates_readability",
         "_check_supply_failure_keeps_recovery_route"

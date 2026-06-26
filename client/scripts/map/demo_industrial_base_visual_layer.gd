@@ -1,0 +1,1306 @@
+extends Node2D
+class_name DemoIndustrialBaseVisualLayer
+
+const GENERATED_PREFIX := "DemoIndustrialBaseVisual"
+const FirstScreenArtPass := preload("res://scripts/map/demo_base_first_screen_art_pass.gd")
+const ROLE_DECK := "deck"
+const ROLE_DEVICE := "device"
+const ROLE_FLOW := "flow"
+const ROLE_STATUS := "status"
+const ROLE_CHAIN := "chain"
+const ROLE_SPACE := "space"
+
+const DECK_LINE := Color(0.38, 0.64, 0.66, 0.34)
+const DECK_FILL := Color(0.08, 0.16, 0.17, 0.18)
+const WALKWAY_FILL := Color(0.11, 0.24, 0.22, 0.22)
+const WALKWAY_EDGE := Color(0.58, 0.86, 0.78, 0.36)
+const DEVICE_ZONE_FILL := Color(0.76, 0.62, 0.24, 0.12)
+const DEVICE_ZONE_EDGE := Color(0.84, 0.76, 0.34, 0.36)
+const STAGING_FILL := Color(0.2, 0.34, 0.32, 0.2)
+const STAGING_EDGE := Color(0.72, 0.92, 0.84, 0.44)
+const DEVICE_FRAME := Color(0.72, 0.92, 0.88, 0.86)
+const DEVICE_DIM := Color(0.36, 0.5, 0.48, 0.38)
+const DEVICE_PANEL := Color(0.28, 0.46, 0.44, 0.48)
+const DEVICE_DARK := Color(0.04, 0.08, 0.085, 0.72)
+const FLOOR_GRATE := Color(0.36, 0.54, 0.52, 0.2)
+const MAINTENANCE_LINE := Color(0.76, 0.72, 0.34, 0.48)
+const CORE_LIGHT := Color(0.28, 0.92, 0.96, 0.88)
+const REACTOR_LIGHT := Color(0.98, 0.58, 0.2, 0.9)
+const STORAGE_LIGHT := Color(0.58, 0.9, 0.68, 0.84)
+const OUTFITTING_LIGHT := Color(0.94, 0.76, 0.28, 0.9)
+const FILTER_LIGHT := Color(0.86, 0.92, 0.26, 0.82)
+const PIPE_CRYSTAL := Color(0.3, 0.84, 0.94, 0.76)
+const PIPE_PRODUCT := Color(0.58, 0.84, 0.52, 0.72)
+const PIPE_OUTFITTING := Color(0.92, 0.72, 0.28, 0.78)
+const PIPE_POLLUTION := Color(0.76, 0.72, 0.26, 0.74)
+const CHAIN_DIM := Color(0.24, 0.32, 0.3, 0.42)
+const CHAIN_READY := Color(0.92, 0.9, 0.42, 0.92)
+const CHAIN_INPUT := Color(0.28, 0.84, 0.96, 0.94)
+const CHAIN_PRODUCT := Color(0.64, 0.92, 0.56, 0.9)
+const CHAIN_WINDOW := Color(1.0, 0.62, 0.24, 0.86)
+const CHAIN_POLLUTION := Color(0.82, 0.78, 0.25, 0.88)
+const CHAIN_SOLVENT := Color(0.36, 0.74, 0.86, 0.84)
+const CHAIN_SLURRY := Color(0.78, 0.42, 0.18, 0.82)
+const CHAIN_VIAL := Color(0.72, 0.92, 0.38, 0.9)
+const CHAIN_CORE_PREP := Color(0.74, 0.58, 0.9, 0.88)
+const CHAIN_ROUTE_DARK := Color(0.02, 0.04, 0.035, 0.72)
+const STARTUP_CONTEXT_FALLOFF := Color(0.006, 0.016, 0.016, 0.3)
+const STARTUP_DECK_FILL := Color(0.042, 0.088, 0.082, 0.54)
+const STARTUP_CORE_FOCUS := Color(0.62, 1.0, 0.9, 0.78)
+const STARTUP_WORKSITE_EDGE := Color(0.46, 0.76, 0.7, 0.22)
+const STARTUP_DISABLED_LINE := Color(0.3, 0.38, 0.34, 0.16)
+const STARTUP_DISABLED_FILL := Color(0.05, 0.07, 0.055, 0.18)
+const STARTUP_WARNING := Color(1.0, 0.56, 0.22, 0.58)
+const STARTUP_RECOVERY_SIGNAL := Color(0.72, 1.0, 0.7, 0.62)
+const STARTUP_FLOOR_PLATE := Color(0.08, 0.15, 0.14, 0.42)
+const STARTUP_FLOOR_EDGE := Color(0.5, 0.72, 0.66, 0.16)
+const STARTUP_MACHINE_SHADOW := Color(0.004, 0.012, 0.012, 0.46)
+const STARTUP_PIPE_COLD := Color(0.36, 0.48, 0.43, 0.2)
+
+const DEVICE_ANCHORS := {
+	"device.outpost_core": "Interactables/OutpostCore",
+	"device.basic_reactor": "Interactables/BasicReactor",
+	"device.basic_storage": "Interactables/BasicStorageBuildSite",
+	"device.field_outfitting_station": "Interactables/FieldOutfittingStation",
+	"device.pollution_filter": "Interactables/PollutionFilter"
+}
+
+const LEGACY_DEVICE_BLOCKS := [
+	"BaseCorePad",
+	"BaseCoreObjectMarker",
+	"BaseCoreToReactorFlowLine",
+	"BaseReactorPad",
+	"BaseReactorObjectMarker",
+	"BaseReactorToExitFlowLine",
+	"BaseOutfittingPad",
+	"BaseOutfittingObjectMarker",
+	"BaseOutfittingToExitFlowLine",
+	"BaseStoragePad",
+	"BaseStorageObjectMarker",
+	"BaseSlurryBufferPad",
+	"BaseSlurryBufferObjectMarker",
+	"BaseSlurryBufferFlowLine",
+	"BaseSupplyPad",
+	"BaseSupplyObjectRail",
+	"BaseSupplyReturnFlowLine"
+]
+
+const LEGACY_BASE_PANELS := [
+	"BaseUpperServiceApron",
+	"BaseCentralWorkYard",
+	"BaseLowerLogisticsYard",
+	"BaseDepartureCauseway",
+	"BaseExitLane"
+]
+
+const STARTUP_MUTED_INTERACTABLE_PATHS := [
+	"Interactables/BasicReactor",
+	"Interactables/BasicStorageBuildSite",
+	"Interactables/FieldOutfittingStationBuildSite",
+	"Interactables/FieldOutfittingStation",
+	"Interactables/SlurryBufferTankBuildSite",
+	"Interactables/OutpostDepartureGate",
+	"Interactables/OutpostLogisticsRouteSign",
+	"Interactables/PhaseRelayPad",
+	"Interactables/FrontlineActionConsole",
+	"Interactables/BaseSupplyChoiceConsole",
+	"Interactables/BaseSurveyChoiceConsole",
+	"Interactables/BasePressureChoiceConsole"
+]
+
+const STARTUP_CONTEXT_LAYER_ALPHAS := [
+	{"path": "OpeningSceneLayer", "alpha": 0.0},
+	{"path": "SceneArtFoundationLayer", "alpha": 0.0},
+	{"path": "NonCoreSceneIdentityLayer", "alpha": 0.0},
+	{"path": "FunctionalTransitionSpatialPlayabilityLayer", "alpha": 0.0},
+	{"path": "MidfieldRoutePlayabilityLayer", "alpha": 0.0},
+	{"path": "DemoCrystalResourceVisualLayer", "alpha": 0.0},
+	{"path": "DemoPollutionBoundaryVisualLayer", "alpha": 0.0},
+	{"path": "DemoCoreStabilizationVisualLayer", "alpha": 0.0},
+	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.0},
+	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.0},
+	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.0},
+	{"path": "DemoFirstIndustrialPathVisualLayer", "alpha": 0.0},
+	{"path": "DemoRoutePresentationLayer", "alpha": 0.0},
+	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.32}
+]
+
+const STARTUP_HIDDEN_CONTEXT_PATHS := [
+	"OpeningSceneLayer",
+	"SceneArtFoundationLayer",
+	"NonCoreSceneIdentityLayer",
+	"FunctionalTransitionSpatialPlayabilityLayer",
+	"MidfieldRoutePlayabilityLayer",
+	"WindCorridorTransitionPlayabilityLayer",
+	"CoreApproachHandoffLayer",
+	"CoreStabilizationRunLayer",
+	"PrototypeVisualPriorityLayer",
+	"DemoRegionIndustrialValueLayer",
+	"DemoFirstIndustrialPathVisualLayer",
+	"DemoRoutePresentationLayer",
+	"RegionBase",
+	"RegionCrystal",
+	"RegionPollution",
+	"RegionRuinOuterRing",
+	"RegionDeepRuin",
+	"RegionInnerPhaseWell",
+	"RegionPhaseWellSink",
+	"RegionPhaseWellChamber",
+	"RegionPhaseWellLoom",
+	"RegionPhaseWellFrame",
+	"RegionPhaseWellTether",
+	"RegionDemoStabilizationCore",
+	"MainRouteSpine",
+	"BaseToCrystalRouteBand",
+	"CrystalToPollutionRouteBand",
+	"RegionBoundaryCrystal",
+	"RegionBoundaryPollution",
+	"RegionBoundaryRuin"
+]
+
+const STARTUP_CONTEXT_RECT_ALPHAS := [
+	{"path": "RegionBase", "alpha": 0.006},
+	{"path": "RegionCrystal", "alpha": 0.0},
+	{"path": "RegionPollution", "alpha": 0.0},
+	{"path": "RegionRuinOuterRing", "alpha": 0.0},
+	{"path": "RegionDeepRuin", "alpha": 0.0},
+	{"path": "RegionInnerPhaseWell", "alpha": 0.0},
+	{"path": "RegionPhaseWellSink", "alpha": 0.0},
+	{"path": "RegionPhaseWellChamber", "alpha": 0.0},
+	{"path": "RegionPhaseWellLoom", "alpha": 0.0},
+	{"path": "RegionPhaseWellFrame", "alpha": 0.0},
+	{"path": "RegionPhaseWellTether", "alpha": 0.0},
+	{"path": "RegionDemoStabilizationCore", "alpha": 0.0},
+	{"path": "MainRouteSpine", "alpha": 0.0},
+	{"path": "BaseToCrystalRouteBand", "alpha": 0.0},
+	{"path": "CrystalToPollutionRouteBand", "alpha": 0.0},
+	{"path": "RegionBoundaryCrystal", "alpha": 0.0},
+	{"path": "RegionBoundaryPollution", "alpha": 0.0},
+	{"path": "RegionBoundaryRuin", "alpha": 0.0},
+	{"path": "DemoRoutePresentationLayer/DemoRouteBaseBand", "alpha": 0.0},
+	{"path": "DemoRoutePresentationLayer/DemoRouteCrystalBand", "alpha": 0.0},
+	{"path": "DemoRoutePresentationLayer/DemoRoutePollutionBand", "alpha": 0.0},
+	{"path": "DemoRoutePresentationLayer/DemoRouteRuinBand", "alpha": 0.0},
+	{"path": "CurrentObjectiveGuidanceLayer/CurrentObjectiveRouteHorizontal", "alpha": 0.0},
+	{"path": "CurrentObjectiveGuidanceLayer/CurrentObjectiveRouteVertical", "alpha": 0.0}
+]
+
+var applied_device_count := 0
+var applied_flow_count := 0
+var applied_chain_state_count := 0
+var device_shape_ids: Array[String] = []
+var flow_shape_ids: Array[String] = []
+var chain_shape_ids: Array[String] = []
+var detail_shape_ids: Array[String] = []
+var playable_space_shape_ids: Array[String] = []
+var pollution_chain_shape_ids: Array[String] = []
+var startup_restore_shape_ids: Array[String] = []
+var chain_state: Dictionary = {}
+var pollution_chain_state: Dictionary = {}
+var applied_pollution_chain_state_count := 0
+var outpost_core_restored := false
+var startup_context_mute_count := 0
+var startup_context_layer_original_modulates: Dictionary = {}
+var startup_context_rect_original_colors: Dictionary = {}
+var startup_context_original_visibility: Dictionary = {}
+
+
+func _ready() -> void:
+	apply_visuals()
+
+
+func apply_visuals() -> void:
+	_clear_generated_nodes()
+	_deemphasize_legacy_base_blocks()
+	_mute_device_identity_blocks()
+	_register_device_shapes()
+	_register_device_detail_shapes()
+	_register_playable_space_shapes()
+	_register_flow_shapes()
+	_register_startup_restore_shapes()
+	_tag_device_anchors()
+	_tone_down_core_interactable_markers()
+	_set_startup_context_muted(not outpost_core_restored)
+	queue_redraw()
+
+
+func refresh_chain_state(world_state: WorldState, character_state: CharacterState) -> void:
+	if startup_restore_shape_ids.is_empty():
+		_register_startup_restore_shapes()
+	chain_shape_ids.clear()
+	pollution_chain_shape_ids.clear()
+	applied_chain_state_count = 0
+	applied_pollution_chain_state_count = 0
+	_tone_down_core_interactable_markers()
+	if world_state == null or character_state == null:
+		outpost_core_restored = false
+		chain_state.clear()
+		pollution_chain_state.clear()
+		_set_startup_context_muted(true)
+		queue_redraw()
+		return
+	outpost_core_restored = world_state.quest_state.has_completed_quest("quest.restore_outpost")
+	_set_startup_context_muted(not outpost_core_restored)
+	_mute_startup_side_interactables(not outpost_core_restored)
+	_mute_startup_non_core_interactables(not outpost_core_restored)
+	if not outpost_core_restored:
+		chain_state.clear()
+		pollution_chain_state.clear()
+		queue_redraw()
+		return
+	var inventory := character_state.inventory
+	var reactor_state := _get_base_structure_for_definition(world_state, "building.basic_reactor")
+	var active_recipe_id := String(reactor_state.get("active_recipe_id", ""))
+	var reactor_active := String(reactor_state.get("status", "")) == "in_progress"
+	chain_state = {
+		"crystal_ready": inventory.has_ref("item.crystal_ore", 3),
+		"salvage_ready": inventory.has_ref("item.salvage_scrap", 1),
+		"parts_ready": inventory.has_ref("item.basic_parts", 1),
+		"gel_ready": inventory.has_ref("item.repair_gel", 1),
+		"station_ready": world_state.has_base_structure_definition("building.field_outfitting_station"),
+		"reactor_active": reactor_active,
+		"active_recipe_id": active_recipe_id
+	}
+	_register_chain_shape("chain.crystal_input.%s" % _state_suffix(bool(chain_state["crystal_ready"])))
+	_register_chain_shape("chain.salvage_input.%s" % _state_suffix(bool(chain_state["salvage_ready"])))
+	_register_chain_shape("chain.reactor_work_window.%s" % _state_suffix(reactor_active))
+	_register_chain_shape("chain.storage_parts_slot.%s" % _state_suffix(bool(chain_state["parts_ready"])))
+	_register_chain_shape("chain.storage_repair_gel_slot.%s" % _state_suffix(bool(chain_state["gel_ready"])))
+	_register_chain_shape("chain.outfitting_supply_state.%s" % _state_suffix(bool(chain_state["station_ready"]) and bool(chain_state["gel_ready"])))
+	_register_chain_shape("chain.input_crystal_bin.%s" % _state_suffix(bool(chain_state["crystal_ready"])))
+	_register_chain_shape("chain.input_salvage_bin.%s" % _state_suffix(bool(chain_state["salvage_ready"])))
+	_register_chain_shape("chain.reactor_feed_lane.%s" % _state_suffix(bool(chain_state["crystal_ready"]) or bool(chain_state["salvage_ready"])))
+	_register_chain_shape("chain.reactor_process_core.%s" % _state_suffix(reactor_active))
+	_register_chain_shape("chain.parts_output_tray.%s" % _state_suffix(bool(chain_state["parts_ready"])))
+	_register_chain_shape("chain.repair_gel_cylinder.%s" % _state_suffix(bool(chain_state["gel_ready"])))
+	_register_chain_shape("chain.outfitting_launch_bus.%s" % _state_suffix(bool(chain_state["station_ready"]) and bool(chain_state["gel_ready"])))
+	_refresh_pollution_chain_visual_state(world_state, character_state)
+	queue_redraw()
+
+
+func refresh_pollution_chain_state(world_state: WorldState, character_state: CharacterState) -> void:
+	pollution_chain_shape_ids.clear()
+	applied_pollution_chain_state_count = 0
+	_refresh_pollution_chain_visual_state(world_state, character_state)
+	queue_redraw()
+
+
+func get_generated_shape_count() -> int:
+	return device_shape_ids.size() + flow_shape_ids.size()
+
+
+func has_device(device_id: String) -> bool:
+	for shape_id in device_shape_ids:
+		if shape_id.begins_with(device_id):
+			return true
+	return false
+
+
+func get_flow_count() -> int:
+	return applied_flow_count
+
+
+func get_detail_shape_count() -> int:
+	return detail_shape_ids.size()
+
+
+func has_detail_shape(shape_id: String) -> bool:
+	return detail_shape_ids.has(shape_id)
+
+
+func get_playable_space_shape_count() -> int:
+	return playable_space_shape_ids.size()
+
+
+func has_playable_space_shape(shape_id: String) -> bool:
+	return playable_space_shape_ids.has(shape_id)
+
+
+func get_chain_state_shape_count() -> int:
+	return applied_chain_state_count
+
+
+func has_chain_shape(shape_id: String) -> bool:
+	return chain_shape_ids.has(shape_id)
+
+
+func get_pollution_chain_state_shape_count() -> int:
+	return applied_pollution_chain_state_count
+
+
+func has_pollution_chain_shape(shape_id: String) -> bool:
+	return pollution_chain_shape_ids.has(shape_id)
+
+
+func is_startup_restore_focus_active() -> bool:
+	return not outpost_core_restored
+
+
+func get_startup_restore_shape_count() -> int:
+	return startup_restore_shape_ids.size()
+
+
+func get_startup_context_mute_count() -> int:
+	return startup_context_mute_count
+
+
+func has_startup_restore_shape(shape_id: String) -> bool:
+	return startup_restore_shape_ids.has(shape_id)
+
+
+func _draw() -> void:
+	if not outpost_core_restored:
+		_draw_startup_restore_focus()
+		return
+	_draw_base_deck()
+	FirstScreenArtPass.draw_floor_and_shadows(self)
+	_draw_playable_space_layout()
+	_draw_base_detail()
+	_draw_flow_network()
+	_draw_outpost_core()
+	_draw_basic_reactor()
+	_draw_basic_storage()
+	_draw_field_outfitting_station()
+	FirstScreenArtPass.draw_machine_overlays(self)
+	_draw_departure_gate()
+	_draw_pollution_filter()
+	_draw_chain_state()
+	_draw_pollution_chain_state()
+	_draw_operation_relation_overlay()
+	FirstScreenArtPass.draw_operation_feedback(self)
+
+
+func _draw_startup_restore_focus() -> void:
+	_draw_startup_local_context_buffer()
+	_draw_startup_outpost_core()
+	_draw_startup_player_stand()
+	_draw_startup_disabled_device_silhouettes()
+	_draw_startup_low_power_alarm()
+	_draw_startup_disabled_supply_bus()
+	_draw_startup_restore_cable()
+
+
+func _draw_startup_local_context_buffer() -> void:
+	_draw_startup_floor_backdrop()
+	_draw_startup_floor_plates()
+	_draw_startup_damage_marks()
+	_draw_startup_edge_falloff()
+
+
+func _draw_startup_floor_backdrop() -> void:
+	var hangar_poly := PackedVector2Array([
+		Vector2(-382.0, -238.0),
+		Vector2(-86.0, -246.0),
+		Vector2(-18.0, -174.0),
+		Vector2(-24.0, 96.0),
+		Vector2(-120.0, 154.0),
+		Vector2(-366.0, 128.0)
+	])
+	draw_colored_polygon(hangar_poly, Color(0.02, 0.046, 0.043, 0.62))
+	draw_polyline(hangar_poly, Color(STARTUP_WORKSITE_EDGE.r, STARTUP_WORKSITE_EDGE.g, STARTUP_WORKSITE_EDGE.b, 0.1), 1.2, true)
+	draw_rect(Rect2(Vector2(-392.0, -270.0), Vector2(392.0, 36.0)), STARTUP_CONTEXT_FALLOFF, true)
+	draw_rect(Rect2(Vector2(-386.0, 128.0), Vector2(342.0, 42.0)), STARTUP_CONTEXT_FALLOFF, true)
+	draw_rect(Rect2(Vector2(-42.0, -206.0), Vector2(78.0, 292.0)), Color(0.004, 0.014, 0.014, 0.24), true)
+
+
+func _draw_startup_floor_plates() -> void:
+	for plate in [
+		Rect2(Vector2(-342.0, -168.0), Vector2(94.0, 76.0)),
+		Rect2(Vector2(-246.0, -166.0), Vector2(86.0, 82.0)),
+		Rect2(Vector2(-332.0, -86.0), Vector2(112.0, 68.0)),
+		Rect2(Vector2(-218.0, -82.0), Vector2(116.0, 68.0)),
+		Rect2(Vector2(-292.0, -12.0), Vector2(116.0, 72.0)),
+		Rect2(Vector2(-174.0, -10.0), Vector2(88.0, 54.0))
+	]:
+		draw_rect(plate, STARTUP_FLOOR_PLATE, true)
+		draw_rect(plate, STARTUP_FLOOR_EDGE, false, 1.0, true)
+		_draw_startup_plate_seams(plate)
+	_draw_contact_shadow_rect(Vector2(-300.0, -82.0), Vector2(104.0, 34.0))
+	_draw_contact_shadow_rect(Vector2(-232.0, -46.0), Vector2(84.0, 24.0))
+	_draw_contact_shadow_rect(Vector2(-166.0, -70.0), Vector2(74.0, 28.0))
+
+
+func _draw_startup_plate_seams(plate: Rect2) -> void:
+	for x in range(int(plate.position.x) + 22, int(plate.end.x), 32):
+		draw_line(
+			Vector2(float(x), plate.position.y + 6.0),
+			Vector2(float(x) + 5.0, plate.end.y - 6.0),
+			Color(STARTUP_FLOOR_EDGE.r, STARTUP_FLOOR_EDGE.g, STARTUP_FLOOR_EDGE.b, 0.08),
+			1.0,
+			true
+		)
+	for y in range(int(plate.position.y) + 24, int(plate.end.y), 28):
+		draw_line(
+			Vector2(plate.position.x + 7.0, float(y)),
+			Vector2(plate.end.x - 7.0, float(y)),
+			Color(STARTUP_FLOOR_EDGE.r, STARTUP_FLOOR_EDGE.g, STARTUP_FLOOR_EDGE.b, 0.07),
+			1.0,
+			true
+		)
+
+
+func _draw_startup_damage_marks() -> void:
+	for segment in [
+		[Vector2(-340.0, -134.0), Vector2(-308.0, -122.0)],
+		[Vector2(-286.0, -142.0), Vector2(-246.0, -130.0)],
+		[Vector2(-222.0, -116.0), Vector2(-192.0, -96.0)],
+		[Vector2(-198.0, -8.0), Vector2(-164.0, 10.0)],
+		[Vector2(-306.0, 42.0), Vector2(-268.0, 52.0)]
+	]:
+		draw_line(segment[0], segment[1], STARTUP_PIPE_COLD, 2.0, true)
+	for point in [Vector2(-308.0, -122.0), Vector2(-222.0, -116.0), Vector2(-164.0, 10.0)]:
+		draw_line(point + Vector2(-5.0, -5.0), point + Vector2(5.0, 5.0), Color(STARTUP_WARNING.r, STARTUP_WARNING.g, STARTUP_WARNING.b, 0.28), 1.2, true)
+		draw_line(point + Vector2(-5.0, 5.0), point + Vector2(5.0, -5.0), Color(STARTUP_WARNING.r, STARTUP_WARNING.g, STARTUP_WARNING.b, 0.28), 1.2, true)
+
+
+func _draw_startup_edge_falloff() -> void:
+	draw_rect(Rect2(Vector2(-420.0, -300.0), Vector2(86.0, 520.0)), Color(0.002, 0.01, 0.01, 0.2), true)
+	draw_rect(Rect2(Vector2(-18.0, -260.0), Vector2(96.0, 420.0)), Color(0.002, 0.01, 0.01, 0.28), true)
+	draw_rect(Rect2(Vector2(-380.0, -250.0), Vector2(328.0, 22.0)), Color(0.004, 0.012, 0.012, 0.28), true)
+
+
+func _draw_contact_shadow_rect(center: Vector2, size: Vector2) -> void:
+	var rect := Rect2(center - size * 0.5, size)
+	draw_rect(rect, STARTUP_MACHINE_SHADOW, true)
+	draw_rect(rect.grow(-5.0), Color(STARTUP_MACHINE_SHADOW.r, STARTUP_MACHINE_SHADOW.g, STARTUP_MACHINE_SHADOW.b, 0.2), true)
+
+
+func _draw_startup_outpost_core() -> void:
+	var center := Vector2(-300.0, -92.0)
+	draw_rect(Rect2(center + Vector2(-44.0, 28.0), Vector2(88.0, 16.0)), Color(0.014, 0.036, 0.034, 0.86), true)
+	draw_rect(Rect2(center + Vector2(-44.0, 28.0), Vector2(88.0, 16.0)), Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.32), false, 1.3, true)
+	draw_circle(center, 34.0, Color(0.032, 0.112, 0.106, 0.82))
+	draw_circle(center, 24.0, Color(0.08, 0.24, 0.2, 0.64))
+	draw_arc(center, 44.0, PI * 0.08, PI * 1.9, 42, Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.42), 3.0, true)
+	draw_arc(center, 28.0, 0.0, TAU, 40, Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.72), 2.8, true)
+	draw_arc(center, 15.0, 0.0, TAU, 28, Color(0.86, 1.0, 0.92, 0.78), 2.0, true)
+	for point in [
+		center + Vector2(-38.0, -10.0),
+		center + Vector2(30.0, -10.0),
+		center + Vector2(-22.0, 28.0),
+		center + Vector2(22.0, 28.0)
+	]:
+		draw_rect(Rect2(point + Vector2(-4.0, -6.0), Vector2(8.0, 12.0)), Color(0.16, 0.28, 0.25, 0.7), true)
+	draw_rect(Rect2(center + Vector2(-10.0, -52.0), Vector2(20.0, 32.0)), Color(0.78, 1.0, 0.92, 0.72), true)
+	draw_rect(Rect2(center + Vector2(-50.0, 14.0), Vector2(36.0, 22.0)), Color(0.1, 0.2, 0.18, 0.78), true)
+	draw_rect(Rect2(center + Vector2(-50.0, 14.0), Vector2(36.0, 22.0)), Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.42), false, 1.4, true)
+
+
+func _draw_startup_player_stand() -> void:
+	var stand := Rect2(Vector2(-276.0, -70.0), Vector2(72.0, 46.0))
+	draw_rect(stand, Color(0.08, 0.17, 0.16, 0.56), true)
+	draw_rect(stand, Color(0.82, 1.0, 0.92, 0.24), false, 1.4, true)
+	draw_line(Vector2(-264.0, -48.0), Vector2(-214.0, -48.0), Color(0.82, 1.0, 0.92, 0.18), 2.0, true)
+	for x in [-258.0, -238.0, -218.0]:
+		draw_line(Vector2(x, -64.0), Vector2(x + 8.0, -30.0), Color(0.82, 1.0, 0.92, 0.12), 1.0, true)
+
+
+func _draw_startup_disabled_device_silhouettes() -> void:
+	for rect in [
+		Rect2(Vector2(-190.0, -112.0), Vector2(58.0, 88.0)),
+		Rect2(Vector2(-292.0, -10.0), Vector2(80.0, 56.0)),
+		Rect2(Vector2(-120.0, -82.0), Vector2(72.0, 42.0))
+	]:
+		draw_rect(rect, STARTUP_DISABLED_FILL, true)
+		draw_rect(rect, STARTUP_DISABLED_LINE, false, 1.2, true)
+	for point in [Vector2(-166.0, -66.0), Vector2(-250.0, 18.0), Vector2(-74.0, -58.0)]:
+		draw_circle(point, 4.0, STARTUP_DISABLED_LINE)
+
+
+func _draw_startup_restore_cable() -> void:
+	_draw_pipe([Vector2(-276.0, -92.0), Vector2(-238.0, -84.0), Vector2(-214.0, -54.0)], Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.28), 4.0)
+	draw_circle(Vector2(-214.0, -54.0), 5.0, Color(STARTUP_CORE_FOCUS.r, STARTUP_CORE_FOCUS.g, STARTUP_CORE_FOCUS.b, 0.36))
+
+
+func _draw_startup_low_power_alarm() -> void:
+	var alarm_panel := Rect2(Vector2(-330.0, -188.0), Vector2(118.0, 18.0))
+	draw_rect(alarm_panel, Color(0.18, 0.08, 0.04, 0.34), true)
+	draw_rect(alarm_panel, STARTUP_WARNING, false, 1.1, true)
+	for index in range(4):
+		var x := alarm_panel.position.x + 10.0 + float(index) * 24.0
+		var alpha := 0.54 if index == 0 else 0.22
+		draw_circle(Vector2(x, alarm_panel.position.y + 9.0), 3.8, Color(STARTUP_WARNING.r, STARTUP_WARNING.g, STARTUP_WARNING.b, alpha))
+	for y in [-168.0, -154.0, -140.0]:
+		draw_line(Vector2(-318.0, y), Vector2(-284.0, y + 8.0), Color(STARTUP_WARNING.r, STARTUP_WARNING.g, STARTUP_WARNING.b, 0.18), 1.0, true)
+
+
+func _draw_startup_disabled_supply_bus() -> void:
+	_draw_pipe(
+		[Vector2(-272.0, -92.0), Vector2(-238.0, -118.0), Vector2(-190.0, -118.0)],
+		Color(STARTUP_DISABLED_LINE.r, STARTUP_DISABLED_LINE.g, STARTUP_DISABLED_LINE.b, 0.34),
+		2.6
+	)
+	_draw_pipe(
+		[Vector2(-272.0, -68.0), Vector2(-246.0, -18.0), Vector2(-212.0, 18.0)],
+		Color(STARTUP_DISABLED_LINE.r, STARTUP_DISABLED_LINE.g, STARTUP_DISABLED_LINE.b, 0.28),
+		2.4
+	)
+	for point in [Vector2(-232.0, -118.0), Vector2(-214.0, -118.0), Vector2(-244.0, -20.0)]:
+		draw_line(point + Vector2(-5.0, -5.0), point + Vector2(5.0, 5.0), STARTUP_WARNING, 1.2, true)
+		draw_line(point + Vector2(-5.0, 5.0), point + Vector2(5.0, -5.0), STARTUP_WARNING, 1.2, true)
+
+
+func _draw_base_deck() -> void:
+	var base_rect := Rect2(Vector2(-336.0, -258.0), Vector2(282.0, 500.0))
+	draw_rect(base_rect, DECK_FILL, true)
+	draw_rect(base_rect, DECK_LINE, false, 2.0, true)
+	for y in [-156.0, -24.0, 92.0, 184.0]:
+		draw_line(Vector2(-326.0, y), Vector2(-64.0, y), Color(0.28, 0.48, 0.5, 0.24), 1.5, true)
+	draw_line(Vector2(-70.0, -196.0), Vector2(-70.0, 172.0), Color(0.42, 0.62, 0.58, 0.42), 3.0, true)
+
+
+func _draw_base_detail() -> void:
+	for x in [-314.0, -282.0, -250.0, -218.0, -186.0, -154.0, -122.0, -90.0]:
+		draw_line(Vector2(x, -244.0), Vector2(x, 226.0), FLOOR_GRATE, 1.0, true)
+	for y in [-226.0, -194.0, -120.0, 44.0, 132.0, 220.0]:
+		draw_line(Vector2(-326.0, y), Vector2(-82.0, y), FLOOR_GRATE, 1.0, true)
+	_draw_hazard_stripe(Vector2(-88.0, -210.0), Vector2(-88.0, 180.0))
+	_draw_hazard_stripe(Vector2(-72.0, -210.0), Vector2(-72.0, 180.0))
+	draw_rect(Rect2(Vector2(-318.0, -138.0), Vector2(42.0, 18.0)), DEVICE_PANEL, true)
+	draw_rect(Rect2(Vector2(-304.0, 116.0), Vector2(78.0, 16.0)), DEVICE_PANEL, true)
+	_draw_restored_base_narrative_marks()
+
+
+func _draw_restored_base_narrative_marks() -> void:
+	_draw_pipe(
+		[Vector2(-318.0, -92.0), Vector2(-284.0, -138.0), Vector2(-212.0, -138.0), Vector2(-166.0, -112.0)],
+		Color(STARTUP_RECOVERY_SIGNAL.r, STARTUP_RECOVERY_SIGNAL.g, STARTUP_RECOVERY_SIGNAL.b, 0.34),
+		2.2
+	)
+	for rect in [
+		Rect2(Vector2(-328.0, -154.0), Vector2(22.0, 12.0)),
+		Rect2(Vector2(-292.0, -154.0), Vector2(28.0, 12.0)),
+		Rect2(Vector2(-252.0, -154.0), Vector2(24.0, 12.0))
+	]:
+		draw_rect(rect, Color(0.04, 0.1, 0.08, 0.42), true)
+		draw_rect(rect, STARTUP_RECOVERY_SIGNAL, false, 0.9, true)
+	draw_circle(Vector2(-166.0, -112.0), 4.6, Color(STARTUP_RECOVERY_SIGNAL.r, STARTUP_RECOVERY_SIGNAL.g, STARTUP_RECOVERY_SIGNAL.b, 0.58))
+	draw_rect(Rect2(Vector2(-296.0, 78.0), Vector2(86.0, 12.0)), Color(0.05, 0.09, 0.07, 0.34), true)
+	for x in [-286.0, -268.0, -250.0, -232.0]:
+		draw_line(Vector2(x, 80.0), Vector2(x + 8.0, 88.0), Color(STORAGE_LIGHT.r, STORAGE_LIGHT.g, STORAGE_LIGHT.b, 0.28), 1.0, true)
+
+
+func _draw_playable_space_layout() -> void:
+	_draw_walkway(Rect2(Vector2(-322.0, -134.0), Vector2(210.0, 54.0)), Vector2.RIGHT)
+	_draw_walkway(Rect2(Vector2(-290.0, -62.0), Vector2(178.0, 52.0)), Vector2.RIGHT)
+	_draw_walkway(Rect2(Vector2(-292.0, 42.0), Vector2(236.0, 54.0)), Vector2.RIGHT)
+	_draw_walkway(Rect2(Vector2(-92.0, -144.0), Vector2(48.0, 128.0)), Vector2.DOWN)
+	_draw_device_zone(Rect2(Vector2(-330.0, -130.0), Vector2(62.0, 78.0)))
+	_draw_device_zone(Rect2(Vector2(-214.0, -130.0), Vector2(102.0, 116.0)))
+	_draw_device_zone(Rect2(Vector2(-306.0, -34.0), Vector2(110.0, 106.0)))
+	_draw_device_zone(Rect2(Vector2(-128.0, -96.0), Vector2(96.0, 104.0)))
+	_draw_device_zone(Rect2(Vector2(232.0, -154.0), Vector2(126.0, 96.0)))
+	_draw_staging_pad(Vector2(-250.0, -48.0))
+	_draw_departure_staging_lane()
+
+
+func _draw_walkway(rect: Rect2, flow_direction: Vector2) -> void:
+	draw_rect(rect, WALKWAY_FILL, true)
+	draw_rect(rect, WALKWAY_EDGE, false, 1.4, true)
+	if absf(flow_direction.x) >= absf(flow_direction.y):
+		var y := rect.position.y + rect.size.y * 0.5
+		draw_line(Vector2(rect.position.x + 8.0, y), Vector2(rect.end.x - 8.0, y), Color(WALKWAY_EDGE.r, WALKWAY_EDGE.g, WALKWAY_EDGE.b, 0.24), 1.2, true)
+		for x in range(int(rect.position.x) + 18, int(rect.end.x), 28):
+			draw_line(Vector2(float(x), rect.position.y + 8.0), Vector2(float(x) + 10.0, rect.end.y - 8.0), Color(WALKWAY_EDGE.r, WALKWAY_EDGE.g, WALKWAY_EDGE.b, 0.18), 1.0, true)
+	else:
+		var x := rect.position.x + rect.size.x * 0.5
+		draw_line(Vector2(x, rect.position.y + 8.0), Vector2(x, rect.end.y - 8.0), Color(WALKWAY_EDGE.r, WALKWAY_EDGE.g, WALKWAY_EDGE.b, 0.24), 1.2, true)
+		for y in range(int(rect.position.y) + 18, int(rect.end.y), 28):
+			draw_line(Vector2(rect.position.x + 8.0, float(y)), Vector2(rect.end.x - 8.0, float(y) + 10.0), Color(WALKWAY_EDGE.r, WALKWAY_EDGE.g, WALKWAY_EDGE.b, 0.18), 1.0, true)
+
+
+func _draw_device_zone(rect: Rect2) -> void:
+	draw_rect(rect, DEVICE_ZONE_FILL, true)
+	draw_rect(rect, DEVICE_ZONE_EDGE, false, 1.2, true)
+	for x in range(int(rect.position.x) + 10, int(rect.end.x), 18):
+		draw_line(Vector2(float(x), rect.position.y + 4.0), Vector2(float(x) + 8.0, rect.position.y + 16.0), Color(DEVICE_ZONE_EDGE.r, DEVICE_ZONE_EDGE.g, DEVICE_ZONE_EDGE.b, 0.24), 1.0, true)
+		draw_line(Vector2(float(x), rect.end.y - 16.0), Vector2(float(x) + 8.0, rect.end.y - 4.0), Color(DEVICE_ZONE_EDGE.r, DEVICE_ZONE_EDGE.g, DEVICE_ZONE_EDGE.b, 0.2), 1.0, true)
+
+
+func _draw_staging_pad(center: Vector2) -> void:
+	var pad := Rect2(center + Vector2(-28.0, -22.0), Vector2(56.0, 44.0))
+	draw_rect(pad, STAGING_FILL, true)
+	draw_rect(pad, STAGING_EDGE, false, 1.6, true)
+	draw_arc(center, 20.0, PI * 0.12, PI * 1.9, 28, Color(STAGING_EDGE.r, STAGING_EDGE.g, STAGING_EDGE.b, 0.42), 1.4, true)
+	draw_line(center + Vector2(-14.0, 14.0), center + Vector2(16.0, -14.0), Color(STAGING_EDGE.r, STAGING_EDGE.g, STAGING_EDGE.b, 0.2), 1.0, true)
+
+
+func _draw_departure_staging_lane() -> void:
+	var lane := Rect2(Vector2(-82.0, -126.0), Vector2(34.0, 84.0))
+	draw_rect(lane, Color(0.08, 0.18, 0.16, 0.18), true)
+	draw_rect(lane, STAGING_EDGE, false, 1.4, true)
+	for y in [-112.0, -88.0, -64.0]:
+		draw_line(Vector2(-76.0, y), Vector2(-54.0, y), Color(0.86, 0.78, 0.36, 0.38), 1.8, true)
+
+
+func _draw_flow_network() -> void:
+	_draw_pipe([Vector2(-278.0, -92.0), Vector2(-206.0, -92.0)], PIPE_CRYSTAL, 4.0)
+	_draw_pipe([Vector2(-166.0, -28.0), Vector2(-166.0, 18.0), Vector2(-250.0, 18.0)], PIPE_PRODUCT, 4.0)
+	_draw_pipe([Vector2(-144.0, -54.0), Vector2(-112.0, -54.0), Vector2(-44.0, -44.0)], PIPE_OUTFITTING, 4.0)
+	_draw_pipe([Vector2(-282.0, 66.0), Vector2(-118.0, 66.0)], PIPE_PRODUCT, 3.0)
+	_draw_pipe([Vector2(238.0, -116.0), Vector2(278.0, -116.0), Vector2(340.0, -104.0)], PIPE_POLLUTION, 4.0)
+	for point in [Vector2(-278.0, -92.0), Vector2(-206.0, -92.0), Vector2(-250.0, 18.0), Vector2(-44.0, -44.0)]:
+		draw_circle(point, 4.0, Color(0.86, 0.96, 0.9, 0.66))
+
+
+func _draw_outpost_core() -> void:
+	var center := Vector2(-300.0, -92.0)
+	draw_circle(center, 22.0, Color(0.08, 0.26, 0.28, 0.5))
+	draw_arc(center, 34.0, PI * 0.15, PI * 1.85, 36, Color(0.56, 0.92, 0.9, 0.34), 3.0, true)
+	draw_arc(center, 26.0, 0.0, TAU, 36, CORE_LIGHT, 2.8, true)
+	draw_arc(center, 14.0, 0.0, TAU, 28, Color(0.7, 1.0, 0.96, 0.72), 2.0, true)
+	draw_line(center + Vector2(0.0, -34.0), center + Vector2(0.0, -18.0), CORE_LIGHT, 3.0, true)
+	draw_line(center + Vector2(-12.0, -32.0), center + Vector2(12.0, -32.0), CORE_LIGHT, 2.0, true)
+	draw_rect(Rect2(center + Vector2(-44.0, 18.0), Vector2(28.0, 18.0)), DEVICE_PANEL, true)
+	draw_rect(Rect2(center + Vector2(-44.0, 18.0), Vector2(28.0, 18.0)), CORE_LIGHT, false, 1.4, true)
+	draw_line(center + Vector2(26.0, 0.0), center + Vector2(52.0, 0.0), PIPE_CRYSTAL, 4.0, true)
+
+
+func _draw_basic_reactor() -> void:
+	var body := Rect2(Vector2(-190.0, -108.0), Vector2(54.0, 82.0))
+	draw_rect(body, Color(0.16, 0.13, 0.08, 0.48), true)
+	draw_rect(body, REACTOR_LIGHT, false, 2.5, true)
+	draw_rect(Rect2(Vector2(-184.0, -102.0), Vector2(42.0, 70.0)), DEVICE_DARK, true)
+	draw_rect(Rect2(Vector2(-178.0, -94.0), Vector2(28.0, 56.0)), Color(0.96, 0.58, 0.22, 0.48), true)
+	draw_rect(Rect2(Vector2(-178.0, -94.0), Vector2(28.0, 56.0)), Color(1.0, 0.78, 0.34, 0.82), false, 2.0, true)
+	draw_rect(Rect2(Vector2(-212.0, -88.0), Vector2(16.0, 42.0)), DEVICE_FRAME, false, 2.0, true)
+	draw_rect(Rect2(Vector2(-130.0, -82.0), Vector2(14.0, 36.0)), DEVICE_FRAME, false, 2.0, true)
+	draw_line(Vector2(-176.0, -124.0), Vector2(-158.0, -124.0), Color(0.76, 0.62, 0.36, 0.8), 5.0, true)
+	for y in [-88.0, -76.0, -64.0, -52.0]:
+		draw_line(Vector2(-176.0, y), Vector2(-150.0, y + 8.0), Color(1.0, 0.78, 0.34, 0.34), 1.3, true)
+	draw_rect(Rect2(Vector2(-208.0, -118.0), Vector2(28.0, 14.0)), Color(0.3, 0.72, 0.84, 0.42), true)
+	draw_rect(Rect2(Vector2(-142.0, -40.0), Vector2(28.0, 14.0)), Color(0.64, 0.9, 0.56, 0.42), true)
+
+
+func _draw_basic_storage() -> void:
+	var body := Rect2(Vector2(-288.0, -20.0), Vector2(72.0, 72.0))
+	draw_rect(body, Color(0.1, 0.22, 0.18, 0.42), true)
+	draw_rect(body, STORAGE_LIGHT, false, 2.4, true)
+	draw_line(Vector2(-282.0, 4.0), Vector2(-222.0, 4.0), STORAGE_LIGHT, 1.8, true)
+	draw_line(Vector2(-282.0, 28.0), Vector2(-222.0, 28.0), STORAGE_LIGHT, 1.8, true)
+	draw_rect(Rect2(Vector2(-276.0, -12.0), Vector2(20.0, 14.0)), Color(0.54, 0.86, 0.66, 0.54), true)
+	draw_rect(Rect2(Vector2(-252.0, 10.0), Vector2(22.0, 14.0)), Color(0.54, 0.86, 0.66, 0.5), true)
+	draw_rect(Rect2(Vector2(-276.0, 32.0), Vector2(18.0, 10.0)), Color(0.9, 0.76, 0.34, 0.48), true)
+	draw_circle(Vector2(-232.0, 40.0), 5.0, Color(0.86, 0.96, 0.68, 0.56))
+	draw_line(Vector2(-216.0, 12.0), Vector2(-196.0, 12.0), PIPE_PRODUCT, 3.0, true)
+
+
+func _draw_field_outfitting_station() -> void:
+	var left := Vector2(-116.0, -82.0)
+	var right := Vector2(-44.0, -82.0)
+	draw_line(left, right, OUTFITTING_LIGHT, 3.0, true)
+	draw_line(left, Vector2(-116.0, -8.0), OUTFITTING_LIGHT, 3.0, true)
+	draw_line(right, Vector2(-44.0, -8.0), OUTFITTING_LIGHT, 3.0, true)
+	draw_rect(Rect2(Vector2(-108.0, -56.0), Vector2(56.0, 24.0)), Color(0.34, 0.28, 0.14, 0.44), true)
+	draw_rect(Rect2(Vector2(-108.0, -56.0), Vector2(56.0, 24.0)), OUTFITTING_LIGHT, false, 2.0, true)
+	draw_rect(Rect2(Vector2(-102.0, -78.0), Vector2(14.0, 20.0)), DEVICE_PANEL, true)
+	draw_rect(Rect2(Vector2(-78.0, -78.0), Vector2(14.0, 20.0)), DEVICE_PANEL, true)
+	draw_line(Vector2(-102.0, -22.0), Vector2(-58.0, -22.0), Color(0.72, 0.62, 0.36, 0.58), 3.0, true)
+	draw_circle(Vector2(-94.0, -68.0), 4.5, OUTFITTING_LIGHT)
+	draw_circle(Vector2(-66.0, -68.0), 4.5, Color(0.72, 0.9, 1.0, 0.76))
+
+
+func _draw_departure_gate() -> void:
+	var gate := Rect2(Vector2(-44.0, -202.0), Vector2(18.0, 380.0))
+	draw_rect(gate, Color(0.08, 0.18, 0.16, 0.32), true)
+	draw_rect(gate, Color(0.62, 0.84, 0.66, 0.58), false, 2.0, true)
+	for y in [-164.0, -98.0, -32.0, 34.0, 100.0, 156.0]:
+		draw_line(Vector2(-42.0, y), Vector2(-28.0, y), Color(0.82, 0.76, 0.38, 0.52), 2.0, true)
+	draw_line(Vector2(-54.0, -44.0), Vector2(-30.0, -44.0), PIPE_OUTFITTING, 4.0, true)
+
+
+func _draw_pollution_filter() -> void:
+	var body := Rect2(Vector2(276.0, -138.0), Vector2(40.0, 58.0))
+	draw_rect(body, Color(0.24, 0.3, 0.1, 0.46), true)
+	draw_rect(body, FILTER_LIGHT, false, 2.0, true)
+	draw_line(Vector2(286.0, -128.0), Vector2(286.0, -88.0), FILTER_LIGHT, 4.0, true)
+	draw_line(Vector2(306.0, -128.0), Vector2(306.0, -88.0), FILTER_LIGHT, 4.0, true)
+	draw_circle(Vector2(326.0, -132.0), 5.0, REACTOR_LIGHT)
+
+
+func _draw_chain_state() -> void:
+	if chain_state.is_empty():
+		return
+	var crystal_ready := bool(chain_state.get("crystal_ready", false))
+	var salvage_ready := bool(chain_state.get("salvage_ready", false))
+	var reactor_active := bool(chain_state.get("reactor_active", false))
+	var parts_ready := bool(chain_state.get("parts_ready", false))
+	var gel_ready := bool(chain_state.get("gel_ready", false))
+	var outfitting_ready := bool(chain_state.get("station_ready", false)) and gel_ready
+	_draw_chain_input_slots(crystal_ready, salvage_ready)
+	_draw_chain_flow_band([Vector2(-214.0, -112.0), Vector2(-196.0, -112.0), Vector2(-184.0, -92.0)], crystal_ready, CHAIN_INPUT, 5.0)
+	_draw_chain_flow_band([Vector2(-214.0, -84.0), Vector2(-196.0, -84.0), Vector2(-184.0, -72.0)], salvage_ready, CHAIN_READY, 4.0)
+	_draw_reactor_process_core(reactor_active)
+	_draw_chain_flow_band([Vector2(-148.0, -38.0), Vector2(-170.0, 10.0), Vector2(-222.0, 18.0)], parts_ready or gel_ready, CHAIN_PRODUCT, 5.0)
+	_draw_storage_outputs(parts_ready, gel_ready)
+	_draw_chain_flow_band([Vector2(-220.0, 54.0), Vector2(-128.0, 54.0), Vector2(-74.0, -12.0), Vector2(-44.0, -40.0)], outfitting_ready, CHAIN_READY, 4.0)
+	_draw_outfitting_supply_state(outfitting_ready)
+	_draw_status_pip(Vector2(-224.0, -108.0), crystal_ready, CHAIN_INPUT)
+	_draw_status_pip(Vector2(-224.0, -92.0), salvage_ready, CHAIN_READY)
+	_draw_status_pip(Vector2(-166.0, -66.0), reactor_active, _reactor_state_color())
+	_draw_status_pip(Vector2(-276.0, 58.0), parts_ready, CHAIN_PRODUCT)
+	_draw_status_pip(Vector2(-244.0, 58.0), gel_ready, CHAIN_READY)
+	_draw_status_pip(Vector2(-80.0, -20.0), outfitting_ready, CHAIN_READY)
+
+
+func _draw_chain_input_slots(crystal_ready: bool, salvage_ready: bool) -> void:
+	var crystal_slot := Rect2(Vector2(-228.0, -124.0), Vector2(28.0, 18.0))
+	var salvage_slot := Rect2(Vector2(-228.0, -94.0), Vector2(28.0, 18.0))
+	_draw_chain_slot(crystal_slot, crystal_ready, CHAIN_INPUT)
+	_draw_chain_slot(salvage_slot, salvage_ready, CHAIN_READY)
+	draw_line(Vector2(-220.0, -120.0), Vector2(-208.0, -110.0), _state_color(CHAIN_INPUT, crystal_ready, 0.78, 0.18), 2.0, true)
+	draw_line(Vector2(-216.0, -90.0), Vector2(-204.0, -82.0), _state_color(CHAIN_READY, salvage_ready, 0.72, 0.18), 2.0, true)
+	draw_rect(Rect2(Vector2(-242.0, -116.0), Vector2(10.0, 8.0)), _state_color(CHAIN_INPUT, crystal_ready, 0.52, 0.14), true)
+	draw_rect(Rect2(Vector2(-242.0, -88.0), Vector2(10.0, 8.0)), _state_color(CHAIN_READY, salvage_ready, 0.52, 0.14), true)
+
+
+func _draw_reactor_process_core(is_active: bool) -> void:
+	var color := _reactor_state_color()
+	var window := Rect2(Vector2(-176.0, -88.0), Vector2(24.0, 44.0))
+	draw_rect(window.grow(4.0), _state_color(color, is_active, 0.18, 0.06), true)
+	draw_rect(window, _state_color(CHAIN_WINDOW, is_active, 0.52, 0.16), true)
+	draw_rect(window, _state_color(color, is_active, 0.86, 0.26), false, 2.0, true)
+	for y in [-80.0, -68.0, -56.0]:
+		draw_line(Vector2(-172.0, y), Vector2(-156.0, y + 7.0), _state_color(color, is_active, 0.74, 0.2), 1.8, true)
+	draw_arc(Vector2(-164.0, -66.0), 19.0, PI * 0.1, PI * 1.65, 32, _state_color(color, is_active, 0.44, 0.12), 2.0, true)
+
+
+func _draw_storage_outputs(parts_ready: bool, gel_ready: bool) -> void:
+	var parts_tray := Rect2(Vector2(-282.0, 48.0), Vector2(24.0, 16.0))
+	var gel_tube := Rect2(Vector2(-250.0, 46.0), Vector2(16.0, 22.0))
+	_draw_chain_slot(parts_tray, parts_ready, CHAIN_PRODUCT)
+	draw_rect(Rect2(Vector2(-276.0, 52.0), Vector2(6.0, 6.0)), _state_color(CHAIN_PRODUCT, parts_ready, 0.84, 0.2), true)
+	draw_rect(Rect2(Vector2(-268.0, 52.0), Vector2(6.0, 6.0)), _state_color(CHAIN_PRODUCT, parts_ready, 0.72, 0.18), true)
+	draw_rect(gel_tube, _state_color(CHAIN_READY, gel_ready, 0.22, 0.08), true)
+	draw_rect(gel_tube, _state_color(CHAIN_READY, gel_ready, 0.84, 0.22), false, 1.6, true)
+	draw_line(gel_tube.position + Vector2(3.0, 5.0), gel_tube.position + Vector2(13.0, 5.0), _state_color(CHAIN_READY, gel_ready, 0.86, 0.16), 2.0, true)
+	draw_line(gel_tube.position + Vector2(3.0, 15.0), gel_tube.position + Vector2(13.0, 15.0), _state_color(CHAIN_READY, gel_ready, 0.66, 0.12), 2.0, true)
+
+
+func _draw_outfitting_supply_state(is_ready: bool) -> void:
+	var color := _state_color(CHAIN_READY, is_ready, 0.86, 0.18)
+	draw_rect(Rect2(Vector2(-98.0, -18.0), Vector2(36.0, 12.0)), _state_color(CHAIN_READY, is_ready, 0.28, 0.08), true)
+	draw_rect(Rect2(Vector2(-98.0, -18.0), Vector2(36.0, 12.0)), color, false, 1.6, true)
+	for x in [-92.0, -80.0, -68.0]:
+		draw_line(Vector2(x, -18.0), Vector2(x + 7.0, -6.0), color, 1.4, true)
+	draw_line(Vector2(-46.0, -40.0), Vector2(-30.0, -40.0), color, 3.0, true)
+
+
+func _draw_chain_slot(rect: Rect2, is_ready: bool, color: Color) -> void:
+	draw_rect(rect, Color(0.02, 0.04, 0.035, 0.56), true)
+	draw_rect(rect, _state_color(color, is_ready, 0.26, 0.08), true)
+	draw_rect(rect, _state_color(color, is_ready, 0.86, 0.22), false, 1.5, true)
+
+
+func _draw_chain_flow_band(points: Array[Vector2], is_ready: bool, color: Color, width: float) -> void:
+	draw_polyline(PackedVector2Array(points), CHAIN_ROUTE_DARK, width + 3.0, true)
+	draw_polyline(PackedVector2Array(points), _state_color(color, is_ready, 0.68, 0.14), width, true)
+	for point in points:
+		draw_circle(point, width * 0.55, _state_color(color, is_ready, 0.74, 0.14))
+
+
+func _refresh_pollution_chain_visual_state(world_state: WorldState, character_state: CharacterState) -> void:
+	if world_state == null or character_state == null:
+		pollution_chain_state.clear()
+		return
+	var inventory := character_state.inventory
+	if not _has_pollution_chain_context(world_state, inventory):
+		pollution_chain_state.clear()
+		return
+	var filter_state := _get_base_structure_for_definition(world_state, "building.pollution_filter")
+	var reactor_state := _get_base_structure_for_definition(world_state, "building.basic_reactor")
+	var filter_active := (
+		String(filter_state.get("status", "")) == "in_progress"
+		and String(filter_state.get("active_recipe_id", "")) == "recipe.cleanse_residue"
+	)
+	var reclaim_active := (
+		String(reactor_state.get("status", "")) == "in_progress"
+		and String(reactor_state.get("active_recipe_id", "")) == "recipe.reclaim_basic_parts"
+	)
+	var core_prep_active := (
+		String(reactor_state.get("status", "")) == "in_progress"
+		and String(reactor_state.get("active_recipe_id", "")) == "recipe.core_stabilization_buffer"
+	)
+	var residue_ready := inventory.has_ref("item.polluted_residue", 2)
+	var solvent_ready := inventory.has_ref("fluid.basic_solvent", 1.0)
+	var vial_ready := inventory.has_ref("item.resistance_vial_t1", 1)
+	var slurry_ready := inventory.has_ref("fluid.polluted_slurry", 1.0)
+	var core_prep_ready := (
+		inventory.has_ref("item.repair_gel", 1)
+		and inventory.has_ref("item.resistance_vial_t1", 1)
+		and inventory.has_ref("fluid.polluted_slurry", 1.0)
+		and inventory.has_ref("item.basic_parts", 2)
+	)
+	pollution_chain_state = {
+		"residue_ready": residue_ready,
+		"solvent_ready": solvent_ready,
+		"filter_ready": world_state.has_base_structure_definition("building.pollution_filter") and residue_ready and solvent_ready,
+		"filter_active": filter_active,
+		"vial_ready": vial_ready,
+		"slurry_ready": slurry_ready,
+		"slurry_buffer_ready": world_state.has_base_structure_definition("building.slurry_buffer_tank"),
+		"recycle_ready": slurry_ready and world_state.has_base_structure_definition("building.basic_reactor"),
+		"reclaim_active": reclaim_active,
+		"core_prep_ready": core_prep_ready,
+		"core_prep_active": core_prep_active
+	}
+	_register_pollution_chain_shape("pollution_chain.residue_input_slot.%s" % _state_suffix(residue_ready))
+	_register_pollution_chain_shape("pollution_chain.solvent_input_slot.%s" % _state_suffix(solvent_ready))
+	_register_pollution_chain_shape("pollution_chain.filter_process_window.%s" % _state_suffix(filter_active))
+	_register_pollution_chain_shape("pollution_chain.vial_output_slot.%s" % _state_suffix(vial_ready))
+	_register_pollution_chain_shape("pollution_chain.slurry_byproduct_slot.%s" % _state_suffix(slurry_ready))
+	_register_pollution_chain_shape("pollution_chain.vial_to_outfitting_route.%s" % _state_suffix(vial_ready or filter_active))
+	_register_pollution_chain_shape("pollution_chain.slurry_return_route.%s" % _state_suffix(slurry_ready or filter_active))
+	_register_pollution_chain_shape("pollution_chain.slurry_recycle_route.%s" % _state_suffix(bool(pollution_chain_state["recycle_ready"]) or reclaim_active))
+	_register_pollution_chain_shape("pollution_chain.core_prep_route.%s" % _state_suffix(core_prep_ready or core_prep_active))
+
+
+func _draw_pollution_chain_state() -> void:
+	if pollution_chain_state.is_empty():
+		return
+	var residue_ready := bool(pollution_chain_state.get("residue_ready", false))
+	var solvent_ready := bool(pollution_chain_state.get("solvent_ready", false))
+	var filter_ready := bool(pollution_chain_state.get("filter_ready", false))
+	var filter_active := bool(pollution_chain_state.get("filter_active", false))
+	var vial_ready := bool(pollution_chain_state.get("vial_ready", false))
+	var slurry_ready := bool(pollution_chain_state.get("slurry_ready", false))
+	var slurry_buffer_ready := bool(pollution_chain_state.get("slurry_buffer_ready", false))
+	var recycle_ready := bool(pollution_chain_state.get("recycle_ready", false))
+	var reclaim_active := bool(pollution_chain_state.get("reclaim_active", false))
+	var core_prep_ready := bool(pollution_chain_state.get("core_prep_ready", false))
+	var core_prep_active := bool(pollution_chain_state.get("core_prep_active", false))
+	_draw_pollution_input_slots(residue_ready, solvent_ready)
+	_draw_chain_flow_band([Vector2(258.0, 34.0), Vector2(278.0, -18.0), Vector2(288.0, -84.0)], residue_ready or filter_ready or filter_active, CHAIN_POLLUTION, 4.0)
+	_draw_chain_flow_band([Vector2(-250.0, 18.0), Vector2(-88.0, 18.0), Vector2(160.0, -58.0), Vector2(288.0, -104.0)], solvent_ready, CHAIN_SOLVENT, 3.2)
+	_draw_filter_process_window(filter_ready, filter_active)
+	_draw_pollution_outputs(vial_ready, slurry_ready)
+	_draw_chain_flow_band([Vector2(334.0, -124.0), Vector2(222.0, -108.0), Vector2(106.0, -84.0), Vector2(-44.0, -44.0)], vial_ready or filter_active, CHAIN_VIAL, 4.0)
+	_draw_chain_flow_band([Vector2(334.0, -96.0), Vector2(240.0, 44.0), Vector2(72.0, 98.0), Vector2(-130.0, 120.0)], slurry_ready or filter_active, CHAIN_SLURRY, 3.8)
+	_draw_pollution_slurry_buffer_state(slurry_ready, slurry_buffer_ready)
+	_draw_chain_flow_band([Vector2(-130.0, 120.0), Vector2(-166.0, 42.0), Vector2(-166.0, -26.0)], recycle_ready or reclaim_active, CHAIN_PRODUCT, 3.6)
+	_draw_chain_flow_band([Vector2(-130.0, 120.0), Vector2(-98.0, 78.0), Vector2(-74.0, -12.0), Vector2(-44.0, -40.0)], core_prep_ready or core_prep_active, CHAIN_CORE_PREP, 3.6)
+	_draw_status_pip(Vector2(256.0, -102.0), residue_ready, CHAIN_POLLUTION)
+	_draw_status_pip(Vector2(256.0, -78.0), solvent_ready, CHAIN_SOLVENT)
+	_draw_status_pip(Vector2(300.0, -110.0), filter_active, FILTER_LIGHT)
+	_draw_status_pip(Vector2(348.0, -124.0), vial_ready, CHAIN_VIAL)
+	_draw_status_pip(Vector2(348.0, -96.0), slurry_ready, CHAIN_SLURRY)
+	_draw_status_pip(Vector2(-130.0, 120.0), slurry_ready, CHAIN_SLURRY)
+	_draw_status_pip(Vector2(-166.0, -26.0), recycle_ready or reclaim_active, CHAIN_PRODUCT)
+	_draw_status_pip(Vector2(-52.0, -40.0), core_prep_ready or core_prep_active, CHAIN_CORE_PREP)
+
+
+func _draw_operation_relation_overlay() -> void:
+	_draw_relation_track([Vector2(-300.0, -92.0), Vector2(-238.0, -92.0), Vector2(-184.0, -92.0)], CORE_LIGHT)
+	_draw_relation_track([Vector2(-148.0, -38.0), Vector2(-170.0, 10.0), Vector2(-250.0, 18.0)], _product_relation_color())
+	_draw_relation_track([Vector2(-250.0, 54.0), Vector2(-128.0, 54.0), Vector2(-74.0, -14.0)], OUTFITTING_LIGHT)
+	_draw_relation_track([Vector2(334.0, -124.0), Vector2(222.0, -108.0), Vector2(106.0, -84.0), Vector2(-74.0, -14.0)], CHAIN_VIAL)
+	_draw_relation_track([Vector2(334.0, -96.0), Vector2(240.0, 44.0), Vector2(72.0, 98.0), Vector2(-130.0, 120.0), Vector2(-166.0, -26.0)], CHAIN_SLURRY)
+	_draw_relation_track([Vector2(-130.0, 120.0), Vector2(-98.0, 78.0), Vector2(-74.0, -14.0), Vector2(-44.0, -40.0)], CHAIN_CORE_PREP)
+	for port in [
+		{"position": Vector2(-300.0, -92.0), "color": CORE_LIGHT},
+		{"position": Vector2(-184.0, -92.0), "color": REACTOR_LIGHT},
+		{"position": Vector2(-250.0, 18.0), "color": STORAGE_LIGHT},
+		{"position": Vector2(-74.0, -14.0), "color": OUTFITTING_LIGHT},
+		{"position": Vector2(334.0, -124.0), "color": CHAIN_VIAL},
+		{"position": Vector2(334.0, -96.0), "color": CHAIN_SLURRY},
+		{"position": Vector2(-130.0, 120.0), "color": CHAIN_SLURRY}
+	]:
+		var position: Vector2 = port["position"]
+		var color: Color = port["color"]
+		_draw_relation_port(position, color)
+
+
+func _draw_relation_track(points: Array[Vector2], color: Color) -> void:
+	draw_polyline(PackedVector2Array(points), Color(0.01, 0.024, 0.022, 0.68), 6.0, true)
+	draw_polyline(PackedVector2Array(points), Color(color.r, color.g, color.b, 0.2), 2.0, true)
+	for index in range(points.size() - 1):
+		var from := points[index]
+		var to := points[index + 1]
+		if from.distance_to(to) < 36.0:
+			continue
+		var direction := (to - from).normalized()
+		var normal := Vector2(-direction.y, direction.x)
+		var center := from.lerp(to, 0.58)
+		draw_line(center - direction * 5.0 - normal * 3.0, center + direction * 4.0, Color(color.r, color.g, color.b, 0.34), 1.2, true)
+		draw_line(center - direction * 5.0 + normal * 3.0, center + direction * 4.0, Color(color.r, color.g, color.b, 0.34), 1.2, true)
+
+
+func _draw_relation_port(position: Vector2, color: Color) -> void:
+	draw_circle(position, 7.0, Color(color.r, color.g, color.b, 0.12))
+	draw_arc(position, 10.0, 0.0, TAU, 22, Color(color.r, color.g, color.b, 0.28), 1.0, true)
+	draw_rect(Rect2(position + Vector2(-3.5, -3.5), Vector2(7.0, 7.0)), Color(color.r, color.g, color.b, 0.22), true)
+
+
+func _product_relation_color() -> Color:
+	return Color(PIPE_PRODUCT.r, PIPE_PRODUCT.g, PIPE_PRODUCT.b, 0.78)
+
+
+func _draw_pollution_input_slots(residue_ready: bool, solvent_ready: bool) -> void:
+	var residue_slot := Rect2(Vector2(244.0, -112.0), Vector2(28.0, 18.0))
+	var solvent_slot := Rect2(Vector2(244.0, -88.0), Vector2(28.0, 18.0))
+	_draw_chain_slot(residue_slot, residue_ready, CHAIN_POLLUTION)
+	_draw_chain_slot(solvent_slot, solvent_ready, CHAIN_SOLVENT)
+	draw_circle(Vector2(252.0, -103.0), 3.2, _state_color(CHAIN_POLLUTION, residue_ready, 0.84, 0.16))
+	draw_circle(Vector2(264.0, -103.0), 3.2, _state_color(CHAIN_POLLUTION, residue_ready, 0.66, 0.14))
+	draw_line(Vector2(250.0, -80.0), Vector2(266.0, -80.0), _state_color(CHAIN_SOLVENT, solvent_ready, 0.86, 0.16), 2.2, true)
+	draw_line(Vector2(258.0, -86.0), Vector2(258.0, -74.0), _state_color(CHAIN_SOLVENT, solvent_ready, 0.7, 0.12), 2.0, true)
+
+
+func _draw_filter_process_window(filter_ready: bool, filter_active: bool) -> void:
+	var process_color := FILTER_LIGHT if filter_active else CHAIN_POLLUTION
+	var window := Rect2(Vector2(286.0, -130.0), Vector2(24.0, 44.0))
+	draw_rect(window.grow(4.0), _state_color(process_color, filter_ready or filter_active, 0.18, 0.06), true)
+	draw_rect(window, _state_color(CHAIN_WINDOW, filter_active, 0.5, 0.12), true)
+	draw_rect(window, _state_color(process_color, filter_active, 0.86, 0.28), false, 1.8, true)
+	for y in [-122.0, -110.0, -98.0]:
+		draw_line(Vector2(290.0, y), Vector2(306.0, y + 6.0), _state_color(process_color, filter_active, 0.72, 0.18), 1.6, true)
+
+
+func _draw_pollution_outputs(vial_ready: bool, slurry_ready: bool) -> void:
+	var vial_slot := Rect2(Vector2(322.0, -132.0), Vector2(26.0, 18.0))
+	var slurry_slot := Rect2(Vector2(322.0, -104.0), Vector2(26.0, 18.0))
+	_draw_chain_slot(vial_slot, vial_ready, CHAIN_VIAL)
+	draw_line(Vector2(328.0, -128.0), Vector2(342.0, -118.0), _state_color(CHAIN_VIAL, vial_ready, 0.82, 0.16), 2.0, true)
+	draw_line(Vector2(342.0, -128.0), Vector2(328.0, -118.0), _state_color(CHAIN_VIAL, vial_ready, 0.64, 0.12), 2.0, true)
+	_draw_chain_slot(slurry_slot, slurry_ready, CHAIN_SLURRY)
+	draw_circle(Vector2(330.0, -95.0), 3.0, _state_color(CHAIN_SLURRY, slurry_ready, 0.86, 0.16))
+	draw_circle(Vector2(340.0, -95.0), 3.0, _state_color(CHAIN_SLURRY, slurry_ready, 0.66, 0.12))
+
+
+func _draw_pollution_slurry_buffer_state(slurry_ready: bool, slurry_buffer_ready: bool) -> void:
+	var tank := Rect2(Vector2(-148.0, 104.0), Vector2(36.0, 32.0))
+	draw_rect(tank, Color(0.05, 0.06, 0.035, 0.5), true)
+	draw_rect(tank, _state_color(CHAIN_SLURRY, slurry_ready or slurry_buffer_ready, 0.52, 0.16), false, 1.8, true)
+	draw_line(Vector2(-140.0, 112.0), Vector2(-120.0, 112.0), _state_color(CHAIN_SLURRY, slurry_ready, 0.7, 0.12), 2.0, true)
+	draw_line(Vector2(-140.0, 124.0), Vector2(-120.0, 124.0), _state_color(CHAIN_SLURRY, slurry_ready, 0.54, 0.1), 2.0, true)
+	draw_circle(Vector2(-112.0, 120.0), 4.0, _state_color(CHAIN_SLURRY, slurry_ready, 0.76, 0.14))
+
+
+func _draw_status_pip(position: Vector2, is_ready: bool, color: Color) -> void:
+	draw_circle(position, 5.0, color if is_ready else CHAIN_DIM)
+	draw_arc(position, 8.0, 0.0, TAU, 20, Color(color.r, color.g, color.b, 0.36), 1.4, true)
+
+
+func _state_color(color: Color, is_ready: bool, ready_alpha: float, idle_alpha: float) -> Color:
+	return Color(color.r, color.g, color.b, ready_alpha if is_ready else idle_alpha)
+
+
+func _draw_pipe(points: Array[Vector2], color: Color, width: float) -> void:
+	draw_polyline(PackedVector2Array(points), Color(0.02, 0.05, 0.05, 0.62), width + 3.0, true)
+	draw_polyline(PackedVector2Array(points), color, width, true)
+
+
+func _draw_hazard_stripe(start: Vector2, end: Vector2) -> void:
+	draw_line(start, end, MAINTENANCE_LINE, 2.0, true)
+	var segment_count := 12
+	for index in range(segment_count):
+		var y := lerpf(start.y, end.y, float(index) / float(segment_count))
+		draw_line(Vector2(start.x - 5.0, y + 10.0), Vector2(start.x + 5.0, y - 2.0), Color(0.92, 0.72, 0.28, 0.34), 1.0, true)
+
+
+func _register_device_shapes() -> void:
+	device_shape_ids = [
+		"device.outpost_core.outline",
+		"device.basic_reactor.outline",
+		"device.basic_storage.outline",
+		"device.field_outfitting_station.outline",
+		"device.pollution_filter.outline"
+	]
+	applied_device_count = device_shape_ids.size()
+
+
+func _register_device_detail_shapes() -> void:
+	detail_shape_ids = [
+		"floor.service_grates",
+		"floor.maintenance_stripes",
+		"device.outpost_core.side_console",
+		"device.basic_reactor.reaction_chamber",
+		"device.basic_reactor.input_output_ports",
+		"device.basic_storage.shelf_bins",
+		"device.field_outfitting_station.module_rack",
+		"device.departure_gate.pressure_door",
+		"flow.material_port_nodes",
+		"operation_relation.core_restore_to_reactor",
+		"operation_relation.reactor_to_storage",
+		"operation_relation.storage_to_outfitting",
+		"operation_relation.filter_to_outfitting",
+		"operation_relation.slurry_to_reactor_reclaim",
+		"operation_relation.slurry_to_core_prep",
+		"operation_relation.device_role_ports",
+		"story.outpost.recovered_power_bus",
+		"story.outpost.reactor_cold_start_marks",
+		"story.outpost.storage_recovery_manifest"
+	]
+	for shape_id in FirstScreenArtPass.get_detail_shape_ids():
+		detail_shape_ids.append(shape_id)
+
+
+func _register_playable_space_shapes() -> void:
+	playable_space_shape_ids = [
+		"space.walkway.core_to_reactor",
+		"space.walkway.storage_to_outfitting",
+		"space.walkway.lower_logistics",
+		"space.walkway.departure_staging_lane",
+		"space.device_zone.outpost_core",
+		"space.device_zone.basic_reactor",
+		"space.device_zone.basic_storage",
+		"space.device_zone.outfitting_station",
+		"space.device_zone.pollution_filter",
+		"space.player_start.staging_pad",
+		"space.safety_threshold.departure_gate"
+	]
+
+
+func _register_flow_shapes() -> void:
+	flow_shape_ids = [
+		"flow.core_to_reactor",
+		"flow.reactor_to_storage",
+		"flow.reactor_to_outfitting",
+		"flow.storage_supply_lane",
+		"flow.pollution_to_filter"
+	]
+	applied_flow_count = flow_shape_ids.size()
+
+
+func _register_chain_shape(shape_id: String) -> void:
+	if chain_shape_ids.has(shape_id):
+		return
+	chain_shape_ids.append(shape_id)
+	applied_chain_state_count = chain_shape_ids.size()
+
+
+func _register_pollution_chain_shape(shape_id: String) -> void:
+	if pollution_chain_shape_ids.has(shape_id):
+		return
+	pollution_chain_shape_ids.append(shape_id)
+	applied_pollution_chain_state_count = pollution_chain_shape_ids.size()
+
+
+func _get_base_structure_for_definition(world_state: WorldState, building_id: String) -> Dictionary:
+	for structure in world_state.base_structures.values():
+		if not structure is Dictionary:
+			continue
+		if String(structure.get("definition_id", "")) == building_id:
+			return structure
+	return {}
+
+
+func _has_pollution_chain_context(world_state: WorldState, inventory: InventoryState) -> bool:
+	if world_state == null or inventory == null:
+		return false
+	if (
+		inventory.has_ref("item.polluted_residue", 1)
+		or inventory.has_ref("item.resistance_vial_t1", 1)
+		or inventory.has_ref("fluid.polluted_slurry", 1.0)
+		or _is_recipe_active(world_state, "building.pollution_filter", "recipe.cleanse_residue")
+		or _is_recipe_active(world_state, "building.basic_reactor", "recipe.reclaim_basic_parts")
+		or _is_recipe_active(world_state, "building.basic_reactor", "recipe.core_stabilization_buffer")
+	):
+		return true
+	for quest_id in [
+		"quest.expand_treatment_point",
+		"quest.enter_pollution_edge",
+		"quest.unlock_ruin_signal",
+		"quest.prepare_demo_stabilization_buffer",
+		"quest.write_demo_stabilization_core"
+	]:
+		if world_state.quest_state.has_active_quest(quest_id):
+			return true
+	return false
+
+
+func _is_recipe_active(world_state: WorldState, building_id: String, recipe_id: String) -> bool:
+	var structure := _get_base_structure_for_definition(world_state, building_id)
+	return (
+		String(structure.get("status", "")) == "in_progress"
+		and String(structure.get("active_recipe_id", "")) == recipe_id
+	)
+
+
+func _state_suffix(is_ready: bool) -> String:
+	return "ready" if is_ready else "idle"
+
+
+func _reactor_state_color() -> Color:
+	return CHAIN_READY if String(chain_state.get("active_recipe_id", "")) == "recipe.repair_gel" else REACTOR_LIGHT
+
+
+func _tag_device_anchors() -> void:
+	for device_id in DEVICE_ANCHORS.keys():
+		var node := _get_map_node(String(DEVICE_ANCHORS[device_id]))
+		if node == null:
+			continue
+		node.set_meta("industrial_base_device_id", device_id)
+		node.set_meta("industrial_base_visual_role", ROLE_DEVICE)
+
+
+func _register_startup_restore_shapes() -> void:
+	startup_restore_shape_ids = [
+		"startup_restore.focus_veil",
+		"startup_restore.core_service_deck",
+		"startup_restore.hangar_floor_plates",
+		"startup_restore.debug_context_hidden",
+		"startup_restore.outpost_core_focus",
+		"startup_restore.core_machine_plinth",
+		"startup_restore.player_stand",
+		"startup_restore.disabled_reactor_silhouette",
+		"startup_restore.disabled_storage_silhouette",
+		"startup_restore.disabled_outfitting_silhouette",
+		"startup_restore.low_power_alarm",
+		"startup_restore.disabled_supply_bus",
+		"startup_restore.restore_cable",
+		"startup_restore.global_planning_layers_muted",
+		"startup_restore.non_core_markers_muted",
+		"startup_restore.local_worksite_buffer",
+		"startup_restore.soft_context_falloff"
+	]
+
+
+func _mute_startup_side_interactables(should_mute: bool) -> void:
+	for path in STARTUP_MUTED_INTERACTABLE_PATHS:
+		var interactable := _get_map_node(String(path)) as PrototypeInteractable
+		if interactable == null:
+			continue
+		var color := interactable.modulate
+		color.a = 0.0 if should_mute else 1.0
+		interactable.modulate = color
+		if should_mute:
+			interactable.set_focus_visual(false)
+
+
+func _mute_startup_non_core_interactables(should_mute: bool) -> void:
+	var interactables := _get_map_node("Interactables")
+	if interactables == null:
+		return
+	for child in interactables.get_children():
+		var interactable := child as PrototypeInteractable
+		if interactable == null or interactable.name == "OutpostCore":
+			continue
+		var color := interactable.modulate
+		color.a = 0.0 if should_mute else 1.0
+		interactable.modulate = color
+		if should_mute:
+			interactable.set_focus_visual(false)
+
+
+func _tone_down_core_interactable_markers() -> void:
+	for path in DEVICE_ANCHORS.values():
+		var interactable := _get_map_node(String(path)) as PrototypeInteractable
+		if interactable == null:
+			continue
+		if interactable.marker != null:
+			interactable.marker.color.a = 0.08
+
+
+func _set_startup_context_muted(should_mute: bool) -> void:
+	if not should_mute:
+		_restore_startup_context_layers()
+		startup_context_mute_count = 0
+		return
+	startup_context_mute_count = 0
+	for path in STARTUP_HIDDEN_CONTEXT_PATHS:
+		if _apply_startup_visibility(String(path), false):
+			startup_context_mute_count += 1
+	for profile in STARTUP_CONTEXT_LAYER_ALPHAS:
+		if _apply_startup_layer_alpha(String(profile.get("path", "")), float(profile.get("alpha", 1.0))):
+			startup_context_mute_count += 1
+	for profile in STARTUP_CONTEXT_RECT_ALPHAS:
+		if _apply_startup_rect_alpha(String(profile.get("path", "")), float(profile.get("alpha", 1.0))):
+			startup_context_mute_count += 1
+
+
+func _apply_startup_visibility(path: String, is_visible: bool) -> bool:
+	var node := _get_map_node(path)
+	var canvas_item := node as CanvasItem
+	if canvas_item == null:
+		return false
+	if not startup_context_original_visibility.has(path):
+		startup_context_original_visibility[path] = canvas_item.visible
+	canvas_item.visible = is_visible
+	return true
+
+
+func _apply_startup_layer_alpha(path: String, alpha: float) -> bool:
+	var node := _get_map_node(path)
+	var canvas_item := node as CanvasItem
+	if canvas_item == null:
+		return false
+	if not startup_context_layer_original_modulates.has(path):
+		startup_context_layer_original_modulates[path] = canvas_item.modulate
+	var original_color: Color = startup_context_layer_original_modulates.get(path, canvas_item.modulate)
+	var color := original_color
+	color.a = minf(original_color.a, alpha)
+	canvas_item.modulate = color
+	return true
+
+
+func _apply_startup_rect_alpha(path: String, alpha: float) -> bool:
+	var rect := _get_map_node(path) as ColorRect
+	if rect == null:
+		return false
+	if not startup_context_rect_original_colors.has(path):
+		startup_context_rect_original_colors[path] = rect.color
+	var original_color: Color = startup_context_rect_original_colors.get(path, rect.color)
+	var color := original_color
+	color.a = minf(original_color.a, alpha)
+	rect.color = color
+	return true
+
+
+func _restore_startup_context_layers() -> void:
+	for path in startup_context_original_visibility.keys():
+		var node := _get_map_node(String(path))
+		var canvas_item := node as CanvasItem
+		if canvas_item != null:
+			canvas_item.visible = bool(startup_context_original_visibility[path])
+	startup_context_original_visibility.clear()
+	for path in startup_context_layer_original_modulates.keys():
+		var node := _get_map_node(String(path))
+		var canvas_item := node as CanvasItem
+		if canvas_item != null:
+			canvas_item.modulate = startup_context_layer_original_modulates[path]
+	startup_context_layer_original_modulates.clear()
+	for path in startup_context_rect_original_colors.keys():
+		var rect := _get_map_node(String(path)) as ColorRect
+		if rect != null:
+			rect.color = startup_context_rect_original_colors[path]
+	startup_context_rect_original_colors.clear()
+
+
+func _deemphasize_legacy_base_blocks() -> void:
+	var layer := _get_map_node("OpeningSceneLayer")
+	if layer == null:
+		return
+	for node_name in LEGACY_DEVICE_BLOCKS:
+		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
+		if rect != null:
+			rect.color.a = minf(rect.color.a, 0.045)
+	for node_name in LEGACY_BASE_PANELS:
+		var rect := layer.get_node_or_null(String(node_name)) as ColorRect
+		if rect != null:
+			rect.color.a = minf(rect.color.a, 0.14)
+
+
+func _mute_device_identity_blocks() -> void:
+	var identity_layer := _get_map_node("DemoInitialArtIdentityLayer")
+	if identity_layer == null:
+		return
+	for child in identity_layer.get_children():
+		if not child.has_meta("initial_art_role"):
+			continue
+		if String(child.get_meta("initial_art_role", "")) == DemoInitialArtIdentityProfile.ROLE_DEVICE:
+			child.visible = false
+
+
+func _get_map_node(path: String) -> Node:
+	if path.is_empty() or get_parent() == null:
+		return null
+	return get_parent().get_node_or_null(path)
+
+
+func _clear_generated_nodes() -> void:
+	for child in get_children():
+		if not String(child.name).begins_with(GENERATED_PREFIX):
+			continue
+		remove_child(child)
+		child.free()

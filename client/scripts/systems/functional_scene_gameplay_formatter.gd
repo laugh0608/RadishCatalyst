@@ -246,13 +246,61 @@ static func format_result_followup_line(
 	fallback_region_id: String = ""
 ) -> String:
 	var info := _get_object_info(definition_id, fallback_region_id)
+	var density_followup := DemoFunctionalSceneGameplayDensityFormatter.format_result_followup_line(
+		definition_id,
+		_world_state,
+		fallback_region_id
+	)
+	var spatial_followup := DemoFunctionalTransitionSpatialPlayabilityFormatter.format_result_followup_line(
+		definition_id,
+		_world_state,
+		fallback_region_id
+	)
+	var midfield_followup := DemoMidfieldRoutePlayabilityFormatter.format_result_followup_line(
+		definition_id,
+		_world_state,
+		fallback_region_id
+	)
+	var wind_followup := DemoWindCorridorTransitionPlayabilityFormatter.format_result_followup_line(
+		definition_id,
+		_world_state,
+		fallback_region_id
+	)
+	var core_approach_followup := DemoCoreApproachHandoffFormatter.format_result_followup_line(
+		definition_id,
+		_world_state,
+		fallback_region_id
+	)
 	if info.is_empty():
-		return ""
-	return "现场阶段：%s已完成；%s；回基地：%s" % [
+		var detached_followups: Array[String] = []
+		if not density_followup.is_empty():
+			detached_followups.append(density_followup)
+		if not spatial_followup.is_empty():
+			detached_followups.append(spatial_followup)
+		if not midfield_followup.is_empty():
+			detached_followups.append(midfield_followup)
+		if not wind_followup.is_empty():
+			detached_followups.append(wind_followup)
+		if not core_approach_followup.is_empty():
+			detached_followups.append(core_approach_followup)
+		return "；".join(detached_followups)
+	var followup := "现场阶段：%s已完成；%s；回基地：%s" % [
 		String(info.get("title", "")),
 		String(info.get("complete", "")),
 		_get_region_text(String(info.get("region_id", "")), "return")
 	]
+	var followup_parts: Array[String] = [followup]
+	if not density_followup.is_empty():
+		followup_parts.append(density_followup)
+	if not spatial_followup.is_empty():
+		followup_parts.append(spatial_followup)
+	if not midfield_followup.is_empty():
+		followup_parts.append(midfield_followup)
+	if not wind_followup.is_empty():
+		followup_parts.append(wind_followup)
+	if not core_approach_followup.is_empty():
+		followup_parts.append(core_approach_followup)
+	return "；".join(followup_parts)
 
 
 static func get_region_id_for_definition(definition_id: String) -> String:

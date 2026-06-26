@@ -32,20 +32,70 @@ $requiredTextByFile = @{
         "CurrentObjectiveOffTargetLabel",
         "is_target_guidance_visible",
         "_resolve_current_target",
-        "get_current_target_node"
+        "get_current_target_node",
+        "FOCUS_READABILITY_SHAPES",
+        "focus_readability.local_workface_frame",
+        "focus_readability.startup_repair_port",
+        "DEMO_STABILIZATION_CORE_TARGET"
+    )
+    "client/scripts/map/demo_industrial_base_visual_layer.gd" = @(
+        "get_playable_space_shape_count",
+        "space.walkway.core_to_reactor",
+        "space.device_zone.basic_reactor",
+        "space.player_start.staging_pad"
+    )
+    "client/scripts/map/demo_base_startup_presentation_layer.gd" = @(
+        "class_name DemoBaseStartupPresentationLayer",
+        "startup_presentation.opaque_scene_backdrop",
+        "startup_presentation.hangar_floor",
+        "startup_presentation.diegetic_repair_port",
+        "startup_presentation.core_reactor_housing",
+        "startup_presentation.perimeter_industrial_assets",
+        "startup_presentation.player_repair_action",
+        "startup_presentation.damaged_core_equipment",
+        "startup_presentation.player_character_pose",
+        "startup_presentation.high_priority_floor_material",
+        "startup_presentation.close_repair_feedback",
+        "refresh_startup_state"
+    )
+    "client/scripts/actors/player_controller.gd" = @(
+        "get_visual_part_count",
+        "suit.body_mass",
+        "suit.helmet",
+        "suit.visor",
+        "suit.backpack",
+        "tool.forward_arm",
+        "tool.cutter_tip"
+    )
+    "client/scripts/actors/prototype_enemy.gd" = @(
+        "get_silhouette_profile",
+        "enemy_shape.pressure_core",
+        "enemy_shape.threat_eye",
+        "_draw_polluted_silhouette",
+        "_draw_elite_silhouette"
     )
     "client/scenes/maps/VerticalSliceMap.tscn" = @(
         "res://scripts/map/prototype_visual_priority_layer.gd",
         "PrototypeVisualPriorityLayer",
         "res://scripts/map/current_objective_guidance_layer.gd",
-        "CurrentObjectiveGuidanceLayer"
+        "CurrentObjectiveGuidanceLayer",
+        "res://scripts/map/demo_base_startup_presentation_layer.gd",
+        "DemoBaseStartupPresentationLayer"
     )
     "client/scripts/interaction/prototype_interactable.gd" = @(
         "set_visual_priority_state",
         "set_missing_prerequisite_visual",
         "set_danger_active_visual",
         "set_device_busy_visual",
-        "set_core_write_blocked_visual"
+        "set_core_write_blocked_visual",
+        "get_semantic_silhouette_id",
+        "SemanticSilhouette.draw"
+    )
+    "client/scripts/interaction/prototype_interactable_semantic_silhouette.gd" = @(
+        "class_name PrototypeInteractableSemanticSilhouette",
+        "SILHOUETTE_CORE_WRITE_DEVICE",
+        "semantic.crystal_collector.output_tray",
+        "_draw_core_write_device_silhouette"
     )
     "client/scripts/map/interactable_visual_refresher.gd" = @(
         "_apply_visual_priority_state",
@@ -61,6 +111,14 @@ $requiredTextByFile = @{
         "_check_current_objective_guidance_layer",
         "post-restore storage build guidance",
         "pollution filter processing guidance",
+        "core write local guidance",
+        "startup presentation covers old debug map blocks",
+        "startup current objective does not draw a cross-screen route",
+        "startup presentation fills empty space with low-priority industrial assets",
+        "first industrial path uses local focus readability mode",
+        "_check_scene_visual_layer_focus_visibility",
+        "_check_playable_space_and_actor_silhouettes",
+        "_check_key_object_semantic_silhouettes",
         "_check_visual_state_methods",
         "_check_visual_refresher_state_alignment"
     )

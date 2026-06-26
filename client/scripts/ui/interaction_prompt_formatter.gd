@@ -4,6 +4,7 @@ class_name InteractionPromptFormatter
 var data_registry: DataRegistry
 var processing_system: ProcessingSystem
 var build_system: BuildSystem
+var processing_prompt_formatter: ProcessingInteractionPromptFormatter
 
 const FIELD_READING_PROMPTS := {
 	"map_object.phase_splinter_resonance_node": {
@@ -128,6 +129,7 @@ func _init(registry: DataRegistry, processing: ProcessingSystem, builder: BuildS
 	data_registry = registry
 	processing_system = processing
 	build_system = builder
+	processing_prompt_formatter = ProcessingInteractionPromptFormatter.new(data_registry, processing_system)
 
 
 func format_general_interaction_prompt(
@@ -171,6 +173,39 @@ func format_general_interaction_prompt(
 	)
 	if not gameplay_line.is_empty():
 		parts.append(gameplay_line)
+	var density_line := DemoFunctionalSceneGameplayDensityFormatter.format_object_density_line(
+		interactable.definition_id,
+		object_state,
+		world_state.current_region_id
+	)
+	if not density_line.is_empty():
+		parts.append(density_line)
+	var midfield_route_line := DemoMidfieldRoutePlayabilityFormatter.format_object_route_line(
+		interactable.definition_id,
+		object_state,
+		world_state.current_region_id
+	)
+	if not midfield_route_line.is_empty():
+		parts.append(midfield_route_line)
+	var wind_transition_line := DemoWindCorridorTransitionPlayabilityFormatter.format_object_route_line(
+		interactable.definition_id,
+		object_state,
+		world_state.current_region_id
+	)
+	if not wind_transition_line.is_empty():
+		parts.append(wind_transition_line)
+	var core_approach_line := DemoCoreApproachHandoffFormatter.format_object_handoff_line(interactable.definition_id, object_state, world_state.current_region_id)
+	if not core_approach_line.is_empty():
+		parts.append(core_approach_line)
+	var core_run_line := DemoCoreStabilizationRunFormatter.format_object_run_line(
+		interactable.definition_id,
+		object_state,
+		world_state,
+		character_state,
+		world_state.current_region_id
+	)
+	if not core_run_line.is_empty():
+		parts.append(core_run_line)
 	var affordance_line := DemoInteractionAffordanceFormatter.format_general_affordance_line(
 		interactable,
 		object_state,
@@ -182,6 +217,14 @@ func format_general_interaction_prompt(
 	var reward_line := _format_interaction_reward_line(interactable, definition)
 	if not reward_line.is_empty():
 		parts.append(reward_line)
+	var field_task_line := DemoFieldTaskDifferentiationFormatter.format_object_task_line(
+		interactable.definition_id,
+		object_state,
+		world_state,
+		character_state
+	)
+	if not field_task_line.is_empty():
+		parts.append(field_task_line)
 	parts.append("状态：%s" % _get_general_interaction_status(interactable, object_state, character_state, world_state))
 	var next_step_line := _get_general_interaction_next_step(interactable, object_state, character_state, world_state)
 	if not next_step_line.is_empty():
@@ -200,36 +243,19 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 		]
 
 	var parts: Array[String] = [DepartureReadinessFormatter.format_outfitting_station_prompt(world_state, character_state)]
-	var affordance_line := DemoInteractionAffordanceFormatter.format_outfitting_station_affordance_line(
-		world_state,
-		character_state
-	)
-	if not affordance_line.is_empty():
-		parts.append(affordance_line)
-	var recovery_line := DemoCombatEvacuationRecoveryFormatter.format_outfitting_station_recovery_line(
-		world_state,
-		character_state
-	)
-	if not recovery_line.is_empty():
-		parts.append(recovery_line)
-	var industrial_chain_line := IndustrialTechSpineFormatter.format_outfitting_station_prompt_line(
-		world_state,
-		character_state
-	)
-	if not industrial_chain_line.is_empty():
-		parts.append(industrial_chain_line)
-	var field_loop_line := DemoFieldLoopPayoffFormatter.format_outfitting_prompt_line(
-		world_state,
-		character_state
-	)
-	if not field_loop_line.is_empty():
-		parts.append(field_loop_line)
-	var tool_strike_line := FieldOutfittingRuntime.format_tool_strike_calibration_prompt_line(
-		world_state,
-		character_state
-	)
-	if not tool_strike_line.is_empty():
-		parts.append(tool_strike_line)
+	for line in [
+		DemoDevicePanelOperationFormatter.format_outfitting_station_panel_line(world_state, character_state),
+		DemoIndustrialModuleTaskRhythmFormatter.format_outfitting_station_prompt_line(world_state, character_state),
+		DemoInteractionAffordanceFormatter.format_outfitting_station_affordance_line(world_state, character_state),
+		DemoCombatEvacuationRecoveryFormatter.format_outfitting_station_recovery_line(world_state, character_state),
+		IndustrialTechSpineFormatter.format_outfitting_station_prompt_line(world_state, character_state),
+		DemoFieldLoopPayoffFormatter.format_outfitting_prompt_line(world_state, character_state),
+		DemoFieldTaskDifferentiationFormatter.format_outfitting_prompt_line(world_state, character_state),
+		FieldOutfittingRuntime.format_tool_strike_calibration_prompt_line(world_state, character_state)
+	]:
+		var prompt_line := String(line)
+		if not prompt_line.is_empty():
+			parts.append(prompt_line)
 	if FieldOutfittingRuntime.has_filter_module_equipped(character_state):
 		var drain_mult := (
 			character_state.get_pollution_drain_multiplier(data_registry)
@@ -266,6 +292,9 @@ func format_outfitting_station_prompt(character_state: CharacterState, world_sta
 			return "\n".join(parts)
 		if FieldOutfittingRuntime.is_field_loop_payoff_confirmed(world_state):
 			parts.append("外勤收益：已兑现，回波匣解析和污染回波沉积处理已登记到下一趟整备。")
+		if FieldOutfittingRuntime.can_confirm_field_task_differentiation(character_state, world_state):
+			parts.append("操作：E 登记任务差异")
+			return "\n".join(parts)
 		if FieldOutfittingRuntime.is_protective_response_ready(world_state):
 			parts.append("操作：E 检查防护响应")
 			return "\n".join(parts)
@@ -338,134 +367,11 @@ func format_processing_prompt(
 	character_state: CharacterState,
 	world_state: WorldState
 ) -> String:
-	var recipe_id := interactable.get_current_recipe_id()
-	var status := processing_system.get_recipe_status(recipe_id, character_state, world_state)
-	var displayed_recipe_id := String(status.get("recipe_id", recipe_id))
-	var parts: Array[String] = ["设备：%s" % _get_display_name(interactable.definition_id)]
-	var recipe_line := "配方：%s" % _get_display_name(displayed_recipe_id)
-	if interactable.get_recipe_count() > 1:
-		recipe_line = "%s（%d/%d）" % [
-			recipe_line,
-			_get_recipe_position(interactable, displayed_recipe_id),
-			interactable.get_recipe_count()
-		]
-	parts.append(recipe_line)
-	if (
-		interactable.definition_id == "building.basic_reactor"
-		and FieldOutfittingRuntime.has_crystal_logistics_return_materials(world_state)
-		and not FieldOutfittingRuntime.is_logistics_maintenance_confirmed(world_state)
-	):
-		parts.append(DepartureReadinessFormatter.format_crystal_logistics_return_line(world_state, character_state))
-
-	var io_line := "%s -> %s" % [
-		String(status.get("inputs", "无")),
-		String(status.get("outputs", "无"))
-	]
-	var byproducts := String(status.get("byproducts", ""))
-	if not byproducts.is_empty():
-		io_line = "%s；副产 %s" % [io_line, byproducts]
-	var industrial_chain_line := IndustrialTechSpineFormatter.format_processing_prompt_line(
-		interactable.definition_id,
-		displayed_recipe_id,
-		world_state,
-		character_state
-	)
-	if not industrial_chain_line.is_empty():
-		io_line = "%s；%s" % [io_line, industrial_chain_line]
-	parts.append(io_line)
-
-	var status_line := "状态：%s" % String(status.get("message", ""))
-	var progress := String(status.get("progress", ""))
-	if not progress.is_empty():
-		status_line = "%s；进度：%s %s" % [
-			status_line,
-			_format_progress_bar(float(status.get("progress_ratio", 0.0))),
-			progress
-		]
-		var processing_next_step := String(status.get("next_step", ""))
-		if not processing_next_step.is_empty():
-			status_line = "%s；下一步：%s" % [status_line, processing_next_step]
-	elif bool(status.get("can_process", false)):
-		status_line = "%s；%s 秒" % [status_line, String(status.get("duration", "0"))]
-	else:
-		var next_step := _get_processing_next_step(status)
-		if not next_step.is_empty():
-			status_line = "%s；下一步：%s" % [status_line, next_step]
-	parts.append(status_line)
-
-	var action_parts: Array[String] = ["Q 详情"]
-	if interactable.get_recipe_count() > 1:
-		action_parts.append("R 切换")
-	if bool(status.get("can_process", false)):
-		action_parts.append("E 启动加工")
-	parts.append("操作：%s" % "；".join(action_parts))
-	return "\n".join(parts)
+	return processing_prompt_formatter.format_processing_prompt(interactable, character_state, world_state)
 
 
 func format_processing_log(recipe_id: String, character_state: CharacterState, world_state: WorldState) -> String:
-	var status := processing_system.get_recipe_status(recipe_id, character_state, world_state)
-	var displayed_recipe_id := String(status.get("recipe_id", recipe_id))
-	var parts: Array[String] = [
-		"%s：%s" % [_get_display_name(displayed_recipe_id), String(status.get("message", ""))],
-		"输入：%s" % String(status.get("inputs", "无")),
-		"产出：%s" % String(status.get("outputs", "无")),
-		"耗时：%s 秒" % String(status.get("duration", "0"))
-	]
-	var next_step := String(status.get("next_step", ""))
-	if not next_step.is_empty():
-		parts.append("下一步：%s" % next_step)
-	var industrial_chain_line := IndustrialTechSpineFormatter.format_processing_log_line(
-		displayed_recipe_id,
-		world_state,
-		character_state
-	)
-	if not industrial_chain_line.is_empty():
-		parts.append(industrial_chain_line)
-	return "；".join(parts)
-
-
-func _get_recipe_position(interactable: PrototypeInteractable, recipe_id: String) -> int:
-	if interactable.recipe_ids.is_empty():
-		return interactable.get_recipe_position()
-	var index := interactable.recipe_ids.find(recipe_id)
-	if index < 0:
-		return interactable.get_recipe_position()
-	return index + 1
-
-
-func _get_processing_next_step(status: Dictionary) -> String:
-	var supply_hint := String(status.get("supply_hint", ""))
-	if not supply_hint.is_empty():
-		return supply_hint
-
-	var message := String(status.get("message", ""))
-	if not Array(status.get("missing_inputs", [])).is_empty():
-		return "先采集或回收缺少的原料，再回到设备启动加工。"
-	if message.begins_with("需要先建造："):
-		return "先完成对应建造点，再回到设备启动加工。"
-	if message.find("未解锁") >= 0:
-		return "先完成当前任务目标，解锁该配方后再启动加工。"
-	if message.find("加工中") >= 0:
-		return "等待设备完成；靠近设备查看进度，按 Q 打开设备面板。"
-	return ""
-
-
-func _format_progress_bar(ratio: float) -> String:
-	var segment_count := 10
-	var filled_count := mini(segment_count, maxi(0, int(floor(clampf(ratio, 0.0, 1.0) * float(segment_count)))))
-	if ratio > 0.0 and filled_count == 0:
-		filled_count = 1
-	return "[%s%s]" % [
-		_repeat_text("#", filled_count),
-		_repeat_text("-", segment_count - filled_count)
-	]
-
-
-func _repeat_text(text: String, count: int) -> String:
-	var parts: Array[String] = []
-	for _index in range(maxi(0, count)):
-		parts.append(text)
-	return "".join(parts)
+	return processing_prompt_formatter.format_processing_log(recipe_id, character_state, world_state)
 
 
 func format_build_prompt(
@@ -490,6 +396,14 @@ func format_build_prompt(
 	var affordance_line := DemoInteractionAffordanceFormatter.format_build_affordance_line(status)
 	if not affordance_line.is_empty():
 		parts.append(affordance_line)
+	var module_task_line := DemoIndustrialModuleTaskRhythmFormatter.format_build_prompt_line(
+		interactable.definition_id,
+		status,
+		world_state,
+		character_state
+	)
+	if not module_task_line.is_empty():
+		parts.append(module_task_line)
 	parts.append("状态：%s" % String(status.get("message", "")))
 	var next_step := String(status.get("next_step", ""))
 	if not next_step.is_empty():
@@ -513,6 +427,10 @@ func format_clear_prompt(
 			"清障：%s" % _get_display_name(interactable.definition_id),
 			"状态：未清理，盐壳余烬被余烬壳压住。",
 			"后续：清掉两处余烬壳，再处理盐壳潜伏体和盐壳余烬。",
+			DemoMidfieldRoutePlayabilityFormatter.format_static_object_route_line(
+				interactable.definition_id,
+				world_state.current_region_id
+			),
 			"工具：%s" % ash_tool_status
 		]
 		if ash_tool_status == "可清理":
@@ -526,6 +444,8 @@ func format_clear_prompt(
 			"侧路：%s" % _get_display_name(interactable.definition_id),
 			"状态：未清理，边缕残条回收线不稳定。",
 			"后续：任选一条侧路清理，再回收两处边缕残条。",
+			DemoWindCorridorTransitionPlayabilityFormatter.format_static_object_route_line(interactable.definition_id, world_state.current_region_id),
+			DemoCoreApproachHandoffFormatter.format_static_object_handoff_line(interactable.definition_id, world_state.current_region_id),
 			"工具：%s" % frame_tool_status
 		]
 		if frame_tool_status == "可清理":
@@ -539,6 +459,7 @@ func format_clear_prompt(
 			"压力钉：%s" % _get_display_name(interactable.definition_id),
 			"状态：未清理，稳场守脉体还没有完全暴露。",
 			"后续：清掉两处压力钉，再压制稳场守脉体。",
+			DemoCoreApproachHandoffFormatter.format_static_object_handoff_line(interactable.definition_id, world_state.current_region_id),
 			"工具：%s" % pin_tool_status
 		]
 		if pin_tool_status == "可清理":
@@ -680,6 +601,23 @@ func format_field_reading_prompt(interactable: PrototypeInteractable, world_stat
 	)
 	if not gameplay_line.is_empty():
 		parts.append(gameplay_line)
+	var midfield_route_line := DemoMidfieldRoutePlayabilityFormatter.format_object_route_line(
+		interactable.definition_id,
+		object_state,
+		world_state.current_region_id
+	)
+	if not midfield_route_line.is_empty():
+		parts.append(midfield_route_line)
+	var wind_transition_line := DemoWindCorridorTransitionPlayabilityFormatter.format_object_route_line(
+		interactable.definition_id,
+		object_state,
+		world_state.current_region_id
+	)
+	if not wind_transition_line.is_empty():
+		parts.append(wind_transition_line)
+	var core_approach_line := DemoCoreApproachHandoffFormatter.format_object_handoff_line(interactable.definition_id, object_state, world_state.current_region_id)
+	if not core_approach_line.is_empty():
+		parts.append(core_approach_line)
 	return "\n".join(parts)
 
 
@@ -690,20 +628,24 @@ func format_stability_calibration_prompt(
 ) -> String:
 	var runtime := PhaseWellFrontierRuntime.new(data_registry)
 	var title := _get_display_name(interactable.definition_id)
+	var prompt := ""
 	if runtime.is_stability_node_calibrated(world_state, interactable.instance_id, interactable.definition_id):
 		if world_state.quest_state.has_completed_quest("quest.calibrate_phase_well_stability_window"):
-			return "%s：已校准；三处稳窗节点已按序写入，回基地在前线行动台确认稳窗回访。" % title
-		return "%s：已校准；继续检查剩余稳窗节点。" % title
-	if not world_state.quest_state.has_completed_quest("quest.analyze_phase_well_echo_shard"):
-		return "%s：缺少稳窗读数；先回基地解析稳窗余响片。" % title
-	if not character_state.inventory.has_ref("item.phase_well_stability_readout", 1):
-		return "%s：缺少稳窗读数；确认余响片解析产物已放入背包，再返回锚定桥东侧。" % title
-	if not runtime.is_stability_calibration_ready(world_state, interactable.definition_id):
-		return "%s：相位序未对齐；先按西侧、中央、东侧顺序写入稳窗读数。" % title
-	var next_step := "完成后继续按西侧、中央、东侧顺序检查下一处节点。"
-	if interactable.definition_id == "map_object.phase_well_stability_node_east":
-		next_step = "完成后回基地，在前线行动台确认稳窗回访；本趟只派发稳窗回波探点。"
-	return "按 E 校准：%s\n顺序：西侧、中央、东侧。\n后续：%s" % [title, next_step]
+			prompt = "%s：已校准；三处稳窗节点已按序写入，回基地在前线行动台确认稳窗回访。" % title
+		else:
+			prompt = "%s：已校准；继续检查剩余稳窗节点。" % title
+	elif not world_state.quest_state.has_completed_quest("quest.analyze_phase_well_echo_shard"):
+		prompt = "%s：缺少稳窗读数；先回基地解析稳窗余响片。" % title
+	elif not character_state.inventory.has_ref("item.phase_well_stability_readout", 1):
+		prompt = "%s：缺少稳窗读数；确认余响片解析产物已放入背包，再返回锚定桥东侧。" % title
+	elif not runtime.is_stability_calibration_ready(world_state, interactable.definition_id):
+		prompt = "%s：相位序未对齐；先按西侧、中央、东侧顺序写入稳窗读数。" % title
+	else:
+		var next_step := "完成后继续按西侧、中央、东侧顺序检查下一处节点。"
+		if interactable.definition_id == "map_object.phase_well_stability_node_east":
+			next_step = "完成后回基地，在前线行动台确认稳窗回访；本趟只派发稳窗回波探点。"
+		prompt = "按 E 校准：%s\n顺序：西侧、中央、东侧。\n后续：%s" % [title, next_step]
+	return _append_affordance_line(prompt, DemoCoreApproachHandoffFormatter.format_static_object_handoff_line(interactable.definition_id, world_state.current_region_id))
 
 
 func format_outpost_core_prompt(world_state: WorldState, character_state: CharacterState) -> String:
@@ -724,21 +666,16 @@ func format_outpost_core_prompt(world_state: WorldState, character_state: Charac
 	var parts: Array[String] = [
 		DepartureReadinessFormatter.format_outpost_core_prompt(world_state, character_state)
 	]
-	var affordance_line := DemoInteractionAffordanceFormatter.format_outpost_core_affordance_line(
-		world_state,
-		character_state
-	)
-	if not affordance_line.is_empty():
-		parts.append(affordance_line)
-	var completion_line := DemoMainlineCompletionFormatter.format_outpost_core_prompt_line(world_state, character_state)
-	if not completion_line.is_empty():
-		parts.append(completion_line)
-	var recovery_line := DemoCombatEvacuationRecoveryFormatter.format_outpost_core_recovery_line(
-		world_state,
-		character_state
-	)
-	if not recovery_line.is_empty():
-		parts.append(recovery_line)
+	for line in [
+		DemoDevicePanelOperationFormatter.format_outpost_core_panel_line(world_state, character_state),
+		DemoIndustrialModuleTaskRhythmFormatter.format_outpost_core_prompt_line(world_state, character_state),
+		DemoInteractionAffordanceFormatter.format_outpost_core_affordance_line(world_state, character_state),
+		DemoMainlineCompletionFormatter.format_outpost_core_prompt_line(world_state, character_state),
+		DemoCombatEvacuationRecoveryFormatter.format_outpost_core_recovery_line(world_state, character_state)
+	]:
+		var prompt_line := String(line)
+		if not prompt_line.is_empty():
+			parts.append(prompt_line)
 	parts.append(scene_line)
 	if not composition_line.is_empty():
 		parts.append(composition_line)
@@ -1074,6 +1011,27 @@ func _with_functional_transition_line(prompt: String, definition_id: String, fal
 	)
 	if not gameplay_line.is_empty():
 		parts.append(gameplay_line)
+	var density_line := DemoFunctionalSceneGameplayDensityFormatter.format_static_object_density_line(
+		definition_id,
+		fallback_region_id
+	)
+	if not density_line.is_empty():
+		parts.append(density_line)
+	var midfield_route_line := DemoMidfieldRoutePlayabilityFormatter.format_static_object_route_line(
+		definition_id,
+		fallback_region_id
+	)
+	if not midfield_route_line.is_empty():
+		parts.append(midfield_route_line)
+	var wind_transition_line := DemoWindCorridorTransitionPlayabilityFormatter.format_static_object_route_line(
+		definition_id,
+		fallback_region_id
+	)
+	if not wind_transition_line.is_empty():
+		parts.append(wind_transition_line)
+	var core_approach_line := DemoCoreApproachHandoffFormatter.format_static_object_handoff_line(definition_id, fallback_region_id)
+	if not core_approach_line.is_empty():
+		parts.append(core_approach_line)
 	return "\n".join(parts)
 
 
@@ -1094,6 +1052,8 @@ func _get_general_interaction_purpose(interactable: PrototypeInteractable, defin
 		return "回收核心设备完成态后的复测读数和可用补给，带回基地整理下一趟外勤。"
 	if _is_crystal_logistics_return_object(interactable.instance_id):
 		return "回收后勤补料材料，支撑基础反应器基础零件加工和出发整备台维护材料。"
+	if interactable.definition_id == "map_object.crystal_collector_output":
+		return "收取采集设备输出，把重复采矿交给矿面设备和回基地收料。"
 	match interactable.interaction_type:
 		"gather":
 			match String(definition.get("object_type", "")):
@@ -1208,6 +1168,8 @@ func _get_general_interaction_action(
 		return "按 E 写入核心稳定数据"
 	if interactable.definition_id == CoreStabilizationPressureFormatter.RETEST_READOUT_DEFINITION_ID:
 		return "按 E 回收复测读数缓存"
+	if interactable.definition_id == "map_object.crystal_collector_output":
+		return "按 E 收取输出"
 	match interactable.interaction_type:
 		"gather":
 			return "按 E 采集"
@@ -1255,6 +1217,10 @@ func _get_general_interaction_next_step(
 		return CoreStabilizationPressureFormatter.format_retest_readout_next_step(world_state, character_state)
 	if _is_crystal_logistics_return_object(interactable.instance_id):
 		return _get_crystal_logistics_return_next_step(interactable, object_state, world_state)
+	if interactable.definition_id == "map_object.crystal_collector_output":
+		if _is_general_interaction_processed(interactable, object_state):
+			return "输出托盘已收取；回基础反应器加工晶体矿，或等待后续采集器循环扩展。"
+		return "收取后回基础反应器加工成基础零件，再接入储存箱 / 整备台。"
 	if (
 		interactable.definition_id != "map_object.pollution_residue_patch"
 		and interactable.definition_id != CoreStabilizationPressureFormatter.LOGISTICS_MAINTENANCE_RETEST_RESIDUE_DEFINITION_ID
@@ -1376,6 +1342,8 @@ func _get_processed_interaction_status(
 			match interactable.definition_id:
 				"map_object.crystal_cluster", "map_object.rich_crystal_vein":
 					return "已采集，现场保留已采集标记；继续寻找未变暗的晶体。"
+				"map_object.crystal_collector_output":
+					return "已收取，输出托盘保留为空托盘；回基础反应器加工晶体矿。"
 				"map_object.pollution_residue_patch":
 					return "已回收，现场保留已回收标记；回过滤器处理沉积物。"
 				"map_object.field_wreckage":

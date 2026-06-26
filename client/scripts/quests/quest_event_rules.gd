@@ -16,7 +16,7 @@ func get_interaction_objective_updates(context: Dictionary, result: Dictionary, 
 
 	if interaction_type == "outpost_core":
 		return [_set_update("quest.restore_outpost", "interact", "building.outpost_core", 1)]
-	if interaction_type == "gather" and definition_id == "map_object.crystal_cluster":
+	if interaction_type == "gather" and (definition_id == "map_object.crystal_cluster" or definition_id == "map_object.crystal_collector_output"):
 		var updates: Array[Dictionary] = [
 			_set_update("quest.scout_crystal_field", "visit_region", "region.crystal_vein_field", 1)
 		]

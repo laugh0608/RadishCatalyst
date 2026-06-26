@@ -45,13 +45,37 @@ const GM_RESOURCE_CANDIDATES: Array[String] = [
 	"item.phase_well_anchor_core"
 ]
 const SUPPLY_FEEDBACK_SECONDS := 4.0
+const COMBAT_FEEDBACK_SECONDS := 5.0
 const QUEST_COMPLETION_FEEDBACK_SECONDS := 7.0
 const LOG_FEEDBACK_SECONDS := 6.0
+const PROMPT_RUNTIME_MAX_CHARACTERS := 42
+const LOG_RUNTIME_MAX_CHARACTERS := 44
+const RUNTIME_TEXT_ELLIPSIS := "..."
+const MINIMAP_MARKER_ANCHORS := [
+	Vector2(0.18, 0.58),
+	Vector2(0.3, 0.36),
+	Vector2(0.5, 0.68),
+	Vector2(0.66, 0.48),
+	Vector2(0.78, 0.34),
+	Vector2(0.84, 0.5),
+	Vector2(0.78, 0.66),
+	Vector2(0.66, 0.76),
+	Vector2(0.52, 0.42),
+	Vector2(0.42, 0.74),
+	Vector2(0.32, 0.66),
+	Vector2(0.2, 0.42)
+]
+const MINIMAP_PRIMARY_MARKER_INDICES := [0, 1, 2, 11]
+const MINIMAP_ACTIVE_MARKER_SIZE := Vector2(12.0, 12.0)
+const MINIMAP_PRIMARY_MARKER_SIZE := Vector2(8.0, 8.0)
+const MINIMAP_SECONDARY_MARKER_SIZE := Vector2(6.0, 6.0)
 
 var last_quick_slots: Array[String] = []
 var supply_feedback_remaining_seconds := 0.0
+var combat_feedback_remaining_seconds := 0.0
 var quest_completion_feedback_remaining_seconds := 0.0
 var log_feedback_remaining_seconds := 0.0
+var last_combat_feedback: Dictionary = {}
 var debug_panels_visible := false
 var last_viewport_size := Vector2.ZERO
 var device_panel_presenter := HudDevicePanelPresenter.new()
@@ -60,11 +84,16 @@ var feedback_presenter := HudFeedbackPresenter.new()
 var map_presenter := HudMapPresenter.new()
 var status_presenter := HudStatusPresenter.new()
 var hint_presenter := HudHintPresenter.new()
+var action_summary_presenter := HudActionSummaryPresenter.new()
 var development_baseline_presenter := HudDevelopmentBaselinePresenter.new()
 var context_prompt_text := ""
 var runtime_hint_text := ""
+var objective_summary_text := ""
+var last_log_summary_text := ""
 var development_baseline_definitions: Array[Dictionary] = []
+var visual_review_checkpoint_definitions: Array[Dictionary] = []
 var selected_development_baseline_index := 0
+var selected_visual_review_checkpoint_index := 0
 var selected_gm_resource_index := 0
 var last_debug_data_registry: DataRegistry
 var last_debug_character_state: CharacterState
@@ -74,6 +103,9 @@ var last_debug_character_state: CharacterState
 @onready var quick_slot_panel: ColorRect = $QuickSlotPanel
 @onready var status_panel: ColorRect = $StatusPanel
 @onready var vitals_panel: ColorRect = $VitalsPanel
+@onready var quick_supply_panel: ColorRect = $QuickSupplyPanel
+@onready var action_summary_panel: ColorRect = $ActionSummaryPanel
+@onready var combat_panel: ColorRect = $CombatPanel
 @onready var map_panel: ColorRect = $MapPanel
 @onready var map_title_label: Label = $MapPanel/MapTitleLabel
 @onready var map_hint_label: Label = $MapPanel/MapHintLabel
@@ -83,6 +115,9 @@ var last_debug_character_state: CharacterState
 @onready var log_panel: ColorRect = $LogPanel
 @onready var status_label: Label = $StatusPanel/StatusLabel
 @onready var vitals_label: Label = $VitalsPanel/VitalsLabel
+@onready var quick_supply_label: Label = $QuickSupplyPanel/QuickSupplyLabel
+@onready var action_summary_label: Label = $ActionSummaryPanel/ActionSummaryLabel
+@onready var combat_label: Label = $CombatPanel/CombatLabel
 @onready var prompt_label: Label = $PromptPanel/PromptLabel
 @onready var log_label: Label = $LogPanel/LogLabel
 @onready var map_marker_rects: Array[ColorRect] = [
@@ -148,6 +183,10 @@ var last_debug_character_state: CharacterState
 @onready var baseline_demo_button: Button = $SavePanel/BaselineDemoButton
 @onready var baseline_load_button: Button = $SavePanel/BaselineLoadButton
 @onready var baseline_next_button: Button = $SavePanel/BaselineNextButton
+@onready var visual_checkpoint_label: Label = $SavePanel/VisualCheckpointLabel
+@onready var visual_checkpoint_previous_button: Button = $SavePanel/VisualCheckpointPreviousButton
+@onready var visual_checkpoint_load_button: Button = $SavePanel/VisualCheckpointLoadButton
+@onready var visual_checkpoint_next_button: Button = $SavePanel/VisualCheckpointNextButton
 @onready var save_slot_labels: Array[Label] = [
 	$SavePanel/Slot01Label,
 	$SavePanel/Slot02Label,
@@ -175,6 +214,7 @@ signal delete_slot_requested(slot_id: String)
 signal new_game_requested
 signal quick_slot_binding_requested(slot_index: int, item_id: String)
 signal development_baseline_requested(baseline_id: String)
+signal visual_review_checkpoint_requested(checkpoint_id: String)
 signal gm_resource_adjust_requested(definition_id: String, delta: float)
 signal gm_vitals_refill_requested
 
@@ -187,6 +227,9 @@ func _ready() -> void:
 	baseline_demo_button.pressed.connect(_on_demo_baseline_pressed)
 	baseline_load_button.pressed.connect(_on_baseline_load_pressed)
 	baseline_next_button.pressed.connect(_on_baseline_next_pressed)
+	visual_checkpoint_previous_button.pressed.connect(_on_visual_checkpoint_previous_pressed)
+	visual_checkpoint_load_button.pressed.connect(_on_visual_checkpoint_load_pressed)
+	visual_checkpoint_next_button.pressed.connect(_on_visual_checkpoint_next_pressed)
 	for index in range(SAVE_SLOT_IDS.size()):
 		save_slot_buttons[index].pressed.connect(_on_save_slot_pressed.bind(index))
 		load_slot_buttons[index].pressed.connect(_on_load_slot_pressed.bind(index))
@@ -200,7 +243,11 @@ func _ready() -> void:
 	gm_refill_button.pressed.connect(_on_gm_refill_pressed)
 	evacuation_close_button.pressed.connect(_on_evacuation_close_pressed)
 	device_close_button.pressed.connect(hide_device_panel)
+	visual_review_checkpoint_definitions = DevelopmentBaselineCatalog.get_visual_review_checkpoint_definitions()
+	_select_visual_review_checkpoint_by_id(DevelopmentBaselineCatalog.get_default_visual_review_checkpoint_id())
+	_refresh_visual_review_checkpoint_panel()
 	_layout_runtime_panels(true)
+	_refresh_action_summary_label()
 	_set_debug_panels_visible(false)
 
 
@@ -226,12 +273,18 @@ func _update_timed_panel_visibility(delta: float) -> void:
 	supply_feedback_remaining_seconds = maxf(0.0, supply_feedback_remaining_seconds - delta)
 	if supply_feedback_remaining_seconds <= 0.0:
 		supply_feedback_panel.visible = false
+	combat_feedback_remaining_seconds = maxf(0.0, combat_feedback_remaining_seconds - delta)
+	if combat_feedback_remaining_seconds <= 0.0:
+		last_combat_feedback.clear()
 	quest_completion_feedback_remaining_seconds = maxf(0.0, quest_completion_feedback_remaining_seconds - delta)
 	if quest_completion_feedback_remaining_seconds <= 0.0:
 		completion_panel.visible = false
 	log_feedback_remaining_seconds = maxf(0.0, log_feedback_remaining_seconds - delta)
 	if log_feedback_remaining_seconds <= 0.0 and log_panel != null:
 		log_panel.visible = false
+		if not last_log_summary_text.is_empty():
+			last_log_summary_text = ""
+			_refresh_action_summary_label()
 
 
 func update_status(data_registry: DataRegistry, world_state: WorldState, character_state: CharacterState) -> void:
@@ -239,10 +292,14 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 	last_debug_data_registry = data_registry
 	last_debug_character_state = character_state
 	var active_quest_id := _get_active_quest_id(world_state)
+	var objective_text := status_presenter.format_objective_text(data_registry, world_state, character_state)
 	if status_label != null:
-		status_label.text = status_presenter.format_objective_text(data_registry, world_state, character_state)
+		status_label.text = objective_text
+	objective_summary_text = objective_text
 	if vitals_label != null:
-		vitals_label.text = status_presenter.format_vitals_text(data_registry, world_state, character_state)
+		vitals_label.text = status_presenter.format_runtime_vitals_text(data_registry, world_state, character_state)
+	if quick_supply_label != null:
+		quick_supply_label.text = status_presenter.format_player_quick_supply_text(data_registry, world_state, character_state)
 	_update_runtime_hint(world_state, character_state, active_quest_id)
 	_update_map_panel(world_state, active_quest_id, character_state)
 	last_quick_slots = debug_panel_presenter.update_quick_slot_binding_panel(
@@ -251,6 +308,30 @@ func update_status(data_registry: DataRegistry, world_state: WorldState, charact
 		quick_slot_binding_labels
 	)
 	_refresh_gm_panel()
+
+
+func update_combat_readability(
+	data_registry: DataRegistry,
+	world_state: WorldState,
+	character_state: CharacterState,
+	focused_enemy: PrototypeEnemy
+) -> void:
+	_ensure_runtime_nodes()
+	if combat_panel == null or combat_label == null:
+		return
+	var has_target := focused_enemy != null and focused_enemy.can_be_attacked()
+	var has_recent_feedback := not last_combat_feedback.is_empty()
+	if not has_target and not has_recent_feedback:
+		combat_panel.visible = false
+		return
+	combat_label.text = DemoCombatReadabilityFormatter.format_panel_text(
+		data_registry,
+		world_state,
+		character_state,
+		focused_enemy,
+		last_combat_feedback
+	)
+	combat_panel.visible = true
 
 
 func _get_active_quest_id(world_state: WorldState) -> String:
@@ -264,33 +345,44 @@ func show_prompt(text: String) -> void:
 	_ensure_runtime_nodes()
 	context_prompt_text = text
 	_refresh_prompt_label()
+	_refresh_action_summary_label()
 
 
 func clear_prompt() -> void:
 	_ensure_runtime_nodes()
 	context_prompt_text = ""
 	_refresh_prompt_label()
+	_refresh_action_summary_label()
 
 
 func append_log(text: String) -> void:
 	_ensure_runtime_nodes()
+	var display_text := _format_bottom_rail_text(text, LOG_RUNTIME_MAX_CHARACTERS)
+	last_log_summary_text = display_text
 	if log_label != null:
-		log_label.text = text
+		log_label.text = display_text
+		log_label.tooltip_text = text.strip_edges()
 	if log_panel != null:
-		log_panel.visible = not text.strip_edges().is_empty()
-	log_feedback_remaining_seconds = LOG_FEEDBACK_SECONDS if not text.strip_edges().is_empty() else 0.0
+		log_panel.visible = not display_text.is_empty()
+	log_feedback_remaining_seconds = LOG_FEEDBACK_SECONDS if not display_text.is_empty() else 0.0
+	_refresh_action_summary_label()
 
 
 func clear_runtime_feedback() -> void:
 	context_prompt_text = ""
 	runtime_hint_text = ""
+	last_log_summary_text = ""
 	_refresh_prompt_label()
+	_refresh_action_summary_label()
 	hide_device_panel()
 	completion_panel.visible = false
 	evacuation_panel.visible = false
 	supply_feedback_panel.visible = false
+	combat_panel.visible = false
 	quest_completion_feedback_remaining_seconds = 0.0
 	supply_feedback_remaining_seconds = 0.0
+	combat_feedback_remaining_seconds = 0.0
+	last_combat_feedback.clear()
 
 
 func show_quest_completion(feedback: Dictionary) -> void:
@@ -326,6 +418,15 @@ func show_supply_feedback(feedback: Dictionary) -> void:
 	supply_feedback_detail_label.text = String(texts.get("detail", ""))
 	supply_feedback_panel.visible = true
 	supply_feedback_remaining_seconds = SUPPLY_FEEDBACK_SECONDS
+
+
+func show_combat_feedback(feedback: Dictionary) -> void:
+	_ensure_runtime_nodes()
+	if feedback.is_empty():
+		return
+
+	last_combat_feedback = feedback.duplicate(true)
+	combat_feedback_remaining_seconds = COMBAT_FEEDBACK_SECONDS
 
 
 func show_device_panel(
@@ -457,6 +558,33 @@ func _on_baseline_next_pressed() -> void:
 	_refresh_development_baseline_panel()
 
 
+func _on_visual_checkpoint_previous_pressed() -> void:
+	if visual_review_checkpoint_definitions.is_empty():
+		return
+	selected_visual_review_checkpoint_index = posmod(
+		selected_visual_review_checkpoint_index - 1,
+		visual_review_checkpoint_definitions.size()
+	)
+	_refresh_visual_review_checkpoint_panel()
+
+
+func _on_visual_checkpoint_load_pressed() -> void:
+	var definition := _get_selected_visual_review_checkpoint()
+	if definition.is_empty():
+		return
+	visual_review_checkpoint_requested.emit(String(definition.get("id", "")))
+
+
+func _on_visual_checkpoint_next_pressed() -> void:
+	if visual_review_checkpoint_definitions.is_empty():
+		return
+	selected_visual_review_checkpoint_index = posmod(
+		selected_visual_review_checkpoint_index + 1,
+		visual_review_checkpoint_definitions.size()
+	)
+	_refresh_visual_review_checkpoint_panel()
+
+
 func _on_quick_slot_binding_pressed(slot_index: int) -> void:
 	var current_item_id := ""
 	if slot_index < last_quick_slots.size():
@@ -542,8 +670,17 @@ func _update_map_panel(world_state: WorldState, quest_id: String, character_stat
 		if map_marker_rects[index] == null or map_marker_labels[index] == null:
 			continue
 		var marker_view := marker_view_data[index]
+		var marker_text := _format_map_marker_runtime_label(String(marker_view.get("label", "")))
+		var should_show_marker := _should_show_minimap_marker(index, marker_text)
 		map_marker_rects[index].color = marker_view.get("color", Color.WHITE)
-		map_marker_labels[index].text = _format_map_marker_runtime_label(String(marker_view.get("label", "")))
+		map_marker_rects[index].visible = should_show_marker
+		map_marker_labels[index].text = marker_text
+		map_marker_labels[index].visible = should_show_marker and _should_show_minimap_label(index, marker_text)
+	for index in range(marker_view_data.size(), map_marker_rects.size()):
+		if map_marker_rects[index] != null:
+			map_marker_rects[index].visible = false
+		if map_marker_labels[index] != null:
+			map_marker_labels[index].visible = false
 
 
 func _format_map_marker_runtime_label(raw_label: String) -> String:
@@ -578,6 +715,7 @@ func _format_map_hint_runtime_text(raw_hint: String) -> String:
 func _update_runtime_hint(world_state: WorldState, character_state: CharacterState, quest_id: String) -> void:
 	runtime_hint_text = hint_presenter.format_runtime_hint(world_state, character_state, quest_id)
 	_refresh_prompt_label()
+	_refresh_action_summary_label()
 
 
 func _refresh_development_baseline_panel() -> void:
@@ -599,14 +737,130 @@ func _refresh_development_baseline_panel() -> void:
 	if baseline_next_button != null:
 		baseline_next_button.disabled = not has_definitions
 
+
+func _refresh_visual_review_checkpoint_panel() -> void:
+	_ensure_runtime_nodes()
+	var definition := _get_selected_visual_review_checkpoint()
+	if visual_checkpoint_label != null:
+		visual_checkpoint_label.text = _format_selected_visual_review_checkpoint(definition)
+	var has_definitions := not visual_review_checkpoint_definitions.is_empty()
+	if visual_checkpoint_previous_button != null:
+		visual_checkpoint_previous_button.disabled = not has_definitions
+	if visual_checkpoint_load_button != null:
+		visual_checkpoint_load_button.disabled = not has_definitions
+	if visual_checkpoint_next_button != null:
+		visual_checkpoint_next_button.disabled = not has_definitions
+
+
+func _format_selected_visual_review_checkpoint(definition: Dictionary) -> String:
+	if definition.is_empty():
+		return "截图定位读取中..."
+	return "%d/%d %s\n%s\n观察：%s" % [
+		selected_visual_review_checkpoint_index + 1,
+		maxi(visual_review_checkpoint_definitions.size(), 1),
+		String(definition.get("display_name", "截图定位")),
+		String(definition.get("summary", "")),
+		String(definition.get("watch", ""))
+	]
+
+
 func _refresh_prompt_label() -> void:
 	_ensure_runtime_nodes()
 	if prompt_label == null:
 		return
+	var source_text := context_prompt_text
 	if not context_prompt_text.strip_edges().is_empty():
-		prompt_label.text = context_prompt_text
+		prompt_label.text = _format_prompt_rail_text(context_prompt_text)
+	else:
+		source_text = runtime_hint_text
+		prompt_label.text = _format_bottom_rail_text(runtime_hint_text, PROMPT_RUNTIME_MAX_CHARACTERS)
+	prompt_label.tooltip_text = source_text.strip_edges()
+
+
+func _refresh_action_summary_label() -> void:
+	_ensure_runtime_nodes()
+	if action_summary_label == null:
 		return
-	prompt_label.text = runtime_hint_text
+	action_summary_label.text = action_summary_presenter.format_label_text(
+		objective_summary_text,
+		context_prompt_text,
+		runtime_hint_text,
+		last_log_summary_text
+	)
+	action_summary_label.tooltip_text = action_summary_presenter.format_tooltip_text(
+		objective_summary_text,
+		context_prompt_text,
+		runtime_hint_text,
+		last_log_summary_text
+	)
+	if action_summary_panel != null:
+		action_summary_panel.visible = true
+
+
+func _format_prompt_rail_text(text: String) -> String:
+	var clean_lines := _get_clean_runtime_lines(text)
+	var title := ""
+	var status := ""
+	var next_step := ""
+	var action := ""
+	for line in clean_lines:
+		if title.is_empty() and (
+			line.begins_with("对象：")
+				or line.begins_with("设施：")
+				or line.begins_with("设备：")
+				or line.begins_with("目标：")
+				or line.begins_with("敌人：")
+		):
+			title = line
+		elif status.is_empty() and line.begins_with("状态："):
+			status = line
+		elif next_step.is_empty() and line.begins_with("下一步："):
+			next_step = line
+		elif action.is_empty() and line.begins_with("操作："):
+			action = line
+
+	var parts: Array[String] = []
+	if not title.is_empty():
+		parts.append(title)
+	if not action.is_empty():
+		parts.append(action)
+	elif not status.is_empty():
+		parts.append(status)
+	if parts.size() < 2 and not next_step.is_empty():
+		parts.append(next_step)
+	if parts.is_empty():
+		return _format_bottom_rail_text(text, PROMPT_RUNTIME_MAX_CHARACTERS)
+	return _shorten_runtime_text("；".join(parts), PROMPT_RUNTIME_MAX_CHARACTERS)
+
+
+func _format_bottom_rail_text(text: String, max_characters: int) -> String:
+	var compact := "；".join(_get_clean_runtime_lines(text))
+	compact = compact.replace(" 下一步：", "；下一步：")
+	compact = compact.replace(" 状态：", "；状态：")
+	compact = compact.replace(" 操作：", "；操作：")
+	while compact.find("  ") >= 0:
+		compact = compact.replace("  ", " ")
+	while compact.find("；；") >= 0:
+		compact = compact.replace("；；", "；")
+	return _shorten_runtime_text(compact.strip_edges(), max_characters)
+
+
+func _get_clean_runtime_lines(text: String) -> Array[String]:
+	var lines: Array[String] = []
+	var normalized := text.replace("\r\n", "\n").replace("\r", "\n")
+	for raw_line in normalized.split("\n", false):
+		var line := String(raw_line).strip_edges()
+		if line.is_empty():
+			continue
+		lines.append(line)
+	return lines
+
+
+func _shorten_runtime_text(text: String, max_characters: int) -> String:
+	if text.length() <= max_characters:
+		return text
+	var visible_characters := maxi(0, max_characters - RUNTIME_TEXT_ELLIPSIS.length())
+	return "%s%s" % [text.substr(0, visible_characters), RUNTIME_TEXT_ELLIPSIS]
 
 func _ensure_runtime_nodes() -> void:
 	if save_panel == null:
@@ -619,6 +873,12 @@ func _ensure_runtime_nodes() -> void:
 		status_panel = get_node_or_null("StatusPanel")
 	if vitals_panel == null:
 		vitals_panel = get_node_or_null("VitalsPanel")
+	if quick_supply_panel == null:
+		quick_supply_panel = get_node_or_null("QuickSupplyPanel")
+	if action_summary_panel == null:
+		action_summary_panel = get_node_or_null("ActionSummaryPanel")
+	if combat_panel == null:
+		combat_panel = get_node_or_null("CombatPanel")
 	if map_panel == null:
 		map_panel = get_node_or_null("MapPanel")
 	if map_title_label == null:
@@ -637,6 +897,12 @@ func _ensure_runtime_nodes() -> void:
 		status_label = get_node_or_null("StatusPanel/StatusLabel")
 	if vitals_label == null:
 		vitals_label = get_node_or_null("VitalsPanel/VitalsLabel")
+	if quick_supply_label == null:
+		quick_supply_label = get_node_or_null("QuickSupplyPanel/QuickSupplyLabel")
+	if action_summary_label == null:
+		action_summary_label = get_node_or_null("ActionSummaryPanel/ActionSummaryLabel")
+	if combat_label == null:
+		combat_label = get_node_or_null("CombatPanel/CombatLabel")
 	if prompt_label == null:
 		prompt_label = get_node_or_null("PromptPanel/PromptLabel")
 	if log_label == null:
@@ -735,6 +1001,14 @@ func _ensure_runtime_nodes() -> void:
 		baseline_load_button = get_node_or_null("SavePanel/BaselineLoadButton")
 	if baseline_next_button == null:
 		baseline_next_button = get_node_or_null("SavePanel/BaselineNextButton")
+	if visual_checkpoint_label == null:
+		visual_checkpoint_label = get_node_or_null("SavePanel/VisualCheckpointLabel")
+	if visual_checkpoint_previous_button == null:
+		visual_checkpoint_previous_button = get_node_or_null("SavePanel/VisualCheckpointPreviousButton")
+	if visual_checkpoint_load_button == null:
+		visual_checkpoint_load_button = get_node_or_null("SavePanel/VisualCheckpointLoadButton")
+	if visual_checkpoint_next_button == null:
+		visual_checkpoint_next_button = get_node_or_null("SavePanel/VisualCheckpointNextButton")
 	if save_slot_labels.is_empty() or save_slot_labels[0] == null:
 		save_slot_labels = [
 			get_node_or_null("SavePanel/Slot01Label"),
@@ -773,22 +1047,28 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	last_viewport_size = viewport_size
 	var margin := 16.0
 	var gap := 10.0
-	var map_width := clampf(viewport_size.x * 0.18, 360.0, 460.0)
-	var map_height := 170.0
-	var objective_width := map_width
-	var objective_height := 178.0
-	var vitals_width := clampf(viewport_size.x * 0.16, 300.0, 380.0)
-	var vitals_height := 118.0
-	var prompt_width := clampf(viewport_size.x * 0.28, 500.0, 640.0)
-	var prompt_height := 88.0
-	var log_width := clampf(viewport_size.x * 0.23, 420.0, 560.0)
-	var log_height := 72.0
+	var objective_width := clampf(viewport_size.x * 0.18, 320.0, 370.0)
+	var objective_height := 132.0
+	var map_width := clampf(viewport_size.x * 0.14, 242.0, 280.0)
+	var map_height := clampf(viewport_size.y * 0.2, 198.0, 224.0)
+	var vitals_width := clampf(viewport_size.x * 0.18, 340.0, 420.0)
+	var vitals_height := 98.0
+	var quick_supply_width := clampf(viewport_size.x * 0.18, 320.0, 360.0)
+	var quick_supply_height := 74.0
+	var combat_width := clampf(viewport_size.x * 0.21, 380.0, 500.0)
+	var combat_height := 164.0
+	var prompt_width := clampf(viewport_size.x * 0.25, 430.0, 560.0)
+	var prompt_height := 58.0
+	var log_width := clampf(viewport_size.x * 0.2, 360.0, 440.0)
+	var log_height := 50.0
+	var action_summary_width := clampf(viewport_size.x * 0.32, 560.0, 720.0)
+	var action_summary_height := 58.0
 	var device_width := clampf(viewport_size.x * 0.34, 520.0, 640.0)
 	var device_height := clampf(viewport_size.y * 0.52, 620.0, 760.0)
 	var feedback_width := clampf(viewport_size.x * 0.24, 460.0, 560.0)
 	var feedback_height := 220.0
 	var save_width := 544.0
-	var save_height := 454.0
+	var save_height := 584.0
 	var quick_width := 368.0
 	var quick_height := 322.0
 	var save_position := Vector2(viewport_size.x - margin - save_width, margin)
@@ -801,20 +1081,59 @@ func _layout_runtime_panels(force: bool = false) -> void:
 		var shifted_vitals_x := save_position.x - gap - vitals_width
 		vitals_x = maxf(margin + objective_width + gap, shifted_vitals_x)
 
-	_set_control_rect(map_panel, Vector2(margin, margin), Vector2(map_width, map_height))
-	_set_control_rect(status_panel, Vector2(margin, map_panel.position.y + map_panel.size.y + gap), Vector2(objective_width, objective_height))
+	_set_control_rect(status_panel, Vector2(margin, margin), Vector2(objective_width, objective_height))
+	var map_position := Vector2(
+		viewport_size.x - margin - map_width,
+		viewport_size.y - margin - map_height
+	)
+	if debug_panels_visible:
+		map_position.x = maxf(margin, save_position.x - gap - map_width)
+	_set_control_rect(map_panel, map_position, Vector2(map_width, map_height))
 	if vitals_panel != null:
 		if not debug_panels_visible:
 			vitals_panel.visible = true
 		_set_control_rect(vitals_panel, Vector2(vitals_x, margin), Vector2(vitals_width, vitals_height))
+	if quick_supply_panel != null:
+		quick_supply_panel.visible = true
+		_set_control_rect(
+			quick_supply_panel,
+			Vector2(margin, viewport_size.y - margin - quick_supply_height),
+			Vector2(quick_supply_width, quick_supply_height)
+		)
 
-	var prompt_x := (viewport_size.x - prompt_width) * 0.5
+	var prompt_x := quick_supply_panel.position.x + quick_supply_width + gap if quick_supply_panel != null else margin
+	var log_left := prompt_x + prompt_width + gap
+	var log_right_limit := map_position.x - gap
+	if log_right_limit > log_left:
+		log_width = minf(log_width, log_right_limit - log_left)
 	var prompt_y := viewport_size.y - margin - prompt_height
 	var log_y := viewport_size.y - margin - log_height
+	var action_summary_position := Vector2(
+		(viewport_size.x - action_summary_width) * 0.5,
+		prompt_y - gap - action_summary_height
+	)
 	_set_control_rect(prompt_panel, Vector2(prompt_x, prompt_y), Vector2(prompt_width, prompt_height))
-	_set_control_rect(log_panel, Vector2(margin, log_y), Vector2(log_width, log_height))
+	_set_control_rect(log_panel, Vector2(prompt_x + prompt_width + gap, log_y), Vector2(log_width, log_height))
+	_set_control_rect(
+		action_summary_panel,
+		action_summary_position,
+		Vector2(action_summary_width, action_summary_height)
+	)
+	if action_summary_panel != null:
+		action_summary_panel.visible = true
+	var combat_x := viewport_size.x - margin - combat_width
+	var combat_y := prompt_y - gap - combat_height
+	if debug_panels_visible:
+		combat_x = maxf(margin + log_width + gap, save_position.x - gap - combat_width)
+	if map_panel != null and Rect2(Vector2(combat_x, combat_y), Vector2(combat_width, combat_height)).intersects(Rect2(map_panel.position, map_panel.size), false):
+		combat_y = maxf(margin + vitals_height + gap, map_panel.position.y - gap - combat_height)
+	_set_control_rect(
+		combat_panel,
+		Vector2(combat_x, combat_y),
+		Vector2(combat_width, combat_height)
+	)
 
-	var device_y := (viewport_size.y - device_height) * 0.5
+	var device_y := maxf(margin + vitals_height + gap, (viewport_size.y - device_height) * 0.5 - 24.0)
 	if debug_panels_visible:
 		device_y = minf(
 			viewport_size.y - margin - device_height,
@@ -846,8 +1165,11 @@ func _layout_runtime_panels(force: bool = false) -> void:
 	_layout_map_panel_contents()
 	_layout_full_label(status_label, status_panel, 14.0, 14.0)
 	_layout_full_label(vitals_label, vitals_panel, 14.0, 14.0)
-	_layout_full_label(prompt_label, prompt_panel, 14.0, 12.0)
-	_layout_full_label(log_label, log_panel, 14.0, 12.0)
+	_layout_full_label(quick_supply_label, quick_supply_panel, 14.0, 10.0)
+	_layout_full_label(combat_label, combat_panel, 14.0, 12.0)
+	_layout_bottom_rail_label(prompt_label, prompt_panel, 14.0, 12.0)
+	_layout_bottom_rail_label(log_label, log_panel, 14.0, 12.0)
+	_layout_action_summary_label(action_summary_label, action_summary_panel, 16.0, 8.0)
 	_layout_full_label(completion_title_label, completion_panel, 22.0, 16.0, 32.0)
 	_layout_full_label(completion_detail_label, completion_panel, 22.0, 62.0)
 	_layout_device_panel_labels()
@@ -877,64 +1199,104 @@ func _layout_map_panel_contents() -> void:
 		map_title_label.position = Vector2(14.0, 10.0)
 		map_title_label.size = Vector2(maxf(0.0, map_panel.size.x - 28.0), 24.0)
 	if map_hint_label != null:
-		map_hint_label.position = Vector2(14.0, 38.0)
-		map_hint_label.size = Vector2(maxf(0.0, map_panel.size.x - 28.0), 48.0)
+		map_hint_label.position = Vector2(14.0, 36.0)
+		map_hint_label.size = Vector2(maxf(0.0, map_panel.size.x - 28.0), 28.0)
 
 	var marker_count := mini(map_marker_rects.size(), map_marker_labels.size())
 	if marker_count <= 0:
 		return
 
-	var marker_top := 104.0
-	var marker_size := Vector2(12.0, 14.0)
-	var primary_label_top := 126.0
-	var secondary_label_top := 146.0
-	var label_height := 20.0
-	var left_margin := 18.0
-	var right_margin := 18.0
-	var usable_width := maxf(0.0, map_panel.size.x - left_margin - right_margin - marker_size.x)
-	var step := 0.0
-	if marker_count > 1:
-		step = usable_width / float(marker_count - 1)
-	var label_width := clampf(step * 1.7, 64.0, 96.0)
-	var first_center_x := left_margin + marker_size.x * 0.5
-	var last_center_x := first_center_x
+	var map_area := Rect2(
+		Vector2(18.0, 70.0),
+		Vector2(maxf(0.0, map_panel.size.x - 36.0), maxf(0.0, map_panel.size.y - 88.0))
+	)
+	if map_track != null:
+		map_track.position = map_area.position
+		map_track.size = map_area.size
+		map_track.color = Color(0.04, 0.07, 0.073, 0.58)
+
+	var label_width := 74.0
+	var label_height := 32.0
 
 	for index in range(marker_count):
 		var marker_rect := map_marker_rects[index]
 		var marker_label := map_marker_labels[index]
 		if marker_rect == null or marker_label == null:
 			continue
+		var marker_text := String(marker_label.text)
+		marker_rect.visible = _should_show_minimap_marker(index, marker_text)
+		if not marker_rect.visible:
+			marker_label.visible = false
+			continue
+		var marker_size := _get_minimap_marker_size(index, marker_text)
 
-		var marker_x := left_margin + step * float(index)
-		marker_rect.position = Vector2(marker_x, marker_top)
+		var anchor := _get_minimap_marker_anchor(index)
+		var marker_center := map_area.position + Vector2(anchor.x * map_area.size.x, anchor.y * map_area.size.y)
+		marker_rect.position = marker_center - marker_size * 0.5
 		marker_rect.size = marker_size
 
-		var marker_center_x := marker_x + marker_size.x * 0.5
 		var label_x := clampf(
-			marker_center_x - label_width * 0.5,
+			marker_center.x - label_width * 0.5,
 			4.0,
 			maxf(4.0, map_panel.size.x - label_width - 4.0)
 		)
-		var label_top := primary_label_top if index % 2 == 0 else secondary_label_top
+		var label_top := clampf(
+			marker_center.y + 8.0,
+			map_area.position.y,
+			maxf(map_area.position.y, map_panel.size.y - label_height - 4.0)
+		)
+		marker_label.visible = _should_show_minimap_label(index, marker_text)
 		marker_label.position = Vector2(label_x, label_top)
 		marker_label.size = Vector2(label_width, label_height)
 		_prepare_wrapped_label(marker_label)
 
-		if index == 0:
-			first_center_x = marker_center_x
-		last_center_x = marker_center_x
 
-	if map_track != null:
-		map_track.position = Vector2(first_center_x, marker_top + marker_size.y * 0.5 - 3.0)
-		map_track.size = Vector2(maxf(0.0, last_center_x - first_center_x), 6.0)
+func _get_minimap_marker_anchor(index: int) -> Vector2:
+	if index >= 0 and index < MINIMAP_MARKER_ANCHORS.size():
+		return MINIMAP_MARKER_ANCHORS[index]
+	return Vector2(0.5, 0.5)
+
+
+func _get_minimap_marker_size(index: int, marker_text: String) -> Vector2:
+	if _is_active_minimap_marker(marker_text):
+		return MINIMAP_ACTIVE_MARKER_SIZE
+	if _is_primary_minimap_marker(index):
+		return MINIMAP_PRIMARY_MARKER_SIZE
+	return MINIMAP_SECONDARY_MARKER_SIZE
+
+
+func _should_show_minimap_marker(index: int, marker_text: String) -> bool:
+	return _is_primary_minimap_marker(index) or _is_active_minimap_marker(marker_text)
+
+
+func _should_show_minimap_label(index: int, marker_text: String) -> bool:
+	if marker_text.strip_edges().is_empty():
+		return false
+	return _is_primary_minimap_marker(index) or _is_active_minimap_marker(marker_text)
+
+
+func _is_primary_minimap_marker(index: int) -> bool:
+	return MINIMAP_PRIMARY_MARKER_INDICES.has(index)
+
+
+func _is_active_minimap_marker(marker_text: String) -> bool:
+	return marker_text.find("\n") >= 0
 
 
 func _apply_runtime_panel_style() -> void:
-	var primary_color := Color(0.035, 0.054, 0.059, 0.42)
-	var floating_color := Color(0.035, 0.054, 0.059, 0.88)
-	for panel in [map_panel, status_panel, vitals_panel, prompt_panel, log_panel]:
+	var primary_color := Color(0.035, 0.054, 0.059, 0.3)
+	var action_color := Color(0.028, 0.045, 0.048, 0.46)
+	var prompt_color := Color(0.06, 0.052, 0.032, 0.58)
+	var floating_color := Color(0.035, 0.054, 0.059, 0.82)
+	for panel in [map_panel, status_panel, vitals_panel, quick_supply_panel, combat_panel, prompt_panel, log_panel]:
 		if panel != null:
 			panel.color = primary_color
+	if map_panel != null:
+		map_panel.color = Color(0.028, 0.048, 0.052, 0.32)
+	if prompt_panel != null:
+		prompt_panel.color = prompt_color
+	if action_summary_panel != null:
+		action_summary_panel.color = action_color
 	for panel in [device_panel, completion_panel, evacuation_panel, supply_feedback_panel, save_panel, quick_slot_panel]:
 		if panel != null:
 			panel.color = floating_color
@@ -947,6 +1309,24 @@ func _layout_full_label(label: Label, panel: Control, left: float, top: float, f
 	label.size.x = maxf(0.0, panel.size.x - left * 2.0)
 	label.size.y = forced_height if forced_height > 0.0 else maxf(0.0, panel.size.y - top * 2.0)
 	_prepare_wrapped_label(label)
+
+
+func _layout_bottom_rail_label(label: Label, panel: Control, left: float, top: float) -> void:
+	_layout_full_label(label, panel, left, top)
+	if label == null:
+		return
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	label.max_lines_visible = 1
+	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+
+
+func _layout_action_summary_label(label: Label, panel: Control, left: float, top: float) -> void:
+	_layout_full_label(label, panel, left, top)
+	if label == null:
+		return
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.max_lines_visible = 2
+	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 
 
 func _prepare_wrapped_label(label: Label) -> void:
@@ -986,6 +1366,12 @@ func _get_selected_development_baseline() -> Dictionary:
 	return development_baseline_definitions[selected_development_baseline_index]
 
 
+func _get_selected_visual_review_checkpoint() -> Dictionary:
+	if visual_review_checkpoint_definitions.is_empty():
+		return {}
+	return visual_review_checkpoint_definitions[selected_visual_review_checkpoint_index]
+
+
 func _get_selected_development_baseline_id() -> String:
 	return String(_get_selected_development_baseline().get("id", ""))
 
@@ -1011,6 +1397,31 @@ func _find_development_baseline_index(baseline_id: String) -> int:
 	for index in range(development_baseline_definitions.size()):
 		var definition := development_baseline_definitions[index]
 		if String(definition.get("id", "")) == baseline_id:
+			return index
+	return -1
+
+
+func _select_visual_review_checkpoint_by_id(checkpoint_id: String) -> void:
+	if visual_review_checkpoint_definitions.is_empty():
+		selected_visual_review_checkpoint_index = 0
+		return
+	var checkpoint_index := _find_visual_review_checkpoint_index(checkpoint_id)
+	if checkpoint_index >= 0:
+		selected_visual_review_checkpoint_index = checkpoint_index
+		return
+	selected_visual_review_checkpoint_index = clampi(
+		selected_visual_review_checkpoint_index,
+		0,
+		visual_review_checkpoint_definitions.size() - 1
+	)
+
+
+func _find_visual_review_checkpoint_index(checkpoint_id: String) -> int:
+	if checkpoint_id.is_empty():
+		return -1
+	for index in range(visual_review_checkpoint_definitions.size()):
+		var definition := visual_review_checkpoint_definitions[index]
+		if String(definition.get("id", "")) == checkpoint_id:
 			return index
 	return -1
 

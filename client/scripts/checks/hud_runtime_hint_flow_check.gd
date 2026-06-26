@@ -23,9 +23,9 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 	)
 	_expect_text_contains(
 		failures,
-		hud.prompt_label.text,
+		hud.prompt_label.tooltip_text,
 		"提示：先恢复前哨核心",
-		"runtime hint prompt shows onboarding without interactable"
+		"runtime hint tooltip preserves onboarding without interactable"
 	)
 
 	runtime_world.quest_state.active_quest_ids = ["quest.prepare_treatment_supplies"]
@@ -44,9 +44,9 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 	)
 	_expect_text_contains(
 		failures,
-		hud.prompt_label.text,
+		hud.prompt_label.tooltip_text,
 		"提示：带上修复凝胶",
-		"runtime hint prompt keeps onboarding line"
+		"runtime hint tooltip preserves onboarding line"
 	)
 
 	var relay_world := WorldState.create_default()
@@ -62,9 +62,9 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 	)
 	_expect_text_contains(
 		failures,
-		hud.prompt_label.text,
+		hud.prompt_label.tooltip_text,
 		"提示：先真正用一次回投台",
-		"runtime hint prompt explains relay reentry purpose"
+		"runtime hint tooltip preserves relay reentry purpose"
 	)
 
 	var phase_well_world := WorldState.create_default()
@@ -80,9 +80,9 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 	)
 	_expect_text_contains(
 		failures,
-		hud.prompt_label.text,
+		hud.prompt_label.tooltip_text,
 		"提示：回声定位器不是收尾；先回基地解析它",
-		"runtime hint prompt keeps locator analysis explicit after phase well lock"
+		"runtime hint tooltip preserves locator analysis explicit after phase well lock"
 	)
 	var heart_world := WorldState.create_default()
 	var heart_character := CharacterState.create_default()
@@ -97,9 +97,9 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 	)
 	_expect_text_contains(
 		failures,
-		hud.prompt_label.text,
+		hud.prompt_label.tooltip_text,
 		"提示：碎晶心核不是收尾；要先回基地把它解析成脉搏片",
-		"runtime hint prompt keeps heart analysis explicit after phase well sink"
+		"runtime hint tooltip preserves heart analysis explicit after phase well sink"
 	)
 	var chamber_world := WorldState.create_default()
 	var chamber_character := CharacterState.create_default()
@@ -114,9 +114,9 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 	)
 	_expect_text_contains(
 		failures,
-		hud.prompt_label.text,
+		hud.prompt_label.tooltip_text,
 		"提示：风蚀张力核不是收尾；要先回基地把它解析成经片",
-		"runtime hint prompt keeps spindle analysis explicit after phase well chamber"
+		"runtime hint tooltip preserves spindle analysis explicit after phase well chamber"
 	)
 	var loom_world := WorldState.create_default()
 	var loom_character := CharacterState.create_default()
@@ -131,9 +131,9 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 	)
 	_expect_text_contains(
 		failures,
-		hud.prompt_label.text,
+		hud.prompt_label.tooltip_text,
 		"提示：锁相织构核不是收尾",
-		"runtime hint prompt keeps weave core analysis explicit after phase well loom"
+		"runtime hint tooltip preserves weave core analysis explicit after phase well loom"
 	)
 	var frame_world := WorldState.create_default()
 	var frame_character := CharacterState.create_default()
@@ -148,9 +148,9 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 	)
 	_expect_text_contains(
 		failures,
-		hud.prompt_label.text,
+		hud.prompt_label.tooltip_text,
 		"提示：锚定结核不是收尾",
-		"runtime hint prompt keeps knot core analysis explicit after phase well frame"
+		"runtime hint tooltip preserves knot core analysis explicit after phase well frame"
 	)
 	var tether_world := WorldState.create_default()
 	var tether_character := CharacterState.create_default()
@@ -165,9 +165,9 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 	)
 	_expect_text_contains(
 		failures,
-		hud.prompt_label.text,
+		hud.prompt_label.tooltip_text,
 		"提示：稳场锚核不是收尾",
-		"runtime hint prompt keeps anchor-field package explicit after phase well tether"
+		"runtime hint tooltip preserves anchor-field package explicit after phase well tether"
 	)
 	hud.update_status(data_registry, relay_world, relay_character)
 
@@ -195,10 +195,16 @@ func run(root: Window, failures: Array[String], data_registry: DataRegistry) -> 
 		"interaction prompt should replace runtime hint rows"
 	)
 	if hud.prompt_label.text.split("\n").size() > 6:
-		failures.append("interaction prompt should stay compact, got %d lines: %s" % [
+		failures.append("interaction prompt visible rail should stay compact, got %d lines: %s" % [
 			hud.prompt_label.text.split("\n").size(),
 			hud.prompt_label.text
 		])
+	_expect_text_contains(
+		failures,
+		hud.prompt_label.tooltip_text,
+		"设备：基础反应器",
+		"interaction prompt tooltip preserves full device prompt"
+	)
 	hud.clear_prompt()
 	_expect_text_contains(
 		failures,

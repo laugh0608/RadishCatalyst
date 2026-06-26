@@ -112,6 +112,8 @@ static func _get_gather_next_step(
 		return "回过滤器处理污染回波沉积，再带回波匣回基地解析裂相坐标。"
 	if definition_id == "map_object.pollution_residue_patch":
 		return "回污染过滤器处理沉积物，补抗污染药剂并保留污染浆液。"
+	if definition_id == "map_object.crystal_collector_output":
+		return "采集器输出已收取；回基础反应器加工晶体矿，补基础零件或后续设备。"
 	if definition_id == "map_object.crystal_cluster" or definition_id == "map_object.rich_crystal_vein":
 		return "回基础反应器加工晶体矿，补基础零件或地基材料。"
 	if definition_id == "map_object.field_wreckage":

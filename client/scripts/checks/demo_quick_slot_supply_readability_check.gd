@@ -1,5 +1,7 @@
 extends SceneTree
 
+const PrototypeHudScene := preload("res://scenes/ui/PrototypeHud.tscn")
+
 var failures: Array[String] = []
 var data_registry := DataRegistry.new()
 
@@ -24,6 +26,7 @@ func _init() -> void:
 
 func _run_checks() -> void:
 	_check_default_quick_slot_readability()
+	_check_default_hud_action_summary_surface()
 	_check_pressure_quick_slot_readability()
 	_check_supply_success_updates_readability()
 	_check_supply_failure_keeps_recovery_route()
@@ -35,6 +38,23 @@ func _check_default_quick_slot_readability() -> void:
 	var hud_text := HudStatusPresenter.new().format_vitals_text(data_registry, world, character)
 	_expect_text_contains(hud_text, "快捷栏：1 修复凝胶x1/满", "default repair gel slot is readable")
 	_expect_text_contains(hud_text, "2 抗污染药剂 Ix0/缺:过滤器", "default missing vial names refill device")
+
+
+func _check_default_hud_action_summary_surface() -> void:
+	var hud := PrototypeHudScene.instantiate() as PrototypeHud
+	root.add_child(hud)
+	var world := WorldState.create_default()
+	var character := CharacterState.create_default()
+	hud.update_status(data_registry, world, character)
+	_expect_equal(hud.save_panel.visible, false, "default HUD keeps save panel hidden")
+	_expect_equal(hud.quick_slot_panel.visible, false, "default HUD keeps GM and binding panel hidden")
+	_expect_equal(hud.action_summary_panel.visible, true, "default HUD shows player action summary")
+	_expect_text_contains(hud.action_summary_label.text, "当前：", "action summary shows current field context")
+	_expect_text_contains(hud.action_summary_label.text, "下一步：检查左侧前哨核心", "action summary shows runtime next action")
+	hud.show_prompt("对象：晶体采集点\n状态：可采集\n操作：按 E 采集晶体")
+	_expect_text_contains(hud.action_summary_label.text, "操作：按 E 采集晶体", "action summary promotes focused interaction action")
+	_expect_equal(hud.action_summary_label.text.split("\n").size() <= 2, true, "action summary stays to two short lines")
+	hud.free()
 
 
 func _check_pressure_quick_slot_readability() -> void:

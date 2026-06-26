@@ -23,10 +23,12 @@ $requiredTextByFile = @{
     "client/scripts/ui/hud_device_panel_presenter.gd" = @(
         "IndustrialTechSpineFormatter.format_device_status_line"
     )
-    "client/scripts/ui/interaction_prompt_formatter.gd" = @(
+    "client/scripts/ui/processing_interaction_prompt_formatter.gd" = @(
         "IndustrialTechSpineFormatter.format_processing_prompt_line",
-        "IndustrialTechSpineFormatter.format_outfitting_station_prompt_line",
         "IndustrialTechSpineFormatter.format_processing_log_line"
+    )
+    "client/scripts/ui/interaction_prompt_formatter.gd" = @(
+        "IndustrialTechSpineFormatter.format_outfitting_station_prompt_line"
     )
     "client/scripts/systems/processing_system.gd" = @(
         "industrial_spine",

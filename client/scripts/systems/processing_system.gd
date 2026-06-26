@@ -56,7 +56,7 @@ func process_recipe(recipe_id: String, character_state: CharacterState, world_st
 		"recipe_id": recipe_id,
 		"structure_id": structure_id,
 		"message": _format_processing_started_message(recipe, world_state),
-		"success_feedback": _format_processing_started_feedback(recipe, world_state)
+		"success_feedback": _format_processing_started_feedback(recipe, world_state, character_state)
 	}
 
 
@@ -94,7 +94,7 @@ func advance_processing(delta_seconds: float, character_state: CharacterState, w
 			"destination_text": _format_completion_destination(recipe),
 			"next_step_text": _get_completion_next_step(recipe_id, world_state),
 			"message": _format_completion_message(recipe, world_state),
-			"success_feedback": _format_processing_completion_feedback(recipe, world_state)
+			"success_feedback": _format_processing_completion_feedback(recipe, world_state, character_state)
 		})
 
 	return completed_results
@@ -185,15 +185,23 @@ func get_recommended_recipe_id(
 		)
 	):
 		return _select_if_available(interactable, "recipe.cleanse_residue")
+	if active_quest_id.is_empty():
+		var base_reentry_recipe_id := DemoRouteReturnAndBaseReentryFormatter.get_recommended_recipe_id_for_device(
+			interactable.definition_id,
+			character_state,
+			world_state
+		)
+		if not base_reentry_recipe_id.is_empty():
+			return _select_if_available(interactable, base_reentry_recipe_id)
 	match active_quest_id:
 		"quest.scout_crystal_field":
 			return _select_if_available(interactable, "recipe.process_crystal_ore")
 		"quest.calibrate_reactor":
-			if world_state.quest_state.get_objective_progress(active_quest_id, "gather_item", "item.salvage_scrap") >= 4.0:
+			if world_state.quest_state.get_objective_progress(active_quest_id, "gather_item", "item.salvage_scrap") >= 2.0:
 				return _select_if_available(interactable, "recipe.reactor_calibrator")
 			return ""
 		"quest.analyze_anomaly_sample":
-			if world_state.quest_state.get_objective_progress(active_quest_id, "gather_item", "item.anomaly_residue") >= 2.0:
+			if world_state.quest_state.get_objective_progress(active_quest_id, "gather_item", "item.anomaly_residue") >= 1.0:
 				return _select_if_available(interactable, "recipe.analyze_anomaly_sample")
 			return ""
 		"quest.make_filter_module":
@@ -205,7 +213,7 @@ func get_recommended_recipe_id(
 				return _select_if_available(interactable, "recipe.repair_gel")
 			return ""
 		"quest.expand_treatment_point":
-			var pending_foundations := maxi(0, 2 - world_state.count_base_structures("building.foundation_t1"))
+			var pending_foundations := maxi(0, 1 - world_state.count_base_structures("building.foundation_t1"))
 			if _get_inventory_ref_amount("item.foundation_material", character_state.inventory) < pending_foundations:
 				return _select_if_available(interactable, "recipe.foundation_t1")
 			if world_state.has_base_structure_definition("building.pollution_filter"):
@@ -359,7 +367,7 @@ func _format_processing_started_message(recipe: Dictionary, world_state: WorldSt
 	return message
 
 
-func _format_processing_started_feedback(recipe: Dictionary, world_state: WorldState) -> Dictionary:
+func _format_processing_started_feedback(recipe: Dictionary, world_state: WorldState, character_state: CharacterState) -> Dictionary:
 	var recipe_id := String(recipe.get("id", ""))
 	return {
 		"title": "加工已启动：%s" % _get_display_name(recipe_id),
@@ -368,8 +376,16 @@ func _format_processing_started_feedback(recipe: Dictionary, world_state: WorldS
 		"next_step": _get_processing_wait_next_step(),
 		"completion_next_step": _get_completion_next_step(recipe_id, world_state),
 		"industrial_spine": IndustrialTechSpineFormatter.format_result_feedback_line(recipe_id, world_state),
+		"device_operation": DemoDevicePanelOperationFormatter.format_result_feedback_line(recipe_id, world_state),
+		"module_task": DemoIndustrialModuleTaskRhythmFormatter.format_result_feedback_line(recipe_id, world_state, character_state),
 		"resource_chain": DemoResourceChainStateFormatter.format_result_feedback_line(recipe_id),
-		"show_resource_chain": _should_show_resource_chain_result_line(recipe_id)
+		"core_loop": DemoCoreLoopRhythmFormatter.format_result_feedback_line(recipe_id, world_state, character_state),
+		"field_task": DemoFieldTaskDifferentiationFormatter.format_result_feedback_line(recipe_id, world_state, character_state),
+		"base_reentry": DemoRouteReturnAndBaseReentryFormatter.format_result_feedback_line(recipe_id, world_state),
+		"show_module_task": _should_show_module_task_result_line(recipe_id),
+		"show_resource_chain": _should_show_resource_chain_result_line(recipe_id),
+		"show_core_loop": DemoCoreLoopRhythmFormatter.should_show_result_line(recipe_id),
+		"show_field_task": DemoFieldTaskDifferentiationFormatter.should_show_result_line(recipe_id)
 	}
 
 
@@ -385,7 +401,7 @@ func _format_completion_message(recipe: Dictionary, world_state: WorldState = nu
 	return " ".join(parts)
 
 
-func _format_processing_completion_feedback(recipe: Dictionary, world_state: WorldState) -> Dictionary:
+func _format_processing_completion_feedback(recipe: Dictionary, world_state: WorldState, character_state: CharacterState) -> Dictionary:
 	var recipe_id := String(recipe.get("id", ""))
 	return {
 		"title": "加工完成：%s" % _get_display_name(recipe_id),
@@ -393,13 +409,28 @@ func _format_processing_completion_feedback(recipe: Dictionary, world_state: Wor
 		"destination": _format_completion_destination(recipe),
 		"next_step": _get_completion_next_step(recipe_id, world_state),
 		"industrial_spine": IndustrialTechSpineFormatter.format_result_feedback_line(recipe_id, world_state),
+		"device_operation": DemoDevicePanelOperationFormatter.format_result_feedback_line(recipe_id, world_state),
+		"module_task": DemoIndustrialModuleTaskRhythmFormatter.format_result_feedback_line(recipe_id, world_state, character_state),
 		"resource_chain": DemoResourceChainStateFormatter.format_result_feedback_line(recipe_id),
-		"show_resource_chain": _should_show_resource_chain_result_line(recipe_id)
+		"core_loop": DemoCoreLoopRhythmFormatter.format_result_feedback_line(recipe_id, world_state, character_state),
+		"field_task": DemoFieldTaskDifferentiationFormatter.format_result_feedback_line(recipe_id, world_state, character_state),
+		"base_reentry": DemoRouteReturnAndBaseReentryFormatter.format_result_feedback_line(recipe_id, world_state),
+		"show_module_task": _should_show_module_task_result_line(recipe_id),
+		"show_resource_chain": _should_show_resource_chain_result_line(recipe_id),
+		"show_core_loop": DemoCoreLoopRhythmFormatter.should_show_result_line(recipe_id),
+		"show_field_task": DemoFieldTaskDifferentiationFormatter.should_show_result_line(recipe_id)
 	}
 
 
 func _should_show_resource_chain_result_line(recipe_id: String) -> bool:
 	return recipe_id == "recipe.process_crystal_ore"
+
+
+func _should_show_module_task_result_line(recipe_id: String) -> bool:
+	return [
+		"recipe.basic_filter_module",
+		"recipe.core_stabilization_buffer"
+	].has(recipe_id)
 
 
 func _format_completion_destination(recipe: Dictionary) -> String:

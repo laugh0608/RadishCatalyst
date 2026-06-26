@@ -1,6 +1,8 @@
 extends RefCounted
 class_name InteractableVisualRefresher
 
+const REQUIRED_POLLUTION_FILTER_FOUNDATIONS := 1
+
 
 func refresh_visual_state(
 	interactable: PrototypeInteractable,
@@ -72,7 +74,7 @@ func _is_build_prerequisite_blocked(interactable: PrototypeInteractable, world_s
 	if not interactable.prerequisite_instance_id.is_empty():
 		return not bool(world_state.get_map_object(interactable.prerequisite_instance_id).get("is_cleared", false))
 	if interactable.definition_id == "building.pollution_filter":
-		return world_state.count_base_structures("building.foundation_t1") < 2
+		return world_state.count_base_structures("building.foundation_t1") < REQUIRED_POLLUTION_FILTER_FOUNDATIONS
 	if interactable.definition_id == "building.slurry_buffer_tank":
 		return not world_state.has_base_structure_definition("building.pollution_filter")
 	return false
