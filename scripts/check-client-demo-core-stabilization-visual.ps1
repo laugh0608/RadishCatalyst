@@ -16,6 +16,8 @@ $requiredTextByFile = @{
         "operation_relation.core.guard_cache_to_write_device",
         "operation_relation.core.logistics_return",
         "_deemphasize_legacy_core_blocks",
+        "core_station.feedback.stability_window.open",
+        "core_station.flow.core_write_to_stability_window.ready",
         "map_object.demo_stabilization_core"
     )
     "client/scenes/maps/VerticalSliceMap.tscn" = @(
@@ -35,6 +37,7 @@ $requiredTextByFile = @{
         "core relation links guard cache to write device",
         "_check_core_visual_layer_replaces_old_terminal_blocks",
         "_check_core_visual_runtime_anchors_are_tagged",
+        "core visual marks opened stability window",
         "core handoff marks demo hook after write"
     )
     "docs/devlogs/2026-W25.md" = @(

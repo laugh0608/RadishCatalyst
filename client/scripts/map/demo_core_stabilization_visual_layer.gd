@@ -239,6 +239,10 @@ func refresh_core_station_state(world_state: WorldState, character_state: Charac
 	_register_core_station_state_shape("core_station.flow.core_to_retest.%s" % _core_ready_suffix(core_written))
 	_register_core_station_state_shape("core_station.flow.retest_to_logistics.%s" % _core_ready_suffix(core_written))
 	_register_core_station_state_shape("core_station.flow.logistics_return.%s" % _core_ready_suffix(logistics_return_ready))
+	if core_written:
+		_register_core_station_state_shape("core_station.feedback.stability_window.open")
+		_register_core_station_state_shape("core_station.feedback.unresolved_anomaly_hook.ready")
+		_register_core_station_state_shape("core_station.flow.core_write_to_stability_window.ready")
 	queue_redraw()
 
 
@@ -558,6 +562,7 @@ func _draw_core_station_state() -> void:
 	if core_written:
 		_draw_core_state_flow([Vector2(4038.0, -24.0), Vector2(4118.0, 18.0), Vector2(4134.0, 78.0)], RETEST_LINE, 3.8)
 		_draw_core_state_flow([Vector2(4134.0, 78.0), Vector2(4228.0, -52.0)], LOGISTICS_LINE, 3.2)
+		_draw_core_completion_window_feedback()
 	if logistics_return_ready:
 		_draw_core_state_flow([Vector2(4228.0, -52.0), Vector2(4168.0, -86.0), Vector2(4108.0, -118.0)], LOGISTICS_LINE, 2.8)
 
@@ -640,6 +645,35 @@ func _draw_logistics_return_feedback(state: String) -> void:
 	for center in [Vector2(4102.0, -116.0), Vector2(4130.0, -118.0)]:
 		draw_rect(Rect2(center + Vector2(-8.0, -6.0), Vector2(16.0, 12.0)), Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.38), true)
 		draw_rect(Rect2(center + Vector2(-8.0, -6.0), Vector2(16.0, 12.0)), Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.68), false, 0.9, true)
+
+
+func _draw_core_completion_window_feedback() -> void:
+	var center := Vector2(4038.0, -24.0)
+	for radius in [82.0, 108.0, 132.0]:
+		draw_arc(center, radius, PI * 0.02, PI * 1.94, 64, Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.22), 1.3, true)
+	_draw_core_state_flow(
+		[center, Vector2(4118.0, 18.0), Vector2(4134.0, 78.0), Vector2(4218.0, -28.0), Vector2(4252.0, -126.0)],
+		ANOMALY_HOOK_LINE,
+		2.2
+	)
+	var window_panel := Rect2(Vector2(4114.0, -8.0), Vector2(94.0, 44.0))
+	draw_rect(window_panel, Color(0.006, 0.02, 0.018, 0.62), true)
+	draw_rect(window_panel, Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.58), false, 1.4, true)
+	for index in range(5):
+		var x := window_panel.position.x + 12.0 + float(index) * 14.0
+		var height := 12.0 + float(index % 2) * 8.0
+		draw_line(
+			Vector2(x, window_panel.end.y - 8.0),
+			Vector2(x, window_panel.end.y - 8.0 - height),
+			Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.54),
+			1.8,
+			true
+		)
+	var anomaly_panel := Rect2(Vector2(4228.0, -168.0), Vector2(54.0, 34.0))
+	draw_rect(anomaly_panel, Color(0.08, 0.04, 0.12, 0.32), true)
+	draw_rect(anomaly_panel, Color(ANOMALY_HOOK_LINE.r, ANOMALY_HOOK_LINE.g, ANOMALY_HOOK_LINE.b, 0.58), false, 1.2, true)
+	for point in [Vector2(4218.0, -28.0), Vector2(4252.0, -126.0), anomaly_panel.position + Vector2(27.0, 17.0)]:
+		draw_arc(point, 14.0, 0.0, TAU, 24, Color(ANOMALY_HOOK_LINE.r, ANOMALY_HOOK_LINE.g, ANOMALY_HOOK_LINE.b, 0.36), 1.1, true)
 
 
 func _draw_core_status_strip(origin: Vector2, state: String, color: Color) -> void:
