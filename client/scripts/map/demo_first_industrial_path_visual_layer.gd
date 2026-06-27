@@ -1,6 +1,8 @@
 extends Node2D
 class_name DemoFirstIndustrialPathVisualLayer
 
+const HandoffArtPass := preload("res://scripts/map/demo_first_industrial_path_handoff_art_pass.gd")
+
 const FOCUS_MIN_X := -360.0
 const FOCUS_MAX_X := 160.0
 const CRYSTAL_LOCAL_FOCUS_MIN_X := -80.0
@@ -282,13 +284,16 @@ func _draw() -> void:
 	_draw_workspace_focus()
 	_draw_context_falloff()
 	_draw_primary_path_floor()
+	HandoffArtPass.draw_devices(self)
 	_draw_local_work_surfaces()
+	HandoffArtPass.draw_ports(self)
 	_draw_resource_workspots()
 	_draw_base_receiving_bay()
 	_draw_reactor_feed_station()
 	_draw_storage_and_outfitting_handoff()
 	_draw_operation_relation_overlay()
 	_draw_device_status_and_resource_flow()
+	HandoffArtPass.draw_feedback(self, path_state, get_active_stage())
 	_draw_stage_feedback()
 	_draw_path_state()
 
@@ -837,6 +842,7 @@ func _register_path_shapes() -> void:
 		"first_path.resource_flow_packets",
 		"first_path.material_state_slots"
 	]
+	path_shape_ids.append_array(HandoffArtPass.get_path_shape_ids())
 
 
 func _register_path_state_shape(shape_id: String) -> void:
@@ -1018,6 +1024,8 @@ func _register_resource_flow_shapes() -> void:
 		_register_path_state_shape("first_path.flow.reactor_to_storage.ready")
 	if bool(path_state.get("outfitting_ready", false)):
 		_register_path_state_shape("first_path.flow.storage_to_outfitting.ready")
+	for shape_id in HandoffArtPass.get_state_shape_ids(path_state):
+		_register_path_state_shape(shape_id)
 
 
 func _has_first_path_output_context(world_state: WorldState) -> bool:

@@ -66,10 +66,23 @@ $requiredTextByFile = @{
         "first_path.operation_relation.collector_to_receiving",
         "first_path.operation_relation.storage_to_outfitting",
         "first_path.single_signal_stage",
+        "demo_first_industrial_path_handoff_art_pass.gd",
+        "HandoffArtPass.draw_feedback",
         "CurrentObjectiveGuidanceLayer",
         "_set_context_layers_muted",
         "_has_first_path_output_context",
         "_quiet_global_planning_layers"
+    )
+    "client/scripts/map/demo_first_industrial_path_handoff_art_pass.gd" = @(
+        "class_name DemoFirstIndustrialPathHandoffArtPass",
+        "BASE_HANDOFF_ASSET_BASIC_REACTOR",
+        "first_path.assetized_base_handoff_device_group",
+        "first_path.assetized_handoff_ports",
+        "first_path.short_material_flow_segments",
+        "first_path.assetized_feedback.outfitting_handoff.ready",
+        "draw_devices",
+        "draw_ports",
+        "draw_feedback"
     )
     "client/scenes/maps/VerticalSliceMap.tscn" = @(
         "DemoCrystalResourceVisualLayer",
@@ -92,6 +105,8 @@ $requiredTextByFile = @{
         "_check_first_industrial_path_stage_changes",
         "_check_operation_relation_visual_shapes",
         "first path links collector output to receiving",
+        "first path gives the base handoff segment assetized devices",
+        "base handoff visual checkpoint marks outfitting handoff feedback",
         "first_path.stage.reactor_processing",
         "STAGE_OUTFITTING_READY",
         "starting supplies from skipping field pickup",

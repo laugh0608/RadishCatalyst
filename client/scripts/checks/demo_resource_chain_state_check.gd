@@ -163,6 +163,14 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	_expect_equal(first_path_layer.has_path_shape("first_path.context_clarity_mask"), true, "first industrial path layer applies a local clarity mask")
 	_expect_equal(first_path_layer.has_path_shape("first_path.collector_output_local_signal"), true, "first industrial path layer keeps collector output signal local")
 	_expect_equal(first_path_layer.has_path_shape("first_path.handoff_port_chain"), true, "first industrial path layer registers base handoff ports")
+	_expect_equal(first_path_layer.has_path_shape("first_path.assetized_base_handoff_device_group"), true, "first industrial path layer reuses assetized base handoff devices")
+	_expect_equal(first_path_layer.has_path_shape("first_path.assetized_receiving_dock"), true, "first industrial path layer draws an assetized receiving dock")
+	_expect_equal(first_path_layer.has_path_shape("first_path.assetized_reactor_module"), true, "first industrial path layer draws the reactor as a device asset")
+	_expect_equal(first_path_layer.has_path_shape("first_path.assetized_storage_bank"), true, "first industrial path layer draws storage as a device asset")
+	_expect_equal(first_path_layer.has_path_shape("first_path.assetized_outfitting_rack"), true, "first industrial path layer draws outfitting as a device asset")
+	_expect_equal(first_path_layer.has_path_shape("first_path.assetized_handoff_ports"), true, "first industrial path layer draws local handoff ports")
+	_expect_equal(first_path_layer.has_path_shape("first_path.short_material_flow_segments"), true, "first industrial path layer keeps material flow local and short")
+	_expect_equal(first_path_layer.has_path_shape("first_path.storage_outfitting_handoff_feedback"), true, "first industrial path layer registers storage to outfitting handoff feedback")
 	_expect_equal(first_path_layer.has_path_shape("first_path.single_signal_stage"), true, "first industrial path layer uses one active stage signal")
 	_expect_equal(first_path_layer.has_path_shape("first_path.device_status_lights"), true, "first industrial path layer registers device status lights")
 	_expect_equal(first_path_layer.has_path_shape("first_path.resource_flow_packets"), true, "first industrial path layer registers resource flow packets")
@@ -208,6 +216,9 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.flow.field_to_receiving.ready"), true, "first industrial path layer marks resource return flow")
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.flow.receiving_to_reactor.ready"), true, "first industrial path layer marks receiving to reactor flow")
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.flow.reactor_processing.active"), true, "first industrial path layer marks active reactor flow")
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.assetized_flow.receiving_packets.ready"), true, "first industrial path layer draws receiving material packets")
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.assetized_flow.reactor_feed_packets.ready"), true, "first industrial path layer draws reactor feed packets")
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.assetized_feedback.reactor_processing_glow.active"), true, "first industrial path layer draws reactor processing feedback")
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.stage.reactor_processing"), true, "first industrial path layer records reactor operation stage")
 	_check_first_industrial_path_stage_changes(first_path_layer)
 	map.free()
@@ -236,6 +247,9 @@ func _check_operation_relation_visual_shapes() -> void:
 	_expect_equal(first_path_layer.has_path_shape("first_path.operation_relation.reactor_to_storage"), true, "first path links reactor to storage")
 	_expect_equal(first_path_layer.has_path_shape("first_path.operation_relation.storage_to_outfitting"), true, "first path links storage to outfitting")
 	_expect_equal(first_path_layer.has_path_shape("first_path.operation_relation.device_role_ports"), true, "first path marks operation relation ports")
+	_expect_equal(first_path_layer.has_path_shape("first_path.assetized_base_handoff_device_group"), true, "first path gives the base handoff segment assetized devices")
+	_expect_equal(first_path_layer.has_path_shape("first_path.assetized_handoff_ports"), true, "first path uses device ports instead of long route arrows")
+	_expect_equal(first_path_layer.has_path_shape("first_path.short_material_flow_segments"), true, "first path expresses handoff with short material flows")
 	map.free()
 
 
@@ -478,6 +492,16 @@ func _check_visual_review_checkpoint_path_states() -> void:
 			first_path_layer.has_path_state_shape("first_path.flow.storage_to_outfitting.ready"),
 			true,
 			"base handoff visual checkpoint marks storage-to-outfitting flow"
+		)
+		_expect_equal(
+			first_path_layer.has_path_state_shape("first_path.assetized_flow.storage_output_packets.ready"),
+			true,
+			"base handoff visual checkpoint marks assetized storage output packets"
+		)
+		_expect_equal(
+			first_path_layer.has_path_state_shape("first_path.assetized_feedback.outfitting_handoff.ready"),
+			true,
+			"base handoff visual checkpoint marks outfitting handoff feedback"
 		)
 	map.free()
 
