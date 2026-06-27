@@ -209,6 +209,7 @@ func _check_pollution_boundary_short_challenge_readiness_visuals() -> void:
 
 	layer.refresh_pollution_chain_state(world, character)
 	_expect_equal(layer.get_pollution_short_challenge_shape_count() >= 8, true, "pollution boundary creates short challenge readiness shapes")
+	_expect_equal(layer.get_pollution_short_challenge_focus_shape_count() >= 4, true, "pollution short challenge uses focused local workface")
 	_expect_equal(layer.has_pollution_short_challenge_shape("pollution_short_challenge.staging_pad.ready"), true, "pollution short challenge marks ready staging pad")
 	_expect_equal(layer.has_pollution_short_challenge_shape("pollution_short_challenge.supply.filter_module.ready"), true, "pollution short challenge reads filter module readiness")
 	_expect_equal(layer.has_pollution_short_challenge_shape("pollution_short_challenge.supply.resistance_vial.ready"), true, "pollution short challenge reads vial readiness")
@@ -217,6 +218,8 @@ func _check_pollution_boundary_short_challenge_readiness_visuals() -> void:
 	_expect_equal(layer.has_pollution_short_challenge_shape("pollution_short_challenge.combat_pocket.active"), true, "pollution short challenge marks local combat pocket")
 	_expect_equal(layer.has_pollution_short_challenge_shape("pollution_short_challenge.residue_return.ready"), true, "pollution short challenge marks residue return")
 	_expect_equal(layer.has_pollution_short_challenge_shape("pollution_short_challenge.filter_handoff.ready"), true, "pollution short challenge links residue back to filter")
+	_expect_equal(layer.has_pollution_short_challenge_focus_shape("pollution_short_challenge.focus.workspace_floor"), true, "pollution short challenge draws focused workface floor")
+	_expect_equal(layer.has_pollution_short_challenge_focus_shape("pollution_short_challenge.focus.chain_overlay_suppressed"), true, "pollution short challenge suppresses full chain overlay")
 	map.free()
 
 

@@ -21,6 +21,8 @@ REQUIRED_TEXT_BY_FILE = {
         "pollution_chain.boundary_core_prep_route",
         "DemoPollutionShortChallengeReadinessArtPass",
         "get_pollution_short_challenge_shape_count",
+        "get_pollution_short_challenge_focus_shape_count",
+        "pollution_short_challenge.focus.chain_overlay_suppressed",
         "refresh_focus_visibility",
         "_deemphasize_legacy_pollution_blocks",
         "map_object.pollution_residue_patch",

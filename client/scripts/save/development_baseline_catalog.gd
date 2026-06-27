@@ -76,7 +76,7 @@ const VISUAL_REVIEW_CHECKPOINT_DEFINITIONS := [
 		"display_name": "污染整备短挑战",
 		"baseline_id": "baseline.s1_treatment_ready",
 		"region_id": "region.pollution_edge",
-		"position": Vector2(298.0, -72.0),
+		"position": Vector2(298.0, 24.0),
 		"summary": "过滤模块、抗污染药剂、修复凝胶、压力门短路线、局部受扰敌人和沉积物回收交接。",
 		"watch": "观察整备检查位、短战斗口袋和沉积物回过滤器是否能直接读成污染边界短挑战。"
 	},

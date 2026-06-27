@@ -490,6 +490,16 @@ func _check_visual_review_checkpoint_runtime_state(
 				"%s pollution filter completed"
 			)
 			host._expect_equal(
+				VerticalSliceMapSurface.get_region_id_for_position(character_state.position),
+				"region.pollution_edge",
+				"%s position remains inside pollution surface region"
+			)
+			host._expect_text_contains(
+				HudMapPresenter.new().format_demo_route_title(world_state, "quest.enter_pollution_edge"),
+				"污染排压",
+				"%s minimap route title"
+			)
+			host._expect_equal(
 				String(character_state.equipment.get("suit_module", "")),
 				FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID,
 				"%s filter module equipped"
