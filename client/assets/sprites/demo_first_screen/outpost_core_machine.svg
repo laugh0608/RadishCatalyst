@@ -18,8 +18,9 @@
     <path d="M176 91 L206 97"/>
   </g>
   <g fill="#071615" stroke="#e8ba4f" stroke-width="3">
-    <rect x="184" y="96" width="27" height="24" rx="5"/>
-    <circle cx="197" cy="108" r="7" fill="#f2c75e" opacity="0.72"/>
+    <rect x="184" y="96" width="31" height="24" rx="4"/>
+    <rect x="191" y="103" width="16" height="9" fill="#f2c75e" opacity="0.56"/>
+    <path d="M190 117 L208 117" stroke="#f2c75e" stroke-width="2" opacity="0.38"/>
   </g>
   <g fill="#e9bd56" opacity="0.8">
     <circle cx="167" cy="74" r="5"/>

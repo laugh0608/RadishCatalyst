@@ -197,10 +197,26 @@ func _refresh_startup_presentation(world_state: WorldState) -> void:
 	startup_layer.refresh_startup_state(world_state)
 
 
+func _align_startup_player_to_core(world_state: WorldState) -> void:
+	if player == null or interactables_root == null or world_state == null: return
+	if world_state.quest_state.has_completed_quest("quest.restore_outpost"):
+		if player.position.distance_to(OUTPOST_RESPAWN_POSITION) <= 8.0:
+			player.facing_direction = Vector2.RIGHT
+			player.queue_redraw()
+		return
+	var outpost_core := interactables_root.get_node_or_null("OutpostCore") as PrototypeInteractable
+	if outpost_core == null: return
+	var direction_to_core := outpost_core.position - player.position
+	if direction_to_core.length_squared() <= 0.001: return
+	player.facing_direction = direction_to_core.normalized()
+	player.queue_redraw()
+
+
 func refresh_world_interactables(world_state: WorldState) -> void:
 	_ensure_scene_nodes()
 	current_world_state = world_state
 	_refresh_startup_presentation(world_state)
+	_align_startup_player_to_core(world_state)
 	if interactable_visual_refresher == null:
 		interactable_visual_refresher = InteractableVisualRefresher.new()
 	if phase_well_frontier_runtime != null:

@@ -394,7 +394,9 @@ func _check_startup_readability_scope() -> void:
 		)
 	_expect_equal(startup_layer != null, true, "startup first screen presentation layer exists")
 	if startup_layer != null:
-		startup_layer.refresh_startup_state(WorldState.create_default())
+		var startup_world := WorldState.create_default()
+		map.refresh_world_interactables(startup_world)
+		startup_layer.refresh_startup_state(startup_world)
 		_expect_equal(startup_layer.visible, true, "startup first screen uses a dedicated presentation layer")
 		_expect_equal(startup_layer.is_startup_active(), true, "startup presentation layer is active before core restore")
 		_expect_equal(startup_layer.get_presentation_shape_count() >= 8, true, "startup presentation layer registers scene artwork shapes")
@@ -442,7 +444,8 @@ func _check_startup_readability_scope() -> void:
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.player_repair_action"), true, "startup presentation shows the player repair action")
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.depth_shadow_layers"), true, "startup presentation adds depth shadow layers")
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.damaged_core_equipment"), true, "startup presentation turns the core into damaged equipment")
-		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.player_character_pose"), true, "startup presentation gives the repair action a readable player pose")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.actual_player_core_facing"), true, "startup presentation uses the actual player facing the core")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.single_repair_pose_asset"), true, "startup presentation keeps one repair pose asset instead of stacked player drawings")
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.high_priority_floor_material"), true, "startup presentation adds high-priority floor material around the action")
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.close_repair_feedback"), true, "startup presentation adds close repair feedback at the port")
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.assetized_terrain_floor"), true, "startup presentation draws the terrain from first-screen assets")
@@ -460,8 +463,14 @@ func _check_startup_readability_scope() -> void:
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.assetized_outfitting_device"), true, "startup presentation draws outfitting from first-screen assets")
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.assetized_device_ports"), true, "startup presentation gives assetized devices usable ports")
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.assetized_platform_mask_balance"), true, "startup presentation keeps the platform below the terrain and device read")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.short_repair_tool_feedback"), true, "startup presentation keeps repair feedback short and local")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.core_status_chip_deemphasized"), true, "startup presentation lowers the round core status chip read")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.right_background_linework_muted"), true, "startup presentation mutes right-side background linework")
 		var player := map.get_node("Player") as PlayerController
 		_expect_equal(startup_layer.z_index < player.z_index, true, "startup presentation stays below the player actor")
+		var target := map.get_node("Interactables/OutpostCore") as PrototypeInteractable
+		var direction_to_core := (target.position - player.position).normalized()
+		_expect_equal(player.get_facing_direction().dot(direction_to_core) >= 0.92, true, "startup actual player faces the outpost core")
 	if base_layer != null:
 		base_layer.apply_visuals()
 		base_layer.refresh_chain_state(WorldState.create_default(), CharacterState.create_default())
