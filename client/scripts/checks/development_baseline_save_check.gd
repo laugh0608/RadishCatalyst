@@ -479,6 +479,29 @@ func _check_visual_review_checkpoint_runtime_state(
 				"外勤整备可用",
 				"%s resource chain line"
 			)
+		"visual_review.pollution_short_challenge":
+			host._expect_equal(world_state.quest_state.active_quest_ids, ["quest.enter_pollution_edge"], "%s active quest" % label)
+			host._expect_array_has(world_state.quest_state.completed_quest_ids, "quest.expand_treatment_point", "%s completed treatment expansion" % label)
+			host._expect_array_missing(world_state.quest_state.completed_quest_ids, "quest.enter_pollution_edge", "%s keeps pollution challenge active" % label)
+			host._expect_equal(world_state.has_base_structure_definition("building.pollution_filter"), true, "%s pollution filter built" % label)
+			host._expect_equal(
+				String(world_state.base_structures.get("structure.pollution_filter_build_site", {}).get("status", "")),
+				"completed",
+				"%s pollution filter completed"
+			)
+			host._expect_equal(
+				String(character_state.equipment.get("suit_module", "")),
+				FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID,
+				"%s filter module equipped"
+			)
+			host._expect_equal(int(character_state.inventory.items.get("item.resistance_vial_t1", 0)) >= 1, true, "%s vial ready" % label)
+			host._expect_equal(int(character_state.inventory.items.get("item.repair_gel", 0)) >= 1, true, "%s repair gel ready" % label)
+			host._expect_equal(int(character_state.inventory.items.get("item.polluted_residue", 0)) >= 1, true, "%s residue return primed" % label)
+			host._expect_equal(
+				bool(world_state.get_enemy("enemy_instance.polluted_skitter").get("is_defeated", true)),
+				false,
+				"%s keeps local combat pocket active"
+			)
 		"visual_review.core_station":
 			host._expect_array_has(
 				world_state.quest_state.completed_quest_ids,
