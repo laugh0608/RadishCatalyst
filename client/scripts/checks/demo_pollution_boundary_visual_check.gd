@@ -23,6 +23,7 @@ func _run_checks() -> void:
 	_check_pollution_boundary_operation_relation_shapes()
 	_check_pollution_boundary_focus_visibility()
 	_check_pollution_boundary_chain_state_visuals()
+	_check_pollution_boundary_short_challenge_readiness_visuals()
 	_check_pollution_boundary_visual_priority_replaces_old_blocks()
 	_check_pollution_boundary_runtime_anchors_are_tagged()
 
@@ -188,6 +189,34 @@ func _check_pollution_boundary_chain_state_visuals() -> void:
 	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.flow.vial_to_base.ready"), true, "pollution boundary marks vial return flow")
 	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.flow.slurry_to_recycle.ready"), true, "pollution boundary marks slurry recycle flow")
 	_expect_equal(layer.has_pollution_chain_shape("pollution_chain.flow.slurry_to_core_prep.ready"), true, "pollution boundary marks slurry core prep flow")
+	map.free()
+
+
+func _check_pollution_boundary_short_challenge_readiness_visuals() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	var layer := map.get_node("DemoPollutionBoundaryVisualLayer") as DemoPollutionBoundaryVisualLayer
+	layer.apply_visuals()
+	var world := WorldState.create_default()
+	world.current_region_id = "region.pollution_edge"
+	world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
+	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", 1.0)
+	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "defeat_enemy", "enemy.polluted_skitter", 1.0)
+	var character := CharacterState.create_default()
+	character.inventory.add_equipment("equipment.filter_module_t1", 1)
+	character.inventory.add_item("item.resistance_vial_t1", 1)
+	character.inventory.add_item("item.polluted_residue", 1)
+
+	layer.refresh_pollution_chain_state(world, character)
+	_expect_equal(layer.get_pollution_short_challenge_shape_count() >= 8, true, "pollution boundary creates short challenge readiness shapes")
+	_expect_equal(layer.has_pollution_short_challenge_shape("pollution_short_challenge.staging_pad.ready"), true, "pollution short challenge marks ready staging pad")
+	_expect_equal(layer.has_pollution_short_challenge_shape("pollution_short_challenge.supply.filter_module.ready"), true, "pollution short challenge reads filter module readiness")
+	_expect_equal(layer.has_pollution_short_challenge_shape("pollution_short_challenge.supply.resistance_vial.ready"), true, "pollution short challenge reads vial readiness")
+	_expect_equal(layer.has_pollution_short_challenge_shape("pollution_short_challenge.supply.repair_gel.ready"), true, "pollution short challenge reads repair gel readiness")
+	_expect_equal(layer.has_pollution_short_challenge_shape("pollution_short_challenge.pressure_gate_route.ready"), true, "pollution short challenge links staging pad to pressure gate")
+	_expect_equal(layer.has_pollution_short_challenge_shape("pollution_short_challenge.combat_pocket.active"), true, "pollution short challenge marks local combat pocket")
+	_expect_equal(layer.has_pollution_short_challenge_shape("pollution_short_challenge.residue_return.ready"), true, "pollution short challenge marks residue return")
+	_expect_equal(layer.has_pollution_short_challenge_shape("pollution_short_challenge.filter_handoff.ready"), true, "pollution short challenge links residue back to filter")
 	map.free()
 
 

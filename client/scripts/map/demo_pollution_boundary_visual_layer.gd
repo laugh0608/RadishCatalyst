@@ -188,6 +188,8 @@ var muted_pollution_focus_context_layer_count := 0
 var muted_pollution_focus_context_marker_count := 0
 var applied_pollution_chain_state_count := 0
 var pollution_chain_state: Dictionary = {}
+var pollution_short_challenge_state: Dictionary = {}
+var pollution_short_challenge_shape_ids: Array[String] = []
 var context_layer_original_modulates: Dictionary = {}
 
 
@@ -218,14 +220,17 @@ func apply_visuals() -> void:
 
 func refresh_pollution_chain_state(world_state: WorldState, character_state: CharacterState) -> void:
 	pollution_chain_shape_ids.clear()
+	pollution_short_challenge_shape_ids.clear()
 	applied_pollution_chain_state_count = 0
 	if world_state == null or character_state == null:
 		pollution_chain_state.clear()
+		pollution_short_challenge_state.clear()
 		queue_redraw()
 		return
 	var inventory := character_state.inventory
 	if not _has_pollution_chain_context(world_state, inventory):
 		pollution_chain_state.clear()
+		pollution_short_challenge_state.clear()
 		queue_redraw()
 		return
 	var filter_state := _get_base_structure_for_definition(world_state, "building.pollution_filter")
@@ -281,6 +286,8 @@ func refresh_pollution_chain_state(world_state: WorldState, character_state: Cha
 		"slurry_device_state": slurry_device_state,
 		"return_device_state": return_device_state
 	}
+	pollution_short_challenge_state = DemoPollutionShortChallengeReadinessArtPass.create_state(world_state, character_state)
+	pollution_short_challenge_shape_ids = DemoPollutionShortChallengeReadinessArtPass.get_shape_ids(pollution_short_challenge_state)
 	_register_pollution_chain_shape("pollution_chain.boundary_residue_queue.%s" % _state_suffix(residue_ready))
 	_register_pollution_chain_shape("pollution_chain.boundary_filter_window.%s" % _state_suffix(filter_active))
 	_register_pollution_chain_shape("pollution_chain.boundary_vial_output.%s" % _state_suffix(vial_ready))
@@ -357,6 +364,14 @@ func has_pollution_chain_shape(shape_id: String) -> bool:
 	return pollution_chain_shape_ids.has(shape_id)
 
 
+func get_pollution_short_challenge_shape_count() -> int:
+	return pollution_short_challenge_shape_ids.size()
+
+
+func has_pollution_short_challenge_shape(shape_id: String) -> bool:
+	return pollution_short_challenge_shape_ids.has(shape_id)
+
+
 func refresh_focus_visibility(player_position: Vector2) -> void:
 	visible = is_pollution_focus_visible_at(player_position)
 	_update_pollution_focus_context_layers()
@@ -378,6 +393,7 @@ func _draw() -> void:
 	_draw_residue_patches()
 	_draw_pressure_gate()
 	_draw_pollution_chain_state()
+	DemoPollutionShortChallengeReadinessArtPass.draw(self, pollution_short_challenge_state)
 	_draw_operation_relation_overlay()
 
 
