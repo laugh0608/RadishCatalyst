@@ -52,6 +52,8 @@ static func format_current_beat(world_state: WorldState, character_state: Charac
 		return "前哨核心低功率，反应器和储运线待重启"
 	if _has_core_context(world_state, character_state):
 		return "核心稳定站是旧稳定工程节点；写入会让前哨接回稳定窗口"
+	if _has_pollution_to_core_handoff_context(world_state, character_state):
+		return "污染短战斗留下沉积、药剂和浆液；基地整备会把结果送进核心稳定站"
 	if _has_pollution_context(world_state, character_state):
 		return "污染沉积和受扰生态确认事故正在外部扩散"
 	if _has_any_active_quest(world_state, TREATMENT_QUEST_IDS):
@@ -101,6 +103,28 @@ static func _has_core_context(world_state: WorldState, character_state: Characte
 	return (
 		world_state.current_region_id == CORE_REGION_ID
 		or _has_any_active_quest(world_state, CORE_QUEST_IDS)
+		or _has_active_recipe(world_state, "recipe.core_stabilization_buffer")
+		or _has_inventory_ref(character_state, "item.core_stabilization_buffer", 1)
+		or _has_inventory_ref(character_state, "item.core_write_charge", 1)
+	)
+
+
+static func _has_pollution_to_core_handoff_context(world_state: WorldState, character_state: CharacterState) -> bool:
+	if not world_state.quest_state.has_completed_quest("quest.enter_pollution_edge"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.enter_demo_stabilization_core"):
+		return false
+	if not (
+		_has_inventory_ref(character_state, "fluid.polluted_slurry", 1)
+		or _has_inventory_ref(character_state, "item.resistance_vial_t1", 1)
+		or _has_inventory_ref(character_state, "item.polluted_residue", 1)
+	):
+		return false
+	if world_state.current_region_id == POLLUTION_REGION_ID or character_state.current_region_id == POLLUTION_REGION_ID:
+		return true
+	return (
+		world_state.unlocked_region_ids.has(CORE_REGION_ID)
+		or world_state.quest_state.unlocked_effects.has("recipe.core_stabilization_buffer")
 		or _has_active_recipe(world_state, "recipe.core_stabilization_buffer")
 		or _has_inventory_ref(character_state, "item.core_stabilization_buffer", 1)
 		or _has_inventory_ref(character_state, "item.core_write_charge", 1)

@@ -1,6 +1,8 @@
 extends Node2D
 class_name DemoPollutionBoundaryVisualLayer
 
+const PollutionToCoreHandoffArtPass := preload("res://scripts/map/demo_pollution_to_core_handoff_art_pass.gd")
+
 const ROLE_BOUNDARY := "boundary"
 const ROLE_FILTER_SITE := "filter_site"
 const ROLE_RESIDUE := "residue"
@@ -189,8 +191,10 @@ var muted_pollution_focus_context_marker_count := 0
 var applied_pollution_chain_state_count := 0
 var pollution_chain_state: Dictionary = {}
 var pollution_short_challenge_state: Dictionary = {}
+var pollution_core_handoff_state: Dictionary = {}
 var pollution_short_challenge_shape_ids: Array[String] = []
 var pollution_short_challenge_focus_shape_ids: Array[String] = []
+var pollution_core_handoff_shape_ids: Array[String] = []
 var context_layer_original_modulates: Dictionary = {}
 
 
@@ -223,16 +227,19 @@ func refresh_pollution_chain_state(world_state: WorldState, character_state: Cha
 	pollution_chain_shape_ids.clear()
 	pollution_short_challenge_shape_ids.clear()
 	pollution_short_challenge_focus_shape_ids.clear()
+	pollution_core_handoff_shape_ids.clear()
 	applied_pollution_chain_state_count = 0
 	if world_state == null or character_state == null:
 		pollution_chain_state.clear()
 		pollution_short_challenge_state.clear()
+		pollution_core_handoff_state.clear()
 		queue_redraw()
 		return
 	var inventory := character_state.inventory
 	if not _has_pollution_chain_context(world_state, inventory):
 		pollution_chain_state.clear()
 		pollution_short_challenge_state.clear()
+		pollution_core_handoff_state.clear()
 		queue_redraw()
 		return
 	var filter_state := _get_base_structure_for_definition(world_state, "building.pollution_filter")
@@ -290,6 +297,8 @@ func refresh_pollution_chain_state(world_state: WorldState, character_state: Cha
 	}
 	pollution_short_challenge_state = DemoPollutionShortChallengeReadinessArtPass.create_state(world_state, character_state)
 	pollution_short_challenge_shape_ids = DemoPollutionShortChallengeReadinessArtPass.get_shape_ids(pollution_short_challenge_state)
+	pollution_core_handoff_state = PollutionToCoreHandoffArtPass.create_state(world_state, character_state)
+	pollution_core_handoff_shape_ids = PollutionToCoreHandoffArtPass.get_pollution_shape_ids(pollution_core_handoff_state)
 	_register_short_challenge_focus_shapes()
 	_register_pollution_chain_shape("pollution_chain.boundary_residue_queue.%s" % _state_suffix(residue_ready))
 	_register_pollution_chain_shape("pollution_chain.boundary_filter_window.%s" % _state_suffix(filter_active))
@@ -383,6 +392,14 @@ func has_pollution_short_challenge_focus_shape(shape_id: String) -> bool:
 	return pollution_short_challenge_focus_shape_ids.has(shape_id)
 
 
+func get_pollution_core_handoff_shape_count() -> int:
+	return pollution_core_handoff_shape_ids.size()
+
+
+func has_pollution_core_handoff_shape(shape_id: String) -> bool:
+	return pollution_core_handoff_shape_ids.has(shape_id)
+
+
 func refresh_focus_visibility(player_position: Vector2) -> void:
 	visible = is_pollution_focus_visible_at(player_position)
 	_update_pollution_focus_context_layers()
@@ -401,6 +418,7 @@ func _draw() -> void:
 		_draw_filter_construction_site()
 		_draw_pressure_gate()
 		DemoPollutionShortChallengeReadinessArtPass.draw(self, pollution_short_challenge_state)
+		PollutionToCoreHandoffArtPass.draw_pollution_handoff(self, pollution_core_handoff_state)
 		return
 	_draw_local_processing_workspace()
 	_draw_boundary_field()
@@ -411,6 +429,7 @@ func _draw() -> void:
 	_draw_pressure_gate()
 	_draw_pollution_chain_state()
 	DemoPollutionShortChallengeReadinessArtPass.draw(self, pollution_short_challenge_state)
+	PollutionToCoreHandoffArtPass.draw_pollution_handoff(self, pollution_core_handoff_state)
 	_draw_operation_relation_overlay()
 
 
@@ -1058,13 +1077,16 @@ func _register_flow_shapes() -> void:
 		"flow.pollution_pressure_warning_nodes",
 		"flow.contamination_to_filter_story",
 		"flow.filter_conversion_feedback",
+		"flow.pollution_result_to_core_buffer",
+		"flow.pollution_core_entry_route",
 		"operation_relation.pollution.residue_to_filter",
 		"operation_relation.pollution.filter_outputs",
 		"operation_relation.pollution.vial_return",
 		"operation_relation.pollution.slurry_split",
 		"operation_relation.pollution.core_prep_pressure_port",
 		"operation_relation.pollution.contamination_to_filter_story",
-		"operation_relation.pollution.filter_conversion_feedback"
+		"operation_relation.pollution.filter_conversion_feedback",
+		"operation_relation.pollution.short_challenge_to_core_entry"
 	]
 
 
@@ -1137,6 +1159,7 @@ func _has_pollution_chain_context(world_state: WorldState, inventory: InventoryS
 		inventory.has_ref("item.polluted_residue", 1)
 		or inventory.has_ref("item.resistance_vial_t1", 1)
 		or inventory.has_ref("fluid.polluted_slurry", 1.0)
+		or inventory.has_ref("item.core_stabilization_buffer", 1)
 		or _is_recipe_active(world_state, "building.pollution_filter", "recipe.cleanse_residue")
 		or _is_recipe_active(world_state, "building.basic_reactor", "recipe.reclaim_basic_parts")
 		or _is_recipe_active(world_state, "building.basic_reactor", "recipe.core_stabilization_buffer")
@@ -1145,6 +1168,7 @@ func _has_pollution_chain_context(world_state: WorldState, inventory: InventoryS
 	for quest_id in [
 		"quest.expand_treatment_point",
 		"quest.enter_pollution_edge",
+		"quest.enter_demo_stabilization_core",
 		"quest.unlock_ruin_signal",
 		"quest.prepare_demo_stabilization_buffer",
 		"quest.write_demo_stabilization_core"

@@ -10,6 +10,7 @@ REQUIRED_TEXT_BY_FILE = {
         "station.writeback_device",
         "station.retest_readout",
         "flow.core_return_to_base",
+        "PollutionToCoreHandoffArtPass",
         "operation_relation.core.guard_cache_to_write_device",
         "operation_relation.core.logistics_return",
         "refresh_focus_visibility",
@@ -20,6 +21,12 @@ REQUIRED_TEXT_BY_FILE = {
         "DemoCoreStabilizationVisualLayer",
         "demo_core_stabilization_visual_layer.gd",
     ],
+    "client/scripts/map/demo_pollution_to_core_handoff_art_pass.gd": [
+        "class_name DemoPollutionToCoreHandoffArtPass",
+        "get_core_shape_ids",
+        "core_handoff.write_energy",
+        "core_handoff.demo_hook",
+    ],
     "client/scripts/checks/demo_core_stabilization_visual_check.gd": [
         "Demo core stabilization visual checks passed.",
         "_check_core_visual_layer_exists_and_registers_station_shapes",
@@ -28,6 +35,7 @@ REQUIRED_TEXT_BY_FILE = {
         "core relation links guard cache to write device",
         "_check_core_visual_layer_replaces_old_terminal_blocks",
         "_check_core_visual_runtime_anchors_are_tagged",
+        "core handoff marks demo hook after write",
     ],
     "docs/devlogs/2026-W25.md": [
         "核心稳定站终点视觉第一轮",

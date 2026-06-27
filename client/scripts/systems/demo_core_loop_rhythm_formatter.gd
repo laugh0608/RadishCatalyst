@@ -44,6 +44,8 @@ static func get_stage_id(world_state: WorldState, character_state: CharacterStat
 		return STAGE_OUTPOST_START
 	if _has_core_write_context(world_state, character_state):
 		return STAGE_CORE_WRITE
+	if _has_pollution_to_core_handoff_context(world_state, character_state):
+		return STAGE_CORE_WRITE
 	if _has_pollution_pressure_context(world_state, character_state):
 		return STAGE_POLLUTION_PRESSURE
 	if _has_outfitting_quest_context(world_state):
@@ -104,6 +106,10 @@ static func format_next_step(
 				return "带药剂和过滤模块顶住污染边界短战斗"
 			return "用过滤模块、药剂和修复凝胶顶住污染边界"
 		STAGE_CORE_WRITE:
+			if _has_pollution_to_core_handoff_context(world_state, character_state) and not _has_any_core_quest_context(world_state):
+				return "短挑战结果已回收，回基地把药剂、浆液和修复凝胶整成核心稳压准备"
+			if world_state != null and world_state.quest_state.has_active_quest("quest.enter_demo_stabilization_core"):
+				return "从出发路线进入核心稳定站，确认入口和终点压力"
 			if world_state != null and world_state.quest_state.has_active_quest("quest.prepare_demo_stabilization_buffer"):
 				return "把药剂、浆液、修复凝胶和零件整成稳压缓冲包"
 			if _has_inventory_ref(character_state, "item.core_stabilization_buffer", 1):
@@ -175,6 +181,7 @@ static func _should_show_summary(world_state: WorldState, character_state: Chara
 		or _has_inventory_ref(character_state, "fluid.polluted_slurry", 1)
 		or _has_inventory_ref(character_state, "item.core_stabilization_buffer", 1)
 		or _has_inventory_ref(character_state, "item.core_write_charge", 1)
+		or _has_pollution_to_core_handoff_context(world_state, character_state)
 	)
 
 
@@ -266,6 +273,41 @@ static func _has_core_write_context(world_state: WorldState, character_state: Ch
 		or _has_inventory_ref(character_state, "item.core_stabilization_buffer", 1)
 		or _has_inventory_ref(character_state, "item.core_write_charge", 1)
 	)
+
+
+static func _has_pollution_to_core_handoff_context(world_state: WorldState, character_state: CharacterState) -> bool:
+	if world_state == null or character_state == null:
+		return false
+	if world_state.quest_state.has_completed_quest("quest.enter_demo_stabilization_core"):
+		return false
+	if world_state.quest_state.has_completed_quest("quest.write_demo_stabilization_core"):
+		return false
+	if not world_state.quest_state.has_completed_quest("quest.enter_pollution_edge"):
+		return false
+	if not (
+		_has_inventory_ref(character_state, "fluid.polluted_slurry", 1)
+		or _has_inventory_ref(character_state, "item.resistance_vial_t1", 1)
+		or _has_inventory_ref(character_state, "item.polluted_residue", 1)
+	):
+		return false
+	if world_state.current_region_id == POLLUTION_REGION_ID or character_state.current_region_id == POLLUTION_REGION_ID:
+		return true
+	return (
+		world_state.unlocked_region_ids.has(CORE_REGION_ID)
+		or world_state.quest_state.unlocked_effects.has("recipe.core_stabilization_buffer")
+		or _has_active_recipe(world_state, "recipe.core_stabilization_buffer")
+		or _has_inventory_ref(character_state, "item.core_stabilization_buffer", 1)
+		or _has_inventory_ref(character_state, "item.core_write_charge", 1)
+	)
+
+
+static func _has_any_core_quest_context(world_state: WorldState) -> bool:
+	return _has_any_active_quest(world_state, [
+		"quest.enter_demo_stabilization_core",
+		"quest.prepare_demo_stabilization_buffer",
+		"quest.defeat_demo_stabilization_guard",
+		"quest.write_demo_stabilization_core"
+	])
 
 
 static func _has_any_active_quest(world_state: WorldState, quest_ids: Array) -> bool:

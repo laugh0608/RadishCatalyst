@@ -133,7 +133,7 @@ func _format_completion_note(
 		"quest.expand_treatment_point":
 			return "污染过滤器已上线；沉积物可转成药剂，前哨开始把外部污染纳入处理链"
 		"quest.enter_pollution_edge":
-			return "污染沉积物已转成药剂补给；受扰生态证明事故仍在外扩，带药剂继续压制门前压力"
+			return "污染承压和短战斗已留下可带走结果；沉积物、药剂和污染浆液会回基地支撑核心稳压准备"
 		"quest.defeat_elite_node":
 			return "污染源点已压制，封锁遗迹入口信号可确认"
 		"quest.unlock_ruin_signal":
@@ -239,7 +239,7 @@ func _format_completion_note(
 		"quest.analyze_pressure_clearance_trace":
 			return "压力清障反馈已归档；行动台已把本趟风险收益转成下一轮防护整备"
 		"quest.enter_demo_stabilization_core":
-			return "核心稳定站入口已确认；这里是旧稳定工程节点，先补核心缓冲包材料再回基地整备"
+			return "核心稳定站入口已确认；污染短挑战结果和基地整备收益会在这里转成写入前缓冲"
 		"quest.prepare_demo_stabilization_buffer":
 			return "核心稳压缓冲包已整备；返回核心稳定站挑战阶段守卫"
 		"quest.defeat_demo_stabilization_guard":

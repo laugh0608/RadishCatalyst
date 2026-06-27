@@ -1,6 +1,8 @@
 extends Node2D
 class_name DemoCoreStabilizationVisualLayer
 
+const PollutionToCoreHandoffArtPass := preload("res://scripts/map/demo_pollution_to_core_handoff_art_pass.gd")
+
 const ROLE_APPROACH := "approach"
 const ROLE_RECOVERY := "recovery"
 const ROLE_GUARD_FIELD := "guard_field"
@@ -101,6 +103,8 @@ var muted_enemy_sprite_count := 0
 var muted_core_focus_context_layer_count := 0
 var applied_core_station_state_count := 0
 var core_station_state: Dictionary = {}
+var core_handoff_state: Dictionary = {}
+var core_handoff_shape_ids: Array[String] = []
 var context_layer_original_modulates: Dictionary = {}
 
 
@@ -129,13 +133,16 @@ func apply_visuals() -> void:
 
 func refresh_core_station_state(world_state: WorldState, character_state: CharacterState) -> void:
 	core_station_state_shape_ids.clear()
+	core_handoff_shape_ids.clear()
 	applied_core_station_state_count = 0
 	if world_state == null or character_state == null:
 		core_station_state.clear()
+		core_handoff_state.clear()
 		queue_redraw()
 		return
 	if not _has_core_station_context(world_state, character_state):
 		core_station_state.clear()
+		core_handoff_state.clear()
 		queue_redraw()
 		return
 
@@ -212,6 +219,8 @@ func refresh_core_station_state(world_state: WorldState, character_state: Charac
 		"retest_ready": retest_ready,
 		"logistics_return_ready": logistics_return_ready
 	}
+	core_handoff_state = PollutionToCoreHandoffArtPass.create_state(world_state, character_state)
+	core_handoff_shape_ids = PollutionToCoreHandoffArtPass.get_core_shape_ids(core_handoff_state)
 	_register_core_station_state_shape("core_station.device.recovery.%s" % recovery_state)
 	_register_core_station_state_shape("core_station.device.guard_cache.%s" % guard_cache_state)
 	_register_core_station_state_shape("core_station.pressure.guard.%s" % guard_pressure_state)
@@ -273,6 +282,14 @@ func has_core_station_state_shape(shape_id: String) -> bool:
 	return core_station_state_shape_ids.has(shape_id)
 
 
+func get_core_handoff_shape_count() -> int:
+	return core_handoff_shape_ids.size()
+
+
+func has_core_handoff_shape(shape_id: String) -> bool:
+	return core_handoff_shape_ids.has(shape_id)
+
+
 func refresh_focus_visibility(player_position: Vector2) -> void:
 	visible = player_position.x >= FOCUS_VISIBLE_MIN_X
 	_update_core_focus_context_layers()
@@ -286,6 +303,7 @@ func _draw() -> void:
 	_draw_guard_field()
 	_draw_writeback_device()
 	_draw_retest_and_logistics()
+	PollutionToCoreHandoffArtPass.draw_core_handoff(self, core_handoff_state)
 	_draw_core_station_state()
 	_draw_operation_relation_overlay()
 
@@ -765,6 +783,10 @@ func _register_station_shapes() -> void:
 		"station.core_status_lights",
 		"station.core_pressure_warning",
 		"station.core_write_feedback",
+		"station.pollution_result_manifest",
+		"station.core_entry_manifest",
+		"station.core_buffer_socket",
+		"station.core_recovery_wave",
 		"station.archived_stabilization_spine",
 		"station.stability_window_hook",
 		"station.unresolved_anomaly_probe"
@@ -784,12 +806,16 @@ func _register_flow_shapes() -> void:
 		"flow.core_runtime_write_feedback",
 		"flow.core_runtime_logistics_return",
 		"flow.completed_core_local_routes",
+		"flow.pollution_result_to_core_entry",
+		"flow.core_buffer_to_write_device",
+		"flow.core_write_to_demo_hook",
 		"flow.stability_window_hook",
 		"operation_relation.core.recovery_to_guard_cache",
 		"operation_relation.core.guard_cache_to_write_device",
 		"operation_relation.core.write_device_to_retest",
 		"operation_relation.core.logistics_return",
 		"operation_relation.core.role_ports",
+		"operation_relation.core.pollution_handoff_to_write",
 		"operation_relation.core.unresolved_anomaly_hook"
 	]
 
@@ -812,7 +838,10 @@ func _has_core_station_context(world_state: WorldState, character_state: Charact
 		return true
 	if character_state.inventory.has_ref("item.core_write_charge", 1):
 		return true
+	if character_state.inventory.has_ref("fluid.polluted_slurry", 1.0):
+		return true
 	for quest_id in [
+		"quest.enter_pollution_edge",
 		"quest.enter_demo_stabilization_core",
 		"quest.prepare_demo_stabilization_buffer",
 		"quest.defeat_demo_stabilization_guard",

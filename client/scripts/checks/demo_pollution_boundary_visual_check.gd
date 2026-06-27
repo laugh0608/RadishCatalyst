@@ -24,6 +24,7 @@ func _run_checks() -> void:
 	_check_pollution_boundary_focus_visibility()
 	_check_pollution_boundary_chain_state_visuals()
 	_check_pollution_boundary_short_challenge_readiness_visuals()
+	_check_pollution_to_core_handoff_visuals()
 	_check_pollution_boundary_visual_priority_replaces_old_blocks()
 	_check_pollution_boundary_runtime_anchors_are_tagged()
 
@@ -52,6 +53,8 @@ func _check_pollution_boundary_layer_exists_and_registers_visuals() -> void:
 	_expect_equal(layer.has_flow_shape("flow.pollution_pressure_warning_nodes"), true, "pollution pressure warning nodes exist")
 	_expect_equal(layer.has_flow_shape("flow.contamination_to_filter_story"), true, "pollution boundary shows contamination moving into filter")
 	_expect_equal(layer.has_flow_shape("flow.filter_conversion_feedback"), true, "pollution boundary shows filter conversion feedback")
+	_expect_equal(layer.has_flow_shape("flow.pollution_result_to_core_buffer"), true, "pollution boundary shows result to core buffer flow")
+	_expect_equal(layer.has_flow_shape("flow.pollution_core_entry_route"), true, "pollution boundary shows core entry route")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.sediment_fan"), true, "pollution sediment fan material exists")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.accident_sediment_traces"), true, "pollution field keeps accident sediment traces")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.segmented_settling_cells"), true, "pollution settling field is split into cells")
@@ -90,6 +93,7 @@ func _check_pollution_boundary_operation_relation_shapes() -> void:
 	_expect_equal(layer.has_flow_shape("operation_relation.pollution.core_prep_pressure_port"), true, "pollution relation marks core prep pressure port")
 	_expect_equal(layer.has_flow_shape("operation_relation.pollution.contamination_to_filter_story"), true, "pollution relation links contamination traces to filter intake")
 	_expect_equal(layer.has_flow_shape("operation_relation.pollution.filter_conversion_feedback"), true, "pollution relation marks filter conversion feedback")
+	_expect_equal(layer.has_flow_shape("operation_relation.pollution.short_challenge_to_core_entry"), true, "pollution relation links short challenge result to core entry")
 	map.free()
 
 
@@ -220,6 +224,38 @@ func _check_pollution_boundary_short_challenge_readiness_visuals() -> void:
 	_expect_equal(layer.has_pollution_short_challenge_shape("pollution_short_challenge.filter_handoff.ready"), true, "pollution short challenge links residue back to filter")
 	_expect_equal(layer.has_pollution_short_challenge_focus_shape("pollution_short_challenge.focus.workspace_floor"), true, "pollution short challenge draws focused workface floor")
 	_expect_equal(layer.has_pollution_short_challenge_focus_shape("pollution_short_challenge.focus.chain_overlay_suppressed"), true, "pollution short challenge suppresses full chain overlay")
+	map.free()
+
+
+func _check_pollution_to_core_handoff_visuals() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	var layer := map.get_node("DemoPollutionBoundaryVisualLayer") as DemoPollutionBoundaryVisualLayer
+	layer.apply_visuals()
+	var world := WorldState.create_default()
+	world.current_region_id = "region.pollution_edge"
+	world.quest_state.complete_quest("quest.enter_pollution_edge")
+	world.quest_state.unlock_effect("recipe.core_stabilization_buffer")
+	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "visit_region", "region.pollution_edge", 1.0)
+	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "gather_item", "item.polluted_residue", 2.0)
+	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1.0)
+	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "defeat_enemy", "enemy.polluted_skitter", 1.0)
+	world.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
+	var character := CharacterState.create_default()
+	character.current_region_id = "region.pollution_edge"
+	character.inventory.add_item("item.polluted_residue", 2)
+	character.inventory.add_item("item.resistance_vial_t1", 1)
+	character.inventory.add_fluid("fluid.polluted_slurry", 1.0)
+	character.inventory.add_item("item.basic_parts", 2)
+
+	layer.refresh_pollution_chain_state(world, character)
+	_expect_equal(layer.get_pollution_core_handoff_shape_count() >= 6, true, "pollution boundary creates pollution to core handoff shapes")
+	_expect_equal(layer.has_pollution_core_handoff_shape("pollution_to_core_handoff.challenge_result.ready"), true, "pollution handoff marks short challenge result ready")
+	_expect_equal(layer.has_pollution_core_handoff_shape("pollution_to_core_handoff.filter_output.ready"), true, "pollution handoff marks filter outputs ready")
+	_expect_equal(layer.has_pollution_core_handoff_shape("pollution_to_core_handoff.buffer_materials.ready"), true, "pollution handoff marks buffer materials ready")
+	_expect_equal(layer.has_pollution_core_handoff_shape("pollution_to_core_handoff.buffer_manifest.loaded"), true, "pollution handoff marks buffer manifest loaded")
+	_expect_equal(layer.has_pollution_core_handoff_shape("pollution_to_core_handoff.core_entry_route.ready"), true, "pollution handoff marks core entry route ready")
+	_expect_equal(layer.has_pollution_core_handoff_shape("pollution_to_core_handoff.core_station_port.ready"), true, "pollution handoff marks core station port ready")
 	map.free()
 
 
