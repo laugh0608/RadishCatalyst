@@ -3,6 +3,53 @@ class_name DemoBaseStartupPresentationLayer
 
 const RESTORE_OUTPOST_QUEST_ID := "quest.restore_outpost"
 
+const STARTUP_ASSET_TERRAIN_FLOOR_ID := "startup_asset.terrain_floor"
+const STARTUP_ASSET_CRYSTAL_ECOLOGY_ID := "startup_asset.crystal_ecology"
+const STARTUP_ASSET_POLLUTION_EDGE_ID := "startup_asset.pollution_edge"
+const STARTUP_ASSET_OUTPOST_CORE_ID := "startup_asset.outpost_core_machine"
+const STARTUP_ASSET_PIPE_BUNDLE_ID := "startup_asset.pipe_bundle"
+const STARTUP_ASSET_PLAYER_REPAIR_POSE_ID := "startup_asset.player_repair_pose"
+
+const STARTUP_ASSET_TERRAIN_FLOOR := preload("res://assets/sprites/demo_first_screen/terrain_outpost_floor.svg")
+const STARTUP_ASSET_CRYSTAL_ECOLOGY := preload("res://assets/sprites/demo_first_screen/crystal_ecology_cluster.svg")
+const STARTUP_ASSET_POLLUTION_EDGE := preload("res://assets/sprites/demo_first_screen/pollution_edge_pool.svg")
+const STARTUP_ASSET_OUTPOST_CORE := preload("res://assets/sprites/demo_first_screen/outpost_core_machine.svg")
+const STARTUP_ASSET_PIPE_BUNDLE := preload("res://assets/sprites/demo_first_screen/pipe_bundle.svg")
+const STARTUP_ASSET_PLAYER_REPAIR_POSE := preload("res://assets/sprites/demo_first_screen/player_repair_pose.svg")
+
+const STARTUP_ASSET_MANIFEST := {
+	STARTUP_ASSET_TERRAIN_FLOOR_ID: {
+		"path": "res://assets/sprites/demo_first_screen/terrain_outpost_floor.svg",
+		"role": "terrain",
+		"render": "sprite"
+	},
+	STARTUP_ASSET_CRYSTAL_ECOLOGY_ID: {
+		"path": "res://assets/sprites/demo_first_screen/crystal_ecology_cluster.svg",
+		"role": "resource_ecology",
+		"render": "sprite"
+	},
+	STARTUP_ASSET_POLLUTION_EDGE_ID: {
+		"path": "res://assets/sprites/demo_first_screen/pollution_edge_pool.svg",
+		"role": "hazard_ecology",
+		"render": "sprite"
+	},
+	STARTUP_ASSET_OUTPOST_CORE_ID: {
+		"path": "res://assets/sprites/demo_first_screen/outpost_core_machine.svg",
+		"role": "core_device",
+		"render": "sprite"
+	},
+	STARTUP_ASSET_PIPE_BUNDLE_ID: {
+		"path": "res://assets/sprites/demo_first_screen/pipe_bundle.svg",
+		"role": "pipeline",
+		"render": "sprite"
+	},
+	STARTUP_ASSET_PLAYER_REPAIR_POSE_ID: {
+		"path": "res://assets/sprites/demo_first_screen/player_repair_pose.svg",
+		"role": "player_pose",
+		"render": "sprite"
+	},
+}
+
 const PRESENTATION_SHAPES := {
 	"startup_presentation.opaque_scene_backdrop": true,
 	"startup_presentation.hangar_floor": true,
@@ -24,6 +71,12 @@ const PRESENTATION_SHAPES := {
 	"startup_presentation.player_character_pose": true,
 	"startup_presentation.high_priority_floor_material": true,
 	"startup_presentation.close_repair_feedback": true,
+	"startup_presentation.assetized_terrain_floor": true,
+	"startup_presentation.assetized_crystal_ecology": true,
+	"startup_presentation.assetized_pollution_edge": true,
+	"startup_presentation.assetized_core_device": true,
+	"startup_presentation.assetized_pipe_bundle": true,
+	"startup_presentation.assetized_player_pose": true,
 }
 
 const BACKDROP_RECT := Rect2(Vector2(-760.0, -420.0), Vector2(1520.0, 840.0))
@@ -58,11 +111,46 @@ func get_presentation_shape_count() -> int:
 	return PRESENTATION_SHAPES.size()
 
 
+func has_startup_asset(asset_id: String) -> bool:
+	return STARTUP_ASSET_MANIFEST.has(asset_id)
+
+
+func get_startup_asset_count() -> int:
+	return STARTUP_ASSET_MANIFEST.size()
+
+
+func get_startup_asset_path(asset_id: String) -> String:
+	if not STARTUP_ASSET_MANIFEST.has(asset_id):
+		return ""
+
+	return String(STARTUP_ASSET_MANIFEST[asset_id].get("path", ""))
+
+
+func get_startup_asset_role(asset_id: String) -> String:
+	if not STARTUP_ASSET_MANIFEST.has(asset_id):
+		return ""
+
+	return String(STARTUP_ASSET_MANIFEST[asset_id].get("role", ""))
+
+
+func get_startup_asset_render_mode(asset_id: String) -> String:
+	if not STARTUP_ASSET_MANIFEST.has(asset_id):
+		return ""
+
+	return String(STARTUP_ASSET_MANIFEST[asset_id].get("render", ""))
+
+
+func is_startup_asset_available(asset_id: String) -> bool:
+	var asset_path := get_startup_asset_path(asset_id)
+	return not asset_path.is_empty() and ResourceLoader.exists(asset_path) and _get_startup_asset_texture(asset_id) != null
+
+
 func _draw() -> void:
 	if not startup_active:
 		return
 
 	_draw_scene_backdrop()
+	_draw_assetized_scene_base()
 	_draw_local_shadows()
 	_draw_hangar_floor()
 	_draw_floor_material_breakup()
@@ -96,6 +184,49 @@ func _draw_scene_backdrop() -> void:
 	draw_rect(Rect2(Vector2(180.0, -250.0), Vector2(260.0, 40.0)), Color(0.0, 0.006, 0.006, 0.20), true)
 	draw_rect(Rect2(Vector2(-110.0, 226.0), Vector2(300.0, 44.0)), Color(0.0, 0.006, 0.006, 0.22), true)
 	draw_rect(Rect2(Vector2(250.0, 154.0), Vector2(250.0, 36.0)), Color(0.0, 0.006, 0.006, 0.18), true)
+
+
+func _draw_assetized_scene_base() -> void:
+	_draw_startup_asset(
+		STARTUP_ASSET_TERRAIN_FLOOR_ID,
+		Rect2(Vector2(-582.0, -282.0), Vector2(1010.0, 632.0)),
+		Color(1.0, 1.0, 1.0, 0.92)
+	)
+	_draw_startup_asset(
+		STARTUP_ASSET_CRYSTAL_ECOLOGY_ID,
+		Rect2(Vector2(-628.0, -240.0), Vector2(270.0, 232.0)),
+		Color(1.0, 1.0, 1.0, 0.88)
+	)
+	_draw_startup_asset(
+		STARTUP_ASSET_CRYSTAL_ECOLOGY_ID,
+		Rect2(Vector2(-534.0, 64.0), Vector2(210.0, 180.0)),
+		Color(0.82, 0.98, 1.0, 0.38)
+	)
+	_draw_startup_asset(
+		STARTUP_ASSET_POLLUTION_EDGE_ID,
+		Rect2(Vector2(258.0, -220.0), Vector2(338.0, 226.0)),
+		Color(1.0, 1.0, 1.0, 0.78)
+	)
+	_draw_startup_asset(
+		STARTUP_ASSET_POLLUTION_EDGE_ID,
+		Rect2(Vector2(174.0, 64.0), Vector2(292.0, 194.0)),
+		Color(0.92, 0.94, 0.72, 0.42)
+	)
+	_draw_startup_asset(
+		STARTUP_ASSET_PIPE_BUNDLE_ID,
+		Rect2(Vector2(-408.0, -82.0), Vector2(392.0, 184.0)),
+		Color(1.0, 1.0, 1.0, 0.72)
+	)
+	_draw_startup_asset(
+		STARTUP_ASSET_OUTPOST_CORE_ID,
+		Rect2(CORE_CENTER + Vector2(-92.0, -82.0), Vector2(184.0, 146.0)),
+		Color(1.0, 1.0, 1.0, 0.94)
+	)
+	_draw_startup_asset(
+		STARTUP_ASSET_PLAYER_REPAIR_POSE_ID,
+		Rect2(PLAYER_PAD_CENTER + Vector2(-48.0, -82.0), Vector2(112.0, 132.0)),
+		Color(1.0, 1.0, 1.0, 0.90)
+	)
 
 
 func _draw_local_shadows() -> void:
@@ -594,6 +725,32 @@ func _draw_cable(points: Array[Vector2], color: Color, width: float) -> void:
 
 func _draw_pipe(points: Array[Vector2], color: Color, width: float) -> void:
 	_draw_cable(points, color, width)
+
+
+func _draw_startup_asset(asset_id: String, rect: Rect2, modulate: Color) -> void:
+	var texture := _get_startup_asset_texture(asset_id)
+	if texture == null:
+		return
+
+	draw_texture_rect(texture, rect, false, modulate)
+
+
+func _get_startup_asset_texture(asset_id: String) -> Texture2D:
+	match asset_id:
+		STARTUP_ASSET_TERRAIN_FLOOR_ID:
+			return STARTUP_ASSET_TERRAIN_FLOOR
+		STARTUP_ASSET_CRYSTAL_ECOLOGY_ID:
+			return STARTUP_ASSET_CRYSTAL_ECOLOGY
+		STARTUP_ASSET_POLLUTION_EDGE_ID:
+			return STARTUP_ASSET_POLLUTION_EDGE
+		STARTUP_ASSET_OUTPOST_CORE_ID:
+			return STARTUP_ASSET_OUTPOST_CORE
+		STARTUP_ASSET_PIPE_BUNDLE_ID:
+			return STARTUP_ASSET_PIPE_BUNDLE
+		STARTUP_ASSET_PLAYER_REPAIR_POSE_ID:
+			return STARTUP_ASSET_PLAYER_REPAIR_POSE
+
+	return null
 
 
 func _draw_soft_shadow(center: Vector2, size: Vector2, strength: float) -> void:

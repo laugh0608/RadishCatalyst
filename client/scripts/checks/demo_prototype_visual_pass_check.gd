@@ -398,6 +398,27 @@ func _check_startup_readability_scope() -> void:
 		_expect_equal(startup_layer.visible, true, "startup first screen uses a dedicated presentation layer")
 		_expect_equal(startup_layer.is_startup_active(), true, "startup presentation layer is active before core restore")
 		_expect_equal(startup_layer.get_presentation_shape_count() >= 8, true, "startup presentation layer registers scene artwork shapes")
+		_expect_equal(startup_layer.get_startup_asset_count() >= 6, true, "startup presentation registers first-screen sprite assets")
+		_expect_equal(startup_layer.has_startup_asset("startup_asset.terrain_floor"), true, "startup presentation has an assetized terrain floor")
+		_expect_equal(startup_layer.has_startup_asset("startup_asset.crystal_ecology"), true, "startup presentation has an assetized crystal ecology sprite")
+		_expect_equal(startup_layer.has_startup_asset("startup_asset.pollution_edge"), true, "startup presentation has an assetized pollution edge sprite")
+		_expect_equal(startup_layer.has_startup_asset("startup_asset.outpost_core_machine"), true, "startup presentation has an assetized outpost core sprite")
+		_expect_equal(startup_layer.has_startup_asset("startup_asset.pipe_bundle"), true, "startup presentation has an assetized pipe bundle sprite")
+		_expect_equal(startup_layer.has_startup_asset("startup_asset.player_repair_pose"), true, "startup presentation has an assetized player repair pose sprite")
+		_expect_equal(startup_layer.is_startup_asset_available("startup_asset.terrain_floor"), true, "startup terrain floor asset is loadable")
+		_expect_equal(startup_layer.is_startup_asset_available("startup_asset.crystal_ecology"), true, "startup crystal ecology asset is loadable")
+		_expect_equal(startup_layer.is_startup_asset_available("startup_asset.pollution_edge"), true, "startup pollution edge asset is loadable")
+		_expect_equal(startup_layer.is_startup_asset_available("startup_asset.outpost_core_machine"), true, "startup outpost core asset is loadable")
+		_expect_equal(startup_layer.is_startup_asset_available("startup_asset.pipe_bundle"), true, "startup pipe bundle asset is loadable")
+		_expect_equal(startup_layer.is_startup_asset_available("startup_asset.player_repair_pose"), true, "startup player repair pose asset is loadable")
+		_expect_equal(
+			startup_layer.get_startup_asset_path("startup_asset.terrain_floor").begins_with("res://assets/sprites/demo_first_screen/"),
+			true,
+			"startup terrain asset uses the dedicated first-screen sprite directory"
+		)
+		_expect_equal(startup_layer.get_startup_asset_role("startup_asset.crystal_ecology"), "resource_ecology", "startup crystal asset has a resource ecology role")
+		_expect_equal(startup_layer.get_startup_asset_role("startup_asset.pollution_edge"), "hazard_ecology", "startup pollution asset has a hazard ecology role")
+		_expect_equal(startup_layer.get_startup_asset_render_mode("startup_asset.outpost_core_machine"), "sprite", "startup core asset renders as a sprite")
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.opaque_scene_backdrop"), true, "startup presentation covers old debug map blocks")
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.hangar_floor"), true, "startup presentation draws a local hangar floor")
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.floor_material_tiles"), true, "startup presentation adds floor material tiles")
@@ -415,6 +436,12 @@ func _check_startup_readability_scope() -> void:
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.player_character_pose"), true, "startup presentation gives the repair action a readable player pose")
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.high_priority_floor_material"), true, "startup presentation adds high-priority floor material around the action")
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.close_repair_feedback"), true, "startup presentation adds close repair feedback at the port")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.assetized_terrain_floor"), true, "startup presentation draws the terrain from first-screen assets")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.assetized_crystal_ecology"), true, "startup presentation draws the crystal ecology from first-screen assets")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.assetized_pollution_edge"), true, "startup presentation draws the pollution edge from first-screen assets")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.assetized_core_device"), true, "startup presentation draws the core from first-screen assets")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.assetized_pipe_bundle"), true, "startup presentation draws pipe bundles from first-screen assets")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.assetized_player_pose"), true, "startup presentation draws the player pose from first-screen assets")
 		var player := map.get_node("Player") as PlayerController
 		_expect_equal(startup_layer.z_index < player.z_index, true, "startup presentation stays below the player actor")
 	if base_layer != null:

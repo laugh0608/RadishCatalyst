@@ -1,6 +1,6 @@
 # Demo First Screen Assetized Scene V1
 
-更新时间：2026-06-25
+更新时间：2026-06-27
 
 ## 用途
 
@@ -59,6 +59,14 @@
    - 统一实际玩家图形和维修姿态，不再叠两套角色读法。
    - 维修动作只保留手 / 工具、端口和短反馈，不用密集线团表达。
    - 目标是第一眼能读成“角色正在修核心”。
+
+## 2026-06-27 第一包：资产语言与渲染方式
+
+- 已建立 `client/assets/sprites/demo_first_screen/` 作为首屏低保真 sprite 目录，先放入地貌底板、晶体生态、污染边缘、前哨核心、管线束和玩家维修姿态六类 SVG sprite。
+- `DemoBaseStartupPresentationLayer` 新增首屏资产 manifest，用稳定资产 ID 记录路径、角色和 `sprite` 渲染方式，并在恢复核心前用 `draw_texture_rect` 叠入地貌、晶体、污染、核心、管线和角色资产。
+- 程序绘制本轮只保留为阴影、材质细节、维修端口和短反馈补层；后续不继续把主读法建立在 `draw_line` / `draw_rect` 线框堆叠上。
+- `demo_prototype_visual_pass_check.gd` 已检查资产目录、加载状态、角色分类、渲染方式和首屏呈现 shape，防止本专题退回纯 shape 注册。
+- 本包不代表首屏观感已通过，只建立资产化介质和接线路径；下一包继续推进地貌与生态底图。
 
 ## 当前不做
 
