@@ -21,6 +21,7 @@ REQUIRED_TEXT_BY_FILE = {
         "format_outpost_core_panel_line",
         "format_outfitting_station_panel_line",
         "操作读法",
+        "交接口",
         "缺料读法",
     ],
     "client/scripts/ui/hud_device_panel_presenter.gd": [
@@ -45,6 +46,7 @@ REQUIRED_TEXT_BY_FILE = {
     "client/scripts/checks/demo_device_panel_operation_readability_check.gd": [
         "Demo device panel operation readability checks passed.",
         "_check_core_buffer_device_panel_operation_line",
+        "_check_first_industrial_handoff_operation_lines",
         "_check_pollution_filter_prompt_and_log_operation_line",
         "_check_outpost_core_and_outfitting_prompts",
         "_check_processing_result_log_operation_line",

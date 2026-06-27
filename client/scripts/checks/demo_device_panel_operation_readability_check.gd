@@ -24,6 +24,7 @@ func _init() -> void:
 
 func _run_checks() -> void:
 	_check_formatter_coverage()
+	_check_first_industrial_handoff_operation_lines()
 	_check_core_buffer_device_panel_operation_line()
 	_check_pollution_filter_prompt_and_log_operation_line()
 	_check_outpost_core_and_outfitting_prompts()
@@ -44,8 +45,76 @@ func _check_formatter_coverage() -> void:
 		)
 	_expect_array_has(
 		DemoDevicePanelOperationFormatter.get_primary_recipe_ids(),
+		"recipe.basic_filter_module",
+		"formatter covers basic filter module handoff recipe"
+	)
+	_expect_array_has(
+		DemoDevicePanelOperationFormatter.get_primary_recipe_ids(),
 		"recipe.core_stabilization_buffer",
 		"formatter covers core buffer recipe"
+	)
+
+
+func _check_first_industrial_handoff_operation_lines() -> void:
+	var processing := ProcessingSystem.new(data_registry)
+	var presenter := HudDevicePanelPresenter.new()
+	var formatter := _create_formatter()
+	var world := _create_first_industrial_handoff_world()
+	var character := CharacterState.create_default()
+	character.inventory.add_item("item.crystal_ore", 3)
+	var reactor := _create_processing_interactable(
+		"building.basic_reactor",
+		"recipe.process_crystal_ore"
+	)
+
+	var ready_panel := presenter.format_device_panel_texts(
+		data_registry,
+		processing,
+		reactor,
+		character,
+		world
+	)
+	var ready_status := String(ready_panel.get("status", ""))
+	_expect_text_contains(ready_status, "交接口：晶体矿物进基地收料口", "reactor panel names base feed port")
+	_expect_text_contains(ready_status, "出料托盘接到储存 / 整备段", "reactor panel links output tray to storage and outfitting")
+	var prompt := formatter.format_processing_prompt(reactor, character, world)
+	_expect_text_contains(prompt, "交接口：晶体矿物进基地收料口", "reactor prompt names base feed port")
+
+	var start_result := processing.process_recipe("recipe.process_crystal_ore", character, world)
+	_expect_equal(bool(start_result.get("success", false)), true, "crystal processing starts for handoff check")
+	var progress_panel := presenter.format_device_panel_texts(
+		data_registry,
+		processing,
+		reactor,
+		character,
+		world
+	)
+	_expect_text_contains(
+		String(progress_panel.get("status", "")),
+		"反应仓工作窗已亮",
+		"reactor panel shows active processing handoff feedback"
+	)
+	reactor.free()
+
+	var gel_world := _create_first_industrial_handoff_world()
+	var gel_character := CharacterState.create_default()
+	var gel_reactor := _create_processing_interactable(
+		"building.basic_reactor",
+		"recipe.repair_gel"
+	)
+	var gel_prompt := formatter.format_processing_prompt(gel_reactor, gel_character, gel_world)
+	_expect_text_contains(
+		gel_prompt,
+		"修复凝胶回到储存输出口并接入整备台补给位",
+		"repair gel prompt links storage output and outfitting supply"
+	)
+	gel_reactor.free()
+
+	var outfitting_prompt := formatter.format_outfitting_station_prompt(gel_character, gel_world)
+	_expect_text_contains(
+		outfitting_prompt,
+		"从储存输出口接收模块 / 补给",
+		"outfitting prompt links storage output handoff"
 	)
 
 
@@ -156,6 +225,19 @@ func _create_core_buffer_world() -> WorldState:
 	world.quest_state.unlock_effect("recipe.cleanse_residue")
 	world.quest_state.unlock_effect("recipe.core_stabilization_buffer")
 	world.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
+	return world
+
+
+func _create_first_industrial_handoff_world() -> WorldState:
+	var world := WorldState.create_default()
+	world.current_region_id = "region.outpost_platform"
+	world.quest_state.unlocked_effects = [
+		"recipe.process_crystal_ore",
+		"recipe.repair_gel",
+		"recipe.basic_filter_module"
+	]
+	world.add_base_structure("structure.basic_storage", "building.basic_storage", "region.outpost_platform")
+	world.add_base_structure("structure.field_outfitting_station", "building.field_outfitting_station", "region.outpost_platform")
 	return world
 
 
