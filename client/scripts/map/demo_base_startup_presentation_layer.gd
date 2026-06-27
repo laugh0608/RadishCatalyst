@@ -77,6 +77,10 @@ const PRESENTATION_SHAPES := {
 	"startup_presentation.assetized_core_device": true,
 	"startup_presentation.assetized_pipe_bundle": true,
 	"startup_presentation.assetized_player_pose": true,
+	"startup_presentation.assetized_lighter_terrain": true,
+	"startup_presentation.assetized_scaled_crystal_edge": true,
+	"startup_presentation.assetized_right_pollution_context": true,
+	"startup_presentation.assetized_empty_field_fill": true,
 }
 
 const BACKDROP_RECT := Rect2(Vector2(-760.0, -420.0), Vector2(1520.0, 840.0))
@@ -176,46 +180,51 @@ func _should_show_startup_presentation(world_state: WorldState) -> bool:
 
 
 func _draw_scene_backdrop() -> void:
-	draw_rect(BACKDROP_RECT, Color(0.008, 0.018, 0.019, 0.985), true)
-	draw_rect(Rect2(Vector2(-760.0, -420.0), Vector2(255.0, 840.0)), Color(0.02, 0.026, 0.026, 0.72), true)
-	draw_rect(Rect2(Vector2(330.0, -420.0), Vector2(430.0, 840.0)), Color(0.012, 0.018, 0.019, 0.78), true)
-	draw_rect(Rect2(Vector2(-700.0, -318.0), Vector2(1360.0, 34.0)), Color(0.018, 0.031, 0.032, 0.92), true)
-	draw_rect(Rect2(Vector2(-700.0, 252.0), Vector2(1360.0, 48.0)), Color(0.018, 0.028, 0.028, 0.94), true)
-	draw_rect(Rect2(Vector2(180.0, -250.0), Vector2(260.0, 40.0)), Color(0.0, 0.006, 0.006, 0.20), true)
-	draw_rect(Rect2(Vector2(-110.0, 226.0), Vector2(300.0, 44.0)), Color(0.0, 0.006, 0.006, 0.22), true)
-	draw_rect(Rect2(Vector2(250.0, 154.0), Vector2(250.0, 36.0)), Color(0.0, 0.006, 0.006, 0.18), true)
+	draw_rect(BACKDROP_RECT, Color(0.036, 0.044, 0.039, 0.985), true)
+	draw_rect(Rect2(Vector2(-760.0, -420.0), Vector2(236.0, 840.0)), Color(0.050, 0.060, 0.052, 0.58), true)
+	draw_rect(Rect2(Vector2(324.0, -420.0), Vector2(436.0, 840.0)), Color(0.046, 0.052, 0.043, 0.55), true)
+	draw_rect(Rect2(Vector2(-700.0, -318.0), Vector2(1360.0, 34.0)), Color(0.052, 0.064, 0.057, 0.52), true)
+	draw_rect(Rect2(Vector2(-700.0, 252.0), Vector2(1360.0, 48.0)), Color(0.050, 0.058, 0.052, 0.54), true)
+	draw_rect(Rect2(Vector2(178.0, -246.0), Vector2(262.0, 40.0)), Color(0.020, 0.032, 0.030, 0.18), true)
+	draw_rect(Rect2(Vector2(-128.0, 224.0), Vector2(328.0, 44.0)), Color(0.020, 0.032, 0.030, 0.18), true)
+	draw_rect(Rect2(Vector2(258.0, 146.0), Vector2(262.0, 40.0)), Color(0.020, 0.032, 0.030, 0.16), true)
 
 
 func _draw_assetized_scene_base() -> void:
 	_draw_startup_asset(
 		STARTUP_ASSET_TERRAIN_FLOOR_ID,
-		Rect2(Vector2(-582.0, -282.0), Vector2(1010.0, 632.0)),
-		Color(1.0, 1.0, 1.0, 0.92)
-	)
-	_draw_startup_asset(
-		STARTUP_ASSET_CRYSTAL_ECOLOGY_ID,
-		Rect2(Vector2(-628.0, -240.0), Vector2(270.0, 232.0)),
+		Rect2(Vector2(-548.0, -276.0), Vector2(940.0, 588.0)),
 		Color(1.0, 1.0, 1.0, 0.88)
 	)
 	_draw_startup_asset(
 		STARTUP_ASSET_CRYSTAL_ECOLOGY_ID,
-		Rect2(Vector2(-534.0, 64.0), Vector2(210.0, 180.0)),
-		Color(0.82, 0.98, 1.0, 0.38)
+		Rect2(Vector2(-570.0, -196.0), Vector2(184.0, 158.0)),
+		Color(0.92, 1.0, 1.0, 0.82)
+	)
+	_draw_startup_asset(
+		STARTUP_ASSET_CRYSTAL_ECOLOGY_ID,
+		Rect2(Vector2(-468.0, 102.0), Vector2(138.0, 118.0)),
+		Color(0.82, 0.98, 1.0, 0.34)
 	)
 	_draw_startup_asset(
 		STARTUP_ASSET_POLLUTION_EDGE_ID,
-		Rect2(Vector2(258.0, -220.0), Vector2(338.0, 226.0)),
-		Color(1.0, 1.0, 1.0, 0.78)
+		Rect2(Vector2(270.0, -182.0), Vector2(310.0, 206.0)),
+		Color(1.0, 1.0, 1.0, 0.72)
 	)
 	_draw_startup_asset(
 		STARTUP_ASSET_POLLUTION_EDGE_ID,
-		Rect2(Vector2(174.0, 64.0), Vector2(292.0, 194.0)),
-		Color(0.92, 0.94, 0.72, 0.42)
+		Rect2(Vector2(214.0, 82.0), Vector2(344.0, 228.0)),
+		Color(0.96, 0.98, 0.76, 0.52)
 	)
 	_draw_startup_asset(
 		STARTUP_ASSET_PIPE_BUNDLE_ID,
-		Rect2(Vector2(-408.0, -82.0), Vector2(392.0, 184.0)),
-		Color(1.0, 1.0, 1.0, 0.72)
+		Rect2(Vector2(-420.0, -72.0), Vector2(356.0, 168.0)),
+		Color(1.0, 1.0, 1.0, 0.64)
+	)
+	_draw_startup_asset(
+		STARTUP_ASSET_PIPE_BUNDLE_ID,
+		Rect2(Vector2(100.0, 116.0), Vector2(346.0, 164.0)),
+		Color(0.82, 0.92, 0.86, 0.28)
 	)
 	_draw_startup_asset(
 		STARTUP_ASSET_OUTPOST_CORE_ID,
@@ -243,26 +252,26 @@ func _draw_local_shadows() -> void:
 
 func _draw_hangar_floor() -> void:
 	var deck_points := PackedVector2Array([
-		Vector2(-412.0, -214.0),
-		Vector2(220.0, -208.0),
-		Vector2(304.0, -76.0),
-		Vector2(226.0, 198.0),
-		Vector2(-430.0, 178.0),
-		Vector2(-486.0, 54.0),
-		Vector2(-468.0, -128.0),
+		Vector2(-388.0, -196.0),
+		Vector2(184.0, -190.0),
+		Vector2(260.0, -70.0),
+		Vector2(194.0, 178.0),
+		Vector2(-402.0, 160.0),
+		Vector2(-454.0, 48.0),
+		Vector2(-438.0, -114.0),
 	])
-	draw_colored_polygon(deck_points, Color(0.036, 0.065, 0.061, 0.96))
+	draw_colored_polygon(deck_points, Color(0.060, 0.106, 0.098, 0.76))
 
 	var deck_edge := [
-		Vector2(-412.0, -214.0),
-		Vector2(220.0, -208.0),
-		Vector2(304.0, -76.0),
-		Vector2(226.0, 198.0),
-		Vector2(-430.0, 178.0),
-		Vector2(-486.0, 54.0),
-		Vector2(-468.0, -128.0),
+		Vector2(-388.0, -196.0),
+		Vector2(184.0, -190.0),
+		Vector2(260.0, -70.0),
+		Vector2(194.0, 178.0),
+		Vector2(-402.0, 160.0),
+		Vector2(-454.0, 48.0),
+		Vector2(-438.0, -114.0),
 	]
-	_draw_polyline_closed(deck_edge, Color(0.19, 0.36, 0.32, 0.42), 2.0)
+	_draw_polyline_closed(deck_edge, Color(0.30, 0.50, 0.44, 0.42), 2.0)
 
 	var plates := [
 		Rect2(Vector2(-392.0, -176.0), Vector2(124.0, 78.0)),

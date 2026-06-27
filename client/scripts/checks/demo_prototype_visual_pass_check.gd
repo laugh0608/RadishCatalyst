@@ -442,6 +442,10 @@ func _check_startup_readability_scope() -> void:
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.assetized_core_device"), true, "startup presentation draws the core from first-screen assets")
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.assetized_pipe_bundle"), true, "startup presentation draws pipe bundles from first-screen assets")
 		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.assetized_player_pose"), true, "startup presentation draws the player pose from first-screen assets")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.assetized_lighter_terrain"), true, "startup presentation uses lighter terrain instead of a dark board")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.assetized_scaled_crystal_edge"), true, "startup presentation scales crystal ecology to the left context")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.assetized_right_pollution_context"), true, "startup presentation keeps pollution readable on the right edge")
+		_expect_equal(startup_layer.has_presentation_shape("startup_presentation.assetized_empty_field_fill"), true, "startup presentation fills right-side empty field with scene assets")
 		var player := map.get_node("Player") as PlayerController
 		_expect_equal(startup_layer.z_index < player.z_index, true, "startup presentation stays below the player actor")
 	if base_layer != null:
