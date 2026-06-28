@@ -80,6 +80,7 @@ func _check_pollution_boundary_layer_exists_and_registers_visuals() -> void:
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.assetized_filter_service_plate"), true, "pollution boundary uses shared service plates")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.assetized_pipe_bundle"), true, "pollution boundary reuses pipe bundle language")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.pressure_haze_band"), true, "pollution boundary fills empty space with pressure haze")
+	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.dense_pressure_workface"), true, "pollution boundary keeps pressure haze readable around the active workface")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.corroded_edge_scars"), true, "pollution boundary adds corroded pressure edge scars")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.short_challenge_pressure_pulses"), true, "pollution boundary adds short challenge pressure pulses")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.shared_role_port_tokens"), true, "pollution boundary registers shared role port tokens")

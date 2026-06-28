@@ -95,6 +95,7 @@ $requiredTextByFile = @{
         "draw_core_language",
         "default_path.asset_language.base.shared_service_floor",
         "terrain.crystal.assetized_ecology_sprite",
+        "terrain.crystal.current_workface_clarity_plate",
         "terrain.pollution.assetized_pollution_pool",
         "station.assetized_write_device_machine"
     )
@@ -124,6 +125,7 @@ $requiredTextByFile = @{
         "first_path.stage.reactor_processing",
         "default_path.asset_language.base.shared_service_floor",
         "terrain.crystal.assetized_ecology_sprite",
+        "terrain.crystal.current_workface_clarity_plate",
         "STAGE_OUTFITTING_READY",
         "starting supplies from skipping field pickup",
         "restores background layers outside its scope",

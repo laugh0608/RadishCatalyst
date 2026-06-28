@@ -36,6 +36,7 @@ REQUIRED_TEXT_BY_FILE = {
         "terrain.pollution.assetized_pollution_pool",
         "terrain.pollution.assetized_pipe_bundle",
         "terrain.pollution.pressure_haze_band",
+        "terrain.pollution.dense_pressure_workface",
         "terrain.pollution.corroded_edge_scars",
         "terrain.pollution.short_challenge_pressure_pulses",
         "draw_pollution_language",
@@ -78,6 +79,7 @@ REQUIRED_TEXT_BY_FILE = {
         "pollution boundary registers terrain material shapes",
         "terrain.pollution.recovery_loading_pad",
         "terrain.pollution.assetized_pipe_bundle",
+        "terrain.pollution.dense_pressure_workface",
         "pollution boundary fills empty space with pressure haze",
     ],
     "docs/devlogs/2026-W25.md": [

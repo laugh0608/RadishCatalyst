@@ -604,6 +604,7 @@ func _check_crystal_resource_visual_layer() -> void:
 	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.assetized_service_floor"), true, "crystal visual layer reuses the shared service floor language")
 	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.assetized_ecology_sprite"), true, "crystal visual layer uses assetized crystal ecology")
 	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.assetized_loading_pipe"), true, "crystal visual layer reuses pipe bundle language near loading")
+	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.current_workface_clarity_plate"), true, "crystal visual layer gives the current resource workface a readable local ground")
 	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.shared_role_port_tokens"), true, "crystal visual layer registers shared role port tokens")
 	_expect_equal(layer.has_terrain_material_shape("terrain.crystal.player_harvest_action_feedback"), true, "crystal visual layer registers player harvest action feedback")
 	_expect_equal(DemoCrystalResourceVisualLayer.CRYSTAL_FOCUS_LOCAL_MARKER_DISTANCE <= 180.0, true, "crystal visual layer keeps local interactable markers tightly scoped")

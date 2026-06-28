@@ -27,6 +27,7 @@ func _init() -> void:
 func _run_checks() -> void:
 	_check_profile_covers_core_regions_without_expansion()
 	_check_scene_space_layer_applies_roles()
+	_check_scene_space_frames_step_back_in_workfaces()
 	_check_representative_objects_and_enemies_sit_on_space_surfaces()
 
 
@@ -82,6 +83,36 @@ func _check_scene_space_layer_applies_roles() -> void:
 			2,
 			"%s tags multiple object anchor nodes" % region_id
 		)
+	map.free()
+
+
+func _check_scene_space_frames_step_back_in_workfaces() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	var layer := map.get_node_or_null("DemoCoreSceneSpaceLayer") as DemoCoreSceneSpaceLayer
+	_expect_equal(layer != null, true, "demo core scene space layer exists for focus frame check")
+	if layer == null:
+		map.free()
+		return
+
+	layer.apply_profile()
+	var restored_alpha := layer.get_max_generated_frame_alpha()
+	layer.refresh_frame_focus(Vector2(112.0, -112.0))
+	_expect_equal(layer.get_generated_frame_count(), 16, "scene space keeps generated frames for role coverage")
+	_expect_equal(layer.get_muted_frame_count(), 16, "scene space mutes all generated frames in resource workfaces")
+	_expect_equal(
+		layer.get_max_generated_frame_alpha() <= DemoCoreSceneSpaceLayer.FOCUSED_FRAME_ALPHA + 0.0005,
+		true,
+		"scene space frames step behind the current workface"
+	)
+	layer.refresh_frame_focus(Vector2(-250.0, -48.0))
+	_expect_equal(layer.get_muted_frame_count(), 0, "scene space restores frames outside resource workfaces")
+	_expect_equal(
+		layer.get_max_generated_frame_alpha() > DemoCoreSceneSpaceLayer.FOCUSED_FRAME_ALPHA,
+		true,
+		"scene space restores readable frame alpha outside workfaces"
+	)
+	_expect_equal(restored_alpha > DemoCoreSceneSpaceLayer.FOCUSED_FRAME_ALPHA, true, "scene space has a stronger default frame alpha")
 	map.free()
 
 

@@ -19,6 +19,7 @@ const CRYSTAL_SHAPES := [
 	"terrain.crystal.assetized_service_floor",
 	"terrain.crystal.assetized_ecology_sprite",
 	"terrain.crystal.assetized_loading_pipe",
+	"terrain.crystal.current_workface_clarity_plate",
 	"terrain.crystal.shared_role_port_tokens",
 	"terrain.crystal.player_harvest_action_feedback"
 ]
@@ -28,6 +29,7 @@ const POLLUTION_SHAPES := [
 	"terrain.pollution.assetized_filter_service_plate",
 	"terrain.pollution.assetized_pipe_bundle",
 	"terrain.pollution.pressure_haze_band",
+	"terrain.pollution.dense_pressure_workface",
 	"terrain.pollution.corroded_edge_scars",
 	"terrain.pollution.short_challenge_pressure_pulses",
 	"terrain.pollution.shared_role_port_tokens",
@@ -87,8 +89,9 @@ static func draw_crystal_language(canvas: CanvasItem) -> void:
 	if canvas == null:
 		return
 	_draw_texture(canvas, ASSET_TERRAIN_FLOOR, Rect2(Vector2(-32.0, -250.0), Vector2(294.0, 518.0)), Color(0.72, 0.86, 0.82, 0.12))
-	_draw_texture(canvas, ASSET_CRYSTAL_ECOLOGY, Rect2(Vector2(32.0, -246.0), Vector2(198.0, 176.0)), Color(0.84, 1.0, 1.0, 0.22))
+	_draw_texture(canvas, ASSET_CRYSTAL_ECOLOGY, Rect2(Vector2(32.0, -246.0), Vector2(198.0, 176.0)), Color(0.84, 1.0, 1.0, 0.17))
 	_draw_texture(canvas, ASSET_PIPE_BUNDLE, Rect2(Vector2(-42.0, -70.0), Vector2(178.0, 92.0)), Color(0.72, 0.92, 0.84, 0.12))
+	_draw_crystal_workface_clarity(canvas)
 	_draw_service_plate(canvas, Rect2(Vector2(76.0, -150.0), Vector2(96.0, 64.0)), CRYSTAL_FLOW)
 	_draw_service_plate(canvas, Rect2(Vector2(28.0, 78.0), Vector2(104.0, 76.0)), Color(0.84, 0.7, 0.34, 0.34))
 	_draw_port_token(canvas, Vector2(84.0, -100.0), CRYSTAL_FLOW)
@@ -105,6 +108,7 @@ static func draw_pollution_language(canvas: CanvasItem, focused: bool) -> void:
 	_draw_texture(canvas, ASSET_POLLUTION_EDGE, Rect2(Vector2(226.0, -44.0), Vector2(196.0, 304.0)), Color(1.0, 1.0, 0.82, 0.30 * alpha_scale))
 	_draw_texture(canvas, ASSET_PIPE_BUNDLE, Rect2(Vector2(224.0, -174.0), Vector2(188.0, 96.0)), Color(0.86, 0.92, 0.72, 0.20 * alpha_scale))
 	_draw_pollution_pressure_haze(canvas, alpha_scale)
+	_draw_pollution_dense_pressure_workface(canvas, alpha_scale)
 	_draw_service_plate(canvas, Rect2(Vector2(246.0, -162.0), Vector2(132.0, 126.0)), Color(0.74, 0.8, 0.42, 0.34 * alpha_scale))
 	_draw_service_plate(canvas, Rect2(Vector2(236.0, -12.0), Vector2(162.0, 92.0)), Color(0.94, 0.48, 0.18, 0.28 * alpha_scale))
 	_draw_port_token(canvas, Vector2(282.0, -102.0), POLLUTION_FLOW)
@@ -191,14 +195,31 @@ static func _draw_action_ticks(canvas: CanvasItem, center: Vector2, color: Color
 	canvas.draw_arc(center, 24.0, PI * 0.05, PI * 0.92, 22, Color(color.r, color.g, color.b, 0.28), 1.0, true)
 
 
+static func _draw_crystal_workface_clarity(canvas: CanvasItem) -> void:
+	var rect := Rect2(Vector2(54.0, -168.0), Vector2(152.0, 118.0))
+	canvas.draw_rect(rect, Color(0.004, 0.017, 0.018, 0.40), true)
+	canvas.draw_rect(rect.grow(-8.0), Color(0.34, 0.84, 0.92, 0.10), true)
+	canvas.draw_rect(rect, Color(0.58, 0.96, 1.0, 0.18), false, 1.2, true)
+	canvas.draw_line(Vector2(76.0, -118.0), Vector2(176.0, -106.0), Color(0.46, 0.96, 1.0, 0.24), 1.4, true)
+
+
+static func _draw_pollution_dense_pressure_workface(canvas: CanvasItem, alpha_scale: float) -> void:
+	var rect := Rect2(Vector2(260.0, -124.0), Vector2(166.0, 168.0))
+	canvas.draw_rect(rect, Color(0.052, 0.042, 0.012, 0.34 * alpha_scale), true)
+	canvas.draw_rect(rect.grow(-12.0), Color(0.92, 0.62, 0.14, 0.10 * alpha_scale), true)
+	canvas.draw_rect(rect, Color(0.96, 0.68, 0.20, 0.20 * alpha_scale), false, 1.1, true)
+	for center in [Vector2(292.0, -88.0), Vector2(366.0, -26.0), Vector2(314.0, 18.0)]:
+		canvas.draw_arc(center, 22.0, PI * 0.12, PI * 1.54, 24, Color(0.98, 0.48, 0.14, 0.20 * alpha_scale), 1.2, true)
+
+
 static func _draw_pollution_pressure_haze(canvas: CanvasItem, alpha_scale: float) -> void:
 	for rect in [
 		Rect2(Vector2(430.0, -154.0), Vector2(72.0, 248.0)),
 		Rect2(Vector2(512.0, -86.0), Vector2(116.0, 286.0)),
 		Rect2(Vector2(402.0, 106.0), Vector2(182.0, 146.0))
 	]:
-		canvas.draw_rect(rect, Color(0.15, 0.13, 0.055, 0.09 * alpha_scale), true)
-		canvas.draw_rect(rect, Color(0.86, 0.68, 0.22, 0.06 * alpha_scale), false, 1.0, true)
+		canvas.draw_rect(rect, Color(0.15, 0.13, 0.055, 0.13 * alpha_scale), true)
+		canvas.draw_rect(rect, Color(0.86, 0.68, 0.22, 0.09 * alpha_scale), false, 1.0, true)
 	for line in [
 		[Vector2(420.0, -38.0), Vector2(458.0, -8.0), Vector2(506.0, 10.0)],
 		[Vector2(440.0, 82.0), Vector2(494.0, 116.0), Vector2(584.0, 132.0)],
