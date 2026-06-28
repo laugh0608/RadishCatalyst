@@ -187,6 +187,12 @@
 - 核心站完成态新增稳定窗口打开、异常钩子和核心写入到稳定窗口的动态状态锚点，和既有恢复波 / 复测 / 回流读法对齐。
 - HUD、地图、前哨核心和核心设备提示补“前哨稳定窗口已打开”和下一趟外勤起点读法；未新增区域、资源、配方、任务或存档字段。
 
+## 2026-06-28 默认路径资产化一致性包
+
+- 新增共享 `DemoDefaultPathAssetLanguageArtPass`，复用首屏地貌、晶体生态、污染边缘、管线束和核心机器 SVG，给恢复后基地、晶体、污染短挑战和核心站补同一套服务板、端口、短物料 / 能量流向和动作反馈。
+- `DemoFirstIndustrialPathVisualLayer`、`DemoCrystalResourceVisualLayer`、`DemoPollutionBoundaryVisualLayer` 和 `DemoCoreStabilizationVisualLayer` 接入同一资产语言；各段仍读取既有任务、库存、设备和区域状态，不新增区域、资源、配方、存档字段或试玩验收。
+- 自动检查新增四段 shape 断言，覆盖共享服务地面、管线、端口 token、短流包和玩家动作反馈，防止默认路径退回各自独立的线框原型。
+
 ## 本轮范围
 
 1. HUD 玩家化：

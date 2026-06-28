@@ -76,6 +76,11 @@ func _check_pollution_boundary_layer_exists_and_registers_visuals() -> void:
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.output_service_islands"), true, "pollution outputs sit on local service islands")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.recovery_loading_pad"), true, "pollution recovery loading pad exists")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.recovery_crate_stacks"), true, "pollution recovery loading pad has crate stacks")
+	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.assetized_pollution_pool"), true, "pollution boundary reuses assetized pollution pool language")
+	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.assetized_filter_service_plate"), true, "pollution boundary uses shared service plates")
+	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.assetized_pipe_bundle"), true, "pollution boundary reuses pipe bundle language")
+	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.shared_role_port_tokens"), true, "pollution boundary registers shared role port tokens")
+	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.short_challenge_action_feedback"), true, "pollution boundary registers short challenge action feedback")
 	map.free()
 
 

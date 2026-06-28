@@ -6,6 +6,7 @@ from pathlib import Path
 REQUIRED_TEXT_BY_FILE = {
     "client/scripts/map/demo_core_stabilization_visual_layer.gd": [
         "class_name DemoCoreStabilizationVisualLayer",
+        "demo_default_path_asset_language_art_pass.gd",
         "station.guard_pressure_field",
         "station.writeback_device",
         "station.retest_readout",
@@ -18,6 +19,12 @@ REQUIRED_TEXT_BY_FILE = {
         "core_station.feedback.stability_window.open",
         "core_station.flow.core_write_to_stability_window.ready",
         "map_object.demo_stabilization_core",
+    ],
+    "client/scripts/map/demo_default_path_asset_language_art_pass.gd": [
+        "class_name DemoDefaultPathAssetLanguageArtPass",
+        "station.assetized_write_device_machine",
+        "station.assetized_core_pipe_bundle",
+        "draw_core_language",
     ],
     "client/scenes/maps/VerticalSliceMap.tscn": [
         "DemoCoreStabilizationVisualLayer",
@@ -38,6 +45,7 @@ REQUIRED_TEXT_BY_FILE = {
         "_check_core_visual_layer_replaces_old_terminal_blocks",
         "_check_core_visual_runtime_anchors_are_tagged",
         "core visual marks opened stability window",
+        "core visual layer uses an assetized write device body",
         "core handoff marks demo hook after write",
     ],
     "docs/devlogs/2026-W25.md": [

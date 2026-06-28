@@ -2,6 +2,7 @@ extends Node2D
 class_name DemoCoreStabilizationVisualLayer
 
 const PollutionToCoreHandoffArtPass := preload("res://scripts/map/demo_pollution_to_core_handoff_art_pass.gd")
+const AssetLanguageArtPass := preload("res://scripts/map/demo_default_path_asset_language_art_pass.gd")
 
 const ROLE_APPROACH := "approach"
 const ROLE_RECOVERY := "recovery"
@@ -300,6 +301,7 @@ func refresh_focus_visibility(player_position: Vector2) -> void:
 
 
 func _draw() -> void:
+	AssetLanguageArtPass.draw_core_language(self)
 	_draw_station_surfaces()
 	_draw_station_workface_details()
 	_draw_station_routes()
@@ -825,6 +827,7 @@ func _register_station_shapes() -> void:
 		"station.stability_window_hook",
 		"station.unresolved_anomaly_probe"
 	]
+	station_shape_ids.append_array(AssetLanguageArtPass.get_core_shape_ids())
 
 
 func _register_flow_shapes() -> void:

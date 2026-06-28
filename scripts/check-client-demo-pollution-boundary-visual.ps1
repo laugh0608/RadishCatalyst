@@ -8,6 +8,7 @@ $ErrorActionPreference = "Stop"
 $requiredTextByFile = @{
     "client/scripts/map/demo_pollution_boundary_visual_layer.gd" = @(
         "class_name DemoPollutionBoundaryVisualLayer",
+        "demo_default_path_asset_language_art_pass.gd",
         "refresh_pollution_chain_state",
         "boundary.filter_build_site",
         "boundary.pressure_gate",
@@ -25,6 +26,12 @@ $requiredTextByFile = @{
         "get_pollution_core_handoff_shape_count",
         "_deemphasize_legacy_pollution_blocks",
         "map_object.pollution_residue_patch"
+    )
+    "client/scripts/map/demo_default_path_asset_language_art_pass.gd" = @(
+        "class_name DemoDefaultPathAssetLanguageArtPass",
+        "terrain.pollution.assetized_pollution_pool",
+        "terrain.pollution.assetized_pipe_bundle",
+        "draw_pollution_language"
     )
     "client/scripts/map/demo_pollution_to_core_handoff_art_pass.gd" = @(
         "class_name DemoPollutionToCoreHandoffArtPass",
@@ -49,7 +56,8 @@ $requiredTextByFile = @{
         "_check_pollution_boundary_visual_priority_replaces_old_blocks",
         "_check_pollution_boundary_runtime_anchors_are_tagged",
         "pollution boundary registers terrain material shapes",
-        "terrain.pollution.recovery_loading_pad"
+        "terrain.pollution.recovery_loading_pad",
+        "terrain.pollution.assetized_pipe_bundle"
     )
     "docs/devlogs/2026-W25.md" = @(
         "污染处理边界视觉第一轮",

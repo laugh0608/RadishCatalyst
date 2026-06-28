@@ -2,6 +2,7 @@ extends Node2D
 class_name DemoPollutionBoundaryVisualLayer
 
 const PollutionToCoreHandoffArtPass := preload("res://scripts/map/demo_pollution_to_core_handoff_art_pass.gd")
+const AssetLanguageArtPass := preload("res://scripts/map/demo_default_path_asset_language_art_pass.gd")
 
 const ROLE_BOUNDARY := "boundary"
 const ROLE_FILTER_SITE := "filter_site"
@@ -197,19 +198,16 @@ var pollution_short_challenge_focus_shape_ids: Array[String] = []
 var pollution_core_handoff_shape_ids: Array[String] = []
 var context_layer_original_modulates: Dictionary = {}
 
-
 func _ready() -> void:
 	process_priority = 100
 	apply_visuals()
 	refresh_focus_visibility(_get_player_position())
-
 
 func _process(_delta: float) -> void:
 	refresh_focus_visibility(_get_player_position())
 	_tone_down_pollution_interactable_markers()
 	_mute_crystal_carryover_focus()
 	_mute_pollution_focus_distractions()
-
 
 func apply_visuals() -> void:
 	_register_boundary_shapes()
@@ -221,7 +219,6 @@ func apply_visuals() -> void:
 	_tone_down_pollution_interactable_markers()
 	_mute_pollution_focus_distractions()
 	queue_redraw()
-
 
 func refresh_pollution_chain_state(world_state: WorldState, character_state: CharacterState) -> void:
 	pollution_chain_shape_ids.clear()
@@ -414,12 +411,14 @@ func is_pollution_focus_visible_at(player_position: Vector2) -> bool:
 
 func _draw() -> void:
 	if _is_short_challenge_focus():
+		AssetLanguageArtPass.draw_pollution_language(self, true)
 		_draw_short_challenge_focus_workspace()
 		_draw_filter_construction_site()
 		_draw_pressure_gate()
 		DemoPollutionShortChallengeReadinessArtPass.draw(self, pollution_short_challenge_state)
 		PollutionToCoreHandoffArtPass.draw_pollution_handoff(self, pollution_core_handoff_state)
 		return
+	AssetLanguageArtPass.draw_pollution_language(self, false)
 	_draw_local_processing_workspace()
 	_draw_boundary_field()
 	_draw_pollution_material_surface()
@@ -1116,6 +1115,7 @@ func _register_terrain_material_shapes() -> void:
 		"terrain.pollution.recovery_crate_stacks",
 		"terrain.pollution.core_prep_tap"
 	]
+	terrain_material_shape_ids.append_array(AssetLanguageArtPass.get_pollution_shape_ids())
 
 
 func _register_pollution_chain_shape(shape_id: String) -> void:

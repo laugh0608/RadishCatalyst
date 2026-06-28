@@ -1,6 +1,8 @@
 extends Node2D
 class_name DemoCrystalResourceVisualLayer
 
+const AssetLanguageArtPass := preload("res://scripts/map/demo_default_path_asset_language_art_pass.gd")
+
 const RESOURCE_SHAPE_PREFIX := "DemoCrystalResourceVisual"
 const ROLE_RESOURCE := "resource"
 const ROLE_FLOW := "flow"
@@ -238,6 +240,7 @@ func refresh_focus_visibility(player_position: Vector2) -> void:
 
 
 func _draw() -> void:
+	AssetLanguageArtPass.draw_crystal_language(self)
 	_draw_field_frame()
 	_draw_mining_material_surface()
 	_draw_main_vein()
@@ -825,6 +828,7 @@ func _register_terrain_material_shapes() -> void:
 		"terrain.crystal.loading_sleepers",
 		"terrain.crystal.base_loading_mouth"
 	]
+	terrain_material_shape_ids.append_array(AssetLanguageArtPass.get_crystal_shape_ids())
 
 
 func _deemphasize_legacy_crystal_blocks() -> void:

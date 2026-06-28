@@ -30,6 +30,7 @@ REQUIRED_TEXT_BY_FILE = {
     ],
     "client/scripts/map/demo_crystal_resource_visual_layer.gd": [
         "class_name DemoCrystalResourceVisualLayer",
+        "demo_default_path_asset_language_art_pass.gd",
         "crystal.main_vein",
         "crystal.rich_vein",
         "get_terrain_material_shape_count",
@@ -54,6 +55,7 @@ REQUIRED_TEXT_BY_FILE = {
     ],
     "client/scripts/map/demo_first_industrial_path_visual_layer.gd": [
         "class_name DemoFirstIndustrialPathVisualLayer",
+        "demo_default_path_asset_language_art_pass.gd",
         "STAGE_REACTOR_PROCESSING",
         "first_path.primary_player_lane",
         "first_path.base_receiving_bay",
@@ -83,6 +85,17 @@ REQUIRED_TEXT_BY_FILE = {
         "draw_ports",
         "draw_feedback",
     ],
+    "client/scripts/map/demo_default_path_asset_language_art_pass.gd": [
+        "class_name DemoDefaultPathAssetLanguageArtPass",
+        "draw_base_handoff_language",
+        "draw_crystal_language",
+        "draw_pollution_language",
+        "draw_core_language",
+        "default_path.asset_language.base.shared_service_floor",
+        "terrain.crystal.assetized_ecology_sprite",
+        "terrain.pollution.assetized_pollution_pool",
+        "station.assetized_write_device_machine",
+    ],
     "client/scenes/maps/VerticalSliceMap.tscn": [
         "DemoCrystalResourceVisualLayer",
         "demo_crystal_resource_visual_layer.gd",
@@ -107,6 +120,8 @@ REQUIRED_TEXT_BY_FILE = {
         "first path gives the base handoff segment assetized devices",
         "base handoff visual checkpoint marks outfitting handoff feedback",
         "first_path.stage.reactor_processing",
+        "default_path.asset_language.base.shared_service_floor",
+        "terrain.crystal.assetized_ecology_sprite",
         "STAGE_OUTFITTING_READY",
         "starting supplies from skipping field pickup",
         "restores background layers outside its scope",

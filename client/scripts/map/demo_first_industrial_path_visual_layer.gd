@@ -2,6 +2,7 @@ extends Node2D
 class_name DemoFirstIndustrialPathVisualLayer
 
 const HandoffArtPass := preload("res://scripts/map/demo_first_industrial_path_handoff_art_pass.gd")
+const AssetLanguageArtPass := preload("res://scripts/map/demo_default_path_asset_language_art_pass.gd")
 
 const FOCUS_MIN_X := -360.0
 const FOCUS_MAX_X := 160.0
@@ -282,6 +283,7 @@ func get_active_stage() -> String:
 
 func _draw() -> void:
 	_draw_workspace_focus()
+	AssetLanguageArtPass.draw_base_handoff_language(self)
 	_draw_context_falloff()
 	_draw_primary_path_floor()
 	HandoffArtPass.draw_devices(self)
@@ -843,6 +845,7 @@ func _register_path_shapes() -> void:
 		"first_path.material_state_slots"
 	]
 	path_shape_ids.append_array(HandoffArtPass.get_path_shape_ids())
+	path_shape_ids.append_array(AssetLanguageArtPass.get_base_shape_ids())
 
 
 func _register_path_state_shape(shape_id: String) -> void:
