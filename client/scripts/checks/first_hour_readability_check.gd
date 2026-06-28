@@ -640,6 +640,7 @@ func _check_interactable_focus_labels() -> void:
 	host._expect_equal(crystal.label.visible, true, "first-hour current crystal label is visible")
 	host._expect_equal(crystal.label.text.split("\n").size() <= 2, true, "first-hour current crystal label stays short")
 	host._expect_equal(crystal.label.offset_left > crystal.marker.position.x + crystal.marker.size.x, true, "first-hour current crystal label is placed beside the marker")
+	host._expect_equal(crystal.label.get_theme_stylebox("normal") != null, true, "first-hour current crystal label uses a readable scene backplate")
 	host._expect_equal(crystal.marker.scale, PrototypeInteractable.FOCUSED_MARKER_SCALE, "first-hour current crystal marker is enlarged")
 	host._expect_equal(crystal.focus_ring.visible, true, "first-hour current crystal shows focus ring")
 	host._expect_equal(crystal_east.label.visible, false, "first-hour nearby non-current crystal label remains hidden")

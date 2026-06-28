@@ -13,7 +13,7 @@ const FOCUS_VISIBLE_MAX_X := 160.0
 const CRYSTAL_FOCUS_CONTEXT_ROUTE_ALPHA := 0.0005
 const CRYSTAL_FOCUS_CONTEXT_BOUNDARY_ALPHA := 0.0006
 const CRYSTAL_FOCUS_CONTEXT_MARKER_ALPHA := 0.028
-const CRYSTAL_FOCUS_LOCAL_MARKER_DISTANCE := 250.0
+const CRYSTAL_FOCUS_LOCAL_MARKER_DISTANCE := 178.0
 
 const CRYSTAL_FOCUS_CONTEXT_LAYER_ALPHAS := [
 	{"path": "OpeningSceneLayer", "alpha": 0.012},
@@ -57,16 +57,16 @@ const CRYSTAL_FOCUS_CONTEXT_BOUNDARY_PATHS := [
 const FIELD_FRAME := Color(0.32, 0.58, 0.62, 0.075)
 const FIELD_FILL := Color(0.06, 0.12, 0.15, 0.0)
 const ORE_FACE_FILL := Color(0.06, 0.18, 0.2, 0.045)
-const ORE_FACE_LINE := Color(0.38, 0.78, 0.86, 0.13)
+const ORE_FACE_LINE := Color(0.38, 0.78, 0.86, 0.09)
 const CUT_SCARP_LINE := Color(0.72, 0.96, 1.0, 0.34)
-const CRYSTAL_LINE := Color(0.42, 0.88, 0.98, 0.78)
-const CRYSTAL_FILL := Color(0.25, 0.78, 0.95, 0.44)
+const CRYSTAL_LINE := Color(0.42, 0.88, 0.98, 0.68)
+const CRYSTAL_FILL := Color(0.25, 0.78, 0.95, 0.34)
 const MINE_ISLAND_FILL := Color(0.08, 0.22, 0.26, 0.064)
-const MINE_ISLAND_LINE := Color(0.56, 0.9, 0.98, 0.34)
+const MINE_ISLAND_LINE := Color(0.56, 0.9, 0.98, 0.24)
 const DARK_CUT_CHANNEL := Color(0.01, 0.035, 0.045, 0.56)
 const ORE_CHIP_FILL := Color(0.16, 0.36, 0.42, 0.072)
-const ORE_CHIP_LINE := Color(0.54, 0.86, 0.94, 0.26)
-const MINE_BENCH_LINE := Color(0.68, 0.92, 0.96, 0.3)
+const ORE_CHIP_LINE := Color(0.54, 0.86, 0.94, 0.18)
+const MINE_BENCH_LINE := Color(0.68, 0.92, 0.96, 0.2)
 const BROKEN_MINE_SHADOW_FILL := Color(0.02, 0.07, 0.08, 0.36)
 const BROKEN_MINE_SHADOW_LINE := Color(0.28, 0.56, 0.62, 0.22)
 const MINE_CUTOUT_FILL := Color(0.012, 0.034, 0.04, 0.64)
@@ -74,8 +74,10 @@ const MINE_CUTOUT_LINE := Color(0.22, 0.48, 0.54, 0.16)
 const OLD_FIELD_VOID_FILL := Color(0.01, 0.026, 0.032, 0.58)
 const OLD_FIELD_VOID_LINE := Color(0.24, 0.5, 0.54, 0.12)
 const HARVEST_PAD_FILL := Color(0.07, 0.13, 0.14, 0.2)
-const HARVEST_PAD_LINE := Color(0.68, 0.94, 1.0, 0.32)
+const HARVEST_PAD_LINE := Color(0.68, 0.94, 1.0, 0.26)
 const HAND_SAMPLE_POINT := Color(0.82, 0.96, 1.0, 0.44)
+const FOREGROUND_ANCHOR_FILL := Color(0.012, 0.026, 0.028, 0.58)
+const FOREGROUND_ANCHOR_EDGE := Color(0.72, 0.94, 1.0, 0.22)
 const AUTO_MINER_BODY := Color(0.1, 0.18, 0.16, 0.66)
 const AUTO_MINER_LINE := Color(0.72, 0.94, 0.84, 0.46)
 const AUTO_MINER_OUTPUT := Color(0.78, 0.9, 0.64, 0.44)
@@ -243,6 +245,7 @@ func _draw() -> void:
 	AssetLanguageArtPass.draw_crystal_language(self)
 	_draw_field_frame()
 	_draw_mining_material_surface()
+	_draw_current_resource_foreground_anchors()
 	_draw_main_vein()
 	_draw_crystal_clusters()
 	_draw_collection_equipment()
@@ -542,6 +545,24 @@ func _draw_local_harvest_work_pads() -> void:
 		draw_circle(point, 3.2, Color(0.82, 0.96, 1.0, 0.34))
 
 
+func _draw_current_resource_foreground_anchors() -> void:
+	for pad in [
+		Rect2(Vector2(6.0, -112.0), Vector2(48.0, 36.0)),
+		Rect2(Vector2(72.0, -142.0), Vector2(74.0, 42.0)),
+		Rect2(Vector2(60.0, -58.0), Vector2(68.0, 36.0)),
+		Rect2(Vector2(128.0, -196.0), Vector2(64.0, 38.0))
+	]:
+		draw_rect(pad, FOREGROUND_ANCHOR_FILL, true)
+		draw_rect(pad, FOREGROUND_ANCHOR_EDGE, false, 1.0, true)
+		draw_line(
+			pad.position + Vector2(7.0, pad.size.y - 9.0),
+			pad.position + Vector2(pad.size.x - 7.0, 8.0),
+			Color(FOREGROUND_ANCHOR_EDGE.r, FOREGROUND_ANCHOR_EDGE.g, FOREGROUND_ANCHOR_EDGE.b, 0.14),
+			0.9,
+			true
+		)
+
+
 func _draw_collection_equipment() -> void:
 	_draw_hand_sampling_probe(Vector2(24.0, -88.0))
 	_draw_field_auto_miner(Vector2(112.0, -142.0), 1.0)
@@ -694,12 +715,10 @@ func _draw_main_vein() -> void:
 func _draw_crystal_clusters() -> void:
 	_draw_crystal_node(Vector2(24.0, -88.0), 1.0, CRYSTAL_LINE)
 	_draw_crystal_node(Vector2(50.0, -158.0), 0.82, CRYSTAL_LINE)
-	_draw_crystal_node(Vector2(122.0, -112.0), 0.78, CRYSTAL_LINE)
-	_draw_crystal_node(Vector2(174.0, -18.0), 0.72, CRYSTAL_LINE)
-	_draw_crystal_node(Vector2(92.0, 92.0), 0.76, CRYSTAL_LINE)
-	_draw_crystal_node(Vector2(194.0, 196.0), 0.74, CRYSTAL_LINE)
+	_draw_crystal_node(Vector2(174.0, -18.0), 0.58, Color(CRYSTAL_LINE.r, CRYSTAL_LINE.g, CRYSTAL_LINE.b, 0.42))
+	_draw_crystal_node(Vector2(92.0, 92.0), 0.54, Color(CRYSTAL_LINE.r, CRYSTAL_LINE.g, CRYSTAL_LINE.b, 0.34))
 	_draw_rich_crystal_vein(Vector2(150.0, -176.0))
-	_draw_rich_crystal_vein(Vector2(210.0, -156.0), 0.72)
+	_draw_rich_crystal_vein(Vector2(210.0, -156.0), 0.54)
 
 
 func _draw_salvage_pockets() -> void:
@@ -819,6 +838,7 @@ func _register_terrain_material_shapes() -> void:
 		"terrain.crystal.dark_cut_channels",
 		"terrain.crystal.fractured_ore_tiles",
 		"terrain.crystal.local_harvest_work_pads",
+		"terrain.crystal.current_resource_foreground_anchors",
 		"terrain.crystal.rich_seam_ridges",
 		"terrain.crystal.cut_scarps",
 		"terrain.crystal.mine_bench_steps",

@@ -79,6 +79,9 @@ func _check_pollution_boundary_layer_exists_and_registers_visuals() -> void:
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.assetized_pollution_pool"), true, "pollution boundary reuses assetized pollution pool language")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.assetized_filter_service_plate"), true, "pollution boundary uses shared service plates")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.assetized_pipe_bundle"), true, "pollution boundary reuses pipe bundle language")
+	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.pressure_haze_band"), true, "pollution boundary fills empty space with pressure haze")
+	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.corroded_edge_scars"), true, "pollution boundary adds corroded pressure edge scars")
+	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.short_challenge_pressure_pulses"), true, "pollution boundary adds short challenge pressure pulses")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.shared_role_port_tokens"), true, "pollution boundary registers shared role port tokens")
 	_expect_equal(layer.has_terrain_material_shape("terrain.pollution.short_challenge_action_feedback"), true, "pollution boundary registers short challenge action feedback")
 	map.free()
@@ -228,6 +231,8 @@ func _check_pollution_boundary_short_challenge_readiness_visuals() -> void:
 	_expect_equal(layer.has_pollution_short_challenge_shape("pollution_short_challenge.residue_return.ready"), true, "pollution short challenge marks residue return")
 	_expect_equal(layer.has_pollution_short_challenge_shape("pollution_short_challenge.filter_handoff.ready"), true, "pollution short challenge links residue back to filter")
 	_expect_equal(layer.has_pollution_short_challenge_focus_shape("pollution_short_challenge.focus.workspace_floor"), true, "pollution short challenge draws focused workface floor")
+	_expect_equal(layer.has_pollution_short_challenge_focus_shape("pollution_short_challenge.focus.pressure_haze"), true, "pollution short challenge keeps pressure haze in focus view")
+	_expect_equal(layer.has_pollution_short_challenge_focus_shape("pollution_short_challenge.focus.corrosion_edge"), true, "pollution short challenge keeps corroded pressure edge in focus view")
 	_expect_equal(layer.has_pollution_short_challenge_focus_shape("pollution_short_challenge.focus.chain_overlay_suppressed"), true, "pollution short challenge suppresses full chain overlay")
 	map.free()
 

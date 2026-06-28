@@ -37,6 +37,7 @@ $requiredTextByFile = @{
         "crystal.rich_vein",
         "get_terrain_material_shape_count",
         "terrain.crystal.harvest_face",
+        "terrain.crystal.current_resource_foreground_anchors",
         "terrain.crystal.scrap_recovery_yard",
         "terrain.crystal.base_loading_mouth",
         "_deemphasize_legacy_crystal_blocks",
@@ -128,6 +129,7 @@ $requiredTextByFile = @{
         "restores background layers outside its scope",
         "crystal visual layer registers mining terrain materials",
         "terrain.crystal.return_cart_lane",
+        "crystal visual layer keeps local interactable markers tightly scoped",
         "_check_pollution_chain_hud_and_visual_state",
         "pollution_chain.core_prep_route.ready",
         "_check_resource_chain_state_roundtrip"

@@ -1132,6 +1132,8 @@ func _register_short_challenge_focus_shapes() -> void:
 		"pollution_short_challenge.focus.workspace_floor",
 		"pollution_short_challenge.focus.filter_plinth",
 		"pollution_short_challenge.focus.pressure_lane",
+		"pollution_short_challenge.focus.pressure_haze",
+		"pollution_short_challenge.focus.corrosion_edge",
 		"pollution_short_challenge.focus.chain_overlay_suppressed"
 	]
 
@@ -1150,7 +1152,6 @@ func _get_base_structure_for_definition(world_state: WorldState, building_id: St
 		if String(structure.get("definition_id", "")) == building_id:
 			return structure
 	return {}
-
 
 func _has_pollution_chain_context(world_state: WorldState, inventory: InventoryState) -> bool:
 	if world_state == null or inventory == null:
@@ -1176,7 +1177,6 @@ func _has_pollution_chain_context(world_state: WorldState, inventory: InventoryS
 		if world_state.quest_state.has_active_quest(quest_id):
 			return true
 	return false
-
 
 func _is_recipe_active(world_state: WorldState, building_id: String, recipe_id: String) -> bool:
 	var structure := _get_base_structure_for_definition(world_state, building_id)

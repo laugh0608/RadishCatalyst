@@ -31,6 +31,9 @@ $requiredTextByFile = @{
         "class_name DemoDefaultPathAssetLanguageArtPass",
         "terrain.pollution.assetized_pollution_pool",
         "terrain.pollution.assetized_pipe_bundle",
+        "terrain.pollution.pressure_haze_band",
+        "terrain.pollution.corroded_edge_scars",
+        "terrain.pollution.short_challenge_pressure_pulses",
         "draw_pollution_language"
     )
     "client/scripts/map/demo_pollution_to_core_handoff_art_pass.gd" = @(
@@ -57,7 +60,8 @@ $requiredTextByFile = @{
         "_check_pollution_boundary_runtime_anchors_are_tagged",
         "pollution boundary registers terrain material shapes",
         "terrain.pollution.recovery_loading_pad",
-        "terrain.pollution.assetized_pipe_bundle"
+        "terrain.pollution.assetized_pipe_bundle",
+        "pollution boundary fills empty space with pressure haze"
     )
     "docs/devlogs/2026-W25.md" = @(
         "污染处理边界视觉第一轮",
