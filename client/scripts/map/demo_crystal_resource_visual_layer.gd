@@ -14,6 +14,9 @@ const CRYSTAL_FOCUS_CONTEXT_ROUTE_ALPHA := 0.0005
 const CRYSTAL_FOCUS_CONTEXT_BOUNDARY_ALPHA := 0.0006
 const CRYSTAL_FOCUS_CONTEXT_MARKER_ALPHA := 0.028
 const CRYSTAL_FOCUS_LOCAL_MARKER_DISTANCE := 178.0
+const CRYSTAL_FOCUS_LOCAL_MARKER_ALPHA := 0.16
+const CRYSTAL_FOCUS_LOCAL_RING_ALPHA := 0.14
+const CRYSTAL_FOCUS_LOCAL_LABEL_ALPHA := 0.58
 
 const CRYSTAL_FOCUS_CONTEXT_LAYER_ALPHAS := [
 	{"path": "OpeningSceneLayer", "alpha": 0.012},
@@ -54,13 +57,13 @@ const CRYSTAL_FOCUS_CONTEXT_BOUNDARY_PATHS := [
 	"RegionBoundaryRuin"
 ]
 
-const FIELD_FRAME := Color(0.32, 0.58, 0.62, 0.075)
+const FIELD_FRAME := Color(0.32, 0.58, 0.62, 0.022)
 const FIELD_FILL := Color(0.06, 0.12, 0.15, 0.0)
-const ORE_FACE_FILL := Color(0.06, 0.18, 0.2, 0.045)
-const ORE_FACE_LINE := Color(0.38, 0.78, 0.86, 0.09)
+const ORE_FACE_FILL := Color(0.06, 0.18, 0.2, 0.025)
+const ORE_FACE_LINE := Color(0.38, 0.78, 0.86, 0.052)
 const CUT_SCARP_LINE := Color(0.72, 0.96, 1.0, 0.34)
 const CRYSTAL_LINE := Color(0.42, 0.88, 0.98, 0.68)
-const CRYSTAL_FILL := Color(0.25, 0.78, 0.95, 0.34)
+const CRYSTAL_FILL := Color(0.25, 0.78, 0.95, 0.16)
 const MINE_ISLAND_FILL := Color(0.08, 0.22, 0.26, 0.064)
 const MINE_ISLAND_LINE := Color(0.56, 0.9, 0.98, 0.24)
 const DARK_CUT_CHANNEL := Color(0.01, 0.035, 0.045, 0.56)
@@ -86,11 +89,28 @@ const SALVAGE_LINE := Color(0.72, 0.78, 0.68, 0.58)
 const SALVAGE_FILL := Color(0.36, 0.42, 0.34, 0.26)
 const SCRAP_YARD_FILL := Color(0.14, 0.18, 0.14, 0.22)
 const SCRAP_YARD_EDGE := Color(0.64, 0.72, 0.58, 0.36)
-const RETURN_FLOW := Color(0.72, 0.88, 0.58, 0.66)
-const RETURN_RAIL := Color(0.76, 0.88, 0.64, 0.48)
-const LOADING_TIE := Color(0.74, 0.86, 0.62, 0.26)
+const RETURN_FLOW := Color(0.72, 0.88, 0.58, 0.34)
+const RETURN_RAIL := Color(0.76, 0.88, 0.64, 0.24)
+const LOADING_TIE := Color(0.74, 0.86, 0.62, 0.14)
 const ANOMALY_LINE := Color(0.68, 0.42, 0.72, 0.5)
 const WARNING_DIM := Color(0.9, 0.42, 0.28, 0.42)
+const CURRENT_WORKFACE_SHADOW := Color(0.002, 0.01, 0.012, 0.72)
+const CURRENT_WORKFACE_FILL := Color(0.018, 0.052, 0.058, 0.72)
+const CURRENT_WORKFACE_EDGE := Color(0.68, 0.96, 1.0, 0.42)
+const CURRENT_WORKFACE_GRID := Color(0.52, 0.92, 0.96, 0.2)
+const CURRENT_NOISE_CUTOUT_FILL := Color(0.002, 0.012, 0.014, 0.82)
+const CURRENT_NOISE_CUTOUT_EDGE := Color(0.42, 0.78, 0.82, 0.18)
+const CURRENT_MACHINE_DECK_FILL := Color(0.024, 0.058, 0.054, 0.86)
+const CURRENT_MACHINE_DECK_EDGE := Color(0.74, 0.96, 0.88, 0.38)
+const CURRENT_VEIN_FILL := Color(0.26, 0.86, 0.98, 0.46)
+const CURRENT_VEIN_EDGE := Color(0.84, 0.98, 1.0, 0.82)
+const CURRENT_VEIN_CORE := Color(0.92, 1.0, 1.0, 0.76)
+const CURRENT_TRAY_FILL := Color(0.038, 0.07, 0.058, 0.88)
+const CURRENT_TRAY_EDGE := Color(0.82, 0.96, 0.72, 0.64)
+const CURRENT_FLOW_DARK := Color(0.004, 0.014, 0.014, 0.82)
+const CURRENT_FLOW := Color(0.62, 0.96, 0.88, 0.62)
+const BACKGROUND_CRYSTAL_LINE := Color(0.42, 0.88, 0.98, 0.24)
+const BACKGROUND_RICH_LINE := Color(0.76, 0.94, 1.0, 0.34)
 
 const LEGACY_CRYSTAL_PANELS := [
 	"CrystalEntryGround",
@@ -154,6 +174,7 @@ var muted_departure_focus_count := 0
 var muted_crystal_focus_context_layer_count := 0
 var muted_crystal_focus_context_rect_count := 0
 var muted_crystal_focus_context_marker_count := 0
+var shaped_local_focus_marker_count := 0
 var context_layer_original_modulates: Dictionary = {}
 
 
@@ -221,6 +242,10 @@ func get_muted_crystal_focus_context_marker_count() -> int:
 	return muted_crystal_focus_context_marker_count
 
 
+func get_shaped_local_focus_marker_count() -> int:
+	return shaped_local_focus_marker_count
+
+
 func has_resource_shape(shape_id: String) -> bool:
 	return resource_shape_ids.has(shape_id)
 
@@ -239,11 +264,13 @@ func refresh_focus_visibility(player_position: Vector2) -> void:
 	_update_crystal_focus_context_layers()
 	_mute_crystal_focus_context_rects()
 	_mute_crystal_focus_context_interactable_markers(player_position)
+	_shape_crystal_focus_local_markers(player_position)
 
 
 func _draw() -> void:
 	AssetLanguageArtPass.draw_crystal_language(self)
 	_draw_field_frame()
+	_draw_current_harvest_workface_ground()
 	_draw_mining_material_surface()
 	_draw_current_resource_foreground_anchors()
 	_draw_main_vein()
@@ -252,18 +279,48 @@ func _draw() -> void:
 	_draw_salvage_pockets()
 	_draw_return_flows()
 	_draw_anomaly_pocket()
+	_draw_current_harvest_workface_subject()
 
 
 func _draw_field_frame() -> void:
 	var field_rect := Rect2(Vector2(-18.0, -270.0), Vector2(250.0, 332.0))
 	var salvage_rect := Rect2(Vector2(-10.0, 80.0), Vector2(258.0, 178.0))
 	draw_rect(field_rect, FIELD_FILL, true)
-	_draw_corner_frame(field_rect, FIELD_FRAME, 28.0, 1.0)
-	draw_rect(salvage_rect, Color(0.05, 0.09, 0.1, 0.035), true)
-	_draw_corner_frame(salvage_rect, Color(0.44, 0.58, 0.52, 0.09), 30.0, 1.1)
+	_draw_corner_frame(field_rect, FIELD_FRAME, 18.0, 0.7)
+	draw_rect(salvage_rect, Color(0.05, 0.09, 0.1, 0.014), true)
+	_draw_corner_frame(salvage_rect, Color(0.44, 0.58, 0.52, 0.028), 18.0, 0.8)
 	for y in [-206.0, -126.0, -36.0, 116.0, 206.0]:
-		draw_line(Vector2(-8.0, y), Vector2(88.0, y), Color(0.34, 0.52, 0.54, 0.045), 1.0, true)
-	draw_line(Vector2(8.0, -72.0), Vector2(96.0, -72.0), Color(0.35, 0.9, 0.98, 0.11), 1.8, true)
+		draw_line(Vector2(-8.0, y), Vector2(68.0, y), Color(0.34, 0.52, 0.54, 0.018), 0.8, true)
+	draw_line(Vector2(8.0, -72.0), Vector2(80.0, -72.0), Color(0.35, 0.9, 0.98, 0.035), 1.2, true)
+
+
+func _draw_current_harvest_workface_ground() -> void:
+	var workface := PackedVector2Array([
+		Vector2(0.0, -168.0),
+		Vector2(62.0, -206.0),
+		Vector2(158.0, -186.0),
+		Vector2(178.0, -118.0),
+		Vector2(128.0, -66.0),
+		Vector2(30.0, -60.0),
+		Vector2(-10.0, -104.0),
+		Vector2(0.0, -168.0)
+	])
+	draw_polyline(workface, CURRENT_WORKFACE_SHADOW, 11.0, true)
+	draw_colored_polygon(workface, CURRENT_WORKFACE_FILL)
+	draw_polyline(workface, CURRENT_WORKFACE_EDGE, 2.0, true)
+	for line in [
+		[Vector2(14.0, -142.0), Vector2(154.0, -166.0)],
+		[Vector2(8.0, -112.0), Vector2(162.0, -126.0)],
+		[Vector2(34.0, -82.0), Vector2(136.0, -84.0)]
+	]:
+		draw_line(line[0], line[1], CURRENT_WORKFACE_GRID, 1.0, true)
+	for pad in [
+		Rect2(Vector2(12.0, -112.0), Vector2(42.0, 30.0)),
+		Rect2(Vector2(68.0, -138.0), Vector2(52.0, 36.0)),
+		Rect2(Vector2(112.0, -138.0), Vector2(42.0, 28.0))
+	]:
+		draw_rect(pad, Color(0.004, 0.018, 0.02, 0.36), true)
+		draw_rect(pad, Color(CURRENT_WORKFACE_EDGE.r, CURRENT_WORKFACE_EDGE.g, CURRENT_WORKFACE_EDGE.b, 0.2), false, 1.0, true)
 
 
 func _draw_mining_material_surface() -> void:
@@ -299,9 +356,9 @@ func _draw_harvest_face_floor() -> void:
 	draw_colored_polygon(face, ORE_FACE_FILL)
 	draw_polyline(face, ORE_FACE_LINE, 2.0, true)
 	for y in [-220.0, -194.0, -166.0, -136.0, -108.0]:
-		draw_line(Vector2(22.0, y), Vector2(204.0, y + 28.0), Color(ORE_FACE_LINE.r, ORE_FACE_LINE.g, ORE_FACE_LINE.b, 0.12), 1.0, true)
+		draw_line(Vector2(22.0, y), Vector2(184.0, y + 24.0), Color(ORE_FACE_LINE.r, ORE_FACE_LINE.g, ORE_FACE_LINE.b, 0.045), 0.8, true)
 	for point in [Vector2(44.0, -188.0), Vector2(86.0, -210.0), Vector2(138.0, -190.0), Vector2(184.0, -156.0)]:
-		draw_circle(point, 3.0, Color(0.74, 0.96, 1.0, 0.36))
+		draw_circle(point, 2.2, Color(0.74, 0.96, 1.0, 0.16))
 
 
 func _draw_mine_face_islands() -> void:
@@ -566,11 +623,11 @@ func _draw_current_resource_foreground_anchors() -> void:
 func _draw_collection_equipment() -> void:
 	_draw_hand_sampling_probe(Vector2(24.0, -88.0))
 	_draw_field_auto_miner(Vector2(112.0, -142.0), 1.0)
-	_draw_field_auto_miner(Vector2(170.0, -82.0), 0.82)
-	_draw_output_loading_tray(Vector2(92.0, -38.0))
-	_draw_output_loading_tray(Vector2(194.0, 196.0), 0.86)
-	_draw_flow([Vector2(112.0, -142.0), Vector2(104.0, -86.0), Vector2(92.0, -38.0)], AUTO_MINER_OUTPUT, 2.6)
-	_draw_flow([Vector2(170.0, -82.0), Vector2(142.0, -38.0), Vector2(92.0, -38.0)], Color(AUTO_MINER_OUTPUT.r, AUTO_MINER_OUTPUT.g, AUTO_MINER_OUTPUT.b, 0.34), 2.0)
+	_draw_field_auto_miner(Vector2(170.0, -82.0), 0.62)
+	_draw_output_loading_tray(Vector2(92.0, -38.0), 0.72)
+	_draw_output_loading_tray(Vector2(194.0, 196.0), 0.54)
+	_draw_flow([Vector2(112.0, -142.0), Vector2(100.0, -132.0), Vector2(86.0, -118.0)], Color(AUTO_MINER_OUTPUT.r, AUTO_MINER_OUTPUT.g, AUTO_MINER_OUTPUT.b, 0.28), 2.0)
+	_draw_flow([Vector2(170.0, -82.0), Vector2(142.0, -72.0), Vector2(112.0, -64.0)], Color(AUTO_MINER_OUTPUT.r, AUTO_MINER_OUTPUT.g, AUTO_MINER_OUTPUT.b, 0.12), 1.4)
 
 
 func _draw_hand_sampling_probe(center: Vector2) -> void:
@@ -612,10 +669,10 @@ func _draw_rich_seam_ridges() -> void:
 		[Vector2(120.0, -114.0), Vector2(160.0, -88.0), Vector2(198.0, -42.0)]
 	]
 	for points in ridge_points:
-		draw_polyline(PackedVector2Array(points), Color(0.08, 0.14, 0.16, 0.42), 4.6, true)
-		draw_polyline(PackedVector2Array(points), Color(RICH_CRYSTAL_LINE.r, RICH_CRYSTAL_LINE.g, RICH_CRYSTAL_LINE.b, 0.34), 1.6, true)
+		draw_polyline(PackedVector2Array(points), Color(0.08, 0.14, 0.16, 0.2), 4.6, true)
+		draw_polyline(PackedVector2Array(points), Color(RICH_CRYSTAL_LINE.r, RICH_CRYSTAL_LINE.g, RICH_CRYSTAL_LINE.b, 0.11), 1.6, true)
 	for point in [Vector2(150.0, -176.0), Vector2(198.0, -158.0), Vector2(174.0, -18.0)]:
-		draw_arc(point, 18.0, PI * 0.15, PI * 1.8, 24, Color(0.78, 0.96, 1.0, 0.2), 1.2, true)
+		draw_arc(point, 18.0, PI * 0.15, PI * 1.8, 24, Color(0.78, 0.96, 1.0, 0.08), 1.2, true)
 
 
 func _draw_cut_scarps() -> void:
@@ -626,10 +683,10 @@ func _draw_cut_scarps() -> void:
 	]:
 		var from_point: Vector2 = pair[0]
 		var to_point: Vector2 = pair[1]
-		draw_line(from_point, to_point, Color(0.02, 0.06, 0.07, 0.38), 4.2, true)
-		draw_line(from_point, to_point, CUT_SCARP_LINE, 1.5, true)
+		draw_line(from_point, to_point, Color(0.02, 0.06, 0.07, 0.22), 4.2, true)
+		draw_line(from_point, to_point, Color(CUT_SCARP_LINE.r, CUT_SCARP_LINE.g, CUT_SCARP_LINE.b, 0.12), 1.5, true)
 		var mid := from_point.lerp(to_point, 0.5)
-		draw_line(mid + Vector2(-10.0, -8.0), mid + Vector2(12.0, 8.0), Color(CUT_SCARP_LINE.r, CUT_SCARP_LINE.g, CUT_SCARP_LINE.b, 0.24), 1.0, true)
+		draw_line(mid + Vector2(-10.0, -8.0), mid + Vector2(12.0, 8.0), Color(CUT_SCARP_LINE.r, CUT_SCARP_LINE.g, CUT_SCARP_LINE.b, 0.08), 1.0, true)
 
 
 func _draw_mine_bench_steps() -> void:
@@ -638,8 +695,8 @@ func _draw_mine_bench_steps() -> void:
 		[Vector2(16.0, -176.0), Vector2(74.0, -164.0), Vector2(148.0, -142.0), Vector2(218.0, -118.0)],
 		[Vector2(24.0, -76.0), Vector2(88.0, -54.0), Vector2(164.0, -34.0), Vector2(224.0, -8.0)]
 	]:
-		draw_polyline(PackedVector2Array(points), Color(0.02, 0.06, 0.07, 0.34), 4.0, true)
-		draw_polyline(PackedVector2Array(points), MINE_BENCH_LINE, 1.4, true)
+		draw_polyline(PackedVector2Array(points), Color(0.02, 0.06, 0.07, 0.18), 4.0, true)
+		draw_polyline(PackedVector2Array(points), Color(MINE_BENCH_LINE.r, MINE_BENCH_LINE.g, MINE_BENCH_LINE.b, 0.08), 1.4, true)
 
 
 func _draw_scrap_recovery_yard() -> void:
@@ -703,22 +760,22 @@ func _draw_main_vein() -> void:
 			Vector2(154.0, -176.0),
 			Vector2(210.0, -156.0)
 		],
-		CRYSTAL_LINE,
-		4.0
+		Color(CRYSTAL_LINE.r, CRYSTAL_LINE.g, CRYSTAL_LINE.b, 0.2),
+		2.2
 	)
-	_draw_flow([Vector2(42.0, -132.0), Vector2(92.0, -38.0), Vector2(174.0, -18.0)], Color(0.32, 0.76, 0.88, 0.58), 3.0)
-	_draw_flow([Vector2(92.0, -38.0), Vector2(92.0, 92.0), Vector2(194.0, 196.0)], RETURN_FLOW, 3.0)
-	draw_circle(Vector2(50.0, -150.0), 4.0, CRYSTAL_LINE)
-	draw_circle(Vector2(154.0, -176.0), 4.0, RICH_CRYSTAL_LINE)
+	_draw_flow([Vector2(42.0, -132.0), Vector2(92.0, -38.0), Vector2(174.0, -18.0)], Color(0.32, 0.76, 0.88, 0.18), 1.8)
+	_draw_flow([Vector2(92.0, -38.0), Vector2(92.0, 92.0), Vector2(194.0, 196.0)], Color(RETURN_FLOW.r, RETURN_FLOW.g, RETURN_FLOW.b, 0.18), 1.8)
+	draw_circle(Vector2(50.0, -150.0), 2.6, BACKGROUND_CRYSTAL_LINE)
+	draw_circle(Vector2(154.0, -176.0), 2.6, BACKGROUND_RICH_LINE)
 
 
 func _draw_crystal_clusters() -> void:
-	_draw_crystal_node(Vector2(24.0, -88.0), 1.0, CRYSTAL_LINE)
-	_draw_crystal_node(Vector2(50.0, -158.0), 0.82, CRYSTAL_LINE)
-	_draw_crystal_node(Vector2(174.0, -18.0), 0.58, Color(CRYSTAL_LINE.r, CRYSTAL_LINE.g, CRYSTAL_LINE.b, 0.42))
-	_draw_crystal_node(Vector2(92.0, 92.0), 0.54, Color(CRYSTAL_LINE.r, CRYSTAL_LINE.g, CRYSTAL_LINE.b, 0.34))
-	_draw_rich_crystal_vein(Vector2(150.0, -176.0))
-	_draw_rich_crystal_vein(Vector2(210.0, -156.0), 0.54)
+	_draw_crystal_node(Vector2(24.0, -88.0), 0.72, BACKGROUND_CRYSTAL_LINE)
+	_draw_crystal_node(Vector2(50.0, -158.0), 0.6, Color(CRYSTAL_LINE.r, CRYSTAL_LINE.g, CRYSTAL_LINE.b, 0.16))
+	_draw_crystal_node(Vector2(174.0, -18.0), 0.46, Color(CRYSTAL_LINE.r, CRYSTAL_LINE.g, CRYSTAL_LINE.b, 0.15))
+	_draw_crystal_node(Vector2(92.0, 92.0), 0.38, Color(CRYSTAL_LINE.r, CRYSTAL_LINE.g, CRYSTAL_LINE.b, 0.11))
+	_draw_rich_crystal_vein(Vector2(150.0, -176.0), 0.78, BACKGROUND_RICH_LINE)
+	_draw_rich_crystal_vein(Vector2(210.0, -156.0), 0.42, Color(RICH_CRYSTAL_LINE.r, RICH_CRYSTAL_LINE.g, RICH_CRYSTAL_LINE.b, 0.16))
 
 
 func _draw_salvage_pockets() -> void:
@@ -733,10 +790,10 @@ func _draw_salvage_pockets() -> void:
 
 
 func _draw_return_flows() -> void:
-	_draw_flow([Vector2(194.0, 196.0), Vector2(110.0, 152.0), Vector2(24.0, 96.0), Vector2(-42.0, 18.0)], RETURN_FLOW, 3.2)
-	_draw_flow([Vector2(52.0, 112.0), Vector2(-12.0, 84.0), Vector2(-74.0, 18.0)], Color(0.64, 0.8, 0.58, 0.46), 2.8)
-	draw_circle(Vector2(-42.0, 18.0), 4.0, RETURN_FLOW)
-	draw_circle(Vector2(-74.0, 18.0), 4.0, Color(0.84, 0.94, 0.66, 0.5))
+	_draw_flow([Vector2(194.0, 196.0), Vector2(110.0, 152.0), Vector2(24.0, 96.0), Vector2(-42.0, 18.0)], Color(RETURN_FLOW.r, RETURN_FLOW.g, RETURN_FLOW.b, 0.22), 2.0)
+	_draw_flow([Vector2(52.0, 112.0), Vector2(-12.0, 84.0), Vector2(-74.0, 18.0)], Color(0.64, 0.8, 0.58, 0.2), 1.8)
+	draw_circle(Vector2(-42.0, 18.0), 2.8, Color(RETURN_FLOW.r, RETURN_FLOW.g, RETURN_FLOW.b, 0.26))
+	draw_circle(Vector2(-74.0, 18.0), 2.8, Color(0.84, 0.94, 0.66, 0.24))
 
 
 func _draw_anomaly_pocket() -> void:
@@ -746,6 +803,143 @@ func _draw_anomaly_pocket() -> void:
 	draw_line(Vector2(134.0, 154.0), Vector2(224.0, 138.0), Color(0.78, 0.5, 0.8, 0.3), 2.0, true)
 	draw_circle(Vector2(134.0, 154.0), 5.0, WARNING_DIM)
 	draw_circle(Vector2(224.0, 138.0), 5.0, WARNING_DIM)
+
+
+func _draw_current_harvest_workface_subject() -> void:
+	_draw_current_workface_noise_cutout()
+	_draw_current_machine_deck()
+	_draw_current_short_material_flow()
+	_draw_current_vein_subject(Vector2(24.0, -88.0), 1.08)
+	_draw_current_vein_subject(Vector2(122.0, -112.0), 0.9)
+	_draw_current_collector_subject(Vector2(134.0, -126.0))
+	_draw_current_output_tray_subject(Vector2(86.0, -118.0))
+	_draw_current_harvest_action_feedback()
+
+
+func _draw_current_workface_noise_cutout() -> void:
+	var cutout := PackedVector2Array([
+		Vector2(-8.0, -158.0),
+		Vector2(54.0, -194.0),
+		Vector2(168.0, -174.0),
+		Vector2(194.0, -120.0),
+		Vector2(146.0, -68.0),
+		Vector2(28.0, -66.0),
+		Vector2(-18.0, -104.0),
+		Vector2(-8.0, -158.0)
+	])
+	draw_polyline(cutout, Color(0.001, 0.006, 0.007, 0.78), 16.0, true)
+	draw_colored_polygon(cutout, CURRENT_NOISE_CUTOUT_FILL)
+	draw_polyline(cutout, CURRENT_NOISE_CUTOUT_EDGE, 1.5, true)
+	for slit in [
+		[Vector2(10.0, -138.0), Vector2(76.0, -154.0), Vector2(148.0, -144.0)],
+		[Vector2(14.0, -106.0), Vector2(86.0, -118.0), Vector2(166.0, -110.0)],
+		[Vector2(46.0, -82.0), Vector2(114.0, -84.0), Vector2(154.0, -94.0)]
+	]:
+		draw_polyline(PackedVector2Array(slit), Color(0.0, 0.012, 0.014, 0.52), 4.0, true)
+
+
+func _draw_current_machine_deck() -> void:
+	var deck := PackedVector2Array([
+		Vector2(12.0, -130.0),
+		Vector2(74.0, -156.0),
+		Vector2(156.0, -146.0),
+		Vector2(164.0, -106.0),
+		Vector2(92.0, -82.0),
+		Vector2(28.0, -88.0),
+		Vector2(12.0, -130.0)
+	])
+	draw_colored_polygon(deck, CURRENT_MACHINE_DECK_FILL)
+	draw_polyline(deck, CURRENT_MACHINE_DECK_EDGE, 1.8, true)
+	draw_line(Vector2(34.0, -122.0), Vector2(148.0, -130.0), Color(CURRENT_MACHINE_DECK_EDGE.r, CURRENT_MACHINE_DECK_EDGE.g, CURRENT_MACHINE_DECK_EDGE.b, 0.3), 1.2, true)
+	draw_line(Vector2(44.0, -96.0), Vector2(134.0, -100.0), Color(CURRENT_MACHINE_DECK_EDGE.r, CURRENT_MACHINE_DECK_EDGE.g, CURRENT_MACHINE_DECK_EDGE.b, 0.22), 1.0, true)
+	for point in [Vector2(34.0, -122.0), Vector2(78.0, -140.0), Vector2(144.0, -132.0), Vector2(150.0, -106.0), Vector2(48.0, -92.0)]:
+		draw_circle(point, 2.4, Color(CURRENT_MACHINE_DECK_EDGE.r, CURRENT_MACHINE_DECK_EDGE.g, CURRENT_MACHINE_DECK_EDGE.b, 0.42))
+
+
+func _draw_current_short_material_flow() -> void:
+	var flow_points := [
+		Vector2(24.0, -88.0),
+		Vector2(60.0, -104.0),
+		Vector2(86.0, -118.0),
+		Vector2(112.0, -132.0),
+		Vector2(134.0, -126.0)
+	]
+	draw_polyline(PackedVector2Array(flow_points), CURRENT_FLOW_DARK, 8.0, true)
+	draw_polyline(PackedVector2Array(flow_points), CURRENT_FLOW, 3.0, true)
+	for index in range(flow_points.size() - 1):
+		var from: Vector2 = flow_points[index]
+		var to: Vector2 = flow_points[index + 1]
+		if from.distance_to(to) < 18.0:
+			continue
+		var direction := (to - from).normalized()
+		var normal := Vector2(-direction.y, direction.x)
+		for ratio in [0.42, 0.74]:
+			var center := from.lerp(to, ratio)
+			draw_circle(center, 3.2, Color(CURRENT_FLOW.r, CURRENT_FLOW.g, CURRENT_FLOW.b, 0.72))
+			draw_line(center - direction * 4.0 - normal * 2.4, center + direction * 4.0, Color(CURRENT_FLOW.r, CURRENT_FLOW.g, CURRENT_FLOW.b, 0.58), 1.2, true)
+			draw_line(center - direction * 4.0 + normal * 2.4, center + direction * 4.0, Color(CURRENT_FLOW.r, CURRENT_FLOW.g, CURRENT_FLOW.b, 0.58), 1.2, true)
+
+
+func _draw_current_vein_subject(center: Vector2, scale: float) -> void:
+	var base := PackedVector2Array([
+		center + Vector2(-24.0, 16.0) * scale,
+		center + Vector2(-14.0, -22.0) * scale,
+		center + Vector2(12.0, -28.0) * scale,
+		center + Vector2(30.0, -4.0) * scale,
+		center + Vector2(18.0, 22.0) * scale,
+		center + Vector2(-24.0, 16.0) * scale
+	])
+	draw_polyline(base, Color(0.004, 0.018, 0.02, 0.82), 6.0 * scale, true)
+	draw_colored_polygon(base, CURRENT_VEIN_FILL)
+	draw_polyline(base, CURRENT_VEIN_EDGE, 2.1 * scale, true)
+	for offset in [Vector2(-8.0, 2.0), Vector2(5.0, -8.0), Vector2(14.0, 6.0)]:
+		_draw_current_crystal_spire(center + offset * scale, scale * 0.82)
+	draw_line(center + Vector2(-16.0, 12.0) * scale, center + Vector2(18.0, -16.0) * scale, CURRENT_VEIN_CORE, 1.6 * scale, true)
+
+
+func _draw_current_crystal_spire(center: Vector2, scale: float) -> void:
+	var points := PackedVector2Array([
+		center + Vector2(0.0, -18.0) * scale,
+		center + Vector2(9.0, -2.0) * scale,
+		center + Vector2(4.0, 16.0) * scale,
+		center + Vector2(-10.0, 6.0) * scale,
+		center + Vector2(0.0, -18.0) * scale
+	])
+	draw_colored_polygon(points, Color(CURRENT_VEIN_FILL.r, CURRENT_VEIN_FILL.g, CURRENT_VEIN_FILL.b, 0.42))
+	draw_polyline(points, CURRENT_VEIN_EDGE, 1.7 * scale, true)
+	draw_line(center + Vector2(0.0, -13.0) * scale, center + Vector2(0.0, 11.0) * scale, CURRENT_VEIN_CORE, 1.1 * scale, true)
+
+
+func _draw_current_collector_subject(center: Vector2) -> void:
+	var body := Rect2(center + Vector2(-24.0, -16.0), Vector2(48.0, 30.0))
+	draw_rect(body.grow(4.0), Color(0.002, 0.012, 0.012, 0.64), true)
+	draw_rect(body, Color(AUTO_MINER_BODY.r, AUTO_MINER_BODY.g, AUTO_MINER_BODY.b, 0.88), true)
+	draw_rect(body, Color(CURRENT_TRAY_EDGE.r, CURRENT_TRAY_EDGE.g, CURRENT_TRAY_EDGE.b, 0.38), false, 1.5, true)
+	for leg in [Vector2(-20.0, 12.0), Vector2(20.0, 12.0), Vector2(-16.0, -12.0)]:
+		var foot_offset := Vector2(-12.0 if leg.x < 0.0 else 12.0, 18.0 if leg.y > 0.0 else -18.0)
+		draw_line(center + leg, center + leg + foot_offset, Color(CURRENT_TRAY_EDGE.r, CURRENT_TRAY_EDGE.g, CURRENT_TRAY_EDGE.b, 0.34), 2.4, true)
+	draw_arc(center + Vector2(14.0, -4.0), 22.0, PI * 0.12, PI * 1.78, 30, Color(CURRENT_TRAY_EDGE.r, CURRENT_TRAY_EDGE.g, CURRENT_TRAY_EDGE.b, 0.48), 2.4, true)
+	draw_line(center + Vector2(30.0, -4.0), center + Vector2(50.0, -18.0), Color(CURRENT_TRAY_EDGE.r, CURRENT_TRAY_EDGE.g, CURRENT_TRAY_EDGE.b, 0.44), 2.3, true)
+	draw_circle(center + Vector2(50.0, -18.0), 3.6, Color(0.9, 1.0, 0.86, 0.62))
+
+
+func _draw_current_output_tray_subject(center: Vector2) -> void:
+	var tray := Rect2(center + Vector2(-28.0, -16.0), Vector2(56.0, 32.0))
+	draw_rect(tray.grow(5.0), Color(0.002, 0.01, 0.01, 0.74), true)
+	draw_rect(tray, CURRENT_TRAY_FILL, true)
+	draw_rect(tray, CURRENT_TRAY_EDGE, false, 2.0, true)
+	draw_line(center + Vector2(-22.0, -5.0), center + Vector2(22.0, -5.0), Color(CURRENT_TRAY_EDGE.r, CURRENT_TRAY_EDGE.g, CURRENT_TRAY_EDGE.b, 0.42), 1.2, true)
+	draw_line(center + Vector2(-22.0, 6.0), center + Vector2(22.0, 6.0), Color(CURRENT_TRAY_EDGE.r, CURRENT_TRAY_EDGE.g, CURRENT_TRAY_EDGE.b, 0.42), 1.2, true)
+	for x in [-16.0, -4.0, 8.0, 18.0]:
+		draw_circle(center + Vector2(x, 0.0), 3.4, Color(CURRENT_TRAY_EDGE.r, CURRENT_TRAY_EDGE.g, CURRENT_TRAY_EDGE.b, 0.58))
+		draw_circle(center + Vector2(x, -1.0), 1.5, Color(0.94, 1.0, 0.82, 0.68))
+
+
+func _draw_current_harvest_action_feedback() -> void:
+	for target in [Vector2(24.0, -88.0), Vector2(86.0, -118.0), Vector2(134.0, -126.0)]:
+		draw_arc(target, 22.0, PI * 0.06, PI * 1.72, 28, Color(CURRENT_WORKFACE_EDGE.r, CURRENT_WORKFACE_EDGE.g, CURRENT_WORKFACE_EDGE.b, 0.34), 1.3, true)
+	draw_line(Vector2(2.0, -76.0), Vector2(24.0, -88.0), Color(0.92, 1.0, 1.0, 0.42), 1.5, true)
+	draw_circle(Vector2(24.0, -88.0), 4.4, Color(0.92, 1.0, 1.0, 0.56))
 
 
 func _draw_crystal_node(center: Vector2, scale: float, color: Color) -> void:
@@ -763,11 +957,11 @@ func _draw_crystal_node(center: Vector2, scale: float, color: Color) -> void:
 	draw_line(center + Vector2(0.0, -height + 4.0 * scale), center + Vector2(0.0, height - 4.0 * scale), Color(0.72, 0.96, 1.0, 0.62), 1.4, true)
 
 
-func _draw_rich_crystal_vein(center: Vector2, scale: float = 1.0) -> void:
-	_draw_crystal_node(center + Vector2(-10.0, 0.0) * scale, 1.08 * scale, RICH_CRYSTAL_LINE)
-	_draw_crystal_node(center + Vector2(8.0, -8.0) * scale, 0.86 * scale, RICH_CRYSTAL_LINE)
-	_draw_crystal_node(center + Vector2(20.0, 8.0) * scale, 0.62 * scale, CRYSTAL_LINE)
-	draw_arc(center, 30.0 * scale, 0.0, TAU, 40, Color(0.74, 0.94, 1.0, 0.26), 1.5, true)
+func _draw_rich_crystal_vein(center: Vector2, scale: float = 1.0, line_color: Color = RICH_CRYSTAL_LINE) -> void:
+	_draw_crystal_node(center + Vector2(-10.0, 0.0) * scale, 1.08 * scale, line_color)
+	_draw_crystal_node(center + Vector2(8.0, -8.0) * scale, 0.86 * scale, line_color)
+	_draw_crystal_node(center + Vector2(20.0, 8.0) * scale, 0.62 * scale, Color(CRYSTAL_LINE.r, CRYSTAL_LINE.g, CRYSTAL_LINE.b, line_color.a * 0.72))
+	draw_arc(center, 30.0 * scale, 0.0, TAU, 40, Color(0.74, 0.94, 1.0, line_color.a * 0.3), 1.2, true)
 
 
 func _draw_scrap_pile(center: Vector2, scale: float) -> void:
@@ -804,10 +998,14 @@ func _register_resource_shapes() -> void:
 	resource_shape_ids = [
 		"crystal.main_vein",
 		"crystal.rich_vein",
+		"crystal.current_mining_vein.subject",
+		"crystal.local_focus_marker_deemphasized",
 		"crystal.hand_sample_probe",
 		"crystal.auto_miner.primary",
 		"crystal.auto_miner.secondary",
 		"crystal.auto_miner.output_tray",
+		"crystal.current_collector_head.subject",
+		"crystal.current_output_tray.subject",
 		"crystal.cluster.entry",
 		"crystal.cluster.side_pocket",
 		"crystal.cluster.logistics_return",
@@ -822,6 +1020,8 @@ func _register_flow_shapes() -> void:
 	flow_shape_ids = [
 		"flow.crystal_to_base",
 		"flow.auto_miner_to_loading_tray",
+		"flow.current_vein_to_output_tray.short_subject",
+		"flow.current_collector_pickup.loop_subject",
 		"flow.salvage_to_base",
 		"flow.crystal_branch",
 		"flow.salvage_branch"
@@ -831,9 +1031,15 @@ func _register_flow_shapes() -> void:
 func _register_terrain_material_shapes() -> void:
 	terrain_material_shape_ids = [
 		"terrain.crystal.harvest_face",
+		"terrain.crystal.current_harvest_workface_subject",
+		"terrain.crystal.current_workface_noise_cutout",
+		"terrain.crystal.current_machine_deck_subject",
+		"terrain.crystal.current_workface_shadow_anchor",
 		"terrain.crystal.broken_mine_shadow_patches",
 		"terrain.crystal.mine_cutout_baffles",
 		"terrain.crystal.old_field_voids",
+		"terrain.crystal.non_current_crystal_backdrop_muted",
+		"terrain.crystal.legacy_planning_frame_deemphasized",
 		"terrain.crystal.mine_face_islands",
 		"terrain.crystal.dark_cut_channels",
 		"terrain.crystal.fractured_ore_tiles",
@@ -982,6 +1188,47 @@ func _mute_crystal_focus_context_interactable_markers(player_position: Vector2) 
 		if focus_ring != null:
 			focus_ring.visible = false
 		muted_crystal_focus_context_marker_count += 1
+
+
+func _shape_crystal_focus_local_markers(player_position: Vector2) -> void:
+	shaped_local_focus_marker_count = 0
+	if not visible:
+		return
+	var interactables := _get_map_node("Interactables")
+	if interactables == null:
+		return
+	for child in interactables.get_children():
+		var interactable := child as PrototypeInteractable
+		if interactable == null:
+			continue
+		if not _is_crystal_focus_local_marker(interactable, player_position):
+			continue
+		var marker := interactable.marker
+		if marker == null:
+			marker = interactable.get_node_or_null("Marker") as ColorRect
+		var shaped_this_marker := false
+		if marker != null:
+			marker.color.a = minf(marker.color.a, CRYSTAL_FOCUS_LOCAL_MARKER_ALPHA)
+			var marker_modulate := marker.modulate
+			marker_modulate.a = minf(marker_modulate.a, 0.72)
+			marker.modulate = marker_modulate
+			marker.scale = Vector2(minf(marker.scale.x, 0.92), minf(marker.scale.y, 0.92))
+			shaped_this_marker = true
+		var focus_ring := interactable.get_node_or_null("FocusRing") as ColorRect
+		if focus_ring != null:
+			focus_ring.color = Color(1.0, 0.86, 0.34, CRYSTAL_FOCUS_LOCAL_RING_ALPHA)
+			if marker != null:
+				focus_ring.position = marker.position - Vector2(3.0, 3.0)
+				focus_ring.size = marker.size + Vector2(6.0, 6.0)
+			shaped_this_marker = true
+		var label := interactable.get_node_or_null("Label") as Label
+		if label != null and label.visible:
+			var label_modulate := label.modulate
+			label_modulate.a = minf(label_modulate.a, CRYSTAL_FOCUS_LOCAL_LABEL_ALPHA)
+			label.modulate = label_modulate
+			shaped_this_marker = true
+		if shaped_this_marker:
+			shaped_local_focus_marker_count += 1
 
 
 func _is_crystal_focus_local_marker(interactable: PrototypeInteractable, player_position: Vector2) -> bool:

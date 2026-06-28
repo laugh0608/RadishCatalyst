@@ -1,12 +1,12 @@
 # Feature Development Docs
 
-更新时间：2026-06-25
+更新时间：2026-06-28
 
 ## 用途
 
-本目录存放玩家可感知功能目标的设计与开发文档。阶段入口只决定当前主线，具体范围、边界、玩家路径、验收和检查放在这里。
+本目录存放玩家功能目标文档。阶段入口只定主线，具体范围、路径、验收和检查放在这里。
 
-当一次开发会同时影响玩法、场景、HUD、任务、存档、运行时状态或自动检查时，应优先建立或更新对应专题文档，再开始实现。
+当一次开发会同时影响玩法、场景、HUD、任务、存档、运行时状态或自动检查时，先建立或更新对应专题。
 
 ## 使用规则
 
@@ -21,14 +21,15 @@
 
 - 阶段级专题用于说明能力域方向、冻结边界和跨包验收，例如角色成长与战斗第一版。
 - 可执行细专题用于定义一个基建设备、装备 / 模块、功能玩法、场景压力或工程边界包，是每日代码开发的直接范围来源。
-- 当前或最近执行细专题应由阶段入口或阶段级专题显式链接；完成后再切换到下一个细专题。
+- 当前或最近细专题应由阶段入口链接；完成后再切换。
 
 ## 当前与最近专题
 
 - [Demo Definition V1](demo-definition-v1.md)：首版 Demo 规格表，后续专题必须映射到未完成规格项。
 - [Demo First Playable Slice Assembly V1](demo-first-playable-slice-assembly-v1.md)：当前活跃专题，覆盖 20 到 30 分钟可玩纵切装配。
-- [Demo Playable UI And Art Pass V1](demo-playable-ui-and-art-pass-v1.md)：当前执行线，覆盖玩家第一视野、低保真美术、正式 HUD 和核心场景主读法。
-- [Demo First Screen Assetized Scene V1](demo-first-screen-assetized-scene-v1.md)：当前 UI / Art 细专题，覆盖新档首屏低保真资产化场景重建。
+- [Demo Playable UI And Art Pass V1](demo-playable-ui-and-art-pass-v1.md)：当前执行线，覆盖第一视野、低保真美术和 HUD。
+- [Demo First Screen Assetized Scene V1](demo-first-screen-assetized-scene-v1.md)：当前 UI / Art 细专题，覆盖首屏资产化。
+- [Demo Crystal Workface Assetized Scene V1](demo-crystal-workface-assetized-scene-v1.md)：UI / Art 细专题，晶体资产化。
 - [Demo Core Loop Playable V1](demo-core-loop-playable-v1.md)：当前执行线，覆盖采集、加工、设备启用、整备、污染承压、短战斗和核心写入闭环。
 - [Demo Narrative Beats V1](demo-narrative-beats-v1.md)：当前执行线，覆盖开场事故、基地恢复、污染信号、核心稳定和结尾钩子。
 - [Demo Industrial Base Visual And Scene V1](demo-industrial-base-visual-and-scene-v1.md)：最近活跃视觉专题，未完成观感问题并入 UI / Art pass，不再作为单点截图微调主线。

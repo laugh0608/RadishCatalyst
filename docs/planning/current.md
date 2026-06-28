@@ -1,13 +1,13 @@
 # Current Plan
 
-更新时间：2026-06-27
+更新时间：2026-06-28
 
 ## 入口约束
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题为准：
 
 - 当前活跃专题：[Demo First Playable Slice Assembly V1](../features/demo-first-playable-slice-assembly-v1.md)，覆盖首版 Demo 20 到 30 分钟可玩纵切装配。
-- 当前执行线：[Demo Playable UI And Art Pass V1](../features/demo-playable-ui-and-art-pass-v1.md)（首屏当前细专题：[Demo First Screen Assetized Scene V1](../features/demo-first-screen-assetized-scene-v1.md)）、[Demo Core Loop Playable V1](../features/demo-core-loop-playable-v1.md)、[Demo Narrative Beats V1](../features/demo-narrative-beats-v1.md)。
+- 当前执行线：[Demo Playable UI And Art Pass V1](../features/demo-playable-ui-and-art-pass-v1.md)（当前细专题：[Demo First Screen Assetized Scene V1](../features/demo-first-screen-assetized-scene-v1.md)、[Demo Crystal Workface Assetized Scene V1](../features/demo-crystal-workface-assetized-scene-v1.md)）、[Demo Core Loop Playable V1](../features/demo-core-loop-playable-v1.md)、[Demo Narrative Beats V1](../features/demo-narrative-beats-v1.md)。
 - 视觉承接：[Demo Industrial Base Visual And Scene V1](../features/demo-industrial-base-visual-and-scene-v1.md) 的未完成观感问题并入 UI / Art pass，不再作为单点截图微调主线。
 - 参考视觉源：[Visual And UI Direction](../product/visual-and-ui-direction.md)。
 
@@ -48,7 +48,7 @@
 
 三条执行线：
 
-- UI 与低保真美术：首屏资产化和基地 / 污染 / 核心 / 结尾交接已承接；下一步推进默认路径资产化一致性，优先统一恢复后基地、晶体、污染和核心站的角色动作、设备体积、地貌材质和交互反馈。
+- UI 与低保真美术：首屏资产化和基地 / 污染 / 核心 / 结尾交接已承接；晶体采集工作面同层几何方案已停手，下一步转入资产化小场景重建，优先让矿脉、采集器、输出托盘、地貌材质和短反馈成为主体。
 - 核心循环：让采集、加工、设备启用、整备、污染承压、短战斗和核心写入形成可操作闭环。
 - 叙事节拍：用开场事故、基地恢复、污染信号、核心稳定、场景证据和结尾悬念替代任务表式推进。
 
