@@ -145,6 +145,8 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	_expect_equal(first_path_layer.has_path_shape("first_path.primary_player_lane"), true, "first industrial path layer marks the player route")
 	_expect_equal(first_path_layer.has_path_shape("first_path.context_side_falloff"), true, "first industrial path layer dims adjacent planning context")
 	_expect_equal(first_path_layer.has_path_shape("first_path.local_material_patches"), true, "first industrial path layer adds local ground and material patches")
+	_expect_equal(first_path_layer.has_path_shape("first_path.base_handoff_compact_lane"), true, "first industrial path layer compacts the base handoff lane")
+	_expect_equal(first_path_layer.has_path_shape("first_path.field_workspots_hidden_during_base_handoff"), true, "first industrial path layer hides field workspots during base handoff")
 	_expect_equal(first_path_layer.has_path_shape("first_path.crystal_cut_workface"), true, "first industrial path layer marks the crystal cut workface")
 	_expect_equal(first_path_layer.has_path_shape("first_path.hand_sample_point"), true, "first industrial path layer marks the player hand sampling point")
 	_expect_equal(first_path_layer.has_path_shape("first_path.auto_miner_workface"), true, "first industrial path layer marks the automatic mining workface")
@@ -172,13 +174,20 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	_expect_equal(first_path_layer.has_path_shape("first_path.short_material_flow_segments"), true, "first industrial path layer keeps material flow local and short")
 	_expect_equal(first_path_layer.has_path_shape("first_path.storage_outfitting_handoff_feedback"), true, "first industrial path layer registers storage to outfitting handoff feedback")
 	_expect_equal(first_path_layer.has_path_shape("first_path.handoff_continuity.return_manifest_panel"), true, "first industrial path layer registers returned material manifest feedback")
+	_expect_equal(first_path_layer.has_path_shape("first_path.handoff_continuity.return_tray_body"), true, "first industrial path layer registers returned material tray body")
 	_expect_equal(first_path_layer.has_path_shape("first_path.handoff_continuity.reactor_hopper_bridge"), true, "first industrial path layer registers receiving to reactor hopper continuity")
+	_expect_equal(first_path_layer.has_path_shape("first_path.handoff_continuity.hopper_cradle"), true, "first industrial path layer registers reactor hopper cradle")
 	_expect_equal(first_path_layer.has_path_shape("first_path.handoff_continuity.storage_supply_manifest"), true, "first industrial path layer registers storage to outfitting supply manifest")
+	_expect_equal(first_path_layer.has_path_shape("first_path.handoff_continuity.single_storage_supply_manifest"), true, "first industrial path layer draws one storage supply manifest")
+	_expect_equal(first_path_layer.has_path_shape("first_path.handoff_continuity.supply_tote_lane"), true, "first industrial path layer registers the supply tote lane")
+	_expect_equal(first_path_layer.has_path_shape("first_path.handoff_continuity.outfitting_lock_clamps"), true, "first industrial path layer registers outfitting lock clamps")
 	_expect_equal(first_path_layer.has_path_shape("default_path.asset_language.base.shared_service_floor"), true, "first industrial path uses shared service floor asset language")
 	_expect_equal(first_path_layer.has_path_shape("default_path.asset_language.base.reused_pipe_bundle"), true, "first industrial path reuses pipe bundle asset language")
 	_expect_equal(first_path_layer.has_path_shape("default_path.asset_language.base.role_port_tokens"), true, "first industrial path registers shared role port tokens")
 	_expect_equal(first_path_layer.has_path_shape("default_path.asset_language.base.short_flow_packets"), true, "first industrial path registers short asset-language flow packets")
 	_expect_equal(first_path_layer.has_path_shape("first_path.single_signal_stage"), true, "first industrial path layer uses one active stage signal")
+	_expect_equal(first_path_layer.has_path_shape("first_path.operation_relation.compact_base_handoff_tracks"), true, "first path compacts relation tracks during base handoff")
+	_expect_equal(first_path_layer.has_path_shape("first_path.operation_relation.long_field_tracks_deemphasized"), true, "first path deemphasizes long field tracks during base handoff")
 	_expect_equal(first_path_layer.has_path_shape("first_path.device_status_lights"), true, "first industrial path layer registers device status lights")
 	_expect_equal(first_path_layer.has_path_shape("first_path.resource_flow_packets"), true, "first industrial path layer registers resource flow packets")
 	_expect_equal(first_path_layer.has_path_shape("first_path.material_state_slots"), true, "first industrial path layer registers material state slots")
@@ -227,8 +236,10 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.assetized_flow.reactor_feed_packets.ready"), true, "first industrial path layer draws reactor feed packets")
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.assetized_feedback.reactor_processing_glow.active"), true, "first industrial path layer draws reactor processing feedback")
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.handoff_continuity.return_manifest.loaded"), true, "first industrial path layer lights the returned material manifest")
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.handoff_continuity.return_tray.loaded"), true, "first industrial path layer loads the physical return tray")
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.handoff_continuity.reactor_hopper.armed"), true, "first industrial path layer arms the reactor hopper bridge")
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.handoff_continuity.reactor_hopper.processing"), true, "first industrial path layer keeps the hopper bridge active during processing")
+	_expect_equal(first_path_layer.has_path_state_shape("first_path.handoff_continuity.hopper_cradle.processing"), true, "first industrial path layer marks the hopper cradle during processing")
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.stage.reactor_processing"), true, "first industrial path layer records reactor operation stage")
 	_check_first_industrial_path_stage_changes(first_path_layer)
 	map.free()
@@ -519,9 +530,19 @@ func _check_visual_review_checkpoint_path_states() -> void:
 			"base handoff visual checkpoint marks storage supply manifest ready"
 		)
 		_expect_equal(
+			first_path_layer.has_path_state_shape("first_path.handoff_continuity.supply_tote_lane.ready"),
+			true,
+			"base handoff visual checkpoint marks storage supply totes ready"
+		)
+		_expect_equal(
 			first_path_layer.has_path_state_shape("first_path.handoff_continuity.outfitting_supply.latched"),
 			true,
 			"base handoff visual checkpoint latches storage output into outfitting"
+		)
+		_expect_equal(
+			first_path_layer.has_path_state_shape("first_path.handoff_continuity.outfitting_lock_clamps.latched"),
+			true,
+			"base handoff visual checkpoint locks outfitting clamps around received supply"
 		)
 	map.free()
 

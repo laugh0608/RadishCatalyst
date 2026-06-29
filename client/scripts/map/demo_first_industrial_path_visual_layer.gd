@@ -20,8 +20,8 @@ const LOGISTICS_PORT := Color(0.7, 0.76, 0.58, 0.42)
 const CONTEXT_FILL := Color(0.022, 0.038, 0.034, 0.58)
 const CONTEXT_EDGE := Color(0.42, 0.52, 0.46, 0.28)
 const CONTEXT_DASH := Color(0.56, 0.54, 0.38, 0.18)
-const SIGNAL_ACCENT := Color(0.96, 0.74, 0.28, 0.72)
-const SIGNAL_SOFT := Color(0.96, 0.74, 0.28, 0.1)
+const SIGNAL_ACCENT := Color(0.96, 0.74, 0.28, 0.56)
+const SIGNAL_SOFT := Color(0.96, 0.74, 0.28, 0.055)
 const COMPLETE_DOT := Color(0.46, 0.64, 0.52, 0.58)
 const CRYSTAL_ACCENT := Color(0.34, 0.78, 0.86, 0.32)
 const SALVAGE_ACCENT := Color(0.84, 0.7, 0.34, 0.3)
@@ -50,22 +50,22 @@ const STATUS_ACTIVE_LIGHT := Color(0.42, 0.96, 0.86, 0.76)
 const STATUS_OUTPUT_LIGHT := Color(0.58, 0.88, 0.52, 0.68)
 const CRYSTAL_COLLECTOR_ID := "building.crystal_collector_t1"
 const CRYSTAL_COLLECTOR_OUTPUT_INSTANCE_ID := "map_object_instance.crystal_collector_output"
-const FIRST_PATH_CONTEXT_ROUTE_ALPHA := 0.0005
-const FIRST_PATH_CONTEXT_BOUNDARY_ALPHA := 0.0008
-const FIRST_PATH_CONTEXT_MARKER_ALPHA := 0.026
+const FIRST_PATH_CONTEXT_ROUTE_ALPHA := 0.0002
+const FIRST_PATH_CONTEXT_BOUNDARY_ALPHA := 0.0003
+const FIRST_PATH_CONTEXT_MARKER_ALPHA := 0.014
 const FIRST_PATH_LOCAL_MARKER_DISTANCE := 320.0
 
 const FIRST_PATH_CONTEXT_LAYER_ALPHAS := [
 	{"path": "OpeningSceneLayer", "alpha": 0.018},
-	{"path": "DemoIndustrialBaseVisualLayer", "alpha": 0.24},
+	{"path": "DemoIndustrialBaseVisualLayer", "alpha": 0.16},
 	{"path": "DemoCrystalResourceVisualLayer", "alpha": 0.12},
 	{"path": "DemoPollutionBoundaryVisualLayer", "alpha": 0.004},
 	{"path": "DemoCoreStabilizationVisualLayer", "alpha": 0.008},
 	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.018},
-	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.008},
+	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.004},
 	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.002},
 	{"path": "DemoRoutePresentationLayer", "alpha": 0.0},
-	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.035}
+	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.018}
 ]
 
 const FIRST_PATH_CONTEXT_ROUTE_PATHS := [
@@ -318,16 +318,29 @@ func _draw_context_falloff() -> void:
 
 
 func _draw_primary_path_floor() -> void:
-	_draw_lane(PATH_POINTS, 22.0, PATH_FILL, PATH_EDGE)
-	for point in PATH_POINTS:
+	var points := _get_primary_path_floor_points()
+	_draw_lane(points, 18.0 if _is_base_handoff_state() else 22.0, PATH_FILL, PATH_EDGE)
+	for point in points:
 		draw_circle(point, 3.4, Color(PATH_MARK.r, PATH_MARK.g, PATH_MARK.b, 0.58))
-	for index in range(PATH_POINTS.size() - 1):
-		var from: Vector2 = PATH_POINTS[index]
-		var to: Vector2 = PATH_POINTS[index + 1]
+	for index in range(points.size() - 1):
+		var from: Vector2 = points[index]
+		var to: Vector2 = points[index + 1]
 		var direction := (to - from).normalized()
 		var normal := Vector2(-direction.y, direction.x)
 		var center := from.lerp(to, 0.52)
 		draw_line(center - normal * 5.0, center + normal * 5.0, Color(PATH_MARK.r, PATH_MARK.g, PATH_MARK.b, 0.32), 1.2, true)
+
+
+func _get_primary_path_floor_points() -> Array:
+	if not _is_base_handoff_state():
+		return PATH_POINTS
+	return [
+		Vector2(-214.0, -112.0),
+		Vector2(-184.0, -114.0),
+		Vector2(-166.0, -66.0),
+		Vector2(-250.0, 18.0),
+		Vector2(-74.0, -14.0)
+	]
 
 
 func _draw_local_work_surfaces() -> void:
@@ -515,19 +528,23 @@ func _draw_handoff_port_chain() -> void:
 		{"position": Vector2(-250.0, 18.0), "color": PRODUCT_ACCENT},
 		{"position": Vector2(-74.0, -14.0), "color": OUTFITTING_ACCENT}
 	]
-	for index in range(ports.size() - 1):
-		var from: Vector2 = ports[index]["position"]
-		var to: Vector2 = ports[index + 1]["position"]
-		draw_line(from, to, Color(SIGNAL_ACCENT.r, SIGNAL_ACCENT.g, SIGNAL_ACCENT.b, 0.14), 3.0, true)
+	if not _is_base_handoff_state():
+		for index in range(ports.size() - 1):
+			var from: Vector2 = ports[index]["position"]
+			var to: Vector2 = ports[index + 1]["position"]
+			draw_line(from, to, Color(SIGNAL_ACCENT.r, SIGNAL_ACCENT.g, SIGNAL_ACCENT.b, 0.14), 3.0, true)
 	for port in ports:
 		var position: Vector2 = port["position"]
 		var color: Color = port["color"]
-		draw_circle(position, 9.0, Color(color.r, color.g, color.b, 0.13))
-		draw_arc(position, 13.0, 0.0, TAU, 24, Color(color.r, color.g, color.b, 0.38), 1.4, true)
-		draw_rect(Rect2(position + Vector2(-5.0, -5.0), Vector2(10.0, 10.0)), Color(color.r, color.g, color.b, 0.24), true)
+		draw_circle(position, 8.0, Color(color.r, color.g, color.b, 0.10 if _is_base_handoff_state() else 0.13))
+		draw_arc(position, 12.0, 0.0, TAU, 24, Color(color.r, color.g, color.b, 0.28), 1.2, true)
+		draw_rect(Rect2(position + Vector2(-4.0, -4.0), Vector2(8.0, 8.0)), Color(color.r, color.g, color.b, 0.18), true)
 
 
 func _draw_operation_relation_overlay() -> void:
+	if _is_base_handoff_state():
+		_draw_compact_handoff_relation_overlay()
+		return
 	_draw_relation_track([Vector2(132.0, -124.0), Vector2(114.0, -104.0), Vector2(86.0, -118.0)], AUTO_MINER_ACCENT)
 	_draw_relation_track([Vector2(86.0, -118.0), Vector2(8.0, -112.0), Vector2(-214.0, -112.0)], CRYSTAL_ACCENT)
 	_draw_relation_track([Vector2(54.0, 112.0), Vector2(8.0, 68.0), Vector2(-42.0, -106.0), Vector2(-214.0, -112.0)], SALVAGE_ACCENT)
@@ -546,6 +563,34 @@ func _draw_operation_relation_overlay() -> void:
 		var position: Vector2 = port["position"]
 		var color: Color = port["color"]
 		_draw_relation_port(position, color)
+
+
+func _draw_compact_handoff_relation_overlay() -> void:
+	for relation in [
+		{"points": [Vector2(-214.0, -112.0), Vector2(-194.0, -108.0), Vector2(-184.0, -114.0)], "color": REACTOR_ACCENT},
+		{"points": [Vector2(-134.0, -114.0), Vector2(-186.0, -22.0), Vector2(-250.0, 18.0)], "color": PRODUCT_ACCENT},
+		{"points": [Vector2(-250.0, 18.0), Vector2(-166.0, 26.0), Vector2(-74.0, -14.0)], "color": OUTFITTING_ACCENT}
+	]:
+		var color: Color = relation["color"]
+		var relation_points: Array = relation["points"]
+		_draw_compact_relation_track(relation_points, color)
+	for port in [
+		{"position": Vector2(-214.0, -112.0), "color": LOGISTICS_PORT},
+		{"position": Vector2(-184.0, -114.0), "color": REACTOR_ACCENT},
+		{"position": Vector2(-250.0, 18.0), "color": PRODUCT_ACCENT},
+		{"position": Vector2(-74.0, -14.0), "color": OUTFITTING_ACCENT}
+	]:
+		var position: Vector2 = port["position"]
+		var color: Color = port["color"]
+		_draw_relation_port(position, Color(color.r, color.g, color.b, color.a * 0.82))
+
+
+func _draw_compact_relation_track(points: Array, color: Color) -> void:
+	var vector_points := PackedVector2Array()
+	for point in points:
+		vector_points.append(point)
+	draw_polyline(vector_points, Color(0.006, 0.014, 0.012, 0.62), 4.2, true)
+	draw_polyline(vector_points, Color(color.r, color.g, color.b, 0.13), 1.6, true)
 
 
 func _draw_relation_track(points: Array, color: Color) -> void:
@@ -573,6 +618,8 @@ func _draw_relation_port(position: Vector2, color: Color) -> void:
 
 
 func _draw_resource_workspots() -> void:
+	if _is_base_handoff_state():
+		return
 	_draw_resource_pad(Vector2(132.0, -124.0), CRYSTAL_ACCENT, true)
 	_draw_resource_pad(Vector2(54.0, 112.0), SALVAGE_ACCENT, false)
 	_draw_lane([Vector2(54.0, 112.0), Vector2(8.0, 68.0), Vector2(-42.0, -106.0)], 9.0, Color(0.14, 0.16, 0.12, 0.14), Color(SALVAGE_ACCENT.r, SALVAGE_ACCENT.g, SALVAGE_ACCENT.b, 0.22))
@@ -803,12 +850,25 @@ func _draw_lane(points: Array, width: float, fill_color: Color, edge_color: Colo
 	draw_polyline(vector_points, edge_color, 2.0, true)
 
 
+func _is_base_handoff_state() -> bool:
+	var active_stage := get_active_stage()
+	return active_stage in [
+		STAGE_BASE_RECEIVING,
+		STAGE_REACTOR_FEED,
+		STAGE_REACTOR_PROCESSING,
+		STAGE_STORAGE_OUTPUT,
+		STAGE_OUTFITTING_READY
+	]
+
+
 func _register_path_shapes() -> void:
 	path_shape_ids = [
 		"first_path.workspace_focus_wash",
 		"first_path.context_side_falloff",
 		"first_path.primary_player_lane",
+		"first_path.base_handoff_compact_lane",
 		"first_path.local_material_patches",
+		"first_path.field_workspots_hidden_during_base_handoff",
 		"first_path.crystal_cut_workface",
 		"first_path.hand_sample_point",
 		"first_path.auto_miner_workface",
@@ -837,6 +897,8 @@ func _register_path_shapes() -> void:
 		"first_path.operation_relation.receiving_to_reactor",
 		"first_path.operation_relation.reactor_to_storage",
 		"first_path.operation_relation.storage_to_outfitting",
+		"first_path.operation_relation.compact_base_handoff_tracks",
+		"first_path.operation_relation.long_field_tracks_deemphasized",
 		"first_path.operation_relation.device_role_ports",
 		"first_path.single_signal_stage",
 		"first_path.operation_state_pips",
