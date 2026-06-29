@@ -1,13 +1,13 @@
 # Current Plan
 
-更新时间：2026-06-28
+更新时间：2026-06-29
 
 ## 入口约束
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题为准：
 
 - 当前活跃专题：[Demo First Playable Slice Assembly V1](../features/demo-first-playable-slice-assembly-v1.md)，覆盖首版 Demo 20 到 30 分钟可玩纵切装配。
-- 当前执行线：[Demo Playable UI And Art Pass V1](../features/demo-playable-ui-and-art-pass-v1.md)（当前细专题：[Demo First Screen Assetized Scene V1](../features/demo-first-screen-assetized-scene-v1.md)、[Demo Crystal Workface Assetized Scene V1](../features/demo-crystal-workface-assetized-scene-v1.md)）、[Demo Core Loop Playable V1](../features/demo-core-loop-playable-v1.md)、[Demo Narrative Beats V1](../features/demo-narrative-beats-v1.md)。
+- 当前执行线：[Demo Playable UI And Art Pass V1](../features/demo-playable-ui-and-art-pass-v1.md)（当前细专题：[Demo Base Handoff Assetized Scene V1](../features/demo-base-handoff-assetized-scene-v1.md)，最近专题：[Demo Crystal Workface Assetized Scene V1](../features/demo-crystal-workface-assetized-scene-v1.md)）、[Demo Core Loop Playable V1](../features/demo-core-loop-playable-v1.md)、[Demo Narrative Beats V1](../features/demo-narrative-beats-v1.md)。
 - 视觉承接：[Demo Industrial Base Visual And Scene V1](../features/demo-industrial-base-visual-and-scene-v1.md) 的未完成观感问题并入 UI / Art pass，不再作为单点截图微调主线。
 - 参考视觉源：[Visual And UI Direction](../product/visual-and-ui-direction.md)。
 
@@ -26,7 +26,7 @@
 - 首版 Demo 范围冻结、12 区域封顶、UI baseline、核心稳定站终点链路和早期链路审计。
 - 2026-06-14 至 2026-06-19：可操作场景对象、运行逻辑、玩家反馈、存档来源、自动检查、角色 / 战斗、路线、资源链、功能场景、设备面板、初步美术识别和外勤任务差异均已落地第一包。
 - 2026-06-19：撤回“自动检查通过即可进入验收”的判断，确认第一包与检查证据不足以证明玩家可试玩质量。
-- 2026-06-20 至 2026-06-27：基地工业视觉、HUD 层级、第一条工业链、污染链、核心稳定站完成态、核心循环短节奏、叙事节拍场景证据、启动界面、首屏资产化、基地 / 污染 / 核心交接和 Demo 结尾钩子已完成多轮玩家可见推进；阶段复核显示项目应从单点读法修补切到可玩纵切装配。
+- 2026-06-20 至 2026-06-29：基地工业视觉、HUD 层级、第一条工业链、污染链、核心稳定站完成态、核心循环短节奏、叙事节拍场景证据、启动界面、首屏资产化、晶体工作面资产化、基地交接专用工作面和 Demo 结尾钩子已完成多轮玩家可见推进；阶段复核显示项目应从单点读法修补切到可玩纵切装配。
 
 当前阶段：
 
@@ -48,8 +48,8 @@
 
 三条执行线：
 
-- UI 与低保真美术：首屏资产化和基地 / 污染 / 核心 / 结尾交接已承接；晶体采集工作面同层几何方案已停手，下一步转入资产化小场景重建，优先让矿脉、采集器、输出托盘、地貌材质和短反馈成为主体。
-- 核心循环：让采集、加工、设备启用、整备、污染承压、短战斗和核心写入形成可操作闭环。
+- UI 与低保真美术：晶体工作面 #2 / #3 已基本成立；基地交接已触发决策闸门并转入专用资产化小工作面。下一步先确认正确复测位和状态触发，让反应器料斗、仓储供给和整备锁扣成为截图主体。
+- 核心循环：让采集、加工、设备启用、整备、污染承压、短战斗和核心写入形成可操作的前后接力。
 - 叙事节拍：用开场事故、基地恢复、污染信号、核心稳定、场景证据和结尾悬念替代任务表式推进。
 
 体验主干建设尚未达到试玩准备判断标准；真实页面 smoke、自动检查和人工实机复测只能提供证据，不能替代可玩路径装配。
