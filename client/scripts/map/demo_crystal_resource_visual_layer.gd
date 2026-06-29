@@ -2,6 +2,7 @@ extends Node2D
 class_name DemoCrystalResourceVisualLayer
 
 const AssetLanguageArtPass := preload("res://scripts/map/demo_default_path_asset_language_art_pass.gd")
+const WorkfaceAssetArtPass := preload("res://scripts/map/demo_crystal_workface_asset_art_pass.gd")
 
 const RESOURCE_SHAPE_PREFIX := "DemoCrystalResourceVisual"
 const ROLE_RESOURCE := "resource"
@@ -17,6 +18,8 @@ const CRYSTAL_FOCUS_LOCAL_MARKER_DISTANCE := 178.0
 const CRYSTAL_FOCUS_LOCAL_MARKER_ALPHA := 0.16
 const CRYSTAL_FOCUS_LOCAL_RING_ALPHA := 0.14
 const CRYSTAL_FOCUS_LOCAL_LABEL_ALPHA := 0.58
+const CRYSTAL_FOCUS_PICKUP_LABEL_ALPHA := 0.34
+const CRYSTAL_FOCUS_COLLECTOR_LABEL_ALPHA := 0.24
 
 const CRYSTAL_FOCUS_CONTEXT_LAYER_ALPHAS := [
 	{"path": "OpeningSceneLayer", "alpha": 0.012},
@@ -175,6 +178,7 @@ var muted_crystal_focus_context_layer_count := 0
 var muted_crystal_focus_context_rect_count := 0
 var muted_crystal_focus_context_marker_count := 0
 var shaped_local_focus_marker_count := 0
+var repositioned_output_label_count := 0
 var context_layer_original_modulates: Dictionary = {}
 
 
@@ -246,6 +250,34 @@ func get_shaped_local_focus_marker_count() -> int:
 	return shaped_local_focus_marker_count
 
 
+func get_repositioned_output_label_count() -> int:
+	return repositioned_output_label_count
+
+
+func get_workface_asset_count() -> int:
+	return WorkfaceAssetArtPass.get_asset_ids().size()
+
+
+func has_workface_asset(asset_id: String) -> bool:
+	return WorkfaceAssetArtPass.has_asset(asset_id)
+
+
+func is_workface_asset_available(asset_id: String) -> bool:
+	return WorkfaceAssetArtPass.is_asset_available(asset_id)
+
+
+func get_workface_asset_path(asset_id: String) -> String:
+	return WorkfaceAssetArtPass.get_asset_path(asset_id)
+
+
+func get_workface_asset_role(asset_id: String) -> String:
+	return WorkfaceAssetArtPass.get_asset_role(asset_id)
+
+
+func get_workface_asset_render_mode(asset_id: String) -> String:
+	return WorkfaceAssetArtPass.get_asset_render_mode(asset_id)
+
+
 func has_resource_shape(shape_id: String) -> bool:
 	return resource_shape_ids.has(shape_id)
 
@@ -280,6 +312,7 @@ func _draw() -> void:
 	_draw_return_flows()
 	_draw_anomaly_pocket()
 	_draw_current_harvest_workface_subject()
+	WorkfaceAssetArtPass.draw_workface(self)
 
 
 func _draw_field_frame() -> void:
@@ -1014,6 +1047,7 @@ func _register_resource_shapes() -> void:
 		"salvage.logistics_return",
 		"anomaly.crystal_pocket"
 	]
+	resource_shape_ids.append_array(WorkfaceAssetArtPass.get_resource_shape_ids())
 
 
 func _register_flow_shapes() -> void:
@@ -1026,6 +1060,7 @@ func _register_flow_shapes() -> void:
 		"flow.crystal_branch",
 		"flow.salvage_branch"
 	]
+	flow_shape_ids.append_array(WorkfaceAssetArtPass.get_flow_shape_ids())
 
 
 func _register_terrain_material_shapes() -> void:
@@ -1055,6 +1090,7 @@ func _register_terrain_material_shapes() -> void:
 		"terrain.crystal.base_loading_mouth"
 	]
 	terrain_material_shape_ids.append_array(AssetLanguageArtPass.get_crystal_shape_ids())
+	terrain_material_shape_ids.append_array(WorkfaceAssetArtPass.get_terrain_shape_ids())
 
 
 func _deemphasize_legacy_crystal_blocks() -> void:
@@ -1192,6 +1228,7 @@ func _mute_crystal_focus_context_interactable_markers(player_position: Vector2) 
 
 func _shape_crystal_focus_local_markers(player_position: Vector2) -> void:
 	shaped_local_focus_marker_count = 0
+	repositioned_output_label_count = 0
 	if not visible:
 		return
 	var interactables := _get_map_node("Interactables")
@@ -1224,7 +1261,14 @@ func _shape_crystal_focus_local_markers(player_position: Vector2) -> void:
 		var label := interactable.get_node_or_null("Label") as Label
 		if label != null and label.visible:
 			var label_modulate := label.modulate
-			label_modulate.a = minf(label_modulate.a, CRYSTAL_FOCUS_LOCAL_LABEL_ALPHA)
+			var label_alpha := CRYSTAL_FOCUS_LOCAL_LABEL_ALPHA
+			if interactable.definition_id == "map_object.crystal_collector_output":
+				_position_output_pickup_label(label)
+				label_alpha = CRYSTAL_FOCUS_PICKUP_LABEL_ALPHA
+				repositioned_output_label_count += 1
+			elif interactable.definition_id == "building.crystal_collector_t1":
+				label_alpha = CRYSTAL_FOCUS_COLLECTOR_LABEL_ALPHA
+			label_modulate.a = minf(label_modulate.a, label_alpha)
 			label.modulate = label_modulate
 			shaped_this_marker = true
 		if shaped_this_marker:
@@ -1235,6 +1279,13 @@ func _is_crystal_focus_local_marker(interactable: PrototypeInteractable, player_
 	if not CRYSTAL_FOCUS_LOCAL_INTERACTABLE_DEFINITION_IDS.has(interactable.definition_id):
 		return false
 	return interactable.position.distance_to(player_position) <= CRYSTAL_FOCUS_LOCAL_MARKER_DISTANCE
+
+
+func _position_output_pickup_label(label: Label) -> void:
+	label.offset_left = -48.0
+	label.offset_top = 28.0
+	label.offset_right = 72.0
+	label.offset_bottom = 44.0
 
 
 func _apply_context_layer_alpha(path: String, alpha: float) -> bool:
