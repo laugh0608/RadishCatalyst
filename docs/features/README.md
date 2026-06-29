@@ -1,10 +1,10 @@
 # Feature Development Docs
 
-更新时间：2026-06-28
+更新时间：2026-06-29
 
 ## 用途
 
-本目录存放玩家功能目标文档。阶段入口只定主线，具体范围、路径、验收和检查放在这里。
+本目录存放玩家功能目标文档。阶段入口定主线，具体范围、路径、验收和检查放在这里。
 
 当一次开发会同时影响玩法、场景、HUD、任务、存档、运行时状态或自动检查时，先建立或更新对应专题。
 
@@ -25,16 +25,17 @@
 
 ## 当前与最近专题
 
-- [Demo Definition V1](demo-definition-v1.md)：首版 Demo 规格表，后续专题必须映射到未完成规格项。
-- [Demo First Playable Slice Assembly V1](demo-first-playable-slice-assembly-v1.md)：当前活跃专题，覆盖 20 到 30 分钟可玩纵切装配。
-- [Demo Playable UI And Art Pass V1](demo-playable-ui-and-art-pass-v1.md)：当前执行线，覆盖第一视野、低保真美术和 HUD。
-- [Demo First Screen Assetized Scene V1](demo-first-screen-assetized-scene-v1.md)：当前 UI / Art 细专题，覆盖首屏资产化。
+- [Demo Definition V1](demo-definition-v1.md)：首版 Demo 规格表。
+- [Demo First Playable Slice Assembly V1](demo-first-playable-slice-assembly-v1.md)：当前活跃专题，覆盖纵切装配。
+- [Demo Playable UI And Art Pass V1](demo-playable-ui-and-art-pass-v1.md)：当前执行线，覆盖画面 / HUD。
+- [Demo First Screen Assetized Scene V1](demo-first-screen-assetized-scene-v1.md)：UI / Art 细专题，覆盖首屏资产化。
 - [Demo Crystal Workface Assetized Scene V1](demo-crystal-workface-assetized-scene-v1.md)：UI / Art 细专题，晶体资产化。
-- [Demo Core Loop Playable V1](demo-core-loop-playable-v1.md)：当前执行线，覆盖采集、加工、设备启用、整备、污染承压、短战斗和核心写入闭环。
+- [Demo Base Handoff Assetized Scene V1](demo-base-handoff-assetized-scene-v1.md)：当前 UI / Art 细专题，覆盖基地交接小工作面。
+- [Demo Core Loop Playable V1](demo-core-loop-playable-v1.md)：当前执行线，覆盖采集、加工、设备启用、整备、污染承压、短战斗和核心写入。
 - [Demo Narrative Beats V1](demo-narrative-beats-v1.md)：当前执行线，覆盖开场事故、基地恢复、污染信号、核心稳定和结尾钩子。
-- [Demo Industrial Base Visual And Scene V1](demo-industrial-base-visual-and-scene-v1.md)：最近活跃视觉专题，未完成观感问题并入 UI / Art pass，不再作为单点截图微调主线。
-- [Demo Playable Content Substance V1](demo-playable-content-substance-v1.md)：最近完成口径修正，确认自动检查和第一包不能替代可试玩画面质量。
-- [Demo Scene Device Pressure Staging V1](demo-scene-device-pressure-staging-v1.md)：暂缓，不再作为明日建议；后续若启用，必须服务工业基地视觉与场景化。
+- [Demo Industrial Base Visual And Scene V1](demo-industrial-base-visual-and-scene-v1.md)：最近活跃视觉专题，未完成项并入 UI / Art pass。
+- [Demo Playable Content Substance V1](demo-playable-content-substance-v1.md)：最近完成口径修正，确认自动检查不能替代可试玩画面。
+- [Demo Scene Device Pressure Staging V1](demo-scene-device-pressure-staging-v1.md)：暂缓，后续若启用须服务工业基地视觉。
 - [Demo Field Task Differentiation V1](demo-field-task-differentiation-v1.md)：最近完成，覆盖任务差异。
 - [Demo Initial Art Identity V1](demo-initial-art-identity-v1.md)：最近完成，覆盖现场身份。
 - [Demo Industrial Module Task Rhythm V1](demo-industrial-module-task-rhythm-v1.md)：最近完成，覆盖 5 个核心模块职责。
@@ -77,18 +78,3 @@
 - [Demo Character Kit V1](demo-character-kit-v1.md)：最近完成细专题，已验证 `C` 战术扫描主动工具动作。
 - [Ruin Outer Ring Module Pressure V1](ruin-outer-ring-module-pressure-v1.md)：最近完成细专题，已验证模块状态在遗迹外圈形成承压差异。
 - [Pollution Edge Maintenance Pressure V1](pollution-edge-maintenance-pressure-v1.md)：最近完成细专题，已验证后勤维护在污染边界形成第二个承压差异。
-
-## 专题文档推荐结构
-
-1. 用途
-2. 玩家价值
-3. 与整体规划的关系
-4. 当前已有基础
-5. 本轮范围
-6. 当前不做
-7. 玩家操作路径
-8. 运行时、存档与数据边界
-9. HUD / 场景 / 对象反馈
-10. 验收条件
-11. 验证计划
-12. 风险与后续决策

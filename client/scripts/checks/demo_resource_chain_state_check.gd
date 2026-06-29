@@ -119,6 +119,7 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	root.add_child(map)
 	var layer := map.get_node("DemoIndustrialBaseVisualLayer") as DemoIndustrialBaseVisualLayer
 	var first_path_layer := map.get_node("DemoFirstIndustrialPathVisualLayer") as DemoFirstIndustrialPathVisualLayer
+	var base_handoff_layer := map.get_node("DemoBaseHandoffAssetArtPass") as DemoBaseHandoffAssetArtPass
 	layer.apply_visuals()
 	_expect_equal(layer.get_detail_shape_count() >= 9, true, "industrial base visual layer registers device and floor detail shapes")
 	_expect_equal(layer.has_detail_shape("floor.service_grates"), true, "industrial base visual layer marks floor service grates")
@@ -241,6 +242,33 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.handoff_continuity.reactor_hopper.processing"), true, "first industrial path layer keeps the hopper bridge active during processing")
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.handoff_continuity.hopper_cradle.processing"), true, "first industrial path layer marks the hopper cradle during processing")
 	_expect_equal(first_path_layer.has_path_state_shape("first_path.stage.reactor_processing"), true, "first industrial path layer records reactor operation stage")
+	base_handoff_layer.refresh_handoff_state(world, character)
+	_expect_equal(base_handoff_layer.is_handoff_available(), true, "base handoff asset layer opens after outpost restoration")
+	_expect_equal(base_handoff_layer.is_handoff_visible_at(Vector2(-250.0, -48.0)), true, "base handoff asset layer is visible in the base workface")
+	_expect_equal(base_handoff_layer.get_handoff_asset_shape_count() >= 12, true, "base handoff asset layer registers dedicated workface shapes")
+	_expect_equal(base_handoff_layer.has_handoff_asset_shape("base_handoff_asset.old_route_suppression"), true, "base handoff asset layer suppresses old route linework")
+	_expect_equal(base_handoff_layer.has_handoff_asset_shape("base_handoff_asset.reactor_asset"), true, "base handoff asset layer makes the reactor an asset subject")
+	_expect_equal(base_handoff_layer.has_handoff_asset_shape("base_handoff_asset.storage_asset"), true, "base handoff asset layer makes storage an asset subject")
+	_expect_equal(base_handoff_layer.has_handoff_asset_shape("base_handoff_asset.outfitting_asset"), true, "base handoff asset layer makes outfitting an asset subject")
+	_expect_equal(base_handoff_layer.has_handoff_asset_shape("base_handoff_asset.return_tray_subject"), true, "base handoff asset layer gives returned materials a tray subject")
+	_expect_equal(base_handoff_layer.has_handoff_asset_shape("base_handoff_asset.reactor_hopper_subject"), true, "base handoff asset layer gives reactor feed a hopper subject")
+	_expect_equal(base_handoff_layer.has_handoff_asset_shape("base_handoff_asset.storage_supply_subject"), true, "base handoff asset layer gives storage output a supply subject")
+	_expect_equal(base_handoff_layer.has_handoff_asset_shape("base_handoff_asset.outfitting_latch_subject"), true, "base handoff asset layer gives outfitting receipt a latch subject")
+	_expect_equal(base_handoff_layer.get_handoff_asset_count(), 5, "base handoff asset layer reuses five existing device and floor sprites")
+	_expect_equal(base_handoff_layer.has_handoff_asset("base_handoff_asset.reactor_module"), true, "base handoff asset manifest includes reactor sprite")
+	_expect_equal(base_handoff_layer.get_handoff_asset_role("base_handoff_asset.reactor_module"), "processing_device", "base handoff reactor asset has processing role")
+	_expect_equal(base_handoff_layer.get_handoff_asset_render_mode("base_handoff_asset.storage_bank"), "sprite", "base handoff storage asset renders as sprite")
+	_expect_equal(base_handoff_layer.is_handoff_asset_available("base_handoff_asset.outfitting_station"), true, "base handoff outfitting asset is loadable")
+	_expect_equal(base_handoff_layer.get_handoff_state_shape_count() >= 8, true, "base handoff asset layer registers state shapes")
+	_expect_equal(
+		base_handoff_layer.get_active_stage(),
+		DemoBaseHandoffAssetArtPass.STAGE_REACTOR_PROCESSING,
+		"base handoff asset layer marks reactor processing as the current base handoff stage"
+	)
+	_expect_equal(base_handoff_layer.has_handoff_state_shape("base_handoff_asset.state.reactor_processing.ready"), true, "base handoff asset layer marks reactor processing feedback")
+	_expect_equal(base_handoff_layer.has_handoff_state_shape("base_handoff_asset.return_tray.loaded"), true, "base handoff asset layer loads returned material tray")
+	_expect_equal(base_handoff_layer.has_handoff_state_shape("base_handoff_asset.reactor_hopper.processing"), true, "base handoff asset layer keeps hopper active during processing")
+	_expect_equal(base_handoff_layer.has_handoff_state_shape("base_handoff_asset.stage.reactor_processing"), true, "base handoff asset layer records reactor processing stage")
 	_check_first_industrial_path_stage_changes(first_path_layer)
 	map.free()
 
@@ -430,6 +458,7 @@ func _check_visual_review_checkpoint_path_states() -> void:
 	root.add_child(map)
 	var first_path_layer := map.get_node("DemoFirstIndustrialPathVisualLayer") as DemoFirstIndustrialPathVisualLayer
 	var crystal_layer := map.get_node("DemoCrystalResourceVisualLayer") as DemoCrystalResourceVisualLayer
+	var base_handoff_layer := map.get_node("DemoBaseHandoffAssetArtPass") as DemoBaseHandoffAssetArtPass
 	first_path_layer.apply_visuals()
 
 	var collector_result := builder.create_visual_review_checkpoint_state("visual_review.crystal_collector_output")
@@ -484,6 +513,7 @@ func _check_visual_review_checkpoint_path_states() -> void:
 	_expect_equal(bool(handoff_result.get("success", false)), true, "base handoff visual checkpoint builds")
 	if bool(handoff_result.get("success", false)):
 		first_path_layer.refresh_path_state(handoff_result["world_state"], handoff_result["character_state"])
+		base_handoff_layer.refresh_handoff_state(handoff_result["world_state"], handoff_result["character_state"])
 		_expect_equal(
 			first_path_layer.get_active_stage(),
 			DemoFirstIndustrialPathVisualLayer.STAGE_OUTFITTING_READY,
@@ -543,6 +573,31 @@ func _check_visual_review_checkpoint_path_states() -> void:
 			first_path_layer.has_path_state_shape("first_path.handoff_continuity.outfitting_lock_clamps.latched"),
 			true,
 			"base handoff visual checkpoint locks outfitting clamps around received supply"
+		)
+		_expect_equal(
+			base_handoff_layer.get_active_stage(),
+			DemoBaseHandoffAssetArtPass.STAGE_OUTFITTING_READY,
+			"base handoff asset checkpoint lands on outfitting handoff stage"
+		)
+		_expect_equal(
+			base_handoff_layer.has_handoff_state_shape("base_handoff_asset.storage_supply.ready"),
+			true,
+			"base handoff asset checkpoint marks storage supply subject ready"
+		)
+		_expect_equal(
+			base_handoff_layer.has_handoff_state_shape("base_handoff_asset.outfitting_latch.locked"),
+			true,
+			"base handoff asset checkpoint locks the outfitting receipt subject"
+		)
+		_expect_equal(
+			base_handoff_layer.has_handoff_state_shape("base_handoff_asset.short_stage_packets.ready"),
+			true,
+			"base handoff asset checkpoint uses short material packets inside the workface"
+		)
+		_expect_equal(
+			base_handoff_layer.visible,
+			true,
+			"base handoff asset checkpoint keeps the dedicated device workface visible"
 		)
 	map.free()
 

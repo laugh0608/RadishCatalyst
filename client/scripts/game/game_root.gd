@@ -562,6 +562,9 @@ func _refresh_industrial_base_visuals() -> void:
 	var first_path_layer := vertical_slice_map.get_node_or_null("DemoFirstIndustrialPathVisualLayer") as DemoFirstIndustrialPathVisualLayer
 	if first_path_layer != null:
 		first_path_layer.refresh_path_state(world_state, character_state)
+	var base_handoff_layer := vertical_slice_map.get_node_or_null("DemoBaseHandoffAssetArtPass") as DemoBaseHandoffAssetArtPass
+	if base_handoff_layer != null:
+		base_handoff_layer.refresh_handoff_state(world_state, character_state)
 	var pollution_layer := vertical_slice_map.get_node_or_null("DemoPollutionBoundaryVisualLayer") as DemoPollutionBoundaryVisualLayer
 	if pollution_layer != null:
 		pollution_layer.refresh_pollution_chain_state(world_state, character_state)

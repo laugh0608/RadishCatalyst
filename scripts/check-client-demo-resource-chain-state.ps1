@@ -122,6 +122,21 @@ $requiredTextByFile = @{
         "draw_ports",
         "draw_feedback"
     )
+    "client/scripts/map/demo_base_handoff_asset_art_pass.gd" = @(
+        "class_name DemoBaseHandoffAssetArtPass",
+        "res://assets/sprites/demo_first_screen/basic_reactor_module.svg",
+        "res://assets/sprites/demo_first_screen/storage_crate_bank.svg",
+        "res://assets/sprites/demo_first_screen/outfitting_station_rack.svg",
+        "base_handoff_asset.old_route_suppression",
+        "base_handoff_asset.reactor_asset",
+        "base_handoff_asset.return_tray_subject",
+        "base_handoff_asset.reactor_hopper_subject",
+        "base_handoff_asset.storage_supply_subject",
+        "base_handoff_asset.outfitting_latch_subject",
+        "base_handoff_asset.short_stage_packets",
+        "refresh_handoff_state",
+        "draw_texture_rect"
+    )
     "client/scripts/map/demo_default_path_asset_language_art_pass.gd" = @(
         "class_name DemoDefaultPathAssetLanguageArtPass",
         "draw_base_handoff_language",
@@ -159,7 +174,9 @@ $requiredTextByFile = @{
         "DemoCrystalResourceVisualLayer",
         "demo_crystal_resource_visual_layer.gd",
         "DemoFirstIndustrialPathVisualLayer",
-        "demo_first_industrial_path_visual_layer.gd"
+        "demo_first_industrial_path_visual_layer.gd",
+        "DemoBaseHandoffAssetArtPass",
+        "demo_base_handoff_asset_art_pass.gd"
     )
     "client/scripts/ui/hud_log_presenter.gd" = @(
         '"资源链"',
@@ -189,6 +206,10 @@ $requiredTextByFile = @{
         "first industrial path layer marks the hopper cradle during processing",
         "base handoff visual checkpoint latches storage output into outfitting",
         "base handoff visual checkpoint locks outfitting clamps around received supply",
+        "base handoff asset layer suppresses old route linework",
+        "base handoff asset layer gives returned materials a tray subject",
+        "base handoff asset layer marks reactor processing feedback",
+        "base handoff asset checkpoint locks the outfitting receipt subject",
         "first_path.stage.reactor_processing",
         "default_path.asset_language.base.shared_service_floor",
         "terrain.crystal.assetized_ecology_sprite",
