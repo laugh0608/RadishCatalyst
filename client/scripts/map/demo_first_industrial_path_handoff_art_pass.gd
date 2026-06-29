@@ -17,6 +17,7 @@ const SALVAGE_ACCENT := Color(0.84, 0.7, 0.34, 0.3)
 const REACTOR_ACCENT := Color(1.0, 0.58, 0.22, 0.34)
 const PRODUCT_ACCENT := Color(0.58, 0.88, 0.52, 0.3)
 const OUTFITTING_ACCENT := Color(0.92, 0.74, 0.3, 0.32)
+const ACTIVE_STAGE_ACCENT := Color(0.96, 0.74, 0.28, 0.62)
 
 const PATH_SHAPE_IDS := [
 	"first_path.assetized_base_handoff_device_group",
@@ -26,7 +27,10 @@ const PATH_SHAPE_IDS := [
 	"first_path.assetized_outfitting_rack",
 	"first_path.assetized_handoff_ports",
 	"first_path.short_material_flow_segments",
-	"first_path.storage_outfitting_handoff_feedback"
+	"first_path.storage_outfitting_handoff_feedback",
+	"first_path.handoff_continuity.return_manifest_panel",
+	"first_path.handoff_continuity.reactor_hopper_bridge",
+	"first_path.handoff_continuity.storage_supply_manifest"
 ]
 
 
@@ -42,12 +46,17 @@ static func get_state_shape_ids(path_state: Dictionary) -> Array[String]:
 	if bool(path_state.get("inputs_ready", false)):
 		ids.append("first_path.assetized_flow.receiving_packets.ready")
 		ids.append("first_path.assetized_flow.reactor_feed_packets.ready")
+		ids.append("first_path.handoff_continuity.return_manifest.loaded")
+		ids.append("first_path.handoff_continuity.reactor_hopper.armed")
 	if bool(path_state.get("reactor_active", false)):
 		ids.append("first_path.assetized_feedback.reactor_processing_glow.active")
+		ids.append("first_path.handoff_continuity.reactor_hopper.processing")
 	if bool(path_state.get("storage_ready", false)):
 		ids.append("first_path.assetized_flow.storage_output_packets.ready")
+		ids.append("first_path.handoff_continuity.storage_supply_manifest.ready")
 	if bool(path_state.get("outfitting_ready", false)):
 		ids.append("first_path.assetized_feedback.outfitting_handoff.ready")
+		ids.append("first_path.handoff_continuity.outfitting_supply.latched")
 	return ids
 
 
@@ -102,6 +111,12 @@ static func draw_feedback(canvas: CanvasItem, path_state: Dictionary, active_sta
 	var storage_ready := bool(path_state.get("storage_ready", false))
 	var outfitting_ready := bool(path_state.get("outfitting_ready", false))
 	if inputs_ready:
+		_draw_return_manifest_panel(
+			canvas,
+			bool(path_state.get("salvage_ready", false)),
+			active_stage in [STAGE_BASE_RECEIVING, STAGE_REACTOR_FEED]
+		)
+		_draw_reactor_hopper_bridge(canvas, active_stage in [STAGE_REACTOR_FEED, STAGE_REACTOR_PROCESSING])
 		_draw_material_packet(canvas, Vector2(-235.0, -138.0), CRYSTAL_ACCENT, true)
 		_draw_material_packet(canvas, Vector2(-210.0, -138.0), SALVAGE_ACCENT, bool(path_state.get("salvage_ready", false)))
 		_draw_packet_train(
@@ -113,6 +128,7 @@ static func draw_feedback(canvas: CanvasItem, path_state: Dictionary, active_sta
 	if reactor_active:
 		_draw_reactor_heat_feedback(canvas, Vector2(-166.0, -66.0))
 	if storage_ready:
+		_draw_storage_supply_manifest(canvas, outfitting_ready, active_stage == STAGE_STORAGE_OUTPUT)
 		_draw_material_packet(canvas, Vector2(-276.0, 58.0), PRODUCT_ACCENT, true)
 		_draw_material_packet(canvas, Vector2(-246.0, 58.0), OUTFITTING_ACCENT, outfitting_ready)
 		_draw_packet_train(
@@ -122,6 +138,7 @@ static func draw_feedback(canvas: CanvasItem, path_state: Dictionary, active_sta
 			active_stage == STAGE_STORAGE_OUTPUT
 		)
 	if outfitting_ready:
+		_draw_storage_supply_manifest(canvas, true, true)
 		_draw_outfitting_handoff_feedback(canvas)
 
 
@@ -162,6 +179,60 @@ static func _draw_device_port_cluster(canvas: CanvasItem, center: Vector2, color
 static func _draw_short_port_bridge(canvas: CanvasItem, from: Vector2, to: Vector2, color: Color) -> void:
 	canvas.draw_polyline(PackedVector2Array([from, to]), Color(0.006, 0.014, 0.012, 0.78), 5.0, true)
 	canvas.draw_polyline(PackedVector2Array([from, to]), Color(color.r, color.g, color.b, 0.22), 2.2, true)
+
+
+static func _draw_return_manifest_panel(canvas: CanvasItem, salvage_ready: bool, is_active: bool) -> void:
+	var panel := Rect2(Vector2(-270.0, -174.0), Vector2(82.0, 28.0))
+	var edge := ACTIVE_STAGE_ACCENT if is_active else LOGISTICS_PORT
+	canvas.draw_rect(panel, Color(0.008, 0.018, 0.016, 0.76), true)
+	canvas.draw_rect(panel, Color(edge.r, edge.g, edge.b, 0.34), false, 1.4, true)
+	_draw_manifest_slot(canvas, Vector2(-258.0, -160.0), CRYSTAL_ACCENT, true)
+	_draw_manifest_slot(canvas, Vector2(-238.0, -160.0), SALVAGE_ACCENT, salvage_ready)
+	for index in range(3):
+		var x := -212.0 + float(index) * 8.0
+		canvas.draw_circle(Vector2(x, -160.0), 2.5, Color(LOGISTICS_PORT.r, LOGISTICS_PORT.g, LOGISTICS_PORT.b, 0.18 + 0.08 * float(index)))
+	canvas.draw_line(Vector2(-206.0, -146.0), Vector2(-206.0, -126.0), Color(edge.r, edge.g, edge.b, 0.20), 1.6, true)
+
+
+static func _draw_reactor_hopper_bridge(canvas: CanvasItem, is_active: bool) -> void:
+	var edge := ACTIVE_STAGE_ACCENT if is_active else REACTOR_ACCENT
+	var trough := PackedVector2Array([
+		Vector2(-224.0, -126.0),
+		Vector2(-186.0, -128.0),
+		Vector2(-170.0, -118.0),
+		Vector2(-184.0, -106.0),
+		Vector2(-222.0, -108.0),
+		Vector2(-224.0, -126.0)
+	])
+	canvas.draw_colored_polygon(trough, Color(0.012, 0.024, 0.020, 0.70))
+	canvas.draw_polyline(trough, Color(edge.r, edge.g, edge.b, 0.32), 1.4, true)
+	canvas.draw_line(Vector2(-218.0, -116.0), Vector2(-184.0, -116.0), Color(edge.r, edge.g, edge.b, 0.26), 2.0, true)
+	var packet_alpha := 0.56 if is_active else 0.22
+	for center in [Vector2(-210.0, -116.0), Vector2(-198.0, -116.0), Vector2(-186.0, -116.0)]:
+		canvas.draw_circle(center, 2.6, Color(edge.r, edge.g, edge.b, packet_alpha))
+
+
+static func _draw_storage_supply_manifest(canvas: CanvasItem, outfitting_ready: bool, is_active: bool) -> void:
+	var edge := ACTIVE_STAGE_ACCENT if is_active else PRODUCT_ACCENT
+	var panel := Rect2(Vector2(-292.0, 76.0), Vector2(78.0, 26.0))
+	canvas.draw_rect(panel, Color(0.008, 0.018, 0.016, 0.74), true)
+	canvas.draw_rect(panel, Color(edge.r, edge.g, edge.b, 0.32), false, 1.3, true)
+	_draw_manifest_slot(canvas, Vector2(-280.0, 89.0), PRODUCT_ACCENT, true)
+	_draw_manifest_slot(canvas, Vector2(-260.0, 89.0), OUTFITTING_ACCENT, outfitting_ready)
+	canvas.draw_line(Vector2(-236.0, 76.0), Vector2(-158.0, 40.0), Color(edge.r, edge.g, edge.b, 0.18), 2.0, true)
+	canvas.draw_line(Vector2(-158.0, 40.0), Vector2(-80.0, -12.0), Color(OUTFITTING_ACCENT.r, OUTFITTING_ACCENT.g, OUTFITTING_ACCENT.b, 0.22 if outfitting_ready else 0.12), 1.8, true)
+	if not outfitting_ready:
+		return
+	for latch in [Vector2(-104.0, -12.0), Vector2(-92.0, -12.0), Vector2(-80.0, -12.0)]:
+		canvas.draw_rect(Rect2(latch + Vector2(-3.4, -3.4), Vector2(6.8, 6.8)), Color(OUTFITTING_ACCENT.r, OUTFITTING_ACCENT.g, OUTFITTING_ACCENT.b, 0.38), true)
+
+
+static func _draw_manifest_slot(canvas: CanvasItem, center: Vector2, color: Color, is_ready: bool) -> void:
+	var alpha := 0.42 if is_ready else 0.12
+	var rect := Rect2(center + Vector2(-6.0, -5.0), Vector2(12.0, 10.0))
+	canvas.draw_rect(rect, Color(0.010, 0.020, 0.018, 0.70), true)
+	canvas.draw_rect(rect.grow(-2.0), Color(color.r, color.g, color.b, alpha), true)
+	canvas.draw_rect(rect, Color(color.r, color.g, color.b, 0.32 if is_ready else 0.12), false, 1.0, true)
 
 
 static func _draw_material_packet(canvas: CanvasItem, center: Vector2, color: Color, is_ready: bool) -> void:
