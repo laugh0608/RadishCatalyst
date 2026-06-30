@@ -88,6 +88,8 @@ const SCENE_SHAPES := {
 	"playable_scene.old_planning_layers_muted": true,
 	"playable_scene.startup_presentation_suppressed": true,
 	"playable_scene.compact_floor_not_fullscreen_overlay": true,
+	"playable_scene.no_fullscreen_backdrop": true,
+	"playable_scene.floor_islands_not_planning_grid": true,
 	"playable_scene.far_core_station_excluded": true,
 }
 
@@ -321,8 +323,6 @@ func get_muted_context_rect_count() -> int:
 func _draw() -> void:
 	if not visible:
 		return
-	_draw_scene_backdrop()
-	_draw_floor_readability()
 	_draw_shadow_grounding()
 	_draw_short_service_relations()
 	_draw_scene_status_feedback()
@@ -343,30 +343,6 @@ func _ensure_scene_sprite_nodes() -> void:
 		sprite.centered = true
 		add_child(sprite)
 		scene_asset_nodes[asset_id] = sprite
-
-
-func _draw_scene_backdrop() -> void:
-	draw_rect(Rect2(Vector2(-492.0, -282.0), Vector2(840.0, 540.0)), Color(0.018, 0.030, 0.028, 0.86), true)
-	draw_rect(Rect2(Vector2(-492.0, -282.0), Vector2(840.0, 540.0)), Color(0.30, 0.44, 0.38, 0.18), false, 2.0, true)
-	draw_rect(Rect2(Vector2(-448.0, -248.0), Vector2(624.0, 30.0)), Color(0.10, 0.16, 0.14, 0.30), true)
-	draw_rect(Rect2(Vector2(-446.0, 204.0), Vector2(682.0, 28.0)), Color(0.10, 0.16, 0.14, 0.26), true)
-
-
-func _draw_floor_readability() -> void:
-	var deck := PackedVector2Array([
-		Vector2(-406.0, -176.0),
-		Vector2(86.0, -166.0),
-		Vector2(224.0, -64.0),
-		Vector2(178.0, 144.0),
-		Vector2(-358.0, 154.0),
-		Vector2(-438.0, 36.0),
-	])
-	draw_colored_polygon(deck, Color(0.040, 0.080, 0.072, 0.50))
-	_draw_polyline_closed([deck[0], deck[1], deck[2], deck[3], deck[4], deck[5]], Color(0.36, 0.60, 0.52, 0.22), 1.8)
-	for y in [-118.0, -58.0, 4.0, 66.0, 128.0]:
-		draw_line(Vector2(-432.0, y), Vector2(202.0, y - 8.0), Color(0.42, 0.62, 0.54, 0.085), 1.4, true)
-	for x in [-346.0, -264.0, -182.0, -100.0, -18.0, 64.0, 146.0]:
-		draw_line(Vector2(x, -174.0), Vector2(x + 28.0, 156.0), Color(0.42, 0.62, 0.54, 0.075), 1.2, true)
 
 
 func _draw_shadow_grounding() -> void:

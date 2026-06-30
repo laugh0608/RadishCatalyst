@@ -336,6 +336,8 @@ func _check_playable_scene_rebuild_layer() -> void:
 	_expect_equal(playable_scene_layer.has_scene_shape("playable_scene.old_planning_layers_muted"), true, "playable scene rebuild layer explicitly demotes old planning layers")
 	_expect_equal(playable_scene_layer.has_scene_shape("playable_scene.startup_presentation_suppressed"), true, "playable scene rebuild layer suppresses the old startup presentation layer")
 	_expect_equal(playable_scene_layer.has_scene_shape("playable_scene.compact_floor_not_fullscreen_overlay"), true, "playable scene rebuild layer records that the floor is no longer a fullscreen overlay")
+	_expect_equal(playable_scene_layer.has_scene_shape("playable_scene.no_fullscreen_backdrop"), true, "playable scene rebuild layer removes the fullscreen backdrop board")
+	_expect_equal(playable_scene_layer.has_scene_shape("playable_scene.floor_islands_not_planning_grid"), true, "playable scene rebuild layer uses floor islands instead of a planning grid")
 	_expect_equal(playable_scene_layer.has_scene_shape("playable_scene.far_core_station_excluded"), true, "playable scene rebuild layer records far core station exclusion")
 	_expect_equal(playable_scene_layer.has_scene_state_shape("playable_scene.state.outpost.restored"), true, "playable scene rebuild layer follows restored outpost state")
 	_expect_equal(playable_scene_layer.has_scene_state_shape("playable_scene.state.devices.online"), true, "playable scene rebuild layer follows device availability state")
