@@ -313,11 +313,18 @@ func _check_playable_scene_rebuild_layer() -> void:
 	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
 	root.add_child(map)
 	var playable_scene_layer := map.get_node("DemoPlayableSceneRebuildLayer") as DemoPlayableSceneRebuildLayer
+	var startup_layer := map.get_node("DemoBaseStartupPresentationLayer") as DemoBaseStartupPresentationLayer
 	playable_scene_layer.refresh_scene_state(world, character)
 
 	_expect_equal(playable_scene_layer.get_scene_asset_count(), 9, "playable scene rebuild layer registers nine real scene sprites")
 	_expect_equal(playable_scene_layer.get_scene_sprite_node_count(), 9, "playable scene rebuild layer builds sprite nodes instead of debug rectangles")
 	_expect_equal(playable_scene_layer.has_scene_asset("playable_scene.terrain_floor"), true, "playable scene rebuild layer includes a walkable floor sprite")
+	_expect_equal(
+		playable_scene_layer.get_scene_asset_path("playable_scene.terrain_floor"),
+		"res://assets/sprites/demo_first_screen/playable_scene_compact_floor.svg",
+		"playable scene rebuild layer uses a compact floor sprite instead of the old fullscreen platform overlay"
+	)
+	_expect_equal(playable_scene_layer.get_scene_asset_role("playable_scene.terrain_floor"), "compact_walkable_floor", "playable scene rebuild layer gives the floor a compact walkable role")
 	_expect_equal(playable_scene_layer.has_scene_asset("playable_scene.outpost_core_machine"), true, "playable scene rebuild layer makes the damaged outpost core the subject")
 	_expect_equal(playable_scene_layer.has_scene_asset("playable_scene.basic_reactor_module"), true, "playable scene rebuild layer includes the reactor as a scene object")
 	_expect_equal(playable_scene_layer.has_scene_asset("playable_scene.crystal_ecology_cluster"), true, "playable scene rebuild layer includes resource ecology at the edge")
@@ -327,18 +334,22 @@ func _check_playable_scene_rebuild_layer() -> void:
 	_expect_equal(playable_scene_layer.is_scene_asset_available("playable_scene.player_repair_pose"), true, "playable scene rebuild player action sprite is loadable")
 	_expect_equal(playable_scene_layer.get_scene_shape_count() >= 10, true, "playable scene rebuild layer registers scene composition shapes")
 	_expect_equal(playable_scene_layer.has_scene_shape("playable_scene.old_planning_layers_muted"), true, "playable scene rebuild layer explicitly demotes old planning layers")
+	_expect_equal(playable_scene_layer.has_scene_shape("playable_scene.startup_presentation_suppressed"), true, "playable scene rebuild layer suppresses the old startup presentation layer")
+	_expect_equal(playable_scene_layer.has_scene_shape("playable_scene.compact_floor_not_fullscreen_overlay"), true, "playable scene rebuild layer records that the floor is no longer a fullscreen overlay")
 	_expect_equal(playable_scene_layer.has_scene_shape("playable_scene.far_core_station_excluded"), true, "playable scene rebuild layer records far core station exclusion")
 	_expect_equal(playable_scene_layer.has_scene_state_shape("playable_scene.state.outpost.restored"), true, "playable scene rebuild layer follows restored outpost state")
 	_expect_equal(playable_scene_layer.has_scene_state_shape("playable_scene.state.devices.online"), true, "playable scene rebuild layer follows device availability state")
 	_expect_equal(playable_scene_layer.is_scene_active_at(Vector2(-250.0, -48.0)), true, "playable scene rebuild layer is active at the first playable base screen")
 	_expect_equal(playable_scene_layer.visible, true, "playable scene rebuild layer is visible at the base start")
-	_expect_equal(playable_scene_layer.get_muted_planning_layer_count() >= 6, true, "playable scene rebuild layer pushes old visual overlays behind the scene")
+	_expect_equal(playable_scene_layer.get_muted_planning_layer_count() >= 10, true, "playable scene rebuild layer pushes old visual overlays behind the scene")
 	_expect_equal(playable_scene_layer.get_muted_context_rect_count() >= 8, true, "playable scene rebuild layer suppresses old color-block planning context")
+	_expect_equal(startup_layer.modulate.a <= 0.001, true, "playable scene rebuild layer hides the old startup presentation stack in the same first screen")
 	_expect_equal(playable_scene_layer.is_scene_active_at(Vector2(3744.0, 112.0)), false, "playable scene rebuild layer does not cover the far core station")
 	playable_scene_layer.refresh_focus_visibility(Vector2(3744.0, 112.0))
 	_expect_equal(playable_scene_layer.visible, false, "playable scene rebuild layer hides outside the first playable scene")
 	_expect_equal(playable_scene_layer.get_muted_planning_layer_count(), 0, "playable scene rebuild layer restores planning overlays outside its scope")
 	_expect_equal(playable_scene_layer.get_muted_context_rect_count(), 0, "playable scene rebuild layer restores color-block context outside its scope")
+	_expect_equal(startup_layer.modulate.a >= 0.999, true, "playable scene rebuild layer restores the startup presentation stack outside its scope")
 	map.free()
 
 

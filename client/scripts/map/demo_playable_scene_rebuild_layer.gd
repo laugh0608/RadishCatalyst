@@ -18,7 +18,7 @@ const ASSET_CRYSTAL_ECOLOGY_ID := "playable_scene.crystal_ecology_cluster"
 const ASSET_POLLUTION_EDGE_ID := "playable_scene.pollution_edge_pool"
 const ASSET_PLAYER_REPAIR_POSE_ID := "playable_scene.player_repair_pose"
 
-const ASSET_TERRAIN_FLOOR := preload("res://assets/sprites/demo_first_screen/terrain_outpost_floor.svg")
+const ASSET_TERRAIN_FLOOR := preload("res://assets/sprites/demo_first_screen/playable_scene_compact_floor.svg")
 const ASSET_CORE_MACHINE := preload("res://assets/sprites/demo_first_screen/outpost_core_machine.svg")
 const ASSET_BASIC_REACTOR := preload("res://assets/sprites/demo_first_screen/basic_reactor_module.svg")
 const ASSET_STORAGE_BANK := preload("res://assets/sprites/demo_first_screen/storage_crate_bank.svg")
@@ -30,8 +30,8 @@ const ASSET_PLAYER_REPAIR_POSE := preload("res://assets/sprites/demo_first_scree
 
 const SCENE_ASSET_MANIFEST := {
 	ASSET_TERRAIN_FLOOR_ID: {
-		"path": "res://assets/sprites/demo_first_screen/terrain_outpost_floor.svg",
-		"role": "walkable_floor",
+		"path": "res://assets/sprites/demo_first_screen/playable_scene_compact_floor.svg",
+		"role": "compact_walkable_floor",
 		"render": "sprite"
 	},
 	ASSET_CORE_MACHINE_ID: {
@@ -86,6 +86,8 @@ const SCENE_SHAPES := {
 	"playable_scene.crystal_edge_as_ecology": true,
 	"playable_scene.pollution_edge_as_hazard": true,
 	"playable_scene.old_planning_layers_muted": true,
+	"playable_scene.startup_presentation_suppressed": true,
+	"playable_scene.compact_floor_not_fullscreen_overlay": true,
 	"playable_scene.far_core_station_excluded": true,
 }
 
@@ -93,9 +95,9 @@ const SCENE_SPRITE_LAYOUT := [
 	{
 		"id": ASSET_TERRAIN_FLOOR_ID,
 		"texture": ASSET_TERRAIN_FLOOR,
-		"position": Vector2(-148.0, -8.0),
-		"scale": Vector2(1.36, 1.18),
-		"modulate": Color(0.94, 1.0, 0.94, 0.82),
+		"position": Vector2(-128.0, -6.0),
+		"scale": Vector2(1.08, 0.94),
+		"modulate": Color(1.0, 1.0, 1.0, 0.96),
 		"z": 1,
 	},
 	{
@@ -165,15 +167,19 @@ const SCENE_SPRITE_LAYOUT := [
 ]
 
 const CONTEXT_LAYER_ALPHAS := [
-	{"path": "OpeningSceneLayer", "alpha": 0.008},
+	{"path": "OpeningSceneLayer", "alpha": 0.0},
+	{"path": "DemoCoreSceneSpaceLayer", "alpha": 0.0},
+	{"path": "DemoInitialArtIdentityLayer", "alpha": 0.0},
 	{"path": "DemoIndustrialBaseVisualLayer", "alpha": 0.08},
 	{"path": "DemoCrystalResourceVisualLayer", "alpha": 0.08},
 	{"path": "DemoPollutionBoundaryVisualLayer", "alpha": 0.006},
 	{"path": "DemoSceneFocusDepthLayer", "alpha": 0.012},
 	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.002},
 	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.001},
+	{"path": "DemoRoutePresentationLayer", "alpha": 0.0},
 	{"path": "DemoFirstIndustrialPathVisualLayer", "alpha": 0.0},
 	{"path": "DemoBaseHandoffAssetArtPass", "alpha": 0.0},
+	{"path": "DemoBaseStartupPresentationLayer", "alpha": 0.0},
 ]
 
 const CONTEXT_RECT_ALPHAS := [
