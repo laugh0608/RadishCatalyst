@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://scripts/map/vertical_slice_map.gd" id="1_map"]
 [ext_resource type="PackedScene" path="res://scenes/actors/Player.tscn" id="2_player"]
@@ -17,6 +17,7 @@
 [ext_resource type="Script" path="res://scripts/map/demo_first_industrial_path_visual_layer.gd" id="15_first_path_visual"]
 [ext_resource type="Script" path="res://scripts/map/demo_base_startup_presentation_layer.gd" id="16_startup_presentation"]
 [ext_resource type="Script" path="res://scripts/map/demo_base_handoff_asset_art_pass.gd" id="17_base_handoff_asset"]
+[ext_resource type="Script" path="res://scripts/map/demo_playable_scene_rebuild_layer.gd" id="18_playable_scene_rebuild"]
 
 [node name="VerticalSliceMap" type="Node2D"]
 script = ExtResource("1_map")
@@ -1722,6 +1723,9 @@ script = ExtResource("15_first_path_visual")
 
 [node name="DemoBaseHandoffAssetArtPass" type="Node2D" parent="."]
 script = ExtResource("17_base_handoff_asset")
+
+[node name="DemoPlayableSceneRebuildLayer" type="Node2D" parent="."]
+script = ExtResource("18_playable_scene_rebuild")
 
 [node name="CurrentObjectiveGuidanceLayer" type="Node2D" parent="."]
 script = ExtResource("6_objective_guidance")
