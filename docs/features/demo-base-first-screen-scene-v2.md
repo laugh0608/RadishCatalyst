@@ -66,6 +66,7 @@
 - 首屏主体改由实体 `Polygon2D` 子节点承担：地面块、平台边界、玩家服务位、核心、反应器、储存、整备台、阴影、材质块、端口和右侧晶体边缘。
 - 新层在第一屏范围内降权 `DemoPlayableSceneRebuildLayer`、旧启动表现层、旧区域色块和路线层；离开第一屏后恢复旧层上下文。
 - 交互继续使用现有 `OutpostCore`、`BasicReactor`、`BasicStorageBuildSite` 和 `FieldOutfittingStationBuildSite`，不新增任务、资源、配方、敌人或存档字段。
+- 首张实机截图反馈后，平台边界从黑色遮挡条改为低权重边缘，设备阴影和端口缩小降饱和，右侧晶体退为次级环境。
 
 ## 验收条件
 
