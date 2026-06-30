@@ -371,6 +371,7 @@ func _check_base_first_screen_scene_layer() -> void:
 	var playable_scene_layer := map.get_node("DemoPlayableSceneRebuildLayer") as DemoPlayableSceneRebuildLayer
 	var startup_layer := map.get_node("DemoBaseStartupPresentationLayer") as DemoBaseStartupPresentationLayer
 	var player := map.get_node("Player") as PlayerController
+	var guidance := map.get_node("CurrentObjectiveGuidanceLayer") as CurrentObjectiveGuidanceLayer
 	var outpost_core := map.get_node("Interactables/OutpostCore") as PrototypeInteractable
 	var reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
 	var storage := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
@@ -387,16 +388,20 @@ func _check_base_first_screen_scene_layer() -> void:
 	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.solid_floor_mass"), true, "base first screen scene uses solid floor mass")
 	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.platform_edge_boundaries"), true, "base first screen scene has platform boundaries")
 	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.low_profile_boundaries"), true, "base first screen scene keeps boundaries low profile")
+	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.segmented_wall_edges"), true, "base first screen scene breaks wall edges into short segments")
 	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.outpost_core_volume"), true, "base first screen scene gives the core a solid volume")
 	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.reactor_volume"), true, "base first screen scene gives the reactor a solid volume")
 	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.storage_volume"), true, "base first screen scene gives storage a solid volume")
 	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.outfitting_volume"), true, "base first screen scene gives outfitting a solid volume")
+	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.device_silhouette_language"), true, "base first screen scene adds device-specific silhouette language")
 	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.right_crystal_edge_context"), true, "base first screen scene keeps crystal context to the right edge")
 	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.right_crystal_edge_deemphasized"), true, "base first screen scene keeps right crystal edge secondary")
 	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.old_rebuild_layer_deemphasized"), true, "base first screen scene demotes the old rebuild layer")
+	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.core_focus_compact"), true, "base first screen scene compacts the core focus readout")
 	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.existing_interactions_preserved"), true, "base first screen scene records that interactions stay on existing objects")
 	_expect_equal(scene_layer.get_scene_part_count() >= 30, true, "base first screen scene builds many solid parts instead of one overlay board")
 	_expect_equal(scene_layer.get_device_volume_count(), 4, "base first screen scene has four key device volumes")
+	_expect_equal(scene_layer.get_device_silhouette_part_count() >= 10, true, "base first screen scene has device-specific silhouette parts")
 	_expect_equal(scene_layer.get_material_block_count() >= 8, true, "base first screen scene separates material blocks across floor and devices")
 	_expect_equal(scene_layer.get_service_port_count(), 4, "base first screen scene exposes short service ports")
 	_expect_equal(scene_layer.has_scene_part("base_first_screen_scene.part.floor_mass"), true, "base first screen scene has a floor mass part")
@@ -410,12 +415,17 @@ func _check_base_first_screen_scene_layer() -> void:
 	_expect_equal(scene_layer.get_muted_context_rect_count() >= 8, true, "base first screen scene suppresses old region color blocks")
 	_expect_equal(playable_scene_layer.modulate.a <= 0.001, true, "base first screen scene hides the old playable rebuild stack in its first-screen scope")
 	_expect_equal(startup_layer.modulate.a <= 0.001, true, "base first screen scene hides the old startup presentation stack in its first-screen scope")
+	_expect_equal(guidance.modulate.a <= 0.181, true, "base first screen scene lowers the current objective overlay")
 	_expect_equal(scene_layer.z_index < player.z_index, true, "base first screen scene stays below the playable actor")
 	_expect_equal(outpost_core.definition_id, "building.outpost_core", "base first screen keeps the existing outpost core interactable")
 	_expect_equal(reactor.definition_id, "building.basic_reactor", "base first screen keeps the existing reactor interactable")
 	_expect_equal(storage.definition_id, "building.basic_storage", "base first screen keeps the existing storage interactable")
 	_expect_equal(outfitting.definition_id, "building.field_outfitting_station", "base first screen keeps the existing outfitting interactable")
 	_expect_equal(map.current_interactable, outpost_core, "base first screen keeps the default first interaction on the outpost core")
+	scene_layer.refresh_focus_visibility(character.position)
+	_expect_equal(outpost_core.label.visible, false, "base first screen hides the core scene label near the player")
+	_expect_equal(outpost_core.focus_ring.modulate.a <= 0.281, true, "base first screen lowers the core focus ring")
+	_expect_equal(outpost_core.marker.modulate.a <= 0.581, true, "base first screen lowers the core marker")
 
 	world.quest_state.complete_quest("quest.restore_outpost")
 	world.add_base_structure("structure.basic_storage", "building.basic_storage", "region.outpost_platform")

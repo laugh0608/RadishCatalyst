@@ -21,11 +21,13 @@ const SCENE_SHAPES := {
 	"base_first_screen_scene.solid_floor_mass": true,
 	"base_first_screen_scene.platform_edge_boundaries": true,
 	"base_first_screen_scene.low_profile_boundaries": true,
+	"base_first_screen_scene.segmented_wall_edges": true,
 	"base_first_screen_scene.player_spawn_service_pad": true,
 	"base_first_screen_scene.outpost_core_volume": true,
 	"base_first_screen_scene.reactor_volume": true,
 	"base_first_screen_scene.storage_volume": true,
 	"base_first_screen_scene.outfitting_volume": true,
+	"base_first_screen_scene.device_silhouette_language": true,
 	"base_first_screen_scene.grounding_shadows": true,
 	"base_first_screen_scene.material_blocks": true,
 	"base_first_screen_scene.short_service_ports": true,
@@ -33,6 +35,7 @@ const SCENE_SHAPES := {
 	"base_first_screen_scene.right_crystal_edge_deemphasized": true,
 	"base_first_screen_scene.old_rebuild_layer_deemphasized": true,
 	"base_first_screen_scene.startup_stack_suppressed": true,
+	"base_first_screen_scene.core_focus_compact": true,
 	"base_first_screen_scene.existing_interactions_preserved": true,
 	"base_first_screen_scene.no_new_content_state": true,
 	"base_first_screen_scene.far_core_station_excluded": true,
@@ -63,6 +66,20 @@ const SERVICE_PORT_IDS := [
 	"base_first_screen_scene.part.outfitting_lock_port",
 ]
 
+const DEVICE_SILHOUETTE_IDS := [
+	"base_first_screen_scene.part.core_side_clamp_left",
+	"base_first_screen_scene.part.core_side_clamp_right",
+	"base_first_screen_scene.part.core_service_cap",
+	"base_first_screen_scene.part.reactor_feed_hopper",
+	"base_first_screen_scene.part.reactor_vent_stack",
+	"base_first_screen_scene.part.reactor_output_tray",
+	"base_first_screen_scene.part.storage_shelf_divider",
+	"base_first_screen_scene.part.storage_top_latch",
+	"base_first_screen_scene.part.outfitting_left_rail",
+	"base_first_screen_scene.part.outfitting_right_rail",
+	"base_first_screen_scene.part.outfitting_tool_cradle",
+]
+
 const CONTEXT_LAYER_ALPHAS := [
 	{"path": "OpeningSceneLayer", "alpha": 0.0},
 	{"path": "DemoCoreSceneSpaceLayer", "alpha": 0.0},
@@ -79,6 +96,7 @@ const CONTEXT_LAYER_ALPHAS := [
 	{"path": "DemoBaseHandoffAssetArtPass", "alpha": 0.0},
 	{"path": "DemoPlayableSceneRebuildLayer", "alpha": 0.0},
 	{"path": "DemoBaseStartupPresentationLayer", "alpha": 0.0},
+	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.18},
 ]
 
 const CONTEXT_RECT_ALPHAS := [
@@ -143,25 +161,41 @@ const POLYGON_PARTS := [
 ]
 
 const RECT_PARTS := [
-	{"id": "base_first_screen_scene.part.north_boundary", "role": ROLE_BOUNDARY, "z": 3, "rect": Rect2(Vector2(-348.0, -206.0), Vector2(302.0, 12.0)), "color": Color(0.078, 0.098, 0.088, 0.68)},
-	{"id": "base_first_screen_scene.part.south_boundary", "role": ROLE_BOUNDARY, "z": 3, "rect": Rect2(Vector2(-326.0, 162.0), Vector2(344.0, 14.0)), "color": Color(0.074, 0.092, 0.082, 0.66)},
-	{"id": "base_first_screen_scene.part.west_boundary", "role": ROLE_BOUNDARY, "z": 3, "rect": Rect2(Vector2(-394.0, -138.0), Vector2(14.0, 236.0)), "color": Color(0.072, 0.088, 0.080, 0.62)},
+	{"id": "base_first_screen_scene.part.north_boundary", "role": ROLE_BOUNDARY, "z": 3, "rect": Rect2(Vector2(-338.0, -204.0), Vector2(82.0, 10.0)), "color": Color(0.090, 0.112, 0.100, 0.32)},
+	{"id": "base_first_screen_scene.part.north_wall_footing_mid", "role": ROLE_BOUNDARY, "z": 3, "rect": Rect2(Vector2(-198.0, -204.0), Vector2(66.0, 8.0)), "color": Color(0.090, 0.112, 0.100, 0.24)},
+	{"id": "base_first_screen_scene.part.north_wall_footing_east", "role": ROLE_BOUNDARY, "z": 3, "rect": Rect2(Vector2(-78.0, -202.0), Vector2(42.0, 8.0)), "color": Color(0.090, 0.112, 0.100, 0.18)},
+	{"id": "base_first_screen_scene.part.south_boundary", "role": ROLE_BOUNDARY, "z": 3, "rect": Rect2(Vector2(-304.0, 160.0), Vector2(98.0, 10.0)), "color": Color(0.086, 0.104, 0.094, 0.30)},
+	{"id": "base_first_screen_scene.part.south_service_duct_mid", "role": ROLE_BOUNDARY, "z": 3, "rect": Rect2(Vector2(-160.0, 160.0), Vector2(82.0, 8.0)), "color": Color(0.086, 0.104, 0.094, 0.22)},
+	{"id": "base_first_screen_scene.part.south_service_duct_east", "role": ROLE_BOUNDARY, "z": 3, "rect": Rect2(Vector2(-26.0, 158.0), Vector2(42.0, 8.0)), "color": Color(0.086, 0.104, 0.094, 0.16)},
+	{"id": "base_first_screen_scene.part.west_boundary", "role": ROLE_BOUNDARY, "z": 3, "rect": Rect2(Vector2(-392.0, -126.0), Vector2(10.0, 86.0)), "color": Color(0.084, 0.100, 0.092, 0.28)},
+	{"id": "base_first_screen_scene.part.west_service_duct_lower", "role": ROLE_BOUNDARY, "z": 3, "rect": Rect2(Vector2(-390.0, 8.0), Vector2(8.0, 76.0)), "color": Color(0.084, 0.100, 0.092, 0.20)},
 	{"id": "base_first_screen_scene.part.floor_plate_west", "role": ROLE_MATERIAL, "z": 4, "rect": Rect2(Vector2(-336.0, -132.0), Vector2(122.0, 88.0)), "color": Color(0.170, 0.208, 0.184, 0.82)},
 	{"id": "base_first_screen_scene.part.floor_plate_center", "role": ROLE_MATERIAL, "z": 4, "rect": Rect2(Vector2(-198.0, -130.0), Vector2(118.0, 106.0)), "color": Color(0.158, 0.198, 0.176, 0.82)},
 	{"id": "base_first_screen_scene.part.floor_plate_east", "role": ROLE_MATERIAL, "z": 4, "rect": Rect2(Vector2(-86.0, -92.0), Vector2(112.0, 120.0)), "color": Color(0.146, 0.184, 0.166, 0.78)},
 	{"id": "base_first_screen_scene.part.player_service_pad", "role": ROLE_FLOOR, "z": 6, "rect": Rect2(Vector2(-246.0, -76.0), Vector2(74.0, 48.0)), "color": Color(0.102, 0.142, 0.136, 1.0)},
 	{"id": "base_first_screen_scene.part.outpost_core_plinth", "role": ROLE_DEVICE, "z": 10, "rect": Rect2(Vector2(-342.0, -124.0), Vector2(86.0, 66.0)), "color": Color(0.074, 0.112, 0.108, 0.94)},
+	{"id": "base_first_screen_scene.part.core_side_clamp_left", "role": ROLE_DEVICE, "z": 12, "rect": Rect2(Vector2(-346.0, -114.0), Vector2(14.0, 48.0)), "color": Color(0.036, 0.060, 0.058, 0.86)},
+	{"id": "base_first_screen_scene.part.core_side_clamp_right", "role": ROLE_DEVICE, "z": 12, "rect": Rect2(Vector2(-270.0, -114.0), Vector2(14.0, 48.0)), "color": Color(0.036, 0.060, 0.058, 0.86)},
+	{"id": "base_first_screen_scene.part.core_service_cap", "role": ROLE_MATERIAL, "z": 13, "rect": Rect2(Vector2(-318.0, -154.0), Vector2(38.0, 10.0)), "color": Color(0.096, 0.176, 0.166, 0.72)},
 	{"id": "base_first_screen_scene.part.outpost_core_hull", "role": ROLE_DEVICE, "z": 11, "rect": Rect2(Vector2(-326.0, -142.0), Vector2(56.0, 72.0)), "color": Color(0.118, 0.216, 0.208, 0.94)},
 	{"id": "base_first_screen_scene.part.core_shell_block", "role": ROLE_MATERIAL, "z": 12, "rect": Rect2(Vector2(-314.0, -128.0), Vector2(32.0, 46.0)), "color": Color(0.204, 0.372, 0.346, 0.86)},
 	{"id": "base_first_screen_scene.part.basic_reactor_body", "role": ROLE_DEVICE, "z": 10, "rect": Rect2(Vector2(-200.0, -120.0), Vector2(82.0, 68.0)), "color": Color(0.140, 0.112, 0.080, 0.94)},
+	{"id": "base_first_screen_scene.part.reactor_feed_hopper", "role": ROLE_MATERIAL, "z": 13, "rect": Rect2(Vector2(-216.0, -102.0), Vector2(30.0, 28.0)), "color": Color(0.520, 0.300, 0.120, 0.84)},
 	{"id": "base_first_screen_scene.part.reactor_heat_chamber", "role": ROLE_MATERIAL, "z": 12, "rect": Rect2(Vector2(-180.0, -106.0), Vector2(40.0, 38.0)), "color": Color(0.430, 0.220, 0.090, 0.88)},
+	{"id": "base_first_screen_scene.part.reactor_vent_stack", "role": ROLE_DEVICE, "z": 12, "rect": Rect2(Vector2(-132.0, -130.0), Vector2(12.0, 30.0)), "color": Color(0.050, 0.044, 0.034, 0.80)},
+	{"id": "base_first_screen_scene.part.reactor_output_tray", "role": ROLE_SERVICE, "z": 13, "rect": Rect2(Vector2(-172.0, -56.0), Vector2(42.0, 12.0)), "color": Color(0.640, 0.360, 0.140, 0.62)},
 	{"id": "base_first_screen_scene.part.reactor_feed_port", "role": ROLE_SERVICE, "z": 13, "rect": Rect2(Vector2(-210.0, -100.0), Vector2(20.0, 18.0)), "color": Color(0.760, 0.520, 0.220, 0.86)},
 	{"id": "base_first_screen_scene.part.storage_bank_body", "role": ROLE_DEVICE, "z": 10, "rect": Rect2(Vector2(-302.0, 48.0), Vector2(98.0, 58.0)), "color": Color(0.086, 0.158, 0.130, 0.94)},
 	{"id": "base_first_screen_scene.part.storage_cargo_block_a", "role": ROLE_MATERIAL, "z": 12, "rect": Rect2(Vector2(-288.0, 58.0), Vector2(32.0, 38.0)), "color": Color(0.206, 0.352, 0.276, 0.88)},
+	{"id": "base_first_screen_scene.part.storage_shelf_divider", "role": ROLE_DEVICE, "z": 13, "rect": Rect2(Vector2(-252.0, 56.0), Vector2(6.0, 42.0)), "color": Color(0.044, 0.088, 0.070, 0.74)},
 	{"id": "base_first_screen_scene.part.storage_cargo_block_b", "role": ROLE_MATERIAL, "z": 12, "rect": Rect2(Vector2(-246.0, 58.0), Vector2(30.0, 38.0)), "color": Color(0.180, 0.302, 0.248, 0.88)},
+	{"id": "base_first_screen_scene.part.storage_top_latch", "role": ROLE_SERVICE, "z": 13, "rect": Rect2(Vector2(-226.0, 42.0), Vector2(30.0, 10.0)), "color": Color(0.410, 0.720, 0.360, 0.58)},
 	{"id": "base_first_screen_scene.part.storage_supply_port", "role": ROLE_SERVICE, "z": 13, "rect": Rect2(Vector2(-224.0, 28.0), Vector2(24.0, 16.0)), "color": Color(0.452, 0.728, 0.380, 0.84)},
 	{"id": "base_first_screen_scene.part.outfitting_rack_body", "role": ROLE_DEVICE, "z": 10, "rect": Rect2(Vector2(-98.0, -70.0), Vector2(64.0, 86.0)), "color": Color(0.112, 0.128, 0.106, 0.94)},
+	{"id": "base_first_screen_scene.part.outfitting_left_rail", "role": ROLE_DEVICE, "z": 12, "rect": Rect2(Vector2(-92.0, -62.0), Vector2(8.0, 72.0)), "color": Color(0.050, 0.060, 0.050, 0.84)},
+	{"id": "base_first_screen_scene.part.outfitting_right_rail", "role": ROLE_DEVICE, "z": 12, "rect": Rect2(Vector2(-50.0, -62.0), Vector2(8.0, 72.0)), "color": Color(0.050, 0.060, 0.050, 0.84)},
 	{"id": "base_first_screen_scene.part.outfitting_suit_frame", "role": ROLE_MATERIAL, "z": 12, "rect": Rect2(Vector2(-78.0, -56.0), Vector2(28.0, 60.0)), "color": Color(0.330, 0.294, 0.142, 0.88)},
+	{"id": "base_first_screen_scene.part.outfitting_tool_cradle", "role": ROLE_SERVICE, "z": 13, "rect": Rect2(Vector2(-86.0, 6.0), Vector2(42.0, 10.0)), "color": Color(0.720, 0.620, 0.260, 0.52)},
 	{"id": "base_first_screen_scene.part.outfitting_lock_port", "role": ROLE_SERVICE, "z": 13, "rect": Rect2(Vector2(-102.0, -24.0), Vector2(18.0, 16.0)), "color": Color(0.806, 0.650, 0.260, 0.84)},
 	{"id": "base_first_screen_scene.part.core_repair_port", "role": ROLE_SERVICE, "z": 13, "rect": Rect2(Vector2(-274.0, -72.0), Vector2(18.0, 16.0)), "color": Color(0.700, 0.820, 0.560, 0.86)},
 ]
@@ -184,6 +218,8 @@ var scene_part_roles: Dictionary = {}
 var scene_state_shape_ids: Array[String] = []
 var context_original_modulates: Dictionary = {}
 var context_rect_original_colors: Dictionary = {}
+var focus_original_modulates: Dictionary = {}
+var focus_original_label_visibility: Dictionary = {}
 var muted_context_layer_count := 0
 var muted_context_rect_count := 0
 var scene_active := false
@@ -219,6 +255,7 @@ func refresh_focus_visibility(player_position: Vector2) -> void:
 	visible = scene_active
 	_set_context_layers_muted(scene_active)
 	_set_context_rects_muted(scene_active)
+	_set_first_screen_focus_compact(scene_active)
 
 
 func is_scene_active_at(player_position: Vector2) -> bool:
@@ -272,6 +309,10 @@ func get_material_block_count() -> int:
 
 func get_service_port_count() -> int:
 	return SERVICE_PORT_IDS.size()
+
+
+func get_device_silhouette_part_count() -> int:
+	return DEVICE_SILHOUETTE_IDS.size()
 
 
 func get_muted_context_layer_count() -> int:
@@ -447,6 +488,51 @@ func _set_context_rects_muted(should_mute: bool) -> void:
 	if should_mute:
 		return
 	context_rect_original_colors.clear()
+
+
+func _set_first_screen_focus_compact(should_compact: bool) -> void:
+	var map_root := get_parent()
+	if map_root == null:
+		return
+	var outpost_core := map_root.get_node_or_null("Interactables/OutpostCore") as PrototypeInteractable
+	if outpost_core == null:
+		return
+	_set_child_label_compact(outpost_core, "Label", should_compact)
+	_set_child_modulate_alpha(outpost_core, "FocusRing", should_compact, 0.28)
+	_set_child_modulate_alpha(outpost_core, "Marker", should_compact, 0.58)
+	if not should_compact:
+		focus_original_modulates.clear()
+		focus_original_label_visibility.clear()
+
+
+func _set_child_label_compact(parent: Node, child_name: String, should_compact: bool) -> void:
+	var label := parent.get_node_or_null(child_name) as Label
+	if label == null:
+		return
+	var key := "%d/%s.visible" % [parent.get_instance_id(), child_name]
+	if should_compact:
+		if not focus_original_label_visibility.has(key):
+			focus_original_label_visibility[key] = label.visible
+		label.visible = false
+		return
+	if focus_original_label_visibility.has(key):
+		label.visible = bool(focus_original_label_visibility[key])
+
+
+func _set_child_modulate_alpha(parent: Node, child_name: String, should_compact: bool, alpha: float) -> void:
+	var canvas_item := parent.get_node_or_null(child_name) as CanvasItem
+	if canvas_item == null:
+		return
+	var key := "%d/%s.modulate" % [parent.get_instance_id(), child_name]
+	if should_compact:
+		if not focus_original_modulates.has(key):
+			focus_original_modulates[key] = canvas_item.modulate
+		var compact_modulate := focus_original_modulates[key] as Color
+		compact_modulate.a = alpha
+		canvas_item.modulate = compact_modulate
+		return
+	if focus_original_modulates.has(key):
+		canvas_item.modulate = focus_original_modulates[key] as Color
 
 
 func _has_base_device_context(world_state: WorldState) -> bool:
