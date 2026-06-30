@@ -60,6 +60,13 @@
 - HUD：保留目标、状态、小地图和一行交互摘要；不参与解释场景是什么。
 - 旧层：默认隐藏或降权为开发辅助，不能成为第一眼主读法。
 
+## 2026-06-30 客户端实现包
+
+- 新增 `DemoBaseFirstScreenSceneLayer`，作为基地第一屏独立承载层接入 `VerticalSliceMap`。
+- 首屏主体改由实体 `Polygon2D` 子节点承担：地面块、平台边界、玩家服务位、核心、反应器、储存、整备台、阴影、材质块、端口和右侧晶体边缘。
+- 新层在第一屏范围内降权 `DemoPlayableSceneRebuildLayer`、旧启动表现层、旧区域色块和路线层；离开第一屏后恢复旧层上下文。
+- 交互继续使用现有 `OutpostCore`、`BasicReactor`、`BasicStorageBuildSite` 和 `FieldOutfittingStationBuildSite`，不新增任务、资源、配方、敌人或存档字段。
+
 ## 验收条件
 
 - 默认截图中，场景主体 70% 以上不是线框描边或透明叠层。

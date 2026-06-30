@@ -568,6 +568,9 @@ func _refresh_industrial_base_visuals() -> void:
 	var playable_scene_layer := vertical_slice_map.get_node_or_null("DemoPlayableSceneRebuildLayer") as DemoPlayableSceneRebuildLayer
 	if playable_scene_layer != null:
 		playable_scene_layer.refresh_scene_state(world_state, character_state)
+	var base_first_screen_scene_layer := vertical_slice_map.get_node_or_null("DemoBaseFirstScreenSceneLayer") as DemoBaseFirstScreenSceneLayer
+	if base_first_screen_scene_layer != null:
+		base_first_screen_scene_layer.refresh_scene_state(world_state, character_state)
 	var pollution_layer := vertical_slice_map.get_node_or_null("DemoPollutionBoundaryVisualLayer") as DemoPollutionBoundaryVisualLayer
 	if pollution_layer != null:
 		pollution_layer.refresh_pollution_chain_state(world_state, character_state)

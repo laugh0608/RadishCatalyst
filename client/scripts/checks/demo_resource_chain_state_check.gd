@@ -31,6 +31,7 @@ func _run_checks() -> void:
 	_check_processing_result_resource_chain()
 	_check_first_industrial_chain_hud_and_visual_state()
 	_check_playable_scene_rebuild_layer()
+	_check_base_first_screen_scene_layer()
 	_check_operation_relation_visual_shapes()
 	_check_crystal_collector_runtime_chain()
 	_check_visual_review_checkpoint_path_states()
@@ -353,6 +354,78 @@ func _check_playable_scene_rebuild_layer() -> void:
 	_expect_equal(playable_scene_layer.get_muted_planning_layer_count(), 0, "playable scene rebuild layer restores planning overlays outside its scope")
 	_expect_equal(playable_scene_layer.get_muted_context_rect_count(), 0, "playable scene rebuild layer restores color-block context outside its scope")
 	_expect_equal(startup_layer.modulate.a >= 0.999, true, "playable scene rebuild layer restores the startup presentation stack outside its scope")
+	map.free()
+
+
+func _check_base_first_screen_scene_layer() -> void:
+	var world := WorldState.create_default()
+	var character := CharacterState.create_default()
+	character.position = Vector2(-250.0, -48.0)
+
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	map.setup(data_registry)
+	map.player.position = character.position
+	map.refresh_world_interactables(world)
+	var scene_layer := map.get_node("DemoBaseFirstScreenSceneLayer") as DemoBaseFirstScreenSceneLayer
+	var playable_scene_layer := map.get_node("DemoPlayableSceneRebuildLayer") as DemoPlayableSceneRebuildLayer
+	var startup_layer := map.get_node("DemoBaseStartupPresentationLayer") as DemoBaseStartupPresentationLayer
+	var player := map.get_node("Player") as PlayerController
+	var outpost_core := map.get_node("Interactables/OutpostCore") as PrototypeInteractable
+	var reactor := map.get_node("Interactables/BasicReactor") as PrototypeInteractable
+	var storage := map.get_node("Interactables/BasicStorageBuildSite") as PrototypeInteractable
+	var outfitting := map.get_node("Interactables/FieldOutfittingStationBuildSite") as PrototypeInteractable
+
+	scene_layer.refresh_scene_state(world, character)
+	map.update_current_interactable()
+
+	_expect_equal(scene_layer != null, true, "base first screen scene layer exists")
+	_expect_equal(scene_layer.visible, true, "base first screen scene layer is visible at the default new-game spawn")
+	_expect_equal(scene_layer.is_scene_active_at(Vector2(-250.0, -48.0)), true, "base first screen scene layer covers the playable first screen")
+	_expect_equal(scene_layer.get_scene_shape_count() >= 15, true, "base first screen scene layer registers V2 composition shapes")
+	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.independent_scene_layer"), true, "base first screen scene layer is an independent scene carrier")
+	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.solid_floor_mass"), true, "base first screen scene uses solid floor mass")
+	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.platform_edge_boundaries"), true, "base first screen scene has platform boundaries")
+	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.outpost_core_volume"), true, "base first screen scene gives the core a solid volume")
+	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.reactor_volume"), true, "base first screen scene gives the reactor a solid volume")
+	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.storage_volume"), true, "base first screen scene gives storage a solid volume")
+	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.outfitting_volume"), true, "base first screen scene gives outfitting a solid volume")
+	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.right_crystal_edge_context"), true, "base first screen scene keeps crystal context to the right edge")
+	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.old_rebuild_layer_deemphasized"), true, "base first screen scene demotes the old rebuild layer")
+	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.existing_interactions_preserved"), true, "base first screen scene records that interactions stay on existing objects")
+	_expect_equal(scene_layer.get_scene_part_count() >= 30, true, "base first screen scene builds many solid parts instead of one overlay board")
+	_expect_equal(scene_layer.get_device_volume_count(), 4, "base first screen scene has four key device volumes")
+	_expect_equal(scene_layer.get_material_block_count() >= 8, true, "base first screen scene separates material blocks across floor and devices")
+	_expect_equal(scene_layer.get_service_port_count(), 4, "base first screen scene exposes short service ports")
+	_expect_equal(scene_layer.has_scene_part("base_first_screen_scene.part.floor_mass"), true, "base first screen scene has a floor mass part")
+	_expect_equal(scene_layer.get_scene_part_role("base_first_screen_scene.part.floor_mass"), "solid_floor", "base first screen floor part is a solid floor")
+	_expect_equal(scene_layer.has_scene_part("base_first_screen_scene.part.outpost_core_hull"), true, "base first screen scene has core hull part")
+	_expect_equal(scene_layer.get_scene_part_role("base_first_screen_scene.part.basic_reactor_body"), "solid_device_volume", "base first screen reactor reads as a device volume")
+	_expect_equal(scene_layer.get_scene_part_role("base_first_screen_scene.part.right_crystal_spire_a"), "right_crystal_edge_context", "base first screen crystal spire is only edge context")
+	_expect_equal(scene_layer.has_scene_state_shape("base_first_screen_scene.state.outpost.damaged"), true, "base first screen scene follows damaged startup state")
+	_expect_equal(scene_layer.has_scene_state_shape("base_first_screen_scene.state.devices.online"), true, "base first screen scene reflects the default reactor context")
+	_expect_equal(scene_layer.get_muted_context_layer_count() >= 12, true, "base first screen scene suppresses old visual layers")
+	_expect_equal(scene_layer.get_muted_context_rect_count() >= 8, true, "base first screen scene suppresses old region color blocks")
+	_expect_equal(playable_scene_layer.modulate.a <= 0.001, true, "base first screen scene hides the old playable rebuild stack in its first-screen scope")
+	_expect_equal(startup_layer.modulate.a <= 0.001, true, "base first screen scene hides the old startup presentation stack in its first-screen scope")
+	_expect_equal(scene_layer.z_index < player.z_index, true, "base first screen scene stays below the playable actor")
+	_expect_equal(outpost_core.definition_id, "building.outpost_core", "base first screen keeps the existing outpost core interactable")
+	_expect_equal(reactor.definition_id, "building.basic_reactor", "base first screen keeps the existing reactor interactable")
+	_expect_equal(storage.definition_id, "building.basic_storage", "base first screen keeps the existing storage interactable")
+	_expect_equal(outfitting.definition_id, "building.field_outfitting_station", "base first screen keeps the existing outfitting interactable")
+	_expect_equal(map.current_interactable, outpost_core, "base first screen keeps the default first interaction on the outpost core")
+
+	world.quest_state.complete_quest("quest.restore_outpost")
+	world.add_base_structure("structure.basic_storage", "building.basic_storage", "region.outpost_platform")
+	world.add_base_structure("structure.field_outfitting_station", "building.field_outfitting_station", "region.outpost_platform")
+	scene_layer.refresh_scene_state(world, character)
+	_expect_equal(scene_layer.has_scene_state_shape("base_first_screen_scene.state.outpost.restored"), true, "base first screen scene follows restored outpost state")
+	_expect_equal(scene_layer.has_scene_state_shape("base_first_screen_scene.state.devices.online"), true, "base first screen scene follows online base device state")
+
+	scene_layer.refresh_focus_visibility(Vector2(3744.0, 112.0))
+	_expect_equal(scene_layer.visible, false, "base first screen scene does not cover the far core station")
+	_expect_equal(scene_layer.get_muted_context_layer_count(), 0, "base first screen scene restores old layers outside first-screen scope")
+	_expect_equal(scene_layer.get_muted_context_rect_count(), 0, "base first screen scene restores old region context outside first-screen scope")
 	map.free()
 
 
