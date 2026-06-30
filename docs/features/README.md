@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-06-29
+更新时间：2026-06-30
 
 ## 用途
 
@@ -28,9 +28,10 @@
 - [Demo Definition V1](demo-definition-v1.md)：首版 Demo 规格表。
 - [Demo First Playable Slice Assembly V1](demo-first-playable-slice-assembly-v1.md)：当前活跃专题，覆盖纵切装配。
 - [Demo Playable UI And Art Pass V1](demo-playable-ui-and-art-pass-v1.md)：当前执行线，覆盖画面 / HUD。
+- [Demo Playable Scene Rebuild V1](demo-playable-scene-rebuild-v1.md)：当前 UI / Art 细专题，覆盖真实低保真可玩场景重建。
 - [Demo First Screen Assetized Scene V1](demo-first-screen-assetized-scene-v1.md)：UI / Art 细专题，覆盖首屏资产化。
 - [Demo Crystal Workface Assetized Scene V1](demo-crystal-workface-assetized-scene-v1.md)：UI / Art 细专题，晶体资产化。
-- [Demo Base Handoff Assetized Scene V1](demo-base-handoff-assetized-scene-v1.md)：当前 UI / Art 细专题，覆盖基地交接小工作面。
+- [Demo Base Handoff Assetized Scene V1](demo-base-handoff-assetized-scene-v1.md)：最近暂停主线，覆盖基地交接小工作面和偏航风险。
 - [Demo Core Loop Playable V1](demo-core-loop-playable-v1.md)：当前执行线，覆盖采集、加工、设备启用、整备、污染承压、短战斗和核心写入。
 - [Demo Narrative Beats V1](demo-narrative-beats-v1.md)：当前执行线，覆盖开场事故、基地恢复、污染信号、核心稳定和结尾钩子。
 - [Demo Industrial Base Visual And Scene V1](demo-industrial-base-visual-and-scene-v1.md)：最近活跃视觉专题，未完成项并入 UI / Art pass。
