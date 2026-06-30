@@ -13,7 +13,7 @@
 - `docs/planning/current.md` 只保留当前阶段、当前活跃专题、阶段边界和退出条件。
 - `docs/planning/daily-start.md` 只保留日常推进入口和读取顺序。
 - `docs/devlogs/` 只记录已经发生的推进、决策、验证和风险，不作为具体功能范围的真相源。
-- 专题文档必须说明玩家价值、整体规划关系、已有基础、本轮范围、当前不做、真实操作路径、状态 / 存档 / HUD / 检查要求和验收条件。
+- 专题文档必须说明玩家价值、范围、当前不做、真实操作路径、状态 / 存档 / HUD / 检查和验收。
 - 不为单个文案调整、局部修错或一次性讨论创建专题文档；专题应对应一个玩家可感知功能目标或阶段开发包。
 - 活跃专题接近 220 行时，优先拆成总览与子专题，或把历史过程移入周志 / 参考 / 归档。
 
@@ -25,15 +25,16 @@
 
 ## 当前与最近专题
 
-- [Demo Definition V1](demo-definition-v1.md)：首版 Demo 规格表。
+- [Demo Definition V1](demo-definition-v1.md)：Demo 规格表。
 - [Demo First Playable Slice Assembly V1](demo-first-playable-slice-assembly-v1.md)：当前活跃专题，覆盖纵切装配。
 - [Demo Playable UI And Art Pass V1](demo-playable-ui-and-art-pass-v1.md)：当前执行线，覆盖画面 / HUD。
-- [Demo Playable Scene Rebuild V1](demo-playable-scene-rebuild-v1.md)：当前 UI / Art 细专题，覆盖真实低保真可玩场景重建。
+- [Demo Base First Screen Scene V2](demo-base-first-screen-scene-v2.md)：当前 UI / Art 细专题，独立基地首屏。
+- [Demo Playable Scene Rebuild V1](demo-playable-scene-rebuild-v1.md)：最近暂停，停止截图微调。
 - [Demo First Screen Assetized Scene V1](demo-first-screen-assetized-scene-v1.md)：UI / Art 细专题，覆盖首屏资产化。
 - [Demo Crystal Workface Assetized Scene V1](demo-crystal-workface-assetized-scene-v1.md)：UI / Art 细专题，晶体资产化。
-- [Demo Base Handoff Assetized Scene V1](demo-base-handoff-assetized-scene-v1.md)：最近暂停主线，覆盖基地交接小工作面和偏航风险。
-- [Demo Core Loop Playable V1](demo-core-loop-playable-v1.md)：当前执行线，覆盖采集、加工、设备启用、整备、污染承压、短战斗和核心写入。
-- [Demo Narrative Beats V1](demo-narrative-beats-v1.md)：当前执行线，覆盖开场事故、基地恢复、污染信号、核心稳定和结尾钩子。
+- [Demo Base Handoff Assetized Scene V1](demo-base-handoff-assetized-scene-v1.md)：最近暂停，基地交接小工作面。
+- [Demo Core Loop Playable V1](demo-core-loop-playable-v1.md)：当前执行线，覆盖核心循环接力。
+- [Demo Narrative Beats V1](demo-narrative-beats-v1.md)：当前执行线，覆盖 Demo 叙事节拍。
 - [Demo Industrial Base Visual And Scene V1](demo-industrial-base-visual-and-scene-v1.md)：最近活跃视觉专题，未完成项并入 UI / Art pass。
 - [Demo Playable Content Substance V1](demo-playable-content-substance-v1.md)：最近完成口径修正，确认自动检查不能替代可试玩画面。
 - [Demo Scene Device Pressure Staging V1](demo-scene-device-pressure-staging-v1.md)：暂缓，后续若启用须服务工业基地视觉。

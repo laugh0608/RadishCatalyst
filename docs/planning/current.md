@@ -7,7 +7,7 @@
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题为准：
 
 - 当前活跃专题：[Demo First Playable Slice Assembly V1](../features/demo-first-playable-slice-assembly-v1.md)，覆盖首版 Demo 20 到 30 分钟可玩纵切装配。
-- 当前执行线：[Demo Playable UI And Art Pass V1](../features/demo-playable-ui-and-art-pass-v1.md)（当前细专题：[Demo Playable Scene Rebuild V1](../features/demo-playable-scene-rebuild-v1.md)，最近暂停：[Demo Base Handoff Assetized Scene V1](../features/demo-base-handoff-assetized-scene-v1.md)）、[Demo Core Loop Playable V1](../features/demo-core-loop-playable-v1.md)、[Demo Narrative Beats V1](../features/demo-narrative-beats-v1.md)。
+- 当前执行线：[Demo Playable UI And Art Pass V1](../features/demo-playable-ui-and-art-pass-v1.md)（当前细专题：[Demo Base First Screen Scene V2](../features/demo-base-first-screen-scene-v2.md)，最近暂停：[Demo Playable Scene Rebuild V1](../features/demo-playable-scene-rebuild-v1.md)）、[Demo Core Loop Playable V1](../features/demo-core-loop-playable-v1.md)、[Demo Narrative Beats V1](../features/demo-narrative-beats-v1.md)。
 - 视觉承接：[Demo Industrial Base Visual And Scene V1](../features/demo-industrial-base-visual-and-scene-v1.md) 的未完成观感问题并入 UI / Art pass，不再作为单点截图微调主线。
 - 参考视觉源：[Visual And UI Direction](../product/visual-and-ui-direction.md)。
 
@@ -34,7 +34,7 @@
 首版 Demo 可玩纵切装配第一版
 ```
 
-当前推进口径：先让默认画面像一款可玩的 2D / 2.5D 工业科幻 ARPG，而不是 debug 流程图、色块地图或截图定位图层。最近实机复核显示基地交接仍在错误语境中打磨色块；当前主线切到真实低保真可玩场景重建。
+当前推进口径：先让默认画面像一款可玩的 2D / 2.5D 工业科幻 ARPG，而不是 debug 流程图、色块地图或截图定位图层。连续截图复核显示叠层方案已进入同类微调循环；当前主线切到独立基地首屏场景重做。
 
 ## 当前主线
 
@@ -48,7 +48,7 @@
 
 三条执行线：
 
-- UI 与低保真美术：停止把基地交接 #2 / #3 的图层可读性作为主线；下一步按真实低保真场景重建基地首屏与晶体边缘，让角色、地面、核心设备、反应器、储存和整备台先像游戏场景。
+- UI 与低保真美术：停止把基地交接 #2 / #3 或 `DemoPlayableSceneRebuildLayer` 截图微调作为主线；下一步用独立首屏场景介质重做基地第一屏，让角色、地面、核心设备、反应器、储存和整备台先像游戏场景。
 - 核心循环：让采集、加工、设备启用、整备、污染承压、短战斗和核心写入形成可操作的前后接力。
 - 叙事节拍：用开场事故、基地恢复、污染信号、核心稳定、场景证据和结尾悬念替代任务表式推进。
 

@@ -19,10 +19,7 @@
 当前执行线：
 
 - [Demo Playable UI And Art Pass V1](../features/demo-playable-ui-and-art-pass-v1.md)
-- [Demo Playable Scene Rebuild V1](../features/demo-playable-scene-rebuild-v1.md)
-- [Demo First Screen Assetized Scene V1](../features/demo-first-screen-assetized-scene-v1.md)
-- [Demo Crystal Workface Assetized Scene V1](../features/demo-crystal-workface-assetized-scene-v1.md)
-- [Demo Base Handoff Assetized Scene V1](../features/demo-base-handoff-assetized-scene-v1.md)
+- [Demo Base First Screen Scene V2](../features/demo-base-first-screen-scene-v2.md)
 - [Demo Core Loop Playable V1](../features/demo-core-loop-playable-v1.md)
 - [Demo Narrative Beats V1](../features/demo-narrative-beats-v1.md)
 
@@ -36,7 +33,7 @@
 - 2026-06-20 至 2026-06-23 已完成基地工业视觉、HUD 层级、第一条工业链、污染链、角色 / 敌人轮廓、晶体 / 污染 / 核心地貌材质和核心稳定站完成态多轮推进。
 - 2026-06-23 阶段复盘确认：继续围绕单点截图降噪会让项目回到读法修补；当前切到可玩纵切装配。
 - 2026-06-23 至 2026-06-29 已完成 UI / Art pass 前十七包、核心循环、叙事节拍、首屏资产化、晶体工作面资产化、基地交接专用工作面、污染短挑战、核心写入交接、Demo 结尾钩子和默认路径资产语言；晶体工作面不再追加第三个同类美术包。
-- 2026-06-30 项目复核确认：继续修色块、线框、透明层和截图定位点会偏离“更像游戏”的阶段目标；当前切到真实低保真可玩场景重建。
+- 2026-06-30 项目复核确认：继续修色块、线框、透明层和截图定位点会偏离“更像游戏”的阶段目标；`DemoPlayableSceneRebuildLayer` 部分通过后暂停截图微调，当前切到独立基地首屏场景 V2。
 
 ## 下一步读取顺序
 
@@ -52,15 +49,15 @@
 ## 当前开发重点
 
 - 不再把第 6 号、污染短挑战、首屏同层微调或基地交接 #2 / #3 图层修补作为主线；只有 `P0` / `P1` 才局部回修。
-- 当前首要问题是默认画面仍像色块流程图；下一步优先重建 1 到 2 屏真实低保真可玩场景。
+- 当前首要问题是默认基地首屏仍像线稿叠层；下一步优先用独立首屏场景介质替换旧规划层。
 - 优先推进角色、地面、设备体积、接地阴影、管线、晶体边缘、污染远景和短反馈。
 - HUD、读法、状态整理和检查只能支撑画面成型，不能作为当前主线开发包。
 - 每个开发包必须回答：玩家会看到什么、做什么、理解什么。
 
 ## 今日事项（2026-06-30）
 
-1. 先按 `Demo Playable Scene Rebuild V1` 收口文档，明确暂停继续打磨色块截图点。
-2. 开始重建基地首屏 + 晶体边缘的真实低保真场景：地面、角色、前哨核心、反应器、储存、整备台和环境边界必须成为主读法。
+1. 收口 `Demo Playable Scene Rebuild V1` 闸门，明确暂停继续打磨截图点。
+2. 开始 `Demo Base First Screen Scene V2`：地面、角色、前哨核心、反应器、储存和整备台必须成为主读法。
 3. 自动检查只兜底接线；是否推进下一包以实机截图“像游戏”作为主证据。
 
 ## 防跑偏规则
