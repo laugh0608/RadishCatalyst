@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 540">
+  <path d="M94 21 L305 2 L318 538 L82 516 L18 410 L64 328 L20 248 L74 164 Z" fill="#1e2827" opacity="0.88"/>
+  <path d="M136 34 L302 20 L302 206 L220 242 L110 190 L78 112 Z" fill="#4e5550" opacity="0.78"/>
+  <path d="M118 222 L278 196 L306 350 L226 418 L92 376 L54 292 Z" fill="#3d4643" opacity="0.82"/>
+  <path d="M150 380 L300 342 L304 520 L172 504 L102 446 Z" fill="#303a38" opacity="0.86"/>
+  <g fill="#6f7770" opacity="0.58">
+    <path d="M92 104 L146 52 L212 82 L152 138 Z"/>
+    <path d="M164 206 L246 224 L216 302 L132 278 Z"/>
+    <path d="M128 432 L212 388 L252 452 L176 492 Z"/>
+  </g>
+  <g stroke="#1a211f" stroke-width="6" stroke-linecap="round" opacity="0.42">
+    <path d="M132 43 L108 184"/>
+    <path d="M216 82 L246 214"/>
+    <path d="M94 286 L226 418"/>
+    <path d="M174 392 L214 506"/>
+  </g>
+  <g fill="#20a7c6" stroke="#93e8f5" stroke-width="4" opacity="0.82">
+    <path d="M78 296 L104 214 L134 302 Z"/>
+    <path d="M112 306 L154 226 L180 324 Z"/>
+    <path d="M160 326 L204 248 L232 346 Z"/>
+  </g>
+  <g fill="#99693c" opacity="0.44">
+    <path d="M42 150 L74 138 L104 154 L68 174 Z"/>
+    <path d="M58 420 L96 404 L130 426 L84 446 Z"/>
+    <path d="M226 116 L274 104 L302 130 L250 148 Z"/>
+  </g>
+</svg>

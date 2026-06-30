@@ -16,8 +16,184 @@ const ROLE_MATERIAL := "material_block"
 const ROLE_CONTEXT := "right_crystal_edge_context"
 const ROLE_SERVICE := "short_service_port"
 
+const ASSET_ROCKY_GROUND_ID := "base_first_screen_scene.asset.rocky_ground"
+const ASSET_FOUNDATION_PADS_ID := "base_first_screen_scene.asset.foundation_pads"
+const ASSET_PIPE_NETWORK_ID := "base_first_screen_scene.asset.pipe_network"
+const ASSET_CLIFF_EDGE_ID := "base_first_screen_scene.asset.cliff_edge"
+const ASSET_POLLUTION_SEEP_ID := "base_first_screen_scene.asset.pollution_seep"
+const ASSET_OUTPOST_CORE_ID := "base_first_screen_scene.asset.outpost_core_machine"
+const ASSET_BASIC_REACTOR_ID := "base_first_screen_scene.asset.basic_reactor_module"
+const ASSET_STORAGE_BANK_ID := "base_first_screen_scene.asset.storage_crate_bank"
+const ASSET_OUTFITTING_STATION_ID := "base_first_screen_scene.asset.outfitting_station_rack"
+const ASSET_CRYSTAL_EDGE_ID := "base_first_screen_scene.asset.crystal_edge"
+
+const ASSET_ROCKY_GROUND := preload("res://assets/sprites/demo_first_screen/base_first_screen_rocky_ground.svg")
+const ASSET_FOUNDATION_PADS := preload("res://assets/sprites/demo_first_screen/base_first_screen_foundation_pads.svg")
+const ASSET_PIPE_NETWORK := preload("res://assets/sprites/demo_first_screen/base_first_screen_pipe_network.svg")
+const ASSET_CLIFF_EDGE := preload("res://assets/sprites/demo_first_screen/base_first_screen_cliff_edge.svg")
+const ASSET_POLLUTION_SEEP := preload("res://assets/sprites/demo_first_screen/base_first_screen_pollution_seep.svg")
+const ASSET_OUTPOST_CORE := preload("res://assets/sprites/demo_first_screen/outpost_core_machine.svg")
+const ASSET_BASIC_REACTOR := preload("res://assets/sprites/demo_first_screen/basic_reactor_module.svg")
+const ASSET_STORAGE_BANK := preload("res://assets/sprites/demo_first_screen/storage_crate_bank.svg")
+const ASSET_OUTFITTING_STATION := preload("res://assets/sprites/demo_first_screen/outfitting_station_rack.svg")
+const ASSET_CRYSTAL_EDGE := preload("res://assets/sprites/demo_first_screen/crystal_ecology_cluster.svg")
+
+const SCENE_ASSET_MANIFEST := {
+	ASSET_ROCKY_GROUND_ID: {
+		"path": "res://assets/sprites/demo_first_screen/base_first_screen_rocky_ground.svg",
+		"role": "generated_rocky_ground_texture",
+		"render": "sprite"
+	},
+	ASSET_FOUNDATION_PADS_ID: {
+		"path": "res://assets/sprites/demo_first_screen/base_first_screen_foundation_pads.svg",
+		"role": "generated_device_foundation_pads",
+		"render": "sprite"
+	},
+	ASSET_PIPE_NETWORK_ID: {
+		"path": "res://assets/sprites/demo_first_screen/base_first_screen_pipe_network.svg",
+		"role": "generated_pipe_network",
+		"render": "sprite"
+	},
+	ASSET_CLIFF_EDGE_ID: {
+		"path": "res://assets/sprites/demo_first_screen/base_first_screen_cliff_edge.svg",
+		"role": "generated_cliff_and_crystal_edge",
+		"render": "sprite"
+	},
+	ASSET_POLLUTION_SEEP_ID: {
+		"path": "res://assets/sprites/demo_first_screen/base_first_screen_pollution_seep.svg",
+		"role": "generated_pollution_edge_seep",
+		"render": "sprite"
+	},
+	ASSET_OUTPOST_CORE_ID: {
+		"path": "res://assets/sprites/demo_first_screen/outpost_core_machine.svg",
+		"role": "outpost_core_visual_subject",
+		"render": "sprite"
+	},
+	ASSET_BASIC_REACTOR_ID: {
+		"path": "res://assets/sprites/demo_first_screen/basic_reactor_module.svg",
+		"role": "reactor_visual_subject",
+		"render": "sprite"
+	},
+	ASSET_STORAGE_BANK_ID: {
+		"path": "res://assets/sprites/demo_first_screen/storage_crate_bank.svg",
+		"role": "storage_visual_subject",
+		"render": "sprite"
+	},
+	ASSET_OUTFITTING_STATION_ID: {
+		"path": "res://assets/sprites/demo_first_screen/outfitting_station_rack.svg",
+		"role": "outfitting_visual_subject",
+		"render": "sprite"
+	},
+	ASSET_CRYSTAL_EDGE_ID: {
+		"path": "res://assets/sprites/demo_first_screen/crystal_ecology_cluster.svg",
+		"role": "right_crystal_edge_visual",
+		"render": "sprite"
+	},
+}
+
+const SCENE_ASSET_LAYOUT := [
+	{
+		"id": ASSET_ROCKY_GROUND_ID,
+		"texture": ASSET_ROCKY_GROUND,
+		"position": Vector2(-150.0, -16.0),
+		"scale": Vector2(0.72, 0.72),
+		"modulate": Color(1.0, 1.0, 1.0, 0.96),
+		"z": 0,
+	},
+	{
+		"id": ASSET_CLIFF_EDGE_ID,
+		"texture": ASSET_CLIFF_EDGE,
+		"position": Vector2(112.0, -16.0),
+		"scale": Vector2(0.78, 0.78),
+		"modulate": Color(0.90, 0.96, 0.98, 0.82),
+		"z": 4,
+	},
+	{
+		"id": ASSET_POLLUTION_SEEP_ID,
+		"texture": ASSET_POLLUTION_SEEP,
+		"position": Vector2(156.0, 62.0),
+		"scale": Vector2(0.78, 0.78),
+		"modulate": Color(0.96, 0.98, 0.62, 0.48),
+		"z": 5,
+	},
+	{
+		"id": ASSET_FOUNDATION_PADS_ID,
+		"texture": ASSET_FOUNDATION_PADS,
+		"position": Vector2(-150.0, -16.0),
+		"scale": Vector2(0.72, 0.72),
+		"modulate": Color(0.92, 1.0, 0.96, 0.72),
+		"z": 12,
+	},
+	{
+		"id": ASSET_PIPE_NETWORK_ID,
+		"texture": ASSET_PIPE_NETWORK,
+		"position": Vector2(-150.0, -16.0),
+		"scale": Vector2(0.72, 0.72),
+		"modulate": Color(0.92, 1.0, 0.96, 0.78),
+		"z": 16,
+	},
+	{
+		"id": ASSET_OUTPOST_CORE_ID,
+		"texture": ASSET_OUTPOST_CORE,
+		"position": Vector2(-300.0, -96.0),
+		"scale": Vector2(0.56, 0.56),
+		"modulate": Color(0.96, 1.0, 0.98, 0.82),
+		"z": 20,
+	},
+	{
+		"id": ASSET_BASIC_REACTOR_ID,
+		"texture": ASSET_BASIC_REACTOR,
+		"position": Vector2(-154.0, -86.0),
+		"scale": Vector2(0.58, 0.58),
+		"modulate": Color(1.0, 0.96, 0.90, 0.82),
+		"z": 19,
+	},
+	{
+		"id": ASSET_STORAGE_BANK_ID,
+		"texture": ASSET_STORAGE_BANK,
+		"position": Vector2(-252.0, 74.0),
+		"scale": Vector2(0.62, 0.60),
+		"modulate": Color(0.94, 1.0, 0.94, 0.78),
+		"z": 19,
+	},
+	{
+		"id": ASSET_OUTFITTING_STATION_ID,
+		"texture": ASSET_OUTFITTING_STATION,
+		"position": Vector2(-74.0, 30.0),
+		"scale": Vector2(0.54, 0.58),
+		"modulate": Color(0.94, 1.0, 0.96, 0.76),
+		"z": 19,
+	},
+	{
+		"id": ASSET_CRYSTAL_EDGE_ID,
+		"texture": ASSET_CRYSTAL_EDGE,
+		"position": Vector2(148.0, -38.0),
+		"scale": Vector2(0.58, 0.62),
+		"modulate": Color(0.82, 0.96, 1.0, 0.50),
+		"z": 11,
+	},
+]
+
+const GEOMETRY_SUPPORT_ALPHA_BY_ROLE := {
+	ROLE_FLOOR: 0.0,
+	ROLE_BOUNDARY: 0.0,
+	ROLE_SHADOW: 0.12,
+	ROLE_DEVICE: 0.0,
+	ROLE_MATERIAL: 0.0,
+	ROLE_CONTEXT: 0.0,
+	ROLE_SERVICE: 0.22,
+}
+
 const SCENE_SHAPES := {
 	"base_first_screen_scene.independent_scene_layer": true,
+	"base_first_screen_scene.authored_scene_assets": true,
+	"base_first_screen_scene.generated_scene_textures": true,
+	"base_first_screen_scene.rocky_ground_material": true,
+	"base_first_screen_scene.foundation_pad_asset": true,
+	"base_first_screen_scene.cliff_edge_asset": true,
+	"base_first_screen_scene.pipe_network_asset": true,
+	"base_first_screen_scene.pollution_seep_asset": true,
+	"base_first_screen_scene.pollution_edge_context": true,
 	"base_first_screen_scene.solid_floor_mass": true,
 	"base_first_screen_scene.platform_edge_boundaries": true,
 	"base_first_screen_scene.low_profile_boundaries": true,
@@ -215,6 +391,7 @@ const CRYSTAL_PARTS := [
 
 var scene_part_nodes: Dictionary = {}
 var scene_part_roles: Dictionary = {}
+var scene_asset_nodes: Dictionary = {}
 var scene_state_shape_ids: Array[String] = []
 var context_original_modulates: Dictionary = {}
 var context_rect_original_colors: Dictionary = {}
@@ -291,6 +468,30 @@ func get_scene_part_count() -> int:
 	return scene_part_nodes.size()
 
 
+func get_scene_asset_count() -> int:
+	return SCENE_ASSET_MANIFEST.size()
+
+
+func get_scene_sprite_node_count() -> int:
+	return scene_asset_nodes.size()
+
+
+func has_scene_asset(asset_id: String) -> bool:
+	return SCENE_ASSET_MANIFEST.has(asset_id)
+
+
+func get_scene_asset_path(asset_id: String) -> String:
+	if not SCENE_ASSET_MANIFEST.has(asset_id):
+		return ""
+	return String(SCENE_ASSET_MANIFEST[asset_id].get("path", ""))
+
+
+func get_scene_asset_role(asset_id: String) -> String:
+	if not SCENE_ASSET_MANIFEST.has(asset_id):
+		return ""
+	return String(SCENE_ASSET_MANIFEST[asset_id].get("role", ""))
+
+
 func has_scene_part(part_id: String) -> bool:
 	return scene_part_nodes.has(part_id)
 
@@ -333,6 +534,7 @@ func _draw() -> void:
 func _ensure_scene_nodes() -> void:
 	if not scene_part_nodes.is_empty():
 		return
+	_ensure_scene_asset_nodes()
 	for part in POLYGON_PARTS:
 		_create_polygon_part(part)
 	for part in RECT_PARTS:
@@ -343,18 +545,42 @@ func _ensure_scene_nodes() -> void:
 		_create_polygon_part(part)
 
 
+func _ensure_scene_asset_nodes() -> void:
+	if not scene_asset_nodes.is_empty():
+		return
+	for item in SCENE_ASSET_LAYOUT:
+		var asset_id := String(item["id"])
+		var sprite := Sprite2D.new()
+		sprite.name = asset_id.replace(".", "_")
+		sprite.texture = item["texture"] as Texture2D
+		sprite.position = item["position"] as Vector2
+		sprite.scale = item["scale"] as Vector2
+		sprite.modulate = item["modulate"] as Color
+		sprite.z_index = int(item["z"])
+		sprite.centered = true
+		sprite.set_meta("scene_asset_id", asset_id)
+		add_child(sprite)
+		scene_asset_nodes[asset_id] = sprite
+
+
 func _create_polygon_part(part: Dictionary) -> void:
 	var polygon := Polygon2D.new()
 	var part_id := String(part["id"])
+	var role := String(part["role"])
 	polygon.name = part_id.replace(".", "_")
 	polygon.polygon = _points_to_packed_array(part["points"] as Array)
 	polygon.color = part["color"] as Color
+	polygon.modulate = Color(1.0, 1.0, 1.0, _get_geometry_support_alpha(role))
 	polygon.z_index = int(part["z"])
 	polygon.set_meta("scene_part_id", part_id)
-	polygon.set_meta("scene_role", String(part["role"]))
+	polygon.set_meta("scene_role", role)
 	add_child(polygon)
 	scene_part_nodes[part_id] = polygon
-	scene_part_roles[part_id] = String(part["role"])
+	scene_part_roles[part_id] = role
+
+
+func _get_geometry_support_alpha(role: String) -> float:
+	return float(GEOMETRY_SUPPORT_ALPHA_BY_ROLE.get(role, 0.10))
 
 
 func _create_rect_part(part: Dictionary) -> void:
