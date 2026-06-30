@@ -171,6 +171,7 @@
 ## 首屏后续口径
 
 第十四到十七包已完成程序绘制首屏原型收束，但实机观感仍距参考图较远。后续首屏工作转入 [Demo First Screen Assetized Scene V1](demo-first-screen-assetized-scene-v1.md)，用低保真地貌、晶体、污染、设备、管线和角色资产重建首屏，不继续追加同类 `draw_line` / `draw_rect` 线框包。
+2026-06-30 复核后，首屏方向进一步收束到 [Demo Base First Screen Raster Art Pack V1](demo-base-first-screen-raster-art-pack-v1.md)：`DemoBaseFirstScreenSceneLayer` 保留为承载层，但首屏主读法必须来自 raster 贴图 / sprite，不能再依赖 SVG 色块、程序几何或整张参考图底图。
 
 本专题继续作为 UI / Art 总线，负责 HUD、低保真美术和后续基地段承接；首屏具体实现边界以资产化子专题为准。
 
