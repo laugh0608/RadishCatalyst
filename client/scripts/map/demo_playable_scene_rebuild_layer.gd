@@ -90,6 +90,7 @@ const SCENE_SHAPES := {
 	"playable_scene.compact_floor_not_fullscreen_overlay": true,
 	"playable_scene.no_fullscreen_backdrop": true,
 	"playable_scene.floor_islands_not_planning_grid": true,
+	"playable_scene.floor_edges_matte_not_ui_frames": true,
 	"playable_scene.far_core_station_excluded": true,
 }
 
@@ -99,7 +100,7 @@ const SCENE_SPRITE_LAYOUT := [
 		"texture": ASSET_TERRAIN_FLOOR,
 		"position": Vector2(-128.0, -6.0),
 		"scale": Vector2(1.08, 0.94),
-		"modulate": Color(1.0, 1.0, 1.0, 0.96),
+		"modulate": Color(0.92, 1.0, 0.94, 0.82),
 		"z": 1,
 	},
 	{

@@ -1,34 +1,42 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 320">
-  <g fill="#071211" opacity="0.64">
+  <g fill="#050c0b" opacity="0.70">
     <ellipse cx="151" cy="166" rx="98" ry="21"/>
     <ellipse cx="312" cy="157" rx="88" ry="18"/>
     <ellipse cx="181" cy="258" rx="78" ry="18"/>
     <ellipse cx="348" cy="246" rx="70" ry="17"/>
   </g>
-  <g fill="#1d352f" stroke="#74ad9b" stroke-width="4" stroke-linejoin="round">
+  <g fill="#152821" stroke="#31564c" stroke-width="2" stroke-linejoin="round" opacity="0.94">
     <path d="M72 74 L137 48 L217 58 L241 104 L213 154 L109 158 L60 119 Z"/>
     <path d="M266 77 L351 78 L409 113 L389 160 L287 164 L242 121 Z"/>
     <path d="M105 212 L208 209 L244 242 L212 282 L104 277 L69 241 Z"/>
     <path d="M307 197 L398 202 L431 237 L395 274 L303 268 L274 229 Z"/>
   </g>
-  <g fill="#2f5a50" opacity="0.82">
+  <g fill="#24473f" opacity="0.54">
     <path d="M93 88 L143 68 L198 76 L216 107 L197 137 L122 139 L82 112 Z"/>
     <path d="M286 94 L344 95 L382 118 L368 143 L299 145 L269 119 Z"/>
     <path d="M122 228 L195 228 L216 247 L198 263 L119 261 L97 243 Z"/>
     <path d="M322 215 L383 219 L404 238 L384 256 L320 252 L302 231 Z"/>
   </g>
-  <g fill="none" stroke="#b9d8ce" stroke-width="2" opacity="0.16">
+  <g fill="#0d1c18" opacity="0.42">
+    <path d="M64 124 L97 113 L118 126 L89 143 Z"/>
+    <path d="M204 55 L230 65 L218 81 L185 72 Z"/>
+    <path d="M260 126 L287 119 L304 132 L280 148 Z"/>
+    <path d="M397 149 L424 135 L445 151 L414 168 Z"/>
+    <path d="M92 248 L122 236 L142 252 L113 268 Z"/>
+    <path d="M393 214 L421 225 L407 242 L379 232 Z"/>
+  </g>
+  <g fill="none" stroke="#7fa99a" stroke-width="1.5" opacity="0.08">
     <path d="M118 114 L185 115"/>
     <path d="M301 121 L363 122"/>
     <path d="M119 246 L197 247"/>
     <path d="M320 235 L390 237"/>
   </g>
-  <g stroke="#d3ab55" stroke-width="4" stroke-linecap="round" opacity="0.32">
+  <g stroke="#9b7b3f" stroke-width="3" stroke-linecap="round" opacity="0.26">
     <path d="M218 146 L262 143"/>
     <path d="M202 198 L268 198"/>
     <path d="M253 234 L297 225"/>
   </g>
-  <g fill="#9fc8b8" opacity="0.30">
+  <g fill="#678d80" opacity="0.22">
     <circle cx="80" cy="118" r="5"/>
     <circle cx="232" cy="105" r="5"/>
     <circle cx="281" cy="144" r="5"/>
