@@ -4,7 +4,7 @@
 
 ## 用途
 
-本专题接续 [Demo Base First Screen Scene V2](demo-base-first-screen-scene-v2.md)，用于明天重做基地第一屏的贴图素材介质。
+本专题接续 [Demo Base First Screen Scene V2](demo-base-first-screen-scene-v2.md)，用于重做基地第一屏的贴图素材介质。
 
 结论很明确：问题不只是 `SVG` 文件格式，而是当前首屏缺少真正的美术贴图、材质细节、设备 sprite 和环境边缘资产。继续用 `Polygon2D`、半透明矢量块或线稿 SVG 拼装，会让画面继续像示意图。
 
@@ -56,6 +56,7 @@
 - 当前 raster 第一版与目标参考仍有明显观感差距，不能判定为最终通过。
 - 复测截图暴露出基地首屏层会在晶体区上下文中覆盖工作面；本轮先把首屏层限定为 `region.outpost_platform`，进入 `region.crystal_vein_field` 后关闭该层。
 - 后续若继续提升参考图差距，应按新的美术介质 / 资产质量包处理，不再用同类透明度、线框或覆盖范围微调替代。
+- 下一步直接转入 [Demo Base First Screen Asset Quality Pass V1](demo-base-first-screen-asset-quality-pass-v1.md)。
 
 ## 当前不做
 

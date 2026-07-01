@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-06-30
+更新时间：2026-07-01
 
 ## 用途
 
@@ -28,16 +28,17 @@
 - [Demo Definition V1](demo-definition-v1.md)：Demo 规格表。
 - [Demo First Playable Slice Assembly V1](demo-first-playable-slice-assembly-v1.md)：当前阶段专题。
 - [Demo Playable UI And Art Pass V1](demo-playable-ui-and-art-pass-v1.md)：当前执行线。
-- [Demo Base First Screen Raster Art Pack V1](demo-base-first-screen-raster-art-pack-v1.md)：当前 UI / Art 细专题。
-- [Demo Base First Screen Scene V2](demo-base-first-screen-scene-v2.md)：最近暂停，首屏承载层。
-- [Demo Playable Scene Rebuild V1](demo-playable-scene-rebuild-v1.md)：暂停，停止截图微调。
+- [Demo Base First Screen Asset Quality Pass V1](demo-base-first-screen-asset-quality-pass-v1.md)：当前 UI / Art。
+- [Demo Base First Screen Raster Art Pack V1](demo-base-first-screen-raster-art-pack-v1.md)：最近完成并纠偏。
+- [Demo Base First Screen Scene V2](demo-base-first-screen-scene-v2.md)：最近暂停。
+- [Demo Playable Scene Rebuild V1](demo-playable-scene-rebuild-v1.md)：暂停。
 - [Demo First Screen Assetized Scene V1](demo-first-screen-assetized-scene-v1.md)：首屏资产化。
 - [Demo Crystal Workface Assetized Scene V1](demo-crystal-workface-assetized-scene-v1.md)：晶体资产化。
 - [Demo Base Handoff Assetized Scene V1](demo-base-handoff-assetized-scene-v1.md)：最近暂停，基地交接小工作面。
 - [Demo Core Loop Playable V1](demo-core-loop-playable-v1.md)：当前执行线，覆盖核心循环接力。
 - [Demo Narrative Beats V1](demo-narrative-beats-v1.md)：当前执行线，覆盖 Demo 叙事节拍。
 - [Demo Industrial Base Visual And Scene V1](demo-industrial-base-visual-and-scene-v1.md)：最近视觉专题，余项并入 UI / Art pass。
-- [Demo Playable Content Substance V1](demo-playable-content-substance-v1.md)：最近完成口径修正，确认自动检查不能替代可试玩画面。
+- [Demo Playable Content Substance V1](demo-playable-content-substance-v1.md)：最近完成，修正试玩口径。
 - [Demo Scene Device Pressure Staging V1](demo-scene-device-pressure-staging-v1.md)：暂缓，后续若启用须服务工业基地视觉。
 - [Demo Field Task Differentiation V1](demo-field-task-differentiation-v1.md)：最近完成，覆盖任务差异。
 - [Demo Initial Art Identity V1](demo-initial-art-identity-v1.md)：最近完成，覆盖现场身份。
@@ -51,8 +52,8 @@
 - [Demo Map Surface Decomposition V1](demo-map-surface-decomposition-v1.md)：最近完成，拆分地图区域 / gate 承载面。
 - [Demo Interaction Prompt Surface Decomposition V1](demo-interaction-prompt-surface-decomposition-v1.md)：最近完成，拆分加工设备交互提示承载面。
 - [Demo Route Return And Base Reentry Readability V1](demo-route-return-and-base-reentry-readability-v1.md)：最近完成，覆盖外勤回基地处理入口。
-- [Demo Functional Transition Spatial Playability V1](demo-functional-transition-spatial-playability-v1.md)：最近完成，覆盖功能 / 过渡代表路径空间。
-- [Demo Functional Scene Gameplay Density V1](demo-functional-scene-gameplay-density-v1.md)：最近完成，覆盖代表小循环操作密度。
+- [Demo Functional Transition Spatial Playability V1](demo-functional-transition-spatial-playability-v1.md)：最近完成，覆盖代表路径空间。
+- [Demo Functional Scene Gameplay Density V1](demo-functional-scene-gameplay-density-v1.md)：最近完成，覆盖小循环密度。
 - [Demo Supply Pressure Pacing V1](demo-supply-pressure-pacing-v1.md)：最近完成，覆盖补给制作、消耗和补回价值。
 - [Demo Quick Slot Supply Readability V1](demo-quick-slot-supply-readability-v1.md)：最近完成，覆盖快捷补给 HUD 读法。
 - [Demo Prototype Visual Pass V1](demo-prototype-visual-pass-v1.md)：最近完成，覆盖原型视觉优先级和场地尺度。
@@ -72,12 +73,12 @@
 - [Demo Resource Chain State V1](demo-resource-chain-state-v1.md)：最近完成，覆盖资源链状态与序列化检查。
 - [Demo Non-Core Scene Identity V1](demo-non-core-scene-identity-v1.md)：最近完成，覆盖功能 / 过渡区场景身份。
 - [Demo Functional Transition Route Support V1](demo-functional-transition-route-support-v1.md)：最近完成，覆盖功能 / 过渡区路线支撑。
-- [Demo Combat Progression V1](demo-combat-progression-v1.md)：完成阶段级专题，已完成角色成长与战斗第一版。
-- [Demo Tool Strike Calibration V1](demo-tool-strike-calibration-v1.md)：最近完成细专题，已把基础多用工具、基础零件和出发整备台收束成一次可读战斗输出整备。
-- [Demo Protective Response V1](demo-protective-response-v1.md)：最近完成细专题，已把基础防护服、基础过滤模块和前哨补给收束成一次可读防护响应。
-- [Demo Scene Art Foundation V1](demo-scene-art-foundation-v1.md)：最近完成细专题，已建立核心区场景与初步美术识别第一包。
-- [Demo Mainline Completion V1](demo-mainline-completion-v1.md)：最近完成细专题，已收束核心稳定站写入后的 Demo 主线完成读法。
-- [Demo Industrial Tech Spine V1](demo-industrial-tech-spine-v1.md)：最近完成细专题，已收束基础反应器、污染过滤器和出发整备台之间的轻量工艺主干读法。
-- [Demo Character Kit V1](demo-character-kit-v1.md)：最近完成细专题，已验证 `C` 战术扫描主动工具动作。
-- [Ruin Outer Ring Module Pressure V1](ruin-outer-ring-module-pressure-v1.md)：最近完成细专题，已验证模块状态在遗迹外圈形成承压差异。
-- [Pollution Edge Maintenance Pressure V1](pollution-edge-maintenance-pressure-v1.md)：最近完成细专题，已验证后勤维护在污染边界形成第二个承压差异。
+- [Demo Combat Progression V1](demo-combat-progression-v1.md)：完成。
+- [Demo Tool Strike Calibration V1](demo-tool-strike-calibration-v1.md)：完成。
+- [Demo Protective Response V1](demo-protective-response-v1.md)：完成。
+- [Demo Scene Art Foundation V1](demo-scene-art-foundation-v1.md)：完成。
+- [Demo Mainline Completion V1](demo-mainline-completion-v1.md)：完成。
+- [Demo Industrial Tech Spine V1](demo-industrial-tech-spine-v1.md)：完成。
+- [Demo Character Kit V1](demo-character-kit-v1.md)：完成。
+- [Ruin Outer Ring Module Pressure V1](ruin-outer-ring-module-pressure-v1.md)：完成。
+- [Pollution Edge Maintenance Pressure V1](pollution-edge-maintenance-pressure-v1.md)：完成。

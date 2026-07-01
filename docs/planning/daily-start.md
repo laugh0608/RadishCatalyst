@@ -1,6 +1,6 @@
 # Daily Start
 
-更新时间：2026-06-30
+更新时间：2026-07-01
 
 ## 用途
 
@@ -19,6 +19,7 @@
 当前执行线：
 
 - [Demo Playable UI And Art Pass V1](../features/demo-playable-ui-and-art-pass-v1.md)
+- [Demo Base First Screen Asset Quality Pass V1](../features/demo-base-first-screen-asset-quality-pass-v1.md)
 - [Demo Base First Screen Raster Art Pack V1](../features/demo-base-first-screen-raster-art-pack-v1.md)
 - [Demo Core Loop Playable V1](../features/demo-core-loop-playable-v1.md)
 - [Demo Narrative Beats V1](../features/demo-narrative-beats-v1.md)
@@ -33,7 +34,7 @@
 - 2026-06-20 至 2026-06-23 已完成基地工业视觉、HUD 层级、第一条工业链、污染链、角色 / 敌人轮廓、晶体 / 污染 / 核心地貌材质和核心稳定站完成态多轮推进。
 - 2026-06-23 阶段复盘确认：继续围绕单点截图降噪会让项目回到读法修补；当前切到可玩纵切装配。
 - 2026-06-23 至 2026-06-29 已完成 UI / Art pass 前十七包、核心循环、叙事节拍、首屏资产化、晶体工作面资产化、基地交接专用工作面、污染短挑战、核心写入交接、Demo 结尾钩子和默认路径资产语言；晶体工作面不再追加第三个同类美术包。
-- 2026-06-30 项目复核确认：继续修色块、线框、透明层和截图定位点会偏离“更像游戏”的阶段目标；独立首屏场景 V2 证明承载层成立，但 SVG / 程序几何仍缺少贴图质感，明天切到基地首屏 raster art pack。
+- 2026-07-01 完成基地首屏 raster 素材包第一版并修正晶体区覆盖问题；截图对比确认资产质量仍明显不足，明天转入基地首屏资产质量包。
 
 ## 下一步读取顺序
 
@@ -49,16 +50,16 @@
 ## 当前开发重点
 
 - 不再把第 6 号、污染短挑战、首屏同层微调或基地交接 #2 / #3 图层修补作为主线；只有 `P0` / `P1` 才局部回修。
-- 当前首要问题是默认基地首屏缺少真正贴图和设备 sprite；下一步优先生成并接入 raster 贴图 / sprite 素材。
-- 优先推进角色、地面贴图、设备体积、接地阴影、管线、晶体边缘、污染远景和短反馈。
+- 当前首要问题是基地首屏 raster 第一版仍像平面贴片，缺少统一视角、设备体积、接地阴影和材质层次。
+- 优先推进岩地材质、金属平台、核心 / 反应器 / 储存 / 整备台体积、管线接地、晶体 / 污染边缘降权和短反馈。
 - HUD、读法、状态整理和检查只能支撑画面成型，不能作为当前主线开发包。
 - 每个开发包必须回答：玩家会看到什么、做什么、理解什么。
 
-## 明日事项（2026-07-01）
+## 明日事项（2026-07-02）
 
-1. 开始 `Demo Base First Screen Raster Art Pack V1`：生成浅色岩地、设备底座、核心、反应器、储存、整备台、管线、晶体岩壁和污染渗漏 raster 素材。
-2. 接入素材时复用 `DemoBaseFirstScreenSceneLayer`、现有交互对象和任务状态，不新增区域、任务、资源、配方、敌人或存档字段。
-3. SVG / 程序几何只保留为 HUD 图标、状态高亮、阴影、端口和检查辅助；默认首屏主读法必须来自贴图 / sprite。
+1. 开始 `Demo Base First Screen Asset Quality Pass V1`：重做首屏岩地、平台、设备体积、管线和接地阴影，让画面更接近 2D / 2.5D 工业科幻 ARPG 场景。
+2. 继续复用 `DemoBaseFirstScreenSceneLayer`、现有交互对象和任务状态；保持首屏层只在前哨区域启用，不覆盖晶体工作面。
+3. 收口时用默认新档首屏截图判断观感；若仍明显像贴片或示意图，下一步换更高质量资产方案，不继续做同类透明度或线框调参。
 
 ## 防跑偏规则
 

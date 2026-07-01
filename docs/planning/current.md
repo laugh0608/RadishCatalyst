@@ -1,13 +1,13 @@
 # Current Plan
 
-更新时间：2026-06-30
+更新时间：2026-07-01
 
 ## 入口约束
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题为准：
 
 - 当前活跃专题：[Demo First Playable Slice Assembly V1](../features/demo-first-playable-slice-assembly-v1.md)，覆盖首版 Demo 20 到 30 分钟可玩纵切装配。
-- 当前执行线：[Demo Playable UI And Art Pass V1](../features/demo-playable-ui-and-art-pass-v1.md)（当前细专题：[Demo Base First Screen Raster Art Pack V1](../features/demo-base-first-screen-raster-art-pack-v1.md)，最近暂停：[Demo Base First Screen Scene V2](../features/demo-base-first-screen-scene-v2.md)）、[Demo Core Loop Playable V1](../features/demo-core-loop-playable-v1.md)、[Demo Narrative Beats V1](../features/demo-narrative-beats-v1.md)。
+- 当前执行线：[Demo Playable UI And Art Pass V1](../features/demo-playable-ui-and-art-pass-v1.md)（当前细专题：[Demo Base First Screen Asset Quality Pass V1](../features/demo-base-first-screen-asset-quality-pass-v1.md)，最近完成并纠偏：[Demo Base First Screen Raster Art Pack V1](../features/demo-base-first-screen-raster-art-pack-v1.md)）、[Demo Core Loop Playable V1](../features/demo-core-loop-playable-v1.md)、[Demo Narrative Beats V1](../features/demo-narrative-beats-v1.md)。
 - 视觉承接：[Demo Industrial Base Visual And Scene V1](../features/demo-industrial-base-visual-and-scene-v1.md) 的未完成观感问题并入 UI / Art pass，不再作为单点截图微调主线。
 - 参考视觉源：[Visual And UI Direction](../product/visual-and-ui-direction.md)。
 
@@ -34,7 +34,7 @@
 首版 Demo 可玩纵切装配第一版
 ```
 
-当前推进口径：先让默认画面像一款可玩的 2D / 2.5D 工业科幻 ARPG，而不是 debug 流程图、色块地图或截图定位图层。连续截图复核显示矢量 / 程序几何方案仍缺少贴图质感；当前主线切到基地首屏 raster 贴图 / sprite 素材包。
+当前推进口径：先让默认画面像一款可玩的 2D / 2.5D 工业科幻 ARPG，而不是 debug 流程图、色块地图或截图定位图层。基地首屏已切到 raster PNG 分件，但截图对比显示资产质量、统一视角和设备体积仍明显不足；当前主线推进首屏资产质量包。
 
 ## 当前主线
 
@@ -48,7 +48,7 @@
 
 三条执行线：
 
-- UI 与低保真美术：停止把基地交接 #2 / #3、`DemoPlayableSceneRebuildLayer` 或 V2 矢量拆分截图微调作为主线；下一步生成并接入基地首屏 raster 贴图 / sprite，让角色、地面、核心设备、反应器、储存和整备台先像游戏场景。
+- UI 与低保真美术：停止把基地交接 #2 / #3、`DemoPlayableSceneRebuildLayer` 或 V2 矢量拆分截图微调作为主线；下一步提升基地首屏 raster 资产质量，让地表、平台、核心设备、反应器、储存、整备台和管线像同一处可操作工业现场。
 - 核心循环：让采集、加工、设备启用、整备、污染承压、短战斗和核心写入形成可操作的前后接力。
 - 叙事节拍：用开场事故、基地恢复、污染信号、核心稳定、场景证据和结尾悬念替代任务表式推进。
 
