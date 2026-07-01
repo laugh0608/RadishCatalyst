@@ -798,7 +798,7 @@ func _draw_soft_shadow(center: Vector2, size: Vector2, strength: float) -> void:
 	draw_rect(shadow_rect, Color(0.0, 0.0, 0.0, strength), true)
 
 
-func _draw_polyline_closed(points: Array[Vector2], color: Color, width: float) -> void:
+func _draw_polyline_closed(points: Array, color: Color, width: float) -> void:
 	if points.size() < 2:
 		return
 

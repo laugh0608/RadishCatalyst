@@ -1,6 +1,6 @@
 # Demo Base First Screen Raster Art Pack V1
 
-更新时间：2026-06-30
+更新时间：2026-07-01
 
 ## 用途
 
@@ -42,6 +42,15 @@
    - 程序几何只保留为阴影、状态灯、端口高亮和检查辅助。
    - SVG 可保留给 HUD 图标、状态描边或开发辅助，不再承担主画面。
 
+## 实现记录
+
+2026-07-01 已完成首屏 raster 素材包第一版：
+
+- 新增 `tools/generate_demo_first_screen_raster_assets.py`，用标准库生成可复现的低保真 PNG 分件和 Godot import 元数据。
+- `client/assets/sprites/demo_first_screen/` 新增岩地、设备底座、管线、晶体岩壁、污染渗漏、前哨核心、反应器、储存、整备台和晶体边缘 10 个首屏专用 PNG。
+- `DemoBaseFirstScreenSceneLayer` 的主 sprite manifest 已切到 PNG；旧 `Polygon2D` / 程序几何只承担阴影、端口、状态灯和检查辅助。
+- 本包继续复用既有任务、交互对象、碰撞、资源、配方、敌人和存档字段。
+
 ## 当前不做
 
 - 不把参考效果图整图导入工程作为背景。
@@ -67,6 +76,14 @@
 - 核心、反应器、储存和整备台有设备体积、材质和阴影差异。
 - 右侧晶体 / 污染边缘读成环境上下文，而不是 UI 装饰层。
 - 玩家仍能移动，并完成一次现有交互。
+
+## 验证记录
+
+2026-07-01：
+
+- `./scripts/check-client.sh`
+- `./scripts/check-client.sh --with-godot`
+- Godot 图形截图复核：默认首屏主读法已由 PNG 岩地、设备、管线和阴影承担；右侧晶体 / 污染保留为边缘上下文。
 
 ## 验证计划
 

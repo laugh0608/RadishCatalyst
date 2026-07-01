@@ -27,66 +27,66 @@ const ASSET_STORAGE_BANK_ID := "base_first_screen_scene.asset.storage_crate_bank
 const ASSET_OUTFITTING_STATION_ID := "base_first_screen_scene.asset.outfitting_station_rack"
 const ASSET_CRYSTAL_EDGE_ID := "base_first_screen_scene.asset.crystal_edge"
 
-const ASSET_ROCKY_GROUND := preload("res://assets/sprites/demo_first_screen/base_first_screen_rocky_ground.svg")
-const ASSET_FOUNDATION_PADS := preload("res://assets/sprites/demo_first_screen/base_first_screen_foundation_pads.svg")
-const ASSET_PIPE_NETWORK := preload("res://assets/sprites/demo_first_screen/base_first_screen_pipe_network.svg")
-const ASSET_CLIFF_EDGE := preload("res://assets/sprites/demo_first_screen/base_first_screen_cliff_edge.svg")
-const ASSET_POLLUTION_SEEP := preload("res://assets/sprites/demo_first_screen/base_first_screen_pollution_seep.svg")
-const ASSET_OUTPOST_CORE := preload("res://assets/sprites/demo_first_screen/outpost_core_machine.svg")
-const ASSET_BASIC_REACTOR := preload("res://assets/sprites/demo_first_screen/basic_reactor_module.svg")
-const ASSET_STORAGE_BANK := preload("res://assets/sprites/demo_first_screen/storage_crate_bank.svg")
-const ASSET_OUTFITTING_STATION := preload("res://assets/sprites/demo_first_screen/outfitting_station_rack.svg")
-const ASSET_CRYSTAL_EDGE := preload("res://assets/sprites/demo_first_screen/crystal_ecology_cluster.svg")
+const ASSET_ROCKY_GROUND := preload("res://assets/sprites/demo_first_screen/base_first_screen_rocky_ground.png")
+const ASSET_FOUNDATION_PADS := preload("res://assets/sprites/demo_first_screen/base_first_screen_foundation_pads.png")
+const ASSET_PIPE_NETWORK := preload("res://assets/sprites/demo_first_screen/base_first_screen_pipe_network.png")
+const ASSET_CLIFF_EDGE := preload("res://assets/sprites/demo_first_screen/base_first_screen_cliff_edge.png")
+const ASSET_POLLUTION_SEEP := preload("res://assets/sprites/demo_first_screen/base_first_screen_pollution_seep.png")
+const ASSET_OUTPOST_CORE := preload("res://assets/sprites/demo_first_screen/base_first_screen_outpost_core_machine.png")
+const ASSET_BASIC_REACTOR := preload("res://assets/sprites/demo_first_screen/base_first_screen_basic_reactor_module.png")
+const ASSET_STORAGE_BANK := preload("res://assets/sprites/demo_first_screen/base_first_screen_storage_crate_bank.png")
+const ASSET_OUTFITTING_STATION := preload("res://assets/sprites/demo_first_screen/base_first_screen_outfitting_station_rack.png")
+const ASSET_CRYSTAL_EDGE := preload("res://assets/sprites/demo_first_screen/base_first_screen_crystal_edge.png")
 
 const SCENE_ASSET_MANIFEST := {
 	ASSET_ROCKY_GROUND_ID: {
-		"path": "res://assets/sprites/demo_first_screen/base_first_screen_rocky_ground.svg",
-		"role": "generated_rocky_ground_texture",
+		"path": "res://assets/sprites/demo_first_screen/base_first_screen_rocky_ground.png",
+		"role": "raster_rocky_ground_texture",
 		"render": "sprite"
 	},
 	ASSET_FOUNDATION_PADS_ID: {
-		"path": "res://assets/sprites/demo_first_screen/base_first_screen_foundation_pads.svg",
-		"role": "generated_device_foundation_pads",
+		"path": "res://assets/sprites/demo_first_screen/base_first_screen_foundation_pads.png",
+		"role": "raster_device_foundation_pads",
 		"render": "sprite"
 	},
 	ASSET_PIPE_NETWORK_ID: {
-		"path": "res://assets/sprites/demo_first_screen/base_first_screen_pipe_network.svg",
-		"role": "generated_pipe_network",
+		"path": "res://assets/sprites/demo_first_screen/base_first_screen_pipe_network.png",
+		"role": "raster_pipe_network",
 		"render": "sprite"
 	},
 	ASSET_CLIFF_EDGE_ID: {
-		"path": "res://assets/sprites/demo_first_screen/base_first_screen_cliff_edge.svg",
-		"role": "generated_cliff_and_crystal_edge",
+		"path": "res://assets/sprites/demo_first_screen/base_first_screen_cliff_edge.png",
+		"role": "raster_cliff_and_crystal_edge",
 		"render": "sprite"
 	},
 	ASSET_POLLUTION_SEEP_ID: {
-		"path": "res://assets/sprites/demo_first_screen/base_first_screen_pollution_seep.svg",
-		"role": "generated_pollution_edge_seep",
+		"path": "res://assets/sprites/demo_first_screen/base_first_screen_pollution_seep.png",
+		"role": "raster_pollution_edge_seep",
 		"render": "sprite"
 	},
 	ASSET_OUTPOST_CORE_ID: {
-		"path": "res://assets/sprites/demo_first_screen/outpost_core_machine.svg",
-		"role": "outpost_core_visual_subject",
+		"path": "res://assets/sprites/demo_first_screen/base_first_screen_outpost_core_machine.png",
+		"role": "raster_outpost_core_visual_subject",
 		"render": "sprite"
 	},
 	ASSET_BASIC_REACTOR_ID: {
-		"path": "res://assets/sprites/demo_first_screen/basic_reactor_module.svg",
-		"role": "reactor_visual_subject",
+		"path": "res://assets/sprites/demo_first_screen/base_first_screen_basic_reactor_module.png",
+		"role": "raster_reactor_visual_subject",
 		"render": "sprite"
 	},
 	ASSET_STORAGE_BANK_ID: {
-		"path": "res://assets/sprites/demo_first_screen/storage_crate_bank.svg",
-		"role": "storage_visual_subject",
+		"path": "res://assets/sprites/demo_first_screen/base_first_screen_storage_crate_bank.png",
+		"role": "raster_storage_visual_subject",
 		"render": "sprite"
 	},
 	ASSET_OUTFITTING_STATION_ID: {
-		"path": "res://assets/sprites/demo_first_screen/outfitting_station_rack.svg",
-		"role": "outfitting_visual_subject",
+		"path": "res://assets/sprites/demo_first_screen/base_first_screen_outfitting_station_rack.png",
+		"role": "raster_outfitting_visual_subject",
 		"render": "sprite"
 	},
 	ASSET_CRYSTAL_EDGE_ID: {
-		"path": "res://assets/sprites/demo_first_screen/crystal_ecology_cluster.svg",
-		"role": "right_crystal_edge_visual",
+		"path": "res://assets/sprites/demo_first_screen/base_first_screen_crystal_edge.png",
+		"role": "raster_right_crystal_edge_visual",
 		"render": "sprite"
 	},
 }
@@ -188,6 +188,7 @@ const SCENE_SHAPES := {
 	"base_first_screen_scene.independent_scene_layer": true,
 	"base_first_screen_scene.authored_scene_assets": true,
 	"base_first_screen_scene.generated_scene_textures": true,
+	"base_first_screen_scene.raster_sprite_pack": true,
 	"base_first_screen_scene.rocky_ground_material": true,
 	"base_first_screen_scene.foundation_pad_asset": true,
 	"base_first_screen_scene.cliff_edge_asset": true,
