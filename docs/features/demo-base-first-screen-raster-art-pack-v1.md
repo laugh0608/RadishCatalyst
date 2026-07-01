@@ -51,6 +51,12 @@
 - `DemoBaseFirstScreenSceneLayer` 的主 sprite manifest 已切到 PNG；旧 `Polygon2D` / 程序几何只承担阴影、端口、状态灯和检查辅助。
 - 本包继续复用既有任务、交互对象、碰撞、资源、配方、敌人和存档字段。
 
+2026-07-01 截图复核后追加纠偏：
+
+- 当前 raster 第一版与目标参考仍有明显观感差距，不能判定为最终通过。
+- 复测截图暴露出基地首屏层会在晶体区上下文中覆盖工作面；本轮先把首屏层限定为 `region.outpost_platform`，进入 `region.crystal_vein_field` 后关闭该层。
+- 后续若继续提升参考图差距，应按新的美术介质 / 资产质量包处理，不再用同类透明度、线框或覆盖范围微调替代。
+
 ## 当前不做
 
 - 不把参考效果图整图导入工程作为背景。
@@ -83,7 +89,8 @@
 
 - `./scripts/check-client.sh`
 - `./scripts/check-client.sh --with-godot`
-- Godot 图形截图复核：默认首屏主读法已由 PNG 岩地、设备、管线和阴影承担；右侧晶体 / 污染保留为边缘上下文。
+- Godot 图形截图复核：默认首屏主读法已由 PNG 岩地、设备、管线和阴影承担，但与目标参考仍有明显质量差距；本轮不把它判定为最终观感通过。
+- 晶体区覆盖纠偏后复测：`./scripts/check-client.sh`、`./scripts/check-client.sh --with-godot`、`./scripts/check-docs.sh`、`./scripts/check-text-files.sh`、`git diff --check`。
 
 ## 验证计划
 

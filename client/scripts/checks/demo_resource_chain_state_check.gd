@@ -388,6 +388,8 @@ func _check_base_first_screen_scene_layer() -> void:
 	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.authored_scene_assets"), true, "base first screen scene uses authored assets instead of a full concept image")
 	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.generated_scene_textures"), true, "base first screen scene uses generated scene textures instead of a screenshot")
 	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.raster_sprite_pack"), true, "base first screen scene uses raster sprites as the main visual medium")
+	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.outpost_region_scoped"), true, "base first screen scene is scoped to the outpost region")
+	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.crystal_region_suppressed"), true, "base first screen scene suppresses itself in crystal region context")
 	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.rocky_ground_material"), true, "base first screen scene reads as rocky alien ground")
 	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.foundation_pad_asset"), true, "base first screen scene gives devices generated foundation pads")
 	_expect_equal(scene_layer.has_scene_shape("base_first_screen_scene.cliff_edge_asset"), true, "base first screen scene uses a generated cliff edge asset")
@@ -450,6 +452,13 @@ func _check_base_first_screen_scene_layer() -> void:
 	scene_layer.refresh_scene_state(world, character)
 	_expect_equal(scene_layer.has_scene_state_shape("base_first_screen_scene.state.outpost.restored"), true, "base first screen scene follows restored outpost state")
 	_expect_equal(scene_layer.has_scene_state_shape("base_first_screen_scene.state.devices.online"), true, "base first screen scene follows online base device state")
+
+	world.current_region_id = "region.crystal_vein_field"
+	character.current_region_id = "region.crystal_vein_field"
+	character.position = Vector2(86.0, -118.0)
+	scene_layer.refresh_scene_state(world, character)
+	_expect_equal(scene_layer.is_scene_context_active(), false, "base first screen scene disables itself after entering the crystal region")
+	_expect_equal(scene_layer.visible, false, "base first screen scene does not cover the crystal workface")
 
 	scene_layer.refresh_focus_visibility(Vector2(3744.0, 112.0))
 	_expect_equal(scene_layer.visible, false, "base first screen scene does not cover the far core station")

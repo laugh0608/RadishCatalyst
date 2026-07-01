@@ -2,9 +2,10 @@ extends Node2D
 class_name DemoBaseFirstScreenSceneLayer
 
 const RESTORE_OUTPOST_QUEST_ID := "quest.restore_outpost"
+const OUTPOST_REGION_ID := "region.outpost_platform"
 
 const FOCUS_MIN_X := -390.0
-const FOCUS_MAX_X := 180.0
+const FOCUS_MAX_X := -24.0
 const FOCUS_MIN_Y := -248.0
 const FOCUS_MAX_Y := 208.0
 
@@ -189,6 +190,8 @@ const SCENE_SHAPES := {
 	"base_first_screen_scene.authored_scene_assets": true,
 	"base_first_screen_scene.generated_scene_textures": true,
 	"base_first_screen_scene.raster_sprite_pack": true,
+	"base_first_screen_scene.outpost_region_scoped": true,
+	"base_first_screen_scene.crystal_region_suppressed": true,
 	"base_first_screen_scene.rocky_ground_material": true,
 	"base_first_screen_scene.foundation_pad_asset": true,
 	"base_first_screen_scene.cliff_edge_asset": true,
@@ -401,6 +404,7 @@ var focus_original_label_visibility: Dictionary = {}
 var muted_context_layer_count := 0
 var muted_context_rect_count := 0
 var scene_active := false
+var scene_context_active := true
 var outpost_restored := false
 var devices_online := false
 
@@ -419,6 +423,7 @@ func _process(_delta: float) -> void:
 func refresh_scene_state(world_state: WorldState, character_state: CharacterState) -> void:
 	_ensure_scene_nodes()
 	scene_state_shape_ids.clear()
+	scene_context_active = _is_outpost_scene_context(world_state, character_state)
 	outpost_restored = world_state != null and world_state.quest_state.has_completed_quest(RESTORE_OUTPOST_QUEST_ID)
 	devices_online = _has_base_device_context(world_state)
 	_register_state_shape("base_first_screen_scene.state.outpost.%s" % ("restored" if outpost_restored else "damaged"))
@@ -429,7 +434,7 @@ func refresh_scene_state(world_state: WorldState, character_state: CharacterStat
 
 
 func refresh_focus_visibility(player_position: Vector2) -> void:
-	scene_active = is_scene_active_at(player_position)
+	scene_active = scene_context_active and is_scene_active_at(player_position)
 	visible = scene_active
 	_set_context_layers_muted(scene_active)
 	_set_context_rects_muted(scene_active)
@@ -447,6 +452,10 @@ func is_scene_active_at(player_position: Vector2) -> bool:
 
 func is_scene_active() -> bool:
 	return scene_active
+
+
+func is_scene_context_active() -> bool:
+	return scene_context_active
 
 
 func has_scene_shape(shape_id: String) -> bool:
@@ -770,6 +779,14 @@ func _has_base_device_context(world_state: WorldState) -> bool:
 		or world_state.has_base_structure_definition("building.basic_storage")
 		or world_state.has_base_structure_definition("building.field_outfitting_station")
 	)
+
+
+func _is_outpost_scene_context(world_state: WorldState, character_state: CharacterState) -> bool:
+	if world_state != null and world_state.current_region_id != OUTPOST_REGION_ID:
+		return false
+	if character_state != null and character_state.current_region_id != OUTPOST_REGION_ID:
+		return false
+	return true
 
 
 func _get_position_for_refresh(character_state: CharacterState) -> Vector2:
