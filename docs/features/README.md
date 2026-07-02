@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-07-01
+更新时间：2026-07-02
 
 ## 用途
 
@@ -25,19 +25,20 @@
 
 ## 当前与最近专题
 
+- [Demo Presentation Rebuild V1](demo-presentation-rebuild-v1.md)：当前活跃执行专题，表现层重建与真实资产管线。
 - [Demo Definition V1](demo-definition-v1.md)：Demo 规格表。
-- [Demo First Playable Slice Assembly V1](demo-first-playable-slice-assembly-v1.md)：当前阶段专题。
-- [Demo Playable UI And Art Pass V1](demo-playable-ui-and-art-pass-v1.md)：当前执行线。
-- [Demo Base First Screen Asset Quality Pass V1](demo-base-first-screen-asset-quality-pass-v1.md)：当前 UI / Art。
-- [Demo Base First Screen Raster Art Pack V1](demo-base-first-screen-raster-art-pack-v1.md)：最近完成并纠偏。
-- [Demo Base First Screen Scene V2](demo-base-first-screen-scene-v2.md)：最近暂停。
-- [Demo Playable Scene Rebuild V1](demo-playable-scene-rebuild-v1.md)：暂停。
-- [Demo First Screen Assetized Scene V1](demo-first-screen-assetized-scene-v1.md)：首屏资产化。
-- [Demo Crystal Workface Assetized Scene V1](demo-crystal-workface-assetized-scene-v1.md)：晶体资产化。
-- [Demo Base Handoff Assetized Scene V1](demo-base-handoff-assetized-scene-v1.md)：最近暂停，基地交接小工作面。
-- [Demo Core Loop Playable V1](demo-core-loop-playable-v1.md)：当前执行线，覆盖核心循环接力。
-- [Demo Narrative Beats V1](demo-narrative-beats-v1.md)：当前执行线，覆盖 Demo 叙事节拍。
-- [Demo Industrial Base Visual And Scene V1](demo-industrial-base-visual-and-scene-v1.md)：最近视觉专题，余项并入 UI / Art pass。
+- [Demo First Playable Slice Assembly V1](demo-first-playable-slice-assembly-v1.md)：阶段级专题，表现层重建完成后恢复装配收口。
+- [Demo Playable UI And Art Pass V1](demo-playable-ui-and-art-pass-v1.md)：执行线整体并入表现层重建。
+- [Demo Base First Screen Asset Quality Pass V1](demo-base-first-screen-asset-quality-pass-v1.md)：余项由表现层重建取代。
+- [Demo Base First Screen Raster Art Pack V1](demo-base-first-screen-raster-art-pack-v1.md)：完成并纠偏；介质路线已被表现层重建取代。
+- [Demo Base First Screen Scene V2](demo-base-first-screen-scene-v2.md)：余项由表现层重建取代。
+- [Demo Playable Scene Rebuild V1](demo-playable-scene-rebuild-v1.md)：余项由表现层重建取代。
+- [Demo First Screen Assetized Scene V1](demo-first-screen-assetized-scene-v1.md)：余项由表现层重建取代。
+- [Demo Crystal Workface Assetized Scene V1](demo-crystal-workface-assetized-scene-v1.md)：余项由表现层重建取代。
+- [Demo Base Handoff Assetized Scene V1](demo-base-handoff-assetized-scene-v1.md)：余项由表现层重建取代。
+- [Demo Core Loop Playable V1](demo-core-loop-playable-v1.md)：挂起，表现层重建后恢复。
+- [Demo Narrative Beats V1](demo-narrative-beats-v1.md)：挂起，表现层重建后恢复。
+- [Demo Industrial Base Visual And Scene V1](demo-industrial-base-visual-and-scene-v1.md)：视觉余项由表现层重建取代。
 - [Demo Playable Content Substance V1](demo-playable-content-substance-v1.md)：最近完成，修正试玩口径。
 - [Demo Scene Device Pressure Staging V1](demo-scene-device-pressure-staging-v1.md)：暂缓，后续若启用须服务工业基地视觉。
 - [Demo Field Task Differentiation V1](demo-field-task-differentiation-v1.md)：最近完成，覆盖任务差异。
