@@ -56,6 +56,13 @@ desktop.ini
 *.orig
 *.rej
 
+# Art pipeline: raw AI batches and third-party packs stay local,
+# curated files are processed into client/assets/
+assets/art-intake/*
+!assets/art-intake/README.md
+assets/third-party/*
+!assets/third-party/README.md
+
 # Agents
 .claude
 .claude/
