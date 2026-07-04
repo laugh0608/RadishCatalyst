@@ -16,20 +16,20 @@
 
 - 提示词库与风格规范：`docs/reference/ai-art-prompts.md`
 - 免费素材包候选：`docs/reference/free-asset-pack-candidates.md`
-- 生成素材接收：`assets/art-intake/`（原始批次不入库）；素材包下载：`assets/third-party/`（不入库）；风格锚点定稿：`assets/reference/`
+- 生成素材接收：`assets/art-intake/`（原始批次不入库）；素材包下载：`assets/third-party/`（不入库）；风格锚点定稿：`assets/reference/`；可提交运行时素材：`client/assets/`
 
 ## 最近收尾
 
 - 系统层（任务、存档、资源链、采集加工、HUD 状态、`S0` 到结尾钩子路径逻辑）成立并保留复用。
 - 2026-07-02 复盘判定四代代码生成美术介质失败，切换真实资产管线；建立 Demo Presentation Rebuild V1，取代首屏 / 晶体 / 交接系列资产化专题余项。
-- 2026-07-04 第一批 6 个反应器候选审阅全部达标，`a0_reactor_v4` 定稿为风格锚点（`assets/reference/style-anchor.png`）；第二批生成与 `P1` 准备解锁。
+- 2026-07-04 第一批 6 个反应器候选审阅全部达标，`a0_reactor_v4` 定稿为风格锚点（`assets/reference/style-anchor.png`）；第二、三批主候选已审定并处理到 `client/assets/`，`P1` 首屏重建可开工。
 
-## 当前事项（P0 素材锚定包）
+## 当前事项（P1 首屏重建准备）
 
-1. 萝卜SAMA 按提示词库「第二批：首屏核心设备」与整版出图规则生成 B1 到 B8 候选（整版 2 到 3 版、单张 2 到 4 张），整批挂 `assets/reference/style-anchor.png` 做图像参考，放入 `assets/art-intake/<日期>-batch02/`。
-2. B1 / B2 前哨核心同图双状态出一张保证两态同机；B3 到 B6 优先 2x2 合版，属性混淆或走形再退单张。
-3. 继续按候选清单下载 1 到 2 个 CC0 素材包到 `assets/third-party/`，补角色动画与整体兜底评估（`P0` 未完成项）。
-4. 第二批放好后由执行 agent 按提示词库审阅清单复核；通过后启动去底、缩放、调色接入流程与 `P1` 首屏 `TileMapLayer` 骨架。
+1. 用 `client/assets/tiles/demo_presentation_rebuild/` 的 C1 / C2 处理版建立首屏 `TileMapLayer` 地面骨架，先覆盖基地首屏，不横向扩区。
+2. 用 `client/assets/sprites/demo_presentation_rebuild/` 的前哨核心、储存、整备台、过滤器、采集器、管线和小件建立首屏设备 sprite 场景，保留既有交互组件与状态反馈。
+3. 首屏范围内关闭旧视觉层；旧层只走删除或分区关闭路径，不做降权共存。
+4. `P0` 只剩 1 到 2 个 CC0 素材包下载评估，用于角色动画补位与整体兜底；不阻塞已审定设备 / 地面进入 `P1`。
 
 ## 防跑偏规则
 
