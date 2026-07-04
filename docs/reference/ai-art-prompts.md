@@ -291,13 +291,15 @@ spreading in an irregular organic blob, soft edges, single blob
 
 1. 每批建一个目录：`assets/art-intake/2026-07-02-batch01/`（日期加批次号）。
 2. 文件命名：`编号_名称_v候选号.png`，例如 `a0_reactor_v3.png`、`c1_rock_ground_v2.png`；整版把编号连写，例如 `b1b2_core_states_v1.png`、`b3-b6_devices_sheet_v2.png`。
-3. 放好后对 Claude 说"审阅 art-intake 最新一批"，按以下清单给出保留 / 重 roll / 修改意见：
+3. 放好后让当前执行 agent 审阅：对它说"审阅 art-intake 最新一批"，按以下清单给出保留 / 重 roll / 修改意见：
    - 视角是否统一为 3/4 俯视、正面略可见。
    - 光源是否来自左上。
    - 主色是否落在调色板锚点色域内。
    - 缩小到游戏目标尺寸后剪影是否仍可读。
    - 细节密度是否过高（AI 常见问题，缩小后会糊成噪声）。
-4. 通过的素材由仓库侧统一去底、缩放、调色后接入 `client/assets/`；原始批次不进版本库。
+   - 复核方法：设备 / 角色先缩到游戏目标尺寸再看剪影（macOS 用 `sips -Z 160 in.png --out out.png`，或 ImageMagick `magick in.png -resize 160x160 out.png`）；地面贴图做 2x2 拼贴看接缝；审阅结论与定稿记录写入当周周志。
+4. 通过的素材由仓库侧统一处理后接入：去底（纯色深底抠图；支持透明输出的工具优先直接出透明 PNG）、按"尺寸口径"表缩放（Lanczos 或工具默认高质量缩放）、明显偏色时按调色板锚点微调；产出存 `client/assets/sprites/` 按类别子目录与英文资产名命名，原始批次不进版本库。
+5. 风格锚点、调色板、视角与尺寸口径是架构级口径，执行 agent 只按其生成与审阅，不自行修改；变更升级点见 `docs/process/development-decision-gates.md`。
 
 ## 工具备注
 
