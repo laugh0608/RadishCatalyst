@@ -83,6 +83,7 @@ stubs on both sides, mounted on a dark metal base plate
 
 - 生成 6 个候选，命名 `a0_reactor_v1.png` 到 `a0_reactor_v6.png`。
 - 交给 Claude 审阅，共同定稿 1 张为风格锚点，存 `assets/reference/style-anchor.png`。
+- 2026-07-04 已定稿：`2026-07-02-batch01` 的 `a0_reactor_v4`，`v1` 为备选风格参照；后续批次一律挂锚点图生成。
 
 ## 第二批：首屏核心设备（锚点定稿后）
 
