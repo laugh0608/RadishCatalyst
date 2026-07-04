@@ -1,109 +1,77 @@
 # Current Plan
 
-更新时间：2026-06-25
+更新时间：2026-07-04
 
 ## 入口约束
 
-本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准，具体开发范围以当前活跃专题为准：
+本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。首版 Demo 完成规格以 [Demo Definition V1](../features/demo-definition-v1.md) 为准。
 
-- 当前活跃专题：[Demo First Playable Slice Assembly V1](../features/demo-first-playable-slice-assembly-v1.md)，覆盖首版 Demo 20 到 30 分钟可玩纵切装配。
-- 当前执行线：[Demo Playable UI And Art Pass V1](../features/demo-playable-ui-and-art-pass-v1.md)（首屏当前细专题：[Demo First Screen Assetized Scene V1](../features/demo-first-screen-assetized-scene-v1.md)）、[Demo Core Loop Playable V1](../features/demo-core-loop-playable-v1.md)、[Demo Narrative Beats V1](../features/demo-narrative-beats-v1.md)。
-- 视觉承接：[Demo Industrial Base Visual And Scene V1](../features/demo-industrial-base-visual-and-scene-v1.md) 的未完成观感问题并入 UI / Art pass，不再作为单点截图微调主线。
-- 参考视觉源：[Visual And UI Direction](../product/visual-and-ui-direction.md)。
+- 当前活跃专题：[Demo Presentation Rebuild V1](../features/demo-presentation-rebuild-v1.md)，覆盖表现层重建与真实资产管线。
+- 阶段级专题 [Demo First Playable Slice Assembly V1](../features/demo-first-playable-slice-assembly-v1.md) 与核心循环、叙事节拍执行线在表现层重建期间挂起，重建完成后恢复收口。
+- 风格与提示词真相源：`docs/reference/ai-art-prompts.md`；免费素材包候选：`docs/reference/free-asset-pack-candidates.md`；风格锚点定稿存 `assets/reference/`。
 
-历史过程、长完成清单和详细复盘优先查看：
-
-- `docs/planning/daily-start.md`
-- `docs/devlogs/README.md` 中列出的最新一期周志
-- `docs/planning/demo-scope-and-playable-slice.md`
-- `docs/design/development-retest-baselines.md`
+历史过程、长完成清单和详细复盘优先查看 `docs/planning/daily-start.md`、最新周志和 `docs/planning/demo-scope-and-playable-slice.md`。
 
 ## 阶段状态
 
 已通过：
 
-- `S0` 早期复测、资源循环、基地行动、窗口复盘、装备与战斗反哺基地原型。
-- 首版 Demo 范围冻结、12 区域封顶、UI baseline、核心稳定站终点链路和早期链路审计。
-- 2026-06-14 至 2026-06-19：可操作场景对象、运行逻辑、玩家反馈、存档来源、自动检查、角色 / 战斗、路线、资源链、功能场景、设备面板、初步美术识别和外勤任务差异均已落地第一包。
-- 2026-06-19：撤回“自动检查通过即可进入验收”的判断，确认第一包与检查证据不足以证明玩家可试玩质量。
-- 2026-06-20 至 2026-06-25：基地工业视觉、HUD 层级、第一条工业链、污染链、核心稳定站完成态、核心循环短节奏、叙事节拍场景证据、局部画面收束、启动界面第一印象壳、基地首屏低保真工作现场、残余规划层、晶体局部交互、首屏调试图剥离、首屏专用呈现层、主体交互锚点重画和玩家修复动作已完成多轮玩家可见推进；阶段复核显示项目应从单点读法修补切到可玩纵切装配。
+- 系统层成立：任务链、存档、资源链、采集 / 加工、HUD 状态和 `S0` 到 Demo 结尾钩子的路径逻辑可跑通，是本阶段保留复用的资产。
+- 2026-04 至 2026-07 表现层先后使用 `draw_rect`、SVG、`Polygon2D` 拼装和脚本生成 PNG 四代代码生成介质；2026-07-02 项目级复盘判定该介质上限是示意图，无法达到"像一款游戏"。
+- 2026-07-02 决策：画面主介质切换为真实资产（AI 生成为主、免费素材包补位），表现层按包重建，旧视觉层删除而非降权；过程口径同步瘦身。
+- 2026-07-04 风格锚点定稿：第一批 6 个 AI 反应器候选全部达可用线，`a0_reactor_v4` 定为锚点存 `assets/reference/style-anchor.png`；`P0` 余项为素材包补位评估与第二、三批素材审阅。
 
 当前阶段：
 
 ```text
-首版 Demo 可玩纵切装配第一版
+首版 Demo 表现层重建第一版
 ```
-
-当前推进口径：先让默认画面像一款可玩的 2D / 2.5D 工业科幻 ARPG，而不是 debug 流程图或原型图层。第十四到十七包已证明继续叠程序几何图层收益不足，首屏下一步切到低保真资产化场景重建；在默认画面明显像游戏前，不转向完整路径体感复核、试玩准备或验收。
 
 ## 当前主线
 
-当前活跃专题是 [Demo First Playable Slice Assembly V1](../features/demo-first-playable-slice-assembly-v1.md)。它优先装配这条路径：
+按包串行推进，不并行开线：
 
-```text
-前哨核心恢复 -> 晶体矿脉手采 -> 回基地入料 -> 基础反应器加工
--> 采集 / 过滤设备接管重复产出 -> 整备获得补给 / 模块收益
--> 污染边界短挑战 -> 核心稳定站写入 -> Demo 结尾钩子
-```
+1. `P0` 素材锚定包（锚点已定稿）：生成并审阅第二、三批核心素材；下载评估免费素材包补位。
+2. `P1` 首屏重建包：`TileMapLayer` 地面 + 设备 sprite 场景 + 玩家 / 敌人 sprite，首屏范围关闭旧视觉层。
+3. `P2` 三区扩展包：晶体矿脉、污染边界、核心稳定站换用同一资产家族。
+4. `P3` 旧层清除收口包：删除旧视觉层脚本与节点，修剪失效检查。
 
-三条执行线：
+## 介质规则（本阶段最高优先）
 
-- UI 与低保真美术：首屏程序绘制原型已收束；当前不再继续追加同类线框包，转入首屏低保真资产化场景重建。若资产化首屏成立，再推进基地入料、反应器和整备交接段。
-- 核心循环：让采集、加工、设备启用、整备、污染承压、短战斗和核心写入形成可操作闭环。
-- 叙事节拍：用开场事故、基地恢复、污染信号、核心稳定、场景证据和结尾悬念替代任务表式推进。
+- 画面主介质必须是真实资产（AI 生成或素材包贴图）+ `TileMapLayer` / `Sprite2D` 场景组合。
+- 禁止新增程序绘制视觉层、脚本生成贴图或 `ColorRect` / `Polygon2D` 拼装作为画面主介质；程序绘制只允许动态高亮、状态灯、选中描边和调试辅助。
+- 旧视觉层只走删除路径，不再以"降权"方式与新介质长期共存。
 
-体验主干建设尚未达到试玩准备判断标准；真实页面 smoke、自动检查和人工实机复测只能提供证据，不能替代可玩路径装配。
+## 过程口径（与介质规则同时生效）
 
-## 区域策略
-
-- 首版 Demo 继续按 12 区域封顶。
-- 当前只把基地、晶体矿脉、污染边界和核心稳定站作为可玩纵切核心区。
-- 4 个功能区和 4 个过渡区只保留必要连接、资源、风险或稳定工程价值，不平均加厚。
-- 如果 12 区层级继续压垮画面和节奏，优先保证 4 个核心区的玩家可读性。
-
-## 视觉与 UI 策略
-
-- 首版 Demo 不能以 `ColorRect + Label`、`draw_line` / `draw_rect` 叠线或 debug 流程图作为可试玩画面目标。
-- HUD 要像游戏 UI，不像开发面板；开发基线、GM 控件和长说明默认隐藏或折叠。
-- 低保真允许，但玩家、敌人、设备、资源、污染和核心目标至少要有轮廓、材质色、状态和用途关系。
-- 当前 UI / Art 优先级是低保真游戏画面成型：角色、敌人、设备、地面、材质、阴影、空间层次和操作动作反馈优先于新增说明、状态字段或设备面板字段。
-- 场景内提示优先使用高亮、短标签、图标或描边，避免大字遮挡玩家操作。
+- `current.md` 与 `daily-start.md` 只在开发包收口时更新，每周不超过 2 次。
+- 表现层相关工作不再新开 feature 专题，统一挂在 Demo Presentation Rebuild V1 之下。
+- 冻结 `client/scripts/checks/` 新增；只维护存档完整性与主线可完成两类检查，因删层失效的检查随包修剪或删除。
+- 截图复核只对比风格锚点参考图，输出具体差距清单；同一实现方式最多重试一次，仍失败则升级为素材 / 介质决策，不做同类调参循环。
+- 每周唯一主进度证据是 60 秒实机录像；录像与上周无可见差异即判定本周失败，与提交数、文档量和检查结果无关。
 
 ## 冻结与放宽
 
 继续冻结：
 
-- 前线行动台、候选、窗口复盘、高压窗口和 `base_action_state` 保持冻结，只修 `P0` / `P1`。
-- 不新增第 13 区域，不平均扩 12 个区域，不继续给核心站完成态追加同构回访口袋。
-- 不新增随机成功率、新货币、队员、完整装备栏、完整 `loadout`、完整背包重构、联机入口或完整长期成长系统。
+- 前线行动台、候选、窗口复盘、高压窗口和 `base_action_state` 保持冻结，只修 `P0` / `P1` 问题。
+- 首版 Demo 12 区域封顶；不新增随机成功率、新货币、队员、完整装备栏、联机入口或长期成长系统。
 - 不把试玩准备、修 bug 阶段、发布准备或大规模 polish 作为当前阶段目标。
 
 允许推进：
 
-- 低保真资产、正式 HUD 第一版、核心设备轮廓、管线 / 物流 / 介质流向、核心路径场景和短反馈。
-- 围绕纵切路径补真实操作、状态表现、UI 反馈和叙事节拍。
-- 必要时新增窄职责 helper、presenter 或 check，但只能支撑可见实现，不能成为开发包主体。
-
-## 节奏规则
-
-当前阶段的进展以玩家可见体验为准：没有场景、角色、敌人、设备、地面、操作、反馈或叙事节拍结果的文本、formatter、检查和“第一包”不算主线完成。
-
-默认画面仍不像游戏时，不把下一步切到完整路径体感复核、读法整理、UI 字段整理、设备面板字段整理、纯检查补充或同类线框叠层；这些工作只有在支撑资产化场景成型时才进入范围。
-
-每个开发包开工前先说明实机里会看到什么、玩家会做什么、完成后玩家能理解什么。收口时优先用实机跑通和截图 / 录像观感判断，再补文档与检查。
-
-只让这些问题阻塞阶段：崩溃、主线卡死、坏档、任务无法完成、关键资源断档、UI 完全无法判断下一步，或首屏 / 基地平台仍主要表现为 debug 色块和长文本。
+- 引入与处理真实美术资产、`TileMapLayer` / `Sprite2D` 场景重建、玩家与敌人 sprite，以及为此必需的旧层删除和检查修剪。
+- 角色首版允许静态 sprite + 程序位移，不要求完整动画组。
 
 ## 当前默认验证
 
-客户端相关改动优先执行默认检查：Windows 用 `pwsh ./scripts/check-client.ps1`，macOS / Linux / Git Bash 用 `sh ./scripts/check-client.sh`；该入口不启动 Godot。需要导入工程或运行项目自定义 GDScript 检查时，确认本机 Godot 可启动后加 `-WithGodot` / `--with-godot`。
+客户端相关改动优先执行默认检查：Windows 用 `pwsh ./scripts/check-client.ps1`，macOS / Linux / Git Bash 用 `sh ./scripts/check-client.sh`；需要 Godot 运行时验证时确认本机可启动后加 `-WithGodot` / `--with-godot`。涉及文档时加跑对应平台 `check-docs` 与 `check-text-files`，提交前执行 `git diff --check`。
 
-涉及文档、规划、协作规则或仓库入口时额外执行：Windows 用 `pwsh ./scripts/check-docs.ps1`、`pwsh ./scripts/check-text-files.ps1`；macOS / Linux / Git Bash 用 `./scripts/check-docs.sh`、`./scripts/check-text-files.sh`；最后执行 `git diff --check`。
+自动检查只兜底资源加载、场景引用和主线可完成；画面是否成立以实机截图对比锚点和 60 秒录像为准。
 
 ## 阶段退出条件
 
-- [Demo First Playable Slice Assembly V1](../features/demo-first-playable-slice-assembly-v1.md) 的 20 到 30 分钟路径能从新档跑到 Demo 结尾钩子。
-- 玩家至少完成一次采集、一次加工、一次设备启用或建造、一次整备收益、一次污染 / 战斗承压和一次核心写入。
-- HUD 默认画面不被开发面板主导，基地、晶体、污染、核心站四个核心区能被快速识别。
-- 玩家能复述“基地让我走得更远，远征让我把基地建得更强”。
-- 后续再重新启动 [Demo First Playable Acceptance V1](../features/demo-first-playable-acceptance-v1.md)，由人工实机体验和自动检查共同判断是否进入试玩准备。
+- 基地首屏与晶体矿脉、污染边界、核心稳定站四个核心区均以真实资产渲染，旧视觉层删除完毕。
+- 玩家与敌人拥有真实 sprite 形象，不再由 `_draw()` 几何表达。
+- 60 秒实机录像能被不了解项目的人识别为"一款 2D 工业科幻游戏"。
+- 达成后恢复 [Demo First Playable Slice Assembly V1](../features/demo-first-playable-slice-assembly-v1.md) 收口，再重启 [Demo First Playable Acceptance V1](../features/demo-first-playable-acceptance-v1.md)。

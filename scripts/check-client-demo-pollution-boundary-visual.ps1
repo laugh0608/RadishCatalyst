@@ -8,6 +8,7 @@ $ErrorActionPreference = "Stop"
 $requiredTextByFile = @{
     "client/scripts/map/demo_pollution_boundary_visual_layer.gd" = @(
         "class_name DemoPollutionBoundaryVisualLayer",
+        "demo_default_path_asset_language_art_pass.gd",
         "refresh_pollution_chain_state",
         "boundary.filter_build_site",
         "boundary.pressure_gate",
@@ -21,8 +22,29 @@ $requiredTextByFile = @{
         "terrain.pollution.output_slurry_basin",
         "pollution_chain.boundary_residue_queue",
         "pollution_chain.boundary_core_prep_route",
+        "PollutionToCoreHandoffArtPass",
+        "get_pollution_core_handoff_shape_count",
         "_deemphasize_legacy_pollution_blocks",
         "map_object.pollution_residue_patch"
+    )
+    "client/scripts/map/demo_default_path_asset_language_art_pass.gd" = @(
+        "class_name DemoDefaultPathAssetLanguageArtPass",
+        "terrain.pollution.assetized_pollution_pool",
+        "terrain.pollution.assetized_pipe_bundle",
+        "terrain.pollution.pressure_haze_band",
+        "terrain.pollution.dense_pressure_workface",
+        "terrain.pollution.corroded_edge_scars",
+        "terrain.pollution.short_challenge_pressure_pulses",
+        "draw_pollution_language"
+    )
+    "client/scripts/map/demo_pollution_to_core_handoff_art_pass.gd" = @(
+        "class_name DemoPollutionToCoreHandoffArtPass",
+        "create_state",
+        "get_pollution_shape_ids",
+        "get_core_shape_ids",
+        "pollution_to_core_handoff.challenge_result",
+        "core_handoff.write_energy",
+        "core_handoff.demo_hook"
     )
     "client/scenes/maps/VerticalSliceMap.tscn" = @(
         "DemoPollutionBoundaryVisualLayer",
@@ -33,11 +55,15 @@ $requiredTextByFile = @{
         "_check_pollution_boundary_layer_exists_and_registers_visuals",
         "_check_pollution_boundary_operation_relation_shapes",
         "_check_pollution_boundary_chain_state_visuals",
+        "_check_pollution_to_core_handoff_visuals",
         "pollution relation links slurry output to return routes",
         "_check_pollution_boundary_visual_priority_replaces_old_blocks",
         "_check_pollution_boundary_runtime_anchors_are_tagged",
         "pollution boundary registers terrain material shapes",
-        "terrain.pollution.recovery_loading_pad"
+        "terrain.pollution.recovery_loading_pad",
+        "terrain.pollution.assetized_pipe_bundle",
+        "terrain.pollution.dense_pressure_workface",
+        "pollution boundary fills empty space with pressure haze"
     )
     "docs/devlogs/2026-W25.md" = @(
         "污染处理边界视觉第一轮",

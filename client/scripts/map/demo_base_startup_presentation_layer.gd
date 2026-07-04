@@ -3,6 +3,74 @@ class_name DemoBaseStartupPresentationLayer
 
 const RESTORE_OUTPOST_QUEST_ID := "quest.restore_outpost"
 
+const STARTUP_ASSET_TERRAIN_FLOOR_ID := "startup_asset.terrain_floor"
+const STARTUP_ASSET_CRYSTAL_ECOLOGY_ID := "startup_asset.crystal_ecology"
+const STARTUP_ASSET_POLLUTION_EDGE_ID := "startup_asset.pollution_edge"
+const STARTUP_ASSET_OUTPOST_CORE_ID := "startup_asset.outpost_core_machine"
+const STARTUP_ASSET_BASIC_REACTOR_ID := "startup_asset.basic_reactor_module"
+const STARTUP_ASSET_STORAGE_BANK_ID := "startup_asset.storage_crate_bank"
+const STARTUP_ASSET_OUTFITTING_STATION_ID := "startup_asset.outfitting_station_rack"
+const STARTUP_ASSET_PIPE_BUNDLE_ID := "startup_asset.pipe_bundle"
+const STARTUP_ASSET_PLAYER_REPAIR_POSE_ID := "startup_asset.player_repair_pose"
+
+const STARTUP_ASSET_TERRAIN_FLOOR := preload("res://assets/sprites/demo_first_screen/terrain_outpost_floor.svg")
+const STARTUP_ASSET_CRYSTAL_ECOLOGY := preload("res://assets/sprites/demo_first_screen/crystal_ecology_cluster.svg")
+const STARTUP_ASSET_POLLUTION_EDGE := preload("res://assets/sprites/demo_first_screen/pollution_edge_pool.svg")
+const STARTUP_ASSET_OUTPOST_CORE := preload("res://assets/sprites/demo_first_screen/outpost_core_machine.svg")
+const STARTUP_ASSET_BASIC_REACTOR := preload("res://assets/sprites/demo_first_screen/basic_reactor_module.svg")
+const STARTUP_ASSET_STORAGE_BANK := preload("res://assets/sprites/demo_first_screen/storage_crate_bank.svg")
+const STARTUP_ASSET_OUTFITTING_STATION := preload("res://assets/sprites/demo_first_screen/outfitting_station_rack.svg")
+const STARTUP_ASSET_PIPE_BUNDLE := preload("res://assets/sprites/demo_first_screen/pipe_bundle.svg")
+const STARTUP_ASSET_PLAYER_REPAIR_POSE := preload("res://assets/sprites/demo_first_screen/player_repair_pose.svg")
+
+const STARTUP_ASSET_MANIFEST := {
+	STARTUP_ASSET_TERRAIN_FLOOR_ID: {
+		"path": "res://assets/sprites/demo_first_screen/terrain_outpost_floor.svg",
+		"role": "terrain",
+		"render": "sprite"
+	},
+	STARTUP_ASSET_CRYSTAL_ECOLOGY_ID: {
+		"path": "res://assets/sprites/demo_first_screen/crystal_ecology_cluster.svg",
+		"role": "resource_ecology",
+		"render": "sprite"
+	},
+	STARTUP_ASSET_POLLUTION_EDGE_ID: {
+		"path": "res://assets/sprites/demo_first_screen/pollution_edge_pool.svg",
+		"role": "hazard_ecology",
+		"render": "sprite"
+	},
+	STARTUP_ASSET_OUTPOST_CORE_ID: {
+		"path": "res://assets/sprites/demo_first_screen/outpost_core_machine.svg",
+		"role": "core_device",
+		"render": "sprite"
+	},
+	STARTUP_ASSET_BASIC_REACTOR_ID: {
+		"path": "res://assets/sprites/demo_first_screen/basic_reactor_module.svg",
+		"role": "processing_device",
+		"render": "sprite"
+	},
+	STARTUP_ASSET_STORAGE_BANK_ID: {
+		"path": "res://assets/sprites/demo_first_screen/storage_crate_bank.svg",
+		"role": "storage_device",
+		"render": "sprite"
+	},
+	STARTUP_ASSET_OUTFITTING_STATION_ID: {
+		"path": "res://assets/sprites/demo_first_screen/outfitting_station_rack.svg",
+		"role": "outfitting_device",
+		"render": "sprite"
+	},
+	STARTUP_ASSET_PIPE_BUNDLE_ID: {
+		"path": "res://assets/sprites/demo_first_screen/pipe_bundle.svg",
+		"role": "pipeline",
+		"render": "sprite"
+	},
+	STARTUP_ASSET_PLAYER_REPAIR_POSE_ID: {
+		"path": "res://assets/sprites/demo_first_screen/player_repair_pose.svg",
+		"role": "player_pose",
+		"render": "sprite"
+	},
+}
+
 const PRESENTATION_SHAPES := {
 	"startup_presentation.opaque_scene_backdrop": true,
 	"startup_presentation.hangar_floor": true,
@@ -21,9 +89,28 @@ const PRESENTATION_SHAPES := {
 	"startup_presentation.player_repair_action": true,
 	"startup_presentation.depth_shadow_layers": true,
 	"startup_presentation.damaged_core_equipment": true,
-	"startup_presentation.player_character_pose": true,
+	"startup_presentation.actual_player_core_facing": true,
+	"startup_presentation.single_repair_pose_asset": true,
 	"startup_presentation.high_priority_floor_material": true,
 	"startup_presentation.close_repair_feedback": true,
+	"startup_presentation.assetized_terrain_floor": true,
+	"startup_presentation.assetized_crystal_ecology": true,
+	"startup_presentation.assetized_pollution_edge": true,
+	"startup_presentation.assetized_core_device": true,
+	"startup_presentation.assetized_pipe_bundle": true,
+	"startup_presentation.assetized_player_pose": true,
+	"startup_presentation.assetized_lighter_terrain": true,
+	"startup_presentation.assetized_scaled_crystal_edge": true,
+	"startup_presentation.assetized_right_pollution_context": true,
+	"startup_presentation.assetized_empty_field_fill": true,
+	"startup_presentation.assetized_reactor_device": true,
+	"startup_presentation.assetized_storage_device": true,
+	"startup_presentation.assetized_outfitting_device": true,
+	"startup_presentation.assetized_device_ports": true,
+	"startup_presentation.assetized_platform_mask_balance": true,
+	"startup_presentation.short_repair_tool_feedback": true,
+	"startup_presentation.core_status_chip_deemphasized": true,
+	"startup_presentation.right_background_linework_muted": true,
 }
 
 const BACKDROP_RECT := Rect2(Vector2(-760.0, -420.0), Vector2(1520.0, 840.0))
@@ -58,16 +145,53 @@ func get_presentation_shape_count() -> int:
 	return PRESENTATION_SHAPES.size()
 
 
+func has_startup_asset(asset_id: String) -> bool:
+	return STARTUP_ASSET_MANIFEST.has(asset_id)
+
+
+func get_startup_asset_count() -> int:
+	return STARTUP_ASSET_MANIFEST.size()
+
+
+func get_startup_asset_path(asset_id: String) -> String:
+	if not STARTUP_ASSET_MANIFEST.has(asset_id):
+		return ""
+
+	return String(STARTUP_ASSET_MANIFEST[asset_id].get("path", ""))
+
+
+func get_startup_asset_role(asset_id: String) -> String:
+	if not STARTUP_ASSET_MANIFEST.has(asset_id):
+		return ""
+
+	return String(STARTUP_ASSET_MANIFEST[asset_id].get("role", ""))
+
+
+func get_startup_asset_render_mode(asset_id: String) -> String:
+	if not STARTUP_ASSET_MANIFEST.has(asset_id):
+		return ""
+
+	return String(STARTUP_ASSET_MANIFEST[asset_id].get("render", ""))
+
+
+func is_startup_asset_available(asset_id: String) -> bool:
+	var asset_path := get_startup_asset_path(asset_id)
+	return not asset_path.is_empty() and ResourceLoader.exists(asset_path) and _get_startup_asset_texture(asset_id) != null
+
+
 func _draw() -> void:
 	if not startup_active:
 		return
 
 	_draw_scene_backdrop()
+	_draw_assetized_scene_base()
+	_draw_right_background_linework_mute()
 	_draw_local_shadows()
 	_draw_hangar_floor()
 	_draw_floor_material_breakup()
-	_draw_high_priority_floor_material()
 	_draw_device_silhouettes()
+	_draw_high_priority_floor_material()
+	_draw_assetized_device_group()
 	_draw_perimeter_industrial_assets()
 	_draw_broken_pipe_runs()
 	_draw_cable_runs()
@@ -75,7 +199,6 @@ func _draw() -> void:
 	_draw_damaged_core_equipment()
 	_draw_player_work_pad()
 	_draw_diegetic_repair_anchor()
-	_draw_player_character_pose()
 	_draw_player_repair_action()
 	_draw_close_repair_feedback()
 
@@ -88,14 +211,57 @@ func _should_show_startup_presentation(world_state: WorldState) -> bool:
 
 
 func _draw_scene_backdrop() -> void:
-	draw_rect(BACKDROP_RECT, Color(0.008, 0.018, 0.019, 0.985), true)
-	draw_rect(Rect2(Vector2(-760.0, -420.0), Vector2(255.0, 840.0)), Color(0.02, 0.026, 0.026, 0.72), true)
-	draw_rect(Rect2(Vector2(330.0, -420.0), Vector2(430.0, 840.0)), Color(0.012, 0.018, 0.019, 0.78), true)
-	draw_rect(Rect2(Vector2(-700.0, -318.0), Vector2(1360.0, 34.0)), Color(0.018, 0.031, 0.032, 0.92), true)
-	draw_rect(Rect2(Vector2(-700.0, 252.0), Vector2(1360.0, 48.0)), Color(0.018, 0.028, 0.028, 0.94), true)
-	draw_rect(Rect2(Vector2(180.0, -250.0), Vector2(260.0, 40.0)), Color(0.0, 0.006, 0.006, 0.20), true)
-	draw_rect(Rect2(Vector2(-110.0, 226.0), Vector2(300.0, 44.0)), Color(0.0, 0.006, 0.006, 0.22), true)
-	draw_rect(Rect2(Vector2(250.0, 154.0), Vector2(250.0, 36.0)), Color(0.0, 0.006, 0.006, 0.18), true)
+	draw_rect(BACKDROP_RECT, Color(0.036, 0.044, 0.039, 0.985), true)
+	draw_rect(Rect2(Vector2(-760.0, -420.0), Vector2(236.0, 840.0)), Color(0.050, 0.060, 0.052, 0.58), true)
+	draw_rect(Rect2(Vector2(324.0, -420.0), Vector2(436.0, 840.0)), Color(0.046, 0.052, 0.043, 0.55), true)
+	draw_rect(Rect2(Vector2(-700.0, -318.0), Vector2(1360.0, 34.0)), Color(0.052, 0.064, 0.057, 0.52), true)
+	draw_rect(Rect2(Vector2(-700.0, 252.0), Vector2(1360.0, 48.0)), Color(0.050, 0.058, 0.052, 0.54), true)
+	draw_rect(Rect2(Vector2(178.0, -246.0), Vector2(262.0, 40.0)), Color(0.020, 0.032, 0.030, 0.18), true)
+	draw_rect(Rect2(Vector2(-128.0, 224.0), Vector2(328.0, 44.0)), Color(0.020, 0.032, 0.030, 0.18), true)
+	draw_rect(Rect2(Vector2(258.0, 146.0), Vector2(262.0, 40.0)), Color(0.020, 0.032, 0.030, 0.16), true)
+
+
+func _draw_assetized_scene_base() -> void:
+	_draw_startup_asset(
+		STARTUP_ASSET_TERRAIN_FLOOR_ID,
+		Rect2(Vector2(-548.0, -276.0), Vector2(940.0, 588.0)),
+		Color(1.0, 1.0, 1.0, 0.88)
+	)
+	_draw_startup_asset(
+		STARTUP_ASSET_CRYSTAL_ECOLOGY_ID,
+		Rect2(Vector2(-570.0, -196.0), Vector2(184.0, 158.0)),
+		Color(0.92, 1.0, 1.0, 0.82)
+	)
+	_draw_startup_asset(
+		STARTUP_ASSET_CRYSTAL_ECOLOGY_ID,
+		Rect2(Vector2(-468.0, 102.0), Vector2(138.0, 118.0)),
+		Color(0.82, 0.98, 1.0, 0.34)
+	)
+	_draw_startup_asset(
+		STARTUP_ASSET_POLLUTION_EDGE_ID,
+		Rect2(Vector2(270.0, -182.0), Vector2(310.0, 206.0)),
+		Color(1.0, 1.0, 1.0, 0.72)
+	)
+	_draw_startup_asset(
+		STARTUP_ASSET_POLLUTION_EDGE_ID,
+		Rect2(Vector2(214.0, 82.0), Vector2(344.0, 228.0)),
+		Color(0.96, 0.98, 0.76, 0.52)
+	)
+	_draw_startup_asset(
+		STARTUP_ASSET_PIPE_BUNDLE_ID,
+		Rect2(Vector2(-420.0, -72.0), Vector2(356.0, 168.0)),
+		Color(1.0, 1.0, 1.0, 0.64)
+	)
+	_draw_startup_asset(
+		STARTUP_ASSET_PIPE_BUNDLE_ID,
+		Rect2(Vector2(100.0, 116.0), Vector2(346.0, 164.0)),
+		Color(0.82, 0.92, 0.86, 0.14)
+	)
+
+
+func _draw_right_background_linework_mute() -> void:
+	draw_rect(Rect2(Vector2(24.0, -210.0), Vector2(548.0, 392.0)), Color(0.026, 0.046, 0.041, 0.20), true)
+	draw_rect(Rect2(Vector2(292.0, -164.0), Vector2(296.0, 330.0)), Color(0.026, 0.046, 0.041, 0.16), true)
 
 
 func _draw_local_shadows() -> void:
@@ -112,26 +278,26 @@ func _draw_local_shadows() -> void:
 
 func _draw_hangar_floor() -> void:
 	var deck_points := PackedVector2Array([
-		Vector2(-412.0, -214.0),
-		Vector2(220.0, -208.0),
-		Vector2(304.0, -76.0),
-		Vector2(226.0, 198.0),
-		Vector2(-430.0, 178.0),
-		Vector2(-486.0, 54.0),
-		Vector2(-468.0, -128.0),
+		Vector2(-370.0, -184.0),
+		Vector2(154.0, -178.0),
+		Vector2(226.0, -66.0),
+		Vector2(172.0, 158.0),
+		Vector2(-382.0, 144.0),
+		Vector2(-428.0, 42.0),
+		Vector2(-414.0, -106.0),
 	])
-	draw_colored_polygon(deck_points, Color(0.036, 0.065, 0.061, 0.96))
+	draw_colored_polygon(deck_points, Color(0.060, 0.106, 0.098, 0.50))
 
 	var deck_edge := [
-		Vector2(-412.0, -214.0),
-		Vector2(220.0, -208.0),
-		Vector2(304.0, -76.0),
-		Vector2(226.0, 198.0),
-		Vector2(-430.0, 178.0),
-		Vector2(-486.0, 54.0),
-		Vector2(-468.0, -128.0),
+		Vector2(-370.0, -184.0),
+		Vector2(154.0, -178.0),
+		Vector2(226.0, -66.0),
+		Vector2(172.0, 158.0),
+		Vector2(-382.0, 144.0),
+		Vector2(-428.0, 42.0),
+		Vector2(-414.0, -106.0),
 	]
-	_draw_polyline_closed(deck_edge, Color(0.19, 0.36, 0.32, 0.42), 2.0)
+	_draw_polyline_closed(deck_edge, Color(0.30, 0.50, 0.44, 0.30), 2.0)
 
 	var plates := [
 		Rect2(Vector2(-392.0, -176.0), Vector2(124.0, 78.0)),
@@ -161,14 +327,57 @@ func _draw_hangar_floor() -> void:
 
 
 func _draw_device_silhouettes() -> void:
-	_draw_disabled_machine(Vector2(142.0, -78.0), Vector2(122.0, 76.0), Color(0.052, 0.082, 0.076, 0.62), Color(0.20, 0.36, 0.31, 0.13))
-	_draw_disabled_machine(Vector2(-326.0, 92.0), Vector2(128.0, 72.0), Color(0.060, 0.095, 0.085, 0.70), Color(0.20, 0.36, 0.31, 0.16))
-	_draw_disabled_machine(Vector2(-72.0, 106.0), Vector2(154.0, 70.0), Color(0.058, 0.088, 0.081, 0.64), Color(0.20, 0.36, 0.31, 0.14))
+	_draw_disabled_machine(Vector2(142.0, -78.0), Vector2(122.0, 76.0), Color(0.052, 0.082, 0.076, 0.26), Color(0.20, 0.36, 0.31, 0.07))
+	_draw_disabled_machine(Vector2(-326.0, 92.0), Vector2(128.0, 72.0), Color(0.060, 0.095, 0.085, 0.30), Color(0.20, 0.36, 0.31, 0.08))
+	_draw_disabled_machine(Vector2(-72.0, 106.0), Vector2(154.0, 70.0), Color(0.058, 0.088, 0.081, 0.28), Color(0.20, 0.36, 0.31, 0.07))
 	_draw_wall_console(Vector2(-402.0, -150.0), Vector2(96.0, 72.0))
 	draw_circle(Vector2(-33.0, -118.0), 8.0, Color(0.22, 0.48, 0.40, 0.18))
 	draw_circle(Vector2(-326.0, 92.0), 7.0, Color(0.30, 0.54, 0.43, 0.16))
 	draw_line(Vector2(-446.0, -38.0), Vector2(-388.0, -38.0), Color(0.46, 0.92, 0.82, 0.30), 3.0)
 	draw_rect(Rect2(Vector2(-456.0, -52.0), Vector2(54.0, 32.0)), Color(0.052, 0.112, 0.104, 0.66), false, 2.0)
+
+
+func _draw_assetized_device_group() -> void:
+	_draw_startup_asset(
+		STARTUP_ASSET_BASIC_REACTOR_ID,
+		Rect2(Vector2(-162.0, -178.0), Vector2(156.0, 114.0)),
+		Color(1.0, 1.0, 1.0, 0.82)
+	)
+	_draw_startup_asset(
+		STARTUP_ASSET_STORAGE_BANK_ID,
+		Rect2(Vector2(-406.0, 36.0), Vector2(174.0, 118.0)),
+		Color(0.92, 1.0, 0.94, 0.76)
+	)
+	_draw_startup_asset(
+		STARTUP_ASSET_OUTFITTING_STATION_ID,
+		Rect2(Vector2(-112.0, 48.0), Vector2(146.0, 124.0)),
+		Color(0.92, 1.0, 0.96, 0.72)
+	)
+	_draw_startup_asset(
+		STARTUP_ASSET_OUTPOST_CORE_ID,
+		Rect2(CORE_CENTER + Vector2(-100.0, -80.0), Vector2(206.0, 150.0)),
+		Color(1.0, 1.0, 1.0, 0.96)
+	)
+	_draw_assetized_device_ports()
+	_draw_startup_asset(
+		STARTUP_ASSET_PLAYER_REPAIR_POSE_ID,
+		Rect2(PLAYER_PAD_CENTER + Vector2(-42.0, -76.0), Vector2(100.0, 122.0)),
+		Color(1.0, 1.0, 1.0, 0.36)
+	)
+
+
+func _draw_assetized_device_ports() -> void:
+	var core_port := CORE_CENTER + Vector2(72.0, 12.0)
+	var reactor_port := Vector2(-28.0, -98.0)
+	var storage_port := Vector2(-258.0, 100.0)
+	var outfitting_port := Vector2(-76.0, 118.0)
+	_draw_pipe([CORE_CENTER + Vector2(58.0, -24.0), Vector2(-120.0, -106.0), reactor_port], Color(0.58, 0.54, 0.30, 0.24), 3.4)
+	_draw_pipe([CORE_CENTER + Vector2(-48.0, 42.0), Vector2(-286.0, 34.0), storage_port], Color(0.56, 0.50, 0.28, 0.22), 3.4)
+	_draw_pipe([core_port, Vector2(-148.0, 34.0), outfitting_port], Color(0.62, 0.54, 0.30, 0.22), 3.4)
+	for point in [core_port, reactor_port, storage_port, outfitting_port]:
+		draw_rect(Rect2(point - Vector2(8.0, 6.0), Vector2(16.0, 12.0)), Color(0.010, 0.024, 0.022, 0.80), true)
+		draw_rect(Rect2(point - Vector2(8.0, 6.0), Vector2(16.0, 12.0)), Color(0.96, 0.76, 0.34, 0.34), false, 1.4)
+		draw_circle(point, 2.6, Color(0.98, 0.78, 0.34, 0.62))
 
 
 func _draw_cable_runs() -> void:
@@ -219,16 +428,31 @@ func _draw_core_machine() -> void:
 	draw_colored_polygon(housing, Color(0.074, 0.132, 0.104, 0.98))
 	_draw_polyline_closed([housing[0], housing[1], housing[2], housing[3], housing[4], housing[5], housing[6], housing[7]], Color(0.58, 0.86, 0.68, 0.30), 1.8)
 
-	draw_circle(CORE_CENTER, 38.0, Color(0.16, 0.30, 0.22, 0.58))
-	draw_circle(CORE_CENTER, 25.0, Color(0.48, 0.68, 0.34, 0.30))
-	draw_arc(CORE_CENTER, 36.0, PI * 0.08, PI * 1.88, 42, Color(0.72, 0.88, 0.52, 0.38), 2.5, true)
-	draw_arc(CORE_CENTER, 19.0, 0.0, TAU, 34, Color(0.86, 0.96, 0.66, 0.58), 2.0, true)
-	draw_circle(CORE_CENTER, 6.0, Color(0.96, 0.78, 0.36, 0.82))
+	var service_bay := Rect2(CORE_CENTER + Vector2(-34.0, -22.0), Vector2(60.0, 42.0))
+	draw_rect(service_bay, Color(0.012, 0.032, 0.030, 0.82), true)
+	draw_rect(service_bay, Color(0.66, 0.96, 0.76, 0.18), false, 1.5)
+	for y_offset in [-12.0, -2.0, 8.0]:
+		draw_line(
+			CORE_CENTER + Vector2(-26.0, y_offset),
+			CORE_CENTER + Vector2(14.0, y_offset + 1.0),
+			Color(0.70, 0.94, 0.76, 0.16),
+			1.5,
+			true
+		)
+	var amber_cell := CORE_CENTER + Vector2(24.0, -4.0)
+	var status_chip := Rect2(amber_cell - Vector2(14.0, 8.0), Vector2(28.0, 16.0))
+	draw_rect(status_chip, Color(0.040, 0.056, 0.034, 0.52), true)
+	draw_rect(status_chip, Color(0.96, 0.76, 0.34, 0.22), false, 1.2)
+	draw_rect(Rect2(amber_cell - Vector2(7.0, 3.0), Vector2(14.0, 6.0)), Color(0.96, 0.78, 0.36, 0.50), true)
 
-	for angle in [0.0, PI * 0.5, PI, PI * 1.5]:
-		var marker_center := CORE_CENTER + Vector2(cos(angle), sin(angle)) * 39.0
-		draw_rect(Rect2(marker_center - Vector2(7.0, 4.0), Vector2(14.0, 8.0)), Color(0.18, 0.30, 0.24, 0.76), true)
-		draw_rect(Rect2(marker_center - Vector2(7.0, 4.0), Vector2(14.0, 8.0)), Color(0.70, 0.96, 0.76, 0.22), false, 1.0)
+	for marker_center in [
+		CORE_CENTER + Vector2(-48.0, -20.0),
+		CORE_CENTER + Vector2(48.0, -18.0),
+		CORE_CENTER + Vector2(-46.0, 31.0),
+		CORE_CENTER + Vector2(42.0, 30.0),
+	]:
+		draw_rect(Rect2(marker_center - Vector2(7.0, 4.0), Vector2(14.0, 8.0)), Color(0.18, 0.30, 0.24, 0.64), true)
+		draw_rect(Rect2(marker_center - Vector2(7.0, 4.0), Vector2(14.0, 8.0)), Color(0.70, 0.96, 0.76, 0.18), false, 1.0)
 
 	draw_line(CORE_CENTER + Vector2(-46.0, -36.0), CORE_CENTER + Vector2(-72.0, -62.0), Color(0.33, 0.58, 0.52, 0.36), 3.4)
 	draw_line(CORE_CENTER + Vector2(42.0, -34.0), CORE_CENTER + Vector2(66.0, -60.0), Color(0.33, 0.58, 0.52, 0.34), 3.4)
@@ -266,33 +490,26 @@ func _draw_player_work_pad() -> void:
 func _draw_diegetic_repair_anchor() -> void:
 	var repair_port := CORE_CENTER + Vector2(74.0, 14.0)
 	_draw_pipe(
-		[repair_port, CORE_CENTER + Vector2(104.0, 24.0), PLAYER_PAD_CENTER + Vector2(66.0, -10.0)],
-		Color(0.72, 0.62, 0.34, 0.48),
-		4.0
+		[repair_port, CORE_CENTER + Vector2(92.0, 22.0), PLAYER_PAD_CENTER + Vector2(42.0, -8.0)],
+		Color(0.72, 0.62, 0.34, 0.28),
+		3.0
 	)
-	draw_circle(repair_port, 11.0, Color(0.84, 0.72, 0.36, 0.18))
-	draw_arc(repair_port, 14.0, PI * 0.12, PI * 1.72, 24, Color(0.96, 0.76, 0.34, 0.54), 1.5, true)
-	draw_circle(repair_port, 4.4, Color(0.98, 0.78, 0.36, 0.74))
-	for point in [PLAYER_PAD_CENTER + Vector2(48.0, -10.0), PLAYER_PAD_CENTER + Vector2(62.0, 2.0), CORE_CENTER + Vector2(56.0, 38.0)]:
-		draw_circle(point, 3.0, Color(0.96, 0.78, 0.35, 0.52))
+	draw_rect(Rect2(repair_port - Vector2(9.0, 7.0), Vector2(18.0, 14.0)), Color(0.010, 0.022, 0.020, 0.82), true)
+	draw_rect(Rect2(repair_port - Vector2(9.0, 7.0), Vector2(18.0, 14.0)), Color(0.96, 0.76, 0.34, 0.42), false, 1.4)
+	draw_circle(repair_port, 3.4, Color(0.98, 0.78, 0.36, 0.72))
+	for point in [PLAYER_PAD_CENTER + Vector2(42.0, -8.0), CORE_CENTER + Vector2(56.0, 38.0)]:
+		draw_circle(point, 2.4, Color(0.96, 0.78, 0.35, 0.36))
 
 
 func _draw_player_repair_action() -> void:
-	var tool_origin := PLAYER_PAD_CENTER + Vector2(-20.0, -5.0)
+	var tool_origin := PLAYER_PAD_CENTER + Vector2(8.0, -7.0)
+	var tool_tip := PLAYER_PAD_CENTER + Vector2(34.0, -13.0)
 	var repair_port := CORE_CENTER + Vector2(62.0, 12.0)
-	var cable_path := [
-		PLAYER_PAD_CENTER + Vector2(18.0, 10.0),
-		PLAYER_PAD_CENTER + Vector2(-2.0, -4.0),
-		tool_origin,
-		repair_port,
-	]
-	_draw_cable(cable_path, Color(0.12, 0.22, 0.18, 0.88), 5.0)
-	draw_line(tool_origin, repair_port, Color(0.96, 0.76, 0.34, 0.42), 2.0, true)
-	draw_line(tool_origin + Vector2(4.0, -4.0), repair_port + Vector2(-6.0, -2.0), Color(0.72, 0.96, 0.78, 0.24), 1.4, true)
-	for point in [tool_origin + Vector2(8.0, -5.0), repair_port + Vector2(-8.0, 2.0), repair_port + Vector2(4.0, -8.0)]:
-		draw_circle(point, 2.8, Color(0.98, 0.78, 0.34, 0.68))
-	for offset in [Vector2(-18.0, 12.0), Vector2(-4.0, 16.0), Vector2(12.0, 14.0)]:
-		draw_circle(tool_origin + offset, 2.0, Color(0.70, 0.94, 0.82, 0.30))
+	draw_line(tool_origin, tool_tip, Color(0.98, 0.80, 0.34, 0.62), 3.0, true)
+	draw_line(tool_tip, repair_port, Color(0.96, 0.76, 0.34, 0.30), 1.8, true)
+	draw_line(tool_tip + Vector2(2.0, -4.0), repair_port + Vector2(-7.0, -1.0), Color(0.72, 0.96, 0.78, 0.16), 1.1, true)
+	for point in [tool_tip, repair_port + Vector2(-6.0, 2.0)]:
+		draw_circle(point, 2.5, Color(0.98, 0.78, 0.34, 0.64))
 
 
 func _draw_high_priority_floor_material() -> void:
@@ -395,57 +612,21 @@ func _draw_damaged_core_equipment() -> void:
 		draw_circle(exposed_port + Vector2(cos(angle), sin(angle)) * 12.0, 2.2, Color(0.96, 0.76, 0.34, 0.54))
 
 
-func _draw_player_character_pose() -> void:
-	var body_center := PLAYER_PAD_CENTER + Vector2(8.0, -4.0)
-	var forward := (CORE_CENTER - body_center).normalized()
-	var side := forward.orthogonal()
-	_draw_soft_shadow(body_center + Vector2(8.0, 22.0), Vector2(78.0, 26.0), 0.30)
-	_draw_oriented_rect(body_center - forward * 10.0, forward, 11.0, 8.0, Color(0.008, 0.022, 0.023, 0.84))
-	_draw_oriented_rect(body_center - forward * 10.0, forward, 8.0, 5.8, Color(0.16, 0.64, 0.66, 0.58))
-	_draw_oriented_rect(body_center - forward * 22.0, forward, 7.0, 7.0, Color(0.08, 0.20, 0.18, 0.66))
-	draw_circle(body_center + forward * 2.0, 8.0, Color(0.86, 0.96, 0.94, 0.62))
-	draw_circle(body_center + forward * 2.0, 5.6, Color(0.030, 0.070, 0.074, 0.88))
-	draw_line(
-		body_center + forward * 7.0 - side * 4.0,
-		body_center + forward * 7.0 + side * 4.0,
-		Color(0.72, 0.98, 0.98, 0.62),
-		1.6,
-		true
-	)
-	var tool_hand := PLAYER_PAD_CENTER + Vector2(-18.0, -8.0)
-	_draw_oriented_rect(body_center + forward * 4.0 + side * 8.0, forward, 11.0, 2.3, Color(0.88, 0.72, 0.34, 0.62))
-	draw_line(body_center + forward * 9.0 + side * 8.0, tool_hand, Color(0.98, 0.78, 0.36, 0.68), 3.0, true)
-	draw_line(body_center - forward * 4.0 - side * 8.0, body_center + forward * 9.0 - side * 9.0, Color(0.70, 0.92, 0.86, 0.42), 2.4, true)
-	draw_line(body_center - forward * 18.0 + side * 4.5, body_center - forward * 29.0 + side * 8.0, Color(0.04, 0.12, 0.12, 0.82), 4.0, true)
-	draw_line(body_center - forward * 18.0 - side * 4.5, body_center - forward * 28.0 - side * 7.0, Color(0.04, 0.12, 0.12, 0.82), 4.0, true)
-	draw_circle(body_center - forward * 8.0 - side * 5.2, 2.2, Color(0.98, 0.86, 0.48, 0.70))
-	draw_line(tool_hand, tool_hand + forward * 18.0, Color(0.98, 0.82, 0.38, 0.76), 2.2, true)
-
-
 func _draw_close_repair_feedback() -> void:
 	var repair_port := CORE_CENTER + Vector2(62.0, 12.0)
-	var tool_tip := PLAYER_PAD_CENTER + Vector2(-25.0, -9.0)
-	draw_line(tool_tip, repair_port, Color(1.0, 0.86, 0.42, 0.40), 2.6, true)
-	draw_arc(repair_port, 22.0, PI * 0.12, PI * 0.88, 14, Color(0.98, 0.82, 0.38, 0.38), 1.6, true)
-	draw_arc(repair_port, 28.0, PI * 1.04, PI * 1.42, 10, Color(0.70, 0.98, 0.82, 0.22), 1.2, true)
+	var tool_tip := PLAYER_PAD_CENTER + Vector2(34.0, -13.0)
+	draw_line(tool_tip, repair_port, Color(1.0, 0.86, 0.42, 0.24), 1.8, true)
+	draw_arc(repair_port, 19.0, PI * 0.12, PI * 0.72, 10, Color(0.98, 0.82, 0.38, 0.30), 1.4, true)
 	for spark in [
-		Vector2(-8.0, -10.0),
-		Vector2(3.0, -14.0),
-		Vector2(12.0, -2.0),
-		Vector2(-12.0, 7.0),
+		Vector2(-7.0, -8.0),
+		Vector2(8.0, -2.0),
 	]:
-		draw_line(repair_port + spark, repair_port + spark * 1.38, Color(1.0, 0.80, 0.32, 0.62), 1.8, true)
-	for point in [
-		PLAYER_PAD_CENTER + Vector2(-34.0, -18.0),
-		PLAYER_PAD_CENTER + Vector2(-44.0, -4.0),
-		CORE_CENTER + Vector2(82.0, 30.0),
-	]:
-		draw_circle(point, 2.0, Color(0.70, 0.98, 0.82, 0.34))
+		draw_line(repair_port + spark, repair_port + spark * 1.30, Color(1.0, 0.80, 0.32, 0.50), 1.5, true)
 
 
 func _draw_floor_plate(rect: Rect2) -> void:
-	draw_rect(rect, Color(0.028, 0.056, 0.052, 0.62), true)
-	draw_rect(rect, Color(0.22, 0.40, 0.35, 0.20), false, 1.0)
+	draw_rect(rect, Color(0.028, 0.056, 0.052, 0.42), true)
+	draw_rect(rect, Color(0.22, 0.40, 0.35, 0.15), false, 1.0)
 	draw_line(rect.position + Vector2(16.0, 16.0), rect.position + Vector2(rect.size.x - 18.0, 20.0), Color(0.28, 0.50, 0.43, 0.12), 1.0)
 	draw_line(rect.position + Vector2(24.0, rect.size.y - 18.0), rect.position + Vector2(rect.size.x - 20.0, rect.size.y - 16.0), Color(0.28, 0.50, 0.43, 0.10), 1.0)
 
@@ -528,22 +709,6 @@ func _draw_maintenance_crate(center: Vector2, size: Vector2) -> void:
 	draw_line(rect.position + Vector2(6.0, 7.0), rect.end - Vector2(7.0, 7.0), Color(0.30, 0.50, 0.42, 0.12), 1.0)
 
 
-func _draw_oriented_rect(center: Vector2, forward: Vector2, half_length: float, half_width: float, color: Color) -> void:
-	var safe_forward := forward
-	if safe_forward.length_squared() <= 0.001:
-		safe_forward = Vector2.LEFT
-	else:
-		safe_forward = safe_forward.normalized()
-	var side := safe_forward.orthogonal()
-	var points := PackedVector2Array([
-		center + safe_forward * half_length + side * half_width,
-		center + safe_forward * half_length - side * half_width,
-		center - safe_forward * half_length - side * half_width,
-		center - safe_forward * half_length + side * half_width,
-	])
-	draw_colored_polygon(points, color)
-
-
 func _draw_disabled_machine(center: Vector2, size: Vector2, fill_color: Color, edge_color: Color) -> void:
 	var half := size * 0.5
 	var body := PackedVector2Array([
@@ -596,12 +761,44 @@ func _draw_pipe(points: Array[Vector2], color: Color, width: float) -> void:
 	_draw_cable(points, color, width)
 
 
+func _draw_startup_asset(asset_id: String, rect: Rect2, modulate: Color) -> void:
+	var texture := _get_startup_asset_texture(asset_id)
+	if texture == null:
+		return
+
+	draw_texture_rect(texture, rect, false, modulate)
+
+
+func _get_startup_asset_texture(asset_id: String) -> Texture2D:
+	match asset_id:
+		STARTUP_ASSET_TERRAIN_FLOOR_ID:
+			return STARTUP_ASSET_TERRAIN_FLOOR
+		STARTUP_ASSET_CRYSTAL_ECOLOGY_ID:
+			return STARTUP_ASSET_CRYSTAL_ECOLOGY
+		STARTUP_ASSET_POLLUTION_EDGE_ID:
+			return STARTUP_ASSET_POLLUTION_EDGE
+		STARTUP_ASSET_OUTPOST_CORE_ID:
+			return STARTUP_ASSET_OUTPOST_CORE
+		STARTUP_ASSET_BASIC_REACTOR_ID:
+			return STARTUP_ASSET_BASIC_REACTOR
+		STARTUP_ASSET_STORAGE_BANK_ID:
+			return STARTUP_ASSET_STORAGE_BANK
+		STARTUP_ASSET_OUTFITTING_STATION_ID:
+			return STARTUP_ASSET_OUTFITTING_STATION
+		STARTUP_ASSET_PIPE_BUNDLE_ID:
+			return STARTUP_ASSET_PIPE_BUNDLE
+		STARTUP_ASSET_PLAYER_REPAIR_POSE_ID:
+			return STARTUP_ASSET_PLAYER_REPAIR_POSE
+
+	return null
+
+
 func _draw_soft_shadow(center: Vector2, size: Vector2, strength: float) -> void:
 	var shadow_rect := Rect2(center - size * 0.5, size)
 	draw_rect(shadow_rect, Color(0.0, 0.0, 0.0, strength), true)
 
 
-func _draw_polyline_closed(points: Array[Vector2], color: Color, width: float) -> void:
+func _draw_polyline_closed(points: Array, color: Color, width: float) -> void:
 	if points.size() < 2:
 		return
 

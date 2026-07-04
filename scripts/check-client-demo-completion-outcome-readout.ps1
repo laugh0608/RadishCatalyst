@@ -16,7 +16,17 @@ $requiredTextByFile = @{
         "is_completion_outcome_context",
         "format_hud_summary",
         "format_map_route_hint",
-        "format_completion_note"
+        "format_completion_note",
+        "前哨稳定窗口已打开"
+    )
+    "client/scripts/map/demo_industrial_base_visual_layer.gd" = @(
+        "CompletionOutcomeArtPass",
+        "get_completion_outcome_shape_count"
+    )
+    "client/scripts/map/demo_base_completion_outcome_art_pass.gd" = @(
+        "class_name DemoBaseCompletionOutcomeArtPass",
+        "completion_outcome.outpost.stability_window.ready",
+        "completion_outcome.flow.core_archive_to_outpost.ready"
     )
     "client/scripts/systems/demo_mainline_completion_formatter.gd" = @(
         "CompletionOutcomeFormatter := preload",
@@ -35,6 +45,7 @@ $requiredTextByFile = @{
         "Demo completion outcome readout checks passed.",
         "_check_hud_map_and_outpost_outcome",
         "_check_core_device_and_completion_log_outcome",
+        "_check_outpost_completion_visual_outcome",
         "_check_completion_outcome_boundaries"
     )
     "scripts/check-client.sh" = @(

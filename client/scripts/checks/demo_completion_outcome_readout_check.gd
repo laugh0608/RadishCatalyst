@@ -1,6 +1,7 @@
 extends SceneTree
 
 const CompletionOutcomeFormatter := preload("res://scripts/systems/demo_completion_outcome_formatter.gd")
+const VerticalSliceMapScene := preload("res://scenes/maps/VerticalSliceMap.tscn")
 
 var failures: Array[String] = []
 var data_registry := DataRegistry.new()
@@ -27,6 +28,7 @@ func _init() -> void:
 func _run_checks() -> void:
 	_check_hud_map_and_outpost_outcome()
 	_check_core_device_and_completion_log_outcome()
+	_check_outpost_completion_visual_outcome()
 	_check_completion_outcome_boundaries()
 
 
@@ -37,6 +39,7 @@ func _check_hud_map_and_outpost_outcome() -> void:
 	var status_text := HudStatusPresenter.new().format_status_text(data_registry, world, character)
 	_expect_text_contains(status_text, "Demo 成果", "HUD shows completion outcome")
 	_expect_text_contains(status_text, "核心稳定通道已打开", "HUD names stabilized route")
+	_expect_text_contains(status_text, "前哨稳定窗口已打开", "HUD names outpost stability window")
 	_expect_text_contains(status_text, "整备成果：模块校准 / 外勤收益整备已接入", "HUD includes outfitting outcome")
 	_expect_text_contains(status_text, "成果整理", "HUD shows outpost review line")
 
@@ -53,6 +56,7 @@ func _check_hud_map_and_outpost_outcome() -> void:
 	var outpost_prompt := formatter.format_outpost_core_prompt(world, character)
 	_expect_text_contains(outpost_prompt, "Demo 成果整理", "outpost prompt shows completion outcome")
 	_expect_text_contains(outpost_prompt, "守卫缓存已归档", "outpost prompt keeps terminal evidence")
+	_expect_text_contains(outpost_prompt, "前哨稳定窗口可作为下一趟外勤起点", "outpost prompt shows next sortie staging payoff")
 	_expect_text_contains(outpost_prompt, "成果整理", "outpost prompt keeps review line")
 
 
@@ -73,7 +77,7 @@ func _check_core_device_and_completion_log_outcome() -> void:
 	var core_prompt := formatter.format_general_interaction_prompt(core, character, world)
 	_expect_text_contains(core_prompt, "成果整理", "core prompt shows completion outcome")
 	_expect_text_contains(core_prompt, "守卫战记录", "core prompt keeps battle evidence")
-	_expect_text_contains(core_prompt, "回前哨核心，整理补给、整备收益和复测读数", "core prompt points back to outpost")
+	_expect_text_contains(core_prompt, "回前哨核心，整理稳定窗口、补给、整备收益和复测读数", "core prompt points back to outpost")
 	core.free()
 
 	var completion := QuestCompletionApplier.new(data_registry).apply_completion(
@@ -91,6 +95,28 @@ func _check_core_device_and_completion_log_outcome() -> void:
 	_expect_text_contains(log_message, "首版 Demo 主线目标已完成", "completion log names demo completion")
 	_expect_text_contains(log_message, "核心稳定通道已打开", "completion log names outcome")
 	_expect_text_contains(log_message, "不新增必需后续任务", "completion log keeps scope boundary")
+
+
+func _check_outpost_completion_visual_outcome() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	var layer := map.get_node_or_null("DemoIndustrialBaseVisualLayer") as DemoIndustrialBaseVisualLayer
+	_expect_equal(layer != null, true, "outpost completion visual layer exists")
+	if layer == null:
+		map.free()
+		return
+	var world := _create_completed_world("region.outpost_platform")
+	var character := _create_completed_character("region.outpost_platform")
+	layer.apply_visuals()
+	layer.refresh_chain_state(world, character)
+	_expect_equal(layer.get_completion_outcome_shape_count() >= 6, true, "outpost completion visual registers outcome shapes")
+	_expect_equal(layer.has_completion_outcome_shape("completion_outcome.outpost.stability_window.ready"), true, "outpost visual marks stability window ready")
+	_expect_equal(layer.has_completion_outcome_shape("completion_outcome.outpost.core_write_archive.ready"), true, "outpost visual marks core write archive ready")
+	_expect_equal(layer.has_completion_outcome_shape("completion_outcome.outpost.retest_readout.pending"), true, "outpost visual marks retest readout state")
+	_expect_equal(layer.has_completion_outcome_shape("completion_outcome.outpost.supply_refit.full"), true, "outpost visual marks supply refit state")
+	_expect_equal(layer.has_completion_outcome_shape("completion_outcome.outpost.anomaly_probe.ready"), true, "outpost visual keeps anomaly hook")
+	_expect_equal(layer.has_completion_outcome_shape("completion_outcome.flow.core_archive_to_outpost.ready"), true, "outpost visual links core archive back to base")
+	map.free()
 
 
 func _check_completion_outcome_boundaries() -> void:

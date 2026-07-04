@@ -9,6 +9,10 @@ const CRYSTAL_COLLECTOR_SITE_INSTANCE_ID := "map_object_instance.crystal_collect
 const CRYSTAL_COLLECTOR_OUTPUT_INSTANCE_ID := "map_object_instance.crystal_collector_output"
 const CRYSTAL_COLLECTOR_OUTPUT_ID := "map_object.crystal_collector_output"
 const CORE_STATION_REGION_ID := "region.demo_stabilization_core"
+const POLLUTION_EDGE_REGION_ID := "region.pollution_edge"
+const POLLUTION_FILTER_STRUCTURE_ID := "structure.pollution_filter_build_site"
+const POLLUTION_FILTER_BUILDING_ID := "building.pollution_filter"
+const POLLUTION_FILTER_SITE_INSTANCE_ID := "map_object_instance.pollution_filter_build_site"
 
 
 static func apply(checkpoint_id: String, world_state: WorldState, character_state: CharacterState) -> void:
@@ -17,6 +21,8 @@ static func apply(checkpoint_id: String, world_state: WorldState, character_stat
 			_prepare_crystal_collector_output(world_state, character_state)
 		"visual_review.base_handoff":
 			_prepare_base_handoff(world_state, character_state)
+		"visual_review.pollution_short_challenge":
+			_prepare_pollution_short_challenge(world_state, character_state)
 		"visual_review.core_station":
 			_prepare_core_station_feedback(world_state, character_state)
 
@@ -244,6 +250,60 @@ static func _mark_base_handoff_structures(world_state: WorldState) -> void:
 		"map_object_instance.field_outfitting_station_build_site"
 	)
 	world_state.set_base_structure_status("structure.basic_reactor", "completed", "recipe.repair_gel")
+
+
+static func _prepare_pollution_short_challenge(world_state: WorldState, character_state: CharacterState) -> void:
+	world_state.unlock_region(POLLUTION_EDGE_REGION_ID)
+	world_state.current_region_id = POLLUTION_EDGE_REGION_ID
+	character_state.current_region_id = POLLUTION_EDGE_REGION_ID
+	character_state.equipment["suit_module"] = FieldOutfittingRuntime.BASIC_FILTER_MODULE_ID
+	character_state.quick_slots = ["item.repair_gel", "item.resistance_vial_t1"]
+	character_state.inventory = _make_inventory(
+		{
+			"item.basic_parts": 4,
+			"item.repair_gel": 2,
+			"item.resistance_vial_t1": 2,
+			"item.polluted_residue": 1
+		},
+		{},
+		{"fluid.basic_solvent": 2.0}
+	)
+
+	world_state.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
+	world_state.quest_state.set_objective_progress(
+		"quest.enter_pollution_edge",
+		"craft_item",
+		"item.resistance_vial_t1",
+		1.0
+	)
+	world_state.quest_state.set_objective_progress(
+		"quest.enter_pollution_edge",
+		"gather_item",
+		"item.polluted_residue",
+		1.0
+	)
+	_mark_pollution_filter_ready(world_state)
+
+	var enemy_state := world_state.ensure_enemy(
+		"enemy_instance.polluted_skitter",
+		"enemy.polluted_skitter",
+		POLLUTION_EDGE_REGION_ID,
+		42.0
+	)
+	enemy_state["health"] = max(float(enemy_state.get("health", 100.0)), 1.0)
+	enemy_state["is_defeated"] = false
+	enemy_state["drops_granted"] = false
+
+
+static func _mark_pollution_filter_ready(world_state: WorldState) -> void:
+	_mark_structure_built(
+		world_state,
+		POLLUTION_FILTER_STRUCTURE_ID,
+		POLLUTION_FILTER_BUILDING_ID,
+		POLLUTION_EDGE_REGION_ID,
+		POLLUTION_FILTER_SITE_INSTANCE_ID
+	)
+	world_state.set_base_structure_status(POLLUTION_FILTER_STRUCTURE_ID, "completed", "recipe.cleanse_residue")
 
 
 static func _mark_structure_built(

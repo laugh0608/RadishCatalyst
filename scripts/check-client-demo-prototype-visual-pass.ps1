@@ -53,9 +53,13 @@ $requiredTextByFile = @{
         "startup_presentation.perimeter_industrial_assets",
         "startup_presentation.player_repair_action",
         "startup_presentation.damaged_core_equipment",
-        "startup_presentation.player_character_pose",
+        "startup_presentation.actual_player_core_facing",
+        "startup_presentation.single_repair_pose_asset",
         "startup_presentation.high_priority_floor_material",
         "startup_presentation.close_repair_feedback",
+        "startup_presentation.short_repair_tool_feedback",
+        "startup_presentation.core_status_chip_deemphasized",
+        "startup_presentation.right_background_linework_muted",
         "refresh_startup_state"
     )
     "client/scripts/actors/player_controller.gd" = @(

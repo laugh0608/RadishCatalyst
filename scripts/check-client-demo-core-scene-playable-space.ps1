@@ -27,7 +27,10 @@ $requiredTextByFile = @{
     "client/scripts/map/demo_core_scene_space_layer.gd" = @(
         "class_name DemoCoreSceneSpaceLayer",
         "GENERATED_FRAME_PREFIX",
+        "FOCUSED_FRAME_ALPHA",
         "apply_profile",
+        "refresh_frame_focus",
+        "get_muted_frame_count",
         "get_tagged_node_count"
     )
     "client/scenes/maps/VerticalSliceMap.tscn" = @(
@@ -38,6 +41,7 @@ $requiredTextByFile = @{
         "Demo core scene playable space checks passed.",
         "_check_profile_covers_core_regions_without_expansion",
         "_check_scene_space_layer_applies_roles",
+        "_check_scene_space_frames_step_back_in_workfaces",
         "_check_representative_objects_and_enemies_sit_on_space_surfaces"
     )
     "scripts/check-client.sh" = @(

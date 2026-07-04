@@ -3,12 +3,20 @@ class_name DemoCoreSceneSpaceLayer
 
 const GENERATED_FRAME_PREFIX := "DemoCoreSceneSpaceFrame"
 const FRAME_THICKNESS := 4.0
+const FRAME_FOCUS_MIN_X := -80.0
+const FRAME_FOCUS_MAX_X := 620.0
+const FOCUSED_FRAME_ALPHA := 0.004
 
 var applied_region_count := 0
+var muted_frame_count := 0
 
 
 func _ready() -> void:
 	apply_profile()
+
+
+func _process(_delta: float) -> void:
+	refresh_frame_focus(_resolve_focus_position())
 
 
 func apply_profile() -> void:
@@ -23,12 +31,30 @@ func apply_profile() -> void:
 		applied_region_count += 1
 
 
+func refresh_frame_focus(focus_position: Vector2) -> void:
+	if focus_position.x >= FRAME_FOCUS_MIN_X and focus_position.x <= FRAME_FOCUS_MAX_X:
+		_set_generated_frame_alpha(FOCUSED_FRAME_ALPHA)
+		return
+	_restore_generated_frame_alpha()
+
+
 func get_generated_frame_count() -> int:
 	var count := 0
 	for child in get_children():
 		if String(child.name).begins_with(GENERATED_FRAME_PREFIX):
 			count += 1
 	return count
+
+
+func get_muted_frame_count() -> int:
+	return muted_frame_count
+
+
+func get_max_generated_frame_alpha() -> float:
+	var max_alpha := 0.0
+	for frame in _get_generated_frame_rects():
+		max_alpha = maxf(max_alpha, frame.color.a)
+	return max_alpha
 
 
 func has_role(region_id: String, role: String) -> bool:
@@ -104,6 +130,7 @@ func _create_frame_segment(region_id: String, suffix: String, rect: Rect2, color
 	frame.set_meta("core_scene_region_id", region_id)
 	frame.set_meta("core_scene_roles", ["surface_frame"])
 	frame.set_meta("core_scene_primary_role", "surface_frame")
+	frame.set_meta("core_scene_frame_original_color", color)
 	add_child(frame)
 
 
@@ -150,6 +177,42 @@ func _get_map_node(path: String) -> Node:
 	if path.is_empty() or get_parent() == null:
 		return null
 	return get_parent().get_node_or_null(path)
+
+
+func _set_generated_frame_alpha(alpha: float) -> void:
+	muted_frame_count = 0
+	for frame in _get_generated_frame_rects():
+		var original: Color = frame.get_meta("core_scene_frame_original_color", frame.color)
+		var focused_color := original
+		focused_color.a = minf(original.a, alpha)
+		frame.color = focused_color
+		muted_frame_count += 1
+
+
+func _restore_generated_frame_alpha() -> void:
+	for frame in _get_generated_frame_rects():
+		frame.color = frame.get_meta("core_scene_frame_original_color", frame.color)
+	muted_frame_count = 0
+
+
+func _get_generated_frame_rects() -> Array[ColorRect]:
+	var frames: Array[ColorRect] = []
+	for child in get_children():
+		if not String(child.name).begins_with(GENERATED_FRAME_PREFIX):
+			continue
+		var frame := child as ColorRect
+		if frame != null:
+			frames.append(frame)
+	return frames
+
+
+func _resolve_focus_position() -> Vector2:
+	if get_parent() == null:
+		return Vector2.INF
+	var player := get_parent().get_node_or_null("Player") as Node2D
+	if player == null:
+		return Vector2.INF
+	return player.position
 
 
 func _count_tagged_descendants(node: Node, region_id: String, role: String) -> int:

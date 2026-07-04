@@ -1,6 +1,9 @@
 extends Node2D
 class_name DemoPollutionBoundaryVisualLayer
 
+const PollutionToCoreHandoffArtPass := preload("res://scripts/map/demo_pollution_to_core_handoff_art_pass.gd")
+const AssetLanguageArtPass := preload("res://scripts/map/demo_default_path_asset_language_art_pass.gd")
+
 const ROLE_BOUNDARY := "boundary"
 const ROLE_FILTER_SITE := "filter_site"
 const ROLE_RESIDUE := "residue"
@@ -188,21 +191,23 @@ var muted_pollution_focus_context_layer_count := 0
 var muted_pollution_focus_context_marker_count := 0
 var applied_pollution_chain_state_count := 0
 var pollution_chain_state: Dictionary = {}
+var pollution_short_challenge_state: Dictionary = {}
+var pollution_core_handoff_state: Dictionary = {}
+var pollution_short_challenge_shape_ids: Array[String] = []
+var pollution_short_challenge_focus_shape_ids: Array[String] = []
+var pollution_core_handoff_shape_ids: Array[String] = []
 var context_layer_original_modulates: Dictionary = {}
-
 
 func _ready() -> void:
 	process_priority = 100
 	apply_visuals()
 	refresh_focus_visibility(_get_player_position())
 
-
 func _process(_delta: float) -> void:
 	refresh_focus_visibility(_get_player_position())
 	_tone_down_pollution_interactable_markers()
 	_mute_crystal_carryover_focus()
 	_mute_pollution_focus_distractions()
-
 
 func apply_visuals() -> void:
 	_register_boundary_shapes()
@@ -215,17 +220,23 @@ func apply_visuals() -> void:
 	_mute_pollution_focus_distractions()
 	queue_redraw()
 
-
 func refresh_pollution_chain_state(world_state: WorldState, character_state: CharacterState) -> void:
 	pollution_chain_shape_ids.clear()
+	pollution_short_challenge_shape_ids.clear()
+	pollution_short_challenge_focus_shape_ids.clear()
+	pollution_core_handoff_shape_ids.clear()
 	applied_pollution_chain_state_count = 0
 	if world_state == null or character_state == null:
 		pollution_chain_state.clear()
+		pollution_short_challenge_state.clear()
+		pollution_core_handoff_state.clear()
 		queue_redraw()
 		return
 	var inventory := character_state.inventory
 	if not _has_pollution_chain_context(world_state, inventory):
 		pollution_chain_state.clear()
+		pollution_short_challenge_state.clear()
+		pollution_core_handoff_state.clear()
 		queue_redraw()
 		return
 	var filter_state := _get_base_structure_for_definition(world_state, "building.pollution_filter")
@@ -281,6 +292,11 @@ func refresh_pollution_chain_state(world_state: WorldState, character_state: Cha
 		"slurry_device_state": slurry_device_state,
 		"return_device_state": return_device_state
 	}
+	pollution_short_challenge_state = DemoPollutionShortChallengeReadinessArtPass.create_state(world_state, character_state)
+	pollution_short_challenge_shape_ids = DemoPollutionShortChallengeReadinessArtPass.get_shape_ids(pollution_short_challenge_state)
+	pollution_core_handoff_state = PollutionToCoreHandoffArtPass.create_state(world_state, character_state)
+	pollution_core_handoff_shape_ids = PollutionToCoreHandoffArtPass.get_pollution_shape_ids(pollution_core_handoff_state)
+	_register_short_challenge_focus_shapes()
 	_register_pollution_chain_shape("pollution_chain.boundary_residue_queue.%s" % _state_suffix(residue_ready))
 	_register_pollution_chain_shape("pollution_chain.boundary_filter_window.%s" % _state_suffix(filter_active))
 	_register_pollution_chain_shape("pollution_chain.boundary_vial_output.%s" % _state_suffix(vial_ready))
@@ -357,6 +373,30 @@ func has_pollution_chain_shape(shape_id: String) -> bool:
 	return pollution_chain_shape_ids.has(shape_id)
 
 
+func get_pollution_short_challenge_shape_count() -> int:
+	return pollution_short_challenge_shape_ids.size()
+
+
+func has_pollution_short_challenge_shape(shape_id: String) -> bool:
+	return pollution_short_challenge_shape_ids.has(shape_id)
+
+
+func get_pollution_short_challenge_focus_shape_count() -> int:
+	return pollution_short_challenge_focus_shape_ids.size()
+
+
+func has_pollution_short_challenge_focus_shape(shape_id: String) -> bool:
+	return pollution_short_challenge_focus_shape_ids.has(shape_id)
+
+
+func get_pollution_core_handoff_shape_count() -> int:
+	return pollution_core_handoff_shape_ids.size()
+
+
+func has_pollution_core_handoff_shape(shape_id: String) -> bool:
+	return pollution_core_handoff_shape_ids.has(shape_id)
+
+
 func refresh_focus_visibility(player_position: Vector2) -> void:
 	visible = is_pollution_focus_visible_at(player_position)
 	_update_pollution_focus_context_layers()
@@ -370,6 +410,15 @@ func is_pollution_focus_visible_at(player_position: Vector2) -> bool:
 
 
 func _draw() -> void:
+	if _is_short_challenge_focus():
+		AssetLanguageArtPass.draw_pollution_language(self, true)
+		_draw_short_challenge_focus_workspace()
+		_draw_filter_construction_site()
+		_draw_pressure_gate()
+		DemoPollutionShortChallengeReadinessArtPass.draw(self, pollution_short_challenge_state)
+		PollutionToCoreHandoffArtPass.draw_pollution_handoff(self, pollution_core_handoff_state)
+		return
+	AssetLanguageArtPass.draw_pollution_language(self, false)
 	_draw_local_processing_workspace()
 	_draw_boundary_field()
 	_draw_pollution_material_surface()
@@ -378,7 +427,27 @@ func _draw() -> void:
 	_draw_residue_patches()
 	_draw_pressure_gate()
 	_draw_pollution_chain_state()
+	DemoPollutionShortChallengeReadinessArtPass.draw(self, pollution_short_challenge_state)
+	PollutionToCoreHandoffArtPass.draw_pollution_handoff(self, pollution_core_handoff_state)
 	_draw_operation_relation_overlay()
+
+
+func _draw_short_challenge_focus_workspace() -> void:
+	var floor := Rect2(Vector2(190.0, -164.0), Vector2(216.0, 254.0))
+	var filter_plinth := Rect2(Vector2(248.0, -154.0), Vector2(118.0, 108.0))
+	var pressure_lane := Rect2(Vector2(236.0, -10.0), Vector2(158.0, 84.0))
+	draw_rect(floor, Color(0.006, 0.012, 0.01, 0.5), true)
+	_draw_corner_frame(floor, Color(0.66, 0.74, 0.48, 0.12), 18.0, 1.0)
+	draw_rect(filter_plinth, Color(0.035, 0.048, 0.03, 0.3), true)
+	draw_rect(filter_plinth, Color(0.68, 0.76, 0.42, 0.12), false, 1.0, true)
+	draw_rect(pressure_lane, Color(0.12, 0.075, 0.032, 0.16), true)
+	_draw_corner_frame(pressure_lane, Color(DANGER_LINE.r, DANGER_LINE.g, DANGER_LINE.b, 0.16), 12.0, 0.9)
+	for y in [-132.0, -104.0, -76.0]:
+		draw_line(Vector2(256.0, y), Vector2(348.0, y + 10.0), Color(0.62, 0.7, 0.48, 0.11), 0.9, true)
+	for x in [258.0, 302.0, 346.0]:
+		draw_line(Vector2(x, -4.0), Vector2(x + 12.0, 70.0), Color(DANGER_LINE.r, DANGER_LINE.g, DANGER_LINE.b, 0.08), 0.9, true)
+	_draw_route([Vector2(238.0, 10.0), Vector2(282.0, 18.0), Vector2(326.0, 44.0), Vector2(374.0, 24.0)], Color(0.56, 0.7, 0.38, 0.22), 1.4)
+	_draw_route([Vector2(354.0, 118.0), Vector2(322.0, 96.0), Vector2(286.0, 36.0), Vector2(282.0, -102.0)], Color(RESIDUE_LINE.r, RESIDUE_LINE.g, RESIDUE_LINE.b, 0.18), 1.2)
 
 
 func _draw_local_processing_workspace() -> void:
@@ -1007,13 +1076,16 @@ func _register_flow_shapes() -> void:
 		"flow.pollution_pressure_warning_nodes",
 		"flow.contamination_to_filter_story",
 		"flow.filter_conversion_feedback",
+		"flow.pollution_result_to_core_buffer",
+		"flow.pollution_core_entry_route",
 		"operation_relation.pollution.residue_to_filter",
 		"operation_relation.pollution.filter_outputs",
 		"operation_relation.pollution.vial_return",
 		"operation_relation.pollution.slurry_split",
 		"operation_relation.pollution.core_prep_pressure_port",
 		"operation_relation.pollution.contamination_to_filter_story",
-		"operation_relation.pollution.filter_conversion_feedback"
+		"operation_relation.pollution.filter_conversion_feedback",
+		"operation_relation.pollution.short_challenge_to_core_entry"
 	]
 
 
@@ -1043,6 +1115,7 @@ func _register_terrain_material_shapes() -> void:
 		"terrain.pollution.recovery_crate_stacks",
 		"terrain.pollution.core_prep_tap"
 	]
+	terrain_material_shape_ids.append_array(AssetLanguageArtPass.get_pollution_shape_ids())
 
 
 func _register_pollution_chain_shape(shape_id: String) -> void:
@@ -1050,6 +1123,26 @@ func _register_pollution_chain_shape(shape_id: String) -> void:
 		return
 	pollution_chain_shape_ids.append(shape_id)
 	applied_pollution_chain_state_count = pollution_chain_shape_ids.size()
+
+
+func _register_short_challenge_focus_shapes() -> void:
+	if not _is_short_challenge_focus():
+		return
+	pollution_short_challenge_focus_shape_ids = [
+		"pollution_short_challenge.focus.workspace_floor",
+		"pollution_short_challenge.focus.filter_plinth",
+		"pollution_short_challenge.focus.pressure_lane",
+		"pollution_short_challenge.focus.pressure_haze",
+		"pollution_short_challenge.focus.corrosion_edge",
+		"pollution_short_challenge.focus.chain_overlay_suppressed"
+	]
+
+
+func _is_short_challenge_focus() -> bool:
+	return (
+		bool(pollution_short_challenge_state.get("challenge_active", false))
+		and bool(pollution_short_challenge_state.get("ready_loadout", false))
+	)
 
 
 func _get_base_structure_for_definition(world_state: WorldState, building_id: String) -> Dictionary:
@@ -1060,7 +1153,6 @@ func _get_base_structure_for_definition(world_state: WorldState, building_id: St
 			return structure
 	return {}
 
-
 func _has_pollution_chain_context(world_state: WorldState, inventory: InventoryState) -> bool:
 	if world_state == null or inventory == null:
 		return false
@@ -1068,6 +1160,7 @@ func _has_pollution_chain_context(world_state: WorldState, inventory: InventoryS
 		inventory.has_ref("item.polluted_residue", 1)
 		or inventory.has_ref("item.resistance_vial_t1", 1)
 		or inventory.has_ref("fluid.polluted_slurry", 1.0)
+		or inventory.has_ref("item.core_stabilization_buffer", 1)
 		or _is_recipe_active(world_state, "building.pollution_filter", "recipe.cleanse_residue")
 		or _is_recipe_active(world_state, "building.basic_reactor", "recipe.reclaim_basic_parts")
 		or _is_recipe_active(world_state, "building.basic_reactor", "recipe.core_stabilization_buffer")
@@ -1076,6 +1169,7 @@ func _has_pollution_chain_context(world_state: WorldState, inventory: InventoryS
 	for quest_id in [
 		"quest.expand_treatment_point",
 		"quest.enter_pollution_edge",
+		"quest.enter_demo_stabilization_core",
 		"quest.unlock_ruin_signal",
 		"quest.prepare_demo_stabilization_buffer",
 		"quest.write_demo_stabilization_core"
@@ -1083,7 +1177,6 @@ func _has_pollution_chain_context(world_state: WorldState, inventory: InventoryS
 		if world_state.quest_state.has_active_quest(quest_id):
 			return true
 	return false
-
 
 func _is_recipe_active(world_state: WorldState, building_id: String, recipe_id: String) -> bool:
 	var structure := _get_base_structure_for_definition(world_state, building_id)

@@ -1,6 +1,9 @@
 extends Node2D
 class_name DemoCoreStabilizationVisualLayer
 
+const PollutionToCoreHandoffArtPass := preload("res://scripts/map/demo_pollution_to_core_handoff_art_pass.gd")
+const AssetLanguageArtPass := preload("res://scripts/map/demo_default_path_asset_language_art_pass.gd")
+
 const ROLE_APPROACH := "approach"
 const ROLE_RECOVERY := "recovery"
 const ROLE_GUARD_FIELD := "guard_field"
@@ -101,6 +104,8 @@ var muted_enemy_sprite_count := 0
 var muted_core_focus_context_layer_count := 0
 var applied_core_station_state_count := 0
 var core_station_state: Dictionary = {}
+var core_handoff_state: Dictionary = {}
+var core_handoff_shape_ids: Array[String] = []
 var context_layer_original_modulates: Dictionary = {}
 
 
@@ -129,13 +134,16 @@ func apply_visuals() -> void:
 
 func refresh_core_station_state(world_state: WorldState, character_state: CharacterState) -> void:
 	core_station_state_shape_ids.clear()
+	core_handoff_shape_ids.clear()
 	applied_core_station_state_count = 0
 	if world_state == null or character_state == null:
 		core_station_state.clear()
+		core_handoff_state.clear()
 		queue_redraw()
 		return
 	if not _has_core_station_context(world_state, character_state):
 		core_station_state.clear()
+		core_handoff_state.clear()
 		queue_redraw()
 		return
 
@@ -212,6 +220,8 @@ func refresh_core_station_state(world_state: WorldState, character_state: Charac
 		"retest_ready": retest_ready,
 		"logistics_return_ready": logistics_return_ready
 	}
+	core_handoff_state = PollutionToCoreHandoffArtPass.create_state(world_state, character_state)
+	core_handoff_shape_ids = PollutionToCoreHandoffArtPass.get_core_shape_ids(core_handoff_state)
 	_register_core_station_state_shape("core_station.device.recovery.%s" % recovery_state)
 	_register_core_station_state_shape("core_station.device.guard_cache.%s" % guard_cache_state)
 	_register_core_station_state_shape("core_station.pressure.guard.%s" % guard_pressure_state)
@@ -230,6 +240,10 @@ func refresh_core_station_state(world_state: WorldState, character_state: Charac
 	_register_core_station_state_shape("core_station.flow.core_to_retest.%s" % _core_ready_suffix(core_written))
 	_register_core_station_state_shape("core_station.flow.retest_to_logistics.%s" % _core_ready_suffix(core_written))
 	_register_core_station_state_shape("core_station.flow.logistics_return.%s" % _core_ready_suffix(logistics_return_ready))
+	if core_written:
+		_register_core_station_state_shape("core_station.feedback.stability_window.open")
+		_register_core_station_state_shape("core_station.feedback.unresolved_anomaly_hook.ready")
+		_register_core_station_state_shape("core_station.flow.core_write_to_stability_window.ready")
 	queue_redraw()
 
 
@@ -273,12 +287,21 @@ func has_core_station_state_shape(shape_id: String) -> bool:
 	return core_station_state_shape_ids.has(shape_id)
 
 
+func get_core_handoff_shape_count() -> int:
+	return core_handoff_shape_ids.size()
+
+
+func has_core_handoff_shape(shape_id: String) -> bool:
+	return core_handoff_shape_ids.has(shape_id)
+
+
 func refresh_focus_visibility(player_position: Vector2) -> void:
 	visible = player_position.x >= FOCUS_VISIBLE_MIN_X
 	_update_core_focus_context_layers()
 
 
 func _draw() -> void:
+	AssetLanguageArtPass.draw_core_language(self)
 	_draw_station_surfaces()
 	_draw_station_workface_details()
 	_draw_station_routes()
@@ -286,6 +309,7 @@ func _draw() -> void:
 	_draw_guard_field()
 	_draw_writeback_device()
 	_draw_retest_and_logistics()
+	PollutionToCoreHandoffArtPass.draw_core_handoff(self, core_handoff_state)
 	_draw_core_station_state()
 	_draw_operation_relation_overlay()
 
@@ -540,6 +564,7 @@ func _draw_core_station_state() -> void:
 	if core_written:
 		_draw_core_state_flow([Vector2(4038.0, -24.0), Vector2(4118.0, 18.0), Vector2(4134.0, 78.0)], RETEST_LINE, 3.8)
 		_draw_core_state_flow([Vector2(4134.0, 78.0), Vector2(4228.0, -52.0)], LOGISTICS_LINE, 3.2)
+		_draw_core_completion_window_feedback()
 	if logistics_return_ready:
 		_draw_core_state_flow([Vector2(4228.0, -52.0), Vector2(4168.0, -86.0), Vector2(4108.0, -118.0)], LOGISTICS_LINE, 2.8)
 
@@ -622,6 +647,35 @@ func _draw_logistics_return_feedback(state: String) -> void:
 	for center in [Vector2(4102.0, -116.0), Vector2(4130.0, -118.0)]:
 		draw_rect(Rect2(center + Vector2(-8.0, -6.0), Vector2(16.0, 12.0)), Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.38), true)
 		draw_rect(Rect2(center + Vector2(-8.0, -6.0), Vector2(16.0, 12.0)), Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.68), false, 0.9, true)
+
+
+func _draw_core_completion_window_feedback() -> void:
+	var center := Vector2(4038.0, -24.0)
+	for radius in [82.0, 108.0, 132.0]:
+		draw_arc(center, radius, PI * 0.02, PI * 1.94, 64, Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.22), 1.3, true)
+	_draw_core_state_flow(
+		[center, Vector2(4118.0, 18.0), Vector2(4134.0, 78.0), Vector2(4218.0, -28.0), Vector2(4252.0, -126.0)],
+		ANOMALY_HOOK_LINE,
+		2.2
+	)
+	var window_panel := Rect2(Vector2(4114.0, -8.0), Vector2(94.0, 44.0))
+	draw_rect(window_panel, Color(0.006, 0.02, 0.018, 0.62), true)
+	draw_rect(window_panel, Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.58), false, 1.4, true)
+	for index in range(5):
+		var x := window_panel.position.x + 12.0 + float(index) * 14.0
+		var height := 12.0 + float(index % 2) * 8.0
+		draw_line(
+			Vector2(x, window_panel.end.y - 8.0),
+			Vector2(x, window_panel.end.y - 8.0 - height),
+			Color(RETURN_LINE.r, RETURN_LINE.g, RETURN_LINE.b, 0.54),
+			1.8,
+			true
+		)
+	var anomaly_panel := Rect2(Vector2(4228.0, -168.0), Vector2(54.0, 34.0))
+	draw_rect(anomaly_panel, Color(0.08, 0.04, 0.12, 0.32), true)
+	draw_rect(anomaly_panel, Color(ANOMALY_HOOK_LINE.r, ANOMALY_HOOK_LINE.g, ANOMALY_HOOK_LINE.b, 0.58), false, 1.2, true)
+	for point in [Vector2(4218.0, -28.0), Vector2(4252.0, -126.0), anomaly_panel.position + Vector2(27.0, 17.0)]:
+		draw_arc(point, 14.0, 0.0, TAU, 24, Color(ANOMALY_HOOK_LINE.r, ANOMALY_HOOK_LINE.g, ANOMALY_HOOK_LINE.b, 0.36), 1.1, true)
 
 
 func _draw_core_status_strip(origin: Vector2, state: String, color: Color) -> void:
@@ -765,10 +819,15 @@ func _register_station_shapes() -> void:
 		"station.core_status_lights",
 		"station.core_pressure_warning",
 		"station.core_write_feedback",
+		"station.pollution_result_manifest",
+		"station.core_entry_manifest",
+		"station.core_buffer_socket",
+		"station.core_recovery_wave",
 		"station.archived_stabilization_spine",
 		"station.stability_window_hook",
 		"station.unresolved_anomaly_probe"
 	]
+	station_shape_ids.append_array(AssetLanguageArtPass.get_core_shape_ids())
 
 
 func _register_flow_shapes() -> void:
@@ -784,12 +843,16 @@ func _register_flow_shapes() -> void:
 		"flow.core_runtime_write_feedback",
 		"flow.core_runtime_logistics_return",
 		"flow.completed_core_local_routes",
+		"flow.pollution_result_to_core_entry",
+		"flow.core_buffer_to_write_device",
+		"flow.core_write_to_demo_hook",
 		"flow.stability_window_hook",
 		"operation_relation.core.recovery_to_guard_cache",
 		"operation_relation.core.guard_cache_to_write_device",
 		"operation_relation.core.write_device_to_retest",
 		"operation_relation.core.logistics_return",
 		"operation_relation.core.role_ports",
+		"operation_relation.core.pollution_handoff_to_write",
 		"operation_relation.core.unresolved_anomaly_hook"
 	]
 
@@ -812,7 +875,10 @@ func _has_core_station_context(world_state: WorldState, character_state: Charact
 		return true
 	if character_state.inventory.has_ref("item.core_write_charge", 1):
 		return true
+	if character_state.inventory.has_ref("fluid.polluted_slurry", 1.0):
+		return true
 	for quest_id in [
+		"quest.enter_pollution_edge",
 		"quest.enter_demo_stabilization_core",
 		"quest.prepare_demo_stabilization_buffer",
 		"quest.defeat_demo_stabilization_guard",

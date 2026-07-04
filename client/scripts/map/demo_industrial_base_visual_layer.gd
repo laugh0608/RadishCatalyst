@@ -3,6 +3,7 @@ class_name DemoIndustrialBaseVisualLayer
 
 const GENERATED_PREFIX := "DemoIndustrialBaseVisual"
 const FirstScreenArtPass := preload("res://scripts/map/demo_base_first_screen_art_pass.gd")
+const CompletionOutcomeArtPass := preload("res://scripts/map/demo_base_completion_outcome_art_pass.gd")
 const ROLE_DECK := "deck"
 const ROLE_DEVICE := "device"
 const ROLE_FLOW := "flow"
@@ -194,9 +195,11 @@ var chain_shape_ids: Array[String] = []
 var detail_shape_ids: Array[String] = []
 var playable_space_shape_ids: Array[String] = []
 var pollution_chain_shape_ids: Array[String] = []
+var completion_outcome_shape_ids: Array[String] = []
 var startup_restore_shape_ids: Array[String] = []
 var chain_state: Dictionary = {}
 var pollution_chain_state: Dictionary = {}
+var completion_outcome_state: Dictionary = {}
 var applied_pollution_chain_state_count := 0
 var outpost_core_restored := false
 var startup_context_mute_count := 0
@@ -229,6 +232,7 @@ func refresh_chain_state(world_state: WorldState, character_state: CharacterStat
 		_register_startup_restore_shapes()
 	chain_shape_ids.clear()
 	pollution_chain_shape_ids.clear()
+	completion_outcome_shape_ids.clear()
 	applied_chain_state_count = 0
 	applied_pollution_chain_state_count = 0
 	_tone_down_core_interactable_markers()
@@ -236,6 +240,7 @@ func refresh_chain_state(world_state: WorldState, character_state: CharacterStat
 		outpost_core_restored = false
 		chain_state.clear()
 		pollution_chain_state.clear()
+		completion_outcome_state.clear()
 		_set_startup_context_muted(true)
 		queue_redraw()
 		return
@@ -246,6 +251,7 @@ func refresh_chain_state(world_state: WorldState, character_state: CharacterStat
 	if not outpost_core_restored:
 		chain_state.clear()
 		pollution_chain_state.clear()
+		completion_outcome_state.clear()
 		queue_redraw()
 		return
 	var inventory := character_state.inventory
@@ -275,6 +281,7 @@ func refresh_chain_state(world_state: WorldState, character_state: CharacterStat
 	_register_chain_shape("chain.repair_gel_cylinder.%s" % _state_suffix(bool(chain_state["gel_ready"])))
 	_register_chain_shape("chain.outfitting_launch_bus.%s" % _state_suffix(bool(chain_state["station_ready"]) and bool(chain_state["gel_ready"])))
 	_refresh_pollution_chain_visual_state(world_state, character_state)
+	_refresh_completion_outcome_state(world_state, character_state)
 	queue_redraw()
 
 
@@ -332,6 +339,14 @@ func has_pollution_chain_shape(shape_id: String) -> bool:
 	return pollution_chain_shape_ids.has(shape_id)
 
 
+func get_completion_outcome_shape_count() -> int:
+	return completion_outcome_shape_ids.size()
+
+
+func has_completion_outcome_shape(shape_id: String) -> bool:
+	return completion_outcome_shape_ids.has(shape_id)
+
+
 func is_startup_restore_focus_active() -> bool:
 	return not outpost_core_restored
 
@@ -368,6 +383,7 @@ func _draw() -> void:
 	_draw_pollution_chain_state()
 	_draw_operation_relation_overlay()
 	FirstScreenArtPass.draw_operation_feedback(self)
+	CompletionOutcomeArtPass.draw_completion_outcome(self, completion_outcome_state)
 
 
 func _draw_startup_restore_focus() -> void:
@@ -853,6 +869,11 @@ func _refresh_pollution_chain_visual_state(world_state: WorldState, character_st
 	_register_pollution_chain_shape("pollution_chain.slurry_return_route.%s" % _state_suffix(slurry_ready or filter_active))
 	_register_pollution_chain_shape("pollution_chain.slurry_recycle_route.%s" % _state_suffix(bool(pollution_chain_state["recycle_ready"]) or reclaim_active))
 	_register_pollution_chain_shape("pollution_chain.core_prep_route.%s" % _state_suffix(core_prep_ready or core_prep_active))
+
+
+func _refresh_completion_outcome_state(world_state: WorldState, character_state: CharacterState) -> void:
+	completion_outcome_state = CompletionOutcomeArtPass.create_state(world_state, character_state)
+	completion_outcome_shape_ids = CompletionOutcomeArtPass.get_shape_ids(completion_outcome_state)
 
 
 func _draw_pollution_chain_state() -> void:

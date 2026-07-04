@@ -66,8 +66,8 @@ static func format_core_object_next_step(world_state: WorldState, character_stat
 	if not is_completion_outcome_context(world_state):
 		return ""
 	if world_state.current_region_id == CORE_REGION_ID:
-		return "沿外勤路线回前哨核心，整理补给、整备收益和复测读数"
-	return "在前哨核心整理补给、整备收益和复测读数；该完成态不再开启必需后续任务"
+		return "沿外勤路线回前哨核心，整理稳定窗口、补给、整备收益和复测读数"
+	return "在前哨核心整理稳定窗口、补给、整备收益和复测读数；该完成态不再开启必需后续任务"
 
 
 static func format_outpost_core_prompt_line(world_state: WorldState, character_state: CharacterState) -> String:
@@ -90,7 +90,7 @@ static func format_completion_note(world_state: WorldState, character_state: Cha
 
 
 static func format_outcome_summary(world_state: WorldState, character_state: CharacterState) -> String:
-	var parts: Array[String] = ["核心稳定通道已打开"]
+	var parts: Array[String] = ["核心稳定通道已打开", "前哨稳定窗口已打开"]
 	if CoreStabilizationPressureFormatter.has_guard_cache(world_state):
 		parts.append("守卫缓存已归档")
 	if CoreStabilizationPressureFormatter.has_recovery_cache(world_state):
@@ -135,6 +135,7 @@ static func format_outpost_review_line(world_state: WorldState, character_state:
 		parts.append("核心复测读数待回收")
 	else:
 		parts.append("核心设备完成态可复测")
+	parts.append("前哨稳定窗口可作为下一趟外勤起点")
 	if parts.is_empty():
 		return "回前哨整理补给和整备记录"
 	return "；".join(parts)

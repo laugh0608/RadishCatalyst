@@ -77,12 +77,14 @@ const BUILT_FILTER_SITE_SIZE := Vector2(48.0, 30.0)
 const FOCUSED_MARKER_SCALE := Vector2(1.22, 1.22)
 const FOCUSED_MARKER_MODULATE := Color(1.18, 1.18, 1.18, 1)
 const DEFAULT_MARKER_MODULATE := Color(1, 1, 1, 1)
-const FIRST_PATH_FOCUS_MARKER_MODULATE := Color(0.92, 1.0, 0.96, 0.7)
+const FIRST_PATH_FOCUS_MARKER_MODULATE := Color(0.92, 1.0, 0.96, 0.48)
 const FOCUSED_Z_INDEX := 20
 const FIRST_PATH_FOCUS_Z_INDEX := 2
 const INTERACTABLE_LABEL_FONT_SIZE := 8
-const FOCUS_LABEL_WIDTH := 96.0
-const FOCUS_LABEL_LINE_HEIGHT := 11.0
+const FOCUS_LABEL_WIDTH := 112.0
+const FOCUS_LABEL_LINE_HEIGHT := 12.0
+const FOCUS_LABEL_BG := Color(0.012, 0.024, 0.022, 0.84)
+const FOCUS_LABEL_BORDER := Color(0.62, 0.86, 0.74, 0.34)
 const SILHOUETTE_OUTPOST_CORE := SemanticSilhouette.SILHOUETTE_OUTPOST_CORE
 const SILHOUETTE_BASIC_REACTOR := SemanticSilhouette.SILHOUETTE_BASIC_REACTOR
 const SILHOUETTE_BASIC_STORAGE := SemanticSilhouette.SILHOUETTE_BASIC_STORAGE
@@ -942,11 +944,31 @@ func _set_label_text(text: String, min_lines: int = 1) -> void:
 
 func _style_label() -> void:
 	label.add_theme_font_size_override("font_size", INTERACTABLE_LABEL_FONT_SIZE)
-	label.add_theme_color_override("font_color", Color(0.9, 0.96, 0.9, 0.68))
-	label.add_theme_color_override("font_shadow_color", Color(0.02, 0.04, 0.04, 0.58))
+	label.add_theme_color_override("font_color", Color(0.92, 0.98, 0.92, 0.88))
+	label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.72))
 	label.add_theme_constant_override("shadow_offset_x", 1)
 	label.add_theme_constant_override("shadow_offset_y", 1)
+	label.add_theme_stylebox_override("normal", _make_focus_label_style())
 	label.clip_text = true
+
+
+func _make_focus_label_style() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = FOCUS_LABEL_BG
+	style.border_color = FOCUS_LABEL_BORDER
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.corner_radius_top_left = 2
+	style.corner_radius_top_right = 2
+	style.corner_radius_bottom_left = 2
+	style.corner_radius_bottom_right = 2
+	style.content_margin_left = 5
+	style.content_margin_right = 5
+	style.content_margin_top = 2
+	style.content_margin_bottom = 2
+	return style
 
 
 func _layout_focus_label() -> void:
@@ -954,6 +976,6 @@ func _layout_focus_label() -> void:
 		return
 	var line_count := clampi(label.text.split("\n").size(), 1, 2)
 	label.offset_left = marker.position.x + marker.size.x + 8.0
-	label.offset_top = marker.position.y + 1.0
+	label.offset_top = marker.position.y - 2.0
 	label.offset_right = label.offset_left + FOCUS_LABEL_WIDTH
-	label.offset_bottom = label.offset_top + FOCUS_LABEL_LINE_HEIGHT * line_count
+	label.offset_bottom = label.offset_top + FOCUS_LABEL_LINE_HEIGHT * line_count + 4.0
