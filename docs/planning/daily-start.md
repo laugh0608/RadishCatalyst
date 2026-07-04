@@ -26,8 +26,8 @@
 
 ## 当前事项（P0 素材锚定包）
 
-1. 萝卜SAMA 按提示词库「第二批：首屏核心设备」生成 B1 到 B8 候选，每个资产 2 到 4 张，整批挂 `assets/reference/style-anchor.png` 做图像参考，放入 `assets/art-intake/<日期>-batch02/`。
-2. B1 前哨核心受损态先出并定稿，再挂 B1 定稿图生成 B2 修复态，保证两个状态是同一台设备。
+1. 萝卜SAMA 按提示词库「第二批：首屏核心设备」与整版出图规则生成 B1 到 B8 候选（整版 2 到 3 版、单张 2 到 4 张），整批挂 `assets/reference/style-anchor.png` 做图像参考，放入 `assets/art-intake/<日期>-batch02/`。
+2. B1 / B2 前哨核心同图双状态出一张保证两态同机；B3 到 B6 优先 2x2 合版，属性混淆或走形再退单张。
 3. 继续按候选清单下载 1 到 2 个 CC0 素材包到 `assets/third-party/`，补角色动画与整体兜底评估（`P0` 未完成项）。
 4. 第二批放好后请 Claude 审阅；通过后仓库侧启动去底、缩放、调色接入流程与 `P1` 首屏 `TileMapLayer` 骨架。
 

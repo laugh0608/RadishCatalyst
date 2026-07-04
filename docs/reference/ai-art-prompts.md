@@ -1,6 +1,6 @@
 # AI Art Prompt Library V1
 
-更新时间：2026-07-02
+更新时间：2026-07-04
 
 ## 用途与关联
 
@@ -63,6 +63,28 @@ centered subject on a plain dark background
 | 资源 / 小件 | 32 到 96px | 晶体、残骸、道具 |
 | 贴花 | 128 到 256px | 污染渗漏等 |
 
+## 整版与单张出图规则
+
+2026-07-04 起生效：能整版的资产优先整版（一次生成多个对象），省生成次数，且同图内风格、视角、光照天然一致；整版同样出 2 到 3 个候选版。
+
+优先整版：
+
+- 成套小件：B7 管线、B8 小件、E1 晶体簇、E3 岩石、E4 植被（提示词已按整版设计）。
+- 状态对：B1 / B2 前哨核心两状态合出一张，同图保证两态同机。
+- 中型设备：B3 到 B6 用 2x2 合版；1024 级整版单元格约 500 到 600px，对 128 到 192px 游戏目标仍有约 3 倍余量。
+
+整版约束：
+
+- 设备类密度上限 2x2；对象之间留明显空隙，提示词带上 `arranged separately, not touching, no connecting pipes or cables between objects`。
+- 整版允许部分过审：过审单元格由仓库侧裁切定稿，只对未过审对象重出一张更小整版，不因单格失败整版重 roll。
+- 拆分、对齐、缩放全部由仓库侧处理，生成侧不需要自己切图。
+
+必须单张：
+
+- 地面贴图 C1 到 C4：可平铺性要求整幅画面本身就是一块 tile。
+- B9 核心稳定站：全场最大英雄单体，吃满整幅分辨率。
+- 角色 D1 / D2 静态形象；若未来试验 AI 动画帧，必须用"同一角色一整版帧表"方式出（素材包补位优先级不变）。
+
 ## 负面提示（Stable Diffusion 类工具使用）
 
 ```text
@@ -87,22 +109,18 @@ stubs on both sides, mounted on a dark metal base plate
 
 ## 第二批：首屏核心设备（锚点定稿后）
 
-### B1 前哨核心（受损态）
+### B1 / B2 前哨核心（同图双状态，一张出两态）
 
 ```text
-a damaged hexagonal outpost core machine, cracked casing, exposed wiring,
-dim flickering cyan core visible through broken panels, scorch marks,
-small debris at the base
+the same hexagonal outpost core machine shown twice side by side, two
+separate objects, not touching: left version damaged with cracked casing,
+exposed wiring, dim flickering cyan core visible through broken panels,
+scorch marks and small debris at the base; right version fully repaired
+with sealed clean casing, bright steady cyan core, subtle amber running
+lights; identical machine design and identical viewing angle
 ```
 
-### B2 前哨核心（修复态）
-
-```text
-the same hexagonal outpost core machine fully repaired, sealed clean
-casing, bright steady cyan core, subtle amber running lights
-```
-
-生成时先贴 B1 结果做参考图，保证两个状态是同一台设备。
+同图双状态直接保证两态同机。候选里两台走形不一致就整张重出，不做单边拼补；多次失败再退回两步法：先单出受损态定稿，再挂它生成修复态。
 
 ### B3 储存单元
 
@@ -133,20 +151,37 @@ an automated resource collector machine with a wide intake hopper, short
 conveyor stub, partially visible rotating drum, amber hazard stripes
 ```
 
+### B3 到 B6 整版（优先，2x2 一张出四台）
+
+```text
+four separate industrial machines arranged in a 2x2 grid, equal spacing,
+not touching, no connecting pipes or cables between them: top-left a bank
+of three connected storage silos with fill-level indicator strips;
+top-right a field outfitting workbench with tool racks, hanging gear and a
+small glowing cyan terminal screen; bottom-left a boxy pollution filter
+unit with layered vent grilles, one intake pipe, one exhaust pipe and
+faint yellow-green residue stains; bottom-right an automated resource
+collector with a wide intake hopper, short conveyor stub and amber hazard
+stripes
+```
+
+四台属性混淆（残渍跑错机器、部件互借）或某台走形时，退回上方单张提示词逐台出。
+
 ### B7 管线组（一张图内分开摆放）
 
 ```text
 modular industrial pipe segments for a top-down game: one straight
 segment, one 90-degree corner, one T-junction, one valve unit, arranged
-separately in a grid, matching dark metal material with small cyan fluid
-windows
+separately in a grid, not touching each other, matching dark metal
+material with small cyan fluid windows
 ```
 
 ### B8 小件组（一张图内分开摆放）
 
 ```text
 small industrial prop set: work light pole, cable spool, toolbox,
-pressure barrel, supply crate, arranged separately in a grid
+pressure barrel, supply crate, arranged separately in a grid, not
+touching each other
 ```
 
 ### B9 核心稳定站（P2 用，可后置）
@@ -255,7 +290,7 @@ spreading in an irregular organic blob, soft edges, single blob
 ## 产出提交与审阅流程
 
 1. 每批建一个目录：`assets/art-intake/2026-07-02-batch01/`（日期加批次号）。
-2. 文件命名：`编号_名称_v候选号.png`，例如 `a0_reactor_v3.png`、`c1_rock_ground_v2.png`。
+2. 文件命名：`编号_名称_v候选号.png`，例如 `a0_reactor_v3.png`、`c1_rock_ground_v2.png`；整版把编号连写，例如 `b1b2_core_states_v1.png`、`b3-b6_devices_sheet_v2.png`。
 3. 放好后对 Claude 说"审阅 art-intake 最新一批"，按以下清单给出保留 / 重 roll / 修改意见：
    - 视角是否统一为 3/4 俯视、正面略可见。
    - 光源是否来自左上。
