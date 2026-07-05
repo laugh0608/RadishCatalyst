@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/crystal_ground.png" id="1_vse2a"]
 [ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/pollution_ground.png" id="2_kom7k"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/work_light_pole.png" id="5_light"]
 [ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/supply_crate.png" id="6_crate"]
 [ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/cable_spool.png" id="7_spool"]
+[ext_resource type="Script" path="res://scripts/map/demo_presentation_field_zones.gd" id="8_field_script"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ty8qd"]
 texture = ExtResource("1_vse2a")
@@ -25,6 +26,7 @@ sources/1 = SubResource("TileSetAtlasSource_aaknm")
 
 [node name="DemoPresentationFieldZones" type="Node2D"]
 z_index = 9
+script = ExtResource("8_field_script")
 
 [node name="CrystalGroundTileMap" type="TileMapLayer" parent="."]
 modulate = Color(0.92, 1, 1, 0.72)

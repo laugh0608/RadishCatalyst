@@ -14,7 +14,6 @@ const VISUAL_REVIEW_CHECKPOINT_IDS: Array[String] = [
 	"visual_review.crystal_collector_output",
 	"visual_review.base_handoff",
 	"visual_review.pollution_boundary",
-	"visual_review.pollution_short_challenge",
 	"visual_review.core_station"
 ]
 const DEFAULT_VISUAL_REVIEW_CHECKPOINT_ID := "visual_review.outpost_base"
@@ -313,9 +312,10 @@ static func get_demo_baseline_ids() -> Array[String]:
 
 static func get_visual_review_checkpoint_definitions() -> Array[Dictionary]:
 	var definitions: Array[Dictionary] = []
-	for definition in VISUAL_REVIEW_CHECKPOINT_DEFINITIONS:
-		var checkpoint_definition: Dictionary = definition
-		definitions.append(checkpoint_definition.duplicate(true))
+	for checkpoint_id in VISUAL_REVIEW_CHECKPOINT_IDS:
+		var checkpoint_definition := get_visual_review_checkpoint_definition(checkpoint_id)
+		if not checkpoint_definition.is_empty():
+			definitions.append(checkpoint_definition)
 	return definitions
 
 
