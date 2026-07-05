@@ -10,6 +10,10 @@ const PACK_COLOR := Color(0.12, 0.24, 0.22, 0.92)
 const TOOL_COLOR := Color(0.96, 0.76, 0.32, 0.95)
 const BOOT_COLOR := Color(0.08, 0.18, 0.18, 0.94)
 const HARNESS_COLOR := Color(0.84, 0.94, 0.88, 0.54)
+const ART_VISIBILITY_SHADOW := Color(0.0, 0.015, 0.014, 0.48)
+const ART_VISIBILITY_RING := Color(0.56, 0.96, 0.93, 0.50)
+const ART_VISIBILITY_RING_INNER := Color(0.08, 0.36, 0.34, 0.20)
+const ART_VISIBILITY_BEACON := Color(1.0, 0.76, 0.30, 0.72)
 const PLAYER_VISUAL_PART_IDS := [
 	"suit.body_mass",
 	"suit.torso",
@@ -92,6 +96,7 @@ func _physics_process(_delta: float) -> void:
 
 func _draw() -> void:
 	if _has_runtime_art_sprite():
+		_draw_runtime_art_visibility_cue()
 		return
 	var forward := _safe_facing_direction()
 	var side := forward.orthogonal()
@@ -168,6 +173,15 @@ func _draw_oriented_rect(center: Vector2, forward: Vector2, half_length: float, 
 	draw_colored_polygon(points, color)
 
 
+func _draw_runtime_art_visibility_cue() -> void:
+	var forward := _safe_facing_direction()
+	draw_circle(Vector2(0.0, 16.0), 19.0, ART_VISIBILITY_SHADOW)
+	draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 36, ART_VISIBILITY_RING, 1.6, true)
+	draw_arc(Vector2.ZERO, 15.0, PI * 0.08, PI * 1.92, 28, ART_VISIBILITY_RING_INNER, 1.2, true)
+	draw_circle(forward * 18.0, 2.8, ART_VISIBILITY_BEACON)
+	draw_line(forward * 18.0, forward * 30.0, Color(ART_VISIBILITY_BEACON.r, ART_VISIBILITY_BEACON.g, ART_VISIBILITY_BEACON.b, 0.24), 1.6, true)
+
+
 func _safe_facing_direction() -> Vector2:
 	if facing_direction.length_squared() <= 0.001:
 		return Vector2.RIGHT
@@ -184,6 +198,7 @@ func _refresh_art_sprite() -> void:
 	art_sprite.visible = art_sprite.texture != null
 	if not art_sprite.visible:
 		return
+	art_sprite.modulate = Color(1.12, 1.18, 1.12, 1.0)
 	art_sprite.rotation = _safe_facing_direction().angle() - Vector2.DOWN.angle()
 
 
