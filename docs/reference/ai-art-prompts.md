@@ -1,6 +1,6 @@
 # AI Art Prompt Library V1
 
-更新时间：2026-07-04
+更新时间：2026-07-05
 
 ## 用途与关联
 
@@ -32,6 +32,8 @@ centered subject on a plain dark background
 ```
 
 要点中文对照：俯视 3/4 视角（正面略可见）、工业科幻化工前哨、暗青灰主色 + 青色发光 + 琥珀工作灯、平涂 + 柔和环境光遮蔽、剪影清晰、光源固定左上、无文字水印。
+
+风格边界：首颗星球和第一章 Demo 不是西方炼金术、奇幻工坊或魔法遗迹风格；异常、遗迹和稳定工程应通过工业结构、异星地貌、几何设施、管线、传感器和能量读数表达，不使用符文、法阵、药剂瓶、羊皮纸、蜡封、黄铜古董仪器、哥特 / 中世纪纹样或蒸汽朋克装饰作为主读法。
 
 地面贴图使用变体结尾：把最后一句换成 `seamless tileable texture, top-down view, uniform lighting, no borders`。
 
@@ -90,7 +92,9 @@ centered subject on a plain dark background
 ```text
 blurry, photorealistic, 3D render, isometric room interior, side view,
 horizon line, sky, text, letters, watermark, UI frame, border, multiple
-unrelated objects, human face closeup, oversaturated
+unrelated objects, human face closeup, oversaturated, alchemy, alchemist,
+occult symbols, magic circle, runes, potion bottles, parchment, wax seal,
+medieval, gothic, brass steampunk, fantasy workshop
 ```
 
 ## 第一批：风格锚点（今天只生成这一组）

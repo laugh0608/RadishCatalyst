@@ -11,3 +11,13 @@
 3. 放好后请当前执行 agent "审阅 art-intake 最新一批"。
 4. 审阅通过的素材由仓库侧统一去底、缩放、调色后接入 `client/assets/`；定稿的风格锚点存入 `assets/reference/`。
 5. 淘汰的候选可以整批删除，不需要保留历史。
+
+## 处理入口
+
+素材整理优先使用 `tools/prepare_art_asset.py`，先用系统 Python 执行环境诊断：
+
+```bash
+python3 tools/prepare_art_asset.py --check-env
+```
+
+如需实际裁切、去底或缩放，使用项目本地虚拟环境安装 `tools/requirements-art.txt`，不要依赖系统 Python 自带 Pillow。
