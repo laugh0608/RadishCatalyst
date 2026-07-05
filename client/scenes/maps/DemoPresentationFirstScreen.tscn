@@ -1,0 +1,261 @@
+[gd_scene load_steps=21 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/alien_rock_ground.png" id="1_uednn"]
+[ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/metal_platform_floor.png" id="2_w84um"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/outpost_core_damaged.png" id="3_iq4v7"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/basic_reactor.png" id="4_eol22"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/storage_silos.png" id="5_e12dy"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/outfitting_workbench.png" id="6_tfp8w"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/resource_collector.png" id="7_bdj5p"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/pollution_filter.png" id="8_v7ugl"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/pipe_straight.png" id="9_x8jvq"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/pipe_corner.png" id="10_03hbs"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/pipe_t_junction.png" id="11_l818g"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/pipe_valve.png" id="12_d3u7f"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/work_light_pole.png" id="13_pvtbg"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/cable_spool.png" id="14_wk5vg"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/toolbox.png" id="15_8go1o"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/pressure_barrel.png" id="16_8y4p0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/supply_crate.png" id="17_fcymt"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_me8vo"]
+texture = ExtResource("1_uednn")
+texture_region_size = Vector2i(64, 64)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+6:1/0 = 0
+7:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+6:3/0 = 0
+7:3/0 = 0
+0:4/0 = 0
+1:4/0 = 0
+2:4/0 = 0
+3:4/0 = 0
+4:4/0 = 0
+5:4/0 = 0
+6:4/0 = 0
+7:4/0 = 0
+0:5/0 = 0
+1:5/0 = 0
+2:5/0 = 0
+3:5/0 = 0
+4:5/0 = 0
+5:5/0 = 0
+6:5/0 = 0
+7:5/0 = 0
+0:6/0 = 0
+1:6/0 = 0
+2:6/0 = 0
+3:6/0 = 0
+4:6/0 = 0
+5:6/0 = 0
+6:6/0 = 0
+7:6/0 = 0
+0:7/0 = 0
+1:7/0 = 0
+2:7/0 = 0
+3:7/0 = 0
+4:7/0 = 0
+5:7/0 = 0
+6:7/0 = 0
+7:7/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_djjjo"]
+texture = ExtResource("2_w84um")
+texture_region_size = Vector2i(64, 64)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+6:1/0 = 0
+7:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+6:3/0 = 0
+7:3/0 = 0
+0:4/0 = 0
+1:4/0 = 0
+2:4/0 = 0
+3:4/0 = 0
+4:4/0 = 0
+5:4/0 = 0
+6:4/0 = 0
+7:4/0 = 0
+0:5/0 = 0
+1:5/0 = 0
+2:5/0 = 0
+3:5/0 = 0
+4:5/0 = 0
+5:5/0 = 0
+6:5/0 = 0
+7:5/0 = 0
+0:6/0 = 0
+1:6/0 = 0
+2:6/0 = 0
+3:6/0 = 0
+4:6/0 = 0
+5:6/0 = 0
+6:6/0 = 0
+7:6/0 = 0
+0:7/0 = 0
+1:7/0 = 0
+2:7/0 = 0
+3:7/0 = 0
+4:7/0 = 0
+5:7/0 = 0
+6:7/0 = 0
+7:7/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_k17gw"]
+tile_size = Vector2i(64, 64)
+sources/0 = SubResource("TileSetAtlasSource_me8vo")
+sources/1 = SubResource("TileSetAtlasSource_djjjo")
+
+[node name="DemoPresentationFirstScreen" type="Node2D"]
+z_index = 8
+
+[node name="GroundTileMap" type="TileMapLayer" parent="."]
+z_index = 0
+tile_map_data = PackedByteArray("AAD6//v/AAAFAAQAAAD7//v/AAAAAAMAAAD8//v/AAADAAIAAAD9//v/AAAGAAEAAAD+//v/AAABAAAAAAD///v/AAAEAAcAAAAAAPv/AAAHAAYAAAD6//z/AAACAAYAAAD7//z/AAAFAAUAAAD8//z/AAAAAAQAAAD9//z/AAADAAMAAAD+//z/AAAGAAIAAAD///z/AAABAAEAAAAAAPz/AAAEAAAAAAD6//3/AAAHAAAAAAD7//3/AQACAAcAAAD8//3/AQAFAAYAAAD9//3/AQAAAAUAAAD+//3/AQADAAQAAAD///3/AQAGAAMAAAAAAP3/AAABAAIAAAD6//7/AAAEAAIAAAD7//7/AQAHAAEAAAD8//7/AQACAAAAAAD9//7/AQAFAAcAAAD+//7/AQAAAAYAAAD///7/AQADAAUAAAAAAP7/AAAGAAQAAAD6////AAABAAQAAAD7////AQAEAAMAAAD8////AQAHAAIAAAD9////AQACAAEAAAD+////AQAFAAAAAAD/////AQAAAAcAAAAAAP//AAADAAYAAAD6/wAAAAAGAAYAAAD7/wAAAQABAAUAAAD8/wAAAQAEAAQAAAD9/wAAAQAHAAMAAAD+/wAAAQACAAIAAAD//wAAAQAFAAEAAAAAAAAAAAAAAAAAAAD6/wEAAAADAAAAAAD7/wEAAQAGAAcAAAD8/wEAAQABAAYAAAD9/wEAAQAEAAUAAAD+/wEAAQAHAAQAAAD//wEAAQACAAMAAAAAAAEAAAAFAAIAAAD6/wIAAAAAAAIAAAD7/wIAAQADAAEAAAD8/wIAAQAGAAAAAAD9/wIAAQABAAcAAAD+/wIAAQAEAAYAAAD//wIAAQAHAAUAAAAAAAIAAAACAAQAAAD6/wMAAAAFAAQAAAD7/wMAAAAAAAMAAAD8/wMAAAADAAIAAAD9/wMAAAAGAAEAAAD+/wMAAAABAAAAAAD//wMAAAAEAAcAAAAAAAMAAAAHAAYAAAD6/wQAAAACAAYAAAD7/wQAAAAFAAUAAAD8/wQAAAAAAAQAAAD9/wQAAAADAAMAAAD+/wQAAAAGAAIAAAD//wQAAAABAAEAAAAAAAQAAAAEAAAAAAA=")
+tile_set = SubResource("TileSet_k17gw")
+
+[node name="OutpostCoreDamaged" type="Sprite2D" parent="."]
+z_index = 20
+position = Vector2(-300, -108)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("3_iq4v7")
+
+[node name="BasicReactor" type="Sprite2D" parent="."]
+z_index = 19
+position = Vector2(-166, -76)
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("4_eol22")
+
+[node name="StorageSilos" type="Sprite2D" parent="."]
+z_index = 19
+position = Vector2(-250, 56)
+scale = Vector2(0.54, 0.54)
+texture = ExtResource("5_e12dy")
+
+[node name="OutfittingWorkbench" type="Sprite2D" parent="."]
+z_index = 19
+position = Vector2(-72, 16)
+scale = Vector2(0.48, 0.48)
+texture = ExtResource("6_tfp8w")
+
+[node name="ResourceCollector" type="Sprite2D" parent="."]
+modulate = Color(0.92, 1, 0.98, 0.74)
+z_index = 16
+position = Vector2(88, -126)
+scale = Vector2(0.42, 0.42)
+texture = ExtResource("7_bdj5p")
+
+[node name="PollutionFilterStaged" type="Sprite2D" parent="."]
+modulate = Color(0.88, 0.94, 0.88, 0.58)
+z_index = 16
+position = Vector2(-120, 124)
+scale = Vector2(0.42, 0.42)
+texture = ExtResource("8_v7ugl")
+
+[node name="PipeCoreToReactor" type="Sprite2D" parent="."]
+z_index = 12
+position = Vector2(-232, -74)
+scale = Vector2(0.32, 0.32)
+texture = ExtResource("9_x8jvq")
+
+[node name="PipeReactorCorner" type="Sprite2D" parent="."]
+z_index = 12
+position = Vector2(-166, -4)
+rotation = 1.5707964
+scale = Vector2(0.28, 0.28)
+texture = ExtResource("10_03hbs")
+
+[node name="PipeStorageOutfitting" type="Sprite2D" parent="."]
+z_index = 12
+position = Vector2(-156, 34)
+scale = Vector2(0.26, 0.26)
+texture = ExtResource("11_l818g")
+
+[node name="PipeValve" type="Sprite2D" parent="."]
+z_index = 13
+position = Vector2(-116, -34)
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("12_d3u7f")
+
+[node name="WorkLightPole" type="Sprite2D" parent="."]
+z_index = 22
+position = Vector2(-350, -132)
+scale = Vector2(0.36, 0.36)
+texture = ExtResource("13_pvtbg")
+
+[node name="CableSpool" type="Sprite2D" parent="."]
+z_index = 21
+position = Vector2(-326, 88)
+scale = Vector2(0.34, 0.34)
+texture = ExtResource("14_wk5vg")
+
+[node name="Toolbox" type="Sprite2D" parent="."]
+z_index = 21
+position = Vector2(-108, -98)
+scale = Vector2(0.34, 0.34)
+texture = ExtResource("15_8go1o")
+
+[node name="PressureBarrel" type="Sprite2D" parent="."]
+z_index = 21
+position = Vector2(-214, 124)
+scale = Vector2(0.34, 0.34)
+texture = ExtResource("16_8y4p0")
+
+[node name="SupplyCrate" type="Sprite2D" parent="."]
+z_index = 21
+position = Vector2(-290, 128)
+scale = Vector2(0.34, 0.34)
+texture = ExtResource("17_fcymt")

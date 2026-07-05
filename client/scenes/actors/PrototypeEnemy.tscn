@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/actors/prototype_enemy.gd" id="1_enemy"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/pollution_crawler.png" id="2_enemy_art"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_enemy"]
 radius = 14.0
@@ -25,6 +26,11 @@ offset_top = -12.0
 offset_right = 12.0
 offset_bottom = 12.0
 color = Color(0.8, 0.313726, 0.215686, 1)
+
+[node name="ArtSprite" type="Sprite2D" parent="."]
+z_index = 1
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_enemy_art")
 
 [node name="Label" type="Label" parent="."]
 offset_left = -78.0

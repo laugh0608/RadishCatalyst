@@ -32,6 +32,7 @@ const PLAYER_VISUAL_PART_IDS := [
 
 var facing_direction := Vector2.RIGHT
 var block_positive_x_until_release := false
+@onready var art_sprite: Sprite2D = get_node_or_null("ArtSprite") as Sprite2D
 
 signal interaction_requested
 signal attack_requested
@@ -46,6 +47,7 @@ signal load_requested
 
 func _ready() -> void:
 	z_index = 80
+	_refresh_art_sprite()
 	queue_redraw()
 
 
@@ -65,6 +67,7 @@ func _physics_process(_delta: float) -> void:
 	move_and_slide()
 	if input_vector != Vector2.ZERO:
 		facing_direction = input_vector.normalized()
+		_refresh_art_sprite()
 		queue_redraw()
 
 	if Input.is_action_just_pressed("interact"):
@@ -88,6 +91,8 @@ func _physics_process(_delta: float) -> void:
 
 
 func _draw() -> void:
+	if _has_runtime_art_sprite():
+		return
 	var forward := _safe_facing_direction()
 	var side := forward.orthogonal()
 	draw_circle(Vector2.ZERO, 18.0, Color(0.02, 0.05, 0.05, 0.38))
@@ -167,6 +172,19 @@ func _safe_facing_direction() -> Vector2:
 	if facing_direction.length_squared() <= 0.001:
 		return Vector2.RIGHT
 	return facing_direction.normalized()
+
+
+func _has_runtime_art_sprite() -> bool:
+	return art_sprite != null and art_sprite.texture != null and art_sprite.visible
+
+
+func _refresh_art_sprite() -> void:
+	if art_sprite == null:
+		return
+	art_sprite.visible = art_sprite.texture != null
+	if not art_sprite.visible:
+		return
+	art_sprite.rotation = _safe_facing_direction().angle() - Vector2.DOWN.angle()
 
 
 func _get_keyboard_fallback_vector() -> Vector2:

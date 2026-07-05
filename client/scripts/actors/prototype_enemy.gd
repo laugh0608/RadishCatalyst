@@ -18,6 +18,11 @@ const ELITE_ENEMY_SIZE := Vector2(36.0, 34.0)
 const ENEMY_LABEL_FONT_SIZE := 8
 const ENEMY_FOCUS_LABEL_WIDTH := 76.0
 const ENEMY_FOCUS_LABEL_LINE_HEIGHT := 10.0
+const BASIC_ART_SCALE := Vector2(0.42, 0.42)
+const TREATMENT_ART_SCALE := Vector2(0.44, 0.44)
+const POLLUTED_ART_SCALE := Vector2(0.50, 0.50)
+const ELITE_ART_SCALE := Vector2(0.56, 0.56)
+const RUIN_GUARD_ART_SCALE := Vector2(0.48, 0.48)
 const ENEMY_VISUAL_PART_IDS := [
 	"enemy_shape.shadow",
 	"enemy_shape.body",
@@ -40,6 +45,7 @@ var readability_pressure_label: String = ""
 
 @onready var label: Label = $Label
 @onready var sprite: ColorRect = $Sprite
+@onready var art_sprite: Sprite2D = get_node_or_null("ArtSprite") as Sprite2D
 @onready var focus_ring: ColorRect = $FocusRing
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
@@ -49,6 +55,8 @@ func _ensure_visual_nodes() -> void:
 		label = get_node_or_null("Label") as Label
 	if sprite == null:
 		sprite = get_node_or_null("Sprite") as ColorRect
+	if art_sprite == null:
+		art_sprite = get_node_or_null("ArtSprite") as Sprite2D
 	if focus_ring == null:
 		focus_ring = get_node_or_null("FocusRing") as ColorRect
 	if collision_shape == null:
@@ -67,6 +75,7 @@ func setup(enemy_display_name: String, enemy_max_health: float, category: String
 	if sprite != null:
 		_apply_sprite_size(_get_active_size())
 		sprite.color = _get_sprite_backplate_color(_get_active_color(category))
+	_apply_art_visual(false)
 	_update_label()
 	queue_redraw()
 
@@ -134,6 +143,7 @@ func set_focus_visual(focused: bool) -> void:
 		sprite.pivot_offset = sprite.size * 0.5
 		sprite.scale = FOCUSED_SPRITE_SCALE if focused else Vector2.ONE
 		sprite.modulate = FOCUSED_SPRITE_MODULATE if focused else DEFAULT_SPRITE_MODULATE
+	_apply_art_visual(focused)
 	z_index = FOCUSED_Z_INDEX if focused else 0
 	queue_redraw()
 
@@ -174,12 +184,14 @@ func mark_defeated() -> void:
 	if enemy_category == "polluted":
 		if sprite != null:
 			sprite.color = _get_sprite_backplate_color(DEFEATED_POLLUTED_COLOR)
+		_apply_art_visual(false)
 		if label != null:
 			label.text = "%s\n污染已压制" % display_name
 		queue_redraw()
 		return
 	if sprite != null:
 		sprite.color = _get_sprite_backplate_color(DEFEATED_COLOR)
+	_apply_art_visual(false)
 	if label != null:
 		label.text = "%s\n已击败" % display_name
 	queue_redraw()
@@ -253,6 +265,8 @@ func _get_active_color(category: String) -> Color:
 
 
 func _draw() -> void:
+	if _has_runtime_art_sprite():
+		return
 	var size := _get_active_size()
 	var active_color := _get_active_color(enemy_category)
 	if defeated:
@@ -314,6 +328,7 @@ func _apply_sprite_size(sprite_size: Vector2) -> void:
 	if focus_ring != null:
 		focus_ring.position = sprite.position - Vector2(7.0, 7.0)
 		focus_ring.size = sprite_size + Vector2(14.0, 14.0)
+	_apply_art_visual(false)
 
 
 func _get_sprite_backplate_color(color: Color) -> Color:
@@ -455,3 +470,58 @@ func _layout_focus_label() -> void:
 	label.offset_top = sprite.position.y + 1.0
 	label.offset_right = label.offset_left + ENEMY_FOCUS_LABEL_WIDTH
 	label.offset_bottom = label.offset_top + ENEMY_FOCUS_LABEL_LINE_HEIGHT * line_count
+
+
+func _has_runtime_art_sprite() -> bool:
+	return art_sprite != null and art_sprite.texture != null and art_sprite.visible
+
+
+func _apply_art_visual(focused: bool) -> void:
+	if art_sprite == null:
+		return
+	var has_art := art_sprite.texture != null
+	art_sprite.visible = has_art and visible
+	if sprite != null:
+		sprite.visible = not has_art
+	if not has_art:
+		return
+	var base_scale := _get_art_base_scale()
+	art_sprite.scale = base_scale * FOCUSED_SPRITE_SCALE if focused else base_scale
+	art_sprite.modulate = _get_art_modulate(focused)
+
+
+func _get_art_base_scale() -> Vector2:
+	if definition_id == "enemy.treatment_skitter":
+		return TREATMENT_ART_SCALE
+	match enemy_category:
+		"polluted":
+			return POLLUTED_ART_SCALE
+		"elite_node":
+			return ELITE_ART_SCALE
+		"ruin_guard":
+			return RUIN_GUARD_ART_SCALE
+		_:
+			return BASIC_ART_SCALE
+
+
+func _get_art_modulate(focused: bool) -> Color:
+	var color := Color.WHITE
+	if defeated:
+		color = Color(0.42, 0.42, 0.38, 0.64) if enemy_category == "polluted" else Color(0.42, 0.42, 0.42, 0.58)
+	elif definition_id == "enemy.treatment_skitter":
+		color = Color(1.0, 0.82, 0.70, 1.0)
+	else:
+		match enemy_category:
+			"polluted":
+				color = Color.WHITE
+			"elite_node":
+				color = Color(1.08, 0.92, 0.70, 1.0)
+			"ruin_guard":
+				color = Color(0.72, 0.96, 1.06, 1.0)
+			_:
+				color = Color(0.94, 0.88, 0.82, 1.0)
+	if focused:
+		color.r = minf(color.r * 1.12, 1.25)
+		color.g = minf(color.g * 1.12, 1.25)
+		color.b = minf(color.b * 1.12, 1.25)
+	return color
