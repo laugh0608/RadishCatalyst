@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scripts/map/vertical_slice_map.gd" id="1_map"]
 [ext_resource type="PackedScene" path="res://scenes/actors/Player.tscn" id="2_player"]
@@ -21,6 +21,7 @@
 [ext_resource type="Script" path="res://scripts/map/demo_base_first_screen_scene_layer.gd" id="19_base_first_screen_scene"]
 [ext_resource type="PackedScene" path="res://scenes/maps/DemoPresentationFirstScreen.tscn" id="20_presentation_first_screen"]
 [ext_resource type="PackedScene" path="res://scenes/maps/DemoPresentationFieldZones.tscn" id="21_presentation_field_zones"]
+[ext_resource type="PackedScene" path="res://scenes/maps/DemoPresentationCoreStation.tscn" id="22_presentation_core_station"]
 
 [node name="VerticalSliceMap" type="Node2D"]
 script = ExtResource("1_map")
@@ -1734,6 +1735,8 @@ script = ExtResource("19_base_first_screen_scene")
 [node name="DemoPresentationFirstScreen" parent="." instance=ExtResource("20_presentation_first_screen")]
 
 [node name="DemoPresentationFieldZones" parent="." instance=ExtResource("21_presentation_field_zones")]
+
+[node name="DemoPresentationCoreStation" parent="." instance=ExtResource("22_presentation_core_station")]
 
 [node name="DemoPlayableSceneRebuildLayer" type="Node2D" parent="."]
 script = ExtResource("18_playable_scene_rebuild")
