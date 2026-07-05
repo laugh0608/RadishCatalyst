@@ -1,7 +1,12 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/crystal_ground.png" id="1_vse2a"]
 [ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/pollution_ground.png" id="2_kom7k"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/resource_collector.png" id="3_collector"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/pollution_filter.png" id="4_filter"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/work_light_pole.png" id="5_light"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/supply_crate.png" id="6_crate"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/cable_spool.png" id="7_spool"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ty8qd"]
 texture = ExtResource("1_vse2a")
@@ -31,3 +36,38 @@ modulate = Color(0.94, 0.96, 0.78, 0.82)
 z_index = 1
 tile_map_data = PackedByteArray("AAAEAPv/AQAAAAAAAAAEAPz/AQAAAAAAAAAEAP3/AQAAAAAAAAAEAP7/AQAAAAAAAAAEAP//AQAAAAAAAAAEAAAAAQAAAAAAAAAEAAEAAQAAAAAAAAAEAAIAAQAAAAAAAAAEAAMAAQAAAAAAAAAEAAQAAQAAAAAAAAAFAPv/AQAAAAAAAAAFAPz/AQAAAAAAAAAFAP3/AQAAAAAAAAAFAP7/AQAAAAAAAAAFAP//AQAAAAAAAAAFAAAAAQAAAAAAAAAFAAEAAQAAAAAAAAAFAAIAAQAAAAAAAAAFAAMAAQAAAAAAAAAFAAQAAQAAAAAAAAAGAP7/AQAAAAAAAAAGAP//AQAAAAAAAAAGAAAAAQAAAAAAAAAGAAEAAQAAAAAAAAAGAAIAAQAAAAAAAAAGAAMAAQAAAAAAAAA=")
 tile_set = SubResource("TileSet_x2pmb")
+
+[node name="CrystalResourceCollectorField" type="Sprite2D" parent="."]
+modulate = Color(0.9, 1, 0.98, 0.78)
+z_index = 12
+position = Vector2(102, -216)
+scale = Vector2(0.32, 0.32)
+texture = ExtResource("3_collector")
+
+[node name="CrystalCableSpool" type="Sprite2D" parent="."]
+modulate = Color(0.9, 0.98, 0.98, 0.74)
+z_index = 13
+position = Vector2(32, -150)
+scale = Vector2(0.22, 0.22)
+texture = ExtResource("7_spool")
+
+[node name="CrystalWorkLightPole" type="Sprite2D" parent="."]
+modulate = Color(0.96, 1, 0.94, 0.78)
+z_index = 14
+position = Vector2(190, -256)
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("5_light")
+
+[node name="PollutionFilterField" type="Sprite2D" parent="."]
+modulate = Color(0.88, 0.94, 0.86, 0.82)
+z_index = 13
+position = Vector2(304, -112)
+scale = Vector2(0.34, 0.34)
+texture = ExtResource("4_filter")
+
+[node name="PollutionSupplyCrate" type="Sprite2D" parent="."]
+modulate = Color(0.92, 0.92, 0.78, 0.72)
+z_index = 14
+position = Vector2(392, -20)
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("6_crate")
