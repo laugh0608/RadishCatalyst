@@ -1,57 +1,37 @@
 extends Node2D
-class_name DemoPresentationFieldZones
-
-const PRESENTATION_FOCUS_RECTS := [
-	Rect2(Vector2(0.0, -260.0), Vector2(360.0, 420.0)),
-	Rect2(Vector2(3600.0, -280.0), Vector2(700.0, 560.0)),
-]
+class_name DemoPresentationCoreStation
 
 const PRESENTATION_PROCESS_PRIORITY := 220
-const CONTEXT_MARKER_ALPHA := 0.018
-const LOCAL_MARKER_ALPHA := 0.1
+const CORE_FOCUS_RECT := Rect2(Vector2(3860.0, -280.0), Vector2(420.0, 560.0))
+const CONTEXT_MARKER_ALPHA := 0.012
+const LOCAL_MARKER_ALPHA := 0.08
 
 const CONTEXT_LAYER_ALPHAS := [
-	{"path": "OpeningSceneLayer", "alpha": 0.0},
-	{"path": "DemoCoreSceneSpaceLayer", "alpha": 0.0},
 	{"path": "DemoRoutePresentationLayer", "alpha": 0.0},
 	{"path": "SceneArtFoundationLayer", "alpha": 0.0},
 	{"path": "NonCoreSceneIdentityLayer", "alpha": 0.0},
 	{"path": "FunctionalTransitionSpatialPlayabilityLayer", "alpha": 0.0},
 	{"path": "MidfieldRoutePlayabilityLayer", "alpha": 0.0},
 	{"path": "WindCorridorTransitionPlayabilityLayer", "alpha": 0.0},
-	{"path": "DemoIndustrialBaseVisualLayer", "alpha": 0.0},
-	{"path": "DemoFirstIndustrialPathVisualLayer", "alpha": 0.0},
-	{"path": "DemoCrystalResourceVisualLayer", "alpha": 0.0},
-	{"path": "DemoPollutionBoundaryVisualLayer", "alpha": 0.0},
-	{"path": "DemoCoreStabilizationVisualLayer", "alpha": 0.0},
 	{"path": "CoreApproachHandoffLayer", "alpha": 0.0},
 	{"path": "CoreStabilizationRunLayer", "alpha": 0.0},
+	{"path": "DemoCoreStabilizationVisualLayer", "alpha": 0.0},
 	{"path": "DemoRegionIndustrialValueLayer", "alpha": 0.0},
 	{"path": "PrototypeVisualPriorityLayer", "alpha": 0.0},
-	{"path": "DemoBaseHandoffAssetArtPass", "alpha": 0.0},
-	{"path": "DemoBaseStartupPresentationLayer", "alpha": 0.0},
-	{"path": "DemoBaseFirstScreenSceneLayer", "alpha": 0.0},
-	{"path": "DemoPlayableSceneRebuildLayer", "alpha": 0.0},
-	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.016},
+	{"path": "CurrentObjectiveGuidanceLayer", "alpha": 0.018},
 ]
 
 const CONTEXT_RECT_ALPHAS := [
-	{"path": "RegionCrystal", "alpha": 0.018},
-	{"path": "RegionPollution", "alpha": 0.012},
+	{"path": "RegionPhaseWellTether", "alpha": 0.0},
 	{"path": "RegionDemoStabilizationCore", "alpha": 0.012},
-	{"path": "MainRouteSpine", "alpha": 0.0001},
-	{"path": "BaseToCrystalRouteBand", "alpha": 0.0001},
-	{"path": "CrystalToPollutionRouteBand", "alpha": 0.0001},
+	{"path": "MainRouteSpine", "alpha": 0.0},
 	{"path": "DemoRoutePresentationLayer/DemoRouteCoreApproachFlow", "alpha": 0.0},
 	{"path": "DemoRoutePresentationLayer/DemoRouteCoreBand", "alpha": 0.0},
-	{"path": "RegionBoundaryCrystal", "alpha": 0.0001},
-	{"path": "RegionBoundaryPollution", "alpha": 0.0001},
-	{"path": "RegionBoundaryRuin", "alpha": 0.0001},
 ]
 
 var context_original_modulates: Dictionary = {}
 var context_rect_original_colors: Dictionary = {}
-var field_focus_active := false
+var core_focus_active := false
 
 
 func _ready() -> void:
@@ -64,22 +44,14 @@ func _process(_delta: float) -> void:
 
 
 func refresh_focus_visibility(player_position: Vector2) -> void:
-	field_focus_active = is_field_focus_active_at(player_position)
-	_set_context_layers_muted(field_focus_active)
-	_set_context_rects_muted(field_focus_active)
-	_set_interactable_cues_muted(field_focus_active, player_position)
+	core_focus_active = CORE_FOCUS_RECT.has_point(player_position)
+	_set_context_layers_muted(core_focus_active)
+	_set_context_rects_muted(core_focus_active)
+	_set_interactable_cues_muted(core_focus_active, player_position)
 
 
-func is_field_focus_active_at(player_position: Vector2) -> bool:
-	for focus_rect in PRESENTATION_FOCUS_RECTS:
-		var rect := focus_rect as Rect2
-		if rect.has_point(player_position):
-			return true
-	return false
-
-
-func is_field_focus_active() -> bool:
-	return field_focus_active
+func is_core_focus_active() -> bool:
+	return core_focus_active
 
 
 func _set_context_layers_muted(should_mute: bool) -> void:
@@ -150,7 +122,7 @@ func _set_interactable_cues_muted(should_mute: bool, player_position: Vector2) -
 			continue
 		marker.scale = Vector2.ONE
 		var marker_modulate := marker.modulate
-		var marker_alpha := LOCAL_MARKER_ALPHA if interactable.position.distance_to(player_position) <= 180.0 else CONTEXT_MARKER_ALPHA
+		var marker_alpha := LOCAL_MARKER_ALPHA if interactable.position.distance_to(player_position) <= 220.0 else CONTEXT_MARKER_ALPHA
 		marker_modulate.a = minf(marker_modulate.a, marker_alpha)
 		marker.modulate = marker_modulate
 

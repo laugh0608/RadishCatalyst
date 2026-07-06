@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/alien_rock_ground.png" id="1_rock"]
 [ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/metal_platform_floor.png" id="2_metal"]
@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/pipe_valve.png" id="6_pipe_valve"]
 [ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/supply_crate.png" id="7_crate"]
 [ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/pressure_barrel.png" id="8_barrel"]
+[ext_resource type="Script" path="res://scripts/map/demo_presentation_core_station.gd" id="9_core_script"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rock"]
 texture = ExtResource("1_rock")
@@ -32,6 +33,7 @@ sources/2 = SubResource("TileSetAtlasSource_pollution")
 
 [node name="DemoPresentationCoreStation" type="Node2D"]
 z_index = 10
+script = ExtResource("9_core_script")
 
 [node name="CoreStationAnchor" type="Node2D" parent="."]
 position = Vector2(4038, -24)

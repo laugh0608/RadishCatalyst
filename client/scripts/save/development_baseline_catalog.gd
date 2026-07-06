@@ -85,7 +85,7 @@ const VISUAL_REVIEW_CHECKPOINT_DEFINITIONS := [
 		"display_name": "核心稳定站",
 		"baseline_id": "baseline.s21_demo_stabilization_core_ready",
 		"region_id": "region.demo_stabilization_core",
-		"position": Vector2(3744.0, 112.0),
+		"position": Vector2(4038.0, 64.0),
 		"summary": "终点入口、侧边补给、守卫压力场、回写缓存和核心写入装置。",
 		"watch": "观察终点工程现场是否成立，后续视觉第二轮优先看这里。"
 	}
