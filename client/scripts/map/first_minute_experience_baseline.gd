@@ -74,6 +74,11 @@ const INTRO_CRYSTAL_VISUAL_PATHS := [
 	"DemoPresentationFieldZones/CrystalClusterVisualEast",
 	"DemoPresentationFieldZones/CrystalClusterVisualSouth",
 	"DemoPresentationFieldZones/CrystalClusterVisualReserve",
+	"DemoPresentationFieldZones/CrystalApproachCableSpool",
+	"DemoPresentationFieldZones/CrystalApproachWorkLight",
+	"DemoPresentationFieldZones/FieldWreckageVisualNorth",
+	"DemoPresentationFieldZones/FieldWreckageVisualEast",
+	"DemoPresentationFieldZones/FieldWreckageVisualSouth",
 ]
 
 

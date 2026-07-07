@@ -89,6 +89,41 @@ position = Vector2(154, -196)
 scale = Vector2(0.2, 0.2)
 texture = ExtResource("5_light")
 
+[node name="CrystalApproachCableSpool" type="Sprite2D" parent="."]
+modulate = Color(0.9, 0.98, 0.98, 0.82)
+z_index = 14
+position = Vector2(-12, -66)
+scale = Vector2(0.22, 0.22)
+texture = ExtResource("7_spool")
+
+[node name="CrystalApproachWorkLight" type="Sprite2D" parent="."]
+modulate = Color(1, 0.98, 0.86, 0.86)
+z_index = 16
+position = Vector2(-32, -118)
+scale = Vector2(0.22, 0.22)
+texture = ExtResource("5_light")
+
+[node name="FieldWreckageVisualNorth" type="Sprite2D" parent="."]
+modulate = Color(0.92, 0.94, 0.88, 0.82)
+z_index = 13
+position = Vector2(52, 112)
+scale = Vector2(0.22, 0.22)
+texture = ExtResource("6_crate")
+
+[node name="FieldWreckageVisualEast" type="Sprite2D" parent="."]
+modulate = Color(0.86, 0.92, 0.9, 0.8)
+z_index = 13
+position = Vector2(214, 82)
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("7_spool")
+
+[node name="FieldWreckageVisualSouth" type="Sprite2D" parent="."]
+modulate = Color(0.9, 0.92, 0.84, 0.78)
+z_index = 13
+position = Vector2(40, 160)
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("6_crate")
+
 [node name="PollutionFilterField" type="Sprite2D" parent="."]
 modulate = Color(0.88, 0.94, 0.86, 0.82)
 z_index = 13
