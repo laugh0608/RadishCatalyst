@@ -22,21 +22,23 @@ func _ready() -> void:
 
 
 func _show_startup_menu() -> void:
-	var startup_menu_scene := load(STARTUP_MENU_SCENE) as PackedScene
-	if startup_menu_scene == null:
-		push_error("Missing StartupMenu scene: %s" % STARTUP_MENU_SCENE)
-		return
-
-	startup_menu = startup_menu_scene.instantiate() as StartupMenu
+	startup_menu = get_node_or_null("StartupMenu") as StartupMenu
 	if startup_menu == null:
-		push_error("StartupMenu scene does not instantiate as StartupMenu.")
-		return
+		var startup_menu_scene := load(STARTUP_MENU_SCENE) as PackedScene
+		if startup_menu_scene == null:
+			push_error("Missing StartupMenu scene: %s" % STARTUP_MENU_SCENE)
+			return
+
+		startup_menu = startup_menu_scene.instantiate() as StartupMenu
+		if startup_menu == null:
+			push_error("StartupMenu scene does not instantiate as StartupMenu.")
+			return
+		add_child(startup_menu)
 
 	startup_menu.configure_save_summary(save_service.get_save_slot_summary(SaveService.DEFAULT_SLOT_ID))
 	startup_menu.new_game_requested.connect(_on_startup_new_game_requested)
 	startup_menu.load_game_requested.connect(_on_startup_load_game_requested)
 	startup_menu.quit_requested.connect(_on_startup_quit_requested)
-	add_child(startup_menu)
 
 
 func _on_startup_new_game_requested() -> void:
