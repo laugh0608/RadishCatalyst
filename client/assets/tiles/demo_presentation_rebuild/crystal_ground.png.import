@@ -2,7 +2,7 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://tqjiwcrtnu0c0"
+uid="uid://fh5x16ktumj6"
 path="res://.godot/imported/crystal_ground.png-159112dd0581229f2640e9b3ed59841d.ctex"
 metadata={
 "vram_texture": false
@@ -38,5 +38,3 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-editor/scale_with_editor_scale=false
-editor/convert_colors_with_editor_theme=false

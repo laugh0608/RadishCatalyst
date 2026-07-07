@@ -2,7 +2,7 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://a0ppwq5z7w7h0"
+uid="uid://0ppwq507w7h0"
 path="res://.godot/imported/outfitting_workbench.png-ca7d77d3f14a46063492191accfd7e26.ctex"
 metadata={
 "vram_texture": false
@@ -38,5 +38,3 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-editor/scale_with_editor_scale=false
-editor/convert_colors_with_editor_theme=false

@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/crystal_ground.png" id="1_vse2a"]
 [ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/pollution_ground.png" id="2_kom7k"]
@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/supply_crate.png" id="6_crate"]
 [ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/cable_spool.png" id="7_spool"]
 [ext_resource type="Script" path="res://scripts/map/demo_presentation_field_zones.gd" id="8_field_script"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_first_screen/crystal_ecology_cluster.svg" id="9_crystal_cluster"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ty8qd"]
 texture = ExtResource("1_vse2a")
@@ -38,6 +39,34 @@ modulate = Color(0.94, 0.96, 0.78, 0.38)
 z_index = 1
 tile_map_data = PackedByteArray("AAADAP//AQAAAAAAAAAEAP7/AQAAAAAAAAAEAP//AQAAAAAAAAAFAP//AQAAAAAAAAAEAAAAAQAAAAAAAAAFAAAAAQAAAAAAAAAFAAEAAQAAAAAAAAAGAAAAAQAAAAAAAAA=")
 tile_set = SubResource("TileSet_x2pmb")
+
+[node name="CrystalClusterVisualMain" type="Sprite2D" parent="."]
+modulate = Color(0.9, 1, 1, 0.92)
+z_index = 15
+position = Vector2(24, -88)
+scale = Vector2(0.48, 0.48)
+texture = ExtResource("9_crystal_cluster")
+
+[node name="CrystalClusterVisualEast" type="Sprite2D" parent="."]
+modulate = Color(0.86, 0.98, 1, 0.86)
+z_index = 15
+position = Vector2(122, -112)
+scale = Vector2(0.42, 0.42)
+texture = ExtResource("9_crystal_cluster")
+
+[node name="CrystalClusterVisualSouth" type="Sprite2D" parent="."]
+modulate = Color(0.86, 0.98, 1, 0.84)
+z_index = 15
+position = Vector2(174, -18)
+scale = Vector2(0.38, 0.38)
+texture = ExtResource("9_crystal_cluster")
+
+[node name="CrystalClusterVisualReserve" type="Sprite2D" parent="."]
+modulate = Color(0.82, 0.96, 1, 0.78)
+z_index = 15
+position = Vector2(50, -158)
+scale = Vector2(0.34, 0.34)
+texture = ExtResource("9_crystal_cluster")
 
 [node name="CrystalResourceCollectorField" type="Sprite2D" parent="."]
 modulate = Color(0.9, 1, 0.98, 0.78)

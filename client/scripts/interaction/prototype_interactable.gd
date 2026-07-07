@@ -81,6 +81,8 @@ const FIRST_PATH_FOCUS_MARKER_MODULATE := Color(0.92, 1.0, 0.96, 0.48)
 const FOCUSED_Z_INDEX := 20
 const FIRST_PATH_FOCUS_Z_INDEX := 2
 const INTERACTABLE_LABEL_FONT_SIZE := 8
+const DRAW_SEMANTIC_SILHOUETTES := false
+const SHOW_UNFOCUSED_MARKERS := false
 const FOCUS_LABEL_WIDTH := 112.0
 const FOCUS_LABEL_LINE_HEIGHT := 12.0
 const FOCUS_LABEL_BG := Color(0.012, 0.024, 0.022, 0.84)
@@ -252,6 +254,7 @@ func set_focus_visual(focused: bool, compact_first_industrial_path: bool = false
 			focus_ring.position = marker.position - Vector2(7.0, 7.0)
 			focus_ring.size = ring_size
 	if marker != null:
+		marker.visible = visible and (focused or SHOW_UNFOCUSED_MARKERS)
 		marker.pivot_offset = marker.size * 0.5
 		marker.scale = FOCUSED_MARKER_SCALE if should_show_full_focus else Vector2.ONE
 		if should_show_full_focus:
@@ -269,7 +272,8 @@ func set_focus_visual(focused: bool, compact_first_industrial_path: bool = false
 
 
 func _draw() -> void:
-	SemanticSilhouette.draw(self, get_semantic_silhouette_id())
+	if DRAW_SEMANTIC_SILHOUETTES:
+		SemanticSilhouette.draw(self, get_semantic_silhouette_id())
 
 
 func set_default_visual() -> void:

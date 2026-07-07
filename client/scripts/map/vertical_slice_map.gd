@@ -83,6 +83,7 @@ var phase_well_frontier_runtime: PhaseWellFrontierRuntime
 var enemy_counterattack_runtime: EnemyCounterattackRuntime
 var character_kit_runtime: CharacterKitRuntime
 var interactable_visual_refresher := InteractableVisualRefresher.new()
+var first_minute_baseline := FirstMinuteExperienceBaseline.new()
 var current_world_state: WorldState
 var last_reported_region_id := "region.outpost_platform"
 var last_gate_message := ""
@@ -95,7 +96,6 @@ func _ensure_scene_nodes() -> void:
 	if enemies_root == null:
 		enemies_root = get_node_or_null("Enemies") as Node2D
 
-
 func setup(registry: DataRegistry) -> void:
 	_ensure_scene_nodes()
 	data_registry = registry
@@ -105,9 +105,11 @@ func setup(registry: DataRegistry) -> void:
 	character_kit_runtime = CharacterKitRuntime.new(data_registry)
 	_setup_interactable_labels()
 	_setup_enemy_labels()
+	first_minute_baseline.disable_legacy_presentation_nodes(self)
 	_refresh_focus_visuals()
 func _ready() -> void:
 	_ensure_scene_nodes()
+	first_minute_baseline.disable_legacy_presentation_nodes(self)
 	if interactables_root == null:
 		return
 	for interactable in interactables_root.get_children():
@@ -188,14 +190,12 @@ func try_interact(character_state: CharacterState, world_state: WorldState) -> D
 		result["evacuation_feedback"] = evacuation_feedback
 	return result
 
-
 func _refresh_startup_presentation(world_state: WorldState) -> void:
 	var startup_layer := get_node_or_null("DemoBaseStartupPresentationLayer") as DemoBaseStartupPresentationLayer
 	if startup_layer == null:
 		return
 
 	startup_layer.refresh_startup_state(world_state)
-
 
 func _align_startup_player_to_core(world_state: WorldState) -> void:
 	if player == null or interactables_root == null or world_state == null: return
@@ -211,10 +211,10 @@ func _align_startup_player_to_core(world_state: WorldState) -> void:
 	player.facing_direction = direction_to_core.normalized()
 	player.queue_redraw()
 
-
 func refresh_world_interactables(world_state: WorldState) -> void:
 	_ensure_scene_nodes()
 	current_world_state = world_state
+	first_minute_baseline.apply_scene_visibility(self, world_state)
 	_refresh_startup_presentation(world_state)
 	_align_startup_player_to_core(world_state)
 	if interactable_visual_refresher == null:
@@ -253,6 +253,7 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			should_enable = should_enable and BaseActionDispatchPlan.is_frontline_action_console_ready(world_state)
 		if BaseActionDispatchPlan.is_frontline_window_object(interactable.definition_id):
 			should_enable = should_enable and BaseActionDispatchPlan.is_frontline_window_active(world_state)
+		should_enable = should_enable and first_minute_baseline.is_interactable_allowed(interactable, world_state)
 		if interactable.definition_id == "map_object.phase_well_frame_route_blocker":
 			should_enable = (
 				should_enable
@@ -404,6 +405,7 @@ func refresh_world_interactables(world_state: WorldState) -> void:
 			current_interactable = null
 			interaction_cleared.emit(interactable)
 	update_current_interactable()
+
 func update_current_interactable() -> void:
 	var nearest_interactable := _get_nearest_interactable()
 	if nearest_interactable == current_interactable:

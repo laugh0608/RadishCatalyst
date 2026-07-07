@@ -14,6 +14,8 @@ const ART_VISIBILITY_SHADOW := Color(0.0, 0.015, 0.014, 0.48)
 const ART_VISIBILITY_RING := Color(0.56, 0.96, 0.93, 0.50)
 const ART_VISIBILITY_RING_INNER := Color(0.08, 0.36, 0.34, 0.20)
 const ART_VISIBILITY_BEACON := Color(1.0, 0.76, 0.30, 0.72)
+const ART_WALK_BOB_DISTANCE := 2.4
+const ART_WALK_BOB_SPEED := 9.0
 const PLAYER_VISUAL_PART_IDS := [
 	"suit.body_mass",
 	"suit.torso",
@@ -36,6 +38,9 @@ const PLAYER_VISUAL_PART_IDS := [
 
 var facing_direction := Vector2.RIGHT
 var block_positive_x_until_release := false
+var art_walk_time := 0.0
+var art_base_position := Vector2.ZERO
+var art_face_left := false
 @onready var art_sprite: Sprite2D = get_node_or_null("ArtSprite") as Sprite2D
 
 signal interaction_requested
@@ -51,11 +56,13 @@ signal load_requested
 
 func _ready() -> void:
 	z_index = 80
+	if art_sprite != null:
+		art_base_position = art_sprite.position
 	_refresh_art_sprite()
 	queue_redraw()
 
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	var input_vector := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	if input_vector == Vector2.ZERO:
 		input_vector = _get_keyboard_fallback_vector()
@@ -71,8 +78,11 @@ func _physics_process(_delta: float) -> void:
 	move_and_slide()
 	if input_vector != Vector2.ZERO:
 		facing_direction = input_vector.normalized()
-		_refresh_art_sprite()
-		queue_redraw()
+		art_walk_time += delta * ART_WALK_BOB_SPEED
+	else:
+		art_walk_time = 0.0
+	_refresh_art_sprite(input_vector != Vector2.ZERO)
+	queue_redraw()
 
 	if Input.is_action_just_pressed("interact"):
 		interaction_requested.emit()
@@ -192,14 +202,23 @@ func _has_runtime_art_sprite() -> bool:
 	return art_sprite != null and art_sprite.texture != null and art_sprite.visible
 
 
-func _refresh_art_sprite() -> void:
+func _refresh_art_sprite(is_moving: bool = false) -> void:
 	if art_sprite == null:
 		return
 	art_sprite.visible = art_sprite.texture != null
 	if not art_sprite.visible:
 		return
 	art_sprite.modulate = Color(1.12, 1.18, 1.12, 1.0)
-	art_sprite.rotation = _safe_facing_direction().angle() - Vector2.DOWN.angle()
+	art_sprite.rotation = 0.0
+	var forward := _safe_facing_direction()
+	if absf(forward.x) > 0.15:
+		art_face_left = forward.x < 0.0
+	art_sprite.flip_h = art_face_left
+	var bob_offset := Vector2.ZERO
+	if is_moving:
+		bob_offset.y = sin(art_walk_time) * ART_WALK_BOB_DISTANCE
+		bob_offset.x = cos(art_walk_time * 0.5) * 0.8
+	art_sprite.position = art_base_position + bob_offset
 
 
 func _get_keyboard_fallback_vector() -> Vector2:

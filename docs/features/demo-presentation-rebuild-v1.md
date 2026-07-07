@@ -2,7 +2,7 @@
 
 更新时间：2026-07-06
 
-状态：当前活跃执行专题。
+状态：当前活跃执行专题；2026-07-06 插入 `R0` 首分钟体验重基线。
 
 ## 背景与问题
 
@@ -40,13 +40,25 @@
 - 首屏范围内关闭全部旧视觉层。
 - 出口：新档首屏截图对比锚点参考成立。
 - 2026-07-05 进度：首屏核心区主体、玩家可见性和真实资产主读法已成立；后续不继续围绕首屏做同类调参。
+- 2026-07-06 复盘：实机截图证明"资产已接入"不等于"首分钟成立"；设备堆叠、旧语义轮廓、HUD 截断和交互范围仍破坏玩家读法。
+
+### R0 首分钟体验重基线包
+
+- 暂停 `P2` 录像与 `P3` 删除收口，不再把单张定点截图当作阶段通过证据。
+- 开局只保留玩家、损坏前哨核心和少量环境道具；基础反应器、储存、整备台、过滤器、采集器和控制台不得一开始挤在首屏。
+- 修复核心后，下一步必须能在场景中看到晶体簇，并以晶体 / 残骸采集作为明确目标。
+- 旧规划色块、旧 art pass、交互物语义轮廓先硬禁用，后续 `P3` 再删文件和修剪检查。
+- 收紧交互范围；玩家不站到目标前方时不应提前弹出交互提示。
+- HUD 先收束为可读的目标、状态和当前交互提示，不继续堆小字。
+- 角色首版不要求完整动画组，但静态 sprite 不得按方向整张旋转；先用固定朝向 / 翻转 / 轻微步态摆动替代。
+- 出口：新档第一分钟截图序列能读成"损坏核心 -> 修复 -> 去晶体矿脉采集"，且没有旧流程图色块突然出现。
 
 ### P2 三区扩展包
 
 - 晶体矿脉、污染边界、核心稳定站换用同一资产家族：地面变体 tile、晶体簇、污染贴花、核心稳定站主体。
 - 出口：四个核心区截图对比成立，录制第一段 60 秒实机录像。
 - 2026-07-05 进度：晶体 / 污染地面、远场采集器 / 过滤器和核心稳定站主体已接入；当前只补三区定点截图证据，失败时只收束对应场景摆位、范围和可读性。
-- 2026-07-06 进度：2 / 5 / 6 号定点截图已成立；下一步录制 60 秒实机录像，录像成立后再进入 `P3`。
+- 2026-07-06 复判：2 / 5 / 6 号定点截图不能代表连续体验成立；待 `R0` 通过后再重做路径截图 / 录像判断。
 
 ### P3 旧层清除收口包
 
@@ -56,7 +68,7 @@
 
 ## 旧层处置清单
 
-删除（纯视觉层与历代 art pass）：
+先硬禁用，后续 `P3` 删除（纯视觉层、历代 art pass 与交互语义轮廓）：
 
 `demo_initial_art_identity_layer`、`prototype_visual_priority_layer`、`demo_industrial_base_visual_layer`、`demo_crystal_resource_visual_layer`、`demo_pollution_boundary_visual_layer`、`demo_core_stabilization_visual_layer`、`demo_first_industrial_path_visual_layer`、`demo_first_industrial_path_handoff_art_pass`、`demo_crystal_workface_asset_art_pass`、`demo_base_handoff_asset_art_pass`、`demo_playable_scene_rebuild_layer`、`demo_base_first_screen_scene_layer`、`demo_base_first_screen_art_pass`、`demo_base_startup_presentation_layer`、`demo_default_path_asset_language_art_pass`、`demo_scene_focus_depth_layer`、`demo_region_industrial_value_layer`、`demo_core_scene_space_layer`、`demo_pollution_short_challenge_readiness_art_pass`、`demo_pollution_to_core_handoff_art_pass`、`demo_base_completion_outcome_art_pass`。
 
@@ -64,7 +76,7 @@
 
 `vertical_slice_map` / `vertical_slice_map_surface`（场景承载结构）、`current_objective_guidance_layer`（目标指引，改为轻量高亮）、`interactable_target_selector` / `interactable_visual_refresher`（交互反馈）、`enemy_counterattack_runtime`、`phase_well_frontier_runtime`。
 
-`VerticalSliceMap.tscn` 中的旧 `ColorRect` / `Polygon2D` 装饰节点随 P1 / P2 分区清除。
+`VerticalSliceMap.tscn` 中的旧 `ColorRect` / `Polygon2D` 装饰节点随 `R0` 先硬禁用，后续 `P3` 分区清除。
 
 ## 不做
 
