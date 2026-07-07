@@ -31,6 +31,7 @@ func _run_checks() -> void:
 	_check_signal_echo_and_core_guard_affordance()
 	_check_hud_map_route_alignment()
 	_check_scene_visual_affordance_labels()
+	_check_first_minute_current_objective_selection()
 	_check_enemy_focus_affordance_labels()
 
 
@@ -266,6 +267,37 @@ func _check_scene_visual_affordance_labels() -> void:
 	)["is_gathered"] = true
 	map.apply_runtime_state(world, character)
 	_expect_text_contains(guard_cache.label.text, "已回收", "gathered guard cache label")
+	map.free()
+
+
+func _check_first_minute_current_objective_selection() -> void:
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	map.setup(data_registry)
+
+	var world := WorldState.create_default()
+	var character := CharacterState.create_default()
+	world.quest_state.complete_quest("quest.restore_outpost")
+	world.quest_state.active_quest_ids = ["quest.scout_crystal_field"]
+	map.apply_runtime_state(world, character)
+
+	var crystal := map.get_node("Interactables/CrystalCluster") as PrototypeInteractable
+	map.player.position = crystal.position + Vector2(-48.0, 0.0)
+	map.player.facing_direction = Vector2.RIGHT
+	var forward_target := InteractableTargetSelector.select_interactable(
+		map.player,
+		map.interactables_root,
+		world
+	)
+	_expect_equal(forward_target, crystal, "scout crystal objective selects forward crystal")
+
+	map.player.facing_direction = Vector2.LEFT
+	var backward_target := InteractableTargetSelector.select_interactable(
+		map.player,
+		map.interactables_root,
+		world
+	)
+	_expect_equal(backward_target, null, "scout crystal objective respects facing at extended range")
 	map.free()
 
 
