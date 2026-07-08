@@ -278,6 +278,7 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 
 func _check_first_minute_runtime_visual_constraints() -> void:
 	var world := _create_resource_chain_world("quest.scout_crystal_field")
+	var opening_world := WorldState.create_default()
 	var character := CharacterState.create_default()
 	character.position = Vector2(-250.0, -48.0)
 
@@ -287,6 +288,34 @@ func _check_first_minute_runtime_visual_constraints() -> void:
 	var crystal_layer := map.get_node("DemoCrystalResourceVisualLayer") as DemoCrystalResourceVisualLayer
 	var route_spine := map.get_node("MainRouteSpine") as ColorRect
 	var opening_layer := map.get_node("OpeningSceneLayer") as Node2D
+	var crystal_approach_node_paths := [
+		"DemoPresentationFieldZones/CrystalApproachPipeWest",
+		"DemoPresentationFieldZones/CrystalApproachPipeMid",
+		"DemoPresentationFieldZones/CrystalApproachPipeEast",
+		"DemoPresentationFieldZones/CrystalApproachSignalLightWest",
+		"DemoPresentationFieldZones/CrystalApproachSignalLightMid",
+		"DemoPresentationFieldZones/CrystalApproachCableSpoolWest",
+		"DemoPresentationFieldZones/CrystalApproachSurveyCrate",
+		"DemoPresentationFieldZones/CrystalApproachToolbox",
+	]
+	for node_path in crystal_approach_node_paths:
+		_expect_equal(
+			map.get_node_or_null(String(node_path)) is CanvasItem,
+			true,
+			"first-minute scene includes assetized crystal approach node %s" % String(node_path)
+		)
+	var approach_pipe := map.get_node_or_null("DemoPresentationFieldZones/CrystalApproachPipeMid") as CanvasItem
+	var approach_light := map.get_node_or_null("DemoPresentationFieldZones/CrystalApproachSignalLightMid") as CanvasItem
+	var approach_toolbox := map.get_node_or_null("DemoPresentationFieldZones/CrystalApproachToolbox") as CanvasItem
+	if approach_pipe != null and approach_light != null and approach_toolbox != null:
+		map.refresh_world_interactables(opening_world)
+		_expect_equal(approach_pipe.visible, false, "first-minute crystal path stays hidden before outpost restoration")
+		_expect_equal(approach_light.visible, false, "first-minute crystal signal light stays hidden before outpost restoration")
+		_expect_equal(approach_toolbox.visible, false, "first-minute crystal toolbox stays hidden before outpost restoration")
+		map.refresh_world_interactables(world)
+		_expect_equal(approach_pipe.visible, true, "first-minute crystal path appears after outpost restoration")
+		_expect_equal(approach_light.visible, true, "first-minute crystal signal light appears after outpost restoration")
+		_expect_equal(approach_toolbox.visible, true, "first-minute crystal toolbox appears after outpost restoration")
 
 	first_path_layer.refresh_path_state(world, character)
 	_expect_equal(first_path_layer.visible, true, "legacy first industrial path can still be enabled by its own refresh")
