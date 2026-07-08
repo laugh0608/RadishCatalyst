@@ -30,6 +30,7 @@ func _run_checks() -> void:
 	_check_device_panel_resource_chain_state()
 	_check_processing_result_resource_chain()
 	_check_first_industrial_chain_hud_and_visual_state()
+	_check_first_minute_runtime_visual_constraints()
 	_check_playable_scene_rebuild_layer()
 	_check_base_first_screen_scene_layer()
 	_check_operation_relation_visual_shapes()
@@ -272,6 +273,35 @@ func _check_first_industrial_chain_hud_and_visual_state() -> void:
 	_expect_equal(base_handoff_layer.has_handoff_state_shape("base_handoff_asset.reactor_hopper.processing"), true, "base handoff asset layer keeps hopper active during processing")
 	_expect_equal(base_handoff_layer.has_handoff_state_shape("base_handoff_asset.stage.reactor_processing"), true, "base handoff asset layer records reactor processing stage")
 	_check_first_industrial_path_stage_changes(first_path_layer)
+	map.free()
+
+
+func _check_first_minute_runtime_visual_constraints() -> void:
+	var world := _create_resource_chain_world("quest.scout_crystal_field")
+	var character := CharacterState.create_default()
+	character.position = Vector2(-250.0, -48.0)
+
+	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
+	root.add_child(map)
+	var first_path_layer := map.get_node("DemoFirstIndustrialPathVisualLayer") as DemoFirstIndustrialPathVisualLayer
+	var crystal_layer := map.get_node("DemoCrystalResourceVisualLayer") as DemoCrystalResourceVisualLayer
+	var route_spine := map.get_node("MainRouteSpine") as ColorRect
+	var opening_layer := map.get_node("OpeningSceneLayer") as Node2D
+
+	first_path_layer.refresh_path_state(world, character)
+	_expect_equal(first_path_layer.visible, true, "legacy first industrial path can still be enabled by its own refresh")
+	map.first_minute_baseline.disable_legacy_presentation_nodes(map)
+	_expect_equal(first_path_layer.visible, false, "first-minute baseline suppresses refreshed first industrial path overlay")
+	_expect_equal(first_path_layer.is_processing(), false, "first-minute baseline keeps first industrial path processing disabled")
+	_expect_equal(route_spine.visible, false, "first-minute baseline suppresses refreshed global route spine")
+	_expect_equal(opening_layer.visible, false, "first-minute baseline suppresses refreshed opening planning layer")
+
+	character.position = Vector2(112.0, -112.0)
+	crystal_layer.refresh_focus_visibility(character.position)
+	_expect_equal(crystal_layer.visible, true, "legacy crystal resource layer can still be enabled by its own refresh")
+	map.first_minute_baseline.disable_legacy_presentation_nodes(map)
+	_expect_equal(crystal_layer.visible, false, "first-minute baseline suppresses refreshed crystal resource overlay")
+	_expect_equal(crystal_layer.is_processing(), false, "first-minute baseline keeps crystal resource layer processing disabled")
 	map.free()
 
 
