@@ -6,7 +6,11 @@ extends Node2D
 ## 地表贴图质量（亮度 / 细节 / 暖调）属素材范畴，由 AI 管线重生成 tile 解决，不在本脚本内补。
 
 const ROCK_SOURCE_ID := 0
-const ROCK_ATLAS := Vector2i(0, 0)
+const ROCK_ATLAS_VARIANTS: Array[Vector2i] = [
+	Vector2i(0, 0),
+	Vector2i(1, 0),
+	Vector2i(2, 0),
+]
 
 ## 岩地覆盖范围（tile 坐标，含端点），默认覆盖基地到污染 / 残骸入口的首小时可视地面。
 @export var fill_tile_min := Vector2i(-18, -11)
@@ -30,9 +34,15 @@ func _fill_ground_bed() -> void:
 	for y in range(fill_tile_min.y, fill_tile_max.y + 1):
 		for x in range(fill_tile_min.x, fill_tile_max.x + 1):
 			var cell := Vector2i(x, y)
-			# 只填补空缺格，保留原有已铺设的地表与接缝细节。
-			if ground.get_cell_source_id(cell) == -1:
-				ground.set_cell(cell, ROCK_SOURCE_ID, ROCK_ATLAS)
+			var source_id := ground.get_cell_source_id(cell)
+			# 空格补岩地；既有岩地同步换成确定性变体，其他来源保持不动。
+			if source_id == -1 or source_id == ROCK_SOURCE_ID:
+				ground.set_cell(cell, ROCK_SOURCE_ID, _rock_atlas_for_cell(cell))
+
+func _rock_atlas_for_cell(cell: Vector2i) -> Vector2i:
+	# 只选择 atlas 中的真实贴图，不旋转、镜像或程序生成视觉内容。
+	var mixed := cell.x * 92821 + cell.y * 68917 + cell.x * cell.y * 97
+	return ROCK_ATLAS_VARIANTS[absi(mixed) % ROCK_ATLAS_VARIANTS.size()]
 
 func _hide_dark_backdrops() -> void:
 	var parent := get_parent()
