@@ -1,6 +1,6 @@
 # AI Art Prompt Library V1
 
-更新时间：2026-07-05
+更新时间：2026-07-11
 
 ## 用途与关联
 
@@ -33,6 +33,8 @@ centered subject on a plain dark background
 
 要点中文对照：俯视 3/4 视角（正面略可见）、工业科幻化工前哨、暗青灰主色 + 青色发光 + 琥珀工作灯、平涂 + 柔和环境光遮蔽、剪影清晰、光源固定左上、无文字水印。
 
+场景图底补充：上方全局风格块主要约束设备、角色和独立道具。地面 C1 到 C4 必须以各自提示词的 `light warm sandy-gray` 为准，不沿用 `dark ... rock`；整体场景采用“浅暖地面承托暗金属建筑”的明度关系。`assets/reference/style-anchor.png` 约束设备画风，`assets/concept-art/2026-06-25-demo-first-screen-wide-reference.png` 约束场景图底对比。
+
 风格边界：首颗星球和第一章 Demo 不是西方炼金术、奇幻工坊或魔法遗迹风格；异常、遗迹和稳定工程应通过工业结构、异星地貌、几何设施、管线、传感器和能量读数表达，不使用符文、法阵、药剂瓶、羊皮纸、蜡封、黄铜古董仪器、哥特 / 中世纪纹样或蒸汽朋克装饰作为主读法。
 
 地面贴图使用变体结尾：把最后一句换成 `seamless tileable texture, top-down view, uniform lighting, no borders`。
@@ -41,7 +43,9 @@ centered subject on a plain dark background
 
 | 用途 | HEX |
 | --- | --- |
-| 岩地暗底 | `#151C1E` |
+| 浅暖砂岩地表 | `#A99572` |
+| 岩缝 / 深阴影 | `#151C1E` |
+| 平台暖灰中间调 | `#6F6B5E` |
 | 金属结构中间调 | `#2E4145` |
 | 金属高光 | `#4A6165` |
 | 青色能量 / 状态 | `#56C8C4` |
@@ -201,30 +205,32 @@ anchor bolts, amber warning lights
 ### C1 异星岩地
 
 ```text
-top-down alien rocky ground, dark desaturated teal-gray basalt with fine
-cracks and scattered pebbles, subtle color variation, low contrast, no
-large landmarks
+top-down alien rocky ground, light warm sandy-gray basalt and compacted
+alien dust with fine dark cracks and scattered pebbles, sunlit but muted,
+subtle color variation, low contrast, no large landmarks
 ```
 
 ### C2 金属平台地面
 
 ```text
-top-down industrial metal platform floor, dark riveted panels with subtle
-wear, faint amber hazard line accents, low contrast
+top-down industrial metal platform floor, medium warm-gray riveted panels
+clearly darker than the sandy ground but lighter than the buildings,
+subtle wear, faint amber hazard line accents, low contrast
 ```
 
 ### C3 晶体区地面变体
 
 ```text
-top-down alien ground with faint embedded cyan crystal veins glowing
-subtly through dark rock
+top-down light warm sandy-gray alien ground with faint embedded cyan
+crystal veins glowing subtly through pale rock, dark cracks for depth
 ```
 
 ### C4 污染区地面变体
 
 ```text
-top-down contaminated wasteland ground, sickly yellow-green residue
-patches over dark cracked soil
+top-down contaminated wasteland ground, light warm sandy-gray cracked soil
+stained by muted sickly yellow-green residue patches, readable but not
+oversaturated
 ```
 
 平台边缘条优先在引擎内用 C2 切片加深色描边拼装，不单独生成。

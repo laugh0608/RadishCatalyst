@@ -381,9 +381,13 @@ func run() -> void:
 	tether_anchor_world.quest_state.completed_quest_ids.append("quest.calibrate_phase_well_stability_window")
 	tether_anchor_character.position = Vector2(-92, 48)
 	map.apply_runtime_state(tether_anchor_world, tether_anchor_character)
+	map.player.facing_direction = Vector2.DOWN
 	map.update_current_interactable()
+	var frontline_console_instance_id := ""
+	if map.current_interactable != null:
+		frontline_console_instance_id = map.current_interactable.instance_id
 	host._expect_equal(
-		map.current_interactable.instance_id,
+		frontline_console_instance_id,
 		"map_object_instance.frontline_action_console",
 		"frontline console should take focus near the relay pad"
 	)
@@ -408,7 +412,7 @@ func run() -> void:
 	if frontline_console != null:
 		host._expect_equal(frontline_console.visible, true, "S16 frontline console remains visible after confirmation")
 		host._expect_equal(frontline_console.monitoring, false, "S16 frontline console should not stay interactable after confirmation")
-	host._expect_text_contains(frontline_console.label.text, "行动已确认", "S16 frontline console keeps completed visual")
+		host._expect_text_contains(frontline_console.label.text, "行动已确认", "S16 frontline console keeps completed visual")
 	tether_anchor_world.quest_state.active_quest_ids = ["quest.plan_stability_frontline_action"]
 	tether_anchor_world.quest_state.completed_quest_ids.erase("quest.plan_stability_frontline_action")
 	tether_anchor_world.map_objects.erase("map_object_instance.frontline_action_console")

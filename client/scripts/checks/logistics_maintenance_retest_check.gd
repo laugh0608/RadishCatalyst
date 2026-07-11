@@ -164,6 +164,7 @@ func _check_logistics_maintenance_core_retest(
 
 func _create_logistics_maintenance_core_retest_world(confirmed: bool) -> WorldState:
 	var world := WorldState.create_default()
+	host._complete_first_minute(world)
 	world.current_region_id = "region.demo_stabilization_core"
 	world.quest_state.complete_quest("quest.restore_outpost")
 	world.quest_state.complete_quest("quest.enter_pollution_edge")

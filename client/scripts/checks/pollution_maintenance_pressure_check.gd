@@ -204,6 +204,7 @@ func _check_residue_feedback_and_processing(root: Node) -> void:
 
 func _create_logistics_maintenance_world(confirmed: bool) -> WorldState:
 	var world := WorldState.create_default()
+	host._complete_first_minute(world)
 	world.current_region_id = "region.outpost_platform"
 	world.quest_state.complete_quest("quest.restore_outpost")
 	world.quest_state.complete_quest("quest.enter_pollution_edge")

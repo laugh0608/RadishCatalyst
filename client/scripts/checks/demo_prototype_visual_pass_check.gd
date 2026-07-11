@@ -28,12 +28,31 @@ func _init() -> void:
 func _run_checks() -> void:
 	_check_visual_priority_profile_coverage()
 	_check_scene_visual_priority_layer()
-	_check_current_objective_guidance_layer()
+	_check_legacy_guidance_layer_suppressed()
 	_check_startup_readability_scope()
 	_check_playable_space_and_actor_silhouettes()
 	_check_key_object_semantic_silhouettes()
 	_check_visual_state_methods()
 	_check_visual_refresher_state_alignment()
+
+
+func _check_legacy_guidance_layer_suppressed() -> void:
+	var map := _create_setup_map()
+	var layer := map.get_node("CurrentObjectiveGuidanceLayer") as CurrentObjectiveGuidanceLayer
+	var world := WorldState.create_default()
+	map.refresh_world_interactables(world)
+	map.first_minute_baseline.disable_legacy_presentation_nodes(map)
+	_expect_equal(map.current_interactable != null, true, "startup keeps the damaged outpost core interactable")
+	if map.current_interactable != null:
+		_expect_equal(map.current_interactable.name, "OutpostCore", "startup interaction targets the damaged outpost core")
+	_expect_equal(layer.visible, false, "legacy objective guidance layer stays hidden during the first minute")
+	_expect_equal(layer.is_processing(), false, "legacy objective guidance layer stays out of runtime processing")
+	world.quest_state.complete_quest("quest.restore_outpost")
+	world.quest_state.active_quest_ids = ["quest.scout_crystal_field"]
+	map.refresh_world_interactables(world)
+	map.first_minute_baseline.disable_legacy_presentation_nodes(map)
+	_expect_equal(layer.visible, false, "legacy objective guidance stays hidden after outpost restoration")
+	map.free()
 
 
 func _check_visual_priority_profile_coverage() -> void:
@@ -520,8 +539,8 @@ func _check_startup_readability_scope() -> void:
 			_expect_equal(startup_layer.visible, false, "restored base hides the startup presentation layer")
 			_expect_equal(startup_layer.is_startup_active(), false, "restored base deactivates startup presentation")
 		_expect_equal(not base_layer.is_startup_restore_focus_active(), true, "restored base visual layer leaves startup focus")
-		_expect_equal(opening_layer.visible, true, "restored base visual layer restores the opening scene layer")
-		_expect_equal(route_spine.visible, true, "restored base visual layer restores the route spine for later route scopes")
+		_expect_equal(opening_layer.visible, false, "restored base keeps the legacy opening scene layer suppressed")
+		_expect_equal(route_spine.visible, false, "restored base keeps the legacy route spine suppressed")
 		_expect_equal(base_layer.has_detail_shape("story.outpost.recovered_power_bus"), true, "base restored view keeps recovered power bus evidence")
 		_expect_equal(base_layer.has_detail_shape("story.outpost.reactor_cold_start_marks"), true, "base restored view keeps reactor cold start evidence")
 		_expect_equal(base_layer.has_detail_shape("story.outpost.storage_recovery_manifest"), true, "base restored view keeps storage recovery evidence")

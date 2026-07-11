@@ -318,7 +318,7 @@ func _check_first_minute_runtime_visual_constraints() -> void:
 		_expect_equal(approach_toolbox.visible, true, "first-minute crystal toolbox appears after outpost restoration")
 
 	first_path_layer.refresh_path_state(world, character)
-	_expect_equal(first_path_layer.visible, true, "legacy first industrial path can still be enabled by its own refresh")
+	_expect_equal(first_path_layer.visible, false, "legacy first industrial path stays disabled after its own refresh")
 	map.first_minute_baseline.disable_legacy_presentation_nodes(map)
 	_expect_equal(first_path_layer.visible, false, "first-minute baseline suppresses refreshed first industrial path overlay")
 	_expect_equal(first_path_layer.is_processing(), false, "first-minute baseline keeps first industrial path processing disabled")
@@ -628,8 +628,11 @@ func _check_crystal_collector_runtime_chain() -> void:
 	character.inventory.add_item("item.basic_parts", 2)
 	character.inventory.add_item("item.salvage_scrap", 1)
 	map.refresh_world_interactables(world)
-	_expect_equal(build_site.visible, true, "crystal collector build site appears after outpost restoration")
+	_expect_equal(build_site.visible, false, "crystal collector build site waits until the first crystal scout is complete")
 	_expect_equal(output.visible, false, "crystal collector output waits for built collector")
+	world.quest_state.complete_quest("quest.scout_crystal_field")
+	map.refresh_world_interactables(world)
+	_expect_equal(build_site.visible, true, "crystal collector build site appears after the first crystal scout")
 
 	var build_result := BuildSystem.new(data_registry).build_structure(
 		"map_object_instance.crystal_collector_build_site",

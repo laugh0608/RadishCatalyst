@@ -86,11 +86,13 @@ func _check_revisit_route_gate(root: Node) -> void:
 	var residue := map.get_node("Interactables/PollutionResidueVialReturnCache") as PrototypeInteractable
 	var guard := map.get_node("Enemies/PollutedSkitterVialReturnGuard") as PrototypeEnemy
 	var locked_world := WorldState.create_default()
+	host._complete_first_minute(locked_world)
 	map.sync_enemy_states(locked_world)
 	map.refresh_world_interactables(locked_world)
 	host._expect_equal(residue.can_interact(), false, "pollution revisit residue is gated before pollution edge quest")
 	host._expect_equal(guard.can_be_attacked(), false, "pollution revisit guard is gated before pollution edge quest")
 	var pollution_world := WorldState.create_default()
+	host._complete_first_minute(pollution_world)
 	pollution_world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
 	map.sync_enemy_states(pollution_world)
 	map.refresh_world_interactables(pollution_world)
@@ -217,6 +219,7 @@ func _check_slurry_return_route_gate(root: Node) -> void:
 	var residue := map.get_node("Interactables/PollutionResidueSlurryReturnCache") as PrototypeInteractable
 	var guard := map.get_node("Enemies/PollutedSkitterSlurryReturnGuard") as PrototypeEnemy
 	var locked_world := WorldState.create_default()
+	host._complete_first_minute(locked_world)
 	locked_world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
 	locked_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1.0)
 	map.sync_enemy_states(locked_world)
@@ -224,6 +227,7 @@ func _check_slurry_return_route_gate(root: Node) -> void:
 	host._expect_equal(residue.can_interact(), false, "slurry return residue requires operational pollution filter")
 	host._expect_equal(guard.can_be_attacked(), false, "slurry return guard requires operational pollution filter")
 	var opened_world := WorldState.create_default()
+	host._complete_first_minute(opened_world)
 	opened_world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
 	opened_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1.0)
 	opened_world.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
@@ -343,6 +347,7 @@ func _check_vial_reserve_route_gate(root: Node) -> void:
 	var residue := map.get_node("Interactables/PollutionResidueVialReserveCache") as PrototypeInteractable
 	var guard := map.get_node("Enemies/PollutedSkitterVialReserveGuard") as PrototypeEnemy
 	var locked_world := WorldState.create_default()
+	host._complete_first_minute(locked_world)
 	locked_world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
 	locked_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1.0)
 	map.sync_enemy_states(locked_world)
@@ -350,6 +355,7 @@ func _check_vial_reserve_route_gate(root: Node) -> void:
 	host._expect_equal(residue.can_interact(), false, "vial reserve residue requires operational pollution filter")
 	host._expect_equal(guard.can_be_attacked(), false, "vial reserve guard requires operational pollution filter")
 	var opened_world := WorldState.create_default()
+	host._complete_first_minute(opened_world)
 	opened_world.quest_state.active_quest_ids = ["quest.enter_pollution_edge"]
 	opened_world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1.0)
 	opened_world.add_base_structure("structure.pollution_filter_build_site", "building.pollution_filter", "region.pollution_edge")
@@ -1026,6 +1032,7 @@ func _check_double_vial_core_write_feedback() -> void:
 
 func _create_double_vial_world() -> WorldState:
 	var world := WorldState.create_default()
+	host._complete_first_minute(world)
 	world.quest_state.complete_quest("quest.restore_outpost")
 	world.quest_state.complete_quest("quest.enter_pollution_edge")
 	world.quest_state.set_objective_progress("quest.enter_pollution_edge", "craft_item", "item.resistance_vial_t1", 1.0)

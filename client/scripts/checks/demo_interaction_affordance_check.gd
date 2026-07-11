@@ -206,6 +206,7 @@ func _check_scene_visual_affordance_labels() -> void:
 	var world := WorldState.create_default()
 	var character := CharacterState.create_default()
 	world.quest_state.complete_quest("quest.restore_outpost")
+	world.quest_state.complete_quest("quest.scout_crystal_field")
 	world.ensure_map_object(
 		"map_object_instance.pollution_residue",
 		"map_object.pollution_residue_patch",
