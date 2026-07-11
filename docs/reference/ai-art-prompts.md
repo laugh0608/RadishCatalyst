@@ -299,17 +299,19 @@ spreading in an irregular organic blob, soft edges, single blob
 
 ## 产出提交与审阅流程
 
-1. 每批建一个目录：`assets/art-intake/2026-07-02-batch01/`（日期加批次号）。
-2. 文件命名：`编号_名称_v候选号.png`，例如 `a0_reactor_v3.png`、`c1_rock_ground_v2.png`；整版把编号连写，例如 `b1b2_core_states_v1.png`、`b3-b6_devices_sheet_v2.png`。
-3. 放好后让当前执行 agent 审阅：对它说"审阅 art-intake 最新一批"，按以下清单给出保留 / 重 roll / 修改意见：
+1. 生成任务按一个素材类别一个会话拆分；单会话最多调用 3 次图像生成，每次 1 张。超过 3 张时另开会话，不在原会话追加。
+2. 每批建一个目录：`assets/art-intake/2026-07-02-batch01/`（日期加批次号）。项目用图片每次生成后即复制到该批次，避免只依赖会话记录恢复。
+3. 文件命名：`编号_名称_v候选号.png`，例如 `a0_reactor_v3.png`、`c1_rock_ground_v2.png`；整版把编号连写，例如 `b1b2_core_states_v1.png`、`b3-b6_devices_sheet_v2.png`。
+4. 生成会话只生成与落盘，并在本批 `_manifest.md` 记录 thread ID、生成源路径、候选编号和未完成清单；候选审阅、裁切、atlas 组装、场景接入和验证在独立执行会话进行。中断后先清点 `$CODEX_HOME/generated_images/<thread-id>/` 与本批目录，不盲目重试。
+5. 放好后让当前执行 agent 审阅：对它说"审阅 art-intake 最新一批"，按以下清单给出保留 / 重 roll / 修改意见：
    - 视角是否统一为 3/4 俯视、正面略可见。
    - 光源是否来自左上。
    - 主色是否落在调色板锚点色域内。
    - 缩小到游戏目标尺寸后剪影是否仍可读。
    - 细节密度是否过高（AI 常见问题，缩小后会糊成噪声）。
    - 复核方法：设备 / 角色先缩到游戏目标尺寸再看剪影（macOS 用 `sips -Z 160 in.png --out out.png`，或 ImageMagick `magick in.png -resize 160x160 out.png`）；地面贴图做 2x2 拼贴看接缝；审阅结论与定稿记录写入当周周志。
-4. 通过的素材由仓库侧统一处理后接入：去底（纯色深底抠图；支持透明输出的工具优先直接出透明 PNG）、按"尺寸口径"表缩放（Lanczos 或工具默认高质量缩放）、明显偏色时按调色板锚点微调；产出存 `client/assets/sprites/` 按类别子目录与英文资产名命名，原始批次不进版本库。
-5. 风格锚点、调色板、视角与尺寸口径是架构级口径，执行 agent 只按其生成与审阅，不自行修改；变更升级点见 `docs/process/development-decision-gates.md`。
+6. 通过的素材由仓库侧统一处理后接入：去底（纯色深底抠图；支持透明输出的工具优先直接出透明 PNG）、按"尺寸口径"表缩放（Lanczos 或工具默认高质量缩放）、明显偏色时按调色板锚点微调；产出存 `client/assets/sprites/` 按类别子目录与英文资产名命名，原始批次不进版本库。
+7. 风格锚点、调色板、视角与尺寸口径是架构级口径，执行 agent 只按其生成与审阅，不自行修改；变更升级点见 `docs/process/development-decision-gates.md`。
 
 ## 工具备注
 
