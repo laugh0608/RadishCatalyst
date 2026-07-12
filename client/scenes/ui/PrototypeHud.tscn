@@ -3,12 +3,12 @@
 [ext_resource type="Script" path="res://scripts/ui/prototype_hud.gd" id="1_hud"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_status"]
-font_size = 15
+font_size = 18
 font_color = Color(0.92549, 0.956863, 0.937255, 1)
 line_spacing = 3.0
 
 [sub_resource type="LabelSettings" id="LabelSettings_prompt"]
-font_size = 17
+font_size = 20
 font_color = Color(1, 0.882353, 0.501961, 1)
 line_spacing = 3.0
 

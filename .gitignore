@@ -51,6 +51,7 @@ desktop.ini
 .env.*
 !.env.example
 !.env.*.example
+.venv-art/
 
 # Patch / merge leftovers
 *.orig

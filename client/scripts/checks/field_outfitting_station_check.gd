@@ -13,6 +13,7 @@ func run(root: Node) -> void:
 	_check_slurry_buffer_tank(root)
 	var build_system := BuildSystem.new(host.data_registry)
 	var outfitting_world := WorldState.create_default()
+	host._complete_first_minute(outfitting_world)
 	var outfitting_character := CharacterState.create_default()
 	outfitting_character.inventory.items["item.basic_parts"] = 2
 	outfitting_character.inventory.items["item.salvage_scrap"] = 1
@@ -472,6 +473,7 @@ func _check_core_archive_maintenance_payoff(
 	prompt_formatter: InteractionPromptFormatter
 ) -> void:
 	var world := WorldState.create_default()
+	host._complete_first_minute(world)
 	world.quest_state.complete_quest("quest.write_demo_stabilization_core")
 	world.add_base_structure(
 		"structure.field_outfitting_station_build_site",
@@ -532,6 +534,7 @@ func _check_logistics_route_sign(
 	prompt_formatter: InteractionPromptFormatter
 ) -> void:
 	var world := WorldState.create_default()
+	host._complete_first_minute(world)
 	world.current_region_id = "region.outpost_platform"
 	world.quest_state.complete_quest("quest.restore_outpost")
 	world.quest_state.complete_quest("quest.write_demo_stabilization_core")
@@ -771,6 +774,7 @@ func _check_core_archive_maintenance_counterattack_payoff() -> void:
 
 func _create_core_archive_maintenance_world(maintained: bool) -> WorldState:
 	var world := WorldState.create_default()
+	host._complete_first_minute(world)
 	world.quest_state.complete_quest("quest.write_demo_stabilization_core")
 	world.add_base_structure(
 		"structure.field_outfitting_station_build_site",

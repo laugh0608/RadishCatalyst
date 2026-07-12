@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=24 format=3]
 
 [ext_resource type="Script" path="res://scripts/map/vertical_slice_map.gd" id="1_map"]
 [ext_resource type="PackedScene" path="res://scenes/actors/Player.tscn" id="2_player"]
@@ -19,6 +19,10 @@
 [ext_resource type="Script" path="res://scripts/map/demo_base_handoff_asset_art_pass.gd" id="17_base_handoff_asset"]
 [ext_resource type="Script" path="res://scripts/map/demo_playable_scene_rebuild_layer.gd" id="18_playable_scene_rebuild"]
 [ext_resource type="Script" path="res://scripts/map/demo_base_first_screen_scene_layer.gd" id="19_base_first_screen_scene"]
+[ext_resource type="PackedScene" path="res://scenes/maps/DemoPresentationFirstScreen.tscn" id="20_presentation_first_screen"]
+[ext_resource type="PackedScene" path="res://scenes/maps/DemoPresentationFieldZones.tscn" id="21_presentation_field_zones"]
+[ext_resource type="PackedScene" path="res://scenes/maps/DemoPresentationCoreStation.tscn" id="22_presentation_core_station"]
+[ext_resource type="Script" path="res://scripts/map/demo_ground_bed.gd" id="23_ground_bed"]
 
 [node name="VerticalSliceMap" type="Node2D"]
 script = ExtResource("1_map")
@@ -1726,7 +1730,17 @@ script = ExtResource("15_first_path_visual")
 script = ExtResource("17_base_handoff_asset")
 
 [node name="DemoBaseFirstScreenSceneLayer" type="Node2D" parent="."]
+modulate = Color(1, 1, 1, 0)
 script = ExtResource("19_base_first_screen_scene")
+
+[node name="DemoPresentationFirstScreen" parent="." instance=ExtResource("20_presentation_first_screen")]
+
+[node name="DemoPresentationFieldZones" parent="." instance=ExtResource("21_presentation_field_zones")]
+
+[node name="DemoPresentationCoreStation" parent="." instance=ExtResource("22_presentation_core_station")]
+
+[node name="GroundBedFoundation" type="Node2D" parent="."]
+script = ExtResource("23_ground_bed")
 
 [node name="DemoPlayableSceneRebuildLayer" type="Node2D" parent="."]
 script = ExtResource("18_playable_scene_rebuild")

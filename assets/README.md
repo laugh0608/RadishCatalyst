@@ -6,4 +6,9 @@
 
 ## Current Folders
 
+- `art-intake/`：AI 生成原始候选批次，本地审阅缓存，不进版本库。
 - `concept-art/`：项目视觉方向、世界观氛围和 UI 参考概念图。
+- `reference/`：风格锚点和稳定参考图，内容进版本库。
+- `third-party/`：下载评估的第三方素材包，本地缓存，不进版本库。
+
+审定后用于游戏运行的素材不留在 `assets/art-intake/`，统一处理到 `client/assets/` 后提交。

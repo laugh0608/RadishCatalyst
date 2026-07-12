@@ -1,6 +1,6 @@
 # Demo Definition V1
 
-更新时间：2026-06-20
+更新时间：2026-07-11
 
 ## 用途
 
@@ -44,7 +44,8 @@
 | 规格项 | 专题文档 | 状态 |
 | --- | --- | --- |
 | Demo 完成定义 | 本文 | 已建立规格源 |
-| 工业基地视觉与场景化 | `docs/features/demo-industrial-base-visual-and-scene-v1.md` | 当前活跃，覆盖基地平台视觉、HUD 视觉、第一条工业链可视化和 12 区工业职责复核 |
+| 表现层重建 | `docs/features/demo-presentation-rebuild-v1.md` | 当前玩家可见主线，覆盖真实资产、场景地基、首分钟重基线和旧视觉层删除 |
+| 范围与运行时健康 | `docs/features/demo-scope-convergence-and-runtime-health-v1.md` | 当前工程整改线；先完成 `H0` 运行时真相修复，再按包收束默认 Demo 范围、承载面、验证和 CI |
 | 可玩内容实质补强 | `docs/features/demo-playable-content-substance-v1.md`、`docs/features/demo-scene-device-pressure-staging-v1.md` | 已完成口径修正；场景设备编排暂缓，后续必须服务工业基地视觉与场景化 |
 | 阶段验收 | `docs/features/demo-first-playable-acceptance-v1.md` | 暂缓，自动检查通过不足以证明可试玩候选质量 |
 | 区域 / 场景范围 | `docs/planning/demo-scope-and-playable-slice.md` | 已定义 12 区域、4 核心区和核心稳定站终点 |

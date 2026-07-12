@@ -117,7 +117,7 @@ func _format_completion_note(
 ) -> String:
 	match quest_id:
 		"quest.restore_outpost":
-			return "前哨核心从低功率切回基础运行，基础反应器已上线；下一步出门采集晶体矿物作为第一批加工输入"
+			return "前哨核心从低功率切回基础运行；下一步向东进入晶体矿脉，采集第一批晶体矿物和外勤残骸"
 		"quest.scout_crystal_field":
 			return "晶体矿物已带回；它不是直接补给，回基地用基础反应器转成校准和补给能力"
 		"quest.calibrate_reactor":

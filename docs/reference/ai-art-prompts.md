@@ -1,6 +1,6 @@
 # AI Art Prompt Library V1
 
-更新时间：2026-07-04
+更新时间：2026-07-11
 
 ## 用途与关联
 
@@ -33,13 +33,19 @@ centered subject on a plain dark background
 
 要点中文对照：俯视 3/4 视角（正面略可见）、工业科幻化工前哨、暗青灰主色 + 青色发光 + 琥珀工作灯、平涂 + 柔和环境光遮蔽、剪影清晰、光源固定左上、无文字水印。
 
+场景图底补充：上方全局风格块主要约束设备、角色和独立道具。地面 C1 到 C4 必须以各自提示词的 `light warm sandy-gray` 为准，不沿用 `dark ... rock`；整体场景采用“浅暖地面承托暗金属建筑”的明度关系。`assets/reference/style-anchor.png` 约束设备画风，`assets/concept-art/2026-06-25-demo-first-screen-wide-reference.png` 约束场景图底对比。
+
+风格边界：首颗星球和第一章 Demo 不是西方炼金术、奇幻工坊或魔法遗迹风格；异常、遗迹和稳定工程应通过工业结构、异星地貌、几何设施、管线、传感器和能量读数表达，不使用符文、法阵、药剂瓶、羊皮纸、蜡封、黄铜古董仪器、哥特 / 中世纪纹样或蒸汽朋克装饰作为主读法。
+
 地面贴图使用变体结尾：把最后一句换成 `seamless tileable texture, top-down view, uniform lighting, no borders`。
 
 ## 调色板锚点
 
 | 用途 | HEX |
 | --- | --- |
-| 岩地暗底 | `#151C1E` |
+| 浅暖砂岩地表 | `#A99572` |
+| 岩缝 / 深阴影 | `#151C1E` |
+| 平台暖灰中间调 | `#6F6B5E` |
 | 金属结构中间调 | `#2E4145` |
 | 金属高光 | `#4A6165` |
 | 青色能量 / 状态 | `#56C8C4` |
@@ -90,7 +96,9 @@ centered subject on a plain dark background
 ```text
 blurry, photorealistic, 3D render, isometric room interior, side view,
 horizon line, sky, text, letters, watermark, UI frame, border, multiple
-unrelated objects, human face closeup, oversaturated
+unrelated objects, human face closeup, oversaturated, alchemy, alchemist,
+occult symbols, magic circle, runes, potion bottles, parchment, wax seal,
+medieval, gothic, brass steampunk, fantasy workshop
 ```
 
 ## 第一批：风格锚点（今天只生成这一组）
@@ -197,30 +205,32 @@ anchor bolts, amber warning lights
 ### C1 异星岩地
 
 ```text
-top-down alien rocky ground, dark desaturated teal-gray basalt with fine
-cracks and scattered pebbles, subtle color variation, low contrast, no
-large landmarks
+top-down alien rocky ground, light warm sandy-gray basalt and compacted
+alien dust with fine dark cracks and scattered pebbles, sunlit but muted,
+subtle color variation, low contrast, no large landmarks
 ```
 
 ### C2 金属平台地面
 
 ```text
-top-down industrial metal platform floor, dark riveted panels with subtle
-wear, faint amber hazard line accents, low contrast
+top-down industrial metal platform floor, medium warm-gray riveted panels
+clearly darker than the sandy ground but lighter than the buildings,
+subtle wear, faint amber hazard line accents, low contrast
 ```
 
 ### C3 晶体区地面变体
 
 ```text
-top-down alien ground with faint embedded cyan crystal veins glowing
-subtly through dark rock
+top-down light warm sandy-gray alien ground with faint embedded cyan
+crystal veins glowing subtly through pale rock, dark cracks for depth
 ```
 
 ### C4 污染区地面变体
 
 ```text
-top-down contaminated wasteland ground, sickly yellow-green residue
-patches over dark cracked soil
+top-down contaminated wasteland ground, light warm sandy-gray cracked soil
+stained by muted sickly yellow-green residue patches, readable but not
+oversaturated
 ```
 
 平台边缘条优先在引擎内用 C2 切片加深色描边拼装，不单独生成。
@@ -289,17 +299,19 @@ spreading in an irregular organic blob, soft edges, single blob
 
 ## 产出提交与审阅流程
 
-1. 每批建一个目录：`assets/art-intake/2026-07-02-batch01/`（日期加批次号）。
-2. 文件命名：`编号_名称_v候选号.png`，例如 `a0_reactor_v3.png`、`c1_rock_ground_v2.png`；整版把编号连写，例如 `b1b2_core_states_v1.png`、`b3-b6_devices_sheet_v2.png`。
-3. 放好后让当前执行 agent 审阅：对它说"审阅 art-intake 最新一批"，按以下清单给出保留 / 重 roll / 修改意见：
+1. 生成任务按一个素材类别一个会话拆分；单会话最多调用 3 次图像生成，每次 1 张。超过 3 张时另开会话，不在原会话追加。
+2. 每批建一个目录：`assets/art-intake/2026-07-02-batch01/`（日期加批次号）。项目用图片每次生成后即复制到该批次，避免只依赖会话记录恢复。
+3. 文件命名：`编号_名称_v候选号.png`，例如 `a0_reactor_v3.png`、`c1_rock_ground_v2.png`；整版把编号连写，例如 `b1b2_core_states_v1.png`、`b3-b6_devices_sheet_v2.png`。
+4. 生成会话只生成与落盘，并在本批 `_manifest.md` 记录 thread ID、生成源路径、候选编号和未完成清单；候选审阅、裁切、atlas 组装、场景接入和验证在独立执行会话进行。中断后先清点 `$CODEX_HOME/generated_images/<thread-id>/` 与本批目录，不盲目重试。
+5. 放好后让当前执行 agent 审阅：对它说"审阅 art-intake 最新一批"，按以下清单给出保留 / 重 roll / 修改意见：
    - 视角是否统一为 3/4 俯视、正面略可见。
    - 光源是否来自左上。
    - 主色是否落在调色板锚点色域内。
    - 缩小到游戏目标尺寸后剪影是否仍可读。
    - 细节密度是否过高（AI 常见问题，缩小后会糊成噪声）。
    - 复核方法：设备 / 角色先缩到游戏目标尺寸再看剪影（macOS 用 `sips -Z 160 in.png --out out.png`，或 ImageMagick `magick in.png -resize 160x160 out.png`）；地面贴图做 2x2 拼贴看接缝；审阅结论与定稿记录写入当周周志。
-4. 通过的素材由仓库侧统一处理后接入：去底（纯色深底抠图；支持透明输出的工具优先直接出透明 PNG）、按"尺寸口径"表缩放（Lanczos 或工具默认高质量缩放）、明显偏色时按调色板锚点微调；产出存 `client/assets/sprites/` 按类别子目录与英文资产名命名，原始批次不进版本库。
-5. 风格锚点、调色板、视角与尺寸口径是架构级口径，执行 agent 只按其生成与审阅，不自行修改；变更升级点见 `docs/process/development-decision-gates.md`。
+6. 通过的素材由仓库侧统一处理后接入：去底（纯色深底抠图；支持透明输出的工具优先直接出透明 PNG）、按"尺寸口径"表缩放（Lanczos 或工具默认高质量缩放）、明显偏色时按调色板锚点微调；产出存 `client/assets/sprites/` 按类别子目录与英文资产名命名，原始批次不进版本库。
+7. 风格锚点、调色板、视角与尺寸口径是架构级口径，执行 agent 只按其生成与审阅，不自行修改；变更升级点见 `docs/process/development-decision-gates.md`。
 
 ## 工具备注
 

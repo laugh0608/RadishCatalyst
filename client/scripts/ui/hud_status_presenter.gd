@@ -80,8 +80,8 @@ const STATUS_KEY_RESOURCE_IDS: Array[String] = [
 ]
 const MAX_VISIBLE_KEY_RESOURCE_COUNT := 2
 const MAX_CONTEXT_RESOURCE_COUNT := 3
-const COMPACT_OBJECTIVE_MAX_LINES := 5
-const RUNTIME_STATUS_MAX_CHARACTERS := 34
+const COMPACT_OBJECTIVE_MAX_LINES := 6
+const RUNTIME_STATUS_MAX_CHARACTERS := 52
 const HudObjectiveCompactFormatterScript := preload("res://scripts/ui/hud_objective_compact_formatter.gd")
 const CompletionOutcomeFormatter := preload("res://scripts/systems/demo_completion_outcome_formatter.gd")
 

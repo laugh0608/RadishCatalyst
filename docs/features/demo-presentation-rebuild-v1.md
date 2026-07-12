@@ -1,8 +1,8 @@
 # Demo Presentation Rebuild V1
 
-更新时间：2026-07-04
+更新时间：2026-07-11
 
-状态：当前活跃执行专题。
+状态：当前活跃执行专题；2026-07-11 调色板定稿为“浅暖砂岩地面 + 暗金属建筑”，工程整改专题 `H0` 已通过统一运行时入口，当前恢复 `R1`。
 
 ## 背景与问题
 
@@ -28,8 +28,9 @@
 
 - 提示词库与素材目录已建立（本包文档部分已完成）。
 - 萝卜SAMA 生成第一批基础反应器候选，审阅定稿风格锚点。2026-07-04 已定稿 `a0_reactor_v4`。
-- 下载评估 1 到 2 个 CC0 素材包作为角色补位与兜底。
-- 出口：锚点定稿，第二、三批核心素材通过审阅。
+- 第二批首屏核心设备与第三批地面 tile 已通过审阅；主候选已处理到 `client/assets/sprites/demo_presentation_rebuild/` 与 `client/assets/tiles/demo_presentation_rebuild/`。
+- 下载评估 1 到 2 个 CC0 素材包作为角色补位与兜底；该项不阻塞已审定设备 / 地面进入 P1。
+- 出口：锚点定稿，第二、三批核心素材通过审阅并形成可提交运行时资产。
 
 ### P1 首屏重建包
 
@@ -38,11 +39,51 @@
 - 玩家挂真实 sprite，移除 `player_controller.gd` 的 `_draw()` 绘制；敌人同理。
 - 首屏范围内关闭全部旧视觉层。
 - 出口：新档首屏截图对比锚点参考成立。
+- 2026-07-05 进度：首屏核心区主体、玩家可见性和真实资产主读法已成立；后续不继续围绕首屏做同类调参。
+- 2026-07-06 复盘：实机截图证明"资产已接入"不等于"首分钟成立"；设备堆叠、旧语义轮廓、HUD 截断和交互范围仍破坏玩家读法。
+
+### R0 首分钟体验重基线包
+
+- 暂停 `P2` 录像与 `P3` 删除收口，不再把单张定点截图当作阶段通过证据。
+- `Boot` / `GameRoot` / 地图链路是正式项目入口，Godot 打开主场景不能只看到空壳节点；不新增临时工作台场景名来绕开正式项目。
+- 开局只保留玩家、损坏前哨核心和少量环境道具；基础反应器、储存、整备台、过滤器、采集器和控制台不得一开始挤在首屏。
+- 修复核心后，下一步必须能在场景中看到晶体簇，并以晶体 / 残骸采集作为明确目标。
+- 修复核心后，晶体路径需要同步出现中段管线、路径道具、工作灯和残骸提示，避免下一目标只靠 HUD 文案成立。
+- 旧规划色块、旧 art pass、交互物语义轮廓先硬禁用，后续 `P3` 再删文件和修剪检查。
+- 收紧交互范围；玩家不站到目标前方时不应提前弹出交互提示。
+- 当前目标优先交互覆盖"恢复前哨"和"勘探晶体矿脉"，但远距离目标仍必须在玩家朝向前方。
+- HUD 先收束为可读的目标、状态和当前交互提示，不继续堆小字。
+- 角色首版不要求完整动画组，但静态 sprite 不得按方向整张旋转；先用固定朝向 / 翻转 / 轻微步态摆动替代。
+- 出口：新档第一分钟截图序列能读成"损坏核心 -> 修复 -> 去晶体矿脉采集"，且没有旧流程图色块突然出现。
+- 2026-07-08 进度：首轮实机截图暴露靠近晶体时旧层回流和晶体路径不够可读；已补 `GameRoot` 末尾压制、核心到晶体中段路径资产和修复前 / 修复后显隐检查，下一步必须重跑正式入口截图序列。
+
+### R1 地形+光影地基包
+
+2026-07-09 架构级路线决策。`R0` 补的是首分钟流程读法（保留复用），但实机对比 `assets/concept-art/2026-06-25-demo-first-screen-wide-reference.png` 暴露真正打转根因：参考图是一张一次性画出的整幅场景，地形、光影、投影、色调同源；当前实机是把各自独立生成的 sprite 摆在近黑空背景上，缺的是场景地基而不是资产数量。
+
+铁律：**地基不成立就不摆任何物件。** 按下面顺序做，每步出截图对比锚点：
+
+2026-07-11 调色板决策：反应器风格锚点继续约束设备材质、视角和左上光向；宽幅参考图约束场景图底关系。地表采用浅暖砂岩灰，建筑保持暗青灰金属，旧暗青岩地只作深阴影，不再作地表主色。
+
+1. 连续地形层：`TileMapLayer` 用 `alien_rock_ground` 等既有 tile 铺满相机视野，替换近黑空背景。
+2. 基地平台层：`metal_platform_floor` 拼出有边界的基地落座面，把散落物件收拢进基地区。
+3. 全局光照 + 色调：统一光向（`DirectionalLight2D` / 光照贴图）+ 整体 color grade（`CanvasModulate` 暖基地 / 冷污染带）。
+4. 接地阴影：每个建筑 / 物件一层落地投影，消除悬浮感。
+5. 构图收拢：物件按"焦点核心站 + 前中后景疏密"重摆，不做均匀网格平铺。
+
+前四步是"像不像游戏"的主体。旧视觉层继续硬禁用，本包不删文件（留给 `P3`）。
+
+2026-07-11 进度：第 1、2 步已通过正式入口截图验收。C1 / C2 三个真实候选以 4x4 宏块保留完整纹理关系，连续浅暖砂岩无黑底，暖灰金属平台以明确边界承托损坏核心、玩家和修复后路径设备；当前进入第 3 步统一光向与整体色调，不继续同类 atlas 调参。
+
+- 不做：不新增玩法 / 区域 / 资源 / 存档字段；不新增程序绘制视觉层或色块拼装；不新建检查脚本文件。
+- 出口：基地首屏满足下方"场景成立四要件"，截图对比锚点成立；同一步最多重试一次，仍不成立升级为素材 / 介质决策。
 
 ### P2 三区扩展包
 
 - 晶体矿脉、污染边界、核心稳定站换用同一资产家族：地面变体 tile、晶体簇、污染贴花、核心稳定站主体。
 - 出口：四个核心区截图对比成立，录制第一段 60 秒实机录像。
+- 2026-07-05 进度：晶体 / 污染地面、远场采集器 / 过滤器和核心稳定站主体已接入；当前只补三区定点截图证据，失败时只收束对应场景摆位、范围和可读性。
+- 2026-07-06 复判：2 / 5 / 6 号定点截图不能代表连续体验成立；待 `R0` 通过后再重做路径截图 / 录像判断。
 
 ### P3 旧层清除收口包
 
@@ -52,7 +93,7 @@
 
 ## 旧层处置清单
 
-删除（纯视觉层与历代 art pass）：
+先硬禁用，后续 `P3` 删除（纯视觉层、历代 art pass 与交互语义轮廓）：
 
 `demo_initial_art_identity_layer`、`prototype_visual_priority_layer`、`demo_industrial_base_visual_layer`、`demo_crystal_resource_visual_layer`、`demo_pollution_boundary_visual_layer`、`demo_core_stabilization_visual_layer`、`demo_first_industrial_path_visual_layer`、`demo_first_industrial_path_handoff_art_pass`、`demo_crystal_workface_asset_art_pass`、`demo_base_handoff_asset_art_pass`、`demo_playable_scene_rebuild_layer`、`demo_base_first_screen_scene_layer`、`demo_base_first_screen_art_pass`、`demo_base_startup_presentation_layer`、`demo_default_path_asset_language_art_pass`、`demo_scene_focus_depth_layer`、`demo_region_industrial_value_layer`、`demo_core_scene_space_layer`、`demo_pollution_short_challenge_readiness_art_pass`、`demo_pollution_to_core_handoff_art_pass`、`demo_base_completion_outcome_art_pass`。
 
@@ -60,19 +101,25 @@
 
 `vertical_slice_map` / `vertical_slice_map_surface`（场景承载结构）、`current_objective_guidance_layer`（目标指引，改为轻量高亮）、`interactable_target_selector` / `interactable_visual_refresher`（交互反馈）、`enemy_counterattack_runtime`、`phase_well_frontier_runtime`。
 
-`VerticalSliceMap.tscn` 中的旧 `ColorRect` / `Polygon2D` 装饰节点随 P1 / P2 分区清除。
+`VerticalSliceMap.tscn` 中的旧 `ColorRect` / `Polygon2D` 装饰节点随 `R0` 先硬禁用，后续 `P3` 分区清除。
 
 ## 不做
 
 - 不新增玩法、区域、资源、任务、配方、敌人种类或存档字段。
-- 不新增 `client/scripts/checks/` 检查脚本；只修剪失效检查。
+- 不新增临时工作台、临时 Demo 场景或一次性编辑器专用入口；编辑器可见性必须回到正式场景。
+- 不新增 `client/scripts/checks/` 检查脚本文件；只维护已有检查或修剪失效检查。
 - 不做完整动画组；角色首版允许静态 sprite + 程序位移与旋转。
 - 不追最终美术质量；目标是"低保真但成立的游戏画面"。
 - 不新增程序绘制视觉层、脚本生成贴图或色块拼装作为画面主介质。
 
+## 场景成立四要件（验收硬口径）
+
+自 `R1` 起，画面是否成立不看"是否用了真实资产"，而看是否同时满足：①连续地形 / 平台铺满相机视野，无空背景与悬浮物件；②全场统一光向与整体色调；③每个物件有接地阴影；④有构图（焦点 + 疏密 + 前中后景）。缺任一条即判不成立，真实资产平铺不算通过。
+
 ## 验收与证据
 
-- 每个包收口做一次实机截图，对比 `assets/reference/style-anchor.png` 给出具体差距清单；同一实现方式最多重试一次，仍失败升级为素材 / 介质决策。
+- 每个包收口做一次实机截图，对比 `assets/reference/style-anchor.png` 与 `assets/concept-art/2026-06-25-demo-first-screen-wide-reference.png`，按"场景成立四要件"给出具体差距清单；同一实现方式最多重试一次，仍失败升级为素材 / 介质决策。
+- `R0` 当前以新档第一分钟截图序列为主证据；未通过前不恢复 `P2` 录像。
 - P2 起每周录制 60 秒实机录像作为唯一主进度证据。
 - 自动检查只兜底资源加载、场景引用和主线可完成。
 - 专题出口：四核心区真实资产渲染、玩家敌人有 sprite 形象、旧层删除完毕、录像可被不了解项目的人识别为一款 2D 工业科幻游戏。

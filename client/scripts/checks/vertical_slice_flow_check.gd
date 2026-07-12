@@ -605,7 +605,7 @@ func _check_early_interaction_processed_visuals() -> void:
 	_expect_text_contains(ruin_gate.label.text, "信号已确认", "confirmed ruin gate label")
 	var reset_world := WorldState.create_default()
 	map.refresh_world_interactables(reset_world)
-	_expect_equal(crystal.monitoring, true, "new game crystal enables interaction")
+	_expect_equal(crystal.monitoring, false, "new game crystal stays gated until the outpost is restored")
 	_expect_equal(crystal.marker.color, default_crystal_color, "new game crystal restores default color")
 	_expect_equal(crystal.label.text, "晶体簇", "new game crystal restores label")
 	_expect_equal(rich_crystal_vein.visible, false, "new game rich crystal vein stays hidden before crystal scout completion")
@@ -1227,6 +1227,13 @@ func _check_evacuation_feedback() -> void:
 	map.free()
 func _expect_active_quest(quest_id: String, label: String) -> void:
 	_expect_array_has(world_state.quest_state.active_quest_ids, quest_id, label)
+
+func _complete_first_minute(target_world_state: WorldState) -> void:
+	if target_world_state == null:
+		return
+	target_world_state.quest_state.complete_quest("quest.restore_outpost")
+	target_world_state.quest_state.complete_quest("quest.scout_crystal_field")
+
 func _expect_equal(actual, expected, label: String) -> void:
 	if actual != expected:
 		failures.append("%s expected %s, got %s" % [label, var_to_str(expected), var_to_str(actual)])

@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-07-02
+更新时间：2026-07-11
 
 ## 用途
 
@@ -25,7 +25,8 @@
 
 ## 当前与最近专题
 
-- [Demo Presentation Rebuild V1](demo-presentation-rebuild-v1.md)：当前活跃执行专题，表现层重建与真实资产管线。
+- [Demo Presentation Rebuild V1](demo-presentation-rebuild-v1.md)
+- [Demo Scope Convergence And Runtime Health V1](demo-scope-convergence-and-runtime-health-v1.md)
 - [Demo Definition V1](demo-definition-v1.md)：Demo 规格表。
 - [Demo First Playable Slice Assembly V1](demo-first-playable-slice-assembly-v1.md)：阶段级专题，表现层重建完成后恢复装配收口。
 - [Demo Playable UI And Art Pass V1](demo-playable-ui-and-art-pass-v1.md)：执行线整体并入表现层重建。

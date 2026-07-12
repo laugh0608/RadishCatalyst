@@ -1,0 +1,204 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/crystal_ground.png" id="1_vse2a"]
+[ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/pollution_ground.png" id="2_kom7k"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/resource_collector.png" id="3_collector"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/pollution_filter.png" id="4_filter"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/work_light_pole.png" id="5_light"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/supply_crate.png" id="6_crate"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/cable_spool.png" id="7_spool"]
+[ext_resource type="Script" path="res://scripts/map/demo_presentation_field_zones.gd" id="8_field_script"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_first_screen/crystal_ecology_cluster.svg" id="9_crystal_cluster"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/pipe_straight.png" id="10_pipe_straight"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/toolbox.png" id="11_toolbox"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ty8qd"]
+texture = ExtResource("1_vse2a")
+texture_region_size = Vector2i(64, 64)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_aaknm"]
+texture = ExtResource("2_kom7k")
+texture_region_size = Vector2i(64, 64)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_x2pmb"]
+tile_size = Vector2i(64, 64)
+sources/0 = SubResource("TileSetAtlasSource_ty8qd")
+sources/1 = SubResource("TileSetAtlasSource_aaknm")
+
+[node name="DemoPresentationFieldZones" type="Node2D"]
+z_index = 9
+script = ExtResource("8_field_script")
+
+[node name="CrystalGroundTileMap" type="TileMapLayer" parent="."]
+modulate = Color(0.92, 1, 1, 0.72)
+tile_map_data = PackedByteArray("AAD///3/AAAAAAAAAAD///7/AAAAAAAAAAD/////AAAAAAAAAAD//wAAAAAAAAAAAAD//wEAAAAAAAAAAAAAAPz/AAAAAAAAAAAAAP3/AAAAAAAAAAAAAP7/AAAAAAAAAAAAAP//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAIAAAAAAAAAAAABAPv/AAAAAAAAAAABAPz/AAAAAAAAAAABAP3/AAAAAAAAAAABAP7/AAAAAAAAAAABAP//AAAAAAAAAAABAAAAAAAAAAAAAAABAAEAAAAAAAAAAAABAAIAAAAAAAAAAAACAPv/AAAAAAAAAAACAPz/AAAAAAAAAAACAP3/AAAAAAAAAAACAP7/AAAAAAAAAAACAP//AAAAAAAAAAACAAAAAAAAAAAAAAACAAEAAAAAAAAAAAADAPz/AAAAAAAAAAADAP3/AAAAAAAAAAADAP7/AAAAAAAAAAADAP//AAAAAAAAAAADAAAAAAAAAAAAAAAEAP7/AAAAAAAAAAAEAP//AAAAAAAAAAA=")
+tile_set = SubResource("TileSet_x2pmb")
+
+[node name="PollutionGroundTileMap" type="TileMapLayer" parent="."]
+modulate = Color(0.94, 0.96, 0.78, 0.38)
+z_index = 1
+tile_map_data = PackedByteArray("AAADAP//AQAAAAAAAAAEAP7/AQAAAAAAAAAEAP//AQAAAAAAAAAFAP//AQAAAAAAAAAEAAAAAQAAAAAAAAAFAAAAAQAAAAAAAAAFAAEAAQAAAAAAAAAGAAAAAQAAAAAAAAA=")
+tile_set = SubResource("TileSet_x2pmb")
+
+[node name="CrystalApproachPipeWest" type="Sprite2D" parent="."]
+modulate = Color(0.9, 0.98, 0.95, 0.74)
+z_index = 11
+position = Vector2(-204, -90)
+rotation = 0.03
+scale = Vector2(0.28, 0.24)
+texture = ExtResource("10_pipe_straight")
+
+[node name="CrystalApproachPipeMid" type="Sprite2D" parent="."]
+modulate = Color(0.9, 0.98, 0.95, 0.76)
+z_index = 11
+position = Vector2(-134, -82)
+rotation = 0.05
+scale = Vector2(0.3, 0.24)
+texture = ExtResource("10_pipe_straight")
+
+[node name="CrystalApproachPipeEast" type="Sprite2D" parent="."]
+modulate = Color(0.9, 0.98, 0.95, 0.74)
+z_index = 11
+position = Vector2(-64, -86)
+rotation = -0.03
+scale = Vector2(0.26, 0.22)
+texture = ExtResource("10_pipe_straight")
+
+[node name="CrystalApproachSignalLightWest" type="Sprite2D" parent="."]
+modulate = Color(1, 0.96, 0.76, 0.86)
+z_index = 13
+position = Vector2(-174, -122)
+scale = Vector2(0.18, 0.18)
+texture = ExtResource("5_light")
+
+[node name="CrystalApproachSignalLightMid" type="Sprite2D" parent="."]
+modulate = Color(1, 0.96, 0.76, 0.84)
+z_index = 13
+position = Vector2(-88, -118)
+scale = Vector2(0.18, 0.18)
+texture = ExtResource("5_light")
+
+[node name="CrystalApproachCableSpoolWest" type="Sprite2D" parent="."]
+modulate = Color(0.9, 0.98, 0.98, 0.76)
+z_index = 13
+position = Vector2(-152, -52)
+scale = Vector2(0.16, 0.16)
+texture = ExtResource("7_spool")
+
+[node name="CrystalApproachSurveyCrate" type="Sprite2D" parent="."]
+modulate = Color(0.92, 0.96, 0.9, 0.74)
+z_index = 13
+position = Vector2(-124, -48)
+scale = Vector2(0.18, 0.18)
+texture = ExtResource("6_crate")
+
+[node name="CrystalApproachToolbox" type="Sprite2D" parent="."]
+modulate = Color(0.96, 0.92, 0.78, 0.78)
+z_index = 14
+position = Vector2(-72, -54)
+scale = Vector2(0.18, 0.18)
+texture = ExtResource("11_toolbox")
+
+[node name="CrystalClusterVisualMain" type="Sprite2D" parent="."]
+modulate = Color(0.9, 1, 1, 0.92)
+z_index = 15
+position = Vector2(24, -88)
+scale = Vector2(0.48, 0.48)
+texture = ExtResource("9_crystal_cluster")
+
+[node name="CrystalClusterVisualEast" type="Sprite2D" parent="."]
+modulate = Color(0.86, 0.98, 1, 0.86)
+z_index = 15
+position = Vector2(122, -112)
+scale = Vector2(0.42, 0.42)
+texture = ExtResource("9_crystal_cluster")
+
+[node name="CrystalClusterVisualSouth" type="Sprite2D" parent="."]
+modulate = Color(0.86, 0.98, 1, 0.84)
+z_index = 15
+position = Vector2(174, -18)
+scale = Vector2(0.38, 0.38)
+texture = ExtResource("9_crystal_cluster")
+
+[node name="CrystalClusterVisualReserve" type="Sprite2D" parent="."]
+modulate = Color(0.82, 0.96, 1, 0.78)
+z_index = 15
+position = Vector2(50, -158)
+scale = Vector2(0.34, 0.34)
+texture = ExtResource("9_crystal_cluster")
+
+[node name="CrystalResourceCollectorField" type="Sprite2D" parent="."]
+modulate = Color(0.9, 1, 0.98, 0.78)
+z_index = 12
+position = Vector2(84, -166)
+scale = Vector2(0.28, 0.28)
+texture = ExtResource("3_collector")
+
+[node name="CrystalCableSpool" type="Sprite2D" parent="."]
+modulate = Color(0.9, 0.98, 0.98, 0.74)
+z_index = 13
+position = Vector2(26, -118)
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("7_spool")
+
+[node name="CrystalWorkLightPole" type="Sprite2D" parent="."]
+modulate = Color(0.96, 1, 0.94, 0.78)
+z_index = 14
+position = Vector2(154, -196)
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("5_light")
+
+[node name="CrystalApproachCableSpool" type="Sprite2D" parent="."]
+modulate = Color(0.9, 0.98, 0.98, 0.82)
+z_index = 14
+position = Vector2(-12, -66)
+scale = Vector2(0.22, 0.22)
+texture = ExtResource("7_spool")
+
+[node name="CrystalApproachWorkLight" type="Sprite2D" parent="."]
+modulate = Color(1, 0.98, 0.86, 0.86)
+z_index = 16
+position = Vector2(-32, -118)
+scale = Vector2(0.22, 0.22)
+texture = ExtResource("5_light")
+
+[node name="FieldWreckageVisualNorth" type="Sprite2D" parent="."]
+modulate = Color(0.92, 0.94, 0.88, 0.82)
+z_index = 13
+position = Vector2(52, 112)
+scale = Vector2(0.22, 0.22)
+texture = ExtResource("6_crate")
+
+[node name="FieldWreckageVisualEast" type="Sprite2D" parent="."]
+modulate = Color(0.86, 0.92, 0.9, 0.8)
+z_index = 13
+position = Vector2(214, 82)
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("7_spool")
+
+[node name="FieldWreckageVisualSouth" type="Sprite2D" parent="."]
+modulate = Color(0.9, 0.92, 0.84, 0.78)
+z_index = 13
+position = Vector2(40, 160)
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("6_crate")
+
+[node name="PollutionFilterField" type="Sprite2D" parent="."]
+modulate = Color(0.88, 0.94, 0.86, 0.82)
+z_index = 13
+position = Vector2(242, -78)
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("4_filter")
+
+[node name="PollutionSupplyCrate" type="Sprite2D" parent="."]
+modulate = Color(0.92, 0.92, 0.78, 0.72)
+z_index = 14
+position = Vector2(296, 16)
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("6_crate")

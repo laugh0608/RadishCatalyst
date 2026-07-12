@@ -1,0 +1,102 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/alien_rock_ground.png" id="1_rock"]
+[ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/metal_platform_floor.png" id="2_metal"]
+[ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/pollution_ground.png" id="3_pollution"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/core_stabilization_station.png" id="4_station"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/pipe_straight.png" id="5_pipe_straight"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/pipe_valve.png" id="6_pipe_valve"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/supply_crate.png" id="7_crate"]
+[ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/pressure_barrel.png" id="8_barrel"]
+[ext_resource type="Script" path="res://scripts/map/demo_presentation_core_station.gd" id="9_core_script"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rock"]
+texture = ExtResource("1_rock")
+texture_region_size = Vector2i(64, 64)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_metal"]
+texture = ExtResource("2_metal")
+texture_region_size = Vector2i(64, 64)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_pollution"]
+texture = ExtResource("3_pollution")
+texture_region_size = Vector2i(64, 64)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_core_station"]
+tile_size = Vector2i(64, 64)
+sources/0 = SubResource("TileSetAtlasSource_rock")
+sources/1 = SubResource("TileSetAtlasSource_metal")
+sources/2 = SubResource("TileSetAtlasSource_pollution")
+
+[node name="DemoPresentationCoreStation" type="Node2D"]
+z_index = 10
+script = ExtResource("9_core_script")
+
+[node name="CoreStationAnchor" type="Node2D" parent="."]
+position = Vector2(4038, -24)
+
+[node name="CoreRockGroundTileMap" type="TileMapLayer" parent="CoreStationAnchor"]
+modulate = Color(0.9, 1, 1, 0.82)
+tile_map_data = PackedByteArray("AAD8//7/AAAAAAAAAAD8////AAAAAAAAAAD8/wAAAAAAAAAAAAD8/wEAAAAAAAAAAAD8/wIAAAAAAAAAAAD9//3/AAAAAAAAAAD9//7/AAAAAAAAAAD9////AAAAAAAAAAD9/wAAAAAAAAAAAAD9/wEAAAAAAAAAAAD9/wIAAAAAAAAAAAD9/wMAAAAAAAAAAAD+//3/AAAAAAAAAAD+//7/AAAAAAAAAAD+////AAAAAAAAAAD+/wAAAAAAAAAAAAD+/wEAAAAAAAAAAAD+/wIAAAAAAAAAAAD+/wMAAAAAAAAAAAD///3/AAAAAAAAAAD///7/AAAAAAAAAAD/////AAAAAAAAAAD//wAAAAAAAAAAAAD//wEAAAAAAAAAAAD//wIAAAAAAAAAAAD//wMAAAAAAAAAAAAAAP3/AAAAAAAAAAAAAP7/AAAAAAAAAAAAAP//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAMAAAAAAAAAAAABAP3/AAAAAAAAAAABAP7/AAAAAAAAAAABAP//AAAAAAAAAAABAAAAAAAAAAAAAAABAAEAAAAAAAAAAAABAAIAAAAAAAAAAAABAAMAAAAAAAAAAAACAP3/AAAAAAAAAAACAP7/AAAAAAAAAAACAP//AAAAAAAAAAACAAAAAAAAAAAAAAACAAEAAAAAAAAAAAACAAIAAAAAAAAAAAACAAMAAAAAAAAAAAADAP3/AAAAAAAAAAADAP7/AAAAAAAAAAADAP//AAAAAAAAAAADAAAAAAAAAAAAAAADAAEAAAAAAAAAAAADAAIAAAAAAAAAAAADAAMAAAAAAAAAAAAEAP7/AAAAAAAAAAAEAP//AAAAAAAAAAAEAAAAAAAAAAAAAAAEAAEAAAAAAAAAAAAEAAIAAAAAAAAAAAA=")
+tile_set = SubResource("TileSet_core_station")
+
+[node name="CorePollutionEdgeTileMap" type="TileMapLayer" parent="CoreStationAnchor"]
+modulate = Color(0.92, 0.94, 0.76, 0.36)
+z_index = 1
+tile_map_data = PackedByteArray("AAD8////AgAAAAAAAAD8/wAAAgAAAAAAAAAEAP//AgAAAAAAAAAEAAAAAgAAAAAAAAAFAAAAAgAAAAAAAAA=")
+tile_set = SubResource("TileSet_core_station")
+
+[node name="CoreMetalDeckTileMap" type="TileMapLayer" parent="CoreStationAnchor"]
+modulate = Color(0.82, 0.92, 0.9, 0.5)
+z_index = 2
+tile_map_data = PackedByteArray("AAD+//7/AQAAAAAAAAD///7/AQAAAAAAAAAAAP7/AQAAAAAAAAABAP7/AQAAAAAAAAACAP7/AQAAAAAAAAD+////AQAAAAAAAAD/////AQAAAAAAAAAAAP//AQAAAAAAAAABAP//AQAAAAAAAAACAP//AQAAAAAAAAD+/wAAAQAAAAAAAAD//wAAAQAAAAAAAAAAAAAAAQAAAAAAAAABAAAAAQAAAAAAAAACAAAAAQAAAAAAAAD//wEAAQAAAAAAAAAAAAEAAQAAAAAAAAABAAEAAQAAAAAAAAD9////AQAAAAAAAAADAP//AQAAAAAAAAA=")
+tile_set = SubResource("TileSet_core_station")
+
+[node name="CoreFeedPipeLeft" type="Sprite2D" parent="CoreStationAnchor"]
+modulate = Color(0.86, 0.96, 0.94, 0.72)
+z_index = 11
+position = Vector2(-118, 72)
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("5_pipe_straight")
+
+[node name="CoreFeedPipeRight" type="Sprite2D" parent="CoreStationAnchor"]
+modulate = Color(0.86, 0.96, 0.94, 0.72)
+z_index = 11
+position = Vector2(118, 72)
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("5_pipe_straight")
+
+[node name="CoreStationValve" type="Sprite2D" parent="CoreStationAnchor"]
+modulate = Color(0.92, 1, 0.96, 0.8)
+z_index = 12
+position = Vector2(0, 92)
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("6_pipe_valve")
+
+[node name="CoreStabilizationStation" type="Sprite2D" parent="CoreStationAnchor"]
+z_index = 18
+position = Vector2(0, -48)
+texture = ExtResource("4_station")
+
+[node name="CoreSupplyCrate" type="Sprite2D" parent="CoreStationAnchor"]
+modulate = Color(0.9, 0.92, 0.78, 0.78)
+z_index = 16
+position = Vector2(-158, 118)
+scale = Vector2(0.22, 0.22)
+texture = ExtResource("7_crate")
+
+[node name="CorePressureBarrel" type="Sprite2D" parent="CoreStationAnchor"]
+modulate = Color(0.9, 0.96, 0.9, 0.78)
+z_index = 16
+position = Vector2(154, 116)
+scale = Vector2(0.22, 0.22)
+texture = ExtResource("8_barrel")

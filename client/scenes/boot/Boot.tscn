@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/boot/boot.gd" id="1_boot"]
+[ext_resource type="PackedScene" path="res://scenes/ui/StartupMenu.tscn" id="2_startup_menu"]
 
 [node name="Boot" type="Node"]
 script = ExtResource("1_boot")
+
+[node name="StartupMenu" parent="." instance=ExtResource("2_startup_menu")]

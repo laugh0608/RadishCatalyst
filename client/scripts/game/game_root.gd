@@ -553,6 +553,7 @@ func _update_hud() -> void:
 	)
 	_refresh_industrial_base_visuals()
 	_refresh_current_objective_guidance()
+	vertical_slice_map.first_minute_baseline.disable_legacy_presentation_nodes(vertical_slice_map)
 
 
 func _refresh_industrial_base_visuals() -> void:

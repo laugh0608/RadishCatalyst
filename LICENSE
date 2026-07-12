@@ -1,5 +1,5 @@
 RadishCatalyst Source-Available License
-Version 1.0, April 26, 2026
+Version 1.1, July 5, 2026
 
 Copyright (c) 2026 RadishCatalyst Project Owner. All rights reserved.
 
@@ -23,34 +23,49 @@ Without prior written permission from the copyright owner, you must not:
 - use this project for any commercial purpose
 - remove or alter copyright, attribution, or legal notices
 
-4. Contributions
+4. Artwork and Game Assets
+The limited source-available viewing permission in Section 1 does not grant
+any permission to use artwork or game assets.
+
+For all original artwork and game assets in this repository, including but not
+limited to concept art, reference images, sprites, textures, tiles, animations,
+UI art, processed assets, and AI-generated or AI-assisted visual assets, all
+rights are reserved.
+
+Without prior written permission from the copyright owner, you must not copy,
+reproduce, download, scrape, extract, mirror, redistribute, publish, sublicense,
+sell, rent, modify, adapt, train on, include in another project, or otherwise
+use or reuse any such artwork or game asset, in whole or in part, in any form
+or by any method.
+
+5. Contributions
 If you submit any pull request, patch, issue attachment, or other contribution,
 you represent that you have the legal right to submit it.
 Unless otherwise agreed in writing, you grant the copyright owner a perpetual,
 worldwide, non-exclusive, royalty-free, irrevocable right to use, modify,
 relicense, and distribute your contribution.
 
-5. Third-Party Components
+6. Third-Party Components
 This license applies only to the original content of this repository.
 Third-party components, dependencies, fonts, icons, or assets remain subject
 to their own licenses.
 
-6. Disclaimer of Warranty
+7. Disclaimer of Warranty
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO MERCHANTABILITY, FITNESS FOR A PARTICULAR
 PURPOSE, AND NON-INFRINGEMENT.
 
-7. Limitation of Liability
+8. Limitation of Liability
 IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY CLAIM,
 DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR
 OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 
-8. Commercial Use and Licensing Requests
+9. Commercial Use and Licensing Requests
 For commercial use, redistribution, or any use not explicitly permitted by this
 license, contact:
 laugh0608@foxmail.com
 
-9. Governing Priority
+10. Governing Priority
 If there is any conflict between this file and other repository documents,
 this LICENSE file prevails for licensing terms.

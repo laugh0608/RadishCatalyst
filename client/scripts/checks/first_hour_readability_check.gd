@@ -621,7 +621,8 @@ func _check_interactable_focus_labels() -> void:
 	var map := VerticalSliceMapScene.instantiate() as VerticalSliceMap
 	host.root.add_child(map)
 	map.setup(host.data_registry)
-	map.refresh_world_interactables(WorldState.create_default())
+	var startup_world := WorldState.create_default()
+	map.refresh_world_interactables(startup_world)
 	var outpost_core := map.get_node("Interactables/OutpostCore") as PrototypeInteractable
 	var crystal := map.get_node("Interactables/CrystalCluster") as PrototypeInteractable
 	var crystal_east := map.get_node("Interactables/CrystalClusterEast") as PrototypeInteractable
@@ -634,6 +635,10 @@ func _check_interactable_focus_labels() -> void:
 	host._expect_equal(crystal.marker.scale, Vector2.ONE, "first-hour non-current crystal marker is not enlarged")
 	host._expect_equal(crystal.focus_ring.visible, false, "first-hour non-current crystal focus ring starts hidden")
 
+	var scout_world := WorldState.create_default()
+	scout_world.quest_state.complete_quest("quest.restore_outpost")
+	scout_world.quest_state.active_quest_ids = ["quest.scout_crystal_field"]
+	map.refresh_world_interactables(scout_world)
 	map.player.position = crystal.position
 	map.update_current_interactable()
 	host._expect_equal(map.current_interactable, crystal, "first-hour nearest crystal becomes current interactable")
@@ -736,6 +741,7 @@ func _check_object_feedback_states() -> void:
 	)
 	var world := WorldState.create_default()
 	var character := CharacterState.create_default()
+	host._complete_first_minute(world)
 	var crystal := map.get_node("Interactables/CrystalCluster") as PrototypeInteractable
 	var wreckage := map.get_node("Interactables/FieldWreckageNorth") as PrototypeInteractable
 	var anomaly := map.get_node("Interactables/AnomalyCrystal") as PrototypeInteractable
@@ -895,14 +901,9 @@ func _check_hud_map_runtime_labels() -> void:
 		"first-hour objective HUD tells the player where to go after salvage reaches 4/4"
 	)
 	host._expect_equal(
-		hud.status_label.text.split("\n").size() <= 5,
+		hud.status_label.text.split("\n").size() <= 7,
 		true,
-		"first-hour objective HUD keeps compact text within the visible card"
-	)
-	host._expect_text_missing(
-		hud.status_label.text,
-		"关键资源",
-		"first-hour objective HUD drops resource details when they would hide the next step"
+		"first-hour objective HUD keeps readable text within the enlarged card"
 	)
 	hud._set_control_rect(hud.map_panel, Vector2.ZERO, Vector2(560.0, 232.0))
 	hud._layout_map_panel_contents()
@@ -927,7 +928,7 @@ func _check_hud_runtime_layout_first_pass() -> void:
 	hud._layout_runtime_panels(true)
 	var viewport_size := hud._get_runtime_viewport_size()
 	host._expect_equal(hud.status_panel.position.y <= 20.0, true, "HUD first pass puts current objective in the top-left priority card")
-	host._expect_equal(hud.status_panel.size.y <= 136.0, true, "HUD first pass keeps current objective card compact")
+	host._expect_equal(hud.status_panel.size.y >= 160.0 and hud.status_panel.size.y <= 190.0, true, "HUD first pass gives the current objective a readable card")
 	host._expect_equal(
 		hud.map_panel.position.x + hud.map_panel.size.x >= viewport_size.x - 20.0,
 		true,
@@ -947,8 +948,8 @@ func _check_hud_runtime_layout_first_pass() -> void:
 	host._expect_equal(hud.status_panel.position.x <= 20.0, true, "HUD first pass keeps objective on the left edge")
 	host._expect_equal(hud.status_label.size.y >= 104.0, true, "HUD first pass keeps objective text visible in the compact card")
 	host._expect_equal(hud.vitals_panel.position.x + hud.vitals_panel.size.x >= viewport_size.x - 20.0, true, "HUD first pass keeps vitals on the right edge")
-	host._expect_equal(hud.vitals_panel.size.y <= 100.0, true, "HUD first pass keeps runtime status summary compact")
-	host._expect_equal(hud.vitals_label.size.y <= 96.0, true, "HUD first pass reserves only short status text in the right card")
+	host._expect_equal(hud.vitals_panel.size.y >= 110.0 and hud.vitals_panel.size.y <= 130.0, true, "HUD first pass gives runtime status a readable summary card")
+	host._expect_equal(hud.vitals_label.size.y >= 80.0 and hud.vitals_label.size.y <= 110.0, true, "HUD first pass keeps runtime status text inside its card")
 	host._expect_equal(hud.quick_supply_panel.visible, true, "HUD first pass keeps player quick supply visible by default")
 	host._expect_equal(hud.quick_slot_panel.visible, false, "HUD first pass keeps debug quick-slot binding hidden by default")
 	host._expect_equal(hud.quick_supply_panel.position.x <= 20.0, true, "HUD first pass anchors quick supply to the left edge")
@@ -960,10 +961,10 @@ func _check_hud_runtime_layout_first_pass() -> void:
 	host._expect_equal(_controls_overlap(hud.quick_supply_panel, hud.vitals_panel), false, "HUD first pass keeps quick supply separate from vitals")
 	host._expect_equal(hud.prompt_panel.position.x > hud.quick_supply_panel.position.x + hud.quick_supply_panel.size.x, true, "HUD first pass keeps prompt to the right of quick supply")
 	host._expect_equal(hud.prompt_panel.size.x >= 430.0, true, "HUD first pass gives the current interaction prompt enough width")
-	host._expect_equal(hud.prompt_panel.size.x <= 560.0, true, "HUD first pass keeps prompt from becoming a bottom overlay")
-	host._expect_equal(hud.prompt_panel.size.y <= 60.0, true, "HUD first pass keeps prompt height compact")
+	host._expect_equal(hud.prompt_panel.size.x <= 760.0, true, "HUD first pass bounds the readable interaction prompt width")
+	host._expect_equal(hud.prompt_panel.size.y >= 64.0 and hud.prompt_panel.size.y <= 80.0, true, "HUD first pass gives the interaction prompt readable height")
 	host._expect_equal(hud.log_panel.size.y >= 48.0, true, "HUD first pass reserves compact log text")
-	host._expect_equal(hud.log_panel.size.y <= 52.0, true, "HUD first pass keeps log rail compact")
+	host._expect_equal(hud.log_panel.size.y <= 72.0, true, "HUD first pass bounds the readable log rail")
 	host._expect_equal(hud.log_label.size.y >= 26.0, true, "HUD first pass keeps compact log text visible")
 	host._expect_equal(hud.map_panel.color.a <= 0.36, true, "HUD first pass lowers persistent panel opacity")
 	host._expect_equal(hud.prompt_panel.color.a >= 0.5, true, "HUD first pass keeps the current interaction prompt legible")
@@ -1419,6 +1420,7 @@ func _check_outer_ring_ridge_spawn_gate() -> void:
 	var core_buffer_residue := map.get_node("Interactables/CoreBufferResidueCache") as PrototypeInteractable
 	var core_buffer_enemy := map.get_node("Enemies/CoreBufferPollutedSkitter") as PrototypeEnemy
 	var locked_world := WorldState.create_default()
+	host._complete_first_minute(locked_world)
 	map.sync_enemy_states(locked_world)
 	map.refresh_world_interactables(locked_world)
 	host._expect_equal(ridge_residue.can_interact(), false, "outer ring ridge residue is gated before outer ring scouting")
@@ -1428,6 +1430,7 @@ func _check_outer_ring_ridge_spawn_gate() -> void:
 	host._expect_equal(core_buffer_enemy.can_be_attacked(), false, "core buffer supply guard is gated before buffer preparation")
 
 	var scout_world := WorldState.create_default()
+	host._complete_first_minute(scout_world)
 	scout_world.quest_state.active_quest_ids = ["quest.scout_ruin_outer_ring"]
 	map.sync_enemy_states(scout_world)
 	map.refresh_world_interactables(scout_world)
@@ -1437,12 +1440,14 @@ func _check_outer_ring_ridge_spawn_gate() -> void:
 	host._expect_equal(core_buffer_residue.can_interact(), false, "core buffer supply residue stays gated during outer ring scouting")
 
 	var echo_world := WorldState.create_default()
+	host._complete_first_minute(echo_world)
 	echo_world.quest_state.active_quest_ids = ["quest.salvage_signal_echo"]
 	map.sync_enemy_states(echo_world)
 	map.refresh_world_interactables(echo_world)
 	host._expect_equal(outer_echo_residue.can_interact(), false, "outer ring echo residue stays gated before phase guard defeat")
 
 	var post_guard_world := WorldState.create_default()
+	host._complete_first_minute(post_guard_world)
 	post_guard_world.quest_state.active_quest_ids = ["quest.salvage_signal_echo"]
 	post_guard_world.ensure_enemy("enemy_instance.ruin_phase_guard", "enemy.ruin_phase_guard", "region.ruin_outer_ring", 48.0)
 	post_guard_world.update_enemy_health("enemy_instance.ruin_phase_guard", 0.0, true)
@@ -1451,6 +1456,7 @@ func _check_outer_ring_ridge_spawn_gate() -> void:
 	host._expect_equal(outer_echo_residue.can_interact(), true, "outer ring echo residue opens after phase guard defeat")
 
 	var buffer_world := WorldState.create_default()
+	host._complete_first_minute(buffer_world)
 	buffer_world.quest_state.active_quest_ids = ["quest.prepare_demo_stabilization_buffer"]
 	map.sync_enemy_states(buffer_world)
 	map.refresh_world_interactables(buffer_world)

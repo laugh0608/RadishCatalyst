@@ -14,7 +14,6 @@ const VISUAL_REVIEW_CHECKPOINT_IDS: Array[String] = [
 	"visual_review.crystal_collector_output",
 	"visual_review.base_handoff",
 	"visual_review.pollution_boundary",
-	"visual_review.pollution_short_challenge",
 	"visual_review.core_station"
 ]
 const DEFAULT_VISUAL_REVIEW_CHECKPOINT_ID := "visual_review.outpost_base"
@@ -86,7 +85,7 @@ const VISUAL_REVIEW_CHECKPOINT_DEFINITIONS := [
 		"display_name": "核心稳定站",
 		"baseline_id": "baseline.s21_demo_stabilization_core_ready",
 		"region_id": "region.demo_stabilization_core",
-		"position": Vector2(3744.0, 112.0),
+		"position": Vector2(4038.0, 64.0),
 		"summary": "终点入口、侧边补给、守卫压力场、回写缓存和核心写入装置。",
 		"watch": "观察终点工程现场是否成立，后续视觉第二轮优先看这里。"
 	}
@@ -313,9 +312,10 @@ static func get_demo_baseline_ids() -> Array[String]:
 
 static func get_visual_review_checkpoint_definitions() -> Array[Dictionary]:
 	var definitions: Array[Dictionary] = []
-	for definition in VISUAL_REVIEW_CHECKPOINT_DEFINITIONS:
-		var checkpoint_definition: Dictionary = definition
-		definitions.append(checkpoint_definition.duplicate(true))
+	for checkpoint_id in VISUAL_REVIEW_CHECKPOINT_IDS:
+		var checkpoint_definition := get_visual_review_checkpoint_definition(checkpoint_id)
+		if not checkpoint_definition.is_empty():
+			definitions.append(checkpoint_definition)
 	return definitions
 
 
