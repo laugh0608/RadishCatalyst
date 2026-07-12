@@ -245,24 +245,24 @@ texture = ExtResource("13_pvtbg")
 
 [node name="CableSpool" type="Sprite2D" parent="."]
 z_index = 23
-position = Vector2(-326, 92)
+position = Vector2(-310, 88)
 scale = Vector2(0.3, 0.3)
 texture = ExtResource("14_wk5vg")
 
 [node name="Toolbox" type="Sprite2D" parent="."]
 z_index = 23
-position = Vector2(-104, -100)
+position = Vector2(-146, -84)
 scale = Vector2(0.28, 0.28)
 texture = ExtResource("15_8go1o")
 
 [node name="PressureBarrel" type="Sprite2D" parent="."]
-z_index = 23
-position = Vector2(-210, 122)
-scale = Vector2(0.3, 0.3)
+z_index = 24
+position = Vector2(-198, 116)
+scale = Vector2(0.28, 0.28)
 texture = ExtResource("16_8y4p0")
 
 [node name="SupplyCrate" type="Sprite2D" parent="."]
-z_index = 23
-position = Vector2(-286, 126)
-scale = Vector2(0.3, 0.3)
+z_index = 24
+position = Vector2(-278, 122)
+scale = Vector2(0.28, 0.28)
 texture = ExtResource("17_fcymt")

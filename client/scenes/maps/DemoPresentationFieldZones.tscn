@@ -131,64 +131,64 @@ texture = ExtResource("10_pipe_straight")
 [node name="CrystalApproachSignalLightWest" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 1, 0.86)
 z_index = 13
-position = Vector2(-174, -122)
+position = Vector2(-176, -128)
 scale = Vector2(0.18, 0.18)
 texture = ExtResource("5_light")
 
 [node name="CrystalApproachSignalLightMid" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 1, 0.84)
 z_index = 13
-position = Vector2(-88, -118)
+position = Vector2(-70, -108)
 scale = Vector2(0.18, 0.18)
 texture = ExtResource("5_light")
 
 [node name="CrystalApproachCableSpoolWest" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 1, 0.76)
 z_index = 13
-position = Vector2(-152, -52)
+position = Vector2(-158, -42)
 scale = Vector2(0.16, 0.16)
 texture = ExtResource("7_spool")
 
 [node name="CrystalApproachSurveyCrate" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 1, 0.74)
 z_index = 13
-position = Vector2(-124, -48)
+position = Vector2(-128, -34)
 scale = Vector2(0.18, 0.18)
 texture = ExtResource("6_crate")
 
 [node name="CrystalApproachToolbox" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 1, 0.78)
 z_index = 14
-position = Vector2(-72, -54)
+position = Vector2(-54, -48)
 scale = Vector2(0.18, 0.18)
 texture = ExtResource("11_toolbox")
 
 [node name="CrystalClusterVisualMain" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 1, 0.92)
-z_index = 15
+z_index = 17
 position = Vector2(24, -88)
-scale = Vector2(0.48, 0.48)
+scale = Vector2(0.52, 0.52)
 texture = ExtResource("9_crystal_cluster")
 
 [node name="CrystalClusterVisualEast" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 1, 0.86)
-z_index = 15
-position = Vector2(122, -112)
-scale = Vector2(0.42, 0.42)
+z_index = 14
+position = Vector2(178, -130)
+scale = Vector2(0.32, 0.32)
 texture = ExtResource("9_crystal_cluster")
 
 [node name="CrystalClusterVisualSouth" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 1, 0.84)
-z_index = 15
-position = Vector2(174, -18)
-scale = Vector2(0.38, 0.38)
+z_index = 16
+position = Vector2(215, 10)
+scale = Vector2(0.28, 0.28)
 texture = ExtResource("9_crystal_cluster")
 
 [node name="CrystalClusterVisualReserve" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 1, 0.78)
-z_index = 15
-position = Vector2(50, -158)
-scale = Vector2(0.34, 0.34)
+z_index = 13
+position = Vector2(118, -174)
+scale = Vector2(0.24, 0.24)
 texture = ExtResource("9_crystal_cluster")
 
 [node name="CrystalResourceCollectorField" type="Sprite2D" parent="."]
@@ -215,35 +215,35 @@ texture = ExtResource("5_light")
 [node name="CrystalApproachCableSpool" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 1, 0.82)
 z_index = 14
-position = Vector2(-12, -66)
+position = Vector2(-16, -62)
 scale = Vector2(0.22, 0.22)
 texture = ExtResource("7_spool")
 
 [node name="CrystalApproachWorkLight" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 1, 0.86)
 z_index = 16
-position = Vector2(-32, -118)
+position = Vector2(-22, -100)
 scale = Vector2(0.22, 0.22)
 texture = ExtResource("5_light")
 
 [node name="FieldWreckageVisualNorth" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 1, 0.82)
 z_index = 13
-position = Vector2(52, 112)
+position = Vector2(70, 112)
 scale = Vector2(0.22, 0.22)
 texture = ExtResource("6_crate")
 
 [node name="FieldWreckageVisualEast" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 1, 0.8)
 z_index = 13
-position = Vector2(214, 82)
+position = Vector2(226, 86)
 scale = Vector2(0.2, 0.2)
 texture = ExtResource("7_spool")
 
 [node name="FieldWreckageVisualSouth" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 1, 0.78)
 z_index = 13
-position = Vector2(40, 160)
+position = Vector2(118, 170)
 scale = Vector2(0.2, 0.2)
 texture = ExtResource("6_crate")
 
