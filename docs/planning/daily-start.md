@@ -8,17 +8,17 @@
 
 ## 阶段
 
-当前为「首版 Demo 表现层重建第一版：`R1` 地形+光影地基包」。
+当前为「项目目的、产品结构与个人 + AI 开发方式复盘」，实现开发已暂停。
 
-当前活跃专题：[Demo Presentation Rebuild V1](../features/demo-presentation-rebuild-v1.md)。核心循环、叙事节拍与纵切装配收口在表现层重建期间挂起。
+当前唯一活跃规划议题：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)。
 
-当前工程整改专题：[Demo Scope Convergence And Runtime Health V1](../features/demo-scope-convergence-and-runtime-health-v1.md)。`H0` 已完成；`H1` 到 `H4` 暂停，不并行抢占 `R1`。
+表现层重建、核心循环、叙事节拍、纵切装配和工程整改全部暂停，不自动续接。
 
-素材与风格入口：
+历史素材与失败证据入口（暂停期间不继续生成）：
 
 - 提示词库与风格规范：`docs/reference/ai-art-prompts.md`
 - 免费素材包候选：`docs/reference/free-asset-pack-candidates.md`
-- 生成素材接收：`assets/art-intake/`（原始批次不入库）；素材包下载：`assets/third-party/`（不入库）；风格锚点定稿：`assets/reference/`；可提交运行时素材：`client/assets/`
+- 两轮场景板候选：`assets/art-intake/2026-07-12-batch01/` 与 `batch02/`（忽略提交）；风格锚点：`assets/reference/`；运行时历史素材：`client/assets/`
 
 ## 最近收尾
 
@@ -32,47 +32,43 @@
 - 2026-07-09 `R1` 工程半落地：新增 `GroundBedFoundation`（`demo_ground_bed.gd`），用既有真实岩地 tile 把 `GroundTileMap` 覆盖扩展到填满可视地面并关闭黑 `Background`，解决空背景 + 悬浮物；`sh ./scripts/check-client.sh` 通过、Godot headless 导入无报错。同时暴露更深根因见下方待决策。
 - 2026-07-11 全项目审阅确认当前 Godot 聚合检查混有过期旧视觉断言、检查宿主空对象和待复核交互回归；建立唯一工程整改专题并将 `H0` 设为 `R1` 前置闸门。萝卜SAMA 接受浅暖地面方案，调色板改为“浅暖砂岩地面 + 暗金属建筑”。
 - 2026-07-11 `H0` 已通过统一 Godot 运行时入口；C1 / C2 真实候选重组为 4x4 宏块 atlas，连续浅暖地形与不透明暖灰金属平台已通过正式新档和修复核心后截图验收。
-- 2026-07-12 `R1` 五步均已通过正式新档 / 修复核心后截图验收：连续浅暖地形、金属平台、统一光色、接地阴影和构图同时成立；平台收束为非对称核心落座面，修复后形成“核心—管线—主晶体—卫星簇 / 残骸前景”的清晰层次。
+- 2026-07-12 最终宽幅参考图复核撤回 `R1` 通过结论：现有首屏仍是透视与比例不统一的独立切图贴在正交平台上，工业密度、整景关系和 HUD 占比均与预期相差明显。同一介质两轮失败后停止调参，萝卜SAMA 已批准转入 `R2`“统一宽幅场景板 + 同透视交互前景”路线。
+- 2026-07-12 `R2-A` 第二轮最终审阅失败：没有候选同时满足出站路径、交互插槽、静态 / 交互语义和 HUD 安全区。停止同类生成与 `R2-B` 接入，暂停全部实现开发，转入项目级复盘。
 
 ## 已决策（架构级 / 美术方向）
 
-2026-07-11 定稿：地表 / 平台改为浅暖砂岩灰，建筑保持暗青灰金属；反应器锚点继续约束设备材质、视角和光向，宽幅参考图约束场景图底对比。旧 `#151C1E` 不再作为岩地主色，仅可用于深阴影。
+2026-07-12 定稿：`R1`、`R2` 与原首版 Demo 实现线全部暂停。原 2D / 2.5D ARPG 定位、12 区纵切、宽幅参考图和 AI 主导美术管线均转为待复核假设，不再自动作为下一轮开发输入。
 
 ## 下一步事项
 
-1. 进入 `P2` 三区连续路径复判：先沿正式入口复核晶体矿脉、污染边界和核心稳定站现状，列出各区距离场景成立四要件的真实差距，再确定后续实施范围。
-2. 冻结已通过的基地首屏地形、平台、光色、阴影和构图参数；除非连续路径暴露明确回归，不回头追加同类调参。
-3. `P2` 复判只形成截图 / 路径证据和范围结论，不提前启动 `P3`、60 秒录像、玩法扩展或工程整改 `H1` 到 `H4`。
+1. 与萝卜SAMA确认项目的第一目的：商业游戏、个人作品、设计验证、IP 原型或个人 + AI 开发方法探索只能有一个第一优先。
+2. 比较可承受的产品形态与生产方式，明确首个交付版本的体验时长、场景数量、玩家动词、视觉目标和人 / AI 职责。
+3. 形成一页项目章程、产品结构图、生产协议、介质证据计划和仓库处置方案；未确认前不恢复任何实现线。
 
 ## 防跑偏规则
 
-- 画面主介质必须是真实资产 + `TileMapLayer` / `Sprite2D`；禁止新增程序绘制视觉层、脚本生成贴图或色块拼装作为画面主读法。
-- 旧视觉层和交互语义轮廓先硬禁用，不再降权共存；后续 `P3` 再删文件与修剪检查。
-- 不新增临时工作台或临时 Demo 场景名；正式项目的正式入口和正式场景必须承担编辑器可见性。
-- 表现层工作不新开 feature 专题；截图复核只对比风格锚点，同一实现方式最多重试一次。
-- 工程整改只使用范围收敛与运行时健康专题；`H0` 完成前不以测试整理替代画面主线，`H0` 后不并行做 `H1` 到 `H4`。
-- 文本、formatter、检查和口径整理不算主线进展；检查只兜底资源加载与主线可完成。
-- 不新建 `client/scripts/checks/` 检查脚本文件；已有检查可补与当前改动直接相关的覆盖。
-- 介质与风格锚点变更、阶段与专题切换、两次失败复盘属架构级升级点（见 `docs/process/development-decision-gates.md`），执行会话停手升级，不自行决策。
+- 不生成素材、不接入候选、不启动 Godot、不修改客户端或玩法数据。
+- 不以工程整理、删旧层、补检查、修小问题或新设计包制造“仍在推进”的假象。
+- 可以只读分析仓库、历史截图、失败批次和可选生产方式；形成决策前不自行选择新介质。
+- 后续任何恢复开发的建议都必须先说明个人可持续性、AI 能力边界、成功证据和失败退出条件。
 
 ## 当前不做
 
-- 不继续扩前线行动台、候选、窗口复盘、高压窗口或 `base_action_state`，除非出现 `P0` / `P1`。
-- 不横向新增区域；首版 Demo 12 区域封顶。
-- 不新增随机成功率、新货币、队员、完整装备栏、联机入口、最终美术包或发布流程。
-- 不把装备面板、完整工具面板、技能树、科技树、试玩准备、修 bug 阶段或大规模 polish 作为当前包目标；这些进入后续首小时设计包。
+- 所有代码、场景、素材、玩法、UI、检查、工程整改、试玩和发布工作。
+- 第三轮宽幅场景板生成，或基于第二轮候选的接入与补画。
+- 在项目目的未确认前继续细化 Demo、首小时、联机或长期成长设计。
 
 ## 阻塞标准
 
-只让这些问题阻塞阶段：崩溃、主线卡死、坏档、任务无法完成、关键资源断档、UI 完全无法判断下一步。
+当前暂停是主动决策，不以 bug 或工程状态作为恢复开发理由。
 
 ## 必读与选读
 
 日常必读：
 
 - `docs/planning/current.md`
-- `docs/features/demo-presentation-rebuild-v1.md`
-- `docs/reference/ai-art-prompts.md`
+- `docs/planning/project-purpose-and-solo-ai-development-review.md`
+- `docs/features/demo-presentation-rebuild-v1.md`（失败证据）
 
 按任务选读：
 
@@ -84,6 +80,4 @@
 
 ## 验证入口
 
-客户端改动优先执行默认检查：Windows 用 `pwsh ./scripts/check-client.ps1`，macOS / Linux / Git Bash 用 `sh ./scripts/check-client.sh`；需要 Godot 运行时验证时确认本机可启动后加 `-WithGodot` / `--with-godot`。
-
-提交前：Windows 用 `pwsh ./scripts/check-text-files.ps1`、`pwsh ./scripts/check-docs.ps1`；macOS / Linux / Git Bash 用 `./scripts/check-text-files.sh`、`./scripts/check-docs.sh`；最后执行 `git diff --check`。
+暂停期间只验证文档：`./scripts/check-docs.sh`、`./scripts/check-text-files.sh`、`git diff --check`。不启动 Godot。

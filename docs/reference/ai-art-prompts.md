@@ -1,6 +1,6 @@
 # AI Art Prompt Library V1
 
-更新时间：2026-07-11
+更新时间：2026-07-12
 
 ## 用途与关联
 
@@ -9,6 +9,7 @@
 - 生成素材接收目录与命名规则：`assets/art-intake/README.md`。
 - 免费素材包候选：[Free Asset Pack Candidates](free-asset-pack-candidates.md)。
 - 风格锚点图定稿后存放在 `assets/reference/`。
+- 项目级复盘期间全部图像生成暂停；本库只作历史参考，不作为当前执行清单。
 
 ## 全批次统一规则（生成前先读）
 
@@ -34,6 +35,31 @@ centered subject on a plain dark background
 要点中文对照：俯视 3/4 视角（正面略可见）、工业科幻化工前哨、暗青灰主色 + 青色发光 + 琥珀工作灯、平涂 + 柔和环境光遮蔽、剪影清晰、光源固定左上、无文字水印。
 
 场景图底补充：上方全局风格块主要约束设备、角色和独立道具。地面 C1 到 C4 必须以各自提示词的 `light warm sandy-gray` 为准，不沿用 `dark ... rock`；整体场景采用“浅暖地面承托暗金属建筑”的明度关系。`assets/reference/style-anchor.png` 约束设备画风，`assets/concept-art/2026-06-25-demo-first-screen-wide-reference.png` 约束场景图底对比。
+
+## R2 宽幅场景板专用规格
+
+状态：2026-07-12 两轮生成均未产出可装配候选，本路线已停止。以下内容只保留作失败复盘记录；在项目级复核完成前不得继续生成第三批或进入接入。
+
+`R2-A` 不使用“single centered subject”单体块。宽幅参考图是构图、3/4 俯视透视、尺度和工业密度的第一参照；设备锚点只约束暗青灰金属、青色能量、琥珀灯与左上光。使用工具支持的最高横向分辨率，优先 16:9；一个独立会话最多生成并落盘 3 张候选。
+
+```text
+wide 16:9 top-down 3/4 game environment plate, one coherent alien
+industrial outpost scene, light warm sandy-gray rocky terrain with ridges,
+compacted paths and scattered boulders, an irregular dark metal base
+platform integrated into the terrain, static pipe runs, cable trenches,
+fences, work lights and non-interactive background facilities, strong
+industrial density with clear foreground midground and background,
+current outbound route remains open toward the crystal workface, clear
+empty sockets for one outpost core and three to four interactive machines,
+consistent sunlight from top-left, soft ambient occlusion and ground
+shadows, muted teal-gray metal, cyan energy and amber lamps, no player,
+no characters, no UI, no text, no outpost core, no interactive machines,
+no asset sheet, no orthogonal tile grid, no empty flat ground
+```
+
+审阅必须先确认：不含被禁止的状态主体；插槽能承载现有交互锚点；出站路径连续；透视、比例和静态设施密度接近宽幅参考图；地形与平台没有明显方格拼装；四角 HUD 安全区不会遮住焦点。候选命名 `r2a_first_screen_scene_plate_v1.png` 到 `v3.png`。
+
+`R2-C` 交互资产另开会话。提示词沿用全局单体风格块，但必须同时挂场景板定稿图，要求 `matching the exact camera angle, scale, top-left lighting and ground contact of the approved scene plate, transparent background`；核心受损 / 修复态仍同图生成，不能把状态主体补画回场景板。
 
 风格边界：首颗星球和第一章 Demo 不是西方炼金术、奇幻工坊或魔法遗迹风格；异常、遗迹和稳定工程应通过工业结构、异星地貌、几何设施、管线、传感器和能量读数表达，不使用符文、法阵、药剂瓶、羊皮纸、蜡封、黄铜古董仪器、哥特 / 中世纪纹样或蒸汽朋克装饰作为主读法。
 
@@ -233,7 +259,7 @@ stained by muted sickly yellow-green residue patches, readable but not
 oversaturated
 ```
 
-平台边缘条优先在引擎内用 C2 切片加深色描边拼装，不单独生成。
+C1 到 C4 只保留作过渡区与远场补位；`R2` 首屏主地形、平台边界和静态工业结构由宽幅场景板统一承担，不再靠追加 C2 切片逼近参考图。
 
 ## 第四批：角色与敌人（难度最高，允许失败）
 

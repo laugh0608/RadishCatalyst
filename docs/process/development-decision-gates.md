@@ -106,3 +106,5 @@
 2026-06-25 的基地首屏 UI / Art 第十四到十七包连续证明：继续在程序几何图层上叠加 `draw_line`、`draw_rect`、圆环和半透明多边形，只能把画面推到低保真示意图，不能接近参考图的资产化游戏场景。
 
 因此首屏后续决策为“换介质 + 拆专题”：转入 [Demo First Screen Assetized Scene V1](../features/demo-first-screen-assetized-scene-v1.md)，以低保真地貌、晶体、污染、设备、管线和角色资产作为主读法。
+
+2026-07-12 的 `R2-A` 又证明：单张生成式宽幅场景板能改善统一透视和整景气质，但不能稳定同时控制玩法路径、交互插槽、静态 / 交互语义与 HUD 安全区。两轮各 3 张候选均未达到接入条件，因此停止同类生成，并把决策从“再换一种画面介质”升级为 [项目目的与个人 + AI 开发方式复盘](../planning/project-purpose-and-solo-ai-development-review.md)。复盘完成前暂停所有实现线。

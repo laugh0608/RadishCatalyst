@@ -4,6 +4,7 @@
 
 - [Daily Start](daily-start.md)
 - [Current Plan](current.md)
+- [Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)
 - [Demo Scope And Playable Slice](demo-scope-and-playable-slice.md)
 - [Base Action Choice Prototype](base-action-choice-prototype.md)
 - [Resource And Frontline Loop Rework](resource-and-frontline-loop-rework.md)
