@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/map/ground_shadow.gd" id="1_ground_shadow"]
+
+[node name="GroundShadow" type="Sprite2D"]
+z_index = 10
+z_as_relative = false
+texture_filter = 1
+script = ExtResource("1_ground_shadow")

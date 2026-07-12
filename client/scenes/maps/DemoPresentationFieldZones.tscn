@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/crystal_ground.png" id="1_vse2a"]
 [ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/pollution_ground.png" id="2_kom7k"]
@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/demo_first_screen/crystal_ecology_cluster.svg" id="9_crystal_cluster"]
 [ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/pipe_straight.png" id="10_pipe_straight"]
 [ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/toolbox.png" id="11_toolbox"]
+[ext_resource type="PackedScene" path="res://scenes/components/GroundShadow.tscn" id="12_ground_shadow"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ty8qd"]
 texture = ExtResource("1_vse2a")
@@ -45,6 +46,63 @@ modulate = Color(0.94, 0.96, 0.78, 0.38)
 z_index = 1
 tile_map_data = PackedByteArray("AAADAP//AQAAAAAAAAAEAP7/AQAAAAAAAAAEAP//AQAAAAAAAAAFAP//AQAAAAAAAAAEAAAAAQAAAAAAAAAFAAAAAQAAAAAAAAAFAAEAAQAAAAAAAAAGAAAAAQAAAAAAAAA=")
 tile_set = SubResource("TileSet_x2pmb")
+
+[node name="ApproachSignalLightWestGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalApproachSignalLightWest")
+
+[node name="ApproachSignalLightMidGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalApproachSignalLightMid")
+
+[node name="ApproachCableSpoolWestGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalApproachCableSpoolWest")
+
+[node name="ApproachSurveyCrateGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalApproachSurveyCrate")
+
+[node name="ApproachToolboxGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalApproachToolbox")
+
+[node name="CrystalMainGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalClusterVisualMain")
+
+[node name="CrystalEastGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalClusterVisualEast")
+
+[node name="CrystalSouthGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalClusterVisualSouth")
+
+[node name="CrystalReserveGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalClusterVisualReserve")
+
+[node name="CrystalCollectorGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalResourceCollectorField")
+
+[node name="CrystalCableSpoolGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalCableSpool")
+
+[node name="CrystalWorkLightGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalWorkLightPole")
+
+[node name="ApproachCableSpoolGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalApproachCableSpool")
+
+[node name="ApproachWorkLightGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalApproachWorkLight")
+
+[node name="WreckageNorthGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../FieldWreckageVisualNorth")
+
+[node name="WreckageEastGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../FieldWreckageVisualEast")
+
+[node name="WreckageSouthGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../FieldWreckageVisualSouth")
+
+[node name="PollutionFilterGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../PollutionFilterField")
+
+[node name="PollutionSupplyCrateGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../PollutionSupplyCrate")
 
 [node name="CrystalApproachPipeWest" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 1, 0.74)
