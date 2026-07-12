@@ -1733,6 +1733,9 @@ script = ExtResource("17_base_handoff_asset")
 modulate = Color(1, 1, 1, 0)
 script = ExtResource("19_base_first_screen_scene")
 
+[node name="SceneColorGrade" type="CanvasModulate" parent="."]
+color = Color(0.94, 0.97, 1, 1)
+
 [node name="DemoPresentationFirstScreen" parent="." instance=ExtResource("20_presentation_first_screen")]
 
 [node name="DemoPresentationFieldZones" parent="." instance=ExtResource("21_presentation_field_zones")]

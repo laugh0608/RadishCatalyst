@@ -165,14 +165,14 @@ scale = Vector2(0.42, 0.42)
 texture = ExtResource("6_tfp8w")
 
 [node name="ResourceCollector" type="Sprite2D" parent="."]
-modulate = Color(0.92, 1, 0.98, 0.72)
+modulate = Color(1, 1, 1, 0.72)
 z_index = 17
 position = Vector2(42, -108)
 scale = Vector2(0.34, 0.34)
 texture = ExtResource("7_bdj5p")
 
 [node name="PollutionFilterStaged" type="Sprite2D" parent="."]
-modulate = Color(0.88, 0.94, 0.88, 0.54)
+modulate = Color(1, 1, 1, 0.54)
 z_index = 17
 position = Vector2(-108, 118)
 scale = Vector2(0.36, 0.36)

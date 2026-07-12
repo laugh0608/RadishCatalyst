@@ -208,7 +208,7 @@ func _refresh_art_sprite(is_moving: bool = false) -> void:
 	art_sprite.visible = art_sprite.texture != null
 	if not art_sprite.visible:
 		return
-	art_sprite.modulate = Color(1.12, 1.18, 1.12, 1.0)
+	art_sprite.modulate = Color.WHITE
 	art_sprite.rotation = 0.0
 	var forward := _safe_facing_direction()
 	if absf(forward.x) > 0.15:
