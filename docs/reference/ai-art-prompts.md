@@ -27,6 +27,7 @@
 4. 单体资产要求纯色深灰背景或透明背景；地面贴图要求 seamless tileable。
 5. 锚点未定稿前只生成第一批，不批量往后跑。
 6. 图像会话稳定性约束（单会话最多 3 张、生成与接入分离、立即复制到 art-intake、中断先清点）以 `CLAUDE.md` / `AGENTS.md` 为准。
+7. 帧表、双状态、多表情等一图多对象时，把全局风格块末尾的 `single centered subject on a plain dark background` 换成 `objects arranged separately in a row, not touching, on a plain dark background`。
 
 ## 全局风格块（每条提示词前完整粘贴）
 
@@ -58,6 +59,35 @@ oversaturated, alchemy, alchemist, occult symbols, magic circle, runes,
 potion bottles, parchment, wax seal, medieval, gothic, brass steampunk,
 fantasy workshop
 ```
+
+## 介质证据轮执行清单
+
+状态：提示词已就绪，启动由萝卜SAMA决定。启动后按本清单逐会话执行：单会话最多 3 次生成、每次 1 张、一个素材类别一个会话。成功 / 失败判据见 [Pixel Art And Grid Standard](pixel-art-and-grid-standard.md)「介质证据轮」。
+
+### 会话拆分总表
+
+| 会话 | 类别 | 生成内容 | 使用提示词 |
+| --- | --- | --- | --- |
+| S1 | 风格锚点 | A0 像素反应器 3 张候选 | 全局风格块 + A0 |
+| S2 | 地面 tile | C1 岩地、C2 平台、C3 晶体地各 1 张 | C 批完整提示词（不用全局块） |
+| S3 | 首屏设备 | B1B2 核心双态、B3 储存、B4 整备台各 1 张 | 全局风格块 + B 批（双态按多对象规则） |
+| S4 | 角色 | D1 静态 1 张 + 行走 4 帧帧表 1 张（留 1 次重出额度） | 全局风格块 + D1；帧表用 D1-W 整段 |
+| S5 | 二三屏增量 | B6 采集器、C4 污染地、E1 晶体簇各 1 张 | 全局块 + B6 / C4 完整 / 全局块 + E1 |
+| S6 | 立绘小样 | 同角色三表情差分版 2 到 3 张候选 | 立绘整段提示词（不用像素块） |
+
+执行规则：
+
+- 顺序：S1 定稿锚点后才开 S2 到 S4（后续批次全部挂锚点图做参考）；S2 到 S4 归一审阅通过后才开 S5；S6 独立，任意时点可做。
+- 每会话落盘 `assets/art-intake/YYYY-MM-DD-batchNN/`，命名 `编号_名称_v候选号.png`，写 `_manifest.md`；生成后立即复制落盘。
+- 某张不满意：先完成本会话其余条目，失败项集中进同类别第二轮会话；同类别两轮仍不成即触发决策闸门（该类别退扁平几何风或 CC0 像素包基底），不开第三轮。
+- 行走帧表是已知最高风险项；两轮不成即改由 CC0 像素包承担行走动画，静态形象仍可用 AI 稿，不算证据轮整体失败。
+
+### 每会话完成后的审阅与归一
+
+1. 执行会话按「产出提交与审阅流程」审阅：视角、左上光、调色板色域、缩到目标尺寸后剪影。
+2. 像素稿归一：整数缩放到目标尺寸（tile 32px、设备 64 到 96px、角色 48 到 64px）+ 调色板量化；地面做 2x2 拼贴查接缝。
+3. S2 到 S4 定稿后，执行会话用归一素材拼一张“第一屏拼合预览”（图像拼合，不进引擎），同图出 960x540 与 640x360 两版取景，交萝卜SAMA定细腻档位。
+4. S5 定稿后拼第二 / 三屏并排图作重复性证据；审阅结论、定稿与失败记录写入当周周志。
 
 ## 生成顺序
 
@@ -98,15 +128,62 @@ and a glowing cyan terminal; a boxy pollution filter with vent grilles,
 intake and exhaust pipes and faint yellow-green residue stains
 ```
 
-### 第三批：地面 tile（tileable 变体）
+单台重出时，取上面对应从句接全局风格块即可。
 
-#### C1 异星岩地 / C2 金属平台 / C3 晶体区 / C4 污染区
+#### B6 自动采集器（接全局风格块）
 
-在对应描述后追加：`seamless tileable pixel texture, top-down view, uniform lighting, no borders`。地面主色以限定调色板为准（浅暖砂岩地表、平台暖灰、晶体青、污染黄绿）。
+```text
+an automated resource collector machine with a wide intake hopper, short
+conveyor stub, partially visible rotating drum, amber hazard stripes
+```
+
+### 第三批：地面 tile（完整提示词，不叠全局风格块）
+
+#### C1 异星岩地
+
+```text
+top-down pixel art seamless tileable ground texture, light warm sandy-gray
+alien rock and compacted dust with fine dark cracks and scattered pebbles,
+limited palette, clean readable pixel clusters, subtle color variation,
+low contrast, uniform lighting, crisp pixel edges, muted colors, no text,
+no watermark, no borders, no large landmarks
+```
+
+#### C2 金属平台地面
+
+```text
+top-down pixel art seamless tileable industrial metal platform floor,
+medium warm-gray riveted panels clearly darker than sandy ground, subtle
+wear, faint amber hazard line accents, limited palette, clean readable
+pixel clusters, low contrast, uniform lighting, crisp pixel edges, muted
+colors, no text, no watermark, no borders
+```
+
+#### C3 晶体区地面变体
+
+```text
+top-down pixel art seamless tileable ground texture, light warm sandy-gray
+alien rock with faint embedded cyan crystal veins glowing subtly through
+pale stone, fine dark cracks for depth, limited palette, clean readable
+pixel clusters, low contrast, uniform lighting, crisp pixel edges, muted
+colors, no text, no watermark, no borders
+```
+
+#### C4 污染区地面变体
+
+```text
+top-down pixel art seamless tileable ground texture, light warm sandy-gray
+cracked soil stained by muted sickly yellow-green residue patches, readable
+but not oversaturated, limited palette, clean readable pixel clusters, low
+contrast, uniform lighting, crisp pixel edges, muted colors, no text,
+no watermark, no borders
+```
 
 ### 第四批：角色与敌人
 
 行走动画优先用像素素材包补位（见候选清单）；AI 出稿先要单张俯视静态形象，需要动画帧时用“同一角色一整版帧表”方式出。
+
+#### D1 玩家工程师（静态，接全局风格块）
 
 ```text
 top-down pixel sprite of a lone engineer in a sealed exosuit with a small
@@ -114,9 +191,48 @@ backpack reactor, helmet with glowing cyan visor, one amber shoulder
 light, seen from above and slightly in front, full body, single character
 ```
 
+#### D1-W 行走帧表（整段直接使用，不叠全局块）
+
+```text
+pixel art sprite sheet of the same character in 4 walk cycle frames,
+arranged in one horizontal row, equal spacing, not touching: a lone
+engineer in a sealed exosuit with a small backpack reactor, helmet with
+glowing cyan visor, one amber shoulder light, top-down 3/4 view walking
+toward the viewer, limited palette, clean readable pixel clusters, crisp
+pixel edges, light from top-left, muted colors, plain dark background,
+no text, no watermark
+```
+
 ### 第五批：资源与点缀
 
 晶体簇、残骸堆、岩石散件、异星植被、污染贴花，按需一张图分开摆放多个尺寸，主色收敛到限定调色板。
+
+#### E1 晶体簇（接全局风格块，按多对象规则调整结尾）
+
+```text
+clusters of glowing cyan alien crystals growing from dark rock bases,
+three separate clusters small medium large, arranged in a row, not
+touching
+```
+
+### 第六批：主角立绘（UI 层，不用像素风格块）
+
+立绘只用于对话与角色界面，不进世界层、不做像素归一。整段直接使用：
+
+```text
+anime style character portrait sheet, the same young engineer shown three
+times side by side, bust-up, equal spacing, not touching, identical face
+hairstyle and outfit in all three: wearing a white and teal-gray sealed
+exosuit with the helmet clipped to the chest, short dark hair, a faint
+cyan glow at the collar seal, one small amber shoulder light; left calm
+neutral expression, middle confident slight smile, right alert serious
+expression; clean sharp lineart, soft cel shading, muted industrial
+sci-fi palette with cyan and amber accents, plain dark gray background,
+no text, no watermark
+```
+
+- 主角人设未定：要指定性别、发型或气质，直接改 `young engineer` 与 `short dark hair` 等措辞；定稿 1 张后作为主角立绘基准，后续表情差分挂它做参考。
+- 审阅只看三点：三个表情是否同一人、线稿是否干净、色调是否与世界层青 / 琥珀语义呼应。
 
 ## 特效说明
 
