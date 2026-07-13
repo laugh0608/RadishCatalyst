@@ -64,6 +64,8 @@ fantasy workshop
 
 状态：提示词已就绪，启动由萝卜SAMA决定。启动后按本清单逐会话执行：单会话最多 3 次生成、每次 1 张、一个素材类别一个会话。成功 / 失败判据见 [Pixel Art And Grid Standard](pixel-art-and-grid-standard.md)「介质证据轮」。
 
+拼装完成、可整篇丢给生图 AI 的执行副本：[Pixel Evidence Round Prompts](pixel-evidence-round-prompts.md)；副本与本库冲突时以本库为准，改提示词先改本库再同步副本。
+
 ### 会话拆分总表
 
 | 会话 | 类别 | 生成内容 | 使用提示词 |

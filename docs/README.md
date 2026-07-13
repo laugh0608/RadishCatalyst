@@ -100,6 +100,7 @@ macOS / Linux / Git Bash / zsh 可执行：
 ## Reference Documents
 
 - [Pixel Art And Grid Standard](reference/pixel-art-and-grid-standard.md)
+- [Pixel Evidence Round Prompts](reference/pixel-evidence-round-prompts.md)
 - [Client Data Dictionary](reference/client-data-dictionary.md)
 - [Content Authoring Guide](reference/content-authoring-guide.md)
 - [Chemical Automation Game Outline](reference/chemical-automation-game-outline.md)
