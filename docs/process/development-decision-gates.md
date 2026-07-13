@@ -1,6 +1,6 @@
 # Development Decision Gates
 
-更新时间：2026-07-04
+更新时间：2026-07-12
 
 ## 用途
 
@@ -65,14 +65,14 @@
 
 日常开发由执行会话（任意模型）直接推进；遇到以下决策时执行会话应停手，把问题连同证据升级给萝卜SAMA，由架构复核会话处理：
 
-- 画面介质或风格锚点变更：更换 / 重生成 `assets/reference/style-anchor.png`，或修改提示词库的调色板、视角、尺寸口径。
+- 画面介质或风格锚点变更：更换 / 重生成像素风格锚点，或修改 [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md) 的网格、调色板、虚拟分辨率、光向或尺寸口径。
 - 阶段与专题变更：切换 `docs/planning/current.md` 阶段、建立 / 取代 feature 专题、判定阶段退出条件达成。
 - 两次失败停手规则触发后的路线复盘决策。
 - 存档结构、联机边界或跨系统架构调整。
 - `P3` 旧视觉层大规模删除收口的最终复核。
 - `AGENTS.md`、`CLAUDE.md`、规划入口口径或验证基线本身的修改。
 
-无需升级的日常执行：按提示词库生成与审阅素材、裁切缩放接入、`TileMapLayer` / 设备场景实施、按专题清单删除旧视觉层、修剪失效检查、常规提交与周志记录。
+无需升级的日常执行：按提示词库生成与审阅像素素材、归一缩放接入、`TileMapLayer` / 设备场景实施、按专题清单删除旧视觉层、修剪失效检查、常规提交与周志记录。
 
 ## 文档落点规则
 
@@ -105,6 +105,8 @@
 
 2026-06-25 的基地首屏 UI / Art 第十四到十七包连续证明：继续在程序几何图层上叠加 `draw_line`、`draw_rect`、圆环和半透明多边形，只能把画面推到低保真示意图，不能接近参考图的资产化游戏场景。
 
-因此首屏后续决策为“换介质 + 拆专题”：转入 [Demo First Screen Assetized Scene V1](../features/demo-first-screen-assetized-scene-v1.md)，以低保真地貌、晶体、污染、设备、管线和角色资产作为主读法。
+因此首屏后续决策为“换介质 + 拆专题”：转入 [Demo First Screen Assetized Scene V1](../archive/features-demo-v1/demo-first-screen-assetized-scene-v1.md)（已归档），以低保真地貌、晶体、污染、设备、管线和角色资产作为主读法。
 
-2026-07-12 的 `R2-A` 又证明：单张生成式宽幅场景板能改善统一透视和整景气质，但不能稳定同时控制玩法路径、交互插槽、静态 / 交互语义与 HUD 安全区。两轮各 3 张候选均未达到接入条件，因此停止同类生成，并把决策从“再换一种画面介质”升级为 [项目目的与个人 + AI 开发方式复盘](../planning/project-purpose-and-solo-ai-development-review.md)。复盘完成前暂停所有实现线。
+2026-07-12 的 `R2-A` 又证明：单张生成式宽幅场景板能改善统一透视和整景气质，但不能稳定同时控制玩法路径、交互插槽、静态 / 交互语义与 HUD 安全区。两轮各 3 张候选均未达到接入条件，因此停止同类生成，并把决策从“再换一种画面介质”升级为 [项目目的与个人 + AI 开发方式复盘](../planning/project-purpose-and-solo-ai-development-review.md)。
+
+该复盘于同日形成介质结论：写实 2.5D 整景路线整体废止，切换为像素 + 2D 俯视网格（机械口径见 [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)）；恢复实现前必须先通过介质证据轮。本案例链是“两次失败停手 + 升级架构决策”的标准范式。
