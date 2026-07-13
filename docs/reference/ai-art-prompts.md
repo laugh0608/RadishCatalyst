@@ -107,6 +107,7 @@ stubs on both sides, mounted on a dark metal base plate
 
 - 生成 4 到 6 个候选。
 - 交萝卜SAMA审阅，共同定稿 1 张为像素风格锚点存 `assets/reference/`，后续批次挂锚点图生成。
+- 2026-07-13 已定稿：`2026-07-13-batch01` 的 `a0_reactor_px_v1`，存 `assets/reference/pixel-style-anchor.png`；96px 目标尺寸复核其剪影、色域与密度全胜，`v2` 侧管黄铜偏出色域、`v3` 密度过高缩小糊并（留档作后续大型建筑体量参考）。
 
 ### 第二批：首屏核心设备（锚点定稿后）
 

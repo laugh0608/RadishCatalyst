@@ -9,7 +9,7 @@
 给萝卜SAMA：
 
 - 一次生成会话只执行一个 `S` 段落；把本文丢给生图 AI 时，告诉它“本次只执行 S1”（或对应段落）。
-- `S1` 定稿锚点前不跑 `S2` 到 `S5`；`S2` 起每个会话开始先上传定稿锚点图（`assets/reference/` 内像素锚点）作为参考图，并附一句 `match the style, palette and lighting of the attached reference image`。
+- `S1` 已定稿锚点（2026-07-13：`a0_reactor_px_v1`）；`S2` 起每个会话开始先上传 `assets/reference/pixel-style-anchor.png` 作为参考图，并附一句 `match the style, palette and lighting of the attached reference image`。
 - 每张图生成后立即保存到该会话的 `assets/art-intake/YYYY-MM-DD-batchNN/`，按段落里给的文件名命名；会话结束在批次目录写 `_manifest.md`（工具、会话 ID、候选编号、未完成项）。
 - 生成完成后交执行会话审阅归一，不要自己判定通过。
 
