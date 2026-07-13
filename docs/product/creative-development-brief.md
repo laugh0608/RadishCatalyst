@@ -5,6 +5,8 @@
 
 本文已按主题拆分为子文档；当前文件只保留入口索引，避免新会话读取过长背景。
 
+口径说明（2026-07-13）：本总纲为创始定调材料。美术介质已由“2D / 2.5D”定为像素 + 2D 俯视网格（见 [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)）；首个交付版结构以 `docs/planning/current.md` 为准。
+
 ## 子文档
 
 - [定位与原则](creative-positioning-and-principles.md)：项目定义、方向判断、核心定位、体验幻想和设计原则。

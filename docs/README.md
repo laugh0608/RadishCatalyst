@@ -57,6 +57,7 @@ macOS / Linux / Git Bash / zsh 可执行：
 - [Reference Positioning](product/reference-positioning.md)
 - [Player Wiki And Official Tools](product/player-wiki-and-official-tools.md)
 - [Visual And UI Direction](product/visual-and-ui-direction.md)
+- [Pixel Art And Grid Standard](reference/pixel-art-and-grid-standard.md)
 - [Worldbuilding Premise](product/worldbuilding-premise.md)
 - [MVP Feature List](product/mvp-feature-list.md)
 - [Multiplayer and Save Architecture](architecture/multiplayer-and-save-architecture.md)
@@ -84,15 +85,13 @@ macOS / Linux / Git Bash / zsh 可执行：
 ## Feature Documents
 
 - [Feature Development Docs](features/README.md)
-- [Demo Definition V1](features/demo-definition-v1.md)
-- [Demo Combat Progression V1](features/demo-combat-progression-v1.md)
+- 历史专题（旧 Demo Definition V1 路线）：[docs/archive/features-demo-v1/](archive/features-demo-v1/README.md)
 
 ## Planning And Governance
 
 - [Daily Start](planning/daily-start.md)
 - [Current Plan](planning/current.md)
-- [Demo Scope And Playable Slice](planning/demo-scope-and-playable-slice.md)
-- [Vertical Slice](planning/vertical-slice.md)
+- [Project Purpose And Solo AI Development Review](planning/project-purpose-and-solo-ai-development-review.md)
 - [Milestone Review Checklist](planning/milestone-review-checklist.md)
 - [Development Decision Gates](process/development-decision-gates.md)
 - [Architecture Decision Records](adr/README.md)
@@ -100,6 +99,7 @@ macOS / Linux / Git Bash / zsh 可执行：
 
 ## Reference Documents
 
+- [Pixel Art And Grid Standard](reference/pixel-art-and-grid-standard.md)
 - [Client Data Dictionary](reference/client-data-dictionary.md)
 - [Content Authoring Guide](reference/content-authoring-guide.md)
 - [Chemical Automation Game Outline](reference/chemical-automation-game-outline.md)

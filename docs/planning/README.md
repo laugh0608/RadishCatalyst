@@ -5,8 +5,6 @@
 - [Daily Start](daily-start.md)
 - [Current Plan](current.md)
 - [Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)
-- [Demo Scope And Playable Slice](demo-scope-and-playable-slice.md)
-- [Base Action Choice Prototype](base-action-choice-prototype.md)
-- [Resource And Frontline Loop Rework](resource-and-frontline-loop-rework.md)
-- [Vertical Slice](vertical-slice.md)
 - [Milestone Review Checklist](milestone-review-checklist.md)
+
+旧 Demo V1 路线（12 区纵切）的规划文档已归档至 [docs/archive/planning-demo-v1/](../archive/planning-demo-v1/README.md)。
