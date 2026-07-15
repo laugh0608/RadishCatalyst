@@ -31,6 +31,9 @@ logs/
 .godot-check-home/
 .godot-check-runs/
 
+# Python bytecode caches (tools/ scripts)
+__pycache__/
+
 # OS metadata
 .DS_Store
 Thumbs.db
