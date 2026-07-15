@@ -235,6 +235,7 @@ no text, no watermark
 ```
 
 - 主角人设未定：要指定性别、发型或气质，直接改 `young engineer` 与 `short dark hair` 等措辞；定稿 1 张后作为主角立绘基准，后续表情差分挂它做参考。
+- 2026-07-14 已定稿：`S6` 会话 `p1_protagonist_portraits_v2`（年轻亲和向、三表情辨识度最高），存 `assets/reference/protagonist-portrait-anchor.png`；后续表情差分与角色界面立绘挂它做参考。
 - 审阅只看三点：三个表情是否同一人、线稿是否干净、色调是否与世界层青 / 琥珀语义呼应。
 
 ## 特效说明
