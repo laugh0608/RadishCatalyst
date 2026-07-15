@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-07-12
+更新时间：2026-07-15
 
 ## 用途
 
@@ -25,11 +25,13 @@
 
 ## 当前状态
 
-当前没有活跃功能专题。项目处于目的与结构复盘收尾阶段（见 [Project Purpose And Solo AI Development Review](../planning/project-purpose-and-solo-ai-development-review.md)）：
+当前唯一活跃功能专题：[Slice Base First Screen Integration V1](slice-base-first-screen-integration-v1.md)——首个切片实现包（归一管线入库、单基地场景与相机、玩家接入），2026-07-15 结束项目级暂停后开工。
 
-- 美术介质已定为像素 + 2D 俯视网格，机械口径见 [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)。
-- 首个交付版结构已定为单基地场景 + 单远征小区域的 20 到 40 分钟可玩切片。
-- 恢复实现前必须先通过介质证据轮；之后第一批新专题（切片定义、像素资产接入、基地与远征区场景）在此建立。
+背景结论（复盘与证据轮）：
+
+- 美术介质已定为像素 + 2D 俯视网格，机械口径见 [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)；介质证据轮 S1 到 S6 全绿。
+- 首个交付版结构已定为单基地场景 + 单远征小区域的 20 到 40 分钟可玩切片；章程见 [复盘文档](../planning/project-purpose-and-solo-ai-development-review.md)。
+- 后续专题候选（收口后由萝卜SAMA择序）：晶体远征小区域、系统层换皮接入、立绘对话框最小接入。
 
 ## 历史专题
 
