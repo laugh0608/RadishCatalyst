@@ -226,11 +226,45 @@ def job_portrait(records: list[str]) -> None:
     records.append(f"{dst}: verbatim copy of p1_protagonist_portraits_v2.png")
 
 
+def job_character_directions(records: list[str]) -> None:
+    """Pack 3.5 directional walk sheets (S7). New frames are forced onto the
+    palette of the already-shipped engineer set so directions never color-pop,
+    and brightness-matched to the same d1 baseline."""
+    shipped = [npa.load_png(os.path.join(SPRITES_DIR, "engineer.png"))] + [
+        npa.load_png(os.path.join(SPRITES_DIR, f"engineer_walk_{i}.png"))
+        for i in range(4)
+    ]
+    palette = sorted(set(sum((npa.opaque_colors(img) for img in shipped), [])))
+    baseline_luma = npa.mean_luma(shipped[0])
+
+    jobs = [
+        ("2026-07-16-batch01/d1wu_walk_up_sheet_px_v1.png", "engineer_walk_up"),
+        ("2026-07-16-batch01/d1wd_walk_down_sheet_px_v1.png", "engineer_walk_down"),
+    ]
+    for rel, prefix in jobs:
+        frames = split_sheet(
+            os.path.join(INTAKE, rel), expected=4, target_h=FRAME_BOX[1]
+        )
+        pooled_data = bytearray()
+        for frame in frames:
+            pooled_data.extend(frame.data)
+        pooled = npa.Image(1, len(pooled_data) // 4, pooled_data)
+        gain = baseline_luma / npa.mean_luma(pooled)
+        records.append(f"{prefix} luma gain: {gain:.3f}")
+        for frame in frames:
+            npa.apply_gain(frame, gain)
+            npa.apply_palette(frame, palette)
+        for i, frame in enumerate(frames):
+            boxed = npa.place_in_box(frame, FRAME_BOX[0], FRAME_BOX[1])
+            save_sprite(boxed, f"{prefix}_{i}.png", records)
+
+
 JOBS = {
     "devices": job_single_sprites,
     "core": job_core,
     "crystals": job_crystals,
     "character": job_character,
+    "character_directions": job_character_directions,
     "grounds": job_grounds,
     "portrait": job_portrait,
 }
