@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 REQUIRED_TEXT_BY_FILE = {
-    "docs/features/demo-route-return-and-base-reentry-readability-v1.md": [
+    "docs/archive/features-demo-v1/demo-route-return-and-base-reentry-readability-v1.md": [
         "Demo Route Return And Base Reentry Readability V1",
         "外勤返回与基地再进入读法",
         "不新增资源、配方、设备、区域、任务链、敌人类型、完整背包、完整装备栏或自动化物流",

@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 REQUIRED_TEXT_BY_FILE = {
-    "docs/features/demo-action-feedback-readability-v1.md": [
+    "docs/archive/features-demo-v1/demo-action-feedback-readability-v1.md": [
         "Demo Action Feedback Readability V1",
         "第一包实施范围",
         "DemoActionFeedbackFormatter",

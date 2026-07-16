@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 REQUIRED_TEXT_BY_FILE = {
-    "docs/features/demo-main-path-continuity-v1.md": [
+    "docs/archive/features-demo-v1/demo-main-path-continuity-v1.md": [
         "Demo Main Path Continuity V1",
         "主路径连续性",
         "S0",

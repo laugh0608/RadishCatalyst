@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 REQUIRED_TEXT_BY_FILE = {
-    "docs/features/demo-playable-ui-and-art-pass-v1.md": [
+    "docs/archive/features-demo-v1/demo-playable-ui-and-art-pass-v1.md": [
         "启动界面与基地首屏第一印象",
         "新游戏",
         "载入存档",

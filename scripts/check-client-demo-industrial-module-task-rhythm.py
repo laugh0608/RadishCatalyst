@@ -4,13 +4,13 @@ from pathlib import Path
 
 
 REQUIRED_TEXT_BY_FILE = {
-    "docs/features/demo-industrial-module-task-rhythm-v1.md": [
+    "docs/archive/features-demo-v1/demo-industrial-module-task-rhythm-v1.md": [
         "Demo Industrial Module Task Rhythm V1",
         "工业模块职责与任务节奏第一包",
         "DemoIndustrialModuleTaskRhythmFormatter",
         "demo_industrial_module_task_rhythm_check.gd",
     ],
-    "docs/features/demo-playable-content-substance-v1.md": [
+    "docs/archive/features-demo-v1/demo-playable-content-substance-v1.md": [
         "工业模块职责与任务节奏第一包",
         "DemoIndustrialModuleTaskRhythmFormatter",
         "不新增第 13 区域",

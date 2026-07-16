@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 REQUIRED_TEXT_BY_FILE = {
-    "docs/features/demo-save-state-contract-v1.md": [
+    "docs/archive/features-demo-v1/demo-save-state-contract-v1.md": [
         "Demo Save State Contract V1",
         "存档 / 状态",
         "世界、角色、库存、建筑、任务、区域、敌人",
