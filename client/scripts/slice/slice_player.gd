@@ -23,10 +23,16 @@ func _update_animation(input: Vector2) -> void:
 		sprite.play("idle")
 		return
 
-	if absf(input.x) >= absf(input.y):
+	# The side sheet is drawn leaning toward the viewer (3/4 front), so it
+	# reads as downward-diagonal motion: upward diagonals therefore prefer
+	# the back-view cycle, downward diagonals keep the side cycle.
+	if input.y < 0.0 and -input.y >= absf(input.x):
+		sprite.play("walk_up")
+		sprite.flip_h = false
+	elif absf(input.x) >= absf(input.y):
 		sprite.play("walk")
 		# Side source frames face left; flip to express rightward movement.
 		sprite.flip_h = input.x > 0.0
 	else:
-		sprite.play("walk_up" if input.y < 0.0 else "walk_down")
+		sprite.play("walk_down")
 		sprite.flip_h = false
