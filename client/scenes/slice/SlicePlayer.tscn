@@ -1,0 +1,52 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/slice/slice_player.gd" id="1_player_script"]
+[ext_resource type="Texture2D" path="res://assets/sprites/slice/engineer.png" id="2_idle"]
+[ext_resource type="Texture2D" path="res://assets/sprites/slice/engineer_walk_0.png" id="3_walk_0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/slice/engineer_walk_1.png" id="4_walk_1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/slice/engineer_walk_2.png" id="5_walk_2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/slice/engineer_walk_3.png" id="6_walk_3"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_engineer"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_idle")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_walk_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_walk_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_walk_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_walk_3")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 8.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_feet"]
+size = Vector2(24, 14)
+
+[node name="SlicePlayer" type="CharacterBody2D"]
+script = ExtResource("1_player_script")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -32)
+sprite_frames = SubResource("SpriteFrames_engineer")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="Collision" type="CollisionShape2D" parent="."]
+position = Vector2(0, -7)
+shape = SubResource("RectangleShape2D_feet")
