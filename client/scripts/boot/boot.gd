@@ -1,6 +1,7 @@
 extends Node
 
 const GAME_ROOT_SCENE := "res://scenes/game/GameRoot.tscn"
+const SLICE_BASE_SCENE := "res://scenes/slice/BaseFirstScreen.tscn"
 const STARTUP_MENU_SCENE := "res://scenes/ui/StartupMenu.tscn"
 
 var data_registry: DataRegistry
@@ -42,7 +43,7 @@ func _show_startup_menu() -> void:
 
 
 func _on_startup_new_game_requested() -> void:
-	_start_game("")
+	_start_slice_base()
 
 
 func _on_startup_load_game_requested() -> void:
@@ -51,6 +52,18 @@ func _on_startup_load_game_requested() -> void:
 
 func _on_startup_quit_requested() -> void:
 	get_tree().quit()
+
+
+func _start_slice_base() -> void:
+	var slice_scene := load(SLICE_BASE_SCENE) as PackedScene
+	if slice_scene == null:
+		push_error("Missing slice base scene: %s" % SLICE_BASE_SCENE)
+		return
+
+	if startup_menu != null:
+		startup_menu.queue_free()
+		startup_menu = null
+	add_child(slice_scene.instantiate())
 
 
 func _start_game(startup_load_slot_id: String) -> void:
