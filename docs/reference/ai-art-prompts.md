@@ -206,6 +206,34 @@ pixel edges, light from top-left, muted colors, plain dark background,
 no text, no watermark
 ```
 
+#### D1-WU 背面行走帧表（包 3.5 增补，整段直接使用，不叠全局块）
+
+```text
+pixel art sprite sheet of the same character in 4 walk cycle frames,
+arranged in one horizontal row, equal spacing, not touching: a lone
+engineer in a sealed exosuit with a small backpack reactor, helmet with
+glowing cyan visor, one amber shoulder light, top-down 3/4 back view
+walking straight away from the viewer, back of the helmet and the
+backpack reactor fully visible, no face visible, limited palette, clean
+readable pixel clusters, crisp pixel edges, light from top-left, muted
+colors, plain dark background, no text, no watermark
+```
+
+#### D1-WD 正面行走帧表（包 3.5 增补，整段直接使用，不叠全局块）
+
+```text
+pixel art sprite sheet of the same character in 4 walk cycle frames,
+arranged in one horizontal row, equal spacing, not touching: a lone
+engineer in a sealed exosuit with a small backpack reactor, helmet with
+glowing cyan visor, one amber shoulder light, top-down 3/4 front view
+walking straight toward the viewer, glowing cyan visor facing the
+camera, limited palette, clean readable pixel clusters, crisp pixel
+edges, light from top-left, muted colors, plain dark background, no
+text, no watermark
+```
+
+- 方向帧增补（2026-07-16 包 3.5）：生成时挂 `assets/reference/pixel-style-anchor.png` 风格参考，并以已定稿 `d1_engineer_px_v1.png` 与 `d1w_walk_sheet_px_v1.png` 作角色参考；审阅三点——四帧同一角色且与 d1 同族、行走循环连贯、朝向正确（背面见背包反应器不见脸，正面见青面罩）。左右仍由侧向帧表水平翻转承担，不生成 8 方向。
+
 ### 第五批：资源与点缀
 
 晶体簇、残骸堆、岩石散件、异星植被、污染贴花，按需一张图分开摆放多个尺寸，主色收敛到限定调色板。

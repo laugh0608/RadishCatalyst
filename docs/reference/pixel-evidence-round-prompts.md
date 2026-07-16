@@ -222,6 +222,36 @@ no text, no watermark
 
 要指定主角性别或发型，直接改 `young engineer` 与 `short dark hair` 措辞（例如 `young female engineer`）。
 
+## S7 方向帧增补（先挂锚点参考图 + d1 静态与侧向帧表作角色参考；2 张，剩 1 次额度留给失败重出）
+
+2026-07-16 包 3.5 增补段落。参考图：`assets/reference/pixel-style-anchor.png`（风格）、`assets/art-intake/2026-07-14-batch02/d1_engineer_px_v1.png` 与 `d1w_walk_sheet_px_v1.png`（角色）。左右朝向由侧向帧表水平翻转承担，本段只出背面与正面。
+
+第 1 张【横版】，文件名：`d1wu_walk_up_sheet_px_v1.png`
+
+```text
+pixel art sprite sheet of the same character in 4 walk cycle frames,
+arranged in one horizontal row, equal spacing, not touching: a lone
+engineer in a sealed exosuit with a small backpack reactor, helmet with
+glowing cyan visor, one amber shoulder light, top-down 3/4 back view
+walking straight away from the viewer, back of the helmet and the
+backpack reactor fully visible, no face visible, limited palette, clean
+readable pixel clusters, crisp pixel edges, light from top-left, muted
+colors, plain dark background, no text, no watermark
+```
+
+第 2 张【横版】，文件名：`d1wd_walk_down_sheet_px_v1.png`
+
+```text
+pixel art sprite sheet of the same character in 4 walk cycle frames,
+arranged in one horizontal row, equal spacing, not touching: a lone
+engineer in a sealed exosuit with a small backpack reactor, helmet with
+glowing cyan visor, one amber shoulder light, top-down 3/4 front view
+walking straight toward the viewer, glowing cyan visor facing the
+camera, limited palette, clean readable pixel clusters, crisp pixel
+edges, light from top-left, muted colors, plain dark background, no
+text, no watermark
+```
+
 ## 失败与重出规则
 
 - 某张不满意：先完成本会话其余条目，失败项集中进同类别第二轮会话（文件名候选号顺延）。
