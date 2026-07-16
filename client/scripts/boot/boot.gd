@@ -1,7 +1,7 @@
 extends Node
 
 const GAME_ROOT_SCENE := "res://scenes/game/GameRoot.tscn"
-const SLICE_BASE_SCENE := "res://scenes/slice/BaseFirstScreen.tscn"
+const SLICE_BASE_SCENE := "res://scenes/slice/SliceWorld.tscn"
 const STARTUP_MENU_SCENE := "res://scenes/ui/StartupMenu.tscn"
 
 var data_registry: DataRegistry

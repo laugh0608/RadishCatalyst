@@ -1,11 +1,10 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="TileSet" path="res://assets/tiles/slice/ground_tileset.tres" id="1_ground_tileset"]
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/outpost_core_damaged.png" id="2_core_damaged"]
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/reactor.png" id="3_reactor"]
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/storage.png" id="4_storage"]
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/workbench.png" id="5_workbench"]
-[ext_resource type="PackedScene" path="res://scenes/slice/SlicePlayer.tscn" id="6_player"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_footprint_2x2"]
 size = Vector2(64, 64)
@@ -18,6 +17,15 @@ size = Vector2(960, 32)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bound_v"]
 size = Vector2(32, 576)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bound_v_upper"]
+size = Vector2(32, 320)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bound_v_lower"]
+size = Vector2(32, 128)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_exit"]
+size = Vector2(24, 128)
 
 [node name="BaseFirstScreen" type="Node2D"]
 
@@ -67,9 +75,6 @@ texture = ExtResource("5_workbench")
 position = Vector2(0, 16)
 shape = SubResource("RectangleShape2D_footprint_3x2")
 
-[node name="Player" parent="World" instance=ExtResource("6_player")]
-position = Vector2(400, 576)
-
 [node name="Bounds" type="StaticBody2D" parent="."]
 
 [node name="Top" type="CollisionShape2D" parent="Bounds"]
@@ -84,9 +89,23 @@ shape = SubResource("RectangleShape2D_bound_h")
 position = Vector2(144, 384)
 shape = SubResource("RectangleShape2D_bound_v")
 
-[node name="Right" type="CollisionShape2D" parent="Bounds"]
-position = Vector2(1136, 384)
-shape = SubResource("RectangleShape2D_bound_v")
+[node name="RightUpper" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(1136, 256)
+shape = SubResource("RectangleShape2D_bound_v_upper")
+
+[node name="RightLower" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(1136, 608)
+shape = SubResource("RectangleShape2D_bound_v_lower")
+
+[node name="Exits" type="Node2D" parent="."]
+
+[node name="EastExit" type="Area2D" parent="Exits"]
+position = Vector2(1140, 480)
+metadata/target_area = "crystal"
+metadata/spawn_point = Vector2(216, 480)
+
+[node name="Collision" type="CollisionShape2D" parent="Exits/EastExit"]
+shape = SubResource("RectangleShape2D_exit")
 
 [node name="Camera" type="Camera2D" parent="."]
 position = Vector2(640, 384)

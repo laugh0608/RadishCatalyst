@@ -1,7 +1,9 @@
-[gd_resource type="TileSet" load_steps=5 format=3]
+[gd_resource type="TileSet" load_steps=9 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/tiles/slice/ground_rock.png" id="1_rock"]
 [ext_resource type="Texture2D" path="res://assets/tiles/slice/ground_metal_platform.png" id="2_metal"]
+[ext_resource type="Texture2D" path="res://assets/tiles/slice/ground_crystal.png" id="3_crystal"]
+[ext_resource type="Texture2D" path="res://assets/tiles/slice/ground_polluted.png" id="4_polluted"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rock"]
 texture = ExtResource("1_rock")
@@ -43,7 +45,49 @@ texture_region_size = Vector2i(32, 32)
 2:3/0 = 0
 3:3/0 = 0
 
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_crystal"]
+texture = ExtResource("3_crystal")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_polluted"]
+texture = ExtResource("4_polluted")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+
 [resource]
 tile_size = Vector2i(32, 32)
 sources/0 = SubResource("TileSetAtlasSource_rock")
 sources/1 = SubResource("TileSetAtlasSource_metal")
+sources/2 = SubResource("TileSetAtlasSource_crystal")
+sources/3 = SubResource("TileSetAtlasSource_polluted")
