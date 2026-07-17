@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="TileSet" path="res://assets/tiles/slice/ground_tileset.tres" id="1_ground_tileset"]
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/outpost_core_damaged.png" id="2_core_damaged"]
@@ -8,6 +8,8 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/crystal_cluster_large.png" id="6_cluster_large"]
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/crystal_cluster_medium.png" id="7_cluster_medium"]
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/crystal_cluster_small.png" id="8_cluster_small"]
+[ext_resource type="Script" path="res://scripts/slice/crystal_node.gd" id="9_crystal_node"]
+[ext_resource type="Script" path="res://scripts/slice/core_repair_site.gd" id="10_core_repair"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_footprint_2x2"]
 size = Vector2(64, 64)
@@ -17,6 +19,9 @@ size = Vector2(96, 64)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_footprint_1x1"]
 size = Vector2(32, 32)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interact"]
+radius = 20.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bound_h"]
 size = Vector2(2624, 32)
@@ -40,6 +45,12 @@ texture = ExtResource("2_core_damaged")
 [node name="Footprint" type="StaticBody2D" parent="World/OutpostCoreDamaged"]
 
 [node name="Collision" type="CollisionShape2D" parent="World/OutpostCoreDamaged/Footprint"]
+shape = SubResource("RectangleShape2D_footprint_2x2")
+
+[node name="RepairSite" type="Area2D" parent="World/OutpostCoreDamaged"]
+script = ExtResource("10_core_repair")
+
+[node name="Collision" type="CollisionShape2D" parent="World/OutpostCoreDamaged/RepairSite"]
 shape = SubResource("RectangleShape2D_footprint_2x2")
 [node name="Reactor" type="Sprite2D" parent="World"]
 position = Vector2(440, 464)
@@ -76,6 +87,13 @@ texture = ExtResource("6_cluster_large")
 
 [node name="Collision" type="CollisionShape2D" parent="World/CrystalLarge1/Footprint"]
 shape = SubResource("RectangleShape2D_footprint_1x1")
+
+[node name="Harvest" type="Area2D" parent="World/CrystalLarge1"]
+script = ExtResource("9_crystal_node")
+yield_amount = 4
+
+[node name="Collision" type="CollisionShape2D" parent="World/CrystalLarge1/Harvest"]
+shape = SubResource("CircleShape2D_interact")
 [node name="CrystalLarge2" type="Sprite2D" parent="World"]
 position = Vector2(1840, 496)
 texture = ExtResource("6_cluster_large")
@@ -84,6 +102,13 @@ texture = ExtResource("6_cluster_large")
 
 [node name="Collision" type="CollisionShape2D" parent="World/CrystalLarge2/Footprint"]
 shape = SubResource("RectangleShape2D_footprint_1x1")
+
+[node name="Harvest" type="Area2D" parent="World/CrystalLarge2"]
+script = ExtResource("9_crystal_node")
+yield_amount = 4
+
+[node name="Collision" type="CollisionShape2D" parent="World/CrystalLarge2/Harvest"]
+shape = SubResource("CircleShape2D_interact")
 [node name="CrystalMedium1" type="Sprite2D" parent="World"]
 position = Vector2(2224, 432)
 texture = ExtResource("7_cluster_medium")
@@ -92,6 +117,13 @@ texture = ExtResource("7_cluster_medium")
 
 [node name="Collision" type="CollisionShape2D" parent="World/CrystalMedium1/Footprint"]
 shape = SubResource("RectangleShape2D_footprint_1x1")
+
+[node name="Harvest" type="Area2D" parent="World/CrystalMedium1"]
+script = ExtResource("9_crystal_node")
+yield_amount = 2
+
+[node name="Collision" type="CollisionShape2D" parent="World/CrystalMedium1/Harvest"]
+shape = SubResource("CircleShape2D_interact")
 [node name="CrystalMedium2" type="Sprite2D" parent="World"]
 position = Vector2(1968, 240)
 texture = ExtResource("7_cluster_medium")
@@ -100,6 +132,13 @@ texture = ExtResource("7_cluster_medium")
 
 [node name="Collision" type="CollisionShape2D" parent="World/CrystalMedium2/Footprint"]
 shape = SubResource("RectangleShape2D_footprint_1x1")
+
+[node name="Harvest" type="Area2D" parent="World/CrystalMedium2"]
+script = ExtResource("9_crystal_node")
+yield_amount = 2
+
+[node name="Collision" type="CollisionShape2D" parent="World/CrystalMedium2/Harvest"]
+shape = SubResource("CircleShape2D_interact")
 [node name="CrystalMedium3" type="Sprite2D" parent="World"]
 position = Vector2(1680, 304)
 texture = ExtResource("7_cluster_medium")
@@ -108,6 +147,13 @@ texture = ExtResource("7_cluster_medium")
 
 [node name="Collision" type="CollisionShape2D" parent="World/CrystalMedium3/Footprint"]
 shape = SubResource("RectangleShape2D_footprint_1x1")
+
+[node name="Harvest" type="Area2D" parent="World/CrystalMedium3"]
+script = ExtResource("9_crystal_node")
+yield_amount = 2
+
+[node name="Collision" type="CollisionShape2D" parent="World/CrystalMedium3/Harvest"]
+shape = SubResource("CircleShape2D_interact")
 [node name="CrystalSmall1" type="Sprite2D" parent="World"]
 position = Vector2(2032, 496)
 texture = ExtResource("8_cluster_small")
@@ -116,6 +162,13 @@ texture = ExtResource("8_cluster_small")
 
 [node name="Collision" type="CollisionShape2D" parent="World/CrystalSmall1/Footprint"]
 shape = SubResource("RectangleShape2D_footprint_1x1")
+
+[node name="Harvest" type="Area2D" parent="World/CrystalSmall1"]
+script = ExtResource("9_crystal_node")
+yield_amount = 1
+
+[node name="Collision" type="CollisionShape2D" parent="World/CrystalSmall1/Harvest"]
+shape = SubResource("CircleShape2D_interact")
 [node name="CrystalSmall2" type="Sprite2D" parent="World"]
 position = Vector2(2256, 272)
 texture = ExtResource("8_cluster_small")
@@ -124,6 +177,13 @@ texture = ExtResource("8_cluster_small")
 
 [node name="Collision" type="CollisionShape2D" parent="World/CrystalSmall2/Footprint"]
 shape = SubResource("RectangleShape2D_footprint_1x1")
+
+[node name="Harvest" type="Area2D" parent="World/CrystalSmall2"]
+script = ExtResource("9_crystal_node")
+yield_amount = 1
+
+[node name="Collision" type="CollisionShape2D" parent="World/CrystalSmall2/Harvest"]
+shape = SubResource("CircleShape2D_interact")
 [node name="CrystalSmall3" type="Sprite2D" parent="World"]
 position = Vector2(1616, 560)
 texture = ExtResource("8_cluster_small")
@@ -132,6 +192,13 @@ texture = ExtResource("8_cluster_small")
 
 [node name="Collision" type="CollisionShape2D" parent="World/CrystalSmall3/Footprint"]
 shape = SubResource("RectangleShape2D_footprint_1x1")
+
+[node name="Harvest" type="Area2D" parent="World/CrystalSmall3"]
+script = ExtResource("9_crystal_node")
+yield_amount = 1
+
+[node name="Collision" type="CollisionShape2D" parent="World/CrystalSmall3/Harvest"]
+shape = SubResource("CircleShape2D_interact")
 [node name="Bounds" type="StaticBody2D" parent="."]
 
 [node name="Top" type="CollisionShape2D" parent="Bounds"]
