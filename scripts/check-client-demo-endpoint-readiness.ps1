@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $requiredTextByFile = @{
-    "docs/features/demo-endpoint-readiness-v1.md" = @(
+    "docs/archive/features-demo-v1/demo-endpoint-readiness-v1.md" = @(
         "Demo Endpoint Readiness V1",
         "终点前综合准备读法",
         "不新增资源、配方、区域、任务链、完整背包、完整装备栏、终局菜单或发布准备流程"

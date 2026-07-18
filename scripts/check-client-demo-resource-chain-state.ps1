@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $requiredTextByFile = @{
-    "docs/features/demo-resource-chain-state-v1.md" = @(
+    "docs/archive/features-demo-v1/demo-resource-chain-state-v1.md" = @(
         "Demo Resource Chain State V1",
         "资源 / 生产链",
         "状态序列化"

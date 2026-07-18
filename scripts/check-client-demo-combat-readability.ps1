@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $requiredTextByFile = @{
-    "docs/features/demo-playable-content-substance-v1.md" = @(
+    "docs/archive/features-demo-v1/demo-playable-content-substance-v1.md" = @(
         "角色 / 怪物 UI 第一包",
         "DemoCombatReadabilityFormatter",
         "demo_combat_readability_check.gd",

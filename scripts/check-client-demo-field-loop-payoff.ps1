@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $requiredTextByFile = @{
-    "docs/features/demo-field-loop-payoff-v1.md" = @(
+    "docs/archive/features-demo-v1/demo-field-loop-payoff-v1.md" = @(
         "Demo Field Loop Payoff V1",
         "外勤回基地收益兑现",
         "不新增资源、配方、区域、任务链、完整背包、完整装备栏或自动化物流"

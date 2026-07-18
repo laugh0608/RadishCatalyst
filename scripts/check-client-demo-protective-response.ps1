@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $requiredTextByFile = @{
-    "docs/features/demo-protective-response-v1.md" = @(
+    "docs/archive/features-demo-v1/demo-protective-response-v1.md" = @(
         "Demo Protective Response V1",
         "基础防护服",
         "基础过滤模块",

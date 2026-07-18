@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $requiredTextByFile = @{
-    "docs/features/demo-functional-transition-spatial-playability-v1.md" = @(
+    "docs/archive/features-demo-v1/demo-functional-transition-spatial-playability-v1.md" = @(
         "Demo Functional Transition Spatial Playability V1",
         "功能 / 过渡场景可达空间",
         "封锁遗迹到裂相脊",

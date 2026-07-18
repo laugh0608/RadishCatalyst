@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $requiredTextByFile = @{
-    "docs/features/demo-functional-scene-gameplay-v1.md" = @(
+    "docs/archive/features-demo-v1/demo-functional-scene-gameplay-v1.md" = @(
         "Demo Functional Scene Gameplay V1",
         "功能场景玩法",
         "封锁遗迹",

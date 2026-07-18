@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $requiredTextByFile = @{
-    "docs/features/demo-prototype-visual-pass-v1.md" = @(
+    "docs/archive/features-demo-v1/demo-prototype-visual-pass-v1.md" = @(
         "Demo Prototype Visual Pass V1",
         "原型视觉呈现",
         "PrototypeVisualPriorityLayer",
