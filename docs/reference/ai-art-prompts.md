@@ -31,12 +31,15 @@
 
 ## 全局风格块（每条提示词前完整粘贴）
 
-2026-07-18 视角修订：投影口径由"3/4 俯视立面"改为高机位近正俯视（见像素标准投影口径节）；本块视角词已同步，旧口径出图判不合格。
+2026-07-18 视角修订并二次校准：投影口径为高斜角俯视（顶面最大 + 侧壁高度带可见，参照 Factorio / Mindustry 机器；见像素标准投影口径节）。首轮 near-overhead 近垂直俯视压平了高度，已回调；旧 3/4 立面与近垂直俯视两个极端均判不合格。设备族带底部黄黑警示条与侧壁高度带。
 
 ```text
-high-angle top-down view pixel art game sprite, camera looking down from
-steeply above like Factorio machine sprites, top surfaces dominant, front
-walls barely visible, no eye-level view, no side elevation, industrial
+high oblique top-down view pixel art game sprite, camera looking down at
+a steep angle like Factorio and Mindustry machine sprites, the top
+surface is the largest visible face but a clear band of side walls is
+visible to convey solid height and volume, a chunky machine sitting on
+the ground with readable vertical thickness, not a flat overhead
+blueprint, not an eye-level facade, not a low side view, industrial
 sci-fi chemical outpost on a hostile alien planet, limited palette, clean
 readable pixel clusters, dark desaturated teal-gray metal and rock,
 glowing cyan energy accents, warm amber work lights, crisp pixel edges,
@@ -45,7 +48,7 @@ dithering noise, no text, no watermark, no UI, single centered subject on
 a plain dark background
 ```
 
-要点中文对照：高机位近正俯视（顶面主导、正面墙体几乎不可见、参照 Factorio 机器读法，明确排除平视与侧立面）、像素风、限定调色板、干净可读的像素块、工业科幻化工前哨、暗青灰主色 + 青色发光 + 琥珀工作灯、像素边缘清晰、剪影清楚、光源固定左上、无文字水印。
+要点中文对照：高斜角俯视（顶面最大面 + 一圈可见侧壁高度带、有厚度、参照 Factorio / Mindustry；既不做纯平俯视蓝图、也不做平视立面 / 低角度侧视）、像素风、限定调色板、干净可读的像素块、工业科幻化工前哨、暗青灰主色 + 青色发光 + 琥珀工作灯、像素边缘清晰、剪影清楚、光源固定左上、无文字水印。
 
 调色板锚点与尺寸口径见 [Pixel Art And Grid Standard](pixel-art-and-grid-standard.md)；审阅时以“主色是否落在限定调色板色域内、缩到目标尺寸剪影是否可读”为判据。
 
@@ -128,12 +131,15 @@ lights; identical machine design and identical viewing angle
 #### B3 储存单元 / B4 整备台 / B5 污染过滤器（可 2x2 整版一张出多台）
 
 ```text
-industrial machines for a high-angle top-down pixel game, seen from
-steeply above with roofs dominant, arranged separately, not touching, no
-connecting pipes between them: a bank of connected storage silos with
-fill-level strips; a field outfitting workbench with tool racks and a
-glowing cyan terminal; a boxy pollution filter with vent grilles, intake
-and exhaust pipes and faint yellow-green residue stains
+industrial machines for a high oblique top-down pixel game, seen at a
+steep camera angle with the top surface largest but a clear band of side
+walls visible for solid height and volume, each a chunky machine sitting
+on the ground, arranged separately, not touching, no connecting pipes
+between them: a bank of connected storage silos with fill-level strips; a
+field outfitting workbench with tool racks and a glowing cyan terminal; a
+boxy pollution filter with vent grilles, intake and exhaust pipes and
+faint yellow-green residue stains; each machine base carries a yellow-and-
+black hazard stripe as a shared family trait
 ```
 
 单台重出时，取上面对应从句接全局风格块即可。
@@ -286,7 +292,7 @@ no text, no watermark
 3. 命名 `编号_名称_v候选号.png`；整版把编号连写。
 4. 生成会话只生成与落盘，并在本批 `_manifest.md` 记录 thread ID、源路径、候选编号和未完成清单；审阅、归一、接入在独立执行会话进行。中断后先清点再补，不盲目重试。
 5. 审阅清单（对执行 agent 说“审阅 art-intake 最新一批”）：
-   - 视角是否统一为高机位近正俯视（顶面主导、正面墙体几乎不可见、无平视 / 侧立面），角色为俯拍头肩主导读法。
+   - 视角是否统一为高斜角俯视：设备顶面最大 + 一圈可见侧壁高度带（有厚度、不扁平、不回立面）；角色为俯拍头肩主导读法。
    - 光源是否来自左上。
    - 主色是否落在限定调色板色域内。
    - 缩到目标尺寸后剪影是否可读、像素块是否干净不糊。

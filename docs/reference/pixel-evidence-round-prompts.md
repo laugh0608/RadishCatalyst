@@ -30,7 +30,40 @@ oversaturated, alchemy, magic circle, runes, potion bottles, medieval,
 gothic, brass steampunk, fantasy workshop
 ```
 
+## S1'' 视角修正锚点重出：高度增强反应器（当前活跃，2026-07-18）
+
+视角修正轮包 1 二次校准。上传 `assets/reference/pixel-style-anchor.png` 作家族参考（只借像素密度 / 材质 / 调色板 / 青琥珀灯光 / 左上光，**不保留其视角**），并附 `use the attached image only for style family, palette and lighting; the high oblique camera below overrides its perspective`。同一提示词生成 3 张候选，本会话只执行本段。
+
+文件名：`a0_reactor_oblique_px_v1.png`、`a0_reactor_oblique_px_v2.png`、`a0_reactor_oblique_px_v3.png`
+
+方向基础为 S1' 的 v3（顶面主导 + 同心环 + 底部黄黑警示条），本轮目标是把侧壁高度带做足、消除"太扁平"。
+
+```text
+high oblique top-down view pixel art game sprite, camera looking down at
+a steep angle like Factorio and Mindustry machine sprites, the top
+surface is the largest visible face but a clear band of side walls is
+visible to convey solid height and volume, a chunky machine sitting on
+the ground with readable vertical thickness, not a flat overhead
+blueprint, not an eye-level facade, not a low side view, industrial
+sci-fi chemical outpost on a hostile alien planet, limited palette, clean
+readable pixel clusters, dark desaturated teal-gray metal and rock,
+glowing cyan energy accents, warm amber work lights, crisp pixel edges,
+strong readable silhouette, light from top-left, muted colors, no
+dithering noise, no text, no watermark, no UI, single centered subject on
+a plain dark background
+
+a squat cylindrical chemical reactor with a reinforced metal frame and a
+visible cylindrical side wall showing its height, a round glowing cyan
+reaction chamber window set into the top face, amber status lights, short
+pipe stubs on both sides, mounted on a dark metal base plate with a
+yellow-and-black hazard stripe along its front edge
+```
+
+审阅判据（执行会话）：顶面仍是最大面（未回退立面）、侧壁高度带清晰可见（较 S1' v3 更厚、不扁平）、黄黑警示条在场、96px 缩小剪影可读、主色落在限定调色板、与家族参考同族。两轮仍扁平或倒退立面则停手复盘投影俯角，升级萝卜SAMA。
+
 ## S1 风格锚点：基础反应器（同一提示词生成 3 张候选）
+
+> 历史段落（2026-07-13 旧 3/4 立面口径），已被上方 S1'' 高斜角口径取代，仅留档；勿用于新生成。
 
 文件名：`a0_reactor_px_v1.png`、`a0_reactor_px_v2.png`、`a0_reactor_px_v3.png`
 
