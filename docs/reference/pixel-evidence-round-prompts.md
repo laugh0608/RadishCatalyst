@@ -38,7 +38,9 @@ gothic, brass steampunk, fantasy workshop
 
 > 首轮一个会话跨段生成 3 张：背面帧表 `d1wu` 朝向零偏斜**达标留用**（强朝向词成功对照组）；静态与侧向帧表俯角达标但身体斜向 7-8 点钟方向判不达标（朝向词弱于 3/4 先验），正面帧表因额度用尽未生成。落盘 `2026-07-18-batch04/`；重出走下方 S4''-R 段。
 
-## S4''-R 角色重出二轮：静态 + 侧向重出 + 正面首出（当前活跃，2026-07-18）
+## S4''-R 角色重出二轮（已执行，部分达标，2026-07-18；闸门触发详见周志）
+
+> 结果：侧向帧表纯侧位达标留用；静态与正面均出成背面（背面参考图形象先验压过 facing 词），静态两轮闸门触发停手上报萝卜SAMA裁决。本段提示词留档，后续按裁决执行。
 
 挂新锚点 + 首轮达标的背面帧表 `assets/art-intake/2026-07-18-batch04/d1wu_walk_up_sheet_oblique_px_v1.png` 作角色一致性参考，附 `same character as the attached engineer back-view sheet, keep suit, colors and proportions identical; the anchor machine image is style reference only`。本会话 3 张，只执行本段。
 
