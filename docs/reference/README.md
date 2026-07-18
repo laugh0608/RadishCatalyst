@@ -18,3 +18,4 @@
 - [Cultivation Game Outline](cultivation-game-outline.md)
 - [Community Advice](community-advice.md)
 - [Deepseek Advice](deepseek-advice.md)
+- [VOXELSKY Review And Slice Direction](voxelsky-review-and-slice-direction.md)
