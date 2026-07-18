@@ -31,17 +31,21 @@
 
 ## 全局风格块（每条提示词前完整粘贴）
 
+2026-07-18 视角修订：投影口径由"3/4 俯视立面"改为高机位近正俯视（见像素标准投影口径节）；本块视角词已同步，旧口径出图判不合格。
+
 ```text
-top-down 3/4 view pixel art game sprite, industrial sci-fi chemical
-outpost on a hostile alien planet, limited palette, clean readable
-pixel clusters, dark desaturated teal-gray metal and rock, glowing cyan
-energy accents, warm amber work lights, crisp pixel edges, strong
-readable silhouette, light from top-left, muted colors, no dithering
-noise, no text, no watermark, no UI, single centered subject on a plain
-dark background
+high-angle top-down view pixel art game sprite, camera looking down from
+steeply above like Factorio machine sprites, top surfaces dominant, front
+walls barely visible, no eye-level view, no side elevation, industrial
+sci-fi chemical outpost on a hostile alien planet, limited palette, clean
+readable pixel clusters, dark desaturated teal-gray metal and rock,
+glowing cyan energy accents, warm amber work lights, crisp pixel edges,
+strong readable silhouette, light from top-left, muted colors, no
+dithering noise, no text, no watermark, no UI, single centered subject on
+a plain dark background
 ```
 
-要点中文对照：俯视 3/4 视角、像素风、限定调色板、干净可读的像素块、工业科幻化工前哨、暗青灰主色 + 青色发光 + 琥珀工作灯、像素边缘清晰、剪影清楚、光源固定左上、无文字水印。
+要点中文对照：高机位近正俯视（顶面主导、正面墙体几乎不可见、参照 Factorio 机器读法，明确排除平视与侧立面）、像素风、限定调色板、干净可读的像素块、工业科幻化工前哨、暗青灰主色 + 青色发光 + 琥珀工作灯、像素边缘清晰、剪影清楚、光源固定左上、无文字水印。
 
 调色板锚点与尺寸口径见 [Pixel Art And Grid Standard](pixel-art-and-grid-standard.md)；审阅时以“主色是否落在限定调色板色域内、缩到目标尺寸剪影是否可读”为判据。
 
@@ -124,11 +128,12 @@ lights; identical machine design and identical viewing angle
 #### B3 储存单元 / B4 整备台 / B5 污染过滤器（可 2x2 整版一张出多台）
 
 ```text
-industrial machines for a top-down pixel game, arranged separately, not
-touching, no connecting pipes between them: a bank of connected storage
-silos with fill-level strips; a field outfitting workbench with tool racks
-and a glowing cyan terminal; a boxy pollution filter with vent grilles,
-intake and exhaust pipes and faint yellow-green residue stains
+industrial machines for a high-angle top-down pixel game, seen from
+steeply above with roofs dominant, arranged separately, not touching, no
+connecting pipes between them: a bank of connected storage silos with
+fill-level strips; a field outfitting workbench with tool racks and a
+glowing cyan terminal; a boxy pollution filter with vent grilles, intake
+and exhaust pipes and faint yellow-green residue stains
 ```
 
 单台重出时，取上面对应从句接全局风格块即可。
@@ -189,9 +194,11 @@ no watermark, no borders
 #### D1 玩家工程师（静态，接全局风格块）
 
 ```text
-top-down pixel sprite of a lone engineer in a sealed exosuit with a small
-backpack reactor, helmet with glowing cyan visor, one amber shoulder
-light, seen from above and slightly in front, full body, single character
+high-angle top-down pixel sprite of a lone engineer in a sealed exosuit
+with a small backpack reactor, helmet with glowing cyan visor, one amber
+shoulder light, seen from steeply above with head and shoulders dominant
+and feet visible below the body, no eye-level view, full body, single
+character
 ```
 
 #### D1-W 行走帧表（整段直接使用，不叠全局块）
@@ -200,10 +207,11 @@ light, seen from above and slightly in front, full body, single character
 pixel art sprite sheet of the same character in 4 walk cycle frames,
 arranged in one horizontal row, equal spacing, not touching: a lone
 engineer in a sealed exosuit with a small backpack reactor, helmet with
-glowing cyan visor, one amber shoulder light, top-down 3/4 view walking
-toward the viewer, limited palette, clean readable pixel clusters, crisp
-pixel edges, light from top-left, muted colors, plain dark background,
-no text, no watermark
+glowing cyan visor, one amber shoulder light, high-angle top-down view
+seen from steeply above, head and shoulders dominant, walking downward
+with feet visible below the body, no eye-level view, limited palette,
+clean readable pixel clusters, crisp pixel edges, light from top-left,
+muted colors, plain dark background, no text, no watermark
 ```
 
 #### D1-WU 背面行走帧表（包 3.5 增补，整段直接使用，不叠全局块）
@@ -212,11 +220,12 @@ no text, no watermark
 pixel art sprite sheet of the same character in 4 walk cycle frames,
 arranged in one horizontal row, equal spacing, not touching: a lone
 engineer in a sealed exosuit with a small backpack reactor, helmet with
-glowing cyan visor, one amber shoulder light, top-down 3/4 back view
-walking straight away from the viewer, back of the helmet and the
-backpack reactor fully visible, no face visible, limited palette, clean
-readable pixel clusters, crisp pixel edges, light from top-left, muted
-colors, plain dark background, no text, no watermark
+glowing cyan visor, one amber shoulder light, high-angle top-down view
+seen from steeply above, walking upward away from the viewer, back of
+the helmet and the backpack reactor visible, no face visible, no
+eye-level view, limited palette, clean readable pixel clusters, crisp
+pixel edges, light from top-left, muted colors, plain dark background,
+no text, no watermark
 ```
 
 #### D1-WD 正面行走帧表（包 3.5 增补，整段直接使用，不叠全局块）
@@ -225,11 +234,11 @@ colors, plain dark background, no text, no watermark
 pixel art sprite sheet of the same character in 4 walk cycle frames,
 arranged in one horizontal row, equal spacing, not touching: a lone
 engineer in a sealed exosuit with a small backpack reactor, helmet with
-glowing cyan visor, one amber shoulder light, top-down 3/4 front view
-walking straight toward the viewer, glowing cyan visor facing the
-camera, limited palette, clean readable pixel clusters, crisp pixel
-edges, light from top-left, muted colors, plain dark background, no
-text, no watermark
+glowing cyan visor, one amber shoulder light, high-angle top-down view
+seen from steeply above, walking downward toward the camera, top of the
+helmet and shoulders dominant, no eye-level view, limited palette, clean
+readable pixel clusters, crisp pixel edges, light from top-left, muted
+colors, plain dark background, no text, no watermark
 ```
 
 - 方向帧增补（2026-07-16 包 3.5）：生成时挂 `assets/reference/pixel-style-anchor.png` 风格参考，并以已定稿 `d1_engineer_px_v1.png` 与 `d1w_walk_sheet_px_v1.png` 作角色参考；审阅三点——四帧同一角色且与 d1 同族、行走循环连贯、朝向正确（背面见背包反应器不见脸，正面见青面罩）。左右仍由侧向帧表水平翻转承担，不生成 8 方向。
@@ -277,7 +286,7 @@ no text, no watermark
 3. 命名 `编号_名称_v候选号.png`；整版把编号连写。
 4. 生成会话只生成与落盘，并在本批 `_manifest.md` 记录 thread ID、源路径、候选编号和未完成清单；审阅、归一、接入在独立执行会话进行。中断后先清点再补，不盲目重试。
 5. 审阅清单（对执行 agent 说“审阅 art-intake 最新一批”）：
-   - 视角是否统一为 3/4 俯视、正面略可见。
+   - 视角是否统一为高机位近正俯视（顶面主导、正面墙体几乎不可见、无平视 / 侧立面），角色为俯拍头肩主导读法。
    - 光源是否来自左上。
    - 主色是否落在限定调色板色域内。
    - 缩到目标尺寸后剪影是否可读、像素块是否干净不糊。
