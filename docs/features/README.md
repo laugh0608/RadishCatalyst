@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前唯一活跃功能专题：[Slice Harvest And Build V1](slice-harvest-and-build-v1.md)——采集与建造扩展（整备台建造采集器 → 放进晶体区自动产出，首条化工链第一步），2026-07-18 择序开工。
+当前无活跃功能专题：呈现口径决策中（画面填充 + 素材视角，2026-07-18 萝卜SAMA实机提出，属架构级），候选择序暂缓；敌人等新世界层素材生成押后至视角口径定档。
 
 已收口专题：
 
@@ -33,6 +33,7 @@
 - [Slice Crystal Expedition V1](slice-crystal-expedition-v1.md)——晶体远征区、无缝大地图与相机跟随口径定档（2026-07-17 收口）。
 - [Slice Minimal Core Loop V1](slice-minimal-core-loop-v1.md)——采集晶体 → 回基地 → 修复核心 + 最小 HUD（2026-07-17 收口）。
 - [Slice Save Persistence V1](slice-save-persistence-v1.md)——独立切片存档服务、载入存档改指切片、自动存档与读档还原（2026-07-18 收口）。
+- [Slice Harvest And Build V1](slice-harvest-and-build-v1.md)——整备台建造采集器、晶体地放置、自动产出，首条化工链第一步（2026-07-18 收口）。
 
 背景结论（复盘与证据轮）：
 
