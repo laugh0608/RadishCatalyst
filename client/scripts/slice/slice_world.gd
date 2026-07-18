@@ -74,12 +74,12 @@ func _ready() -> void:
 	# Placement preview ghost draws above the y-sorted world container.
 	_ghost = Sprite2D.new()
 	_ghost.texture = COLLECTOR_TEXTURE
-	_ghost.offset = Vector2(0, -29)
+	_ghost.offset = Vector2(0, -16)
 	_ghost.visible = false
 	_map.add_child(_ghost)
 
 	var place_shape := RectangleShape2D.new()
-	place_shape.size = Vector2(30, 30)
+	place_shape.size = Vector2(62, 62)
 	_place_query = PhysicsShapeQueryParameters2D.new()
 	_place_query.shape = place_shape
 	_place_query.collide_with_areas = false
@@ -92,7 +92,12 @@ func _physics_process(_delta: float) -> void:
 	if not carrying_collector or player == null:
 		_target_valid = false
 		return
-	_target_cell = Vector2i(((player.position + player.facing * TILE_SIZE) / TILE_SIZE).floor())
+	# The collector occupies a 2x2 tile block; the target block snaps its
+	# center to the grid intersection nearest to 2 tiles ahead of the player,
+	# far enough that the block never overlaps the player's own feet box.
+	var target_point := player.position + player.facing * 64.0
+	var corner := (target_point / TILE_SIZE).round() * TILE_SIZE
+	_target_cell = Vector2i(corner / TILE_SIZE) - Vector2i.ONE
 	_target_valid = _can_place(_target_cell)
 
 
@@ -101,7 +106,7 @@ func _process(delta: float) -> void:
 	_ghost.visible = carrying_collector
 	if not carrying_collector:
 		return
-	_ghost.position = _cell_center(_target_cell)
+	_ghost.position = _block_center(_target_cell)
 	_ghost.modulate = GHOST_VALID_COLOR if _target_valid else GHOST_INVALID_COLOR
 
 
@@ -169,21 +174,24 @@ func is_place_target_valid() -> bool:
 	return _target_valid
 
 
-func _can_place(cell: Vector2i) -> bool:
-	if _ground.get_cell_source_id(cell) != CRYSTAL_GROUND_SOURCE_ID:
-		return false
-	_place_query.transform = Transform2D(0.0, _cell_center(cell))
+## `top_left` is the top-left cell of the collector's 2x2 tile block. All four
+## cells must be crystal ground and the block area must be free of bodies.
+func _can_place(top_left: Vector2i) -> bool:
+	for offset in [Vector2i.ZERO, Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]:
+		if _ground.get_cell_source_id(top_left + offset) != CRYSTAL_GROUND_SOURCE_ID:
+			return false
+	_place_query.transform = Transform2D(0.0, _block_center(top_left))
 	return get_world_2d().direct_space_state.intersect_shape(_place_query, 1).is_empty()
 
 
-func _spawn_collector(cell: Vector2i) -> void:
+func _spawn_collector(top_left: Vector2i) -> void:
 	var collector := (load(COLLECTOR_SCENE) as PackedScene).instantiate() as Node2D
-	collector.position = _cell_center(cell)
+	collector.position = _block_center(top_left)
 	_map.get_node("World").add_child(collector)
 
 
-func _cell_center(cell: Vector2i) -> Vector2:
-	return Vector2(cell) * TILE_SIZE + Vector2(TILE_SIZE, TILE_SIZE) * 0.5
+func _block_center(top_left: Vector2i) -> Vector2:
+	return Vector2(top_left) * TILE_SIZE + Vector2(TILE_SIZE, TILE_SIZE)
 
 
 func _notification(what: int) -> void:

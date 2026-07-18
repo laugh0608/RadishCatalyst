@@ -2,16 +2,16 @@
 
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/collector.png" id="1_collector"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_footprint_1x1"]
-size = Vector2(32, 32)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_footprint_2x2"]
+size = Vector2(64, 64)
 
 [node name="SliceCollector" type="Node2D"]
 
 [node name="Sprite" type="Sprite2D" parent="."]
-position = Vector2(0, -29)
+position = Vector2(0, -16)
 texture = ExtResource("1_collector")
 
 [node name="Footprint" type="StaticBody2D" parent="."]
 
 [node name="Collision" type="CollisionShape2D" parent="Footprint"]
-shape = SubResource("RectangleShape2D_footprint_1x1")
+shape = SubResource("RectangleShape2D_footprint_2x2")
