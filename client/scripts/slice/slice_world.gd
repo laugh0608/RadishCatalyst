@@ -20,6 +20,7 @@ const MAP_PIXEL_SIZE := Vector2i(2560, 768)
 const START_SPAWN := Vector2(400, 576)
 const TILE_SIZE := 32.0
 const COLLECTOR_COST := 5
+const COLLECTOR_PRODUCE_INTERVAL := 10.0
 const CRYSTAL_GROUND_SOURCE_ID := 2
 const GHOST_VALID_COLOR := Color(0.45, 1.0, 0.9, 0.55)
 const GHOST_INVALID_COLOR := Color(1.0, 0.4, 0.35, 0.55)
@@ -45,6 +46,9 @@ var _ghost: Sprite2D
 var _place_query: PhysicsShapeQueryParameters2D
 var _target_cell := Vector2i.ZERO
 var _target_valid := false
+## Runtime-only accumulator toward the next collector production tick; partial
+## sub-interval progress is not persisted (resets to 0 on load).
+var _produce_timer := 0.0
 
 
 func _ready() -> void:
@@ -92,12 +96,30 @@ func _physics_process(_delta: float) -> void:
 	_target_valid = _can_place(_target_cell)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_tick_production(delta)
 	_ghost.visible = carrying_collector
 	if not carrying_collector:
 		return
 	_ghost.position = _cell_center(_target_cell)
 	_ghost.modulate = GHOST_VALID_COLOR if _target_valid else GHOST_INVALID_COLOR
+
+
+## Each placed collector yields 1 crystal per COLLECTOR_PRODUCE_INTERVAL. The
+## timer bank drains multiple ticks if a frame is long so output is
+## framerate-independent; crystals_changed drives the HUD and autosave.
+func _tick_production(delta: float) -> void:
+	if collectors.is_empty():
+		return
+	_produce_timer += delta
+	var produced := 0
+	while _produce_timer >= COLLECTOR_PRODUCE_INTERVAL:
+		_produce_timer -= COLLECTOR_PRODUCE_INTERVAL
+		produced += collectors.size()
+	if produced > 0:
+		crystal_count += produced
+		crystals_changed.emit(crystal_count)
+		_autosave()
 
 
 func harvest_crystals(cluster_name: String, amount: int) -> void:
