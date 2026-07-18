@@ -27,8 +27,8 @@
 
 以下步骤在 PR 合并后执行；完成前不要开始下一轮 `dev` 提交：
 
-- [ ] 本 PR 已使用 `merge commit` 合并
-- [ ] 已将最新 `origin/master` / `origin/main` 快进回 `dev`
+- [ ] 本 PR 已使用 `merge commit` 或 `rebase merge` 合并，未使用 `squash merge`
+- [ ] 已将最新 `origin/master` / `origin/main` 回流到 `dev`；merge commit 可快进时使用 fast-forward，rebase merge 使用普通 merge
 - [ ] 已推送更新后的 `origin/dev` 并确认分支拓扑闭环
 
 ## 验证记录

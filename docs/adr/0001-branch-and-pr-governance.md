@@ -30,13 +30,14 @@ RadishCatalyst 是刚初始化的新仓库，当前重点不是堆功能，而�
 稳定主线与开发分支不是只做 `dev -> master` 的单向同步，而是每轮形成闭环：
 
 ```text
-日常开发 -> dev -> PR / merge commit -> master
-              ^                         |
-              +---- fast-forward -------+
+日常开发 -> dev -> PR -> master
+              ^              |
+              +---- 回流 -----+
 ```
 
-- `dev` 向 `master` / `main` 的 PR 必须使用 `merge commit`，保留 `dev` 头提交作为父节点，使合并后的默认分支可以直接快进回 `dev`。
-- PR 合并后暂停向 `dev` 添加新提交；先拉取远端，并将 `dev` 快进到新的 `origin/master` / `origin/main`，推送 `origin/dev` 后再开始下一轮开发。
+- `dev` 向 `master` / `main` 的阶段 PR 优先使用 `merge commit`，完整保留原始提交身份和分支拓扑，使未继续前进的 `dev` 可以直接快进到默认分支。
+- 仓库同时允许 `rebase merge` 以保持与兄弟项目一致；rebase 会保留提交粒度但重写提交身份，使用后必须以普通 merge 将默认分支回流到 `dev`。
+- PR 合并后暂停向 `dev` 添加新提交；先拉取远端，将新的 `origin/master` / `origin/main` 回流到 `dev`，推送 `origin/dev` 后再开始下一轮开发。
 - 标准回流命令为 `git fetch origin`、`git switch dev`、`git pull --ff-only origin dev`、`git merge --ff-only origin/master`、`git push origin dev`；默认分支为 `main` 时替换对应名称。
 - 若 `--ff-only` 失败，说明同步窗口内已有新提交或远端拓扑异常；不得 `reset`、rebase 或 force push 共享 `dev`，应先检查分支图，再用普通 merge 将默认分支合回 `dev` 并执行匹配验证。
 - `hotfix/*` 等例外 PR 合入默认分支后也必须执行同样的默认分支到 `dev` 回流，避免修复只停留在稳定主线。
@@ -54,7 +55,7 @@ RadishCatalyst 是刚初始化的新仓库，当前重点不是堆功能，而�
 - 必须通过 PR 合并。
 - 必须通过仓库检查；默认分支 PR 的 `Repo Hygiene` 覆盖文本卫生、文档篇幅、客户端静态数据、客户端场景引用和提交 diff 空白检查。
 - 要求 1 个审批和已解决会话。
-- `dev` 向默认分支的阶段 PR 使用 `merge commit`；禁用 `rebase merge` 与 `squash merge`，避免复制提交身份后无法快进回流。
+- 允许 `merge commit` 与 `rebase merge`，禁用 `squash merge`；阶段 PR 优先使用 `merge commit`，若使用 rebase merge，则承担普通 merge 回流 `dev` 的拓扑成本。
 - 管理员仅可通过 PR 方式绕过规则。
 - 允许在单人开发阶段保留管理员 PR 直过能力。
 
@@ -75,7 +76,7 @@ RadishCatalyst 是刚初始化的新仓库，当前重点不是堆功能，而�
 3. 对 `master` / `main` 启用 ruleset。
 4. 要求 `master` / `main` 通过 `Repo Hygiene` 状态检查。
 5. 开启 “Require a pull request before merging”。
-6. 仓库 Merge options 中只启用 `Merge commits`，关闭 `Rebase merging` 与 `Squash merging`。
+6. 仓库 Merge options 中启用 `Merge commits` 与 `Rebase merging`，关闭 `Squash merging`。
 7. 配置管理员仅通过 PR 绕过，不开放直接 push。
 8. `dev` 当前不配置 branch protection，但每次默认分支 PR 合并后必须完成回流。
 
@@ -104,7 +105,7 @@ RadishCatalyst 是刚初始化的新仓库，当前重点不是堆功能，而�
 
 - `master` / `main` 可以保持稳定。
 - `dev` 可以作为当前阶段真实开发与集成面。
-- 默认分支的 merge commit 会及时进入 `dev`，分支拓扑保持单一闭环，不再累计只存在于稳定主线的历史节点。
+- 默认分支的合并结果会及时回流到 `dev`；使用 merge commit 时优先快进，使用 rebase merge 时通过普通 merge 保持单一闭环。
 - 文档、规范、脚本和未来代码都能纳入统一 PR 检查。
 - 单人开发阶段仍保留必要的管理员 PR 绕过能力。
 

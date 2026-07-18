@@ -98,7 +98,7 @@
 
 - 分支与 PR 治理以 `docs/adr/0001-branch-and-pr-governance.md` 为准。
 - `dev` 是日常开发与文档集成分支，`master` / `main` 仅作为稳定主线。
-- `dev -> master` / `main` 的阶段 PR 使用 `merge commit`；合并后必须先把默认分支快进回 `dev` 并推送，再开始下一轮开发，不能长期保持单向 PR 拓扑。
+- `dev -> master` / `main` 的阶段 PR 优先使用 `merge commit`；仓库允许 `rebase merge`、禁用 `squash merge`，合并后必须先把默认分支回流到 `dev` 并推送，再开始下一轮开发。
 - 若默认分支无法快进回 `dev`，先检查分支图，再以普通 merge 回流；禁止通过 reset、rebase 或 force push 重写共享 `dev` 历史。
 - 远端分支保护、合并策略、稳定主线 PR 目标和阶段性例外以 ADR 与仓库实际设置为准。
 - 目标为 `dev`、`master` 或 `main` 的 Pull Request 自动运行 `PR Checks`；普通 `push -> dev` 不触发，`dev` 当前不要求 required checks。

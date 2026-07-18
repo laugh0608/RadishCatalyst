@@ -7,7 +7,7 @@
 1. 日常开发提交到 `dev` 或功能分支。
 2. `dev` 是常态开发分支，不要求日常变更以 PR 方式进入 `dev`。
 3. 阶段性稳定后，再从 `dev` 发起到默认分支（当前为 `master`，如切换可适配 `main`）的 Pull Request。
-4. 默认分支 PR 必须通过仓库检查，并使用 `merge commit` 合并。
+4. 默认分支 PR 必须通过仓库检查；允许 `merge commit` 与 `rebase merge`，禁用 `squash merge`，阶段 PR 优先使用 `merge commit`。
 5. PR 合并后、下一轮开发前，把默认分支快进回 `dev` 并推送 `origin/dev`。
 6. 管理员如需绕过规则，也只能通过 Pull Request，不开放直接 push。
 
@@ -20,7 +20,7 @@
 - 要求 1 个审批和已解决会话。
 - 要求 `Repo Hygiene` 检查通过；该 job 覆盖文本卫生、文档篇幅、客户端静态数据、客户端场景引用和默认分支 PR 的提交 diff 空白检查。
 - GitHub 对 Actions required status checks 当前按 job 名匹配，因此 ruleset 中固定写 job 名。
-- 阶段 PR 使用 `merge commit`，禁用 `rebase` 与 `squash`，保证默认分支可以快进回 `dev`。
+- 允许 `merge commit` 与 `rebase merge`，禁用 `squash merge`；阶段 PR 优先使用 `merge commit`，若使用 rebase merge，则以普通 merge 将默认分支回流到 `dev`。
 - 管理员仅可通过 Pull Request 方式绕过规则，不开放直接 push。
 
 ## dev 策略说明
@@ -61,6 +61,6 @@ gh api repos/<owner>/<repo>/rulesets --method POST --input .github/rulesets/mast
 
 ## 配套仓库设置
 
-- 仓库 Merge options 中启用 `Merge commits`。
-- 关闭 `Rebase merging` 与 `Squash merging`。
+- 仓库 Merge options 中启用 `Merge commits` 与 `Rebase merging`。
+- 关闭 `Squash merging`。
 - 如后续增加 `CODEOWNERS`，再决定是否开启 code owner review。
