@@ -30,13 +30,64 @@ oversaturated, alchemy, magic circle, runes, potion bottles, medieval,
 gothic, brass steampunk, fantasy workshop
 ```
 
-## S1'' 视角修正锚点重出：高度增强反应器（当前活跃，2026-07-18）
+## S1'' 视角修正锚点重出：高度增强反应器（已完成，2026-07-18）
 
-视角修正轮包 1 二次校准。上传 `assets/reference/pixel-style-anchor.png` 作家族参考（只借像素密度 / 材质 / 调色板 / 青琥珀灯光 / 左上光，**不保留其视角**），并附 `use the attached image only for style family, palette and lighting; the high oblique camera below overrides its perspective`。同一提示词生成 3 张候选，本会话只执行本段。
+> `v2` 已由萝卜SAMA定稿为新锚点并入库 `assets/reference/pixel-style-anchor.png`（高斜角俯视口径）；本段留档。后续段落所说"挂锚点参考图"一律指新锚点。
 
-文件名：`a0_reactor_oblique_px_v1.png`、`a0_reactor_oblique_px_v2.png`、`a0_reactor_oblique_px_v3.png`
+## S3'' 设备重出（视角修正轮包 2，当前活跃，2026-07-18）
 
-方向基础为 S1' 的 v3（顶面主导 + 同心环 + 底部黄黑警示条），本轮目标是把侧壁高度带做足、消除"太扁平"。
+挂新锚点 `assets/reference/pixel-style-anchor.png` 作参考图，并附 `match the style, palette, lighting, camera angle and family traits (side-wall height band, yellow-and-black hazard stripe on the base) of the attached reference image`。共 3 次生成调用覆盖 5 台设备，本会话只执行本段。
+
+第 1 张【横版】，文件名：`b1b2_core_states_oblique_px_v1.png`
+
+```text
+high oblique top-down view pixel art game sprite, camera looking down at
+a steep angle like Factorio and Mindustry machine sprites, the top
+surface is the largest visible face but a clear band of side walls is
+visible to convey solid height and volume, chunky machines sitting on
+the ground with readable vertical thickness, not a flat overhead
+blueprint, not an eye-level facade, not a low side view, industrial
+sci-fi chemical outpost on a hostile alien planet, limited palette, clean
+readable pixel clusters, dark desaturated teal-gray metal and rock,
+glowing cyan energy accents, warm amber work lights, crisp pixel edges,
+strong readable silhouette, light from top-left, muted colors, no
+dithering noise, no text, no watermark, no UI, two objects arranged side
+by side, not touching, on a plain dark background
+
+the same hexagonal outpost core machine shown twice side by side, two
+separate objects, not touching: left version damaged with cracked casing,
+exposed wiring, dim flickering cyan core visible through broken panels,
+scorch marks and small debris at the base; right version fully repaired
+with sealed clean casing, bright steady cyan core, subtle amber running
+lights, a yellow-and-black hazard stripe on its base plate; identical
+machine design and identical viewing angle
+```
+
+第 2 张【整版】，文件名：`b3b4_storage_workbench_oblique_px_v1.png`
+
+```text
+high oblique top-down view pixel art game sprite, camera looking down at
+a steep angle like Factorio and Mindustry machine sprites, the top
+surface is the largest visible face but a clear band of side walls is
+visible to convey solid height and volume, chunky machines sitting on
+the ground with readable vertical thickness, not a flat overhead
+blueprint, not an eye-level facade, not a low side view, industrial
+sci-fi chemical outpost on a hostile alien planet, limited palette, clean
+readable pixel clusters, dark desaturated teal-gray metal and rock,
+glowing cyan energy accents, warm amber work lights, crisp pixel edges,
+strong readable silhouette, light from top-left, muted colors, no
+dithering noise, no text, no watermark, no UI, two objects arranged side
+by side, not touching, on a plain dark background
+
+two separate industrial machines side by side, not touching, each on its
+own dark metal base plate with a yellow-and-black hazard stripe: left, a
+bank of three connected industrial storage silos with fill-level
+indicator strips seen down their cylindrical sides, cyan and amber
+lights; right, a field outfitting workbench with tool racks, hanging
+gear, a small terminal screen glowing cyan, one amber work lamp on a pole
+```
+
+第 3 张，文件名：`b6_collector_oblique_px_v1.png`
 
 ```text
 high oblique top-down view pixel art game sprite, camera looking down at
@@ -52,14 +103,13 @@ strong readable silhouette, light from top-left, muted colors, no
 dithering noise, no text, no watermark, no UI, single centered subject on
 a plain dark background
 
-a squat cylindrical chemical reactor with a reinforced metal frame and a
-visible cylindrical side wall showing its height, a round glowing cyan
-reaction chamber window set into the top face, amber status lights, short
-pipe stubs on both sides, mounted on a dark metal base plate with a
-yellow-and-black hazard stripe along its front edge
+an automated resource collector machine with a wide intake hopper set
+into its top face, short conveyor stub, partially visible rotating drum
+behind a side-wall height band, a yellow-and-black hazard stripe on its
+dark metal base plate
 ```
 
-审阅判据（执行会话）：顶面仍是最大面（未回退立面）、侧壁高度带清晰可见（较 S1' v3 更厚、不扁平）、黄黑警示条在场、96px 缩小剪影可读、主色落在限定调色板、与家族参考同族。两轮仍扁平或倒退立面则停手复盘投影俯角，升级萝卜SAMA。
+审阅判据（执行会话）：与新锚点同角度同族（高斜角俯视 + 侧壁高度带 + 黄黑条）、核心双态同机同角度仅状态差、96px 目标尺寸剪影可读、主色落限定调色板；不达标单张重出，两轮不达标停手上报。
 
 ## S1 风格锚点：基础反应器（同一提示词生成 3 张候选）
 
