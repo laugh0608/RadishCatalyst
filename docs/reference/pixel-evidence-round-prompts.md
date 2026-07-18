@@ -30,86 +30,78 @@ oversaturated, alchemy, magic circle, runes, potion bottles, medieval,
 gothic, brass steampunk, fantasy workshop
 ```
 
+## S3'' 设备重出（视角修正轮包 2，已完成，2026-07-18）
+
+> 三张一次过并经萝卜SAMA实机确认：核心双态 / 储存 + 整备台 / 采集器已归一同名换装入库，采集器足印提 2x2。本段完整提示词见 batch03 manifest 与提示词库；留档勿再执行。
+
+## S4'' 角色重出一：静态 + 侧向帧表（视角修正轮包 3，当前活跃，2026-07-18）
+
+挂新锚点 `assets/reference/pixel-style-anchor.png` 作参考图，并附 `match the pixel density, palette, lighting and family style of the attached reference image; it is a machine — do not copy its shape; the character description below is authoritative`。本会话 2 张 + 1 重出额度，只执行本段。
+
+第 1 张，文件名：`d1_engineer_oblique_px_v1.png`
+
+```text
+high-angle top-down pixel art game sprite of a lone engineer in a sealed
+exosuit with a small backpack reactor, helmet with glowing cyan visor,
+one amber shoulder light, seen from steeply above with head and shoulders
+dominant and feet visible below the body, no eye-level view, full body,
+single character, industrial sci-fi style, limited palette, clean
+readable pixel clusters, dark desaturated teal-gray metal, glowing cyan
+energy accents, warm amber work lights, crisp pixel edges, strong
+readable silhouette, light from top-left, muted colors, no dithering
+noise, no text, no watermark, no UI, single centered subject on a plain
+dark background
+```
+
+第 2 张（追加挂第 1 张定稿静态作角色参考），文件名：`d1w_walk_sheet_oblique_px_v1.png`
+
+```text
+pixel art sprite sheet of the same character in 4 walk cycle frames,
+arranged in one horizontal row, equal spacing, not touching: a lone
+engineer in a sealed exosuit with a small backpack reactor, helmet with
+glowing cyan visor, one amber shoulder light, high-angle top-down view
+seen from steeply above, head and shoulders dominant, walking sideways to
+the left with feet visible below the body, no eye-level view, limited
+palette, clean readable pixel clusters, crisp pixel edges, light from
+top-left, muted colors, plain dark background, no text, no watermark
+```
+
+## S7'' 角色重出二：背面 + 正面帧表（视角修正轮包 3，S4'' 定稿后执行）
+
+挂新锚点 + S4'' 定稿的 `d1_engineer_oblique` 静态与侧向帧表作角色参考，附 `same character as the attached engineer references, keep suit, colors and proportions identical`。本会话 2 张 + 1 重出额度，只执行本段。
+
+第 1 张，文件名：`d1wu_walk_up_sheet_oblique_px_v1.png`
+
+```text
+pixel art sprite sheet of the same character in 4 walk cycle frames,
+arranged in one horizontal row, equal spacing, not touching: a lone
+engineer in a sealed exosuit with a small backpack reactor, helmet with
+glowing cyan visor, one amber shoulder light, high-angle top-down view
+seen from steeply above, walking upward away from the viewer, back of
+the helmet and the backpack reactor visible, no face visible, no
+eye-level view, limited palette, clean readable pixel clusters, crisp
+pixel edges, light from top-left, muted colors, plain dark background,
+no text, no watermark
+```
+
+第 2 张，文件名：`d1wd_walk_down_sheet_oblique_px_v1.png`
+
+```text
+pixel art sprite sheet of the same character in 4 walk cycle frames,
+arranged in one horizontal row, equal spacing, not touching: a lone
+engineer in a sealed exosuit with a small backpack reactor, helmet with
+glowing cyan visor, one amber shoulder light, high-angle top-down view
+seen from steeply above, walking downward toward the camera, top of the
+helmet and shoulders dominant, no eye-level view, limited palette, clean
+readable pixel clusters, crisp pixel edges, light from top-left, muted
+colors, plain dark background, no text, no watermark
+```
+
+审阅判据（执行会话，S4'' 与 S7'' 通用）：同一角色跨帧稳定（头盔 / 面罩 / 背包反应器 / 肩灯 / 配色）、俯拍头肩主导且脚在身下可见（不回退平视立面）、行走循环连贯朝向正确、48x64 帧盒缩小后剪影可读、主色落限定调色板与设备族同光同色。单张不达标用重出额度；两轮不达标退 CC0 角色基底（口径不变）。
+
 ## S1'' 视角修正锚点重出：高度增强反应器（已完成，2026-07-18）
 
 > `v2` 已由萝卜SAMA定稿为新锚点并入库 `assets/reference/pixel-style-anchor.png`（高斜角俯视口径）；本段留档。后续段落所说"挂锚点参考图"一律指新锚点。
-
-## S3'' 设备重出（视角修正轮包 2，当前活跃，2026-07-18）
-
-挂新锚点 `assets/reference/pixel-style-anchor.png` 作参考图，并附 `match the style, palette, lighting, camera angle and family traits (side-wall height band, yellow-and-black hazard stripe on the base) of the attached reference image`。共 3 次生成调用覆盖 5 台设备，本会话只执行本段。
-
-第 1 张【横版】，文件名：`b1b2_core_states_oblique_px_v1.png`
-
-```text
-high oblique top-down view pixel art game sprite, camera looking down at
-a steep angle like Factorio and Mindustry machine sprites, the top
-surface is the largest visible face but a clear band of side walls is
-visible to convey solid height and volume, chunky machines sitting on
-the ground with readable vertical thickness, not a flat overhead
-blueprint, not an eye-level facade, not a low side view, industrial
-sci-fi chemical outpost on a hostile alien planet, limited palette, clean
-readable pixel clusters, dark desaturated teal-gray metal and rock,
-glowing cyan energy accents, warm amber work lights, crisp pixel edges,
-strong readable silhouette, light from top-left, muted colors, no
-dithering noise, no text, no watermark, no UI, two objects arranged side
-by side, not touching, on a plain dark background
-
-the same hexagonal outpost core machine shown twice side by side, two
-separate objects, not touching: left version damaged with cracked casing,
-exposed wiring, dim flickering cyan core visible through broken panels,
-scorch marks and small debris at the base; right version fully repaired
-with sealed clean casing, bright steady cyan core, subtle amber running
-lights, a yellow-and-black hazard stripe on its base plate; identical
-machine design and identical viewing angle
-```
-
-第 2 张【整版】，文件名：`b3b4_storage_workbench_oblique_px_v1.png`
-
-```text
-high oblique top-down view pixel art game sprite, camera looking down at
-a steep angle like Factorio and Mindustry machine sprites, the top
-surface is the largest visible face but a clear band of side walls is
-visible to convey solid height and volume, chunky machines sitting on
-the ground with readable vertical thickness, not a flat overhead
-blueprint, not an eye-level facade, not a low side view, industrial
-sci-fi chemical outpost on a hostile alien planet, limited palette, clean
-readable pixel clusters, dark desaturated teal-gray metal and rock,
-glowing cyan energy accents, warm amber work lights, crisp pixel edges,
-strong readable silhouette, light from top-left, muted colors, no
-dithering noise, no text, no watermark, no UI, two objects arranged side
-by side, not touching, on a plain dark background
-
-two separate industrial machines side by side, not touching, each on its
-own dark metal base plate with a yellow-and-black hazard stripe: left, a
-bank of three connected industrial storage silos with fill-level
-indicator strips seen down their cylindrical sides, cyan and amber
-lights; right, a field outfitting workbench with tool racks, hanging
-gear, a small terminal screen glowing cyan, one amber work lamp on a pole
-```
-
-第 3 张，文件名：`b6_collector_oblique_px_v1.png`
-
-```text
-high oblique top-down view pixel art game sprite, camera looking down at
-a steep angle like Factorio and Mindustry machine sprites, the top
-surface is the largest visible face but a clear band of side walls is
-visible to convey solid height and volume, a chunky machine sitting on
-the ground with readable vertical thickness, not a flat overhead
-blueprint, not an eye-level facade, not a low side view, industrial
-sci-fi chemical outpost on a hostile alien planet, limited palette, clean
-readable pixel clusters, dark desaturated teal-gray metal and rock,
-glowing cyan energy accents, warm amber work lights, crisp pixel edges,
-strong readable silhouette, light from top-left, muted colors, no
-dithering noise, no text, no watermark, no UI, single centered subject on
-a plain dark background
-
-an automated resource collector machine with a wide intake hopper set
-into its top face, short conveyor stub, partially visible rotating drum
-behind a side-wall height band, a yellow-and-black hazard stripe on its
-dark metal base plate
-```
-
-审阅判据（执行会话）：与新锚点同角度同族（高斜角俯视 + 侧壁高度带 + 黄黑条）、核心双态同机同角度仅状态差、96px 目标尺寸剪影可读、主色落限定调色板；不达标单张重出，两轮不达标停手上报。
 
 ## S1 风格锚点：基础反应器（同一提示词生成 3 张候选）
 

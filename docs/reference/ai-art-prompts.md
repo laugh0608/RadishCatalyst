@@ -197,14 +197,19 @@ no watermark, no borders
 
 行走动画优先用像素素材包补位（见候选清单）；AI 出稿先要单张俯视静态形象，需要动画帧时用“同一角色一整版帧表”方式出。
 
-#### D1 玩家工程师（静态，接全局风格块）
+#### D1 玩家工程师（静态，整段直接使用，不叠设备向全局块）
 
 ```text
-high-angle top-down pixel sprite of a lone engineer in a sealed exosuit
-with a small backpack reactor, helmet with glowing cyan visor, one amber
-shoulder light, seen from steeply above with head and shoulders dominant
-and feet visible below the body, no eye-level view, full body, single
-character
+high-angle top-down pixel art game sprite of a lone engineer in a sealed
+exosuit with a small backpack reactor, helmet with glowing cyan visor,
+one amber shoulder light, seen from steeply above with head and shoulders
+dominant and feet visible below the body, no eye-level view, full body,
+single character, industrial sci-fi style, limited palette, clean
+readable pixel clusters, dark desaturated teal-gray metal, glowing cyan
+energy accents, warm amber work lights, crisp pixel edges, strong
+readable silhouette, light from top-left, muted colors, no dithering
+noise, no text, no watermark, no UI, single centered subject on a plain
+dark background
 ```
 
 #### D1-W 行走帧表（整段直接使用，不叠全局块）
