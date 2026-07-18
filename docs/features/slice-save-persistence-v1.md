@@ -2,7 +2,7 @@
 
 更新时间：2026-07-18
 
-状态：当前唯一活跃功能专题；切片第四个实现专题（系统层换皮第二步），2026-07-17 由萝卜SAMA择序确认。前序 [Slice Minimal Core Loop V1](slice-minimal-core-loop-v1.md) 已收口。
+状态：已收口（2026-07-18，萝卜SAMA实机复核通过）。切片第四个实现专题（系统层换皮第二步）；下一专题为 [Slice Harvest And Build V1](slice-harvest-and-build-v1.md)。
 
 ## 背景与定位
 

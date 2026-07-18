@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-07-15
+更新时间：2026-07-18
 
 ## 用途
 
@@ -25,19 +25,20 @@
 
 ## 当前状态
 
-当前唯一活跃功能专题：[Slice Save Persistence V1](slice-save-persistence-v1.md)——存档与状态持久化（晶体数 / 已采集簇 / 修复态 / 玩家位置存得住、读得回），2026-07-17 择序开工。
+当前唯一活跃功能专题：[Slice Harvest And Build V1](slice-harvest-and-build-v1.md)——采集与建造扩展（整备台建造采集器 → 放进晶体区自动产出，首条化工链第一步），2026-07-18 择序开工。
 
 已收口专题：
 
 - [Slice Base First Screen Integration V1](slice-base-first-screen-integration-v1.md)——归一管线、基地首屏、玩家四方向行走（2026-07-16 收口）。
 - [Slice Crystal Expedition V1](slice-crystal-expedition-v1.md)——晶体远征区、无缝大地图与相机跟随口径定档（2026-07-17 收口）。
 - [Slice Minimal Core Loop V1](slice-minimal-core-loop-v1.md)——采集晶体 → 回基地 → 修复核心 + 最小 HUD（2026-07-17 收口）。
+- [Slice Save Persistence V1](slice-save-persistence-v1.md)——独立切片存档服务、载入存档改指切片、自动存档与读档还原（2026-07-18 收口）。
 
 背景结论（复盘与证据轮）：
 
 - 美术介质已定为像素 + 2D 俯视网格，机械口径见 [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)；介质证据轮 S1 到 S6 全绿。
 - 首个交付版结构：单基地 + 单远征区 = 同一张无缝地图上的两个区域（2026-07-16 定档），20 到 40 分钟可玩切片；章程见 [复盘文档](../planning/project-purpose-and-solo-ai-development-review.md)。
-- 后续专题候选（收口后由萝卜SAMA择序）：立绘对话框最小接入、采集与建造扩展。
+- 后续专题候选（收口后由萝卜SAMA择序）：配方加工（化工链第二步）、立绘对话框最小接入、敌人与战斗（素材生成会话完成后）。
 
 ## 历史专题
 
