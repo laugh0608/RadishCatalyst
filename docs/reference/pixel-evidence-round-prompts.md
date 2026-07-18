@@ -38,6 +38,33 @@ gothic, brass steampunk, fantasy workshop
 
 > 首轮一个会话跨段生成 3 张：背面帧表 `d1wu` 朝向零偏斜**达标留用**（强朝向词成功对照组）；静态与侧向帧表俯角达标但身体斜向 7-8 点钟方向判不达标（朝向词弱于 3/4 先验），正面帧表因额度用尽未生成。落盘 `2026-07-18-batch04/`；重出走下方 S4''-R 段。
 
+## S4''-R2 正面帧表二轮重出（当前活跃，2026-07-18 萝卜SAMA裁决）
+
+裁决背景：静态两轮闸门触发后由萝卜SAMA裁决——正面帧表修参考链重出（本段），静态不再单独生成、由正面帧表定稿后取帧派生。
+
+参考链（关键修正，与前轮不同）：挂新锚点 `assets/reference/pixel-style-anchor.png`（只借风格）+ **侧向达标帧表** `assets/art-intake/2026-07-18-batch05/d1w_walk_sheet_oblique_px_v2.png` 作角色参考（含面罩侧缘信息），**不挂背面帧表**。附 `same character as the attached engineer side-view sheet, keep suit, colors and proportions identical; the anchor machine image is style reference only; show the FACE side of the helmet`。
+
+**闸门警示：正面帧表本段为第二轮（首轮已出成背面）。本会话最多用 2 次调用（首出 + 1 次重出）；仍出现背面 / 无面罩 / 斜向即停手上报萝卜SAMA（退 CC0 裁决），不追加第 3 次。**
+
+第 1 张，文件名：`d1wd_walk_down_sheet_oblique_px_v2.png`
+
+```text
+pixel art sprite sheet of the same character in 4 walk cycle frames,
+arranged in one horizontal row, equal spacing, not touching: a lone
+engineer in a sealed exosuit, helmet with a large glowing cyan visor
+clearly visible and centered on the helmet facing the viewer, one amber
+shoulder light, the backpack reactor completely hidden behind the body,
+not a back view, no backpack visible, high-angle top-down view seen from
+steeply above, walking downward toward the bottom edge of the frame,
+body axis perfectly vertical, both shoulders equally visible, top of the
+helmet and the cyan visor dominant, not turned to either side, no
+three-quarter view, no eye-level view, limited palette, clean readable
+pixel clusters, crisp pixel edges, light from top-left, muted colors,
+plain dark background, no text, no watermark
+```
+
+审阅判据（执行会话）：每帧青色面罩清晰可见且居中（判定正面的硬条件）、无背包可见、躯干轴垂直左右对称、四帧循环连贯、与侧向 / 背面帧表读作同一角色、48x64 剪影可读、色域同族。提示词要点：主体描述已把背包从"要画的装备"改写为"不该看见的东西"（hidden behind the body / no backpack visible），并以面罩可见性作为正面锚定。
+
 ## S4''-R 角色重出二轮（已执行，部分达标，2026-07-18；闸门触发详见周志）
 
 > 结果：侧向帧表纯侧位达标留用；静态与正面均出成背面（背面参考图形象先验压过 facing 词），静态两轮闸门触发停手上报萝卜SAMA裁决。本段提示词留档，后续按裁决执行。

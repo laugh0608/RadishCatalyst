@@ -197,7 +197,7 @@ no watermark, no borders
 
 行走动画优先用像素素材包补位（见候选清单）；AI 出稿先要单张俯视静态形象，需要动画帧时用“同一角色一整版帧表”方式出。
 
-#### D1 玩家工程师（静态，整段直接使用，不叠设备向全局块；2026-07-18 朝向强化）
+#### D1 玩家工程师（静态；2026-07-18 裁决：不再单独生成，由正面帧表定稿后取帧派生，本段提示词留档）
 
 ```text
 high-angle top-down pixel art game sprite of a lone engineer in a sealed
@@ -250,12 +250,13 @@ no text, no watermark
 ```text
 pixel art sprite sheet of the same character in 4 walk cycle frames,
 arranged in one horizontal row, equal spacing, not touching: a lone
-engineer in a sealed exosuit with a small backpack reactor, helmet with
-glowing cyan visor, one amber shoulder light, high-angle top-down view
-seen from steeply above, walking downward toward the bottom edge of the
-frame, facing straight at the viewer with the body axis perfectly
-vertical, both shoulders equally visible, glowing cyan visor centered,
-top of the helmet and shoulders dominant, not turned to either side, no
+engineer in a sealed exosuit, helmet with a large glowing cyan visor
+clearly visible and centered on the helmet facing the viewer, one amber
+shoulder light, the backpack reactor completely hidden behind the body,
+not a back view, no backpack visible, high-angle top-down view seen from
+steeply above, walking downward toward the bottom edge of the frame,
+body axis perfectly vertical, both shoulders equally visible, top of the
+helmet and the cyan visor dominant, not turned to either side, no
 three-quarter view, no eye-level view, limited palette, clean readable
 pixel clusters, crisp pixel edges, light from top-left, muted colors,
 plain dark background, no text, no watermark
