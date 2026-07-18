@@ -62,7 +62,8 @@ RadishCatalyst 是刚初始化的新仓库，当前重点不是堆功能，而�
 
 - 作为当前阶段常态开发分支。
 - 当前阶段不启用分支保护。
-- 仍建议按改动范围执行本地检查；日常 `dev` 集成不默认触发 CI，也不要求通过 PR 进入 `dev`。
+- 普通 `push -> dev` 不自动触发 CI；目标为 `dev` 的 Pull Request 自动运行 `PR Checks`，为其他开发者提供合并前反馈，但 `dev` 当前不启用 required checks 或 branch protection。
+- 直接进入共享 `dev` 的连续开发仍按改动范围执行本地检查，不强制要求通过 PR 进入 `dev`。
 - 默认分支 PR 合并后，`dev` 必须先同步到默认分支最新 merge commit；同步完成前不得承载下一轮提交。
 
 ## 需要在 GitHub 仓库设置中完成的动作

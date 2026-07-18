@@ -28,6 +28,7 @@
 - `dev` 是当前常态开发分支。
 - 当前阶段不启用 branch protection。
 - 当前默认不要求 push 到 `dev` 时自动触发仓库检查。
+- 目标为 `dev` 的 Pull Request 自动运行 `PR Checks`，为其他开发者提供合并前反馈；`dev` 当前不要求 required checks。
 - 默认分支 PR 合并后，先将 `dev` 快进到默认分支最新 merge commit；完成前不开始下一轮提交。
 - 若无法快进，检查拓扑后以普通 merge 回流；不 reset、rebase 或 force push 共享 `dev`。
 - 如后续进入多人并行开发，再评估是否对 `dev` 追加保护。

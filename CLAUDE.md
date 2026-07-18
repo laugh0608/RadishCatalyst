@@ -149,6 +149,7 @@ Godot 官方命令行提供 `--import`、`--script` 和脚本级 `--check-only` 
 - `dev -> master` / `main` 的阶段 PR 使用 `merge commit`；合并后必须先把默认分支快进回 `dev` 并推送，再开始下一轮开发，不能长期保持单向 PR 拓扑。
 - 若默认分支无法快进回 `dev`，先检查分支图，再以普通 merge 回流；禁止通过 reset、rebase 或 force push 重写共享 `dev` 历史。
 - 远端分支保护、合并策略、稳定主线 PR 目标和阶段性例外以 ADR 与仓库实际设置为准。
+- 目标为 `dev`、`master` 或 `main` 的 Pull Request 自动运行 `PR Checks`；普通 `push -> dev` 不触发，`dev` 当前不要求 required checks。
 - 默认分支 PR 的 `Repo Hygiene` CI 覆盖文本卫生、文档篇幅、客户端静态数据、客户端场景引用和提交 diff 空白检查；需要启动 Godot 的运行时验证仍按改动范围在本地或手动流程执行。
 
 ## AI 执行边界
