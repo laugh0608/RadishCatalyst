@@ -197,16 +197,19 @@ no watermark, no borders
 
 行走动画优先用像素素材包补位（见候选清单）；AI 出稿先要单张俯视静态形象，需要动画帧时用“同一角色一整版帧表”方式出。
 
-#### D1 玩家工程师（静态，整段直接使用，不叠设备向全局块）
+#### D1 玩家工程师（静态，整段直接使用，不叠设备向全局块；2026-07-18 朝向强化）
 
 ```text
 high-angle top-down pixel art game sprite of a lone engineer in a sealed
 exosuit with a small backpack reactor, helmet with glowing cyan visor,
-one amber shoulder light, seen from steeply above with head and shoulders
-dominant and feet visible below the body, no eye-level view, full body,
-single character, industrial sci-fi style, limited palette, clean
-readable pixel clusters, dark desaturated teal-gray metal, glowing cyan
-energy accents, warm amber work lights, crisp pixel edges, strong
+one amber shoulder light, seen from steeply above, facing straight
+toward the viewer with the body axis perfectly vertical, head at the top
+and feet at the bottom of the frame, both shoulders equally visible, not
+turned to either side, no three-quarter body rotation, head and
+shoulders dominant with feet visible below the body, no eye-level view,
+full body, single character, industrial sci-fi style, limited palette,
+clean readable pixel clusters, dark desaturated teal-gray metal, glowing
+cyan energy accents, warm amber work lights, crisp pixel edges, strong
 readable silhouette, light from top-left, muted colors, no dithering
 noise, no text, no watermark, no UI, single centered subject on a plain
 dark background
@@ -219,10 +222,13 @@ pixel art sprite sheet of the same character in 4 walk cycle frames,
 arranged in one horizontal row, equal spacing, not touching: a lone
 engineer in a sealed exosuit with a small backpack reactor, helmet with
 glowing cyan visor, one amber shoulder light, high-angle top-down view
-seen from steeply above, head and shoulders dominant, walking downward
-with feet visible below the body, no eye-level view, limited palette,
-clean readable pixel clusters, crisp pixel edges, light from top-left,
-muted colors, plain dark background, no text, no watermark
+seen from steeply above, strict side profile walking toward the left
+edge of the frame, body seen exactly from its left side, helmet visor
+pointing at the left edge, only the near shoulder visible, torso not
+rotated toward the camera, no three-quarter view, no front view, feet
+visible below the body, limited palette, clean readable pixel clusters,
+crisp pixel edges, light from top-left, muted colors, plain dark
+background, no text, no watermark
 ```
 
 #### D1-WU 背面行走帧表（包 3.5 增补，整段直接使用，不叠全局块）
@@ -246,10 +252,13 @@ pixel art sprite sheet of the same character in 4 walk cycle frames,
 arranged in one horizontal row, equal spacing, not touching: a lone
 engineer in a sealed exosuit with a small backpack reactor, helmet with
 glowing cyan visor, one amber shoulder light, high-angle top-down view
-seen from steeply above, walking downward toward the camera, top of the
-helmet and shoulders dominant, no eye-level view, limited palette, clean
-readable pixel clusters, crisp pixel edges, light from top-left, muted
-colors, plain dark background, no text, no watermark
+seen from steeply above, walking downward toward the bottom edge of the
+frame, facing straight at the viewer with the body axis perfectly
+vertical, both shoulders equally visible, glowing cyan visor centered,
+top of the helmet and shoulders dominant, not turned to either side, no
+three-quarter view, no eye-level view, limited palette, clean readable
+pixel clusters, crisp pixel edges, light from top-left, muted colors,
+plain dark background, no text, no watermark
 ```
 
 - 方向帧增补（2026-07-16 包 3.5）：生成时挂 `assets/reference/pixel-style-anchor.png` 风格参考，并以已定稿 `d1_engineer_px_v1.png` 与 `d1w_walk_sheet_px_v1.png` 作角色参考；审阅三点——四帧同一角色且与 d1 同族、行走循环连贯、朝向正确（背面见背包反应器不见脸，正面见青面罩）。左右仍由侧向帧表水平翻转承担，不生成 8 方向。

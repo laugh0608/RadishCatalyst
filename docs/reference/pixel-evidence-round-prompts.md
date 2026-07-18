@@ -34,70 +34,67 @@ gothic, brass steampunk, fantasy workshop
 
 > 三张一次过并经萝卜SAMA实机确认：核心双态 / 储存 + 整备台 / 采集器已归一同名换装入库，采集器足印提 2x2。本段完整提示词见 batch03 manifest 与提示词库；留档勿再执行。
 
-## S4'' 角色重出一：静态 + 侧向帧表（视角修正轮包 3，当前活跃，2026-07-18）
+## S4'' / S7'' 角色重出首轮（部分达标，2026-07-18）
 
-挂新锚点 `assets/reference/pixel-style-anchor.png` 作参考图，并附 `match the pixel density, palette, lighting and family style of the attached reference image; it is a machine — do not copy its shape; the character description below is authoritative`。本会话 2 张 + 1 重出额度，只执行本段。
+> 首轮一个会话跨段生成 3 张：背面帧表 `d1wu` 朝向零偏斜**达标留用**（强朝向词成功对照组）；静态与侧向帧表俯角达标但身体斜向 7-8 点钟方向判不达标（朝向词弱于 3/4 先验），正面帧表因额度用尽未生成。落盘 `2026-07-18-batch04/`；重出走下方 S4''-R 段。
 
-第 1 张，文件名：`d1_engineer_oblique_px_v1.png`
+## S4''-R 角色重出二轮：静态 + 侧向重出 + 正面首出（当前活跃，2026-07-18）
+
+挂新锚点 + 首轮达标的背面帧表 `assets/art-intake/2026-07-18-batch04/d1wu_walk_up_sheet_oblique_px_v1.png` 作角色一致性参考，附 `same character as the attached engineer back-view sheet, keep suit, colors and proportions identical; the anchor machine image is style reference only`。本会话 3 张，只执行本段。
+
+**闸门警示：静态与侧向本段为第二轮，仍出现斜向 / 3/4 转体则触发两轮停手规则，停止生成上报萝卜SAMA（退 CC0 角色基底或人工点修裁决）。**
+
+第 1 张，文件名：`d1_engineer_oblique_px_v2.png`
 
 ```text
 high-angle top-down pixel art game sprite of a lone engineer in a sealed
 exosuit with a small backpack reactor, helmet with glowing cyan visor,
-one amber shoulder light, seen from steeply above with head and shoulders
-dominant and feet visible below the body, no eye-level view, full body,
-single character, industrial sci-fi style, limited palette, clean
-readable pixel clusters, dark desaturated teal-gray metal, glowing cyan
-energy accents, warm amber work lights, crisp pixel edges, strong
+one amber shoulder light, seen from steeply above, facing straight
+toward the viewer with the body axis perfectly vertical, head at the top
+and feet at the bottom of the frame, both shoulders equally visible, not
+turned to either side, no three-quarter body rotation, head and
+shoulders dominant with feet visible below the body, no eye-level view,
+full body, single character, industrial sci-fi style, limited palette,
+clean readable pixel clusters, dark desaturated teal-gray metal, glowing
+cyan energy accents, warm amber work lights, crisp pixel edges, strong
 readable silhouette, light from top-left, muted colors, no dithering
 noise, no text, no watermark, no UI, single centered subject on a plain
 dark background
 ```
 
-第 2 张（追加挂第 1 张定稿静态作角色参考），文件名：`d1w_walk_sheet_oblique_px_v1.png`
+第 2 张，文件名：`d1w_walk_sheet_oblique_px_v2.png`
 
 ```text
 pixel art sprite sheet of the same character in 4 walk cycle frames,
 arranged in one horizontal row, equal spacing, not touching: a lone
 engineer in a sealed exosuit with a small backpack reactor, helmet with
 glowing cyan visor, one amber shoulder light, high-angle top-down view
-seen from steeply above, head and shoulders dominant, walking sideways to
-the left with feet visible below the body, no eye-level view, limited
-palette, clean readable pixel clusters, crisp pixel edges, light from
-top-left, muted colors, plain dark background, no text, no watermark
+seen from steeply above, strict side profile walking toward the left
+edge of the frame, body seen exactly from its left side, helmet visor
+pointing at the left edge, only the near shoulder visible, torso not
+rotated toward the camera, no three-quarter view, no front view, feet
+visible below the body, limited palette, clean readable pixel clusters,
+crisp pixel edges, light from top-left, muted colors, plain dark
+background, no text, no watermark
 ```
 
-## S7'' 角色重出二：背面 + 正面帧表（视角修正轮包 3，S4'' 定稿后执行）
-
-挂新锚点 + S4'' 定稿的 `d1_engineer_oblique` 静态与侧向帧表作角色参考，附 `same character as the attached engineer references, keep suit, colors and proportions identical`。本会话 2 张 + 1 重出额度，只执行本段。
-
-第 1 张，文件名：`d1wu_walk_up_sheet_oblique_px_v1.png`
+第 3 张，文件名：`d1wd_walk_down_sheet_oblique_px_v1.png`
 
 ```text
 pixel art sprite sheet of the same character in 4 walk cycle frames,
 arranged in one horizontal row, equal spacing, not touching: a lone
 engineer in a sealed exosuit with a small backpack reactor, helmet with
 glowing cyan visor, one amber shoulder light, high-angle top-down view
-seen from steeply above, walking upward away from the viewer, back of
-the helmet and the backpack reactor visible, no face visible, no
-eye-level view, limited palette, clean readable pixel clusters, crisp
-pixel edges, light from top-left, muted colors, plain dark background,
-no text, no watermark
+seen from steeply above, walking downward toward the bottom edge of the
+frame, facing straight at the viewer with the body axis perfectly
+vertical, both shoulders equally visible, glowing cyan visor centered,
+top of the helmet and shoulders dominant, not turned to either side, no
+three-quarter view, no eye-level view, limited palette, clean readable
+pixel clusters, crisp pixel edges, light from top-left, muted colors,
+plain dark background, no text, no watermark
 ```
 
-第 2 张，文件名：`d1wd_walk_down_sheet_oblique_px_v1.png`
-
-```text
-pixel art sprite sheet of the same character in 4 walk cycle frames,
-arranged in one horizontal row, equal spacing, not touching: a lone
-engineer in a sealed exosuit with a small backpack reactor, helmet with
-glowing cyan visor, one amber shoulder light, high-angle top-down view
-seen from steeply above, walking downward toward the camera, top of the
-helmet and shoulders dominant, no eye-level view, limited palette, clean
-readable pixel clusters, crisp pixel edges, light from top-left, muted
-colors, plain dark background, no text, no watermark
-```
-
-审阅判据（执行会话，S4'' 与 S7'' 通用）：同一角色跨帧稳定（头盔 / 面罩 / 背包反应器 / 肩灯 / 配色）、俯拍头肩主导且脚在身下可见（不回退平视立面）、行走循环连贯朝向正确、48x64 帧盒缩小后剪影可读、主色落限定调色板与设备族同光同色。单张不达标用重出额度；两轮不达标退 CC0 角色基底（口径不变）。
+审阅判据（执行会话）：在首轮判据（同角色跨帧稳定、俯拍头肩主导脚在身下、循环连贯、48x64 剪影、色域同族）之上追加朝向判据——静态与正面帧表躯干轴垂直、左右对称、双肩等宽可见、面罩居中；侧向帧表为纯侧面（只见近侧肩、面罩指向画面左缘、无 3/4 转体）；与已达标背面帧表读作同一角色。
 
 ## S1'' 视角修正锚点重出：高度增强反应器（已完成，2026-07-18）
 
