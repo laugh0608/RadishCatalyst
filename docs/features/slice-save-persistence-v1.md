@@ -1,6 +1,6 @@
 # Slice Save Persistence V1
 
-更新时间：2026-07-17
+更新时间：2026-07-18
 
 状态：当前唯一活跃功能专题；切片第四个实现专题（系统层换皮第二步），2026-07-17 由萝卜SAMA择序确认。前序 [Slice Minimal Core Loop V1](slice-minimal-core-loop-v1.md) 已收口。
 
@@ -31,7 +31,7 @@
 `SliceSaveService`（新建，`client/scripts/slice/slice_save_service.gd`，目标 < 150 行）：
 
 - 存档路径与旧系统物理隔离，独立目录（如 `user://saves/slice/slice_world.json`），互不读写、互不覆盖。
-- 提供 `save(world: SliceWorld) -> Dictionary`、`load() -> Dictionary`、`has_save() -> bool`、`get_summary() -> Dictionary`（供入口菜单显示）。
+- 提供 `save_state(state: Dictionary) -> Dictionary`、`load_state() -> Dictionary`、`has_save() -> bool`、`get_summary() -> Dictionary`（供入口菜单显示）；不叫 `load` 以免遮蔽 GDScript 全局函数。
 - JSON 明文，带 `save_schema_version` 与最近保存时间；写入走"临时文件 + 单份 `.bak` 备份"最小防损坏，不做旧系统的三份轮转（切片规模不需要）。
 
 ### 存档字段
@@ -114,6 +114,7 @@ player              : {x, y}   # 玩家离开时的世界坐标
 
 - 世界状态新增 `harvested_clusters` 集合，与晶体数 / 修复标记同层存于 `SliceWorld`。
 - `SliceSaveService` 为新建独立服务，存档目录与旧系统隔离；旧存档检查（`save_service_check` 等）维持现状不动。
+- 冻结启动壳检查唯一例外（2026-07-18 萝卜SAMA批准）：`check-client-demo-startup-shell` 对 `boot.gd` 的必需文本 `SaveService.DEFAULT_SLOT_ID` 随方案 A 换为等价锚点 `SliceSaveService` / `startup_load`，其余断言不动。
 - 只要求 `check-client` 静态通过与无导入错误，不新建检查脚本文件。
 
 ## 验收与移交
