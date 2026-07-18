@@ -17,7 +17,8 @@ REQUIRED_TEXT_BY_FILE = {
     "client/scripts/boot/boot.gd": [
         "STARTUP_MENU_SCENE",
         "StartupMenu",
-        "SaveService.DEFAULT_SLOT_ID",
+        "SliceSaveService",
+        "startup_load",
     ],
     "client/scenes/ui/StartupMenu.tscn": [
         "StartupMenu",

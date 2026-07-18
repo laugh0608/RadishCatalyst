@@ -5,7 +5,7 @@ const SLICE_BASE_SCENE := "res://scenes/slice/SliceWorld.tscn"
 const STARTUP_MENU_SCENE := "res://scenes/ui/StartupMenu.tscn"
 
 var data_registry: DataRegistry
-var save_service := SaveService.new()
+var slice_save_service := SliceSaveService.new()
 var startup_menu: StartupMenu
 
 
@@ -18,7 +18,6 @@ func _ready() -> void:
 		push_error("Boot failed because static data could not be loaded.")
 		return
 
-	save_service.setup(data_registry)
 	_show_startup_menu()
 
 
@@ -36,36 +35,44 @@ func _show_startup_menu() -> void:
 			return
 		add_child(startup_menu)
 
-	startup_menu.configure_save_summary(save_service.get_save_slot_summary(SaveService.DEFAULT_SLOT_ID))
+	startup_menu.configure_save_summary(slice_save_service.get_summary())
 	startup_menu.new_game_requested.connect(_on_startup_new_game_requested)
 	startup_menu.load_game_requested.connect(_on_startup_load_game_requested)
 	startup_menu.quit_requested.connect(_on_startup_quit_requested)
 
 
 func _on_startup_new_game_requested() -> void:
-	_start_slice_base()
+	_start_slice(false)
 
 
 func _on_startup_load_game_requested() -> void:
-	_start_game(SaveService.DEFAULT_SLOT_ID)
+	_start_slice(true)
 
 
 func _on_startup_quit_requested() -> void:
 	get_tree().quit()
 
 
-func _start_slice_base() -> void:
+func _start_slice(startup_load: bool) -> void:
 	var slice_scene := load(SLICE_BASE_SCENE) as PackedScene
 	if slice_scene == null:
 		push_error("Missing slice base scene: %s" % SLICE_BASE_SCENE)
 		return
 
+	var slice_world := slice_scene.instantiate() as SliceWorld
+	if slice_world == null:
+		push_error("Slice base scene does not instantiate as SliceWorld.")
+		return
+	slice_world.startup_load = startup_load
+
 	if startup_menu != null:
 		startup_menu.queue_free()
 		startup_menu = null
-	add_child(slice_scene.instantiate())
+	add_child(slice_world)
 
 
+# Frozen legacy GameRoot entry, no longer reachable from the menu since the
+# slice save topic rewired "载入存档" to the slice load path.
 func _start_game(startup_load_slot_id: String) -> void:
 	var game_root_scene := load(GAME_ROOT_SCENE) as PackedScene
 	if game_root_scene == null:

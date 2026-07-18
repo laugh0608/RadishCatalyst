@@ -12,5 +12,6 @@ func get_prompt(_world: Node) -> String:
 
 
 func try_interact(world: Node) -> void:
-	world.add_crystals(yield_amount)
-	get_parent().queue_free()
+	var cluster := get_parent()
+	world.harvest_crystals(cluster.name, yield_amount)
+	cluster.queue_free()
