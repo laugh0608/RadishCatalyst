@@ -11,6 +11,8 @@ extends CharacterBody2D
 const MOVE_SPEED := 140.0
 
 var world: Node
+## Last non-zero facing, used by SliceWorld to pick the collector place cell.
+var facing := Vector2.DOWN
 
 @onready var sprite: AnimatedSprite2D = $Sprite
 @onready var interact_scan: Area2D = $InteractScan
@@ -20,8 +22,15 @@ func _physics_process(_delta: float) -> void:
 	var input := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	velocity = input * MOVE_SPEED
 	move_and_slide()
+	if input != Vector2.ZERO:
+		facing = input.normalized()
 	_update_animation(input)
 	if Input.is_action_just_pressed("interact"):
+		# Carrying a collector: interact places it; otherwise it drives the
+		# nearest interactable (harvest, repair, workbench build).
+		if world != null and world.carrying_collector:
+			world.try_place_collector()
+			return
 		var target := current_interact_target()
 		if target != null and world != null:
 			target.try_interact(world)

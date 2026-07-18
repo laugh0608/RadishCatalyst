@@ -31,6 +31,8 @@ func save_state(state: Dictionary) -> Dictionary:
 		"crystal_count": int(state.get("crystal_count", 0)),
 		"core_repaired": bool(state.get("core_repaired", false)),
 		"harvested_clusters": _string_array(state.get("harvested_clusters", [])),
+		"collectors": _cell_array(state.get("collectors", [])),
+		"carrying_collector": bool(state.get("carrying_collector", false)),
 		"player_x": float(state.get("player_x", 0.0)),
 		"player_y": float(state.get("player_y", 0.0))
 	}
@@ -124,6 +126,8 @@ func _read_file(save_file: String) -> Dictionary:
 			"crystal_count": int(save_data.get("crystal_count", 0)),
 			"core_repaired": bool(save_data.get("core_repaired", false)),
 			"harvested_clusters": _string_array(save_data.get("harvested_clusters", [])),
+			"collectors": _cell_array(save_data.get("collectors", [])),
+			"carrying_collector": bool(save_data.get("carrying_collector", false)),
 			"player_x": float(save_data.get("player_x", 0.0)),
 			"player_y": float(save_data.get("player_y", 0.0)),
 			"updated_at": String(save_data.get("updated_at", ""))
@@ -136,6 +140,16 @@ func _string_array(value) -> Array[String]:
 	if value is Array:
 		for item in value:
 			result.append(String(item))
+	return result
+
+
+## Collector cells travel as [[x, y], ...]; malformed entries are dropped.
+func _cell_array(value) -> Array:
+	var result: Array = []
+	if value is Array:
+		for item in value:
+			if item is Array and item.size() == 2:
+				result.append([int(item[0]), int(item[1])])
 	return result
 
 

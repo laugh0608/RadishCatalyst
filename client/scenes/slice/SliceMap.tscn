@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="TileSet" path="res://assets/tiles/slice/ground_tileset.tres" id="1_ground_tileset"]
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/outpost_core_damaged.png" id="2_core_damaged"]
@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/crystal_cluster_small.png" id="8_cluster_small"]
 [ext_resource type="Script" path="res://scripts/slice/crystal_node.gd" id="9_crystal_node"]
 [ext_resource type="Script" path="res://scripts/slice/core_repair_site.gd" id="10_core_repair"]
+[ext_resource type="Script" path="res://scripts/slice/workbench_build_site.gd" id="11_build_site"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_footprint_2x2"]
 size = Vector2(64, 64)
@@ -77,6 +78,13 @@ texture = ExtResource("5_workbench")
 [node name="Footprint" type="StaticBody2D" parent="World/Workbench"]
 
 [node name="Collision" type="CollisionShape2D" parent="World/Workbench/Footprint"]
+position = Vector2(0, 16)
+shape = SubResource("RectangleShape2D_footprint_3x2")
+
+[node name="BuildSite" type="Area2D" parent="World/Workbench"]
+script = ExtResource("11_build_site")
+
+[node name="Collision" type="CollisionShape2D" parent="World/Workbench/BuildSite"]
 position = Vector2(0, 16)
 shape = SubResource("RectangleShape2D_footprint_3x2")
 [node name="CrystalLarge1" type="Sprite2D" parent="World"]
