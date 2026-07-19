@@ -9,10 +9,13 @@ Jobs (docs/features/slice-viewpoint-correction-v1.md, pack 3):
   side sheet  batch05 d1w  v2 -> engineer_walk_0..3.png        (luma baseline)
   up sheet    batch04 d1wu v1 -> engineer_walk_up_0..3.png     (gain-matched)
   down sheet  batch06 d1wd v2 -> engineer_walk_down_0..3.png   (gain-matched)
-  static      derived from the down sheet frame STATIC_FRAME_INDEX
-                              -> engineer.png
-All 13 sprites share one pooled limited palette (no color jumps across
-directions) and the 48x64 bottom-anchored frame box.
+  idle down   batch07 d1s idle down     -> engineer.png            (standing)
+  idle side   batch07 d1s idle side     -> engineer_idle_side.png  (standing)
+  idle up     batch07 d1s idle up       -> engineer_idle_up.png    (standing)
+All 16 sprites share one pooled limited palette (no color jumps across
+directions) and the 48x64 bottom-anchored frame box. Standing idles
+replaced the earlier walk-frame-derived static after the 2026-07-18
+directional-idle ruling.
 """
 
 from __future__ import annotations
@@ -38,9 +41,9 @@ FRAME_BOX = (48, 64)
 SIDE_SHEET = "2026-07-18-batch05/d1w_walk_sheet_oblique_px_v2.png"
 UP_SHEET = "2026-07-18-batch04/d1wu_walk_up_sheet_oblique_px_v1.png"
 DOWN_SHEET = "2026-07-18-batch06/d1wd_walk_down_sheet_oblique_px_v2.png"
-
-# Which down-sheet frame becomes the idle sprite (picked by preview review).
-STATIC_FRAME_INDEX = 2
+IDLE_DOWN = "2026-07-19-batch01/d1s_idle_down_oblique_px_v1.png"
+IDLE_SIDE = "2026-07-19-batch01/d1s_idle_side_oblique_px_v1.png"
+IDLE_UP = "2026-07-19-batch01/d1s_idle_up_oblique_px_v1.png"
 
 
 def load_masked(path: str) -> tuple[npa.Image, bytearray]:
@@ -104,13 +107,16 @@ def main() -> int:
         for frame in frames:
             npa.apply_gain(frame, gain)
 
-    source_frame = down[STATIC_FRAME_INDEX]
-    static = npa.Image(
-        source_frame.width, source_frame.height, bytearray(source_frame.data)
-    )
-    records.append(f"static derived from down frame {STATIC_FRAME_INDEX}")
+    idles: list[npa.Image] = []
+    for rel in (IDLE_DOWN, IDLE_SIDE, IDLE_UP):
+        img, mask = load_masked(os.path.join(INTAKE, rel))
+        bbox = npa.content_bbox(mask, img.width, img.height)
+        factor = scale_factor(bbox[3] - bbox[1] + 1, FRAME_BOX[1])
+        idles.append(npa.crop_to_content(npa.downscale_sprite(img, mask, bbox, factor)))
+    for idle in idles:
+        npa.apply_gain(idle, baseline / sheet_luma([idle]))
 
-    group = side + up + down + [static]
+    group = side + up + down + idles
     pooled: list[tuple[int, int, int]] = []
     for img in group:
         pooled.extend(npa.opaque_colors(img))
@@ -127,6 +133,8 @@ def main() -> int:
     for i in range(4):
         save_sprite(boxed[8 + i], f"engineer_walk_down_{i}.png", records)
     save_sprite(boxed[12], "engineer.png", records)
+    save_sprite(boxed[13], "engineer_idle_side.png", records)
+    save_sprite(boxed[14], "engineer_idle_up.png", records)
 
     print("\n".join(records))
     return 0

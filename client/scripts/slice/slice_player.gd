@@ -51,7 +51,7 @@ func current_interact_target() -> Area2D:
 
 func _update_animation(input: Vector2) -> void:
 	if input == Vector2.ZERO:
-		sprite.play("idle")
+		_play_directional_idle()
 		return
 
 	# The side sheet is drawn leaning toward the viewer (3/4 front), so it
@@ -66,4 +66,18 @@ func _update_animation(input: Vector2) -> void:
 		sprite.flip_h = input.x > 0.0
 	else:
 		sprite.play("walk_down")
+		sprite.flip_h = false
+
+
+## Standing idle keeps the last movement facing: back / side (flipped for
+## right) / front standing frames, matching the walk direction rules.
+func _play_directional_idle() -> void:
+	if facing.y < 0.0 and -facing.y >= absf(facing.x):
+		sprite.play("idle_up")
+		sprite.flip_h = false
+	elif absf(facing.x) >= absf(facing.y):
+		sprite.play("idle_side")
+		sprite.flip_h = facing.x > 0.0
+	else:
+		sprite.play("idle")
 		sprite.flip_h = false
