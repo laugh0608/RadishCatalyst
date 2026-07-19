@@ -41,8 +41,7 @@
 
 日常必读：
 
-- `docs/planning/current.md`
-- `docs/planning/current.md`（配方加工专题建立后改指专题文档）
+- `docs/planning/current.md`（配方加工专题建立后本行下改指专题文档）
 - `docs/reference/pixel-art-and-grid-standard.md`（投影口径 2026-07-18 修订）
 - `docs/reference/ai-art-prompts.md`（全局风格块 2026-07-18 视角修订）
 
