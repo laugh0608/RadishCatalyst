@@ -8,9 +8,9 @@
 
 ## 阶段
 
-当前为「切片实现：配方加工（化工链第二步）——专题文档待建」。
+当前为「切片实现：配方加工（化工链第二步）——专题已建立，关键取舍已定档」。
 
-- 当前无活跃功能专题：视角修正轮已收口（07-19），下一专题为配方加工，专题文档由新会话按文档先行建立。
+- 活跃专题 [配方加工](../features/slice-recipe-processing-v1.md)：四项关键取舍已定档（第二资源=催化剂 / 自动加工 / 产物用途=核心充能 / 储存罐容量上限），待萝卜SAMA确认后进入实施。
 - 美术介质机械口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一均已定稿）。
 - 章程与复盘结论存档：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)。
 
@@ -22,7 +22,7 @@
 
 ## 下一步事项
 
-1. 新会话按文档先行建立配方加工专题：第二资源定义、反应器加工与自动化衔接、产物用途、储存罐功能化范围、状态 / 存档扩展、HUD 承载；关键取舍向萝卜SAMA确认后实施。
+1. 配方加工关键取舍经萝卜SAMA确认后，按专题分包实施：包 1 反应器自动加工与催化剂储存 → 包 2 核心充能与产线闭环 → 包 3 全链路验证收口。
 2. 敌人素材生成会话可由萝卜SAMA择时并行启动（按高斜角口径与提示词库执行）。
 
 ## 防跑偏规则
@@ -41,7 +41,8 @@
 
 日常必读：
 
-- `docs/planning/current.md`（配方加工专题建立后本行下改指专题文档）
+- `docs/planning/current.md`（配方加工阶段边界与退出条件）
+- `docs/features/slice-recipe-processing-v1.md`（配方加工活跃专题范围与验收）
 - `docs/reference/pixel-art-and-grid-standard.md`（投影口径 2026-07-18 修订）
 - `docs/reference/ai-art-prompts.md`（全局风格块 2026-07-18 视角修订）
 
