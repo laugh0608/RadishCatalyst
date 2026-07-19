@@ -11,21 +11,13 @@ offset_top = 24.0
 offset_right = 480.0
 offset_bottom = 72.0
 theme_override_font_sizes/font_size = 34
-text = "晶体：0"
-
-[node name="CatalystCount" type="Label" parent="."]
-offset_left = 32.0
-offset_top = 74.0
-offset_right = 480.0
-offset_bottom = 116.0
-theme_override_font_sizes/font_size = 30
-text = "催化剂：0/20"
+text = "背包晶体：0/30"
 
 [node name="Goal" type="Label" parent="."]
 offset_left = 32.0
-offset_top = 120.0
+offset_top = 74.0
 offset_right = 760.0
-offset_bottom = 162.0
+offset_bottom = 116.0
 theme_override_font_sizes/font_size = 26
 text = "采集晶体修复前哨核心（0/10）"
 
