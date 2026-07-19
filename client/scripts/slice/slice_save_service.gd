@@ -3,9 +3,11 @@ extends RefCounted
 
 ## Lightweight save service for the slice world. Physically isolated from the
 ## frozen legacy SaveService: its own directory, schema and JSON layout, no
-## shared code or state. Persists the minimal core-loop state (crystal count,
-## repaired flag, harvested cluster names, player position) as plain JSON with
-## one rotated backup and an atomic temp-then-rename write.
+## shared code or state. Persists the slice loop state (crystal and catalyst
+## counts, the repaired and reactor-active flags, harvested cluster names,
+## placed collectors, carry state, player position) as plain JSON with one
+## rotated backup and an atomic temp-then-rename write. New fields are appended
+## as optional keys (default on absence), so schema stays 1 with no migration.
 
 const SAVE_SCHEMA_VERSION := 1
 const GAME_VERSION := "prototype-slice-01"
@@ -29,7 +31,10 @@ func save_state(state: Dictionary) -> Dictionary:
 		"game_version": GAME_VERSION,
 		"updated_at": _local_time_text(),
 		"crystal_count": int(state.get("crystal_count", 0)),
+		"catalyst_count": int(state.get("catalyst_count", 0)),
 		"core_repaired": bool(state.get("core_repaired", false)),
+		"core_energy": int(state.get("core_energy", 0)),
+		"reactor_active": bool(state.get("reactor_active", false)),
 		"harvested_clusters": _string_array(state.get("harvested_clusters", [])),
 		"collectors": _cell_array(state.get("collectors", [])),
 		"carrying_collector": bool(state.get("carrying_collector", false)),
@@ -124,7 +129,10 @@ func _read_file(save_file: String) -> Dictionary:
 		"message": "已读取切片存档。",
 		"data": {
 			"crystal_count": int(save_data.get("crystal_count", 0)),
+			"catalyst_count": int(save_data.get("catalyst_count", 0)),
 			"core_repaired": bool(save_data.get("core_repaired", false)),
+			"core_energy": int(save_data.get("core_energy", 0)),
+			"reactor_active": bool(save_data.get("reactor_active", false)),
 			"harvested_clusters": _string_array(save_data.get("harvested_clusters", [])),
 			"collectors": _cell_array(save_data.get("collectors", [])),
 			"carrying_collector": bool(save_data.get("carrying_collector", false)),

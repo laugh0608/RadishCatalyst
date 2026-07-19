@@ -3,12 +3,15 @@ extends Node2D
 
 ## Slice world root: one seamless map (base zone west, crystal expedition
 ## zone east) plus the player. Owns the runtime loop state (crystal count,
-## the core-repaired flag, harvested cluster names, placed collectors and the
-## collector carry state) and an isolated SliceSaveService that auto-persists
-## this state on every change and on quit. `startup_load` (set by Boot before
-## the node enters the tree) decides whether _ready restores the saved slice
-## or starts a fresh one. Collector placement is only valid on free crystal
-## ground (docs/features/slice-harvest-and-build-v1.md).
+## catalyst count, the core-repaired and reactor-active flags, harvested
+## cluster names, placed collectors and the collector carry state) and an
+## isolated SliceSaveService that auto-persists this state on every change and
+## on quit. `startup_load` (set by Boot before the node enters the tree)
+## decides whether _ready restores the saved slice or starts a fresh one.
+## Collector placement is only valid on free crystal ground
+## (docs/features/slice-harvest-and-build-v1.md). Once activated, the reactor
+## refines crystals into catalyst on a timed tick
+## (docs/features/slice-recipe-processing-v1.md).
 
 const MAP_SCENE := "res://scenes/slice/SliceMap.tscn"
 const PLAYER_SCENE := "res://scenes/slice/SlicePlayer.tscn"
@@ -21,18 +24,28 @@ const START_SPAWN := Vector2(400, 576)
 const TILE_SIZE := 32.0
 const COLLECTOR_COST := 5
 const COLLECTOR_PRODUCE_INTERVAL := 10.0
+const REACTOR_INPUT_PER_BATCH := 2
+const REACTOR_OUTPUT_PER_BATCH := 1
+const REACTOR_PRODUCE_INTERVAL := 10.0
+const CATALYST_CAP := 20
+const CORE_CHARGE_TARGET := 10
 const CRYSTAL_GROUND_SOURCE_ID := 2
 const GHOST_VALID_COLOR := Color(0.45, 1.0, 0.9, 0.55)
 const GHOST_INVALID_COLOR := Color(1.0, 0.4, 0.35, 0.55)
 
 signal crystals_changed(count: int)
+signal catalyst_changed(count: int)
+signal core_charge_changed(energy: int)
 signal core_repair_completed
 
 ## Set by Boot before add_child: true loads the saved slice, false starts fresh.
 var startup_load := false
 
 var crystal_count := 0
+var catalyst_count := 0
 var core_repaired := false
+var core_energy := 0
+var reactor_active := false
 var harvested_clusters: Array[String] = []
 var collectors: Array[Vector2i] = []
 var carrying_collector := false
@@ -49,6 +62,8 @@ var _target_valid := false
 ## Runtime-only accumulator toward the next collector production tick; partial
 ## sub-interval progress is not persisted (resets to 0 on load).
 var _produce_timer := 0.0
+## Runtime-only accumulator toward the next reactor batch; not persisted.
+var _reactor_timer := 0.0
 
 
 func _ready() -> void:
@@ -103,6 +118,7 @@ func _physics_process(_delta: float) -> void:
 
 func _process(delta: float) -> void:
 	_tick_production(delta)
+	_tick_reactor(delta)
 	_ghost.visible = carrying_collector
 	if not carrying_collector:
 		return
@@ -127,6 +143,39 @@ func _tick_production(delta: float) -> void:
 		_autosave()
 
 
+## Once the reactor is active it consumes REACTOR_INPUT_PER_BATCH crystals to
+## produce REACTOR_OUTPUT_PER_BATCH catalyst every REACTOR_PRODUCE_INTERVAL. It
+## pauses when crystals run short or the catalyst store is full; the banked
+## timer is clamped to one interval while paused so resuming never bursts a
+## backlog. Multiple batches drain in one long frame for framerate independence.
+func _tick_reactor(delta: float) -> void:
+	if not reactor_active:
+		return
+	_reactor_timer += delta
+	var produced := 0
+	while _reactor_timer >= REACTOR_PRODUCE_INTERVAL:
+		if crystal_count < REACTOR_INPUT_PER_BATCH or catalyst_count >= CATALYST_CAP:
+			_reactor_timer = minf(_reactor_timer, REACTOR_PRODUCE_INTERVAL)
+			break
+		crystal_count -= REACTOR_INPUT_PER_BATCH
+		catalyst_count = mini(catalyst_count + REACTOR_OUTPUT_PER_BATCH, CATALYST_CAP)
+		produced += 1
+		_reactor_timer -= REACTOR_PRODUCE_INTERVAL
+	if produced > 0:
+		crystals_changed.emit(crystal_count)
+		catalyst_changed.emit(catalyst_count)
+		_autosave()
+
+
+## First interaction with the reactor turns it on; afterwards it runs on the
+## timed tick above. Idempotent so a second press is a no-op.
+func activate_reactor() -> void:
+	if reactor_active:
+		return
+	reactor_active = true
+	_autosave()
+
+
 func harvest_crystals(cluster_name: String, amount: int) -> void:
 	if not harvested_clusters.has(cluster_name):
 		harvested_clusters.append(cluster_name)
@@ -148,6 +197,25 @@ func mark_core_repaired() -> void:
 	core_repaired = true
 	core_repair_completed.emit()
 	_autosave()
+
+
+func is_core_charged() -> bool:
+	return core_energy >= CORE_CHARGE_TARGET
+
+
+## Inject stored catalyst into the repaired core, advancing core_energy toward
+## CORE_CHARGE_TARGET. One press pours in as much catalyst as fits (bounded by
+## the remaining need and the current store) so charging is not press-spammy.
+func charge_core() -> bool:
+	if not core_repaired or is_core_charged() or catalyst_count <= 0:
+		return false
+	var used := mini(catalyst_count, CORE_CHARGE_TARGET - core_energy)
+	catalyst_count -= used
+	core_energy += used
+	catalyst_changed.emit(catalyst_count)
+	core_charge_changed.emit(core_energy)
+	_autosave()
+	return true
 
 
 func try_craft_collector() -> bool:
@@ -207,7 +275,10 @@ func _restore_from_save() -> void:
 
 	var data: Dictionary = result.get("data", {})
 	crystal_count = int(data.get("crystal_count", 0))
+	catalyst_count = int(data.get("catalyst_count", 0))
 	core_repaired = bool(data.get("core_repaired", false))
+	core_energy = int(data.get("core_energy", 0))
+	reactor_active = bool(data.get("reactor_active", false))
 	harvested_clusters = _to_string_array(data.get("harvested_clusters", []))
 	carrying_collector = bool(data.get("carrying_collector", false))
 	collectors.clear()
@@ -233,6 +304,8 @@ func _restore_from_save() -> void:
 	)
 
 	crystals_changed.emit(crystal_count)
+	catalyst_changed.emit(catalyst_count)
+	core_charge_changed.emit(core_energy)
 	if core_repaired:
 		core_repair_completed.emit()
 
@@ -244,7 +317,10 @@ func _autosave() -> void:
 		serialized_collectors.append([cell.x, cell.y])
 	var result := _save_service.save_state({
 		"crystal_count": crystal_count,
+		"catalyst_count": catalyst_count,
 		"core_repaired": core_repaired,
+		"core_energy": core_energy,
+		"reactor_active": reactor_active,
 		"harvested_clusters": harvested_clusters,
 		"collectors": serialized_collectors,
 		"carrying_collector": carrying_collector,

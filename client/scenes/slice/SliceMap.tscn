@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="TileSet" path="res://assets/tiles/slice/ground_tileset.tres" id="1_ground_tileset"]
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/outpost_core_damaged.png" id="2_core_damaged"]
@@ -11,6 +11,8 @@
 [ext_resource type="Script" path="res://scripts/slice/crystal_node.gd" id="9_crystal_node"]
 [ext_resource type="Script" path="res://scripts/slice/core_repair_site.gd" id="10_core_repair"]
 [ext_resource type="Script" path="res://scripts/slice/workbench_build_site.gd" id="11_build_site"]
+[ext_resource type="Script" path="res://scripts/slice/reactor_process_site.gd" id="12_reactor_site"]
+[ext_resource type="Script" path="res://scripts/slice/storage_read_site.gd" id="13_storage_site"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_footprint_2x2"]
 size = Vector2(64, 64)
@@ -62,6 +64,14 @@ texture = ExtResource("3_reactor")
 [node name="Collision" type="CollisionShape2D" parent="World/Reactor/Footprint"]
 position = Vector2(-8, 16)
 shape = SubResource("RectangleShape2D_footprint_3x2")
+
+[node name="ProcessSite" type="Area2D" parent="World/Reactor"]
+script = ExtResource("12_reactor_site")
+
+[node name="Collision" type="CollisionShape2D" parent="World/Reactor/ProcessSite"]
+position = Vector2(0, 16)
+shape = SubResource("RectangleShape2D_footprint_3x2")
+
 [node name="Storage" type="Sprite2D" parent="World"]
 position = Vector2(856, 336)
 texture = ExtResource("4_storage")
@@ -70,6 +80,13 @@ texture = ExtResource("4_storage")
 
 [node name="Collision" type="CollisionShape2D" parent="World/Storage/Footprint"]
 position = Vector2(-8, 16)
+shape = SubResource("RectangleShape2D_footprint_3x2")
+
+[node name="ReadSite" type="Area2D" parent="World/Storage"]
+script = ExtResource("13_storage_site")
+
+[node name="Collision" type="CollisionShape2D" parent="World/Storage/ReadSite"]
+position = Vector2(0, 16)
 shape = SubResource("RectangleShape2D_footprint_3x2")
 [node name="Workbench" type="Sprite2D" parent="World"]
 position = Vector2(816, 528)
