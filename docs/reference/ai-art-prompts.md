@@ -276,6 +276,19 @@ three separate clusters small medium large, arranged in a row, not
 touching
 ```
 
+#### D1-S 三向站立帧（2026-07-18 增补，方向性 idle 素材）
+
+站立帧提示词由对应方向帧表提示词机械改写：去掉 sprite sheet / 4 walk cycle frames / walking 相关短语，朝向词块与对应方向帧表完全一致（这是三方向已实证的朝向控制模板，不得改动），并加入统一站立词块：
+
+```text
+standing perfectly still, both feet together planted on the ground, legs
+straight, arms relaxed at the sides, no walking, no mid-step pose, full
+body, single character
+```
+
+每张挂新锚点（只借风格）+ 对应方向达标帧表（角色与朝向参考）。拼装完成版见交接副本 S5'' 段；产出接入为方向性 idle（`idle_down` / `idle_side` + 翻转 / `idle_up`）。
+
+
 ### 第六批：主角立绘（UI 层，不用像素风格块）
 
 立绘只用于对话与角色界面，不进世界层、不做像素归一。整段直接使用：
