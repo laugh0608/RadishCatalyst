@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前唯一活跃功能专题：[Slice Viewpoint Correction V1](slice-viewpoint-correction-v1.md)——介质级视角修正轮（世界层素材由 3/4 立面重出为高机位近正俯视 + 画面填充止血），2026-07-18 萝卜SAMA实机定档。
+当前无活跃功能专题：视角修正轮已收口（2026-07-19），下一专题定为配方加工（化工链第二步、首次工业转化），专题文档由新会话按文档先行建立；敌人等新世界层素材生成的视角前置已解除，生成会话由萝卜SAMA择时启动。
 
 已收口专题：
 
@@ -34,6 +34,7 @@
 - [Slice Minimal Core Loop V1](slice-minimal-core-loop-v1.md)——采集晶体 → 回基地 → 修复核心 + 最小 HUD（2026-07-17 收口）。
 - [Slice Save Persistence V1](slice-save-persistence-v1.md)——独立切片存档服务、载入存档改指切片、自动存档与读档还原（2026-07-18 收口）。
 - [Slice Harvest And Build V1](slice-harvest-and-build-v1.md)——整备台建造采集器、晶体地放置、自动产出，首条化工链第一步（2026-07-18 收口）。
+- [Slice Viewpoint Correction V1](slice-viewpoint-correction-v1.md)——投影口径修订为高斜角俯视、全部世界层素材重出换装、画面填充止血、方向性 idle（2026-07-19 收口）。
 
 背景结论（复盘与证据轮）：
 
