@@ -11,6 +11,7 @@
 
 - [Client Data Dictionary](client-data-dictionary.md)
 - [Content Authoring Guide](content-authoring-guide.md)
+- [Godot Runtime Verification Guide](godot-runtime-verification-guide.md)
 
 ## Historical / External References
 
