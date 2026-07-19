@@ -3,13 +3,16 @@ extends RefCounted
 
 ## Lightweight save service for the slice world. Physically isolated from the
 ## frozen legacy SaveService: its own directory, schema and JSON layout, no
-## shared code or state. Persists the slice loop state (crystal and catalyst
-## counts, the repaired and reactor-active flags, harvested cluster names,
-## placed collectors, carry state, player position) as plain JSON with one
-## rotated backup and an atomic temp-then-rename write. New fields are appended
-## as optional keys (default on absence), so schema stays 1 with no migration.
+## shared code or state. Persists the slice loop state as plain JSON with one
+## rotated backup and an atomic temp-then-rename write.
+##
+## Schema 2 (L0 resource model, docs/features/slice-item-inventory-model-v1.md):
+## the player backpack is stored as an inventory dict and collectors carry their
+## output buffer. Schema 1 (the abstract global-counter prototype) is not
+## migrated — a version mismatch starts a fresh slice, acceptable for the single
+## throwaway prototype save in the slice phase.
 
-const SAVE_SCHEMA_VERSION := 1
+const SAVE_SCHEMA_VERSION := 2
 const GAME_VERSION := "prototype-slice-01"
 const SAVE_DIR := "user://saves/slice"
 const SAVE_FILE := "user://saves/slice/slice_world.json"
@@ -30,13 +33,13 @@ func save_state(state: Dictionary) -> Dictionary:
 		"save_schema_version": SAVE_SCHEMA_VERSION,
 		"game_version": GAME_VERSION,
 		"updated_at": _local_time_text(),
-		"crystal_count": int(state.get("crystal_count", 0)),
+		"pocket": _inventory_dict(state.get("pocket", {})),
 		"catalyst_count": int(state.get("catalyst_count", 0)),
 		"core_repaired": bool(state.get("core_repaired", false)),
 		"core_energy": int(state.get("core_energy", 0)),
 		"reactor_active": bool(state.get("reactor_active", false)),
 		"harvested_clusters": _string_array(state.get("harvested_clusters", [])),
-		"collectors": _cell_array(state.get("collectors", [])),
+		"collectors": _collector_array(state.get("collectors", [])),
 		"carrying_collector": bool(state.get("carrying_collector", false)),
 		"player_x": float(state.get("player_x", 0.0)),
 		"player_y": float(state.get("player_y", 0.0))
@@ -89,8 +92,11 @@ func get_summary() -> Dictionary:
 
 	var data: Dictionary = result.get("data", {})
 	var repaired_text := "核心已修复" if bool(data.get("core_repaired", false)) else "核心未修复"
-	var details := "晶体 %d；%s；最近保存 %s" % [
-		int(data.get("crystal_count", 0)),
+	var pocket_dict: Dictionary = data.get("pocket", {})
+	var contents = pocket_dict.get("contents", {})
+	var crystal := int(contents.get(SliceWorld.ITEM_CRYSTAL, 0)) if contents is Dictionary else 0
+	var details := "背包晶体 %d；%s；最近保存 %s" % [
+		crystal,
 		repaired_text,
 		String(data.get("updated_at", "未知时间"))
 	]
@@ -128,13 +134,13 @@ func _read_file(save_file: String) -> Dictionary:
 		"success": true,
 		"message": "已读取切片存档。",
 		"data": {
-			"crystal_count": int(save_data.get("crystal_count", 0)),
+			"pocket": _inventory_dict(save_data.get("pocket", {})),
 			"catalyst_count": int(save_data.get("catalyst_count", 0)),
 			"core_repaired": bool(save_data.get("core_repaired", false)),
 			"core_energy": int(save_data.get("core_energy", 0)),
 			"reactor_active": bool(save_data.get("reactor_active", false)),
 			"harvested_clusters": _string_array(save_data.get("harvested_clusters", [])),
-			"collectors": _cell_array(save_data.get("collectors", [])),
+			"collectors": _collector_array(save_data.get("collectors", [])),
 			"carrying_collector": bool(save_data.get("carrying_collector", false)),
 			"player_x": float(save_data.get("player_x", 0.0)),
 			"player_y": float(save_data.get("player_y", 0.0)),
@@ -151,13 +157,34 @@ func _string_array(value) -> Array[String]:
 	return result
 
 
-## Collector cells travel as [[x, y], ...]; malformed entries are dropped.
-func _cell_array(value) -> Array:
+## Normalizes an inventory payload to {capacity, contents{item:count>0}}.
+func _inventory_dict(value) -> Dictionary:
+	var capacity := 0
+	var contents := {}
+	if value is Dictionary:
+		capacity = int(value.get("capacity", 0))
+		var raw = value.get("contents", {})
+		if raw is Dictionary:
+			for key in raw:
+				var n := int(raw[key])
+				if n > 0:
+					contents[String(key)] = n
+	return {"capacity": capacity, "contents": contents}
+
+
+## Collectors travel as [{cell:[x, y], buffer:n}, ...]; malformed entries drop.
+func _collector_array(value) -> Array:
 	var result: Array = []
 	if value is Array:
 		for item in value:
-			if item is Array and item.size() == 2:
-				result.append([int(item[0]), int(item[1])])
+			if not (item is Dictionary):
+				continue
+			var cell = item.get("cell", null)
+			if cell is Array and cell.size() == 2:
+				result.append({
+					"cell": [int(cell[0]), int(cell[1])],
+					"buffer": int(item.get("buffer", 0))
+				})
 	return result
 
 

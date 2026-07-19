@@ -1,17 +1,19 @@
 class_name SliceWorld
 extends Node2D
 
-## Slice world root: one seamless map (base zone west, crystal expedition
-## zone east) plus the player. Owns the runtime loop state (crystal count,
-## catalyst count, the core-repaired and reactor-active flags, harvested
-## cluster names, placed collectors and the collector carry state) and an
-## isolated SliceSaveService that auto-persists this state on every change and
-## on quit. `startup_load` (set by Boot before the node enters the tree)
-## decides whether _ready restores the saved slice or starts a fresh one.
-## Collector placement is only valid on free crystal ground
-## (docs/features/slice-harvest-and-build-v1.md). Once activated, the reactor
-## refines crystals into catalyst on a timed tick
-## (docs/features/slice-recipe-processing-v1.md).
+## Slice world root: one seamless map (base zone west, crystal expedition zone
+## east) plus the player. Owns the runtime loop state and an isolated
+## SliceSaveService that auto-persists on every change and on quit.
+##
+## L0 (docs/features/slice-item-inventory-model-v1.md) migrates the resource
+## model from global int counters to spatial item inventories. Package 1 (this
+## file): crystals are items held in the player backpack `pocket` and in each
+## collector's output buffer; harvesting and collector pickup fill the backpack;
+## core repair and collector crafting spend backpack crystals. The reactor and
+## catalyst / core-charging stay on the abstract fields from the prior topic and
+## are re-wired to item buffers in L0 package 2 — the reactor tick is inert here.
+## `startup_load` (set by Boot before the node enters the tree) decides whether
+## _ready restores the saved slice or starts a fresh one.
 
 const MAP_SCENE := "res://scenes/slice/SliceMap.tscn"
 const PLAYER_SCENE := "res://scenes/slice/SlicePlayer.tscn"
@@ -22,6 +24,11 @@ const REPAIRED_CORE_TEXTURE := preload("res://assets/sprites/slice/outpost_core_
 const MAP_PIXEL_SIZE := Vector2i(2560, 768)
 const START_SPAWN := Vector2(400, 576)
 const TILE_SIZE := 32.0
+
+const ITEM_CRYSTAL := "crystal"
+const ITEM_CATALYST := "catalyst"
+const POCKET_CAPACITY := 30
+
 const COLLECTOR_COST := 5
 const COLLECTOR_PRODUCE_INTERVAL := 10.0
 const REACTOR_INPUT_PER_BATCH := 2
@@ -33,7 +40,8 @@ const CRYSTAL_GROUND_SOURCE_ID := 2
 const GHOST_VALID_COLOR := Color(0.45, 1.0, 0.9, 0.55)
 const GHOST_INVALID_COLOR := Color(1.0, 0.4, 0.35, 0.55)
 
-signal crystals_changed(count: int)
+## Emitted whenever the player backpack contents change (drives HUD refresh).
+signal inventory_changed
 signal catalyst_changed(count: int)
 signal core_charge_changed(energy: int)
 signal core_repair_completed
@@ -41,13 +49,13 @@ signal core_repair_completed
 ## Set by Boot before add_child: true loads the saved slice, false starts fresh.
 var startup_load := false
 
-var crystal_count := 0
+## Player backpack (spatial crystal/catalyst store, capacity-limited).
+var pocket := Inventory.new(POCKET_CAPACITY)
 var catalyst_count := 0
 var core_repaired := false
 var core_energy := 0
 var reactor_active := false
 var harvested_clusters: Array[String] = []
-var collectors: Array[Vector2i] = []
 var carrying_collector := false
 
 var player: SlicePlayer
@@ -59,11 +67,11 @@ var _ghost: Sprite2D
 var _place_query: PhysicsShapeQueryParameters2D
 var _target_cell := Vector2i.ZERO
 var _target_valid := false
+## Placed collector nodes (source of truth for production and saving).
+var _collector_nodes: Array[SliceCollector] = []
 ## Runtime-only accumulator toward the next collector production tick; partial
 ## sub-interval progress is not persisted (resets to 0 on load).
 var _produce_timer := 0.0
-## Runtime-only accumulator toward the next reactor batch; not persisted.
-var _reactor_timer := 0.0
 
 
 func _ready() -> void:
@@ -118,7 +126,6 @@ func _physics_process(_delta: float) -> void:
 
 func _process(delta: float) -> void:
 	_tick_production(delta)
-	_tick_reactor(delta)
 	_ghost.visible = carrying_collector
 	if not carrying_collector:
 		return
@@ -126,49 +133,36 @@ func _process(delta: float) -> void:
 	_ghost.modulate = GHOST_VALID_COLOR if _target_valid else GHOST_INVALID_COLOR
 
 
-## Each placed collector yields 1 crystal per COLLECTOR_PRODUCE_INTERVAL. The
-## timer bank drains multiple ticks if a frame is long so output is
-## framerate-independent; crystals_changed drives the HUD and autosave.
+## Each collector fills its own output buffer by 1 crystal per interval, pausing
+## at BUFFER_CAP. The timer bank drains multiple ticks on a long frame so output
+## is framerate-independent; players withdraw buffers via collect_from_collector.
 func _tick_production(delta: float) -> void:
-	if collectors.is_empty():
+	if _collector_nodes.is_empty():
 		return
 	_produce_timer += delta
-	var produced := 0
+	var ticks := 0
 	while _produce_timer >= COLLECTOR_PRODUCE_INTERVAL:
 		_produce_timer -= COLLECTOR_PRODUCE_INTERVAL
-		produced += collectors.size()
-	if produced > 0:
-		crystal_count += produced
-		crystals_changed.emit(crystal_count)
-		_autosave()
-
-
-## Once the reactor is active it consumes REACTOR_INPUT_PER_BATCH crystals to
-## produce REACTOR_OUTPUT_PER_BATCH catalyst every REACTOR_PRODUCE_INTERVAL. It
-## pauses when crystals run short or the catalyst store is full; the banked
-## timer is clamped to one interval while paused so resuming never bursts a
-## backlog. Multiple batches drain in one long frame for framerate independence.
-func _tick_reactor(delta: float) -> void:
-	if not reactor_active:
+		ticks += 1
+	if ticks <= 0:
 		return
-	_reactor_timer += delta
-	var produced := 0
-	while _reactor_timer >= REACTOR_PRODUCE_INTERVAL:
-		if crystal_count < REACTOR_INPUT_PER_BATCH or catalyst_count >= CATALYST_CAP:
-			_reactor_timer = minf(_reactor_timer, REACTOR_PRODUCE_INTERVAL)
-			break
-		crystal_count -= REACTOR_INPUT_PER_BATCH
-		catalyst_count = mini(catalyst_count + REACTOR_OUTPUT_PER_BATCH, CATALYST_CAP)
-		produced += 1
-		_reactor_timer -= REACTOR_PRODUCE_INTERVAL
-	if produced > 0:
-		crystals_changed.emit(crystal_count)
-		catalyst_changed.emit(catalyst_count)
+	var produced := false
+	for collector in _collector_nodes:
+		for _t in ticks:
+			if collector.has_space():
+				collector.produce(1)
+				produced = true
+	if produced:
 		_autosave()
 
 
-## First interaction with the reactor turns it on; afterwards it runs on the
-## timed tick above. Idempotent so a second press is a no-op.
+## L0 package 2 re-wires the reactor to pull crystals from its input buffer and
+## push catalyst to its output buffer. Until then the reactor tick is inert:
+## activation is still recorded (and saved) but no processing happens.
+func _tick_reactor(_delta: float) -> void:
+	pass
+
+
 func activate_reactor() -> void:
 	if reactor_active:
 		return
@@ -176,19 +170,37 @@ func activate_reactor() -> void:
 	_autosave()
 
 
-func harvest_crystals(cluster_name: String, amount: int) -> void:
+## Harvest a crystal cluster into the backpack. Returns false (leaving the
+## cluster in place) if the backpack cannot hold the full yield.
+func harvest_crystals(cluster_name: String, amount: int) -> bool:
+	if pocket.free_space() < amount:
+		return false
 	if not harvested_clusters.has(cluster_name):
 		harvested_clusters.append(cluster_name)
-	crystal_count += amount
-	crystals_changed.emit(crystal_count)
+	pocket.add(ITEM_CRYSTAL, amount)
+	inventory_changed.emit()
+	_autosave()
+	return true
+
+
+## Move a collector's output buffer into the backpack, bounded by free space.
+func collect_from_collector(collector: SliceCollector) -> void:
+	if collector.buffer <= 0:
+		return
+	var moved := pocket.add(ITEM_CRYSTAL, collector.buffer)
+	if moved <= 0:
+		return
+	collector.buffer -= moved
+	inventory_changed.emit()
 	_autosave()
 
 
-func spend_crystals(amount: int) -> bool:
-	if crystal_count < amount:
+## Spend crystals from the backpack (core repair, collector crafting).
+func spend_pocket_crystals(amount: int) -> bool:
+	if pocket.count(ITEM_CRYSTAL) < amount:
 		return false
-	crystal_count -= amount
-	crystals_changed.emit(crystal_count)
+	pocket.remove(ITEM_CRYSTAL, amount)
+	inventory_changed.emit()
 	_autosave()
 	return true
 
@@ -204,8 +216,8 @@ func is_core_charged() -> bool:
 
 
 ## Inject stored catalyst into the repaired core, advancing core_energy toward
-## CORE_CHARGE_TARGET. One press pours in as much catalyst as fits (bounded by
-## the remaining need and the current store) so charging is not press-spammy.
+## CORE_CHARGE_TARGET. Catalyst is still the abstract count in package 1; L0
+## package 2 sources it from the core store inventory instead.
 func charge_core() -> bool:
 	if not core_repaired or is_core_charged() or catalyst_count <= 0:
 		return false
@@ -219,20 +231,19 @@ func charge_core() -> bool:
 
 
 func try_craft_collector() -> bool:
-	if carrying_collector or crystal_count < COLLECTOR_COST:
+	if carrying_collector or pocket.count(ITEM_CRYSTAL) < COLLECTOR_COST:
 		return false
 	# Set the carry flag before spending so the autosave inside
-	# spend_crystals persists both together.
+	# spend_pocket_crystals persists both together.
 	carrying_collector = true
-	spend_crystals(COLLECTOR_COST)
+	spend_pocket_crystals(COLLECTOR_COST)
 	return true
 
 
 func try_place_collector() -> bool:
 	if not carrying_collector or not _can_place(_target_cell):
 		return false
-	_spawn_collector(_target_cell)
-	collectors.append(_target_cell)
+	_spawn_collector(_target_cell, 0)
 	carrying_collector = false
 	_autosave()
 	return true
@@ -252,10 +263,14 @@ func _can_place(top_left: Vector2i) -> bool:
 	return get_world_2d().direct_space_state.intersect_shape(_place_query, 1).is_empty()
 
 
-func _spawn_collector(top_left: Vector2i) -> void:
-	var collector := (load(COLLECTOR_SCENE) as PackedScene).instantiate() as Node2D
+func _spawn_collector(top_left: Vector2i, buffer: int) -> SliceCollector:
+	var collector := (load(COLLECTOR_SCENE) as PackedScene).instantiate() as SliceCollector
+	collector.cell = top_left
+	collector.buffer = buffer
 	collector.position = _block_center(top_left)
 	_map.get_node("World").add_child(collector)
+	_collector_nodes.append(collector)
+	return collector
 
 
 func _block_center(top_left: Vector2i) -> Vector2:
@@ -274,18 +289,22 @@ func _restore_from_save() -> void:
 		return
 
 	var data: Dictionary = result.get("data", {})
-	crystal_count = int(data.get("crystal_count", 0))
+	pocket = Inventory.from_dict(data.get("pocket", {}))
+	if pocket.capacity != POCKET_CAPACITY:
+		pocket.capacity = POCKET_CAPACITY
 	catalyst_count = int(data.get("catalyst_count", 0))
 	core_repaired = bool(data.get("core_repaired", false))
 	core_energy = int(data.get("core_energy", 0))
 	reactor_active = bool(data.get("reactor_active", false))
 	harvested_clusters = _to_string_array(data.get("harvested_clusters", []))
 	carrying_collector = bool(data.get("carrying_collector", false))
-	collectors.clear()
-	for cell_pair in data.get("collectors", []):
-		var cell := Vector2i(int(cell_pair[0]), int(cell_pair[1]))
-		collectors.append(cell)
-		_spawn_collector(cell)
+
+	for entry in data.get("collectors", []):
+		if not (entry is Dictionary):
+			continue
+		var raw_cell = entry.get("cell", [0, 0])
+		var cell := Vector2i(int(raw_cell[0]), int(raw_cell[1]))
+		_spawn_collector(cell, int(entry.get("buffer", 0)))
 
 	var world_node := _map.get_node("World")
 	for cluster_name in harvested_clusters:
@@ -303,7 +322,7 @@ func _restore_from_save() -> void:
 		float(data.get("player_y", START_SPAWN.y))
 	)
 
-	crystals_changed.emit(crystal_count)
+	inventory_changed.emit()
 	catalyst_changed.emit(catalyst_count)
 	core_charge_changed.emit(core_energy)
 	if core_repaired:
@@ -313,10 +332,13 @@ func _restore_from_save() -> void:
 func _autosave() -> void:
 	var player_position := player.position if player != null else START_SPAWN
 	var serialized_collectors := []
-	for cell in collectors:
-		serialized_collectors.append([cell.x, cell.y])
+	for collector in _collector_nodes:
+		serialized_collectors.append({
+			"cell": [collector.cell.x, collector.cell.y],
+			"buffer": collector.buffer
+		})
 	var result := _save_service.save_state({
-		"crystal_count": crystal_count,
+		"pocket": pocket.to_dict(),
 		"catalyst_count": catalyst_count,
 		"core_repaired": core_repaired,
 		"core_energy": core_energy,

@@ -14,9 +14,10 @@ var repaired_texture: Texture2D = preload("res://assets/sprites/slice/outpost_co
 
 func get_prompt(world: Node) -> String:
 	if not world.core_repaired:
-		if world.crystal_count >= REPAIR_COST:
+		var crystals: int = world.pocket.count(SliceWorld.ITEM_CRYSTAL)
+		if crystals >= REPAIR_COST:
 			return "按 E 修复前哨核心（消耗 %d 晶体）" % REPAIR_COST
-		return "修复前哨核心需要 %d 晶体（当前 %d）" % [REPAIR_COST, world.crystal_count]
+		return "修复前哨核心需要 %d 晶体（背包 %d）" % [REPAIR_COST, crystals]
 	if world.is_core_charged():
 		return "前哨核心已充能"
 	if world.catalyst_count <= 0:
@@ -26,7 +27,7 @@ func get_prompt(world: Node) -> String:
 
 func try_interact(world: Node) -> void:
 	if not world.core_repaired:
-		if not world.spend_crystals(REPAIR_COST):
+		if not world.spend_pocket_crystals(REPAIR_COST):
 			return
 		(get_parent() as Sprite2D).texture = repaired_texture
 		world.mark_core_repaired()

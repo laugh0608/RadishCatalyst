@@ -10,9 +10,10 @@ extends Area2D
 func get_prompt(world: Node) -> String:
 	if world.carrying_collector:
 		return "先放置携带中的采集器"
-	if world.crystal_count >= SliceWorld.COLLECTOR_COST:
+	var crystals: int = world.pocket.count(SliceWorld.ITEM_CRYSTAL)
+	if crystals >= SliceWorld.COLLECTOR_COST:
 		return "按 E 制造采集器（消耗 %d 晶体）" % SliceWorld.COLLECTOR_COST
-	return "制造采集器需要 %d 晶体（当前 %d）" % [SliceWorld.COLLECTOR_COST, world.crystal_count]
+	return "制造采集器需要 %d 晶体（背包 %d）" % [SliceWorld.COLLECTOR_COST, crystals]
 
 
 func try_interact(world: Node) -> void:
