@@ -18,6 +18,7 @@ extends Node2D
 const MAP_SCENE := "res://scenes/slice/SliceMap.tscn"
 const PLAYER_SCENE := "res://scenes/slice/SlicePlayer.tscn"
 const HUD_SCENE := "res://scenes/slice/SliceHud.tscn"
+const CRAFT_PANEL_SCENE := "res://scenes/slice/SliceCraftPanel.tscn"
 const COLLECTOR_SCENE := "res://scenes/slice/SliceCollector.tscn"
 const COLLECTOR_TEXTURE := preload("res://assets/sprites/slice/collector.png")
 const REPAIRED_CORE_TEXTURE := preload("res://assets/sprites/slice/outpost_core_repaired.png")
@@ -27,9 +28,9 @@ const TILE_SIZE := 32.0
 
 const ITEM_CRYSTAL := "crystal"
 const ITEM_CATALYST := "catalyst"
+const ITEM_PART := "part"
 const POCKET_CAPACITY := 30
 
-const COLLECTOR_COST := 5
 const COLLECTOR_PRODUCE_INTERVAL := 10.0
 const REACTOR_INPUT_PER_BATCH := 2
 const REACTOR_OUTPUT_PER_BATCH := 1
@@ -93,6 +94,10 @@ func _ready() -> void:
 	var hud := (load(HUD_SCENE) as PackedScene).instantiate() as SliceHud
 	add_child(hud)
 	hud.setup(self, player)
+
+	var craft_panel := (load(CRAFT_PANEL_SCENE) as PackedScene).instantiate() as SliceCraftPanel
+	add_child(craft_panel)
+	craft_panel.setup(self)
 
 	# Placement preview ghost draws above the y-sorted world container.
 	_ghost = Sprite2D.new()
@@ -195,11 +200,11 @@ func collect_from_collector(collector: SliceCollector) -> void:
 	_autosave()
 
 
-## Spend crystals from the backpack (core repair, collector crafting).
-func spend_pocket_crystals(amount: int) -> bool:
-	if pocket.count(ITEM_CRYSTAL) < amount:
+## Spend a specific item from the backpack (e.g. mechanical parts for repair).
+func spend_pocket_item(item: String, amount: int) -> bool:
+	if pocket.count(item) < amount:
 		return false
-	pocket.remove(ITEM_CRYSTAL, amount)
+	pocket.remove(item, amount)
 	inventory_changed.emit()
 	_autosave()
 	return true
@@ -230,13 +235,35 @@ func charge_core() -> bool:
 	return true
 
 
-func try_craft_collector() -> bool:
-	if carrying_collector or pocket.count(ITEM_CRYSTAL) < COLLECTOR_COST:
+## Craft a recipe from SliceRecipes: item recipes add to the backpack, carry
+## recipes (buildings) enter the carry-and-place state. Returns false if a
+## precondition fails (already carrying, backpack full, or unaffordable).
+func craft(recipe_id: String) -> bool:
+	var recipe := SliceRecipes.find(recipe_id)
+	if recipe.is_empty():
 		return false
-	# Set the carry flag before spending so the autosave inside
-	# spend_pocket_crystals persists both together.
-	carrying_collector = true
-	spend_pocket_crystals(COLLECTOR_COST)
+	var kind := String(recipe["kind"])
+	if kind == "carry" and carrying_collector:
+		return false
+	if kind == "item" and pocket.free_space() < 1:
+		return false
+	if not can_afford(recipe["cost"]):
+		return false
+	for item in recipe["cost"]:
+		pocket.remove(String(item), int(recipe["cost"][item]))
+	if kind == "item":
+		pocket.add(String(recipe["output"]), 1)
+	else:
+		carrying_collector = true
+	inventory_changed.emit()
+	_autosave()
+	return true
+
+
+func can_afford(cost: Dictionary) -> bool:
+	for item in cost:
+		if pocket.count(String(item)) < int(cost[item]):
+			return false
 	return true
 
 

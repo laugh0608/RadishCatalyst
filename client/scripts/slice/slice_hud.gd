@@ -10,6 +10,7 @@ var _world: Node
 var _player: SlicePlayer
 
 @onready var crystal_label: Label = $CrystalCount
+@onready var part_label: Label = $PartCount
 @onready var goal_label: Label = $Goal
 @onready var prompt_label: Label = $Prompt
 
@@ -26,11 +27,12 @@ func _refresh_state() -> void:
 	crystal_label.text = "背包晶体：%d/%d" % [
 		_world.pocket.count(SliceWorld.ITEM_CRYSTAL), SliceWorld.POCKET_CAPACITY
 	]
+	part_label.text = "背包零件：%d" % _world.pocket.count(SliceWorld.ITEM_PART)
 	if _world.core_repaired:
 		goal_label.text = "前哨核心已修复"
 	else:
-		goal_label.text = "采集晶体修复前哨核心（%d/%d）" % [
-			_world.pocket.count(SliceWorld.ITEM_CRYSTAL), CoreRepairSite.REPAIR_COST
+		goal_label.text = "合成机械零件修复前哨核心（%d/%d）" % [
+			_world.pocket.count(SliceWorld.ITEM_PART), CoreRepairSite.REPAIR_PART_COST
 		]
 
 

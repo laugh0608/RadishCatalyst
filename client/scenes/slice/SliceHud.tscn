@@ -13,13 +13,21 @@ offset_bottom = 72.0
 theme_override_font_sizes/font_size = 34
 text = "背包晶体：0/30"
 
-[node name="Goal" type="Label" parent="."]
+[node name="PartCount" type="Label" parent="."]
 offset_left = 32.0
 offset_top = 74.0
+offset_right = 480.0
+offset_bottom = 112.0
+theme_override_font_sizes/font_size = 30
+text = "背包零件：0"
+
+[node name="Goal" type="Label" parent="."]
+offset_left = 32.0
+offset_top = 116.0
 offset_right = 760.0
-offset_bottom = 116.0
+offset_bottom = 158.0
 theme_override_font_sizes/font_size = 26
-text = "采集晶体修复前哨核心（0/10）"
+text = "合成机械零件修复前哨核心（0/3）"
 
 [node name="Prompt" type="Label" parent="."]
 anchor_left = 0.5
