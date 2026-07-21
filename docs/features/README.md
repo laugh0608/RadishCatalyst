@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃细专题：[Slice Building Placement And Power Grid V1](slice-building-placement-and-power-grid-v1.md)——配方加工 arc 的 L3；泛化采集器专用放置，覆盖六类建筑的配方 / 套件、网格足印、旋转、碰撞、预览、取消、调整、拆除与返还，并以核心 + 中继二值图扩展供电。专题已建立，下一步先完成地板、中继、传送带与方向 / 状态素材硬闸门。L0 / L1 / [L2 核心功能化](slice-core-functionalization-v1.md)均已收口；arc 总览与层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
+当前活跃细专题：[Slice Building Placement And Power Grid V1](slice-building-placement-and-power-grid-v1.md)——配方加工 arc 的 L3；泛化采集器专用放置，覆盖六类建筑的配方 / 套件、网格足印、旋转、碰撞、预览、取消、调整、拆除与返还，并以核心 + 中继二值图扩展供电。L3-A 工业地板已归一接入，下一步完成电力中继、传送带与设备方向 / 状态素材硬闸门。L0 / L1 / [L2 核心功能化](slice-core-functionalization-v1.md)均已收口；arc 总览与层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
 
 已收口专题：
 

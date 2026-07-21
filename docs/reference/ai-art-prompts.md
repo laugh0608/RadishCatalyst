@@ -23,7 +23,7 @@
 
 1. 整批使用同一工具生成；中途换工具就重开一批，不混批。
 2. 先生成风格锚点（第一批基础反应器），定稿 1 张后续资产挂它做图像参考。
-3. 每个资产生成 2 到 4 个候选；不满意直接重出，不在原图上局部修补。
+3. 每个资产生成 2 到 4 个候选；首张必须先过“主体原型 + 投影方向”硬判据，任一不符就先修提示词，不沿原提示继续消耗候选额度；不满意直接重出，不在原图上局部修补。
 4. 单体资产要求纯色深灰背景或透明背景；地面贴图要求 seamless tileable。
 5. 锚点未定稿前只生成第一批，不批量往后跑。
 6. 图像会话稳定性约束（单会话最多 3 张、生成与接入分离、立即复制到 art-intake、中断先清点）以 `CLAUDE.md` / `AGENTS.md` 为准。
@@ -43,9 +43,11 @@ blueprint, not an eye-level facade, not a low side view, industrial
 sci-fi chemical outpost on a hostile alien planet, limited palette, clean
 readable pixel clusters, dark desaturated teal-gray metal and rock,
 glowing cyan energy accents, warm amber work lights, crisp pixel edges,
-strong readable silhouette, light from top-left, muted colors, no
-dithering noise, no text, no watermark, no UI, single centered subject on
-a plain dark background
+strong readable silhouette, fixed screen-axis-aligned camera azimuth,
+the base front edge horizontal with no diagonal three-quarter yaw or
+downward-facing chassis, light from top-left, muted colors, no dithering
+noise, no text, no watermark, no UI, single centered subject on a plain
+dark background
 ```
 
 要点中文对照：高斜角俯视（顶面最大面 + 一圈可见侧壁高度带、有厚度、参照 Factorio / Mindustry；既不做纯平俯视蓝图、也不做平视立面 / 低角度侧视）、像素风、限定调色板、干净可读的像素块、工业科幻化工前哨、暗青灰主色 + 青色发光 + 琥珀工作灯、像素边缘清晰、剪影清楚、光源固定左上、无文字水印。
@@ -60,11 +62,18 @@ a plain dark background
 
 ```text
 blurry, photorealistic, 3D render, painterly, smooth gradients, isometric
-room interior, side view, horizon line, sky, text, letters, watermark, UI
+room interior, diagonal three-quarter yaw, downward-facing chassis,
+side view, horizon line, sky, text, letters, watermark, UI
 frame, border, multiple unrelated objects, human face closeup,
 oversaturated, alchemy, alchemist, occult symbols, magic circle, runes,
 potion bottles, parchment, wax seal, medieval, gothic, brass steampunk,
 fantasy workshop
+```
+
+### L3-B 电力中继（接全局风格块，按多对象规则调整结尾）
+
+```text
+the same slender upright utility power-relay pole shown twice side by side, identical geometry and straight screen-aligned orientation: a narrow one-cell base, a tall thin vertical mast, one compact horizontal crossarm and two small insulators; total height at least 1.5 times the base width; left unpowered with cyan fully dark and one red fault lamp, right powered with red off and a steady cyan lamp plus one short pulse between insulators; no squat platform machine, transformer box, reactor body, wide equipment base, diagonal yaw, leaning mast or front-facing facade
 ```
 
 ## 介质证据轮执行清单
