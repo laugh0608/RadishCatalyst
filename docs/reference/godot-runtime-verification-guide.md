@@ -1,10 +1,12 @@
 # Godot Runtime Verification Guide (For AI Agents)
 
-更新时间：2026-07-19
+更新时间：2026-07-21
 
 ## 用途与定位
 
 本文沉淀"命令行启动 Godot → 自动跑真实场景 → 断言 + 截图复核"的通用方法，供任何执行会话 / AI Agent 做运行时验证使用。方法在 2026-07 切片各专题（存档闭环、建造放置、视角修正换装）中反复实证。
+
+**硬约束入口**：`AGENTS.md` 与 `CLAUDE.md` 已将本指南列为玩家可见功能的强制验证流程；默认 `check-client` 或纯 headless 断言不能替代正式入口、有窗口输入链、自动截图与截图实际审阅。
 
 - 定位：玩家可见目标以**实机截图与运行时路径复核为主证据**，`check-client` 静态检查只兜底；本方法就是产出主证据的机械化手段。
 - 约束：启动 Godot 属 `CLAUDE.md` 中"需要先告知用户再执行"的操作，跑之前先在回复中告知萝卜SAMA。
@@ -30,7 +32,7 @@ Godot 4 的 `--script` 参数接受一个 `extends SceneTree` 的 GDScript，**�
 3. 输出重定向到日志文件，过滤真实错误（macOS 有 `noErr` / 证书类噪声）：
    `grep -E "passed|SCRIPT ERROR|ERROR:" log | grep -v noErr | grep -v certificate`
 4. 检查脚本放 `/tmp/`（不进仓库、不触发 uid sidecar 检查），跑完删除。
-5. 截图落到 git 忽略的 `assets/art-intake/<日期>-<主题>-preview/`，供人工 / 视觉复核，结论记入当周周志。
+5. 截图落到 git 忽略的 `assets/art-intake/<日期>-<主题>-preview/`，供人工 / 视觉复核，结论记入当周周志。脚本可以生成多张原图，但 Codex 单会话最多读取 3 张；多图审阅前先运行 `./scripts/create-screenshot-contact-sheet.sh <output.png> <inputs...>` 在磁盘生成一张带编号的联系表，优先只读取联系表。
 
 ## 脚本骨架模板
 
@@ -103,4 +105,5 @@ func _screenshot(file_name: String) -> void:
 
 - 失败收集进数组、最后统一 `push_error` 并 `quit(1)`；调用侧看 exit code 判定，不靠肉眼扫日志。
 - 每包验证的断言数、截图文件名、结论写入当周周志；截图目录不入库（`art-intake` 已忽略），复核图（放大对比等）用完即删。
+- Codex 单会话内所有图片工具结果合计不得超过 3 张；自动化产生更多截图时，原图留在磁盘，以联系表和非图像元数据完成首轮核对，超额细看交由新会话。
 - Bash 调用侧记得设超时（本仓库经验：单次带窗口运行 < 60 秒，卡住通常是脚本没 `quit()`）。

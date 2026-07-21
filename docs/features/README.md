@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-07-19
+更新时间：2026-07-21
 
 ## 用途
 
@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃专题：[Slice Recipe Processing V1](slice-recipe-processing-v1.md)（空间工厂自动化 arc）——分层 L0 资源模型改造 → L1 手持合成 → L2 核心功能化（电力 + 中央仓库）→ L3 建造放置泛化 → L4 传送带物流 → L5 反应器接入收束。**L0**（背包空间物品、起始只有受损核心）已收口（2026-07-19）；**L1**（[手持合成面板](slice-handheld-crafting-panel-v1.md)：晶体→机械零件→修核心 / 造采集器）已实现待实机收口；下一层 L2（需美术授权）或 L3 由萝卜SAMA择序。抽象实现（旧包 1+2）已回退。各层状态见 arc 总览层表。
+当前活跃细专题：[Slice Core Functionalization V1](slice-core-functionalization-v1.md)——配方加工 arc 的 L2，修复核心后启用直供电源与中央仓库；25 项 headless 与 25 项有窗口正式入口 / 输入 / 截图断言通过，5 张截图完成 AI 视觉复核，待萝卜SAMA实机收口。L0 资源模型、L1 [手持合成面板](slice-handheld-crafting-panel-v1.md)均已收口；L3 承接建造放置与电线杆 / 中继扩展供电网。arc 总览与层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
 
 已收口专题：
 

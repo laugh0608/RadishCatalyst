@@ -19,6 +19,7 @@ func setup(world: Node, player: SlicePlayer) -> void:
 	_world = world
 	_player = player
 	world.inventory_changed.connect(_refresh_state)
+	world.core_storage_changed.connect(_refresh_state)
 	world.core_repair_completed.connect(_refresh_state)
 	_refresh_state()
 
@@ -29,7 +30,9 @@ func _refresh_state() -> void:
 	]
 	part_label.text = "背包零件：%d" % _world.pocket.count(SliceWorld.ITEM_PART)
 	if _world.core_repaired:
-		goal_label.text = "前哨核心已修复"
+		goal_label.text = "核心直供：在线（6 格）｜中央仓库：%d/%d" % [
+			_world.core_storage.total(), SliceWorld.CORE_STORAGE_CAPACITY
+		]
 	else:
 		goal_label.text = "合成机械零件修复前哨核心（%d/%d）" % [
 			_world.pocket.count(SliceWorld.ITEM_PART), CoreRepairSite.REPAIR_PART_COST

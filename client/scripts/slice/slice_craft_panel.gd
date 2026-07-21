@@ -26,6 +26,8 @@ func _on_inventory_changed() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("craft_menu"):
+		if not _open:
+			_world.close_core_storage()
 		_open = not _open
 		_root.visible = _open
 		if _open:
@@ -42,6 +44,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		_world.craft(String(SliceRecipes.RECIPES[index]["id"]))
 		_refresh()
 		get_viewport().set_input_as_handled()
+
+
+func close() -> void:
+	_open = false
+	_root.visible = false
 
 
 func _refresh() -> void:

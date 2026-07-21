@@ -6,27 +6,36 @@ extends RefCounted
 ## shared code or state. Persists the slice loop state as plain JSON with one
 ## rotated backup and an atomic temp-then-rename write.
 ##
-## Schema 2 (L0 resource model, docs/features/slice-item-inventory-model-v1.md):
-## the player backpack is stored as an inventory dict and collectors carry their
-## output buffer. Schema 1 (the abstract global-counter prototype) is not
-## migrated — a version mismatch starts a fresh slice, acceptable for the single
-## throwaway prototype save in the slice phase.
+## Schema 3 (L2 core functionalization) adds the core central warehouse.
+## Schema 2 remains readable and migrates with an empty warehouse so L0 / L1
+## progress survives the layer transition. Schema 1 is not migrated.
 
-const SAVE_SCHEMA_VERSION := 2
-const GAME_VERSION := "prototype-slice-01"
-const SAVE_DIR := "user://saves/slice"
-const SAVE_FILE := "user://saves/slice/slice_world.json"
-const SAVE_BACKUP_FILE := "user://saves/slice/slice_world.bak.json"
-const SAVE_TEMP_FILE := "user://saves/slice/slice_world.tmp.json"
+const SAVE_SCHEMA_VERSION := 3
+const MIN_SUPPORTED_SCHEMA_VERSION := 2
+const GAME_VERSION := "prototype-slice-02"
+const DEFAULT_SAVE_DIR := "user://saves/slice"
+
+var _save_dir: String
+var _save_file: String
+var _save_backup_file: String
+var _save_temp_file: String
+
+
+func _init(save_dir: String = DEFAULT_SAVE_DIR) -> void:
+	_save_dir = save_dir.trim_suffix("/")
+	_save_file = _save_dir.path_join("slice_world.json")
+	_save_backup_file = _save_dir.path_join("slice_world.bak.json")
+	_save_temp_file = _save_dir.path_join("slice_world.tmp.json")
 
 
 func has_save() -> bool:
-	return FileAccess.file_exists(SAVE_FILE) or FileAccess.file_exists(SAVE_BACKUP_FILE)
+	return FileAccess.file_exists(_save_file) or FileAccess.file_exists(_save_backup_file)
 
 
 func save_state(state: Dictionary) -> Dictionary:
-	var dir_error := DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(SAVE_DIR))
-	if dir_error != OK and not DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(SAVE_DIR)):
+	var absolute_save_dir := ProjectSettings.globalize_path(_save_dir)
+	var dir_error := DirAccess.make_dir_recursive_absolute(absolute_save_dir)
+	if dir_error != OK and not DirAccess.dir_exists_absolute(absolute_save_dir):
 		return _failure("创建切片存档目录失败：%s。" % error_string(dir_error))
 
 	var save_data := {
@@ -34,6 +43,7 @@ func save_state(state: Dictionary) -> Dictionary:
 		"game_version": GAME_VERSION,
 		"updated_at": _local_time_text(),
 		"pocket": _inventory_dict(state.get("pocket", {})),
+		"core_storage": _inventory_dict(state.get("core_storage", {})),
 		"catalyst_count": int(state.get("catalyst_count", 0)),
 		"core_repaired": bool(state.get("core_repaired", false)),
 		"core_energy": int(state.get("core_energy", 0)),
@@ -45,23 +55,23 @@ func save_state(state: Dictionary) -> Dictionary:
 		"player_y": float(state.get("player_y", 0.0))
 	}
 
-	var temp := FileAccess.open(SAVE_TEMP_FILE, FileAccess.WRITE)
+	var temp := FileAccess.open(_save_temp_file, FileAccess.WRITE)
 	if temp == null:
 		return _failure("打开切片存档临时文件失败：%s。" % error_string(FileAccess.get_open_error()))
 	temp.store_string(JSON.stringify(save_data, "\t"))
 	temp.close()
 
-	if FileAccess.file_exists(SAVE_FILE):
+	if FileAccess.file_exists(_save_file):
 		var backup_error := DirAccess.copy_absolute(
-			ProjectSettings.globalize_path(SAVE_FILE),
-			ProjectSettings.globalize_path(SAVE_BACKUP_FILE)
+			ProjectSettings.globalize_path(_save_file),
+			ProjectSettings.globalize_path(_save_backup_file)
 		)
 		if backup_error != OK:
 			return _failure("备份切片存档失败：%s。当前存档未被覆盖。" % error_string(backup_error))
 
 	var rename_error := DirAccess.rename_absolute(
-		ProjectSettings.globalize_path(SAVE_TEMP_FILE),
-		ProjectSettings.globalize_path(SAVE_FILE)
+		ProjectSettings.globalize_path(_save_temp_file),
+		ProjectSettings.globalize_path(_save_file)
 	)
 	if rename_error != OK:
 		return _failure("写入切片存档失败：%s。" % error_string(rename_error))
@@ -69,7 +79,7 @@ func save_state(state: Dictionary) -> Dictionary:
 
 
 func load_state() -> Dictionary:
-	for save_file in [SAVE_FILE, SAVE_BACKUP_FILE]:
+	for save_file in [_save_file, _save_backup_file]:
 		if not FileAccess.file_exists(save_file):
 			continue
 		var read_result := _read_file(save_file)
@@ -93,10 +103,17 @@ func get_summary() -> Dictionary:
 	var data: Dictionary = result.get("data", {})
 	var repaired_text := "核心已修复" if bool(data.get("core_repaired", false)) else "核心未修复"
 	var pocket_dict: Dictionary = data.get("pocket", {})
+	var core_storage_dict: Dictionary = data.get("core_storage", {})
 	var contents = pocket_dict.get("contents", {})
+	var core_contents = core_storage_dict.get("contents", {})
 	var crystal := int(contents.get(SliceWorld.ITEM_CRYSTAL, 0)) if contents is Dictionary else 0
-	var details := "背包晶体 %d；%s；最近保存 %s" % [
+	var stored := 0
+	if core_contents is Dictionary:
+		for amount in core_contents.values():
+			stored += int(amount)
+	var details := "背包晶体 %d；核心仓库 %d；%s；最近保存 %s" % [
 		crystal,
+		stored,
 		repaired_text,
 		String(data.get("updated_at", "未知时间"))
 	]
@@ -125,7 +142,7 @@ func _read_file(save_file: String) -> Dictionary:
 
 	var save_data: Dictionary = json.data
 	var version := int(save_data.get("save_schema_version", -1))
-	if version != SAVE_SCHEMA_VERSION:
+	if version < MIN_SUPPORTED_SCHEMA_VERSION or version > SAVE_SCHEMA_VERSION:
 		return _failure("切片存档版本不兼容（文件版本 %d，当前支持 %d），当前运行状态已保留。" % [
 			version, SAVE_SCHEMA_VERSION
 		])
@@ -135,6 +152,7 @@ func _read_file(save_file: String) -> Dictionary:
 		"message": "已读取切片存档。",
 		"data": {
 			"pocket": _inventory_dict(save_data.get("pocket", {})),
+			"core_storage": _inventory_dict(save_data.get("core_storage", {})),
 			"catalyst_count": int(save_data.get("catalyst_count", 0)),
 			"core_repaired": bool(save_data.get("core_repaired", false)),
 			"core_energy": int(save_data.get("core_energy", 0)),

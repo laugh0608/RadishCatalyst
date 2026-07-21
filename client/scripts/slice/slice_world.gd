@@ -9,9 +9,9 @@ extends Node2D
 ## model from global int counters to spatial item inventories. Package 1 (this
 ## file): crystals are items held in the player backpack `pocket` and in each
 ## collector's output buffer; harvesting and collector pickup fill the backpack;
-## core repair and collector crafting spend backpack crystals. The reactor and
+## core repair and collector crafting spend backpack items. The reactor and
 ## catalyst / core-charging stay on the abstract fields from the prior topic and
-## are re-wired to item buffers in L0 package 2 — the reactor tick is inert here.
+## are re-wired to item buffers in later arc layers — the reactor tick is inert here.
 ## `startup_load` (set by Boot before the node enters the tree) decides whether
 ## _ready restores the saved slice or starts a fresh one.
 
@@ -19,6 +19,7 @@ const MAP_SCENE := "res://scenes/slice/SliceMap.tscn"
 const PLAYER_SCENE := "res://scenes/slice/SlicePlayer.tscn"
 const HUD_SCENE := "res://scenes/slice/SliceHud.tscn"
 const CRAFT_PANEL_SCENE := "res://scenes/slice/SliceCraftPanel.tscn"
+const CORE_STORAGE_PANEL_SCENE := "res://scenes/slice/SliceCoreStoragePanel.tscn"
 const COLLECTOR_SCENE := "res://scenes/slice/SliceCollector.tscn"
 const COLLECTOR_TEXTURE := preload("res://assets/sprites/slice/collector.png")
 const REPAIRED_CORE_TEXTURE := preload("res://assets/sprites/slice/outpost_core_repaired.png")
@@ -30,6 +31,8 @@ const ITEM_CRYSTAL := "crystal"
 const ITEM_CATALYST := "catalyst"
 const ITEM_PART := "part"
 const POCKET_CAPACITY := 30
+const CORE_STORAGE_CAPACITY := 120
+const CORE_DIRECT_POWER_RANGE := 192.0
 
 const COLLECTOR_PRODUCE_INTERVAL := 10.0
 const REACTOR_INPUT_PER_BATCH := 2
@@ -43,6 +46,7 @@ const GHOST_INVALID_COLOR := Color(1.0, 0.4, 0.35, 0.55)
 
 ## Emitted whenever the player backpack contents change (drives HUD refresh).
 signal inventory_changed
+signal core_storage_changed
 signal catalyst_changed(count: int)
 signal core_charge_changed(energy: int)
 signal core_repair_completed
@@ -52,6 +56,7 @@ var startup_load := false
 
 ## Player backpack (spatial crystal/catalyst store, capacity-limited).
 var pocket := Inventory.new(POCKET_CAPACITY)
+var core_storage := Inventory.new(CORE_STORAGE_CAPACITY)
 var catalyst_count := 0
 var core_repaired := false
 var core_energy := 0
@@ -61,8 +66,12 @@ var carrying_collector := false
 
 var player: SlicePlayer
 
-var _save_service := SliceSaveService.new()
+## Injected by Boot so menu summary and world reads/writes share one service.
+## Standalone scene checks keep the production default unless they replace it.
+var save_service := SliceSaveService.new()
 var _map: Node2D
+var _craft_panel: SliceCraftPanel
+var _core_storage_panel: SliceCoreStoragePanel
 var _ground: TileMapLayer
 var _ghost: Sprite2D
 var _place_query: PhysicsShapeQueryParameters2D
@@ -95,9 +104,13 @@ func _ready() -> void:
 	add_child(hud)
 	hud.setup(self, player)
 
-	var craft_panel := (load(CRAFT_PANEL_SCENE) as PackedScene).instantiate() as SliceCraftPanel
-	add_child(craft_panel)
-	craft_panel.setup(self)
+	_craft_panel = (load(CRAFT_PANEL_SCENE) as PackedScene).instantiate() as SliceCraftPanel
+	add_child(_craft_panel)
+	_craft_panel.setup(self)
+
+	_core_storage_panel = (load(CORE_STORAGE_PANEL_SCENE) as PackedScene).instantiate() as SliceCoreStoragePanel
+	add_child(_core_storage_panel)
+	_core_storage_panel.setup(self)
 
 	# Placement preview ghost draws above the y-sorted world container.
 	_ghost = Sprite2D.new()
@@ -216,6 +229,68 @@ func mark_core_repaired() -> void:
 	_autosave()
 
 
+func is_core_power_online() -> bool:
+	return core_repaired
+
+
+## Fixed L2 direct supply around the repaired core. L3 relays extend this
+## source; consumers should query this method rather than duplicating range
+## rules or treating core repair as machine power implicitly.
+func is_position_core_powered(world_position: Vector2) -> bool:
+	if not core_repaired:
+		return false
+	var core := _map.get_node_or_null("World/OutpostCoreDamaged") as Node2D
+	return core != null and core.global_position.distance_to(world_position) <= CORE_DIRECT_POWER_RANGE
+
+
+func open_core_storage() -> bool:
+	if not core_repaired or _core_storage_panel == null:
+		return false
+	if _craft_panel != null:
+		_craft_panel.close()
+	_core_storage_panel.open()
+	return true
+
+
+func close_core_storage() -> void:
+	if _core_storage_panel != null:
+		_core_storage_panel.close()
+
+
+func is_core_storage_open() -> bool:
+	return _core_storage_panel != null and _core_storage_panel.is_open()
+
+
+## Moves as much of one item as possible from the backpack into the repaired
+## core warehouse. Returns the amount moved; the add-before-remove ordering
+## makes a capacity-limited transfer lossless.
+func transfer_pocket_to_core(item: String) -> int:
+	if not core_repaired:
+		return 0
+	var moved := core_storage.add(item, pocket.count(item))
+	if moved <= 0:
+		return 0
+	pocket.remove(item, moved)
+	inventory_changed.emit()
+	core_storage_changed.emit()
+	_autosave()
+	return moved
+
+
+## Moves as much of one item as the backpack can accept from the core store.
+func transfer_core_to_pocket(item: String) -> int:
+	if not core_repaired:
+		return 0
+	var moved := pocket.add(item, core_storage.count(item))
+	if moved <= 0:
+		return 0
+	core_storage.remove(item, moved)
+	inventory_changed.emit()
+	core_storage_changed.emit()
+	_autosave()
+	return moved
+
+
 func is_core_charged() -> bool:
 	return core_energy >= CORE_CHARGE_TARGET
 
@@ -310,7 +385,7 @@ func _notification(what: int) -> void:
 
 
 func _restore_from_save() -> void:
-	var result := _save_service.load_state()
+	var result := save_service.load_state()
 	if not bool(result.get("success", false)):
 		push_warning("切片读档失败，按新档继续：%s" % String(result.get("message", "")))
 		return
@@ -319,6 +394,9 @@ func _restore_from_save() -> void:
 	pocket = Inventory.from_dict(data.get("pocket", {}))
 	if pocket.capacity != POCKET_CAPACITY:
 		pocket.capacity = POCKET_CAPACITY
+	core_storage = Inventory.from_dict(data.get("core_storage", {}))
+	if core_storage.capacity != CORE_STORAGE_CAPACITY:
+		core_storage.capacity = CORE_STORAGE_CAPACITY
 	catalyst_count = int(data.get("catalyst_count", 0))
 	core_repaired = bool(data.get("core_repaired", false))
 	core_energy = int(data.get("core_energy", 0))
@@ -350,6 +428,7 @@ func _restore_from_save() -> void:
 	)
 
 	inventory_changed.emit()
+	core_storage_changed.emit()
 	catalyst_changed.emit(catalyst_count)
 	core_charge_changed.emit(core_energy)
 	if core_repaired:
@@ -364,8 +443,9 @@ func _autosave() -> void:
 			"cell": [collector.cell.x, collector.cell.y],
 			"buffer": collector.buffer
 		})
-	var result := _save_service.save_state({
+	var result := save_service.save_state({
 		"pocket": pocket.to_dict(),
+		"core_storage": core_storage.to_dict(),
 		"catalyst_count": catalyst_count,
 		"core_repaired": core_repaired,
 		"core_energy": core_energy,

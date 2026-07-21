@@ -1,8 +1,8 @@
 # Slice Handheld Crafting Panel V1
 
-更新时间：2026-07-19
+更新时间：2026-07-21
 
-状态：配方加工 arc 的 **L1 手持合成面板** 可执行细专题。三项取舍已定档、一并实现（2026-07-19，18 项运行时断言全过），待萝卜SAMA实机复核收口。承接 [L0 库存模型](slice-item-inventory-model-v1.md)（背包空间物品）。arc 总览与层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
+状态：配方加工 arc 的 **L1 手持合成面板**可执行细专题，已于 2026-07-21 经萝卜SAMA实机确认收口。承接 [L0 库存模型](slice-item-inventory-model-v1.md)（背包空间物品）；下一层进入 [L2 核心功能化](slice-core-functionalization-v1.md)。arc 总览与层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
 
 ## 定位
 
@@ -61,5 +61,5 @@ arc 第二层：给玩家一个**随身合成面板**——用背包里的原料
 
 ## 验收与移交
 
-- L1 收口 = 包实机（开面板 → 造采集器 / 零件 → 放置 / 修核心，存读还原）经萝卜SAMA确认；回填 arc 层状态表、同步三入口、记周志。
-- 下一层 L2（核心功能化：电力 + 中央仓库）或 L3（建造放置泛化）由萝卜SAMA择序；L2 起需美术授权。
+- L1 收口 = 包实机（开面板 → 造采集器 / 零件 → 放置 / 修核心，存读还原）经萝卜SAMA确认；2026-07-21 已达成。
+- 下一层为 [L2 核心功能化](slice-core-functionalization-v1.md)：核心直供电源 + 中央仓库；电线杆 / 中继扩展网随 L3 通用放置落地。

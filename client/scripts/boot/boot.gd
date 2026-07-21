@@ -63,6 +63,7 @@ func _start_slice(startup_load: bool) -> void:
 	if slice_world == null:
 		push_error("Slice base scene does not instantiate as SliceWorld.")
 		return
+	slice_world.save_service = slice_save_service
 	slice_world.startup_load = startup_load
 
 	if startup_menu != null:
