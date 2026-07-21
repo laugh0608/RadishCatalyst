@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃细专题：[Slice Core Functionalization V1](slice-core-functionalization-v1.md)——配方加工 arc 的 L2，修复核心后启用直供电源与中央仓库；25 项 headless 与 25 项有窗口正式入口 / 输入 / 截图断言通过，5 张截图完成 AI 视觉复核，待萝卜SAMA实机收口。L0 资源模型、L1 [手持合成面板](slice-handheld-crafting-panel-v1.md)均已收口；L3 承接建造放置与电线杆 / 中继扩展供电网。arc 总览与层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
+当前活跃细专题：[Slice Building Placement And Power Grid V1](slice-building-placement-and-power-grid-v1.md)——配方加工 arc 的 L3；泛化采集器专用放置，覆盖六类建筑的配方 / 套件、网格足印、旋转、碰撞、预览、取消、调整、拆除与返还，并以核心 + 中继二值图扩展供电。专题已建立，下一步先完成地板、中继、传送带与方向 / 状态素材硬闸门。L0 / L1 / [L2 核心功能化](slice-core-functionalization-v1.md)均已收口；arc 总览与层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
 
 已收口专题：
 
@@ -35,6 +35,7 @@
 - [Slice Save Persistence V1](slice-save-persistence-v1.md)——独立切片存档服务、载入存档改指切片、自动存档与读档还原（2026-07-18 收口）。
 - [Slice Harvest And Build V1](slice-harvest-and-build-v1.md)——整备台建造采集器、晶体地放置、自动产出，首条化工链第一步（2026-07-18 收口）。
 - [Slice Viewpoint Correction V1](slice-viewpoint-correction-v1.md)——投影口径修订为高斜角俯视、全部世界层素材重出换装、画面填充止血、方向性 idle（2026-07-19 收口）。
+- [Slice Core Functionalization V1](slice-core-functionalization-v1.md)——修复核心后启用 6 格直供电源与中央仓库，schema 3 存读兼容（2026-07-21 收口）。
 
 背景结论（复盘与证据轮）：
 

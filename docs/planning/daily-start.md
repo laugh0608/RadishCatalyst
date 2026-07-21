@@ -8,9 +8,9 @@
 
 ## 阶段
 
-当前为「切片实现：配方加工 arc（空间工厂自动化）——L0 / L1 已收口，L2 已实现待实机收口」。
+当前为「切片实现：配方加工 arc（空间工厂自动化）——L0 / L1 / L2 已收口，L3 专题已建立待素材硬闸门」。
 
-- 活跃细专题 [L2 核心功能化](../features/slice-core-functionalization-v1.md)：修复核心后的直供电源与中央仓库存取已实现；headless 逻辑与有窗口正式入口 / 输入 / 截图各 25 项断言通过，5 张截图完成 AI 视觉复核，待萝卜SAMA实机收口。通用建造放置和电线杆 / 中继扩展网归 L3。
+- 活跃细专题 [L3 建造放置 + 扩展供电网](../features/slice-building-placement-and-power-grid-v1.md)：六类建筑的配方 / 套件、网格放置、旋转、碰撞、预览、取消、调整、拆除、返还，核心 + 中继二值电网，schema 4、旧档迁移、素材批次与五个实现包均已定义；当前先做素材硬闸门，不写占位实现。
 - 美术介质机械口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一均已定稿）。
 - 章程与复盘结论存档：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)。
 
@@ -20,16 +20,17 @@
 - 2026-07-18 至 07-19 视角修正轮收口：投影口径两次校准定为高斜角俯视，22 张世界层素材重出换装（锚点 + 6 设备 + 13 角色帧 + 3 站立帧），画面填充 fractional、采集器足印 2x2、方向性 idle；萝卜SAMA实机确认。
 - 2026-07-21 L1 手持合成经萝卜SAMA实机确认收口；L2 启动并修正层间依赖，固定核心能力留 L2、可放置扩展电网归 L3。
 - 2026-07-21 L2 代码与自动验证完成：中央仓库面板、双向容量受限转移、6 格核心直供查询、schema 3 与 schema 2 兼容；25 项 headless 与 25 项有窗口正式入口 / 输入 / 截图断言通过。
+- 2026-07-21 萝卜SAMA按正式入口完成“新档采集与合成零件 → 修核心 → 仓库存取晶体 / 零件 → 重启载入再核对”，确认 L2 收口；随后建立 L3 可执行专题并完成采集器专用放置审计。
 - 遗留登记：八方向动画（候选专题）、viewport 整数重构（并入 HUD 换皮）、打磨清单观察项。
 
 ## 下一步事项
 
-1. 正式入口实机复核 L2：修核心 → 按 E 打开仓库 → 数字键存 / 取晶体与零件 → 重启读档确认；通过后回填 L2 收口并切到 L3 设计。
-2. 敌人素材生成会话可由萝卜SAMA择时并行启动（按高斜角口径与提示词库执行）。
+1. 按 L3 专题包 0 分类别启动素材会话：先工业地板与电力中继，再传送带、反应器方向、储物箱方向；生成、审阅、归一和代码接入分会话执行。
+2. 素材过审后从包 1 开始，把采集器专用 `carrying_collector` / 固定 2×2 查询泛化为建筑定义、占用索引、放置控制器和通用实例。
 
 ## 防跑偏规则
 
-- L2 固定核心能力复用现有修复态素材，不需新素材；L3 起的传送带 / 电线杆·中继 / 地板 / 储物箱仍属美术硬闸门，须萝卜SAMA另行授权生成会话。
+- L3 的地板、中继、传送带与设备方向 / 状态变体是玩家可见实现硬闸门；不得用占位色块、程序贴图、运行时强转 sprite 或 debug 网络抢跑。具体拆分见 L3 专题。
 - 不做敌人 / 战斗、任务链、立绘对话、八方向动画、viewport 重构；冻结旧系统与旧检查不动。
 - 玩家可见目标以正式入口实机截图与运行时路径复核为主证据，自动检查只兜底。
 - 自动化可生成多张截图，但单个 Codex 会话最多读取 3 张图片；多图先用 `scripts/create-screenshot-contact-sheet.sh` 合成一张带编号联系表，达到上限后由新会话继续审阅。
@@ -45,7 +46,7 @@
 日常必读：
 
 - `docs/planning/current.md`（配方加工阶段边界与退出条件）
-- `docs/features/slice-core-functionalization-v1.md`（L2 当前可执行范围与验收）
+- `docs/features/slice-building-placement-and-power-grid-v1.md`（L3 当前可执行范围、素材与验收）
 - `docs/features/slice-recipe-processing-v1.md`（配方加工 arc 总览与层状态）
 - `docs/reference/pixel-art-and-grid-standard.md`（投影口径 2026-07-18 修订）
 - `docs/reference/ai-art-prompts.md`（全局风格块 2026-07-18 视角修订）
