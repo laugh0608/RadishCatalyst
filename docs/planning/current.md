@@ -1,12 +1,12 @@
 # Current Plan
 
-更新时间：2026-07-21
+更新时间：2026-07-24
 
 ## 入口约束
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 活跃细专题：[L3 建造放置 + 扩展供电网](../features/slice-building-placement-and-power-grid-v1.md)——L0 / L1 / L2 已收口；L3 十问、六类建筑配方与套件、通用网格放置 / 纠错、二值供电图、schema 4、素材批次与实现包已定档。L3-A 工业地板已归一接入，下一步完成 L3-B 电力中继双态。arc 总览见[配方加工](../features/slice-recipe-processing-v1.md)。
+- 活跃细专题：[L3 建造放置 + 扩展供电网](../features/slice-building-placement-and-power-grid-v1.md)——L0 / L1 / L2 已收口；L3 十问、六类建筑配方与套件、通用网格放置 / 纠错、二值供电图、schema 4、素材批次与实现包已定档。L3-A 工业地板已归一接入；L3-B V5 已通过原型 / 投影首轮硬判据，下一步做目标尺寸与共享色板审阅。arc 总览见[配方加工](../features/slice-recipe-processing-v1.md)。
 - 已收口专题：[基地首屏接入](../features/slice-base-first-screen-integration-v1.md)（07-16）、[晶体远征区](../features/slice-crystal-expedition-v1.md)（07-17，含无缝大地图口径定档）、[最小核心循环](../features/slice-minimal-core-loop-v1.md)（07-17）、[存档与状态持久化](../features/slice-save-persistence-v1.md)（07-18）、[采集与建造](../features/slice-harvest-and-build-v1.md)（07-18）、[视角修正轮](../features/slice-viewpoint-correction-v1.md)（07-19）、[L2 核心功能化](../features/slice-core-functionalization-v1.md)（07-21）。
 - 美术介质机械口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一均已定稿）。
 - 章程与复盘结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（已完成，作决策存档）。

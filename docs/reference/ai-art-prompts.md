@@ -26,7 +26,7 @@
 3. 每个资产生成 2 到 4 个候选；首张必须先过“主体原型 + 投影方向”硬判据，任一不符就先修提示词，不沿原提示继续消耗候选额度；不满意直接重出，不在原图上局部修补。
 4. 单体资产要求纯色深灰背景或透明背景；地面贴图要求 seamless tileable。
 5. 锚点未定稿前只生成第一批，不批量往后跑。
-6. 图像会话稳定性约束（单会话最多 3 张、生成与接入分离、立即复制到 art-intake、中断先清点）以 `CLAUDE.md` / `AGENTS.md` 为准。
+6. 图像会话稳定性约束（默认每轮至多 3 次、明确授权后可按轮追加、生成与接入分离、立即复制到 art-intake、中断先清点）以 `CLAUDE.md` / `AGENTS.md` 为准。
 7. 帧表、双状态、多表情等一图多对象时，把全局风格块末尾的 `single centered subject on a plain dark background` 换成 `objects arranged separately in a row, not touching, on a plain dark background`。
 
 ## 全局风格块（每条提示词前完整粘贴）
@@ -78,7 +78,7 @@ the same slender upright utility power-relay pole shown twice side by side, iden
 
 ## 介质证据轮执行清单
 
-状态：提示词已就绪，启动由萝卜SAMA决定。启动后按本清单逐会话执行：单会话最多 3 次生成、每次 1 张、一个素材类别一个会话。成功 / 失败判据见 [Pixel Art And Grid Standard](pixel-art-and-grid-standard.md)「介质证据轮」。
+状态：提示词已就绪，启动由萝卜SAMA决定。启动后按本清单逐会话执行：默认每轮至多 3 次生成、每次 1 张、一个素材类别一个会话；每轮结束后只有经萝卜SAMA明确授权才能在原会话追加下一轮。成功 / 失败判据见 [Pixel Art And Grid Standard](pixel-art-and-grid-standard.md)「介质证据轮」。
 
 拼装完成、可整篇丢给生图 AI 的执行副本：[Pixel Evidence Round Prompts](pixel-evidence-round-prompts.md)；副本与本库冲突时以本库为准，改提示词先改本库再同步副本。
 
@@ -324,7 +324,7 @@ no text, no watermark
 
 ## 产出提交与审阅流程
 
-1. 一个素材类别一个会话；单会话最多 3 次生成，每次 1 张；超出另开会话。
+1. 一个素材类别一个会话；默认每轮至多 3 次生成、每次 1 张；每轮结束先停手并更新 manifest，萝卜SAMA明确授权后可在原会话追加一轮至多 3 次，否则另开会话。
 2. 每批建目录 `assets/art-intake/YYYY-MM-DD-batchNN/`；项目用图每次生成后即复制到该批次。
 3. 命名 `编号_名称_v候选号.png`；整版把编号连写。
 4. 生成会话只生成与落盘，并在本批 `_manifest.md` 记录 thread ID、源路径、候选编号和未完成清单；审阅、归一、接入在独立执行会话进行。中断后先清点再补，不盲目重试。

@@ -32,7 +32,7 @@ Godot 4 的 `--script` 参数接受一个 `extends SceneTree` 的 GDScript，**�
 3. 输出重定向到日志文件，过滤真实错误（macOS 有 `noErr` / 证书类噪声）：
    `grep -E "passed|SCRIPT ERROR|ERROR:" log | grep -v noErr | grep -v certificate`
 4. 检查脚本放 `/tmp/`（不进仓库、不触发 uid sidecar 检查），跑完删除。
-5. 截图落到 git 忽略的 `assets/art-intake/<日期>-<主题>-preview/`，供人工 / 视觉复核，结论记入当周周志。脚本可以生成多张原图，但 Codex 单会话最多读取 3 张；多图审阅前先运行 `./scripts/create-screenshot-contact-sheet.sh <output.png> <inputs...>` 在磁盘生成一张带编号的联系表，优先只读取联系表。
+5. 截图落到 git 忽略的 `assets/art-intake/<日期>-<主题>-preview/`，供人工 / 视觉复核，结论记入当周周志。脚本可以生成多张原图，但 Codex 单会话默认最多读取 3 张；多图审阅前先运行 `./scripts/create-screenshot-contact-sheet.sh <output.png> <inputs...>` 在磁盘生成一张带编号的联系表，优先只读取联系表；达到默认上限后先报告，萝卜SAMA明确要求当前会话继续时可按每次至多 3 张追加读取。
 
 ## 脚本骨架模板
 
