@@ -1,6 +1,6 @@
 # AI Art Prompt Library V2
 
-更新时间：2026-07-12
+更新时间：2026-07-24
 
 ## 用途与关联
 
@@ -70,11 +70,9 @@ potion bottles, parchment, wax seal, medieval, gothic, brass steampunk,
 fantasy workshop
 ```
 
-### L3-B 电力中继（接全局风格块，按多对象规则调整结尾）
+## 阶段增量提示词
 
-```text
-the same slender upright utility power-relay pole shown twice side by side, identical geometry and straight screen-aligned orientation: a narrow one-cell base, a tall thin vertical mast, one compact horizontal crossarm and two small insulators; total height at least 1.5 times the base width; left unpowered with cyan fully dark and one red fault lamp, right powered with red off and a steady cyan lamp plus one short pulse between insulators; no squat platform machine, transformer box, reactor body, wide equipment base, diagonal yaw, leaning mast or front-facing facade
-```
+L3 建造放置阶段的电力中继、传送带及后续设备方向素材提示词见 [L3 Building Art Prompts](l3-building-art-prompts.md)。执行时仍须完整复用本文全局风格块与多对象排版规则；若两份文档冲突，以本文的全局机械口径和 L3 子库的具体资产约束共同收紧，不得放宽任一方。
 
 ## 介质证据轮执行清单
 

@@ -12,6 +12,9 @@
 - [Client Data Dictionary](client-data-dictionary.md)
 - [Content Authoring Guide](content-authoring-guide.md)
 - [Godot Runtime Verification Guide](godot-runtime-verification-guide.md)
+- [Pixel Art And Grid Standard](pixel-art-and-grid-standard.md)
+- [AI Art Prompt Library V2](ai-art-prompts.md)
+- [L3 Building Art Prompts](l3-building-art-prompts.md)
 
 ## Historical / External References
 

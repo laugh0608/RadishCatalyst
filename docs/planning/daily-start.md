@@ -54,10 +54,11 @@
 - `docs/features/slice-recipe-processing-v1.md`（配方加工 arc 总览与层状态）
 - `docs/reference/pixel-art-and-grid-standard.md`（投影口径 2026-07-18 修订）
 - `docs/reference/ai-art-prompts.md`（全局风格块 2026-07-18 视角修订）
+- `docs/reference/l3-building-art-prompts.md`（L3-C 传送带四向直段正式提示词与硬判据）
 
 按任务选读：
 
-- 归一与提示词口径：`docs/reference/ai-art-prompts.md`
+- 归一与提示词口径：`docs/reference/ai-art-prompts.md`、`docs/reference/l3-building-art-prompts.md`
 - 流程闸门：`docs/process/development-decision-gates.md`
 - 章程与完成定义：`docs/planning/project-purpose-and-solo-ai-development-review.md`
 - 视觉气质与 UI 原则：`docs/product/visual-and-ui-direction.md`
