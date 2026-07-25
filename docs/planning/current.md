@@ -6,7 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 活跃细专题：[L3 建造放置 + 扩展供电网](../features/slice-building-placement-and-power-grid-v1.md)——L0 / L1 / L2 已收口；L3 十问、六类建筑配方与套件、通用网格放置 / 纠错、二值供电图、schema 4、素材批次与实现包已定档。L3-A 工业地板、L3-B 电力中继与 L3-C 四向传送带已归一入库，下一步推进 L3-D / E 方向素材。arc 总览见[配方加工](../features/slice-recipe-processing-v1.md)。
+- 活跃细专题：[L3 建造放置 + 扩展供电网](../features/slice-building-placement-and-power-grid-v1.md)——L0 / L1 / L2 已收口；L3 十问、六类建筑配方与套件、通用网格放置 / 纠错、二值供电图、schema 4、素材批次与实现包已定档。L3-A 至 L3-E 五类素材硬闸门均已收口，下一步进入实现包 1。arc 总览见[配方加工](../features/slice-recipe-processing-v1.md)。
 - 已收口专题：[基地首屏接入](../features/slice-base-first-screen-integration-v1.md)（07-16）、[晶体远征区](../features/slice-crystal-expedition-v1.md)（07-17，含无缝大地图口径定档）、[最小核心循环](../features/slice-minimal-core-loop-v1.md)（07-17）、[存档与状态持久化](../features/slice-save-persistence-v1.md)（07-18）、[采集与建造](../features/slice-harvest-and-build-v1.md)（07-18）、[视角修正轮](../features/slice-viewpoint-correction-v1.md)（07-19）、[L2 核心功能化](../features/slice-core-functionalization-v1.md)（07-21）。
 - 美术介质机械口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一均已定稿）。
 - 章程与复盘结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（已完成，作决策存档）。
@@ -28,13 +28,13 @@
 当前阶段：
 
 ```text
-切片实现：配方加工 arc（空间工厂自动化）——L0 / L1 / L2 已收口，L3 专题已建立待素材硬闸门
+切片实现：配方加工 arc（空间工厂自动化）——L0 / L1 / L2 已收口，L3 素材硬闸门已收口
 ```
 
 ## 当前主线
 
 1. 配方加工 arc 分层：L0 资源模型 → L1 手持合成 → L2 核心直供 + 中央仓库 → L3 建造放置 + 扩展供电网 → L4 传送带物流 → L5 反应器接入。L0 / L1 / L2 已收口，L3 已建立可执行细专题。
-2. L3-A 工业地板已完成 16 格 32px terrain atlas 归一与静态接入，L3-B 电力中继已完成 32×64 双态归一，L3-C 传送带已完成四个 32×32 方向帧；继续完成反应器 / 储物箱方向素材硬闸门，再按“通用建筑模型与放置 → 全建筑调整拆除 → 供电图 → schema 4 与正式入口证据”推进；不使用占位色块抢跑。
+2. L3-A 工业地板、L3-B 电力中继、L3-C 传送带、L3-D 反应器与 L3-E 储物箱方向素材均已归一入库；从实现包 1 开始按“通用建筑模型与放置 → 全建筑调整拆除 → 供电图 → schema 4 与正式入口证据”推进，先迁移地板与采集器并证明旧行为不退化；不使用占位色块抢跑。
 3. 敌人等新世界层素材生成的视角前置已解除，生成会话由萝卜SAMA择时并行启动（为后续战斗专题备料）。
 
 ## 边界与冻结

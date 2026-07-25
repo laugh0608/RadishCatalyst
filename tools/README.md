@@ -9,11 +9,15 @@
 - `normalize_l3a_industrial_floor.py`：校验 L3-A V2 源哈希，逐格裁切 16 个 terrain tile，共享色板归一为 32px 后编排 128x128 atlas，并输出 3x3、6x4 和带内角开孔的平台拼接预览。
 - `normalize_l3b_power_relay.py`：校验 L3-B V5 双态源哈希，以断电杆体作为唯一公共几何归一到 32×64，再受控派生红灯断电态、青灯与短脉冲通电态。
 - `normalize_l3c_conveyor.py`：校验 L3-C V1 四向源哈希，以统一 384×384 源窗口和 12 倍整数块降采样归一为四个 32×32 方向帧，共享限定色板并输出工业地板联系表。
+- `normalize_l3d_reactor_ports.py`：锁定现有 96px 反应器为唯一不可变主体，只在四个基数连接位受控派生琥珀出料 / 青色缺口入料端口，输出四向静态帧与工业地板联系表。
+- `normalize_l3e_storage_hatch.py`：锁定现有 87×88 四罐储存设备为唯一不可变主体，每帧只在一个基数连接位覆盖带青色缺口与琥珀锁扣的双向舱口，输出四向静态帧与工业地板联系表。
 
 ```bash
 python3 tools/normalize_slice_pack1.py            # 全量
 python3 tools/normalize_slice_pack1.py --only grounds   # 单类
 python3 tools/normalize_l3c_conveyor.py           # L3-C 四向传送带
+python3 tools/normalize_l3d_reactor_ports.py      # L3-D 反应器四向端口
+python3 tools/normalize_l3e_storage_hatch.py      # L3-E 储物箱四向舱口
 ```
 
 ## 美术素材处理（旧，Pillow）

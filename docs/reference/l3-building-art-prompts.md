@@ -96,8 +96,42 @@ processing-state change, open tank or extra modules
 - 缩至约 96px 后，必须仅凭端口颜色和结构区分四向；不得依赖文字、UI 箭头、货物、连接管线或传送带。
 - 只生成静态空载端口差分；反应腔亮度、设备状态、外壳开合或加工表现发生变化即越过 L3 边界。
 
-2026-07-25 V1 判废：四帧主体相互接近但相较母版被增高并重设计；琥珀出料口大致按四向变化，青色入料口却固定在屏幕下缘或缺失，未形成严格对置端口对。下一候选必须使用上述编辑式提示词，不沿用 V1 生成式描述。
+2026-07-25 V1 判废：四帧主体相互接近但相较母版被增高并重设计；琥珀出料口大致按四向变化，青色入料口却固定在屏幕下缘或缺失，未形成严格对置端口对。V2 使用编辑式提示词后端口基数、对置关系和上 / 右 / 下 / 左顺序通过，但青色顶腔、结构灯和机身细节仍逐帧重绘，主体像素不变量失败。
 
-## 后续条目
+经萝卜SAMA路线复盘，L3-D 不再消耗 V3：改用 `tools/normalize_l3d_reactor_ports.py` 锁定现有 `96×90` 运行时反应器，只在四个受控连接位派生两个严格对置端口。四张运行时 sprite 的主体像素机械一致，96px 与工业地板联系表视觉复核通过；本段提示词保留为失败证据，不再用于追加生成。
 
-L3-E 储物箱四向端口默认在独立生成会话开工前补齐；不得在 L3-D 会话中顺带生成。只有萝卜SAMA明确点名当前会话切换类别，且 L3-D 已收口并更新 manifest 后，才能按新类别独立批次与首轮计数继续。
+## L3-E 储物箱四向舱口
+
+`client/assets/sprites/slice/storage.png` 是当前 `87×88` 运行时身份与比例主参考；`assets/art-intake/2026-07-18-batch03/b3b4_storage_workbench_oblique_px_v1.png` 只补左侧四罐 `2×2` 储存组的高分辨率材质细节，右侧整备台不得进入结果。使用 precise-object-edit 口径：
+
+```text
+show the exact same approved compact 2-by-2 bank of exactly four distinct
+cylindrical storage silos four times in one horizontal row as four separate
+non-touching cardinal docking frames; every copy has one rear-left silo, one
+rear-right silo, one front-left silo and one front-right silo, with all four
+circular tank tops visible in a square 2-by-2 layout, never a triangular
+three-silo cluster; order frames left to right by the direction of one
+bidirectional logistics hatch: toward the screen top, right, bottom, left;
+preserve the same four tanks in the same 2-by-2 layout, shared screen-axis-aligned base, proportions,
+side-wall height, closed lids, fill-level strips and brightness, cyan status
+lights, amber structural lights, hazard stripe, wear, camera and top-left
+lighting in all four frames; add exactly one compact recessed dark-teal
+bidirectional docking hatch per storage bank, with one restrained cyan notch
+and one small amber mechanical latch, flush to the specified cardinal edge of
+the shared base outside the tanks and fully visible; only the hatch location
+changes between frames; the hatch is one physical module, not separate input
+and output ports; no second fixed port, no arrow, text, cargo, item, connected
+conveyor, pipe, cable, open lid, changing fill level, empty/full state change,
+animation or four different storage designs
+```
+
+首轮硬判据：
+
+- 四帧必须是同一组四罐 `2×2` 储存设备，储罐数量、共用底座、填充条、状态灯、比例、机位和开合状态不得漂移；右侧整备台或四台近似新设计直接判废。
+- 每帧恰好一个带青色缺口与小型琥珀锁扣的暗青双向舱口；左到右固定为上、右、下、左，不得斜向、遮挡或保留固定第二舱口。
+- 缩至 `87–96px` 后必须仅凭舱口位置和结构区分四向；不得依赖文字、UI 箭头、货物、连接传送带或管线。
+- 只生成静态关闭、内容状态不变的方向差分；开盖、填充条亮度变化、空 / 满状态或搬运动画即越过 L3 边界。
+
+2026-07-25 V1 判废：四帧舱口基数与上 / 右 / 下 / 左顺序正确，但主体把批准的四罐 `2×2` 布局简化为三罐三角布局。V2 改用独立裁出的高分辨率四罐储存参考，并逐一锁定后左、后右、前左、前右四个罐位，仍重复生成三罐三角主体。
+
+L3-E 已触发两次失败停手规则，不生成 V3；经萝卜SAMA确认换为 `storage.png` 不可变主体的确定性离线派生。`normalize_l3e_storage_hatch.py` 锁定源哈希，四帧只在上 / 右 / 下 / 左中的一个受控区域覆盖双向舱口，主体其余像素保持一致；`2026-07-25-batch03` manifest 保留两次生成源、完整提示词、失败证据与最终静态资产哈希。
