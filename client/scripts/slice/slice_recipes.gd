@@ -3,8 +3,8 @@ extends RefCounted
 
 ## Crafting recipe table for the handheld panel (arc L1,
 ## docs/features/slice-handheld-crafting-panel-v1.md). Each recipe outputs
-## either a backpack item (`kind = "item"`) or a carried building placed on the
-## grid (`kind = "carry"`). Costs are item_id -> count. Kept as a plain const
+## either a backpack item (`kind = "item"`) or ordinary building kit items
+## (`kind = "building"`). Costs are item_id -> count. Kept as a plain const
 ## table so the panel and SliceWorld share one source of truth.
 
 const ITEM_NAMES := {
@@ -18,13 +18,25 @@ const RECIPES := [
 		"name": "机械零件",
 		"kind": "item",
 		"output": "part",
+		"output_count": 1,
 		"cost": {"crystal": 3},
+	},
+	{
+		"id": "floor",
+		"name": "工业地板 ×4",
+		"kind": "building",
+		"output": "building.floor",
+		"output_count": 4,
+		"building_id": "building.floor",
+		"cost": {"crystal": 1},
 	},
 	{
 		"id": "collector",
 		"name": "采集器",
-		"kind": "carry",
-		"output": "collector",
+		"kind": "building",
+		"output": "building.collector",
+		"output_count": 1,
+		"building_id": "building.collector",
 		"cost": {"part": 2},
 	},
 ]

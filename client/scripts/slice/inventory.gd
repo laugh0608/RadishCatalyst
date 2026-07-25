@@ -52,6 +52,15 @@ func add(item: String, n: int) -> int:
 	return stored
 
 
+## Trusted migration path for items that already existed outside Inventory in
+## an older schema (for example schema-3 carrying_collector). It may leave the
+## inventory temporarily over capacity, but never discards existing player
+## property; normal add() remains capacity-bound until space is freed.
+func restore_existing(item: String, n: int) -> void:
+	if n > 0:
+		_contents[item] = count(item) + n
+
+
 ## Removes up to n; returns the amount actually removed.
 func remove(item: String, n: int) -> int:
 	if n <= 0:

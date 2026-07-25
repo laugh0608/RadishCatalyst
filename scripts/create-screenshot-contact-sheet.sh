@@ -27,13 +27,15 @@ if [[ ! -x "$radish_godot_bin" ]]; then
 fi
 
 log_file="$(mktemp /tmp/radishcatalyst-contact-sheet.XXXXXX.log)"
-trap 'rm -f "$log_file"' EXIT
+godot_log_file="$(mktemp /tmp/radishcatalyst-contact-sheet-godot.XXXXXX.log)"
+trap 'rm -f "$log_file" "$godot_log_file"' EXIT
 
 set +e
 "$radish_godot_bin" \
   --headless \
   --path "$repo_root/client" \
   --script "$repo_root/scripts/create-screenshot-contact-sheet.gd" \
+  --log-file "$godot_log_file" \
   -- "${absolute_arguments[@]}" 2>&1 | tee "$log_file"
 godot_status="${PIPESTATUS[0]}"
 set -e

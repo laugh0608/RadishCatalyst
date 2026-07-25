@@ -11,6 +11,7 @@ var _player: SlicePlayer
 
 @onready var crystal_label: Label = $CrystalCount
 @onready var part_label: Label = $PartCount
+@onready var kit_label: Label = $KitCount
 @onready var goal_label: Label = $Goal
 @onready var prompt_label: Label = $Prompt
 
@@ -21,6 +22,7 @@ func setup(world: Node, player: SlicePlayer) -> void:
 	world.inventory_changed.connect(_refresh_state)
 	world.core_storage_changed.connect(_refresh_state)
 	world.core_repair_completed.connect(_refresh_state)
+	world.placement_changed.connect(_refresh_state)
 	_refresh_state()
 
 
@@ -29,6 +31,10 @@ func _refresh_state() -> void:
 		_world.pocket.count(SliceWorld.ITEM_CRYSTAL), SliceWorld.POCKET_CAPACITY
 	]
 	part_label.text = "背包零件：%d" % _world.pocket.count(SliceWorld.ITEM_PART)
+	kit_label.text = "建筑套件：地板 %d｜采集器 %d" % [
+		_world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
+		_world.pocket.count(SliceWorld.ITEM_COLLECTOR_KIT)
+	]
 	if _world.core_repaired:
 		goal_label.text = "核心直供：在线（6 格）｜中央仓库：%d/%d" % [
 			_world.core_storage.total(), SliceWorld.CORE_STORAGE_CAPACITY
@@ -42,12 +48,17 @@ func _refresh_state() -> void:
 func _process(_delta: float) -> void:
 	if _world == null or _player == null:
 		return
-	if _world.carrying_collector:
+	if _world.is_placement_active():
 		prompt_label.visible = true
 		if _world.is_place_target_valid():
-			prompt_label.text = "按 E 放置采集器"
+			prompt_label.text = "按 E 放置%s｜R 旋转｜Esc 取消" % (
+				_world.selected_building_name()
+			)
 		else:
-			prompt_label.text = "需在空旷晶体地放置采集器"
+			prompt_label.text = "%s：%s｜R 旋转｜Esc 取消" % [
+				_world.selected_building_name(),
+				_world.placement_invalid_reason()
+			]
 		return
 	var target := _player.current_interact_target()
 	var prompt := "" if target == null else str(target.get_prompt(_world))

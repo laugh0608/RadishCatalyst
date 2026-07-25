@@ -21,11 +21,19 @@ offset_bottom = 112.0
 theme_override_font_sizes/font_size = 30
 text = "背包零件：0"
 
+[node name="KitCount" type="Label" parent="."]
+offset_left = 32.0
+offset_top = 112.0
+offset_right = 640.0
+offset_bottom = 150.0
+theme_override_font_sizes/font_size = 26
+text = "建筑套件：地板 0｜采集器 0"
+
 [node name="Goal" type="Label" parent="."]
 offset_left = 32.0
-offset_top = 116.0
+offset_top = 154.0
 offset_right = 760.0
-offset_bottom = 158.0
+offset_bottom = 196.0
 theme_override_font_sizes/font_size = 26
 text = "合成机械零件修复前哨核心（0/3）"
 

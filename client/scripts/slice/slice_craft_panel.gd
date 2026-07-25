@@ -41,7 +41,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	var index := key_event.keycode - KEY_1
 	if index >= 0 and index < SliceRecipes.RECIPES.size():
-		_world.craft(String(SliceRecipes.RECIPES[index]["id"]))
+		var recipe: Dictionary = SliceRecipes.RECIPES[index]
+		var kind := String(recipe["kind"])
+		var output := String(recipe["output"])
+		if kind == "building" and _world.pocket.count(output) > 0:
+			_world.select_building_kit(String(recipe["building_id"]))
+		else:
+			_world.craft(String(recipe["id"]))
 		_refresh()
 		get_viewport().set_input_as_handled()
 
@@ -57,8 +63,14 @@ func _refresh() -> void:
 	for recipe in SliceRecipes.RECIPES:
 		var cost: Dictionary = recipe["cost"]
 		var status := ""
-		if String(recipe["kind"]) == "carry" and _world.carrying_collector:
-			status = "  （已携带，先放置）"
+		if String(recipe["kind"]) == "building":
+			var kit_count: int = _world.pocket.count(String(recipe["output"]))
+			if _world.selected_building_id() == String(recipe["building_id"]):
+				status = "  （放置中，剩余 %d）" % kit_count
+			elif kit_count > 0:
+				status = "  （已有 %d，按键选中）" % kit_count
+			elif not _world.can_afford(cost):
+				status = "  （缺料）"
 		elif not _world.can_afford(cost):
 			status = "  （缺料）"
 		lines.append("[%d] %s   需 %s%s" % [

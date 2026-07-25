@@ -5,13 +5,11 @@ extends Node2D
 ## east) plus the player. Owns the runtime loop state and an isolated
 ## SliceSaveService that auto-persists on every change and on quit.
 ##
-## L0 (docs/features/slice-item-inventory-model-v1.md) migrates the resource
-## model from global int counters to spatial item inventories. Package 1 (this
-## file): crystals are items held in the player backpack `pocket` and in each
-## collector's output buffer; harvesting and collector pickup fill the backpack;
-## core repair and collector crafting spend backpack items. The reactor and
-## catalyst / core-charging stay on the abstract fields from the prior topic and
-## are re-wired to item buffers in later arc layers — the reactor tick is inert here.
+## L3 package 1 migrates the collector-only carry boolean and fixed query into
+## data-driven building definitions, ordinary inventory kits, separate floor /
+## blocking occupancy, one placement controller and shared runtime instances.
+## Industrial floor and the existing collector are the first two definitions;
+## other devices, adjustment, power and schema 4 arrive in later L3 packages.
 ## `startup_load` (set by Boot before the node enters the tree) decides whether
 ## _ready restores the saved slice or starts a fresh one.
 
@@ -20,8 +18,6 @@ const PLAYER_SCENE := "res://scenes/slice/SlicePlayer.tscn"
 const HUD_SCENE := "res://scenes/slice/SliceHud.tscn"
 const CRAFT_PANEL_SCENE := "res://scenes/slice/SliceCraftPanel.tscn"
 const CORE_STORAGE_PANEL_SCENE := "res://scenes/slice/SliceCoreStoragePanel.tscn"
-const COLLECTOR_SCENE := "res://scenes/slice/SliceCollector.tscn"
-const COLLECTOR_TEXTURE := preload("res://assets/sprites/slice/collector.png")
 const REPAIRED_CORE_TEXTURE := preload("res://assets/sprites/slice/outpost_core_repaired.png")
 const MAP_PIXEL_SIZE := Vector2i(2560, 768)
 const START_SPAWN := Vector2(400, 576)
@@ -30,6 +26,8 @@ const TILE_SIZE := 32.0
 const ITEM_CRYSTAL := "crystal"
 const ITEM_CATALYST := "catalyst"
 const ITEM_PART := "part"
+const ITEM_FLOOR_KIT := SliceBuildingCatalog.FLOOR_ID
+const ITEM_COLLECTOR_KIT := SliceBuildingCatalog.COLLECTOR_ID
 const POCKET_CAPACITY := 30
 const CORE_STORAGE_CAPACITY := 120
 const CORE_DIRECT_POWER_RANGE := 192.0
@@ -40,9 +38,8 @@ const REACTOR_OUTPUT_PER_BATCH := 1
 const REACTOR_PRODUCE_INTERVAL := 10.0
 const CATALYST_CAP := 20
 const CORE_CHARGE_TARGET := 10
+const ROCK_GROUND_SOURCE_ID := 0
 const CRYSTAL_GROUND_SOURCE_ID := 2
-const GHOST_VALID_COLOR := Color(0.45, 1.0, 0.9, 0.55)
-const GHOST_INVALID_COLOR := Color(1.0, 0.4, 0.35, 0.55)
 
 ## Emitted whenever the player backpack contents change (drives HUD refresh).
 signal inventory_changed
@@ -50,6 +47,7 @@ signal core_storage_changed
 signal catalyst_changed(count: int)
 signal core_charge_changed(energy: int)
 signal core_repair_completed
+signal placement_changed
 
 ## Set by Boot before add_child: true loads the saved slice, false starts fresh.
 var startup_load := false
@@ -62,7 +60,6 @@ var core_repaired := false
 var core_energy := 0
 var reactor_active := false
 var harvested_clusters: Array[String] = []
-var carrying_collector := false
 
 var player: SlicePlayer
 
@@ -73,12 +70,12 @@ var _map: Node2D
 var _craft_panel: SliceCraftPanel
 var _core_storage_panel: SliceCoreStoragePanel
 var _ground: TileMapLayer
-var _ghost: Sprite2D
-var _place_query: PhysicsShapeQueryParameters2D
-var _target_cell := Vector2i.ZERO
-var _target_valid := false
-## Placed collector nodes (source of truth for production and saving).
+var _industrial_floor: TileMapLayer
+var _placement: SliceBuildingPlacementController
+var _occupancy := SliceBuildingOccupancy.new()
+var _building_instances: Array[SliceBuildingInstance] = []
 var _collector_nodes: Array[SliceCollector] = []
+var _next_building_serial := 1
 ## Runtime-only accumulator toward the next collector production tick; partial
 ## sub-interval progress is not persisted (resets to 0 on load).
 var _produce_timer := 0.0
@@ -88,6 +85,7 @@ func _ready() -> void:
 	_map = (load(MAP_SCENE) as PackedScene).instantiate()
 	add_child(_map)
 	_ground = _map.get_node("GroundLayer")
+	_industrial_floor = _map.get_node("IndustrialFloorLayer")
 
 	player = (load(PLAYER_SCENE) as PackedScene).instantiate() as SlicePlayer
 	player.world = self
@@ -112,43 +110,46 @@ func _ready() -> void:
 	add_child(_core_storage_panel)
 	_core_storage_panel.setup(self)
 
-	# Placement preview ghost draws above the y-sorted world container.
-	_ghost = Sprite2D.new()
-	_ghost.texture = COLLECTOR_TEXTURE
-	_ghost.offset = Vector2(0, -16)
-	_ghost.visible = false
-	_map.add_child(_ghost)
-
-	var place_shape := RectangleShape2D.new()
-	place_shape.size = Vector2(62, 62)
-	_place_query = PhysicsShapeQueryParameters2D.new()
-	_place_query.shape = place_shape
-	_place_query.collide_with_areas = false
+	_placement = SliceBuildingPlacementController.new()
+	_map.add_child(_placement)
 
 	if startup_load:
 		_restore_from_save()
 
 
 func _physics_process(_delta: float) -> void:
-	if not carrying_collector or player == null:
-		_target_valid = false
+	if not is_placement_active() or player == null:
 		return
-	# The collector occupies a 2x2 tile block; the target block snaps its
-	# center to the grid intersection nearest to 2 tiles ahead of the player,
-	# far enough that the block never overlaps the player's own feet box.
 	var target_point := player.position + player.facing * 64.0
-	var corner := (target_point / TILE_SIZE).round() * TILE_SIZE
-	_target_cell = Vector2i(corner / TILE_SIZE) - Vector2i.ONE
-	_target_valid = _can_place(_target_cell)
+	var definition := _placement.definition
+	var origin := definition.origin_for_target(
+		target_point, TILE_SIZE, _placement.rotation_index
+	)
+	var validation := _validate_placement(
+		definition, origin, _placement.rotation_index
+	)
+	_placement.update_target(
+		origin,
+		definition.block_center(
+			origin, TILE_SIZE, _placement.rotation_index
+		),
+		validation
+	)
 
 
 func _process(delta: float) -> void:
 	_tick_production(delta)
-	_ghost.visible = carrying_collector
-	if not carrying_collector:
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not is_placement_active():
 		return
-	_ghost.position = _block_center(_target_cell)
-	_ghost.modulate = GHOST_VALID_COLOR if _target_valid else GHOST_INVALID_COLOR
+	if event.is_action_pressed("rotate_building"):
+		rotate_building_placement()
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("ui_cancel"):
+		cancel_building_placement()
+		get_viewport().set_input_as_handled()
 
 
 ## Each collector fills its own output buffer by 1 crystal per interval, pausing
@@ -310,26 +311,33 @@ func charge_core() -> bool:
 	return true
 
 
-## Craft a recipe from SliceRecipes: item recipes add to the backpack, carry
-## recipes (buildings) enter the carry-and-place state. Returns false if a
-## precondition fails (already carrying, backpack full, or unaffordable).
+## Craft a recipe into ordinary backpack items. Building recipes create one or
+## more kit items and immediately select their shared placement definition.
 func craft(recipe_id: String) -> bool:
 	var recipe := SliceRecipes.find(recipe_id)
 	if recipe.is_empty():
 		return false
 	var kind := String(recipe["kind"])
-	if kind == "carry" and carrying_collector:
-		return false
-	if kind == "item" and pocket.free_space() < 1:
-		return false
 	if not can_afford(recipe["cost"]):
 		return false
+	var output_count := int(recipe.get("output_count", 1))
+	var consumed_count := 0
+	for amount in recipe["cost"].values():
+		consumed_count += int(amount)
+	if pocket.free_space() + consumed_count < output_count:
+		return false
+	if kind == "building":
+		var definition := SliceBuildingCatalog.find(String(recipe["building_id"]))
+		if definition == null:
+			return false
 	for item in recipe["cost"]:
 		pocket.remove(String(item), int(recipe["cost"][item]))
-	if kind == "item":
-		pocket.add(String(recipe["output"]), 1)
-	else:
-		carrying_collector = true
+	var stored := pocket.add(String(recipe["output"]), output_count)
+	if stored != output_count:
+		push_error("Craft capacity check drifted after consuming recipe inputs.")
+		return false
+	if kind == "building":
+		begin_building_placement(String(recipe["building_id"]))
 	inventory_changed.emit()
 	_autosave()
 	return true
@@ -342,41 +350,203 @@ func can_afford(cost: Dictionary) -> bool:
 	return true
 
 
-func try_place_collector() -> bool:
-	if not carrying_collector or not _can_place(_target_cell):
+func select_building_kit(building_id: String) -> bool:
+	var definition := SliceBuildingCatalog.find(building_id)
+	if definition == null or pocket.count(definition.kit_item_id) <= 0:
 		return false
-	_spawn_collector(_target_cell, 0)
-	carrying_collector = false
+	begin_building_placement(building_id)
+	return true
+
+
+func begin_building_placement(building_id: String) -> bool:
+	var definition := SliceBuildingCatalog.find(building_id)
+	if definition == null or pocket.count(definition.kit_item_id) <= 0:
+		return false
+	close_core_storage()
+	if _craft_panel != null:
+		_craft_panel.close()
+	_placement.begin(definition)
+	placement_changed.emit()
+	return true
+
+
+func cancel_building_placement() -> void:
+	if not is_placement_active():
+		return
+	_placement.cancel()
+	placement_changed.emit()
+
+
+func rotate_building_placement() -> void:
+	if not is_placement_active():
+		return
+	_placement.rotate_clockwise()
+	placement_changed.emit()
+
+
+func try_place_building() -> bool:
+	if not is_placement_active() or not _placement.target_valid:
+		return false
+	var definition := _placement.definition
+	if pocket.count(definition.kit_item_id) <= 0:
+		cancel_building_placement()
+		return false
+	var instance := _spawn_building(
+		definition,
+		"",
+		_placement.target_origin,
+		_placement.rotation_index,
+		{}
+	)
+	if instance == null:
+		return false
+	pocket.remove(definition.kit_item_id, 1)
+	if pocket.count(definition.kit_item_id) <= 0:
+		cancel_building_placement()
+	else:
+		placement_changed.emit()
+	inventory_changed.emit()
 	_autosave()
 	return true
 
 
 func is_place_target_valid() -> bool:
-	return _target_valid
+	return is_placement_active() and _placement.target_valid
 
 
-## `top_left` is the top-left cell of the collector's 2x2 tile block. All four
-## cells must be crystal ground and the block area must be free of bodies.
-func _can_place(top_left: Vector2i) -> bool:
-	for offset in [Vector2i.ZERO, Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]:
-		if _ground.get_cell_source_id(top_left + offset) != CRYSTAL_GROUND_SOURCE_ID:
-			return false
-	_place_query.transform = Transform2D(0.0, _block_center(top_left))
-	return get_world_2d().direct_space_state.intersect_shape(_place_query, 1).is_empty()
+func placement_invalid_reason() -> String:
+	return "" if not is_placement_active() else _placement.invalid_reason
 
 
-func _spawn_collector(top_left: Vector2i, buffer: int) -> SliceCollector:
-	var collector := (load(COLLECTOR_SCENE) as PackedScene).instantiate() as SliceCollector
-	collector.cell = top_left
-	collector.buffer = buffer
-	collector.position = _block_center(top_left)
-	_map.get_node("World").add_child(collector)
-	_collector_nodes.append(collector)
-	return collector
+func is_placement_active() -> bool:
+	return _placement != null and _placement.is_active()
 
 
-func _block_center(top_left: Vector2i) -> Vector2:
-	return Vector2(top_left) * TILE_SIZE + Vector2(TILE_SIZE, TILE_SIZE)
+func selected_building_id() -> String:
+	return "" if not is_placement_active() else _placement.selected_building_id()
+
+
+func selected_building_name() -> String:
+	return "" if not is_placement_active() else _placement.definition.display_name
+
+
+func selected_building_rotation() -> int:
+	return 0 if not is_placement_active() else _placement.rotation_index
+
+
+func _validate_placement(
+	definition: SliceBuildingDefinition,
+	origin_cell: Vector2i,
+	rotation: int
+) -> Dictionary:
+	var cells := definition.occupied_cells(origin_cell, rotation)
+	for cell in cells:
+		if cell.x < 0 or cell.y < 0:
+			return _placement_result(false, "越界")
+		if cell.x >= MAP_PIXEL_SIZE.x / int(TILE_SIZE):
+			return _placement_result(false, "越界")
+		if cell.y >= MAP_PIXEL_SIZE.y / int(TILE_SIZE):
+			return _placement_result(false, "越界")
+
+	for cell in cells:
+		var source_id := _ground.get_cell_source_id(cell)
+		if (
+			definition.surface_rule
+			== SliceBuildingDefinition.SURFACE_BUILDABLE_ROCK
+			and source_id != ROCK_GROUND_SOURCE_ID
+		):
+			return _placement_result(false, "需可建岩地")
+		if (
+			definition.surface_rule == SliceBuildingDefinition.SURFACE_CRYSTAL
+			and source_id != CRYSTAL_GROUND_SOURCE_ID
+		):
+			return _placement_result(false, "需晶体地")
+
+	if not _occupancy.can_occupy(cells, definition.is_floor):
+		return _placement_result(false, "已有占用")
+
+	var query := PhysicsShapeQueryParameters2D.new()
+	var shape := RectangleShape2D.new()
+	var footprint := Vector2(definition.rotated_footprint(rotation)) * TILE_SIZE
+	shape.size = footprint - Vector2(2, 2)
+	query.shape = shape
+	query.collide_with_areas = false
+	query.transform = Transform2D(
+		0.0, definition.block_center(origin_cell, TILE_SIZE, rotation)
+	)
+	var collisions := get_world_2d().direct_space_state.intersect_shape(query, 8)
+	for collision in collisions:
+		if collision.get("collider") == player:
+			return _placement_result(false, "玩家阻挡")
+	if not collisions.is_empty():
+		return _placement_result(false, "已有占用")
+	return _placement_result(true, "")
+
+
+func _placement_result(valid: bool, reason: String) -> Dictionary:
+	return {"valid": valid, "reason": reason}
+
+
+func _spawn_building(
+	definition: SliceBuildingDefinition,
+	requested_id: String,
+	origin_cell: Vector2i,
+	rotation: int,
+	state: Dictionary
+) -> SliceBuildingInstance:
+	var instance: SliceBuildingInstance
+	if definition.scene_path.is_empty():
+		instance = SliceBuildingInstance.new()
+	else:
+		instance = (
+			(load(definition.scene_path) as PackedScene).instantiate()
+			as SliceBuildingInstance
+		)
+	if instance == null:
+		push_error("Building scene root must extend SliceBuildingInstance.")
+		return null
+
+	var instance_id := requested_id
+	if instance_id.is_empty():
+		instance_id = _allocate_building_id()
+	instance.configure_building(
+		instance_id,
+		definition.building_id,
+		origin_cell,
+		definition.normalized_rotation(rotation)
+	)
+	instance.position = definition.block_center(
+		origin_cell, TILE_SIZE, instance.building_rotation
+	)
+	if instance is SliceCollector:
+		var collector := instance as SliceCollector
+		collector.buffer = clampi(
+			int(state.get("buffer", 0)), 0, SliceCollector.BUFFER_CAP
+		)
+		_collector_nodes.append(collector)
+
+	_map.get_node("World").add_child(instance)
+	_building_instances.append(instance)
+	_occupancy.occupy(
+		instance.instance_id,
+		definition.occupied_cells(origin_cell, instance.building_rotation),
+		definition.is_floor
+	)
+	if definition.is_floor:
+		_industrial_floor.set_cell(
+			origin_cell, 0, _floor_atlas_coords(origin_cell), 0
+		)
+	return instance
+
+
+func _allocate_building_id() -> String:
+	var instance_id := "building-%06d" % _next_building_serial
+	_next_building_serial += 1
+	return instance_id
+
+
+func _floor_atlas_coords(cell: Vector2i) -> Vector2i:
+	return Vector2i(posmod(cell.x + cell.y, 4), 0)
 
 
 func _notification(what: int) -> void:
@@ -402,14 +572,24 @@ func _restore_from_save() -> void:
 	core_energy = int(data.get("core_energy", 0))
 	reactor_active = bool(data.get("reactor_active", false))
 	harvested_clusters = _to_string_array(data.get("harvested_clusters", []))
-	carrying_collector = bool(data.get("carrying_collector", false))
+	var legacy_carried_collector := bool(
+		data.get("carrying_collector", false)
+	)
+	if legacy_carried_collector:
+		pocket.restore_existing(ITEM_COLLECTOR_KIT, 1)
 
 	for entry in data.get("collectors", []):
 		if not (entry is Dictionary):
 			continue
 		var raw_cell = entry.get("cell", [0, 0])
 		var cell := Vector2i(int(raw_cell[0]), int(raw_cell[1]))
-		_spawn_collector(cell, int(entry.get("buffer", 0)))
+		_spawn_building(
+			SliceBuildingCatalog.find(SliceBuildingCatalog.COLLECTOR_ID),
+			"",
+			cell,
+			0,
+			{"buffer": int(entry.get("buffer", 0))}
+		)
 
 	var world_node := _map.get_node("World")
 	for cluster_name in harvested_clusters:
@@ -433,6 +613,8 @@ func _restore_from_save() -> void:
 	core_charge_changed.emit(core_energy)
 	if core_repaired:
 		core_repair_completed.emit()
+	if legacy_carried_collector:
+		begin_building_placement(SliceBuildingCatalog.COLLECTOR_ID)
 
 
 func _autosave() -> void:
@@ -440,7 +622,7 @@ func _autosave() -> void:
 	var serialized_collectors := []
 	for collector in _collector_nodes:
 		serialized_collectors.append({
-			"cell": [collector.cell.x, collector.cell.y],
+			"cell": [collector.origin_cell.x, collector.origin_cell.y],
 			"buffer": collector.buffer
 		})
 	var result := save_service.save_state({
@@ -452,7 +634,7 @@ func _autosave() -> void:
 		"reactor_active": reactor_active,
 		"harvested_clusters": harvested_clusters,
 		"collectors": serialized_collectors,
-		"carrying_collector": carrying_collector,
+		"carrying_collector": false,
 		"player_x": player_position.x,
 		"player_y": player_position.y
 	})
