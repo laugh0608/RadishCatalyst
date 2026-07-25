@@ -11,6 +11,8 @@
 - `normalize_l3c_conveyor.py`：校验 L3-C V1 四向源哈希，以统一 384×384 源窗口和 12 倍整数块降采样归一为四个 32×32 方向帧，共享限定色板并输出工业地板联系表。
 - `normalize_l3d_reactor_ports.py`：锁定现有 96px 反应器为唯一不可变主体，只在四个基数连接位受控派生琥珀出料 / 青色缺口入料端口，输出四向静态帧与工业地板联系表。
 - `normalize_l3e_storage_hatch.py`：锁定现有 87×88 四罐储存设备为唯一不可变主体，每帧只在一个基数连接位覆盖带青色缺口与琥珀锁扣的双向舱口，输出四向静态帧与工业地板联系表。
+- `normalize_l4a_crystal_cargo.py`：锁定已审定小型晶体簇哈希，以固定逐行掩码分离中央单晶，输出 `10×12` 货物 sprite 与四向带面联系表。
+- `normalize_l4b_conveyor_topology.py`：锁定 L3-C 四向直段哈希，离线派生 8 张正交转角和源 / 目标端点各 4 张 `32×32` 固定帧；运行时只选图，不旋转或绘制轨道。
 
 ```bash
 python3 tools/normalize_slice_pack1.py            # 全量
@@ -18,6 +20,8 @@ python3 tools/normalize_slice_pack1.py --only grounds   # 单类
 python3 tools/normalize_l3c_conveyor.py           # L3-C 四向传送带
 python3 tools/normalize_l3d_reactor_ports.py      # L3-D 反应器四向端口
 python3 tools/normalize_l3e_storage_hatch.py      # L3-E 储物箱四向舱口
+python3 tools/normalize_l4a_crystal_cargo.py       # L4-A 单晶货物
+python3 tools/normalize_l4b_conveyor_topology.py  # L4-B 转角 / 端点
 ```
 
 ## 美术素材处理（旧，Pillow）

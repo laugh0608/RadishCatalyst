@@ -8,8 +8,8 @@ extends Node2D
 ## L3 packages 1-4 provide six data-driven building definitions, ordinary
 ## inventory kits, separate floor / blocking occupancy, one placement
 ## controller, shared runtime instances, lossless adjustment / demolition,
-## derived power propagation and stable topology persistence. L4 package 1
-## adds storage-to-storage conveyor cargo and schema-5 state.
+## derived power propagation and stable topology persistence. L4 adds
+## storage-to-storage conveyor cargo, fixed topology frames and schema-5 state.
 ## `startup_load` (set by Boot before the node enters the tree) decides whether
 ## _ready restores the saved slice or starts a fresh one.
 

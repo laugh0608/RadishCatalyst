@@ -11,6 +11,8 @@ func _init() -> void:
 func _execute() -> void:
 	_check_storage_port_rotation()
 	_check_straight_storage_transfer()
+	_check_double_turn_route_and_visuals()
+	_check_loop_backpressure()
 	_check_backpressure_and_content_gate()
 	_check_step_size_independence()
 	if failures.is_empty():
@@ -155,6 +157,170 @@ func _check_backpressure_and_content_gate() -> void:
 	_free_instances(instances)
 
 
+func _check_double_turn_route_and_visuals() -> void:
+	var source := _make_storage(
+		"building-000030", Vector2i(0, 0), 1
+	)
+	var belt_source := _make_conveyor(
+		"building-000031", Vector2i(2, 1), 1
+	)
+	var belt_turn_down := _make_conveyor(
+		"building-000032", Vector2i(3, 1), 2
+	)
+	var belt_turn_right := _make_conveyor(
+		"building-000033", Vector2i(3, 2), 1
+	)
+	var belt_sink := _make_conveyor(
+		"building-000034", Vector2i(4, 2), 1
+	)
+	var target := _make_storage(
+		"building-000035", Vector2i(5, 2), 3
+	)
+	var instances: Array[SliceBuildingInstance] = [
+		source,
+		belt_source,
+		belt_turn_down,
+		belt_turn_right,
+		belt_sink,
+		target,
+	]
+	var grid := SliceLogisticsGrid.new()
+	grid.rebuild(instances)
+
+	_expect_equal(
+		belt_source.topology_kind(),
+		SliceConveyor.TOPOLOGY_SOURCE_ENDPOINT,
+		"source-connected belt selects fixed source endpoint frame"
+	)
+	_expect_equal(
+		belt_turn_down.topology_kind(),
+		SliceConveyor.TOPOLOGY_TURN,
+		"first perpendicular input selects a turn frame"
+	)
+	_expect_equal(
+		belt_turn_down.entry_direction(),
+		Vector2i.LEFT,
+		"first turn derives its left entry side"
+	)
+	_expect_equal(
+		belt_turn_right.entry_direction(),
+		Vector2i.UP,
+		"second turn derives its upper entry side"
+	)
+	_expect_equal(
+		belt_sink.topology_kind(),
+		SliceConveyor.TOPOLOGY_SINK_ENDPOINT,
+		"target-connected belt selects fixed sink endpoint frame"
+	)
+	_expect_equal(
+		_texture_path(belt_turn_down).ends_with(
+			"conveyor_in_left_out_down.png"
+		),
+		true,
+		"first turn uses the reviewed left-to-down fixed frame"
+	)
+	_expect_equal(
+		_texture_path(belt_turn_right).ends_with(
+			"conveyor_in_up_out_right.png"
+		),
+		true,
+		"second turn uses the reviewed up-to-right fixed frame"
+	)
+
+	var first_leg := belt_turn_down.cargo_local_position_for_progress(
+		0.25
+	)
+	var second_leg := belt_turn_down.cargo_local_position_for_progress(
+		0.75
+	)
+	_expect_equal(
+		is_equal_approx(first_leg.y, -16.0),
+		true,
+		"turn cargo first half remains horizontal"
+	)
+	_expect_equal(
+		is_equal_approx(second_leg.x, 0.0),
+		true,
+		"turn cargo second half remains vertical"
+	)
+
+	source.inventory.add(SliceWorld.ITEM_CRYSTAL, 3)
+	for _step in range(10):
+		grid.tick(1.0)
+	_expect_equal(
+		target.inventory.count(SliceWorld.ITEM_CRYSTAL),
+		3,
+		"three crystals traverse a double-turn route"
+	)
+	_expect_equal(
+		_network_crystals(instances),
+		3,
+		"double-turn route conserves all crystals"
+	)
+
+	grid.rebuild([
+		belt_turn_down,
+		belt_turn_right,
+		belt_sink,
+		target,
+	])
+	_expect_equal(
+		belt_turn_down.topology_kind(),
+		SliceConveyor.TOPOLOGY_STRAIGHT,
+		"topology refresh removes a stale turn in the rebuild frame"
+	)
+	_free_instances(instances)
+
+
+func _check_loop_backpressure() -> void:
+	var belt_right := _make_conveyor(
+		"building-000040", Vector2i(0, 0), 1
+	)
+	var belt_down := _make_conveyor(
+		"building-000041", Vector2i(1, 0), 2
+	)
+	var belt_left := _make_conveyor(
+		"building-000042", Vector2i(1, 1), 3
+	)
+	var belt_up := _make_conveyor(
+		"building-000043", Vector2i(0, 1), 0
+	)
+	var instances: Array[SliceBuildingInstance] = [
+		belt_right, belt_down, belt_left, belt_up,
+	]
+	var grid := SliceLogisticsGrid.new()
+	grid.rebuild(instances)
+	for conveyor in [
+		belt_right, belt_down, belt_left, belt_up,
+	]:
+		conveyor.set_cargo(SliceWorld.ITEM_CRYSTAL, 0.95)
+		_expect_equal(
+			conveyor.topology_kind(),
+			SliceConveyor.TOPOLOGY_TURN,
+			"each loop corner derives a fixed turn frame"
+		)
+	grid.tick(4.0)
+	_expect_equal(
+		_network_crystals(instances),
+		4,
+		"full loop backpressure conserves all cargo"
+	)
+	for conveyor in [
+		belt_right, belt_down, belt_left, belt_up,
+	]:
+		_expect_equal(
+			conveyor.has_cargo(),
+			true,
+			"full loop retains each occupied belt slot"
+		)
+		_expect_equal(
+			conveyor.cargo_progress < 1.0,
+			true,
+			"full loop keeps progress serializable while blocked"
+		)
+	_free_instances(instances)
+
+
 func _check_step_size_independence() -> void:
 	var fine := _simulate_for(8.0, 0.1)
 	var coarse := _simulate_for(8.0, 0.25)
@@ -267,6 +433,13 @@ func _network_crystals(
 		):
 			total += 1
 	return total
+
+
+func _texture_path(conveyor: SliceConveyor) -> String:
+	var sprite := conveyor.get_node_or_null("Sprite") as Sprite2D
+	if sprite == null or sprite.texture == null:
+		return ""
+	return sprite.texture.resource_path
 
 
 func _free_instances(instances: Array[SliceBuildingInstance]) -> void:

@@ -2,16 +2,29 @@ class_name SliceConveyor
 extends SliceBuildingInstance
 
 ## One L4 belt cell owns at most one transported item. The logistics grid owns
-## transfer rules; this instance owns serializable state and its world sprite.
+## transfer rules and derived topology; this instance owns serializable cargo
+## state plus fixed-frame topology and orthogonal cargo presentation.
 
 const CARGO_TEXTURE := preload(
 	"res://assets/sprites/slice/cargo_crystal.png"
 )
 const TRAVEL_EDGE_OFFSET := 12.0
+const TOPOLOGY_STRAIGHT := "straight"
+const TOPOLOGY_TURN := "turn"
+const TOPOLOGY_SOURCE_ENDPOINT := "source_endpoint"
+const TOPOLOGY_SINK_ENDPOINT := "sink_endpoint"
+const DIRECTION_NAMES := {
+	Vector2i.UP: "up",
+	Vector2i.RIGHT: "right",
+	Vector2i.DOWN: "down",
+	Vector2i.LEFT: "left",
+}
 
 var cargo_item_id := ""
 var cargo_progress := 0.0
 var merge_cursor := 0
+var _topology_kind := TOPOLOGY_STRAIGHT
+var _entry_direction := Vector2i.ZERO
 
 
 func apply_definition(
@@ -59,6 +72,41 @@ func output_cell() -> Vector2i:
 	return origin_cell + output_direction()
 
 
+func set_topology_visual(kind: String, entry_direction: Vector2i) -> void:
+	_topology_kind = kind
+	_entry_direction = entry_direction
+	_refresh_topology_texture()
+	_refresh_cargo_visual()
+
+
+func topology_kind() -> String:
+	return _topology_kind
+
+
+func entry_direction() -> Vector2i:
+	return _entry_direction
+
+
+func cargo_local_position_for_progress(progress: float) -> Vector2:
+	var center := definition.local_footprint_center_offset(
+		_tile_size, building_rotation
+	)
+	var output := output_direction()
+	var entry := (
+		_entry_direction
+		if _entry_direction != Vector2i.ZERO
+		else -output
+	)
+	var start := center + Vector2(entry) * TRAVEL_EDGE_OFFSET
+	var finish := center + Vector2(output) * TRAVEL_EDGE_OFFSET
+	var clamped := clampf(progress, 0.0, 1.0)
+	if entry.x * output.x + entry.y * output.y == 0:
+		if clamped <= 0.5:
+			return start.lerp(center, clamped * 2.0)
+		return center.lerp(finish, (clamped - 0.5) * 2.0)
+	return start.lerp(finish, clamped)
+
+
 func content_block_reason() -> String:
 	return "" if not has_cargo() else "先清空传送带"
 
@@ -92,10 +140,38 @@ func _refresh_cargo_visual() -> void:
 		sprite.z_index = 4
 		add_child(sprite)
 	sprite.visible = true
-	var center := definition.local_footprint_center_offset(
-		_tile_size, building_rotation
-	)
-	var direction := Vector2(output_direction())
-	var start := center - direction * TRAVEL_EDGE_OFFSET
-	var finish := center + direction * TRAVEL_EDGE_OFFSET
-	sprite.position = start.lerp(finish, cargo_progress)
+	sprite.position = cargo_local_position_for_progress(cargo_progress)
+
+
+func _refresh_topology_texture() -> void:
+	var sprite := get_node_or_null("Sprite") as Sprite2D
+	if sprite == null or definition == null:
+		return
+	var output_name := String(DIRECTION_NAMES.get(output_direction(), ""))
+	var texture_path := ""
+	match _topology_kind:
+		TOPOLOGY_TURN:
+			var entry_name := String(
+				DIRECTION_NAMES.get(_entry_direction, "")
+			)
+			if not entry_name.is_empty() and not output_name.is_empty():
+				texture_path = (
+					"res://assets/sprites/slice/"
+					+ "conveyor_in_%s_out_%s.png"
+					% [entry_name, output_name]
+				)
+		TOPOLOGY_SOURCE_ENDPOINT:
+			texture_path = (
+				"res://assets/sprites/slice/conveyor_source_%s.png"
+				% output_name
+			)
+		TOPOLOGY_SINK_ENDPOINT:
+			texture_path = (
+				"res://assets/sprites/slice/conveyor_sink_%s.png"
+				% output_name
+			)
+	if texture_path.is_empty():
+		texture_path = definition.texture_path_for_rotation(
+			building_rotation
+		)
+	sprite.texture = load(texture_path) as Texture2D

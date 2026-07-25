@@ -1,8 +1,8 @@
 class_name SliceLogisticsGrid
 extends RefCounted
 
-## L4 package-1 world-authoritative belt simulation. Topology is derived from
-## stable building cells; only conveyor cargo state is persisted.
+## L4 world-authoritative belt simulation. Topology is derived from stable
+## building cells; only conveyor cargo state is persisted.
 
 const BELT_SPEED_CELLS_PER_SECOND := 1.0
 const SIMULATION_STEP_SECONDS := 1.0 / 60.0
@@ -13,6 +13,7 @@ var _conveyors: Array[SliceConveyor] = []
 var _storages: Array[SliceStorage] = []
 var _conveyor_by_cell := {}
 var _storage_by_port_cell := {}
+var _source_storage_by_connection_cell := {}
 var _simulation_accumulator := 0.0
 
 
@@ -24,6 +25,7 @@ func rebuild(
 	_storages.clear()
 	_conveyor_by_cell.clear()
 	_storage_by_port_cell.clear()
+	_source_storage_by_connection_cell.clear()
 	_simulation_accumulator = 0.0
 
 	for instance in instances:
@@ -40,8 +42,17 @@ func rebuild(
 				storage.origin_cell, storage.building_rotation
 			)
 			_storage_by_port_cell[_cell_key(port_cell)] = storage
+			var connection_cell := (
+				storage.definition.logistics_connection_world_cell(
+					storage.origin_cell, storage.building_rotation
+				)
+			)
+			_source_storage_by_connection_cell[
+				_cell_key(connection_cell)
+			] = storage
 	_conveyors.sort_custom(_instance_before)
 	_storages.sort_custom(_instance_before)
+	_refresh_conveyor_topologies()
 
 
 func tick(delta: float) -> Dictionary:
@@ -156,6 +167,74 @@ func conveyor_at(cell: Vector2i) -> SliceConveyor:
 
 func storage_at_port(cell: Vector2i) -> SliceStorage:
 	return _storage_by_port_cell.get(_cell_key(cell)) as SliceStorage
+
+
+func source_storage_at_connection(cell: Vector2i) -> SliceStorage:
+	return (
+		_source_storage_by_connection_cell.get(_cell_key(cell))
+		as SliceStorage
+	)
+
+
+func _refresh_conveyor_topologies() -> void:
+	for conveyor in _conveyors:
+		var output := conveyor.output_direction()
+		var source_storage := source_storage_at_connection(
+			conveyor.origin_cell
+		)
+		if (
+			source_storage != null
+			and _belt_points_away_from_storage(
+				conveyor, source_storage
+			)
+		):
+			conveyor.set_topology_visual(
+				SliceConveyor.TOPOLOGY_SOURCE_ENDPOINT, -output
+			)
+			continue
+
+		var sink_storage := storage_at_port(conveyor.output_cell())
+		if (
+			sink_storage != null
+			and _belt_points_into_storage(conveyor, sink_storage)
+		):
+			conveyor.set_topology_visual(
+				SliceConveyor.TOPOLOGY_SINK_ENDPOINT, -output
+			)
+			continue
+
+		var input_directions := _input_directions(conveyor)
+		if (
+			input_directions.size() == 1
+			and (
+				input_directions[0].x * output.x
+				+ input_directions[0].y * output.y
+				== 0
+			)
+		):
+			conveyor.set_topology_visual(
+				SliceConveyor.TOPOLOGY_TURN, input_directions[0]
+			)
+		else:
+			conveyor.set_topology_visual(
+				SliceConveyor.TOPOLOGY_STRAIGHT, -output
+			)
+
+
+func _input_directions(conveyor: SliceConveyor) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for direction in [
+		Vector2i.UP,
+		Vector2i.RIGHT,
+		Vector2i.DOWN,
+		Vector2i.LEFT,
+	]:
+		if direction == conveyor.output_direction():
+			continue
+		var upstream := conveyor_at(conveyor.origin_cell + direction)
+		if upstream != null and upstream.output_cell() == conveyor.origin_cell:
+			result.append(direction)
+	return result
 
 
 func _belt_points_into_storage(
