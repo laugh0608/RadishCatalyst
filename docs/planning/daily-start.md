@@ -8,8 +8,9 @@
 
 ## 阶段
 
-当前为「切片实现：配方加工 arc（空间工厂自动化）——L0–L3 已收口，下一步建立 L4 传送带物流专题」。
+当前为「切片实现：配方加工 arc（空间工厂自动化）——L0–L3 已收口，L4 传送带物流进行中」。
 
+- 当前活跃专题 [L4 传送带物流](../features/slice-conveyor-logistics-v1.md)：开工闸门、状态 / 端点 / 存档 / 素材与三包范围已定档。
 - 最新收口专题 [L3 建造放置 + 扩展供电网](../features/slice-building-placement-and-power-grid-v1.md)：实现包 1–4、25 晶体自然自举和视觉修正包 5 的实现 / 自动 / 人工证据全部完成。
 - 美术介质机械口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一均已定稿）。
 - 章程与复盘结论存档：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)。
@@ -38,8 +39,9 @@
 
 ## 下一步事项
 
-1. 建立 L4 传送带物流可执行细专题，先定义玩家路径、物流状态 / 存档、方向 / 转角 / 合流、端点行为、素材硬闸门和正式入口证据。
-2. 专题确认后再开工；暂不追加 L3 同层画面微调。
+1. 按 L4 专题先确定性派生 8–12px 单件晶体货物 sprite，并完成目标尺寸 / 工业地板实景审阅。
+2. 实现包 1：玩家可操作储物箱、源箱 → 直线带 → 目标箱、回压守恒、带货门控与 schema 5 / schema 2–4 兼容。
+3. 玩家可见实现完成后按正式 `Boot` + 隔离存档 + 窗口截图验证；暂不追加 L3 同层画面微调。
 
 ## 防跑偏规则
 
@@ -60,6 +62,7 @@
 日常必读：
 
 - `docs/planning/current.md`（配方加工阶段边界与退出条件）
+- `docs/features/slice-conveyor-logistics-v1.md`（L4 当前玩家路径、物流模型、素材闸门与实现包）
 - `docs/features/slice-building-placement-and-power-grid-v1.md`（L3 已收口范围、素材与验收）
 - `docs/features/slice-recipe-processing-v1.md`（配方加工 arc 总览与层状态）
 - `docs/reference/pixel-art-and-grid-standard.md`（投影口径 2026-07-18 修订）

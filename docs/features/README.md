@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前下一步：为配方加工 arc 建立 L4 传送带物流可执行细专题；L0–L3 已收口，层状态与 L4 边界见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
+当前活跃专题：[Slice Conveyor Logistics V1](slice-conveyor-logistics-v1.md)——L4 传送带物流，先完成货物素材与包 1 直线储物箱物流，再补转角、合流、schema 5 重启与人工收口。L0–L3 已收口，层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
 
 已收口专题：
 
