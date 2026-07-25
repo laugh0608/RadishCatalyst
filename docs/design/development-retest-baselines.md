@@ -2,7 +2,7 @@
 
 更新时间：2026-06-29
 
-口径说明（2026-07-13）：本文基线针对冻结保留的旧纵切运行时（`S0` 到 `S21`），在旧代码复用与回归时仍有效；新像素切片成立后将建立新基线取代本文，见 `docs/planning/current.md`。
+口径说明（2026-07-25）：本文基线只针对冻结保留的旧纵切运行时（`S0` 到 `S22`），在旧代码复用与回归时仍有效。当前正式 `Boot → SliceWorld` 的空档、建造、供电、物流、重启和视觉路径见 [Spatial Factory Retest Baselines](spatial-factory-retest-baselines.md)。
 
 ## 文档目的
 

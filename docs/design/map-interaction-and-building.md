@@ -4,6 +4,8 @@
 
 更新时间：2026-06-21
 
+> 本文主体保留冻结旧纵切的地图交互与固定建造点设计。当前正式 `Boot → SliceWorld` 使用的通用网格建造、扩展供电和传送带规则见 [Spatial Factory Building And Logistics](spatial-factory-building-and-logistics.md)。
+
 ## 地图对象交互分类
 
 地图上的对象至少应分成以下几类：

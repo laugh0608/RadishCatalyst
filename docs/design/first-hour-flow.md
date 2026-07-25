@@ -2,7 +2,7 @@
 
 返回：[Onboarding And First Hour](onboarding-and-first-hour.md)
 
-口径说明（2026-07-13）：本文写于旧 Demo V1（12 区纵切 + 写实介质）时期，涉及 12 区结构与后段区域链的内容不再是当前规范；当前产品结构为单基地 + 单远征区像素切片，见 `docs/planning/current.md`。首小时学习顺序与节奏思路仍可参考。
+口径说明（2026-07-25）：本文写于旧 Demo V1（12 区纵切 + 写实介质）时期，涉及 12 区结构与后段区域链的内容只用于冻结旧纵切回归；首小时学习顺序与节奏思路仍可参考。当前空间工厂操作见 [Spatial Factory Building And Logistics](spatial-factory-building-and-logistics.md)。
 
 ## 文档目的
 

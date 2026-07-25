@@ -67,6 +67,7 @@ macOS / Linux / Git Bash / zsh 可执行：
 - [Static Data Schema](architecture/static-data-schema.md)
 - [Godot Project Structure](architecture/godot-project-structure.md)
 - [Runtime Systems Overview](architecture/runtime-systems-overview.md)
+- [Slice Runtime Systems](architecture/slice-runtime-systems.md)
 - [Client Data Dictionary](reference/client-data-dictionary.md)
 - [Content Authoring Guide](reference/content-authoring-guide.md)
 
@@ -77,6 +78,8 @@ macOS / Linux / Git Bash / zsh 可执行：
 - [Character Progression And Equipment](design/character-progression-and-equipment.md)
 - [Combat And Interaction Prototype](design/combat-and-interaction-prototype.md)
 - [Development Retest Baselines](design/development-retest-baselines.md)
+- [Spatial Factory Building And Logistics](design/spatial-factory-building-and-logistics.md)
+- [Spatial Factory Retest Baselines](design/spatial-factory-retest-baselines.md)
 - [Maps And Regions](design/maps-and-regions.md)
 - [Narrative And Quest Framework](design/narrative-and-quest-framework.md)
 - [Onboarding And First Hour](design/onboarding-and-first-hour.md)

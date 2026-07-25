@@ -41,7 +41,21 @@ Wiki 不记录：
 - `mechanics/`：战斗、采集、污染、安全、事故、联机等机制说明。
 - `lore/`：公开世界观、阵营、事件和可公开剧情。
 
-## 当前原型已补的词条
+## 当前正式切片词条
+
+以下页面与启动菜单当前进入的空间工厂切片一致：
+
+- [空间工厂建造与物流入门](guides/spatial-factory-basics.md)
+- [工业地板](facilities/industrial-floor.md)
+- [晶体采集器](facilities/crystal-collector.md)
+- [电力中继](facilities/power-relay.md)
+- [传送带](facilities/conveyor.md)
+- [储物箱](facilities/basic-storage.md)
+- [第一工业晶体线](production-lines/first-industrial-crystal-line.md)
+
+## 冻结旧纵切保留词条
+
+仓库仍保留旧 `GameRoot + VerticalSliceMap` 纵切用于开发回归。以下词条说明那条路径的任务、战斗、污染和前线内容，不应与当前空间工厂操作混用。
 
 以下页面适合新玩家或首小时复查：
 
@@ -57,7 +71,6 @@ Wiki 不记录：
 - [制造基础地基材料](recipes/foundation-material.md)
 - [污染沉积物处理](recipes/pollution-residue-treatment.md)
 - [回收基础零件](recipes/basic-parts-reclamation.md)
-- [基础储存箱](facilities/basic-storage.md)
 - [出发整备台](facilities/field-outfitting-station.md)
 - [污染过滤器](facilities/pollution-filter.md)
 - [污染浆液缓冲罐](facilities/slurry-buffer-tank.md)

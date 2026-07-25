@@ -4,6 +4,8 @@
 
 更新时间：2026-06-24
 
+> 本文描述冻结保留的旧 `GameRoot + VerticalSliceMap` 纵切。当前正式切片的建造、供电和晶体物流规则见 [Spatial Factory Building And Logistics](spatial-factory-building-and-logistics.md)。
+
 ## 当前阶段结论
 
 资源链的重点不是数量，而是关系。

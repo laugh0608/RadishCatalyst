@@ -2,6 +2,8 @@
 
 返回：[Runtime Systems Overview](runtime-systems-overview.md)
 
+> 本文的数据流适用于冻结旧 `GameRoot + VerticalSliceMap` 纵切。当前正式入口的数据流、建筑状态所有权和 schema 5 规则见 [Slice Runtime Systems](slice-runtime-systems.md)。
+
 ## 关键数据流
 
 ### 启动流
