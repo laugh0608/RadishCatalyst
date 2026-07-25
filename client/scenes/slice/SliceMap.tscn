@@ -65,7 +65,7 @@ shape = SubResource("RectangleShape2D_footprint_1x1")
 
 [node name="Harvest" type="Area2D" parent="World/CrystalLarge1"]
 script = ExtResource("9_crystal_node")
-yield_amount = 4
+yield_amount = 8
 
 [node name="Collision" type="CollisionShape2D" parent="World/CrystalLarge1/Harvest"]
 shape = SubResource("CircleShape2D_interact")
@@ -80,7 +80,7 @@ shape = SubResource("RectangleShape2D_footprint_1x1")
 
 [node name="Harvest" type="Area2D" parent="World/CrystalLarge2"]
 script = ExtResource("9_crystal_node")
-yield_amount = 4
+yield_amount = 8
 
 [node name="Collision" type="CollisionShape2D" parent="World/CrystalLarge2/Harvest"]
 shape = SubResource("CircleShape2D_interact")

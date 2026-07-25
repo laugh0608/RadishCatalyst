@@ -6,14 +6,15 @@ extends RefCounted
 ## shared code or state. Persists the slice loop state as plain JSON with one
 ## rotated backup and an atomic temp-then-rename write.
 ##
-## Schema 3 (L2 core functionalization) adds the core central warehouse.
-## Schema 2 remains readable and migrates with an empty warehouse so L0 / L1
-## progress survives the layer transition. Schema 1 is not migrated.
+## Schema 4 (L3 placement and power grid) persists every building with a stable
+## identity and definition-owned state. Schema 2 / 3 collectors migrate into
+## that topology; schema 1 remains unsupported.
 
-const SAVE_SCHEMA_VERSION := 3
+const SAVE_SCHEMA_VERSION := 4
 const MIN_SUPPORTED_SCHEMA_VERSION := 2
-const GAME_VERSION := "prototype-slice-02"
+const GAME_VERSION := "prototype-slice-04"
 const DEFAULT_SAVE_DIR := "user://saves/slice"
+const LEGACY_CORE_STORAGE_CAPACITY := 120
 
 var _save_dir: String
 var _save_file: String
@@ -49,11 +50,19 @@ func save_state(state: Dictionary) -> Dictionary:
 		"core_energy": int(state.get("core_energy", 0)),
 		"reactor_active": bool(state.get("reactor_active", false)),
 		"harvested_clusters": _string_array(state.get("harvested_clusters", [])),
-		"collectors": _collector_array(state.get("collectors", [])),
-		"carrying_collector": bool(state.get("carrying_collector", false)),
+		"buildings": state.get("buildings", []),
+		"next_building_serial": int(state.get("next_building_serial", 1)),
 		"player_x": float(state.get("player_x", 0.0)),
 		"player_y": float(state.get("player_y", 0.0))
 	}
+	var building_result := SliceBuildingSaveCodec.validate_schema_four(
+		save_data["buildings"], save_data["next_building_serial"]
+	)
+	if not bool(building_result.get("success", false)):
+		return building_result
+	var building_data: Dictionary = building_result["data"]
+	save_data["buildings"] = building_data["buildings"]
+	save_data["next_building_serial"] = building_data["next_building_serial"]
 
 	var temp := FileAccess.open(_save_temp_file, FileAccess.WRITE)
 	if temp == null:
@@ -79,12 +88,17 @@ func save_state(state: Dictionary) -> Dictionary:
 
 
 func load_state() -> Dictionary:
+	var last_failure: Dictionary = {}
 	for save_file in [_save_file, _save_backup_file]:
 		if not FileAccess.file_exists(save_file):
 			continue
 		var read_result := _read_file(save_file)
 		if bool(read_result.get("success", false)):
+			read_result["source_path"] = save_file
 			return read_result
+		last_failure = read_result
+	if not last_failure.is_empty():
+		return last_failure
 	return _failure("读取切片存档失败：未找到可用存档，当前运行状态已保留。")
 
 
@@ -147,19 +161,42 @@ func _read_file(save_file: String) -> Dictionary:
 			version, SAVE_SCHEMA_VERSION
 		])
 
+	var pocket := _inventory_dict(save_data.get("pocket", {}))
+	var core_storage := _inventory_dict(save_data.get("core_storage", {}))
+	var building_result: Dictionary
+	if version == SAVE_SCHEMA_VERSION:
+		building_result = SliceBuildingSaveCodec.validate_schema_four(
+			save_data.get("buildings", null),
+			save_data.get("next_building_serial", null)
+		)
+	else:
+		building_result = SliceBuildingSaveCodec.migrate_legacy_collectors(
+			save_data.get("collectors", [])
+		)
+		if bool(save_data.get("carrying_collector", false)):
+			pocket = SliceBuildingSaveCodec.add_legacy_carried_collector(pocket)
+		if version == 2:
+			core_storage = {
+				"capacity": LEGACY_CORE_STORAGE_CAPACITY,
+				"contents": {},
+			}
+	if not bool(building_result.get("success", false)):
+		return building_result
+	var building_data: Dictionary = building_result["data"]
+
 	return {
 		"success": true,
 		"message": "已读取切片存档。",
 		"data": {
-			"pocket": _inventory_dict(save_data.get("pocket", {})),
-			"core_storage": _inventory_dict(save_data.get("core_storage", {})),
+			"pocket": pocket,
+			"core_storage": core_storage,
 			"catalyst_count": int(save_data.get("catalyst_count", 0)),
 			"core_repaired": bool(save_data.get("core_repaired", false)),
 			"core_energy": int(save_data.get("core_energy", 0)),
 			"reactor_active": bool(save_data.get("reactor_active", false)),
 			"harvested_clusters": _string_array(save_data.get("harvested_clusters", [])),
-			"collectors": _collector_array(save_data.get("collectors", [])),
-			"carrying_collector": bool(save_data.get("carrying_collector", false)),
+			"buildings": building_data["buildings"],
+			"next_building_serial": building_data["next_building_serial"],
 			"player_x": float(save_data.get("player_x", 0.0)),
 			"player_y": float(save_data.get("player_y", 0.0)),
 			"updated_at": String(save_data.get("updated_at", ""))
@@ -188,22 +225,6 @@ func _inventory_dict(value) -> Dictionary:
 				if n > 0:
 					contents[String(key)] = n
 	return {"capacity": capacity, "contents": contents}
-
-
-## Collectors travel as [{cell:[x, y], buffer:n}, ...]; malformed entries drop.
-func _collector_array(value) -> Array:
-	var result: Array = []
-	if value is Array:
-		for item in value:
-			if not (item is Dictionary):
-				continue
-			var cell = item.get("cell", null)
-			if cell is Array and cell.size() == 2:
-				result.append({
-					"cell": [int(cell[0]), int(cell[1])],
-					"buffer": int(item.get("buffer", 0))
-				})
-	return result
 
 
 func _local_time_text() -> String:

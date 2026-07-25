@@ -386,6 +386,14 @@ if ($runGodotChecks) {
                 RepoRoot = $RepoRoot
                 GodotExe = $GodotExe
             }
+        },
+        @{
+            Name = "slice save schema"
+            Script = "check-client-slice-save-schema.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
         }
     )
 }

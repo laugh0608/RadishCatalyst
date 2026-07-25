@@ -5,10 +5,10 @@ extends Node2D
 ## east) plus the player. Owns the runtime loop state and an isolated
 ## SliceSaveService that auto-persists on every change and on quit.
 ##
-## L3 packages 1-2 provide six data-driven building definitions, ordinary
+## L3 packages 1-4 provide six data-driven building definitions, ordinary
 ## inventory kits, separate floor / blocking occupancy, one placement
-## controller, shared runtime instances and lossless adjustment / demolition.
-## Power propagation and schema 4 arrive in later L3 packages.
+## controller, shared runtime instances, lossless adjustment / demolition,
+## derived power propagation and schema-4 topology persistence.
 ## `startup_load` (set by Boot before the node enters the tree) decides whether
 ## _ready restores the saved slice or starts a fresh one.
 
@@ -873,23 +873,18 @@ func _restore_from_save() -> void:
 	core_energy = int(data.get("core_energy", 0))
 	reactor_active = bool(data.get("reactor_active", false))
 	harvested_clusters = _to_string_array(data.get("harvested_clusters", []))
-	var legacy_carried_collector := bool(
-		data.get("carrying_collector", false)
-	)
-	if legacy_carried_collector:
-		pocket.restore_existing(ITEM_COLLECTOR_KIT, 1)
-
-	for entry in data.get("collectors", []):
-		if not (entry is Dictionary):
-			continue
-		var raw_cell = entry.get("cell", [0, 0])
+	_next_building_serial = int(data.get("next_building_serial", 1))
+	var saved_buildings: Array = data.get("buildings", [])
+	for entry in SliceBuildingSaveCodec.ordered_for_restore(saved_buildings):
+		var definition := SliceBuildingCatalog.find(String(entry["building_id"]))
+		var raw_cell: Array = entry["origin_cell"]
 		var cell := Vector2i(int(raw_cell[0]), int(raw_cell[1]))
 		_spawn_building(
-			SliceBuildingCatalog.find(SliceBuildingCatalog.COLLECTOR_ID),
-			"",
+			definition,
+			String(entry["instance_id"]),
 			cell,
-			0,
-			{"buffer": int(entry.get("buffer", 0))}
+			int(entry["rotation"]),
+			entry["state"]
 		)
 
 	var world_node := _map.get_node("World")
@@ -914,18 +909,10 @@ func _restore_from_save() -> void:
 	core_charge_changed.emit(core_energy)
 	if core_repaired:
 		core_repair_completed.emit()
-	if legacy_carried_collector:
-		begin_building_placement(SliceBuildingCatalog.COLLECTOR_ID)
 
 
 func _autosave() -> void:
 	var player_position := player.position if player != null else START_SPAWN
-	var serialized_collectors := []
-	for collector in _collector_nodes:
-		serialized_collectors.append({
-			"cell": [collector.origin_cell.x, collector.origin_cell.y],
-			"buffer": collector.buffer
-		})
 	var result := save_service.save_state({
 		"pocket": pocket.to_dict(),
 		"core_storage": core_storage.to_dict(),
@@ -934,8 +921,10 @@ func _autosave() -> void:
 		"core_energy": core_energy,
 		"reactor_active": reactor_active,
 		"harvested_clusters": harvested_clusters,
-		"collectors": serialized_collectors,
-		"carrying_collector": false,
+		"buildings": SliceBuildingSaveCodec.serialize_instances(
+			_building_instances
+		),
+		"next_building_serial": _next_building_serial,
 		"player_x": player_position.x,
 		"player_y": player_position.y
 	})
