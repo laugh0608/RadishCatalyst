@@ -69,36 +69,34 @@ L3-C 已于 2026-07-25 使用 V1 通过硬判据和 32px 工业地板审阅，�
 
 ## L3-D 反应器四向端口
 
-`assets/reference/pixel-style-anchor.png` 同时作为已批准反应器身份参考与设备家族参考；四帧必须保留该反应器主体，只改变端口朝向。接全局风格块，按多对象规则调整结尾：
+`assets/reference/pixel-style-anchor.png` 是已批准反应器母版，不只作风格参考；当前 96px `reactor.png` 只补运行时剪影参照。使用 precise-object-edit 口径，先像素级复制母版四次，再只添加端口：
 
 ```text
-the exact same approved three-cell-by-three-cell cylindrical chemical reactor
-shown four times in one horizontal row as four separate non-touching cardinal
-port frames, ordered left to right by material output direction: output toward
-the top, output toward the right, output toward the bottom, output toward the
-left of the screen; reproduce the reference reactor's identical squat round
-body, reinforced frame, octagonal screen-aligned base, round cyan reaction
-chamber on the top face, amber work lights, hazard stripe, wear, proportions,
-camera angle and lighting in every frame; do not redesign or rotate the whole
-render; attach one compact amber-rimmed output coupler or short empty discharge
-tray flush to the specified cardinal edge of the base and one recessed dark
-teal input coupler with a restrained cyan status notch flush to the exact
-opposite edge; both ports are part of the base and remain clearly visible from
-the high-oblique top-down camera; only the input and output port placement
-changes between frames; the reactor body, chamber glow, status lights, casing,
-base, materials and wear remain invariant; the amber output port alone defines
-the facing direction and must remain unmistakable after normalization to about
-96 pixels; no arrows, text, cargo, crystals, moving items, connected conveyor,
-pipe network, cable, animation, processing-state change, open tank, extra
-modules or four different reactor designs
+duplicate the approved reactor master four times pixel-identically in one
+horizontal row; do not reinterpret, redraw, upscale-detail, heighten, simplify
+or redesign any part of the body; add exactly two small flush docking modules
+to the visible top surface of each base outside the cylinder, one amber output
+and one dark-teal input with one cyan notch; the two modules form one rigid
+straight 180-degree-opposed pair and rotate together around the unchanged body;
+copy 1 output at screen top and input at screen bottom; copy 2 output at screen
+right and input at screen left; copy 3 output at screen bottom and input at
+screen top; copy 4 output at screen left and input at screen right; exactly one
+output and one input per reactor, both visible, no third permanent front port;
+all four bodies retain identical silhouette, proportions, side-wall height,
+base, frame, cyan chamber pixels and brightness, structural lights, hazard
+stripe, wear, camera and top-left lighting; do not rotate the body or lighting;
+no arrows, text, cargo, connected conveyor, pipe network, cable, animation,
+processing-state change, open tank or extra modules
 ```
 
 首轮硬判据：
 
 - 四帧必须是现有定稿反应器的同一主体，青色顶腔、框架、底座、状态灯、比例和机位不得漂移；四台不同反应器直接判废。
-- 左到右固定为琥珀出料口朝上 / 右 / 下 / 左，暗青入料口在严格对侧；端口必须落在屏幕基数边，不得斜向、藏在主体后或使用菱形偏航。
+- 每帧恰好两个端口并作为刚性对置端口对一起旋转：左到右固定为琥珀出料口朝上 / 右 / 下 / 左，暗青入料口在严格对侧；不得保留固定屏幕下缘的第三服务口，端口不得斜向或藏在主体后。
 - 缩至约 96px 后，必须仅凭端口颜色和结构区分四向；不得依赖文字、UI 箭头、货物、连接管线或传送带。
 - 只生成静态空载端口差分；反应腔亮度、设备状态、外壳开合或加工表现发生变化即越过 L3 边界。
+
+2026-07-25 V1 判废：四帧主体相互接近但相较母版被增高并重设计；琥珀出料口大致按四向变化，青色入料口却固定在屏幕下缘或缺失，未形成严格对置端口对。下一候选必须使用上述编辑式提示词，不沿用 V1 生成式描述。
 
 ## 后续条目
 
