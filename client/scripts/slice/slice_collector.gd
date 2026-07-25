@@ -24,3 +24,7 @@ func state_dict(allowed_keys: Array[String]) -> Dictionary:
 	if allowed_keys.has("buffer"):
 		result["buffer"] = buffer
 	return result
+
+
+func content_block_reason() -> String:
+	return "" if buffer <= 0 else "先取空采集器"

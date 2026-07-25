@@ -1,0 +1,32 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/slice/slice_building_action_panel.gd" id="1_panel"]
+
+[node name="SliceBuildingActionPanel" type="CanvasLayer"]
+script = ExtResource("1_panel")
+
+[node name="Root" type="Control" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="Backdrop" type="ColorRect" parent="Root"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.35)
+mouse_filter = 2
+
+[node name="Box" type="ColorRect" parent="Root"]
+offset_left = 600.0
+offset_top = 300.0
+offset_right = 1320.0
+offset_bottom = 600.0
+color = Color(0.08, 0.1, 0.13, 0.94)
+
+[node name="List" type="Label" parent="Root/Box"]
+offset_left = 36.0
+offset_top = 28.0
+offset_right = 684.0
+offset_bottom = 272.0
+theme_override_font_sizes/font_size = 30
+text = ""

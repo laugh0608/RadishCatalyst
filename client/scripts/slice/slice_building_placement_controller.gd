@@ -22,9 +22,12 @@ func _ready() -> void:
 	add_child(_preview)
 
 
-func begin(next_definition: SliceBuildingDefinition) -> void:
+func begin(
+	next_definition: SliceBuildingDefinition,
+	initial_rotation: int = 0
+) -> void:
 	definition = next_definition
-	rotation_index = 0
+	rotation_index = definition.normalized_rotation(initial_rotation)
 	target_valid = false
 	invalid_reason = ""
 	_configure_preview()
@@ -46,6 +49,7 @@ func rotate_clockwise() -> void:
 	if definition == null or not definition.allows_rotation:
 		return
 	rotation_index = posmod(rotation_index + 1, 4)
+	_apply_preview_texture()
 
 
 func update_target(
@@ -71,9 +75,16 @@ func _configure_preview() -> void:
 	if definition == null:
 		_preview.visible = false
 		return
-	_preview.texture = load(definition.texture_path) as Texture2D
 	_preview.position = definition.sprite_offset
 	_preview.region_enabled = definition.texture_region.size != Vector2.ZERO
 	if _preview.region_enabled:
 		_preview.region_rect = definition.texture_region
+	_apply_preview_texture()
 	_preview.visible = true
+
+
+func _apply_preview_texture() -> void:
+	var texture_path := definition.texture_path_for_rotation(rotation_index)
+	_preview.texture = (
+		null if texture_path.is_empty() else load(texture_path) as Texture2D
+	)

@@ -31,9 +31,13 @@ func _refresh_state() -> void:
 		_world.pocket.count(SliceWorld.ITEM_CRYSTAL), SliceWorld.POCKET_CAPACITY
 	]
 	part_label.text = "背包零件：%d" % _world.pocket.count(SliceWorld.ITEM_PART)
-	kit_label.text = "建筑套件：地板 %d｜采集器 %d" % [
+	kit_label.text = "套件：地%d 采%d 反%d 中%d 带%d 箱%d" % [
 		_world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
-		_world.pocket.count(SliceWorld.ITEM_COLLECTOR_KIT)
+		_world.pocket.count(SliceWorld.ITEM_COLLECTOR_KIT),
+		_world.pocket.count(SliceWorld.ITEM_REACTOR_KIT),
+		_world.pocket.count(SliceWorld.ITEM_POWER_RELAY_KIT),
+		_world.pocket.count(SliceWorld.ITEM_CONVEYOR_KIT),
+		_world.pocket.count(SliceWorld.ITEM_STORAGE_KIT),
 	]
 	if _world.core_repaired:
 		goal_label.text = "核心直供：在线（6 格）｜中央仓库：%d/%d" % [
@@ -47,6 +51,9 @@ func _refresh_state() -> void:
 
 func _process(_delta: float) -> void:
 	if _world == null or _player == null:
+		return
+	if _world.is_building_actions_open():
+		prompt_label.visible = false
 		return
 	if _world.is_placement_active():
 		prompt_label.visible = true

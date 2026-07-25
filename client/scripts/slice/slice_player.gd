@@ -37,13 +37,20 @@ func _physics_process(_delta: float) -> void:
 func current_interact_target() -> Area2D:
 	var best: Area2D = null
 	var best_dist := INF
+	var best_priority := -1
 	for area in interact_scan.get_overlapping_areas():
 		if not area.has_method("try_interact"):
 			continue
+		var priority := (
+			int(area.get_interaction_priority())
+			if area.has_method("get_interaction_priority")
+			else 0
+		)
 		var dist := global_position.distance_squared_to(area.global_position)
-		if dist < best_dist:
+		if priority > best_priority or (priority == best_priority and dist < best_dist):
 			best = area
 			best_dist = dist
+			best_priority = priority
 	return best
 
 

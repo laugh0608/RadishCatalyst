@@ -69,6 +69,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		KEY_4:
 			moved = _world.transfer_core_to_pocket(SliceWorld.ITEM_PART)
 			_result = _result_text("取出机械零件", moved)
+		KEY_5:
+			moved = _world.transfer_all_building_kits_to_core()
+			_result = _result_text("存入全部建筑套件", moved)
+		KEY_6:
+			moved = _world.transfer_all_building_kits_to_pocket()
+			_result = _result_text("取出全部建筑套件", moved)
 		_:
 			return
 	_refresh()
@@ -92,7 +98,11 @@ func _refresh() -> void:
 		"机械零件   背包 %d    仓库 %d" % [
 			pocket.count(SliceWorld.ITEM_PART), storage.count(SliceWorld.ITEM_PART)
 		],
-		"[3] 全部存入    [4] 尽量取出"
+		"[3] 全部存入    [4] 尽量取出",
+		"建筑套件   背包 %d    仓库 %d" % [
+			_building_kit_total(pocket), _building_kit_total(storage)
+		],
+		"[5] 全部存入    [6] 尽量取出",
 	]
 	if not _result.is_empty():
 		lines.append("")
@@ -104,3 +114,10 @@ func _result_text(action: String, moved: int) -> String:
 	if moved <= 0:
 		return "%s：没有可转移物品或目标空间不足" % action
 	return "%s：%d" % [action, moved]
+
+
+func _building_kit_total(inventory: Inventory) -> int:
+	var total := 0
+	for definition in SliceBuildingCatalog.all():
+		total += inventory.count(definition.kit_item_id)
+	return total

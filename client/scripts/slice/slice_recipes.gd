@@ -10,6 +10,12 @@ extends RefCounted
 const ITEM_NAMES := {
 	"crystal": "晶体",
 	"part": "机械零件",
+	"building.floor": "工业地板套件",
+	"building.collector": "采集器套件",
+	"building.reactor": "反应器套件",
+	"building.power_relay": "中继套件",
+	"building.conveyor": "传送带套件",
+	"building.storage": "储物箱套件",
 }
 
 const RECIPES := [
@@ -37,6 +43,42 @@ const RECIPES := [
 		"output": "building.collector",
 		"output_count": 1,
 		"building_id": "building.collector",
+		"cost": {"part": 2},
+	},
+	{
+		"id": "reactor",
+		"name": "基础反应器",
+		"kind": "building",
+		"output": "building.reactor",
+		"output_count": 1,
+		"building_id": "building.reactor",
+		"cost": {"part": 4},
+	},
+	{
+		"id": "power_relay",
+		"name": "电力中继",
+		"kind": "building",
+		"output": "building.power_relay",
+		"output_count": 1,
+		"building_id": "building.power_relay",
+		"cost": {"part": 1},
+	},
+	{
+		"id": "conveyor",
+		"name": "传送带 ×4",
+		"kind": "building",
+		"output": "building.conveyor",
+		"output_count": 4,
+		"building_id": "building.conveyor",
+		"cost": {"crystal": 1, "part": 1},
+	},
+	{
+		"id": "storage",
+		"name": "储物箱",
+		"kind": "building",
+		"output": "building.storage",
+		"output_count": 1,
+		"building_id": "building.storage",
 		"cost": {"part": 2},
 	},
 ]

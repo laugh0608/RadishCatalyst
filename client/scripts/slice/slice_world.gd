@@ -5,11 +5,10 @@ extends Node2D
 ## east) plus the player. Owns the runtime loop state and an isolated
 ## SliceSaveService that auto-persists on every change and on quit.
 ##
-## L3 package 1 migrates the collector-only carry boolean and fixed query into
-## data-driven building definitions, ordinary inventory kits, separate floor /
-## blocking occupancy, one placement controller and shared runtime instances.
-## Industrial floor and the existing collector are the first two definitions;
-## other devices, adjustment, power and schema 4 arrive in later L3 packages.
+## L3 packages 1-2 provide six data-driven building definitions, ordinary
+## inventory kits, separate floor / blocking occupancy, one placement
+## controller, shared runtime instances and lossless adjustment / demolition.
+## Power propagation and schema 4 arrive in later L3 packages.
 ## `startup_load` (set by Boot before the node enters the tree) decides whether
 ## _ready restores the saved slice or starts a fresh one.
 
@@ -18,6 +17,7 @@ const PLAYER_SCENE := "res://scenes/slice/SlicePlayer.tscn"
 const HUD_SCENE := "res://scenes/slice/SliceHud.tscn"
 const CRAFT_PANEL_SCENE := "res://scenes/slice/SliceCraftPanel.tscn"
 const CORE_STORAGE_PANEL_SCENE := "res://scenes/slice/SliceCoreStoragePanel.tscn"
+const BUILDING_ACTION_PANEL_SCENE := "res://scenes/slice/SliceBuildingActionPanel.tscn"
 const REPAIRED_CORE_TEXTURE := preload("res://assets/sprites/slice/outpost_core_repaired.png")
 const MAP_PIXEL_SIZE := Vector2i(2560, 768)
 const START_SPAWN := Vector2(400, 576)
@@ -28,6 +28,10 @@ const ITEM_CATALYST := "catalyst"
 const ITEM_PART := "part"
 const ITEM_FLOOR_KIT := SliceBuildingCatalog.FLOOR_ID
 const ITEM_COLLECTOR_KIT := SliceBuildingCatalog.COLLECTOR_ID
+const ITEM_REACTOR_KIT := SliceBuildingCatalog.REACTOR_ID
+const ITEM_POWER_RELAY_KIT := SliceBuildingCatalog.POWER_RELAY_ID
+const ITEM_CONVEYOR_KIT := SliceBuildingCatalog.CONVEYOR_ID
+const ITEM_STORAGE_KIT := SliceBuildingCatalog.STORAGE_ID
 const POCKET_CAPACITY := 30
 const CORE_STORAGE_CAPACITY := 120
 const CORE_DIRECT_POWER_RANGE := 192.0
@@ -69,12 +73,16 @@ var save_service := SliceSaveService.new()
 var _map: Node2D
 var _craft_panel: SliceCraftPanel
 var _core_storage_panel: SliceCoreStoragePanel
+var _building_action_panel: SliceBuildingActionPanel
 var _ground: TileMapLayer
 var _industrial_floor: TileMapLayer
 var _placement: SliceBuildingPlacementController
 var _occupancy := SliceBuildingOccupancy.new()
 var _building_instances: Array[SliceBuildingInstance] = []
 var _collector_nodes: Array[SliceCollector] = []
+var _adjustment_instance: SliceBuildingInstance
+var _adjustment_original_cell := Vector2i.ZERO
+var _adjustment_original_rotation := 0
 var _next_building_serial := 1
 ## Runtime-only accumulator toward the next collector production tick; partial
 ## sub-interval progress is not persisted (resets to 0 on load).
@@ -109,6 +117,13 @@ func _ready() -> void:
 	_core_storage_panel = (load(CORE_STORAGE_PANEL_SCENE) as PackedScene).instantiate() as SliceCoreStoragePanel
 	add_child(_core_storage_panel)
 	_core_storage_panel.setup(self)
+
+	_building_action_panel = (
+		(load(BUILDING_ACTION_PANEL_SCENE) as PackedScene).instantiate()
+		as SliceBuildingActionPanel
+	)
+	add_child(_building_action_panel)
+	_building_action_panel.setup(self)
 
 	_placement = SliceBuildingPlacementController.new()
 	_map.add_child(_placement)
@@ -249,6 +264,7 @@ func open_core_storage() -> bool:
 		return false
 	if _craft_panel != null:
 		_craft_panel.close()
+	close_building_actions()
 	_core_storage_panel.open()
 	return true
 
@@ -290,6 +306,40 @@ func transfer_core_to_pocket(item: String) -> int:
 	core_storage_changed.emit()
 	_autosave()
 	return moved
+
+
+func transfer_all_building_kits_to_core() -> int:
+	if not core_repaired:
+		return 0
+	var moved_total := 0
+	for definition in SliceBuildingCatalog.all():
+		var item := definition.kit_item_id
+		var moved := core_storage.add(item, pocket.count(item))
+		if moved > 0:
+			pocket.remove(item, moved)
+			moved_total += moved
+	if moved_total > 0:
+		inventory_changed.emit()
+		core_storage_changed.emit()
+		_autosave()
+	return moved_total
+
+
+func transfer_all_building_kits_to_pocket() -> int:
+	if not core_repaired:
+		return 0
+	var moved_total := 0
+	for definition in SliceBuildingCatalog.all():
+		var item := definition.kit_item_id
+		var moved := pocket.add(item, core_storage.count(item))
+		if moved > 0:
+			core_storage.remove(item, moved)
+			moved_total += moved
+	if moved_total > 0:
+		inventory_changed.emit()
+		core_storage_changed.emit()
+		_autosave()
+	return moved_total
 
 
 func is_core_charged() -> bool:
@@ -362,7 +412,10 @@ func begin_building_placement(building_id: String) -> bool:
 	var definition := SliceBuildingCatalog.find(building_id)
 	if definition == null or pocket.count(definition.kit_item_id) <= 0:
 		return false
+	if _adjustment_instance != null:
+		cancel_building_placement()
 	close_core_storage()
+	close_building_actions()
 	if _craft_panel != null:
 		_craft_panel.close()
 	_placement.begin(definition)
@@ -373,6 +426,8 @@ func begin_building_placement(building_id: String) -> bool:
 func cancel_building_placement() -> void:
 	if not is_placement_active():
 		return
+	if _adjustment_instance != null:
+		_restore_adjustment_origin()
 	_placement.cancel()
 	placement_changed.emit()
 
@@ -388,6 +443,15 @@ func try_place_building() -> bool:
 	if not is_placement_active() or not _placement.target_valid:
 		return false
 	var definition := _placement.definition
+	if _adjustment_instance != null:
+		_commit_adjustment(
+			_placement.target_origin,
+			_placement.rotation_index
+		)
+		_placement.cancel()
+		placement_changed.emit()
+		_autosave()
+		return true
 	if pocket.count(definition.kit_item_id) <= 0:
 		cancel_building_placement()
 		return false
@@ -434,6 +498,89 @@ func selected_building_rotation() -> int:
 	return 0 if not is_placement_active() else _placement.rotation_index
 
 
+func open_building_actions(instance: SliceBuildingInstance) -> void:
+	if instance == null or not _building_instances.has(instance):
+		return
+	if is_placement_active():
+		return
+	close_core_storage()
+	if _craft_panel != null:
+		_craft_panel.close()
+	_building_action_panel.open(instance)
+
+
+func close_building_actions() -> void:
+	if _building_action_panel != null:
+		_building_action_panel.close()
+
+
+func is_building_actions_open() -> bool:
+	return (
+		_building_action_panel != null
+		and _building_action_panel.is_open()
+	)
+
+
+func adjustment_block_reason(instance: SliceBuildingInstance) -> String:
+	if instance == null or not _building_instances.has(instance):
+		return "建筑已失效"
+	if instance.definition.is_floor and _floor_supports_facility(instance):
+		return "地板上有设施"
+	return ""
+
+
+func begin_building_adjustment(instance: SliceBuildingInstance) -> bool:
+	if not adjustment_block_reason(instance).is_empty():
+		return false
+	if is_placement_active():
+		cancel_building_placement()
+	close_building_actions()
+	_adjustment_instance = instance
+	_adjustment_original_cell = instance.origin_cell
+	_adjustment_original_rotation = instance.building_rotation
+	_occupancy.release(instance.instance_id)
+	if instance.definition.is_floor:
+		_industrial_floor.erase_cell(instance.origin_cell)
+	instance.set_adjustment_hidden(true)
+	_placement.begin(instance.definition, instance.building_rotation)
+	placement_changed.emit()
+	return true
+
+
+func demolition_block_reason(instance: SliceBuildingInstance) -> String:
+	if instance == null or not _building_instances.has(instance):
+		return "建筑已失效"
+	if instance.definition.is_floor and _floor_supports_facility(instance):
+		return "地板上有设施"
+	var content_reason := instance.content_block_reason()
+	if not content_reason.is_empty():
+		return content_reason
+	if pocket.free_space() <= 0:
+		return "背包空间不足"
+	return ""
+
+
+func demolish_building(instance: SliceBuildingInstance) -> bool:
+	if not demolition_block_reason(instance).is_empty():
+		return false
+	close_building_actions()
+	_occupancy.release(instance.instance_id)
+	if instance.definition.is_floor:
+		_industrial_floor.erase_cell(instance.origin_cell)
+	_building_instances.erase(instance)
+	if instance is SliceCollector:
+		_collector_nodes.erase(instance as SliceCollector)
+	var returned := pocket.add(instance.definition.kit_item_id, 1)
+	if returned != 1:
+		push_error("Demolition capacity changed after validation.")
+		return false
+	instance.queue_free()
+	inventory_changed.emit()
+	placement_changed.emit()
+	_autosave()
+	return true
+
+
 func _validate_placement(
 	definition: SliceBuildingDefinition,
 	origin_cell: Vector2i,
@@ -461,6 +608,12 @@ func _validate_placement(
 			and source_id != CRYSTAL_GROUND_SOURCE_ID
 		):
 			return _placement_result(false, "需晶体地")
+		if (
+			definition.surface_rule
+			== SliceBuildingDefinition.SURFACE_INDUSTRIAL_FLOOR
+			and not _occupancy.has_floor(cell)
+		):
+			return _placement_result(false, "需工业地板")
 
 	if not _occupancy.can_occupy(cells, definition.is_floor):
 		return _placement_result(false, "已有占用")
@@ -485,6 +638,63 @@ func _validate_placement(
 
 func _placement_result(valid: bool, reason: String) -> Dictionary:
 	return {"valid": valid, "reason": reason}
+
+
+func _floor_supports_facility(instance: SliceBuildingInstance) -> bool:
+	for cell in instance.definition.occupied_cells(
+		instance.origin_cell, instance.building_rotation
+	):
+		if not _occupancy.blocking_instance_at(cell).is_empty():
+			return true
+	return false
+
+
+func _restore_adjustment_origin() -> void:
+	var instance := _adjustment_instance
+	if instance == null:
+		return
+	_place_existing_instance(
+		instance,
+		_adjustment_original_cell,
+		_adjustment_original_rotation
+	)
+	_adjustment_instance = null
+
+
+func _commit_adjustment(origin_cell: Vector2i, rotation: int) -> void:
+	var instance := _adjustment_instance
+	if instance == null:
+		return
+	_place_existing_instance(instance, origin_cell, rotation)
+	_adjustment_instance = null
+
+
+func _place_existing_instance(
+	instance: SliceBuildingInstance,
+	origin_cell: Vector2i,
+	rotation: int
+) -> void:
+	var definition := instance.definition
+	instance.configure_building(
+		instance.instance_id,
+		instance.building_id,
+		origin_cell,
+		definition.normalized_rotation(rotation)
+	)
+	instance.position = definition.block_center(
+		origin_cell, TILE_SIZE, instance.building_rotation
+	)
+	instance.apply_definition(definition, TILE_SIZE)
+	instance.set_adjustment_hidden(false)
+	_occupancy.occupy(
+		instance.instance_id,
+		definition.occupied_cells(origin_cell, instance.building_rotation),
+		definition.is_floor
+	)
+	if definition.is_floor:
+		_industrial_floor.set_cell(
+			origin_cell, 0, _floor_atlas_coords(origin_cell), 0
+		)
 
 
 func _spawn_building(
@@ -518,12 +728,17 @@ func _spawn_building(
 	instance.position = definition.block_center(
 		origin_cell, TILE_SIZE, instance.building_rotation
 	)
+	instance.apply_definition(definition, TILE_SIZE)
 	if instance is SliceCollector:
 		var collector := instance as SliceCollector
 		collector.buffer = clampi(
 			int(state.get("buffer", 0)), 0, SliceCollector.BUFFER_CAP
 		)
 		_collector_nodes.append(collector)
+	elif instance is SliceStorage:
+		var storage := instance as SliceStorage
+		storage.inventory = Inventory.from_dict(state.get("inventory", {}))
+		storage.inventory.capacity = SliceStorage.CAPACITY
 
 	_map.get_node("World").add_child(instance)
 	_building_instances.append(instance)

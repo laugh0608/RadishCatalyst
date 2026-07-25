@@ -24,10 +24,10 @@ text = "背包零件：0"
 [node name="KitCount" type="Label" parent="."]
 offset_left = 32.0
 offset_top = 112.0
-offset_right = 640.0
+offset_right = 920.0
 offset_bottom = 150.0
-theme_override_font_sizes/font_size = 26
-text = "建筑套件：地板 0｜采集器 0"
+theme_override_font_sizes/font_size = 24
+text = "套件：地0 采0 反0 中0 带0 箱0"
 
 [node name="Goal" type="Label" parent="."]
 offset_left = 32.0

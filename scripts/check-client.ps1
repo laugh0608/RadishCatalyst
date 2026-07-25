@@ -370,6 +370,14 @@ if ($runGodotChecks) {
                 RepoRoot = $RepoRoot
                 GodotExe = $GodotExe
             }
+        },
+        @{
+            Name = "slice building operations"
+            Script = "check-client-slice-building-operations.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
         }
     )
 }

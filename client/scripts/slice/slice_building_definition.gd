@@ -1,13 +1,13 @@
 class_name SliceBuildingDefinition
 extends RefCounted
 
-## Immutable rules for one placeable slice building. Package 1 keeps the
-## catalog intentionally small (industrial floor and collector), while the
-## footprint, surface, render and state boundaries are already shared by later
-## L3 building types.
+## Immutable rules for one placeable slice building. Directional devices use
+## four approved fixed sprites in up / right / down / left order; runtime
+## rotation only selects a frame and never rotates pixel art.
 
 const SURFACE_BUILDABLE_ROCK := "buildable_rock"
 const SURFACE_CRYSTAL := "crystal"
+const SURFACE_INDUSTRIAL_FLOOR := "industrial_floor"
 
 var building_id: String
 var kit_item_id: String
@@ -18,7 +18,7 @@ var surface_rule: String
 var blocks_movement: bool
 var is_floor: bool
 var scene_path: String
-var texture_path: String
+var texture_paths: Array[String]
 var sprite_offset: Vector2
 var texture_region: Rect2
 var state_keys: Array[String]
@@ -34,7 +34,7 @@ func _init(
 	blocks: bool,
 	floor_layer: bool,
 	scene: String = "",
-	texture: String = "",
+	textures: Array[String] = [],
 	visual_offset: Vector2 = Vector2.ZERO,
 	region: Rect2 = Rect2(),
 	allowed_state_keys: Array[String] = []
@@ -48,7 +48,7 @@ func _init(
 	blocks_movement = blocks
 	is_floor = floor_layer
 	scene_path = scene
-	texture_path = texture
+	texture_paths = textures.duplicate()
 	sprite_offset = visual_offset
 	texture_region = region
 	state_keys = allowed_state_keys.duplicate()
@@ -85,3 +85,11 @@ func origin_for_target(target_position: Vector2, tile_size: float, rotation: int
 func block_center(origin_cell: Vector2i, tile_size: float, rotation: int) -> Vector2:
 	var size := Vector2(rotated_footprint(rotation))
 	return Vector2(origin_cell) * tile_size + size * tile_size * 0.5
+
+
+func texture_path_for_rotation(rotation: int) -> String:
+	if texture_paths.is_empty():
+		return ""
+	if texture_paths.size() == 1:
+		return texture_paths[0]
+	return texture_paths[normalized_rotation(rotation) % texture_paths.size()]
