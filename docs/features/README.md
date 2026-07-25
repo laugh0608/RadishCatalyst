@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃专题：[Slice Conveyor Logistics V1](slice-conveyor-logistics-v1.md)——L4 传送带物流，包 1–3 的实现、自动与正式入口视觉证据已完成；等待萝卜SAMA人工确认后收口，再切换 L5。L0–L3 已收口，层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
+当前活跃专题：[Slice Reactor Automation V1](slice-reactor-automation-v1.md)——L5 反应器接入自动化，开工闸门与边界已定，先完成催化剂货物素材硬闸门。L0–L4 已收口，层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
 
 已收口专题：
 
@@ -37,6 +37,7 @@
 - [Slice Viewpoint Correction V1](slice-viewpoint-correction-v1.md)——投影口径修订为高斜角俯视、全部世界层素材重出换装、画面填充止血、方向性 idle（2026-07-19 收口）。
 - [Slice Core Functionalization V1](slice-core-functionalization-v1.md)——修复核心后启用 6 格直供电源与中央仓库，schema 3 存读兼容（2026-07-21 收口）。
 - [Slice Building Placement And Power Grid V1](slice-building-placement-and-power-grid-v1.md)——六类建筑通用放置、扩展供电、schema 4、自举资源与视觉修正包 5（2026-07-25 收口）。
+- [Slice Conveyor Logistics V1](slice-conveyor-logistics-v1.md)——直线、转角、端点、双 / 三路合流、公平轮询、回压与 schema 5 存读（2026-07-25 收口）。
 
 背景结论（复盘与证据轮）：
 

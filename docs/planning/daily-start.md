@@ -8,10 +8,10 @@
 
 ## 阶段
 
-当前为「切片实现：配方加工 arc（空间工厂自动化）——L0–L3 已收口，L4 传送带物流进行中」。
+当前为「切片实现：配方加工 arc（空间工厂自动化）——L0–L4 已收口，L5 反应器接入进行中」。
 
-- 当前活跃专题 [L4 传送带物流](../features/slice-conveyor-logistics-v1.md)：包 1–3 实现与自动 / 正式入口证据已完成，等待萝卜SAMA人工确认。
-- 最新收口专题 [L3 建造放置 + 扩展供电网](../features/slice-building-placement-and-power-grid-v1.md)：实现包 1–4、25 晶体自然自举和视觉修正包 5 的实现 / 自动 / 人工证据全部完成。
+- 当前活跃专题 [L5 反应器接入自动化](../features/slice-reactor-automation-v1.md)：开工闸门与三包边界已定，先完成催化剂货物素材硬闸门。
+- 最新收口专题 [L4 传送带物流](../features/slice-conveyor-logistics-v1.md)：包 1–3 的实现、schema 5、自动 / 正式入口 / 预制演示档人工证据全部完成。
 - 美术介质机械口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一均已定稿）。
 - 章程与复盘结论存档：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)。
 
@@ -38,12 +38,14 @@
 - 2026-07-25 L4 包 1 完成：直线源箱→目标箱、单槽晶体、回压守恒、schema 5 和重启续跑通过自动与正式入口视觉复核。
 - 2026-07-25 L4 包 2 完成：16 张固定转角 / 端点帧、正交折线路径、同帧拓扑刷新与环路回压接入；物流 50 项、Boot 26 项及三图联系表复核通过。
 - 2026-07-25 L4 包 3 自动 / 正式入口完成：16 张合流固定帧、两阶段稳定轮询、持久游标和入射路径恢复接入；物流 82 项、schema 117 项、Boot 45 项及五图联系表复核通过。
+- 2026-07-25 萝卜SAMA载入三源预制演示档，确认持续合流、目标满载与整线回压无阻断问题；原用户主档 / 备份档按复核前哈希完整恢复，L4 正式收口。
+- 2026-07-25 建立 L5 反应器接入细专题：固定 `2 crystal → 1 catalyst / 10s`、四向对置双端口、独立双缓冲、断电暂停、输出回压、schema 6 与三包正式入口验收；旧全局计数 / 激活逻辑不复活。
 - 遗留登记：八方向动画（候选专题）、viewport 整数重构（并入 HUD 换皮）、打磨清单观察项。
 
 ## 下一步事项
 
-1. 由萝卜SAMA人工复核 L4 三路合流、堵塞、重启续跑与目标箱 `9/20` 联系表 / 实机路径；发现阻断问题则只修 L4。
-2. 人工确认后标记 L4 收口，并按设计文档先行建立 L5 反应器接入细专题；确认前不提前实现加工逻辑。
+1. 为 L5-A 催化剂带上货物开独立素材会话，目标 `10–14px` 透明像素货物；未获美术授权、未过四向带面审阅前不使用占位图。
+2. 素材闸门通过后推进包 1：`SliceReactor`、定义式双端口、独立缓冲 / 状态机和 schema 6 兼容迁移；不恢复旧按 `E` 激活。
 
 ## 防跑偏规则
 
@@ -64,7 +66,8 @@
 日常必读：
 
 - `docs/planning/current.md`（配方加工阶段边界与退出条件）
-- `docs/features/slice-conveyor-logistics-v1.md`（L4 当前玩家路径、物流模型、素材闸门与实现包）
+- `docs/features/slice-reactor-automation-v1.md`（L5 当前玩家路径、状态机、双端口、schema 6、素材闸门与实现包）
+- `docs/features/slice-conveyor-logistics-v1.md`（L4 已收口物流模型与验收基线）
 - `docs/features/slice-building-placement-and-power-grid-v1.md`（L3 已收口范围、素材与验收）
 - `docs/features/slice-recipe-processing-v1.md`（配方加工 arc 总览与层状态）
 - `docs/reference/pixel-art-and-grid-standard.md`（投影口径 2026-07-18 修订）
