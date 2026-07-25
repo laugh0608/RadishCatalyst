@@ -96,8 +96,11 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 				SliceBuildingDefinition.SURFACE_INDUSTRIAL_FLOOR,
 				true,
 				false,
-				"",
-				_cardinal_textures("conveyor")
+				"res://scenes/slice/SliceConveyor.tscn",
+				_cardinal_textures("conveyor"),
+				Vector2.ZERO,
+				Rect2(),
+				["cargo", "merge_cursor"]
 			)
 		STORAGE_ID:
 			return SliceBuildingDefinition.new(
@@ -113,7 +116,13 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 				_cardinal_textures("storage"),
 				Vector2(0, -16),
 				Rect2(),
-				["inventory"]
+				["inventory"],
+				SliceBuildingDefinition.POWER_PASSIVE,
+				Vector2i(-1, -1),
+				"",
+				Vector2(-8, -8),
+				Vector2i(1, 0),
+				Vector2i.UP
 			)
 	return null
 

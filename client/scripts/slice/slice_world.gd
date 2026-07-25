@@ -8,7 +8,8 @@ extends Node2D
 ## L3 packages 1-4 provide six data-driven building definitions, ordinary
 ## inventory kits, separate floor / blocking occupancy, one placement
 ## controller, shared runtime instances, lossless adjustment / demolition,
-## derived power propagation and schema-4 topology persistence.
+## derived power propagation and stable topology persistence. L4 package 1
+## adds storage-to-storage conveyor cargo and schema-5 state.
 ## `startup_load` (set by Boot before the node enters the tree) decides whether
 ## _ready restores the saved slice or starts a fresh one.
 
@@ -50,6 +51,7 @@ const RELAY_LINK_ANCHOR_OFFSET := Vector2(0, -44)
 ## Emitted whenever the player backpack contents change (drives HUD refresh).
 signal inventory_changed
 signal core_storage_changed
+signal building_storage_changed(instance_id: String)
 signal catalyst_changed(count: int)
 signal core_charge_changed(energy: int)
 signal core_repair_completed
@@ -81,6 +83,7 @@ var _industrial_floor: TileMapLayer
 var _placement: SliceBuildingPlacementController
 var _occupancy := SliceBuildingOccupancy.new()
 var _power_grid := SlicePowerGrid.new()
+var _logistics_grid := SliceLogisticsGrid.new()
 var _power_links: SlicePowerLinkLayer
 var _building_instances: Array[SliceBuildingInstance] = []
 var _collector_nodes: Array[SliceCollector] = []
@@ -88,6 +91,7 @@ var _adjustment_instance: SliceBuildingInstance
 var _adjustment_original_cell := Vector2i.ZERO
 var _adjustment_original_rotation := 0
 var _next_building_serial := 1
+var _logistics_save_elapsed := 0.0
 
 
 func _ready() -> void:
@@ -136,9 +140,11 @@ func _ready() -> void:
 	if startup_load:
 		_restore_from_save()
 	_rebuild_power_grid()
+	_rebuild_logistics_grid()
 
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
+	_tick_logistics(delta)
 	if not is_placement_active() or player == null:
 		return
 	var target_point := player.position + player.facing * 64.0
@@ -156,6 +162,17 @@ func _physics_process(_delta: float) -> void:
 		),
 		validation
 	)
+
+
+func _tick_logistics(delta: float) -> void:
+	var result := _logistics_grid.tick(delta)
+	if not bool(result.get("changed", false)):
+		return
+	_logistics_save_elapsed += delta
+	for instance_id in result.get("storage_ids", []):
+		building_storage_changed.emit(String(instance_id))
+	if _logistics_save_elapsed >= 1.0:
+		_autosave()
 
 
 func _process(delta: float) -> void:
@@ -344,6 +361,46 @@ func transfer_core_to_pocket(item: String) -> int:
 	core_storage.remove(item, moved)
 	inventory_changed.emit()
 	core_storage_changed.emit()
+	_autosave()
+	return moved
+
+
+func transfer_pocket_to_storage(
+	storage: SliceStorage,
+	item: String
+) -> int:
+	if (
+		item != ITEM_CRYSTAL
+		or storage == null
+		or not _building_instances.has(storage)
+	):
+		return 0
+	var moved := storage.inventory.add(item, pocket.count(item))
+	if moved <= 0:
+		return 0
+	pocket.remove(item, moved)
+	inventory_changed.emit()
+	building_storage_changed.emit(storage.instance_id)
+	_autosave()
+	return moved
+
+
+func transfer_storage_to_pocket(
+	storage: SliceStorage,
+	item: String
+) -> int:
+	if (
+		item != ITEM_CRYSTAL
+		or storage == null
+		or not _building_instances.has(storage)
+	):
+		return 0
+	var moved := pocket.add(item, storage.inventory.count(item))
+	if moved <= 0:
+		return 0
+	storage.inventory.remove(item, moved)
+	inventory_changed.emit()
+	building_storage_changed.emit(storage.instance_id)
 	_autosave()
 	return moved
 
@@ -566,6 +623,10 @@ func adjustment_block_reason(instance: SliceBuildingInstance) -> String:
 		return "建筑已失效"
 	if instance.definition.is_floor and _floor_supports_facility(instance):
 		return "地板上有设施"
+	if instance is SliceConveyor:
+		var content_reason := instance.content_block_reason()
+		if not content_reason.is_empty():
+			return content_reason
 	return ""
 
 
@@ -584,6 +645,7 @@ func begin_building_adjustment(instance: SliceBuildingInstance) -> bool:
 	instance.set_adjustment_hidden(true)
 	_placement.begin(instance.definition, instance.building_rotation)
 	_rebuild_power_grid(instance.instance_id)
+	_rebuild_logistics_grid(instance.instance_id)
 	placement_changed.emit()
 	return true
 
@@ -617,6 +679,7 @@ func demolish_building(instance: SliceBuildingInstance) -> bool:
 		return false
 	instance.queue_free()
 	_rebuild_power_grid()
+	_rebuild_logistics_grid()
 	inventory_changed.emit()
 	placement_changed.emit()
 	_autosave()
@@ -728,6 +791,10 @@ func _rebuild_power_grid(excluded_instance_id: String = "") -> void:
 	_refresh_power_links()
 
 
+func _rebuild_logistics_grid(excluded_instance_id: String = "") -> void:
+	_logistics_grid.rebuild(_building_instances, excluded_instance_id)
+
+
 func _refresh_power_links() -> void:
 	if _power_links == null:
 		return
@@ -805,6 +872,7 @@ func _place_existing_instance(
 			origin_cell, 0, _floor_atlas_coords(origin_cell), 0
 		)
 	_rebuild_power_grid()
+	_rebuild_logistics_grid()
 
 
 func _spawn_building(
@@ -850,6 +918,15 @@ func _spawn_building(
 			COLLECTOR_PRODUCE_INTERVAL
 		)
 		_collector_nodes.append(collector)
+	elif instance is SliceConveyor:
+		var conveyor := instance as SliceConveyor
+		var cargo: Dictionary = state.get("cargo", {})
+		if not cargo.is_empty():
+			conveyor.set_cargo(
+				String(cargo.get("item_id", "")),
+				float(cargo.get("progress", 0.0))
+			)
+		conveyor.merge_cursor = int(state.get("merge_cursor", 0))
 	elif instance is SliceStorage:
 		var storage := instance as SliceStorage
 		storage.inventory = Inventory.from_dict(state.get("inventory", {}))
@@ -868,6 +945,7 @@ func _spawn_building(
 		)
 	else:
 		_rebuild_power_grid()
+	_rebuild_logistics_grid()
 	return instance
 
 
@@ -961,6 +1039,8 @@ func _autosave() -> void:
 	})
 	if not bool(result.get("success", false)):
 		push_warning("切片自动存档失败：%s" % String(result.get("message", "")))
+		return
+	_logistics_save_elapsed = 0.0
 
 
 func _to_string_array(value) -> Array[String]:

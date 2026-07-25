@@ -29,6 +29,8 @@ var power_role: String
 var power_port_cell: Vector2i
 var powered_texture_path: String
 var power_indicator_offset: Vector2
+var logistics_port_cell: Vector2i
+var logistics_port_direction: Vector2i
 
 
 func _init(
@@ -48,7 +50,9 @@ func _init(
 	role: String = POWER_PASSIVE,
 	port_cell: Vector2i = Vector2i(-1, -1),
 	powered_texture: String = "",
-	indicator_offset: Vector2 = Vector2(-8, -8)
+	indicator_offset: Vector2 = Vector2(-8, -8),
+	logistics_cell: Vector2i = Vector2i(-1, -1),
+	logistics_direction: Vector2i = Vector2i.ZERO
 ) -> void:
 	building_id = id
 	kit_item_id = kit_id
@@ -67,6 +71,8 @@ func _init(
 	power_port_cell = port_cell
 	powered_texture_path = powered_texture
 	power_indicator_offset = indicator_offset
+	logistics_port_cell = logistics_cell
+	logistics_port_direction = logistics_direction
 
 
 func normalized_rotation(rotation: int) -> int:
@@ -131,9 +137,42 @@ func texture_path_for_rotation(rotation: int) -> String:
 
 
 func rotated_power_port_cell(rotation: int) -> Vector2i:
-	if power_port_cell.x < 0 or power_port_cell.y < 0:
-		return power_port_cell
-	var point := power_port_cell
+	return _rotated_local_cell(power_port_cell, rotation)
+
+
+func rotated_logistics_port_cell(rotation: int) -> Vector2i:
+	return _rotated_local_cell(logistics_port_cell, rotation)
+
+
+func logistics_direction_for_rotation(rotation: int) -> Vector2i:
+	var direction := logistics_port_direction
+	for _step in range(normalized_rotation(rotation)):
+		direction = Vector2i(-direction.y, direction.x)
+	return direction
+
+
+func logistics_port_world_cell(
+	origin_cell: Vector2i,
+	rotation: int
+) -> Vector2i:
+	var port := rotated_logistics_port_cell(rotation)
+	return origin_cell + port
+
+
+func logistics_connection_world_cell(
+	origin_cell: Vector2i,
+	rotation: int
+) -> Vector2i:
+	return (
+		logistics_port_world_cell(origin_cell, rotation)
+		+ logistics_direction_for_rotation(rotation)
+	)
+
+
+func _rotated_local_cell(cell: Vector2i, rotation: int) -> Vector2i:
+	if cell.x < 0 or cell.y < 0:
+		return cell
+	var point := cell
 	var size := footprint
 	for _step in range(normalized_rotation(rotation)):
 		point = Vector2i(size.y - 1 - point.y, point.x)

@@ -29,7 +29,7 @@ func _run_checks() -> void:
 	_check_codec_rejects_invalid_topology()
 	_check_schema_two_and_three_migration()
 	_check_invalid_primary_falls_back_to_backup()
-	await _check_schema_four_world_restart()
+	await _check_schema_five_world_restart()
 
 
 func _check_bootstrap_resource_budget() -> void:
@@ -153,8 +153,80 @@ func _check_codec_rejects_invalid_topology() -> void:
 		"storage item whitelist"
 	)
 
+	var conveyor_floor := _building_entry(
+		"building-000006",
+		SliceBuildingCatalog.FLOOR_ID,
+		Vector2i(24, 5),
+		0,
+		{}
+	)
+	var conveyor := _building_entry(
+		"building-000007",
+		SliceBuildingCatalog.CONVEYOR_ID,
+		Vector2i(24, 5),
+		1,
+		{
+			"cargo": {
+				"item_id": SliceWorld.ITEM_CRYSTAL,
+				"progress": 0.5,
+			},
+			"merge_cursor": 0,
+		}
+	)
+	_expect_codec_success(
+		[conveyor_floor, conveyor], 8, "valid conveyor cargo state"
+	)
+	var bad_cargo := conveyor.duplicate(true)
+	bad_cargo["state"]["cargo"]["progress"] = 1.5
+	_expect_codec_failure(
+		[conveyor_floor, bad_cargo],
+		8,
+		"progress",
+		"conveyor cargo progress"
+	)
+
 
 func _check_schema_two_and_three_migration() -> void:
+	var schema_four_dir := _new_save_dir("schema4")
+	var schema_four_service := SliceSaveService.new(schema_four_dir)
+	var schema_four_state := _empty_runtime_state(4)
+	schema_four_state["buildings"] = [
+		_building_entry(
+			"building-000001",
+			SliceBuildingCatalog.FLOOR_ID,
+			Vector2i(20, 5),
+			0,
+			{}
+		),
+		_building_entry(
+			"building-000002",
+			SliceBuildingCatalog.CONVEYOR_ID,
+			Vector2i(20, 5),
+			1,
+			{}
+		),
+	]
+	schema_four_state["next_building_serial"] = 3
+	_expect_success(
+		schema_four_service.save_state(schema_four_state),
+		"schema 4 fixture writes through current validator"
+	)
+	var schema_four_path := schema_four_dir.path_join("slice_world.json")
+	var schema_four := _read_json(schema_four_path)
+	schema_four["save_schema_version"] = 4
+	schema_four["game_version"] = "prototype-slice-04"
+	_write_json(schema_four_path, schema_four)
+	var schema_four_result := schema_four_service.load_state()
+	_expect_success(schema_four_result, "schema 4 topology remains readable")
+	if bool(schema_four_result.get("success", false)):
+		var buildings: Array = schema_four_result["data"]["buildings"]
+		_expect_equal(buildings.size(), 2, "schema 4 building count")
+		_expect_equal(
+			(buildings[1]["state"] as Dictionary).is_empty(),
+			true,
+			"schema 4 conveyor migrates as an empty belt"
+		)
+
 	var schema_three_dir := _new_save_dir("schema3")
 	var schema_three := _legacy_save_data(3)
 	schema_three["core_storage"] = {
@@ -289,13 +361,14 @@ func _check_invalid_primary_falls_back_to_backup() -> void:
 	)
 
 
-func _check_schema_four_world_restart() -> void:
+func _check_schema_five_world_restart() -> void:
 	var save_dir := _new_save_dir("restart")
 	var service := SliceSaveService.new(save_dir)
 	var world := SliceWorldScene.instantiate() as SliceWorld
 	world.save_service = service
 	root.add_child(world)
 	world.set_process(false)
+	world.set_physics_process(false)
 	await process_frame
 	await physics_frame
 
@@ -357,6 +430,26 @@ func _check_schema_four_world_restart() -> void:
 		0,
 		{"buffer": 4, "production_progress": 6.5}
 	) as SliceCollector
+	world._spawn_building(
+		SliceBuildingCatalog.find(SliceBuildingCatalog.FLOOR_ID),
+		"",
+		Vector2i(20, 5),
+		0,
+		{}
+	)
+	var conveyor := world._spawn_building(
+		SliceBuildingCatalog.find(SliceBuildingCatalog.CONVEYOR_ID),
+		"",
+		Vector2i(20, 5),
+		1,
+		{
+			"cargo": {
+				"item_id": SliceWorld.ITEM_CRYSTAL,
+				"progress": 0.375,
+			},
+			"merge_cursor": 0,
+		}
+	) as SliceConveyor
 	storage.inventory.add(SliceWorld.ITEM_PART, 3)
 	world._rebuild_power_grid()
 	var saved_next_serial := world._next_building_serial
@@ -368,6 +461,7 @@ func _check_schema_four_world_restart() -> void:
 	var reactor_id := reactor.instance_id
 	var storage_id := storage.instance_id
 	var collector_id := collector.instance_id
+	var conveyor_id := conveyor.instance_id
 	_expect_equal(collector.powered, true, "pre-save collector is powered")
 	world._autosave()
 
@@ -375,7 +469,7 @@ func _check_schema_four_world_restart() -> void:
 	_expect_equal(
 		int(raw_save.get("save_schema_version", 0)),
 		SliceSaveService.SAVE_SCHEMA_VERSION,
-		"schema 4 is written"
+		"schema 5 is written"
 	)
 	_expect_equal(raw_save.has("collectors"), false, "legacy collectors key is absent")
 	_expect_equal(
@@ -392,6 +486,12 @@ func _check_schema_four_world_restart() -> void:
 				6.5,
 				"collector partial tick is written exactly"
 			)
+		if String(entry.get("instance_id", "")) == conveyor_id:
+			_expect_equal(
+				float(entry["state"]["cargo"]["progress"]),
+				0.375,
+				"conveyor cargo progress is written exactly"
+			)
 
 	world.free()
 	await process_frame
@@ -399,14 +499,16 @@ func _check_schema_four_world_restart() -> void:
 	loaded_world.save_service = service
 	loaded_world.startup_load = true
 	loaded_world.set_process(false)
+	loaded_world.set_physics_process(false)
 	root.add_child(loaded_world)
 	loaded_world.set_process(false)
+	loaded_world.set_physics_process(false)
 	await process_frame
 	await physics_frame
 
 	_expect_equal(
 		loaded_world._building_instances.size(),
-		22,
+		24,
 		"all floors and facilities restore"
 	)
 	_expect_equal(
@@ -450,6 +552,19 @@ func _check_schema_four_world_restart() -> void:
 		"collector partial tick restores"
 	)
 	_expect_equal(loaded_collector.powered, true, "collector power is re-derived")
+	var loaded_conveyor := _find_by_id(
+		loaded_world, conveyor_id
+	) as SliceConveyor
+	_expect_equal(
+		loaded_conveyor.cargo_item_id,
+		SliceWorld.ITEM_CRYSTAL,
+		"conveyor cargo item restores"
+	)
+	_expect_equal(
+		loaded_conveyor.cargo_progress,
+		0.375,
+		"conveyor cargo progress restores"
+	)
 
 	var next_instance := loaded_world._spawn_building(
 		SliceBuildingCatalog.find(SliceBuildingCatalog.FLOOR_ID),
@@ -546,7 +661,7 @@ func _find_by_id(
 
 func _expect_codec_success(buildings: Array, next_serial: int, label: String) -> void:
 	_expect_success(
-		SliceBuildingSaveCodec.validate_schema_four(buildings, next_serial),
+		SliceBuildingSaveCodec.validate_schema_five(buildings, next_serial),
 		label
 	)
 
@@ -558,7 +673,7 @@ func _expect_codec_failure(
 	label: String
 ) -> void:
 	_expect_failure(
-		SliceBuildingSaveCodec.validate_schema_four(buildings, next_serial),
+		SliceBuildingSaveCodec.validate_schema_five(buildings, next_serial),
 		fragment,
 		label
 	)

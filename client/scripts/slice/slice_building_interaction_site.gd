@@ -19,6 +19,20 @@ func get_prompt(_world: Node) -> String:
 			instance.definition.display_name,
 			instance.power_status_text(),
 		]
+	if instance is SliceStorage:
+		var storage := instance as SliceStorage
+		return "按 E 管理储物箱（晶体 %d｜容量 %d/%d）" % [
+			storage.inventory.count(SliceWorld.ITEM_CRYSTAL),
+			storage.inventory.total(),
+			SliceStorage.CAPACITY,
+		]
+	if instance is SliceConveyor:
+		var conveyor := instance as SliceConveyor
+		return (
+			"按 E 管理传送带（晶体运输中）"
+			if conveyor.has_cargo()
+			else "按 E 管理传送带（空）"
+		)
 	return "按 E 管理%s" % instance.definition.display_name
 
 

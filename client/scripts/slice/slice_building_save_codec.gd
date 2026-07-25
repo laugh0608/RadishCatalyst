@@ -1,12 +1,14 @@
 class_name SliceBuildingSaveCodec
 extends RefCounted
 
-## Schema-4 building serialization and validation. Runtime power reachability is
-## deliberately absent: only stable topology and definition-owned state persist.
+## Schema-5 building serialization and validation. Runtime power / logistics
+## adjacency is deliberately absent: only topology and definition-owned state
+## persist.
 
 const MAP_SIZE_CELLS := Vector2i(80, 24)
 const INSTANCE_ID_PREFIX := "building-"
 const COLLECTOR_PRODUCE_INTERVAL := 10.0
+const TRANSPORT_ITEM_IDS := ["crystal"]
 const STORAGE_ITEM_IDS := [
 	"crystal",
 	"catalyst",
@@ -35,7 +37,7 @@ static func serialize_instances(
 	return result
 
 
-static func validate_schema_four(raw_buildings, raw_next_serial) -> Dictionary:
+static func validate_schema_five(raw_buildings, raw_next_serial) -> Dictionary:
 	if not (raw_buildings is Array):
 		return _failure("buildings 必须是数组")
 	if not _is_integer(raw_next_serial) or int(raw_next_serial) < 1:
@@ -100,6 +102,12 @@ static func validate_schema_four(raw_buildings, raw_next_serial) -> Dictionary:
 		"buildings": buildings,
 		"next_building_serial": next_serial,
 	})
+
+
+## Kept as a source-compatible alias for the L3 checks. Schema-4 payloads use
+## the same topology and simply omit the new conveyor state.
+static func validate_schema_four(raw_buildings, raw_next_serial) -> Dictionary:
+	return validate_schema_five(raw_buildings, raw_next_serial)
 
 
 static func migrate_legacy_collectors(raw_collectors) -> Dictionary:
@@ -273,6 +281,58 @@ static func _validate_state(
 		)
 		if not bool(inventory_result.get("success", false)):
 			return inventory_result
+	elif definition.building_id == SliceBuildingCatalog.CONVEYOR_ID:
+		var conveyor_result := _validate_conveyor_state(raw_state, index)
+		if not bool(conveyor_result.get("success", false)):
+			return conveyor_result
+	return _success(raw_state)
+
+
+static func _validate_conveyor_state(
+	raw_state: Dictionary,
+	index: int
+) -> Dictionary:
+	var cargo = raw_state.get("cargo", {})
+	if not (cargo is Dictionary):
+		return _failure("buildings[%d].state.cargo 必须是对象" % index)
+	if not cargo.is_empty():
+		var cargo_keys := ["item_id", "progress"]
+		for key in cargo:
+			if not cargo_keys.has(String(key)):
+				return _failure(
+					"buildings[%d].state.cargo 包含未知字段 %s"
+					% [index, key]
+				)
+		for key in cargo_keys:
+			if not cargo.has(key):
+				return _failure(
+					"buildings[%d].state.cargo 缺少字段 %s"
+					% [index, key]
+				)
+		var item_id = cargo["item_id"]
+		if (
+			not (item_id is String)
+			or not TRANSPORT_ITEM_IDS.has(String(item_id))
+		):
+			return _failure(
+				"buildings[%d].state.cargo 使用未知货物" % index
+			)
+		var progress = cargo["progress"]
+		if (
+			not (progress is float or progress is int)
+			or not is_finite(float(progress))
+			or float(progress) < 0.0
+			or float(progress) > 1.0
+		):
+			return _failure(
+				"buildings[%d].state.cargo.progress 超出有效范围"
+				% index
+			)
+	var merge_cursor = raw_state.get("merge_cursor", 0)
+	if not _is_integer(merge_cursor) or int(merge_cursor) < 0:
+		return _failure(
+			"buildings[%d].state.merge_cursor 必须是非负整数" % index
+		)
 	return _success(raw_state)
 
 

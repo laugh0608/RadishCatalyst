@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃专题：[Slice Conveyor Logistics V1](slice-conveyor-logistics-v1.md)——L4 传送带物流，单件晶体货物素材已完成，下一步实现包 1 直线储物箱物流，再补转角、合流、schema 5 重启与人工收口。L0–L3 已收口，层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
+当前活跃专题：[Slice Conveyor Logistics V1](slice-conveyor-logistics-v1.md)——L4 传送带物流，包 1 直线储物箱物流与 schema 5 的自动 / 正式入口证据已完成；下一步固定转角 / 端点与拓扑派生，再补合流与人工收口。L0–L3 已收口，层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
 
 已收口专题：
 

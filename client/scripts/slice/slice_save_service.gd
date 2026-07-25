@@ -6,13 +6,13 @@ extends RefCounted
 ## shared code or state. Persists the slice loop state as plain JSON with one
 ## rotated backup and an atomic temp-then-rename write.
 ##
-## Schema 4 (L3 placement and power grid) persists every building with a stable
-## identity and definition-owned state. Schema 2 / 3 collectors migrate into
-## that topology; schema 1 remains unsupported.
+## Schema 5 adds L4 conveyor cargo while retaining the stable building topology
+## introduced by schema 4. Schema 2 / 3 collectors migrate into that topology;
+## schema 1 remains unsupported.
 
-const SAVE_SCHEMA_VERSION := 4
+const SAVE_SCHEMA_VERSION := 5
 const MIN_SUPPORTED_SCHEMA_VERSION := 2
-const GAME_VERSION := "prototype-slice-04"
+const GAME_VERSION := "prototype-slice-05"
 const DEFAULT_SAVE_DIR := "user://saves/slice"
 const LEGACY_CORE_STORAGE_CAPACITY := 120
 
@@ -55,7 +55,7 @@ func save_state(state: Dictionary) -> Dictionary:
 		"player_x": float(state.get("player_x", 0.0)),
 		"player_y": float(state.get("player_y", 0.0))
 	}
-	var building_result := SliceBuildingSaveCodec.validate_schema_four(
+	var building_result := SliceBuildingSaveCodec.validate_schema_five(
 		save_data["buildings"], save_data["next_building_serial"]
 	)
 	if not bool(building_result.get("success", false)):
@@ -164,8 +164,8 @@ func _read_file(save_file: String) -> Dictionary:
 	var pocket := _inventory_dict(save_data.get("pocket", {}))
 	var core_storage := _inventory_dict(save_data.get("core_storage", {}))
 	var building_result: Dictionary
-	if version == SAVE_SCHEMA_VERSION:
-		building_result = SliceBuildingSaveCodec.validate_schema_four(
+	if version >= 4:
+		building_result = SliceBuildingSaveCodec.validate_schema_five(
 			save_data.get("buildings", null),
 			save_data.get("next_building_serial", null)
 		)
