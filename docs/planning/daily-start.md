@@ -42,14 +42,18 @@
 - 2026-07-25 建立 L5 反应器接入细专题：固定 `2 crystal → 1 catalyst / 10s`、四向对置双端口、独立双缓冲、断电暂停、输出回压、schema 6 与三包正式入口验收；旧全局计数 / 激活逻辑不复活。
 - 遗留登记：八方向动画（候选专题）、viewport 整数重构（并入 HUD 换皮）、打磨清单观察项。
 
-## 下一步事项
+## 明天事项（2026-07-26）
 
-1. 为 L5-A 催化剂带上货物开独立素材会话，目标 `10–14px` 透明像素货物；未获美术授权、未过四向带面审阅前不使用占位图。
-2. 素材闸门通过后推进包 1：`SliceReactor`、定义式双端口、独立缓冲 / 状态机和 schema 6 兼容迁移；不恢复旧按 `E` 激活。
+主目标是推进 L5 反应器接入自动化，不切换新专题，也不另开“太平面”阻塞包。
+
+1. 经萝卜SAMA明确授权后，为 L5-A 催化剂带上货物开独立素材会话：使用独立批次与 manifest，目标为 `10–14px` 透明像素货物，先守住催化剂身份、项目色义、带面比例和四向可读性；不得用晶体改色、文字或占位图替代。
+2. 生成落盘后进入独立审阅与归一阶段：在直线、转角、合流和反应器出料口四类上下文检查目标尺寸效果，锁定源哈希、RGBA 尺寸、共享色板和运行时资产哈希；素材未通过前不写 L5 玩法代码。
+3. 素材闸门通过后开工 L5 包 1：新增 `SliceReactor`，把对置入料 / 出料端口写入建筑定义，为每台反应器建立输入缓冲、输出缓冲、在制批次、剩余时间和断电暂停状态；同步完成 schema 6、schema 2–5 兼容迁移与专项断言，不恢复旧按 `E` 激活或全局催化剂计数。
+4. 包 1 完成后按专题顺序推进包 2 的机器物流与催化剂货物、包 3 的加工反馈和整线验收；每包执行匹配检查，玩家可见结果仍须从真实 `Boot` 使用隔离存档验证并审阅截图。
 
 ## 防跑偏规则
 
-- L3 的地板、中继、传送带与设备方向 / 状态变体是玩家可见实现硬闸门；不得用占位色块、程序贴图、运行时强转 sprite 或 debug 网络抢跑。具体拆分见 L3 专题。
+- L5 的催化剂货物与反应器加工反馈是当前玩家可见实现硬闸门；L3 / L4 已审定资产作为稳定输入，不得用占位色块、程序贴图、运行时强转 sprite 或 debug 网络抢跑。
 - 不做敌人 / 战斗、任务链、立绘对话、八方向动画、viewport 重构；冻结旧系统与旧检查不动。
 - 玩家可见目标以正式入口实机截图与运行时路径复核为主证据，自动检查只兜底。
 - 自动化可生成多张截图，但单个 Codex 会话默认最多读取 3 张图片；多图先用 `scripts/create-screenshot-contact-sheet.sh` 合成一张带编号联系表，达到默认上限后先报告，萝卜SAMA明确要求时可继续。
@@ -72,11 +76,11 @@
 - `docs/features/slice-recipe-processing-v1.md`（配方加工 arc 总览与层状态）
 - `docs/reference/pixel-art-and-grid-standard.md`（投影口径 2026-07-18 修订）
 - `docs/reference/ai-art-prompts.md`（全局风格块 2026-07-18 视角修订）
-- `docs/reference/l3-building-art-prompts.md`（L3-A 至 L3-E 素材提示词、硬判据与路线复盘）
 
 按任务选读：
 
-- 归一与提示词口径：`docs/reference/ai-art-prompts.md`、`docs/reference/l3-building-art-prompts.md`
+- L5-A 素材与归一口径：`docs/reference/ai-art-prompts.md`、`docs/reference/pixel-art-and-grid-standard.md`
+- 反应器端口与主体不变量：`docs/reference/l3-building-art-prompts.md`
 - 流程闸门：`docs/process/development-decision-gates.md`
 - 章程与完成定义：`docs/planning/project-purpose-and-solo-ai-development-review.md`
 - 视觉气质与 UI 原则：`docs/product/visual-and-ui-direction.md`
