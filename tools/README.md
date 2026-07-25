@@ -12,7 +12,7 @@
 - `normalize_l3d_reactor_ports.py`：锁定现有 96px 反应器为唯一不可变主体，只在四个基数连接位受控派生琥珀出料 / 青色缺口入料端口，输出四向静态帧与工业地板联系表。
 - `normalize_l3e_storage_hatch.py`：锁定现有 87×88 四罐储存设备为唯一不可变主体，每帧只在一个基数连接位覆盖带青色缺口与琥珀锁扣的双向舱口，输出四向静态帧与工业地板联系表。
 - `normalize_l4a_crystal_cargo.py`：锁定已审定小型晶体簇哈希，以固定逐行掩码分离中央单晶，输出 `10×12` 货物 sprite 与四向带面联系表。
-- `normalize_l4b_conveyor_topology.py`：锁定 L3-C 四向直段哈希，离线派生 8 张正交转角和源 / 目标端点各 4 张 `32×32` 固定帧；运行时只选图，不旋转或绘制轨道。
+- `normalize_l4b_conveyor_topology.py`：锁定 L3-C 四向直段哈希，离线派生 8 张正交转角、源 / 目标端点各 4 张及双 / 三路合流 16 张 `32×32` 固定帧；运行时只选图，不旋转或绘制轨道。
 
 ```bash
 python3 tools/normalize_slice_pack1.py            # 全量

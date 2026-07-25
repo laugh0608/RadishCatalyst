@@ -170,7 +170,7 @@ func _check_codec_rejects_invalid_topology() -> void:
 				"item_id": SliceWorld.ITEM_CRYSTAL,
 				"progress": 0.5,
 			},
-			"merge_cursor": 0,
+			"merge_cursor": 2,
 		}
 	)
 	_expect_codec_success(
@@ -447,7 +447,7 @@ func _check_schema_five_world_restart() -> void:
 				"item_id": SliceWorld.ITEM_CRYSTAL,
 				"progress": 0.375,
 			},
-			"merge_cursor": 0,
+			"merge_cursor": 2,
 		}
 	) as SliceConveyor
 	storage.inventory.add(SliceWorld.ITEM_PART, 3)
@@ -491,6 +491,11 @@ func _check_schema_five_world_restart() -> void:
 				float(entry["state"]["cargo"]["progress"]),
 				0.375,
 				"conveyor cargo progress is written exactly"
+			)
+			_expect_equal(
+				int(entry["state"]["merge_cursor"]),
+				2,
+				"conveyor merge cursor is written exactly"
 			)
 
 	world.free()
@@ -564,6 +569,11 @@ func _check_schema_five_world_restart() -> void:
 		loaded_conveyor.cargo_progress,
 		0.375,
 		"conveyor cargo progress restores"
+	)
+	_expect_equal(
+		loaded_conveyor.merge_cursor,
+		2,
+		"conveyor merge cursor restores"
 	)
 
 	var next_instance := loaded_world._spawn_building(

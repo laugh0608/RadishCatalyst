@@ -46,6 +46,10 @@ PREVIEW = (
     "assets/art-intake/2026-07-25-l4b-preview/"
     "conveyor_topology_contact_sheet.png"
 )
+MERGE_PREVIEW = (
+    "assets/art-intake/2026-07-25-l4b-preview/"
+    "conveyor_merge_contact_sheet.png"
+)
 
 FRAME_SIZE = 32
 CENTER = (15, 15)
@@ -191,6 +195,55 @@ def draw_turn_bed(image: npa.Image, entry: str, output: str) -> None:
     draw_chevron(image, output, 7)
 
 
+def draw_merge_bed(
+    image: npa.Image,
+    entries: tuple[str, ...],
+    output: str,
+) -> None:
+    clear_belt_bed(image)
+    segments = [(EDGE_CENTER[entry], CENTER) for entry in entries]
+    segments.append((CENTER, EDGE_CENTER[output]))
+    for y in range(1, 31):
+        for x in range(1, 31):
+            distance = min(
+                distance_to_segment(x, y, start, finish)
+                for start, finish in segments
+            )
+            if distance <= 8:
+                image.put(x, y, METAL)
+            if distance <= 6:
+                image.put(x, y, BELT_MID)
+            if distance <= 4:
+                image.put(x, y, BELT_DARK)
+
+    for entry in entries:
+        entry_x, entry_y = DIRECTIONS[entry]
+        for offset in (5, 9):
+            draw_cross_rib(
+                image,
+                CENTER[0] + entry_x * offset,
+                CENTER[1] + entry_y * offset,
+                entry,
+                PLATFORM,
+            )
+        side_bar(image, entry, METAL, CYAN)
+
+    output_x, output_y = DIRECTIONS[output]
+    for offset in (5, 9):
+        draw_cross_rib(
+            image,
+            CENTER[0] + output_x * offset,
+            CENTER[1] + output_y * offset,
+            output,
+            PLATFORM,
+        )
+    rect(image, 13, 13, 17, 17, HIGHLIGHT)
+    rect(image, 14, 14, 16, 16, METAL)
+    put(image, 15, 15, SHADOW)
+    side_bar(image, output, PLATFORM, AMBER)
+    draw_chevron(image, output, 7)
+
+
 def draw_cross_rib(
     image: npa.Image,
     center_x: int,
@@ -262,6 +315,29 @@ def derive_endpoints(
     return result
 
 
+def derive_merges(straights: dict[str, npa.Image]) -> dict[str, npa.Image]:
+    result = {}
+    direction_names = tuple(DIRECTIONS)
+    for output in direction_names:
+        entries = [
+            direction
+            for direction in direction_names
+            if direction != output
+        ]
+        combinations = [
+            (entries[0], entries[1]),
+            (entries[0], entries[2]),
+            (entries[1], entries[2]),
+            tuple(entries),
+        ]
+        for selected in combinations:
+            image = clone(straights[output])
+            draw_merge_bed(image, selected, output)
+            input_label = "_".join(selected)
+            result[f"merge_in_{input_label}_out_{output}"] = image
+    return result
+
+
 def alpha_bounds(image: npa.Image) -> tuple[int, int, int, int]:
     pixels = [
         (x, y)
@@ -279,13 +355,16 @@ def alpha_bounds(image: npa.Image) -> tuple[int, int, int, int]:
 def validate(
     turns: dict[str, npa.Image],
     endpoints: dict[str, npa.Image],
+    merges: dict[str, npa.Image],
 ) -> None:
     if len(turns) != 8:
         raise ValueError(f"expected 8 turn frames, found {len(turns)}")
     if len(endpoints) != 8:
         raise ValueError(f"expected 8 endpoint frames, found {len(endpoints)}")
+    if len(merges) != 16:
+        raise ValueError(f"expected 16 merge frames, found {len(merges)}")
     fingerprints = set()
-    for name, image in {**turns, **endpoints}.items():
+    for name, image in {**turns, **endpoints, **merges}.items():
         if (image.width, image.height) != (FRAME_SIZE, FRAME_SIZE):
             raise ValueError(f"{name} is not 32x32")
         bounds = alpha_bounds(image)
@@ -302,7 +381,7 @@ def validate(
         if not name.startswith("sink_") and CYAN not in colors:
             raise ValueError(f"{name} lost cyan input semantics")
         fingerprints.add(hashlib.sha256(image.data).hexdigest())
-    if len(fingerprints) != 16:
+    if len(fingerprints) != 32:
         raise ValueError("derived topology frames are not all distinct")
 
 
@@ -352,11 +431,33 @@ def write_preview(
     npa.save_png(PREVIEW, npa.upscale_nearest(panel, 4), with_alpha=False)
 
 
+def write_merge_preview(merges: dict[str, npa.Image]) -> None:
+    panel = npa.Image.blank(176, 176)
+    for y in range(panel.height):
+        for x in range(panel.width):
+            panel.put(x, y, SHADOW)
+    for row, output in enumerate(DIRECTIONS):
+        names = [
+            name
+            for name in merges
+            if name.endswith(f"_out_{output}")
+        ]
+        for column, name in enumerate(names):
+            paste(panel, merges[name], 8 + column * 42, 8 + row * 42)
+    os.makedirs(os.path.dirname(MERGE_PREVIEW), exist_ok=True)
+    npa.save_png(
+        MERGE_PREVIEW,
+        npa.upscale_nearest(panel, 4),
+        with_alpha=False,
+    )
+
+
 def write_frames(
     turns: dict[str, npa.Image],
     endpoints: dict[str, npa.Image],
+    merges: dict[str, npa.Image],
 ) -> None:
-    for name, image in {**turns, **endpoints}.items():
+    for name, image in {**turns, **endpoints, **merges}.items():
         path = os.path.join(OUTPUT_DIR, f"conveyor_{name}.png")
         npa.save_png(path, image)
 
@@ -365,16 +466,19 @@ def main() -> int:
     straights = load_straights()
     turns = derive_turns(straights)
     endpoints = derive_endpoints(straights)
-    validate(turns, endpoints)
-    write_frames(turns, endpoints)
+    merges = derive_merges(straights)
+    validate(turns, endpoints, merges)
+    write_frames(turns, endpoints, merges)
     write_preview(turns, endpoints)
+    write_merge_preview(merges)
 
-    for name in {**turns, **endpoints}:
+    for name in {**turns, **endpoints, **merges}:
         path = os.path.join(OUTPUT_DIR, f"conveyor_{name}.png")
         with open(path, "rb") as handle:
             digest = hashlib.sha256(handle.read()).hexdigest()
         print(f"{path}: 32x32 RGBA, SHA-256 {digest}")
     print(f"QA preview: {PREVIEW}")
+    print(f"Merge QA preview: {MERGE_PREVIEW}")
     return 0
 
 

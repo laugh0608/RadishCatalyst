@@ -85,7 +85,7 @@ func _tick_step(delta: float) -> Dictionary:
 			conveyor.set_cargo_progress(next_progress)
 			changed = true
 
-	var reserved_targets := {}
+	var contenders_by_target := {}
 	for conveyor in _conveyors:
 		if (
 			not conveyor.has_cargo()
@@ -94,19 +94,18 @@ func _tick_step(delta: float) -> Dictionary:
 			continue
 		var target_conveyor := conveyor_at(conveyor.output_cell())
 		if target_conveyor != null:
-			if (
-				not target_conveyor.has_cargo()
-				and not reserved_targets.has(target_conveyor.instance_id)
-			):
-				var item_id := conveyor.cargo_item_id
-				conveyor.clear_cargo()
-				target_conveyor.set_cargo(item_id, 0.0)
-				reserved_targets[target_conveyor.instance_id] = true
-				changed = true
+			if not target_conveyor.has_cargo():
+				if not contenders_by_target.has(
+					target_conveyor.instance_id
+				):
+					contenders_by_target[
+						target_conveyor.instance_id
+					] = []
+				contenders_by_target[
+					target_conveyor.instance_id
+				].append(conveyor)
 			else:
-				if conveyor.cargo_progress != BLOCKED_PROGRESS:
-					conveyor.set_cargo_progress(BLOCKED_PROGRESS)
-					changed = true
+				changed = _block_at_output(conveyor) or changed
 			continue
 
 		var target_storage := storage_at_port(conveyor.output_cell())
@@ -123,14 +122,35 @@ func _tick_step(delta: float) -> Dictionary:
 				)
 				changed = true
 			else:
-				if conveyor.cargo_progress != BLOCKED_PROGRESS:
-					conveyor.set_cargo_progress(BLOCKED_PROGRESS)
-					changed = true
+				changed = _block_at_output(conveyor) or changed
 			continue
 
-		if conveyor.cargo_progress != BLOCKED_PROGRESS:
-			conveyor.set_cargo_progress(BLOCKED_PROGRESS)
-			changed = true
+		changed = _block_at_output(conveyor) or changed
+
+	for target_conveyor in _conveyors:
+		var raw_contenders: Array = contenders_by_target.get(
+			target_conveyor.instance_id, []
+		)
+		if raw_contenders.is_empty():
+			continue
+		var winner := _choose_merge_winner(
+			target_conveyor, raw_contenders
+		)
+		for contender in raw_contenders:
+			var source := contender as SliceConveyor
+			if source != winner:
+				changed = _block_at_output(source) or changed
+		if winner == null:
+			continue
+		var item_id := winner.cargo_item_id
+		var entry_direction := (
+			winner.origin_cell - target_conveyor.origin_cell
+		)
+		winner.clear_cargo()
+		target_conveyor.set_cargo(
+			item_id, 0.0, entry_direction
+		)
+		changed = true
 
 	for storage in _storages:
 		var connection_cell := (
@@ -152,7 +172,9 @@ func _tick_step(delta: float) -> Dictionary:
 			continue
 		if storage.inventory.remove(item_id, 1) != 1:
 			continue
-		target_conveyor.set_cargo(item_id, 0.0)
+		target_conveyor.set_cargo(
+			item_id, 0.0, -target_conveyor.output_direction()
+		)
 		_append_unique(changed_storage_ids, storage.instance_id)
 		changed = true
 
@@ -189,8 +211,9 @@ func _refresh_conveyor_topologies() -> void:
 			)
 		):
 			conveyor.set_topology_visual(
-				SliceConveyor.TOPOLOGY_SOURCE_ENDPOINT, -output
+				SliceConveyor.TOPOLOGY_SOURCE_ENDPOINT, [-output]
 			)
+			_restore_cargo_entry_direction(conveyor)
 			continue
 
 		var sink_storage := storage_at_port(conveyor.output_cell())
@@ -199,12 +222,17 @@ func _refresh_conveyor_topologies() -> void:
 			and _belt_points_into_storage(conveyor, sink_storage)
 		):
 			conveyor.set_topology_visual(
-				SliceConveyor.TOPOLOGY_SINK_ENDPOINT, -output
+				SliceConveyor.TOPOLOGY_SINK_ENDPOINT, [-output]
 			)
+			_restore_cargo_entry_direction(conveyor)
 			continue
 
 		var input_directions := _input_directions(conveyor)
-		if (
+		if input_directions.size() >= 2:
+			conveyor.set_topology_visual(
+				SliceConveyor.TOPOLOGY_MERGE, input_directions
+			)
+		elif (
 			input_directions.size() == 1
 			and (
 				input_directions[0].x * output.x
@@ -213,12 +241,13 @@ func _refresh_conveyor_topologies() -> void:
 			)
 		):
 			conveyor.set_topology_visual(
-				SliceConveyor.TOPOLOGY_TURN, input_directions[0]
+				SliceConveyor.TOPOLOGY_TURN, input_directions
 			)
 		else:
 			conveyor.set_topology_visual(
-				SliceConveyor.TOPOLOGY_STRAIGHT, -output
+				SliceConveyor.TOPOLOGY_STRAIGHT, [-output]
 			)
+		_restore_cargo_entry_direction(conveyor)
 
 
 func _input_directions(conveyor: SliceConveyor) -> Array[Vector2i]:
@@ -235,6 +264,63 @@ func _input_directions(conveyor: SliceConveyor) -> Array[Vector2i]:
 		if upstream != null and upstream.output_cell() == conveyor.origin_cell:
 			result.append(direction)
 	return result
+
+
+func _input_conveyors(conveyor: SliceConveyor) -> Array[SliceConveyor]:
+	var result: Array[SliceConveyor] = []
+	for direction in _input_directions(conveyor):
+		var upstream := conveyor_at(conveyor.origin_cell + direction)
+		if upstream != null:
+			result.append(upstream)
+	result.sort_custom(_instance_before)
+	return result
+
+
+func _choose_merge_winner(
+	target: SliceConveyor,
+	raw_contenders: Array
+) -> SliceConveyor:
+	var contenders: Array[SliceConveyor] = []
+	for value in raw_contenders:
+		contenders.append(value as SliceConveyor)
+	contenders.sort_custom(_instance_before)
+	var upstreams := _input_conveyors(target)
+	if upstreams.is_empty():
+		return contenders[0] if not contenders.is_empty() else null
+
+	var start := posmod(target.merge_cursor, upstreams.size())
+	for offset in range(upstreams.size()):
+		var index := (start + offset) % upstreams.size()
+		var candidate := upstreams[index]
+		if contenders.has(candidate):
+			target.merge_cursor = (index + 1) % upstreams.size()
+			return candidate
+	return contenders[0] if not contenders.is_empty() else null
+
+
+func _restore_cargo_entry_direction(conveyor: SliceConveyor) -> void:
+	if not conveyor.has_cargo():
+		return
+	var upstreams := _input_conveyors(conveyor)
+	if (
+		conveyor.topology_kind() == SliceConveyor.TOPOLOGY_MERGE
+		and upstreams.size() >= 2
+	):
+		var last_index := posmod(
+			conveyor.merge_cursor - 1, upstreams.size()
+		)
+		conveyor.set_cargo_entry_direction(
+			upstreams[last_index].origin_cell - conveyor.origin_cell
+		)
+		return
+	conveyor.set_cargo_entry_direction(conveyor.entry_direction())
+
+
+func _block_at_output(conveyor: SliceConveyor) -> bool:
+	if conveyor.cargo_progress == BLOCKED_PROGRESS:
+		return false
+	conveyor.set_cargo_progress(BLOCKED_PROGRESS)
+	return true
 
 
 func _belt_points_into_storage(

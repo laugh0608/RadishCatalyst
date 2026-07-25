@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃专题：[Slice Conveyor Logistics V1](slice-conveyor-logistics-v1.md)——L4 传送带物流，包 1 直线物流与包 2 转角 / 端点拓扑的自动 / 正式入口证据已完成；下一步包 3 合流、公平性与人工收口。L0–L3 已收口，层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
+当前活跃专题：[Slice Conveyor Logistics V1](slice-conveyor-logistics-v1.md)——L4 传送带物流，包 1–3 的实现、自动与正式入口视觉证据已完成；等待萝卜SAMA人工确认后收口，再切换 L5。L0–L3 已收口，层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
 
 已收口专题：
 

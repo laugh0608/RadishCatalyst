@@ -13,6 +13,9 @@ func _execute() -> void:
 	_check_straight_storage_transfer()
 	_check_double_turn_route_and_visuals()
 	_check_loop_backpressure()
+	_check_two_way_merge_round_robin()
+	_check_three_way_merge_fairness()
+	_check_merge_step_and_order_independence()
 	_check_backpressure_and_content_gate()
 	_check_step_size_independence()
 	if failures.is_empty():
@@ -319,6 +322,244 @@ func _check_loop_backpressure() -> void:
 			"full loop keeps progress serializable while blocked"
 		)
 	_free_instances(instances)
+
+
+func _check_two_way_merge_round_robin() -> void:
+	var upstream_top := _make_conveyor(
+		"building-000050", Vector2i(0, -1), 2
+	)
+	var upstream_bottom := _make_conveyor(
+		"building-000051", Vector2i(0, 1), 0
+	)
+	var merge := _make_conveyor(
+		"building-000052", Vector2i(0, 0), 1
+	)
+	var instances: Array[SliceBuildingInstance] = [
+		merge, upstream_bottom, upstream_top,
+	]
+	var grid := SliceLogisticsGrid.new()
+	grid.rebuild(instances)
+	_expect_equal(
+		merge.topology_kind(),
+		SliceConveyor.TOPOLOGY_MERGE,
+		"two upstreams derive a merge topology"
+	)
+	_expect_equal(
+		merge.topology_input_directions(),
+		[Vector2i.UP, Vector2i.DOWN],
+		"merge inputs use stable screen-direction order"
+	)
+	_expect_equal(
+		_texture_path(merge).ends_with(
+			"conveyor_merge_in_up_down_out_right.png"
+		),
+		true,
+		"two-way merge selects its fixed topology frame"
+	)
+
+	var winners: Array[String] = []
+	for _round in range(6):
+		merge.clear_cargo()
+		if not upstream_top.has_cargo():
+			upstream_top.set_cargo(SliceWorld.ITEM_CRYSTAL, 1.0)
+		if not upstream_bottom.has_cargo():
+			upstream_bottom.set_cargo(
+				SliceWorld.ITEM_CRYSTAL, 1.0
+			)
+		grid.tick(SliceLogisticsGrid.SIMULATION_STEP_SECONDS)
+		_expect_equal(merge.has_cargo(), true, "merge accepts one contender")
+		if not upstream_top.has_cargo():
+			winners.append(upstream_top.instance_id)
+		else:
+			winners.append(upstream_bottom.instance_id)
+	_expect_equal(
+		winners,
+		[
+			upstream_top.instance_id,
+			upstream_bottom.instance_id,
+			upstream_top.instance_id,
+			upstream_bottom.instance_id,
+			upstream_top.instance_id,
+			upstream_bottom.instance_id,
+		],
+		"two ready inputs alternate by persistent round-robin cursor"
+	)
+	_expect_equal(
+		merge.merge_cursor,
+		0,
+		"six two-way grants wrap the merge cursor"
+	)
+	_expect_equal(
+		merge.cargo_entry_direction(),
+		Vector2i.DOWN,
+		"winning source controls the visible cargo entry side"
+	)
+	var first_leg := merge.cargo_local_position_for_progress(0.25)
+	_expect_equal(
+		is_equal_approx(first_leg.x, 0.0),
+		true,
+		"merge cargo first half follows its orthogonal input leg"
+	)
+	_free_instances(instances)
+
+
+func _check_three_way_merge_fairness() -> void:
+	var upstream_left := _make_conveyor(
+		"building-000060", Vector2i(-1, 0), 1
+	)
+	var upstream_top := _make_conveyor(
+		"building-000061", Vector2i(0, -1), 2
+	)
+	var upstream_bottom := _make_conveyor(
+		"building-000062", Vector2i(0, 1), 0
+	)
+	var merge := _make_conveyor(
+		"building-000063", Vector2i(0, 0), 1
+	)
+	var instances: Array[SliceBuildingInstance] = [
+		upstream_bottom, merge, upstream_left, upstream_top,
+	]
+	var grid := SliceLogisticsGrid.new()
+	grid.rebuild(instances)
+	_expect_equal(
+		_texture_path(merge).ends_with(
+			"conveyor_merge_in_up_down_left_out_right.png"
+		),
+		true,
+		"three-way merge selects its fixed topology frame"
+	)
+
+	var grant_counts := {
+		upstream_left.instance_id: 0,
+		upstream_top.instance_id: 0,
+		upstream_bottom.instance_id: 0,
+	}
+	var upstreams: Array[SliceConveyor] = [
+		upstream_left, upstream_top, upstream_bottom,
+	]
+	for _round in range(9):
+		merge.clear_cargo()
+		for upstream in upstreams:
+			if not upstream.has_cargo():
+				upstream.set_cargo(
+					SliceWorld.ITEM_CRYSTAL, 1.0
+				)
+		grid.tick(SliceLogisticsGrid.SIMULATION_STEP_SECONDS)
+		for upstream in upstreams:
+			if not upstream.has_cargo():
+				grant_counts[upstream.instance_id] += 1
+	for upstream in upstreams:
+		_expect_equal(
+			int(grant_counts[upstream.instance_id]),
+			3,
+			"three-way round robin grants each source three times"
+		)
+	_expect_equal(
+		merge.merge_cursor,
+		0,
+		"nine three-way grants wrap the persistent cursor"
+	)
+	var state := merge.state_dict(merge.definition.state_keys)
+	_expect_equal(
+		int(state["merge_cursor"]),
+		0,
+		"merge state serializes the current round-robin cursor"
+	)
+	_free_instances(instances)
+
+
+func _check_merge_step_and_order_independence() -> void:
+	var fine := _simulate_merge_for(8.0, 0.1, false)
+	var coarse := _simulate_merge_for(8.0, 0.25, false)
+	var reversed := _simulate_merge_for(8.0, 0.1, true)
+	for key in [
+		"source_top",
+		"source_bottom",
+		"target",
+		"cargo_count",
+		"merge_cursor",
+		"total",
+	]:
+		_expect_equal(
+			fine[key],
+			coarse[key],
+			"merge result %s is step-size independent" % key
+		)
+		_expect_equal(
+			fine[key],
+			reversed[key],
+			"merge result %s ignores input node traversal order" % key
+		)
+	_expect_equal(
+		int(fine["total"]),
+		12,
+		"multi-source simulation conserves all crystals"
+	)
+
+
+func _simulate_merge_for(
+	duration: float,
+	step: float,
+	reverse_instances: bool
+) -> Dictionary:
+	var source_top := _make_storage(
+		"building-000070", Vector2i(0, -3), 2
+	)
+	var source_bottom := _make_storage(
+		"building-000071", Vector2i(-1, 2), 0
+	)
+	var upstream_top := _make_conveyor(
+		"building-000072", Vector2i(0, -1), 2
+	)
+	var upstream_bottom := _make_conveyor(
+		"building-000073", Vector2i(0, 1), 0
+	)
+	var merge := _make_conveyor(
+		"building-000074", Vector2i(0, 0), 1
+	)
+	var sink_belt := _make_conveyor(
+		"building-000075", Vector2i(1, 0), 1
+	)
+	var target := _make_storage(
+		"building-000076", Vector2i(2, 0), 3
+	)
+	var instances: Array[SliceBuildingInstance] = [
+		source_top,
+		source_bottom,
+		upstream_top,
+		upstream_bottom,
+		merge,
+		sink_belt,
+		target,
+	]
+	if reverse_instances:
+		instances.reverse()
+	source_top.inventory.add(SliceWorld.ITEM_CRYSTAL, 6)
+	source_bottom.inventory.add(SliceWorld.ITEM_CRYSTAL, 6)
+	var grid := SliceLogisticsGrid.new()
+	grid.rebuild(instances)
+	var elapsed := 0.0
+	while elapsed < duration:
+		var delta := minf(step, duration - elapsed)
+		grid.tick(delta)
+		elapsed += delta
+	var result := {
+		"source_top": source_top.inventory.count(
+			SliceWorld.ITEM_CRYSTAL
+		),
+		"source_bottom": source_bottom.inventory.count(
+			SliceWorld.ITEM_CRYSTAL
+		),
+		"target": target.inventory.count(SliceWorld.ITEM_CRYSTAL),
+		"cargo_count": _network_crystals(instances)
+			- source_top.inventory.count(SliceWorld.ITEM_CRYSTAL)
+			- source_bottom.inventory.count(SliceWorld.ITEM_CRYSTAL)
+			- target.inventory.count(SliceWorld.ITEM_CRYSTAL),
+		"merge_cursor": merge.merge_cursor,
+		"total": _network_crystals(instances),
+	}
+	_free_instances(instances)
+	return result
 
 
 func _check_step_size_independence() -> void:
