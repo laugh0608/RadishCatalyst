@@ -6,7 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[L4 传送带物流](../features/slice-conveyor-logistics-v1.md)。专题与开发闸门已完成；下一步先做货物 sprite 确定性派生，再实现包 1“源箱 → 直线带 → 目标箱 + schema 5”。arc 总览见[配方加工](../features/slice-recipe-processing-v1.md)。
+- 当前活跃专题：[L4 传送带物流](../features/slice-conveyor-logistics-v1.md)。专题、开发闸门与单件晶体货物素材已完成；下一步实现包 1“玩家装料 → 源箱 → 直线带 → 目标箱 + schema 5”。arc 总览见[配方加工](../features/slice-recipe-processing-v1.md)。
 - 最新收口专题：[L3 建造放置 + 扩展供电网](../features/slice-building-placement-and-power-grid-v1.md)（07-25，含包 5 采集器、供电树与空间接地人工确认）、[L2 核心功能化](../features/slice-core-functionalization-v1.md)（07-21）、[视角修正轮](../features/slice-viewpoint-correction-v1.md)（07-19）；更早专题见 `docs/features/README.md`。
 - 美术介质机械口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一均已定稿）。
 - 章程与复盘结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（已完成，作决策存档）。
@@ -42,7 +42,7 @@
 ## 当前主线
 
 1. 配方加工 arc 分层：L0 资源模型 → L1 手持合成 → L2 核心直供 + 中央仓库 → L3 建造放置 + 扩展供电网 → L4 传送带物流 → L5 反应器接入。L0–L3 已收口。
-2. L4 先完成专用货物 sprite 与包 1 直线储物箱物流，再按专题补转角、合流与人工收口；不把旧打磨观察项插到物流主线之前。
+2. L4 专用晶体货物 sprite 已就位；现在实现包 1 直线储物箱物流，再按专题补转角、合流与人工收口，不把旧打磨观察项插到物流主线之前。
 3. 敌人等新世界层素材生成的视角前置已解除，生成会话由萝卜SAMA择时并行启动（为后续战斗专题备料）。
 
 ## 边界与冻结
