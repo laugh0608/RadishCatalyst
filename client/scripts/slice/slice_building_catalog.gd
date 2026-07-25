@@ -43,7 +43,9 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 				["res://assets/sprites/slice/collector.png"],
 				Vector2(0, -16),
 				Rect2(),
-				["buffer"]
+				["buffer", "production_progress"],
+				SliceBuildingDefinition.POWER_CONSUMER,
+				Vector2i(0, 1)
 			)
 		REACTOR_ID:
 			return SliceBuildingDefinition.new(
@@ -57,7 +59,11 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 				false,
 				"",
 				_cardinal_textures("reactor"),
-				Vector2(0, -16)
+				Vector2(0, -16),
+				Rect2(),
+				[],
+				SliceBuildingDefinition.POWER_CONSUMER,
+				Vector2i(1, 2)
 			)
 		POWER_RELAY_ID:
 			return SliceBuildingDefinition.new(
@@ -71,7 +77,12 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 				false,
 				"",
 				["res://assets/sprites/slice/power_relay_unpowered.png"],
-				Vector2(0, -16)
+				Vector2(0, -16),
+				Rect2(),
+				[],
+				SliceBuildingDefinition.POWER_RELAY,
+				Vector2i(-1, -1),
+				"res://assets/sprites/slice/power_relay_powered.png"
 			)
 		CONVEYOR_ID:
 			return SliceBuildingDefinition.new(

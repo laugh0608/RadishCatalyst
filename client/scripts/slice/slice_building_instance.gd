@@ -10,6 +10,7 @@ var building_id := ""
 var origin_cell := Vector2i.ZERO
 var building_rotation := 0
 var definition: SliceBuildingDefinition
+var powered := false
 
 
 func configure_building(
@@ -33,6 +34,7 @@ func apply_definition(next_definition: SliceBuildingDefinition, tile_size: float
 	_configure_sprite()
 	_configure_footprint(tile_size)
 	_configure_interaction(tile_size)
+	_configure_power_indicator(tile_size)
 
 
 func set_adjustment_hidden(hidden: bool) -> void:
@@ -49,6 +51,28 @@ func interaction_priority() -> int:
 	return 0 if definition != null and definition.is_floor else 10
 
 
+func set_powered(next_powered: bool) -> void:
+	powered = next_powered
+	_configure_sprite()
+	var indicator := get_node_or_null("PowerIndicator") as Polygon2D
+	if indicator != null:
+		indicator.color = (
+			Color(0.25, 1.0, 0.9, 1.0)
+			if powered
+			else Color(0.95, 0.2, 0.16, 1.0)
+		)
+
+
+func power_status_text() -> String:
+	if definition == null:
+		return ""
+	if definition.power_role == SliceBuildingDefinition.POWER_RELAY:
+		return "通电" if powered else "断电：未接入核心电网"
+	if definition.power_role == SliceBuildingDefinition.POWER_CONSUMER:
+		return "通电" if powered else "断电：未接入核心电网"
+	return ""
+
+
 func _configure_sprite() -> void:
 	if definition == null or definition.is_floor:
 		return
@@ -58,10 +82,43 @@ func _configure_sprite() -> void:
 		sprite.name = "Sprite"
 		add_child(sprite)
 	var texture_path := definition.texture_path_for_rotation(building_rotation)
+	if (
+		definition.power_role == SliceBuildingDefinition.POWER_RELAY
+		and powered
+		and not definition.powered_texture_path.is_empty()
+	):
+		texture_path = definition.powered_texture_path
 	sprite.texture = (
 		null if texture_path.is_empty() else load(texture_path) as Texture2D
 	)
 	sprite.position = definition.sprite_offset
+
+
+func _configure_power_indicator(tile_size: float) -> void:
+	if (
+		definition == null
+		or definition.power_role != SliceBuildingDefinition.POWER_CONSUMER
+	):
+		return
+	var indicator := get_node_or_null("PowerIndicator") as Polygon2D
+	if indicator == null:
+		indicator = Polygon2D.new()
+		indicator.name = "PowerIndicator"
+		indicator.polygon = PackedVector2Array([
+			Vector2(0, -4),
+			Vector2(4, 0),
+			Vector2(0, 4),
+			Vector2(-4, 0),
+		])
+		indicator.z_index = 5
+		add_child(indicator)
+	var size := Vector2(definition.rotated_footprint(building_rotation))
+	indicator.position = size * tile_size * 0.5 - Vector2(8, 8)
+	indicator.color = (
+		Color(0.25, 1.0, 0.9, 1.0)
+		if powered
+		else Color(0.95, 0.2, 0.16, 1.0)
+	)
 
 
 func _configure_footprint(tile_size: float) -> void:

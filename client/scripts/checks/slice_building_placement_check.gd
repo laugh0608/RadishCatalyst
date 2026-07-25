@@ -230,11 +230,12 @@ func _check_world_placement_path() -> void:
 	_expect_equal(
 		world._collector_nodes.size(), 1, "collector behavior stays registered"
 	)
+	world._collector_nodes[0].set_powered(true)
 	world._tick_production(SliceWorld.COLLECTOR_PRODUCE_INTERVAL)
 	_expect_equal(
 		world._collector_nodes[0].buffer,
 		1,
-		"migrated collector keeps ten-second production behavior"
+		"powered migrated collector keeps ten-second production behavior"
 	)
 	world.free()
 

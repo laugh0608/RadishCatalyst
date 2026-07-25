@@ -9,6 +9,7 @@ extends SliceBuildingInstance
 const BUFFER_CAP := 10
 
 var buffer := 0
+var production_progress := 0.0
 
 
 func has_space() -> bool:
@@ -23,6 +24,8 @@ func state_dict(allowed_keys: Array[String]) -> Dictionary:
 	var result := {}
 	if allowed_keys.has("buffer"):
 		result["buffer"] = buffer
+	if allowed_keys.has("production_progress"):
+		result["production_progress"] = production_progress
 	return result
 
 

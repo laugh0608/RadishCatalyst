@@ -89,6 +89,15 @@ func _refresh() -> void:
 		"[1] 调整位置",
 		"[2] 拆除并返还 1 个套件",
 	]
+	if (
+		_target.definition.power_role
+		== SliceBuildingDefinition.POWER_RELAY
+	):
+		lines.append(
+			"断开预计影响：%d 台设备" % (
+				_world.relay_disconnect_impact_count(_target)
+			)
+		)
 	if not _result.is_empty():
 		lines.append("")
 		lines.append(_result)

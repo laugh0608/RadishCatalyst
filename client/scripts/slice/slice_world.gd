@@ -78,15 +78,13 @@ var _ground: TileMapLayer
 var _industrial_floor: TileMapLayer
 var _placement: SliceBuildingPlacementController
 var _occupancy := SliceBuildingOccupancy.new()
+var _power_grid := SlicePowerGrid.new()
 var _building_instances: Array[SliceBuildingInstance] = []
 var _collector_nodes: Array[SliceCollector] = []
 var _adjustment_instance: SliceBuildingInstance
 var _adjustment_original_cell := Vector2i.ZERO
 var _adjustment_original_rotation := 0
 var _next_building_serial := 1
-## Runtime-only accumulator toward the next collector production tick; partial
-## sub-interval progress is not persisted (resets to 0 on load).
-var _produce_timer := 0.0
 
 
 func _ready() -> void:
@@ -130,6 +128,7 @@ func _ready() -> void:
 
 	if startup_load:
 		_restore_from_save()
+	_rebuild_power_grid()
 
 
 func _physics_process(_delta: float) -> void:
@@ -167,22 +166,18 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-## Each collector fills its own output buffer by 1 crystal per interval, pausing
-## at BUFFER_CAP. The timer bank drains multiple ticks on a long frame so output
-## is framerate-independent; players withdraw buffers via collect_from_collector.
+## Each powered collector advances its own retained tick progress. Losing power
+## pauses rather than discards progress; long frames may drain multiple ticks.
 func _tick_production(delta: float) -> void:
 	if _collector_nodes.is_empty():
 		return
-	_produce_timer += delta
-	var ticks := 0
-	while _produce_timer >= COLLECTOR_PRODUCE_INTERVAL:
-		_produce_timer -= COLLECTOR_PRODUCE_INTERVAL
-		ticks += 1
-	if ticks <= 0:
-		return
 	var produced := false
 	for collector in _collector_nodes:
-		for _t in ticks:
+		if not collector.powered:
+			continue
+		collector.production_progress += delta
+		while collector.production_progress >= COLLECTOR_PRODUCE_INTERVAL:
+			collector.production_progress -= COLLECTOR_PRODUCE_INTERVAL
 			if collector.has_space():
 				collector.produce(1)
 				produced = true
@@ -241,6 +236,7 @@ func spend_pocket_item(item: String, amount: int) -> bool:
 
 func mark_core_repaired() -> void:
 	core_repaired = true
+	_rebuild_power_grid()
 	core_repair_completed.emit()
 	_autosave()
 
@@ -257,6 +253,43 @@ func is_position_core_powered(world_position: Vector2) -> bool:
 		return false
 	var core := _map.get_node_or_null("World/OutpostCoreDamaged") as Node2D
 	return core != null and core.global_position.distance_to(world_position) <= CORE_DIRECT_POWER_RANGE
+
+
+func is_building_powered(instance: SliceBuildingInstance) -> bool:
+	return instance != null and instance.powered
+
+
+func powered_relay_count() -> int:
+	return _power_grid.powered_relay_count()
+
+
+func relay_disconnect_impact_count(relay: SliceBuildingInstance) -> int:
+	if (
+		relay == null
+		or relay.definition == null
+		or relay.definition.power_role
+		!= SliceBuildingDefinition.POWER_RELAY
+	):
+		return 0
+	var candidate := SlicePowerGrid.new()
+	candidate.rebuild(
+		core_repaired,
+		_core_world_position(),
+		TILE_SIZE,
+		_building_instances,
+		relay.instance_id
+	)
+	var affected := 0
+	for instance in _building_instances:
+		if (
+			instance.definition != null
+			and instance.definition.power_role
+			== SliceBuildingDefinition.POWER_CONSUMER
+			and instance.powered
+			and not candidate.is_consumer_powered(instance)
+		):
+			affected += 1
+	return affected
 
 
 func open_core_storage() -> bool:
@@ -543,6 +576,7 @@ func begin_building_adjustment(instance: SliceBuildingInstance) -> bool:
 		_industrial_floor.erase_cell(instance.origin_cell)
 	instance.set_adjustment_hidden(true)
 	_placement.begin(instance.definition, instance.building_rotation)
+	_rebuild_power_grid(instance.instance_id)
 	placement_changed.emit()
 	return true
 
@@ -575,6 +609,7 @@ func demolish_building(instance: SliceBuildingInstance) -> bool:
 		push_error("Demolition capacity changed after validation.")
 		return false
 	instance.queue_free()
+	_rebuild_power_grid()
 	inventory_changed.emit()
 	placement_changed.emit()
 	_autosave()
@@ -633,6 +668,13 @@ func _validate_placement(
 			return _placement_result(false, "玩家阻挡")
 	if not collisions.is_empty():
 		return _placement_result(false, "已有占用")
+	if (
+		definition.power_role == SliceBuildingDefinition.POWER_RELAY
+		and not _power_grid.can_connect_relay_at(
+			definition.block_center(origin_cell, TILE_SIZE, rotation)
+		)
+	):
+		return _placement_result(false, "超出电网连接距离")
 	return _placement_result(true, "")
 
 
@@ -647,6 +689,42 @@ func _floor_supports_facility(instance: SliceBuildingInstance) -> bool:
 		if not _occupancy.blocking_instance_at(cell).is_empty():
 			return true
 	return false
+
+
+func _rebuild_power_grid(excluded_instance_id: String = "") -> void:
+	_power_grid.rebuild(
+		core_repaired,
+		_core_world_position(),
+		TILE_SIZE,
+		_building_instances,
+		excluded_instance_id
+	)
+	for instance in _building_instances:
+		if instance.definition == null:
+			continue
+		if instance.instance_id == excluded_instance_id:
+			instance.set_powered(false)
+		elif (
+			instance.definition.power_role
+			== SliceBuildingDefinition.POWER_RELAY
+		):
+			instance.set_powered(
+				_power_grid.is_relay_powered(instance.instance_id)
+			)
+		elif (
+			instance.definition.power_role
+			== SliceBuildingDefinition.POWER_CONSUMER
+		):
+			instance.set_powered(
+				_power_grid.is_consumer_powered(instance)
+			)
+
+
+func _core_world_position() -> Vector2:
+	if _map == null:
+		return Vector2.ZERO
+	var core := _map.get_node_or_null("World/OutpostCoreDamaged") as Node2D
+	return Vector2.ZERO if core == null else core.global_position
 
 
 func _restore_adjustment_origin() -> void:
@@ -695,6 +773,7 @@ func _place_existing_instance(
 		_industrial_floor.set_cell(
 			origin_cell, 0, _floor_atlas_coords(origin_cell), 0
 		)
+	_rebuild_power_grid()
 
 
 func _spawn_building(
@@ -734,6 +813,11 @@ func _spawn_building(
 		collector.buffer = clampi(
 			int(state.get("buffer", 0)), 0, SliceCollector.BUFFER_CAP
 		)
+		collector.production_progress = clampf(
+			float(state.get("production_progress", 0.0)),
+			0.0,
+			COLLECTOR_PRODUCE_INTERVAL
+		)
 		_collector_nodes.append(collector)
 	elif instance is SliceStorage:
 		var storage := instance as SliceStorage
@@ -751,6 +835,8 @@ func _spawn_building(
 		_industrial_floor.set_cell(
 			origin_cell, 0, _floor_atlas_coords(origin_cell), 0
 		)
+	else:
+		_rebuild_power_grid()
 	return instance
 
 

@@ -97,11 +97,13 @@ func _check_world_operations() -> void:
 	root.add_child(world)
 	await process_frame
 	await physics_frame
+	world.core_repaired = true
+	world._rebuild_power_grid()
 
 	var floor_definition := SliceBuildingCatalog.find(SliceBuildingCatalog.FLOOR_ID)
 	_spawn_floor_rect(world, Vector2i(25, 3), Vector2i(3, 3))
 	_spawn_floor_rect(world, Vector2i(25, 7), Vector2i(3, 3))
-	_spawn_floor_rect(world, Vector2i(29, 3), Vector2i.ONE)
+	_spawn_floor_rect(world, Vector2i(22, 7), Vector2i.ONE)
 	_spawn_floor_rect(world, Vector2i(31, 3), Vector2i.ONE)
 	_spawn_floor_rect(world, Vector2i(33, 3), Vector2i(2, 2))
 	var standalone_floor := world._spawn_building(
@@ -123,7 +125,7 @@ func _check_world_operations() -> void:
 		world, SliceBuildingCatalog.REACTOR_ID, Vector2i(25, 3), 1
 	)
 	var relay := _place_device(
-		world, SliceBuildingCatalog.POWER_RELAY_ID, Vector2i(29, 3), 3
+		world, SliceBuildingCatalog.POWER_RELAY_ID, Vector2i(22, 7), 3
 	)
 	var conveyor := _place_device(
 		world, SliceBuildingCatalog.CONVEYOR_ID, Vector2i(31, 3), 1

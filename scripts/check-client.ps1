@@ -378,6 +378,14 @@ if ($runGodotChecks) {
                 RepoRoot = $RepoRoot
                 GodotExe = $GodotExe
             }
+        },
+        @{
+            Name = "slice power grid"
+            Script = "check-client-slice-power-grid.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
         }
     )
 }

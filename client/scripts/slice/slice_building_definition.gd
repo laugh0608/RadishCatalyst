@@ -8,6 +8,9 @@ extends RefCounted
 const SURFACE_BUILDABLE_ROCK := "buildable_rock"
 const SURFACE_CRYSTAL := "crystal"
 const SURFACE_INDUSTRIAL_FLOOR := "industrial_floor"
+const POWER_PASSIVE := "passive"
+const POWER_RELAY := "relay"
+const POWER_CONSUMER := "consumer"
 
 var building_id: String
 var kit_item_id: String
@@ -22,6 +25,9 @@ var texture_paths: Array[String]
 var sprite_offset: Vector2
 var texture_region: Rect2
 var state_keys: Array[String]
+var power_role: String
+var power_port_cell: Vector2i
+var powered_texture_path: String
 
 
 func _init(
@@ -37,7 +43,10 @@ func _init(
 	textures: Array[String] = [],
 	visual_offset: Vector2 = Vector2.ZERO,
 	region: Rect2 = Rect2(),
-	allowed_state_keys: Array[String] = []
+	allowed_state_keys: Array[String] = [],
+	role: String = POWER_PASSIVE,
+	port_cell: Vector2i = Vector2i(-1, -1),
+	powered_texture: String = ""
 ) -> void:
 	building_id = id
 	kit_item_id = kit_id
@@ -52,6 +61,9 @@ func _init(
 	sprite_offset = visual_offset
 	texture_region = region
 	state_keys = allowed_state_keys.duplicate()
+	power_role = role
+	power_port_cell = port_cell
+	powered_texture_path = powered_texture
 
 
 func normalized_rotation(rotation: int) -> int:
@@ -93,3 +105,25 @@ func texture_path_for_rotation(rotation: int) -> String:
 	if texture_paths.size() == 1:
 		return texture_paths[0]
 	return texture_paths[normalized_rotation(rotation) % texture_paths.size()]
+
+
+func rotated_power_port_cell(rotation: int) -> Vector2i:
+	if power_port_cell.x < 0 or power_port_cell.y < 0:
+		return power_port_cell
+	var point := power_port_cell
+	var size := footprint
+	for _step in range(normalized_rotation(rotation)):
+		point = Vector2i(size.y - 1 - point.y, point.x)
+		size = Vector2i(size.y, size.x)
+	return point
+
+
+func power_port_world_position(
+	origin_cell: Vector2i,
+	tile_size: float,
+	rotation: int
+) -> Vector2:
+	var port := rotated_power_port_cell(rotation)
+	if port.x < 0 or port.y < 0:
+		return block_center(origin_cell, tile_size, rotation)
+	return (Vector2(origin_cell + port) + Vector2(0.5, 0.5)) * tile_size
