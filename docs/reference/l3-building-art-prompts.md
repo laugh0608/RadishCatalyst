@@ -1,6 +1,6 @@
 # L3 Building Art Prompts
 
-更新时间：2026-07-24
+更新时间：2026-07-25
 
 ## 用途
 
@@ -67,6 +67,39 @@ labels, UI arrows or four different machine designs
 
 L3-C 已于 2026-07-25 使用 V1 通过硬判据和 32px 工业地板审阅，并归一为上 / 右 / 下 / 左四个 32×32 运行时帧；本段保留为定稿来源与后续同族参照，不据此追加生成。
 
+## L3-D 反应器四向端口
+
+`assets/reference/pixel-style-anchor.png` 同时作为已批准反应器身份参考与设备家族参考；四帧必须保留该反应器主体，只改变端口朝向。接全局风格块，按多对象规则调整结尾：
+
+```text
+the exact same approved three-cell-by-three-cell cylindrical chemical reactor
+shown four times in one horizontal row as four separate non-touching cardinal
+port frames, ordered left to right by material output direction: output toward
+the top, output toward the right, output toward the bottom, output toward the
+left of the screen; reproduce the reference reactor's identical squat round
+body, reinforced frame, octagonal screen-aligned base, round cyan reaction
+chamber on the top face, amber work lights, hazard stripe, wear, proportions,
+camera angle and lighting in every frame; do not redesign or rotate the whole
+render; attach one compact amber-rimmed output coupler or short empty discharge
+tray flush to the specified cardinal edge of the base and one recessed dark
+teal input coupler with a restrained cyan status notch flush to the exact
+opposite edge; both ports are part of the base and remain clearly visible from
+the high-oblique top-down camera; only the input and output port placement
+changes between frames; the reactor body, chamber glow, status lights, casing,
+base, materials and wear remain invariant; the amber output port alone defines
+the facing direction and must remain unmistakable after normalization to about
+96 pixels; no arrows, text, cargo, crystals, moving items, connected conveyor,
+pipe network, cable, animation, processing-state change, open tank, extra
+modules or four different reactor designs
+```
+
+首轮硬判据：
+
+- 四帧必须是现有定稿反应器的同一主体，青色顶腔、框架、底座、状态灯、比例和机位不得漂移；四台不同反应器直接判废。
+- 左到右固定为琥珀出料口朝上 / 右 / 下 / 左，暗青入料口在严格对侧；端口必须落在屏幕基数边，不得斜向、藏在主体后或使用菱形偏航。
+- 缩至约 96px 后，必须仅凭端口颜色和结构区分四向；不得依赖文字、UI 箭头、货物、连接管线或传送带。
+- 只生成静态空载端口差分；反应腔亮度、设备状态、外壳开合或加工表现发生变化即越过 L3 边界。
+
 ## 后续条目
 
-L3-D 反应器四向端口和 L3-E 储物箱四向端口默认在各自独立生成会话开工前补齐；不得在 L3-C 会话中顺带生成。只有萝卜SAMA明确点名当前会话切换类别，且 L3-C 已收口并更新 manifest 后，才能按新类别独立批次与首轮计数继续。
+L3-E 储物箱四向端口默认在独立生成会话开工前补齐；不得在 L3-D 会话中顺带生成。只有萝卜SAMA明确点名当前会话切换类别，且 L3-D 已收口并更新 manifest 后，才能按新类别独立批次与首轮计数继续。
