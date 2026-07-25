@@ -115,6 +115,40 @@ func _check_multihop_world_grid() -> void:
 	_expect_equal(relay_one.powered, true, "core-adjacent relay is powered")
 	_expect_equal(relay_two.powered, true, "second relay is powered")
 	_expect_equal(relay_three.powered, true, "third relay is powered")
+	var connections := world._power_grid.powered_connections()
+	_expect_equal(connections.size(), 3, "powered relays expose one parent edge each")
+	_expect_equal(
+		String(connections[0].get("parent_id", "")),
+		SlicePowerGrid.CORE_NODE_ID,
+		"first relay edge starts at the repaired core"
+	)
+	_expect_equal(
+		String(connections[1].get("parent_id", "")),
+		relay_one.instance_id,
+		"second relay edge uses the first relay as its parent"
+	)
+	_expect_equal(
+		String(connections[2].get("parent_id", "")),
+		relay_two.instance_id,
+		"third relay edge uses the bridge relay as its parent"
+	)
+	_expect_equal(
+		world._power_links.link_count(),
+		3,
+		"power link layer renders the same derived spanning tree"
+	)
+	_expect_equal(
+		relay_one.position,
+		relay_one.definition.sort_anchor_world_position(
+			relay_one.origin_cell, SliceWorld.TILE_SIZE, relay_one.building_rotation
+		),
+		"relay y-sorts from its footprint bottom edge"
+	)
+	_expect_equal(
+		relay_one.get_node_or_null("GroundShadow") != null,
+		true,
+		"relay has a grounded silhouette shadow"
+	)
 	_expect_equal(
 		(relay_three.get_node("Sprite") as Sprite2D).texture.resource_path.ends_with(
 			"power_relay_powered.png"
@@ -192,6 +226,11 @@ func _check_multihop_world_grid() -> void:
 	_expect_equal(reactor.powered, false, "reactor drops same frame")
 	_expect_equal(collector.powered, false, "collector drops same frame")
 	_expect_equal(
+		world._power_links.link_count(),
+		1,
+		"adjustment removes disconnected derived links in the same frame"
+	)
+	_expect_equal(
 		(relay_three.get_node("Sprite") as Sprite2D).texture.resource_path.ends_with(
 			"power_relay_unpowered.png"
 		),
@@ -209,6 +248,11 @@ func _check_multihop_world_grid() -> void:
 	_expect_equal(relay_three.powered, true, "cancel restores downstream relay")
 	_expect_equal(reactor.powered, true, "cancel restores reactor power")
 	_expect_equal(collector.powered, true, "cancel restores collector power")
+	_expect_equal(
+		world._power_links.link_count(),
+		3,
+		"cancel restores the three-link visual tree"
+	)
 	world._tick_production(3.0)
 	_expect_equal(collector.buffer, 1, "restored collector completes retained tick")
 	_expect_equal(
@@ -221,6 +265,11 @@ func _check_multihop_world_grid() -> void:
 	_expect_equal(relay_three.powered, false, "demolition disconnects downstream relay")
 	_expect_equal(reactor.powered, false, "demolition disconnects reactor")
 	_expect_equal(collector.powered, false, "demolition disconnects collector")
+	_expect_equal(
+		world._power_links.link_count(),
+		1,
+		"bridge demolition removes downstream visual links"
+	)
 	await process_frame
 	await physics_frame
 	var replacement := _place_building(
@@ -233,10 +282,20 @@ func _check_multihop_world_grid() -> void:
 	_expect_equal(relay_three.powered, true, "replacement reconnects downstream relay")
 	_expect_equal(reactor.powered, true, "replacement reconnects reactor")
 	_expect_equal(collector.powered, true, "replacement reconnects collector")
+	_expect_equal(
+		world._power_links.link_count(),
+		3,
+		"replacement rebuilds the visual tree"
+	)
 
 	world.core_repaired = false
 	world._rebuild_power_grid()
 	_expect_equal(world.powered_relay_count(), 0, "offline core clears relay reachability")
+	_expect_equal(
+		world._power_links.link_count(),
+		0,
+		"offline core clears all active visual links"
+	)
 	_expect_equal(reactor.powered, false, "offline core powers down reactor")
 	_expect_equal(collector.powered, false, "offline core powers down collector")
 	_expect_equal(world.reactor_active, false, "L3 does not activate reactor processing")

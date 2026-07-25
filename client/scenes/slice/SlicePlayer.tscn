@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/slice/slice_player.gd" id="1_player_script"]
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/engineer.png" id="2_idle"]
@@ -16,6 +16,7 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/engineer_walk_down_3.png" id="14_walk_down_3"]
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/engineer_idle_side.png" id="15_idle_side"]
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/engineer_idle_up.png" id="16_idle_up"]
+[ext_resource type="PackedScene" path="res://scenes/components/GroundShadow.tscn" id="17_ground_shadow"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_engineer"]
 animations = [{
@@ -103,6 +104,16 @@ radius = 48.0
 
 [node name="SlicePlayer" type="CharacterBody2D"]
 script = ExtResource("1_player_script")
+
+[node name="GroundShadow" parent="." instance=ExtResource("17_ground_shadow")]
+z_index = 0
+z_as_relative = true
+show_behind_parent = true
+target_path = NodePath("../Sprite")
+vertical_compression = 0.16
+horizontal_offset_ratio = 0.04
+ground_offset = Vector2(1, 1)
+shadow_color = Color(0.08, 0.11, 0.12, 0.22)
 
 [node name="Sprite" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -32)

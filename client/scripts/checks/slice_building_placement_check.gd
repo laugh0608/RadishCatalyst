@@ -73,6 +73,26 @@ func _check_definitions() -> void:
 		[Vector2i(4, 5), Vector2i(4, 6)],
 		"rotated occupied cells"
 	)
+	_expect_equal(
+		oblong.sort_anchor_world_position(Vector2i(4, 5), 32.0, 1),
+		Vector2(144, 224),
+		"building sort anchor uses rotated footprint bottom edge"
+	)
+	_expect_equal(
+		oblong.local_footprint_center_offset(32.0, 1),
+		Vector2(0, -32),
+		"building children retain the logical footprint center"
+	)
+	_expect_equal(
+		collector.sprite_offset,
+		Vector2(0, -22),
+		"collector sprite bottom aligns with its 2x2 footprint"
+	)
+	_expect_equal(
+		collector.power_indicator_offset,
+		Vector2(4, -12),
+		"collector power indicator aligns with the front-right status window"
+	)
 
 
 func _check_occupancy_layers() -> void:
@@ -209,6 +229,17 @@ func _check_world_placement_path() -> void:
 		true,
 		"crystal collector placement is valid"
 	)
+	var collector_preview := world._placement._preview as Sprite2D
+	_expect_equal(
+		collector_preview.texture.get_size(),
+		Vector2(89, 108),
+		"collector ghost uses the approved runtime sprite"
+	)
+	_expect_equal(
+		collector_preview.position,
+		Vector2(0, -22),
+		"collector ghost bottom-centers on the 2x2 footprint"
+	)
 	_expect_equal(
 		world.try_place_building(), true, "collector uses common placement"
 	)
@@ -229,6 +260,40 @@ func _check_world_placement_path() -> void:
 	)
 	_expect_equal(
 		world._collector_nodes.size(), 1, "collector behavior stays registered"
+	)
+	var placed_collector := world._collector_nodes[0]
+	_expect_equal(
+		placed_collector.position,
+		collector.sort_anchor_world_position(
+			collector_cell, SliceWorld.TILE_SIZE, 0
+		),
+		"placed collector y-sorts from its footprint bottom edge"
+	)
+	_expect_equal(
+		placed_collector.get_node_or_null("GroundShadow") != null,
+		true,
+		"placed collector receives a grounded silhouette shadow"
+	)
+	var collector_sprite := placed_collector.get_node("Sprite") as Sprite2D
+	_expect_equal(
+		collector_sprite.texture.get_size(),
+		Vector2(89, 108),
+		"placed collector uses the approved 89x108 runtime sprite"
+	)
+	_expect_equal(
+		collector_sprite.position,
+		Vector2(0, -54),
+		"placed collector sprite is bottom-centered on the footprint edge"
+	)
+	_expect_equal(
+		(placed_collector.get_node("PowerIndicator") as Polygon2D).position,
+		Vector2(36, -12),
+		"placed collector status light stays on the front-right machine lamp"
+	)
+	_expect_equal(
+		world.player.get_node_or_null("GroundShadow") != null,
+		true,
+		"slice player receives a grounded silhouette shadow"
 	)
 	world._collector_nodes[0].set_powered(true)
 	world._tick_production(SliceWorld.COLLECTOR_PRODUCE_INTERVAL)

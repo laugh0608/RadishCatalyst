@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-07-24
+更新时间：2026-07-25
 
 ## 用途
 
@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃细专题：[Slice Building Placement And Power Grid V1](slice-building-placement-and-power-grid-v1.md)——配方加工 arc 的 L3；泛化采集器专用放置，覆盖六类建筑的配方 / 套件、网格足印、旋转、碰撞、预览、取消、调整、拆除与返还，并以核心 + 中继二值图扩展供电。L3-A 工业地板、L3-B 电力中继与 L3-C 四向传送带已归一入库，下一步完成 L3-D / E 设备方向素材硬闸门。L0 / L1 / [L2 核心功能化](slice-core-functionalization-v1.md)均已收口；arc 总览与层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
+当前下一步：为配方加工 arc 建立 L4 传送带物流可执行细专题；L0–L3 已收口，层状态与 L4 边界见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
 
 已收口专题：
 
@@ -36,6 +36,7 @@
 - [Slice Harvest And Build V1](slice-harvest-and-build-v1.md)——整备台建造采集器、晶体地放置、自动产出，首条化工链第一步（2026-07-18 收口）。
 - [Slice Viewpoint Correction V1](slice-viewpoint-correction-v1.md)——投影口径修订为高斜角俯视、全部世界层素材重出换装、画面填充止血、方向性 idle（2026-07-19 收口）。
 - [Slice Core Functionalization V1](slice-core-functionalization-v1.md)——修复核心后启用 6 格直供电源与中央仓库，schema 3 存读兼容（2026-07-21 收口）。
+- [Slice Building Placement And Power Grid V1](slice-building-placement-and-power-grid-v1.md)——六类建筑通用放置、扩展供电、schema 4、自举资源与视觉修正包 5（2026-07-25 收口）。
 
 背景结论（复盘与证据轮）：
 

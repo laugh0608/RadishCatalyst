@@ -28,6 +28,7 @@ var state_keys: Array[String]
 var power_role: String
 var power_port_cell: Vector2i
 var powered_texture_path: String
+var power_indicator_offset: Vector2
 
 
 func _init(
@@ -46,7 +47,8 @@ func _init(
 	allowed_state_keys: Array[String] = [],
 	role: String = POWER_PASSIVE,
 	port_cell: Vector2i = Vector2i(-1, -1),
-	powered_texture: String = ""
+	powered_texture: String = "",
+	indicator_offset: Vector2 = Vector2(-8, -8)
 ) -> void:
 	building_id = id
 	kit_item_id = kit_id
@@ -64,6 +66,7 @@ func _init(
 	power_role = role
 	power_port_cell = port_cell
 	powered_texture_path = powered_texture
+	power_indicator_offset = indicator_offset
 
 
 func normalized_rotation(rotation: int) -> int:
@@ -97,6 +100,26 @@ func origin_for_target(target_position: Vector2, tile_size: float, rotation: int
 func block_center(origin_cell: Vector2i, tile_size: float, rotation: int) -> Vector2:
 	var size := Vector2(rotated_footprint(rotation))
 	return Vector2(origin_cell) * tile_size + size * tile_size * 0.5
+
+
+func sort_anchor_world_position(
+	origin_cell: Vector2i,
+	tile_size: float,
+	rotation: int
+) -> Vector2:
+	var size := Vector2(rotated_footprint(rotation))
+	return Vector2(
+		(float(origin_cell.x) + size.x * 0.5) * tile_size,
+		(float(origin_cell.y) + size.y) * tile_size
+	)
+
+
+func local_footprint_center_offset(
+	tile_size: float,
+	rotation: int
+) -> Vector2:
+	var size := Vector2(rotated_footprint(rotation))
+	return Vector2(0.0, -size.y * tile_size * 0.5)
 
 
 func texture_path_for_rotation(rotation: int) -> String:

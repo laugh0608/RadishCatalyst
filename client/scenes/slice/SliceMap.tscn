@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="TileSet" path="res://assets/tiles/slice/ground_tileset.tres" id="1_ground_tileset"]
 [ext_resource type="TileSet" path="res://assets/tiles/slice/industrial_floor_tileset.tres" id="2_industrial_floor"]
@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/crystal_cluster_small.png" id="8_cluster_small"]
 [ext_resource type="Script" path="res://scripts/slice/crystal_node.gd" id="9_crystal_node"]
 [ext_resource type="Script" path="res://scripts/slice/core_repair_site.gd" id="10_core_repair"]
+[ext_resource type="PackedScene" path="res://scenes/components/GroundShadow.tscn" id="11_ground_shadow"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_footprint_2x2"]
 size = Vector2(64, 64)
@@ -42,6 +43,16 @@ y_sort_enabled = true
 [node name="OutpostCoreDamaged" type="Sprite2D" parent="World"]
 position = Vector2(640, 320)
 texture = ExtResource("2_core_damaged")
+
+[node name="GroundShadow" parent="World/OutpostCoreDamaged" instance=ExtResource("11_ground_shadow")]
+z_index = 0
+z_as_relative = true
+show_behind_parent = true
+target_path = NodePath("..")
+vertical_compression = 0.18
+horizontal_offset_ratio = 0.06
+ground_offset = Vector2(1, 1)
+shadow_color = Color(0.08, 0.11, 0.12, 0.24)
 
 [node name="Footprint" type="StaticBody2D" parent="World/OutpostCoreDamaged"]
 

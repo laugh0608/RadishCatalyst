@@ -11,15 +11,17 @@ size = Vector2(64, 64)
 script = ExtResource("2_collector_script")
 
 [node name="Sprite" type="Sprite2D" parent="."]
-position = Vector2(0, -16)
+position = Vector2(0, -54)
 texture = ExtResource("1_collector")
 
 [node name="Footprint" type="StaticBody2D" parent="."]
+position = Vector2(0, -32)
 
 [node name="Collision" type="CollisionShape2D" parent="Footprint"]
 shape = SubResource("RectangleShape2D_footprint_2x2")
 
 [node name="PickupSite" type="Area2D" parent="."]
+position = Vector2(0, -32)
 script = ExtResource("3_pickup")
 
 [node name="Collision" type="CollisionShape2D" parent="PickupSite"]

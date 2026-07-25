@@ -135,3 +135,44 @@ animation or four different storage designs
 2026-07-25 V1 判废：四帧舱口基数与上 / 右 / 下 / 左顺序正确，但主体把批准的四罐 `2×2` 布局简化为三罐三角布局。V2 改用独立裁出的高分辨率四罐储存参考，并逐一锁定后左、后右、前左、前右四个罐位，仍重复生成三罐三角主体。
 
 L3-E 已触发两次失败停手规则，不生成 V3；经萝卜SAMA确认换为 `storage.png` 不可变主体的确定性离线派生。`normalize_l3e_storage_hatch.py` 锁定源哈希，四帧只在上 / 右 / 下 / 左中的一个受控区域覆盖双向舱口，主体其余像素保持一致；`2026-07-25-batch03` manifest 保留两次生成源、完整提示词、失败证据与最终静态资产哈希。
+
+## L3-F 采集器正位重出
+
+2026-07-25 人工复核判定现有 `collector.png` 虽来自视角修正轮，仍朝屏幕右下偏航；它是废稿，不得作为形体或朝向参考。生成时只挂 `assets/reference/pixel-style-anchor.png` 约束家族材质、色板、俯角和左上光：
+
+```text
+a single automated alien-crystal collector game sprite on one uniform
+near-black background; a compact 2-by-2-tile machine with a perfectly square,
+screen-axis-aligned base and exact 90-degree rotational symmetry: one centered
+circular crystal intake well on the dominant visible top surface, surrounded
+by four identical short cardinal support housings at screen top, right, bottom
+and left; no front side, no rear side and no preferred travel direction; high
+oblique top-down projection with the top surface as the largest visible plane
+and one clear side-wall height band around the base so the machine reads as a
+solid volume standing on the ground, not a flat platform decal; dark
+desaturated teal-gray metal, restrained cyan intake glow, two small amber
+status lights, one narrow yellow-black hazard band, crisp controlled pixel
+clusters and top-left lighting matching the approved reactor family; full
+machine visible with generous padding; no diagonal yaw, diamond footprint,
+isometric rotation, front-facing facade, conveyor stub, output chute, docking
+port, pipe, cable, crystal cargo, text, UI, cast scene, floor or watermark
+```
+
+首轮硬判据：
+
+- 方形底座边缘必须严格平行于屏幕水平 / 垂直轴；任何右下偏航、菱形足印或单一正面直接判废。
+- 主体必须 90° 旋转对称，四个逻辑旋转可映射同一帧；出现传送带短头、出料槽、单侧舱口等方向部件即失败。
+- 顶面最大且侧壁高度带明确；近垂直俯视压成贴花、或正立面占主导均失败。
+- 目标归一约 96px、2×2 足印，左上光与反应器同族；L4 端口与出料行为不在本图生成。
+
+2026-07-25 V1 判废：方形足印、屏幕轴和四向同构成立，但“中央青色发光采集井 + 厚重环形机身”首先读作反应器，且没有可见钻冠、钻轴、钻孔或液压进给机构。V2 将首要身份硬判据改为钻探采集剪影：大型裸露齿形钻冠围绕中央暗色钻孔，短钻轴明确向下，四个同构液压进给臂从上 / 右 / 下 / 左指向钻头；中央不得使用发光液池、玻璃顶腔、反应釜或能源核心读法。
+
+V2 的齿形钻冠、暗孔、短钻轴和四向液压进给机构形成明确钻探剪影，方形基座屏幕轴对齐且四个机构同构；但人工复核确认大面积平顶、极窄侧墙和全部水平铺开的机构仍使设备像贴地平台，缩至约 96px 后高度会进一步消失，故判废。经萝卜SAMA路线复盘后明确授权 V3 最后一次调用：改为“厚底座高侧墙 + 四向竖直承重塔 / 液压立柱 + 架高钻机头 + 明确向下钻轴”的四级垂直结构，并缩小平顶面积。
+
+V3 的中央螺旋钻轴、架高机头、四座进给塔和厚底座解决了钻探身份与设备高度，但生成结果把方形底座旋成正面角朝下的等距菱形，屏幕轴硬判据失败。本类别首轮 `3 / 3` 已用满，三张均不进入归一或换装；完整提示词、生成源、尺寸和哈希记录在 `assets/art-intake/2026-07-25-batch04/_manifest.md`。
+
+萝卜SAMA明确授权第二轮后，V4 换为 `precise-object-edit`：以 V3 为编辑目标，锁定其钻探身份、厚底座、四座高立柱、架高机头与长钻轴，只把相机从 45° 等距偏航重投影为零水平偏航的屏幕轴高斜角俯视。V4 的基座前后边水平、左右深度边垂直，身份、高度和轴向成立；但人工复核发现支撑落在设备内缘且没有经高位承重框连接中央钻机头，受力路径不可信，故不进入归一。
+
+V5 继续以 V4 为 `precise-object-edit` 目标，只修正支撑结构：四根同构主立柱锚定方形底座后左、后右、前左、前右四个外角，经屏幕轴对齐的高位方框和正交横梁连接中央滑台，钻机头与钻轴位于滑台正下方；钻孔与所有立柱之间保留清楚空隙。V5 同时通过钻探身份、设备高度、屏幕轴足印和连续承重路径四项首轮硬判据；累计调用 `5`、第二轮停在 `2 / 3`。
+
+独立归一以锁定源哈希和主体边界生成 `99×120`、`89×108`、`81×98` 三档透明候选，共享不超过 32 色的量化色板，并在深色隔离底、晶体地与工业地板联系表中比较。`89×108` 中档保留钻头、四角框架、状态灯与高度，同时宽度接近现有 `87×88` 储物箱，获选为运行时换装候选；sprite 替换与 Godot 验证未执行。

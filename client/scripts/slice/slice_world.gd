@@ -44,6 +44,8 @@ const CATALYST_CAP := 20
 const CORE_CHARGE_TARGET := 10
 const ROCK_GROUND_SOURCE_ID := 0
 const CRYSTAL_GROUND_SOURCE_ID := 2
+const CORE_LINK_ANCHOR_OFFSET := Vector2(0, -32)
+const RELAY_LINK_ANCHOR_OFFSET := Vector2(0, -44)
 
 ## Emitted whenever the player backpack contents change (drives HUD refresh).
 signal inventory_changed
@@ -79,6 +81,7 @@ var _industrial_floor: TileMapLayer
 var _placement: SliceBuildingPlacementController
 var _occupancy := SliceBuildingOccupancy.new()
 var _power_grid := SlicePowerGrid.new()
+var _power_links: SlicePowerLinkLayer
 var _building_instances: Array[SliceBuildingInstance] = []
 var _collector_nodes: Array[SliceCollector] = []
 var _adjustment_instance: SliceBuildingInstance
@@ -92,10 +95,14 @@ func _ready() -> void:
 	add_child(_map)
 	_ground = _map.get_node("GroundLayer")
 	_industrial_floor = _map.get_node("IndustrialFloorLayer")
+	var world_node := _map.get_node("World")
+	_power_links = SlicePowerLinkLayer.new()
+	_power_links.name = "PowerLinks"
+	world_node.add_child(_power_links)
 
 	player = (load(PLAYER_SCENE) as PackedScene).instantiate() as SlicePlayer
 	player.world = self
-	_map.get_node("World").add_child(player)
+	world_node.add_child(player)
 	player.position = START_SPAWN
 
 	var camera := player.get_node("Camera") as Camera2D
@@ -718,6 +725,30 @@ func _rebuild_power_grid(excluded_instance_id: String = "") -> void:
 			instance.set_powered(
 				_power_grid.is_consumer_powered(instance)
 			)
+	_refresh_power_links()
+
+
+func _refresh_power_links() -> void:
+	if _power_links == null:
+		return
+	var links: Array[Dictionary] = []
+	for connection in _power_grid.powered_connections():
+		var parent_id := String(connection.get("parent_id", ""))
+		var from_position := Vector2(
+			connection.get("from_position", Vector2.ZERO)
+		)
+		var to_position := Vector2(
+			connection.get("to_position", Vector2.ZERO)
+		)
+		links.append({
+			"from_position": from_position + (
+				CORE_LINK_ANCHOR_OFFSET
+				if parent_id == SlicePowerGrid.CORE_NODE_ID
+				else RELAY_LINK_ANCHOR_OFFSET
+			),
+			"to_position": to_position + RELAY_LINK_ANCHOR_OFFSET,
+		})
+	_power_links.set_links(links)
 
 
 func _core_world_position() -> Vector2:
@@ -759,7 +790,7 @@ func _place_existing_instance(
 		origin_cell,
 		definition.normalized_rotation(rotation)
 	)
-	instance.position = definition.block_center(
+	instance.position = definition.sort_anchor_world_position(
 		origin_cell, TILE_SIZE, instance.building_rotation
 	)
 	instance.apply_definition(definition, TILE_SIZE)
@@ -804,7 +835,7 @@ func _spawn_building(
 		origin_cell,
 		definition.normalized_rotation(rotation)
 	)
-	instance.position = definition.block_center(
+	instance.position = definition.sort_anchor_world_position(
 		origin_cell, TILE_SIZE, instance.building_rotation
 	)
 	instance.apply_definition(definition, TILE_SIZE)

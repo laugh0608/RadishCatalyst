@@ -41,11 +41,13 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 				false,
 				"res://scenes/slice/SliceCollector.tscn",
 				["res://assets/sprites/slice/collector.png"],
-				Vector2(0, -16),
+				Vector2(0, -22),
 				Rect2(),
 				["buffer", "production_progress"],
 				SliceBuildingDefinition.POWER_CONSUMER,
-				Vector2i(0, 1)
+				Vector2i(0, 1),
+				"",
+				Vector2(4, -12)
 			)
 		REACTOR_ID:
 			return SliceBuildingDefinition.new(
