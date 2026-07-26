@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃专题：[Slice First Field Combat And Sample Recovery V1](slice-first-field-combat-and-sample-recovery-v1.md)——首次充能、鼠标瞄准战斗、单敌人、撤离、关键样本回收与基地交付；B1 战斗反馈生成完成，等待独立 B2 审阅 / 归一，尚未开始玩法实现。
+当前活跃专题：[Slice First Field Combat And Sample Recovery V1](slice-first-field-combat-and-sample-recovery-v1.md)——首次充能、鼠标瞄准战斗、单敌人、撤离、关键样本回收与基地交付；B2 战斗反馈审阅 / 归一完成，等待独立 C1 关键样本生成，尚未开始玩法实现。
 
 已收口专题：
 
