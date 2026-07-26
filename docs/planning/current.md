@@ -6,7 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)；方案已确认，进入 A1 裂晶爬兽素材生成，尚未开始玩法实现。
+- 当前活跃专题：[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)；A1 裂晶爬兽素材生成完成，等待独立 A2 审阅 / 归一，尚未开始玩法实现。
 - 最新收口专题：[多世界存档列表](../features/slice-multi-world-save-list-v1.md)（07-26，含目录、列表、暂停返回、动作互斥、保留存档与人工确认）、[L5 反应器接入自动化](../features/slice-reactor-automation-v1.md)与[配方加工 arc](../features/slice-recipe-processing-v1.md)（07-26）、[L4 传送带物流](../features/slice-conveyor-logistics-v1.md)（07-25）；更早专题见 `docs/features/README.md`。
 - 美术介质机械口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一均已定稿）。
 - 章程与复盘结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（已完成，作决策存档）。
@@ -48,7 +48,7 @@
 当前阶段：
 
 ```text
-核心充能后的首次外勤战斗与关键样本回收——A1 敌人素材生成
+核心充能后的首次外勤战斗与关键样本回收——等待 A2 敌人审阅 / 归一
 ```
 
 ## 当前主线
@@ -71,7 +71,7 @@
 
 ## 当前素材阶段退出条件
 
-- A1 只生成裂晶爬兽身份与动作源；生成结果落盘并更新 manifest 后停手，不在同一阶段审阅或续接反馈 / 样本素材。
+- A1 已生成 3 张裂晶爬兽身份与动作源并更新 manifest；当前停在 A1 / A2 边界，不在未授权情况下审阅或续接其他素材。
 - 敌人、战斗反馈和关键样本分别完成独立生成与审阅 / 归一硬闸门；未通过的类别不得接入。
 - 素材硬闸门全部通过后进入三实现包；每包保留测试存档并经过真实 `Boot` 有窗口截图和人工复核。
 
