@@ -8,9 +8,9 @@
 
 ## 阶段
 
-阶段：等待 A2 敌人审阅 / 归一。
+阶段：等待 B1 战斗反馈生成。
 
-- [首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md) A1 已生成 3 稿；等待独立 A2，不进入实现。
+- [首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md) A2 已选定 V3；等待独立 B1，不进入实现。
 - 最新收口专题 [多世界存档列表](../features/slice-multi-world-save-list-v1.md)：目录、列表、暂停返回、动作互斥与人工路径全部通过。
 - 美术介质机械口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一均已定稿）。
 - 章程与复盘结论存档：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)。
@@ -49,16 +49,16 @@
 
 ## 今日后续（2026-07-26）
 
-主目标是启动独立 A2 敌人审阅 / 归一，不进入实现。
+主目标是启动独立 B1 工具挥击 / 命中反馈生成，不进入实现。
 
-1. 清点 batch02 三稿、源哈希与 chroma-key 边界。
-2. 归一到约 48px，比较三方向、蓄势、受击与败亡。
-3. 在晶体区联系表硬判后停手，不接代码。
+1. 只生成工具挥击 / 命中反馈，不混关键样本。
+2. 使用独立批次、manifest 与 `0 / 3` 计数。
+3. 达到本轮上限后停手，不审阅或接代码。
 
 ## 防跑偏规则
 
 - 多世界与 schema 6 已收口；新专题只按明确迁移策略扩展当前切片状态，不复活旧 `SaveService`、旧 `GameRoot` 或旧三槽存档。
-- A2 只审阅 / 归一敌人，不续生成、不接入代码；旧实现只借规则语义。
+- B1 只生成战斗反馈，不审阅、不接入代码；旧实现只借规则语义。
 - 玩家可见目标以正式入口实机截图与运行时路径复核为主证据，自动检查只兜底。
 - 自动化可生成多张截图，但单个 Codex 会话默认最多读取 3 张图片；多图先用 `scripts/create-screenshot-contact-sheet.sh` 合成一张带编号联系表，达到默认上限后先报告，萝卜SAMA明确要求时可继续。
 - 图像生成默认每轮至多 3 次、每次 1 张；每轮结束必须先落盘、更新 manifest 并报告，只有经萝卜SAMA明确授权才能在同素材会话追加下一轮。
