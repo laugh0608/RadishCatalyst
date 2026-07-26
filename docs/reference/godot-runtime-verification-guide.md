@@ -67,9 +67,16 @@ func _run() -> void:
 	# 1. 清基线（如删存档文件，保证从新档开始）
 	# 2. 走真实入口链路，不直接实例化内部场景：
 	var boot := BootScene.instantiate()
+	boot.slice_save_catalog = SliceSaveCatalog.new(
+		"/private/tmp/radishcatalyst-my-check"
+	)
 	root.add_child(boot)
 	await process_frame
-	(boot.get_node("StartupMenu") as StartupMenu).new_game_button.pressed.emit()
+	var menu := boot.startup_menu as StartupMenu
+	menu.new_game_button.pressed.emit()
+	await process_frame
+	menu.world_name_input.text = "专项复核世界"
+	menu.create_world_button.pressed.emit()
 	await process_frame
 	# 3. 拿到世界引用后逐项断言……
 	# 4. 验证通过后保留最终隔离存档，供萝卜SAMA直接载入复核
@@ -84,7 +91,7 @@ func _screenshot(file_name: String) -> void:
 
 ## 常用手法
 
-- **真实入口链路**：从 `Boot` 实例化、用 `button.pressed.emit()` 触发菜单信号进入游戏，验证的是真实接线；不要绕过入口直接搭内部场景（那验证不了 wiring）。
+- **真实入口链路**：从 `Boot` 实例化，先注入独立 `SliceSaveCatalog` 根，再用“新游戏 → 输入名称 → 创建并进入”或“载入存档 → 选择世界 → 载入”按钮信号进入游戏；只按 `new_game_button` 现在仅打开世界列表，不会直接实例化世界。不要绕过入口直接搭内部场景（那验证不了 wiring）。
 - **输入模拟**：`Input.action_press("move_up")` → 若干 `await physics_frame` → `Input.action_release(...)`，走真实物理与动画路径。**用完必须 release**，Input 状态跨段残留。
 - **传送 + 真实交互结合**：跨图赶路可以直接设 `player.position`（省时），但被验证的机制本身（交互、碰撞、放置）必须走真实路径。
 - **位置里程碑而非定帧计时**：断言"走到某处"用位置条件 + 帧数上限兜底；固定帧数在高刷新率下失真（W29 经验）。

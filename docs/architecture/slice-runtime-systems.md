@@ -1,6 +1,6 @@
 # Slice Runtime Systems
 
-更新时间：2026-07-25
+更新时间：2026-07-26
 
 ## 文档目的
 
@@ -13,22 +13,27 @@
 - `client/scripts/slice/slice_building_*.gd`
 - `client/scripts/slice/slice_power_grid.gd`
 - `client/scripts/slice/slice_logistics_grid.gd`
+- `client/scripts/slice/slice_reactor.gd`
+- `client/scripts/slice/slice_save_catalog.gd`
 - `client/scripts/slice/slice_save_service.gd`
 - `client/scripts/slice/slice_building_save_codec.gd`
+- `client/scripts/slice/slice_pause_menu.gd`
 
 ## 正式入口
 
 ```text
 Boot
 -> DataRegistry.load_all()
+-> SliceSaveCatalog 迁移旧单档并枚举世界
 -> StartupMenu
--> 新游戏 / 载入存档
+-> 创建或选择一个稳定 world_id
+-> SliceSaveCatalog.service_for_world(world_id)
 -> 实例化 SliceWorld
--> 注入同一个 SliceSaveService
+-> 注入该世界唯一的 SliceSaveService
 -> 新建世界或恢复切片存档
 ```
 
-启动菜单和世界使用同一个 `SliceSaveService` 实例，因此菜单摘要、载入判断和世界读写不会各自读取不同目录。旧 `_start_game()` 只为冻结纵切兼容保留，不由当前菜单进入。
+`SliceSaveCatalog` 只拥有世界目录、轻量元数据、30 世界上限、回收恢复和旧单档迁移；玩法状态仍由选中世界的 `SliceSaveService` 独占。`Esc` 暂停后“保存并返回主菜单”会先保存当前世界，再由 `Boot` 释放 `SliceWorld`、清空选中服务并重建列表。旧 `_start_game()` 只为冻结纵切兼容保留，不由当前菜单进入。
 
 ## 系统职责
 
@@ -40,8 +45,9 @@ Boot
 - 持有背包、核心仓库、核心状态、建筑实例集合和稳定序号。
 - 调用放置校验、建筑生成、调整、拆除和交互。
 - 在结构变化后重建供电与物流。
-- 推进采集器生产和传送带模拟。
+- 推进采集器、反应器生产和传送带模拟。
 - 组装并触发自动存档。
+- 处理前台面板 / 放置优先的 `Esc`，以及暂停、保存返回和保存退出。
 
 它不直接定义每类建筑的全部规则；可复用规则已下沉到窄职责对象。
 
@@ -50,7 +56,7 @@ Boot
 - `SliceBuildingCatalog`：六类建筑定义的唯一注册表。
 - `SliceBuildingDefinition`：不可变规则，包括占地、表面、方向帧、碰撞、状态白名单、电力角色与端口、物流端口。
 - `SliceBuildingInstance`：稳定运行时身份和共享视觉 / 碰撞壳。
-- `SliceCollector`、`SliceStorage`、`SliceConveyor`：只持有各自内部状态和窄行为。
+- `SliceCollector`、`SliceStorage`、`SliceConveyor`、`SliceReactor`：只持有各自内部状态和窄行为。
 - `SliceBuildingOccupancy`：分别维护地板占用和阻挡设施占用。
 
 建筑方向只选择固定帧；`rotation` 是 `0–3` 的规则状态，不直接旋转像素图。
@@ -78,8 +84,8 @@ Boot
 `SliceLogisticsGrid` 是世界权威的定步长传送带模拟：
 
 - 固定以 `1/60s` 子步推进，带速为每秒一格。
-- 从建筑原点、方向和储物箱端口派生邻接与拓扑。
-- 先推进在途进度，再处理带到带 / 带到箱转移，最后处理箱到带发料。
+- 从建筑原点、方向、储物箱舱口和反应器入 / 出端口派生邻接与拓扑。
+- 先推进在途进度，再处理带到带 / 带到储物箱或反应器输入，最后处理储物箱 / 反应器输出发料。
 - 同一目标的多入口竞争由目标带格的持久轮询游标裁决。
 - 满载或占用形成回压，货物停在输出边缘。
 
@@ -95,12 +101,13 @@ Boot
 | 采集器缓冲与生产进度 | 是 | 断电和重启都保留 |
 | 储物箱库存 | 是 | 容量与物品白名单校验 |
 | 传送带货物、进度、合流游标 | 是 | 支持重启续跑与公平性 |
+| 反应器输入 / 输出缓冲、加工态与进度 | 是 | 每台实例独立，断电和重启都保留 |
 | 地板 / 设施占用索引 | 否 | 从建筑布局重建 |
 | 供电可达性、父边、连线 | 否 | 从核心和中继重建 |
 | 物流邻接、直线 / 转角 / 端点 / 合流外观 | 否 | 从相邻建筑重建 |
 | 阴影、y-sort、状态灯和 ghost | 否 | 纯表现 |
 
-旧顶层 `catalyst_count` 和 `reactor_active` 字段暂时只为兼容既有切片存档保留，不应作为新反应加工的权威状态。
+schema 6 不再保存旧顶层 `catalyst_count` 和 `reactor_active`；旧档催化剂通过受信迁移进入核心仓库，旧激活标记丢弃。运行时遗留兼容成员不得重新成为加工或核心充能的权威状态。
 
 ## 生命周期与时间推进
 
@@ -111,29 +118,38 @@ Boot
 ```text
 physics tick
 -> SliceLogisticsGrid.tick(delta)
--> 更新货物与受影响储物箱
+-> 更新货物与受影响储物箱 / 反应器缓冲
 -> 有物流变化时按最多约 1 秒间隔自动保存
 
 process tick
 -> 推进每台通电采集器
 -> 缓冲未满时每 10 秒产出 1 晶体
--> 产出后自动保存
+-> 推进每台反应器的 2 晶体 → 1 催化剂 / 10 秒状态机
+-> 产出、加工状态切换或最多约 1 秒后自动保存
 ```
 
-建造、调整、拆除、仓库存取、核心修复和采集等离散变化会立即触发自动保存。
+建造、调整、拆除、仓库存取、核心修复和采集等离散变化会立即触发自动保存；暂停返回或退出只有保存成功后才释放世界或结束进程。
 
 ## 切片存档
 
-`SliceSaveService` 与旧 `SaveService` 物理隔离：
+`SliceSaveCatalog` 与 `SliceSaveService` 均和旧 `SaveService` 物理隔离：
 
-- 默认目录：`user://saves/slice`。
-- 主档：`slice_world.json`。
-- 单份轮转备份：`slice_world.bak.json`。
-- 写入方式：临时文件写完后替换主档。
-- 当前 schema：`5`；支持读取 schema `2–5`，schema `1` 不支持。
-- 读取顺序：主档失败后尝试备份；全部失败时保留当前运行状态。
+```text
+user://saves/slice/
+  worlds/world_<stable_id>/
+    metadata.json
+    autosave.json
+    backups/autosave.bak.1.json ... bak.3.json
+  trash/<recoverable_entry>/
+```
 
-schema `4` 把旧采集器列表迁移为统一建筑拓扑；schema `5` 增加传送带货物与合流游标。schema `2 / 3` 的旧采集器会获得稳定 ID，携带中的旧采集器会迁回背包套件，schema `2` 核心仓库迁移为空仓。
+- 最多 30 个在用世界；显示名可变，稳定 ID 和目录不随重命名变化。
+- `metadata.json` 只提供列表轻读；`autosave.json` 才是 schema 6 权威世界状态。
+- 写入先落临时文件，三份备份轮转成功后才替换主档；读取按主档、`bak.1`、`bak.2`、`bak.3` 回退，全部失败时不覆盖内存状态。
+- 当前 schema 为 `6`，支持读取 schema `2–6`；schema `1` 不支持。
+- 旧 `user://saves/slice/slice_world.json` 和单份 `.bak` 仅作迁移源：校验、复制、读回成功后发布为第一个命名世界，旧文件保留。
+
+schema `4` 把旧采集器列表迁移为统一建筑拓扑；schema `5` 增加传送带货物与合流游标；schema `6` 增加反应器双缓冲、加工态和进度，并迁移旧全局催化剂。schema `2 / 3` 的旧采集器会获得稳定 ID，携带中的旧采集器会迁回背包套件，schema `2` 核心仓库迁移为空仓。
 
 `SliceBuildingSaveCodec` 在接受候选档案前校验：
 
@@ -141,7 +157,7 @@ schema `4` 把旧采集器列表迁移为统一建筑拓扑；schema `5` 增加�
 - 已知建筑定义、方向范围和下一序号。
 - 地图边界、地板 / 设施同层不重叠。
 - 设施获得完整工业地板支撑。
-- 各建筑内部状态白名单、容量、数值范围和货物 ID。
+- 各建筑内部状态白名单、容量、数值范围和货物 ID，包括反应器加工态 / 进度一致性。
 
 ## 扩展规则
 
@@ -153,4 +169,4 @@ schema `4` 把旧采集器列表迁移为统一建筑拓扑；schema `5` 增加�
 4. 明确哪些状态保存、哪些从布局派生。
 5. 扩展匹配的放置、操作、供电、物流和 schema 检查。
 
-反应加工接入时应使用每台反应器的输入缓冲、输出缓冲和在制批次升级 schema；不得重新把全局催化剂计数或激活布尔作为机器权威状态。
+后续战斗与样本状态应在选中世界的 schema 7 中扩展并沿用候选校验 / 备份链；不得放进目录元数据、拆成跨世界共享角色档，或重新把旧全局催化剂计数作为权威状态。
