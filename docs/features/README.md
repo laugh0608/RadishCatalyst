@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃专题：[Slice Reactor Automation V1](slice-reactor-automation-v1.md)——L5 素材、包 1–2 与包 3 的自然完整产线、双状态重启和截图证据已完成，等待萝卜SAMA人工确认后收口。L0–L4 已收口，层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
+当前活跃专题：[Slice Multi-World Save List V1](slice-multi-world-save-list-v1.md)——把当前单世界自动存档升级为最多 30 个世界的列表、稳定目录、可恢复回收和测试复核入口；第一包先做世界目录、目录服务与单档无损迁移。
 
 已收口专题：
 
@@ -38,6 +38,8 @@
 - [Slice Core Functionalization V1](slice-core-functionalization-v1.md)——修复核心后启用 6 格直供电源与中央仓库，schema 3 存读兼容（2026-07-21 收口）。
 - [Slice Building Placement And Power Grid V1](slice-building-placement-and-power-grid-v1.md)——六类建筑通用放置、扩展供电、schema 4、自举资源与视觉修正包 5（2026-07-25 收口）。
 - [Slice Conveyor Logistics V1](slice-conveyor-logistics-v1.md)——直线、转角、端点、双 / 三路合流、公平轮询、回压与 schema 5 存读（2026-07-25 收口）。
+- [Slice Reactor Automation V1](slice-reactor-automation-v1.md)——双端口反应器、催化剂货物、schema 6、自然完整产线、双状态重启与人工确认（2026-07-26 收口）。
+- [Slice Recipe Processing V1](slice-recipe-processing-v1.md)——L0–L5 空间工厂自动化 arc，总体完成“冒险资源 → 电力 / 物流 / 加工 → 催化剂”（2026-07-26 收口）。
 
 背景结论（复盘与证据轮）：
 

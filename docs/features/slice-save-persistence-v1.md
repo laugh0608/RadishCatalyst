@@ -2,7 +2,7 @@
 
 更新时间：2026-07-18
 
-状态：已收口（2026-07-18，萝卜SAMA实机复核通过）。切片第四个实现专题（系统层换皮第二步）；下一专题为 [Slice Harvest And Build V1](slice-harvest-and-build-v1.md)。
+状态：已收口（2026-07-18，萝卜SAMA实机复核通过）。切片第四个实现专题（系统层换皮第二步）；其单世界自动存档能力由 [Slice Multi-World Save List V1](slice-multi-world-save-list-v1.md) 继续升级为最多 30 个世界的选择与复核入口。
 
 ## 背景与定位
 
