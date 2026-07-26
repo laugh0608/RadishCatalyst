@@ -1,14 +1,14 @@
 class_name SliceBuildingSaveCodec
 extends RefCounted
 
-## Schema-5 building serialization and validation. Runtime power / logistics
+## Schema-6 building serialization and validation. Runtime power / logistics
 ## adjacency is deliberately absent: only topology and definition-owned state
-## persist.
+## persist. Schema 5 remains readable through an explicit reactor migration.
 
 const MAP_SIZE_CELLS := Vector2i(80, 24)
 const INSTANCE_ID_PREFIX := "building-"
 const COLLECTOR_PRODUCE_INTERVAL := 10.0
-const TRANSPORT_ITEM_IDS := ["crystal"]
+const TRANSPORT_ITEM_IDS := ["crystal", "catalyst"]
 const STORAGE_ITEM_IDS := [
 	"crystal",
 	"catalyst",
@@ -102,6 +102,75 @@ static func validate_schema_five(raw_buildings, raw_next_serial) -> Dictionary:
 		"buildings": buildings,
 		"next_building_serial": next_serial,
 	})
+
+
+static func validate_schema_six(raw_buildings, raw_next_serial) -> Dictionary:
+	if raw_buildings is Array:
+		for index in range(raw_buildings.size()):
+			var raw_entry = raw_buildings[index]
+			if (
+				raw_entry is Dictionary
+				and raw_entry.get("building_id", "")
+				== SliceBuildingCatalog.REACTOR_ID
+			):
+				var state = raw_entry.get("state", null)
+				if not (state is Dictionary):
+					return _failure(
+						"buildings[%d].state 必须是对象" % index
+					)
+				var required_keys := [
+					"input_inventory",
+					"output_inventory",
+					"processing",
+					"production_progress",
+				]
+				for key in required_keys:
+					if not state.has(key):
+						return _failure(
+							"buildings[%d].state 缺少字段 %s" % [index, key]
+						)
+	var result := validate_schema_five(raw_buildings, raw_next_serial)
+	if not bool(result.get("success", false)):
+		return result
+	return result
+
+
+static func migrate_schema_five(raw_buildings, raw_next_serial) -> Dictionary:
+	if raw_buildings is Array:
+		for index in range(raw_buildings.size()):
+			var raw_entry = raw_buildings[index]
+			if (
+				raw_entry is Dictionary
+				and raw_entry.get("building_id", "")
+				== SliceBuildingCatalog.REACTOR_ID
+			):
+				var state = raw_entry.get("state", null)
+				if not (state is Dictionary) or not state.is_empty():
+					return _failure(
+						"schema 5 buildings[%d].state 反应器状态必须为空"
+						% index
+					)
+	var old_result := validate_schema_five(raw_buildings, raw_next_serial)
+	if not bool(old_result.get("success", false)):
+		return old_result
+	var migrated: Dictionary = (old_result["data"] as Dictionary).duplicate(true)
+	for entry in migrated["buildings"]:
+		if entry["building_id"] == SliceBuildingCatalog.REACTOR_ID:
+			entry["state"] = {
+				"input_inventory": {
+					"capacity": SliceReactor.INPUT_CAPACITY,
+					"contents": {},
+				},
+				"output_inventory": {
+					"capacity": SliceReactor.OUTPUT_CAPACITY,
+					"contents": {},
+				},
+				"processing": false,
+				"production_progress": 0.0,
+			}
+	return validate_schema_six(
+		migrated["buildings"], migrated["next_building_serial"]
+	)
 
 
 ## Kept as a source-compatible alias for the L3 checks. Schema-4 payloads use
@@ -285,7 +354,128 @@ static func _validate_state(
 		var conveyor_result := _validate_conveyor_state(raw_state, index)
 		if not bool(conveyor_result.get("success", false)):
 			return conveyor_result
+	elif definition.building_id == SliceBuildingCatalog.REACTOR_ID:
+		var reactor_result := _validate_reactor_state(raw_state, index)
+		if not bool(reactor_result.get("success", false)):
+			return reactor_result
 	return _success(raw_state)
+
+
+static func _validate_reactor_state(
+	raw_state: Dictionary,
+	index: int
+) -> Dictionary:
+	var input_result := _validate_reactor_inventory(
+		raw_state.get("input_inventory", {
+			"capacity": SliceReactor.INPUT_CAPACITY,
+			"contents": {},
+		}),
+		index,
+		"input_inventory",
+		SliceReactor.INPUT_CAPACITY,
+		SliceReactor.INPUT_ITEM_ID
+	)
+	if not bool(input_result.get("success", false)):
+		return input_result
+	var output_result := _validate_reactor_inventory(
+		raw_state.get("output_inventory", {
+			"capacity": SliceReactor.OUTPUT_CAPACITY,
+			"contents": {},
+		}),
+		index,
+		"output_inventory",
+		SliceReactor.OUTPUT_CAPACITY,
+		SliceReactor.OUTPUT_ITEM_ID
+	)
+	if not bool(output_result.get("success", false)):
+		return output_result
+
+	var processing_value = raw_state.get("processing", false)
+	if not (processing_value is bool):
+		return _failure(
+			"buildings[%d].state.processing 必须是布尔值" % index
+		)
+	var progress_value = raw_state.get("production_progress", 0.0)
+	if (
+		not (progress_value is float or progress_value is int)
+		or not is_finite(float(progress_value))
+		or float(progress_value) < 0.0
+		or float(progress_value) >= SliceReactor.PROCESS_DURATION
+	):
+		return _failure(
+			"buildings[%d].state.production_progress 超出有效范围" % index
+		)
+	if not bool(processing_value) and not is_zero_approx(float(progress_value)):
+		return _failure(
+			"buildings[%d] 的空闲反应器不能保留生产进度" % index
+		)
+	var output_inventory: Dictionary = output_result["data"]
+	var output_contents: Dictionary = output_inventory["contents"]
+	if bool(processing_value) and not output_contents.is_empty():
+		return _failure(
+			"buildings[%d] 的生产中反应器输出必须为空" % index
+		)
+	return _success(raw_state)
+
+
+static func _validate_reactor_inventory(
+	raw_inventory,
+	index: int,
+	field_name: String,
+	expected_capacity: int,
+	allowed_item_id: String
+) -> Dictionary:
+	if not (raw_inventory is Dictionary):
+		return _failure(
+			"buildings[%d].state.%s 必须是对象" % [index, field_name]
+		)
+	var required_keys := ["capacity", "contents"]
+	for key in raw_inventory:
+		if not required_keys.has(String(key)):
+			return _failure(
+				"buildings[%d].state.%s 包含未知字段 %s"
+				% [index, field_name, key]
+			)
+	for key in required_keys:
+		if not raw_inventory.has(key):
+			return _failure(
+				"buildings[%d].state.%s 缺少字段 %s"
+				% [index, field_name, key]
+			)
+	var capacity_value = raw_inventory["capacity"]
+	if (
+		not _is_integer(capacity_value)
+		or int(capacity_value) != expected_capacity
+	):
+		return _failure(
+			"buildings[%d].state.%s.capacity 无效"
+			% [index, field_name]
+		)
+	var contents = raw_inventory["contents"]
+	if not (contents is Dictionary):
+		return _failure(
+			"buildings[%d].state.%s.contents 必须是对象"
+			% [index, field_name]
+		)
+	var total := 0
+	for item_id in contents:
+		if not (item_id is String) or String(item_id) != allowed_item_id:
+			return _failure(
+				"buildings[%d].state.%s 包含未知物品 %s"
+				% [index, field_name, item_id]
+			)
+		var amount = contents[item_id]
+		if not _is_integer(amount) or int(amount) <= 0:
+			return _failure(
+				"buildings[%d].state.%s 物品数量无效"
+				% [index, field_name]
+			)
+		total += int(amount)
+	if total > expected_capacity:
+		return _failure(
+			"buildings[%d].state.%s 超出容量" % [index, field_name]
+		)
+	return _success(raw_inventory)
 
 
 static func _validate_conveyor_state(

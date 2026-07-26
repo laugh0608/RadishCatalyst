@@ -7,13 +7,16 @@ extends RefCounted
 const BELT_SPEED_CELLS_PER_SECOND := 1.0
 const SIMULATION_STEP_SECONDS := 1.0 / 60.0
 const BLOCKED_PROGRESS := 0.999999
-const TRANSPORT_ITEM_ORDER := ["crystal"]
+const TRANSPORT_ITEM_ORDER := ["crystal", "catalyst"]
 
 var _conveyors: Array[SliceConveyor] = []
 var _storages: Array[SliceStorage] = []
+var _reactors: Array[SliceReactor] = []
 var _conveyor_by_cell := {}
 var _storage_by_port_cell := {}
 var _source_storage_by_connection_cell := {}
+var _reactor_by_input_port_cell := {}
+var _source_reactor_by_output_connection_cell := {}
 var _simulation_accumulator := 0.0
 
 
@@ -23,9 +26,12 @@ func rebuild(
 ) -> void:
 	_conveyors.clear()
 	_storages.clear()
+	_reactors.clear()
 	_conveyor_by_cell.clear()
 	_storage_by_port_cell.clear()
 	_source_storage_by_connection_cell.clear()
+	_reactor_by_input_port_cell.clear()
+	_source_reactor_by_output_connection_cell.clear()
 	_simulation_accumulator = 0.0
 
 	for instance in instances:
@@ -50,8 +56,26 @@ func rebuild(
 			_source_storage_by_connection_cell[
 				_cell_key(connection_cell)
 			] = storage
+		elif instance is SliceReactor:
+			var reactor := instance as SliceReactor
+			_reactors.append(reactor)
+			var input_port_cell := (
+				reactor.definition.machine_input_port_world_cell(
+					reactor.origin_cell, reactor.building_rotation
+				)
+			)
+			_reactor_by_input_port_cell[_cell_key(input_port_cell)] = reactor
+			var output_connection_cell := (
+				reactor.definition.machine_output_connection_world_cell(
+					reactor.origin_cell, reactor.building_rotation
+				)
+			)
+			_source_reactor_by_output_connection_cell[
+				_cell_key(output_connection_cell)
+			] = reactor
 	_conveyors.sort_custom(_instance_before)
 	_storages.sort_custom(_instance_before)
+	_reactors.sort_custom(_instance_before)
 	_refresh_conveyor_topologies()
 
 
@@ -125,6 +149,28 @@ func _tick_step(delta: float) -> Dictionary:
 				changed = _block_at_output(conveyor) or changed
 			continue
 
+		var target_reactor := reactor_at_input_port(conveyor.output_cell())
+		if (
+			target_reactor != null
+			and _belt_points_into_reactor_input(
+				conveyor, target_reactor
+			)
+		):
+			var accepted := 0
+			if conveyor.cargo_item_id == SliceReactor.INPUT_ITEM_ID:
+				accepted = target_reactor.input_inventory.add(
+					conveyor.cargo_item_id, 1
+				)
+			if accepted == 1:
+				conveyor.clear_cargo()
+				_append_unique(
+					changed_storage_ids, target_reactor.instance_id
+				)
+				changed = true
+			else:
+				changed = _block_at_output(conveyor) or changed
+			continue
+
 		changed = _block_at_output(conveyor) or changed
 
 	for target_conveyor in _conveyors:
@@ -178,6 +224,39 @@ func _tick_step(delta: float) -> Dictionary:
 		_append_unique(changed_storage_ids, storage.instance_id)
 		changed = true
 
+	for reactor in _reactors:
+		var connection_cell := (
+			reactor.definition.machine_output_connection_world_cell(
+				reactor.origin_cell, reactor.building_rotation
+			)
+		)
+		var target_conveyor := conveyor_at(connection_cell)
+		if (
+			target_conveyor == null
+			or target_conveyor.has_cargo()
+			or not _belt_points_away_from_reactor_output(
+				target_conveyor, reactor
+			)
+			or reactor.output_inventory.count(
+				SliceReactor.OUTPUT_ITEM_ID
+			) <= 0
+		):
+			continue
+		if (
+			reactor.output_inventory.remove(
+				SliceReactor.OUTPUT_ITEM_ID, 1
+			)
+			!= 1
+		):
+			continue
+		target_conveyor.set_cargo(
+			SliceReactor.OUTPUT_ITEM_ID,
+			0.0,
+			-target_conveyor.output_direction()
+		)
+		_append_unique(changed_storage_ids, reactor.instance_id)
+		changed = true
+
 	if not changed_storage_ids.is_empty():
 		changed = true
 	return _result(changed, changed_storage_ids)
@@ -195,6 +274,36 @@ func source_storage_at_connection(cell: Vector2i) -> SliceStorage:
 	return (
 		_source_storage_by_connection_cell.get(_cell_key(cell))
 		as SliceStorage
+	)
+
+
+func reactor_at_input_port(cell: Vector2i) -> SliceReactor:
+	return (
+		_reactor_by_input_port_cell.get(_cell_key(cell))
+		as SliceReactor
+	)
+
+
+func source_reactor_at_connection(cell: Vector2i) -> SliceReactor:
+	return (
+		_source_reactor_by_output_connection_cell.get(_cell_key(cell))
+		as SliceReactor
+	)
+
+
+func can_extract_reactor_output(reactor: SliceReactor) -> bool:
+	if reactor == null:
+		return false
+	var connection_cell := (
+		reactor.definition.machine_output_connection_world_cell(
+			reactor.origin_cell, reactor.building_rotation
+		)
+	)
+	var conveyor := conveyor_at(connection_cell)
+	return (
+		conveyor != null
+		and not conveyor.has_cargo()
+		and _belt_points_away_from_reactor_output(conveyor, reactor)
 	)
 
 
@@ -216,10 +325,38 @@ func _refresh_conveyor_topologies() -> void:
 			_restore_cargo_entry_direction(conveyor)
 			continue
 
+		var source_reactor := source_reactor_at_connection(
+			conveyor.origin_cell
+		)
+		if (
+			source_reactor != null
+			and _belt_points_away_from_reactor_output(
+				conveyor, source_reactor
+			)
+		):
+			conveyor.set_topology_visual(
+				SliceConveyor.TOPOLOGY_SOURCE_ENDPOINT, [-output]
+			)
+			_restore_cargo_entry_direction(conveyor)
+			continue
+
 		var sink_storage := storage_at_port(conveyor.output_cell())
 		if (
 			sink_storage != null
 			and _belt_points_into_storage(conveyor, sink_storage)
+		):
+			conveyor.set_topology_visual(
+				SliceConveyor.TOPOLOGY_SINK_ENDPOINT, [-output]
+			)
+			_restore_cargo_entry_direction(conveyor)
+			continue
+
+		var sink_reactor := reactor_at_input_port(conveyor.output_cell())
+		if (
+			sink_reactor != null
+			and _belt_points_into_reactor_input(
+				conveyor, sink_reactor
+			)
 		):
 			conveyor.set_topology_visual(
 				SliceConveyor.TOPOLOGY_SINK_ENDPOINT, [-output]
@@ -339,6 +476,30 @@ func _belt_points_away_from_storage(
 ) -> bool:
 	var outward := storage.definition.logistics_direction_for_rotation(
 		storage.building_rotation
+	)
+	return conveyor.output_direction() == outward
+
+
+func _belt_points_into_reactor_input(
+	conveyor: SliceConveyor,
+	reactor: SliceReactor
+) -> bool:
+	var outward := (
+		reactor.definition.machine_input_direction_for_rotation(
+			reactor.building_rotation
+		)
+	)
+	return conveyor.output_direction() == -outward
+
+
+func _belt_points_away_from_reactor_output(
+	conveyor: SliceConveyor,
+	reactor: SliceReactor
+) -> bool:
+	var outward := (
+		reactor.definition.machine_output_direction_for_rotation(
+			reactor.building_rotation
+		)
 	)
 	return conveyor.output_direction() == outward
 

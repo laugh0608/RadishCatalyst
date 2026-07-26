@@ -1,10 +1,9 @@
 class_name SliceHud
 extends CanvasLayer
 
-## Minimal slice HUD (L0): backpack crystal count and the current goal line
-## (repair the core), plus the nearest interactable's prompt. Catalyst / charging
-## readouts return with the reactor at arc layer L5. Plain prototype text on the
-## 1920x1080 UI canvas; pixel-styled HUD art is a later topic.
+## Minimal slice HUD: backpack crystal / catalyst / part counts, current goal,
+## building kits and the nearest interactable's prompt. Plain prototype text on
+## the 1920x1080 UI canvas; pixel-styled HUD art is a later topic.
 
 var _world: Node
 var _player: SlicePlayer
@@ -30,7 +29,10 @@ func _refresh_state() -> void:
 	crystal_label.text = "背包晶体：%d/%d" % [
 		_world.pocket.count(SliceWorld.ITEM_CRYSTAL), SliceWorld.POCKET_CAPACITY
 	]
-	part_label.text = "背包零件：%d" % _world.pocket.count(SliceWorld.ITEM_PART)
+	part_label.text = "背包催化剂：%d｜零件：%d" % [
+		_world.pocket.count(SliceWorld.ITEM_CATALYST),
+		_world.pocket.count(SliceWorld.ITEM_PART),
+	]
 	kit_label.text = "套件：地%d 采%d 反%d 中%d 带%d 箱%d" % [
 		_world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
 		_world.pocket.count(SliceWorld.ITEM_COLLECTOR_KIT),

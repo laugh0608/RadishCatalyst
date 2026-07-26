@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cva0gwwafur4i"
-path="res://.godot/imported/cargo_catalyst.png-753130996826905d79b96f84b69df32c.ctex"
+uid="uid://674vaewldm24"
+path="res://.godot/imported/reactor_processing_pulse_b.png-91a957df7d0e90d43b3a7808aed18ad2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/slice/cargo_catalyst.png"
-dest_files=["res://.godot/imported/cargo_catalyst.png-753130996826905d79b96f84b69df32c.ctex"]
+source_file="res://assets/sprites/slice/reactor_processing_pulse_b.png"
+dest_files=["res://.godot/imported/reactor_processing_pulse_b.png-91a957df7d0e90d43b3a7808aed18ad2.ctex"]
 
 [params]
 

@@ -9,7 +9,8 @@ extends Node2D
 ## inventory kits, separate floor / blocking occupancy, one placement
 ## controller, shared runtime instances, lossless adjustment / demolition,
 ## derived power propagation and stable topology persistence. L4 adds
-## storage-to-storage conveyor cargo, fixed topology frames and schema-5 state.
+## storage-to-storage conveyor cargo and fixed topology frames. L5 adds
+## per-instance reactor buffers, retained processing and schema-6 state.
 ## `startup_load` (set by Boot before the node enters the tree) decides whether
 ## _ready restores the saved slice or starts a fresh one.
 
@@ -87,11 +88,13 @@ var _logistics_grid := SliceLogisticsGrid.new()
 var _power_links: SlicePowerLinkLayer
 var _building_instances: Array[SliceBuildingInstance] = []
 var _collector_nodes: Array[SliceCollector] = []
+var _reactor_nodes: Array[SliceReactor] = []
 var _adjustment_instance: SliceBuildingInstance
 var _adjustment_original_cell := Vector2i.ZERO
 var _adjustment_original_rotation := 0
 var _next_building_serial := 1
 var _logistics_save_elapsed := 0.0
+var _production_save_elapsed := 0.0
 
 
 func _ready() -> void:
@@ -190,11 +193,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-## Each powered collector advances its own retained tick progress. Losing power
-## pauses rather than discards progress; long frames may drain multiple ticks.
+## Powered collectors and reactors retain their own tick progress. Production
+## transitions save immediately; in-flight progress is checkpointed each second.
 func _tick_production(delta: float) -> void:
-	if _collector_nodes.is_empty():
-		return
 	var produced := false
 	for collector in _collector_nodes:
 		if not collector.powered:
@@ -205,7 +206,24 @@ func _tick_production(delta: float) -> void:
 			if collector.has_space():
 				collector.produce(1)
 				produced = true
-	if produced:
+
+	var reactor_changed := false
+	var reactor_transition := false
+	for reactor in _reactor_nodes:
+		var result := reactor.tick(delta)
+		if not bool(result.get("changed", false)):
+			continue
+		reactor_changed = true
+		if (
+			bool(result.get("started", false))
+			or bool(result.get("completed", false))
+		):
+			reactor_transition = true
+			building_storage_changed.emit(reactor.instance_id)
+
+	if reactor_changed:
+		_production_save_elapsed += delta
+	if produced or reactor_transition or _production_save_elapsed >= 1.0:
 		_autosave()
 
 
@@ -370,7 +388,7 @@ func transfer_pocket_to_storage(
 	item: String
 ) -> int:
 	if (
-		item != ITEM_CRYSTAL
+		not [ITEM_CRYSTAL, ITEM_CATALYST].has(item)
 		or storage == null
 		or not _building_instances.has(storage)
 	):
@@ -390,7 +408,7 @@ func transfer_storage_to_pocket(
 	item: String
 ) -> int:
 	if (
-		item != ITEM_CRYSTAL
+		not [ITEM_CRYSTAL, ITEM_CATALYST].has(item)
 		or storage == null
 		or not _building_instances.has(storage)
 	):
@@ -403,6 +421,29 @@ func transfer_storage_to_pocket(
 	building_storage_changed.emit(storage.instance_id)
 	_autosave()
 	return moved
+
+
+func reactor_status_text(reactor: SliceReactor) -> String:
+	if reactor == null or not _building_instances.has(reactor):
+		return "设备已失效"
+	return reactor.operation_status_text(
+		_logistics_grid.can_extract_reactor_output(reactor)
+	)
+
+
+func recover_reactor_contents(reactor: SliceReactor) -> Dictionary:
+	if reactor == null or not _building_instances.has(reactor):
+		return {
+			"success": false,
+			"message": "反应器已失效",
+		}
+	var result := reactor.recover_contents_to(pocket)
+	if not bool(result.get("success", false)):
+		return result
+	inventory_changed.emit()
+	building_storage_changed.emit(reactor.instance_id)
+	_autosave()
+	return result
 
 
 func transfer_all_building_kits_to_core() -> int:
@@ -623,7 +664,7 @@ func adjustment_block_reason(instance: SliceBuildingInstance) -> String:
 		return "建筑已失效"
 	if instance.definition.is_floor and _floor_supports_facility(instance):
 		return "地板上有设施"
-	if instance is SliceConveyor:
+	if instance is SliceConveyor or instance is SliceReactor:
 		var content_reason := instance.content_block_reason()
 		if not content_reason.is_empty():
 			return content_reason
@@ -673,6 +714,8 @@ func demolish_building(instance: SliceBuildingInstance) -> bool:
 	_building_instances.erase(instance)
 	if instance is SliceCollector:
 		_collector_nodes.erase(instance as SliceCollector)
+	elif instance is SliceReactor:
+		_reactor_nodes.erase(instance as SliceReactor)
 	var returned := pocket.add(instance.definition.kit_item_id, 1)
 	if returned != 1:
 		push_error("Demolition capacity changed after validation.")
@@ -918,6 +961,21 @@ func _spawn_building(
 			COLLECTOR_PRODUCE_INTERVAL
 		)
 		_collector_nodes.append(collector)
+	elif instance is SliceReactor:
+		var reactor := instance as SliceReactor
+		reactor.input_inventory = Inventory.from_dict(
+			state.get("input_inventory", {})
+		)
+		reactor.input_inventory.capacity = SliceReactor.INPUT_CAPACITY
+		reactor.output_inventory = Inventory.from_dict(
+			state.get("output_inventory", {})
+		)
+		reactor.output_inventory.capacity = SliceReactor.OUTPUT_CAPACITY
+		reactor.processing = bool(state.get("processing", false))
+		reactor.production_progress = float(
+			state.get("production_progress", 0.0)
+		)
+		_reactor_nodes.append(reactor)
 	elif instance is SliceConveyor:
 		var conveyor := instance as SliceConveyor
 		var cargo: Dictionary = state.get("cargo", {})
@@ -1025,10 +1083,8 @@ func _autosave() -> void:
 	var result := save_service.save_state({
 		"pocket": pocket.to_dict(),
 		"core_storage": core_storage.to_dict(),
-		"catalyst_count": catalyst_count,
 		"core_repaired": core_repaired,
 		"core_energy": core_energy,
-		"reactor_active": reactor_active,
 		"harvested_clusters": harvested_clusters,
 		"buildings": SliceBuildingSaveCodec.serialize_instances(
 			_building_instances
@@ -1041,6 +1097,7 @@ func _autosave() -> void:
 		push_warning("切片自动存档失败：%s" % String(result.get("message", "")))
 		return
 	_logistics_save_elapsed = 0.0
+	_production_save_elapsed = 0.0
 
 
 func _to_string_array(value) -> Array[String]:

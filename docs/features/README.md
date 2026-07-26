@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃专题：[Slice Reactor Automation V1](slice-reactor-automation-v1.md)——L5 反应器接入自动化，催化剂货物素材硬闸门已通过，下一步进入包 1 的反应器实例、双端口与 schema 6。L0–L4 已收口，层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
+当前活跃专题：[Slice Reactor Automation V1](slice-reactor-automation-v1.md)——L5 素材与包 1–2 的反应器状态机、schema 6、机器物流和操作面已完成，下一步进入包 3 的自然完整产线、重启与人工收口。L0–L4 已收口，层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
 
 已收口专题：
 

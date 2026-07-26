@@ -59,13 +59,26 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 				SliceBuildingDefinition.SURFACE_INDUSTRIAL_FLOOR,
 				true,
 				false,
-				"",
+				"res://scenes/slice/SliceReactor.tscn",
 				_cardinal_textures("reactor"),
 				Vector2(0, -16),
 				Rect2(),
-				[],
+				[
+					"input_inventory",
+					"output_inventory",
+					"processing",
+					"production_progress",
+				],
 				SliceBuildingDefinition.POWER_CONSUMER,
-				Vector2i(1, 2)
+				Vector2i(1, 2),
+				"",
+				Vector2(-8, -8),
+				Vector2i(-1, -1),
+				Vector2i.ZERO,
+				Vector2i(1, 2),
+				Vector2i.DOWN,
+				Vector2i(1, 0),
+				Vector2i.UP
 			)
 		POWER_RELAY_ID:
 			return SliceBuildingDefinition.new(

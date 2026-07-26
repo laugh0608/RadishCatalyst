@@ -27,9 +27,9 @@ func _execute() -> void:
 func _run_checks() -> void:
 	_check_bootstrap_resource_budget()
 	_check_codec_rejects_invalid_topology()
-	_check_schema_two_and_three_migration()
+	_check_schema_two_to_five_migration()
 	_check_invalid_primary_falls_back_to_backup()
-	await _check_schema_five_world_restart()
+	await _check_schema_six_world_restart()
 
 
 func _check_bootstrap_resource_budget() -> void:
@@ -176,6 +176,13 @@ func _check_codec_rejects_invalid_topology() -> void:
 	_expect_codec_success(
 		[conveyor_floor, conveyor], 8, "valid conveyor cargo state"
 	)
+	var catalyst_cargo := conveyor.duplicate(true)
+	catalyst_cargo["state"]["cargo"]["item_id"] = SliceWorld.ITEM_CATALYST
+	_expect_codec_success(
+		[conveyor_floor, catalyst_cargo],
+		8,
+		"schema 6 accepts catalyst conveyor cargo"
+	)
 	var bad_cargo := conveyor.duplicate(true)
 	bad_cargo["state"]["cargo"]["progress"] = 1.5
 	_expect_codec_failure(
@@ -185,8 +192,57 @@ func _check_codec_rejects_invalid_topology() -> void:
 		"conveyor cargo progress"
 	)
 
+	var reactor_entries := _reactor_floor_entries(Vector2i(50, 5), 8)
+	var reactor := _building_entry(
+		"building-000017",
+		SliceBuildingCatalog.REACTOR_ID,
+		Vector2i(50, 5),
+		0,
+		{
+			"input_inventory": {
+				"capacity": SliceReactor.INPUT_CAPACITY,
+				"contents": {SliceWorld.ITEM_CRYSTAL: 2},
+			},
+			"output_inventory": {
+				"capacity": SliceReactor.OUTPUT_CAPACITY,
+				"contents": {},
+			},
+			"processing": true,
+			"production_progress": 5.0,
+		}
+	)
+	_expect_codec_success(
+		reactor_entries + [reactor], 18, "valid reactor retained state"
+	)
+	var idle_progress := reactor.duplicate(true)
+	idle_progress["state"]["processing"] = false
+	_expect_codec_failure(
+		reactor_entries + [idle_progress],
+		18,
+		"空闲反应器",
+		"idle reactor cannot retain progress"
+	)
+	var occupied_output := reactor.duplicate(true)
+	occupied_output["state"]["output_inventory"]["contents"] = {
+		SliceWorld.ITEM_CATALYST: 1,
+	}
+	_expect_codec_failure(
+		reactor_entries + [occupied_output],
+		18,
+		"输出必须为空",
+		"processing reactor output invariant"
+	)
+	var missing_processing := reactor.duplicate(true)
+	missing_processing["state"].erase("processing")
+	_expect_codec_failure(
+		reactor_entries + [missing_processing],
+		18,
+		"缺少字段 processing",
+		"schema 6 requires exact reactor fields"
+	)
 
-func _check_schema_two_and_three_migration() -> void:
+
+func _check_schema_two_to_five_migration() -> void:
 	var schema_four_dir := _new_save_dir("schema4")
 	var schema_four_service := SliceSaveService.new(schema_four_dir)
 	var schema_four_state := _empty_runtime_state(4)
@@ -225,6 +281,58 @@ func _check_schema_two_and_three_migration() -> void:
 			(buildings[1]["state"] as Dictionary).is_empty(),
 			true,
 			"schema 4 conveyor migrates as an empty belt"
+		)
+
+	var schema_five_dir := _new_save_dir("schema5")
+	var schema_five_service := SliceSaveService.new(schema_five_dir)
+	var schema_five_state := _empty_runtime_state(0)
+	schema_five_state["core_storage"]["contents"] = {
+		SliceWorld.ITEM_CATALYST: 1,
+	}
+	schema_five_state["buildings"] = _reactor_floor_entries(
+		Vector2i(50, 5), 1
+	)
+	schema_five_state["buildings"].append(_building_entry(
+		"building-000010",
+		SliceBuildingCatalog.REACTOR_ID,
+		Vector2i(50, 5),
+		0,
+		_empty_reactor_state()
+	))
+	schema_five_state["next_building_serial"] = 11
+	_expect_success(
+		schema_five_service.save_state(schema_five_state),
+		"schema 5 fixture writes through current validator"
+	)
+	var schema_five_path := schema_five_dir.path_join("slice_world.json")
+	var schema_five := _read_json(schema_five_path)
+	schema_five["save_schema_version"] = 5
+	schema_five["game_version"] = "prototype-slice-05"
+	schema_five["catalyst_count"] = 4
+	schema_five["reactor_active"] = true
+	for entry in schema_five["buildings"]:
+		if entry["building_id"] == SliceBuildingCatalog.REACTOR_ID:
+			entry["state"] = {}
+	_write_json(schema_five_path, schema_five)
+	var schema_five_result := schema_five_service.load_state()
+	_expect_success(schema_five_result, "schema 5 reactor state migrates")
+	if bool(schema_five_result.get("success", false)):
+		var data: Dictionary = schema_five_result["data"]
+		_expect_equal(
+			int(data["core_storage"]["contents"][SliceWorld.ITEM_CATALYST]),
+			5,
+			"legacy catalyst migrates losslessly into core storage"
+		)
+		_expect_equal(
+			bool(data["reactor_active"]),
+			false,
+			"legacy reactor activation is ignored"
+		)
+		var migrated_reactor: Dictionary = data["buildings"][9]
+		_expect_equal(
+			migrated_reactor["state"],
+			_empty_reactor_state(),
+			"schema 5 reactor becomes empty and idle"
 		)
 
 	var schema_three_dir := _new_save_dir("schema3")
@@ -271,6 +379,11 @@ func _check_schema_two_and_three_migration() -> void:
 			2,
 			"schema 3 core storage survives migration"
 		)
+		_expect_equal(
+			int(data["core_storage"]["contents"][SliceWorld.ITEM_CATALYST]),
+			1,
+			"schema 3 global catalyst migrates into core storage"
+		)
 
 	var schema_two_dir := _new_save_dir("schema2")
 	_write_json(
@@ -287,9 +400,9 @@ func _check_schema_two_and_three_migration() -> void:
 			"schema 2 receives current core storage capacity"
 		)
 		_expect_equal(
-			(data["core_storage"]["contents"] as Dictionary).is_empty(),
-			true,
-			"schema 2 receives empty core storage"
+			int(data["core_storage"]["contents"][SliceWorld.ITEM_CATALYST]),
+			1,
+			"schema 2 global catalyst migrates into new core storage"
 		)
 
 	var schema_one_dir := _new_save_dir("schema1")
@@ -361,7 +474,7 @@ func _check_invalid_primary_falls_back_to_backup() -> void:
 	)
 
 
-func _check_schema_five_world_restart() -> void:
+func _check_schema_six_world_restart() -> void:
 	var save_dir := _new_save_dir("restart")
 	var service := SliceSaveService.new(save_dir)
 	var world := SliceWorldScene.instantiate() as SliceWorld
@@ -377,6 +490,7 @@ func _check_schema_five_world_restart() -> void:
 	world.catalyst_count = 4
 	world.pocket.add(SliceWorld.ITEM_PART, 5)
 	world.core_storage.add(SliceWorld.ITEM_CRYSTAL, 8)
+	world.core_storage.add(SliceWorld.ITEM_CATALYST, 2)
 
 	_spawn_floor_rect(world, Vector2i(34, 7), Vector2i(3, 3))
 	_spawn_floor_rect(world, Vector2i(28, 7), Vector2i(2, 2))
@@ -414,8 +528,19 @@ func _check_schema_five_world_restart() -> void:
 		"",
 		Vector2i(34, 7),
 		2,
-		{}
-	)
+		{
+			"input_inventory": {
+				"capacity": SliceReactor.INPUT_CAPACITY,
+				"contents": {SliceWorld.ITEM_CRYSTAL: 2},
+			},
+			"output_inventory": {
+				"capacity": SliceReactor.OUTPUT_CAPACITY,
+				"contents": {},
+			},
+			"processing": true,
+			"production_progress": 6.25,
+		}
+	) as SliceReactor
 	var storage := world._spawn_building(
 		SliceBuildingCatalog.find(SliceBuildingCatalog.STORAGE_ID),
 		"",
@@ -469,9 +594,19 @@ func _check_schema_five_world_restart() -> void:
 	_expect_equal(
 		int(raw_save.get("save_schema_version", 0)),
 		SliceSaveService.SAVE_SCHEMA_VERSION,
-		"schema 5 is written"
+		"schema 6 is written"
 	)
 	_expect_equal(raw_save.has("collectors"), false, "legacy collectors key is absent")
+	_expect_equal(
+		raw_save.has("catalyst_count"),
+		false,
+		"schema 6 omits legacy catalyst truth"
+	)
+	_expect_equal(
+		raw_save.has("reactor_active"),
+		false,
+		"schema 6 omits legacy reactor activation"
+	)
 	_expect_equal(
 		int(raw_save.get("next_building_serial", 0)),
 		saved_next_serial,
@@ -485,6 +620,22 @@ func _check_schema_five_world_restart() -> void:
 				float(entry["state"]["production_progress"]),
 				6.5,
 				"collector partial tick is written exactly"
+			)
+		if String(entry.get("instance_id", "")) == reactor_id:
+			_expect_equal(
+				(entry["state"] as Dictionary).keys().size(),
+				4,
+				"reactor writes exactly four state fields"
+			)
+			_expect_equal(
+				bool(entry["state"]["processing"]),
+				true,
+				"reactor processing state is written"
+			)
+			_expect_equal(
+				float(entry["state"]["production_progress"]),
+				6.25,
+				"reactor retained progress is written exactly"
 			)
 		if String(entry.get("instance_id", "")) == conveyor_id:
 			_expect_equal(
@@ -522,7 +673,11 @@ func _check_schema_five_world_restart() -> void:
 		"next serial restores exactly"
 	)
 	_expect_equal(loaded_world.core_energy, 6, "core energy restores")
-	_expect_equal(loaded_world.catalyst_count, 4, "catalyst count restores")
+	_expect_equal(
+		loaded_world.catalyst_count,
+		0,
+		"legacy global catalyst is not restored"
+	)
 	_expect_equal(
 		loaded_world.pocket.count(SliceWorld.ITEM_PART),
 		5,
@@ -533,14 +688,37 @@ func _check_schema_five_world_restart() -> void:
 		8,
 		"core storage restores"
 	)
+	_expect_equal(
+		loaded_world.core_storage.count(SliceWorld.ITEM_CATALYST),
+		2,
+		"core storage is the schema 6 catalyst truth"
+	)
 	for relay_id in relay_ids:
 		var loaded_relay := _find_by_id(loaded_world, String(relay_id))
 		_expect_equal(loaded_relay != null, true, "%s restores" % relay_id)
 		if loaded_relay != null:
 			_expect_equal(loaded_relay.powered, true, "%s power is re-derived" % relay_id)
-	var loaded_reactor := _find_by_id(loaded_world, reactor_id)
+	var loaded_reactor := _find_by_id(
+		loaded_world, reactor_id
+	) as SliceReactor
 	_expect_equal(loaded_reactor.building_rotation, 2, "reactor rotation restores")
 	_expect_equal(loaded_reactor.powered, true, "reactor power is re-derived")
+	_expect_equal(loaded_reactor.processing, true, "reactor processing restores")
+	_expect_equal(
+		loaded_reactor.input_inventory.count(SliceWorld.ITEM_CRYSTAL),
+		2,
+		"reactor queued input restores"
+	)
+	_expect_equal(
+		loaded_reactor.output_inventory.is_empty(),
+		true,
+		"reactor empty output restores"
+	)
+	_expect_equal(
+		loaded_reactor.production_progress,
+		6.25,
+		"reactor retained progress restores"
+	)
 	var loaded_storage := _find_by_id(loaded_world, storage_id) as SliceStorage
 	_expect_equal(
 		loaded_storage.inventory.count(SliceWorld.ITEM_PART),
@@ -646,6 +824,40 @@ func _building_entry(
 	}
 
 
+func _empty_reactor_state() -> Dictionary:
+	return {
+		"input_inventory": {
+			"capacity": SliceReactor.INPUT_CAPACITY,
+			"contents": {},
+		},
+		"output_inventory": {
+			"capacity": SliceReactor.OUTPUT_CAPACITY,
+			"contents": {},
+		},
+		"processing": false,
+		"production_progress": 0.0,
+	}
+
+
+func _reactor_floor_entries(
+	origin: Vector2i,
+	start_serial: int
+) -> Array:
+	var entries: Array = []
+	var serial := start_serial
+	for y in range(3):
+		for x in range(3):
+			entries.append(_building_entry(
+				"building-%06d" % serial,
+				SliceBuildingCatalog.FLOOR_ID,
+				origin + Vector2i(x, y),
+				0,
+				{}
+			))
+			serial += 1
+	return entries
+
+
 func _spawn_floor_rect(
 	world: SliceWorld,
 	origin: Vector2i,
@@ -671,7 +883,7 @@ func _find_by_id(
 
 func _expect_codec_success(buildings: Array, next_serial: int, label: String) -> void:
 	_expect_success(
-		SliceBuildingSaveCodec.validate_schema_five(buildings, next_serial),
+		SliceBuildingSaveCodec.validate_schema_six(buildings, next_serial),
 		label
 	)
 
@@ -683,7 +895,7 @@ func _expect_codec_failure(
 	label: String
 ) -> void:
 	_expect_failure(
-		SliceBuildingSaveCodec.validate_schema_five(buildings, next_serial),
+		SliceBuildingSaveCodec.validate_schema_six(buildings, next_serial),
 		fragment,
 		label
 	)

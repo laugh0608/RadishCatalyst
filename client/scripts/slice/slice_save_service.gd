@@ -6,13 +6,13 @@ extends RefCounted
 ## shared code or state. Persists the slice loop state as plain JSON with one
 ## rotated backup and an atomic temp-then-rename write.
 ##
-## Schema 5 adds L4 conveyor cargo while retaining the stable building topology
-## introduced by schema 4. Schema 2 / 3 collectors migrate into that topology;
-## schema 1 remains unsupported.
+## Schema 6 adds per-reactor inventories and retained production state. Schema
+## 2–5 migrate into the current topology; legacy global catalyst is restored to
+## core storage, while the obsolete reactor activation flag is discarded.
 
-const SAVE_SCHEMA_VERSION := 5
+const SAVE_SCHEMA_VERSION := 6
 const MIN_SUPPORTED_SCHEMA_VERSION := 2
-const GAME_VERSION := "prototype-slice-05"
+const GAME_VERSION := "prototype-slice-06"
 const DEFAULT_SAVE_DIR := "user://saves/slice"
 const LEGACY_CORE_STORAGE_CAPACITY := 120
 
@@ -45,17 +45,15 @@ func save_state(state: Dictionary) -> Dictionary:
 		"updated_at": _local_time_text(),
 		"pocket": _inventory_dict(state.get("pocket", {})),
 		"core_storage": _inventory_dict(state.get("core_storage", {})),
-		"catalyst_count": int(state.get("catalyst_count", 0)),
 		"core_repaired": bool(state.get("core_repaired", false)),
 		"core_energy": int(state.get("core_energy", 0)),
-		"reactor_active": bool(state.get("reactor_active", false)),
 		"harvested_clusters": _string_array(state.get("harvested_clusters", [])),
 		"buildings": state.get("buildings", []),
 		"next_building_serial": int(state.get("next_building_serial", 1)),
 		"player_x": float(state.get("player_x", 0.0)),
 		"player_y": float(state.get("player_y", 0.0))
 	}
-	var building_result := SliceBuildingSaveCodec.validate_schema_five(
+	var building_result := SliceBuildingSaveCodec.validate_schema_six(
 		save_data["buildings"], save_data["next_building_serial"]
 	)
 	if not bool(building_result.get("success", false)):
@@ -164,8 +162,13 @@ func _read_file(save_file: String) -> Dictionary:
 	var pocket := _inventory_dict(save_data.get("pocket", {}))
 	var core_storage := _inventory_dict(save_data.get("core_storage", {}))
 	var building_result: Dictionary
-	if version >= 4:
-		building_result = SliceBuildingSaveCodec.validate_schema_five(
+	if version >= 6:
+		building_result = SliceBuildingSaveCodec.validate_schema_six(
+			save_data.get("buildings", null),
+			save_data.get("next_building_serial", null)
+		)
+	elif version >= 4:
+		building_result = SliceBuildingSaveCodec.migrate_schema_five(
 			save_data.get("buildings", null),
 			save_data.get("next_building_serial", null)
 		)
@@ -180,6 +183,12 @@ func _read_file(save_file: String) -> Dictionary:
 				"capacity": LEGACY_CORE_STORAGE_CAPACITY,
 				"contents": {},
 			}
+	if version <= 5:
+		core_storage = _restore_legacy_item(
+			core_storage,
+			SliceWorld.ITEM_CATALYST,
+			int(save_data.get("catalyst_count", 0))
+		)
 	if not bool(building_result.get("success", false)):
 		return building_result
 	var building_data: Dictionary = building_result["data"]
@@ -190,10 +199,10 @@ func _read_file(save_file: String) -> Dictionary:
 		"data": {
 			"pocket": pocket,
 			"core_storage": core_storage,
-			"catalyst_count": int(save_data.get("catalyst_count", 0)),
+			"catalyst_count": 0,
 			"core_repaired": bool(save_data.get("core_repaired", false)),
 			"core_energy": int(save_data.get("core_energy", 0)),
-			"reactor_active": bool(save_data.get("reactor_active", false)),
+			"reactor_active": false,
 			"harvested_clusters": _string_array(save_data.get("harvested_clusters", [])),
 			"buildings": building_data["buildings"],
 			"next_building_serial": building_data["next_building_serial"],
@@ -225,6 +234,20 @@ func _inventory_dict(value) -> Dictionary:
 				if n > 0:
 					contents[String(key)] = n
 	return {"capacity": capacity, "contents": contents}
+
+
+func _restore_legacy_item(
+	inventory: Dictionary,
+	item_id: String,
+	amount: int
+) -> Dictionary:
+	var restored := inventory.duplicate(true)
+	if amount <= 0:
+		return restored
+	var contents: Dictionary = restored.get("contents", {})
+	contents[item_id] = int(contents.get(item_id, 0)) + amount
+	restored["contents"] = contents
+	return restored
 
 
 func _local_time_text() -> String:

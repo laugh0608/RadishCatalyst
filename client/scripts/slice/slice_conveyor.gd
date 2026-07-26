@@ -5,9 +5,10 @@ extends SliceBuildingInstance
 ## transfer rules and derived topology; this instance owns serializable cargo
 ## state plus fixed-frame topology and orthogonal cargo presentation.
 
-const CARGO_TEXTURE := preload(
-	"res://assets/sprites/slice/cargo_crystal.png"
-)
+const CARGO_TEXTURES := {
+	"crystal": preload("res://assets/sprites/slice/cargo_crystal.png"),
+	"catalyst": preload("res://assets/sprites/slice/cargo_catalyst.png"),
+}
 const TRAVEL_EDGE_OFFSET := 12.0
 const TOPOLOGY_STRAIGHT := "straight"
 const TOPOLOGY_TURN := "turn"
@@ -178,9 +179,9 @@ func _refresh_cargo_visual() -> void:
 	if sprite == null:
 		sprite = Sprite2D.new()
 		sprite.name = "Cargo"
-		sprite.texture = CARGO_TEXTURE
 		sprite.z_index = 4
 		add_child(sprite)
+	sprite.texture = CARGO_TEXTURES.get(cargo_item_id) as Texture2D
 	sprite.visible = true
 	sprite.position = cargo_local_position_for_progress(cargo_progress)
 

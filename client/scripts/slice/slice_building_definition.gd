@@ -31,6 +31,10 @@ var powered_texture_path: String
 var power_indicator_offset: Vector2
 var logistics_port_cell: Vector2i
 var logistics_port_direction: Vector2i
+var machine_input_port_cell: Vector2i
+var machine_input_port_direction: Vector2i
+var machine_output_port_cell: Vector2i
+var machine_output_port_direction: Vector2i
 
 
 func _init(
@@ -52,7 +56,11 @@ func _init(
 	powered_texture: String = "",
 	indicator_offset: Vector2 = Vector2(-8, -8),
 	logistics_cell: Vector2i = Vector2i(-1, -1),
-	logistics_direction: Vector2i = Vector2i.ZERO
+	logistics_direction: Vector2i = Vector2i.ZERO,
+	machine_input_cell: Vector2i = Vector2i(-1, -1),
+	machine_input_direction: Vector2i = Vector2i.ZERO,
+	machine_output_cell: Vector2i = Vector2i(-1, -1),
+	machine_output_direction: Vector2i = Vector2i.ZERO
 ) -> void:
 	building_id = id
 	kit_item_id = kit_id
@@ -73,6 +81,10 @@ func _init(
 	power_indicator_offset = indicator_offset
 	logistics_port_cell = logistics_cell
 	logistics_port_direction = logistics_direction
+	machine_input_port_cell = machine_input_cell
+	machine_input_port_direction = machine_input_direction
+	machine_output_port_cell = machine_output_cell
+	machine_output_port_direction = machine_output_direction
 
 
 func normalized_rotation(rotation: int) -> int:
@@ -169,6 +181,56 @@ func logistics_connection_world_cell(
 	)
 
 
+func rotated_machine_input_port_cell(rotation: int) -> Vector2i:
+	return _rotated_local_cell(machine_input_port_cell, rotation)
+
+
+func machine_input_direction_for_rotation(rotation: int) -> Vector2i:
+	return _rotated_direction(machine_input_port_direction, rotation)
+
+
+func machine_input_port_world_cell(
+	origin_cell: Vector2i,
+	rotation: int
+) -> Vector2i:
+	return origin_cell + rotated_machine_input_port_cell(rotation)
+
+
+func machine_input_connection_world_cell(
+	origin_cell: Vector2i,
+	rotation: int
+) -> Vector2i:
+	return (
+		machine_input_port_world_cell(origin_cell, rotation)
+		+ machine_input_direction_for_rotation(rotation)
+	)
+
+
+func rotated_machine_output_port_cell(rotation: int) -> Vector2i:
+	return _rotated_local_cell(machine_output_port_cell, rotation)
+
+
+func machine_output_direction_for_rotation(rotation: int) -> Vector2i:
+	return _rotated_direction(machine_output_port_direction, rotation)
+
+
+func machine_output_port_world_cell(
+	origin_cell: Vector2i,
+	rotation: int
+) -> Vector2i:
+	return origin_cell + rotated_machine_output_port_cell(rotation)
+
+
+func machine_output_connection_world_cell(
+	origin_cell: Vector2i,
+	rotation: int
+) -> Vector2i:
+	return (
+		machine_output_port_world_cell(origin_cell, rotation)
+		+ machine_output_direction_for_rotation(rotation)
+	)
+
+
 func _rotated_local_cell(cell: Vector2i, rotation: int) -> Vector2i:
 	if cell.x < 0 or cell.y < 0:
 		return cell
@@ -178,6 +240,13 @@ func _rotated_local_cell(cell: Vector2i, rotation: int) -> Vector2i:
 		point = Vector2i(size.y - 1 - point.y, point.x)
 		size = Vector2i(size.y, size.x)
 	return point
+
+
+func _rotated_direction(direction: Vector2i, rotation: int) -> Vector2i:
+	var result := direction
+	for _step in range(normalized_rotation(rotation)):
+		result = Vector2i(-result.y, result.x)
+	return result
 
 
 func power_port_world_position(
