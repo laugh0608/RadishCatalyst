@@ -209,6 +209,12 @@ func service_for_world(world_id: String) -> SliceSaveService:
 	var world_dir := _worlds_dir.path_join(world_id)
 	if not DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(world_dir)):
 		return null
+	var metadata_result := _read_metadata(world_dir)
+	if not bool(metadata_result.get("success", false)):
+		return null
+	var metadata: Dictionary = metadata_result["data"]
+	if String(metadata.get("world_id", "")) != world_id:
+		return null
 	return SliceSaveService.for_world(world_dir, world_id)
 
 

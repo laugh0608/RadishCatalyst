@@ -5,7 +5,8 @@ const SLICE_BASE_SCENE := "res://scenes/slice/SliceWorld.tscn"
 const STARTUP_MENU_SCENE := "res://scenes/ui/StartupMenu.tscn"
 
 var data_registry: DataRegistry
-var slice_save_service := SliceSaveService.new()
+var slice_save_catalog := SliceSaveCatalog.new()
+var slice_save_service: SliceSaveService
 var startup_menu: StartupMenu
 
 
@@ -18,10 +19,20 @@ func _ready() -> void:
 		push_error("Boot failed because static data could not be loaded.")
 		return
 
-	_show_startup_menu()
+	var migration_result := slice_save_catalog.migrate_legacy_single_world()
+	var migration_notice := ""
+	if not bool(migration_result.get("success", false)):
+		migration_notice = String(
+			migration_result.get("message", "旧存档迁移失败。")
+		)
+	else:
+		var migration_data: Dictionary = migration_result.get("data", {})
+		if bool(migration_data.get("migrated", false)):
+			migration_notice = "已将旧单档无损导入“前哨 01”。"
+	_show_startup_menu(migration_notice)
 
 
-func _show_startup_menu() -> void:
+func _show_startup_menu(notice: String = "") -> void:
 	startup_menu = get_node_or_null("StartupMenu") as StartupMenu
 	if startup_menu == null:
 		var startup_menu_scene := load(STARTUP_MENU_SCENE) as PackedScene
@@ -35,25 +46,32 @@ func _show_startup_menu() -> void:
 			return
 		add_child(startup_menu)
 
-	startup_menu.configure_save_summary(slice_save_service.get_summary())
-	startup_menu.new_game_requested.connect(_on_startup_new_game_requested)
-	startup_menu.load_game_requested.connect(_on_startup_load_game_requested)
+	startup_menu.configure_save_catalog(slice_save_catalog, notice)
+	startup_menu.world_created.connect(_on_startup_world_created)
+	startup_menu.world_load_requested.connect(_on_startup_world_load_requested)
 	startup_menu.quit_requested.connect(_on_startup_quit_requested)
 
 
-func _on_startup_new_game_requested() -> void:
-	_start_slice(false)
+func _on_startup_world_created(world_id: String) -> void:
+	_start_slice(world_id, false)
 
 
-func _on_startup_load_game_requested() -> void:
-	_start_slice(true)
+func _on_startup_world_load_requested(world_id: String) -> void:
+	_start_slice(world_id, true)
 
 
 func _on_startup_quit_requested() -> void:
 	get_tree().quit()
 
 
-func _start_slice(startup_load: bool) -> void:
+func _start_slice(world_id: String, startup_load: bool) -> void:
+	slice_save_service = slice_save_catalog.service_for_world(world_id)
+	if slice_save_service == null:
+		if startup_menu != null:
+			startup_menu.show_catalog_message(
+				"无法打开所选世界，请刷新列表后重试。"
+			)
+		return
 	var slice_scene := load(SLICE_BASE_SCENE) as PackedScene
 	if slice_scene == null:
 		push_error("Missing slice base scene: %s" % SLICE_BASE_SCENE)

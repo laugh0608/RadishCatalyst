@@ -2,8 +2,11 @@ extends SceneTree
 
 const BootScene := preload("res://scenes/boot/Boot.tscn")
 const StartupMenuScene := preload("res://scenes/ui/StartupMenu.tscn")
+const TEST_ROOT := "/private/tmp/radishcatalyst-startup-world-list-check"
 
 var failures: Array[String] = []
+var created_world_id := ""
+var requested_load_world_id := ""
 
 
 func _init() -> void:
@@ -11,6 +14,7 @@ func _init() -> void:
 
 
 func _execute() -> void:
+	_remove_tree(TEST_ROOT)
 	await _run_checks()
 
 	if failures.is_empty():
@@ -26,7 +30,9 @@ func _execute() -> void:
 func _run_checks() -> void:
 	await _check_startup_menu_structure()
 	await _check_startup_menu_save_state()
+	await _check_world_catalog_ui()
 	await _check_boot_starts_on_menu()
+	await _check_boot_uses_selected_world()
 
 
 func _check_startup_menu_structure() -> void:
@@ -45,6 +51,7 @@ func _check_startup_menu_structure() -> void:
 	_expect_equal(menu.settings_button.text, "设置", "startup menu has settings entry")
 	_expect_equal(menu.quit_button.text, "退出", "startup menu has quit action")
 	_expect_equal(menu.settings_panel.visible, false, "settings panel starts hidden")
+	_expect_equal(menu.world_panel.visible, false, "world panel starts hidden")
 	menu.settings_button.pressed.emit()
 	_expect_equal(menu.settings_panel.visible, true, "settings button opens lightweight settings panel")
 	menu.settings_back_button.pressed.emit()
@@ -74,14 +81,205 @@ func _check_startup_menu_save_state() -> void:
 	menu.free()
 
 
+func _check_world_catalog_ui() -> void:
+	var catalog := SliceSaveCatalog.new(TEST_ROOT)
+	var menu := StartupMenuScene.instantiate() as StartupMenu
+	root.add_child(menu)
+	await process_frame
+	menu.configure_save_catalog(catalog)
+	menu.world_created.connect(_capture_created_world)
+	menu.world_load_requested.connect(_capture_requested_load)
+
+	menu.new_game_button.pressed.emit()
+	_expect_equal(menu.world_panel.visible, true, "new game opens world panel")
+	_expect_equal(
+		menu.world_name_input.has_focus(),
+		true,
+		"new game focuses world naming input"
+	)
+	menu.world_name_input.text = "L5 完整产线"
+	menu.create_world_button.pressed.emit()
+	_expect(not created_world_id.is_empty(), "create emits stable world id")
+	_expect_equal(catalog.list_worlds().size(), 1, "create adds one world")
+
+	var service := catalog.service_for_world(created_world_id)
+	_expect(service != null, "created world exposes single-world service")
+	if service != null:
+		_expect_success(
+			service.save_state(_state(11, 2)),
+			"created world receives initial autosave"
+		)
+	menu.configure_save_catalog(catalog)
+	_expect_equal(
+		menu.load_game_button.disabled,
+		false,
+		"saved world enables load-world entry"
+	)
+
+	menu.load_game_button.pressed.emit()
+	_expect_equal(menu.world_item_list.item_count, 1, "world list has one row")
+	menu.world_item_list.select(0)
+	menu.world_item_list.item_selected.emit(0)
+	_expect_text_contains(
+		menu.world_details_label.text,
+		"建筑：2",
+		"selected world shows progress summary"
+	)
+	menu.load_world_button.pressed.emit()
+	_expect_equal(
+		requested_load_world_id,
+		created_world_id,
+		"load action emits selected stable id"
+	)
+
+	menu.world_name_input.text = "L5 人工复核"
+	menu.rename_world_button.pressed.emit()
+	var renamed := catalog.list_worlds()[0]
+	_expect_equal(
+		String(renamed.get("world_id", "")),
+		created_world_id,
+		"UI rename preserves world id"
+	)
+	_expect_equal(
+		String(renamed.get("display_name", "")),
+		"L5 人工复核",
+		"UI rename updates display name"
+	)
+
+	menu.world_item_list.select(0)
+	menu.world_item_list.item_selected.emit(0)
+	menu.trash_world_button.pressed.emit()
+	_expect_equal(
+		menu.trash_confirm_panel.visible,
+		true,
+		"move to trash requires confirmation"
+	)
+	menu.trash_confirm_button.pressed.emit()
+	_expect_equal(catalog.list_worlds().size(), 0, "confirmed world leaves active list")
+	_expect_equal(catalog.list_trash().size(), 1, "confirmed world enters trash")
+
+	menu.trash_worlds_button.pressed.emit()
+	menu.world_item_list.select(0)
+	menu.world_item_list.item_selected.emit(0)
+	menu.restore_world_button.pressed.emit()
+	_expect_equal(catalog.list_worlds().size(), 1, "restore returns world to active list")
+	_expect_equal(catalog.list_trash().size(), 0, "restore removes trash entry")
+	menu.free()
+
+
 func _check_boot_starts_on_menu() -> void:
+	var catalog := SliceSaveCatalog.new(TEST_ROOT)
 	var boot := BootScene.instantiate()
+	boot.slice_save_catalog = catalog
 	root.add_child(boot)
 	await process_frame
 	var menu := boot.get_node_or_null("StartupMenu") as StartupMenu
 	_expect_equal(menu != null, true, "boot shows startup menu before game root")
 	_expect_equal(boot.get_node_or_null("GameRoot") == null, true, "boot does not enter game before menu action")
 	boot.free()
+
+
+func _check_boot_uses_selected_world() -> void:
+	var catalog := SliceSaveCatalog.new(TEST_ROOT)
+	var worlds := catalog.list_worlds()
+	if worlds.is_empty():
+		failures.append("boot selected-world check needs preserved UI world")
+		return
+	var world_id := String(worlds[0].get("world_id", ""))
+	var boot := BootScene.instantiate()
+	boot.slice_save_catalog = catalog
+	root.add_child(boot)
+	await process_frame
+	var menu := boot.get_node_or_null("StartupMenu") as StartupMenu
+	_expect_equal(menu != null, true, "boot exposes configured world menu")
+	if menu == null:
+		boot.free()
+		return
+	menu.load_game_button.pressed.emit()
+	_expect_equal(
+		menu.world_item_list.item_count,
+		1,
+		"Boot menu lists the preserved review world"
+	)
+	if menu.world_item_list.item_count == 0:
+		boot.free()
+		return
+	menu.world_item_list.select(0)
+	menu.world_item_list.item_selected.emit(0)
+	menu.load_world_button.pressed.emit()
+	await process_frame
+	await process_frame
+	var world := boot.get_node_or_null("SliceWorld") as SliceWorld
+	_expect_equal(world != null, true, "load selection enters slice world")
+	if world != null:
+		var expected_dir := catalog.worlds_directory().path_join(world_id)
+		_expect_equal(
+			world.save_service.save_directory(),
+			expected_dir,
+			"Boot injects the selected world's service"
+		)
+		_expect_equal(world.startup_load, true, "selected world starts in load mode")
+	boot.free()
+
+
+func _capture_created_world(world_id: String) -> void:
+	created_world_id = world_id
+
+
+func _capture_requested_load(world_id: String) -> void:
+	requested_load_world_id = world_id
+
+
+func _state(core_energy: int, building_count: int) -> Dictionary:
+	var buildings: Array[Dictionary] = []
+	for index in range(building_count):
+		buildings.append({
+			"instance_id": "building-%06d" % (index + 1),
+			"building_id": SliceBuildingCatalog.FLOOR_ID,
+			"origin_cell": [4 + index, 4],
+			"rotation": 0,
+			"state": {},
+		})
+	return {
+		"pocket": {"capacity": 20, "contents": {}},
+		"core_storage": {
+			"capacity": 120,
+			"contents": {"catalyst": core_energy},
+		},
+		"core_repaired": true,
+		"core_energy": core_energy,
+		"harvested_clusters": [],
+		"buildings": buildings,
+		"next_building_serial": building_count + 1,
+		"player_x": 480.0,
+		"player_y": 270.0,
+	}
+
+
+func _expect_success(result: Dictionary, context: String) -> void:
+	if bool(result.get("success", false)):
+		return
+	failures.append(
+		"%s: %s" % [context, String(result.get("message", ""))]
+	)
+
+
+func _remove_tree(path: String) -> void:
+	var absolute_path := ProjectSettings.globalize_path(path)
+	var dir := DirAccess.open(absolute_path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while not entry.is_empty():
+		var child := absolute_path.path_join(entry)
+		if dir.current_is_dir():
+			_remove_tree(child)
+		else:
+			DirAccess.remove_absolute(child)
+		entry = dir.get_next()
+	dir.list_dir_end()
+	DirAccess.remove_absolute(absolute_path)
 
 
 func _expect_equal(actual, expected, context: String) -> void:
@@ -94,3 +292,8 @@ func _expect_text_contains(text: String, expected: String, context: String) -> v
 	if text.find(expected) >= 0:
 		return
 	failures.append("%s: expected text to contain '%s', got '%s'" % [context, expected, text])
+
+
+func _expect(condition: bool, context: String) -> void:
+	if not condition:
+		failures.append(context)
