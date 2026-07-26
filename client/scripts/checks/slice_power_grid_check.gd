@@ -200,9 +200,9 @@ func _check_multihop_world_grid() -> void:
 		reactor.get_node("InteractionSite") as SliceBuildingInteractionSite
 	).get_prompt(world)
 	_expect_equal(
-		reactor_prompt.contains("通电，待接进出料 L5"),
+		reactor_prompt.contains("缺晶体"),
 		true,
-		"powered reactor explicitly stays inert until L5"
+		"powered reactor exposes its L5 material status"
 	)
 	_expect_equal(
 		world.relay_disconnect_impact_count(relay_two),

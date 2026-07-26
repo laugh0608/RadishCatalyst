@@ -114,6 +114,8 @@ user://saves/slice/slice_world.bak.json
 - `SliceSaveService` 切换为单世界目录，并补三份备份轮转；世界状态 schema 保持 6。
 - 自动断言覆盖创建 / 枚举 / 稳定排序 / 上限 / 重命名 / 回收恢复 / 损坏隔离 / 旧单档无损迁移。
 - 本包不改启动 UI；先证明目录与所有权。
+- 2026-07-26 完成：新增可注入根的 `SliceSaveCatalog`，30 个世界上限、稳定不随重命名变化的世界 ID、元数据轻读、损坏项隔离和可恢复回收成立；`SliceSaveService.for_world` 使用 `autosave.json` 与三份降序备份，旧构造方式和单份 `.bak` 保持兼容。
+- 当前单档通过“现有 schema 2–6 校验 → 隐藏暂存目录写两代新档 → 读回关键状态 → 原子发布”导入，旧主档 / 备份档不移动不删除。目录专项 89 项、完整 `check-client --with-godot` 与既有 schema 138 项全绿；本包尚未接 `Boot` 和列表 UI。
 
 ### 包 2：世界列表 UI 与 Boot 选择
 

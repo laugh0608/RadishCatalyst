@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃专题：[Slice Multi-World Save List V1](slice-multi-world-save-list-v1.md)——把当前单世界自动存档升级为最多 30 个世界的列表、稳定目录、可恢复回收和测试复核入口；第一包先做世界目录、目录服务与单档无损迁移。
+当前活跃专题：[Slice Multi-World Save List V1](slice-multi-world-save-list-v1.md)——最多 30 个世界的目录服务、三份备份、可恢复回收和当前单档无损迁移已完成；下一包接启动菜单世界列表与 `Boot` 世界选择。
 
 已收口专题：
 

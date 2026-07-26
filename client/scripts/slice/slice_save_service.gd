@@ -3,8 +3,9 @@ extends RefCounted
 
 ## Lightweight save service for the slice world. Physically isolated from the
 ## frozen legacy SaveService: its own directory, schema and JSON layout, no
-## shared code or state. Persists the slice loop state as plain JSON with one
-## rotated backup and an atomic temp-then-rename write.
+## shared code or state. Persists one slice world as plain JSON with atomic
+## temp-then-rename writes. Legacy callers keep one backup; multi-world callers
+## use autosave.json plus three rotated backups and lightweight metadata.
 ##
 ## Schema 6 adds per-reactor inventories and retained production state. Schema
 ## 2–5 migrate into the current topology; legacy global catalyst is restored to
@@ -15,22 +16,77 @@ const MIN_SUPPORTED_SCHEMA_VERSION := 2
 const GAME_VERSION := "prototype-slice-06"
 const DEFAULT_SAVE_DIR := "user://saves/slice"
 const LEGACY_CORE_STORAGE_CAPACITY := 120
+const LEGACY_SAVE_FILE_NAME := "slice_world.json"
+const WORLD_SAVE_FILE_NAME := "autosave.json"
+const WORLD_BACKUP_COUNT := 3
+const WORLD_METADATA_SCHEMA_VERSION := 1
 
 var _save_dir: String
 var _save_file: String
-var _save_backup_file: String
 var _save_temp_file: String
+var _save_backup_files: Array[String] = []
+var _world_id := ""
+var _metadata_file := ""
+var _metadata_temp_file := ""
 
 
-func _init(save_dir: String = DEFAULT_SAVE_DIR) -> void:
+func _init(
+	save_dir: String = DEFAULT_SAVE_DIR,
+	save_file_name: String = LEGACY_SAVE_FILE_NAME,
+	backup_count: int = 1,
+	world_id: String = ""
+) -> void:
 	_save_dir = save_dir.trim_suffix("/")
-	_save_file = _save_dir.path_join("slice_world.json")
-	_save_backup_file = _save_dir.path_join("slice_world.bak.json")
-	_save_temp_file = _save_dir.path_join("slice_world.tmp.json")
+	_save_file = _save_dir.path_join(save_file_name)
+	var stem := save_file_name.trim_suffix(".json")
+	_save_temp_file = _save_dir.path_join("%s.tmp.json" % stem)
+	_world_id = world_id
+	if not _world_id.is_empty():
+		_metadata_file = _save_dir.path_join("metadata.json")
+		_metadata_temp_file = _save_dir.path_join("metadata.tmp.json")
+	if save_file_name == LEGACY_SAVE_FILE_NAME and backup_count == 1:
+		_save_backup_files.append(
+			_save_dir.path_join("slice_world.bak.json")
+		)
+		return
+	var backups_dir := _save_dir.path_join("backups")
+	for index in range(1, maxi(backup_count, 0) + 1):
+		_save_backup_files.append(
+			backups_dir.path_join("%s.bak.%d.json" % [stem, index])
+		)
+
+
+static func for_world(
+	world_dir: String,
+	world_id: String
+) -> SliceSaveService:
+	return SliceSaveService.new(
+		world_dir,
+		WORLD_SAVE_FILE_NAME,
+		WORLD_BACKUP_COUNT,
+		world_id
+	)
+
+
+func save_directory() -> String:
+	return _save_dir
+
+
+func save_file_path() -> String:
+	return _save_file
+
+
+func backup_file_paths() -> Array[String]:
+	return _save_backup_files.duplicate()
 
 
 func has_save() -> bool:
-	return FileAccess.file_exists(_save_file) or FileAccess.file_exists(_save_backup_file)
+	if FileAccess.file_exists(_save_file):
+		return true
+	for backup_file in _save_backup_files:
+		if FileAccess.file_exists(backup_file):
+			return true
+	return false
 
 
 func save_state(state: Dictionary) -> Dictionary:
@@ -38,6 +94,19 @@ func save_state(state: Dictionary) -> Dictionary:
 	var dir_error := DirAccess.make_dir_recursive_absolute(absolute_save_dir)
 	if dir_error != OK and not DirAccess.dir_exists_absolute(absolute_save_dir):
 		return _failure("创建切片存档目录失败：%s。" % error_string(dir_error))
+	if not _save_backup_files.is_empty():
+		var backup_dir := ProjectSettings.globalize_path(
+			_save_backup_files[0].get_base_dir()
+		)
+		var backup_dir_error := DirAccess.make_dir_recursive_absolute(backup_dir)
+		if (
+			backup_dir_error != OK
+			and not DirAccess.dir_exists_absolute(backup_dir)
+		):
+			return _failure(
+				"创建切片备份目录失败：%s。"
+				% error_string(backup_dir_error)
+			)
 
 	var save_data := {
 		"save_schema_version": SAVE_SCHEMA_VERSION,
@@ -68,13 +137,12 @@ func save_state(state: Dictionary) -> Dictionary:
 	temp.store_string(JSON.stringify(save_data, "\t"))
 	temp.close()
 
-	if FileAccess.file_exists(_save_file):
-		var backup_error := DirAccess.copy_absolute(
-			ProjectSettings.globalize_path(_save_file),
-			ProjectSettings.globalize_path(_save_backup_file)
+	var backup_error := _rotate_backups()
+	if backup_error != OK:
+		return _failure(
+			"备份切片存档失败：%s。当前主档未被覆盖。"
+			% error_string(backup_error)
 		)
-		if backup_error != OK:
-			return _failure("备份切片存档失败：%s。当前存档未被覆盖。" % error_string(backup_error))
 
 	var rename_error := DirAccess.rename_absolute(
 		ProjectSettings.globalize_path(_save_temp_file),
@@ -82,12 +150,21 @@ func save_state(state: Dictionary) -> Dictionary:
 	)
 	if rename_error != OK:
 		return _failure("写入切片存档失败：%s。" % error_string(rename_error))
+	var metadata_error := _update_world_metadata(save_data)
+	if not metadata_error.is_empty():
+		return {
+			"success": true,
+			"message": "已保存世界状态，但更新列表摘要失败：%s。" % metadata_error,
+			"warning": metadata_error,
+		}
 	return _success("已保存切片存档。")
 
 
 func load_state() -> Dictionary:
 	var last_failure: Dictionary = {}
-	for save_file in [_save_file, _save_backup_file]:
+	var candidates: Array[String] = [_save_file]
+	candidates.append_array(_save_backup_files)
+	for save_file in candidates:
 		if not FileAccess.file_exists(save_file):
 			continue
 		var read_result := _read_file(save_file)
@@ -102,12 +179,16 @@ func load_state() -> Dictionary:
 
 func get_summary() -> Dictionary:
 	var result := load_state()
+	var display_name := "切片存档"
+	var metadata := _read_world_metadata()
+	if not metadata.is_empty():
+		display_name = String(metadata.get("display_name", display_name))
 	if not bool(result.get("success", false)):
 		var status := "存档不可读取" if has_save() else "空存档"
 		var details := String(result.get("message", "")) if has_save() else "尚未保存切片进度。"
 		return {
 			"has_loadable_save": false,
-			"display_name": "切片存档",
+			"display_name": display_name,
 			"status": status,
 			"details": details
 		}
@@ -131,10 +212,113 @@ func get_summary() -> Dictionary:
 	]
 	return {
 		"has_loadable_save": true,
-		"display_name": "切片存档",
+		"display_name": display_name,
 		"status": "可读取",
 		"details": details
 	}
+
+
+func _rotate_backups() -> Error:
+	if not FileAccess.file_exists(_save_file):
+		return OK
+	for index in range(_save_backup_files.size() - 1, 0, -1):
+		var source := _save_backup_files[index - 1]
+		if not FileAccess.file_exists(source):
+			continue
+		var copy_error := DirAccess.copy_absolute(
+			ProjectSettings.globalize_path(source),
+			ProjectSettings.globalize_path(_save_backup_files[index])
+		)
+		if copy_error != OK:
+			return copy_error
+	if _save_backup_files.is_empty():
+		return OK
+	return DirAccess.copy_absolute(
+		ProjectSettings.globalize_path(_save_file),
+		ProjectSettings.globalize_path(_save_backup_files[0])
+	)
+
+
+func _update_world_metadata(save_data: Dictionary) -> String:
+	if _metadata_file.is_empty():
+		return ""
+	var metadata := _read_world_metadata()
+	var now := String(save_data.get("updated_at", _local_time_text()))
+	if metadata.is_empty():
+		metadata = {
+			"metadata_schema_version": WORLD_METADATA_SCHEMA_VERSION,
+			"world_id": _world_id,
+			"display_name": "未命名世界",
+			"created_at": now,
+			"play_time_seconds": 0,
+		}
+	metadata["metadata_schema_version"] = WORLD_METADATA_SCHEMA_VERSION
+	metadata["world_id"] = _world_id
+	metadata["updated_at"] = now
+	metadata["game_version"] = GAME_VERSION
+	metadata["save_schema_version"] = SAVE_SCHEMA_VERSION
+	metadata["core_repaired"] = bool(save_data.get("core_repaired", false))
+	var buildings = save_data.get("buildings", [])
+	metadata["building_count"] = buildings.size() if buildings is Array else 0
+	metadata["catalyst_count"] = _saved_item_count(
+		save_data,
+		SliceWorld.ITEM_CATALYST
+	)
+	var file := FileAccess.open(_metadata_temp_file, FileAccess.WRITE)
+	if file == null:
+		return error_string(FileAccess.get_open_error())
+	file.store_string(JSON.stringify(metadata, "\t"))
+	file.close()
+	var rename_error := DirAccess.rename_absolute(
+		ProjectSettings.globalize_path(_metadata_temp_file),
+		ProjectSettings.globalize_path(_metadata_file)
+	)
+	return "" if rename_error == OK else error_string(rename_error)
+
+
+func _read_world_metadata() -> Dictionary:
+	if _metadata_file.is_empty() or not FileAccess.file_exists(_metadata_file):
+		return {}
+	var file := FileAccess.open(_metadata_file, FileAccess.READ)
+	if file == null:
+		return {}
+	var parsed = JSON.parse_string(file.get_as_text())
+	file.close()
+	return parsed if parsed is Dictionary else {}
+
+
+func _saved_item_count(save_data: Dictionary, item_id: String) -> int:
+	var total := _inventory_item_count(save_data.get("pocket", {}), item_id)
+	total += _inventory_item_count(save_data.get("core_storage", {}), item_id)
+	var buildings = save_data.get("buildings", [])
+	if not (buildings is Array):
+		return total
+	for building in buildings:
+		if not (building is Dictionary):
+			continue
+		var state = building.get("state", {})
+		if not (state is Dictionary):
+			continue
+		total += _inventory_item_count(state.get("inventory", {}), item_id)
+		total += _inventory_item_count(
+			state.get("input_inventory", {}),
+			item_id
+		)
+		total += _inventory_item_count(
+			state.get("output_inventory", {}),
+			item_id
+		)
+		var cargo = state.get("cargo", {})
+		if cargo is Dictionary and String(cargo.get("item_id", "")) == item_id:
+			total += 1
+	return total
+
+
+func _inventory_item_count(value, item_id: String) -> int:
+	if not (value is Dictionary):
+		return 0
+	var contents = value.get("contents", {})
+	return int(contents.get(item_id, 0)) if contents is Dictionary else 0
 
 
 func _read_file(save_file: String) -> Dictionary:
