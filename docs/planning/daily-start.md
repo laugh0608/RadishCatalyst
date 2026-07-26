@@ -10,7 +10,7 @@
 
 当前为「切片实现：本地多世界存档列表——最多 30 个世界与测试复核入口」。
 
-- 当前活跃专题 [多世界存档列表](../features/slice-multi-world-save-list-v1.md)：目录服务、真实启动菜单列表与 `Boot` 选档已完成；下一包建立 1 / 30 / 损坏 / 回收命名复核世界并完成人工收口。
+- 当前活跃专题 [多世界存档列表](../features/slice-multi-world-save-list-v1.md)：目录、列表和 1 / 30 / 损坏 / 回收自动证据已完成；等待萝卜SAMA人工收口。
 - 最新收口专题 [L5 反应器接入自动化](../features/slice-reactor-automation-v1.md)与[配方加工 arc](../features/slice-recipe-processing-v1.md)：自然完整产线、双状态重启、228 项正式断言、截图和萝卜SAMA真实载入人工复核全部通过。
 - 美术介质机械口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一均已定稿）。
 - 章程与复盘结论存档：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)。
@@ -45,14 +45,15 @@
 - 2026-07-26 萝卜SAMA从保留隔离存档进入真实载入路径完成人工审核并确认通过；L5 与配方加工 arc 正式收口。随后确认最多 30 个世界存档方向，建立多世界存档列表专题。
 - 2026-07-26 多世界存档包 1 完成：`SliceSaveCatalog` 与单世界服务边界接入，目录专项 89 项通过；30 上限、三份备份、重命名稳定 ID、回收恢复、损坏隔离和旧单档暂存迁移成立，既有完整 Godot 回归全绿。
 - 2026-07-26 包 2 完成：启动菜单列表与 `Boot` 选档接入；32 项断言覆盖双世界隔离与新游戏不覆盖，保留三世界。
+- 2026-07-26 包 3：1 / 30 / 损坏 / 回收复核根、159 项断言、四图与启动器就绪。
 - 遗留登记：八方向动画（候选专题）、viewport 整数重构（并入 HUD 换皮）、打磨清单观察项。
 
 ## 今日后续（2026-07-26）
 
-主目标是推进多世界存档包 3，不修改稳定的 schema 6 玩法字段。
+主目标是从保留根完成人工复核。
 
-1. 在独立根保留 1 / 30 / 损坏 / 回收四类语义化复核世界，核对列表密度、文字截断、焦点、确认与返回路径。
-2. 用人工启动器从真实 `Boot` 打开同一列表；萝卜SAMA确认可直接选择测试世界复核后专题收口。
+1. 运行 `./scripts/run-slice-save-review-worlds.sh` 从真实 `Boot` 打开 30 世界列表。
+2. 核对容量、滚动、损坏、回收及正常载入；确认后收口。
 
 ## 防跑偏规则
 

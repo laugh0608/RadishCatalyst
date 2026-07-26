@@ -315,7 +315,7 @@ func _world_summary(
 	if not bool(metadata_result.get("success", false)):
 		return {
 			"world_id": directory_name,
-			"display_name": directory_name,
+			"display_name": "无法读取的世界",
 			"updated_at": "",
 			"status": "元数据损坏",
 			"loadable": false,

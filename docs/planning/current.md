@@ -6,7 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[多世界存档列表](../features/slice-multi-world-save-list-v1.md)。目录服务与真实启动菜单世界列表已完成；下一包建立 1 / 30 / 损坏 / 回收命名复核世界并完成萝卜SAMA人工收口。
+- 当前活跃专题：[多世界存档列表](../features/slice-multi-world-save-list-v1.md)。目录、列表与复核状态自动证据已完成；等待萝卜SAMA从保留的 30 世界列表完成人工收口。
 - 最新收口专题：[L5 反应器接入自动化](../features/slice-reactor-automation-v1.md)与[配方加工 arc](../features/slice-recipe-processing-v1.md)（07-26，含自然完整产线、schema 6、双状态重启与萝卜SAMA人工确认）、[L4 传送带物流](../features/slice-conveyor-logistics-v1.md)（07-25）、[L3 建造放置 + 扩展供电网](../features/slice-building-placement-and-power-grid-v1.md)（07-25）；更早专题见 `docs/features/README.md`。
 - 美术介质机械口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一均已定稿）。
 - 章程与复盘结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（已完成，作决策存档）。
@@ -40,6 +40,7 @@
 - 2026-07-26 萝卜SAMA从保留隔离存档经真实 `Boot → 载入存档` 完成人工复核并确认通过；L5 与配方加工 arc 正式收口。
 - 2026-07-26 多世界存档包 1 完成：新增 `SliceSaveCatalog` 与 `SliceSaveService.for_world`，30 世界上限、稳定 ID、元数据轻读、三份备份、回收恢复、损坏隔离和当前单档暂存迁移成立；专项 89 项与完整 Godot 回归全绿。
 - 2026-07-26 多世界存档包 2 完成：`StartupMenu` 可滚动列出、创建、载入、重命名、回收 / 恢复世界并反馈上限 / 损坏状态；`Boot` 只在创建或选择后注入单世界服务。正式入口 32 项证明双世界隔离与新游戏不覆盖，截图视觉复核通过。
+- 2026-07-26 多世界存档包 3 自动证据完成：保留 1 世界基线与“30 世界 + 1 回收项”复核根；159 项真实入口断言和四图联系表覆盖容量、滚动、损坏隔离、焦点、确认与返回路径，人工启动器已就绪。
 
 当前阶段：
 
@@ -50,8 +51,8 @@
 ## 当前主线
 
 1. 配方加工 arc 的 L0–L5 已全部收口，schema 6 世界状态成为多世界目录升级的稳定输入。
-2. 目录、列表与 `Boot` 选择已经闭环；当前只补 1 / 30 / 损坏 / 回收四种命名复核状态的密度、焦点和返回路径证据。
-3. 使用保留的独立根从同一真实列表直接进入人工复核；不改 schema 6 玩法字段。
+2. 目录、列表、`Boot` 选择与 1 / 30 / 损坏 / 回收自动证据已经闭环。
+3. 当前只等待使用保留独立根从同一真实列表完成人工复核；不改 schema 6 玩法字段。
 
 ## 边界与冻结
 
