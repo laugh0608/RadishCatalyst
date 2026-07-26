@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/crystal_ground.png" id="1_vse2a"]
 [ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/pollution_ground.png" id="2_kom7k"]
@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/demo_first_screen/crystal_ecology_cluster.svg" id="9_crystal_cluster"]
 [ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/pipe_straight.png" id="10_pipe_straight"]
 [ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/toolbox.png" id="11_toolbox"]
+[ext_resource type="PackedScene" path="res://scenes/components/GroundShadow.tscn" id="12_ground_shadow"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ty8qd"]
 texture = ExtResource("1_vse2a")
@@ -46,8 +47,65 @@ z_index = 1
 tile_map_data = PackedByteArray("AAADAP//AQAAAAAAAAAEAP7/AQAAAAAAAAAEAP//AQAAAAAAAAAFAP//AQAAAAAAAAAEAAAAAQAAAAAAAAAFAAAAAQAAAAAAAAAFAAEAAQAAAAAAAAAGAAAAAQAAAAAAAAA=")
 tile_set = SubResource("TileSet_x2pmb")
 
+[node name="ApproachSignalLightWestGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalApproachSignalLightWest")
+
+[node name="ApproachSignalLightMidGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalApproachSignalLightMid")
+
+[node name="ApproachCableSpoolWestGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalApproachCableSpoolWest")
+
+[node name="ApproachSurveyCrateGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalApproachSurveyCrate")
+
+[node name="ApproachToolboxGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalApproachToolbox")
+
+[node name="CrystalMainGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalClusterVisualMain")
+
+[node name="CrystalEastGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalClusterVisualEast")
+
+[node name="CrystalSouthGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalClusterVisualSouth")
+
+[node name="CrystalReserveGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalClusterVisualReserve")
+
+[node name="CrystalCollectorGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalResourceCollectorField")
+
+[node name="CrystalCableSpoolGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalCableSpool")
+
+[node name="CrystalWorkLightGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalWorkLightPole")
+
+[node name="ApproachCableSpoolGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalApproachCableSpool")
+
+[node name="ApproachWorkLightGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../CrystalApproachWorkLight")
+
+[node name="WreckageNorthGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../FieldWreckageVisualNorth")
+
+[node name="WreckageEastGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../FieldWreckageVisualEast")
+
+[node name="WreckageSouthGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../FieldWreckageVisualSouth")
+
+[node name="PollutionFilterGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../PollutionFilterField")
+
+[node name="PollutionSupplyCrateGroundShadow" parent="." instance=ExtResource("12_ground_shadow")]
+target_path = NodePath("../PollutionSupplyCrate")
+
 [node name="CrystalApproachPipeWest" type="Sprite2D" parent="."]
-modulate = Color(0.9, 0.98, 0.95, 0.74)
+modulate = Color(1, 1, 1, 0.74)
 z_index = 11
 position = Vector2(-204, -90)
 rotation = 0.03
@@ -55,7 +113,7 @@ scale = Vector2(0.28, 0.24)
 texture = ExtResource("10_pipe_straight")
 
 [node name="CrystalApproachPipeMid" type="Sprite2D" parent="."]
-modulate = Color(0.9, 0.98, 0.95, 0.76)
+modulate = Color(1, 1, 1, 0.76)
 z_index = 11
 position = Vector2(-134, -82)
 rotation = 0.05
@@ -63,7 +121,7 @@ scale = Vector2(0.3, 0.24)
 texture = ExtResource("10_pipe_straight")
 
 [node name="CrystalApproachPipeEast" type="Sprite2D" parent="."]
-modulate = Color(0.9, 0.98, 0.95, 0.74)
+modulate = Color(1, 1, 1, 0.74)
 z_index = 11
 position = Vector2(-64, -86)
 rotation = -0.03
@@ -71,133 +129,133 @@ scale = Vector2(0.26, 0.22)
 texture = ExtResource("10_pipe_straight")
 
 [node name="CrystalApproachSignalLightWest" type="Sprite2D" parent="."]
-modulate = Color(1, 0.96, 0.76, 0.86)
+modulate = Color(1, 1, 1, 0.86)
 z_index = 13
-position = Vector2(-174, -122)
+position = Vector2(-176, -128)
 scale = Vector2(0.18, 0.18)
 texture = ExtResource("5_light")
 
 [node name="CrystalApproachSignalLightMid" type="Sprite2D" parent="."]
-modulate = Color(1, 0.96, 0.76, 0.84)
+modulate = Color(1, 1, 1, 0.84)
 z_index = 13
-position = Vector2(-88, -118)
+position = Vector2(-70, -108)
 scale = Vector2(0.18, 0.18)
 texture = ExtResource("5_light")
 
 [node name="CrystalApproachCableSpoolWest" type="Sprite2D" parent="."]
-modulate = Color(0.9, 0.98, 0.98, 0.76)
+modulate = Color(1, 1, 1, 0.76)
 z_index = 13
-position = Vector2(-152, -52)
+position = Vector2(-158, -42)
 scale = Vector2(0.16, 0.16)
 texture = ExtResource("7_spool")
 
 [node name="CrystalApproachSurveyCrate" type="Sprite2D" parent="."]
-modulate = Color(0.92, 0.96, 0.9, 0.74)
+modulate = Color(1, 1, 1, 0.74)
 z_index = 13
-position = Vector2(-124, -48)
+position = Vector2(-128, -34)
 scale = Vector2(0.18, 0.18)
 texture = ExtResource("6_crate")
 
 [node name="CrystalApproachToolbox" type="Sprite2D" parent="."]
-modulate = Color(0.96, 0.92, 0.78, 0.78)
+modulate = Color(1, 1, 1, 0.78)
 z_index = 14
-position = Vector2(-72, -54)
+position = Vector2(-54, -48)
 scale = Vector2(0.18, 0.18)
 texture = ExtResource("11_toolbox")
 
 [node name="CrystalClusterVisualMain" type="Sprite2D" parent="."]
-modulate = Color(0.9, 1, 1, 0.92)
-z_index = 15
+modulate = Color(1, 1, 1, 0.92)
+z_index = 17
 position = Vector2(24, -88)
-scale = Vector2(0.48, 0.48)
+scale = Vector2(0.52, 0.52)
 texture = ExtResource("9_crystal_cluster")
 
 [node name="CrystalClusterVisualEast" type="Sprite2D" parent="."]
-modulate = Color(0.86, 0.98, 1, 0.86)
-z_index = 15
-position = Vector2(122, -112)
-scale = Vector2(0.42, 0.42)
+modulate = Color(1, 1, 1, 0.86)
+z_index = 14
+position = Vector2(178, -130)
+scale = Vector2(0.32, 0.32)
 texture = ExtResource("9_crystal_cluster")
 
 [node name="CrystalClusterVisualSouth" type="Sprite2D" parent="."]
-modulate = Color(0.86, 0.98, 1, 0.84)
-z_index = 15
-position = Vector2(174, -18)
-scale = Vector2(0.38, 0.38)
+modulate = Color(1, 1, 1, 0.84)
+z_index = 16
+position = Vector2(215, 10)
+scale = Vector2(0.28, 0.28)
 texture = ExtResource("9_crystal_cluster")
 
 [node name="CrystalClusterVisualReserve" type="Sprite2D" parent="."]
-modulate = Color(0.82, 0.96, 1, 0.78)
-z_index = 15
-position = Vector2(50, -158)
-scale = Vector2(0.34, 0.34)
+modulate = Color(1, 1, 1, 0.78)
+z_index = 13
+position = Vector2(118, -174)
+scale = Vector2(0.24, 0.24)
 texture = ExtResource("9_crystal_cluster")
 
 [node name="CrystalResourceCollectorField" type="Sprite2D" parent="."]
-modulate = Color(0.9, 1, 0.98, 0.78)
+modulate = Color(1, 1, 1, 0.78)
 z_index = 12
 position = Vector2(84, -166)
 scale = Vector2(0.28, 0.28)
 texture = ExtResource("3_collector")
 
 [node name="CrystalCableSpool" type="Sprite2D" parent="."]
-modulate = Color(0.9, 0.98, 0.98, 0.74)
+modulate = Color(1, 1, 1, 0.74)
 z_index = 13
 position = Vector2(26, -118)
 scale = Vector2(0.2, 0.2)
 texture = ExtResource("7_spool")
 
 [node name="CrystalWorkLightPole" type="Sprite2D" parent="."]
-modulate = Color(0.96, 1, 0.94, 0.78)
+modulate = Color(1, 1, 1, 0.78)
 z_index = 14
 position = Vector2(154, -196)
 scale = Vector2(0.2, 0.2)
 texture = ExtResource("5_light")
 
 [node name="CrystalApproachCableSpool" type="Sprite2D" parent="."]
-modulate = Color(0.9, 0.98, 0.98, 0.82)
+modulate = Color(1, 1, 1, 0.82)
 z_index = 14
-position = Vector2(-12, -66)
+position = Vector2(-16, -62)
 scale = Vector2(0.22, 0.22)
 texture = ExtResource("7_spool")
 
 [node name="CrystalApproachWorkLight" type="Sprite2D" parent="."]
-modulate = Color(1, 0.98, 0.86, 0.86)
+modulate = Color(1, 1, 1, 0.86)
 z_index = 16
-position = Vector2(-32, -118)
+position = Vector2(-22, -100)
 scale = Vector2(0.22, 0.22)
 texture = ExtResource("5_light")
 
 [node name="FieldWreckageVisualNorth" type="Sprite2D" parent="."]
-modulate = Color(0.92, 0.94, 0.88, 0.82)
+modulate = Color(1, 1, 1, 0.82)
 z_index = 13
-position = Vector2(52, 112)
+position = Vector2(70, 112)
 scale = Vector2(0.22, 0.22)
 texture = ExtResource("6_crate")
 
 [node name="FieldWreckageVisualEast" type="Sprite2D" parent="."]
-modulate = Color(0.86, 0.92, 0.9, 0.8)
+modulate = Color(1, 1, 1, 0.8)
 z_index = 13
-position = Vector2(214, 82)
+position = Vector2(226, 86)
 scale = Vector2(0.2, 0.2)
 texture = ExtResource("7_spool")
 
 [node name="FieldWreckageVisualSouth" type="Sprite2D" parent="."]
-modulate = Color(0.9, 0.92, 0.84, 0.78)
+modulate = Color(1, 1, 1, 0.78)
 z_index = 13
-position = Vector2(40, 160)
+position = Vector2(118, 170)
 scale = Vector2(0.2, 0.2)
 texture = ExtResource("6_crate")
 
 [node name="PollutionFilterField" type="Sprite2D" parent="."]
-modulate = Color(0.88, 0.94, 0.86, 0.82)
+modulate = Color(1, 1, 1, 0.82)
 z_index = 13
 position = Vector2(242, -78)
 scale = Vector2(0.3, 0.3)
 texture = ExtResource("4_filter")
 
 [node name="PollutionSupplyCrate" type="Sprite2D" parent="."]
-modulate = Color(0.92, 0.92, 0.78, 0.72)
+modulate = Color(1, 1, 1, 0.72)
 z_index = 14
 position = Vector2(296, 16)
 scale = Vector2(0.2, 0.2)

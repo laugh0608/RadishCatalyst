@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $requiredTextByFile = @{
-    "docs/features/demo-interaction-prompt-surface-decomposition-v1.md" = @(
+    "docs/archive/features-demo-v1/demo-interaction-prompt-surface-decomposition-v1.md" = @(
         "Demo Interaction Prompt Surface Decomposition V1",
         "交互提示承载面拆分",
         "加工设备交互提示"

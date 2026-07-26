@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 REQUIRED_TEXT_BY_FILE = {
-    "docs/features/demo-runtime-surface-decomposition-v1.md": [
+    "docs/archive/features-demo-v1/demo-runtime-surface-decomposition-v1.md": [
         "Demo Runtime Surface Decomposition V1",
         "运行时承载面拆分",
         "vertical_slice_flow_check.gd",

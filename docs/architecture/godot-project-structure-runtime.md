@@ -2,6 +2,19 @@
 
 返回：[Godot Project Structure](godot-project-structure.md)
 
+## 当前正式入口
+
+当前菜单实际进入像素切片：
+
+```text
+Boot.tscn
+-> StartupMenu.tscn
+-> SliceWorld.tscn
+-> SliceMap + SlicePlayer + SliceHud + 建筑 / 供电 / 物流子系统
+```
+
+`GameRoot.tscn + VerticalSliceMap.tscn` 是冻结保留的旧纵切路径，不再由启动菜单进入。当前职责与存档边界见 [Slice Runtime Systems](slice-runtime-systems.md)；下文旧纵切场景建议仍用于维护冻结代码和长期结构参考。
+
 ## 场景组织
 
 推荐首版场景：

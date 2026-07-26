@@ -2,6 +2,8 @@
 
 返回：[Save Data Model](save-data-model.md)
 
+> 本文主体描述冻结旧纵切的 `SaveService`、三槽位和 `WorldState / CharacterState` 校验。当前正式 `Boot → SliceWorld` 使用物理隔离的 `SliceSaveService`、schema 5 与单份轮转备份，见 [Slice Runtime Systems](slice-runtime-systems.md#切片存档)。
+
 ## 当前原型实现
 
 截至 2026-05-01，Godot 客户端已接入最小 `SaveService`：

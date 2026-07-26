@@ -7,6 +7,7 @@ RadishCatalyst 是一个以异星化工基地、人物探索战斗、角色成�
 ## Start Here
 
 - 项目文档总入口：[docs/README.md](docs/README.md)
+- 当前空间工厂玩家帮助：[wiki/guides/spatial-factory-basics.md](wiki/guides/spatial-factory-basics.md)
 - 日常推进短入口：[docs/planning/daily-start.md](docs/planning/daily-start.md)
 - 当前阶段真相源：[docs/planning/current.md](docs/planning/current.md)
 - 周志索引：[docs/devlogs/README.md](docs/devlogs/README.md)

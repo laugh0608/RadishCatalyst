@@ -19,6 +19,8 @@
 - [Character Progression And Equipment](character-progression-and-equipment.md)
 - [Combat And Interaction Prototype](combat-and-interaction-prototype.md)
 - [Development Retest Baselines](development-retest-baselines.md)
+- [Spatial Factory Building And Logistics](spatial-factory-building-and-logistics.md)
+- [Spatial Factory Retest Baselines](spatial-factory-retest-baselines.md)
 - [Maps And Regions](maps-and-regions.md)
 - [Narrative And Quest Framework](narrative-and-quest-framework.md)
 - [Onboarding And First Hour](onboarding-and-first-hour.md)

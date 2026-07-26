@@ -193,6 +193,11 @@ run_godot_checked "godot-import" --import --quit --no-header
 run_godot_checked "save-service" --script "${client_root}/scripts/checks/save_service_check.gd" --no-header
 run_godot_checked "quest-rules" --script "${client_root}/scripts/checks/quest_rules_check.gd" --no-header
 run_godot_checked "vertical-slice-flow" --script "${client_root}/scripts/checks/vertical_slice_flow_check.gd" --no-header
+run_godot_checked "slice-building-placement" --script "${client_root}/scripts/checks/slice_building_placement_check.gd" --no-header
+run_godot_checked "slice-building-operations" --script "${client_root}/scripts/checks/slice_building_operations_check.gd" --no-header
+run_godot_checked "slice-power-grid" --script "${client_root}/scripts/checks/slice_power_grid_check.gd" --no-header
+run_godot_checked "slice-logistics" --script "${client_root}/scripts/checks/slice_logistics_check.gd" --no-header
+run_godot_checked "slice-save-schema" --script "${client_root}/scripts/checks/slice_save_schema_check.gd" --no-header
 run_godot_checked "onboarding-hint-runtime" --script "${client_root}/scripts/checks/onboarding_hint_runtime_check.gd" --no-header
 run_godot_checked "functional-scene-gameplay" --script "${client_root}/scripts/checks/functional_scene_gameplay_check.gd" --no-header
 run_godot_checked "demo-functional-scene-gameplay-density" --script "${client_root}/scripts/checks/demo_functional_scene_gameplay_density_check.gd" --no-header

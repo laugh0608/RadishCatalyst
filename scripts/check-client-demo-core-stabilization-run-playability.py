@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 REQUIRED_TEXT_BY_FILE = {
-    "docs/features/demo-core-stabilization-run-playability-v1.md": [
+    "docs/archive/features-demo-v1/demo-core-stabilization-run-playability-v1.md": [
         "Demo Core Stabilization Run Playability V1",
         "核心稳定站内可玩路径",
         "入口确认 -> 侧边补给 -> 稳压缓冲包 -> 阶段守卫 -> 回写缓存 -> 核心写入",

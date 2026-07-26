@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 REQUIRED_TEXT_BY_FILE = {
-    "docs/features/demo-midfield-route-playability-v1.md": [
+    "docs/archive/features-demo-v1/demo-midfield-route-playability-v1.md": [
         "Demo Midfield Route Playability V1",
         "中段异常地貌可玩路径",
         "回声台地 -> 盐壳浅滩 -> 碎晶沟谷",

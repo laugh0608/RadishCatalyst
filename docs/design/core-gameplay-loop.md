@@ -2,6 +2,8 @@
 
 更新时间：2026-06-27
 
+口径说明（2026-07-25）：核心循环设计与介质无关，继续有效；文中涉及 12 区纵切或写实资产的验证记录属于冻结旧纵切。当前空间工厂的具体建造与物流规则见 [Spatial Factory Building And Logistics](spatial-factory-building-and-logistics.md)。
+
 ## 文档目的
 
 这份文档用于把项目上位方向转成后续 MVP、原型和系统设计都能引用的核心循环。

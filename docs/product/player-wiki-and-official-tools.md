@@ -1,6 +1,6 @@
 # Player Wiki And Official Tools
 
-更新时间：2026-04-26
+更新时间：2026-07-25
 
 ## 文档目的
 
@@ -168,6 +168,24 @@ RadishCatalyst 的复杂度不只来自战斗和地图，也来自大量可反�
 - 剧透标记。
 
 当前阶段不需要实现完整数据系统，但设计文档里不要把这些信息写成只能人工阅读、无法结构化抽取的散文。
+
+## 当前像素切片的数据源
+
+当前 `Boot → SliceWorld` 尚未把空间工厂规则迁入 `client/data/*.json`。Wiki 中涉及精确数量、容量、范围和操作的内容必须以以下代码源为准：
+
+- 配方、产出数量和显示名：`client/scripts/slice/slice_recipes.gd`
+- 建筑占地、表面、端口和方向帧：`slice_building_catalog.gd`、`slice_building_definition.gd`
+- 采集器缓冲与产出节拍：`slice_collector.gd`、`slice_world.gd`
+- 核心 / 中继范围：`slice_world.gd`、`slice_power_grid.gd`
+- 储物箱容量和传送带规则：`slice_storage.gd`、`slice_logistics_grid.gd`
+- 可保存字段和兼容范围：`slice_save_service.gd`、`slice_building_save_codec.gd`
+
+在这些规则迁入结构化数据前：
+
+- 玩家 Wiki 可以解释当前已实现行为，但不要再维护一套独立的隐藏数值表。
+- 代码修改精确规则时，应在同一提交或紧随其后的文档提交中更新对应 Wiki。
+- 旧 `GameRoot + VerticalSliceMap` 词条应明确标为冻结旧纵切，不能与当前空间工厂帮助混排。
+- 未来生成 Wiki 或官方工具时，应先把上述稳定规则迁入共享结构化定义，再从数据生成页面，而不是解析 GDScript 文本。
 
 ## 当前结论
 

@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $requiredTextByFile = @{
-    "docs/features/demo-completion-outcome-readout-v1.md" = @(
+    "docs/archive/features-demo-v1/demo-completion-outcome-readout-v1.md" = @(
         "Demo Completion Outcome Readout V1",
         "终点完成后的玩家可见成果整理",
         "不新增终局菜单、结算页、制作人员名单、试玩准备、发布准备或大规模 polish"

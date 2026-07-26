@@ -362,6 +362,46 @@ if ($runGodotChecks) {
                 RepoRoot = $RepoRoot
                 GodotExe = $GodotExe
             }
+        },
+        @{
+            Name = "slice building placement"
+            Script = "check-client-slice-building-placement.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "slice building operations"
+            Script = "check-client-slice-building-operations.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "slice power grid"
+            Script = "check-client-slice-power-grid.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "slice logistics"
+            Script = "check-client-slice-logistics.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "slice save schema"
+            Script = "check-client-slice-save-schema.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
         }
     )
 }

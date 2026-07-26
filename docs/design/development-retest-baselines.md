@@ -2,6 +2,8 @@
 
 更新时间：2026-06-29
 
+口径说明（2026-07-25）：本文基线只针对冻结保留的旧纵切运行时（`S0` 到 `S22`），在旧代码复用与回归时仍有效。当前正式 `Boot → SliceWorld` 的空档、建造、供电、物流、重启和视觉路径见 [Spatial Factory Retest Baselines](spatial-factory-retest-baselines.md)。
+
 ## 文档目的
 
 这份文档定义首小时原型当前使用的“开发复测基线”。

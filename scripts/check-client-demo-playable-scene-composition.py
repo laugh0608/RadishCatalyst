@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 REQUIRED_TEXT_BY_FILE = {
-    "docs/features/demo-playable-scene-composition-v1.md": [
+    "docs/archive/features-demo-v1/demo-playable-scene-composition-v1.md": [
         "Demo Playable Scene Composition V1",
         "可玩场景构成",
         "不新增资源、配方、区域、任务链、完整背包或完整装备栏",

@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/alien_rock_ground.png" id="1_uednn"]
 [ext_resource type="Texture2D" path="res://assets/tiles/demo_presentation_rebuild/metal_platform_floor.png" id="2_w84um"]
@@ -17,6 +17,7 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/toolbox.png" id="15_8go1o"]
 [ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/pressure_barrel.png" id="16_8y4p0"]
 [ext_resource type="Texture2D" path="res://assets/sprites/demo_presentation_rebuild/supply_crate.png" id="17_fcymt"]
+[ext_resource type="PackedScene" path="res://scenes/components/GroundShadow.tscn" id="18_ground_shadow"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_uednn"]
 texture = ExtResource("1_uednn")
@@ -140,6 +141,39 @@ z_index = 1
 tile_map_data = PackedByteArray("AAD6//3/AQAAAAAAAAD7//3/AQAAAAAAAAD8//3/AQAAAAAAAAD6//7/AQAAAAAAAAD7//7/AQAAAAAAAAD8//7/AQAAAAAAAAD7////AQAAAAAAAAD8////AQAAAAAAAAD9//7/AQAAAAAAAAD+//7/AQAAAAAAAAD///7/AQAAAAAAAAAAAP7/AQAAAAAAAAD9////AQAAAAAAAAD+////AQAAAAAAAAD/////AQAAAAAAAAAAAP//AQAAAAAAAAD7/wEAAQAAAAAAAAD8/wEAAQAAAAAAAAD9/wEAAQAAAAAAAAD7/wIAAQAAAAAAAAD8/wIAAQAAAAAAAAD9/wIAAQAAAAAAAAD//wAAAQAAAAAAAAAAAAAAAQAAAAAAAAABAAAAAQAAAAAAAAD//wEAAQAAAAAAAAAAAAEAAQAAAAAAAAABAAEAAQAAAAAAAAA=")
 tile_set = SubResource("TileSet_iq4v7")
 
+[node name="OutpostCoreGroundShadow" parent="." instance=ExtResource("18_ground_shadow")]
+target_path = NodePath("../OutpostCoreDamaged")
+
+[node name="BasicReactorGroundShadow" parent="." instance=ExtResource("18_ground_shadow")]
+target_path = NodePath("../BasicReactor")
+
+[node name="StorageSilosGroundShadow" parent="." instance=ExtResource("18_ground_shadow")]
+target_path = NodePath("../StorageSilos")
+
+[node name="OutfittingWorkbenchGroundShadow" parent="." instance=ExtResource("18_ground_shadow")]
+target_path = NodePath("../OutfittingWorkbench")
+
+[node name="ResourceCollectorGroundShadow" parent="." instance=ExtResource("18_ground_shadow")]
+target_path = NodePath("../ResourceCollector")
+
+[node name="PollutionFilterGroundShadow" parent="." instance=ExtResource("18_ground_shadow")]
+target_path = NodePath("../PollutionFilterStaged")
+
+[node name="WorkLightGroundShadow" parent="." instance=ExtResource("18_ground_shadow")]
+target_path = NodePath("../WorkLightPole")
+
+[node name="CableSpoolGroundShadow" parent="." instance=ExtResource("18_ground_shadow")]
+target_path = NodePath("../CableSpool")
+
+[node name="ToolboxGroundShadow" parent="." instance=ExtResource("18_ground_shadow")]
+target_path = NodePath("../Toolbox")
+
+[node name="PressureBarrelGroundShadow" parent="." instance=ExtResource("18_ground_shadow")]
+target_path = NodePath("../PressureBarrel")
+
+[node name="SupplyCrateGroundShadow" parent="." instance=ExtResource("18_ground_shadow")]
+target_path = NodePath("../SupplyCrate")
+
 [node name="OutpostCoreDamaged" type="Sprite2D" parent="."]
 z_index = 24
 position = Vector2(-300, -108)
@@ -165,14 +199,14 @@ scale = Vector2(0.42, 0.42)
 texture = ExtResource("6_tfp8w")
 
 [node name="ResourceCollector" type="Sprite2D" parent="."]
-modulate = Color(0.92, 1, 0.98, 0.72)
+modulate = Color(1, 1, 1, 0.72)
 z_index = 17
 position = Vector2(42, -108)
 scale = Vector2(0.34, 0.34)
 texture = ExtResource("7_bdj5p")
 
 [node name="PollutionFilterStaged" type="Sprite2D" parent="."]
-modulate = Color(0.88, 0.94, 0.88, 0.54)
+modulate = Color(1, 1, 1, 0.54)
 z_index = 17
 position = Vector2(-108, 118)
 scale = Vector2(0.36, 0.36)
@@ -211,24 +245,24 @@ texture = ExtResource("13_pvtbg")
 
 [node name="CableSpool" type="Sprite2D" parent="."]
 z_index = 23
-position = Vector2(-326, 92)
+position = Vector2(-310, 88)
 scale = Vector2(0.3, 0.3)
 texture = ExtResource("14_wk5vg")
 
 [node name="Toolbox" type="Sprite2D" parent="."]
 z_index = 23
-position = Vector2(-104, -100)
+position = Vector2(-146, -84)
 scale = Vector2(0.28, 0.28)
 texture = ExtResource("15_8go1o")
 
 [node name="PressureBarrel" type="Sprite2D" parent="."]
-z_index = 23
-position = Vector2(-210, 122)
-scale = Vector2(0.3, 0.3)
+z_index = 24
+position = Vector2(-198, 116)
+scale = Vector2(0.28, 0.28)
 texture = ExtResource("16_8y4p0")
 
 [node name="SupplyCrate" type="Sprite2D" parent="."]
-z_index = 23
-position = Vector2(-286, 126)
-scale = Vector2(0.3, 0.3)
+z_index = 24
+position = Vector2(-278, 122)
+scale = Vector2(0.28, 0.28)
 texture = ExtResource("17_fcymt")

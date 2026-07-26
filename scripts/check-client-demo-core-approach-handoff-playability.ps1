@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $requiredTextByFile = @{
-    "docs/features/demo-core-approach-handoff-playability-v1.md" = @(
+    "docs/archive/features-demo-v1/demo-core-approach-handoff-playability-v1.md" = @(
         "Demo Core Approach Handoff Playability V1",
         "核心稳定站入口承接可玩路径",
         "锁相框架 -> 锚定桥 -> 核心稳定站入口",

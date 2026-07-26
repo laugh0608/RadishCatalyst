@@ -11,12 +11,22 @@ const PLATFORM_SOURCE_ID := 1
 const PLATFORM_MACRO_TILE_SIZE := 4
 const PLATFORM_MACRO_VARIANT_COUNT := 3
 const PLATFORM_ROW_RANGES := {
-	-3: Vector2i(-6, -3),
-	-2: Vector2i(-6, 0),
-	-1: Vector2i(-6, 1),
-	0: Vector2i(-6, 1),
-	1: Vector2i(-5, 0),
-	2: Vector2i(-5, -1),
+	-3: Vector2i(-5, -3),
+	-2: Vector2i(-6, -1),
+	-1: Vector2i(-6, -1),
+	0: Vector2i(-6, -2),
+	1: Vector2i(-5, -2),
+	2: Vector2i(-4, -3),
+}
+const CRYSTAL_SOURCE_ID := 0
+const CRYSTAL_VARIANT_COUNT := 3
+const CRYSTAL_FIELD_ROW_RANGES := {
+	-3: Vector2i(1, 2),
+	-2: Vector2i(0, 3),
+	-1: Vector2i(-1, 3),
+	0: Vector2i(0, 4),
+	1: Vector2i(0, 3),
+	2: Vector2i(1, 3),
 }
 
 ## 岩地覆盖范围（tile 坐标，含端点），默认覆盖基地到污染 / 残骸入口的首小时可视地面。
@@ -26,6 +36,7 @@ const PLATFORM_ROW_RANGES := {
 ## 首屏 GroundTileMap 相对本节点的路径。
 @export var ground_tilemap_path := NodePath("../DemoPresentationFirstScreen/GroundTileMap")
 @export var platform_tilemap_path := NodePath("../DemoPresentationFirstScreen/MetalPlatformTileMap")
+@export var crystal_tilemap_path := NodePath("../DemoPresentationFieldZones/CrystalGroundTileMap")
 
 ## 需要关闭的旧深色背景色块（相对本节点父级），避免铺不到的边缘露出黑底。
 @export var dark_backdrop_nodes: PackedStringArray = ["Background"]
@@ -33,6 +44,7 @@ const PLATFORM_ROW_RANGES := {
 func _ready() -> void:
 	_fill_ground_bed()
 	_build_base_platform()
+	_build_crystal_field_ground()
 	_hide_dark_backdrops()
 
 func _fill_ground_bed() -> void:
@@ -87,6 +99,19 @@ func _platform_atlas_for_cell(cell: Vector2i) -> Vector2i:
 		macro_variant * PLATFORM_MACRO_TILE_SIZE + posmod(cell.x, PLATFORM_MACRO_TILE_SIZE),
 		posmod(cell.y, PLATFORM_MACRO_TILE_SIZE)
 	)
+
+func _build_crystal_field_ground() -> void:
+	var crystal_ground := get_node_or_null(crystal_tilemap_path) as TileMapLayer
+	if crystal_ground == null:
+		push_warning("GroundBed: 未找到 CrystalGroundTileMap，跳过晶体地面构图")
+		return
+	crystal_ground.clear()
+	for y in CRYSTAL_FIELD_ROW_RANGES:
+		var x_range: Vector2i = CRYSTAL_FIELD_ROW_RANGES[y]
+		for x in range(x_range.x, x_range.y + 1):
+			var cell := Vector2i(x, y)
+			var variant := posmod(cell.x * 7 + cell.y * 11, CRYSTAL_VARIANT_COUNT)
+			crystal_ground.set_cell(cell, CRYSTAL_SOURCE_ID, Vector2i(variant, 0))
 
 func _hide_dark_backdrops() -> void:
 	var parent := get_parent()

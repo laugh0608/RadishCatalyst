@@ -2,6 +2,8 @@
 
 返回：[Onboarding And First Hour](onboarding-and-first-hour.md)
 
+口径说明（2026-07-25）：本文写于旧 Demo V1（12 区纵切 + 写实介质）时期，涉及 12 区结构与后段区域链的内容只用于冻结旧纵切回归；首小时学习顺序与节奏思路仍可参考。当前空间工厂操作见 [Spatial Factory Building And Logistics](spatial-factory-building-and-logistics.md)。
+
 ## 文档目的
 
 这份文档用于定义 RadishCatalyst 首次游玩的前 30 到 60 分钟体验。
@@ -240,4 +242,4 @@
 19. 稳相信标改变再次深入结果。
 20. 封锁遗迹中继确认。
 
-首小时和紧随其后的第二闭环到这里即可收束。更深区域、前线回传、相位井与后续断面属于首小时之后的延伸内容，不再在本文按包逐项展开；具体进度和开发基线以 `docs/planning/current.md`、`docs/planning/vertical-slice.md`、`docs/design/development-retest-baselines.md` 和最新周志为准。
+首小时和紧随其后的第二闭环到这里即可收束。更深区域、前线回传、相位井与后续断面属于首小时之后的延伸内容，不再在本文按包逐项展开；具体进度和开发基线以 `docs/planning/current.md`、`docs/archive/planning-demo-v1/vertical-slice.md`（已归档）、`docs/design/development-retest-baselines.md` 和最新周志为准。

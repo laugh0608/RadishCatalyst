@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 REQUIRED_TEXT_BY_FILE = {
-    "docs/features/demo-tool-strike-calibration-v1.md": [
+    "docs/archive/features-demo-v1/demo-tool-strike-calibration-v1.md": [
         "Demo Tool Strike Calibration V1",
         "基础多用工具",
         "基础零件",

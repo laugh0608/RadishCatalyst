@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 REQUIRED_TEXT_BY_FILE = {
-    "docs/features/demo-device-panel-operation-readability-v1.md": [
+    "docs/archive/features-demo-v1/demo-device-panel-operation-readability-v1.md": [
         "Demo Device Panel Operation Readability V1",
         "设备面板操作读法",
         "前哨核心",

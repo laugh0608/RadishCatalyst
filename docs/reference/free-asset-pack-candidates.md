@@ -1,17 +1,17 @@
 # Free Asset Pack Candidates
 
-更新时间：2026-07-02
+更新时间：2026-07-12
 
 ## 用途与筛选标准
 
-本文是 Demo 表现层重建可用的免费素材包候选清单，服务 [Demo Presentation Rebuild V1](../features/demo-presentation-rebuild-v1.md)，与 [AI Art Prompt Library](ai-art-prompts.md) 的生成管线互为补位。
+本文是像素美术管线可用的 CC0 免费素材包候选清单，与 [Pixel Art And Grid Standard](pixel-art-and-grid-standard.md) 的归一管线配合。像素路线下，CC0 像素包与 AI 出稿是并列基底，而非单纯兜底。
 
 筛选标准：
 
 - 授权允许免费商用；优先 CC0（无需署名、可修改）。
-- 视角为俯视或近俯视，能与 3/4 俯视场景调和。
+- 像素或低分辨率俯视 / 近俯视，能归一到 32px 网格与限定调色板。
 - 题材接近工业科幻、基地建设或至少风格中性可调色。
-- 明确排除：NC（禁商用）、ND（禁修改，和统一调色流程冲突）。
+- 明确排除：NC（禁商用）、ND（禁修改，和统一调色 / 归一流程冲突）。
 
 ## 首选候选（按用途）
 
@@ -38,10 +38,10 @@
 ### 备选与观察
 
 - Sci-Fi Facility Asset Pack（OpenGameArt）：<https://opengameart.org/content/sci-fi-facility-asset-pack>
-  - CC0，16px 像素设施内景与 4 方向角色；分辨率与本项目尺度不匹配，列为室内参考。
-- FoozleCC Sci-fi Lab tileset（OpenGameArt / itch）：实验室内景 tile，引入前需逐包核对 license。
+  - CC0，16px 像素设施内景与 4 方向角色；像素路线下由“分辨率不匹配”升为可归一候选，按整数倍放大对齐 32px 网格。
+- FoozleCC Sci-fi Lab tileset（OpenGameArt / itch）：像素实验室内景 tile，引入前需逐包核对 license。
 - helleworld Industrial/SciFi top-down tileset：<https://helleworld.itch.io/industrialscifi-top-down-tileset>
-  - 免费商用但 CC-BY-ND 禁止修改，与统一调色流程冲突，不作主用；仅可原样参考构图。
+  - 免费商用但 CC-BY-ND 禁止修改，与统一调色 / 归一流程冲突，不作主用；仅可原样参考构图。
 
 ## 浏览入口（继续挖掘时使用）
 
@@ -53,7 +53,7 @@
 
 ## 使用策略
 
-- 画面主介质仍以 AI 生成为目标，保证风格独立性；素材包承担三类角色：角色动画补位、特效 / UI、以及 AI 批次持续失败时的整体兜底。
-- 同一画面层级只用一个来源家族，避免混搭观感；素材包资产引入前必须过一次统一调色，向风格锚点色域靠拢。
+- 像素路线下 CC0 像素包与 AI 出稿并列作为世界层基底；角色行走动画优先由像素素材包承担，AI 出稿补题材专属设备与地貌。
+- 同一画面层级只用一个来源家族，避免混搭观感；素材包资产引入前必须过一次归一（整数缩放到 32px 网格 + 调色板量化），向限定调色板靠拢。
 - 下载由萝卜SAMA 在浏览器完成，zip 解压到 `assets/third-party/<pack-name>/`，保留包内 license 文件；该目录不进版本库。
-- 实际用到的文件经去底、缩放、调色后拷贝进 `client/assets/`，并在本文记录来源与授权；CC-BY 类素材同时在 credits 记名。
+- 实际用到的文件经去底、归一、调色后拷贝进 `client/assets/`，并在本文记录来源与授权；CC-BY 类素材同时在 credits 记名。

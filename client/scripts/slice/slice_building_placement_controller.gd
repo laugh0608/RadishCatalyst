@@ -1,0 +1,90 @@
+class_name SliceBuildingPlacementController
+extends Node2D
+
+## Owns the current building selection, rotation, snapped origin and real-asset
+## preview. World rules are supplied as one validation result; production,
+## power and persistence remain outside this controller.
+
+const VALID_COLOR := Color(0.45, 1.0, 0.9, 0.55)
+const INVALID_COLOR := Color(1.0, 0.4, 0.35, 0.55)
+
+var definition: SliceBuildingDefinition
+var rotation_index := 0
+var target_origin := Vector2i.ZERO
+var target_valid := false
+var invalid_reason := ""
+
+var _preview := Sprite2D.new()
+
+
+func _ready() -> void:
+	_preview.visible = false
+	add_child(_preview)
+
+
+func begin(
+	next_definition: SliceBuildingDefinition,
+	initial_rotation: int = 0
+) -> void:
+	definition = next_definition
+	rotation_index = definition.normalized_rotation(initial_rotation)
+	target_valid = false
+	invalid_reason = ""
+	_configure_preview()
+
+
+func cancel() -> void:
+	definition = null
+	rotation_index = 0
+	target_valid = false
+	invalid_reason = ""
+	_preview.visible = false
+
+
+func is_active() -> bool:
+	return definition != null
+
+
+func rotate_clockwise() -> void:
+	if definition == null or not definition.allows_rotation:
+		return
+	rotation_index = posmod(rotation_index + 1, 4)
+	_apply_preview_texture()
+
+
+func update_target(
+	origin_cell: Vector2i,
+	world_position: Vector2,
+	validation: Dictionary
+) -> void:
+	if definition == null:
+		return
+	target_origin = origin_cell
+	position = world_position
+	target_valid = bool(validation.get("valid", false))
+	invalid_reason = String(validation.get("reason", ""))
+	_preview.modulate = VALID_COLOR if target_valid else INVALID_COLOR
+	_preview.visible = true
+
+
+func selected_building_id() -> String:
+	return "" if definition == null else definition.building_id
+
+
+func _configure_preview() -> void:
+	if definition == null:
+		_preview.visible = false
+		return
+	_preview.position = definition.sprite_offset
+	_preview.region_enabled = definition.texture_region.size != Vector2.ZERO
+	if _preview.region_enabled:
+		_preview.region_rect = definition.texture_region
+	_apply_preview_texture()
+	_preview.visible = true
+
+
+func _apply_preview_texture() -> void:
+	var texture_path := definition.texture_path_for_rotation(rotation_index)
+	_preview.texture = (
+		null if texture_path.is_empty() else load(texture_path) as Texture2D
+	)

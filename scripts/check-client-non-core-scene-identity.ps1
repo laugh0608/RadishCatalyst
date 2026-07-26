@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $requiredTextByFile = @{
-    "docs/features/demo-non-core-scene-identity-v1.md" = @(
+    "docs/archive/features-demo-v1/demo-non-core-scene-identity-v1.md" = @(
         "Demo Non-Core Scene Identity V1",
         "非核心区域场景识别",
         "封锁遗迹",

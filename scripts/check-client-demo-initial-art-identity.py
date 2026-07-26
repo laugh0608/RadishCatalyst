@@ -4,13 +4,13 @@ from pathlib import Path
 
 
 REQUIRED_TEXT_BY_FILE = {
-    "docs/features/demo-initial-art-identity-v1.md": [
+    "docs/archive/features-demo-v1/demo-initial-art-identity-v1.md": [
         "Demo Initial Art Identity V1",
         "初步美术识别与设备现场表现第一包",
         "DemoInitialArtIdentityLayer",
         "demo_initial_art_identity_check.gd",
     ],
-    "docs/features/demo-playable-content-substance-v1.md": [
+    "docs/archive/features-demo-v1/demo-playable-content-substance-v1.md": [
         "初步美术识别与设备现场表现第一包",
         "DemoInitialArtIdentityLayer",
         "不新增第 13 区域",

@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $requiredTextByFile = @{
-    "docs/features/demo-playable-experience-coherence-v1.md" = @(
+    "docs/archive/features-demo-v1/demo-playable-experience-coherence-v1.md" = @(
         "Demo Playable Experience Coherence V1",
         "整段体验连贯性",
         "不新增资源、配方、区域、任务链、完整背包或完整装备栏"

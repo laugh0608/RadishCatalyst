@@ -2,9 +2,11 @@
 
 返回：[Runtime Systems Overview](runtime-systems-overview.md)
 
+> 本文描述冻结保留的旧 `GameRoot + VerticalSliceMap` 纵切，不是当前菜单进入的正式运行时。当前 `Boot → SliceWorld` 架构见 [Slice Runtime Systems](slice-runtime-systems.md)。
+
 ## 目的
 
-这份文档说明当前 Godot 原型运行时的实际系统分工、主数据流和几个关键硬边界。
+这份文档说明冻结旧纵切运行时的实际系统分工、主数据流和几个关键硬边界。
 
 它回答的是：
 
@@ -13,7 +15,7 @@
 - 交互、战斗、加工、建造、任务推进和存档是怎么串起来的。
 - 哪些部分已经相对清晰，哪些部分仍是为了原型推进保留的硬编码。
 
-它不是最终架构承诺；它描述的是 **`client/` 当前真正在跑的结构**。
+它不是最终架构承诺；它描述的是 **仓库中冻结保留、仍受回归保护的旧纵切结构**。
 
 ## 直接真相源
 

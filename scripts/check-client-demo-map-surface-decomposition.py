@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 REQUIRED_TEXT_BY_FILE = {
-    "docs/features/demo-map-surface-decomposition-v1.md": [
+    "docs/archive/features-demo-v1/demo-map-surface-decomposition-v1.md": [
         "Demo Map Surface Decomposition V1",
         "地图区域 / gate 承载面",
         "区域判断、gate 回退、回投坐标和对象区域归属由窄职责 helper 承载",

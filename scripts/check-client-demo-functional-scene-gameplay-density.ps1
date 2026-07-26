@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $requiredTextByFile = @{
-    "docs/features/demo-functional-scene-gameplay-density-v1.md" = @(
+    "docs/archive/features-demo-v1/demo-functional-scene-gameplay-density-v1.md" = @(
         "Demo Functional Scene Gameplay Density V1",
         "功能 / 过渡场景玩法密度",
         "锁相框架",

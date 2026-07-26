@@ -2,7 +2,29 @@
 
 项目辅助脚本目录，用于数据处理、构建、导出、检查和自动化任务。
 
-## 美术素材处理
+## 像素归一管线（零依赖）
+
+- `normalize_pixel_asset.py`：像素素材归一基础库与 CLI（仅 Python 标准库）。能力：整数块降采样（块内逐通道中位数）、近黑底去背（边界泛洪 + 封闭孔判定）、限定调色板量化（median cut 上限 + 标准锚点吸附）、地面 128x128 宏块（4x4 个 32px tile）、横版多对象切分、明度基线匹配、2x2 拼贴与接缝比率自查。机械口径见 `docs/reference/pixel-art-and-grid-standard.md`。
+- `normalize_slice_pack1.py`：切片包 1 批处理驱动，把证据轮定稿素材从 `assets/art-intake/`（不入库）归一到 `client/assets/sprites/slice/`、`client/assets/tiles/slice/` 与 `client/assets/portraits/`，并输出 QA 预览。仅在持有 art-intake 源图的机器上可复跑：
+- `normalize_l3a_industrial_floor.py`：校验 L3-A V2 源哈希，逐格裁切 16 个 terrain tile，共享色板归一为 32px 后编排 128x128 atlas，并输出 3x3、6x4 和带内角开孔的平台拼接预览。
+- `normalize_l3b_power_relay.py`：校验 L3-B V5 双态源哈希，以断电杆体作为唯一公共几何归一到 32×64，再受控派生红灯断电态、青灯与短脉冲通电态。
+- `normalize_l3c_conveyor.py`：校验 L3-C V1 四向源哈希，以统一 384×384 源窗口和 12 倍整数块降采样归一为四个 32×32 方向帧，共享限定色板并输出工业地板联系表。
+- `normalize_l3d_reactor_ports.py`：锁定现有 96px 反应器为唯一不可变主体，只在四个基数连接位受控派生琥珀出料 / 青色缺口入料端口，输出四向静态帧与工业地板联系表。
+- `normalize_l3e_storage_hatch.py`：锁定现有 87×88 四罐储存设备为唯一不可变主体，每帧只在一个基数连接位覆盖带青色缺口与琥珀锁扣的双向舱口，输出四向静态帧与工业地板联系表。
+- `normalize_l4a_crystal_cargo.py`：锁定已审定小型晶体簇哈希，以固定逐行掩码分离中央单晶，输出 `10×12` 货物 sprite 与四向带面联系表。
+- `normalize_l4b_conveyor_topology.py`：锁定 L3-C 四向直段哈希，离线派生 8 张正交转角、源 / 目标端点各 4 张及双 / 三路合流 16 张 `32×32` 固定帧；运行时只选图，不旋转或绘制轨道。
+
+```bash
+python3 tools/normalize_slice_pack1.py            # 全量
+python3 tools/normalize_slice_pack1.py --only grounds   # 单类
+python3 tools/normalize_l3c_conveyor.py           # L3-C 四向传送带
+python3 tools/normalize_l3d_reactor_ports.py      # L3-D 反应器四向端口
+python3 tools/normalize_l3e_storage_hatch.py      # L3-E 储物箱四向舱口
+python3 tools/normalize_l4a_crystal_cargo.py       # L4-A 单晶货物
+python3 tools/normalize_l4b_conveyor_topology.py  # L4-B 转角 / 端点
+```
+
+## 美术素材处理（旧，Pillow）
 
 - `prepare_art_asset.py`：把审阅通过的 PNG 素材裁切、去底、缩放到 `client/assets/`，并可写入 Godot `.import` sidecar。
 - `requirements-art.txt`：美术素材处理所需的本地 Python 依赖。不要把依赖装进系统 Python；需要处理素材时使用项目本地虚拟环境。

@@ -6,13 +6,13 @@ param(
 $ErrorActionPreference = "Stop"
 
 $requiredTextByFile = @{
-    "docs/features/demo-field-task-differentiation-v1.md" = @(
+    "docs/archive/features-demo-v1/demo-field-task-differentiation-v1.md" = @(
         "Demo Field Task Differentiation V1",
         "资源处理与外勤任务差异第一包",
         "DemoFieldTaskDifferentiationFormatter",
         "demo_field_task_differentiation_check.gd"
     )
-    "docs/features/demo-playable-content-substance-v1.md" = @(
+    "docs/archive/features-demo-v1/demo-playable-content-substance-v1.md" = @(
         "资源处理与外勤任务差异第一包",
         "DemoFieldTaskDifferentiationFormatter",
         "不新增第 13 区域"

@@ -6,13 +6,13 @@ param(
 $ErrorActionPreference = "Stop"
 
 $requiredTextByFile = @{
-    "docs/features/demo-core-scene-playable-space-v1.md" = @(
+    "docs/archive/features-demo-v1/demo-core-scene-playable-space-v1.md" = @(
         "Demo Core Scene Playable Space V1",
         "核心场景空间第一包",
         "DemoCoreSceneSpaceLayer",
         "demo_core_scene_playable_space_check.gd"
     )
-    "docs/features/demo-playable-content-substance-v1.md" = @(
+    "docs/archive/features-demo-v1/demo-playable-content-substance-v1.md" = @(
         "核心场景空间第一包",
         "DemoCoreSceneSpaceProfile",
         "DemoCoreSceneSpaceLayer",

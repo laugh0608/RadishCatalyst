@@ -62,9 +62,9 @@ func _refresh_save_summary() -> void:
 	if load_game_button != null:
 		load_game_button.disabled = not has_loadable_save
 		if has_loadable_save:
-			load_game_button.tooltip_text = "读取默认槽位，继续前哨恢复。"
+			load_game_button.tooltip_text = "读取切片存档，继续前哨恢复。"
 		else:
-			load_game_button.tooltip_text = "默认槽位暂无可读取存档。"
+			load_game_button.tooltip_text = "暂无可读取的切片存档。"
 
 
 func _apply_text_style() -> void:

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/slice/slice_storage.gd" id="1_storage"]
+
+[node name="SliceStorage" type="Node2D"]
+script = ExtResource("1_storage")

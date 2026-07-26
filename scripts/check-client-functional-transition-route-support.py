@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 REQUIRED_TEXT_BY_FILE = {
-    "docs/features/demo-functional-transition-route-support-v1.md": [
+    "docs/archive/features-demo-v1/demo-functional-transition-route-support-v1.md": [
         "Demo Functional Transition Route Support V1",
         "功能 / 过渡路线支撑",
         "封锁遗迹",

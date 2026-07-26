@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $requiredTextByFile = @{
-    "docs/features/demo-combat-evacuation-recovery-v1.md" = @(
+    "docs/archive/features-demo-v1/demo-combat-evacuation-recovery-v1.md" = @(
         "Demo Combat Evacuation Recovery V1",
         "战斗撤离恢复读法第一版",
         "不新增资源、配方、区域、任务链、敌人类型、完整背包或完整装备栏"

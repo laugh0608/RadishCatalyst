@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 REQUIRED_TEXT_BY_FILE = {
-    "docs/features/demo-wind-corridor-transition-playability-v1.md": [
+    "docs/archive/features-demo-v1/demo-wind-corridor-transition-playability-v1.md": [
         "Demo Wind Corridor Transition Playability V1",
         "风蚀管廊过渡可玩路径",
         "碎晶沟谷 -> 风蚀管廊 -> 锁相框架入口",
