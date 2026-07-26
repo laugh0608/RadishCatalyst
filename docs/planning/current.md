@@ -6,7 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)；A2 裂晶爬兽审阅 / 归一完成，等待独立 B1 战斗反馈生成，尚未开始玩法实现。
+- 当前活跃专题：[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)；B1 战斗反馈生成完成，等待独立 B2 审阅 / 归一，尚未开始玩法实现。
 - 最新收口专题：[多世界存档列表](../features/slice-multi-world-save-list-v1.md)（07-26，含目录、列表、暂停返回、动作互斥、保留存档与人工确认）、[L5 反应器接入自动化](../features/slice-reactor-automation-v1.md)与[配方加工 arc](../features/slice-recipe-processing-v1.md)（07-26）、[L4 传送带物流](../features/slice-conveyor-logistics-v1.md)（07-25）；更早专题见 `docs/features/README.md`。
 - 美术介质机械口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一均已定稿）。
 - 章程与复盘结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（已完成，作决策存档）。
@@ -48,7 +48,7 @@
 当前阶段：
 
 ```text
-核心充能后的首次外勤战斗与关键样本回收——等待 B1 战斗反馈生成
+核心充能后的首次外勤战斗与关键样本回收——等待 B2 战斗反馈审阅 / 归一
 ```
 
 ## 当前主线
@@ -72,6 +72,7 @@
 ## 当前素材阶段退出条件
 
 - A2 已选定 V3 并完成三方向四动作、败亡帧、48px 级归一与晶体区联系表硬判；敌人尚未接入运行时。
+- B1 已完成工具挥击 / 命中反馈 `3 / 3` 生成并保留源图；V2 暂列优先候选，须经独立 B2 的尺寸、色板、Alpha、帧差异与 HUD 安全区硬判后才能入库。
 - 敌人、战斗反馈和关键样本分别完成独立生成与审阅 / 归一硬闸门；未通过的类别不得接入。
 - 素材硬闸门全部通过后进入三实现包；每包保留测试存档并经过真实 `Boot` 有窗口截图和人工复核。
 
