@@ -6,7 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[L5 反应器接入自动化](../features/slice-reactor-automation-v1.md)。催化剂货物、固定加工 overlay 与包 1–2 的设备状态、schema 6、机器物流和操作面已完成，下一步进入包 3 的自然完整产线、重启与人工收口。arc 总览见[配方加工](../features/slice-recipe-processing-v1.md)。
+- 当前活跃专题：[L5 反应器接入自动化](../features/slice-reactor-automation-v1.md)。催化剂货物、固定加工 overlay、包 1–2 与包 3 的自然完整产线、双状态重启和截图证据已完成，等待萝卜SAMA人工确认后收口 L5 与 arc。arc 总览见[配方加工](../features/slice-recipe-processing-v1.md)。
 - 最新收口专题：[L4 传送带物流](../features/slice-conveyor-logistics-v1.md)（07-25，含双 / 三路合流、公平轮询、回压、schema 5 与预制演示档人工确认）、[L3 建造放置 + 扩展供电网](../features/slice-building-placement-and-power-grid-v1.md)（07-25）、[L2 核心功能化](../features/slice-core-functionalization-v1.md)（07-21）；更早专题见 `docs/features/README.md`。
 - 美术介质机械口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一均已定稿）。
 - 章程与复盘结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（已完成，作决策存档）。
@@ -36,6 +36,7 @@
 - 2026-07-26 L5-A 催化剂货物素材硬闸门通过：V2 归一为 `12×8`、5 色透明 `cargo_catalyst.png`，与晶体身份分离且在直线、转角、合流和反应器出口保持可读，运行时哈希锁定。
 - 2026-07-26 L5 包 1 完成：新增独立 `SliceReactor`、四向严格对置入 / 出端口、双缓冲与断电续跑状态机；schema 6 保存每台设备状态，schema 2–5 旧催化剂无损迁入核心仓库且旧激活标记不恢复。反应器 42 项、存档 137 项及关联回归全绿。
 - 2026-07-26 L5 包 2 完成：机器输入只收晶体、输出只发催化剂，错误方向 / 满缓冲 / 满带 / 满箱回压守恒；催化剂独立 sprite、双帧加工 overlay、六态面板和原子回收接入。反应器 73 项、schema 138 项、真实 `Boot` 23 项及四图视觉复核通过。
+- 2026-07-26 L5 包 3 自动 / 正式证据完成：真实 `Boot → 新游戏` 以 25 个有限晶体自举核心、三段中继和采集器，再以 37 个可再生晶体自然合成 / 放置 19 格地板与五段产线；加工中和待出料两次隔离存档重启均续跑守恒，纠正出口带后目标箱得到 2 催化剂。228 项正式路径断言与四图联系表 AI 视觉复核通过，等待萝卜SAMA人工确认。
 
 当前阶段：
 
@@ -46,7 +47,7 @@
 ## 当前主线
 
 1. 配方加工 arc 分层：L0 资源模型 → L1 手持合成 → L2 核心直供 + 中央仓库 → L3 建造放置 + 扩展供电网 → L4 传送带物流 → L5 反应器接入。L0–L4 已收口。
-2. L5 素材与包 1–2 已完成；现进入包 3，从真实新档自然采集 / 合成 / 放置搭出完整产线，验证加工中与待出料重启并取得人工收口。
+2. L5 素材、包 1–2 与包 3 自动 / 正式入口 / 截图证据已完成；当前只做完整产线人工复核，萝卜SAMA确认后同步收口 L5 与配方加工 arc。
 3. 敌人等新世界层素材生成的视角前置已解除，生成会话由萝卜SAMA择时并行启动（为后续战斗专题备料）。
 
 ## 边界与冻结

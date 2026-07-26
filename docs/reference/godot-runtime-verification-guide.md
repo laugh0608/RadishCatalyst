@@ -1,6 +1,6 @@
 # Godot Runtime Verification Guide (For AI Agents)
 
-更新时间：2026-07-21
+更新时间：2026-07-26
 
 ## 用途与定位
 
@@ -31,8 +31,9 @@ Godot 4 的 `--script` 参数接受一个 `extends SceneTree` 的 GDScript，**�
 2. **纯逻辑断言**用 `--headless` 跑（快）；**需要截图**的用有窗口跑。
 3. 输出重定向到日志文件，过滤真实错误（macOS 有 `noErr` / 证书类噪声）：
    `grep -E "passed|SCRIPT ERROR|ERROR:" log | grep -v noErr | grep -v certificate`
-4. 检查脚本放 `/tmp/`（不进仓库、不触发 uid sidecar 检查），跑完删除。
-5. 截图落到 git 忽略的 `assets/art-intake/<日期>-<主题>-preview/`，供人工 / 视觉复核，结论记入当周周志。脚本可以生成多张原图，但 Codex 单会话默认最多读取 3 张；多图审阅前先运行 `./scripts/create-screenshot-contact-sheet.sh <output.png> <inputs...>` 在磁盘生成一张带编号的联系表，优先只读取联系表；达到默认上限后先报告，萝卜SAMA明确要求当前会话继续时可按每次至多 3 张追加读取。
+4. 检查脚本放 `/tmp/`（不进仓库、不触发 uid sidecar 检查）；是否保留脚本按复用价值决定。
+5. 存档测试使用自己命名的 `/private/tmp/<project>-<topic>-save/` 隔离目录。为保证新档基线可在开跑前清理该目录，但自动化通过后不得在脚本结尾清理最终主档 / 备份档；保留可直接载入的人工复核状态并报告绝对路径。纯破坏性 / 迁移失败测试可使用另一个临时目录并清理，任何测试都不得覆盖用户正式存档。
+6. 截图落到 git 忽略的 `assets/art-intake/<日期>-<主题>-preview/`，供人工 / 视觉复核，结论记入当周周志。脚本可以生成多张原图，但 Codex 单会话默认最多读取 3 张；多图审阅前先运行 `./scripts/create-screenshot-contact-sheet.sh <output.png> <inputs...>` 在磁盘生成一张带编号的联系表，优先只读取联系表；达到默认上限后先报告，萝卜SAMA明确要求当前会话继续时可按每次至多 3 张追加读取。
 
 ## 脚本骨架模板
 
@@ -71,6 +72,7 @@ func _run() -> void:
 	(boot.get_node("StartupMenu") as StartupMenu).new_game_button.pressed.emit()
 	await process_frame
 	# 3. 拿到世界引用后逐项断言……
+	# 4. 验证通过后保留最终隔离存档，供萝卜SAMA直接载入复核
 
 func _screenshot(file_name: String) -> void:
 	await process_frame
@@ -88,6 +90,7 @@ func _screenshot(file_name: String) -> void:
 - **位置里程碑而非定帧计时**：断言"走到某处"用位置条件 + 帧数上限兜底；固定帧数在高刷新率下失真（W29 经验）。
 - **显式 delta 驱动时间逻辑**：验证计时产出类逻辑时直接调 `world._tick_production(INTERVAL)` 传显式 delta，确定性且不用真等墙钟；墙钟等待既慢又受帧率干扰。
 - **存档闭环**：同脚本内 `boot.free()` → 再实例化新 `Boot` 走"载入存档"，可验证读档还原；要更严格的进程隔离就分两次 godot 调用（存档进程 + 读档进程），断言中间落盘 JSON。
+- **人工复核存档**：自动链可以在启动时删除自己上一次的隔离目录，结束时必须停在最有复核价值的通过状态并保留存档。若一个包需要人工检查多个互斥状态，为每个状态使用独立隔离目录；报告目录、载入后预期状态和是否保留备份档。
 - **截图时机**：状态就位后 `await process_frame` 两次再抓 `root.get_texture().get_image()`；相机跟随玩家时把玩家挪到构图点即可控制取景。
 - **窗口分辨率**：`--resolution WxH` 控制窗口；注意 Retina 下帧缓冲是物理像素（截图尺寸 ≠ 逻辑窗口尺寸），验证拉伸/填充行为时按物理像素取样四角与中心颜色。
 
