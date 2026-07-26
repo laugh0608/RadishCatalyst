@@ -1,8 +1,8 @@
 # Slice Recipe Processing V1
 
-更新时间：2026-07-25
+更新时间：2026-07-26
 
-状态：**空间工厂自动化 arc 进行中**。L0–L4 已收口，当前进入 [L5 反应器接入自动化](slice-reactor-automation-v1.md)；已完成开工闸门与实现边界设计，尚未进入素材 / 代码包。原“全局计数 + 反应器按 E 激活”抽象实现只作迁移参照，不作收口证据。切片第七个实现专题（化工链第二步、首次工业转化）。
+状态：**空间工厂自动化 arc 进行中**。L0–L4 已收口，当前推进 [L5 反应器接入自动化](slice-reactor-automation-v1.md)；L5-A 催化剂货物素材硬闸门已通过，下一步进入包 1。原“全局计数 + 反应器按 E 激活”抽象实现只作迁移参照，不作收口证据。切片第七个实现专题（化工链第二步、首次工业转化）。
 
 ## 方向修订：从"记账"到"空间自动化"
 
@@ -79,7 +79,7 @@
 | **L2 核心功能化：直供电源 + 中央仓库** | **已收口（2026-07-21）** | [Slice Core Functionalization V1](slice-core-functionalization-v1.md)；25 项 headless + 25 项有窗口断言、5 张截图与萝卜SAMA正式入口人工路径通过 |
 | **L3 建造放置 + 扩展供电网** | **已收口（2026-07-25）** | [Slice Building Placement And Power Grid V1](slice-building-placement-and-power-grid-v1.md)；通用放置、扩展供电、schema 4、自举资源与空间视觉人工确认通过 |
 | **L4 传送带物流** | **已收口（2026-07-25）** | [Slice Conveyor Logistics V1](slice-conveyor-logistics-v1.md)；直线、转角、端点、双 / 三路合流、公平轮询、回压与 schema 5 自动 / 正式入口 / 人工证据通过 |
-| **L5 反应器接入收束** | **进行中（2026-07-25）** | [Slice Reactor Automation V1](slice-reactor-automation-v1.md)；闸门与边界已定，先过催化剂货物素材硬闸门 |
+| **L5 反应器接入收束** | **进行中（2026-07-26）** | [Slice Reactor Automation V1](slice-reactor-automation-v1.md)；L5-A 素材闸门已通过，下一步包 1 |
 
 推进纪律：
 
@@ -111,4 +111,4 @@ L4 另补传送带转角、端点、合流和可见流动；L5 再按反应器�
 ## 验收与移交
 
 - **arc 收束定义**：正式入口玩家搭出"晶体储物箱 → 入口传送带 → 反应器（通电）→ 出口传送带 → 催化剂储物箱"并自动运转，晶体经带进料、催化剂经带出料，全程存档 → 重启 → 读档还原；实机截图 / 录像为主证据，记入当周周志。
-- 下一步：按 [L5 细专题](slice-reactor-automation-v1.md) 先完成 L5-A 催化剂货物素材硬闸门，再推进包 1 的反应器实例、双端口与 schema 6；不以晶体改色或占位图抢跑。
+- 下一步：按 [L5 细专题](slice-reactor-automation-v1.md) 推进包 1 的反应器实例、双端口与 schema 6；L5-A 已作为稳定素材输入，不复活旧记账玩法。

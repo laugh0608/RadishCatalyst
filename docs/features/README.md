@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-07-25
+更新时间：2026-07-26
 
 ## 用途
 
@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃专题：[Slice Reactor Automation V1](slice-reactor-automation-v1.md)——L5 反应器接入自动化，开工闸门与边界已定，先完成催化剂货物素材硬闸门。L0–L4 已收口，层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
+当前活跃专题：[Slice Reactor Automation V1](slice-reactor-automation-v1.md)——L5 反应器接入自动化，催化剂货物素材硬闸门已通过，下一步进入包 1 的反应器实例、双端口与 schema 6。L0–L4 已收口，层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
 
 已收口专题：
 
