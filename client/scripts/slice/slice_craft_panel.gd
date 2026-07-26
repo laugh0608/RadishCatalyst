@@ -58,6 +58,10 @@ func close() -> void:
 	_root.visible = false
 
 
+func is_open() -> bool:
+	return _open
+
+
 func _refresh() -> void:
 	var lines: Array[String] = ["【随身合成面板】  B 关闭"]
 	var number := 1

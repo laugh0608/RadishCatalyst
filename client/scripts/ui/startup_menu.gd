@@ -221,6 +221,22 @@ func _rebuild_world_list() -> void:
 func _refresh_world_action_state() -> void:
 	var has_active_selection := not _selected_world_id.is_empty()
 	var has_trash_selection := not _selected_trash_id.is_empty()
+	var world_limit_reached := (
+		_active_worlds.size() >= SliceSaveCatalog.MAX_WORLDS
+	)
+	create_world_button.disabled = (
+		_showing_trash
+		or world_limit_reached
+		or has_active_selection
+	)
+	if has_active_selection:
+		create_world_button.tooltip_text = (
+			"已选择已有世界；请载入、重命名或移入回收区。"
+		)
+	elif world_limit_reached:
+		create_world_button.tooltip_text = "世界数量已达到 30 个上限。"
+	else:
+		create_world_button.tooltip_text = "使用输入的名称创建并进入新世界。"
 	load_world_button.disabled = true
 	rename_world_button.disabled = not has_active_selection
 	trash_world_button.disabled = not has_active_selection
@@ -501,7 +517,7 @@ func _on_world_item_activated(_index: int) -> void:
 
 
 func _on_create_world_pressed() -> void:
-	if save_catalog == null:
+	if save_catalog == null or create_world_button.disabled:
 		return
 	var result := save_catalog.create_world(world_name_input.text)
 	if not bool(result.get("success", false)):

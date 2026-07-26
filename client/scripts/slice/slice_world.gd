@@ -20,6 +20,7 @@ const HUD_SCENE := "res://scenes/slice/SliceHud.tscn"
 const CRAFT_PANEL_SCENE := "res://scenes/slice/SliceCraftPanel.tscn"
 const CORE_STORAGE_PANEL_SCENE := "res://scenes/slice/SliceCoreStoragePanel.tscn"
 const BUILDING_ACTION_PANEL_SCENE := "res://scenes/slice/SliceBuildingActionPanel.tscn"
+const PAUSE_MENU_SCENE := "res://scenes/slice/SlicePauseMenu.tscn"
 const REPAIRED_CORE_TEXTURE := preload("res://assets/sprites/slice/outpost_core_repaired.png")
 const MAP_PIXEL_SIZE := Vector2i(2560, 768)
 const START_SPAWN := Vector2(400, 576)
@@ -57,6 +58,7 @@ signal catalyst_changed(count: int)
 signal core_charge_changed(energy: int)
 signal core_repair_completed
 signal placement_changed
+signal return_to_startup_requested
 
 ## Set by Boot before add_child: true loads the saved slice, false starts fresh.
 var startup_load := false
@@ -79,6 +81,7 @@ var _map: Node2D
 var _craft_panel: SliceCraftPanel
 var _core_storage_panel: SliceCoreStoragePanel
 var _building_action_panel: SliceBuildingActionPanel
+var pause_menu: SlicePauseMenu
 var _ground: TileMapLayer
 var _industrial_floor: TileMapLayer
 var _placement: SliceBuildingPlacementController
@@ -137,6 +140,18 @@ func _ready() -> void:
 	add_child(_building_action_panel)
 	_building_action_panel.setup(self)
 
+	pause_menu = (
+		(load(PAUSE_MENU_SCENE) as PackedScene).instantiate()
+		as SlicePauseMenu
+	)
+	add_child(pause_menu)
+	pause_menu.save_and_return_requested.connect(
+		_on_pause_save_and_return_requested
+	)
+	pause_menu.save_and_quit_requested.connect(
+		_on_pause_save_and_quit_requested
+	)
+
 	_placement = SliceBuildingPlacementController.new()
 	_map.add_child(_placement)
 
@@ -183,13 +198,23 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		if is_placement_active():
+			cancel_building_placement()
+		elif _craft_panel != null and _craft_panel.is_open():
+			_craft_panel.close()
+		elif is_core_storage_open():
+			close_core_storage()
+		elif is_building_actions_open():
+			close_building_actions()
+		elif pause_menu != null:
+			pause_menu.open()
+		get_viewport().set_input_as_handled()
+		return
 	if not is_placement_active():
 		return
 	if event.is_action_pressed("rotate_building"):
 		rotate_building_placement()
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("ui_cancel"):
-		cancel_building_placement()
 		get_viewport().set_input_as_handled()
 
 
@@ -1078,7 +1103,27 @@ func _restore_from_save() -> void:
 		core_repair_completed.emit()
 
 
-func _autosave() -> void:
+func _on_pause_save_and_return_requested() -> void:
+	if not _autosave():
+		pause_menu.show_save_error(
+			"保存失败，仍停留在当前世界；请检查存档目录后重试。"
+		)
+		return
+	pause_menu.release_for_transition()
+	return_to_startup_requested.emit()
+
+
+func _on_pause_save_and_quit_requested() -> void:
+	if not _autosave():
+		pause_menu.show_save_error(
+			"保存失败，未退出游戏；请检查存档目录后重试。"
+		)
+		return
+	pause_menu.release_for_transition()
+	get_tree().quit()
+
+
+func _autosave() -> bool:
 	var player_position := player.position if player != null else START_SPAWN
 	var result := save_service.save_state({
 		"pocket": pocket.to_dict(),
@@ -1095,9 +1140,10 @@ func _autosave() -> void:
 	})
 	if not bool(result.get("success", false)):
 		push_warning("切片自动存档失败：%s" % String(result.get("message", "")))
-		return
+		return false
 	_logistics_save_elapsed = 0.0
 	_production_save_elapsed = 0.0
+	return true
 
 
 func _to_string_array(value) -> Array[String]:

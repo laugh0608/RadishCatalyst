@@ -66,6 +66,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	match key_event.keycode:
 		KEY_ESCAPE:
 			close()
+			get_viewport().set_input_as_handled()
+			return
 		KEY_1:
 			_confirming_demolition = false
 			var reason: String = _world.adjustment_block_reason(_target)

@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃专题：[Slice Multi-World Save List V1](slice-multi-world-save-list-v1.md)——目录、真实启动菜单列表和 1 / 30 / 损坏 / 回收自动证据已完成；等待萝卜SAMA人工收口。
+当前活跃专题：[Slice Multi-World Save List V1](slice-multi-world-save-list-v1.md)——目录、列表、复核状态、游戏内保存返回及列表动作互斥修正自动证据已完成；等待萝卜SAMA人工收口。
 
 已收口专题：
 

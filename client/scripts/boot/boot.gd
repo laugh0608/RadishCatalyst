@@ -7,6 +7,7 @@ const STARTUP_MENU_SCENE := "res://scenes/ui/StartupMenu.tscn"
 var data_registry: DataRegistry
 var slice_save_catalog := SliceSaveCatalog.new()
 var slice_save_service: SliceSaveService
+var slice_world: SliceWorld
 var startup_menu: StartupMenu
 
 
@@ -77,17 +78,29 @@ func _start_slice(world_id: String, startup_load: bool) -> void:
 		push_error("Missing slice base scene: %s" % SLICE_BASE_SCENE)
 		return
 
-	var slice_world := slice_scene.instantiate() as SliceWorld
+	slice_world = slice_scene.instantiate() as SliceWorld
 	if slice_world == null:
 		push_error("Slice base scene does not instantiate as SliceWorld.")
 		return
 	slice_world.save_service = slice_save_service
 	slice_world.startup_load = startup_load
+	slice_world.return_to_startup_requested.connect(
+		_on_slice_return_to_startup_requested
+	)
 
 	if startup_menu != null:
 		startup_menu.queue_free()
 		startup_menu = null
 	add_child(slice_world)
+
+
+func _on_slice_return_to_startup_requested() -> void:
+	if slice_world == null:
+		return
+	slice_world.queue_free()
+	slice_world = null
+	slice_save_service = null
+	_show_startup_menu("当前世界已保存，可选择其他世界。")
 
 
 # Frozen legacy GameRoot entry, no longer reachable from the menu since the
