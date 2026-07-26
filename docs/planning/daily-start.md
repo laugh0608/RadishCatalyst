@@ -8,17 +8,15 @@
 
 ## 阶段
 
-阶段：首次外勤战斗与样本回收设计审计。
+阶段：外勤战斗 A1 敌人素材生成。
 
-- 下一专题先完成首次外勤战斗与关键样本回收的十问、五问和旧代码审计；确认方案后才实现。
+- [首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md) 已确认；A1 只生成裂晶爬兽，不审阅或实现。
 - 最新收口专题 [多世界存档列表](../features/slice-multi-world-save-list-v1.md)：目录、列表、暂停返回、动作互斥与人工路径全部通过。
 - 美术介质机械口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一均已定稿）。
 - 章程与复盘结论存档：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)。
 
 ## 最近收尾
 
-- 2026-07-18 存档持久化与采集建造两专题收口：`SliceSaveService` 存读闭环；整备台建造采集器、晶体地放置、每 10 秒自动产出。
-- 2026-07-18 至 07-19 视角修正轮收口：投影口径两次校准定为高斜角俯视，22 张世界层素材重出换装（锚点 + 6 设备 + 13 角色帧 + 3 站立帧），画面填充 fractional、采集器足印 2x2、方向性 idle；萝卜SAMA实机确认。
 - 2026-07-21 L1 手持合成经萝卜SAMA实机确认收口；L2 启动并修正层间依赖，固定核心能力留 L2、可放置扩展电网归 L3。
 - 2026-07-21 L2 代码与自动验证完成：中央仓库面板、双向容量受限转移、6 格核心直供查询、schema 3 与 schema 2 兼容；25 项 headless 与 25 项有窗口正式入口 / 输入 / 截图断言通过。
 - 2026-07-21 萝卜SAMA按正式入口完成“新档采集与合成零件 → 修核心 → 仓库存取晶体 / 零件 → 重启载入再核对”，确认 L2 收口；随后建立 L3 可执行专题并完成采集器专用放置审计。
@@ -51,16 +49,16 @@
 
 ## 今日后续（2026-07-26）
 
-主目标是建立首次外勤战斗与关键样本回收专题，不进入实现。
+主目标是完成 A1 裂晶爬兽素材生成，不进入审阅或实现。
 
-1. 审计切片与冻结旧战斗代码，给出复用 / 改写 / 禁止复活清单。
-2. 以十问、五问固定战斗、样本回收、基地收益、HUD 与存档范围。
-3. 固定素材阶段、正式 `Boot` 证据和分包边界；等待方案确认。
+1. 按像素规范生成至多 3 张同类候选，逐张落盘。
+2. 更新批次 manifest 并报告累计调用数。
+3. 停在 A1 / A2 边界，等待独立审阅阶段。
 
 ## 防跑偏规则
 
 - 多世界与 schema 6 已收口；新专题只按明确迁移策略扩展当前切片状态，不复活旧 `SaveService`、旧 `GameRoot` 或旧三槽存档。
-- 方案确认前不写战斗玩法代码；审计必须区分可复用规则、需按当前切片重写的实现和冻结旧入口。
+- A1 只生成敌人候选，不审图、不归一、不接入代码；旧实现只借规则语义。
 - 玩家可见目标以正式入口实机截图与运行时路径复核为主证据，自动检查只兜底。
 - 自动化可生成多张截图，但单个 Codex 会话默认最多读取 3 张图片；多图先用 `scripts/create-screenshot-contact-sheet.sh` 合成一张带编号联系表，达到默认上限后先报告，萝卜SAMA明确要求时可继续。
 - 图像生成默认每轮至多 3 次、每次 1 张；每轮结束必须先落盘、更新 manifest 并报告，只有经萝卜SAMA明确授权才能在同素材会话追加下一轮。
@@ -75,7 +73,8 @@
 
 日常必读：
 
-- `docs/planning/current.md`（专题切换边界与退出条件）
+- `docs/planning/current.md`（当前素材阶段与退出条件）
+- `docs/features/slice-first-field-combat-and-sample-recovery-v1.md`（当前专题、素材阶段与实现边界）
 - `docs/features/slice-multi-world-save-list-v1.md`（最新收口存档与菜单边界）
 - `docs/features/slice-reactor-automation-v1.md`（L5 当前玩家路径、状态机、双端口、schema 6、素材闸门与实现包）
 - `docs/features/slice-conveyor-logistics-v1.md`（L4 已收口物流模型与验收基线）
