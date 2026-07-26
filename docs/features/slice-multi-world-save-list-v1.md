@@ -2,7 +2,7 @@
 
 更新时间：2026-07-26
 
-状态：**当前活跃专题**。承接已收口的 [Slice Save Persistence V1](slice-save-persistence-v1.md) 与 [配方加工 arc](slice-recipe-processing-v1.md)，把单个自动存档升级为最多 30 个彼此隔离、可选择、可命名并可供自动化复核的本地世界。
+状态：**已收口（2026-07-26）**。承接已收口的 [Slice Save Persistence V1](slice-save-persistence-v1.md) 与 [配方加工 arc](slice-recipe-processing-v1.md)，把单个自动存档升级为最多 30 个彼此隔离、可选择、可命名并可供自动化复核的本地世界。
 
 ## 玩家结果
 
@@ -142,8 +142,9 @@ user://saves/slice/slice_world.bak.json
 - `Boot` 保持进程根节点；返回时只释放当前 `SliceWorld`、清空选中服务并重建 `StartupMenu`，不得重启进程、改 schema 6 或误写其他世界。
 - 正式入口须覆盖 `Esc → 设置 → 返回 → 继续`、保存返回菜单、同一世界重新载入与状态一致；玩家可见面板补有窗口截图。
 - 2026-07-26 自动证据完成：新增青黑暂停层、轻量设置、保存返回 / 退出二次确认；放置与合成 / 仓库 / 建筑操作优先消费首个 `Esc`，无前台操作时才暂停世界 tick。保存失败留在当前世界，不释放节点。
-- 真实 `Boot` 19 项断言覆盖暂停、设置返回、确认、写入最新状态、释放世界、重建启动页和同世界重载；复核根保留在 `/private/tmp/radishcatalyst-slice-pause-return-formal`。四图联系表为 `1280×784`、SHA-256 `78884772...d239ff2`；因本会话已达到 3 张图片读取上限，最终画面等待萝卜SAMA在新窗口直接确认。
+- 真实 `Boot` 19 项断言覆盖暂停、设置返回、确认、写入最新状态、释放世界、重建启动页和同世界重载；复核根保留在 `/private/tmp/radishcatalyst-slice-pause-return-formal`。四图联系表为 `1280×784`、SHA-256 `78884772...d239ff2`。
 - 列表交互修正：未选中条目时允许创建；选中已有世界后禁用“创建并进入”，并以提示说明应载入、重命名或回收。正式 `Boot` 19 项断言还证明禁用态不能通过信号误建世界，重新从“新游戏”进入后会清除选择并恢复创建；复核根保留在 `/private/tmp/radishcatalyst-create-disabled-formal`，截图 SHA-256 `c3b48f9c...bbed0e`。
+- 2026-07-26 萝卜SAMA直接使用保留的包 3 复核根，确认选中已有世界时创建禁用而载入可用、`Esc` 暂停 / 设置 / 返回确认、保存返回、世界切换及原世界重载状态一致；人工证据闭环，专题收口。
 
 ## 不做
 
