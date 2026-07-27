@@ -1,7 +1,7 @@
 class_name SliceHud
 extends CanvasLayer
 
-## Slice HUD combines inventory / placement with compact player and package-2
+## Slice HUD combines inventory / placement with compact player and durable
 ## encounter state. Enemy details appear only while the encounter is nearby.
 
 var _world: Node

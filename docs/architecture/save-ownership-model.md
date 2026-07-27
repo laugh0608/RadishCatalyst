@@ -113,13 +113,13 @@
 
 ### 7.7 本地存档阶段策略
 
-#### 当前切片执行口径（2026-07-26）
+#### 当前切片执行口径（2026-07-27）
 
 当前切片已按 [Slice Multi-World Save List V1](../features/slice-multi-world-save-list-v1.md) 完成最多 30 个本地世界的目录、列表与游戏内返回：
 
 - 最多 30 个本地世界；上限只计算世界，不计算备份。
 - 一个稳定世界 ID 对应一个目录、`metadata.json`、一个权威 `autosave.json` 和三份备份；显示名变化不改变 ID。
-- `SliceSaveCatalog` 负责枚举、创建、重命名、可恢复回收、损坏项隔离和目录安全；单世界 `SliceSaveService` 继续独占 schema 6 玩法状态。
+- `SliceSaveCatalog` 负责枚举、创建、重命名、可恢复回收、损坏项隔离和目录安全；单世界 `SliceSaveService` 继续独占 schema 7 玩法状态。
 - `Boot` 只在创建或选择后注入该世界服务；`Esc` 暂停的保存返回成功后释放世界、清空服务并重建列表。
 - 旧切片单档先校验、复制、读回后导入第一个命名世界，旧文件保留；迁移失败不创建半成品世界。
 - 自动测试使用可注入的独立世界根，最终通过态和主档 / 备份保留供人工复核，不污染正式存档。
@@ -180,7 +180,7 @@ user://saves/
 当前只自动迁移上一版切片单档 `user://saves/slice/slice_world.json` 及其单份 `.bak`：
 
 1. 没有现有世界时才尝试迁移，避免重复导入。
-2. 先按 schema 2–6 读取并校验，再生成新的 `world_<stable_id>/metadata.json` 和 `autosave.json`。
+2. 先按 schema 2–7 读取并校验，再生成新的 `world_<stable_id>/metadata.json` 和 `autosave.json`。
 3. 复制后必须用新世界服务读回，成功才发布目录；原旧档保留为只读迁移源。
 4. 迁移失败时保留旧档、报告原因并清理半成品，不覆盖任何已存在世界。
 

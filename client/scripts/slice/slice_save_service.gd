@@ -7,19 +7,27 @@ extends RefCounted
 ## temp-then-rename writes. Legacy callers keep one backup; multi-world callers
 ## use autosave.json plus three rotated backups and lightweight metadata.
 ##
-## Schema 6 adds per-reactor inventories and retained production state. Schema
-## 2–5 migrate into the current topology; legacy global catalyst is restored to
+## Schema 7 adds player health and the five-state field encounter. Schema 2–6
+## migrate into the current topology; legacy global catalyst is restored to
 ## core storage, while the obsolete reactor activation flag is discarded.
 
-const SAVE_SCHEMA_VERSION := 6
+const SAVE_SCHEMA_VERSION := 7
 const MIN_SUPPORTED_SCHEMA_VERSION := 2
-const GAME_VERSION := "prototype-slice-06"
+const GAME_VERSION := "prototype-slice-07"
 const DEFAULT_SAVE_DIR := "user://saves/slice"
 const LEGACY_CORE_STORAGE_CAPACITY := 120
 const LEGACY_SAVE_FILE_NAME := "slice_world.json"
 const WORLD_SAVE_FILE_NAME := "autosave.json"
 const WORLD_BACKUP_COUNT := 3
 const WORLD_METADATA_SCHEMA_VERSION := 1
+const FIELD_ENEMY_MAX_HEALTH := 60
+const ENCOUNTER_STATES := [
+	"locked",
+	"hostile",
+	"dropped",
+	"carried",
+	"delivered",
+]
 
 var _save_dir: String
 var _save_file: String
@@ -108,6 +116,18 @@ func save_state(state: Dictionary) -> Dictionary:
 				% error_string(backup_dir_error)
 			)
 
+	var core_energy := int(state.get("core_energy", 0))
+	var combat_result := _validate_combat_state(
+		state.get("player_health", 100),
+		state.get(
+			"field_encounter",
+			_default_encounter(core_energy)
+		),
+		core_energy
+	)
+	if not bool(combat_result.get("success", false)):
+		return combat_result
+	var combat_data: Dictionary = combat_result["data"]
 	var save_data := {
 		"save_schema_version": SAVE_SCHEMA_VERSION,
 		"game_version": GAME_VERSION,
@@ -115,12 +135,14 @@ func save_state(state: Dictionary) -> Dictionary:
 		"pocket": _inventory_dict(state.get("pocket", {})),
 		"core_storage": _inventory_dict(state.get("core_storage", {})),
 		"core_repaired": bool(state.get("core_repaired", false)),
-		"core_energy": int(state.get("core_energy", 0)),
+		"core_energy": core_energy,
 		"harvested_clusters": _string_array(state.get("harvested_clusters", [])),
 		"buildings": state.get("buildings", []),
 		"next_building_serial": int(state.get("next_building_serial", 1)),
 		"player_x": float(state.get("player_x", 0.0)),
-		"player_y": float(state.get("player_y", 0.0))
+		"player_y": float(state.get("player_y", 0.0)),
+		"player_health": combat_data["player_health"],
+		"field_encounter": combat_data["field_encounter"],
 	}
 	var building_result := SliceBuildingSaveCodec.validate_schema_six(
 		save_data["buildings"], save_data["next_building_serial"]
@@ -200,14 +222,19 @@ func get_summary() -> Dictionary:
 	var contents = pocket_dict.get("contents", {})
 	var core_contents = core_storage_dict.get("contents", {})
 	var crystal := int(contents.get(SliceWorld.ITEM_CRYSTAL, 0)) if contents is Dictionary else 0
+	var field_encounter: Dictionary = data.get("field_encounter", {})
+	var encounter_text := _encounter_summary_text(
+		String(field_encounter.get("state", "locked"))
+	)
 	var stored := 0
 	if core_contents is Dictionary:
 		for amount in core_contents.values():
 			stored += int(amount)
-	var details := "背包晶体 %d；核心仓库 %d；%s；最近保存 %s" % [
+	var details := "背包晶体 %d；核心仓库 %d；%s；外勤%s；最近保存 %s" % [
 		crystal,
 		stored,
 		repaired_text,
+		encounter_text,
 		String(data.get("updated_at", "未知时间"))
 	]
 	return {
@@ -263,6 +290,11 @@ func _update_world_metadata(save_data: Dictionary) -> String:
 	metadata["catalyst_count"] = _saved_item_count(
 		save_data,
 		SliceWorld.ITEM_CATALYST
+	)
+	metadata["player_health"] = int(save_data.get("player_health", 100))
+	var field_encounter: Dictionary = save_data.get("field_encounter", {})
+	metadata["field_encounter_state"] = String(
+		field_encounter.get("state", "locked")
 	)
 	var file := FileAccess.open(_metadata_temp_file, FileAccess.WRITE)
 	if file == null:
@@ -321,6 +353,20 @@ func _inventory_item_count(value, item_id: String) -> int:
 	return int(contents.get(item_id, 0)) if contents is Dictionary else 0
 
 
+func _encounter_summary_text(encounter_state: String) -> String:
+	match encounter_state:
+		"hostile":
+			return "交战中"
+		"dropped":
+			return "样本待拾取"
+		"carried":
+			return "样本待交付"
+		"delivered":
+			return "内衬已安装"
+		_:
+			return "未充能"
+
+
 func _read_file(save_file: String) -> Dictionary:
 	var file := FileAccess.open(save_file, FileAccess.READ)
 	if file == null:
@@ -376,6 +422,25 @@ func _read_file(save_file: String) -> Dictionary:
 	if not bool(building_result.get("success", false)):
 		return building_result
 	var building_data: Dictionary = building_result["data"]
+	var combat_result: Dictionary
+	if version >= 7:
+		combat_result = _validate_combat_state(
+			save_data.get("player_health", null),
+			save_data.get("field_encounter", null),
+			int(save_data.get("core_energy", 0))
+		)
+	else:
+		var migrated_encounter := _default_encounter(
+			int(save_data.get("core_energy", 0))
+		)
+		combat_result = _validate_combat_state(
+			100,
+			migrated_encounter,
+			int(save_data.get("core_energy", 0))
+		)
+	if not bool(combat_result.get("success", false)):
+		return combat_result
+	var combat_data: Dictionary = combat_result["data"]
 
 	return {
 		"success": true,
@@ -392,9 +457,92 @@ func _read_file(save_file: String) -> Dictionary:
 			"next_building_serial": building_data["next_building_serial"],
 			"player_x": float(save_data.get("player_x", 0.0)),
 			"player_y": float(save_data.get("player_y", 0.0)),
+			"player_health": combat_data["player_health"],
+			"field_encounter": combat_data["field_encounter"],
 			"updated_at": String(save_data.get("updated_at", ""))
 		}
 	}
+
+
+func _default_encounter(core_energy: int) -> Dictionary:
+	return {
+		"state": "hostile" if core_energy >= SliceWorld.CORE_CHARGE_TARGET else "locked",
+		"enemy_health": FIELD_ENEMY_MAX_HEALTH,
+	}
+
+
+func _validate_combat_state(
+	player_health_value,
+	field_encounter_value,
+	core_energy: int
+) -> Dictionary:
+	if not _is_integral_number(player_health_value):
+		return _failure("切片存档 player_health 必须是整数。")
+	if not (field_encounter_value is Dictionary):
+		return _failure("切片存档 field_encounter 必须是对象。")
+	var field_encounter: Dictionary = field_encounter_value
+	if (
+		field_encounter.keys().size() != 2
+		or not field_encounter.has("state")
+		or not field_encounter.has("enemy_health")
+	):
+		return _failure(
+			"切片存档 field_encounter 必须且只能包含 state 与 enemy_health。"
+		)
+	if not (field_encounter["state"] is String):
+		return _failure("切片存档 field_encounter.state 必须是字符串。")
+	if not _is_integral_number(field_encounter["enemy_health"]):
+		return _failure("切片存档 field_encounter.enemy_health 必须是整数。")
+	var encounter_state := String(field_encounter["state"])
+	if not ENCOUNTER_STATES.has(encounter_state):
+		return _failure(
+			"切片存档 field_encounter.state 未知：%s。" % encounter_state
+		)
+	if (
+		core_energy < SliceWorld.CORE_CHARGE_TARGET
+		and encounter_state != "locked"
+	):
+		return _failure("切片存档未充能核心只能对应 locked 遭遇状态。")
+	if (
+		core_energy >= SliceWorld.CORE_CHARGE_TARGET
+		and encounter_state == "locked"
+	):
+		return _failure("切片存档已充能核心不能对应 locked 遭遇状态。")
+	var player_health := int(player_health_value)
+	var player_max_health := 120 if encounter_state == "delivered" else 100
+	if player_health < 1 or player_health > player_max_health:
+		return _failure(
+			"切片存档 player_health 必须在 1–%d 之间。" % player_max_health
+		)
+	var enemy_health := int(field_encounter["enemy_health"])
+	if encounter_state in ["locked", "hostile"]:
+		if enemy_health < 1 or enemy_health > FIELD_ENEMY_MAX_HEALTH:
+			return _failure(
+				"切片存档 %s 状态的 enemy_health 必须在 1–%d 之间。"
+				% [encounter_state, FIELD_ENEMY_MAX_HEALTH]
+			)
+	elif enemy_health != 0:
+		return _failure(
+			"切片存档 %s 状态的 enemy_health 必须为 0。"
+			% encounter_state
+		)
+	return {
+		"success": true,
+		"message": "战斗状态有效。",
+		"data": {
+			"player_health": player_health,
+			"field_encounter": {
+				"state": encounter_state,
+				"enemy_health": enemy_health,
+			},
+		},
+	}
+
+
+func _is_integral_number(value) -> bool:
+	if not (value is int or value is float):
+		return false
+	return is_equal_approx(float(value), float(int(value)))
 
 
 func _string_array(value) -> Array[String]:

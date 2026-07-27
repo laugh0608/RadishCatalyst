@@ -2,8 +2,8 @@ class_name SliceCombatController
 extends Node2D
 
 ## Slice combat runtime. Package 1 owns player tools; package 2 adds one fixed
-## enemy, evacuation and the in-session dropped -> carried sample transition.
-## Durable encounter state remains deferred to package 3 / schema 7.
+## enemy and evacuation. Package 3 persists the five-state encounter and owns
+## the carried -> delivered sample reward without introducing a task system.
 
 const FIELD_ENEMY_SCENE := "res://scenes/slice/SliceFieldEnemy.tscn"
 const CRITICAL_SAMPLE_SCENE := "res://scenes/slice/SliceCriticalSample.tscn"
@@ -20,6 +20,7 @@ const DODGE_COOLDOWN := 0.8
 const HIT_EFFECT_DURATION := 0.16
 
 signal state_changed
+signal persistence_requested
 
 var health := 100
 var max_health := 100
@@ -197,6 +198,7 @@ func receive_damage(amount: int) -> bool:
 	else:
 		_set_notice("受到 %d 点伤害" % amount, 0.9)
 	_emit_state_if_changed()
+	persistence_requested.emit()
 	return true
 
 
@@ -208,11 +210,62 @@ func collect_critical_sample(sample: SliceCriticalSample) -> bool:
 	sample.queue_free()
 	_set_notice("晶腺样本已回收｜任务物品不占背包", 2.4)
 	_emit_state_if_changed()
+	persistence_requested.emit()
 	return true
 
 
 func has_critical_sample() -> bool:
 	return encounter_state == "carried"
+
+
+func can_deliver_critical_sample() -> bool:
+	return encounter_state == "carried"
+
+
+func deliver_critical_sample() -> bool:
+	if not can_deliver_critical_sample():
+		return false
+	encounter_state = "delivered"
+	max_health = 120
+	health = max_health
+	_set_notice("核心分析完成｜抗蚀内衬已安装｜最大生命 120", 3.6)
+	_emit_state_if_changed()
+	persistence_requested.emit()
+	return true
+
+
+func durable_state() -> Dictionary:
+	var enemy_health := 0
+	if encounter_state in ["locked", "hostile"] and field_enemy != null:
+		enemy_health = field_enemy.health
+	return {
+		"player_health": health,
+		"field_encounter": {
+			"state": encounter_state,
+			"enemy_health": enemy_health,
+		},
+	}
+
+
+func restore_durable_state(
+	saved_health: int,
+	field_encounter: Dictionary
+) -> void:
+	encounter_state = String(field_encounter.get("state", "locked"))
+	max_health = 120 if encounter_state == "delivered" else 100
+	health = clampi(saved_health, 1, max_health)
+	var enemy_health := int(
+		field_encounter.get("enemy_health", SliceFieldEnemy.MAX_HEALTH)
+	)
+	field_enemy.restore_durable_state(encounter_state, enemy_health)
+	if encounter_state == "dropped":
+		_spawn_critical_sample()
+	elif critical_sample != null:
+		critical_sample.queue_free()
+		critical_sample = null
+	notice_text = ""
+	_notice_remaining = 0.0
+	_emit_state_if_changed()
 
 
 func enemy_hud_visible() -> bool:
@@ -230,7 +283,9 @@ func encounter_goal_text() -> String:
 		"dropped":
 			return "目标：拾取裂晶爬兽掉落的晶腺样本"
 		"carried":
-			return "晶腺样本已回收（任务物品）"
+			return "目标：返回核心交付晶腺样本"
+		"delivered":
+			return "抗蚀内衬已安装｜最大生命 120"
 		_:
 			return "目标：完成核心首次充能"
 
@@ -258,7 +313,7 @@ func _spawn_critical_sample() -> void:
 	critical_sample = sample_scene.instantiate() as SliceCriticalSample
 	critical_sample.combat_controller = self
 	_player.get_parent().add_child(critical_sample)
-	critical_sample.position = field_enemy.position + Vector2(22, 2)
+	critical_sample.position = FIELD_ENEMY_ANCHOR + Vector2(22, 2)
 
 
 func _resolve_player_attack() -> void:
@@ -270,6 +325,8 @@ func _resolve_player_attack() -> void:
 		_attack_hit_enemy = true
 		if field_enemy.take_damage(ATTACK_DAMAGE):
 			_play_hit_effect(field_enemy.position + Vector2(0, -24))
+			if field_enemy.health > 0:
+				persistence_requested.emit()
 		return
 
 
@@ -292,10 +349,11 @@ func _on_enemy_defeated() -> void:
 	_spawn_critical_sample()
 	_set_notice("裂晶爬兽败亡｜晶腺样本已掉落", 2.0)
 	_emit_state_if_changed()
+	persistence_requested.emit()
 
 
 func _evacuate_player() -> void:
-	health = 50
+	health = maxi(1, max_health / 2)
 	_player.position = EVACUATION_POSITION
 	_player.velocity = Vector2.ZERO
 	_player.cancel_dodge()

@@ -268,8 +268,8 @@ func _check_player_attack_drop_and_pickup(
 	)
 	_expect_equal(
 		controller.encounter_goal_text(),
-		"晶腺样本已回收（任务物品）",
-		"HUD ends package two at carried state"
+		"目标：返回核心交付晶腺样本",
+		"carried sample directs the player back to the core"
 	)
 
 

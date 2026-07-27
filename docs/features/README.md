@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃专题：[Slice First Field Combat And Sample Recovery V1](slice-first-field-combat-and-sample-recovery-v1.md)——首次充能、鼠标瞄准战斗、单敌人、撤离、关键样本回收与基地交付；包 2 人工复核通过，下一步进入包 3 完整闭环。
+当前活跃专题：首次外勤战斗已收口；萝卜SAMA已授权切换到第一可玩切片全链串通，待建立专题。
 
 已收口专题：
 
@@ -41,12 +41,13 @@
 - [Slice Reactor Automation V1](slice-reactor-automation-v1.md)——双端口反应器、催化剂货物、schema 6、自然完整产线、双状态重启与人工确认（2026-07-26 收口）。
 - [Slice Recipe Processing V1](slice-recipe-processing-v1.md)——L0–L5 空间工厂自动化 arc，总体完成“冒险资源 → 电力 / 物流 / 加工 → 催化剂”（2026-07-26 收口）。
 - [Slice Multi-World Save List V1](slice-multi-world-save-list-v1.md)——最多 30 个世界、三份备份、损坏隔离、可恢复回收、启动列表与游戏内保存返回（2026-07-26 收口）。
+- [Slice First Field Combat And Sample Recovery V1](slice-first-field-combat-and-sample-recovery-v1.md)——首次充能、鼠标瞄准战斗、单敌人、撤离、关键样本、基地交付与 schema 7（2026-07-27 收口）。
 
 背景结论（复盘与证据轮）：
 
 - 美术介质已定为像素 + 2D 俯视网格，机械口径见 [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)；介质证据轮 S1 到 S6 全绿。
 - 首个交付版结构：单基地 + 单远征区 = 同一张无缝地图上的两个区域（2026-07-16 定档），20 到 40 分钟可玩切片；章程见 [复盘文档](../planning/project-purpose-and-solo-ai-development-review.md)。
-- 当前首次外勤战斗与关键样本回收进入包 3；后续候选保留立绘对话框最小接入、角色八方向动画（对角朝向生成风险高、排后续）。
+- 下一阶段先做第一可玩切片全链串通；立绘对话框与角色八方向动画继续作为后续候选，不抢占全链里程碑证据。
 
 ## 历史专题
 

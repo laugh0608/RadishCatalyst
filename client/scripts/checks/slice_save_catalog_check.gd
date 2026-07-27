@@ -85,6 +85,16 @@ func _run_catalog_checks() -> void:
 		2,
 		"metadata reports catalyst summary"
 	)
+	_expect_equal(
+		String(alpha_summary.get("field_encounter_state", "")),
+		"hostile",
+		"metadata reports encounter summary"
+	)
+	_expect_equal(
+		int(alpha_summary.get("player_health", 0)),
+		100,
+		"metadata reports player health"
+	)
 
 	_write_text(alpha_service.save_file_path(), "{broken")
 	var fallback := alpha_service.load_state()

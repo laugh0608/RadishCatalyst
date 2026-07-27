@@ -29,7 +29,7 @@ func _run_checks() -> void:
 	_check_codec_rejects_invalid_topology()
 	_check_schema_two_to_five_migration()
 	_check_invalid_primary_falls_back_to_backup()
-	await _check_schema_six_world_restart()
+	await _check_schema_seven_world_restart()
 
 
 func _check_bootstrap_resource_budget() -> void:
@@ -474,7 +474,7 @@ func _check_invalid_primary_falls_back_to_backup() -> void:
 	)
 
 
-func _check_schema_six_world_restart() -> void:
+func _check_schema_seven_world_restart() -> void:
 	var save_dir := _new_save_dir("restart")
 	var service := SliceSaveService.new(save_dir)
 	var world := SliceWorldScene.instantiate() as SliceWorld
@@ -487,6 +487,10 @@ func _check_schema_six_world_restart() -> void:
 
 	world.core_repaired = true
 	world.core_energy = 6
+	world.combat_controller.restore_durable_state(
+		73,
+		{"state": "hostile", "enemy_health": 40}
+	)
 	world.catalyst_count = 4
 	world.pocket.add(SliceWorld.ITEM_PART, 5)
 	world.core_storage.add(SliceWorld.ITEM_CRYSTAL, 8)
@@ -594,18 +598,34 @@ func _check_schema_six_world_restart() -> void:
 	_expect_equal(
 		int(raw_save.get("save_schema_version", 0)),
 		SliceSaveService.SAVE_SCHEMA_VERSION,
-		"schema 6 is written"
+		"schema 7 is written"
 	)
 	_expect_equal(raw_save.has("collectors"), false, "legacy collectors key is absent")
 	_expect_equal(
 		raw_save.has("catalyst_count"),
 		false,
-		"schema 6 omits legacy catalyst truth"
+		"schema 7 omits legacy catalyst truth"
 	)
 	_expect_equal(
 		raw_save.has("reactor_active"),
 		false,
-		"schema 6 omits legacy reactor activation"
+		"schema 7 omits legacy reactor activation"
+	)
+	_expect_equal(
+		int(raw_save.get("player_health", 0)),
+		73,
+		"schema 7 writes player health"
+	)
+	var saved_encounter: Dictionary = raw_save.get("field_encounter", {})
+	_expect_equal(
+		String(saved_encounter.get("state", "")),
+		"hostile",
+		"schema 7 writes encounter state"
+	)
+	_expect_equal(
+		int(saved_encounter.get("enemy_health", 0)),
+		40,
+		"schema 7 writes enemy health"
 	)
 	_expect_equal(
 		int(raw_save.get("next_building_serial", 0)),
@@ -691,7 +711,22 @@ func _check_schema_six_world_restart() -> void:
 	_expect_equal(
 		loaded_world.core_storage.count(SliceWorld.ITEM_CATALYST),
 		2,
-		"core storage is the schema 6 catalyst truth"
+		"core storage is the schema 7 catalyst truth"
+	)
+	_expect_equal(
+		loaded_world.combat_controller.health,
+		73,
+		"player health restores"
+	)
+	_expect_equal(
+		loaded_world.combat_controller.encounter_state,
+		"hostile",
+		"hostile encounter restores"
+	)
+	_expect_equal(
+		loaded_world.combat_controller.field_enemy.health,
+		40,
+		"enemy health restores"
 	)
 	for relay_id in relay_ids:
 		var loaded_relay := _find_by_id(loaded_world, String(relay_id))

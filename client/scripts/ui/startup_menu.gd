@@ -273,11 +273,28 @@ func _show_selected_summary(summary: Dictionary) -> void:
 
 
 func _world_progress_text(summary: Dictionary) -> String:
-	return "核心：%s · 建筑：%d · 催化剂：%d" % [
+	return "核心：%s · 外勤：%s · 建筑：%d · 催化剂：%d" % [
 		"已恢复" if bool(summary.get("core_repaired", false)) else "待恢复",
+		_encounter_progress_text(
+			String(summary.get("field_encounter_state", "locked"))
+		),
 		int(summary.get("building_count", 0)),
 		int(summary.get("catalyst_count", 0)),
 	]
+
+
+func _encounter_progress_text(encounter_state: String) -> String:
+	match encounter_state:
+		"hostile":
+			return "交战中"
+		"dropped":
+			return "样本待拾取"
+		"carried":
+			return "样本待交付"
+		"delivered":
+			return "内衬已安装"
+		_:
+			return "未充能"
 
 
 func _apply_text_style() -> void:

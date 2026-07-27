@@ -10,7 +10,8 @@ extends Node2D
 ## controller, shared runtime instances, lossless adjustment / demolition,
 ## derived power propagation and stable topology persistence. L4 adds
 ## storage-to-storage conveyor cargo and fixed topology frames. L5 adds
-## per-instance reactor buffers, retained processing and schema-6 state.
+## per-instance reactor buffers and retained processing. Field combat package 3
+## adds schema-7 player health, encounter persistence and core sample delivery.
 ## `startup_load` (set by Boot before the node enters the tree) decides whether
 ## _ready restores the saved slice or starts a fresh one.
 
@@ -124,6 +125,7 @@ func _ready() -> void:
 	)
 	world_node.add_child(combat_controller)
 	combat_controller.setup(self, player)
+	combat_controller.persistence_requested.connect(_autosave)
 
 	var camera := player.get_node("Camera") as Camera2D
 	camera.limit_left = 0
@@ -573,6 +575,24 @@ func can_charge_core() -> bool:
 	)
 
 
+func can_deliver_critical_sample() -> bool:
+	return (
+		core_repaired
+		and is_core_charged()
+		and combat_controller != null
+		and combat_controller.can_deliver_critical_sample()
+	)
+
+
+func deliver_critical_sample() -> bool:
+	if not can_deliver_critical_sample():
+		return false
+	if not combat_controller.deliver_critical_sample():
+		return false
+	_refresh_core_charge_visual()
+	return true
+
+
 func confirm_core_charge() -> bool:
 	var charged := charge_core()
 	if charged:
@@ -622,11 +642,15 @@ func _refresh_core_charge_visual() -> void:
 	) as Sprite2D
 	if core == null:
 		return
-	core.self_modulate = (
-		Color(0.76, 1.0, 0.94, 1.0)
-		if is_core_charged()
-		else Color.WHITE
-	)
+	if (
+		combat_controller != null
+		and combat_controller.encounter_state == "delivered"
+	):
+		core.self_modulate = Color(0.94, 1.0, 0.70, 1.0)
+	elif is_core_charged():
+		core.self_modulate = Color(0.76, 1.0, 0.94, 1.0)
+	else:
+		core.self_modulate = Color.WHITE
 
 
 ## Craft a recipe into ordinary backpack items. Building recipes create one or
@@ -1202,6 +1226,14 @@ func _restore_from_save() -> void:
 		float(data.get("player_x", START_SPAWN.x)),
 		float(data.get("player_y", START_SPAWN.y))
 	)
+	combat_controller.restore_durable_state(
+		int(data.get("player_health", 100)),
+		data.get("field_encounter", {
+			"state": "hostile" if is_core_charged() else "locked",
+			"enemy_health": SliceFieldEnemy.MAX_HEALTH,
+		})
+	)
+	_refresh_core_charge_visual()
 
 	inventory_changed.emit()
 	core_storage_changed.emit()
@@ -1233,6 +1265,17 @@ func _on_pause_save_and_quit_requested() -> void:
 
 func _autosave() -> bool:
 	var player_position := player.position if player != null else START_SPAWN
+	var combat_state := (
+		combat_controller.durable_state()
+		if combat_controller != null
+		else {
+			"player_health": 100,
+			"field_encounter": {
+				"state": "hostile" if is_core_charged() else "locked",
+				"enemy_health": SliceFieldEnemy.MAX_HEALTH,
+			},
+		}
+	)
 	var result := save_service.save_state({
 		"pocket": pocket.to_dict(),
 		"core_storage": core_storage.to_dict(),
@@ -1244,7 +1287,9 @@ func _autosave() -> bool:
 		),
 		"next_building_serial": _next_building_serial,
 		"player_x": player_position.x,
-		"player_y": player_position.y
+		"player_y": player_position.y,
+		"player_health": combat_state["player_health"],
+		"field_encounter": combat_state["field_encounter"],
 	})
 	if not bool(result.get("success", false)):
 		push_warning("切片自动存档失败：%s" % String(result.get("message", "")))

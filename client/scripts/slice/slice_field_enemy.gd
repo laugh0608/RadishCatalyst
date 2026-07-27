@@ -113,6 +113,30 @@ func reset_after_evacuation() -> void:
 	_set_state("alert")
 
 
+func restore_durable_state(
+	encounter_state: String,
+	saved_health: int
+) -> void:
+	position = anchor_position
+	velocity = Vector2.ZERO
+	match encounter_state:
+		"locked":
+			health = saved_health
+			visible = false
+			collision.disabled = true
+			_set_state("locked")
+		"hostile":
+			health = saved_health
+			visible = true
+			collision.disabled = false
+			_set_state("alert")
+		_:
+			health = 0
+			visible = true
+			collision.disabled = true
+			_set_state("defeated")
+
+
 func state_text() -> String:
 	match state:
 		"alert":

@@ -3,7 +3,7 @@ extends RefCounted
 
 ## Multi-world directory boundary for the slice. Each catalog owns one
 ## injectable root and returns a single-world SliceSaveService for selected
-## entries. Gameplay state stays in schema 6; this class only owns identity,
+## entries. Gameplay state stays in schema 7; this class only owns identity,
 ## metadata, the 30-world limit, migration and recoverable removal.
 
 const MAX_WORLDS := 30
@@ -348,6 +348,10 @@ func _world_summary(
 		"core_repaired": bool(metadata.get("core_repaired", false)),
 		"building_count": int(metadata.get("building_count", 0)),
 		"catalyst_count": int(metadata.get("catalyst_count", 0)),
+		"player_health": int(metadata.get("player_health", 100)),
+		"field_encounter_state": String(
+			metadata.get("field_encounter_state", "locked")
+		),
 		"status": "可读取" if has_save else "新世界",
 		"loadable": has_save,
 	}
@@ -396,6 +400,8 @@ func _new_metadata(
 		"core_repaired": false,
 		"building_count": 0,
 		"catalyst_count": 0,
+		"player_health": 100,
+		"field_encounter_state": "locked",
 	}
 
 
