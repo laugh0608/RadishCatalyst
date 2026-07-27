@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃专题：首次外勤战斗已收口；萝卜SAMA已授权切换到第一可玩切片全链串通，待建立专题。
+当前活跃专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——真实新档 20 到 40 分钟全链串通；包 1 待执行基线与缺口审计。
 
 已收口专题：
 
@@ -47,7 +47,7 @@
 
 - 美术介质已定为像素 + 2D 俯视网格，机械口径见 [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)；介质证据轮 S1 到 S6 全绿。
 - 首个交付版结构：单基地 + 单远征区 = 同一张无缝地图上的两个区域（2026-07-16 定档），20 到 40 分钟可玩切片；章程见 [复盘文档](../planning/project-purpose-and-solo-ai-development-review.md)。
-- 下一阶段先做第一可玩切片全链串通；立绘对话框与角色八方向动画继续作为后续候选，不抢占全链里程碑证据。
+- 当前先完成第一可玩切片全链串通；立绘对话框与角色八方向动画继续作为后续候选，不抢占全链里程碑证据。
 
 ## 历史专题
 
