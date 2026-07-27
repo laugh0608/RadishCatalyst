@@ -198,6 +198,7 @@ run_godot_checked "slice-building-operations" --script "${client_root}/scripts/c
 run_godot_checked "slice-power-grid" --script "${client_root}/scripts/checks/slice_power_grid_check.gd" --no-header
 run_godot_checked "slice-reactor" --script "${client_root}/scripts/checks/slice_reactor_check.gd" --no-header
 run_godot_checked "slice-combat-package1" --script "${client_root}/scripts/checks/slice_combat_package1_check.gd" --no-header
+run_godot_checked "slice-combat-package2" --script "${client_root}/scripts/checks/slice_combat_package2_check.gd" --no-header
 run_godot_checked "slice-logistics" --script "${client_root}/scripts/checks/slice_logistics_check.gd" --no-header
 run_godot_checked "slice-save-schema" --script "${client_root}/scripts/checks/slice_save_schema_check.gd" --no-header
 run_godot_checked "slice-save-catalog" --script "${client_root}/scripts/checks/slice_save_catalog_check.gd" --no-header

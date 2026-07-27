@@ -1,17 +1,23 @@
 class_name SliceCombatController
 extends Node2D
 
-## Package-1 combat runtime: owns player health, attack timing, dodge timing,
-## invulnerability and approved effect playback. Enemy and sample business
-## remain outside this controller until package 2.
+## Slice combat runtime. Package 1 owns player tools; package 2 adds one fixed
+## enemy, evacuation and the in-session dropped -> carried sample transition.
+## Durable encounter state remains deferred to package 3 / schema 7.
 
+const FIELD_ENEMY_SCENE := "res://scenes/slice/SliceFieldEnemy.tscn"
+const CRITICAL_SAMPLE_SCENE := "res://scenes/slice/SliceCriticalSample.tscn"
+const FIELD_ENEMY_ANCHOR := Vector2(1984, 384)
+const EVACUATION_POSITION := Vector2(704, 384)
 const ATTACK_WINDUP := 0.12
 const ATTACK_ACTIVE := 0.10
 const ATTACK_RECOVERY := 0.23
+const ATTACK_DAMAGE := 20
 const DODGE_DISTANCE := 96.0
 const DODGE_DURATION := 0.18
 const DODGE_INVULNERABLE := 0.22
 const DODGE_COOLDOWN := 0.8
+const HIT_EFFECT_DURATION := 0.16
 
 signal state_changed
 
@@ -21,18 +27,27 @@ var attack_phase := "idle"
 var attack_phase_remaining := 0.0
 var dodge_cooldown_remaining := 0.0
 var invulnerable_remaining := 0.0
+var encounter_state := "locked"
+var notice_text := ""
+var field_enemy: SliceFieldEnemy
+var critical_sample: SliceCriticalSample
 
 var _world: Node
 var _player: SlicePlayer
 var _attack_held := false
+var _attack_hit_enemy := false
 var _requires_fresh_attack_press := false
+var _hit_effect_remaining := 0.0
+var _notice_remaining := 0.0
 var _last_state_key := ""
 
 @onready var _attack_pivot: Node2D = $AttackPivot
 @onready var _attack_effect: Sprite2D = $AttackPivot/AttackEffect
+@onready var _attack_area: Area2D = $AttackPivot/AttackArea
 @onready var _attack_collision: CollisionShape2D = (
 	$AttackPivot/AttackArea/Collision
 )
+@onready var _hit_effect: Sprite2D = $HitEffect
 
 
 func setup(world: Node, player: SlicePlayer) -> void:
@@ -41,6 +56,8 @@ func setup(world: Node, player: SlicePlayer) -> void:
 	player.attack_pressed.connect(_on_attack_pressed)
 	player.attack_released.connect(_on_attack_released)
 	player.dodge_requested.connect(_on_dodge_requested)
+	world.core_charge_changed.connect(_on_core_charge_changed)
+	_spawn_field_enemy()
 	_refresh_effect_transform()
 	_emit_state_if_changed()
 
@@ -53,12 +70,16 @@ func _physics_process(delta: float) -> void:
 		0.0, dodge_cooldown_remaining - delta
 	)
 	invulnerable_remaining = maxf(0.0, invulnerable_remaining - delta)
+	_tick_hit_effect(delta)
+	_tick_notice(delta)
 	if _world.is_combat_input_blocked():
 		_attack_held = false
 		_requires_fresh_attack_press = true
 		if attack_phase == "windup":
 			_finish_attack()
 	_tick_attack(delta)
+	if attack_phase == "active":
+		_resolve_player_attack()
 	_emit_state_if_changed()
 
 
@@ -110,6 +131,7 @@ func _can_start_attack() -> bool:
 func _begin_attack() -> void:
 	attack_phase = "windup"
 	attack_phase_remaining = ATTACK_WINDUP
+	_attack_hit_enemy = false
 	_attack_effect.visible = true
 	_attack_effect.frame = 0
 	_attack_collision.disabled = true
@@ -165,6 +187,163 @@ func _refresh_effect_transform() -> void:
 	_attack_pivot.rotation = _player.aim_direction.angle()
 
 
+func receive_damage(amount: int) -> bool:
+	if amount <= 0 or not can_receive_damage():
+		return false
+	health = maxi(0, health - amount)
+	_play_hit_effect(_player.position + Vector2(0, -32))
+	if health <= 0:
+		_evacuate_player()
+	else:
+		_set_notice("受到 %d 点伤害" % amount, 0.9)
+	_emit_state_if_changed()
+	return true
+
+
+func collect_critical_sample(sample: SliceCriticalSample) -> bool:
+	if encounter_state != "dropped" or sample == null or sample != critical_sample:
+		return false
+	encounter_state = "carried"
+	critical_sample = null
+	sample.queue_free()
+	_set_notice("晶腺样本已回收｜任务物品不占背包", 2.4)
+	_emit_state_if_changed()
+	return true
+
+
+func has_critical_sample() -> bool:
+	return encounter_state == "carried"
+
+
+func enemy_hud_visible() -> bool:
+	return field_enemy != null and field_enemy.is_hud_visible()
+
+
+func encounter_goal_text() -> String:
+	match encounter_state:
+		"hostile":
+			return (
+				"目标：击败裂晶爬兽"
+				if enemy_hud_visible()
+				else "目标：前往东侧晶体区调查活动迹象"
+			)
+		"dropped":
+			return "目标：拾取裂晶爬兽掉落的晶腺样本"
+		"carried":
+			return "晶腺样本已回收（任务物品）"
+		_:
+			return "目标：完成核心首次充能"
+
+
+func _spawn_field_enemy() -> void:
+	var enemy_scene := load(FIELD_ENEMY_SCENE) as PackedScene
+	field_enemy = enemy_scene.instantiate() as SliceFieldEnemy
+	_player.get_parent().add_child(field_enemy)
+	field_enemy.attack_landed.connect(_on_enemy_attack_landed)
+	field_enemy.defeated.connect(_on_enemy_defeated)
+	field_enemy.state_changed.connect(_emit_state_if_changed)
+	field_enemy.setup(
+		_player,
+		FIELD_ENEMY_ANCHOR,
+		_world.is_core_charged()
+	)
+	if _world.is_core_charged():
+		encounter_state = "hostile"
+
+
+func _spawn_critical_sample() -> void:
+	if critical_sample != null:
+		return
+	var sample_scene := load(CRITICAL_SAMPLE_SCENE) as PackedScene
+	critical_sample = sample_scene.instantiate() as SliceCriticalSample
+	critical_sample.combat_controller = self
+	_player.get_parent().add_child(critical_sample)
+	critical_sample.position = field_enemy.position + Vector2(22, 2)
+
+
+func _resolve_player_attack() -> void:
+	if _attack_hit_enemy or field_enemy == null:
+		return
+	for body in _attack_area.get_overlapping_bodies():
+		if body != field_enemy:
+			continue
+		_attack_hit_enemy = true
+		if field_enemy.take_damage(ATTACK_DAMAGE):
+			_play_hit_effect(field_enemy.position + Vector2(0, -24))
+		return
+
+
+func _on_core_charge_changed(_energy: int) -> void:
+	if not _world.is_core_charged() or encounter_state != "locked":
+		return
+	encounter_state = "hostile"
+	field_enemy.set_encounter_enabled(true)
+	_emit_state_if_changed()
+
+
+func _on_enemy_attack_landed(damage: int) -> void:
+	receive_damage(damage)
+
+
+func _on_enemy_defeated() -> void:
+	if encounter_state != "hostile":
+		return
+	encounter_state = "dropped"
+	_spawn_critical_sample()
+	_set_notice("裂晶爬兽败亡｜晶腺样本已掉落", 2.0)
+	_emit_state_if_changed()
+
+
+func _evacuate_player() -> void:
+	health = 50
+	_player.position = EVACUATION_POSITION
+	_player.velocity = Vector2.ZERO
+	_player.cancel_dodge()
+	_attack_held = false
+	_requires_fresh_attack_press = true
+	_finish_attack()
+	invulnerable_remaining = 0.0
+	dodge_cooldown_remaining = 0.0
+	if encounter_state == "hostile" and field_enemy != null:
+		field_enemy.reset_after_evacuation()
+	_set_notice(
+		"生命归零：已撤回核心｜库存与充能保留｜敌人恢复",
+		3.6
+	)
+
+
+func _play_hit_effect(world_position: Vector2) -> void:
+	_hit_effect.position = world_position
+	_hit_effect.frame = 0
+	_hit_effect.visible = true
+	_hit_effect_remaining = HIT_EFFECT_DURATION
+
+
+func _tick_hit_effect(delta: float) -> void:
+	if _hit_effect_remaining <= 0.0:
+		return
+	_hit_effect_remaining = maxf(0.0, _hit_effect_remaining - delta)
+	if _hit_effect_remaining <= 0.0:
+		_hit_effect.visible = false
+		return
+	var progress := 1.0 - _hit_effect_remaining / HIT_EFFECT_DURATION
+	_hit_effect.frame = mini(3, int(floor(progress * 4.0)))
+
+
+func _set_notice(message: String, duration: float) -> void:
+	notice_text = message
+	_notice_remaining = duration
+	_emit_state_if_changed()
+
+
+func _tick_notice(delta: float) -> void:
+	if _notice_remaining <= 0.0:
+		return
+	_notice_remaining = maxf(0.0, _notice_remaining - delta)
+	if _notice_remaining <= 0.0:
+		notice_text = ""
+
+
 func can_receive_damage() -> bool:
 	return invulnerable_remaining <= 0.0
 
@@ -202,7 +381,12 @@ func _emit_state_if_changed() -> void:
 		attack_phase,
 		dodge_cooldown_remaining,
 		invulnerable_remaining,
-		_player.is_dodging(),
+		"%s|%s|%s|%s" % [
+			_player.is_dodging(),
+			encounter_state,
+			notice_text,
+			field_enemy.state if field_enemy != null else "missing",
+		],
 	]
 	if state_key == _last_state_key:
 		return

@@ -76,6 +76,11 @@ func is_dodging() -> bool:
 	return _dodge_remaining > 0.0
 
 
+func cancel_dodge() -> void:
+	_dodge_remaining = 0.0
+	_dodge_velocity = Vector2.ZERO
+
+
 func current_interact_target() -> Area2D:
 	var best: Area2D = null
 	var best_dist := INF

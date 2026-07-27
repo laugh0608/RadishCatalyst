@@ -1,8 +1,8 @@
 class_name SliceHud
 extends CanvasLayer
 
-## Slice HUD combines the established inventory / placement readout with the
-## compact package-1 combat state. Enemy-specific presentation arrives later.
+## Slice HUD combines inventory / placement with compact player and package-2
+## encounter state. Enemy details appear only while the encounter is nearby.
 
 var _world: Node
 var _player: SlicePlayer
@@ -13,6 +13,9 @@ var _player: SlicePlayer
 @onready var goal_label: Label = $Goal
 @onready var health_label: Label = $Health
 @onready var combat_label: Label = $CombatState
+@onready var enemy_panel: ColorRect = $EnemyPanel
+@onready var enemy_label: Label = $EnemyPanel/EnemyState
+@onready var notice_label: Label = $CombatNotice
 @onready var prompt_label: Label = $Prompt
 
 
@@ -54,7 +57,8 @@ func _refresh_state(_changed_value = null) -> void:
 		_world.combat_controller.dodge_status_text(),
 	]
 	if _world.is_core_charged():
-		goal_label.text = "目标：前往东侧晶体区调查活动迹象｜核心仓库 %d/%d" % [
+		goal_label.text = "%s｜核心仓库 %d/%d" % [
+			_world.combat_controller.encounter_goal_text(),
 			_world.core_storage.total(), SliceWorld.CORE_STORAGE_CAPACITY
 		]
 	elif _world.core_repaired:
@@ -65,6 +69,18 @@ func _refresh_state(_changed_value = null) -> void:
 		goal_label.text = "合成机械零件修复前哨核心（%d/%d）" % [
 			_world.pocket.count(SliceWorld.ITEM_PART), CoreRepairSite.REPAIR_PART_COST
 		]
+	enemy_panel.visible = _world.combat_controller.enemy_hud_visible()
+	if enemy_panel.visible:
+		var enemy: SliceFieldEnemy = (
+			_world.combat_controller.field_enemy
+		)
+		enemy_label.text = "裂晶爬兽  %d/%d｜%s" % [
+			enemy.health,
+			SliceFieldEnemy.MAX_HEALTH,
+			enemy.state_text(),
+		]
+	notice_label.text = _world.combat_controller.notice_text
+	notice_label.visible = not notice_label.text.is_empty()
 
 
 func _process(_delta: float) -> void:

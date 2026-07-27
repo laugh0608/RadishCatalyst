@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃专题：[Slice First Field Combat And Sample Recovery V1](slice-first-field-combat-and-sample-recovery-v1.md)——首次充能、鼠标瞄准战斗、单敌人、撤离、关键样本回收与基地交付；D 入库与包 1 自动 / 正式入口证据已完成，等待人工复核后进入包 2。
+当前活跃专题：[Slice First Field Combat And Sample Recovery V1](slice-first-field-combat-and-sample-recovery-v1.md)——首次充能、鼠标瞄准战斗、单敌人、撤离、关键样本回收与基地交付；包 2 首次人工反馈修正与证据已完成，等待复核确认后进入包 3。
 
 已收口专题：
 
@@ -46,7 +46,7 @@
 
 - 美术介质已定为像素 + 2D 俯视网格，机械口径见 [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)；介质证据轮 S1 到 S6 全绿。
 - 首个交付版结构：单基地 + 单远征区 = 同一张无缝地图上的两个区域（2026-07-16 定档），20 到 40 分钟可玩切片；章程见 [复盘文档](../planning/project-purpose-and-solo-ai-development-review.md)。
-- 当前首次外勤战斗与关键样本回收处于包 1 人工闸门；后续候选保留立绘对话框最小接入、角色八方向动画（对角朝向生成风险高、排后续）。
+- 当前首次外勤战斗与关键样本回收处于包 2 人工闸门；后续候选保留立绘对话框最小接入、角色八方向动画（对角朝向生成风险高、排后续）。
 
 ## 历史专题
 
