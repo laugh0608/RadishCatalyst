@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——真实新档 20 到 40 分钟全链串通；包 1 待执行基线与缺口审计。
+当前活跃专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——真实新档 20 到 40 分钟全链串通；包 1 已完成，包 2 待修产线短目标与 HUD 对比度。
 
 已收口专题：
 
