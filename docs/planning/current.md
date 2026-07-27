@@ -1,12 +1,12 @@
 # Current Plan
 
-更新时间：2026-07-26
+更新时间：2026-07-27
 
 ## 入口约束
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)；B2 战斗反馈审阅 / 归一完成，等待独立 C1 关键样本生成，尚未开始玩法实现。
+- 当前活跃专题：[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)；C2 已选定并归一 V2，三类战斗素材硬闸门全部通过，等待独立 D 接入 / 包 1 开工。
 - 最新收口专题：[多世界存档列表](../features/slice-multi-world-save-list-v1.md)（07-26，含目录、列表、暂停返回、动作互斥、保留存档与人工确认）、[L5 反应器接入自动化](../features/slice-reactor-automation-v1.md)与[配方加工 arc](../features/slice-recipe-processing-v1.md)（07-26）、[L4 传送带物流](../features/slice-conveyor-logistics-v1.md)（07-25）；更早专题见 `docs/features/README.md`。
 - 美术介质机械口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一均已定稿）。
 - 章程与复盘结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（已完成，作决策存档）。
@@ -48,14 +48,14 @@
 当前阶段：
 
 ```text
-核心充能后的首次外勤战斗与关键样本回收——等待 C1 关键样本生成
+核心充能后的首次外勤战斗与关键样本回收——等待独立 D 接入 / 包 1 开工
 ```
 
 ## 当前主线
 
 1. 配方加工 arc 与多世界存档均已收口，当前切片具备“工业成果落盘并可从真实列表选择”的稳定起点。
 2. 当前专题只做一次基础敌人遭遇、受击 / 撤离、关键样本回收和基地交付收益；旧战斗运行时均不直接复用。
-3. 首次充能、鼠标战斗、HUD、schema 7、独立素材阶段和三实现包方案已经确认；先过素材硬闸门，再进入代码实施。
+3. 首次充能、鼠标战斗、HUD、schema 7、独立素材阶段和三实现包方案已经确认；素材硬闸门已全部通过，下一阶段只接已审素材并按包 1 边界开工。
 
 ## 边界与冻结
 
@@ -73,6 +73,7 @@
 
 - A2 已选定 V3 并完成三方向四动作、败亡帧、48px 级归一与晶体区联系表硬判；敌人尚未接入运行时。
 - B2 已选定 V2：攻击 4 帧 `96×64`、命中 4 帧 `64×64`，尺寸、色板、Alpha、帧差异、晶体区对比与 HUD 安全区硬判通过；尚未接入运行时。
+- C2 已选定 V2 `31×30` RGBA：九档机械归一与两张晶体区联系表确认 32px 尺度、7 色、Alpha、单一连通、生物样本身份及与玩家 / 敌人 / 晶簇 / 两类货物的分离；尚未接入运行时。
 - 敌人、战斗反馈和关键样本分别完成独立生成与审阅 / 归一硬闸门；未通过的类别不得接入。
 - 素材硬闸门全部通过后进入三实现包；每包保留测试存档并经过真实 `Boot` 有窗口截图和人工复核。
 
