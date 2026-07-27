@@ -11,15 +11,24 @@ var _open := false
 
 @onready var _root: Control = $Root
 @onready var _list: Label = $Root/Box/List
+@onready var _rule: Label = $Root/Box/Rule
 
 
 func setup(world: Node) -> void:
 	_world = world
 	_root.visible = false
-	_world.inventory_changed.connect(_on_inventory_changed)
+	for changed_signal in [
+		_world.inventory_changed,
+		_world.core_storage_changed,
+		_world.building_storage_changed,
+		_world.core_repair_completed,
+		_world.core_charge_changed,
+		_world.placement_changed,
+	]:
+		changed_signal.connect(_on_guidance_changed)
 
 
-func _on_inventory_changed() -> void:
+func _on_guidance_changed(_changed_value = null) -> void:
 	if _open:
 		_refresh()
 
@@ -64,6 +73,7 @@ func is_open() -> bool:
 
 
 func _refresh() -> void:
+	_rule.text = "当前规则：%s" % _world.current_journey_rule_text()
 	var lines: Array[String] = ["【随身合成面板】  B 关闭"]
 	var number := 1
 	for recipe in SliceRecipes.RECIPES:

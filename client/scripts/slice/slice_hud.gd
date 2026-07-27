@@ -13,6 +13,7 @@ var _player: SlicePlayer
 @onready var goal_label: Label = $Goal
 @onready var health_label: Label = $Health
 @onready var combat_label: Label = $CombatState
+@onready var prompt_panel: ColorRect = $PromptPanel
 @onready var enemy_panel: ColorRect = $EnemyPanel
 @onready var enemy_label: Label = $EnemyPanel/EnemyState
 @onready var notice_label: Label = $CombatNotice
@@ -27,6 +28,7 @@ func setup(world: Node, player: SlicePlayer) -> void:
 	world.core_repair_completed.connect(_refresh_state)
 	world.core_charge_changed.connect(_refresh_state)
 	world.placement_changed.connect(_refresh_state)
+	world.building_storage_changed.connect(_refresh_state)
 	world.combat_controller.state_changed.connect(_refresh_state)
 	_refresh_state()
 
@@ -56,18 +58,11 @@ func _refresh_state(_changed_value = null) -> void:
 		_world.combat_controller.attack_status_text(),
 		_world.combat_controller.dodge_status_text(),
 	]
-	if _world.is_core_charged():
-		goal_label.text = "%s｜核心仓库 %d/%d" % [
-			_world.combat_controller.encounter_goal_text(),
-			_world.core_storage.total(), SliceWorld.CORE_STORAGE_CAPACITY
-		]
-	elif _world.core_repaired:
-		goal_label.text = "首次充能：催化剂 %d/%d（核心仓库优先）" % [
-			_world.core_charge_available(), SliceWorld.CORE_CHARGE_TARGET
-		]
-	else:
-		goal_label.text = "合成机械零件修复前哨核心（%d/%d）" % [
-			_world.pocket.count(SliceWorld.ITEM_PART), CoreRepairSite.REPAIR_PART_COST
+	goal_label.text = _world.current_journey_goal_text()
+	if _world.core_repaired:
+		goal_label.text += "｜核心仓库 %d/%d" % [
+			_world.core_storage.total(),
+			SliceWorld.CORE_STORAGE_CAPACITY,
 		]
 	enemy_panel.visible = _world.combat_controller.enemy_hud_visible()
 	if enemy_panel.visible:
@@ -87,6 +82,7 @@ func _process(_delta: float) -> void:
 	if _world == null or _player == null:
 		return
 	if _world.is_placement_active():
+		prompt_panel.visible = true
 		prompt_label.visible = true
 		if _world.is_place_target_valid():
 			prompt_label.text = "按 E 放置%s｜R 旋转｜Esc 取消" % (
@@ -99,9 +95,11 @@ func _process(_delta: float) -> void:
 			]
 		return
 	if _world.is_combat_input_blocked():
+		prompt_panel.visible = false
 		prompt_label.visible = false
 		return
 	var target := _player.current_interact_target()
 	var prompt := "" if target == null else str(target.get_prompt(_world))
 	prompt_label.visible = not prompt.is_empty()
+	prompt_panel.visible = prompt_label.visible
 	prompt_label.text = prompt

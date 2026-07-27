@@ -353,6 +353,97 @@ func powered_relay_count() -> int:
 	return _power_grid.powered_relay_count()
 
 
+## The first playable journey uses a fixed, derived objective sequence. It is
+## intentionally not persisted: authoritative core, building and inventory
+## state always decides the current step after load.
+func current_journey_guidance() -> Dictionary:
+	if is_core_charged():
+		return {
+			"stage": "field",
+			"goal": combat_controller.encounter_goal_text(),
+			"rule": "鼠标左键攻击｜Space 闪避｜按 HUD 目标完成外勤与交付",
+		}
+	if not core_repaired:
+		return {
+			"stage": "repair_core",
+			"goal": "合成机械零件修复前哨核心（%d/%d）" % [
+				pocket.count(ITEM_PART),
+				CoreRepairSite.REPAIR_PART_COST,
+			],
+			"rule": "按 B 合成 3 个机械零件，靠近受损核心按 E 修复",
+		}
+	if core_charge_available() >= core_charge_required():
+		return {
+			"stage": "charge_core",
+			"goal": "基地目标 3/3：返回核心完成首次充能（可用 %d/%d）" % [
+				core_charge_available(),
+				CORE_CHARGE_TARGET,
+			],
+			"rule": "靠近核心按 E 并确认；优先消耗核心仓库，再消耗背包",
+		}
+	var stored_catalyst := _building_storage_item_count(ITEM_CATALYST)
+	if stored_catalyst + core_charge_available() >= core_charge_required():
+		return {
+			"stage": "collect_catalyst",
+			"goal": "基地目标 3/3：从催化剂箱取出产物（箱内 %d｜可用 %d/%d）" % [
+				stored_catalyst,
+				core_charge_available(),
+				CORE_CHARGE_TARGET,
+			],
+			"rule": "靠近催化剂储物箱按 E，再按 6 取出全部催化剂",
+		}
+	if not _has_powered_collector():
+		return {
+			"stage": "power_collector",
+			"goal": "基地目标 1/3：在东侧晶体地放置通电采集器（按 B 合成）",
+			"rule": "采集器只能放晶体地；中继需工业地板，6 格接力、4 格供能",
+		}
+	if not _has_powered_reactor():
+		return {
+			"stage": "power_reactor",
+			"goal": "基地目标 2/3：铺工业地板并放置通电反应器",
+			"rule": "反应器需完整工业地板并通电；按 R 旋转，青色口进料、琥珀口出料",
+		}
+	return {
+		"stage": "run_catalyst_line",
+		"goal": "基地目标 3/3：接好双端物流，产出催化剂 %d/%d" % [
+			core_charge_available() + stored_catalyst,
+			CORE_CHARGE_TARGET,
+		],
+		"rule": "晶体箱 → 带 → 青色入料口｜琥珀出料口 → 带 → 催化剂箱",
+	}
+
+
+func current_journey_goal_text() -> String:
+	return String(current_journey_guidance().get("goal", ""))
+
+
+func current_journey_rule_text() -> String:
+	return String(current_journey_guidance().get("rule", ""))
+
+
+func _has_powered_collector() -> bool:
+	for collector in _collector_nodes:
+		if collector.powered:
+			return true
+	return false
+
+
+func _has_powered_reactor() -> bool:
+	for reactor in _reactor_nodes:
+		if reactor.powered:
+			return true
+	return false
+
+
+func _building_storage_item_count(item_id: String) -> int:
+	var total := 0
+	for instance in _building_instances:
+		if instance is SliceStorage:
+			total += (instance as SliceStorage).inventory.count(item_id)
+	return total
+
+
 func relay_disconnect_impact_count(relay: SliceBuildingInstance) -> int:
 	if (
 		relay == null

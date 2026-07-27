@@ -106,6 +106,7 @@ Boot
 | 地板 / 设施占用索引 | 否 | 从建筑布局重建 |
 | 供电可达性、父边、连线 | 否 | 从核心和中继重建 |
 | 物流邻接、直线 / 转角 / 端点 / 合流外观 | 否 | 从相邻建筑重建 |
+| 首次旅程当前目标与规则 | 否 | 从核心、通电设备、建筑库存、背包和遭遇状态派生 |
 | 阴影、y-sort、状态灯和 ghost | 否 | 纯表现 |
 
 schema 7 延续 schema 6 的设备状态，并新增 `player_health` 与 `field_encounter {state, enemy_health}`。遭遇只取 `locked / hostile / dropped / carried / delivered`；最大生命、敌人存在和样本存在均由该状态派生，不保存平行布尔真相。旧顶层 `catalyst_count` 和 `reactor_active` 仍不写入。

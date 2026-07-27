@@ -6,6 +6,24 @@
 [node name="SliceHud" type="CanvasLayer"]
 script = ExtResource("1_hud_script")
 
+[node name="LeftStatusPanel" type="ColorRect" parent="."]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 1110.0
+offset_bottom = 204.0
+mouse_filter = 2
+color = Color(0.02, 0.045, 0.048, 0.76)
+
+[node name="RightStatusPanel" type="ColorRect" parent="."]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -740.0
+offset_top = 12.0
+offset_right = -16.0
+offset_bottom = 126.0
+mouse_filter = 2
+color = Color(0.02, 0.045, 0.048, 0.76)
+
 [node name="CrystalCount" type="Label" parent="."]
 offset_left = 32.0
 offset_top = 24.0
@@ -106,6 +124,19 @@ theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 27
 text = ""
 horizontal_alignment = 1
+
+[node name="PromptPanel" type="ColorRect" parent="."]
+visible = false
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = -430.0
+offset_right = 430.0
+offset_top = -132.0
+offset_bottom = -66.0
+mouse_filter = 2
+color = Color(0.02, 0.045, 0.048, 0.82)
 
 [node name="Prompt" type="Label" parent="."]
 anchor_left = 0.5
