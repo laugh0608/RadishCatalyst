@@ -28,6 +28,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("craft_menu"):
 		if not _open:
 			_world.close_core_storage()
+			_world.close_core_charge_confirmation()
 			_world.close_building_actions()
 		_open = not _open
 		_root.visible = _open

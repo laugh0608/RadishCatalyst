@@ -1,11 +1,8 @@
 class_name CoreRepairSite
 extends Area2D
 
-## Damaged outpost core: press E to repair it by spending crafted mechanical
-## parts from the backpack (arc L1,
-## docs/features/slice-handheld-crafting-panel-v1.md). Charging and power come
-## with later arc layers. Once repaired, the same site becomes the L2 central
-## warehouse interaction instead of turning into a dead completion prompt.
+## Damaged outpost core interaction. After repair it prioritizes the explicit
+## first-field-charge confirmation, then becomes the central warehouse entry.
 
 const REPAIR_PART_COST := 3
 
@@ -14,6 +11,17 @@ var repaired_texture: Texture2D = preload("res://assets/sprites/slice/outpost_co
 
 func get_prompt(world: Node) -> String:
 	if world.core_repaired:
+		if not world.is_core_charged():
+			var available: int = world.core_charge_available()
+			if world.can_charge_core():
+				return "按 E 首次充能（催化剂 %d/%d）" % [
+					available, SliceWorld.CORE_CHARGE_TARGET
+				]
+			return "首次充能需要 %d 催化剂（核心仓库 + 背包：%d/%d）" % [
+				SliceWorld.CORE_CHARGE_TARGET,
+				available,
+				SliceWorld.CORE_CHARGE_TARGET,
+			]
 		return "按 E 管理核心仓库（直供在线｜%d/%d）" % [
 			world.core_storage.total(), SliceWorld.CORE_STORAGE_CAPACITY
 		]
@@ -25,6 +33,9 @@ func get_prompt(world: Node) -> String:
 
 func try_interact(world: Node) -> void:
 	if world.core_repaired:
+		if not world.is_core_charged():
+			world.open_core_charge_confirmation()
+			return
 		world.open_core_storage()
 		return
 	if not world.spend_pocket_item(SliceWorld.ITEM_PART, REPAIR_PART_COST):

@@ -1,9 +1,8 @@
 class_name SliceHud
 extends CanvasLayer
 
-## Minimal slice HUD: backpack crystal / catalyst / part counts, current goal,
-## building kits and the nearest interactable's prompt. Plain prototype text on
-## the 1920x1080 UI canvas; pixel-styled HUD art is a later topic.
+## Slice HUD combines the established inventory / placement readout with the
+## compact package-1 combat state. Enemy-specific presentation arrives later.
 
 var _world: Node
 var _player: SlicePlayer
@@ -12,6 +11,8 @@ var _player: SlicePlayer
 @onready var part_label: Label = $PartCount
 @onready var kit_label: Label = $KitCount
 @onready var goal_label: Label = $Goal
+@onready var health_label: Label = $Health
+@onready var combat_label: Label = $CombatState
 @onready var prompt_label: Label = $Prompt
 
 
@@ -21,11 +22,13 @@ func setup(world: Node, player: SlicePlayer) -> void:
 	world.inventory_changed.connect(_refresh_state)
 	world.core_storage_changed.connect(_refresh_state)
 	world.core_repair_completed.connect(_refresh_state)
+	world.core_charge_changed.connect(_refresh_state)
 	world.placement_changed.connect(_refresh_state)
+	world.combat_controller.state_changed.connect(_refresh_state)
 	_refresh_state()
 
 
-func _refresh_state() -> void:
+func _refresh_state(_changed_value = null) -> void:
 	crystal_label.text = "背包晶体：%d/%d" % [
 		_world.pocket.count(SliceWorld.ITEM_CRYSTAL), SliceWorld.POCKET_CAPACITY
 	]
@@ -41,9 +44,22 @@ func _refresh_state() -> void:
 		_world.pocket.count(SliceWorld.ITEM_CONVEYOR_KIT),
 		_world.pocket.count(SliceWorld.ITEM_STORAGE_KIT),
 	]
-	if _world.core_repaired:
-		goal_label.text = "核心直供：在线（6 格）｜中央仓库：%d/%d" % [
+	health_label.text = "生命 %d/%d" % [
+		_world.combat_controller.health,
+		_world.combat_controller.max_health,
+	]
+	combat_label.text = "核心：%s｜%s｜闪避：%s" % [
+		"已充能" if _world.is_core_charged() else "未充能",
+		_world.combat_controller.attack_status_text(),
+		_world.combat_controller.dodge_status_text(),
+	]
+	if _world.is_core_charged():
+		goal_label.text = "目标：前往东侧晶体区调查活动迹象｜核心仓库 %d/%d" % [
 			_world.core_storage.total(), SliceWorld.CORE_STORAGE_CAPACITY
+		]
+	elif _world.core_repaired:
+		goal_label.text = "首次充能：催化剂 %d/%d（核心仓库优先）" % [
+			_world.core_charge_available(), SliceWorld.CORE_CHARGE_TARGET
 		]
 	else:
 		goal_label.text = "合成机械零件修复前哨核心（%d/%d）" % [
@@ -53,9 +69,6 @@ func _refresh_state() -> void:
 
 func _process(_delta: float) -> void:
 	if _world == null or _player == null:
-		return
-	if _world.is_building_actions_open():
-		prompt_label.visible = false
 		return
 	if _world.is_placement_active():
 		prompt_label.visible = true
@@ -68,6 +81,9 @@ func _process(_delta: float) -> void:
 				_world.selected_building_name(),
 				_world.placement_invalid_reason()
 			]
+		return
+	if _world.is_combat_input_blocked():
+		prompt_label.visible = false
 		return
 	var target := _player.current_interact_target()
 	var prompt := "" if target == null else str(target.get_prompt(_world))

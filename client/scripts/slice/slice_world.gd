@@ -19,8 +19,10 @@ const PLAYER_SCENE := "res://scenes/slice/SlicePlayer.tscn"
 const HUD_SCENE := "res://scenes/slice/SliceHud.tscn"
 const CRAFT_PANEL_SCENE := "res://scenes/slice/SliceCraftPanel.tscn"
 const CORE_STORAGE_PANEL_SCENE := "res://scenes/slice/SliceCoreStoragePanel.tscn"
+const CORE_CHARGE_PANEL_SCENE := "res://scenes/slice/SliceCoreChargePanel.tscn"
 const BUILDING_ACTION_PANEL_SCENE := "res://scenes/slice/SliceBuildingActionPanel.tscn"
 const PAUSE_MENU_SCENE := "res://scenes/slice/SlicePauseMenu.tscn"
+const COMBAT_CONTROLLER_SCENE := "res://scenes/slice/SliceCombatController.tscn"
 const REPAIRED_CORE_TEXTURE := preload("res://assets/sprites/slice/outpost_core_repaired.png")
 const MAP_PIXEL_SIZE := Vector2i(2560, 768)
 const START_SPAWN := Vector2(400, 576)
@@ -44,7 +46,7 @@ const REACTOR_INPUT_PER_BATCH := 2
 const REACTOR_OUTPUT_PER_BATCH := 1
 const REACTOR_PRODUCE_INTERVAL := 10.0
 const CATALYST_CAP := 20
-const CORE_CHARGE_TARGET := 10
+const CORE_CHARGE_TARGET := 2
 const ROCK_GROUND_SOURCE_ID := 0
 const CRYSTAL_GROUND_SOURCE_ID := 2
 const CORE_LINK_ANCHOR_OFFSET := Vector2(0, -32)
@@ -73,6 +75,7 @@ var reactor_active := false
 var harvested_clusters: Array[String] = []
 
 var player: SlicePlayer
+var combat_controller: SliceCombatController
 
 ## Injected by Boot so menu summary and world reads/writes share one service.
 ## Standalone scene checks keep the production default unless they replace it.
@@ -80,6 +83,7 @@ var save_service := SliceSaveService.new()
 var _map: Node2D
 var _craft_panel: SliceCraftPanel
 var _core_storage_panel: SliceCoreStoragePanel
+var _core_charge_panel: SliceCoreChargePanel
 var _building_action_panel: SliceBuildingActionPanel
 var pause_menu: SlicePauseMenu
 var _ground: TileMapLayer
@@ -114,6 +118,12 @@ func _ready() -> void:
 	player.world = self
 	world_node.add_child(player)
 	player.position = START_SPAWN
+	combat_controller = (
+		(load(COMBAT_CONTROLLER_SCENE) as PackedScene).instantiate()
+		as SliceCombatController
+	)
+	world_node.add_child(combat_controller)
+	combat_controller.setup(self, player)
 
 	var camera := player.get_node("Camera") as Camera2D
 	camera.limit_left = 0
@@ -132,6 +142,13 @@ func _ready() -> void:
 	_core_storage_panel = (load(CORE_STORAGE_PANEL_SCENE) as PackedScene).instantiate() as SliceCoreStoragePanel
 	add_child(_core_storage_panel)
 	_core_storage_panel.setup(self)
+
+	_core_charge_panel = (
+		(load(CORE_CHARGE_PANEL_SCENE) as PackedScene).instantiate()
+		as SliceCoreChargePanel
+	)
+	add_child(_core_charge_panel)
+	_core_charge_panel.setup(self)
 
 	_building_action_panel = (
 		(load(BUILDING_ACTION_PANEL_SCENE) as PackedScene).instantiate()
@@ -157,6 +174,7 @@ func _ready() -> void:
 
 	if startup_load:
 		_restore_from_save()
+	_refresh_core_charge_visual()
 	_rebuild_power_grid()
 	_rebuild_logistics_grid()
 
@@ -205,6 +223,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_craft_panel.close()
 		elif is_core_storage_open():
 			close_core_storage()
+		elif is_core_charge_confirmation_open():
+			close_core_charge_confirmation()
 		elif is_building_actions_open():
 			close_building_actions()
 		elif pause_menu != null:
@@ -303,6 +323,7 @@ func spend_pocket_item(item: String, amount: int) -> bool:
 
 func mark_core_repaired() -> void:
 	core_repaired = true
+	_refresh_core_charge_visual()
 	_rebuild_power_grid()
 	core_repair_completed.emit()
 	_autosave()
@@ -364,6 +385,7 @@ func open_core_storage() -> bool:
 		return false
 	if _craft_panel != null:
 		_craft_panel.close()
+	close_core_charge_confirmation()
 	close_building_actions()
 	_core_storage_panel.open()
 	return true
@@ -376,6 +398,29 @@ func close_core_storage() -> void:
 
 func is_core_storage_open() -> bool:
 	return _core_storage_panel != null and _core_storage_panel.is_open()
+
+
+func open_core_charge_confirmation() -> bool:
+	if not can_charge_core() or _core_charge_panel == null:
+		return false
+	close_core_storage()
+	close_building_actions()
+	if _craft_panel != null:
+		_craft_panel.close()
+	_core_charge_panel.open()
+	return true
+
+
+func close_core_charge_confirmation() -> void:
+	if _core_charge_panel != null:
+		_core_charge_panel.close()
+
+
+func is_core_charge_confirmation_open() -> bool:
+	return (
+		_core_charge_panel != null
+		and _core_charge_panel.is_open()
+	)
 
 
 ## Moves as much of one item as possible from the backpack into the repaired
@@ -509,19 +554,79 @@ func is_core_charged() -> bool:
 	return core_energy >= CORE_CHARGE_TARGET
 
 
-## Inject stored catalyst into the repaired core, advancing core_energy toward
-## CORE_CHARGE_TARGET. Catalyst is still the abstract count in package 1; L0
-## package 2 sources it from the core store inventory instead.
+func core_charge_required() -> int:
+	return maxi(0, CORE_CHARGE_TARGET - core_energy)
+
+
+func core_charge_available() -> int:
+	return (
+		core_storage.count(ITEM_CATALYST)
+		+ pocket.count(ITEM_CATALYST)
+	)
+
+
+func can_charge_core() -> bool:
+	return (
+		core_repaired
+		and not is_core_charged()
+		and core_charge_available() >= core_charge_required()
+	)
+
+
+func confirm_core_charge() -> bool:
+	var charged := charge_core()
+	if charged:
+		close_core_charge_confirmation()
+	return charged
+
+
+## Deterministically consumes the repaired core's authoritative inventories:
+## central storage first, backpack second. The operation is all-or-nothing.
 func charge_core() -> bool:
-	if not core_repaired or is_core_charged() or catalyst_count <= 0:
+	if not can_charge_core():
 		return false
-	var used := mini(catalyst_count, CORE_CHARGE_TARGET - core_energy)
-	catalyst_count -= used
-	core_energy += used
-	catalyst_changed.emit(catalyst_count)
+	var required := core_charge_required()
+	var from_core := mini(required, core_storage.count(ITEM_CATALYST))
+	var from_pocket := required - from_core
+	if from_core > 0:
+		core_storage.remove(ITEM_CATALYST, from_core)
+	if from_pocket > 0:
+		pocket.remove(ITEM_CATALYST, from_pocket)
+	core_energy += required
+	if from_core > 0:
+		core_storage_changed.emit()
+	if from_pocket > 0:
+		inventory_changed.emit()
 	core_charge_changed.emit(core_energy)
+	_refresh_core_charge_visual()
 	_autosave()
 	return true
+
+
+func is_combat_input_blocked() -> bool:
+	return (
+		is_placement_active()
+		or (_craft_panel != null and _craft_panel.is_open())
+		or is_core_storage_open()
+		or is_core_charge_confirmation_open()
+		or is_building_actions_open()
+		or (pause_menu != null and pause_menu.is_open())
+	)
+
+
+func _refresh_core_charge_visual() -> void:
+	if _map == null:
+		return
+	var core := _map.get_node_or_null(
+		"World/OutpostCoreDamaged"
+	) as Sprite2D
+	if core == null:
+		return
+	core.self_modulate = (
+		Color(0.76, 1.0, 0.94, 1.0)
+		if is_core_charged()
+		else Color.WHITE
+	)
 
 
 ## Craft a recipe into ordinary backpack items. Building recipes create one or
@@ -578,6 +683,7 @@ func begin_building_placement(building_id: String) -> bool:
 	if _adjustment_instance != null:
 		cancel_building_placement()
 	close_core_storage()
+	close_core_charge_confirmation()
 	close_building_actions()
 	if _craft_panel != null:
 		_craft_panel.close()
@@ -667,6 +773,7 @@ func open_building_actions(instance: SliceBuildingInstance) -> void:
 	if is_placement_active():
 		return
 	close_core_storage()
+	close_core_charge_confirmation()
 	if _craft_panel != null:
 		_craft_panel.close()
 	_building_action_panel.open(instance)
@@ -1089,6 +1196,7 @@ func _restore_from_save() -> void:
 		var core := world_node.get_node_or_null("OutpostCoreDamaged") as Sprite2D
 		if core != null:
 			core.texture = REPAIRED_CORE_TEXTURE
+	_refresh_core_charge_visual()
 
 	player.position = Vector2(
 		float(data.get("player_x", START_SPAWN.x)),
