@@ -1,6 +1,6 @@
 # Spatial Factory Retest Baselines
 
-更新时间：2026-07-25
+更新时间：2026-07-27
 
 ## 文档目的
 
@@ -79,6 +79,25 @@ Boot → 新游戏
 - 电网与物流拓扑由布局重建，结果与保存前一致。
 - 坏主档能读取备份；不兼容候选不会替换当前运行状态。
 
+### 首次充能、外勤与样本交付
+
+用途：修改催化剂扣料、玩家输入、战斗、敌人、样本、生命或 schema 7 时。
+
+- 从核心仓库与背包合计准备 2 份催化剂，经核心确认面板完成一次性充能。
+- 核对 `WASD` 移动与鼠标瞄准解耦、左键单击 / 按住攻击、`Space` 闪避无敌和前台 UI 输入互斥。
+- 至少覆盖一次受击撤离与重新交战；击败唯一敌人后只能生成一份样本。
+- 样本经历 `dropped → carried → delivered`，核心交付优先于仓库操作，完成后生命为 `120/120`。
+- 在 hostile、dropped、carried、delivered 中选取受影响状态重启，核对敌人 / 样本存在、生命和世界摘要一致。
+
+### 真实新档全链
+
+用途：修改资源预算、旅程目标、HUD、建造节奏或阶段退出条件时。
+
+- 从真实 `Boot → 新建世界` 出发，不注入最终库存、建筑、战斗或交付状态。
+- 完成修核心、通电采集、供电反应器、双端物流、2 催化剂、充能、战斗、样本交付和一次中途重启。
+- 核对派生目标按权威状态前进，HUD / 提示在基地和晶体区不截断、不遮挡主要操作视野。
+- 自动链记录资源、交互、放置和最低生产等待；20 到 40 分钟与无需口头指导必须由人工路径确认。
+
 ### 视觉遮挡
 
 用途：修改世界 sprite、锚点、阴影、y-sort、ghost 或动态连线时。
@@ -111,5 +130,9 @@ sh ./scripts/check-client.sh --with-godot
 - `slice_power_grid_check.gd`
 - `slice_logistics_check.gd`
 - `slice_save_schema_check.gd`
+- `slice_combat_package1_check.gd`
+- `slice_combat_package2_check.gd`
+- `slice_combat_package3_check.gd`
+- `slice_first_playable_journey_check.gd`
 
 有窗口正式入口脚本默认放在 `/private/tmp`；只有形成稳定、可重复的规则价值时才接入仓库检查。

@@ -14,6 +14,10 @@
 - `client/scripts/slice/slice_power_grid.gd`
 - `client/scripts/slice/slice_logistics_grid.gd`
 - `client/scripts/slice/slice_reactor.gd`
+- `client/scripts/slice/slice_player.gd`
+- `client/scripts/slice/slice_combat_controller.gd`
+- `client/scripts/slice/slice_field_enemy.gd`
+- `client/scripts/slice/slice_hud.gd`
 - `client/scripts/slice/slice_save_catalog.gd`
 - `client/scripts/slice/slice_save_service.gd`
 - `client/scripts/slice/slice_building_save_codec.gd`
@@ -90,6 +94,13 @@ Boot
 - 满载或占用形成回压，货物停在输出边缘。
 
 `SliceConveyor` 只持有单格货物、进度、轮询游标和表现所需的入口方向；拓扑种类和邻接由网格重建。
+
+### 外勤战斗与旅程引导
+
+- `SlicePlayer` 负责移动、鼠标瞄准及未被前台 UI 消费的攻击 / 闪避意图，不拥有敌人或任务状态。
+- `SliceCombatController` 拥有攻击节拍、闪避无敌、玩家生命和五态外勤遭遇；`SliceFieldEnemy` 只负责单敌人的警戒、追击、蓄势、恢复、回巢、受击与败亡。
+- `SliceWorld` 只编排首次充能扣料、样本交付、离散事件自动保存和节点装配，不承载敌人 AI。
+- `SliceHud` 与合成面板读取 `current_journey_guidance()`；当前目标和规则从权威世界状态派生，不保存阶段编号或平行任务进度。
 
 ## 权威状态与派生状态
 
@@ -173,3 +184,5 @@ schema `4` 把旧采集器列表迁移为统一建筑拓扑；schema `5` 增加�
 5. 扩展匹配的放置、操作、供电、物流和 schema 检查。
 
 战斗与样本权威状态已进入选中世界的 schema 7，并沿用候选校验 / 备份链；`metadata.json` 只保存列表摘要，不得成为玩法真相源。后续不得把它拆成跨世界共享角色档，或重新把旧全局催化剂计数作为权威状态。
+
+2026-07-27 日终审计时 `SliceWorld` 已达 1398 行。后续新增鼠标放置、范围预览、HUD 或旅程反馈时，应优先提取放置输入 / 预览或目标派生组件，不得越过 1500 行硬上限继续扩写世界编排器。

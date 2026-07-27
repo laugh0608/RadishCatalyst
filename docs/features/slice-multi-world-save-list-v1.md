@@ -2,7 +2,7 @@
 
 更新时间：2026-07-26
 
-状态：**已收口（2026-07-26）**。承接已收口的 [Slice Save Persistence V1](slice-save-persistence-v1.md) 与 [配方加工 arc](slice-recipe-processing-v1.md)，把单个自动存档升级为最多 30 个彼此隔离、可选择、可命名并可供自动化复核的本地世界。
+状态：**已收口（2026-07-26）**。承接已收口的 [Slice Save Persistence V1](slice-save-persistence-v1.md) 与 [配方加工 arc](slice-recipe-processing-v1.md)，把单个自动存档升级为最多 30 个彼此隔离、可选择、可命名并可供自动化复核的本地世界。本文记录目录功能在 schema 6 时的实现边界；外勤专题随后把世界状态升至 schema 7，目录所有权与三份备份规则不变，当前口径见 [Slice Runtime Systems](../architecture/slice-runtime-systems.md)。
 
 ## 玩家结果
 

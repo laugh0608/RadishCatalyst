@@ -2,7 +2,7 @@
 
 更新时间：2026-07-21
 
-状态：配方加工 arc 的 **L1 手持合成面板**可执行细专题，已于 2026-07-21 经萝卜SAMA实机确认收口。承接 [L0 库存模型](slice-item-inventory-model-v1.md)（背包空间物品）；下一层进入 [L2 核心功能化](slice-core-functionalization-v1.md)。arc 总览与层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
+状态：配方加工 arc 的 **L1 手持合成面板**可执行细专题，已于 2026-07-21 经萝卜SAMA实机确认收口。承接 [L0 库存模型](slice-item-inventory-model-v1.md)（背包空间物品）；下一层进入 [L2 核心功能化](slice-core-functionalization-v1.md)。arc 总览与层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。后续 L3 已把面板扩为七项配方，全链包 2 又增加当前规则行；面板仍是纯文字原型，2026-07-27 人工反馈已把图形化建造 / 背包列为独立 `P2` UI 候选。
 
 ## 定位
 

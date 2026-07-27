@@ -8,6 +8,6 @@
 
 ## 子文档
 
-- [Slice Runtime Systems](slice-runtime-systems.md)：当前正式 `Boot → SliceWorld` 的建筑、供电、物流、时间推进和切片存档边界。
+- [Slice Runtime Systems](slice-runtime-systems.md)：当前正式 `Boot → SliceWorld` 的建筑、供电、物流、外勤战斗、派生旅程引导、时间推进和切片存档边界。
 - [冻结旧纵切运行时总览](runtime-systems-summary.md)：`GameRoot + VerticalSliceMap` 系统组成、职责和直接真相源。
 - [冻结旧纵切数据流与硬边界](runtime-dataflow-and-boundaries.md)：旧纵切关键数据流、硬边界和扩内容结论。
