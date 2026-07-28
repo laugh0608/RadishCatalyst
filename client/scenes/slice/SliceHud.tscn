@@ -1,155 +1,433 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/slice/slice_hud.gd" id="1_hud_script"]
 [ext_resource type="Theme" path="res://assets/themes/ui_theme.tres" id="2_ui_theme"]
+[ext_resource type="Texture2D" path="res://assets/sprites/slice/cargo_crystal.png" id="3_crystal"]
+[ext_resource type="Texture2D" path="res://assets/sprites/slice/cargo_catalyst.png" id="4_catalyst"]
+[ext_resource type="Texture2D" path="res://assets/icons/slice_mechanical_part.svg" id="5_part"]
+[ext_resource type="Texture2D" path="res://assets/sprites/slice/engineer.png" id="6_engineer"]
+
+[sub_resource type="StyleBoxFlat" id="StyleMission"]
+bg_color = Color(0.018, 0.043, 0.046, 0.92)
+border_width_left = 5
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.76, 0.55, 0.25, 0.9)
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleStatus"]
+bg_color = Color(0.018, 0.043, 0.046, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.23, 0.48, 0.48, 0.78)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_left = 5
+corner_radius_bottom_right = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleResourceSlot"]
+bg_color = Color(0.045, 0.09, 0.09, 0.94)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.21, 0.42, 0.42, 0.8)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_left = 3
+corner_radius_bottom_right = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleHealthBackground"]
+bg_color = Color(0.06, 0.11, 0.11, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.2, 0.38, 0.38, 0.9)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_left = 2
+corner_radius_bottom_right = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleHealthFill"]
+bg_color = Color(0.26, 0.72, 0.52, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_left = 2
+corner_radius_bottom_right = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleEnemy"]
+bg_color = Color(0.05, 0.035, 0.035, 0.94)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.72, 0.35, 0.28, 0.9)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleEnemyFill"]
+bg_color = Color(0.77, 0.32, 0.24, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_left = 2
+corner_radius_bottom_right = 2
+
+[sub_resource type="StyleBoxFlat" id="StylePrompt"]
+bg_color = Color(0.018, 0.043, 0.046, 0.94)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.4, 0.65, 0.62, 0.82)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_left = 5
+corner_radius_bottom_right = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleKeycap"]
+bg_color = Color(0.76, 0.56, 0.25, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.98, 0.82, 0.48, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
 
 [node name="SliceHud" type="CanvasLayer"]
 script = ExtResource("1_hud_script")
 
-[node name="LeftStatusPanel" type="ColorRect" parent="."]
+[node name="LeftStatusPanel" type="Panel" parent="."]
 offset_left = 16.0
-offset_top = 12.0
-offset_right = 930.0
-offset_bottom = 126.0
+offset_top = 16.0
+offset_right = 756.0
+offset_bottom = 98.0
 mouse_filter = 2
-color = Color(0.02, 0.045, 0.048, 0.76)
+theme_override_styles/panel = SubResource("StyleMission")
 
-[node name="RightStatusPanel" type="ColorRect" parent="."]
+[node name="MissionTag" type="Label" parent="LeftStatusPanel"]
+layout_mode = 0
+offset_left = 22.0
+offset_top = 11.0
+offset_right = 134.0
+offset_bottom = 38.0
+theme = ExtResource("2_ui_theme")
+theme_override_colors/font_color = Color(0.94, 0.76, 0.41, 1)
+theme_override_font_sizes/font_size = 18
+text = "当前任务"
+
+[node name="Goal" type="Label" parent="LeftStatusPanel"]
+layout_mode = 0
+offset_left = 22.0
+offset_top = 37.0
+offset_right = 718.0
+offset_bottom = 72.0
+theme = ExtResource("2_ui_theme")
+theme_override_colors/font_color = Color(0.88, 0.95, 0.9, 1)
+theme_override_font_sizes/font_size = 24
+text = "合成机械零件修复前哨核心（0/3）"
+text_overrun_behavior = 3
+
+[node name="RightStatusPanel" type="Panel" parent="."]
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -560.0
-offset_top = 12.0
+offset_left = -604.0
+offset_top = 16.0
 offset_right = -16.0
-offset_bottom = 108.0
+offset_bottom = 98.0
+grow_horizontal = 0
 mouse_filter = 2
-color = Color(0.02, 0.045, 0.048, 0.76)
+theme_override_styles/panel = SubResource("StyleStatus")
 
-[node name="CrystalCount" type="Label" parent="."]
-offset_left = 32.0
-offset_top = 24.0
-offset_right = 900.0
-offset_bottom = 58.0
+[node name="InventoryTag" type="Label" parent="RightStatusPanel"]
+layout_mode = 0
+offset_left = 18.0
+offset_top = 9.0
+offset_right = 150.0
+offset_bottom = 32.0
 theme = ExtResource("2_ui_theme")
-theme_override_font_sizes/font_size = 26
-text = "晶体 0/30｜催化剂 0｜零件 0"
+theme_override_colors/font_color = Color(0.55, 0.78, 0.75, 1)
+theme_override_font_sizes/font_size = 16
+text = "随身物资"
 
-[node name="PartCount" type="Label" parent="."]
-visible = false
-offset_left = 32.0
-offset_top = 74.0
-offset_right = 480.0
-offset_bottom = 112.0
+[node name="CrystalSlot" type="Panel" parent="RightStatusPanel"]
+layout_mode = 0
+offset_left = 146.0
+offset_top = 10.0
+offset_right = 286.0
+offset_bottom = 72.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleResourceSlot")
+
+[node name="Icon" type="TextureRect" parent="RightStatusPanel/CrystalSlot"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 50.0
+offset_bottom = 52.0
+texture_filter = 1
+texture = ExtResource("3_crystal")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CrystalCount" type="Label" parent="RightStatusPanel/CrystalSlot"]
+layout_mode = 0
+offset_left = 55.0
+offset_top = 7.0
+offset_right = 130.0
+offset_bottom = 52.0
 theme = ExtResource("2_ui_theme")
-theme_override_font_sizes/font_size = 30
-text = "背包零件：0"
+theme_override_colors/font_color = Color(0.62, 0.95, 0.91, 1)
+theme_override_font_sizes/font_size = 24
+text = "0/30"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CatalystSlot" type="Panel" parent="RightStatusPanel"]
+layout_mode = 0
+offset_left = 294.0
+offset_top = 10.0
+offset_right = 424.0
+offset_bottom = 72.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleResourceSlot")
+
+[node name="Icon" type="TextureRect" parent="RightStatusPanel/CatalystSlot"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 12.0
+offset_right = 52.0
+offset_bottom = 50.0
+texture_filter = 1
+texture = ExtResource("4_catalyst")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CatalystCount" type="Label" parent="RightStatusPanel/CatalystSlot"]
+layout_mode = 0
+offset_left = 58.0
+offset_top = 7.0
+offset_right = 120.0
+offset_bottom = 52.0
+theme = ExtResource("2_ui_theme")
+theme_override_colors/font_color = Color(0.96, 0.75, 0.36, 1)
+theme_override_font_sizes/font_size = 25
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PartSlot" type="Panel" parent="RightStatusPanel"]
+layout_mode = 0
+offset_left = 432.0
+offset_top = 10.0
+offset_right = 570.0
+offset_bottom = 72.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleResourceSlot")
+
+[node name="Icon" type="TextureRect" parent="RightStatusPanel/PartSlot"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 52.0
+offset_bottom = 52.0
+texture_filter = 1
+texture = ExtResource("5_part")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PartCount" type="Label" parent="RightStatusPanel/PartSlot"]
+layout_mode = 0
+offset_left = 58.0
+offset_top = 7.0
+offset_right = 128.0
+offset_bottom = 52.0
+theme = ExtResource("2_ui_theme")
+theme_override_colors/font_color = Color(0.94, 0.82, 0.56, 1)
+theme_override_font_sizes/font_size = 25
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="KitCount" type="Label" parent="."]
 visible = false
-offset_left = 32.0
-offset_top = 112.0
-offset_right = 920.0
-offset_bottom = 150.0
-theme = ExtResource("2_ui_theme")
-theme_override_font_sizes/font_size = 24
-text = "套件：地0 采0 反0 中0 带0 箱0"
+offset_right = 1.0
+offset_bottom = 1.0
+text = ""
 
-[node name="Goal" type="Label" parent="."]
-offset_left = 32.0
-offset_top = 68.0
-offset_right = 900.0
-offset_bottom = 112.0
-theme = ExtResource("2_ui_theme")
-theme_override_font_sizes/font_size = 24
-text = "合成机械零件修复前哨核心（0/3）"
+[node name="PlayerStatusPanel" type="Panel" parent="."]
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -114.0
+offset_right = 580.0
+offset_bottom = -16.0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleStatus")
 
-[node name="Health" type="Label" parent="."]
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -360.0
-offset_top = 24.0
-offset_right = -32.0
-offset_bottom = 58.0
+[node name="Portrait" type="TextureRect" parent="PlayerStatusPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 9.0
+offset_right = 74.0
+offset_bottom = 89.0
+texture_filter = 1
+texture = ExtResource("6_engineer")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RoleLabel" type="Label" parent="PlayerStatusPanel"]
+layout_mode = 0
+offset_left = 88.0
+offset_top = 9.0
+offset_right = 254.0
+offset_bottom = 34.0
 theme = ExtResource("2_ui_theme")
-theme_override_colors/font_color = Color(0.78, 0.94, 0.9, 1)
-theme_override_font_sizes/font_size = 27
+theme_override_colors/font_color = Color(0.58, 0.82, 0.78, 1)
+theme_override_font_sizes/font_size = 17
+text = "前哨工程员"
+
+[node name="HealthBar" type="ProgressBar" parent="PlayerStatusPanel"]
+layout_mode = 0
+offset_left = 88.0
+offset_top = 38.0
+offset_right = 384.0
+offset_bottom = 61.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleHealthBackground")
+theme_override_styles/fill = SubResource("StyleHealthFill")
+value = 100.0
+show_percentage = false
+
+[node name="Health" type="Label" parent="PlayerStatusPanel"]
+layout_mode = 0
+offset_left = 398.0
+offset_top = 32.0
+offset_right = 548.0
+offset_bottom = 65.0
+theme = ExtResource("2_ui_theme")
+theme_override_colors/font_color = Color(0.77, 0.94, 0.87, 1)
+theme_override_font_sizes/font_size = 21
 text = "生命 100/100"
 horizontal_alignment = 2
 
-[node name="CombatState" type="Label" parent="."]
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -530.0
-offset_top = 62.0
-offset_right = -32.0
-offset_bottom = 96.0
+[node name="CombatState" type="Label" parent="PlayerStatusPanel"]
+layout_mode = 0
+offset_left = 88.0
+offset_top = 67.0
+offset_right = 548.0
+offset_bottom = 91.0
 theme = ExtResource("2_ui_theme")
-theme_override_colors/font_color = Color(0.68, 0.82, 0.78, 1)
-theme_override_font_sizes/font_size = 20
-text = "核心：未充能｜工具锁定｜闪避：未解锁"
-horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.72, 0.82, 0.78, 1)
+theme_override_font_sizes/font_size = 16
+text = "核心：未充能  ·  工具锁定  ·  闪避：未解锁"
+text_overrun_behavior = 3
 
-[node name="EnemyPanel" type="ColorRect" parent="."]
+[node name="EnemyPanel" type="Panel" parent="."]
 visible = false
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -230.0
-offset_top = 142.0
-offset_right = 230.0
-offset_bottom = 202.0
-theme = ExtResource("2_ui_theme")
-color = Color(0.02, 0.05, 0.052, 0.88)
+offset_left = -270.0
+offset_top = 122.0
+offset_right = 270.0
+offset_bottom = 194.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleEnemy")
 
 [node name="EnemyState" type="Label" parent="EnemyPanel"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(0.82, 0.92, 0.76, 1)
-theme_override_font_sizes/font_size = 25
-text = "裂晶爬兽  60/60｜警戒"
+layout_mode = 0
+offset_left = 18.0
+offset_top = 8.0
+offset_right = 522.0
+offset_bottom = 36.0
+theme = ExtResource("2_ui_theme")
+theme_override_colors/font_color = Color(0.96, 0.77, 0.63, 1)
+theme_override_font_sizes/font_size = 20
+text = "裂晶爬兽  ·  警戒  ·  60/60"
 horizontal_alignment = 1
-vertical_alignment = 1
+
+[node name="HealthBar" type="ProgressBar" parent="EnemyPanel"]
+layout_mode = 0
+offset_left = 18.0
+offset_top = 43.0
+offset_right = 522.0
+offset_bottom = 59.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleHealthBackground")
+theme_override_styles/fill = SubResource("StyleEnemyFill")
+value = 100.0
+show_percentage = false
 
 [node name="CombatNotice" type="Label" parent="."]
 visible = false
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -500.0
-offset_top = 218.0
+offset_top = 212.0
 offset_right = 500.0
-offset_bottom = 264.0
+offset_bottom = 256.0
+grow_horizontal = 2
 theme = ExtResource("2_ui_theme")
-theme_override_colors/font_color = Color(0.92, 0.88, 0.68, 1)
-theme_override_colors/font_outline_color = Color(0.02, 0.04, 0.04, 0.95)
+theme_override_colors/font_color = Color(0.96, 0.86, 0.62, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.04, 0.04, 0.96)
 theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 27
+theme_override_font_sizes/font_size = 25
 text = ""
 horizontal_alignment = 1
 
-[node name="PromptPanel" type="ColorRect" parent="."]
+[node name="PromptPanel" type="Panel" parent="."]
 visible = false
 anchor_left = 0.5
-anchor_right = 0.5
 anchor_top = 1.0
+anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -430.0
-offset_right = 430.0
-offset_top = -132.0
-offset_bottom = -66.0
+offset_left = -340.0
+offset_top = -96.0
+offset_right = 568.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
 mouse_filter = 2
-color = Color(0.02, 0.045, 0.048, 0.82)
+theme_override_styles/panel = SubResource("StylePrompt")
 
-[node name="Prompt" type="Label" parent="."]
-anchor_left = 0.5
-anchor_right = 0.5
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = -400.0
-offset_right = 400.0
-offset_top = -120.0
-offset_bottom = -76.0
+[node name="PromptKey" type="Panel" parent="PromptPanel"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 12.0
+offset_right = 66.0
+offset_bottom = 64.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleKeycap")
+
+[node name="Label" type="Label" parent="PromptPanel/PromptKey"]
+layout_mode = 0
 theme = ExtResource("2_ui_theme")
-theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(0.08, 0.12, 0.12, 1)
+theme_override_font_sizes/font_size = 25
+text = "E"
 horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Prompt" type="Label" parent="PromptPanel"]
+layout_mode = 0
+offset_left = 82.0
+offset_top = 10.0
+offset_right = 888.0
+offset_bottom = 66.0
+theme = ExtResource("2_ui_theme")
+theme_override_colors/font_color = Color(0.88, 0.95, 0.9, 1)
+theme_override_font_sizes/font_size = 22
 text = ""
+vertical_alignment = 1
+text_overrun_behavior = 3

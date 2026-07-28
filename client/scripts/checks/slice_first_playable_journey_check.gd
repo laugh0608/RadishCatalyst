@@ -70,9 +70,29 @@ func _run() -> void:
 		"complete kit inventory stays in the contextual craft panel"
 	)
 	_expect_equal(
-		hud.crystal_label.text.contains("催化剂 0｜零件 0"),
+		hud.crystal_label.text == "0/30"
+		and hud.catalyst_label.text == "0"
+		and hud.part_label.text == "0",
 		true,
-		"compact resource row keeps all journey-critical inventory"
+		"separate resource slots keep all journey-critical inventory"
+	)
+	_expect_equal(
+		(hud.get_node("RightStatusPanel/CrystalSlot/Icon") as TextureRect).texture
+		!= null
+		and (
+			hud.get_node("RightStatusPanel/CatalystSlot/Icon") as TextureRect
+		).texture != null
+		and (
+			hud.get_node("RightStatusPanel/PartSlot/Icon") as TextureRect
+		).texture != null,
+		true,
+		"every journey resource slot has a graphical identity"
+	)
+	_expect_equal(
+		hud.health_bar.value == 100.0
+		and hud.health_bar.max_value == 100.0,
+		true,
+		"player health uses a synchronized visible bar"
 	)
 
 	world.mark_core_repaired()
@@ -182,7 +202,13 @@ func _run() -> void:
 	_expect_equal(
 		hud.prompt_panel.visible,
 		true,
-		"placement guidance enables its contrast panel"
+		"placement guidance enables its keycap panel"
+	)
+	_expect_equal(
+		not hud.prompt_label.text.begins_with("按 E")
+		and hud.prompt_label.text.contains("R 旋转"),
+		true,
+		"placement keycap stays separate from the actionable prompt body"
 	)
 	world._placement.cancel()
 	hud._process(0.0)
@@ -203,27 +229,37 @@ func _check_contrast_panels(hud: SliceHud) -> void:
 	for node_name in [
 		"LeftStatusPanel",
 		"RightStatusPanel",
+		"PlayerStatusPanel",
 		"PromptPanel",
 	]:
-		var panel := hud.get_node_or_null(node_name) as ColorRect
+		var panel := hud.get_node_or_null(node_name) as Panel
 		_expect_equal(panel != null, true, "%s exists" % node_name)
 		if panel != null:
+			var style := panel.get_theme_stylebox("panel") as StyleBoxFlat
 			_expect_equal(
-				panel.color.a >= 0.7,
+				style != null and style.bg_color.a >= 0.85,
 				true,
-				"%s has a stable high-contrast alpha" % node_name
+				"%s uses an opaque game-component shell" % node_name
 			)
 	_expect_equal(
-		hud.get_node("LeftStatusPanel").get_index()
-		< hud.crystal_label.get_index(),
+		hud.get_node("LeftStatusPanel").size.x < 800.0
+		and hud.get_node("RightStatusPanel").size.x < 640.0,
 		true,
-		"left contrast panel renders behind resource text"
+		"top components stay bounded to their safe corners"
 	)
 	_expect_equal(
-		hud.get_node("RightStatusPanel").get_index()
-		< hud.health_label.get_index(),
+		hud.enemy_health_bar != null
+		and hud.get_node("PromptPanel/PromptKey") is Panel,
 		true,
-		"right contrast panel renders behind combat text"
+		"conditional combat and interaction components use bars and keycaps"
+	)
+	var player_panel := hud.get_node("PlayerStatusPanel") as Panel
+	var prompt_panel := hud.get_node("PromptPanel") as Panel
+	_expect_equal(
+		prompt_panel.position.x
+		>= player_panel.position.x + player_panel.size.x + 24.0,
+		true,
+		"bottom prompt stays clear of the player status component"
 	)
 
 

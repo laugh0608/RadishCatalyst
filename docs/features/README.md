@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-07-27
+更新时间：2026-07-28
 
 ## 用途
 
@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——真实新档 20 到 40 分钟全链串通；包 2 人工计时达标，但体验阻力待归因和修正，尚未进入包 3。
+当前阶段专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——真实新档 20 到 40 分钟全链串通；当前可执行子专题为 [Slice HUD Gameplay Shell V1](slice-hud-gameplay-shell-v1.md)，包 2B 与包 3 继续冻结。
 
 已收口专题：
 

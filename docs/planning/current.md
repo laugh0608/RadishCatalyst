@@ -6,7 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[第一可玩切片全链串通](../features/slice-first-playable-journey-v1.md)；`6s` 生产节奏人工未通过，当前改为 `1s` 待复核；HUD 人工视觉未通过，包 2B 尚未实现。
+- 当前活跃专题：[第一可玩切片全链串通](../features/slice-first-playable-journey-v1.md)，当前可执行子专题为 [Slice HUD Gameplay Shell V1](../features/slice-hud-gameplay-shell-v1.md)；`1s` 生产节奏人工通过，HUD 组件实现与自动证据完成、待人工复核，包 2B 尚未实现。
 - 最新收口专题：[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)（07-27，三实现包与人工复核闭环）、[多世界存档列表](../features/slice-multi-world-save-list-v1.md)（07-26）、[L5 反应器接入自动化](../features/slice-reactor-automation-v1.md)与[配方加工 arc](../features/slice-recipe-processing-v1.md)（07-26）；更早专题见 `docs/features/README.md`。
 - 美术介质机械口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一均已定稿）。
 - 章程与复盘结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（已完成，作决策存档）。
@@ -49,19 +49,19 @@
 - 2026-07-27 全链包 1 证明真实新档机械全链成立，无 `P0`；定位产线短目标和浅地 HUD 对比两项 `P1`。
 - 2026-07-27 全链包 2 接入派生旅程目标与高对比 HUD；真实新档 267 项通过，资源、配方与 schema 7 未变。
 - 2026-07-27 萝卜SAMA人工全链落在 20 到 40 分钟且总体可完成；同时确认产晶等待占比过高、HUD 挡视野、鼠标放置 / 电网范围 / 地板需求反馈不足。纯文字建造与背包列为 `P2`，整体 3/4 体积感不足升级为架构级视觉议题。
-- 2026-07-28 `6s/个` 人工仍慢，改为 `1s/个`，理论生产等待约 `57.7s`且完整回归通过；HUD 仍像纯文字草稿。
+- 2026-07-28 `6s/个` 人工仍慢，改为 `1s/个`，理论生产等待约 `57.7s`且完整回归通过；萝卜SAMA随后确认速度可以接受。HUD 仍像纯文字草稿，转入独立可执行子专题。
 
 当前阶段：
 
 ```text
-第一可玩切片全链串通——1 秒生产节奏复核与 HUD 路线复盘
+第一可玩切片全链串通——HUD 游戏化壳层人工复核
 ```
 
 ## 当前主线
 
-1. 用停在通电采集阶段的独立存档人工确认 `1s` 生产节奏，不要求重跑有限资源自举。
-2. HUD 停止继续调整同类矩形底板、透明度和字号，先复盘游戏 UI 的组件层级、图标 / 槽位介质与 HUD 安全区。
-3. HUD 路线明确后再决定是否进入包 2B；“画面太平”仍是独立架构级视觉议题。
+1. 从双世界阶段档复核任务舷窗、三物资槽、角色生命条、敌人目标条和操作键帽。
+2. 人工判断基地与交战时的遮挡、辨识速度和游戏 UI 质感；自动检查与 AI 截图不能替代该结论。
+3. HUD 人工通过后再决定是否进入包 2B；“画面太平”仍是独立架构级视觉议题。
 
 ## 边界与冻结
 
