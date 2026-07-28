@@ -34,10 +34,9 @@ func setup(world: Node, player: SlicePlayer) -> void:
 
 
 func _refresh_state(_changed_value = null) -> void:
-	crystal_label.text = "背包晶体：%d/%d" % [
-		_world.pocket.count(SliceWorld.ITEM_CRYSTAL), SliceWorld.POCKET_CAPACITY
-	]
-	part_label.text = "背包催化剂：%d｜零件：%d" % [
+	crystal_label.text = "晶体 %d/%d｜催化剂 %d｜零件 %d" % [
+		_world.pocket.count(SliceWorld.ITEM_CRYSTAL),
+		SliceWorld.POCKET_CAPACITY,
 		_world.pocket.count(SliceWorld.ITEM_CATALYST),
 		_world.pocket.count(SliceWorld.ITEM_PART),
 	]
@@ -49,6 +48,8 @@ func _refresh_state(_changed_value = null) -> void:
 		_world.pocket.count(SliceWorld.ITEM_CONVEYOR_KIT),
 		_world.pocket.count(SliceWorld.ITEM_STORAGE_KIT),
 	]
+	part_label.visible = false
+	kit_label.visible = false
 	health_label.text = "生命 %d/%d" % [
 		_world.combat_controller.health,
 		_world.combat_controller.max_health,
@@ -84,13 +85,23 @@ func _process(_delta: float) -> void:
 	if _world.is_placement_active():
 		prompt_panel.visible = true
 		prompt_label.visible = true
+		var definition := SliceBuildingCatalog.find(
+			_world.selected_building_id()
+		)
+		var remaining: int = (
+			0
+			if definition == null
+			else _world.pocket.count(definition.kit_item_id)
+		)
 		if _world.is_place_target_valid():
-			prompt_label.text = "按 E 放置%s｜R 旋转｜Esc 取消" % (
-				_world.selected_building_name()
-			)
-		else:
-			prompt_label.text = "%s：%s｜R 旋转｜Esc 取消" % [
+			prompt_label.text = "按 E 放置%s（剩余 %d）｜R 旋转｜Esc 取消" % [
 				_world.selected_building_name(),
+				remaining,
+			]
+		else:
+			prompt_label.text = "%s（剩余 %d）：%s｜R 旋转｜Esc 取消" % [
+				_world.selected_building_name(),
+				remaining,
 				_world.placement_invalid_reason()
 			]
 		return

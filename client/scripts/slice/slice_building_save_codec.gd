@@ -7,7 +7,10 @@ extends RefCounted
 
 const MAP_SIZE_CELLS := Vector2i(80, 24)
 const INSTANCE_ID_PREFIX := "building-"
-const COLLECTOR_PRODUCE_INTERVAL := 10.0
+# Schema 4–7 saves may contain elapsed collector progress from the former
+# ten-second cycle. Keep accepting that range; SliceWorld clamps it to the
+# current cycle and settles completed progress on the next production tick.
+const MAX_COMPATIBLE_COLLECTOR_PROGRESS := 10.0
 const TRANSPORT_ITEM_IDS := ["crystal", "catalyst"]
 const STORAGE_ITEM_IDS := [
 	"crystal",
@@ -339,7 +342,7 @@ static func _validate_state(
 		if (
 			not (progress_value is float or progress_value is int)
 			or float(progress_value) < 0.0
-			or float(progress_value) >= COLLECTOR_PRODUCE_INTERVAL
+			or float(progress_value) >= MAX_COMPATIBLE_COLLECTOR_PROGRESS
 		):
 			return _failure(
 				"buildings[%d].state.production_progress 超出有效范围" % index

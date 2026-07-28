@@ -28,6 +28,20 @@ func _execute() -> void:
 
 
 func _run() -> void:
+	_expect_equal(
+		SliceWorld.COLLECTOR_PRODUCE_INTERVAL,
+		6.0,
+		"collector cadence keeps the package 2A wait budget"
+	)
+	var minimum_production_wait := (
+		37.0 * SliceWorld.COLLECTOR_PRODUCE_INTERVAL
+		+ 2.07 * SliceReactor.PROCESS_DURATION
+	)
+	_expect_equal(
+		minimum_production_wait <= 250.0,
+		true,
+		"renewable crystals and reactor stay within the 250-second budget"
+	)
 	save_dir = "/private/tmp/radishcatalyst-journey-guidance-%d" % (
 		Time.get_ticks_usec()
 	)
@@ -44,6 +58,21 @@ func _run() -> void:
 		hud.goal_label.text.contains("合成机械零件"),
 		true,
 		"fresh HUD consumes the derived repair goal"
+	)
+	_expect_equal(
+		hud.get_node("LeftStatusPanel").size.y <= 120.0,
+		true,
+		"default journey HUD is vertically compact"
+	)
+	_expect_equal(
+		hud.kit_label.visible,
+		false,
+		"complete kit inventory stays in the contextual craft panel"
+	)
+	_expect_equal(
+		hud.crystal_label.text.contains("催化剂 0｜零件 0"),
+		true,
+		"compact resource row keeps all journey-critical inventory"
 	)
 
 	world.mark_core_repaired()

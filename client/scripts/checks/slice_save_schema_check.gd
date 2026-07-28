@@ -557,7 +557,7 @@ func _check_schema_seven_world_restart() -> void:
 		"",
 		Vector2i(40, 10),
 		0,
-		{"buffer": 4, "production_progress": 6.5}
+		{"buffer": 4, "production_progress": 5.5}
 	) as SliceCollector
 	world._spawn_building(
 		SliceBuildingCatalog.find(SliceBuildingCatalog.FLOOR_ID),
@@ -638,9 +638,10 @@ func _check_schema_seven_world_restart() -> void:
 		if String(entry.get("instance_id", "")) == collector_id:
 			_expect_equal(
 				float(entry["state"]["production_progress"]),
-				6.5,
+				5.5,
 				"collector partial tick is written exactly"
 			)
+			entry["state"]["production_progress"] = 6.5
 		if String(entry.get("instance_id", "")) == reactor_id:
 			_expect_equal(
 				(entry["state"] as Dictionary).keys().size(),
@@ -668,6 +669,7 @@ func _check_schema_seven_world_restart() -> void:
 				2,
 				"conveyor merge cursor is written exactly"
 			)
+	_write_json(save_dir.path_join("slice_world.json"), raw_save)
 
 	world.free()
 	await process_frame
@@ -766,10 +768,21 @@ func _check_schema_seven_world_restart() -> void:
 	_expect_equal(loaded_collector.buffer, 4, "collector buffer restores")
 	_expect_equal(
 		loaded_collector.production_progress,
-		6.5,
-		"collector partial tick restores"
+		SliceWorld.COLLECTOR_PRODUCE_INTERVAL,
+		"legacy collector progress clamps to the shorter current cycle"
 	)
 	_expect_equal(loaded_collector.powered, true, "collector power is re-derived")
+	loaded_world._tick_production(0.1)
+	_expect_equal(
+		loaded_collector.buffer,
+		5,
+		"legacy collector progress settles one completed current cycle"
+	)
+	_expect_equal(
+		is_equal_approx(loaded_collector.production_progress, 0.1),
+		true,
+		"legacy collector progress continues inside the current cycle"
+	)
 	var loaded_conveyor := _find_by_id(
 		loaded_world, conveyor_id
 	) as SliceConveyor
