@@ -557,7 +557,7 @@ func _check_schema_seven_world_restart() -> void:
 		"",
 		Vector2i(40, 10),
 		0,
-		{"buffer": 4, "production_progress": 5.5}
+		{"buffer": 4, "production_progress": 0.5}
 	) as SliceCollector
 	world._spawn_building(
 		SliceBuildingCatalog.find(SliceBuildingCatalog.FLOOR_ID),
@@ -638,7 +638,7 @@ func _check_schema_seven_world_restart() -> void:
 		if String(entry.get("instance_id", "")) == collector_id:
 			_expect_equal(
 				float(entry["state"]["production_progress"]),
-				5.5,
+				0.5,
 				"collector partial tick is written exactly"
 			)
 			entry["state"]["production_progress"] = 6.5

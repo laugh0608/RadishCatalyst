@@ -30,7 +30,7 @@ func _execute() -> void:
 func _run() -> void:
 	_expect_equal(
 		SliceWorld.COLLECTOR_PRODUCE_INTERVAL,
-		6.0,
+		1.0,
 		"collector cadence keeps the package 2A wait budget"
 	)
 	var minimum_production_wait := (
@@ -38,9 +38,9 @@ func _run() -> void:
 		+ 2.07 * SliceReactor.PROCESS_DURATION
 	)
 	_expect_equal(
-		minimum_production_wait <= 250.0,
+		minimum_production_wait <= 60.0,
 		true,
-		"renewable crystals and reactor stay within the 250-second budget"
+		"renewable crystals and reactor stay within the 60-second budget"
 	)
 	save_dir = "/private/tmp/radishcatalyst-journey-guidance-%d" % (
 		Time.get_ticks_usec()

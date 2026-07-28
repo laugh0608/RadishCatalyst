@@ -210,11 +210,11 @@ func _check_multihop_world_grid() -> void:
 		"bridge relay reports two affected consumers"
 	)
 
-	collector.production_progress = 2.0
-	world._tick_production(3.0)
+	collector.production_progress = 0.25
+	world._tick_production(0.25)
 	_expect_equal(
 		collector.production_progress,
-		5.0,
+		0.5,
 		"powered collector advances independent tick progress"
 	)
 	_expect_equal(
@@ -240,7 +240,7 @@ func _check_multihop_world_grid() -> void:
 	world._tick_production(10.0)
 	_expect_equal(
 		collector.production_progress,
-		5.0,
+		0.5,
 		"unpowered collector preserves partial progress"
 	)
 	_expect_equal(collector.buffer, 0, "unpowered collector produces nothing")
@@ -253,7 +253,7 @@ func _check_multihop_world_grid() -> void:
 		3,
 		"cancel restores the three-link visual tree"
 	)
-	world._tick_production(1.0)
+	world._tick_production(0.5)
 	_expect_equal(collector.buffer, 1, "restored collector completes retained tick")
 	_expect_equal(
 		collector.production_progress,
