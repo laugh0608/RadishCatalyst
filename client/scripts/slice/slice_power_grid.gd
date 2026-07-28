@@ -109,6 +109,28 @@ func powered_connections() -> Array[Dictionary]:
 	return _powered_connections.duplicate(true)
 
 
+func placement_preview_nodes() -> Array[Dictionary]:
+	var nodes: Array[Dictionary] = []
+	if not _core_online:
+		return nodes
+	nodes.append({
+		"id": CORE_NODE_ID,
+		"position": _core_position,
+		"device_range_cells": RELAY_LINK_RANGE_CELLS,
+	})
+	var relay_ids: Array[String] = []
+	for instance_id in _powered_relay_ids:
+		relay_ids.append(String(instance_id))
+	relay_ids.sort()
+	for instance_id in relay_ids:
+		nodes.append({
+			"id": instance_id,
+			"position": _relay_positions[instance_id] as Vector2,
+			"device_range_cells": DEVICE_SUPPLY_RANGE_CELLS,
+		})
+	return nodes
+
+
 func _connection_parent_for(world_position: Vector2) -> String:
 	if _is_within_cells(
 		world_position, _core_position, RELAY_LINK_RANGE_CELLS

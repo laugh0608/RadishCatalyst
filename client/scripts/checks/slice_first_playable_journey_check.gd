@@ -241,6 +241,11 @@ func _check_contrast_panels(hud: SliceHud) -> void:
 				true,
 				"%s uses an opaque game-component shell" % node_name
 			)
+			_expect_equal(
+				panel.mouse_filter == Control.MOUSE_FILTER_STOP,
+				true,
+				"%s blocks placement clicks from crossing UI" % node_name
+			)
 	_expect_equal(
 		hud.get_node("LeftStatusPanel").size.x < 800.0
 		and hud.get_node("RightStatusPanel").size.x < 640.0,

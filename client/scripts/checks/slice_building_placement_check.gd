@@ -31,6 +31,7 @@ func _execute() -> void:
 func _run_checks() -> void:
 	_check_definitions()
 	_check_occupancy_layers()
+	_check_pointer_input_state()
 	await _check_world_placement_path()
 
 
@@ -127,6 +128,70 @@ func _check_occupancy_layers() -> void:
 	)
 
 
+func _check_pointer_input_state() -> void:
+	var pointer := SlicePlacementPointerInput.new()
+	pointer.begin()
+	var motion := InputEventMouseMotion.new()
+	motion.position = Vector2(320, 240)
+	_expect_equal(pointer.track_event(motion), true, "mouse motion is tracked")
+	_expect_equal(
+		pointer.pointer_target_active,
+		true,
+		"mouse motion switches placement to pointer targeting"
+	)
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.position = motion.position
+	click.pressed = true
+	pointer.track_event(click)
+	_expect_equal(
+		pointer.should_confirm(click, Vector2i(4, 5), false, false),
+		true,
+		"device left click requests one placement"
+	)
+	_expect_equal(
+		pointer.floor_drag_active,
+		false,
+		"device click never starts continuous placement"
+	)
+
+	pointer.begin()
+	pointer.track_event(click)
+	_expect_equal(
+		pointer.should_confirm(click, Vector2i(4, 5), true, true),
+		false,
+		"blocking UI rejects the floor click"
+	)
+	pointer.track_event(click)
+	_expect_equal(
+		pointer.should_confirm(click, Vector2i(4, 5), true, false),
+		true,
+		"floor left click starts continuous placement"
+	)
+	_expect_equal(pointer.floor_drag_active, true, "floor drag is active")
+	pointer.track_event(motion)
+	_expect_equal(
+		pointer.should_confirm(motion, Vector2i(4, 5), true, false),
+		false,
+		"same floor cell is deduplicated while dragging"
+	)
+	motion.position = Vector2(352, 240)
+	pointer.track_event(motion)
+	_expect_equal(
+		pointer.should_confirm(motion, Vector2i(5, 5), true, false),
+		true,
+		"crossing into a new floor cell requests one placement"
+	)
+	_expect_equal(
+		pointer.should_confirm(motion, Vector2i(5, 5), true, false),
+		false,
+		"repeated motion in the new cell stays deduplicated"
+	)
+	click.pressed = false
+	pointer.track_event(click)
+	_expect_equal(pointer.floor_drag_active, false, "left release stops drag")
+
+
 func _check_world_placement_path() -> void:
 	_save_dir = "/private/tmp/radishcatalyst-l3-package1-%d" % (
 		Time.get_ticks_usec()
@@ -140,6 +205,10 @@ func _check_world_placement_path() -> void:
 	var floor := SliceBuildingCatalog.find(SliceBuildingCatalog.FLOOR_ID)
 	var collector := SliceBuildingCatalog.find(
 		SliceBuildingCatalog.COLLECTOR_ID
+	)
+	var reactor := SliceBuildingCatalog.find(SliceBuildingCatalog.REACTOR_ID)
+	var relay := SliceBuildingCatalog.find(
+		SliceBuildingCatalog.POWER_RELAY_ID
 	)
 	var floor_cell := Vector2i(5, 5)
 	var collector_cell := Vector2i(45, 10)
@@ -155,6 +224,54 @@ func _check_world_placement_path() -> void:
 			"collector test footprint is crystal ground"
 		)
 
+	var reactor_cell := Vector2i(18, 8)
+	var reactor_validation := world._validate_placement(
+		reactor, reactor_cell, 0
+	)
+	world._placement.begin(reactor)
+	world._placement.update_target(
+		reactor_cell,
+		reactor.block_center(reactor_cell, SliceWorld.TILE_SIZE, 0),
+		reactor_validation,
+		SliceWorld.TILE_SIZE,
+		world._power_grid.placement_preview_nodes()
+	)
+	_expect_equal(
+		world._placement._overlay.footprint_cell_count(),
+		9,
+		"reactor preview exposes its full three-by-three footprint"
+	)
+	_expect_equal(
+		world._placement._overlay.missing_floor_cell_count(),
+		9,
+		"reactor preview marks every missing support floor cell"
+	)
+	world._placement.cancel()
+
+	world.core_repaired = true
+	world._rebuild_power_grid()
+	var relay_cell := Vector2i(20, 10)
+	var relay_validation := world._validate_placement(relay, relay_cell, 0)
+	world._placement.begin(relay)
+	world._placement.update_target(
+		relay_cell,
+		relay.block_center(relay_cell, SliceWorld.TILE_SIZE, 0),
+		relay_validation,
+		SliceWorld.TILE_SIZE,
+		world._power_grid.placement_preview_nodes()
+	)
+	_expect_equal(
+		world._power_grid.placement_preview_nodes().size(),
+		1,
+		"repaired core is exposed as one derived preview power node"
+	)
+	_expect_equal(
+		world._placement._overlay.power_ring_count(),
+		2,
+		"relay preview shows link and device-supply ranges"
+	)
+	world._placement.cancel()
+
 	world.pocket.add(SliceWorld.ITEM_CRYSTAL, 1)
 	_expect_equal(world.craft("floor"), true, "floor recipe crafts")
 	_expect_equal(
@@ -166,22 +283,33 @@ func _check_world_placement_path() -> void:
 	world.rotate_building_placement()
 	_expect_equal(world.selected_building_rotation(), 1, "R rotation advances")
 
-	var floor_validation := world._validate_placement(
-		floor, floor_cell, world.selected_building_rotation()
+	var floor_screen := (
+		world._placement.get_canvas_transform()
+		* floor.block_center(
+			floor_cell,
+			SliceWorld.TILE_SIZE,
+			world.selected_building_rotation()
+		)
 	)
-	world._placement.update_target(
-		floor_cell,
-		floor.block_center(
-			floor_cell, SliceWorld.TILE_SIZE, world.selected_building_rotation()
-		),
-		floor_validation
+	var floor_click := InputEventMouseButton.new()
+	floor_click.button_index = MOUSE_BUTTON_LEFT
+	floor_click.position = floor_screen
+	floor_click.pressed = true
+	_expect_equal(
+		world._handle_placement_pointer_event(floor_click, true),
+		true,
+		"blocking UI consumes the pointer event"
 	)
 	_expect_equal(
-		bool(floor_validation.get("valid", false)),
-		true,
-		"rock floor placement is valid"
+		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
+		4,
+		"blocking UI prevents pointer placement and material cost"
 	)
-	_expect_equal(world.try_place_building(), true, "floor uses common placement")
+	_expect_equal(
+		world._handle_placement_pointer_event(floor_click, false),
+		true,
+		"left click enters the authoritative placement path"
+	)
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
 		3,
@@ -197,6 +325,43 @@ func _check_world_placement_path() -> void:
 		0,
 		"placed floor writes the approved TileMapLayer asset"
 	)
+	var second_floor_cell := floor_cell + Vector2i.RIGHT
+	var floor_motion := InputEventMouseMotion.new()
+	floor_motion.position = (
+		world._placement.get_canvas_transform()
+		* floor.block_center(second_floor_cell, SliceWorld.TILE_SIZE, 0)
+	)
+	world._handle_placement_pointer_event(floor_motion)
+	_expect_equal(
+		world._industrial_floor.get_cell_source_id(second_floor_cell),
+		0,
+		"held floor drag places after crossing into a new cell"
+	)
+	_expect_equal(
+		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
+		2,
+		"second drag cell consumes exactly one floor kit"
+	)
+	world._handle_placement_pointer_event(floor_motion)
+	_expect_equal(
+		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
+		2,
+		"repeated motion in one floor cell does not double-charge"
+	)
+	var third_floor_cell := second_floor_cell + Vector2i.RIGHT
+	floor_motion.position = (
+		world._placement.get_canvas_transform()
+		* floor.block_center(third_floor_cell, SliceWorld.TILE_SIZE, 0)
+	)
+	world._handle_placement_pointer_event(floor_motion)
+	_expect_equal(
+		world._industrial_floor.get_cell_source_id(third_floor_cell),
+		0,
+		"continuous floor drag follows the pointer grid"
+	)
+	floor_click.pressed = false
+	floor_click.position = floor_motion.position
+	world._handle_placement_pointer_event(floor_click)
 
 	var duplicate := world._validate_placement(floor, floor_cell, 0)
 	_expect_equal(
@@ -208,7 +373,7 @@ func _check_world_placement_path() -> void:
 	_expect_equal(world.is_placement_active(), false, "Esc cancellation exits")
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
-		3,
+		1,
 		"cancellation preserves remaining floor kits"
 	)
 
@@ -255,8 +420,8 @@ func _check_world_placement_path() -> void:
 	)
 	_expect_equal(
 		world._building_instances.size(),
-		2,
-		"floor and collector share the instance registry"
+		4,
+		"three dragged floors and collector share the instance registry"
 	)
 	_expect_equal(
 		world._collector_nodes.size(), 1, "collector behavior stays registered"
@@ -300,7 +465,7 @@ func _check_world_placement_path() -> void:
 	_expect_equal(
 		world._collector_nodes[0].buffer,
 		1,
-		"powered migrated collector keeps ten-second production behavior"
+		"powered collector keeps current deterministic production behavior"
 	)
 	world.free()
 

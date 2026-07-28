@@ -111,7 +111,7 @@ offset_left = 16.0
 offset_top = 16.0
 offset_right = 756.0
 offset_bottom = 98.0
-mouse_filter = 2
+mouse_filter = 0
 theme_override_styles/panel = SubResource("StyleMission")
 
 [node name="MissionTag" type="Label" parent="LeftStatusPanel"]
@@ -145,7 +145,7 @@ offset_top = 16.0
 offset_right = -16.0
 offset_bottom = 98.0
 grow_horizontal = 0
-mouse_filter = 2
+mouse_filter = 0
 theme_override_styles/panel = SubResource("StyleStatus")
 
 [node name="InventoryTag" type="Label" parent="RightStatusPanel"]
@@ -165,7 +165,7 @@ offset_left = 146.0
 offset_top = 10.0
 offset_right = 286.0
 offset_bottom = 72.0
-mouse_filter = 2
+mouse_filter = 0
 theme_override_styles/panel = SubResource("StyleResourceSlot")
 
 [node name="Icon" type="TextureRect" parent="RightStatusPanel/CrystalSlot"]
@@ -198,7 +198,7 @@ offset_left = 294.0
 offset_top = 10.0
 offset_right = 424.0
 offset_bottom = 72.0
-mouse_filter = 2
+mouse_filter = 0
 theme_override_styles/panel = SubResource("StyleResourceSlot")
 
 [node name="Icon" type="TextureRect" parent="RightStatusPanel/CatalystSlot"]
@@ -231,7 +231,7 @@ offset_left = 432.0
 offset_top = 10.0
 offset_right = 570.0
 offset_bottom = 72.0
-mouse_filter = 2
+mouse_filter = 0
 theme_override_styles/panel = SubResource("StyleResourceSlot")
 
 [node name="Icon" type="TextureRect" parent="RightStatusPanel/PartSlot"]
@@ -272,7 +272,7 @@ offset_top = -114.0
 offset_right = 580.0
 offset_bottom = -16.0
 grow_vertical = 0
-mouse_filter = 2
+mouse_filter = 0
 theme_override_styles/panel = SubResource("StyleStatus")
 
 [node name="Portrait" type="TextureRect" parent="PlayerStatusPanel"]
@@ -342,7 +342,7 @@ offset_top = 122.0
 offset_right = 270.0
 offset_bottom = 194.0
 grow_horizontal = 2
-mouse_filter = 2
+mouse_filter = 0
 theme_override_styles/panel = SubResource("StyleEnemy")
 
 [node name="EnemyState" type="Label" parent="EnemyPanel"]
@@ -398,7 +398,7 @@ offset_right = 568.0
 offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 0
-mouse_filter = 2
+mouse_filter = 0
 theme_override_styles/panel = SubResource("StylePrompt")
 
 [node name="PromptKey" type="Panel" parent="PromptPanel"]

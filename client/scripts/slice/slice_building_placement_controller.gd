@@ -14,10 +14,14 @@ var target_origin := Vector2i.ZERO
 var target_valid := false
 var invalid_reason := ""
 
+var _overlay := SlicePlacementOverlay.new()
 var _preview := Sprite2D.new()
 
 
 func _ready() -> void:
+	_overlay.visible = false
+	_overlay.z_index = 1
+	add_child(_overlay)
 	_preview.visible = false
 	add_child(_preview)
 
@@ -31,6 +35,7 @@ func begin(
 	target_valid = false
 	invalid_reason = ""
 	_configure_preview()
+	_overlay.clear()
 
 
 func cancel() -> void:
@@ -39,6 +44,7 @@ func cancel() -> void:
 	target_valid = false
 	invalid_reason = ""
 	_preview.visible = false
+	_overlay.clear()
 
 
 func is_active() -> bool:
@@ -55,7 +61,9 @@ func rotate_clockwise() -> void:
 func update_target(
 	origin_cell: Vector2i,
 	world_position: Vector2,
-	validation: Dictionary
+	validation: Dictionary,
+	tile_size: float = 32.0,
+	power_nodes: Array[Dictionary] = []
 ) -> void:
 	if definition == null:
 		return
@@ -65,10 +73,22 @@ func update_target(
 	invalid_reason = String(validation.get("reason", ""))
 	_preview.modulate = VALID_COLOR if target_valid else INVALID_COLOR
 	_preview.visible = true
+	_overlay.configure(
+		definition,
+		origin_cell,
+		rotation_index,
+		tile_size,
+		validation,
+		power_nodes
+	)
 
 
 func selected_building_id() -> String:
 	return "" if definition == null else definition.building_id
+
+
+func world_position_from_screen(screen_position: Vector2) -> Vector2:
+	return get_canvas_transform().affine_inverse() * screen_position
 
 
 func _configure_preview() -> void:

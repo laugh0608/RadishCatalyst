@@ -90,6 +90,8 @@ var pause_menu: SlicePauseMenu
 var _ground: TileMapLayer
 var _industrial_floor: TileMapLayer
 var _placement: SliceBuildingPlacementController
+var _placement_pointer := SlicePlacementPointerInput.new()
+var _placement_validator := SlicePlacementValidator.new()
 var _occupancy := SliceBuildingOccupancy.new()
 var _power_grid := SlicePowerGrid.new()
 var _logistics_grid := SliceLogisticsGrid.new()
@@ -173,6 +175,17 @@ func _ready() -> void:
 
 	_placement = SliceBuildingPlacementController.new()
 	_map.add_child(_placement)
+	_placement_validator.setup(
+		self,
+		_ground,
+		_occupancy,
+		_power_grid,
+		player,
+		MAP_PIXEL_SIZE,
+		TILE_SIZE,
+		ROCK_GROUND_SOURCE_ID,
+		CRYSTAL_GROUND_SOURCE_ID
+	)
 
 	if startup_load:
 		_restore_from_save()
@@ -185,7 +198,20 @@ func _physics_process(delta: float) -> void:
 	_tick_logistics(delta)
 	if not is_placement_active() or player == null:
 		return
-	var target_point := player.position + player.facing * 64.0
+	_placement_pointer.release_if_button_up()
+	_refresh_placement_target()
+
+
+func _refresh_placement_target() -> void:
+	if not is_placement_active() or player == null:
+		return
+	var target_point := (
+		_placement.world_position_from_screen(
+			_placement_pointer.screen_position
+		)
+		if _placement_pointer.pointer_target_active
+		else player.position + player.facing * 64.0
+	)
 	var definition := _placement.definition
 	var origin := definition.origin_for_target(
 		target_point, TILE_SIZE, _placement.rotation_index
@@ -198,7 +224,9 @@ func _physics_process(delta: float) -> void:
 		definition.block_center(
 			origin, TILE_SIZE, _placement.rotation_index
 		),
-		validation
+		validation,
+		TILE_SIZE,
+		_power_grid.placement_preview_nodes()
 	)
 
 
@@ -235,9 +263,44 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if not is_placement_active():
 		return
+	if (
+		event is InputEventMouseMotion
+		or event is InputEventMouseButton
+	):
+		if _handle_placement_pointer_event(
+			event, _pointer_over_blocking_ui()
+		):
+			get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed("rotate_building"):
 		rotate_building_placement()
 		get_viewport().set_input_as_handled()
+
+
+func _handle_placement_pointer_event(
+	event: InputEvent,
+	ui_blocked: bool = false
+) -> bool:
+	if not is_placement_active() or not _placement_pointer.track_event(event):
+		return false
+	_refresh_placement_target()
+	var definition := _placement.definition
+	if _placement_pointer.should_confirm(
+		event,
+		_placement.target_origin,
+		definition.is_floor,
+		ui_blocked
+	):
+		try_place_building()
+	return true
+
+
+func _pointer_over_blocking_ui() -> bool:
+	var hovered := get_viewport().gui_get_hovered_control()
+	return (
+		hovered != null
+		and hovered.mouse_filter != Control.MOUSE_FILTER_IGNORE
+	)
 
 
 ## Powered collectors and reactors retain their own tick progress. Production
@@ -803,6 +866,7 @@ func begin_building_placement(building_id: String) -> bool:
 	if _craft_panel != null:
 		_craft_panel.close()
 	_placement.begin(definition)
+	_placement_pointer.begin()
 	placement_changed.emit()
 	return true
 
@@ -813,6 +877,7 @@ func cancel_building_placement() -> void:
 	if _adjustment_instance != null:
 		_restore_adjustment_origin()
 	_placement.cancel()
+	_placement_pointer.cancel()
 	placement_changed.emit()
 
 
@@ -833,6 +898,7 @@ func try_place_building() -> bool:
 			_placement.rotation_index
 		)
 		_placement.cancel()
+		_placement_pointer.cancel()
 		placement_changed.emit()
 		_autosave()
 		return true
@@ -981,65 +1047,7 @@ func _validate_placement(
 	origin_cell: Vector2i,
 	rotation: int
 ) -> Dictionary:
-	var cells := definition.occupied_cells(origin_cell, rotation)
-	for cell in cells:
-		if cell.x < 0 or cell.y < 0:
-			return _placement_result(false, "越界")
-		if cell.x >= MAP_PIXEL_SIZE.x / int(TILE_SIZE):
-			return _placement_result(false, "越界")
-		if cell.y >= MAP_PIXEL_SIZE.y / int(TILE_SIZE):
-			return _placement_result(false, "越界")
-
-	for cell in cells:
-		var source_id := _ground.get_cell_source_id(cell)
-		if (
-			definition.surface_rule
-			== SliceBuildingDefinition.SURFACE_BUILDABLE_ROCK
-			and source_id != ROCK_GROUND_SOURCE_ID
-		):
-			return _placement_result(false, "需可建岩地")
-		if (
-			definition.surface_rule == SliceBuildingDefinition.SURFACE_CRYSTAL
-			and source_id != CRYSTAL_GROUND_SOURCE_ID
-		):
-			return _placement_result(false, "需晶体地")
-		if (
-			definition.surface_rule
-			== SliceBuildingDefinition.SURFACE_INDUSTRIAL_FLOOR
-			and not _occupancy.has_floor(cell)
-		):
-			return _placement_result(false, "需工业地板")
-
-	if not _occupancy.can_occupy(cells, definition.is_floor):
-		return _placement_result(false, "已有占用")
-
-	var query := PhysicsShapeQueryParameters2D.new()
-	var shape := RectangleShape2D.new()
-	var footprint := Vector2(definition.rotated_footprint(rotation)) * TILE_SIZE
-	shape.size = footprint - Vector2(2, 2)
-	query.shape = shape
-	query.collide_with_areas = false
-	query.transform = Transform2D(
-		0.0, definition.block_center(origin_cell, TILE_SIZE, rotation)
-	)
-	var collisions := get_world_2d().direct_space_state.intersect_shape(query, 8)
-	for collision in collisions:
-		if collision.get("collider") == player:
-			return _placement_result(false, "玩家阻挡")
-	if not collisions.is_empty():
-		return _placement_result(false, "已有占用")
-	if (
-		definition.power_role == SliceBuildingDefinition.POWER_RELAY
-		and not _power_grid.can_connect_relay_at(
-			definition.block_center(origin_cell, TILE_SIZE, rotation)
-		)
-	):
-		return _placement_result(false, "超出电网连接距离")
-	return _placement_result(true, "")
-
-
-func _placement_result(valid: bool, reason: String) -> Dictionary:
-	return {"valid": valid, "reason": reason}
+	return _placement_validator.validate(definition, origin_cell, rotation)
 
 
 func _floor_supports_facility(instance: SliceBuildingInstance) -> bool:

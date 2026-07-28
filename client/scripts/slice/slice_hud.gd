@@ -24,6 +24,7 @@ var _player: SlicePlayer
 @onready var enemy_label: Label = $EnemyPanel/EnemyState
 @onready var enemy_health_bar: ProgressBar = $EnemyPanel/HealthBar
 @onready var notice_label: Label = $CombatNotice
+@onready var prompt_key_label: Label = $PromptPanel/PromptKey/Label
 @onready var prompt_label: Label = $PromptPanel/Prompt
 
 
@@ -92,6 +93,7 @@ func _process(_delta: float) -> void:
 	if _world.is_placement_active():
 		prompt_panel.visible = true
 		prompt_label.visible = true
+		prompt_key_label.text = "LMB"
 		var definition := SliceBuildingCatalog.find(
 			_world.selected_building_id()
 		)
@@ -101,13 +103,14 @@ func _process(_delta: float) -> void:
 			else _world.pocket.count(definition.kit_item_id)
 		)
 		if _world.is_place_target_valid():
-			prompt_label.text = "放置 %s  ·  剩余 %d  ·  R 旋转  ·  Esc 取消" % [
+			prompt_label.text = "放置 %s  ·  剩余 %d  ·  E 兼容  ·  R 旋转  ·  Esc 取消" % [
 				_world.selected_building_name(),
 				remaining,
 			]
 		else:
-			prompt_label.text = "%s  ·  %s  ·  R 旋转  ·  Esc 取消" % [
+			prompt_label.text = "%s  ·  剩余 %d  ·  %s  ·  R 旋转  ·  Esc 取消" % [
 				_world.selected_building_name(),
+				remaining,
 				_world.placement_invalid_reason()
 			]
 		return
@@ -117,6 +120,7 @@ func _process(_delta: float) -> void:
 		return
 	var target := _player.current_interact_target()
 	var prompt := "" if target == null else str(target.get_prompt(_world))
+	prompt_key_label.text = "E"
 	prompt_label.visible = not prompt.is_empty()
 	prompt_panel.visible = prompt_label.visible
 	prompt_label.text = _without_interact_prefix(prompt)
