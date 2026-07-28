@@ -1,6 +1,6 @@
 # Slice Harvest And Build V1
 
-更新时间：2026-07-18
+更新时间：2026-07-28
 
 状态：已收口（2026-07-18，萝卜SAMA实机复核通过）。切片第五个实现专题（系统层换皮第三步、首条化工链第一步）；下一专题在呈现口径决策（画面填充 + 素材视角）后由萝卜SAMA确定。前序 [Slice Save Persistence V1](slice-save-persistence-v1.md) 已收口。
 
@@ -39,6 +39,10 @@
 ### 放置预览读法
 
 - 携带态在玩家面朝的相邻格显示半透明采集器预览，可放为青色调、不可放为暗红色调；属允许的动态高亮 / 状态表达，非程序绘制主介质。
+
+### 后续演进（2026-07-28）
+
+本专题的造价、`1×1` 足印、`10 秒`周期和朝向放置是 2026-07-18 首版历史口径。当前采集器已迁入 2×2 通用建筑、背包套件、设备缓冲、扩展供电与 schema 7；通电生产为 `1 秒 / 1 晶体`，鼠标网格预览与左键确认已成为主路径，`E` 保留兼容。现行规则分别以 [L3 放置与电网专题](slice-building-placement-and-power-grid-v1.md)、[第一可玩切片全链专题](slice-first-playable-journey-v1.md)和 [Slice Runtime Systems](../architecture/slice-runtime-systems.md)为准。
 
 ### 存档接入
 

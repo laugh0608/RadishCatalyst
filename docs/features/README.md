@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前阶段专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——真实新档 20 到 40 分钟全链串通；当前可执行子专题为 [Slice HUD Gameplay Shell V1](slice-hud-gameplay-shell-v1.md)，包 2B 与包 3 继续冻结。
+当前阶段专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——生产节奏、HUD 与包 2B 空间反馈均已人工通过；下一包为真实新档完整验收与陌生玩家盲测。朋友盲测在内部正式入口全链与萝卜SAMA复核通过前保持冻结。
 
 已收口专题：
 
@@ -42,6 +42,7 @@
 - [Slice Recipe Processing V1](slice-recipe-processing-v1.md)——L0–L5 空间工厂自动化 arc，总体完成“冒险资源 → 电力 / 物流 / 加工 → 催化剂”（2026-07-26 收口）。
 - [Slice Multi-World Save List V1](slice-multi-world-save-list-v1.md)——最多 30 个世界、三份备份、损坏隔离、可恢复回收、启动列表与游戏内保存返回（2026-07-26 收口）。
 - [Slice First Field Combat And Sample Recovery V1](slice-first-field-combat-and-sample-recovery-v1.md)——首次充能、鼠标瞄准战斗、单敌人、撤离、关键样本、基地交付与 schema 7（2026-07-27 收口）。
+- [Slice HUD Gameplay Shell V1](slice-hud-gameplay-shell-v1.md)——任务舷窗、三物资槽、角色 / 敌人余量条与上下文键帽（2026-07-28 收口）。
 
 背景结论（复盘与证据轮）：
 

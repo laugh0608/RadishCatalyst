@@ -1,6 +1,6 @@
 # Slice Runtime Systems
 
-更新时间：2026-07-27
+更新时间：2026-07-28
 
 ## 文档目的
 
@@ -11,6 +11,7 @@
 - `client/scripts/boot/boot.gd`
 - `client/scripts/slice/slice_world.gd`
 - `client/scripts/slice/slice_building_*.gd`
+- `client/scripts/slice/slice_placement_*.gd`
 - `client/scripts/slice/slice_power_grid.gd`
 - `client/scripts/slice/slice_logistics_grid.gd`
 - `client/scripts/slice/slice_reactor.gd`
@@ -67,8 +68,11 @@ Boot
 
 ### 放置与操作
 
-- `SliceBuildingPlacementController` 只持有当前选择、方向、吸附原点、合法性和真实资产 ghost。
-- `SliceWorld._validate_placement()` 负责世界规则，包括边界、地表、占用、物理阻挡和中继连接。
+- `SlicePlacementPointerInput` 只维护鼠标目标和地板拖铺去重；设备左键单放，工业地板允许按住左键跨格铺设，`E` 仍走兼容确认路径。
+- `SlicePlacementValidator` 统一查询边界、地表、占用、物理阻挡和中继连接，并把缺地板格交给预览；它不落盘、不持有第二份世界状态。
+- `SliceBuildingPlacementController` 只持有当前选择、方向、吸附原点、合法性、真实资产 ghost 和动态预览节点。
+- `SlicePlacementOverlay` 只绘制放置瞬态的足印、缺地板格、连接线和电力范围；所有范围节点由 `SlicePowerGrid` 的当前派生结果提供。
+- `SliceWorld` 只协调指针输入、校验结果、最终放置和自动存档；前台 HUD 控件会阻断鼠标落地。
 - `SliceBuildingActionPanel` 负责调整、二次确认拆除、储物箱晶体存取和阻塞原因展示。
 
 调整期间原实例暂时隐藏并从占用、供电和物流中排除；提交后保留 ID 和内部状态，取消则恢复原拓扑。
@@ -101,6 +105,7 @@ Boot
 - `SliceCombatController` 拥有攻击节拍、闪避无敌、玩家生命和五态外勤遭遇；`SliceFieldEnemy` 只负责单敌人的警戒、追击、蓄势、恢复、回巢、受击与败亡。
 - `SliceWorld` 只编排首次充能扣料、样本交付、离散事件自动保存和节点装配，不承载敌人 AI。
 - `SliceHud` 与合成面板读取 `current_journey_guidance()`；当前目标和规则从权威世界状态派生，不保存阶段编号或平行任务进度。
+- `SliceHud` 的常驻游戏壳层由任务舷窗、三物资槽、角色生命条、按需敌人目标条和上下文键帽组成；完整套件清单仍只在合成 / 放置上下文出现。
 
 ## 权威状态与派生状态
 
@@ -136,12 +141,12 @@ physics tick
 
 process tick
 -> 推进每台通电采集器
--> 缓冲未满时每 10 秒产出 1 晶体
+-> 缓冲未满时每 1 秒产出 1 晶体
 -> 推进每台反应器的 2 晶体 → 1 催化剂 / 10 秒状态机
 -> 产出、加工状态切换或最多约 1 秒后自动保存
 ```
 
-建造、调整、拆除、仓库存取、核心修复、采集，以及战斗伤害、败亡、样本拾取 / 交付和撤离等离散变化会立即触发自动保存；普通敌人 AI tick 不写盘。暂停返回或退出只有保存成功后才释放世界或结束进程。
+schema 4–7 的旧档仍可携带原 `0–10s` 采集进度；载入后按当前 `1s` 周期结算并继续累计。建造、调整、拆除、仓库存取、核心修复、采集，以及战斗伤害、败亡、样本拾取 / 交付和撤离等离散变化会立即触发自动保存；普通敌人 AI tick 不写盘。暂停返回或退出只有保存成功后才释放世界或结束进程。
 
 ## 切片存档
 
@@ -185,4 +190,4 @@ schema `4` 把旧采集器列表迁移为统一建筑拓扑；schema `5` 增加�
 
 战斗与样本权威状态已进入选中世界的 schema 7，并沿用候选校验 / 备份链；`metadata.json` 只保存列表摘要，不得成为玩法真相源。后续不得把它拆成跨世界共享角色档，或重新把旧全局催化剂计数作为权威状态。
 
-2026-07-27 日终审计时 `SliceWorld` 已达 1398 行。后续新增鼠标放置、范围预览、HUD 或旅程反馈时，应优先提取放置输入 / 预览或目标派生组件，不得越过 1500 行硬上限继续扩写世界编排器。
+2026-07-28 `SliceWorld` 为 1406 行；鼠标指针、动态预览和权威放置校验已拆到三个窄职责组件。下一包以验收取证为主，不得把新业务分支重新堆回世界编排器或越过 1500 行硬上限。
