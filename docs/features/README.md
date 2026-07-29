@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前阶段专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——生产节奏、HUD 与包 2B 空间反馈均已人工通过；下一包为真实新档完整验收与陌生玩家盲测。朋友盲测在内部正式入口全链与萝卜SAMA复核通过前保持冻结。
+当前阶段专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——自动与人工完整全链已通过，但萝卜SAMA判定表现仍有大量草稿层，陌生玩家盲测延期；下一步先建立建造 / 合成 / 背包图形化 UI 可执行专题。
 
 已收口专题：
 
