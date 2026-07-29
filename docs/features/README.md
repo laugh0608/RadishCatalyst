@@ -27,7 +27,7 @@
 
 当前阶段专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——自动与人工完整全链已通过，但萝卜SAMA判定表现仍有大量草稿层，陌生玩家盲测延期。
 
-当前可执行子专题：[Slice Unified Device Operation Panels V1](slice-unified-device-operation-panels-v1.md)——建筑面板包 1 已人工通过；核心仓库包 2 尚未开工，下一专题等待架构复核。
+最新人工通过子专题：[Slice Unified Device Operation Panels V1](slice-unified-device-operation-panels-v1.md)——建筑面板包 1 已通过，核心仓库包 2 暂停。2026-07-30 先建立视觉层级与色彩分离专题；有限发电 / 负荷 / 储能专题排在其后，两者分别通过架构闸门后再实施。
 
 已收口专题：
 

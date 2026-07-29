@@ -6,8 +6,8 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md)；自动与人工完整全链已经通过，但表现仍有草稿层，陌生玩家盲测延期，当前先替换设备操作的长文字主读法。
-- 最新收口专题：[图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md)、[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)、[多世界存档列表](../features/slice-multi-world-save-list-v1.md)与[L5 反应器接入自动化](../features/slice-reactor-automation-v1.md)；更早专题见 `docs/features/README.md`。
+- 当前架构准备：2026-07-30 先建立“视觉层级与色彩分离”专题，统一审视 UI、设备主体、地表和功能色的明度 / 材质层级；专题通过决策闸门前不直接改色或换资产。
+- 最新人工通过专题：[设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md)建筑包 1、[图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md)、[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)与[多世界存档列表](../features/slice-multi-world-save-list-v1.md)；更早专题见 `docs/features/README.md`。
 - 美术口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一）。
 - 章程结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（决策存档）。
 - 旧 Demo V1 路线（12 区纵切 + 写实 2.5D）已废止归档：`docs/archive/features-demo-v1/`、`docs/archive/planning-demo-v1/`。
@@ -33,7 +33,7 @@
 
 1. 已通过的 `delivered / 120` 全链、schema 7 和自动回归继续作为功能基线，不重复扩系统或堆新内容。
 2. [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 已用配方卡、物品格和鼠标主路径替换纯文字整备主读法，并经萝卜SAMA人工通过。
-3. [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 包 1 已人工通过，并删除描述式“下一步”文案；核心仓库包 2 暂不自动开工。当前升级点是深色 UI / 深色设备的视觉层级，以及从二值可达升级到发电、耗电、负荷和储能的电力玩法，二者需拆成独立专题并由萝卜SAMA确认优先级。
+3. [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 包 1 已人工通过，并删除描述式“下一步”文案；核心仓库包 2 暂停。萝卜SAMA已确认先做视觉层级专题，再做有限发电 / 负荷 / 储能专题；两者分别设计、分别验收，不混成同一实现包。
 
 ## 边界与冻结
 
@@ -42,6 +42,8 @@
 - 新专题不做敌潮、复杂 Boss、技能树、联机或无关重构；立绘对话、八方向动画、viewport 重构、HUD 换皮与发布继续冻结。
 - 不复活旧通用任务链；若包 1 证明存在引导阻断，优先从现有权威状态派生固定阶段目标。
 - 陌生玩家盲测重新冻结，直到萝卜SAMA确认画面、建造 / 背包和设备交互不再以明显草稿层作为主读法。
+- 当前 `SlicePowerGrid` 仍是二值可达图；在独立电力专题确认容量、需求、分配、过载与存档边界前，不提前向中继或设备面板伪造负荷数值。
+- 设备面板核心仓库包 2 暂停，待视觉专题和电力专题边界稳定后再决定是否继续。
 - `SliceWorld` 当前约 1460 行；设备展示快照不得重新把按类型 UI 分支堆入世界编排器。
 
 ## 当前默认验证
@@ -50,7 +52,7 @@
 - 文档改动：`./scripts/check-docs.sh`、`./scripts/check-text-files.sh`、`git diff --check`。
 - 玩家可见目标以正式入口实机截图与运行时路径复核为主证据；自动检查只兜底。
 
-## 当前实现包退出条件
+## 阶段退出条件
 
 - 修复核心后，玩家不用口头说明即可从 HUD 与当前面板读出通电采集、反应器供电、双端物流和 2 催化剂的顺序与必要规则。
 - 阶段目标只由既有世界、建筑、库存和遭遇状态派生，不新增存档字段或通用任务图。
