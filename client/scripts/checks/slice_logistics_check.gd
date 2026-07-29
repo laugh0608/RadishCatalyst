@@ -10,6 +10,7 @@ func _init() -> void:
 
 func _execute() -> void:
 	_check_storage_port_rotation()
+	_check_placement_port_feedback()
 	_check_straight_storage_transfer()
 	_check_double_turn_route_and_visuals()
 	_check_loop_backpressure()
@@ -58,6 +59,154 @@ func _check_storage_port_rotation() -> void:
 			expected_connections[rotation],
 			"storage rotation %d connection cell" % rotation
 		)
+
+
+func _check_placement_port_feedback() -> void:
+	var source := _make_storage(
+		"building-000100", Vector2i(19, 13), 0
+	)
+	var disconnected_belt := _make_conveyor(
+		"building-000101", Vector2i(21, 13), 1
+	)
+	var reactor := _make_reactor(
+		"building-000102", Vector2i(24, 12), 1
+	)
+	var grid := SliceLogisticsGrid.new()
+	grid.rebuild([source, disconnected_belt, reactor])
+	source.inventory.add(SliceWorld.ITEM_CRYSTAL, 1)
+	grid.tick(0.1)
+	_expect_equal(
+		source.inventory.count(SliceWorld.ITEM_CRYSTAL),
+		1,
+		"a belt beside the body does not silently connect to a rotated port"
+	)
+	_expect_equal(
+		grid.building_status_lines(source)[0].contains("未接传送带"),
+		true,
+		"storage panel exposes the disconnected logistics port"
+	)
+	var nearby := grid.conveyor_placement_preview(
+		Vector2i(21, 13), 1
+	)
+	_expect_equal(
+		String(nearby["status"]),
+		"nearby",
+		"the misleading body-adjacent belt is identified as only nearby"
+	)
+	_expect_equal(
+		String(nearby["message"]).contains("端口标记格"),
+		true,
+		"nearby placement tells the player to use the marked cell"
+	)
+
+	var storage_output := grid.conveyor_placement_preview(
+		Vector2i(20, 12), 0
+	)
+	_expect_equal(
+		String(storage_output["status"]),
+		"connected",
+		"belt on the storage port cell and outward axis is connected"
+	)
+	_expect_equal(
+		String(storage_output["message"]).contains("OUT"),
+		true,
+		"storage source preview names its output flow"
+	)
+	var storage_wrong := grid.conveyor_placement_preview(
+		Vector2i(20, 12), 1
+	)
+	_expect_equal(
+		String(storage_wrong["status"]),
+		"wrong_direction",
+		"perpendicular belt on a storage connection is rejected"
+	)
+	_expect_equal(
+		String(
+			grid.conveyor_placement_preview(
+				Vector2i(23, 13), 1
+			)["message"]
+		).contains("IN"),
+		true,
+		"reactor input connection is named in placement feedback"
+	)
+	_expect_equal(
+		String(
+			grid.conveyor_placement_preview(
+				Vector2i(27, 13), 1
+			)["message"]
+		).contains("OUT"),
+		true,
+		"reactor output connection is named in placement feedback"
+	)
+
+	var conveyor_definition := SliceBuildingCatalog.find(
+		SliceBuildingCatalog.CONVEYOR_ID
+	)
+	var overlay_parent := Node2D.new()
+	root.add_child(overlay_parent)
+	var overlay := SlicePlacementOverlay.new()
+	overlay_parent.add_child(overlay)
+	overlay.configure(
+		conveyor_definition,
+		Vector2i(23, 13),
+		1,
+		32.0,
+		{"valid": true},
+		[],
+		grid.placement_preview_ports()
+	)
+	_expect_equal(
+		overlay.context_logistics_port_marker_count(),
+		3,
+		"conveyor preview keeps nearby storage and reactor ports visible"
+	)
+	_expect_equal(
+		overlay.matched_context_logistics_port_marker_count(),
+		1,
+		"matching reactor input marker is highlighted"
+	)
+	overlay.configure(
+		conveyor_definition,
+		Vector2i(23, 13),
+		3,
+		32.0,
+		{"valid": true},
+		[],
+		grid.placement_preview_ports()
+	)
+	_expect_equal(
+		overlay.matched_context_logistics_port_marker_count(),
+		0,
+		"wrong conveyor direction never receives a success marker"
+	)
+	overlay_parent.free()
+
+	var connected_belt := _make_conveyor(
+		"building-000103", Vector2i(20, 12), 0
+	)
+	grid.rebuild([source, connected_belt, reactor])
+	grid.tick(0.1)
+	_expect_equal(
+		source.inventory.is_empty(),
+		true,
+		"corrected storage connection starts shipping immediately"
+	)
+	_expect_equal(
+		connected_belt.has_cargo(),
+		true,
+		"corrected source belt receives the crystal"
+	)
+	_expect_equal(
+		grid.building_status_lines(source)[0].contains("已接 OUT"),
+		true,
+		"storage panel confirms the effective output connection"
+	)
+	_free_instances([
+		source,
+		disconnected_belt,
+		connected_belt,
+		reactor,
+	])
 
 
 func _check_straight_storage_transfer() -> void:
@@ -656,6 +805,22 @@ func _make_conveyor(
 	)
 	conveyor.apply_definition(definition, 32.0)
 	return conveyor
+
+
+func _make_reactor(
+	instance_id: String,
+	origin: Vector2i,
+	rotation: int
+) -> SliceReactor:
+	var reactor := SliceReactor.new()
+	var definition := SliceBuildingCatalog.find(
+		SliceBuildingCatalog.REACTOR_ID
+	)
+	reactor.configure_building(
+		instance_id, definition.building_id, origin, rotation
+	)
+	reactor.apply_definition(definition, 32.0)
+	return reactor
 
 
 func _network_crystals(

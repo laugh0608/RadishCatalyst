@@ -45,7 +45,13 @@ func is_open() -> bool:
 
 
 func _process(delta: float) -> void:
-	if not _open or not (_target is SliceReactor):
+	if (
+		not _open
+		or not (
+			_target is SliceReactor
+			or _target is SliceCollector
+		)
+	):
 		return
 	_refresh_elapsed += delta
 	if _refresh_elapsed >= 0.1:
@@ -89,7 +95,19 @@ func _unhandled_input(event: InputEvent) -> void:
 			elif _world.demolish_building(_target):
 				close()
 		KEY_3:
-			if _target is SliceStorage:
+			if _target is SliceCollector:
+				_confirming_demolition = false
+				var collector := _target as SliceCollector
+				var buffer_before := collector.buffer
+				_world.collect_from_collector(collector)
+				var moved := buffer_before - collector.buffer
+				_result = (
+					"已取出晶体 %d" % moved
+					if moved > 0
+					else "没有可取出的晶体或背包已满"
+				)
+				_refresh()
+			elif _target is SliceStorage:
 				_confirming_demolition = false
 				var moved: int = _world.transfer_pocket_to_storage(
 					_target as SliceStorage,
@@ -170,7 +188,19 @@ func _refresh() -> void:
 				_world.relay_disconnect_impact_count(_target)
 			)
 		)
-	if _target is SliceStorage:
+	for status_line in _world.building_logistics_status_lines(_target):
+		lines.append(status_line)
+	if _target is SliceCollector:
+		var collector := _target as SliceCollector
+		lines.append("状态：%s" % collector.power_status_text())
+		lines.append(
+			"晶体缓冲：%d/%d" % [
+				collector.buffer,
+				SliceCollector.BUFFER_CAP,
+			]
+		)
+		lines.append("[3] 取出缓冲中的全部晶体")
+	elif _target is SliceStorage:
 		var storage := _target as SliceStorage
 		lines.append(
 			"晶体：%d｜催化剂：%d｜总容量：%d/%d" % [

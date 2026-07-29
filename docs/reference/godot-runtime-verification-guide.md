@@ -1,6 +1,6 @@
 # Godot Runtime Verification Guide (For AI Agents)
 
-更新时间：2026-07-26
+更新时间：2026-07-29
 
 ## 用途与定位
 
@@ -17,7 +17,10 @@
 Godot 4 的 `--script` 参数接受一个 `extends SceneTree` 的 GDScript，**它会替代工程主循环**：
 
 ```bash
-"$GODOT" --path client --script /tmp/my_check.gd --no-header
+repo_root="$PWD"
+"$GODOT" --path "$repo_root/client" \
+  --script "$repo_root/tools/runtime-intake/YYYY-MM-DD-topic/my-check.gd" \
+  --no-header
 ```
 
 - `--path client` 加载完整工程上下文：全局类（`class_name`）、输入映射、工程设置全部可用，脚本里可直接 `preload("res://scenes/boot/Boot.tscn")`。
@@ -31,8 +34,8 @@ Godot 4 的 `--script` 参数接受一个 `extends SceneTree` 的 GDScript，**�
 2. **纯逻辑断言**用 `--headless` 跑（快）；**需要截图**的用有窗口跑。
 3. 输出重定向到日志文件，过滤真实错误（macOS 有 `noErr` / 证书类噪声）：
    `grep -E "passed|SCRIPT ERROR|ERROR:" log | grep -v noErr | grep -v certificate`
-4. 检查脚本放 `/tmp/`（不进仓库、不触发 uid sidecar 检查）；是否保留脚本按复用价值决定。
-5. 存档测试使用自己命名的 `/private/tmp/<project>-<topic>-save/` 隔离目录。为保证新档基线可在开跑前清理该目录，但自动化通过后不得在脚本结尾清理最终主档 / 备份档；保留可直接载入的人工复核状态并报告绝对路径。纯破坏性 / 迁移失败测试可使用另一个临时目录并清理，任何测试都不得覆盖用户正式存档。
+4. 一次性检查脚本放仓库内忽略提交的 `tools/runtime-intake/YYYY-MM-DD-<topic>/`；形成稳定通用回归价值后，再迁入正式 `scripts/` 或客户端检查入口。
+5. 存档测试使用同批次下自己命名的 `save-root/` 隔离目录，日志与人工复核数据也放在该批次内。为保证新档基线可在开跑前清理自己的隔离目录，但自动化通过后不得删除最终主档 / 备份档；保留可直接载入的人工复核状态并报告绝对路径。纯破坏性 / 迁移失败测试使用独立子目录并可清理，任何测试都不得覆盖用户正式存档。
 6. 截图落到 git 忽略的 `assets/art-intake/<日期>-<主题>-preview/`，供人工 / 视觉复核，结论记入当周周志。脚本可以生成多张原图，但 Codex 单会话默认最多读取 3 张；多图审阅前先运行 `./scripts/create-screenshot-contact-sheet.sh <output.png> <inputs...>` 在磁盘生成一张带编号的联系表，优先只读取联系表；达到默认上限后先报告，萝卜SAMA明确要求当前会话继续时可按每次至多 3 张追加读取。
 
 ## 脚本骨架模板
@@ -41,6 +44,7 @@ Godot 4 的 `--script` 参数接受一个 `extends SceneTree` 的 GDScript，**�
 extends SceneTree
 
 const BootScene := preload("res://scenes/boot/Boot.tscn")
+const BATCH_DIR := "tools/runtime-intake/YYYY-MM-DD-topic"
 const SHOT_DIR := "/绝对路径/assets/art-intake/YYYY-MM-DD-topic-preview"
 
 var failures: Array[String] = []
@@ -67,8 +71,11 @@ func _run() -> void:
 	# 1. 清基线（如删存档文件，保证从新档开始）
 	# 2. 走真实入口链路，不直接实例化内部场景：
 	var boot := BootScene.instantiate()
+	var repo_root := ProjectSettings.globalize_path("res://").path_join(
+		".."
+	).simplify_path()
 	boot.slice_save_catalog = SliceSaveCatalog.new(
-		"/private/tmp/radishcatalyst-my-check"
+		repo_root.path_join(BATCH_DIR).path_join("save-root")
 	)
 	root.add_child(boot)
 	await process_frame

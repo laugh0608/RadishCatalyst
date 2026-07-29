@@ -53,14 +53,41 @@ func _unhandled_input(event: InputEvent) -> void:
 	var index := key_event.keycode - KEY_1
 	if index >= 0 and index < SliceRecipes.RECIPES.size():
 		var recipe: Dictionary = SliceRecipes.RECIPES[index]
-		var kind := String(recipe["kind"])
-		var output := String(recipe["output"])
-		if kind == "building" and _world.pocket.count(output) > 0:
-			_world.select_building_kit(String(recipe["building_id"]))
-		else:
-			_world.craft(String(recipe["id"]))
-		_refresh()
+		_activate_recipe(recipe, key_event.shift_pressed)
 		get_viewport().set_input_as_handled()
+
+
+func _activate_recipe(
+	recipe: Dictionary,
+	select_existing: bool = false
+) -> void:
+	var kind := String(recipe["kind"])
+	var output := String(recipe["output"])
+	var building_id := String(recipe.get("building_id", ""))
+	var existing_count: int = _world.pocket.count(output)
+	if kind == "building" and select_existing:
+		if existing_count > 0:
+			_world.select_building_kit(building_id)
+		_refresh()
+		return
+
+	var selected_before: String = _world.selected_building_id()
+	var crafted: bool = _world.craft(String(recipe["id"]))
+	if kind == "building" and not crafted and existing_count > 0:
+		_world.select_building_kit(building_id)
+	elif (
+		crafted
+		and output == SliceBuildingCatalog.FLOOR_ID
+		and not selected_before.is_empty()
+		and selected_before != SliceBuildingCatalog.FLOOR_ID
+	):
+		var previous_definition := SliceBuildingCatalog.find(selected_before)
+		if (
+			previous_definition != null
+			and _world.pocket.count(previous_definition.kit_item_id) > 0
+		):
+			_world.select_building_kit(selected_before)
+	_refresh()
 
 
 func close() -> void:
@@ -82,9 +109,15 @@ func _refresh() -> void:
 		if String(recipe["kind"]) == "building":
 			var kit_count: int = _world.pocket.count(String(recipe["output"]))
 			if _world.selected_building_id() == String(recipe["building_id"]):
-				status = "  （放置中，剩余 %d）" % kit_count
+				status = (
+					"  （放置中，剩余 %d；[%d] 追加制作）"
+					% [kit_count, number]
+				)
 			elif kit_count > 0:
-				status = "  （已有 %d，按键选中）" % kit_count
+				status = "  （已有 %d；Shift+%d 选中）" % [
+					kit_count,
+					number,
+				]
 			elif not _world.can_afford(cost):
 				status = "  （缺料）"
 		elif not _world.can_afford(cost):

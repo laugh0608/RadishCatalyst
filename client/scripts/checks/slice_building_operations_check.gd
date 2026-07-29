@@ -5,6 +5,7 @@ const SliceWorldScene := preload("res://scenes/slice/SliceWorld.tscn")
 var failures: Array[String] = []
 var _save_dir := ""
 var _assertion_count := 0
+var _reached_end := false
 
 
 func _init() -> void:
@@ -13,6 +14,8 @@ func _init() -> void:
 
 func _execute() -> void:
 	await _run_checks()
+	if not _reached_end:
+		failures.append("building operations check did not reach its final assertion")
 	if failures.is_empty():
 		print(
 			"Slice building operations checks passed (%d assertions)."
@@ -91,7 +94,13 @@ func _check_catalog_and_recipes() -> void:
 
 
 func _check_world_operations() -> void:
-	_save_dir = "/private/tmp/radishcatalyst-l3-package2-%d" % Time.get_ticks_usec()
+	var repo_root := (
+		ProjectSettings.globalize_path("res://").path_join("..").simplify_path()
+	)
+	_save_dir = repo_root.path_join(
+		"tools/runtime-intake/2026-07-29-building-operations-%d"
+		% Time.get_ticks_usec()
+	)
 	var world := SliceWorldScene.instantiate() as SliceWorld
 	world.save_service = SliceSaveService.new(_save_dir)
 	root.add_child(world)
@@ -99,6 +108,64 @@ func _check_world_operations() -> void:
 	await physics_frame
 	world.core_repaired = true
 	world._rebuild_power_grid()
+
+	world.pocket.add(SliceWorld.ITEM_CRYSTAL, 2)
+	world.pocket.add(SliceWorld.ITEM_FLOOR_KIT, 1)
+	world.begin_building_placement(SliceBuildingCatalog.FLOOR_ID)
+	world._craft_panel._activate_recipe(SliceRecipes.find("floor"))
+	_expect_equal(
+		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
+		5,
+		"selected floor recipe key appends another complete batch"
+	)
+	_expect_equal(
+		world.selected_building_id(),
+		SliceBuildingCatalog.FLOOR_ID,
+		"appended floor batch keeps its placement active"
+	)
+	world.pocket.add(SliceWorld.ITEM_REACTOR_KIT, 1)
+	world.select_building_kit(SliceBuildingCatalog.REACTOR_ID)
+	world._craft_panel._refresh()
+	_expect_equal(
+		world._craft_panel._list.text.contains("Shift+2 选中"),
+		true,
+		"floor recipe names the explicit existing-kit selection shortcut"
+	)
+	world._craft_panel._activate_recipe(SliceRecipes.find("floor"))
+	_expect_equal(
+		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
+		9,
+		"reactor placement can craft the second floor batch"
+	)
+	_expect_equal(
+		world.selected_building_id(),
+		SliceBuildingCatalog.REACTOR_ID,
+		"support-floor crafting restores the reactor preview"
+	)
+	world._craft_panel._activate_recipe(SliceRecipes.find("floor"), true)
+	_expect_equal(
+		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
+		9,
+		"Shift-selecting existing floors consumes no resources"
+	)
+	_expect_equal(
+		world.selected_building_id(),
+		SliceBuildingCatalog.FLOOR_ID,
+		"Shift-number explicitly selects existing floor kits"
+	)
+	world.cancel_building_placement()
+	world.pocket.remove(
+		SliceWorld.ITEM_FLOOR_KIT,
+		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT)
+	)
+	world.pocket.remove(
+		SliceWorld.ITEM_CRYSTAL,
+		world.pocket.count(SliceWorld.ITEM_CRYSTAL)
+	)
+	world.pocket.remove(
+		SliceWorld.ITEM_REACTOR_KIT,
+		world.pocket.count(SliceWorld.ITEM_REACTOR_KIT)
+	)
 
 	var floor_definition := SliceBuildingCatalog.find(SliceBuildingCatalog.FLOOR_ID)
 	_spawn_floor_rect(world, Vector2i(25, 3), Vector2i(3, 3))
@@ -117,7 +184,7 @@ func _check_world_operations() -> void:
 	)
 	_expect_equal(
 		String(missing_floor.get("reason", "")),
-		"需工业地板",
+		"此处无法自动铺设工业地板",
 		"device without complete floor support reports short reason"
 	)
 
@@ -323,6 +390,7 @@ func _check_world_operations() -> void:
 	_expect_equal(
 		moved_to_pocket, moved_to_core, "central storage returns all kit types"
 	)
+	_reached_end = true
 	world.free()
 
 

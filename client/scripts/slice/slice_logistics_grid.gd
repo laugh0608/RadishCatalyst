@@ -307,6 +307,276 @@ func can_extract_reactor_output(reactor: SliceReactor) -> bool:
 	)
 
 
+func placement_preview_ports() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for storage in _storages:
+		var definition := storage.definition
+		result.append(_preview_port(
+			storage,
+			"storage",
+			"IO",
+			definition.logistics_port_world_cell(
+				storage.origin_cell, storage.building_rotation
+			),
+			definition.logistics_connection_world_cell(
+				storage.origin_cell, storage.building_rotation
+			),
+			definition.logistics_direction_for_rotation(
+				storage.building_rotation
+			)
+		))
+	for reactor in _reactors:
+		var definition := reactor.definition
+		result.append(_preview_port(
+			reactor,
+			"input",
+			"IN",
+			definition.machine_input_port_world_cell(
+				reactor.origin_cell, reactor.building_rotation
+			),
+			definition.machine_input_connection_world_cell(
+				reactor.origin_cell, reactor.building_rotation
+			),
+			definition.machine_input_direction_for_rotation(
+				reactor.building_rotation
+			)
+		))
+		result.append(_preview_port(
+			reactor,
+			"output",
+			"OUT",
+			definition.machine_output_port_world_cell(
+				reactor.origin_cell, reactor.building_rotation
+			),
+			definition.machine_output_connection_world_cell(
+				reactor.origin_cell, reactor.building_rotation
+			),
+			definition.machine_output_direction_for_rotation(
+				reactor.building_rotation
+			)
+		))
+	return result
+
+
+func conveyor_placement_preview(
+	origin_cell: Vector2i,
+	rotation: int
+) -> Dictionary:
+	var output := _conveyor_direction(rotation)
+	var nearby: Dictionary = {}
+	var nearby_distance := 3
+	var exact_ports: Array[Dictionary] = []
+	for port in placement_preview_ports():
+		var connection_cell := Vector2i(port["connection_cell"])
+		if connection_cell == origin_cell:
+			exact_ports.append(port)
+			continue
+		var offset := connection_cell - origin_cell
+		var distance := absi(offset.x) + absi(offset.y)
+		if distance <= 2 and distance < nearby_distance:
+			nearby = port
+			nearby_distance = distance
+	if not exact_ports.is_empty():
+		var source_labels: Array[String] = []
+		var sink_labels: Array[String] = []
+		for port in exact_ports:
+			var kind := String(port["kind"])
+			var outward := Vector2i(port["outward_direction"])
+			var matched := _port_accepts_direction(
+				kind, outward, output
+			)
+			if not matched:
+				return {
+					"status": "wrong_direction",
+					"message": _placement_message(
+						port, output, false
+					),
+					"instance_id": String(port["instance_id"]),
+					"kind": kind,
+					"connection_cell": origin_cell,
+				}
+			var endpoint_label := _placement_endpoint_label(port, output)
+			if (
+				kind == "output"
+				or (kind == "storage" and output == outward)
+			):
+				source_labels.append(endpoint_label)
+			else:
+				sink_labels.append(endpoint_label)
+		var endpoint_labels: Array[String] = source_labels + sink_labels
+		return {
+			"status": "connected",
+			"message": (
+				_placement_message(exact_ports[0], output, true)
+				if exact_ports.size() == 1
+				else "已连 %s" % " → ".join(endpoint_labels)
+			),
+			"instance_id": String(exact_ports[0]["instance_id"]),
+			"kind": String(exact_ports[0]["kind"]),
+			"connection_cell": origin_cell,
+		}
+	if nearby.is_empty():
+		return {
+			"status": "none",
+			"message": "",
+		}
+	return {
+		"status": "nearby",
+		"message": "附近有 %s %s，请放到端口标记格" % [
+			String(nearby["device_name"]),
+			String(nearby["label"]),
+		],
+		"instance_id": String(nearby["instance_id"]),
+		"kind": String(nearby["kind"]),
+		"connection_cell": Vector2i(nearby["connection_cell"]),
+	}
+
+
+func building_status_lines(
+	instance: SliceBuildingInstance
+) -> Array[String]:
+	if instance is SliceStorage:
+		return [_storage_status_text(instance as SliceStorage)]
+	if instance is SliceReactor:
+		var reactor := instance as SliceReactor
+		return [
+			_reactor_port_status_text(reactor, true),
+			_reactor_port_status_text(reactor, false),
+		]
+	return []
+
+
+func _preview_port(
+	instance: SliceBuildingInstance,
+	kind: String,
+	label: String,
+	port_cell: Vector2i,
+	connection_cell: Vector2i,
+	outward: Vector2i
+) -> Dictionary:
+	var conveyor := conveyor_at(connection_cell)
+	return {
+		"instance_id": instance.instance_id,
+		"device_name": instance.definition.display_name,
+		"kind": kind,
+		"label": label,
+		"port_cell": port_cell,
+		"connection_cell": connection_cell,
+		"outward_direction": outward,
+		"connected": (
+			conveyor != null
+			and _port_accepts_direction(
+				kind, outward, conveyor.output_direction()
+			)
+		),
+	}
+
+
+func _placement_message(
+	port: Dictionary,
+	output: Vector2i,
+	matched: bool
+) -> String:
+	var device_name := String(port["device_name"])
+	var kind := String(port["kind"])
+	var label := String(port["label"])
+	var outward := Vector2i(port["outward_direction"])
+	if not matched:
+		return "%s %s 方向错误，按 R 对准箭头" % [device_name, label]
+	if kind == "storage":
+		return (
+			"已对准 %s OUT：从箱内出货"
+			% device_name
+			if output == outward
+			else "已对准 %s IN：向箱内入库" % device_name
+		)
+	return "已对准 %s %s" % [device_name, label]
+
+
+func _placement_endpoint_label(
+	port: Dictionary,
+	output: Vector2i
+) -> String:
+	var kind := String(port["kind"])
+	if kind == "storage":
+		var outward := Vector2i(port["outward_direction"])
+		return "%s %s" % [
+			String(port["device_name"]),
+			"OUT" if output == outward else "IN",
+		]
+	return "%s %s" % [
+		String(port["device_name"]),
+		String(port["label"]),
+	]
+
+
+func _storage_status_text(storage: SliceStorage) -> String:
+	var definition := storage.definition
+	var connection_cell := definition.logistics_connection_world_cell(
+		storage.origin_cell, storage.building_rotation
+	)
+	var conveyor := conveyor_at(connection_cell)
+	if conveyor == null:
+		return "物流口：未接传送带（请接舱口外的 IO 标记格）"
+	var outward := definition.logistics_direction_for_rotation(
+		storage.building_rotation
+	)
+	if conveyor.output_direction() == outward:
+		return "物流口：已接 OUT（从箱内出货）"
+	if conveyor.output_direction() == -outward:
+		return "物流口：已接 IN（向箱内入库）"
+	return "物流口：方向错误（传送带需沿舱口箭头）"
+
+
+func _reactor_port_status_text(
+	reactor: SliceReactor,
+	input_port: bool
+) -> String:
+	var definition := reactor.definition
+	var connection_cell := (
+		definition.machine_input_connection_world_cell(
+			reactor.origin_cell, reactor.building_rotation
+		)
+		if input_port
+		else definition.machine_output_connection_world_cell(
+			reactor.origin_cell, reactor.building_rotation
+		)
+	)
+	var outward := (
+		definition.machine_input_direction_for_rotation(
+			reactor.building_rotation
+		)
+		if input_port
+		else definition.machine_output_direction_for_rotation(
+			reactor.building_rotation
+		)
+	)
+	var conveyor := conveyor_at(connection_cell)
+	var label := "IN" if input_port else "OUT"
+	if conveyor == null:
+		return "%s：未接传送带（请接端口标记格）" % label
+	var expected := -outward if input_port else outward
+	if conveyor.output_direction() == expected:
+		return "%s：已接" % label
+	return "%s：方向错误（按箭头旋转传送带）" % label
+
+
+func _conveyor_direction(rotation: int) -> Vector2i:
+	return SliceConveyor.DIRECTION_ORDER[posmod(rotation, 4)]
+
+
+func _port_accepts_direction(
+	kind: String,
+	outward: Vector2i,
+	output: Vector2i
+) -> bool:
+	if kind == "storage":
+		return output == outward or output == -outward
+	if kind == "input":
+		return output == -outward
+	return output == outward
+
+
 func _refresh_conveyor_topologies() -> void:
 	for conveyor in _conveyors:
 		var output := conveyor.output_direction()

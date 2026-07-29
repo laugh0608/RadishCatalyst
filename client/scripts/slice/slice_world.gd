@@ -92,6 +92,9 @@ var _industrial_floor: TileMapLayer
 var _placement: SliceBuildingPlacementController
 var _placement_pointer := SlicePlacementPointerInput.new()
 var _placement_validator := SlicePlacementValidator.new()
+var _support_floor_transaction := (
+	SlicePlacementSupportFloorTransaction.new()
+)
 var _occupancy := SliceBuildingOccupancy.new()
 var _power_grid := SlicePowerGrid.new()
 var _logistics_grid := SliceLogisticsGrid.new()
@@ -186,6 +189,12 @@ func _ready() -> void:
 		ROCK_GROUND_SOURCE_ID,
 		CRYSTAL_GROUND_SOURCE_ID
 	)
+	_support_floor_transaction.setup(
+		_ground,
+		_occupancy,
+		_industrial_floor,
+		_building_instances
+	)
 
 	if startup_load:
 		_restore_from_save()
@@ -226,7 +235,8 @@ func _refresh_placement_target() -> void:
 		),
 		validation,
 		TILE_SIZE,
-		_power_grid.placement_preview_nodes()
+		_power_grid.placement_preview_nodes(),
+		_logistics_grid.placement_preview_ports()
 	)
 
 
@@ -657,6 +667,12 @@ func reactor_status_text(reactor: SliceReactor) -> String:
 	)
 
 
+func building_logistics_status_lines(
+	instance: SliceBuildingInstance
+) -> Array[String]:
+	return _logistics_grid.building_status_lines(instance)
+
+
 func recover_reactor_contents(reactor: SliceReactor) -> Dictionary:
 	if reactor == null or not _building_instances.has(reactor):
 		return {
@@ -892,17 +908,31 @@ func try_place_building() -> bool:
 	if not is_placement_active() or not _placement.target_valid:
 		return false
 	var definition := _placement.definition
+	var support_result := _support_floor_transaction.create(
+		definition,
+		_placement.missing_floor_cells(),
+		pocket,
+		Callable(self, "_spawn_building")
+	)
+	if not bool(support_result.get("success", false)):
+		return false
+	var support_floors: Array[SliceBuildingInstance] = []
+	for value in support_result.get("instances", []):
+		support_floors.append(value as SliceBuildingInstance)
 	if _adjustment_instance != null:
 		_commit_adjustment(
 			_placement.target_origin,
 			_placement.rotation_index
 		)
+		_support_floor_transaction.commit_cost(pocket, support_floors)
 		_placement.cancel()
 		_placement_pointer.cancel()
 		placement_changed.emit()
+		inventory_changed.emit()
 		_autosave()
 		return true
 	if pocket.count(definition.kit_item_id) <= 0:
+		_support_floor_transaction.rollback(support_floors)
 		cancel_building_placement()
 		return false
 	var instance := _spawn_building(
@@ -913,7 +943,9 @@ func try_place_building() -> bool:
 		{}
 	)
 	if instance == null:
+		_support_floor_transaction.rollback(support_floors)
 		return false
+	_support_floor_transaction.commit_cost(pocket, support_floors)
 	pocket.remove(definition.kit_item_id, 1)
 	if pocket.count(definition.kit_item_id) <= 0:
 		cancel_building_placement()
@@ -946,6 +978,20 @@ func selected_building_name() -> String:
 
 func selected_building_rotation() -> int:
 	return 0 if not is_placement_active() else _placement.rotation_index
+
+
+func placement_auto_floor_count() -> int:
+	return 0 if not is_placement_active() else (
+		_placement.missing_floor_cells().size()
+	)
+
+
+func placement_logistics_feedback() -> String:
+	return (
+		""
+		if not is_placement_active()
+		else _placement.logistics_feedback_text()
+	)
 
 
 func open_building_actions(instance: SliceBuildingInstance) -> void:
@@ -1047,7 +1093,19 @@ func _validate_placement(
 	origin_cell: Vector2i,
 	rotation: int
 ) -> Dictionary:
-	return _placement_validator.validate(definition, origin_cell, rotation)
+	var result := _placement_validator.validate(
+		definition,
+		origin_cell,
+		rotation,
+		pocket.count(ITEM_FLOOR_KIT)
+	)
+	if definition.building_id == SliceBuildingCatalog.CONVEYOR_ID:
+		result["logistics_preview"] = (
+			_logistics_grid.conveyor_placement_preview(
+				origin_cell, rotation
+			)
+		)
+	return result
 
 
 func _floor_supports_facility(instance: SliceBuildingInstance) -> bool:

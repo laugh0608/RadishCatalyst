@@ -40,7 +40,8 @@ func setup(
 func validate(
 	definition: SliceBuildingDefinition,
 	origin_cell: Vector2i,
-	rotation: int
+	rotation: int,
+	available_floor_kits: int = 0
 ) -> Dictionary:
 	var cells := definition.occupied_cells(origin_cell, rotation)
 	for cell in cells:
@@ -52,6 +53,7 @@ func validate(
 			return _result(false, "越界", cells)
 
 	var missing_floor_cells: Array[Vector2i] = []
+	var missing_floor_has_invalid_surface := false
 	for cell in cells:
 		var source_id := _ground.get_cell_source_id(cell)
 		if (
@@ -71,11 +73,11 @@ func validate(
 			and not _occupancy.has_floor(cell)
 		):
 			missing_floor_cells.append(cell)
-	if not missing_floor_cells.is_empty():
-		return _result(false, "需工业地板", cells, missing_floor_cells)
+			if source_id != _rock_source_id:
+				missing_floor_has_invalid_surface = true
 
 	if not _occupancy.can_occupy(cells, definition.is_floor):
-		return _result(false, "已有占用", cells)
+		return _result(false, "已有占用", cells, missing_floor_cells)
 
 	var query := PhysicsShapeQueryParameters2D.new()
 	var shape := RectangleShape2D.new()
@@ -94,17 +96,39 @@ func validate(
 	)
 	for collision in collisions:
 		if collision.get("collider") == _player:
-			return _result(false, "玩家阻挡", cells)
+			return _result(false, "玩家阻挡", cells, missing_floor_cells)
 	if not collisions.is_empty():
-		return _result(false, "已有占用", cells)
+		return _result(false, "已有占用", cells, missing_floor_cells)
 	if (
 		definition.power_role == SliceBuildingDefinition.POWER_RELAY
 		and not _power_grid.can_connect_relay_at(
 			definition.block_center(origin_cell, _tile_size, rotation)
 		)
 	):
-		return _result(false, "超出电网连接距离", cells)
-	return _result(true, "", cells)
+		return _result(
+			false,
+			"超出电网连接距离",
+			cells,
+			missing_floor_cells
+		)
+	if missing_floor_has_invalid_surface:
+		return _result(
+			false,
+			"此处无法自动铺设工业地板",
+			cells,
+			missing_floor_cells
+		)
+	if missing_floor_cells.size() > available_floor_kits:
+		return _result(
+			false,
+			"工业地板不足：需%d，有%d" % [
+				missing_floor_cells.size(),
+				available_floor_kits,
+			],
+			cells,
+			missing_floor_cells
+		)
+	return _result(true, "", cells, missing_floor_cells)
 
 
 func _result(
@@ -118,4 +142,5 @@ func _result(
 		"reason": reason,
 		"cells": cells,
 		"missing_floor_cells": missing_floor_cells,
+		"required_floor_kits": missing_floor_cells.size(),
 	}

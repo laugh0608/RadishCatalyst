@@ -16,6 +16,7 @@ var invalid_reason := ""
 
 var _overlay := SlicePlacementOverlay.new()
 var _preview := Sprite2D.new()
+var _validation: Dictionary = {}
 
 
 func _ready() -> void:
@@ -34,6 +35,7 @@ func begin(
 	rotation_index = definition.normalized_rotation(initial_rotation)
 	target_valid = false
 	invalid_reason = ""
+	_validation.clear()
 	_configure_preview()
 	_overlay.clear()
 
@@ -43,6 +45,7 @@ func cancel() -> void:
 	rotation_index = 0
 	target_valid = false
 	invalid_reason = ""
+	_validation.clear()
 	_preview.visible = false
 	_overlay.clear()
 
@@ -63,7 +66,8 @@ func update_target(
 	world_position: Vector2,
 	validation: Dictionary,
 	tile_size: float = 32.0,
-	power_nodes: Array[Dictionary] = []
+	power_nodes: Array[Dictionary] = [],
+	logistics_ports: Array[Dictionary] = []
 ) -> void:
 	if definition == null:
 		return
@@ -71,6 +75,7 @@ func update_target(
 	position = world_position
 	target_valid = bool(validation.get("valid", false))
 	invalid_reason = String(validation.get("reason", ""))
+	_validation = validation.duplicate(true)
 	_preview.modulate = VALID_COLOR if target_valid else INVALID_COLOR
 	_preview.visible = true
 	_overlay.configure(
@@ -79,12 +84,27 @@ func update_target(
 		rotation_index,
 		tile_size,
 		validation,
-		power_nodes
+		power_nodes,
+		logistics_ports
 	)
 
 
 func selected_building_id() -> String:
 	return "" if definition == null else definition.building_id
+
+
+func missing_floor_cells() -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for cell in _validation.get("missing_floor_cells", []):
+		result.append(Vector2i(cell))
+	return result
+
+
+func logistics_feedback_text() -> String:
+	var preview: Dictionary = _validation.get(
+		"logistics_preview", {}
+	)
+	return String(preview.get("message", ""))
 
 
 func world_position_from_screen(screen_position: Vector2) -> Vector2:

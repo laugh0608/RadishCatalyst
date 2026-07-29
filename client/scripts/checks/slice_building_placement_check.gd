@@ -193,8 +193,12 @@ func _check_pointer_input_state() -> void:
 
 
 func _check_world_placement_path() -> void:
-	_save_dir = "/private/tmp/radishcatalyst-l3-package1-%d" % (
-		Time.get_ticks_usec()
+	var repo_root := (
+		ProjectSettings.globalize_path("res://").path_join("..").simplify_path()
+	)
+	_save_dir = repo_root.path_join(
+		"tools/runtime-intake/2026-07-29-placement-check-%d"
+		% Time.get_ticks_usec()
 	)
 	var world := SliceWorldScene.instantiate() as SliceWorld
 	world.save_service = SliceSaveService.new(_save_dir)
@@ -210,6 +214,7 @@ func _check_world_placement_path() -> void:
 	var relay := SliceBuildingCatalog.find(
 		SliceBuildingCatalog.POWER_RELAY_ID
 	)
+	var storage := SliceBuildingCatalog.find(SliceBuildingCatalog.STORAGE_ID)
 	var floor_cell := Vector2i(5, 5)
 	var collector_cell := Vector2i(45, 10)
 	_expect_equal(
@@ -224,7 +229,7 @@ func _check_world_placement_path() -> void:
 			"collector test footprint is crystal ground"
 		)
 
-	var reactor_cell := Vector2i(18, 8)
+	var reactor_cell := Vector2i(16, 5)
 	var reactor_validation := world._validate_placement(
 		reactor, reactor_cell, 0
 	)
@@ -246,11 +251,39 @@ func _check_world_placement_path() -> void:
 		9,
 		"reactor preview marks every missing support floor cell"
 	)
+	_expect_equal(
+		String(reactor_validation.get("reason", "")),
+		"工业地板不足：需9，有0",
+		"reactor preview explains the exact missing support resource"
+	)
+	_expect_equal(
+		world._placement._overlay.logistics_port_marker_count(),
+		2,
+		"reactor preview marks input and output conveyor ports"
+	)
+	world._placement.cancel()
+
+	var storage_validation := world._validate_placement(
+		storage, Vector2i(16, 8), 0
+	)
+	world._placement.begin(storage)
+	world._placement.update_target(
+		Vector2i(16, 8),
+		storage.block_center(Vector2i(16, 8), SliceWorld.TILE_SIZE, 0),
+		storage_validation,
+		SliceWorld.TILE_SIZE,
+		world._power_grid.placement_preview_nodes()
+	)
+	_expect_equal(
+		world._placement._overlay.logistics_port_marker_count(),
+		1,
+		"storage preview marks its bidirectional conveyor port"
+	)
 	world._placement.cancel()
 
 	world.core_repaired = true
 	world._rebuild_power_grid()
-	var relay_cell := Vector2i(20, 10)
+	var relay_cell := Vector2i(15, 10)
 	var relay_validation := world._validate_placement(relay, relay_cell, 0)
 	world._placement.begin(relay)
 	world._placement.update_target(
@@ -268,9 +301,82 @@ func _check_world_placement_path() -> void:
 	_expect_equal(
 		world._placement._overlay.power_ring_count(),
 		2,
-		"relay preview shows link and device-supply ranges"
+		"relay preview shows ranges even before its floor exists"
+	)
+	_expect_equal(
+		bool(relay_validation.get("valid", false)),
+		false,
+		"relay without a floor kit cannot partially place"
+	)
+	_expect_equal(
+		world._building_instances.is_empty(),
+		true,
+		"invalid relay preview creates no support floor or device"
 	)
 	world._placement.cancel()
+
+	world.pocket.add(SliceWorld.ITEM_FLOOR_KIT, 1)
+	world.pocket.add(SliceWorld.ITEM_POWER_RELAY_KIT, 1)
+	_expect_equal(
+		world.begin_building_placement(relay.building_id),
+		true,
+		"relay kit enters authoritative placement"
+	)
+	relay_validation = world._validate_placement(relay, relay_cell, 0)
+	world._placement.update_target(
+		relay_cell,
+		relay.block_center(relay_cell, SliceWorld.TILE_SIZE, 0),
+		relay_validation,
+		SliceWorld.TILE_SIZE,
+		world._power_grid.placement_preview_nodes()
+	)
+	_expect_equal(
+		String(relay_validation.get("reason", "")),
+		"",
+		"one floor kit clears the relay placement blocker"
+	)
+	_expect_equal(
+		bool(relay_validation.get("valid", false)),
+		true,
+		"one floor kit makes the in-range relay preview valid"
+	)
+	_expect_equal(
+		world.placement_auto_floor_count(),
+		1,
+		"relay preview exposes one automatic support floor"
+	)
+	var hud := world.get_node("SliceHud") as SliceHud
+	hud._process(0.0)
+	_expect_equal(
+		hud.prompt_label.text.contains("自动铺地 1 格"),
+		true,
+		"placement HUD announces the exact automatic floor cost"
+	)
+	_expect_equal(
+		world.try_place_building(),
+		true,
+		"one relay confirmation installs its support floor and device"
+	)
+	_expect_equal(
+		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
+		0,
+		"automatic relay support consumes exactly one floor kit"
+	)
+	_expect_equal(
+		world.pocket.count(SliceWorld.ITEM_POWER_RELAY_KIT),
+		0,
+		"automatic relay placement consumes exactly one device kit"
+	)
+	_expect_equal(
+		world._occupancy.has_floor(relay_cell),
+		true,
+		"automatic support is registered in floor occupancy"
+	)
+	_expect_equal(
+		world._occupancy.blocking_instance_at(relay_cell).is_empty(),
+		false,
+		"relay is registered above its automatic support floor"
+	)
 
 	world.pocket.add(SliceWorld.ITEM_CRYSTAL, 1)
 	_expect_equal(world.craft("floor"), true, "floor recipe crafts")
@@ -420,8 +526,8 @@ func _check_world_placement_path() -> void:
 	)
 	_expect_equal(
 		world._building_instances.size(),
-		4,
-		"three dragged floors and collector share the instance registry"
+		6,
+		"automatic support, relay, dragged floors and collector share the registry"
 	)
 	_expect_equal(
 		world._collector_nodes.size(), 1, "collector behavior stays registered"
@@ -466,6 +572,48 @@ func _check_world_placement_path() -> void:
 		world._collector_nodes[0].buffer,
 		1,
 		"powered collector keeps current deterministic production behavior"
+	)
+	var collector_site := (
+		world._collector_nodes[0].get_node("PickupSite")
+		as CollectorPickupSite
+	)
+	var crystal_before := world.pocket.count(SliceWorld.ITEM_CRYSTAL)
+	collector_site.try_interact(world)
+	_expect_equal(
+		world._building_action_panel.is_open(),
+		true,
+		"first collector interaction opens the operation panel"
+	)
+	_expect_equal(
+		world._collector_nodes[0].buffer,
+		1,
+		"opening the collector panel does not take buffered crystal"
+	)
+	_expect_equal(
+		world.pocket.count(SliceWorld.ITEM_CRYSTAL),
+		crystal_before,
+		"opening the collector panel does not change the backpack"
+	)
+	_expect_equal(
+		world._building_action_panel._list.text.contains(
+			"[3] 取出缓冲中的全部晶体"
+		),
+		true,
+		"collector panel exposes an explicit take action"
+	)
+	var take_event := InputEventKey.new()
+	take_event.keycode = KEY_3
+	take_event.pressed = true
+	world._building_action_panel._unhandled_input(take_event)
+	_expect_equal(
+		world._collector_nodes[0].buffer,
+		0,
+		"collector panel take action drains the available buffer"
+	)
+	_expect_equal(
+		world.pocket.count(SliceWorld.ITEM_CRYSTAL),
+		crystal_before + 1,
+		"collector panel take action moves crystal into the backpack"
 	)
 	world.free()
 

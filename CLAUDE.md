@@ -71,10 +71,10 @@ Godot 官方命令行提供 `--import`、`--script` 和脚本级 `--check-only` 
 ### Godot 正式入口与截图自动化（玩家可见功能强制）
 
 - 涉及玩法、交互、HUD、场景、状态反馈或存读结果的玩家可见改动，默认 `check-client` 与纯 headless 断言不能单独作为完成证据；必须按 `docs/reference/godot-runtime-verification-guide.md` 补正式入口运行时验证。
-- 逻辑层使用临时 `extends SceneTree` GDScript 从真实 `Boot` 入口启动，模拟正式按钮 / 输入动作，存档测试必须注入 `/private/tmp` 等隔离目录；需要渲染的目标必须有窗口运行，调用 viewport 自动抓图，不能以 headless 代替截图。
+- 逻辑层使用仓库内忽略提交的 `tools/runtime-intake/YYYY-MM-DD-<topic>/` 存放一次性 `extends SceneTree` GDScript，从真实 `Boot` 入口模拟正式按钮 / 输入动作；隔离存档、日志与人工复核数据放在同批次子目录，不得写入用户正式存档。需要渲染的目标必须有窗口运行，调用 viewport 自动抓图，不能以 headless 代替截图。
 - 面向人工复核的自动化验证可在开跑前清理自己的隔离测试目录以建立干净基线，但通过后不得删除最终测试存档；应保留可直接载入的主档 / 备份档，报告绝对路径与复核状态，不覆盖或污染用户正式存档。只有纯破坏性 / 迁移失败测试或萝卜SAMA明确要求时才清理。
 - 截图保存到忽略提交的 `assets/art-intake/YYYY-MM-DD-<topic>-preview/`，自动脚本退出后必须实际查看截图，核对主体、HUD、遮挡、文字截断与状态一致性；“文件成功写出”不等于视觉通过。
-- 每包把断言数、正式入口路径、截图文件名和视觉复核结论写入当周周志。一次性验证脚本默认放 `/private/tmp`，只有形成稳定通用回归价值时才接入仓库检查入口。
+- 每包把断言数、正式入口路径、截图文件名和视觉复核结论写入当周周志。一次性验证脚本默认留在忽略提交的 `tools/runtime-intake/`；形成稳定通用回归价值后再迁入正式 `scripts/` 或客户端检查入口。
 - 启动 Godot、有窗口测试或 `--with-godot` 前仍须先告知萝卜SAMA；纯文档、内部重构或不影响玩家可见行为的单点修正可按风险省略截图，但需执行匹配的最小验证。
 
 当前验证重点和默认验证基线以 `docs/planning/current.md` 为准；脚本具体覆盖范围以脚本实现为准。

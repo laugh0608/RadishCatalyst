@@ -102,17 +102,49 @@ func _process(_delta: float) -> void:
 			if definition == null
 			else _world.pocket.count(definition.kit_item_id)
 		)
+		var logistics_feedback: String = (
+			_world.placement_logistics_feedback()
+		)
+		if not logistics_feedback.is_empty():
+			prompt_label.text = (
+				"%s  ·  %s  ·  %s  ·  R 旋转  ·  Esc 取消"
+				% [
+					_world.selected_building_name(),
+					logistics_feedback,
+					(
+						"LMB 放置"
+						if _world.is_place_target_valid()
+						else _world.placement_invalid_reason()
+					),
+				]
+			)
+			return
 		if _world.is_place_target_valid():
-			prompt_label.text = "放置 %s  ·  剩余 %d  ·  E 兼容  ·  R 旋转  ·  Esc 取消" % [
-				_world.selected_building_name(),
-				remaining,
-			]
+			var auto_floor_count: int = (
+				_world.placement_auto_floor_count()
+			)
+			var floor_text := (
+				"  ·  自动铺地 %d 格" % auto_floor_count
+				if auto_floor_count > 0
+				else ""
+			)
+			prompt_label.text = (
+				"放置 %s%s  ·  剩余 %d  ·  E 兼容  ·  R 旋转  ·  Esc 取消"
+				% [
+					_world.selected_building_name(),
+					floor_text,
+					remaining,
+				]
+			)
 		else:
-			prompt_label.text = "%s  ·  剩余 %d  ·  %s  ·  R 旋转  ·  Esc 取消" % [
-				_world.selected_building_name(),
-				remaining,
-				_world.placement_invalid_reason()
-			]
+			prompt_label.text = (
+				"%s  ·  剩余 %d  ·  %s  ·  R 旋转  ·  Esc 取消"
+				% [
+					_world.selected_building_name(),
+					remaining,
+					_world.placement_invalid_reason(),
+				]
+			)
 		return
 	if _world.is_combat_input_blocked():
 		prompt_panel.visible = false
