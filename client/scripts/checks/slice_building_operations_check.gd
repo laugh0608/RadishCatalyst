@@ -92,6 +92,36 @@ func _check_catalog_and_recipes() -> void:
 		)
 		_expect_equal(recipe["cost"], expectation[2], "%s cost" % recipe_id)
 
+	var missing_inventory := Inventory.new(30)
+	_expect_equal(
+		SliceRecipes.craft_block_reason(
+			SliceRecipes.find("reactor"),
+			missing_inventory
+		),
+		"缺少 机械零件 ×4",
+		"recipe blocker names the missing material and amount"
+	)
+	var full_inventory := Inventory.new(3)
+	full_inventory.add(SliceWorld.ITEM_CRYSTAL, 1)
+	_expect_equal(
+		SliceRecipes.craft_block_reason(
+			SliceRecipes.find("floor"),
+			full_inventory
+		),
+		"背包还需 1 格",
+		"recipe blocker uses post-consumption capacity"
+	)
+	var exact_inventory := Inventory.new(4)
+	exact_inventory.add(SliceWorld.ITEM_CRYSTAL, 1)
+	_expect_equal(
+		SliceRecipes.craft_block_reason(
+			SliceRecipes.find("floor"),
+			exact_inventory
+		),
+		"",
+		"recipe blocker accepts an exact post-consumption fit"
+	)
+
 
 func _check_world_operations() -> void:
 	var repo_root := (
@@ -108,6 +138,45 @@ func _check_world_operations() -> void:
 	await physics_frame
 	world.core_repaired = true
 	world._rebuild_power_grid()
+	world._craft_panel._refresh()
+	_expect_equal(
+		world._craft_panel.recipe_card_count(),
+		SliceRecipes.RECIPES.size(),
+		"graphical panel creates one card per authoritative recipe"
+	)
+	_expect_equal(
+		world._craft_panel.inventory_slot_count(),
+		9,
+		"graphical backpack exposes the stable nine-item slice inventory"
+	)
+	for recipe in SliceRecipes.RECIPES:
+		var recipe_id := String(recipe["id"])
+		var card := world._craft_panel.recipe_card(recipe_id)
+		var icon := card.find_child("Icon", true, false) as TextureRect
+		var craft_button := card.find_child("Craft", true, false) as Button
+		_expect_equal(
+			card != null and icon != null and icon.texture != null,
+			true,
+			"%s recipe card has a graphical identity" % recipe_id
+		)
+		_expect_equal(
+			craft_button != null,
+			true,
+			"%s recipe card exposes a mouse craft action" % recipe_id
+		)
+	for item_id in SliceCraftPanel.INVENTORY_ITEMS:
+		var slot := world._craft_panel.inventory_slot(item_id)
+		var slot_icon := slot.find_child("Icon", true, false) as TextureRect
+		_expect_equal(
+			slot != null and slot_icon != null and slot_icon.texture != null,
+			true,
+			"%s inventory slot has a graphical identity" % item_id
+		)
+	_expect_equal(
+		world._craft_panel.capacity_text(),
+		"0 / 30",
+		"graphical backpack shows authoritative total capacity"
+	)
 
 	world.pocket.add(SliceWorld.ITEM_CRYSTAL, 2)
 	world.pocket.add(SliceWorld.ITEM_FLOOR_KIT, 1)
@@ -126,10 +195,14 @@ func _check_world_operations() -> void:
 	world.pocket.add(SliceWorld.ITEM_REACTOR_KIT, 1)
 	world.select_building_kit(SliceBuildingCatalog.REACTOR_ID)
 	world._craft_panel._refresh()
+	var floor_card := world._craft_panel.recipe_card("floor")
+	var floor_select := floor_card.find_child(
+		"SelectExisting", true, false
+	) as Button
 	_expect_equal(
-		world._craft_panel._list.text.contains("Shift+2 选中"),
+		floor_select.text.contains("选中已有 ×5"),
 		true,
-		"floor recipe names the explicit existing-kit selection shortcut"
+		"floor card exposes explicit existing-kit mouse selection"
 	)
 	world._craft_panel._activate_recipe(SliceRecipes.find("floor"))
 	_expect_equal(
@@ -152,6 +225,12 @@ func _check_world_operations() -> void:
 		world.selected_building_id(),
 		SliceBuildingCatalog.FLOOR_ID,
 		"Shift-number explicitly selects existing floor kits"
+	)
+	world._craft_panel._activate_recipe(SliceRecipes.find("reactor"))
+	_expect_equal(
+		world.selected_building_id(),
+		SliceBuildingCatalog.FLOOR_ID,
+		"plain recipe activation never falls back to selecting an existing kit"
 	)
 	world.cancel_building_placement()
 	world.pocket.remove(

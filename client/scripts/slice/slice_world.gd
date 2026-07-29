@@ -830,14 +830,9 @@ func craft(recipe_id: String) -> bool:
 	if recipe.is_empty():
 		return false
 	var kind := String(recipe["kind"])
-	if not can_afford(recipe["cost"]):
+	if not SliceRecipes.craft_block_reason(recipe, pocket).is_empty():
 		return false
 	var output_count := int(recipe.get("output_count", 1))
-	var consumed_count := 0
-	for amount in recipe["cost"].values():
-		consumed_count += int(amount)
-	if pocket.free_space() + consumed_count < output_count:
-		return false
 	if kind == "building":
 		var definition := SliceBuildingCatalog.find(String(recipe["building_id"]))
 		if definition == null:

@@ -9,6 +9,7 @@ extends RefCounted
 
 const ITEM_NAMES := {
 	"crystal": "晶体",
+	"catalyst": "催化剂",
 	"part": "机械零件",
 	"building.floor": "工业地板套件",
 	"building.collector": "采集器套件",
@@ -29,7 +30,7 @@ const RECIPES := [
 	},
 	{
 		"id": "floor",
-		"name": "工业地板 ×4",
+		"name": "工业地板",
 		"kind": "building",
 		"output": "building.floor",
 		"output_count": 4,
@@ -65,7 +66,7 @@ const RECIPES := [
 	},
 	{
 		"id": "conveyor",
-		"name": "传送带 ×4",
+		"name": "传送带",
 		"kind": "building",
 		"output": "building.conveyor",
 		"output_count": 4,
@@ -91,9 +92,41 @@ static func find(recipe_id: String) -> Dictionary:
 	return {}
 
 
-## "晶体3 机械零件2" style cost text for the panel.
+## Compact material text shared by graphical recipe cards and diagnostics.
 static func cost_text(cost: Dictionary) -> String:
 	var parts: Array[String] = []
 	for item in cost:
-		parts.append("%s%d" % [String(ITEM_NAMES.get(item, item)), int(cost[item])])
-	return " ".join(parts)
+		parts.append(
+			"%s ×%d" % [String(ITEM_NAMES.get(item, item)), int(cost[item])]
+		)
+	return " · ".join(parts)
+
+
+## Returns an empty string when authoritative inventory rules allow crafting,
+## otherwise a player-facing blocker. SliceWorld and the panel both consume
+## this result so button state cannot drift from actual crafting.
+static func craft_block_reason(recipe: Dictionary, inventory: Inventory) -> String:
+	var missing: Array[String] = []
+	var cost: Dictionary = recipe["cost"]
+	for item in cost:
+		var needed := int(cost[item])
+		var available := inventory.count(String(item))
+		if available < needed:
+			missing.append(
+				"%s ×%d"
+				% [
+					String(ITEM_NAMES.get(item, item)),
+					needed - available,
+				]
+			)
+	if not missing.is_empty():
+		return "缺少 %s" % " · ".join(missing)
+
+	var consumed_count := 0
+	for amount in cost.values():
+		consumed_count += int(amount)
+	var output_count := int(recipe.get("output_count", 1))
+	var available_space := inventory.free_space() + consumed_count
+	if available_space < output_count:
+		return "背包还需 %d 格" % (output_count - available_space)
+	return ""

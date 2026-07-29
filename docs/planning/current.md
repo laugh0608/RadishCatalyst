@@ -6,8 +6,8 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[第一可玩切片全链串通](../features/slice-first-playable-journey-v1.md)；自动与人工完整全链已经通过，但萝卜SAMA判定当前表现仍有大量草稿层，陌生玩家盲测延期，当前恢复玩家可见完成度开发。
-- 最新收口专题：[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)、[多世界存档列表](../features/slice-multi-world-save-list-v1.md)、[L5 反应器接入自动化](../features/slice-reactor-automation-v1.md)与[配方加工 arc](../features/slice-recipe-processing-v1.md)；更早专题见 `docs/features/README.md`。
+- 当前活跃专题：[第一可玩切片全链串通](../features/slice-first-playable-journey-v1.md)；自动与人工完整全链已经通过，但表现仍有草稿层，陌生玩家盲测延期，当前继续补玩家可见完成度。
+- 最新收口专题：[图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md)、[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)、[多世界存档列表](../features/slice-multi-world-save-list-v1.md)与[L5 反应器接入自动化](../features/slice-reactor-automation-v1.md)；更早专题见 `docs/features/README.md`。
 - 美术口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一）。
 - 章程结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（决策存档）。
 - 旧 Demo V1 路线（12 区纵切 + 写实 2.5D）已废止归档：`docs/archive/features-demo-v1/`、`docs/archive/planning-demo-v1/`。
@@ -32,8 +32,8 @@
 ## 当前主线
 
 1. 已通过的 `delivered / 120` 全链、schema 7 和自动回归继续作为功能基线，不重复扩系统或堆新内容。
-2. 下一份可执行专题优先建立“建造 / 合成 / 背包图形化 UI V1”，把纯文字配方表、数字键记忆和不可见背包结构升级为图标、格子、选中态、配方消耗与库存反馈。
-3. 设备操作面板统一与世界 3/4 体积感分别作为后续 UI / 架构级视觉专题；不把三种介质问题塞进同一个实现包。
+2. [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 已用配方卡、物品格和鼠标主路径替换纯文字整备主读法，并经萝卜SAMA人工通过。
+3. 下一步先建立“设备操作面板统一 V1”可执行专题；世界 3/4 体积感继续作为独立架构级视觉专题，不混入同包。
 
 ## 边界与冻结
 

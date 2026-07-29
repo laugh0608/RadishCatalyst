@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-07-28
+更新时间：2026-07-29
 
 ## 用途
 
@@ -25,7 +25,9 @@
 
 ## 当前状态
 
-当前阶段专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——自动与人工完整全链已通过，但萝卜SAMA判定表现仍有大量草稿层，陌生玩家盲测延期；下一步先建立建造 / 合成 / 背包图形化 UI 可执行专题。
+当前阶段专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——自动与人工完整全链已通过，但萝卜SAMA判定表现仍有大量草稿层，陌生玩家盲测延期。
+
+下一可执行子专题：设备操作面板统一 V1——先建立组件与交互契约，再进入代码实现。
 
 已收口专题：
 
@@ -43,6 +45,7 @@
 - [Slice Multi-World Save List V1](slice-multi-world-save-list-v1.md)——最多 30 个世界、三份备份、损坏隔离、可恢复回收、启动列表与游戏内保存返回（2026-07-26 收口）。
 - [Slice First Field Combat And Sample Recovery V1](slice-first-field-combat-and-sample-recovery-v1.md)——首次充能、鼠标瞄准战斗、单敌人、撤离、关键样本、基地交付与 schema 7（2026-07-27 收口）。
 - [Slice HUD Gameplay Shell V1](slice-hud-gameplay-shell-v1.md)——任务舷窗、三物资槽、角色 / 敌人余量条与上下文键帽（2026-07-28 收口）。
+- [Slice Graphical Crafting And Inventory V1](slice-graphical-crafting-and-inventory-v1.md)——七张配方卡、九个背包格、鼠标制作 / 选中与权威阻塞反馈（2026-07-29 收口）。
 
 背景结论（复盘与证据轮）：
 
