@@ -594,26 +594,40 @@ func _check_world_placement_path() -> void:
 		crystal_before,
 		"opening the collector panel does not change the backpack"
 	)
+	var take_button := world._building_action_panel.action_button("collect")
 	_expect_equal(
-		world._building_action_panel._list.text.contains(
-			"[3] 取出缓冲中的全部晶体"
-		),
+		take_button != null
+		and take_button.text.contains("取出全部晶体")
+		and not take_button.disabled,
 		true,
-		"collector panel exposes an explicit take action"
+		"collector panel exposes an enabled mouse take action"
 	)
-	var take_event := InputEventKey.new()
-	take_event.keycode = KEY_3
-	take_event.pressed = true
-	world._building_action_panel._unhandled_input(take_event)
+	_expect_equal(
+		world._building_action_panel.primary_status_text(),
+		"晶体可取",
+		"collector panel translates buffer state into a primary status"
+	)
+	var collector_primary: Dictionary = (
+		world._building_action_panel.current_snapshot()["primary"]
+	)
+	_expect_equal(
+		not collector_primary.has("next_step")
+		and world._building_action_panel.get_node_or_null(
+			"Root/Window/Margin/Layout/Body/Main/Primary/Margin/Text/NextStep"
+		) == null,
+		true,
+		"device panel does not restore descriptive next-step copy"
+	)
+	take_button.pressed.emit()
 	_expect_equal(
 		world._collector_nodes[0].buffer,
 		0,
-		"collector panel take action drains the available buffer"
+		"collector panel mouse action drains the available buffer"
 	)
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_CRYSTAL),
 		crystal_before + 1,
-		"collector panel take action moves crystal into the backpack"
+		"collector panel mouse action moves crystal into the backpack"
 	)
 	world.free()
 

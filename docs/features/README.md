@@ -27,7 +27,7 @@
 
 当前阶段专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——自动与人工完整全链已通过，但萝卜SAMA判定表现仍有大量草稿层，陌生玩家盲测延期。
 
-下一可执行子专题：设备操作面板统一 V1——先建立组件与交互契约，再进入代码实现。
+当前可执行子专题：[Slice Unified Device Operation Panels V1](slice-unified-device-operation-panels-v1.md)——建筑面板包 1 已人工通过；核心仓库包 2 尚未开工，下一专题等待架构复核。
 
 已收口专题：
 

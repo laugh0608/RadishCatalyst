@@ -301,6 +301,76 @@ func _check_world_operations() -> void:
 		"generic storage receives shared interaction area"
 	)
 
+	world.pocket.add(SliceWorld.ITEM_CRYSTAL, 2)
+	world.open_building_actions(storage)
+	_expect_equal(
+		world._building_action_panel.port_state(0),
+		"unconnected",
+		"storage panel exposes structured IO connection state"
+	)
+	var deposit_crystal := world._building_action_panel.action_button(
+		"deposit_crystal"
+	)
+	_expect_equal(
+		deposit_crystal != null and not deposit_crystal.disabled,
+		true,
+		"storage panel exposes an enabled mouse deposit action"
+	)
+	deposit_crystal.pressed.emit()
+	_expect_equal(
+		storage.inventory.count(SliceWorld.ITEM_CRYSTAL),
+		2,
+		"storage mouse deposit routes through the authoritative transfer API"
+	)
+	var withdraw_crystal := world._building_action_panel.action_button(
+		"withdraw_crystal"
+	)
+	_expect_equal(
+		withdraw_crystal != null and not withdraw_crystal.disabled,
+		true,
+		"storage panel refreshes its mouse withdraw action"
+	)
+	withdraw_crystal.pressed.emit()
+	_expect_equal(
+		world.pocket.count(SliceWorld.ITEM_CRYSTAL),
+		2,
+		"storage mouse withdraw returns material to the backpack"
+	)
+	world._building_action_panel.close()
+	world.pocket.remove(SliceWorld.ITEM_CRYSTAL, 2)
+
+	var placed_reactor := reactor as SliceReactor
+	placed_reactor.input_inventory.add(SliceWorld.ITEM_CRYSTAL, 2)
+	world.open_building_actions(placed_reactor)
+	var reactor_snapshot := world._building_action_panel.current_snapshot()
+	_expect_equal(
+		(reactor_snapshot["ports"] as Array).size(),
+		2,
+		"reactor panel exposes separate IN and OUT state cards"
+	)
+	_expect_equal(
+		String((reactor_snapshot["process"] as Dictionary)["title"]),
+		"2 晶体  →  1 催化剂",
+		"reactor panel presents the fixed recipe as a flow"
+	)
+	var recover_reactor := world._building_action_panel.action_button(
+		"recover_reactor"
+	)
+	_expect_equal(
+		recover_reactor != null and not recover_reactor.disabled,
+		true,
+		"reactor panel exposes an enabled mouse recovery action"
+	)
+	recover_reactor.pressed.emit()
+	_expect_equal(
+		placed_reactor.input_inventory.is_empty()
+		and world.pocket.count(SliceWorld.ITEM_CRYSTAL) == 2,
+		true,
+		"reactor mouse recovery remains atomic"
+	)
+	world._building_action_panel.close()
+	world.pocket.remove(SliceWorld.ITEM_CRYSTAL, 2)
+
 	var reactor_id := reactor.instance_id
 	_expect_equal(
 		world.begin_building_adjustment(reactor),

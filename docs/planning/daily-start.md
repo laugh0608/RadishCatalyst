@@ -40,12 +40,10 @@
 
 ## 当前下一事项
 
-主目标是先建立“设备操作面板统一 V1”可执行专题，不立即写代码。
+主目标是完成架构复核：决定先建立视觉层级修正专题，还是有限发电 / 负荷 / 储能专题。
 
-1. 盘点采集器、储物箱、反应器和核心现有面板的共同结构与设备特有操作。
-2. 定义名称 / 状态、输入输出、库存容量、供电 / 物流诊断、操作按钮和异常原因的统一组件契约。
-3. 第一实现包只替换设备面板表现与鼠标路径，不改生产、物流、库存或存档规则。
-4. 世界 3/4 体积感继续作为独立架构级专题，不与设备 UI 混改。
+1. 设备面板包 1 已人工通过；“下一步：……”描述行已删除，核心仓库包 2 暂不自动开工。
+2. 视觉问题跨 UI 与设备资产；电力问题跨玩法、电网、建筑定义、面板和存档，禁止混成同一包。
 
 ## 今日进度（2026-07-29）
 
@@ -58,6 +56,9 @@
 7. 已建立并实现 [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 包 1；七张配方卡、九个背包格、鼠标制作 / 选中和权威阻塞反馈均已接入。
 8. 建造操作 118 项、正式 `Boot` 43 项与完整 Godot 回归通过；三张截图和联系表已生成，受本会话图片读取护栏限制，当时转交萝卜SAMA视觉 / 手感复核。
 9. 萝卜SAMA实机确认图形化制造 / 背包整体感觉可以；专题人工通过并收口，下一步转入设备操作面板统一专题设计。
+10. 已建立 [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md)，锁定结构化展示快照、鼠标主路径、两阶段维护动作和建筑 / 核心两包边界。
+11. 设备面板包 1 已通过完整 Godot 回归与正式 `Boot` 三态路径；复核截图和可载入世界已生成，等待人工确认。
+12. 萝卜SAMA确认设备面板可通过，并指出描述式“下一步”文案、深色 UI 与深色设备缺少分离，以及有限发电 / 负荷 / 储能三项后续问题。
 
 ## 防跑偏规则
 
@@ -81,6 +82,7 @@
 - `docs/planning/current.md`（当前阶段与包 3 退出条件）
 - `docs/features/slice-first-playable-journey-v1.md`（当前专题、完整路径、三包边界与失败判据）
 - `docs/features/slice-graphical-crafting-and-inventory-v1.md`（当前图形化整备专题、组件契约与包 1 验收）
+- `docs/features/slice-unified-device-operation-panels-v1.md`（当前设备面板专题、结构化状态、组件契约与两包边界）
 - `docs/features/slice-first-field-combat-and-sample-recovery-v1.md`（最新收口战斗、schema 7 与人工证据）
 - `docs/features/slice-multi-world-save-list-v1.md`（最新收口存档与菜单边界）
 - `docs/features/slice-reactor-automation-v1.md`（L5 当前玩家路径、状态机、双端口、schema 6、素材闸门与实现包）

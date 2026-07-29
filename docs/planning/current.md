@@ -6,7 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[第一可玩切片全链串通](../features/slice-first-playable-journey-v1.md)；自动与人工完整全链已经通过，但表现仍有草稿层，陌生玩家盲测延期，当前继续补玩家可见完成度。
+- 当前活跃专题：[设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md)；自动与人工完整全链已经通过，但表现仍有草稿层，陌生玩家盲测延期，当前先替换设备操作的长文字主读法。
 - 最新收口专题：[图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md)、[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)、[多世界存档列表](../features/slice-multi-world-save-list-v1.md)与[L5 反应器接入自动化](../features/slice-reactor-automation-v1.md)；更早专题见 `docs/features/README.md`。
 - 美术口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一）。
 - 章程结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（决策存档）。
@@ -33,7 +33,7 @@
 
 1. 已通过的 `delivered / 120` 全链、schema 7 和自动回归继续作为功能基线，不重复扩系统或堆新内容。
 2. [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 已用配方卡、物品格和鼠标主路径替换纯文字整备主读法，并经萝卜SAMA人工通过。
-3. 下一步先建立“设备操作面板统一 V1”可执行专题；世界 3/4 体积感继续作为独立架构级视觉专题，不混入同包。
+3. [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 包 1 已人工通过，并删除描述式“下一步”文案；核心仓库包 2 暂不自动开工。当前升级点是深色 UI / 深色设备的视觉层级，以及从二值可达升级到发电、耗电、负荷和储能的电力玩法，二者需拆成独立专题并由萝卜SAMA确认优先级。
 
 ## 边界与冻结
 
@@ -42,7 +42,7 @@
 - 新专题不做敌潮、复杂 Boss、技能树、联机或无关重构；立绘对话、八方向动画、viewport 重构、HUD 换皮与发布继续冻结。
 - 不复活旧通用任务链；若包 1 证明存在引导阻断，优先从现有权威状态派生固定阶段目标。
 - 陌生玩家盲测重新冻结，直到萝卜SAMA确认画面、建造 / 背包和设备交互不再以明显草稿层作为主读法。
-- `SliceWorld` 当前 1464 行；自动铺地事务、指针、预览和放置校验均已拆分，盲测前不新增无关业务分支。
+- `SliceWorld` 当前约 1460 行；设备展示快照不得重新把按类型 UI 分支堆入世界编排器。
 
 ## 当前默认验证
 

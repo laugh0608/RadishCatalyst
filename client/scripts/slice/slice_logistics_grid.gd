@@ -435,13 +435,22 @@ func conveyor_placement_preview(
 func building_status_lines(
 	instance: SliceBuildingInstance
 ) -> Array[String]:
+	var result: Array[String] = []
+	for port in building_status_snapshot(instance):
+		result.append(String(port["text"]))
+	return result
+
+
+func building_status_snapshot(
+	instance: SliceBuildingInstance
+) -> Array[Dictionary]:
 	if instance is SliceStorage:
-		return [_storage_status_text(instance as SliceStorage)]
+		return [_storage_status_snapshot(instance as SliceStorage)]
 	if instance is SliceReactor:
 		var reactor := instance as SliceReactor
 		return [
-			_reactor_port_status_text(reactor, true),
-			_reactor_port_status_text(reactor, false),
+			_reactor_port_status_snapshot(reactor, true),
+			_reactor_port_status_snapshot(reactor, false),
 		]
 	return []
 
@@ -510,28 +519,60 @@ func _placement_endpoint_label(
 	]
 
 
-func _storage_status_text(storage: SliceStorage) -> String:
+func _storage_status_snapshot(storage: SliceStorage) -> Dictionary:
 	var definition := storage.definition
 	var connection_cell := definition.logistics_connection_world_cell(
 		storage.origin_cell, storage.building_rotation
 	)
 	var conveyor := conveyor_at(connection_cell)
 	if conveyor == null:
-		return "物流口：未接传送带（请接舱口外的 IO 标记格）"
+		return {
+			"kind": "storage",
+			"label": "IO",
+			"state": "unconnected",
+			"tone": "warning",
+			"title": "物流口未连接",
+			"detail": "把传送带接到舱口外的 IO 标记格",
+			"text": "物流口：未接传送带（请接舱口外的 IO 标记格）",
+		}
 	var outward := definition.logistics_direction_for_rotation(
 		storage.building_rotation
 	)
 	if conveyor.output_direction() == outward:
-		return "物流口：已接 OUT（从箱内出货）"
+		return {
+			"kind": "storage",
+			"label": "OUT",
+			"state": "connected_output",
+			"tone": "ready",
+			"title": "OUT 已连接",
+			"detail": "传送带会从箱内取货",
+			"text": "物流口：已接 OUT（从箱内出货）",
+		}
 	if conveyor.output_direction() == -outward:
-		return "物流口：已接 IN（向箱内入库）"
-	return "物流口：方向错误（传送带需沿舱口箭头）"
+		return {
+			"kind": "storage",
+			"label": "IN",
+			"state": "connected_input",
+			"tone": "ready",
+			"title": "IN 已连接",
+			"detail": "传送带会向箱内送货",
+			"text": "物流口：已接 IN（向箱内入库）",
+		}
+	return {
+		"kind": "storage",
+		"label": "IO",
+		"state": "wrong_direction",
+		"tone": "fault",
+		"title": "物流方向错误",
+		"detail": "按 R 旋转传送带，使箭头沿舱口方向",
+		"text": "物流口：方向错误（传送带需沿舱口箭头）",
+	}
 
 
-func _reactor_port_status_text(
+func _reactor_port_status_snapshot(
 	reactor: SliceReactor,
 	input_port: bool
-) -> String:
+) -> Dictionary:
 	var definition := reactor.definition
 	var connection_cell := (
 		definition.machine_input_connection_world_cell(
@@ -554,11 +595,39 @@ func _reactor_port_status_text(
 	var conveyor := conveyor_at(connection_cell)
 	var label := "IN" if input_port else "OUT"
 	if conveyor == null:
-		return "%s：未接传送带（请接端口标记格）" % label
+		return {
+			"kind": "input" if input_port else "output",
+			"label": label,
+			"state": "unconnected",
+			"tone": "warning",
+			"title": "%s 未连接" % label,
+			"detail": "把传送带接到对应的端口标记格",
+			"text": "%s：未接传送带（请接端口标记格）" % label,
+		}
 	var expected := -outward if input_port else outward
 	if conveyor.output_direction() == expected:
-		return "%s：已接" % label
-	return "%s：方向错误（按箭头旋转传送带）" % label
+		return {
+			"kind": "input" if input_port else "output",
+			"label": label,
+			"state": "connected",
+			"tone": "ready",
+			"title": "%s 已连接" % label,
+			"detail": (
+				"晶体可送入反应器"
+				if input_port
+				else "催化剂可从反应器送出"
+			),
+			"text": "%s：已接" % label,
+		}
+	return {
+		"kind": "input" if input_port else "output",
+		"label": label,
+		"state": "wrong_direction",
+		"tone": "fault",
+		"title": "%s 方向错误" % label,
+		"detail": "按 R 旋转传送带，使箭头对准端口",
+		"text": "%s：方向错误（按箭头旋转传送带）" % label,
+	}
 
 
 func _conveyor_direction(rotation: int) -> Vector2i:

@@ -673,6 +673,12 @@ func building_logistics_status_lines(
 	return _logistics_grid.building_status_lines(instance)
 
 
+func building_logistics_status_snapshot(
+	instance: SliceBuildingInstance
+) -> Array[Dictionary]:
+	return _logistics_grid.building_status_snapshot(instance)
+
+
 func recover_reactor_contents(reactor: SliceReactor) -> Dictionary:
 	if reactor == null or not _building_instances.has(reactor):
 		return {

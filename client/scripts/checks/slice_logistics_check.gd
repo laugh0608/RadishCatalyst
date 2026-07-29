@@ -85,6 +85,17 @@ func _check_placement_port_feedback() -> void:
 		true,
 		"storage panel exposes the disconnected logistics port"
 	)
+	var disconnected_status := grid.building_status_snapshot(source)[0]
+	_expect_equal(
+		String(disconnected_status["state"]),
+		"unconnected",
+		"storage exposes a structured disconnected port state"
+	)
+	_expect_equal(
+		String(disconnected_status["detail"]).contains("IO 标记格"),
+		true,
+		"structured storage state includes the physical connection target"
+	)
 	var nearby := grid.conveyor_placement_preview(
 		Vector2i(21, 13), 1
 	)
@@ -200,6 +211,17 @@ func _check_placement_port_feedback() -> void:
 		grid.building_status_lines(source)[0].contains("已接 OUT"),
 		true,
 		"storage panel confirms the effective output connection"
+	)
+	var connected_status := grid.building_status_snapshot(source)[0]
+	_expect_equal(
+		String(connected_status["state"]),
+		"connected_output",
+		"storage exposes a structured output connection"
+	)
+	_expect_equal(
+		String(connected_status["label"]),
+		"OUT",
+		"structured storage connection identifies its flow direction"
 	)
 	_free_instances([
 		source,
