@@ -1,6 +1,12 @@
 extends SceneTree
 
 const SLICE_WORLD_SCENE := preload("res://scenes/slice/SliceWorld.tscn")
+const UI_ATTENTION_STYLE_PATH := "res://assets/themes/slice_ui_attention.tres"
+const UI_CARD_STYLE_PATH := "res://assets/themes/slice_ui_card.tres"
+const UI_SURFACE_STYLE_PATH := "res://assets/themes/slice_ui_surface.tres"
+const UI_PROGRESS_TRACK_STYLE_PATH := (
+	"res://assets/themes/slice_ui_progress_track.tres"
+)
 
 var failures: Array[String] = []
 var assertion_count := 0
@@ -93,6 +99,39 @@ func _run() -> void:
 		and hud.health_bar.max_value == 100.0,
 		true,
 		"player health uses a synchronized visible bar"
+	)
+	_expect_equal(
+		_panel_style_path(hud.get_node("LeftStatusPanel"))
+		== UI_ATTENTION_STYLE_PATH,
+		true,
+		"mission HUD uses the shared attention role"
+	)
+	_expect_equal(
+		_panel_style_path(hud.get_node("RightStatusPanel"))
+		== UI_CARD_STYLE_PATH
+		and _panel_style_path(hud.get_node("PlayerStatusPanel"))
+		== UI_CARD_STYLE_PATH,
+		true,
+		"inventory and player HUD use the shared card role"
+	)
+	_expect_equal(
+		_panel_style_path(
+			hud.get_node("RightStatusPanel/CrystalSlot")
+		) == UI_SURFACE_STYLE_PATH,
+		true,
+		"resource slots use the shared recessed surface role"
+	)
+	_expect_equal(
+		_panel_style_path(hud.get_node("PromptPanel"))
+		== UI_SURFACE_STYLE_PATH,
+		true,
+		"interaction prompts use the shared recessed surface role"
+	)
+	_expect_equal(
+		_style_path(hud.health_bar, "background")
+		== UI_PROGRESS_TRACK_STYLE_PATH,
+		true,
+		"health bars use the shared progress track role"
 	)
 
 	world.mark_core_repaired()
@@ -266,6 +305,18 @@ func _check_contrast_panels(hud: SliceHud) -> void:
 		true,
 		"bottom prompt stays clear of the player status component"
 	)
+
+
+func _panel_style_path(node: Node) -> String:
+	return _style_path(node, "panel")
+
+
+func _style_path(node: Node, style_name: String) -> String:
+	var control := node as Control
+	if control == null:
+		return ""
+	var style := control.get_theme_stylebox(style_name)
+	return "" if style == null else style.resource_path
 
 
 func _expect_stage(

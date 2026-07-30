@@ -6,52 +6,10 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/cargo_catalyst.png" id="4_catalyst"]
 [ext_resource type="Texture2D" path="res://assets/icons/slice_mechanical_part.svg" id="5_part"]
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/engineer.png" id="6_engineer"]
-
-[sub_resource type="StyleBoxFlat" id="StyleMission"]
-bg_color = Color(0.018, 0.043, 0.046, 0.92)
-border_width_left = 5
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.76, 0.55, 0.25, 0.9)
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-
-[sub_resource type="StyleBoxFlat" id="StyleStatus"]
-bg_color = Color(0.018, 0.043, 0.046, 0.9)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.23, 0.48, 0.48, 0.78)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_left = 5
-corner_radius_bottom_right = 5
-
-[sub_resource type="StyleBoxFlat" id="StyleResourceSlot"]
-bg_color = Color(0.045, 0.09, 0.09, 0.94)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.21, 0.42, 0.42, 0.8)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_left = 3
-corner_radius_bottom_right = 3
-
-[sub_resource type="StyleBoxFlat" id="StyleHealthBackground"]
-bg_color = Color(0.06, 0.11, 0.11, 0.96)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.2, 0.38, 0.38, 0.9)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_left = 2
-corner_radius_bottom_right = 2
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_attention.tres" id="7_attention"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_card.tres" id="8_card"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_surface.tres" id="9_surface"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_progress_track.tres" id="10_progress_track"]
 
 [sub_resource type="StyleBoxFlat" id="StyleHealthFill"]
 bg_color = Color(0.26, 0.72, 0.52, 1)
@@ -79,18 +37,6 @@ corner_radius_top_right = 2
 corner_radius_bottom_left = 2
 corner_radius_bottom_right = 2
 
-[sub_resource type="StyleBoxFlat" id="StylePrompt"]
-bg_color = Color(0.018, 0.043, 0.046, 0.94)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.4, 0.65, 0.62, 0.82)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_left = 5
-corner_radius_bottom_right = 5
-
 [sub_resource type="StyleBoxFlat" id="StyleKeycap"]
 bg_color = Color(0.76, 0.56, 0.25, 1)
 border_width_left = 2
@@ -112,7 +58,7 @@ offset_top = 16.0
 offset_right = 756.0
 offset_bottom = 98.0
 mouse_filter = 0
-theme_override_styles/panel = SubResource("StyleMission")
+theme_override_styles/panel = ExtResource("7_attention")
 
 [node name="MissionTag" type="Label" parent="LeftStatusPanel"]
 layout_mode = 0
@@ -146,7 +92,7 @@ offset_right = -16.0
 offset_bottom = 98.0
 grow_horizontal = 0
 mouse_filter = 0
-theme_override_styles/panel = SubResource("StyleStatus")
+theme_override_styles/panel = ExtResource("8_card")
 
 [node name="InventoryTag" type="Label" parent="RightStatusPanel"]
 layout_mode = 0
@@ -155,7 +101,7 @@ offset_top = 9.0
 offset_right = 150.0
 offset_bottom = 32.0
 theme = ExtResource("2_ui_theme")
-theme_override_colors/font_color = Color(0.55, 0.78, 0.75, 1)
+theme_override_colors/font_color = Color(0.64, 0.71, 0.73, 1)
 theme_override_font_sizes/font_size = 16
 text = "随身物资"
 
@@ -166,7 +112,7 @@ offset_top = 10.0
 offset_right = 286.0
 offset_bottom = 72.0
 mouse_filter = 0
-theme_override_styles/panel = SubResource("StyleResourceSlot")
+theme_override_styles/panel = ExtResource("9_surface")
 
 [node name="Icon" type="TextureRect" parent="RightStatusPanel/CrystalSlot"]
 layout_mode = 0
@@ -186,7 +132,7 @@ offset_top = 7.0
 offset_right = 130.0
 offset_bottom = 52.0
 theme = ExtResource("2_ui_theme")
-theme_override_colors/font_color = Color(0.62, 0.95, 0.91, 1)
+theme_override_colors/font_color = Color(0.87, 0.92, 0.92, 1)
 theme_override_font_sizes/font_size = 24
 text = "0/30"
 horizontal_alignment = 1
@@ -199,7 +145,7 @@ offset_top = 10.0
 offset_right = 424.0
 offset_bottom = 72.0
 mouse_filter = 0
-theme_override_styles/panel = SubResource("StyleResourceSlot")
+theme_override_styles/panel = ExtResource("9_surface")
 
 [node name="Icon" type="TextureRect" parent="RightStatusPanel/CatalystSlot"]
 layout_mode = 0
@@ -219,7 +165,7 @@ offset_top = 7.0
 offset_right = 120.0
 offset_bottom = 52.0
 theme = ExtResource("2_ui_theme")
-theme_override_colors/font_color = Color(0.96, 0.75, 0.36, 1)
+theme_override_colors/font_color = Color(0.87, 0.92, 0.92, 1)
 theme_override_font_sizes/font_size = 25
 text = "0"
 horizontal_alignment = 1
@@ -232,7 +178,7 @@ offset_top = 10.0
 offset_right = 570.0
 offset_bottom = 72.0
 mouse_filter = 0
-theme_override_styles/panel = SubResource("StyleResourceSlot")
+theme_override_styles/panel = ExtResource("9_surface")
 
 [node name="Icon" type="TextureRect" parent="RightStatusPanel/PartSlot"]
 layout_mode = 0
@@ -252,7 +198,7 @@ offset_top = 7.0
 offset_right = 128.0
 offset_bottom = 52.0
 theme = ExtResource("2_ui_theme")
-theme_override_colors/font_color = Color(0.94, 0.82, 0.56, 1)
+theme_override_colors/font_color = Color(0.87, 0.92, 0.92, 1)
 theme_override_font_sizes/font_size = 25
 text = "0"
 horizontal_alignment = 1
@@ -273,7 +219,7 @@ offset_right = 580.0
 offset_bottom = -16.0
 grow_vertical = 0
 mouse_filter = 0
-theme_override_styles/panel = SubResource("StyleStatus")
+theme_override_styles/panel = ExtResource("8_card")
 
 [node name="Portrait" type="TextureRect" parent="PlayerStatusPanel"]
 layout_mode = 0
@@ -293,7 +239,7 @@ offset_top = 9.0
 offset_right = 254.0
 offset_bottom = 34.0
 theme = ExtResource("2_ui_theme")
-theme_override_colors/font_color = Color(0.58, 0.82, 0.78, 1)
+theme_override_colors/font_color = Color(0.65, 0.72, 0.74, 1)
 theme_override_font_sizes/font_size = 17
 text = "前哨工程员"
 
@@ -304,7 +250,7 @@ offset_top = 38.0
 offset_right = 384.0
 offset_bottom = 61.0
 mouse_filter = 2
-theme_override_styles/background = SubResource("StyleHealthBackground")
+theme_override_styles/background = ExtResource("10_progress_track")
 theme_override_styles/fill = SubResource("StyleHealthFill")
 value = 100.0
 show_percentage = false
@@ -316,7 +262,7 @@ offset_top = 32.0
 offset_right = 548.0
 offset_bottom = 65.0
 theme = ExtResource("2_ui_theme")
-theme_override_colors/font_color = Color(0.77, 0.94, 0.87, 1)
+theme_override_colors/font_color = Color(0.87, 0.92, 0.92, 1)
 theme_override_font_sizes/font_size = 21
 text = "生命 100/100"
 horizontal_alignment = 2
@@ -328,7 +274,7 @@ offset_top = 67.0
 offset_right = 548.0
 offset_bottom = 91.0
 theme = ExtResource("2_ui_theme")
-theme_override_colors/font_color = Color(0.72, 0.82, 0.78, 1)
+theme_override_colors/font_color = Color(0.65, 0.71, 0.73, 1)
 theme_override_font_sizes/font_size = 16
 text = "核心：未充能  ·  工具锁定  ·  闪避：未解锁"
 text_overrun_behavior = 3
@@ -364,7 +310,7 @@ offset_top = 43.0
 offset_right = 522.0
 offset_bottom = 59.0
 mouse_filter = 2
-theme_override_styles/background = SubResource("StyleHealthBackground")
+theme_override_styles/background = ExtResource("10_progress_track")
 theme_override_styles/fill = SubResource("StyleEnemyFill")
 value = 100.0
 show_percentage = false
@@ -399,7 +345,7 @@ offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 0
-theme_override_styles/panel = SubResource("StylePrompt")
+theme_override_styles/panel = ExtResource("9_surface")
 
 [node name="PromptKey" type="Panel" parent="PromptPanel"]
 layout_mode = 0

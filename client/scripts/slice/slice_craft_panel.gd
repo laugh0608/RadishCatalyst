@@ -7,6 +7,8 @@ extends CanvasLayer
 const CRYSTAL_ICON := "res://assets/sprites/slice/cargo_crystal.png"
 const CATALYST_ICON := "res://assets/sprites/slice/cargo_catalyst.png"
 const PART_ICON := "res://assets/icons/slice_mechanical_part.svg"
+const CARD_STYLE := preload("res://assets/themes/slice_ui_card.tres")
+const SURFACE_STYLE := preload("res://assets/themes/slice_ui_surface.tres")
 const INVENTORY_ITEMS: Array[String] = [
 	"crystal",
 	"catalyst",
@@ -19,9 +21,9 @@ const INVENTORY_ITEMS: Array[String] = [
 	SliceBuildingCatalog.STORAGE_ID,
 ]
 
-const COLOR_TEXT := Color(0.86, 0.94, 0.90)
-const COLOR_MUTED := Color(0.49, 0.68, 0.65)
-const COLOR_READY := Color(0.42, 0.86, 0.62)
+const COLOR_TEXT := Color(0.88, 0.92, 0.93)
+const COLOR_MUTED := Color(0.59, 0.65, 0.67)
+const COLOR_READY := Color(0.34, 0.82, 0.80)
 const COLOR_WARNING := Color(0.96, 0.68, 0.30)
 const COLOR_BLOCKED := Color(0.92, 0.43, 0.35)
 const COLOR_SELECTED := Color(0.30, 0.92, 0.86)
@@ -232,7 +234,7 @@ func _create_recipe_card(recipe: Dictionary, shortcut: int) -> Dictionary:
 
 	var cost_label := Label.new()
 	cost_label.name = "Cost"
-	cost_label.add_theme_color_override("font_color", Color(0.72, 0.84, 0.80))
+	cost_label.add_theme_color_override("font_color", Color(0.72, 0.77, 0.78))
 	cost_label.add_theme_font_size_override("font_size", 16)
 	cost_label.text = "材料  %s" % SliceRecipes.cost_text(recipe["cost"])
 	cost_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -470,39 +472,22 @@ func _short_item_name(item_id: String) -> String:
 
 
 func _card_style(selected: bool, blocked: bool) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = (
-		Color(0.035, 0.11, 0.105, 0.98)
-		if selected
-		else Color(0.034, 0.071, 0.073, 0.97)
-	)
-	var border := (
-		COLOR_SELECTED
-		if selected
-		else (
-			Color(0.47, 0.25, 0.22, 0.9)
-			if blocked
-			else Color(0.22, 0.43, 0.42, 0.88)
-		)
-	)
-	style.set_border_width_all(2 if selected else 1)
-	style.border_color = border
-	style.set_corner_radius_all(5)
+	var style := CARD_STYLE.duplicate() as StyleBoxFlat
+	if selected or blocked:
+		style.border_width_left = 4
+		style.border_width_top = 0
+		style.border_width_right = 0
+		style.border_width_bottom = 0
+		style.border_color = COLOR_SELECTED if selected else COLOR_BLOCKED
 	return style
 
 
 func _slot_style(selected: bool) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = (
-		Color(0.04, 0.13, 0.12, 0.98)
-		if selected
-		else Color(0.027, 0.062, 0.064, 0.98)
-	)
-	style.set_border_width_all(2 if selected else 1)
-	style.border_color = (
-		COLOR_SELECTED
-		if selected
-		else Color(0.20, 0.39, 0.38, 0.9)
-	)
-	style.set_corner_radius_all(4)
+	var style := SURFACE_STYLE.duplicate() as StyleBoxFlat
+	if selected:
+		style.border_width_left = 4
+		style.border_width_top = 0
+		style.border_width_right = 0
+		style.border_width_bottom = 0
+		style.border_color = COLOR_SELECTED
 	return style

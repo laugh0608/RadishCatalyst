@@ -1,6 +1,9 @@
 extends SceneTree
 
 const SliceWorldScene := preload("res://scenes/slice/SliceWorld.tscn")
+const UI_CARD_STYLE := preload("res://assets/themes/slice_ui_card.tres")
+const UI_SURFACE_STYLE := preload("res://assets/themes/slice_ui_surface.tres")
+const UI_SHELL_STYLE_PATH := "res://assets/themes/slice_ui_shell.tres"
 
 var failures: Array[String] = []
 var _save_dir := ""
@@ -176,6 +179,38 @@ func _check_world_operations() -> void:
 		world._craft_panel.capacity_text(),
 		"0 / 30",
 		"graphical backpack shows authoritative total capacity"
+	)
+	_expect_equal(
+		_panel_style_path(
+			world._craft_panel.get_node("Root/Window")
+		) == UI_SHELL_STYLE_PATH
+		and _panel_style_path(
+			world._building_action_panel.get_node("Root/Window")
+		) == UI_SHELL_STYLE_PATH,
+		true,
+		"crafting and device panels share the foreground shell role"
+	)
+	var first_recipe_style := (
+		world._craft_panel.recipe_card("part").get_theme_stylebox(
+			"panel"
+		) as StyleBoxFlat
+	)
+	var first_slot_style := (
+		world._craft_panel.inventory_slot(
+			SliceWorld.ITEM_CRYSTAL
+		).get_theme_stylebox("panel") as StyleBoxFlat
+	)
+	_expect_equal(
+		first_recipe_style != null
+		and first_recipe_style.bg_color == UI_CARD_STYLE.bg_color,
+		true,
+		"recipe cards inherit the shared raised card material"
+	)
+	_expect_equal(
+		first_slot_style != null
+		and first_slot_style.bg_color == UI_SURFACE_STYLE.bg_color,
+		true,
+		"inventory slots inherit the shared recessed surface material"
 	)
 
 	world.pocket.add(SliceWorld.ITEM_CRYSTAL, 2)
@@ -599,6 +634,14 @@ func _send_panel_key(panel: SliceBuildingActionPanel, keycode: Key) -> void:
 	event.keycode = keycode
 	event.pressed = true
 	panel._unhandled_input(event)
+
+
+func _panel_style_path(node: Node) -> String:
+	var control := node as Control
+	if control == null:
+		return ""
+	var style := control.get_theme_stylebox("panel")
+	return "" if style == null else style.resource_path
 
 
 func _expect_equal(actual, expected, context: String) -> void:
