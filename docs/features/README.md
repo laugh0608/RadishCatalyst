@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-07-29
+更新时间：2026-07-30
 
 ## 用途
 
@@ -27,7 +27,9 @@
 
 当前阶段专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——自动与人工完整全链已通过，但萝卜SAMA判定表现仍有大量草稿层，陌生玩家盲测延期。
 
-最新人工通过子专题：[Slice Unified Device Operation Panels V1](slice-unified-device-operation-panels-v1.md)——建筑面板包 1 已通过，核心仓库包 2 暂停。2026-07-30 先建立视觉层级与色彩分离专题；有限发电 / 负荷 / 储能专题排在其后，两者分别通过架构闸门后再实施。
+当前活跃子专题：[Slice Visual Hierarchy And Color Separation V1](slice-visual-hierarchy-and-color-separation-v1.md)——包 0 视觉合同已于 2026-07-30 通过架构闸门；下一步按 UI 承载、世界设备 / 地表、综合取证三个包推进。
+
+最新人工通过子专题：[Slice Unified Device Operation Panels V1](slice-unified-device-operation-panels-v1.md)——建筑面板包 1 已通过，核心仓库包 2 暂停。有限发电 / 负荷 / 储能专题排在视觉专题之后，两者分别设计、分别验收。
 
 已收口专题：
 
