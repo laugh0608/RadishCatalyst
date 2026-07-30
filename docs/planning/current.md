@@ -6,7 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md)；包 1 UI 承载实现、自动检查与正式入口视觉证据已完成，等待萝卜SAMA人工实机确认。
+- 当前活跃专题：[视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md)；UI 与三类设备窄修正已通过自动、正式入口和 AI 联系表复核，等待萝卜SAMA原生窗口终审。
 - 最新人工通过专题：[设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 建筑包 1、[图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md)、[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)与[多世界存档列表](../features/slice-multi-world-save-list-v1.md)；更早专题见 `docs/features/README.md`。
 - 美术口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一）。
 - 章程结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（决策存档）。
@@ -22,7 +22,7 @@
 - 2026-07-27：首次外勤战斗、样本交付、`120` 生命收益与 schema 7 收口；真实新档全链成立，人工计时落在 20 到 40 分钟。
 - 2026-07-28：采集器调整为 `1s/个`；游戏化 HUD 和包 2B 鼠标放置 / 空间反馈经自动、正式入口与人工复核通过，提交分别为 `badc20ca`、`59c33950`。
 - 2026-07-29：包 3A 修正设备自动补地板、传送带放置态物流端口 / 断链诊断、采集器显式取料及建筑配方固定键义；真实新档全链以 313 项断言通过。萝卜SAMA随后跑完整个人工全链，保留档最终为 `delivered / 120`；但明确判定大量表现仍是开发草稿，跳过当前盲测并恢复表现层开发。
-- 2026-07-30：视觉层级与色彩分离专题通过架构闸门，固定地表、世界设备、HUD / 面板和功能反馈四层职责；未修改代码、素材、玩法或像素标准。
+- 2026-07-30：视觉专题连续实机反馈否决深色 UI 与统一明度校准；后者虽通过自动检查但仍灰蒙、偏暗。萝卜SAMA批准参考《终末地》《异星工厂》《银河破裂者》，恢复地表并改做浅色 UI 与逐材质设备样板。
 
 当前阶段：
 
@@ -34,7 +34,7 @@
 
 1. 已通过的 `delivered / 120` 全链、schema 7 和自动回归继续作为功能基线，不重复扩系统或堆新内容。
 2. [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 已用配方卡、物品格和鼠标主路径替换纯文字整备主读法，并经萝卜SAMA人工通过。
-3. [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md) 已完成包 1 有限共享 UI 角色、三界面迁移、彩色 / 灰阶联系表与正式入口验证；人工通过后才进入世界资产包。
+3. [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md) 当前只验证核心、反应器、储物箱、HUD 与设备面板同屏样板；最终联系表已解除设备黑色岛问题，等待萝卜SAMA原生窗口终审后再决定是否扩展其他设备。
 4. [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 核心仓库包 2 继续暂停；有限发电 / 负荷 / 储能仍为视觉专题之后的独立架构专题，不混包。
 
 ## 边界与冻结
@@ -44,7 +44,7 @@
 - 新专题不做敌潮、复杂 Boss、技能树、联机或无关重构；立绘对话、八方向动画、viewport 重构、HUD 换皮与发布继续冻结。
 - 不复活旧通用任务链；若包 1 证明存在引导阻断，优先从现有权威状态派生固定阶段目标。
 - 陌生玩家盲测重新冻结，直到萝卜SAMA确认画面、建造 / 背包和设备交互不再以明显草稿层作为主读法。
-- 视觉专题不修改 32px 网格、960×540 相机、世界色板、左上光、高斜角投影或设备尺寸口径；证据若要求变更，必须停手升级。
+- 视觉专题不修改 32px 网格、960×540 相机、基础状态语义、左上光、高斜角投影或设备尺寸；已否决的统一明度标尺不得回到正式归一管线。
 - 当前 `SlicePowerGrid` 仍是二值可达图；在独立电力专题确认容量、需求、分配、过载与存档边界前，不提前向中继或设备面板伪造负荷数值。
 - 设备面板核心仓库包 2 暂停，待视觉专题和电力专题边界稳定后再决定是否继续。
 - `SliceWorld` 当前约 1460 行；设备展示快照不得重新把按类型 UI 分支堆入世界编排器。

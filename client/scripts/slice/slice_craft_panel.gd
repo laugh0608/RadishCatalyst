@@ -21,12 +21,12 @@ const INVENTORY_ITEMS: Array[String] = [
 	SliceBuildingCatalog.STORAGE_ID,
 ]
 
-const COLOR_TEXT := Color(0.88, 0.92, 0.93)
-const COLOR_MUTED := Color(0.59, 0.65, 0.67)
-const COLOR_READY := Color(0.34, 0.82, 0.80)
-const COLOR_WARNING := Color(0.96, 0.68, 0.30)
-const COLOR_BLOCKED := Color(0.92, 0.43, 0.35)
-const COLOR_SELECTED := Color(0.30, 0.92, 0.86)
+const COLOR_TEXT := Color(0.118, 0.145, 0.149)
+const COLOR_MUTED := Color(0.24, 0.28, 0.28)
+const COLOR_READY := Color(0.035, 0.42, 0.4)
+const COLOR_WARNING := Color(0.702, 0.392, 0.102)
+const COLOR_BLOCKED := Color(0.722, 0.18, 0.149)
+const COLOR_SELECTED := Color(0.106, 0.38, 0.55)
 
 var _world: Node
 var _open := false
@@ -225,7 +225,7 @@ func _create_recipe_card(recipe: Dictionary, shortcut: int) -> Dictionary:
 	var hotkey := Label.new()
 	hotkey.name = "Hotkey"
 	hotkey.custom_minimum_size = Vector2(38, 32)
-	hotkey.add_theme_color_override("font_color", Color(0.98, 0.82, 0.48))
+	hotkey.add_theme_color_override("font_color", COLOR_WARNING)
 	hotkey.add_theme_font_size_override("font_size", 18)
 	hotkey.text = "[%d]" % shortcut
 	hotkey.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -234,7 +234,7 @@ func _create_recipe_card(recipe: Dictionary, shortcut: int) -> Dictionary:
 
 	var cost_label := Label.new()
 	cost_label.name = "Cost"
-	cost_label.add_theme_color_override("font_color", Color(0.72, 0.77, 0.78))
+	cost_label.add_theme_color_override("font_color", COLOR_MUTED)
 	cost_label.add_theme_font_size_override("font_size", 16)
 	cost_label.text = "材料  %s" % SliceRecipes.cost_text(recipe["cost"])
 	cost_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS

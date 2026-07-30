@@ -196,6 +196,14 @@ func _check_multihop_world_grid() -> void:
 		true,
 		"collector has a narrow state indicator"
 	)
+	_expect_equal(
+		(reactor.get_node("PowerIndicator") as Polygon2D).z_index == 0
+		and (
+			collector.get_node("PowerIndicator") as Polygon2D
+		).z_index == 0,
+		true,
+		"consumer indicators stay on the device y-sort plane"
+	)
 	var reactor_prompt := (
 		reactor.get_node("InteractionSite") as SliceBuildingInteractionSite
 	).get_prompt(world)

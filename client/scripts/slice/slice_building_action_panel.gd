@@ -5,11 +5,11 @@ extends CanvasLayer
 ## aliases share the same action methods; all mutations remain in SliceWorld.
 
 const TONE_COLORS := {
-	"ready": Color(0.23, 0.94, 0.87, 1.0),
-	"working": Color(0.28, 0.78, 1.0, 1.0),
-	"warning": Color(1.0, 0.72, 0.24, 1.0),
-	"fault": Color(1.0, 0.35, 0.28, 1.0),
-	"neutral": Color(0.75, 0.82, 0.83, 1.0),
+	"ready": Color(0.035, 0.42, 0.4, 1.0),
+	"working": Color(0.106, 0.38, 0.55, 1.0),
+	"warning": Color(0.702, 0.392, 0.102, 1.0),
+	"fault": Color(0.722, 0.18, 0.149, 1.0),
+	"neutral": Color(0.24, 0.28, 0.28, 1.0),
 }
 
 var _world: Node

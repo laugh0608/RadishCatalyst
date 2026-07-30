@@ -139,7 +139,9 @@ func _configure_power_indicator(tile_size: float) -> void:
 			Vector2(0, 4),
 			Vector2(-4, 0),
 		])
-		indicator.z_index = 5
+		# Keep the lamp above the device sprite by child order, but on the
+		# device's own y-sorted plane so nearby actors can occlude it.
+		indicator.z_index = 0
 		add_child(indicator)
 	var size := Vector2(definition.rotated_footprint(building_rotation))
 	indicator.position = (

@@ -1,9 +1,13 @@
 extends SceneTree
 
 const SLICE_WORLD_SCENE := preload("res://scenes/slice/SliceWorld.tscn")
+const SLICE_UI_THEME := preload("res://assets/themes/slice_ui_theme.tres")
 const UI_ATTENTION_STYLE_PATH := "res://assets/themes/slice_ui_attention.tres"
 const UI_CARD_STYLE_PATH := "res://assets/themes/slice_ui_card.tres"
 const UI_SURFACE_STYLE_PATH := "res://assets/themes/slice_ui_surface.tres"
+const UI_SHELL_STYLE := preload("res://assets/themes/slice_ui_shell.tres")
+const UI_CARD_STYLE := preload("res://assets/themes/slice_ui_card.tres")
+const UI_SURFACE_STYLE := preload("res://assets/themes/slice_ui_surface.tres")
 const UI_PROGRESS_TRACK_STYLE_PATH := (
 	"res://assets/themes/slice_ui_progress_track.tres"
 )
@@ -59,6 +63,7 @@ func _run() -> void:
 
 	var hud := world.get_node("SliceHud") as SliceHud
 	var craft_panel := world._craft_panel as SliceCraftPanel
+	_check_ui_readability_contract()
 	_expect_stage(world, "repair_core", "合成机械零件", "按 B 合成")
 	_expect_equal(
 		hud.goal_label.text.contains("合成机械零件"),
@@ -262,6 +267,93 @@ func _run() -> void:
 	collector.free()
 	reactor.free()
 	world.free()
+
+
+func _check_ui_readability_contract() -> void:
+	var ui_font := SLICE_UI_THEME.default_font as FontVariation
+	_expect_equal(
+		ui_font != null,
+		true,
+		"slice UI uses a dedicated readable font variation"
+	)
+	if ui_font != null:
+		_expect_equal(
+			float(ui_font.variation_opentype.get("wght", 0.0)),
+			500.0,
+			"slice UI keeps medium text weight"
+		)
+		var base_font := ui_font.base_font as FontFile
+		_expect_equal(
+			base_font != null
+			and base_font.force_autohinter
+			and base_font.hinting == TextServer.HINTING_NORMAL,
+			true,
+			"slice UI font keeps explicit autohinting and normal hinting"
+		)
+	var button_style := (
+		SLICE_UI_THEME.get_stylebox("normal", "Button") as StyleBoxFlat
+	)
+	_expect_equal(
+		button_style != null
+		and button_style.bg_color.r > button_style.bg_color.b
+		and _color_luma(button_style.bg_color) >= 0.78
+		and _color_luma(button_style.bg_color) <= 0.85,
+		true,
+		"slice UI buttons use a light painted-metal material"
+	)
+	_expect_equal(
+		UI_SHELL_STYLE.bg_color.r > UI_SHELL_STYLE.bg_color.b
+		and UI_CARD_STYLE.bg_color.r > UI_CARD_STYLE.bg_color.b,
+		true,
+		"slice UI shell and cards use a warm industrial hierarchy"
+	)
+	var shell_luma := _color_luma(UI_SHELL_STYLE.bg_color)
+	var card_luma := _color_luma(UI_CARD_STYLE.bg_color)
+	var surface_luma := _color_luma(UI_SURFACE_STYLE.bg_color)
+	_expect_equal(
+		shell_luma >= 0.67 and shell_luma <= 0.74,
+		true,
+		"slice UI shell keeps a structural mid-light painted-metal band"
+	)
+	_expect_equal(
+		card_luma >= shell_luma + 0.12 and card_luma >= 0.84,
+		true,
+		"slice UI cards clearly lift above the structural shell"
+	)
+	_expect_equal(
+		surface_luma >= 0.67
+		and surface_luma <= 0.74
+		and UI_SURFACE_STYLE.bg_color.b
+		> UI_SURFACE_STYLE.bg_color.r + 0.04,
+		true,
+		"slice UI recessed surfaces use a distinct cool structural plane"
+	)
+	_expect_equal(
+		button_style != null
+		and _color_luma(
+			SLICE_UI_THEME.get_color("font_color", "Button")
+		) <= 0.2,
+		true,
+		"slice UI light buttons use dark readable text"
+	)
+	var disabled_style := (
+		SLICE_UI_THEME.get_stylebox("disabled", "Button") as StyleBoxFlat
+	)
+	_expect_equal(
+		disabled_style != null
+		and (
+			_color_luma(disabled_style.bg_color)
+			- _color_luma(
+				SLICE_UI_THEME.get_color("font_disabled_color", "Button")
+			)
+		) >= 0.28,
+		true,
+		"slice UI disabled controls remain legible without reading as active"
+	)
+
+
+func _color_luma(color: Color) -> float:
+	return 0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b
 
 
 func _check_contrast_panels(hud: SliceHud) -> void:

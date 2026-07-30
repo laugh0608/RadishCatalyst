@@ -27,7 +27,7 @@
 
 当前阶段专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——自动与人工完整全链已通过，但萝卜SAMA判定表现仍有大量草稿层，陌生玩家盲测延期。
 
-当前活跃子专题：[Slice Visual Hierarchy And Color Separation V1](slice-visual-hierarchy-and-color-separation-v1.md)——包 1 UI 承载实现、自动检查与正式入口视觉证据已完成，等待萝卜SAMA人工确认；通过后再进入世界设备 / 地表包。
+当前活跃子专题：[Slice Visual Hierarchy And Color Separation V1](slice-visual-hierarchy-and-color-separation-v1.md)——UI 与核心、反应器、储物箱的材质样板已通过自动、正式入口和 AI 联系表复核；等待萝卜SAMA原生窗口终审，不扩展其他设备。
 
 最新人工通过子专题：[Slice Unified Device Operation Panels V1](slice-unified-device-operation-panels-v1.md)——建筑面板包 1 已通过，核心仓库包 2 暂停。有限发电 / 负荷 / 储能专题排在视觉专题之后，两者分别设计、分别验收。
 
