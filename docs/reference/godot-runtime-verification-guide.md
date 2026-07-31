@@ -36,7 +36,7 @@ repo_root="$PWD"
    `grep -E "passed|SCRIPT ERROR|ERROR:" log | grep -v noErr | grep -v certificate`
 4. 一次性检查脚本放仓库内忽略提交的 `tools/runtime-intake/YYYY-MM-DD-<topic>/`；形成稳定通用回归价值后，再迁入正式 `scripts/` 或客户端检查入口。
 5. 存档测试使用同批次下自己命名的 `save-root/` 隔离目录，日志与人工复核数据也放在该批次内。为保证新档基线可在开跑前清理自己的隔离目录，但自动化通过后不得删除最终主档 / 备份档；保留可直接载入的人工复核状态并报告绝对路径。纯破坏性 / 迁移失败测试使用独立子目录并可清理，任何测试都不得覆盖用户正式存档。
-6. 截图落到 git 忽略的 `assets/art-intake/<日期>-<主题>-preview/`，供人工 / 视觉复核，结论记入当周周志。脚本可以生成多张原图，但 Codex 单会话默认最多读取 3 张；多图审阅前先运行 `./scripts/create-screenshot-contact-sheet.sh <output.png> <inputs...>` 在磁盘生成一张带编号的联系表，优先只读取联系表；达到默认上限后先报告，萝卜SAMA明确要求当前会话继续时可按每次至多 3 张追加读取。
+6. 截图落到 git 忽略的 `assets/art-intake/<日期>-<主题>-preview/`，供人工 / 视觉复核，结论记入当周周志。多图可以用 `./scripts/create-screenshot-contact-sheet.sh <output.png> <inputs...>` 生成带编号联系表辅助导航，但视觉结论必须按任务风险审阅足够的原生尺寸截图；联系表不能替代文字、材质、构图和整体观感判断。
 
 ## 脚本骨架模板
 
@@ -122,5 +122,5 @@ func _screenshot(file_name: String) -> void:
 
 - 失败收集进数组、最后统一 `push_error` 并 `quit(1)`；调用侧看 exit code 判定，不靠肉眼扫日志。
 - 每包验证的断言数、截图文件名、结论写入当周周志；截图目录不入库（`art-intake` 已忽略），复核图（放大对比等）用完即删。
-- Codex 单会话内所有图片工具结果合计不得超过 3 张；自动化产生更多截图时，原图留在磁盘，以联系表和非图像元数据完成首轮核对，超额细看交由新会话。
+- 自动化产生多张截图时保留原图；联系表用于快速定位，最终判断按风险直接检查必要原图，不设置单会话图片张数上限。
 - Bash 调用侧记得设超时（本仓库经验：单次带窗口运行 < 60 秒，卡住通常是脚本没 `quit()`）。
