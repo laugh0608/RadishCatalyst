@@ -1,6 +1,6 @@
 # Daily Start
 
-更新时间：2026-07-30
+更新时间：2026-07-31
 
 ## 用途
 
@@ -24,16 +24,16 @@
 - `6aa5beb2` 统一六类建筑设备面板、结构化物流状态与鼠标操作；人工通过后删除描述式“下一步：……”文案。
 - 日终代码—文档审计确认：现行电网仍是二值可达模型，暂无发电容量、设备耗电、中继负荷或储能状态。
 
-## 今日主线（2026-07-30）
+## 今日主线（2026-07-31）
 
 1. **视觉专题包 0 已完成。**四层职责、功能色语义、实现介质、截图矩阵和失败退出已确认；不修改玩法、schema 或像素标准。
 2. **统一明度校准已判失败。**自动与正式入口虽通过，但实机仍灰蒙、偏暗；地表与非样板设备已恢复，相关归一函数和数值合同已撤回。
-3. **三设备窄修正等待人工终审。**核心、反应器、储物箱已改为暖色顶壳、中明度蓝灰侧壁和深色骨架；自动、正式入口与 AI 联系表复核通过，UI、地表、状态色和其他资产保持锁定。
+3. **先做世界 / UI 双目标稿。**扩大参考与项目截图复盘确认，三设备窄修正没有解决基地网络、资产家族和表单式 UI 根因；两张 960×540 目标稿批准前不继续调 Theme、世界资产或场景。
 
 ## 防跑偏规则
 
 - 玩家可见开发先有 `docs/features/` 专题和决策闸门，再进入代码、素材和场景接入。
-- 视觉问题同时覆盖 UI 与世界设备；不能用调透明度、边框或单一换色替代材质、明度和功能色层级。
+- 视觉问题按玩家结果、场景组织、系统连接、资产家族、UI 结构、色彩数值、装饰依次归因；不能从透明度、边框或单一换色开始。
 - 电力专题会影响电网、建筑定义、面板和存档；当前二值结果必须保持兼容，迁移策略未确认前不扩 schema。
 - 玩家可见结果以正式 `Boot` 实机截图和人工路径为主证据，自动检查只兜底。
 
@@ -50,6 +50,7 @@
 - [第一可玩切片全链串通](../features/slice-first-playable-journey-v1.md)
 - [Visual And UI Direction](../product/visual-and-ui-direction.md)
 - [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)
+- [Visual Direction Decision Framework](../reference/visual-direction-decision-framework.md)
 - [Development Decision Gates](../process/development-decision-gates.md)
 - [L3 建造与二值电网](../features/slice-building-placement-and-power-grid-v1.md)
 - [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md)

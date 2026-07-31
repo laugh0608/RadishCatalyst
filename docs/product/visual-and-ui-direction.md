@@ -1,6 +1,6 @@
 # Visual And UI Direction
 
-更新时间：2026-07-29
+更新时间：2026-07-31
 
 ## 文档目的
 
@@ -13,7 +13,7 @@
 - 冒险、基地、设备、地图、Wiki 和官方工具之间如何保持视觉一致。
 - 哪些视觉方向当前不采用。
 
-介质与网格的机械口径（分辨率、tile 尺寸、调色板、光向、生产管线）以 [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md) 为真相源；本文只定气质与 UI 方向，不重复机械参数。
+介质与网格的机械口径（分辨率、tile 尺寸、调色板、光向、生产管线）以 [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md) 为真相源；视觉问题的归因顺序、硬边界与探索空间以 [Visual Direction Decision Framework](../reference/visual-direction-decision-framework.md) 为准；本文只定气质与 UI 方向，不重复机械参数。
 
 ## 总体视觉结论
 
