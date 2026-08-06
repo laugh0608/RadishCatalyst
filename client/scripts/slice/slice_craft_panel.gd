@@ -32,9 +32,10 @@ var _world: Node
 var _open := false
 var _recipe_cards: Dictionary = {}
 var _inventory_slots: Dictionary = {}
+var _selected_recipe_id := ""
+var _last_result := ""
 
 @onready var _root: Control = $Root
-@onready var _rule: Label = $Root/Window/Margin/Layout/RulePanel/Rule
 @onready var _recipe_grid: GridContainer = (
 	$Root/Window/Margin/Layout/Content/Recipes/RecipeScroll/RecipeGrid
 )
@@ -44,7 +45,36 @@ var _inventory_slots: Dictionary = {}
 @onready var _capacity: Label = (
 	$Root/Window/Margin/Layout/Content/Inventory/SectionHeader/Capacity
 )
-@onready var _close_button: Button = $Root/Window/Margin/Layout/Header/Close
+@onready var _placement: Label = (
+	$Root/Window/Margin/Layout/Content/Inventory/Placement/Text
+)
+@onready var _detail_icon: TextureRect = (
+	$Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/Hero/Icon
+)
+@onready var _detail_name: Label = (
+	$Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/Hero/Name
+)
+@onready var _detail_output: Label = (
+	$Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/Hero/Output
+)
+@onready var _detail_cost: Label = (
+	$Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/Cost/Label
+)
+@onready var _detail_state: Label = (
+	$Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/State
+)
+@onready var _detail_craft: Button = (
+	$Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/Actions/Craft
+)
+@onready var _detail_select: Button = (
+	$Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/Actions/SelectExisting
+)
+@onready var _result_text: Label = (
+	$Root/Window/Margin/Layout/Content/Current/Result/Text
+)
+@onready var _close_button: Button = (
+	$Root/Window/Margin/Layout/Header/Margin/Row/Close
+)
 
 
 func setup(world: Node) -> void:
@@ -52,6 +82,8 @@ func setup(world: Node) -> void:
 	_build_recipe_cards()
 	_build_inventory_slots()
 	_close_button.pressed.connect(close)
+	_detail_craft.pressed.connect(_on_detail_craft_pressed)
+	_detail_select.pressed.connect(_on_detail_select_pressed)
 	_root.visible = false
 	for changed_signal in [
 		_world.inventory_changed,
@@ -90,6 +122,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	var index := key_event.keycode - KEY_1
 	if index >= 0 and index < SliceRecipes.RECIPES.size():
 		var recipe: Dictionary = SliceRecipes.RECIPES[index]
+		_selected_recipe_id = String(recipe["id"])
 		_activate_recipe(recipe, key_event.shift_pressed)
 		get_viewport().set_input_as_handled()
 
@@ -98,6 +131,7 @@ func _activate_recipe(
 	recipe: Dictionary,
 	select_existing: bool = false
 ) -> void:
+	_selected_recipe_id = String(recipe["id"])
 	var kind := String(recipe["kind"])
 	var output := String(recipe["output"])
 	var building_id := String(recipe.get("building_id", ""))
@@ -105,11 +139,24 @@ func _activate_recipe(
 	if kind == "building" and select_existing:
 		if existing_count > 0:
 			_world.select_building_kit(building_id)
+			_last_result = "已选中 %s · 可放置 ×%d" % [
+				String(recipe["name"]), existing_count
+			]
+		else:
+			_last_result = "背包中没有可选中的 %s" % String(recipe["name"])
 		_refresh()
 		return
 
 	var selected_before: String = _world.selected_building_id()
+	var blocker := SliceRecipes.craft_block_reason(recipe, _world.pocket)
 	var crafted: bool = _world.craft(String(recipe["id"]))
+	_last_result = (
+		"已制造 %s ×%d" % [
+			String(recipe["name"]), int(recipe.get("output_count", 1))
+		]
+		if crafted
+		else blocker if not blocker.is_empty() else "制造失败，请重试"
+	)
 	if (
 		crafted
 		and output == SliceBuildingCatalog.FLOOR_ID
@@ -156,6 +203,26 @@ func capacity_text() -> String:
 	return _capacity.text
 
 
+func selected_recipe_id() -> String:
+	return _selected_recipe_id
+
+
+func detail_craft_button() -> Button:
+	return _detail_craft
+
+
+func detail_select_button() -> Button:
+	return _detail_select
+
+
+func select_recipe(recipe_id: String) -> void:
+	if SliceRecipes.find(recipe_id).is_empty():
+		return
+	_selected_recipe_id = recipe_id
+	_last_result = ""
+	_refresh()
+
+
 func _build_recipe_cards() -> void:
 	if not _recipe_cards.is_empty():
 		return
@@ -164,13 +231,15 @@ func _build_recipe_cards() -> void:
 		var card := _create_recipe_card(recipe, shortcut)
 		_recipe_grid.add_child(card["panel"])
 		_recipe_cards[String(recipe["id"])] = card
+		if _selected_recipe_id.is_empty():
+			_selected_recipe_id = String(recipe["id"])
 		shortcut += 1
 
 
 func _create_recipe_card(recipe: Dictionary, shortcut: int) -> Dictionary:
 	var panel := PanelContainer.new()
 	panel.name = "RecipeCard_%s" % String(recipe["id"])
-	panel.custom_minimum_size = Vector2(498, 142)
+	panel.custom_minimum_size = Vector2(328, 68)
 	panel.add_theme_stylebox_override("panel", _card_style(false, false))
 	panel.tooltip_text = "%s：%s" % [
 		String(recipe["name"]),
@@ -178,39 +247,35 @@ func _create_recipe_card(recipe: Dictionary, shortcut: int) -> Dictionary:
 	]
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 14)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_right", 14)
-	margin.add_theme_constant_override("margin_bottom", 10)
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_bottom", 6)
 	panel.add_child(margin)
 
-	var layout := VBoxContainer.new()
-	layout.add_theme_constant_override("separation", 5)
+	var layout := HBoxContainer.new()
+	layout.add_theme_constant_override("separation", 8)
 	margin.add_child(layout)
-
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 10)
-	layout.add_child(header)
 
 	var icon := TextureRect.new()
 	icon.name = "Icon"
-	icon.custom_minimum_size = Vector2(54, 54)
+	icon.custom_minimum_size = Vector2(48, 48)
 	icon.texture = _item_icon(String(recipe["output"]))
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	header.add_child(icon)
+	layout.add_child(icon)
 
 	var identity := VBoxContainer.new()
 	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	identity.add_theme_constant_override("separation", 0)
-	header.add_child(identity)
+	layout.add_child(identity)
 
 	var name_label := Label.new()
 	name_label.name = "Name"
 	name_label.add_theme_color_override("font_color", COLOR_TEXT)
-	name_label.add_theme_font_size_override("font_size", 21)
+	name_label.add_theme_font_size_override("font_size", 17)
 	name_label.text = String(recipe["name"])
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	identity.add_child(name_label)
@@ -218,66 +283,34 @@ func _create_recipe_card(recipe: Dictionary, shortcut: int) -> Dictionary:
 	var output_label := Label.new()
 	output_label.name = "Output"
 	output_label.add_theme_color_override("font_color", COLOR_MUTED)
-	output_label.add_theme_font_size_override("font_size", 15)
-	output_label.text = "单次产出 ×%d" % int(recipe.get("output_count", 1))
+	output_label.add_theme_font_size_override("font_size", 13)
+	output_label.text = "检查状态…"
 	identity.add_child(output_label)
 
 	var hotkey := Label.new()
 	hotkey.name = "Hotkey"
-	hotkey.custom_minimum_size = Vector2(38, 32)
+	hotkey.custom_minimum_size = Vector2(32, 32)
 	hotkey.add_theme_color_override("font_color", COLOR_WARNING)
 	hotkey.add_theme_font_size_override("font_size", 18)
 	hotkey.text = "[%d]" % shortcut
 	hotkey.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hotkey.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	header.add_child(hotkey)
-
-	var cost_label := Label.new()
-	cost_label.name = "Cost"
-	cost_label.add_theme_color_override("font_color", COLOR_MUTED)
-	cost_label.add_theme_font_size_override("font_size", 16)
-	cost_label.text = "材料  %s" % SliceRecipes.cost_text(recipe["cost"])
-	cost_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	layout.add_child(cost_label)
-
-	var state_row := HBoxContainer.new()
-	state_row.add_theme_constant_override("separation", 8)
-	layout.add_child(state_row)
-
-	var status := Label.new()
-	status.name = "Status"
-	status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	status.add_theme_font_size_override("font_size", 16)
-	status.text = "检查材料…"
-	status.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	state_row.add_child(status)
-
-	var craft_button := Button.new()
-	craft_button.name = "Craft"
-	craft_button.custom_minimum_size = Vector2(116, 36)
-	craft_button.add_theme_font_size_override("font_size", 16)
-	craft_button.text = "制作"
-	craft_button.pressed.connect(
-		_on_craft_pressed.bind(String(recipe["id"]))
-	)
-	state_row.add_child(craft_button)
+	layout.add_child(hotkey)
 
 	var select_button := Button.new()
-	select_button.name = "SelectExisting"
-	select_button.custom_minimum_size = Vector2(138, 36)
-	select_button.add_theme_font_size_override("font_size", 16)
-	select_button.text = "选中已有"
-	select_button.visible = String(recipe["kind"]) == "building"
+	select_button.name = "SelectRecipe"
+	select_button.flat = true
+	select_button.focus_mode = Control.FOCUS_NONE
+	select_button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	select_button.tooltip_text = "查看 %s" % String(recipe["name"])
 	select_button.pressed.connect(
-		_on_select_existing_pressed.bind(String(recipe["id"]))
+		_on_recipe_selected.bind(String(recipe["id"]))
 	)
-	state_row.add_child(select_button)
+	panel.add_child(select_button)
 
 	return {
 		"panel": panel,
-		"status": status,
-		"craft": craft_button,
-		"select": select_button,
+		"status": output_label,
 	}
 
 
@@ -293,7 +326,7 @@ func _build_inventory_slots() -> void:
 func _create_inventory_slot(item_id: String) -> Dictionary:
 	var panel := PanelContainer.new()
 	panel.name = "InventorySlot_%s" % item_id.replace(".", "_")
-	panel.custom_minimum_size = Vector2(118, 116)
+	panel.custom_minimum_size = Vector2(112, 126)
 	panel.add_theme_stylebox_override("panel", _slot_style(false))
 	panel.tooltip_text = String(SliceRecipes.ITEM_NAMES.get(item_id, item_id))
 
@@ -304,7 +337,7 @@ func _create_inventory_slot(item_id: String) -> Dictionary:
 
 	var icon := TextureRect.new()
 	icon.name = "Icon"
-	icon.custom_minimum_size = Vector2(58, 58)
+	icon.custom_minimum_size = Vector2(54, 54)
 	icon.texture = _item_icon(item_id)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -336,20 +369,23 @@ func _create_inventory_slot(item_id: String) -> Dictionary:
 	}
 
 
-func _on_craft_pressed(recipe_id: String) -> void:
-	var recipe := SliceRecipes.find(recipe_id)
+func _on_recipe_selected(recipe_id: String) -> void:
+	select_recipe(recipe_id)
+
+
+func _on_detail_craft_pressed() -> void:
+	var recipe := SliceRecipes.find(_selected_recipe_id)
 	if not recipe.is_empty():
 		_activate_recipe(recipe)
 
 
-func _on_select_existing_pressed(recipe_id: String) -> void:
-	var recipe := SliceRecipes.find(recipe_id)
+func _on_detail_select_pressed() -> void:
+	var recipe := SliceRecipes.find(_selected_recipe_id)
 	if not recipe.is_empty():
 		_activate_recipe(recipe, true)
 
 
 func _refresh() -> void:
-	_rule.text = "当前规则：%s" % _world.current_journey_rule_text()
 	var selected_id: String = _world.selected_building_id()
 	for recipe in SliceRecipes.RECIPES:
 		_refresh_recipe_card(recipe, selected_id)
@@ -361,14 +397,18 @@ func _refresh() -> void:
 		if capacity > 0
 		else "%d / ∞" % _world.pocket.total()
 	)
+	_placement.text = (
+		"当前放置\n— 未选择建筑套件"
+		if selected_id.is_empty()
+		else "当前放置\n● %s" % _short_item_name(selected_id)
+	)
+	_refresh_selected_recipe(selected_id)
 
 
 func _refresh_recipe_card(recipe: Dictionary, selected_id: String) -> void:
 	var card: Dictionary = _recipe_cards[String(recipe["id"])]
 	var panel := card["panel"] as PanelContainer
 	var status := card["status"] as Label
-	var craft_button := card["craft"] as Button
-	var select_button := card["select"] as Button
 	var output := String(recipe["output"])
 	var existing_count: int = _world.pocket.count(output)
 	var building_id := String(recipe.get("building_id", ""))
@@ -378,35 +418,20 @@ func _refresh_recipe_card(recipe: Dictionary, selected_id: String) -> void:
 	)
 	var blocker := SliceRecipes.craft_block_reason(recipe, _world.pocket)
 
-	craft_button.disabled = not blocker.is_empty()
-	craft_button.text = "制作 ×%d" % int(recipe.get("output_count", 1))
-	craft_button.tooltip_text = (
-		blocker
-		if not blocker.is_empty()
-		else "消耗 %s" % SliceRecipes.cost_text(recipe["cost"])
-	)
-	if String(recipe["kind"]) == "building":
-		select_button.disabled = existing_count <= 0 or selected
-		select_button.text = (
-			"放置中 ×%d" % existing_count
-			if selected
-			else "选中已有 ×%d" % existing_count
-		)
-
 	var blocked := false
 	if selected:
-		status.text = "● 当前正在放置 · 剩余 %d" % existing_count
+		status.text = "● 放置中 · %d" % existing_count
 		status.add_theme_color_override("font_color", COLOR_SELECTED)
 	elif existing_count > 0 and String(recipe["kind"]) == "building":
 		status.text = (
 			"已有 %d · %s" % [existing_count, blocker]
 			if not blocker.is_empty()
-			else "已有 %d · 可追加制作" % existing_count
+			else "● 就绪 · 已有 %d" % existing_count
 		)
 		status.add_theme_color_override("font_color", COLOR_WARNING)
 		blocked = not blocker.is_empty()
 	elif blocker.is_empty():
-		status.text = "● 材料就绪"
+		status.text = "● 就绪"
 		status.add_theme_color_override("font_color", COLOR_READY)
 	else:
 		status.text = blocker
@@ -414,7 +439,54 @@ func _refresh_recipe_card(recipe: Dictionary, selected_id: String) -> void:
 		blocked = true
 	panel.add_theme_stylebox_override(
 		"panel",
-		_card_style(selected, blocked)
+		_card_style(
+			String(recipe["id"]) == _selected_recipe_id,
+			blocked and String(recipe["id"]) == _selected_recipe_id
+		)
+	)
+
+
+func _refresh_selected_recipe(selected_building_id: String) -> void:
+	var recipe := SliceRecipes.find(_selected_recipe_id)
+	if recipe.is_empty():
+		return
+	var output := String(recipe["output"])
+	var existing_count: int = _world.pocket.count(output)
+	var building_id := String(recipe.get("building_id", ""))
+	var selected := (
+		String(recipe["kind"]) == "building"
+		and selected_building_id == building_id
+	)
+	var blocker := SliceRecipes.craft_block_reason(recipe, _world.pocket)
+	_detail_icon.texture = _item_icon(output)
+	_detail_name.text = String(recipe["name"])
+	_detail_output.text = "产出 ×%d" % int(recipe.get("output_count", 1))
+	_detail_cost.text = "材料  %s" % SliceRecipes.cost_text(recipe["cost"])
+	_detail_craft.disabled = not blocker.is_empty()
+	_detail_craft.text = "制作 ×%d" % int(recipe.get("output_count", 1))
+	_detail_craft.tooltip_text = (
+		blocker
+		if not blocker.is_empty()
+		else "消耗 %s" % SliceRecipes.cost_text(recipe["cost"])
+	)
+	_detail_select.visible = String(recipe["kind"]) == "building"
+	_detail_select.disabled = existing_count <= 0 or selected
+	_detail_select.text = (
+		"放置中 ×%d" % existing_count
+		if selected
+		else "选中已有 ×%d" % existing_count
+	)
+	if selected:
+		_detail_state.text = "● 当前正在放置 · 剩余 %d" % existing_count
+		_detail_state.add_theme_color_override("font_color", COLOR_SELECTED)
+	elif blocker.is_empty():
+		_detail_state.text = "● 材料就绪"
+		_detail_state.add_theme_color_override("font_color", COLOR_READY)
+	else:
+		_detail_state.text = blocker
+		_detail_state.add_theme_color_override("font_color", COLOR_BLOCKED)
+	_result_text.text = (
+		_last_result if not _last_result.is_empty() else "尚未进行制造操作"
 	)
 
 

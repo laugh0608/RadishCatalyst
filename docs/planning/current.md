@@ -6,7 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md)；原生世界目标 V5 已通过机械、AI 与萝卜SAMA人工 Gate A 复核，并固定为 `assets/reference/visual-direction/target-world-v01.png`；下一步是独立 UI Gate B，当前尚未开始。
+- 当前活跃专题：[视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md)；Gate A / B 已分别固定为 `target-world-v01.png` 与 `target-ui-v01.png` + `target-ui-v01-reactor.png`。[UI 结构实现 V1](../features/slice-visual-hierarchy-ui-implementation-v1.md) 已人工通过并收口，下一步进入世界设备家族接入架构闸门。
 - 最新人工通过专题：[设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 建筑包 1、[图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md)、[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)与[多世界存档列表](../features/slice-multi-world-save-list-v1.md)；更早专题见 `docs/features/README.md`。
 - 美术口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一）。
 - 章程结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（决策存档）。
@@ -27,7 +27,7 @@
 - 2026-08-03：整屏生成、正式素材拼装和关键设备首轮依次因介质漂移、与现状无差异及深色无基座被否决；第 2 轮锁定浅色主体、深色底座和物流宽口，但几何仍因核心斜伸、反应器扁平而作废。第 3 轮 V3 的竖直核心、高体量反应器与整体色调获得条件认可，滚轮式端口因方向冲突判废；设施固定正面、端口只布置在左 / 右 / 前可见边成为下一轮方向。
 - 2026-08-04：batch02 的开放能量核心、横向承压反应器与统一左进右出获得基本认可；batch03 的小型斜槽因无法对接被退回。batch04 又用三稿尝试平直停靠领口，但最终 V3 仍是垂直舱门，不能承接地面水平带面；三稿全部退回，且没有修改客户端或启动 Godot。
 - 2026-08-05：batch08 V3 只通过高机位与网格密度，开放核心身份仍丢失；经路线复盘和人工批准转入 batch09 原生重投影。V5 锁定核心接口；V6—V8 的局部修正仍呈“断崖”，V9 整体低平台解决连通但端框笨重，V10 改用核心完整低斜肩并获人工通过。
-- 2026-08-06：batch12 采集器 `96×112px`、储物箱 `104×80px` 暂时通过；中继 V1 的造型 / 接线通过但高度退回。V2 在不缩放整图的前提下插入 `14×10px` 中央柱身并获人工通过；随后以五张锁定设备和四条“中继端子—设备顶部中心”单段示意线完成世界目标 V5。储物箱端点最终按人工红框落在浅色顶部面中央，V5 通过 Gate A 并固定为 `target-world-v01.png`。
+- 2026-08-06：世界目标 V5 的储物箱端点最终按人工红框落在浅色顶部面中央，Gate A 通过并固定为 `target-world-v01.png`。Gate B V1 随后以同一右侧舷窗重组制造 / 背包与反应器操作并获人工通过，两张互斥状态已固定为正式 UI 目标。
 
 当前阶段：
 
@@ -39,7 +39,7 @@
 
 1. 已通过的 `delivered / 120` 全链、schema 7 和自动回归继续作为功能基线，不重复扩系统或堆新内容。
 2. [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 已用配方卡、物品格和鼠标主路径替换纯文字整备主读法，并经萝卜SAMA人工通过。
-3. [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md) 世界目标 V5 已按 `960×540`、世界资产 `1:1` 重组：五张设备哈希 / 二值 Alpha / 18 色子集未变，中继四端分别以 `1px` 单段示意线连接设备顶部锚点，储物箱线终止于浅色顶部面中央 `(52, 18)`；无折点、公共干线或接线盒。该稿已通过 Gate A 并保存为 `target-world-v01.png`；下一步只开始独立 Gate B，不把目标稿误记为客户端实现。
+3. [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md) 双目标稿均已人工通过。[UI 结构实现 V1](../features/slice-visual-hierarchy-ui-implementation-v1.md) 的制造 / 背包与建筑设备舷窗已通过完整 Godot 回归、正式 `Boot` 41 项专项、四态截图和萝卜SAMA人工复核；玩法、端口和存档未变。世界目标的固定正面、显式端口、核心物流与旧档兼容须先通过独立架构闸门。
 4. [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 核心仓库包 2 继续暂停；有限发电 / 负荷 / 储能仍为视觉专题之后的独立架构专题，不混包。
 
 ## 边界与冻结

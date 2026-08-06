@@ -23,73 +23,73 @@ var _operation_buttons: Array[Button] = []
 
 @onready var _root: Control = $Root
 @onready var _device_icon: TextureRect = (
-	$Root/Window/Margin/Layout/Header/HeaderMargin/HeaderRow/DeviceIcon
+	$Root/Window/Margin/Layout/Body/Identity/IdentityCard/Margin/Layout/DeviceIcon
 )
 @onready var _category: Label = (
-	$Root/Window/Margin/Layout/Header/HeaderMargin/HeaderRow/Identity/Category
+	$Root/Window/Margin/Layout/Body/Identity/IdentityCard/Margin/Layout/Category
 )
 @onready var _title: Label = (
-	$Root/Window/Margin/Layout/Header/HeaderMargin/HeaderRow/Identity/Title
+	$Root/Window/Margin/Layout/Body/Identity/IdentityCard/Margin/Layout/Title
 )
 @onready var _instance: Label = (
-	$Root/Window/Margin/Layout/Header/HeaderMargin/HeaderRow/Identity/Instance
+	$Root/Window/Margin/Layout/Header/Margin/Row/Identity/Instance
 )
 @onready var _status_value: Label = (
-	$Root/Window/Margin/Layout/Header/HeaderMargin/HeaderRow/Status/Value
+	$Root/Window/Margin/Layout/Header/Margin/Row/Status/Value
 )
 @onready var _primary_title: Label = (
-	$Root/Window/Margin/Layout/Body/Main/Primary/Margin/Text/Title
+	$Root/Window/Margin/Layout/Body/Identity/Primary/Margin/Text/Title
 )
-@onready var _status_row: HBoxContainer = (
-	$Root/Window/Margin/Layout/Body/Main/StatusRow
+@onready var _status_row: VBoxContainer = (
+	$Root/Window/Margin/Layout/Body/Identity/StatusRow
 )
 @onready var _power_card: PanelContainer = (
-	$Root/Window/Margin/Layout/Body/Main/StatusRow/PowerCard
+	$Root/Window/Margin/Layout/Body/Identity/StatusRow/PowerCard
 )
 @onready var _port_1: PanelContainer = (
-	$Root/Window/Margin/Layout/Body/Main/StatusRow/Port1
+	$Root/Window/Margin/Layout/Body/Identity/StatusRow/Ports/Port1
 )
 @onready var _port_2: PanelContainer = (
-	$Root/Window/Margin/Layout/Body/Main/StatusRow/Port2
+	$Root/Window/Margin/Layout/Body/Identity/StatusRow/Ports/Port2
 )
 @onready var _content_title: Label = (
-	$Root/Window/Margin/Layout/Body/Main/Content/Margin/Layout/Title
+	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/Title
 )
 @onready var _slot_1: PanelContainer = (
-	$Root/Window/Margin/Layout/Body/Main/Content/Margin/Layout/FlowRow/Slot1
+	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/Slot1
 )
 @onready var _slot_2: PanelContainer = (
-	$Root/Window/Margin/Layout/Body/Main/Content/Margin/Layout/FlowRow/Slot2
+	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/Slot2
 )
 @onready var _flow_row: HBoxContainer = (
-	$Root/Window/Margin/Layout/Body/Main/Content/Margin/Layout/FlowRow
+	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow
 )
 @onready var _flow_arrow: Label = (
-	$Root/Window/Margin/Layout/Body/Main/Content/Margin/Layout/FlowRow/FlowArrow
+	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/FlowArrow
 )
 @onready var _process_box: VBoxContainer = (
-	$Root/Window/Margin/Layout/Body/Main/Content/Margin/Layout/FlowRow/Process
+	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/Process
 )
 @onready var _process_title: Label = (
-	$Root/Window/Margin/Layout/Body/Main/Content/Margin/Layout/FlowRow/Process/Title
+	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/Process/Title
 )
 @onready var _process_progress: ProgressBar = (
-	$Root/Window/Margin/Layout/Body/Main/Content/Margin/Layout/FlowRow/Process/Progress
+	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/Process/Progress
 )
 @onready var _process_text: Label = (
-	$Root/Window/Margin/Layout/Body/Main/Content/Margin/Layout/FlowRow/Process/ProgressText
+	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/Process/ProgressText
 )
 @onready var _capacity_box: HBoxContainer = (
-	$Root/Window/Margin/Layout/Body/Main/Content/Margin/Layout/Capacity
+	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/Capacity
 )
 @onready var _capacity_progress: ProgressBar = (
-	$Root/Window/Margin/Layout/Body/Main/Content/Margin/Layout/Capacity/Progress
+	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/Capacity/Progress
 )
 @onready var _capacity_text: Label = (
-	$Root/Window/Margin/Layout/Body/Main/Content/Margin/Layout/Capacity/Text
+	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/Capacity/Text
 )
 @onready var _details: Label = (
-	$Root/Window/Margin/Layout/Body/Main/Content/Margin/Layout/Details
+	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/DetailsPanel/Margin/Details
 )
 @onready var _operations_empty: Label = (
 	$Root/Window/Margin/Layout/Body/Side/Operations/Margin/Layout/Empty
@@ -129,7 +129,7 @@ func _ready() -> void:
 			_on_operation_pressed.bind(index)
 		)
 	(
-		$Root/Window/Margin/Layout/Header/HeaderMargin/HeaderRow/Close
+		$Root/Window/Margin/Layout/Header/Margin/Row/Close
 		as Button
 	).pressed.connect(close)
 	_adjust_button.pressed.connect(_request_adjustment)
@@ -275,7 +275,9 @@ func _update_header() -> void:
 	_device_icon.texture = _snapshot.get("icon") as Texture2D
 	_category.text = String(_snapshot["category"]).to_upper()
 	_title.text = String(_snapshot["display_name"])
-	_instance.text = "INSTANCE · %s" % _target.instance_id
+	_instance.text = "%s / INSTANCE · %s" % [
+		String(_snapshot["display_name"]), _target.instance_id
+	]
 	var primary: Dictionary = _snapshot["primary"]
 	_status_value.text = String(primary["title"])
 	_status_value.add_theme_color_override(
@@ -441,8 +443,10 @@ func _update_maintenance() -> void:
 	_maintenance_reason.visible = not maintenance_reasons.is_empty()
 	_maintenance_reason.text = "\n".join(maintenance_reasons)
 	_demolition_confirm.visible = _confirming_demolition
-	_result_panel.visible = not _result.is_empty()
-	_result_text.text = _result
+	_result_panel.visible = true
+	_result_text.text = (
+		_result if not _result.is_empty() else "设备状态已刷新"
+	)
 
 
 func _on_operation_pressed(index: int) -> void:

@@ -156,17 +156,25 @@ func _check_world_operations() -> void:
 		var recipe_id := String(recipe["id"])
 		var card := world._craft_panel.recipe_card(recipe_id)
 		var icon := card.find_child("Icon", true, false) as TextureRect
-		var craft_button := card.find_child("Craft", true, false) as Button
+		var select_button := card.find_child(
+			"SelectRecipe", true, false
+		) as Button
 		_expect_equal(
 			card != null and icon != null and icon.texture != null,
 			true,
-			"%s recipe card has a graphical identity" % recipe_id
+			"%s recipe navigation row has a graphical identity" % recipe_id
 		)
 		_expect_equal(
-			craft_button != null,
+			select_button != null,
 			true,
-			"%s recipe card exposes a mouse craft action" % recipe_id
+			"%s recipe navigation row exposes mouse selection" % recipe_id
 		)
+	world._craft_panel.select_recipe("part")
+	_expect_equal(
+		world._craft_panel.detail_craft_button() != null,
+		true,
+		"selected recipe exposes the shared mouse craft action"
+	)
 	for item_id in SliceCraftPanel.INVENTORY_ITEMS:
 		var slot := world._craft_panel.inventory_slot(item_id)
 		var slot_icon := slot.find_child("Icon", true, false) as TextureRect
@@ -230,10 +238,8 @@ func _check_world_operations() -> void:
 	world.pocket.add(SliceWorld.ITEM_REACTOR_KIT, 1)
 	world.select_building_kit(SliceBuildingCatalog.REACTOR_ID)
 	world._craft_panel._refresh()
-	var floor_card := world._craft_panel.recipe_card("floor")
-	var floor_select := floor_card.find_child(
-		"SelectExisting", true, false
-	) as Button
+	world._craft_panel.select_recipe("floor")
+	var floor_select := world._craft_panel.detail_select_button()
 	_expect_equal(
 		floor_select.text.contains("选中已有 ×5"),
 		true,

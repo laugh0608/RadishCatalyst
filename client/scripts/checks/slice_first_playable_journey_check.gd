@@ -149,9 +149,9 @@ func _run() -> void:
 	)
 	craft_panel._refresh()
 	_expect_equal(
-		craft_panel._rule.text.contains("6 格接力、4 格供能"),
+		world.current_journey_rule_text().contains("6 格接力、4 格供能"),
 		true,
-		"craft panel exposes the current collector power rule"
+		"journey state exposes the current collector power rule"
 	)
 
 	var collector := SliceCollector.new()
@@ -182,9 +182,11 @@ func _run() -> void:
 	)
 	craft_panel._refresh()
 	_expect_equal(
-		craft_panel._rule.text.contains("琥珀出料口 → 带 → 催化剂箱"),
+		world.current_journey_rule_text().contains(
+			"琥珀出料口 → 带 → 催化剂箱"
+		),
 		true,
-		"craft panel exposes the fixed two-ended line rule"
+		"journey state exposes the fixed two-ended line rule"
 	)
 
 	var storage := SliceStorage.new()
@@ -208,9 +210,9 @@ func _run() -> void:
 		"再按 6 取出"
 	)
 	_expect_equal(
-		craft_panel._rule.text.contains("取出全部催化剂"),
+		world.current_journey_rule_text().contains("取出全部催化剂"),
 		true,
-		"open craft panel follows storage-driven guidance changes"
+		"storage-driven guidance updates the authoritative journey rule"
 	)
 	craft_panel._open = false
 	craft_panel._root.visible = false
