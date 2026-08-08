@@ -1,6 +1,6 @@
 # Daily Start
 
-更新时间：2026-08-06
+更新时间：2026-08-08
 
 ## 用途
 
@@ -15,6 +15,7 @@
 - [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 已人工收口。
 - [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 建筑包 1 已人工通过；核心仓库包 2 暂停。
 - [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md) 已通过架构闸门并成为当前活跃专题。
+- [分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 与 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合 schema 8 架构已获确认，代码尚未开工。
 
 ## 2026-07-29 收尾
 
@@ -31,20 +32,22 @@
 3. **关键设备首轮已判失败。**V1—V3 虽分开纵向核心与横向反应器，整体仍由深色旧家族主导，并因提示禁止平台而缺少自有基座和结构化物流出入口；比例证据保留，视觉方向不保留。
 4. **第 3 轮 `3 / 3` 已完成并停手。**V3 的核心竖直轴、反应器高度、浅色机身、深色底座和独立基座获得条件认可；设施滚轮方向互相矛盾，端口细节不通过。8 月 3 日没有客户端代码改动，也不再生成图片。
 
-## 8 月 5 日至 6 日进展与下一步
+## 8 月 5 日至 8 日进展与下一步
 
 1. **生成路线已按 `3 / 3` 停止。**batch06 / batch07 锁定开放核心与横向反应器身份，batch08 V3 只证明高机位和世界尺度；没有一张生成稿同时通过身份、投影与四口。
 2. **已获批准换介质。**萝卜SAMA确认改用 `1:1` 原生网格确定性重投影；batch09 不调用图像生成，不接客户端或 Godot。
 3. **设备主体已形成原生候选。**核心 / 反应器锁定主体分别为 `144×128px`、`176×88px`；Alpha 严格二值、颜色收敛到 17 / 18 色子集，并已与现行工程师和岩地在 960×540 中复核。
 4. **核心端口已锁定，反应器局部补丁已停止。**V5 核心人工反馈自然；V6—V8 仍有“断崖”感。V9 整体低平台解决连通，但两侧高 U 形端框继续被判不好看，不能把机械成立当成视觉通过。
 5. **Gate A 已通过。**世界目标 V5 已用核心 V5、反应器 V10、采集器 V1、储物箱 V1 和中继 V2 按 `1:1` 重组；四个中继端子分别以 `1px` 单段示意线连接设备顶部锚点，储物箱线终止于浅色顶部面中央 `(52, 18)`。机械、AI 与萝卜SAMA人工复核均通过，正式目标稿为 `assets/reference/visual-direction/target-world-v01.png`。
-6. **Gate B 与 UI 结构实现均已人工通过。**制造态与反应器态已按 [UI 结构实现 V1](../features/slice-visual-hierarchy-ui-implementation-v1.md) 收为同源右侧舷窗，完整 Godot 回归、正式 `Boot` 41 项专项及制造阻塞 / 成功、储物箱断链、反应器加工四态全部通过；下一步只做世界设备家族接入架构闸门，确认前不改端口、旋转、schema、存档或正式世界素材。
+6. **Gate B 与 UI 结构实现均已人工通过。**制造态与反应器态已按 [UI 结构实现 V1](../features/slice-visual-hierarchy-ui-implementation-v1.md) 收为同源右侧舷窗，完整 Godot 回归、正式 `Boot` 41 项专项及制造阻塞 / 成功、储物箱断链、反应器加工四态全部通过。
+7. **世界设备接入审计已完成。**[世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 已确认 `building_rotation` 解耦、固定正面、显式端口、核心 / 采集器物流和旧档可恢复边界。
+8. **分类库存与通电储物箱架构已获确认。**核心仓库每类 `99999`；背包普通物品每类 `200` 且不限制类型数；储物箱 `4×200`，在通电的存储供给与接收入库 / `5s` 无线回核心两种模式间切换。下一步只做保持现行行为的联合包 1 地基，不启动实际切换。
 
 ## 防跑偏规则
 
 - 玩家可见开发先有 `docs/features/` 专题和决策闸门，再进入代码、素材和场景接入。
 - 视觉问题按玩家结果、场景组织、系统连接、资产家族、UI 结构、色彩数值、装饰依次归因；不能从透明度、边框或单一换色开始。
-- 电力专题会影响电网、建筑定义、面板和存档；当前二值结果必须保持兼容，迁移策略未确认前不扩 schema。
+- 储物箱已获准成为二值电网消费者，但不引入容量、负荷或储能；schema 8 必须等待分类库存、双模式、固定端口和旧档迁移全部就绪后一次切换。
 - 玩家可见结果以正式 `Boot` 实机截图和人工路径为主证据，自动检查只兜底。
 
 ## 当前不做
@@ -57,6 +60,8 @@
 
 - [Current Plan](current.md)
 - [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md)
+- [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md)
+- [分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md)
 - [第一可玩切片全链串通](../features/slice-first-playable-journey-v1.md)
 - [Visual And UI Direction](../product/visual-and-ui-direction.md)
 - [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)

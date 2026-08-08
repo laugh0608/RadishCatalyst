@@ -1,12 +1,12 @@
 # Current Plan
 
-更新时间：2026-08-06
+更新时间：2026-08-08
 
 ## 入口约束
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md)；Gate A / B 已分别固定为 `target-world-v01.png` 与 `target-ui-v01.png` + `target-ui-v01-reactor.png`。[UI 结构实现 V1](../features/slice-visual-hierarchy-ui-implementation-v1.md) 已人工通过并收口，下一步进入世界设备家族接入架构闸门。
+- 当前活跃专题：[视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md)；Gate A / B 与 [UI 结构实现 V1](../features/slice-visual-hierarchy-ui-implementation-v1.md) 均已人工通过。[分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 和 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合 schema 8 架构已获确认，实际实现尚未开始。
 - 最新人工通过专题：[设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 建筑包 1、[图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md)、[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)与[多世界存档列表](../features/slice-multi-world-save-list-v1.md)；更早专题见 `docs/features/README.md`。
 - 美术口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一）。
 - 章程结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（决策存档）。
@@ -28,6 +28,7 @@
 - 2026-08-04：batch02 的开放能量核心、横向承压反应器与统一左进右出获得基本认可；batch03 的小型斜槽因无法对接被退回。batch04 又用三稿尝试平直停靠领口，但最终 V3 仍是垂直舱门，不能承接地面水平带面；三稿全部退回，且没有修改客户端或启动 Godot。
 - 2026-08-05：batch08 V3 只通过高机位与网格密度，开放核心身份仍丢失；经路线复盘和人工批准转入 batch09 原生重投影。V5 锁定核心接口；V6—V8 的局部修正仍呈“断崖”，V9 整体低平台解决连通但端框笨重，V10 改用核心完整低斜肩并获人工通过。
 - 2026-08-06：世界目标 V5 的储物箱端点最终按人工红框落在浅色顶部面中央，Gate A 通过并固定为 `target-world-v01.png`。Gate B V1 随后以同一右侧舷窗重组制造 / 背包与反应器操作并获人工通过，两张互斥状态已固定为正式 UI 目标。
+- 2026-08-08：确认“核心仓库每类 99999、背包普通物品每类 200 且不限制类型数、储物箱 4×200”的分类库存；储物箱升级为通电的存储 / 传输双模式设备，模式、显式端口、无线回库、固定正面与旧档迁移并入联合 schema 8。
 
 当前阶段：
 
@@ -39,19 +40,19 @@
 
 1. 已通过的 `delivered / 120` 全链、schema 7 和自动回归继续作为功能基线，不重复扩系统或堆新内容。
 2. [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 已用配方卡、物品格和鼠标主路径替换纯文字整备主读法，并经萝卜SAMA人工通过。
-3. [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md) 双目标稿均已人工通过。[UI 结构实现 V1](../features/slice-visual-hierarchy-ui-implementation-v1.md) 的制造 / 背包与建筑设备舷窗已通过完整 Godot 回归、正式 `Boot` 41 项专项、四态截图和萝卜SAMA人工复核；玩法、端口和存档未变。世界目标的固定正面、显式端口、核心物流与旧档兼容须先通过独立架构闸门。
+3. [分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 已锁定逐类容量、双模式、电力与无线回库合同；[世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 已锁定固定正面、显式端口、核心 / 采集器物流和旧档迁移。下一步先做保持 schema 7 与现行行为逐值不变的联合包 1 地基，不能直接换素材或启用新容量。
 4. [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 核心仓库包 2 继续暂停；有限发电 / 负荷 / 储能仍为视觉专题之后的独立架构专题，不混包。
 
 ## 边界与冻结
 
-- 多世界目录与 schema 7 现状作为当前基线；不复活旧 `SaveService`、旧 `GameRoot`、旧三槽存档或旧地图。
+- 多世界目录与 schema 7 现状仍是运行基线；schema 8 只允许在分类库存、储物箱模式、固定正面和显式端口全部就绪后联合原子切换。不复活旧 `SaveService`、旧 `GameRoot`、旧三槽存档或旧地图。
 - 视角修正轮遗留项在案：八方向动画（候选专题）、viewport 整数重构（并入 HUD 换皮）、打磨清单（核心区底板叠加等观察项）。
 - 新专题不做敌潮、复杂 Boss、技能树、联机或无关重构；立绘对话、八方向动画、viewport 重构、HUD 换皮与发布继续冻结。
 - 不复活旧通用任务链；若包 1 证明存在引导阻断，优先从现有权威状态派生固定阶段目标。
 - 陌生玩家盲测重新冻结，直到萝卜SAMA确认画面、建造 / 背包和设备交互不再以明显草稿层作为主读法。
 - 视觉专题不修改 32px 网格、960×540 相机、基础状态语义、左上光、高斜角投影或已锁定设备尺寸；本轮唯一尺寸例外是按人工明确要求把中继从 `48×66px` 调整为 `48×76px`。已否决的统一明度标尺不得回到正式归一管线。
 - 双目标稿批准前不修改 Godot Theme、世界资产、场景组合或正式归一管线；目标稿只锁定结果与关系，不预设唯一色相、材质温度或装饰答案。
-- 现行客户端仍以 `building_rotation` 同时驱动设施贴图、端口、供电、调整与存档；核心仓库也尚无物流网端点。视觉小样只验证固定正面与可见侧接口，不宣称功能已实现；正式改动前必须另做核心物流、显式端口和存档兼容的架构级迁移，不能由美术小样静默改写。
+- 现行客户端仍以总数量容量管理背包 / 仓库 / 储物箱，以 `building_rotation` 同时驱动设施贴图、端口、供电、调整与存档，核心仓库也尚无物流网端点。已确认专题只定义迁移结果，不代表功能已实现；联合包 1 前不得由素材或 UI 静默改写。
 - 当前 `SlicePowerGrid` 仍是二值可达图；在独立电力专题确认容量、需求、分配、过载与存档边界前，不提前向中继或设备面板伪造负荷数值。
 - 设备面板核心仓库包 2 暂停，待视觉专题和电力专题边界稳定后再决定是否继续。
 - `SliceWorld` 当前约 1460 行；设备展示快照不得重新把按类型 UI 分支堆入世界编排器。
@@ -65,7 +66,7 @@
 ## 阶段退出条件
 
 - 修复核心后，玩家不用口头说明即可从 HUD 与当前面板读出通电采集、反应器供电、双端物流和 2 催化剂的顺序与必要规则。
-- 阶段目标只由既有世界、建筑、库存和遭遇状态派生，不新增存档字段或通用任务图。
+- 阶段目标只由既有世界、建筑、库存和遭遇状态派生，不新增通用任务图；schema 8 只保存已批准的逐类库存、储物箱模式 / 传输进度和设备方向迁移，不扩张无关状态。
 - 资源、目标、生命、战斗状态和交互提示在基地浅地与晶体区均保持稳定对比，无截断或遮挡。
 - 37 个可再生晶体与反应器的最低生产等待不高于 `60s`，旧档采集进度可继续结算；常驻 HUD 不恢复完整套件长行。
 - 放置预览跟随鼠标网格；设备足印、待补地板、中继范围和物流端口在确认前可见；传送带放置时既有设备的 `IO / IN / OUT`、外接格与方向匹配持续可见，断链设备面板可诊断；地板足够时一次确认原子补齐；采集器 `E` 只开面板，取料必须显式操作。
