@@ -32,6 +32,10 @@ func state_dict(_allowed_keys: Array[String]) -> Dictionary:
 	return {}
 
 
+func logistics_endpoints() -> Array[SliceLogisticsEndpoint]:
+	return []
+
+
 func apply_definition(next_definition: SliceBuildingDefinition, tile_size: float) -> void:
 	definition = next_definition
 	_tile_size = tile_size
@@ -76,6 +80,14 @@ func power_status_text() -> String:
 	if definition.power_role == SliceBuildingDefinition.POWER_CONSUMER:
 		return "通电" if powered else "断电：未接入核心电网"
 	return ""
+
+
+func power_visual_anchor_world_position() -> Vector2:
+	if definition == null:
+		return position
+	return definition.power_visual_anchor_world_position(
+		origin_cell, _tile_size, building_rotation
+	)
 
 
 func _configure_sprite() -> void:

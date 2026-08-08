@@ -195,6 +195,7 @@ run_godot_checked "quest-rules" --script "${client_root}/scripts/checks/quest_ru
 run_godot_checked "vertical-slice-flow" --script "${client_root}/scripts/checks/vertical_slice_flow_check.gd" --no-header
 run_godot_checked "slice-building-placement" --script "${client_root}/scripts/checks/slice_building_placement_check.gd" --no-header
 run_godot_checked "slice-building-operations" --script "${client_root}/scripts/checks/slice_building_operations_check.gd" --no-header
+run_godot_checked "slice-inventory-model" --script "${client_root}/scripts/checks/slice_inventory_model_check.gd" --no-header
 run_godot_checked "slice-power-grid" --script "${client_root}/scripts/checks/slice_power_grid_check.gd" --no-header
 run_godot_checked "slice-reactor" --script "${client_root}/scripts/checks/slice_reactor_check.gd" --no-header
 run_godot_checked "slice-combat-package1" --script "${client_root}/scripts/checks/slice_combat_package1_check.gd" --no-header

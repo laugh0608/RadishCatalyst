@@ -28,7 +28,9 @@ func _run_checks() -> void:
 	_check_bootstrap_resource_budget()
 	_check_codec_rejects_invalid_topology()
 	_check_schema_two_to_five_migration()
+	_check_schema_six_compatibility()
 	_check_invalid_primary_falls_back_to_backup()
+	_check_schema_seven_rotation_and_idempotence()
 	await _check_schema_seven_world_restart()
 
 
@@ -425,6 +427,69 @@ func _check_schema_two_to_five_migration() -> void:
 	)
 
 
+func _check_schema_six_compatibility() -> void:
+	var save_dir := _new_save_dir("schema6")
+	var service := SliceSaveService.new(save_dir)
+	var state := _empty_runtime_state(6)
+	state["core_repaired"] = true
+	state["core_energy"] = SliceWorld.CORE_CHARGE_TARGET
+	state["buildings"] = [
+		_building_entry("building-000001", SliceBuildingCatalog.FLOOR_ID,
+			Vector2i(20, 5), 0, {}),
+		_building_entry(
+			"building-000002", SliceBuildingCatalog.CONVEYOR_ID,
+			Vector2i(20, 5), 3,
+			{"cargo": {}, "merge_cursor": 3}
+		),
+	]
+	state["next_building_serial"] = 3
+	_expect_success(
+		service.save_state(state),
+		"schema 6 fixture writes through current validator"
+	)
+
+	var save_path := save_dir.path_join("slice_world.json")
+	var schema_six := _read_json(save_path)
+	schema_six["save_schema_version"] = 6
+	schema_six["game_version"] = "prototype-slice-06"
+	schema_six.erase("player_health")
+	schema_six.erase("field_encounter")
+	_write_json(save_path, schema_six)
+
+	var result := service.load_state()
+	_expect_success(result, "schema 6 remains readable")
+	if not bool(result.get("success", false)):
+		return
+	var data: Dictionary = result["data"]
+	_expect_equal(
+		int(data["pocket"]["contents"][SliceWorld.ITEM_CRYSTAL]),
+		6,
+		"schema 6 pocket inventory remains intact"
+	)
+	_expect_equal(
+		int(data["player_health"]),
+		100,
+		"schema 6 receives full player health"
+	)
+	_expect_equal(
+		String(data["field_encounter"]["state"]),
+		"hostile",
+		"schema 6 charged core receives hostile encounter"
+	)
+	var buildings: Array = data["buildings"]
+	_expect_equal(buildings.size(), 2, "schema 6 building count")
+	_expect_equal(
+		int(buildings[1]["rotation"]),
+		3,
+		"schema 6 conveyor rotation remains intact"
+	)
+	_expect_equal(
+		int(buildings[1]["state"]["merge_cursor"]),
+		3,
+		"schema 6 conveyor state remains intact"
+	)
+
+
 func _check_invalid_primary_falls_back_to_backup() -> void:
 	var save_dir := _new_save_dir("backup")
 	var service := SliceSaveService.new(save_dir)
@@ -471,6 +536,47 @@ func _check_invalid_primary_falls_back_to_backup() -> void:
 		service.load_state(),
 		"JSON 解析失败",
 		"all invalid candidates fail without partial state"
+	)
+
+
+func _check_schema_seven_rotation_and_idempotence() -> void:
+	var fixture := _schema_seven_rotation_fixture()
+	var state: Dictionary = fixture["state"]
+	var expected_rotations: Dictionary = fixture["rotations"]
+	var save_dir := _new_save_dir("schema7-rotation")
+	var service := SliceSaveService.new(save_dir)
+	_expect_success(
+		service.save_state(state),
+		"schema 7 rotation fixture saves"
+	)
+
+	var save_path := save_dir.path_join("slice_world.json")
+	var first_save := _read_json(save_path)
+	_expect_rotation_map(
+		first_save.get("buildings", []),
+		expected_rotations,
+		"schema 7 written"
+	)
+	var load_result := service.load_state()
+	_expect_success(load_result, "schema 7 rotation fixture loads")
+	if not bool(load_result.get("success", false)):
+		return
+	var loaded_data: Dictionary = load_result["data"]
+	_expect_rotation_map(
+		loaded_data.get("buildings", []),
+		expected_rotations,
+		"schema 7 loaded"
+	)
+
+	_expect_success(
+		service.save_state(loaded_data),
+		"schema 7 loaded data saves again"
+	)
+	var second_save := _read_json(save_path)
+	_expect_equal(
+		_schema_seven_semantic_payload(second_save),
+		_schema_seven_semantic_payload(first_save),
+		"schema 7 save-load-save is semantically idempotent"
 	)
 
 
@@ -595,6 +701,7 @@ func _check_schema_seven_world_restart() -> void:
 	world._autosave()
 
 	var raw_save := _read_json(save_dir.path_join("slice_world.json"))
+	_expect_schema_seven_payload_shape(raw_save, "schema 7 world save")
 	_expect_equal(
 		int(raw_save.get("save_schema_version", 0)),
 		SliceSaveService.SAVE_SCHEMA_VERSION,
@@ -815,6 +922,151 @@ func _check_schema_seven_world_restart() -> void:
 		"post-load allocation continues without id collision"
 	)
 	loaded_world.free()
+
+
+func _schema_seven_rotation_fixture() -> Dictionary:
+	var buildings: Array = []
+	var rotations := {}
+	var serial := 1
+	for rotation in range(4):
+		serial = _append_rotation_fixture_building(
+			buildings, rotations, serial,
+			SliceBuildingCatalog.REACTOR_ID,
+			Vector2i(2 + rotation * 6, 2),
+			rotation, _empty_reactor_state()
+		)
+		serial = _append_rotation_fixture_building(
+			buildings, rotations, serial,
+			SliceBuildingCatalog.STORAGE_ID,
+			Vector2i(30 + rotation * 4, 2),
+			rotation,
+			{
+				"inventory": {
+					"capacity": SliceStorage.CAPACITY,
+					"contents": {SliceWorld.ITEM_CRYSTAL: rotation + 1},
+				},
+			}
+		)
+		serial = _append_rotation_fixture_building(
+			buildings, rotations, serial,
+			SliceBuildingCatalog.POWER_RELAY_ID,
+			Vector2i(48 + rotation * 2, 2),
+			rotation, {}
+		)
+		serial = _append_rotation_fixture_building(
+			buildings, rotations, serial,
+			SliceBuildingCatalog.CONVEYOR_ID,
+			Vector2i(58 + rotation * 2, 2),
+			rotation,
+			{
+				"cargo": {
+					"item_id": SliceWorld.ITEM_CRYSTAL,
+					"progress": float(rotation) * 0.125,
+				},
+				"merge_cursor": rotation,
+			}
+		)
+		serial = _append_rotation_fixture_building(
+			buildings, rotations, serial,
+			SliceBuildingCatalog.COLLECTOR_ID,
+			Vector2i(2 + rotation * 4, 12),
+			rotation,
+			{
+				"buffer": rotation,
+				"production_progress": float(rotation) * 0.25,
+			}
+		)
+
+	var state := _empty_runtime_state(9)
+	state["core_storage"]["contents"] = {SliceWorld.ITEM_CATALYST: 2}
+	state["core_repaired"] = true
+	state["core_energy"] = SliceWorld.CORE_CHARGE_TARGET
+	state["harvested_clusters"] = ["CrystalSmall1"]
+	state["buildings"] = buildings
+	state["next_building_serial"] = serial
+	state["player_x"] = 432.0
+	state["player_y"] = 576.0
+	state["player_health"] = 73
+	state["field_encounter"] = {"state": "hostile", "enemy_health": 40}
+	return {"state": state, "rotations": rotations}
+
+
+func _append_rotation_fixture_building(
+	buildings: Array,
+	rotations: Dictionary,
+	serial: int,
+	building_id: String,
+	origin: Vector2i,
+	rotation: int,
+	state: Dictionary
+) -> int:
+	var definition := SliceBuildingCatalog.find(building_id)
+	if (
+		definition.surface_rule
+		== SliceBuildingDefinition.SURFACE_INDUSTRIAL_FLOOR
+	):
+		for cell in definition.occupied_cells(origin, rotation):
+			buildings.append(_building_entry(
+				"building-%06d" % serial,
+				SliceBuildingCatalog.FLOOR_ID,
+				cell,
+				0,
+				{}
+			))
+			serial += 1
+	var instance_id := "building-%06d" % serial
+	buildings.append(_building_entry(
+		instance_id,
+		building_id,
+		origin,
+		rotation,
+		state.duplicate(true)
+	))
+	rotations[instance_id] = rotation
+	return serial + 1
+
+
+func _expect_schema_seven_payload_shape(
+	data: Dictionary,
+	label: String
+) -> void:
+	_assertion_count += 1
+	for failure in SliceSaveSchemaSevenContract.validate(data):
+		failures.append("%s: %s" % [label, failure])
+
+
+func _expect_rotation_map(
+	value,
+	expected_rotations: Dictionary,
+	label: String
+) -> void:
+	_expect_equal(value is Array, true, "%s buildings is an array" % label)
+	if not (value is Array):
+		return
+	var actual_rotations := {}
+	for raw_entry in value:
+		if not (raw_entry is Dictionary):
+			continue
+		var instance_id := String(raw_entry.get("instance_id", ""))
+		if expected_rotations.has(instance_id):
+			actual_rotations[instance_id] = int(raw_entry.get("rotation", -1))
+	_expect_equal(
+		actual_rotations.size(),
+		expected_rotations.size(),
+		"%s rotation fixture count" % label
+	)
+	for instance_id in expected_rotations:
+		_expect_equal(
+			int(actual_rotations.get(instance_id, -1)),
+			int(expected_rotations[instance_id]),
+			"%s %s rotation" % [label, instance_id]
+		)
+
+
+func _schema_seven_semantic_payload(data: Dictionary) -> Dictionary:
+	var result := data.duplicate(true)
+	result.erase("updated_at")
+	return result
 
 
 func _legacy_save_data(version: int) -> Dictionary:

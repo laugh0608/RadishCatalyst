@@ -41,7 +41,7 @@ func rebuild(
 			== SliceBuildingDefinition.POWER_RELAY
 		):
 			_relay_positions[instance.instance_id] = (
-				instance.definition.block_center(
+				instance.definition.logic_power_probe_world_position(
 					instance.origin_cell,
 					_tile_size,
 					instance.building_rotation
@@ -89,8 +89,10 @@ func is_relay_powered(instance_id: String) -> bool:
 func is_consumer_powered(instance: SliceBuildingInstance) -> bool:
 	if not _core_online or instance.definition == null:
 		return false
-	var port_position := instance.definition.power_port_world_position(
-		instance.origin_cell, _tile_size, instance.building_rotation
+	var port_position := (
+		instance.definition.logic_power_probe_world_position(
+			instance.origin_cell, _tile_size, instance.building_rotation
+		)
 	)
 	if _is_within_cells(
 		port_position, _core_position, RELAY_LINK_RANGE_CELLS

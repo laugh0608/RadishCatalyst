@@ -15,10 +15,36 @@ const PROCESSING_OVERLAY_TEXTURES := [
 	preload("res://assets/sprites/slice/reactor_processing_pulse_b.png"),
 ]
 
-var input_inventory := Inventory.new(INPUT_CAPACITY)
-var output_inventory := Inventory.new(OUTPUT_CAPACITY)
+var input_inventory := Inventory.new(
+	SliceInventoryProfiles.legacy_reactor_input()
+)
+var output_inventory := Inventory.new(
+	SliceInventoryProfiles.legacy_reactor_output()
+)
 var processing := false
 var production_progress := 0.0
+
+
+func logistics_endpoints() -> Array[SliceLogisticsEndpoint]:
+	var result: Array[SliceLogisticsEndpoint] = []
+	if definition == null:
+		return result
+	for port in definition.logistics_ports:
+		if port.role == SliceLogisticsPortDefinition.ROLE_INPUT:
+			result.append(SliceLogisticsEndpoint.new(
+				self,
+				port,
+				Callable(self, "_accept_logistics_input")
+			))
+		elif port.role == SliceLogisticsPortDefinition.ROLE_OUTPUT:
+			result.append(SliceLogisticsEndpoint.new(
+				self,
+				port,
+				Callable(),
+				Callable(self, "_peek_logistics_output"),
+				Callable(self, "_take_logistics_output")
+			))
+	return result
 
 
 func _process(_delta: float) -> void:
@@ -111,6 +137,26 @@ func operation_status_text(output_can_extract: bool) -> String:
 	return "就绪"
 
 
+func _accept_logistics_input(item_id: String) -> int:
+	if item_id != INPUT_ITEM_ID:
+		return 0
+	return input_inventory.add(item_id, 1)
+
+
+func _peek_logistics_output() -> String:
+	return (
+		OUTPUT_ITEM_ID
+		if output_inventory.count(OUTPUT_ITEM_ID) > 0
+		else ""
+	)
+
+
+func _take_logistics_output(item_id: String) -> int:
+	if item_id != OUTPUT_ITEM_ID:
+		return 0
+	return output_inventory.remove(item_id, 1)
+
+
 func recover_contents_to(target: Inventory) -> Dictionary:
 	var crystal_count := input_inventory.count(INPUT_ITEM_ID)
 	if processing:
@@ -122,16 +168,23 @@ func recover_contents_to(target: Inventory) -> Dictionary:
 			"success": false,
 			"message": "反应器内没有可回收物料",
 		}
-	if target.free_space() < total:
+	var recovered_items := {}
+	if crystal_count > 0:
+		recovered_items[INPUT_ITEM_ID] = crystal_count
+	if catalyst_count > 0:
+		recovered_items[OUTPUT_ITEM_ID] = catalyst_count
+	if not target.can_add_batch(recovered_items):
 		return {
 			"success": false,
 			"message": "背包空间不足，未回收任何物料",
 		}
 
-	if crystal_count > 0:
-		target.add(INPUT_ITEM_ID, crystal_count)
-	if catalyst_count > 0:
-		target.add(OUTPUT_ITEM_ID, catalyst_count)
+	if not target.add_batch(recovered_items):
+		push_error("Reactor recovery capacity changed after validation.")
+		return {
+			"success": false,
+			"message": "背包空间变化，未回收任何物料",
+		}
 	input_inventory.remove(
 		INPUT_ITEM_ID, input_inventory.count(INPUT_ITEM_ID)
 	)

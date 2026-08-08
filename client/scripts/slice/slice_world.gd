@@ -29,9 +29,9 @@ const MAP_PIXEL_SIZE := Vector2i(2560, 768)
 const START_SPAWN := Vector2(400, 576)
 const TILE_SIZE := 32.0
 
-const ITEM_CRYSTAL := "crystal"
-const ITEM_CATALYST := "catalyst"
-const ITEM_PART := "part"
+const ITEM_CRYSTAL := SliceItemCatalog.CRYSTAL_ID
+const ITEM_CATALYST := SliceItemCatalog.CATALYST_ID
+const ITEM_PART := SliceItemCatalog.PART_ID
 const ITEM_FLOOR_KIT := SliceBuildingCatalog.FLOOR_ID
 const ITEM_COLLECTOR_KIT := SliceBuildingCatalog.COLLECTOR_ID
 const ITEM_REACTOR_KIT := SliceBuildingCatalog.REACTOR_ID
@@ -67,8 +67,10 @@ signal return_to_startup_requested
 var startup_load := false
 
 ## Player backpack (spatial crystal/catalyst store, capacity-limited).
-var pocket := Inventory.new(POCKET_CAPACITY)
-var core_storage := Inventory.new(CORE_STORAGE_CAPACITY)
+var pocket := Inventory.new(SliceInventoryProfiles.legacy_pocket())
+var core_storage := Inventory.new(
+	SliceInventoryProfiles.legacy_core_storage()
+)
 var catalyst_count := 0
 var core_repaired := false
 var core_energy := 0
@@ -364,7 +366,7 @@ func activate_reactor() -> void:
 ## Harvest a crystal cluster into the backpack. Returns false (leaving the
 ## cluster in place) if the backpack cannot hold the full yield.
 func harvest_crystals(cluster_name: String, amount: int) -> bool:
-	if pocket.free_space() < amount:
+	if pocket.free_space_for(ITEM_CRYSTAL) < amount:
 		return false
 	if not harvested_clusters.has(cluster_name):
 		harvested_clusters.append(cluster_name)
@@ -595,10 +597,11 @@ func is_core_charge_confirmation_open() -> bool:
 func transfer_pocket_to_core(item: String) -> int:
 	if not core_repaired:
 		return 0
-	var moved := core_storage.add(item, pocket.count(item))
+	var moved := pocket.transfer_up_to(
+		core_storage, item, pocket.count(item)
+	)
 	if moved <= 0:
 		return 0
-	pocket.remove(item, moved)
 	inventory_changed.emit()
 	core_storage_changed.emit()
 	_autosave()
@@ -609,10 +612,11 @@ func transfer_pocket_to_core(item: String) -> int:
 func transfer_core_to_pocket(item: String) -> int:
 	if not core_repaired:
 		return 0
-	var moved := pocket.add(item, core_storage.count(item))
+	var moved := core_storage.transfer_up_to(
+		pocket, item, core_storage.count(item)
+	)
 	if moved <= 0:
 		return 0
-	core_storage.remove(item, moved)
 	inventory_changed.emit()
 	core_storage_changed.emit()
 	_autosave()
@@ -624,15 +628,16 @@ func transfer_pocket_to_storage(
 	item: String
 ) -> int:
 	if (
-		not [ITEM_CRYSTAL, ITEM_CATALYST].has(item)
+		not SliceItemCatalog.is_transportable(item)
 		or storage == null
 		or not _building_instances.has(storage)
 	):
 		return 0
-	var moved := storage.inventory.add(item, pocket.count(item))
+	var moved := pocket.transfer_up_to(
+		storage.inventory, item, pocket.count(item)
+	)
 	if moved <= 0:
 		return 0
-	pocket.remove(item, moved)
 	inventory_changed.emit()
 	building_storage_changed.emit(storage.instance_id)
 	_autosave()
@@ -644,15 +649,16 @@ func transfer_storage_to_pocket(
 	item: String
 ) -> int:
 	if (
-		not [ITEM_CRYSTAL, ITEM_CATALYST].has(item)
+		not SliceItemCatalog.is_transportable(item)
 		or storage == null
 		or not _building_instances.has(storage)
 	):
 		return 0
-	var moved := pocket.add(item, storage.inventory.count(item))
+	var moved := storage.inventory.transfer_up_to(
+		pocket, item, storage.inventory.count(item)
+	)
 	if moved <= 0:
 		return 0
-	storage.inventory.remove(item, moved)
 	inventory_changed.emit()
 	building_storage_changed.emit(storage.instance_id)
 	_autosave()
@@ -700,10 +706,9 @@ func transfer_all_building_kits_to_core() -> int:
 	var moved_total := 0
 	for definition in SliceBuildingCatalog.all():
 		var item := definition.kit_item_id
-		var moved := core_storage.add(item, pocket.count(item))
-		if moved > 0:
-			pocket.remove(item, moved)
-			moved_total += moved
+		moved_total += pocket.transfer_up_to(
+			core_storage, item, pocket.count(item)
+		)
 	if moved_total > 0:
 		inventory_changed.emit()
 		core_storage_changed.emit()
@@ -717,10 +722,9 @@ func transfer_all_building_kits_to_pocket() -> int:
 	var moved_total := 0
 	for definition in SliceBuildingCatalog.all():
 		var item := definition.kit_item_id
-		var moved := pocket.add(item, core_storage.count(item))
-		if moved > 0:
-			core_storage.remove(item, moved)
-			moved_total += moved
+		moved_total += core_storage.transfer_up_to(
+			pocket, item, core_storage.count(item)
+		)
 	if moved_total > 0:
 		inventory_changed.emit()
 		core_storage_changed.emit()
@@ -843,11 +847,11 @@ func craft(recipe_id: String) -> bool:
 		var definition := SliceBuildingCatalog.find(String(recipe["building_id"]))
 		if definition == null:
 			return false
-	for item in recipe["cost"]:
-		pocket.remove(String(item), int(recipe["cost"][item]))
-	var stored := pocket.add(String(recipe["output"]), output_count)
-	if stored != output_count:
-		push_error("Craft capacity check drifted after consuming recipe inputs.")
+	if not pocket.exchange(
+		recipe["cost"],
+		{String(recipe["output"]): output_count}
+	):
+		push_error("Craft inventory changed after authoritative validation.")
 		return false
 	if kind == "building":
 		begin_building_placement(String(recipe["building_id"]))
@@ -1059,7 +1063,7 @@ func demolition_block_reason(instance: SliceBuildingInstance) -> String:
 	var content_reason := instance.content_block_reason()
 	if not content_reason.is_empty():
 		return content_reason
-	if pocket.free_space() <= 0:
+	if pocket.free_space_for(instance.definition.kit_item_id) <= 0:
 		return "背包空间不足"
 	return ""
 
@@ -1158,6 +1162,7 @@ func _refresh_power_links() -> void:
 	var links: Array[Dictionary] = []
 	for connection in _power_grid.powered_connections():
 		var parent_id := String(connection.get("parent_id", ""))
+		var child_id := String(connection.get("child_id", ""))
 		var from_position := Vector2(
 			connection.get("from_position", Vector2.ZERO)
 		)
@@ -1165,12 +1170,12 @@ func _refresh_power_links() -> void:
 			connection.get("to_position", Vector2.ZERO)
 		)
 		links.append({
-			"from_position": from_position + (
-				CORE_LINK_ANCHOR_OFFSET
-				if parent_id == SlicePowerGrid.CORE_NODE_ID
-				else RELAY_LINK_ANCHOR_OFFSET
+			"from_position": _power_visual_anchor_world_position(
+				parent_id, from_position
 			),
-			"to_position": to_position + RELAY_LINK_ANCHOR_OFFSET,
+			"to_position": _power_visual_anchor_world_position(
+				child_id, to_position
+			),
 		})
 	_power_links.set_links(links)
 
@@ -1180,6 +1185,18 @@ func _core_world_position() -> Vector2:
 		return Vector2.ZERO
 	var core := _map.get_node_or_null("World/OutpostCoreDamaged") as Node2D
 	return Vector2.ZERO if core == null else core.global_position
+
+
+func _power_visual_anchor_world_position(
+	node_id: String,
+	logic_position: Vector2
+) -> Vector2:
+	if node_id == SlicePowerGrid.CORE_NODE_ID:
+		return logic_position + CORE_LINK_ANCHOR_OFFSET
+	for instance in _building_instances:
+		if instance.instance_id == node_id:
+			return instance.power_visual_anchor_world_position()
+	return logic_position + RELAY_LINK_ANCHOR_OFFSET
 
 
 func _restore_adjustment_origin() -> void:
@@ -1278,13 +1295,13 @@ func _spawn_building(
 	elif instance is SliceReactor:
 		var reactor := instance as SliceReactor
 		reactor.input_inventory = Inventory.from_dict(
-			state.get("input_inventory", {})
+			state.get("input_inventory", {}),
+			SliceInventoryProfiles.legacy_reactor_input()
 		)
-		reactor.input_inventory.capacity = SliceReactor.INPUT_CAPACITY
 		reactor.output_inventory = Inventory.from_dict(
-			state.get("output_inventory", {})
+			state.get("output_inventory", {}),
+			SliceInventoryProfiles.legacy_reactor_output()
 		)
-		reactor.output_inventory.capacity = SliceReactor.OUTPUT_CAPACITY
 		reactor.processing = bool(state.get("processing", false))
 		reactor.production_progress = float(
 			state.get("production_progress", 0.0)
@@ -1301,8 +1318,10 @@ func _spawn_building(
 		conveyor.merge_cursor = int(state.get("merge_cursor", 0))
 	elif instance is SliceStorage:
 		var storage := instance as SliceStorage
-		storage.inventory = Inventory.from_dict(state.get("inventory", {}))
-		storage.inventory.capacity = SliceStorage.CAPACITY
+		storage.inventory = Inventory.from_dict(
+			state.get("inventory", {}),
+			SliceInventoryProfiles.legacy_storage()
+		)
 
 	_map.get_node("World").add_child(instance)
 	_building_instances.append(instance)
@@ -1343,12 +1362,13 @@ func _restore_from_save() -> void:
 		return
 
 	var data: Dictionary = result.get("data", {})
-	pocket = Inventory.from_dict(data.get("pocket", {}))
-	if pocket.capacity != POCKET_CAPACITY:
-		pocket.capacity = POCKET_CAPACITY
-	core_storage = Inventory.from_dict(data.get("core_storage", {}))
-	if core_storage.capacity != CORE_STORAGE_CAPACITY:
-		core_storage.capacity = CORE_STORAGE_CAPACITY
+	pocket = Inventory.from_dict(
+		data.get("pocket", {}), SliceInventoryProfiles.legacy_pocket()
+	)
+	core_storage = Inventory.from_dict(
+		data.get("core_storage", {}),
+		SliceInventoryProfiles.legacy_core_storage()
+	)
 	catalyst_count = int(data.get("catalyst_count", 0))
 	core_repaired = bool(data.get("core_repaired", false))
 	core_energy = int(data.get("core_energy", 0))

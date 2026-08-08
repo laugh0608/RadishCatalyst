@@ -34,6 +34,7 @@ func _check_definition_power_contract() -> void:
 	var reactor := SliceBuildingCatalog.find(SliceBuildingCatalog.REACTOR_ID)
 	var relay := SliceBuildingCatalog.find(SliceBuildingCatalog.POWER_RELAY_ID)
 	var conveyor := SliceBuildingCatalog.find(SliceBuildingCatalog.CONVEYOR_ID)
+	var storage := SliceBuildingCatalog.find(SliceBuildingCatalog.STORAGE_ID)
 	_expect_equal(
 		collector.power_role,
 		SliceBuildingDefinition.POWER_CONSUMER,
@@ -55,6 +56,11 @@ func _check_definition_power_contract() -> void:
 		"conveyor stays passive"
 	)
 	_expect_equal(
+		storage.power_role,
+		SliceBuildingDefinition.POWER_PASSIVE,
+		"package 1 keeps storage passive"
+	)
+	_expect_equal(
 		collector.rotated_power_port_cell(0),
 		Vector2i(0, 1),
 		"collector base power port"
@@ -68,6 +74,35 @@ func _check_definition_power_contract() -> void:
 		reactor.rotated_power_port_cell(2),
 		Vector2i(1, 0),
 		"reactor power port rotates to opposite edge"
+	)
+	var origin := Vector2i(10, 10)
+	var collector_probes := [
+		Vector2(336, 368),
+		Vector2(336, 336),
+		Vector2(368, 336),
+		Vector2(368, 368),
+	]
+	var reactor_probes := [
+		Vector2(368, 400),
+		Vector2(336, 368),
+		Vector2(368, 336),
+		Vector2(400, 368),
+	]
+	for rotation in range(4):
+		_expect_equal(
+			collector.logic_power_probe_world_position(origin, 32.0, rotation),
+			collector_probes[rotation],
+			"collector rotation %d keeps its logical probe" % rotation
+		)
+		_expect_equal(
+			reactor.logic_power_probe_world_position(origin, 32.0, rotation),
+			reactor_probes[rotation],
+			"reactor rotation %d keeps its logical probe" % rotation
+		)
+	_expect_equal(
+		relay.power_visual_anchor_world_position(origin, 32.0, 0),
+		Vector2(336, 292),
+		"relay visual anchor is explicit and keeps the legacy link endpoint"
 	)
 	_expect_equal(
 		relay.powered_texture_path.ends_with("power_relay_powered.png"),
@@ -137,6 +172,29 @@ func _check_multihop_world_grid() -> void:
 		3,
 		"power link layer renders the same derived spanning tree"
 	)
+	var visual_links := world._power_links.links_snapshot()
+	for index in range(mini(connections.size(), visual_links.size())):
+		var connection: Dictionary = connections[index]
+		var visual_link: Dictionary = visual_links[index]
+		var expected_from := Vector2(connection["from_position"]) + (
+			SliceWorld.CORE_LINK_ANCHOR_OFFSET
+			if String(connection["parent_id"]) == SlicePowerGrid.CORE_NODE_ID
+			else SliceWorld.RELAY_LINK_ANCHOR_OFFSET
+		)
+		var expected_to := (
+			Vector2(connection["to_position"])
+			+ SliceWorld.RELAY_LINK_ANCHOR_OFFSET
+		)
+		_expect_equal(
+			Vector2(visual_link["from_position"]),
+			expected_from,
+			"visual link %d keeps its legacy start anchor" % index
+		)
+		_expect_equal(
+			Vector2(visual_link["to_position"]),
+			expected_to,
+			"visual link %d keeps its legacy relay endpoint" % index
+		)
 	_expect_equal(
 		relay_one.position,
 		relay_one.definition.sort_anchor_world_position(

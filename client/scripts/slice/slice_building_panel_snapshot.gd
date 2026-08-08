@@ -5,10 +5,6 @@ extends RefCounted
 ## Device rules remain in their runtime classes and SliceWorld; this class only
 ## translates current state into stable, structured UI data.
 
-const CRYSTAL_ICON := preload("res://assets/sprites/slice/cargo_crystal.png")
-const CATALYST_ICON := preload("res://assets/sprites/slice/cargo_catalyst.png")
-
-
 static func build(
 	world: Node,
 	target: SliceBuildingInstance
@@ -73,7 +69,9 @@ static func _apply_collector(
 	world: Node,
 	collector: SliceCollector
 ) -> void:
-	var free_space: int = world.pocket.free_space()
+	var free_space: int = world.pocket.free_space_for(
+		SliceWorld.ITEM_CRYSTAL
+	)
 	var primary := {
 		"tone": "working",
 		"title": "自动采集中",
@@ -96,10 +94,10 @@ static func _apply_collector(
 	snapshot["primary"] = primary
 	snapshot["content_title"] = "产出缓冲"
 	snapshot["slot_1"] = _item_slot(
-		"晶体",
+		_item_name(SliceWorld.ITEM_CRYSTAL),
 		collector.buffer,
 		SliceCollector.BUFFER_CAP,
-		CRYSTAL_ICON
+		_item_icon(SliceWorld.ITEM_CRYSTAL)
 	)
 	snapshot["process"] = {
 		"title": "采集周期",
@@ -139,8 +137,18 @@ static func _apply_storage(
 ) -> void:
 	var crystal_count := storage.inventory.count(SliceWorld.ITEM_CRYSTAL)
 	var catalyst_count := storage.inventory.count(SliceWorld.ITEM_CATALYST)
-	var storage_space := storage.inventory.free_space()
-	var pocket_space: int = world.pocket.free_space()
+	var crystal_storage_space := storage.inventory.free_space_for(
+		SliceWorld.ITEM_CRYSTAL
+	)
+	var catalyst_storage_space := storage.inventory.free_space_for(
+		SliceWorld.ITEM_CATALYST
+	)
+	var crystal_pocket_space: int = world.pocket.free_space_for(
+		SliceWorld.ITEM_CRYSTAL
+	)
+	var catalyst_pocket_space: int = world.pocket.free_space_for(
+		SliceWorld.ITEM_CATALYST
+	)
 	var ports: Array = snapshot["ports"]
 	var primary := {
 		"tone": "ready",
@@ -161,10 +169,16 @@ static func _apply_storage(
 	snapshot["primary"] = primary
 	snapshot["content_title"] = "箱内物料"
 	snapshot["slot_1"] = _item_slot(
-		"晶体", crystal_count, SliceStorage.CAPACITY, CRYSTAL_ICON
+		_item_name(SliceWorld.ITEM_CRYSTAL),
+		crystal_count,
+		SliceStorage.CAPACITY,
+		_item_icon(SliceWorld.ITEM_CRYSTAL)
 	)
 	snapshot["slot_2"] = _item_slot(
-		"催化剂", catalyst_count, SliceStorage.CAPACITY, CATALYST_ICON
+		_item_name(SliceWorld.ITEM_CATALYST),
+		catalyst_count,
+		SliceStorage.CAPACITY,
+		_item_icon(SliceWorld.ITEM_CATALYST)
 	)
 	snapshot["capacity"] = {
 		"value": storage.inventory.total(),
@@ -181,7 +195,7 @@ static func _apply_storage(
 			"存入全部晶体",
 			"3",
 			world.pocket.count(SliceWorld.ITEM_CRYSTAL),
-			storage_space,
+			crystal_storage_space,
 			"背包中没有晶体",
 			"储物箱已满"
 		),
@@ -190,7 +204,7 @@ static func _apply_storage(
 			"取出全部晶体",
 			"4",
 			crystal_count,
-			pocket_space,
+			crystal_pocket_space,
 			"箱内没有晶体",
 			"背包已满"
 		),
@@ -199,7 +213,7 @@ static func _apply_storage(
 			"存入全部催化剂",
 			"5",
 			world.pocket.count(SliceWorld.ITEM_CATALYST),
-			storage_space,
+			catalyst_storage_space,
 			"背包中没有催化剂",
 			"储物箱已满"
 		),
@@ -208,7 +222,7 @@ static func _apply_storage(
 			"取出全部催化剂",
 			"6",
 			catalyst_count,
-			pocket_space,
+			catalyst_pocket_space,
 			"箱内没有催化剂",
 			"背包已满"
 		),
@@ -228,22 +242,32 @@ static func _apply_reactor(
 	)
 	var status: String = world.reactor_status_text(reactor)
 	var primary := _reactor_primary(status)
-	var recoverable := input_count + output_count
+	var recoverable_crystal := input_count
 	if reactor.processing:
-		recoverable += SliceReactor.INPUT_CAPACITY
+		recoverable_crystal += SliceReactor.INPUT_CAPACITY
+	var recoverable := recoverable_crystal + output_count
+	var recovery_batch := {}
+	if recoverable_crystal > 0:
+		recovery_batch[SliceWorld.ITEM_CRYSTAL] = recoverable_crystal
+	if output_count > 0:
+		recovery_batch[SliceWorld.ITEM_CATALYST] = output_count
+	var can_recover: bool = (
+		recoverable > 0
+		and world.pocket.can_add_batch(recovery_batch)
+	)
 	snapshot["primary"] = primary
 	snapshot["content_title"] = "固定配方反应"
 	snapshot["slot_1"] = _item_slot(
-		"晶体",
+		_item_name(SliceWorld.ITEM_CRYSTAL),
 		input_count,
 		SliceReactor.INPUT_CAPACITY,
-		CRYSTAL_ICON
+		_item_icon(SliceWorld.ITEM_CRYSTAL)
 	)
 	snapshot["slot_2"] = _item_slot(
-		"催化剂",
+		_item_name(SliceWorld.ITEM_CATALYST),
 		output_count,
 		SliceReactor.OUTPUT_CAPACITY,
-		CATALYST_ICON
+		_item_icon(SliceWorld.ITEM_CATALYST)
 	)
 	snapshot["process"] = {
 		"title": "2 晶体  →  1 催化剂",
@@ -261,16 +285,13 @@ static func _apply_reactor(
 		"id": "recover_reactor",
 		"label": "原子回收机内物料",
 		"hotkey": "3",
-		"enabled": (
-			recoverable > 0
-			and world.pocket.free_space() >= recoverable
-		),
+		"enabled": can_recover,
 		"reason": (
 			"反应器内没有可回收物料"
 			if recoverable <= 0
 			else (
 				"背包需要 %d 个空位" % recoverable
-				if world.pocket.free_space() < recoverable
+				if not can_recover
 				else ""
 			)
 		),
@@ -458,20 +479,18 @@ static func _device_icon(target: SliceBuildingInstance) -> Texture2D:
 
 
 static func _item_name(item_id: String) -> String:
-	match item_id:
-		SliceWorld.ITEM_CRYSTAL:
-			return "晶体"
-		SliceWorld.ITEM_CATALYST:
-			return "催化剂"
-		_:
-			return "空载"
+	var definition := SliceItemCatalog.find(item_id)
+	return "空载" if definition == null else definition.short_name
 
 
 static func _item_icon(item_id: String) -> Texture2D:
-	match item_id:
-		SliceWorld.ITEM_CRYSTAL:
-			return CRYSTAL_ICON
-		SliceWorld.ITEM_CATALYST:
-			return CATALYST_ICON
-		_:
-			return null
+	var definition := SliceItemCatalog.find(item_id)
+	if definition == null or definition.icon_path.is_empty():
+		return null
+	var texture := load(definition.icon_path) as Texture2D
+	if definition.icon_region.has_area():
+		var atlas := AtlasTexture.new()
+		atlas.atlas = texture
+		atlas.region = definition.icon_region
+		return atlas
+	return texture

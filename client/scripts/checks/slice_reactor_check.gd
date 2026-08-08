@@ -60,10 +60,59 @@ func _check_port_rotation() -> void:
 		Vector2i(9, 11),
 	]
 	for rotation in range(4):
+		var reactor := _make_reactor_at(
+			"building-rotation-%d" % rotation, origin, rotation
+		)
+		var endpoints := reactor.logistics_endpoints()
+		_expect_equal(
+			endpoints.size(),
+			2,
+			"rotation %d binds two runtime endpoints" % rotation
+		)
+		_expect_equal(
+			endpoints[0].endpoint_id,
+			"%s:input" % reactor.instance_id,
+			"rotation %d runtime input identity" % rotation
+		)
+		_expect_equal(
+			endpoints[1].endpoint_id,
+			"%s:output" % reactor.instance_id,
+			"rotation %d runtime output identity" % rotation
+		)
+		_expect_equal(
+			endpoints[1].source_phase,
+			1,
+			"rotation %d reactor remains in the second source phase" % rotation
+		)
+		var descriptors := definition.resolved_logistics_port_descriptors(
+			origin, rotation
+		)
+		_expect_equal(
+			descriptors.size(),
+			2,
+			"rotation %d resolves two reactor descriptors" % rotation
+		)
+		var input_descriptor: Dictionary = descriptors[0]
+		var output_descriptor: Dictionary = descriptors[1]
+		_expect_equal(
+			String(input_descriptor["id"]),
+			"input",
+			"rotation %d keeps stable input id" % rotation
+		)
+		_expect_equal(
+			String(output_descriptor["id"]),
+			"output",
+			"rotation %d keeps stable output id" % rotation
+		)
 		_expect_equal(
 			definition.machine_input_port_world_cell(origin, rotation),
 			expected_inputs[rotation],
 			"rotation %d input port" % rotation
+		)
+		_expect_equal(
+			input_descriptor["port_cell"],
+			expected_inputs[rotation],
+			"rotation %d descriptor input port" % rotation
 		)
 		_expect_equal(
 			definition.machine_input_connection_world_cell(origin, rotation),
@@ -71,15 +120,41 @@ func _check_port_rotation() -> void:
 			"rotation %d input connection" % rotation
 		)
 		_expect_equal(
+			input_descriptor["connection_cell"],
+			expected_input_connections[rotation],
+			"rotation %d descriptor input connection" % rotation
+		)
+		_expect_equal(
 			definition.machine_output_port_world_cell(origin, rotation),
 			expected_outputs[rotation],
 			"rotation %d output port" % rotation
+		)
+		_expect_equal(
+			output_descriptor["port_cell"],
+			expected_outputs[rotation],
+			"rotation %d descriptor output port" % rotation
 		)
 		_expect_equal(
 			definition.machine_output_connection_world_cell(origin, rotation),
 			expected_output_connections[rotation],
 			"rotation %d output connection" % rotation
 		)
+		_expect_equal(
+			output_descriptor["connection_cell"],
+			expected_output_connections[rotation],
+			"rotation %d descriptor output connection" % rotation
+		)
+		_expect_equal(
+			endpoints[0].port_cell,
+			expected_inputs[rotation],
+			"rotation %d runtime input port" % rotation
+		)
+		_expect_equal(
+			endpoints[1].connection_cell,
+			expected_output_connections[rotation],
+			"rotation %d runtime output connection" % rotation
+		)
+		reactor.free()
 
 
 func _check_start_guards_and_atomic_consumption() -> void:

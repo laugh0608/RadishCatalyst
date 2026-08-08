@@ -380,6 +380,14 @@ if ($runGodotChecks) {
             }
         },
         @{
+            Name = "slice inventory model"
+            Script = "check-client-slice-inventory-model.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
             Name = "slice power grid"
             Script = "check-client-slice-power-grid.ps1"
             Parameters = @{

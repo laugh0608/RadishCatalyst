@@ -7,16 +7,14 @@ extends RefCounted
 const BELT_SPEED_CELLS_PER_SECOND := 1.0
 const SIMULATION_STEP_SECONDS := 1.0 / 60.0
 const BLOCKED_PROGRESS := 0.999999
-const TRANSPORT_ITEM_ORDER := ["crystal", "catalyst"]
 
 var _conveyors: Array[SliceConveyor] = []
-var _storages: Array[SliceStorage] = []
-var _reactors: Array[SliceReactor] = []
+var _endpoints: Array[SliceLogisticsEndpoint] = []
+var _source_endpoints: Array[SliceLogisticsEndpoint] = []
 var _conveyor_by_cell := {}
-var _storage_by_port_cell := {}
-var _source_storage_by_connection_cell := {}
-var _reactor_by_input_port_cell := {}
-var _source_reactor_by_output_connection_cell := {}
+var _sink_endpoints_by_port_cell := {}
+var _source_endpoints_by_connection_cell := {}
+var _endpoints_by_instance_id := {}
 var _simulation_accumulator := 0.0
 
 
@@ -25,13 +23,12 @@ func rebuild(
 	excluded_instance_id: String = ""
 ) -> void:
 	_conveyors.clear()
-	_storages.clear()
-	_reactors.clear()
+	_endpoints.clear()
+	_source_endpoints.clear()
 	_conveyor_by_cell.clear()
-	_storage_by_port_cell.clear()
-	_source_storage_by_connection_cell.clear()
-	_reactor_by_input_port_cell.clear()
-	_source_reactor_by_output_connection_cell.clear()
+	_sink_endpoints_by_port_cell.clear()
+	_source_endpoints_by_connection_cell.clear()
+	_endpoints_by_instance_id.clear()
 	_simulation_accumulator = 0.0
 
 	for instance in instances:
@@ -41,41 +38,13 @@ func rebuild(
 			var conveyor := instance as SliceConveyor
 			_conveyors.append(conveyor)
 			_conveyor_by_cell[_cell_key(conveyor.origin_cell)] = conveyor
-		elif instance is SliceStorage:
-			var storage := instance as SliceStorage
-			_storages.append(storage)
-			var port_cell := storage.definition.logistics_port_world_cell(
-				storage.origin_cell, storage.building_rotation
-			)
-			_storage_by_port_cell[_cell_key(port_cell)] = storage
-			var connection_cell := (
-				storage.definition.logistics_connection_world_cell(
-					storage.origin_cell, storage.building_rotation
-				)
-			)
-			_source_storage_by_connection_cell[
-				_cell_key(connection_cell)
-			] = storage
-		elif instance is SliceReactor:
-			var reactor := instance as SliceReactor
-			_reactors.append(reactor)
-			var input_port_cell := (
-				reactor.definition.machine_input_port_world_cell(
-					reactor.origin_cell, reactor.building_rotation
-				)
-			)
-			_reactor_by_input_port_cell[_cell_key(input_port_cell)] = reactor
-			var output_connection_cell := (
-				reactor.definition.machine_output_connection_world_cell(
-					reactor.origin_cell, reactor.building_rotation
-				)
-			)
-			_source_reactor_by_output_connection_cell[
-				_cell_key(output_connection_cell)
-			] = reactor
+			continue
+		for endpoint in instance.logistics_endpoints():
+			_register_endpoint(endpoint)
 	_conveyors.sort_custom(_instance_before)
-	_storages.sort_custom(_instance_before)
-	_reactors.sort_custom(_instance_before)
+	_endpoints.sort_custom(_endpoint_before)
+	_source_endpoints.sort_custom(_endpoint_before)
+	_sort_endpoint_indexes()
 	_refresh_conveyor_topologies()
 
 
@@ -132,39 +101,17 @@ func _tick_step(delta: float) -> Dictionary:
 				changed = _block_at_output(conveyor) or changed
 			continue
 
-		var target_storage := storage_at_port(conveyor.output_cell())
-		if target_storage != null and _belt_points_into_storage(
-			conveyor, target_storage
-		):
-			var stored := target_storage.inventory.add(
-				conveyor.cargo_item_id, 1
+		var target_endpoint := _sink_endpoint_at(
+			conveyor.output_cell(), conveyor.output_direction()
+		)
+		if target_endpoint != null:
+			var accepted := target_endpoint.try_accept_one(
+				conveyor.cargo_item_id
 			)
-			if stored == 1:
-				conveyor.clear_cargo()
-				_append_unique(
-					changed_storage_ids, target_storage.instance_id
-				)
-				changed = true
-			else:
-				changed = _block_at_output(conveyor) or changed
-			continue
-
-		var target_reactor := reactor_at_input_port(conveyor.output_cell())
-		if (
-			target_reactor != null
-			and _belt_points_into_reactor_input(
-				conveyor, target_reactor
-			)
-		):
-			var accepted := 0
-			if conveyor.cargo_item_id == SliceReactor.INPUT_ITEM_ID:
-				accepted = target_reactor.input_inventory.add(
-					conveyor.cargo_item_id, 1
-				)
 			if accepted == 1:
 				conveyor.clear_cargo()
 				_append_unique(
-					changed_storage_ids, target_reactor.instance_id
+					changed_storage_ids, target_endpoint.instance_id
 				)
 				changed = true
 			else:
@@ -198,63 +145,25 @@ func _tick_step(delta: float) -> Dictionary:
 		)
 		changed = true
 
-	for storage in _storages:
-		var connection_cell := (
-			storage.definition.logistics_connection_world_cell(
-				storage.origin_cell, storage.building_rotation
-			)
-		)
-		var target_conveyor := conveyor_at(connection_cell)
+	for endpoint in _source_endpoints:
+		var target_conveyor := conveyor_at(endpoint.connection_cell)
 		if (
 			target_conveyor == null
 			or target_conveyor.has_cargo()
-			or not _belt_points_away_from_storage(
-				target_conveyor, storage
+			or not endpoint.can_supply_to(
+				target_conveyor.output_direction()
 			)
 		):
 			continue
-		var item_id := _first_transport_item(storage)
+		var item_id := endpoint.peek_output_item()
 		if item_id.is_empty():
 			continue
-		if storage.inventory.remove(item_id, 1) != 1:
+		if not endpoint.take_output_item(item_id):
 			continue
 		target_conveyor.set_cargo(
 			item_id, 0.0, -target_conveyor.output_direction()
 		)
-		_append_unique(changed_storage_ids, storage.instance_id)
-		changed = true
-
-	for reactor in _reactors:
-		var connection_cell := (
-			reactor.definition.machine_output_connection_world_cell(
-				reactor.origin_cell, reactor.building_rotation
-			)
-		)
-		var target_conveyor := conveyor_at(connection_cell)
-		if (
-			target_conveyor == null
-			or target_conveyor.has_cargo()
-			or not _belt_points_away_from_reactor_output(
-				target_conveyor, reactor
-			)
-			or reactor.output_inventory.count(
-				SliceReactor.OUTPUT_ITEM_ID
-			) <= 0
-		):
-			continue
-		if (
-			reactor.output_inventory.remove(
-				SliceReactor.OUTPUT_ITEM_ID, 1
-			)
-			!= 1
-		):
-			continue
-		target_conveyor.set_cargo(
-			SliceReactor.OUTPUT_ITEM_ID,
-			0.0,
-			-target_conveyor.output_direction()
-		)
-		_append_unique(changed_storage_ids, reactor.instance_id)
+		_append_unique(changed_storage_ids, endpoint.instance_id)
 		changed = true
 
 	if not changed_storage_ids.is_empty():
@@ -267,94 +176,58 @@ func conveyor_at(cell: Vector2i) -> SliceConveyor:
 
 
 func storage_at_port(cell: Vector2i) -> SliceStorage:
-	return _storage_by_port_cell.get(_cell_key(cell)) as SliceStorage
+	for endpoint in _sink_endpoints_at_cell(cell):
+		if endpoint.owner is SliceStorage:
+			return endpoint.owner as SliceStorage
+	return null
 
 
 func source_storage_at_connection(cell: Vector2i) -> SliceStorage:
-	return (
-		_source_storage_by_connection_cell.get(_cell_key(cell))
-		as SliceStorage
-	)
+	for endpoint in _source_endpoints_at_cell(cell):
+		if endpoint.owner is SliceStorage:
+			return endpoint.owner as SliceStorage
+	return null
 
 
 func reactor_at_input_port(cell: Vector2i) -> SliceReactor:
-	return (
-		_reactor_by_input_port_cell.get(_cell_key(cell))
-		as SliceReactor
-	)
+	for endpoint in _sink_endpoints_at_cell(cell):
+		if endpoint.owner is SliceReactor:
+			return endpoint.owner as SliceReactor
+	return null
 
 
 func source_reactor_at_connection(cell: Vector2i) -> SliceReactor:
-	return (
-		_source_reactor_by_output_connection_cell.get(_cell_key(cell))
-		as SliceReactor
-	)
+	for endpoint in _source_endpoints_at_cell(cell):
+		if endpoint.owner is SliceReactor:
+			return endpoint.owner as SliceReactor
+	return null
 
 
 func can_extract_reactor_output(reactor: SliceReactor) -> bool:
 	if reactor == null:
 		return false
-	var connection_cell := (
-		reactor.definition.machine_output_connection_world_cell(
-			reactor.origin_cell, reactor.building_rotation
-		)
+	var endpoint := _endpoint_for_instance_port(
+		reactor.instance_id, "output"
 	)
-	var conveyor := conveyor_at(connection_cell)
+	if endpoint == null:
+		for candidate in reactor.logistics_endpoints():
+			if candidate.port_id == "output":
+				endpoint = candidate
+				break
+	if endpoint == null:
+		return false
+	var conveyor := conveyor_at(endpoint.connection_cell)
 	return (
 		conveyor != null
 		and not conveyor.has_cargo()
-		and _belt_points_away_from_reactor_output(conveyor, reactor)
+		and endpoint.can_supply_to(conveyor.output_direction())
 	)
 
 
 func placement_preview_ports() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	for storage in _storages:
-		var definition := storage.definition
-		result.append(_preview_port(
-			storage,
-			"storage",
-			"IO",
-			definition.logistics_port_world_cell(
-				storage.origin_cell, storage.building_rotation
-			),
-			definition.logistics_connection_world_cell(
-				storage.origin_cell, storage.building_rotation
-			),
-			definition.logistics_direction_for_rotation(
-				storage.building_rotation
-			)
-		))
-	for reactor in _reactors:
-		var definition := reactor.definition
-		result.append(_preview_port(
-			reactor,
-			"input",
-			"IN",
-			definition.machine_input_port_world_cell(
-				reactor.origin_cell, reactor.building_rotation
-			),
-			definition.machine_input_connection_world_cell(
-				reactor.origin_cell, reactor.building_rotation
-			),
-			definition.machine_input_direction_for_rotation(
-				reactor.building_rotation
-			)
-		))
-		result.append(_preview_port(
-			reactor,
-			"output",
-			"OUT",
-			definition.machine_output_port_world_cell(
-				reactor.origin_cell, reactor.building_rotation
-			),
-			definition.machine_output_connection_world_cell(
-				reactor.origin_cell, reactor.building_rotation
-			),
-			definition.machine_output_direction_for_rotation(
-				reactor.building_rotation
-			)
-		))
+	for endpoint in _endpoints:
+		result.append(_preview_port(endpoint))
 	return result
 
 
@@ -444,38 +317,33 @@ func building_status_lines(
 func building_status_snapshot(
 	instance: SliceBuildingInstance
 ) -> Array[Dictionary]:
-	if instance is SliceStorage:
-		return [_storage_status_snapshot(instance as SliceStorage)]
-	if instance is SliceReactor:
-		var reactor := instance as SliceReactor
-		return [
-			_reactor_port_status_snapshot(reactor, true),
-			_reactor_port_status_snapshot(reactor, false),
-		]
-	return []
+	var result: Array[Dictionary] = []
+	if instance == null:
+		return result
+	var endpoints := _endpoints_for_instance(instance.instance_id)
+	if endpoints.is_empty():
+		endpoints = instance.logistics_endpoints()
+	for endpoint in endpoints:
+		result.append(_endpoint_status_snapshot(endpoint))
+	return result
 
 
 func _preview_port(
-	instance: SliceBuildingInstance,
-	kind: String,
-	label: String,
-	port_cell: Vector2i,
-	connection_cell: Vector2i,
-	outward: Vector2i
+	endpoint: SliceLogisticsEndpoint
 ) -> Dictionary:
-	var conveyor := conveyor_at(connection_cell)
+	var conveyor := conveyor_at(endpoint.connection_cell)
 	return {
-		"instance_id": instance.instance_id,
-		"device_name": instance.definition.display_name,
-		"kind": kind,
-		"label": label,
-		"port_cell": port_cell,
-		"connection_cell": connection_cell,
-		"outward_direction": outward,
+		"instance_id": endpoint.instance_id,
+		"device_name": endpoint.device_name,
+		"kind": endpoint.legacy_kind(),
+		"label": endpoint.label,
+		"port_cell": endpoint.port_cell,
+		"connection_cell": endpoint.connection_cell,
+		"outward_direction": endpoint.outward_direction,
 		"connected": (
 			conveyor != null
-			and _port_accepts_direction(
-				kind, outward, conveyor.output_direction()
+			and endpoint.matches_conveyor_direction(
+				conveyor.output_direction()
 			)
 		),
 	}
@@ -519,12 +387,21 @@ func _placement_endpoint_label(
 	]
 
 
-func _storage_status_snapshot(storage: SliceStorage) -> Dictionary:
-	var definition := storage.definition
-	var connection_cell := definition.logistics_connection_world_cell(
-		storage.origin_cell, storage.building_rotation
-	)
-	var conveyor := conveyor_at(connection_cell)
+func _endpoint_status_snapshot(
+	endpoint: SliceLogisticsEndpoint
+) -> Dictionary:
+	if (
+		endpoint.role
+		== SliceLogisticsPortDefinition.ROLE_BIDIRECTIONAL
+	):
+		return _storage_status_snapshot(endpoint)
+	return _reactor_port_status_snapshot(endpoint)
+
+
+func _storage_status_snapshot(
+	endpoint: SliceLogisticsEndpoint
+) -> Dictionary:
+	var conveyor := conveyor_at(endpoint.connection_cell)
 	if conveyor == null:
 		return {
 			"kind": "storage",
@@ -535,10 +412,7 @@ func _storage_status_snapshot(storage: SliceStorage) -> Dictionary:
 			"detail": "把传送带接到舱口外的 IO 标记格",
 			"text": "物流口：未接传送带（请接舱口外的 IO 标记格）",
 		}
-	var outward := definition.logistics_direction_for_rotation(
-		storage.building_rotation
-	)
-	if conveyor.output_direction() == outward:
+	if conveyor.output_direction() == endpoint.outward_direction:
 		return {
 			"kind": "storage",
 			"label": "OUT",
@@ -548,7 +422,7 @@ func _storage_status_snapshot(storage: SliceStorage) -> Dictionary:
 			"detail": "传送带会从箱内取货",
 			"text": "物流口：已接 OUT（从箱内出货）",
 		}
-	if conveyor.output_direction() == -outward:
+	if conveyor.output_direction() == -endpoint.outward_direction:
 		return {
 			"kind": "storage",
 			"label": "IN",
@@ -570,30 +444,13 @@ func _storage_status_snapshot(storage: SliceStorage) -> Dictionary:
 
 
 func _reactor_port_status_snapshot(
-	reactor: SliceReactor,
-	input_port: bool
+	endpoint: SliceLogisticsEndpoint
 ) -> Dictionary:
-	var definition := reactor.definition
-	var connection_cell := (
-		definition.machine_input_connection_world_cell(
-			reactor.origin_cell, reactor.building_rotation
-		)
-		if input_port
-		else definition.machine_output_connection_world_cell(
-			reactor.origin_cell, reactor.building_rotation
-		)
+	var input_port := (
+		endpoint.role == SliceLogisticsPortDefinition.ROLE_INPUT
 	)
-	var outward := (
-		definition.machine_input_direction_for_rotation(
-			reactor.building_rotation
-		)
-		if input_port
-		else definition.machine_output_direction_for_rotation(
-			reactor.building_rotation
-		)
-	)
-	var conveyor := conveyor_at(connection_cell)
-	var label := "IN" if input_port else "OUT"
+	var conveyor := conveyor_at(endpoint.connection_cell)
+	var label := endpoint.label
 	if conveyor == null:
 		return {
 			"kind": "input" if input_port else "output",
@@ -604,7 +461,11 @@ func _reactor_port_status_snapshot(
 			"detail": "把传送带接到对应的端口标记格",
 			"text": "%s：未接传送带（请接端口标记格）" % label,
 		}
-	var expected := -outward if input_port else outward
+	var expected := (
+		-endpoint.outward_direction
+		if input_port
+		else endpoint.outward_direction
+	)
 	if conveyor.output_direction() == expected:
 		return {
 			"kind": "input" if input_port else "output",
@@ -649,54 +510,20 @@ func _port_accepts_direction(
 func _refresh_conveyor_topologies() -> void:
 	for conveyor in _conveyors:
 		var output := conveyor.output_direction()
-		var source_storage := source_storage_at_connection(
-			conveyor.origin_cell
+		var source_endpoint := _source_endpoint_at(
+			conveyor.origin_cell, output
 		)
-		if (
-			source_storage != null
-			and _belt_points_away_from_storage(
-				conveyor, source_storage
-			)
-		):
+		if source_endpoint != null:
 			conveyor.set_topology_visual(
 				SliceConveyor.TOPOLOGY_SOURCE_ENDPOINT, [-output]
 			)
 			_restore_cargo_entry_direction(conveyor)
 			continue
 
-		var source_reactor := source_reactor_at_connection(
-			conveyor.origin_cell
+		var sink_endpoint := _sink_endpoint_at(
+			conveyor.output_cell(), output
 		)
-		if (
-			source_reactor != null
-			and _belt_points_away_from_reactor_output(
-				conveyor, source_reactor
-			)
-		):
-			conveyor.set_topology_visual(
-				SliceConveyor.TOPOLOGY_SOURCE_ENDPOINT, [-output]
-			)
-			_restore_cargo_entry_direction(conveyor)
-			continue
-
-		var sink_storage := storage_at_port(conveyor.output_cell())
-		if (
-			sink_storage != null
-			and _belt_points_into_storage(conveyor, sink_storage)
-		):
-			conveyor.set_topology_visual(
-				SliceConveyor.TOPOLOGY_SINK_ENDPOINT, [-output]
-			)
-			_restore_cargo_entry_direction(conveyor)
-			continue
-
-		var sink_reactor := reactor_at_input_port(conveyor.output_cell())
-		if (
-			sink_reactor != null
-			and _belt_points_into_reactor_input(
-				conveyor, sink_reactor
-			)
-		):
+		if sink_endpoint != null:
 			conveyor.set_topology_visual(
 				SliceConveyor.TOPOLOGY_SINK_ENDPOINT, [-output]
 			)
@@ -799,55 +626,116 @@ func _block_at_output(conveyor: SliceConveyor) -> bool:
 	return true
 
 
-func _belt_points_into_storage(
-	conveyor: SliceConveyor,
-	storage: SliceStorage
-) -> bool:
-	var outward := storage.definition.logistics_direction_for_rotation(
-		storage.building_rotation
+func _register_endpoint(endpoint: SliceLogisticsEndpoint) -> void:
+	_endpoints.append(endpoint)
+	var per_instance: Array = _endpoints_by_instance_id.get(
+		endpoint.instance_id, []
 	)
-	return conveyor.output_direction() == -outward
-
-
-func _belt_points_away_from_storage(
-	conveyor: SliceConveyor,
-	storage: SliceStorage
-) -> bool:
-	var outward := storage.definition.logistics_direction_for_rotation(
-		storage.building_rotation
-	)
-	return conveyor.output_direction() == outward
-
-
-func _belt_points_into_reactor_input(
-	conveyor: SliceConveyor,
-	reactor: SliceReactor
-) -> bool:
-	var outward := (
-		reactor.definition.machine_input_direction_for_rotation(
-			reactor.building_rotation
+	per_instance.append(endpoint)
+	_endpoints_by_instance_id[endpoint.instance_id] = per_instance
+	if endpoint.accepts_input():
+		_append_endpoint_index(
+			_sink_endpoints_by_port_cell, endpoint.port_cell, endpoint
 		)
-	)
-	return conveyor.output_direction() == -outward
-
-
-func _belt_points_away_from_reactor_output(
-	conveyor: SliceConveyor,
-	reactor: SliceReactor
-) -> bool:
-	var outward := (
-		reactor.definition.machine_output_direction_for_rotation(
-			reactor.building_rotation
+	if endpoint.provides_output():
+		_source_endpoints.append(endpoint)
+		_append_endpoint_index(
+			_source_endpoints_by_connection_cell,
+			endpoint.connection_cell,
+			endpoint
 		)
+
+
+func _append_endpoint_index(
+	index: Dictionary,
+	cell: Vector2i,
+	endpoint: SliceLogisticsEndpoint
+) -> void:
+	var key := _cell_key(cell)
+	var values: Array = index.get(key, [])
+	values.append(endpoint)
+	index[key] = values
+
+
+func _sort_endpoint_indexes() -> void:
+	for index in [
+		_sink_endpoints_by_port_cell,
+		_source_endpoints_by_connection_cell,
+		_endpoints_by_instance_id,
+	]:
+		for key in index:
+			var values: Array = index[key]
+			values.sort_custom(_endpoint_before)
+
+
+func _sink_endpoints_at_cell(
+	cell: Vector2i
+) -> Array[SliceLogisticsEndpoint]:
+	return _typed_endpoints(
+		_sink_endpoints_by_port_cell.get(_cell_key(cell), [])
 	)
-	return conveyor.output_direction() == outward
 
 
-func _first_transport_item(storage: SliceStorage) -> String:
-	for item_id in TRANSPORT_ITEM_ORDER:
-		if storage.inventory.count(item_id) > 0:
-			return item_id
-	return ""
+func _source_endpoints_at_cell(
+	cell: Vector2i
+) -> Array[SliceLogisticsEndpoint]:
+	return _typed_endpoints(
+		_source_endpoints_by_connection_cell.get(_cell_key(cell), [])
+	)
+
+
+func _endpoints_for_instance(
+	instance_id: String
+) -> Array[SliceLogisticsEndpoint]:
+	return _typed_endpoints(_endpoints_by_instance_id.get(instance_id, []))
+
+
+func _typed_endpoints(values: Array) -> Array[SliceLogisticsEndpoint]:
+	var result: Array[SliceLogisticsEndpoint] = []
+	for value in values:
+		result.append(value as SliceLogisticsEndpoint)
+	return result
+
+
+func _sink_endpoint_at(
+	cell: Vector2i,
+	conveyor_output: Vector2i
+) -> SliceLogisticsEndpoint:
+	for endpoint in _sink_endpoints_at_cell(cell):
+		if endpoint.can_receive_from(conveyor_output):
+			return endpoint
+	return null
+
+
+func _source_endpoint_at(
+	cell: Vector2i,
+	conveyor_output: Vector2i
+) -> SliceLogisticsEndpoint:
+	for endpoint in _source_endpoints_at_cell(cell):
+		if endpoint.can_supply_to(conveyor_output):
+			return endpoint
+	return null
+
+
+func _endpoint_for_instance_port(
+	instance_id: String,
+	port_id: String
+) -> SliceLogisticsEndpoint:
+	for endpoint in _endpoints_for_instance(instance_id):
+		if endpoint.port_id == port_id:
+			return endpoint
+	return null
+
+
+func _endpoint_before(
+	left: SliceLogisticsEndpoint,
+	right: SliceLogisticsEndpoint
+) -> bool:
+	if left.source_phase != right.source_phase:
+		return left.source_phase < right.source_phase
+	if left.instance_id != right.instance_id:
+		return left.instance_id < right.instance_id
+	return left.port_id < right.port_id
 
 
 func _instance_before(

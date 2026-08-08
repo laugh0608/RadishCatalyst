@@ -7,18 +7,6 @@ extends RefCounted
 ## (`kind = "building"`). Costs are item_id -> count. Kept as a plain const
 ## table so the panel and SliceWorld share one source of truth.
 
-const ITEM_NAMES := {
-	"crystal": "晶体",
-	"catalyst": "催化剂",
-	"part": "机械零件",
-	"building.floor": "工业地板套件",
-	"building.collector": "采集器套件",
-	"building.reactor": "反应器套件",
-	"building.power_relay": "中继套件",
-	"building.conveyor": "传送带套件",
-	"building.storage": "储物箱套件",
-}
-
 const RECIPES := [
 	{
 		"id": "part",
@@ -96,8 +84,10 @@ static func find(recipe_id: String) -> Dictionary:
 static func cost_text(cost: Dictionary) -> String:
 	var parts: Array[String] = []
 	for item in cost:
+		var definition := SliceItemCatalog.find(String(item))
+		var item_name := String(item) if definition == null else definition.display_name
 		parts.append(
-			"%s ×%d" % [String(ITEM_NAMES.get(item, item)), int(cost[item])]
+			"%s ×%d" % [item_name, int(cost[item])]
 		)
 	return " · ".join(parts)
 
@@ -112,21 +102,23 @@ static func craft_block_reason(recipe: Dictionary, inventory: Inventory) -> Stri
 		var needed := int(cost[item])
 		var available := inventory.count(String(item))
 		if available < needed:
+			var definition := SliceItemCatalog.find(String(item))
+			var item_name := (
+				String(item) if definition == null else definition.display_name
+			)
 			missing.append(
 				"%s ×%d"
 				% [
-					String(ITEM_NAMES.get(item, item)),
+					item_name,
 					needed - available,
 				]
 			)
 	if not missing.is_empty():
 		return "缺少 %s" % " · ".join(missing)
 
-	var consumed_count := 0
-	for amount in cost.values():
-		consumed_count += int(amount)
+	var output_id := String(recipe["output"])
 	var output_count := int(recipe.get("output_count", 1))
-	var available_space := inventory.free_space() + consumed_count
-	if available_space < output_count:
-		return "背包还需 %d 格" % (output_count - available_space)
+	if not inventory.can_exchange(cost, {output_id: output_count}):
+		var available_space := inventory.free_space_for_after(output_id, cost)
+		return "背包还需 %d 格" % maxi(1, output_count - available_space)
 	return ""

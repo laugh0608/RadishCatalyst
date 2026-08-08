@@ -49,16 +49,76 @@ func _check_storage_port_rotation() -> void:
 		Vector2i(9, 10),
 	]
 	for rotation in range(4):
+		var storage := _make_storage(
+			"building-rotation-%d" % rotation, origin, rotation
+		)
+		var endpoints := storage.logistics_endpoints()
+		_expect_equal(
+			endpoints.size(),
+			1,
+			"storage rotation %d binds one runtime endpoint" % rotation
+		)
+		var endpoint := endpoints[0]
+		_expect_equal(
+			endpoint.endpoint_id,
+			"%s:io" % storage.instance_id,
+			"storage rotation %d endpoint identity" % rotation
+		)
+		_expect_equal(
+			endpoint.source_phase,
+			0,
+			"storage rotation %d keeps source phase" % rotation
+		)
+		var descriptors := definition.resolved_logistics_port_descriptors(
+			origin, rotation
+		)
+		_expect_equal(
+			descriptors.size(),
+			1,
+			"storage rotation %d resolves one descriptor" % rotation
+		)
+		var descriptor: Dictionary = descriptors[0]
+		_expect_equal(
+			String(descriptor["id"]),
+			"io",
+			"storage rotation %d keeps stable endpoint id" % rotation
+		)
+		_expect_equal(
+			String(descriptor["role"]),
+			SliceLogisticsPortDefinition.ROLE_BIDIRECTIONAL,
+			"storage rotation %d keeps bidirectional role" % rotation
+		)
 		_expect_equal(
 			definition.logistics_port_world_cell(origin, rotation),
 			expected_ports[rotation],
 			"storage rotation %d port cell" % rotation
 		)
 		_expect_equal(
+			descriptor["port_cell"],
+			expected_ports[rotation],
+			"storage rotation %d descriptor port cell" % rotation
+		)
+		_expect_equal(
 			definition.logistics_connection_world_cell(origin, rotation),
 			expected_connections[rotation],
 			"storage rotation %d connection cell" % rotation
 		)
+		_expect_equal(
+			descriptor["connection_cell"],
+			expected_connections[rotation],
+			"storage rotation %d descriptor connection cell" % rotation
+		)
+		_expect_equal(
+			endpoint.port_cell,
+			expected_ports[rotation],
+			"storage rotation %d runtime port cell" % rotation
+		)
+		_expect_equal(
+			endpoint.connection_cell,
+			expected_connections[rotation],
+			"storage rotation %d runtime connection cell" % rotation
+		)
+		storage.free()
 
 
 func _check_placement_port_feedback() -> void:

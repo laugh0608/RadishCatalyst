@@ -40,6 +40,8 @@ func _check_definitions() -> void:
 	var collector := SliceBuildingCatalog.find(
 		SliceBuildingCatalog.COLLECTOR_ID
 	)
+	var reactor := SliceBuildingCatalog.find(SliceBuildingCatalog.REACTOR_ID)
+	var storage := SliceBuildingCatalog.find(SliceBuildingCatalog.STORAGE_ID)
 	_expect_equal(floor != null, true, "floor definition exists")
 	_expect_equal(collector != null, true, "collector definition exists")
 	_expect_equal(floor.kit_item_id, "building.floor", "floor kit id")
@@ -93,6 +95,87 @@ func _check_definitions() -> void:
 		collector.power_indicator_offset,
 		Vector2(4, -12),
 		"collector power indicator aligns with the front-right status window"
+	)
+
+	for definition in SliceBuildingCatalog.all():
+		_expect_equal(
+			definition.orientation_mode,
+			SliceBuildingDefinition.ORIENTATION_CARDINAL,
+			"%s keeps the legacy cardinal orientation" % definition.building_id
+		)
+		_expect_equal(
+			definition.allows_rotation,
+			true,
+			"%s keeps legacy R input" % definition.building_id
+		)
+	_expect_equal(
+		collector.visual_mode,
+		SliceBuildingDefinition.VISUAL_SINGLE_FRAME,
+		"collector explicitly keeps its single legacy frame"
+	)
+	_expect_equal(
+		reactor.visual_mode,
+		SliceBuildingDefinition.VISUAL_CARDINAL_FRAMES,
+		"reactor explicitly keeps four legacy frames"
+	)
+	_expect_equal(storage.logistics_ports.size(), 1, "storage has one port")
+	var storage_port := storage.logistics_ports[0]
+	_expect_equal(storage_port.id, "io", "storage port has a stable id")
+	_expect_equal(
+		storage_port.role,
+		SliceLogisticsPortDefinition.ROLE_BIDIRECTIONAL,
+		"storage legacy port remains bidirectional"
+	)
+	_expect_equal(
+		storage_port.accepted_item_ids,
+		["crystal", "catalyst"],
+		"storage legacy input policy remains unchanged"
+	)
+	_expect_equal(
+		storage_port.output_item_order,
+		["crystal", "catalyst"],
+		"storage legacy output priority remains unchanged"
+	)
+	_expect_equal(
+		storage_port.source_phase, 0, "storage remains the first source phase"
+	)
+	_expect_equal(reactor.logistics_ports.size(), 2, "reactor has two ports")
+	_expect_equal(
+		reactor.logistics_ports[0].id, "input", "reactor input stays first"
+	)
+	_expect_equal(
+		reactor.logistics_ports[1].id, "output", "reactor output stays second"
+	)
+	_expect_equal(
+		reactor.logistics_ports[1].source_phase,
+		1,
+		"reactor output remains after every storage source"
+	)
+	_expect_equal(
+		collector.logistics_ports.is_empty(),
+		true,
+		"package 1 does not add a collector endpoint"
+	)
+
+	var fixed_front := SliceBuildingDefinition.new(
+		"test.fixed_front",
+		"test.fixed_front",
+		"test",
+		Vector2i(2, 1),
+		false,
+		SliceBuildingDefinition.SURFACE_BUILDABLE_ROCK,
+		true,
+		false
+	)
+	_expect_equal(
+		fixed_front.orientation_mode,
+		SliceBuildingDefinition.ORIENTATION_FIXED_FRONT,
+		"non-rotating definitions expose fixed-front orientation"
+	)
+	_expect_equal(
+		fixed_front.normalized_rotation(3),
+		0,
+		"fixed-front orientation normalizes every legacy rotation"
 	)
 
 

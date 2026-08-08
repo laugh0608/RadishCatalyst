@@ -14,7 +14,7 @@ func get_prompt(world: Node) -> String:
 		]
 	if collector.buffer <= 0:
 		return "按 E 管理采集器（通电，缓冲 0/%d）" % SliceCollector.BUFFER_CAP
-	if world.pocket.free_space() <= 0:
+	if world.pocket.free_space_for(SliceWorld.ITEM_CRYSTAL) <= 0:
 		return "按 E 管理采集器（通电，背包已满，缓冲 %d/%d）" % [
 			collector.buffer, SliceCollector.BUFFER_CAP
 		]

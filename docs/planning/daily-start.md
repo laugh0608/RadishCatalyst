@@ -15,7 +15,7 @@
 - [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 已人工收口。
 - [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 建筑包 1 已人工通过；核心仓库包 2 暂停。
 - [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md) 已通过架构闸门并成为当前活跃专题。
-- [分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 与 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合 schema 8 架构已获确认，代码尚未开工。
+- [分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 与 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合包 1 等价地基已完成；schema 8 和正式世界设备仍未切换。
 
 ## 2026-07-29 收尾
 
@@ -41,7 +41,8 @@
 5. **Gate A 已通过。**世界目标 V5 已用核心 V5、反应器 V10、采集器 V1、储物箱 V1 和中继 V2 按 `1:1` 重组；四个中继端子分别以 `1px` 单段示意线连接设备顶部锚点，储物箱线终止于浅色顶部面中央 `(52, 18)`。机械、AI 与萝卜SAMA人工复核均通过，正式目标稿为 `assets/reference/visual-direction/target-world-v01.png`。
 6. **Gate B 与 UI 结构实现均已人工通过。**制造态与反应器态已按 [UI 结构实现 V1](../features/slice-visual-hierarchy-ui-implementation-v1.md) 收为同源右侧舷窗，完整 Godot 回归、正式 `Boot` 41 项专项及制造阻塞 / 成功、储物箱断链、反应器加工四态全部通过。
 7. **世界设备接入审计已完成。**[世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 已确认 `building_rotation` 解耦、固定正面、显式端口、核心 / 采集器物流和旧档可恢复边界。
-8. **分类库存与通电储物箱架构已获确认。**核心仓库每类 `99999`；背包普通物品每类 `200` 且不限制类型数；储物箱 `4×200`，在通电的存储供给与接收入库 / `5s` 无线回核心两种模式间切换。下一步只做保持现行行为的联合包 1 地基，不启动实际切换。
+8. **联合包 1 等价地基已完成。**现行九类物品已统一定义，legacy profile 保持 `30 / 120 / 20 / 2 / 1`，库存调用迁到逐物品 / 原子 / 部分转移 API；方向、视觉、端点、逻辑供电探针和画线锚点已显式解耦，物流网改用统一运行时端点。
+9. **schema 7 与玩家结果未切换。**完整 `check-client --with-godot` 通过；储物箱仍被动且只有旧双向口，核心 / 采集器无新端点，六类旧建筑仍四向，九格与 `0 / 30` 文案不变。下一步只能进入联合包 2 原子切换。
 
 ## 防跑偏规则
 

@@ -23,6 +23,10 @@ func link_count() -> int:
 	return _links.size()
 
 
+func links_snapshot() -> Array[Dictionary]:
+	return _links.duplicate(true)
+
+
 func _draw() -> void:
 	for link in _links:
 		var start := Vector2(link.get("from_position", Vector2.ZERO))

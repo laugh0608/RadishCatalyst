@@ -86,18 +86,9 @@ func power_ring_count() -> int:
 func logistics_port_marker_count() -> int:
 	if _definition == null:
 		return 0
-	var count := 0
-	if _cell_is_defined(_definition.rotated_logistics_port_cell(_rotation)):
-		count += 1
-	if _cell_is_defined(
-		_definition.rotated_machine_input_port_cell(_rotation)
-	):
-		count += 1
-	if _cell_is_defined(
-		_definition.rotated_machine_output_port_cell(_rotation)
-	):
-		count += 1
-	return count
+	return _definition.resolved_logistics_port_descriptors(
+		_origin_cell, _rotation
+	).size()
 
 
 func context_logistics_port_marker_count() -> int:
@@ -218,46 +209,30 @@ func _nearby_power_nodes() -> Array[Dictionary]:
 
 
 func _draw_logistics_ports() -> void:
-	var logistics_port := _definition.rotated_logistics_port_cell(_rotation)
-	if _cell_is_defined(logistics_port):
-		_draw_port_marker(
-			_definition.logistics_port_world_cell(
-				_origin_cell, _rotation
-			),
-			_definition.logistics_connection_world_cell(
-				_origin_cell, _rotation
-			),
-			LOGISTICS_PORT_COLOR,
-			"IO",
+	for port in _definition.resolved_logistics_port_descriptors(
+		_origin_cell, _rotation
+	):
+		var role := String(port["role"])
+		var color := (
+			LOGISTICS_PORT_COLOR
+			if role == SliceLogisticsPortDefinition.ROLE_BIDIRECTIONAL
+			else INPUT_PORT_COLOR
+			if role == SliceLogisticsPortDefinition.ROLE_INPUT
+			else OUTPUT_PORT_COLOR
+		)
+		var flow_direction := (
 			0
+			if role == SliceLogisticsPortDefinition.ROLE_BIDIRECTIONAL
+			else -1
+			if role == SliceLogisticsPortDefinition.ROLE_INPUT
+			else 1
 		)
-	var input_port := _definition.rotated_machine_input_port_cell(_rotation)
-	if _cell_is_defined(input_port):
 		_draw_port_marker(
-			_definition.machine_input_port_world_cell(
-				_origin_cell, _rotation
-			),
-			_definition.machine_input_connection_world_cell(
-				_origin_cell, _rotation
-			),
-			INPUT_PORT_COLOR,
-			"IN",
-			-1
-		)
-	var output_port := _definition.rotated_machine_output_port_cell(
-		_rotation
-	)
-	if _cell_is_defined(output_port):
-		_draw_port_marker(
-			_definition.machine_output_port_world_cell(
-				_origin_cell, _rotation
-			),
-			_definition.machine_output_connection_world_cell(
-				_origin_cell, _rotation
-			),
-			OUTPUT_PORT_COLOR,
-			"OUT",
-			1
+			Vector2i(port["port_cell"]),
+			Vector2i(port["connection_cell"]),
+			color,
+			String(port["label"]),
+			flow_direction
 		)
 
 
@@ -416,7 +391,3 @@ func _cell_center(cell: Vector2i) -> Vector2:
 		(Vector2(cell) + Vector2(0.5, 0.5)) * _tile_size
 		- parent_position
 	)
-
-
-func _cell_is_defined(cell: Vector2i) -> bool:
-	return cell.x >= 0 and cell.y >= 0
