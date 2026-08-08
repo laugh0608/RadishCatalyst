@@ -90,6 +90,16 @@ func power_visual_anchor_world_position() -> Vector2:
 	)
 
 
+func power_visual_anchor_toward_world_position(
+	toward_world_position: Vector2
+) -> Vector2:
+	if definition == null:
+		return position
+	return definition.power_visual_anchor_toward_world_position(
+		origin_cell, _tile_size, building_rotation, toward_world_position
+	)
+
+
 func _configure_sprite() -> void:
 	if definition == null or definition.is_floor:
 		return

@@ -113,10 +113,39 @@ func _check_definition_power_contract() -> void:
 		"storage line anchor resolves to locked V1 texture pixel"
 	)
 	_expect_equal(
-		relay.power_visual_anchor_world_position(origin, 32.0, 0),
-		Vector2(336, 292),
-		"relay visual anchor is explicit and keeps the legacy link endpoint"
+		relay.power_visual_terminal_offsets.size(),
+		4,
+		"locked relay exposes four non-persistent visual terminals"
 	)
+	var relay_center := relay.block_center(origin, 32.0, 0)
+	var terminal_cases := [
+		[Vector2.LEFT, SliceBuildingDefinition.POWER_TERMINAL_WEST, Vector2(316, 290)],
+		[Vector2.UP, SliceBuildingDefinition.POWER_TERMINAL_NORTH, Vector2(336, 279)],
+		[Vector2.RIGHT, SliceBuildingDefinition.POWER_TERMINAL_EAST, Vector2(355, 290)],
+		[Vector2.DOWN, SliceBuildingDefinition.POWER_TERMINAL_FRONT, Vector2(336, 299)],
+	]
+	for terminal_case in terminal_cases:
+		var toward := relay_center + Vector2(terminal_case[0]) * 100.0
+		_expect_equal(
+			relay.power_visual_terminal_toward(origin, 32.0, 0, toward),
+			String(terminal_case[1]),
+			"relay selects its %s terminal by real relative direction" % terminal_case[1]
+		)
+		_expect_equal(
+			relay.power_visual_anchor_toward_world_position(
+				origin, 32.0, 0, toward
+			),
+			Vector2(terminal_case[2]),
+			"relay %s terminal resolves to the locked V2 pixel" % terminal_case[1]
+		)
+	_expect_equal(
+		storage.power_visual_anchor_toward_world_position(
+			origin, 32.0, 0, Vector2.ZERO
+		),
+		Vector2(352, 322),
+		"consumer direction never changes its single locked top anchor"
+	)
+	_expect_equal(SlicePowerLinkLayer.POWER_WIDTH, 1.0, "Gate A line width is 1px")
 	_expect_equal(
 		relay.powered_texture_path,
 		"",
@@ -195,14 +224,21 @@ func _check_multihop_world_grid() -> void:
 	for index in range(mini(connections.size(), visual_links.size())):
 		var connection: Dictionary = connections[index]
 		var visual_link: Dictionary = visual_links[index]
-		var expected_from := Vector2(connection["from_position"]) + (
-			SliceWorld.CORE_LINK_ANCHOR_OFFSET
-			if String(connection["parent_id"]) == SlicePowerGrid.CORE_NODE_ID
-			else SliceWorld.RELAY_LINK_ANCHOR_OFFSET
+		var expected_from := SlicePowerVisualResolver.anchor_world_position(
+			String(connection["parent_id"]),
+			Vector2(connection["from_position"]),
+			Vector2(connection["to_position"]),
+			world._building_instances,
+			SliceWorld.CORE_LINK_ANCHOR_OFFSET,
+			SliceWorld.RELAY_LINK_ANCHOR_OFFSET
 		)
-		var expected_to := (
-			Vector2(connection["to_position"])
-			+ SliceWorld.RELAY_LINK_ANCHOR_OFFSET
+		var expected_to := SlicePowerVisualResolver.anchor_world_position(
+			String(connection["child_id"]),
+			Vector2(connection["to_position"]),
+			Vector2(connection["from_position"]),
+			world._building_instances,
+			SliceWorld.CORE_LINK_ANCHOR_OFFSET,
+			SliceWorld.RELAY_LINK_ANCHOR_OFFSET
 		)
 		_expect_equal(
 			Vector2(visual_link["from_position"]),
@@ -212,8 +248,9 @@ func _check_multihop_world_grid() -> void:
 		_expect_equal(
 			Vector2(visual_link["to_position"]),
 			expected_to,
-			"visual link %d keeps its legacy relay endpoint" % index
+			"visual link %d selects the facing relay terminal" % index
 		)
+	_expect_equal(world._power_links.z_index, 1, "power segments stay visible on device anchors")
 	_expect_equal(
 		relay_one.position,
 		relay_one.definition.sort_anchor_world_position(
@@ -272,6 +309,24 @@ func _check_multihop_world_grid() -> void:
 	_expect_equal(reactor.powered, true, "reactor port is within relay coverage")
 	_expect_equal(storage.powered, true, "storage probe is within relay coverage")
 	_expect_equal(collector.powered, true, "collector port is within relay coverage")
+	connections = world._power_grid.powered_connections()
+	_expect_equal(connections.size(), 6, "three real consumers add three derived power edges")
+	_expect_equal(world._power_links.link_count(), 6, "link layer includes powered consumers")
+	for consumer_value in [reactor, storage, collector]:
+		var consumer := consumer_value as SliceBuildingInstance
+		var consumer_connection := _connection_for_child(
+			connections, consumer.instance_id
+		)
+		_expect_equal(
+			String(consumer_connection.get("parent_id", "")),
+			relay_three.instance_id,
+			"%s line uses its real supplying relay" % consumer.building_id
+		)
+		_expect_equal(
+			String(consumer_connection.get("child_role", "")),
+			SliceBuildingDefinition.POWER_CONSUMER,
+			"%s edge is marked as a consumer relation" % consumer.building_id
+		)
 	storage.inventory.add(SliceWorld.ITEM_CRYSTAL, 1)
 	storage.set_output_item(SliceWorld.ITEM_CRYSTAL)
 	var storage_endpoint: SliceLogisticsEndpoint = (
@@ -282,6 +337,10 @@ func _check_multihop_world_grid() -> void:
 		SliceWorld.ITEM_CRYSTAL,
 		"powered supply storage exposes its selected output"
 	)
+	_expect_equal(world.toggle_storage_mode(storage), true, "storage enters transfer mode")
+	_expect_equal(storage.powered, true, "mode does not fabricate a power-state change")
+	_expect_equal(world._power_links.link_count(), 6, "transfer mode keeps the real power line")
+	_expect_equal(world.toggle_storage_mode(storage), true, "storage returns to supply mode")
 	_expect_equal(
 		reactor.get_node_or_null("PowerIndicator") != null,
 		true,
@@ -361,8 +420,8 @@ func _check_multihop_world_grid() -> void:
 	_expect_equal(collector.powered, true, "cancel restores collector power")
 	_expect_equal(
 		world._power_links.link_count(),
-		3,
-		"cancel restores the three-link visual tree"
+		6,
+		"cancel restores relay and consumer visual edges"
 	)
 	world._tick_production(0.5)
 	_expect_equal(collector.buffer, 1, "restored collector completes retained tick")
@@ -397,8 +456,8 @@ func _check_multihop_world_grid() -> void:
 	_expect_equal(collector.powered, true, "replacement reconnects collector")
 	_expect_equal(
 		world._power_links.link_count(),
-		3,
-		"replacement rebuilds the visual tree"
+		6,
+		"replacement rebuilds relay and consumer visual edges"
 	)
 
 	world.core_repaired = false
@@ -460,6 +519,16 @@ func _place_building(
 	if not placed:
 		return null
 	return world._building_instances[index]
+
+
+func _connection_for_child(
+	connections: Array[Dictionary],
+	child_id: String
+) -> Dictionary:
+	for connection in connections:
+		if String(connection.get("child_id", "")) == child_id:
+			return connection
+	return {}
 
 
 func _expect_equal(actual, expected, context: String) -> void:

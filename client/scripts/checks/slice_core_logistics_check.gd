@@ -137,8 +137,13 @@ func _check_world_repair_and_restart() -> void:
 	_expect_equal(core.texture.resource_path.ends_with("outpost_core_repaired.png"), true, "repair action uses the formal locked core path")
 	_expect_equal(core.offset, SliceCoreLogistics.REPAIRED_SPRITE_OFFSET, "core V5 bottom-aligns to the unchanged footprint")
 	_expect_equal(
-		world._power_visual_anchor_world_position(
-			SlicePowerGrid.CORE_NODE_ID, world._core_world_position()
+		SlicePowerVisualResolver.anchor_world_position(
+			SlicePowerGrid.CORE_NODE_ID,
+			world._core_world_position(),
+			world._core_world_position() + Vector2.RIGHT,
+			world._building_instances,
+			SliceWorld.CORE_LINK_ANCHOR_OFFSET,
+			SliceWorld.RELAY_LINK_ANCHOR_OFFSET
 		),
 		Vector2(648, 240),
 		"core V5 power line resolves from its locked upper-ring anchor"

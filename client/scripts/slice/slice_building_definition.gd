@@ -20,6 +20,10 @@ const POWER_PROBE_FOLLOWS_ORIENTATION := "follows_orientation"
 const POWER_PROBE_FIXED_LOCAL := "fixed_local"
 const POWER_VISUAL_ANCHOR_NONE := "none"
 const POWER_VISUAL_ANCHOR_BLOCK_CENTER_OFFSET := "block_center_offset"
+const POWER_TERMINAL_WEST := "west"
+const POWER_TERMINAL_NORTH := "north"
+const POWER_TERMINAL_EAST := "east"
+const POWER_TERMINAL_FRONT := "front"
 
 var building_id: String
 var kit_item_id: String
@@ -45,6 +49,7 @@ var powered_texture_path: String
 var power_indicator_offset: Vector2
 var power_visual_anchor_policy: String
 var power_visual_anchor_offset: Vector2
+var power_visual_terminal_offsets: Dictionary = {}
 var logistics_ports: Array[SliceLogisticsPortDefinition] = []
 var logistics_port_cell: Vector2i
 var logistics_port_direction: Vector2i
@@ -124,6 +129,13 @@ func _init(
 
 func configure_icon_region(next_icon_region: Rect2) -> SliceBuildingDefinition:
 	icon_region = next_icon_region
+	return self
+
+
+func configure_power_visual_terminals(
+	next_terminal_offsets: Dictionary
+) -> SliceBuildingDefinition:
+	power_visual_terminal_offsets = next_terminal_offsets.duplicate(true)
 	return self
 
 
@@ -420,6 +432,40 @@ func power_visual_anchor_world_position(
 	):
 		return center + power_visual_anchor_offset
 	return center
+
+
+func power_visual_terminal_toward(
+	origin_cell: Vector2i,
+	tile_size: float,
+	rotation: int,
+	toward_world_position: Vector2
+) -> String:
+	if power_visual_terminal_offsets.is_empty():
+		return ""
+	var center := block_center(origin_cell, tile_size, rotation)
+	var delta := toward_world_position - center
+	if absf(delta.x) > absf(delta.y):
+		return POWER_TERMINAL_EAST if delta.x > 0.0 else POWER_TERMINAL_WEST
+	return POWER_TERMINAL_FRONT if delta.y > 0.0 else POWER_TERMINAL_NORTH
+
+
+func power_visual_anchor_toward_world_position(
+	origin_cell: Vector2i,
+	tile_size: float,
+	rotation: int,
+	toward_world_position: Vector2
+) -> Vector2:
+	var terminal := power_visual_terminal_toward(
+		origin_cell, tile_size, rotation, toward_world_position
+	)
+	if terminal.is_empty():
+		return power_visual_anchor_world_position(
+			origin_cell, tile_size, rotation
+		)
+	return (
+		block_center(origin_cell, tile_size, rotation)
+		+ Vector2(power_visual_terminal_offsets[terminal])
+	)
 
 
 func _legacy_logistics_ports() -> Array[SliceLogisticsPortDefinition]:

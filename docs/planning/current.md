@@ -6,7 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md)；Gate A / B 与 [UI 结构实现 V1](../features/slice-visual-hierarchy-ui-implementation-v1.md) 均已人工通过。[分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 和 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合包 2 修正版已按萝卜SAMA指令提交为 `b4803e5a`。包 3 已接入锁定核心 V5 与核心实体物流，完整 Godot 和正式 `Boot` 取证通过，等待人工确认。
+- 当前活跃专题：[视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md)；Gate A / B 与 [UI 结构实现 V1](../features/slice-visual-hierarchy-ui-implementation-v1.md) 均已人工通过。[分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 和 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合包 2 修正版已提交为 `b4803e5a`，包 3 以 `f41f93a7` 提交。包 3 / 4 均获人工通过，当前进入包 5 迁移演练、正式入口与综合人工闸门。
 - 最新人工通过专题：[设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 建筑包 1、[图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md)、[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)与[多世界存档列表](../features/slice-multi-world-save-list-v1.md)；更早专题见 `docs/features/README.md`。
 - 美术口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一）。
 - 章程结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（决策存档）。
@@ -28,7 +28,7 @@
 - 2026-08-04：batch02 的开放能量核心、横向承压反应器与统一左进右出获得基本认可；batch03 的小型斜槽因无法对接被退回。batch04 又用三稿尝试平直停靠领口，但最终 V3 仍是垂直舱门，不能承接地面水平带面；三稿全部退回，且没有修改客户端或启动 Godot。
 - 2026-08-05：batch08 V3 只通过高机位与网格密度，开放核心身份仍丢失；经路线复盘和人工批准转入 batch09 原生重投影。V5 锁定核心接口；V6—V8 的局部修正仍呈“断崖”，V9 整体低平台解决连通但端框笨重，V10 改用核心完整低斜肩并获人工通过。
 - 2026-08-06：世界目标 V5 的储物箱端点最终按人工红框落在浅色顶部面中央，Gate A 通过并固定为 `target-world-v01.png`。Gate B V1 随后以同一右侧舷窗重组制造 / 背包与反应器操作并获人工通过，两张互斥状态已固定为正式 UI 目标。
-- 2026-08-08：联合 schema 8 启用分类库存、双模式储物箱、无线回库与固定正面设备；修正版分离 UI 取景、设备自带接驳区和真实末端带面后提交。随后修复态核心逐字节切至 V5，并以现有 `core_storage / core_repaired` 启用左入右出实体物流；人工发现的隔格视觉断链已改为相邻终端带。
+- 2026-08-08：联合 schema 8 启用分类库存、双模式储物箱、无线回库与固定正面设备；修正版分离 UI 取景、设备自带接驳区和真实末端带面后提交。随后修复态核心逐字节切至 V5，并以现有 `core_storage / core_repaired` 启用左入右出实体物流；隔格视觉断链改为相邻终端带。真实二值父边、中继四端子和消费者顶部锚点经完整 Godot、正式 `Boot` 与人工复核通过。
 
 当前阶段：
 
@@ -40,7 +40,7 @@
 
 1. 已通过的 `delivered / 120` 全链继续作为功能基线；schema 8 是当前写盘合同，schema 2–7 继续通过确定性迁移与来源感知备份发布兼容，不重复扩系统或堆新内容。
 2. [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 已用配方卡、物品格和鼠标主路径替换纯文字整备主读法，并经萝卜SAMA人工通过。
-3. 联合包 2 已以 `b4803e5a` 提交。包 3 保留受损核心旧素材，修复动作与重载修复态逐字节使用核心 V5；修复后派生左 `IN` / 右 `OUT`，直接读写同一 `core_storage`，没有新增 schema 字段。完整 `check-client --with-godot`、核心专项 `54` 项和正式 `Boot` `48` 项均通过，主档、三份备份和三态截图已保留，当前等待人工确认。
+3. 联合包 2 / 3 已提交，包 3 / 4 已人工通过。包 4 从真实二值父边派生中继四端子与核心 / 消费者顶部锚点之间的 `1px` 单段线；供电专项 `139` 项、完整 `check-client --with-godot` 和正式 `Boot` `64` 项通过，四态截图、主档与三份备份已保留。当前进入包 5，集中复验真实新档、schema 7 隔离旧档、完整产线、断链恢复与保存重启；不引入有限发电、负荷、储能或 schema 字段。
 4. [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 核心仓库包 2 继续暂停；有限发电 / 负荷 / 储能仍为视觉专题之后的独立架构专题，不混包。
 
 ## 边界与冻结

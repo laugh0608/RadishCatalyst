@@ -129,7 +129,12 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 				Vector2i(-1, -1),
 				SliceBuildingDefinition.POWER_VISUAL_ANCHOR_BLOCK_CENTER_OFFSET,
 				Vector2(0, -44)
-			)
+			).configure_power_visual_terminals({
+				SliceBuildingDefinition.POWER_TERMINAL_WEST: Vector2(-20, -46),
+				SliceBuildingDefinition.POWER_TERMINAL_NORTH: Vector2(0, -57),
+				SliceBuildingDefinition.POWER_TERMINAL_EAST: Vector2(19, -46),
+				SliceBuildingDefinition.POWER_TERMINAL_FRONT: Vector2(0, -37),
+			})
 		CONVEYOR_ID:
 			return _with_device_model(
 				SliceBuildingDefinition.new(

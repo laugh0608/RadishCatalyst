@@ -1151,25 +1151,12 @@ func _rebuild_logistics_grid(excluded_instance_id: String = "") -> void:
 func _refresh_power_links() -> void:
 	if _power_links == null:
 		return
-	var links: Array[Dictionary] = []
-	for connection in _power_grid.powered_connections():
-		var parent_id := String(connection.get("parent_id", ""))
-		var child_id := String(connection.get("child_id", ""))
-		var from_position := Vector2(
-			connection.get("from_position", Vector2.ZERO)
-		)
-		var to_position := Vector2(
-			connection.get("to_position", Vector2.ZERO)
-		)
-		links.append({
-			"from_position": _power_visual_anchor_world_position(
-				parent_id, from_position
-			),
-			"to_position": _power_visual_anchor_world_position(
-				child_id, to_position
-			),
-		})
-	_power_links.set_links(links)
+	_power_links.set_links(SlicePowerVisualResolver.resolve_links(
+		_power_grid.powered_connections(),
+		_building_instances,
+		CORE_LINK_ANCHOR_OFFSET,
+		RELAY_LINK_ANCHOR_OFFSET
+	))
 
 
 func _core_world_position() -> Vector2:
@@ -1177,18 +1164,6 @@ func _core_world_position() -> Vector2:
 		return Vector2.ZERO
 	var core := _map.get_node_or_null("World/OutpostCoreDamaged") as Node2D
 	return Vector2.ZERO if core == null else core.global_position
-
-
-func _power_visual_anchor_world_position(
-	node_id: String,
-	logic_position: Vector2
-) -> Vector2:
-	if node_id == SlicePowerGrid.CORE_NODE_ID:
-		return logic_position + CORE_LINK_ANCHOR_OFFSET
-	for instance in _building_instances:
-		if instance.instance_id == node_id:
-			return instance.power_visual_anchor_world_position()
-	return logic_position + RELAY_LINK_ANCHOR_OFFSET
 
 
 func _restore_adjustment_origin() -> void:
