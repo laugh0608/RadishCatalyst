@@ -1,9 +1,11 @@
 class_name SliceItemCatalog
 extends RefCounted
 
-## The nine schema-7 slice item IDs and their shared presentation order.
+## The nine ordinary slice item IDs and their shared presentation order.
 ## Building-kit icon metadata is derived from SliceBuildingCatalog so item UI
 ## does not create a second source for the current building sprite and region.
+## Quest-item presentation stays outside find(), all() and ORDERED_IDS: it is a
+## view over independent quest state, never an Inventory or logistics item.
 
 const CRYSTAL_ID := "crystal"
 const CATALYST_ID := "catalyst"
@@ -11,7 +13,19 @@ const PART_ID := "part"
 const CRYSTAL_ICON := "res://assets/sprites/slice/cargo_crystal.png"
 const CATALYST_ICON := "res://assets/sprites/slice/cargo_catalyst.png"
 const PART_ICON := "res://assets/icons/slice_mechanical_part.svg"
+const CRITICAL_SAMPLE_PRESENTATION_ID := "quest.critical_sample"
+const CRITICAL_SAMPLE_ICON := (
+	"res://assets/sprites/slice/critical_sample_crystal_gland.png"
+)
 const UNKNOWN_SORT_ORDER := 1 << 29
+
+const CATEGORY_ORDER: Array[String] = [
+	SliceItemDefinition.CATEGORY_RAW_MATERIAL,
+	SliceItemDefinition.CATEGORY_PROCESSED_ITEM,
+	SliceItemDefinition.CATEGORY_BUILDING_KIT,
+	SliceItemDefinition.CATEGORY_KEY_ITEM,
+	SliceItemDefinition.CATEGORY_UNKNOWN,
+]
 
 const ORDERED_IDS: Array[String] = [
 	CRYSTAL_ID,
@@ -92,6 +106,39 @@ static func all() -> Array[SliceItemDefinition]:
 	return result
 
 
+static func is_known_ordinary(item_id: String) -> bool:
+	return ORDERED_IDS.has(item_id)
+
+
+static func category_title(category: String) -> String:
+	match category:
+		SliceItemDefinition.CATEGORY_RAW_MATERIAL:
+			return "原料"
+		SliceItemDefinition.CATEGORY_PROCESSED_ITEM:
+			return "加工品"
+		SliceItemDefinition.CATEGORY_BUILDING_KIT:
+			return "建筑套件"
+		SliceItemDefinition.CATEGORY_KEY_ITEM:
+			return "关键物品"
+		SliceItemDefinition.CATEGORY_UNKNOWN:
+			return "兼容物品"
+	return category
+
+
+static func critical_sample_read_model(carried: bool) -> Dictionary:
+	if not carried:
+		return {}
+	return SliceItemDefinition.new(
+		CRITICAL_SAMPLE_PRESENTATION_ID,
+		"晶腺样本",
+		"晶腺样本",
+		SliceItemDefinition.CATEGORY_KEY_ITEM,
+		0,
+		CRITICAL_SAMPLE_ICON,
+		false
+	).to_read_model(1)
+
+
 static func transportable_ids() -> Array[String]:
 	var result: Array[String] = []
 	for definition in all():
@@ -157,7 +204,7 @@ static func _building_kit(
 	var icon_region := Rect2()
 	if building != null:
 		icon_path = building.texture_path_for_rotation(0)
-		icon_region = building.texture_region
+		icon_region = building.icon_region
 	return SliceItemDefinition.new(
 		item_id,
 		display_name,

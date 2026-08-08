@@ -61,9 +61,9 @@ func _check_catalog_and_recipes() -> void:
 	var conveyor := SliceBuildingCatalog.find(SliceBuildingCatalog.CONVEYOR_ID)
 	var storage := SliceBuildingCatalog.find(SliceBuildingCatalog.STORAGE_ID)
 	_expect_equal(
-		reactor.texture_path_for_rotation(1).ends_with("reactor_right.png"),
+		reactor.texture_path_for_rotation(1).ends_with("reactor.png"),
 		true,
-		"reactor rotation selects fixed right frame"
+		"reactor rotation request keeps the locked V10 front"
 	)
 	_expect_equal(
 		conveyor.texture_path_for_rotation(2).ends_with("conveyor_down.png"),
@@ -71,9 +71,9 @@ func _check_catalog_and_recipes() -> void:
 		"conveyor rotation selects fixed down frame"
 	)
 	_expect_equal(
-		storage.texture_path_for_rotation(3).ends_with("storage_left.png"),
+		storage.texture_path_for_rotation(3).ends_with("storage.png"),
 		true,
-		"storage rotation selects fixed left frame"
+		"storage rotation request keeps the locked V1 front"
 	)
 
 	var recipe_expectations := {
@@ -150,7 +150,12 @@ func _check_world_operations() -> void:
 	_expect_equal(
 		world._craft_panel.inventory_slot_count(),
 		9,
-		"graphical backpack exposes the stable nine-item slice inventory"
+		"graphical backpack exposes nine currently unlocked ordinary items"
+	)
+	_expect_equal(
+		world._craft_panel.inventory_group_count(),
+		3,
+		"graphical backpack groups unlocked items by shared catalog category"
 	)
 	for recipe in SliceRecipes.RECIPES:
 		var recipe_id := String(recipe["id"])
@@ -175,7 +180,7 @@ func _check_world_operations() -> void:
 		true,
 		"selected recipe exposes the shared mouse craft action"
 	)
-	for item_id in SliceCraftPanel.INVENTORY_ITEMS:
+	for item_id in SliceItemCatalog.ORDERED_IDS:
 		var slot := world._craft_panel.inventory_slot(item_id)
 		var slot_icon := slot.find_child("Icon", true, false) as TextureRect
 		_expect_equal(
@@ -185,8 +190,13 @@ func _check_world_operations() -> void:
 		)
 	_expect_equal(
 		world._craft_panel.capacity_text(),
-		"0 / 30",
-		"graphical backpack shows authoritative total capacity"
+		"不限种类 · 每类 200",
+		"graphical backpack shows the per-item pocket rule"
+	)
+	_expect_equal(
+		world._craft_panel.inventory_slot_count_text(SliceWorld.ITEM_CRYSTAL),
+		"0 / 200",
+		"graphical backpack shows the selected category stack capacity"
 	)
 	_expect_equal(
 		_panel_style_path(
@@ -220,6 +230,41 @@ func _check_world_operations() -> void:
 		true,
 		"inventory slots inherit the shared recessed surface material"
 	)
+
+	world.pocket.restore_existing("future.item", 3)
+	world._craft_panel._refresh()
+	_expect_equal(
+		world._craft_panel.inventory_slot_count(),
+		10,
+		"unknown old item creates a visible compatibility slot"
+	)
+	_expect_equal(
+		world._craft_panel.inventory_slot_count_text("future.item"),
+		"3 / 200",
+		"compatibility slot keeps its authoritative amount and pocket cap"
+	)
+	world._core_storage_panel.open()
+	_expect_equal(
+		world._core_storage_panel.item_row_count(),
+		10,
+		"core warehouse shares all known and compatibility item rows"
+	)
+	world._core_storage_panel.item_button("future.item").pressed.emit()
+	world._core_storage_panel.deposit_button().pressed.emit()
+	_expect_equal(
+		world.core_storage.count("future.item"),
+		3,
+		"core warehouse selection deposits an unknown old item losslessly"
+	)
+	world._core_storage_panel.withdraw_button().pressed.emit()
+	_expect_equal(
+		world.pocket.count("future.item"),
+		3,
+		"core warehouse returns an unknown old item losslessly"
+	)
+	world._core_storage_panel.close()
+	world.pocket.remove("future.item", 3)
+	world._craft_panel._refresh()
 
 	world.pocket.add(SliceWorld.ITEM_CRYSTAL, 2)
 	world.pocket.add(SliceWorld.ITEM_FLOOR_KIT, 1)
@@ -316,7 +361,7 @@ func _check_world_operations() -> void:
 	)
 	var conveyor := _place_device(
 		world, SliceBuildingCatalog.CONVEYOR_ID, Vector2i(31, 3), 1
-	)
+	) as SliceConveyor
 	var storage := _place_device(
 		world, SliceBuildingCatalog.STORAGE_ID, Vector2i(33, 3), 3
 	) as SliceStorage
@@ -324,10 +369,10 @@ func _check_world_operations() -> void:
 
 	_expect_equal(
 		(reactor.get_node("Sprite") as Sprite2D).texture.resource_path.ends_with(
-			"reactor_right.png"
+			"reactor.png"
 		),
 		true,
-		"placed reactor uses approved right frame"
+		"placed reactor uses the locked V10 front"
 	)
 	_expect_equal(
 		(conveyor.get_node("Sprite") as Sprite2D).texture.resource_path.ends_with(
@@ -335,6 +380,20 @@ func _check_world_operations() -> void:
 		),
 		true,
 		"placed conveyor uses approved right frame"
+	)
+	_expect_equal(
+		(storage.get_node("Sprite") as Sprite2D).texture.resource_path.ends_with(
+			"storage.png"
+		),
+		true,
+		"placed storage uses the locked V1 front"
+	)
+	_expect_equal(
+		(relay.get_node("Sprite") as Sprite2D).texture.resource_path.ends_with(
+			"power_relay.png"
+		),
+		true,
+		"placed relay uses one locked V2 body"
 	)
 	_expect_equal(
 		storage.get_node_or_null("InteractionSite") != null,
@@ -350,7 +409,7 @@ func _check_world_operations() -> void:
 		"storage panel exposes structured IO connection state"
 	)
 	var deposit_crystal := world._building_action_panel.action_button(
-		"deposit_crystal"
+		"storage_deposit"
 	)
 	_expect_equal(
 		deposit_crystal != null and not deposit_crystal.disabled,
@@ -364,7 +423,7 @@ func _check_world_operations() -> void:
 		"storage mouse deposit routes through the authoritative transfer API"
 	)
 	var withdraw_crystal := world._building_action_panel.action_button(
-		"withdraw_crystal"
+		"storage_withdraw"
 	)
 	_expect_equal(
 		withdraw_crystal != null and not withdraw_crystal.disabled,
@@ -376,6 +435,42 @@ func _check_world_operations() -> void:
 		world.pocket.count(SliceWorld.ITEM_CRYSTAL),
 		2,
 		"storage mouse withdraw returns material to the backpack"
+	)
+	var toggle_storage := world._building_action_panel.action_button(
+		"storage_toggle_mode"
+	)
+	_expect_equal(
+		toggle_storage != null and not toggle_storage.disabled,
+		true,
+		"storage panel exposes its mode switch"
+	)
+	toggle_storage.pressed.emit()
+	_expect_equal(
+		storage.mode,
+		SliceStorage.MODE_TRANSFER,
+		"storage panel switches to transfer mode"
+	)
+	_expect_equal(
+		String(
+			world.building_logistics_status_snapshot(storage)[0]["label"]
+		),
+		"IN",
+		"mode switch rebuilds the transfer input in the same frame"
+	)
+	world._building_action_panel.action_button(
+		"storage_toggle_mode"
+	).pressed.emit()
+	_expect_equal(
+		storage.mode,
+		SliceStorage.MODE_SUPPLY,
+		"second panel switch restores supply mode"
+	)
+	_expect_equal(
+		String(
+			world.building_logistics_status_snapshot(storage)[0]["label"]
+		),
+		"OUT",
+		"supply output is restored in the same frame"
 	)
 	world._building_action_panel.close()
 	world.pocket.remove(SliceWorld.ITEM_CRYSTAL, 2)
@@ -452,14 +547,18 @@ func _check_world_operations() -> void:
 	)
 	_expect_equal(world.try_place_building(), true, "adjustment commits")
 	_expect_equal(reactor.origin_cell, Vector2i(25, 7), "adjustment moves origin")
-	_expect_equal(reactor.building_rotation, 2, "adjustment commits rotation")
+	_expect_equal(
+		reactor.building_rotation,
+		0,
+		"fixed reactor adjustment preserves canonical rotation"
+	)
 	_expect_equal(reactor.instance_id, reactor_id, "adjustment preserves stable id")
 	_expect_equal(
 		(reactor.get_node("Sprite") as Sprite2D).texture.resource_path.ends_with(
-			"reactor_down.png"
+			"reactor.png"
 		),
 		true,
-		"adjustment switches to approved down frame"
+		"reactor adjustment keeps the locked V10 front"
 	)
 
 	var supporting_floor := _find_building(
@@ -517,19 +616,153 @@ func _check_world_operations() -> void:
 		"storage demolition returns one kit"
 	)
 
-	world.pocket.add(SliceWorld.ITEM_CRYSTAL, world.pocket.free_space())
+	world.pocket.add(
+		SliceWorld.ITEM_POWER_RELAY_KIT,
+		world.pocket.free_space_for(SliceWorld.ITEM_POWER_RELAY_KIT)
+	)
 	_expect_equal(
 		world.demolition_block_reason(relay),
 		"背包空间不足",
-		"full backpack blocks demolition"
+		"full returned-kit category blocks demolition"
 	)
-	world.pocket.remove(SliceWorld.ITEM_CRYSTAL, world.pocket.count(SliceWorld.ITEM_CRYSTAL))
+	world.pocket.remove(
+		SliceWorld.ITEM_POWER_RELAY_KIT,
+		world.pocket.count(SliceWorld.ITEM_POWER_RELAY_KIT)
+	)
 	_expect_equal(world.demolish_building(relay), true, "relay demolishes with space")
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_POWER_RELAY_KIT),
 		1,
 		"relay demolition returns one kit"
 	)
+
+	var conveyor_rotation := conveyor.building_rotation
+	var transportable_items := [
+		SliceWorld.ITEM_CRYSTAL,
+		SliceWorld.ITEM_CATALYST,
+	]
+	for index in range(transportable_items.size()):
+		var item_id: String = transportable_items[index]
+		var progress := 0.25 + float(index) * 0.5
+		var merge_cursor := index + 3
+		var item_count_before := world.pocket.count(item_id)
+		conveyor.merge_cursor = merge_cursor
+		conveyor.set_cargo(item_id, progress)
+		_expect_equal(
+			world.adjustment_block_reason(conveyor),
+			"先清空传送带",
+			"loaded %s conveyor blocks adjustment" % item_id
+		)
+		_expect_equal(
+			world.demolition_block_reason(conveyor),
+			"先清空传送带",
+			"loaded %s conveyor blocks demolition" % item_id
+		)
+		var recovery := world.recover_conveyor_cargo(conveyor)
+		_expect_equal(
+			bool(recovery.get("success", false)),
+			true,
+			"%s conveyor cargo recovers" % item_id
+		)
+		_expect_equal(
+			world.pocket.count(item_id),
+			item_count_before + 1,
+			"%s recovery returns exactly one item" % item_id
+		)
+		_expect_equal(
+			conveyor.has_cargo(),
+			false,
+			"%s recovery clears conveyor cargo" % item_id
+		)
+		_expect_equal(
+			conveyor.cargo_progress,
+			0.0,
+			"%s recovery clears cargo progress" % item_id
+		)
+		_expect_equal(
+			conveyor.building_rotation,
+			conveyor_rotation,
+			"%s recovery preserves conveyor rotation" % item_id
+		)
+		_expect_equal(
+			conveyor.merge_cursor,
+			merge_cursor,
+			"%s recovery preserves merge cursor" % item_id
+		)
+		_expect_equal(
+			world.adjustment_block_reason(conveyor),
+			"",
+			"recovered %s conveyor allows adjustment" % item_id
+		)
+		_expect_equal(
+			world.demolition_block_reason(conveyor),
+			"",
+			"recovered %s conveyor allows demolition" % item_id
+		)
+		world.pocket.remove(item_id, 1)
+
+	world.pocket.add(
+		SliceWorld.ITEM_CRYSTAL,
+		world.pocket.free_space_for(SliceWorld.ITEM_CRYSTAL)
+	)
+	conveyor.merge_cursor = 9
+	conveyor.set_cargo(SliceWorld.ITEM_CRYSTAL, 0.625)
+	var full_pocket_before := world.pocket.contents_view()
+	var failed_cargo_before: String = conveyor.cargo_item_id
+	var failed_progress_before: float = conveyor.cargo_progress
+	var failed_rotation_before: int = conveyor.building_rotation
+	var failed_cursor_before: int = conveyor.merge_cursor
+	var failed_recovery := world.recover_conveyor_cargo(conveyor)
+	_expect_equal(
+		bool(failed_recovery.get("success", true)),
+		false,
+		"full target category rejects conveyor cargo recovery"
+	)
+	_expect_equal(
+		String(failed_recovery.get("message", "")),
+		"背包中该物品已达上限",
+		"full target category reports the authoritative blocker"
+	)
+	_expect_equal(
+		world.pocket.contents_view(),
+		full_pocket_before,
+		"failed conveyor recovery leaves the full backpack unchanged"
+	)
+	_expect_equal(
+		conveyor.cargo_item_id,
+		failed_cargo_before,
+		"failed conveyor recovery preserves cargo"
+	)
+	_expect_equal(
+		conveyor.cargo_progress,
+		failed_progress_before,
+		"failed conveyor recovery preserves cargo progress"
+	)
+	_expect_equal(
+		conveyor.building_rotation,
+		failed_rotation_before,
+		"failed conveyor recovery preserves rotation"
+	)
+	_expect_equal(
+		conveyor.merge_cursor,
+		failed_cursor_before,
+		"failed conveyor recovery preserves merge cursor"
+	)
+	_expect_equal(
+		world.adjustment_block_reason(conveyor),
+		"先清空传送带",
+		"failed conveyor recovery keeps adjustment blocked"
+	)
+	_expect_equal(
+		world.demolition_block_reason(conveyor),
+		"先清空传送带",
+		"failed conveyor recovery keeps demolition blocked"
+	)
+	world.pocket.remove(
+		SliceWorld.ITEM_CRYSTAL,
+		world.pocket.count(SliceWorld.ITEM_CRYSTAL)
+	)
+	conveyor.clear_cargo()
 
 	world.open_building_actions(conveyor)
 	_expect_equal(world.is_building_actions_open(), true, "E target opens action panel")
@@ -608,10 +841,15 @@ func _place_device(
 	_expect_equal(world.begin_building_placement(building_id), true, "%s selected" % building_id)
 	for _step in range(rotation):
 		world.rotate_building_placement()
-	var validation := world._validate_placement(definition, origin, rotation)
+	var selected_rotation := world.selected_building_rotation()
+	var validation := world._validate_placement(
+		definition, origin, selected_rotation
+	)
 	world._placement.update_target(
 		origin,
-		definition.block_center(origin, SliceWorld.TILE_SIZE, rotation),
+		definition.block_center(
+			origin, SliceWorld.TILE_SIZE, selected_rotation
+		),
 		validation
 	)
 	_expect_equal(

@@ -138,7 +138,10 @@ func _configure_ground_shadow() -> void:
 func _configure_power_indicator(tile_size: float) -> void:
 	if (
 		definition == null
-		or definition.power_role != SliceBuildingDefinition.POWER_CONSUMER
+		or (
+			definition.power_role != SliceBuildingDefinition.POWER_CONSUMER
+			and definition.power_role != SliceBuildingDefinition.POWER_RELAY
+		)
 	):
 		return
 	var indicator := get_node_or_null("PowerIndicator") as Polygon2D
@@ -151,8 +154,8 @@ func _configure_power_indicator(tile_size: float) -> void:
 			Vector2(0, 4),
 			Vector2(-4, 0),
 		])
-		# Keep the lamp above the device sprite by child order, but on the
-		# device's own y-sorted plane so nearby actors can occlude it.
+		# Fixed device bodies never swap or derive a powered sprite. Keep the
+		# small runtime lamp above the body but on its y-sorted plane.
 		indicator.z_index = 0
 		add_child(indicator)
 	var size := Vector2(definition.rotated_footprint(building_rotation))

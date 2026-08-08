@@ -24,9 +24,9 @@ func get_prompt(world: Node) -> String:
 				available,
 				SliceWorld.CORE_CHARGE_TARGET,
 			]
-		return "按 E 管理核心仓库（直供在线｜%d/%d）" % [
-			world.core_storage.total(), SliceWorld.CORE_STORAGE_CAPACITY
-		]
+		return "按 E 管理核心仓库（直供在线｜%d 类物品）" % (
+			world.core_storage.item_ids().size()
+		)
 	var parts: int = world.pocket.count(SliceWorld.ITEM_PART)
 	if parts >= REPAIR_PART_COST:
 		return "按 E 修复前哨核心（消耗 %d 机械零件）" % REPAIR_PART_COST

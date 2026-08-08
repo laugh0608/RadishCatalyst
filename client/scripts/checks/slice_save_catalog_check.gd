@@ -188,19 +188,18 @@ func _run_catalog_checks() -> void:
 
 
 func _run_migration_checks() -> void:
-	var legacy_service := SliceSaveService.new(MIGRATION_ROOT)
-	_expect_success(
-		legacy_service.save_state(_state(7)),
-		"write legacy generation one"
-	)
-	_expect_success(
-		legacy_service.save_state(_state(8)),
-		"write legacy generation two"
-	)
 	var legacy_main := MIGRATION_ROOT.path_join("slice_world.json")
 	var legacy_backup := MIGRATION_ROOT.path_join("slice_world.bak.json")
+	DirAccess.make_dir_recursive_absolute(MIGRATION_ROOT)
+	_write_text(
+		legacy_backup, JSON.stringify(_schema_seven_save(7), "\t")
+	)
+	_write_text(
+		legacy_main, JSON.stringify(_schema_seven_save(8), "\t")
+	)
 	_expect(FileAccess.file_exists(legacy_main), "legacy main exists before migration")
 	_expect(FileAccess.file_exists(legacy_backup), "legacy backup exists before migration")
+	var legacy_main_sha := FileAccess.get_sha256(legacy_main)
 
 	var catalog := SliceSaveCatalog.new(MIGRATION_ROOT)
 	var migration := catalog.migrate_legacy_single_world("Imported Review")
@@ -220,12 +219,28 @@ func _run_migration_checks() -> void:
 	var world_service := catalog.service_for_world(world_id)
 	_expect(world_service != null, "migrated world has a service")
 	if world_service != null:
+		_expect_equal(
+			int(_read_json(world_service.save_file_path()).get(
+				"save_schema_version", 0
+			)),
+			7,
+			"catalog import preserves the raw schema 7 candidate"
+		)
+		_expect_equal(
+			FileAccess.get_sha256(world_service.save_file_path()),
+			legacy_main_sha,
+			"catalog import does not rewrite legacy bytes before world rebuild"
+		)
 		var restored := world_service.load_state()
 		_expect_success(restored, "migrated world reads back")
 		_expect_equal(
 			int(restored.get("data", {}).get("core_energy", 0)),
 			8,
 			"migration preserves newest legacy state"
+		)
+		_expect(
+			bool(restored.get("migration_required", false)),
+			"imported world remains pending until reconstructed"
 		)
 		_expect(
 			FileAccess.file_exists(world_service.backup_file_paths()[0]),
@@ -245,11 +260,9 @@ func _run_migration_checks() -> void:
 func _state(marker: int) -> Dictionary:
 	return {
 		"pocket": {
-			"capacity": SliceWorld.POCKET_CAPACITY,
 			"contents": {SliceWorld.ITEM_CRYSTAL: marker},
 		},
 		"core_storage": {
-			"capacity": SliceWorld.CORE_STORAGE_CAPACITY,
 			"contents": {SliceWorld.ITEM_CATALYST: 2},
 		},
 		"core_repaired": true,
@@ -259,6 +272,31 @@ func _state(marker: int) -> Dictionary:
 		"next_building_serial": 1,
 		"player_x": 400.0 + marker,
 		"player_y": 576.0,
+	}
+
+
+func _schema_seven_save(marker: int) -> Dictionary:
+	return {
+		"save_schema_version": 7,
+		"game_version": "prototype-slice-07",
+		"updated_at": "2026-08-08T00:00:00",
+		"pocket": {
+			"capacity": 30,
+			"contents": {SliceWorld.ITEM_CRYSTAL: marker},
+		},
+		"core_storage": {
+			"capacity": 120,
+			"contents": {SliceWorld.ITEM_CATALYST: 2},
+		},
+		"core_repaired": true,
+		"core_energy": marker,
+		"harvested_clusters": ["CrystalSmall1"],
+		"buildings": [],
+		"next_building_serial": 1,
+		"player_x": 400.0 + marker,
+		"player_y": 576.0,
+		"player_health": 100,
+		"field_encounter": {"state": "hostile", "enemy_health": 60},
 	}
 
 

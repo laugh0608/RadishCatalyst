@@ -3,8 +3,10 @@ extends RefCounted
 
 ## Multi-world directory boundary for the slice. Each catalog owns one
 ## injectable root and returns a single-world SliceSaveService for selected
-## entries. Gameplay state stays in schema 7; this class only owns identity,
-## metadata, the 30-world limit, migration and recoverable removal.
+## entries. Gameplay state is owned by schema 8; this class only owns identity,
+## metadata, the 30-world limit, migration and recoverable removal. Legacy
+## single-world import copies the validated source bytes; schema conversion is
+## deferred until SliceWorld has rebuilt the imported world successfully.
 
 const MAX_WORLDS := 30
 const METADATA_SCHEMA_VERSION := 1
@@ -253,28 +255,50 @@ func migrate_legacy_single_world(
 			"创建迁移暂存目录失败：%s。" % error_string(stage_error)
 		)
 	var now := _local_time_text()
+	var state: Dictionary = legacy_result["data"]
+	var imported_metadata := _new_metadata(
+		world_id, normalized_name, now
+	)
+	_populate_imported_metadata(
+		imported_metadata,
+		state,
+		int(legacy_result.get("source_schema_version", 0)),
+		String(legacy_result.get("source_game_version", ""))
+	)
 	var metadata_error := _write_json_atomic(
 		staging_dir.path_join("metadata.json"),
 		staging_dir.path_join("metadata.tmp.json"),
-		_new_metadata(world_id, normalized_name, now)
+		imported_metadata
 	)
 	if metadata_error != OK:
 		return _failure(
 			"写入迁移元数据失败：%s。" % error_string(metadata_error)
 		)
+	var source_path := String(legacy_result.get("source_path", ""))
+	if source_path.is_empty() or not FileAccess.file_exists(source_path):
+		return _failure("旧单档有效来源在迁移期间消失，未发布新世界。")
 	var service := SliceSaveService.for_world(staging_dir, world_id)
-	var state: Dictionary = legacy_result["data"]
-	var first_save := service.save_state(state)
-	if not bool(first_save.get("success", false)):
+	var autosave_path := service.save_file_path()
+	var copy_main_error := DirAccess.copy_absolute(
+		ProjectSettings.globalize_path(source_path),
+		ProjectSettings.globalize_path(autosave_path)
+	)
+	if copy_main_error != OK:
 		return _failure(
-			"迁移写入失败：%s"
-			% String(first_save.get("message", "未知错误"))
+			"复制旧单档有效候选失败：%s。"
+			% error_string(copy_main_error)
 		)
-	var second_save := service.save_state(state)
-	if not bool(second_save.get("success", false)):
+	var backups := service.backup_file_paths()
+	if backups.is_empty():
+		return _failure("迁移世界未配置备份位置，旧单档保持原位。")
+	var copy_backup_error := DirAccess.copy_absolute(
+		ProjectSettings.globalize_path(source_path),
+		ProjectSettings.globalize_path(backups[0])
+	)
+	if copy_backup_error != OK:
 		return _failure(
-			"迁移备份写入失败：%s"
-			% String(second_save.get("message", "未知错误"))
+			"复制旧单档恢复候选失败：%s。"
+			% error_string(copy_backup_error)
 		)
 	var readback := service.load_state()
 	if (
@@ -403,6 +427,70 @@ func _new_metadata(
 		"player_health": 100,
 		"field_encounter_state": "locked",
 	}
+
+
+func _populate_imported_metadata(
+	metadata: Dictionary,
+	state: Dictionary,
+	source_schema_version: int,
+	source_game_version: String
+) -> void:
+	metadata["updated_at"] = String(
+		state.get("updated_at", metadata["updated_at"])
+	)
+	metadata["game_version"] = source_game_version
+	metadata["save_schema_version"] = source_schema_version
+	metadata["core_repaired"] = bool(
+		state.get("core_repaired", false)
+	)
+	var buildings = state.get("buildings", [])
+	metadata["building_count"] = buildings.size() if buildings is Array else 0
+	metadata["catalyst_count"] = _state_item_count(
+		state, SliceWorld.ITEM_CATALYST
+	)
+	metadata["player_health"] = int(state.get("player_health", 100))
+	var encounter = state.get("field_encounter", {})
+	metadata["field_encounter_state"] = (
+		String(encounter.get("state", "locked"))
+		if encounter is Dictionary
+		else "locked"
+	)
+
+
+func _state_item_count(state: Dictionary, item_id: String) -> int:
+	var total := _inventory_item_count(state.get("pocket", {}), item_id)
+	total += _inventory_item_count(
+		state.get("core_storage", {}), item_id
+	)
+	var buildings = state.get("buildings", [])
+	if not (buildings is Array):
+		return total
+	for building in buildings:
+		if not (building is Dictionary):
+			continue
+		var building_state = building.get("state", {})
+		if not (building_state is Dictionary):
+			continue
+		total += _inventory_item_count(
+			building_state.get("inventory", {}), item_id
+		)
+		total += _inventory_item_count(
+			building_state.get("input_inventory", {}), item_id
+		)
+		total += _inventory_item_count(
+			building_state.get("output_inventory", {}), item_id
+		)
+		var cargo = building_state.get("cargo", {})
+		if cargo is Dictionary and String(cargo.get("item_id", "")) == item_id:
+			total += 1
+	return total
+
+
+func _inventory_item_count(value, item_id: String) -> int:
+	if not (value is Dictionary):
+		return 0
+	var contents = value.get("contents", {})
+	return int(contents.get(item_id, 0)) if contents is Dictionary else 0
 
 
 func _write_json_atomic(
@@ -557,9 +645,11 @@ func _migration_states_match(left: Dictionary, right) -> bool:
 		"core_storage",
 		"core_repaired",
 		"core_energy",
+		"field_encounter",
 		"harvested_clusters",
 		"buildings",
 		"next_building_serial",
+		"player_health",
 	]:
 		if left.get(key) != right.get(key):
 			return false

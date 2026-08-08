@@ -15,6 +15,7 @@ var role: String
 var label: String
 var port_cell: Vector2i
 var connection_cell: Vector2i
+var connection_distance: int
 var outward_direction: Vector2i
 var accepted_item_ids: Array[String]
 var output_item_order: Array[String]
@@ -47,6 +48,7 @@ func _init(
 	)
 	port_cell = Vector2i(resolved["port_cell"])
 	connection_cell = Vector2i(resolved["connection_cell"])
+	connection_distance = int(resolved["connection_distance"])
 	outward_direction = Vector2i(resolved["outward_direction"])
 	accepted_item_ids = definition.accepted_item_ids.duplicate()
 	output_item_order = definition.output_item_order.duplicate()
@@ -126,6 +128,7 @@ func preview_descriptor() -> Dictionary:
 		"label": label,
 		"port_cell": port_cell,
 		"connection_cell": connection_cell,
+		"connection_distance": connection_distance,
 		"outward_direction": outward_direction,
 	}
 

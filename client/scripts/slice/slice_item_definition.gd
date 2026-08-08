@@ -8,6 +8,7 @@ extends RefCounted
 const CATEGORY_RAW_MATERIAL := "raw_material"
 const CATEGORY_PROCESSED_ITEM := "processed_item"
 const CATEGORY_BUILDING_KIT := "building_kit"
+const CATEGORY_KEY_ITEM := "key_item"
 const CATEGORY_UNKNOWN := "unknown"
 
 var item_id: String:

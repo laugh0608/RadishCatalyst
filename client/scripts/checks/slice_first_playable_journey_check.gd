@@ -81,7 +81,7 @@ func _run() -> void:
 		"complete kit inventory stays in the contextual craft panel"
 	)
 	_expect_equal(
-		hud.crystal_label.text == "0/30"
+		hud.crystal_label.text == "0/200"
 		and hud.catalyst_label.text == "0"
 		and hud.part_label.text == "0",
 		true,
@@ -162,7 +162,7 @@ func _run() -> void:
 		world,
 		"power_reactor",
 		"基地目标 2/3",
-		"青色口进料、琥珀口出料"
+		"青色口进料，琥珀口出料"
 	)
 	_expect_equal(
 		hud.goal_label.text.contains("放置通电反应器"),
@@ -178,12 +178,12 @@ func _run() -> void:
 		world,
 		"run_catalyst_line",
 		"基地目标 3/3",
-		"晶体箱 → 带 → 青色入料口"
+		"采集器 → 带 → 反应器左侧 IN"
 	)
 	craft_panel._refresh()
 	_expect_equal(
 		world.current_journey_rule_text().contains(
-			"琥珀出料口 → 带 → 催化剂箱"
+			"右侧 OUT → 带 → 储物箱"
 		),
 		true,
 		"journey state exposes the fixed two-ended line rule"
@@ -194,29 +194,31 @@ func _run() -> void:
 	craft_panel._root.visible = true
 	storage.inventory.add(SliceWorld.ITEM_CATALYST, 1)
 	world._building_instances.append(storage)
+	world._storage_nodes.append(storage)
 	world.building_storage_changed.emit("journey_storage")
 	_expect_stage(
 		world,
 		"run_catalyst_line",
 		"产出催化剂 1/2",
-		"晶体箱 → 带 → 青色入料口"
+		"采集器 → 带 → 反应器左侧 IN"
 	)
 	storage.inventory.add(SliceWorld.ITEM_CATALYST, 1)
 	world.building_storage_changed.emit("journey_storage")
 	_expect_stage(
 		world,
 		"collect_catalyst",
-		"从催化剂箱取出产物",
-		"再按 6 取出"
+		"从储物箱取出产物",
+		"选择催化剂后取出"
 	)
 	_expect_equal(
-		world.current_journey_rule_text().contains("取出全部催化剂"),
+		world.current_journey_rule_text().contains("选择催化剂后取出"),
 		true,
 		"storage-driven guidance updates the authoritative journey rule"
 	)
 	craft_panel._open = false
 	craft_panel._root.visible = false
 	world._building_instances.erase(storage)
+	world._storage_nodes.erase(storage)
 	storage.free()
 
 	world.pocket.add(SliceWorld.ITEM_CATALYST, 2)
@@ -252,9 +254,19 @@ func _run() -> void:
 	)
 	_expect_equal(
 		not hud.prompt_label.text.begins_with("按 E")
-		and hud.prompt_label.text.contains("R 旋转"),
+		and not hud.prompt_label.text.contains("R 旋转"),
 		true,
-		"placement keycap stays separate from the actionable prompt body"
+		"fixed-front floor placement hides the rotation keycap"
+	)
+	world._placement.cancel()
+	world._placement.begin(
+		SliceBuildingCatalog.find(SliceBuildingCatalog.CONVEYOR_ID)
+	)
+	hud._process(0.0)
+	_expect_equal(
+		hud.prompt_label.text.contains("R 旋转"),
+		true,
+		"cardinal conveyor placement keeps the rotation keycap"
 	)
 	world._placement.cancel()
 	hud._process(0.0)

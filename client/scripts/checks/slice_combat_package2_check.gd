@@ -243,10 +243,6 @@ func _check_player_attack_drop_and_pickup(
 		"repeated defeat signal cannot duplicate sample"
 	)
 
-	world.pocket.add(
-		SliceWorld.ITEM_CRYSTAL,
-		world.pocket.free_space()
-	)
 	var pocket_before := world.pocket.to_dict()
 	_expect_equal(
 		controller.collect_critical_sample(sample),

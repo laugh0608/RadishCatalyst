@@ -35,30 +35,10 @@ func _check_port_rotation() -> void:
 		SliceBuildingCatalog.REACTOR_ID
 	)
 	var origin := Vector2i(10, 10)
-	var expected_inputs := [
-		Vector2i(11, 12),
-		Vector2i(10, 11),
-		Vector2i(11, 10),
-		Vector2i(12, 11),
-	]
-	var expected_input_connections := [
-		Vector2i(11, 13),
-		Vector2i(9, 11),
-		Vector2i(11, 9),
-		Vector2i(13, 11),
-	]
-	var expected_outputs := [
-		Vector2i(11, 10),
-		Vector2i(12, 11),
-		Vector2i(11, 12),
-		Vector2i(10, 11),
-	]
-	var expected_output_connections := [
-		Vector2i(11, 9),
-		Vector2i(13, 11),
-		Vector2i(11, 13),
-		Vector2i(9, 11),
-	]
+	var expected_input := Vector2i(10, 11)
+	var expected_input_connection := Vector2i(8, 11)
+	var expected_output := Vector2i(12, 11)
+	var expected_output_connection := Vector2i(14, 11)
 	for rotation in range(4):
 		var reactor := _make_reactor_at(
 			"building-rotation-%d" % rotation, origin, rotation
@@ -105,53 +85,58 @@ func _check_port_rotation() -> void:
 			"rotation %d keeps stable output id" % rotation
 		)
 		_expect_equal(
+			definition.normalized_rotation(rotation),
+			0,
+			"legacy rotation %d normalizes to fixed front" % rotation
+		)
+		_expect_equal(
 			definition.machine_input_port_world_cell(origin, rotation),
-			expected_inputs[rotation],
+			expected_input,
 			"rotation %d input port" % rotation
 		)
 		_expect_equal(
 			input_descriptor["port_cell"],
-			expected_inputs[rotation],
+			expected_input,
 			"rotation %d descriptor input port" % rotation
 		)
 		_expect_equal(
 			definition.machine_input_connection_world_cell(origin, rotation),
-			expected_input_connections[rotation],
+			expected_input_connection,
 			"rotation %d input connection" % rotation
 		)
 		_expect_equal(
 			input_descriptor["connection_cell"],
-			expected_input_connections[rotation],
+			expected_input_connection,
 			"rotation %d descriptor input connection" % rotation
 		)
 		_expect_equal(
 			definition.machine_output_port_world_cell(origin, rotation),
-			expected_outputs[rotation],
+			expected_output,
 			"rotation %d output port" % rotation
 		)
 		_expect_equal(
 			output_descriptor["port_cell"],
-			expected_outputs[rotation],
+			expected_output,
 			"rotation %d descriptor output port" % rotation
 		)
 		_expect_equal(
 			definition.machine_output_connection_world_cell(origin, rotation),
-			expected_output_connections[rotation],
+			expected_output_connection,
 			"rotation %d output connection" % rotation
 		)
 		_expect_equal(
 			output_descriptor["connection_cell"],
-			expected_output_connections[rotation],
+			expected_output_connection,
 			"rotation %d descriptor output connection" % rotation
 		)
 		_expect_equal(
 			endpoints[0].port_cell,
-			expected_inputs[rotation],
+			expected_input,
 			"rotation %d runtime input port" % rotation
 		)
 		_expect_equal(
 			endpoints[1].connection_cell,
-			expected_output_connections[rotation],
+			expected_output_connection,
 			"rotation %d runtime output connection" % rotation
 		)
 		reactor.free()
@@ -288,6 +273,11 @@ func _check_state_and_content_gate() -> void:
 		"processing reactor shows fixed pixel overlay"
 	)
 	_expect_equal(
+		overlay.position,
+		Vector2(-36, -74),
+		"V10 processing pulse uses the locked texture-local display anchor"
+	)
+	_expect_equal(
 		overlay.texture.resource_path.contains(
 			"reactor_processing_pulse_"
 		),
@@ -299,26 +289,32 @@ func _check_state_and_content_gate() -> void:
 
 func _check_machine_logistics_chain() -> void:
 	var source := _make_storage(
-		"building-000010", Vector2i(10, 16), 0
+		"building-000010", Vector2i(4, 10), 0
 	)
 	var input_source_belt := _make_conveyor(
-		"building-000011", Vector2i(11, 15), 0
+		"building-000011", Vector2i(6, 11), 1
 	)
 	var input_middle_belt := _make_conveyor(
-		"building-000012", Vector2i(11, 14), 0
+		"building-000012", Vector2i(7, 11), 1
 	)
 	var input_sink_belt := _make_conveyor(
-		"building-000013", Vector2i(11, 13), 0
+		"building-000013", Vector2i(8, 11), 1
 	)
 	var reactor := _make_reactor_at(
 		"building-000014", Vector2i(10, 10), 0
 	)
 	var output_belt := _make_conveyor(
-		"building-000015", Vector2i(11, 9), 0
+		"building-000015", Vector2i(14, 11), 1
+	)
+	var output_sink_belt := _make_conveyor(
+		"building-000016", Vector2i(15, 11), 1
 	)
 	var target := _make_storage(
-		"building-000016", Vector2i(11, 7), 2
+		"building-000017", Vector2i(16, 10), 0
 	)
+	source.set_powered(true)
+	source.set_output_item(SliceReactor.INPUT_ITEM_ID)
+	target.set_mode(SliceStorage.MODE_TRANSFER)
 	var instances: Array[SliceBuildingInstance] = [
 		source,
 		input_source_belt,
@@ -326,6 +322,7 @@ func _check_machine_logistics_chain() -> void:
 		input_sink_belt,
 		reactor,
 		output_belt,
+		output_sink_belt,
 		target,
 	]
 	var grid := SliceLogisticsGrid.new()
@@ -353,6 +350,16 @@ func _check_machine_logistics_chain() -> void:
 		output_belt.topology_kind(),
 		SliceConveyor.TOPOLOGY_SOURCE_ENDPOINT,
 		"reactor output belt selects source endpoint"
+	)
+	_expect_equal(
+		(input_sink_belt.get_node("Sprite") as Sprite2D).z_index,
+		-1,
+		"reactor input terminal belt stays below the device-owned dock"
+	)
+	_expect_equal(
+		(output_belt.get_node("Sprite") as Sprite2D).z_index,
+		-1,
+		"reactor output terminal belt stays below the device-owned dock"
 	)
 	_expect_equal(
 		target.inventory.count(SliceReactor.OUTPUT_ITEM_ID),
@@ -387,10 +394,10 @@ func _check_machine_logistics_backpressure() -> void:
 		"building-000020", Vector2i(10, 10), 0
 	)
 	var input_belt := _make_conveyor(
-		"building-000021", Vector2i(11, 13), 0
+		"building-000021", Vector2i(8, 11), 1
 	)
 	var output_belt := _make_conveyor(
-		"building-000022", Vector2i(11, 9), 0
+		"building-000022", Vector2i(14, 11), 1
 	)
 	var instances: Array[SliceBuildingInstance] = [
 		reactor, input_belt, output_belt,
@@ -425,7 +432,7 @@ func _check_machine_logistics_backpressure() -> void:
 
 	reactor.input_inventory.remove(SliceReactor.INPUT_ITEM_ID, 2)
 	input_belt.clear_cargo()
-	input_belt.building_rotation = 2
+	input_belt.building_rotation = 3
 	input_belt.set_cargo(SliceReactor.INPUT_ITEM_ID, 1.0)
 	grid.rebuild(instances)
 	grid.tick(0.1)
@@ -440,7 +447,7 @@ func _check_machine_logistics_backpressure() -> void:
 		"wrong-way input never reaches reactor"
 	)
 	input_belt.clear_cargo()
-	input_belt.building_rotation = 0
+	input_belt.building_rotation = 1
 
 	reactor.output_inventory.add(SliceReactor.OUTPUT_ITEM_ID, 1)
 	output_belt.set_cargo(SliceReactor.INPUT_ITEM_ID, 0.5)
@@ -452,7 +459,7 @@ func _check_machine_logistics_backpressure() -> void:
 		"occupied output belt preserves reactor catalyst"
 	)
 	output_belt.clear_cargo()
-	output_belt.building_rotation = 2
+	output_belt.building_rotation = 3
 	grid.rebuild(instances)
 	grid.tick(0.1)
 	_expect_equal(
@@ -460,7 +467,7 @@ func _check_machine_logistics_backpressure() -> void:
 		1,
 		"wrong-way output belt preserves catalyst"
 	)
-	output_belt.building_rotation = 0
+	output_belt.building_rotation = 1
 	grid.rebuild(instances)
 	grid.tick(0.1)
 	_expect_equal(
@@ -512,7 +519,7 @@ func _check_atomic_recovery() -> void:
 	reactor.production_progress = 4.0
 	reactor.input_inventory.add(SliceReactor.INPUT_ITEM_ID, 2)
 	reactor.output_inventory.add(SliceReactor.OUTPUT_ITEM_ID, 1)
-	world.pocket.add(SliceWorld.ITEM_PART, 26)
+	world.pocket.add(SliceWorld.ITEM_CRYSTAL, 197)
 
 	_expect_equal(
 		world.adjustment_block_reason(reactor),
@@ -537,7 +544,7 @@ func _check_atomic_recovery() -> void:
 		"failed recovery keeps output"
 	)
 
-	world.pocket.remove(SliceWorld.ITEM_PART, 26)
+	world.pocket.remove(SliceWorld.ITEM_CRYSTAL, 197)
 	var recovered := world.recover_reactor_contents(reactor)
 	_expect_equal(bool(recovered["success"]), true, "recovery succeeds atomically")
 	_expect_equal(

@@ -268,20 +268,23 @@ text = "随身背包"
 [node name="Capacity" type="Label" parent="Root/Window/Margin/Layout/Content/Inventory/SectionHeader"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.118, 0.145, 0.149, 1)
-theme_override_font_sizes/font_size = 17
-text = "0 / 30"
+theme_override_font_sizes/font_size = 15
+text = "不限种类 · 每类 200"
 vertical_alignment = 1
 
-[node name="InventoryGrid" type="GridContainer" parent="Root/Window/Margin/Layout/Content/Inventory"]
+[node name="InventoryScroll" type="ScrollContainer" parent="Root/Window/Margin/Layout/Content/Inventory"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/h_separation = 6
-theme_override_constants/v_separation = 6
-columns = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="InventoryGroups" type="VBoxContainer" parent="Root/Window/Margin/Layout/Content/Inventory/InventoryScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
 
 [node name="Placement" type="PanelContainer" parent="Root/Window/Margin/Layout/Content/Inventory"]
 layout_mode = 2
-size_flags_vertical = 3
 theme_override_styles/panel = ExtResource("6_surface")
 
 [node name="Text" type="Label" parent="Root/Window/Margin/Layout/Content/Inventory/Placement"]

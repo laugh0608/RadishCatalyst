@@ -14,12 +14,14 @@ const PROCESSING_OVERLAY_TEXTURES := [
 	preload("res://assets/sprites/slice/reactor_processing_pulse_a.png"),
 	preload("res://assets/sprites/slice/reactor_processing_pulse_b.png"),
 ]
+# Non-persistent V10 texture-local anchor: center of the left top display.
+const PROCESSING_OVERLAY_TEXTURE_LOCAL_ANCHOR := Vector2(56, 14)
 
 var input_inventory := Inventory.new(
-	SliceInventoryProfiles.legacy_reactor_input()
+	SliceInventoryProfiles.device_reactor_input()
 )
 var output_inventory := Inventory.new(
-	SliceInventoryProfiles.legacy_reactor_output()
+	SliceInventoryProfiles.device_reactor_output()
 )
 var processing := false
 var production_progress := 0.0
@@ -207,19 +209,21 @@ func recover_contents_to(target: Inventory) -> Dictionary:
 func _refresh_processing_visual() -> void:
 	if definition == null:
 		return
+	var body_sprite := get_node_or_null("Sprite") as Sprite2D
+	if body_sprite == null or body_sprite.texture == null:
+		return
 	var sprite := get_node_or_null("ProcessingOverlay") as Sprite2D
 	if sprite == null:
 		sprite = Sprite2D.new()
 		sprite.name = "ProcessingOverlay"
 		sprite.z_index = 4
-		sprite.position = (
-			definition.local_footprint_center_offset(
-				_tile_size, building_rotation
-			)
-			+ definition.sprite_offset
-			+ Vector2(0, -13)
-		)
 		add_child(sprite)
+	var texture_origin := body_sprite.position + body_sprite.offset
+	if body_sprite.centered:
+		texture_origin -= Vector2(body_sprite.texture.get_size()) * 0.5
+	sprite.position = (
+		texture_origin + PROCESSING_OVERLAY_TEXTURE_LOCAL_ANCHOR
+	)
 	sprite.visible = processing
 	if not processing:
 		return

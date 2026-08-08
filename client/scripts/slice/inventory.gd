@@ -60,8 +60,6 @@ func free_space() -> int:
 
 
 func free_space_for(item: String) -> int:
-	if not _profile.accepts(_contents):
-		return 0
 	return _profile.free_space_for(_contents, item)
 
 
@@ -203,6 +201,8 @@ func remove(item: String, n: int) -> int:
 
 
 func to_dict() -> Dictionary:
+	if _profile.is_per_item():
+		return {"contents": _contents.duplicate()}
 	return {"capacity": capacity, "contents": _contents.duplicate()}
 
 

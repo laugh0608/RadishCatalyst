@@ -4,6 +4,12 @@ extends RefCounted
 ## Exact schema-7 payload contract shared by save checks. Runtime-only item,
 ## inventory, endpoint and power descriptors must never cross this boundary.
 
+const POCKET_CAPACITY := 30
+const CORE_STORAGE_CAPACITY := 120
+const STORAGE_CAPACITY := 20
+const REACTOR_INPUT_CAPACITY := 2
+const REACTOR_OUTPUT_CAPACITY := 1
+
 const ROOT_KEYS := [
 	"buildings", "core_energy", "core_repaired", "core_storage",
 	"field_encounter", "game_version", "harvested_clusters",
@@ -43,13 +49,13 @@ static func validate(data: Dictionary) -> Array[String]:
 	)
 	_expect_inventory(
 		data.get("pocket", null),
-		SliceWorld.POCKET_CAPACITY,
+		POCKET_CAPACITY,
 		"pocket",
 		failures
 	)
 	_expect_inventory(
 		data.get("core_storage", null),
-		SliceWorld.CORE_STORAGE_CAPACITY,
+		CORE_STORAGE_CAPACITY,
 		"core storage",
 		failures
 	)
@@ -133,13 +139,13 @@ static func _validate_building_state(
 			if value is Dictionary:
 				_expect_inventory(
 					value.get("input_inventory", null),
-					SliceReactor.INPUT_CAPACITY,
+					REACTOR_INPUT_CAPACITY,
 					"%s input inventory" % label,
 					failures
 				)
 				_expect_inventory(
 					value.get("output_inventory", null),
-					SliceReactor.OUTPUT_CAPACITY,
+					REACTOR_OUTPUT_CAPACITY,
 					"%s output inventory" % label,
 					failures
 				)
@@ -156,7 +162,7 @@ static func _validate_building_state(
 			if value is Dictionary:
 				_expect_inventory(
 					value.get("inventory", null),
-					SliceStorage.CAPACITY,
+					STORAGE_CAPACITY,
 					"%s inventory" % label,
 					failures
 				)

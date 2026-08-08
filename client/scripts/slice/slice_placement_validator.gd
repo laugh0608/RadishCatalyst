@@ -41,7 +41,8 @@ func validate(
 	definition: SliceBuildingDefinition,
 	origin_cell: Vector2i,
 	rotation: int,
-	available_floor_kits: int = 0
+	available_floor_kits: int = 0,
+	reserved_approach_cells: Array[Vector2i] = []
 ) -> Dictionary:
 	var cells := definition.occupied_cells(origin_cell, rotation)
 	for cell in cells:
@@ -51,6 +52,15 @@ func validate(
 			return _result(false, "越界", cells)
 		if cell.y >= _map_pixel_size.y / int(_tile_size):
 			return _result(false, "越界", cells)
+	if not definition.is_floor:
+		for cell in cells:
+			if reserved_approach_cells.has(cell):
+				return _result(false, "设备接口接驳区需留空", cells)
+		var approach_cells := definition.logistics_approach_cells(
+			origin_cell, rotation
+		)
+		if not _occupancy.can_occupy(approach_cells, false):
+			return _result(false, "设备接口接驳区需留空", cells)
 
 	var missing_floor_cells: Array[Vector2i] = []
 	var missing_floor_has_invalid_surface := false

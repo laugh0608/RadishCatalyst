@@ -120,5 +120,16 @@ static func craft_block_reason(recipe: Dictionary, inventory: Inventory) -> Stri
 	var output_count := int(recipe.get("output_count", 1))
 	if not inventory.can_exchange(cost, {output_id: output_count}):
 		var available_space := inventory.free_space_for_after(output_id, cost)
+		if inventory.profile().is_per_item():
+			var output_definition := SliceItemCatalog.find(output_id)
+			var output_name := (
+				output_id
+				if output_definition == null
+				else output_definition.display_name
+			)
+			return "%s还需 %d 容量" % [
+				output_name,
+				maxi(1, output_count - available_space),
+			]
 		return "背包还需 %d 格" % maxi(1, output_count - available_space)
 	return ""

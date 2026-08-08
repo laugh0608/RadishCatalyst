@@ -21,6 +21,7 @@ var orientation_policy: String
 var accepted_item_ids: Array[String]
 var output_item_order: Array[String]
 var source_phase: int
+var connection_distance: int
 
 
 func _init(
@@ -32,7 +33,8 @@ func _init(
 	port_orientation_policy: String,
 	accepted_items: Array[String] = [],
 	ordered_output_items: Array[String] = [],
-	output_source_phase: int = 0
+	output_source_phase: int = 0,
+	belt_connection_distance: int = 1
 ) -> void:
 	id = port_id
 	role = flow_role
@@ -43,6 +45,7 @@ func _init(
 	accepted_item_ids = accepted_items.duplicate()
 	output_item_order = ordered_output_items.duplicate()
 	source_phase = output_source_phase
+	connection_distance = maxi(1, belt_connection_distance)
 
 
 func resolved_local_cell(
@@ -84,7 +87,8 @@ func resolved_descriptor(
 		"role": role,
 		"label": label,
 		"port_cell": port_cell,
-		"connection_cell": port_cell + outward,
+		"connection_cell": port_cell + outward * connection_distance,
+		"connection_distance": connection_distance,
 		"outward_direction": outward,
 		"accepted_item_ids": accepted_item_ids.duplicate(),
 		"output_item_order": output_item_order.duplicate(),

@@ -24,11 +24,11 @@ func get_prompt(world: Node) -> String:
 		]
 	if instance is SliceStorage:
 		var storage := instance as SliceStorage
-		return "按 E 管理储物箱（晶体 %d｜催化剂 %d｜容量 %d/%d）" % [
-			storage.inventory.count(SliceWorld.ITEM_CRYSTAL),
-			storage.inventory.count(SliceWorld.ITEM_CATALYST),
-			storage.inventory.total(),
-			SliceStorage.CAPACITY,
+		return "按 E 管理储物箱（%s｜%s｜%d/%d 类）" % [
+			storage.mode_display_name(),
+			"通电" if storage.powered else "断电",
+			storage.type_count(),
+			SliceStorage.TYPE_LIMIT,
 		]
 	if instance is SliceConveyor:
 		var conveyor := instance as SliceConveyor

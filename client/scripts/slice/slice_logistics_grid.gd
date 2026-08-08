@@ -13,6 +13,7 @@ var _endpoints: Array[SliceLogisticsEndpoint] = []
 var _source_endpoints: Array[SliceLogisticsEndpoint] = []
 var _conveyor_by_cell := {}
 var _sink_endpoints_by_port_cell := {}
+var _sink_endpoints_by_connection_cell := {}
 var _source_endpoints_by_connection_cell := {}
 var _endpoints_by_instance_id := {}
 var _simulation_accumulator := 0.0
@@ -27,6 +28,7 @@ func rebuild(
 	_source_endpoints.clear()
 	_conveyor_by_cell.clear()
 	_sink_endpoints_by_port_cell.clear()
+	_sink_endpoints_by_connection_cell.clear()
 	_source_endpoints_by_connection_cell.clear()
 	_endpoints_by_instance_id.clear()
 	_simulation_accumulator = 0.0
@@ -101,8 +103,8 @@ func _tick_step(delta: float) -> Dictionary:
 				changed = _block_at_output(conveyor) or changed
 			continue
 
-		var target_endpoint := _sink_endpoint_at(
-			conveyor.output_cell(), conveyor.output_direction()
+		var target_endpoint := _sink_endpoint_at_connection(
+			conveyor.origin_cell, conveyor.output_direction()
 		)
 		if target_endpoint != null:
 			var accepted := target_endpoint.try_accept_one(
@@ -395,7 +397,86 @@ func _endpoint_status_snapshot(
 		== SliceLogisticsPortDefinition.ROLE_BIDIRECTIONAL
 	):
 		return _storage_status_snapshot(endpoint)
+	if endpoint.owner is SliceStorage:
+		return _fixed_storage_port_status_snapshot(endpoint)
+	if endpoint.owner is SliceCollector:
+		return _collector_port_status_snapshot(endpoint)
 	return _reactor_port_status_snapshot(endpoint)
+
+
+func _fixed_storage_port_status_snapshot(
+	endpoint: SliceLogisticsEndpoint
+) -> Dictionary:
+	var input_port := (
+		endpoint.role == SliceLogisticsPortDefinition.ROLE_INPUT
+	)
+	return _fixed_port_status_snapshot(
+		endpoint,
+		(
+			"传送带可在断电时继续向箱内送货"
+			if input_port
+			else "通电后只输出当前选中的供给物品"
+		),
+		"把传送带接到储物箱固定%s标记格" % (
+			" IN " if input_port else " OUT "
+		)
+	)
+
+
+func _collector_port_status_snapshot(
+	endpoint: SliceLogisticsEndpoint
+) -> Dictionary:
+	return _fixed_port_status_snapshot(
+		endpoint,
+		"通电后会从采集缓冲输出晶体",
+		"把传送带接到采集器右侧 OUT 标记格"
+	)
+
+
+func _fixed_port_status_snapshot(
+	endpoint: SliceLogisticsEndpoint,
+	connected_detail: String,
+	unconnected_detail: String
+) -> Dictionary:
+	var input_port := (
+		endpoint.role == SliceLogisticsPortDefinition.ROLE_INPUT
+	)
+	var kind := "input" if input_port else "output"
+	var conveyor := conveyor_at(endpoint.connection_cell)
+	if conveyor == null:
+		return {
+			"kind": kind,
+			"label": endpoint.label,
+			"state": "unconnected",
+			"tone": "warning",
+			"title": "%s 未连接" % endpoint.label,
+			"detail": unconnected_detail,
+			"text": "%s：未接传送带（请接端口标记格）" % endpoint.label,
+		}
+	var expected := (
+		-endpoint.outward_direction
+		if input_port
+		else endpoint.outward_direction
+	)
+	if conveyor.output_direction() == expected:
+		return {
+			"kind": kind,
+			"label": endpoint.label,
+			"state": "connected",
+			"tone": "ready",
+			"title": "%s 已连接" % endpoint.label,
+			"detail": connected_detail,
+			"text": "%s：已接" % endpoint.label,
+		}
+	return {
+		"kind": kind,
+		"label": endpoint.label,
+		"state": "wrong_direction",
+		"tone": "fault",
+		"title": "%s 方向错误" % endpoint.label,
+		"detail": "按 R 旋转传送带，使箭头对准端口",
+		"text": "%s：方向错误（按箭头旋转传送带）" % endpoint.label,
+	}
 
 
 func _storage_status_snapshot(
@@ -458,7 +539,7 @@ func _reactor_port_status_snapshot(
 			"state": "unconnected",
 			"tone": "warning",
 			"title": "%s 未连接" % label,
-			"detail": "把传送带接到对应的端口标记格",
+			"detail": "接入对应 %s 标记格" % label,
 			"text": "%s：未接传送带（请接端口标记格）" % label,
 		}
 	var expected := (
@@ -520,8 +601,8 @@ func _refresh_conveyor_topologies() -> void:
 			_restore_cargo_entry_direction(conveyor)
 			continue
 
-		var sink_endpoint := _sink_endpoint_at(
-			conveyor.output_cell(), output
+		var sink_endpoint := _sink_endpoint_at_connection(
+			conveyor.origin_cell, output
 		)
 		if sink_endpoint != null:
 			conveyor.set_topology_visual(
@@ -637,6 +718,11 @@ func _register_endpoint(endpoint: SliceLogisticsEndpoint) -> void:
 		_append_endpoint_index(
 			_sink_endpoints_by_port_cell, endpoint.port_cell, endpoint
 		)
+		_append_endpoint_index(
+			_sink_endpoints_by_connection_cell,
+			endpoint.connection_cell,
+			endpoint
+		)
 	if endpoint.provides_output():
 		_source_endpoints.append(endpoint)
 		_append_endpoint_index(
@@ -660,6 +746,7 @@ func _append_endpoint_index(
 func _sort_endpoint_indexes() -> void:
 	for index in [
 		_sink_endpoints_by_port_cell,
+		_sink_endpoints_by_connection_cell,
 		_source_endpoints_by_connection_cell,
 		_endpoints_by_instance_id,
 	]:
@@ -684,6 +771,14 @@ func _source_endpoints_at_cell(
 	)
 
 
+func _sink_endpoints_at_connection_cell(
+	cell: Vector2i
+) -> Array[SliceLogisticsEndpoint]:
+	return _typed_endpoints(
+		_sink_endpoints_by_connection_cell.get(_cell_key(cell), [])
+	)
+
+
 func _endpoints_for_instance(
 	instance_id: String
 ) -> Array[SliceLogisticsEndpoint]:
@@ -697,11 +792,11 @@ func _typed_endpoints(values: Array) -> Array[SliceLogisticsEndpoint]:
 	return result
 
 
-func _sink_endpoint_at(
+func _sink_endpoint_at_connection(
 	cell: Vector2i,
 	conveyor_output: Vector2i
 ) -> SliceLogisticsEndpoint:
-	for endpoint in _sink_endpoints_at_cell(cell):
+	for endpoint in _sink_endpoints_at_connection_cell(cell):
 		if endpoint.can_receive_from(conveyor_output):
 			return endpoint
 	return null

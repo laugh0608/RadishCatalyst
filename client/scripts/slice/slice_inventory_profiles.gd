@@ -42,7 +42,8 @@ static func per_item(
 	profile_id: String,
 	item_capacity: int,
 	type_limit: int = 0,
-	item_capacity_overrides: Dictionary = {}
+	item_capacity_overrides: Dictionary = {},
+	allowed_item_ids: Array[String] = []
 ) -> SliceInventoryProfile:
 	return SliceInventoryProfile.new(
 		profile_id,
@@ -50,7 +51,8 @@ static func per_item(
 		0,
 		item_capacity,
 		type_limit,
-		item_capacity_overrides
+		item_capacity_overrides,
+		allowed_item_ids
 	)
 
 
@@ -64,3 +66,23 @@ static func category_core_storage() -> SliceInventoryProfile:
 
 static func category_storage() -> SliceInventoryProfile:
 	return per_item("category.storage", 200, 4)
+
+
+static func device_reactor_input() -> SliceInventoryProfile:
+	return per_item(
+		"device.reactor_input",
+		0,
+		1,
+		{SliceItemCatalog.CRYSTAL_ID: 2},
+		[SliceItemCatalog.CRYSTAL_ID]
+	)
+
+
+static func device_reactor_output() -> SliceInventoryProfile:
+	return per_item(
+		"device.reactor_output",
+		0,
+		1,
+		{SliceItemCatalog.CATALYST_ID: 1},
+		[SliceItemCatalog.CATALYST_ID]
+	)

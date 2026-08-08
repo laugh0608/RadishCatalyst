@@ -41,6 +41,12 @@ func _check_definitions() -> void:
 		SliceBuildingCatalog.COLLECTOR_ID
 	)
 	var reactor := SliceBuildingCatalog.find(SliceBuildingCatalog.REACTOR_ID)
+	var relay := SliceBuildingCatalog.find(
+		SliceBuildingCatalog.POWER_RELAY_ID
+	)
+	var conveyor := SliceBuildingCatalog.find(
+		SliceBuildingCatalog.CONVEYOR_ID
+	)
 	var storage := SliceBuildingCatalog.find(SliceBuildingCatalog.STORAGE_ID)
 	_expect_equal(floor != null, true, "floor definition exists")
 	_expect_equal(collector != null, true, "collector definition exists")
@@ -88,8 +94,8 @@ func _check_definitions() -> void:
 	)
 	_expect_equal(
 		collector.sprite_offset,
-		Vector2(0, -22),
-		"collector sprite bottom aligns with its 2x2 footprint"
+		Vector2(0, -24),
+		"collector V1 bottom aligns with its 2x2 footprint"
 	)
 	_expect_equal(
 		collector.power_indicator_offset,
@@ -97,47 +103,72 @@ func _check_definitions() -> void:
 		"collector power indicator aligns with the front-right status window"
 	)
 
-	for definition in SliceBuildingCatalog.all():
+	for definition in [floor, collector, reactor, relay, storage]:
 		_expect_equal(
 			definition.orientation_mode,
-			SliceBuildingDefinition.ORIENTATION_CARDINAL,
-			"%s keeps the legacy cardinal orientation" % definition.building_id
+			SliceBuildingDefinition.ORIENTATION_FIXED_FRONT,
+			"%s uses fixed-front orientation" % definition.building_id
 		)
 		_expect_equal(
 			definition.allows_rotation,
-			true,
-			"%s keeps legacy R input" % definition.building_id
+			false,
+			"%s rejects R rotation" % definition.building_id
 		)
+	_expect_equal(
+		conveyor.orientation_mode,
+		SliceBuildingDefinition.ORIENTATION_CARDINAL,
+		"conveyor retains cardinal orientation"
+	)
+	_expect_equal(conveyor.allows_rotation, true, "conveyor retains R input")
 	_expect_equal(
 		collector.visual_mode,
 		SliceBuildingDefinition.VISUAL_SINGLE_FRAME,
-		"collector explicitly keeps its single legacy frame"
+		"collector uses one locked V1 frame"
 	)
 	_expect_equal(
 		reactor.visual_mode,
-		SliceBuildingDefinition.VISUAL_CARDINAL_FRAMES,
-		"reactor explicitly keeps four legacy frames"
-	)
-	_expect_equal(storage.logistics_ports.size(), 1, "storage has one port")
-	var storage_port := storage.logistics_ports[0]
-	_expect_equal(storage_port.id, "io", "storage port has a stable id")
-	_expect_equal(
-		storage_port.role,
-		SliceLogisticsPortDefinition.ROLE_BIDIRECTIONAL,
-		"storage legacy port remains bidirectional"
+		SliceBuildingDefinition.VISUAL_SINGLE_FRAME,
+		"reactor uses one locked V10 frame"
 	)
 	_expect_equal(
-		storage_port.accepted_item_ids,
+		reactor.icon_region,
+		Rect2(32, 0, 120, 88),
+		"reactor UI framing excludes its world-only approach sections"
+	)
+	_expect_equal(storage.logistics_ports.size(), 2, "storage has fixed IN and OUT")
+	var storage_input := storage.logistics_ports[0]
+	var storage_output := storage.logistics_ports[1]
+	_expect_equal(storage_input.id, "input", "storage input has a stable id")
+	_expect_equal(
+		storage_input.role,
+		SliceLogisticsPortDefinition.ROLE_INPUT,
+		"storage left port is input-only"
+	)
+	_expect_equal(
+		storage_input.accepted_item_ids,
 		["crystal", "catalyst"],
-		"storage legacy input policy remains unchanged"
+		"storage input keeps the transport whitelist"
 	)
 	_expect_equal(
-		storage_port.output_item_order,
+		storage_output.output_item_order,
 		["crystal", "catalyst"],
-		"storage legacy output priority remains unchanged"
+		"storage output keeps deterministic item order"
 	)
 	_expect_equal(
-		storage_port.source_phase, 0, "storage remains the first source phase"
+		storage_output.source_phase, 0, "storage remains the first source phase"
+	)
+	_expect_equal(
+		storage_input.orientation_policy,
+		SliceLogisticsPortDefinition.ORIENTATION_FIXED_LOCAL,
+		"storage input geometry is rotation-independent"
+	)
+	_expect_equal(
+		storage_input.local_cell == Vector2i(0, 1)
+		and storage_input.outward_direction == Vector2i.LEFT
+		and storage_output.local_cell == Vector2i(1, 1)
+		and storage_output.outward_direction == Vector2i.RIGHT,
+		true,
+		"storage fixed ports keep the locked left-IN/right-OUT geometry"
 	)
 	_expect_equal(reactor.logistics_ports.size(), 2, "reactor has two ports")
 	_expect_equal(
@@ -152,9 +183,54 @@ func _check_definitions() -> void:
 		"reactor output remains after every storage source"
 	)
 	_expect_equal(
-		collector.logistics_ports.is_empty(),
-		true,
-		"package 1 does not add a collector endpoint"
+		reactor.logistics_ports[0].connection_distance,
+		2,
+		"reactor input reserves its built-in approach cell"
+	)
+	_expect_equal(
+		reactor.logistics_ports[1].connection_distance,
+		2,
+		"reactor output reserves its built-in approach cell"
+	)
+	_expect_equal(
+		reactor.logistics_approach_cells(Vector2i(10, 10), 0),
+		[Vector2i(9, 11), Vector2i(13, 11)],
+		"reactor exposes both world-only approach cells for placement"
+	)
+	_expect_equal(
+		reactor.logistics_ports[0].local_cell,
+		Vector2i(0, 1),
+		"reactor input occupies the locked left local cell"
+	)
+	_expect_equal(
+		reactor.logistics_ports[0].outward_direction,
+		Vector2i.LEFT,
+		"reactor input faces left"
+	)
+	_expect_equal(
+		reactor.logistics_ports[1].local_cell,
+		Vector2i(2, 1),
+		"reactor output occupies the locked right local cell"
+	)
+	_expect_equal(
+		reactor.logistics_ports[1].outward_direction,
+		Vector2i.RIGHT,
+		"reactor output faces right"
+	)
+	_expect_equal(
+		collector.logistics_ports.size(),
+		1,
+		"collector exposes its fixed right output"
+	)
+	_expect_equal(
+		collector.logistics_ports[0].local_cell,
+		Vector2i(1, 1),
+		"collector output occupies the locked local cell"
+	)
+	_expect_equal(
+		collector.logistics_ports[0].outward_direction,
+		Vector2i.RIGHT,
+		"collector output faces right"
 	)
 
 	var fixed_front := SliceBuildingDefinition.new(
@@ -297,6 +373,9 @@ func _check_world_placement_path() -> void:
 	var relay := SliceBuildingCatalog.find(
 		SliceBuildingCatalog.POWER_RELAY_ID
 	)
+	var conveyor := SliceBuildingCatalog.find(
+		SliceBuildingCatalog.CONVEYOR_ID
+	)
 	var storage := SliceBuildingCatalog.find(SliceBuildingCatalog.STORAGE_ID)
 	var floor_cell := Vector2i(5, 5)
 	var collector_cell := Vector2i(45, 10)
@@ -344,6 +423,23 @@ func _check_world_placement_path() -> void:
 		2,
 		"reactor preview marks input and output conveyor ports"
 	)
+	var approach_overlap := world._placement_validator.validate(
+		conveyor,
+		Vector2i(15, 6),
+		0,
+		0,
+		reactor.logistics_approach_cells(reactor_cell, 0)
+	)
+	_expect_equal(
+		bool(approach_overlap.get("valid", true)),
+		false,
+		"a conveyor cannot occupy the reactor built-in approach cell"
+	)
+	_expect_equal(
+		String(approach_overlap.get("reason", "")),
+		"设备接口接驳区需留空",
+		"approach overlap reports the dedicated placement reason"
+	)
 	world._placement.cancel()
 
 	var storage_validation := world._validate_placement(
@@ -359,8 +455,8 @@ func _check_world_placement_path() -> void:
 	)
 	_expect_equal(
 		world._placement._overlay.logistics_port_marker_count(),
-		1,
-		"storage preview marks its bidirectional conveyor port"
+		2,
+		"storage preview marks fixed left IN and right OUT ports"
 	)
 	world._placement.cancel()
 
@@ -436,6 +532,11 @@ func _check_world_placement_path() -> void:
 		"placement HUD announces the exact automatic floor cost"
 	)
 	_expect_equal(
+		hud.prompt_label.text.contains("R 旋转"),
+		false,
+		"fixed relay placement omits the rotation hint"
+	)
+	_expect_equal(
 		world.try_place_building(),
 		true,
 		"one relay confirmation installs its support floor and device"
@@ -470,7 +571,11 @@ func _check_world_placement_path() -> void:
 	)
 	_expect_equal(world.selected_building_id(), floor.building_id, "floor selected")
 	world.rotate_building_placement()
-	_expect_equal(world.selected_building_rotation(), 1, "R rotation advances")
+	_expect_equal(
+		world.selected_building_rotation(),
+		0,
+		"fixed industrial floor ignores R rotation"
+	)
 
 	var floor_screen := (
 		world._placement.get_canvas_transform()
@@ -586,12 +691,12 @@ func _check_world_placement_path() -> void:
 	var collector_preview := world._placement._preview as Sprite2D
 	_expect_equal(
 		collector_preview.texture.get_size(),
-		Vector2(89, 108),
-		"collector ghost uses the approved runtime sprite"
+		Vector2(96, 112),
+		"collector ghost uses the locked V1 sprite"
 	)
 	_expect_equal(
 		collector_preview.position,
-		Vector2(0, -22),
+		Vector2(0, -24),
 		"collector ghost bottom-centers on the 2x2 footprint"
 	)
 	_expect_equal(
@@ -631,12 +736,12 @@ func _check_world_placement_path() -> void:
 	var collector_sprite := placed_collector.get_node("Sprite") as Sprite2D
 	_expect_equal(
 		collector_sprite.texture.get_size(),
-		Vector2(89, 108),
-		"placed collector uses the approved 89x108 runtime sprite"
+		Vector2(96, 112),
+		"placed collector uses the locked V1 runtime sprite"
 	)
 	_expect_equal(
 		collector_sprite.position,
-		Vector2(0, -54),
+		Vector2(0, -56),
 		"placed collector sprite is bottom-centered on the footprint edge"
 	)
 	_expect_equal(

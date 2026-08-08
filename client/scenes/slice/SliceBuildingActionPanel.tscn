@@ -349,6 +349,19 @@ theme_override_colors/font_color = Color(0.118, 0.145, 0.149, 1)
 theme_override_font_sizes/font_size = 20
 text = "设备内容"
 
+[node name="InventoryScroll" type="ScrollContainer" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout"]
+visible = false
+custom_minimum_size = Vector2(0, 226)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="InventoryGrid" type="GridContainer" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/InventoryScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+columns = 3
+
 [node name="FlowRow" type="HBoxContainer" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout"]
 custom_minimum_size = Vector2(0, 226)
 layout_mode = 2

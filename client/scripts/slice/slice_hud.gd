@@ -44,7 +44,7 @@ func setup(world: Node, player: SlicePlayer) -> void:
 func _refresh_state(_changed_value = null) -> void:
 	crystal_label.text = "%d/%d" % [
 		_world.pocket.count(SliceWorld.ITEM_CRYSTAL),
-		SliceWorld.POCKET_CAPACITY,
+		_world.pocket.profile().item_capacity(SliceWorld.ITEM_CRYSTAL),
 	]
 	catalyst_label.text = str(
 		_world.pocket.count(SliceWorld.ITEM_CATALYST)
@@ -102,12 +102,17 @@ func _process(_delta: float) -> void:
 			if definition == null
 			else _world.pocket.count(definition.kit_item_id)
 		)
+		var rotation_hint := (
+			"  ·  R 旋转"
+			if definition != null and definition.allows_rotation
+			else ""
+		)
 		var logistics_feedback: String = (
 			_world.placement_logistics_feedback()
 		)
 		if not logistics_feedback.is_empty():
 			prompt_label.text = (
-				"%s  ·  %s  ·  %s  ·  R 旋转  ·  Esc 取消"
+				"%s  ·  %s  ·  %s%s  ·  Esc 取消"
 				% [
 					_world.selected_building_name(),
 					logistics_feedback,
@@ -116,6 +121,7 @@ func _process(_delta: float) -> void:
 						if _world.is_place_target_valid()
 						else _world.placement_invalid_reason()
 					),
+					rotation_hint,
 				]
 			)
 			return
@@ -129,20 +135,22 @@ func _process(_delta: float) -> void:
 				else ""
 			)
 			prompt_label.text = (
-				"放置 %s%s  ·  剩余 %d  ·  E 兼容  ·  R 旋转  ·  Esc 取消"
+				"放置 %s%s  ·  剩余 %d  ·  E 兼容%s  ·  Esc 取消"
 				% [
 					_world.selected_building_name(),
 					floor_text,
 					remaining,
+					rotation_hint,
 				]
 			)
 		else:
 			prompt_label.text = (
-				"%s  ·  剩余 %d  ·  %s  ·  R 旋转  ·  Esc 取消"
+				"%s  ·  剩余 %d  ·  %s%s  ·  Esc 取消"
 				% [
 					_world.selected_building_name(),
 					remaining,
 					_world.placement_invalid_reason(),
+					rotation_hint,
 				]
 			)
 		return

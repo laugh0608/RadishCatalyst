@@ -16,6 +16,7 @@ func _execute() -> void:
 	_check_atomic_batches_and_exchange()
 	_check_atomic_transfer()
 	_check_future_per_item_and_type_limit()
+	_check_category_profiles_and_read_models()
 	if failures.is_empty():
 		print(
 			"Slice inventory model checks passed (%d assertions)."
@@ -65,6 +66,16 @@ func _check_item_catalog() -> void:
 		SliceItemCatalog.find("building.collector").short_name,
 		"采集器",
 		"building kit keeps its compact display name"
+	)
+	_expect_equal(
+		SliceItemCatalog.find(SliceItemCatalog.CRITICAL_SAMPLE_PRESENTATION_ID),
+		null,
+		"critical sample never enters the ordinary item lookup"
+	)
+	_expect_equal(
+		SliceItemCatalog.critical_sample_read_model(true)["category"],
+		SliceItemDefinition.CATEGORY_KEY_ITEM,
+		"critical sample has an independent key-item presentation"
 	)
 
 
@@ -290,17 +301,27 @@ func _check_future_per_item_and_type_limit() -> void:
 	_expect_equal(inventory.count("crystal"), 0, "replaced type is removed")
 	_expect_equal(inventory.count("catalyst"), 3, "replacement type is added")
 	_expect_equal(
-		inventory.to_dict().keys().size(),
-		2,
-		"runtime profile fields never enter the legacy dictionary adapter"
+		inventory.to_dict(),
+		{
+			"contents": {
+				"part": 2,
+				"catalyst": 3,
+			},
+		},
+		"per-item inventory serializes only authoritative contents"
 	)
 
 	var restored_over_limit := Inventory.new(profile)
 	restored_over_limit.restore_existing("crystal", 4)
 	_expect_equal(
-		restored_over_limit.add("part", 1),
+		restored_over_limit.add("crystal", 1),
 		0,
-		"normal add remains blocked until trusted over-limit property is freed"
+		"trusted over-limit category cannot be increased further"
+	)
+	_expect_equal(
+		restored_over_limit.add("part", 1),
+		1,
+		"unrelated valid category is no longer frozen by trusted excess"
 	)
 
 	var overridden := Inventory.new(
@@ -338,6 +359,149 @@ func _check_future_per_item_and_type_limit() -> void:
 		"combined new types are checked as one batch"
 	)
 	_expect_equal(two_new_types.is_empty(), true, "failed future batch stays empty")
+
+
+func _check_category_profiles_and_read_models() -> void:
+	var pocket := Inventory.new(SliceInventoryProfiles.category_pocket())
+	_expect_equal(pocket.add("crystal", 201), 200, "pocket caps each ordinary item at 200")
+	_expect_equal(pocket.add("part", 200), 200, "pocket accepts a second full category")
+	_expect_equal(pocket.total(), 400, "pocket has no aggregate total cap")
+	_expect_equal(
+		pocket.to_dict(),
+		{"contents": {"crystal": 200, "part": 200}},
+		"category pocket omits legacy capacity"
+	)
+
+	var core := Inventory.new(SliceInventoryProfiles.category_core_storage())
+	_expect_equal(core.add("crystal", 100000), 99999, "core caps one category at 99999")
+	_expect_equal(core.add("part", 99999), 99999, "core has no aggregate total cap")
+
+	var storage := Inventory.new(SliceInventoryProfiles.category_storage())
+	for item_id in ["crystal", "catalyst", "part", "building.floor"]:
+		_expect_equal(storage.add(item_id, 1), 1, "storage accepts %s as one of four types" % item_id)
+	_expect_equal(
+		storage.add("building.collector", 1),
+		0,
+		"storage rejects a fifth new type"
+	)
+	_expect_equal(
+		storage.add("crystal", 199),
+		199,
+		"full-type storage can still top up an existing type"
+	)
+	storage.remove("building.floor", 1)
+	_expect_equal(storage.add("building.collector", 1), 1, "released type slot accepts replacement")
+
+	var grandfathered := Inventory.new(SliceInventoryProfiles.category_storage())
+	for item_id in [
+		"crystal", "catalyst", "part", "building.floor", "building.collector"
+	]:
+		grandfathered.restore_existing(item_id, 1)
+	_expect_equal(
+		grandfathered.add("crystal", 199),
+		199,
+		"five-type legacy storage can replenish an existing category"
+	)
+	_expect_equal(
+		grandfathered.add("building.reactor", 1),
+		0,
+		"five-type legacy storage cannot introduce a new category"
+	)
+	_expect_equal(
+		grandfathered.remove("part", 1),
+		1,
+		"five-type legacy storage always permits property recovery"
+	)
+
+	var craft_fit := Inventory.new(SliceInventoryProfiles.category_pocket())
+	craft_fit.restore_existing(SliceBuildingCatalog.FLOOR_ID, 196)
+	craft_fit.add("crystal", 1)
+	var floor_recipe := SliceRecipes.find("floor")
+	_expect_equal(
+		SliceRecipes.craft_block_reason(floor_recipe, craft_fit),
+		"",
+		"four-kit recipe accepts an exact per-item fit"
+	)
+	_expect_equal(
+		craft_fit.exchange(floor_recipe["cost"], {floor_recipe["output"]: 4}),
+		true,
+		"exact per-item recipe commits as one exchange"
+	)
+	_expect_equal(craft_fit.count("crystal"), 0, "successful exchange consumes its material")
+	_expect_equal(craft_fit.count(SliceBuildingCatalog.FLOOR_ID), 200, "successful exchange reaches the item cap")
+
+	var craft_blocked := Inventory.new(SliceInventoryProfiles.category_pocket())
+	craft_blocked.restore_existing(SliceBuildingCatalog.FLOOR_ID, 197)
+	craft_blocked.add("crystal", 1)
+	var blocked_before := craft_blocked.to_dict()
+	_expect_equal(
+		SliceRecipes.craft_block_reason(floor_recipe, craft_blocked),
+		"工业地板套件还需 1 容量",
+		"per-item recipe blocker names the full output category"
+	)
+	_expect_equal(
+		craft_blocked.exchange(floor_recipe["cost"], {floor_recipe["output"]: 4}),
+		false,
+		"over-cap recipe rejects the whole exchange"
+	)
+	_expect_equal(craft_blocked.to_dict(), blocked_before, "failed recipe exchange changes nothing")
+
+	var reactor_input := Inventory.new(
+		SliceInventoryProfiles.device_reactor_input()
+	)
+	_expect_equal(reactor_input.add("crystal", 3), 2, "reactor input keeps crystal 2 cap")
+	_expect_equal(reactor_input.add("catalyst", 1), 0, "reactor input rejects non-crystal")
+	_expect_equal(
+		reactor_input.to_dict(),
+		{"contents": {"crystal": 2}},
+		"schema-8 reactor input is a per-item contents payload"
+	)
+	var reactor_output := Inventory.new(
+		SliceInventoryProfiles.device_reactor_output()
+	)
+	_expect_equal(reactor_output.add("catalyst", 2), 1, "reactor output keeps catalyst 1 cap")
+	_expect_equal(reactor_output.add("crystal", 1), 0, "reactor output rejects non-catalyst")
+
+	var restored := Inventory.from_dict(
+		{
+			"capacity": 30,
+			"contents": {"future.item": 7, "crystal": 2},
+		},
+		SliceInventoryProfiles.category_pocket()
+	)
+	_expect_equal(
+		restored.to_dict(),
+		{"contents": {"future.item": 7, "crystal": 2}},
+		"explicit category profile reads a schema-7 inventory shape"
+	)
+	var groups := SliceInventoryReadModel.inventory_groups(restored, true, true)
+	_expect_equal(groups.size(), 5, "pocket read model exposes four categories plus compatibility")
+	_expect_equal(groups[0]["title"], "原料", "raw material group is first")
+	_expect_equal(groups[1]["title"], "加工品", "processed group is second")
+	_expect_equal(groups[2]["title"], "建筑套件", "building kit group is third")
+	_expect_equal(groups[3]["title"], "关键物品", "key-item view is separate from inventory")
+	_expect_equal(groups[4]["title"], "兼容物品", "unknown old IDs remain visible")
+	_expect_equal(
+		_find_group_item(groups, SliceItemCatalog.CRITICAL_SAMPLE_PRESENTATION_ID)["count"],
+		1,
+		"carried critical sample is presented once"
+	)
+	_expect_equal(
+		restored.count(SliceItemCatalog.CRITICAL_SAMPLE_PRESENTATION_ID),
+		0,
+		"critical sample presentation never mutates inventory"
+	)
+	var unknown := _find_group_item(groups, "future.item")
+	_expect_equal(unknown["count"], 7, "unknown old ID keeps its count")
+	_expect_equal(unknown["capacity"], 200, "unknown old ID follows pocket stack cap")
+
+
+func _find_group_item(groups: Array[Dictionary], item_id: String) -> Dictionary:
+	for group in groups:
+		for item in group["items"]:
+			if String(item["item_id"]) == item_id:
+				return item
+	return {}
 
 
 func _expect_equal(actual, expected, context: String) -> void:

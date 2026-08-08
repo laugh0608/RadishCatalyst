@@ -388,6 +388,14 @@ if ($runGodotChecks) {
             }
         },
         @{
+            Name = "slice powered storage"
+            Script = "check-client-slice-powered-storage.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
             Name = "slice power grid"
             Script = "check-client-slice-power-grid.ps1"
             Parameters = @{
@@ -446,6 +454,14 @@ if ($runGodotChecks) {
         @{
             Name = "slice save schema"
             Script = "check-client-slice-save-schema.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "slice save schema eight"
+            Script = "check-client-slice-save-schema-eight.ps1"
             Parameters = @{
                 RepoRoot = $RepoRoot
                 GodotExe = $GodotExe

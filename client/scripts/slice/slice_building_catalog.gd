@@ -1,9 +1,8 @@
 class_name SliceBuildingCatalog
 extends RefCounted
 
-## L3 building registry. All six player-buildable types share these definitions
-## and explicitly retain the current cardinal legacy model until the joint
-## schema-8 switch changes direction, ports, power roles or visual assets.
+## Player-buildable registry. Fixed-front facilities expose immutable sprite,
+## logistics and power geometry; only conveyors retain cardinal rotation.
 
 const FLOOR_ID := "building.floor"
 const COLLECTOR_ID := "building.collector"
@@ -22,7 +21,7 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 					FLOOR_ID,
 					"工业地板",
 					Vector2i.ONE,
-					true,
+					false,
 					SliceBuildingDefinition.SURFACE_BUILDABLE_ROCK,
 					false,
 					true,
@@ -31,7 +30,7 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 					Vector2.ZERO,
 					Rect2(0, 0, 32, 32)
 				),
-				SliceBuildingDefinition.ORIENTATION_CARDINAL,
+				SliceBuildingDefinition.ORIENTATION_FIXED_FRONT,
 				SliceBuildingDefinition.VISUAL_SINGLE_FRAME,
 				_no_ports(),
 				SliceBuildingDefinition.POWER_PROBE_FOOTPRINT_CENTER,
@@ -46,13 +45,13 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 					COLLECTOR_ID,
 					"晶体采集器",
 					Vector2i(2, 2),
-					true,
+					false,
 					SliceBuildingDefinition.SURFACE_CRYSTAL,
 					true,
 					false,
 					"res://scenes/slice/SliceCollector.tscn",
 					["res://assets/sprites/slice/collector.png"],
-					Vector2(0, -22),
+					Vector2(0, -24),
 					Rect2(),
 					["buffer", "production_progress"],
 					SliceBuildingDefinition.POWER_CONSUMER,
@@ -60,13 +59,13 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 					"",
 					Vector2(4, -12)
 				),
-				SliceBuildingDefinition.ORIENTATION_CARDINAL,
+				SliceBuildingDefinition.ORIENTATION_FIXED_FRONT,
 				SliceBuildingDefinition.VISUAL_SINGLE_FRAME,
-				_no_ports(),
-				SliceBuildingDefinition.POWER_PROBE_FOLLOWS_ORIENTATION,
-				Vector2i(0, 1),
-				SliceBuildingDefinition.POWER_VISUAL_ANCHOR_NONE,
-				Vector2.ZERO
+				_collector_ports(),
+				SliceBuildingDefinition.POWER_PROBE_FOOTPRINT_CENTER,
+				Vector2i(-1, -1),
+				SliceBuildingDefinition.POWER_VISUAL_ANCHOR_BLOCK_CENTER_OFFSET,
+				Vector2(0, -78)
 			)
 		REACTOR_ID:
 			return _with_device_model(
@@ -75,13 +74,13 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 					REACTOR_ID,
 					"基础反应器",
 					Vector2i(3, 3),
-					true,
+					false,
 					SliceBuildingDefinition.SURFACE_INDUSTRIAL_FLOOR,
 					true,
 					false,
 					"res://scenes/slice/SliceReactor.tscn",
-					_cardinal_textures("reactor"),
-					Vector2(0, -16),
+					["res://assets/sprites/slice/reactor.png"],
+					Vector2(0, 4),
 					Rect2(),
 					[
 						"input_inventory",
@@ -94,14 +93,14 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 					"",
 					Vector2(-8, -8)
 				),
-				SliceBuildingDefinition.ORIENTATION_CARDINAL,
-				SliceBuildingDefinition.VISUAL_CARDINAL_FRAMES,
+				SliceBuildingDefinition.ORIENTATION_FIXED_FRONT,
+				SliceBuildingDefinition.VISUAL_SINGLE_FRAME,
 				_reactor_ports(),
-				SliceBuildingDefinition.POWER_PROBE_FOLLOWS_ORIENTATION,
-				Vector2i(1, 2),
-				SliceBuildingDefinition.POWER_VISUAL_ANCHOR_NONE,
-				Vector2.ZERO
-			)
+				SliceBuildingDefinition.POWER_PROBE_FOOTPRINT_CENTER,
+				Vector2i(-1, -1),
+				SliceBuildingDefinition.POWER_VISUAL_ANCHOR_BLOCK_CENTER_OFFSET,
+				Vector2(0, -18)
+			).configure_icon_region(Rect2(32, 0, 120, 88))
 		POWER_RELAY_ID:
 			return _with_device_model(
 				SliceBuildingDefinition.new(
@@ -109,20 +108,21 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 					POWER_RELAY_ID,
 					"电力中继",
 					Vector2i.ONE,
-					true,
+					false,
 					SliceBuildingDefinition.SURFACE_INDUSTRIAL_FLOOR,
 					true,
 					false,
 					"",
-					["res://assets/sprites/slice/power_relay_unpowered.png"],
-					Vector2(0, -16),
+					["res://assets/sprites/slice/power_relay.png"],
+					Vector2(0, -22),
 					Rect2(),
 					[],
 					SliceBuildingDefinition.POWER_RELAY,
 					Vector2i(-1, -1),
-					"res://assets/sprites/slice/power_relay_powered.png"
+					"",
+					Vector2(-16, -32)
 				),
-				SliceBuildingDefinition.ORIENTATION_CARDINAL,
+				SliceBuildingDefinition.ORIENTATION_FIXED_FRONT,
 				SliceBuildingDefinition.VISUAL_SINGLE_FRAME,
 				_no_ports(),
 				SliceBuildingDefinition.POWER_PROBE_FOOTPRINT_CENTER,
@@ -162,27 +162,33 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 					STORAGE_ID,
 					"储物箱",
 					Vector2i(2, 2),
-					true,
+					false,
 					SliceBuildingDefinition.SURFACE_INDUSTRIAL_FLOOR,
 					true,
 					false,
 					"res://scenes/slice/SliceStorage.tscn",
-					_cardinal_textures("storage"),
-					Vector2(0, -16),
+					["res://assets/sprites/slice/storage.png"],
+					Vector2(0, -8),
 					Rect2(),
-					["inventory"],
-					SliceBuildingDefinition.POWER_PASSIVE,
+					[
+						"inventory",
+						"mode",
+						"output_item_id",
+						"transfer_cursor",
+						"transfer_progress",
+					],
+					SliceBuildingDefinition.POWER_CONSUMER,
 					Vector2i(-1, -1),
 					"",
 					Vector2(-8, -8)
 				),
-				SliceBuildingDefinition.ORIENTATION_CARDINAL,
-				SliceBuildingDefinition.VISUAL_CARDINAL_FRAMES,
+				SliceBuildingDefinition.ORIENTATION_FIXED_FRONT,
+				SliceBuildingDefinition.VISUAL_SINGLE_FRAME,
 				_storage_ports(),
 				SliceBuildingDefinition.POWER_PROBE_FOOTPRINT_CENTER,
 				Vector2i(-1, -1),
-				SliceBuildingDefinition.POWER_VISUAL_ANCHOR_NONE,
-				Vector2.ZERO
+				SliceBuildingDefinition.POWER_VISUAL_ANCHOR_BLOCK_CENTER_OFFSET,
+				Vector2(0, -30)
 			)
 	return null
 
@@ -232,16 +238,43 @@ static func _no_ports() -> Array[SliceLogisticsPortDefinition]:
 	return []
 
 
+static func _collector_ports() -> Array[SliceLogisticsPortDefinition]:
+	return [
+		SliceLogisticsPortDefinition.new(
+			"output",
+			SliceLogisticsPortDefinition.ROLE_OUTPUT,
+			"OUT",
+			Vector2i(1, 1),
+			Vector2i.RIGHT,
+			SliceLogisticsPortDefinition.ORIENTATION_FIXED_LOCAL,
+			[],
+			["crystal"],
+			0
+		),
+	]
+
+
 static func _storage_ports() -> Array[SliceLogisticsPortDefinition]:
 	return [
 		SliceLogisticsPortDefinition.new(
-			"io",
-			SliceLogisticsPortDefinition.ROLE_BIDIRECTIONAL,
-			"IO",
-			Vector2i(1, 0),
-			Vector2i.UP,
-			SliceLogisticsPortDefinition.ORIENTATION_FOLLOWS,
+			"input",
+			SliceLogisticsPortDefinition.ROLE_INPUT,
+			"IN",
+			Vector2i(0, 1),
+			Vector2i.LEFT,
+			SliceLogisticsPortDefinition.ORIENTATION_FIXED_LOCAL,
 			["crystal", "catalyst"],
+			[],
+			0
+		),
+		SliceLogisticsPortDefinition.new(
+			"output",
+			SliceLogisticsPortDefinition.ROLE_OUTPUT,
+			"OUT",
+			Vector2i(1, 1),
+			Vector2i.RIGHT,
+			SliceLogisticsPortDefinition.ORIENTATION_FIXED_LOCAL,
+			[],
 			["crystal", "catalyst"],
 			0
 		),
@@ -254,22 +287,24 @@ static func _reactor_ports() -> Array[SliceLogisticsPortDefinition]:
 			"input",
 			SliceLogisticsPortDefinition.ROLE_INPUT,
 			"IN",
-			Vector2i(1, 2),
-			Vector2i.DOWN,
-			SliceLogisticsPortDefinition.ORIENTATION_FOLLOWS,
+			Vector2i(0, 1),
+			Vector2i.LEFT,
+			SliceLogisticsPortDefinition.ORIENTATION_FIXED_LOCAL,
 			["crystal"],
 			[],
-			1
+			1,
+			2
 		),
 		SliceLogisticsPortDefinition.new(
 			"output",
 			SliceLogisticsPortDefinition.ROLE_OUTPUT,
 			"OUT",
-			Vector2i(1, 0),
-			Vector2i.UP,
-			SliceLogisticsPortDefinition.ORIENTATION_FOLLOWS,
+			Vector2i(2, 1),
+			Vector2i.RIGHT,
+			SliceLogisticsPortDefinition.ORIENTATION_FIXED_LOCAL,
 			[],
 			["catalyst"],
-			1
+			1,
+			2
 		),
 	]

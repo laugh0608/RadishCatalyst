@@ -46,7 +46,6 @@ const COLLECTOR_PRODUCE_INTERVAL := 1.0
 const REACTOR_INPUT_PER_BATCH := 2
 const REACTOR_OUTPUT_PER_BATCH := 1
 const REACTOR_PRODUCE_INTERVAL := 10.0
-const CATALYST_CAP := 20
 const CORE_CHARGE_TARGET := 2
 const ROCK_GROUND_SOURCE_ID := 0
 const CRYSTAL_GROUND_SOURCE_ID := 2
@@ -57,7 +56,6 @@ const RELAY_LINK_ANCHOR_OFFSET := Vector2(0, -44)
 signal inventory_changed
 signal core_storage_changed
 signal building_storage_changed(instance_id: String)
-signal catalyst_changed(count: int)
 signal core_charge_changed(energy: int)
 signal core_repair_completed
 signal placement_changed
@@ -67,14 +65,12 @@ signal return_to_startup_requested
 var startup_load := false
 
 ## Player backpack (spatial crystal/catalyst store, capacity-limited).
-var pocket := Inventory.new(SliceInventoryProfiles.legacy_pocket())
+var pocket := Inventory.new(SliceInventoryProfiles.category_pocket())
 var core_storage := Inventory.new(
-	SliceInventoryProfiles.legacy_core_storage()
+	SliceInventoryProfiles.category_core_storage()
 )
-var catalyst_count := 0
 var core_repaired := false
 var core_energy := 0
-var reactor_active := false
 var harvested_clusters: Array[String] = []
 
 var player: SlicePlayer
@@ -104,12 +100,15 @@ var _power_links: SlicePowerLinkLayer
 var _building_instances: Array[SliceBuildingInstance] = []
 var _collector_nodes: Array[SliceCollector] = []
 var _reactor_nodes: Array[SliceReactor] = []
+var _storage_nodes: Array[SliceStorage] = []
 var _adjustment_instance: SliceBuildingInstance
 var _adjustment_original_cell := Vector2i.ZERO
 var _adjustment_original_rotation := 0
 var _next_building_serial := 1
 var _logistics_save_elapsed := 0.0
 var _production_save_elapsed := 0.0
+var _pending_load_context: Dictionary = {}
+var _restore_failed := false
 
 
 func _ready() -> void:
@@ -198,11 +197,20 @@ func _ready() -> void:
 		_building_instances
 	)
 
+	var restore_succeeded := true
 	if startup_load:
-		_restore_from_save()
+		restore_succeeded = _restore_from_save()
 	_refresh_core_charge_visual()
 	_rebuild_power_grid()
 	_rebuild_logistics_grid()
+	_restore_failed = startup_load and not restore_succeeded
+	if (
+		startup_load
+		and restore_succeeded
+		and not _pending_load_context.is_empty()
+		and not _autosave()
+	):
+		push_warning("旧档已完成世界重建，但 schema 8 发布失败；后续保存将继续重试。")
 
 
 func _physics_process(delta: float) -> void:
@@ -343,24 +351,30 @@ func _tick_production(delta: float) -> void:
 			reactor_transition = true
 			building_storage_changed.emit(reactor.instance_id)
 
-	if reactor_changed:
+	var storage_changed := false
+	var storage_transferred := false
+	for storage in _storage_nodes:
+		var transfer_result := storage.tick_wireless_transfer(
+			delta, core_repaired, core_storage
+		)
+		if not bool(transfer_result.get("changed", false)):
+			continue
+		storage_changed = true
+		var moved := int(transfer_result.get("moved", 0))
+		if moved > 0:
+			storage_transferred = true
+			building_storage_changed.emit(storage.instance_id)
+			core_storage_changed.emit()
+
+	if reactor_changed or storage_changed:
 		_production_save_elapsed += delta
-	if produced or reactor_transition or _production_save_elapsed >= 1.0:
+	if (
+		produced
+		or reactor_transition
+		or storage_transferred
+		or _production_save_elapsed >= 1.0
+	):
 		_autosave()
-
-
-## L0 package 2 re-wires the reactor to pull crystals from its input buffer and
-## push catalyst to its output buffer. Until then the reactor tick is inert:
-## activation is still recorded (and saved) but no processing happens.
-func _tick_reactor(_delta: float) -> void:
-	pass
-
-
-func activate_reactor() -> void:
-	if reactor_active:
-		return
-	reactor_active = true
-	_autosave()
 
 
 ## Harvest a crystal cluster into the backpack. Returns false (leaving the
@@ -432,61 +446,7 @@ func powered_relay_count() -> int:
 ## intentionally not persisted: authoritative core, building and inventory
 ## state always decides the current step after load.
 func current_journey_guidance() -> Dictionary:
-	if is_core_charged():
-		return {
-			"stage": "field",
-			"goal": combat_controller.encounter_goal_text(),
-			"rule": "鼠标左键攻击｜Space 闪避｜按 HUD 目标完成外勤与交付",
-		}
-	if not core_repaired:
-		return {
-			"stage": "repair_core",
-			"goal": "合成机械零件修复前哨核心（%d/%d）" % [
-				pocket.count(ITEM_PART),
-				CoreRepairSite.REPAIR_PART_COST,
-			],
-			"rule": "按 B 合成 3 个机械零件，靠近受损核心按 E 修复",
-		}
-	if core_charge_available() >= core_charge_required():
-		return {
-			"stage": "charge_core",
-			"goal": "基地目标 3/3：返回核心完成首次充能（可用 %d/%d）" % [
-				core_charge_available(),
-				CORE_CHARGE_TARGET,
-			],
-			"rule": "靠近核心按 E 并确认；优先消耗核心仓库，再消耗背包",
-		}
-	var stored_catalyst := _building_storage_item_count(ITEM_CATALYST)
-	if stored_catalyst + core_charge_available() >= core_charge_required():
-		return {
-			"stage": "collect_catalyst",
-			"goal": "基地目标 3/3：从催化剂箱取出产物（箱内 %d｜可用 %d/%d）" % [
-				stored_catalyst,
-				core_charge_available(),
-				CORE_CHARGE_TARGET,
-			],
-			"rule": "靠近催化剂储物箱按 E，再按 6 取出全部催化剂",
-		}
-	if not _has_powered_collector():
-		return {
-			"stage": "power_collector",
-			"goal": "基地目标 1/3：在东侧晶体地放置通电采集器（按 B 合成）",
-			"rule": "采集器只能放晶体地；中继需工业地板，6 格接力、4 格供能",
-		}
-	if not _has_powered_reactor():
-		return {
-			"stage": "power_reactor",
-			"goal": "基地目标 2/3：铺工业地板并放置通电反应器",
-			"rule": "反应器需完整工业地板并通电；按 R 旋转，青色口进料、琥珀口出料",
-		}
-	return {
-		"stage": "run_catalyst_line",
-		"goal": "基地目标 3/3：接好双端物流，产出催化剂 %d/%d" % [
-			core_charge_available() + stored_catalyst,
-			CORE_CHARGE_TARGET,
-		],
-		"rule": "晶体箱 → 带 → 青色入料口｜琥珀出料口 → 带 → 催化剂箱",
-	}
+	return SliceJourneyGuidance.build(self)
 
 
 func current_journey_goal_text() -> String:
@@ -495,28 +455,6 @@ func current_journey_goal_text() -> String:
 
 func current_journey_rule_text() -> String:
 	return String(current_journey_guidance().get("rule", ""))
-
-
-func _has_powered_collector() -> bool:
-	for collector in _collector_nodes:
-		if collector.powered:
-			return true
-	return false
-
-
-func _has_powered_reactor() -> bool:
-	for reactor in _reactor_nodes:
-		if reactor.powered:
-			return true
-	return false
-
-
-func _building_storage_item_count(item_id: String) -> int:
-	var total := 0
-	for instance in _building_instances:
-		if instance is SliceStorage:
-			total += (instance as SliceStorage).inventory.count(item_id)
-	return total
 
 
 func relay_disconnect_impact_count(relay: SliceBuildingInstance) -> int:
@@ -628,14 +566,11 @@ func transfer_pocket_to_storage(
 	item: String
 ) -> int:
 	if (
-		not SliceItemCatalog.is_transportable(item)
-		or storage == null
+		storage == null
 		or not _building_instances.has(storage)
 	):
 		return 0
-	var moved := pocket.transfer_up_to(
-		storage.inventory, item, pocket.count(item)
-	)
+	var moved := storage.manual_deposit(pocket, item)
 	if moved <= 0:
 		return 0
 	inventory_changed.emit()
@@ -649,20 +584,38 @@ func transfer_storage_to_pocket(
 	item: String
 ) -> int:
 	if (
-		not SliceItemCatalog.is_transportable(item)
-		or storage == null
+		storage == null
 		or not _building_instances.has(storage)
 	):
 		return 0
-	var moved := storage.inventory.transfer_up_to(
-		pocket, item, storage.inventory.count(item)
-	)
+	var moved := storage.manual_withdraw(pocket, item)
 	if moved <= 0:
 		return 0
 	inventory_changed.emit()
 	building_storage_changed.emit(storage.instance_id)
 	_autosave()
 	return moved
+
+
+func toggle_storage_mode(storage: SliceStorage) -> bool:
+	if storage == null or not _building_instances.has(storage):
+		return false
+	if not storage.toggle_mode():
+		return false
+	_rebuild_logistics_grid()
+	building_storage_changed.emit(storage.instance_id)
+	_autosave()
+	return true
+
+
+func select_next_storage_output(storage: SliceStorage) -> bool:
+	if storage == null or not _building_instances.has(storage):
+		return false
+	if not storage.select_next_present_output():
+		return false
+	building_storage_changed.emit(storage.instance_id)
+	_autosave()
+	return true
 
 
 func reactor_status_text(reactor: SliceReactor) -> String:
@@ -698,6 +651,23 @@ func recover_reactor_contents(reactor: SliceReactor) -> Dictionary:
 	building_storage_changed.emit(reactor.instance_id)
 	_autosave()
 	return result
+
+
+func recover_conveyor_cargo(conveyor: SliceConveyor) -> Dictionary:
+	if conveyor == null or not _building_instances.has(conveyor):
+		return {"success": false, "message": "传送带已失效"}
+	if not conveyor.has_cargo():
+		return {"success": false, "message": "传送带上没有货物"}
+	var item_id := conveyor.cargo_item_id
+	if pocket.free_space_for(item_id) <= 0:
+		return {"success": false, "message": "背包中该物品已达上限"}
+	if pocket.add(item_id, 1) != 1:
+		return {"success": false, "message": "货物回收失败"}
+	conveyor.clear_cargo()
+	inventory_changed.emit()
+	building_storage_changed.emit(conveyor.instance_id)
+	_autosave()
+	return {"success": true, "message": "已回收 1 件货物"}
 
 
 func transfer_all_building_kits_to_core() -> int:
@@ -1080,6 +1050,8 @@ func demolish_building(instance: SliceBuildingInstance) -> bool:
 		_collector_nodes.erase(instance as SliceCollector)
 	elif instance is SliceReactor:
 		_reactor_nodes.erase(instance as SliceReactor)
+	elif instance is SliceStorage:
+		_storage_nodes.erase(instance as SliceStorage)
 	var returned := pocket.add(instance.definition.kit_item_id, 1)
 	if returned != 1:
 		push_error("Demolition capacity changed after validation.")
@@ -1102,7 +1074,8 @@ func _validate_placement(
 		definition,
 		origin_cell,
 		rotation,
-		pocket.count(ITEM_FLOOR_KIT)
+		pocket.count(ITEM_FLOOR_KIT),
+		_active_logistics_approach_cells()
 	)
 	if definition.building_id == SliceBuildingCatalog.CONVEYOR_ID:
 		result["logistics_preview"] = (
@@ -1110,6 +1083,17 @@ func _validate_placement(
 				origin_cell, rotation
 			)
 		)
+	return result
+
+
+func _active_logistics_approach_cells() -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for instance in _building_instances:
+		if instance == _adjustment_instance:
+			continue
+		result.append_array(instance.definition.logistics_approach_cells(
+			instance.origin_cell, instance.building_rotation
+		))
 	return result
 
 
@@ -1296,11 +1280,11 @@ func _spawn_building(
 		var reactor := instance as SliceReactor
 		reactor.input_inventory = Inventory.from_dict(
 			state.get("input_inventory", {}),
-			SliceInventoryProfiles.legacy_reactor_input()
+			SliceInventoryProfiles.device_reactor_input()
 		)
 		reactor.output_inventory = Inventory.from_dict(
 			state.get("output_inventory", {}),
-			SliceInventoryProfiles.legacy_reactor_output()
+			SliceInventoryProfiles.device_reactor_output()
 		)
 		reactor.processing = bool(state.get("processing", false))
 		reactor.production_progress = float(
@@ -1318,10 +1302,8 @@ func _spawn_building(
 		conveyor.merge_cursor = int(state.get("merge_cursor", 0))
 	elif instance is SliceStorage:
 		var storage := instance as SliceStorage
-		storage.inventory = Inventory.from_dict(
-			state.get("inventory", {}),
-			SliceInventoryProfiles.legacy_storage()
-		)
+		storage.restore_state(state)
+		_storage_nodes.append(storage)
 
 	_map.get_node("World").add_child(instance)
 	_building_instances.append(instance)
@@ -1355,24 +1337,27 @@ func _notification(what: int) -> void:
 		_autosave()
 
 
-func _restore_from_save() -> void:
+func _restore_from_save() -> bool:
 	var result := save_service.load_state()
 	if not bool(result.get("success", false)):
 		push_warning("切片读档失败，按新档继续：%s" % String(result.get("message", "")))
-		return
+		return false
+	_pending_load_context = (
+		(result.get("load_context", {}) as Dictionary).duplicate(true)
+		if bool(result.get("publish_required", false))
+		else {}
+	)
 
 	var data: Dictionary = result.get("data", {})
 	pocket = Inventory.from_dict(
-		data.get("pocket", {}), SliceInventoryProfiles.legacy_pocket()
+		data.get("pocket", {}), SliceInventoryProfiles.category_pocket()
 	)
 	core_storage = Inventory.from_dict(
 		data.get("core_storage", {}),
-		SliceInventoryProfiles.legacy_core_storage()
+		SliceInventoryProfiles.category_core_storage()
 	)
-	catalyst_count = int(data.get("catalyst_count", 0))
 	core_repaired = bool(data.get("core_repaired", false))
 	core_energy = int(data.get("core_energy", 0))
-	reactor_active = bool(data.get("reactor_active", false))
 	harvested_clusters = _to_string_array(data.get("harvested_clusters", []))
 	_next_building_serial = int(data.get("next_building_serial", 1))
 	var saved_buildings: Array = data.get("buildings", [])
@@ -1380,13 +1365,16 @@ func _restore_from_save() -> void:
 		var definition := SliceBuildingCatalog.find(String(entry["building_id"]))
 		var raw_cell: Array = entry["origin_cell"]
 		var cell := Vector2i(int(raw_cell[0]), int(raw_cell[1]))
-		_spawn_building(
+		var spawned := _spawn_building(
 			definition,
 			String(entry["instance_id"]),
 			cell,
 			int(entry["rotation"]),
 			entry["state"]
 		)
+		if spawned == null:
+			push_warning("存档世界重建失败：%s 无法生成。" % String(entry["instance_id"]))
+			return false
 
 	var world_node := _map.get_node("World")
 	for cluster_name in harvested_clusters:
@@ -1415,10 +1403,10 @@ func _restore_from_save() -> void:
 
 	inventory_changed.emit()
 	core_storage_changed.emit()
-	catalyst_changed.emit(catalyst_count)
 	core_charge_changed.emit(core_energy)
 	if core_repaired:
 		core_repair_completed.emit()
+	return true
 
 
 func _on_pause_save_and_return_requested() -> void:
@@ -1442,6 +1430,26 @@ func _on_pause_save_and_quit_requested() -> void:
 
 
 func _autosave() -> bool:
+	if _restore_failed:
+		push_warning("切片自动存档已阻止：载入世界未完整重建。")
+		return false
+	var state := _durable_state()
+	var result := (
+		save_service.commit_loaded_state(state, _pending_load_context)
+		if not _pending_load_context.is_empty()
+		else save_service.save_state(state)
+	)
+	if bool(result.get("success", false)):
+		_pending_load_context = {}
+	else:
+		push_warning("切片自动存档失败：%s" % String(result.get("message", "")))
+		return false
+	_logistics_save_elapsed = 0.0
+	_production_save_elapsed = 0.0
+	return true
+
+
+func _durable_state() -> Dictionary:
 	var player_position := player.position if player != null else START_SPAWN
 	var combat_state := (
 		combat_controller.durable_state()
@@ -1454,7 +1462,7 @@ func _autosave() -> bool:
 			},
 		}
 	)
-	var result := save_service.save_state({
+	return {
 		"pocket": pocket.to_dict(),
 		"core_storage": core_storage.to_dict(),
 		"core_repaired": core_repaired,
@@ -1468,13 +1476,7 @@ func _autosave() -> bool:
 		"player_y": player_position.y,
 		"player_health": combat_state["player_health"],
 		"field_encounter": combat_state["field_encounter"],
-	})
-	if not bool(result.get("success", false)):
-		push_warning("切片自动存档失败：%s" % String(result.get("message", "")))
-		return false
-	_logistics_save_elapsed = 0.0
-	_production_save_elapsed = 0.0
-	return true
+	}
 
 
 func _to_string_array(value) -> Array[String]:

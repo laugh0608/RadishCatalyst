@@ -229,6 +229,14 @@ func _refresh_topology_texture() -> void:
 		texture_path = definition.texture_path_for_rotation(
 			building_rotation
 		)
+	sprite.z_index = (
+		-1
+		if _topology_kind in [
+			TOPOLOGY_SOURCE_ENDPOINT,
+			TOPOLOGY_SINK_ENDPOINT,
+		]
+		else 0
+	)
 	sprite.texture = load(texture_path) as Texture2D
 
 

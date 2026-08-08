@@ -7,7 +7,8 @@ extends RefCounted
 
 static func build(
 	world: Node,
-	target: SliceBuildingInstance
+	target: SliceBuildingInstance,
+	selected_item_id: String = ""
 ) -> Dictionary:
 	if world == null or target == null or target.definition == null:
 		return {}
@@ -15,11 +16,13 @@ static func build(
 	if target is SliceCollector:
 		_apply_collector(snapshot, world, target as SliceCollector)
 	elif target is SliceStorage:
-		_apply_storage(snapshot, world, target as SliceStorage)
+		_apply_storage(
+			snapshot, world, target as SliceStorage, selected_item_id
+		)
 	elif target is SliceReactor:
 		_apply_reactor(snapshot, world, target as SliceReactor)
 	elif target is SliceConveyor:
-		_apply_conveyor(snapshot, target as SliceConveyor)
+		_apply_conveyor(snapshot, world, target as SliceConveyor)
 	elif (
 		target.definition.power_role
 		== SliceBuildingDefinition.POWER_RELAY
@@ -51,6 +54,8 @@ static func _base_snapshot(
 		"content_title": "设备信息",
 		"slot_1": {},
 		"slot_2": {},
+		"inventory_items": [],
+		"selected_item_id": "",
 		"process": {},
 		"capacity": {},
 		"details": "",
@@ -133,28 +138,54 @@ static func _apply_collector(
 static func _apply_storage(
 	snapshot: Dictionary,
 	world: Node,
-	storage: SliceStorage
+	storage: SliceStorage,
+	requested_item_id: String
 ) -> void:
-	var crystal_count := storage.inventory.count(SliceWorld.ITEM_CRYSTAL)
-	var catalyst_count := storage.inventory.count(SliceWorld.ITEM_CATALYST)
-	var crystal_storage_space := storage.inventory.free_space_for(
-		SliceWorld.ITEM_CRYSTAL
+	var inventory_items := _storage_inventory_items(world, storage)
+	var selected_item_id := requested_item_id
+	var selectable_ids: Array[String] = []
+	for item in inventory_items:
+		selectable_ids.append(String((item as Dictionary)["item_id"]))
+	if not selectable_ids.has(selected_item_id):
+		selected_item_id = (
+			selectable_ids[0] if not selectable_ids.is_empty() else ""
+		)
+	var selected_name := (
+		"未选择物品" if selected_item_id.is_empty()
+		else _item_name_or_id(selected_item_id)
 	)
-	var catalyst_storage_space := storage.inventory.free_space_for(
-		SliceWorld.ITEM_CATALYST
-	)
-	var crystal_pocket_space: int = world.pocket.free_space_for(
-		SliceWorld.ITEM_CRYSTAL
-	)
-	var catalyst_pocket_space: int = world.pocket.free_space_for(
-		SliceWorld.ITEM_CATALYST
-	)
+	var pocket_count: int = world.pocket.count(selected_item_id)
+	var storage_count := storage.inventory.count(selected_item_id)
+	var storage_space := storage.inventory.free_space_for(selected_item_id)
+	var pocket_space: int = world.pocket.free_space_for(selected_item_id)
+	var known_ordinary := SliceItemCatalog.find(selected_item_id) != null
 	var ports: Array = snapshot["ports"]
 	var primary := {
 		"tone": "ready",
-		"title": "仓储可用",
+		"title": storage.mode_display_name(),
 	}
-	if not ports.is_empty():
+	if not storage.powered:
+		primary = {
+			"tone": "fault",
+			"title": "设备断电",
+		}
+	elif storage.mode == SliceStorage.MODE_TRANSFER and not world.core_repaired:
+		primary = {
+			"tone": "warning",
+			"title": "等待核心修复",
+		}
+	elif (
+		storage.mode == SliceStorage.MODE_SUPPLY
+		and (
+			storage.output_item_id.is_empty()
+			or storage.inventory.count(storage.output_item_id) <= 0
+		)
+	):
+		primary = {
+			"tone": "warning",
+			"title": "供给筛选待补货",
+		}
+	elif not ports.is_empty():
 		var port: Dictionary = ports[0]
 		if String(port["state"]) == "wrong_direction":
 			primary = {
@@ -167,65 +198,86 @@ static func _apply_storage(
 				"title": "物流口未连接",
 			}
 	snapshot["primary"] = primary
-	snapshot["content_title"] = "箱内物料"
-	snapshot["slot_1"] = _item_slot(
-		_item_name(SliceWorld.ITEM_CRYSTAL),
-		crystal_count,
-		SliceStorage.CAPACITY,
-		_item_icon(SliceWorld.ITEM_CRYSTAL)
-	)
-	snapshot["slot_2"] = _item_slot(
-		_item_name(SliceWorld.ITEM_CATALYST),
-		catalyst_count,
-		SliceStorage.CAPACITY,
-		_item_icon(SliceWorld.ITEM_CATALYST)
-	)
+	snapshot["content_title"] = "箱内物料 · 选择一类操作"
+	snapshot["inventory_items"] = inventory_items
+	snapshot["selected_item_id"] = selected_item_id
+	var storage_profile := storage.inventory.profile()
 	snapshot["capacity"] = {
-		"value": storage.inventory.total(),
-		"maximum": SliceStorage.CAPACITY,
-		"text": "总容量 %d / %d" % [
-			storage.inventory.total(),
-			SliceStorage.CAPACITY,
+		"value": storage.type_count(),
+		"maximum": storage_profile.type_limit,
+		"text": "物品类别 %d / %d" % [
+			storage.type_count(),
+			storage_profile.type_limit,
 		],
 	}
-	snapshot["details"] = "单一 IO 口会根据传送带箭头自动成为 IN 或 OUT。"
+	var output_name := (
+		"未选择"
+		if storage.output_item_id.is_empty()
+		else _item_name_or_id(storage.output_item_id)
+	)
+	snapshot["details"] = (
+		"存储模式：右侧 OUT，通电后供给 %s。手动存取不受断电影响。"
+		% output_name
+		if storage.mode == SliceStorage.MODE_SUPPLY
+		else (
+			"传输模式：左侧 IN 始终可接货；无线回传计时 %.1f / %.1f 秒，每次最多 %d 件。"
+			% [
+				storage.transfer_progress,
+				SliceStorage.TRANSFER_INTERVAL,
+				SliceStorage.TRANSFER_BATCH_SIZE,
+			]
+		)
+	)
 	snapshot["operations"] = [
 		_transfer_operation(
-			"deposit_crystal",
-			"存入全部晶体",
+			"storage_deposit",
+			"存入全部%s" % selected_name,
 			"3",
-			world.pocket.count(SliceWorld.ITEM_CRYSTAL),
-			crystal_storage_space,
-			"背包中没有晶体",
-			"储物箱已满"
+			pocket_count if known_ordinary else 0,
+			storage_space,
+			(
+				"请选择可存入的普通物品"
+				if not known_ordinary
+				else "背包中没有%s" % selected_name
+			),
+			"该类已达 %d 或储物箱已达 %d 类" % [
+				storage_profile.item_capacity(selected_item_id),
+				storage_profile.type_limit,
+			]
 		),
 		_transfer_operation(
-			"withdraw_crystal",
-			"取出全部晶体",
+			"storage_withdraw",
+			"取出全部%s" % selected_name,
 			"4",
-			crystal_count,
-			crystal_pocket_space,
-			"箱内没有晶体",
-			"背包已满"
+			storage_count,
+			pocket_space,
+			"箱内没有%s" % selected_name,
+			"背包中该类已达 %d" % world.pocket.profile().item_capacity(
+				selected_item_id
+			)
 		),
-		_transfer_operation(
-			"deposit_catalyst",
-			"存入全部催化剂",
-			"5",
-			world.pocket.count(SliceWorld.ITEM_CATALYST),
-			catalyst_storage_space,
-			"背包中没有催化剂",
-			"储物箱已满"
-		),
-		_transfer_operation(
-			"withdraw_catalyst",
-			"取出全部催化剂",
-			"6",
-			catalyst_count,
-			catalyst_pocket_space,
-			"箱内没有催化剂",
-			"背包已满"
-		),
+		{
+			"id": "storage_toggle_mode",
+			"label": "切换为%s" % (
+				"传输模式"
+				if storage.mode == SliceStorage.MODE_SUPPLY
+				else "存储模式"
+			),
+			"hotkey": "5",
+			"enabled": true,
+			"reason": "",
+		},
+		{
+			"id": "storage_cycle_output",
+			"label": "切换供给筛选（当前：%s）" % output_name,
+			"hotkey": "6",
+			"enabled": not storage.present_transportable_ids().is_empty(),
+			"reason": (
+				"箱内没有可物流运输的物品"
+				if storage.present_transportable_ids().is_empty()
+				else ""
+			),
+		},
 	]
 
 
@@ -300,6 +352,7 @@ static func _apply_reactor(
 
 static func _apply_conveyor(
 	snapshot: Dictionary,
+	world: Node,
 	conveyor: SliceConveyor
 ) -> void:
 	var direction_names := {
@@ -335,6 +388,17 @@ static func _apply_conveyor(
 		),
 	}
 	snapshot["details"] = "按 R 调整时会切换固定像素方向帧。"
+	if conveyor.has_cargo():
+		var cargo_space: int = world.pocket.free_space_for(
+			conveyor.cargo_item_id
+		)
+		snapshot["operations"] = [{
+			"id": "recover_conveyor_cargo",
+			"label": "回收带上货物",
+			"hotkey": "3",
+			"enabled": cargo_space > 0,
+			"reason": "背包中该物品已达上限" if cargo_space <= 0 else "",
+		}]
 
 
 static func _apply_relay(
@@ -455,6 +519,27 @@ static func _item_slot(
 	}
 
 
+static func _storage_inventory_items(
+	world: Node,
+	storage: SliceStorage
+) -> Array[Dictionary]:
+	var visible_ids := storage.inventory.contents_view()
+	for item_id in world.pocket.item_ids():
+		if SliceItemCatalog.is_known_ordinary(item_id):
+			visible_ids[item_id] = 1
+	var result: Array[Dictionary] = []
+	for model_variant in SliceItemCatalog.read_model(visible_ids):
+		var model: Dictionary = model_variant
+		var item_id := String(model["item_id"])
+		model["pocket_count"] = world.pocket.count(item_id)
+		model["storage_count"] = storage.inventory.count(item_id)
+		model["capacity"] = storage.inventory.profile().item_capacity(item_id)
+		model["pocket_capacity"] = world.pocket.profile().item_capacity(item_id)
+		model["icon"] = _item_icon(item_id)
+		result.append(model)
+	return result
+
+
 static func _category_name(
 	definition: SliceBuildingDefinition
 ) -> String:
@@ -475,12 +560,25 @@ static func _category_name(
 
 static func _device_icon(target: SliceBuildingInstance) -> Texture2D:
 	var sprite := target.get_node_or_null("Sprite") as Sprite2D
-	return sprite.texture if sprite != null else null
+	if sprite == null or sprite.texture == null:
+		return null
+	var icon_region := target.definition.icon_region
+	if not icon_region.has_area():
+		return sprite.texture
+	var atlas := AtlasTexture.new()
+	atlas.atlas = sprite.texture
+	atlas.region = icon_region
+	return atlas
 
 
 static func _item_name(item_id: String) -> String:
 	var definition := SliceItemCatalog.find(item_id)
 	return "空载" if definition == null else definition.short_name
+
+
+static func _item_name_or_id(item_id: String) -> String:
+	var definition := SliceItemCatalog.find(item_id)
+	return item_id if definition == null else definition.short_name
 
 
 static func _item_icon(item_id: String) -> Texture2D:

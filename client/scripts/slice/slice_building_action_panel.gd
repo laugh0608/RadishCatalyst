@@ -20,6 +20,9 @@ var _result := ""
 var _refresh_elapsed := 0.0
 var _snapshot: Dictionary = {}
 var _operation_buttons: Array[Button] = []
+var _selected_storage_item_id := ""
+var _inventory_item_order: Array[String] = []
+var _inventory_buttons := {}
 
 @onready var _root: Control = $Root
 @onready var _device_icon: TextureRect = (
@@ -63,6 +66,12 @@ var _operation_buttons: Array[Button] = []
 )
 @onready var _flow_row: HBoxContainer = (
 	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow
+)
+@onready var _inventory_scroll: ScrollContainer = (
+	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/InventoryScroll
+)
+@onready var _inventory_grid: GridContainer = (
+	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/InventoryScroll/InventoryGrid
 )
 @onready var _flow_arrow: Label = (
 	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/FlowArrow
@@ -158,6 +167,7 @@ func open(instance: SliceBuildingInstance) -> void:
 	_open = true
 	_confirming_demolition = false
 	_result = ""
+	_selected_storage_item_id = ""
 	_refresh_elapsed = 0.0
 	_root.visible = true
 	_refresh()
@@ -169,6 +179,7 @@ func close() -> void:
 	_confirming_demolition = false
 	_result = ""
 	_snapshot = {}
+	_selected_storage_item_id = ""
 	_root.visible = false
 
 
@@ -210,6 +221,7 @@ func _process(delta: float) -> void:
 		return
 	if not (
 		_target is SliceCollector
+		or _target is SliceStorage
 		or _target is SliceReactor
 		or _target is SliceConveyor
 	):
@@ -259,10 +271,15 @@ func _refresh() -> void:
 	):
 		close()
 		return
-	_snapshot = SliceBuildingPanelSnapshot.build(_world, _target)
+	_snapshot = SliceBuildingPanelSnapshot.build(
+		_world, _target, _selected_storage_item_id
+	)
 	if _snapshot.is_empty():
 		close()
 		return
+	_selected_storage_item_id = String(
+		_snapshot.get("selected_item_id", "")
+	)
 	_update_header()
 	_update_primary()
 	_update_status_cards()
@@ -347,6 +364,7 @@ func _set_status_card(
 
 func _update_content() -> void:
 	_content_title.text = String(_snapshot["content_title"])
+	_update_inventory_selector()
 	_set_item_slot(_slot_1, _snapshot["slot_1"])
 	_set_item_slot(_slot_2, _snapshot["slot_2"])
 	_slot_1.visible = not (_snapshot["slot_1"] as Dictionary).is_empty()
@@ -375,6 +393,57 @@ func _update_content() -> void:
 		or _process_box.visible
 	)
 	_details.text = String(_snapshot["details"])
+
+
+func _update_inventory_selector() -> void:
+	var items: Array = _snapshot.get("inventory_items", [])
+	_inventory_scroll.visible = not items.is_empty()
+	var next_order: Array[String] = []
+	for item_variant in items:
+		var item: Dictionary = item_variant
+		next_order.append(String(item["item_id"]))
+	if next_order != _inventory_item_order:
+		_rebuild_inventory_buttons(next_order)
+	for item_variant in items:
+		var item: Dictionary = item_variant
+		var item_id := String(item["item_id"])
+		var button := _inventory_buttons.get(item_id) as Button
+		if button == null:
+			continue
+		var selected := item_id == _selected_storage_item_id
+		button.text = "%s%s\n箱 %d / %d · 包 %d / %d" % [
+			"▶ " if selected else "",
+			String(item["short_name"]),
+			int(item["storage_count"]),
+			int(item["capacity"]),
+			int(item["pocket_count"]),
+			int(item["pocket_capacity"]),
+		]
+		button.icon = item.get("icon") as Texture2D
+		button.tooltip_text = "选择%s进行手动存取" % String(
+			item["display_name"]
+		)
+
+
+func _rebuild_inventory_buttons(next_order: Array[String]) -> void:
+	for child in _inventory_grid.get_children():
+		_inventory_grid.remove_child(child)
+		child.queue_free()
+	_inventory_buttons.clear()
+	_inventory_item_order = next_order.duplicate()
+	for item_id in _inventory_item_order:
+		var button := Button.new()
+		button.custom_minimum_size = Vector2(130, 68)
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.pressed.connect(_on_storage_item_selected.bind(item_id))
+		_inventory_grid.add_child(button)
+		_inventory_buttons[item_id] = button
+
+
+func _on_storage_item_selected(item_id: String) -> void:
+	_selected_storage_item_id = item_id
+	_result = "已选择%s" % _storage_item_name(item_id)
+	_refresh()
 
 
 func _set_item_slot(
@@ -486,47 +555,55 @@ func _perform_operation(action_id: String) -> void:
 				if moved > 0
 				else "没有可取出的晶体或背包已满"
 			)
-		"deposit_crystal":
+		"storage_deposit":
 			_result = _storage_transfer_result(
 				_world.transfer_pocket_to_storage(
 					_target as SliceStorage,
-					SliceWorld.ITEM_CRYSTAL
+					_selected_storage_item_id
 				),
-				"已存入晶体 %d",
-				"没有可存入的晶体或储物箱已满"
+				"已存入%s %%d" % _storage_item_name(
+					_selected_storage_item_id
+				),
+				"没有可存入的物品或储物箱已达上限"
 			)
-		"withdraw_crystal":
+		"storage_withdraw":
 			_result = _storage_transfer_result(
 				_world.transfer_storage_to_pocket(
 					_target as SliceStorage,
-					SliceWorld.ITEM_CRYSTAL
+					_selected_storage_item_id
 				),
-				"已取出晶体 %d",
-				"没有可取出的晶体或背包已满"
+				"已取出%s %%d" % _storage_item_name(
+					_selected_storage_item_id
+				),
+				"没有可取出的物品或背包中该类已达上限"
 			)
-		"deposit_catalyst":
-			_result = _storage_transfer_result(
-				_world.transfer_pocket_to_storage(
-					_target as SliceStorage,
-					SliceWorld.ITEM_CATALYST
-				),
-				"已存入催化剂 %d",
-				"没有可存入的催化剂或储物箱已满"
+		"storage_toggle_mode":
+			_result = (
+				"已切换为%s" % (_target as SliceStorage).mode_display_name()
+				if _world.toggle_storage_mode(_target as SliceStorage)
+				else "储物箱模式没有变化"
 			)
-		"withdraw_catalyst":
-			_result = _storage_transfer_result(
-				_world.transfer_storage_to_pocket(
-					_target as SliceStorage,
-					SliceWorld.ITEM_CATALYST
-				),
-				"已取出催化剂 %d",
-				"没有可取出的催化剂或背包已满"
+		"storage_cycle_output":
+			var storage := _target as SliceStorage
+			_result = (
+				"供给筛选已切换为%s" % _storage_item_name(
+					storage.output_item_id
+				)
+				if _world.select_next_storage_output(storage)
+				else "箱内没有其他可供给物品"
 			)
 		"recover_reactor":
 			var result: Dictionary = _world.recover_reactor_contents(
 				_target as SliceReactor
 			)
 			_result = String(result.get("message", "回收失败"))
+		"recover_conveyor_cargo":
+			var conveyor_result: Dictionary = (
+				_world.recover_conveyor_cargo(_target as SliceConveyor)
+			)
+			_result = String(
+				conveyor_result.get("message", "回收失败")
+			)
 	_refresh()
 
 
@@ -536,6 +613,13 @@ func _storage_transfer_result(
 	failure: String
 ) -> String:
 	return success_pattern % moved if moved > 0 else failure
+
+
+func _storage_item_name(item_id: String) -> String:
+	if item_id.is_empty():
+		return "未选择"
+	var definition := SliceItemCatalog.find(item_id)
+	return item_id if definition == null else definition.short_name
 
 
 func _request_adjustment() -> void:

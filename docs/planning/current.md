@@ -6,7 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md)；Gate A / B 与 [UI 结构实现 V1](../features/slice-visual-hierarchy-ui-implementation-v1.md) 均已人工通过。[分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 和 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合包 1 等价地基已完成，schema 8 与正式世界设备尚未切换。
+- 当前活跃专题：[视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md)；Gate A / B 与 [UI 结构实现 V1](../features/slice-visual-hierarchy-ui-implementation-v1.md) 均已人工通过。[分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 和 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合包 2 首轮人工复核因反应器图标混入世界接驳段、设备与传送带错位而退回；修正版已完成完整 Godot 回归和正式 `Boot` 取证，等待再次人工确认。核心 V5 与核心物理物流仍留在下一包。
 - 最新人工通过专题：[设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 建筑包 1、[图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md)、[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)与[多世界存档列表](../features/slice-multi-world-save-list-v1.md)；更早专题见 `docs/features/README.md`。
 - 美术口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一）。
 - 章程结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（决策存档）。
@@ -28,7 +28,7 @@
 - 2026-08-04：batch02 的开放能量核心、横向承压反应器与统一左进右出获得基本认可；batch03 的小型斜槽因无法对接被退回。batch04 又用三稿尝试平直停靠领口，但最终 V3 仍是垂直舱门，不能承接地面水平带面；三稿全部退回，且没有修改客户端或启动 Godot。
 - 2026-08-05：batch08 V3 只通过高机位与网格密度，开放核心身份仍丢失；经路线复盘和人工批准转入 batch09 原生重投影。V5 锁定核心接口；V6—V8 的局部修正仍呈“断崖”，V9 整体低平台解决连通但端框笨重，V10 改用核心完整低斜肩并获人工通过。
 - 2026-08-06：世界目标 V5 的储物箱端点最终按人工红框落在浅色顶部面中央，Gate A 通过并固定为 `target-world-v01.png`。Gate B V1 随后以同一右侧舷窗重组制造 / 背包与反应器操作并获人工通过，两张互斥状态已固定为正式 UI 目标。
-- 2026-08-08：确认“核心仓库每类 99999、背包普通物品每类 200 且不限制类型数、储物箱 4×200”的分类库存；储物箱升级为通电的存储 / 传输双模式设备，模式、显式端口、无线回库、固定正面与旧档迁移并入联合 schema 8。
+- 2026-08-08：确认“核心仓库每类 99999、背包普通物品每类 200 且不限制类型数、储物箱 4×200”的分类库存；联合 schema 8 启用双模式储物箱、无线回库与固定正面设备。首轮实机指出反应器面板误含世界接驳段且带面与接口穿插，修正版将 UI 取景、端口接驳距离、接驳区占用和末端层级显式分离。
 
 当前阶段：
 
@@ -38,24 +38,24 @@
 
 ## 当前主线
 
-1. 已通过的 `delivered / 120` 全链、schema 7 和自动回归继续作为功能基线，不重复扩系统或堆新内容。
+1. 已通过的 `delivered / 120` 全链继续作为功能基线；schema 8 是当前写盘合同，schema 2–7 继续通过确定性迁移与来源感知备份发布兼容，不重复扩系统或堆新内容。
 2. [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 已用配方卡、物品格和鼠标主路径替换纯文字整备主读法，并经萝卜SAMA人工通过。
-3. [分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 与 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合包 1 已用 legacy profile、显式方向 / 端点 / 供电锚点完成等价地基并通过完整 Godot 回归。下一步只能按联合包 2 原子启用分类容量、通电双模式、固定正面、显式端口与 schema 8，不能拆开换素材或改存档。
+3. 两专题的联合包 2 已原子启用背包每类 `200`、核心每类 `99999`、储物箱 `4×200`、通电双模式、固定正面设备、显式端口与 schema 8；首轮人工复核退回接口读法后，修正版完整 `check-client --with-godot` 与正式 `Boot` `100` 项断言通过，最终档和九态截图保留。当前等待再次人工确认，不提前进入核心 V5 / 核心物理物流包 3。
 4. [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 核心仓库包 2 继续暂停；有限发电 / 负荷 / 储能仍为视觉专题之后的独立架构专题，不混包。
 
 ## 边界与冻结
 
-- 多世界目录与 schema 7 现状仍是运行基线；schema 8 只允许在分类库存、储物箱模式、固定正面和显式端口全部就绪后联合原子切换。不复活旧 `SaveService`、旧 `GameRoot`、旧三槽存档或旧地图。
+- 多世界目录与 schema 8 是当前运行基线；schema 2–7 只经冻结旧合同迁移，世界完整重建后才发布 schema 8，备份来源恢复不会轮转覆盖唯一有效候选。不复活旧 `SaveService`、旧 `GameRoot`、旧三槽存档或旧地图。
 - 视角修正轮遗留项在案：八方向动画（候选专题）、viewport 整数重构（并入 HUD 换皮）、打磨清单（核心区底板叠加等观察项）。
 - 新专题不做敌潮、复杂 Boss、技能树、联机或无关重构；立绘对话、八方向动画、viewport 重构、HUD 换皮与发布继续冻结。
 - 不复活旧通用任务链；若包 1 证明存在引导阻断，优先从现有权威状态派生固定阶段目标。
 - 陌生玩家盲测重新冻结，直到萝卜SAMA确认画面、建造 / 背包和设备交互不再以明显草稿层作为主读法。
 - 视觉专题不修改 32px 网格、960×540 相机、基础状态语义、左上光、高斜角投影或已锁定设备尺寸；本轮唯一尺寸例外是按人工明确要求把中继从 `48×66px` 调整为 `48×76px`。已否决的统一明度标尺不得回到正式归一管线。
-- 双目标稿批准前不修改 Godot Theme、世界资产、场景组合或正式归一管线；目标稿只锁定结果与关系，不预设唯一色相、材质温度或装饰答案。
-- 现行客户端仍在 legacy profile 下以总数量容量管理背包 / 仓库 / 储物箱，六类旧建筑仍显式使用 `cardinal` 与 schema 7 `rotation`；统一端点、逻辑供电探针和视觉锚点只完成内部等价接线。核心仓库与采集器尚无新端点，储物箱仍被动，正式素材与 schema 8 均未启用。
+- 已获批双目标稿和五张锁定设备继续作为像素与关系真相源；不得重画、重生成、缩放、旋转或从正式素材派生第二套主体。
+- 现行客户端已使用逐类 profile、schema 8、固定正面设施与统一运行时端点；采集器右侧输出和储物箱模式端口已启用，储物箱是二值消费者。核心仍是地图固定 sprite，核心 V5 和左 `IN` / 右 `OUT` 物理端点尚未接入。
 - 当前 `SlicePowerGrid` 仍是二值可达图；在独立电力专题确认容量、需求、分配、过载与存档边界前，不提前向中继或设备面板伪造负荷数值。
 - 设备面板核心仓库包 2 暂停，待视觉专题和电力专题边界稳定后再决定是否继续。
-- `SliceWorld` 当前约 1460 行；设备展示快照不得重新把按类型 UI 分支堆入世界编排器。
+- `SliceWorld` 当前仍低于 1500 行硬上限；设备展示快照不得重新把按类型 UI 分支堆入世界编排器。
 
 ## 当前默认验证
 

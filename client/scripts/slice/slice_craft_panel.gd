@@ -6,7 +6,6 @@ extends CanvasLayer
 
 const CARD_STYLE := preload("res://assets/themes/slice_ui_card.tres")
 const SURFACE_STYLE := preload("res://assets/themes/slice_ui_surface.tres")
-const INVENTORY_ITEMS: Array[String] = SliceItemCatalog.ORDERED_IDS
 
 const COLOR_TEXT := Color(0.118, 0.145, 0.149)
 const COLOR_MUTED := Color(0.24, 0.28, 0.28)
@@ -19,6 +18,7 @@ var _world: Node
 var _open := false
 var _recipe_cards: Dictionary = {}
 var _inventory_slots: Dictionary = {}
+var _inventory_groups: Dictionary = {}
 var _selected_recipe_id := ""
 var _last_result := ""
 
@@ -26,8 +26,8 @@ var _last_result := ""
 @onready var _recipe_grid: GridContainer = (
 	$Root/Window/Margin/Layout/Content/Recipes/RecipeScroll/RecipeGrid
 )
-@onready var _inventory_grid: GridContainer = (
-	$Root/Window/Margin/Layout/Content/Inventory/InventoryGrid
+@onready var _inventory_group_list: VBoxContainer = (
+	$Root/Window/Margin/Layout/Content/Inventory/InventoryScroll/InventoryGroups
 )
 @onready var _capacity: Label = (
 	$Root/Window/Margin/Layout/Content/Inventory/SectionHeader/Capacity
@@ -67,7 +67,7 @@ var _last_result := ""
 func setup(world: Node) -> void:
 	_world = world
 	_build_recipe_cards()
-	_build_inventory_slots()
+	_reconcile_inventory_groups()
 	_close_button.pressed.connect(close)
 	_detail_craft.pressed.connect(_on_detail_craft_pressed)
 	_detail_select.pressed.connect(_on_detail_select_pressed)
@@ -81,6 +81,8 @@ func setup(world: Node) -> void:
 		_world.placement_changed,
 	]:
 		changed_signal.connect(_on_guidance_changed)
+	if _world.combat_controller != null:
+		_world.combat_controller.state_changed.connect(_on_guidance_changed)
 
 
 func _on_guidance_changed(_changed_value = null) -> void:
@@ -184,6 +186,16 @@ func recipe_card_count() -> int:
 
 func inventory_slot_count() -> int:
 	return _inventory_slots.size()
+
+
+func inventory_group_count() -> int:
+	return _inventory_groups.size()
+
+
+func inventory_slot_count_text(item_id: String) -> String:
+	var slot_data: Dictionary = _inventory_slots.get(item_id, {})
+	var count_label := slot_data.get("count") as Label
+	return "" if count_label == null else count_label.text
 
 
 func capacity_text() -> String:
@@ -301,14 +313,49 @@ func _create_recipe_card(recipe: Dictionary, shortcut: int) -> Dictionary:
 	}
 
 
-func _build_inventory_slots() -> void:
-	if not _inventory_slots.is_empty():
-		return
-	for item in _fixed_inventory_read_model():
-		var item_id := String(item["item_id"])
-		var slot := _create_inventory_slot(item)
-		_inventory_grid.add_child(slot["panel"])
-		_inventory_slots[item_id] = slot
+func _reconcile_inventory_groups() -> Array[Dictionary]:
+	var groups := SliceInventoryReadModel.inventory_groups(
+		_world.pocket,
+		true,
+		_has_critical_sample()
+	)
+	for child in _inventory_group_list.get_children():
+		_inventory_group_list.remove_child(child)
+		child.queue_free()
+	_inventory_slots.clear()
+	_inventory_groups.clear()
+
+	for group in groups:
+		var category := String(group["category"])
+		var section := VBoxContainer.new()
+		section.name = "InventoryGroup_%s" % category
+		section.add_theme_constant_override("separation", 4)
+		_inventory_group_list.add_child(section)
+
+		var title := Label.new()
+		title.name = "Title"
+		title.add_theme_color_override("font_color", COLOR_MUTED)
+		title.add_theme_font_size_override("font_size", 14)
+		title.text = String(group["title"])
+		section.add_child(title)
+
+		var grid := GridContainer.new()
+		grid.name = "Items"
+		grid.columns = 3
+		grid.add_theme_constant_override("h_separation", 6)
+		grid.add_theme_constant_override("v_separation", 6)
+		section.add_child(grid)
+		_inventory_groups[category] = {
+			"section": section,
+			"title": title,
+			"grid": grid,
+		}
+		for item in group["items"]:
+			var item_id := String(item["item_id"])
+			var slot := _create_inventory_slot(item)
+			grid.add_child(slot["panel"])
+			_inventory_slots[item_id] = slot
+	return groups
 
 
 func _create_inventory_slot(item: Dictionary) -> Dictionary:
@@ -327,7 +374,7 @@ func _create_inventory_slot(item: Dictionary) -> Dictionary:
 	var icon := TextureRect.new()
 	icon.name = "Icon"
 	icon.custom_minimum_size = Vector2(54, 54)
-	icon.texture = _item_icon(item_id)
+	icon.texture = _read_model_icon(item)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -355,6 +402,7 @@ func _create_inventory_slot(item: Dictionary) -> Dictionary:
 		"panel": panel,
 		"count": count_label,
 		"name": name_label,
+		"category": String(item["category"]),
 	}
 
 
@@ -378,13 +426,14 @@ func _refresh() -> void:
 	var selected_id: String = _world.selected_building_id()
 	for recipe in SliceRecipes.RECIPES:
 		_refresh_recipe_card(recipe, selected_id)
-	for item in _fixed_inventory_read_model():
-		_refresh_inventory_slot(item, selected_id)
-	var capacity: int = _world.pocket.capacity
+	for group in _reconcile_inventory_groups():
+		for item in group["items"]:
+			_refresh_inventory_slot(item, selected_id)
+	var profile: SliceInventoryProfile = _world.pocket.profile()
 	_capacity.text = (
-		"%d / %d" % [_world.pocket.total(), capacity]
-		if capacity > 0
-		else "%d / ∞" % _world.pocket.total()
+		"不限种类 · 每类 %d" % profile.per_item_capacity
+		if profile.is_per_item()
+		else "%d / %d" % [_world.pocket.total(), profile.total_capacity]
 	)
 	_placement.text = (
 		"当前放置\n— 未选择建筑套件"
@@ -485,7 +534,11 @@ func _refresh_inventory_slot(item: Dictionary, selected_id: String) -> void:
 	var count_label := slot["count"] as Label
 	var panel := slot["panel"] as PanelContainer
 	var count := int(item["count"])
-	count_label.text = str(count)
+	count_label.text = (
+		"×%d" % count
+		if String(item["category"]) == SliceItemDefinition.CATEGORY_KEY_ITEM
+		else "%d / %d" % [count, int(item["capacity"])]
+	)
 	count_label.add_theme_color_override(
 		"font_color",
 		COLOR_WARNING if count > 0 else COLOR_MUTED
@@ -509,21 +562,31 @@ func _item_icon(item_id: String) -> Texture2D:
 	return texture
 
 
+func _read_model_icon(item: Dictionary) -> Texture2D:
+	var icon_path := String(item.get("icon_path", ""))
+	if icon_path.is_empty():
+		return null
+	var texture := load(icon_path) as Texture2D
+	var icon_region: Rect2 = item.get("icon_region", Rect2())
+	if icon_region.has_area():
+		var atlas := AtlasTexture.new()
+		atlas.atlas = texture
+		atlas.region = icon_region
+		return atlas
+	return texture
+
+
 func _short_item_name(item_id: String) -> String:
 	var definition := SliceItemCatalog.find(item_id)
 	return item_id if definition == null else definition.short_name
 
 
-## Package 1 deliberately filters unknown schema-7 keys out of the existing
-## nine fixed slots. Package 2 can switch this boundary to dynamic categories.
-func _fixed_inventory_read_model() -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
-	for item in SliceItemCatalog.read_model(
-		_world.pocket.contents_view(), true
-	):
-		if INVENTORY_ITEMS.has(String(item["item_id"])):
-			result.append(item)
-	return result
+func _has_critical_sample() -> bool:
+	return (
+		_world != null
+		and _world.combat_controller != null
+		and _world.combat_controller.has_critical_sample()
+	)
 
 
 func _card_style(selected: bool, blocked: bool) -> StyleBoxFlat:

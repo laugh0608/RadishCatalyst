@@ -35,6 +35,7 @@ var texture_paths: Array[String]
 var visual_mode: String
 var sprite_offset: Vector2
 var texture_region: Rect2
+var icon_region: Rect2
 var state_keys: Array[String]
 var power_role: String
 var logic_power_probe_policy: String
@@ -98,6 +99,7 @@ func _init(
 	)
 	sprite_offset = visual_offset
 	texture_region = region
+	icon_region = region
 	state_keys = allowed_state_keys.duplicate()
 	power_role = role
 	logic_power_probe_policy = (
@@ -118,6 +120,11 @@ func _init(
 	machine_output_port_cell = machine_output_cell
 	machine_output_port_direction = machine_output_direction
 	_replace_logistics_ports(_legacy_logistics_ports())
+
+
+func configure_icon_region(next_icon_region: Rect2) -> SliceBuildingDefinition:
+	icon_region = next_icon_region
+	return self
 
 
 func configure_device_model(
@@ -242,10 +249,10 @@ func logistics_connection_world_cell(
 	origin_cell: Vector2i,
 	rotation: int
 ) -> Vector2i:
-	return (
-		logistics_port_world_cell(origin_cell, rotation)
-		+ logistics_direction_for_rotation(rotation)
+	var port := _port_with_role(
+		SliceLogisticsPortDefinition.ROLE_BIDIRECTIONAL
 	)
+	return _resolved_connection_cell(port, origin_cell, rotation)
 
 
 func rotated_machine_input_port_cell(rotation: int) -> Vector2i:
@@ -277,10 +284,8 @@ func machine_input_connection_world_cell(
 	origin_cell: Vector2i,
 	rotation: int
 ) -> Vector2i:
-	return (
-		machine_input_port_world_cell(origin_cell, rotation)
-		+ machine_input_direction_for_rotation(rotation)
-	)
+	var port := _port_with_role(SliceLogisticsPortDefinition.ROLE_INPUT)
+	return _resolved_connection_cell(port, origin_cell, rotation)
 
 
 func rotated_machine_output_port_cell(rotation: int) -> Vector2i:
@@ -312,10 +317,22 @@ func machine_output_connection_world_cell(
 	origin_cell: Vector2i,
 	rotation: int
 ) -> Vector2i:
-	return (
-		machine_output_port_world_cell(origin_cell, rotation)
-		+ machine_output_direction_for_rotation(rotation)
-	)
+	var port := _port_with_role(SliceLogisticsPortDefinition.ROLE_OUTPUT)
+	return _resolved_connection_cell(port, origin_cell, rotation)
+
+
+func _resolved_connection_cell(
+	port: SliceLogisticsPortDefinition,
+	origin_cell: Vector2i,
+	rotation: int
+) -> Vector2i:
+	if port == null:
+		return Vector2i(-1, -1)
+	return Vector2i(port.resolved_descriptor(
+		origin_cell,
+		footprint,
+		normalized_rotation(rotation)
+	)["connection_cell"])
 
 
 func resolved_logistics_port_descriptors(
@@ -328,6 +345,23 @@ func resolved_logistics_port_descriptors(
 		result.append(port.resolved_descriptor(
 			origin_cell, footprint, normalized
 		))
+	return result
+
+
+func logistics_approach_cells(
+	origin_cell: Vector2i,
+	rotation: int
+) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for descriptor in resolved_logistics_port_descriptors(
+		origin_cell, rotation
+	):
+		var port_cell := Vector2i(descriptor["port_cell"])
+		var outward := Vector2i(descriptor["outward_direction"])
+		for step in range(1, int(descriptor["connection_distance"])):
+			var cell := port_cell + outward * step
+			if not result.has(cell):
+				result.append(cell)
 	return result
 
 

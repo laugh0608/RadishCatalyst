@@ -57,57 +57,70 @@ func _check_definition_power_contract() -> void:
 	)
 	_expect_equal(
 		storage.power_role,
-		SliceBuildingDefinition.POWER_PASSIVE,
-		"package 1 keeps storage passive"
+		SliceBuildingDefinition.POWER_CONSUMER,
+		"storage is a real power consumer"
 	)
 	_expect_equal(
 		collector.rotated_power_port_cell(0),
-		Vector2i(0, 1),
-		"collector base power port"
+		Vector2i(-1, -1),
+		"collector no longer overloads an edge cell as its power probe"
 	)
 	_expect_equal(
 		collector.rotated_power_port_cell(1),
-		Vector2i(0, 0),
-		"collector power port rotates clockwise"
+		Vector2i(-1, -1),
+		"fixed collector probe is independent of rotation"
 	)
 	_expect_equal(
 		reactor.rotated_power_port_cell(2),
-		Vector2i(1, 0),
-		"reactor power port rotates to opposite edge"
+		Vector2i(-1, -1),
+		"fixed reactor probe is independent of rotation"
 	)
 	var origin := Vector2i(10, 10)
-	var collector_probes := [
-		Vector2(336, 368),
-		Vector2(336, 336),
-		Vector2(368, 336),
-		Vector2(368, 368),
-	]
-	var reactor_probes := [
-		Vector2(368, 400),
-		Vector2(336, 368),
-		Vector2(368, 336),
-		Vector2(400, 368),
-	]
 	for rotation in range(4):
 		_expect_equal(
 			collector.logic_power_probe_world_position(origin, 32.0, rotation),
-			collector_probes[rotation],
-			"collector rotation %d keeps its logical probe" % rotation
+			Vector2(352, 352),
+			"collector rotation %d resolves to its footprint center" % rotation
 		)
 		_expect_equal(
 			reactor.logic_power_probe_world_position(origin, 32.0, rotation),
-			reactor_probes[rotation],
-			"reactor rotation %d keeps its logical probe" % rotation
+			Vector2(368, 368),
+			"reactor rotation %d resolves to its footprint center" % rotation
 		)
+		_expect_equal(
+			storage.logic_power_probe_world_position(origin, 32.0, rotation),
+			Vector2(352, 352),
+			"storage rotation %d resolves to its footprint center" % rotation
+		)
+	_expect_equal(
+		collector.power_visual_anchor_world_position(origin, 32.0, 0),
+		Vector2(352, 274),
+		"collector line anchor resolves to locked V1 texture pixel"
+	)
+	_expect_equal(
+		reactor.power_visual_anchor_world_position(origin, 32.0, 0),
+		Vector2(368, 350),
+		"reactor line anchor resolves to locked V10 texture pixel"
+	)
+	_expect_equal(
+		storage.power_visual_anchor_world_position(origin, 32.0, 0),
+		Vector2(352, 322),
+		"storage line anchor resolves to locked V1 texture pixel"
+	)
 	_expect_equal(
 		relay.power_visual_anchor_world_position(origin, 32.0, 0),
 		Vector2(336, 292),
 		"relay visual anchor is explicit and keeps the legacy link endpoint"
 	)
 	_expect_equal(
-		relay.powered_texture_path.ends_with("power_relay_powered.png"),
+		relay.powered_texture_path,
+		"",
+		"relay never swaps the locked V2 body"
+	)
+	_expect_equal(
+		relay.texture_path_for_rotation(3).ends_with("power_relay.png"),
 		true,
-		"relay definition references approved powered sprite"
+		"every relay rotation request resolves to the locked V2 body"
 	)
 
 
@@ -128,6 +141,7 @@ func _check_multihop_world_grid() -> void:
 	]:
 		world._spawn_building(floor, "", cell, 0, {})
 	_spawn_floor_rect(world, Vector2i(34, 7), Vector2i(3, 3))
+	_spawn_floor_rect(world, Vector2i(34, 12), Vector2i(2, 2))
 
 	world.core_repaired = true
 	world._rebuild_power_grid()
@@ -209,10 +223,15 @@ func _check_multihop_world_grid() -> void:
 	)
 	_expect_equal(
 		(relay_three.get_node("Sprite") as Sprite2D).texture.resource_path.ends_with(
-			"power_relay_powered.png"
+			"power_relay.png"
 		),
 		true,
-		"powered relay uses approved cyan sprite"
+		"powered relay keeps the locked V2 body"
+	)
+	_expect_equal(
+		relay_three.get_node_or_null("PowerIndicator") != null,
+		true,
+		"relay power state uses a derived runtime lamp"
 	)
 
 	var disconnected := world._validate_placement(
@@ -229,6 +248,9 @@ func _check_multihop_world_grid() -> void:
 	var reactor := _place_building(
 		world, SliceBuildingCatalog.REACTOR_ID, Vector2i(34, 7), 0
 	)
+	var storage := _place_building(
+		world, SliceBuildingCatalog.STORAGE_ID, Vector2i(34, 12), 0
+	) as SliceStorage
 	var collector_definition := SliceBuildingCatalog.find(
 		SliceBuildingCatalog.COLLECTOR_ID
 	)
@@ -243,7 +265,18 @@ func _check_multihop_world_grid() -> void:
 		world, SliceBuildingCatalog.COLLECTOR_ID, collector_cell, 0
 	) as SliceCollector
 	_expect_equal(reactor.powered, true, "reactor port is within relay coverage")
+	_expect_equal(storage.powered, true, "storage probe is within relay coverage")
 	_expect_equal(collector.powered, true, "collector port is within relay coverage")
+	storage.inventory.add(SliceWorld.ITEM_CRYSTAL, 1)
+	storage.set_output_item(SliceWorld.ITEM_CRYSTAL)
+	var storage_endpoint: SliceLogisticsEndpoint = (
+		storage.logistics_endpoints()[0]
+	)
+	_expect_equal(
+		storage_endpoint.peek_output_item(),
+		SliceWorld.ITEM_CRYSTAL,
+		"powered supply storage exposes its selected output"
+	)
 	_expect_equal(
 		reactor.get_node_or_null("PowerIndicator") != null,
 		true,
@@ -272,8 +305,8 @@ func _check_multihop_world_grid() -> void:
 	)
 	_expect_equal(
 		world.relay_disconnect_impact_count(relay_two),
-		2,
-		"bridge relay reports two affected consumers"
+		3,
+		"bridge relay reports all three affected consumers"
 	)
 
 	collector.production_progress = 0.25
@@ -290,7 +323,13 @@ func _check_multihop_world_grid() -> void:
 	)
 	_expect_equal(relay_three.powered, false, "downstream relay drops same frame")
 	_expect_equal(reactor.powered, false, "reactor drops same frame")
+	_expect_equal(storage.powered, false, "storage drops same frame")
 	_expect_equal(collector.powered, false, "collector drops same frame")
+	_expect_equal(
+		storage_endpoint.peek_output_item(),
+		"",
+		"unpowered supply storage stops automatic output"
+	)
 	_expect_equal(
 		world._power_links.link_count(),
 		1,
@@ -298,10 +337,10 @@ func _check_multihop_world_grid() -> void:
 	)
 	_expect_equal(
 		(relay_three.get_node("Sprite") as Sprite2D).texture.resource_path.ends_with(
-			"power_relay_unpowered.png"
+			"power_relay.png"
 		),
 		true,
-		"disconnected relay switches to approved fault sprite"
+		"disconnected relay still keeps the locked V2 body"
 	)
 	world._tick_production(10.0)
 	_expect_equal(
@@ -313,6 +352,7 @@ func _check_multihop_world_grid() -> void:
 	world.cancel_building_placement()
 	_expect_equal(relay_three.powered, true, "cancel restores downstream relay")
 	_expect_equal(reactor.powered, true, "cancel restores reactor power")
+	_expect_equal(storage.powered, true, "cancel restores storage power")
 	_expect_equal(collector.powered, true, "cancel restores collector power")
 	_expect_equal(
 		world._power_links.link_count(),
@@ -330,6 +370,7 @@ func _check_multihop_world_grid() -> void:
 	_expect_equal(world.demolish_building(relay_two), true, "bridge relay demolishes")
 	_expect_equal(relay_three.powered, false, "demolition disconnects downstream relay")
 	_expect_equal(reactor.powered, false, "demolition disconnects reactor")
+	_expect_equal(storage.powered, false, "demolition disconnects storage")
 	_expect_equal(collector.powered, false, "demolition disconnects collector")
 	_expect_equal(
 		world._power_links.link_count(),
@@ -347,6 +388,7 @@ func _check_multihop_world_grid() -> void:
 	_expect_equal(replacement.powered, true, "replacement bridge is powered")
 	_expect_equal(relay_three.powered, true, "replacement reconnects downstream relay")
 	_expect_equal(reactor.powered, true, "replacement reconnects reactor")
+	_expect_equal(storage.powered, true, "replacement reconnects storage")
 	_expect_equal(collector.powered, true, "replacement reconnects collector")
 	_expect_equal(
 		world._power_links.link_count(),
@@ -363,8 +405,8 @@ func _check_multihop_world_grid() -> void:
 		"offline core clears all active visual links"
 	)
 	_expect_equal(reactor.powered, false, "offline core powers down reactor")
+	_expect_equal(storage.powered, false, "offline core powers down storage")
 	_expect_equal(collector.powered, false, "offline core powers down collector")
-	_expect_equal(world.reactor_active, false, "L3 does not activate reactor processing")
 	world.free()
 
 

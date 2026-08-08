@@ -30,7 +30,6 @@ func _run_checks() -> void:
 	_check_schema_two_to_five_migration()
 	_check_schema_six_compatibility()
 	_check_invalid_primary_falls_back_to_backup()
-	_check_schema_seven_rotation_and_idempotence()
 	await _check_schema_seven_world_restart()
 
 
@@ -110,7 +109,6 @@ func _check_codec_rejects_invalid_topology() -> void:
 	_expect_codec_failure(
 		[floor, relay, overlap], 4, "占用重叠", "blocking overlap"
 	)
-
 	var unknown_state := relay.duplicate(true)
 	unknown_state["state"] = {"powered": true}
 	_expect_codec_failure(
@@ -143,7 +141,7 @@ func _check_codec_rejects_invalid_topology() -> void:
 		0,
 		{
 			"inventory": {
-				"capacity": SliceStorage.CAPACITY,
+				"capacity": SliceSaveSchemaSevenContract.STORAGE_CAPACITY,
 				"contents": {"item.unknown": 1},
 			},
 		}
@@ -261,7 +259,7 @@ func _check_schema_two_to_five_migration() -> void:
 			SliceBuildingCatalog.CONVEYOR_ID,
 			Vector2i(20, 5),
 			1,
-			{}
+			{"cargo": {}, "merge_cursor": 0}
 		),
 	]
 	schema_four_state["next_building_serial"] = 3
@@ -273,6 +271,8 @@ func _check_schema_two_to_five_migration() -> void:
 	var schema_four := _read_json(schema_four_path)
 	schema_four["save_schema_version"] = 4
 	schema_four["game_version"] = "prototype-slice-04"
+	var schema_four_conveyor: Dictionary = schema_four["buildings"][1]
+	schema_four_conveyor["state"] = {}
 	_write_json(schema_four_path, schema_four)
 	var schema_four_result := schema_four_service.load_state()
 	_expect_success(schema_four_result, "schema 4 topology remains readable")
@@ -280,9 +280,9 @@ func _check_schema_two_to_five_migration() -> void:
 		var buildings: Array = schema_four_result["data"]["buildings"]
 		_expect_equal(buildings.size(), 2, "schema 4 building count")
 		_expect_equal(
-			(buildings[1]["state"] as Dictionary).is_empty(),
-			true,
-			"schema 4 conveyor migrates as an empty belt"
+			buildings[1]["state"],
+			{"cargo": {}, "merge_cursor": 0},
+			"schema 4 conveyor receives exact empty state"
 		)
 
 	var schema_five_dir := _new_save_dir("schema5")
@@ -299,7 +299,7 @@ func _check_schema_two_to_five_migration() -> void:
 		SliceBuildingCatalog.REACTOR_ID,
 		Vector2i(50, 5),
 		0,
-		_empty_reactor_state()
+		_empty_reactor_state_v8()
 	))
 	schema_five_state["next_building_serial"] = 11
 	_expect_success(
@@ -333,7 +333,7 @@ func _check_schema_two_to_five_migration() -> void:
 		var migrated_reactor: Dictionary = data["buildings"][9]
 		_expect_equal(
 			migrated_reactor["state"],
-			_empty_reactor_state(),
+			_empty_reactor_state_v8(),
 			"schema 5 reactor becomes empty and idle"
 		)
 
@@ -397,9 +397,9 @@ func _check_schema_two_to_five_migration() -> void:
 	if bool(schema_two_result.get("success", false)):
 		var data: Dictionary = schema_two_result["data"]
 		_expect_equal(
-			int(data["core_storage"]["capacity"]),
-			SliceWorld.CORE_STORAGE_CAPACITY,
-			"schema 2 receives current core storage capacity"
+			data["core_storage"].has("capacity"),
+			false,
+			"schema 2 drops the legacy core storage capacity"
 		)
 		_expect_equal(
 			int(data["core_storage"]["contents"][SliceWorld.ITEM_CATALYST]),
@@ -520,9 +520,11 @@ func _check_invalid_primary_falls_back_to_backup() -> void:
 	var fallback_result := service.load_state()
 	_expect_success(fallback_result, "invalid topology primary falls back")
 	if bool(fallback_result.get("success", false)):
+		var backup_path := save_dir.path_join("slice_world.bak.json")
+		var backup_sha := FileAccess.get_sha256(backup_path)
 		_expect_equal(
 			String(fallback_result.get("source_path", "")),
-			save_dir.path_join("slice_world.bak.json"),
+			backup_path,
 			"backup candidate selected"
 		)
 		_expect_equal(
@@ -530,7 +532,25 @@ func _check_invalid_primary_falls_back_to_backup() -> void:
 			3,
 			"backup state remains intact"
 		)
+		_expect_failure(
+			service.save_state(fallback_result["data"]),
+			"commit_loaded_state",
+			"pending fallback cannot use ordinary backup rotation"
+		)
+		_expect_success(
+			service.commit_loaded_state(
+				fallback_result["data"],
+				fallback_result["load_context"]
+			),
+			"fallback state publishes without backup rotation"
+		)
+		_expect_equal(
+			FileAccess.get_sha256(backup_path),
+			backup_sha,
+			"fallback publication preserves the accepted backup bytes"
+		)
 
+	_write_text(primary_path, "{")
 	_write_text(save_dir.path_join("slice_world.bak.json"), "{")
 	_expect_failure(
 		service.load_state(),
@@ -542,41 +562,116 @@ func _check_invalid_primary_falls_back_to_backup() -> void:
 func _check_schema_seven_rotation_and_idempotence() -> void:
 	var fixture := _schema_seven_rotation_fixture()
 	var state: Dictionary = fixture["state"]
-	var expected_rotations: Dictionary = fixture["rotations"]
+	var legacy_rotations: Dictionary = fixture["rotations"]
 	var save_dir := _new_save_dir("schema7-rotation")
 	var service := SliceSaveService.new(save_dir)
-	_expect_success(
-		service.save_state(state),
-		"schema 7 rotation fixture saves"
-	)
-
 	var save_path := save_dir.path_join("slice_world.json")
-	var first_save := _read_json(save_path)
+	var schema_seven := _schema_seven_payload_from_state(state)
+	_expect_schema_seven_payload_shape(schema_seven, "schema 7 fixture")
+	_write_json(save_path, schema_seven)
 	_expect_rotation_map(
-		first_save.get("buildings", []),
-		expected_rotations,
-		"schema 7 written"
+		schema_seven.get("buildings", []),
+		legacy_rotations,
+		"schema 7 source"
 	)
 	var load_result := service.load_state()
-	_expect_success(load_result, "schema 7 rotation fixture loads")
+	_expect_success(load_result, "schema 7 rotation fixture migrates in memory")
 	if not bool(load_result.get("success", false)):
 		return
+	_expect_equal(
+		bool(load_result.get("migration_required", false)),
+		true,
+		"schema 7 reports migration context"
+	)
+	_expect_equal(
+		int(_read_json(save_path).get("save_schema_version", 0)),
+		7,
+		"load remains read only before world reconstruction"
+	)
 	var loaded_data: Dictionary = load_result["data"]
+	var migrated_rotations := legacy_rotations.duplicate()
+	for entry in state["buildings"]:
+		if entry["building_id"] != SliceBuildingCatalog.CONVEYOR_ID:
+			migrated_rotations[entry["instance_id"]] = 0
 	_expect_rotation_map(
 		loaded_data.get("buildings", []),
-		expected_rotations,
-		"schema 7 loaded"
+		migrated_rotations,
+		"schema 8 in-memory migration"
+	)
+	var grandfathered_storage := _find_five_type_storage_state(
+		loaded_data.get("buildings", [])
+	)
+	_expect_equal(
+		grandfathered_storage.is_empty(),
+		false,
+		"five-type schema 7 storage migrates without loss"
+	)
+	if not grandfathered_storage.is_empty():
+		_expect_equal(
+			grandfathered_storage["inventory"].has("capacity"),
+			false,
+			"migrated grandfathered storage drops capacity"
+		)
+		_expect_equal(
+			String(grandfathered_storage["mode"]),
+			"supply",
+			"legacy storage defaults to supply mode"
+		)
+		_expect_equal(
+			String(grandfathered_storage["output_item_id"]),
+			SliceWorld.ITEM_CRYSTAL,
+			"legacy storage output uses stable item order"
+		)
+	var invalid_commit_state := loaded_data.duplicate(true)
+	invalid_commit_state["pocket"]["contents"][SliceWorld.ITEM_CRYSTAL] = 201
+	_expect_failure(
+		service.commit_loaded_state(
+			invalid_commit_state, load_result["load_context"]
+		),
+		"profile",
+		"failed migration publication remains retryable"
+	)
+	_expect_equal(
+		service.has_pending_loaded_state(),
+		true,
+		"failed migration publication keeps pending context"
 	)
 
 	_expect_success(
-		service.save_state(loaded_data),
-		"schema 7 loaded data saves again"
+		service.commit_loaded_state(
+			loaded_data, load_result["load_context"]
+		),
+		"rebuilt schema 7 state publishes as schema 8"
+	)
+	var first_save := _read_json(save_path)
+	_expect_schema_eight_payload_shape(first_save, "schema 8 migrated save")
+	_expect_equal(
+		int(_read_json(save_dir.path_join("slice_world.bak.json")).get(
+			"save_schema_version", 0
+		)),
+		7,
+		"main-source migration preserves schema 7 in backup"
+	)
+	var current_result := service.load_state()
+	_expect_success(current_result, "schema 8 migrated save reloads")
+	if not bool(current_result.get("success", false)):
+		return
+	_expect_equal(
+		_find_five_type_storage_state(
+			current_result["data"].get("buildings", [])
+		).is_empty(),
+		false,
+		"five-type grandfathered storage survives schema 8 restart"
+	)
+	_expect_success(
+		service.save_state(current_result["data"]),
+		"schema 8 loaded data saves again"
 	)
 	var second_save := _read_json(save_path)
 	_expect_equal(
 		_schema_seven_semantic_payload(second_save),
 		_schema_seven_semantic_payload(first_save),
-		"schema 7 save-load-save is semantically idempotent"
+		"schema 8 save-load-save is semantically idempotent"
 	)
 
 
@@ -597,7 +692,6 @@ func _check_schema_seven_world_restart() -> void:
 		73,
 		{"state": "hostile", "enemy_health": 40}
 	)
-	world.catalyst_count = 4
 	world.pocket.add(SliceWorld.ITEM_PART, 5)
 	world.core_storage.add(SliceWorld.ITEM_CRYSTAL, 8)
 	world.core_storage.add(SliceWorld.ITEM_CATALYST, 2)
@@ -701,38 +795,38 @@ func _check_schema_seven_world_restart() -> void:
 	world._autosave()
 
 	var raw_save := _read_json(save_dir.path_join("slice_world.json"))
-	_expect_schema_seven_payload_shape(raw_save, "schema 7 world save")
+	_expect_schema_eight_payload_shape(raw_save, "schema 8 world save")
 	_expect_equal(
 		int(raw_save.get("save_schema_version", 0)),
 		SliceSaveService.SAVE_SCHEMA_VERSION,
-		"schema 7 is written"
+		"schema 8 is written"
 	)
 	_expect_equal(raw_save.has("collectors"), false, "legacy collectors key is absent")
 	_expect_equal(
 		raw_save.has("catalyst_count"),
 		false,
-		"schema 7 omits legacy catalyst truth"
+		"schema 8 omits legacy catalyst truth"
 	)
 	_expect_equal(
 		raw_save.has("reactor_active"),
 		false,
-		"schema 7 omits legacy reactor activation"
+		"schema 8 omits legacy reactor activation"
 	)
 	_expect_equal(
 		int(raw_save.get("player_health", 0)),
 		73,
-		"schema 7 writes player health"
+		"schema 8 writes player health"
 	)
 	var saved_encounter: Dictionary = raw_save.get("field_encounter", {})
 	_expect_equal(
 		String(saved_encounter.get("state", "")),
 		"hostile",
-		"schema 7 writes encounter state"
+		"schema 8 writes encounter state"
 	)
 	_expect_equal(
 		int(saved_encounter.get("enemy_health", 0)),
 		40,
-		"schema 7 writes enemy health"
+		"schema 8 writes enemy health"
 	)
 	_expect_equal(
 		int(raw_save.get("next_building_serial", 0)),
@@ -803,11 +897,6 @@ func _check_schema_seven_world_restart() -> void:
 	)
 	_expect_equal(loaded_world.core_energy, 6, "core energy restores")
 	_expect_equal(
-		loaded_world.catalyst_count,
-		0,
-		"legacy global catalyst is not restored"
-	)
-	_expect_equal(
 		loaded_world.pocket.count(SliceWorld.ITEM_PART),
 		5,
 		"pocket inventory restores"
@@ -820,7 +909,7 @@ func _check_schema_seven_world_restart() -> void:
 	_expect_equal(
 		loaded_world.core_storage.count(SliceWorld.ITEM_CATALYST),
 		2,
-		"core storage is the schema 7 catalyst truth"
+		"core storage is the schema 8 catalyst truth"
 	)
 	_expect_equal(
 		loaded_world.combat_controller.health,
@@ -845,7 +934,7 @@ func _check_schema_seven_world_restart() -> void:
 	var loaded_reactor := _find_by_id(
 		loaded_world, reactor_id
 	) as SliceReactor
-	_expect_equal(loaded_reactor.building_rotation, 2, "reactor rotation restores")
+	_expect_equal(loaded_reactor.building_rotation, 0, "fixed reactor rotation restores")
 	_expect_equal(loaded_reactor.powered, true, "reactor power is re-derived")
 	_expect_equal(loaded_reactor.processing, true, "reactor processing restores")
 	_expect_equal(
@@ -942,8 +1031,18 @@ func _schema_seven_rotation_fixture() -> Dictionary:
 			rotation,
 			{
 				"inventory": {
-					"capacity": SliceStorage.CAPACITY,
-					"contents": {SliceWorld.ITEM_CRYSTAL: rotation + 1},
+					"capacity": SliceSaveSchemaSevenContract.STORAGE_CAPACITY,
+					"contents": (
+						{
+							SliceWorld.ITEM_CRYSTAL: 1,
+							SliceWorld.ITEM_CATALYST: 1,
+							SliceWorld.ITEM_PART: 1,
+							SliceBuildingCatalog.FLOOR_ID: 1,
+							SliceBuildingCatalog.COLLECTOR_ID: 1,
+						}
+						if rotation == 0
+						else {SliceWorld.ITEM_CRYSTAL: rotation + 1}
+					),
 				},
 			}
 		)
@@ -1035,6 +1134,46 @@ func _expect_schema_seven_payload_shape(
 		failures.append("%s: %s" % [label, failure])
 
 
+func _expect_schema_eight_payload_shape(
+	data: Dictionary,
+	label: String
+) -> void:
+	_assertion_count += 1
+	for failure in SliceSaveSchemaEightContract.validate(data):
+		failures.append("%s: %s" % [label, failure])
+
+
+func _schema_seven_payload_from_state(state: Dictionary) -> Dictionary:
+	return {
+		"save_schema_version": 7,
+		"game_version": "prototype-slice-07",
+		"updated_at": "2026-08-08T00:00:00",
+		"pocket": (state["pocket"] as Dictionary).duplicate(true),
+		"core_storage": (
+			state["core_storage"] as Dictionary
+		).duplicate(true),
+		"core_repaired": bool(state.get("core_repaired", false)),
+		"core_energy": int(state.get("core_energy", 0)),
+		"harvested_clusters": (
+			state.get("harvested_clusters", []) as Array
+		).duplicate(),
+		"buildings": (
+			state.get("buildings", []) as Array
+		).duplicate(true),
+		"next_building_serial": int(
+			state.get("next_building_serial", 1)
+		),
+		"player_x": float(state.get("player_x", 0.0)),
+		"player_y": float(state.get("player_y", 0.0)),
+		"player_health": int(state.get("player_health", 100)),
+		"field_encounter": (
+			state.get("field_encounter", {
+				"state": "locked", "enemy_health": 60,
+			}) as Dictionary
+		).duplicate(true),
+	}
+
+
 func _expect_rotation_map(
 	value,
 	expected_rotations: Dictionary,
@@ -1061,6 +1200,27 @@ func _expect_rotation_map(
 			int(expected_rotations[instance_id]),
 			"%s %s rotation" % [label, instance_id]
 		)
+
+
+func _find_five_type_storage_state(value) -> Dictionary:
+	if not (value is Array):
+		return {}
+	for entry in value:
+		if (
+			entry is Dictionary
+			and entry.get("building_id", "")
+			== SliceBuildingCatalog.STORAGE_ID
+		):
+			var state = entry.get("state", {})
+			if not (state is Dictionary):
+				continue
+			var inventory = state.get("inventory", {})
+			if not (inventory is Dictionary):
+				continue
+			var contents = inventory.get("contents", {})
+			if contents is Dictionary and contents.size() == 5:
+				return state
+	return {}
 
 
 func _schema_seven_semantic_payload(data: Dictionary) -> Dictionary:
@@ -1094,10 +1254,13 @@ func _legacy_save_data(version: int) -> Dictionary:
 
 
 func _empty_runtime_state(crystal_count: int) -> Dictionary:
+	var pocket_contents := {}
+	if crystal_count > 0:
+		pocket_contents[SliceWorld.ITEM_CRYSTAL] = crystal_count
 	return {
 		"pocket": {
 			"capacity": SliceWorld.POCKET_CAPACITY,
-			"contents": {SliceWorld.ITEM_CRYSTAL: crystal_count},
+			"contents": pocket_contents,
 		},
 		"core_storage": {
 			"capacity": SliceWorld.CORE_STORAGE_CAPACITY,
@@ -1134,6 +1297,15 @@ func _empty_reactor_state() -> Dictionary:
 			"capacity": SliceReactor.OUTPUT_CAPACITY,
 			"contents": {},
 		},
+		"processing": false,
+		"production_progress": 0.0,
+	}
+
+
+func _empty_reactor_state_v8() -> Dictionary:
+	return {
+		"input_inventory": {"contents": {}},
+		"output_inventory": {"contents": {}},
 		"processing": false,
 		"production_progress": 0.0,
 	}
