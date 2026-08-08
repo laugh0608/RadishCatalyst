@@ -36,6 +36,11 @@ func _check_definition_power_contract() -> void:
 	var conveyor := SliceBuildingCatalog.find(SliceBuildingCatalog.CONVEYOR_ID)
 	var storage := SliceBuildingCatalog.find(SliceBuildingCatalog.STORAGE_ID)
 	_expect_equal(
+		SliceWorld.CORE_LINK_ANCHOR_OFFSET,
+		Vector2(8, -80),
+		"repaired core line starts at the locked V5 upper ring"
+	)
+	_expect_equal(
 		collector.power_role,
 		SliceBuildingDefinition.POWER_CONSUMER,
 		"collector is a power consumer"
@@ -202,7 +207,7 @@ func _check_multihop_world_grid() -> void:
 		_expect_equal(
 			Vector2(visual_link["from_position"]),
 			expected_from,
-			"visual link %d keeps its legacy start anchor" % index
+			"visual link %d uses the locked device start anchor" % index
 		)
 		_expect_equal(
 			Vector2(visual_link["to_position"]),

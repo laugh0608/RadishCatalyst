@@ -6,9 +6,6 @@ extends Area2D
 
 const REPAIR_PART_COST := 3
 
-var repaired_texture: Texture2D = preload("res://assets/sprites/slice/outpost_core_repaired.png")
-
-
 func get_prompt(world: Node) -> String:
 	if world.core_repaired:
 		if world.can_deliver_critical_sample():
@@ -44,5 +41,4 @@ func try_interact(world: Node) -> void:
 		return
 	if not world.spend_pocket_item(SliceWorld.ITEM_PART, REPAIR_PART_COST):
 		return
-	(get_parent() as Sprite2D).texture = repaired_texture
 	world.mark_core_repaired()

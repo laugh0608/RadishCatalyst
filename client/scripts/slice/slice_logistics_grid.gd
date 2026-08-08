@@ -21,7 +21,8 @@ var _simulation_accumulator := 0.0
 
 func rebuild(
 	instances: Array[SliceBuildingInstance],
-	excluded_instance_id: String = ""
+	excluded_instance_id: String = "",
+	external_endpoints: Array[SliceLogisticsEndpoint] = []
 ) -> void:
 	_conveyors.clear()
 	_endpoints.clear()
@@ -43,6 +44,8 @@ func rebuild(
 			continue
 		for endpoint in instance.logistics_endpoints():
 			_register_endpoint(endpoint)
+	for endpoint in external_endpoints:
+		_register_endpoint(endpoint)
 	_conveyors.sort_custom(_instance_before)
 	_endpoints.sort_custom(_endpoint_before)
 	_source_endpoints.sort_custom(_endpoint_before)
@@ -392,6 +395,8 @@ func _placement_endpoint_label(
 func _endpoint_status_snapshot(
 	endpoint: SliceLogisticsEndpoint
 ) -> Dictionary:
+	if endpoint.instance_id == SliceCoreLogistics.INSTANCE_ID:
+		return _core_port_status_snapshot(endpoint)
 	if (
 		endpoint.role
 		== SliceLogisticsPortDefinition.ROLE_BIDIRECTIONAL
@@ -402,6 +407,25 @@ func _endpoint_status_snapshot(
 	if endpoint.owner is SliceCollector:
 		return _collector_port_status_snapshot(endpoint)
 	return _reactor_port_status_snapshot(endpoint)
+
+
+func _core_port_status_snapshot(
+	endpoint: SliceLogisticsEndpoint
+) -> Dictionary:
+	var input_port := (
+		endpoint.role == SliceLogisticsPortDefinition.ROLE_INPUT
+	)
+	return _fixed_port_status_snapshot(
+		endpoint,
+		(
+			"可运输物品会存入核心仓库"
+			if input_port
+			else "核心仓库按稳定物品顺序输出"
+		),
+		"把传送带接到核心固定%s标记格" % (
+			" IN " if input_port else " OUT "
+		)
+	)
 
 
 func _fixed_storage_port_status_snapshot(

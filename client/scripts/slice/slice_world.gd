@@ -49,7 +49,7 @@ const REACTOR_PRODUCE_INTERVAL := 10.0
 const CORE_CHARGE_TARGET := 2
 const ROCK_GROUND_SOURCE_ID := 0
 const CRYSTAL_GROUND_SOURCE_ID := 2
-const CORE_LINK_ANCHOR_OFFSET := Vector2(0, -32)
+const CORE_LINK_ANCHOR_OFFSET := SliceCoreLogistics.POWER_VISUAL_ANCHOR_OFFSET
 const RELAY_LINK_ANCHOR_OFFSET := Vector2(0, -44)
 
 ## Emitted whenever the player backpack contents change (drives HUD refresh).
@@ -96,6 +96,7 @@ var _support_floor_transaction := (
 var _occupancy := SliceBuildingOccupancy.new()
 var _power_grid := SlicePowerGrid.new()
 var _logistics_grid := SliceLogisticsGrid.new()
+var _core_logistics := SliceCoreLogistics.new()
 var _power_links: SlicePowerLinkLayer
 var _building_instances: Array[SliceBuildingInstance] = []
 var _collector_nodes: Array[SliceCollector] = []
@@ -256,7 +257,10 @@ func _tick_logistics(delta: float) -> void:
 		return
 	_logistics_save_elapsed += delta
 	for instance_id in result.get("storage_ids", []):
-		building_storage_changed.emit(String(instance_id))
+		if String(instance_id) == SliceCoreLogistics.INSTANCE_ID:
+			core_storage_changed.emit()
+		else:
+			building_storage_changed.emit(String(instance_id))
 	if _logistics_save_elapsed >= 1.0:
 		_autosave()
 
@@ -414,8 +418,11 @@ func spend_pocket_item(item: String, amount: int) -> bool:
 
 func mark_core_repaired() -> void:
 	core_repaired = true
+	var core := _map.get_node_or_null("World/OutpostCoreDamaged") as Sprite2D
+	SliceCoreLogistics.apply_repaired_visual(core, REPAIRED_CORE_TEXTURE)
 	_refresh_core_charge_visual()
 	_rebuild_power_grid()
+	_rebuild_logistics_grid()
 	core_repair_completed.emit()
 	_autosave()
 
@@ -1087,14 +1094,9 @@ func _validate_placement(
 
 
 func _active_logistics_approach_cells() -> Array[Vector2i]:
-	var result: Array[Vector2i] = []
-	for instance in _building_instances:
-		if instance == _adjustment_instance:
-			continue
-		result.append_array(instance.definition.logistics_approach_cells(
-			instance.origin_cell, instance.building_rotation
-		))
-	return result
+	return _core_logistics.reserved_approach_cells(
+		_building_instances, _adjustment_instance
+	)
 
 
 func _floor_supports_facility(instance: SliceBuildingInstance) -> bool:
@@ -1137,7 +1139,13 @@ func _rebuild_power_grid(excluded_instance_id: String = "") -> void:
 
 
 func _rebuild_logistics_grid(excluded_instance_id: String = "") -> void:
-	_logistics_grid.rebuild(_building_instances, excluded_instance_id)
+	var core := _map.get_node_or_null(
+		"World/OutpostCoreDamaged"
+	) as Sprite2D
+	_core_logistics.setup(core, core_storage, core_repaired, TILE_SIZE)
+	_logistics_grid.rebuild(
+		_building_instances, excluded_instance_id, _core_logistics.endpoints()
+	)
 
 
 func _refresh_power_links() -> void:
@@ -1384,8 +1392,7 @@ func _restore_from_save() -> bool:
 
 	if core_repaired:
 		var core := world_node.get_node_or_null("OutpostCoreDamaged") as Sprite2D
-		if core != null:
-			core.texture = REPAIRED_CORE_TEXTURE
+		SliceCoreLogistics.apply_repaired_visual(core, REPAIRED_CORE_TEXTURE)
 	_refresh_core_charge_visual()
 
 	player.position = Vector2(

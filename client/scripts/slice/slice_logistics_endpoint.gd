@@ -5,7 +5,7 @@ extends RefCounted
 ## authoritative device inventory or buffer. Geometry comes from the immutable
 ## port definition; transfer callbacks remain owned by the runtime device.
 
-var owner: SliceBuildingInstance
+var owner: Object
 var port_definition: SliceLogisticsPortDefinition
 var endpoint_id: String
 var instance_id: String
@@ -27,25 +27,82 @@ var _take_output: Callable
 
 
 func _init(
-	endpoint_owner: SliceBuildingInstance,
-	definition: SliceLogisticsPortDefinition,
+	endpoint_owner: Object = null,
+	definition: SliceLogisticsPortDefinition = null,
 	accept_one: Callable = Callable(),
 	peek_output: Callable = Callable(),
 	take_output: Callable = Callable()
 ) -> void:
+	if endpoint_owner == null or definition == null:
+		return
+	var building := endpoint_owner as SliceBuildingInstance
+	if building == null or building.definition == null:
+		push_error("Building endpoint owner requires a definition.")
+		return
+	_bind(
+		endpoint_owner,
+		definition,
+		building.instance_id,
+		building.definition.display_name,
+		definition.resolved_descriptor(
+			building.origin_cell,
+			building.definition.footprint,
+			building.definition.normalized_rotation(
+				building.building_rotation
+			)
+		),
+		accept_one,
+		peek_output,
+		take_output
+	)
+
+
+static func bind_fixed(
+	endpoint_owner: Object,
+	definition: SliceLogisticsPortDefinition,
+	stable_instance_id: String,
+	display_name: String,
+	origin_cell: Vector2i,
+	footprint: Vector2i,
+	rotation: int,
+	accept_one: Callable = Callable(),
+	peek_output: Callable = Callable(),
+	take_output: Callable = Callable()
+) -> SliceLogisticsEndpoint:
+	var endpoint := SliceLogisticsEndpoint.new()
+	endpoint._bind(
+		endpoint_owner,
+		definition,
+		stable_instance_id,
+		display_name,
+		definition.resolved_descriptor(
+			origin_cell, footprint, rotation
+		),
+		accept_one,
+		peek_output,
+		take_output
+	)
+	return endpoint
+
+
+func _bind(
+	endpoint_owner: Object,
+	definition: SliceLogisticsPortDefinition,
+	stable_instance_id: String,
+	display_name: String,
+	resolved: Dictionary,
+	accept_one: Callable,
+	peek_output: Callable,
+	take_output: Callable
+) -> void:
 	owner = endpoint_owner
 	port_definition = definition
-	instance_id = owner.instance_id
-	device_name = owner.definition.display_name
+	instance_id = stable_instance_id
+	device_name = display_name
 	port_id = definition.id
 	endpoint_id = "%s:%s" % [instance_id, port_id]
 	role = definition.role
 	label = definition.label
-	var resolved := definition.resolved_descriptor(
-		owner.origin_cell,
-		owner.definition.footprint,
-		owner.definition.normalized_rotation(owner.building_rotation)
-	)
 	port_cell = Vector2i(resolved["port_cell"])
 	connection_cell = Vector2i(resolved["connection_cell"])
 	connection_distance = int(resolved["connection_distance"])

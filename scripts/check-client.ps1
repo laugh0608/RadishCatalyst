@@ -412,6 +412,14 @@ if ($runGodotChecks) {
             }
         },
         @{
+            Name = "slice core logistics"
+            Script = "check-client-slice-core-logistics.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
             Name = "slice reactor"
             Script = "check-client-slice-reactor.ps1"
             Parameters = @{

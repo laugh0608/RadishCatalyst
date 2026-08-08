@@ -15,7 +15,7 @@
 - [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 已人工收口。
 - [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 建筑包 1 已人工通过；核心仓库包 2 暂停。
 - [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md) 已通过架构闸门并成为当前活跃专题。
-- [分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 与 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合包 2 首轮人工复核因反应器图标和传送带接驳错位退回；修正版已完成完整 Godot 回归与正式 `Boot` 九态取证，当前等待再次人工确认。核心 V5 / 核心物理物流仍未接入。
+- [分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 与 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合包 2 修正版已提交为 `b4803e5a`。包 3 已接入锁定核心 V5 与核心实体物流，完整 Godot 和正式 `Boot` 三态取证通过，隔离存档保留，当前等待人工确认。
 
 ## 2026-07-29 收尾
 
@@ -42,7 +42,7 @@
 6. **Gate B 与 UI 结构实现均已人工通过。**制造态与反应器态已按 [UI 结构实现 V1](../features/slice-visual-hierarchy-ui-implementation-v1.md) 收为同源右侧舷窗，完整 Godot 回归、正式 `Boot` 41 项专项及制造阻塞 / 成功、储物箱断链、反应器加工四态全部通过。
 7. **世界设备接入审计已完成。**[世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 已确认 `building_rotation` 解耦、固定正面、显式端口、核心 / 采集器物流和旧档可恢复边界。
 8. **联合包 1 等价地基已完成。**现行九类物品已统一定义，legacy profile 保持 `30 / 120 / 20 / 2 / 1`，库存调用迁到逐物品 / 原子 / 部分转移 API；方向、视觉、端点、逻辑供电探针和画线锚点已显式解耦，物流网改用统一运行时端点。
-9. **联合包 2 修正版停在二次人工闸门。**首轮截图暴露反应器面板把世界接驳段读成额外传送带，且设备接口与带面穿插错位；现已分离 UI 取景、反应器两格接驳距离与一格保留区，并把末端带面压到设备接口下层。完整 `check-client --with-godot` 和正式 `Boot` `100` 项断言通过，九张截图、schema 8 重载档与 schema 7 升级档均保留；确认后才提交并进入核心 V5 / 核心物流包 3。
+9. **联合包 2 已提交，包 3 相邻接驳修正版等待人工确认。**包 2 修正版以 `b4803e5a` 收口。包 3 保留受损核心旧素材，修复后逐字节切到 `152×128px` 核心 V5；首次取证误让物流跨过一格透明区，现已改为左右相邻格终端带直接接入同一 `core_storage`。完整 Godot、核心专项 `54` 项和正式 `Boot` `48` 项重跑通过，主档与三备份已更新保留。
 
 ## 防跑偏规则
 

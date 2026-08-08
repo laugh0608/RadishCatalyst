@@ -204,6 +204,7 @@ run_godot_checked "slice-combat-package2" --script "${client_root}/scripts/check
 run_godot_checked "slice-combat-package3" --script "${client_root}/scripts/checks/slice_combat_package3_check.gd" --no-header
 run_godot_checked "slice-first-playable-journey" --script "${client_root}/scripts/checks/slice_first_playable_journey_check.gd" --no-header
 run_godot_checked "slice-logistics" --script "${client_root}/scripts/checks/slice_logistics_check.gd" --no-header
+run_godot_checked "slice-core-logistics" --script "${client_root}/scripts/checks/slice_core_logistics_check.gd" --no-header
 run_godot_checked "slice-save-schema" --script "${client_root}/scripts/checks/slice_save_schema_check.gd" --no-header
 run_godot_checked "slice-save-schema-eight" --script "${client_root}/scripts/checks/slice_save_schema_eight_check.gd" --no-header
 run_godot_checked "slice-save-catalog" --script "${client_root}/scripts/checks/slice_save_catalog_check.gd" --no-header
