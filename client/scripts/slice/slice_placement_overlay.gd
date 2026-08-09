@@ -355,10 +355,10 @@ func _draw_port_marker(
 		_draw_arrow(port_center, connection_center, color)
 	draw_string(
 		ThemeDB.fallback_font,
-		connection_center + Vector2(-10, 4) + label_offset,
+		marker_rect.position + Vector2(0, 15) + label_offset,
 		label,
 		HORIZONTAL_ALIGNMENT_CENTER,
-		20.0,
+		marker_rect.size.x,
 		10,
 		PORT_TEXT_COLOR
 	)

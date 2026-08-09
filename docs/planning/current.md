@@ -1,12 +1,12 @@
 # Current Plan
 
-更新时间：2026-08-08
+更新时间：2026-08-09
 
 ## 入口约束
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md)；Gate A / B 与 [UI 结构实现 V1](../features/slice-visual-hierarchy-ui-implementation-v1.md) 均已人工通过。[分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 和 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合包 2 修正版已提交为 `b4803e5a`，包 3 以 `f41f93a7` 提交。包 3 / 4 均获人工通过，当前进入包 5 迁移演练、正式入口与综合人工闸门。
+- 当前活跃专题：[视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md)；Gate A / B 与 [UI 结构实现 V1](../features/slice-visual-hierarchy-ui-implementation-v1.md) 均已人工通过。[分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 和 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合包 2 修正版已提交为 `b4803e5a`，包 3 以 `f41f93a7` 提交。包 3 / 4 / 5 均获人工通过；包 5 的自动、正式入口和 AI 逐图复核证据已完整保留。
 - 最新人工通过专题：[设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 建筑包 1、[图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md)、[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)与[多世界存档列表](../features/slice-multi-world-save-list-v1.md)；更早专题见 `docs/features/README.md`。
 - 美术口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一）。
 - 章程结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（决策存档）。
@@ -40,7 +40,7 @@
 
 1. 已通过的 `delivered / 120` 全链继续作为功能基线；schema 8 是当前写盘合同，schema 2–7 继续通过确定性迁移与来源感知备份发布兼容，不重复扩系统或堆新内容。
 2. [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 已用配方卡、物品格和鼠标主路径替换纯文字整备主读法，并经萝卜SAMA人工通过。
-3. 联合包 2 / 3 已提交，包 3 / 4 已人工通过。包 4 从真实二值父边派生中继四端子与核心 / 消费者顶部锚点之间的 `1px` 单段线；供电专项 `139` 项、完整 `check-client --with-godot` 和正式 `Boot` `64` 项通过，四态截图、主档与三份备份已保留。当前进入包 5，集中复验真实新档、schema 7 隔离旧档、完整产线、断链恢复与保存重启；不引入有限发电、负荷、储能或 schema 字段。
+3. 联合包 2 / 3 已提交，包 3 / 4 / 5 已人工通过。包 5 以正式 `Boot` `138` 项断言集中复验真实新档、schema 7 隔离旧档、完整产线、断链恢复、财产回收与保存重启；两套主档、各三备份和 11 张截图已保留。放置态 `OUT` 裁切已按根因修正，完整 `check-client --with-godot` 与正式演练重跑通过；萝卜SAMA于 2026-08-09 确认收口，未引入有限发电、负荷、储能或 schema 字段。
 4. [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 核心仓库包 2 继续暂停；有限发电 / 负荷 / 储能仍为视觉专题之后的独立架构专题，不混包。
 
 ## 边界与冻结
