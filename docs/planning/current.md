@@ -6,7 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md)；Gate A / B 与 [UI 结构实现 V1](../features/slice-visual-hierarchy-ui-implementation-v1.md) 均已人工通过。[分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 和 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合包 2 修正版已提交为 `b4803e5a`，包 3 以 `f41f93a7` 提交。包 3 / 4 / 5 均获人工通过；包 5 的自动、正式入口和 AI 逐图复核证据已完整保留。
+- 当前活跃专题：[视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md)；Gate A 与世界设备链已收口，Gate B / [UI 结构实现 V1](../features/slice-visual-hierarchy-ui-implementation-v1.md) 只锁定信息架构，不代表视觉定稿。当前执行子专题为 [游戏本体 UI 视觉定稿 V1](../features/slice-game-ui-visual-finalization-v1.md)。
 - 最新人工通过专题：[设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 建筑包 1、[图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md)、[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)与[多世界存档列表](../features/slice-multi-world-save-list-v1.md)；更早专题见 `docs/features/README.md`。
 - 美术口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一）。
 - 章程结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（决策存档）。
@@ -29,6 +29,7 @@
 - 2026-08-05：batch08 V3 只通过高机位与网格密度，开放核心身份仍丢失；经路线复盘和人工批准转入 batch09 原生重投影。V5 锁定核心接口；V6—V8 的局部修正仍呈“断崖”，V9 整体低平台解决连通但端框笨重，V10 改用核心完整低斜肩并获人工通过。
 - 2026-08-06：世界目标 V5 的储物箱端点最终按人工红框落在浅色顶部面中央，Gate A 通过并固定为 `target-world-v01.png`。Gate B V1 随后以同一右侧舷窗重组制造 / 背包与反应器操作并获人工通过，两张互斥状态已固定为正式 UI 目标。
 - 2026-08-08：联合 schema 8 启用分类库存、双模式储物箱、无线回库与固定正面设备；修正版分离 UI 取景、设备自带接驳区和真实末端带面后提交。随后修复态核心逐字节切至 V5，并以现有 `core_storage / core_repaired` 启用左入右出实体物流；隔格视觉断链改为相邻终端带。真实二值父边、中继四端子和消费者顶部锚点经完整 Godot、正式 `Boot` 与人工复核通过。
+- 2026-08-09：包 5 综合迁移闸门通过，但萝卜SAMA确认现有 HUD 与各类面板仍是颜色过多、观感花哨的结构草稿；视觉专题不关闭。游戏本体停止参考 Radish 家族 UI，转以《终末地》《异星工厂》《银河破裂者》共同校正 UI 定稿；Radish 家族视觉只保留给官方辅助工具。
 
 当前阶段：
 
@@ -41,13 +42,13 @@
 1. 已通过的 `delivered / 120` 全链继续作为功能基线；schema 8 是当前写盘合同，schema 2–7 继续通过确定性迁移与来源感知备份发布兼容，不重复扩系统或堆新内容。
 2. [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 已用配方卡、物品格和鼠标主路径替换纯文字整备主读法，并经萝卜SAMA人工通过。
 3. 联合包 2 / 3 已提交，包 3 / 4 / 5 已人工通过。包 5 以正式 `Boot` `138` 项断言集中复验真实新档、schema 7 隔离旧档、完整产线、断链恢复、财产回收与保存重启；两套主档、各三备份和 11 张截图已保留。放置态 `OUT` 裁切已按根因修正，完整 `check-client --with-godot` 与正式演练重跑通过；萝卜SAMA于 2026-08-09 确认收口，未引入有限发电、负荷、储能或 schema 字段。
-4. [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 核心仓库包 2 继续暂停；有限发电 / 负荷 / 储能仍为视觉专题之后的独立架构专题，不混包。
+4. [游戏本体 UI 视觉定稿 V1](../features/slice-game-ui-visual-finalization-v1.md) 已按 `8 / 9 / 9 / 8` 四批完成 34 张外部参考 `high` 读取并形成取舍；下一步审计项目全部现行界面并建立减色合同，再做代表状态目标稿，不直接改 Theme。核心仓库包 2、有限发电 / 负荷 / 储能和陌生玩家盲测继续暂停。
 
 ## 边界与冻结
 
 - 多世界目录与 schema 8 是当前运行基线；schema 2–7 只经冻结旧合同迁移，世界完整重建后才发布 schema 8，备份来源恢复不会轮转覆盖唯一有效候选。不复活旧 `SaveService`、旧 `GameRoot`、旧三槽存档或旧地图。
-- 视角修正轮遗留项在案：八方向动画（候选专题）、viewport 整数重构（并入 HUD 换皮）、打磨清单（核心区底板叠加等观察项）。
-- 新专题不做敌潮、复杂 Boss、技能树、联机或无关重构；立绘对话、八方向动画、viewport 重构、HUD 换皮与发布继续冻结。
+- 视角修正轮遗留项在案：八方向动画（候选专题）、viewport 整数重构、打磨清单（核心区底板叠加等观察项）。
+- 新专题不做敌潮、复杂 Boss、技能树、联机或无关重构；立绘对话、八方向动画、viewport 重构与发布继续冻结。HUD 只在 UI 视觉定稿子专题批准的范围内推进。
 - 不复活旧通用任务链；若包 1 证明存在引导阻断，优先从现有权威状态派生固定阶段目标。
 - 陌生玩家盲测重新冻结，直到萝卜SAMA确认画面、建造 / 背包和设备交互不再以明显草稿层作为主读法。
 - 视觉专题不修改 32px 网格、960×540 相机、基础状态语义、左上光、高斜角投影或已锁定设备尺寸；本轮唯一尺寸例外是按人工明确要求把中继从 `48×66px` 调整为 `48×76px`。已否决的统一明度标尺不得回到正式归一管线。

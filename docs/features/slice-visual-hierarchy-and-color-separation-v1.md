@@ -2,7 +2,7 @@
 
 更新时间：2026-08-09
 
-状态：**Gate A / B 双目标稿及 [UI 结构实现 V1](slice-visual-hierarchy-ui-implementation-v1.md) 均已人工通过；联合包 2 / 3 分别以 `b4803e5a` / `f41f93a7` 提交，包 3 / 4 / 5 均获人工通过。包 5 自动、正式入口和 AI 逐图复核证据已完整保留。**
+状态：**专题继续开启。Gate A、设备家族和迁移链路已通过；Gate B 与 [UI 结构实现 V1](slice-visual-hierarchy-ui-implementation-v1.md) 只作为信息架构基线，不代表视觉定稿。当前转入 [游戏本体 UI 视觉定稿 V1](slice-game-ui-visual-finalization-v1.md)。**
 
 ## 目的
 
@@ -117,7 +117,7 @@
 
 - 电力指示灯回到建筑实例自己的 y-sort 平面，不再以子节点 `z_index = 5` 越过角色；自动检查锁定反应器与采集器指示灯均为 `z_index = 0`。
 - 新增切片专用 `slice_ui_theme.tres` 与 `ui_font_medium.tres`：三类界面统一使用 Noto Sans SC 中黑 `500` 字重、显式自动 hinting、normal hinting 和 quarter-pixel 定位，不扩大到全局界面布局。
-- 参考 Radish 家族 UI v26.7.2 的“暖墨暗纸、结构先于装饰、状态色不作装饰”原则，将切片 Game 轮廓映射为暖墨壳层、赭色结构与玉绿状态；不照搬 Workbench 纸张纹理、衬线字体、传统纹样或平台布局。
+- 本轮曾参考 Radish 家族 UI v26.7.2，将切片映射为暖墨壳层、赭色结构与玉绿状态；2026-08-09 复核确认颜色过多且观感花哨，该参考链对游戏本体正式废止，只保留为失败过程证据。
 - 按钮、外壳、标题、卡片、下沉表面和进度使用同一材质家族；强色控制在赭色结构与真实状态两类，危险继续使用警示红，信息蓝仅保留在确有信息语义的位置。
 - 完整 `check-client --with-godot` 通过；供电专项增至 80 项，旅程专项增至 65 项。修正版正式 `Boot → 新建世界` 六态通过 43 项断言。
 - 六张修正版 `3024×1701` 原图与联系表位于 `assets/art-intake/2026-07-30-visual-hierarchy-package1-correction-preview/`；隔离自动存档位于 `tools/runtime-intake/2026-07-30-visual-hierarchy-package1-correction/save-root/`。
@@ -276,5 +276,5 @@
 - HUD、制造面板和建筑设备面板使用一致视觉语言，同时保留各自的信息与操作职责。
 - 核心与六类建筑在浅岩地、工业地板和晶体区边缘均保持可读剪影、材质、体积与端口身份。
 - 功能色语义稳定，并由文字、图标、形状或明度提供冗余表达。
-- 正式入口四态截图、灰阶复核、匹配自动检查和萝卜SAMA人工实机判断全部通过。
+- [游戏本体 UI 视觉定稿 V1](slice-game-ui-visual-finalization-v1.md) 的全界面审计、代表状态目标稿、减色合同、正式入口截图和萝卜SAMA人工定稿全部通过；当前尚未满足。
 - `delivered / 120` 全链、schema 8 与 schema 2–7 迁移、鼠标 / 键盘路径和现有专项检查无回归。

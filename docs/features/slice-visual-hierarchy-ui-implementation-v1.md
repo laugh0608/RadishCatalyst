@@ -2,13 +2,13 @@
 
 更新时间：2026-08-06
 
-状态：**已收口（2026-08-06，萝卜SAMA人工通过）。制造 / 背包与建筑设备右侧舷窗、完整 Godot 回归、正式 `Boot` 41 项专项与四态截图均通过。**
+状态：**结构实现包已收口（2026-08-06）。制造 / 背包与建筑设备右侧舷窗、完整 Godot 回归、正式 `Boot` 41 项专项与四态截图均通过；该结论只锁定信息架构和功能路径，不代表 UI 视觉定稿。后续见 [游戏本体 UI 视觉定稿 V1](slice-game-ui-visual-finalization-v1.md)。**
 
 ## 目的
 
 把 [视觉层级与色彩分离 V1](slice-visual-hierarchy-and-color-separation-v1.md) 已批准的 UI 目标映射到现行 Godot 控件，同时保留已经人工通过的制造、库存、设备操作、鼠标 / 键盘路径和权威状态。
 
-正式目标：
+结构目标（不再作为最终视觉定稿）：
 
 - `assets/reference/visual-direction/target-ui-v01.png`：制造 / 背包，SHA-256 `045a1dd5ab9841bb85e9bfbf16f7e199f5d0bbe4ac3ce58fda8a925f73e65ca8`。
 - `assets/reference/visual-direction/target-ui-v01-reactor.png`：反应器互斥态，SHA-256 `563feb83666c236609c320e7f2a3e29ba5c5a2065265015dc45e8d79c914345f`。
@@ -80,4 +80,4 @@
 | `03-storage-disconnected.png` | `c756e203e2f31a46496068d75fc68d5b548d6068691208b4fc827d1f7caa5cf2` | `IO` 断链、双物料、容量和四个既有操作同屏。 |
 | `04-reactor-processing.png` | `edaadebbb843dd3e91dae590ae335a1b8489d359e7d137afa07a1d82e1a24db0` | 身份、电力、双端口、固定配方、进度、回收与维护同屏。 |
 
-联系表 `review-contact-sheet.png` SHA-256 为 `0d45b969fe6fb7d8abcbb7afb797215eff95b41bdf0db54f2e3b74373f08112d`。隔离存档保留于 `tools/runtime-intake/2026-08-06-ui-structure-v1/save-root/`，含主档与三份轮转备份；未触碰用户正式存档。萝卜SAMA随后人工确认制造 / 背包与建筑设备舷窗整体通过，本子包据此收口。
+联系表 `review-contact-sheet.png` SHA-256 为 `0d45b969fe6fb7d8abcbb7afb797215eff95b41bdf0db54f2e3b74373f08112d`。隔离存档保留于 `tools/runtime-intake/2026-08-06-ui-structure-v1/save-root/`，含主档与三份轮转备份；未触碰用户正式存档。萝卜SAMA当时确认制造 / 背包与建筑设备舷窗的结构可继续使用，本子包据此收口；2026-08-09 进一步确认现有面板仍是颜色过多的视觉草稿，不据此关闭父视觉专题。

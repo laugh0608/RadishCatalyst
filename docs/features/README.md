@@ -27,7 +27,7 @@
 
 当前阶段专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——自动与人工完整全链已通过，但萝卜SAMA判定表现仍有大量草稿层，陌生玩家盲测延期。
 
-当前活跃子专题：[Slice Visual Hierarchy And Color Separation V1](slice-visual-hierarchy-and-color-separation-v1.md)——世界 / UI 双目标稿与 [UI 结构实现 V1](slice-visual-hierarchy-ui-implementation-v1.md) 均已人工通过；[分类库存与通电储物箱 V1](slice-category-inventory-and-powered-storage-v1.md) 和 [世界设备家族接入 V1](slice-world-device-family-integration-v1.md) 的联合包 3 / 4 / 5 均已人工通过。下一步是按决策闸门复核视觉专题与当前阶段退出条件。
+当前活跃子专题：[Slice Visual Hierarchy And Color Separation V1](slice-visual-hierarchy-and-color-separation-v1.md)——世界设备与迁移链路已收口，但现有 HUD / 面板只通过结构与功能路径，不是视觉定稿。当前执行 [Slice Game UI Visual Finalization V1](slice-game-ui-visual-finalization-v1.md)，先做全界面审计、减色合同和代表状态目标稿。
 
 最新人工通过子专题：[Slice Category Inventory And Powered Storage V1](slice-category-inventory-and-powered-storage-v1.md) 与 [Slice World Device Family Integration V1](slice-world-device-family-integration-v1.md)——联合 schema 8、设备家族、实体物流、真实二值供电线和双档迁移闸门已收口。有限发电 / 负荷 / 储能专题排在视觉专题之后；[Slice Unified Device Operation Panels V1](slice-unified-device-operation-panels-v1.md) 核心仓库包 2 继续暂停。
 

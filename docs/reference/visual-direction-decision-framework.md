@@ -50,11 +50,11 @@
 
 | 参考 | 学习什么 | 不学习什么 |
 | --- | --- | --- |
-| [《终末地》DEV Comm//02](https://endfield.gryphline.com/en-us/news/1340) | 把设备组织成带自有平台、明确物流 / 管线接口和可扩展连接关系的设施模组；让仓储与吞吐关系直接进入空间读法 | 洁净 3D 白壳、具体设备造型、品牌标识、模型比例和界面版式 |
-| [Factorio 官方内容页](https://factorio.com/game/content) | 让生产、物流、供电和防御关系直接占据空间；用重复、方向和连接形成可读网络 | 脏褐主色、满屏同密度、具体 belt / machine 外形 |
-| [The Riftbreaker 官方 Press Kit](https://www.riftbreaker.com/press-kit/) | 让 ARPG 移动 / 战斗与基地建设共存；保留活跃异星色彩和屏幕边缘信息 | 3D 光效、强 bloom、霓虹 HUD 和演出规模 |
+| [《终末地》DEV Comm//02](https://endfield.gryphline.com/en-us/news/1340) | 设施模组、物流 / 管线接口、克制工业科幻壳层和清楚的操作焦点 | 洁净 3D 白壳、具体造型、品牌标识和原样界面版式 |
+| [Factorio 官方内容页](https://factorio.com/game/content) | 生产、物流、供电与防御的空间网络；高密度信息仍服从功能、图标和状态 | 脏褐主色、满屏同密度和具体 belt / machine 外形 |
+| [The Riftbreaker 官方 Press Kit](https://www.riftbreaker.com/press-kit/) | ARPG 移动 / 战斗与基地建设共存；屏幕边缘 HUD 和高优先危险反馈 | 3D 光效、强 bloom、霓虹装饰和演出规模 |
 
-综合映射是：以《终末地》的设施模组、物流接口与材质家族，Factorio 的空间网络可读性，The Riftbreaker 的异星色彩与 ARPG 视线共同校正项目；任何单一参考都不能单独定义成品。
+综合映射是：以《终末地》的设施模组与克制工业界面、Factorio 的空间网络和生产信息可读性、The Riftbreaker 的异星色彩与 ARPG 视线共同校正游戏本体；任何单一参考都不能单独定义成品。Radish 家族 UI 仅供 Wiki 与官方辅助工具参考，不进入游戏本体的色板、材质、排版或布局参考链。
 
 ## 归因与决策顺序
 
