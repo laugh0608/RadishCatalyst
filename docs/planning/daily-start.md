@@ -15,7 +15,7 @@
 - [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 已人工收口。
 - [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 建筑包 1 已人工通过；核心仓库包 2 暂停。
 - [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md) 已通过架构闸门并成为当前活跃专题。
-- [游戏本体 UI 视觉定稿 V1](../features/slice-game-ui-visual-finalization-v1.md) 已成为当前执行子专题；现有 UI 结构只作为功能基线，颜色与材质尚未定稿。
+- [游戏本体 UI 视觉定稿 V1](../features/slice-game-ui-visual-finalization-v1.md) 已完成 P0 全界面审计与减色合同；现有 UI 结构只作为功能基线，P1 目标稿尚未开始。
 - [分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 与 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合包 2 / 3 已提交，包 3 / 4 / 5 均获人工通过；包 5 的自动、正式入口和 AI 逐图复核证据已完整保留。
 
 ## 2026-07-29 收尾
@@ -45,7 +45,7 @@
 8. **联合包 1 等价地基已完成。**现行九类物品已统一定义，legacy profile 保持 `30 / 120 / 20 / 2 / 1`，库存调用迁到逐物品 / 原子 / 部分转移 API；方向、视觉、端点、逻辑供电探针和画线锚点已显式解耦，物流网改用统一运行时端点。
 9. **联合包 2 / 3 已提交，包 3 / 4 均已人工通过。**包 4 已把真实父边输出到中继四端子、核心和三类消费者顶部锚点，每边只画 `1px` 单段直线；供电专项 `139` 项与正式 `Boot` `64` 项通过。
 10. **包 5 综合闸门已通过。**正式 `Boot` 以 `138` 项断言覆盖真实新档和 schema 7 隔离旧档；两套主档、各三备份及 11 张截图已保留。逐图发现并修复放置态 `OUT` 文本裁切后，完整 Godot 与正式演练重跑通过，萝卜SAMA于 2026-08-09 确认收口。
-11. **视觉专题继续开启。**萝卜SAMA确认 HUD 与各面板仍是颜色过多、观感花哨的结构草稿；游戏本体废止 Radish 家族 UI 参考。34 张新参考已按 `8 / 9 / 9 / 8` 四批完成 `high` 读取，下一步审计项目全界面并建立减色合同，再做目标稿。
+11. **UI 定稿 P0 已完成，视觉专题继续开启。**34 张参考的受控读取结论已与正式入口现行界面交叉审计；20 类界面、共享减色合同和 8 个 P1 代表状态已冻结。下一步只制作代表状态目标稿；批准前不改 Theme、场景、控件或资产。
 
 ## 防跑偏规则
 
