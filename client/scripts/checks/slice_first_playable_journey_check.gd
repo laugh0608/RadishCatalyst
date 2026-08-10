@@ -2,14 +2,20 @@ extends SceneTree
 
 const SLICE_WORLD_SCENE := preload("res://scenes/slice/SliceWorld.tscn")
 const SLICE_UI_THEME := preload("res://assets/themes/slice_ui_theme.tres")
-const UI_ATTENTION_STYLE_PATH := "res://assets/themes/slice_ui_attention.tres"
-const UI_CARD_STYLE_PATH := "res://assets/themes/slice_ui_card.tres"
-const UI_SURFACE_STYLE_PATH := "res://assets/themes/slice_ui_surface.tres"
+const UI_HUD_ACCENT_STYLE_PATH := (
+	"res://assets/themes/slice_ui_hud_accent_shell.tres"
+)
+const UI_HUD_SHELL_STYLE_PATH := (
+	"res://assets/themes/slice_ui_hud_shell.tres"
+)
+const UI_HUD_SURFACE_STYLE_PATH := (
+	"res://assets/themes/slice_ui_hud_surface.tres"
+)
 const UI_SHELL_STYLE := preload("res://assets/themes/slice_ui_shell.tres")
 const UI_CARD_STYLE := preload("res://assets/themes/slice_ui_card.tres")
 const UI_SURFACE_STYLE := preload("res://assets/themes/slice_ui_surface.tres")
-const UI_PROGRESS_TRACK_STYLE_PATH := (
-	"res://assets/themes/slice_ui_progress_track.tres"
+const UI_HUD_PROGRESS_TRACK_STYLE_PATH := (
+	"res://assets/themes/slice_ui_hud_progress_track.tres"
 )
 
 var failures: Array[String] = []
@@ -100,6 +106,18 @@ func _run() -> void:
 		"every journey resource slot has a graphical identity"
 	)
 	_expect_equal(
+		(hud.get_node("RightStatusPanel/CrystalSlot/ItemName") as Label).text
+		== "晶体"
+		and (
+			hud.get_node("RightStatusPanel/CatalystSlot/ItemName") as Label
+		).text == "催化剂"
+		and (
+			hud.get_node("RightStatusPanel/PartSlot/ItemName") as Label
+		).text == "机械零件",
+		true,
+		"resource slots identify item meaning without relying on color"
+	)
+	_expect_equal(
 		hud.health_bar.value == 100.0
 		and hud.health_bar.max_value == 100.0,
 		true,
@@ -107,36 +125,36 @@ func _run() -> void:
 	)
 	_expect_equal(
 		_panel_style_path(hud.get_node("LeftStatusPanel"))
-		== UI_ATTENTION_STYLE_PATH,
+		== UI_HUD_ACCENT_STYLE_PATH,
 		true,
-		"mission HUD uses the shared attention role"
+		"mission HUD uses the dedicated A1 accent shell"
 	)
 	_expect_equal(
 		_panel_style_path(hud.get_node("RightStatusPanel"))
-		== UI_CARD_STYLE_PATH
+		== UI_HUD_SHELL_STYLE_PATH
 		and _panel_style_path(hud.get_node("PlayerStatusPanel"))
-		== UI_CARD_STYLE_PATH,
+		== UI_HUD_SHELL_STYLE_PATH,
 		true,
-		"inventory and player HUD use the shared card role"
+		"inventory and player HUD use the dedicated deep-steel shell"
 	)
 	_expect_equal(
 		_panel_style_path(
 			hud.get_node("RightStatusPanel/CrystalSlot")
-		) == UI_SURFACE_STYLE_PATH,
+		) == UI_HUD_SURFACE_STYLE_PATH,
 		true,
-		"resource slots use the shared recessed surface role"
+		"resource slots use the dedicated recessed HUD surface"
 	)
 	_expect_equal(
 		_panel_style_path(hud.get_node("PromptPanel"))
-		== UI_SURFACE_STYLE_PATH,
+		== UI_HUD_SHELL_STYLE_PATH,
 		true,
-		"interaction prompts use the shared recessed surface role"
+		"interaction prompts use the dedicated deep-steel shell"
 	)
 	_expect_equal(
 		_style_path(hud.health_bar, "background")
-		== UI_PROGRESS_TRACK_STYLE_PATH,
+		== UI_HUD_PROGRESS_TRACK_STYLE_PATH,
 		true,
-		"health bars use the shared progress track role"
+		"health bars use the dedicated HUD progress track"
 	)
 
 	world.mark_core_repaired()
@@ -376,6 +394,7 @@ func _check_contrast_panels(hud: SliceHud) -> void:
 		"RightStatusPanel",
 		"PlayerStatusPanel",
 		"PromptPanel",
+		"CombatActionPanel",
 	]:
 		var panel := hud.get_node_or_null(node_name) as Panel
 		_expect_equal(panel != null, true, "%s exists" % node_name)
@@ -399,9 +418,12 @@ func _check_contrast_panels(hud: SliceHud) -> void:
 	)
 	_expect_equal(
 		hud.enemy_health_bar != null
-		and hud.get_node("PromptPanel/PromptKey") is Panel,
+		and hud.get_node("PromptPanel/PromptKey") is Panel
+		and hud.get_node("CombatActionPanel/AttackKey") is Panel
+		and hud.get_node("CombatActionPanel/DodgeKey") is Panel
+		and hud.get_node("CombatNotice/Accent") is ColorRect,
 		true,
-		"conditional combat and interaction components use bars and keycaps"
+		"conditional combat and interaction components use bars, keycaps and accents"
 	)
 	var player_panel := hud.get_node("PlayerStatusPanel") as Panel
 	var prompt_panel := hud.get_node("PromptPanel") as Panel

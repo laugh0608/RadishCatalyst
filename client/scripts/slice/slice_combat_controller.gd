@@ -113,6 +113,7 @@ func _on_dodge_requested() -> void:
 	_player.start_dodge(direction, DODGE_DISTANCE, DODGE_DURATION)
 	dodge_cooldown_remaining = DODGE_COOLDOWN
 	invulnerable_remaining = DODGE_INVULNERABLE
+	_set_notice("闪避成功", 0.6)
 	if attack_phase != "active":
 		_finish_attack()
 	_emit_state_if_changed()
