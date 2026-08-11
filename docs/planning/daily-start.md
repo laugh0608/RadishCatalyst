@@ -15,7 +15,8 @@
 - [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 已人工收口。
 - [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 建筑包 1 已人工通过；核心仓库包 2 暂停。
 - [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md) 已通过架构闸门并成为当前活跃专题。
-- [游戏本体 UI 视觉定稿 V1](../features/slice-game-ui-visual-finalization-v1.md) 已完成 P0、P1、P2-A、P2-B 与 P2-C 并获萝卜SAMA人工通过；下一分面为 P2-D 核心交互，本次不启动。
+- [游戏本体 UI 视觉定稿 V1](../features/slice-game-ui-visual-finalization-v1.md) 已完成 P2-A、P2-B 与 P2-C 并获人工通过；P2-D 已完成实现与行为验证但等待整面定稿，P2-E 不启动。
+- [设备—传送带接驳视觉 V1](../features/slice-device-conveyor-docking-visual-v1.md) 已建立草案：空口短接口成立，整格终端带上层覆盖被人工否决；明日先做 P0 量测与层级审计。
 - [分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 与 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合包 2 / 3 已提交，包 3 / 4 / 5 均获人工通过；包 5 的自动、正式入口和 AI 逐图复核证据已完整保留。
 
 ## 2026-07-29 收尾
@@ -48,7 +49,8 @@
 11. **UI 定稿 P2-A 已通过。**基地边缘 HUD 与晶体区受击 / 闪避变体共用深钢壳层、钢蓝 `A1` 和局部红色；完整 Godot、正式 `Boot` `40` 项断言及九张色彩复核图完成后获萝卜SAMA人工通过。
 12. **远程攻击获得后续方向授权。**枪械不重开现行近战 V1，也不插入当前 UI P1；视觉专题关闭后先建立独立功能专题，明确工业供弹、输入、HUD、数值和存档边界再决定实现包。
 13. **UI 定稿 P2-B 已通过。**制造与分类背包成为同一宽幅深钢终端中的互斥视图；完整 Godot、正式 `Boot` `30` 项断言及阻塞 / 成功 / 背包九张色彩复核图均完成，并获萝卜SAMA人工通过。
-14. **UI 定稿 P2-C 已通过。**六类设备已接入专用深钢现场终端；完整 Godot、正式 `Boot` `42` 项断言及反应器 / 断链储物箱九张色彩复核图均通过，并获萝卜SAMA人工确认；本次不启动 P2-D。
+14. **UI 定稿 P2-C 已通过。**六类设备已接入专用深钢现场终端；完整 Godot、正式 `Boot` `42` 项断言及反应器 / 断链储物箱九张色彩复核图均通过，并获萝卜SAMA人工确认。
+15. **P2-D 已完成实现与行为验证。**核心仓库双栏整栏拖拽、动态减半和首次充能确认均已接入，项目内复测根同步完成；整面视觉尚待人工定稿。
 
 ## 2026-08-11 今日进展
 
@@ -56,6 +58,15 @@
 2. 鼠标、`B / Esc`、`1–7`、`Shift+1–7` 与权威制作路径通过；最终完整 Godot 及正式 `Boot` `30` 项专项通过，隔离主档和三备份保留。
 3. 阻塞、成功和分类背包三张原生图及六张低饱和 / 灰阶派生图已逐张复核，并获萝卜SAMA人工通过；本次只收口与提交 P2-B，不启动 P2-C。
 4. P2-C 只修改六类设备面板与本分面视觉资源：反应器收敛为真实单轴流程，储物箱只提升本地 `OUT 未连接`，其他设备按能力移除伪流程；自动、正式入口和九图复核均通过，随后获萝卜SAMA人工确认。
+5. P2-D 完成核心仓库双栏拖拽、动态减半与首次充能；完整 Godot、正式入口和真实指针验证通过，提交为 `07cf8aab`。
+6. 自动检查与人工复测存档统一迁入 Git 忽略的 `tools/runtime-intake/`，生产存档不变。
+7. 核心 / 反应器短接口已恢复；连接态完整终端带遮住设备主体，人工否决并升级为独立专题。
+
+## 2026-08-12 明日事项
+
+1. 先读 [设备—传送带接驳视觉 V1](../features/slice-device-conveyor-docking-visual-v1.md)，只做 P0：量测设备位置、短口外伸、连接格、终端带有效长度与 y-sort，标出允许 / 禁止覆盖区。
+2. 比较“局部接驳盖片 / mask”与“设备连接态变体”两种介质，给出影响文件和风险；未获萝卜SAMA确认前不修改正式代码或 PNG。
+3. 接驳专题与 P2-D 整面人工定稿完成前，不启动 P2-E 系统界面、远程武器或其他新包。
 
 ## 防跑偏规则
 
@@ -75,6 +86,7 @@
 - [Current Plan](current.md)
 - [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md)
 - [游戏本体 UI 视觉定稿 V1](../features/slice-game-ui-visual-finalization-v1.md)
+- [设备—传送带接驳视觉 V1](../features/slice-device-conveyor-docking-visual-v1.md)
 - [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md)
 - [分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md)
 - [第一可玩切片全链串通](../features/slice-first-playable-journey-v1.md)
