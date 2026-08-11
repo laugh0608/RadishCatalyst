@@ -4,12 +4,16 @@ extends CanvasLayer
 ## Unified operation panel for every placed building. Mouse buttons and numeric
 ## aliases share the same action methods; all mutations remain in SliceWorld.
 
+const DEVICE_SURFACE_STYLE := preload(
+	"res://assets/themes/slice_ui_device_surface.tres"
+)
+
 const TONE_COLORS := {
-	"ready": Color(0.035, 0.42, 0.4, 1.0),
-	"working": Color(0.106, 0.38, 0.55, 1.0),
-	"warning": Color(0.702, 0.392, 0.102, 1.0),
-	"fault": Color(0.722, 0.18, 0.149, 1.0),
-	"neutral": Color(0.24, 0.28, 0.28, 1.0),
+	"ready": Color(0.498, 0.573, 0.722, 1.0),
+	"working": Color(0.498, 0.573, 0.722, 1.0),
+	"warning": Color(0.804, 0.647, 0.408, 1.0),
+	"fault": Color(0.78, 0.4, 0.37, 1.0),
+	"neutral": Color(0.659, 0.698, 0.706, 1.0),
 }
 
 var _world: Node
@@ -43,6 +47,9 @@ var _inventory_buttons := {}
 @onready var _primary_title: Label = (
 	$Root/Window/Margin/Layout/Body/Identity/Primary/Margin/Text/Title
 )
+@onready var _primary_panel: PanelContainer = (
+	$Root/Window/Margin/Layout/Body/Identity/Primary
+)
 @onready var _status_row: VBoxContainer = (
 	$Root/Window/Margin/Layout/Body/Identity/StatusRow
 )
@@ -73,8 +80,11 @@ var _inventory_buttons := {}
 @onready var _inventory_grid: GridContainer = (
 	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/InventoryScroll/InventoryGrid
 )
-@onready var _flow_arrow: Label = (
-	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/FlowArrow
+@onready var _flow_arrow_in: Label = (
+	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/FlowArrowIn
+)
+@onready var _flow_arrow_out: Label = (
+	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/FlowArrowOut
 )
 @onready var _process_box: VBoxContainer = (
 	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/Process
@@ -100,8 +110,14 @@ var _inventory_buttons := {}
 @onready var _details: Label = (
 	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/DetailsPanel/Margin/Details
 )
+@onready var _details_panel: PanelContainer = (
+	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/DetailsPanel
+)
 @onready var _operations_empty: Label = (
 	$Root/Window/Margin/Layout/Body/Side/Operations/Margin/Layout/Empty
+)
+@onready var _operations_panel: PanelContainer = (
+	$Root/Window/Margin/Layout/Body/Side/Operations
 )
 @onready var _adjust_button: Button = (
 	$Root/Window/Margin/Layout/Body/Side/Maintenance/Margin/Layout/Buttons/Adjust
@@ -197,6 +213,33 @@ func current_snapshot() -> Dictionary:
 
 func primary_status_text() -> String:
 	return _primary_title.text
+
+
+func content_title_text() -> String:
+	return _content_title.text
+
+
+func process_axis_text() -> String:
+	var labels: Array[String] = []
+	if _slot_1.visible:
+		labels.append(
+			String(
+				(_slot_1.get_node("Margin/Layout/Label") as Label).text
+			)
+		)
+	if _process_box.visible:
+		labels.append(_process_title.text)
+	if _slot_2.visible:
+		labels.append(
+			String(
+				(_slot_2.get_node("Margin/Layout/Label") as Label).text
+			)
+		)
+	return " → ".join(labels)
+
+
+func result_visible() -> bool:
+	return _result_panel.visible
 
 
 func action_button(action_id: String) -> Button:
@@ -305,8 +348,10 @@ func _update_header() -> void:
 func _update_primary() -> void:
 	var primary: Dictionary = _snapshot["primary"]
 	_primary_title.text = String(primary["title"])
-	_primary_title.add_theme_color_override(
-		"font_color", _tone_color(String(primary["tone"]))
+	var tone := String(primary["tone"])
+	_primary_title.add_theme_color_override("font_color", _tone_color(tone))
+	_primary_panel.add_theme_stylebox_override(
+		"panel", _tone_surface(tone)
 	)
 
 
@@ -360,6 +405,7 @@ func _set_status_card(
 		"font_color", _tone_color(tone)
 	)
 	(text_box.get_node("Detail") as Label).text = detail
+	card.add_theme_stylebox_override("panel", _tone_surface(tone))
 
 
 func _update_content() -> void:
@@ -371,7 +417,8 @@ func _update_content() -> void:
 	_slot_2.visible = not (_snapshot["slot_2"] as Dictionary).is_empty()
 	var process: Dictionary = _snapshot["process"]
 	_process_box.visible = not process.is_empty()
-	_flow_arrow.visible = _slot_2.visible and _process_box.visible
+	_flow_arrow_in.visible = _slot_1.visible and _process_box.visible
+	_flow_arrow_out.visible = _slot_2.visible and _process_box.visible
 	if not process.is_empty():
 		_process_title.text = String(process["title"])
 		_process_progress.max_value = maxf(
@@ -392,6 +439,13 @@ func _update_content() -> void:
 		or _slot_2.visible
 		or _process_box.visible
 	)
+	_details_panel.size_flags_vertical = (
+		Control.SIZE_EXPAND_FILL
+		if not _flow_row.visible
+		and not _inventory_scroll.visible
+		and not _capacity_box.visible
+		else Control.SIZE_SHRINK_BEGIN
+	)
 	_details.text = String(_snapshot["details"])
 
 
@@ -411,6 +465,7 @@ func _update_inventory_selector() -> void:
 		if button == null:
 			continue
 		var selected := item_id == _selected_storage_item_id
+		button.button_pressed = selected
 		button.text = "%s%s\n箱 %d / %d · 包 %d / %d" % [
 			"▶ " if selected else "",
 			String(item["short_name"]),
@@ -435,6 +490,7 @@ func _rebuild_inventory_buttons(next_order: Array[String]) -> void:
 		var button := Button.new()
 		button.custom_minimum_size = Vector2(130, 68)
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.toggle_mode = true
 		button.pressed.connect(_on_storage_item_selected.bind(item_id))
 		_inventory_grid.add_child(button)
 		_inventory_buttons[item_id] = button
@@ -466,6 +522,7 @@ func _set_item_slot(
 func _update_operations() -> void:
 	var operations: Array = _snapshot["operations"]
 	_operations_empty.visible = operations.is_empty()
+	_operations_panel.custom_minimum_size.y = 86.0 + operations.size() * 56.0
 	for index in range(_operation_buttons.size()):
 		var button := _operation_buttons[index]
 		button.visible = index < operations.size()
@@ -512,10 +569,8 @@ func _update_maintenance() -> void:
 	_maintenance_reason.visible = not maintenance_reasons.is_empty()
 	_maintenance_reason.text = "\n".join(maintenance_reasons)
 	_demolition_confirm.visible = _confirming_demolition
-	_result_panel.visible = true
-	_result_text.text = (
-		_result if not _result.is_empty() else "设备状态已刷新"
-	)
+	_result_panel.visible = not _result.is_empty()
+	_result_text.text = _result
 
 
 func _on_operation_pressed(index: int) -> void:
@@ -663,6 +718,13 @@ func _cancel_demolition() -> void:
 
 func _tone_color(tone: String) -> Color:
 	return TONE_COLORS.get(tone, TONE_COLORS["neutral"]) as Color
+
+
+func _tone_surface(tone: String) -> StyleBoxFlat:
+	var style := DEVICE_SURFACE_STYLE.duplicate() as StyleBoxFlat
+	style.border_width_left = 3
+	style.border_color = _tone_color(tone)
+	return style
 
 
 func _on_building_storage_changed(instance_id: String) -> void:

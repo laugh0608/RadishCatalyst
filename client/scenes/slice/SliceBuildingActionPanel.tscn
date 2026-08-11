@@ -1,15 +1,15 @@
 [gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/slice/slice_building_action_panel.gd" id="1_panel"]
-[ext_resource type="Theme" path="res://assets/themes/slice_ui_theme.tres" id="2_ui_theme"]
-[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_shell.tres" id="3_shell"]
-[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_terminal_chrome.tres" id="4_chrome"]
-[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_primary.tres" id="5_primary"]
-[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_card.tres" id="6_card"]
-[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_surface.tres" id="7_surface"]
-[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_attention.tres" id="8_attention"]
-[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_progress_track.tres" id="9_progress_track"]
-[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_progress_fill.tres" id="10_progress_fill"]
+[ext_resource type="Theme" path="res://assets/themes/slice_ui_device_theme.tres" id="2_ui_theme"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_device_shell.tres" id="3_shell"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_device_chrome.tres" id="4_chrome"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_device_surface.tres" id="5_primary"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_device_surface.tres" id="6_card"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_device_surface.tres" id="7_surface"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_device_surface.tres" id="8_attention"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_device_progress_track.tres" id="9_progress_track"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_device_progress_fill.tres" id="10_progress_fill"]
 
 [node name="SliceBuildingActionPanel" type="CanvasLayer"]
 layer = 30
@@ -28,7 +28,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.05, 0.06, 0.06, 0.04)
+color = Color(0.025, 0.043, 0.051, 0.18)
 mouse_filter = 0
 
 [node name="Window" type="PanelContainer" parent="Root"]
@@ -38,35 +38,35 @@ anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
 offset_left = -1252.0
-offset_top = -356.0
+offset_top = -388.0
 offset_right = -28.0
-offset_bottom = 412.0
+offset_bottom = 388.0
 grow_horizontal = 0
 grow_vertical = 2
 theme_override_styles/panel = ExtResource("3_shell")
 
 [node name="Margin" type="MarginContainer" parent="Root/Window"]
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 12
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 10
 
 [node name="Layout" type="VBoxContainer" parent="Root/Window/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 0
 
 [node name="Header" type="PanelContainer" parent="Root/Window/Margin/Layout"]
-custom_minimum_size = Vector2(0, 96)
+custom_minimum_size = Vector2(0, 74)
 layout_mode = 2
 theme_override_styles/panel = ExtResource("4_chrome")
 
 [node name="Margin" type="MarginContainer" parent="Root/Window/Margin/Layout/Header"]
 layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 10
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 10
+theme_override_constants/margin_bottom = 8
 
 [node name="Row" type="HBoxContainer" parent="Root/Window/Margin/Layout/Header/Margin"]
 layout_mode = 2
@@ -79,37 +79,37 @@ alignment = 1
 
 [node name="Terminal" type="Label" parent="Root/Window/Margin/Layout/Header/Margin/Row/Identity"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.82, 0.86, 0.83, 1)
-theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.91, 0.929, 0.922, 1)
+theme_override_font_sizes/font_size = 24
 text = "现场设备终端"
 
 [node name="Instance" type="Label" parent="Root/Window/Margin/Layout/Header/Margin/Row/Identity"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.55, 0.64, 0.62, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
+theme_override_font_sizes/font_size = 14
 text = "设备名称 / INSTANCE"
 
 [node name="Status" type="VBoxContainer" parent="Root/Window/Margin/Layout/Header/Margin/Row"]
-custom_minimum_size = Vector2(260, 0)
+custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
 alignment = 1
 
 [node name="Label" type="Label" parent="Root/Window/Margin/Layout/Header/Margin/Row/Status"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.55, 0.64, 0.62, 1)
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
 theme_override_font_sizes/font_size = 14
 text = "运行状态"
 horizontal_alignment = 2
 
 [node name="Value" type="Label" parent="Root/Window/Margin/Layout/Header/Margin/Row/Status"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.31, 0.77, 0.73, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.498, 0.573, 0.722, 1)
+theme_override_font_sizes/font_size = 20
 text = "待命"
 horizontal_alignment = 2
 
 [node name="Close" type="Button" parent="Root/Window/Margin/Layout/Header/Margin/Row"]
-custom_minimum_size = Vector2(164, 58)
+custom_minimum_size = Vector2(146, 48)
 layout_mode = 2
 theme_override_font_sizes/font_size = 17
 text = "Esc 关闭"
@@ -117,12 +117,12 @@ text = "Esc 关闭"
 [node name="Body" type="HBoxContainer" parent="Root/Window/Margin/Layout"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 
 [node name="Identity" type="VBoxContainer" parent="Root/Window/Margin/Layout/Body"]
-custom_minimum_size = Vector2(336, 0)
+custom_minimum_size = Vector2(292, 0)
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 7
 
 [node name="SectionHeader" type="HBoxContainer" parent="Root/Window/Margin/Layout/Body/Identity"]
 layout_mode = 2
@@ -130,16 +130,16 @@ layout_mode = 2
 [node name="Accent" type="ColorRect" parent="Root/Window/Margin/Layout/Body/Identity/SectionHeader"]
 custom_minimum_size = Vector2(6, 0)
 layout_mode = 2
-color = Color(0.702, 0.392, 0.102, 1)
+color = Color(0.498, 0.573, 0.722, 1)
 
 [node name="Title" type="Label" parent="Root/Window/Margin/Layout/Body/Identity/SectionHeader"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.118, 0.145, 0.149, 1)
+theme_override_colors/font_color = Color(0.91, 0.929, 0.922, 1)
 theme_override_font_sizes/font_size = 20
 text = "设备身份"
 
 [node name="IdentityCard" type="PanelContainer" parent="Root/Window/Margin/Layout/Body/Identity"]
-custom_minimum_size = Vector2(0, 180)
+custom_minimum_size = Vector2(0, 168)
 layout_mode = 2
 theme_override_styles/panel = ExtResource("6_card")
 
@@ -163,14 +163,14 @@ stretch_mode = 5
 
 [node name="Category" type="Label" parent="Root/Window/Margin/Layout/Body/Identity/IdentityCard/Margin/Layout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.035, 0.42, 0.4, 1)
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
 theme_override_font_sizes/font_size = 14
 text = "设备类别"
 horizontal_alignment = 1
 
 [node name="Title" type="Label" parent="Root/Window/Margin/Layout/Body/Identity/IdentityCard/Margin/Layout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.118, 0.145, 0.149, 1)
+theme_override_colors/font_color = Color(0.91, 0.929, 0.922, 1)
 theme_override_font_sizes/font_size = 21
 text = "设备名称"
 horizontal_alignment = 1
@@ -196,7 +196,7 @@ layout_mode = 2
 
 [node name="Title" type="Label" parent="Root/Window/Margin/Layout/Body/Identity/StatusRow/PowerCard/Margin/Text"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.24, 0.28, 0.28, 1)
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
 theme_override_font_sizes/font_size = 14
 text = "电力"
 
@@ -207,7 +207,7 @@ text = "在线"
 
 [node name="Detail" type="Label" parent="Root/Window/Margin/Layout/Body/Identity/StatusRow/PowerCard/Margin/Text"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.24, 0.28, 0.28, 1)
+theme_override_colors/font_color = Color(0.537, 0.576, 0.588, 1)
 theme_override_font_sizes/font_size = 13
 text = "供电连接稳定"
 text_overrun_behavior = 3
@@ -217,7 +217,7 @@ layout_mode = 2
 theme_override_constants/separation = 6
 
 [node name="Port1" type="PanelContainer" parent="Root/Window/Margin/Layout/Body/Identity/StatusRow/Ports"]
-custom_minimum_size = Vector2(0, 88)
+custom_minimum_size = Vector2(0, 94)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = ExtResource("7_surface")
@@ -234,7 +234,7 @@ layout_mode = 2
 
 [node name="Title" type="Label" parent="Root/Window/Margin/Layout/Body/Identity/StatusRow/Ports/Port1/Margin/Text"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.24, 0.28, 0.28, 1)
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
 theme_override_font_sizes/font_size = 13
 text = "IN"
 
@@ -245,13 +245,13 @@ text = "未连接"
 
 [node name="Detail" type="Label" parent="Root/Window/Margin/Layout/Body/Identity/StatusRow/Ports/Port1/Margin/Text"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.24, 0.28, 0.28, 1)
+theme_override_colors/font_color = Color(0.537, 0.576, 0.588, 1)
 theme_override_font_sizes/font_size = 12
 text = "端口状态"
-text_overrun_behavior = 3
+autowrap_mode = 2
 
 [node name="Port2" type="PanelContainer" parent="Root/Window/Margin/Layout/Body/Identity/StatusRow/Ports"]
-custom_minimum_size = Vector2(0, 88)
+custom_minimum_size = Vector2(0, 94)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = ExtResource("7_surface")
@@ -268,7 +268,7 @@ layout_mode = 2
 
 [node name="Title" type="Label" parent="Root/Window/Margin/Layout/Body/Identity/StatusRow/Ports/Port2/Margin/Text"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.24, 0.28, 0.28, 1)
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
 theme_override_font_sizes/font_size = 13
 text = "OUT"
 
@@ -279,12 +279,13 @@ text = "未连接"
 
 [node name="Detail" type="Label" parent="Root/Window/Margin/Layout/Body/Identity/StatusRow/Ports/Port2/Margin/Text"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.24, 0.28, 0.28, 1)
+theme_override_colors/font_color = Color(0.537, 0.576, 0.588, 1)
 theme_override_font_sizes/font_size = 12
 text = "端口状态"
-text_overrun_behavior = 3
+autowrap_mode = 2
 
 [node name="Primary" type="PanelContainer" parent="Root/Window/Margin/Layout/Body/Identity"]
+visible = false
 custom_minimum_size = Vector2(0, 76)
 layout_mode = 2
 theme_override_styles/panel = ExtResource("5_primary")
@@ -302,13 +303,13 @@ alignment = 1
 
 [node name="Title" type="Label" parent="Root/Window/Margin/Layout/Body/Identity/Primary/Margin/Text"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.035, 0.42, 0.4, 1)
+theme_override_colors/font_color = Color(0.498, 0.573, 0.722, 1)
 theme_override_font_sizes/font_size = 20
 text = "设备状态"
 autowrap_mode = 2
 
 [node name="Material" type="VBoxContainer" parent="Root/Window/Margin/Layout/Body"]
-custom_minimum_size = Vector2(460, 0)
+custom_minimum_size = Vector2(520, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
@@ -319,11 +320,11 @@ layout_mode = 2
 [node name="Accent" type="ColorRect" parent="Root/Window/Margin/Layout/Body/Material/SectionHeader"]
 custom_minimum_size = Vector2(6, 0)
 layout_mode = 2
-color = Color(0.702, 0.392, 0.102, 1)
+color = Color(0.498, 0.573, 0.722, 1)
 
 [node name="Title" type="Label" parent="Root/Window/Margin/Layout/Body/Material/SectionHeader"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.118, 0.145, 0.149, 1)
+theme_override_colors/font_color = Color(0.91, 0.929, 0.922, 1)
 theme_override_font_sizes/font_size = 20
 text = "物料与流程"
 
@@ -345,7 +346,7 @@ theme_override_constants/separation = 8
 
 [node name="Title" type="Label" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.118, 0.145, 0.149, 1)
+theme_override_colors/font_color = Color(0.91, 0.929, 0.922, 1)
 theme_override_font_sizes/font_size = 20
 text = "设备内容"
 
@@ -363,13 +364,13 @@ theme_override_constants/v_separation = 6
 columns = 3
 
 [node name="FlowRow" type="HBoxContainer" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout"]
-custom_minimum_size = Vector2(0, 226)
+custom_minimum_size = Vector2(0, 206)
 layout_mode = 2
 alignment = 1
 theme_override_constants/separation = 8
 
 [node name="Slot1" type="PanelContainer" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow"]
-custom_minimum_size = Vector2(118, 154)
+custom_minimum_size = Vector2(124, 150)
 layout_mode = 2
 theme_override_styles/panel = ExtResource("7_surface")
 
@@ -400,27 +401,27 @@ horizontal_alignment = 1
 
 [node name="Count" type="Label" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/Slot1/Margin/Layout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.118, 0.145, 0.149, 1)
+theme_override_colors/font_color = Color(0.91, 0.929, 0.922, 1)
 theme_override_font_sizes/font_size = 18
 text = "0 / 0"
 horizontal_alignment = 1
 
-[node name="FlowArrow" type="Label" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow"]
+[node name="FlowArrowIn" type="Label" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.702, 0.392, 0.102, 1)
-theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(0.498, 0.573, 0.722, 1)
+theme_override_font_sizes/font_size = 24
 text = "→"
 vertical_alignment = 1
 
 [node name="Process" type="VBoxContainer" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow"]
-custom_minimum_size = Vector2(142, 0)
+custom_minimum_size = Vector2(168, 0)
 layout_mode = 2
 alignment = 1
 theme_override_constants/separation = 8
 
 [node name="Title" type="Label" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/Process"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.118, 0.145, 0.149, 1)
+theme_override_colors/font_color = Color(0.91, 0.929, 0.922, 1)
 theme_override_font_sizes/font_size = 16
 text = "处理进度"
 horizontal_alignment = 1
@@ -435,13 +436,20 @@ theme_override_styles/fill = ExtResource("10_progress_fill")
 
 [node name="ProgressText" type="Label" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/Process"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.24, 0.28, 0.28, 1)
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
 theme_override_font_sizes/font_size = 14
 text = "0.0 / 1.0"
 horizontal_alignment = 1
 
+[node name="FlowArrowOut" type="Label" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.498, 0.573, 0.722, 1)
+theme_override_font_sizes/font_size = 24
+text = "→"
+vertical_alignment = 1
+
 [node name="Slot2" type="PanelContainer" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow"]
-custom_minimum_size = Vector2(118, 154)
+custom_minimum_size = Vector2(124, 150)
 layout_mode = 2
 theme_override_styles/panel = ExtResource("7_surface")
 
@@ -472,7 +480,7 @@ horizontal_alignment = 1
 
 [node name="Count" type="Label" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/Slot2/Margin/Layout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.118, 0.145, 0.149, 1)
+theme_override_colors/font_color = Color(0.91, 0.929, 0.922, 1)
 theme_override_font_sizes/font_size = 18
 text = "0 / 0"
 horizontal_alignment = 1
@@ -497,8 +505,8 @@ text = "容量 0 / 0"
 horizontal_alignment = 2
 
 [node name="DetailsPanel" type="PanelContainer" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout"]
+custom_minimum_size = Vector2(0, 86)
 layout_mode = 2
-size_flags_vertical = 3
 theme_override_styles/panel = ExtResource("5_primary")
 
 [node name="Margin" type="MarginContainer" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/DetailsPanel"]
@@ -510,14 +518,14 @@ theme_override_constants/margin_bottom = 10
 
 [node name="Details" type="Label" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/DetailsPanel/Margin"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.24, 0.28, 0.28, 1)
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
 theme_override_font_sizes/font_size = 15
 text = "设备说明"
 autowrap_mode = 2
 vertical_alignment = 1
 
 [node name="Side" type="VBoxContainer" parent="Root/Window/Margin/Layout/Body"]
-custom_minimum_size = Vector2(360, 0)
+custom_minimum_size = Vector2(330, 0)
 layout_mode = 2
 theme_override_constants/separation = 8
 
@@ -527,11 +535,11 @@ layout_mode = 2
 [node name="Accent" type="ColorRect" parent="Root/Window/Margin/Layout/Body/Side/SectionHeader"]
 custom_minimum_size = Vector2(6, 0)
 layout_mode = 2
-color = Color(0.702, 0.392, 0.102, 1)
+color = Color(0.498, 0.573, 0.722, 1)
 
 [node name="Title" type="Label" parent="Root/Window/Margin/Layout/Body/Side/SectionHeader"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.118, 0.145, 0.149, 1)
+theme_override_colors/font_color = Color(0.91, 0.929, 0.922, 1)
 theme_override_font_sizes/font_size = 20
 text = "现场操作"
 
@@ -553,13 +561,13 @@ theme_override_constants/separation = 6
 
 [node name="Title" type="Label" parent="Root/Window/Margin/Layout/Body/Side/Operations/Margin/Layout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.118, 0.145, 0.149, 1)
+theme_override_colors/font_color = Color(0.91, 0.929, 0.922, 1)
 theme_override_font_sizes/font_size = 18
 text = "设备操作"
 
 [node name="Empty" type="Label" parent="Root/Window/Margin/Layout/Body/Side/Operations/Margin/Layout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.32, 0.34, 0.32, 1)
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
 theme_override_font_sizes/font_size = 15
 text = "该设施没有主动操作"
 autowrap_mode = 2
@@ -589,7 +597,8 @@ theme_override_font_sizes/font_size = 16
 text = "操作 4"
 
 [node name="Result" type="PanelContainer" parent="Root/Window/Margin/Layout/Body/Side"]
-custom_minimum_size = Vector2(0, 96)
+visible = false
+custom_minimum_size = Vector2(0, 78)
 layout_mode = 2
 theme_override_styles/panel = ExtResource("8_attention")
 
@@ -602,7 +611,7 @@ theme_override_constants/margin_bottom = 8
 
 [node name="Text" type="Label" parent="Root/Window/Margin/Layout/Body/Side/Result/Margin"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.35, 0.24, 0.08, 1)
+theme_override_colors/font_color = Color(0.804, 0.647, 0.408, 1)
 theme_override_font_sizes/font_size = 15
 text = "操作结果"
 autowrap_mode = 2
@@ -625,7 +634,7 @@ theme_override_constants/separation = 6
 
 [node name="Title" type="Label" parent="Root/Window/Margin/Layout/Body/Side/Maintenance/Margin/Layout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.24, 0.28, 0.28, 1)
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
 theme_override_font_sizes/font_size = 16
 text = "设施维护"
 
@@ -644,13 +653,13 @@ text = "[1] 调整"
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.722, 0.18, 0.149, 1)
+theme_override_colors/font_color = Color(0.78, 0.4, 0.37, 1)
 theme_override_font_sizes/font_size = 16
 text = "[2] 拆除"
 
 [node name="BlockReason" type="Label" parent="Root/Window/Margin/Layout/Body/Side/Maintenance/Margin/Layout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.702, 0.392, 0.102, 1)
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
 theme_override_font_sizes/font_size = 13
 text = "维护阻塞原因"
 autowrap_mode = 2
@@ -663,7 +672,7 @@ theme_override_constants/separation = 8
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.722, 0.18, 0.149, 1)
+theme_override_colors/font_color = Color(0.78, 0.4, 0.37, 1)
 theme_override_font_sizes/font_size = 14
 text = "确认拆除"
 
@@ -675,13 +684,13 @@ theme_override_font_sizes/font_size = 14
 text = "取消"
 
 [node name="Footer" type="PanelContainer" parent="Root/Window/Margin/Layout"]
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 theme_override_styles/panel = ExtResource("4_chrome")
 
 [node name="Text" type="Label" parent="Root/Window/Margin/Layout/Footer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.55, 0.64, 0.62, 1)
+theme_override_colors/font_color = Color(0.537, 0.576, 0.588, 1)
 theme_override_font_sizes/font_size = 14
 text = "鼠标操作 · 数字键保留为快捷键 · Esc 关闭"
 horizontal_alignment = 1

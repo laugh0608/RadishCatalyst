@@ -190,12 +190,12 @@ static func _apply_storage(
 		if String(port["state"]) == "wrong_direction":
 			primary = {
 				"tone": "fault",
-				"title": "物流方向错误",
+				"title": "%s 方向错误" % String(port["label"]),
 			}
 		elif String(port["state"]) == "unconnected":
 			primary = {
 				"tone": "warning",
-				"title": "物流口未连接",
+				"title": "%s 未连接" % String(port["label"]),
 			}
 	snapshot["primary"] = primary
 	snapshot["content_title"] = "箱内物料 · 选择一类操作"
@@ -216,11 +216,11 @@ static func _apply_storage(
 		else _item_name_or_id(storage.output_item_id)
 	)
 	snapshot["details"] = (
-		"存储模式：右侧 OUT，通电后供给 %s。手动存取不受断电影响。"
+		"存储模式：右侧 OUT，通电后供给 %s；物流断链时手动存取仍可用。"
 		% output_name
 		if storage.mode == SliceStorage.MODE_SUPPLY
 		else (
-			"传输模式：左侧 IN 始终可接货；无线回传计时 %.1f / %.1f 秒，每次最多 %d 件。"
+			"传输模式：左侧 IN 始终可接货；无线回传 %.1f / %.1f 秒，每次最多 %d 件，手动存取仍可用。"
 			% [
 				storage.transfer_progress,
 				SliceStorage.TRANSFER_INTERVAL,
@@ -308,21 +308,21 @@ static func _apply_reactor(
 		and world.pocket.can_add_batch(recovery_batch)
 	)
 	snapshot["primary"] = primary
-	snapshot["content_title"] = "固定配方反应"
+	snapshot["content_title"] = "反应流程"
 	snapshot["slot_1"] = _item_slot(
-		_item_name(SliceWorld.ITEM_CRYSTAL),
+		"IN · 2 %s" % _item_name(SliceWorld.ITEM_CRYSTAL),
 		input_count,
 		SliceReactor.INPUT_CAPACITY,
 		_item_icon(SliceWorld.ITEM_CRYSTAL)
 	)
 	snapshot["slot_2"] = _item_slot(
-		_item_name(SliceWorld.ITEM_CATALYST),
+		"OUT · 1 %s" % _item_name(SliceWorld.ITEM_CATALYST),
 		output_count,
 		SliceReactor.OUTPUT_CAPACITY,
 		_item_icon(SliceWorld.ITEM_CATALYST)
 	)
 	snapshot["process"] = {
-		"title": "2 晶体  →  1 催化剂",
+		"title": "加工 · 10 秒",
 		"value": reactor.production_progress,
 		"maximum": SliceReactor.PROCESS_DURATION,
 		"text": "%.1f / %.1f 秒" % [

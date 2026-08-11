@@ -5,7 +5,9 @@ const CRAFT_SURFACE_STYLE := preload(
 	"res://assets/themes/slice_ui_craft_surface.tres"
 )
 const CRAFT_SHELL_STYLE_PATH := "res://assets/themes/slice_ui_craft_shell.tres"
-const UI_SHELL_STYLE_PATH := "res://assets/themes/slice_ui_shell.tres"
+const DEVICE_SHELL_STYLE_PATH := (
+	"res://assets/themes/slice_ui_device_shell.tres"
+)
 
 var failures: Array[String] = []
 var _save_dir := ""
@@ -239,9 +241,9 @@ func _check_world_operations() -> void:
 		) == CRAFT_SHELL_STYLE_PATH
 		and _panel_style_path(
 			world._building_action_panel.get_node("Root/Window")
-		) == UI_SHELL_STYLE_PATH,
+		) == DEVICE_SHELL_STYLE_PATH,
 		true,
-		"P2-B scopes its dark shell without preemptively changing devices"
+		"P2-B and P2-C keep separate scoped dark shells"
 	)
 	var first_recipe_style := (
 		world._craft_panel.recipe_card("part").get_theme_stylebox(
@@ -437,7 +439,40 @@ func _check_world_operations() -> void:
 	)
 
 	world.pocket.add(SliceWorld.ITEM_CRYSTAL, 2)
+	# P2-C's disconnected representative keeps power available so the local
+	# OUT fault, rather than the higher-priority power fault, is the focus.
+	storage.powered = true
+	storage.inventory.add(SliceWorld.ITEM_CRYSTAL, 1)
+	storage.output_item_id = SliceWorld.ITEM_CRYSTAL
 	world.open_building_actions(storage)
+	_expect_equal(
+		world._building_action_panel.primary_status_text(),
+		"OUT 未连接",
+		"storage promotes only its authoritative disconnected output"
+	)
+	_expect_equal(
+		world._building_action_panel.result_visible(),
+		false,
+		"device feedback stays quiet until an operation produces a result"
+	)
+	_expect_equal(
+		String(
+			world._building_action_panel.current_snapshot()["details"]
+		).contains("手动存取仍可用"),
+		true,
+		"disconnected storage keeps manual transfer visibly available"
+	)
+	var storage_snapshot := world._building_action_panel.current_snapshot()
+	_expect_equal(
+		not (storage_snapshot["inventory_items"] as Array).is_empty()
+		and (storage_snapshot["slot_1"] as Dictionary).is_empty()
+		and (storage_snapshot["process"] as Dictionary).is_empty(),
+		true,
+		"storage uses its inventory selector without fake production slots"
+	)
+	storage.inventory.remove(SliceWorld.ITEM_CRYSTAL, 1)
+	storage.output_item_id = ""
+	world._building_action_panel._refresh()
 	_expect_equal(
 		world._building_action_panel.port_state(0),
 		"unconnected",
@@ -515,14 +550,38 @@ func _check_world_operations() -> void:
 	world.open_building_actions(placed_reactor)
 	var reactor_snapshot := world._building_action_panel.current_snapshot()
 	_expect_equal(
+		world._building_action_panel.content_title_text(),
+		"反应流程",
+		"reactor promotes its material flow instead of a generic device form"
+	)
+	_expect_equal(
 		(reactor_snapshot["ports"] as Array).size(),
 		2,
 		"reactor panel exposes separate IN and OUT state cards"
 	)
 	_expect_equal(
 		String((reactor_snapshot["process"] as Dictionary)["title"]),
-		"2 晶体  →  1 催化剂",
-		"reactor panel presents the fixed recipe as a flow"
+		"加工 · 10 秒",
+		"reactor panel keeps material amounts and duration on one flow axis"
+	)
+	_expect_equal(
+		world._building_action_panel.process_axis_text(),
+		"IN · 2 晶体 → 加工 · 10 秒 → OUT · 1 催化剂",
+		"reactor visually orders IN, process and OUT without a duplicate list"
+	)
+	_expect_equal(
+		(
+			world._building_action_panel.get_node(
+				"Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/FlowArrowIn"
+			) as Label
+		).visible
+		and (
+			world._building_action_panel.get_node(
+				"Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/FlowArrowOut"
+			) as Label
+		).visible,
+		true,
+		"reactor shows both directional links on the single process axis"
 	)
 	var recover_reactor := world._building_action_panel.action_button(
 		"recover_reactor"
@@ -541,6 +600,49 @@ func _check_world_operations() -> void:
 	)
 	world._building_action_panel.close()
 	world.pocket.remove(SliceWorld.ITEM_CRYSTAL, 2)
+
+	var conveyor_snapshot := SliceBuildingPanelSnapshot.build(
+		world, conveyor
+	)
+	_expect_equal(
+		String(conveyor_snapshot["content_title"]),
+		"输送状态",
+		"conveyor keeps its transport-specific surface"
+	)
+	_expect_equal(
+		not (conveyor_snapshot["slot_1"] as Dictionary).is_empty()
+		and not (conveyor_snapshot["process"] as Dictionary).is_empty()
+		and (conveyor_snapshot["slot_2"] as Dictionary).is_empty(),
+		true,
+		"conveyor does not inherit a fake second production slot"
+	)
+	var relay_snapshot := SliceBuildingPanelSnapshot.build(world, relay)
+	_expect_equal(
+		String(relay_snapshot["content_title"]),
+		"供电影响",
+		"relay keeps its power-impact surface"
+	)
+	_expect_equal(
+		(relay_snapshot["slot_1"] as Dictionary).is_empty()
+		and (relay_snapshot["process"] as Dictionary).is_empty(),
+		true,
+		"relay does not display invented load or production values"
+	)
+	var floor_snapshot := SliceBuildingPanelSnapshot.build(
+		world, standalone_floor
+	)
+	_expect_equal(
+		String(floor_snapshot["content_title"]),
+		"地面支撑",
+		"floor keeps its passive structural surface"
+	)
+	_expect_equal(
+		(floor_snapshot["power"] as Dictionary).is_empty()
+		and (floor_snapshot["ports"] as Array).is_empty()
+		and (floor_snapshot["process"] as Dictionary).is_empty(),
+		true,
+		"floor does not masquerade as a powered processing device"
+	)
 
 	var reactor_id := reactor.instance_id
 	_expect_equal(
@@ -826,6 +928,21 @@ func _check_world_operations() -> void:
 		0,
 		{"buffer": 1}
 	) as SliceCollector
+	var collector_snapshot := SliceBuildingPanelSnapshot.build(
+		world, collector
+	)
+	_expect_equal(
+		String(collector_snapshot["content_title"]),
+		"产出缓冲",
+		"collector keeps its output-buffer surface"
+	)
+	_expect_equal(
+		not (collector_snapshot["slot_1"] as Dictionary).is_empty()
+		and not (collector_snapshot["process"] as Dictionary).is_empty()
+		and (collector_snapshot["slot_2"] as Dictionary).is_empty(),
+		true,
+		"collector does not inherit the reactor output slot"
+	)
 	_expect_equal(
 		world.demolition_block_reason(collector),
 		"先取空采集器",
