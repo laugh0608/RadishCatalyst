@@ -1,7 +1,7 @@
 extends SceneTree
 
-const TEST_ROOT := "/private/tmp/radishcatalyst-slice-save-catalog-check"
-const MIGRATION_ROOT := "/private/tmp/radishcatalyst-slice-save-catalog-migration-check"
+var TEST_ROOT := SliceCheckPaths.check_run("save-catalog", false)
+var MIGRATION_ROOT := SliceCheckPaths.check_run("save-catalog-migration", false)
 
 var failures: Array[String] = []
 var assertion_count := 0

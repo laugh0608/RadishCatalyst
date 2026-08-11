@@ -1,11 +1,10 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/slice/slice_core_storage_panel.gd" id="1_panel"]
-[ext_resource type="Theme" path="res://assets/themes/slice_ui_theme.tres" id="2_theme"]
-[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_shell.tres" id="3_shell"]
-[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_terminal_chrome.tres" id="4_chrome"]
-[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_surface.tres" id="5_surface"]
-[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_primary.tres" id="6_primary"]
+[ext_resource type="Theme" path="res://assets/themes/slice_ui_core_theme.tres" id="2_theme"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_core_shell.tres" id="3_shell"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_core_chrome.tres" id="4_chrome"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_core_surface.tres" id="5_surface"]
 
 [node name="SliceCoreStoragePanel" type="CanvasLayer"]
 layer = 30
@@ -24,7 +23,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.05, 0.06, 0.06, 0.18)
+color = Color(0.012, 0.02, 0.024, 0.72)
 mouse_filter = 0
 
 [node name="Window" type="PanelContainer" parent="Root"]
@@ -33,10 +32,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -590.0
-offset_top = -360.0
-offset_right = 590.0
-offset_bottom = 360.0
+offset_left = -613.0
+offset_top = -365.0
+offset_right = 613.0
+offset_bottom = 365.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = ExtResource("3_shell")
@@ -53,7 +52,7 @@ layout_mode = 2
 theme_override_constants/separation = 10
 
 [node name="Header" type="PanelContainer" parent="Root/Window/Margin/Layout"]
-custom_minimum_size = Vector2(0, 88)
+custom_minimum_size = Vector2(0, 84)
 layout_mode = 2
 theme_override_styles/panel = ExtResource("4_chrome")
 
@@ -75,126 +74,147 @@ alignment = 1
 
 [node name="Title" type="Label" parent="Root/Window/Margin/Layout/Header/Margin/Row/Identity"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.82, 0.86, 0.83, 1)
-theme_override_font_sizes/font_size = 28
-text = "前哨核心仓库"
+theme_override_colors/font_color = Color(0.863, 0.886, 0.878, 1)
+theme_override_font_sizes/font_size = 27
+text = "前哨核心 · 物资交换"
 
 [node name="Subtitle" type="Label" parent="Root/Window/Margin/Layout/Header/Margin/Row/Identity"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.55, 0.64, 0.62, 1)
-theme_override_font_sizes/font_size = 16
-text = "每类物品独立存储 · 关键物品不入仓"
+theme_override_colors/font_color = Color(0.596, 0.655, 0.675, 1)
+theme_override_font_sizes/font_size = 15
+text = "直接拖到另一栏 · 每按一次 Ctrl / Control，选中数量减半"
 
 [node name="Close" type="Button" parent="Root/Window/Margin/Layout/Header/Margin/Row"]
-custom_minimum_size = Vector2(150, 56)
+custom_minimum_size = Vector2(148, 54)
 layout_mode = 2
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 16
 text = "Esc 关闭"
 
 [node name="Body" type="HBoxContainer" parent="Root/Window/Margin/Layout"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 
-[node name="Inventory" type="VBoxContainer" parent="Root/Window/Margin/Layout/Body"]
-custom_minimum_size = Vector2(760, 0)
+[node name="Pocket" type="PanelContainer" parent="Root/Window/Margin/Layout/Body"]
+custom_minimum_size = Vector2(548, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 6
+theme_override_styles/panel = ExtResource("5_surface")
 
-[node name="Summary" type="Label" parent="Root/Window/Margin/Layout/Body/Inventory"]
+[node name="Margin" type="MarginContainer" parent="Root/Window/Margin/Layout/Body/Pocket"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.118, 0.145, 0.149, 1)
-theme_override_font_sizes/font_size = 16
-text = "背包不限种类 · 每类 200    核心仓库不限种类 · 每类 99999"
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
 
-[node name="InventoryScroll" type="ScrollContainer" parent="Root/Window/Margin/Layout/Body/Inventory"]
+[node name="Layout" type="VBoxContainer" parent="Root/Window/Margin/Layout/Body/Pocket/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Header" type="HBoxContainer" parent="Root/Window/Margin/Layout/Body/Pocket/Margin/Layout"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Root/Window/Margin/Layout/Body/Pocket/Margin/Layout/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.863, 0.886, 0.878, 1)
+theme_override_font_sizes/font_size = 20
+text = "随身背包"
+
+[node name="Summary" type="Label" parent="Root/Window/Margin/Layout/Body/Pocket/Margin/Layout/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.596, 0.655, 0.675, 1)
+theme_override_font_sizes/font_size = 14
+text = "每类 200"
+horizontal_alignment = 2
+
+[node name="Scroll" type="ScrollContainer" parent="Root/Window/Margin/Layout/Body/Pocket/Margin/Layout"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="Groups" type="VBoxContainer" parent="Root/Window/Margin/Layout/Body/Inventory/InventoryScroll"]
+[node name="Groups" type="VBoxContainer" parent="Root/Window/Margin/Layout/Body/Pocket/Margin/Layout/Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
+theme_override_constants/separation = 9
 
-[node name="Detail" type="PanelContainer" parent="Root/Window/Margin/Layout/Body"]
-custom_minimum_size = Vector2(360, 0)
+[node name="TransferGuide" type="VBoxContainer" parent="Root/Window/Margin/Layout/Body"]
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 12
+
+[node name="ToCore" type="Label" parent="Root/Window/Margin/Layout/Body/TransferGuide"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.498, 0.573, 0.722, 1)
+theme_override_font_sizes/font_size = 15
+text = "拖拽 →"
+horizontal_alignment = 1
+
+[node name="Divider" type="HSeparator" parent="Root/Window/Margin/Layout/Body/TransferGuide"]
+layout_mode = 2
+
+[node name="ToPocket" type="Label" parent="Root/Window/Margin/Layout/Body/TransferGuide"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.498, 0.573, 0.722, 1)
+theme_override_font_sizes/font_size = 15
+text = "← 拖拽"
+horizontal_alignment = 1
+
+[node name="Core" type="PanelContainer" parent="Root/Window/Margin/Layout/Body"]
+custom_minimum_size = Vector2(548, 0)
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_styles/panel = ExtResource("5_surface")
 
-[node name="Margin" type="MarginContainer" parent="Root/Window/Margin/Layout/Body/Detail"]
+[node name="Margin" type="MarginContainer" parent="Root/Window/Margin/Layout/Body/Core"]
 layout_mode = 2
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
 
-[node name="Layout" type="VBoxContainer" parent="Root/Window/Margin/Layout/Body/Detail/Margin"]
+[node name="Layout" type="VBoxContainer" parent="Root/Window/Margin/Layout/Body/Core/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
-[node name="Category" type="Label" parent="Root/Window/Margin/Layout/Body/Detail/Margin/Layout"]
+[node name="Header" type="HBoxContainer" parent="Root/Window/Margin/Layout/Body/Core/Margin/Layout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.24, 0.28, 0.28, 1)
-theme_override_font_sizes/font_size = 15
-text = "原料"
-horizontal_alignment = 1
 
-[node name="Icon" type="TextureRect" parent="Root/Window/Margin/Layout/Body/Detail/Margin/Layout"]
-custom_minimum_size = Vector2(0, 116)
+[node name="Title" type="Label" parent="Root/Window/Margin/Layout/Body/Core/Margin/Layout/Header"]
 layout_mode = 2
-texture_filter = 1
-expand_mode = 3
-stretch_mode = 5
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.863, 0.886, 0.878, 1)
+theme_override_font_sizes/font_size = 20
+text = "核心仓库"
 
-[node name="Name" type="Label" parent="Root/Window/Margin/Layout/Body/Detail/Margin/Layout"]
+[node name="Summary" type="Label" parent="Root/Window/Margin/Layout/Body/Core/Margin/Layout/Header"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.118, 0.145, 0.149, 1)
-theme_override_font_sizes/font_size = 24
-text = "晶体"
-horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.596, 0.655, 0.675, 1)
+theme_override_font_sizes/font_size = 14
+text = "每类 99999"
+horizontal_alignment = 2
 
-[node name="Counts" type="Label" parent="Root/Window/Margin/Layout/Body/Detail/Margin/Layout"]
-custom_minimum_size = Vector2(0, 84)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.24, 0.28, 0.28, 1)
-theme_override_font_sizes/font_size = 18
-text = "背包 0 / 200\n核心仓库 0 / 99999"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Deposit" type="Button" parent="Root/Window/Margin/Layout/Body/Detail/Margin/Layout"]
-custom_minimum_size = Vector2(0, 58)
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "全部存入核心"
-
-[node name="Withdraw" type="Button" parent="Root/Window/Margin/Layout/Body/Detail/Margin/Layout"]
-custom_minimum_size = Vector2(0, 58)
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "尽量取回背包"
-
-[node name="Result" type="Label" parent="Root/Window/Margin/Layout/Body/Detail/Margin/Layout"]
+[node name="Scroll" type="ScrollContainer" parent="Root/Window/Margin/Layout/Body/Core/Margin/Layout"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_colors/font_color = Color(0.035, 0.31, 0.31, 1)
-theme_override_font_sizes/font_size = 16
-text = "选择一种物品进行存取"
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Groups" type="VBoxContainer" parent="Root/Window/Margin/Layout/Body/Core/Margin/Layout/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 9
 
 [node name="Footer" type="PanelContainer" parent="Root/Window/Margin/Layout"]
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-theme_override_styles/panel = ExtResource("6_primary")
+theme_override_styles/panel = ExtResource("4_chrome")
 
-[node name="Text" type="Label" parent="Root/Window/Margin/Layout/Footer"]
+[node name="Result" type="Label" parent="Root/Window/Margin/Layout/Footer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.035, 0.31, 0.31, 1)
+theme_override_colors/font_color = Color(0.769, 0.812, 0.8, 1)
 theme_override_font_sizes/font_size = 14
-text = "选择物品后执行整类存取 · 目标类别已满时仅转移可容纳数量"
+text = "直接拖拽整堆；拖动前或拖动中每按一次 Ctrl / Control，选中数量减半"
 horizontal_alignment = 1
 vertical_alignment = 1

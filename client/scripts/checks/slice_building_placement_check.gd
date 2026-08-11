@@ -128,11 +128,11 @@ func _check_definitions() -> void:
 	_expect_equal(
 		reactor.visual_mode,
 		SliceBuildingDefinition.VISUAL_SINGLE_FRAME,
-		"reactor uses one locked V10 frame"
+		"reactor uses one locked V10-body short-port frame"
 	)
 	_expect_equal(
 		reactor.icon_region,
-		Rect2(32, 0, 120, 88),
+		Rect2(28, 0, 120, 88),
 		"reactor UI framing excludes its world-only approach sections"
 	)
 	_expect_equal(storage.logistics_ports.size(), 2, "storage has fixed IN and OUT")

@@ -159,7 +159,7 @@ func _check_definition_power_contract() -> void:
 
 
 func _check_multihop_world_grid() -> void:
-	_save_dir = "/private/tmp/radishcatalyst-l3-package3-%d" % Time.get_ticks_usec()
+	_save_dir = SliceCheckPaths.check_run("power-grid")
 	var world := SliceWorldScene.instantiate() as SliceWorld
 	world.save_service = SliceSaveService.new(_save_dir)
 	root.add_child(world)

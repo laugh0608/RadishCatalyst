@@ -1,15 +1,14 @@
 extends SceneTree
 
 const BootScene := preload("res://scenes/boot/Boot.tscn")
-const DEFAULT_REVIEW_ROOT := "/private/tmp/radishcatalyst-multi-world-package3-review/main"
-
-
 func _init() -> void:
 	call_deferred("_launch")
 
 
 func _launch() -> void:
-	var review_root := _argument_value("--review-root=", DEFAULT_REVIEW_ROOT)
+	var review_root := _argument_value(
+		"--review-root=", SliceCheckPaths.review_worlds("current")
+	)
 	var catalog := SliceSaveCatalog.new(review_root)
 	if catalog.list_worlds().is_empty() and catalog.list_trash().is_empty():
 		push_error("复核目录没有可显示的世界：%s" % review_root)

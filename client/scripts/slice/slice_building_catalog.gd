@@ -100,7 +100,7 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 				Vector2i(-1, -1),
 				SliceBuildingDefinition.POWER_VISUAL_ANCHOR_BLOCK_CENTER_OFFSET,
 				Vector2(0, -18)
-			).configure_icon_region(Rect2(32, 0, 120, 88))
+			).configure_icon_region(Rect2(28, 0, 120, 88))
 		POWER_RELAY_ID:
 			return _with_device_model(
 				SliceBuildingDefinition.new(

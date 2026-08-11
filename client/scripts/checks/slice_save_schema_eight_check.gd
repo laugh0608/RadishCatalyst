@@ -1,6 +1,6 @@
 extends SceneTree
 
-const TEST_ROOT := "/private/tmp/radishcatalyst-slice-save-schema-eight-check"
+var TEST_ROOT := SliceCheckPaths.check_run("save-schema-eight", false)
 
 var failures: Array[String] = []
 var assertion_count := 0

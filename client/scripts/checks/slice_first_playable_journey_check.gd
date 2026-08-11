@@ -58,9 +58,7 @@ func _run() -> void:
 		true,
 		"renewable crystals and reactor stay within the 60-second budget"
 	)
-	save_dir = "/private/tmp/radishcatalyst-journey-guidance-%d" % (
-		Time.get_ticks_usec()
-	)
+	save_dir = SliceCheckPaths.check_run("journey-guidance")
 	var world := SLICE_WORLD_SCENE.instantiate() as SliceWorld
 	world.save_service = SliceSaveService.new(save_dir)
 	root.add_child(world)

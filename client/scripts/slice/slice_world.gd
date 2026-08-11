@@ -539,11 +539,16 @@ func is_core_charge_confirmation_open() -> bool:
 ## Moves as much of one item as possible from the backpack into the repaired
 ## core warehouse. Returns the amount moved; the add-before-remove ordering
 ## makes a capacity-limited transfer lossless.
-func transfer_pocket_to_core(item: String) -> int:
+func transfer_pocket_to_core(item: String, requested_amount: int = -1) -> int:
 	if not core_repaired:
 		return 0
+	var amount := (
+		pocket.count(item)
+		if requested_amount < 0
+		else requested_amount
+	)
 	var moved := pocket.transfer_up_to(
-		core_storage, item, pocket.count(item)
+		core_storage, item, amount
 	)
 	if moved <= 0:
 		return 0
@@ -554,11 +559,16 @@ func transfer_pocket_to_core(item: String) -> int:
 
 
 ## Moves as much of one item as the backpack can accept from the core store.
-func transfer_core_to_pocket(item: String) -> int:
+func transfer_core_to_pocket(item: String, requested_amount: int = -1) -> int:
 	if not core_repaired:
 		return 0
+	var amount := (
+		core_storage.count(item)
+		if requested_amount < 0
+		else requested_amount
+	)
 	var moved := core_storage.transfer_up_to(
-		pocket, item, core_storage.count(item)
+		pocket, item, amount
 	)
 	if moved <= 0:
 		return 0

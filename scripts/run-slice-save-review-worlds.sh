@@ -5,7 +5,7 @@ set -euo pipefail
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd -- "$script_dir/.." && pwd)"
 client_root="${repo_root}/client"
-review_root="${1:-/private/tmp/radishcatalyst-multi-world-package3-review/main}"
+review_root="${1:-${repo_root}/tools/runtime-intake/review-worlds/current}"
 godot_exe="${GODOT_EXE:-}"
 
 if [[ -z "$godot_exe" && -x "/Applications/Godot.app/Contents/MacOS/Godot" ]]; then

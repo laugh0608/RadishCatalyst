@@ -1,7 +1,11 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/slice/slice_core_charge_panel.gd" id="1_panel"]
-[ext_resource type="Theme" path="res://assets/themes/ui_theme.tres" id="2_ui_theme"]
+[ext_resource type="Theme" path="res://assets/themes/slice_ui_core_theme.tres" id="2_theme"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_core_shell.tres" id="3_shell"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_core_chrome.tres" id="4_chrome"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_core_surface.tres" id="5_surface"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_core_primary_action.tres" id="6_primary"]
 
 [node name="SliceCoreChargePanel" type="CanvasLayer"]
 layer = 40
@@ -13,7 +17,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = ExtResource("2_ui_theme")
+theme = ExtResource("2_theme")
 mouse_filter = 0
 
 [node name="Backdrop" type="ColorRect" parent="Root"]
@@ -22,56 +26,163 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.005, 0.012, 0.014, 0.72)
+color = Color(0.008, 0.015, 0.02, 0.82)
 mouse_filter = 0
 
-[node name="Box" type="ColorRect" parent="Root"]
+[node name="Window" type="PanelContainer" parent="Root"]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -360.0
-offset_top = -190.0
-offset_right = 360.0
-offset_bottom = 190.0
+offset_left = -390.0
+offset_top = -232.0
+offset_right = 390.0
+offset_bottom = 232.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.02, 0.055, 0.06, 0.98)
+theme_override_styles/panel = ExtResource("3_shell")
 
-[node name="Title" type="Label" parent="Root/Box"]
-offset_left = 36.0
-offset_top = 26.0
-offset_right = 684.0
-offset_bottom = 76.0
-theme_override_colors/font_color = Color(0.75, 0.94, 0.91, 1)
-theme_override_font_sizes/font_size = 32
-text = "首次外勤充能"
+[node name="Margin" type="MarginContainer" parent="Root/Window"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 14
+
+[node name="Layout" type="VBoxContainer" parent="Root/Window/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="PanelContainer" parent="Root/Window/Margin/Layout"]
+custom_minimum_size = Vector2(0, 92)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("4_chrome")
+
+[node name="Margin" type="MarginContainer" parent="Root/Window/Margin/Layout/Header"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 12
+
+[node name="Identity" type="VBoxContainer" parent="Root/Window/Margin/Layout/Header/Margin"]
+layout_mode = 2
+alignment = 1
+
+[node name="Eyebrow" type="Label" parent="Root/Window/Margin/Layout/Header/Margin/Identity"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.498, 0.573, 0.722, 1)
+theme_override_font_sizes/font_size = 14
+text = "前哨核心 · 一次性能力解锁"
 horizontal_alignment = 1
 
-[node name="Body" type="Label" parent="Root/Box"]
-offset_left = 46.0
-offset_top = 92.0
-offset_right = 674.0
-offset_bottom = 250.0
-theme_override_colors/font_color = Color(0.7, 0.82, 0.78, 1)
-theme_override_font_sizes/font_size = 23
+[node name="Title" type="Label" parent="Root/Window/Margin/Layout/Header/Margin/Identity"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.933, 0.953, 0.945, 1)
+theme_override_font_sizes/font_size = 29
+text = "确认首次充能"
 horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 3
 
-[node name="Confirm" type="Button" parent="Root/Box"]
-offset_left = 82.0
-offset_top = 292.0
-offset_right = 322.0
-offset_bottom = 344.0
-theme_override_font_sizes/font_size = 22
-text = "确认充能"
+[node name="Decision" type="HBoxContainer" parent="Root/Window/Margin/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
 
-[node name="Cancel" type="Button" parent="Root/Box"]
-offset_left = 398.0
-offset_top = 292.0
-offset_right = 638.0
-offset_bottom = 344.0
+[node name="Cost" type="PanelContainer" parent="Root/Window/Margin/Layout/Decision"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = ExtResource("5_surface")
+
+[node name="Margin" type="MarginContainer" parent="Root/Window/Margin/Layout/Decision/Cost"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 14
+
+[node name="Layout" type="VBoxContainer" parent="Root/Window/Margin/Layout/Decision/Cost/Margin"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="Root/Window/Margin/Layout/Decision/Cost/Margin/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.596, 0.655, 0.675, 1)
+theme_override_font_sizes/font_size = 14
+text = "本次消耗"
+
+[node name="Amount" type="Label" parent="Root/Window/Margin/Layout/Decision/Cost/Margin/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.933, 0.953, 0.945, 1)
+theme_override_font_sizes/font_size = 24
+text = "2 份催化剂"
+
+[node name="Source" type="Label" parent="Root/Window/Margin/Layout/Decision/Cost/Margin/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.769, 0.812, 0.8, 1)
+theme_override_font_sizes/font_size = 16
+text = "扣除顺序：核心仓库 → 随身背包\n当前可用 0 / 2"
+autowrap_mode = 2
+
+[node name="Unlock" type="PanelContainer" parent="Root/Window/Margin/Layout/Decision"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = ExtResource("5_surface")
+
+[node name="Margin" type="MarginContainer" parent="Root/Window/Margin/Layout/Decision/Unlock"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 14
+
+[node name="Layout" type="VBoxContainer" parent="Root/Window/Margin/Layout/Decision/Unlock/Margin"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="Root/Window/Margin/Layout/Decision/Unlock/Margin/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.596, 0.655, 0.675, 1)
+theme_override_font_sizes/font_size = 14
+text = "永久解锁"
+
+[node name="Result" type="Label" parent="Root/Window/Margin/Layout/Decision/Unlock/Margin/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.933, 0.953, 0.945, 1)
 theme_override_font_sizes/font_size = 22
-text = "取消"
+text = "工具攻击\n短距闪避"
+
+[node name="Note" type="Label" parent="Root/Window/Margin/Layout/Decision/Unlock/Margin/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.769, 0.812, 0.8, 1)
+theme_override_font_sizes/font_size = 15
+text = "确认后立即生效，不能重复充能"
+autowrap_mode = 2
+
+[node name="Actions" type="HBoxContainer" parent="Root/Window/Margin/Layout"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+alignment = 2
+theme_override_constants/separation = 12
+
+[node name="Cancel" type="Button" parent="Root/Window/Margin/Layout/Actions"]
+custom_minimum_size = Vector2(220, 58)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "Esc 取消"
+
+[node name="Confirm" type="Button" parent="Root/Window/Margin/Layout/Actions"]
+custom_minimum_size = Vector2(330, 58)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.059, 0.082, 0.098, 1)
+theme_override_colors/font_hover_color = Color(0.035, 0.055, 0.071, 1)
+theme_override_colors/font_pressed_color = Color(0.035, 0.055, 0.071, 1)
+theme_override_colors/font_focus_color = Color(0.035, 0.055, 0.071, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = ExtResource("6_primary")
+theme_override_styles/hover = ExtResource("6_primary")
+theme_override_styles/pressed = ExtResource("6_primary")
+theme_override_styles/focus = ExtResource("6_primary")
+text = "确认充能 · 消耗 2 份"

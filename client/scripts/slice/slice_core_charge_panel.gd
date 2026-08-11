@@ -8,9 +8,14 @@ var _world: Node
 var _open := false
 
 @onready var _root: Control = $Root
-@onready var _body: Label = $Root/Box/Body
-@onready var _confirm: Button = $Root/Box/Confirm
-@onready var _cancel: Button = $Root/Box/Cancel
+@onready var _amount: Label = (
+	$Root/Window/Margin/Layout/Decision/Cost/Margin/Layout/Amount
+)
+@onready var _source: Label = (
+	$Root/Window/Margin/Layout/Decision/Cost/Margin/Layout/Source
+)
+@onready var _confirm: Button = $Root/Window/Margin/Layout/Actions/Confirm
+@onready var _cancel: Button = $Root/Window/Margin/Layout/Actions/Cancel
 
 
 func _ready() -> void:
@@ -29,11 +34,14 @@ func open() -> void:
 	_open = true
 	_root.visible = true
 	var required: int = _world.core_charge_required()
-	_body.text = (
-		"将 %d 份催化剂注入前哨核心？\n"
-		+ "优先使用核心仓库，再使用背包。\n"
-		+ "充能完成后永久解锁工具攻击与短距闪避。"
-	) % required
+	var stored: int = _world.core_storage.count(SliceWorld.ITEM_CATALYST)
+	var carried: int = _world.pocket.count(SliceWorld.ITEM_CATALYST)
+	_amount.text = "%d 份催化剂" % required
+	_source.text = (
+		"扣除顺序：核心仓库 %d → 随身背包 %d\n当前可用 %d / %d"
+		% [stored, carried, stored + carried, required]
+	)
+	_confirm.text = "确认充能 · 消耗 %d 份" % required
 	_cancel.grab_focus()
 
 
@@ -44,6 +52,18 @@ func close() -> void:
 
 func is_open() -> bool:
 	return _open
+
+
+func source_text() -> String:
+	return _source.text
+
+
+func confirm_text() -> String:
+	return _confirm.text
+
+
+func cancel_text() -> String:
+	return _cancel.text
 
 
 func _unhandled_input(event: InputEvent) -> void:

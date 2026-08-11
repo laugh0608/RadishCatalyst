@@ -26,8 +26,10 @@ if [[ ! -x "$radish_godot_bin" ]]; then
   exit 1
 fi
 
-log_file="$(mktemp /tmp/radishcatalyst-contact-sheet.XXXXXX.log)"
-godot_log_file="$(mktemp /tmp/radishcatalyst-contact-sheet-godot.XXXXXX.log)"
+runtime_log_dir="$repo_root/tools/runtime-intake/check-runs/contact-sheet-logs"
+mkdir -p "$runtime_log_dir"
+log_file="$(mktemp "$runtime_log_dir/contact-sheet.XXXXXX.log")"
+godot_log_file="$(mktemp "$runtime_log_dir/contact-sheet-godot.XXXXXX.log")"
 trap 'rm -f "$log_file" "$godot_log_file"' EXIT
 
 set +e

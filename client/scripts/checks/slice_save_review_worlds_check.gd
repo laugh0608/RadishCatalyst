@@ -1,15 +1,15 @@
 extends SceneTree
 
 const BootScene := preload("res://scenes/boot/Boot.tscn")
-const REVIEW_BASE := "/private/tmp/radishcatalyst-multi-world-package3-review"
-const ONE_ROOT := REVIEW_BASE + "/one"
-const MAIN_ROOT := REVIEW_BASE + "/main"
 const SHOT_DIR := "/Users/luobo/Code/RadishCatalyst/assets/art-intake/2026-07-26-multi-world-package3-preview"
 
 var failures: Array[String] = []
 var assertion_count := 0
 var damaged_world_id := ""
 var normal_world_id := ""
+var REVIEW_BASE := SliceCheckPaths.review_worlds("multi-world")
+var ONE_ROOT := REVIEW_BASE.path_join("one")
+var MAIN_ROOT := REVIEW_BASE.path_join("main")
 
 
 func _init() -> void:

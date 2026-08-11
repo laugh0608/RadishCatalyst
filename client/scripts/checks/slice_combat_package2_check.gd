@@ -28,9 +28,7 @@ func _execute() -> void:
 
 
 func _run_checks() -> void:
-	_save_dir = "/private/tmp/radishcatalyst-combat-package2-%d" % (
-		Time.get_ticks_usec()
-	)
+	_save_dir = SliceCheckPaths.check_run("combat-package2")
 	var world := SliceWorldScene.instantiate() as SliceWorld
 	world.save_service = SliceSaveService.new(_save_dir)
 	root.add_child(world)

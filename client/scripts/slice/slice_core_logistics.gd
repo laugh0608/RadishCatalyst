@@ -9,8 +9,9 @@ const INSTANCE_ID := SlicePowerGrid.CORE_NODE_ID
 const DISPLAY_NAME := "前哨核心"
 const FOOTPRINT := Vector2i(2, 2)
 const SOURCE_PHASE := 2
-## V5's side collars do not span a full tile. The terminal belt therefore
-## occupies the immediately adjacent cell and renders below the core sprite.
+## The device-owned short docks do not span a full tile. The terminal belt
+## therefore occupies the immediately adjacent cell and becomes their
+## connected-state cover only after topology confirms a real connection.
 const CONNECTION_DISTANCE := 1
 const REPAIRED_SPRITE_OFFSET := Vector2(0, -32)
 const POWER_VISUAL_ANCHOR_OFFSET := Vector2(8, -80)

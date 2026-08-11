@@ -43,6 +43,13 @@ func _check_port_rotation() -> void:
 		var reactor := _make_reactor_at(
 			"building-rotation-%d" % rotation, origin, rotation
 		)
+		if rotation == 0:
+			var sprite := reactor.get_node("Sprite") as Sprite2D
+			_expect_equal(
+				sprite.texture.get_size(),
+				Vector2(176, 88),
+				"unconnected reactor shows its device-owned short ports"
+			)
 		var endpoints := reactor.logistics_endpoints()
 		_expect_equal(
 			endpoints.size(),
@@ -353,13 +360,13 @@ func _check_machine_logistics_chain() -> void:
 	)
 	_expect_equal(
 		(input_sink_belt.get_node("Sprite") as Sprite2D).z_index,
-		-1,
-		"reactor input terminal belt stays below the device-owned dock"
+		1,
+		"reactor input terminal belt covers the device-owned short dock"
 	)
 	_expect_equal(
 		(output_belt.get_node("Sprite") as Sprite2D).z_index,
-		-1,
-		"reactor output terminal belt stays below the device-owned dock"
+		1,
+		"reactor output terminal belt covers the device-owned short dock"
 	)
 	_expect_equal(
 		target.inventory.count(SliceReactor.OUTPUT_ITEM_ID),
@@ -485,10 +492,7 @@ func _check_machine_logistics_backpressure() -> void:
 
 func _check_atomic_recovery() -> void:
 	var world := SliceWorld.new()
-	var save_dir := (
-		"/private/tmp/radishcatalyst-l5-package2-recovery-%d"
-		% Time.get_ticks_usec()
-	)
+	var save_dir := SliceCheckPaths.check_run("reactor-recovery")
 	world.save_service = SliceSaveService.new(save_dir)
 	var instances: Array[SliceBuildingInstance] = []
 	var floor_definition := SliceBuildingCatalog.find(

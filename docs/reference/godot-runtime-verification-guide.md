@@ -1,6 +1,6 @@
 # Godot Runtime Verification Guide (For AI Agents)
 
-更新时间：2026-07-29
+更新时间：2026-08-11
 
 ## 用途与定位
 
@@ -35,7 +35,7 @@ repo_root="$PWD"
 3. 输出重定向到日志文件，过滤真实错误（macOS 有 `noErr` / 证书类噪声）：
    `grep -E "passed|SCRIPT ERROR|ERROR:" log | grep -v noErr | grep -v certificate`
 4. 一次性检查脚本放仓库内忽略提交的 `tools/runtime-intake/YYYY-MM-DD-<topic>/`；形成稳定通用回归价值后，再迁入正式 `scripts/` 或客户端检查入口。
-5. 存档测试使用同批次下自己命名的 `save-root/` 隔离目录，日志与人工复核数据也放在该批次内。为保证新档基线可在开跑前清理自己的隔离目录，但自动化通过后不得删除最终主档 / 备份档；保留可直接载入的人工复核状态并报告绝对路径。纯破坏性 / 迁移失败测试使用独立子目录并可清理，任何测试都不得覆盖用户正式存档。
+5. 自动检查、临时验证和人工复测存档一律放在仓库内忽略提交的 `tools/runtime-intake/`，不得写入 `/tmp`、系统临时目录或工作区外：自动运行使用 `check-runs/<topic>/`，稳定人工档使用 `review-worlds/current/` 或 `review-worlds/<topic>/`，专题正式入口也可继续使用同批次 `save-root/`。开跑前可清理自己的隔离目录，但通过后不得删除最终主档 / 备份档；纯破坏性 / 迁移失败测试使用独立子目录并可清理，任何测试都不得覆盖生产版 `user://saves/slice/`。
 6. 截图落到 git 忽略的 `assets/art-intake/<日期>-<主题>-preview/`，供人工 / 视觉复核，结论记入当周周志。多图可以用 `./scripts/create-screenshot-contact-sheet.sh <output.png> <inputs...>` 生成带编号联系表辅助导航，但视觉结论必须按任务风险审阅足够的原生尺寸截图；联系表不能替代文字、材质、构图和整体观感判断。
 
 ## 脚本骨架模板

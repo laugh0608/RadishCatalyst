@@ -8,6 +8,7 @@ const CRAFT_SHELL_STYLE_PATH := "res://assets/themes/slice_ui_craft_shell.tres"
 const DEVICE_SHELL_STYLE_PATH := (
 	"res://assets/themes/slice_ui_device_shell.tres"
 )
+const CORE_SHELL_STYLE_PATH := "res://assets/themes/slice_ui_core_shell.tres"
 
 var failures: Array[String] = []
 var _save_dir := ""
@@ -284,23 +285,96 @@ func _check_world_operations() -> void:
 	_expect_equal(
 		world._core_storage_panel.item_row_count(),
 		10,
-		"core warehouse shares all known and compatibility item rows"
+		"core warehouse mirrors all known and compatibility items in both columns"
 	)
-	world._core_storage_panel.item_button("future.item").pressed.emit()
-	world._core_storage_panel.deposit_button().pressed.emit()
 	_expect_equal(
-		world.core_storage.count("future.item"),
-		3,
-		"core warehouse selection deposits an unknown old item losslessly"
+		world._core_storage_panel.pocket_slot("future.item") != null
+		and world._core_storage_panel.core_slot("future.item") != null,
+		true,
+		"compatibility item remains a valid source and drop target"
 	)
-	world._core_storage_panel.withdraw_button().pressed.emit()
+	var control_press := InputEventMouseButton.new()
+	control_press.button_index = MOUSE_BUTTON_RIGHT
+	control_press.pressed = true
+	control_press.ctrl_pressed = true
+	world._core_storage_panel.pocket_slot("future.item")._gui_input(
+		control_press
+	)
+	_expect_equal(
+		world._core_storage_panel.drag_is_pending()
+		and world._core_storage_panel.drag_selected_amount() == 2,
+		true,
+		"macOS control-click begins directly with the rounded-up half selected"
+	)
+	var second_control_press := InputEventKey.new()
+	second_control_press.keycode = KEY_CTRL
+	second_control_press.pressed = true
+	world._core_storage_panel._input(second_control_press)
+	_expect_equal(
+		world._core_storage_panel.drag_selected_amount(),
+		1,
+		"each additional control press halves the current drag selection"
+	)
+	world._core_storage_panel.cancel_drag()
+	var plain_press := InputEventMouseButton.new()
+	plain_press.button_index = MOUSE_BUTTON_LEFT
+	plain_press.pressed = true
+	world._core_storage_panel.pocket_slot("future.item")._gui_input(
+		plain_press
+	)
+	_expect_equal(
+		world._core_storage_panel.drag_is_pending()
+		and world._core_storage_panel.drag_selected_amount() == 3,
+		true,
+		"plain left press begins a direct whole-stack drag"
+	)
+	world._core_storage_panel.cancel_drag()
+	_expect_equal(
+		world._core_storage_panel.transfer_drag("future.item", "pocket", true),
+		2,
+		"control drag moves the rounded-up half of an odd stack"
+	)
 	_expect_equal(
 		world.pocket.count("future.item"),
-		3,
-		"core warehouse returns an unknown old item losslessly"
+		1,
+		"half drag leaves the other half in the backpack"
 	)
+	_expect_equal(
+		world._core_storage_panel.transfer_drag("future.item", "pocket", false),
+		1,
+		"plain drag moves the remaining complete stack"
+	)
+	world.pocket.add("future.item", 199)
+	_expect_equal(
+		world._core_storage_panel.transfer_drag("future.item", "core", false),
+		1,
+		"whole-stack drop transfers only what the destination can accept"
+	)
+	_expect_equal(
+		world._core_storage_panel.result_text().contains("容量受限"),
+		true,
+		"capacity-limited partial transfer stays explicit"
+	)
+	_expect_equal(
+		world.pocket.count("future.item"),
+		200,
+		"capacity-limited drop fills but never overflows the target category"
+	)
+	_expect_equal(
+		_panel_style_path(
+			world._core_storage_panel.get_node("Root/Window")
+		) == CORE_SHELL_STYLE_PATH,
+		true,
+		"P2-D core warehouse uses its scoped deep-steel shell"
+	)
+	_expect_equal(
+		world.pocket.count("future.item") + world.core_storage.count("future.item"),
+		202,
+		"compatibility transfer never loses or duplicates property before cleanup"
+	)
+	world.pocket.remove("future.item", 200)
+	world.core_storage.remove("future.item", 2)
 	world._core_storage_panel.close()
-	world.pocket.remove("future.item", 3)
 	world._craft_panel._refresh()
 
 	world.pocket.add(SliceWorld.ITEM_CRYSTAL, 2)

@@ -60,9 +60,7 @@ func _check_input_map() -> void:
 
 
 func _check_world_charge_combat_and_hud() -> void:
-	_save_dir = "/private/tmp/radishcatalyst-combat-package1-%d" % (
-		Time.get_ticks_usec()
-	)
+	_save_dir = SliceCheckPaths.check_run("combat-package1")
 	var world := SliceWorldScene.instantiate() as SliceWorld
 	world.save_service = SliceSaveService.new(_save_dir)
 	root.add_child(world)
@@ -108,6 +106,23 @@ func _check_world_charge_combat_and_hud() -> void:
 		world.is_combat_input_blocked(),
 		true,
 		"charge confirmation blocks combat input"
+	)
+	_expect_equal(
+		world._core_charge_panel.source_text().contains(
+			"核心仓库 1 → 随身背包 1"
+		),
+		true,
+		"charge modal exposes the authoritative deduction order and sources"
+	)
+	_expect_equal(
+		world._core_charge_panel.confirm_text(),
+		"确认充能 · 消耗 2 份",
+		"charge modal keeps the real cost on the single primary action"
+	)
+	_expect_equal(
+		world._core_charge_panel.cancel_text(),
+		"Esc 取消",
+		"charge modal keeps cancellation neutral and keyboard-explicit"
 	)
 	world.close_core_charge_confirmation()
 	_expect_equal(world.confirm_core_charge(), true, "confirmed charge succeeds")

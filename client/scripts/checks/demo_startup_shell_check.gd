@@ -2,8 +2,8 @@ extends SceneTree
 
 const BootScene := preload("res://scenes/boot/Boot.tscn")
 const StartupMenuScene := preload("res://scenes/ui/StartupMenu.tscn")
-const TEST_ROOT := "/private/tmp/radishcatalyst-startup-world-list-check"
-const PAUSE_TEST_ROOT := "/private/tmp/radishcatalyst-slice-pause-return-check"
+var TEST_ROOT := SliceCheckPaths.check_run("startup-world-list", false)
+var PAUSE_TEST_ROOT := SliceCheckPaths.check_run("pause-return", false)
 
 var failures: Array[String] = []
 var created_world_id := ""

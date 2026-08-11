@@ -94,6 +94,11 @@ func _check_grid_transfer_contract() -> void:
 		"core transfer reports the external inventory identity"
 	)
 	_expect_equal(input_belt.topology_kind(), SliceConveyor.TOPOLOGY_SINK_ENDPOINT, "core input belt uses the sink terminal frame")
+	_expect_equal(
+		(input_belt.get_node("Sprite") as Sprite2D).z_index,
+		1,
+		"core input terminal belt covers the device-owned short dock"
+	)
 
 	var output_belt := _make_conveyor("building-900002", Vector2i(21, 10), 1)
 	instances.append(output_belt)
@@ -103,6 +108,11 @@ func _check_grid_transfer_contract() -> void:
 	_expect_equal(output_belt.cargo_item_id, SliceWorld.ITEM_CRYSTAL, "core output carries the stored crystal")
 	_expect_equal(inventory.count(SliceWorld.ITEM_CRYSTAL), 0, "core output removes exactly one stored item")
 	_expect_equal(output_belt.topology_kind(), SliceConveyor.TOPOLOGY_SOURCE_ENDPOINT, "core output belt uses the source terminal frame")
+	_expect_equal(
+		(output_belt.get_node("Sprite") as Sprite2D).z_index,
+		1,
+		"core output terminal belt covers the device-owned short dock"
+	)
 
 	output_belt.clear_cargo()
 	inventory.add(SliceWorld.ITEM_CRYSTAL, 99999)
@@ -133,9 +143,9 @@ func _check_world_repair_and_restart() -> void:
 	var site := world.get_node("SliceMap/World/OutpostCoreDamaged/RepairSite") as CoreRepairSite
 	site.try_interact(world)
 	_expect_equal(world.core_repaired, true, "repair action enables the authoritative core state")
-	_expect_equal(core.texture.get_size(), Vector2(152, 128), "repair action switches to locked core V5")
+	_expect_equal(core.texture.get_size(), Vector2(144, 128), "repair action uses the approved short-port core body")
 	_expect_equal(core.texture.resource_path.ends_with("outpost_core_repaired.png"), true, "repair action uses the formal locked core path")
-	_expect_equal(core.offset, SliceCoreLogistics.REPAIRED_SPRITE_OFFSET, "core V5 bottom-aligns to the unchanged footprint")
+	_expect_equal(core.offset, SliceCoreLogistics.REPAIRED_SPRITE_OFFSET, "short-port core bottom-aligns to the unchanged footprint")
 	_expect_equal(
 		SlicePowerVisualResolver.anchor_world_position(
 			SlicePowerGrid.CORE_NODE_ID,
@@ -146,7 +156,7 @@ func _check_world_repair_and_restart() -> void:
 			SliceWorld.RELAY_LINK_ANCHOR_OFFSET
 		),
 		Vector2(648, 240),
-		"core V5 power line resolves from its locked upper-ring anchor"
+		"repaired core power line resolves from its locked upper-ring anchor"
 	)
 	_expect_equal(world._logistics_grid.placement_preview_ports().size(), 2, "repair action rebuilds both core endpoints in the same frame")
 	_expect_equal(
@@ -199,8 +209,8 @@ func _check_world_repair_and_restart() -> void:
 	await physics_frame
 	var loaded_core := loaded.get_node("SliceMap/World/OutpostCoreDamaged") as Sprite2D
 	_expect_equal(loaded.core_repaired, true, "restart restores repaired core truth")
-	_expect_equal(loaded_core.texture.get_size(), Vector2(152, 128), "restart restores locked core V5")
-	_expect_equal(loaded_core.offset, SliceCoreLogistics.REPAIRED_SPRITE_OFFSET, "restart restores core V5 alignment")
+	_expect_equal(loaded_core.texture.get_size(), Vector2(144, 128), "restart restores the approved short-port core body")
+	_expect_equal(loaded_core.offset, SliceCoreLogistics.REPAIRED_SPRITE_OFFSET, "restart restores short-port core alignment")
 	_expect_equal(loaded._logistics_grid.placement_preview_ports().size(), 2, "restart re-derives both core endpoints")
 	_expect_equal(loaded.core_storage.count(SliceWorld.ITEM_CATALYST), 1, "restart preserves automatic and manual core inventory")
 	_expect_equal(_building_with_id(loaded, input_belt_id) != null, true, "restart preserves the core input belt identity")

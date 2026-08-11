@@ -229,8 +229,12 @@ func _refresh_topology_texture() -> void:
 		texture_path = definition.texture_path_for_rotation(
 			building_rotation
 		)
+	# A correctly connected terminal belt is the connected-state visual for a
+	# device port: it covers the device-owned short dock. Ordinary belts keep
+	# world y-sorting, while an unconnected or wrongly directed belt never gets
+	# this endpoint layer.
 	sprite.z_index = (
-		-1
+		1
 		if _topology_kind in [
 			TOPOLOGY_SOURCE_ENDPOINT,
 			TOPOLOGY_SINK_ENDPOINT,

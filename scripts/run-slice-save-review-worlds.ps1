@@ -1,13 +1,16 @@
 [CmdletBinding()]
 param(
     [string]$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path,
-    [string]$ReviewRoot = (Join-Path ([System.IO.Path]::GetTempPath()) "radishcatalyst-multi-world-package3-review/main"),
+    [string]$ReviewRoot = "",
     [string]$GodotExe = ""
 )
 
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "Resolve-GodotExe.ps1")
 $GodotExe = Resolve-GodotExe -GodotExe $GodotExe
+if ([string]::IsNullOrWhiteSpace($ReviewRoot)) {
+    $ReviewRoot = Join-Path $RepoRoot "tools/runtime-intake/review-worlds/current"
+}
 
 if (-not (Test-Path -LiteralPath $GodotExe -PathType Leaf)) {
     Write-Error "Godot executable not found: ${GodotExe}"

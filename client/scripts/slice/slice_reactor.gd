@@ -14,8 +14,9 @@ const PROCESSING_OVERLAY_TEXTURES := [
 	preload("res://assets/sprites/slice/reactor_processing_pulse_a.png"),
 	preload("res://assets/sprites/slice/reactor_processing_pulse_b.png"),
 ]
-# Non-persistent V10 texture-local anchor: center of the left top display.
-const PROCESSING_OVERLAY_TEXTURE_LOCAL_ANCHOR := Vector2(56, 14)
+# Non-persistent short-port texture-local anchor: center of the left display.
+# The 176 px canvas restores the approved device-owned docking ports.
+const PROCESSING_OVERLAY_TEXTURE_LOCAL_ANCHOR := Vector2(52, 14)
 
 var input_inventory := Inventory.new(
 	SliceInventoryProfiles.device_reactor_input()

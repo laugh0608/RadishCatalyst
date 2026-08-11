@@ -1402,10 +1402,7 @@ func _expect_equal(actual, expected, label: String) -> void:
 
 
 func _new_save_dir(label: String) -> String:
-	var save_dir := (
-		"/private/tmp/radishcatalyst-l3-package4-%s-%d"
-		% [label, Time.get_ticks_usec()]
-	)
+	var save_dir := SliceCheckPaths.check_run("save-schema-%s" % label)
 	_save_dirs.append(save_dir)
 	DirAccess.make_dir_recursive_absolute(save_dir)
 	return save_dir

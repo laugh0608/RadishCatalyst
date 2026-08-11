@@ -12,9 +12,7 @@ func _init() -> void:
 
 
 func _execute() -> void:
-	_test_root = "/private/tmp/radishcatalyst-combat-package3-%d" % (
-		Time.get_ticks_usec()
-	)
+	_test_root = SliceCheckPaths.check_run("combat-package3")
 	_check_schema_seven_contract()
 	await _check_restart_and_delivery_matrix()
 	if failures.is_empty():
