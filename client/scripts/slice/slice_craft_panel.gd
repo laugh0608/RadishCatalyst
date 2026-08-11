@@ -1,63 +1,99 @@
 class_name SliceCraftPanel
 extends CanvasLayer
 
-## Graphical handheld crafting and backpack panel.
-## docs/features/slice-graphical-crafting-and-inventory-v1.md
+## P2-B graphical manufacturing and categorized backpack surface.
+## docs/features/slice-game-ui-visual-finalization-v1.md
 
-const CARD_STYLE := preload("res://assets/themes/slice_ui_card.tres")
-const SURFACE_STYLE := preload("res://assets/themes/slice_ui_surface.tres")
+const SURFACE_STYLE := preload("res://assets/themes/slice_ui_craft_surface.tres")
 
-const COLOR_TEXT := Color(0.118, 0.145, 0.149)
-const COLOR_MUTED := Color(0.24, 0.28, 0.28)
-const COLOR_READY := Color(0.035, 0.42, 0.4)
-const COLOR_WARNING := Color(0.702, 0.392, 0.102)
-const COLOR_BLOCKED := Color(0.722, 0.18, 0.149)
-const COLOR_SELECTED := Color(0.106, 0.38, 0.55)
+const VIEW_MANUFACTURE := "manufacture"
+const VIEW_INVENTORY := "inventory"
+
+const COLOR_TEXT := Color(0.91, 0.929, 0.922)
+const COLOR_MUTED := Color(0.659, 0.698, 0.706)
+const COLOR_DIM := Color(0.537, 0.576, 0.588)
+const COLOR_A1 := Color(0.498, 0.573, 0.722)
+const COLOR_WARNING := Color(0.804, 0.647, 0.408)
 
 var _world: Node
 var _open := false
 var _recipe_cards: Dictionary = {}
 var _inventory_slots: Dictionary = {}
 var _inventory_groups: Dictionary = {}
+var _material_rows: Dictionary = {}
 var _selected_recipe_id := ""
 var _last_result := ""
+var _active_view := VIEW_MANUFACTURE
 
 @onready var _root: Control = $Root
+@onready var _manufacture_view: Control = (
+	$Root/Window/Margin/Layout/Content/Manufacture
+)
+@onready var _inventory_view: Control = (
+	$Root/Window/Margin/Layout/Content/Inventory
+)
+@onready var _manufacture_button: Button = (
+	$Root/Window/Margin/Layout/Header/Margin/Row/Views/Manufacture
+)
+@onready var _inventory_button: Button = (
+	$Root/Window/Margin/Layout/Header/Margin/Row/Views/Inventory
+)
 @onready var _recipe_grid: GridContainer = (
-	$Root/Window/Margin/Layout/Content/Recipes/RecipeScroll/RecipeGrid
+	$Root/Window/Margin/Layout/Content/Manufacture/Catalog/Margin/Layout/RecipeScroll/RecipeGrid
+)
+@onready var _material_list: VBoxContainer = (
+	$Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin/Layout/MaterialList
+)
+@onready var _output_icon: TextureRect = (
+	$Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin/Layout/Output/Margin/Row/Icon
+)
+@onready var _output_name: Label = (
+	$Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin/Layout/Output/Margin/Row/Identity/Name
+)
+@onready var _output_count: Label = (
+	$Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin/Layout/Output/Margin/Row/Identity/Count
 )
 @onready var _inventory_group_list: VBoxContainer = (
-	$Root/Window/Margin/Layout/Content/Inventory/InventoryScroll/InventoryGroups
+	$Root/Window/Margin/Layout/Content/Inventory/Margin/Layout/InventoryScroll/InventoryGroups
 )
 @onready var _capacity: Label = (
-	$Root/Window/Margin/Layout/Content/Inventory/SectionHeader/Capacity
+	$Root/Window/Margin/Layout/Content/Inventory/Margin/Layout/SectionHeader/Capacity
 )
 @onready var _placement: Label = (
-	$Root/Window/Margin/Layout/Content/Inventory/Placement/Text
+	$Root/Window/Margin/Layout/Content/Inventory/Margin/Layout/Placement/Margin/Text
+)
+@onready var _detail_kind: Label = (
+	$Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/SectionHeader/Kind
 )
 @onready var _detail_icon: TextureRect = (
-	$Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/Hero/Icon
+	$Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/Hero/Icon
 )
 @onready var _detail_name: Label = (
-	$Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/Hero/Name
+	$Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/Hero/Name
 )
 @onready var _detail_output: Label = (
-	$Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/Hero/Output
+	$Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/Hero/Output
 )
-@onready var _detail_cost: Label = (
-	$Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/Cost/Label
+@onready var _detail_existing: Label = (
+	$Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/Hero/Existing
 )
 @onready var _detail_state: Label = (
-	$Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/State
+	$Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/State/Margin/Text
 )
 @onready var _detail_craft: Button = (
-	$Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/Actions/Craft
+	$Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/Actions/Craft
 )
 @onready var _detail_select: Button = (
-	$Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/Actions/SelectExisting
+	$Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/Actions/SelectExisting
 )
 @onready var _result_text: Label = (
-	$Root/Window/Margin/Layout/Content/Current/Result/Text
+	$Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/Feedback/Margin/Text
+)
+@onready var _footer_status: Label = (
+	$Root/Window/Margin/Layout/Footer/Margin/Row/Status
+)
+@onready var _footer_detail: Label = (
+	$Root/Window/Margin/Layout/Footer/Margin/Row/Detail
 )
 @onready var _close_button: Button = (
 	$Root/Window/Margin/Layout/Header/Margin/Row/Close
@@ -69,8 +105,13 @@ func setup(world: Node) -> void:
 	_build_recipe_cards()
 	_reconcile_inventory_groups()
 	_close_button.pressed.connect(close)
+	_manufacture_button.pressed.connect(
+		_set_active_view.bind(VIEW_MANUFACTURE)
+	)
+	_inventory_button.pressed.connect(_set_active_view.bind(VIEW_INVENTORY))
 	_detail_craft.pressed.connect(_on_detail_craft_pressed)
 	_detail_select.pressed.connect(_on_detail_select_pressed)
+	_set_active_view(VIEW_MANUFACTURE)
 	_root.visible = false
 	for changed_signal in [
 		_world.inventory_changed,
@@ -98,6 +139,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			_world.close_building_actions()
 			_open = true
 			_root.visible = true
+			_set_active_view(VIEW_MANUFACTURE)
 			_refresh()
 		else:
 			close()
@@ -112,6 +154,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if index >= 0 and index < SliceRecipes.RECIPES.size():
 		var recipe: Dictionary = SliceRecipes.RECIPES[index]
 		_selected_recipe_id = String(recipe["id"])
+		_set_active_view(VIEW_MANUFACTURE)
 		_activate_recipe(recipe, key_event.shift_pressed)
 		get_viewport().set_input_as_handled()
 
@@ -170,6 +213,22 @@ func is_open() -> bool:
 	return _open
 
 
+func active_view() -> String:
+	return _active_view
+
+
+func show_inventory() -> void:
+	_set_active_view(VIEW_INVENTORY)
+
+
+func manufacture_view_visible() -> bool:
+	return _manufacture_view.visible
+
+
+func inventory_view_visible() -> bool:
+	return _inventory_view.visible
+
+
 func recipe_card(recipe_id: String) -> PanelContainer:
 	var card_data: Dictionary = _recipe_cards.get(recipe_id, {})
 	return card_data.get("panel") as PanelContainer
@@ -192,9 +251,19 @@ func inventory_group_count() -> int:
 	return _inventory_groups.size()
 
 
+func material_requirement_count() -> int:
+	return _material_rows.size()
+
+
 func inventory_slot_count_text(item_id: String) -> String:
 	var slot_data: Dictionary = _inventory_slots.get(item_id, {})
 	var count_label := slot_data.get("count") as Label
+	return "" if count_label == null else count_label.text
+
+
+func material_requirement_text(item_id: String) -> String:
+	var row_data: Dictionary = _material_rows.get(item_id, {})
+	var count_label := row_data.get("count") as Label
 	return "" if count_label == null else count_label.text
 
 
@@ -219,7 +288,19 @@ func select_recipe(recipe_id: String) -> void:
 		return
 	_selected_recipe_id = recipe_id
 	_last_result = ""
+	_set_active_view(VIEW_MANUFACTURE)
 	_refresh()
+
+
+func _set_active_view(view_id: String) -> void:
+	_active_view = (
+		VIEW_INVENTORY if view_id == VIEW_INVENTORY else VIEW_MANUFACTURE
+	)
+	_manufacture_view.visible = _active_view == VIEW_MANUFACTURE
+	_inventory_view.visible = _active_view == VIEW_INVENTORY
+	_manufacture_button.button_pressed = _active_view == VIEW_MANUFACTURE
+	_inventory_button.button_pressed = _active_view == VIEW_INVENTORY
+	_refresh_footer()
 
 
 func _build_recipe_cards() -> void:
@@ -238,8 +319,10 @@ func _build_recipe_cards() -> void:
 func _create_recipe_card(recipe: Dictionary, shortcut: int) -> Dictionary:
 	var panel := PanelContainer.new()
 	panel.name = "RecipeCard_%s" % String(recipe["id"])
-	panel.custom_minimum_size = Vector2(328, 68)
-	panel.add_theme_stylebox_override("panel", _card_style(false, false))
+	panel.custom_minimum_size = Vector2(198, 164)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.clip_contents = true
+	panel.add_theme_stylebox_override("panel", _surface_style(false, false))
 	panel.tooltip_text = "%s：%s" % [
 		String(recipe["name"]),
 		SliceRecipes.cost_text(recipe["cost"]),
@@ -247,18 +330,18 @@ func _create_recipe_card(recipe: Dictionary, shortcut: int) -> Dictionary:
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 10)
-	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_top", 8)
 	margin.add_theme_constant_override("margin_right", 10)
-	margin.add_theme_constant_override("margin_bottom", 6)
+	margin.add_theme_constant_override("margin_bottom", 9)
 	panel.add_child(margin)
 
-	var layout := HBoxContainer.new()
-	layout.add_theme_constant_override("separation", 8)
+	var layout := VBoxContainer.new()
+	layout.add_theme_constant_override("separation", 4)
 	margin.add_child(layout)
 
 	var icon := TextureRect.new()
 	icon.name = "Icon"
-	icon.custom_minimum_size = Vector2(48, 48)
+	icon.custom_minimum_size = Vector2(0, 88)
 	icon.texture = _item_icon(String(recipe["output"]))
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -266,35 +349,34 @@ func _create_recipe_card(recipe: Dictionary, shortcut: int) -> Dictionary:
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layout.add_child(icon)
 
-	var identity := VBoxContainer.new()
-	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	identity.add_theme_constant_override("separation", 0)
+	var identity := HBoxContainer.new()
+	identity.add_theme_constant_override("separation", 6)
 	layout.add_child(identity)
 
 	var name_label := Label.new()
 	name_label.name = "Name"
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_label.add_theme_color_override("font_color", COLOR_TEXT)
-	name_label.add_theme_font_size_override("font_size", 17)
+	name_label.add_theme_font_size_override("font_size", 15)
 	name_label.text = String(recipe["name"])
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	identity.add_child(name_label)
 
-	var output_label := Label.new()
-	output_label.name = "Output"
-	output_label.add_theme_color_override("font_color", COLOR_MUTED)
-	output_label.add_theme_font_size_override("font_size", 13)
-	output_label.text = "检查状态…"
-	identity.add_child(output_label)
-
 	var hotkey := Label.new()
 	hotkey.name = "Hotkey"
-	hotkey.custom_minimum_size = Vector2(32, 32)
-	hotkey.add_theme_color_override("font_color", COLOR_WARNING)
-	hotkey.add_theme_font_size_override("font_size", 18)
-	hotkey.text = "[%d]" % shortcut
-	hotkey.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hotkey.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	layout.add_child(hotkey)
+	hotkey.add_theme_color_override("font_color", COLOR_MUTED)
+	hotkey.add_theme_font_size_override("font_size", 14)
+	hotkey.text = "%d" % shortcut
+	hotkey.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	identity.add_child(hotkey)
+
+	var status := Label.new()
+	status.name = "Status"
+	status.add_theme_color_override("font_color", COLOR_MUTED)
+	status.add_theme_font_size_override("font_size", 12)
+	status.text = "检查状态…"
+	status.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	layout.add_child(status)
 
 	var select_button := Button.new()
 	select_button.name = "SelectRecipe"
@@ -309,7 +391,8 @@ func _create_recipe_card(recipe: Dictionary, shortcut: int) -> Dictionary:
 
 	return {
 		"panel": panel,
-		"status": output_label,
+		"status": status,
+		"hotkey": hotkey,
 	}
 
 
@@ -329,21 +412,33 @@ func _reconcile_inventory_groups() -> Array[Dictionary]:
 		var category := String(group["category"])
 		var section := VBoxContainer.new()
 		section.name = "InventoryGroup_%s" % category
-		section.add_theme_constant_override("separation", 4)
+		section.add_theme_constant_override("separation", 6)
 		_inventory_group_list.add_child(section)
+
+		var header := HBoxContainer.new()
+		section.add_child(header)
 
 		var title := Label.new()
 		title.name = "Title"
-		title.add_theme_color_override("font_color", COLOR_MUTED)
+		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		title.add_theme_color_override("font_color", COLOR_TEXT)
 		title.add_theme_font_size_override("font_size", 14)
 		title.text = String(group["title"])
-		section.add_child(title)
+		header.add_child(title)
+
+		var summary := Label.new()
+		summary.name = "Summary"
+		summary.add_theme_color_override("font_color", COLOR_MUTED)
+		summary.add_theme_font_size_override("font_size", 12)
+		summary.text = "%d 项" % (group["items"] as Array).size()
+		header.add_child(summary)
 
 		var grid := GridContainer.new()
 		grid.name = "Items"
-		grid.columns = 3
-		grid.add_theme_constant_override("h_separation", 6)
-		grid.add_theme_constant_override("v_separation", 6)
+		grid.columns = 6
+		grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid.add_theme_constant_override("h_separation", 8)
+		grid.add_theme_constant_override("v_separation", 8)
 		section.add_child(grid)
 		_inventory_groups[category] = {
 			"section": section,
@@ -362,18 +457,25 @@ func _create_inventory_slot(item: Dictionary) -> Dictionary:
 	var item_id := String(item["item_id"])
 	var panel := PanelContainer.new()
 	panel.name = "InventorySlot_%s" % item_id.replace(".", "_")
-	panel.custom_minimum_size = Vector2(112, 126)
-	panel.add_theme_stylebox_override("panel", _slot_style(false))
+	panel.custom_minimum_size = Vector2(210, 118)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.add_theme_stylebox_override("panel", _surface_style(false, false))
 	panel.tooltip_text = String(item["display_name"])
 
-	var layout := VBoxContainer.new()
-	layout.alignment = BoxContainer.ALIGNMENT_CENTER
-	layout.add_theme_constant_override("separation", 1)
-	panel.add_child(layout)
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	panel.add_child(margin)
+
+	var layout := HBoxContainer.new()
+	layout.add_theme_constant_override("separation", 10)
+	margin.add_child(layout)
 
 	var icon := TextureRect.new()
 	icon.name = "Icon"
-	icon.custom_minimum_size = Vector2(54, 54)
+	icon.custom_minimum_size = Vector2(72, 72)
 	icon.texture = _read_model_icon(item)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -381,22 +483,26 @@ func _create_inventory_slot(item: Dictionary) -> Dictionary:
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layout.add_child(icon)
 
+	var identity := VBoxContainer.new()
+	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	identity.alignment = BoxContainer.ALIGNMENT_CENTER
+	identity.add_theme_constant_override("separation", 3)
+	layout.add_child(identity)
+
 	var name_label := Label.new()
 	name_label.name = "Name"
 	name_label.add_theme_color_override("font_color", COLOR_MUTED)
 	name_label.add_theme_font_size_override("font_size", 14)
 	name_label.text = String(item["short_name"])
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	layout.add_child(name_label)
+	identity.add_child(name_label)
 
 	var count_label := Label.new()
 	count_label.name = "Count"
 	count_label.add_theme_color_override("font_color", COLOR_TEXT)
-	count_label.add_theme_font_size_override("font_size", 20)
+	count_label.add_theme_font_size_override("font_size", 18)
 	count_label.text = "0"
-	count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	layout.add_child(count_label)
+	identity.add_child(count_label)
 
 	return {
 		"panel": panel,
@@ -436,17 +542,19 @@ func _refresh() -> void:
 		else "%d / %d" % [_world.pocket.total(), profile.total_capacity]
 	)
 	_placement.text = (
-		"当前放置\n— 未选择建筑套件"
+		"当前放置 · 未选择建筑套件"
 		if selected_id.is_empty()
-		else "当前放置\n● %s" % _short_item_name(selected_id)
+		else "当前放置 · %s" % _short_item_name(selected_id)
 	)
 	_refresh_selected_recipe(selected_id)
+	_refresh_footer()
 
 
 func _refresh_recipe_card(recipe: Dictionary, selected_id: String) -> void:
 	var card: Dictionary = _recipe_cards[String(recipe["id"])]
 	var panel := card["panel"] as PanelContainer
 	var status := card["status"] as Label
+	var hotkey := card["hotkey"] as Label
 	var output := String(recipe["output"])
 	var existing_count: int = _world.pocket.count(output)
 	var building_id := String(recipe.get("building_id", ""))
@@ -455,32 +563,25 @@ func _refresh_recipe_card(recipe: Dictionary, selected_id: String) -> void:
 		and selected_id == building_id
 	)
 	var blocker := SliceRecipes.craft_block_reason(recipe, _world.pocket)
+	var is_current := String(recipe["id"]) == _selected_recipe_id
 
-	var blocked := false
 	if selected:
-		status.text = "● 放置中 · %d" % existing_count
-		status.add_theme_color_override("font_color", COLOR_SELECTED)
-	elif existing_count > 0 and String(recipe["kind"]) == "building":
-		status.text = (
-			"已有 %d · %s" % [existing_count, blocker]
-			if not blocker.is_empty()
-			else "● 就绪 · 已有 %d" % existing_count
-		)
-		status.add_theme_color_override("font_color", COLOR_WARNING)
-		blocked = not blocker.is_empty()
-	elif blocker.is_empty():
-		status.text = "● 就绪"
-		status.add_theme_color_override("font_color", COLOR_READY)
-	else:
+		status.text = "放置中 · 剩余 %d" % existing_count
+		status.add_theme_color_override("font_color", COLOR_A1)
+	elif not blocker.is_empty():
 		status.text = blocker
-		status.add_theme_color_override("font_color", COLOR_BLOCKED)
-		blocked = true
+		status.add_theme_color_override("font_color", COLOR_WARNING)
+	elif existing_count > 0 and String(recipe["kind"]) == "building":
+		status.text = "材料可用 · 已有 %d" % existing_count
+		status.add_theme_color_override("font_color", COLOR_MUTED)
+	else:
+		status.text = "材料可用 · %s" % SliceRecipes.cost_text(recipe["cost"])
+		status.add_theme_color_override("font_color", COLOR_MUTED)
+	hotkey.add_theme_color_override(
+		"font_color", COLOR_A1 if is_current else COLOR_MUTED
+	)
 	panel.add_theme_stylebox_override(
-		"panel",
-		_card_style(
-			String(recipe["id"]) == _selected_recipe_id,
-			blocked and String(recipe["id"]) == _selected_recipe_id
-		)
+		"panel", _surface_style(is_current, false)
 	)
 
 
@@ -489,6 +590,7 @@ func _refresh_selected_recipe(selected_building_id: String) -> void:
 	if recipe.is_empty():
 		return
 	var output := String(recipe["output"])
+	var output_amount := int(recipe.get("output_count", 1))
 	var existing_count: int = _world.pocket.count(output)
 	var building_id := String(recipe.get("building_id", ""))
 	var selected := (
@@ -496,12 +598,24 @@ func _refresh_selected_recipe(selected_building_id: String) -> void:
 		and selected_building_id == building_id
 	)
 	var blocker := SliceRecipes.craft_block_reason(recipe, _world.pocket)
+
+	_refresh_material_requirements(recipe)
+	_output_icon.texture = _item_icon(output)
+	_output_name.text = String(recipe["name"])
+	_output_count.text = "产出 ×%d" % output_amount
+	_detail_kind.text = (
+		"建筑套件" if String(recipe["kind"]) == "building" else "加工品"
+	)
 	_detail_icon.texture = _item_icon(output)
 	_detail_name.text = String(recipe["name"])
-	_detail_output.text = "产出 ×%d" % int(recipe.get("output_count", 1))
-	_detail_cost.text = "材料  %s" % SliceRecipes.cost_text(recipe["cost"])
+	_detail_output.text = (
+		"产出 ×%d · 用于世界放置" % output_amount
+		if String(recipe["kind"]) == "building"
+		else "产出 ×%d · 放入随身背包" % output_amount
+	)
+	_detail_existing.text = "随身已有 %d" % existing_count
 	_detail_craft.disabled = not blocker.is_empty()
-	_detail_craft.text = "制作 ×%d" % int(recipe.get("output_count", 1))
+	_detail_craft.text = "制作 ×%d" % output_amount
 	_detail_craft.tooltip_text = (
 		blocker
 		if not blocker.is_empty()
@@ -515,17 +629,101 @@ func _refresh_selected_recipe(selected_building_id: String) -> void:
 		else "选中已有 ×%d" % existing_count
 	)
 	if selected:
-		_detail_state.text = "● 当前正在放置 · 剩余 %d" % existing_count
-		_detail_state.add_theme_color_override("font_color", COLOR_SELECTED)
+		_detail_state.text = "当前正在放置 · 剩余 %d" % existing_count
+		_detail_state.add_theme_color_override("font_color", COLOR_A1)
 	elif blocker.is_empty():
-		_detail_state.text = "● 材料就绪"
-		_detail_state.add_theme_color_override("font_color", COLOR_READY)
+		_detail_state.text = "材料校验通过 · 可以制作"
+		_detail_state.add_theme_color_override("font_color", COLOR_A1)
 	else:
-		_detail_state.text = blocker
-		_detail_state.add_theme_color_override("font_color", COLOR_BLOCKED)
+		_detail_state.text = _display_blocker(blocker)
+		_detail_state.add_theme_color_override("font_color", COLOR_WARNING)
 	_result_text.text = (
-		_last_result if not _last_result.is_empty() else "尚未进行制造操作"
+		_last_result if not _last_result.is_empty() else "确认材料后执行制作"
 	)
+	_result_text.add_theme_color_override(
+		"font_color",
+		COLOR_A1 if _last_result.begins_with("已") else (
+			COLOR_WARNING if not _last_result.is_empty() else COLOR_MUTED
+		)
+	)
+
+
+func _refresh_material_requirements(recipe: Dictionary) -> void:
+	for child in _material_list.get_children():
+		_material_list.remove_child(child)
+		child.queue_free()
+	_material_rows.clear()
+	var cost: Dictionary = recipe["cost"]
+	for raw_item_id in cost:
+		var item_id := String(raw_item_id)
+		var needed := int(cost[raw_item_id])
+		var available: int = _world.pocket.count(item_id)
+		var definition := SliceItemCatalog.find(item_id)
+		var item_name := item_id if definition == null else definition.display_name
+		var missing := available < needed
+
+		var panel := PanelContainer.new()
+		panel.name = "Material_%s" % item_id.replace(".", "_")
+		panel.custom_minimum_size = Vector2(0, 92)
+		panel.add_theme_stylebox_override(
+			"panel", _surface_style(false, missing)
+		)
+		_material_list.add_child(panel)
+
+		var margin := MarginContainer.new()
+		margin.add_theme_constant_override("margin_left", 12)
+		margin.add_theme_constant_override("margin_top", 9)
+		margin.add_theme_constant_override("margin_right", 12)
+		margin.add_theme_constant_override("margin_bottom", 9)
+		panel.add_child(margin)
+
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		margin.add_child(row)
+
+		var icon := TextureRect.new()
+		icon.name = "Icon"
+		icon.custom_minimum_size = Vector2(58, 58)
+		icon.texture = _item_icon(item_id)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		row.add_child(icon)
+
+		var identity := VBoxContainer.new()
+		identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		identity.alignment = BoxContainer.ALIGNMENT_CENTER
+		identity.add_theme_constant_override("separation", 3)
+		row.add_child(identity)
+
+		var name_label := Label.new()
+		name_label.name = "Name"
+		name_label.add_theme_color_override("font_color", COLOR_TEXT)
+		name_label.add_theme_font_size_override("font_size", 15)
+		name_label.text = item_name
+		identity.add_child(name_label)
+
+		var source_label := Label.new()
+		source_label.name = "Source"
+		source_label.add_theme_color_override("font_color", COLOR_MUTED)
+		source_label.add_theme_font_size_override("font_size", 12)
+		source_label.text = "随身库存"
+		identity.add_child(source_label)
+
+		var count_label := Label.new()
+		count_label.name = "Count"
+		count_label.add_theme_color_override(
+			"font_color", COLOR_WARNING if missing else COLOR_TEXT
+		)
+		count_label.add_theme_font_size_override("font_size", 18)
+		count_label.text = "%d / %d" % [available, needed]
+		count_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		row.add_child(count_label)
+
+		_material_rows[item_id] = {
+			"panel": panel,
+			"count": count_label,
+		}
 
 
 func _refresh_inventory_slot(item: Dictionary, selected_id: String) -> void:
@@ -540,13 +738,44 @@ func _refresh_inventory_slot(item: Dictionary, selected_id: String) -> void:
 		else "%d / %d" % [count, int(item["capacity"])]
 	)
 	count_label.add_theme_color_override(
-		"font_color",
-		COLOR_WARNING if count > 0 else COLOR_MUTED
+		"font_color", COLOR_TEXT if count > 0 else COLOR_DIM
 	)
 	panel.add_theme_stylebox_override(
-		"panel",
-		_slot_style(item_id == selected_id)
+		"panel", _surface_style(item_id == selected_id, false)
 	)
+
+
+func _refresh_footer() -> void:
+	if _world == null:
+		return
+	if _active_view == VIEW_INVENTORY:
+		_footer_status.text = "分类背包"
+		_footer_status.add_theme_color_override("font_color", COLOR_A1)
+		_footer_detail.text = _capacity.text
+		return
+	var recipe := SliceRecipes.find(_selected_recipe_id)
+	if recipe.is_empty():
+		_footer_status.text = "制造终端"
+		_footer_detail.text = "选择制造对象"
+		return
+	var blocker := SliceRecipes.craft_block_reason(recipe, _world.pocket)
+	if blocker.is_empty():
+		_footer_status.text = "材料就绪"
+		_footer_status.add_theme_color_override("font_color", COLOR_A1)
+	else:
+		_footer_status.text = "等待材料"
+		_footer_status.add_theme_color_override("font_color", COLOR_WARNING)
+	_footer_detail.text = (
+		_last_result
+		if not _last_result.is_empty()
+		else SliceRecipes.cost_text(recipe["cost"])
+	)
+
+
+func _display_blocker(blocker: String) -> String:
+	if blocker.begins_with("缺少 "):
+		return "材料不足 · 还需 %s" % blocker.trim_prefix("缺少 ")
+	return blocker
 
 
 func _item_icon(item_id: String) -> Texture2D:
@@ -589,23 +818,13 @@ func _has_critical_sample() -> bool:
 	)
 
 
-func _card_style(selected: bool, blocked: bool) -> StyleBoxFlat:
-	var style := CARD_STYLE.duplicate() as StyleBoxFlat
-	if selected or blocked:
-		style.border_width_left = 4
-		style.border_width_top = 0
-		style.border_width_right = 0
-		style.border_width_bottom = 0
-		style.border_color = COLOR_SELECTED if selected else COLOR_BLOCKED
-	return style
-
-
-func _slot_style(selected: bool) -> StyleBoxFlat:
+func _surface_style(selected: bool, warning: bool) -> StyleBoxFlat:
 	var style := SURFACE_STYLE.duplicate() as StyleBoxFlat
 	if selected:
-		style.border_width_left = 4
-		style.border_width_top = 0
-		style.border_width_right = 0
-		style.border_width_bottom = 0
-		style.border_color = COLOR_SELECTED
+		style.border_color = COLOR_A1
+		style.border_width_bottom = 4
+	elif warning:
+		style.border_color = COLOR_WARNING.darkened(0.22)
+		style.border_width_left = 3
+		style.border_width_bottom = 1
 	return style

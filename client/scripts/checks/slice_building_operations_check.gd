@@ -1,8 +1,10 @@
 extends SceneTree
 
 const SliceWorldScene := preload("res://scenes/slice/SliceWorld.tscn")
-const UI_CARD_STYLE := preload("res://assets/themes/slice_ui_card.tres")
-const UI_SURFACE_STYLE := preload("res://assets/themes/slice_ui_surface.tres")
+const CRAFT_SURFACE_STYLE := preload(
+	"res://assets/themes/slice_ui_craft_surface.tres"
+)
+const CRAFT_SHELL_STYLE_PATH := "res://assets/themes/slice_ui_craft_shell.tres"
 const UI_SHELL_STYLE_PATH := "res://assets/themes/slice_ui_shell.tres"
 
 var failures: Array[String] = []
@@ -157,6 +159,15 @@ func _check_world_operations() -> void:
 		3,
 		"graphical backpack groups unlocked items by shared catalog category"
 	)
+	_expect_equal(
+		(
+			world._craft_panel.get_node(
+				"Root/Window/Margin/Layout/Content/Manufacture/Catalog/Margin/Layout/RecipeScroll/RecipeGrid"
+			) as GridContainer
+		).columns,
+		3,
+		"P2-B manufacturing catalog uses the approved compact recipe grid"
+	)
 	for recipe in SliceRecipes.RECIPES:
 		var recipe_id := String(recipe["id"])
 		var card := world._craft_panel.recipe_card(recipe_id)
@@ -180,6 +191,30 @@ func _check_world_operations() -> void:
 		true,
 		"selected recipe exposes the shared mouse craft action"
 	)
+	_expect_equal(
+		world._craft_panel.material_requirement_count(),
+		1,
+		"selected recipe exposes one authoritative material requirement"
+	)
+	_expect_equal(
+		world._craft_panel.material_requirement_text(SliceWorld.ITEM_CRYSTAL),
+		"0 / 3",
+		"material validation shows authoritative available and required counts"
+	)
+	_expect_equal(
+		world._craft_panel.manufacture_view_visible()
+		and not world._craft_panel.inventory_view_visible(),
+		true,
+		"manufacturing opens without a permanently adjacent full backpack"
+	)
+	world._craft_panel.show_inventory()
+	_expect_equal(
+		world._craft_panel.inventory_view_visible()
+		and not world._craft_panel.manufacture_view_visible(),
+		true,
+		"categorized backpack replaces the manufacturing body when selected"
+	)
+	world._craft_panel.select_recipe("part")
 	for item_id in SliceItemCatalog.ORDERED_IDS:
 		var slot := world._craft_panel.inventory_slot(item_id)
 		var slot_icon := slot.find_child("Icon", true, false) as TextureRect
@@ -201,12 +236,12 @@ func _check_world_operations() -> void:
 	_expect_equal(
 		_panel_style_path(
 			world._craft_panel.get_node("Root/Window")
-		) == UI_SHELL_STYLE_PATH
+		) == CRAFT_SHELL_STYLE_PATH
 		and _panel_style_path(
 			world._building_action_panel.get_node("Root/Window")
 		) == UI_SHELL_STYLE_PATH,
 		true,
-		"crafting and device panels share the foreground shell role"
+		"P2-B scopes its dark shell without preemptively changing devices"
 	)
 	var first_recipe_style := (
 		world._craft_panel.recipe_card("part").get_theme_stylebox(
@@ -220,15 +255,15 @@ func _check_world_operations() -> void:
 	)
 	_expect_equal(
 		first_recipe_style != null
-		and first_recipe_style.bg_color == UI_CARD_STYLE.bg_color,
+		and first_recipe_style.bg_color == CRAFT_SURFACE_STYLE.bg_color,
 		true,
-		"recipe cards inherit the shared raised card material"
+		"recipe cards use the P2-B neutral manufacturing surface"
 	)
 	_expect_equal(
 		first_slot_style != null
-		and first_slot_style.bg_color == UI_SURFACE_STYLE.bg_color,
+		and first_slot_style.bg_color == CRAFT_SURFACE_STYLE.bg_color,
 		true,
-		"inventory slots inherit the shared recessed surface material"
+		"categorized inventory slots reuse the same neutral item surface"
 	)
 
 	world.pocket.restore_existing("future.item", 3)

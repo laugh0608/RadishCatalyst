@@ -1,13 +1,33 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/slice/slice_craft_panel.gd" id="1_panel"]
-[ext_resource type="Theme" path="res://assets/themes/slice_ui_theme.tres" id="2_ui_theme"]
-[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_shell.tres" id="3_shell"]
-[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_terminal_chrome.tres" id="4_chrome"]
-[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_card.tres" id="5_card"]
-[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_surface.tres" id="6_surface"]
-[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_attention.tres" id="7_attention"]
-[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_primary.tres" id="8_primary"]
+[ext_resource type="Theme" path="res://assets/themes/slice_ui_craft_theme.tres" id="2_theme"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_craft_shell.tres" id="3_shell"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_craft_surface.tres" id="4_surface"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_craft_primary_action.tres" id="5_primary"]
+
+[sub_resource type="StyleBoxFlat" id="HeaderStyle"]
+bg_color = Color(0.063, 0.09, 0.102, 1)
+border_width_bottom = 1
+border_color = Color(0.224, 0.275, 0.294, 1)
+
+[sub_resource type="StyleBoxFlat" id="SectionStyle"]
+bg_color = Color(0.082, 0.118, 0.133, 1)
+border_width_right = 1
+border_color = Color(0.208, 0.255, 0.275, 1)
+
+[sub_resource type="StyleBoxFlat" id="InsetStyle"]
+bg_color = Color(0.086, 0.118, 0.133, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.235, 0.282, 0.302, 1)
+
+[sub_resource type="StyleBoxFlat" id="FooterStyle"]
+bg_color = Color(0.051, 0.082, 0.094, 1)
+border_width_top = 1
+border_color = Color(0.208, 0.255, 0.275, 1)
 
 [node name="SliceCraftPanel" type="CanvasLayer"]
 layer = 30
@@ -16,7 +36,7 @@ script = ExtResource("1_panel")
 [node name="Root" type="Control" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
-theme = ExtResource("2_ui_theme")
+theme = ExtResource("2_theme")
 mouse_filter = 0
 
 [node name="Backdrop" type="ColorRect" parent="Root"]
@@ -26,284 +46,479 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.05, 0.06, 0.06, 0.04)
+color = Color(0.025, 0.043, 0.051, 0.18)
 mouse_filter = 0
 
 [node name="Window" type="PanelContainer" parent="Root"]
 layout_mode = 1
-anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -1252.0
-offset_top = -356.0
-offset_right = -28.0
-offset_bottom = 412.0
-grow_horizontal = 0
+offset_left = 72.0
+offset_top = -428.0
+offset_right = -24.0
+offset_bottom = 427.0
+grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = ExtResource("3_shell")
 
 [node name="Margin" type="MarginContainer" parent="Root/Window"]
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 12
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 10
 
 [node name="Layout" type="VBoxContainer" parent="Root/Window/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 0
 
 [node name="Header" type="PanelContainer" parent="Root/Window/Margin/Layout"]
-custom_minimum_size = Vector2(0, 96)
+custom_minimum_size = Vector2(0, 68)
 layout_mode = 2
-theme_override_styles/panel = ExtResource("4_chrome")
+theme_override_styles/panel = SubResource("HeaderStyle")
 
 [node name="Margin" type="MarginContainer" parent="Root/Window/Margin/Layout/Header"]
 layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 10
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 9
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 9
 
 [node name="Row" type="HBoxContainer" parent="Root/Window/Margin/Layout/Header/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="Identity" type="VBoxContainer" parent="Root/Window/Margin/Layout/Header/Margin/Row"]
 layout_mode = 2
 size_flags_horizontal = 3
 alignment = 1
+theme_override_constants/separation = 1
 
 [node name="Title" type="Label" parent="Root/Window/Margin/Layout/Header/Margin/Row/Identity"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.82, 0.86, 0.83, 1)
-theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.91, 0.929, 0.922, 1)
+theme_override_font_sizes/font_size = 25
 text = "前哨制造终端"
 
 [node name="Subtitle" type="Label" parent="Root/Window/Margin/Layout/Header/Margin/Row/Identity"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.55, 0.64, 0.62, 1)
-theme_override_font_sizes/font_size = 16
-text = "随身制造 / 背包"
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
+theme_override_font_sizes/font_size = 14
+text = "随身制造 / 分类背包"
 
-[node name="Close" type="Button" parent="Root/Window/Margin/Layout/Header/Margin/Row"]
-custom_minimum_size = Vector2(164, 58)
-layout_mode = 2
-theme_override_font_sizes/font_size = 17
-text = "B 关闭"
-
-[node name="Content" type="HBoxContainer" parent="Root/Window/Margin/Layout"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 12
-
-[node name="Recipes" type="VBoxContainer" parent="Root/Window/Margin/Layout/Content"]
-custom_minimum_size = Vector2(336, 0)
+[node name="Views" type="HBoxContainer" parent="Root/Window/Margin/Layout/Header/Margin/Row"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="SectionHeader" type="HBoxContainer" parent="Root/Window/Margin/Layout/Content/Recipes"]
+[node name="Manufacture" type="Button" parent="Root/Window/Margin/Layout/Header/Margin/Row/Views"]
+custom_minimum_size = Vector2(154, 46)
+layout_mode = 2
+toggle_mode = true
+theme_override_font_sizes/font_size = 16
+text = "制造"
+
+[node name="Inventory" type="Button" parent="Root/Window/Margin/Layout/Header/Margin/Row/Views"]
+custom_minimum_size = Vector2(154, 46)
+layout_mode = 2
+toggle_mode = true
+theme_override_font_sizes/font_size = 16
+text = "随身背包"
+
+[node name="Close" type="Button" parent="Root/Window/Margin/Layout/Header/Margin/Row"]
+custom_minimum_size = Vector2(142, 46)
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "B 关闭"
+
+[node name="Content" type="Control" parent="Root/Window/Margin/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Manufacture" type="HBoxContainer" parent="Root/Window/Margin/Layout/Content"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="Catalog" type="PanelContainer" parent="Root/Window/Margin/Layout/Content/Manufacture"]
+custom_minimum_size = Vector2(650, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("SectionStyle")
+
+[node name="Margin" type="MarginContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Catalog"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 14
+
+[node name="Layout" type="VBoxContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Catalog/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SectionHeader" type="HBoxContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Catalog/Margin/Layout"]
 layout_mode = 2
 
-[node name="Accent" type="ColorRect" parent="Root/Window/Margin/Layout/Content/Recipes/SectionHeader"]
-custom_minimum_size = Vector2(6, 0)
-layout_mode = 2
-color = Color(0.702, 0.392, 0.102, 1)
-
-[node name="Title" type="Label" parent="Root/Window/Margin/Layout/Content/Recipes/SectionHeader"]
+[node name="Title" type="Label" parent="Root/Window/Margin/Layout/Content/Manufacture/Catalog/Margin/Layout/SectionHeader"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.118, 0.145, 0.149, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.91, 0.929, 0.922, 1)
+theme_override_font_sizes/font_size = 17
 text = "制造对象"
 
-[node name="RecipeScroll" type="ScrollContainer" parent="Root/Window/Margin/Layout/Content/Recipes"]
+[node name="Count" type="Label" parent="Root/Window/Margin/Layout/Content/Manufacture/Catalog/Margin/Layout/SectionHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.624, 0.663, 0.671, 1)
+theme_override_font_sizes/font_size = 13
+text = "7 项"
+
+[node name="RecipeScroll" type="ScrollContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Catalog/Margin/Layout"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="RecipeGrid" type="GridContainer" parent="Root/Window/Margin/Layout/Content/Recipes/RecipeScroll"]
+[node name="RecipeGrid" type="GridContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Catalog/Margin/Layout/RecipeScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/v_separation = 4
-columns = 1
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 3
 
-[node name="Current" type="VBoxContainer" parent="Root/Window/Margin/Layout/Content"]
-custom_minimum_size = Vector2(436, 0)
+[node name="CatalogFooter" type="Label" parent="Root/Window/Margin/Layout/Content/Manufacture/Catalog/Margin/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.624, 0.663, 0.671, 1)
+theme_override_font_sizes/font_size = 12
+text = "全部配方 · 权威顺序 1—7"
+
+[node name="Materials" type="PanelContainer" parent="Root/Window/Margin/Layout/Content/Manufacture"]
+custom_minimum_size = Vector2(370, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("SectionStyle")
+
+[node name="Margin" type="MarginContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Materials"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 14
+
+[node name="Layout" type="VBoxContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SectionHeader" type="HBoxContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin/Layout"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin/Layout/SectionHeader"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 6
+theme_override_colors/font_color = Color(0.91, 0.929, 0.922, 1)
+theme_override_font_sizes/font_size = 17
+text = "所需材料"
 
-[node name="SectionHeader" type="HBoxContainer" parent="Root/Window/Margin/Layout/Content/Current"]
+[node name="Unit" type="Label" parent="Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin/Layout/SectionHeader"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.624, 0.663, 0.671, 1)
+theme_override_font_sizes/font_size = 13
+text = "单次"
 
-[node name="Accent" type="ColorRect" parent="Root/Window/Margin/Layout/Content/Current/SectionHeader"]
-custom_minimum_size = Vector2(6, 0)
-layout_mode = 2
-color = Color(0.702, 0.392, 0.102, 1)
-
-[node name="Title" type="Label" parent="Root/Window/Margin/Layout/Content/Current/SectionHeader"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.118, 0.145, 0.149, 1)
-theme_override_font_sizes/font_size = 20
-text = "当前配方"
-
-[node name="Detail" type="PanelContainer" parent="Root/Window/Margin/Layout/Content/Current"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_styles/panel = ExtResource("5_card")
-
-[node name="Margin" type="MarginContainer" parent="Root/Window/Margin/Layout/Content/Current/Detail"]
-layout_mode = 2
-theme_override_constants/margin_left = 14
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 14
-theme_override_constants/margin_bottom = 12
-
-[node name="Layout" type="VBoxContainer" parent="Root/Window/Margin/Layout/Content/Current/Detail/Margin"]
+[node name="MaterialList" type="VBoxContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin/Layout"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Hero" type="VBoxContainer" parent="Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout"]
-custom_minimum_size = Vector2(0, 178)
+[node name="Flow" type="VBoxContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin/Layout"]
+custom_minimum_size = Vector2(0, 92)
 layout_mode = 2
 alignment = 1
+theme_override_constants/separation = 4
 
-[node name="Icon" type="TextureRect" parent="Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/Hero"]
-custom_minimum_size = Vector2(0, 104)
+[node name="Line" type="ColorRect" parent="Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin/Layout/Flow"]
+custom_minimum_size = Vector2(3, 52)
+layout_mode = 2
+size_flags_horizontal = 4
+color = Color(0.498, 0.573, 0.722, 1)
+
+[node name="Text" type="Label" parent="Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin/Layout/Flow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.624, 0.663, 0.671, 1)
+theme_override_font_sizes/font_size = 12
+text = "材料校验"
+horizontal_alignment = 1
+
+[node name="Output" type="PanelContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin/Layout"]
+custom_minimum_size = Vector2(0, 96)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("4_surface")
+
+[node name="Margin" type="MarginContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin/Layout/Output"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="Row" type="HBoxContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin/Layout/Output/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Icon" type="TextureRect" parent="Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin/Layout/Output/Margin/Row"]
+custom_minimum_size = Vector2(68, 68)
 layout_mode = 2
 texture_filter = 1
 expand_mode = 3
 stretch_mode = 5
 
-[node name="Name" type="Label" parent="Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/Hero"]
+[node name="Identity" type="VBoxContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin/Layout/Output/Margin/Row"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.118, 0.145, 0.149, 1)
-theme_override_font_sizes/font_size = 23
+size_flags_horizontal = 3
+alignment = 1
+theme_override_constants/separation = 3
+
+[node name="Name" type="Label" parent="Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin/Layout/Output/Margin/Row/Identity"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.929, 0.922, 1)
+theme_override_font_sizes/font_size = 16
+text = "产物"
+
+[node name="Count" type="Label" parent="Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin/Layout/Output/Margin/Row/Identity"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
+theme_override_font_sizes/font_size = 13
+text = "产出 ×1"
+
+[node name="Result" type="PanelContainer" parent="Root/Window/Margin/Layout/Content/Manufacture"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("SectionStyle")
+
+[node name="Margin" type="MarginContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Result"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="Layout" type="VBoxContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Result/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SectionHeader" type="HBoxContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/SectionHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.91, 0.929, 0.922, 1)
+theme_override_font_sizes/font_size = 17
+text = "制造确认"
+
+[node name="Kind" type="Label" parent="Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/SectionHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.624, 0.663, 0.671, 1)
+theme_override_font_sizes/font_size = 13
+text = "当前配方"
+
+[node name="Hero" type="VBoxContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 4
+
+[node name="Icon" type="TextureRect" parent="Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/Hero"]
+custom_minimum_size = Vector2(0, 184)
+layout_mode = 2
+texture_filter = 1
+expand_mode = 3
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/Hero"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.929, 0.945, 0.937, 1)
+theme_override_font_sizes/font_size = 27
 text = "配方名称"
 horizontal_alignment = 1
 
-[node name="Output" type="Label" parent="Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/Hero"]
+[node name="Output" type="Label" parent="Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/Hero"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.32, 0.34, 0.32, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
+theme_override_font_sizes/font_size = 15
 text = "产出 ×1"
 horizontal_alignment = 1
 
-[node name="Cost" type="PanelContainer" parent="Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout"]
-custom_minimum_size = Vector2(0, 72)
+[node name="Existing" type="Label" parent="Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/Hero"]
 layout_mode = 2
-theme_override_styles/panel = ExtResource("6_surface")
-
-[node name="Label" type="Label" parent="Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/Cost"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.118, 0.145, 0.149, 1)
-theme_override_font_sizes/font_size = 18
-text = "材料"
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
+theme_override_font_sizes/font_size = 14
+text = "随身已有 0"
 horizontal_alignment = 1
-vertical_alignment = 1
 
-[node name="State" type="Label" parent="Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout"]
-custom_minimum_size = Vector2(0, 46)
+[node name="State" type="PanelContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout"]
+custom_minimum_size = Vector2(0, 62)
 layout_mode = 2
-theme_override_font_sizes/font_size = 17
+theme_override_styles/panel = SubResource("InsetStyle")
+
+[node name="Margin" type="MarginContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/State"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="Text" type="Label" parent="Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/State/Margin"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
 text = "检查材料…"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="Actions" type="HBoxContainer" parent="Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout"]
+[node name="Actions" type="HBoxContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Craft" type="Button" parent="Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/Actions"]
+[node name="Craft" type="Button" parent="Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/Actions"]
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.067, 0.094, 0.11, 1)
+theme_override_colors/font_hover_color = Color(0.067, 0.094, 0.11, 1)
+theme_override_colors/font_pressed_color = Color(0.067, 0.094, 0.11, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = ExtResource("5_primary")
+theme_override_styles/hover = ExtResource("5_primary")
+theme_override_styles/pressed = ExtResource("5_primary")
+theme_override_styles/focus = ExtResource("5_primary")
 text = "制作"
 
-[node name="SelectExisting" type="Button" parent="Root/Window/Margin/Layout/Content/Current/Detail/Margin/Layout/Actions"]
+[node name="SelectExisting" type="Button" parent="Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/Actions"]
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 17
 text = "选中已有"
 
-[node name="Result" type="PanelContainer" parent="Root/Window/Margin/Layout/Content/Current"]
-custom_minimum_size = Vector2(0, 82)
+[node name="Feedback" type="PanelContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout"]
+custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
-theme_override_styles/panel = ExtResource("8_primary")
+theme_override_styles/panel = ExtResource("4_surface")
 
-[node name="Text" type="Label" parent="Root/Window/Margin/Layout/Content/Current/Result"]
+[node name="Margin" type="MarginContainer" parent="Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/Feedback"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.035, 0.31, 0.31, 1)
-theme_override_font_sizes/font_size = 16
-text = "尚未进行制造操作"
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="Text" type="Label" parent="Root/Window/Margin/Layout/Content/Manufacture/Result/Margin/Layout/Feedback/Margin"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
+theme_override_font_sizes/font_size = 14
+text = "选择配方并检查材料"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="Inventory" type="VBoxContainer" parent="Root/Window/Margin/Layout/Content"]
-custom_minimum_size = Vector2(372, 0)
-layout_mode = 2
-theme_override_constants/separation = 6
+[node name="Inventory" type="PanelContainer" parent="Root/Window/Margin/Layout/Content"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("SectionStyle")
 
-[node name="SectionHeader" type="HBoxContainer" parent="Root/Window/Margin/Layout/Content/Inventory"]
+[node name="Margin" type="MarginContainer" parent="Root/Window/Margin/Layout/Content/Inventory"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 14
+
+[node name="Layout" type="VBoxContainer" parent="Root/Window/Margin/Layout/Content/Inventory/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SectionHeader" type="HBoxContainer" parent="Root/Window/Margin/Layout/Content/Inventory/Margin/Layout"]
 layout_mode = 2
 
-[node name="Accent" type="ColorRect" parent="Root/Window/Margin/Layout/Content/Inventory/SectionHeader"]
-custom_minimum_size = Vector2(6, 0)
-layout_mode = 2
-color = Color(0.702, 0.392, 0.102, 1)
-
-[node name="Title" type="Label" parent="Root/Window/Margin/Layout/Content/Inventory/SectionHeader"]
+[node name="Title" type="Label" parent="Root/Window/Margin/Layout/Content/Inventory/Margin/Layout/SectionHeader"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.118, 0.145, 0.149, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.91, 0.929, 0.922, 1)
+theme_override_font_sizes/font_size = 19
 text = "随身背包"
 
-[node name="Capacity" type="Label" parent="Root/Window/Margin/Layout/Content/Inventory/SectionHeader"]
+[node name="Capacity" type="Label" parent="Root/Window/Margin/Layout/Content/Inventory/Margin/Layout/SectionHeader"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.118, 0.145, 0.149, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
+theme_override_font_sizes/font_size = 14
 text = "不限种类 · 每类 200"
-vertical_alignment = 1
 
-[node name="InventoryScroll" type="ScrollContainer" parent="Root/Window/Margin/Layout/Content/Inventory"]
+[node name="InventoryScroll" type="ScrollContainer" parent="Root/Window/Margin/Layout/Content/Inventory/Margin/Layout"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="InventoryGroups" type="VBoxContainer" parent="Root/Window/Margin/Layout/Content/Inventory/InventoryScroll"]
+[node name="InventoryGroups" type="VBoxContainer" parent="Root/Window/Margin/Layout/Content/Inventory/Margin/Layout/InventoryScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
+theme_override_constants/separation = 12
 
-[node name="Placement" type="PanelContainer" parent="Root/Window/Margin/Layout/Content/Inventory"]
+[node name="Placement" type="PanelContainer" parent="Root/Window/Margin/Layout/Content/Inventory/Margin/Layout"]
+custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
-theme_override_styles/panel = ExtResource("6_surface")
+theme_override_styles/panel = SubResource("InsetStyle")
 
-[node name="Text" type="Label" parent="Root/Window/Margin/Layout/Content/Inventory/Placement"]
+[node name="Margin" type="MarginContainer" parent="Root/Window/Margin/Layout/Content/Inventory/Margin/Layout/Placement"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.24, 0.28, 0.28, 1)
-theme_override_font_sizes/font_size = 15
-text = "当前放置\n— 未选择建筑套件"
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 7
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 7
+
+[node name="Text" type="Label" parent="Root/Window/Margin/Layout/Content/Inventory/Margin/Layout/Placement/Margin"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
+theme_override_font_sizes/font_size = 14
+text = "当前放置 · 未选择建筑套件"
 vertical_alignment = 1
-autowrap_mode = 2
 
 [node name="Footer" type="PanelContainer" parent="Root/Window/Margin/Layout"]
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
-theme_override_styles/panel = ExtResource("4_chrome")
+theme_override_styles/panel = SubResource("FooterStyle")
 
-[node name="Text" type="Label" parent="Root/Window/Margin/Layout/Footer"]
+[node name="Margin" type="MarginContainer" parent="Root/Window/Margin/Layout/Footer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.55, 0.64, 0.62, 1)
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 8
+
+[node name="Row" type="HBoxContainer" parent="Root/Window/Margin/Layout/Footer/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Status" type="Label" parent="Root/Window/Margin/Layout/Footer/Margin/Row"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.498, 0.573, 0.722, 1)
 theme_override_font_sizes/font_size = 14
-text = "鼠标选择对象 · 数字键保留为快捷键 · Esc / B 关闭"
-horizontal_alignment = 1
-vertical_alignment = 1
+text = "材料校验"
+
+[node name="Detail" type="Label" parent="Root/Window/Margin/Layout/Footer/Margin/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
+theme_override_font_sizes/font_size = 13
+text = "选择制造对象"
+
+[node name="Help" type="Label" parent="Root/Window/Margin/Layout/Footer/Margin/Row"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
+theme_override_font_sizes/font_size = 12
+text = "鼠标选择 · 1—7 制造 · Shift + 1—7 选中已有 · Esc / B 关闭"
