@@ -36,6 +36,12 @@ func logistics_endpoints() -> Array[SliceLogisticsEndpoint]:
 	return []
 
 
+func set_connected_logistics_port_visuals(
+	_connected_port_ids: Array[String]
+) -> void:
+	pass
+
+
 func apply_definition(next_definition: SliceBuildingDefinition, tile_size: float) -> void:
 	definition = next_definition
 	_tile_size = tile_size

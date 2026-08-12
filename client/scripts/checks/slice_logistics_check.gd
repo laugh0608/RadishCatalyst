@@ -263,7 +263,7 @@ func _check_placement_port_feedback() -> void:
 	_expect_equal(
 		String(
 			grid.conveyor_placement_preview(
-				Vector2i(22, 13), 1
+				Vector2i(22, 14), 1
 			)["message"]
 		).contains("IN"),
 		true,
@@ -272,7 +272,7 @@ func _check_placement_port_feedback() -> void:
 	_expect_equal(
 		String(
 			grid.conveyor_placement_preview(
-				Vector2i(28, 13), 1
+				Vector2i(28, 14), 1
 			)["message"]
 		).contains("OUT"),
 		true,
@@ -288,7 +288,7 @@ func _check_placement_port_feedback() -> void:
 	overlay_parent.add_child(overlay)
 	overlay.configure(
 		conveyor_definition,
-		Vector2i(22, 13),
+		Vector2i(22, 14),
 		1,
 		32.0,
 		{"valid": true},
@@ -307,7 +307,7 @@ func _check_placement_port_feedback() -> void:
 	)
 	overlay.configure(
 		conveyor_definition,
-		Vector2i(22, 13),
+		Vector2i(22, 14),
 		3,
 		32.0,
 		{"valid": true},

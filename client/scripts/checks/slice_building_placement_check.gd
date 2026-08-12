@@ -194,12 +194,12 @@ func _check_definitions() -> void:
 	)
 	_expect_equal(
 		reactor.logistics_approach_cells(Vector2i(10, 10), 0),
-		[Vector2i(9, 11), Vector2i(13, 11)],
+		[Vector2i(9, 12), Vector2i(13, 12)],
 		"reactor exposes both world-only approach cells for placement"
 	)
 	_expect_equal(
 		reactor.logistics_ports[0].local_cell,
-		Vector2i(0, 1),
+		Vector2i(0, 2),
 		"reactor input occupies the locked left local cell"
 	)
 	_expect_equal(
@@ -209,7 +209,7 @@ func _check_definitions() -> void:
 	)
 	_expect_equal(
 		reactor.logistics_ports[1].local_cell,
-		Vector2i(2, 1),
+		Vector2i(2, 2),
 		"reactor output occupies the locked right local cell"
 	)
 	_expect_equal(
@@ -425,7 +425,7 @@ func _check_world_placement_path() -> void:
 	)
 	var approach_overlap := world._placement_validator.validate(
 		conveyor,
-		Vector2i(15, 6),
+		Vector2i(15, 7),
 		0,
 		0,
 		reactor.logistics_approach_cells(reactor_cell, 0)

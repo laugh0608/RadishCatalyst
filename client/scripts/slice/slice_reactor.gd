@@ -14,6 +14,14 @@ const PROCESSING_OVERLAY_TEXTURES := [
 	preload("res://assets/sprites/slice/reactor_processing_pulse_a.png"),
 	preload("res://assets/sprites/slice/reactor_processing_pulse_b.png"),
 ]
+const INPUT_DOCKING_OVERLAY_TEXTURE := preload(
+	"res://assets/sprites/slice/reactor_input_connected_overlay.png"
+)
+const OUTPUT_DOCKING_OVERLAY_TEXTURE := preload(
+	"res://assets/sprites/slice/reactor_output_connected_overlay.png"
+)
+const INPUT_DOCKING_OVERLAY_POSITION := Vector2(-82, 26)
+const OUTPUT_DOCKING_OVERLAY_POSITION := Vector2(82, 26)
 # Non-persistent short-port texture-local anchor: center of the left display.
 # The 176 px canvas restores the approved device-owned docking ports.
 const PROCESSING_OVERLAY_TEXTURE_LOCAL_ANCHOR := Vector2(52, 14)
@@ -50,8 +58,46 @@ func logistics_endpoints() -> Array[SliceLogisticsEndpoint]:
 	return result
 
 
+func set_connected_logistics_port_visuals(
+	connected_port_ids: Array[String]
+) -> void:
+	_set_docking_overlay(
+		"InputDockingOverlay",
+		INPUT_DOCKING_OVERLAY_TEXTURE,
+		INPUT_DOCKING_OVERLAY_POSITION,
+		connected_port_ids.has("input")
+	)
+	_set_docking_overlay(
+		"OutputDockingOverlay",
+		OUTPUT_DOCKING_OVERLAY_TEXTURE,
+		OUTPUT_DOCKING_OVERLAY_POSITION,
+		connected_port_ids.has("output")
+	)
+
+
 func _process(_delta: float) -> void:
 	_refresh_processing_visual()
+
+
+func _set_docking_overlay(
+	node_name: String,
+	texture: Texture2D,
+	local_position: Vector2,
+	shown: bool
+) -> void:
+	var sprite := get_node_or_null("Sprite") as Sprite2D
+	if sprite == null:
+		return
+	var overlay := sprite.get_node_or_null(node_name) as Sprite2D
+	if overlay == null and shown:
+		overlay = Sprite2D.new()
+		overlay.name = node_name
+		overlay.texture = texture
+		overlay.position = local_position
+		overlay.z_index = 2
+		sprite.add_child(overlay)
+	if overlay != null:
+		overlay.visible = shown
 
 
 func can_start_batch() -> bool:

@@ -51,6 +51,7 @@ func rebuild(
 	_source_endpoints.sort_custom(_endpoint_before)
 	_sort_endpoint_indexes()
 	_refresh_conveyor_topologies()
+	_refresh_endpoint_visuals(instances, excluded_instance_id)
 
 
 func tick(delta: float) -> Dictionary:
@@ -656,6 +657,25 @@ func _refresh_conveyor_topologies() -> void:
 				SliceConveyor.TOPOLOGY_STRAIGHT, [-output]
 			)
 		_restore_cargo_entry_direction(conveyor)
+
+
+func _refresh_endpoint_visuals(
+	instances: Array[SliceBuildingInstance],
+	excluded_instance_id: String
+) -> void:
+	for instance in instances:
+		var connected_port_ids: Array[String] = []
+		if instance.instance_id != excluded_instance_id:
+			for endpoint in _endpoints_for_instance(instance.instance_id):
+				var conveyor := conveyor_at(endpoint.connection_cell)
+				if (
+					conveyor != null
+					and endpoint.matches_conveyor_direction(
+						conveyor.output_direction()
+					)
+				):
+					connected_port_ids.append(endpoint.port_id)
+		instance.set_connected_logistics_port_visuals(connected_port_ids)
 
 
 func _input_directions(conveyor: SliceConveyor) -> Array[Vector2i]:

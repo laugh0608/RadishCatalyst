@@ -1,6 +1,6 @@
 # Daily Start
 
-更新时间：2026-08-11
+更新时间：2026-08-12
 
 ## 用途
 
@@ -16,7 +16,7 @@
 - [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 建筑包 1 已人工通过；核心仓库包 2 暂停。
 - [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md) 已通过架构闸门并成为当前活跃专题。
 - [游戏本体 UI 视觉定稿 V1](../features/slice-game-ui-visual-finalization-v1.md) 已完成 P2-A、P2-B 与 P2-C 并获人工通过；P2-D 已完成实现与行为验证但等待整面定稿，P2-E 不启动。
-- [设备—传送带接驳视觉 V1](../features/slice-device-conveyor-docking-visual-v1.md) 已建立草案：空口短接口成立，整格终端带上层覆盖被人工否决；明日先做 P0 量测与层级审计。
+- [设备—传送带接驳视觉 V1](../features/slice-device-conveyor-docking-visual-v1.md) 已完成 P0 与反应器分面：双端修正到底排，正确连接态以窄局部层收紧间距，并通过完整 Godot、正式 `Boot`、AI 逐图与萝卜SAMA人工复核；核心接驳仍未收口。
 - [分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 与 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合包 2 / 3 已提交，包 3 / 4 / 5 均获人工通过；包 5 的自动、正式入口和 AI 逐图复核证据已完整保留。
 
 ## 2026-07-29 收尾
@@ -62,10 +62,10 @@
 6. 自动检查与人工复测存档统一迁入 Git 忽略的 `tools/runtime-intake/`，生产存档不变。
 7. 核心 / 反应器短接口已恢复；连接态完整终端带遮住设备主体，人工否决并升级为独立专题。
 
-## 2026-08-12 明日事项
+## 2026-08-12 今日事项
 
-1. 先读 [设备—传送带接驳视觉 V1](../features/slice-device-conveyor-docking-visual-v1.md)，只做 P0：量测设备位置、短口外伸、连接格、终端带有效长度与 y-sort，标出允许 / 禁止覆盖区。
-2. 比较“局部接驳盖片 / mask”与“设备连接态变体”两种介质，给出影响文件和风险；未获萝卜SAMA确认前不修改正式代码或 PNG。
+1. 继续同一专题的核心排序 / 覆盖复盘；不得把已通过的反应器端口格或同排收紧层结论直接外推到核心，也不复用跨排失败布局。
+2. 核心必须另做几何量测、候选比较、正式 `Boot` 截图与人工闸门，不能以反应器自动断言替代视觉证据。
 3. 接驳专题与 P2-D 整面人工定稿完成前，不启动 P2-E 系统界面、远程武器或其他新包。
 
 ## 防跑偏规则
