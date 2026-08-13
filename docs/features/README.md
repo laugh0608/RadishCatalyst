@@ -29,7 +29,7 @@
 
 最新收口子专题：[Slice Visual Hierarchy And Color Separation V1](slice-visual-hierarchy-and-color-separation-v1.md) 与 [Slice Game UI Visual Finalization V1](slice-game-ui-visual-finalization-v1.md)——世界设备、HUD、制造 / 背包、设备、核心与系统界面均已完成正式入口和人工定稿。
 
-当前活跃专题：[Slice Ranged Weapon And Industrial Ammunition V1](slice-ranged-weapon-and-industrial-ammunition-v1.md)——P0 已获人工确认；当前只进入 P1 步枪、弹体与命中特效资产目标，不接客户端。
+当前活跃专题：[Slice Ranged Weapon And Industrial Ammunition V1](slice-ranged-weapon-and-industrial-ammunition-v1.md)——P0 与目标稿 V3 枪械身份已获人工确认；原生尺寸 V1—V3 均已否决，删臂拼接路线停止，等待换介质确认，不接客户端。
 
 最新人工通过子专题：[Slice Category Inventory And Powered Storage V1](slice-category-inventory-and-powered-storage-v1.md) 与 [Slice World Device Family Integration V1](slice-world-device-family-integration-v1.md)——联合 schema 8、设备家族、实体物流、真实二值供电线和双档迁移闸门已收口；[Slice Unified Device Operation Panels V1](slice-unified-device-operation-panels-v1.md) 核心仓库包 2 的视觉与行为也已随 UI 定稿收口。
 
