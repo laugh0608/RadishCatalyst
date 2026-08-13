@@ -1,11 +1,16 @@
 class_name SlicePauseMenu
 extends CanvasLayer
 
-const PRIMARY_COLOR := Color(0.82, 0.96, 0.88, 1.0)
-const MUTED_COLOR := Color(0.52, 0.66, 0.62, 1.0)
-const ACCENT_COLOR := Color(0.96, 0.72, 0.28, 1.0)
-const BUTTON_COLOR := Color(0.045, 0.1, 0.1, 0.96)
-const BUTTON_HOVER_COLOR := Color(0.07, 0.16, 0.15, 0.98)
+const COLOR_TEXT := Color(0.863, 0.886, 0.878, 1.0)
+const COLOR_MUTED := Color(0.537, 0.576, 0.588, 1.0)
+const COLOR_DANGER := Color(0.82, 0.31, 0.29, 1.0)
+const COLOR_DARK_TEXT := Color(0.11, 0.145, 0.16, 1.0)
+const SYSTEM_PRIMARY_STYLE := preload(
+	"res://assets/themes/slice_ui_system_primary_action.tres"
+)
+const SYSTEM_DANGER_STYLE := preload(
+	"res://assets/themes/slice_ui_system_danger_action.tres"
+)
 
 var _open := false
 var _pending_action := ""
@@ -18,9 +23,9 @@ var _pending_action := ""
 @onready var settings_button: Button = $Root/PauseBox/Buttons/SettingsButton
 @onready var return_button: Button = $Root/PauseBox/Buttons/ReturnButton
 @onready var quit_button: Button = $Root/PauseBox/Buttons/QuitButton
-@onready var settings_panel: ColorRect = $Root/SettingsPanel
+@onready var settings_panel: Panel = $Root/SettingsPanel
 @onready var settings_back_button: Button = $Root/SettingsPanel/BackButton
-@onready var confirm_panel: ColorRect = $Root/ConfirmPanel
+@onready var confirm_panel: Panel = $Root/ConfirmPanel
 @onready var confirm_label: Label = $Root/ConfirmPanel/ConfirmLabel
 @onready var confirm_button: Button = $Root/ConfirmPanel/ConfirmButton
 @onready var confirm_cancel_button: Button = $Root/ConfirmPanel/CancelButton
@@ -107,14 +112,19 @@ func _close_settings() -> void:
 
 func _request_return() -> void:
 	_pending_action = "return"
-	confirm_label.text = "保存当前世界并返回主菜单？\n完成后可从世界列表重新载入。"
+	confirm_label.text = (
+		"保存当前世界并返回主菜单？\n"
+		+ "只有保存成功后才会离开，可从世界列表重新载入。"
+	)
 	confirm_panel.visible = true
 	confirm_cancel_button.grab_focus()
 
 
 func _request_quit() -> void:
 	_pending_action = "quit"
-	confirm_label.text = "保存当前世界并退出游戏？"
+	confirm_label.text = (
+		"保存当前世界并退出游戏？\n只有保存成功后才会离开。"
+	)
 	confirm_panel.visible = true
 	confirm_cancel_button.grab_focus()
 
@@ -142,14 +152,14 @@ func _apply_style() -> void:
 		$Root/SettingsPanel/BodyLabel,
 		confirm_label,
 	]:
-		label.add_theme_color_override("font_color", PRIMARY_COLOR)
+		label.add_theme_color_override("font_color", COLOR_TEXT)
 		label.add_theme_font_size_override("font_size", 20)
 	title_label.add_theme_font_size_override("font_size", 38)
-	body_label.add_theme_color_override("font_color", MUTED_COLOR)
-	status_label.add_theme_color_override("font_color", ACCENT_COLOR)
+	body_label.add_theme_color_override("font_color", COLOR_MUTED)
+	status_label.add_theme_color_override("font_color", COLOR_DANGER)
 	$Root/SettingsPanel/BodyLabel.add_theme_color_override(
 		"font_color",
-		MUTED_COLOR
+		COLOR_MUTED
 	)
 	for button in [
 		resume_button,
@@ -160,43 +170,14 @@ func _apply_style() -> void:
 		confirm_button,
 		confirm_cancel_button,
 	]:
-		button.add_theme_color_override("font_color", PRIMARY_COLOR)
+		button.add_theme_color_override("font_color", COLOR_TEXT)
 		button.add_theme_font_size_override("font_size", 20)
-		button.add_theme_stylebox_override(
-			"normal",
-			_make_button_style(
-				BUTTON_COLOR,
-				Color(0.26, 0.52, 0.48, 0.9)
-			)
-		)
-		button.add_theme_stylebox_override(
-			"hover",
-			_make_button_style(
-				BUTTON_HOVER_COLOR,
-				Color(0.55, 0.88, 0.76, 0.98)
-			)
-		)
-		button.add_theme_stylebox_override(
-			"pressed",
-			_make_button_style(
-				Color(0.03, 0.08, 0.08, 0.98),
-				ACCENT_COLOR
-			)
-		)
-		button.add_theme_stylebox_override(
-			"focus",
-			_make_button_style(Color.TRANSPARENT, ACCENT_COLOR)
-		)
-
-
-func _make_button_style(fill: Color, border: Color) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = fill
-	style.border_color = border
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(4)
-	style.content_margin_left = 18
-	style.content_margin_right = 18
-	style.content_margin_top = 8
-	style.content_margin_bottom = 8
-	return style
+	resume_button.add_theme_color_override("font_color", COLOR_DARK_TEXT)
+	resume_button.add_theme_stylebox_override("normal", SYSTEM_PRIMARY_STYLE)
+	confirm_cancel_button.add_theme_color_override("font_color", COLOR_DARK_TEXT)
+	confirm_cancel_button.add_theme_stylebox_override(
+		"normal", SYSTEM_PRIMARY_STYLE
+	)
+	confirm_button.add_theme_stylebox_override("normal", SYSTEM_DANGER_STYLE)
+	return_button.add_theme_color_override("font_color", COLOR_DANGER)
+	quit_button.add_theme_color_override("font_color", COLOR_DANGER)

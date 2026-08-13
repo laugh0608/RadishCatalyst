@@ -1,8 +1,8 @@
 # Slice Visual Hierarchy And Color Separation V1
 
-更新时间：2026-08-09
+更新时间：2026-08-13
 
-状态：**专题继续开启。Gate A、设备家族和迁移链路已通过；Gate B 与 [UI 结构实现 V1](slice-visual-hierarchy-ui-implementation-v1.md) 只作为信息架构基线，不代表视觉定稿。当前转入 [游戏本体 UI 视觉定稿 V1](slice-game-ui-visual-finalization-v1.md)。**
+状态：**已完成。Gate A、世界设备家族、接驳代表分面与 [游戏本体 UI 视觉定稿 V1](slice-game-ui-visual-finalization-v1.md) 均已通过正式入口和萝卜SAMA人工复核；本专题于 2026-08-13 收口。**
 
 ## 目的
 
@@ -276,5 +276,5 @@
 - HUD、制造面板和建筑设备面板使用一致视觉语言，同时保留各自的信息与操作职责。
 - 核心与六类建筑在浅岩地、工业地板和晶体区边缘均保持可读剪影、材质、体积与端口身份。
 - 功能色语义稳定，并由文字、图标、形状或明度提供冗余表达。
-- [游戏本体 UI 视觉定稿 V1](slice-game-ui-visual-finalization-v1.md) 的全界面审计、代表状态目标稿、减色合同、正式入口截图和萝卜SAMA人工定稿全部通过；当前尚未满足。
+- [游戏本体 UI 视觉定稿 V1](slice-game-ui-visual-finalization-v1.md) 的全界面审计、代表状态目标稿、减色合同、正式入口截图和萝卜SAMA人工定稿全部通过。
 - `delivered / 120` 全链、schema 8 与 schema 2–7 迁移、鼠标 / 键盘路径和现有专项检查无回归。

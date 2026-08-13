@@ -56,6 +56,14 @@ func _check_startup_menu_structure() -> void:
 	_expect_equal(menu.quit_button.text, "退出", "startup menu has quit action")
 	_expect_equal(menu.settings_panel.visible, false, "settings panel starts hidden")
 	_expect_equal(menu.world_panel.visible, false, "world panel starts hidden")
+	_expect(
+		menu.get_node_or_null("Backdrop") is TextureRect,
+		"startup menu uses an asset-backed pixel world backdrop"
+	)
+	_expect(
+		menu.get_node_or_null("ContentRoot/MainShell") is Panel,
+		"startup actions sit on the system shell"
+	)
 	menu.settings_button.pressed.emit()
 	_expect_equal(menu.settings_panel.visible, true, "settings button opens lightweight settings panel")
 	menu.settings_back_button.pressed.emit()
@@ -307,6 +315,28 @@ func _check_pause_return_to_startup() -> void:
 		world.pause_menu.confirm_panel.visible,
 		"save-and-return requires confirmation"
 	)
+	_expect_text_contains(
+		world.pause_menu.confirm_label.text,
+		"只有保存成功后才会离开",
+		"return confirmation states the safe transition boundary"
+	)
+	_expect(
+		world.pause_menu.confirm_cancel_button.has_focus(),
+		"leave confirmation focuses the non-destructive action"
+	)
+	await _press_action("ui_cancel")
+	_expect(
+		not world.pause_menu.confirm_panel.visible,
+		"Escape cancels the leave confirmation"
+	)
+	world.pause_menu.quit_button.pressed.emit()
+	_expect_text_contains(
+		world.pause_menu.confirm_label.text,
+		"退出游戏",
+		"quit action uses the dedicated leave confirmation"
+	)
+	await _press_action("ui_cancel")
+	world.pause_menu.return_button.pressed.emit()
 	world.pause_menu.confirm_button.pressed.emit()
 	await process_frame
 	await process_frame

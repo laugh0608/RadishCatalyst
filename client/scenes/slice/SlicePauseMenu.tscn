@@ -1,7 +1,9 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/slice/slice_pause_menu.gd" id="1_pause"]
-[ext_resource type="Theme" path="res://assets/themes/ui_theme.tres" id="2_ui_theme"]
+[ext_resource type="Theme" path="res://assets/themes/slice_ui_system_theme.tres" id="2_system_theme"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_system_shell.tres" id="3_shell"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_system_modal.tres" id="4_modal"]
 
 [node name="SlicePauseMenu" type="CanvasLayer"]
 layer = 50
@@ -14,7 +16,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = ExtResource("2_ui_theme")
+theme = ExtResource("2_system_theme")
 mouse_filter = 0
 
 [node name="Backdrop" type="ColorRect" parent="Root"]
@@ -24,10 +26,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.005, 0.012, 0.014, 0.78)
+color = Color(0.008, 0.016, 0.02, 0.74)
 mouse_filter = 0
 
-[node name="PauseBox" type="ColorRect" parent="Root"]
+[node name="PauseBox" type="Panel" parent="Root"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -35,12 +37,12 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -290.0
-offset_top = -330.0
+offset_top = -280.0
 offset_right = 290.0
-offset_bottom = 330.0
+offset_bottom = 280.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.02, 0.045, 0.048, 0.98)
+theme_override_styles/panel = ExtResource("3_shell")
 
 [node name="TitleLabel" type="Label" parent="Root/PauseBox"]
 layout_mode = 0
@@ -92,14 +94,14 @@ text = "保存并退出"
 [node name="StatusLabel" type="Label" parent="Root/PauseBox"]
 layout_mode = 0
 offset_left = 42.0
-offset_top = 478.0
+offset_top = 456.0
 offset_right = 538.0
-offset_bottom = 594.0
+offset_bottom = 526.0
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
 
-[node name="SettingsPanel" type="ColorRect" parent="Root"]
+[node name="SettingsPanel" type="Panel" parent="Root"]
 visible = false
 layout_mode = 1
 anchors_preset = 8
@@ -113,7 +115,7 @@ offset_right = 280.0
 offset_bottom = 180.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.025, 0.055, 0.055, 0.99)
+theme_override_styles/panel = ExtResource("4_modal")
 
 [node name="TitleLabel" type="Label" parent="Root/SettingsPanel"]
 layout_mode = 0
@@ -143,7 +145,7 @@ offset_right = 388.0
 offset_bottom = 326.0
 text = "返回"
 
-[node name="ConfirmPanel" type="ColorRect" parent="Root"]
+[node name="ConfirmPanel" type="Panel" parent="Root"]
 visible = false
 layout_mode = 1
 anchors_preset = 8
@@ -157,7 +159,7 @@ offset_right = 290.0
 offset_bottom = 160.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.025, 0.055, 0.055, 0.99)
+theme_override_styles/panel = ExtResource("4_modal")
 
 [node name="ConfirmLabel" type="Label" parent="Root/ConfirmPanel"]
 layout_mode = 0

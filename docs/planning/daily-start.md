@@ -14,8 +14,7 @@
 - 陌生玩家盲测已冻结：当前功能可运行，但视觉和交互仍不足以证明陌生玩家可独立理解。
 - [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 已人工收口。
 - [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 建筑包 1 已人工通过；核心仓库包 2 暂停。
-- [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md) 已通过架构闸门并成为当前活跃专题。
-- [游戏本体 UI 视觉定稿 V1](../features/slice-game-ui-visual-finalization-v1.md) 的 P2-A 至 P2-D 均已完成并获人工通过；当前按既定顺序启动 P2-E 系统界面。
+- [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md) 与 [游戏本体 UI 视觉定稿 V1](../features/slice-game-ui-visual-finalization-v1.md) 已完成并人工收口。
 - [设备—传送带接驳视觉 V1](../features/slice-device-conveyor-docking-visual-v1.md) 的反应器与核心代表分面均已人工通过；采集器和储物箱只在后续实机暴露同类遮挡时按已验证合同复核。
 - [分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 与 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合包 2 / 3 已提交，包 3 / 4 / 5 均获人工通过；包 5 的自动、正式入口和 AI 逐图复核证据已完整保留。
 
@@ -51,6 +50,7 @@
 13. **UI 定稿 P2-B 已通过。**制造与分类背包成为同一宽幅深钢终端中的互斥视图；完整 Godot、正式 `Boot` `30` 项断言及阻塞 / 成功 / 背包九张色彩复核图均完成，并获萝卜SAMA人工通过。
 14. **UI 定稿 P2-C 已通过。**六类设备已接入专用深钢现场终端；完整 Godot、正式 `Boot` `42` 项断言及反应器 / 断链储物箱九张色彩复核图均通过，并获萝卜SAMA人工确认。
 15. **P2-D 已人工通过。**核心仓库双栏整栏拖拽、动态减半和首次充能确认均已接入；完整 Godot、正式入口、彩色 / 低饱和 / 灰阶复核与整面人工定稿完成。
+16. **P2-E 已人工通过。**启动、多世界目录、损坏 / 回收确认、暂停和离开确认已统一为深钢系统语言；正式 `Boot` `54` 项与八态色彩复核通过，UI 与父视觉专题收口。
 
 ## 2026-08-11 今日进展
 
@@ -66,7 +66,7 @@
 
 1. 设备—传送带接驳视觉 V1 的核心 / 反应器代表分面已经人工收口，不外推修改采集器或储物箱。
 2. P2-D 核心仓库与首次充能整面视觉已人工通过；不重新扩实现或把核心专用资源改成全局框架。
-3. 当前只启动 P2-E 系统界面，覆盖启动、多世界目录、损坏 / 回收确认、暂停和离开确认；远程武器仍等待 UI 视觉专题关闭后建立独立专题。
+3. 当前建立远程武器与弹药专题，先做玩家闭环、首把武器、工业供弹、输入、HUD、数值和存档决策；不直接生成枪械素材或修改客户端。
 
 ## 防跑偏规则
 

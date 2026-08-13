@@ -6,10 +6,10 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md)；Gate A 与世界设备链已收口，Gate B / [UI 结构实现 V1](../features/slice-visual-hierarchy-ui-implementation-v1.md) 只锁定信息架构，不代表视觉定稿。当前执行子专题为 [游戏本体 UI 视觉定稿 V1](../features/slice-game-ui-visual-finalization-v1.md)。
+- 最新收口专题：[视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md) 与 [游戏本体 UI 视觉定稿 V1](../features/slice-game-ui-visual-finalization-v1.md)；当前下一步是建立远程武器与弹药可执行专题。
 - 最新人工通过专题：[设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 建筑包 1、[图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md)、[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)与[多世界存档列表](../features/slice-multi-world-save-list-v1.md)；更早专题见 `docs/features/README.md`。
-- 美术口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机、宏块归一）。
-- 章程结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)（决策存档）。
+- 美术口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机）。
+- 章程结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)。
 - 旧 Demo V1 路线（12 区纵切 + 写实 2.5D）已废止归档：`docs/archive/features-demo-v1/`、`docs/archive/planning-demo-v1/`。
 
 ## 阶段状态
@@ -31,8 +31,8 @@
 - 2026-08-08：联合 schema 8 启用分类库存、双模式储物箱、无线回库与固定正面设备；修正版分离 UI 取景、设备自带接驳区和真实末端带面后提交。随后修复态核心逐字节切至 V5，并以现有 `core_storage / core_repaired` 启用左入右出实体物流；隔格视觉断链改为相邻终端带。真实二值父边、中继四端子和消费者顶部锚点经完整 Godot、正式 `Boot` 与人工复核通过。
 - 2026-08-09：包 5 综合迁移闸门通过，但萝卜SAMA确认现有 HUD 与各类面板仍是颜色过多、观感花哨的结构草稿；视觉专题不关闭。游戏本体停止参考 Radish 家族 UI，转以《终末地》《异星工厂》《银河破裂者》共同校正 UI 定稿；Radish 家族视觉只保留给官方辅助工具。
 - 2026-08-10：游戏本体 UI 定稿 P1 八个代表状态全部获批；P2-A HUD 完成客户端接入、完整 Godot、正式 `Boot` `40` 项断言及彩色 / 低饱和 / 灰阶逐图复核，并获萝卜SAMA人工通过。
-- 2026-08-11：P2-B 制造 / 背包与 P2-C 设备面板依次完成并获人工通过；P2-D 核心仓库、动态减半拖拽和首次充能确认完成实现与行为验证。空口短接口恢复成立，但整格终端带上层覆盖会遮住设备主体，已升级为 [设备—传送带接驳视觉 V1](../features/slice-device-conveyor-docking-visual-v1.md)，P2-E 暂停。
-- 2026-08-13：反应器 / 核心接驳与 P2-D 整面获人工通过；当前启动 P2-E 系统界面。
+- 2026-08-11：P2-B 制造 / 背包与 P2-C 设备面板获人工通过；P2-D 核心交互完成行为验证。连接态遮挡另拆 [设备—传送带接驳视觉 V1](../features/slice-device-conveyor-docking-visual-v1.md)。
+- 2026-08-13：反应器 / 核心接驳与 P2-D 获人工通过；P2-E 的正式 `Boot` `54` 项及八态色彩复核随后获人工通过，UI 与父视觉专题收口。
 
 当前阶段：
 
@@ -45,7 +45,7 @@
 1. 已通过的 `delivered / 120` 全链继续作为功能基线；schema 8 是当前写盘合同，schema 2–7 继续通过确定性迁移与来源感知备份发布兼容，不重复扩系统或堆新内容。
 2. [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 已用配方卡、物品格和鼠标主路径替换纯文字整备主读法，并经萝卜SAMA人工通过。
 3. 联合包 2 / 3 已提交，包 3 / 4 / 5 已人工通过。包 5 以正式 `Boot` `138` 项断言集中复验真实新档、schema 7 隔离旧档、完整产线、断链恢复、财产回收与保存重启；两套主档、各三备份和 11 张截图已保留。放置态 `OUT` 裁切已按根因修正，完整 `check-client --with-godot` 与正式演练重跑通过；萝卜SAMA于 2026-08-09 确认收口，未引入有限发电、负荷、储能或 schema 字段。
-4. [游戏本体 UI 视觉定稿 V1](../features/slice-game-ui-visual-finalization-v1.md) P0、P1 与 P2-A 至 P2-D 已人工通过；当前 P2-E 只治理启动、多世界目录、损坏 / 回收确认、暂停和离开确认。有限发电 / 负荷 / 储能和陌生玩家盲测继续暂停。
+4. [游戏本体 UI 视觉定稿 V1](../features/slice-game-ui-visual-finalization-v1.md) P0、P1 与 P2-A 至 P2-E 已人工通过并收口；下一专题先设计远程武器与工业供弹闭环，有限发电 / 负荷 / 储能和陌生玩家盲测继续暂停。
 5. [设备—传送带接驳视觉 V1](../features/slice-device-conveyor-docking-visual-v1.md) 的反应器与核心代表分面已完成专属端点几何、自然排序、完整 Godot、正式 `Boot` 与逐图复核，并于 2026-08-13 获萝卜SAMA人工通过。采集器和储物箱不主动外推修改。
 
 ## 边界与冻结
@@ -53,7 +53,7 @@
 - 多世界目录与 schema 8 是当前运行基线；schema 2–7 只经冻结旧合同迁移，世界完整重建后才发布 schema 8，备份来源恢复不会轮转覆盖唯一有效候选。不复活旧 `SaveService`、旧 `GameRoot`、旧三槽存档或旧地图。
 - 视角修正轮遗留项在案：八方向动画（候选专题）、viewport 整数重构、打磨清单（核心区底板叠加等观察项）。
 - 新专题不做敌潮、复杂 Boss、技能树、联机或无关重构；立绘对话、八方向动画、viewport 重构与发布继续冻结。HUD 只在 UI 视觉定稿子专题批准的范围内推进。
-- 萝卜SAMA已授权把远程攻击 / 枪械作为后续玩家功能方向；这不重开已收口的近战 V1，也不纳入当前 UI P1。视觉专题关闭后另建可执行专题，并在开工闸门中明确首把武器身份、弹药与基地制造闭环、输入互斥、HUD、数值和存档边界；在此之前不新增资产、字段或客户端逻辑。
+- 萝卜SAMA已授权把远程攻击 / 枪械作为后续玩家功能方向；这不重开近战 V1。当前先建可执行专题并明确首把武器身份、弹药与基地制造闭环、输入互斥、HUD、数值和存档边界；专题确认前不新增资产、字段或客户端逻辑。
 - 不复活旧通用任务链；若包 1 证明存在引导阻断，优先从现有权威状态派生固定阶段目标。
 - 陌生玩家盲测重新冻结，直到萝卜SAMA确认画面、建造 / 背包和设备交互不再以明显草稿层作为主读法。
 - 视觉专题不修改 32px 网格、960×540 相机、基础状态语义、左上光、高斜角投影或设备主体尺度；已批准例外只有中继从 `48×66px` 调整为 `48×76px`，以及 2026-08-11 把误烘焙传送带外段的核心 / 反应器运行时画布恢复为 `144×128px` / `176×88px` 短接口态。已否决的统一明度标尺不得回到正式归一管线。

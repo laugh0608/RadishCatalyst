@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-08-11
+更新时间：2026-08-13
 
 ## 用途
 
@@ -27,11 +27,11 @@
 
 当前阶段专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——自动与人工完整全链已通过，但萝卜SAMA判定表现仍有大量草稿层，陌生玩家盲测延期。
 
-当前活跃子专题：[Slice Visual Hierarchy And Color Separation V1](slice-visual-hierarchy-and-color-separation-v1.md)——UI 继续按分面定稿。当前执行 [Slice Game UI Visual Finalization V1](slice-game-ui-visual-finalization-v1.md)：P2-A HUD、P2-B 制造 / 背包与 P2-C 设备面板已人工通过，P2-D 核心交互已完成实现和行为验证但等待整面定稿，P2-E 未启动。
+最新收口子专题：[Slice Visual Hierarchy And Color Separation V1](slice-visual-hierarchy-and-color-separation-v1.md) 与 [Slice Game UI Visual Finalization V1](slice-game-ui-visual-finalization-v1.md)——世界设备、HUD、制造 / 背包、设备、核心与系统界面均已完成正式入口和人工定稿。
 
-当前视觉阻断专题：[Slice Device Conveyor Docking Visual V1](slice-device-conveyor-docking-visual-v1.md)——未连接短接口成立，但整格终端带提升到设备上层会遮住主体。2026-08-12 先做尺寸、锚点与排序审计，不继续调代码；该专题与 P2-D 人工定稿完成前不启动 P2-E。
+当前下一专题：远程武器与弹药；先锁定首把武器、工业供弹闭环、输入、HUD、数值与存档边界，再决定实现包，不直接进入素材或代码。
 
-最新人工通过子专题：[Slice Category Inventory And Powered Storage V1](slice-category-inventory-and-powered-storage-v1.md) 与 [Slice World Device Family Integration V1](slice-world-device-family-integration-v1.md)——联合 schema 8、设备家族、实体物流、真实二值供电线和双档迁移闸门已收口。有限发电 / 负荷 / 储能专题排在视觉专题之后；[Slice Unified Device Operation Panels V1](slice-unified-device-operation-panels-v1.md) 核心仓库包 2 已完成实现与行为验证，等待整面人工定稿。
+最新人工通过子专题：[Slice Category Inventory And Powered Storage V1](slice-category-inventory-and-powered-storage-v1.md) 与 [Slice World Device Family Integration V1](slice-world-device-family-integration-v1.md)——联合 schema 8、设备家族、实体物流、真实二值供电线和双档迁移闸门已收口；[Slice Unified Device Operation Panels V1](slice-unified-device-operation-panels-v1.md) 核心仓库包 2 的视觉与行为也已随 UI 定稿收口。
 
 已收口专题：
 

@@ -24,6 +24,8 @@ $requiredTextByFile = @{
     )
     "client/scenes/ui/StartupMenu.tscn" = @(
         "StartupMenu",
+        "res://assets/ui/system/startup_world_backdrop.png",
+        "res://assets/themes/slice_ui_system_theme.tres",
         "新游戏",
         "载入存档",
         "联机（暂不开放）",
@@ -32,8 +34,8 @@ $requiredTextByFile = @{
     )
     "client/scripts/ui/startup_menu.gd" = @(
         "class_name StartupMenu",
-        "draw_rect",
-        "draw_line",
+        "SYSTEM_PRIMARY_STYLE",
+        "_is_unreadable_summary",
         "configure_save_summary",
         "multiplayer_button.disabled = true"
     )

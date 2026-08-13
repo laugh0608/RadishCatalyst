@@ -1,13 +1,20 @@
 extends Control
 class_name StartupMenu
 
-const PRIMARY_COLOR := Color(0.82, 0.96, 0.88, 1.0)
-const MUTED_COLOR := Color(0.52, 0.66, 0.62, 1.0)
-const ACCENT_COLOR := Color(0.96, 0.72, 0.28, 1.0)
-const PANEL_COLOR := Color(0.02, 0.045, 0.048, 0.82)
-const BUTTON_COLOR := Color(0.045, 0.1, 0.1, 0.92)
-const BUTTON_HOVER_COLOR := Color(0.07, 0.16, 0.15, 0.96)
-const BUTTON_DISABLED_COLOR := Color(0.035, 0.045, 0.045, 0.78)
+const COLOR_TEXT := Color(0.863, 0.886, 0.878, 1.0)
+const COLOR_MUTED := Color(0.537, 0.576, 0.588, 1.0)
+const COLOR_A1 := Color(0.498, 0.573, 0.722, 1.0)
+const COLOR_DANGER := Color(0.82, 0.31, 0.29, 1.0)
+const COLOR_DARK_TEXT := Color(0.11, 0.145, 0.16, 1.0)
+const SYSTEM_SURFACE_STYLE := preload(
+	"res://assets/themes/slice_ui_system_surface.tres"
+)
+const SYSTEM_PRIMARY_STYLE := preload(
+	"res://assets/themes/slice_ui_system_primary_action.tres"
+)
+const SYSTEM_DANGER_STYLE := preload(
+	"res://assets/themes/slice_ui_system_danger_action.tres"
+)
 
 var has_loadable_save := false
 var slot_summary_text := "世界目录：读取中"
@@ -26,11 +33,12 @@ var _selected_trash_id := ""
 @onready var multiplayer_button: Button = $ContentRoot/MenuButtons/MultiplayerButton
 @onready var settings_button: Button = $ContentRoot/MenuButtons/SettingsButton
 @onready var quit_button: Button = $ContentRoot/MenuButtons/QuitButton
-@onready var settings_panel: ColorRect = $SettingsPanel
+@onready var system_shade: ColorRect = $SystemShade
+@onready var settings_panel: Panel = $SettingsPanel
 @onready var settings_title_label: Label = $SettingsPanel/SettingsTitleLabel
 @onready var settings_body_label: Label = $SettingsPanel/SettingsBodyLabel
 @onready var settings_back_button: Button = $SettingsPanel/SettingsBackButton
-@onready var world_panel: ColorRect = $WorldPanel
+@onready var world_panel: Panel = $WorldPanel
 @onready var world_title_label: Label = $WorldPanel/WorldTitleLabel
 @onready var world_count_label: Label = $WorldPanel/WorldCountLabel
 @onready var active_worlds_button: Button = $WorldPanel/ActiveWorldsButton
@@ -45,7 +53,7 @@ var _selected_trash_id := ""
 @onready var trash_world_button: Button = $WorldPanel/Actions/TrashWorldButton
 @onready var restore_world_button: Button = $WorldPanel/Actions/RestoreWorldButton
 @onready var world_back_button: Button = $WorldPanel/Actions/WorldBackButton
-@onready var trash_confirm_panel: ColorRect = $WorldPanel/TrashConfirmPanel
+@onready var trash_confirm_panel: Panel = $WorldPanel/TrashConfirmPanel
 @onready var trash_confirm_label: Label = $WorldPanel/TrashConfirmPanel/ConfirmLabel
 @onready var trash_confirm_button: Button = $WorldPanel/TrashConfirmPanel/ConfirmButton
 @onready var trash_cancel_button: Button = $WorldPanel/TrashConfirmPanel/CancelButton
@@ -80,6 +88,7 @@ func _ready() -> void:
 	settings_panel.visible = false
 	world_panel.visible = false
 	trash_confirm_panel.visible = false
+	system_shade.visible = false
 	_refresh_save_summary()
 	new_game_button.grab_focus()
 
@@ -150,6 +159,7 @@ func _open_world_panel(show_trash: bool, focus_name: bool = false) -> void:
 		show_catalog_message("世界目录尚未初始化。")
 		return
 	settings_panel.visible = false
+	system_shade.visible = true
 	world_panel.visible = true
 	trash_confirm_panel.visible = false
 	_showing_trash = show_trash
@@ -164,6 +174,7 @@ func _open_world_panel(show_trash: bool, focus_name: bool = false) -> void:
 func _close_world_panel() -> void:
 	trash_confirm_panel.visible = false
 	world_panel.visible = false
+	system_shade.visible = false
 	new_game_button.grab_focus()
 
 
@@ -178,8 +189,10 @@ func _rebuild_world_list() -> void:
 		world_item_list.add_item("%s  ·  %s" % [display_name, status])
 		var item_index := world_item_list.item_count - 1
 		world_item_list.set_item_metadata(item_index, entry)
-		if not bool(entry.get("loadable", false)) and not _showing_trash:
-			world_item_list.set_item_custom_fg_color(item_index, MUTED_COLOR)
+		if _is_unreadable_summary(entry):
+			world_item_list.set_item_custom_fg_color(item_index, COLOR_DANGER)
+		elif not bool(entry.get("loadable", false)) and not _showing_trash:
+			world_item_list.set_item_custom_fg_color(item_index, COLOR_MUTED)
 	world_title_label.text = "回收区" if _showing_trash else "本地世界"
 	world_count_label.text = "%d / %d 个世界 · 回收区 %d 项" % [
 		_active_worlds.size(),
@@ -188,15 +201,6 @@ func _rebuild_world_list() -> void:
 	]
 	active_worlds_button.disabled = not _showing_trash
 	trash_worlds_button.disabled = _showing_trash
-	create_world_button.visible = not _showing_trash
-	load_world_button.visible = not _showing_trash
-	rename_world_button.visible = not _showing_trash
-	trash_world_button.visible = not _showing_trash
-	restore_world_button.visible = _showing_trash
-	create_world_button.disabled = (
-		_showing_trash
-		or _active_worlds.size() >= SliceSaveCatalog.MAX_WORLDS
-	)
 	world_name_input.editable = not _showing_trash
 	world_name_input.placeholder_text = (
 		"世界名称（最多 40 字）"
@@ -215,14 +219,26 @@ func _rebuild_world_list() -> void:
 		if _active_worlds.size() >= SliceSaveCatalog.MAX_WORLDS
 		else ""
 	)
+	_apply_world_tab_styles()
 	_refresh_world_action_state()
 
 
 func _refresh_world_action_state() -> void:
 	var has_active_selection := not _selected_world_id.is_empty()
 	var has_trash_selection := not _selected_trash_id.is_empty()
+	var summary := _selected_summary()
+	var selection_is_unreadable := _is_unreadable_summary(summary)
 	var world_limit_reached := (
 		_active_worlds.size() >= SliceSaveCatalog.MAX_WORLDS
+	)
+	create_world_button.visible = not _showing_trash and not has_active_selection
+	load_world_button.visible = not _showing_trash and has_active_selection
+	rename_world_button.visible = not _showing_trash and has_active_selection
+	trash_world_button.visible = not _showing_trash and has_active_selection
+	restore_world_button.visible = _showing_trash
+	world_name_input.editable = (
+		not _showing_trash
+		and (not has_active_selection or not selection_is_unreadable)
 	)
 	create_world_button.disabled = (
 		_showing_trash
@@ -237,14 +253,19 @@ func _refresh_world_action_state() -> void:
 		create_world_button.tooltip_text = "世界数量已达到 30 个上限。"
 	else:
 		create_world_button.tooltip_text = "使用输入的名称创建并进入新世界。"
-	load_world_button.disabled = true
-	rename_world_button.disabled = not has_active_selection
+	load_world_button.disabled = (
+		not has_active_selection
+		or not bool(summary.get("loadable", false))
+	)
+	rename_world_button.disabled = (
+		not has_active_selection
+		or selection_is_unreadable
+	)
 	trash_world_button.disabled = not has_active_selection
-	restore_world_button.disabled = not has_trash_selection
-	if not has_active_selection:
-		return
-	var summary := _selected_summary()
-	load_world_button.disabled = not bool(summary.get("loadable", false))
+	restore_world_button.disabled = (
+		not has_trash_selection
+		or selection_is_unreadable
+	)
 
 
 func _selected_summary() -> Dictionary:
@@ -260,6 +281,16 @@ func _show_selected_summary(summary: Dictionary) -> void:
 		return
 	var display_name := String(summary.get("display_name", "未命名世界"))
 	var status := String(summary.get("status", "状态未知"))
+	if _is_unreadable_summary(summary):
+		world_details_label.text = (
+			"%s\n危险状态 · %s\n更新时间 / 进度：无法验证\n"
+			+ "原始目录保留，可移入回收区隔离。\n无法从游戏内恢复。"
+		) % [display_name, status]
+		world_details_label.add_theme_color_override(
+			"font_color", COLOR_DANGER
+		)
+		world_name_input.text = ""
+		return
 	var updated_at := String(summary.get("updated_at", ""))
 	if updated_at.is_empty():
 		updated_at = "尚无更新时间"
@@ -269,7 +300,19 @@ func _show_selected_summary(summary: Dictionary) -> void:
 		updated_at,
 		_world_progress_text(summary),
 	]
+	world_details_label.add_theme_color_override("font_color", COLOR_MUTED)
 	world_name_input.text = display_name if not _showing_trash else ""
+
+
+func _is_unreadable_summary(summary: Dictionary) -> bool:
+	if summary.is_empty():
+		return false
+	var status := String(summary.get("status", ""))
+	return (
+		status == "元数据损坏"
+		or status == "世界 ID 不一致"
+		or not String(summary.get("error", "")).is_empty()
+	)
 
 
 func _world_progress_text(summary: Dictionary) -> String:
@@ -312,15 +355,15 @@ func _apply_text_style() -> void:
 	]:
 		if label == null:
 			continue
-		label.add_theme_color_override("font_color", PRIMARY_COLOR)
+		label.add_theme_color_override("font_color", COLOR_TEXT)
 		label.add_theme_font_size_override("font_size", 18)
-	title_label.add_theme_font_size_override("font_size", 54)
-	subtitle_label.add_theme_color_override("font_color", ACCENT_COLOR)
-	slot_summary_label.add_theme_color_override("font_color", MUTED_COLOR)
-	settings_body_label.add_theme_color_override("font_color", MUTED_COLOR)
-	world_count_label.add_theme_color_override("font_color", MUTED_COLOR)
-	world_details_label.add_theme_color_override("font_color", MUTED_COLOR)
-	world_status_label.add_theme_color_override("font_color", ACCENT_COLOR)
+	title_label.add_theme_font_size_override("font_size", 52)
+	subtitle_label.add_theme_color_override("font_color", COLOR_A1)
+	slot_summary_label.add_theme_color_override("font_color", COLOR_MUTED)
+	settings_body_label.add_theme_color_override("font_color", COLOR_MUTED)
+	world_count_label.add_theme_color_override("font_color", COLOR_MUTED)
+	world_details_label.add_theme_color_override("font_color", COLOR_MUTED)
+	world_status_label.add_theme_color_override("font_color", COLOR_MUTED)
 
 
 func _apply_button_style() -> void:
@@ -344,39 +387,38 @@ func _apply_button_style() -> void:
 	]:
 		if button == null:
 			continue
-		button.add_theme_color_override("font_color", PRIMARY_COLOR)
-		button.add_theme_color_override("font_disabled_color", MUTED_COLOR)
+		button.add_theme_color_override("font_color", COLOR_TEXT)
+		button.add_theme_color_override("font_disabled_color", COLOR_MUTED)
 		button.add_theme_font_size_override("font_size", 20)
-		button.add_theme_stylebox_override("normal", _make_button_style(BUTTON_COLOR, Color(0.26, 0.52, 0.48, 0.86)))
-		button.add_theme_stylebox_override("hover", _make_button_style(BUTTON_HOVER_COLOR, Color(0.55, 0.88, 0.76, 0.96)))
-		button.add_theme_stylebox_override("pressed", _make_button_style(Color(0.03, 0.08, 0.08, 0.96), ACCENT_COLOR))
-		button.add_theme_stylebox_override("disabled", _make_button_style(BUTTON_DISABLED_COLOR, Color(0.16, 0.22, 0.2, 0.74)))
-	if settings_panel != null:
-		settings_panel.color = PANEL_COLOR
-	if world_panel != null:
-		world_panel.color = PANEL_COLOR
-	if trash_confirm_panel != null:
-		trash_confirm_panel.color = Color(0.025, 0.055, 0.055, 0.98)
+	for button in [
+		new_game_button,
+		create_world_button,
+		load_world_button,
+		restore_world_button,
+		trash_cancel_button,
+	]:
+		button.add_theme_color_override("font_color", COLOR_DARK_TEXT)
+		button.add_theme_stylebox_override("normal", SYSTEM_PRIMARY_STYLE)
+	for button in [trash_world_button, trash_confirm_button, quit_button]:
+		button.add_theme_color_override("font_color", COLOR_TEXT)
+		button.add_theme_stylebox_override("normal", SYSTEM_DANGER_STYLE)
 
 
 func _apply_world_control_style() -> void:
 	world_item_list.add_theme_font_size_override("font_size", 18)
-	world_item_list.add_theme_color_override("font_color", MUTED_COLOR)
-	world_item_list.add_theme_color_override("font_selected_color", PRIMARY_COLOR)
+	world_item_list.add_theme_color_override("font_color", COLOR_MUTED)
+	world_item_list.add_theme_color_override("font_selected_color", COLOR_TEXT)
 	world_item_list.add_theme_stylebox_override(
 		"panel",
-		_make_field_style(
-			Color(0.016, 0.03, 0.032, 0.96),
-			Color(0.18, 0.34, 0.32, 0.9)
-		)
+		SYSTEM_SURFACE_STYLE
 	)
 	world_item_list.add_theme_stylebox_override(
 		"focus",
-		_make_field_style(Color.TRANSPARENT, ACCENT_COLOR)
+		_make_field_style(Color.TRANSPARENT, COLOR_A1)
 	)
 	var selected_style := _make_field_style(
-		Color(0.055, 0.14, 0.13, 0.98),
-		Color(0.42, 0.82, 0.72, 0.98)
+		Color(0.12, 0.16, 0.19, 1.0),
+		COLOR_A1
 	)
 	world_item_list.add_theme_stylebox_override("selected", selected_style)
 	world_item_list.add_theme_stylebox_override(
@@ -384,25 +426,38 @@ func _apply_world_control_style() -> void:
 		selected_style
 	)
 	world_name_input.add_theme_font_size_override("font_size", 18)
-	world_name_input.add_theme_color_override("font_color", PRIMARY_COLOR)
+	world_name_input.add_theme_color_override("font_color", COLOR_TEXT)
 	world_name_input.add_theme_color_override(
 		"font_placeholder_color",
-		MUTED_COLOR
+		COLOR_MUTED
 	)
 	world_name_input.add_theme_stylebox_override(
 		"normal",
-		_make_field_style(
-			Color(0.016, 0.03, 0.032, 0.96),
-			Color(0.18, 0.34, 0.32, 0.9)
-		)
+		SYSTEM_SURFACE_STYLE
 	)
 	world_name_input.add_theme_stylebox_override(
 		"focus",
 		_make_field_style(
-			Color(0.025, 0.065, 0.062, 0.98),
-			Color(0.42, 0.82, 0.72, 0.98)
+			Color(0.11, 0.145, 0.16, 1.0),
+			COLOR_A1
 		)
 	)
+
+
+func _apply_world_tab_styles() -> void:
+	var active_button := (
+		trash_worlds_button if _showing_trash else active_worlds_button
+	)
+	var inactive_button := (
+		active_worlds_button if _showing_trash else trash_worlds_button
+	)
+	var active_style := SYSTEM_SURFACE_STYLE.duplicate() as StyleBoxFlat
+	active_style.border_width_bottom = 3
+	active_style.border_color = COLOR_A1
+	active_button.add_theme_color_override("font_disabled_color", COLOR_TEXT)
+	active_button.add_theme_stylebox_override("disabled", active_style)
+	inactive_button.remove_theme_stylebox_override("disabled")
+	inactive_button.remove_theme_color_override("font_disabled_color")
 
 
 func _make_field_style(fill: Color, border: Color) -> StyleBoxFlat:
@@ -416,77 +471,6 @@ func _make_field_style(fill: Color, border: Color) -> StyleBoxFlat:
 	style.content_margin_top = 8
 	style.content_margin_bottom = 8
 	return style
-
-
-func _make_button_style(fill: Color, border: Color) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = fill
-	style.border_color = border
-	style.border_width_left = 2
-	style.border_width_top = 2
-	style.border_width_right = 2
-	style.border_width_bottom = 2
-	style.corner_radius_top_left = 4
-	style.corner_radius_top_right = 4
-	style.corner_radius_bottom_left = 4
-	style.corner_radius_bottom_right = 4
-	style.content_margin_left = 18
-	style.content_margin_right = 18
-	style.content_margin_top = 8
-	style.content_margin_bottom = 8
-	return style
-
-
-func _draw() -> void:
-	var view_size := size
-	if view_size.x <= 0.0 or view_size.y <= 0.0:
-		view_size = Vector2(1920.0, 1080.0)
-	_draw_space_backdrop(view_size)
-	_draw_outpost_silhouette(view_size)
-	_draw_pollution_horizon(view_size)
-	_draw_menu_grounding(view_size)
-
-
-func _draw_space_backdrop(view_size: Vector2) -> void:
-	draw_rect(Rect2(Vector2.ZERO, view_size), Color(0.012, 0.021, 0.024, 1.0))
-	draw_rect(Rect2(Vector2(0.0, view_size.y * 0.58), Vector2(view_size.x, view_size.y * 0.42)), Color(0.034, 0.049, 0.045, 1.0))
-	for index in range(9):
-		var x := view_size.x * (0.08 + float(index) * 0.105)
-		var y := view_size.y * (0.12 + float(index % 3) * 0.06)
-		draw_rect(Rect2(Vector2(x, y), Vector2(2.0 + float(index % 2), 2.0 + float(index % 2))), Color(0.5, 0.72, 0.68, 0.42))
-
-
-func _draw_outpost_silhouette(view_size: Vector2) -> void:
-	var ground_y := view_size.y * 0.68
-	var base_x := view_size.x * 0.47
-	draw_rect(Rect2(Vector2(base_x - 360.0, ground_y - 42.0), Vector2(720.0, 62.0)), Color(0.04, 0.08, 0.078, 0.92))
-	draw_rect(Rect2(Vector2(base_x - 300.0, ground_y - 78.0), Vector2(180.0, 70.0)), Color(0.055, 0.11, 0.11, 0.95))
-	draw_rect(Rect2(Vector2(base_x - 70.0, ground_y - 122.0), Vector2(150.0, 114.0)), Color(0.05, 0.096, 0.094, 0.96))
-	draw_rect(Rect2(Vector2(base_x + 150.0, ground_y - 88.0), Vector2(220.0, 80.0)), Color(0.044, 0.086, 0.082, 0.94))
-	draw_rect(Rect2(Vector2(base_x - 12.0, ground_y - 190.0), Vector2(24.0, 78.0)), Color(0.036, 0.068, 0.068, 0.96))
-	draw_line(Vector2(base_x, ground_y - 112.0), Vector2(base_x + 255.0, ground_y - 28.0), Color(0.34, 0.62, 0.58, 0.58), 4.0)
-	draw_line(Vector2(base_x - 198.0, ground_y - 32.0), Vector2(base_x - 40.0, ground_y - 94.0), Color(0.86, 0.58, 0.2, 0.48), 3.0)
-	for offset in [-250.0, -180.0, -20.0, 58.0, 204.0, 286.0]:
-		draw_rect(Rect2(Vector2(base_x + offset, ground_y - 8.0), Vector2(42.0, 8.0)), Color(0.62, 0.9, 0.78, 0.52))
-	draw_circle(Vector2(base_x + 8.0, ground_y - 132.0), 22.0, Color(0.38, 1.0, 0.85, 0.5))
-	draw_circle(Vector2(base_x + 8.0, ground_y - 132.0), 8.0, Color(0.76, 1.0, 0.9, 0.82))
-
-
-func _draw_pollution_horizon(view_size: Vector2) -> void:
-	var start_x := view_size.x * 0.72
-	var base_y := view_size.y * 0.64
-	draw_rect(Rect2(Vector2(start_x, base_y - 70.0), Vector2(view_size.x - start_x, 160.0)), Color(0.18, 0.16, 0.05, 0.36))
-	for index in range(5):
-		var x := start_x + float(index) * 86.0
-		draw_line(Vector2(x, base_y - 20.0), Vector2(x + 72.0, base_y + 26.0), Color(0.58, 0.5, 0.16, 0.38), 5.0)
-		draw_circle(Vector2(x + 42.0, base_y + 18.0), 9.0 + float(index % 2) * 4.0, Color(0.84, 0.76, 0.22, 0.36))
-
-
-func _draw_menu_grounding(view_size: Vector2) -> void:
-	var panel_rect := Rect2(Vector2(view_size.x * 0.07, view_size.y * 0.16), Vector2(560.0, 620.0))
-	draw_rect(panel_rect.grow(18.0), Color(0.005, 0.014, 0.016, 0.58))
-	draw_line(panel_rect.position + Vector2(0.0, 82.0), panel_rect.position + Vector2(panel_rect.size.x, 82.0), Color(0.82, 0.7, 0.3, 0.46), 3.0)
-	draw_line(Vector2(view_size.x * 0.07, view_size.y * 0.78), Vector2(view_size.x * 0.82, view_size.y * 0.78), Color(0.26, 0.48, 0.44, 0.45), 4.0)
 
 
 func _on_new_game_pressed() -> void:
@@ -572,9 +556,16 @@ func _on_trash_world_pressed() -> void:
 	if _selected_world_id.is_empty():
 		return
 	var summary := _selected_summary()
-	trash_confirm_label.text = "将“%s”移入回收区？\n可稍后恢复，不会永久删除。" % String(
-		summary.get("display_name", "未命名世界")
-	)
+	var display_name := String(summary.get("display_name", "未命名世界"))
+	if _is_unreadable_summary(summary):
+		trash_confirm_label.text = (
+			"隔离“%s”到回收区？\n原始目录不会永久删除，"
+			+ "但元数据损坏项无法从游戏内恢复。"
+		) % display_name
+	else:
+		trash_confirm_label.text = (
+			"将“%s”移入回收区？\n可稍后恢复，不会永久删除。"
+		) % display_name
 	trash_confirm_panel.visible = true
 	trash_cancel_button.grab_focus()
 
@@ -624,12 +615,14 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _on_settings_pressed() -> void:
+	system_shade.visible = true
 	settings_panel.visible = true
 	settings_back_button.grab_focus()
 
 
 func _on_settings_back_pressed() -> void:
 	settings_panel.visible = false
+	system_shade.visible = false
 	settings_button.grab_focus()
 
 

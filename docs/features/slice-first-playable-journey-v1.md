@@ -163,7 +163,7 @@ Boot
 
 2026-07-29 [图形化建造 / 合成 / 背包 UI V1](slice-graphical-crafting-and-inventory-v1.md) 与 [设备操作面板统一 V1](slice-unified-device-operation-panels-v1.md) 建筑包 1 均已人工通过。萝卜SAMA确认下一步先建立深色 UI / 深色设备的视觉层级与色彩分离专题，再建立有限发电 / 负荷 / 储能专题；设备面板包 2 和陌生玩家盲测继续冻结。
 
-2026-08-11 [游戏本体 UI 视觉定稿 V1](slice-game-ui-visual-finalization-v1.md) P2-A HUD、P2-B 制造 / 背包与 P2-C 设备面板均已完成并获人工通过；P2-D 核心仓库与首次充能已完成实现和行为验证，等待整面定稿。设备短接口空口已恢复，但连接态接驳遮挡仍由独立专题治理；系统界面与陌生玩家盲测继续冻结。
+2026-08-13 [游戏本体 UI 视觉定稿 V1](slice-game-ui-visual-finalization-v1.md) P2-A 至 P2-E 全部完成并获人工通过；核心 / 反应器接驳代表分面也已收口。下一步建立远程武器与弹药专题，陌生玩家盲测仍按当前规划冻结。
 
 ## 成功与失败判据
 

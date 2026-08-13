@@ -167,6 +167,35 @@ func _check_full_review_state(
 			"无法读取的世界",
 			"damaged selection hides opaque internal ID"
 		)
+		_expect(
+			menu.rename_world_button.disabled,
+			"damaged metadata item cannot be renamed"
+		)
+		_expect(
+			not menu.world_name_input.editable,
+			"damaged metadata item disables the name field"
+		)
+		_expect_text_contains(
+			menu.world_details_label.text,
+			"无法从游戏内恢复",
+			"damaged selection states the in-game recovery boundary"
+		)
+		menu.trash_world_button.pressed.emit()
+		_expect(
+			menu.trash_confirm_panel.visible,
+			"damaged item still supports recoverable directory isolation"
+		)
+		_expect_text_contains(
+			menu.trash_confirm_label.text,
+			"无法从游戏内恢复",
+			"damaged trash confirmation does not promise restoration"
+		)
+		await _press_action("ui_cancel")
+		_expect_equal(
+			catalog.list_worlds().size(),
+			30,
+			"cancel keeps damaged world in active directory"
+		)
 	await _screenshot("03-damaged-world.png")
 
 	if normal_index >= 0:
