@@ -13,35 +13,38 @@ const SOURCE_PHASE := 2
 ## therefore occupies the immediately adjacent cell and becomes their
 ## connected-state cover only after topology confirms a real connection.
 const CONNECTION_DISTANCE := 1
-const REPAIRED_SPRITE_OFFSET := Vector2(0, -32)
+const REPAIRED_SPRITE_OFFSET := SliceCoreVisual.REPAIRED_SPRITE_OFFSET
 const POWER_VISUAL_ANCHOR_OFFSET := Vector2(8, -80)
 
-var _core: Sprite2D
+var _core: Node2D
+var _visual: SliceCoreVisual
 var _inventory: Inventory
 var _online := false
 var _tile_size := 32.0
 
 
 static func apply_repaired_visual(
-	core: Sprite2D,
+	visual: SliceCoreVisual,
 	texture: Texture2D
 ) -> void:
-	if core == null:
+	if visual == null:
 		return
-	core.texture = texture
-	core.offset = REPAIRED_SPRITE_OFFSET
+	visual.apply_repaired_texture(texture)
 
 
 func setup(
-	core: Sprite2D,
+	core: Node2D,
+	visual: SliceCoreVisual,
 	inventory: Inventory,
 	online: bool,
 	tile_size: float
 ) -> void:
 	_core = core
+	_visual = visual
 	_inventory = inventory
 	_online = online
 	_tile_size = tile_size
+	set_connected_logistics_port_visuals([])
 
 
 func endpoints() -> Array[SliceLogisticsEndpoint]:
@@ -50,7 +53,7 @@ func endpoints() -> Array[SliceLogisticsEndpoint]:
 		return result
 	var origin := origin_cell()
 	for port in port_definitions():
-		result.append(SliceLogisticsEndpoint.bind_fixed(
+		var endpoint := SliceLogisticsEndpoint.bind_fixed(
 			self,
 			port,
 			INSTANCE_ID,
@@ -61,8 +64,17 @@ func endpoints() -> Array[SliceLogisticsEndpoint]:
 			Callable(self, "_accept_one"),
 			Callable(self, "_peek_output"),
 			Callable(self, "_take_output")
-		))
+		)
+		endpoint.terminal_belt_overlaps_device = false
+		result.append(endpoint)
 	return result
+
+
+func set_connected_logistics_port_visuals(
+	connected_port_ids: Array[String]
+) -> void:
+	if _visual != null:
+		_visual.set_connected_logistics_port_visuals(connected_port_ids)
 
 
 func reserved_approach_cells(

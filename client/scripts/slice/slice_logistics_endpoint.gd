@@ -20,6 +20,9 @@ var outward_direction: Vector2i
 var accepted_item_ids: Array[String]
 var output_item_order: Array[String]
 var source_phase: int
+## Some fixed devices need the whole terminal belt to remain on the ordinary
+## y-sort plane and use a device-owned patch for the visible insertion seam.
+var terminal_belt_overlaps_device := true
 
 var _accept_one: Callable
 var _peek_output: Callable

@@ -418,8 +418,9 @@ func spend_pocket_item(item: String, amount: int) -> bool:
 
 func mark_core_repaired() -> void:
 	core_repaired = true
-	var core := _map.get_node_or_null("World/OutpostCoreDamaged") as Sprite2D
-	SliceCoreLogistics.apply_repaired_visual(core, REPAIRED_CORE_TEXTURE)
+	SliceCoreLogistics.apply_repaired_visual(
+		_core_visual(), REPAIRED_CORE_TEXTURE
+	)
 	_refresh_core_charge_visual()
 	_rebuild_power_grid()
 	_rebuild_logistics_grid()
@@ -804,20 +805,18 @@ func is_combat_input_blocked() -> bool:
 func _refresh_core_charge_visual() -> void:
 	if _map == null:
 		return
-	var core := _map.get_node_or_null(
-		"World/OutpostCoreDamaged"
-	) as Sprite2D
-	if core == null:
+	var core_visual := _core_visual()
+	if core_visual == null:
 		return
 	if (
 		combat_controller != null
 		and combat_controller.encounter_state == "delivered"
 	):
-		core.self_modulate = Color(0.94, 1.0, 0.70, 1.0)
+		core_visual.set_core_modulate(Color(0.94, 1.0, 0.70, 1.0))
 	elif is_core_charged():
-		core.self_modulate = Color(0.76, 1.0, 0.94, 1.0)
+		core_visual.set_core_modulate(Color(0.76, 1.0, 0.94, 1.0))
 	else:
-		core.self_modulate = Color.WHITE
+		core_visual.set_core_modulate(Color.WHITE)
 
 
 ## Craft a recipe into ordinary backpack items. Building recipes create one or
@@ -1151,10 +1150,14 @@ func _rebuild_power_grid(excluded_instance_id: String = "") -> void:
 func _rebuild_logistics_grid(excluded_instance_id: String = "") -> void:
 	var core := _map.get_node_or_null(
 		"World/OutpostCoreDamaged"
-	) as Sprite2D
-	_core_logistics.setup(core, core_storage, core_repaired, TILE_SIZE)
+	) as Node2D
+	_core_logistics.setup(
+		core, _core_visual(), core_storage, core_repaired, TILE_SIZE
+	)
 	_logistics_grid.rebuild(
-		_building_instances, excluded_instance_id, _core_logistics.endpoints()
+		_building_instances,
+		excluded_instance_id,
+		_core_logistics.endpoints()
 	)
 
 
@@ -1174,6 +1177,14 @@ func _core_world_position() -> Vector2:
 		return Vector2.ZERO
 	var core := _map.get_node_or_null("World/OutpostCoreDamaged") as Node2D
 	return Vector2.ZERO if core == null else core.global_position
+
+
+func _core_visual() -> SliceCoreVisual:
+	if _map == null:
+		return null
+	return _map.get_node_or_null(
+		"World/OutpostCoreVisualSortShell"
+	) as SliceCoreVisual
 
 
 func _restore_adjustment_origin() -> void:
@@ -1376,8 +1387,9 @@ func _restore_from_save() -> bool:
 			cluster.queue_free()
 
 	if core_repaired:
-		var core := world_node.get_node_or_null("OutpostCoreDamaged") as Sprite2D
-		SliceCoreLogistics.apply_repaired_visual(core, REPAIRED_CORE_TEXTURE)
+		SliceCoreLogistics.apply_repaired_visual(
+			_core_visual(), REPAIRED_CORE_TEXTURE
+		)
 	_refresh_core_charge_visual()
 
 	player.position = Vector2(

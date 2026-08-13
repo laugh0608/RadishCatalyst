@@ -33,17 +33,28 @@ func _execute() -> void:
 
 
 func _check_provider_contract() -> void:
-	var core := Sprite2D.new()
+	var core := Node2D.new()
 	core.position = Vector2(640, 320)
+	var visual := _make_core_visual()
 	var inventory := Inventory.new(
 		SliceInventoryProfiles.category_core_storage()
 	)
 	var provider := SliceCoreLogistics.new()
-	provider.setup(core, inventory, false, 32.0)
+	provider.setup(core, visual, inventory, false, 32.0)
 	_expect_equal(provider.endpoints().is_empty(), true, "damaged core has no endpoints")
 	_expect_equal(provider.approach_cells().is_empty(), true, "damaged core reserves no active approach")
+	_expect_equal(
+		_core_patch_visible(visual, "InputDockingPatch"),
+		false,
+		"damaged core has no input docking patch"
+	)
+	_expect_equal(
+		_core_patch_visible(visual, "OutputDockingPatch"),
+		false,
+		"damaged core has no output docking patch"
+	)
 
-	provider.setup(core, inventory, true, 32.0)
+	provider.setup(core, visual, inventory, true, 32.0)
 	var endpoints := provider.endpoints()
 	_expect_equal(provider.origin_cell(), Vector2i(19, 9), "core derives its fixed two-by-two origin")
 	_expect_equal(endpoints.size(), 2, "repaired core exposes two endpoints")
@@ -56,6 +67,16 @@ func _check_provider_contract() -> void:
 	_expect_equal(output.port_cell, Vector2i(20, 10), "core output stays on the right footprint cell")
 	_expect_equal(output.connection_cell, Vector2i(21, 10), "core output uses the immediately adjacent belt cell")
 	_expect_equal(output.source_phase, 2, "core output follows existing storage and reactor sources")
+	_expect_equal(
+		input.terminal_belt_overlaps_device,
+		false,
+		"core input keeps its terminal belt on the ordinary y-sort plane"
+	)
+	_expect_equal(
+		output.terminal_belt_overlaps_device,
+		false,
+		"core output keeps its terminal belt on the ordinary y-sort plane"
+	)
 	_expect_equal(
 		provider.approach_cells(),
 		[],
@@ -70,16 +91,18 @@ func _check_provider_contract() -> void:
 	_expect_equal(inventory.count(SliceWorld.ITEM_CRYSTAL), 0, "automatic output updates the shared core inventory")
 	_expect_equal(inventory.count(SliceWorld.ITEM_CATALYST), 1, "unselected core inventory remains intact")
 	core.free()
+	visual.free()
 
 
 func _check_grid_transfer_contract() -> void:
-	var core := Sprite2D.new()
+	var core := Node2D.new()
 	core.position = Vector2(640, 320)
+	var visual := _make_core_visual()
 	var inventory := Inventory.new(
 		SliceInventoryProfiles.category_core_storage()
 	)
 	var provider := SliceCoreLogistics.new()
-	provider.setup(core, inventory, true, 32.0)
+	provider.setup(core, visual, inventory, true, 32.0)
 	var input_belt := _make_conveyor("building-900001", Vector2i(18, 10), 1)
 	input_belt.set_cargo(SliceWorld.ITEM_CRYSTAL, 1.0)
 	var instances: Array[SliceBuildingInstance] = [input_belt]
@@ -96,8 +119,18 @@ func _check_grid_transfer_contract() -> void:
 	_expect_equal(input_belt.topology_kind(), SliceConveyor.TOPOLOGY_SINK_ENDPOINT, "core input belt uses the sink terminal frame")
 	_expect_equal(
 		(input_belt.get_node("Sprite") as Sprite2D).z_index,
-		1,
-		"core input terminal belt covers the device-owned short dock"
+		0,
+		"core input terminal belt stays behind the dedicated visual shell"
+	)
+	_expect_equal(
+		_core_patch_visible(visual, "InputDockingPatch"),
+		true,
+		"correct single input derives the left docking patch"
+	)
+	_expect_equal(
+		_core_patch_visible(visual, "OutputDockingPatch"),
+		false,
+		"missing output keeps the right docking patch hidden"
 	)
 
 	var output_belt := _make_conveyor("building-900002", Vector2i(21, 10), 1)
@@ -110,8 +143,27 @@ func _check_grid_transfer_contract() -> void:
 	_expect_equal(output_belt.topology_kind(), SliceConveyor.TOPOLOGY_SOURCE_ENDPOINT, "core output belt uses the source terminal frame")
 	_expect_equal(
 		(output_belt.get_node("Sprite") as Sprite2D).z_index,
-		1,
-		"core output terminal belt covers the device-owned short dock"
+		0,
+		"core output terminal belt stays behind the dedicated visual shell"
+	)
+	_expect_equal(
+		_core_patch_visible(visual, "InputDockingPatch"),
+		true,
+		"dual connection keeps the input docking patch"
+	)
+	_expect_equal(
+		_core_patch_visible(visual, "OutputDockingPatch"),
+		true,
+		"dual connection derives the output docking patch"
+	)
+	_check_core_docking_visual_contract(
+		provider,
+		grid,
+		core,
+		visual,
+		inventory,
+		input_belt,
+		output_belt
 	)
 
 	output_belt.clear_cargo()
@@ -124,6 +176,167 @@ func _check_grid_transfer_contract() -> void:
 	_expect_equal(inventory.count(SliceWorld.ITEM_CRYSTAL), 99999, "full core input leaves the warehouse unchanged")
 	_free_instances(instances)
 	core.free()
+	visual.free()
+
+
+func _check_core_docking_visual_contract(
+	provider: SliceCoreLogistics,
+	grid: SliceLogisticsGrid,
+	core: Node2D,
+	visual: SliceCoreVisual,
+	inventory: Inventory,
+	input_belt: SliceConveyor,
+	output_belt: SliceConveyor
+) -> void:
+	var input_patch := _core_patch(visual, "InputDockingPatch")
+	var output_patch := _core_patch(visual, "OutputDockingPatch")
+	_expect_equal(
+		input_patch.texture.get_size(),
+		SliceCoreVisual.DOCKING_PATCH_SIZE,
+		"core input patch keeps the approved 12 by 24 pixel bounds"
+	)
+	_expect_equal(
+		output_patch.texture.get_size(),
+		SliceCoreVisual.DOCKING_PATCH_SIZE,
+		"core output patch keeps the approved 12 by 24 pixel bounds"
+	)
+	_expect_equal(
+		input_patch.position,
+		SliceCoreVisual.INPUT_DOCKING_POSITION,
+		"core input patch keeps the approved texture-local anchor"
+	)
+	_expect_equal(
+		output_patch.position,
+		SliceCoreVisual.OUTPUT_DOCKING_POSITION,
+		"core output patch keeps the approved texture-local anchor"
+	)
+	_expect_equal(
+		SliceCoreVisual.INPUT_DOCKING_TEXTURE_LOCAL_ANCHOR,
+		Vector2i(0, 97),
+		"core input source region keeps the approved texture anchor"
+	)
+	_expect_equal(
+		SliceCoreVisual.OUTPUT_DOCKING_TEXTURE_LOCAL_ANCHOR,
+		Vector2i(132, 97),
+		"core output source region keeps the approved texture anchor"
+	)
+	_expect_equal(
+		input_patch.texture.resource_path.ends_with(
+			"docking_left_connected_patch.png"
+		),
+		true,
+		"core and reactor share the semantic left docking resource"
+	)
+	_expect_equal(
+		output_patch.texture.resource_path.ends_with(
+			"docking_right_connected_patch.png"
+		),
+		true,
+		"core and reactor share the semantic right docking resource"
+	)
+	_expect_equal(
+		input_patch.z_index,
+		0,
+		"core input patch stays on the natural core y-sort plane"
+	)
+	_expect_equal(
+		output_patch.z_index,
+		0,
+		"core output patch stays on the natural core y-sort plane"
+	)
+
+	input_belt.building_rotation = 3
+	grid.rebuild(
+		[input_belt, output_belt], "", provider.endpoints()
+	)
+	_expect_equal(
+		_core_patch_visible(visual, "InputDockingPatch"),
+		false,
+		"wrong-way input clears the left patch in the rebuild frame"
+	)
+	_expect_equal(
+		_core_patch_visible(visual, "OutputDockingPatch"),
+		true,
+		"wrong-way input does not disturb the valid output patch"
+	)
+	input_belt.building_rotation = 1
+
+	output_belt.building_rotation = 3
+	grid.rebuild(
+		[input_belt, output_belt], "", provider.endpoints()
+	)
+	_expect_equal(
+		_core_patch_visible(visual, "InputDockingPatch"),
+		true,
+		"valid input remains visible while output points the wrong way"
+	)
+	_expect_equal(
+		_core_patch_visible(visual, "OutputDockingPatch"),
+		false,
+		"wrong-way output clears the right patch in the rebuild frame"
+	)
+	output_belt.building_rotation = 1
+
+	grid.rebuild([output_belt], "", provider.endpoints())
+	_expect_equal(
+		_core_patch_visible(visual, "InputDockingPatch"),
+		false,
+		"removing the input terminal clears the left patch"
+	)
+	_expect_equal(
+		_core_patch_visible(visual, "OutputDockingPatch"),
+		true,
+		"single output keeps only the right patch"
+	)
+
+	grid.rebuild([], "", provider.endpoints())
+	_expect_equal(
+		_core_patch_visible(visual, "InputDockingPatch"),
+		false,
+		"repaired empty core keeps its input patch hidden"
+	)
+	_expect_equal(
+		_core_patch_visible(visual, "OutputDockingPatch"),
+		false,
+		"repaired empty core keeps its output patch hidden"
+	)
+
+	provider.setup(
+		core,
+		visual,
+		inventory,
+		false,
+		32.0
+	)
+	grid.rebuild([input_belt, output_belt], "", provider.endpoints())
+	_expect_equal(
+		_core_patch_visible(visual, "InputDockingPatch"),
+		false,
+		"damaged-state rebuild clears the input patch"
+	)
+	_expect_equal(
+		_core_patch_visible(visual, "OutputDockingPatch"),
+		false,
+		"damaged-state rebuild clears the output patch"
+	)
+	provider.setup(
+		core,
+		visual,
+		inventory,
+		true,
+		32.0
+	)
+	grid.rebuild([input_belt, output_belt], "", provider.endpoints())
+	_expect_equal(
+		_core_patch_visible(visual, "InputDockingPatch"),
+		true,
+		"repair-state rebuild re-derives the input patch"
+	)
+	_expect_equal(
+		_core_patch_visible(visual, "OutputDockingPatch"),
+		true,
+		"repair-state rebuild re-derives the output patch"
+	)
 
 
 func _check_world_repair_and_restart() -> void:
@@ -132,9 +345,35 @@ func _check_world_repair_and_restart() -> void:
 	root.add_child(world)
 	await process_frame
 	await physics_frame
-	var core := world.get_node("SliceMap/World/OutpostCoreDamaged") as Sprite2D
+	var core_anchor := world.get_node(
+		"SliceMap/World/OutpostCoreDamaged"
+	) as Node2D
+	var core_visual := world.get_node(
+		"SliceMap/World/OutpostCoreVisualSortShell"
+	) as SliceCoreVisual
+	var core := core_visual.core_sprite()
 	_expect_equal(core.texture.get_size(), Vector2(103, 93), "fresh world retains the damaged core body")
 	_expect_equal(core.offset, Vector2.ZERO, "damaged core keeps its existing placement")
+	_expect_equal(
+		core_anchor.global_position,
+		Vector2(640, 320),
+		"core logic anchor keeps its frozen world position"
+	)
+	_expect_equal(
+		core_visual.global_position,
+		core_anchor.global_position + SliceCoreVisual.SORT_ANCHOR_OFFSET,
+		"core visual shell sorts at the footprint front edge"
+	)
+	_expect_equal(
+		core.position,
+		SliceCoreVisual.SPRITE_POSITION,
+		"core sprite counter-offset preserves every approved world pixel"
+	)
+	_expect_equal(
+		core_visual.z_index,
+		0,
+		"core visual shell does not escape natural y-sorting"
+	)
 	_expect_equal(world._logistics_grid.placement_preview_ports().is_empty(), true, "fresh damaged core has no physical ports")
 
 	_core_change_count = 0
@@ -179,10 +418,20 @@ func _check_world_repair_and_restart() -> void:
 		{}
 	) as SliceConveyor
 	var input_belt_id := input_belt.instance_id
+	_expect_equal(
+		input_belt.global_position.y < core_visual.global_position.y,
+		true,
+		"input terminal belt sorts behind the core shell"
+	)
 	input_belt.set_cargo(SliceWorld.ITEM_CRYSTAL, 1.0)
 	world._tick_logistics(1.0)
 	_expect_equal(world.core_storage.count(SliceWorld.ITEM_CRYSTAL), 1, "world core input reaches core_storage")
 	_expect_equal(_core_change_count > 0, true, "automatic core input emits the existing warehouse signal")
+	_expect_equal(
+		_core_patch_visible(core_visual, "InputDockingPatch"),
+		true,
+		"world input topology displays the left docking patch"
+	)
 
 	world._spawn_building(floor_definition, "", Vector2i(21, 10), 0, {})
 	var output_belt := world._spawn_building(
@@ -197,6 +446,11 @@ func _check_world_repair_and_restart() -> void:
 	world._tick_logistics(0.1)
 	_expect_equal(output_belt.cargo_item_id, SliceWorld.ITEM_CRYSTAL, "world core output preserves stable item priority")
 	_expect_equal(world.core_storage.count(SliceWorld.ITEM_CATALYST), 1, "world output leaves the other class untouched")
+	_expect_equal(
+		_core_patch_visible(core_visual, "OutputDockingPatch"),
+		true,
+		"world output topology displays the right docking patch"
+	)
 	_expect_equal(world._autosave(), true, "core logistics state saves without a new schema field")
 
 	world.queue_free()
@@ -207,17 +461,67 @@ func _check_world_repair_and_restart() -> void:
 	root.add_child(loaded)
 	await process_frame
 	await physics_frame
-	var loaded_core := loaded.get_node("SliceMap/World/OutpostCoreDamaged") as Sprite2D
+	var loaded_visual := loaded.get_node(
+		"SliceMap/World/OutpostCoreVisualSortShell"
+	) as SliceCoreVisual
+	var loaded_core := loaded_visual.core_sprite()
 	_expect_equal(loaded.core_repaired, true, "restart restores repaired core truth")
 	_expect_equal(loaded_core.texture.get_size(), Vector2(144, 128), "restart restores the approved short-port core body")
 	_expect_equal(loaded_core.offset, SliceCoreLogistics.REPAIRED_SPRITE_OFFSET, "restart restores short-port core alignment")
 	_expect_equal(loaded._logistics_grid.placement_preview_ports().size(), 2, "restart re-derives both core endpoints")
 	_expect_equal(loaded.core_storage.count(SliceWorld.ITEM_CATALYST), 1, "restart preserves automatic and manual core inventory")
 	_expect_equal(_building_with_id(loaded, input_belt_id) != null, true, "restart preserves the core input belt identity")
+	var loaded_input := _building_with_id(loaded, input_belt_id) as SliceConveyor
 	var loaded_output := _building_with_id(loaded, output_belt_id) as SliceConveyor
 	_expect_equal(loaded_output != null and loaded_output.cargo_item_id == SliceWorld.ITEM_CRYSTAL, true, "restart preserves cargo emitted from core_storage")
+	_expect_equal(
+		_core_patch_visible(loaded_visual, "InputDockingPatch"),
+		true,
+		"restart re-derives the connected input patch"
+	)
+	_expect_equal(
+		_core_patch_visible(loaded_visual, "OutputDockingPatch"),
+		true,
+		"restart re-derives the connected output patch"
+	)
+	_expect_equal(
+		(loaded_input.get_node("Sprite") as Sprite2D).z_index,
+		0,
+		"restart keeps the input terminal belt behind the core shell"
+	)
+	_expect_equal(
+		(loaded_output.get_node("Sprite") as Sprite2D).z_index,
+		0,
+		"restart keeps the output terminal belt behind the core shell"
+	)
 	loaded.queue_free()
 	await process_frame
+
+
+func _make_core_visual() -> SliceCoreVisual:
+	var visual := SliceCoreVisual.new()
+	visual.position = Vector2(640, 320) + SliceCoreVisual.SORT_ANCHOR_OFFSET
+	var sprite := Sprite2D.new()
+	sprite.name = "Sprite"
+	sprite.position = SliceCoreVisual.SPRITE_POSITION
+	visual.add_child(sprite)
+	return visual
+
+
+func _core_patch(
+	visual: SliceCoreVisual,
+	node_name: String
+) -> Sprite2D:
+	var sprite := visual.core_sprite()
+	return sprite.get_node_or_null(node_name) as Sprite2D
+
+
+func _core_patch_visible(
+	visual: SliceCoreVisual,
+	node_name: String
+) -> bool:
+	var patch := _core_patch(visual, node_name)
+	return patch != null and patch.visible
 
 
 func _make_conveyor(

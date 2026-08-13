@@ -51,7 +51,9 @@ func rebuild(
 	_source_endpoints.sort_custom(_endpoint_before)
 	_sort_endpoint_indexes()
 	_refresh_conveyor_topologies()
-	_refresh_endpoint_visuals(instances, excluded_instance_id)
+	_refresh_endpoint_visuals(
+		instances, excluded_instance_id, external_endpoints
+	)
 
 
 func tick(delta: float) -> Dictionary:
@@ -621,7 +623,9 @@ func _refresh_conveyor_topologies() -> void:
 		)
 		if source_endpoint != null:
 			conveyor.set_topology_visual(
-				SliceConveyor.TOPOLOGY_SOURCE_ENDPOINT, [-output]
+				SliceConveyor.TOPOLOGY_SOURCE_ENDPOINT,
+				[-output],
+				source_endpoint.terminal_belt_overlaps_device
 			)
 			_restore_cargo_entry_direction(conveyor)
 			continue
@@ -631,7 +635,9 @@ func _refresh_conveyor_topologies() -> void:
 		)
 		if sink_endpoint != null:
 			conveyor.set_topology_visual(
-				SliceConveyor.TOPOLOGY_SINK_ENDPOINT, [-output]
+				SliceConveyor.TOPOLOGY_SINK_ENDPOINT,
+				[-output],
+				sink_endpoint.terminal_belt_overlaps_device
 			)
 			_restore_cargo_entry_direction(conveyor)
 			continue
@@ -661,7 +667,8 @@ func _refresh_conveyor_topologies() -> void:
 
 func _refresh_endpoint_visuals(
 	instances: Array[SliceBuildingInstance],
-	excluded_instance_id: String
+	excluded_instance_id: String,
+	external_endpoints: Array[SliceLogisticsEndpoint]
 ) -> void:
 	for instance in instances:
 		var connected_port_ids: Array[String] = []
@@ -676,6 +683,34 @@ func _refresh_endpoint_visuals(
 				):
 					connected_port_ids.append(endpoint.port_id)
 		instance.set_connected_logistics_port_visuals(connected_port_ids)
+	var external_visual_owners: Array[Object] = []
+	for endpoint in external_endpoints:
+		if (
+			endpoint.owner != null
+			and not external_visual_owners.has(endpoint.owner)
+		):
+			external_visual_owners.append(endpoint.owner)
+	for owner in external_visual_owners:
+		if owner == null or not owner.has_method(
+			"set_connected_logistics_port_visuals"
+		):
+			continue
+		var connected_port_ids: Array[String] = []
+		for endpoint in _endpoints:
+			if endpoint.owner != owner:
+				continue
+			var conveyor := conveyor_at(endpoint.connection_cell)
+			if (
+				conveyor != null
+				and endpoint.matches_conveyor_direction(
+					conveyor.output_direction()
+				)
+			):
+				connected_port_ids.append(endpoint.port_id)
+		owner.call(
+			"set_connected_logistics_port_visuals",
+			connected_port_ids
+		)
 
 
 func _input_directions(conveyor: SliceConveyor) -> Array[Vector2i]:

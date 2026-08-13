@@ -15,10 +15,10 @@ const PROCESSING_OVERLAY_TEXTURES := [
 	preload("res://assets/sprites/slice/reactor_processing_pulse_b.png"),
 ]
 const INPUT_DOCKING_OVERLAY_TEXTURE := preload(
-	"res://assets/sprites/slice/reactor_input_connected_overlay.png"
+	"res://assets/sprites/slice/docking_left_connected_patch.png"
 )
 const OUTPUT_DOCKING_OVERLAY_TEXTURE := preload(
-	"res://assets/sprites/slice/reactor_output_connected_overlay.png"
+	"res://assets/sprites/slice/docking_right_connected_patch.png"
 )
 const INPUT_DOCKING_OVERLAY_POSITION := Vector2(-82, 26)
 const OUTPUT_DOCKING_OVERLAY_POSITION := Vector2(82, 26)

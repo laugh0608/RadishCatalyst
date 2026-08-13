@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bxwn8ur0y6xf3"
-path="res://.godot/imported/reactor_output_connected_overlay.png-1d73e676f1e02cf448f53e5b8790027c.ctex"
+uid="uid://0s1blk15g13e"
+path="res://.godot/imported/docking_left_connected_patch.png-578dfb71a92a9a0fb285b791c62c0132.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/slice/reactor_output_connected_overlay.png"
-dest_files=["res://.godot/imported/reactor_output_connected_overlay.png-1d73e676f1e02cf448f53e5b8790027c.ctex"]
+source_file="res://assets/sprites/slice/docking_left_connected_patch.png"
+dest_files=["res://.godot/imported/docking_left_connected_patch.png-578dfb71a92a9a0fb285b791c62c0132.ctex"]
 
 [params]
 
