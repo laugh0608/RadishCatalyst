@@ -12,18 +12,16 @@
 
 - 真实新档自动、正式入口和萝卜SAMA人工完整全链均已通过，最终状态为 `delivered / 120`。
 - 陌生玩家盲测已冻结：当前功能可运行，但视觉和交互仍不足以证明陌生玩家可独立理解。
-- [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 已人工收口。
-- [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 建筑包 1 已人工通过；核心仓库包 2 暂停。
+- 图形化制造 / 背包与统一设备面板均已人工收口。
 - [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md) 与 [游戏本体 UI 视觉定稿 V1](../features/slice-game-ui-visual-finalization-v1.md) 已完成并人工收口。
+- [远程武器与工业供弹 V1](../features/slice-ranged-weapon-and-industrial-ammunition-v1.md) P0 已人工确认；当前只推进 P1 资产目标。
 - [设备—传送带接驳视觉 V1](../features/slice-device-conveyor-docking-visual-v1.md) 的反应器与核心代表分面均已人工通过；采集器和储物箱只在后续实机暴露同类遮挡时按已验证合同复核。
 - [分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 与 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合包 2 / 3 已提交，包 3 / 4 / 5 均获人工通过；包 5 的自动、正式入口和 AI 逐图复核证据已完整保留。
 
 ## 2026-07-29 收尾
 
-- `d6b1f6e3` 完成设备自动补地板、物流端口 / 断链诊断、采集器显式取料和固定数字键制作语义；项目级一次性运行数据迁入 `tools/runtime-intake/`。
-- `4e6d2a1d` 收口内部完整全链，`35ba6140` 根据人工判断延期盲测并恢复表现层开发。
-- `d3953c6e` 以七张配方卡、九个背包格、鼠标制作 / 选中和权威阻塞状态替换纯文字整备主读法，并经人工通过。
-- `6aa5beb2` 统一六类建筑设备面板、结构化物流状态与鼠标操作；人工通过后删除描述式“下一步：……”文案。
+- `d6b1f6e3` 完成放置、端口和采集器主路径；`4e6d2a1d` 收口内部全链，`35ba6140` 延期盲测并恢复表现层开发。
+- `d3953c6e` 与 `6aa5beb2` 分别收口图形化制造 / 背包和六类设备面板的鼠标主路径。
 - 日终代码—文档审计确认：现行电网仍是二值可达模型，暂无发电容量、设备耗电、中继负荷或储能状态。
 
 ## 8 月 3 日收尾
@@ -66,7 +64,7 @@
 
 1. 设备—传送带接驳视觉 V1 的核心 / 反应器代表分面已经人工收口，不外推修改采集器或储物箱。
 2. P2-D 核心仓库与首次充能整面视觉已人工通过；不重新扩实现或把核心专用资源改成全局框架。
-3. 当前建立远程武器与弹药专题，先做玩家闭环、首把武器、工业供弹、输入、HUD、数值和存档决策；不直接生成枪械素材或修改客户端。
+3. 当前只生成并审阅 P1 步枪持握覆盖层、脉冲弹与命中特效目标；同类一轮最多 3 次生成，落盘并更新 manifest 后停在人工选择，不接客户端。
 
 ## 防跑偏规则
 
@@ -86,6 +84,7 @@
 - [Current Plan](current.md)
 - [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md)
 - [游戏本体 UI 视觉定稿 V1](../features/slice-game-ui-visual-finalization-v1.md)
+- [远程武器与工业供弹 V1](../features/slice-ranged-weapon-and-industrial-ammunition-v1.md)
 - [设备—传送带接驳视觉 V1](../features/slice-device-conveyor-docking-visual-v1.md)
 - [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md)
 - [分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md)
