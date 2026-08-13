@@ -1,8 +1,8 @@
 # Slice Multi-World Save List V1
 
-更新时间：2026-07-26
+更新时间：2026-08-13
 
-状态：**已收口（2026-07-26）**。承接已收口的 [Slice Save Persistence V1](slice-save-persistence-v1.md) 与 [配方加工 arc](slice-recipe-processing-v1.md)，把单个自动存档升级为最多 30 个彼此隔离、可选择、可命名并可供自动化复核的本地世界。本文记录目录功能在 schema 6 时的实现边界；外勤专题随后把世界状态升至 schema 7，目录所有权与三份备份规则不变，当前口径见 [Slice Runtime Systems](../architecture/slice-runtime-systems.md)。
+状态：**已收口（2026-07-26）；2026-08-13 完成 P2-E 系统界面视觉定稿，目录、回收与保存语义不变。**承接已收口的 [Slice Save Persistence V1](slice-save-persistence-v1.md) 与 [配方加工 arc](slice-recipe-processing-v1.md)，把单个自动存档升级为最多 30 个彼此隔离、可选择、可命名并可供自动化复核的本地世界。本文记录目录功能在 schema 6 时的实现边界；外勤专题随后把世界状态升至 schema 7，目录所有权与三份备份规则不变，当前口径见 [Slice Runtime Systems](../architecture/slice-runtime-systems.md)。
 
 ## 玩家结果
 
@@ -70,7 +70,7 @@ user://saves/slice/
 ### `SliceSaveCatalog`
 
 - 负责 `list_worlds`、`create_world`、`rename_world`、`move_world_to_trash`、`restore_world` 和 `service_for_world`。
-- 生产默认根目录为 `user://saves/slice/`；自动化可注入 `/private/tmp/<topic>/` 等独立根目录。
+- 生产默认根目录为 `user://saves/slice/`；当前项目自动化与人工复核统一注入仓库内忽略提交的 `tools/runtime-intake/` 独立根目录。
 - 枚举按最近更新时间降序稳定排序；同时间使用世界 ID 排序，避免界面抖动。
 - 单个世界损坏只影响该列表项；不得阻止其他世界创建、载入或复核。
 
@@ -98,6 +98,7 @@ user://saves/slice/slice_world.bak.json
 - 选中条目后提供“载入”“重命名”“移入回收区”；回收必须二次确认。
 - 回收区不计入 30 上限，并提供恢复入口；本专题不做永久删除。
 - 新游戏创建世界后再进入 `SliceWorld`；创建失败或达到上限时停留在菜单，不生成内存世界或覆盖其他档。
+- 2026-08-13 P2-E 只把启动、正常 / 损坏世界、回收确认、暂停和离开确认统一为深钢系统语言；不可读世界禁用载入 / 重命名、回收可恢复、保存成功后才离开的权威边界均保持不变，视觉证据见 [游戏本体 UI 视觉定稿 V1](slice-game-ui-visual-finalization-v1.md)。
 
 ## 自动化与人工复核
 

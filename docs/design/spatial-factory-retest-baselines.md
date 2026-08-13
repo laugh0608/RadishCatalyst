@@ -1,6 +1,6 @@
 # Spatial Factory Retest Baselines
 
-更新时间：2026-07-28
+更新时间：2026-08-13
 
 ## 文档目的
 
@@ -9,7 +9,7 @@
 ## 通用规则
 
 - 玩家可见验证从真实 `Boot` 菜单进入，不直接实例化内部世界充当正式证据。
-- 存档测试使用 `/private/tmp` 等隔离目录或用户明确提供的测试副本，不覆盖、删除或改写现有玩家存档。
+- 自动检查、临时验证和人工复测存档统一使用仓库内忽略提交的 `tools/runtime-intake/`；不覆盖、删除或改写生产 `user://saves/slice/`。
 - 逻辑检查可以 headless；截图必须有窗口运行并按 [Godot Runtime Verification Guide](../reference/godot-runtime-verification-guide.md) 实际审阅。
 - 自动检查证明规则成立，截图和人工路径证明玩家能看懂并完成。
 
@@ -114,6 +114,24 @@ Boot → 新游戏
 - 角色前后遮挡正确，状态灯与供电线不漂移。
 - 货物沿带面移动，不斜穿、压带或钻入箱体。
 
+### 核心 / 反应器接驳与角色排序
+
+用途：修改外部端点、设备短口、终端传送带、局部接驳片、固定核心视觉壳或 y-sort 时。
+
+- 同一复测世界覆盖受损 / 未连接、正确单侧或双侧连接、方向错误、拆除与保存重载；连接态必须由真实端点拓扑派生，不写入存档。
+- 核心和反应器的完整终端带保持普通世界排序，只允许语义中性的 `12×24px` 左右局部片覆盖短口外段；空口和错向不得显示假连接。
+- 角色分别站到固定核心前后，确认主体、局部片和终端带按自然 y-sort 交换遮挡；不得用统一高 `z_index` 压住角色、白色固定框或基座。
+- 带货连接时继续核对货物、状态灯、供电线与 HUD；拆除、受损 / 修复切换和重载必须在同一物流 rebuild 周期清除或重算局部片。
+
+### 系统界面与世界目录
+
+用途：修改启动菜单、世界目录、损坏隔离、回收、暂停、保存返回 / 退出或系统 Theme 时。
+
+- 从正式 `Boot` 覆盖启动、正常世界、元数据损坏世界、回收区、可恢复回收确认、暂停和离开确认；不得直接实例化面板充当正式证据。
+- 损坏世界保持可见但禁用载入与重命名，正常世界不受阻断；回收项可恢复，危险确认必须明确后果且不能伪造游戏内修复能力。
+- `Esc` 仍按前台操作 → 暂停 → 模态取消的既有优先级工作；保存返回与保存退出只有写入成功后才离开，失败时留在当前世界显示错误。
+- 启动背景不得混入目标稿 HUD；目录详情、当前选择、禁用动作和危险确认在彩色、低饱和与灰阶下均应可辨，无文字截断、互叠或只靠色相表达。
+
 ## 自动检查入口
 
 默认静态入口：
@@ -134,10 +152,13 @@ sh ./scripts/check-client.sh --with-godot
 - `slice_building_operations_check.gd`
 - `slice_power_grid_check.gd`
 - `slice_logistics_check.gd`
+- `slice_core_logistics_check.gd`
 - `slice_save_schema_check.gd`
+- `slice_save_review_worlds_check.gd`
+- `demo_startup_shell_check.gd`
 - `slice_combat_package1_check.gd`
 - `slice_combat_package2_check.gd`
 - `slice_combat_package3_check.gd`
 - `slice_first_playable_journey_check.gd`
 
-有窗口正式入口脚本默认放在 `/private/tmp`；只有形成稳定、可重复的规则价值时才接入仓库检查。
+有窗口正式入口的一次性脚本与隔离存档放在 `tools/runtime-intake/<topic>/`，截图放在 `assets/art-intake/<topic>-preview/`；只有形成稳定、可重复的规则价值时才迁入正式 `scripts/` 或客户端检查入口。
