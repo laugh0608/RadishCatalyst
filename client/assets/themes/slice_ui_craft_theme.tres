@@ -1,0 +1,64 @@
+[gd_resource type="Theme" load_steps=6 format=3]
+
+[ext_resource type="FontVariation" path="res://assets/themes/ui_font_medium.tres" id="1_font"]
+
+[sub_resource type="StyleBoxFlat" id="ButtonNormal"]
+bg_color = Color(0.125, 0.165, 0.18, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.278, 0.329, 0.353, 1)
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="ButtonHover"]
+bg_color = Color(0.145, 0.2, 0.224, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 2
+border_color = Color(0.498, 0.573, 0.722, 1)
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="ButtonPressed"]
+bg_color = Color(0.125, 0.173, 0.192, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 3
+border_color = Color(0.498, 0.573, 0.722, 1)
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="ButtonDisabled"]
+bg_color = Color(0.125, 0.157, 0.169, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.38, 0.42, 0.44, 0.46)
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+
+[resource]
+default_font = ExtResource("1_font")
+Button/colors/font_color = Color(0.863, 0.886, 0.878, 1)
+Button/colors/font_hover_color = Color(0.933, 0.953, 0.945, 1)
+Button/colors/font_pressed_color = Color(0.933, 0.953, 0.945, 1)
+Button/colors/font_focus_color = Color(0.933, 0.953, 0.945, 1)
+Button/colors/font_disabled_color = Color(0.537, 0.576, 0.588, 1)
+Button/styles/normal = SubResource("ButtonNormal")
+Button/styles/hover = SubResource("ButtonHover")
+Button/styles/pressed = SubResource("ButtonPressed")
+Button/styles/focus = SubResource("ButtonHover")
+Button/styles/disabled = SubResource("ButtonDisabled")

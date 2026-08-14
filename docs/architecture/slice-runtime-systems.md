@@ -1,6 +1,6 @@
 # Slice Runtime Systems
 
-更新时间：2026-07-25
+更新时间：2026-07-29
 
 ## 文档目的
 
@@ -11,24 +11,34 @@
 - `client/scripts/boot/boot.gd`
 - `client/scripts/slice/slice_world.gd`
 - `client/scripts/slice/slice_building_*.gd`
+- `client/scripts/slice/slice_placement_*.gd`
 - `client/scripts/slice/slice_power_grid.gd`
 - `client/scripts/slice/slice_logistics_grid.gd`
+- `client/scripts/slice/slice_reactor.gd`
+- `client/scripts/slice/slice_player.gd`
+- `client/scripts/slice/slice_combat_controller.gd`
+- `client/scripts/slice/slice_field_enemy.gd`
+- `client/scripts/slice/slice_hud.gd`
+- `client/scripts/slice/slice_save_catalog.gd`
 - `client/scripts/slice/slice_save_service.gd`
 - `client/scripts/slice/slice_building_save_codec.gd`
+- `client/scripts/slice/slice_pause_menu.gd`
 
 ## 正式入口
 
 ```text
 Boot
 -> DataRegistry.load_all()
+-> SliceSaveCatalog 迁移旧单档并枚举世界
 -> StartupMenu
--> 新游戏 / 载入存档
+-> 创建或选择一个稳定 world_id
+-> SliceSaveCatalog.service_for_world(world_id)
 -> 实例化 SliceWorld
--> 注入同一个 SliceSaveService
+-> 注入该世界唯一的 SliceSaveService
 -> 新建世界或恢复切片存档
 ```
 
-启动菜单和世界使用同一个 `SliceSaveService` 实例，因此菜单摘要、载入判断和世界读写不会各自读取不同目录。旧 `_start_game()` 只为冻结纵切兼容保留，不由当前菜单进入。
+`SliceSaveCatalog` 只拥有世界目录、轻量元数据、30 世界上限、回收恢复和旧单档迁移；玩法状态仍由选中世界的 `SliceSaveService` 独占。`Esc` 暂停后“保存并返回主菜单”会先保存当前世界，再由 `Boot` 释放 `SliceWorld`、清空选中服务并重建列表。旧 `_start_game()` 只为冻结纵切兼容保留，不由当前菜单进入。
 
 ## 系统职责
 
@@ -40,8 +50,9 @@ Boot
 - 持有背包、核心仓库、核心状态、建筑实例集合和稳定序号。
 - 调用放置校验、建筑生成、调整、拆除和交互。
 - 在结构变化后重建供电与物流。
-- 推进采集器生产和传送带模拟。
+- 推进采集器、反应器生产和传送带模拟。
 - 组装并触发自动存档。
+- 处理前台面板 / 放置优先的 `Esc`，以及暂停、保存返回和保存退出。
 
 它不直接定义每类建筑的全部规则；可复用规则已下沉到窄职责对象。
 
@@ -50,15 +61,18 @@ Boot
 - `SliceBuildingCatalog`：六类建筑定义的唯一注册表。
 - `SliceBuildingDefinition`：不可变规则，包括占地、表面、方向帧、碰撞、状态白名单、电力角色与端口、物流端口。
 - `SliceBuildingInstance`：稳定运行时身份和共享视觉 / 碰撞壳。
-- `SliceCollector`、`SliceStorage`、`SliceConveyor`：只持有各自内部状态和窄行为。
+- `SliceCollector`、`SliceStorage`、`SliceConveyor`、`SliceReactor`：只持有各自内部状态和窄行为。
 - `SliceBuildingOccupancy`：分别维护地板占用和阻挡设施占用。
 
 建筑方向只选择固定帧；`rotation` 是 `0–3` 的规则状态，不直接旋转像素图。
 
 ### 放置与操作
 
-- `SliceBuildingPlacementController` 只持有当前选择、方向、吸附原点、合法性和真实资产 ghost。
-- `SliceWorld._validate_placement()` 负责世界规则，包括边界、地表、占用、物理阻挡和中继连接。
+- `SlicePlacementPointerInput` 只维护鼠标目标和地板拖铺去重；设备左键单放，工业地板允许按住左键跨格铺设，`E` 仍走兼容确认路径。
+- `SlicePlacementValidator` 统一查询边界、地表、占用、物理阻挡和中继连接，并把缺地板格交给预览；它不落盘、不持有第二份世界状态。
+- `SliceBuildingPlacementController` 只持有当前选择、方向、吸附原点、合法性、真实资产 ghost 和动态预览节点。
+- `SlicePlacementOverlay` 只绘制放置瞬态的足印、缺地板格、连接线和电力范围；所有范围节点由 `SlicePowerGrid` 的当前派生结果提供。
+- `SliceWorld` 只协调指针输入、校验结果、最终放置和自动存档；前台 HUD 控件会阻断鼠标落地。
 - `SliceBuildingActionPanel` 负责调整、二次确认拆除、储物箱晶体存取和阻塞原因展示。
 
 调整期间原实例暂时隐藏并从占用、供电和物流中排除；提交后保留 ID 和内部状态，取消则恢复原拓扑。
@@ -70,6 +84,7 @@ Boot
 - 输入只有核心在线状态、核心位置、tile 大小和建筑实例。
 - 输出是通电中继集合、用电设备判定和唯一父边连接。
 - `powered`、父边和连线表现都是派生状态，不进入存档。
+- 当前建筑定义只有 `power_role` 与端口 / 范围信息，没有发电容量、设备需求、负荷分配、储能或过载状态；这些能力须由后续独立电力专题确定迁移与 schema 边界。
 
 `SlicePowerLinkLayer` 只渲染供电树，不拥有网络规则。
 
@@ -78,12 +93,20 @@ Boot
 `SliceLogisticsGrid` 是世界权威的定步长传送带模拟：
 
 - 固定以 `1/60s` 子步推进，带速为每秒一格。
-- 从建筑原点、方向和储物箱端口派生邻接与拓扑。
-- 先推进在途进度，再处理带到带 / 带到箱转移，最后处理箱到带发料。
+- 从建筑原点、方向、储物箱舱口和反应器入 / 出端口派生邻接与拓扑。
+- 先推进在途进度，再处理带到带 / 带到储物箱或反应器输入，最后处理储物箱 / 反应器输出发料。
 - 同一目标的多入口竞争由目标带格的持久轮询游标裁决。
 - 满载或占用形成回压，货物停在输出边缘。
 
 `SliceConveyor` 只持有单格货物、进度、轮询游标和表现所需的入口方向；拓扑种类和邻接由网格重建。
+
+### 外勤战斗与旅程引导
+
+- `SlicePlayer` 负责移动、鼠标瞄准及未被前台 UI 消费的攻击 / 闪避意图，不拥有敌人或任务状态。
+- `SliceCombatController` 拥有攻击节拍、闪避无敌、玩家生命和五态外勤遭遇；`SliceFieldEnemy` 只负责单敌人的警戒、追击、蓄势、恢复、回巢、受击与败亡。
+- `SliceWorld` 只编排首次充能扣料、样本交付、离散事件自动保存和节点装配，不承载敌人 AI。
+- `SliceHud` 与合成面板读取 `current_journey_guidance()`；当前目标和规则从权威世界状态派生，不保存阶段编号或平行任务进度。
+- `SliceHud` 的常驻游戏壳层由任务舷窗、三物资槽、角色生命条、按需敌人目标条和上下文键帽组成；完整套件清单仍只在合成 / 放置上下文出现。
 
 ## 权威状态与派生状态
 
@@ -91,16 +114,19 @@ Boot
 | --- | --- | --- |
 | 背包、核心仓库 | 是 | `Inventory` 容量与内容 |
 | 核心修复、核心能量、已采集晶簇、玩家位置 | 是 | 切片世界基础状态 |
+| 玩家生命、五态外勤遭遇 | 是 | 最大生命由 `delivered` 派生，敌人 / 样本由单一状态派生 |
 | 建筑 ID、定义 ID、原点格、方向 | 是 | 稳定布局权威 |
 | 采集器缓冲与生产进度 | 是 | 断电和重启都保留 |
 | 储物箱库存 | 是 | 容量与物品白名单校验 |
 | 传送带货物、进度、合流游标 | 是 | 支持重启续跑与公平性 |
+| 反应器输入 / 输出缓冲、加工态与进度 | 是 | 每台实例独立，断电和重启都保留 |
 | 地板 / 设施占用索引 | 否 | 从建筑布局重建 |
 | 供电可达性、父边、连线 | 否 | 从核心和中继重建 |
 | 物流邻接、直线 / 转角 / 端点 / 合流外观 | 否 | 从相邻建筑重建 |
+| 首次旅程当前目标与规则 | 否 | 从核心、通电设备、建筑库存、背包和遭遇状态派生 |
 | 阴影、y-sort、状态灯和 ghost | 否 | 纯表现 |
 
-旧顶层 `catalyst_count` 和 `reactor_active` 字段暂时只为兼容既有切片存档保留，不应作为新反应加工的权威状态。
+schema 7 延续 schema 6 的设备状态，并新增 `player_health` 与 `field_encounter {state, enemy_health}`。遭遇只取 `locked / hostile / dropped / carried / delivered`；最大生命、敌人存在和样本存在均由该状态派生，不保存平行布尔真相。旧顶层 `catalyst_count` 和 `reactor_active` 仍不写入。
 
 ## 生命周期与时间推进
 
@@ -111,29 +137,38 @@ Boot
 ```text
 physics tick
 -> SliceLogisticsGrid.tick(delta)
--> 更新货物与受影响储物箱
+-> 更新货物与受影响储物箱 / 反应器缓冲
 -> 有物流变化时按最多约 1 秒间隔自动保存
 
 process tick
 -> 推进每台通电采集器
--> 缓冲未满时每 10 秒产出 1 晶体
--> 产出后自动保存
+-> 缓冲未满时每 1 秒产出 1 晶体
+-> 推进每台反应器的 2 晶体 → 1 催化剂 / 10 秒状态机
+-> 产出、加工状态切换或最多约 1 秒后自动保存
 ```
 
-建造、调整、拆除、仓库存取、核心修复和采集等离散变化会立即触发自动保存。
+schema 4–7 的旧档仍可携带原 `0–10s` 采集进度；载入后按当前 `1s` 周期结算并继续累计。建造、调整、拆除、仓库存取、核心修复、采集，以及战斗伤害、败亡、样本拾取 / 交付和撤离等离散变化会立即触发自动保存；普通敌人 AI tick 不写盘。暂停返回或退出只有保存成功后才释放世界或结束进程。
 
 ## 切片存档
 
-`SliceSaveService` 与旧 `SaveService` 物理隔离：
+`SliceSaveCatalog` 与 `SliceSaveService` 均和旧 `SaveService` 物理隔离：
 
-- 默认目录：`user://saves/slice`。
-- 主档：`slice_world.json`。
-- 单份轮转备份：`slice_world.bak.json`。
-- 写入方式：临时文件写完后替换主档。
-- 当前 schema：`5`；支持读取 schema `2–5`，schema `1` 不支持。
-- 读取顺序：主档失败后尝试备份；全部失败时保留当前运行状态。
+```text
+user://saves/slice/
+  worlds/world_<stable_id>/
+    metadata.json
+    autosave.json
+    backups/autosave.bak.1.json ... bak.3.json
+  trash/<recoverable_entry>/
+```
 
-schema `4` 把旧采集器列表迁移为统一建筑拓扑；schema `5` 增加传送带货物与合流游标。schema `2 / 3` 的旧采集器会获得稳定 ID，携带中的旧采集器会迁回背包套件，schema `2` 核心仓库迁移为空仓。
+- 最多 30 个在用世界；显示名可变，稳定 ID 和目录不随重命名变化。
+- `metadata.json` 只提供列表轻读，并摘要外勤状态与玩家生命；`autosave.json` 才是 schema 7 权威世界状态。
+- 写入先落临时文件，三份备份轮转成功后才替换主档；读取按主档、`bak.1`、`bak.2`、`bak.3` 回退，全部失败时不覆盖内存状态。
+- 当前 schema 为 `7`，支持读取 schema `2–7`；schema `1` 不支持。
+- 旧 `user://saves/slice/slice_world.json` 和单份 `.bak` 仅作迁移源：校验、复制、读回成功后发布为第一个命名世界，旧文件保留。
+
+schema `4` 把旧采集器列表迁移为统一建筑拓扑；schema `5` 增加传送带货物与合流游标；schema `6` 增加反应器双缓冲、加工态和进度，并迁移旧全局催化剂；schema `7` 增加玩家生命与五态外勤遭遇。schema `2–6` 缺省生命 `100`，并按核心充能状态迁为 `locked` 或满血 `hostile`。
 
 `SliceBuildingSaveCodec` 在接受候选档案前校验：
 
@@ -141,7 +176,8 @@ schema `4` 把旧采集器列表迁移为统一建筑拓扑；schema `5` 增加�
 - 已知建筑定义、方向范围和下一序号。
 - 地图边界、地板 / 设施同层不重叠。
 - 设施获得完整工业地板支撑。
-- 各建筑内部状态白名单、容量、数值范围和货物 ID。
+- 各建筑内部状态白名单、容量、数值范围和货物 ID，包括反应器加工态 / 进度一致性。
+- 玩家生命上限、遭遇字段白名单、核心充能与遭遇状态一致性，以及活敌 / 败亡态生命约束。
 
 ## 扩展规则
 
@@ -153,4 +189,6 @@ schema `4` 把旧采集器列表迁移为统一建筑拓扑；schema `5` 增加�
 4. 明确哪些状态保存、哪些从布局派生。
 5. 扩展匹配的放置、操作、供电、物流和 schema 检查。
 
-反应加工接入时应使用每台反应器的输入缓冲、输出缓冲和在制批次升级 schema；不得重新把全局催化剂计数或激活布尔作为机器权威状态。
+战斗与样本权威状态已进入选中世界的 schema 7，并沿用候选校验 / 备份链；`metadata.json` 只保存列表摘要，不得成为玩法真相源。后续不得把它拆成跨世界共享角色档，或重新把旧全局催化剂计数作为权威状态。
+
+2026-07-28 `SliceWorld` 为 1406 行；鼠标指针、动态预览和权威放置校验已拆到三个窄职责组件。下一包以验收取证为主，不得把新业务分支重新堆回世界编排器或越过 1500 行硬上限。

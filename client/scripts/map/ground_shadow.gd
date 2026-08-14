@@ -56,7 +56,8 @@ func _sync_from_target() -> void:
 		flip_v = animated.flip_v
 
 	var target_scale := target_node.scale
-	var source_height := float(texture.get_height()) * absf(target_scale.y)
+	var frame_height := float(texture.get_height()) / float(maxi(1, vframes))
+	var source_height := frame_height * absf(target_scale.y)
 	var foot_alignment_offset := source_height * (1.0 - vertical_compression) * 0.5
 	var target_position := (
 		Vector2.ZERO

@@ -15,6 +15,8 @@ var _core_position := Vector2.ZERO
 var _relay_positions: Dictionary = {}
 var _powered_relay_ids: Dictionary = {}
 var _relay_parent_ids: Dictionary = {}
+var _consumer_positions: Dictionary = {}
+var _consumer_parent_ids: Dictionary = {}
 var _powered_connections: Array[Dictionary] = []
 
 
@@ -31,17 +33,26 @@ func rebuild(
 	_relay_positions.clear()
 	_powered_relay_ids.clear()
 	_relay_parent_ids.clear()
+	_consumer_positions.clear()
+	_consumer_parent_ids.clear()
 	_powered_connections.clear()
 	for instance in buildings:
 		if instance.instance_id == excluded_instance_id:
 			continue
-		if (
-			instance.definition != null
-			and instance.definition.power_role
-			== SliceBuildingDefinition.POWER_RELAY
-		):
+		if instance.definition == null:
+			continue
+		var role := instance.definition.power_role
+		if role == SliceBuildingDefinition.POWER_RELAY:
 			_relay_positions[instance.instance_id] = (
-				instance.definition.block_center(
+				instance.definition.logic_power_probe_world_position(
+					instance.origin_cell,
+					_tile_size,
+					instance.building_rotation
+				)
+			)
+		elif role == SliceBuildingDefinition.POWER_CONSUMER:
+			_consumer_positions[instance.instance_id] = (
+				instance.definition.logic_power_probe_world_position(
 					instance.origin_cell,
 					_tile_size,
 					instance.building_rotation
@@ -68,6 +79,7 @@ func rebuild(
 			break
 		for instance_id in connected_ids:
 			pending_ids.erase(instance_id)
+	_rebuild_consumer_parents()
 	_rebuild_powered_connections()
 
 
@@ -87,17 +99,9 @@ func is_relay_powered(instance_id: String) -> bool:
 
 
 func is_consumer_powered(instance: SliceBuildingInstance) -> bool:
-	if not _core_online or instance.definition == null:
-		return false
-	var port_position := instance.definition.power_port_world_position(
-		instance.origin_cell, _tile_size, instance.building_rotation
-	)
-	if _is_within_cells(
-		port_position, _core_position, RELAY_LINK_RANGE_CELLS
-	):
-		return true
-	return _within_any_powered_relay(
-		port_position, DEVICE_SUPPLY_RANGE_CELLS
+	return (
+		instance != null
+		and _consumer_parent_ids.has(instance.instance_id)
 	)
 
 
@@ -107,6 +111,28 @@ func powered_relay_count() -> int:
 
 func powered_connections() -> Array[Dictionary]:
 	return _powered_connections.duplicate(true)
+
+
+func placement_preview_nodes() -> Array[Dictionary]:
+	var nodes: Array[Dictionary] = []
+	if not _core_online:
+		return nodes
+	nodes.append({
+		"id": CORE_NODE_ID,
+		"position": _core_position,
+		"device_range_cells": RELAY_LINK_RANGE_CELLS,
+	})
+	var relay_ids: Array[String] = []
+	for instance_id in _powered_relay_ids:
+		relay_ids.append(String(instance_id))
+	relay_ids.sort()
+	for instance_id in relay_ids:
+		nodes.append({
+			"id": instance_id,
+			"position": _relay_positions[instance_id] as Vector2,
+			"device_range_cells": DEVICE_SUPPLY_RANGE_CELLS,
+		})
+	return nodes
 
 
 func _connection_parent_for(world_position: Vector2) -> String:
@@ -146,20 +172,79 @@ func _rebuild_powered_connections() -> void:
 		_powered_connections.append({
 			"parent_id": parent_id,
 			"child_id": child_id,
+			"child_role": SliceBuildingDefinition.POWER_RELAY,
 			"from_position": parent_position,
 			"to_position": _relay_positions[child_id] as Vector2,
 		})
+	var consumer_ids: Array[String] = []
+	for instance_id in _consumer_parent_ids:
+		consumer_ids.append(String(instance_id))
+	consumer_ids.sort()
+	for consumer_id in consumer_ids:
+		var consumer_parent_id := String(_consumer_parent_ids[consumer_id])
+		_powered_connections.append({
+			"parent_id": consumer_parent_id,
+			"child_id": consumer_id,
+			"child_role": SliceBuildingDefinition.POWER_CONSUMER,
+			"from_position": (
+				_core_position
+				if consumer_parent_id == CORE_NODE_ID
+				else _relay_positions[consumer_parent_id] as Vector2
+			),
+			"to_position": _consumer_positions[consumer_id] as Vector2,
+		})
+
+
+func _rebuild_consumer_parents() -> void:
+	var consumer_ids: Array[String] = []
+	for instance_id in _consumer_positions:
+		consumer_ids.append(String(instance_id))
+	consumer_ids.sort()
+	for instance_id in consumer_ids:
+		var parent_id := _consumer_parent_for(
+			_consumer_positions[instance_id] as Vector2
+		)
+		if not parent_id.is_empty():
+			_consumer_parent_ids[instance_id] = parent_id
+
+
+func _consumer_parent_for(world_position: Vector2) -> String:
+	if _is_within_cells(
+		world_position, _core_position, RELAY_LINK_RANGE_CELLS
+	):
+		return CORE_NODE_ID
+	return _nearest_powered_relay_id(
+		world_position, DEVICE_SUPPLY_RANGE_CELLS
+	)
 
 
 func _within_any_powered_relay(
 	world_position: Vector2,
 	range_cells: float
 ) -> bool:
+	return not _nearest_powered_relay_id(
+		world_position, range_cells
+	).is_empty()
+
+
+func _nearest_powered_relay_id(
+	world_position: Vector2,
+	range_cells: float
+) -> String:
+	var best_id := ""
+	var best_distance := INF
+	var powered_ids: Array[String] = []
 	for instance_id in _powered_relay_ids:
-		var relay_position: Vector2 = _relay_positions[instance_id]
-		if _is_within_cells(world_position, relay_position, range_cells):
-			return true
-	return false
+		powered_ids.append(String(instance_id))
+	powered_ids.sort()
+	for instance_id in powered_ids:
+		var distance := world_position.distance_to(
+			_relay_positions[instance_id] as Vector2
+		)
+		if distance <= range_cells * _tile_size + 0.001 and distance < best_distance:
+			best_id = instance_id
+			best_distance = distance
+	return best_id
 
 
 func _is_within_cells(

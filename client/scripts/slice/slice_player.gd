@@ -1,30 +1,46 @@
 class_name SlicePlayer
 extends CharacterBody2D
 
-## Slice base first screen player: free 8-way movement on the 32px grid
-## world. Side walk uses the 4-frame single-direction cycle with horizontal
-## flip for left / right; vertical movement uses dedicated back / front
-## 4-frame cycles; the static d1 frame plays when idle. Interactables
-## (crystal nodes, core repair site) are picked up by the InteractScan area;
-## `world` is injected by SliceWorld and passed through to targets.
+## Slice player locomotion and combat intentions. Movement and continuous
+## mouse aim are independent: movement controls velocity and the existing
+## building target direction, while aim selects the four-direction player art
+## and emits unconsumed attack / dodge intentions to SliceCombatController.
 
 const MOVE_SPEED := 140.0
+
+signal attack_pressed
+signal attack_released
+signal dodge_requested
 
 var world: Node
 ## Last non-zero facing, used by SliceWorld to pick the building target cells.
 var facing := Vector2.DOWN
+var aim_direction := Vector2.DOWN
+var movement_input := Vector2.ZERO
+var _dodge_remaining := 0.0
+var _dodge_velocity := Vector2.ZERO
 
 @onready var sprite: AnimatedSprite2D = $Sprite
 @onready var interact_scan: Area2D = $InteractScan
 
 
-func _physics_process(_delta: float) -> void:
-	var input := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	velocity = input * MOVE_SPEED
+func _physics_process(delta: float) -> void:
+	movement_input = Input.get_vector(
+		"move_left", "move_right", "move_up", "move_down"
+	)
+	_refresh_aim_direction()
+	if _dodge_remaining > 0.0:
+		_dodge_remaining = maxf(0.0, _dodge_remaining - delta)
+		velocity = _dodge_velocity
+	else:
+		velocity = movement_input * MOVE_SPEED
 	move_and_slide()
-	if input != Vector2.ZERO:
-		facing = input.normalized()
-	_update_animation(input)
+	if movement_input != Vector2.ZERO and _dodge_remaining <= 0.0:
+		facing = movement_input.normalized()
+	_update_animation(
+		movement_input != Vector2.ZERO or _dodge_remaining > 0.0,
+		aim_direction
+	)
 	if Input.is_action_just_pressed("interact"):
 		if world != null and world.is_placement_active():
 			world.try_place_building()
@@ -32,6 +48,37 @@ func _physics_process(_delta: float) -> void:
 		var target := current_interact_target()
 		if target != null and world != null:
 			target.try_interact(world)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("attack"):
+		if world == null or not world.is_combat_input_blocked():
+			attack_pressed.emit()
+			get_viewport().set_input_as_handled()
+		return
+	if event.is_action_released("attack"):
+		attack_released.emit()
+		return
+	if event.is_action_pressed("dodge"):
+		if world == null or not world.is_combat_input_blocked():
+			dodge_requested.emit()
+			get_viewport().set_input_as_handled()
+
+
+func start_dodge(direction: Vector2, distance: float, duration: float) -> void:
+	if direction == Vector2.ZERO or duration <= 0.0:
+		return
+	_dodge_remaining = duration
+	_dodge_velocity = direction.normalized() * distance / duration
+
+
+func is_dodging() -> bool:
+	return _dodge_remaining > 0.0
+
+
+func cancel_dodge() -> void:
+	_dodge_remaining = 0.0
+	_dodge_velocity = Vector2.ZERO
 
 
 func current_interact_target() -> Area2D:
@@ -54,35 +101,36 @@ func current_interact_target() -> Area2D:
 	return best
 
 
-func _update_animation(input: Vector2) -> void:
-	if input == Vector2.ZERO:
-		_play_directional_idle()
+func _refresh_aim_direction() -> void:
+	var visual_origin := global_position + Vector2(0, -32)
+	var candidate := get_global_mouse_position() - visual_origin
+	if candidate.length_squared() > 1.0:
+		aim_direction = candidate.normalized()
+
+
+func _update_animation(moving: bool, visual_facing: Vector2) -> void:
+	if not moving:
+		_play_directional_idle(visual_facing)
 		return
 
-	# The side sheet is drawn leaning toward the viewer (3/4 front), so it
-	# reads as downward-diagonal motion: upward diagonals therefore prefer
-	# the back-view cycle, downward diagonals keep the side cycle.
-	if input.y < 0.0 and -input.y >= absf(input.x):
+	if visual_facing.y < 0.0 and -visual_facing.y >= absf(visual_facing.x):
 		sprite.play("walk_up")
 		sprite.flip_h = false
-	elif absf(input.x) >= absf(input.y):
+	elif absf(visual_facing.x) >= absf(visual_facing.y):
 		sprite.play("walk")
-		# Side source frames face left; flip to express rightward movement.
-		sprite.flip_h = input.x > 0.0
+		sprite.flip_h = visual_facing.x > 0.0
 	else:
 		sprite.play("walk_down")
 		sprite.flip_h = false
 
 
-## Standing idle keeps the last movement facing: back / side (flipped for
-## right) / front standing frames, matching the walk direction rules.
-func _play_directional_idle() -> void:
-	if facing.y < 0.0 and -facing.y >= absf(facing.x):
+func _play_directional_idle(visual_facing: Vector2 = aim_direction) -> void:
+	if visual_facing.y < 0.0 and -visual_facing.y >= absf(visual_facing.x):
 		sprite.play("idle_up")
 		sprite.flip_h = false
-	elif absf(facing.x) >= absf(facing.y):
+	elif absf(visual_facing.x) >= absf(visual_facing.y):
 		sprite.play("idle_side")
-		sprite.flip_h = facing.x > 0.0
+		sprite.flip_h = visual_facing.x > 0.0
 	else:
 		sprite.play("idle")
 		sprite.flip_h = false

@@ -2,7 +2,7 @@
 
 返回：[Save Data Model](save-data-model.md)
 
-> 本文主体描述冻结旧纵切的 `SaveService`、三槽位和 `WorldState / CharacterState` 校验。当前正式 `Boot → SliceWorld` 使用物理隔离的 `SliceSaveService`、schema 5 与单份轮转备份，见 [Slice Runtime Systems](slice-runtime-systems.md#切片存档)。
+> 本文主体描述冻结旧纵切的 `SaveService`、三槽位和 `WorldState / CharacterState` 校验。当前正式 `Boot → SliceSaveCatalog → StartupMenu → SliceWorld` 使用物理隔离的多世界目录、单世界 `SliceSaveService`、schema 7 与三份轮转备份，见 [Slice Runtime Systems](slice-runtime-systems.md#切片存档)。
 
 ## 当前原型实现
 

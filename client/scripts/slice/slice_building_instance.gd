@@ -32,6 +32,16 @@ func state_dict(_allowed_keys: Array[String]) -> Dictionary:
 	return {}
 
 
+func logistics_endpoints() -> Array[SliceLogisticsEndpoint]:
+	return []
+
+
+func set_connected_logistics_port_visuals(
+	_connected_port_ids: Array[String]
+) -> void:
+	pass
+
+
 func apply_definition(next_definition: SliceBuildingDefinition, tile_size: float) -> void:
 	definition = next_definition
 	_tile_size = tile_size
@@ -76,6 +86,24 @@ func power_status_text() -> String:
 	if definition.power_role == SliceBuildingDefinition.POWER_CONSUMER:
 		return "通电" if powered else "断电：未接入核心电网"
 	return ""
+
+
+func power_visual_anchor_world_position() -> Vector2:
+	if definition == null:
+		return position
+	return definition.power_visual_anchor_world_position(
+		origin_cell, _tile_size, building_rotation
+	)
+
+
+func power_visual_anchor_toward_world_position(
+	toward_world_position: Vector2
+) -> Vector2:
+	if definition == null:
+		return position
+	return definition.power_visual_anchor_toward_world_position(
+		origin_cell, _tile_size, building_rotation, toward_world_position
+	)
 
 
 func _configure_sprite() -> void:
@@ -126,7 +154,10 @@ func _configure_ground_shadow() -> void:
 func _configure_power_indicator(tile_size: float) -> void:
 	if (
 		definition == null
-		or definition.power_role != SliceBuildingDefinition.POWER_CONSUMER
+		or (
+			definition.power_role != SliceBuildingDefinition.POWER_CONSUMER
+			and definition.power_role != SliceBuildingDefinition.POWER_RELAY
+		)
 	):
 		return
 	var indicator := get_node_or_null("PowerIndicator") as Polygon2D
@@ -139,7 +170,9 @@ func _configure_power_indicator(tile_size: float) -> void:
 			Vector2(0, 4),
 			Vector2(-4, 0),
 		])
-		indicator.z_index = 5
+		# Fixed device bodies never swap or derive a powered sprite. Keep the
+		# small runtime lamp above the body but on its y-sorted plane.
+		indicator.z_index = 0
 		add_child(indicator)
 	var size := Vector2(definition.rotated_footprint(building_rotation))
 	indicator.position = (

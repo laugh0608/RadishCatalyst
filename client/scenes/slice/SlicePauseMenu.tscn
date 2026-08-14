@@ -1,0 +1,189 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/slice/slice_pause_menu.gd" id="1_pause"]
+[ext_resource type="Theme" path="res://assets/themes/slice_ui_system_theme.tres" id="2_system_theme"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_system_shell.tres" id="3_shell"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_system_modal.tres" id="4_modal"]
+
+[node name="SlicePauseMenu" type="CanvasLayer"]
+layer = 50
+script = ExtResource("1_pause")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_system_theme")
+mouse_filter = 0
+
+[node name="Backdrop" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.008, 0.016, 0.02, 0.74)
+mouse_filter = 0
+
+[node name="PauseBox" type="Panel" parent="Root"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -290.0
+offset_top = -280.0
+offset_right = 290.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = ExtResource("3_shell")
+
+[node name="TitleLabel" type="Label" parent="Root/PauseBox"]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 28.0
+offset_right = 548.0
+offset_bottom = 78.0
+text = "暂停"
+horizontal_alignment = 1
+
+[node name="BodyLabel" type="Label" parent="Root/PauseBox"]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 92.0
+offset_right = 548.0
+offset_bottom = 150.0
+text = "当前世界会持续自动保存。\n返回主菜单后可选择其他世界。"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Buttons" type="VBoxContainer" parent="Root/PauseBox"]
+layout_mode = 0
+offset_left = 92.0
+offset_top = 180.0
+offset_right = 488.0
+offset_bottom = 440.0
+theme_override_constants/separation = 14
+
+[node name="ResumeButton" type="Button" parent="Root/PauseBox/Buttons"]
+layout_mode = 2
+custom_minimum_size = Vector2(396, 48)
+text = "继续游戏"
+
+[node name="SettingsButton" type="Button" parent="Root/PauseBox/Buttons"]
+layout_mode = 2
+custom_minimum_size = Vector2(396, 48)
+text = "设置"
+
+[node name="ReturnButton" type="Button" parent="Root/PauseBox/Buttons"]
+layout_mode = 2
+custom_minimum_size = Vector2(396, 48)
+text = "保存并返回主菜单"
+
+[node name="QuitButton" type="Button" parent="Root/PauseBox/Buttons"]
+layout_mode = 2
+custom_minimum_size = Vector2(396, 48)
+text = "保存并退出"
+
+[node name="StatusLabel" type="Label" parent="Root/PauseBox"]
+layout_mode = 0
+offset_left = 42.0
+offset_top = 456.0
+offset_right = 538.0
+offset_bottom = 526.0
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="SettingsPanel" type="Panel" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -180.0
+offset_right = 280.0
+offset_bottom = 180.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = ExtResource("4_modal")
+
+[node name="TitleLabel" type="Label" parent="Root/SettingsPanel"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 24.0
+offset_right = 532.0
+offset_bottom = 62.0
+text = "设置"
+horizontal_alignment = 1
+
+[node name="BodyLabel" type="Label" parent="Root/SettingsPanel"]
+layout_mode = 0
+offset_left = 36.0
+offset_top = 88.0
+offset_right = 524.0
+offset_bottom = 224.0
+text = "音量、显示和控制设置将在后续 UI 专题完善。\n当前面板先提供完整的暂停与返回路径。"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="BackButton" type="Button" parent="Root/SettingsPanel"]
+layout_mode = 0
+offset_left = 172.0
+offset_top = 278.0
+offset_right = 388.0
+offset_bottom = 326.0
+text = "返回"
+
+[node name="ConfirmPanel" type="Panel" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -290.0
+offset_top = -160.0
+offset_right = 290.0
+offset_bottom = 160.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = ExtResource("4_modal")
+
+[node name="ConfirmLabel" type="Label" parent="Root/ConfirmPanel"]
+layout_mode = 0
+offset_left = 30.0
+offset_top = 34.0
+offset_right = 550.0
+offset_bottom = 174.0
+text = "保存当前世界并返回主菜单？"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="ConfirmButton" type="Button" parent="Root/ConfirmPanel"]
+layout_mode = 0
+offset_left = 62.0
+offset_top = 222.0
+offset_right = 270.0
+offset_bottom = 274.0
+text = "确认"
+
+[node name="CancelButton" type="Button" parent="Root/ConfirmPanel"]
+layout_mode = 0
+offset_left = 310.0
+offset_top = 222.0
+offset_right = 518.0
+offset_bottom = 274.0
+text = "取消"

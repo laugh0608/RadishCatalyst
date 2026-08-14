@@ -380,6 +380,22 @@ if ($runGodotChecks) {
             }
         },
         @{
+            Name = "slice inventory model"
+            Script = "check-client-slice-inventory-model.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "slice powered storage"
+            Script = "check-client-slice-powered-storage.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
             Name = "slice power grid"
             Script = "check-client-slice-power-grid.ps1"
             Parameters = @{
@@ -396,8 +412,72 @@ if ($runGodotChecks) {
             }
         },
         @{
+            Name = "slice core logistics"
+            Script = "check-client-slice-core-logistics.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "slice reactor"
+            Script = "check-client-slice-reactor.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "slice combat package 1"
+            Script = "check-client-slice-combat-package1.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "slice combat package 2"
+            Script = "check-client-slice-combat-package2.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "slice combat package 3"
+            Script = "check-client-slice-combat-package3.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "slice first playable journey"
+            Script = "check-client-first-playable-journey.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
             Name = "slice save schema"
             Script = "check-client-slice-save-schema.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "slice save schema eight"
+            Script = "check-client-slice-save-schema-eight.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "slice save catalog"
+            Script = "check-client-slice-save-catalog.ps1"
             Parameters = @{
                 RepoRoot = $RepoRoot
                 GodotExe = $GodotExe

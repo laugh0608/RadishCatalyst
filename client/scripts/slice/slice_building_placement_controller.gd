@@ -14,10 +14,15 @@ var target_origin := Vector2i.ZERO
 var target_valid := false
 var invalid_reason := ""
 
+var _overlay := SlicePlacementOverlay.new()
 var _preview := Sprite2D.new()
+var _validation: Dictionary = {}
 
 
 func _ready() -> void:
+	_overlay.visible = false
+	_overlay.z_index = 1
+	add_child(_overlay)
 	_preview.visible = false
 	add_child(_preview)
 
@@ -30,7 +35,9 @@ func begin(
 	rotation_index = definition.normalized_rotation(initial_rotation)
 	target_valid = false
 	invalid_reason = ""
+	_validation.clear()
 	_configure_preview()
+	_overlay.clear()
 
 
 func cancel() -> void:
@@ -38,7 +45,9 @@ func cancel() -> void:
 	rotation_index = 0
 	target_valid = false
 	invalid_reason = ""
+	_validation.clear()
 	_preview.visible = false
+	_overlay.clear()
 
 
 func is_active() -> bool:
@@ -55,7 +64,10 @@ func rotate_clockwise() -> void:
 func update_target(
 	origin_cell: Vector2i,
 	world_position: Vector2,
-	validation: Dictionary
+	validation: Dictionary,
+	tile_size: float = 32.0,
+	power_nodes: Array[Dictionary] = [],
+	logistics_ports: Array[Dictionary] = []
 ) -> void:
 	if definition == null:
 		return
@@ -63,12 +75,40 @@ func update_target(
 	position = world_position
 	target_valid = bool(validation.get("valid", false))
 	invalid_reason = String(validation.get("reason", ""))
+	_validation = validation.duplicate(true)
 	_preview.modulate = VALID_COLOR if target_valid else INVALID_COLOR
 	_preview.visible = true
+	_overlay.configure(
+		definition,
+		origin_cell,
+		rotation_index,
+		tile_size,
+		validation,
+		power_nodes,
+		logistics_ports
+	)
 
 
 func selected_building_id() -> String:
 	return "" if definition == null else definition.building_id
+
+
+func missing_floor_cells() -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for cell in _validation.get("missing_floor_cells", []):
+		result.append(Vector2i(cell))
+	return result
+
+
+func logistics_feedback_text() -> String:
+	var preview: Dictionary = _validation.get(
+		"logistics_preview", {}
+	)
+	return String(preview.get("message", ""))
+
+
+func world_position_from_screen(screen_position: Vector2) -> Vector2:
+	return get_canvas_transform().affine_inverse() * screen_position
 
 
 func _configure_preview() -> void:

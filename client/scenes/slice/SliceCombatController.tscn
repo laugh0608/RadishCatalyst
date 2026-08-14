@@ -1,0 +1,35 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/slice/slice_combat_controller.gd" id="1_controller"]
+[ext_resource type="Texture2D" path="res://assets/sprites/slice/player_field_cutter_attack.png" id="2_attack"]
+[ext_resource type="Texture2D" path="res://assets/sprites/slice/combat_hit_feedback.png" id="3_hit"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_attack"]
+size = Vector2(56, 36)
+
+[node name="SliceCombatController" type="Node2D"]
+script = ExtResource("1_controller")
+
+[node name="AttackPivot" type="Node2D" parent="."]
+z_index = 20
+
+[node name="AttackEffect" type="Sprite2D" parent="AttackPivot"]
+visible = false
+position = Vector2(-34, -32)
+texture = ExtResource("2_attack")
+centered = false
+hframes = 4
+
+[node name="AttackArea" type="Area2D" parent="AttackPivot"]
+position = Vector2(28, 0)
+monitorable = false
+
+[node name="Collision" type="CollisionShape2D" parent="AttackPivot/AttackArea"]
+shape = SubResource("RectangleShape2D_attack")
+disabled = true
+
+[node name="HitEffect" type="Sprite2D" parent="."]
+visible = false
+z_index = 21
+texture = ExtResource("3_hit")
+hframes = 4

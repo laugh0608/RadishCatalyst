@@ -1,6 +1,11 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/startup_menu.gd" id="1_startup_menu"]
+[ext_resource type="Theme" path="res://assets/themes/slice_ui_system_theme.tres" id="2_system_theme"]
+[ext_resource type="Texture2D" path="res://assets/ui/system/startup_world_backdrop.png" id="3_backdrop"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_system_shell.tres" id="4_shell"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_system_surface.tres" id="5_surface"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_system_modal.tres" id="6_modal"]
 
 [node name="StartupMenu" type="Control"]
 layout_mode = 3
@@ -9,7 +14,42 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("2_system_theme")
 script = ExtResource("1_startup_menu")
+
+[node name="Backdrop" type="TextureRect" parent="."]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("3_backdrop")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="BackdropShade" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.016, 0.027, 0.032, 0.58)
+
+[node name="SystemShade" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.008, 0.016, 0.02, 0.66)
 
 [node name="ContentRoot" type="Control" parent="."]
 layout_mode = 1
@@ -18,6 +58,15 @@ offset_left = 132.0
 offset_top = 154.0
 offset_right = 692.0
 offset_bottom = 774.0
+
+[node name="MainShell" type="Panel" parent="ContentRoot"]
+layout_mode = 0
+offset_left = -32.0
+offset_top = -36.0
+offset_right = 560.0
+offset_bottom = 548.0
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("4_shell")
 
 [node name="TitleLabel" type="Label" parent="ContentRoot"]
 layout_mode = 0
@@ -78,7 +127,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(360, 44)
 text = "退出"
 
-[node name="SettingsPanel" type="ColorRect" parent="."]
+[node name="SettingsPanel" type="Panel" parent="."]
 visible = false
 layout_mode = 1
 anchors_preset = 8
@@ -92,8 +141,8 @@ offset_right = 280.0
 offset_bottom = 160.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.02, 0.045, 0.048, 0.82)
 clip_contents = true
+theme_override_styles/panel = ExtResource("6_modal")
 
 [node name="SettingsTitleLabel" type="Label" parent="SettingsPanel"]
 layout_mode = 0
@@ -120,3 +169,176 @@ offset_top = 250.0
 offset_right = 520.0
 offset_bottom = 294.0
 text = "返回"
+
+[node name="WorldPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -520.0
+offset_top = -350.0
+offset_right = 520.0
+offset_bottom = 350.0
+grow_horizontal = 2
+grow_vertical = 2
+clip_contents = true
+theme_override_styles/panel = ExtResource("4_shell")
+
+[node name="WorldTitleLabel" type="Label" parent="WorldPanel"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 22.0
+offset_right = 470.0
+offset_bottom = 58.0
+text = "本地世界"
+
+[node name="WorldCountLabel" type="Label" parent="WorldPanel"]
+layout_mode = 0
+offset_left = 540.0
+offset_top = 28.0
+offset_right = 1008.0
+offset_bottom = 56.0
+text = "0 / 30 个世界 · 回收区 0 项"
+horizontal_alignment = 2
+
+[node name="ActiveWorldsButton" type="Button" parent="WorldPanel"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 72.0
+offset_right = 202.0
+offset_bottom = 116.0
+text = "本地世界"
+
+[node name="TrashWorldsButton" type="Button" parent="WorldPanel"]
+layout_mode = 0
+offset_left = 214.0
+offset_top = 72.0
+offset_right = 388.0
+offset_bottom = 116.0
+text = "回收区"
+
+[node name="WorldItemList" type="ItemList" parent="WorldPanel"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 134.0
+offset_right = 500.0
+offset_bottom = 538.0
+custom_minimum_size = Vector2(472, 404)
+allow_reselect = true
+fixed_column_width = 450
+same_column_width = true
+
+[node name="DetailsSurface" type="Panel" parent="WorldPanel"]
+layout_mode = 0
+offset_left = 520.0
+offset_top = 122.0
+offset_right = 1020.0
+offset_bottom = 630.0
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("5_surface")
+
+[node name="WorldDetailsLabel" type="Label" parent="WorldPanel"]
+layout_mode = 0
+offset_left = 532.0
+offset_top = 134.0
+offset_right = 1008.0
+offset_bottom = 278.0
+text = "选择一个条目查看进度与可用操作。"
+autowrap_mode = 3
+
+[node name="WorldNameInput" type="LineEdit" parent="WorldPanel"]
+layout_mode = 0
+offset_left = 532.0
+offset_top = 298.0
+offset_right = 1008.0
+offset_bottom = 344.0
+max_length = 40
+placeholder_text = "世界名称（最多 40 字）"
+
+[node name="WorldStatusLabel" type="Label" parent="WorldPanel"]
+layout_mode = 0
+offset_left = 532.0
+offset_top = 360.0
+offset_right = 1008.0
+offset_bottom = 436.0
+autowrap_mode = 3
+
+[node name="Actions" type="GridContainer" parent="WorldPanel"]
+layout_mode = 0
+offset_left = 532.0
+offset_top = 454.0
+offset_right = 1008.0
+offset_bottom = 616.0
+columns = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 10
+
+[node name="CreateWorldButton" type="Button" parent="WorldPanel/Actions"]
+layout_mode = 2
+custom_minimum_size = Vector2(230, 44)
+text = "创建并进入"
+
+[node name="LoadWorldButton" type="Button" parent="WorldPanel/Actions"]
+layout_mode = 2
+custom_minimum_size = Vector2(230, 44)
+text = "载入世界"
+
+[node name="RenameWorldButton" type="Button" parent="WorldPanel/Actions"]
+layout_mode = 2
+custom_minimum_size = Vector2(230, 44)
+text = "重命名"
+
+[node name="TrashWorldButton" type="Button" parent="WorldPanel/Actions"]
+layout_mode = 2
+custom_minimum_size = Vector2(230, 44)
+text = "移入回收区"
+
+[node name="RestoreWorldButton" type="Button" parent="WorldPanel/Actions"]
+visible = false
+layout_mode = 2
+custom_minimum_size = Vector2(230, 44)
+text = "恢复世界"
+
+[node name="WorldBackButton" type="Button" parent="WorldPanel/Actions"]
+layout_mode = 2
+custom_minimum_size = Vector2(230, 44)
+text = "返回"
+
+[node name="TrashConfirmPanel" type="Panel" parent="WorldPanel"]
+visible = false
+layout_mode = 0
+offset_left = 246.0
+offset_top = 214.0
+offset_right = 794.0
+offset_bottom = 442.0
+theme_override_styles/panel = ExtResource("6_modal")
+
+[node name="ConfirmLabel" type="Label" parent="WorldPanel/TrashConfirmPanel"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 28.0
+offset_right = 524.0
+offset_bottom = 118.0
+text = "将世界移入回收区？"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="ConfirmButton" type="Button" parent="WorldPanel/TrashConfirmPanel"]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 150.0
+offset_right = 258.0
+offset_bottom = 198.0
+text = "确认移入"
+
+[node name="CancelButton" type="Button" parent="WorldPanel/TrashConfirmPanel"]
+layout_mode = 0
+offset_left = 290.0
+offset_top = 150.0
+offset_right = 482.0
+offset_bottom = 198.0
+text = "取消"

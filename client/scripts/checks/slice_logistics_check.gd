@@ -10,6 +10,8 @@ func _init() -> void:
 
 func _execute() -> void:
 	_check_storage_port_rotation()
+	_check_collector_output_transfer()
+	_check_placement_port_feedback()
 	_check_straight_storage_transfer()
 	_check_double_turn_route_and_visuals()
 	_check_loop_backpressure()
@@ -35,29 +37,327 @@ func _check_storage_port_rotation() -> void:
 		SliceBuildingCatalog.STORAGE_ID
 	)
 	var origin := Vector2i(10, 10)
-	var expected_ports := [
-		Vector2i(11, 10),
-		Vector2i(11, 11),
-		Vector2i(10, 11),
-		Vector2i(10, 10),
-	]
-	var expected_connections := [
-		Vector2i(11, 9),
-		Vector2i(12, 11),
-		Vector2i(10, 12),
-		Vector2i(9, 10),
-	]
 	for rotation in range(4):
+		var storage := _make_storage(
+			"building-rotation-%d" % rotation, origin, rotation
+		)
+		var endpoints := storage.logistics_endpoints()
 		_expect_equal(
-			definition.logistics_port_world_cell(origin, rotation),
-			expected_ports[rotation],
-			"storage rotation %d port cell" % rotation
+			endpoints.size(),
+			1,
+			"storage rotation %d binds one runtime endpoint" % rotation
+		)
+		var endpoint := endpoints[0]
+		_expect_equal(
+			endpoint.endpoint_id,
+			"%s:output" % storage.instance_id,
+			"storage rotation %d supply endpoint identity" % rotation
 		)
 		_expect_equal(
-			definition.logistics_connection_world_cell(origin, rotation),
-			expected_connections[rotation],
-			"storage rotation %d connection cell" % rotation
+			endpoint.source_phase,
+			0,
+			"storage rotation %d keeps source phase" % rotation
 		)
+		var descriptors := definition.resolved_logistics_port_descriptors(
+			origin, rotation
+		)
+		_expect_equal(
+			descriptors.size(),
+			2,
+			"storage rotation %d resolves fixed IN and OUT" % rotation
+		)
+		var input_descriptor: Dictionary = descriptors[0]
+		var output_descriptor: Dictionary = descriptors[1]
+		_expect_equal(
+			String(input_descriptor["id"]),
+			"input",
+			"storage rotation %d keeps stable input id" % rotation
+		)
+		_expect_equal(
+			String(output_descriptor["id"]),
+			"output",
+			"storage rotation %d keeps stable output id" % rotation
+		)
+		_expect_equal(
+			input_descriptor["port_cell"],
+			Vector2i(10, 11),
+			"storage rotation %d keeps fixed left input cell" % rotation
+		)
+		_expect_equal(
+			input_descriptor["connection_cell"],
+			Vector2i(9, 11),
+			"storage rotation %d keeps fixed left connection" % rotation
+		)
+		_expect_equal(
+			output_descriptor["port_cell"],
+			Vector2i(11, 11),
+			"storage rotation %d keeps fixed right output cell" % rotation
+		)
+		_expect_equal(
+			output_descriptor["connection_cell"],
+			Vector2i(12, 11),
+			"storage rotation %d keeps fixed right connection" % rotation
+		)
+		_expect_equal(
+			endpoint.port_cell,
+			Vector2i(11, 11),
+			"storage rotation %d runtime supply port" % rotation
+		)
+		_expect_equal(
+			endpoint.connection_cell,
+			Vector2i(12, 11),
+			"storage rotation %d runtime supply connection" % rotation
+		)
+		storage.set_powered(false)
+		storage.inventory.add(SliceWorld.ITEM_CRYSTAL, 1)
+		_expect_equal(
+			endpoint.peek_output_item(),
+			"",
+			"storage rotation %d unpowered supply stays closed" % rotation
+		)
+		_expect_equal(
+			storage.set_mode(SliceStorage.MODE_TRANSFER),
+			true,
+			"storage rotation %d switches to transfer mode" % rotation
+		)
+		var input_endpoint := storage.logistics_endpoints()[0]
+		_expect_equal(
+			input_endpoint.endpoint_id,
+			"%s:input" % storage.instance_id,
+			"storage rotation %d activates only fixed input" % rotation
+		)
+		_expect_equal(
+			input_endpoint.connection_cell,
+			Vector2i(9, 11),
+			"storage rotation %d transfer input remains fixed" % rotation
+		)
+		_expect_equal(
+			input_endpoint.try_accept_one(SliceWorld.ITEM_CATALYST),
+			1,
+			"storage rotation %d transfer input works without power" % rotation
+		)
+		storage.free()
+
+
+func _check_collector_output_transfer() -> void:
+	var collector := SliceCollector.new()
+	var definition := SliceBuildingCatalog.find(
+		SliceBuildingCatalog.COLLECTOR_ID
+	)
+	collector.configure_building(
+		"building-collector-output", definition.building_id, Vector2i.ZERO, 3
+	)
+	collector.apply_definition(definition, 32.0)
+	collector.buffer = 2
+	var belt := _make_conveyor(
+		"building-collector-belt", Vector2i(2, 1), 1
+	)
+	var target := _make_storage(
+		"building-collector-target",
+		Vector2i(3, 0),
+		2,
+		SliceStorage.MODE_TRANSFER
+	)
+	var instances: Array[SliceBuildingInstance] = [collector, belt, target]
+	var grid := SliceLogisticsGrid.new()
+	grid.rebuild(instances)
+	var endpoint := collector.logistics_endpoints()[0]
+	_expect_equal(
+		endpoint.port_cell,
+		Vector2i(1, 1),
+		"collector output stays on locked local cell for legacy rotation"
+	)
+	_expect_equal(
+		endpoint.connection_cell,
+		Vector2i(2, 1),
+		"collector output stays fixed to the right connection"
+	)
+	grid.tick(0.1)
+	_expect_equal(collector.buffer, 1, "collector injects exactly one crystal")
+	_expect_equal(belt.has_cargo(), true, "collector feeds its right-hand belt")
+	for _step in range(3):
+		grid.tick(1.0)
+	_expect_equal(
+		target.inventory.count(SliceWorld.ITEM_CRYSTAL),
+		2,
+		"collector buffer reaches an unpowered transfer input"
+	)
+	_expect_equal(
+		_network_crystals(instances),
+		2,
+		"collector logistics conserves its authoritative buffer"
+	)
+	_free_instances(instances)
+
+
+func _check_placement_port_feedback() -> void:
+	var source := _make_storage(
+		"building-000100", Vector2i(19, 13), 0
+	)
+	var disconnected_belt := _make_conveyor(
+		"building-000101", Vector2i(21, 13), 1
+	)
+	var reactor := _make_reactor(
+		"building-000102", Vector2i(24, 12), 1
+	)
+	var grid := SliceLogisticsGrid.new()
+	grid.rebuild([source, disconnected_belt, reactor])
+	source.inventory.add(SliceWorld.ITEM_CRYSTAL, 1)
+	grid.tick(0.1)
+	_expect_equal(
+		source.inventory.count(SliceWorld.ITEM_CRYSTAL),
+		1,
+		"a belt beside the body does not silently connect to the fixed port"
+	)
+	_expect_equal(
+		grid.building_status_lines(source)[0].contains("未接传送带"),
+		true,
+		"storage panel exposes the disconnected logistics port"
+	)
+	var disconnected_status := grid.building_status_snapshot(source)[0]
+	_expect_equal(
+		String(disconnected_status["state"]),
+		"unconnected",
+		"storage exposes a structured disconnected port state"
+	)
+	_expect_equal(
+		String(disconnected_status["detail"]).contains("OUT 标记格"),
+		true,
+		"structured supply state includes the physical output target"
+	)
+	var nearby := grid.conveyor_placement_preview(
+		Vector2i(21, 13), 1
+	)
+	_expect_equal(
+		String(nearby["status"]),
+		"nearby",
+		"the misleading body-adjacent belt is identified as only nearby"
+	)
+	_expect_equal(
+		String(nearby["message"]).contains("端口标记格"),
+		true,
+		"nearby placement tells the player to use the marked cell"
+	)
+
+	var storage_output := grid.conveyor_placement_preview(
+		Vector2i(21, 14), 1
+	)
+	_expect_equal(
+		String(storage_output["status"]),
+		"connected",
+		"belt on the storage port cell and outward axis is connected"
+	)
+	_expect_equal(
+		String(storage_output["message"]).contains("OUT"),
+		true,
+		"storage source preview names its output flow"
+	)
+	var storage_wrong := grid.conveyor_placement_preview(
+		Vector2i(21, 14), 0
+	)
+	_expect_equal(
+		String(storage_wrong["status"]),
+		"wrong_direction",
+		"perpendicular belt on a storage connection is rejected"
+	)
+	_expect_equal(
+		String(
+			grid.conveyor_placement_preview(
+				Vector2i(22, 14), 1
+			)["message"]
+		).contains("IN"),
+		true,
+		"reactor input connection is named in placement feedback"
+	)
+	_expect_equal(
+		String(
+			grid.conveyor_placement_preview(
+				Vector2i(28, 14), 1
+			)["message"]
+		).contains("OUT"),
+		true,
+		"reactor output connection is named in placement feedback"
+	)
+
+	var conveyor_definition := SliceBuildingCatalog.find(
+		SliceBuildingCatalog.CONVEYOR_ID
+	)
+	var overlay_parent := Node2D.new()
+	root.add_child(overlay_parent)
+	var overlay := SlicePlacementOverlay.new()
+	overlay_parent.add_child(overlay)
+	overlay.configure(
+		conveyor_definition,
+		Vector2i(22, 14),
+		1,
+		32.0,
+		{"valid": true},
+		[],
+		grid.placement_preview_ports()
+	)
+	_expect_equal(
+		overlay.context_logistics_port_marker_count(),
+		3,
+		"conveyor preview keeps nearby storage and reactor ports visible"
+	)
+	_expect_equal(
+		overlay.matched_context_logistics_port_marker_count(),
+		1,
+		"matching reactor input marker is highlighted"
+	)
+	overlay.configure(
+		conveyor_definition,
+		Vector2i(22, 14),
+		3,
+		32.0,
+		{"valid": true},
+		[],
+		grid.placement_preview_ports()
+	)
+	_expect_equal(
+		overlay.matched_context_logistics_port_marker_count(),
+		0,
+		"wrong conveyor direction never receives a success marker"
+	)
+	overlay_parent.free()
+
+	var connected_belt := _make_conveyor(
+		"building-000103", Vector2i(21, 14), 1
+	)
+	grid.rebuild([source, connected_belt, reactor])
+	grid.tick(0.1)
+	_expect_equal(
+		source.inventory.is_empty(),
+		true,
+		"corrected storage connection starts shipping immediately"
+	)
+	_expect_equal(
+		connected_belt.has_cargo(),
+		true,
+		"corrected source belt receives the crystal"
+	)
+	_expect_equal(
+		grid.building_status_lines(source)[0].contains("OUT：已接"),
+		true,
+		"storage panel confirms the effective output connection"
+	)
+	var connected_status := grid.building_status_snapshot(source)[0]
+	_expect_equal(
+		String(connected_status["state"]),
+		"connected",
+		"storage exposes a structured output connection"
+	)
+	_expect_equal(
+		String(connected_status["label"]),
+		"OUT",
+		"structured storage connection identifies its flow direction"
+	)
+	_free_instances([
+		source,
+		disconnected_belt,
+		connected_belt,
+		reactor,
+	])
 
 
 func _check_straight_storage_transfer() -> void:
@@ -74,7 +374,10 @@ func _check_straight_storage_transfer() -> void:
 		"building-000004", Vector2i(4, 1), 1
 	)
 	var target := _make_storage(
-		"building-000005", Vector2i(5, 1), 3
+		"building-000005",
+		Vector2i(5, 0),
+		3,
+		SliceStorage.MODE_TRANSFER
 	)
 	var instances: Array[SliceBuildingInstance] = [
 		source, belt_one, belt_two, belt_three, target,
@@ -120,7 +423,10 @@ func _check_backpressure_and_content_gate() -> void:
 		"building-000011", Vector2i(2, 1), 1
 	)
 	var target := _make_storage(
-		"building-000012", Vector2i(3, 1), 3
+		"building-000012",
+		Vector2i(3, 0),
+		3,
+		SliceStorage.MODE_TRANSFER
 	)
 	var instances: Array[SliceBuildingInstance] = [source, belt, target]
 	var grid := SliceLogisticsGrid.new()
@@ -177,7 +483,10 @@ func _check_double_turn_route_and_visuals() -> void:
 		"building-000034", Vector2i(4, 2), 1
 	)
 	var target := _make_storage(
-		"building-000035", Vector2i(5, 2), 3
+		"building-000035",
+		Vector2i(5, 1),
+		3,
+		SliceStorage.MODE_TRANSFER
 	)
 	var instances: Array[SliceBuildingInstance] = [
 		source,
@@ -503,30 +812,49 @@ func _simulate_merge_for(
 	reverse_instances: bool
 ) -> Dictionary:
 	var source_top := _make_storage(
-		"building-000070", Vector2i(0, -3), 2
+		"building-000070", Vector2i(-3, -3), 2
 	)
 	var source_bottom := _make_storage(
-		"building-000071", Vector2i(-1, 2), 0
+		"building-000071", Vector2i(-3, 1), 0
+	)
+	var top_feed := _make_conveyor(
+		"building-000072", Vector2i(-1, -2), 1
+	)
+	var top_turn := _make_conveyor(
+		"building-000073", Vector2i(0, -2), 2
 	)
 	var upstream_top := _make_conveyor(
-		"building-000072", Vector2i(0, -1), 2
+		"building-000074", Vector2i(0, -1), 2
+	)
+	var bottom_feed := _make_conveyor(
+		"building-000075", Vector2i(-1, 2), 1
+	)
+	var bottom_turn := _make_conveyor(
+		"building-000076", Vector2i(0, 2), 0
 	)
 	var upstream_bottom := _make_conveyor(
-		"building-000073", Vector2i(0, 1), 0
+		"building-000077", Vector2i(0, 1), 0
 	)
 	var merge := _make_conveyor(
-		"building-000074", Vector2i(0, 0), 1
+		"building-000078", Vector2i(0, 0), 1
 	)
 	var sink_belt := _make_conveyor(
-		"building-000075", Vector2i(1, 0), 1
+		"building-000079", Vector2i(1, 0), 1
 	)
 	var target := _make_storage(
-		"building-000076", Vector2i(2, 0), 3
+		"building-000080",
+		Vector2i(2, -1),
+		3,
+		SliceStorage.MODE_TRANSFER
 	)
 	var instances: Array[SliceBuildingInstance] = [
 		source_top,
 		source_bottom,
+		top_feed,
+		top_turn,
 		upstream_top,
+		bottom_feed,
+		bottom_turn,
 		upstream_bottom,
 		merge,
 		sink_belt,
@@ -603,7 +931,10 @@ func _simulate_for(duration: float, step: float) -> Dictionary:
 		"building-000022", Vector2i(3, 1), 1
 	)
 	var target := _make_storage(
-		"building-000023", Vector2i(4, 1), 3
+		"building-000023",
+		Vector2i(4, 0),
+		3,
+		SliceStorage.MODE_TRANSFER
 	)
 	var instances: Array[SliceBuildingInstance] = [
 		source, belt_one, belt_two, target,
@@ -629,7 +960,8 @@ func _simulate_for(duration: float, step: float) -> Dictionary:
 func _make_storage(
 	instance_id: String,
 	origin: Vector2i,
-	rotation: int
+	rotation: int,
+	mode: String = SliceStorage.MODE_SUPPLY
 ) -> SliceStorage:
 	var storage := SliceStorage.new()
 	var definition := SliceBuildingCatalog.find(
@@ -639,6 +971,11 @@ func _make_storage(
 		instance_id, definition.building_id, origin, rotation
 	)
 	storage.apply_definition(definition, 32.0)
+	if mode == SliceStorage.MODE_TRANSFER:
+		storage.set_mode(mode)
+	else:
+		storage.set_output_item(SliceWorld.ITEM_CRYSTAL)
+	storage.set_powered(mode == SliceStorage.MODE_SUPPLY)
 	return storage
 
 
@@ -658,12 +995,30 @@ func _make_conveyor(
 	return conveyor
 
 
+func _make_reactor(
+	instance_id: String,
+	origin: Vector2i,
+	rotation: int
+) -> SliceReactor:
+	var reactor := SliceReactor.new()
+	var definition := SliceBuildingCatalog.find(
+		SliceBuildingCatalog.REACTOR_ID
+	)
+	reactor.configure_building(
+		instance_id, definition.building_id, origin, rotation
+	)
+	reactor.apply_definition(definition, 32.0)
+	return reactor
+
+
 func _network_crystals(
 	instances: Array[SliceBuildingInstance]
 ) -> int:
 	var total := 0
 	for instance in instances:
-		if instance is SliceStorage:
+		if instance is SliceCollector:
+			total += (instance as SliceCollector).buffer
+		elif instance is SliceStorage:
 			total += (instance as SliceStorage).inventory.count(
 				SliceWorld.ITEM_CRYSTAL
 			)

@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-07-25
+更新时间：2026-08-13
 
 ## 用途
 
@@ -25,7 +25,13 @@
 
 ## 当前状态
 
-当前活跃专题：[Slice Reactor Automation V1](slice-reactor-automation-v1.md)——L5 反应器接入自动化，开工闸门与边界已定，先完成催化剂货物素材硬闸门。L0–L4 已收口，层状态见 [Slice Recipe Processing V1](slice-recipe-processing-v1.md)。
+当前阶段专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——自动与人工完整全链已通过，但萝卜SAMA判定表现仍有大量草稿层，陌生玩家盲测延期。
+
+最新收口子专题：[Slice Visual Hierarchy And Color Separation V1](slice-visual-hierarchy-and-color-separation-v1.md) 与 [Slice Game UI Visual Finalization V1](slice-game-ui-visual-finalization-v1.md)——世界设备、HUD、制造 / 背包、设备、核心与系统界面均已完成正式入口和人工定稿。
+
+当前活跃专题：[Slice Ranged Weapon And Industrial Ammunition V1](slice-ranged-weapon-and-industrial-ammunition-v1.md)——P0 与目标稿 V3 枪械身份已获人工确认；原生尺寸 V1—V3 均已否决，删臂拼接路线停止，等待换介质确认，不接客户端。
+
+最新人工通过子专题：[Slice Category Inventory And Powered Storage V1](slice-category-inventory-and-powered-storage-v1.md) 与 [Slice World Device Family Integration V1](slice-world-device-family-integration-v1.md)——联合 schema 8、设备家族、实体物流、真实二值供电线和双档迁移闸门已收口；[Slice Unified Device Operation Panels V1](slice-unified-device-operation-panels-v1.md) 核心仓库包 2 的视觉与行为也已随 UI 定稿收口。
 
 已收口专题：
 
@@ -38,12 +44,18 @@
 - [Slice Core Functionalization V1](slice-core-functionalization-v1.md)——修复核心后启用 6 格直供电源与中央仓库，schema 3 存读兼容（2026-07-21 收口）。
 - [Slice Building Placement And Power Grid V1](slice-building-placement-and-power-grid-v1.md)——六类建筑通用放置、扩展供电、schema 4、自举资源与视觉修正包 5（2026-07-25 收口）。
 - [Slice Conveyor Logistics V1](slice-conveyor-logistics-v1.md)——直线、转角、端点、双 / 三路合流、公平轮询、回压与 schema 5 存读（2026-07-25 收口）。
+- [Slice Reactor Automation V1](slice-reactor-automation-v1.md)——双端口反应器、催化剂货物、schema 6、自然完整产线、双状态重启与人工确认（2026-07-26 收口）。
+- [Slice Recipe Processing V1](slice-recipe-processing-v1.md)——L0–L5 空间工厂自动化 arc，总体完成“冒险资源 → 电力 / 物流 / 加工 → 催化剂”（2026-07-26 收口）。
+- [Slice Multi-World Save List V1](slice-multi-world-save-list-v1.md)——最多 30 个世界、三份备份、损坏隔离、可恢复回收、启动列表与游戏内保存返回（2026-07-26 收口）。
+- [Slice First Field Combat And Sample Recovery V1](slice-first-field-combat-and-sample-recovery-v1.md)——首次充能、鼠标瞄准战斗、单敌人、撤离、关键样本、基地交付与 schema 7（2026-07-27 收口）。
+- [Slice HUD Gameplay Shell V1](slice-hud-gameplay-shell-v1.md)——任务舷窗、三物资槽、角色 / 敌人余量条与上下文键帽（2026-07-28 收口）。
+- [Slice Graphical Crafting And Inventory V1](slice-graphical-crafting-and-inventory-v1.md)——七张配方卡、九个背包格、鼠标制作 / 选中与权威阻塞反馈（2026-07-29 收口）。
 
 背景结论（复盘与证据轮）：
 
 - 美术介质已定为像素 + 2D 俯视网格，机械口径见 [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)；介质证据轮 S1 到 S6 全绿。
 - 首个交付版结构：单基地 + 单远征区 = 同一张无缝地图上的两个区域（2026-07-16 定档），20 到 40 分钟可玩切片；章程见 [复盘文档](../planning/project-purpose-and-solo-ai-development-review.md)。
-- 后续专题候选（本专题收口后由萝卜SAMA择序）：立绘对话框最小接入、敌人与战斗（素材生成会话完成后）、角色八方向动画（2026-07-18 记录，对角朝向生成风险高、排后续）。
+- 当前先完成第一可玩切片全链串通；立绘对话框与角色八方向动画继续作为后续候选，不抢占全链里程碑证据。
 
 ## 历史专题
 

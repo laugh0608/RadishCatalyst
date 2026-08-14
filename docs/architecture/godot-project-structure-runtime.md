@@ -8,12 +8,15 @@
 
 ```text
 Boot.tscn
+-> SliceSaveCatalog（迁移 / 枚举世界）
 -> StartupMenu.tscn
+-> 创建或选择 world_id
+-> 注入该世界的 SliceSaveService
 -> SliceWorld.tscn
--> SliceMap + SlicePlayer + SliceHud + 建筑 / 供电 / 物流子系统
+-> SliceMap + SlicePlayer + SliceHud + 建筑 / 供电 / 物流 / 外勤战斗子系统
 ```
 
-`GameRoot.tscn + VerticalSliceMap.tscn` 是冻结保留的旧纵切路径，不再由启动菜单进入。当前职责与存档边界见 [Slice Runtime Systems](slice-runtime-systems.md)；下文旧纵切场景建议仍用于维护冻结代码和长期结构参考。
+`Esc` 暂停的保存返回成功后由 `Boot` 释放当前 `SliceWorld` 并重建世界列表；保存失败不释放世界。`GameRoot.tscn + VerticalSliceMap.tscn` 是冻结保留的旧纵切路径，不再由启动菜单进入。当前职责与存档边界见 [Slice Runtime Systems](slice-runtime-systems.md)；下文旧纵切场景建议仍用于维护冻结代码和长期结构参考。
 
 ## 场景组织
 

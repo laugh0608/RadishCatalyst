@@ -5,9 +5,10 @@ extends SliceBuildingInstance
 ## transfer rules and derived topology; this instance owns serializable cargo
 ## state plus fixed-frame topology and orthogonal cargo presentation.
 
-const CARGO_TEXTURE := preload(
-	"res://assets/sprites/slice/cargo_crystal.png"
-)
+const CARGO_TEXTURES := {
+	"crystal": preload("res://assets/sprites/slice/cargo_crystal.png"),
+	"catalyst": preload("res://assets/sprites/slice/cargo_catalyst.png"),
+}
 const TRAVEL_EDGE_OFFSET := 12.0
 const TOPOLOGY_STRAIGHT := "straight"
 const TOPOLOGY_TURN := "turn"
@@ -89,7 +90,8 @@ func output_cell() -> Vector2i:
 
 func set_topology_visual(
 	kind: String,
-	input_directions: Array[Vector2i]
+	input_directions: Array[Vector2i],
+	terminal_belt_overlaps_device: bool = true
 ) -> void:
 	_topology_kind = kind
 	_topology_input_directions = input_directions.duplicate()
@@ -104,7 +106,7 @@ func set_topology_visual(
 		or not _topology_input_directions.has(_cargo_entry_direction)
 	):
 		_cargo_entry_direction = _entry_direction
-	_refresh_topology_texture()
+	_refresh_topology_texture(terminal_belt_overlaps_device)
 	_refresh_cargo_visual()
 
 
@@ -178,14 +180,16 @@ func _refresh_cargo_visual() -> void:
 	if sprite == null:
 		sprite = Sprite2D.new()
 		sprite.name = "Cargo"
-		sprite.texture = CARGO_TEXTURE
 		sprite.z_index = 4
 		add_child(sprite)
+	sprite.texture = CARGO_TEXTURES.get(cargo_item_id) as Texture2D
 	sprite.visible = true
 	sprite.position = cargo_local_position_for_progress(cargo_progress)
 
 
-func _refresh_topology_texture() -> void:
+func _refresh_topology_texture(
+	terminal_belt_overlaps_device: bool = true
+) -> void:
 	var sprite := get_node_or_null("Sprite") as Sprite2D
 	if sprite == null or definition == null:
 		return
@@ -228,6 +232,17 @@ func _refresh_topology_texture() -> void:
 		texture_path = definition.texture_path_for_rotation(
 			building_rotation
 		)
+	# Reactor terminals keep their approved overlap layer. The fixed core opts
+	# out through the runtime endpoint contract so its complete belt cell stays
+	# on the ordinary y-sort plane behind the dedicated core visual shell.
+	sprite.z_index = (
+		1
+		if _topology_kind in [
+			TOPOLOGY_SOURCE_ENDPOINT,
+			TOPOLOGY_SINK_ENDPOINT,
+		] and terminal_belt_overlaps_device
+		else 0
+	)
 	sprite.texture = load(texture_path) as Texture2D
 
 

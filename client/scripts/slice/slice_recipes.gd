@@ -7,17 +7,6 @@ extends RefCounted
 ## (`kind = "building"`). Costs are item_id -> count. Kept as a plain const
 ## table so the panel and SliceWorld share one source of truth.
 
-const ITEM_NAMES := {
-	"crystal": "晶体",
-	"part": "机械零件",
-	"building.floor": "工业地板套件",
-	"building.collector": "采集器套件",
-	"building.reactor": "反应器套件",
-	"building.power_relay": "中继套件",
-	"building.conveyor": "传送带套件",
-	"building.storage": "储物箱套件",
-}
-
 const RECIPES := [
 	{
 		"id": "part",
@@ -29,7 +18,7 @@ const RECIPES := [
 	},
 	{
 		"id": "floor",
-		"name": "工业地板 ×4",
+		"name": "工业地板",
 		"kind": "building",
 		"output": "building.floor",
 		"output_count": 4,
@@ -65,7 +54,7 @@ const RECIPES := [
 	},
 	{
 		"id": "conveyor",
-		"name": "传送带 ×4",
+		"name": "传送带",
 		"kind": "building",
 		"output": "building.conveyor",
 		"output_count": 4,
@@ -91,9 +80,56 @@ static func find(recipe_id: String) -> Dictionary:
 	return {}
 
 
-## "晶体3 机械零件2" style cost text for the panel.
+## Compact material text shared by graphical recipe cards and diagnostics.
 static func cost_text(cost: Dictionary) -> String:
 	var parts: Array[String] = []
 	for item in cost:
-		parts.append("%s%d" % [String(ITEM_NAMES.get(item, item)), int(cost[item])])
-	return " ".join(parts)
+		var definition := SliceItemCatalog.find(String(item))
+		var item_name := String(item) if definition == null else definition.display_name
+		parts.append(
+			"%s ×%d" % [item_name, int(cost[item])]
+		)
+	return " · ".join(parts)
+
+
+## Returns an empty string when authoritative inventory rules allow crafting,
+## otherwise a player-facing blocker. SliceWorld and the panel both consume
+## this result so button state cannot drift from actual crafting.
+static func craft_block_reason(recipe: Dictionary, inventory: Inventory) -> String:
+	var missing: Array[String] = []
+	var cost: Dictionary = recipe["cost"]
+	for item in cost:
+		var needed := int(cost[item])
+		var available := inventory.count(String(item))
+		if available < needed:
+			var definition := SliceItemCatalog.find(String(item))
+			var item_name := (
+				String(item) if definition == null else definition.display_name
+			)
+			missing.append(
+				"%s ×%d"
+				% [
+					item_name,
+					needed - available,
+				]
+			)
+	if not missing.is_empty():
+		return "缺少 %s" % " · ".join(missing)
+
+	var output_id := String(recipe["output"])
+	var output_count := int(recipe.get("output_count", 1))
+	if not inventory.can_exchange(cost, {output_id: output_count}):
+		var available_space := inventory.free_space_for_after(output_id, cost)
+		if inventory.profile().is_per_item():
+			var output_definition := SliceItemCatalog.find(output_id)
+			var output_name := (
+				output_id
+				if output_definition == null
+				else output_definition.display_name
+			)
+			return "%s还需 %d 容量" % [
+				output_name,
+				maxi(1, output_count - available_space),
+			]
+		return "背包还需 %d 格" % maxi(1, output_count - available_space)
+	return ""

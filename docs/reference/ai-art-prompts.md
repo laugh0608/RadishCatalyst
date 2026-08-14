@@ -1,6 +1,6 @@
 # AI Art Prompt Library V2
 
-更新时间：2026-07-24
+更新时间：2026-08-04
 
 ## 用途与关联
 
@@ -10,6 +10,7 @@
 - 生成素材接收目录与命名规则：`assets/art-intake/README.md`。
 - CC0 像素素材包候选：[Free Asset Pack Candidates](free-asset-pack-candidates.md)。
 - V1（写实 AI 整景 / 独立切图管线）已废止；其提示词库随写实路线归档，仅作历史证据。项目级复盘期间图像生成暂停，本库先作介质证据轮的执行规范。
+- 当前核心 / 反应器重设计以 [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md) 和最新 `assets/art-intake/*/_manifest.md` 为准；下方 A0、B1 / B2 是 7 月历史提示，不得作为当前造型母参考或图像输入。
 
 ## 像素管线的提示词定位
 
@@ -111,7 +112,7 @@ L3 建造放置阶段的电力中继、传送带及后续设备方向素材提�
 
 ### 第一批：风格锚点
 
-#### A0 基础反应器（风格锚点）
+#### A0 基础反应器（7 月历史锚点，当前禁用）
 
 ```text
 a squat cylindrical chemical reactor with reinforced metal frame, round
@@ -125,7 +126,7 @@ stubs on both sides, mounted on a dark metal base plate
 
 ### 第二批：首屏核心设备（锚点定稿后）
 
-#### B1 / B2 前哨核心（同图双状态，一张出两态）
+#### B1 / B2 前哨核心（7 月历史提示，当前禁用）
 
 ```text
 the same hexagonal outpost core machine shown twice side by side, two

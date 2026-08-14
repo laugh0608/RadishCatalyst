@@ -34,6 +34,11 @@ logs/
 # Python bytecode caches (tools/ scripts)
 __pycache__/
 
+# Local runtime review drivers, isolated saves and logs stay inside the
+# workspace but never enter commits.
+tools/runtime-intake/*
+!tools/runtime-intake/README.md
+
 # OS metadata
 .DS_Store
 Thumbs.db

@@ -1,14 +1,12 @@
 class_name StorageReadSite
 extends Area2D
 
-## Storage tank read-out: catalyst refined by the reactor is stored here up to
-## the capacity cap. This interaction is read-only (no side effect); it surfaces
-## the stored amount when the player stands near the tank
-## (docs/features/slice-recipe-processing-v1.md).
+## Retained compatibility surface for old scene prototypes. Current storage
+## state is presented by the shared building action panel.
 
 
-func get_prompt(world: Node) -> String:
-	return "储存罐：催化剂 %d/%d" % [world.catalyst_count, SliceWorld.CATALYST_CAP]
+func get_prompt(_world: Node) -> String:
+	return "储物箱：靠近后按 E 查看分类库存、模式与供电状态"
 
 
 func try_interact(_world: Node) -> void:

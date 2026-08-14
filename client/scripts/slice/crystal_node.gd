@@ -8,7 +8,7 @@ extends Area2D
 
 
 func get_prompt(world: Node) -> String:
-	if world.pocket.free_space() < yield_amount:
+	if world.pocket.free_space_for(SliceWorld.ITEM_CRYSTAL) < yield_amount:
 		return "背包已满（需 %d 空位采集）" % yield_amount
 	return "按 E 采集晶体（+%d）" % yield_amount
 
