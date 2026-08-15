@@ -68,7 +68,7 @@ static func validate(data: Dictionary) -> Array[String]:
 	var forbidden_paths := _forbidden_paths(data, "$")
 	if not forbidden_paths.is_empty():
 		failures.append(
-			"contains schema 8/runtime-only fields: %s"
+			"contains schema 8+/runtime-only fields: %s"
 			% ", ".join(forbidden_paths)
 		)
 	_validate_buildings(data.get("buildings", null), failures)

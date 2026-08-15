@@ -68,16 +68,34 @@ func _run() -> void:
 	var hud := world.get_node("SliceHud") as SliceHud
 	var craft_panel := world._craft_panel as SliceCraftPanel
 	_check_ui_readability_contract()
-	_expect_stage(world, "repair_core", "合成机械零件", "按 B 合成")
+	_expect_stage(world, "open_terminal", "按 B 打开", "制造与背包")
 	_expect_equal(
-		hud.goal_label.text.contains("合成机械零件"),
+		hud.goal_label.text.contains("按 B 打开随身终端"),
 		true,
-		"fresh HUD consumes the derived repair goal"
+		"fresh HUD starts with the missing terminal action"
 	)
 	_expect_equal(
-		hud.get_node("LeftStatusPanel").size.y <= 120.0,
+		hud.rule_label.text.contains("先查看机械零件配方"),
 		true,
-		"default journey HUD is vertically compact"
+		"fresh HUD renders the derived action rule"
+	)
+	_expect_equal(
+		hud.get_node("LeftStatusPanel").size.y <= 140.0,
+		true,
+		"two-line journey HUD stays vertically compact"
+	)
+	_expect_equal(
+		hud.minimap != null
+		and hud.minimap.get_node("FogOverlay") is SliceMinimapOverlay,
+		true,
+		"current slice HUD owns its dedicated exploration minimap"
+	)
+	_expect_equal(
+		world.first_journey.state.explored_cell_count() > 0
+		and world.first_journey.state.explored_cell_count()
+		< SliceExplorationState.BIT_COUNT,
+		true,
+		"fresh minimap reveals the base while retaining surrounding fog"
 	)
 	_expect_equal(
 		hud.kit_label.visible,
@@ -154,6 +172,38 @@ func _run() -> void:
 		true,
 		"health bars use the dedicated HUD progress track"
 	)
+
+	craft_panel.terminal_opened.emit()
+	_expect_stage(
+		world,
+		"inspect_part_recipe",
+		"选择机械零件",
+		"需要 3 晶体"
+	)
+	craft_panel.select_recipe("part")
+	_expect_stage(
+		world,
+		"find_crystals",
+		"东侧晶体信号区",
+		"小地图信号向东"
+	)
+	_expect_equal(
+		world.first_journey.state.terminal_opened
+		and world.first_journey.state.part_recipe_inspected,
+		true,
+		"opening and inspecting persist only the two tutorial acknowledgements"
+	)
+	_expect_equal(
+		hud.minimap.get_node("Intel").text.contains("东侧晶体信号"),
+		true,
+		"recipe discovery publishes the approximate crystal intel"
+	)
+	world.pocket.add(SliceWorld.ITEM_CRYSTAL, 9)
+	world.inventory_changed.emit()
+	_expect_stage(world, "craft_parts", "制造机械零件", "每个消耗 3 晶体")
+	for _index in range(CoreRepairSite.REPAIR_PART_COST):
+		_expect_equal(world.craft("part"), true, "guided part craft succeeds")
+	_expect_stage(world, "repair_core", "返回前哨核心", "消耗 3 个机械零件")
 
 	world.mark_core_repaired()
 	hud._refresh_state()
@@ -393,6 +443,7 @@ func _check_contrast_panels(hud: SliceHud) -> void:
 		"PlayerStatusPanel",
 		"PromptPanel",
 		"CombatActionPanel",
+		"MinimapPanel",
 	]:
 		var panel := hud.get_node_or_null(node_name) as Panel
 		_expect_equal(panel != null, true, "%s exists" % node_name)
@@ -426,11 +477,18 @@ func _check_contrast_panels(hud: SliceHud) -> void:
 	)
 	var player_panel := hud.get_node("PlayerStatusPanel") as Panel
 	var prompt_panel := hud.get_node("PromptPanel") as Panel
+	var minimap_panel := hud.get_node("MinimapPanel") as Panel
 	_expect_equal(
 		prompt_panel.position.x
 		>= player_panel.position.x + player_panel.size.x + 24.0,
 		true,
 		"bottom prompt stays clear of the player status component"
+	)
+	_expect_equal(
+		minimap_panel.position.y + minimap_panel.size.y
+		<= prompt_panel.position.y,
+		true,
+		"right minimap stays above the contextual bottom prompt"
 	)
 
 

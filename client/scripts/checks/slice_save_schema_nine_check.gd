@@ -1,6 +1,6 @@
 extends SceneTree
 
-var TEST_ROOT := SliceCheckPaths.check_run("save-schema-eight", false)
+var TEST_ROOT := SliceCheckPaths.check_run("save-schema-nine", false)
 
 var failures: Array[String] = []
 var assertion_count := 0
@@ -14,10 +14,11 @@ func _execute() -> void:
 	_remove_tree(TEST_ROOT)
 	_check_strict_contract_rejections()
 	_check_schema_seven_rotation_and_idempotence()
+	_check_schema_eight_guidance_migration()
 	_remove_tree(TEST_ROOT)
 	if failures.is_empty():
 		print(
-			"Slice save schema 8 checks passed (%d assertions)."
+			"Slice save schema 9 checks passed (%d assertions)."
 			% assertion_count
 		)
 		quit(0)
@@ -35,7 +36,7 @@ func _check_strict_contract_rejections() -> void:
 	_expect_failure(
 		SliceBuildingSaveCodec.validate_schema_eight([fixed_floor], 2),
 		"固定设施必须为 0",
-		"schema 8 rejects nonzero fixed rotation"
+		"schema 9 retains fixed-rotation rejection"
 	)
 	var storage := _building_entry(
 		"building-000002", SliceBuildingCatalog.STORAGE_ID,
@@ -51,7 +52,7 @@ func _check_strict_contract_rejections() -> void:
 	_expect_failure(
 		SliceBuildingSaveCodec.validate_schema_eight([storage], 3),
 		"供给模式不能保留传输进度",
-		"schema 8 rejects supply transfer progress"
+		"schema 9 retains transfer-progress rejection"
 	)
 
 
@@ -90,7 +91,17 @@ func _check_schema_seven_rotation_and_idempotence() -> void:
 		if entry["building_id"] != SliceBuildingCatalog.CONVEYOR_ID:
 			migrated_rotations[entry["instance_id"]] = 0
 	_expect_rotation_map(
-		loaded_data["buildings"], migrated_rotations, "schema 8 migration"
+		loaded_data["buildings"], migrated_rotations, "schema 9 migration"
+	)
+	_expect_equal(
+		loaded_data["first_journey_flags"],
+		{"terminal_opened": true, "part_recipe_inspected": true},
+		"progressed schema 7 infers completed first-journey acknowledgements"
+	)
+	_expect_equal(
+		Marshalls.base64_to_raw(loaded_data["explored_map_bits"]).size(),
+		SliceExplorationState.BYTE_COUNT,
+		"schema 7 migration creates the fixed exploration map"
 	)
 
 	var grandfathered_storage := _find_five_type_storage_state(
@@ -155,17 +166,34 @@ func _check_schema_seven_rotation_and_idempotence() -> void:
 			duplicate_rifle_state, load_result["load_context"]
 		),
 		"步枪总量",
-		"schema 8 rejects duplicate rifle property across both inventories"
+		"schema 9 rejects duplicate rifle property across both inventories"
+	)
+	var invalid_flags := loaded_data.duplicate(true)
+	invalid_flags["first_journey_flags"] = {
+		"terminal_opened": false,
+		"part_recipe_inspected": true,
+	}
+	_expect_failure(
+		service.commit_loaded_state(invalid_flags, load_result["load_context"]),
+		"终端必须已经打开",
+		"schema 9 rejects impossible first-journey flags"
+	)
+	var invalid_map := loaded_data.duplicate(true)
+	invalid_map["explored_map_bits"] = "invalid"
+	_expect_failure(
+		service.commit_loaded_state(invalid_map, load_result["load_context"]),
+		"长度无效",
+		"schema 9 rejects malformed exploration bits"
 	)
 	_expect_success(
 		service.commit_loaded_state(
 			loaded_data, load_result["load_context"]
 		),
-		"rebuilt state publishes as schema 8"
+		"rebuilt state publishes as schema 9"
 	)
 
 	var first_save := _read_json(save_path)
-	_expect_schema_eight_contract(first_save, "schema 8 migrated save")
+	_expect_schema_nine_contract(first_save, "schema 9 migrated save")
 	_expect_equal(
 		int(_read_json(service.backup_file_paths()[0]).get(
 			"save_schema_version", 0
@@ -174,24 +202,60 @@ func _check_schema_seven_rotation_and_idempotence() -> void:
 		"main-source migration preserves schema 7 backup"
 	)
 	var current_result := service.load_state()
-	_expect_success(current_result, "schema 8 reloads")
+	_expect_success(current_result, "schema 9 reloads")
 	if not bool(current_result.get("success", false)):
 		return
 	_expect(
 		not _find_five_type_storage_state(
 			current_result["data"]["buildings"]
 		).is_empty(),
-		"five-type storage survives schema 8 restart"
+		"five-type storage survives schema 9 restart"
 	)
 	_expect_success(
 		service.save_state(current_result["data"]),
-		"schema 8 saves again"
+		"schema 9 saves again"
 	)
 	var second_save := _read_json(save_path)
 	_expect_equal(
 		_semantic_payload(second_save),
 		_semantic_payload(first_save),
-		"schema 8 save-load-save is idempotent"
+		"schema 9 save-load-save is idempotent"
+	)
+
+
+func _check_schema_eight_guidance_migration() -> void:
+	var save_dir := TEST_ROOT.path_join("schema-eight")
+	var service := SliceSaveService.new(save_dir)
+	var state: Dictionary = _schema_seven_rotation_fixture()["state"]
+	var legacy := _schema_eight_payload_from_state(state)
+	_write_json(service.save_file_path(), legacy)
+	var load_result := service.load_state()
+	_expect_success(load_result, "schema 8 first-journey state migrates")
+	if not bool(load_result.get("success", false)):
+		return
+	_expect_equal(
+		int(load_result.get("source_schema_version", 0)),
+		8,
+		"schema 8 migration reports its source"
+	)
+	_expect_equal(
+		bool(load_result.get("migration_required", false)),
+		true,
+		"schema 8 requires schema 9 publication"
+	)
+	var loaded: Dictionary = load_result["data"]
+	_expect_equal(
+		loaded["first_journey_flags"],
+		{"terminal_opened": true, "part_recipe_inspected": true},
+		"schema 8 progressed state infers tutorial acknowledgements"
+	)
+	_expect_success(
+		service.commit_loaded_state(loaded, load_result["load_context"]),
+		"schema 8 rebuilt state publishes as schema 9"
+	)
+	_expect_schema_nine_contract(
+		_read_json(service.save_file_path()),
+		"schema 8 to schema 9 publication"
 	)
 
 
@@ -321,6 +385,25 @@ func _schema_seven_payload_from_state(state: Dictionary) -> Dictionary:
 	}
 
 
+func _schema_eight_payload_from_state(state: Dictionary) -> Dictionary:
+	var payload := _schema_seven_payload_from_state(state)
+	payload["save_schema_version"] = 8
+	payload["game_version"] = "prototype-slice-08"
+	payload["pocket"].erase("capacity")
+	payload["core_storage"].erase("capacity")
+	var building_result := SliceBuildingSaveCodec.migrate_schema_seven_to_eight(
+		state["buildings"], state["next_building_serial"]
+	)
+	if not bool(building_result.get("success", false)):
+		failures.append("could not build schema 8 fixture")
+		return {}
+	payload["buildings"] = building_result["data"]["buildings"]
+	payload["next_building_serial"] = building_result["data"][
+		"next_building_serial"
+	]
+	return payload
+
+
 func _empty_schema_seven_reactor_state() -> Dictionary:
 	return {
 		"input_inventory": {"capacity": 2, "contents": {}},
@@ -392,9 +475,9 @@ func _expect_schema_seven_contract(data: Dictionary, label: String) -> void:
 		failures.append("%s: %s" % [label, failure])
 
 
-func _expect_schema_eight_contract(data: Dictionary, label: String) -> void:
+func _expect_schema_nine_contract(data: Dictionary, label: String) -> void:
 	assertion_count += 1
-	for failure in SliceSaveSchemaEightContract.validate(data):
+	for failure in SliceSaveSchemaNineContract.validate(data):
 		failures.append("%s: %s" % [label, failure])
 
 

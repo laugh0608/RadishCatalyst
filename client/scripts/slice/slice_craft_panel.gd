@@ -15,6 +15,9 @@ const COLOR_DIM := Color(0.537, 0.576, 0.588)
 const COLOR_A1 := Color(0.498, 0.573, 0.722)
 const COLOR_WARNING := Color(0.804, 0.647, 0.408)
 
+signal terminal_opened
+signal recipe_inspected(recipe_id: String)
+
 var _world: Node
 var _open := false
 var _recipe_cards: Dictionary = {}
@@ -148,6 +151,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			_root.visible = true
 			_set_active_view(VIEW_MANUFACTURE)
 			_refresh()
+			terminal_opened.emit()
 		else:
 			close()
 		get_viewport().set_input_as_handled()
@@ -164,6 +168,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 		_selected_recipe_id = String(recipe["id"])
+		recipe_inspected.emit(_selected_recipe_id)
 		_set_active_view(VIEW_MANUFACTURE)
 		_activate_recipe(recipe, key_event.shift_pressed)
 		get_viewport().set_input_as_handled()
@@ -311,6 +316,7 @@ func select_recipe(recipe_id: String) -> void:
 	):
 		return
 	_selected_recipe_id = recipe_id
+	recipe_inspected.emit(recipe_id)
 	_last_result = ""
 	_set_active_view(VIEW_MANUFACTURE)
 	_refresh()

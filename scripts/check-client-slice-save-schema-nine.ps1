@@ -14,13 +14,13 @@ if (-not (Test-Path -LiteralPath $GodotExe -PathType Leaf)) {
 }
 
 $clientRoot = Join-Path $RepoRoot "client"
-$checkScript = Join-Path $clientRoot "scripts/checks/slice_save_schema_eight_check.gd"
+$checkScript = Join-Path $clientRoot "scripts/checks/slice_save_schema_nine_check.gd"
 if (-not (Test-Path -LiteralPath $checkScript -PathType Leaf)) {
-    Write-Error "Slice save schema 8 check script not found: ${checkScript}"
+    Write-Error "Slice save schema 9 check script not found: ${checkScript}"
     exit 1
 }
 
-$runId = "slice-save-schema-eight-{0}-{1}" -f $PID, [DateTime]::UtcNow.ToString("yyyyMMddHHmmssfff")
+$runId = "slice-save-schema-nine-{0}-{1}" -f $PID, [DateTime]::UtcNow.ToString("yyyyMMddHHmmssfff")
 $godotHome = Join-Path (Join-Path $RepoRoot ".godot-check-runs") $runId
 $godotConfigHome = Join-Path $godotHome "config"
 $godotDataHome = Join-Path $godotHome "data"
@@ -47,14 +47,14 @@ try {
     $importOutput = & $GodotExe --headless --path $clientRoot --import --quit --no-header 2>&1
     if ($LASTEXITCODE -ne 0) {
         $importOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
-        Write-Error "Godot import before slice save schema 8 check failed with exit code ${LASTEXITCODE}."
+        Write-Error "Godot import before slice save schema 9 check failed with exit code ${LASTEXITCODE}."
         exit $LASTEXITCODE
     }
 
     $checkOutput = & $GodotExe --headless --path $clientRoot --script $checkScript --no-header 2>&1
     if ($LASTEXITCODE -ne 0) {
         $checkOutput | ForEach-Object { [Console]::Error.WriteLine($_) }
-        Write-Error "Slice save schema 8 check failed with exit code ${LASTEXITCODE}."
+        Write-Error "Slice save schema 9 check failed with exit code ${LASTEXITCODE}."
         exit $LASTEXITCODE
     }
 
@@ -64,7 +64,7 @@ try {
     )
     if ($unexpectedErrors.Count -gt 0) {
         $unexpectedErrors | ForEach-Object { [Console]::Error.WriteLine($_) }
-        Write-Error "Slice save schema 8 check reported unexpected errors."
+        Write-Error "Slice save schema 9 check reported unexpected errors."
         exit 1
     }
 }
@@ -77,4 +77,4 @@ finally {
     Pop-Location
 }
 
-Write-Host "Slice save schema 8 checks passed."
+Write-Host "Slice save schema 9 checks passed."

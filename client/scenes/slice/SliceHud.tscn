@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/slice/slice_hud.gd" id="1_hud_script"]
 [ext_resource type="Theme" path="res://assets/themes/slice_ui_theme.tres" id="2_ui_theme"]
@@ -10,6 +10,8 @@
 [ext_resource type="StyleBox" path="res://assets/themes/slice_ui_hud_shell.tres" id="8_hud_shell"]
 [ext_resource type="StyleBox" path="res://assets/themes/slice_ui_hud_surface.tres" id="9_hud_surface"]
 [ext_resource type="StyleBox" path="res://assets/themes/slice_ui_hud_progress_track.tres" id="10_hud_progress_track"]
+[ext_resource type="Script" path="res://scripts/slice/slice_minimap.gd" id="11_minimap_script"]
+[ext_resource type="Script" path="res://scripts/slice/slice_minimap_overlay.gd" id="12_minimap_overlay"]
 
 [sub_resource type="StyleBoxFlat" id="StyleHealthFill"]
 bg_color = Color(0.498, 0.573, 0.722, 1)
@@ -50,7 +52,7 @@ script = ExtResource("1_hud_script")
 offset_left = 18.0
 offset_top = 18.0
 offset_right = 538.0
-offset_bottom = 114.0
+offset_bottom = 134.0
 mouse_filter = 0
 theme_override_styles/panel = ExtResource("7_hud_accent")
 
@@ -70,12 +72,24 @@ layout_mode = 0
 offset_left = 22.0
 offset_top = 40.0
 offset_right = 500.0
-offset_bottom = 82.0
+offset_bottom = 78.0
 theme = ExtResource("2_ui_theme")
 theme_override_colors/font_color = Color(0.949, 0.957, 0.949, 1)
 theme_override_font_sizes/font_size = 22
 text = "合成机械零件修复前哨核心（0/3）"
 vertical_alignment = 1
+text_overrun_behavior = 3
+
+[node name="Rule" type="Label" parent="LeftStatusPanel"]
+layout_mode = 0
+offset_left = 22.0
+offset_top = 78.0
+offset_right = 500.0
+offset_bottom = 108.0
+theme = ExtResource("2_ui_theme")
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
+theme_override_font_sizes/font_size = 14
+text = "制造与背包共用同一终端；先查看机械零件配方"
 text_overrun_behavior = 3
 
 [node name="RightStatusPanel" type="Panel" parent="."]
@@ -241,6 +255,87 @@ visible = false
 offset_right = 1.0
 offset_bottom = 1.0
 text = ""
+
+[node name="MinimapPanel" type="Panel" parent="."]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -238.0
+offset_top = -286.0
+offset_right = -18.0
+offset_bottom = -152.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 0
+theme_override_styles/panel = ExtResource("8_hud_shell")
+script = ExtResource("11_minimap_script")
+
+[node name="Header" type="HBoxContainer" parent="MinimapPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 7.0
+offset_right = 210.0
+offset_bottom = 29.0
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="MinimapPanel/Header"]
+layout_mode = 2
+theme = ExtResource("2_ui_theme")
+theme_override_colors/font_color = Color(0.498, 0.573, 0.722, 1)
+theme_override_font_sizes/font_size = 13
+text = "区域地图"
+
+[node name="Region" type="Label" parent="MinimapPanel/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("2_ui_theme")
+theme_override_colors/font_color = Color(0.949, 0.957, 0.949, 1)
+theme_override_font_sizes/font_size = 13
+text = "前哨基地"
+horizontal_alignment = 2
+
+[node name="MapViewportContainer" type="SubViewportContainer" parent="MinimapPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 32.0
+offset_right = 210.0
+offset_bottom = 92.0
+mouse_filter = 2
+texture_filter = 1
+stretch = true
+
+[node name="MapViewport" type="SubViewport" parent="MinimapPanel/MapViewportContainer"]
+handle_input_locally = false
+size = Vector2i(200, 60)
+render_target_update_mode = 4
+
+[node name="MapCamera" type="Camera2D" parent="MinimapPanel/MapViewportContainer/MapViewport"]
+position = Vector2(1280, 384)
+zoom = Vector2(0.078125, 0.078125)
+
+[node name="FogOverlay" type="Control" parent="MinimapPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 32.0
+offset_right = 210.0
+offset_bottom = 92.0
+mouse_filter = 2
+script = ExtResource("12_minimap_overlay")
+
+[node name="Intel" type="Label" parent="MinimapPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 98.0
+offset_right = 210.0
+offset_bottom = 124.0
+theme = ExtResource("2_ui_theme")
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
+theme_override_font_sizes/font_size = 12
+text = "基地已知范围"
+horizontal_alignment = 1
+vertical_alignment = 1
+text_overrun_behavior = 3
 
 [node name="PlayerStatusPanel" type="Panel" parent="."]
 anchor_top = 1.0

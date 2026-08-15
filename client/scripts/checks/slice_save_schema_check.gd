@@ -596,7 +596,7 @@ func _check_schema_seven_rotation_and_idempotence() -> void:
 	_expect_rotation_map(
 		loaded_data.get("buildings", []),
 		migrated_rotations,
-		"schema 8 in-memory migration"
+		"schema 9 in-memory migration"
 	)
 	var grandfathered_storage := _find_five_type_storage_state(
 		loaded_data.get("buildings", [])
@@ -641,10 +641,10 @@ func _check_schema_seven_rotation_and_idempotence() -> void:
 		service.commit_loaded_state(
 			loaded_data, load_result["load_context"]
 		),
-		"rebuilt schema 7 state publishes as schema 8"
+		"rebuilt schema 7 state publishes as schema 9"
 	)
 	var first_save := _read_json(save_path)
-	_expect_schema_eight_payload_shape(first_save, "schema 8 migrated save")
+	_expect_schema_nine_payload_shape(first_save, "schema 9 migrated save")
 	_expect_equal(
 		int(_read_json(save_dir.path_join("slice_world.bak.json")).get(
 			"save_schema_version", 0
@@ -653,7 +653,7 @@ func _check_schema_seven_rotation_and_idempotence() -> void:
 		"main-source migration preserves schema 7 in backup"
 	)
 	var current_result := service.load_state()
-	_expect_success(current_result, "schema 8 migrated save reloads")
+	_expect_success(current_result, "schema 9 migrated save reloads")
 	if not bool(current_result.get("success", false)):
 		return
 	_expect_equal(
@@ -661,17 +661,17 @@ func _check_schema_seven_rotation_and_idempotence() -> void:
 			current_result["data"].get("buildings", [])
 		).is_empty(),
 		false,
-		"five-type grandfathered storage survives schema 8 restart"
+		"five-type grandfathered storage survives schema 9 restart"
 	)
 	_expect_success(
 		service.save_state(current_result["data"]),
-		"schema 8 loaded data saves again"
+		"schema 9 loaded data saves again"
 	)
 	var second_save := _read_json(save_path)
 	_expect_equal(
 		_schema_seven_semantic_payload(second_save),
 		_schema_seven_semantic_payload(first_save),
-		"schema 8 save-load-save is semantically idempotent"
+		"schema 9 save-load-save is semantically idempotent"
 	)
 
 
@@ -792,46 +792,64 @@ func _check_schema_seven_world_restart() -> void:
 	var collector_id := collector.instance_id
 	var conveyor_id := conveyor.instance_id
 	_expect_equal(collector.powered, true, "pre-save collector is powered")
+	world.first_journey.state.mark_terminal_opened()
+	world.first_journey.state.mark_part_recipe_inspected()
+	world.first_journey.state.reveal_at(Vector2(1900, 384), 2)
+	var explored_before_save := (
+		world.first_journey.state.explored_cell_count()
+	)
 	world._autosave()
 
 	var raw_save := _read_json(save_dir.path_join("slice_world.json"))
-	_expect_schema_eight_payload_shape(raw_save, "schema 8 world save")
+	_expect_schema_nine_payload_shape(raw_save, "schema 9 world save")
 	_expect_equal(
 		int(raw_save.get("save_schema_version", 0)),
 		SliceSaveService.SAVE_SCHEMA_VERSION,
-		"schema 8 is written"
+		"schema 9 is written"
 	)
 	_expect_equal(raw_save.has("collectors"), false, "legacy collectors key is absent")
 	_expect_equal(
 		raw_save.has("catalyst_count"),
 		false,
-		"schema 8 omits legacy catalyst truth"
+		"schema 9 omits legacy catalyst truth"
 	)
 	_expect_equal(
 		raw_save.has("reactor_active"),
 		false,
-		"schema 8 omits legacy reactor activation"
+		"schema 9 omits legacy reactor activation"
 	)
 	_expect_equal(
 		int(raw_save.get("player_health", 0)),
 		73,
-		"schema 8 writes player health"
+		"schema 9 writes player health"
 	)
 	var saved_encounter: Dictionary = raw_save.get("field_encounter", {})
 	_expect_equal(
 		String(saved_encounter.get("state", "")),
 		"hostile",
-		"schema 8 writes encounter state"
+		"schema 9 writes encounter state"
 	)
 	_expect_equal(
 		int(saved_encounter.get("enemy_health", 0)),
 		40,
-		"schema 8 writes enemy health"
+		"schema 9 writes enemy health"
 	)
 	_expect_equal(
 		int(raw_save.get("next_building_serial", 0)),
 		saved_next_serial,
 		"next serial is written"
+	)
+	_expect_equal(
+		raw_save.get("first_journey_flags", {}),
+		{"terminal_opened": true, "part_recipe_inspected": true},
+		"schema 9 writes first-journey acknowledgements"
+	)
+	_expect_equal(
+		Marshalls.base64_to_raw(
+			String(raw_save.get("explored_map_bits", ""))
+		).size(),
+		SliceExplorationState.BYTE_COUNT,
+		"schema 9 writes the fixed 480-bit exploration map"
 	)
 	for entry in raw_save.get("buildings", []):
 		_expect_equal(entry.has("powered"), false, "powered state is not serialized")
@@ -909,7 +927,7 @@ func _check_schema_seven_world_restart() -> void:
 	_expect_equal(
 		loaded_world.core_storage.count(SliceWorld.ITEM_CATALYST),
 		2,
-		"core storage is the schema 8 catalyst truth"
+		"core storage is the schema 9 catalyst truth"
 	)
 	_expect_equal(
 		loaded_world.combat_controller.health,
@@ -925,6 +943,16 @@ func _check_schema_seven_world_restart() -> void:
 		loaded_world.combat_controller.field_enemy.health,
 		40,
 		"enemy health restores"
+	)
+	_expect_equal(
+		loaded_world.first_journey.state.flags_data(),
+		{"terminal_opened": true, "part_recipe_inspected": true},
+		"first-journey acknowledgements restore"
+	)
+	_expect_equal(
+		loaded_world.first_journey.state.explored_cell_count(),
+		explored_before_save,
+		"walked exploration cells restore exactly"
 	)
 	for relay_id in relay_ids:
 		var loaded_relay := _find_by_id(loaded_world, String(relay_id))
@@ -1134,12 +1162,12 @@ func _expect_schema_seven_payload_shape(
 		failures.append("%s: %s" % [label, failure])
 
 
-func _expect_schema_eight_payload_shape(
+func _expect_schema_nine_payload_shape(
 	data: Dictionary,
 	label: String
 ) -> void:
 	_assertion_count += 1
-	for failure in SliceSaveSchemaEightContract.validate(data):
+	for failure in SliceSaveSchemaNineContract.validate(data):
 		failures.append("%s: %s" % [label, failure])
 
 
@@ -1268,6 +1296,13 @@ func _empty_runtime_state(crystal_count: int) -> Dictionary:
 		},
 		"buildings": [],
 		"next_building_serial": 1,
+		"first_journey_flags": {
+			"terminal_opened": crystal_count > 0,
+			"part_recipe_inspected": crystal_count > 0,
+		},
+		"explored_map_bits": SliceExplorationState.default_bits_for_position(
+			SliceWorld.START_SPAWN
+		),
 	}
 
 

@@ -476,8 +476,8 @@ if ($runGodotChecks) {
             }
         },
         @{
-            Name = "slice save schema eight"
-            Script = "check-client-slice-save-schema-eight.ps1"
+            Name = "slice save schema nine"
+            Script = "check-client-slice-save-schema-nine.ps1"
             Parameters = @{
                 RepoRoot = $RepoRoot
                 GodotExe = $GodotExe

@@ -77,6 +77,7 @@ var harvested_clusters: Array[String] = []
 
 var player: SlicePlayer
 var combat_controller: SliceCombatController
+var first_journey: SliceFirstJourneyController
 
 ## Injected by Boot so menu summary and world reads/writes share one service.
 ## Standalone scene checks keep the production default unless they replace it.
@@ -135,6 +136,10 @@ func _ready() -> void:
 	world_node.add_child(combat_controller)
 	combat_controller.setup(self, player)
 	combat_controller.persistence_requested.connect(_autosave)
+	first_journey = SliceFirstJourneyController.new()
+	first_journey.name = "FirstJourney"
+	add_child(first_journey)
+	first_journey.setup(self, player)
 
 	var camera := player.get_node("Camera") as Camera2D
 	camera.limit_left = 0
@@ -149,6 +154,8 @@ func _ready() -> void:
 	_craft_panel = (load(CRAFT_PANEL_SCENE) as PackedScene).instantiate() as SliceCraftPanel
 	add_child(_craft_panel)
 	_craft_panel.setup(self)
+	_craft_panel.terminal_opened.connect(first_journey.mark_terminal_opened)
+	_craft_panel.recipe_inspected.connect(first_journey.mark_recipe_inspected)
 
 	_core_storage_panel = (load(CORE_STORAGE_PANEL_SCENE) as PackedScene).instantiate() as SliceCoreStoragePanel
 	add_child(_core_storage_panel)
@@ -213,7 +220,7 @@ func _ready() -> void:
 		and not _pending_load_context.is_empty()
 		and not _autosave()
 	):
-		push_warning("旧档已完成世界重建，但 schema 8 发布失败；后续保存将继续重试。")
+		push_warning("旧档已完成世界重建，但 schema 9 发布失败；后续保存将继续重试。")
 
 
 func _physics_process(delta: float) -> void:
@@ -453,11 +460,8 @@ func powered_relay_count() -> int:
 	return _power_grid.powered_relay_count()
 
 
-## The first playable journey uses a fixed, derived objective sequence. It is
-## intentionally not persisted: authoritative core, building and inventory
-## state always decides the current step after load.
 func current_journey_guidance() -> Dictionary:
-	return SliceJourneyGuidance.build(self)
+	return first_journey.guidance()
 
 
 func current_journey_goal_text() -> String:
@@ -1367,7 +1371,9 @@ func _restore_from_save() -> bool:
 	)
 	core_repaired = bool(data.get("core_repaired", false))
 	core_energy = int(data.get("core_energy", 0))
-	harvested_clusters = _to_string_array(data.get("harvested_clusters", []))
+	harvested_clusters = SliceSaveService.canonical_string_array(
+		data.get("harvested_clusters", [])
+	)
 	_next_building_serial = int(data.get("next_building_serial", 1))
 	var saved_buildings: Array = data.get("buildings", [])
 	for entry in SliceBuildingSaveCodec.ordered_for_restore(saved_buildings):
@@ -1401,6 +1407,7 @@ func _restore_from_save() -> bool:
 		float(data.get("player_x", START_SPAWN.x)),
 		float(data.get("player_y", START_SPAWN.y))
 	)
+	first_journey.restore(data["first_journey_flags"], data["explored_map_bits"])
 	combat_controller.restore_durable_state(
 		int(data.get("player_health", 100)),
 		data.get("field_encounter", {
@@ -1450,6 +1457,8 @@ func _autosave() -> bool:
 	)
 	if bool(result.get("success", false)):
 		_pending_load_context = {}
+		if first_journey != null:
+			first_journey.mark_saved()
 	else:
 		push_warning("切片自动存档失败：%s" % String(result.get("message", "")))
 		return false
@@ -1471,7 +1480,7 @@ func _durable_state() -> Dictionary:
 			},
 		}
 	)
-	return {
+	var state := {
 		"pocket": pocket.to_dict(),
 		"core_storage": core_storage.to_dict(),
 		"core_repaired": core_repaired,
@@ -1486,11 +1495,5 @@ func _durable_state() -> Dictionary:
 		"player_health": combat_state["player_health"],
 		"field_encounter": combat_state["field_encounter"],
 	}
-
-
-func _to_string_array(value) -> Array[String]:
-	var result: Array[String] = []
-	if value is Array:
-		for item in value:
-			result.append(String(item))
-	return result
+	state.merge(first_journey.durable_data() if first_journey != null else SliceFirstJourneyController.default_durable_data(), true)
+	return state

@@ -7,14 +7,14 @@ extends RefCounted
 ## temp-then-rename writes. Legacy callers keep one backup; multi-world callers
 ## use autosave.json plus three rotated backups and lightweight metadata.
 ##
-## Schema 8 removes persisted container capacities, canonicalizes fixed-device
-## rotation and adds powered-storage state. Loading is read-only: schema 2–7
+## Schema 9 adds first-journey acknowledgements and a compact exploration map.
+## Loading is read-only: schema 2–8
 ## candidates migrate in memory and return a publication context. SliceWorld
 ## may publish that state only after complete world reconstruction.
 
-const SAVE_SCHEMA_VERSION := 8
+const SAVE_SCHEMA_VERSION := 9
 const MIN_SUPPORTED_SCHEMA_VERSION := 2
-const GAME_VERSION := "prototype-slice-08"
+const GAME_VERSION := "prototype-slice-09"
 const DEFAULT_SAVE_DIR := "user://saves/slice"
 const LEGACY_CORE_STORAGE_CAPACITY := 120
 const LEGACY_SAVE_FILE_NAME := "slice_world.json"
@@ -31,7 +31,8 @@ const ENCOUNTER_STATES := [
 ]
 const ROOT_KEYS := [
 	"buildings", "core_energy", "core_repaired", "core_storage",
-	"field_encounter", "game_version", "harvested_clusters",
+	"explored_map_bits", "field_encounter", "first_journey_flags",
+	"game_version", "harvested_clusters",
 	"next_building_serial", "player_health", "player_x", "player_y",
 	"pocket", "save_schema_version", "updated_at",
 ]
@@ -111,7 +112,7 @@ func save_state(state: Dictionary) -> Dictionary:
 			"载入的迁移或备份状态尚未在世界重建后发布；"
 			+ "请先调用 commit_loaded_state。"
 		)
-	var data_result := _schema_eight_save_data(state)
+	var data_result := _schema_nine_save_data(state)
 	if not bool(data_result.get("success", false)):
 		return data_result
 	return _publish_save_data(data_result["data"], true)
@@ -129,7 +130,7 @@ func commit_loaded_state(
 		return context_result
 	var context: Dictionary = context_result["data"]
 	if not bool(context["publish_required"]):
-		return _success("当前主档已经是 schema 8，无需迁移发布。")
+		return _success("当前主档已经是 schema 9，无需迁移发布。")
 	if (
 		_pending_publish_context.is_empty()
 		or not _load_contexts_match(
@@ -144,7 +145,7 @@ func commit_loaded_state(
 		!= String(context["source_sha256"])
 	):
 		return _failure("载入候选在世界重建期间发生变化，请重新读取。")
-	var data_result := _schema_eight_save_data(state)
+	var data_result := _schema_nine_save_data(state)
 	if not bool(data_result.get("success", false)):
 		return data_result
 	var rotate_backups := source_path == _save_file
@@ -160,7 +161,7 @@ func has_pending_loaded_state() -> bool:
 	return not _pending_publish_context.is_empty()
 
 
-func _schema_eight_save_data(state: Dictionary) -> Dictionary:
+func _schema_nine_save_data(state: Dictionary) -> Dictionary:
 	var pocket_result := _canonical_inventory_input(
 		state.get("pocket", {}),
 		SliceInventoryProfiles.category_pocket(),
@@ -188,6 +189,16 @@ func _schema_eight_save_data(state: Dictionary) -> Dictionary:
 	if not bool(combat_result.get("success", false)):
 		return combat_result
 	var combat_data: Dictionary = combat_result["data"]
+	var journey_result := _validate_first_journey_flags(
+		state.get("first_journey_flags", {})
+	)
+	if not bool(journey_result.get("success", false)):
+		return journey_result
+	var exploration_result := _validate_explored_map_bits(
+		state.get("explored_map_bits", "")
+	)
+	if not bool(exploration_result.get("success", false)):
+		return exploration_result
 	var save_data := {
 		"save_schema_version": SAVE_SCHEMA_VERSION,
 		"game_version": GAME_VERSION,
@@ -196,7 +207,7 @@ func _schema_eight_save_data(state: Dictionary) -> Dictionary:
 		"core_storage": core_result["data"],
 		"core_repaired": bool(state.get("core_repaired", false)),
 		"core_energy": core_energy,
-		"harvested_clusters": _string_array(
+		"harvested_clusters": canonical_string_array(
 			state.get("harvested_clusters", [])
 		),
 		"buildings": state.get("buildings", []),
@@ -207,8 +218,10 @@ func _schema_eight_save_data(state: Dictionary) -> Dictionary:
 		"player_y": float(state.get("player_y", 0.0)),
 		"player_health": combat_data["player_health"],
 		"field_encounter": combat_data["field_encounter"],
+		"first_journey_flags": journey_result["data"],
+		"explored_map_bits": exploration_result["data"],
 	}
-	return _validate_schema_eight_payload(save_data)
+	return _validate_schema_nine_payload(save_data)
 
 
 func _publish_save_data(
@@ -496,7 +509,7 @@ func _read_file(save_file: String) -> Dictionary:
 
 	var payload_result: Dictionary
 	if version == SAVE_SCHEMA_VERSION:
-		payload_result = _validate_schema_eight_payload(save_data)
+		payload_result = _validate_schema_nine_payload(save_data)
 	else:
 		payload_result = _migrate_legacy_payload(save_data, version)
 	if not bool(payload_result.get("success", false)):
@@ -522,7 +535,12 @@ func _migrate_legacy_payload(
 		save_data.get("core_storage", {})
 	)
 	var building_result: Dictionary
-	if version >= 6:
+	if version >= 8:
+		building_result = SliceBuildingSaveCodec.validate_schema_eight(
+			save_data.get("buildings", null),
+			save_data.get("next_building_serial", null)
+		)
+	elif version >= 6:
 		building_result = SliceBuildingSaveCodec.validate_schema_seven(
 			save_data.get("buildings", null),
 			save_data.get("next_building_serial", null)
@@ -552,15 +570,16 @@ func _migrate_legacy_payload(
 	if not bool(building_result.get("success", false)):
 		return building_result
 	var building_data: Dictionary = building_result["data"]
-	var migrated_buildings := (
-		SliceBuildingSaveCodec.migrate_schema_seven_to_eight(
-			building_data["buildings"],
-			building_data["next_building_serial"]
+	if version < 8:
+		var migrated_buildings := (
+			SliceBuildingSaveCodec.migrate_schema_seven_to_eight(
+				building_data["buildings"],
+				building_data["next_building_serial"]
+			)
 		)
-	)
-	if not bool(migrated_buildings.get("success", false)):
-		return migrated_buildings
-	building_data = migrated_buildings["data"]
+		if not bool(migrated_buildings.get("success", false)):
+			return migrated_buildings
+		building_data = migrated_buildings["data"]
 	var combat_result: Dictionary
 	if version >= 7:
 		combat_result = _validate_combat_state(
@@ -580,6 +599,10 @@ func _migrate_legacy_payload(
 	if not bool(combat_result.get("success", false)):
 		return combat_result
 	var combat_data: Dictionary = combat_result["data"]
+	var player_position := Vector2(
+		float(save_data.get("player_x", SliceExplorationState.START_SPAWN.x)),
+		float(save_data.get("player_y", SliceExplorationState.START_SPAWN.y))
+	)
 	var migrated_payload := {
 		"save_schema_version": SAVE_SCHEMA_VERSION,
 		"game_version": GAME_VERSION,
@@ -588,7 +611,7 @@ func _migrate_legacy_payload(
 		"core_storage": _without_legacy_inventory_capacity(core_storage),
 		"core_repaired": bool(save_data.get("core_repaired", false)),
 		"core_energy": int(save_data.get("core_energy", 0)),
-		"harvested_clusters": _string_array(
+		"harvested_clusters": canonical_string_array(
 			save_data.get("harvested_clusters", [])
 		),
 		"buildings": building_data["buildings"],
@@ -597,8 +620,14 @@ func _migrate_legacy_payload(
 		"player_y": float(save_data.get("player_y", 0.0)),
 		"player_health": combat_data["player_health"],
 		"field_encounter": combat_data["field_encounter"],
+		"first_journey_flags": _migrated_first_journey_flags(
+			save_data, pocket, core_storage, player_position
+		),
+		"explored_map_bits": (
+			SliceExplorationState.default_bits_for_position(player_position)
+		),
 	}
-	return _validate_schema_eight_payload(migrated_payload)
+	return _validate_schema_nine_payload(migrated_payload)
 
 
 func _runtime_data_from_payload(payload: Dictionary) -> Dictionary:
@@ -622,6 +651,10 @@ func _runtime_data_from_payload(payload: Dictionary) -> Dictionary:
 		"field_encounter": (
 			payload["field_encounter"] as Dictionary
 		).duplicate(true),
+		"first_journey_flags": (
+			payload["first_journey_flags"] as Dictionary
+		).duplicate(true),
+		"explored_map_bits": String(payload["explored_map_bits"]),
 		"updated_at": String(payload["updated_at"]),
 	}
 
@@ -707,28 +740,28 @@ func _is_integral_number(value) -> bool:
 	return is_equal_approx(float(value), float(int(value)))
 
 
-func _validate_schema_eight_payload(value) -> Dictionary:
+func _validate_schema_nine_payload(value) -> Dictionary:
 	if not (value is Dictionary):
-		return _failure("schema 8 存档根对象必须是对象。")
+		return _failure("schema 9 存档根对象必须是对象。")
 	var payload: Dictionary = value
 	if not _has_exact_keys(payload, ROOT_KEYS):
-		return _failure("schema 8 存档根对象字段集合无效。")
+		return _failure("schema 9 存档根对象字段集合无效。")
 	if (
 		not _is_integral_number(payload["save_schema_version"])
 		or int(payload["save_schema_version"]) != SAVE_SCHEMA_VERSION
 	):
-		return _failure("schema 8 存档版本字段无效。")
+		return _failure("schema 9 存档版本字段无效。")
 	if (
 		not (payload["game_version"] is String)
 		or String(payload["game_version"]) != GAME_VERSION
 	):
-		return _failure("schema 8 存档游戏版本字段无效。")
+		return _failure("schema 9 存档游戏版本字段无效。")
 	if not (payload["updated_at"] is String):
-		return _failure("schema 8 存档 updated_at 必须是字符串。")
+		return _failure("schema 9 存档 updated_at 必须是字符串。")
 	if not (payload["core_repaired"] is bool):
-		return _failure("schema 8 存档 core_repaired 必须是布尔值。")
+		return _failure("schema 9 存档 core_repaired 必须是布尔值。")
 	if not _is_integral_number(payload["core_energy"]):
-		return _failure("schema 8 存档 core_energy 必须是整数。")
+		return _failure("schema 9 存档 core_energy 必须是整数。")
 	for coordinate_key in ["player_x", "player_y"]:
 		var coordinate = payload[coordinate_key]
 		if (
@@ -736,25 +769,25 @@ func _validate_schema_eight_payload(value) -> Dictionary:
 			or not is_finite(float(coordinate))
 		):
 			return _failure(
-				"schema 8 存档 %s 必须是有限数值。" % coordinate_key
+				"schema 9 存档 %s 必须是有限数值。" % coordinate_key
 			)
 	var harvested = payload["harvested_clusters"]
 	if not (harvested is Array):
-		return _failure("schema 8 存档 harvested_clusters 必须是数组。")
+		return _failure("schema 9 存档 harvested_clusters 必须是数组。")
 	for cluster_name in harvested:
 		if not (cluster_name is String):
 			return _failure(
-				"schema 8 存档 harvested_clusters 只能包含字符串。"
+				"schema 9 存档 harvested_clusters 只能包含字符串。"
 			)
 
-	var pocket_result := _validate_schema_eight_inventory(
+	var pocket_result := _validate_current_inventory(
 		payload["pocket"],
 		SliceInventoryProfiles.category_pocket(),
 		"pocket"
 	)
 	if not bool(pocket_result.get("success", false)):
 		return pocket_result
-	var core_result := _validate_schema_eight_inventory(
+	var core_result := _validate_current_inventory(
 		payload["core_storage"],
 		SliceInventoryProfiles.category_core_storage(),
 		"core_storage"
@@ -768,7 +801,7 @@ func _validate_schema_eight_payload(value) -> Dictionary:
 		+ int(core_contents.get(SliceItemCatalog.PULSE_RIFLE_ID, 0))
 		> 1
 	):
-		return _failure("schema 8 前哨脉冲步枪总量不能超过 1。")
+		return _failure("schema 9 前哨脉冲步枪总量不能超过 1。")
 	var building_result := SliceBuildingSaveCodec.validate_schema_eight(
 		payload["buildings"], payload["next_building_serial"]
 	)
@@ -781,6 +814,16 @@ func _validate_schema_eight_payload(value) -> Dictionary:
 	)
 	if not bool(combat_result.get("success", false)):
 		return combat_result
+	var journey_result := _validate_first_journey_flags(
+		payload["first_journey_flags"]
+	)
+	if not bool(journey_result.get("success", false)):
+		return journey_result
+	var exploration_result := _validate_explored_map_bits(
+		payload["explored_map_bits"]
+	)
+	if not bool(exploration_result.get("success", false)):
+		return exploration_result
 
 	var canonical := payload.duplicate(true)
 	canonical["save_schema_version"] = SAVE_SCHEMA_VERSION
@@ -794,7 +837,71 @@ func _validate_schema_eight_payload(value) -> Dictionary:
 	var combat_data: Dictionary = combat_result["data"]
 	canonical["player_health"] = combat_data["player_health"]
 	canonical["field_encounter"] = combat_data["field_encounter"]
-	return {"success": true, "message": "schema 8 存档有效。", "data": canonical}
+	canonical["first_journey_flags"] = journey_result["data"]
+	canonical["explored_map_bits"] = exploration_result["data"]
+	return {"success": true, "message": "schema 9 存档有效。", "data": canonical}
+
+
+func _validate_first_journey_flags(value) -> Dictionary:
+	if not (value is Dictionary):
+		return _failure("schema 9 first_journey_flags 必须是对象。")
+	var flags: Dictionary = value
+	if not _has_exact_keys(
+		flags, ["part_recipe_inspected", "terminal_opened"]
+	):
+		return _failure("schema 9 first_journey_flags 字段集合无效。")
+	for flag_name in ["terminal_opened", "part_recipe_inspected"]:
+		if not (flags[flag_name] is bool):
+			return _failure(
+				"schema 9 first_journey_flags.%s 必须是布尔值。"
+				% flag_name
+			)
+	if bool(flags["part_recipe_inspected"]) and not bool(flags["terminal_opened"]):
+		return _failure("schema 9 配方已查看时终端必须已经打开。")
+	return {
+		"success": true,
+		"data": {
+			"terminal_opened": bool(flags["terminal_opened"]),
+			"part_recipe_inspected": bool(flags["part_recipe_inspected"]),
+		},
+	}
+
+
+func _validate_explored_map_bits(value) -> Dictionary:
+	if not (value is String):
+		return _failure("schema 9 explored_map_bits 必须是 Base64 字符串。")
+	var encoded := String(value)
+	if encoded.length() != SliceExplorationState.BASE64_LENGTH:
+		return _failure("schema 9 explored_map_bits 长度无效。")
+	var decoded := Marshalls.base64_to_raw(encoded)
+	if (
+		decoded.size() != SliceExplorationState.BYTE_COUNT
+		or Marshalls.raw_to_base64(decoded) != encoded
+	):
+		return _failure("schema 9 explored_map_bits 编码无效。")
+	return {"success": true, "data": encoded}
+
+
+func _migrated_first_journey_flags(
+	save_data: Dictionary,
+	pocket: Dictionary,
+	core_storage: Dictionary,
+	player_position: Vector2
+) -> Dictionary:
+	var progressed := (
+		bool(save_data.get("core_repaired", false))
+		or int(save_data.get("core_energy", 0)) > 0
+		or not canonical_string_array(save_data.get("harvested_clusters", [])).is_empty()
+		or _inventory_item_count(pocket, SliceWorld.ITEM_CRYSTAL) > 0
+		or _inventory_item_count(pocket, SliceWorld.ITEM_PART) > 0
+		or _inventory_item_count(core_storage, SliceWorld.ITEM_CRYSTAL) > 0
+		or _inventory_item_count(core_storage, SliceWorld.ITEM_PART) > 0
+		or player_position.distance_to(SliceExplorationState.START_SPAWN) > 96.0
+	)
+	return {
+		"terminal_opened": progressed,
+		"part_recipe_inspected": progressed,
+	}
 
 
 func _canonical_inventory_input(
@@ -807,46 +914,46 @@ func _canonical_inventory_input(
 	var contents = value.get("contents", {})
 	if not (contents is Dictionary):
 		return _failure("切片存档 %s.contents 必须是对象。" % label)
-	return _validate_schema_eight_inventory(
+	return _validate_current_inventory(
 		{"contents": contents.duplicate(true)}, profile, label
 	)
 
 
-func _validate_schema_eight_inventory(
+func _validate_current_inventory(
 	value,
 	profile: SliceInventoryProfile,
 	label: String
 ) -> Dictionary:
 	if not (value is Dictionary):
-		return _failure("schema 8 %s 必须是对象。" % label)
+		return _failure("schema 9 %s 必须是对象。" % label)
 	var inventory: Dictionary = value
 	if (
 		inventory.keys().size() != 1
 		or not inventory.has("contents")
 	):
 		return _failure(
-			"schema 8 %s 必须且只能包含 contents。" % label
+			"schema 9 %s 必须且只能包含 contents。" % label
 		)
 	var contents = inventory["contents"]
 	if not (contents is Dictionary):
-		return _failure("schema 8 %s.contents 必须是对象。" % label)
+		return _failure("schema 9 %s.contents 必须是对象。" % label)
 	var canonical_contents := {}
 	for item_id in contents:
 		if not (item_id is String) or String(item_id).is_empty():
 			return _failure(
-				"schema 8 %s 包含无效物品 ID。" % label
+				"schema 9 %s 包含无效物品 ID。" % label
 			)
 		var amount = contents[item_id]
 		if not _is_integral_number(amount) or int(amount) <= 0:
 			return _failure(
-				"schema 8 %s 的物品数量必须是正整数。" % label
+				"schema 9 %s 的物品数量必须是正整数。" % label
 			)
 		canonical_contents[String(item_id)] = int(amount)
 	if not profile.accepts(canonical_contents):
-		return _failure("schema 8 %s 超出容器 profile。" % label)
+		return _failure("schema 9 %s 超出容器 profile。" % label)
 	return {
 		"success": true,
-		"message": "schema 8 库存有效。",
+		"message": "schema 9 库存有效。",
 		"data": {"contents": canonical_contents},
 	}
 
@@ -908,7 +1015,7 @@ func _has_exact_keys(value: Dictionary, expected: Array) -> bool:
 	return true
 
 
-func _string_array(value) -> Array[String]:
+static func canonical_string_array(value) -> Array[String]:
 	var result: Array[String] = []
 	if value is Array:
 		for item in value:

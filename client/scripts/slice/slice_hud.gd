@@ -27,6 +27,8 @@ var _context_is_dimmed := false
 @onready var part_label: Label = $RightStatusPanel/PartSlot/PartCount
 @onready var kit_label: Label = $KitCount
 @onready var goal_label: Label = $LeftStatusPanel/Goal
+@onready var rule_label: Label = $LeftStatusPanel/Rule
+@onready var minimap: SliceMinimap = $MinimapPanel
 @onready var player_status_panel: Panel = $PlayerStatusPanel
 @onready var health_label: Label = $PlayerStatusPanel/Health
 @onready var health_bar: ProgressBar = $PlayerStatusPanel/HealthBar
@@ -69,6 +71,8 @@ func setup(world: Node, player: SlicePlayer) -> void:
 	world.placement_changed.connect(_refresh_state)
 	world.building_storage_changed.connect(_refresh_state)
 	world.combat_controller.state_changed.connect(_refresh_state)
+	world.first_journey.changed.connect(_refresh_state)
+	minimap.setup(world, player)
 	_refresh_state()
 
 
@@ -117,6 +121,7 @@ func _refresh_state(_changed_value = null) -> void:
 		enemy_health_bar.max_value = SliceFieldEnemy.MAX_HEALTH
 		enemy_health_bar.value = enemy.health
 	goal_label.text = _world.current_journey_goal_text()
+	rule_label.text = _world.current_journey_rule_text()
 	_refresh_notice()
 
 
@@ -296,6 +301,7 @@ func _set_context_weight(dimmed: bool) -> void:
 		enemy_panel,
 		notice_panel,
 		combat_action_panel,
+		minimap,
 	]:
 		component.modulate = hud_color
 
