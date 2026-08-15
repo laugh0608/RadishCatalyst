@@ -34,6 +34,8 @@ func _check_item_catalog() -> void:
 		"crystal",
 		"catalyst",
 		"part",
+		"weapon.pulse_rifle",
+		"ammo.pulse_cell",
 		"building.floor",
 		"building.collector",
 		"building.reactor",
@@ -42,7 +44,7 @@ func _check_item_catalog() -> void:
 		"building.storage",
 	]
 	var definitions := SliceItemCatalog.all()
-	_expect_equal(definitions.size(), 9, "catalog keeps nine schema-7 items")
+	_expect_equal(definitions.size(), 11, "catalog keeps eleven ordinary items")
 	var actual_ids: Array[String] = []
 	for definition in definitions:
 		actual_ids.append(definition.item_id)
@@ -142,7 +144,7 @@ func _check_schema_seven_roundtrip_and_views() -> void:
 	var read_model := SliceItemCatalog.read_model(
 		inventory.contents_view(), true
 	)
-	_expect_equal(read_model.size(), 10, "read model keeps nine known and unknown item")
+	_expect_equal(read_model.size(), 12, "read model keeps eleven known and unknown item")
 	_expect_equal(
 		String(read_model[0]["item_id"]),
 		"crystal",
@@ -349,6 +351,34 @@ func _check_future_per_item_and_type_limit() -> void:
 		4,
 		"future storage profile is staged at four item types"
 	)
+	_expect_equal(
+		SliceInventoryProfiles.category_pocket().item_capacity(
+			SliceItemCatalog.PULSE_RIFLE_ID
+		),
+		1,
+		"pocket caps the unique rifle at one"
+	)
+	_expect_equal(
+		SliceInventoryProfiles.category_pocket().item_capacity(
+			SliceItemCatalog.PULSE_CELL_ID
+		),
+		200,
+		"pocket caps pulse cells at two hundred"
+	)
+	_expect_equal(
+		SliceInventoryProfiles.category_core_storage().item_capacity(
+			SliceItemCatalog.PULSE_RIFLE_ID
+		),
+		1,
+		"core caps the unique rifle at one"
+	)
+	_expect_equal(
+		SliceInventoryProfiles.category_core_storage().item_capacity(
+			SliceItemCatalog.PULSE_CELL_ID
+		),
+		200,
+		"core caps pulse cells at two hundred"
+	)
 
 	var two_new_types := Inventory.new(
 		SliceInventoryProfiles.per_item("future.one_type", 3, 1)
@@ -474,7 +504,12 @@ func _check_category_profiles_and_read_models() -> void:
 		{"contents": {"future.item": 7, "crystal": 2}},
 		"explicit category profile reads a schema-7 inventory shape"
 	)
-	var groups := SliceInventoryReadModel.inventory_groups(restored, true, true)
+	var groups := SliceInventoryReadModel.inventory_groups(
+		restored,
+		true,
+		true,
+		SliceItemCatalog.visible_ids(false)
+	)
 	_expect_equal(groups.size(), 5, "pocket read model exposes four categories plus compatibility")
 	_expect_equal(groups[0]["title"], "原料", "raw material group is first")
 	_expect_equal(groups[1]["title"], "加工品", "processed group is second")
@@ -494,6 +529,26 @@ func _check_category_profiles_and_read_models() -> void:
 	var unknown := _find_group_item(groups, "future.item")
 	_expect_equal(unknown["count"], 7, "unknown old ID keeps its count")
 	_expect_equal(unknown["capacity"], 200, "unknown old ID follows pocket stack cap")
+
+	var charged_groups := SliceInventoryReadModel.inventory_groups(
+		restored,
+		true,
+		false,
+		SliceItemCatalog.visible_ids(true)
+	)
+	_expect_equal(charged_groups.size(), 6, "charged inventory exposes six ordinary categories")
+	_expect_equal(charged_groups[2]["title"], "装备", "equipment follows processed items")
+	_expect_equal(charged_groups[3]["title"], "外勤补给", "field supply follows equipment")
+	_expect_equal(
+		_find_group_item(charged_groups, SliceItemCatalog.PULSE_RIFLE_ID)["capacity"],
+		1,
+		"charged rifle slot presents its unique pocket cap"
+	)
+	_expect_equal(
+		_find_group_item(charged_groups, SliceItemCatalog.PULSE_CELL_ID)["capacity"],
+		200,
+		"charged pulse-cell slot presents its pocket cap"
+	)
 
 
 func _find_group_item(groups: Array[Dictionary], item_id: String) -> Dictionary:

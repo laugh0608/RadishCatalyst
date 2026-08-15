@@ -1,7 +1,7 @@
 class_name SliceItemCatalog
 extends RefCounted
 
-## The nine ordinary slice item IDs and their shared presentation order.
+## The eleven ordinary slice item IDs and their shared presentation order.
 ## Building-kit icon metadata is derived from SliceBuildingCatalog so item UI
 ## does not create a second source for the current building sprite and region.
 ## Quest-item presentation stays outside find(), all() and ORDERED_IDS: it is a
@@ -10,9 +10,13 @@ extends RefCounted
 const CRYSTAL_ID := "crystal"
 const CATALYST_ID := "catalyst"
 const PART_ID := "part"
+const PULSE_RIFLE_ID := "weapon.pulse_rifle"
+const PULSE_CELL_ID := "ammo.pulse_cell"
 const CRYSTAL_ICON := "res://assets/sprites/slice/cargo_crystal.png"
 const CATALYST_ICON := "res://assets/sprites/slice/cargo_catalyst.png"
 const PART_ICON := "res://assets/icons/slice_mechanical_part.svg"
+const PULSE_RIFLE_ICON := "res://assets/sprites/slice/player_pulse_rifle_hold.png"
+const PULSE_CELL_ICON := "res://assets/sprites/slice/pulse_projectile.png"
 const CRITICAL_SAMPLE_PRESENTATION_ID := "quest.critical_sample"
 const CRITICAL_SAMPLE_ICON := (
 	"res://assets/sprites/slice/critical_sample_crystal_gland.png"
@@ -22,6 +26,8 @@ const UNKNOWN_SORT_ORDER := 1 << 29
 const CATEGORY_ORDER: Array[String] = [
 	SliceItemDefinition.CATEGORY_RAW_MATERIAL,
 	SliceItemDefinition.CATEGORY_PROCESSED_ITEM,
+	SliceItemDefinition.CATEGORY_EQUIPMENT,
+	SliceItemDefinition.CATEGORY_FIELD_SUPPLY,
 	SliceItemDefinition.CATEGORY_BUILDING_KIT,
 	SliceItemDefinition.CATEGORY_KEY_ITEM,
 	SliceItemDefinition.CATEGORY_UNKNOWN,
@@ -31,6 +37,8 @@ const ORDERED_IDS: Array[String] = [
 	CRYSTAL_ID,
 	CATALYST_ID,
 	PART_ID,
+	PULSE_RIFLE_ID,
+	PULSE_CELL_ID,
 	SliceBuildingCatalog.FLOOR_ID,
 	SliceBuildingCatalog.COLLECTOR_ID,
 	SliceBuildingCatalog.REACTOR_ID,
@@ -71,6 +79,30 @@ static func find(item_id: String) -> SliceItemDefinition:
 				20,
 				PART_ICON,
 				false
+			)
+		PULSE_RIFLE_ID:
+			return SliceItemDefinition.new(
+				PULSE_RIFLE_ID,
+				"前哨脉冲步枪",
+				"脉冲步枪",
+				SliceItemDefinition.CATEGORY_EQUIPMENT,
+				21,
+				PULSE_RIFLE_ICON,
+				false,
+				"",
+				Rect2(0, 0, 48, 64)
+			)
+		PULSE_CELL_ID:
+			return SliceItemDefinition.new(
+				PULSE_CELL_ID,
+				"晶体脉冲电池",
+				"脉冲电池",
+				SliceItemDefinition.CATEGORY_FIELD_SUPPLY,
+				22,
+				PULSE_CELL_ICON,
+				false,
+				"",
+				Rect2(96, 0, 32, 16)
 			)
 		SliceBuildingCatalog.FLOOR_ID:
 			return _building_kit(
@@ -116,6 +148,10 @@ static func category_title(category: String) -> String:
 			return "原料"
 		SliceItemDefinition.CATEGORY_PROCESSED_ITEM:
 			return "加工品"
+		SliceItemDefinition.CATEGORY_EQUIPMENT:
+			return "装备"
+		SliceItemDefinition.CATEGORY_FIELD_SUPPLY:
+			return "外勤补给"
 		SliceItemDefinition.CATEGORY_BUILDING_KIT:
 			return "建筑套件"
 		SliceItemDefinition.CATEGORY_KEY_ITEM:
@@ -164,14 +200,17 @@ static func sorted_ids(item_ids: Array[String]) -> Array[String]:
 
 
 ## Builds deterministic UI data without exposing Inventory's mutable storage.
-## Unknown schema-7 keys remain visible after the nine known definitions.
+## Unknown persisted keys remain visible after the known definitions.
 static func read_model(
 	contents: Dictionary,
-	include_empty_known: bool = false
+	include_empty_known: bool = false,
+	visible_known_ids: Array[String] = []
 ) -> Array[Dictionary]:
 	var ids: Array[String] = []
 	if include_empty_known:
-		ids.append_array(ORDERED_IDS)
+		ids.append_array(
+			ORDERED_IDS if visible_known_ids.is_empty() else visible_known_ids
+		)
 	for key in contents:
 		if int(contents[key]) > 0:
 			ids.append(String(key))
@@ -190,6 +229,14 @@ static func read_model(
 				false
 			)
 		result.append(definition.to_read_model(int(contents.get(item_id, 0))))
+	return result
+
+
+static func visible_ids(core_charged: bool) -> Array[String]:
+	var result := ORDERED_IDS.duplicate()
+	if not core_charged:
+		result.erase(PULSE_RIFLE_ID)
+		result.erase(PULSE_CELL_ID)
 	return result
 
 

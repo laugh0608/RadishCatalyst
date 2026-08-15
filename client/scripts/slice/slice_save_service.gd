@@ -761,6 +761,14 @@ func _validate_schema_eight_payload(value) -> Dictionary:
 	)
 	if not bool(core_result.get("success", false)):
 		return core_result
+	var pocket_contents: Dictionary = pocket_result["data"]["contents"]
+	var core_contents: Dictionary = core_result["data"]["contents"]
+	if (
+		int(pocket_contents.get(SliceItemCatalog.PULSE_RIFLE_ID, 0))
+		+ int(core_contents.get(SliceItemCatalog.PULSE_RIFLE_ID, 0))
+		> 1
+	):
+		return _failure("schema 8 前哨脉冲步枪总量不能超过 1。")
 	var building_result := SliceBuildingSaveCodec.validate_schema_eight(
 		payload["buildings"], payload["next_building_serial"]
 	)

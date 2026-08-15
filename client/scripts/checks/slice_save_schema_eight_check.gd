@@ -129,6 +129,34 @@ func _check_schema_seven_rotation_and_idempotence() -> void:
 		service.has_pending_loaded_state(),
 		"failed publication keeps pending context"
 	)
+	_expect_equal(
+		loaded_data["pocket"]["contents"].has(
+			SliceItemCatalog.PULSE_RIFLE_ID
+		),
+		false,
+		"schema 7 migration defaults rifle property to absent"
+	)
+	_expect_equal(
+		loaded_data["pocket"]["contents"].has(
+			SliceItemCatalog.PULSE_CELL_ID
+		),
+		false,
+		"schema 7 migration defaults pulse-cell property to absent"
+	)
+	var duplicate_rifle_state := loaded_data.duplicate(true)
+	duplicate_rifle_state["pocket"]["contents"][
+		SliceItemCatalog.PULSE_RIFLE_ID
+	] = 1
+	duplicate_rifle_state["core_storage"]["contents"][
+		SliceItemCatalog.PULSE_RIFLE_ID
+	] = 1
+	_expect_failure(
+		service.commit_loaded_state(
+			duplicate_rifle_state, load_result["load_context"]
+		),
+		"步枪总量",
+		"schema 8 rejects duplicate rifle property across both inventories"
+	)
 	_expect_success(
 		service.commit_loaded_state(
 			loaded_data, load_result["load_context"]

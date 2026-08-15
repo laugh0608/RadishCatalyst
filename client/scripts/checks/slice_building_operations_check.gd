@@ -90,6 +90,16 @@ func _check_catalog_and_recipes() -> void:
 			{"crystal": 1, "part": 1},
 		],
 		"storage": [SliceBuildingCatalog.STORAGE_ID, 1, {"part": 2}],
+		"pulse_rifle": [
+			SliceItemCatalog.PULSE_RIFLE_ID,
+			1,
+			{SliceItemCatalog.PART_ID: 4, SliceItemCatalog.CATALYST_ID: 1},
+		],
+		"pulse_cell": [
+			SliceItemCatalog.PULSE_CELL_ID,
+			8,
+			{SliceItemCatalog.PART_ID: 1, SliceItemCatalog.CATALYST_ID: 1},
+		],
 	}
 	for recipe_id in recipe_expectations:
 		var recipe := SliceRecipes.find(String(recipe_id))
@@ -147,6 +157,17 @@ func _check_world_operations() -> void:
 	world.core_repaired = true
 	world._rebuild_power_grid()
 	world._craft_panel._refresh()
+	_expect_equal(
+		world._craft_panel.visible_recipe_card_count(),
+		7,
+		"uncharged core keeps equipment and field-supply recipes hidden"
+	)
+	world._craft_panel.select_recipe("pulse_rifle")
+	_expect_equal(
+		world._craft_panel.selected_recipe_id(),
+		"part",
+		"hidden rifle recipe cannot become the selected recipe"
+	)
 	_expect_equal(
 		world._craft_panel.recipe_card_count(),
 		SliceRecipes.RECIPES.size(),
@@ -218,7 +239,7 @@ func _check_world_operations() -> void:
 		"categorized backpack replaces the manufacturing body when selected"
 	)
 	world._craft_panel.select_recipe("part")
-	for item_id in SliceItemCatalog.ORDERED_IDS:
+	for item_id in SliceItemCatalog.visible_ids(false):
 		var slot := world._craft_panel.inventory_slot(item_id)
 		var slot_icon := slot.find_child("Icon", true, false) as TextureRect
 		_expect_equal(
@@ -269,11 +290,107 @@ func _check_world_operations() -> void:
 		"categorized inventory slots reuse the same neutral item surface"
 	)
 
+	world.pocket.add(SliceWorld.ITEM_PART, 4)
+	world.pocket.add(SliceWorld.ITEM_CATALYST, 1)
+	var locked_materials := world.pocket.to_dict()
+	_expect_equal(
+		world.craft("pulse_rifle"),
+		false,
+		"authoritative world blocks rifle crafting before first core charge"
+	)
+	_expect_equal(
+		world.pocket.to_dict(),
+		locked_materials,
+		"locked rifle crafting consumes no materials"
+	)
+	world.core_energy = SliceWorld.CORE_CHARGE_TARGET
+	world.core_charge_changed.emit(world.core_energy)
+	world._craft_panel._refresh()
+	_expect_equal(
+		world._craft_panel.visible_recipe_card_count(),
+		9,
+		"first core charge reveals recipes eight and nine"
+	)
+	_expect_equal(
+		world._craft_panel.inventory_slot_count(),
+		11,
+		"charged backpack reveals rifle and pulse-cell property slots"
+	)
+	_expect_equal(
+		world._craft_panel.inventory_group_count(),
+		5,
+		"charged backpack reveals equipment and field-supply groups"
+	)
+	_expect_equal(
+		world._craft_panel.capacity_text(),
+		"常规每类 200 · 步枪 1",
+		"charged backpack summary exposes the rifle capacity exception"
+	)
+	world._craft_panel.select_recipe("pulse_rifle")
+	_expect_equal(
+		world._craft_panel.selected_recipe_id(),
+		"pulse_rifle",
+		"charged rifle recipe becomes selectable"
+	)
+	_expect_equal(world.craft("pulse_rifle"), true, "charged rifle recipe crafts once")
+	_expect_equal(
+		world.pocket.count(SliceItemCatalog.PULSE_RIFLE_ID),
+		1,
+		"rifle enters the backpack as ordinary property"
+	)
+	_expect_equal(
+		world.craft("pulse_rifle"),
+		false,
+		"pocket rifle blocks duplicate manufacturing"
+	)
+	_expect_equal(
+		world.transfer_pocket_to_core(SliceItemCatalog.PULSE_RIFLE_ID),
+		1,
+		"rifle property transfers into the core warehouse"
+	)
+	world.pocket.add(SliceWorld.ITEM_PART, 4)
+	world.pocket.add(SliceWorld.ITEM_CATALYST, 1)
+	_expect_equal(
+		world.craft("pulse_rifle"),
+		false,
+		"core-stored rifle still blocks duplicate manufacturing"
+	)
+	_expect_equal(
+		world.transfer_core_to_pocket(SliceItemCatalog.PULSE_RIFLE_ID),
+		1,
+		"rifle property transfers back without duplication"
+	)
+	world.pocket.add(SliceWorld.ITEM_PART, 1)
+	world.pocket.add(SliceWorld.ITEM_CATALYST, 1)
+	_expect_equal(world.craft("pulse_cell"), true, "charged pulse-cell recipe crafts")
+	_expect_equal(
+		world.pocket.count(SliceItemCatalog.PULSE_CELL_ID),
+		8,
+		"pulse-cell recipe outputs one eight-cell batch"
+	)
+	_expect_equal(
+		world.transfer_pocket_to_core(SliceItemCatalog.PULSE_CELL_ID),
+		8,
+		"pulse cells transfer into the core warehouse"
+	)
+	_expect_equal(
+		world.transfer_core_to_pocket(SliceItemCatalog.PULSE_CELL_ID),
+		8,
+		"pulse cells transfer back without loss"
+	)
+	for item_id in [
+		SliceItemCatalog.PULSE_RIFLE_ID,
+		SliceItemCatalog.PULSE_CELL_ID,
+		SliceWorld.ITEM_PART,
+		SliceWorld.ITEM_CATALYST,
+	]:
+		world.pocket.remove(item_id, world.pocket.count(item_id))
+
 	world.pocket.restore_existing("future.item", 3)
 	world._craft_panel._refresh()
 	_expect_equal(
 		world._craft_panel.inventory_slot_count(),
-		10,
+		12,
 		"unknown old item creates a visible compatibility slot"
 	)
 	_expect_equal(
@@ -284,7 +401,7 @@ func _check_world_operations() -> void:
 	world._core_storage_panel.open()
 	_expect_equal(
 		world._core_storage_panel.item_row_count(),
-		10,
+		12,
 		"core warehouse mirrors all known and compatibility items in both columns"
 	)
 	_expect_equal(

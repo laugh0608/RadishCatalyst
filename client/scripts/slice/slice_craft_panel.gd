@@ -41,6 +41,12 @@ var _active_view := VIEW_MANUFACTURE
 @onready var _recipe_grid: GridContainer = (
 	$Root/Window/Margin/Layout/Content/Manufacture/Catalog/Margin/Layout/RecipeScroll/RecipeGrid
 )
+@onready var _catalog_count: Label = (
+	$Root/Window/Margin/Layout/Content/Manufacture/Catalog/Margin/Layout/SectionHeader/Count
+)
+@onready var _catalog_footer: Label = (
+	$Root/Window/Margin/Layout/Content/Manufacture/Catalog/Margin/Layout/CatalogFooter
+)
 @onready var _material_list: VBoxContainer = (
 	$Root/Window/Margin/Layout/Content/Manufacture/Materials/Margin/Layout/MaterialList
 )
@@ -98,6 +104,7 @@ var _active_view := VIEW_MANUFACTURE
 @onready var _close_button: Button = (
 	$Root/Window/Margin/Layout/Header/Margin/Row/Close
 )
+@onready var _help: Label = $Root/Window/Margin/Layout/Footer/Margin/Row/Help
 
 
 func setup(world: Node) -> void:
@@ -153,6 +160,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	var index := key_event.keycode - KEY_1
 	if index >= 0 and index < SliceRecipes.RECIPES.size():
 		var recipe: Dictionary = SliceRecipes.RECIPES[index]
+		if not SliceRecipes.is_unlocked(recipe, _world.is_core_charged()):
+			get_viewport().set_input_as_handled()
+			return
 		_selected_recipe_id = String(recipe["id"])
 		_set_active_view(VIEW_MANUFACTURE)
 		_activate_recipe(recipe, key_event.shift_pressed)
@@ -163,6 +173,8 @@ func _activate_recipe(
 	recipe: Dictionary,
 	select_existing: bool = false
 ) -> void:
+	if not SliceRecipes.is_unlocked(recipe, _world.is_core_charged()):
+		return
 	_selected_recipe_id = String(recipe["id"])
 	var kind := String(recipe["kind"])
 	var output := String(recipe["output"])
@@ -180,7 +192,7 @@ func _activate_recipe(
 		return
 
 	var selected_before: String = _world.selected_building_id()
-	var blocker := SliceRecipes.craft_block_reason(recipe, _world.pocket)
+	var blocker := _craft_block_reason(recipe)
 	var crafted: bool = _world.craft(String(recipe["id"]))
 	_last_result = (
 		"已制造 %s ×%d" % [
@@ -251,6 +263,14 @@ func inventory_group_count() -> int:
 	return _inventory_groups.size()
 
 
+func visible_recipe_card_count() -> int:
+	var result := 0
+	for card_data in _recipe_cards.values():
+		if (card_data["panel"] as PanelContainer).visible:
+			result += 1
+	return result
+
+
 func material_requirement_count() -> int:
 	return _material_rows.size()
 
@@ -284,7 +304,11 @@ func detail_select_button() -> Button:
 
 
 func select_recipe(recipe_id: String) -> void:
-	if SliceRecipes.find(recipe_id).is_empty():
+	var recipe := SliceRecipes.find(recipe_id)
+	if (
+		recipe.is_empty()
+		or not SliceRecipes.is_unlocked(recipe, _world.is_core_charged())
+	):
 		return
 	_selected_recipe_id = recipe_id
 	_last_result = ""
@@ -400,7 +424,8 @@ func _reconcile_inventory_groups() -> Array[Dictionary]:
 	var groups := SliceInventoryReadModel.inventory_groups(
 		_world.pocket,
 		true,
-		_has_critical_sample()
+		_has_critical_sample(),
+		SliceItemCatalog.visible_ids(_world.is_core_charged())
 	)
 	for child in _inventory_group_list.get_children():
 		_inventory_group_list.remove_child(child)
@@ -530,14 +555,21 @@ func _on_detail_select_pressed() -> void:
 
 func _refresh() -> void:
 	var selected_id: String = _world.selected_building_id()
+	_refresh_recipe_visibility()
 	for recipe in SliceRecipes.RECIPES:
+		if not SliceRecipes.is_unlocked(recipe, _world.is_core_charged()):
+			continue
 		_refresh_recipe_card(recipe, selected_id)
 	for group in _reconcile_inventory_groups():
 		for item in group["items"]:
 			_refresh_inventory_slot(item, selected_id)
 	var profile: SliceInventoryProfile = _world.pocket.profile()
 	_capacity.text = (
-		"不限种类 · 每类 %d" % profile.per_item_capacity
+		(
+			"常规每类 %d · 步枪 1" % profile.per_item_capacity
+			if _world.is_core_charged()
+			else "不限种类 · 每类 %d" % profile.per_item_capacity
+		)
 		if profile.is_per_item()
 		else "%d / %d" % [_world.pocket.total(), profile.total_capacity]
 	)
@@ -562,7 +594,7 @@ func _refresh_recipe_card(recipe: Dictionary, selected_id: String) -> void:
 		String(recipe["kind"]) == "building"
 		and selected_id == building_id
 	)
-	var blocker := SliceRecipes.craft_block_reason(recipe, _world.pocket)
+	var blocker := _craft_block_reason(recipe)
 	var is_current := String(recipe["id"]) == _selected_recipe_id
 
 	if selected:
@@ -597,15 +629,13 @@ func _refresh_selected_recipe(selected_building_id: String) -> void:
 		String(recipe["kind"]) == "building"
 		and selected_building_id == building_id
 	)
-	var blocker := SliceRecipes.craft_block_reason(recipe, _world.pocket)
+	var blocker := _craft_block_reason(recipe)
 
 	_refresh_material_requirements(recipe)
 	_output_icon.texture = _item_icon(output)
 	_output_name.text = String(recipe["name"])
 	_output_count.text = "产出 ×%d" % output_amount
-	_detail_kind.text = (
-		"建筑套件" if String(recipe["kind"]) == "building" else "加工品"
-	)
+	_detail_kind.text = _recipe_kind_title(recipe)
 	_detail_icon.texture = _item_icon(output)
 	_detail_name.text = String(recipe["name"])
 	_detail_output.text = (
@@ -613,7 +643,12 @@ func _refresh_selected_recipe(selected_building_id: String) -> void:
 		if String(recipe["kind"]) == "building"
 		else "产出 ×%d · 放入随身背包" % output_amount
 	)
-	_detail_existing.text = "随身已有 %d" % existing_count
+	_detail_existing.text = (
+		"随身 %d · 核心 %d"
+		% [existing_count, _world.core_storage.count(output)]
+		if int(recipe.get("unique_total_limit", 0)) > 0
+		else "随身已有 %d" % existing_count
+	)
 	_detail_craft.disabled = not blocker.is_empty()
 	_detail_craft.text = "制作 ×%d" % output_amount
 	_detail_craft.tooltip_text = (
@@ -758,7 +793,7 @@ func _refresh_footer() -> void:
 		_footer_status.text = "制造终端"
 		_footer_detail.text = "选择制造对象"
 		return
-	var blocker := SliceRecipes.craft_block_reason(recipe, _world.pocket)
+	var blocker := _craft_block_reason(recipe)
 	if blocker.is_empty():
 		_footer_status.text = "材料就绪"
 		_footer_status.add_theme_color_override("font_color", COLOR_A1)
@@ -776,6 +811,48 @@ func _display_blocker(blocker: String) -> String:
 	if blocker.begins_with("缺少 "):
 		return "材料不足 · 还需 %s" % blocker.trim_prefix("缺少 ")
 	return blocker
+
+
+func _refresh_recipe_visibility() -> void:
+	var core_charged: bool = _world.is_core_charged()
+	var visible_count := 0
+	for recipe in SliceRecipes.RECIPES:
+		var visible := SliceRecipes.is_unlocked(recipe, core_charged)
+		var card: Dictionary = _recipe_cards[String(recipe["id"])]
+		(card["panel"] as PanelContainer).visible = visible
+		if visible:
+			visible_count += 1
+	_catalog_count.text = "%d 项" % visible_count
+	_catalog_footer.text = (
+		"全部配方 · 权威顺序 1—9"
+		if core_charged
+		else "基础配方 1—7 · 核心充能后解锁装备与外勤补给"
+	)
+	_help.text = (
+		"鼠标选择 · 1—9 制造 · Shift + 1—7 选中已有 · Esc / B 关闭"
+		if core_charged
+		else "鼠标选择 · 1—7 制造 · Shift + 1—7 选中已有 · Esc / B 关闭"
+	)
+
+
+func _craft_block_reason(recipe: Dictionary) -> String:
+	return SliceRecipes.craft_block_reason(
+		recipe,
+		_world.pocket,
+		_world.core_storage,
+		_world.is_core_charged()
+	)
+
+
+func _recipe_kind_title(recipe: Dictionary) -> String:
+	match String(recipe["kind"]):
+		"building":
+			return "建筑套件"
+		"equipment":
+			return "装备"
+		"field_supply":
+			return "外勤补给"
+	return "加工品"
 
 
 func _item_icon(item_id: String) -> Texture2D:

@@ -32,6 +32,8 @@ const TILE_SIZE := 32.0
 const ITEM_CRYSTAL := SliceItemCatalog.CRYSTAL_ID
 const ITEM_CATALYST := SliceItemCatalog.CATALYST_ID
 const ITEM_PART := SliceItemCatalog.PART_ID
+const ITEM_PULSE_RIFLE := SliceItemCatalog.PULSE_RIFLE_ID
+const ITEM_PULSE_CELL := SliceItemCatalog.PULSE_CELL_ID
 const ITEM_FLOOR_KIT := SliceBuildingCatalog.FLOOR_ID
 const ITEM_COLLECTOR_KIT := SliceBuildingCatalog.COLLECTOR_ID
 const ITEM_REACTOR_KIT := SliceBuildingCatalog.REACTOR_ID
@@ -826,7 +828,9 @@ func craft(recipe_id: String) -> bool:
 	if recipe.is_empty():
 		return false
 	var kind := String(recipe["kind"])
-	if not SliceRecipes.craft_block_reason(recipe, pocket).is_empty():
+	if not SliceRecipes.craft_block_reason(
+		recipe, pocket, core_storage, is_core_charged()
+	).is_empty():
 		return false
 	var output_count := int(recipe.get("output_count", 1))
 	if kind == "building":

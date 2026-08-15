@@ -10,12 +10,13 @@ extends RefCounted
 static func inventory_groups(
 	inventory: Inventory,
 	include_empty_known: bool = false,
-	include_critical_sample: bool = false
+	include_critical_sample: bool = false,
+	visible_known_ids: Array[String] = []
 ) -> Array[Dictionary]:
 	if inventory == null:
 		return []
 	var items := SliceItemCatalog.read_model(
-		inventory.contents_view(), include_empty_known
+		inventory.contents_view(), include_empty_known, visible_known_ids
 	)
 	var critical_sample := SliceItemCatalog.critical_sample_read_model(
 		include_critical_sample
@@ -42,7 +43,8 @@ static func inventory_groups(
 static func paired_inventory_groups(
 	left: Inventory,
 	right: Inventory,
-	include_empty_known: bool = false
+	include_empty_known: bool = false,
+	visible_known_ids: Array[String] = []
 ) -> Array[Dictionary]:
 	if left == null or right == null:
 		return []
@@ -53,7 +55,7 @@ static func paired_inventory_groups(
 		)
 	var grouped := {}
 	for raw_item in SliceItemCatalog.read_model(
-		merged_contents, include_empty_known
+		merged_contents, include_empty_known, visible_known_ids
 	):
 		var item: Dictionary = raw_item.duplicate(true)
 		var item_id := String(item["item_id"])

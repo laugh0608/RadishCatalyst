@@ -258,12 +258,25 @@ func _process(_delta: float) -> void:
 
 func _refresh() -> void:
 	var groups := SliceInventoryReadModel.paired_inventory_groups(
-		_world.pocket, _world.core_storage, true
+		_world.pocket,
+		_world.core_storage,
+		true,
+		SliceItemCatalog.visible_ids(_world.is_core_charged())
 	)
 	_rebuild_side(_pocket_groups, _pocket_slots, groups, SOURCE_POCKET)
 	_rebuild_side(_core_groups, _core_slots, groups, SOURCE_CORE)
-	_pocket_summary.text = "每类 %d" % _world.pocket.profile().per_item_capacity
-	_core_summary.text = "每类 %d" % _world.core_storage.profile().per_item_capacity
+	_pocket_summary.text = (
+		"常规每类 %d · 步枪 1"
+		% _world.pocket.profile().per_item_capacity
+		if _world.is_core_charged()
+		else "每类 %d" % _world.pocket.profile().per_item_capacity
+	)
+	_core_summary.text = (
+		"常规每类 %d · 步枪 1 · 电池 200"
+		% _world.core_storage.profile().per_item_capacity
+		if _world.is_core_charged()
+		else "每类 %d" % _world.core_storage.profile().per_item_capacity
+	)
 	_result_text.text = (
 		_result
 		if not _result.is_empty()
