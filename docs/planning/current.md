@@ -6,7 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[远程武器与工业供弹 V1](../features/slice-ranged-weapon-and-industrial-ammunition-v1.md)；P1 已人工通过，P2 已提交；独立步枪物品图标已完成自动与正式入口复核，待人工确认后进入 P3。
+- 当前活跃专题：[远程武器与工业供弹 V1](../features/slice-ranged-weapon-and-industrial-ammunition-v1.md)；P1 已人工通过，P2 已提交；独立步枪物品图标已人工通过，下一步进入 P3。
 - 最新人工通过专题：[设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 建筑包 1、[图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md)、[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)与[多世界存档列表](../features/slice-multi-world-save-list-v1.md)；更早专题见 `docs/features/README.md`。
 - 美术口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机）。
 - 章程结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)。
@@ -45,7 +45,7 @@
 1. 已通过的 `delivered / 120` 全链继续作为功能基线；schema 8 是当前写盘合同，schema 2–7 继续通过确定性迁移与来源感知备份发布兼容，不重复扩系统或堆新内容。
 2. [图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md) 已用配方卡、物品格和鼠标主路径替换纯文字整备主读法，并经萝卜SAMA人工通过。
 3. 联合包 2 / 3 已提交，包 3 / 4 / 5 已人工通过。包 5 以正式 `Boot` `138` 项断言集中复验真实新档、schema 7 隔离旧档、完整产线、断链恢复、财产回收与保存重启；两套主档、各三备份和 11 张截图已保留。放置态 `OUT` 裁切已按根因修正，完整 `check-client --with-godot` 与正式演练重跑通过；萝卜SAMA于 2026-08-09 确认收口，未引入有限发电、负荷、储能或 schema 字段。
-4. UI P0 至 P2-E 已人工收口；[远程武器与工业供弹 V1](../features/slice-ranged-weapon-and-industrial-ammunition-v1.md) P1 已以完整人物帧介质通过，P2 的财产、配方、唯一性、容量与 schema 8 兼容已提交。独立步枪物品图标已替换人物持枪帧并通过完整 Godot、正式 `Boot` 与三态逐图复核，等待人工视觉确认；P3 射击、切换、弹体和战斗 HUD 尚未开工。
+4. UI P0 至 P2-E 已人工收口；[远程武器与工业供弹 V1](../features/slice-ranged-weapon-and-industrial-ammunition-v1.md) P1 已以完整人物帧介质通过，P2 的财产、配方、唯一性、容量与 schema 8 兼容已提交。独立步枪物品图标已替换人物持枪帧，并通过完整 Godot、正式 `Boot`、三态逐图复核和萝卜SAMA人工确认；下一步进入 P3 射击、切换、弹体和战斗 HUD。
 5. [设备—传送带接驳视觉 V1](../features/slice-device-conveyor-docking-visual-v1.md) 的反应器与核心代表分面已完成专属端点几何、自然排序、完整 Godot、正式 `Boot` 与逐图复核，并于 2026-08-13 获萝卜SAMA人工通过。采集器和储物箱不主动外推修改。
 
 ## 边界与冻结
