@@ -29,12 +29,13 @@
 
 最新收口子专题：[Slice Visual Hierarchy And Color Separation V1](slice-visual-hierarchy-and-color-separation-v1.md) 与 [Slice Game UI Visual Finalization V1](slice-game-ui-visual-finalization-v1.md)——世界设备、HUD、制造 / 背包、设备、核心与系统界面均已完成正式入口和人工定稿。
 
-当前活跃专题：[Slice Ranged Weapon And Industrial Ammunition V1](slice-ranged-weapon-and-industrial-ammunition-v1.md)——P0 与目标稿 V3 枪械身份已获人工确认；原生尺寸 V1—V3 均已否决，删臂拼接路线停止，等待换介质确认，不接客户端。
+当前活跃专题：[Slice Damaged Core Visual Family V1](slice-damaged-core-visual-family-v1.md)——旧 `103×93px` 破损核心已替换为 V5 同族 `144×128px` 双态；自动、正式 `Boot` 与逐图复核通过，等待人工收口。
 
 最新人工通过子专题：[Slice Category Inventory And Powered Storage V1](slice-category-inventory-and-powered-storage-v1.md) 与 [Slice World Device Family Integration V1](slice-world-device-family-integration-v1.md)——联合 schema 8、设备家族、实体物流、真实二值供电线和双档迁移闸门已收口；[Slice Unified Device Operation Panels V1](slice-unified-device-operation-panels-v1.md) 核心仓库包 2 的视觉与行为也已随 UI 定稿收口。
 
 已收口专题：
 
+- [Slice Ranged Weapon And Industrial Ammunition V1](slice-ranged-weapon-and-industrial-ammunition-v1.md)——步枪 / 电池工业财产、远射、输入互斥与三格战斗 HUD（2026-08-15 收口）。
 - [Slice Base First Screen Integration V1](slice-base-first-screen-integration-v1.md)——归一管线、基地首屏、玩家四方向行走（2026-07-16 收口）。
 - [Slice Crystal Expedition V1](slice-crystal-expedition-v1.md)——晶体远征区、无缝大地图与相机跟随口径定档（2026-07-17 收口）。
 - [Slice Minimal Core Loop V1](slice-minimal-core-loop-v1.md)——采集晶体 → 回基地 → 修复核心 + 最小 HUD（2026-07-17 收口）。

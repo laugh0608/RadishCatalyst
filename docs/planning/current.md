@@ -6,7 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：暂无；[远程武器与工业供弹 V1](../features/slice-ranged-weapon-and-industrial-ammunition-v1.md) 的 P1 / P2、独立步枪图标与 P3 均已人工收口。下一步先按阶段闸门复核第一可玩切片，再由萝卜SAMA确认新专题或陌生玩家盲测是否解冻。
+- 当前活跃专题：[破损核心视觉家族 V1](../features/slice-damaged-core-visual-family-v1.md)；V5 同族双态已完成复核，等待人工收口。阶段闸门与盲测冻结。
 - 最新人工通过专题：[设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 建筑包 1、[图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md)、[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)与[多世界存档列表](../features/slice-multi-world-save-list-v1.md)；更早专题见 `docs/features/README.md`。
 - 美术口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机）。
 - 章程结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)。
@@ -47,6 +47,7 @@
 3. 联合包 2 / 3 已提交，包 3 / 4 / 5 已人工通过。包 5 以正式 `Boot` `138` 项断言集中复验真实新档、schema 7 隔离旧档、完整产线、断链恢复、财产回收与保存重启；两套主档、各三备份和 11 张截图已保留。放置态 `OUT` 裁切已按根因修正，完整 `check-client --with-godot` 与正式演练重跑通过；萝卜SAMA于 2026-08-09 确认收口，未引入有限发电、负荷、储能或 schema 字段。
 4. UI P0 至 P2-E 已人工收口；[远程武器与工业供弹 V1](../features/slice-ranged-weapon-and-industrial-ammunition-v1.md) P1 / P2、独立步枪图标与 P3 已人工收口。P3 完成 `1 / 2` 切换、左键近击 / 远射、即时耗弹、首个敌人命中、全阻断态和三格战斗 HUD；精准 Godot `87` 项、完整回归与正式 `Boot` `55` 项及六张原图 / 十二张去色派生图均通过。
 5. [设备—传送带接驳视觉 V1](../features/slice-device-conveyor-docking-visual-v1.md) 的反应器与核心代表分面已完成专属端点几何、自然排序、完整 Godot、正式 `Boot` 与逐图复核，并于 2026-08-13 获萝卜SAMA人工通过。采集器和储物箱不主动外推修改。
+6. [破损核心视觉家族 V1](../features/slice-damaged-core-visual-family-v1.md) 已以 `144×128px` V5 同族双态替换旧图；专项 `98` 项、正式 `Boot` `33` 项及九张复核图通过，不改玩法 / schema 8，等待人工收口。
 
 ## 边界与冻结
 
@@ -54,6 +55,7 @@
 - 视角修正轮遗留项在案：八方向动画（候选专题）、viewport 整数重构、打磨清单（核心区底板叠加等观察项）。
 - 新专题不做敌潮、复杂 Boss、技能树、联机或无关重构；立绘对话、八方向动画、viewport 重构与发布继续冻结。HUD 只在 UI 视觉定稿子专题批准的范围内推进。
 - 远程武器不重开近战 V1；已收口专题只包含固定脉冲步枪与电池，不新增敌人、地图、武器树、装填、自动供弹或 schema 9。当前武器、弹体和攻击阶段保持会话态，schema 8 根字段不变。
+- 破损核心仅派生 V5 同族 `144×128px` 双态；修复态、位置、足印、碰撞、逻辑和 schema 8 冻结。
 - 不复活旧通用任务链；若包 1 证明存在引导阻断，优先从现有权威状态派生固定阶段目标。
 - 陌生玩家盲测重新冻结，直到萝卜SAMA确认画面、建造 / 背包和设备交互不再以明显草稿层作为主读法。
 - 视觉专题不修改 32px 网格、960×540 相机、基础状态语义、左上光、高斜角投影或设备主体尺度；已批准例外只有中继从 `48×66px` 调整为 `48×76px`，以及 2026-08-11 把误烘焙传送带外段的核心 / 反应器运行时画布恢复为 `144×128px` / `176×88px` 短接口态。已否决的统一明度标尺不得回到正式归一管线。
