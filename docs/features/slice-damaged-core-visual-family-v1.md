@@ -66,7 +66,7 @@
 - 完整 `check-client --with-godot` 后，从正式 `Boot` 保留新档、修复瞬间和修复态重载原图，并做低饱和 / 灰阶复核。
 - 原图确认无主体换机、色板割裂、工业地板烘焙、HUD 遮挡或锚点跳动后，等待萝卜SAMA人工收口。
 
-2026-08-15 核心专项以 `98` 项通过，完整 `check-client --with-godot` 无回归。正式 `Boot` `33` 项覆盖真实新档、既有修复交互、四次自动保存、schema 8 主档 / 三备份与重载修复态；隔离档保留在 `tools/runtime-intake/2026-08-15-damaged-core-visual-v1/save-root/`。三张 `3024×1701px` 原图及六张低饱和 / 灰阶派生图确认：新档已无旧深青矮机体和异常黄染；破损与修复态的中心线、基座、短接口、足印和落点一致；破裂外壳、外露腔体与断续能量在去色后仍可读；HUD 无遮挡或截断。截图保存在 `assets/art-intake/2026-08-15-damaged-core-visual-v1-preview/`，当前等待萝卜SAMA人工收口。
+2026-08-15 核心专项以 `98` 项通过，完整 `check-client --with-godot` 无回归。正式 `Boot` `33` 项覆盖真实新档、既有修复交互、四次自动保存、schema 8 主档 / 三备份与重载修复态；隔离档保留在 `tools/runtime-intake/2026-08-15-damaged-core-visual-v1/save-root/`。三张 `3024×1701px` 原图及六张低饱和 / 灰阶派生图确认：新档已无旧深青矮机体和异常黄染；破损与修复态的中心线、基座、短接口、足印和落点一致；破裂外壳、外露腔体与断续能量在去色后仍可读；HUD 无遮挡或截断。截图保存在 `assets/art-intake/2026-08-15-damaged-core-visual-v1-preview/`；萝卜SAMA随后确认通过，专题收口。
 
 ## 不做
 

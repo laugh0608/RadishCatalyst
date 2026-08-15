@@ -1,6 +1,6 @@
 # Slice Runtime Systems
 
-更新时间：2026-07-29
+更新时间：2026-08-15
 
 ## 文档目的
 
@@ -17,8 +17,13 @@
 - `client/scripts/slice/slice_reactor.gd`
 - `client/scripts/slice/slice_player.gd`
 - `client/scripts/slice/slice_combat_controller.gd`
+- `client/scripts/slice/slice_pulse_projectile.gd`
 - `client/scripts/slice/slice_field_enemy.gd`
+- `client/scripts/slice/slice_first_journey_controller.gd`
+- `client/scripts/slice/slice_exploration_state.gd`
+- `client/scripts/slice/slice_minimap.gd`
 - `client/scripts/slice/slice_hud.gd`
+- `client/scripts/slice/slice_inventory_profiles.gd`
 - `client/scripts/slice/slice_save_catalog.gd`
 - `client/scripts/slice/slice_save_service.gd`
 - `client/scripts/slice/slice_building_save_codec.gd`
@@ -51,6 +56,7 @@ Boot
 - 调用放置校验、建筑生成、调整、拆除和交互。
 - 在结构变化后重建供电与物流。
 - 推进采集器、反应器生产和传送带模拟。
+- 装配首程引导、探索状态、战斗和 HUD，但不拥有这些窄职责组件的内部规则。
 - 组装并触发自动存档。
 - 处理前台面板 / 放置优先的 `Esc`，以及暂停、保存返回和保存退出。
 
@@ -64,7 +70,7 @@ Boot
 - `SliceCollector`、`SliceStorage`、`SliceConveyor`、`SliceReactor`：只持有各自内部状态和窄行为。
 - `SliceBuildingOccupancy`：分别维护地板占用和阻挡设施占用。
 
-建筑方向只选择固定帧；`rotation` 是 `0–3` 的规则状态，不直接旋转像素图。
+固定正面设施和工业地板的 `rotation` 只能为 `0`；传送带仍以 `0–3` 表达规则方向。方向选择固定帧，不直接旋转像素图。
 
 ### 放置与操作
 
@@ -102,19 +108,21 @@ Boot
 
 ### 外勤战斗与旅程引导
 
-- `SlicePlayer` 负责移动、鼠标瞄准及未被前台 UI 消费的攻击 / 闪避意图，不拥有敌人或任务状态。
-- `SliceCombatController` 拥有攻击节拍、闪避无敌、玩家生命和五态外勤遭遇；`SliceFieldEnemy` 只负责单敌人的警戒、追击、蓄势、恢复、回巢、受击与败亡。
+- `SlicePlayer` 负责移动、鼠标瞄准及未被前台 UI 消费的武器选择、攻击 / 闪避意图，不拥有敌人、弹药或任务状态。
+- `SliceCombatController` 拥有切割器 / 步枪会话选择、攻击节拍、即时耗弹、闪避无敌、玩家生命和五态外勤遭遇；`SlicePulseProjectile` 只负责固定速度移动、首碰和射程销毁，`SliceFieldEnemy` 只负责单敌人的警戒、追击、蓄势、恢复、回巢、受击与败亡。
 - `SliceWorld` 只编排首次充能扣料、样本交付、离散事件自动保存和节点装配，不承载敌人 AI。
-- `SliceHud` 与合成面板读取 `current_journey_guidance()`；当前目标和规则从权威世界状态派生，不保存阶段编号或平行任务进度。
-- `SliceHud` 的常驻游戏壳层由任务舷窗、三物资槽、角色生命条、按需敌人目标条和上下文键帽组成；完整套件清单仍只在合成 / 放置上下文出现。
+- `SliceFirstJourneyController` 在核心修复前按库存和两个首次查看旗标派生五阶段引导，并拥有 `40×12` 探索粗格；修复后继续委托 `SliceJourneyGuidance` 从设备、库存与遭遇状态派生目标。
+- `SliceHud` 与合成面板读取 `current_journey_guidance()`；小地图用同一世界视图叠加持久迷雾、玩家、核心、已发现晶体与阶段情报。阶段编号、区域名和 marker 都不保存。
+- `SliceHud` 的常驻游戏壳层由任务舷窗、三物资槽、角色生命条、三格战斗操作条、按需敌人目标条和右下小地图组成；完整套件清单仍只在合成 / 放置上下文出现。
 
 ## 权威状态与派生状态
 
 | 类型 | 保存 | 说明 |
 | --- | --- | --- |
-| 背包、核心仓库 | 是 | `Inventory` 容量与内容 |
+| 背包、核心仓库 | 是 | schema 8 起只保存内容；逐物品容量由 profile 定义，步枪唯一与电池上限由现行 profile 校验 |
 | 核心修复、核心能量、已采集晶簇、玩家位置 | 是 | 切片世界基础状态 |
 | 玩家生命、五态外勤遭遇 | 是 | 最大生命由 `delivered` 派生，敌人 / 样本由单一状态派生 |
+| 首次查看旗标、探索位图 | 是 | 两个布尔旗标与 480 位粗格；当前目标、区域名和 marker 继续派生 |
 | 建筑 ID、定义 ID、原点格、方向 | 是 | 稳定布局权威 |
 | 采集器缓冲与生产进度 | 是 | 断电和重启都保留 |
 | 储物箱库存 | 是 | 容量与物品白名单校验 |
@@ -124,9 +132,10 @@ Boot
 | 供电可达性、父边、连线 | 否 | 从核心和中继重建 |
 | 物流邻接、直线 / 转角 / 端点 / 合流外观 | 否 | 从相邻建筑重建 |
 | 首次旅程当前目标与规则 | 否 | 从核心、通电设备、建筑库存、背包和遭遇状态派生 |
+| 当前武器、弹体和攻击阶段 | 否 | 每次进入世界默认切割器；步枪与电池本身是库存财产 |
 | 阴影、y-sort、状态灯和 ghost | 否 | 纯表现 |
 
-schema 7 延续 schema 6 的设备状态，并新增 `player_health` 与 `field_encounter {state, enemy_health}`。遭遇只取 `locked / hostile / dropped / carried / delivered`；最大生命、敌人存在和样本存在均由该状态派生，不保存平行布尔真相。旧顶层 `catalyst_count` 和 `reactor_active` 仍不写入。
+当前 schema 9 延续 schema 8 的分类库存、储物箱权威状态和固定正面建筑合同，只新增 `first_journey_flags` 与 `explored_map_bits`。遭遇仍只取 `locked / hostile / dropped / carried / delivered`；最大生命、敌人存在和样本存在均由该状态派生。旧顶层 `catalyst_count`、`reactor_active`、当前武器和弹体都不写入。
 
 ## 生命周期与时间推进
 
@@ -147,7 +156,7 @@ process tick
 -> 产出、加工状态切换或最多约 1 秒后自动保存
 ```
 
-schema 4–7 的旧档仍可携带原 `0–10s` 采集进度；载入后按当前 `1s` 周期结算并继续累计。建造、调整、拆除、仓库存取、核心修复、采集，以及战斗伤害、败亡、样本拾取 / 交付和撤离等离散变化会立即触发自动保存；普通敌人 AI tick 不写盘。暂停返回或退出只有保存成功后才释放世界或结束进程。
+schema 4–8 的旧档仍可携带原 `0–10s` 采集进度；载入后按当前 `1s` 周期结算并继续累计。建造、调整、拆除、仓库存取、制造、核心修复、首程首次查看、采集，以及战斗伤害、败亡、样本拾取 / 交付和撤离等离散变化会立即触发自动保存；探索揭雾以约 `6s` 合并保存，普通敌人 AI tick 不写盘。暂停返回或退出只有保存成功后才释放世界或结束进程。
 
 ## 切片存档
 
@@ -163,14 +172,14 @@ user://saves/slice/
 ```
 
 - 最多 30 个在用世界；显示名可变，稳定 ID 和目录不随重命名变化。
-- `metadata.json` 只提供列表轻读，并摘要外勤状态与玩家生命；`autosave.json` 才是 schema 7 权威世界状态。
+- `metadata.json` 只提供列表轻读，并摘要外勤状态与玩家生命；`autosave.json` 才是 schema 9 权威世界状态。
 - 写入先落临时文件，三份备份轮转成功后才替换主档；读取按主档、`bak.1`、`bak.2`、`bak.3` 回退，全部失败时不覆盖内存状态。
-- 当前 schema 为 `7`，支持读取 schema `2–7`；schema `1` 不支持。
+- 当前 schema 为 `9`，支持读取 schema `2–9`；schema `1` 不支持。
 - 旧 `user://saves/slice/slice_world.json` 和单份 `.bak` 仅作迁移源：校验、复制、读回成功后发布为第一个命名世界，旧文件保留。
 
-schema `4` 把旧采集器列表迁移为统一建筑拓扑；schema `5` 增加传送带货物与合流游标；schema `6` 增加反应器双缓冲、加工态和进度，并迁移旧全局催化剂；schema `7` 增加玩家生命与五态外勤遭遇。schema `2–6` 缺省生命 `100`，并按核心充能状态迁为 `locked` 或满血 `hostile`。
+schema `4` 把旧采集器列表迁移为统一建筑拓扑；schema `5` 增加传送带货物与合流游标；schema `6` 增加反应器双缓冲、加工态和进度；schema `7` 增加玩家生命与五态外勤遭遇；schema `8` 原子切换分类库存、储物箱模式与固定正面设备；schema `9` 增加两个首次查看旗标与固定 480 位探索图。schema `2–8` 只在内存迁移，世界完整重建后才发布当前格式。
 
-`SliceBuildingSaveCodec` 在接受候选档案前校验：
+`SliceSaveService` 与 `SliceBuildingSaveCodec` 在接受候选档案前共同校验：
 
 - 字段白名单、实例 ID 格式与唯一性。
 - 已知建筑定义、方向范围和下一序号。
@@ -178,6 +187,8 @@ schema `4` 把旧采集器列表迁移为统一建筑拓扑；schema `5` 增加�
 - 设施获得完整工业地板支撑。
 - 各建筑内部状态白名单、容量、数值范围和货物 ID，包括反应器加工态 / 进度一致性。
 - 玩家生命上限、遭遇字段白名单、核心充能与遭遇状态一致性，以及活敌 / 败亡态生命约束。
+- 两个首次查看旗标的严格布尔合同，以及固定 `80` 字符 Base64 / `60` 字节探索位图。
+- 步枪跨背包与核心最多一把、电池容量和全部已知物品 ID 的联合库存约束。
 
 ## 扩展规则
 
@@ -189,6 +200,6 @@ schema `4` 把旧采集器列表迁移为统一建筑拓扑；schema `5` 增加�
 4. 明确哪些状态保存、哪些从布局派生。
 5. 扩展匹配的放置、操作、供电、物流和 schema 检查。
 
-战斗与样本权威状态已进入选中世界的 schema 7，并沿用候选校验 / 备份链；`metadata.json` 只保存列表摘要，不得成为玩法真相源。后续不得把它拆成跨世界共享角色档，或重新把旧全局催化剂计数作为权威状态。
+战斗、样本、分类库存与首程探索权威状态已进入选中世界的 schema 9，并沿用候选校验 / 备份链；`metadata.json` 只保存列表摘要，不得成为玩法真相源。后续不得把它拆成跨世界共享角色档，或重新把旧全局催化剂计数作为权威状态。
 
-2026-07-28 `SliceWorld` 为 1406 行；鼠标指针、动态预览和权威放置校验已拆到三个窄职责组件。下一包以验收取证为主，不得把新业务分支重新堆回世界编排器或越过 1500 行硬上限。
+2026-08-15 `SliceWorld` 已到 1499 行；鼠标放置、战斗、旅程与探索虽已有窄职责组件，编排器仍贴近 1500 行硬上限。下一阶段立项前必须在阶段闸门中复核职责边界；任何新增业务分支都不得继续堆回该文件，确需开发时先把对应协调职责提取到现有窄组件或新建职责明确的组件。
