@@ -6,7 +6,7 @@
 
 本文是新会话的阶段入口，只保留当前阶段、当前活跃专题、边界、验证入口和退出条件。
 
-- 当前活跃专题：[首程引导与探索小地图 V1](../features/slice-first-journey-guidance-and-exploration-map-v1.md)；P1—P3 与正式复核已完成，等待人工确认。阶段闸门与盲测冻结。
+- [首程引导与探索小地图 V1](../features/slice-first-journey-guidance-and-exploration-map-v1.md) 已收口。下一步按[第一可玩切片全链串通](../features/slice-first-playable-journey-v1.md)阶段闸门复核；盲测冻结。
 - 最新人工通过专题：[设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md) 建筑包 1、[图形化建造 / 合成 / 背包 UI V1](../features/slice-graphical-crafting-and-inventory-v1.md)、[首次外勤战斗与关键样本回收](../features/slice-first-field-combat-and-sample-recovery-v1.md)与[多世界存档列表](../features/slice-multi-world-save-list-v1.md)；更早专题见 `docs/features/README.md`。
 - 美术口径：[Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)（32px 网格、960x540 相机）。
 - 章程结论：[Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)。
@@ -48,7 +48,7 @@
 4. UI P0—P2-E 与 [远程武器与工业供弹 V1](../features/slice-ranged-weapon-and-industrial-ammunition-v1.md) 已人工收口；步枪 / 电池、输入互斥、远射与三格战斗 HUD 的自动、正式入口及逐图基线继续通过。
 5. [设备—传送带接驳视觉 V1](../features/slice-device-conveyor-docking-visual-v1.md) 的反应器与核心代表分面已完成专属端点几何、自然排序、完整 Godot、正式 `Boot` 与逐图复核，并于 2026-08-13 获萝卜SAMA人工通过。采集器和储物箱不主动外推修改。
 6. [破损核心视觉家族 V1](../features/slice-damaged-core-visual-family-v1.md) 已以 `144×128px` V5 同族双态替换旧图；专项 `98` 项、正式 `Boot` `33` 项及九张复核图通过并获人工收口。
-7. [首程引导与探索小地图 V1](../features/slice-first-journey-guidance-and-exploration-map-v1.md) 已补齐五阶段引导、东侧情报、行走揭雾与 schema 9，等待人工确认。
+7. [首程引导与探索小地图 V1](../features/slice-first-journey-guidance-and-exploration-map-v1.md) 已补齐五阶段引导、东侧情报、行走揭雾与 schema 9 并收口。
 
 ## 边界与冻结
 

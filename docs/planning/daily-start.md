@@ -14,7 +14,7 @@
 - 陌生玩家盲测已冻结：当前功能可运行，但视觉和交互仍不足以证明陌生玩家可独立理解。
 - 图形化制造 / 背包与统一设备面板均已人工收口。
 - [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md) 与 [游戏本体 UI 视觉定稿 V1](../features/slice-game-ui-visual-finalization-v1.md) 已完成并人工收口。
-- [远程武器与工业供弹 V1](../features/slice-ranged-weapon-and-industrial-ammunition-v1.md) 与 [破损核心视觉家族 V1](../features/slice-damaged-core-visual-family-v1.md) 已人工收口；[首程引导与探索小地图 V1](../features/slice-first-journey-guidance-and-exploration-map-v1.md) 已完成实现与正式复核，等待人工确认。
+- [远程武器与工业供弹 V1](../features/slice-ranged-weapon-and-industrial-ammunition-v1.md)、[破损核心视觉家族 V1](../features/slice-damaged-core-visual-family-v1.md)与[首程引导与探索小地图 V1](../features/slice-first-journey-guidance-and-exploration-map-v1.md)均已人工收口。
 - [设备—传送带接驳视觉 V1](../features/slice-device-conveyor-docking-visual-v1.md) 的反应器与核心代表分面均已人工通过；采集器和储物箱只在后续实机暴露同类遮挡时按已验证合同复核。
 - [分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 与 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合包 2 / 3 已提交，包 3 / 4 / 5 均获人工通过；包 5 的自动、正式入口和 AI 逐图复核证据已完整保留。
 
@@ -57,7 +57,7 @@
 3. 独立步枪图标已替换人物持枪帧并获人工通过；P3 随后完成 `1 / 2` 切换、左键当前武器、即时耗弹、固定弹体、首个敌人命中与三格战斗 HUD。
 4. P3 精准 Godot `87` 项、完整回归与正式 `Boot` `55` 项通过；六张原图及十二张低饱和 / 灰阶派生图确认无 HUD 互叠、截断或主体遮挡。萝卜SAMA于 2026-08-15 授权提交并确认专题收口；有限电力和陌生玩家盲测仍须经下一次阶段闸门决定是否解冻。
 5. 旧 `103×93px` 破损核心已替换为 V5 同族 `144×128px` 原生双态；核心专项 `98` 项、完整回归、正式 `Boot` `33` 项和九张复核图通过并获人工收口。
-6. 五步首程引导、右下小地图、进度情报 + `64px` 行走揭雾及 schema 9 已实现；专项 `99 / 134` 项、完整 Godot、正式 `Boot` `54` 项及 24 张色彩复核图通过，等待人工确认。
+6. 五步首程引导、右下小地图、进度情报 + `64px` 行走揭雾及 schema 9 已人工收口；下一步先做第一可玩切片阶段闸门复核，不直接解冻盲测或扩有限电力。
 
 ## 防跑偏规则
 
