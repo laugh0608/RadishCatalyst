@@ -54,6 +54,17 @@ func _check_item_catalog() -> void:
 			"%s has an icon path" % definition.item_id
 		)
 	_expect_equal(actual_ids, expected_ids, "catalog order stays UI-compatible")
+	var pulse_rifle := SliceItemCatalog.find(SliceItemCatalog.PULSE_RIFLE_ID)
+	_expect_equal(
+		pulse_rifle.icon_path,
+		"res://assets/sprites/slice/pulse_rifle_item_icon.png",
+		"pulse rifle uses its standalone item icon"
+	)
+	_expect_equal(
+		pulse_rifle.icon_region,
+		Rect2(),
+		"standalone pulse rifle icon does not crop a player-pose sheet"
+	)
 	_expect_equal(
 		SliceItemCatalog.transportable_ids(),
 		["crystal", "catalyst"],

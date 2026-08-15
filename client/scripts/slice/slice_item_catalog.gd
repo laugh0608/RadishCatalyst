@@ -15,7 +15,7 @@ const PULSE_CELL_ID := "ammo.pulse_cell"
 const CRYSTAL_ICON := "res://assets/sprites/slice/cargo_crystal.png"
 const CATALYST_ICON := "res://assets/sprites/slice/cargo_catalyst.png"
 const PART_ICON := "res://assets/icons/slice_mechanical_part.svg"
-const PULSE_RIFLE_ICON := "res://assets/sprites/slice/player_pulse_rifle_hold.png"
+const PULSE_RIFLE_ICON := "res://assets/sprites/slice/pulse_rifle_item_icon.png"
 const PULSE_CELL_ICON := "res://assets/sprites/slice/pulse_projectile.png"
 const CRITICAL_SAMPLE_PRESENTATION_ID := "quest.critical_sample"
 const CRITICAL_SAMPLE_ICON := (
@@ -88,9 +88,7 @@ static func find(item_id: String) -> SliceItemDefinition:
 				SliceItemDefinition.CATEGORY_EQUIPMENT,
 				21,
 				PULSE_RIFLE_ICON,
-				false,
-				"",
-				Rect2(0, 0, 48, 64)
+				false
 			)
 		PULSE_CELL_ID:
 			return SliceItemDefinition.new(
