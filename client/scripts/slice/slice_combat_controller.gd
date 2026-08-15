@@ -7,17 +7,23 @@ extends Node2D
 
 const FIELD_ENEMY_SCENE := "res://scenes/slice/SliceFieldEnemy.tscn"
 const CRITICAL_SAMPLE_SCENE := "res://scenes/slice/SliceCriticalSample.tscn"
+const PULSE_PROJECTILE_SCENE := "res://scenes/slice/SlicePulseProjectile.tscn"
 const FIELD_ENEMY_ANCHOR := Vector2(1984, 384)
 const EVACUATION_POSITION := Vector2(704, 384)
+const WEAPON_CUTTER := "cutter"
+const WEAPON_PULSE_RIFLE := "pulse_rifle"
 const ATTACK_WINDUP := 0.12
 const ATTACK_ACTIVE := 0.10
 const ATTACK_RECOVERY := 0.23
 const ATTACK_DAMAGE := 20
+const PULSE_RIFLE_DAMAGE := 12
+const PULSE_RIFLE_CYCLE := 0.38
 const DODGE_DISTANCE := 96.0
 const DODGE_DURATION := 0.18
 const DODGE_INVULNERABLE := 0.22
 const DODGE_COOLDOWN := 0.8
 const HIT_EFFECT_DURATION := 0.16
+const MUZZLE_EFFECT_DURATION := 0.08
 
 signal state_changed
 signal persistence_requested
@@ -30,6 +36,7 @@ var dodge_cooldown_remaining := 0.0
 var invulnerable_remaining := 0.0
 var encounter_state := "locked"
 var notice_text := ""
+var current_weapon := WEAPON_CUTTER
 var field_enemy: SliceFieldEnemy
 var critical_sample: SliceCriticalSample
 
@@ -39,6 +46,7 @@ var _attack_held := false
 var _attack_hit_enemy := false
 var _requires_fresh_attack_press := false
 var _hit_effect_remaining := 0.0
+var _muzzle_effect_remaining := 0.0
 var _notice_remaining := 0.0
 var _last_state_key := ""
 
@@ -49,6 +57,8 @@ var _last_state_key := ""
 	$AttackPivot/AttackArea/Collision
 )
 @onready var _hit_effect: Sprite2D = $HitEffect
+@onready var _muzzle_effect: Sprite2D = $MuzzleEffect
+@onready var _pulse_hit_effect: Sprite2D = $PulseHitEffect
 
 
 func setup(world: Node, player: SlicePlayer) -> void:
@@ -57,7 +67,11 @@ func setup(world: Node, player: SlicePlayer) -> void:
 	player.attack_pressed.connect(_on_attack_pressed)
 	player.attack_released.connect(_on_attack_released)
 	player.dodge_requested.connect(_on_dodge_requested)
+	player.weapon_selection_requested.connect(_on_weapon_selection_requested)
 	world.core_charge_changed.connect(_on_core_charge_changed)
+	world.inventory_changed.connect(_on_inventory_changed)
+	current_weapon = WEAPON_CUTTER
+	player.set_weapon_visual(current_weapon)
 	_spawn_field_enemy()
 	_refresh_effect_transform()
 	_emit_state_if_changed()
@@ -72,12 +86,10 @@ func _physics_process(delta: float) -> void:
 	)
 	invulnerable_remaining = maxf(0.0, invulnerable_remaining - delta)
 	_tick_hit_effect(delta)
+	_tick_muzzle_effect(delta)
 	_tick_notice(delta)
 	if _world.is_combat_input_blocked():
-		_attack_held = false
-		_requires_fresh_attack_press = true
-		if attack_phase == "windup":
-			_finish_attack()
+		require_fresh_attack_press()
 	_tick_attack(delta)
 	if attack_phase == "active":
 		_resolve_player_attack()
@@ -93,6 +105,26 @@ func _on_attack_pressed() -> void:
 
 func _on_attack_released() -> void:
 	_attack_held = false
+
+
+func require_fresh_attack_press() -> void:
+	_attack_held = false
+	_requires_fresh_attack_press = true
+	if attack_phase == "windup":
+		_finish_attack()
+
+
+func _on_weapon_selection_requested(weapon_id: String) -> void:
+	if _world == null or _world.is_combat_input_blocked():
+		return
+	match weapon_id:
+		WEAPON_CUTTER:
+			_select_weapon(WEAPON_CUTTER)
+		WEAPON_PULSE_RIFLE:
+			if not has_pulse_rifle():
+				_set_notice("未持有前哨脉冲步枪｜保持切割器", 1.5)
+				return
+			_select_weapon(WEAPON_PULSE_RIFLE)
 
 
 func _on_dodge_requested() -> void:
@@ -114,7 +146,7 @@ func _on_dodge_requested() -> void:
 	dodge_cooldown_remaining = DODGE_COOLDOWN
 	invulnerable_remaining = DODGE_INVULNERABLE
 	_set_notice("闪避成功", 0.6)
-	if attack_phase != "active":
+	if attack_phase not in ["active", "rifle_recovery"]:
 		_finish_attack()
 	_emit_state_if_changed()
 
@@ -131,6 +163,9 @@ func _can_start_attack() -> bool:
 
 
 func _begin_attack() -> void:
+	if current_weapon == WEAPON_PULSE_RIFLE:
+		_begin_pulse_rifle_attack()
+		return
 	attack_phase = "windup"
 	attack_phase_remaining = ATTACK_WINDUP
 	_attack_hit_enemy = false
@@ -145,6 +180,11 @@ func _tick_attack(delta: float) -> void:
 	attack_phase_remaining -= delta
 	while attack_phase != "idle" and attack_phase_remaining <= 0.0:
 		match attack_phase:
+			"rifle_recovery":
+				if _attack_held and _can_repeat_attack():
+					_begin_attack()
+				else:
+					_finish_attack()
 			"windup":
 				attack_phase = "active"
 				attack_phase_remaining += ATTACK_ACTIVE
@@ -182,6 +222,118 @@ func _finish_attack() -> void:
 		_attack_effect.visible = false
 	if _attack_collision != null:
 		_attack_collision.disabled = true
+
+
+func _begin_pulse_rifle_attack() -> void:
+	if not has_pulse_rifle():
+		_select_weapon(WEAPON_CUTTER)
+		_set_notice("步枪不在随身背包｜已切回切割器", 1.8)
+		return
+	if pulse_cell_count() <= 0:
+		_attack_held = false
+		_requires_fresh_attack_press = true
+		_set_notice("电池耗尽｜按 1 使用切割器", 1.8)
+		return
+	var consumption := _consume_pulse_cell()
+	if not bool(consumption.get("consumed", false)):
+		_attack_held = false
+		_requires_fresh_attack_press = true
+		_set_notice("电池耗尽｜按 1 使用切割器", 1.8)
+		return
+	attack_phase = "rifle_recovery"
+	attack_phase_remaining = PULSE_RIFLE_CYCLE
+	_attack_effect.visible = false
+	_attack_collision.disabled = true
+	_spawn_pulse_projectile(_player.aim_direction)
+	_play_muzzle_effect(_player.aim_direction)
+	if not bool(consumption.get("saved", false)):
+		_set_notice("射击已成立｜自动保存失败，请稍后重试", 2.4)
+
+
+func _consume_pulse_cell() -> Dictionary:
+	if _world.pocket.remove(SliceWorld.ITEM_PULSE_CELL, 1) != 1:
+		return {"consumed": false, "saved": false}
+	_world.inventory_changed.emit()
+	return {"consumed": true, "saved": _world._autosave()}
+
+
+func _select_weapon(weapon_id: String) -> void:
+	if current_weapon == weapon_id:
+		return
+	current_weapon = weapon_id
+	_attack_held = false
+	_requires_fresh_attack_press = true
+	if attack_phase != "rifle_recovery":
+		_finish_attack()
+	_player.set_weapon_visual(current_weapon)
+	_emit_state_if_changed()
+
+
+func _spawn_pulse_projectile(direction: Vector2) -> SlicePulseProjectile:
+	var projectile := (
+		(load(PULSE_PROJECTILE_SCENE) as PackedScene).instantiate()
+		as SlicePulseProjectile
+	)
+	_player.get_parent().add_child(projectile)
+	var normalized_direction := (
+		direction.normalized() if direction != Vector2.ZERO else Vector2.DOWN
+	)
+	projectile.setup(
+		self,
+		normalized_direction,
+		_player.position + Vector2(0, -32) + normalized_direction * 34.0
+	)
+	return projectile
+
+
+func resolve_pulse_projectile_collision(body: Node2D) -> bool:
+	if body == null or body != field_enemy:
+		return false
+	if not field_enemy.take_damage(PULSE_RIFLE_DAMAGE):
+		return false
+	_play_pulse_hit_effect(field_enemy.position + Vector2(0, -24))
+	if field_enemy.health > 0:
+		persistence_requested.emit()
+	return true
+
+
+func player_actor() -> SlicePlayer:
+	return _player
+
+
+func has_pulse_rifle() -> bool:
+	return (
+		_world != null
+		and _world.pocket.count(SliceWorld.ITEM_PULSE_RIFLE) > 0
+	)
+
+
+func pulse_cell_count() -> int:
+	return (
+		0
+		if _world == null
+		else _world.pocket.count(SliceWorld.ITEM_PULSE_CELL)
+	)
+
+
+func current_weapon_name() -> String:
+	return "步枪" if current_weapon == WEAPON_PULSE_RIFLE else "切割器"
+
+
+func pulse_rifle_status_text() -> String:
+	if not has_pulse_rifle():
+		return "未持有"
+	if pulse_cell_count() <= 0:
+		return "电池耗尽"
+	return "电池 %d" % pulse_cell_count()
+
+
+func _on_inventory_changed(_changed_value = null) -> void:
+	if current_weapon != WEAPON_PULSE_RIFLE or has_pulse_rifle():
+		_emit_state_if_changed()
+		return
+	_select_weapon(WEAPON_CUTTER)
+	_set_notice("步枪已离开随身背包｜已切回切割器", 1.8)
 
 
 func _refresh_effect_transform() -> void:
@@ -252,6 +404,11 @@ func restore_durable_state(
 	saved_health: int,
 	field_encounter: Dictionary
 ) -> void:
+	current_weapon = WEAPON_CUTTER
+	_attack_held = false
+	_requires_fresh_attack_press = true
+	_finish_attack()
+	_player.set_weapon_visual(current_weapon)
 	encounter_state = String(field_encounter.get("state", "locked"))
 	max_health = 120 if encounter_state == "delivered" else 100
 	health = clampi(saved_health, 1, max_health)
@@ -372,9 +529,38 @@ func _evacuate_player() -> void:
 
 
 func _play_hit_effect(world_position: Vector2) -> void:
+	_pulse_hit_effect.visible = false
 	_hit_effect.position = world_position
 	_hit_effect.frame = 0
 	_hit_effect.visible = true
+	_hit_effect_remaining = HIT_EFFECT_DURATION
+
+
+func _play_muzzle_effect(direction: Vector2) -> void:
+	var normalized_direction := (
+		direction.normalized() if direction != Vector2.ZERO else Vector2.DOWN
+	)
+	_muzzle_effect.position = (
+		_player.position + Vector2(0, -32) + normalized_direction * 30.0
+	)
+	_muzzle_effect.frame = _direction_frame(normalized_direction)
+	_muzzle_effect.visible = true
+	_muzzle_effect_remaining = MUZZLE_EFFECT_DURATION
+
+
+func _tick_muzzle_effect(delta: float) -> void:
+	if _muzzle_effect_remaining <= 0.0:
+		return
+	_muzzle_effect_remaining = maxf(0.0, _muzzle_effect_remaining - delta)
+	if _muzzle_effect_remaining <= 0.0:
+		_muzzle_effect.visible = false
+
+
+func _play_pulse_hit_effect(world_position: Vector2) -> void:
+	_hit_effect.visible = false
+	_pulse_hit_effect.position = world_position
+	_pulse_hit_effect.frame = 0
+	_pulse_hit_effect.visible = true
 	_hit_effect_remaining = HIT_EFFECT_DURATION
 
 
@@ -384,9 +570,20 @@ func _tick_hit_effect(delta: float) -> void:
 	_hit_effect_remaining = maxf(0.0, _hit_effect_remaining - delta)
 	if _hit_effect_remaining <= 0.0:
 		_hit_effect.visible = false
+		_pulse_hit_effect.visible = false
 		return
 	var progress := 1.0 - _hit_effect_remaining / HIT_EFFECT_DURATION
-	_hit_effect.frame = mini(3, int(floor(progress * 4.0)))
+	var effect_frame := mini(3, int(floor(progress * 4.0)))
+	_hit_effect.frame = effect_frame
+	_pulse_hit_effect.frame = effect_frame
+
+
+func _direction_frame(direction: Vector2) -> int:
+	if direction.y < 0.0 and -direction.y >= absf(direction.x):
+		return 2
+	if absf(direction.x) >= absf(direction.y):
+		return 0 if direction.x > 0.0 else 1
+	return 3
 
 
 func _set_notice(message: String, duration: float) -> void:
@@ -422,6 +619,8 @@ func dodge_status_text() -> String:
 func attack_status_text() -> String:
 	if not _world.is_core_charged():
 		return "工具锁定"
+	if attack_phase == "rifle_recovery":
+		return "步枪冷却"
 	match attack_phase:
 		"windup":
 			return "预备"
@@ -430,14 +629,16 @@ func attack_status_text() -> String:
 		"recovery":
 			return "恢复"
 		_:
-			return "工具就绪"
+			return "%s就绪" % current_weapon_name()
 
 
 func _emit_state_if_changed() -> void:
-	var state_key := "%d/%d|%s|%.2f|%.2f|%s" % [
+	var state_key := "%d/%d|%s|%s|%d|%.2f|%.2f|%s" % [
 		health,
 		max_health,
+		current_weapon,
 		attack_phase,
+		pulse_cell_count(),
 		dodge_cooldown_remaining,
 		invulnerable_remaining,
 		"%s|%s|%s|%s" % [

@@ -284,6 +284,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif is_building_actions_open():
 			close_building_actions()
 		elif pause_menu != null:
+			combat_controller.require_fresh_attack_press()
 			pause_menu.open()
 		get_viewport().set_input_as_handled()
 		return

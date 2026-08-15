@@ -202,6 +202,7 @@ run_godot_checked "slice-reactor" --script "${client_root}/scripts/checks/slice_
 run_godot_checked "slice-combat-package1" --script "${client_root}/scripts/checks/slice_combat_package1_check.gd" --no-header
 run_godot_checked "slice-combat-package2" --script "${client_root}/scripts/checks/slice_combat_package2_check.gd" --no-header
 run_godot_checked "slice-combat-package3" --script "${client_root}/scripts/checks/slice_combat_package3_check.gd" --no-header
+run_godot_checked "slice-ranged-weapon-p3" --script "${client_root}/scripts/checks/slice_ranged_weapon_p3_check.gd" --no-header
 run_godot_checked "slice-first-playable-journey" --script "${client_root}/scripts/checks/slice_first_playable_journey_check.gd" --no-header
 run_godot_checked "slice-logistics" --script "${client_root}/scripts/checks/slice_logistics_check.gd" --no-header
 run_godot_checked "slice-core-logistics" --script "${client_root}/scripts/checks/slice_core_logistics_check.gd" --no-header

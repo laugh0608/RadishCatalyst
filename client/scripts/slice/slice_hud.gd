@@ -6,6 +6,9 @@ extends CanvasLayer
 
 const ACCENT_COLOR := Color("7f92b8")
 const DANGER_COLOR := Color("d85d4d")
+const AMMO_WARNING_COLOR := Color("d6a24f")
+const SECONDARY_TEXT_COLOR := Color("8f9d9d")
+const PRIMARY_TEXT_COLOR := Color("f2f4f2")
 const DIMMED_HUD_COLOR := Color(1.0, 1.0, 1.0, 0.42)
 const ACTIVE_HUD_COLOR := Color.WHITE
 
@@ -39,7 +42,21 @@ var _context_is_dimmed := false
 @onready var notice_accent: ColorRect = $CombatNotice/Accent
 @onready var notice_label: Label = $CombatNotice/Text
 @onready var combat_action_panel: Panel = $CombatActionPanel
-@onready var dodge_action_label: Label = $CombatActionPanel/DodgeAction
+@onready var cutter_action_label: Label = (
+	$CombatActionPanel/CutterSlot/CutterAction
+)
+@onready var cutter_active_line: ColorRect = (
+	$CombatActionPanel/CutterSlot/ActiveLine
+)
+@onready var rifle_action_label: Label = (
+	$CombatActionPanel/RifleSlot/RifleAction
+)
+@onready var rifle_active_line: ColorRect = (
+	$CombatActionPanel/RifleSlot/ActiveLine
+)
+@onready var dodge_action_label: Label = (
+	$CombatActionPanel/DodgeSlot/DodgeAction
+)
 
 
 func setup(world: Node, player: SlicePlayer) -> void:
@@ -80,16 +97,17 @@ func _refresh_state(_changed_value = null) -> void:
 	health_bar.max_value = _world.combat_controller.max_health
 	health_bar.value = _world.combat_controller.health
 	enemy_panel.visible = _world.combat_controller.enemy_hud_visible()
+	var controller: SliceCombatController = _world.combat_controller
+	var rifle_status := controller.pulse_rifle_status_text()
+	combat_label.text = "核心：%s  ·  当前：%s  ·  %s" % [
+		"已充能" if _world.is_core_charged() else "未充能",
+		controller.current_weapon_name(),
+		("步枪%s" % rifle_status if rifle_status == "未持有" else rifle_status),
+	]
+	_refresh_combat_actions(controller)
 	if enemy_panel.visible:
-		combat_label.text = "核心：%s  ·  %s" % [
-			"已充能" if _world.is_core_charged() else "未充能",
-			_world.combat_controller.attack_status_text(),
-		]
-		dodge_action_label.text = (
-			"闪避  ·  %s" % _world.combat_controller.dodge_status_text()
-		)
 		var enemy: SliceFieldEnemy = (
-			_world.combat_controller.field_enemy
+			controller.field_enemy
 		)
 		enemy_label.text = "裂晶爬兽  ·  %s  ·  %d/%d" % [
 			enemy.state_text(),
@@ -98,14 +116,31 @@ func _refresh_state(_changed_value = null) -> void:
 		]
 		enemy_health_bar.max_value = SliceFieldEnemy.MAX_HEALTH
 		enemy_health_bar.value = enemy.health
-	else:
-		combat_label.text = "核心：%s  ·  %s  ·  闪避：%s" % [
-			"已充能" if _world.is_core_charged() else "未充能",
-			_world.combat_controller.attack_status_text(),
-			_world.combat_controller.dodge_status_text(),
-		]
 	goal_label.text = _world.current_journey_goal_text()
 	_refresh_notice()
+
+
+func _refresh_combat_actions(controller: SliceCombatController) -> void:
+	var rifle_selected := (
+		controller.current_weapon
+		== SliceCombatController.WEAPON_PULSE_RIFLE
+	)
+	cutter_active_line.visible = not rifle_selected
+	rifle_active_line.visible = rifle_selected
+	cutter_action_label.text = "切割器  ·  LMB"
+	dodge_action_label.text = "闪避  ·  %s" % controller.dodge_status_text()
+	if not controller.has_pulse_rifle():
+		rifle_action_label.text = "步枪  ·  未持有"
+		rifle_action_label.modulate = SECONDARY_TEXT_COLOR
+		return
+	if controller.pulse_cell_count() <= 0:
+		rifle_action_label.text = "步枪  ·  电池耗尽"
+		rifle_action_label.modulate = AMMO_WARNING_COLOR
+		return
+	rifle_action_label.text = "步枪  ·  电池 %d  ·  LMB" % (
+		controller.pulse_cell_count()
+	)
+	rifle_action_label.modulate = PRIMARY_TEXT_COLOR
 
 
 func _process(_delta: float) -> void:
@@ -212,7 +247,17 @@ func _refresh_notice() -> void:
 		notice_text.begins_with("受到")
 		or notice_text.begins_with("生命归零")
 	)
-	notice_accent.color = DANGER_COLOR if is_danger else ACCENT_COLOR
+	var is_ammo_warning := (
+		notice_text.begins_with("电池耗尽")
+		or notice_text.begins_with("未持有")
+		or notice_text.begins_with("步枪不在")
+		or notice_text.begins_with("步枪已离开")
+	)
+	notice_accent.color = (
+		DANGER_COLOR
+		if is_danger
+		else AMMO_WARNING_COLOR if is_ammo_warning else ACCENT_COLOR
+	)
 	if notice_text.begins_with("受到"):
 		notice_label.text = "%s  ·  生命 %d/%d" % [
 			notice_text,
@@ -250,6 +295,7 @@ func _set_context_weight(dimmed: bool) -> void:
 		player_status_panel,
 		enemy_panel,
 		notice_panel,
+		combat_action_panel,
 	]:
 		component.modulate = hud_color
 

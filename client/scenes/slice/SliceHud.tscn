@@ -447,25 +447,34 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -270.0
+offset_left = -410.0
 offset_top = -96.0
-offset_right = 270.0
+offset_right = 550.0
 offset_bottom = -18.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 0
 theme_override_styles/panel = ExtResource("8_hud_shell")
 
-[node name="AttackKey" type="Panel" parent="CombatActionPanel"]
+[node name="CutterSlot" type="Panel" parent="CombatActionPanel"]
 layout_mode = 0
-offset_left = 14.0
-offset_top = 13.0
-offset_right = 86.0
-offset_bottom = 65.0
+offset_left = 12.0
+offset_top = 9.0
+offset_right = 298.0
+offset_bottom = 69.0
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("9_hud_surface")
+
+[node name="Key" type="Panel" parent="CombatActionPanel/CutterSlot"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 7.0
+offset_right = 56.0
+offset_bottom = 53.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleKeycap")
 
-[node name="Label" type="Label" parent="CombatActionPanel/AttackKey"]
+[node name="Label" type="Label" parent="CombatActionPanel/CutterSlot/Key"]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -473,42 +482,104 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("2_ui_theme")
 theme_override_colors/font_color = Color(0.067, 0.102, 0.122, 1)
-theme_override_font_sizes/font_size = 17
-text = "LMB"
+theme_override_font_sizes/font_size = 20
+text = "1"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="AttackAction" type="Label" parent="CombatActionPanel"]
+[node name="CutterAction" type="Label" parent="CombatActionPanel/CutterSlot"]
 layout_mode = 0
-offset_left = 98.0
-offset_top = 13.0
-offset_right = 218.0
-offset_bottom = 65.0
+offset_left = 68.0
+offset_top = 6.0
+offset_right = 276.0
+offset_bottom = 54.0
 theme = ExtResource("2_ui_theme")
 theme_override_colors/font_color = Color(0.949, 0.957, 0.949, 1)
-theme_override_font_sizes/font_size = 19
-text = "工具攻击"
+theme_override_font_sizes/font_size = 18
+text = "切割器  ·  LMB"
 vertical_alignment = 1
 
-[node name="Divider" type="ColorRect" parent="CombatActionPanel"]
+[node name="ActiveLine" type="ColorRect" parent="CombatActionPanel/CutterSlot"]
 layout_mode = 0
-offset_left = 236.0
-offset_top = 16.0
-offset_right = 237.0
-offset_bottom = 62.0
+offset_left = 8.0
+offset_top = 56.0
+offset_right = 278.0
+offset_bottom = 59.0
 mouse_filter = 2
-color = Color(0.259, 0.329, 0.365, 1)
+color = Color(0.498, 0.573, 0.722, 1)
 
-[node name="DodgeKey" type="Panel" parent="CombatActionPanel"]
+[node name="RifleSlot" type="Panel" parent="CombatActionPanel"]
 layout_mode = 0
-offset_left = 256.0
-offset_top = 13.0
-offset_right = 352.0
-offset_bottom = 65.0
+offset_left = 310.0
+offset_top = 9.0
+offset_right = 658.0
+offset_bottom = 69.0
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("9_hud_surface")
+
+[node name="Key" type="Panel" parent="CombatActionPanel/RifleSlot"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 7.0
+offset_right = 56.0
+offset_bottom = 53.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleKeycap")
 
-[node name="Label" type="Label" parent="CombatActionPanel/DodgeKey"]
+[node name="Label" type="Label" parent="CombatActionPanel/RifleSlot/Key"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_ui_theme")
+theme_override_colors/font_color = Color(0.067, 0.102, 0.122, 1)
+theme_override_font_sizes/font_size = 20
+text = "2"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RifleAction" type="Label" parent="CombatActionPanel/RifleSlot"]
+layout_mode = 0
+offset_left = 68.0
+offset_top = 6.0
+offset_right = 338.0
+offset_bottom = 54.0
+theme = ExtResource("2_ui_theme")
+theme_override_colors/font_color = Color(0.949, 0.957, 0.949, 1)
+theme_override_font_sizes/font_size = 18
+text = "步枪  ·  未持有"
+vertical_alignment = 1
+
+[node name="ActiveLine" type="ColorRect" parent="CombatActionPanel/RifleSlot"]
+visible = false
+layout_mode = 0
+offset_left = 8.0
+offset_top = 56.0
+offset_right = 340.0
+offset_bottom = 59.0
+mouse_filter = 2
+color = Color(0.498, 0.573, 0.722, 1)
+
+[node name="DodgeSlot" type="Panel" parent="CombatActionPanel"]
+layout_mode = 0
+offset_left = 670.0
+offset_top = 9.0
+offset_right = 948.0
+offset_bottom = 69.0
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("9_hud_surface")
+
+[node name="Key" type="Panel" parent="CombatActionPanel/DodgeSlot"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 7.0
+offset_right = 92.0
+offset_bottom = 53.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleKeycap")
+
+[node name="Label" type="Label" parent="CombatActionPanel/DodgeSlot/Key"]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -521,14 +592,14 @@ text = "Space"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="DodgeAction" type="Label" parent="CombatActionPanel"]
+[node name="DodgeAction" type="Label" parent="CombatActionPanel/DodgeSlot"]
 layout_mode = 0
-offset_left = 366.0
-offset_top = 13.0
-offset_right = 522.0
-offset_bottom = 65.0
+offset_left = 104.0
+offset_top = 6.0
+offset_right = 268.0
+offset_bottom = 54.0
 theme = ExtResource("2_ui_theme")
 theme_override_colors/font_color = Color(0.949, 0.957, 0.949, 1)
-theme_override_font_sizes/font_size = 19
-text = "闪避"
+theme_override_font_sizes/font_size = 18
+text = "闪避  ·  就绪"
 vertical_alignment = 1

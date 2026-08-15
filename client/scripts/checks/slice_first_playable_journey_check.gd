@@ -417,8 +417,9 @@ func _check_contrast_panels(hud: SliceHud) -> void:
 	_expect_equal(
 		hud.enemy_health_bar != null
 		and hud.get_node("PromptPanel/PromptKey") is Panel
-		and hud.get_node("CombatActionPanel/AttackKey") is Panel
-		and hud.get_node("CombatActionPanel/DodgeKey") is Panel
+		and hud.get_node("CombatActionPanel/CutterSlot/Key") is Panel
+		and hud.get_node("CombatActionPanel/RifleSlot/Key") is Panel
+		and hud.get_node("CombatActionPanel/DodgeSlot/Key") is Panel
 		and hud.get_node("CombatNotice/Accent") is ColorRect,
 		true,
 		"conditional combat and interaction components use bars, keycaps and accents"
