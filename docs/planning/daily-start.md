@@ -1,79 +1,62 @@
 # Daily Start
 
-更新时间：2026-08-15
+更新时间：2026-08-17
 
 ## 用途
 
-当提示是“根据项目规划和开发进度，今天要来做什么以推进开发”时，优先阅读本文。阶段方向与边界以 [Current Plan](current.md) 为准，详细历史留在 W32 / W33 周志和功能专题。
+当提示是“根据项目规划和开发进度，今天要来做什么以推进开发”时，先读本文，再读 [Current Plan](current.md) 与当前活跃专题。历史实现与验证留在 W31—W33 周志。
 
 ## 当前阶段
 
-阶段：第一可玩切片阶段验收与下一阶段立项。
+阶段：第一可玩切片首轮试玩反馈整改设计与实施。
 
-- 真实新档自动、正式入口和萝卜SAMA人工完整全链均已通过，最终状态为 `delivered / 120`。
-- 陌生玩家盲测已冻结：玩家可见补强已经完成，但当前版本尚未形成一份连续的无人指导阶段验收证据。
-- 图形化制造 / 背包与统一设备面板均已人工收口。
-- [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md) 与 [游戏本体 UI 视觉定稿 V1](../features/slice-game-ui-visual-finalization-v1.md) 已完成并人工收口。
-- [远程武器与工业供弹 V1](../features/slice-ranged-weapon-and-industrial-ammunition-v1.md)、[破损核心视觉家族 V1](../features/slice-damaged-core-visual-family-v1.md)与[首程引导与探索小地图 V1](../features/slice-first-journey-guidance-and-exploration-map-v1.md)均已人工收口。
-- [设备—传送带接驳视觉 V1](../features/slice-device-conveyor-docking-visual-v1.md) 的反应器与核心代表分面均已人工通过；采集器和储物箱只在后续实机暴露同类遮挡时按已验证合同复核。
-- [分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md) 与 [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md) 的联合包 2 / 3 已提交，包 3 / 4 / 5 均获人工通过；包 5 的自动、正式入口和 AI 逐图复核证据已完整保留。
+- 2026-08-16 连续试玩暴露 19 项玩家问题；既有 `delivered / 120` 全链仍是功能基线，但阶段验收结论已撤回，陌生玩家盲测继续冻结。
+- 当前活跃专题为[试玩反馈整改 V1](../features/slice-playtest-remediation-v1.md)，已完成问题归因、《终末地》参考 UI 快速审阅、源码玩家体验审计和五包整改排期。
+- 本轮尚未修改客户端；在萝卜SAMA确认专题边界前，不启动包 0、不启动 Godot。
+- schema 9、多世界存档、二值供电、实体物流、首次战斗与探索小地图继续作为回归基线，不重复造系统。
 
-## 近期基线
+## 2026-08-16 已完成
 
-- 7 月底已完成真实新档 `delivered / 120` 全链、20—40 分钟人工计时、鼠标放置、设备端口与图形化制造 / 背包；历史细节见 W31 周志。
-- 视觉失败轮按闸门停止后改用 `1:1` 原生网格重投影，世界设备、UI 结构、接驳代表分面和 P2-A—P2-E 已于 8 月 13 日前人工收口。
-- schema 8 已稳定承载分类库存、双模式储物箱、固定正面设备、实体物流和真实二值供电线；当前 schema 9 只追加首程旗标与探索图。
-- 现行电网仍为二值可达模型，没有发电容量、设备负荷、储能或过载状态。
+1. 把原始反馈整理为 R01—R11、R13—R20，保留缺失的原编号 12，避免后续对照错位。
+2. 代码确认传送带阻挡、层级、反应器足印 / 贴图、采集器端口地表冲突、制造后自动放置、容量 `10`、地板 `1 → 4`、中继 `6 / 4`、空物品默认展示和核心仅换色等根因。
+3. 快速审阅参考图库中的任务、制造 / 放置、角色装备、背包仓库、设备容器、工业俯瞰和生产链路，提炼“状态分离、容器并排、直接操纵、强层级、结果可诊断”五项可移植原则。
+4. 追加发现每发步枪同步完整存档、设置页占位、输电线常驻、传送带不能拖铺、储物箱无线回传语义、小地图持续渲染和 HUD 绝对偏移等高频游玩风险。
+5. 确认 `SliceWorld` 为 1499 行；后续包不得再向世界编排器追加业务分支，包 0 必须先处理保存调度和职责边界。
 
-## 2026-08-15 日终
+## 下一步
 
-1. P1 已收口：完整人物四向 sheet 与弹体 / 枪口 / 命中特效家族均获人工通过，失败的删臂 + 覆盖层介质不再恢复。
-2. P2 已完成充能解锁、制造、跨库存唯一、电池上限、手动转移和 schema 2–8 兼容验证；完整 Godot、正式 `Boot` `41` 项、一个主档、三份备份和五张截图均已保留。
-3. 独立步枪图标已替换人物持枪帧并获人工通过；P3 随后完成 `1 / 2` 切换、左键当前武器、即时耗弹、固定弹体、首个敌人命中与三格战斗 HUD。
-4. P3 精准 Godot `87` 项、完整回归与正式 `Boot` `55` 项通过；六张原图及十二张低饱和 / 灰阶派生图确认无 HUD 互叠、截断或主体遮挡。萝卜SAMA于 2026-08-15 授权提交并确认专题收口；有限电力和陌生玩家盲测仍须经下一次阶段闸门决定是否解冻。
-5. 旧 `103×93px` 破损核心已替换为 V5 同族 `144×128px` 原生双态；核心专项 `98` 项、完整回归、正式 `Boot` `33` 项和九张复核图通过并获人工收口。
-6. 五步首程引导、右下小地图、进度情报 + `64px` 行走揭雾及 schema 9 已人工收口；今日玩家可见专题全部结束。
+待萝卜SAMA确认专题后，按以下顺序推进，不直接从 UI 换色或批量动画开工：
 
-## 2026-08-16 明日事项
-
-1. 以 [第一可玩切片全链串通](../features/slice-first-playable-journey-v1.md)为阶段专题，从正式 `Boot` 真实新档复核终端配方、探索、核心修复、自动化产线、首次充能、步枪补给与战斗、样本交付、`120` 生命和保存重载。
-2. 按 20—40 分钟、无人指导理解、正式像素画面与 HUD、零不可逆卡死、存读连续性五条退出标准记录时间、输入、存档与关键截图，形成阶段证据矩阵。
-3. 把 `SliceWorld` 1499 行作为架构闸门同步审阅；不再向世界编排器追加业务分支，下一专题涉及新协调逻辑时先确定职责提取方案。
-4. 验收通过后再申请解冻一次受控陌生玩家盲测；若发现阻断，按玩家结果、职责边界和验收建立明确收尾专题。第一可玩阶段关闭后，再立项下一能力专题。
-5. 明日启动 Godot、`--with-godot` 或正式有窗口复核前，先告知萝卜SAMA。
+1. 包 0：冻结地表 / 设备 / 角色层级，统一足印 / 碰撞 / 端口 / 过渡格合同，提取保存调度，建立专项与双比例截图基线。
+2. 包 1：优先修复 Demo 完成态、传送带通行与排序、反应器和设备边界、采集器真实物流及射击存档节流。
+3. 包 2：修复制造停留、完整材料缺口、采集器 `50`、地板 / 中继数值和最小角色装备页。
+4. 包 3：统一“仅持有 + 全部平铺 / 分类筛选 + 背包与目标容器拖拽”。
+5. 包 4：处理 HUD 安全区、字号 / 明度、核心四状态、设备动画 / 音效和上下文电力叠层。
 
 ## 防跑偏规则
 
-- 玩家可见开发先有 `docs/features/` 专题和决策闸门，再进入代码、素材和场景接入。
-- 视觉问题按玩家结果、场景组织、系统连接、资产家族、UI 结构、色彩数值、装饰依次归因；游戏本体不再参考 Radish 家族 UI，不能从透明度、边框、全局换色或增加装饰开始。
-- 储物箱已成为二值电网消费者，但不引入发电容量、负荷或储能；schema 9 只在 schema 8 上增加两个首程旗标与 480 位探索图，后续不得拆分回滚或追加无关字段。
-- 玩家可见结果以正式 `Boot` 实机截图和人工路径为主证据，自动检查只兜底。
+- 不把“样本交付后没任务”解释为立即扩第二段剧情；先给明确 Demo 完成态与自由建设入口。
+- 不用接驳贴片、长提示或更大碰撞掩盖空间合同错误；先统一设备基座、外接格和地表规则。
+- 不照搬《终末地》的体量、移动端 HUD、角色编队或完整工业简报，只借用信息架构原则。
+- 不在旧布局上先批量生成动画或音频；代表设备必须逐个通过世界画面人工复核。
+- 玩家可见目标以正式 `Boot`、实机截图与人工路径为主证据，自动检查只兜底。
 
 ## 当前不做
 
-- 陌生玩家盲测、多人试玩、试玩分发、打包或发布。
-- 敌潮、复杂 Boss、技能树、联机、新敌人、新配方、新建筑或新地图。
-- 立绘对话、八方向动画、viewport 重构、旧地图 / 旧 `GameRoot` / 旧三槽存档复活和无关重构。
+- 新地图、新敌人、后续剧情任务、新建筑 / 配方、Boss、技能树、联机和完整有限电力。
+- 陌生玩家盲测、试玩分发、打包或发布。
+- 立绘对话、八方向动画、全屏地图、完整按键重映射和基地级工业总览。
 
 ## 继续前必读
 
 - [Current Plan](current.md)
-- [视觉层级与色彩分离 V1](../features/slice-visual-hierarchy-and-color-separation-v1.md)
-- [游戏本体 UI 视觉定稿 V1](../features/slice-game-ui-visual-finalization-v1.md)
-- [远程武器与工业供弹 V1](../features/slice-ranged-weapon-and-industrial-ammunition-v1.md)
-- [首程引导与探索小地图 V1](../features/slice-first-journey-guidance-and-exploration-map-v1.md)
-- [设备—传送带接驳视觉 V1](../features/slice-device-conveyor-docking-visual-v1.md)
-- [世界设备家族接入 V1](../features/slice-world-device-family-integration-v1.md)
-- [分类库存与通电储物箱 V1](../features/slice-category-inventory-and-powered-storage-v1.md)
+- [试玩反馈整改 V1](../features/slice-playtest-remediation-v1.md)
 - [第一可玩切片全链串通](../features/slice-first-playable-journey-v1.md)
-- [Visual And UI Direction](../product/visual-and-ui-direction.md)
-- [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)
-- [Visual Direction Decision Framework](../reference/visual-direction-decision-framework.md)
 - [Development Decision Gates](../process/development-decision-gates.md)
-- [L3 建造与二值电网](../features/slice-building-placement-and-power-grid-v1.md)
-- [设备操作面板统一 V1](../features/slice-unified-device-operation-panels-v1.md)
+- [Godot Runtime Verification Guide](../reference/godot-runtime-verification-guide.md)
+- [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)
 
 ## 验证入口
 
 - 文档：`./scripts/check-docs.sh`、`./scripts/check-text-files.sh`、`git diff --check`。
-- 代码与素材：`sh ./scripts/check-client.sh`；玩家可见改动按 [Godot Runtime Verification Guide](../reference/godot-runtime-verification-guide.md) 补正式入口、截图和人工复核。
+- 代码：`sh ./scripts/check-client.sh`；启动 Godot、`--with-godot` 或有窗口复核前先告知萝卜SAMA。
