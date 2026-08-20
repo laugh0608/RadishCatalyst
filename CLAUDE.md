@@ -20,6 +20,18 @@
 
 ## 常用命令
 
+### 仓库治理统一检查
+
+```powershell
+pwsh ./scripts/check-repo.ps1
+```
+
+```bash
+./scripts/check-repo.sh
+```
+
+用途：统一检查治理文件和模板合同、活跃 Markdown 相对链接、JSON、文本与文档卫生、客户端静态数据与场景引用、检查器单元测试和 diff 空白；传入 `--base-ref` / `-BaseRef` 时额外检查 PR 提交信息与范围 diff。`docs/archive/` 保留历史原貌，不纳入当前链接合同。
+
 ### 仓库卫生检查
 
 ```powershell
@@ -80,7 +92,7 @@ Godot 官方命令行提供 `--import`、`--script` 和脚本级 `--check-only` 
 
 当前验证重点和默认验证基线以 `docs/planning/current.md` 为准；脚本具体覆盖范围以脚本实现为准。
 
-涉及客户端状态、任务、存档、场景或脚本时，优先执行对应平台的默认 `check-client` 入口；涉及 `docs/`、根 `README.md`、`AGENTS.md` 或 `CLAUDE.md` 时，加跑对应平台的 `check-docs`；提交前仍需按范围执行对应平台的 `check-text-files` 和 `git diff --check`。
+提交前先执行对应平台的 `check-repo`；涉及客户端状态、任务、存档、场景或脚本时，再执行默认 `check-client`。玩家可见改动仍须按风险补 Godot 正式入口、截图与人工路径证据。
 
 ## 文档真相源
 
@@ -169,7 +181,7 @@ Godot 官方命令行提供 `--import`、`--script` 和脚本级 `--check-only` 
 - 若默认分支无法快进回 `dev`，先检查分支图，再以普通 merge 回流；禁止通过 reset、rebase 或 force push 重写共享 `dev` 历史。
 - 远端分支保护、合并策略、稳定主线 PR 目标和阶段性例外以 ADR 与仓库实际设置为准。
 - 目标为 `dev`、`master` 或 `main` 的 Pull Request 自动运行 `PR Checks`；普通 `push -> dev` 不触发，`dev` 当前不要求 required checks。
-- 默认分支 PR 的 `Repo Hygiene` CI 覆盖文本卫生、文档篇幅、客户端静态数据、客户端场景引用和提交 diff 空白检查；需要启动 Godot 的运行时验证仍按改动范围在本地或手动流程执行。
+- 默认分支 PR 的 `Repo Hygiene` CI 通过 `check-repo` 覆盖治理合同、活跃 Markdown 相对链接、文本与文档卫生、客户端静态数据、场景引用、检查器单元测试、提交信息和 PR diff 空白；`docs/archive/` 不纳入当前链接合同；需要启动 Godot 的运行时验证仍按改动范围在本地或手动流程执行。
 
 ## AI 执行边界
 
@@ -177,6 +189,7 @@ Godot 官方命令行提供 `--import`、`--script` 和脚本级 `--check-only` 
 
 - 读取和修改仓库内代码、文档、配置。
 - `git status`、`git diff`、`git log` 等只读 Git 操作。
+- `pwsh ./scripts/check-repo.ps1`、`./scripts/check-repo.sh`。
 - `pwsh ./scripts/check-text-files.ps1`、`./scripts/check-text-files.sh`。
 - `pwsh ./scripts/check-docs.ps1`、`./scripts/check-docs.sh`。
 - `pwsh ./scripts/check-client.ps1`、`sh ./scripts/check-client.sh` 及不启动 Godot 的单项客户端检查脚本。

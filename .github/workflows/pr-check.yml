@@ -6,6 +6,7 @@ on:
       - dev
       - master
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -24,23 +25,16 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - name: Check text files
+      - name: Check repository baseline
         shell: bash
-        run: ./scripts/check-text-files.sh
-
-      - name: Check docs
-        shell: bash
-        run: ./scripts/check-docs.sh
-
-      - name: Check client static data
-        shell: bash
-        run: python3 scripts/check-client-data.py .
-
-      - name: Check client scene references
-        shell: bash
-        run: python3 scripts/check-client-scenes.py .
-
-      - name: Check committed diff whitespace
-        shell: bash
-        run: git diff --check "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}"
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [[ -n "${BASE_SHA}" ]]; then
+            ./scripts/check-repo.sh --base-ref "${BASE_SHA}"
+          else
+            ./scripts/check-repo.sh
+          fi

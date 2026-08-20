@@ -99,6 +99,7 @@ macOS / Linux / Git Bash / zsh 可执行：
 - [Development Decision Gates](process/development-decision-gates.md)
 - [Architecture Decision Records](adr/README.md)
 - [Development Logs](devlogs/README.md)
+- [参与贡献](../CONTRIBUTING.md)；另见[社区行为准则](../CODE_OF_CONDUCT.md)与[安全策略](../SECURITY.md)
 
 ## Reference Documents
 

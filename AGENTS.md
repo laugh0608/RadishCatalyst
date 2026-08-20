@@ -111,11 +111,23 @@
 - 若默认分支无法快进回 `dev`，先检查分支图，再以普通 merge 回流；禁止通过 reset、rebase 或 force push 重写共享 `dev` 历史。
 - 远端分支保护、合并策略、稳定主线 PR 目标和阶段性例外以 ADR 与仓库实际设置为准。
 - 目标为 `dev`、`master` 或 `main` 的 Pull Request 自动运行 `PR Checks`；普通 `push -> dev` 不触发，`dev` 当前不要求 required checks。
-- 默认分支 PR 的 `Repo Hygiene` CI 覆盖文本卫生、文档篇幅、客户端静态数据、客户端场景引用和提交 diff 空白检查；需要启动 Godot 的运行时验证仍按改动范围在本地或手动流程执行。
+- 默认分支 PR 的 `Repo Hygiene` CI 通过 `check-repo` 覆盖治理合同、活跃 Markdown 相对链接、文本与文档卫生、客户端静态数据、场景引用、检查器单元测试、提交信息和 PR diff 空白；`docs/archive/` 不纳入当前链接合同；需要启动 Godot 的运行时验证仍按改动范围在本地或手动流程执行。
 
 ## 验证与检查约定
 
 当前验证重点和默认验证基线以 `docs/planning/current.md` 为准；脚本具体覆盖范围以脚本实现为准。
+
+仓库治理统一入口：
+
+```powershell
+pwsh ./scripts/check-repo.ps1
+```
+
+```bash
+./scripts/check-repo.sh
+```
+
+该入口覆盖必需治理文件、Issue / PR / workflow / ruleset 合同、活跃 Markdown 相对链接、JSON、文本卫生、文档篇幅、客户端静态数据与场景引用、检查器单元测试和 diff 空白；传入 `--base-ref` / `-BaseRef` 时额外检查 PR 提交信息与范围 diff。`docs/archive/` 保留历史原貌，不纳入当前链接合同。
 
 仓库文本卫生入口：
 
@@ -175,7 +187,7 @@ Godot 官方命令行提供 `--import`、`--script` 和脚本级 `--check-only` 
 - 每包把断言数、正式入口路径、截图文件名和视觉复核结论写入当周周志。一次性验证脚本默认留在忽略提交的 `tools/runtime-intake/`；形成稳定通用回归价值后再迁入正式 `scripts/` 或客户端检查入口。
 - 启动 Godot、有窗口测试或 `--with-godot` 前仍须先告知萝卜SAMA；纯文档、内部重构或不影响玩家可见行为的单点修正可按风险省略截图，但需执行匹配的最小验证。
 
-提交前按改动范围至少执行匹配的最小验证；涉及客户端状态、任务、存档、场景或脚本时，优先执行对应平台的默认 `check-client` 入口，再执行对应平台的 `check-text-files` 和 `git diff --check`。涉及 `docs/`、根 `README.md`、`AGENTS.md` 或 `CLAUDE.md` 时，额外执行对应平台的 `check-docs`。
+提交前先执行对应平台的 `check-repo`；涉及客户端状态、任务、存档、场景或脚本时，再执行默认 `check-client`。玩家可见改动仍须按风险补 Godot 正式入口、截图与人工路径证据。
 
 如果未来加入 Godot 导出配置、脚本静态检查或更多自动化测试入口，应同步更新脚本、`docs/`、`AGENTS.md`、`CLAUDE.md` 和 CI。
 
@@ -185,6 +197,7 @@ Godot 官方命令行提供 `--import`、`--script` 和脚本级 `--check-only` 
 
 - 读取和修改仓库内代码、文档、配置。
 - `git status`、`git diff`、`git log` 等只读 Git 操作。
+- `pwsh ./scripts/check-repo.ps1`、`./scripts/check-repo.sh`。
 - `pwsh ./scripts/check-text-files.ps1`、`./scripts/check-text-files.sh`。
 - `pwsh ./scripts/check-docs.ps1`、`./scripts/check-docs.sh`。
 - `pwsh ./scripts/check-client.ps1`、`sh ./scripts/check-client.sh` 及不启动 Godot 的单项客户端检查脚本。

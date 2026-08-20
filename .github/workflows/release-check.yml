@@ -25,28 +25,8 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Check text files
+      - name: Check repository baseline
         shell: bash
-        run: ./scripts/check-text-files.sh
-
-      - name: Check docs
-        shell: bash
-        run: ./scripts/check-docs.sh
-
-      - name: Check client static data
-        shell: bash
-        run: python3 scripts/check-client-data.py .
-
-      - name: Check client scene references
-        shell: bash
-        run: python3 scripts/check-client-scenes.py .
-
-      - name: Check latest committed diff whitespace
-        shell: bash
-        run: |
-          if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
-            git diff --check HEAD^ HEAD
-          else
-            git diff --check "$(git hash-object -t tree /dev/null)" HEAD
-          fi
+        run: ./scripts/check-repo.sh

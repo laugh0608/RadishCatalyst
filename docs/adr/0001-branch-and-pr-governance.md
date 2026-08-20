@@ -1,6 +1,6 @@
 # ADR 0001: Branch And PR Governance
 
-更新时间：2026-08-18
+更新时间：2026-08-20
 
 ## 状态
 
@@ -53,7 +53,7 @@ RadishCatalyst 是刚初始化的新仓库，当前重点不是堆功能，而�
 
 - 禁止直接 push。
 - 必须通过 PR 合并。
-- 必须通过仓库检查；默认分支 PR 的 `Repo Hygiene` 覆盖文本卫生、文档篇幅、客户端静态数据、客户端场景引用和提交 diff 空白检查。
+- 必须通过仓库检查；默认分支 PR 的 `Repo Hygiene` 由统一 `check-repo` 覆盖治理合同、活跃 Markdown 相对链接、文本与文档卫生、客户端静态基线、检查器单元测试、提交信息和 PR diff 空白；归档历史不纳入当前链接合同。
 - 单人维护阶段不要求额外审批，但仍要求已解决会话。
 - 允许 `merge commit` 与 `rebase merge`，禁用 `squash merge`；阶段 PR 优先使用 `merge commit`，若使用 rebase merge，则承担普通 merge 回流 `dev` 的拓扑成本。
 - 管理员仅可通过 PR 方式绕过规则。
@@ -83,10 +83,17 @@ RadishCatalyst 是刚初始化的新仓库，当前重点不是堆功能，而�
 ## 仓库内已落地的支撑项
 
 - PR 模板：`.github/PULL_REQUEST_TEMPLATE.md`
+- Issue Forms 与安全入口：`.github/ISSUE_TEMPLATE/`
+- 社区治理入口：`CONTRIBUTING.md`、`CODE_OF_CONDUCT.md`、`SECURITY.md`
 - GitHub Actions PR 检查工作流：`.github/workflows/pr-check.yml`
 - Release / 手动检查工作流：`.github/workflows/release-check.yml`
 - 默认分支 ruleset 模板：`.github/rulesets/master-protection.json`
 - ruleset 说明：`.github/rulesets/README.md`
+- 统一仓库治理检查：
+  - `scripts/check-repo.py`
+  - `scripts/check-repo.ps1`
+  - `scripts/check-repo.sh`
+  - `scripts/tests/test_check_repo.py`
 - 文本编码与文件格式检查脚本：
   - `scripts/check-text-files.ps1`
   - `scripts/check-text-files.sh`
@@ -97,7 +104,7 @@ RadishCatalyst 是刚初始化的新仓库，当前重点不是堆功能，而�
   - `scripts/check-client.ps1`
   - `scripts/check-client.sh`
 
-当前默认分支 PR 的 CI 强制仓库卫生、文档篇幅、客户端静态数据、客户端场景引用和提交 diff 空白检查。默认 `check-client` 不启动 Godot；需要 Godot 可执行文件的运行时验证按改动范围在本地或手动流程显式执行，等 GitHub runner 上 Godot 环境稳定后再评估是否纳入必过 CI。
+当前默认分支 PR 的 CI 通过统一入口强制治理文件与模板合同、活跃 Markdown 相对链接、JSON、文本卫生、文档篇幅、客户端静态数据、场景引用、检查器单元测试、Conventional Commits 和提交 diff 空白。默认 `check-client` 不启动 Godot；需要 Godot 可执行文件的运行时验证按改动范围在本地或手动流程显式执行，等 GitHub runner 上 Godot 环境稳定后再评估是否纳入必过 CI。
 
 ## 影响
 
