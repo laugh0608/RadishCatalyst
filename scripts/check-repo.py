@@ -41,10 +41,13 @@ REQUIRED_FILES = (
     "docs/README.md",
     "docs/adr/0001-branch-and-pr-governance.md",
     "docs/planning/current.md",
+    "docs/process/agent-collaboration.md",
+    "docs/process/image-generation-and-review-workflow.md",
     "scripts/check-repo.ps1",
     "scripts/check-repo.py",
     "scripts/check-repo.sh",
     "scripts/tests/test_check_repo.py",
+    "scripts/tests/test_check_docs.py",
 )
 
 FORBIDDEN_DIRECTORY_NAMES = {"__pycache__", "node_modules"}
@@ -279,9 +282,14 @@ def check_agent_contract(repo_root: Path, errors: list[str]) -> None:
         if not path.is_file():
             continue
         text = path.read_text(encoding="utf-8")
-        for fragment in ("./scripts/check-repo.sh", "pwsh ./scripts/check-repo.ps1"):
+        for fragment in (
+            "./scripts/check-repo.sh",
+            "pwsh ./scripts/check-repo.ps1",
+            "docs/process/agent-collaboration.md",
+            "docs/process/image-generation-and-review-workflow.md",
+        ):
             if fragment not in text:
-                errors.append(f"{name} is missing unified repository check: {fragment}")
+                errors.append(f"{name} is missing Agent root contract: {fragment}")
 
 
 def check_diff(repo_root: Path, base_ref: str | None, errors: list[str]) -> None:

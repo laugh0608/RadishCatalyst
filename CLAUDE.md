@@ -1,326 +1,95 @@
-# CLAUDE.md
+# CLAUDE 指南
 
-本文件为 Claude Code 在 RadishCatalyst 仓库中工作时的指导。
+本文件为 Claude Code 提供 RadishCatalyst 项目的启动级长期约束。
 
-## 称呼
+## 定位与优先级
 
-- 对话开始或结束总结时，请称呼我为 `萝卜SAMA`
+- `docs/` 是项目正式文档源；本文件只保留跨任务、跨阶段且必须在任务开始时生效的约束，不承载当前阶段、临时门禁、历史记录或专题实现细节。
+- 当前阶段、优先级、冻结项、“当前不做”和退出条件以 [Current Plan](docs/planning/current.md) 及其当前活跃专题为准。
+- 萝卜SAMA在当前任务中的明确要求优先于仓库默认流程；若要求会改变架构、规则、接口、依赖、验证基线或运行时边界，仍应先说明影响并确认范围。
+- 只读取当前任务需要的文档；除追溯历史事实外，不默认展开 `docs/archive/` 或旧专题。
 
-## 项目长期定位
+## 称呼与语言
 
-`RadishCatalyst / 异星催化` 是一个以异星化工基地、人物探索战斗、角色成长和后续协作联机为核心方向的像素风 2D 俯视工业科幻 ARPG。
-
-当前阶段、短期重点、当前不做和阶段退出条件以 `docs/planning/current.md` 及其当前活跃专题为准。
-
-语言规范：
-
-- 默认使用中文进行讨论、说明、提交总结和开发日志记录。
+- 对话开始或结束总结时，请称呼项目所有者为 `萝卜SAMA`。
+- 默认使用中文讨论、说明、编写文档和记录开发日志。
 - 代码、命令、路径、配置键、类型名、接口名和外部产品名保留原文。
-- 新增文档正文默认使用中文；文件名、目录名和稳定锚点优先使用英文。
-
-## 常用命令
-
-### 仓库治理统一检查
-
-```powershell
-pwsh ./scripts/check-repo.ps1
-```
-
-```bash
-./scripts/check-repo.sh
-```
-
-用途：统一检查治理文件和模板合同、活跃 Markdown 相对链接、JSON、文本与文档卫生、客户端静态数据与场景引用、检查器单元测试和 diff 空白；传入 `--base-ref` / `-BaseRef` 时额外检查 PR 提交信息与范围 diff。`docs/archive/` 保留历史原貌，不纳入当前链接合同。
-
-### 仓库卫生检查
-
-```powershell
-pwsh ./scripts/check-text-files.ps1
-```
-
-```bash
-./scripts/check-text-files.sh
-```
-
-用途：仓库文本卫生。
-
-### 文档篇幅检查
-
-```powershell
-pwsh ./scripts/check-docs.ps1
-```
-
-```bash
-./scripts/check-docs.sh
-```
-
-用途：检查 `docs/` 入口文档硬上限与其他文档的篇幅预算告警。
-
-### 客户端默认检查
-
-```powershell
-pwsh ./scripts/check-client.ps1
-```
-
-```bash
-sh ./scripts/check-client.sh
-```
-
-用途：客户端静态数据和场景引用检查，默认不启动 Godot。
-
-需要工程导入或运行项目自定义 GDScript 检查时，确认本机 Godot 可启动后再显式执行：
-
-```powershell
-pwsh ./scripts/check-client.ps1 -WithGodot
-```
-
-```bash
-sh ./scripts/check-client.sh --with-godot
-```
-
-Godot 官方命令行提供 `--import`、`--script` 和脚本级 `--check-only` 等能力，但没有仓库级通用项目检查接口；本仓库的 Godot 运行时验证是通过项目自定义 GDScript 检查脚本实现。
-
-### Godot 正式入口与截图自动化（玩家可见功能强制）
-
-- 涉及玩法、交互、HUD、场景、状态反馈或存读结果的玩家可见改动，默认 `check-client` 与纯 headless 断言不能单独作为完成证据；必须按 `docs/reference/godot-runtime-verification-guide.md` 补正式入口运行时验证。
-- 逻辑层使用仓库内忽略提交的 `tools/runtime-intake/YYYY-MM-DD-<topic>/` 存放一次性 `extends SceneTree` GDScript，从真实 `Boot` 入口模拟正式按钮 / 输入动作；隔离存档、日志与人工复核数据放在同批次子目录，不得写入用户正式存档。需要渲染的目标必须有窗口运行，调用 viewport 自动抓图，不能以 headless 代替截图。
-- 自动检查、临时验证和人工复测存档必须统一留在仓库内忽略提交的 `tools/runtime-intake/`：自动运行使用 `check-runs/<topic>/`，稳定人工档使用 `review-worlds/current/` 或 `review-worlds/<topic>/`；不得写入 `/tmp`、系统临时目录或工作区外的临时路径。生产版 `user://saves/slice/` 不受此规则影响。
-- 面向人工复核的自动化验证可在开跑前清理自己的隔离测试目录以建立干净基线，但通过后不得删除最终测试存档；应保留可直接载入的主档 / 备份档，报告绝对路径与复核状态，不覆盖或污染用户正式存档。只有纯破坏性 / 迁移失败测试或萝卜SAMA明确要求时才清理。
-- 截图保存到忽略提交的 `assets/art-intake/YYYY-MM-DD-<topic>-preview/`，自动脚本退出后必须实际查看截图，核对主体、HUD、遮挡、文字截断与状态一致性；“文件成功写出”不等于视觉通过。
-- 每包把断言数、正式入口路径、截图文件名和视觉复核结论写入当周周志。一次性验证脚本默认留在忽略提交的 `tools/runtime-intake/`；形成稳定通用回归价值后再迁入正式 `scripts/` 或客户端检查入口。
-- 启动 Godot、有窗口测试或 `--with-godot` 前仍须先告知萝卜SAMA；纯文档、内部重构或不影响玩家可见行为的单点修正可按风险省略截图，但需执行匹配的最小验证。
-
-当前验证重点和默认验证基线以 `docs/planning/current.md` 为准；脚本具体覆盖范围以脚本实现为准。
-
-提交前先执行对应平台的 `check-repo`；涉及客户端状态、任务、存档、场景或脚本时，再执行默认 `check-client`。玩家可见改动仍须按风险补 Godot 正式入口、截图与人工路径证据。
-
-## 文档真相源
-
-`docs/` 是本仓库正式文档源。日常推进类提示（例如“根据项目规划和开发进度，今天要来做什么以推进开发”）优先阅读：
-
-1. `docs/planning/daily-start.md`
-2. `docs/planning/current.md`
-3. `docs/planning/current.md` 指向的当前活跃 `docs/features/*.md`
-4. `docs/devlogs/` 下最新一期周志中的“风险与未完成项”和“下周建议”
-
-按任务选读：
-
-- 项目方向：`docs/product/creative-development-brief.md`
-- 首小时体验：`docs/design/onboarding-and-first-hour.md`
-- 功能专题：`docs/features/README.md`
-- 开发复测基线：`docs/design/development-retest-baselines.md`
-- 联机、存档或边界：`docs/architecture/multiplayer-and-save-architecture.md`
-- 代码结构和重构：`docs/architecture/code-style-and-language-practices.md`
-- 阶段复核：`docs/planning/milestone-review-checklist.md`
-- 开发决策闸门：`docs/process/development-decision-gates.md`
-- 协作治理：`docs/adr/0001-branch-and-pr-governance.md`
-
-规则：
-
-- 若文档、代码和阶段目标冲突，先判断哪一方过期，再统一修正。
-- 优先更新已有文档，不为一次性讨论创建大量散文档。
-- 玩家可感知功能目标、跨系统开发包或会同时影响玩法 / 场景 / HUD / 状态 / 检查的任务，应优先更新或建立 `docs/features/` 专题文档；规划入口只链接当前专题，不复制详细范围。
-- `docs/planning/daily-start.md`、`docs/planning/current.md`、`docs/README.md`、各目录 `README.md` 等关键入口文档应保持简约，只描述当前阶段、最近进度、下一步重点和必要索引；历史过程、长清单和背景材料应放入周志、专题文档、`docs/reference/` 或 `docs/archive/`，避免新会话读取入口时浪费上下文。
-- 文档按角色控制篇幅：`docs/README.md`、`docs/planning/current.md`、`docs/planning/daily-start.md` 和 `docs/**/README.md` 硬上限 120 行；`docs/` 下其他活跃专题文档建议 280 行内；`docs/devlogs/` 和 `docs/reference/` 建议 350 行内；`docs/archive/` 不设硬上限，但不作为新会话入口。
-- 专题文档接近 220 行时，新增内容优先拆成“总览 + 子文档”，或把历史过程移到周志、`reference/`、`archive/`；不要让单文件同时承担入口、规则、历史和案例四种职责。
-- 参考资料放在 `docs/reference/`，归档材料放在 `docs/archive/`。
-- `docs/archive/full-conversation-history.md` 保留历史原貌，不作为当前规范。
-- 重大架构、阶段边界、协作规则、验证基线或目录职责变化，必须同步更新 `docs/`。
-- 玩家可见知识库内容放在 `wiki/`，不要混入开发者内部规划。
-- 面向玩家的官方辅助工具放在 `official-tools/`，不要和仓库脚本目录 `tools/` 混淆。
-
-## 开发节奏
-
-- 当前常态节奏为“功能设计文档先行”：玩家可感知功能目标、跨系统开发包或阶段性玩法推进，先确认或建立对应 `docs/features/` 专题，再拆具体实现任务。
-- 当当前阶段指向视觉、场景化、工业基地呈现或 UI 体验时，玩家可见画面是主进度证据；纯提示、formatter、检查接线、状态字段或“第一包”命名不能替代场景、设备、HUD、美术或交互反馈的实质落地。
-- 回答“下一步做什么”时，应先判断要推进哪个功能设计文档；若当前阶段已满足退出条件，优先切换或建立下一个专题，而不是继续追加同层内容包。
-- `docs/planning/` 负责阶段方向、当前边界、冻结项和退出条件；阶段级专题负责能力域方向和跨包验收；可执行细专题负责玩家路径、状态 / 存档、HUD / 场景反馈、自动检查和具体实施范围。
-- 没有对应专题时，先补短设计与开发边界；只有单点文案、局部修错或不影响玩法 / 状态 / 检查的小改动，才可直接沿现有专题实施。
-- 玩家可见开发包开工前必须按 `docs/process/development-decision-gates.md` 做决策闸门判断；连续两次同类实机失败后，不得继续追加同类调参或线框包，必须先复盘并决定继续、换介质、拆专题、降范围或暂缓。
-- 执行会话与架构复核分层：日常开发（像素素材生成审阅、归一接入、场景与 tile 实施、按清单删旧层、检查修剪）由任意执行会话直接推进；介质与风格锚点变更、阶段与专题切换、两次失败后的路线复盘、存档 / 联机边界和协作规则修改属架构级升级点，见 `docs/process/development-decision-gates.md`，执行会话应停手升级给萝卜SAMA，不自行决策。
-
-## 协作流程
-
-- 开始任务前，先检查工作区状态，并阅读与任务直接相关的文档。
-- 若用户明确要求直接修改，且范围清晰、风险可控，则直接实施。
-- 若用户没有明确要求直接修改，编写代码前应先说明方案。
-- 若需求不明确，或改动会影响架构、阶段边界、接口口径、验证基线，则先说明判断并做必要澄清。
-- 首版 Demo 未完成初步阶段的完整玩法、场景和美术前，不主动把下一步切到试玩准备或修 bug 阶段；真实页面 smoke 只作为开发效果核对手段，不替代功能、场景和玩法专题推进。
-- 首版 Demo 面向内部朋友试玩或实机演示时，允许低保真资产与原型 UI，但不能把 debug 色块、长说明和流程图式地图作为可试玩画面目标；若画面仍主要靠这些表达，应优先补场景和视觉，不继续堆同类读法。
-- 自动检查通过不等于玩家可见目标通过；画面、玩法、HUD、场景和叙事节拍类目标必须用实机截图 / 录像或人工路径复测作为主证据。
-- 每次新增/修改功能、修复 bug 或处理其他任务时，优先从根因、长期维护性和系统一致性出发，选择更完整、更稳妥的治理方案；不要把“最小修复”当作默认优先级，也不要无节制地层层增加兜底来掩盖问题。
-- 每做完一个可分割子步骤，应进行匹配的最小验证。
-- 人工复测默认优先使用开发复测基线定位对应段落；只有涉及早期链路、共享任务 / HUD / 地图提示、存档迁移兼容或较大功能包收口时，再强制回到 `S0` 全链路空档复测。
-- 轻量前线行动的日常扩展不要求逐条人工短复测；除阶段闸门、`P0` / `P1` 风险或用户明确要求外，优先用自动检查、开发基线和 HUD / 任务链检查兜底。
-- 重要阶段性推进除了修改文件，还应同步追加到本周周志。
-
-## 图像生成会话稳定性
-
-- 单个会话默认先执行至多 3 次图像生成调用，每次只生成 1 张图；不同素材类别默认在开工前拆成独立生成会话。前一类别已收口并更新 manifest 后，萝卜SAMA若明确点名当前会话切换到下一素材类别，可在原会话继续；新类别必须重新读取真相源、使用独立批次目录与 manifest，并从自己的首轮 `0 / 3` 计数，授权不自动覆盖再下一个类别。
-- 图像生成会话默认只负责一个素材类别的生成与落盘，候选审阅、裁切、atlas 组装、代码 / 场景接入、Godot 验证或提交默认交给独立执行会话。生成结果已落盘并更新 manifest 后，萝卜SAMA若明确指定当前会话继续某个命名阶段，可在原会话切换到该阶段；授权只覆盖被点名阶段，不自动扩展到后续阶段、其他素材类别或无限续跑，仍须分别遵守 Godot 告知和提交边界。
-- 项目用生成结果应在继续下一次生成前保存到 `$CODEX_HOME/generated_images/` 并复制到忽略提交的 `assets/art-intake/YYYY-MM-DD-batchNN/`，使用语义化候选名；只有明确的预览 / 头脑风暴素材可只留在 `$CODEX_HOME`。
-- 图像生成会话每达到一轮 3 次调用后必须先停止，报告累计调用数、已落盘候选和继续生成的必要性，并更新本批 `_manifest.md`。萝卜SAMA明确要求在当前会话继续生成后，可追加一轮至多 3 次；每轮结束仍须重新停手并取得下一轮明确授权，不得把一次授权解释为无限连续生成。
-- 图像会话发生中断、重连或超时后，先清点对应 `$CODEX_HOME/generated_images/<thread-id>/`、`assets/art-intake/` 和工作区状态；确认确实缺失后才补生成，禁止不检查落盘结果就盲目重试。
-- 这组限制是默认稳定性护栏，不由执行 agent 自行放宽；追加轮次或切换素材类别都必须分别获得明确授权。预计需要大批量生成时，仍优先拆分会话，或由萝卜SAMA另行批准只返回文件路径的受控 API / CLI 批处理方案。
-
-## 图像读取稳定性
-
-- 图像读取不设单会话累计张数上限；稳定性约束以单次工具调用的分辨率、像素量、文件体积和视觉密度为准。
-- 默认使用 `detail: "high"`。只有确需检查像素边缘、小字、透明度、锚点或局部瑕疵时才使用 `detail: "original"`，不得为了方便批量审阅而默认读取原图。
-- 单次工具调用最多读取 9 张 `high` 图片。使用 `original` 前必须先检查尺寸和文件体积；单次调用的原图合计不得超过 8 MP 且不得超过 4 MB，超过时必须拆分、裁切或改用 `high`。
-- 长边超过 2048 px 或总像素超过 2 MP 的 `original` 图片默认一次只读取 1 张，并在继续下一张前先形成文字判断。联系表、拼图和包含多个画面的截图只使用 `high` 做总览；需要精查时读取被选中的单图或裁切区域，不把联系表和对应原图同时以 `original` 送入一次调用。
-- 大规模视觉审阅按素材类别拆分任务，并把选择、淘汰原因和关键观察写入对应 manifest 或专题记录；后续任务读取这些文字真相源，不依赖旧会话中的图片上下文。
-- 图片调用完成后超过 90 秒没有新的推理、消息或工具动作，可视为疑似停滞。中断后不得原样重试；应先确认工具结果和文件是否已落盘，再改用 `high`、减少批量、裁切区域或拆分任务。
-- 恢复图像密集型旧会话时，优先用会话列表确认状态并直接清点落盘文件；读取旧会话默认设置 `includeOutputs: false` 并限制在必要的最近轮次，除无替代方案外不得载入完整图像工具结果、截断工具输出或重复的大段正文。
-
-## 分支与 PR
-
-- 分支与 PR 治理以 `docs/adr/0001-branch-and-pr-governance.md` 为准。
-- `dev` 是日常开发与文档集成分支，`master` / `main` 仅作为稳定主线。
-- `dev -> master` / `main` 的阶段 PR 优先使用 `merge commit`；仓库允许 `rebase merge`、禁用 `squash merge`，合并后必须先把默认分支回流到 `dev` 并推送，再开始下一轮开发。
-- 若默认分支无法快进回 `dev`，先检查分支图，再以普通 merge 回流；禁止通过 reset、rebase 或 force push 重写共享 `dev` 历史。
-- 远端分支保护、合并策略、稳定主线 PR 目标和阶段性例外以 ADR 与仓库实际设置为准。
-- 目标为 `dev`、`master` 或 `main` 的 Pull Request 自动运行 `PR Checks`；普通 `push -> dev` 不触发，`dev` 当前不要求 required checks。
-- 默认分支 PR 的 `Repo Hygiene` CI 通过 `check-repo` 覆盖治理合同、活跃 Markdown 相对链接、文本与文档卫生、客户端静态数据、场景引用、检查器单元测试、提交信息和 PR diff 空白；`docs/archive/` 不纳入当前链接合同；需要启动 Godot 的运行时验证仍按改动范围在本地或手动流程执行。
-
-## AI 执行边界
-
-### 可直接执行
-
-- 读取和修改仓库内代码、文档、配置。
-- `git status`、`git diff`、`git log` 等只读 Git 操作。
-- `pwsh ./scripts/check-repo.ps1`、`./scripts/check-repo.sh`。
-- `pwsh ./scripts/check-text-files.ps1`、`./scripts/check-text-files.sh`。
-- `pwsh ./scripts/check-docs.ps1`、`./scripts/check-docs.sh`。
-- `pwsh ./scripts/check-client.ps1`、`sh ./scripts/check-client.sh` 及不启动 Godot 的单项客户端检查脚本。
-- 简洁明确的提交操作。
-
-### 需要先告知用户再执行
-
-- 启动 Godot 编辑器、桌面程序、`check-client --with-godot` / `-WithGodot` 或单项 Godot 运行时检查。
-- 安装依赖、下载大文件、引入外部资产包。
-- 修改系统环境、注册表、证书、全局 Git 配置或编辑器全局配置。
-- 打包、发布、上传、推送远端分支或创建 Release。
-
-### 默认不做
-
-- 跨工作区编辑历史旧仓库、兄弟仓库、参考仓库或其他项目；确需跨仓库操作时必须先获得明确授权。
-- 把旧仓库代码整包迁入当前仓库。
-- 未经明确要求执行破坏性 Git 操作。
-- 项目范围上的“当前不做”事项以 `docs/planning/current.md` 及其当前活跃专题为准。
-
-## 工程与内容边界
-
-- 优先以 Godot 4.x 作为原型方向。
-- 脚本侧默认优先考虑 GDScript。
-- 核心设计围绕“基地服务冒险，冒险反哺基地”展开。
-- 化工自动化是项目差异化卖点，但不应成为玩家理解门槛。
-- 战斗、探索、成长与生产链必须形成互相推动的闭环。
-- 画面主介质必须是固定网格像素资产（AI 生成或 CC0 素材包）+ `TileMapLayer` / `Sprite2D` 场景组合；禁止程序绘制视觉层、脚本生成贴图或色块拼装作为画面主介质，程序绘制只允许动态高亮、状态灯、选中描边和调试辅助。网格、调色板与生产管线见 `docs/reference/pixel-art-and-grid-standard.md`，提示词库见 `docs/reference/ai-art-prompts.md`；旧写实锚点 `assets/reference/style-anchor.png` 已降级为气质参考。二次元立绘只用于对话与角色界面 UI 层，不进世界层。
-- 当前阶段范围、当前不做和里程碑退出条件以 `docs/planning/current.md` 及其当前活跃专题为准；涉及联机、存档或边界判断时参考 `docs/architecture/multiplayer-and-save-architecture.md`。
-
-## 代码与文件规范
-
-- 文档和代码文件统一使用 LF 换行。
-- 新增仓库文件优先使用英文文件名。
-- 正文可以使用中文。
-- 文本文件使用 UTF-8，无 BOM。
-- 入口文档遵守文档篇幅硬上限；其他文档接近各自建议上限时，优先拆分职责，不继续在单文件内堆历史、规则和案例。
-- 单个源码文件原则上不超过 1000 行，硬上限 1500 行。
-- 文件接近 1000 行时，后续新增实现应优先拆分职责、提取子模块或测试 helper。
-- 不以单文件承载全部状态、全部 UI 或全部玩法逻辑。
-- 避免为了“整齐”堆出过深目录树，优先按职责做浅层分组。
-- 编写代码时遵循对应语言和框架的惯用实践，例如 GDScript 优先使用 Godot 4.x 的节点、资源、信号和类型习惯，PowerShell 脚本使用清晰的参数、管道和错误处理方式。
-- 禁止为了显得“高级”而编写不明意义的方法名、晦涩抽象、空泛 `Manager` / `Helper` / `Service` 包装或多层转发；抽象必须有明确职责、真实复用价值或清晰边界收益。
-- 优先使用标准库、引擎 API、结构化数据和明确类型表达意图，不用脆弱的字符串拼接、隐式约定或注释解释一段本可以写清楚的代码。
-- 详细代码语言实践规范见 `docs/architecture/code-style-and-language-practices.md`。
-
-## 仓库结构
-
-- `client/`：未来 Godot 客户端工程。
-- `server/`：未来可选服务端或联机实验工程。
-- `assets/`：可提交的源资产、设定图、音频源文件等。
-- `tools/`：项目脚本、数据处理、构建或导出辅助工具。
-- `scripts/`：仓库检查与自动化脚本。
-- `docs/`：策划、设计、架构、参考与归档文档。
-- `docs/features/`：玩家可感知功能目标的设计与开发专题文档。
-- `wiki/`：未来面向玩家的 Wiki 源内容。
-- `official-tools/`：未来面向玩家的官方辅助工具。
-- `.github/`：PR 模板、GitHub Actions 和 ruleset 模板。
-
-## Git 提交规范
-
-- 使用简洁明确的 Conventional Commits 风格。
-- 常用类型：`feat`、`fix`、`docs`、`refactor`、`test`、`chore`、`ci`、`build`、`perf`、`revert`。
-- 优先把代码改动和文档改动按主题拆分。
-- 不添加 AI 协作者署名。
-- 大修改提交时，除了首行 commit message 外，优先补充 3 到 6 条简短说明。
-- 提交前至少确认本次改动对应的最小验证已经执行。
-
-## 文档与周志
-
-- 架构、边界、阶段目标变化时，必须同步更新 `docs/`。
-- 影响协作方式或工作流的变更，应同步更新 `AGENTS.md` 和 `CLAUDE.md`。
-- 每周重要推进记录到 `docs/devlogs/YYYY-Www.md`。
-- 周志记录应包含：本周目标、完成情况、关键决策、验证记录、风险与未完成项、下周建议。
-- 更新日志和周志使用 Asia/Shanghai（UTC+8）日期。
-
-## 变更方向判断标准
-
-如果一个改动同时满足以下条件，则方向通常是正确的：
-
-- 项目边界更清晰。
-- 更接近 `docs/planning/current.md` 中定义的当前里程碑和退出条件。
-- 文档、代码和验证入口一致。
-- 没有提前压入与当前目标无关的复杂度。
-- 仓库规则、验证入口和协作说明仍能保持同步。
-
-## 开发原则
-
-1. 不做“玩具式最小实现”
-
-- 交付必须覆盖用户真实需求和主要使用路径。
-- 可以控制修改范围，但不能用临时方案、占位逻辑或半成品糊弄完成。
-
-2. 测试和验证按风险分层
-
-- 不要求任何改动都跑完整测试。
-- 小改动优先做精准验证；涉及核心流程、公共模块、数据一致性或用户可见行为时，再扩大测试范围。
-- 说明已验证的内容，以及未验证但存在风险的部分。
-
-3. 代码优先清晰、直观、易维护
-
-- 避免为了炫技引入复杂设计模式、过度抽象或晦涩写法。
-- 代码应让新人和实习生也能顺着业务逻辑读懂。
-- 只有在能明显降低复杂度、减少重复或符合现有架构时，才新增抽象。
-
-4. 保持架构清晰
-
-- 修改前先理解现有模块边界和调用关系。
-- 优先沿用项目已有风格、目录结构和设计习惯。
-- 不做无关重构，但遇到影响当前需求的结构问题时，应做小范围、必要的架构修正。
-
-5. 不做无意义的“安全兜底”
-
-- 不要为了表面稳妥到处吞异常、返回默认值或隐藏错误。
-- 对明确的外部输入、边界条件、IO、网络、权限、并发等风险点，应做必要校验和错误处理。
-- 兜底逻辑必须有明确目的，并且不能掩盖真实问题。
-
-6. 避免不必要的函数嵌套
-
-- 不写函数套函数、回调套回调等影响可读性的结构。
-- 优先使用命名清晰的普通函数、早返回和顺序流程。
-- 只有在闭包能明显简化状态管理且不影响阅读时，才允许局部函数。
-
-7. 优先最小化修改范围
-
-- 在满足需求和质量保证的前提下，尽量少改文件、少引入新变量、少新增函数。
-- 不为单次需求扩展无关能力。
-- 每个新增结构都应有明确用途，避免“顺手优化”和范围蔓延。
-
-8. 决策顺序
-
-- 先保证需求完整正确。
-- 再保证架构边界清晰。
-- 再控制修改范围和实现复杂度。
-- 最后根据风险选择合适的验证方式。
+- 新增文件名、目录名和稳定锚点优先使用英文。
+
+## 协作原则
+
+- 开始任务前先检查工作区状态，并阅读任务路由指向的必要文档。
+- 需求明确、范围可控且萝卜SAMA要求直接修改时直接实施；未明确要求修改时，编写代码前先说明方案。
+- 不同合理解释会明显改变结果、风险或范围时先澄清；已确认方案发生实质扩张时重新确认。
+- 优先治理根因、长期维护性、系统一致性和可验证性；不以玩具式最小实现、临时兼容、吞错或层层兜底掩盖问题。
+- 在满足真实需求和质量的前提下控制修改范围；不做无关重构，不为“架构感”增加无真实收益的抽象。
+- 玩家可感知功能、跨系统开发包和阶段性玩法推进默认设计文档先行；单点文案、局部修错或不改变玩法、状态与检查边界的调整可沿现有专题实施。
+- 每完成一个可分割子步骤，执行与风险匹配的最小验证；重要阶段性推进同步记录到本周周志。
+- 详细任务推进、授权、文档分层和证据规则见 [Agent Collaboration](docs/process/agent-collaboration.md)。
+
+## 必须先告知或授权的操作
+
+- 启动 Godot 编辑器、桌面程序、有窗口测试，或执行 `check-client --with-godot` / `-WithGodot` 前，先告知萝卜SAMA。
+- 安装或更新依赖、下载大文件、引入外部资产包前，说明具体命令、范围和落盘影响并取得授权。
+- 修改系统环境、注册表、证书、全局 Git 配置或编辑器全局配置前，必须取得授权。
+- 打包、发布、上传、推送远端分支或创建 Release 前，先说明目标、影响和验证状态并取得授权。
+- 跨工作区默认只读；写入兄弟仓库、参考仓库或其他项目必须取得明确授权。
+- 不执行未经明确要求的破坏性 Git 或文件操作；授权只覆盖当前任务已说明的范围，不沿用历史会话授权。
+- 仓库内文件读写、只读 Git、非 Godot 检查、构建、测试、静态分析和范围明确的本地提交可直接执行。
+
+## 任务文档路由
+
+| 任务 | 优先读取 |
+| --- | --- |
+| 今天做什么、当前阶段和下一步 | [Daily Start](docs/planning/daily-start.md)、[Current Plan](docs/planning/current.md)、当前活跃专题、最新周志 |
+| Agent 协作、授权和文档分层 | [Agent Collaboration](docs/process/agent-collaboration.md) |
+| 玩家可见功能、专题切换和失败复盘 | [Feature Documents](docs/features/README.md)、[Development Decision Gates](docs/process/development-decision-gates.md) |
+| 图像生成、素材落盘和视觉审阅 | [Image Generation And Review Workflow](docs/process/image-generation-and-review-workflow.md)、[Pixel Art And Grid Standard](docs/reference/pixel-art-and-grid-standard.md) |
+| Godot 正式入口、截图和隔离存档 | [Godot Runtime Verification Guide](docs/reference/godot-runtime-verification-guide.md)、[Development Retest Baselines](docs/design/development-retest-baselines.md) |
+| 项目方向和首小时体验 | [Creative Development Brief](docs/product/creative-development-brief.md)、[Onboarding And First Hour](docs/design/onboarding-and-first-hour.md) |
+| 联机、存档和运行时边界 | [Multiplayer And Save Architecture](docs/architecture/multiplayer-and-save-architecture.md)、相关架构专题 |
+| 代码结构、语言实践和重构 | [Code Style And Language Practices](docs/architecture/code-style-and-language-practices.md) |
+| 分支、PR、提交和回流 | [Branch And PR Governance](docs/adr/0001-branch-and-pr-governance.md) |
+| 文档结构、索引和篇幅 | [Documentation](docs/README.md) |
+
+## 项目长期边界
+
+- `RadishCatalyst / 异星催化` 是以异星化工基地、人物探索战斗、角色成长和后续协作联机为核心方向的像素风 2D 俯视工业科幻 ARPG。
+- 核心设计围绕“基地服务冒险，冒险反哺基地”；化工自动化是差异化卖点，但不应成为玩家理解门槛。
+- 原型方向为 Godot 4.x，脚本侧优先使用 GDScript；详细工程职责以架构文档和现有代码为准。
+- 世界画面主介质是固定网格像素资产与 `TileMapLayer` / `Sprite2D` 场景组合；程序绘制只用于动态高亮、状态灯、选中描边和调试辅助，不作为画面主介质。
+- 玩家可见知识库内容放在 `wiki/`，官方辅助工具放在 `official-tools/`，项目内部脚本放在 `tools/`。
+- 当前阶段范围和未解冻事项只在当前规划与活跃专题声明，不复制到根入口。
+
+## 实现与文件红线
+
+- 修改前先理解现有模块边界和调用关系，沿用项目既有结构；直接影响当前需求的结构问题应做范围清楚的必要修正。
+- 代码应清晰、直观、符合语言与框架惯例；抽象必须对应真实复用、边界隔离或复杂度下降。
+- 单个源码文件建议控制在 `1000` 行内，硬上限 `1500` 行；接近上限时按真实职责拆分，不做机械切片。
+- 外部输入、IO、网络、权限、并发和兼容风险应明确校验；不得吞掉真实错误、伪造成功或用默认值掩盖契约问题。
+- 仓库文本统一使用 UTF-8 无 BOM 和 LF；新增仓库文件优先使用英文文件名。
+- 不把旧仓库代码整包迁入当前仓库，不为当前目标提前引入未解冻复杂度。
+
+## 验证与文档
+
+- 提交前默认执行仓库治理入口：macOS / Linux 使用 `./scripts/check-repo.sh`，Windows 使用 `pwsh ./scripts/check-repo.ps1`。
+- 涉及客户端状态、任务、存档、场景或脚本时，再执行 `sh ./scripts/check-client.sh` 或 `pwsh ./scripts/check-client.ps1`；脚本实际实现是覆盖范围的真相源。
+- 玩家可见玩法、交互、HUD、场景、状态反馈或存读结果不能只用静态检查或 headless 断言判定通过，必须按风险补正式 `Boot`、有窗口截图和人工路径证据。
+- 自动检查、临时验证、人工复测存档和截图必须使用仓库内忽略提交的规定目录，不污染用户正式存档；详细路径与保留规则以 Godot 运行时指南为准。
+- 修改架构、阶段边界、协作规则、验证基线或目录职责时同步更新对应 `docs/` 真相源；批次事实、失败复盘和验证证据进入周志或专题记录。
+- 只报告实际执行的验证；未执行、环境阻塞和仍需人工复核的内容必须明确说明。
+
+## Git 约束
+
+- `dev` 是日常开发与文档集成分支，`master` / `main` 是稳定主线；分支保护、PR 合并和回流规则以 ADR 为准。
+- 提交信息使用 Conventional Commits；大修改建议补充 `3-6` 条简短说明，不添加 AI 协作者署名。
+- 默认使用当前用户 Git 身份；提交前确认匹配的最小验证已执行。
+- 禁止通过 reset、rebase 或 force push 重写共享 `dev` 历史；不在未授权情况下推送、发布或创建 Release。
+
+## 根入口维护
+
+- 一条规则只有在“跨任务成立、跨阶段成立、必须启动即生效、无法仅靠任务路由可靠承载”时，才进入 `AGENTS.md` / `CLAUDE.md`。
+- 阶段状态、临时门禁、“当前不做”、批次计数、专题实现和历史证据必须更新对应 `docs/`，不得复制回根入口。
+- 两个根入口只允许标题和首段入口名称不同，从第 4 行开始必须逐字一致；修改任一文件时同步另一份。
+- 根入口目标是短、稳定、可路由，不是项目手册副本；详细维护判定见 Agent 协作文档和 `docs/README.md`。
+- 修改根入口后执行 `./scripts/check-docs.sh` 或 `pwsh ./scripts/check-docs.ps1`，再执行仓库治理入口。
