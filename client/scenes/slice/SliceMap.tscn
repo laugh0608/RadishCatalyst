@@ -51,6 +51,7 @@ script = ExtResource("12_core_visual")
 [node name="Sprite" type="Sprite2D" parent="World/OutpostCoreVisualSortShell"]
 position = Vector2(0, -33)
 texture = ExtResource("2_core_damaged")
+offset = Vector2(0, -32)
 
 [node name="GroundShadow" parent="World/OutpostCoreVisualSortShell" instance=ExtResource("11_ground_shadow")]
 z_index = 0

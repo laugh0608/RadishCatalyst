@@ -2,7 +2,7 @@ class_name SliceInventoryProfile
 extends RefCounted
 
 ## Runtime-only capacity policy. Profiles never enter save payloads; schema 7
-## continues to serialize a legacy numeric capacity while schema 8 will derive
+## continues to serialize a legacy numeric capacity while schema 8+ derives
 ## its per-item rules from the owning container.
 
 const MODE_LEGACY_TOTAL := "legacy_total"

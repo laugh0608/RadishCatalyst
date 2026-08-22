@@ -356,6 +356,13 @@ func _base_state(core_energy: int) -> Dictionary:
 			"state": "hostile" if core_energy >= SliceWorld.CORE_CHARGE_TARGET else "locked",
 			"enemy_health": SliceFieldEnemy.MAX_HEALTH,
 		},
+		"first_journey_flags": {
+			"terminal_opened": true,
+			"part_recipe_inspected": true,
+		},
+		"explored_map_bits": SliceExplorationState.default_bits_for_position(
+			SliceWorld.START_SPAWN
+		),
 	}
 
 

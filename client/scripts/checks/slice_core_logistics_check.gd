@@ -352,8 +352,21 @@ func _check_world_repair_and_restart() -> void:
 		"SliceMap/World/OutpostCoreVisualSortShell"
 	) as SliceCoreVisual
 	var core := core_visual.core_sprite()
-	_expect_equal(core.texture.get_size(), Vector2(103, 93), "fresh world retains the damaged core body")
-	_expect_equal(core.offset, Vector2.ZERO, "damaged core keeps its existing placement")
+	_expect_equal(
+		core.texture.get_size(),
+		Vector2(144, 128),
+		"fresh world uses the V5-family damaged core body"
+	)
+	_expect_equal(
+		core.texture.resource_path.ends_with("outpost_core_damaged.png"),
+		true,
+		"fresh world uses the formal damaged core path"
+	)
+	_expect_equal(
+		core.offset,
+		SliceCoreLogistics.REPAIRED_SPRITE_OFFSET,
+		"damaged core shares the repaired body's bottom alignment"
+	)
 	_expect_equal(
 		core_anchor.global_position,
 		Vector2(640, 320),

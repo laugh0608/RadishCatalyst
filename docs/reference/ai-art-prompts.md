@@ -1,6 +1,6 @@
 # AI Art Prompt Library V2
 
-更新时间：2026-08-04
+更新时间：2026-08-22
 
 ## 用途与关联
 
@@ -27,7 +27,7 @@
 3. 每个资产生成 2 到 4 个候选；首张必须先过“主体原型 + 投影方向”硬判据，任一不符就先修提示词，不沿原提示继续消耗候选额度；不满意直接重出，不在原图上局部修补。
 4. 单体资产要求纯色深灰背景或透明背景；地面贴图要求 seamless tileable。
 5. 锚点未定稿前只生成第一批，不批量往后跑。
-6. 图像会话稳定性约束（默认每轮至多 3 次、明确授权后可按轮追加、默认生成与后续阶段分离、点名授权可在原会话切换阶段、立即复制到 art-intake、中断先清点）以 `CLAUDE.md` / `AGENTS.md` 为准。
+6. 图像会话稳定性约束（默认每轮至多 3 次、明确授权后可按轮追加、默认生成与后续阶段分离、点名授权可在原会话切换阶段、立即复制到 art-intake、中断先清点）以 [Image Generation And Review Workflow](../process/image-generation-and-review-workflow.md) 为准。
 7. 帧表、双状态、多表情等一图多对象时，把全局风格块末尾的 `single centered subject on a plain dark background` 换成 `objects arranged separately in a row, not touching, on a plain dark background`。
 
 ## 全局风格块（每条提示词前完整粘贴）

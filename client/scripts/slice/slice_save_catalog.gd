@@ -3,7 +3,7 @@ extends RefCounted
 
 ## Multi-world directory boundary for the slice. Each catalog owns one
 ## injectable root and returns a single-world SliceSaveService for selected
-## entries. Gameplay state is owned by schema 8; this class only owns identity,
+## entries. Gameplay state is owned by schema 9; this class only owns identity,
 ## metadata, the 30-world limit, migration and recoverable removal. Legacy
 ## single-world import copies the validated source bytes; schema conversion is
 ## deferred until SliceWorld has rebuilt the imported world successfully.

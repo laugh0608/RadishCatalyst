@@ -452,6 +452,14 @@ if ($runGodotChecks) {
             }
         },
         @{
+            Name = "slice ranged weapon P3"
+            Script = "check-client-slice-ranged-weapon-p3.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
             Name = "slice first playable journey"
             Script = "check-client-first-playable-journey.ps1"
             Parameters = @{
@@ -468,8 +476,8 @@ if ($runGodotChecks) {
             }
         },
         @{
-            Name = "slice save schema eight"
-            Script = "check-client-slice-save-schema-eight.ps1"
+            Name = "slice save schema nine"
+            Script = "check-client-slice-save-schema-nine.ps1"
             Parameters = @{
                 RepoRoot = $RepoRoot
                 GodotExe = $GodotExe

@@ -1,6 +1,6 @@
 # L3 Building Art Prompts
 
-更新时间：2026-07-25
+更新时间：2026-08-22
 
 ## 用途
 
@@ -12,7 +12,7 @@
 - 双状态、帧表和多对象图把全局块末尾的单体构图改成“对象横向分离排列、互不接触、纯深色背景”。
 - 网格、目标尺寸、色板、光向和归一管线以 [Pixel Art And Grid Standard](pixel-art-and-grid-standard.md) 为准。
 - 当前玩家路径、L3 / L4 / L5 边界和验收以 [Slice Building Placement And Power Grid V1](../features/slice-building-placement-and-power-grid-v1.md) 为准。
-- 单会话生成次数、落盘和会话拆分继续遵守 `AGENTS.md` / `CLAUDE.md`。
+- 单会话生成次数、落盘和会话拆分遵守 [Image Generation And Review Workflow](../process/image-generation-and-review-workflow.md)。
 
 ## L3-B 电力中继
 

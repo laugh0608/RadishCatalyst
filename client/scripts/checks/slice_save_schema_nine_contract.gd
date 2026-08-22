@@ -1,12 +1,13 @@
-class_name SliceSaveSchemaEightContract
+class_name SliceSaveSchemaNineContract
 extends RefCounted
 
-## Exact schema-8 persistence contract. Runtime profiles, derived topology,
+## Exact schema-9 persistence contract. Runtime markers, derived topology,
 ## ports, power and UI read models must remain outside this payload.
 
 const ROOT_KEYS := [
 	"buildings", "core_energy", "core_repaired", "core_storage",
-	"field_encounter", "game_version", "harvested_clusters",
+	"explored_map_bits", "field_encounter", "first_journey_flags",
+	"game_version", "harvested_clusters",
 	"next_building_serial", "player_health", "player_x", "player_y",
 	"pocket", "save_schema_version", "updated_at",
 ]
@@ -44,11 +45,11 @@ static func validate(data: Dictionary) -> Array[String]:
 	var failures: Array[String] = []
 	_expect_exact_keys(data, ROOT_KEYS, "root", failures)
 	_expect_equal(
-		int(data.get("save_schema_version", 0)), 8, "schema version", failures
+		int(data.get("save_schema_version", 0)), 9, "schema version", failures
 	)
 	_expect_equal(
 		String(data.get("game_version", "")),
-		"prototype-slice-08",
+		"prototype-slice-09",
 		"game version",
 		failures
 	)
@@ -62,6 +63,8 @@ static func validate(data: Dictionary) -> Array[String]:
 		"field encounter",
 		failures
 	)
+	_validate_first_journey(data.get("first_journey_flags", null), failures)
+	_validate_exploration(data.get("explored_map_bits", null), failures)
 	_validate_buildings(data.get("buildings", null), failures)
 	var forbidden_paths := _forbidden_paths(data, "$")
 	if not forbidden_paths.is_empty():
@@ -70,6 +73,38 @@ static func validate(data: Dictionary) -> Array[String]:
 			% ", ".join(forbidden_paths)
 		)
 	return failures
+
+
+static func _validate_first_journey(value, failures: Array[String]) -> void:
+	_expect_exact_keys(
+		value,
+		["part_recipe_inspected", "terminal_opened"],
+		"first journey flags",
+		failures
+	)
+	if not (value is Dictionary):
+		return
+	for key in ["terminal_opened", "part_recipe_inspected"]:
+		if not (value.get(key) is bool):
+			failures.append("first journey %s must be boolean" % key)
+	if bool(value.get("part_recipe_inspected", false)) and not bool(
+		value.get("terminal_opened", false)
+	):
+		failures.append("inspected recipe requires opened terminal")
+
+
+static func _validate_exploration(value, failures: Array[String]) -> void:
+	if not (value is String):
+		failures.append("explored map bits must be a Base64 string")
+		return
+	var encoded := String(value)
+	var decoded := Marshalls.base64_to_raw(encoded)
+	if (
+		encoded.length() != SliceExplorationState.BASE64_LENGTH
+		or decoded.size() != SliceExplorationState.BYTE_COUNT
+		or Marshalls.raw_to_base64(decoded) != encoded
+	):
+		failures.append("explored map bits must be the canonical 480-bit map")
 
 
 static func _validate_buildings(value, failures: Array[String]) -> void:

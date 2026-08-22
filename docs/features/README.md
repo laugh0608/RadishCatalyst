@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-08-13
+更新时间：2026-08-17
 
 ## 用途
 
@@ -25,16 +25,21 @@
 
 ## 当前状态
 
-当前阶段专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——自动与人工完整全链已通过，但萝卜SAMA判定表现仍有大量草稿层，陌生玩家盲测延期。
+当前活跃阶段专题：[试玩反馈整改 V1](slice-playtest-remediation-v1.md)——2026-08-16 连续试玩反馈、参考 UI 审阅与源码玩家体验审计已完成；现阶段先整改既有 Demo，不进入下一能力专题，陌生玩家盲测继续冻结。
+
+功能基线专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——`delivered / 120`、正式 UI、远程武器、破损核心和首程地图均已接通；既有自动与人工证据继续承担回归基线，但不再代表当前体验已经通过阶段验收。
 
 最新收口子专题：[Slice Visual Hierarchy And Color Separation V1](slice-visual-hierarchy-and-color-separation-v1.md) 与 [Slice Game UI Visual Finalization V1](slice-game-ui-visual-finalization-v1.md)——世界设备、HUD、制造 / 背包、设备、核心与系统界面均已完成正式入口和人工定稿。
 
-当前活跃专题：[Slice Ranged Weapon And Industrial Ammunition V1](slice-ranged-weapon-and-industrial-ammunition-v1.md)——P0 与目标稿 V3 枪械身份已获人工确认；原生尺寸 V1—V3 均已否决，删臂拼接路线停止，等待换介质确认，不接客户端。
+当前尚未开始客户端整改；待萝卜SAMA确认 [试玩反馈整改 V1](slice-playtest-remediation-v1.md) 后，先执行层级 / 足印 / 接驳合同、保存节流与职责提取，再依次处理主流程阻断、制造 / 装备、库存 / 设备交互和表现反馈。
 
 最新人工通过子专题：[Slice Category Inventory And Powered Storage V1](slice-category-inventory-and-powered-storage-v1.md) 与 [Slice World Device Family Integration V1](slice-world-device-family-integration-v1.md)——联合 schema 8、设备家族、实体物流、真实二值供电线和双档迁移闸门已收口；[Slice Unified Device Operation Panels V1](slice-unified-device-operation-panels-v1.md) 核心仓库包 2 的视觉与行为也已随 UI 定稿收口。
 
 已收口专题：
 
+- [Slice First Journey Guidance And Exploration Map V1](slice-first-journey-guidance-and-exploration-map-v1.md)——五阶段引导、混合迷雾与 schema 9（2026-08-15 收口）。
+- [Slice Damaged Core Visual Family V1](slice-damaged-core-visual-family-v1.md)——V5 同族 `144×128px` 破损 / 修复双态（2026-08-15 收口）。
+- [Slice Ranged Weapon And Industrial Ammunition V1](slice-ranged-weapon-and-industrial-ammunition-v1.md)——步枪 / 电池工业财产、远射、输入互斥与三格战斗 HUD（2026-08-15 收口）。
 - [Slice Base First Screen Integration V1](slice-base-first-screen-integration-v1.md)——归一管线、基地首屏、玩家四方向行走（2026-07-16 收口）。
 - [Slice Crystal Expedition V1](slice-crystal-expedition-v1.md)——晶体远征区、无缝大地图与相机跟随口径定档（2026-07-17 收口）。
 - [Slice Minimal Core Loop V1](slice-minimal-core-loop-v1.md)——采集晶体 → 回基地 → 修复核心 + 最小 HUD（2026-07-17 收口）。

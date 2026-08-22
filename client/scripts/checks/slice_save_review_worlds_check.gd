@@ -315,6 +315,13 @@ func _state(marker: int) -> Dictionary:
 		"next_building_serial": building_count + 1,
 		"player_x": 480.0,
 		"player_y": 270.0,
+		"first_journey_flags": {
+			"terminal_opened": true,
+			"part_recipe_inspected": true,
+		},
+		"explored_map_bits": SliceExplorationState.default_bits_for_position(
+			Vector2(480, 270)
+		),
 	}
 
 

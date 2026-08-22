@@ -11,6 +11,9 @@ RadishCatalyst 是一个以异星化工基地、人物探索战斗、角色成�
 - 日常推进短入口：[docs/planning/daily-start.md](docs/planning/daily-start.md)
 - 当前阶段真相源：[docs/planning/current.md](docs/planning/current.md)
 - 周志索引：[docs/devlogs/README.md](docs/devlogs/README.md)
+- 参与贡献：[CONTRIBUTING.md](CONTRIBUTING.md)
+- 社区行为准则：[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- 安全策略：[SECURITY.md](SECURITY.md)
 
 ## Repository Hygiene
 
@@ -21,19 +24,15 @@ RadishCatalyst 是一个以异星化工基地、人物探索战斗、角色成�
 常用检查命令：
 
 ```powershell
-pwsh ./scripts/check-docs.ps1
-pwsh ./scripts/check-text-files.ps1
+pwsh ./scripts/check-repo.ps1
 pwsh ./scripts/check-client.ps1
-git diff --check
 ```
 
 macOS / Linux / Git Bash / zsh 可执行：
 
 ```bash
-./scripts/check-docs.sh
-./scripts/check-text-files.sh
+./scripts/check-repo.sh
 ./scripts/check-client.sh
-git diff --check
 ```
 
 ## Repository Layout

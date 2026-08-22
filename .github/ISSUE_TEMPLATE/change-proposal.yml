@@ -1,0 +1,67 @@
+name: 功能或变更提案
+description: 提议玩家功能、架构、存档、联机、视觉方向或仓库治理变化
+title: "[Proposal] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        提案用于澄清玩家结果、边界和证据，不代表方案已经接受。安全漏洞请按 SECURITY.md 私下报告。
+  - type: dropdown
+    id: area
+    attributes:
+      label: 主要领域
+      options:
+        - 玩家玩法与内容
+        - 场景、美术与 UI
+        - 客户端架构与工具
+        - 存档、迁移与兼容性
+        - 联机与服务边界
+        - 文档、流程与仓库治理
+        - 其他
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: 问题、玩家结果与非目标
+      description: 说明要解决的问题、完成后玩家或开发者能获得什么，以及明确不解决什么。
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: 当前基线
+      description: 指向 current plan、活跃 feature、ADR、代码或复测证据，区分事实与推断。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 提议方案与边界
+      description: 描述实现介质、权威状态、存档 / 联机影响、兼容性和失败模式。
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 替代方案与权衡
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 验证计划与失败判据
+      description: 说明自动检查、正式入口、截图 / 录像或人工路径，以及什么结果代表方案不成立。
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: 边界确认
+      options:
+        - label: 我没有把候选、目标或自动检查结果写成已经完成的玩家体验
+          required: true
+        - label: 若涉及玩家可见功能，我已阅读开发决策闸门并说明对应 feature 文档落点
+          required: true
+        - label: 我没有附带秘密、个人数据、未脱敏存档或无权使用的材料
+          required: true

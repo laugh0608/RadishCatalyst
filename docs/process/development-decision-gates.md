@@ -1,6 +1,6 @@
 # Development Decision Gates
 
-更新时间：2026-07-31
+更新时间：2026-08-22
 
 ## 用途
 
@@ -14,7 +14,7 @@
 
 - 玩家可见画面、玩法、HUD、场景、叙事节拍或交互反馈开发包。
 - 同一问题已经经过一次实机截图 / 录像复核但仍未达标。
-- 需要修改 `docs/planning/current.md`、`docs/planning/daily-start.md`、`AGENTS.md`、`CLAUDE.md` 或验证基线。
+- 需要修改 `docs/planning/current.md`、`docs/planning/daily-start.md`、`AGENTS.md`、`CLAUDE.md`、Agent 协作 / 图像工作流或验证基线。
 - 自动检查通过但玩家观感、玩法理解或体验目标仍明显失败。
 
 可跳过的情况：
@@ -93,7 +93,7 @@
 - 两次失败停手规则触发后的路线复盘决策。
 - 存档结构、联机边界或跨系统架构调整。
 - `P3` 旧视觉层大规模删除收口的最终复核。
-- `AGENTS.md`、`CLAUDE.md`、规划入口口径或验证基线本身的修改。
+- `AGENTS.md`、`CLAUDE.md`、[Agent Collaboration](agent-collaboration.md)、[Image Generation And Review Workflow](image-generation-and-review-workflow.md)、规划入口口径或验证基线本身的修改。
 
 无需升级的日常执行：按提示词库生成与审阅像素素材、归一缩放接入、`TileMapLayer` / 设备场景实施、按专题清单删除旧视觉层、修剪失效检查、常规提交与周志记录。
 

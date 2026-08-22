@@ -49,8 +49,50 @@ function Get-LineCount([string]$Content) {
     return $lineCount
 }
 
+function Get-AgentBody([string]$Content) {
+    $parts = $Content -split "`n", 4
+    if ($parts.Count -lt 4) {
+        return $null
+    }
+
+    return $parts[3]
+}
+
 $errors = [System.Collections.Generic.List[string]]::new()
 $warnings = [System.Collections.Generic.List[string]]::new()
+$agentBodies = @{}
+
+foreach ($relativePath in @("AGENTS.md", "CLAUDE.md")) {
+    $fullPath = Join-Path $RepoRoot $relativePath
+    if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
+        $errors.Add("missing Agent root entry: ${relativePath}")
+        continue
+    }
+
+    $content = [System.IO.File]::ReadAllText($fullPath)
+    $lineCount = Get-LineCount $content
+    if ($lineCount -gt 250) {
+        $errors.Add("${relativePath}: Agent root entry has ${lineCount} lines, over 250 line hard limit")
+    }
+    elseif ($lineCount -gt 180) {
+        $warnings.Add("${relativePath}: Agent root entry has ${lineCount} lines, over 180 line soft limit; move task-specific detail into docs")
+    }
+
+    $body = Get-AgentBody $content
+    if ($null -eq $body) {
+        $errors.Add("${relativePath}: Agent root entry must have a title, blank line, intro line, and shared body")
+        continue
+    }
+    $agentBodies[$relativePath] = $body
+}
+
+if (
+    $agentBodies.ContainsKey("AGENTS.md") -and
+    $agentBodies.ContainsKey("CLAUDE.md") -and
+    $agentBodies["AGENTS.md"] -cne $agentBodies["CLAUDE.md"]
+) {
+    $errors.Add("AGENTS.md and CLAUDE.md must match exactly from line 4")
+}
 
 foreach ($relativePath in Get-DocFiles) {
     $fullPath = Join-Path $RepoRoot $relativePath

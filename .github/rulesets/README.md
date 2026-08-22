@@ -17,8 +17,8 @@
 - 禁止 force push。
 - 禁止删除分支。
 - 仅允许通过 Pull Request 合并。
-- 要求 1 个审批和已解决会话。
-- 要求 `Repo Hygiene` 检查通过；该 job 覆盖文本卫生、文档篇幅、客户端静态数据、客户端场景引用和默认分支 PR 的提交 diff 空白检查。
+- 单人维护阶段不要求额外审批，但仍要求已解决会话。
+- 要求 `Repo Hygiene` 检查通过；该 job 通过统一 `check-repo` 覆盖治理文件、Issue / PR / workflow / ruleset 合同、活跃 Markdown 相对链接、JSON、文本卫生、文档篇幅、客户端静态数据、场景引用、检查器单元测试、提交信息和 PR diff 空白；`docs/archive/` 保留历史原貌，不纳入当前链接合同。
 - GitHub 对 Actions required status checks 当前按 job 名匹配，因此 ruleset 中固定写 job 名。
 - 允许 `merge commit` 与 `rebase merge`，禁用 `squash merge`；阶段 PR 优先使用 `merge commit`，若使用 rebase merge，则以普通 merge 将默认分支回流到 `dev`。
 - 管理员仅可通过 Pull Request 方式绕过规则，不开放直接 push。
@@ -35,17 +35,12 @@
 
 ## 检查入口
 
-- Windows：`pwsh ./scripts/check-text-files.ps1`
-- Windows：`pwsh ./scripts/check-docs.ps1`
-- Windows：`pwsh ./scripts/check-client-data.ps1`
-- Windows：`pwsh ./scripts/check-client-scenes.ps1`
-- Linux/macOS/Git Bash：`./scripts/check-text-files.sh`
-- Linux/macOS/Git Bash：`./scripts/check-docs.sh`
-- Linux/macOS/Git Bash：`python3 scripts/check-client-data.py .`
-- Linux/macOS/Git Bash：`python3 scripts/check-client-scenes.py .`
-- 提交前本地仍执行：`git diff --check`
+- Windows：`pwsh ./scripts/check-repo.ps1`
+- Linux/macOS/Git Bash：`./scripts/check-repo.sh`
+- PR 范围复核：`./scripts/check-repo.sh --base-ref <base-sha>`
+- 客户端扩展检查：`pwsh ./scripts/check-client.ps1` 或 `sh ./scripts/check-client.sh`
 
-默认分支 PR 的 GitHub Actions 会在 PR base/head 范围内执行 `git diff --check`，避免干净 checkout 中裸命令没有检查对象。
+默认分支 PR 的 GitHub Actions 会把 base SHA 传给统一检查器，在 PR 范围内执行提交信息与 `git diff --check`；本地无 base 参数时检查工作区和暂存区。
 
 ## 应用方式
 
@@ -66,3 +61,4 @@ gh api repos/<owner>/<repo>/rulesets --method POST --input .github/rulesets/mast
 - 仓库 Merge options 中启用 `Merge commits` 与 `Rebase merging`。
 - 关闭 `Squash merging`。
 - 如后续增加 `CODEOWNERS`，再决定是否开启 code owner review。
+- 如果后续形成稳定的多人评审安排，再提高 `required_approving_review_count`；单人阶段不应把管理员 bypass 当作每次合并的常规路径。

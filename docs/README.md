@@ -4,6 +4,7 @@
 
 ## Entry Document Constraints
 
+- 根目录 `AGENTS.md`、`CLAUDE.md` 是启动级长期约束与任务路由，不承载当前阶段、临时门禁或专题实现细节。
 - `docs/planning/daily-start.md`、`docs/planning/current.md`、`docs/README.md` 和各目录 `README.md` 是新会话优先入口，应保持简约。
 - 入口文档只保留当前阶段、最近进度、下一步重点、验证入口和必要索引。
 - 历史过程、长完成清单、背景讨论和一次性分析应放入 `devlogs/`、专题文档、`reference/` 或 `archive/`，不要堆进入口文档。
@@ -13,6 +14,7 @@
 ## Documentation Size Budgets
 
 - 文档篇幅按角色控制，不对所有 Markdown 套同一个硬上限。
+- Agent 根入口：`AGENTS.md`、`CLAUDE.md` 软上限 180 行、硬上限 250 行；两份文件除标题和首段入口名称外必须逐字同步。
 - 入口文档：`docs/README.md`、`docs/planning/current.md`、`docs/planning/daily-start.md` 和 `docs/**/README.md`，硬上限 120 行；超过前应先改写为摘要并链接细节来源。
 - 活跃专题文档：除 `devlogs/`、`reference/`、`archive/` 外的 `docs/` 正式文档，建议控制在 280 行内；接近 220 行时优先拆成“总览 + 子文档”。
 - 周志与参考：`docs/devlogs/`、`docs/reference/` 建议控制在 350 行内；继续增长时先补紧凑摘要、目录或专题拆分。
@@ -20,17 +22,7 @@
 - 长文默认遵守“一篇只回答一个主问题”；不要让同一文件同时承担入口、规则、历史、案例四种职责。
 - 活跃长文若继续扩展，建议在开头补 `用途`、`何时阅读`、`细节去向` 三项摘要，帮助开发者和 Agent 快速跳读。
 
-文档篇幅检查入口：
-
-```powershell
-pwsh ./scripts/check-docs.ps1
-```
-
-macOS / Linux / Git Bash / zsh 可执行：
-
-```bash
-./scripts/check-docs.sh
-```
+文档篇幅与 Agent 根入口同步检查：Windows 使用 `pwsh ./scripts/check-docs.ps1`，macOS / Linux / Git Bash / zsh 使用 `./scripts/check-docs.sh`。
 
 ## Code Language Standards
 
@@ -96,9 +88,12 @@ macOS / Linux / Git Bash / zsh 可执行：
 - [Current Plan](planning/current.md)
 - [Project Purpose And Solo AI Development Review](planning/project-purpose-and-solo-ai-development-review.md)
 - [Milestone Review Checklist](planning/milestone-review-checklist.md)
+- [Agent Collaboration](process/agent-collaboration.md)
+- [Image Generation And Review Workflow](process/image-generation-and-review-workflow.md)
 - [Development Decision Gates](process/development-decision-gates.md)
 - [Architecture Decision Records](adr/README.md)
 - [Development Logs](devlogs/README.md)
+- [参与贡献](../CONTRIBUTING.md)；另见[社区行为准则](../CODE_OF_CONDUCT.md)与[安全策略](../SECURITY.md)
 
 ## Reference Documents
 

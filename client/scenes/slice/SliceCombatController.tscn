@@ -1,8 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/slice/slice_combat_controller.gd" id="1_controller"]
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/player_field_cutter_attack.png" id="2_attack"]
 [ext_resource type="Texture2D" path="res://assets/sprites/slice/combat_hit_feedback.png" id="3_hit"]
+[ext_resource type="Texture2D" path="res://assets/sprites/slice/pulse_muzzle.png" id="4_muzzle"]
+[ext_resource type="Texture2D" path="res://assets/sprites/slice/pulse_hit.png" id="5_pulse_hit"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_attack"]
 size = Vector2(56, 36)
@@ -32,4 +34,16 @@ disabled = true
 visible = false
 z_index = 21
 texture = ExtResource("3_hit")
+hframes = 4
+
+[node name="MuzzleEffect" type="Sprite2D" parent="."]
+visible = false
+z_index = 22
+texture = ExtResource("4_muzzle")
+hframes = 4
+
+[node name="PulseHitEffect" type="Sprite2D" parent="."]
+visible = false
+z_index = 22
+texture = ExtResource("5_pulse_hit")
 hframes = 4

@@ -57,11 +57,24 @@ static func per_item(
 
 
 static func category_pocket() -> SliceInventoryProfile:
-	return per_item("category.pocket", 200)
+	return per_item(
+		"category.pocket",
+		200,
+		0,
+		{SliceItemCatalog.PULSE_RIFLE_ID: 1}
+	)
 
 
 static func category_core_storage() -> SliceInventoryProfile:
-	return per_item("category.core_storage", 99999)
+	return per_item(
+		"category.core_storage",
+		99999,
+		0,
+		{
+			SliceItemCatalog.PULSE_RIFLE_ID: 1,
+			SliceItemCatalog.PULSE_CELL_ID: 200,
+		}
+	)
 
 
 static func category_storage() -> SliceInventoryProfile:
