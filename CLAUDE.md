@@ -1,4 +1,4 @@
-# CLAUDE 指南
+# RadishCatalyst 协作约定
 
 本文件为 Claude Code 提供 RadishCatalyst 项目的启动级长期约束。
 

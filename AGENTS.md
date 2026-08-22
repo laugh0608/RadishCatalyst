@@ -1,4 +1,4 @@
-# AGENTS 指南
+# RadishCatalyst 协作约定
 
 本文件为 AI 协作者提供 RadishCatalyst 项目的启动级长期约束。
 
