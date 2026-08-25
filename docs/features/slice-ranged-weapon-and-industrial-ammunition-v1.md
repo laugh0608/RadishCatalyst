@@ -1,6 +1,6 @@
 # Slice Ranged Weapon And Industrial Ammunition V1
 
-更新时间：2026-08-15
+更新时间：2026-08-25
 
 状态：**P1 / P2、独立步枪图标与 P3 远射、输入、战斗 HUD 均已完成客户端、完整 Godot、正式 Boot、视觉复核及萝卜SAMA人工确认；专题收口。**
 

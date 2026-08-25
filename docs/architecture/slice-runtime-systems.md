@@ -1,6 +1,6 @@
 # Slice Runtime Systems
 
-更新时间：2026-08-15
+更新时间：2026-08-25
 
 ## 文档目的
 
@@ -27,6 +27,12 @@
 - `client/scripts/slice/slice_save_catalog.gd`
 - `client/scripts/slice/slice_save_service.gd`
 - `client/scripts/slice/slice_building_save_codec.gd`
+- `client/scripts/slice/slice_save_scheduler.gd`
+- `client/scripts/slice/slice_world_save_state_builder.gd`
+- `client/scripts/slice/slice_crafting_plan.gd`
+- `client/scripts/slice/slice_character_panel.gd`
+- `client/scripts/slice/slice_logistics_transition_layer.gd`
+- `client/scripts/slice/slice_demo_completion_card.gd`
 - `client/scripts/slice/slice_pause_menu.gd`
 
 ## 正式入口
@@ -57,7 +63,7 @@ Boot
 - 在结构变化后重建供电与物流。
 - 推进采集器、反应器生产和传送带模拟。
 - 装配首程引导、探索状态、战斗和 HUD，但不拥有这些窄职责组件的内部规则。
-- 组装并触发自动存档。
+- 把状态变化按事件语义交给 `SliceSaveScheduler`；真正写盘时由 `SliceWorldSaveStateBuilder` 构造一次权威快照。
 - 处理前台面板 / 放置优先的 `Esc`，以及暂停、保存返回和保存退出。
 
 它不直接定义每类建筑的全部规则；可复用规则已下沉到窄职责对象。
@@ -69,6 +75,8 @@ Boot
 - `SliceBuildingInstance`：稳定运行时身份和共享视觉 / 碰撞壳。
 - `SliceCollector`、`SliceStorage`、`SliceConveyor`、`SliceReactor`：只持有各自内部状态和窄行为。
 - `SliceBuildingOccupancy`：分别维护地板占用和阻挡设施占用。
+
+`SliceMap/GroundStructures` 是非 Y 排序地表结构层，当前承载可通行传送带；实体设备继续进入 Y 排序 `World`，其阻挡只由旋转后足印派生。`SliceLogisticsTransitionLayer` 只为已由物流拓扑确认的跨地表端口绘制会话态过渡格，不拥有连接规则或存档状态。
 
 固定正面设施和工业地板的 `rotation` 只能为 `0`；传送带仍以 `0–3` 表达规则方向。方向选择固定帧，不直接旋转像素图。
 
@@ -82,6 +90,13 @@ Boot
 - `SliceBuildingActionPanel` 负责调整、二次确认拆除、储物箱晶体存取和阻塞原因展示。
 
 调整期间原实例暂时隐藏并从占用、供电和物流中排除；提交后保留 ID 和内部状态，取消则恢复原拓扑。
+
+### 制造、容器与装备界面
+
+- `SliceCraftingPlan` 是无状态制造诊断，只从现有配方和库存快照计算直接成本、基础原料折算、两种可制造数和足印补板上限；它不交换物品或隐式制造中间件。
+- `SliceCraftPanel` 制造成功后保持打开，产物先成为背包财产；只有玩家从已有套件入口明确选择时才进入放置。
+- `SliceCoreStoragePanel` 已为背包 / 核心提供成对物品格与拖拽，但设备面板仍主要读取 `SliceBuildingPanelSnapshot` 并通过操作按钮转移；这是整改包 3 要统一的当前差异，不得通过复制库存状态解决。
+- `SliceCharacterPanel` 只呈现一个武器槽、持有武器点击 / 拖入和 `C` 开关；实际装备合法性与保存请求仍由 `SliceCombatController` 独占。
 
 ### 供电
 
@@ -112,7 +127,7 @@ Boot
 - `SliceCombatController` 拥有切割器 / 步枪装备选择、攻击节拍、即时耗弹、闪避无敌、玩家生命和五态外勤遭遇；装备入口统一校验步枪必须在随身背包并立即请求保存。`SlicePulseProjectile` 只负责固定速度移动、首碰和射程销毁，`SliceFieldEnemy` 只负责单敌人的警戒、追击、蓄势、恢复、回巢、受击与败亡。
 - `SliceWorld` 只编排首次充能扣料、样本交付、离散事件自动保存和节点装配，不承载敌人 AI。
 - `SliceFirstJourneyController` 在核心修复前按库存和两个首次查看旗标派生五阶段引导，并拥有 `40×12` 探索粗格；修复后继续委托 `SliceJourneyGuidance` 从设备、库存与遭遇状态派生目标。
-- `SliceHud` 与合成面板读取 `current_journey_guidance()`；小地图用同一世界视图叠加持久迷雾、玩家、核心、已发现晶体与阶段情报。阶段编号、区域名和 marker 都不保存。
+- `SliceHud` 与合成面板读取 `current_journey_guidance()`；小地图用同一世界视图叠加持久迷雾、玩家、核心、已发现晶体与阶段情报。阶段编号、区域名和 marker 都不保存。样本交付后的 `SliceDemoCompletionCard` 只在当次交付成功保存后出现，完成事实继续由 `delivered` 派生，读档不会重弹。
 - `SliceHud` 的常驻游戏壳层由任务舷窗、三物资槽、角色生命条、三格战斗操作条、按需敌人目标条和右下小地图组成；完整套件清单仍只在合成 / 放置上下文出现。
 
 ## 权威状态与派生状态
@@ -158,6 +173,8 @@ process tick
 ```
 
 schema 4–9 的旧档仍可携带原 `0–10s` 采集进度；载入后按当前 `1s` 周期结算并继续累计。射击耗弹、普通受伤、生产、物流、探索揭雾和普通容器转移进入共享约 `2s` 合并保存；制造、装备变化、建造 / 调整 / 拆除、核心修复 / 充能、败亡、样本拾取 / 交付和撤离立即保存。暂停返回或退出只有保存成功后才释放世界或结束进程。
+
+`SliceSaveScheduler` 只持有脏状态、防抖时间和旧档待发布上下文，通过回调在写盘时请求最新快照；普通失败保留脏状态等待重试，强制保存失败直接阻止退出。它不校验 schema、不序列化世界，也不发布文件。
 
 ## 切片存档
 
