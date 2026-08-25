@@ -9,13 +9,10 @@ signal changed
 const PART_RECIPE_ID := "part"
 const CRYSTALS_PER_PART := 3
 const REQUIRED_PARTS := CoreRepairSite.REPAIR_PART_COST
-const EXPLORATION_SAVE_DELAY := 6.0
 
 var state := SliceExplorationState.new()
 var _world: SliceWorld
 var _player: SlicePlayer
-var _exploration_dirty := false
-var _save_elapsed := 0.0
 
 
 func setup(world: SliceWorld, player: SlicePlayer) -> void:
@@ -28,8 +25,6 @@ func setup(world: SliceWorld, player: SlicePlayer) -> void:
 func restore(flags: Dictionary, explored_map_bits: String) -> void:
 	state.restore(flags, explored_map_bits)
 	state.reveal_at(_player.position, 1)
-	_exploration_dirty = false
-	_save_elapsed = 0.0
 	changed.emit()
 
 
@@ -112,25 +107,13 @@ static func default_durable_data() -> Dictionary:
 	}
 
 
-func mark_saved() -> void:
-	_exploration_dirty = false
-	_save_elapsed = 0.0
-
-
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if _world == null or _player == null:
 		return
 	if state.reveal_at(_player.position, 1):
-		_exploration_dirty = true
 		changed.emit()
-	if not _exploration_dirty:
-		return
-	_save_elapsed += delta
-	if _save_elapsed >= EXPLORATION_SAVE_DELAY:
-		_world._autosave()
+		_world.request_save()
 
 
 func _save_milestone() -> void:
-	_exploration_dirty = true
-	_save_elapsed = 0.0
-	_world._autosave()
+	_world.request_save()

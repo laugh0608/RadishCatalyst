@@ -26,7 +26,7 @@ const HIT_EFFECT_DURATION := 0.16
 const MUZZLE_EFFECT_DURATION := 0.08
 
 signal state_changed
-signal persistence_requested
+signal persistence_requested(immediate: bool)
 
 var health := 100
 var max_health := 100
@@ -246,15 +246,18 @@ func _begin_pulse_rifle_attack() -> void:
 	_attack_collision.disabled = true
 	_spawn_pulse_projectile(_player.aim_direction)
 	_play_muzzle_effect(_player.aim_direction)
-	if not bool(consumption.get("saved", false)):
-		_set_notice("射击已成立｜自动保存失败，请稍后重试", 2.4)
+	if not bool(consumption.get("save_queued", false)):
+		_set_notice("射击已成立｜当前世界无法排队保存", 2.4)
 
 
 func _consume_pulse_cell() -> Dictionary:
 	if _world.pocket.remove(SliceWorld.ITEM_PULSE_CELL, 1) != 1:
-		return {"consumed": false, "saved": false}
+		return {"consumed": false, "save_queued": false}
 	_world.inventory_changed.emit()
-	return {"consumed": true, "saved": _world._autosave()}
+	return {
+		"consumed": true,
+		"save_queued": _world.request_save(),
+	}
 
 
 func _select_weapon(weapon_id: String) -> void:
@@ -293,7 +296,7 @@ func resolve_pulse_projectile_collision(body: Node2D) -> bool:
 		return false
 	_play_pulse_hit_effect(field_enemy.position + Vector2(0, -24))
 	if field_enemy.health > 0:
-		persistence_requested.emit()
+		persistence_requested.emit(false)
 	return true
 
 
@@ -345,13 +348,14 @@ func receive_damage(amount: int) -> bool:
 	if amount <= 0 or not can_receive_damage():
 		return false
 	health = maxi(0, health - amount)
+	var evacuated := health <= 0
 	_play_hit_effect(_player.position + Vector2(0, -32))
-	if health <= 0:
+	if evacuated:
 		_evacuate_player()
 	else:
 		_set_notice("受到 %d 点伤害" % amount, 0.9)
 	_emit_state_if_changed()
-	persistence_requested.emit()
+	persistence_requested.emit(evacuated)
 	return true
 
 
@@ -363,7 +367,7 @@ func collect_critical_sample(sample: SliceCriticalSample) -> bool:
 	sample.queue_free()
 	_set_notice("晶腺样本已回收｜任务物品不占背包", 2.4)
 	_emit_state_if_changed()
-	persistence_requested.emit()
+	persistence_requested.emit(true)
 	return true
 
 
@@ -383,7 +387,7 @@ func deliver_critical_sample() -> bool:
 	health = max_health
 	_set_notice("核心分析完成｜抗蚀内衬已安装｜最大生命 120", 3.6)
 	_emit_state_if_changed()
-	persistence_requested.emit()
+	persistence_requested.emit(true)
 	return true
 
 
@@ -484,7 +488,7 @@ func _resolve_player_attack() -> void:
 		if field_enemy.take_damage(ATTACK_DAMAGE):
 			_play_hit_effect(field_enemy.position + Vector2(0, -24))
 			if field_enemy.health > 0:
-				persistence_requested.emit()
+				persistence_requested.emit(false)
 		return
 
 
@@ -507,7 +511,7 @@ func _on_enemy_defeated() -> void:
 	_spawn_critical_sample()
 	_set_notice("裂晶爬兽败亡｜晶腺样本已掉落", 2.0)
 	_emit_state_if_changed()
-	persistence_requested.emit()
+	persistence_requested.emit(true)
 
 
 func _evacuate_player() -> void:

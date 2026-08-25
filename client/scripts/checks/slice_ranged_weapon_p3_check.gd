@@ -294,7 +294,7 @@ func _check_selection_shooting_hud_and_restart() -> void:
 	controller._on_weapon_selection_requested(
 		SliceCombatController.WEAPON_PULSE_RIFLE
 	)
-	_expect_equal(world._autosave(), true, "empty selected rifle state saves")
+	_expect_equal(world.save_now(), true, "empty selected rifle state saves")
 	var saved_data := _read_json(service.save_file_path())
 	_expect_equal(saved_data.has("current_weapon"), false, "save root omits current weapon")
 	_expect_equal(saved_data.has("projectiles"), false, "save root omits projectiles")

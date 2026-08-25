@@ -133,7 +133,7 @@ func _check_restart_and_delivery_matrix() -> void:
 		80,
 		{"state": "hostile", "enemy_health": 40}
 	)
-	_expect_equal(world._autosave(), true, "hostile checkpoint saves")
+	_expect_equal(world.save_now(), true, "hostile checkpoint saves")
 	_free_world(world)
 
 	world = await _new_world(service, true)
@@ -156,8 +156,20 @@ func _check_restart_and_delivery_matrix() -> void:
 	)
 	_expect_equal(
 		int(_read_json(service.save_file_path()).get("player_health", 0)),
+		80,
+		"nonlethal damage does not synchronously write"
+	)
+	world._tick_save_scheduler(1.99)
+	_expect_equal(
+		int(_read_json(service.save_file_path()).get("player_health", 0)),
+		80,
+		"nonlethal damage stays queued before debounce"
+	)
+	world._tick_save_scheduler(0.01)
+	_expect_equal(
+		int(_read_json(service.save_file_path()).get("player_health", 0)),
 		60,
-		"nonlethal player damage autosaves"
+		"nonlethal damage saves when debounce expires"
 	)
 
 	controller.restore_durable_state(

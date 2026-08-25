@@ -464,7 +464,7 @@ func _check_world_repair_and_restart() -> void:
 		true,
 		"world output topology displays the right docking patch"
 	)
-	_expect_equal(world._autosave(), true, "core logistics state saves without a new schema field")
+	_expect_equal(world.save_now(), true, "core logistics state saves without a new schema field")
 
 	world.queue_free()
 	await process_frame

@@ -211,7 +211,7 @@ func _run() -> void:
 		world,
 		"power_collector",
 		"基地目标 1/3",
-		"采集器只能放晶体地"
+		"按 B 合成采集器"
 	)
 	craft_panel._refresh()
 	_expect_equal(

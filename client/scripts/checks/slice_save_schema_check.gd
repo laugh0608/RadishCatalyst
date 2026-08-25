@@ -798,7 +798,7 @@ func _check_schema_seven_world_restart() -> void:
 	var explored_before_save := (
 		world.first_journey.state.explored_cell_count()
 	)
-	world._autosave()
+	world.save_now()
 
 	var raw_save := _read_json(save_dir.path_join("slice_world.json"))
 	_expect_schema_nine_payload_shape(raw_save, "schema 9 world save")
