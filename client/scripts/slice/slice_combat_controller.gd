@@ -27,6 +27,7 @@ const MUZZLE_EFFECT_DURATION := 0.08
 
 signal state_changed
 signal persistence_requested(immediate: bool)
+signal demo_completed
 
 var health := 100
 var max_health := 100
@@ -388,6 +389,7 @@ func deliver_critical_sample() -> bool:
 	_set_notice("核心分析完成｜抗蚀内衬已安装｜最大生命 120", 3.6)
 	_emit_state_if_changed()
 	persistence_requested.emit(true)
+	demo_completed.emit()
 	return true
 
 
@@ -447,7 +449,7 @@ func encounter_goal_text() -> String:
 		"carried":
 			return "目标：返回核心交付晶腺样本"
 		"delivered":
-			return "抗蚀内衬已安装｜最大生命 120"
+			return "Demo 已完成｜可继续自由建设"
 		_:
 			return "目标：完成核心首次充能"
 

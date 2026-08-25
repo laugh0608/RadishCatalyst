@@ -6,6 +6,12 @@ extends RefCounted
 
 
 static func build(world: SliceWorld) -> Dictionary:
+	if world.combat_controller.encounter_state == "delivered":
+		return {
+			"stage": "demo_complete",
+			"goal": "Demo 已完成｜可继续自由建设",
+			"rule": "抗蚀内衬已安装｜最大生命 120｜可继续建设或暂停保存返回",
+		}
 	if world.is_core_charged():
 		return {
 			"stage": "field",

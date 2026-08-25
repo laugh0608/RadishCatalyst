@@ -1,19 +1,9 @@
 class_name SliceWorld
 extends Node2D
 
-## Slice world root: one seamless map (base zone west, crystal expedition zone
-## east) plus the player. Owns the authoritative runtime state; an isolated
-## SliceSaveScheduler decides when SliceSaveService publishes snapshots.
-##
-## L3 packages 1-4 provide six data-driven building definitions, ordinary
-## inventory kits, separate floor / blocking occupancy, one placement
-## controller, shared runtime instances, lossless adjustment / demolition,
-## derived power propagation and stable topology persistence. L4 adds
-## storage-to-storage conveyor cargo and fixed topology frames. L5 adds
-## per-instance reactor buffers and retained processing. Field combat package 3
-## adds schema-7 player health, encounter persistence and core sample delivery.
-## `startup_load` (set by Boot before the node enters the tree) decides whether
-## _ready restores the saved slice or starts a fresh one.
+## Authoritative runtime for the seamless base / expedition map. Narrow
+## collaborators own placement queries, logistics, presentation and save timing;
+## startup_load selects deterministic restoration before the first save.
 
 const MAP_SCENE := "res://scenes/slice/SliceMap.tscn"
 const PLAYER_SCENE := "res://scenes/slice/SlicePlayer.tscn"
@@ -24,6 +14,7 @@ const CORE_CHARGE_PANEL_SCENE := "res://scenes/slice/SliceCoreChargePanel.tscn"
 const BUILDING_ACTION_PANEL_SCENE := "res://scenes/slice/SliceBuildingActionPanel.tscn"
 const PAUSE_MENU_SCENE := "res://scenes/slice/SlicePauseMenu.tscn"
 const COMBAT_CONTROLLER_SCENE := "res://scenes/slice/SliceCombatController.tscn"
+const DEMO_COMPLETION_CARD_SCENE := "res://scenes/slice/SliceDemoCompletionCard.tscn"
 const REPAIRED_CORE_TEXTURE := preload("res://assets/sprites/slice/outpost_core_repaired.png")
 const MAP_PIXEL_SIZE := Vector2i(2560, 768)
 const START_SPAWN := Vector2(400, 576)
@@ -100,6 +91,7 @@ var _occupancy := SliceBuildingOccupancy.new()
 var _power_grid := SlicePowerGrid.new()
 var _logistics_grid := SliceLogisticsGrid.new()
 var _core_logistics := SliceCoreLogistics.new()
+var _logistics_transitions: SliceLogisticsTransitionLayer
 var _power_links: SlicePowerLinkLayer
 var _building_instances: Array[SliceBuildingInstance] = []
 var _collector_nodes: Array[SliceCollector] = []
@@ -118,6 +110,7 @@ func _ready() -> void:
 	add_child(_map)
 	_ground = _map.get_node("GroundLayer")
 	_industrial_floor = _map.get_node("IndustrialFloorLayer")
+	_logistics_transitions = _map.get_node("GroundStructures/LogisticsTransitions")
 	var world_node := _map.get_node("World")
 	_power_links = SlicePowerLinkLayer.new()
 	_power_links.name = "PowerLinks"
@@ -150,6 +143,9 @@ func _ready() -> void:
 	var hud := (load(HUD_SCENE) as PackedScene).instantiate() as SliceHud
 	add_child(hud)
 	hud.setup(self, player)
+	var demo_card := (load(DEMO_COMPLETION_CARD_SCENE) as PackedScene).instantiate() as SliceDemoCompletionCard
+	add_child(demo_card)
+	demo_card.setup(self)
 
 	_craft_panel = (load(CRAFT_PANEL_SCENE) as PackedScene).instantiate() as SliceCraftPanel
 	add_child(_craft_panel)
@@ -1169,6 +1165,9 @@ func _rebuild_logistics_grid(excluded_instance_id: String = "") -> void:
 		excluded_instance_id,
 		_core_logistics.endpoints()
 	)
+	_logistics_transitions.set_transitions(
+		_logistics_grid.placement_preview_ports(), TILE_SIZE
+	)
 
 
 func _refresh_power_links() -> void:
@@ -1319,7 +1318,12 @@ func _spawn_building(
 		storage.restore_state(state)
 		_storage_nodes.append(storage)
 
-	_map.get_node("World").add_child(instance)
+	var layer_name := (
+		"GroundStructures"
+		if definition.spatial_layer == SliceBuildingDefinition.SPATIAL_LAYER_GROUND
+		else "World"
+	)
+	_map.get_node(layer_name).add_child(instance)
 	_building_instances.append(instance)
 	_occupancy.occupy(
 		instance.instance_id,

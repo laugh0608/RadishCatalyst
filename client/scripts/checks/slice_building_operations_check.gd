@@ -66,9 +66,9 @@ func _check_catalog_and_recipes() -> void:
 	var conveyor := SliceBuildingCatalog.find(SliceBuildingCatalog.CONVEYOR_ID)
 	var storage := SliceBuildingCatalog.find(SliceBuildingCatalog.STORAGE_ID)
 	_expect_equal(
-		reactor.texture_path_for_rotation(1).ends_with("reactor.png"),
+		reactor.texture_path_for_rotation(1).ends_with("reactor_down.png"),
 		true,
-		"reactor rotation request keeps the locked V10 front"
+		"reactor rotation request keeps the compact three-by-three front"
 	)
 	_expect_equal(
 		conveyor.texture_path_for_rotation(2).ends_with("conveyor_down.png"),
@@ -597,10 +597,10 @@ func _check_world_operations() -> void:
 
 	_expect_equal(
 		(reactor.get_node("Sprite") as Sprite2D).texture.resource_path.ends_with(
-			"reactor.png"
+			"reactor_down.png"
 		),
 		true,
-		"placed reactor uses the locked V10 front"
+		"placed reactor uses the compact three-by-three front"
 	)
 	_expect_equal(
 		(conveyor.get_node("Sprite") as Sprite2D).texture.resource_path.ends_with(
@@ -883,10 +883,10 @@ func _check_world_operations() -> void:
 	_expect_equal(reactor.instance_id, reactor_id, "adjustment preserves stable id")
 	_expect_equal(
 		(reactor.get_node("Sprite") as Sprite2D).texture.resource_path.ends_with(
-			"reactor.png"
+			"reactor_down.png"
 		),
 		true,
-		"reactor adjustment keeps the locked V10 front"
+		"reactor adjustment keeps the compact three-by-three front"
 	)
 
 	var supporting_floor := _find_building(

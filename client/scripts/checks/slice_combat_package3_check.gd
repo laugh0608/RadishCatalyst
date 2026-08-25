@@ -276,8 +276,8 @@ func _check_restart_and_delivery_matrix() -> void:
 	_expect_equal(controller.health, 120, "delivery restores full health")
 	_expect_equal(
 		controller.encounter_goal_text(),
-		"抗蚀内衬已安装｜最大生命 120",
-		"HUD exposes the permanent reward"
+		"Demo 已完成｜可继续自由建设",
+		"HUD exposes the completed demo and free-build state"
 	)
 	var delivered := _read_json(service.save_file_path())
 	var delivered_encounter: Dictionary = delivered.get("field_encounter", {})

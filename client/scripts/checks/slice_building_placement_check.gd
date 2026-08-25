@@ -132,8 +132,14 @@ func _check_definitions() -> void:
 	)
 	_expect_equal(
 		reactor.icon_region,
-		Rect2(28, 0, 120, 88),
-		"reactor UI framing excludes its world-only approach sections"
+		Rect2(),
+		"compact reactor uses its full three-by-three body in UI"
+	)
+	_expect_equal(conveyor.blocks_movement, false, "conveyor is walkable ground")
+	_expect_equal(
+		conveyor.spatial_layer,
+		SliceBuildingDefinition.SPATIAL_LAYER_GROUND,
+		"conveyor renders on the fixed ground layer"
 	)
 	_expect_equal(storage.logistics_ports.size(), 2, "storage has fixed IN and OUT")
 	var storage_input := storage.logistics_ports[0]
@@ -184,18 +190,18 @@ func _check_definitions() -> void:
 	)
 	_expect_equal(
 		reactor.logistics_ports[0].connection_distance,
-		2,
-		"reactor input reserves its built-in approach cell"
+		1,
+		"compact reactor input connects on the adjacent cell"
 	)
 	_expect_equal(
 		reactor.logistics_ports[1].connection_distance,
-		2,
-		"reactor output reserves its built-in approach cell"
+		1,
+		"compact reactor output connects on the adjacent cell"
 	)
 	_expect_equal(
 		reactor.logistics_approach_cells(Vector2i(10, 10), 0),
-		[Vector2i(9, 12), Vector2i(13, 12)],
-		"reactor exposes both world-only approach cells for placement"
+		[],
+		"compact reactor has no invisible approach gap"
 	)
 	_expect_equal(
 		reactor.logistics_ports[0].local_cell,
@@ -231,6 +237,11 @@ func _check_definitions() -> void:
 		collector.logistics_ports[0].outward_direction,
 		Vector2i.RIGHT,
 		"collector output faces right"
+	)
+	_expect_equal(
+		collector.logistics_ports[0].connection_distance,
+		2,
+		"collector reserves one explicit cross-surface transition cell"
 	)
 
 	var fixed_front := SliceBuildingDefinition.new(
@@ -425,15 +436,15 @@ func _check_world_placement_path() -> void:
 	)
 	var approach_overlap := world._placement_validator.validate(
 		conveyor,
-		Vector2i(15, 7),
+		Vector2i(47, 11),
 		0,
 		0,
-		reactor.logistics_approach_cells(reactor_cell, 0)
+		collector.logistics_approach_cells(collector_cell, 0)
 	)
 	_expect_equal(
 		bool(approach_overlap.get("valid", true)),
 		false,
-		"a conveyor cannot occupy the reactor built-in approach cell"
+		"a conveyor cannot occupy the collector transition cell"
 	)
 	_expect_equal(
 		String(approach_overlap.get("reason", "")),

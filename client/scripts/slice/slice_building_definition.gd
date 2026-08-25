@@ -20,6 +20,8 @@ const POWER_PROBE_FOLLOWS_ORIENTATION := "follows_orientation"
 const POWER_PROBE_FIXED_LOCAL := "fixed_local"
 const POWER_VISUAL_ANCHOR_NONE := "none"
 const POWER_VISUAL_ANCHOR_BLOCK_CENTER_OFFSET := "block_center_offset"
+const SPATIAL_LAYER_GROUND := "ground"
+const SPATIAL_LAYER_Y_SORTED := "y_sorted"
 const POWER_TERMINAL_WEST := "west"
 const POWER_TERMINAL_NORTH := "north"
 const POWER_TERMINAL_EAST := "east"
@@ -51,6 +53,7 @@ var power_visual_anchor_policy: String
 var power_visual_anchor_offset: Vector2
 var power_visual_terminal_offsets: Dictionary = {}
 var logistics_ports: Array[SliceLogisticsPortDefinition] = []
+var spatial_layer := SPATIAL_LAYER_Y_SORTED
 var logistics_port_cell: Vector2i
 var logistics_port_direction: Vector2i
 var machine_input_port_cell: Vector2i
@@ -129,6 +132,14 @@ func _init(
 
 func configure_icon_region(next_icon_region: Rect2) -> SliceBuildingDefinition:
 	icon_region = next_icon_region
+	return self
+
+
+func configure_spatial_layer(next_layer: String) -> SliceBuildingDefinition:
+	if next_layer not in [SPATIAL_LAYER_GROUND, SPATIAL_LAYER_Y_SORTED]:
+		push_error("Unsupported building spatial layer: %s" % next_layer)
+		return self
+	spatial_layer = next_layer
 	return self
 
 
