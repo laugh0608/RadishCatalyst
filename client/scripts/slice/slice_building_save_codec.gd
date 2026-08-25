@@ -18,7 +18,6 @@ const LEGACY_STORAGE_CAPACITY := 20
 const REACTOR_INPUT_CAPACITY := 2
 const REACTOR_OUTPUT_CAPACITY := 1
 const REACTOR_PROCESS_DURATION := 10.0
-const COLLECTOR_BUFFER_CAPACITY := 10
 const REACTOR_INPUT_ITEM_ID := "crystal"
 const REACTOR_OUTPUT_ITEM_ID := "catalyst"
 const TRANSPORT_ITEM_IDS := ["crystal", "catalyst"]
@@ -345,7 +344,7 @@ static func migrate_legacy_collectors(raw_collectors) -> Dictionary:
 		if (
 			not _is_integer(buffer_value)
 			or int(buffer_value) < 0
-			or int(buffer_value) > COLLECTOR_BUFFER_CAPACITY
+			or int(buffer_value) > SliceCollector.BUFFER_CAP
 		):
 			return _failure("collectors[%d].buffer 超出有效范围" % index)
 		var origin := Vector2i(int(raw_cell[0]), int(raw_cell[1]))
@@ -501,7 +500,7 @@ static func _validate_state(
 		if (
 			not _is_integer(buffer_value)
 			or int(buffer_value) < 0
-			or int(buffer_value) > COLLECTOR_BUFFER_CAPACITY
+			or int(buffer_value) > SliceCollector.BUFFER_CAP
 		):
 			return _failure("buildings[%d].state.buffer 超出有效范围" % index)
 		var progress_value = raw_state.get("production_progress", 0.0)

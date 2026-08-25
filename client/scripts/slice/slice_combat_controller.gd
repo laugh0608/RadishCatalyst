@@ -118,14 +118,8 @@ func require_fresh_attack_press() -> void:
 func _on_weapon_selection_requested(weapon_id: String) -> void:
 	if _world == null or _world.is_combat_input_blocked():
 		return
-	match weapon_id:
-		WEAPON_CUTTER:
-			_select_weapon(WEAPON_CUTTER)
-		WEAPON_PULSE_RIFLE:
-			if not has_pulse_rifle():
-				_set_notice("未持有前哨脉冲步枪｜保持切割器", 1.5)
-				return
-			_select_weapon(WEAPON_PULSE_RIFLE)
+	if not equip_weapon(weapon_id):
+		_set_notice("未持有前哨脉冲步枪｜保持当前装备", 1.5)
 
 
 func _on_dodge_requested() -> void:
@@ -227,7 +221,7 @@ func _finish_attack() -> void:
 
 func _begin_pulse_rifle_attack() -> void:
 	if not has_pulse_rifle():
-		_select_weapon(WEAPON_CUTTER)
+		equip_weapon(WEAPON_CUTTER)
 		_set_notice("步枪不在随身背包｜已切回切割器", 1.8)
 		return
 	if pulse_cell_count() <= 0:
@@ -261,7 +255,19 @@ func _consume_pulse_cell() -> Dictionary:
 	}
 
 
-func _select_weapon(weapon_id: String) -> void:
+func equip_weapon(weapon_id: String, persist: bool = true) -> bool:
+	if weapon_id not in [WEAPON_CUTTER, WEAPON_PULSE_RIFLE]:
+		return false
+	if weapon_id == WEAPON_PULSE_RIFLE and not has_pulse_rifle():
+		return false
+	var changed := current_weapon != weapon_id
+	_apply_weapon(weapon_id)
+	if changed and persist:
+		persistence_requested.emit(true)
+	return true
+
+
+func _apply_weapon(weapon_id: String) -> void:
 	if current_weapon == weapon_id:
 		return
 	current_weapon = weapon_id
@@ -336,7 +342,7 @@ func _on_inventory_changed(_changed_value = null) -> void:
 	if current_weapon != WEAPON_PULSE_RIFLE or has_pulse_rifle():
 		_emit_state_if_changed()
 		return
-	_select_weapon(WEAPON_CUTTER)
+	equip_weapon(WEAPON_CUTTER)
 	_set_notice("步枪已离开随身背包｜已切回切割器", 1.8)
 
 
@@ -399,6 +405,7 @@ func durable_state() -> Dictionary:
 		enemy_health = field_enemy.health
 	return {
 		"player_health": health,
+		"equipped_weapon_id": current_weapon,
 		"field_encounter": {
 			"state": encounter_state,
 			"enemy_health": enemy_health,
@@ -408,12 +415,14 @@ func durable_state() -> Dictionary:
 
 func restore_durable_state(
 	saved_health: int,
-	field_encounter: Dictionary
+	field_encounter: Dictionary,
+	equipped_weapon_id: String = WEAPON_CUTTER
 ) -> void:
 	current_weapon = WEAPON_CUTTER
 	_attack_held = false
 	_requires_fresh_attack_press = true
 	_finish_attack()
+	_apply_weapon(equipped_weapon_id)
 	_player.set_weapon_visual(current_weapon)
 	encounter_state = String(field_encounter.get("state", "locked"))
 	max_health = 120 if encounter_state == "delivered" else 100

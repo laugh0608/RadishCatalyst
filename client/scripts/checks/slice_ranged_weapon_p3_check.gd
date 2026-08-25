@@ -296,7 +296,11 @@ func _check_selection_shooting_hud_and_restart() -> void:
 	)
 	_expect_equal(world.save_now(), true, "empty selected rifle state saves")
 	var saved_data := _read_json(service.save_file_path())
-	_expect_equal(saved_data.has("current_weapon"), false, "save root omits current weapon")
+	_expect_equal(
+		saved_data.get("equipped_weapon_id", ""),
+		SliceCombatController.WEAPON_PULSE_RIFLE,
+		"save root persists the selected rifle"
+	)
 	_expect_equal(saved_data.has("projectiles"), false, "save root omits projectiles")
 	_expect_equal(saved_data.has("attack_phase"), false, "save root omits attack phase")
 	_free_world(world)
@@ -305,8 +309,8 @@ func _check_selection_shooting_hud_and_restart() -> void:
 	controller = world.combat_controller
 	_expect_equal(
 		controller.current_weapon,
-		SliceCombatController.WEAPON_CUTTER,
-		"reload resets session weapon to cutter"
+		SliceCombatController.WEAPON_PULSE_RIFLE,
+		"reload restores the selected rifle"
 	)
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_PULSE_RIFLE),

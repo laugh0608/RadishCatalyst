@@ -218,7 +218,7 @@ func _ready() -> void:
 		and not _save_scheduler.pending_load_context().is_empty()
 		and not save_now()
 	):
-		push_warning("旧档已完成世界重建，但 schema 9 发布失败；后续保存将继续重试。")
+		push_warning("旧档已完成世界重建，但 schema 10 发布失败；后续保存将继续重试。")
 
 
 func _physics_process(delta: float) -> void:
@@ -823,8 +823,8 @@ func _refresh_core_charge_visual() -> void:
 		core_visual.set_core_modulate(Color.WHITE)
 
 
-## Craft a recipe into ordinary backpack items. Building recipes create one or
-## more kit items and immediately select their shared placement definition.
+## Craft a recipe into backpack property. Placement is a separate player action
+## through the manufacturing panel's existing-kit entry.
 func craft(recipe_id: String) -> bool:
 	var recipe := SliceRecipes.find(recipe_id)
 	if recipe.is_empty():
@@ -845,8 +845,6 @@ func craft(recipe_id: String) -> bool:
 	):
 		push_error("Craft inventory changed after authoritative validation.")
 		return false
-	if kind == "building":
-		begin_building_placement(String(recipe["building_id"]))
 	inventory_changed.emit()
 	save_now()
 	return true
@@ -1419,7 +1417,10 @@ func _restore_from_save() -> bool:
 		data.get("field_encounter", {
 			"state": "hostile" if is_core_charged() else "locked",
 			"enemy_health": SliceFieldEnemy.MAX_HEALTH,
-		})
+		}),
+		String(data.get(
+			"equipped_weapon_id", SliceCombatController.WEAPON_CUTTER
+		))
 	)
 	_refresh_core_charge_visual()
 

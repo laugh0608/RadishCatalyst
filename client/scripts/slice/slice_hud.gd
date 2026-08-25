@@ -59,6 +59,7 @@ var _context_is_dimmed := false
 @onready var dodge_action_label: Label = (
 	$CombatActionPanel/DodgeSlot/DodgeAction
 )
+@onready var character_panel: SliceCharacterPanel = $SliceCharacterPanel
 
 
 func setup(world: Node, player: SlicePlayer) -> void:
@@ -73,6 +74,7 @@ func setup(world: Node, player: SlicePlayer) -> void:
 	world.combat_controller.state_changed.connect(_refresh_state)
 	world.first_journey.changed.connect(_refresh_state)
 	minimap.setup(world, player)
+	character_panel.setup(world)
 	_refresh_state()
 
 

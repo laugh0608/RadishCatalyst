@@ -56,7 +56,7 @@ static func build(world: SliceWorld) -> Dictionary:
 		return {
 			"stage": "power_collector",
 			"goal": "基地目标 1/3：在东侧晶体地放置通电采集器",
-			"rule": "按 B 合成采集器；中继需工业地板，6 格接力、4 格供能",
+			"rule": "按 B 合成采集器；中继需工业地板，8 格接力、6 格供能",
 		}
 	if not _has_powered_reactor(world):
 		return {

@@ -215,7 +215,7 @@ func _run() -> void:
 	)
 	craft_panel._refresh()
 	_expect_equal(
-		world.current_journey_rule_text().contains("6 格接力、4 格供能"),
+		world.current_journey_rule_text().contains("8 格接力、6 格供能"),
 		true,
 		"journey state exposes the current collector power rule"
 	)

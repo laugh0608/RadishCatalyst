@@ -636,6 +636,9 @@ func _refresh_selected_recipe(selected_building_id: String) -> void:
 		and selected_building_id == building_id
 	)
 	var blocker := _craft_block_reason(recipe)
+	var plan := SliceCraftingPlan.analyze(
+		recipe, _world.pocket, _world.core_storage
+	)
 
 	_refresh_material_requirements(recipe)
 	_output_icon.texture = _item_icon(output)
@@ -669,14 +672,17 @@ func _refresh_selected_recipe(selected_building_id: String) -> void:
 		if selected
 		else "选中已有 ×%d" % existing_count
 	)
+	var plan_text := SliceCraftingPlan.summary_text(plan)
 	if selected:
-		_detail_state.text = "当前正在放置 · 剩余 %d" % existing_count
+		_detail_state.text = "当前正在放置 · 剩余 %d\n%s" % [
+			existing_count, plan_text
+		]
 		_detail_state.add_theme_color_override("font_color", COLOR_A1)
 	elif blocker.is_empty():
-		_detail_state.text = "材料校验通过 · 可以制作"
+		_detail_state.text = "材料校验通过 · 可以制作\n%s" % plan_text
 		_detail_state.add_theme_color_override("font_color", COLOR_A1)
 	else:
-		_detail_state.text = _display_blocker(blocker)
+		_detail_state.text = "%s\n%s" % [_display_blocker(blocker), plan_text]
 		_detail_state.add_theme_color_override("font_color", COLOR_WARNING)
 	_result_text.text = (
 		_last_result if not _last_result.is_empty() else "确认材料后执行制作"

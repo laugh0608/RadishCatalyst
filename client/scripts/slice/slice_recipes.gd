@@ -21,7 +21,7 @@ const RECIPES := [
 		"name": "工业地板",
 		"kind": "building",
 		"output": "building.floor",
-		"output_count": 4,
+		"output_count": 8,
 		"building_id": "building.floor",
 		"cost": {"crystal": 1},
 	},

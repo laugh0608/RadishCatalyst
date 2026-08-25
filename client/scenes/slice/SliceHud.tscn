@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/slice/slice_hud.gd" id="1_hud_script"]
 [ext_resource type="Theme" path="res://assets/themes/slice_ui_theme.tres" id="2_ui_theme"]
@@ -12,6 +12,7 @@
 [ext_resource type="StyleBox" path="res://assets/themes/slice_ui_hud_progress_track.tres" id="10_hud_progress_track"]
 [ext_resource type="Script" path="res://scripts/slice/slice_minimap.gd" id="11_minimap_script"]
 [ext_resource type="Script" path="res://scripts/slice/slice_minimap_overlay.gd" id="12_minimap_overlay"]
+[ext_resource type="PackedScene" path="res://scenes/slice/SliceCharacterPanel.tscn" id="13_character_panel"]
 
 [sub_resource type="StyleBoxFlat" id="StyleHealthFill"]
 bg_color = Color(0.498, 0.573, 0.722, 1)
@@ -47,6 +48,8 @@ corner_radius_bottom_right = 2
 
 [node name="SliceHud" type="CanvasLayer"]
 script = ExtResource("1_hud_script")
+
+[node name="SliceCharacterPanel" parent="." instance=ExtResource("13_character_panel")]
 
 [node name="LeftStatusPanel" type="Panel" parent="."]
 offset_left = 18.0

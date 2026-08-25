@@ -477,7 +477,7 @@ func _expect_schema_seven_contract(data: Dictionary, label: String) -> void:
 
 func _expect_schema_nine_contract(data: Dictionary, label: String) -> void:
 	assertion_count += 1
-	for failure in SliceSaveSchemaNineContract.validate(data):
+	for failure in SliceSaveSchemaTenContract.validate(data):
 		failures.append("%s: %s" % [label, failure])
 
 

@@ -1167,7 +1167,7 @@ func _expect_schema_nine_payload_shape(
 	label: String
 ) -> void:
 	_assertion_count += 1
-	for failure in SliceSaveSchemaNineContract.validate(data):
+	for failure in SliceSaveSchemaTenContract.validate(data):
 		failures.append("%s: %s" % [label, failure])
 
 

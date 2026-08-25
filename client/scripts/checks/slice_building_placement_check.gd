@@ -577,10 +577,19 @@ func _check_world_placement_path() -> void:
 	_expect_equal(world.craft("floor"), true, "floor recipe crafts")
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
-		4,
-		"floor recipe grants all four kits"
+		8,
+		"floor recipe grants all eight kits"
 	)
-	_expect_equal(world.selected_building_id(), floor.building_id, "floor selected")
+	_expect_equal(
+		world.selected_building_id(),
+		"",
+		"crafting a floor batch does not enter placement"
+	)
+	_expect_equal(
+		world.select_building_kit(floor.building_id),
+		true,
+		"existing floor kits enter placement explicitly"
+	)
 	world.rotate_building_placement()
 	_expect_equal(
 		world.selected_building_rotation(),
@@ -607,7 +616,7 @@ func _check_world_placement_path() -> void:
 	)
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
-		4,
+		8,
 		"blocking UI prevents pointer placement and material cost"
 	)
 	_expect_equal(
@@ -617,7 +626,7 @@ func _check_world_placement_path() -> void:
 	)
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
-		3,
+		7,
 		"one floor placement consumes one kit"
 	)
 	_expect_equal(
@@ -644,13 +653,13 @@ func _check_world_placement_path() -> void:
 	)
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
-		2,
+		6,
 		"second drag cell consumes exactly one floor kit"
 	)
 	world._handle_placement_pointer_event(floor_motion)
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
-		2,
+		6,
 		"repeated motion in one floor cell does not double-charge"
 	)
 	var third_floor_cell := second_floor_cell + Vector2i.RIGHT
@@ -678,12 +687,22 @@ func _check_world_placement_path() -> void:
 	_expect_equal(world.is_placement_active(), false, "Esc cancellation exits")
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
-		1,
+		5,
 		"cancellation preserves remaining floor kits"
 	)
 
 	world.pocket.add(SliceWorld.ITEM_PART, 2)
 	_expect_equal(world.craft("collector"), true, "collector recipe crafts")
+	_expect_equal(
+		world.selected_building_id(),
+		"",
+		"crafting a collector does not enter placement"
+	)
+	_expect_equal(
+		world.select_building_kit(collector.building_id),
+		true,
+		"existing collector kit enters placement explicitly"
+	)
 	var collector_validation := world._validate_placement(
 		collector, collector_cell, 0
 	)

@@ -16,6 +16,7 @@ static func build(world: SliceWorld) -> Dictionary:
 		if world.combat_controller != null
 		else {
 			"player_health": 100,
+			"equipped_weapon_id": SliceCombatController.WEAPON_CUTTER,
 			"field_encounter": {
 				"state": "hostile" if world.is_core_charged() else "locked",
 				"enemy_health": SliceFieldEnemy.MAX_HEALTH,
@@ -35,6 +36,7 @@ static func build(world: SliceWorld) -> Dictionary:
 		"player_x": player_position.x,
 		"player_y": player_position.y,
 		"player_health": combat_state["player_health"],
+		"equipped_weapon_id": combat_state["equipped_weapon_id"],
 		"field_encounter": combat_state["field_encounter"],
 	}
 	state.merge(

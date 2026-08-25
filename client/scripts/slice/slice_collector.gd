@@ -5,7 +5,7 @@ extends SliceBuildingInstance
 ## Manual withdrawal and the fixed right logistics endpoint consume the same
 ## count, so belt backpressure cannot duplicate or discard production.
 
-const BUFFER_CAP := 10
+const BUFFER_CAP := 50
 const OUTPUT_ITEM_ID := "crystal"
 
 var buffer := 0

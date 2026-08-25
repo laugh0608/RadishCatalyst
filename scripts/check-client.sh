@@ -208,6 +208,7 @@ run_godot_checked "slice-logistics" --script "${client_root}/scripts/checks/slic
 run_godot_checked "slice-core-logistics" --script "${client_root}/scripts/checks/slice_core_logistics_check.gd" --no-header
 run_godot_checked "slice-playtest-remediation-package0" --script "${client_root}/scripts/checks/slice_playtest_remediation_package0_check.gd" --no-header
 run_godot_checked "slice-playtest-remediation-package1" --script "${client_root}/scripts/checks/slice_playtest_remediation_package1_check.gd" --no-header
+run_godot_checked "slice-playtest-remediation-package2" --script "${client_root}/scripts/checks/slice_playtest_remediation_package2_check.gd" --no-header
 run_godot_checked "slice-save-schema" --script "${client_root}/scripts/checks/slice_save_schema_check.gd" --no-header
 run_godot_checked "slice-save-schema-nine" --script "${client_root}/scripts/checks/slice_save_schema_nine_check.gd" --no-header
 run_godot_checked "slice-save-catalog" --script "${client_root}/scripts/checks/slice_save_catalog_check.gd" --no-header

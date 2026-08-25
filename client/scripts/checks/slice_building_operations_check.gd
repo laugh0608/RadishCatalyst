@@ -126,10 +126,10 @@ func _check_catalog_and_recipes() -> void:
 			SliceRecipes.find("floor"),
 			full_inventory
 		),
-		"背包还需 1 格",
+		"背包还需 5 格",
 		"recipe blocker uses post-consumption capacity"
 	)
-	var exact_inventory := Inventory.new(4)
+	var exact_inventory := Inventory.new(8)
 	exact_inventory.add(SliceWorld.ITEM_CRYSTAL, 1)
 	_expect_equal(
 		SliceRecipes.craft_block_reason(
@@ -500,7 +500,7 @@ func _check_world_operations() -> void:
 	world._craft_panel._activate_recipe(SliceRecipes.find("floor"))
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
-		5,
+		9,
 		"selected floor recipe key appends another complete batch"
 	)
 	_expect_equal(
@@ -514,14 +514,14 @@ func _check_world_operations() -> void:
 	world._craft_panel.select_recipe("floor")
 	var floor_select := world._craft_panel.detail_select_button()
 	_expect_equal(
-		floor_select.text.contains("选中已有 ×5"),
+		floor_select.text.contains("选中已有 ×9"),
 		true,
 		"floor card exposes explicit existing-kit mouse selection"
 	)
 	world._craft_panel._activate_recipe(SliceRecipes.find("floor"))
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
-		9,
+		17,
 		"reactor placement can craft the second floor batch"
 	)
 	_expect_equal(
@@ -532,7 +532,7 @@ func _check_world_operations() -> void:
 	world._craft_panel._activate_recipe(SliceRecipes.find("floor"), true)
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
-		9,
+		17,
 		"Shift-selecting existing floors consumes no resources"
 	)
 	_expect_equal(
