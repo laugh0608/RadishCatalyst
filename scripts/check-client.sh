@@ -210,6 +210,7 @@ run_godot_checked "slice-playtest-remediation-package0" --script "${client_root}
 run_godot_checked "slice-playtest-remediation-package1" --script "${client_root}/scripts/checks/slice_playtest_remediation_package1_check.gd" --no-header
 run_godot_checked "slice-playtest-remediation-package2" --script "${client_root}/scripts/checks/slice_playtest_remediation_package2_check.gd" --no-header
 run_godot_checked "slice-playtest-remediation-package3" --script "${client_root}/scripts/checks/slice_playtest_remediation_package3_check.gd" --no-header
+run_godot_checked "slice-playtest-remediation-package4" --script "${client_root}/scripts/checks/slice_playtest_remediation_package4_check.gd" --no-header
 run_godot_checked "slice-save-schema" --script "${client_root}/scripts/checks/slice_save_schema_check.gd" --no-header
 run_godot_checked "slice-save-schema-nine" --script "${client_root}/scripts/checks/slice_save_schema_nine_check.gd" --no-header
 run_godot_checked "slice-save-catalog" --script "${client_root}/scripts/checks/slice_save_catalog_check.gd" --no-header

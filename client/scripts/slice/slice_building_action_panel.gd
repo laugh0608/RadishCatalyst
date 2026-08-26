@@ -16,6 +16,8 @@ const TONE_COLORS := {
 	"neutral": Color(0.659, 0.698, 0.706, 1.0),
 }
 
+signal open_state_changed(opened: bool, target: SliceBuildingInstance)
+
 var _world: Node
 var _target: SliceBuildingInstance
 var _open := false
@@ -186,9 +188,12 @@ func open(instance: SliceBuildingInstance) -> void:
 	_container_view.clear_selection()
 	_root.visible = true
 	_refresh()
+	open_state_changed.emit(true, _target)
 
 
 func close() -> void:
+	var previous_target := _target
+	var was_open := _open
 	_container_view.cancel_interaction()
 	_target = null
 	_open = false
@@ -196,6 +201,8 @@ func close() -> void:
 	_result = ""
 	_snapshot = {}
 	_root.visible = false
+	if was_open:
+		open_state_changed.emit(false, previous_target)
 
 
 func is_open() -> bool:

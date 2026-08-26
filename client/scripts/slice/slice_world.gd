@@ -59,9 +59,7 @@ var startup_load := false
 
 ## Player backpack (spatial crystal/catalyst store, capacity-limited).
 var pocket := Inventory.new(SliceInventoryProfiles.category_pocket())
-var core_storage := Inventory.new(
-	SliceInventoryProfiles.category_core_storage()
-)
+var core_storage := Inventory.new(SliceInventoryProfiles.category_core_storage())
 var core_repaired := false
 var core_energy := 0
 var harvested_clusters: Array[String] = []
@@ -84,9 +82,7 @@ var _industrial_floor: TileMapLayer
 var _placement: SliceBuildingPlacementController
 var _placement_pointer := SlicePlacementPointerInput.new()
 var _placement_validator := SlicePlacementValidator.new()
-var _support_floor_transaction := (
-	SlicePlacementSupportFloorTransaction.new()
-)
+var _support_floor_transaction := SlicePlacementSupportFloorTransaction.new()
 var _occupancy := SliceBuildingOccupancy.new()
 var _power_grid := SlicePowerGrid.new()
 var _logistics_grid := SliceLogisticsGrid.new()
@@ -170,6 +166,9 @@ func _ready() -> void:
 	)
 	add_child(_building_action_panel)
 	_building_action_panel.setup(self)
+	var power_link_presenter := SlicePowerLinkPresenter.new()
+	add_child(power_link_presenter)
+	power_link_presenter.setup(self, _power_links, _building_action_panel)
 
 	pause_menu = (
 		(load(PAUSE_MENU_SCENE) as PackedScene).instantiate()

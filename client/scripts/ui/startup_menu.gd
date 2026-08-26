@@ -34,10 +34,10 @@ var _selected_trash_id := ""
 @onready var settings_button: Button = $ContentRoot/MenuButtons/SettingsButton
 @onready var quit_button: Button = $ContentRoot/MenuButtons/QuitButton
 @onready var system_shade: ColorRect = $SystemShade
-@onready var settings_panel: Panel = $SettingsPanel
-@onready var settings_title_label: Label = $SettingsPanel/SettingsTitleLabel
-@onready var settings_body_label: Label = $SettingsPanel/SettingsBodyLabel
-@onready var settings_back_button: Button = $SettingsPanel/SettingsBackButton
+@onready var settings_panel: SliceSettingsPanel = $SettingsPanel
+@onready var settings_back_button: Button = (
+	$SettingsPanel/Margin/Layout/Footer/BackButton
+)
 @onready var world_panel: Panel = $WorldPanel
 @onready var world_title_label: Label = $WorldPanel/WorldTitleLabel
 @onready var world_count_label: Label = $WorldPanel/WorldCountLabel
@@ -71,7 +71,7 @@ func _ready() -> void:
 	load_game_button.pressed.connect(_on_load_game_pressed)
 	settings_button.pressed.connect(_on_settings_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
-	settings_back_button.pressed.connect(_on_settings_back_pressed)
+	settings_panel.close_requested.connect(_on_settings_back_pressed)
 	active_worlds_button.pressed.connect(_on_active_worlds_pressed)
 	trash_worlds_button.pressed.connect(_on_trash_worlds_pressed)
 	world_item_list.item_selected.connect(_on_world_item_selected)
@@ -85,7 +85,7 @@ func _ready() -> void:
 	trash_confirm_button.pressed.connect(_on_trash_confirmed)
 	trash_cancel_button.pressed.connect(_close_trash_confirmation)
 	multiplayer_button.disabled = true
-	settings_panel.visible = false
+	settings_panel.setup(_user_settings())
 	world_panel.visible = false
 	trash_confirm_panel.visible = false
 	system_shade.visible = false
@@ -158,7 +158,7 @@ func _open_world_panel(show_trash: bool, focus_name: bool = false) -> void:
 	if save_catalog == null:
 		show_catalog_message("世界目录尚未初始化。")
 		return
-	settings_panel.visible = false
+	settings_panel.close()
 	system_shade.visible = true
 	world_panel.visible = true
 	trash_confirm_panel.visible = false
@@ -345,8 +345,6 @@ func _apply_text_style() -> void:
 		title_label,
 		subtitle_label,
 		slot_summary_label,
-		settings_title_label,
-		settings_body_label,
 		world_title_label,
 		world_count_label,
 		world_details_label,
@@ -360,7 +358,6 @@ func _apply_text_style() -> void:
 	title_label.add_theme_font_size_override("font_size", 52)
 	subtitle_label.add_theme_color_override("font_color", COLOR_A1)
 	slot_summary_label.add_theme_color_override("font_color", COLOR_MUTED)
-	settings_body_label.add_theme_color_override("font_color", COLOR_MUTED)
 	world_count_label.add_theme_color_override("font_color", COLOR_MUTED)
 	world_details_label.add_theme_color_override("font_color", COLOR_MUTED)
 	world_status_label.add_theme_color_override("font_color", COLOR_MUTED)
@@ -373,7 +370,6 @@ func _apply_button_style() -> void:
 		multiplayer_button,
 		settings_button,
 		quit_button,
-		settings_back_button,
 		active_worlds_button,
 		trash_worlds_button,
 		create_world_button,
@@ -609,21 +605,24 @@ func _unhandled_input(event: InputEvent) -> void:
 		_close_world_panel()
 		get_viewport().set_input_as_handled()
 		return
-	if settings_panel.visible:
+	if settings_panel.is_open():
 		_on_settings_back_pressed()
 		get_viewport().set_input_as_handled()
 
 
 func _on_settings_pressed() -> void:
 	system_shade.visible = true
-	settings_panel.visible = true
-	settings_back_button.grab_focus()
+	settings_panel.open()
 
 
 func _on_settings_back_pressed() -> void:
-	settings_panel.visible = false
+	settings_panel.close()
 	system_shade.visible = false
 	settings_button.grab_focus()
+
+
+func _user_settings() -> SliceUserSettings:
+	return get_node_or_null("/root/UserSettings") as SliceUserSettings
 
 
 func _on_quit_pressed() -> void:

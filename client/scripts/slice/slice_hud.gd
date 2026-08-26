@@ -7,10 +7,15 @@ extends CanvasLayer
 const ACCENT_COLOR := Color("7f92b8")
 const DANGER_COLOR := Color("d85d4d")
 const AMMO_WARNING_COLOR := Color("d6a24f")
-const SECONDARY_TEXT_COLOR := Color("8f9d9d")
+const SECONDARY_TEXT_COLOR := Color("c6cfcd")
 const PRIMARY_TEXT_COLOR := Color("f2f4f2")
 const DIMMED_HUD_COLOR := Color(1.0, 1.0, 1.0, 0.42)
 const ACTIVE_HUD_COLOR := Color.WHITE
+const SAFE_MARGIN := 18.0
+const BOTTOM_LEFT_WIDTH := 520.0
+const BOTTOM_RIGHT_WIDTH := 220.0
+const BOTTOM_STACK_GAP := 18.0
+const DEFAULT_PROMPT_WIDTH := 720.0
 
 var _world: Node
 var _player: SlicePlayer
@@ -282,13 +287,19 @@ func _refresh_notice() -> void:
 
 func _set_prompt_layout(wide: bool) -> void:
 	if wide:
-		prompt_panel.offset_left = -390.0
-		prompt_panel.offset_right = 924.0
-		prompt_label.offset_right = 1294.0
+		prompt_panel.anchor_left = 0.0
+		prompt_panel.anchor_right = 1.0
+		prompt_panel.offset_left = (
+			SAFE_MARGIN + BOTTOM_LEFT_WIDTH + BOTTOM_STACK_GAP
+		)
+		prompt_panel.offset_right = -(
+			SAFE_MARGIN + BOTTOM_RIGHT_WIDTH + BOTTOM_STACK_GAP
+		)
 		return
-	prompt_panel.offset_left = -360.0
-	prompt_panel.offset_right = 360.0
-	prompt_label.offset_right = 700.0
+	prompt_panel.anchor_left = 0.5
+	prompt_panel.anchor_right = 0.5
+	prompt_panel.offset_left = -DEFAULT_PROMPT_WIDTH / 2.0
+	prompt_panel.offset_right = DEFAULT_PROMPT_WIDTH / 2.0
 
 
 func _set_context_weight(dimmed: bool) -> void:
