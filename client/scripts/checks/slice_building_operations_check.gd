@@ -401,17 +401,17 @@ func _check_world_operations() -> void:
 	world._core_storage_panel.open()
 	_expect_equal(
 		world._core_storage_panel.item_row_count(),
-		12,
-		"core warehouse mirrors all known and compatibility items in both columns"
+		1,
+		"core warehouse defaults to the one actually held compatibility item"
 	)
 	_expect_equal(
 		world._core_storage_panel.pocket_slot("future.item") != null
-		and world._core_storage_panel.core_slot("future.item") != null,
+		and world._core_storage_panel.core_slot("future.item") == null,
 		true,
-		"compatibility item remains a valid source and drop target"
+		"empty target side does not render a fake compatibility item row"
 	)
 	var control_press := InputEventMouseButton.new()
-	control_press.button_index = MOUSE_BUTTON_RIGHT
+	control_press.button_index = MOUSE_BUTTON_LEFT
 	control_press.pressed = true
 	control_press.ctrl_pressed = true
 	world._core_storage_panel.pocket_slot("future.item")._gui_input(
@@ -421,12 +421,9 @@ func _check_world_operations() -> void:
 		world._core_storage_panel.drag_is_pending()
 		and world._core_storage_panel.drag_selected_amount() == 2,
 		true,
-		"macOS control-click begins directly with the rounded-up half selected"
+		"control-left-drag begins with the rounded-up half selected"
 	)
-	var second_control_press := InputEventKey.new()
-	second_control_press.keycode = KEY_CTRL
-	second_control_press.pressed = true
-	world._core_storage_panel._input(second_control_press)
+	world._core_storage_panel.halve_drag_selection()
 	_expect_equal(
 		world._core_storage_panel.drag_selected_amount(),
 		1,
@@ -655,11 +652,12 @@ func _check_world_operations() -> void:
 	)
 	var storage_snapshot := world._building_action_panel.current_snapshot()
 	_expect_equal(
-		not (storage_snapshot["inventory_items"] as Array).is_empty()
+		not (storage_snapshot["container_pair"] as Dictionary).is_empty()
+		and not storage_snapshot.has("inventory_items")
 		and (storage_snapshot["slot_1"] as Dictionary).is_empty()
 		and (storage_snapshot["process"] as Dictionary).is_empty(),
 		true,
-		"storage uses its inventory selector without fake production slots"
+		"storage uses the shared pair without fake selectors or production slots"
 	)
 	storage.inventory.remove(SliceWorld.ITEM_CRYSTAL, 1)
 	storage.output_item_id = ""
@@ -669,29 +667,29 @@ func _check_world_operations() -> void:
 		"unconnected",
 		"storage panel exposes structured IO connection state"
 	)
-	var deposit_crystal := world._building_action_panel.action_button(
-		"storage_deposit"
-	)
+	var storage_container_view := world._building_action_panel.container_view()
 	_expect_equal(
-		deposit_crystal != null and not deposit_crystal.disabled,
+		storage_container_view.visible
+		and storage_container_view.select_item(
+			SliceWorld.ITEM_CRYSTAL, "pocket"
+		),
 		true,
-		"storage panel exposes an enabled mouse deposit action"
+		"storage panel exposes the held crystal as a direct source row"
 	)
-	deposit_crystal.pressed.emit()
+	storage_container_view.request_selected_transfer()
 	_expect_equal(
 		storage.inventory.count(SliceWorld.ITEM_CRYSTAL),
 		2,
 		"storage mouse deposit routes through the authoritative transfer API"
 	)
-	var withdraw_crystal := world._building_action_panel.action_button(
-		"storage_withdraw"
-	)
 	_expect_equal(
-		withdraw_crystal != null and not withdraw_crystal.disabled,
+		storage_container_view.select_item(
+			SliceWorld.ITEM_CRYSTAL, "storage"
+		),
 		true,
-		"storage panel refreshes its mouse withdraw action"
+		"storage panel refreshes the target row as a withdraw source"
 	)
-	withdraw_crystal.pressed.emit()
+	storage_container_view.request_selected_transfer()
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_CRYSTAL),
 		2,
@@ -756,33 +754,25 @@ func _check_world_operations() -> void:
 		"reactor panel keeps material amounts and duration on one flow axis"
 	)
 	_expect_equal(
+		not (reactor_snapshot["container_pair"] as Dictionary).is_empty()
+		and world._building_action_panel.container_view().visible,
+		true,
+		"reactor exposes its recoverable contents in the shared pair"
+	)
+	_expect_equal(
 		world._building_action_panel.process_axis_text(),
-		"IN · 2 晶体 → 加工 · 10 秒 → OUT · 1 催化剂",
-		"reactor visually orders IN, process and OUT without a duplicate list"
+		"",
+		"reactor removes the duplicate legacy process-axis item controls"
 	)
+	var reactor_container_view := world._building_action_panel.container_view()
 	_expect_equal(
-		(
-			world._building_action_panel.get_node(
-				"Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/FlowArrowIn"
-			) as Label
-		).visible
-		and (
-			world._building_action_panel.get_node(
-				"Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/FlowArrowOut"
-			) as Label
-		).visible,
+		reactor_container_view.select_item(
+			SliceWorld.ITEM_CRYSTAL, "reactor"
+		),
 		true,
-		"reactor shows both directional links on the single process axis"
+		"reactor panel exposes an enabled direct recovery row"
 	)
-	var recover_reactor := world._building_action_panel.action_button(
-		"recover_reactor"
-	)
-	_expect_equal(
-		recover_reactor != null and not recover_reactor.disabled,
-		true,
-		"reactor panel exposes an enabled mouse recovery action"
-	)
-	recover_reactor.pressed.emit()
+	reactor_container_view.request_selected_transfer()
 	_expect_equal(
 		placed_reactor.input_inventory.is_empty()
 		and world.pocket.count(SliceWorld.ITEM_CRYSTAL) == 2,

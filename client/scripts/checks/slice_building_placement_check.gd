@@ -812,13 +812,14 @@ func _check_world_placement_path() -> void:
 		crystal_before,
 		"opening the collector panel does not change the backpack"
 	)
-	var take_button := world._building_action_panel.action_button("collect")
+	var container_view := world._building_action_panel.container_view()
 	_expect_equal(
-		take_button != null
-		and take_button.text.contains("取出全部晶体")
-		and not take_button.disabled,
+		container_view.visible
+		and container_view.select_item(
+			SliceWorld.ITEM_CRYSTAL, "collector"
+		),
 		true,
-		"collector panel exposes an enabled mouse take action"
+		"collector panel exposes its buffer as a direct source row"
 	)
 	_expect_equal(
 		world._building_action_panel.primary_status_text(),
@@ -836,7 +837,7 @@ func _check_world_placement_path() -> void:
 		true,
 		"device panel does not restore descriptive next-step copy"
 	)
-	take_button.pressed.emit()
+	container_view.request_selected_transfer()
 	_expect_equal(
 		world._collector_nodes[0].buffer,
 		0,

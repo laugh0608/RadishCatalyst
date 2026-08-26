@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/slice/slice_building_action_panel.gd" id="1_panel"]
 [ext_resource type="Theme" path="res://assets/themes/slice_ui_device_theme.tres" id="2_ui_theme"]
@@ -10,6 +10,7 @@
 [ext_resource type="StyleBox" path="res://assets/themes/slice_ui_device_surface.tres" id="8_attention"]
 [ext_resource type="StyleBox" path="res://assets/themes/slice_ui_device_progress_track.tres" id="9_progress_track"]
 [ext_resource type="StyleBox" path="res://assets/themes/slice_ui_device_progress_fill.tres" id="10_progress_fill"]
+[ext_resource type="Script" path="res://scripts/slice/slice_paired_container_view.gd" id="11_pair"]
 
 [node name="SliceBuildingActionPanel" type="CanvasLayer"]
 layer = 30
@@ -350,18 +351,13 @@ theme_override_colors/font_color = Color(0.91, 0.929, 0.922, 1)
 theme_override_font_sizes/font_size = 20
 text = "设备内容"
 
-[node name="InventoryScroll" type="ScrollContainer" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout"]
+[node name="ContainerView" type="VBoxContainer" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout"]
 visible = false
-custom_minimum_size = Vector2(0, 226)
+custom_minimum_size = Vector2(0, 390)
 layout_mode = 2
-horizontal_scroll_mode = 0
-
-[node name="InventoryGrid" type="GridContainer" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/InventoryScroll"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/h_separation = 6
-theme_override_constants/v_separation = 6
-columns = 3
+size_flags_vertical = 3
+script = ExtResource("11_pair")
+compact = true
 
 [node name="FlowRow" type="HBoxContainer" parent="Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout"]
 custom_minimum_size = Vector2(0, 206)
@@ -692,6 +688,6 @@ theme_override_styles/panel = ExtResource("4_chrome")
 layout_mode = 2
 theme_override_colors/font_color = Color(0.537, 0.576, 0.588, 1)
 theme_override_font_sizes/font_size = 14
-text = "鼠标操作 · 数字键保留为快捷键 · Esc 关闭"
+text = "拖拽为物料主路径 · Enter / Space 等价转移 · Esc 关闭"
 horizontal_alignment = 1
 vertical_alignment = 1

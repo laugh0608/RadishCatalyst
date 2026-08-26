@@ -402,16 +402,16 @@ func harvest_crystals(cluster_name: String, amount: int) -> bool:
 
 
 ## Move a collector's output buffer into the backpack, bounded by free space.
-func collect_from_collector(collector: SliceCollector) -> void:
+func collect_from_collector(collector: SliceCollector) -> int:
 	if collector.buffer <= 0:
-		return
+		return 0
 	var moved := pocket.add(ITEM_CRYSTAL, collector.buffer)
 	if moved <= 0:
-		return
+		return 0
 	collector.buffer -= moved
 	inventory_changed.emit()
 	request_save()
-
+	return moved
 
 ## Spend a specific item from the backpack (e.g. mechanical parts for repair).
 func spend_pocket_item(item: String, amount: int) -> bool:
@@ -584,15 +584,14 @@ func transfer_core_to_pocket(item: String, requested_amount: int = -1) -> int:
 
 
 func transfer_pocket_to_storage(
-	storage: SliceStorage,
-	item: String
+	storage: SliceStorage, item: String, requested_amount: int = -1
 ) -> int:
 	if (
 		storage == null
 		or not _building_instances.has(storage)
 	):
 		return 0
-	var moved := storage.manual_deposit(pocket, item)
+	var moved := storage.manual_deposit(pocket, item, requested_amount)
 	if moved <= 0:
 		return 0
 	inventory_changed.emit()
@@ -602,15 +601,14 @@ func transfer_pocket_to_storage(
 
 
 func transfer_storage_to_pocket(
-	storage: SliceStorage,
-	item: String
+	storage: SliceStorage, item: String, requested_amount: int = -1
 ) -> int:
 	if (
 		storage == null
 		or not _building_instances.has(storage)
 	):
 		return 0
-	var moved := storage.manual_withdraw(pocket, item)
+	var moved := storage.manual_withdraw(pocket, item, requested_amount)
 	if moved <= 0:
 		return 0
 	inventory_changed.emit()

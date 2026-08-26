@@ -7,8 +7,7 @@ extends RefCounted
 
 static func build(
 	world: Node,
-	target: SliceBuildingInstance,
-	selected_item_id: String = ""
+	target: SliceBuildingInstance
 ) -> Dictionary:
 	if world == null or target == null or target.definition == null:
 		return {}
@@ -16,9 +15,7 @@ static func build(
 	if target is SliceCollector:
 		_apply_collector(snapshot, world, target as SliceCollector)
 	elif target is SliceStorage:
-		_apply_storage(
-			snapshot, world, target as SliceStorage, selected_item_id
-		)
+		_apply_storage(snapshot, world, target as SliceStorage)
 	elif target is SliceReactor:
 		_apply_reactor(snapshot, world, target as SliceReactor)
 	elif target is SliceConveyor:
@@ -54,8 +51,7 @@ static func _base_snapshot(
 		"content_title": "设备信息",
 		"slot_1": {},
 		"slot_2": {},
-		"inventory_items": [],
-		"selected_item_id": "",
+		"container_pair": {},
 		"process": {},
 		"capacity": {},
 		"details": "",
@@ -74,9 +70,6 @@ static func _apply_collector(
 	world: Node,
 	collector: SliceCollector
 ) -> void:
-	var free_space: int = world.pocket.free_space_for(
-		SliceWorld.ITEM_CRYSTAL
-	)
 	var primary := {
 		"tone": "working",
 		"title": "自动采集中",
@@ -98,6 +91,18 @@ static func _apply_collector(
 		}
 	snapshot["primary"] = primary
 	snapshot["content_title"] = "产出缓冲"
+	snapshot["container_pair"] = _device_container_pair(
+		world,
+		"collector",
+		"采集器缓冲",
+		{SliceWorld.ITEM_CRYSTAL: collector.buffer},
+		{SliceWorld.ITEM_CRYSTAL: SliceCollector.BUFFER_CAP},
+		false,
+		true,
+		"采集器只通过自动生产获得晶体",
+		""
+	)
+	snapshot["container_pair"]["right_action_label"] = "← 取出可容纳的全部晶体"
 	snapshot["slot_1"] = _item_slot(
 		_item_name(SliceWorld.ITEM_CRYSTAL),
 		collector.buffer,
@@ -122,43 +127,14 @@ static func _apply_collector(
 		],
 	}
 	snapshot["details"] = "通电后持续采集；缓冲装满时自动暂停。"
-	snapshot["operations"] = [{
-		"id": "collect",
-		"label": "取出全部晶体",
-		"hotkey": "3",
-		"enabled": collector.buffer > 0 and free_space > 0,
-		"reason": (
-			"缓冲中没有晶体"
-			if collector.buffer <= 0
-			else "背包已满" if free_space <= 0 else ""
-		),
-	}]
+	snapshot["operations"] = []
 
 
 static func _apply_storage(
 	snapshot: Dictionary,
 	world: Node,
-	storage: SliceStorage,
-	requested_item_id: String
+	storage: SliceStorage
 ) -> void:
-	var inventory_items := _storage_inventory_items(world, storage)
-	var selected_item_id := requested_item_id
-	var selectable_ids: Array[String] = []
-	for item in inventory_items:
-		selectable_ids.append(String((item as Dictionary)["item_id"]))
-	if not selectable_ids.has(selected_item_id):
-		selected_item_id = (
-			selectable_ids[0] if not selectable_ids.is_empty() else ""
-		)
-	var selected_name := (
-		"未选择物品" if selected_item_id.is_empty()
-		else _item_name_or_id(selected_item_id)
-	)
-	var pocket_count: int = world.pocket.count(selected_item_id)
-	var storage_count := storage.inventory.count(selected_item_id)
-	var storage_space := storage.inventory.free_space_for(selected_item_id)
-	var pocket_space: int = world.pocket.free_space_for(selected_item_id)
-	var known_ordinary := SliceItemCatalog.find(selected_item_id) != null
 	var ports: Array = snapshot["ports"]
 	var primary := {
 		"tone": "ready",
@@ -198,9 +174,8 @@ static func _apply_storage(
 				"title": "%s 未连接" % String(port["label"]),
 			}
 	snapshot["primary"] = primary
-	snapshot["content_title"] = "箱内物料 · 选择一类操作"
-	snapshot["inventory_items"] = inventory_items
-	snapshot["selected_item_id"] = selected_item_id
+	snapshot["content_title"] = "随身背包 ↔ 储物箱"
+	snapshot["container_pair"] = _storage_container_pair(world, storage)
 	var storage_profile := storage.inventory.profile()
 	snapshot["capacity"] = {
 		"value": storage.type_count(),
@@ -229,33 +204,6 @@ static func _apply_storage(
 		)
 	)
 	snapshot["operations"] = [
-		_transfer_operation(
-			"storage_deposit",
-			"存入全部%s" % selected_name,
-			"3",
-			pocket_count if known_ordinary else 0,
-			storage_space,
-			(
-				"请选择可存入的普通物品"
-				if not known_ordinary
-				else "背包中没有%s" % selected_name
-			),
-			"该类已达 %d 或储物箱已达 %d 类" % [
-				storage_profile.item_capacity(selected_item_id),
-				storage_profile.type_limit,
-			]
-		),
-		_transfer_operation(
-			"storage_withdraw",
-			"取出全部%s" % selected_name,
-			"4",
-			storage_count,
-			pocket_space,
-			"箱内没有%s" % selected_name,
-			"背包中该类已达 %d" % world.pocket.profile().item_capacity(
-				selected_item_id
-			)
-		),
 		{
 			"id": "storage_toggle_mode",
 			"label": "切换为%s" % (
@@ -309,6 +257,29 @@ static func _apply_reactor(
 	)
 	snapshot["primary"] = primary
 	snapshot["content_title"] = "反应流程"
+	var reactor_contents := {}
+	if recoverable_crystal > 0:
+		reactor_contents[SliceWorld.ITEM_CRYSTAL] = recoverable_crystal
+	if output_count > 0:
+		reactor_contents[SliceWorld.ITEM_CATALYST] = output_count
+	snapshot["container_pair"] = _device_container_pair(
+		world,
+		"reactor",
+		"反应器缓冲",
+		reactor_contents,
+		{
+			SliceWorld.ITEM_CRYSTAL: max(
+				SliceReactor.INPUT_CAPACITY,
+				recoverable_crystal
+			),
+			SliceWorld.ITEM_CATALYST: SliceReactor.OUTPUT_CAPACITY,
+		},
+		false,
+		can_recover,
+		"反应器只接受实体物流输入",
+		"背包空间不足，必须原子回收机内全部物料"
+	)
+	snapshot["container_pair"]["right_action_label"] = "← 原子回收机内全部"
 	snapshot["slot_1"] = _item_slot(
 		"IN · 2 %s" % _item_name(SliceWorld.ITEM_CRYSTAL),
 		input_count,
@@ -333,21 +304,7 @@ static func _apply_reactor(
 	snapshot["details"] = (
 		"IN 只接收晶体，OUT 只输出催化剂；断电会保留加工进度。"
 	)
-	snapshot["operations"] = [{
-		"id": "recover_reactor",
-		"label": "原子回收机内物料",
-		"hotkey": "3",
-		"enabled": can_recover,
-		"reason": (
-			"反应器内没有可回收物料"
-			if recoverable <= 0
-			else (
-				"背包需要 %d 个空位" % recoverable
-				if not can_recover
-				else ""
-			)
-		),
-	}]
+	snapshot["operations"] = []
 
 
 static func _apply_conveyor(
@@ -483,28 +440,6 @@ static func _power_snapshot(target: SliceBuildingInstance) -> Dictionary:
 	}
 
 
-static func _transfer_operation(
-	id: String,
-	label: String,
-	hotkey: String,
-	source_count: int,
-	target_space: int,
-	empty_reason: String,
-	full_reason: String
-) -> Dictionary:
-	return {
-		"id": id,
-		"label": label,
-		"hotkey": hotkey,
-		"enabled": source_count > 0 and target_space > 0,
-		"reason": (
-			empty_reason
-			if source_count <= 0
-			else full_reason if target_space <= 0 else ""
-		),
-	}
-
-
 static func _item_slot(
 	label: String,
 	count: int,
@@ -519,25 +454,85 @@ static func _item_slot(
 	}
 
 
-static func _storage_inventory_items(
+static func _storage_container_pair(
 	world: Node,
 	storage: SliceStorage
-) -> Array[Dictionary]:
-	var visible_ids := storage.inventory.contents_view()
-	for item_id in world.pocket.item_ids():
-		if SliceItemCatalog.is_known_ordinary(item_id):
-			visible_ids[item_id] = 1
-	var result: Array[Dictionary] = []
-	for model_variant in SliceItemCatalog.read_model(visible_ids):
-		var model: Dictionary = model_variant
-		var item_id := String(model["item_id"])
-		model["pocket_count"] = world.pocket.count(item_id)
-		model["storage_count"] = storage.inventory.count(item_id)
-		model["capacity"] = storage.inventory.profile().item_capacity(item_id)
-		model["pocket_capacity"] = world.pocket.profile().item_capacity(item_id)
-		model["icon"] = _item_icon(item_id)
-		result.append(model)
-	return result
+) -> Dictionary:
+	var items := SliceInventoryReadModel.paired_inventory_items(
+		world.pocket, storage.inventory
+	)
+	for item in items:
+		var item_id := String(item["item_id"])
+		var accepted := SliceItemCatalog.find(item_id) != null
+		var storage_space := storage.inventory.free_space_for(item_id)
+		item["left_to_right"] = accepted and storage_space > 0
+		item["left_to_right_reason"] = (
+			"储物箱不接受该物品"
+			if not accepted
+			else "该类已满或储物箱已达 %d 类" % storage.inventory.profile().type_limit
+		)
+		item["right_to_left"] = world.pocket.free_space_for(item_id) > 0
+		item["right_to_left_reason"] = "随身背包中该类已满"
+	return {
+		"left_source": "pocket",
+		"right_source": "storage",
+		"left_title": "随身背包",
+		"right_title": "储物箱",
+		"left_summary": "每类 %d" % world.pocket.profile().per_item_capacity,
+		"right_summary": "%d 类 · 每类 %d" % [
+			storage.inventory.profile().type_limit,
+			storage.inventory.profile().per_item_capacity,
+		],
+		"items": items,
+	}
+
+
+static func _device_container_pair(
+	world: Node,
+	device_source: String,
+	right_title: String,
+	right_contents: Dictionary,
+	right_capacities: Dictionary,
+	allow_left_to_right: bool,
+	allow_right_to_left: bool,
+	left_to_right_reason: String,
+	right_to_left_reason: String
+) -> Dictionary:
+	var left_contents: Dictionary = world.pocket.contents_view()
+	var left_capacities: Dictionary = {}
+	for item_id in left_contents:
+		left_capacities[item_id] = world.pocket.profile().item_capacity(item_id)
+	for item_id in right_contents:
+		left_capacities[item_id] = world.pocket.profile().item_capacity(item_id)
+	var items := SliceInventoryReadModel.paired_content_items(
+		left_contents,
+		right_contents,
+		left_capacities,
+		right_capacities
+	)
+	for item in items:
+		var item_id := String(item["item_id"])
+		item["fixed_request"] = true
+		item["left_to_right"] = allow_left_to_right
+		item["left_to_right_reason"] = left_to_right_reason
+		item["right_to_left"] = (
+			allow_right_to_left
+			and world.pocket.free_space_for(item_id) > 0
+		)
+		item["right_to_left_reason"] = (
+			right_to_left_reason
+			if not right_to_left_reason.is_empty()
+			else "随身背包中该类已满"
+		)
+	return {
+		"left_source": "pocket",
+		"right_source": device_source,
+		"left_title": "随身背包",
+		"right_title": right_title,
+		"left_summary": "每类 %d" % world.pocket.profile().per_item_capacity,
+		"right_summary": "设备专用缓冲",
+		"items": items,
+	}
 
 
 static func _category_name(
