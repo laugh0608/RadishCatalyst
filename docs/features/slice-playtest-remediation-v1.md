@@ -207,6 +207,8 @@
 
 ### 包 4：HUD、核心与设备表现
 
+可执行细专题：[Slice HUD And Device Feedback V1](slice-hud-and-device-feedback-v1.md)（开工五问待萝卜SAMA确认）。
+
 - 完成 R02、R05、R18、R20 和 A02、A03、A06、A07。
 - 先统一排版、字号、明度与安全区，再制作动画和音频，避免在错误布局上打磨。
 - 核心四状态与反应器代表设备先通过；其余设备沿同一反馈矩阵扩展。

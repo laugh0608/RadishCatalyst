@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-08-17
+更新时间：2026-08-26
 
 ## 用途
 
@@ -31,7 +31,7 @@
 
 最新收口子专题：[Slice Visual Hierarchy And Color Separation V1](slice-visual-hierarchy-and-color-separation-v1.md) 与 [Slice Game UI Visual Finalization V1](slice-game-ui-visual-finalization-v1.md)——世界设备、HUD、制造 / 背包、设备、核心与系统界面均已完成正式入口和人工定稿。
 
-当前尚未开始客户端整改；待萝卜SAMA确认 [试玩反馈整改 V1](slice-playtest-remediation-v1.md) 后，先执行层级 / 足印 / 接驳合同、保存节流与职责提取，再依次处理主流程阻断、制造 / 装备、库存 / 设备交互和表现反馈。
+整改包 0—3 已完成：空间 / 保存合同、主流程阻断、制造 / 装备闭环以及库存 / 设备直接操纵均已通过正式入口。当前进入 [Slice HUD And Device Feedback V1](slice-hud-and-device-feedback-v1.md) 的包 4 开工五问；确认前不改写窗口画幅、批量制作设备动画或接入音频。
 
 最新人工通过子专题：[Slice Category Inventory And Powered Storage V1](slice-category-inventory-and-powered-storage-v1.md) 与 [Slice World Device Family Integration V1](slice-world-device-family-integration-v1.md)——联合 schema 8、设备家族、实体物流、真实二值供电线和双档迁移闸门已收口；[Slice Unified Device Operation Panels V1](slice-unified-device-operation-panels-v1.md) 核心仓库包 2 的视觉与行为也已随 UI 定稿收口。
 
