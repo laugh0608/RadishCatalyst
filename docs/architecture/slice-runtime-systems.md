@@ -1,6 +1,6 @@
 # Slice Runtime Systems
 
-更新时间：2026-08-25
+更新时间：2026-08-26
 
 ## 文档目的
 
@@ -11,6 +11,9 @@
 - `client/scripts/boot/boot.gd`
 - `client/scripts/slice/slice_world.gd`
 - `client/scripts/slice/slice_building_*.gd`
+- `client/scripts/slice/slice_building_panel_snapshot.gd`
+- `client/scripts/slice/slice_inventory_read_model.gd`
+- `client/scripts/slice/slice_paired_container_view.gd`
 - `client/scripts/slice/slice_placement_*.gd`
 - `client/scripts/slice/slice_power_grid.gd`
 - `client/scripts/slice/slice_logistics_grid.gd`
@@ -23,6 +26,8 @@
 - `client/scripts/slice/slice_exploration_state.gd`
 - `client/scripts/slice/slice_minimap.gd`
 - `client/scripts/slice/slice_hud.gd`
+- `client/scripts/slice/slice_power_link_layer.gd`
+- `client/scripts/slice/slice_power_link_presenter.gd`
 - `client/scripts/slice/slice_inventory_profiles.gd`
 - `client/scripts/slice/slice_save_catalog.gd`
 - `client/scripts/slice/slice_save_service.gd`
@@ -34,10 +39,13 @@
 - `client/scripts/slice/slice_logistics_transition_layer.gd`
 - `client/scripts/slice/slice_demo_completion_card.gd`
 - `client/scripts/slice/slice_pause_menu.gd`
+- `client/scripts/settings/slice_user_settings.gd`
+- `client/scripts/ui/slice_settings_panel.gd`
 
 ## 正式入口
 
 ```text
+UserSettings Autoload -> 读取并应用 user://settings.cfg
 Boot
 -> DataRegistry.load_all()
 -> SliceSaveCatalog 迁移旧单档并枚举世界
@@ -50,6 +58,8 @@ Boot
 ```
 
 `SliceSaveCatalog` 只拥有世界目录、轻量元数据、30 世界上限、回收恢复和旧单档迁移；玩法状态仍由选中世界的 `SliceSaveService` 独占。`Esc` 暂停后“保存并返回主菜单”会先保存当前世界，再由 `Boot` 释放 `SliceWorld`、清空选中服务并重建列表。旧 `_start_game()` 只为冻结纵切兼容保留，不由当前菜单进入。
+
+`UserSettings` 是当前唯一应用级 Autoload，只负责窗口模式和 `Master / SFX` 音量；启动与暂停入口实例化同一 `SliceSettingsPanel`。它不持有世界、角色或库存状态，`user://settings.cfg` 也不进入世界目录、备份轮转或 schema 10。
 
 ## 系统职责
 
@@ -87,7 +97,7 @@ Boot
 - `SliceBuildingPlacementController` 只持有当前选择、方向、吸附原点、合法性、真实资产 ghost 和动态预览节点。
 - `SlicePlacementOverlay` 只绘制放置瞬态的足印、缺地板格、连接线和电力范围；所有范围节点由 `SlicePowerGrid` 的当前派生结果提供。
 - `SliceWorld` 只协调指针输入、校验结果、最终放置和自动存档；前台 HUD 控件会阻断鼠标落地。
-- `SliceBuildingActionPanel` 负责调整、二次确认拆除、储物箱晶体存取和阻塞原因展示。
+- `SliceBuildingActionPanel` 负责设备状态、模式 / 筛选、共享成对容器表面、调整、二次确认拆除和阻塞原因展示；所有物品变更仍转交既有世界 API。
 
 调整期间原实例暂时隐藏并从占用、供电和物流中排除；提交后保留 ID 和内部状态，取消则恢复原拓扑。
 
@@ -95,7 +105,9 @@ Boot
 
 - `SliceCraftingPlan` 是无状态制造诊断，只从现有配方和库存快照计算直接成本、基础原料折算、两种可制造数和足印补板上限；它不交换物品或隐式制造中间件。
 - `SliceCraftPanel` 制造成功后保持打开，产物先成为背包财产；只有玩家从已有套件入口明确选择时才进入放置。
-- `SliceCoreStoragePanel` 已为背包 / 核心提供成对物品格与拖拽，但设备面板仍主要读取 `SliceBuildingPanelSnapshot` 并通过操作按钮转移；这是整改包 3 要统一的当前差异，不得通过复制库存状态解决。
+- `SliceInventoryReadModel` 从两个权威容器或机器缓冲快照构造只读成对条目；默认“全部”只包含实际持有物，分类只筛选视图。
+- `SlicePairedContainerView` 统一左背包 / 右目标、点击、整堆拖拽、`Ctrl / Control` 逐次减半、`Enter / Space` 等价转移和取消；它只发出请求，不直接修改库存。
+- `SliceCoreStoragePanel` 是共享容器表面的核心仓库壳；`SliceBuildingPanelSnapshot` 为储物箱、采集器和反应器构造同一表面所需的只读快照。机器缓冲不伪装成普通 `Inventory`，采集器仍只允许取出，反应器仍执行原子回收。
 - `SliceCharacterPanel` 只呈现一个武器槽、持有武器点击 / 拖入和 `C` 开关；实际装备合法性与保存请求仍由 `SliceCombatController` 独占。
 
 ### 供电
@@ -107,7 +119,7 @@ Boot
 - `powered`、父边和连线表现都是派生状态，不进入存档。
 - 当前建筑定义只有 `power_role` 与端口 / 范围信息，没有发电容量、设备需求、负荷分配、储能或过载状态；这些能力须由后续独立电力专题确定迁移与 schema 边界。
 
-`SlicePowerLinkLayer` 只渲染供电树，不拥有网络规则。
+`SlicePowerLinkLayer` 只渲染供电树，不拥有网络规则；`SlicePowerLinkPresenter` 读取放置和设备面板上下文，普通游玩隐藏完整连线，只有放置用电设备或检查用电设备时显示派生拓扑。
 
 ### 物流
 
@@ -128,7 +140,7 @@ Boot
 - `SliceWorld` 只编排首次充能扣料、样本交付、离散事件自动保存和节点装配，不承载敌人 AI。
 - `SliceFirstJourneyController` 在核心修复前按库存和两个首次查看旗标派生五阶段引导，并拥有 `40×12` 探索粗格；修复后继续委托 `SliceJourneyGuidance` 从设备、库存与遭遇状态派生目标。
 - `SliceHud` 与合成面板读取 `current_journey_guidance()`；小地图用同一世界视图叠加持久迷雾、玩家、核心、已发现晶体与阶段情报。阶段编号、区域名和 marker 都不保存。样本交付后的 `SliceDemoCompletionCard` 只在当次交付成功保存后出现，完成事实继续由 `delivered` 派生，读档不会重弹。
-- `SliceHud` 的常驻游戏壳层由任务舷窗、三物资槽、角色生命条、三格战斗操作条、按需敌人目标条和右下小地图组成；完整套件清单仍只在合成 / 放置上下文出现。
+- `SliceHud` 的常驻游戏壳层由任务舷窗、三物资槽、角色生命条、三格战斗操作条、按需敌人目标条和右下小地图组成；内容区统一使用 `18px` 安全边距，宽提示在角色栏与小地图之间展开。完整套件清单仍只在合成 / 放置上下文出现。
 
 ## 权威状态与派生状态
 
@@ -149,6 +161,8 @@ Boot
 | 物流邻接、直线 / 转角 / 端点 / 合流外观 | 否 | 从相邻建筑重建 |
 | 首次旅程当前目标与规则 | 否 | 从核心、通电设备、建筑库存、背包和遭遇状态派生 |
 | 弹体和攻击阶段 | 否 | 纯运行时战斗过程；步枪与电池本身仍是库存财产 |
+| 容器筛选、选择和拖拽过程 | 否 | 纯 UI 会话态；物品归属只由权威转移 API 改变 |
+| 窗口模式、主音量、音效音量 | 独立配置 | 保存到 `user://settings.cfg`，不属于世界 schema 10 |
 | 阴影、y-sort、状态灯和 ghost | 否 | 纯表现 |
 
 当前 schema 10 延续 schema 9 的分类库存、储物箱权威状态、固定正面建筑、`first_journey_flags` 与 `explored_map_bits`，只新增 `equipped_weapon_id`。遭遇仍只取 `locked / hostile / dropped / carried / delivered`；最大生命、敌人存在和样本存在均由该状态派生。旧顶层 `catalyst_count`、`reactor_active`、弹体和攻击阶段都不写入。
@@ -181,6 +195,8 @@ schema 4–9 的旧档仍可携带原 `0–10s` 采集进度；载入后按当�
 `SliceSaveCatalog` 与 `SliceSaveService` 均和旧 `SaveService` 物理隔离：
 
 ```text
+user://settings.cfg
+
 user://saves/slice/
   worlds/world_<stable_id>/
     metadata.json
@@ -188,6 +204,8 @@ user://saves/slice/
     backups/autosave.bak.1.json ... bak.3.json
   trash/<recoverable_entry>/
 ```
+
+应用设置与世界存档同在 Godot `user://` 根下，但所有权和生命周期独立：世界重命名、回收、恢复、备份和迁移都不得读取或改写 `settings.cfg`。
 
 - 最多 30 个在用世界；显示名可变，稳定 ID 和目录不随重命名变化。
 - `metadata.json` 只提供列表轻读，并摘要外勤状态与玩家生命；`autosave.json` 才是 schema 10 权威世界状态。
@@ -221,4 +239,4 @@ schema `4` 把旧采集器列表迁移为统一建筑拓扑；schema `5` 增加�
 
 战斗、样本、分类库存、首程探索与装备选择权威状态已进入选中世界的 schema 10，并沿用候选校验 / 备份链；`metadata.json` 只保存列表摘要，不得成为玩法真相源。后续不得把它拆成跨世界共享角色档，或重新把旧全局催化剂计数作为权威状态。
 
-2026-08-25 `SliceWorld` 为 1492 行；保存调度、快照构造、制造计划和角色装备页均已进入窄职责组件，编排器仍贴近 1500 行硬上限。后续包不得把库存视图、筛选或拖拽业务堆回该文件，确需协调时先进入现有窄组件或新建职责明确的组件。
+2026-08-26 `SliceWorld` 为 1489 行；保存调度、快照构造、制造计划、角色装备页、成对容器视图、电力上下文和应用设置均已进入窄职责组件。编排器仍贴近 1500 行硬上限，后续包不得把库存交互、HUD 偏移、设备表现或音频边沿分支堆回该文件。

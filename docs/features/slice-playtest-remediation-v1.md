@@ -2,7 +2,7 @@
 
 更新时间：2026-08-26
 
-状态：包 3 已完成，包 4 待开工五问
+状态：包 0—3 与 4A 已完成，下一步为包 4B 代表反馈
 
 关联阶段：[第一可玩切片全链串通](slice-first-playable-journey-v1.md)
 
@@ -207,12 +207,14 @@
 
 ### 包 4：HUD、核心与设备表现
 
-可执行细专题：[Slice HUD And Device Feedback V1](slice-hud-and-device-feedback-v1.md)（开工五问待萝卜SAMA确认）。
+可执行细专题：[Slice HUD And Device Feedback V1](slice-hud-and-device-feedback-v1.md)（五问已确认，4A 已完成，下一步为 4B）。
 
 - 完成 R02、R05、R18、R20 和 A02、A03、A06、A07。
 - 先统一排版、字号、明度与安全区，再制作动画和音频，避免在错误布局上打磨。
 - 核心四状态与反应器代表设备先通过；其余设备沿同一反馈矩阵扩展。
 - 电力线改为上下文叠层；小地图刷新策略以实测为准；音效上线时必须同时提供音量控制。
+
+4A 已完成共享 `SliceSettingsPanel`、独立 `user://settings.cfg`、`Master / SFX` 总线、`18px` HUD 安全边缘栈和上下文电力叠层；小地图三轮 A/B 未证明 `10Hz` 候选有收益，维持 `UPDATE_ALWAYS`。专项 `47` 项与两种比例正式 `Boot` 各 `46` 项通过，下一步只进入核心 / 反应器 4B。
 
 包 4 通过后再评估 A04、A05、A09 是否作为下一阶段的“高频建造效率与工业诊断”专题，不把它们偷偷塞入当前整改。
 

@@ -47,6 +47,13 @@
 4. **实现介质：**新增窄状态表现协作者和项目内自制短电子反馈，统一经过 4A 的 `Master / SFX` 总线；继续禁止向 `1489` 行的 `SliceWorld` 堆按设备类型增长的表现分支。
 5. **成功证据：**专项锁定八种状态映射、无重复玩法状态、边沿去重和总线控制；正式 `Boot` 逐图 / 逐耳覆盖核心四状态、反应器四状态、静音与读档不重放，并保持 16:9 / 16:10 安全区回归。
 
+推荐落地顺序：
+
+1. 先逐项审计核心修复 / 充能 / 交付与反应器供电 / 加工 / 输出阻塞的现有字段、信号和场景节点，把八态谓词及状态边沿冻结在本专题；若现状无法可靠区分某态，先回到权威状态澄清，不在表现层猜测。
+2. 先完成持续视觉反馈：复用现有核心双态主体和反应器两帧加工覆盖层，只增加局部分段构件、状态灯与节奏；协作者只订阅权威事实，不写入玩法状态或 schema 10。
+3. 持续视觉逐图成立后，再接项目内自制的一次性短电子反馈和边沿去重；统一走 `SFX`，验证主音量、音效音量、静音以及读档恢复不重放。
+4. 以专项和两种比例正式 `Boot` 收口 4B；若核心或反应器任一代表路径不成立，当天停在 4B 修正，不进入采集器、储物箱和中继的 4C 扩展。
+
 包 4 不扩完整有限电力、工业总览、传送带拖铺、无线回传语义或新内容层。五问已冻结为保持 16:9 内容画幅与非 16:9 上下黑边，HUD 只在内容安全区内排版，不扩相机可见范围。
 
 ## 防跑偏规则
@@ -71,6 +78,7 @@
 - [Development Decision Gates](../process/development-decision-gates.md)
 - [Godot Runtime Verification Guide](../reference/godot-runtime-verification-guide.md)
 - [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)
+- [Slice HUD And Device Feedback V1](../features/slice-hud-and-device-feedback-v1.md)
 
 ## 验证入口
 
