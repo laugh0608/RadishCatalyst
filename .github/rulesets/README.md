@@ -18,7 +18,8 @@
 - 禁止删除分支。
 - 仅允许通过 Pull Request 合并。
 - 单人维护阶段不要求额外审批，但仍要求已解决会话。
-- 要求 `Repo Hygiene` 检查通过；该 job 通过统一 `check-repo` 覆盖治理文件、Issue / PR / workflow / ruleset 合同、活跃 Markdown 相对链接、JSON、文本卫生、文档篇幅、客户端静态数据、场景引用、检查器单元测试、提交信息和 PR diff 空白；`docs/archive/` 保留历史原貌，不纳入当前链接合同。
+- 仅要求稳定聚合检查 `Candidate Quality` 通过；当前它汇总 `Repo Hygiene` 组件，后者通过统一 `check-repo` 覆盖治理文件、Issue / PR / workflow / ruleset 合同、活跃 Markdown 相对链接、JSON、文本卫生、文档篇幅、客户端静态数据、场景引用、检查器单元测试、提交信息和 PR diff 空白；`docs/archive/` 保留历史原貌，不纳入当前链接合同。
+- `Candidate Quality` 使用 `if: always()` 检查全部依赖结果；任一组件失败、取消或跳过都会使聚合门禁失败。以后增加客户端构建、Godot 或平台检查时接入聚合 job，不频繁修改远端 required context。
 - GitHub 对 Actions required status checks 当前按 job 名匹配，因此 ruleset 中固定写 job 名。
 - 允许 `merge commit` 与 `rebase merge`，禁用 `squash merge`；阶段 PR 优先使用 `merge commit`，若使用 rebase merge，则以普通 merge 将默认分支回流到 `dev`。
 - 管理员仅可通过 Pull Request 方式绕过规则，不开放直接 push。
@@ -50,7 +51,7 @@
 gh api repos/<owner>/<repo>/rulesets --method POST --input .github/rulesets/master-protection.json
 ```
 
-如果仓库中已存在旧 ruleset，建议改用 `PUT /repos/{owner}/{repo}/rulesets/{ruleset_id}` 更新。
+如果仓库中已存在旧 ruleset，建议改用 `PUT /repos/{owner}/{repo}/rulesets/{ruleset_id}` 更新。由 `Repo Hygiene` 迁移时，必须先让包含聚合 job 的 PR 实际产生并通过一次 `Candidate Quality`，再更新远端 required context；不得先切远端导致所有 PR 缺少必需状态。
 
 本目录模板还包含 Conventional Commits 的远端校验规则。当前远端 ruleset 未启用该规则；仅调整 Actions 触发策略、required checks 或合并方式时，应基于远端现状构造精确更新，不直接导入完整模板扩大门禁范围。
 

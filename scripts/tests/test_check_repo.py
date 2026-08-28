@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -85,6 +86,69 @@ class GovernanceContractChecks(unittest.TestCase):
             CHECK_REPO.check_required_files(Path(temp_dir), errors)
 
             self.assertIn("missing required file: SECURITY.md", errors)
+
+    def test_ruleset_accepts_candidate_quality_as_only_required_context(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            path = root / ".github" / "rulesets" / "master-protection.json"
+            path.parent.mkdir(parents=True)
+            path.write_text(
+                json.dumps(self._ruleset_with_context("Candidate Quality")),
+                encoding="utf-8",
+            )
+            errors: list[str] = []
+
+            CHECK_REPO.check_ruleset_contract(root, errors)
+
+            self.assertEqual([], errors)
+
+    def test_ruleset_rejects_repo_hygiene_as_required_context(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            path = root / ".github" / "rulesets" / "master-protection.json"
+            path.parent.mkdir(parents=True)
+            path.write_text(
+                json.dumps(self._ruleset_with_context("Repo Hygiene")),
+                encoding="utf-8",
+            )
+            errors: list[str] = []
+
+            CHECK_REPO.check_ruleset_contract(root, errors)
+
+            self.assertIn(
+                "master ruleset must require only Candidate Quality",
+                errors,
+            )
+
+    @staticmethod
+    def _ruleset_with_context(context: str) -> dict[str, object]:
+        return {
+            "target": "branch",
+            "enforcement": "active",
+            "conditions": {
+                "ref_name": {
+                    "include": ["refs/heads/master", "refs/heads/main"],
+                }
+            },
+            "rules": [
+                {"type": "deletion"},
+                {"type": "non_fast_forward"},
+                {
+                    "type": "pull_request",
+                    "parameters": {
+                        "allowed_merge_methods": ["merge", "rebase"],
+                        "required_review_thread_resolution": True,
+                    },
+                },
+                {
+                    "type": "required_status_checks",
+                    "parameters": {
+                        "required_status_checks": [{"context": context}],
+                        "strict_required_status_checks_policy": True,
+                    },
+                },
+            ],
+        }
 
 
 if __name__ == "__main__":
