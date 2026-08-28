@@ -6,6 +6,12 @@ extends RefCounted
 
 
 static func build(world: SliceWorld) -> Dictionary:
+	if world.combat_controller.encounter_state == "delivered":
+		return {
+			"stage": "demo_complete",
+			"goal": "Demo 已完成｜可继续自由建设",
+			"rule": "抗蚀内衬已安装｜最大生命 120｜可继续建设或暂停保存返回",
+		}
 	if world.is_core_charged():
 		return {
 			"stage": "field",
@@ -50,7 +56,7 @@ static func build(world: SliceWorld) -> Dictionary:
 		return {
 			"stage": "power_collector",
 			"goal": "基地目标 1/3：在东侧晶体地放置通电采集器",
-			"rule": "按 B 合成采集器；中继需工业地板，6 格接力、4 格供能",
+			"rule": "按 B 合成采集器；中继需工业地板，8 格接力、6 格供能",
 		}
 	if not _has_powered_reactor(world):
 		return {

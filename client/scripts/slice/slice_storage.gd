@@ -137,7 +137,11 @@ func present_transportable_ids() -> Array[String]:
 	return result
 
 
-func manual_deposit(source: Inventory, item_id: String) -> int:
+func manual_deposit(
+	source: Inventory,
+	item_id: String,
+	requested_amount: int = -1
+) -> int:
 	if (
 		source == null
 		or item_id.is_empty()
@@ -146,7 +150,9 @@ func manual_deposit(source: Inventory, item_id: String) -> int:
 		return 0
 	var was_empty := inventory.is_empty()
 	var moved := source.transfer_up_to(
-		inventory, item_id, source.count(item_id)
+		inventory,
+		item_id,
+		source.count(item_id) if requested_amount < 0 else requested_amount
 	)
 	if (
 		moved > 0
@@ -158,11 +164,17 @@ func manual_deposit(source: Inventory, item_id: String) -> int:
 	return moved
 
 
-func manual_withdraw(target: Inventory, item_id: String) -> int:
+func manual_withdraw(
+	target: Inventory,
+	item_id: String,
+	requested_amount: int = -1
+) -> int:
 	if target == null or item_id.is_empty():
 		return 0
 	return inventory.transfer_up_to(
-		target, item_id, inventory.count(item_id)
+		target,
+		item_id,
+		inventory.count(item_id) if requested_amount < 0 else requested_amount
 	)
 
 

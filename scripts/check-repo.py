@@ -224,8 +224,8 @@ def check_ruleset_contract(repo_root: Path, errors: list[str]) -> None:
             for item in parameters.get("required_status_checks", [])
             if isinstance(item, dict)
         ]
-        if contexts != ["Repo Hygiene"]:
-            errors.append("master ruleset must require only Repo Hygiene")
+        if contexts != ["Candidate Quality"]:
+            errors.append("master ruleset must require only Candidate Quality")
         if parameters.get("strict_required_status_checks_policy") is not True:
             errors.append("master ruleset must require the branch to be up to date")
 
@@ -239,6 +239,12 @@ def check_workflow_contract(repo_root: Path, errors: list[str]) -> None:
             "      - main",
             "persist-credentials: false",
             "./scripts/check-repo.sh --base-ref",
+            "  candidate-quality:",
+            "    name: Candidate Quality",
+            "    if: always()",
+            "      - repo-hygiene",
+            "REPO_HYGIENE_RESULT: ${{ needs.repo-hygiene.result }}",
+            'if [[ "${REPO_HYGIENE_RESULT}" != "success" ]]',
         ),
         ".github/workflows/release-check.yml": (
             "name: Release Checks",

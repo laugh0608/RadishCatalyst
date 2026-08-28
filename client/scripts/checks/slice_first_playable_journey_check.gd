@@ -211,11 +211,11 @@ func _run() -> void:
 		world,
 		"power_collector",
 		"基地目标 1/3",
-		"采集器只能放晶体地"
+		"按 B 合成采集器"
 	)
 	craft_panel._refresh()
 	_expect_equal(
-		world.current_journey_rule_text().contains("6 格接力、4 格供能"),
+		world.current_journey_rule_text().contains("8 格接力、6 格供能"),
 		true,
 		"journey state exposes the current collector power rule"
 	)
@@ -485,10 +485,12 @@ func _check_contrast_panels(hud: SliceHud) -> void:
 		"bottom prompt stays clear of the player status component"
 	)
 	_expect_equal(
-		minimap_panel.position.y + minimap_panel.size.y
-		<= prompt_panel.position.y,
+		prompt_panel.position.x + prompt_panel.size.x + 24.0
+		<= minimap_panel.position.x
+		and minimap_panel.offset_bottom == -18.0
+		and prompt_panel.offset_bottom == -18.0,
 		true,
-		"right minimap stays above the contextual bottom prompt"
+		"right minimap and prompt share the safe edge without overlap"
 	)
 
 

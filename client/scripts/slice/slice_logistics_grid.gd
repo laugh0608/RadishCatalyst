@@ -343,10 +343,12 @@ func _preview_port(
 	return {
 		"instance_id": endpoint.instance_id,
 		"device_name": endpoint.device_name,
+		"role": endpoint.role,
 		"kind": endpoint.legacy_kind(),
 		"label": endpoint.label,
 		"port_cell": endpoint.port_cell,
 		"connection_cell": endpoint.connection_cell,
+		"connection_distance": endpoint.connection_distance,
 		"outward_direction": endpoint.outward_direction,
 		"connected": (
 			conveyor != null

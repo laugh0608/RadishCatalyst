@@ -455,16 +455,16 @@ func _check_category_profiles_and_read_models() -> void:
 	)
 
 	var craft_fit := Inventory.new(SliceInventoryProfiles.category_pocket())
-	craft_fit.restore_existing(SliceBuildingCatalog.FLOOR_ID, 196)
+	craft_fit.restore_existing(SliceBuildingCatalog.FLOOR_ID, 192)
 	craft_fit.add("crystal", 1)
 	var floor_recipe := SliceRecipes.find("floor")
 	_expect_equal(
 		SliceRecipes.craft_block_reason(floor_recipe, craft_fit),
 		"",
-		"four-kit recipe accepts an exact per-item fit"
+		"eight-kit recipe accepts an exact per-item fit"
 	)
 	_expect_equal(
-		craft_fit.exchange(floor_recipe["cost"], {floor_recipe["output"]: 4}),
+		craft_fit.exchange(floor_recipe["cost"], {floor_recipe["output"]: 8}),
 		true,
 		"exact per-item recipe commits as one exchange"
 	)
@@ -477,11 +477,11 @@ func _check_category_profiles_and_read_models() -> void:
 	var blocked_before := craft_blocked.to_dict()
 	_expect_equal(
 		SliceRecipes.craft_block_reason(floor_recipe, craft_blocked),
-		"工业地板套件还需 1 容量",
+		"工业地板套件还需 5 容量",
 		"per-item recipe blocker names the full output category"
 	)
 	_expect_equal(
-		craft_blocked.exchange(floor_recipe["cost"], {floor_recipe["output"]: 4}),
+		craft_blocked.exchange(floor_recipe["cost"], {floor_recipe["output"]: 8}),
 		false,
 		"over-cap recipe rejects the whole exchange"
 	)

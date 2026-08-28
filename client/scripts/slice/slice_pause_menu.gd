@@ -23,8 +23,10 @@ var _pending_action := ""
 @onready var settings_button: Button = $Root/PauseBox/Buttons/SettingsButton
 @onready var return_button: Button = $Root/PauseBox/Buttons/ReturnButton
 @onready var quit_button: Button = $Root/PauseBox/Buttons/QuitButton
-@onready var settings_panel: Panel = $Root/SettingsPanel
-@onready var settings_back_button: Button = $Root/SettingsPanel/BackButton
+@onready var settings_panel: SliceSettingsPanel = $Root/SettingsPanel
+@onready var settings_back_button: Button = (
+	$Root/SettingsPanel/Margin/Layout/Footer/BackButton
+)
 @onready var confirm_panel: Panel = $Root/ConfirmPanel
 @onready var confirm_label: Label = $Root/ConfirmPanel/ConfirmLabel
 @onready var confirm_button: Button = $Root/ConfirmPanel/ConfirmButton
@@ -37,13 +39,13 @@ signal save_and_quit_requested
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	root_control.visible = false
-	settings_panel.visible = false
+	settings_panel.setup(_user_settings())
 	confirm_panel.visible = false
 	resume_button.pressed.connect(close)
 	settings_button.pressed.connect(_open_settings)
 	return_button.pressed.connect(_request_return)
 	quit_button.pressed.connect(_request_quit)
-	settings_back_button.pressed.connect(_close_settings)
+	settings_panel.close_requested.connect(_close_settings)
 	confirm_button.pressed.connect(_confirm_pending_action)
 	confirm_cancel_button.pressed.connect(_close_confirmation)
 	_apply_style()
@@ -55,7 +57,7 @@ func open() -> void:
 	_open = true
 	_pending_action = ""
 	status_label.text = ""
-	settings_panel.visible = false
+	settings_panel.close()
 	confirm_panel.visible = false
 	root_control.visible = true
 	get_tree().paused = true
@@ -67,7 +69,7 @@ func close() -> void:
 		return
 	_open = false
 	_pending_action = ""
-	settings_panel.visible = false
+	settings_panel.close()
 	confirm_panel.visible = false
 	root_control.visible = false
 	get_tree().paused = false
@@ -93,7 +95,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if confirm_panel.visible:
 		_close_confirmation()
-	elif settings_panel.visible:
+	elif settings_panel.is_open():
 		_close_settings()
 	else:
 		close()
@@ -101,13 +103,16 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _open_settings() -> void:
-	settings_panel.visible = true
-	settings_back_button.grab_focus()
+	settings_panel.open()
 
 
 func _close_settings() -> void:
-	settings_panel.visible = false
+	settings_panel.close()
 	settings_button.grab_focus()
+
+
+func _user_settings() -> SliceUserSettings:
+	return get_node_or_null("/root/UserSettings") as SliceUserSettings
 
 
 func _request_return() -> void:
@@ -148,8 +153,6 @@ func _apply_style() -> void:
 		title_label,
 		body_label,
 		status_label,
-		$Root/SettingsPanel/TitleLabel,
-		$Root/SettingsPanel/BodyLabel,
 		confirm_label,
 	]:
 		label.add_theme_color_override("font_color", COLOR_TEXT)
@@ -157,16 +160,11 @@ func _apply_style() -> void:
 	title_label.add_theme_font_size_override("font_size", 38)
 	body_label.add_theme_color_override("font_color", COLOR_MUTED)
 	status_label.add_theme_color_override("font_color", COLOR_DANGER)
-	$Root/SettingsPanel/BodyLabel.add_theme_color_override(
-		"font_color",
-		COLOR_MUTED
-	)
 	for button in [
 		resume_button,
 		settings_button,
 		return_button,
 		quit_button,
-		settings_back_button,
 		confirm_button,
 		confirm_cancel_button,
 	]:

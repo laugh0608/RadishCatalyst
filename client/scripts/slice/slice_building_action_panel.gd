@@ -16,6 +16,8 @@ const TONE_COLORS := {
 	"neutral": Color(0.659, 0.698, 0.706, 1.0),
 }
 
+signal open_state_changed(opened: bool, target: SliceBuildingInstance)
+
 var _world: Node
 var _target: SliceBuildingInstance
 var _open := false
@@ -24,9 +26,6 @@ var _result := ""
 var _refresh_elapsed := 0.0
 var _snapshot: Dictionary = {}
 var _operation_buttons: Array[Button] = []
-var _selected_storage_item_id := ""
-var _inventory_item_order: Array[String] = []
-var _inventory_buttons := {}
 
 @onready var _root: Control = $Root
 @onready var _device_icon: TextureRect = (
@@ -74,11 +73,8 @@ var _inventory_buttons := {}
 @onready var _flow_row: HBoxContainer = (
 	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow
 )
-@onready var _inventory_scroll: ScrollContainer = (
-	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/InventoryScroll
-)
-@onready var _inventory_grid: GridContainer = (
-	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/InventoryScroll/InventoryGrid
+@onready var _container_view: SlicePairedContainerView = (
+	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/ContainerView
 )
 @onready var _flow_arrow_in: Label = (
 	$Root/Window/Margin/Layout/Body/Material/Content/Margin/Layout/FlowRow/FlowArrowIn
@@ -157,6 +153,10 @@ func _ready() -> void:
 		$Root/Window/Margin/Layout/Header/Margin/Row/Close
 		as Button
 	).pressed.connect(close)
+	_container_view.transfer_requested.connect(
+		_on_container_transfer_requested
+	)
+	_container_view.feedback_changed.connect(_on_container_feedback_changed)
 	_adjust_button.pressed.connect(_request_adjustment)
 	_demolish_button.pressed.connect(_request_demolition)
 	(
@@ -183,20 +183,26 @@ func open(instance: SliceBuildingInstance) -> void:
 	_open = true
 	_confirming_demolition = false
 	_result = ""
-	_selected_storage_item_id = ""
 	_refresh_elapsed = 0.0
+	_container_view.reset_result()
+	_container_view.clear_selection()
 	_root.visible = true
 	_refresh()
+	open_state_changed.emit(true, _target)
 
 
 func close() -> void:
+	var previous_target := _target
+	var was_open := _open
+	_container_view.cancel_interaction()
 	_target = null
 	_open = false
 	_confirming_demolition = false
 	_result = ""
 	_snapshot = {}
-	_selected_storage_item_id = ""
 	_root.visible = false
+	if was_open:
+		open_state_changed.emit(false, previous_target)
 
 
 func is_open() -> bool:
@@ -247,6 +253,10 @@ func action_button(action_id: String) -> Button:
 		if String(button.get_meta("action_id", "")) == action_id:
 			return button
 	return null
+
+
+func container_view() -> SlicePairedContainerView:
+	return _container_view
 
 
 func port_state(index: int) -> String:
@@ -314,15 +324,10 @@ func _refresh() -> void:
 	):
 		close()
 		return
-	_snapshot = SliceBuildingPanelSnapshot.build(
-		_world, _target, _selected_storage_item_id
-	)
+	_snapshot = SliceBuildingPanelSnapshot.build(_world, _target)
 	if _snapshot.is_empty():
 		close()
 		return
-	_selected_storage_item_id = String(
-		_snapshot.get("selected_item_id", "")
-	)
 	_update_header()
 	_update_primary()
 	_update_status_cards()
@@ -410,13 +415,23 @@ func _set_status_card(
 
 func _update_content() -> void:
 	_content_title.text = String(_snapshot["content_title"])
-	_update_inventory_selector()
+	var container_pair: Dictionary = _snapshot.get("container_pair", {})
+	var shows_pair := not container_pair.is_empty()
+	_container_view.visible = shows_pair
+	if shows_pair:
+		_container_view.set_snapshot(container_pair)
+		if not _result.is_empty():
+			_container_view.set_result(_result, _result.contains("失败") or _result.contains("受限"))
 	_set_item_slot(_slot_1, _snapshot["slot_1"])
 	_set_item_slot(_slot_2, _snapshot["slot_2"])
-	_slot_1.visible = not (_snapshot["slot_1"] as Dictionary).is_empty()
-	_slot_2.visible = not (_snapshot["slot_2"] as Dictionary).is_empty()
+	_slot_1.visible = (
+		not shows_pair and not (_snapshot["slot_1"] as Dictionary).is_empty()
+	)
+	_slot_2.visible = (
+		not shows_pair and not (_snapshot["slot_2"] as Dictionary).is_empty()
+	)
 	var process: Dictionary = _snapshot["process"]
-	_process_box.visible = not process.is_empty()
+	_process_box.visible = not shows_pair and not process.is_empty()
 	_flow_arrow_in.visible = _slot_1.visible and _process_box.visible
 	_flow_arrow_out.visible = _slot_2.visible and _process_box.visible
 	if not process.is_empty():
@@ -427,7 +442,7 @@ func _update_content() -> void:
 		_process_progress.value = float(process["value"])
 		_process_text.text = String(process["text"])
 	var capacity: Dictionary = _snapshot["capacity"]
-	_capacity_box.visible = not capacity.is_empty()
+	_capacity_box.visible = not shows_pair and not capacity.is_empty()
 	if not capacity.is_empty():
 		_capacity_progress.max_value = maxf(
 			0.001, float(capacity["maximum"])
@@ -435,73 +450,19 @@ func _update_content() -> void:
 		_capacity_progress.value = float(capacity["value"])
 		_capacity_text.text = String(capacity["text"])
 	_flow_row.visible = (
-		_slot_1.visible
+		not shows_pair
+		and (_slot_1.visible
 		or _slot_2.visible
-		or _process_box.visible
+		or _process_box.visible)
 	)
 	_details_panel.size_flags_vertical = (
 		Control.SIZE_EXPAND_FILL
 		if not _flow_row.visible
-		and not _inventory_scroll.visible
+		and not _container_view.visible
 		and not _capacity_box.visible
 		else Control.SIZE_SHRINK_BEGIN
 	)
 	_details.text = String(_snapshot["details"])
-
-
-func _update_inventory_selector() -> void:
-	var items: Array = _snapshot.get("inventory_items", [])
-	_inventory_scroll.visible = not items.is_empty()
-	var next_order: Array[String] = []
-	for item_variant in items:
-		var item: Dictionary = item_variant
-		next_order.append(String(item["item_id"]))
-	if next_order != _inventory_item_order:
-		_rebuild_inventory_buttons(next_order)
-	for item_variant in items:
-		var item: Dictionary = item_variant
-		var item_id := String(item["item_id"])
-		var button := _inventory_buttons.get(item_id) as Button
-		if button == null:
-			continue
-		var selected := item_id == _selected_storage_item_id
-		button.button_pressed = selected
-		button.text = "%s%s\n箱 %d / %d · 包 %d / %d" % [
-			"▶ " if selected else "",
-			String(item["short_name"]),
-			int(item["storage_count"]),
-			int(item["capacity"]),
-			int(item["pocket_count"]),
-			int(item["pocket_capacity"]),
-		]
-		button.icon = item.get("icon") as Texture2D
-		button.tooltip_text = "选择%s进行手动存取" % String(
-			item["display_name"]
-		)
-
-
-func _rebuild_inventory_buttons(next_order: Array[String]) -> void:
-	for child in _inventory_grid.get_children():
-		_inventory_grid.remove_child(child)
-		child.queue_free()
-	_inventory_buttons.clear()
-	_inventory_item_order = next_order.duplicate()
-	for item_id in _inventory_item_order:
-		var button := Button.new()
-		button.custom_minimum_size = Vector2(130, 68)
-		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.toggle_mode = true
-		button.pressed.connect(_on_storage_item_selected.bind(item_id))
-		_inventory_grid.add_child(button)
-		_inventory_buttons[item_id] = button
-
-
-func _on_storage_item_selected(item_id: String) -> void:
-	_selected_storage_item_id = item_id
-	_result = "已选择%s" % _storage_item_name(item_id)
-	_refresh()
-
-
 func _set_item_slot(
 	card: PanelContainer,
 	data: Dictionary
@@ -522,6 +483,11 @@ func _set_item_slot(
 func _update_operations() -> void:
 	var operations: Array = _snapshot["operations"]
 	_operations_empty.visible = operations.is_empty()
+	_operations_empty.text = (
+		"物料直接在中栏拖拽；这里仅保留模式与维护动作"
+		if not (_snapshot.get("container_pair", {}) as Dictionary).is_empty()
+		else "该设施没有主动操作"
+	)
 	_operations_panel.custom_minimum_size.y = 86.0 + operations.size() * 56.0
 	for index in range(_operation_buttons.size()):
 		var button := _operation_buttons[index]
@@ -600,38 +566,6 @@ func _perform_hotkey_operation(hotkey: String) -> void:
 func _perform_operation(action_id: String) -> void:
 	_confirming_demolition = false
 	match action_id:
-		"collect":
-			var collector := _target as SliceCollector
-			var buffer_before := collector.buffer
-			_world.collect_from_collector(collector)
-			var moved := buffer_before - collector.buffer
-			_result = (
-				"已取出晶体 %d" % moved
-				if moved > 0
-				else "没有可取出的晶体或背包已满"
-			)
-		"storage_deposit":
-			_result = _storage_transfer_result(
-				_world.transfer_pocket_to_storage(
-					_target as SliceStorage,
-					_selected_storage_item_id
-				),
-				"已存入%s %%d" % _storage_item_name(
-					_selected_storage_item_id
-				),
-				"没有可存入的物品或储物箱已达上限"
-			)
-		"storage_withdraw":
-			_result = _storage_transfer_result(
-				_world.transfer_storage_to_pocket(
-					_target as SliceStorage,
-					_selected_storage_item_id
-				),
-				"已取出%s %%d" % _storage_item_name(
-					_selected_storage_item_id
-				),
-				"没有可取出的物品或背包中该类已达上限"
-			)
 		"storage_toggle_mode":
 			_result = (
 				"已切换为%s" % (_target as SliceStorage).mode_display_name()
@@ -647,11 +581,6 @@ func _perform_operation(action_id: String) -> void:
 				if _world.select_next_storage_output(storage)
 				else "箱内没有其他可供给物品"
 			)
-		"recover_reactor":
-			var result: Dictionary = _world.recover_reactor_contents(
-				_target as SliceReactor
-			)
-			_result = String(result.get("message", "回收失败"))
 		"recover_conveyor_cargo":
 			var conveyor_result: Dictionary = (
 				_world.recover_conveyor_cargo(_target as SliceConveyor)
@@ -662,12 +591,57 @@ func _perform_operation(action_id: String) -> void:
 	_refresh()
 
 
-func _storage_transfer_result(
+func _on_container_transfer_requested(
+	item_id: String,
+	source: String,
+	requested: int
+) -> void:
+	var moved := 0
+	if _target is SliceStorage:
+		if source == "pocket":
+			moved = _world.transfer_pocket_to_storage(
+				_target as SliceStorage, item_id, requested
+			)
+		elif source == "storage":
+			moved = _world.transfer_storage_to_pocket(
+				_target as SliceStorage, item_id, requested
+			)
+		_result = _container_transfer_result(
+			"转移", moved, requested
+		)
+	elif _target is SliceCollector and source == "collector":
+		moved = _world.collect_from_collector(_target as SliceCollector)
+		_result = (
+			"已取出晶体 %d" % moved
+			if moved > 0
+			else "取出失败：缓冲为空或背包已满"
+		)
+	elif _target is SliceReactor and source == "reactor":
+		var result: Dictionary = _world.recover_reactor_contents(
+			_target as SliceReactor
+		)
+		_result = String(result.get("message", "回收失败"))
+	_refresh()
+
+
+func _on_container_feedback_changed(message: String, _warning: bool) -> void:
+	if not _open:
+		return
+	_result = message
+	_result_panel.visible = not message.is_empty()
+	_result_text.text = message
+
+
+func _container_transfer_result(
+	action: String,
 	moved: int,
-	success_pattern: String,
-	failure: String
+	requested: int
 ) -> String:
-	return success_pattern % moved if moved > 0 else failure
+	if moved <= 0:
+		return "%s失败：目标不接受该物品或容量已满" % action
+	if moved < requested:
+		return "容量受限：%s %d / %d 件" % [action, moved, requested]
+	return "%s %d 件" % [action, moved]
 
 
 func _storage_item_name(item_id: String) -> String:

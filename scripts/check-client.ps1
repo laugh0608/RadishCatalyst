@@ -468,6 +468,46 @@ if ($runGodotChecks) {
             }
         },
         @{
+            Name = "slice playtest remediation package 0"
+            Script = "check-client-slice-playtest-remediation-package0.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "slice playtest remediation package 1"
+            Script = "check-client-slice-playtest-remediation-package1.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "slice playtest remediation package 2"
+            Script = "check-client-slice-playtest-remediation-package2.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "slice playtest remediation package 3"
+            Script = "check-client-slice-playtest-remediation-package3.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "slice playtest remediation package 4"
+            Script = "check-client-slice-playtest-remediation-package4.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
             Name = "slice save schema"
             Script = "check-client-slice-save-schema.ps1"
             Parameters = @{

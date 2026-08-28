@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/slice/slice_pause_menu.gd" id="1_pause"]
 [ext_resource type="Theme" path="res://assets/themes/slice_ui_system_theme.tres" id="2_system_theme"]
 [ext_resource type="StyleBox" path="res://assets/themes/slice_ui_system_shell.tres" id="3_shell"]
 [ext_resource type="StyleBox" path="res://assets/themes/slice_ui_system_modal.tres" id="4_modal"]
+[ext_resource type="PackedScene" path="res://scenes/ui/SliceSettingsPanel.tscn" id="5_settings"]
 
 [node name="SlicePauseMenu" type="CanvasLayer"]
 layer = 50
@@ -101,49 +102,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
 
-[node name="SettingsPanel" type="Panel" parent="Root"]
-visible = false
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -280.0
-offset_top = -180.0
-offset_right = 280.0
-offset_bottom = 180.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = ExtResource("4_modal")
-
-[node name="TitleLabel" type="Label" parent="Root/SettingsPanel"]
-layout_mode = 0
-offset_left = 28.0
-offset_top = 24.0
-offset_right = 532.0
-offset_bottom = 62.0
-text = "设置"
-horizontal_alignment = 1
-
-[node name="BodyLabel" type="Label" parent="Root/SettingsPanel"]
-layout_mode = 0
-offset_left = 36.0
-offset_top = 88.0
-offset_right = 524.0
-offset_bottom = 224.0
-text = "音量、显示和控制设置将在后续 UI 专题完善。\n当前面板先提供完整的暂停与返回路径。"
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 3
-
-[node name="BackButton" type="Button" parent="Root/SettingsPanel"]
-layout_mode = 0
-offset_left = 172.0
-offset_top = 278.0
-offset_right = 388.0
-offset_bottom = 326.0
-text = "返回"
+[node name="SettingsPanel" parent="Root" instance=ExtResource("5_settings")]
 
 [node name="ConfirmPanel" type="Panel" parent="Root"]
 visible = false

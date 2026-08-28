@@ -132,8 +132,14 @@ func _check_definitions() -> void:
 	)
 	_expect_equal(
 		reactor.icon_region,
-		Rect2(28, 0, 120, 88),
-		"reactor UI framing excludes its world-only approach sections"
+		Rect2(),
+		"compact reactor uses its full three-by-three body in UI"
+	)
+	_expect_equal(conveyor.blocks_movement, false, "conveyor is walkable ground")
+	_expect_equal(
+		conveyor.spatial_layer,
+		SliceBuildingDefinition.SPATIAL_LAYER_GROUND,
+		"conveyor renders on the fixed ground layer"
 	)
 	_expect_equal(storage.logistics_ports.size(), 2, "storage has fixed IN and OUT")
 	var storage_input := storage.logistics_ports[0]
@@ -184,18 +190,18 @@ func _check_definitions() -> void:
 	)
 	_expect_equal(
 		reactor.logistics_ports[0].connection_distance,
-		2,
-		"reactor input reserves its built-in approach cell"
+		1,
+		"compact reactor input connects on the adjacent cell"
 	)
 	_expect_equal(
 		reactor.logistics_ports[1].connection_distance,
-		2,
-		"reactor output reserves its built-in approach cell"
+		1,
+		"compact reactor output connects on the adjacent cell"
 	)
 	_expect_equal(
 		reactor.logistics_approach_cells(Vector2i(10, 10), 0),
-		[Vector2i(9, 12), Vector2i(13, 12)],
-		"reactor exposes both world-only approach cells for placement"
+		[],
+		"compact reactor has no invisible approach gap"
 	)
 	_expect_equal(
 		reactor.logistics_ports[0].local_cell,
@@ -231,6 +237,11 @@ func _check_definitions() -> void:
 		collector.logistics_ports[0].outward_direction,
 		Vector2i.RIGHT,
 		"collector output faces right"
+	)
+	_expect_equal(
+		collector.logistics_ports[0].connection_distance,
+		2,
+		"collector reserves one explicit cross-surface transition cell"
 	)
 
 	var fixed_front := SliceBuildingDefinition.new(
@@ -425,15 +436,15 @@ func _check_world_placement_path() -> void:
 	)
 	var approach_overlap := world._placement_validator.validate(
 		conveyor,
-		Vector2i(15, 7),
+		Vector2i(47, 11),
 		0,
 		0,
-		reactor.logistics_approach_cells(reactor_cell, 0)
+		collector.logistics_approach_cells(collector_cell, 0)
 	)
 	_expect_equal(
 		bool(approach_overlap.get("valid", true)),
 		false,
-		"a conveyor cannot occupy the reactor built-in approach cell"
+		"a conveyor cannot occupy the collector transition cell"
 	)
 	_expect_equal(
 		String(approach_overlap.get("reason", "")),
@@ -566,10 +577,19 @@ func _check_world_placement_path() -> void:
 	_expect_equal(world.craft("floor"), true, "floor recipe crafts")
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
-		4,
-		"floor recipe grants all four kits"
+		8,
+		"floor recipe grants all eight kits"
 	)
-	_expect_equal(world.selected_building_id(), floor.building_id, "floor selected")
+	_expect_equal(
+		world.selected_building_id(),
+		"",
+		"crafting a floor batch does not enter placement"
+	)
+	_expect_equal(
+		world.select_building_kit(floor.building_id),
+		true,
+		"existing floor kits enter placement explicitly"
+	)
 	world.rotate_building_placement()
 	_expect_equal(
 		world.selected_building_rotation(),
@@ -596,7 +616,7 @@ func _check_world_placement_path() -> void:
 	)
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
-		4,
+		8,
 		"blocking UI prevents pointer placement and material cost"
 	)
 	_expect_equal(
@@ -606,7 +626,7 @@ func _check_world_placement_path() -> void:
 	)
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
-		3,
+		7,
 		"one floor placement consumes one kit"
 	)
 	_expect_equal(
@@ -633,13 +653,13 @@ func _check_world_placement_path() -> void:
 	)
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
-		2,
+		6,
 		"second drag cell consumes exactly one floor kit"
 	)
 	world._handle_placement_pointer_event(floor_motion)
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
-		2,
+		6,
 		"repeated motion in one floor cell does not double-charge"
 	)
 	var third_floor_cell := second_floor_cell + Vector2i.RIGHT
@@ -667,12 +687,22 @@ func _check_world_placement_path() -> void:
 	_expect_equal(world.is_placement_active(), false, "Esc cancellation exits")
 	_expect_equal(
 		world.pocket.count(SliceWorld.ITEM_FLOOR_KIT),
-		1,
+		5,
 		"cancellation preserves remaining floor kits"
 	)
 
 	world.pocket.add(SliceWorld.ITEM_PART, 2)
 	_expect_equal(world.craft("collector"), true, "collector recipe crafts")
+	_expect_equal(
+		world.selected_building_id(),
+		"",
+		"crafting a collector does not enter placement"
+	)
+	_expect_equal(
+		world.select_building_kit(collector.building_id),
+		true,
+		"existing collector kit enters placement explicitly"
+	)
 	var collector_validation := world._validate_placement(
 		collector, collector_cell, 0
 	)
@@ -782,13 +812,14 @@ func _check_world_placement_path() -> void:
 		crystal_before,
 		"opening the collector panel does not change the backpack"
 	)
-	var take_button := world._building_action_panel.action_button("collect")
+	var container_view := world._building_action_panel.container_view()
 	_expect_equal(
-		take_button != null
-		and take_button.text.contains("取出全部晶体")
-		and not take_button.disabled,
+		container_view.visible
+		and container_view.select_item(
+			SliceWorld.ITEM_CRYSTAL, "collector"
+		),
 		true,
-		"collector panel exposes an enabled mouse take action"
+		"collector panel exposes its buffer as a direct source row"
 	)
 	_expect_equal(
 		world._building_action_panel.primary_status_text(),
@@ -806,7 +837,7 @@ func _check_world_placement_path() -> void:
 		true,
 		"device panel does not restore descriptive next-step copy"
 	)
-	take_button.pressed.emit()
+	container_view.request_selected_transfer()
 	_expect_equal(
 		world._collector_nodes[0].buffer,
 		0,

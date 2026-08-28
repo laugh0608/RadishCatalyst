@@ -1,0 +1,204 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/slice/slice_character_panel.gd" id="1_script"]
+[ext_resource type="Theme" path="res://assets/themes/slice_ui_theme.tres" id="2_theme"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_hud_shell.tres" id="3_shell"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_hud_surface.tres" id="4_surface"]
+[ext_resource type="Texture2D" path="res://assets/sprites/slice/player_field_cutter_attack.png" id="5_cutter"]
+[ext_resource type="Texture2D" path="res://assets/sprites/slice/pulse_rifle_item_icon.png" id="6_rifle"]
+
+[sub_resource type="AtlasTexture" id="AtlasCutter"]
+atlas = ExtResource("5_cutter")
+region = Rect2(0, 0, 96, 64)
+
+[sub_resource type="StyleBoxFlat" id="StyleDim"]
+bg_color = Color(0.02, 0.035, 0.043, 0.84)
+
+[node name="SliceCharacterPanel" type="Control"]
+process_mode = 3
+z_index = 100
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_script")
+
+[node name="OpenButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 376.0
+offset_top = 985.0
+offset_right = 520.0
+offset_bottom = 1018.0
+theme = ExtResource("2_theme")
+theme_override_font_sizes/font_size = 14
+text = "C  角色 / 装备"
+
+[node name="Window" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="Dim" type="Panel" parent="Window"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+theme_override_styles/panel = SubResource("StyleDim")
+
+[node name="Panel" type="PanelContainer" parent="Window"]
+custom_minimum_size = Vector2(720, 520)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -360.0
+offset_top = -260.0
+offset_right = 360.0
+offset_bottom = 260.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = ExtResource("3_shell")
+
+[node name="Margin" type="MarginContainer" parent="Window/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="Layout" type="VBoxContainer" parent="Window/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Header" type="HBoxContainer" parent="Window/Panel/Margin/Layout"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Window/Panel/Margin/Layout/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("2_theme")
+theme_override_font_sizes/font_size = 28
+text = "角色装备"
+
+[node name="Close" type="Button" parent="Window/Panel/Margin/Layout/Header"]
+custom_minimum_size = Vector2(96, 44)
+layout_mode = 2
+theme = ExtResource("2_theme")
+text = "关闭"
+
+[node name="Role" type="Label" parent="Window/Panel/Margin/Layout"]
+layout_mode = 2
+theme = ExtResource("2_theme")
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
+theme_override_font_sizes/font_size = 16
+text = "前哨工程员 · 武器槽 1/1 · 装备选择随世界存档"
+
+[node name="EquippedSlot" type="PanelContainer" parent="Window/Panel/Margin/Layout"]
+custom_minimum_size = Vector2(0, 152)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("4_surface")
+
+[node name="Margin" type="MarginContainer" parent="Window/Panel/Margin/Layout/EquippedSlot"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
+
+[node name="Row" type="HBoxContainer" parent="Window/Panel/Margin/Layout/EquippedSlot/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Icon" type="TextureRect" parent="Window/Panel/Margin/Layout/EquippedSlot/Margin/Row"]
+custom_minimum_size = Vector2(128, 96)
+layout_mode = 2
+texture_filter = 1
+texture = SubResource("AtlasCutter")
+expand_mode = 3
+stretch_mode = 5
+
+[node name="Identity" type="VBoxContainer" parent="Window/Panel/Margin/Layout/EquippedSlot/Margin/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="Slot" type="Label" parent="Window/Panel/Margin/Layout/EquippedSlot/Margin/Row/Identity"]
+layout_mode = 2
+theme = ExtResource("2_theme")
+theme_override_colors/font_color = Color(0.498, 0.573, 0.722, 1)
+theme_override_font_sizes/font_size = 15
+text = "当前武器"
+
+[node name="Name" type="Label" parent="Window/Panel/Margin/Layout/EquippedSlot/Margin/Row/Identity"]
+layout_mode = 2
+theme = ExtResource("2_theme")
+theme_override_font_sizes/font_size = 25
+text = "工程切割器"
+
+[node name="State" type="Label" parent="Window/Panel/Margin/Layout/EquippedSlot/Margin/Row/Identity"]
+layout_mode = 2
+theme = ExtResource("2_theme")
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
+theme_override_font_sizes/font_size = 15
+text = "已装备 · 内建工具不可移除"
+
+[node name="AvailableTitle" type="Label" parent="Window/Panel/Margin/Layout"]
+layout_mode = 2
+theme = ExtResource("2_theme")
+theme_override_font_sizes/font_size = 18
+text = "可用武器 · 点击，或拖入上方武器槽"
+
+[node name="Available" type="HBoxContainer" parent="Window/Panel/Margin/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+
+[node name="Cutter" type="Button" parent="Window/Panel/Margin/Layout/Available"]
+custom_minimum_size = Vector2(300, 100)
+layout_mode = 2
+theme = ExtResource("2_theme")
+theme_override_font_sizes/font_size = 17
+icon = SubResource("AtlasCutter")
+icon_max_width = 96
+text = "切割器 · 已装备"
+
+[node name="Rifle" type="Button" parent="Window/Panel/Margin/Layout/Available"]
+custom_minimum_size = Vector2(300, 100)
+layout_mode = 2
+theme = ExtResource("2_theme")
+theme_override_font_sizes/font_size = 17
+icon = ExtResource("6_rifle")
+icon_max_width = 80
+text = "脉冲步枪 · 点击装备"
+
+[node name="MissingRifle" type="Label" parent="Window/Panel/Margin/Layout/Available"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("2_theme")
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
+theme_override_font_sizes/font_size = 16
+text = "步枪未在随身背包中\n核心首次充能后可制造"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Footer" type="Label" parent="Window/Panel/Margin/Layout"]
+layout_mode = 2
+theme = ExtResource("2_theme")
+theme_override_colors/font_color = Color(0.659, 0.698, 0.706, 1)
+theme_override_font_sizes/font_size = 14
+text = "数字键 1 / 2 与本页使用同一装备选择 · Esc / C 关闭"
+horizontal_alignment = 1

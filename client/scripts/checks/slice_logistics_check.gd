@@ -150,11 +150,11 @@ func _check_collector_output_transfer() -> void:
 	collector.apply_definition(definition, 32.0)
 	collector.buffer = 2
 	var belt := _make_conveyor(
-		"building-collector-belt", Vector2i(2, 1), 1
+		"building-collector-belt", Vector2i(3, 1), 1
 	)
 	var target := _make_storage(
 		"building-collector-target",
-		Vector2i(3, 0),
+		Vector2i(4, 0),
 		2,
 		SliceStorage.MODE_TRANSFER
 	)
@@ -169,8 +169,8 @@ func _check_collector_output_transfer() -> void:
 	)
 	_expect_equal(
 		endpoint.connection_cell,
-		Vector2i(2, 1),
-		"collector output stays fixed to the right connection"
+		Vector2i(3, 1),
+		"collector output stays beyond its explicit transition cell"
 	)
 	grid.tick(0.1)
 	_expect_equal(collector.buffer, 1, "collector injects exactly one crystal")
@@ -263,7 +263,7 @@ func _check_placement_port_feedback() -> void:
 	_expect_equal(
 		String(
 			grid.conveyor_placement_preview(
-				Vector2i(22, 14), 1
+				Vector2i(23, 14), 1
 			)["message"]
 		).contains("IN"),
 		true,
@@ -272,7 +272,7 @@ func _check_placement_port_feedback() -> void:
 	_expect_equal(
 		String(
 			grid.conveyor_placement_preview(
-				Vector2i(28, 14), 1
+				Vector2i(27, 14), 1
 			)["message"]
 		).contains("OUT"),
 		true,
@@ -288,7 +288,7 @@ func _check_placement_port_feedback() -> void:
 	overlay_parent.add_child(overlay)
 	overlay.configure(
 		conveyor_definition,
-		Vector2i(22, 14),
+		Vector2i(23, 14),
 		1,
 		32.0,
 		{"valid": true},
@@ -307,7 +307,7 @@ func _check_placement_port_feedback() -> void:
 	)
 	overlay.configure(
 		conveyor_definition,
-		Vector2i(22, 14),
+		Vector2i(23, 14),
 		3,
 		32.0,
 		{"valid": true},

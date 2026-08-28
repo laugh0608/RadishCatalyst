@@ -1,5 +1,7 @@
 # Godot Project Structure - 运行组织与边界
 
+更新时间：2026-08-26
+
 返回：[Godot Project Structure](godot-project-structure.md)
 
 ## 当前正式入口
@@ -7,6 +9,7 @@
 当前菜单实际进入像素切片：
 
 ```text
+UserSettings Autoload（窗口模式、Master / SFX）
 Boot.tscn
 -> SliceSaveCatalog（迁移 / 枚举世界）
 -> StartupMenu.tscn
@@ -16,7 +19,7 @@ Boot.tscn
 -> SliceMap + SlicePlayer + SliceHud + 建筑 / 供电 / 物流 / 外勤战斗子系统
 ```
 
-`Esc` 暂停的保存返回成功后由 `Boot` 释放当前 `SliceWorld` 并重建世界列表；保存失败不释放世界。`GameRoot.tscn + VerticalSliceMap.tscn` 是冻结保留的旧纵切路径，不再由启动菜单进入。当前职责与存档边界见 [Slice Runtime Systems](slice-runtime-systems.md)；下文旧纵切场景建议仍用于维护冻结代码和长期结构参考。
+`UserSettings` 是当前实际 Autoload，只应用独立 `user://settings.cfg` 中的显示与声音偏好，不持有世界状态。`Esc` 暂停的保存返回成功后由 `Boot` 释放当前 `SliceWorld` 并重建世界列表；保存失败不释放世界。`GameRoot.tscn + VerticalSliceMap.tscn` 是冻结保留的旧纵切路径，不再由启动菜单进入。当前职责与存档边界见 [Slice Runtime Systems](slice-runtime-systems.md)；下文旧纵切场景建议仍用于维护冻结代码和长期结构参考。
 
 ## 场景组织
 
@@ -45,6 +48,8 @@ scenes/ui/QuestTracker.tscn
 ## 自动加载建议
 
 Godot `Autoload` 应少而清楚。
+
+当前只启用 `UserSettings`：它负责窗口模式、主音量和音效音量的应用级偏好；`DataRegistry` 仍由 `Boot` 显式加载，世界目录与单世界服务按所选 `world_id` 注入，不提升为全局可变状态。
 
 可考虑：
 

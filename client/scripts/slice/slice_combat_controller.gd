@@ -26,7 +26,8 @@ const HIT_EFFECT_DURATION := 0.16
 const MUZZLE_EFFECT_DURATION := 0.08
 
 signal state_changed
-signal persistence_requested
+signal persistence_requested(immediate: bool)
+signal demo_completed
 
 var health := 100
 var max_health := 100
@@ -117,14 +118,8 @@ func require_fresh_attack_press() -> void:
 func _on_weapon_selection_requested(weapon_id: String) -> void:
 	if _world == null or _world.is_combat_input_blocked():
 		return
-	match weapon_id:
-		WEAPON_CUTTER:
-			_select_weapon(WEAPON_CUTTER)
-		WEAPON_PULSE_RIFLE:
-			if not has_pulse_rifle():
-				_set_notice("未持有前哨脉冲步枪｜保持切割器", 1.5)
-				return
-			_select_weapon(WEAPON_PULSE_RIFLE)
+	if not equip_weapon(weapon_id):
+		_set_notice("未持有前哨脉冲步枪｜保持当前装备", 1.5)
 
 
 func _on_dodge_requested() -> void:
@@ -226,7 +221,7 @@ func _finish_attack() -> void:
 
 func _begin_pulse_rifle_attack() -> void:
 	if not has_pulse_rifle():
-		_select_weapon(WEAPON_CUTTER)
+		equip_weapon(WEAPON_CUTTER)
 		_set_notice("步枪不在随身背包｜已切回切割器", 1.8)
 		return
 	if pulse_cell_count() <= 0:
@@ -246,18 +241,33 @@ func _begin_pulse_rifle_attack() -> void:
 	_attack_collision.disabled = true
 	_spawn_pulse_projectile(_player.aim_direction)
 	_play_muzzle_effect(_player.aim_direction)
-	if not bool(consumption.get("saved", false)):
-		_set_notice("射击已成立｜自动保存失败，请稍后重试", 2.4)
+	if not bool(consumption.get("save_queued", false)):
+		_set_notice("射击已成立｜当前世界无法排队保存", 2.4)
 
 
 func _consume_pulse_cell() -> Dictionary:
 	if _world.pocket.remove(SliceWorld.ITEM_PULSE_CELL, 1) != 1:
-		return {"consumed": false, "saved": false}
+		return {"consumed": false, "save_queued": false}
 	_world.inventory_changed.emit()
-	return {"consumed": true, "saved": _world._autosave()}
+	return {
+		"consumed": true,
+		"save_queued": _world.request_save(),
+	}
 
 
-func _select_weapon(weapon_id: String) -> void:
+func equip_weapon(weapon_id: String, persist: bool = true) -> bool:
+	if weapon_id not in [WEAPON_CUTTER, WEAPON_PULSE_RIFLE]:
+		return false
+	if weapon_id == WEAPON_PULSE_RIFLE and not has_pulse_rifle():
+		return false
+	var changed := current_weapon != weapon_id
+	_apply_weapon(weapon_id)
+	if changed and persist:
+		persistence_requested.emit(true)
+	return true
+
+
+func _apply_weapon(weapon_id: String) -> void:
 	if current_weapon == weapon_id:
 		return
 	current_weapon = weapon_id
@@ -293,7 +303,7 @@ func resolve_pulse_projectile_collision(body: Node2D) -> bool:
 		return false
 	_play_pulse_hit_effect(field_enemy.position + Vector2(0, -24))
 	if field_enemy.health > 0:
-		persistence_requested.emit()
+		persistence_requested.emit(false)
 	return true
 
 
@@ -332,7 +342,7 @@ func _on_inventory_changed(_changed_value = null) -> void:
 	if current_weapon != WEAPON_PULSE_RIFLE or has_pulse_rifle():
 		_emit_state_if_changed()
 		return
-	_select_weapon(WEAPON_CUTTER)
+	equip_weapon(WEAPON_CUTTER)
 	_set_notice("步枪已离开随身背包｜已切回切割器", 1.8)
 
 
@@ -345,13 +355,14 @@ func receive_damage(amount: int) -> bool:
 	if amount <= 0 or not can_receive_damage():
 		return false
 	health = maxi(0, health - amount)
+	var evacuated := health <= 0
 	_play_hit_effect(_player.position + Vector2(0, -32))
-	if health <= 0:
+	if evacuated:
 		_evacuate_player()
 	else:
 		_set_notice("受到 %d 点伤害" % amount, 0.9)
 	_emit_state_if_changed()
-	persistence_requested.emit()
+	persistence_requested.emit(evacuated)
 	return true
 
 
@@ -363,7 +374,7 @@ func collect_critical_sample(sample: SliceCriticalSample) -> bool:
 	sample.queue_free()
 	_set_notice("晶腺样本已回收｜任务物品不占背包", 2.4)
 	_emit_state_if_changed()
-	persistence_requested.emit()
+	persistence_requested.emit(true)
 	return true
 
 
@@ -383,7 +394,8 @@ func deliver_critical_sample() -> bool:
 	health = max_health
 	_set_notice("核心分析完成｜抗蚀内衬已安装｜最大生命 120", 3.6)
 	_emit_state_if_changed()
-	persistence_requested.emit()
+	persistence_requested.emit(true)
+	demo_completed.emit()
 	return true
 
 
@@ -393,6 +405,7 @@ func durable_state() -> Dictionary:
 		enemy_health = field_enemy.health
 	return {
 		"player_health": health,
+		"equipped_weapon_id": current_weapon,
 		"field_encounter": {
 			"state": encounter_state,
 			"enemy_health": enemy_health,
@@ -402,12 +415,14 @@ func durable_state() -> Dictionary:
 
 func restore_durable_state(
 	saved_health: int,
-	field_encounter: Dictionary
+	field_encounter: Dictionary,
+	equipped_weapon_id: String = WEAPON_CUTTER
 ) -> void:
 	current_weapon = WEAPON_CUTTER
 	_attack_held = false
 	_requires_fresh_attack_press = true
 	_finish_attack()
+	_apply_weapon(equipped_weapon_id)
 	_player.set_weapon_visual(current_weapon)
 	encounter_state = String(field_encounter.get("state", "locked"))
 	max_health = 120 if encounter_state == "delivered" else 100
@@ -443,7 +458,7 @@ func encounter_goal_text() -> String:
 		"carried":
 			return "目标：返回核心交付晶腺样本"
 		"delivered":
-			return "抗蚀内衬已安装｜最大生命 120"
+			return "Demo 已完成｜可继续自由建设"
 		_:
 			return "目标：完成核心首次充能"
 
@@ -484,7 +499,7 @@ func _resolve_player_attack() -> void:
 		if field_enemy.take_damage(ATTACK_DAMAGE):
 			_play_hit_effect(field_enemy.position + Vector2(0, -24))
 			if field_enemy.health > 0:
-				persistence_requested.emit()
+				persistence_requested.emit(false)
 		return
 
 
@@ -507,7 +522,7 @@ func _on_enemy_defeated() -> void:
 	_spawn_critical_sample()
 	_set_notice("裂晶爬兽败亡｜晶腺样本已掉落", 2.0)
 	_emit_state_if_changed()
-	persistence_requested.emit()
+	persistence_requested.emit(true)
 
 
 func _evacuate_player() -> void:

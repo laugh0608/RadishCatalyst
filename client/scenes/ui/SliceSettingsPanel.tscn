@@ -1,0 +1,169 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/slice_settings_panel.gd" id="1_script"]
+[ext_resource type="Theme" path="res://assets/themes/slice_ui_system_theme.tres" id="2_theme"]
+[ext_resource type="StyleBox" path="res://assets/themes/slice_ui_system_modal.tres" id="3_modal"]
+
+[node name="SliceSettingsPanel" type="Panel"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -380.0
+offset_top = -330.0
+offset_right = 380.0
+offset_bottom = 330.0
+grow_horizontal = 2
+grow_vertical = 2
+clip_contents = true
+theme = ExtResource("2_theme")
+theme_override_styles/panel = ExtResource("3_modal")
+script = ExtResource("1_script")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 36
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 36
+theme_override_constants/margin_bottom = 28
+
+[node name="Layout" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Margin/Layout"]
+layout_mode = 2
+text = "设置"
+horizontal_alignment = 1
+
+[node name="Summary" type="Label" parent="Margin/Layout"]
+layout_mode = 2
+text = "显示与声音偏好保存在本机，不写入任何世界存档。"
+horizontal_alignment = 1
+
+[node name="WindowRow" type="HBoxContainer" parent="Margin/Layout"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 50)
+theme_override_constants/separation = 18
+
+[node name="WindowLabel" type="Label" parent="Margin/Layout/WindowRow"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+text = "显示模式"
+vertical_alignment = 1
+
+[node name="FullscreenToggle" type="CheckButton" parent="Margin/Layout/WindowRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "全屏（关闭为窗口模式）"
+
+[node name="MasterRow" type="HBoxContainer" parent="Margin/Layout"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 50)
+theme_override_constants/separation = 14
+
+[node name="MasterLabel" type="Label" parent="Margin/Layout/MasterRow"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+text = "主音量"
+vertical_alignment = 1
+
+[node name="MasterSlider" type="HSlider" parent="Margin/Layout/MasterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+step = 1.0
+value = 100.0
+
+[node name="MasterValue" type="Label" parent="Margin/Layout/MasterRow"]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="SfxRow" type="HBoxContainer" parent="Margin/Layout"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 50)
+theme_override_constants/separation = 14
+
+[node name="SfxLabel" type="Label" parent="Margin/Layout/SfxRow"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+text = "音效音量"
+vertical_alignment = 1
+
+[node name="SfxSlider" type="HSlider" parent="Margin/Layout/SfxRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+step = 1.0
+value = 100.0
+
+[node name="SfxValue" type="Label" parent="Margin/Layout/SfxRow"]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="PreviewRow" type="HBoxContainer" parent="Margin/Layout"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+
+[node name="PreviewLabel" type="Label" parent="Margin/Layout/PreviewRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "音效试听会同时经过主音量与 SFX 音量。"
+vertical_alignment = 1
+
+[node name="PreviewButton" type="Button" parent="Margin/Layout/PreviewRow"]
+custom_minimum_size = Vector2(180, 42)
+layout_mode = 2
+text = "试听音效"
+
+[node name="ControlsTitle" type="Label" parent="Margin/Layout"]
+layout_mode = 2
+text = "当前控制"
+
+[node name="Controls" type="Label" parent="Margin/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "移动  WASD    交互  E    制造 / 背包  B    角色  C\n放置  LMB / E    旋转  R    取消 / 暂停  Esc\n武器  1 / 2    闪避  Space\n\n完整按键重映射将在后续输入专题处理。"
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="Status" type="Label" parent="Margin/Layout"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="Footer" type="HBoxContainer" parent="Margin/Layout"]
+layout_mode = 2
+
+[node name="Spacer" type="Control" parent="Margin/Layout/Footer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BackButton" type="Button" parent="Margin/Layout/Footer"]
+custom_minimum_size = Vector2(180, 48)
+layout_mode = 2
+text = "返回"
+
+[node name="SaveTimer" type="Timer" parent="."]
+wait_time = 0.35
+one_shot = true
+
+[node name="PreviewPlayer" type="AudioStreamPlayer" parent="."]
+bus = &"SFX"

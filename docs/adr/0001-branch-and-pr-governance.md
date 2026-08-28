@@ -1,6 +1,6 @@
 # ADR 0001: Branch And PR Governance
 
-更新时间：2026-08-20
+更新时间：2026-08-28
 
 ## 状态
 
@@ -53,7 +53,7 @@ RadishCatalyst 是刚初始化的新仓库，当前重点不是堆功能，而�
 
 - 禁止直接 push。
 - 必须通过 PR 合并。
-- 必须通过仓库检查；默认分支 PR 的 `Repo Hygiene` 由统一 `check-repo` 覆盖治理合同、活跃 Markdown 相对链接、文本与文档卫生、客户端静态基线、检查器单元测试、提交信息和 PR diff 空白；归档历史不纳入当前链接合同。
+- 必须通过聚合检查 `Candidate Quality`；当前由 `Repo Hygiene` 组件执行统一 `check-repo`，覆盖治理合同、活跃 Markdown 相对链接、文本与文档卫生、客户端静态基线、检查器单元测试、提交信息和 PR diff 空白；归档历史不纳入当前链接合同。
 - 单人维护阶段不要求额外审批，但仍要求已解决会话。
 - 允许 `merge commit` 与 `rebase merge`，禁用 `squash merge`；阶段 PR 优先使用 `merge commit`，若使用 rebase merge，则承担普通 merge 回流 `dev` 的拓扑成本。
 - 管理员仅可通过 PR 方式绕过规则。
@@ -74,7 +74,7 @@ RadishCatalyst 是刚初始化的新仓库，当前重点不是堆功能，而�
 1. 创建远端 `dev` 分支。
 2. 保持日常开发在 `dev` 推进，阶段性稳定后从 `dev` 向默认分支发 PR；合并后先把默认分支快进回 `dev`。
 3. 对 `master` / `main` 启用 ruleset。
-4. 要求 `master` / `main` 通过 `Repo Hygiene` 状态检查。
+4. 要求 `master` / `main` 通过 `Candidate Quality` 状态检查；内部组件变化只更新聚合依赖，不频繁迁移远端 required context。
 5. 开启 “Require a pull request before merging”。
 6. 仓库 Merge options 中启用 `Merge commits` 与 `Rebase merging`，关闭 `Squash merging`。
 7. 配置管理员仅通过 PR 绕过，不开放直接 push。
@@ -104,7 +104,7 @@ RadishCatalyst 是刚初始化的新仓库，当前重点不是堆功能，而�
   - `scripts/check-client.ps1`
   - `scripts/check-client.sh`
 
-当前默认分支 PR 的 CI 通过统一入口强制治理文件与模板合同、活跃 Markdown 相对链接、JSON、文本卫生、文档篇幅、客户端静态数据、场景引用、检查器单元测试、Conventional Commits 和提交 diff 空白。默认 `check-client` 不启动 Godot；需要 Godot 可执行文件的运行时验证按改动范围在本地或手动流程显式执行，等 GitHub runner 上 Godot 环境稳定后再评估是否纳入必过 CI。
+当前默认分支 PR 的 CI 由稳定聚合门禁 `Candidate Quality` 收口；`Repo Hygiene` 组件通过统一入口强制治理文件与模板合同、活跃 Markdown 相对链接、JSON、文本卫生、文档篇幅、客户端静态数据、场景引用、检查器单元测试、Conventional Commits 和提交 diff 空白。默认 `check-client` 不启动 Godot；需要 Godot 可执行文件的运行时验证按改动范围在本地或手动流程显式执行，等 GitHub runner 上 Godot 环境稳定后再评估是否作为独立组件接入聚合门禁。
 
 ## 影响
 

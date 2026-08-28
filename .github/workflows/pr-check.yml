@@ -38,3 +38,31 @@ jobs:
           else
             ./scripts/check-repo.sh
           fi
+
+  candidate-quality:
+    name: Candidate Quality
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - repo-hygiene
+
+    steps:
+      - name: Summarize candidate quality
+        shell: bash
+        env:
+          REPO_HYGIENE_RESULT: ${{ needs.repo-hygiene.result }}
+        run: |
+          {
+            echo "## Candidate Quality"
+            echo
+            echo "| Check | Result |"
+            echo "| --- | --- |"
+            echo "| Repo Hygiene | ${REPO_HYGIENE_RESULT} |"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+          if [[ "${REPO_HYGIENE_RESULT}" != "success" ]]; then
+            echo "Repository hygiene did not succeed." >&2
+            exit 1
+          fi
+
+          echo "All candidate quality components succeeded."

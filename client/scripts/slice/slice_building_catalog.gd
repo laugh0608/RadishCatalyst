@@ -37,6 +37,8 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 				Vector2i(-1, -1),
 				SliceBuildingDefinition.POWER_VISUAL_ANCHOR_NONE,
 				Vector2.ZERO
+			).configure_spatial_layer(
+				SliceBuildingDefinition.SPATIAL_LAYER_GROUND
 			)
 		COLLECTOR_ID:
 			return _with_device_model(
@@ -79,7 +81,7 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 					true,
 					false,
 					"res://scenes/slice/SliceReactor.tscn",
-					["res://assets/sprites/slice/reactor.png"],
+					["res://assets/sprites/slice/reactor_down.png"],
 					Vector2(0, 4),
 					Rect2(),
 					[
@@ -100,7 +102,7 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 				Vector2i(-1, -1),
 				SliceBuildingDefinition.POWER_VISUAL_ANCHOR_BLOCK_CENTER_OFFSET,
 				Vector2(0, -18)
-			).configure_icon_region(Rect2(28, 0, 120, 88))
+			)
 		POWER_RELAY_ID:
 			return _with_device_model(
 				SliceBuildingDefinition.new(
@@ -144,7 +146,7 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 					Vector2i.ONE,
 					true,
 					SliceBuildingDefinition.SURFACE_INDUSTRIAL_FLOOR,
-					true,
+					false,
 					false,
 					"res://scenes/slice/SliceConveyor.tscn",
 					_cardinal_textures("conveyor"),
@@ -159,6 +161,8 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 				Vector2i(-1, -1),
 				SliceBuildingDefinition.POWER_VISUAL_ANCHOR_NONE,
 				Vector2.ZERO
+			).configure_spatial_layer(
+				SliceBuildingDefinition.SPATIAL_LAYER_GROUND
 			)
 		STORAGE_ID:
 			return _with_device_model(
@@ -254,7 +258,8 @@ static func _collector_ports() -> Array[SliceLogisticsPortDefinition]:
 			SliceLogisticsPortDefinition.ORIENTATION_FIXED_LOCAL,
 			[],
 			["crystal"],
-			0
+			0,
+			2
 		),
 	]
 
@@ -297,8 +302,7 @@ static func _reactor_ports() -> Array[SliceLogisticsPortDefinition]:
 			SliceLogisticsPortDefinition.ORIENTATION_FIXED_LOCAL,
 			["crystal"],
 			[],
-			1,
-			2
+			1
 		),
 		SliceLogisticsPortDefinition.new(
 			"output",
@@ -309,7 +313,6 @@ static func _reactor_ports() -> Array[SliceLogisticsPortDefinition]:
 			SliceLogisticsPortDefinition.ORIENTATION_FIXED_LOCAL,
 			[],
 			["catalyst"],
-			1,
-			2
+			1
 		),
 	]

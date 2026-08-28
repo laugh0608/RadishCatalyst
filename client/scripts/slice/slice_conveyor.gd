@@ -180,7 +180,7 @@ func _refresh_cargo_visual() -> void:
 	if sprite == null:
 		sprite = Sprite2D.new()
 		sprite.name = "Cargo"
-		sprite.z_index = 4
+		sprite.z_index = 0
 		add_child(sprite)
 	sprite.texture = CARGO_TEXTURES.get(cargo_item_id) as Texture2D
 	sprite.visible = true
@@ -188,7 +188,7 @@ func _refresh_cargo_visual() -> void:
 
 
 func _refresh_topology_texture(
-	terminal_belt_overlaps_device: bool = true
+	_terminal_belt_overlaps_device: bool = true
 ) -> void:
 	var sprite := get_node_or_null("Sprite") as Sprite2D
 	if sprite == null or definition == null:
@@ -232,17 +232,9 @@ func _refresh_topology_texture(
 		texture_path = definition.texture_path_for_rotation(
 			building_rotation
 		)
-	# Reactor terminals keep their approved overlap layer. The fixed core opts
-	# out through the runtime endpoint contract so its complete belt cell stays
-	# on the ordinary y-sort plane behind the dedicated core visual shell.
-	sprite.z_index = (
-		1
-		if _topology_kind in [
-			TOPOLOGY_SOURCE_ENDPOINT,
-			TOPOLOGY_SINK_ENDPOINT,
-		] and terminal_belt_overlaps_device
-		else 0
-	)
+	# Every belt cell, including cargo and terminal frames, belongs to the fixed
+	# ground plane. Device-owned seams are represented by explicit transitions.
+	sprite.z_index = 0
 	sprite.texture = load(texture_path) as Texture2D
 
 

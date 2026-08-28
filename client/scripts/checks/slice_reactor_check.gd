@@ -37,9 +37,9 @@ func _check_port_rotation() -> void:
 	)
 	var origin := Vector2i(10, 10)
 	var expected_input := Vector2i(10, 12)
-	var expected_input_connection := Vector2i(8, 12)
+	var expected_input_connection := Vector2i(9, 12)
 	var expected_output := Vector2i(12, 12)
-	var expected_output_connection := Vector2i(14, 12)
+	var expected_output_connection := Vector2i(13, 12)
 	for rotation in range(4):
 		var reactor := _make_reactor_at(
 			"building-rotation-%d" % rotation, origin, rotation
@@ -48,8 +48,8 @@ func _check_port_rotation() -> void:
 			var sprite := reactor.get_node("Sprite") as Sprite2D
 			_expect_equal(
 				sprite.texture.get_size(),
-				Vector2(176, 88),
-				"unconnected reactor shows its device-owned short ports"
+				Vector2(96, 90),
+				"reactor keeps its three-cell reviewed pixel footprint"
 			)
 		var endpoints := reactor.logistics_endpoints()
 		_expect_equal(
@@ -282,8 +282,8 @@ func _check_state_and_content_gate() -> void:
 	)
 	_expect_equal(
 		overlay.position,
-		Vector2(-36, -74),
-		"V10 processing pulse uses the locked texture-local display anchor"
+		Vector2(0, -61),
+		"processing pulse uses the compact reactor display anchor"
 	)
 	_expect_equal(
 		overlay.texture.resource_path.contains(
@@ -319,9 +319,11 @@ func _check_old_middle_row_disconnects() -> void:
 		"legacy middle-row belt leaves reactor input diagnostically unconnected"
 	)
 	_expect_equal(
-		_docking_overlay_visible(reactor, "InputDockingOverlay"),
-		false,
-		"legacy middle-row belt never creates the connected input overlay"
+		(reactor.get_node("Sprite") as Sprite2D).get_node_or_null(
+			"InputDockingOverlay"
+		),
+		null,
+		"legacy device-owned docking overlays remain removed"
 	)
 	_free_instances(instances)
 
@@ -339,17 +341,23 @@ func _check_machine_logistics_chain() -> void:
 	var input_sink_belt := _make_conveyor(
 		"building-000013", Vector2i(8, 12), 1
 	)
+	var input_terminal_belt := _make_conveyor(
+		"building-000014", Vector2i(9, 12), 1
+	)
 	var reactor := _make_reactor_at(
-		"building-000014", Vector2i(10, 10), 0
+		"building-000015", Vector2i(10, 10), 0
 	)
 	var output_belt := _make_conveyor(
-		"building-000015", Vector2i(14, 12), 1
+		"building-000016", Vector2i(13, 12), 1
+	)
+	var output_middle_belt := _make_conveyor(
+		"building-000017", Vector2i(14, 12), 1
 	)
 	var output_sink_belt := _make_conveyor(
-		"building-000016", Vector2i(15, 12), 1
+		"building-000018", Vector2i(15, 12), 1
 	)
 	var target := _make_storage(
-		"building-000017", Vector2i(16, 11), 0
+		"building-000019", Vector2i(16, 11), 0
 	)
 	source.set_powered(true)
 	source.set_output_item(SliceReactor.INPUT_ITEM_ID)
@@ -359,8 +367,10 @@ func _check_machine_logistics_chain() -> void:
 		input_source_belt,
 		input_middle_belt,
 		input_sink_belt,
+		input_terminal_belt,
 		reactor,
 		output_belt,
+		output_middle_belt,
 		output_sink_belt,
 		target,
 	]
@@ -381,7 +391,7 @@ func _check_machine_logistics_chain() -> void:
 			catalyst_sprite_seen = true
 
 	_expect_equal(
-		input_sink_belt.topology_kind(),
+		input_terminal_belt.topology_kind(),
 		SliceConveyor.TOPOLOGY_SINK_ENDPOINT,
 		"reactor input belt selects sink endpoint"
 	)
@@ -391,54 +401,28 @@ func _check_machine_logistics_chain() -> void:
 		"reactor output belt selects source endpoint"
 	)
 	_expect_equal(
-		(input_sink_belt.get_node("Sprite") as Sprite2D).z_index,
-		1,
-		"reactor input terminal belt covers the device-owned short dock"
+		(input_terminal_belt.get_node("Sprite") as Sprite2D).z_index,
+		0,
+		"reactor input terminal stays on the ground plane"
 	)
 	_expect_equal(
 		(output_belt.get_node("Sprite") as Sprite2D).z_index,
-		1,
-		"reactor output terminal belt covers the device-owned short dock"
+		0,
+		"reactor output terminal stays on the ground plane"
 	)
-	var input_overlay := (
-		(reactor.get_node("Sprite") as Sprite2D).get_node(
+	_expect_equal(
+		(reactor.get_node("Sprite") as Sprite2D).get_node_or_null(
 			"InputDockingOverlay"
-		) as Sprite2D
+		),
+		null,
+		"reactor input no longer owns a docking overlay"
 	)
-	var output_overlay := (
-		(reactor.get_node("Sprite") as Sprite2D).get_node(
+	_expect_equal(
+		(reactor.get_node("Sprite") as Sprite2D).get_node_or_null(
 			"OutputDockingOverlay"
-		) as Sprite2D
-	)
-	_expect_equal(
-		input_overlay.visible,
-		true,
-		"connected input restores its tight overlay"
-	)
-	_expect_equal(
-		output_overlay.visible,
-		true,
-		"connected output restores its tight overlay"
-	)
-	_expect_equal(
-		input_overlay.texture.get_size(),
-		Vector2(12, 24),
-		"input docking overlay keeps the approved narrow pixel bounds"
-	)
-	_expect_equal(
-		output_overlay.texture.get_size(),
-		Vector2(12, 24),
-		"output docking overlay keeps the approved narrow pixel bounds"
-	)
-	_expect_equal(
-		input_overlay.z_index,
-		2,
-		"input overlay sits above the terminal belt"
-	)
-	_expect_equal(
-		output_overlay.z_index,
-		2,
-		"output overlay sits above the terminal belt"
+		),
+		null,
+		"reactor output no longer owns a docking overlay"
 	)
 	_expect_equal(
 		target.inventory.count(SliceReactor.OUTPUT_ITEM_ID),
@@ -473,10 +457,10 @@ func _check_machine_logistics_backpressure() -> void:
 		"building-000020", Vector2i(10, 10), 0
 	)
 	var input_belt := _make_conveyor(
-		"building-000021", Vector2i(8, 12), 1
+		"building-000021", Vector2i(9, 12), 1
 	)
 	var output_belt := _make_conveyor(
-		"building-000022", Vector2i(14, 12), 1
+		"building-000022", Vector2i(13, 12), 1
 	)
 	var instances: Array[SliceBuildingInstance] = [
 		reactor, input_belt, output_belt,
@@ -515,9 +499,9 @@ func _check_machine_logistics_backpressure() -> void:
 	input_belt.set_cargo(SliceReactor.INPUT_ITEM_ID, 1.0)
 	grid.rebuild(instances)
 	_expect_equal(
-		_docking_overlay_visible(reactor, "InputDockingOverlay"),
-		false,
-		"wrong-way input clears its connected overlay in the rebuild frame"
+		String(grid.building_status_snapshot(reactor)[0]["state"]),
+		"wrong_direction",
+		"wrong-way input is diagnosed in the rebuild frame"
 	)
 	grid.tick(0.1)
 	_expect_equal(
@@ -546,9 +530,9 @@ func _check_machine_logistics_backpressure() -> void:
 	output_belt.building_rotation = 3
 	grid.rebuild(instances)
 	_expect_equal(
-		_docking_overlay_visible(reactor, "OutputDockingOverlay"),
-		false,
-		"wrong-way output clears its connected overlay in the rebuild frame"
+		String(grid.building_status_snapshot(reactor)[1]["state"]),
+		"wrong_direction",
+		"wrong-way output is diagnosed in the rebuild frame"
 	)
 	grid.tick(0.1)
 	_expect_equal(
@@ -559,9 +543,9 @@ func _check_machine_logistics_backpressure() -> void:
 	output_belt.building_rotation = 1
 	grid.rebuild(instances)
 	_expect_equal(
-		_docking_overlay_visible(reactor, "OutputDockingOverlay"),
-		true,
-		"restored output direction restores its connected overlay"
+		String(grid.building_status_snapshot(reactor)[1]["state"]),
+		"connected",
+		"restored output direction restores its connected state"
 	)
 	grid.tick(0.1)
 	_expect_equal(
@@ -695,17 +679,6 @@ func _make_reactor_at(
 		SliceBuildingCatalog.REACTOR_ID
 	), 32.0)
 	return reactor
-
-
-func _docking_overlay_visible(
-	reactor: SliceReactor,
-	node_name: String
-) -> bool:
-	var sprite := reactor.get_node_or_null("Sprite") as Sprite2D
-	if sprite == null:
-		return false
-	var overlay := sprite.get_node_or_null(node_name) as Sprite2D
-	return overlay != null and overlay.visible
 
 
 func _make_storage(

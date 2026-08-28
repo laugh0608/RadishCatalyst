@@ -1,19 +1,9 @@
 class_name SliceWorld
 extends Node2D
 
-## Slice world root: one seamless map (base zone west, crystal expedition zone
-## east) plus the player. Owns the runtime loop state and an isolated
-## SliceSaveService that auto-persists on every change and on quit.
-##
-## L3 packages 1-4 provide six data-driven building definitions, ordinary
-## inventory kits, separate floor / blocking occupancy, one placement
-## controller, shared runtime instances, lossless adjustment / demolition,
-## derived power propagation and stable topology persistence. L4 adds
-## storage-to-storage conveyor cargo and fixed topology frames. L5 adds
-## per-instance reactor buffers and retained processing. Field combat package 3
-## adds schema-7 player health, encounter persistence and core sample delivery.
-## `startup_load` (set by Boot before the node enters the tree) decides whether
-## _ready restores the saved slice or starts a fresh one.
+## Authoritative runtime for the seamless base / expedition map. Narrow
+## collaborators own placement queries, logistics, presentation and save timing;
+## startup_load selects deterministic restoration before the first save.
 
 const MAP_SCENE := "res://scenes/slice/SliceMap.tscn"
 const PLAYER_SCENE := "res://scenes/slice/SlicePlayer.tscn"
@@ -24,6 +14,7 @@ const CORE_CHARGE_PANEL_SCENE := "res://scenes/slice/SliceCoreChargePanel.tscn"
 const BUILDING_ACTION_PANEL_SCENE := "res://scenes/slice/SliceBuildingActionPanel.tscn"
 const PAUSE_MENU_SCENE := "res://scenes/slice/SlicePauseMenu.tscn"
 const COMBAT_CONTROLLER_SCENE := "res://scenes/slice/SliceCombatController.tscn"
+const DEMO_COMPLETION_CARD_SCENE := "res://scenes/slice/SliceDemoCompletionCard.tscn"
 const REPAIRED_CORE_TEXTURE := preload("res://assets/sprites/slice/outpost_core_repaired.png")
 const MAP_PIXEL_SIZE := Vector2i(2560, 768)
 const START_SPAWN := Vector2(400, 576)
@@ -68,9 +59,7 @@ var startup_load := false
 
 ## Player backpack (spatial crystal/catalyst store, capacity-limited).
 var pocket := Inventory.new(SliceInventoryProfiles.category_pocket())
-var core_storage := Inventory.new(
-	SliceInventoryProfiles.category_core_storage()
-)
+var core_storage := Inventory.new(SliceInventoryProfiles.category_core_storage())
 var core_repaired := false
 var core_energy := 0
 var harvested_clusters: Array[String] = []
@@ -93,13 +82,12 @@ var _industrial_floor: TileMapLayer
 var _placement: SliceBuildingPlacementController
 var _placement_pointer := SlicePlacementPointerInput.new()
 var _placement_validator := SlicePlacementValidator.new()
-var _support_floor_transaction := (
-	SlicePlacementSupportFloorTransaction.new()
-)
+var _support_floor_transaction := SlicePlacementSupportFloorTransaction.new()
 var _occupancy := SliceBuildingOccupancy.new()
 var _power_grid := SlicePowerGrid.new()
 var _logistics_grid := SliceLogisticsGrid.new()
 var _core_logistics := SliceCoreLogistics.new()
+var _logistics_transitions: SliceLogisticsTransitionLayer
 var _power_links: SlicePowerLinkLayer
 var _building_instances: Array[SliceBuildingInstance] = []
 var _collector_nodes: Array[SliceCollector] = []
@@ -109,17 +97,16 @@ var _adjustment_instance: SliceBuildingInstance
 var _adjustment_original_cell := Vector2i.ZERO
 var _adjustment_original_rotation := 0
 var _next_building_serial := 1
-var _logistics_save_elapsed := 0.0
-var _production_save_elapsed := 0.0
-var _pending_load_context: Dictionary = {}
-var _restore_failed := false
+var _save_scheduler := SliceSaveScheduler.new()
 
 
 func _ready() -> void:
+	_save_scheduler.setup(save_service)
 	_map = (load(MAP_SCENE) as PackedScene).instantiate()
 	add_child(_map)
 	_ground = _map.get_node("GroundLayer")
 	_industrial_floor = _map.get_node("IndustrialFloorLayer")
+	_logistics_transitions = _map.get_node("GroundStructures/LogisticsTransitions")
 	var world_node := _map.get_node("World")
 	_power_links = SlicePowerLinkLayer.new()
 	_power_links.name = "PowerLinks"
@@ -135,7 +122,9 @@ func _ready() -> void:
 	)
 	world_node.add_child(combat_controller)
 	combat_controller.setup(self, player)
-	combat_controller.persistence_requested.connect(_autosave)
+	combat_controller.persistence_requested.connect(
+		_on_combat_persistence_requested
+	)
 	first_journey = SliceFirstJourneyController.new()
 	first_journey.name = "FirstJourney"
 	add_child(first_journey)
@@ -150,6 +139,9 @@ func _ready() -> void:
 	var hud := (load(HUD_SCENE) as PackedScene).instantiate() as SliceHud
 	add_child(hud)
 	hud.setup(self, player)
+	var demo_card := (load(DEMO_COMPLETION_CARD_SCENE) as PackedScene).instantiate() as SliceDemoCompletionCard
+	add_child(demo_card)
+	demo_card.setup(self)
 
 	_craft_panel = (load(CRAFT_PANEL_SCENE) as PackedScene).instantiate() as SliceCraftPanel
 	add_child(_craft_panel)
@@ -174,6 +166,9 @@ func _ready() -> void:
 	)
 	add_child(_building_action_panel)
 	_building_action_panel.setup(self)
+	var power_link_presenter := SlicePowerLinkPresenter.new()
+	add_child(power_link_presenter)
+	power_link_presenter.setup(self, _power_links, _building_action_panel)
 
 	pause_menu = (
 		(load(PAUSE_MENU_SCENE) as PackedScene).instantiate()
@@ -213,14 +208,16 @@ func _ready() -> void:
 	_refresh_core_charge_visual()
 	_rebuild_power_grid()
 	_rebuild_logistics_grid()
-	_restore_failed = startup_load and not restore_succeeded
+	_save_scheduler.set_write_blocked(
+		startup_load and not restore_succeeded
+	)
 	if (
 		startup_load
 		and restore_succeeded
-		and not _pending_load_context.is_empty()
-		and not _autosave()
+		and not _save_scheduler.pending_load_context().is_empty()
+		and not save_now()
 	):
-		push_warning("旧档已完成世界重建，但 schema 9 发布失败；后续保存将继续重试。")
+		push_warning("旧档已完成世界重建，但 schema 10 发布失败；后续保存将继续重试。")
 
 
 func _physics_process(delta: float) -> void:
@@ -264,18 +261,17 @@ func _tick_logistics(delta: float) -> void:
 	var result := _logistics_grid.tick(delta)
 	if not bool(result.get("changed", false)):
 		return
-	_logistics_save_elapsed += delta
 	for instance_id in result.get("storage_ids", []):
 		if String(instance_id) == SliceCoreLogistics.INSTANCE_ID:
 			core_storage_changed.emit()
 		else:
 			building_storage_changed.emit(String(instance_id))
-	if _logistics_save_elapsed >= 1.0:
-		_autosave()
+	request_save()
 
 
 func _process(delta: float) -> void:
 	_tick_production(delta)
+	_tick_save_scheduler(delta)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -337,8 +333,9 @@ func _pointer_over_blocking_ui() -> bool:
 	)
 
 
-## Powered collectors and reactors retain their own tick progress. Production
-## transitions save immediately; in-flight progress is checkpointed each second.
+## Powered collectors and reactors retain their own tick progress. All mutable
+## production state enters the shared save scheduler instead of owning a second
+## checkpoint timer here.
 func _tick_production(delta: float) -> void:
 	var produced := false
 	for collector in _collector_nodes:
@@ -380,15 +377,14 @@ func _tick_production(delta: float) -> void:
 			building_storage_changed.emit(storage.instance_id)
 			core_storage_changed.emit()
 
-	if reactor_changed or storage_changed:
-		_production_save_elapsed += delta
 	if (
 		produced
+		or reactor_changed
 		or reactor_transition
+		or storage_changed
 		or storage_transferred
-		or _production_save_elapsed >= 1.0
 	):
-		_autosave()
+		request_save()
 
 
 ## Harvest a crystal cluster into the backpack. Returns false (leaving the
@@ -400,21 +396,21 @@ func harvest_crystals(cluster_name: String, amount: int) -> bool:
 		harvested_clusters.append(cluster_name)
 	pocket.add(ITEM_CRYSTAL, amount)
 	inventory_changed.emit()
-	_autosave()
+	request_save()
 	return true
 
 
 ## Move a collector's output buffer into the backpack, bounded by free space.
-func collect_from_collector(collector: SliceCollector) -> void:
+func collect_from_collector(collector: SliceCollector) -> int:
 	if collector.buffer <= 0:
-		return
+		return 0
 	var moved := pocket.add(ITEM_CRYSTAL, collector.buffer)
 	if moved <= 0:
-		return
+		return 0
 	collector.buffer -= moved
 	inventory_changed.emit()
-	_autosave()
-
+	request_save()
+	return moved
 
 ## Spend a specific item from the backpack (e.g. mechanical parts for repair).
 func spend_pocket_item(item: String, amount: int) -> bool:
@@ -422,7 +418,7 @@ func spend_pocket_item(item: String, amount: int) -> bool:
 		return false
 	pocket.remove(item, amount)
 	inventory_changed.emit()
-	_autosave()
+	request_save()
 	return true
 
 
@@ -435,7 +431,7 @@ func mark_core_repaired() -> void:
 	_rebuild_power_grid()
 	_rebuild_logistics_grid()
 	core_repair_completed.emit()
-	_autosave()
+	save_now()
 
 
 func is_core_power_online() -> bool:
@@ -562,7 +558,7 @@ func transfer_pocket_to_core(item: String, requested_amount: int = -1) -> int:
 		return 0
 	inventory_changed.emit()
 	core_storage_changed.emit()
-	_autosave()
+	request_save()
 	return moved
 
 
@@ -582,43 +578,41 @@ func transfer_core_to_pocket(item: String, requested_amount: int = -1) -> int:
 		return 0
 	inventory_changed.emit()
 	core_storage_changed.emit()
-	_autosave()
+	request_save()
 	return moved
 
 
 func transfer_pocket_to_storage(
-	storage: SliceStorage,
-	item: String
+	storage: SliceStorage, item: String, requested_amount: int = -1
 ) -> int:
 	if (
 		storage == null
 		or not _building_instances.has(storage)
 	):
 		return 0
-	var moved := storage.manual_deposit(pocket, item)
+	var moved := storage.manual_deposit(pocket, item, requested_amount)
 	if moved <= 0:
 		return 0
 	inventory_changed.emit()
 	building_storage_changed.emit(storage.instance_id)
-	_autosave()
+	request_save()
 	return moved
 
 
 func transfer_storage_to_pocket(
-	storage: SliceStorage,
-	item: String
+	storage: SliceStorage, item: String, requested_amount: int = -1
 ) -> int:
 	if (
 		storage == null
 		or not _building_instances.has(storage)
 	):
 		return 0
-	var moved := storage.manual_withdraw(pocket, item)
+	var moved := storage.manual_withdraw(pocket, item, requested_amount)
 	if moved <= 0:
 		return 0
 	inventory_changed.emit()
 	building_storage_changed.emit(storage.instance_id)
-	_autosave()
+	request_save()
 	return moved
 
 
@@ -629,7 +623,7 @@ func toggle_storage_mode(storage: SliceStorage) -> bool:
 		return false
 	_rebuild_logistics_grid()
 	building_storage_changed.emit(storage.instance_id)
-	_autosave()
+	request_save()
 	return true
 
 
@@ -639,7 +633,7 @@ func select_next_storage_output(storage: SliceStorage) -> bool:
 	if not storage.select_next_present_output():
 		return false
 	building_storage_changed.emit(storage.instance_id)
-	_autosave()
+	request_save()
 	return true
 
 
@@ -674,7 +668,7 @@ func recover_reactor_contents(reactor: SliceReactor) -> Dictionary:
 		return result
 	inventory_changed.emit()
 	building_storage_changed.emit(reactor.instance_id)
-	_autosave()
+	request_save()
 	return result
 
 
@@ -691,7 +685,7 @@ func recover_conveyor_cargo(conveyor: SliceConveyor) -> Dictionary:
 	conveyor.clear_cargo()
 	inventory_changed.emit()
 	building_storage_changed.emit(conveyor.instance_id)
-	_autosave()
+	request_save()
 	return {"success": true, "message": "已回收 1 件货物"}
 
 
@@ -707,7 +701,7 @@ func transfer_all_building_kits_to_core() -> int:
 	if moved_total > 0:
 		inventory_changed.emit()
 		core_storage_changed.emit()
-		_autosave()
+		request_save()
 	return moved_total
 
 
@@ -723,7 +717,7 @@ func transfer_all_building_kits_to_pocket() -> int:
 	if moved_total > 0:
 		inventory_changed.emit()
 		core_storage_changed.emit()
-		_autosave()
+		request_save()
 	return moved_total
 
 
@@ -794,7 +788,7 @@ func charge_core() -> bool:
 		inventory_changed.emit()
 	core_charge_changed.emit(core_energy)
 	_refresh_core_charge_visual()
-	_autosave()
+	save_now()
 	return true
 
 
@@ -826,8 +820,8 @@ func _refresh_core_charge_visual() -> void:
 		core_visual.set_core_modulate(Color.WHITE)
 
 
-## Craft a recipe into ordinary backpack items. Building recipes create one or
-## more kit items and immediately select their shared placement definition.
+## Craft a recipe into backpack property. Placement is a separate player action
+## through the manufacturing panel's existing-kit entry.
 func craft(recipe_id: String) -> bool:
 	var recipe := SliceRecipes.find(recipe_id)
 	if recipe.is_empty():
@@ -848,10 +842,8 @@ func craft(recipe_id: String) -> bool:
 	):
 		push_error("Craft inventory changed after authoritative validation.")
 		return false
-	if kind == "building":
-		begin_building_placement(String(recipe["building_id"]))
 	inventory_changed.emit()
-	_autosave()
+	save_now()
 	return true
 
 
@@ -929,7 +921,7 @@ func try_place_building() -> bool:
 		_placement_pointer.cancel()
 		placement_changed.emit()
 		inventory_changed.emit()
-		_autosave()
+		save_now()
 		return true
 	if pocket.count(definition.kit_item_id) <= 0:
 		_support_floor_transaction.rollback(support_floors)
@@ -952,7 +944,7 @@ func try_place_building() -> bool:
 	else:
 		placement_changed.emit()
 	inventory_changed.emit()
-	_autosave()
+	save_now()
 	return true
 
 
@@ -1086,7 +1078,7 @@ func demolish_building(instance: SliceBuildingInstance) -> bool:
 	_rebuild_logistics_grid()
 	inventory_changed.emit()
 	placement_changed.emit()
-	_autosave()
+	save_now()
 	return true
 
 
@@ -1167,6 +1159,9 @@ func _rebuild_logistics_grid(excluded_instance_id: String = "") -> void:
 		_building_instances,
 		excluded_instance_id,
 		_core_logistics.endpoints()
+	)
+	_logistics_transitions.set_transitions(
+		_logistics_grid.placement_preview_ports(), TILE_SIZE
 	)
 
 
@@ -1318,7 +1313,12 @@ func _spawn_building(
 		storage.restore_state(state)
 		_storage_nodes.append(storage)
 
-	_map.get_node("World").add_child(instance)
+	var layer_name := (
+		"GroundStructures"
+		if definition.spatial_layer == SliceBuildingDefinition.SPATIAL_LAYER_GROUND
+		else "World"
+	)
+	_map.get_node(layer_name).add_child(instance)
 	_building_instances.append(instance)
 	_occupancy.occupy(
 		instance.instance_id,
@@ -1347,7 +1347,7 @@ func _floor_atlas_coords(cell: Vector2i) -> Vector2i:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-		_autosave()
+		save_now()
 
 
 func _restore_from_save() -> bool:
@@ -1355,11 +1355,12 @@ func _restore_from_save() -> bool:
 	if not bool(result.get("success", false)):
 		push_warning("切片读档失败，按新档继续：%s" % String(result.get("message", "")))
 		return false
-	_pending_load_context = (
+	var pending_load_context := (
 		(result.get("load_context", {}) as Dictionary).duplicate(true)
 		if bool(result.get("publish_required", false))
 		else {}
 	)
+	_save_scheduler.set_pending_load_context(pending_load_context)
 
 	var data: Dictionary = result.get("data", {})
 	pocket = Inventory.from_dict(
@@ -1413,7 +1414,10 @@ func _restore_from_save() -> bool:
 		data.get("field_encounter", {
 			"state": "hostile" if is_core_charged() else "locked",
 			"enemy_health": SliceFieldEnemy.MAX_HEALTH,
-		})
+		}),
+		String(data.get(
+			"equipped_weapon_id", SliceCombatController.WEAPON_CUTTER
+		))
 	)
 	_refresh_core_charge_visual()
 
@@ -1426,7 +1430,7 @@ func _restore_from_save() -> bool:
 
 
 func _on_pause_save_and_return_requested() -> void:
-	if not _autosave():
+	if not save_now():
 		pause_menu.show_save_error(
 			"保存失败，仍停留在当前世界；请检查存档目录后重试。"
 		)
@@ -1436,7 +1440,7 @@ func _on_pause_save_and_return_requested() -> void:
 
 
 func _on_pause_save_and_quit_requested() -> void:
-	if not _autosave():
+	if not save_now():
 		pause_menu.show_save_error(
 			"保存失败，未退出游戏；请检查存档目录后重试。"
 		)
@@ -1445,55 +1449,41 @@ func _on_pause_save_and_quit_requested() -> void:
 	get_tree().quit()
 
 
-func _autosave() -> bool:
-	if _restore_failed:
-		push_warning("切片自动存档已阻止：载入世界未完整重建。")
-		return false
-	var state := _durable_state()
-	var result := (
-		save_service.commit_loaded_state(state, _pending_load_context)
-		if not _pending_load_context.is_empty()
-		else save_service.save_state(state)
-	)
+func request_save() -> bool:
+	var accepted := _save_scheduler.request_save()
+	if not accepted:
+		push_warning("切片保存请求已阻止：载入世界未完整重建。")
+	return accepted
+
+
+func save_now() -> bool:
+	var result := _save_scheduler.flush(Callable(self, "_durable_state"))
 	if bool(result.get("success", false)):
-		_pending_load_context = {}
-		if first_journey != null:
-			first_journey.mark_saved()
+		return true
+	push_warning("切片保存失败：%s" % String(result.get("message", "")))
+	return false
+
+
+func _tick_save_scheduler(delta: float) -> void:
+	var result := _save_scheduler.advance(
+		delta, Callable(self, "_durable_state")
+	)
+	if (
+		bool(result.get("attempted", false))
+		and not bool(result.get("success", false))
+	):
+		push_warning(
+			"切片延迟保存失败，将保留待保存状态：%s"
+			% String(result.get("message", ""))
+		)
+
+
+func _on_combat_persistence_requested(immediate: bool) -> void:
+	if immediate:
+		save_now()
 	else:
-		push_warning("切片自动存档失败：%s" % String(result.get("message", "")))
-		return false
-	_logistics_save_elapsed = 0.0
-	_production_save_elapsed = 0.0
-	return true
+		request_save()
 
 
 func _durable_state() -> Dictionary:
-	var player_position := player.position if player != null else START_SPAWN
-	var combat_state := (
-		combat_controller.durable_state()
-		if combat_controller != null
-		else {
-			"player_health": 100,
-			"field_encounter": {
-				"state": "hostile" if is_core_charged() else "locked",
-				"enemy_health": SliceFieldEnemy.MAX_HEALTH,
-			},
-		}
-	)
-	var state := {
-		"pocket": pocket.to_dict(),
-		"core_storage": core_storage.to_dict(),
-		"core_repaired": core_repaired,
-		"core_energy": core_energy,
-		"harvested_clusters": harvested_clusters,
-		"buildings": SliceBuildingSaveCodec.serialize_instances(
-			_building_instances
-		),
-		"next_building_serial": _next_building_serial,
-		"player_x": player_position.x,
-		"player_y": player_position.y,
-		"player_health": combat_state["player_health"],
-		"field_encounter": combat_state["field_encounter"],
-	}
-	state.merge(first_journey.durable_data() if first_journey != null else SliceFirstJourneyController.default_durable_data(), true)
-	return state
+	return SliceWorldSaveStateBuilder.build(self)

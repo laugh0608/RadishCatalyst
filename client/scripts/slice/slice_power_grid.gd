@@ -5,8 +5,8 @@ extends RefCounted
 ## positions are retained; saves contain building topology, never graph edges or
 ## powered booleans.
 
-const RELAY_LINK_RANGE_CELLS := 6.0
-const DEVICE_SUPPLY_RANGE_CELLS := 4.0
+const RELAY_LINK_RANGE_CELLS := 8.0
+const DEVICE_SUPPLY_RANGE_CELLS := 6.0
 const CORE_NODE_ID := "__core__"
 
 var _tile_size := 32.0
