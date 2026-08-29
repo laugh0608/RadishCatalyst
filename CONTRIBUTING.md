@@ -24,8 +24,8 @@
 
 ## 工作流
 
-1. 从最新 `dev` 创建范围明确的主题分支，并把 Pull Request 目标设为 `dev`。
-2. 分支可使用 `feature/*`、`fix/*`、`docs/*`、`chore/*` 或 `hotfix/*`；`hotfix/*` 只用于必须直接修复稳定主线的问题。
+1. 项目所有者或已授权维护者串行推进普通任务时，直接在最新 `dev` 开发和提交；外部贡献、并行写入、确有隔离价值的高风险改动或明确需要评审时，才从主题分支向 `dev` 发起 Pull Request。
+2. 需要主题分支时，可使用 `feature/*`、`fix/*`、`docs/*`、`chore/*` 或 `hotfix/*`；Agent 不因默认流程自动创建 `codex/*` 分支或额外 worktree，`hotfix/*` 只用于必须直接修复稳定主线的问题。
 3. `master` / `main` 只接收阶段性 `dev` 晋级或明确的 hotfix，不接受普通功能分支。
 4. 提交遵循 Conventional Commits，例如 `feat(factory): add conveyor placement preview` 或 `docs(governance): add security policy`。
 5. 不在提交信息中添加 AI 协作者署名；提交作者应是对变更负责的真实贡献者。

@@ -81,7 +81,10 @@
 
 ## Git 约束
 
-- `dev` 是日常开发与文档集成分支，`master` / `main` 是稳定主线；分支保护、PR 合并和回流规则以 ADR 为准。
+- `dev` 是日常开发与文档集成分支；串行推进的普通任务直接在 `dev` 开发和提交，不要求主题分支、Pull Request 或额外 worktree。
+- 只有项目所有者明确要求、外部贡献、并行写入、确有隔离价值的高风险改动或 hotfix 才创建主题分支；Agent 不自动创建 `codex/*` 等临时分支。
+- `dev` 当前不启用 branch protection，普通 push 不自动触发 CI；直接开发按改动范围完成本地验证，需要评审或隔离时再通过 Pull Request 合入 `dev`。
+- `master` / `main` 是稳定主线；分支保护、PR 合并和回流规则以 ADR 为准。
 - 提交信息使用 Conventional Commits；大修改建议补充 `3-6` 条简短说明，不添加 AI 协作者署名。
 - 默认使用当前用户 Git 身份；提交前确认匹配的最小验证已执行。
 - 禁止通过 reset、rebase 或 force push 重写共享 `dev` 历史；不在未授权情况下推送、发布或创建 Release。
