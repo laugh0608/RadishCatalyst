@@ -1,6 +1,6 @@
 # Slice Runtime Systems
 
-更新时间：2026-08-26
+更新时间：2026-08-30
 
 ## 文档目的
 
@@ -18,6 +18,8 @@
 - `client/scripts/slice/slice_power_grid.gd`
 - `client/scripts/slice/slice_logistics_grid.gd`
 - `client/scripts/slice/slice_reactor.gd`
+- `client/scripts/slice/slice_device_feedback_state.gd`
+- `client/scripts/slice/slice_feedback_audio.gd`
 - `client/scripts/slice/slice_player.gd`
 - `client/scripts/slice/slice_combat_controller.gd`
 - `client/scripts/slice/slice_pulse_projectile.gd`
@@ -89,6 +91,13 @@ Boot
 `SliceMap/GroundStructures` 是非 Y 排序地表结构层，当前承载可通行传送带；实体设备继续进入 Y 排序 `World`，其阻挡只由旋转后足印派生。`SliceLogisticsTransitionLayer` 只为已由物流拓扑确认的跨地表端口绘制会话态过渡格，不拥有连接规则或存档状态。
 
 固定正面设施和工业地板的 `rotation` 只能为 `0`；传送带仍以 `0–3` 表达规则方向。方向选择固定帧，不直接旋转像素图。
+
+### 世界状态反馈
+
+- `SliceDeviceFeedbackState` 是无状态解析器，只从核心修复 / 充能 / 遭遇交付与反应器供电 / 加工 / 输出事实得到稳定表现态和边沿事件；首次观察只建立基线，读档恢复不产生里程碑事件。
+- `SliceCoreVisual` 与 `SliceReactor` 各自在本类节点内拥有分段构件、状态形状、动画节奏、过渡脉冲和局部 `AudioStreamPlayer2D`；它们只呈现解析结果，不写回玩法状态。
+- `SliceFeedbackAudio` 以源码可追溯的确定性 PCM 构造短电子 `AudioStreamWAV`，所有播放器统一走 `SFX`。音效只服务离散状态边沿，不提供常驻机器噪声，也不进入世界存档。
+- 核心与反应器八态均为现有权威状态的派生视图；扩展其他设备时应在设备自身职责内复用这一合同，不向 `SliceWorld` 增加按设备类型扩散的表现或音频分支。
 
 ### 放置与操作
 
@@ -163,7 +172,7 @@ Boot
 | 弹体和攻击阶段 | 否 | 纯运行时战斗过程；步枪与电池本身仍是库存财产 |
 | 容器筛选、选择和拖拽过程 | 否 | 纯 UI 会话态；物品归属只由权威转移 API 改变 |
 | 窗口模式、主音量、音效音量 | 独立配置 | 保存到 `user://settings.cfg`，不属于世界 schema 10 |
-| 阴影、y-sort、状态灯和 ghost | 否 | 纯表现 |
+| 阴影、y-sort、状态灯、设备反馈态 / 边沿和 ghost | 否 | 从权威状态派生的纯表现；首次观察与读档恢复不伪造边沿 |
 
 当前 schema 10 延续 schema 9 的分类库存、储物箱权威状态、固定正面建筑、`first_journey_flags` 与 `explored_map_bits`，只新增 `equipped_weapon_id`。遭遇仍只取 `locked / hostile / dropped / carried / delivered`；最大生命、敌人存在和样本存在均由该状态派生。旧顶层 `catalyst_count`、`reactor_active`、弹体和攻击阶段都不写入。
 
@@ -239,4 +248,4 @@ schema `4` 把旧采集器列表迁移为统一建筑拓扑；schema `5` 增加�
 
 战斗、样本、分类库存、首程探索与装备选择权威状态已进入选中世界的 schema 10，并沿用候选校验 / 备份链；`metadata.json` 只保存列表摘要，不得成为玩法真相源。后续不得把它拆成跨世界共享角色档，或重新把旧全局催化剂计数作为权威状态。
 
-2026-08-26 `SliceWorld` 为 1489 行；保存调度、快照构造、制造计划、角色装备页、成对容器视图、电力上下文和应用设置均已进入窄职责组件。编排器仍贴近 1500 行硬上限，后续包不得把库存交互、HUD 偏移、设备表现或音频边沿分支堆回该文件。
+2026-08-30 `SliceWorld` 为 1485 行；保存调度、快照构造、制造计划、角色装备页、成对容器视图、电力上下文、应用设置和设备反馈状态 / 音频均已进入窄职责组件。编排器仍贴近 1500 行硬上限，后续包不得把库存交互、HUD 偏移、设备表现或音频边沿分支堆回该文件。

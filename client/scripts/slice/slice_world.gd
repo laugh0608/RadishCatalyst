@@ -809,15 +809,12 @@ func _refresh_core_charge_visual() -> void:
 	var core_visual := _core_visual()
 	if core_visual == null:
 		return
-	if (
+	core_visual.apply_feedback_state(SliceDeviceFeedbackState.core_state(
+		core_repaired,
+		is_core_charged(),
 		combat_controller != null
 		and combat_controller.encounter_state == "delivered"
-	):
-		core_visual.set_core_modulate(Color(0.94, 1.0, 0.70, 1.0))
-	elif is_core_charged():
-		core_visual.set_core_modulate(Color(0.76, 1.0, 0.94, 1.0))
-	else:
-		core_visual.set_core_modulate(Color.WHITE)
+	))
 
 
 ## Craft a recipe into backpack property. Placement is a separate player action
@@ -1402,7 +1399,6 @@ func _restore_from_save() -> bool:
 		SliceCoreLogistics.apply_repaired_visual(
 			_core_visual(), REPAIRED_CORE_TEXTURE
 		)
-	_refresh_core_charge_visual()
 
 	player.position = Vector2(
 		float(data.get("player_x", START_SPAWN.x)),

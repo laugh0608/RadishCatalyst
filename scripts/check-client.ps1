@@ -508,6 +508,14 @@ if ($runGodotChecks) {
             }
         },
         @{
+            Name = "slice playtest remediation package 4B"
+            Script = "check-client-slice-playtest-remediation-package4b.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
             Name = "slice save schema"
             Script = "check-client-slice-save-schema.ps1"
             Parameters = @{
