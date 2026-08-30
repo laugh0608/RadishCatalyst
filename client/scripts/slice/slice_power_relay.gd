@@ -1,31 +1,23 @@
-class_name SliceCollector
+class_name SlicePowerRelay
 extends SliceBuildingInstance
 
-## Placed crystal collector: produces into one authoritative output buffer.
-## Manual withdrawal and the fixed right logistics endpoint consume the same
-## count, so belt backpressure cannot duplicate or discard production.
+## Power relay presentation owns only the derived online/offline readout. The
+## power graph remains authoritative for connectivity and never reads visuals.
 
-const BUFFER_CAP := 50
-const OUTPUT_ITEM_ID := "crystal"
-const BLOCKED_WARNING_COOLDOWN := 1.25
 const COLOR_DARK := Color(0.055, 0.08, 0.08, 0.76)
 const COLOR_CYAN := Color(0.337, 0.784, 0.769, 1.0)
-const COLOR_AMBER := Color(0.878, 0.643, 0.235, 1.0)
 const COLOR_WARNING := Color(0.78, 0.314, 0.247, 1.0)
 const FEEDBACK_SEGMENT_POSITIONS := [
-	Vector2(-14, -102),
-	Vector2(0, -106),
-	Vector2(14, -102),
+	Vector2(-12, -56),
+	Vector2(0, -69),
+	Vector2(12, -56),
 ]
 
 signal feedback_event_played(event_id: StringName)
 
-var buffer := 0
-var production_progress := 0.0
 var _feedback_state := &""
 var _feedback_time := 0.0
 var _pulse_remaining := 0.0
-var _blocked_warning_cooldown := 0.0
 var _audio_play_count := 0
 
 
@@ -36,9 +28,6 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_feedback_time += delta
 	_pulse_remaining = maxf(0.0, _pulse_remaining - delta)
-	_blocked_warning_cooldown = maxf(
-		0.0, _blocked_warning_cooldown - delta
-	)
 	refresh_feedback()
 
 
@@ -46,60 +35,16 @@ func _exit_tree() -> void:
 	_stop_feedback_audio()
 
 
-func logistics_endpoints() -> Array[SliceLogisticsEndpoint]:
-	var result: Array[SliceLogisticsEndpoint] = []
-	if definition == null:
-		return result
-	var port := definition.logistics_port_definition("output")
-	if port == null:
-		return result
-	result.append(SliceLogisticsEndpoint.new(
-		self,
-		port,
-		Callable(),
-		Callable(self, "_peek_logistics_output"),
-		Callable(self, "_take_logistics_output")
-	))
-	return result
-
-
-func has_space() -> bool:
-	return buffer < BUFFER_CAP
-
-
-func produce(n: int) -> void:
-	buffer = mini(buffer + n, BUFFER_CAP)
-
-
-func state_dict(allowed_keys: Array[String]) -> Dictionary:
-	var result := {}
-	if allowed_keys.has("buffer"):
-		result["buffer"] = buffer
-	if allowed_keys.has("production_progress"):
-		result["production_progress"] = production_progress
-	return result
-
-
-func content_block_reason() -> String:
-	return "" if buffer <= 0 else "先取空采集器"
-
-
 func refresh_feedback() -> void:
 	_ensure_feedback_nodes()
-	var next_state := SliceDeviceFeedbackState.collector_state(
-		powered, buffer, BUFFER_CAP
-	)
+	var next_state := SliceDeviceFeedbackState.relay_state(powered)
 	var event_id := SliceDeviceFeedbackState.common_device_edge_event(
 		_feedback_state, next_state
 	)
 	if _feedback_state != next_state:
 		_feedback_state = next_state
 		_feedback_time = 0.0
-		if (
-			event_id != SliceDeviceFeedbackState.EVENT_DEVICE_BLOCKED
-			or _blocked_warning_cooldown <= 0.0
-		):
-			_play_feedback(event_id)
+		_play_feedback(event_id)
 	_refresh_feedback_frame()
 
 
@@ -108,27 +53,11 @@ func feedback_state() -> StringName:
 
 
 func feedback_active_segment_count() -> int:
-	match _feedback_state:
-		SliceDeviceFeedbackState.COLLECTOR_COLLECTING:
-			return 3
-		SliceDeviceFeedbackState.COLLECTOR_FULL:
-			return 3
-	return 0
+	return 3 if _feedback_state == SliceDeviceFeedbackState.RELAY_ONLINE else 0
 
 
 func feedback_audio_play_count() -> int:
 	return _audio_play_count
-
-
-func _peek_logistics_output() -> String:
-	return OUTPUT_ITEM_ID if buffer > 0 else ""
-
-
-func _take_logistics_output(item_id: String) -> int:
-	if item_id != OUTPUT_ITEM_ID or buffer <= 0:
-		return 0
-	buffer -= 1
-	return 1
 
 
 func _refresh_feedback_frame() -> void:
@@ -137,34 +66,32 @@ func _refresh_feedback_frame() -> void:
 		return
 	for segment in segments:
 		segment.color = COLOR_DARK
+	var online_ring := get_node_or_null(
+		"FeedbackVisual/OnlineRing"
+	) as Line2D
 	var disconnect_mark := get_node_or_null(
 		"FeedbackVisual/DisconnectMark"
 	) as Polygon2D
-	var full_mark := get_node_or_null(
-		"FeedbackVisual/FullMark"
-	) as Polygon2D
+	if online_ring != null:
+		online_ring.visible = false
 	if disconnect_mark != null:
 		disconnect_mark.visible = false
-	if full_mark != null:
-		full_mark.visible = false
 	match _feedback_state:
-		SliceDeviceFeedbackState.COLLECTOR_UNPOWERED:
+		SliceDeviceFeedbackState.RELAY_UNPOWERED:
 			if disconnect_mark != null:
 				disconnect_mark.visible = true
-				disconnect_mark.color = COLOR_WARNING * 0.58
-		SliceDeviceFeedbackState.COLLECTOR_COLLECTING:
-			var active_index := int(floor(_feedback_time * 4.2)) % 3
+				disconnect_mark.color = COLOR_WARNING * 0.64
+		SliceDeviceFeedbackState.RELAY_ONLINE:
+			var active_index := int(floor(_feedback_time * 3.6)) % 3
 			for index in range(segments.size()):
 				segments[index].color = COLOR_CYAN * (
-					1.0 if index == active_index else 0.38
+					1.0 if index == active_index else 0.42
 				)
-		SliceDeviceFeedbackState.COLLECTOR_FULL:
-			var warning_on := fmod(_feedback_time, 0.72) < 0.36
-			for segment in segments:
-				segment.color = COLOR_AMBER * (1.0 if warning_on else 0.48)
-			if full_mark != null:
-				full_mark.visible = true
-				full_mark.color = COLOR_WARNING
+			if online_ring != null:
+				online_ring.visible = true
+				online_ring.default_color = COLOR_CYAN * (
+					0.74 + 0.18 * sin(_feedback_time * 3.2)
+				)
 	_refresh_transition_pulse()
 
 
@@ -177,7 +104,7 @@ func _refresh_transition_pulse() -> void:
 	pulse.visible = _pulse_remaining > 0.0
 	if not pulse.visible:
 		return
-	var progress := 1.0 - _pulse_remaining / 0.32
+	var progress := 1.0 - _pulse_remaining / 0.30
 	pulse.scale = Vector2.ONE * lerpf(0.84, 1.08, progress)
 	pulse.modulate = Color(1.0, 1.0, 1.0, 1.0 - progress)
 
@@ -192,10 +119,8 @@ func _play_feedback(event_id: StringName) -> void:
 	player.stream = stream
 	player.play()
 	_audio_play_count += 1
-	_pulse_remaining = 0.32
+	_pulse_remaining = 0.30
 	_refresh_transition_pulse()
-	if event_id == SliceDeviceFeedbackState.EVENT_DEVICE_BLOCKED:
-		_blocked_warning_cooldown = BLOCKED_WARNING_COOLDOWN
 	feedback_event_played.emit(event_id)
 
 
@@ -218,30 +143,32 @@ func _ensure_feedback_nodes() -> void:
 		var segment := Polygon2D.new()
 		segment.name = "Segment%d" % (index + 1)
 		segment.polygon = PackedVector2Array([
-			Vector2(-4, -2), Vector2(4, -2),
-			Vector2(4, 2), Vector2(-4, 2),
+			Vector2(0, -3), Vector2(3, 0),
+			Vector2(0, 3), Vector2(-3, 0),
 		])
 		segment.position = FEEDBACK_SEGMENT_POSITIONS[index]
 		segment.color = COLOR_DARK
 		visual.add_child(segment)
+	var online_ring := Line2D.new()
+	online_ring.name = "OnlineRing"
+	online_ring.width = 2.0
+	online_ring.default_color = COLOR_CYAN
+	online_ring.closed = true
+	online_ring.antialiased = false
+	online_ring.points = PackedVector2Array([
+		Vector2(0, -66), Vector2(10, -61), Vector2(10, -51),
+		Vector2(0, -46), Vector2(-10, -51), Vector2(-10, -61),
+	])
+	visual.add_child(online_ring)
 	var disconnect_mark := Polygon2D.new()
 	disconnect_mark.name = "DisconnectMark"
-	disconnect_mark.position = Vector2(-29, -82)
+	disconnect_mark.position = Vector2(0, -56)
 	disconnect_mark.polygon = PackedVector2Array([
-		Vector2(-2, -7), Vector2(4, -7), Vector2(0, -1),
-		Vector2(5, -1), Vector2(-4, 8), Vector2(-1, 2),
+		Vector2(-2, -8), Vector2(4, -8), Vector2(0, -1),
+		Vector2(5, -1), Vector2(-4, 9), Vector2(-1, 2),
 		Vector2(-6, 2),
 	])
 	visual.add_child(disconnect_mark)
-	var full_mark := Polygon2D.new()
-	full_mark.name = "FullMark"
-	full_mark.position = Vector2(30, -82)
-	full_mark.polygon = PackedVector2Array([
-		Vector2(-7, -7), Vector2(7, -7), Vector2(7, -3),
-		Vector2(-7, -3), Vector2(-7, 2), Vector2(7, 2),
-		Vector2(7, 6), Vector2(-7, 6),
-	])
-	visual.add_child(full_mark)
 	var pulse := Line2D.new()
 	pulse.name = "TransitionPulse"
 	pulse.width = 2.0
@@ -249,15 +176,15 @@ func _ensure_feedback_nodes() -> void:
 	pulse.closed = true
 	pulse.antialiased = false
 	pulse.points = PackedVector2Array([
-		Vector2(-48, -112), Vector2(48, -112),
-		Vector2(52, -2), Vector2(-52, -2),
+		Vector2(-25, -78), Vector2(25, -78),
+		Vector2(28, -2), Vector2(-28, -2),
 	])
 	pulse.visible = false
 	visual.add_child(pulse)
 	var player := AudioStreamPlayer2D.new()
 	player.name = "FeedbackAudio"
 	player.bus = &"SFX"
-	player.position = Vector2(0, -56)
+	player.position = Vector2(0, -38)
 	player.max_distance = 640.0
 	add_child(player)
 

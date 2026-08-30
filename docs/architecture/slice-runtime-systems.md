@@ -85,7 +85,7 @@ Boot
 - `SliceBuildingCatalog`：六类建筑定义的唯一注册表。
 - `SliceBuildingDefinition`：不可变规则，包括占地、表面、方向帧、碰撞、状态白名单、电力角色与端口、物流端口。
 - `SliceBuildingInstance`：稳定运行时身份和共享视觉 / 碰撞壳。
-- `SliceCollector`、`SliceStorage`、`SliceConveyor`、`SliceReactor`：只持有各自内部状态和窄行为。
+- `SliceCollector`、`SliceStorage`、`SliceConveyor`、`SliceReactor`：只持有各自内部状态和窄行为；`SlicePowerRelay` 只在通用实例壳上增加中继自身的派生反馈。
 - `SliceBuildingOccupancy`：分别维护地板占用和阻挡设施占用。
 
 `SliceMap/GroundStructures` 是非 Y 排序地表结构层，当前承载可通行传送带；实体设备继续进入 Y 排序 `World`，其阻挡只由旋转后足印派生。`SliceLogisticsTransitionLayer` 只为已由物流拓扑确认的跨地表端口绘制会话态过渡格，不拥有连接规则或存档状态。
@@ -94,10 +94,10 @@ Boot
 
 ### 世界状态反馈
 
-- `SliceDeviceFeedbackState` 是无状态解析器，只从核心修复 / 充能 / 遭遇交付与反应器供电 / 加工 / 输出事实得到稳定表现态和边沿事件；首次观察只建立基线，读档恢复不产生里程碑事件。
-- `SliceCoreVisual` 与 `SliceReactor` 各自在本类节点内拥有分段构件、状态形状、动画节奏、过渡脉冲和局部 `AudioStreamPlayer2D`；它们只呈现解析结果，不写回玩法状态。
+- `SliceDeviceFeedbackState` 是无状态解析器，只从核心修复 / 充能 / 遭遇交付、反应器供电 / 加工 / 输出，以及采集器缓冲、储物箱模式 / 传输上下文和中继供电事实得到稳定表现态与边沿事件；首次观察只建立基线，读档恢复不产生里程碑事件。
+- `SliceCoreVisual`、`SliceReactor`、`SliceCollector`、`SliceStorage` 与窄类 `SlicePowerRelay` 各自在本类节点内拥有所需的分段构件、状态形状、动画节奏、过渡脉冲和局部 `AudioStreamPlayer2D`；它们只呈现解析结果，不写回玩法状态。
 - `SliceFeedbackAudio` 以源码可追溯的确定性 PCM 构造短电子 `AudioStreamWAV`，所有播放器统一走 `SFX`。音效只服务离散状态边沿，不提供常驻机器噪声，也不进入世界存档。
-- 核心与反应器八态均为现有权威状态的派生视图；扩展其他设备时应在设备自身职责内复用这一合同，不向 `SliceWorld` 增加按设备类型扩散的表现或音频分支。
+- 核心 / 反应器八态、采集器三态、储物箱五态和中继两态均为现有权威状态的派生视图；储物箱阻塞只在既有无线传输循环持有完整核心容量上下文时判断。`SliceWorld` 不拥有按设备类型扩散的表现或音频分支。
 
 ### 放置与操作
 

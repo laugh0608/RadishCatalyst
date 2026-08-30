@@ -31,7 +31,7 @@
 
 最新收口子专题：[Slice Visual Hierarchy And Color Separation V1](slice-visual-hierarchy-and-color-separation-v1.md) 与 [Slice Game UI Visual Finalization V1](slice-game-ui-visual-finalization-v1.md)——世界设备、HUD、制造 / 背包、设备、核心与系统界面均已完成正式入口和人工定稿。
 
-整改包 0—3、4A 与 4B 已完成：空间 / 保存合同、主流程阻断、制造 / 装备闭环、库存 / 设备直接操纵、共享设置、HUD 安全区、上下文电力叠层，以及核心 / 反应器八态反馈均已通过正式入口。当前按 [Slice HUD And Device Feedback V1](slice-hud-and-device-feedback-v1.md) 进入 4C，只把已通过的权威派生与边沿反馈矩阵扩展到采集器、储物箱和中继。
+整改包 0—4 已完成：空间 / 保存合同、主流程阻断、制造 / 装备闭环、库存 / 设备直接操纵、共享设置、HUD 安全区、上下文电力叠层，以及核心、反应器、采集器、储物箱和中继的权威派生反馈均已通过正式入口。[Slice HUD And Device Feedback V1](slice-hud-and-device-feedback-v1.md) 已收口；当前回到整改专题执行 S0 真实新档 20—40 分钟全链，S0 通过前不进入下一能力专题。
 
 最新人工通过子专题：[Slice Category Inventory And Powered Storage V1](slice-category-inventory-and-powered-storage-v1.md) 与 [Slice World Device Family Integration V1](slice-world-device-family-integration-v1.md)——联合 schema 8、设备家族、实体物流、真实二值供电线和双档迁移闸门已收口；[Slice Unified Device Operation Panels V1](slice-unified-device-operation-panels-v1.md) 核心仓库包 2 的视觉与行为也已随 UI 定稿收口。
 

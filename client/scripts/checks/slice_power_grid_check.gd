@@ -187,12 +187,14 @@ func _check_multihop_world_grid() -> void:
 	)
 	if relay_two == null:
 		world.free()
+		await process_frame
 		return
 	var relay_three := _place_building(
 		world, SliceBuildingCatalog.POWER_RELAY_ID, Vector2i(37, 10), 0
 	)
 	if relay_three == null:
 		world.free()
+		await process_frame
 		return
 	_expect_equal(world.powered_relay_count(), 3, "three-hop relay chain is reachable")
 	_expect_equal(relay_one.powered, true, "core-adjacent relay is powered")
@@ -448,6 +450,7 @@ func _check_multihop_world_grid() -> void:
 	)
 	if replacement == null:
 		world.free()
+		await process_frame
 		return
 	_expect_equal(replacement.powered, true, "replacement bridge is powered")
 	_expect_equal(relay_three.powered, true, "replacement reconnects downstream relay")
@@ -472,6 +475,8 @@ func _check_multihop_world_grid() -> void:
 	_expect_equal(storage.powered, false, "offline core powers down storage")
 	_expect_equal(collector.powered, false, "offline core powers down collector")
 	world.free()
+	await process_frame
+	await create_timer(0.20).timeout
 
 
 func _spawn_floor_rect(

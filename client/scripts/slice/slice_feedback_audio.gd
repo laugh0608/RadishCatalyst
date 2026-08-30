@@ -51,6 +51,27 @@ const PROFILES := {
 		"overtone": 0.32,
 		"pulses": 2,
 	},
+	SliceDeviceFeedbackState.EVENT_DEVICE_POWER_LOST: {
+		"duration": 0.15,
+		"start_hz": 340.0,
+		"end_hz": 155.0,
+		"overtone": 0.20,
+		"pulses": 1,
+	},
+	SliceDeviceFeedbackState.EVENT_DEVICE_RUNNING: {
+		"duration": 0.13,
+		"start_hz": 390.0,
+		"end_hz": 610.0,
+		"overtone": 0.20,
+		"pulses": 1,
+	},
+	SliceDeviceFeedbackState.EVENT_DEVICE_BLOCKED: {
+		"duration": 0.18,
+		"start_hz": 235.0,
+		"end_hz": 175.0,
+		"overtone": 0.34,
+		"pulses": 2,
+	},
 }
 
 
