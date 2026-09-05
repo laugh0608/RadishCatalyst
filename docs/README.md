@@ -45,6 +45,7 @@
 ## Core Documents
 
 - [Project Definition](product/project-definition.md)
+- [Production-Centered Direction](product/production-centered-direction.md)
 - [Creative Development Brief](product/creative-development-brief.md)
 - [Reference Positioning](product/reference-positioning.md)
 - [Player Wiki And Official Tools](product/player-wiki-and-official-tools.md)
