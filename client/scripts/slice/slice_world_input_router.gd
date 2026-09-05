@@ -20,6 +20,10 @@ func handle(event: InputEvent) -> void:
 		world.get_viewport().set_input_as_handled()
 		return
 	if not world.is_placement_active():
+		if _handle_building_selection(
+			world, event, _pointer_over_blocking_ui(world)
+		):
+			world.get_viewport().set_input_as_handled()
 		return
 	if event is InputEventMouseMotion or event is InputEventMouseButton:
 		if handle_placement_pointer(event):
@@ -73,3 +77,85 @@ func handle_placement_pointer(
 func _pointer_over_blocking_ui(world: SliceWorld) -> bool:
 	var hovered := world.get_viewport().gui_get_hovered_control()
 	return hovered != null and hovered.mouse_filter != Control.MOUSE_FILTER_IGNORE
+
+
+func _handle_building_selection(
+	world: SliceWorld,
+	event: InputEvent,
+	ui_blocked := false
+) -> bool:
+	if (
+		not world.is_build_mode_active()
+		or world.is_placement_active()
+		or ui_blocked
+	):
+		return false
+	var click := event as InputEventMouseButton
+	if (
+		click == null
+		or click.button_index != MOUSE_BUTTON_LEFT
+		or not click.pressed
+	):
+		return false
+	var canvas_transform := world.get_viewport().get_canvas_transform()
+	var world_position := canvas_transform.affine_inverse() * click.position
+	var instance := _visible_instance_at(world, world_position)
+	if instance == null:
+		instance = _occupied_instance_at(world, world_position)
+	if instance == null:
+		return false
+	world.open_building_actions(instance)
+	return world.is_building_actions_open()
+
+
+func _visible_instance_at(
+	world: SliceWorld,
+	world_position: Vector2
+) -> SliceBuildingInstance:
+	var best: SliceBuildingInstance
+	var best_sort_y := -INF
+	for instance in world._building_instances:
+		if not _is_selectable(instance, world):
+			continue
+		var sprite := instance.get_node_or_null("Sprite") as Sprite2D
+		if (
+			sprite == null
+			or not sprite.visible
+			or sprite.texture == null
+			or not sprite.is_pixel_opaque(sprite.to_local(world_position))
+		):
+			continue
+		var sort_y := instance.global_position.y
+		if best == null or sort_y >= best_sort_y:
+			best = instance
+			best_sort_y = sort_y
+	return best
+
+
+func _occupied_instance_at(
+	world: SliceWorld,
+	world_position: Vector2
+) -> SliceBuildingInstance:
+	var cell := Vector2i(
+		floor(world_position.x / SliceWorld.TILE_SIZE),
+		floor(world_position.y / SliceWorld.TILE_SIZE)
+	)
+	var instance_id := world._occupancy.blocking_instance_at(cell)
+	if instance_id.is_empty():
+		instance_id = world._occupancy.floor_instance_at(cell)
+	for instance in world._building_instances:
+		if instance.instance_id == instance_id and _is_selectable(instance, world):
+			return instance
+	return null
+
+
+func _is_selectable(
+	instance: SliceBuildingInstance,
+	world: SliceWorld
+) -> bool:
+	return (
+		instance != null
+		and instance.visible
+		and instance != world._adjustment_instance
+		and instance.definition != null
+	)

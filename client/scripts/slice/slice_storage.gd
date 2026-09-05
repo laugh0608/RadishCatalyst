@@ -13,6 +13,15 @@ const MODE_TRANSFER := "transfer"
 const TRANSFER_INTERVAL := 5.0
 const TRANSFER_BATCH_SIZE := 50
 const BLOCKED_WARNING_COOLDOWN := 1.25
+const INPUT_DOCKING_POSITION := Vector2(-46, 18)
+const OUTPUT_DOCKING_POSITION := Vector2(46, 18)
+const DOCKING_PATCH_SIZE := Vector2(12, 24)
+const LEFT_DOCKING_TEXTURE := preload(
+	"res://assets/sprites/slice/docking_left_connected_patch.png"
+)
+const RIGHT_DOCKING_TEXTURE := preload(
+	"res://assets/sprites/slice/docking_right_connected_patch.png"
+)
 const COLOR_DARK := Color(0.055, 0.08, 0.08, 0.76)
 const COLOR_CYAN := Color(0.337, 0.784, 0.769, 1.0)
 const COLOR_AMBER := Color(0.878, 0.643, 0.235, 1.0)
@@ -73,8 +82,46 @@ func logistics_endpoints() -> Array[SliceLogisticsEndpoint]:
 	return result
 
 
+func set_connected_logistics_port_visuals(
+	connected_port_ids: Array[String]
+) -> void:
+	_set_docking_patch(
+		"InputDockingPatch",
+		LEFT_DOCKING_TEXTURE,
+		INPUT_DOCKING_POSITION,
+		connected_port_ids.has("input")
+	)
+	_set_docking_patch(
+		"OutputDockingPatch",
+		RIGHT_DOCKING_TEXTURE,
+		OUTPUT_DOCKING_POSITION,
+		connected_port_ids.has("output")
+	)
+
+
 func content_block_reason() -> String:
 	return "" if inventory.is_empty() else "先清空储物箱"
+
+
+func _set_docking_patch(
+	node_name: String,
+	texture: Texture2D,
+	local_position: Vector2,
+	shown: bool
+) -> void:
+	var sprite := get_node_or_null("Sprite") as Sprite2D
+	if sprite == null:
+		return
+	var patch := sprite.get_node_or_null(node_name) as Sprite2D
+	if patch == null and shown:
+		patch = Sprite2D.new()
+		patch.name = node_name
+		patch.texture = texture
+		patch.position = local_position
+		patch.z_index = 0
+		sprite.add_child(patch)
+	if patch != null:
+		patch.visible = shown
 
 
 func state_dict(allowed_keys: Array[String]) -> Dictionary:
