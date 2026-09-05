@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-08-30
+更新时间：2026-09-05
 
 ## 用途
 
@@ -25,13 +25,15 @@
 
 ## 当前状态
 
-当前活跃阶段专题：[试玩反馈整改 V1](slice-playtest-remediation-v1.md)——2026-08-16 连续试玩反馈、参考 UI 审阅与源码玩家体验审计已完成；现阶段先整改既有 Demo，不进入下一能力专题，陌生玩家盲测继续冻结。
+当前阶段是产品方向调整与建造体验验证定义；优先真相源见 [Production-Centered Direction](../product/production-centered-direction.md)。[Factory Building Experience Validation V1](factory-building-experience-validation-v1.md) 已完成架构复核，冻结“采集器 → 反应器 → 储存”的短片段、建造视图、故障恢复与证据合同；实验实现待确认，尚未通过代码实验。
+
+原[试玩反馈整改 V1](slice-playtest-remediation-v1.md)与 S0 暂缓，陌生玩家盲测继续冻结；既有整改成果和历史证据保留。
 
 功能基线专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——`delivered / 120`、正式 UI、远程武器、破损核心和首程地图均已接通；既有自动与人工证据继续承担回归基线，但不再代表当前体验已经通过阶段验收。
 
 最新收口子专题：[Slice Visual Hierarchy And Color Separation V1](slice-visual-hierarchy-and-color-separation-v1.md) 与 [Slice Game UI Visual Finalization V1](slice-game-ui-visual-finalization-v1.md)——世界设备、HUD、制造 / 背包、设备、核心与系统界面均已完成正式入口和人工定稿。
 
-整改包 0—4 已完成：空间 / 保存合同、主流程阻断、制造 / 装备闭环、库存 / 设备直接操纵、共享设置、HUD 安全区、上下文电力叠层，以及核心、反应器、采集器、储物箱和中继的权威派生反馈均已通过正式入口。[Slice HUD And Device Feedback V1](slice-hud-and-device-feedback-v1.md) 已收口；当前回到整改专题执行 S0 真实新档 20—40 分钟全链，S0 通过前不进入下一能力专题。
+整改包 0—4 已完成：空间 / 保存合同、主流程阻断、制造 / 装备闭环、库存 / 设备直接操纵、共享设置、HUD 安全区、上下文电力叠层，以及核心、反应器、采集器、储物箱和中继的权威派生反馈均已通过正式入口。[Slice HUD And Device Feedback V1](slice-hud-and-device-feedback-v1.md) 已收口；这些结果继续承担实现与回归基线，不代表当前生产体验已经验证。
 
 最新人工通过子专题：[Slice Category Inventory And Powered Storage V1](slice-category-inventory-and-powered-storage-v1.md) 与 [Slice World Device Family Integration V1](slice-world-device-family-integration-v1.md)——联合 schema 8、设备家族、实体物流、真实二值供电线和双档迁移闸门已收口；[Slice Unified Device Operation Panels V1](slice-unified-device-operation-panels-v1.md) 核心仓库包 2 的视觉与行为也已随 UI 定稿收口。
 

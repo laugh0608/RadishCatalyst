@@ -27,6 +27,15 @@ var _dodge_velocity := Vector2.ZERO
 
 
 func _physics_process(delta: float) -> void:
+	if world != null and world.is_build_mode_active():
+		movement_input = Vector2.ZERO
+		velocity = Vector2.ZERO
+		cancel_dodge()
+		move_and_slide()
+		_update_animation(false, aim_direction)
+		if Input.is_action_just_pressed("interact") and world.is_placement_active():
+			world.try_place_building()
+		return
 	movement_input = Input.get_vector(
 		"move_left", "move_right", "move_up", "move_down"
 	)

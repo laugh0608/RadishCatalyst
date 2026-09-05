@@ -52,6 +52,7 @@ signal building_storage_changed(instance_id: String)
 signal core_charge_changed(energy: int)
 signal core_repair_completed
 signal placement_changed
+signal build_mode_changed(active: bool)
 signal return_to_startup_requested
 
 ## Set by Boot before add_child: true loads the saved slice, false starts fresh.
@@ -80,7 +81,9 @@ var pause_menu: SlicePauseMenu
 var _ground: TileMapLayer
 var _industrial_floor: TileMapLayer
 var _placement: SliceBuildingPlacementController
+var _build_mode: SliceBuildModeController
 var _placement_pointer := SlicePlacementPointerInput.new()
+var _input_router := SliceWorldInputRouter.new()
 var _placement_validator := SlicePlacementValidator.new()
 var _support_floor_transaction := SlicePlacementSupportFloorTransaction.new()
 var _occupancy := SliceBuildingOccupancy.new()
@@ -101,6 +104,7 @@ var _save_scheduler := SliceSaveScheduler.new()
 
 
 func _ready() -> void:
+	_input_router.setup(self)
 	_save_scheduler.setup(save_service)
 	_map = (load(MAP_SCENE) as PackedScene).instantiate()
 	add_child(_map)
@@ -135,6 +139,12 @@ func _ready() -> void:
 	camera.limit_top = 0
 	camera.limit_right = MAP_PIXEL_SIZE.x
 	camera.limit_bottom = MAP_PIXEL_SIZE.y
+	_build_mode = SliceBuildModeController.new()
+	add_child(_build_mode)
+	_build_mode.setup(
+		_map, camera, world_node, MAP_PIXEL_SIZE, TILE_SIZE, _building_instances
+	)
+	_build_mode.changed.connect(build_mode_changed.emit)
 
 	var hud := (load(HUD_SCENE) as PackedScene).instantiate() as SliceHud
 	add_child(hud)
@@ -275,62 +285,11 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel"):
-		if is_placement_active():
-			cancel_building_placement()
-		elif _craft_panel != null and _craft_panel.is_open():
-			_craft_panel.close()
-		elif is_core_storage_open():
-			close_core_storage()
-		elif is_core_charge_confirmation_open():
-			close_core_charge_confirmation()
-		elif is_building_actions_open():
-			close_building_actions()
-		elif pause_menu != null:
-			combat_controller.require_fresh_attack_press()
-			pause_menu.open()
-		get_viewport().set_input_as_handled()
-		return
-	if not is_placement_active():
-		return
-	if (
-		event is InputEventMouseMotion
-		or event is InputEventMouseButton
-	):
-		if _handle_placement_pointer_event(
-			event, _pointer_over_blocking_ui()
-		):
-			get_viewport().set_input_as_handled()
-		return
-	if event.is_action_pressed("rotate_building"):
-		rotate_building_placement()
-		get_viewport().set_input_as_handled()
+	_input_router.handle(event)
 
 
-func _handle_placement_pointer_event(
-	event: InputEvent,
-	ui_blocked: bool = false
-) -> bool:
-	if not is_placement_active() or not _placement_pointer.track_event(event):
-		return false
-	_refresh_placement_target()
-	var definition := _placement.definition
-	if _placement_pointer.should_confirm(
-		event,
-		_placement.target_origin,
-		definition.is_floor,
-		ui_blocked
-	):
-		try_place_building()
-	return true
-
-
-func _pointer_over_blocking_ui() -> bool:
-	var hovered := get_viewport().gui_get_hovered_control()
-	return (
-		hovered != null
-		and hovered.mouse_filter != Control.MOUSE_FILTER_IGNORE
-	)
+func _handle_placement_pointer_event(event: InputEvent, ui_blocked := false) -> bool:
+	return _input_router.handle_placement_pointer(event, ui_blocked)
 
 
 ## Powered collectors and reactors retain their own tick progress. All mutable
@@ -794,7 +753,7 @@ func charge_core() -> bool:
 
 func is_combat_input_blocked() -> bool:
 	return (
-		is_placement_active()
+		is_build_mode_active()
 		or (_craft_panel != null and _craft_panel.is_open())
 		or is_core_storage_open()
 		or is_core_charge_confirmation_open()
@@ -865,6 +824,7 @@ func begin_building_placement(building_id: String) -> bool:
 		return false
 	if _adjustment_instance != null:
 		cancel_building_placement()
+	enter_build_mode()
 	close_core_storage()
 	close_core_charge_confirmation()
 	close_building_actions()
@@ -957,6 +917,38 @@ func is_placement_active() -> bool:
 	return _placement != null and _placement.is_active()
 
 
+func enter_build_mode() -> void:
+	if _build_mode == null or is_build_mode_active() or get_tree().paused:
+		return
+	close_core_storage()
+	close_core_charge_confirmation()
+	close_building_actions()
+	if _craft_panel != null:
+		_craft_panel.close()
+	combat_controller.require_fresh_attack_press()
+	_build_mode.enter()
+
+
+func exit_build_mode() -> void:
+	if not is_build_mode_active():
+		return
+	if is_placement_active():
+		cancel_building_placement()
+	combat_controller.require_fresh_attack_press()
+	_build_mode.exit()
+
+
+func toggle_build_mode() -> void:
+	if is_build_mode_active():
+		exit_build_mode()
+	else:
+		enter_build_mode()
+
+
+func is_build_mode_active() -> bool:
+	return _build_mode != null and _build_mode.is_active()
+
+
 func selected_building_id() -> String:
 	return "" if not is_placement_active() else _placement.selected_building_id()
 
@@ -1022,6 +1014,7 @@ func adjustment_block_reason(instance: SliceBuildingInstance) -> String:
 func begin_building_adjustment(instance: SliceBuildingInstance) -> bool:
 	if not adjustment_block_reason(instance).is_empty():
 		return false
+	enter_build_mode()
 	if is_placement_active():
 		cancel_building_placement()
 	close_building_actions()
@@ -1060,6 +1053,8 @@ func demolish_building(instance: SliceBuildingInstance) -> bool:
 	if instance.definition.is_floor:
 		_industrial_floor.erase_cell(instance.origin_cell)
 	_building_instances.erase(instance)
+	if _build_mode != null:
+		_build_mode.refresh_instances(_building_instances)
 	if instance is SliceCollector:
 		_collector_nodes.erase(instance as SliceCollector)
 	elif instance is SliceReactor:
@@ -1160,6 +1155,8 @@ func _rebuild_logistics_grid(excluded_instance_id: String = "") -> void:
 	_logistics_transitions.set_transitions(
 		_logistics_grid.placement_preview_ports(), TILE_SIZE
 	)
+	if _build_mode != null:
+		_build_mode.refresh_instances(_building_instances)
 
 
 func _refresh_power_links() -> void:
@@ -1317,6 +1314,8 @@ func _spawn_building(
 	)
 	_map.get_node(layer_name).add_child(instance)
 	_building_instances.append(instance)
+	if _build_mode != null:
+		_build_mode.refresh_instances(_building_instances)
 	_occupancy.occupy(
 		instance.instance_id,
 		definition.occupied_cells(origin_cell, instance.building_rotation),

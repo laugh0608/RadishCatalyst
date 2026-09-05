@@ -268,6 +268,7 @@ func _check_selection_shooting_hud_and_restart() -> void:
 	)
 	_check_blocker_preserves_rifle(world, controller, "building placement")
 	world.cancel_building_placement()
+	world.exit_build_mode()
 	world._core_charge_panel._open = true
 	_check_blocker_preserves_rifle(world, controller, "confirmation layer")
 	world._core_charge_panel.close()
