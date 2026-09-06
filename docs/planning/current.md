@@ -31,7 +31,7 @@
 
 ## 下一步
 
-在 [Industrial Volume Visual Study V1](../design/industrial-volume-visual-study-v1.md) 的独立复核世界，评价一台设备与一段架空管道在正常游戏尺寸下的顶侧面、支撑、投影和角色遮挡。候选 v2 只获得体积方向改善反馈，不代表本次独立素材已经验收；建造态网格 / 弱化遮挡与现有地板纹理问题保留为实际限制。
+在 [Industrial Volume Visual Study V1](../design/industrial-volume-visual-study-v1.md) 的独立复核世界，评价一台设备与一段架空管道在正常游戏尺寸下的顶侧面、支撑、投影和角色遮挡。本轮建造态分层收口已完成定向验证，可直接比较原模式与分层模式；推荐低纹理地面作为样板默认。用户视觉验收仍待回填，再决定是否进入可拼接模块族。
 
 上一轮 [管道模块验证](../design/transparent-pipe-module-visual-validation-v1.md) 已在 `280abdde` 保存，保留为未验收试验；本次只新增隔离体积样板。工厂 v2 整体评价及既有操作手感复评继续保留，局部样板不替代它们。既有物流 / 建造专项 `180` / `152` 项与正式窗口 `59` 项断言继续保留；不新增液气玩法系统、不迁移 Web、不切换 3D、不做全仓重构。
 

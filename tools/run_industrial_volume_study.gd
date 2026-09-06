@@ -97,9 +97,11 @@ func _prepare_fixture() -> void:
 
 
 func _mount_study() -> void:
+	_expect(world._build_mode._overlay.draw_ground and not world._build_mode._ground_overlay.visible, "ordinary Boot retains its original overlay policy before study opt-in")
 	study = STUDY_SCENE.instantiate() as IndustrialVolumeStudy
 	study.position = ORIGIN
 	world._map.get_node("World").add_child(study)
+	study.configure_build_view(world)
 
 
 func _settle_camera() -> void:
@@ -151,10 +153,38 @@ func _verify_presentation() -> void:
 	var hud := world.get_node("SliceHud") as SliceHud
 	await _click(hud.build_mode_button)
 	_expect(world.is_build_mode_active() and camera.zoom == Vector2(1.5, 1.5), "existing HUD enters the 1.5 construction view")
-	await _screenshot("07-build-existing-obstruction.png")
+	_expect(study.modulate == Color.WHITE and study.ground.modulate == Color.WHITE, "layered build view preserves compound root and ground opacity")
+	_expect(study.bodies[0].self_modulate == SliceBuildModeController.BODY_COLOR, "only the registered machine body uses the existing building fade")
+	_expect(world._build_mode._ground_overlay.visible and not world._build_mode._overlay.draw_ground, "ordinary grid is on the ground while structure hints retain their overlay")
+	await _screenshot("07-build-layered.png")
+	root.size = Vector2i(960, 540)
+	await _screenshot("09-build-native-960.png")
+	root.size = Vector2i(1440, 810)
+	await _click(study.presentation_button)
+	_expect(study.modulate == SliceBuildModeController.OBSTRUCTION_COLOR, "legacy comparison retains the original compound fade")
+	_expect(not world._build_mode._ground_overlay.visible and world._build_mode._overlay.draw_ground, "legacy comparison restores the default grid rendering")
+	await _screenshot("10-build-legacy.png")
+	await _click(study.presentation_button)
+	await _click(study.floor_button)
+	await _screenshot("11-build-current-floor.png")
+	await _click(study.floor_button)
+	world.pocket.add(SliceWorld.ITEM_STORAGE_KIT, 1)
+	_expect(world.begin_building_placement(SliceBuildingCatalog.STORAGE_ID), "existing kit entry starts a real placement preview")
+	var target := ORIGIN + Vector2(240, 128)
+	var pointer := InputEventMouseMotion.new()
+	pointer.position = root.get_final_transform() * (world.get_canvas_transform() * target)
+	pointer.global_position = pointer.position
+	Input.parse_input_event(pointer)
+	await physics_frame
+	await process_frame
+	_expect(world._placement._overlay.visible and world._placement._preview.visible, "placement feedback stays visible with the ground grid separated")
+	await _screenshot("12-build-placement.png")
+	world.cancel_building_placement()
+	world.pocket.remove(SliceWorld.ITEM_STORAGE_KIT, 1)
 	await _click(hud.build_mode_button)
 	_expect(not world.is_build_mode_active() and camera.zoom == Vector2(2, 2), "existing HUD restores normal view")
 	_expect(study.modulate == Color.WHITE, "existing obstruction policy restores the sample opacity")
+	_expect(study.bodies[0].self_modulate == Color.WHITE and study.ground.modulate == Color.WHITE, "leaving build view restores body and ground independently")
 	_expect(world._building_instances.size() == initial_count, "presentation controls never create gameplay buildings")
 	_expect(world.save_now(), "visual specimen requires no new save data")
 	boot.free()

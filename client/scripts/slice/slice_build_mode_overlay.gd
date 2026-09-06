@@ -14,6 +14,10 @@ const FLOW_COLOR := Color(1.0, 0.82, 0.38, 0.92)
 var _map_size := Vector2i.ZERO
 var _tile_size := 32.0
 var _instances: Array[SliceBuildingInstance] = []
+var draw_ground := true
+var draw_structures := true
+var draw_floor_footprints := true
+var grid_line_width := 1.0
 
 
 func configure(
@@ -35,10 +39,11 @@ func refresh_instances(instances: Array[SliceBuildingInstance]) -> void:
 func _draw() -> void:
 	if _map_size == Vector2i.ZERO:
 		return
-	for x in range(0, _map_size.x + 1, int(_tile_size)):
-		draw_line(Vector2(x, 0), Vector2(x, _map_size.y), GRID_COLOR, 1.0)
-	for y in range(0, _map_size.y + 1, int(_tile_size)):
-		draw_line(Vector2(0, y), Vector2(_map_size.x, y), GRID_COLOR, 1.0)
+	if draw_ground:
+		for x in range(0, _map_size.x + 1, int(_tile_size)):
+			draw_line(Vector2(x, 0), Vector2(x, _map_size.y), GRID_COLOR, grid_line_width)
+		for y in range(0, _map_size.y + 1, int(_tile_size)):
+			draw_line(Vector2(0, y), Vector2(_map_size.x, y), GRID_COLOR, grid_line_width)
 	for instance in _instances:
 		_draw_instance(instance)
 
@@ -47,6 +52,10 @@ func _draw_instance(instance: SliceBuildingInstance) -> void:
 	if instance == null or instance.definition == null or not instance.visible:
 		return
 	var definition := instance.definition
+	if definition.is_floor and not draw_floor_footprints:
+		return
+	if (definition.is_floor and not draw_ground) or (not definition.is_floor and not draw_structures):
+		return
 	for cell in definition.occupied_cells(
 		instance.origin_cell, instance.building_rotation
 	):

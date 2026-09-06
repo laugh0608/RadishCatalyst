@@ -15,12 +15,17 @@ var supports: Array[Sprite2D] = []
 var shadow_button: Button
 var support_button: Button
 var floor_button: Button
+var presentation_button: Button
+var ground: Node2D
+var bodies: Array[CanvasItem] = []
+var layered_build_view := true
+var _world: SliceWorld
 
 
 func _ready() -> void:
 	y_sort_enabled = true
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	var ground := Node2D.new()
+	ground = Node2D.new()
 	ground.name = "GroundPresentation"
 	add_child(ground)
 	quiet_floor = Sprite2D.new()
@@ -43,13 +48,36 @@ func _ready() -> void:
 	# These roots sort by contact depth alongside the real player. Their children
 	# retain authored draw order so the tube occludes the upper cradle edges.
 	machine_root = _sort_root("MachineContact", Vector2(64, 106))
-	_sprite(machine_root, "machine", Vector2(-64, -106))
+	bodies.append(_sprite(machine_root, "machine", Vector2(-64, -106)))
 	pipe_root = _sort_root("PipeContact", Vector2(150, 86))
 	for x in [118, 163]:
 		supports.append(_sprite(pipe_root, "support", Vector2(x, 55) - pipe_root.position))
-	_sprite(pipe_root, "pipe", Vector2(100, 44) - pipe_root.position)
+		bodies.append(supports.back())
+	bodies.append(_sprite(pipe_root, "pipe", Vector2(100, 44) - pipe_root.position))
 	_build_controls()
 	_refresh_controls()
+
+
+func configure_build_view(world: SliceWorld) -> void:
+	_world = world
+	_apply_build_view()
+
+
+func _apply_build_view() -> void:
+	if layered_build_view:
+		ground.reparent(_world._map.get_node("GroundStructures"))
+		_world._build_mode.register_compound_visual(self, bodies)
+	else:
+		ground.reparent(self)
+		_world._build_mode.unregister_compound_visual(self)
+	_world._build_mode.set_ground_grid_enabled(layered_build_view)
+	_refresh_controls()
+
+
+func _exit_tree() -> void:
+	# The ground moved out of the specimen for real map ordering; keep ownership.
+	if is_instance_valid(ground) and ground.get_parent() != self:
+		ground.queue_free()
 
 
 func _sort_root(node_name: String, at: Vector2) -> Node2D:
@@ -79,8 +107,8 @@ func _build_controls() -> void:
 	var panel := PanelContainer.new()
 	panel.theme = UI_THEME
 	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	panel.offset_left = -390
-	panel.offset_right = 390
+	panel.offset_left = -520
+	panel.offset_right = 520
 	panel.offset_top = -205
 	panel.offset_bottom = -115
 	layer.add_child(panel)
@@ -106,6 +134,10 @@ func _build_controls() -> void:
 		quiet_floor.visible = not quiet_floor.visible
 		_refresh_controls()
 	)
+	presentation_button = _button(row, func():
+		layered_build_view = not layered_build_view
+		_apply_build_view()
+	)
 
 
 func _button(parent: HBoxContainer, callback: Callable) -> Button:
@@ -119,3 +151,4 @@ func _refresh_controls() -> void:
 	shadow_button.text = "阴影：开" if shadows.visible else "阴影：关"
 	support_button.text = "支撑：开" if supports[0].visible else "支撑：关"
 	floor_button.text = "地面：低纹理" if quiet_floor.visible else "地面：现有工业地板"
+	presentation_button.text = "建造显示：分层" if layered_build_view else "建造显示：原模式"
