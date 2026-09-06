@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>异星催化 · 画面试验场</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.mjs"></script>
+</head>
+<body>
+  <header>
+    <div class="identity"><span class="mark" aria-hidden="true">R / C</span><h1>画面试验场 <small>异星催化</small></h1></div>
+    <span class="local">本地视觉样件</span>
+  </header>
+  <main>
+    <div class="toolbar">
+      <div class="view-buttons" role="group" aria-label="显示画面">
+        <button data-view="split" aria-pressed="true">并排对照</button>
+        <button data-view="paint" aria-pressed="false">手绘 2.5D</button>
+        <button data-view="pixel" aria-pressed="false">现有像素</button>
+      </div>
+      <div class="switches">
+        <label><input id="glass" type="checkbox" checked>透明管道</label>
+        <label><input id="shadow" type="checkbox" checked>投影</label>
+        <label><input id="grid" type="checkbox">接地网格</label>
+        <label>缩放 <select id="zoom"><option value="1">1× 正常</option><option value="1.5">1.5× 放大</option></select></label>
+      </div>
+    </div>
+    <div id="load-status" role="status">正在读取本地素材…</div>
+    <section id="stages" data-view="split" aria-label="同步场景对照">
+      <article class="stage" data-style="paint">
+        <div class="stage-heading"><h2><span>01</span> 手绘 2.5D</h2><span>墨线 · 柔和材质</span></div>
+        <div class="viewport"><canvas id="paint" width="1664" height="1152" tabindex="0" aria-label="手绘场景，用 WASD 或方向键移动，也可点击地面"></canvas></div>
+      </article>
+      <article class="stage" data-style="pixel">
+        <div class="stage-heading"><h2><span>02</span> 现有像素</h2><span>原生素材 · 最近邻</span></div>
+        <div class="viewport"><canvas id="pixel" width="416" height="288" tabindex="0" aria-label="像素场景，用 WASD 或方向键移动，也可点击地面"></canvas></div>
+      </article>
+    </section>
+    <div class="observation">
+      <span class="label">观察位置</span>
+      <div class="spots" role="group" aria-label="角色观察位置">
+        <button data-spot="start">入口</button><button data-spot="machineBack">设备后</button><button data-spot="machineFront">设备前</button><button data-spot="pipeBack">管道后</button><button data-spot="pipeFront">管道前</button>
+      </div>
+      <button id="reset">重置</button>
+    </div>
+    <div class="instructions"><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / 方向键移动 · 点击地面前往 · 两侧同步</p><output id="position" aria-label="角色坐标"></output></div>
+    <div class="touch-pad" role="group" aria-label="触屏移动"><button data-key="ArrowLeft" aria-label="向左">←</button><button data-key="ArrowUp" aria-label="向上">↑</button><button data-key="ArrowDown" aria-label="向下">↓</button><button data-key="ArrowRight" aria-label="向右">→</button></div>
+    <footer>同一布局、移动与接地排序。角色为单姿态；投影和玻璃为二维近似。此页不代表正式画面验收或引擎迁移。</footer>
+  </main>
+</body>
+</html>

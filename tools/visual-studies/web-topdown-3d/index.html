@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>异星催化 · 三维工厂样场</title><link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">{"imports":{"three":"/vendor/three.module.js","three/addons/":"/addons/"}}</script>
+  <script type="module" src="app.mjs"></script>
+</head>
+<body>
+  <main id="stage">
+    <canvas id="world" tabindex="0" aria-label="三维工业场景，WASD 或方向键移动，点击地面前往，Q E 转动视角"></canvas>
+    <header>
+      <div class="brand"><span class="mark">RC</span><div><h1>异星催化</h1><p>三维工厂样场 <span> / 07 台设备</span></p></div></div>
+      <div class="camera-panel"><span class="eyebrow">观察俯角</span><div class="angles" role="group" aria-label="相机俯角"><button data-angle="40" aria-pressed="false">40°</button><button data-angle="55" aria-pressed="true">55°</button><button data-angle="70" aria-pressed="false">70°</button></div></div>
+    </header>
+    <div id="status" role="status">正在准备三维场景…</div>
+    <aside class="legend"><span class="dot"></span> 工业样件 · 本机运行 <output id="performance" aria-label="渲染耗时"></output></aside>
+    <section class="controls" aria-label="场景控制">
+      <div class="control-row">
+        <div class="checks"><label><input id="glass" type="checkbox" checked>玻璃管壁</label><label><input id="shadows" type="checkbox" checked>光源投影</label><label><input id="contents" type="checkbox">管内色样</label></div>
+        <button id="light">光向：左上</button>
+        <div class="zoom"><button id="rotate-left" aria-label="向左转动相机">↶ Q</button><button id="rotate-right" aria-label="向右转动相机">E ↷</button><label>远近 <input id="zoom" type="range" min="0.8" max="1.6" value="1" step="0.1"></label></div>
+      </div>
+      <div class="control-row secondary"><div class="spots" role="group" aria-label="观察位置"><button data-spot="entry">入口</button><button data-spot="reactorBack">反应器后</button><button data-spot="reactorFront">反应器前</button><button data-spot="pipe">玻璃管下</button><button data-spot="aisle">通道</button></div><button id="reset">重置场景</button></div>
+      <div class="help"><span>WASD / 方向键移动 · 点击地面前往 · Q / E 转角</span><output id="position" aria-label="角色位置"></output></div>
+      <div class="touch" role="group" aria-label="触屏移动"><button data-key="a" aria-label="向左移动">←</button><button data-key="w" aria-label="向上移动">↑</button><button data-key="s" aria-label="向下移动">↓</button><button data-key="d" aria-label="向右移动">→</button></div>
+    </section>
+  </main>
+</body>
+</html>

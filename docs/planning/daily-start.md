@@ -6,13 +6,13 @@
 
 ## 当前任务
 
-先读 [Current Plan](current.md) 与 [Topdown 3D Comparison Demo V1](../design/topdown-3d-comparison-demo-v1.md)。独立 Godot 3D 画面对照已完成，等待用户选择；二维连续管道样板保留且尚未验收。
+先读 [Current Plan](current.md) 与 [Web Topdown 3D Demo V1](../design/web-topdown-3d-demo-v1.md)。已按用户确认完成 Web 真三维样场；原手绘 / 像素 Web 对照、独立 Godot 3D 与二维样板保留。
 
 ## 下一动作
 
-1. 用 `sh tools/run-topdown-3d-demo.sh` 查看独立三维样件，WASD 移动、Q / E 转角。
-2. 用底部按钮对照玻璃、空管、投影和光向，与专题中的二维原始截图比较；已有 12 张三维截图与 28 项机制检查。
-3. 等待萝卜SAMA选择继续二维、追加有限三维验证或暂停；不接入正式系统或自行决定迁移。
+1. 用 `sh tools/run-web-topdown-3d-demo.sh` 打开本地三维样场，WASD / 方向键或点击地面移动，Q / E 转角。
+2. 比较 40° / 55° / 70°、玻璃管与投影开关、设备前后遮挡；原手绘 / 像素入口 `sh tools/run-web-style-demo.sh` 继续可用。
+3. 已有 Godot 3D 入口 `sh tools/run-topdown-3d-demo.sh`、12 张截图与 28 项机制检查继续保留；等待萝卜SAMA选择，不接入正式系统或决定迁移。
 
 既有 `67 + 6`、物流 / 建造专项 `180` / `152` 与正式窗口 `59` 项断言继续保留。萝卜SAMA对整改后完整操作手感的复评仍是待办，但不是本轮首要动作；功能通过不代表视觉方向通过。
 
@@ -25,6 +25,9 @@
 - 不打包、分发、发布或上传。
 
 ## 继续前必读
+
+- [Web Topdown 3D Demo V1](../design/web-topdown-3d-demo-v1.md)
+- [Web Style Comparison Demo V1](../design/web-style-comparison-demo-v1.md)
 
 - [Topdown 3D Comparison Demo V1](../design/topdown-3d-comparison-demo-v1.md)
 

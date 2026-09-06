@@ -5,7 +5,7 @@
 ## 当前阶段
 
 ```text
-小型化工厂视觉目标探索与俯视角 3D 隔离对照
+小型化工厂视觉目标探索与 3D / Web 隔离对照
 ```
 
 本轮方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为优先真相源：化工生产经营成为核心，探索为生产提供资源、空间和长期目的；战斗体量、美术介质、Web 迁移和随机工业投入的具体系统均未决定。
@@ -23,6 +23,9 @@
 - 工业研发、试制、勘探和传统抽卡都只是随机投入的候选表达，不进入本轮实现。
 - 已授权 [Topdown 3D Comparison Demo V1](../design/topdown-3d-comparison-demo-v1.md)：独立工程与实机对照已完成，等待路线选择；不代表正式客户端切换 3D。
 
+- 已授权 [Web Style Comparison Demo V1](../design/web-style-comparison-demo-v1.md)：同场景比较手绘 2.5D 与现有像素素材，限本机独立 Demo；不代表正式 Web 迁移。
+- 已授权并完成 [Web Topdown 3D Demo V1](../design/web-topdown-3d-demo-v1.md)：使用局部 Three.js 依赖建立七台设备的真实三维样场，比较三档俯角、光照与遮挡；等待用户评价。
+
 ## 当前不做
 
 - 不删除既有功能、战斗或历史证据，不改写旧专题和旧周志。
@@ -33,7 +36,7 @@
 
 ## 下一步
 
-查看已完成的 [Topdown 3D Comparison Demo V1](../design/topdown-3d-comparison-demo-v1.md)，与已保存的二维架空管道样板比较体积、透明、落地阴影和角色遮挡。实机证据已保存，等待萝卜SAMA选择画面路线，不自行验收或迁移。
+查看 [Web Topdown 3D Demo V1](../design/web-topdown-3d-demo-v1.md) 的真实三维工厂样场，比较 40° / 55° / 70°、光照与透明遮挡。保留 [Web Style Comparison Demo V1](../design/web-style-comparison-demo-v1.md)、[Topdown 3D Comparison Demo V1](../design/topdown-3d-comparison-demo-v1.md) 与二维 Godot 样板作为参照，由萝卜SAMA选择后续路线；不自行验收或迁移。
 
 上一轮 [管道模块验证](../design/transparent-pipe-module-visual-validation-v1.md) 已在 `280abdde` 保存，保留为未验收试验；本次只新增隔离体积样板。工厂 v2 整体评价及既有操作手感复评继续保留，局部样板不替代它们。既有物流 / 建造专项 `180` / `152` 项与正式窗口 `59` 项断言继续保留；不新增液气玩法系统、不迁移 Web、不切换 3D、不做全仓重构。
 

@@ -1,0 +1,151 @@
+{
+  "mode": "built-in image_gen",
+  "total_tool_calls": 3,
+  "retries": 0,
+  "entries": [
+    {
+      "category": "industrial",
+      "prompt": "Use case: stylized-concept.\nAsset type: transparent industrial sprite atlas for a local Web 2.5D game comparison demo.\nGenerate exactly one original PNG image, 1536 x 1024 pixels, with genuine transparent alpha background. Exact invisible layout: 3 columns x 2 rows, each cell 512 x 512 pixels. Do not draw labels, grid lines, cell backgrounds, or borders.\nTop row cell (0,0), x=0..511 y=0..511: single fully contained squat chemical reactor tank, muted teal painted steel, cream frame, warm brass flange, dark hand-inked outlines, watercolor/gouache wash. Orthographic elevated three-quarter view, front facing screen bottom, right side and top visible, lighting from upper left.\nTop row cell (1,0), x=512..1023 y=0..511: single horizontal elevated transparent EMPTY glass pipe with exactly two brass collars, drawn straight screen-left to screen-right, NO legs or supports. View and materials consistent with the reactor. Glass center must look visibly clear and transparent.\nTop row cell (2,0), x=1024..1535 y=0..511: one narrow pipe support trestle standalone, same elevated view, no pipe.\nEntire bottom row, y=512..1023, is EMPTY transparent alpha.\nEach of the three top-row objects is centered within its own 512-square cell with at least 64 pixels padding from all cell edges. No object overlaps any cell boundary. No ground, floor, cast shadows, scenery, text, watermark, extra objects.\nStyle: original muted ink-outline cozy hand-painted 2.5D mobile village art, industrial sci-fi subject, soft gouache and watercolor surface texture, clean readable silhouette. Not pixel art, not glossy 3D. Deliver actual transparency, never a painted checkerboard.",
+      "source": "/Users/luobo/.codex/generated_images/01a075df-332b-7870-9ffc-2ed6256ae9fe/exec-6164c626-c119-47dc-bb05-db9352c96004.png",
+      "tool_calls": 1,
+      "output": "/Users/luobo/Code/RadishCatalyst/assets/art-intake/2026-09-06-web-handpainted/industrial/original.png",
+      "inspection": {
+        "width": 1536,
+        "height": 1024,
+        "bit_depth": 8,
+        "color_type": 6,
+        "sha256": "b5fe3ad58be5cb38b28182456abb7f04156725895af4ad2d084b1f8c715a5f10",
+        "bytes": 1407012,
+        "alpha": {
+          "present": true,
+          "minimum": 0,
+          "maximum": 254,
+          "transparent_pixels": 1315102,
+          "opaque_pixels": 0,
+          "partial_pixels": 257762,
+          "transparent_fraction": 0.8361193339029948,
+          "bounds_above_0": [
+            61,
+            8,
+            1498,
+            998
+          ],
+          "bounds_above_127": [
+            66,
+            56,
+            1436,
+            501
+          ],
+          "bounds_above_250": [
+            67,
+            57,
+            1435,
+            498
+          ]
+        },
+        "bottom_row_alpha_nonzero": 198,
+        "bottom_row_alpha_max": 1
+      },
+      "source_copy_sha256_matches": true,
+      "review": "有真实 alpha，反应器、玻璃管和独立支架均已生成；玻璃中部带较强白色反光。主要可见对象位于上排，底排存在 198 个 alpha=1 的极弱残留像素，不是严格空白。对象未严格满足 64 px 内边距。原图保留，作为 Web 演示候选，未做切片或视觉验收。"
+    },
+    {
+      "category": "character",
+      "prompt": "Use case: stylized-concept.\nAsset type: transparent character sprite for a local Web 2.5D game comparison demo.\nGenerate exactly one original PNG image, 1024 x 1024 pixels, with genuine transparent alpha background.\nSubject: one full-body chibi industrial engineer facing down-right, teal work clothes, cream helmet, amber visor. Friendly readable silhouette.\nStyle: original muted ink-outline cozy hand-painted 2.5D mobile village art, dark hand-inked outlines, soft watercolor/gouache wash, industrial sci-fi, not pixel art, not glossy 3D.\nView: orthographic high-angle elevated three-quarter view, consistent with an industrial reactor viewed with right side and top visible, lighting upper left.\nComposition: centered character fits central 60 percent of image height, feet near 80 percent of image height, entire helmet, arms and feet fully visible with generous transparent padding.\nNo shadow, floor, ground, background, scenery, text, labels, watermark, extra characters or objects. Deliver actual transparency, never a painted checkerboard.",
+      "source": "/Users/luobo/.codex/generated_images/01a075df-332b-7870-9ffc-2ed6256ae9fe/exec-793fcb36-9fbd-4b0a-8cc5-71cd00efca96.png",
+      "tool_calls": 1,
+      "output": "/Users/luobo/Code/RadishCatalyst/assets/art-intake/2026-09-06-web-handpainted/character/original.png",
+      "inspection": {
+        "width": 1254,
+        "height": 1254,
+        "bit_depth": 8,
+        "color_type": 6,
+        "sha256": "9fc1d63dc0230c77ba8bc0a7a608bc0fd5d773779184fd152d97b911bab33d6b",
+        "bytes": 984259,
+        "alpha": {
+          "present": true,
+          "minimum": 0,
+          "maximum": 255,
+          "transparent_pixels": 1188606,
+          "opaque_pixels": 745,
+          "partial_pixels": 383165,
+          "transparent_fraction": 0.755862579458651,
+          "bounds_above_0": [
+            39,
+            21,
+            1134,
+            1254
+          ],
+          "bounds_above_127": [
+            318,
+            53,
+            885,
+            1196
+          ],
+          "bounds_above_250": [
+            320,
+            54,
+            884,
+            1195
+          ]
+        }
+      },
+      "source_copy_sha256_matches": true,
+      "review": "有真实 alpha，角色朝右下，服装、头盔和护目镜符合配色方向。实际尺寸 1254×1254，未遵循 1024×1024 请求；可见角色约占图高 91%，脚部接近图高 95%，未遵循中央 60% 高度与脚部 80% 的构图要求。原图保留，未做裁切、缩放或视觉验收。"
+    },
+    {
+      "category": "ground",
+      "prompt": "Use case: stylized-concept.\nAsset type: seamless repeating ground texture for a local Web 2.5D game comparison demo.\nGenerate exactly one original opaque PNG image, 1024 x 1024 pixels.\nSubject: seamless repeating floor texture of muted warm grey worn industrial concrete slabwork, low-contrast charcoal ink mortar seams, soft hand-painted watercolor/gouache wash, subtle stains.\nView: top-down orthographic ground plane. Uniform ground-only coverage edge to edge, seamless repeating in both axes with matching edges.\nStyle: original muted ink-outline cozy hand-painted 2.5D mobile village art, industrial sci-fi material, not pixel art, not glossy 3D. Keep values and contrast restrained so characters and machines read clearly over it.\nNo objects, machinery, vegetation, perspective, horizon, text, labels, watermark or border. Opaque floor material, no transparency.",
+      "source": "/Users/luobo/.codex/generated_images/01a075df-332b-7870-9ffc-2ed6256ae9fe/exec-86db47c2-9686-4eac-be39-15c46db5cdbe.png",
+      "tool_calls": 1,
+      "output": "/Users/luobo/Code/RadishCatalyst/assets/art-intake/2026-09-06-web-handpainted/ground/original.png",
+      "inspection": {
+        "width": 1254,
+        "height": 1254,
+        "bit_depth": 8,
+        "color_type": 2,
+        "sha256": "aabdb562edeeb1e1f05a29149354cf8cba55a2348ad6d97893ed9159f5fd4079",
+        "bytes": 1918672,
+        "alpha": {
+          "present": false,
+          "minimum": 255,
+          "maximum": 255,
+          "transparent_pixels": 0,
+          "opaque_pixels": 1572516,
+          "partial_pixels": 0,
+          "transparent_fraction": 0.0,
+          "bounds_above_0": [
+            0,
+            0,
+            1254,
+            1254
+          ],
+          "bounds_above_127": [
+            0,
+            0,
+            1254,
+            1254
+          ],
+          "bounds_above_250": [
+            0,
+            0,
+            1254,
+            1254
+          ]
+        }
+      },
+      "source_copy_sha256_matches": true,
+      "review": "RGB 不透明地面图，俯视灰色混凝土板面与低对比手绘质感符合方向。实际尺寸 1254×1254，未遵循 1024×1024 请求。未验证边缘拼接无缝性，仍需在重复铺设效果中审阅。原图保留，未做缩放或视觉验收。"
+    }
+  ],
+  "integration": {
+    "selected_files": [
+      "industrial.png",
+      "character.png",
+      "ground.png"
+    ],
+    "method": "Byte-identical originals; Canvas source rectangles and finite runtime material opacity only",
+    "status": "Integrated in isolated Web demo; not production-art acceptance",
+    "evidence": "assets/art-intake/2026-09-06-web-style-preview/"
+  }
+}
