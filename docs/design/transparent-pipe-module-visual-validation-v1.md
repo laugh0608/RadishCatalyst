@@ -6,6 +6,8 @@
 
 2026-09-06 用户反馈：“我总感觉没达到我想象中的那种效果”。按要求先提交当前工作区，留出思考时间；具体差距尚未明确，不从检查通过推导视觉成功，也不自行追加素材修订或功能开发。
 
+后续反馈明确为“感觉没有那种 2.5D 的感觉”。萝卜SAMA已同意先推进 [Industrial Volume Visual Study V1](industrial-volume-visual-study-v1.md)，从设备、架空管道和地面的统一体积关系重新验证；本模块包保留为未验收记录，不继续在原样板上追加同类平面微调。
+
 ## 目标与授权
 
 承接 [Small Chemical Factory Visual Target V1](small-chemical-factory-visual-target-v1.md) 已认可的透明管段、金属接头和管壁动态双箭头方向。本包只回答“能否在原生游戏比例下装配、辨认和连续表达流向”，不实现可建造管道或液气输送。

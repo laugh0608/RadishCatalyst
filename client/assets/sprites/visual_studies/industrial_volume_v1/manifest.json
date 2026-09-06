@@ -1,0 +1,243 @@
+{
+  "purpose": "isolated-volume-visual-study",
+  "source": "assets/art-intake/2026-09-06-industrial-volume-assets/industrial-volume-parts-source-v1.png",
+  "source_sha256": "9b1347ba5908f7e14a449474974fd899cf3befa79a27b01bd42cd8295f7a5e86",
+  "method": "source-bounded uniform integer block medians, magenta removal, shared material palette",
+  "glass_alpha": {
+    "region": [
+      17,
+      9,
+      79,
+      20
+    ],
+    "midtones": 110,
+    "highlights": 220
+  },
+  "palette": [
+    [
+      21,
+      28,
+      30
+    ],
+    [
+      71,
+      120,
+      112
+    ],
+    [
+      74,
+      97,
+      101
+    ],
+    [
+      86,
+      200,
+      196
+    ],
+    [
+      111,
+      107,
+      94
+    ],
+    [
+      129,
+      134,
+      121
+    ],
+    [
+      130,
+      123,
+      111
+    ],
+    [
+      132,
+      126,
+      115
+    ],
+    [
+      138,
+      131,
+      117
+    ],
+    [
+      142,
+      132,
+      115
+    ],
+    [
+      142,
+      134,
+      121
+    ],
+    [
+      143,
+      134,
+      118
+    ],
+    [
+      145,
+      135,
+      117
+    ],
+    [
+      146,
+      134,
+      118
+    ],
+    [
+      147,
+      109,
+      72
+    ],
+    [
+      147,
+      137,
+      121
+    ],
+    [
+      148,
+      138,
+      122
+    ],
+    [
+      151,
+      156,
+      158
+    ],
+    [
+      169,
+      149,
+      114
+    ],
+    [
+      184,
+      132,
+      74
+    ],
+    [
+      198,
+      186,
+      164
+    ],
+    [
+      219,
+      210,
+      193
+    ],
+    [
+      244,
+      158,
+      11
+    ],
+    [
+      246,
+      172,
+      20
+    ],
+    [
+      253,
+      239,
+      116
+    ],
+    [
+      224,
+      164,
+      60
+    ]
+  ],
+  "checks": {
+    "declared_canvas_sizes": true,
+    "no_magenta_background": true,
+    "machine_foot_gap": true,
+    "clear_glass_alpha": true,
+    "pipe_cyan_content": true,
+    "all_parts_have_coverage": true,
+    "shadow_masks_binary": true
+  },
+  "assets": {
+    "machine.png": {
+      "source_bounds": [
+        69,
+        164,
+        457,
+        487
+      ],
+      "integer_factor": 4,
+      "canvas": [
+        128,
+        128
+      ],
+      "sha256": "b53f84dd222810dc08469007cd503afdb44e216f0c49bca080c6a79c53cefbd2"
+    },
+    "pipe.png": {
+      "source_bounds": [
+        555,
+        263,
+        964,
+        380
+      ],
+      "integer_factor": 5,
+      "canvas": [
+        96,
+        32
+      ],
+      "sha256": "ffff312794191329040d582de327b5a4246955ca3a1af35cc405cdcc40a514f2"
+    },
+    "support.png": {
+      "source_bounds": [
+        156,
+        777,
+        285,
+        987
+      ],
+      "integer_factor": 8,
+      "canvas": [
+        32,
+        32
+      ],
+      "sha256": "9c9a43326098276c7925519201341a3d78777e300fc9be0c23ea5785a0aa1077"
+    },
+    "machine_shadow.png": {
+      "source_bounds": [
+        543,
+        708,
+        927,
+        1023
+      ],
+      "integer_factor": 4,
+      "canvas": [
+        128,
+        96
+      ],
+      "sha256": "0d4ca54b9c1b803e03ef149e06d808da64fe88adce14d2881e19f70f73173d81"
+    },
+    "pipe_shadow.png": {
+      "source_bounds": [
+        86,
+        1279,
+        463,
+        1350
+      ],
+      "integer_factor": 5,
+      "canvas": [
+        96,
+        16
+      ],
+      "sha256": "69cb15c0d7b87e44d7c3c9d630c2e5887615c511356b09f5296fdc8c19ac5133"
+    },
+    "support_shadow.png": {
+      "source_bounds": [
+        631,
+        1268,
+        766,
+        1374
+      ],
+      "integer_factor": 8,
+      "canvas": [
+        32,
+        16
+      ],
+      "sha256": "94165d30512d62b64160834e7133a3fba9057305a079750753aa27f60865b9b8"
+    }
+  }
+}

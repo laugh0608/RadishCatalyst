@@ -5,7 +5,7 @@
 ## 当前阶段
 
 ```text
-小型化工厂视觉目标探索与管道模块验证
+小型化工厂视觉目标探索与局部体积验证
 ```
 
 本轮方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为优先真相源：化工生产经营成为核心，探索为生产提供资源、空间和长期目的；战斗体量、美术介质、Web 迁移和随机工业投入的具体系统均未决定。
@@ -17,6 +17,7 @@
 - 小区域工厂片段的玩家反馈实现与系统验证已经完成：真实端口接缝按物流方向刷新，建造态允许 `WASD`、近身 `E` 与无预览时鼠标选中已有设备进入既有调整流程。
 - 常态画面采用固定高斜角，建造模式以 `1.5` 档位拉远并显示网格、足印、接口和流向，同时弱化遮挡；继续复用现有素材与实现。
 - 工厂整图按 [Small Chemical Factory Visual Target V1](../design/small-chemical-factory-visual-target-v1.md) 保留 v1 / v2 候选。透明管段、金属接头及管壁动态流向标识已获用户认可；已授权 [Transparent Pipe Module Visual Validation V1](../design/transparent-pipe-module-visual-validation-v1.md) 的有限模块制作、机械归一和 Godot 隔离视觉验证。
+- 管道模块被反馈缺少 2.5D 体积感；[Industrial Volume Visual Study V1](../design/industrial-volume-visual-study-v1.md) 的 v2 获得“有点那种感觉了”的方向反馈。按用户后续授权，已完成少量独立像素素材与正常游戏比例隔离验证，等待实机体积评价。
 - 目标图是概念候选，不是游戏截图或可直接接入的正式资产；萝卜SAMA对整改后完整操作手感的复评继续保留为待办，但不是本轮首要动作。
 - 工业研发、试制、勘探和传统抽卡都只是随机投入的候选表达，不进入本轮实现。
 
@@ -30,9 +31,9 @@
 
 ## 下一步
 
-萝卜SAMA反馈当前整体效果尚未达到想象中的预期，要求先提交成果并留出思考时间。当前暂停推进，待用户明确差距或后续方向后再继续；已有检查通过不代表视觉验收。
+在 [Industrial Volume Visual Study V1](../design/industrial-volume-visual-study-v1.md) 的独立复核世界，评价一台设备与一段架空管道在正常游戏尺寸下的顶侧面、支撑、投影和角色遮挡。候选 v2 只获得体积方向改善反馈，不代表本次独立素材已经验收；建造态网格 / 弱化遮挡与现有地板纹理问题保留为实际限制。
 
-按 [管道模块验证合同](../design/transparent-pipe-module-visual-validation-v1.md) 复核已完成的 32px 样板：直管、代表弯头和端接头已取得机械检查与正式窗口动态证据，下一步由萝卜SAMA评价原生比例下的管径、材质和状态读法。工厂整图 v2 的整体评价及既有操作手感复评仍保留，局部管道方向通过不替代它们。既有物流 / 建造专项 `180` / `152` 项与正式窗口 `59` 项断言继续保留；不新增液气玩法系统、不迁移 Web、不切换 3D、不做全仓重构。
+上一轮 [管道模块验证](../design/transparent-pipe-module-visual-validation-v1.md) 已在 `280abdde` 保存，保留为未验收试验；本次只新增隔离体积样板。工厂 v2 整体评价及既有操作手感复评继续保留，局部样板不替代它们。既有物流 / 建造专项 `180` / `152` 项与正式窗口 `59` 项断言继续保留；不新增液气玩法系统、不迁移 Web、不切换 3D、不做全仓重构。
 
 ## 退出条件
 
