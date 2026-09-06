@@ -18,17 +18,11 @@
 
 ## 当前边界
 
-- 小区域工厂片段的玩家反馈实现与系统验证已经完成：真实端口接缝按物流方向刷新，建造态允许 `WASD`、近身 `E` 与无预览时鼠标选中已有设备进入既有调整流程。
-- 常态画面采用固定高斜角，建造模式以 `1.5` 档位拉远并显示网格、足印、接口和流向，同时弱化遮挡；继续复用现有素材与实现。
-- 工厂整图按 [Small Chemical Factory Visual Target V1](../design/small-chemical-factory-visual-target-v1.md) 保留 v1 / v2 候选。透明管段、金属接头及管壁动态流向标识已获用户认可；已授权 [Transparent Pipe Module Visual Validation V1](../design/transparent-pipe-module-visual-validation-v1.md) 的有限模块制作、机械归一和 Godot 隔离视觉验证。
-- 管道模块被反馈缺少 2.5D 体积感；[Industrial Volume Visual Study V1](../design/industrial-volume-visual-study-v1.md) 的 v2 获得“有点那种感觉了”的方向反馈。按用户后续授权，已完成少量独立像素素材与正常游戏比例隔离验证，等待实机体积评价。
-- 体积样板与建造分层已在 `e4f63d5d` / `6264e17d` 保存。[Raised Pipe Module Visual Validation V1](../design/raised-pipe-module-visual-validation-v1.md) 已按用户授权完成有限可拼接模块、动态内容与隔离验证，等待连续装配的实机体积评价。
-- 目标图是概念候选，不是游戏截图或可直接接入的正式资产；萝卜SAMA对整改后完整操作手感的复评继续保留为待办，但不是本轮首要动作。
-- 工业研发、试制、勘探和传统抽卡都只是随机投入的候选表达，不进入本轮实现。
-- 已授权 [Topdown 3D Comparison Demo V1](../design/topdown-3d-comparison-demo-v1.md)：独立工程与实机对照已完成，等待路线选择；不代表正式客户端切换 3D。
-
-- 已授权 [Web Style Comparison Demo V1](../design/web-style-comparison-demo-v1.md)：同场景比较手绘 2.5D 与现有像素素材，限本机独立 Demo；不代表正式 Web 迁移。
-- 已授权并完成 [Web Topdown 3D Demo V1](../design/web-topdown-3d-demo-v1.md)：使用局部 Three.js 依赖建立七台设备的真实三维样场，比较三档俯角、光照与遮挡；等待用户评价。
+- 当前 Web `/play/` 为预供电、预发构件的三机固体链；真实放置、端口、加工、回压和拆改回收已实现。使用暂定 `55°` 正交斜俯视，建造时显示网格与端口，允许转角 / 缩放；没有自动切换旧 Godot 的 `1.5` 建造倍率，也没有移植其近身 `E` 设备操作。
+- 本包刷新即重置，无游戏存档、离线生产或正式 schema 改动。新增局部 Three.js 依赖和 Web 模型只服务隔离体验，不代表与正式 Godot 运行时完整等价。
+- 既有 [Godot 工厂片段](../features/factory-building-experience-validation-v1.md) 的端口接缝、建造态移动 / 选择及 `1.5` 建造倍率继续作为已实现基线；手感复评保留，但不是明天首要动作。
+- 管道、像素体积、Godot 3D、Web 手绘与 Web 3D 对照均保留为局部证据，按 [Design Documents](../design/README.md) 路由；概念候选与自动检查不等于美术验收。当前暂定 Web 三维承载产线，暂停追加画风和引擎对照。
+- 正式平台、量产美术、完整工厂负载、液气系统与随机工业投入仍未决定；明天先收集本包玩家反馈。
 
 ## 当前不做
 
@@ -54,5 +48,4 @@
 
 - 文档：`./scripts/check-docs.sh`、`./scripts/check-text-files.sh`、`git diff --check`、`./scripts/check-repo.sh`。
 - Web 产线执行本专题 Node 定向测试及真实浏览器放置 / 连接 / 断路恢复；日志、截图与未覆盖项见专题，不替换正式 Boot。
-- 管道模块包另执行客户端静态检查、独立 Godot 导入 / 定向检查与正式 `Boot` 隔离视觉验证；开窗前先告知。
-- 管道模块包客户端静态检查及正式窗口定向检查通过，实际证据与未验证项见该包合同；旧完整 `check-client --with-godot`、焦点 probe 及 `67 + 6` 等工厂检查保留为各自历史证据。后续玩家可见实现仍须遵循 [Godot Runtime Verification Guide](../reference/godot-runtime-verification-guide.md)。
+- 后续若修改正式客户端或重做 Godot 样板，再按对应专题及 [Godot Runtime Verification Guide](../reference/godot-runtime-verification-guide.md) 选择静态 / 窗口验证；开窗前先告知。旧正式 Boot、完整套件和各批定向结果均保持独立，不混算为本包通过。

@@ -4,6 +4,8 @@
 
 状态：**独立素材及建造态分层收口已完成定向验证，等待萝卜SAMA实机评价；尚未定稿**。
 
+后续已实施[架空管道模块](raised-pipe-module-visual-validation-v1.md)和独立三维对照，并经用户确认转入 [Web First Production Line V1](../features/web-first-production-line-v1.md)。下文各轮“下一步”保留当时决策语境；本样板的复评不再是每日默认任务，正式像素标准未因此改动。
+
 ## 问题与范围
 
 承接 [Transparent Pipe Module Visual Validation V1](transparent-pipe-module-visual-validation-v1.md)。该包在 `280abdde` 保存后，萝卜SAMA进一步明确“感觉没有那种 2.5D 的感觉”，并同意先做一小块“设备＋架起的管道＋地面”的体积样板，再考虑模块化。

@@ -1,8 +1,8 @@
 # Factory Building Experience Validation V1
 
-更新时间：2026-09-05
+更新时间：2026-09-06
 
-状态：**玩家实测反馈实现与系统验证已完成，手感待复评；当前转入小型化工厂视觉目标评审**。上一轮 16:9 的 `67` 项与 16:10 的 `6` 项及本轮独立定向证据继续保留为工厂片段事实。当前 [Small Chemical Factory Visual Target V1](../design/small-chemical-factory-visual-target-v1.md) 只探索场景组织与美术方向，不新增本专题功能；功能证据通过不等于视觉方向通过。
+状态：**Godot 片段的玩家反馈实现与系统验证已完成，手感复评保留；当前优先体验入口为 Web 产线**。上一轮 16:9 的 `67` 项与 16:10 的 `6` 项及独立定向证据继续保留为本片段事实。后续先经过[小型化工厂视觉目标](../design/small-chemical-factory-visual-target-v1.md)等局部对照，再获用户确认实施 [Web First Production Line V1](web-first-production-line-v1.md)；本专题的 Godot 范围、存档、端口和回归合同不因 Web 试验改写，功能检查通过不等于体验或视觉验收。
 
 ## 玩家结果
 

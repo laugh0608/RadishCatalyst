@@ -59,6 +59,7 @@ WASD 移动在建造时可用；世界点击按“活动预览 → 选择设备 
 - 启动：仓库根目录执行 `sh tools/run-web-topdown-3d-demo.sh`，打开 `http://127.0.0.1:4318/play/`；已有本机服务运行时直接打开。当前入口无存档，刷新或确认重新开始会重置本次试验。
 - 生产状态、网格拓扑、守恒和碰撞在 `production/model.mjs`；三维设备、货物与状态灯在 `scene.mjs`；建造 / 选择 / 回收与目标进度在 `app.mjs`。复用原场坪和设备模型，原 `/` 对照入口保留。
 - `node --test tools/visual-studies/web-topdown-3d/production/verify.mjs tools/visual-studies/web-topdown-3d/verify.mjs` 共 `18` 项通过，其中本包 `12` 项、原样场 `6` 项。覆盖合流公平性、断路与新批次恢复、回压、回收容量与原子性、物料 / 构件守恒、固定步长和 HTTP 允许列表。
+- 本包与文档已保存于 `3664c975`；Demo 目录的 `npm test` 只执行原样场六项检查，不能代替上述联合命令。明日亲测与反馈记录入口见 [Daily Start](../planning/daily-start.md)，自动检查不代替用户体验评价。
 - 浏览器以 `1440×900 / DPR 2` 从空场坪通过构件栏、X / Z 和放置按钮建成三机九带；通过三维画面点击选带，完成载货转向拒绝、拆输入、真实缺料、补接与新产物入仓。拆输出后实测反应器输入 `2 / 2`、输出 `1 / 1`、等待出料；补接后恢复加工并再次入仓。全部使用可见界面，没有调用内部模型方法或加速生产。
 - 回收的 `1 crystal + 1 catalyst` 经设备面板投入终端仓，回收箱清空；直接投入不增加传送带入仓计数。建造时键盘短按与窄屏移动按钮均改变角色位置。`390×844` 窄屏页面宽度 `390`，无横向溢出；页面最小高度 `860`，需要少量纵向滚动。窄屏只检查布局和按钮，未在手机硬件完成全链复测。
 - 日志在 `tools/runtime-intake/check-runs/web-first-production-line/`，包含 `browser-observations.json`、`browser-console.json`、`narrow-layout.json` 和 Node / 仓库检查日志。续接有效截图以 `resume-03` 至 `resume-08` 开头，位于本专题约定截图目录；前两张续接截图受到浏览器截图尺寸问题影响，仅保留为过程记录。当前浏览器控制台无警告或错误。

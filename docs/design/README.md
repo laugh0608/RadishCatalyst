@@ -26,4 +26,14 @@
 - [Onboarding And First Hour](onboarding-and-first-hour.md)
 - [Resources And Process Chain](resources-and-process-chain.md)
 
-- [Topdown 3D Comparison Demo V1](topdown-3d-comparison-demo-v1.md) — 独立真实三维与既有像素样板对照，等待用户选择画面路线。
+## 视觉研究与当前体验入口
+
+当前可执行体验为 [Web First Production Line V1](../features/web-first-production-line-v1.md)，等待用户亲测。下列视觉研究保留各自的未验收项与证据，不作为并行待办，也不代表正式平台迁移。
+
+- [Small Chemical Factory Visual Target V1](small-chemical-factory-visual-target-v1.md) — 工厂概念候选与透明管道方向反馈。
+- [Transparent Pipe Module Visual Validation V1](transparent-pipe-module-visual-validation-v1.md) — 32px 透明管、动态标识与定向验证；体积效果未验收。
+- [Industrial Volume Visual Study V1](industrial-volume-visual-study-v1.md) — 独立像素设备 / 管道 / 支撑与建造态分层。
+- [Raised Pipe Module Visual Validation V1](raised-pipe-module-visual-validation-v1.md) — 可拼接架空管道与动态材质；无真实液气系统。
+- [Topdown 3D Comparison Demo V1](topdown-3d-comparison-demo-v1.md) — Godot 独立真实三维与既有像素样板对照。
+- [Web Style Comparison Demo V1](web-style-comparison-demo-v1.md) — Web Canvas 手绘 / 像素对照。
+- [Web Topdown 3D Demo V1](web-topdown-3d-demo-v1.md) — Web 七机视觉样场、局部 Three.js 依赖及后续 `/play/` 路由。

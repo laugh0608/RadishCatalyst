@@ -4,6 +4,8 @@
 
 状态：有限模块制作、动态材质与隔离实机验证已完成，等待用户评价；不代表正式资产验收。
 
+后续已转入独立三维对照，再经用户确认实施 [Web First Production Line V1](../features/web-first-production-line-v1.md)。当前先亲测三维固体产线；本包保留为像素架空管道证据，不继续扩展模块族或液气系统。
+
 ## 玩家目标与范围
 
 承接 [Industrial Volume Visual Study V1](industrial-volume-visual-study-v1.md) 与 `6264e17d` 的建造态分层。萝卜SAMA同意下一步制作可拼接体积管道，以当前体积方向继续推进；该授权不代替最终视觉验收。

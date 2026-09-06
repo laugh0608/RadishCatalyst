@@ -8,7 +8,7 @@
 
 萝卜SAMA在查看 [Web Style Comparison Demo V1](web-style-comparison-demo-v1.md) 后反馈“似乎 Web 更容易，效果更好”，并希望进一步接近《银河破裂者》或《逃离鸭科夫》的俯视 / 斜俯视 3D 感。此反馈表明用户希望继续探索，不等于现有像素、手绘、Web 平台或正式迁移已经验收。
 
-本提案将下一包定义为本机 Web 真 3D 场景：固定高斜角为主要观察方式，用真实几何、统一光照、接地投影与深度缓冲比较空间表现。画面追求可读的风格化工业体块与材质，不把参考游戏的完整内容、美术量产水准或运行性能承诺为本包目标。
+本包实现本机 Web 真 3D 场景：固定高斜角为主要观察方式，用真实几何、统一光照、接地投影与深度缓冲比较空间表现。画面追求可读的风格化工业体块与材质，不把参考游戏的完整内容、美术量产水准或运行性能承诺为本包目标。
 
 ## 五问与有限范围
 
@@ -30,18 +30,18 @@
 
 ## 依赖与授权
 
-当前仓库没有已声明的 Three.js / Babylon.js 依赖。建议只新增 Three.js，沿用本机 Node 和有限文件服务，不为此包引入 UI 框架或资产包。Three.js 官方提供本地 npm 安装与直接 ES module 使用方式，见 [Installation](https://threejs.org/manual/en/installation.html)。
+提案时仓库没有已声明的 Three.js / Babylon.js 依赖；本包已按授权新增并锁定 Three.js，沿用本机 Node 和有限文件服务，没有引入 UI 框架或资产包。安装方式参考 [Three.js Installation](https://threejs.org/manual/en/installation.html)，实际版本以 `tools/visual-studies/web-topdown-3d/` 中的 `package.json` 和 `package-lock.json` 为准。
 
-拟在独立 Demo 目录执行：
+首次在独立 Demo 目录执行的安装命令（历史记录，日常启动不重装）：
 
 ```sh
 npm install --save-exact --ignore-scripts --no-audit --no-fund three \
   --cache ../../runtime-intake/check-runs/web-topdown-3d/npm-cache
 ```
 
-首次解析的发布版本写入 `package.json` 与 `package-lock.json`；依赖落在该目录的 `node_modules/`，缓存放入仓库忽略的检查目录。新增局部忽略规则，不修改全局 Node / npm / 编辑器配置，不使用运行时外部 CDN。
+首次解析的发布版本已写入 `package.json` 与 `package-lock.json`；依赖落在该目录的 `node_modules/`，缓存放入仓库忽略的检查目录。局部忽略规则已提交，没有修改全局 Node / npm / 编辑器配置，不使用运行时外部 CDN。
 
-2026-09-06，萝卜SAMA回复“确认”，授权上述本地 Web 真 3D 有限场景与单一 Three.js 安装。原 Web 2D 批次尚未提交，按原样保留并继续在 `dev / e7b60b66` 工作；本次不代表正式 Web / 3D 迁移。
+2026-09-06，萝卜SAMA回复“确认”，授权上述本地 Web 真 3D 有限场景与单一 Three.js 安装。实施起点为 `dev / e7b60b66`，当时未提交的 Web 2D 批次完整保留；两项随后一并保存于 `16309eec`。本次不代表正式 Web / 3D 迁移。
 
 实际安装并锁定 `three@0.185.1`，共一个依赖包；浏览器从本机明确文件清单加载核心模块与两个官方 addon，无运行时 CDN。
 
@@ -67,3 +67,9 @@ npm install --save-exact --ignore-scripts --no-audit --no-fund three \
 执行会话观察：40° 的侧面与管下空间最明显，55° 平衡体积与布局，70° 更偏布局观察。这是本样场判断，不是参考游戏参数。玻璃偏乳白、模型重复与细节简化仍可见；真实网格机制通过不代表量产美术验收。移动设备实机、长时操作、复杂透明交叉、战斗、生产、存档和联机均未覆盖。
 
 最终 `./scripts/check-repo.sh`（1603 文件）、`./scripts/check-docs.sh`、`./scripts/check-text-files.sh`、`git diff --check` 与六项 Node 测试通过；结果汇总在 `tools/runtime-intake/check-runs/web-topdown-3d/validation-result.json`。本次没有修改正式客户端，未重跑 Godot / Boot 套件。
+
+## 后续产线入口
+
+用户随后确认暂定本轮画面，把下一步转向亲手搭建与生产体验。[Web First Production Line V1](../features/web-first-production-line-v1.md) 已在同一服务的 `/play/` 实现三机固体链；本页 `/` 仍是七机视觉对照，不包含生产。Godot 同场景复现暂后排，正式平台与美术路线尚未定稿。
+
+`package.json` 的 `npm test` 目前只运行本页六项测试。检查产线及原样场须在仓库根运行 `node --test tools/visual-studies/web-topdown-3d/production/verify.mjs tools/visual-studies/web-topdown-3d/verify.mjs`；不能将单独的 `npm test` 写成已覆盖 `/play/`。

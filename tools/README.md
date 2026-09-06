@@ -2,6 +2,23 @@
 
 项目辅助脚本目录，用于数据处理、构建、导出、检查和自动化任务。
 
+## 局部视觉研究与产线试玩
+
+`visual-studies/` 保存独立 Demo；正式 Godot 客户端仍在 `client/`。启动命令均从仓库根执行，范围和证据见专题，开窗前遵守告知要求。
+
+| 入口 | 用途与合同 |
+| --- | --- |
+| `sh tools/run-web-topdown-3d-demo.sh` | 本机 `4318`：`/play/` 为[首条三维产线](../docs/features/web-first-production-line-v1.md)，`/` 为[七机视觉样场](../docs/design/web-topdown-3d-demo-v1.md)；已有 Node 与局部锁定 Three.js，无游戏存档 |
+| `sh tools/run-web-style-demo.sh` | 本机 `4317`：[手绘 / 像素 Canvas 对照](../docs/design/web-style-comparison-demo-v1.md)，只需已有 Node |
+| `sh tools/run-topdown-3d-demo.sh` | [独立 Godot 3D](../docs/design/topdown-3d-comparison-demo-v1.md)，不借用正式 Boot |
+| `sh tools/run-pipe-visual-study.sh` | [透明管道样板](../docs/design/transparent-pipe-module-visual-validation-v1.md)，正式 Boot 隔离世界 |
+| `sh tools/run-industrial-volume-study.sh` | [像素体积样板](../docs/design/industrial-volume-visual-study-v1.md)，正式 Boot 隔离世界 |
+| `sh tools/run-raised-pipe-modules.sh` | [架空管道模块](../docs/design/raised-pipe-module-visual-validation-v1.md)，正式 Boot 隔离世界 |
+
+四个 Godot 入口均支持 `--verify`；使用已安装 Godot，允许 `GODOT_EXE` 指定路径。Web 仅监听 loopback；若服务已经运行，直接访问，不重复启动或重装依赖。三维 Demo 内的 `npm test` 只覆盖原样场，完整产线定向检查命令见产线专题。
+
+本轮像素处理入口为 `normalize_pipe_visual_study.py`、`normalize_industrial_volume_study.py`、`normalize_raised_pipe_modules.py`，均依赖已有零依赖归一基础库、固定源图及 SHA-256 校验。它们会写入对应 `client/assets/sprites/visual_studies/`，不能把“打开样板”误作重新归一素材；没有对应忽略目录源图的机器不可复跑。日志 / 隔离存档在 `tools/runtime-intake/`，原图 / 截图在 `assets/art-intake/`，具体子目录由专题约定。
+
 ## 像素归一管线（零依赖）
 
 - `normalize_pixel_asset.py`：像素素材归一基础库与 CLI（仅 Python 标准库）。能力：整数块降采样（块内逐通道中位数）、近黑底去背（边界泛洪 + 封闭孔判定）、限定调色板量化（median cut 上限 + 标准锚点吸附）、地面 128x128 宏块（4x4 个 32px tile）、横版多对象切分、明度基线匹配、2x2 拼贴与接缝比率自查。机械口径见 `docs/reference/pixel-art-and-grid-standard.md`。
