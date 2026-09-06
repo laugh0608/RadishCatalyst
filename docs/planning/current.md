@@ -5,7 +5,7 @@
 ## 当前阶段
 
 ```text
-小型化工厂视觉目标探索与局部体积验证
+小型化工厂视觉目标探索与俯视角 3D 隔离对照
 ```
 
 本轮方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为优先真相源：化工生产经营成为核心，探索为生产提供资源、空间和长期目的；战斗体量、美术介质、Web 迁移和随机工业投入的具体系统均未决定。
@@ -21,6 +21,7 @@
 - 体积样板与建造分层已在 `e4f63d5d` / `6264e17d` 保存。[Raised Pipe Module Visual Validation V1](../design/raised-pipe-module-visual-validation-v1.md) 已按用户授权完成有限可拼接模块、动态内容与隔离验证，等待连续装配的实机体积评价。
 - 目标图是概念候选，不是游戏截图或可直接接入的正式资产；萝卜SAMA对整改后完整操作手感的复评继续保留为待办，但不是本轮首要动作。
 - 工业研发、试制、勘探和传统抽卡都只是随机投入的候选表达，不进入本轮实现。
+- 已授权 [Topdown 3D Comparison Demo V1](../design/topdown-3d-comparison-demo-v1.md)：独立工程与实机对照已完成，等待路线选择；不代表正式客户端切换 3D。
 
 ## 当前不做
 
@@ -32,7 +33,7 @@
 
 ## 下一步
 
-通过 [Raised Pipe Module Visual Validation V1](../design/raised-pipe-module-visual-validation-v1.md) 的独立入口，评价有限横管、纵管、弯头及设备接口形成的连续管路，比较流动 / 停流 / 空管在正常与建造倍率下的读法。当前定向验证完成，用户评价后再决定模块修正或后续接入，不代表素材族或整体视觉已验收。
+查看已完成的 [Topdown 3D Comparison Demo V1](../design/topdown-3d-comparison-demo-v1.md)，与已保存的二维架空管道样板比较体积、透明、落地阴影和角色遮挡。实机证据已保存，等待萝卜SAMA选择画面路线，不自行验收或迁移。
 
 上一轮 [管道模块验证](../design/transparent-pipe-module-visual-validation-v1.md) 已在 `280abdde` 保存，保留为未验收试验；本次只新增隔离体积样板。工厂 v2 整体评价及既有操作手感复评继续保留，局部样板不替代它们。既有物流 / 建造专项 `180` / `152` 项与正式窗口 `59` 项断言继续保留；不新增液气玩法系统、不迁移 Web、不切换 3D、不做全仓重构。
 
@@ -47,5 +48,6 @@
 ## 默认验证
 
 - 文档：`./scripts/check-docs.sh`、`./scripts/check-text-files.sh`、`git diff --check`、`./scripts/check-repo.sh`。
+- 本次独立 3D 工程的入口、验证结果和未覆盖项见其专题；不替换正式 Boot。
 - 管道模块包另执行客户端静态检查、独立 Godot 导入 / 定向检查与正式 `Boot` 隔离视觉验证；开窗前先告知。
 - 管道模块包客户端静态检查及正式窗口定向检查通过，实际证据与未验证项见该包合同；旧完整 `check-client --with-godot`、焦点 probe 及 `67 + 6` 等工厂检查保留为各自历史证据。后续玩家可见实现仍须遵循 [Godot Runtime Verification Guide](../reference/godot-runtime-verification-guide.md)。

@@ -1,0 +1,24 @@
+; Isolated visual study. No client autoloads, gameplay or save services.
+config_version=5
+
+[application]
+config/name="RadishCatalyst - 3D Visual Study"
+run/main_scene="res://Main.tscn"
+config/features=PackedStringArray("4.6", "Forward Plus")
+
+[display]
+window/size/viewport_width=1440
+window/size/viewport_height=810
+window/stretch/mode="canvas_items"
+
+[rendering]
+renderer/rendering_method="forward_plus"
+renderer/rendering_method.mobile="forward_plus"
+rendering_device/driver.macos="metal"
+textures/default_filters/use_nearest_mipmap_filter=false
+anti_aliasing/quality/msaa_3d=2
+lights_and_shadows/directional_shadow/size=4096
+lights_and_shadows/directional_shadow/soft_shadow_filter_quality=2
+
+[debug]
+file_logging/enable_file_logging=false

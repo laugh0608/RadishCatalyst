@@ -6,13 +6,13 @@
 
 ## 当前任务
 
-先读 [Current Plan](current.md) 与 [Raised Pipe Module Visual Validation V1](../design/raised-pipe-module-visual-validation-v1.md)。有限可拼接管道、动态内容及隔离实机验证已按授权完成，当前等待连续装配的体积评价。
+先读 [Current Plan](current.md) 与 [Topdown 3D Comparison Demo V1](../design/topdown-3d-comparison-demo-v1.md)。独立 Godot 3D 画面对照已完成，等待用户选择；二维连续管道样板保留且尚未验收。
 
 ## 下一动作
 
-1. 用 `sh tools/run-raised-pipe-modules.sh` 打开独立复核世界，查看九段 L 形架空管路。
-2. 比较流动 / 停流 / 空管、反向及建造倍率，用 WASD 观察前后遮挡；自动证据已在合同中记录，需要重跑时加 `--verify`。
-3. 回填连续装配的体积评价，决定保留或修正；不进入真实液气系统。工厂 v2 整体评价仍独立待办。
+1. 用 `sh tools/run-topdown-3d-demo.sh` 查看独立三维样件，WASD 移动、Q / E 转角。
+2. 用底部按钮对照玻璃、空管、投影和光向，与专题中的二维原始截图比较；已有 12 张三维截图与 28 项机制检查。
+3. 等待萝卜SAMA选择继续二维、追加有限三维验证或暂停；不接入正式系统或自行决定迁移。
 
 既有 `67 + 6`、物流 / 建造专项 `180` / `152` 与正式窗口 `59` 项断言继续保留。萝卜SAMA对整改后完整操作手感的复评仍是待办，但不是本轮首要动作；功能通过不代表视觉方向通过。
 
@@ -20,11 +20,13 @@
 
 - 不执行原整改 S0 或陌生玩家盲测。
 - 不批量生产或接入正式设备系统；仅制作当前已授权的有限视觉样板，不实现液气物流或升级 schema 10。
-- 不迁移 Web，不切换 3D，不重写工程。
+- 不迁移 Web，不把正式客户端切换 3D，不重写工程；只制作已授权的隔离对照。
 - 不扩战斗、剧情、地图、多人、多星球或随机投入系统。
 - 不打包、分发、发布或上传。
 
 ## 继续前必读
+
+- [Topdown 3D Comparison Demo V1](../design/topdown-3d-comparison-demo-v1.md)
 
 - [Current Plan](current.md)
 - [Production-Centered Direction](../product/production-centered-direction.md)
