@@ -18,6 +18,7 @@
 - 常态画面采用固定高斜角，建造模式以 `1.5` 档位拉远并显示网格、足印、接口和流向，同时弱化遮挡；继续复用现有素材与实现。
 - 工厂整图按 [Small Chemical Factory Visual Target V1](../design/small-chemical-factory-visual-target-v1.md) 保留 v1 / v2 候选。透明管段、金属接头及管壁动态流向标识已获用户认可；已授权 [Transparent Pipe Module Visual Validation V1](../design/transparent-pipe-module-visual-validation-v1.md) 的有限模块制作、机械归一和 Godot 隔离视觉验证。
 - 管道模块被反馈缺少 2.5D 体积感；[Industrial Volume Visual Study V1](../design/industrial-volume-visual-study-v1.md) 的 v2 获得“有点那种感觉了”的方向反馈。按用户后续授权，已完成少量独立像素素材与正常游戏比例隔离验证，等待实机体积评价。
+- 体积样板与建造分层已在 `e4f63d5d` / `6264e17d` 保存。[Raised Pipe Module Visual Validation V1](../design/raised-pipe-module-visual-validation-v1.md) 已按用户授权完成有限可拼接模块、动态内容与隔离验证，等待连续装配的实机体积评价。
 - 目标图是概念候选，不是游戏截图或可直接接入的正式资产；萝卜SAMA对整改后完整操作手感的复评继续保留为待办，但不是本轮首要动作。
 - 工业研发、试制、勘探和传统抽卡都只是随机投入的候选表达，不进入本轮实现。
 
@@ -31,7 +32,7 @@
 
 ## 下一步
 
-在 [Industrial Volume Visual Study V1](../design/industrial-volume-visual-study-v1.md) 的独立复核世界，评价一台设备与一段架空管道在正常游戏尺寸下的顶侧面、支撑、投影和角色遮挡。本轮建造态分层收口已完成定向验证，可直接比较原模式与分层模式；推荐低纹理地面作为样板默认。用户视觉验收仍待回填，再决定是否进入可拼接模块族。
+通过 [Raised Pipe Module Visual Validation V1](../design/raised-pipe-module-visual-validation-v1.md) 的独立入口，评价有限横管、纵管、弯头及设备接口形成的连续管路，比较流动 / 停流 / 空管在正常与建造倍率下的读法。当前定向验证完成，用户评价后再决定模块修正或后续接入，不代表素材族或整体视觉已验收。
 
 上一轮 [管道模块验证](../design/transparent-pipe-module-visual-validation-v1.md) 已在 `280abdde` 保存，保留为未验收试验；本次只新增隔离体积样板。工厂 v2 整体评价及既有操作手感复评继续保留，局部样板不替代它们。既有物流 / 建造专项 `180` / `152` 项与正式窗口 `59` 项断言继续保留；不新增液气玩法系统、不迁移 Web、不切换 3D、不做全仓重构。
 

@@ -9,12 +9,14 @@ uniform float phase = 0.0;
 uniform float path_offset = 0.0;
 uniform float direction = 1.0;
 uniform int segment_kind = 0; // 0: horizontal, 1: vertical, 2: left/down elbow
+uniform bool layered_content = false;
 
 const float PITCH = 48.0;
 const float RADIUS = 8.0;
 const vec2 BEND_CENTER = vec2(8.0, 24.0);
 
 void fragment() {
+	vec4 canvas_tint = COLOR;
 	vec2 point = floor(UV * 32.0) + vec2(0.5);
 	float along = point.x;
 	float across = point.y - 16.0;
@@ -44,5 +46,10 @@ void fragment() {
 	body = mix(body, vec3(0.035, 0.06, 0.065), outline * marker_opacity * 0.6);
 	body = mix(body, vec3(0.97, 0.985, 0.955), core * marker_opacity);
 	float aperture = texture(TEXTURE, UV).a;
-	COLOR = vec4(body, has_content ? aperture * fluid_color.a : 0.0);
+	float fill_alpha = layered_content ? (across > 0.0 ? 0.82 : 0.12) : 1.0;
+	float mark_alpha = max(core, outline) * marker_opacity;
+	COLOR = vec4(body, has_content ? aperture * fluid_color.a * max(fill_alpha, mark_alpha) : 0.0);
+	if (layered_content) {
+		COLOR *= canvas_tint;
+	}
 }

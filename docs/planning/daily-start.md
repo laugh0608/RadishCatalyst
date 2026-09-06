@@ -6,13 +6,13 @@
 
 ## 当前任务
 
-先读 [Current Plan](current.md) 与 [Industrial Volume Visual Study V1](../design/industrial-volume-visual-study-v1.md)。用户反馈候选 v2“有点那种感觉了”，随后授权的独立素材与正常游戏比例定向验证已完成；当前等待实机体积评价。
+先读 [Current Plan](current.md) 与 [Raised Pipe Module Visual Validation V1](../design/raised-pipe-module-visual-validation-v1.md)。有限可拼接管道、动态内容及隔离实机验证已按授权完成，当前等待连续装配的体积评价。
 
 ## 下一动作
 
-1. 用 `sh tools/run-industrial-volume-study.sh` 打开独立复核世界，查看一台设备与一段架空管道。
-2. 用底部按钮比较阴影 / 支撑及两种现有地面，`WASD` 查看角色前后遮挡；确认正常比例下体积是否保住。
-3. 进入建造态，用“建造显示”比较分层 / 原模式；本轮已拆分地面网格与主体弱化，推荐低纹理地面。回填体积及玻璃细节评价后再决定模块族，工厂 v2 整体评价仍独立待办。
+1. 用 `sh tools/run-raised-pipe-modules.sh` 打开独立复核世界，查看九段 L 形架空管路。
+2. 比较流动 / 停流 / 空管、反向及建造倍率，用 WASD 观察前后遮挡；自动证据已在合同中记录，需要重跑时加 `--verify`。
+3. 回填连续装配的体积评价，决定保留或修正；不进入真实液气系统。工厂 v2 整体评价仍独立待办。
 
 既有 `67 + 6`、物流 / 建造专项 `180` / `152` 与正式窗口 `59` 项断言继续保留。萝卜SAMA对整改后完整操作手感的复评仍是待办，但不是本轮首要动作；功能通过不代表视觉方向通过。
 
@@ -34,6 +34,7 @@
 - [Small Chemical Factory Visual Target V1](../design/small-chemical-factory-visual-target-v1.md)
 - [Transparent Pipe Module Visual Validation V1](../design/transparent-pipe-module-visual-validation-v1.md)
 - [Industrial Volume Visual Study V1](../design/industrial-volume-visual-study-v1.md)
+- [Raised Pipe Module Visual Validation V1](../design/raised-pipe-module-visual-validation-v1.md)
 
 ## 验证入口
 

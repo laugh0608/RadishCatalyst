@@ -1,0 +1,376 @@
+{
+  "purpose": "raised-pipe-visual-study-only",
+  "source": "assets/art-intake/2026-09-06-raised-pipe-modules/raised-pipe-modules-source-v2.png",
+  "source_sha256": "25548eb4ffd497819b4ed15b98360845aea480bb6035d2ba49e96caa89577997",
+  "tile_size": 32,
+  "elevation_pixels": 16,
+  "normalization": "piecewise source-block medians, background removal, shared palette, same-source mating cuff pixels, explicit glass alpha",
+  "source_anchors": {
+    "horizontal": {
+      "x": [
+        [
+          0,
+          212
+        ],
+        [
+          2,
+          268
+        ],
+        [
+          30,
+          430
+        ],
+        [
+          32,
+          491
+        ]
+      ],
+      "y": [
+        [
+          6,
+          260
+        ],
+        [
+          8,
+          274
+        ],
+        [
+          24,
+          456
+        ],
+        [
+          26,
+          471
+        ]
+      ]
+    },
+    "vertical": {
+      "x": [
+        [
+          6,
+          814
+        ],
+        [
+          8,
+          827
+        ],
+        [
+          24,
+          1013
+        ],
+        [
+          26,
+          1028
+        ]
+      ],
+      "y": [
+        [
+          0,
+          213
+        ],
+        [
+          2,
+          280
+        ],
+        [
+          30,
+          451
+        ],
+        [
+          32,
+          510
+        ]
+      ]
+    },
+    "elbow_left_down": {
+      "x": [
+        [
+          0,
+          211
+        ],
+        [
+          2,
+          271
+        ],
+        [
+          8,
+          307
+        ],
+        [
+          16,
+          389
+        ],
+        [
+          24,
+          465
+        ],
+        [
+          26,
+          480
+        ]
+      ],
+      "y": [
+        [
+          6,
+          736
+        ],
+        [
+          8,
+          759
+        ],
+        [
+          16,
+          833
+        ],
+        [
+          24,
+          918
+        ],
+        [
+          30,
+          971
+        ],
+        [
+          32,
+          1030
+        ]
+      ]
+    },
+    "port_right": {
+      "x": [
+        [
+          0,
+          786
+        ],
+        [
+          9,
+          868
+        ],
+        [
+          13,
+          910
+        ],
+        [
+          30,
+          1035
+        ],
+        [
+          32,
+          1085
+        ]
+      ],
+      "y": [
+        [
+          0,
+          725
+        ],
+        [
+          6,
+          788
+        ],
+        [
+          8,
+          802
+        ],
+        [
+          16,
+          881
+        ],
+        [
+          24,
+          962
+        ],
+        [
+          26,
+          979
+        ],
+        [
+          32,
+          1039
+        ]
+      ]
+    }
+  },
+  "palette": [
+    [
+      21,
+      28,
+      30
+    ],
+    [
+      35,
+      51,
+      52
+    ],
+    [
+      46,
+      65,
+      69
+    ],
+    [
+      66,
+      82,
+      81
+    ],
+    [
+      74,
+      97,
+      101
+    ],
+    [
+      88,
+      115,
+      116
+    ],
+    [
+      98,
+      115,
+      113
+    ],
+    [
+      99,
+      124,
+      125
+    ],
+    [
+      124,
+      141,
+      141
+    ],
+    [
+      125,
+      131,
+      127
+    ],
+    [
+      145,
+      156,
+      154
+    ],
+    [
+      160,
+      165,
+      161
+    ],
+    [
+      177,
+      179,
+      174
+    ],
+    [
+      190,
+      189,
+      183
+    ],
+    [
+      201,
+      198,
+      192
+    ],
+    [
+      218,
+      212,
+      204
+    ]
+  ],
+  "checks": {
+    "horizontal_repeat": true,
+    "vertical_repeat": true,
+    "elbow_west_seam": true,
+    "elbow_south_seam": true,
+    "device_seam": true,
+    "declared_32px_canvas": true,
+    "binary_dynamic_masks": true,
+    "glass_retains_material": true,
+    "mask_inside_source_art": true,
+    "open_bend_centerline": true,
+    "16px_horizontal_tube": true,
+    "16px_vertical_tube": true
+  },
+  "assets": {
+    "horizontal.png": {
+      "sha256": "de23651fdb735206be8419450d38aa1631d366b0406391c64947e5637b662edb",
+      "canvas": [
+        32,
+        32
+      ]
+    },
+    "horizontal_content_mask.png": {
+      "sha256": "9ad89a0f531eaf2a05121e8941427d045b9fce82a6adb1f0e44990d92f89c25b",
+      "canvas": [
+        32,
+        32
+      ]
+    },
+    "horizontal_shadow.png": {
+      "sha256": "fb79dca16cc8711deaee2d1b5422abbc83b41cc4feb508dd8acd668c061b70f7",
+      "canvas": [
+        32,
+        32
+      ]
+    },
+    "vertical.png": {
+      "sha256": "619c30591d9c6fb2ad8d6d55fbb1f8524ed66aaadb5450308b5c224814d2ba3e",
+      "canvas": [
+        32,
+        32
+      ]
+    },
+    "vertical_content_mask.png": {
+      "sha256": "1a92e46b30fd2850bb2ced44b7e448df0bcd056d262beb9217e65def11e8c536",
+      "canvas": [
+        32,
+        32
+      ]
+    },
+    "vertical_shadow.png": {
+      "sha256": "796754d0c896bc07f7456a6665ad73fd8585f45b99142e577001830ccba1d1e4",
+      "canvas": [
+        32,
+        32
+      ]
+    },
+    "elbow_left_down.png": {
+      "sha256": "fd9de961b79cea8be84a99dab235bb0c9ed5ce4513ad76fb23126a42214d56cf",
+      "canvas": [
+        32,
+        32
+      ]
+    },
+    "elbow_left_down_content_mask.png": {
+      "sha256": "022706289281206d987ecc4aa23c58a1da39c199cb15a6821d03a2dd282be0b7",
+      "canvas": [
+        32,
+        32
+      ]
+    },
+    "elbow_left_down_shadow.png": {
+      "sha256": "54a18c383d629e73f70e8989d609e45d5c98c749e41535468a5710ccd7dfb914",
+      "canvas": [
+        32,
+        32
+      ]
+    },
+    "port_right.png": {
+      "sha256": "ad56355240e2749642cb5ad001278865e3130f4a1e5e12b8b4cd1ac9afe3d6b3",
+      "canvas": [
+        32,
+        32
+      ]
+    },
+    "port_right_content_mask.png": {
+      "sha256": "2e850eb68970a1695d51d52c1725c03264ddeb6c672db92fa7b8594e87c94368",
+      "canvas": [
+        32,
+        32
+      ]
+    },
+    "port_right_shadow.png": {
+      "sha256": "ea9b5a436d840d9c1064025f867ed29bb55567e9f057475b0f566d7c9e943b75",
+      "canvas": [
+        32,
+        32
+      ]
+    }
+  }
+}
