@@ -1,11 +1,11 @@
 # Current Plan
 
-更新时间：2026-09-05
+更新时间：2026-09-06
 
 ## 当前阶段
 
 ```text
-小型化工厂视觉目标探索与评审
+小型化工厂视觉目标探索与管道模块验证
 ```
 
 本轮方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为优先真相源：化工生产经营成为核心，探索为生产提供资源、空间和长期目的；战斗体量、美术介质、Web 迁移和随机工业投入的具体系统均未决定。
@@ -16,7 +16,7 @@
 
 - 小区域工厂片段的玩家反馈实现与系统验证已经完成：真实端口接缝按物流方向刷新，建造态允许 `WASD`、近身 `E` 与无预览时鼠标选中已有设备进入既有调整流程。
 - 常态画面采用固定高斜角，建造模式以 `1.5` 档位拉远并显示网格、足印、接口和流向，同时弱化遮挡；继续复用现有素材与实现。
-- 当前只允许按 [Small Chemical Factory Visual Target V1](../design/small-chemical-factory-visual-target-v1.md) 生成一张 16:9 小型化工厂目标图及有限修订，用于评审规模密度、生产可读性、投影模块感和材质气质。
+- 工厂整图按 [Small Chemical Factory Visual Target V1](../design/small-chemical-factory-visual-target-v1.md) 保留 v1 / v2 候选。透明管段、金属接头及管壁动态流向标识已获用户认可；已授权 [Transparent Pipe Module Visual Validation V1](../design/transparent-pipe-module-visual-validation-v1.md) 的有限模块制作、机械归一和 Godot 隔离视觉验证。
 - 目标图是概念候选，不是游戏截图或可直接接入的正式资产；萝卜SAMA对整改后完整操作手感的复评继续保留为待办，但不是本轮首要动作。
 - 工业研发、试制、勘探和传统抽卡都只是随机投入的候选表达，不进入本轮实现。
 
@@ -24,13 +24,15 @@
 
 - 不删除既有功能、战斗或历史证据，不改写旧专题和旧周志。
 - 不新增玩法系统，不解冻新地图、新敌人、剧情、多人、完整 ARPG 或长期多星球实现。
-- 用户评审前不批量生产或接入正式资产，不把目标图裁切后冒充网格合格素材。
+- 只制作本包有限视觉样板，不批量生产或接入正式设备系统；不把工厂目标图裁切后冒充网格合格素材。
 - 不决定像素转 3D、双角度、Web 迁移或整仓重写。
 - 不恢复陌生玩家盲测、试玩分发、打包、发布或上传。
 
 ## 下一步
 
-优先评审 [Small Chemical Factory Visual Target V1](../design/small-chemical-factory-visual-target-v1.md) 推荐的 v2，保留 v1 作为比例修订对照；判断规模与密度、生产可读性、投影与模块感、材质与气质。用户评审前不新增玩法系统，不批量生产或接入正式资产，不迁移 Web、不切换 3D、不做全仓重构。既有物流 / 建造专项 `180` / `152` 项与正式窗口 `59` 项断言继续保留，操作手感复评留作后续待办。
+萝卜SAMA反馈当前整体效果尚未达到想象中的预期，要求先提交成果并留出思考时间。当前暂停推进，待用户明确差距或后续方向后再继续；已有检查通过不代表视觉验收。
+
+按 [管道模块验证合同](../design/transparent-pipe-module-visual-validation-v1.md) 复核已完成的 32px 样板：直管、代表弯头和端接头已取得机械检查与正式窗口动态证据，下一步由萝卜SAMA评价原生比例下的管径、材质和状态读法。工厂整图 v2 的整体评价及既有操作手感复评仍保留，局部管道方向通过不替代它们。既有物流 / 建造专项 `180` / `152` 项与正式窗口 `59` 项断言继续保留；不新增液气玩法系统、不迁移 Web、不切换 3D、不做全仓重构。
 
 ## 退出条件
 
@@ -38,8 +40,10 @@
 - 连续厂坪、两排设备、贯通通道和三层物流 / 管线关系可读，不依赖口头补图。
 - 高斜角、矩形网格、设备足印、角色比例、调色板和左上光能作为后续模块化美术的目标约束。
 - 候选的生成缺陷、未归一、未接入和未验证边界记录清楚；用户评审后再决定有限修订或停止。
+- 管道模块局部包按其合同单独验收；不把示例动画写成真实输送或整体工厂通过。
 
 ## 默认验证
 
 - 文档：`./scripts/check-docs.sh`、`./scripts/check-text-files.sh`、`git diff --check`、`./scripts/check-repo.sh`。
-- 本轮 `./scripts/check-client.sh` 静态检查通过；旧完整 `check-client --with-godot` 在最后的焦点 / 缩放小修前通过，焦点专门 probe 通过，修后的正式 `Boot` 路径以 `67 + 6` 项断言通过。后续玩家可见实现仍须遵循 [Godot Runtime Verification Guide](../reference/godot-runtime-verification-guide.md)。
+- 管道模块包另执行客户端静态检查、独立 Godot 导入 / 定向检查与正式 `Boot` 隔离视觉验证；开窗前先告知。
+- 管道模块包客户端静态检查及正式窗口定向检查通过，实际证据与未验证项见该包合同；旧完整 `check-client --with-godot`、焦点 probe 及 `67 + 6` 等工厂检查保留为各自历史证据。后续玩家可见实现仍须遵循 [Godot Runtime Verification Guide](../reference/godot-runtime-verification-guide.md)。
