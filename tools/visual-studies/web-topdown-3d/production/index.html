@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>异星催化 · 第一条产线</title><link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/play/style.css">
+  <script type="importmap">{"imports":{"three":"/vendor/three.module.js","three/addons/":"/addons/"}}</script>
+  <script type="module" src="/play/app.mjs"></script>
+</head>
+<body>
+  <main id="game">
+    <header><div class="brand"><span class="mark">RC</span><div><h1>异星催化</h1><p>第一条产线</p></div></div>
+      <div class="totals"><span>催化剂入仓 <strong id="delivered">0</strong></span><span id="clock">00:00</span><button id="pause" aria-pressed="false">暂停</button></div>
+    </header>
+    <div id="viewport"><canvas id="world" tabindex="0" aria-label="工厂场地，点击放置或选择，WASD 移动，Q E 转动视角"></canvas><div id="world-labels"></div></div>
+    <div id="load-status" role="status">正在准备厂坪…</div>
+    <aside class="mission" aria-label="本次目标"><div class="eyebrow" id="mission-step">01 / 搭建</div><h2 id="mission-title">建立你的第一条产线</h2><p id="mission-text">选择采集器，放到青色晶体矿点。</p><ol id="milestones"><li data-milestone="build">放下三种设备</li><li data-milestone="delivery">收到第一件催化剂</li><li data-milestone="starved">拆开输入，观察缺料</li><li data-milestone="recovered">修好线路，恢复产出</li></ol></aside>
+    <aside id="inspector" aria-label="构件详情" hidden><div class="panel-heading"><h2 id="selected-name"></h2><button id="close-inspector" aria-label="关闭构件详情">×</button></div><p id="selected-status"></p><div id="selected-details"></div><div class="inspector-actions"><button id="rotate-selected">转向 R</button><button id="deposit">投入回收物品</button><button id="salvage" class="danger">拆回构件和货物</button></div></aside>
+    <div class="camera-tools"><button id="left" aria-label="向左转动视角">↶ Q</button><button id="right" aria-label="向右转动视角">E ↷</button><button id="zoom-out" aria-label="拉远">−</button><button id="zoom-in" aria-label="放大">＋</button></div>
+    <section class="dock" aria-label="建造与操作">
+      <div class="dock-top"><button id="build" class="primary" aria-pressed="true">建造中 B</button><p id="notice" role="status">厂坪已供电，构件已备齐。从矿点开始。</p><button id="help" aria-expanded="false">操作说明</button></div>
+      <div id="build-tools"><div class="kit-bar" role="group" aria-label="建筑构件"><button data-tool="collector"><span>1 · 采集器</span><small>矿点 · 2×2</small><b data-kit="collector">1</b></button><button data-tool="reactor"><span>2 · 反应器</span><small>2 晶体 → 1 催化剂</small><b data-kit="reactor">1</b></button><button data-tool="storage"><span>3 · 终端仓</span><small>接收并储存 · 2×2</small><b data-kit="storage">1</b></button><button data-tool="belt"><span>4 · 传送带</span><small>1 格 / 秒 · R 转向</small><b data-kit="belt">24</b></button><label class="guides"><input id="guides" type="checkbox" checked>参考落位</label></div>
+        <div id="placement" hidden><span id="placement-name"></span><label>X <input id="cell-x" aria-label="落位 X" type="number" min="-10" max="9" step="1" value="-8"></label><label>Z <input id="cell-z" aria-label="落位 Z" type="number" min="-6" max="6" step="1" value="-1"></label><button id="rotate">方向：东 →</button><button id="place" class="primary">放置</button><button id="cancel">取消 Esc</button><span id="placement-reason"></span></div>
+      </div>
+      <div class="dock-foot"><span>WASD 移动 · 点击设备查看 · 滚轮缩放</span><span id="bag">回收箱：晶体 0 / 催化剂 0</span><output id="actor-position" aria-label="工程师位置"></output></div>
+      <div id="help-panel" hidden><p>先将采集器盖住青色矿点，再放反应器和终端仓。青色口接收、金色口输出；反应器的接口位于靠前一排，带的箭头指向物料要去的方向。参考框只提示位置，所有构件都需要亲手放下。</p><p>选构件后点击厂坪放置，或用 X / Z 与“放置”按钮精确落位。R 转带向，方向键微调预览，Esc 逐层取消。拆回时货物一并进入回收箱，在制批次还原成晶体；可投入选中设备。后台标签暂停生产。</p><p>输入断开后，带上与机器内已有物料仍会继续加工；待存料耗尽才会缺料。堵住输出则逐渐形成回压，疏通后自动恢复。</p><div class="help-bottom"><span>本次试验不保存，刷新会重新开始。</span><button id="restart">重新开始</button><a href="/">查看原视觉样场</a></div></div>
+      <div class="touch" role="group" aria-label="触屏移动"><button data-key="a" aria-label="向左移动">←</button><button data-key="w" aria-label="向上移动">↑</button><button data-key="s" aria-label="向下移动">↓</button><button data-key="d" aria-label="向右移动">→</button></div>
+    </section>
+    <dialog id="restart-dialog"><h2>重新开始这次试验？</h2><p>当前设备、产线和物品会清空，重新发放起始构件。</p><button id="keep-playing">继续当前产线</button><button id="confirm-restart" class="danger">清空并重新开始</button></dialog>
+  </main>
+</body>
+</html>

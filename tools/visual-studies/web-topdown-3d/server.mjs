@@ -7,6 +7,8 @@ const here=path.dirname(fileURLToPath(import.meta.url));
 const routes=new Map();
 for(const f of ['index.html','style.css','app.mjs','factory.mjs','parts.mjs','world-model.mjs'])routes.set('/'+f,path.join(here,f));
 routes.set('/',path.join(here,'index.html'));
+routes.set('/play/',path.join(here,'production/index.html'));
+for(const f of ['index.html','style.css','app.mjs','scene.mjs','model.mjs'])routes.set('/play/'+f,path.join(here,'production',f));
 for(const f of ['three.module.js','three.core.js'])routes.set('/vendor/'+f,path.join(here,'node_modules/three/build',f));
 for(const f of ['environments/RoomEnvironment.js','utils/BufferGeometryUtils.js'])routes.set('/addons/'+f,path.join(here,'node_modules/three/examples/jsm',f));
 const map='{"imports":{"three":"/vendor/three.module.js","three/addons/":"/addons/"}}';

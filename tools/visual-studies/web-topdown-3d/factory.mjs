@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { M,material,mesh,box,cylinder,sphere,ring,rod,reactor,compressor,storage } from './parts.mjs';
 import { MACHINES,SUPPORTS } from './world-model.mjs';
 
-function batchStatic(source) {
+export function batchStatic(source) {
   source.updateMatrixWorld(true); const batches=new Map();
   source.traverse(obj=>{
     if(!obj.isMesh) return;
@@ -21,7 +21,7 @@ function batchStatic(source) {
   source.traverse(o=>{if(o.isMesh)o.geometry.dispose();}); return result;
 }
 
-export function createFactory(scene) {
+export function createYard() {
   const root=new THREE.Group();
   box(root,[0,-.45,0],[24,.85,18],M.edge);
   const soil=box(root,[0,-.93,0],[100,.12,100],M.soil);soil.castShadow=false;
@@ -38,6 +38,11 @@ export function createFactory(scene) {
   for(const z of [-7.5,7.6])box(root,[0,.012,z],[22,.012,.055],M.light).castShadow=false;
   for(let x=-10;x<=10;x+=1)box(root,[x,.014,.55],[.46,.015,.09],M.amber).castShadow=false;
   for(const x of [-3.4,3.4])box(root,[x,.011,3.2],[.045,.012,6.7],M.light).castShadow=false;
+  return root;
+}
+
+export function createFactory(scene) {
+  const root=createYard();
   MACHINES.forEach((m,i)=>({reactor,compressor,storage})[m.type](root,m.x,m.z,i));
   for(const x of [-10.7,10.7])for(const z of [-7,0,7]) {
     cylinder(root,[x,.35,z],.11,.7,M.dark);cylinder(root,[x,.75,z],.15,.2,M.amber);

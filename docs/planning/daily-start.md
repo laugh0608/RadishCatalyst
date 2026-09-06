@@ -6,25 +6,27 @@
 
 ## 当前任务
 
-先读 [Current Plan](current.md) 与 [Web Topdown 3D Demo V1](../design/web-topdown-3d-demo-v1.md)。已按用户确认完成 Web 真三维样场；原手绘 / 像素 Web 对照、独立 Godot 3D 与二维样板保留。
+先读 [Current Plan](current.md) 与 [Web First Production Line V1](../features/web-first-production-line-v1.md)。按用户确认将当前 Web 三维画面用于第一条亲手搭建的产线，暂停扩展视觉 / 引擎对照。
 
 ## 下一动作
 
-1. 用 `sh tools/run-web-topdown-3d-demo.sh` 打开本地三维样场，WASD / 方向键或点击地面移动，Q / E 转角。
-2. 比较 40° / 55° / 70°、玻璃管与投影开关、设备前后遮挡；原手绘 / 像素入口 `sh tools/run-web-style-demo.sh` 继续可用。
-3. 已有 Godot 3D 入口 `sh tools/run-topdown-3d-demo.sh`、12 张截图与 28 项机制检查继续保留；等待萝卜SAMA选择，不接入正式系统或决定迁移。
+1. 用 `sh tools/run-web-topdown-3d-demo.sh` 启动本机服务，进入 `http://127.0.0.1:4318/play/`。
+2. 从空场坪放采集器、反应器与终端仓，铺带、观察首件催化剂入仓，再拆开输入并补接恢复。
+3. 定向系统与浏览器检查已完成；当前由萝卜SAMA亲测是否看得懂、操作是否顺手、是否愿意扩建，再按反馈确定下一包。
 
-既有 `67 + 6`、物流 / 建造专项 `180` / `152` 与正式窗口 `59` 项断言继续保留。萝卜SAMA对整改后完整操作手感的复评仍是待办，但不是本轮首要动作；功能通过不代表视觉方向通过。
+既有 Godot 正式入口、客户端规则 / 存档和历轮视觉证据保留；当前包是有限 Web 体验验证，不代表正式迁移或美术验收。
 
 ## 当前不进入
 
 - 不执行原整改 S0 或陌生玩家盲测。
-- 不批量生产或接入正式设备系统；仅制作当前已授权的有限视觉样板，不实现液气物流或升级 schema 10。
+- 不批量生产或接入正式设备系统；仅实现当前三机固体链，不实现液气物流或升级 schema 10。
 - 不迁移 Web，不把正式客户端切换 3D，不重写工程；只制作已授权的隔离对照。
 - 不扩战斗、剧情、地图、多人、多星球或随机投入系统。
 - 不打包、分发、发布或上传。
 
 ## 继续前必读
+
+- [Web First Production Line V1](../features/web-first-production-line-v1.md)
 
 - [Web Topdown 3D Demo V1](../design/web-topdown-3d-demo-v1.md)
 - [Web Style Comparison Demo V1](../design/web-style-comparison-demo-v1.md)
