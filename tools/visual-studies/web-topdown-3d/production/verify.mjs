@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createState,place,advance,salvage,deposit,rotate,materialBalance,inputConnected,feedback,entityAt,INITIAL_KITS,RULES,blockedForActor,moveActor} from './model.mjs';
+import {createState,place,advance,salvage,deposit,rotate,materialBalance,inputConnected,feedback,entityAt,INITIAL_KITS,RULES,blockedForActor,moveActor,extendBeltPath,placeBeltPath,beltInputs,DIRS} from './model.mjs';
 import {createServer} from '../server.mjs';
+import * as THREE from 'three';
+import {createBeltGeometry,beltTravelPosition} from './scene.mjs';
 
 function add(s,t,x,z,dir=0){const r=place(s,t,x,z,dir);assert.equal(r.ok,true,r.reason);return r.entity;}
 function line(){const s=createState(),collector=add(s,'collector',-8,-1),reactor=add(s,'reactor',-1,-2),storage=add(s,'storage',6,-1);
@@ -92,4 +94,65 @@ test('play route serves explicit modules and never exposes simulation or depende
   for(const path of ['/play/','/play/app.mjs','/play/model.mjs','/play/scene.mjs','/play/style.css','/factory.mjs'])assert.equal((await fetch(root+path)).status,200);
   for(const path of ['/play/verify.mjs','/play/../package.json','/production/model.mjs','/node_modules/three/package.json'])assert.equal((await fetch(root+path)).status,404);
   assert.equal((await fetch(root+'/play/',{method:'POST'})).status,405);
+});
+
+test('drag paths fill skipped cells, turn, retrace, and deliver through the actual ports',()=>{
+  const s=createState();add(s,'collector',-8,-1);const r=add(s,'reactor',-1,-2);add(s,'storage',6,-1);
+  let path=[];
+  for(const [x,z] of [[-6,0],[-5,0],[-5,2],[-5,1],[-2,1],[-2,0]]){
+    const preview=extendBeltPath(s,path,{x,z});assert.equal(preview.ok,true);path=preview.path;
+  }
+  // Final short north leg needs an east exit into the adjacent reactor.
+  const first=placeBeltPath(s,path);assert.equal(first.ok,true);
+  assert.deepEqual(first.entities.map(e=>[e.x,e.z,e.dir]),[[-6,0,0],[-5,0,1],[-5,1,0],[-4,1,0],[-3,1,0],[-2,1,3],[-2,0,3]]);
+  assert.equal(rotate(s,first.entities.at(-1).id).ok,true);
+  assert.equal(inputConnected(s,r),true);
+  const output=extendBeltPath(s,[{x:2,z:0}],{x:5,z:0});assert.equal(placeBeltPath(s,output.path).ok,true);
+  advance(s,70);assert.ok(s.delivered>=3);conserved(s);
+});
+test('drag previews stop at obstacles, bounds and inventory; they never mutate the world',()=>{
+  const s=createState();add(s,'storage',0,0);const before=structuredClone(s);
+  const blocked=extendBeltPath(s,[{x:-3,z:0}],{x:4,z:0});
+  assert.equal(blocked.ok,false);assert.deepEqual(blocked.path,[{x:-3,z:0},{x:-2,z:0},{x:-1,z:0}]);
+  assert.deepEqual(s,before);
+  assert.equal(extendBeltPath(s,[{x:8,z:4}],{x:30,z:4}).path.length,2);
+  s.kits.belt=2;const limited=extendBeltPath(s,[],{x:-5,z:3});
+  const full=extendBeltPath(s,limited.path,{x:0,z:3});assert.equal(full.ok,false);assert.equal(full.path.length,2);
+  assert.equal(extendBeltPath(s,full.path,{x:-5,z:3}).path.length,1);
+});
+test('invalid or stale drag commits leave kits, entities and revision completely unchanged',()=>{
+  const s=createState();
+  for(const path of [[],[{x:0,z:0},{x:2,z:0}],[{x:0,z:0},{x:1,z:1}],[{x:0,z:0},{x:1,z:0},{x:0,z:0}],[{x:NaN,z:0}]]){
+    const before=structuredClone(s);assert.equal(placeBeltPath(s,path).ok,false);assert.deepEqual(s,before);
+  }
+  const path=extendBeltPath(s,[{x:0,z:0}],{x:4,z:0}).path;add(s,'belt',3,0);
+  const before=structuredClone(s);assert.equal(placeBeltPath(s,path).ok,false);assert.deepEqual(s,before);
+  s.kits.belt=1;const fewer=structuredClone(s);assert.equal(placeBeltPath(s,[{x:0,z:2},{x:1,z:2}]).ok,false);assert.deepEqual(s,fewer);
+});
+
+test('all eight corner shapes carry the actual cargo curve on the belt, clear of rails',()=>{
+  for(let dir=0;dir<4;dir++)for(const side of [(dir+1)%4,(dir+3)%4]){
+    const g=createBeltGeometry(dir,[side]);assert.equal(g.name,'belt-corner');g.updateMatrixWorld(true);
+    const surfaces=[],rails=[];g.traverse(o=>{if(o.name==='belt-surface')surfaces.push(o);if(o.name==='belt-rail')rails.push(o);});
+    const start=beltTravelPosition(DIRS[side],dir,0),end=beltTravelPosition(DIRS[side],dir,1);
+    for(let axis=0;axis<2;axis++){assert.ok(Math.abs(start[axis]-DIRS[side][axis]*.5)<1e-8);assert.ok(Math.abs(end[axis]-DIRS[dir][axis]*.5)<1e-8);}
+    for(let i=1;i<20;i++){
+      const [x,z]=beltTravelPosition(DIRS[side],dir,i/20),ray=new THREE.Raycaster(new THREE.Vector3(x,2,z),new THREE.Vector3(0,-1,0));
+      assert.ok(ray.intersectObjects(surfaces).length>0,`${side} to ${dir} at ${i}`);
+      assert.equal(ray.intersectObjects(rails).length,0);
+    }
+    g.traverse(o=>{if(o.isMesh)o.geometry.dispose();});
+  }
+});
+test('visible belt inputs follow actual device ports, neighbours, rotation and removal',()=>{
+  const s=createState();add(s,'collector',-8,-1);const b=add(s,'belt',-6,0,1);
+  assert.deepEqual(beltInputs(s,b),[2]);assert.equal(createBeltGeometry(b.dir,beltInputs(s,b)).name,'belt-corner');
+  const wrong=add(s,'belt',-6,-1,0);assert.deepEqual(beltInputs(s,b),[2]);
+  rotate(s,wrong.id);assert.deepEqual(beltInputs(s,b),[2,3]);
+  assert.equal(createBeltGeometry(b.dir,beltInputs(s,b)).name,'belt-junction');
+  salvage(s,wrong.id);assert.deepEqual(beltInputs(s,b),[2]);
+  salvage(s,s.entities.find(e=>e.type==='collector').id);assert.deepEqual(beltInputs(s,b),[]);
+  assert.equal(createBeltGeometry(b.dir,[]).name,'belt-straight');
+  const opposing=add(s,'belt',-6,1,3);assert.deepEqual(beltInputs(s,b),[]);
+  assert.deepEqual(beltInputs(s,opposing),[]);
 });

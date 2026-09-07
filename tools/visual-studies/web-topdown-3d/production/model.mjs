@@ -40,6 +40,50 @@ export function place(s,type,x,z,dir=0,actor=null){
   if(type==='belt')Object.assign(e,{cargo:null,progress:0,entry:[-DIRS[dir][0],-DIRS[dir][1]],cursor:0});
   s.entities.push(e);s.kits[type]--;s.revision++;return ok({entity:e});
 }
+// Preview follows orthogonal pointer segments; it never routes around obstacles.
+export function extendBeltPath(s,path,target){
+  const next=path.map(c=>({...c}));
+  if(!target||![target.x,target.z].every(Number.isInteger))return no('请选择有效格位');
+  const back=next.findIndex(c=>c.x===target.x&&c.z===target.z);
+  if(back>=0)return ok({path:next.slice(0,back+1)});
+  const append=c=>{
+    const valid=placement(s,'belt',c.x,c.z);if(!valid.ok)return valid;
+    if(next.length>=s.kits.belt)return no('传送带构件不足；松开铺下已预览部分');
+    const previous=next.findIndex(p=>p.x===c.x&&p.z===c.z);
+    if(previous>=0)next.splice(previous+1);else next.push(c);
+    return ok();
+  };
+  if(!next.length){const result=append({...target});return {...result,path:next};}
+  let cursor={...next.at(-1)};
+  const axes=Math.abs(target.x-cursor.x)>=Math.abs(target.z-cursor.z)?['x','z']:['z','x'];
+  for(const axis of axes)while(cursor[axis]!==target[axis]){
+    cursor={...cursor,[axis]:cursor[axis]+Math.sign(target[axis]-cursor[axis])};
+    const result=append({...cursor});if(!result.ok)return {...result,path:next};
+  }
+  return ok({path:next});
+}
+export function beltPathDirections(path,dir){
+  return path.map((cell,i)=>{
+    const next=path[i+1];
+    if(next)return DIRS.findIndex(([dx,dz])=>next.x-cell.x===dx&&next.z-cell.z===dz);
+    if(i>0){const previous=path[i-1];return DIRS.findIndex(([dx,dz])=>cell.x-previous.x===dx&&cell.z-previous.z===dz);}
+    return dir;
+  });
+}
+export function placeBeltPath(s,path,dir=0){
+  if(!Array.isArray(path)||!path.length)return no('拖动经过空格后再松开铺设');
+  if(path.length>s.kits.belt)return no('传送带构件不足');
+  const seen=new Set();
+  for(const c of path){
+    const valid=placement(s,'belt',c?.x,c?.z);if(!valid.ok)return valid;
+    if(seen.has(key(c.x,c.z)))return no('路径不能重复经过同一格');seen.add(key(c.x,c.z));
+  }
+  const directions=beltPathDirections(path,dir);
+  if(directions.some(d=>!Number.isInteger(d)||d<0||d>3))return no('路径必须逐格正交相连');
+  // All checks precede mutation; this synchronous batch cannot interleave production.
+  const entities=path.map((c,i)=>place(s,'belt',c.x,c.z,directions[i]).entity);
+  return ok({entities});
+}
 export function contents(e){
   if(e.type==='collector')return {crystal:e.buffer,catalyst:0};
   if(e.type==='reactor')return {crystal:e.input+(e.processing?2:0),catalyst:e.output};
@@ -77,6 +121,21 @@ export function rotate(s,id){
 }
 function index(s){return new Map(s.entities.flatMap(e=>cells(e).map(c=>[key(c.x,c.z),e])));}
 function acceptsBelt(target,dx,dz){return target.dir!==((DIRS.findIndex(d=>d[0]===dx&&d[1]===dz)+2)%4);}
+export function beltInputs(s,b){
+  const inputs=[];
+  for(const [side,[dx,dz]] of DIRS.entries()){
+    if(side===b.dir)continue;
+    const source=entityAt(s,b.x+dx,b.z+dz);if(!source)continue;
+    if(source.type==='belt'){
+      const [sx,sz]=DIRS[source.dir];
+      if(source.x+sx===b.x&&source.z+sz===b.z)inputs.push(side);
+    }else{
+      const p=port(source,'output');
+      if(p&&p.x+p.dx===b.x&&p.z+p.dz===b.z)inputs.push(side);
+    }
+  }
+  return inputs;
+}
 function sinkAccepts(e,source,item){
   const p=port(e,'input');if(!p||source.x!==p.x-1||source.z!==p.z||source.dir!==0)return false;
   return e.type==='reactor'?item==='crystal'&&e.input<2:e.type==='storage'&&e.crystal+e.catalyst<200;

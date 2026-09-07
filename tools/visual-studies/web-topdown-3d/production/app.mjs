@@ -1,16 +1,17 @@
-import {createState,CATALOG,DIRS,REFERENCE,place,salvage,deposit,rotate,advance,entityAt,feedback,placement,moveActor,inputConnected} from './model.mjs';
+import {createState,CATALOG,DIRS,REFERENCE,place,salvage,deposit,rotate,advance,entityAt,feedback,placement,moveActor,extendBeltPath,placeBeltPath} from './model.mjs';
 import {createView} from './scene.mjs';
 
 const $=id=>document.getElementById(id),canvas=$('world');
 let state=createState(),actor={x:-3.5,z:5.7,angle:0,walk:0,moving:false,target:null};
-const ui={build:true,tool:null,cell:null,dir:0,selected:null,guides:true,paused:false},keys=new Set();
+const ui={build:true,tool:null,cell:null,dir:0,selected:null,guides:true,paused:false,stroke:null},keys=new Set();
 let view,ready=false,lastUI=0,lastLesson='',pointer=null;
 const names=['东 →','南 ↓','西 ←','北 ↑'];
 function notice(message,error=false){$('notice').textContent=message;$('notice').dataset.error=String(error);}
 function choose(type){
+  stopPointer();
   ui.build=true;ui.tool=type;ui.selected=null;
   const p=REFERENCE[type]||{x:-6,z:0};ui.cell={...p};
-  actor.target=null;notice(type==='belt'?'箭头沿物料前进方向。R 转向；点击格位逐段铺设。':'移动鼠标选择落位，点击放置；也可用下方 X / Z 精确调整。');syncUI();
+  actor.target=null;notice(type==='belt'?'箭头沿物料前进方向。单击放一格，按住拖动连续铺带，松开确认；R 转向。':'移动鼠标选择落位，点击放置；也可用下方 X / Z 精确调整。');syncUI();
 }
 function commit(){
   if(!ui.tool||!ui.cell)return;
@@ -23,12 +24,13 @@ function commit(){
 }
 function select(id){ui.tool=null;ui.selected=id;actor.target=null;syncUI();}
 function cancel(){
+  if(pointer){stopPointer();notice('已取消本次拖动铺带。');syncUI();return;}
   if(ui.tool){ui.tool=null;notice('已取消放置。');}
   else if(ui.selected!==null){ui.selected=null;}
   else if(ui.build){ui.build=false;notice('观察模式：点击地面移动，点击设备查看。');}
   syncUI();
 }
-function setBuild(){ui.build=!ui.build;ui.tool=null;notice(ui.build?'选择一个构件开始建造。':'观察模式：点击地面移动，点击设备查看。');syncUI();}
+function setBuild(){stopPointer();ui.build=!ui.build;ui.tool=null;notice(ui.build?'选择一个构件开始建造。':'观察模式：点击地面移动，点击设备查看。');syncUI();}
 function turn(){if(ui.tool==='belt'){ui.dir=(ui.dir+1)%4;syncUI();}else if(ui.selected){const r=rotate(state,ui.selected);notice(r.ok?'传送带已转向。':r.reason,!r.ok);syncUI();}}
 function syncUI(){
   $('build').textContent=ui.build?'建造中 B':'进入建造 B';$('build').setAttribute('aria-pressed',String(ui.build));$('build-tools').hidden=!ui.build;
@@ -78,7 +80,6 @@ for(const b of document.querySelectorAll('[data-tool]'))b.addEventListener('clic
 $('build').addEventListener('click',setBuild);$('place').addEventListener('click',commit);$('cancel').addEventListener('click',cancel);$('rotate').addEventListener('click',turn);$('rotate-selected').addEventListener('click',turn);
 for(const id of ['cell-x','cell-z'])$(id).addEventListener('input',()=>{if(!ui.cell)return;ui.cell[id==='cell-x'?'x':'z']=$(id).valueAsNumber;syncUI();});
 $('guides').addEventListener('change',e=>{ui.guides=e.target.checked;});
-$('world-labels').addEventListener('click',e=>{const b=e.target.closest('[data-entity-id]');if(b)select(Number(b.dataset.entityId));});
 $('close-inspector').addEventListener('click',()=>{ui.selected=null;syncUI();});
 $('salvage').addEventListener('click',()=>{
   const r=salvage(state,ui.selected);if(r.ok){ui.selected=null;notice(`已回收${CATALOG[r.type].name}、${r.items.crystal} 晶体、${r.items.catalyst} 催化剂。`);}else notice(r.reason,true);syncUI();
@@ -87,19 +88,59 @@ $('deposit').addEventListener('click',()=>{const r=deposit(state,ui.selected);no
 $('pause').addEventListener('click',()=>{ui.paused=!ui.paused;$('pause').textContent=ui.paused?'继续':'暂停';$('pause').setAttribute('aria-pressed',String(ui.paused));notice(ui.paused?'生产已暂停，可以查看或调整布局。':'生产继续。');});
 $('help').addEventListener('click',()=>{$('help-panel').hidden=!$('help-panel').hidden;$('help').setAttribute('aria-expanded',String(!$('help-panel').hidden));syncUI();});
 $('restart').addEventListener('click',()=>$('restart-dialog').showModal());$('keep-playing').addEventListener('click',()=>$('restart-dialog').close());
-$('confirm-restart').addEventListener('click',()=>{state=createState();actor={x:-3.5,z:5.7,angle:0,walk:0,moving:false,target:null};Object.assign(ui,{build:true,tool:null,cell:null,dir:0,selected:null,paused:false});keys.clear();$('pause').textContent='暂停';$('pause').setAttribute('aria-pressed','false');$('restart-dialog').close();$('help-panel').hidden=true;$('help').setAttribute('aria-expanded','false');notice('新厂坪已准备好。');syncUI();});
+$('confirm-restart').addEventListener('click',()=>{stopPointer();state=createState();actor={x:-3.5,z:5.7,angle:0,walk:0,moving:false,target:null};Object.assign(ui,{build:true,tool:null,cell:null,dir:0,selected:null,paused:false});keys.clear();$('pause').textContent='暂停';$('pause').setAttribute('aria-pressed','false');$('restart-dialog').close();$('help-panel').hidden=true;$('help').setAttribute('aria-expanded','false');notice('新厂坪已准备好。');syncUI();});
 function rotateCamera(amount){if(!view)return;view.cameraState.yaw+=amount*Math.PI/180;view.syncCamera();}
 function zoom(amount){if(!view)return;view.cameraState.zoom=Math.max(.8,Math.min(1.5,view.cameraState.zoom+amount));view.syncCamera();}
 $('left').addEventListener('click',()=>rotateCamera(-15));$('right').addEventListener('click',()=>rotateCamera(15));$('zoom-out').addEventListener('click',()=>zoom(-.1));$('zoom-in').addEventListener('click',()=>zoom(.1));
-canvas.addEventListener('pointermove',e=>{if(!ready||!ui.tool)return;const p=view.ground(e.clientX,e.clientY);if(p){ui.cell={x:Math.floor(p.x),z:Math.floor(p.z)};syncUI();}});
-canvas.addEventListener('pointerdown',e=>{if(e.button===0)pointer={x:e.clientX,y:e.clientY};});
+function stopPointer(){
+  const id=pointer?.id;pointer=null;ui.stroke=null;
+  if(id!==undefined&&canvas.hasPointerCapture(id))canvas.releasePointerCapture(id);
+}
+function canvasPoint(e){
+  const bounds=canvas.getBoundingClientRect();
+  if(e.clientX<bounds.left||e.clientX>=bounds.right||e.clientY<bounds.top||e.clientY>=bounds.bottom)return null;
+  // Pointer capture must not turn an overlaid panel into buildable ground.
+  if(document.elementFromPoint(e.clientX,e.clientY)!==canvas)return null;
+  return view.ground(e.clientX,e.clientY);
+}
+function previewStroke(cell){
+  const result=extendBeltPath(state,ui.stroke,cell);ui.stroke=result.path||ui.stroke;
+  notice(result.ok?`预览 ${ui.stroke.length} 段 · 松开铺设，回拖缩短，Esc 取消`:result.reason,!result.ok);
+}
+canvas.addEventListener('pointermove',e=>{
+  if(!ready||!ui.tool)return;
+  if(pointer&&pointer.id!==e.pointerId)return;
+  const p=canvasPoint(e);
+  if(!p){if(pointer){stopPointer();notice('已离开场地，本次铺带预览已取消。');syncUI();}return;}
+  ui.cell={x:Math.floor(p.x),z:Math.floor(p.z)};
+  if(pointer?.belt){if(!(e.buttons&1)){stopPointer();return;}previewStroke(ui.cell);}
+  syncUI();
+});
+canvas.addEventListener('pointerdown',e=>{
+  if(!ready||e.button!==0||pointer)return;
+  const p=canvasPoint(e);if(!p)return;
+  canvas.focus();actor.target=null;
+  pointer={id:e.pointerId,x:e.clientX,y:e.clientY,belt:ui.tool==='belt'};
+  canvas.setPointerCapture(e.pointerId);
+  if(pointer.belt){ui.cell={x:Math.floor(p.x),z:Math.floor(p.z)};ui.stroke=[];previewStroke(ui.cell);syncUI();}
+});
 canvas.addEventListener('pointerup',e=>{
-  if(!ready||!pointer||Math.hypot(e.clientX-pointer.x,e.clientY-pointer.y)>8)return;pointer=null;canvas.focus();
-  const p=view.ground(e.clientX,e.clientY);if(!p)return;
+  if(!ready||!pointer||pointer.id!==e.pointerId||e.button!==0)return;
+  const gesture=pointer,p=canvasPoint(e);
+  if(gesture.belt){
+    const path=ui.stroke;stopPointer();
+    if(!p){notice('已离开场地，本次铺带预览已取消。');syncUI();return;}
+    const result=placeBeltPath(state,path,ui.dir);
+    notice(result.ok?`已铺设 ${result.entities.length} 段传送带。可继续拖动铺设，Esc 结束。`:result.reason,!result.ok);
+    syncUI();return;
+  }
+  stopPointer();
+  if(!p||Math.hypot(e.clientX-gesture.x,e.clientY-gesture.y)>8)return;
   if(ui.tool){ui.cell={x:Math.floor(p.x),z:Math.floor(p.z)};commit();return;}
   const id=view.hit(e.clientX,e.clientY),e2=entityAt(state,Math.floor(p.x),Math.floor(p.z));
   if(id||e2)select(id||e2.id);else{ui.selected=null;actor.target={x:p.x,z:p.z};syncUI();}
 });
+for(const name of ['pointercancel','lostpointercapture'])canvas.addEventListener(name,()=>stopPointer());
 canvas.addEventListener('wheel',e=>{e.preventDefault();zoom(-e.deltaY*.001);},{passive:false});
 const moveKeys=new Set(['w','a','s','d','ArrowUp','ArrowDown','ArrowLeft','ArrowRight']);
 function movement(dt){
@@ -113,6 +154,7 @@ window.addEventListener('keydown',e=>{
   if(!ready||$('restart-dialog').open)return;
   const k=e.key.length===1?e.key.toLowerCase():e.key;
   if(k==='Escape'){e.preventDefault();cancel();return;}
+  if(pointer)return;
   if(e.target.matches('input'))return;
   if(k==='Enter'&&ui.tool){e.preventDefault();commit();return;}
   if(k.startsWith('Arrow')&&ui.tool){e.preventDefault();const delta={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[k];ui.cell.x+=delta[0];ui.cell.z+=delta[1];syncUI();return;}
@@ -122,13 +164,13 @@ window.addEventListener('keydown',e=>{
   if(k==='b')setBuild();if(k==='r')turn();if(k==='q')rotateCamera(-15);if(k==='e')rotateCamera(15);
 });
 window.addEventListener('keyup',e=>keys.delete(e.key.length===1?e.key.toLowerCase():e.key));
-window.addEventListener('blur',()=>{keys.clear();actor.target=null;});
-document.addEventListener('visibilitychange',()=>{keys.clear();actor.target=null;});
+window.addEventListener('blur',()=>{stopPointer();keys.clear();actor.target=null;});
+document.addEventListener('visibilitychange',()=>{stopPointer();keys.clear();actor.target=null;});
 for(const b of document.querySelectorAll('[data-key]')){b.addEventListener('pointerdown',e=>{if(!ready)return;e.preventDefault();b.setPointerCapture(e.pointerId);keys.add(b.dataset.key);movement(1/60);});for(const name of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(name,()=>keys.delete(b.dataset.key));}
 function fail(error){ready=false;$('load-status').hidden=false;$('load-status').setAttribute('role','alert');$('load-status').textContent=`场景无法继续：${error.message}`;console.error(error);}
 canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();fail(new Error('图形上下文丢失，请刷新页面重新开始'));});
 try{
-  view=createView(canvas,$('world-labels'));ready=true;$('load-status').hidden=true;syncUI();let previous;
+  view=createView(canvas);ready=true;$('load-status').hidden=true;syncUI();let previous;
   function frame(now){if(!ready)return;try{
     const dt=previous===undefined?0:Math.min((now-previous)/1000,.1);previous=now;
     if(!document.hidden){if(!ui.paused&&!$('restart-dialog').open)advance(state,dt);movement(Math.min(dt,.06));}
