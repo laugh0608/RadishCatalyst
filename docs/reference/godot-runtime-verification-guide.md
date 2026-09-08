@@ -12,6 +12,11 @@
 - 约束：启动 Godot 属 `CLAUDE.md` 中"需要先告知用户再执行"的操作，跑之前先在回复中告知萝卜SAMA。
 - 平台：macOS 下 Godot 可执行文件为 `/Applications/Godot.app/Contents/MacOS/Godot`；以下记为 `$GODOT`。
 
+## 焦点与用户桌面
+
+- 有窗口验证不得循环调用 `grab_focus()`、强制置顶或在失焦后自动切回。萝卜SAMA切换窗口时停止采样或中断检查，不能抢占桌面来凑前台时长。
+- 用户关闭测试窗口后不自动重开；需要连续前台占用的长测，应在用户方便的时段另行安排。中断结果保持未完成，不能把后台时间或短测拼成连续前台通过。
+
 ## 核心机制
 
 Godot 4 的 `--script` 参数接受一个 `extends SceneTree` 的 GDScript，**它会替代工程主循环**：

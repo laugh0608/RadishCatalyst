@@ -60,10 +60,18 @@ var _selected_trash_id := ""
 
 signal world_created(world_id: String)
 signal world_load_requested(world_id: String)
+signal factory_requested
 signal quit_requested
 
 
 func _ready() -> void:
+	var factory_button := Button.new()
+	factory_button.name = "FactoryButton"
+	factory_button.text = "工厂世界"
+	factory_button.custom_minimum_size = Vector2(360, 44)
+	new_game_button.get_parent().add_child(factory_button)
+	new_game_button.get_parent().move_child(factory_button, 0)
+	factory_button.pressed.connect(func(): factory_requested.emit())
 	_apply_text_style()
 	_apply_button_style()
 	_apply_world_control_style()

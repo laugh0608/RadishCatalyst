@@ -6,18 +6,22 @@
 
 ## 当前任务
 
-先读 [Current Plan](current.md)、[Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md) 和 [Factory World State And Save V1](../architecture/factory-world-state-and-save-v1.md)。当前推进已获授权的正式工厂首包设计；具体架构、存档与规模提案待审阅后进入实现。
+先读 [Current Plan](current.md)、[Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md) 和 [Factory World State And Save V1](../architecture/factory-world-state-and-save-v1.md)。首包具体架构、存档与规模方案已获确认，现进入 P1–P3 实施。
 
 ## 今日接续
 
 1. 萝卜SAMA认可当前 Godot Demo 的画面和操作，但精细度尚不满意；明确当前先验证、不抠细节。停止追加同范围视觉比较，已认可风格继续作基准。
 2. 既有 Demo 与最大化清晰度修正已提交为 `cfa2fee4`、`5e1701b9`；本机分辨率 / 输入窗口检查通过，事实与局限见[原专题](../features/godot-first-production-line-demo-v1.md)。
 3. 首包设计分 P1 正式入口与状态、P2 保存恢复、P3 扩建与规模；先增加现有三类设备数量，新增设备类型和经济循环另包设计。
-4. 首包建议独立工厂世界 / 存档、64×64 场地、普通预发供给和 100 台 / 1,000 带工程负载。这些是待审阅的新合同，不是已实现能力或实测性能。
+4. 首包建议独立工厂世界 / 存档、64×64 场地、普通预发供给和 100 台 / 1,000 带工程负载。这些合同已获确认，实现和实测证据仍需逐包完成。
+
+## 窗口约束
+
+萝卜SAMA已关闭抢焦点的长测窗口；本轮禁止重开。检查脚本已移除焦点抢占，持续测试失焦即中断。30 分钟验证保持未完成；接续先检查工作区实现与已保存证据，不能重启长测。
 
 ## 下一步
 
-审阅首包中的正式 `client/` 接入、旧世界保留、新存档格式和扩建 / 负载范围；通过后按 P1–P3 连续推进，不重复索要同范围画面认可。实施仍需按包验证，Windows 性能需明确目标机后单独完成。
+按已确认的正式接入、旧世界保留、独立存档和扩建 / 负载合同，执行 P1–P3 连续推进，不重复索要同范围画面认可。实施仍需按包验证，Windows 性能需明确目标机后单独完成。
 
 ## 当前不进入
 

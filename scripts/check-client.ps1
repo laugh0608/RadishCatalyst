@@ -546,6 +546,14 @@ if ($runGodotChecks) {
                 RepoRoot = $RepoRoot
                 GodotExe = $GodotExe
             }
+        },
+        @{
+            Name = "factory state and save"
+            Script = "check-client-factory-foundation.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
         }
     )
 }

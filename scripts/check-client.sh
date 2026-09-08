@@ -216,6 +216,8 @@ run_godot_checked "slice-playtest-remediation-package4c" --script "${client_root
 run_godot_checked "slice-save-schema" --script "${client_root}/scripts/checks/slice_save_schema_check.gd" --no-header
 run_godot_checked "slice-save-schema-nine" --script "${client_root}/scripts/checks/slice_save_schema_nine_check.gd" --no-header
 run_godot_checked "slice-save-catalog" --script "${client_root}/scripts/checks/slice_save_catalog_check.gd" --no-header
+run_godot_checked "factory-state" --script "${client_root}/scripts/checks/factory_state_check.gd" --no-header
+run_godot_checked "factory-save" --script "${client_root}/scripts/checks/factory_save_check.gd" --no-header
 run_godot_checked "onboarding-hint-runtime" --script "${client_root}/scripts/checks/onboarding_hint_runtime_check.gd" --no-header
 run_godot_checked "functional-scene-gameplay" --script "${client_root}/scripts/checks/functional_scene_gameplay_check.gd" --no-header
 run_godot_checked "demo-functional-scene-gameplay-density" --script "${client_root}/scripts/checks/demo_functional_scene_gameplay_density_check.gd" --no-header
