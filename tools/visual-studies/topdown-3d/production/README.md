@@ -24,12 +24,13 @@ sh tools/run-topdown-3d-demo.sh --production
 | --- | --- |
 | `model.gd` | 有限生产状态、拓扑、守恒、拖铺与移动规则 |
 | `app.gd` | 独立入口、输入、暂停、重开与场景协调 |
-| `hud.gd` | Godot 控件、建造栏、详情和目标显示 |
+| `hud.gd` | Godot 控件、建造栏、详情、目标显示和随窗口像素同步的 3D 画布 |
 | `view.gd` | 导入模型、50° 相机、光影、货物轨迹与几何选取 |
 | `assets/` | 从仓库内 Web 自制模型导出的 glTF 及来源校验清单 |
 | `export-web-assets.mjs` | 使用既有 Web Three.js 导出同一套几何，不下载或修改 Web |
 | `verify-parity.mjs` / `verify-model.gd` | Web 生成操作与期望值，Godot 独立重放比较 |
 | `verify-window.gd` / `verify-navigation.gd` | 产线输入链、正常时间生产、人物碰撞 / 取消与截图 |
+| `verify-resolution.gd` | 普通 / 最大化 / 宽屏 / 恢复窗口的实际渲染尺寸及输入对齐 |
 
 重新导出资源：`node tools/visual-studies/topdown-3d/production/export-web-assets.mjs`。只有 Web 源几何确实更新时才重建，随后导入并复核截图；不得用过期导出冒称与 Web 同源。
 
@@ -39,8 +40,11 @@ sh tools/run-topdown-3d-demo.sh --production
 sh tools/check-godot-production-demo.sh
 sh tools/run-topdown-3d-demo.sh --verify-production
 sh tools/run-topdown-3d-demo.sh --verify-navigation
+sh tools/run-topdown-3d-demo.sh --verify-resolution
 ```
 
 运行 Godot 前按仓库约定先告知。定向检查涵盖同输入状态、拆回、回压、恢复、争用、守恒与弯道；窗口检查通过合成输入事件操作真实入口，不写隐藏生产状态。输入链证据仍需逐张查看截图，最终手感由用户亲测。补充检查中的失焦分支使用窗口信号，重开确认 / 取消使用可见按钮 `pressed` 信号；其余放置、移动与产线操作使用输入事件。
+
+3D 使用 `TextureRect` 显示独立 `SubViewport`，其渲染尺寸按场地区域与窗口拉伸比例同步，保持 100% 3D 比例与 4× MSAA；UI 保持原有大小和布局。鼠标先从界面坐标转换为实际 3D 像素坐标。分辨率检查读取实际帧缓冲图像，不能把 `ViewportTexture.get_size()` 的报告值直接当作截图尺寸。
 
 测试夹具、结果和日志在 `tools/runtime-intake/check-runs/godot-production-line/`；窗口截图在 `assets/art-intake/2026-09-08-godot-production-line-preview/`。这些目录均忽略提交。GLB 为仓库自制网格，无第三方资产包；本机测试只能说明三机小场景，不能外推大型工厂或其他硬件。

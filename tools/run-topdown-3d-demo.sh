@@ -12,9 +12,9 @@ scene="res://Main.tscn"
 case "${1:-}" in
   --verify) mode="check-runs" ;;
   --production) scene="res://production/Production.tscn" ;;
-  --verify-production|--verify-navigation) mode="check-runs"; scene="res://production/Production.tscn" ;;
+  --verify-production|--verify-navigation|--verify-resolution) mode="check-runs"; scene="res://production/Production.tscn" ;;
   "") ;;
-  *) echo "Usage: sh tools/run-topdown-3d-demo.sh [--verify | --production | --verify-production | --verify-navigation]" >&2; exit 2 ;;
+  *) echo "Usage: sh tools/run-topdown-3d-demo.sh [--verify | --production | --verify-production | --verify-navigation | --verify-resolution]" >&2; exit 2 ;;
 esac
 if [ "$#" -gt 1 ]; then
   echo "Only one mode is supported." >&2

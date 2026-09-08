@@ -6,7 +6,7 @@ const Model := preload("res://production/model.gd")
 const DIRECTIONS := ["东 →", "南 ↓", "西 ←", "北 ↑"]
 var buttons := {}
 var world_slot := Control.new()
-var world_container := SubViewportContainer.new()
+var world_image := TextureRect.new()
 var subviewport := SubViewport.new()
 var mission_panel: PanelContainer
 var inspector: PanelContainer
@@ -40,16 +40,20 @@ func _ready() -> void:
 	world_slot.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	world_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	stack.add_child(world_slot)
-	world_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	world_container.stretch = true
-	world_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	world_slot.add_child(world_container)
+	world_image.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	world_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	world_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	world_slot.add_child(world_image)
 	subviewport.size = Vector2i(1440, 650)
 	subviewport.handle_input_locally = false
 	subviewport.gui_disable_input = true
 	subviewport.own_world_3d = true
 	subviewport.msaa_3d = Viewport.MSAA_4X
-	world_container.add_child(subviewport)
+	world_image.add_child(subviewport)
+	world_image.texture = subviewport.get_texture()
+	world_image.resized.connect(_sync_render_resolution)
+	get_window().size_changed.connect(_sync_render_resolution.call_deferred)
+	_sync_render_resolution.call_deferred()
 	_build_world_panels()
 	_build_footer(stack)
 	restart.title = "重新开始"
@@ -224,13 +228,26 @@ func _configure_spin(spin: SpinBox, id: String) -> void:
 	placement_row.add_child(spin)
 
 
+func _sync_render_resolution() -> void:
+	# Canvas stretching enlarges the UI without resizing nested render targets.
+	# Render the world at its displayed pixel size, including Retina/window scaling.
+	var pixel_scale := get_viewport().get_stretch_transform().get_scale()
+	var resolution := Vector2i((world_image.size * pixel_scale).round()).max(Vector2i(2, 2))
+	if subviewport.size != resolution:
+		subviewport.size = resolution
+
+
+func viewport_to_screen(point: Vector2) -> Vector2:
+	return world_image.global_position + point * world_image.size / Vector2(subviewport.size)
+
+
 func world_point(screen: Vector2) -> Variant:
-	if restart.visible or not world_container.get_global_rect().has_point(screen):
+	if restart.visible or not world_image.get_global_rect().has_point(screen):
 		return null
 	for panel in [mission_panel, inspector, help_panel, world_slot.get_node("CameraPanel")]:
 		if panel.visible and panel.get_global_rect().has_point(screen):
 			return null
-	return screen - world_container.global_position
+	return (screen - world_image.global_position) * Vector2(subviewport.size) / world_image.size
 
 
 func announce(message: String, error := false) -> void:

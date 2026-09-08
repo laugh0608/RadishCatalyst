@@ -41,7 +41,11 @@ func _ready() -> void:
 	initialized = true
 	_refresh()
 	view.draw(model, actor, ui)
-	if "--verify-navigation" in OS.get_cmdline_user_args():
+	if "--verify-resolution" in OS.get_cmdline_user_args():
+		var review = load("res://production/verify-resolution.gd").new()
+		add_child(review)
+		review.call_deferred("run", self)
+	elif "--verify-navigation" in OS.get_cmdline_user_args():
 		var review = load("res://production/verify-navigation.gd").new()
 		add_child(review)
 		review.call_deferred("run", self)

@@ -161,7 +161,7 @@ func run(app: Control) -> void:
 
 
 func _cell_screen(cell: Vector2i, height := 0.0) -> Vector2:
-	return world.hud.world_container.global_position + world.view.project(Vector3(cell.x + 0.5, height, cell.y + 0.5))
+	return world.hud.viewport_to_screen(world.view.project(Vector3(cell.x + 0.5, height, cell.y + 0.5)))
 
 
 func _world_click(cell: Vector2i, height := 0.0) -> void:
