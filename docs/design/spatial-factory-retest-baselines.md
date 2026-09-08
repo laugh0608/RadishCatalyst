@@ -1,10 +1,10 @@
 # Spatial Factory Retest Baselines
 
-更新时间：2026-08-25
+更新时间：2026-09-08
 
 ## 文档目的
 
-本文定义当前 `Boot → SliceWorld` 像素切片的开发复测基线。冻结旧纵切的 `S0–S22` 代码生成基线仍由 [Development Retest Baselines](development-retest-baselines.md) 说明，不适用于当前正式入口。
+本文定义保留的 `Boot → SliceWorld` 二维像素切片开发复测基线；新增三维工厂不复用这些状态或存档，改读 [Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md)。冻结旧纵切的 `S0–S22` 代码生成基线仍由 [Development Retest Baselines](development-retest-baselines.md) 说明，不适用于当前正式入口。
 
 ## 通用规则
 

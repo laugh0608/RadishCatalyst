@@ -2,41 +2,35 @@
 
 更新时间：2026-09-08
 
-计划日期：2026-09-08
+计划日期：2026-09-09
 
 ## 当前任务
 
-先读 [Current Plan](current.md)、[Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md) 和 [Factory World State And Save V1](../architecture/factory-world-state-and-save-v1.md)。首包具体架构、存档与规模方案已获确认，现进入 P1–P3 实施。
+先读 [Current Plan](current.md)、[Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md) 和 [Factory World State And Save V1](../architecture/factory-world-state-and-save-v1.md)。正式工厂入口、独立存档和扩建基础已提交，接续重点是收敛验证缺口，首包尚未整体验收。
 
-## 今日接续
+## 昨日交接
 
-1. 萝卜SAMA认可当前 Godot Demo 的画面和操作，但精细度尚不满意；明确当前先验证、不抠细节。停止追加同范围视觉比较，已认可风格继续作基准。
-2. 既有 Demo 与最大化清晰度修正已提交为 `cfa2fee4`、`5e1701b9`；本机分辨率 / 输入窗口检查通过，事实与局限见[原专题](../features/godot-first-production-line-demo-v1.md)。
-3. 首包设计分 P1 正式入口与状态、P2 保存恢复、P3 扩建与规模；先增加现有三类设备数量，新增设备类型和经济循环另包设计。
-4. 首包建议独立工厂世界 / 存档、64×64 场地、普通预发供给和 100 台 / 1,000 带工程负载。这些合同已获确认，实现和实测证据仍需逐包完成。
+- Godot Demo、最大化清晰度修正、首包设计分别为 `cfa2fee4`、`5e1701b9`、`d75075ce`；正式工厂基础为 `978d6250`。均为本地提交，未推送。
+- 正式 Boot 可新建 / 继续工厂；64×64、25 矿点、多实例与独立 schema 1 已实现，旧二维入口 / schema 10 保留。
+- 状态、存档故障、跨进程与双线操作已有定向证据；100 台 / 1,000 带完成满载短测。30 分钟持续测试被中断，计时差异尚未解释，Windows 未测。详见 [W37 周志](../devlogs/2026-W37.md)。
 
-## 窗口约束
+## 明天事项（按顺序）
 
-萝卜SAMA已关闭抢焦点的长测窗口；本轮禁止重开。检查脚本已移除焦点抢占，持续测试失焦即中断。30 分钟验证保持未完成；接续先检查工作区实现与已保存证据，不能重启长测。
+1. **先处理模拟计时差异**：核对 `app.gd` 接收的引擎 `delta`、活动墙钟、暂停 / 失焦 / 保存停顿与模型余量。长测首档约 450 秒活动墙钟只推进约 447.9 秒；先复现和归因，再决定如何使用单调时钟，补无窗口定向验证，不能直接把差额认作正常。
+2. **核对剩余验收证据**：审阅双线操作已留存的原图；按专题逐项核对规模下的汇流、连续拆改、边缘操作、满载跨进程恢复与保存失败路径，补缺项。检查性能脚本失焦后是否彻底结束所有阶段，并为计时差异加入判定；不要只依赖 p95 和积压阈值。
+3. **另行安排窗口验证**：先复核移除抢焦点后的行为，再在萝卜SAMA方便的时段跑 1080 / 最大化、局部 / 拉远的 30 分钟持续生产。不得自动重开已关闭窗口、循环抢焦点或后台凑时长；明日接续不默认直接开长测。
+4. **证据齐备后交付亲测**：按 P1–P3 退出条件收口，提供正式 Boot 的隔离世界和路径。Windows 目标硬件明确后单独验性能，不将本机短测外推为目标平台通过。
 
-## 下一步
+## 暂缓事项
 
-按已确认的正式接入、旧世界保留、独立存档和扩建 / 负载合同，执行 P1–P3 连续推进，不重复索要同范围画面认可。实施仍需按包验证，Windows 性能需明确目标机后单独完成。
+- 萝卜SAMA已认可当前画面与操作，精细度暂缓；不重复索要同范围认可，不追加模型润色。
+- 不增加设备种类、经济解锁、液气、多人、随机地图或战斗，不转换 / 删除 schema 10 旧档。
+- 不推进 1,000 台 / 10,000 带扩展档，不安装依赖、打包、发布或推送。
 
-## 当前不进入
+## 入口与验证
 
-- 不批量精修美术、添加设备种类、液气、多人、经济解锁、随机地图或战斗。
-- 不擅自替换旧默认入口、转换 / 删除 schema 10 旧档，或把待审阅提案写成运行时真相。
-- 不将旧三机采样外推为大工厂 / 最大化 / Windows 性能，不安装依赖、打包、发布或推送。
-
-## 对照与读取顺序
-
-1. Current、首包功能专题及工厂状态 / 存档提案。
-2. 需要追溯决策和验证时读 [W37 周志](../devlogs/2026-W37.md) 与 [技术路线评估](../architecture/production-client-technology-assessment-v1.md)。
-3. 同规则参照为 [Godot Demo](../features/godot-first-production-line-demo-v1.md) 和 [Web 产线](../features/web-first-production-line-v1.md)；原视觉研究不作为并行待办。
-
-Godot 对照入口 `sh tools/run-topdown-3d-demo.sh --production`；Web 入口 `http://127.0.0.1:4318/play/`，需要时用 `sh tools/run-web-topdown-3d-demo.sh` 启动已有服务。独立 Demo 仍关闭即重置，首包持久化未实现。
-
-## 验证入口
-
-本次仅文档：`./scripts/check-docs.sh`、`./scripts/check-text-files.sh`、`./scripts/check-repo.sh`、`git diff --check`。实施后的正式 Boot、跨进程存读和负载合同见首包专题；启动 Godot 或窗口检查前先告知。
+- 正式路径：`client/scenes/boot/Boot.tscn` → “工厂世界” → 新建 / 继续。运行验证必须注入工厂与旧切片两个隔离存档根，操作方法见[运行时指南](../reference/godot-runtime-verification-guide.md)。
+- 无窗口定向：`sh tools/check-factory-foundation.sh state`；`process` 验证跨进程 / 锁，`legacy` 验证旧入口 / 存档，`scale` 生成工程满载状态。Godot 启动前仍先告知。
+- 有窗口 `boot`、`operation-write/read`、`performance`、`sustained` 的运行条件和证据见首包专题；不在收工或用户占用桌面时自动执行。
+- 治理与静态：`./scripts/check-repo.sh`、`sh ./scripts/check-client.sh`、`./scripts/check-docs.sh`、`./scripts/check-text-files.sh`、`git diff --check`。
+- 独立 Godot Demo 与 Web `/play/` 只保留作参照，前者关闭重置；正式工厂已有持久化。需要追溯时再读旧专题。

@@ -2,9 +2,9 @@
 
 更新时间：2026-09-08
 
-状态：独立 Demo 与定向 / 窗口复核完成；萝卜SAMA已认可画面方向与操作，精细度暂缓，转入正式工厂首包设计。
+状态：独立 Demo 与定向 / 窗口复核完成；萝卜SAMA已认可画面方向与操作，精细度暂缓，正式工厂首包基础现已接入。
 
-最新反馈：认可用于结束同范围画面 / 操作对照，不等于最终美术、完整生产亲测或大型工厂性能通过。下一步见 [Factory Foundation And Persistence V1](factory-foundation-and-persistence-v1.md)，其正式接入、存档和规模提案待审阅后实施；本独立 Demo 继续保留。
+最新反馈：认可用于结束同范围画面 / 操作对照，不等于最终美术、完整生产亲测或大型工厂性能通过。下一步见 [Factory Foundation And Persistence V1](factory-foundation-and-persistence-v1.md)，正式入口、独立存档与扩建基础已实现，整包验收待收口；本独立 Demo 继续保留。
 
 ## 决定与玩家结果
 

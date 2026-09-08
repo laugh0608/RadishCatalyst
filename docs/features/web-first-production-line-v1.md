@@ -4,7 +4,7 @@
 
 状态：实现与定向 / 浏览器验证已完成；四项反馈修正、接口箭头简化及弯道外形修正后，萝卜SAMA复评表示“不错，效果我很满意”，本轮视觉修正收口。
 
-2026-09-08 后续决定：本版本保留为固定体验参照；[独立 Godot 同规则产线 Demo](godot-first-production-line-demo-v1.md) 已完成，画面方向与操作获萝卜SAMA认可，精细度暂缓。当前转入 [Factory Foundation And Persistence V1](factory-foundation-and-persistence-v1.md) 首包设计，不扩展 Web 玩法；正式接入与存档提案待审阅后实施。
+2026-09-08 后续决定：本版本保留为固定体验参照；[独立 Godot 同规则产线 Demo](godot-first-production-line-demo-v1.md) 已完成，画面方向与操作获萝卜SAMA认可，精细度暂缓。当前转入 [Factory Foundation And Persistence V1](factory-foundation-and-persistence-v1.md) 首包验收收尾，不扩展 Web 玩法；正式入口、独立存档与扩建基础已实现，持续负载仍待验证。
 
 ## 2026-09-07 亲测反馈与修正范围
 

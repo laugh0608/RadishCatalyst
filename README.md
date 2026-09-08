@@ -1,13 +1,13 @@
 # RadishCatalyst / 异星催化
 
-RadishCatalyst 是一个以异星化工基地、人物探索战斗、角色成长和后续协作联机为核心方向的 2D / 2.5D 工业科幻 ARPG。
+RadishCatalyst 是一款以异星化工生产经营为核心、探索反哺生产并逐步拓展角色成长和协作的工业科幻游戏。产品方向见 [Production-Centered Direction](docs/product/production-centered-direction.md)。
 
 根目录 `README.md` 只保留仓库总览和稳定入口。当前阶段、当前重点、当前不做和退出条件统一以 [docs/planning/current.md](docs/planning/current.md) 为准。
 
 ## Start Here
 
 - 项目文档总入口：[docs/README.md](docs/README.md)
-- 当前空间工厂玩家帮助：[wiki/guides/spatial-factory-basics.md](wiki/guides/spatial-factory-basics.md)
+- 旧二维空间工厂玩家帮助：[wiki/guides/spatial-factory-basics.md](wiki/guides/spatial-factory-basics.md)
 - 日常推进短入口：[docs/planning/daily-start.md](docs/planning/daily-start.md)
 - 当前阶段真相源：[docs/planning/current.md](docs/planning/current.md)
 - 周志索引：[docs/devlogs/README.md](docs/devlogs/README.md)

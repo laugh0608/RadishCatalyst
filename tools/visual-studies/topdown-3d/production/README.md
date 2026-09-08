@@ -2,6 +2,8 @@
 
 本目录在既有独立 Godot 工程中复现已认可的 Web 三机固体产线。功能合同见 [Godot First Production Line Demo V1](../../../../docs/features/godot-first-production-line-demo-v1.md)。无正式客户端依赖和游戏存档，关闭即重置。
 
+正式三维工厂已在 `client/` 单独接入，支持持久化与扩建，当前验收状态见 [Factory Foundation And Persistence V1](../../../../docs/features/factory-foundation-and-persistence-v1.md)。本目录继续作为固定对照，不同步扩建成第二份正式游戏。
+
 ## 启动
 
 仓库根目录运行：

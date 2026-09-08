@@ -1,10 +1,10 @@
 # Slice Runtime Systems
 
-更新时间：2026-08-30
+更新时间：2026-09-08
 
 ## 文档目的
 
-本文说明当前正式 `Boot` 入口所使用的像素切片运行时结构。它与冻结保留的旧 `GameRoot + VerticalSliceMap` 纵切并存，但两者不共享世界状态、建筑系统或存档格式。
+本文说明正式 `Boot` 中保留的二维像素切片运行时结构。新增的三维工厂入口与独立 schema 1 见 [Factory World State And Save V1](factory-world-state-and-save-v1.md)，本文的 schema 10 / 二维规则不适用于工厂。它与冻结保留的旧 `GameRoot + VerticalSliceMap` 纵切并存，但两者不共享世界状态、建筑系统或存档格式。
 
 直接真相源：
 

@@ -1,6 +1,6 @@
 # Save Data Model
 
-更新时间：2026-08-25
+更新时间：2026-09-08
 
 ## 拆分说明
 
@@ -8,7 +8,9 @@
 
 ## 子文档
 
-- [Slice Runtime Systems](slice-runtime-systems.md)：当前正式像素切片的多世界目录、schema 10、建筑 / 反应器 / 外勤 / 装备状态、派生拓扑和 schema 2–9 迁移边界。
+- [Factory World State And Save V1](factory-world-state-and-save-v1.md)：正式三维工厂入口、权威状态与独立 schema 1；保留旧二维世界，当前未实现多人。
+
+- [Slice Runtime Systems](slice-runtime-systems.md)：保留的二维像素切片的多世界目录、schema 10、建筑 / 反应器 / 外勤 / 装备状态、派生拓扑和 schema 2–9 迁移边界。
 - [原则与分层](save-model-principles.md)：存档原则、分层、静态配置关系和稳定 ID 规则。
 - [世界存档结构](world-save-structure.md)：世界档案、区域、地图对象、敌人、建筑和任务状态建议。
 - [角色档案与文件](character-save-and-files.md)：角色档案、命令关系和文件格式建议。

@@ -1,6 +1,6 @@
 # Godot Runtime Verification Guide (For AI Agents)
 
-更新时间：2026-08-11
+更新时间：2026-09-08
 
 ## 用途与定位
 
@@ -37,10 +37,10 @@ repo_root="$PWD"
 1. **先导入**（新增素材 / 场景 / 脚本后必做，否则资源缺失）：
    `"$GODOT" --headless --path client --import --quit --no-header`
 2. **纯逻辑断言**用 `--headless` 跑（快）；**需要截图**的用有窗口跑。
-3. 输出重定向到日志文件，过滤真实错误（macOS 有 `noErr` / 证书类噪声）：
-   `grep -E "passed|SCRIPT ERROR|ERROR:" log | grep -v noErr | grep -v certificate`
+3. 将输出写入日志，核对退出码并定位真实错误；仅排除已确认的 macOS `ret != noErr` 噪声：
+   `rg '^(SCRIPT ERROR|ERROR:)' log | rg -v 'Condition "ret != noErr"'`
 4. 一次性检查脚本放仓库内忽略提交的 `tools/runtime-intake/YYYY-MM-DD-<topic>/`；形成稳定通用回归价值后，再迁入正式 `scripts/` 或客户端检查入口。
-5. 自动检查、临时验证和人工复测存档一律放在仓库内忽略提交的 `tools/runtime-intake/`，不得写入 `/tmp`、系统临时目录或工作区外：自动运行使用 `check-runs/<topic>/`，稳定人工档使用 `review-worlds/current/` 或 `review-worlds/<topic>/`，专题正式入口也可继续使用同批次 `save-root/`。开跑前可清理自己的隔离目录，但通过后不得删除最终主档 / 备份档；纯破坏性 / 迁移失败测试使用独立子目录并可清理，任何测试都不得覆盖生产版 `user://saves/slice/`。
+5. 自动检查、临时验证和人工复测存档一律放在仓库内忽略提交的 `tools/runtime-intake/`，不得写入 `/tmp`、系统临时目录或工作区外：自动运行使用 `check-runs/<topic>/`，稳定人工档使用 `review-worlds/current/` 或 `review-worlds/<topic>/`，专题正式入口也可继续使用同批次 `save-root/`。开跑前可清理自己的隔离目录，但通过后不得删除最终主档 / 备份档；纯破坏性 / 迁移失败测试使用独立子目录并可清理，任何测试都不得覆盖生产版 `user://saves/slice/` 或 `user://saves/factory/`。
 6. 截图落到 git 忽略的 `assets/art-intake/<日期>-<主题>-preview/`，供人工 / 视觉复核，结论记入当周周志。多图可以用 `./scripts/create-screenshot-contact-sheet.sh <output.png> <inputs...>` 生成带编号联系表辅助导航，但视觉结论必须按任务风险审阅足够的原生尺寸截图；联系表不能替代文字、材质、构图和整体观感判断。
 
 ## 脚本骨架模板
@@ -107,7 +107,7 @@ func _screenshot(file_name: String) -> void:
 - **输入模拟**：`Input.action_press("move_up")` → 若干 `await physics_frame` → `Input.action_release(...)`，走真实物理与动画路径。**用完必须 release**，Input 状态跨段残留。
 - **传送 + 真实交互结合**：跨图赶路可以直接设 `player.position`（省时），但被验证的机制本身（交互、碰撞、放置）必须走真实路径。
 - **位置里程碑而非定帧计时**：断言"走到某处"用位置条件 + 帧数上限兜底；固定帧数在高刷新率下失真（W29 经验）。
-- **显式 delta 驱动时间逻辑**：验证计时产出类逻辑时直接调 `world._tick_production(INTERVAL)` 传显式 delta，确定性且不用真等墙钟；墙钟等待既慢又受帧率干扰。
+- **模型时间与运行时钟分别验证**：显式传入时间可以定向验证配方、守恒与状态推进，但不能证明实际主循环没有丢失活动时间。持续验证需同时记录单调墙钟、暂停 / 失焦时段、模型已推进时间与待处理余量；不得用加速模型检查替代真实持续生产。
 - **存档闭环**：同脚本内 `boot.free()` → 再实例化新 `Boot` 走"载入存档"，可验证读档还原；要更严格的进程隔离就分两次 godot 调用（存档进程 + 读档进程），断言中间落盘 JSON。
 - **人工复核存档**：自动链可以在启动时删除自己上一次的隔离目录，结束时必须停在最有复核价值的通过状态并保留存档。若一个包需要人工检查多个互斥状态，为每个状态使用独立隔离目录；报告目录、载入后预期状态和是否保留备份档。
 - **截图时机**：状态就位后 `await process_frame` 两次再抓 `root.get_texture().get_image()`；相机跟随玩家时把玩家挪到构图点即可控制取景。
@@ -120,12 +120,21 @@ func _screenshot(file_name: String) -> void:
 3. **物理查询上下文**：`direct_space_state.intersect_shape` 在 `_physics_process` 上下文调用安全；别在树外或构造期调。
 4. **`--headless` 无渲染**：截不了图；只在纯逻辑断言时用它提速。
 5. **测试脚本类型转换**：`Array[Vector2i]` 等 typed array 的比较/转换在脚本里容易 parse error，逐元素断言更稳。
-6. **噪声过滤**：macOS 日志里 `noErr`、证书行不是错误；只认 `SCRIPT ERROR` / `ERROR:` 与自己的失败输出。
-7. **信号驱动的按钮**：`button.pressed.emit()` 等价于点击且无需坐标；比合成鼠标事件可靠。
+6. **噪声过滤**：当前 macOS `Condition "ret != noErr"` 已确认是系统证书查询噪声；不要据此忽略所有证书相关错误。其余 `SCRIPT ERROR` / `ERROR:` 与检查失败均须核对。
+7. **信号驱动的按钮**：`button.pressed.emit()` 可以验证信号后的业务连接，但不覆盖鼠标命中、遮挡、焦点和禁用状态；与真实输入及用户亲测分别记录。
 
 ## 断言与产物规范
 
-- 失败收集进数组、最后统一 `push_error` 并 `quit(1)`；调用侧看 exit code 判定，不靠肉眼扫日志。
+- 失败收集进数组、最后统一 `push_error` 并 `quit(1)`；调用侧同时核对退出码与 `SCRIPT ERROR` / `ERROR:` 日志，因为脚本解析失败可能返回 0。只精确排除已确认的平台噪声，不忽略真实错误。
 - 每包验证的断言数、截图文件名、结论写入当周周志；截图目录不入库（`art-intake` 已忽略），复核图（放大对比等）用完即删。
 - 自动化产生多张截图时保留原图；联系表用于快速定位，最终判断按风险直接检查必要原图，不设置单会话图片张数上限。
-- Bash 调用侧记得设超时（本仓库经验：单次带窗口运行 < 60 秒，卡住通常是脚本没 `quit()`）。
+- 调用侧按场景设置超时；普通窗口检查保持短时，真实生产 / 长测明确时长、进度和取消路径。长测不能因用户失焦而自动抢回窗口，不能将超时或中断写成通过。
+
+## 正式三维工厂验证路由
+
+工厂已接入同一 Boot，旧示例的 `SliceSaveCatalog` 注入不足以隔离全部存档；还须在加入场景树前设置 `boot.factory_save_root`。使用 `factory-foundation-v1` 的 `check-runs/` / `review-worlds/`，操作与截图规则见[首包专题](../features/factory-foundation-and-persistence-v1.md)。
+
+- `tools/check-factory-foundation.sh` 的 `state` / `process` / `legacy` / `scale` 为无窗口检查；`boot` / `operation-write` / `operation-read` / `performance` / `sustained` 会开窗口。各模式单独运行，Godot 可由现有 `GODOT_EXE` 指定，不自动安装。
+- `performance` / `sustained` 依赖 `scale` 生成的满载快照；后者另外用正式命令生成空物料工程线再真实生产。负载供给必须明确标记，不能进入普通新世界选项。
+- 操作存读使用同一唯一 batch 的两个独立进程；同一进程销毁再建 Boot 只作为较窄的恢复证据。旧世界入口 / schema 回归继续独立执行。
+- 2026-09-08 长测中断及焦点修正尚未开窗复验，接续先处理计时与中断退出，再安排长测；批次事实见 [W37 周志](../devlogs/2026-W37.md)。

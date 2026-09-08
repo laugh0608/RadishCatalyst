@@ -2,9 +2,9 @@
 
 更新时间：2026-09-08
 
-状态：旧视觉 Demo 与证据保留；后续同规则产线画面 / 操作已获认可，当前转入正式工厂首包设计。
+状态：旧视觉 Demo 与证据保留；后续同规则产线画面 / 操作已获认可，正式工厂首包基础现已接入。
 
-最新决定：[Godot First Production Line Demo V1](../features/godot-first-production-line-demo-v1.md) 已完成同规则复现，画面方向与操作获认可，精细度暂缓；当前推进 [Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md) 首包设计，正式接入与存档提案待审阅。下文继续保留 9 月 6 日原视觉样件合同和历史证据，不作为当前并行实现范围。
+最新决定：[Godot First Production Line Demo V1](../features/godot-first-production-line-demo-v1.md) 已完成同规则复现，画面方向与操作获认可，精细度暂缓；当前推进 [Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md) 首包验收收尾，正式入口与独立存档已实现，持续负载待验证。下文继续保留 9 月 6 日原视觉样件合同和历史证据，不作为当前并行实现范围。
 
 ## 本轮授权与五问
 

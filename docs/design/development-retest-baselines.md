@@ -1,8 +1,10 @@
 # Development Retest Baselines
 
-更新时间：2026-06-29
+更新时间：2026-09-08
 
-口径说明（2026-07-25）：本文基线只针对冻结保留的旧纵切运行时（`S0` 到 `S22`），在旧代码复用与回归时仍有效。当前正式 `Boot → SliceWorld` 的空档、建造、供电、物流、重启和视觉路径见 [Spatial Factory Retest Baselines](spatial-factory-retest-baselines.md)。
+口径说明（2026-07-25）：本文基线只针对冻结保留的旧纵切运行时（`S0` 到 `S22`），在旧代码复用与回归时仍有效。保留的 `Boot → SliceWorld` 的空档、建造、供电、物流、重启和视觉路径见 [Spatial Factory Retest Baselines](spatial-factory-retest-baselines.md)。
+
+三维工厂的正式 Boot、双线操作、跨进程与负载验收见 [Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md)，不套用旧纵切或二维存档基线。
 
 ## 文档目的
 

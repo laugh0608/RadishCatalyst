@@ -1,12 +1,24 @@
 # Godot Project Structure - 运行组织与边界
 
-更新时间：2026-08-26
+更新时间：2026-09-08
 
 返回：[Godot Project Structure](godot-project-structure.md)
 
 ## 当前正式入口
 
-当前菜单实际进入像素切片：
+当前 Boot 菜单提供两条独立世界路径。三维工厂路径为：
+
+```text
+Boot.tscn → StartupMenu 的“工厂世界”
+→ factory/world_menu.gd（新建 / 选择 / 恢复遗留锁）
+→ factory/save/store.gd（写入权、候选读取或初始保存）
+→ FactoryWorld.tscn（重建后接纳候选）
+→ factory/app.gd + model.gd + view.gd + hud.gd
+```
+
+工厂世界用 `factory_save_root` 注入目录，独立于旧 `SliceSaveCatalog`；检查时两个根均须隔离。保存返回后释放工厂场景并刷新工厂列表，模型与旧世界不共享状态。详细合同见 [Factory World State And Save V1](factory-world-state-and-save-v1.md)。
+
+保留的二维像素切片路径：
 
 ```text
 UserSettings Autoload（窗口模式、Master / SFX）

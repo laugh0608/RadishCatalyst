@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃设计为 [Factory Foundation And Persistence V1](factory-foundation-and-persistence-v1.md)：萝卜SAMA已认可独立 Godot 的画面方向与操作、暂缓精细度打磨，并授权推进下一步首包设计。正式接入、新旧存档和扩建 / 规模合同见该专题及[工厂状态与存档提案](../architecture/factory-world-state-and-save-v1.md)，待审阅后实施。[Godot Demo](godot-first-production-line-demo-v1.md)、[Web 产线](web-first-production-line-v1.md) 和既有 [Factory Building Experience Validation V1](factory-building-experience-validation-v1.md) 保留为参照；产品方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为准。
+当前活跃实施专题为 [Factory Foundation And Persistence V1](factory-foundation-and-persistence-v1.md)：萝卜SAMA已认可独立 Godot 的画面方向与操作、暂缓精细度打磨，并确认首包方案。正式入口、独立存档与扩建基础已实现，计时差异和持续负载验收尚未收口；实现边界见该专题及[工厂状态与存档合同](../architecture/factory-world-state-and-save-v1.md)。[Godot Demo](godot-first-production-line-demo-v1.md)、[Web 产线](web-first-production-line-v1.md) 和既有 [Factory Building Experience Validation V1](factory-building-experience-validation-v1.md) 保留为参照；产品方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为准。
 
 原[试玩反馈整改 V1](slice-playtest-remediation-v1.md)与 S0 暂缓，陌生玩家盲测继续冻结；既有整改成果和历史证据保留。
 
