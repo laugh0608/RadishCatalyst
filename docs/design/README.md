@@ -28,7 +28,7 @@
 
 ## 视觉研究与当前体验入口
 
-当前可执行包为 [Godot First Production Line Demo V1](../features/godot-first-production-line-demo-v1.md)，按 9 月 8 日授权复现已认可的 [Web 产线](../features/web-first-production-line-v1.md)，比较画面、操作与流畅度后再决定正式路线。下列视觉研究保留各自的未验收项与证据，不作为并行待办，也不代表正式平台迁移。
+当前推进 [Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md) 首包设计：Godot 画面方向与操作已获认可，精细度暂缓；正式接入、存档和扩建范围待方案审阅后实施。[Godot Demo](../features/godot-first-production-line-demo-v1.md) 与 [Web 产线](../features/web-first-production-line-v1.md) 保留为固定参照。下列视觉研究保留各自证据，不作为并行待办，也不代表量产美术已经定稿。
 
 - [Small Chemical Factory Visual Target V1](small-chemical-factory-visual-target-v1.md) — 工厂概念候选与透明管道方向反馈。
 - [Transparent Pipe Module Visual Validation V1](transparent-pipe-module-visual-validation-v1.md) — 32px 透明管、动态标识与定向验证；体积效果未验收。

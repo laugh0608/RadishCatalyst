@@ -2,13 +2,13 @@
 
 更新时间：2026-09-08
 
-状态：评估完成，推荐待萝卜SAMA确认；未切换正式客户端、介质、依赖或存档。
+状态：评估保留为依据；Godot Demo 画面方向与操作已获认可，当前按 Godot 3D 推进首包设计，未实施正式接入或新存档。
 
-2026-09-08 决定更新：萝卜SAMA已授权先做[独立 Godot 3D 产线 Demo](../features/godot-first-production-line-demo-v1.md)，与已认可 Web 版本同规则对照后再决定正式路线。下文正式化推荐与首包候选仍未批准；“等待确认正式迁移”不是当前任务，也不阻止已授权 Demo 开工。
+2026-09-08 决定更新：[独立 Godot 3D 产线 Demo](../features/godot-first-production-line-demo-v1.md) 与最大化清晰度修正已完成，萝卜SAMA认可当前画面和操作、暂缓精细度打磨，并要求推进下一步。现已形成 [Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md) 与[工厂状态 / 存档提案](factory-world-state-and-save-v1.md)；其具体接入、兼容和规模合同待审阅后实施。下文为评估依据，不继续把同一 Demo 画面认可当作前置阻塞。
 
 ## 结论与依据
 
-建议正式游戏采用 **Godot 4.x 3D 桌面客户端**，以已获认可的 Web 三维画面、50° 视角、单枚接口箭头、拖动铺带与真实弯道为迁移验收标准。Web `/play/` 保留为可运行的体验参照，本次先完成已授权的同规则 Godot Demo 对照。
+建议正式游戏采用 **Godot 4.x 3D 桌面客户端**，以已获认可的 Web 三维画面、50° 视角、单枚接口箭头、拖动铺带与真实弯道为迁移验收标准。Web `/play/` 保留为可运行的体验参照，同规则 Godot Demo 对照已完成，后续按新首包专题收敛正式接入方案。
 
 这是基于当前仓库与桌面游戏目标的工程判断，不是两套引擎的大规模性能实测结论。选择 Godot 的主要收益是继续利用已有的存档设施、库存与生产规则基础，以及游戏场景、资源导入和运行时工具；主要成本是拆开二维节点与权威状态的耦合，重做三维显示和输入映射，并证明新画面达到 Web 参照。不能把“仍用 Godot”解释成低成本一键转 3D。
 
@@ -33,9 +33,9 @@ Three.js + Electron 是可行的第二选择：画面与浏览器交互的直接
 | Godot 正式入口 | [Slice Runtime Systems](slice-runtime-systems.md) 记录 Boot、多世界、schema 10、三份备份、候选校验后发布、独立设置 | 存档设施已有实现与历史检查，迁移应保留其失败处理合同 |
 | Godot 耦合 | `SliceWorld`、`SliceBuildingInstance`、`SliceBuildingPlacementController` 为 `Node2D`；`SliceWorldSaveStateBuilder.build` 接受具体 `SliceWorld` | 不能直接把二维节点挂到三维场景；快照构建和坐标关系也需适配 |
 | Godot 可复用边界 | `SliceSaveCatalog`、`SliceBuildingSaveCodec` 为 `RefCounted`，但后者仍引用旧目录、足印和建筑类型 | 可复用文件管理与校验思想，具体 schema / 类型约束须逐项复核，不能宣称零改动复用 |
-| Godot 3D 样件 | [Topdown 3D Comparison](../design/topdown-3d-comparison-demo-v1.md) 已有 Forward+ / Metal 的独立样件与历史窗口证据 | 证明本机可实现真实几何与光影，未证明与已认可 Web 画面一致，也未覆盖 Windows |
+| Godot 3D 样件 | [Topdown 3D Comparison](../design/topdown-3d-comparison-demo-v1.md) 的原视觉证据与后续[同规则产线 Demo](../features/godot-first-production-line-demo-v1.md) 均保留，当前画面 / 操作已获认可 | 局部画面与操作对照已成立，精细度、正式存读、多产线规模和 Windows 仍需后续验证 |
 
-本次只核对源码、既有证据和官方能力文档；没有新增运行时测试，也没有把此前 Node 23 项检查视作正式客户端回归。
+评估形成时只核对源码、既有证据和官方能力文档；后续 Demo 与清晰度实测由其独立专题记录，不把它们或此前 Node 23 项检查混算为正式客户端回归。
 
 ## 路线比较
 
@@ -101,4 +101,4 @@ Godot 路线按三类处理资产：稳定 ID、守恒规则和测试用例作�
 
 首包之后才讨论“产物换取构件并扩建”的玩家循环，液气、多人和更大地图另行设计。首包不批量重做全部美术，不一次搬完旧内容，也不打包发布。
 
-需要萝卜SAMA确认的是 **Godot 3D 桌面正式化这一架构与介质方向**。确认后先冻结上述功能专题及兼容边界，再实施。依赖安装、外部资产、打包发布仍按各自实际范围授权。
+当前已按用户认可与下一步授权进入 Godot 3D 首包设计；需审阅的是新专题里具体的 **正式入口、新旧世界隔离、工厂存档与扩建 / 负载合同**。合同通过后按 P1–P3 实施，不重复要求同范围画面认可。依赖安装、外部资产、打包发布仍按各自实际范围授权。
