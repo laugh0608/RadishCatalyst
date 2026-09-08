@@ -8,17 +8,26 @@ if [ ! -x "$godot_bin" ]; then
   exit 1
 fi
 mode="review-worlds"
+scene="res://Main.tscn"
 case "${1:-}" in
   --verify) mode="check-runs" ;;
+  --production) scene="res://production/Production.tscn" ;;
+  --verify-production|--verify-navigation) mode="check-runs"; scene="res://production/Production.tscn" ;;
   "") ;;
-  *) echo "Usage: sh tools/run-topdown-3d-demo.sh [--verify]" >&2; exit 2 ;;
+  *) echo "Usage: sh tools/run-topdown-3d-demo.sh [--verify | --production | --verify-production | --verify-navigation]" >&2; exit 2 ;;
 esac
 if [ "$#" -gt 1 ]; then
-  echo "Only --verify is supported." >&2
+  echo "Only one mode is supported." >&2
   exit 2
 fi
-log_dir="$repo_root/tools/runtime-intake/$mode/topdown-3d"
+topic="topdown-3d"
+resolution="1440x810"
+if [ "$scene" = "res://production/Production.tscn" ]; then
+  topic="godot-production-line"
+  resolution="1440x900"
+fi
+log_dir="$repo_root/tools/runtime-intake/$mode/$topic"
 mkdir -p "$log_dir"
 run_stamp="$(date -u +%Y%m%dT%H%M%SZ)-$$"
 exec "$godot_bin" --path "$repo_root/tools/visual-studies/topdown-3d" \
-  --resolution 1440x810 --no-header --log-file "$log_dir/$run_stamp.log" -- "$@"
+  --resolution "$resolution" "$scene" --no-header --log-file "$log_dir/$run_stamp.log" -- "$@"

@@ -1,0 +1,81 @@
+{
+  "source": "Existing Web production geometry; no external assets",
+  "files": {
+    "collector.glb": {
+      "bytes": 251208,
+      "sha256": "e15bd5bfdb6c60b64ce096f84fbd5b53eaac6cad7af66ecc4b33cc9ff249f99f"
+    },
+    "reactor.glb": {
+      "bytes": 457636,
+      "sha256": "61fe3c01e46f4583c0ed87b1757533979c6e3d90bddcfd1850bde10e8b8eb37d"
+    },
+    "storage.glb": {
+      "bytes": 139736,
+      "sha256": "9255ed3c6ee9ec7137b86cbbd6e586706a5539a3f074701548c4359082467c72"
+    },
+    "yard.glb": {
+      "bytes": 303544,
+      "sha256": "7c0723ee3e10a25bf5e6a859af713f57fdb85de8f37a097eb360e82dd80012e5"
+    },
+    "ore.glb": {
+      "bytes": 12756,
+      "sha256": "521a8d5efe3b33cb5a6af7e9f2c9dbdeda075ba7e07f7ca693a12e45bcd45137"
+    },
+    "belt-2.glb": {
+      "bytes": 73180,
+      "sha256": "2d00852c9883423004f0bc0ad422bf69e5ae8150424398bb6733ecf863833d40"
+    },
+    "belt-4.glb": {
+      "bytes": 14592,
+      "sha256": "5ddaa460e399b4e876fda3120aa77d235a9dd3785e8ef4c9766d6da464a5b8da"
+    },
+    "belt-6.glb": {
+      "bytes": 22648,
+      "sha256": "c599365d78fd0b60f2ae61a18fb922410bd2798137bcc3bd863dec2ab348d940"
+    },
+    "belt-8.glb": {
+      "bytes": 73248,
+      "sha256": "067563747f046cd7721fd6a9872501d5d656830b96d937ce27aebfa7227e646c"
+    },
+    "belt-10.glb": {
+      "bytes": 22648,
+      "sha256": "b656e53379bae4265e30db093d40a326a3524f0823d0c975eedbd9f402fa8f34"
+    },
+    "belt-12.glb": {
+      "bytes": 22648,
+      "sha256": "f370a14331af8b77d25fb6cbbb9286a5b5994f15eda8578452ec67b909ba8197"
+    },
+    "belt-14.glb": {
+      "bytes": 26072,
+      "sha256": "870f75b54e94915efc15148f8c8863fecd7aed3ba249ae8b8fbf293fcc4e951f"
+    },
+    "cargo.glb": {
+      "bytes": 2012,
+      "sha256": "e764f4423451a6dcddfcbae2c6c1ff01ef9b3b08d4737c08e6da887605eae516"
+    },
+    "engineer.glb": {
+      "bytes": 118576,
+      "sha256": "d76a0d39ee51a1f32323f92a0464645416f658f6f0d082c59c696803a3aef4ef"
+    }
+  },
+  "sources": {
+    "parts.mjs": "f64a97ee97fc4f3f3e3ae6af6dda725113a4745075b2501f6deadad8c74b0bb1",
+    "factory.mjs": "9342712d393eb888b601195b31db3db8e99c8ae00a0e6e388842b9d3078eceb9",
+    "production/scene.mjs": "76cdc5140c0a20dcac949b92c1841239088d56264e5e2ae830c1cd4d574ad975",
+    "production/model.mjs": "0eed8736b62e5785df109275ac113fc1d9ceb603ff51732ee94ffa04eaab40e5"
+  },
+  "reference": {
+    "collector": {
+      "x": -8,
+      "z": -1
+    },
+    "reactor": {
+      "x": -1,
+      "z": -2
+    },
+    "storage": {
+      "x": 6,
+      "z": -1
+    }
+  }
+}

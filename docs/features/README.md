@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-09-06
+更新时间：2026-09-08
 
 ## 用途
 
@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前活跃包为 [Web First Production Line V1](web-first-production-line-v1.md)，按用户确认在现有 Web 三维场景验证亲手搭建、真实产出和断路恢复。优先产品真相源见 [Production-Centered Direction](../product/production-centered-direction.md)，当次有限授权以新专题为准。[Factory Building Experience Validation V1](factory-building-experience-validation-v1.md) 的既有 Godot 实现与验证继续保留。
+当前活跃包为 [Godot First Production Line Demo V1](godot-first-production-line-demo-v1.md)，按 9 月 8 日授权在独立 Godot 工程复现已认可的 [Web 产线](web-first-production-line-v1.md)，先比较画面、操作与流畅度，再决定正式路线。优先产品真相源见 [Production-Centered Direction](../product/production-centered-direction.md)，当次有限授权以新专题为准。[Factory Building Experience Validation V1](factory-building-experience-validation-v1.md) 的既有 Godot 实现与验证继续保留。
 
 原[试玩反馈整改 V1](slice-playtest-remediation-v1.md)与 S0 暂缓，陌生玩家盲测继续冻结；既有整改成果和历史证据保留。
 

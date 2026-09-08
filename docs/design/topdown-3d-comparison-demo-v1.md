@@ -1,10 +1,10 @@
 # Topdown 3D Comparison Demo V1
 
-更新时间：2026-09-06
+更新时间：2026-09-08
 
-状态：独立 Demo 与定向实机对照已完成；视觉路线等待萝卜SAMA选择，未验收、未迁移。
+状态：旧视觉 Demo 与证据保留；2026-09-08 已授权在同一独立工程新增三机产线对照，未批准正式迁移。
 
-后续已完成 Web 风格与三维对照；当前暂定 Web 三维画面，按 [Web First Production Line V1](../features/web-first-production-line-v1.md) 亲测生产操作。本 Godot 样件继续保留，Godot 同场景复现暂后排，尚未作正式引擎选择。
+最新决定：先按 [Godot First Production Line Demo V1](../features/godot-first-production-line-demo-v1.md) 复现已认可的 [Web 产线](../features/web-first-production-line-v1.md)，比较同规则下的画面、操作与流畅度，再决定正式路线。该专题优先于下文旧视觉批次的“停止追加”与“只有观察移动”限制；下文仍记录 9 月 6 日原样件合同和历史证据。
 
 ## 本轮授权与五问
 
