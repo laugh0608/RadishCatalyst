@@ -20,6 +20,8 @@ var interrupt_during_sample := false
 var load_metrics := {}
 var raw_frames: Array[Dictionary] = []
 var current_label := ""
+var interruption_reason := ""
+var sampling_context := {}
 
 
 func _init() -> void:
@@ -53,8 +55,8 @@ func _run() -> void:
 	driver.shot_root = SliceCheckPaths.repository_root().path_join("assets/art-intake/" + Time.get_date_string_from_system() + "-factory-foundation-preview").path_join(run_id)
 	DirAccess.make_dir_recursive_absolute(driver.shot_root)
 	root.add_child(driver)
-	root.focus_exited.connect(_interrupt)
-	root.close_requested.connect(_interrupt)
+	root.focus_exited.connect(_interrupt.bind("focus_lost"))
+	root.close_requested.connect(_interrupt.bind("window_closed"))
 	boot = Boot.instantiate()
 	boot.slice_save_catalog = SliceSaveCatalog.new(run_root.path_join("slice"))
 	boot.factory_save_root = run_root.path_join("factory")
@@ -108,7 +110,12 @@ func _phase(label: String, maximized: bool, zoom: float) -> bool:
 		return false
 	attempted_phases.append(label)
 	current_label = label
+	sampling_context = {}
 	raw_frames.clear()
+	world.frame_samples.clear()
+	world.simulation_samples.clear()
+	world.model.step_samples.clear()
+	world.save_samples.clear()
 	root.mode = Window.MODE_MAXIMIZED if maximized else Window.MODE_WINDOWED
 	if not maximized:
 		root.size = Vector2i(1920, 1080)
@@ -125,10 +132,8 @@ func _phase(label: String, maximized: bool, zoom: float) -> bool:
 	if interrupted or (not interruption_check and not root.has_focus()):
 		_interrupt()
 		return false
-	world.frame_samples.clear()
-	world.simulation_samples.clear()
-	world.model.step_samples.clear()
-	world.save_samples.clear()
+	sampling_context = {"window_pixels": [root.size.x, root.size.y],
+		"world_pixels": [world.hud.subviewport.size.x, world.hud.subviewport.size.y], "zoom": world.view.zoom}
 	world.sample_enabled = true
 	world.model.measure_steps = true
 	if interruption_check and interrupt_during_sample:
@@ -177,7 +182,8 @@ func _phase(label: String, maximized: bool, zoom: float) -> bool:
 	var remainder_change: float = world.model.remainder - started_remainder
 	var timing_error: float = simulation_seconds + remainder_change - active
 	var raw_file := FileAccess.open(run_root.path_join(label + "-samples.json"), FileAccess.WRITE)
-	raw_file.store_string(JSON.stringify({"frames": raw_frames, "step_ms": world.model.step_samples, "autosaves": world.save_samples}, "", true, true))
+	raw_file.store_string(JSON.stringify({"frames": raw_frames, "simulation_ms": world.simulation_samples,
+		"step_ms": world.model.step_samples, "autosaves": world.save_samples, "sampling_context": sampling_context}, "", true, true))
 	raw_file.close()
 	var save_begin := Time.get_ticks_usec()
 	var saved: bool = world._save_now()
@@ -186,7 +192,8 @@ func _phase(label: String, maximized: bool, zoom: float) -> bool:
 		"simulation_seconds": simulation_seconds, "remainder_change_seconds": remainder_change,
 		"timing_error_seconds": timing_error, "engine_seconds": world.engine_active_seconds - started_engine,
 		"delivered_during_phase": world.model.delivered - delivered_before,
-		"frame_ms": summary(world.frame_samples), "step_ms": summary(world.model.step_samples),
+		"frame_ms": summary(world.frame_samples), "simulation_ms": summary(world.simulation_samples),
+		"step_ms": summary(world.model.step_samples),
 		"draw_calls": summary(draw_calls), "max_backlog_seconds": max_backlog, "save_ms": save_ms,
 		"window_pixels": [root.size.x, root.size.y], "world_pixels": [world.hud.subviewport.size.x, world.hud.subviewport.size.y],
 		"static_memory_bytes": Performance.get_monitor(Performance.MEMORY_STATIC),
@@ -203,10 +210,11 @@ func _phase(label: String, maximized: bool, zoom: float) -> bool:
 	return driver.failures.is_empty()
 
 
-func _interrupt() -> void:
+func _interrupt(reason := "focus_unavailable") -> void:
 	if interrupted or finished:
 		return
 	interrupted = true
+	interruption_reason = reason
 	if is_instance_valid(world):
 		world.sample_enabled = false
 		world.model.measure_steps = false
@@ -224,6 +232,12 @@ func _settle(frames := 5) -> void:
 func _inject_interruption() -> void:
 	await process_frame
 	await process_frame
+	if interrupt_during_sample:
+		var began := Time.get_ticks_usec()
+		while world.model.step_samples.is_empty() and Time.get_ticks_usec() - began < 2000000:
+			await process_frame
+		driver.expect(not world.model.step_samples.is_empty(), "real simulation step before sampled interruption")
+		driver.expect(world._save_now(), "real sampled save before interruption")
 	root.focus_exited.emit()
 
 
@@ -242,11 +256,16 @@ func finish() -> void:
 	finished = true
 	if interrupted:
 		var partial := FileAccess.open(run_root.path_join("interrupted-samples.json"), FileAccess.WRITE)
-		partial.store_string(JSON.stringify({"label": current_label, "frames": raw_frames}, "", true, true))
+		partial.store_string(JSON.stringify({"label": current_label, "reason": interruption_reason,
+			"frames": raw_frames, "sampling_context": sampling_context,
+			"simulation_ms": world.simulation_samples if is_instance_valid(world) else [],
+			"step_ms": world.model.step_samples if is_instance_valid(world) else [],
+			"autosaves": world.save_samples if is_instance_valid(world) else []}, "", true, true))
 		partial.close()
 	var file := FileAccess.open(run_root.path_join("result.json"), FileAccess.WRITE)
 	file.store_string(JSON.stringify({"phases": phases, "failures": driver.failures, "engine": Engine.get_version_info(),
 		"interrupted": interrupted, "interruption_check": interruption_check, "attempted_phases": attempted_phases,
+		"interruption_reason": interruption_reason,
 		"assertions": driver.assertions, "load": load_metrics,
 		"renderer": RenderingServer.get_current_rendering_method(), "adapter": RenderingServer.get_video_adapter_name(),
 		"cpu": OS.get_processor_name(), "memory": OS.get_memory_info(),
