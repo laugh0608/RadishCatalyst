@@ -6,6 +6,7 @@ var root_path := ""
 var phase := ""
 var failures: Array[String] = []
 var checks := 0
+var scale := false
 
 
 func _init() -> void:
@@ -27,6 +28,8 @@ func write_json(path: String, value: Dictionary) -> void:
 
 func _run() -> void:
 	for arg in OS.get_cmdline_user_args():
+		if arg == "--scale":
+			scale = true
 		if arg.begins_with("--phase="):
 			phase = arg.trim_prefix("--phase=")
 		if arg.begins_with("--batch="):
@@ -35,7 +38,11 @@ func _run() -> void:
 			root_path = SliceCheckPaths.check_run("factory-foundation-v1", false).path_join(batch)
 	assert(not root_path.is_empty())
 	match phase:
-		"write": _write_world()
+		"write":
+			if scale:
+				_write_scale_world()
+			else:
+				_write_world()
 		"read": _read_world()
 		"hold":
 			var store := Store.new(root_path.path_join("lock"))
@@ -56,6 +63,7 @@ func _run() -> void:
 				expect(candidate.ok and store.accept(candidate).ok, "new writer after explicit stale recovery")
 				store.release()
 		_: expect(false, "unknown phase")
+	write_json(root_path.path_join(phase + "-result.json"), {"assertions": checks, "failures": failures, "scale": scale})
 	print("Factory process %s: %d assertions, %d failures" % [phase, checks, failures.size()])
 	for failure in failures:
 		push_error(failure)
@@ -89,6 +97,48 @@ func _write_world() -> void:
 	store.release()
 
 
+func _write_scale_world() -> void:
+	var base := SliceCheckPaths.check_run("factory-foundation-v1", false)
+	var document: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(base.path_join("scale-full-state.json")))
+	var decoded := Codec.decode(document, document.world_id)
+	expect(decoded.ok, "validate real-rule full-scale fixture")
+	if not decoded.ok:
+		return
+	var model: RefCounted = decoded.model
+	expect(model.entities.size() == 1100, "100 machines and 1000 belts")
+	expect(model.entities.filter(func(e): return e.type == "belt" and not e.cargo.is_empty()).size() == 1000, "1000 carried items")
+	var store := Store.new(root_path.path_join("worlds"))
+	expect(store.create("满载跨进程", Codec.Rules.ENGINEERING_SUPPLY).ok, "create isolated engineering save")
+	expect(store.save(model).ok, "save full-scale state")
+	write_json(root_path.path_join("expected-before.json"), Codec.snapshot(model, store.world_id, store.world_name, 1))
+	# 两个进程执行相同真实拆改，验证恢复后的拓扑与继续推进。
+	_scale_edits(model)
+	model.advance(87.25)
+	write_json(root_path.path_join("expected-after.json"), Codec.snapshot(model, store.world_id, store.world_name, 1))
+	write_json(root_path.path_join("world.json"), {"id": store.world_id})
+	store.release()
+
+
+func _scale_edits(model: RefCounted) -> void:
+	for ore in Codec.Rules.ore_sites():
+		var cell: Vector2i = ore + Vector2i(3, 1)
+		var entity: Dictionary = model.entity_at(cell)
+		var old_id: int = entity.id
+		var direction: int = entity.dir
+		expect(model.salvage(old_id).ok, "recover loaded belt " + str(cell))
+		expect(model.by_id(old_id).is_empty() and not model.input_sides.has(old_id), "remove old index " + str(cell))
+		var placed: Dictionary = model.place("belt", cell, direction)
+		expect(placed.ok and placed.entity.id > old_id, "replace with fresh identity " + str(cell))
+		model.advance(0.1)
+		expect(model.entities.size() == 1100 and model.material_balance().equivalent == model.generated, "scale edit preserves kits and material " + str(cell))
+	var before: Dictionary = Codec.snapshot(model, "0123456789abcdef0123456789abcdef", "索引复核", 1)
+	var occupancy: Dictionary = model.occupancy.duplicate(true)
+	var neighbors: Dictionary = model.input_sides.duplicate(true)
+	model.rebuild_indexes()
+	expect(model.occupancy == occupancy and model.input_sides == neighbors, "incremental indexes agree with reconstruction")
+	expect(Codec.snapshot(model, "0123456789abcdef0123456789abcdef", "索引复核", 1) == before, "index rebuild does not change authoritative state")
+
+
 func _read_world() -> void:
 	var info: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(root_path.path_join("world.json")))
 	var store := Store.new(root_path.path_join("worlds"))
@@ -101,6 +151,8 @@ func _read_world() -> void:
 	var after: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(root_path.path_join("expected-after.json")))
 	var model: RefCounted = candidate.model
 	expect(_equal(Codec.snapshot(model, store.world_id, store.world_name, 1), before), "all fields survive process exit")
+	if scale:
+		_scale_edits(model)
 	model.advance(87.25)
 	expect(_equal(Codec.snapshot(model, store.world_id, store.world_name, 1), after), "future trajectory matches uninterrupted process")
 	expect(store.save(model).ok, "save again in new process")

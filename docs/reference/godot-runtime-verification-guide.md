@@ -1,6 +1,6 @@
 # Godot Runtime Verification Guide (For AI Agents)
 
-更新时间：2026-09-08
+更新时间：2026-09-09
 
 ## 用途与定位
 
@@ -134,7 +134,7 @@ func _screenshot(file_name: String) -> void:
 
 工厂已接入同一 Boot，旧示例的 `SliceSaveCatalog` 注入不足以隔离全部存档；还须在加入场景树前设置 `boot.factory_save_root`。使用 `factory-foundation-v1` 的 `check-runs/` / `review-worlds/`，操作与截图规则见[首包专题](../features/factory-foundation-and-persistence-v1.md)。
 
-- `tools/check-factory-foundation.sh` 的 `state` / `process` / `legacy` / `scale` 为无窗口检查；`boot` / `operation-write` / `operation-read` / `performance` / `sustained` 会开窗口。各模式单独运行，Godot 可由现有 `GODOT_EXE` 指定，不自动安装。
+- `tools/check-factory-foundation.sh` 的 `state` / `clock` / `interruption` / `process` / `legacy` / `scale` / `scale-process` / `scale-merge` 为无窗口检查；`boot` / `operation-write` / `operation-read` / `performance` / `sustained` 会开窗口。`clock` 使用隔离 Boot 与真实停顿，焦点和弹窗按钮信号注入单列；`interruption` 检查准备 / 采样中断，不算性能通过。各模式单独运行，Godot 可由既有 `GODOT_EXE` 指定，不自动安装。
 - `performance` / `sustained` 依赖 `scale` 生成的满载快照；后者另外用正式命令生成空物料工程线再真实生产。负载供给必须明确标记，不能进入普通新世界选项。
 - 操作存读使用同一唯一 batch 的两个独立进程；同一进程销毁再建 Boot 只作为较窄的恢复证据。旧世界入口 / schema 回归继续独立执行。
-- 2026-09-08 长测中断及焦点修正尚未开窗复验，接续先处理计时与中断退出，再安排长测；批次事实见 [W37 周志](../devlogs/2026-W37.md)。
+- 2026-09-09 已补单调时钟、准备 / 采样中断和规模定向证据；计时、失败弹窗及原生焦点修正仍待窗口复验和长测。时钟一致性按同一已处理帧边界比较墙钟与“推进 + 余量变化”；原始帧、模拟步和自动保存记录分别保留。批次事实见 [W37 周志](../devlogs/2026-W37.md)。

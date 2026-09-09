@@ -11,7 +11,7 @@ $clientRoot = Join-Path $RepoRoot "client"
 $recordRoot = Join-Path $RepoRoot "tools/runtime-intake/check-runs/factory-foundation-v1"
 New-Item -ItemType Directory -Force -Path $recordRoot | Out-Null
 
-foreach ($name in @("state", "save")) {
+foreach ($name in @("state", "save", "clock")) {
     $scriptPath = Join-Path $clientRoot "scripts/checks/factory_${name}_check.gd"
     $logPath = Join-Path $recordRoot "powershell-${name}.log"
     & $GodotExe --headless --path $clientRoot --script $scriptPath --no-header --log-file $logPath
@@ -25,4 +25,4 @@ foreach ($name in @("state", "save")) {
         throw ("Factory $name check reported errors: " + ($errors -join [Environment]::NewLine))
     }
 }
-Write-Host "Factory state and save checks passed."
+Write-Host "Factory state, save and clock checks passed."

@@ -1,11 +1,11 @@
 # Current Plan
 
-更新时间：2026-09-08
+更新时间：2026-09-09
 
 ## 当前阶段
 
 ```text
-正式三维工厂基础已提交 · 存读与扩建定向验证已落地 · 首包验收待收口
+正式三维工厂基础已提交 · 计时与失败退出修正已补定向验证 · 窗口及持续验收待收口
 ```
 
 本轮方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为产品真相源：化工生产经营为核心，探索提供资源、空间和长期目的。既有二维切片、schema 10 和历史验证继续保留；旧整改 S0 暂缓。
@@ -19,7 +19,7 @@
 ## 当前活跃专题
 
 - [Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md)：玩家路径、供给、P1–P3 合同、已测状态和验收缺口。
-- [Factory World State And Save V1](../architecture/factory-world-state-and-save-v1.md)：实际目录 / 入口、状态权威、独立存档、锁、保存失败及计时待核实项。
+- [Factory World State And Save V1](../architecture/factory-world-state-and-save-v1.md)：实际目录 / 入口、状态权威、独立存档、锁、保存失败和单调活动时钟。
 - [Godot Demo](../features/godot-first-production-line-demo-v1.md) 和 [Web 产线](../features/web-first-production-line-v1.md) 保留为固定参照；[路线评估](../architecture/production-client-technology-assessment-v1.md) 保留决策依据。
 
 ## 当前边界
@@ -34,11 +34,12 @@
 
 - 正式 Boot、状态 / Web 对照、存档故障、跨进程、双线操作和旧入口 / 存档定向检查已执行；本机静态和仓库治理通过。详细批次、断言及失败记录见 [W37 周志](../devlogs/2026-W37.md)。
 - 100 台 / 1,000 带完成真实规则构造、满载状态检查和四档各约 12 秒短测；最大化拉远帧间隔 p95 12.985ms。GPU 时间未取得，Windows 未测，不代表长期性能通过。
-- 30 分钟长测因抢焦点干扰用户而中断；测试进程已退出、相关调用已移除，修正后仅解析检查，未开窗复验。活动墙钟和模型时间存在差异，须先归因。
-- 本轮不再打开窗口。后续长测另行安排，不自动抢焦点或重开用户关闭的窗口。未执行完整客户端 Godot 套件或 PowerShell 入口。
+- 原长测中断后已用无窗口探针复现引擎 delta 在长帧中漏时；正式工厂改用单调活动时钟，暂停 / 失焦、保存停顿、失败退出分支已有定向检查。修正二次确认弹窗的独占层级；历史全部计时差额不冒称已逐帧解释。
+- 双线 5 张原图已审阅；满载跨进程写 / 读各 107 项、规模汇流 210 项通过。性能脚本的准备 / 采样失焦均中断后续阶段，新增计时守恒判定、原始帧 / 模拟步 / 自动保存记录和单列加载耗时。
+- 当前尚未运行修正后的窗口复验与 30 分钟长测；窗口可用时段待确认，不自动抢焦点或重开用户关闭的窗口。未执行完整客户端 Godot 套件、Windows 或 PowerShell 入口。
 
 ## 下一步与退出条件
 
-明日按 [Daily Start](daily-start.md) 先核对计时与暂停边界，再审阅留存原图、补规模 / 存读证据，最后安排不干扰桌面的窗口复核与持续测试。
+接续按 [Daily Start](daily-start.md) 安排正式 Boot 的计时 / 暂停 / 失败退出与地图边缘窗口复核，再执行首档持续生产。无窗口证据不替代原生焦点、鼠标命中或持续性能。
 
 首包退出仍以专题 P1–P3 为准：正式玩家路径、跨进程完整状态恢复、故障保护、多线扩建及本机首档持续性能证据齐备后交付亲测。Windows 目标硬件未定，单列待验；不能把批准、短测或工程夹具写成完整产品验收。

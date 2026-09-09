@@ -6,6 +6,7 @@ signal load_failed(reason: String)
 const Model := preload("res://scripts/factory/model.gd")
 const View := preload("res://scripts/factory/view.gd")
 const Hud := preload("res://scripts/factory/hud.gd")
+const ActiveClock := preload("res://scripts/factory/active_clock.gd")
 const MOVE_KEYS := {
 	KEY_A: Vector2(-1, 0), KEY_LEFT: Vector2(-1, 0),
 	KEY_D: Vector2(1, 0), KEY_RIGHT: Vector2(1, 0),
@@ -20,7 +21,7 @@ var store: RefCounted
 var candidate := {}
 var dirty := false
 var dirty_elapsed := 0.0
-var periodic_elapsed := 0.0
+var saved_active_usec := 0
 var saved_revision := 0
 var save_failed := false
 var exit_intent := ""
@@ -40,6 +41,9 @@ var frame_samples: Array[float] = []
 var simulation_samples: Array[float] = []
 var sample_enabled := false
 var last_frame_usec := 0
+var production_clock := ActiveClock.new()
+var engine_active_seconds := 0.0
+var save_samples: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -57,7 +61,7 @@ func _ready() -> void:
 		return
 	hud.action.connect(_action)
 	get_window().focus_exited.connect(_focus_lost)
-	get_window().focus_entered.connect(func(): focused = true)
+	get_window().focus_entered.connect(_focus_gained)
 	get_window().mouse_exited.connect(func(): _stop_pointer())
 	hud.announce("从青色矿点开始，选择采集器放下第一台设备。")
 	_refresh()
@@ -75,6 +79,9 @@ func _ready() -> void:
 		hud.announce(store.last_warning)
 	saved_revision = model.revision
 	initialized = true
+	focused = get_window().has_focus()
+	production_clock.start(Time.get_ticks_usec(), _producing())
+	last_frame_usec = production_clock.last_usec
 
 
 func _process(delta: float) -> void:
@@ -83,11 +90,13 @@ func _process(delta: float) -> void:
 	var frame_usec := Time.get_ticks_usec()
 	var frame_interval_ms := (frame_usec - last_frame_usec) / 1000.0 if last_frame_usec > 0 else 0.0
 	last_frame_usec = frame_usec
+	_capture_active_time(frame_usec)
 	var dt := delta
 	if focused and not failure_dialog.visible and not unsaved_dialog.visible:
 		if not ui.paused:
 			var before := Time.get_ticks_usec()
-			model.advance(dt, 8)
+			engine_active_seconds += delta
+			model.advance(0, 8)
 			if sample_enabled:
 				simulation_samples.append((Time.get_ticks_usec() - before) / 1000.0)
 			_movement(minf(dt, 0.06))
@@ -97,7 +106,7 @@ func _process(delta: float) -> void:
 		actor.moving = false
 	if sample_enabled and focused:
 		frame_samples.append(frame_interval_ms)
-	_tick_save(delta)
+	_tick_save(frame_interval_ms / 1000.0)
 	ui_elapsed += delta
 	if ui_elapsed >= 0.12:
 		_refresh()
@@ -125,9 +134,36 @@ func _movement(dt: float) -> void:
 
 func _focus_lost() -> void:
 	focused = false
+	_capture_active_time()
 	_stop_pointer()
 	keys.clear()
 	actor.target = null
+
+
+func _focus_gained() -> void:
+	focused = true
+	_capture_active_time()
+
+
+func _producing() -> bool:
+	return initialized and focused and not ui.paused and not failure_dialog.visible and not unsaved_dialog.visible
+
+
+func _capture_active_time(now_usec: int = -1) -> void:
+	if not initialized:
+		return
+	production_clock.sample(Time.get_ticks_usec() if now_usec < 0 else now_usec, _producing())
+	# 状态切换 / 保存时只归集余量；固定步仍在活动帧按预算处理。
+	model.advance(production_clock.consume(), 0)
+
+
+func _set_paused(paused: bool) -> void:
+	ui.paused = paused
+	_capture_active_time()
+	if paused:
+		_stop_pointer()
+		keys.clear()
+		actor.target = null
 
 
 func _refresh() -> void:
@@ -203,7 +239,7 @@ func _action(name: String, value: Variant) -> void:
 			"cell_x": ui.cell.x = value
 			"cell_z": ui.cell.y = value
 			"mission": ui.mission = not ui.mission
-			"pause": ui.paused = not ui.paused
+			"pause": _set_paused(not ui.paused)
 			"help": hud.help_panel.visible = not hud.help_panel.visible
 			"save": _save_now()
 			"return": _request_exit("return")
@@ -337,7 +373,8 @@ func _build_save_dialogs() -> void:
 	unsaved_dialog.ok_button_text = "确认不保存退出"
 	unsaved_dialog.cancel_button_text = "返回"
 	unsaved_dialog.confirmed.connect(func(): _finish_exit())
-	add_child(unsaved_dialog)
+	# 二次确认属于失败对话框，避免两个独占弹窗同时竞争根窗口。
+	failure_dialog.add_child(unsaved_dialog)
 
 
 func _tick_save(delta: float) -> void:
@@ -345,8 +382,7 @@ func _tick_save(delta: float) -> void:
 		return
 	if model.revision != saved_revision or actor.moving:
 		dirty = true
-	if focused and not ui.paused:
-		periodic_elapsed += delta
+	var periodic_elapsed := (production_clock.active_usec - saved_active_usec) / 1000000.0
 	if dirty:
 		dirty_elapsed += delta
 	if not save_failed and (dirty_elapsed >= 2.0 or periodic_elapsed >= 30.0):
@@ -356,13 +392,15 @@ func _tick_save(delta: float) -> void:
 func _save_now() -> bool:
 	if store == null:
 		return false
+	_capture_active_time()
+	var save_begin := Time.get_ticks_usec()
 	var result: Dictionary = store.save(model)
+	if sample_enabled:
+		save_samples.append({"at_usec": save_begin, "duration_ms": (Time.get_ticks_usec() - save_begin) / 1000.0, "ok": result.ok})
 	if not result.ok:
 		save_failed = true
 		dirty = true
-		ui.paused = true
-		_stop_pointer()
-		keys.clear()
+		_set_paused(true)
 		failure_dialog.dialog_text = result.reason + "\n当前进度仍保留在内存，可重试保存。"
 		failure_dialog.popup_centered(Vector2i(550, 220))
 		hud.announce(result.reason, true)
@@ -370,7 +408,7 @@ func _save_now() -> bool:
 	save_failed = false
 	dirty = false
 	dirty_elapsed = 0
-	periodic_elapsed = 0
+	saved_active_usec = production_clock.active_usec
 	saved_revision = model.revision
 	hud.announce("已保存 · " + store.world_name if result.warning.is_empty() else result.warning)
 	return true
@@ -378,10 +416,7 @@ func _save_now() -> bool:
 
 func _request_exit(intent: String) -> void:
 	exit_intent = intent
-	ui.paused = true
-	_stop_pointer()
-	keys.clear()
-	actor.target = null
+	_set_paused(true)
 	if _save_now():
 		_finish_exit()
 
