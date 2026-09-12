@@ -144,16 +144,17 @@ if not await gate.wait_for_start(self, "异星催化 · 诊断准备", "本次�
 await super._run() # 仅在派生诊断脚本中进入原检查流程。
 ```
 
-准备页保持最大化，不同时写入小窗口尺寸；仅在准备页使用自适应铺满，结束时恢复原内容比例与关闭策略。显示按钮前检查原生窗口、实际渲染图像和控件布局已同步，并跨渲染帧确认尺寸稳定；超时明确失败。`ViewportTexture.get_size()` 带有拉伸变换，不能替代 `get_image().get_size()` 的实际像素证据。准备页验证不算正式 Boot、工厂画面或性能验收；正式检查仍按原有路径与预算执行。
+准备页保持最大化，不同时写入小窗口尺寸；仅在准备页使用自适应铺满，结束时恢复原内容比例与关闭策略。显示按钮前检查原生窗口、实际渲染图像和控件布局已同步，并跨渲染帧确认尺寸稳定；尺寸同步上限 5 秒，按钮开放后等待点击上限 180 秒，均为失败上限而非固定显示延时。关闭、超时或 headless 调用返回 false，调用方必须终止诊断；共用准备页不自动进入正式 Boot。`ViewportTexture.get_size()` 带有拉伸变换，不能替代 `get_image().get_size()` 的实际像素证据。准备页验证不算正式 Boot、工厂画面或性能验收；正式检查仍按原有路径与预算执行。
 
 - `tools/check-factory-foundation.sh` 的 `state` / `clock` / `view-state` / `interruption` / `process` / `legacy` / `scale` / `scale-process` / `scale-merge` 为无窗口检查；`boot` / `operation-write` / `operation-read` / `performance` / `sustained` 会开窗口。`clock` 使用隔离 Boot 与真实停顿，焦点和弹窗按钮信号注入单列；`interruption` 检查准备 / 采样中断，不算性能通过。各模式单独运行，Godot 可由既有 `GODOT_EXE` 指定，不自动安装。
 - `performance` / `sustained` 依赖 `scale` 生成的满载快照；后者另外用正式命令生成空物料工程线再真实生产。负载供给必须明确标记，不能进入普通新世界选项。
 - 完整与中断采样均保留帧记录、逐帧模拟耗时、模拟步、保存耗时及采样分辨率；中断原因单列 `focus_lost` / `window_closed` / `focus_unavailable`。旧批次缺失的字段不能据新格式补猜；中断记录不计作完整性能通过。
 - 正式检查中的逐帧模拟耗时只围绕 `model.advance`，不代表整帧 CPU 或 GPU。额外视口 CPU / GPU 与节点处理计时来自单列的一次性诊断；GPU 全零读数记为不可用，分位数不能直接相加或相减来推算未测开销。临时同步开 / 关对照须保留设置、恢复过程和中断边界，不改写正式验收结果。
-- `--gpu-profile` 与 `viewport_set_measure_render_time` 是不同层级的诊断开销：分项采样须与关闭分项的同状态段对照，预算结论回到无额外 GPU 时间戳的正式帧采样。GPU / CPU 原始时间戳单位应结合当前引擎实现和实际读数核对，不能凭接口名称猜单位；本机 Godot GPU 原始值按纳秒、CPU 按微秒处理。上游 [Metal 时间戳实现](https://github.com/godotengine/godot/blob/master/drivers/metal/rendering_device_driver_metal.cpp) 返回零，与本机不可用现象一致；原生 Metal 归因使用已安装 Instruments 时，仍需取得实际目标进程的有效轨迹并单列采样干扰时段。
+- `--gpu-profile` 与 `viewport_set_measure_render_time` 是不同层级的诊断开销：分项采样须与关闭分项的同状态段对照，预算结论回到无额外 GPU 时间戳的正式帧采样。GPU / CPU 原始时间戳单位应结合当前引擎实现和实际读数核对，不能凭接口名称猜单位；本机 Godot GPU 原始值按纳秒、CPU 按微秒处理。本次固定构建的 [Metal 时间戳实现](https://github.com/godotengine/godot/blob/5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88/drivers/metal/rendering_device_driver_metal.cpp) 清零查询结果，与本机内置接口不可用现象一致；不代表 Metal 本身无法测量。使用 Instruments 的原生 GPU 轨迹与该接口分开记录，并单列采样干扰时段。
 - Instruments `Metal System Trace` 即使附加单个 PID，也可能含共享 GPU / 显示事件；分析先按目标 PID 筛选，再对并行通道与层级重叠区间求并集，不能简单累加。记录轨迹自身起止时间并对应生产段，区分采集与后续整理开销；drawable 等待可与 GPU 执行重叠，不能用分位数相减解释等待原因。
+- 呈现回调抵达时间、drawable 的实际呈现时间和命令完成时间分别记录；先核对时钟基准，再关联对象。Surface ID、Drawable ID、队列 ID 或合成 seed 不因数值重合就视为同一身份；无标识等待事件不能据时间先后证明回收因果。已验证方法及反例见 [Metal 呈现诊断记录](factory-metal-presentation-review-20260912.md)。
 - `check-client` 默认只做静态检查；Shell / PowerShell 的 Godot 路径已纳入工厂 `state` / `save` / `clock` / `view_state`，不因此覆盖全部跨进程、规模、原生窗口或持续性能模式。具体执行范围以脚本与当批日志为准。
 - 操作存读使用同一唯一 batch 的两个独立进程；同一进程销毁再建 Boot 只作为较窄的恢复证据。旧世界入口 / schema 回归继续独立执行。
 - 2026-09-09 已补单调时钟、准备 / 采样中断和规模定向证据；窗口计时、原生保存返回 / 重进及后台长测已有通过记录，前台性能仍待诊断与完整重跑。时钟一致性按同一已处理帧边界比较墙钟与“推进 + 余量变化”；原始帧、模拟步和保存记录分别保留，注入故障 / 保存与正常自动保存须区分。批次事实见 [W37 周志](../devlogs/2026-W37.md)。
 
-- 2026-09-12 系统关闭保存与独立 Boot 重进已补 17 / 15 项证据。性能诊断完成同状态同步开 / 关 / 恢复与有效调用栈；Metal GPU 仍不可用，临时 Vulkan 对照取得 GPU 时间。驱动或效果诊断只影响测试进程，不代表默认 Metal 配置通过；详情见 W37 周志。
+- 2026-09-12 系统关闭保存与独立 Boot 重进已补 17 / 15 项证据。内置 Metal GPU 时间接口仍不可用，但已取得有效原生 Metal 轨迹并完成时钟 / 对象与源码审计；60 FPS 对照未改善，原配置短测仍超预算。准备页修正、生产视图回归与原图已分别验证；诊断构建仍待授权，详细批次见 W37 周志和呈现诊断记录。
