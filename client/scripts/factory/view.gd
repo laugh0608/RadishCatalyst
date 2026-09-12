@@ -23,6 +23,8 @@ var grid := Node3D.new()
 var ghost := Node3D.new()
 var selection := Node3D.new()
 var last_revision := -1
+var visual_revision := -1
+var visual_time := -1.0
 var ghost_key := ""
 var selection_key := ""
 var valid_mat := Parts.material("73d0b3", 0, 0.7)
@@ -32,9 +34,19 @@ var crystal_mat := Parts.material("70c8d1", 0.32, 0.24)
 var catalyst_mat := Parts.material("deb25b", 0.5, 0.3)
 var cyan_mat := Parts.material("5bd6c8", 0, 0.32)
 var dark_mat := Parts.material("273b40", 0.5, 0.42)
+var status_mesh := SphereMesh.new()
+var status_materials := {}
 
 
 func _ready() -> void:
+	status_mesh.radius = 0.5
+	status_mesh.height = 1.0
+	for kind in STATUS:
+		var mat := Parts.material(STATUS[kind])
+		mat.emission_enabled = true
+		mat.emission = Color(STATUS[kind])
+		mat.emission_energy_multiplier = 0.5
+		status_materials[kind] = mat
 	for name in ["yard", "ore", "collector", "reactor", "storage", "engineer", "cargo",
 		"belt-2", "belt-4", "belt-6", "belt-8", "belt-10", "belt-12", "belt-14"]:
 		assets[name] = load(ASSET_ROOT + name + ".glb")
@@ -230,6 +242,8 @@ func invalidate() -> void:
 		v.root.queue_free()
 	models.clear()
 	last_revision = -1
+	visual_revision = -1
+	visual_time = -1.0
 	ghost_key = ""
 	selection_key = ""
 
@@ -250,12 +264,9 @@ func _build(e: Dictionary, mask: int) -> Dictionary:
 		result.cargo_mesh = cargo.find_children("*", "MeshInstance3D", true, false)[0]
 	else:
 		root.add_child(assets[e.type].instantiate())
-		var lamp_mat := Parts.material(STATUS.waiting)
-		lamp_mat.emission_enabled = true
-		lamp_mat.emission = Color(STATUS.waiting)
-		lamp_mat.emission_energy_multiplier = 0.5
-		result.lamp = Parts.sphere(root, Vector3(-def.w * 0.5 + 0.22, 3.4 if e.type == "reactor" else 2.1, def.d * 0.5 - 0.2), Vector3.ONE * 0.21, lamp_mat)
-		result.lamp_mat = lamp_mat
+		result.lamp = Parts.mesh(root, status_mesh, Vector3(-def.w * 0.5 + 0.22, 3.4 if e.type == "reactor" else 2.1, def.d * 0.5 - 0.2), status_materials.waiting)
+		result.lamp.scale = Vector3.ONE * 0.21
+		result.lamp_mat = status_materials.waiting
 		_overlay_box(root, Vector3(0, 0.035, def.d * 0.5 + 0.15), Vector3(def.w * 0.8, 0.04, 0.12), dark_mat)
 		result.bar = _overlay_box(root, Vector3(0, 0.064, def.d * 0.5 + 0.15), Vector3(def.w * 0.8, 0.025, 0.12), cyan_mat)
 	result.hit_parts = root.find_children("*", "MeshInstance3D", true, false)
@@ -296,6 +307,8 @@ func _rebuild(model: RefCounted) -> void:
 
 
 func draw(model: RefCounted, actor: Dictionary, ui: Dictionary) -> void:
+	if world_model != model:
+		invalidate()
 	world_model = model
 	var follow := Vector3(actor.x, 0.25, actor.z - 4.0)
 	if target.distance_squared_to(follow) > 0.0001:
@@ -334,6 +347,15 @@ func draw(model: RefCounted, actor: Dictionary, ui: Dictionary) -> void:
 		var e: Dictionary = model.by_id(ui.selected)
 		if not e.is_empty():
 			footprint(selection, Vector2i(e.x, e.z), Model.CATALOG[e.type], select_mat)
+	# 生产视觉只在固定步或建造 / 投入命令改变状态后更新；人物、相机与预览仍逐帧处理。
+	if visual_revision == model.revision and visual_time == model.time:
+		return
+	visual_revision = model.revision
+	visual_time = model.time
+	_sync_production(model)
+
+
+func _sync_production(model: RefCounted) -> void:
 	for e in model.entities:
 		var v: Dictionary = models[e.id]
 		var def: Dictionary = Model.CATALOG[e.type]
@@ -347,8 +369,8 @@ func draw(model: RefCounted, actor: Dictionary, ui: Dictionary) -> void:
 				v.cargo.scale = Vector3.ONE * (0.9 if e.cargo == "catalyst" else 1.0)
 		else:
 			var f: Dictionary = model.feedback(e)
-			v.lamp_mat.albedo_color = Color(STATUS[f.kind])
-			v.lamp_mat.emission = Color(STATUS[f.kind])
+			v.lamp_mat = status_materials[f.kind]
+			v.lamp.material_override = v.lamp_mat
 			var progress := 0.0
 			match e.type:
 				"reactor": progress = e.progress / 10.0 if e.processing else (1.0 if e.output > 0 else 0.0)

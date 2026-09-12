@@ -35,6 +35,7 @@ case "$mode" in
     run_check save factory_save_check --headless --quit-after 600
     ;;
   clock) run_check clock factory_clock_check --headless --quit-after 1800 ;;
+  view-state) run_check view-state factory_view_state_check --headless --quit-after 1800 ;;
   interruption)
     run_check interruption-warmup factory_performance_check --headless --quit-after 1800 -- --check-interruption
     run_check interruption-sampling factory_performance_check --headless --quit-after 1800 -- --check-interruption --interrupt-during-sample
@@ -76,6 +77,6 @@ case "$mode" in
   operation-read) run_check operation-read factory_operation_check -- --read "--batch=${2:?supply the written batch name}" ;;
   performance) run_check performance-short factory_performance_check ;;
   sustained) run_check performance-sustained factory_performance_check -- --active --phase-seconds=450 ;;
-  *) echo "Usage: sh tools/check-factory-foundation.sh [import|state|clock|interruption|process|legacy|scale|scale-process|scale-merge|boot|operation-write|operation-read|performance|sustained] [batch]" >&2; exit 2 ;;
+  *) echo "Usage: sh tools/check-factory-foundation.sh [import|state|clock|view-state|interruption|process|legacy|scale|scale-process|scale-merge|boot|operation-write|operation-read|performance|sustained] [batch]" >&2; exit 2 ;;
 esac
 echo "Factory $mode check completed."
