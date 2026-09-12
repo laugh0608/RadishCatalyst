@@ -134,6 +134,18 @@ func _screenshot(file_name: String) -> void:
 
 工厂已接入同一 Boot，旧示例的 `SliceSaveCatalog` 注入不足以隔离全部存档；还须在加入场景树前设置 `boot.factory_save_root`。使用 `factory-foundation-v1` 的 `check-runs/` / `review-worlds/`，操作与截图规则见[首包专题](../features/factory-foundation-and-persistence-v1.md)。
 
+临时前台诊断若需要“点击开始”准备页，复用 `client/scripts/checks/factory_diagnostic_gate.gd`，不要复制窗口初始化代码：
+
+```gdscript
+var gate := preload("res://scripts/checks/factory_diagnostic_gate.gd")
+if not await gate.wait_for_start(self, "异星催化 · 诊断准备", "本次负载、时长与取消条件"):
+	quit(1)
+	return
+await super._run() # 仅在派生诊断脚本中进入原检查流程。
+```
+
+准备页保持最大化，不同时写入小窗口尺寸；仅在准备页使用自适应铺满，结束时恢复原内容比例与关闭策略。显示按钮前检查原生窗口、实际渲染图像和控件布局已同步，并跨渲染帧确认尺寸稳定；超时明确失败。`ViewportTexture.get_size()` 带有拉伸变换，不能替代 `get_image().get_size()` 的实际像素证据。准备页验证不算正式 Boot、工厂画面或性能验收；正式检查仍按原有路径与预算执行。
+
 - `tools/check-factory-foundation.sh` 的 `state` / `clock` / `view-state` / `interruption` / `process` / `legacy` / `scale` / `scale-process` / `scale-merge` 为无窗口检查；`boot` / `operation-write` / `operation-read` / `performance` / `sustained` 会开窗口。`clock` 使用隔离 Boot 与真实停顿，焦点和弹窗按钮信号注入单列；`interruption` 检查准备 / 采样中断，不算性能通过。各模式单独运行，Godot 可由既有 `GODOT_EXE` 指定，不自动安装。
 - `performance` / `sustained` 依赖 `scale` 生成的满载快照；后者另外用正式命令生成空物料工程线再真实生产。负载供给必须明确标记，不能进入普通新世界选项。
 - 完整与中断采样均保留帧记录、逐帧模拟耗时、模拟步、保存耗时及采样分辨率；中断原因单列 `focus_lost` / `window_closed` / `focus_unavailable`。旧批次缺失的字段不能据新格式补猜；中断记录不计作完整性能通过。
