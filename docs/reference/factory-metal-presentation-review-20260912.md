@@ -37,13 +37,60 @@ Present 请求中的 Surface ID 为 295 / 410 / 426；回调 Drawable ID 为递�
 
 最终新增证据：`handlers.xml`、`surfaces.xml`、`swaps.xml`、`ca-kdebug.xml`、`frame-assignment.xml`、`drawable-audit.json`、逐条核对的 `display-frame-audit.json`；脚本为批次根下 `audit-drawable.py`。它验证 581 对等待、581 个换算时刻、否决候选及 319 条提交 / 显示对应，42 条不符项完整保留。全部产物继续忽略提交，不复制原始环境信息到正式文档。
 
-## 下一项有信息增量的工作
+## 实际构建源码审计（接续完成）
 
-1. 对照实际构建 hash 的 Godot 源码，检查 Metal `nextDrawable` 获取、离屏命令提交、present、命令完成与应用释放引用的调用顺序，以及项目实际渲染路径是否触发已有延迟获取机制。优先使用已有源码或只读上游文件，不先下载整仓、安装依赖或构建引擎。
-2. 输出具体文件 / 函数和可证伪假设。若项目层存在确定的多余提交或生命周期问题，按现有边界局部修复并补原图、状态和短测；若没有，停止项目层盲调，给出引擎级取证方案及成本后再决定是否实施。
-3. 需要新采集时，必须能把同一对象的获取开始 / 返回（drawable ID 与 texture / surface 身份）、提交 / 完成、实际 presentedTime、应用释放引用放在统一时钟；应用释放不等于系统回收，若系统不暴露可用事件，仍明确保留因果缺口。诊断开销应单列，并有同配置无采样对照。
+只读取得上述构建的 12 个相关源码文件，共 912,950 字节，存于同一忽略诊断目录；`source-audit-manifest.json` 记录文件大小与 SHA-256。只读比较 4.7.2 的 `rendering_device.cpp`、`rendering_context_driver_metal.cpp`、`rendering_device_driver_metal3.cpp`，三份均逐字相同。这只排除这三处已有直接改动，不能推断所有版本行为相同或升级绝无收益。未下载完整源码、安装构建依赖或修改引擎。
 
-本轮不修改验证预算或引擎边界。引擎补丁 / 自定义构建、依赖下载或系统调整属于另行说明范围的后续方案；尚未实施。完整客户端 Godot 套件、Windows、四档前台长测和亲测仍未完成。
+### 正常窗口的调用顺序
+
+| 层次与具体位置（本次固定构建） | 已核实行为 |
+| --- | --- |
+| 项目 `client/scripts/factory/hud.gd:47` | 一个独立 3D SubViewport 输出给 TextureRect，保留 4× MSAA；项目没有主动强制绘帧或原生 drawable 持有代码 |
+| `RendererViewport::draw_viewports`，`renderer_viewport.cpp:979` | 收集视口输出后调用窗口合成；常规 RD 路径此处未提交渲染图 |
+| `RendererCompositorRD::blit_render_targets_to_screen`，`renderer_compositor_rd.cpp:42` | 先调用 `screen_prepare_for_drawing`，再记录窗口 blit |
+| `RenderingDevice::screen_prepare_for_drawing`，`rendering_device.cpp:5377` | 调用 swap-chain acquire；常规非 resize 路径没有提前 `_end_frame` / `_execute_frame`。注释的“提交之后”不能代替实际调用证据 |
+| `SurfaceLayer::acquire_next_frame_buffer`，`rendering_context_driver_metal.cpp:181` | 直接调用 `layer->nextDrawable()`，再保存 texture 指针；此处没有延迟取得的代理 |
+| `RenderingServerDefault::_draw`，`rendering_server_default.cpp:109`；`RenderingDevice::swap_buffers`，`rendering_device.cpp:7868` | 在视口 / 窗口 blit 之后调用帧末处理；`_end_frame` 执行 `draw_graph.end`，随后 `_execute_frame` 提交 |
+| 默认 `_execute_and_present`，`rendering_device_driver_metal3.cpp:297` | 最后一个命令缓冲注册 present，随后 commit；不是默认等 GPU 完成回调后才注册呈现 |
+
+源码链接：[RenderingDevice](https://github.com/godotengine/godot/blob/5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88/servers/rendering/rendering_device.cpp)、[窗口 Surface](https://github.com/godotengine/godot/blob/5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88/drivers/metal/rendering_context_driver_metal.cpp)、[Metal 提交](https://github.com/godotengine/godot/blob/5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88/drivers/metal/rendering_device_driver_metal3.cpp)、[视口调度](https://github.com/godotengine/godot/blob/5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88/servers/rendering/renderer_viewport.cpp)、[窗口合成](https://github.com/godotengine/godot/blob/5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88/servers/rendering/renderer_rd/renderer_compositor_rd.cpp)。
+
+因此已形成具体假设：窗口 drawable 等待位于本帧渲染图最终编码 / 提交之前，可能压缩后续 CPU 编码和 GPU 执行的时间余量。这是可测的提交顺序问题，不等于已证唯一瓶颈；不能直接把等待的 19.225ms 当成可节省的时间。[Apple 的 drawable 指南](https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/Drawables.html)建议在离屏编码之后、屏幕编码之前尽晚获取。指南本身不要求每个离屏 pass 单独 commit，不能据此盲目拆分命令缓冲。
+
+### 生命周期与运行证据边界
+
+- `SurfaceLayer::present` 在登记 present 前清空 frame-buffer texture 和 drawables 槽位；`MDFrameBuffer::unset_texture` 只是 raw pointer 清零，不是 Objective-C release。`MDCommandBuffer::commit` 在 commit 后 reset 自身 SharedPtr。`os_macos.mm:1133` 的主循环迭代在 autorelease pool 内，不能把指针清零时刻当成系统实际回收时刻。
+- `GODOT_MTL_OFF_SCREEN=1` 选择另外的 SurfaceOffscreen；`GODOT_MTL_FORCE_BARRIERS=1` 才允许实验 barrier 分支，后者有 completed-handler 呈现路径。这两个变量均不在本次 TOC 环境记录内，启动脚本也未设置；正常分支是本轮源码假设，后续诊断须显式记录实际分支值。未启用这些变量进行试验。
+- 原始等待事件发生在 Main Thread，但 user stack 为缺失值；既有 sample 的 Godot 地址未符号化，`nm -C` 未解析出目标函数。不能声称已有实机堆栈已逐函数证明源码链路，或已排除二进制与源码的所有差异。
+- 既有提交记录按连续等待时间分段：580 个完整间隙中，526 段有 2 次目标命令提交，27 段有 4 次，27 段没有；等待区间内未记录目标命令提交。`commit-order-audit.json` 保留逐段数据，只支持时间顺序，不代表这些命令一定是离屏 / 屏幕拆分。
+- 首次按 Instruments frame number 配对等待未通过一一对应断言，已否决该关联方式；最终分段只使用原始 commit 时间与等待时间。没有把一帧两个 command buffer 自动解释为“离屏工作已提前提交”。
+
+## 下一步：隔离引擎诊断构建方案（待授权）
+
+源码审计已完成，没有足够依据修改项目玩法 / 渲染配置。下一项应检验上述顺序假设；不再重复现有原生轨迹的身份推算或限帧值扫描。此方案只增加诊断标记，第一轮不改获取顺序、不换驱动、不拆分命令缓冲。
+
+### 改动点与输出
+
+1. 在 `SurfaceLayer::acquire_next_frame_buffer` 的 `nextDrawable` 前后记录统一单调时间、线程、frame / acquisition 序号，以及返回对象的 drawable ID 和 texture 身份；开始事件不伪造尚未知的 drawable ID。记录实际 Surface / barrier 分支和构建 hash。
+2. 在 `RenderingDevice::_end_frame` 的 `draw_graph.end` 前后、Metal command commit 前后记录相同帧序号及 command 身份，以分清图记录、实际编码、提交和系统等待。标记用运行期开关控制，关闭时不输出；使用现有日志基础和标量 ID，不新增对象持有。
+3. 在注册 present 与清空应用槽位处记录事件，明确它们不等于系统回收。若需要呈现回调，单列 callback 抵达与 `presentedTime`，不捕获额外 drawable 强引用；无法验证安全生命周期时先不加该回调，复用原生呈现事件。
+4. 禁止逐帧同步写盘或用回调延长资源生命周期；先验证事件完整性与开销。保留现有采样失焦即停、双存档根隔离和用户点击准备页的规则。
+
+### 命令、落盘与成本边界
+
+- 使用固定构建 hash 的源码归档，获取命令为 `curl --fail --location --max-time 120 https://codeload.github.com/godotengine/godot/tar.gz/5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88 --output source.tar.gz`。源码、构建目录、虚拟环境与日志全部限定到 `tools/runtime-intake/check-runs/factory-foundation-v1/engine-diagnostic-20260912/`，不写兄弟仓库，不替换 `/Applications/Godot.app`。
+- 本机已找到 clang++ 与完整 Xcode 路径，PATH 中未找到 SCons；这些只说明工具存在，尚未验证构建兼容性。授权后执行 `python3 -m venv .venv` 和 `.venv/bin/python -m pip install 'scons>=4.0,<5'`，记录实际解析版本 / 包 hash，不安装全局依赖。
+- 预定构建命令为 `.venv/bin/scons platform=macos arch=arm64 target=editor dev_build=no debug_symbols=yes -j6`；执行前按该提交 SConstruct 核实选项，输出独立诊断二进制。使用项目原有功能配置，不通过裁剪渲染功能缩短构建来改变负载。
+- 源码下载体积与编译峰值尚未测量；预留上限为 512MiB 源码归档、20GiB 隔离目录，超限先停下说明。编译会持续占用 CPU、可能需要数十分钟，这是估计，不承诺完成时间。本机当前可用空间约 469GiB。
+- 此次请求的授权仅覆盖取得源码、隔离 SCons 安装、诊断标记实现与本地构建；不涵盖系统配置、依赖升级、正式引擎替换、发布或推送。窗口验证仍先告知，并使用已有准备页等待用户点击。
+
+### 验证与停止条件
+
+- 先验证编译、事件序号 / 时钟和无资源持有增加；同快照原图与状态必须一致。依次比较当前官方二进制、诊断构建标记关闭、标记开启，构建差异与采样开销分开，不以诊断帧时间代替验收。
+- 首轮只回答：实际分支是否符合上述调用链、等待前后实际编码 / 提交在何处、迟交付是否对应 GPU 队列空隙。若不符，否决假设并保留数据；若只有显示节奏等待而无可获益空隙，不继续拆分提交。
+- 只有这些证据支持后，才提出延迟获取或离屏提前编码 / 提交的具体引擎补丁及同步风险；不在同一轮边测边改以混淆原因。系统回收事件若仍不可观测，保留因果缺口。
+
+本轮未执行构建或窗口验证。帧预算、四档前台长测、完整客户端 Godot 套件、Windows 和亲测状态保持不变。
 
 ## 历史批次记录
 
