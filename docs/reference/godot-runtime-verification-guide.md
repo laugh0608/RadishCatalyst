@@ -150,6 +150,7 @@ await super._run() # 仅在派生诊断脚本中进入原检查流程。
 - `performance` / `sustained` 依赖 `scale` 生成的满载快照；后者另外用正式命令生成空物料工程线再真实生产。负载供给必须明确标记，不能进入普通新世界选项。
 - 完整与中断采样均保留帧记录、逐帧模拟耗时、模拟步、保存耗时及采样分辨率；中断原因单列 `focus_lost` / `window_closed` / `focus_unavailable`。旧批次缺失的字段不能据新格式补猜；中断记录不计作完整性能通过。
 - 正式检查中的逐帧模拟耗时只围绕 `model.advance`，不代表整帧 CPU 或 GPU。额外视口 CPU / GPU 与节点处理计时来自单列的一次性诊断；GPU 全零读数记为不可用，分位数不能直接相加或相减来推算未测开销。临时同步开 / 关对照须保留设置、恢复过程和中断边界，不改写正式验收结果。
+- `--gpu-profile` 与 `viewport_set_measure_render_time` 是不同层级的诊断开销：分项采样须与关闭分项的同状态段对照，预算结论回到无额外 GPU 时间戳的正式帧采样。GPU / CPU 原始时间戳单位应结合当前引擎实现和实际读数核对，不能凭接口名称猜单位；本机 Godot GPU 原始值按纳秒、CPU 按微秒处理。上游 [Metal 时间戳实现](https://github.com/godotengine/godot/blob/master/drivers/metal/rendering_device_driver_metal.cpp) 返回零，与本机不可用现象一致；原生 Metal 归因使用已安装 Instruments 时，仍需取得实际目标进程的有效轨迹并单列采样干扰时段。
 - `check-client` 默认只做静态检查；Shell / PowerShell 的 Godot 路径已纳入工厂 `state` / `save` / `clock` / `view_state`，不因此覆盖全部跨进程、规模、原生窗口或持续性能模式。具体执行范围以脚本与当批日志为准。
 - 操作存读使用同一唯一 batch 的两个独立进程；同一进程销毁再建 Boot 只作为较窄的恢复证据。旧世界入口 / schema 回归继续独立执行。
 - 2026-09-09 已补单调时钟、准备 / 采样中断和规模定向证据；窗口计时、原生保存返回 / 重进及后台长测已有通过记录，前台性能仍待诊断与完整重跑。时钟一致性按同一已处理帧边界比较墙钟与“推进 + 余量变化”；原始帧、模拟步和保存记录分别保留，注入故障 / 保存与正常自动保存须区分。批次事实见 [W37 周志](../devlogs/2026-W37.md)。
