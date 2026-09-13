@@ -39,7 +39,7 @@ Present 请求中的 Surface ID 为 295 / 410 / 426；回调 Drawable ID 为递�
 
 ## 实际构建源码审计（接续完成）
 
-只读取得上述构建的 12 个相关源码文件，共 912,950 字节，存于同一忽略诊断目录；`source-audit-manifest.json` 记录文件大小与 SHA-256。只读比较 4.7.2 的 `rendering_device.cpp`、`rendering_context_driver_metal.cpp`、`rendering_device_driver_metal3.cpp`，三份均逐字相同。这只排除这三处已有直接改动，不能推断所有版本行为相同或升级绝无收益。未下载完整源码、安装构建依赖或修改引擎。
+只读取得上述构建的 12 个相关源码文件，共 912,950 字节，存于同一忽略诊断目录；`source-audit-manifest.json` 记录文件大小与 SHA-256。只读比较 4.7.2 的 `rendering_device.cpp`、`rendering_context_driver_metal.cpp`、`rendering_device_driver_metal3.cpp`，三份均逐字相同。这只排除这三处已有直接改动，不能推断所有版本行为相同或升级绝无收益。该次只读审计未下载完整源码、安装构建依赖或修改引擎；后续授权构建见下文。
 
 ### 正常窗口的调用顺序
 
@@ -90,7 +90,7 @@ Present 请求中的 Surface ID 为 295 / 410 / 426；回调 Drawable ID 为递�
 - 首轮只回答：实际分支是否符合上述调用链、等待前后实际编码 / 提交在何处、迟交付是否对应 GPU 队列空隙。若不符，否决假设并保留数据；若只有显示节奏等待而无可获益空隙，不继续拆分提交。
 - 只有这些证据支持后，才提出延迟获取或离屏提前编码 / 提交的具体引擎补丁及同步风险；不在同一轮边测边改以混淆原因。系统回收事件若仍不可观测，保留因果缺口。
 
-9 月 13 日接续完成源码和 SCons 安装，构建预检在缺失依赖处退出；尚未编译、实现诊断标记或进行窗口验证。帧预算、四档前台长测、完整客户端 Godot 套件、Windows 和亲测状态保持不变。
+该方案随后分两步获授权：先取得源码与 SCons，再补齐预检发现的三项依赖。构建与窗口对照现已完成，实际结果及剩余证据缺口见下文；四档前台长测、完整客户端 Godot 套件、Windows 和亲测仍未完成。
 
 ## 2026-09-13：下载、隔离环境与构建预检
 
@@ -99,11 +99,11 @@ Present 请求中的 Surface ID 为 295 / 410 / 426；回调 Drawable ID 为递�
 - 固定 hash 源码归档实际 69,965,079 字节（66.7MiB），解压文件合计 336,223,626 字节（320.6MiB）。`source-manifest.json` 保存归档 SHA-256 和大小；预检后隔离目录实际占用约 468MiB，20GiB 是上限而非预分配或实测需求。
 - `SConstruct` 要求 Python ≥3.9 / SCons ≥4.4，已将原安装范围下限收紧到 4.4。隔离 venv 实际使用 Xcode Python 3.9.6，SCons 4.11.1，wheel 4,123,659 字节；wheel 与 hash 保留。仓库根 PATH 查询曾显示 Python 3.14.5，不据此冒称 venv 版本。未升级 pip / 全局 Python。
 - 原 pip 21.2.4 不支持 `--report`，该次未安装；后改为先下载 wheel、核对 hash、离线安装。下载最初受沙箱代理权限阻断，经审批重跑成功。`scons --version` 通过。
-- 使用原定参数加 `--dry-run`；`build-preflight-confirmed.log` 与结果 JSON 记录真实退出码 255。AccessKit / ANGLE 缺失时配置脚本会关闭对应功能，MoltenVK 缺失直接失败；未把预检当成编译成功，也未采用裁剪构建。已核对 Xcode / clang 可用，但完整编译兼容性尚未验证。
+- 使用原定参数加 `--dry-run`；`build-preflight-confirmed.log` 与结果 JSON 记录真实退出码 255。AccessKit / ANGLE 缺失时配置脚本会关闭对应功能，MoltenVK 缺失直接失败；未把预检当成编译成功，也未采用裁剪构建。已核对 Xcode / clang 可用，该次预检尚未验证完整编译兼容性。
 
-### 新增依赖方案（待范围授权）
+### 新增依赖方案（9 月 13 日已授权并完成）
 
-以下依赖未包含在原来只列 SCons 的安装清单内。固定源码的 `misc/scripts/install_accesskit.py`、`install_angle.py` 分别指定 AccessKit 0.21.2 与 ANGLE chromium/7219；MoltenVK 拟用上游发布的 v1.4.2 macOS 预编译包。它是否与官方二进制的 MoltenVK 版本一致尚未确认，须保留构建差异，当前性能诊断仍使用 Metal。
+以下依赖未包含在原来只列 SCons 的安装清单内；萝卜SAMA在补充说明后明确要求继续，已授权并完成下载和隔离解压。固定源码的 `misc/scripts/install_accesskit.py`、`install_angle.py` 分别指定 AccessKit 0.21.2 与 ANGLE chromium/7219；MoltenVK 使用上游发布的 v1.4.2 macOS 预编译包。它是否与官方二进制的 MoltenVK 版本一致尚未确认，须保留构建差异，当前性能诊断仍使用 Metal。
 
 | 依赖 | 用途与许可 | 下载上限 |
 | --- | --- | --- |
@@ -111,7 +111,7 @@ Present 请求中的 Surface ID 为 295 / 410 / 426；回调 Drawable ID 为递�
 | ANGLE chromium/7219，仅 arm64-macos | 保留 OpenGL ES 驱动；BSD-3-Clause，附带许可继续保留 | 128MiB |
 | MoltenVK v1.4.2，仅 macOS 常规包 | 保留 Vulkan 驱动；Apache-2.0；[上游资产页](https://github.com/KhronosGroup/MoltenVK/releases/expanded_assets/v1.4.2)标示约 56.8MB | 128MiB |
 
-拟在上述隔离目录创建 `downloads/` 与 `deps/`，执行以下下载命令；三项下载总上限 512MiB，含源码、环境、中间文件和日志的整个目录仍受 20GiB 上限约束。AccessKit / ANGLE 实际体积未测，达到上限即停，不自动放宽。
+已在上述隔离目录创建 `downloads/` 与 `deps/` 并执行以下下载命令；三项下载总上限 512MiB，含源码、环境、中间文件和日志的整个目录仍受 20GiB 上限约束。实际下载体积见下文，未放宽上限。
 
 ```sh
 curl --fail --location --max-time 180 --max-filesize 268435456 https://github.com/godotengine/godot-accesskit-c-static/releases/download/0.21.2/accesskit-c-0.21.2.zip --output downloads/accesskit-c-0.21.2.zip
@@ -120,6 +120,42 @@ curl --fail --location --max-time 180 --max-filesize 134217728 https://github.co
 ```
 
 授权后先记录 hash、检查归档路径和解压体积，再只向 `deps/` 解压；MoltenVK 与发布页 SHA-256 `f95765a6229cb7b915990a2890ce12ebe36a730b021545d3d52ae69ce4c4024e` 核对。使用 `accesskit_sdk_path`、`angle_libs`、`vulkan_sdk_path` 指向实际解压根；核实 arm64 静态库后重新预检并记录最终构建命令。任何缺失不静默关闭功能，若还有额外依赖或超限则停止说明。不运行会向系统安装完整 Vulkan SDK 的脚本，不修改系统配置。
+
+## 2026-09-13：依赖补齐与诊断构建完成
+
+- 三个归档合计 159,707,095 字节（约 152.3MiB），解压文件合计约 453.2MiB；归档、许可和全部 hash 见隔离目录 `dependency-manifest.json`。MoltenVK 与发布页 hash 一致；AccessKit、三份 ANGLE 静态库和 MoltenVK 均经 `lipo -info` 核实含 arm64，结果保留在 `dependency-architectures.json`。
+- 补齐依赖后的原参数 dry-run 退出 0，没有再关闭 AccessKit / ANGLE 或缺失 MoltenVK。实际构建通过 `build-command.json` 固定参数，由 `build-diagnostic.py` 每 20 秒监控目录占用；20GiB 或单次构建一小时上限到达即停止并保留日志。
+- 首轮 `build-20260913-202508.log` 在 Metal 模块编译处失败：SCons 的编译子进程未沿用外层 `CLANG_MODULE_CACHE_PATH`，Clang 尝试向用户缓存目录写模块被沙箱拒绝。已通过 `ccflags=-fmodules-cache-path=<隔离目录>/clang-cache` 显式指定缓存，再经命令审批重跑；失败日志和退出 2 保留，未改全局配置。
+- 诊断补丁涉及 8 个隔离引擎文件，包括两份新记录器文件；原源码、补丁和 hash 清单分别保留于 `pristine/`、`instrumentation.patch`、`instrumentation-manifest.json`。只添加标记，不删除原可执行语句；保留 Metal 原获取 / 编码 / present / commit 顺序。
+- 记录器使用有界内存缓冲（262,144 条、约 16MiB）、统一 Mach 时钟和线程 / 绘制调用 / 获取序号。drawable ID、texture 指针和带创建序号的命令身份分别保留；帧作用域外记录为 0，不猜测归属。关闭标记时不分配缓冲、不生成事件；渲染线程退出后才独占创建 CSV，溢出 / 写失败返回失败，不覆盖既有文件。没有增加 drawable / command 强引用或回调。
+- 记录器独立 C++ 检查四种情形通过：关闭无文件；开启含两线程、嵌套帧和 2,007 个顺序事件；溢出明确失败；已有文件保持原字节并失败。Godot 官方二进制对共用同状态对照入口 `engine-comparison.gd` 的无窗口语法检查通过。上述结果不等于 GPU 事件、开销、原图或性能验收通过。
+- 重跑 `build-20260913-203102.log` 退出 0，用时 507.428 秒；构建后目录实测 8,833,069,056 字节（约 8.23GiB）。独立二进制 221,299,608 字节，SHA-256 `8fe858c0d0bbf594aabd39e3ca2a6034ded73bb4576dc0851bd49f33a40e07d4`；版本为 `4.7.stable.radish_diagnostic`。源码归档不含 `.git`，运行时 hash 为 unknown，来源以源码 / 补丁清单为准，不伪装官方构建。构建警告 MoltenVK 最低 macOS 12 高于引擎目标 11，本机 macOS 26 可运行，不宣称旧系统兼容。
+- 独立二进制版本检查、工厂状态 62 项和视图状态 15 项通过，命令与结果见 `binary-manifest.json`。无窗口日志保留已知系统证书读取 `ret != noErr` 错误，不将其隐去；本轮未运行完整客户端 Godot 套件。
+
+### 五次同状态前台对照
+
+每次独立进程均由用户实际点击共用准备页开始，经双存档根隔离的正式 Boot 加载相同 90 秒夹具快照；暂停预热 15 秒后真实生产 45 秒。负载 100 台设备 / 1,000 段带，窗口 `1920×1080`、3D `1728×894`，默认 Metal / Forward+、4× MSAA、VSync 1、不限帧，无额外 GPU 时间戳。夹具预推进不计生产时长；本轮没有中断或自动重开。
+
+| 隔离目录内批次 | 帧 p95（ms） | 模拟步 p95（ms） | 8 项短测检查 |
+| --- | ---: | ---: | --- |
+| `official-20260913-204032` | 17.348 | 2.371 | 仅帧预算失败 |
+| `off-20260913-204231` | 30.897 | 2.709 | 仅帧预算失败 |
+| `on-20260913-204522` | 40.358 | 2.486 | 仅帧预算失败 |
+| `off-20260913-205348` | 8.585 | 2.228 | 全部通过 |
+| `official-20260913-205726` | 8.549 | 2.081 | 全部通过 |
+
+- `comparison-summary.json` 关联正式 `performance-*` 结果、日志和原图；五组基准状态逐字相同，原图 SHA-256 均为 `a8c0538d8f84e167101c61c62f856cf231d3c70bcef3422bbc9e131a4497fee2`，与先前基准一致。已审阅开启组原图，官方预热画面另经窗口复核。
+- 五组均完成 900 步、交付 125 件，生产约 45.000–45.015 秒，计时守恒误差 `<8e-13s`，余量 `<0.05s`；每组采样内一次自动保存和最终保存均成功。五次自动保存分别为 `101.852 / 100.626 / 107.480 / 100.699 / 89.675ms`，不剔除保存停顿。窗口日志除表中帧预算失败外无其他错误。
+- 首次诊断构建加载较慢（Boot 加载 1,118.438ms，加载与稳定合计 4,795.066ms），两者单列，不将合计视为纯 IO。重复的官方 / 关闭组明显改善，说明运行条件波动尚未受控；不能把首三组差额全部算作构建差异或记录器开销，也不能用末两组通过代替四档 450 秒长测。
+
+### CPU 事件完整性与结论边界
+
+- 开启组 `events.csv` 共 78,142 条，丢弃、写入错误和关闭错误均为 0；官方 / 关闭组不生成事件文件。全程序号、时钟、线程、成对事件及命令创建身份检查通过；7,453 次实际命令创建最终均提交。实际执行分支全部为正常分支 0。
+- 分析先后两次失败并保留日志：首次误把 `draw_graph.end` 前后 command ID 当成不变值，源码确认其引用参数会被替换，最终改以设备 / 片段 / 线程 / 帧配对并保留前后 ID（3,273 次替换）；第二次发现初始化有两次 nil native command 的 commit 调用，依源码作为空调用单列，仍配对但不计实际原生命令提交。最终 `analyze-trace.py` 检查通过，未改运行时行为或丢弃真实提交来消除断言。
+- Mach 与 Godot 单调时钟锚点不确定度 2 微秒；保守筛选出与正式生产帧数一致的 2,194 次完整获取，全部先完成 `nextDrawable`，再进行同帧图编码 / 提交，等待期间没有任何线程的实际命令提交。获取等待 p50 `5.257ms`、p95 `14.575ms`、最大 `23.142ms`，详见 `on-20260913-204522/events.analysis.json`。
+- 同批次逐帧端点分析 `draw-span-analysis.json` 显示：获取前跨度 p95 `1.932ms`，获取后至 `_draw` 结束 p95 `28.708ms`，完整 `_draw` 跨度 p95 `37.302ms`。这些是独立分布的墙钟跨度，可含驱动等待，不是纯 CPU / GPU 时间；通过同帧端点校验，未用分位数相减推算余量。获取后的长跨度也需要定位，不能只盯住 `nextDrawable`。
+- 当前只确认诊断构建的 CPU 调用顺序。没有同轮原生 GPU 轨迹，未证明 GPU 空闲、系统 drawable 回收因果或调整顺序的可获益空间；开启组观察开销也未单独量清。因此本轮不进入原生 GPU 追加采样、调度补丁或四档长测。下一步先稳定官方 / 关闭对照并量清开关开销，再决定是否补同一时钟与命令身份的 GPU 轨迹；不重复无标识事件推算或盲试限帧值。
+
 
 ## 历史批次记录
 
