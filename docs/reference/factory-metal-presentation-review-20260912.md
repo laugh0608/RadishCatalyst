@@ -65,7 +65,7 @@ Present 请求中的 Surface ID 为 295 / 410 / 426；回调 Drawable ID 为递�
 - 既有提交记录按连续等待时间分段：580 个完整间隙中，526 段有 2 次目标命令提交，27 段有 4 次，27 段没有；等待区间内未记录目标命令提交。`commit-order-audit.json` 保留逐段数据，只支持时间顺序，不代表这些命令一定是离屏 / 屏幕拆分。
 - 首次按 Instruments frame number 配对等待未通过一一对应断言，已否决该关联方式；最终分段只使用原始 commit 时间与等待时间。没有把一帧两个 command buffer 自动解释为“离屏工作已提前提交”。
 
-## 下一步：隔离引擎诊断构建方案（待授权）
+## 隔离引擎诊断构建方案（原范围已授权）
 
 源码审计已完成，没有足够依据修改项目玩法 / 渲染配置。下一项应检验上述顺序假设；不再重复现有原生轨迹的身份推算或限帧值扫描。此方案只增加诊断标记，第一轮不改获取顺序、不换驱动、不拆分命令缓冲。
 
@@ -90,7 +90,36 @@ Present 请求中的 Surface ID 为 295 / 410 / 426；回调 Drawable ID 为递�
 - 首轮只回答：实际分支是否符合上述调用链、等待前后实际编码 / 提交在何处、迟交付是否对应 GPU 队列空隙。若不符，否决假设并保留数据；若只有显示节奏等待而无可获益空隙，不继续拆分提交。
 - 只有这些证据支持后，才提出延迟获取或离屏提前编码 / 提交的具体引擎补丁及同步风险；不在同一轮边测边改以混淆原因。系统回收事件若仍不可观测，保留因果缺口。
 
-本轮未执行构建或窗口验证。帧预算、四档前台长测、完整客户端 Godot 套件、Windows 和亲测状态保持不变。
+9 月 13 日接续完成源码和 SCons 安装，构建预检在缺失依赖处退出；尚未编译、实现诊断标记或进行窗口验证。帧预算、四档前台长测、完整客户端 Godot 套件、Windows 和亲测状态保持不变。
+
+## 2026-09-13：下载、隔离环境与构建预检
+
+萝卜SAMA在确认目录与空间用途后要求继续，授权原方案的源码下载、隔离 SCons、诊断标记和本地构建。产物继续位于 `engine-diagnostic-20260912/`，沿用方案日期，不替换系统 Godot。
+
+- 固定 hash 源码归档实际 69,965,079 字节（66.7MiB），解压文件合计 336,223,626 字节（320.6MiB）。`source-manifest.json` 保存归档 SHA-256 和大小；预检后隔离目录实际占用约 468MiB，20GiB 是上限而非预分配或实测需求。
+- `SConstruct` 要求 Python ≥3.9 / SCons ≥4.4，已将原安装范围下限收紧到 4.4。隔离 venv 实际使用 Xcode Python 3.9.6，SCons 4.11.1，wheel 4,123,659 字节；wheel 与 hash 保留。仓库根 PATH 查询曾显示 Python 3.14.5，不据此冒称 venv 版本。未升级 pip / 全局 Python。
+- 原 pip 21.2.4 不支持 `--report`，该次未安装；后改为先下载 wheel、核对 hash、离线安装。下载最初受沙箱代理权限阻断，经审批重跑成功。`scons --version` 通过。
+- 使用原定参数加 `--dry-run`；`build-preflight-confirmed.log` 与结果 JSON 记录真实退出码 255。AccessKit / ANGLE 缺失时配置脚本会关闭对应功能，MoltenVK 缺失直接失败；未把预检当成编译成功，也未采用裁剪构建。已核对 Xcode / clang 可用，但完整编译兼容性尚未验证。
+
+### 新增依赖方案（待范围授权）
+
+以下依赖未包含在原来只列 SCons 的安装清单内。固定源码的 `misc/scripts/install_accesskit.py`、`install_angle.py` 分别指定 AccessKit 0.21.2 与 ANGLE chromium/7219；MoltenVK 拟用上游发布的 v1.4.2 macOS 预编译包。它是否与官方二进制的 MoltenVK 版本一致尚未确认，须保留构建差异，当前性能诊断仍使用 Metal。
+
+| 依赖 | 用途与许可 | 下载上限 |
+| --- | --- | --- |
+| AccessKit 0.21.2 | 屏幕阅读支持；固定源码版权清单标为 MIT / Expat，归档内附带许可继续保留 | 256MiB |
+| ANGLE chromium/7219，仅 arm64-macos | 保留 OpenGL ES 驱动；BSD-3-Clause，附带许可继续保留 | 128MiB |
+| MoltenVK v1.4.2，仅 macOS 常规包 | 保留 Vulkan 驱动；Apache-2.0；[上游资产页](https://github.com/KhronosGroup/MoltenVK/releases/expanded_assets/v1.4.2)标示约 56.8MB | 128MiB |
+
+拟在上述隔离目录创建 `downloads/` 与 `deps/`，执行以下下载命令；三项下载总上限 512MiB，含源码、环境、中间文件和日志的整个目录仍受 20GiB 上限约束。AccessKit / ANGLE 实际体积未测，达到上限即停，不自动放宽。
+
+```sh
+curl --fail --location --max-time 180 --max-filesize 268435456 https://github.com/godotengine/godot-accesskit-c-static/releases/download/0.21.2/accesskit-c-0.21.2.zip --output downloads/accesskit-c-0.21.2.zip
+curl --fail --location --max-time 180 --max-filesize 134217728 https://github.com/godotengine/godot-angle-static/releases/download/chromium/7219/godot-angle-static-arm64-macos-release.zip --output downloads/angle-arm64-macos-7219.zip
+curl --fail --location --max-time 180 --max-filesize 134217728 https://github.com/KhronosGroup/MoltenVK/releases/download/v1.4.2/MoltenVK-macos.tar --output downloads/MoltenVK-macos-1.4.2.tar
+```
+
+授权后先记录 hash、检查归档路径和解压体积，再只向 `deps/` 解压；MoltenVK 与发布页 SHA-256 `f95765a6229cb7b915990a2890ce12ebe36a730b021545d3d52ae69ce4c4024e` 核对。使用 `accesskit_sdk_path`、`angle_libs`、`vulkan_sdk_path` 指向实际解压根；核实 arm64 静态库后重新预检并记录最终构建命令。任何缺失不静默关闭功能，若还有额外依赖或超限则停止说明。不运行会向系统安装完整 Vulkan SDK 的脚本，不修改系统配置。
 
 ## 历史批次记录
 
