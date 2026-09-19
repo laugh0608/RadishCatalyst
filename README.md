@@ -2,6 +2,10 @@
 
 RadishCatalyst 是一款以异星化工生产经营为核心、探索反哺生产并逐步拓展角色成长和协作的工业科幻游戏。产品方向见 [Production-Centered Direction](docs/product/production-centered-direction.md)。
 
+> 第一次得到它时，玩家觉得自己很幸运；后来能够稳定制造它时，玩家觉得自己掌握了这个世界的一部分。
+
+我们希望玩家把异星探索中的偶然发现，逐步转化为能够理解、复现和扩展的生产能力，再用自己的工业成果开拓新的未知。设计思路见 [Discovery And Industrial Reproduction](docs/design/discovery-and-industrial-reproduction.md)。
+
 根目录 `README.md` 只保留仓库总览和稳定入口。当前阶段、当前重点、当前不做和退出条件统一以 [docs/planning/current.md](docs/planning/current.md) 为准。
 
 ## Start Here

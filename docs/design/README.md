@@ -16,6 +16,7 @@
 ## Current Documents
 
 - [Core Gameplay Loop](core-gameplay-loop.md)
+- [Discovery And Industrial Reproduction](discovery-and-industrial-reproduction.md) — 从幸运发现到稳定制造的体验目标、设计建议与后续验证问题。
 - [Character Progression And Equipment](character-progression-and-equipment.md)
 - [Combat And Interaction Prototype](combat-and-interaction-prototype.md)
 - [Development Retest Baselines](development-retest-baselines.md)

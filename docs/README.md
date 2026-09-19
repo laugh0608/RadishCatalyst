@@ -68,6 +68,7 @@
 
 - [Design Documents](design/README.md)
 - [Core Gameplay Loop](design/core-gameplay-loop.md)
+- [Discovery And Industrial Reproduction](design/discovery-and-industrial-reproduction.md)
 - [Character Progression And Equipment](design/character-progression-and-equipment.md)
 - [Combat And Interaction Prototype](design/combat-and-interaction-prototype.md)
 - [Development Retest Baselines](design/development-retest-baselines.md)
