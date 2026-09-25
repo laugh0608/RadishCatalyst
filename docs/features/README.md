@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-当前设计专题为 [Factory Discovery And Production V1](factory-discovery-and-production-v1.md)：固定矿区的样本试制、制剂量产、开路与富集生产回流；机制、数值和新世界版本方案待确认，尚未实施。
+当前设计专题为 [Factory Discovery And Production V1](factory-discovery-and-production-v1.md)：固定矿区的样本试制、制剂量产、开路与富集生产回流；机制、数值和新世界版本方案待确认，尚未实施。配套 [Factory Production Statistics V1](factory-production-statistics-v1.md) 承接用户提供的产消简报参考，定义物料库存、实际 / 理论速率、趋势和设备定位；统计与基础电力须联合设计后接入。
 
 [Factory Foundation And Persistence V1](factory-foundation-and-persistence-v1.md) 的 P1–P3 开发机交付已收口：四档长测与剩余界面证据齐备，萝卜SAMA亲测反馈无明显问题；Windows / 目标硬件仍待验。现行实现边界见该专题及[工厂状态与存档合同](../architecture/factory-world-state-and-save-v1.md)。[Godot Demo](godot-first-production-line-demo-v1.md)、[Web 产线](web-first-production-line-v1.md) 和既有 [Factory Building Experience Validation V1](factory-building-experience-validation-v1.md) 保留为参照；产品方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为准。
 

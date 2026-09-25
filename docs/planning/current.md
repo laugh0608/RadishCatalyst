@@ -21,6 +21,7 @@
 ## 当前活跃专题
 
 - 当前设计：[Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md)。固定矿区内以制剂开路、富集资源回流生产的完整提案；机制、数值与兼容方案待确认。
+- 配套设计：[Factory Production Statistics V1](../features/factory-production-statistics-v1.md)。参考用户提供的终末地产消简报，明确库存、实际 / 理论产消、趋势与设备定位，并与基础电力联合定义指标和采样口径。
 - 已交付基线：[Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md)：P1–P3 开发机证据、亲测反馈及 Windows 待验边界。
 - [Factory World State And Save V1](../architecture/factory-world-state-and-save-v1.md)：目录 / 入口、状态权威、独立存档、锁、保存失败、时钟及视图同步。
 - [Godot Demo](../features/godot-first-production-line-demo-v1.md) 和 [Web 产线](../features/web-first-production-line-v1.md) 保留作参照；[路线评估](../architecture/production-client-technology-assessment-v1.md) 保留决策依据。
@@ -40,6 +41,8 @@
 下一包已形成可审阅专题：发现样本 → 试制解壳剂 → 自动量产 → 打通矿道 → 富集资源回流 → 第二次开拓。具体路径、成本、资产、必要取放 / 配方能力及新旧存档方案以该专题为准；本轮只进入设计，不切换运行时规则或追加 P1–P3 退出条件。
 
 9 月 25 日萝卜SAMA补充强调电力系统不可遗漏，已列为下一项优先设计：明确发电与自举、输配电、供需负荷、停复电及保存恢复，并与矿区扩张联合审阅。现有预供电只是阶段性验证安排；在基础电力设计与实施顺序确认前，不冻结新世界的生产 / 存档合同。具体待决项见[发现与生产专题](../features/factory-discovery-and-production-v1.md#基础电力的接续与联合设计)，本轮未新增电力实现授权或改动旧世界规则。
+
+同日萝卜SAMA补充统计系统，并提供终末地简报截图；已形成独立统计提案。下一包联合审阅发现生产、基础电力与统计：生产成功事件、实际 / 理论指标、停复电采样和有限历史保存须先统一，避免最后用库存倒推产消。首版建议当前工厂世界、短时间窗和可定位设备，不因参考图包含区域选择而提前解冻多区域管理。
 
 ## 当前验证与限制
 
@@ -63,4 +66,4 @@ Boot / 存档 / 锁证据先经离线核对，随后 `menu-review-20260925-a` �
 
 按 P1–P3 合同，本机玩家路径、跨进程恢复、故障保护、多线扩建、持续性能和亲测反馈已具备，开发机交付收口。Windows 目标硬件未定，平台最终验收保持未完成；不把本机反馈扩写为逐项人工验证或全平台通过。
 
-下一步：先补基础电力设计，再联合确认发现与生产专题的玩家能力、固定地图、必要交互及新世界版本边界，明确先行或合包顺序后按 D1–D4 推进。设计退出条件是这些范围可确认、资产缺口与验收路径明确；玩法退出条件以新专题为准，不用文档完成代替实机通过。
+下一步：先补基础电力设计，并联合审阅统计口径，再确认发现与生产专题的玩家能力、固定地图、必要交互及新世界版本边界，明确先行或合包顺序后按 D1–D4 推进。设计退出条件是这些范围可确认、资产缺口与验收路径明确；玩法退出条件以新专题为准，不用文档完成代替实机通过。

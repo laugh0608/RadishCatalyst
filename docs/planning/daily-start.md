@@ -4,7 +4,7 @@
 
 ## 当前任务
 
-先读 [Current Plan](current.md) 和 [Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md)，涉及兼容时再读[现行存档合同](../architecture/factory-world-state-and-save-v1.md)。正式三维工厂 P1–P3 开发机交付收口，亲测反馈“没啥问题”；Windows / 目标平台最终验收仍待完成。发现循环提案已整理；按萝卜SAMA补充要求，下一步先补基础电力设计，联合确认机制及版本边界后实施。
+先读 [Current Plan](current.md)、[Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md) 和 [Factory Production Statistics V1](../features/factory-production-statistics-v1.md)，涉及兼容时再读[现行存档合同](../architecture/factory-world-state-and-save-v1.md)。正式三维工厂 P1–P3 开发机交付收口，亲测反馈“没啥问题”；Windows / 目标平台最终验收仍待完成。发现循环提案已整理；按萝卜SAMA补充要求，下一步先补基础电力设计，与新增统计提案共同确认指标、机制及版本边界后实施。
 
 9 月 25 日经萝卜SAMA明确通知重新开始，正式 Godot 完成四档各 450 秒，共 `1800.015679s`，29 项检查通过、无失焦或错误。帧 p95 为 `8.726 / 8.562 / 8.808 / 9.696ms`，60 次采样内自动保存全部成功；四张原图已审阅。本次独立完整运行不拼接此前中断样本，详细证据见 [W39 周志](../devlogs/2026-W39.md)。
 
@@ -26,8 +26,8 @@
 
 四档长测、本机完整 Shell 回归及已通过的原生保存 / 重进证据均可复用，不再重复启动长测。
 
-1. **先补基础电力设计并联合审阅**：覆盖发电自举、输配电、供需负荷、停复电与存档，明确电力先行或合包顺序；再确认制剂开路、两段矿道、富集回流及必要配方 / 取放交互；新“勘探工厂”使用独立地图 / 规则与 schema 2，已有基础工厂不迁移。详见[功能专题](../features/factory-discovery-and-production-v1.md)，均为待确认提案。
-2. **确认后从 D1 开始**：先审阅现有导入资产能否清楚表达矿壳 / 样本 / 富集矿及通道前后态，电力范围与实施顺序确认后再冻结新版本字段并实现完整路径；当前未改客户端、未开窗。首包已有亲测世界和通过证据继续保留。
+1. **先补基础电力设计并联合审阅**：覆盖发电自举、输配电、供需负荷、停复电与存档；同时审阅统计的实际 / 理论产消、库存、时间窗与设备定位，明确联合实施顺序；再确认制剂开路、两段矿道、富集回流及必要配方 / 取放交互；新“勘探工厂”使用独立地图 / 规则与 schema 2，已有基础工厂不迁移。详见[功能专题](../features/factory-discovery-and-production-v1.md)，均为待确认提案。
+2. **确认后从 D1 开始**：先审阅现有导入资产能否清楚表达矿壳 / 样本 / 富集矿及通道前后态，电力、统计口径与实施顺序确认后再冻结新版本字段并实现完整路径；当前未改客户端、未开窗。首包已有亲测世界和通过证据继续保留。
 3. **保持平台与历史问题边界**：Windows / PowerShell、目标硬件仍待验。历史慢绘制和诊断标记开销未归因；若以后真实慢帧复现，再复用第二版分析器。
 
 ## 当前暂缓
