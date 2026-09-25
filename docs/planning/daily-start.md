@@ -4,7 +4,7 @@
 
 ## 当前任务
 
-先读 [Current Plan](current.md)、[Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md) 和 [Factory World State And Save V1](../architecture/factory-world-state-and-save-v1.md)。继续收口正式三维工厂 P1–P3；本机四档持续性能已通过，下一步补齐已列明的界面证据后交付亲测，首包尚未整体验收。
+先读 [Current Plan](current.md)、[Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md) 和 [Factory World State And Save V1](../architecture/factory-world-state-and-save-v1.md)。继续收口正式三维工厂 P1–P3；本机四档持续性能已通过，剩余界面证据也已补齐，下一步交付亲测，首包尚未整体验收。
 
 9 月 25 日经萝卜SAMA明确通知重新开始，正式 Godot 完成四档各 450 秒，共 `1800.015679s`，29 项检查通过、无失焦或错误。帧 p95 为 `8.726 / 8.562 / 8.808 / 9.696ms`，60 次采样内自动保存全部成功；四张原图已审阅。本次独立完整运行不拼接此前中断样本，详细证据见 [W39 周志](../devlogs/2026-W39.md)。
 
@@ -20,14 +20,15 @@
 - 本日前次正式版本短测批次 `official-20260925-135157` 完成 45 秒生产，8 项检查通过，帧 p95 `8.680ms`；原图与本日诊断图字节一致。长测 `performance-1790315800-15236` 保留 220.697779 秒、26,411 帧、7 次成功自动保存，但 `phases=[]`，不计验收；随后完整通过批次为 `performance-1790317200-22165`。
 - `sh ./scripts/check-client.sh --with-godot` 首次沙箱执行有 FreeType 字体错误；经授权在主机重跑全部 74 个 Godot 入口（含导入）通过，原始日志无未预期错误。失败与成功日志分别保留，不能因此扩大错误忽略规则。
 - 等待前台时段期间已完成 Boot / 存档 / 锁的离线验收审计，核对 16 份结果、存档检查日志与 10 份源码。可复用项、合成 / 原生输入及尚缺界面证据见[玩家路径证据核对](../features/factory-foundation-and-persistence-v1.md#玩家路径证据核对)，不再将整条 Boot 链路笼统列为未验。
+- 后续 `menu-review-20260925-a` 完成备份 / 坏档 / 未来版本反馈、真实独立进程锁阻断与显式恢复、旧二维载入画面：55 项检查通过，11 张原图已审阅，拒绝世界与历史源档 hash 保持；合成输入与亲测分列，产品代码未变。
 
 ## 下次技术接续（按顺序）
 
 四档长测、本机完整 Shell 回归及已通过的原生保存 / 重进证据均可复用，不再重复启动长测。
 
-1. **补齐界面证据**：依[玩家路径清单](../features/factory-foundation-and-persistence-v1.md#玩家路径证据核对)，在新隔离副本中核对备份 / 坏档 / 未来版本反馈、遗留锁提示与显式恢复、旧二维已有世界载入画面。启动窗口前先告知，不自动把本次长测授权扩大为继续开窗。
-2. **交付亲测**：上述本机证据齐备后，交付普通新建、两线建设、保存返回 / 新进程继续的最短玩家路径；合成输入和原生验证不代替萝卜SAMA的体验复评。
-3. **保持平台与历史问题边界**：Windows / PowerShell、目标硬件仍待验。历史慢绘制和诊断标记开销未归因；本次正式长测达标，不为追解释继续追加整体开关对照。若以后真实慢帧复现，再复用第二版分析器。
+1. **交付普通世界亲测**：入口 `tools/runtime-intake/review-worlds/factory-foundation-v1/playtest-20260925/start.sh` 已准备，使用正式 Boot 和双隔离存档根。亲测普通新建、两线建设、载货 / 半批保存返回、关闭后同入口重启继续；入口不会删除已有世界或注入输入。具体路径见[首包亲测交付](../features/factory-foundation-and-persistence-v1.md#用户亲测交付)，尚未代替萝卜SAMA执行亲测。
+2. **依据反馈决定修正**：优先处理操作理解、恢复结果和可感知卡顿；本机工程验收已有证据，不无条件重复长测、全套检查或追加新玩法。确认体验后再决定首包收口和后续设计。
+3. **保持平台与历史问题边界**：Windows / PowerShell、目标硬件仍待验。历史慢绘制和诊断标记开销未归因；若以后真实慢帧复现，再复用第二版分析器。
 
 ## 当前暂缓
 
