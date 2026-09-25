@@ -2,7 +2,7 @@
 
 更新时间：2026-09-25
 
-状态：体验目标获认可；[首个具体功能提案](../features/factory-discovery-and-production-v1.md)已整理，实施范围待确认。本文仍为长期设计依据，不将提案机制视为已验证规则。
+状态：体验目标获认可；[首个具体功能专题](../features/factory-discovery-and-production-v1.md)已按联合范围完成 D1–D2-B 实现及定向工程验证，D3–D4 继续统计页面、自然路径与体验收口。本文仍为长期设计依据，下文更广的候选机制不因此全部获准或视为已验证。
 
 ## 用途与适用范围
 
@@ -10,7 +10,7 @@
 
 - 产品方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为准。
 - 设计工业研发、勘探、装备成长或探索回报时阅读本文；无需在日常性能排查中展开。
-- [Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md) 开发机交付已收口，Windows 单列待验；下一包处于设计审阅，顺位见 [Current Plan](../planning/current.md)。本文不增加首包验收项。
+- [Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md) 开发机交付已收口，Windows 单列待验；联合包已进入实施，当前顺位见 [Current Plan](../planning/current.md)。本文不增加首包验收项。
 - 2026-09-19 的授权覆盖理念与建议入档；下文案例、参数维度与机制取舍均是后续设计候选，不代表已实现或已获玩法验证。
 
 ## 核心体验

@@ -21,6 +21,21 @@
 
 正式工厂 D1 模型导出、布局检查与静态预览见 [Factory Content Authoring](factory-content/README.md)。该入口不改旧 Demo 或正式生产规则，开窗前仍须告知。
 
+## 正式工厂定向检查
+
+以下均使用已安装 Godot，启动前先告知；存档与日志仅写忽略的运行检查目录。完整隔离要求见 [Godot Runtime Verification Guide](../docs/reference/godot-runtime-verification-guide.md)，实际覆盖由脚本及当批日志确认。
+
+| 入口 | 模式与用途 |
+| --- | --- |
+| `sh tools/check-factory-foundation.sh <mode>` | 基础工厂状态 / 保存 / 规模与 Boot；各模式、前置和窗口边界见运行时指南 |
+| `sh tools/check-factory-power.sh state [batch]` | 无窗口电图、能量守恒、半批存读及版本保护 |
+| `sh tools/check-factory-power.sh write/read <batch>` | 同一唯一 batch、两个独立进程的普通线窗口写入 / 恢复；实际执行时分别使用 `write` 或 `read` |
+| `sh tools/check-factory-discovery.sh state [batch]` | 无窗口四配方、样本 / 开路、事务和兼容检查，生成分段夹具 |
+| `sh tools/check-factory-discovery.sh process-read [batch]` | 先完成 state，再用独立进程核对多件半批与后续轨迹 |
+| `sh tools/check-factory-discovery.sh write/read <batch>` | 先完成 state，再用同一唯一 batch 串行执行 `write`、`read`，覆盖正式 Boot 分项交互与恢复 |
+
+发现检查的 `[batch]` 只控制状态日志位置；当前状态脚本将夹具 / JSON 结果固定写到 `tools/runtime-intake/check-runs/factory-discovery-v1/d2-b-20260925/`，process-read 与窗口 write 都从此取输入。复跑 state 会更新该固定目录，需先保留要审计的旧证据；窗口批次另用唯一名称，read 读取 write 的 manifest。窗口夹具由加速模型生产并准备布局 / 人物位置，不能作为自然玩家全路径。`check-client` 的 Godot 模式已登记 power / discovery 状态检查，不自动覆盖这些跨进程或窗口模式。
+
 ## 像素归一管线（零依赖）
 
 - `normalize_pixel_asset.py`：像素素材归一基础库与 CLI（仅 Python 标准库）。能力：整数块降采样（块内逐通道中位数）、近黑底去背（边界泛洪 + 封闭孔判定）、限定调色板量化（median cut 上限 + 标准锚点吸附）、地面 128x128 宏块（4x4 个 32px tile）、横版多对象切分、明度基线匹配、2x2 拼贴与接缝比率自查。机械口径见 `docs/reference/pixel-art-and-grid-standard.md`。

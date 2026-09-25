@@ -132,7 +132,7 @@ func _screenshot(file_name: String) -> void:
 
 ## 正式三维工厂验证路由
 
-工厂已接入同一 Boot，旧示例的 `SliceSaveCatalog` 注入不足以隔离全部存档；还须在加入场景树前设置 `boot.factory_save_root`。使用 `factory-foundation-v1` 的 `check-runs/` / `review-worlds/`，操作与截图规则见[首包专题](../features/factory-foundation-and-persistence-v1.md)。
+工厂已接入同一 Boot，旧示例的 `SliceSaveCatalog` 注入不足以隔离全部存档；还须在加入场景树前设置 `boot.factory_save_root`。基础工厂使用 `factory-foundation-v1` 的 `check-runs/` / `review-worlds/`，操作与截图规则见[首包专题](../features/factory-foundation-and-persistence-v1.md)；勘探工厂的电力与发现检查分别归入 `factory-power-v1` / `factory-discovery-v1`，同样隔离两个根，具体批次与原图见 W39 周志。
 
 临时前台诊断若需要“点击开始”准备页，复用 `client/scripts/checks/factory_diagnostic_gate.gd`，不要复制窗口初始化代码：
 
@@ -155,7 +155,7 @@ await super._run() # 仅在派生诊断脚本中进入原检查流程。
 - 呈现回调抵达时间、drawable 的实际呈现时间和命令完成时间分别记录；先核对时钟基准，再关联对象。Surface ID、Drawable ID、队列 ID 或合成 seed 不因数值重合就视为同一身份；无标识等待事件不能据时间先后证明回收因果。已验证方法及反例见 [Metal 呈现诊断记录](factory-metal-presentation-review-20260912.md)。
 - 隔离诊断构建按源码 / 补丁清单、revision 和二进制 SHA-256 关联样本；相同版本字符串不能证明二进制相同。分析器须显式覆盖该版新增事件，旧事件检查通过不代表新分段已验证。成对区间与 fence / command 生命周期先校验再计时，指针复用不跨生命周期关联；信号编码请求不等于 GPU 完成，延迟回调不强归相邻绘制帧，嵌套跨度不重复累加。
 - 第二版固定源码的捕获在删除 RenderingServer 后、删除 DisplayServer / RenderingDevice 前 flush；捕获末尾仍存活的 fence 单列为未观察到析构，不据此伪造 free 或宣称完整释放验证通过。捕获内销毁后继续使用、未销毁就复用地址仍失败。drawable 数值编号 0 不能单独判定空获取，应同时核对该版记录的 texture 与实际调用语义。
-- `check-client` 默认只做静态检查；Shell / PowerShell 的 Godot 路径已纳入工厂 `state` / `save` / `clock` / `view_state`，不因此覆盖全部跨进程、规模、原生窗口或持续性能模式。具体执行范围以脚本与当批日志为准。
+- `check-client` 默认只做静态检查；Shell / PowerShell 的 Godot 路径已纳入工厂 `state` / `save` / `clock` / `view_state` / `power` / `discovery`，不因此覆盖全部跨进程、规模、原生窗口或持续性能模式。具体执行范围以脚本与当批日志为准。
 - 操作存读使用同一唯一 batch 的两个独立进程；同一进程销毁再建 Boot 只作为较窄的恢复证据。旧世界入口 / schema 回归继续独立执行。
 - 2026-09-09 已补单调时钟、准备 / 采样中断和规模定向证据；窗口计时、原生保存返回 / 重进及后台长测已有通过记录，前台性能仍待诊断与完整重跑。时钟一致性按同一已处理帧边界比较墙钟与“推进 + 余量变化”；原始帧、模拟步和保存记录分别保留，注入故障 / 保存与正常自动保存须区分。批次事实见 [W37 周志](../devlogs/2026-W37.md)。
 
@@ -166,3 +166,5 @@ await super._run() # 仅在派生诊断脚本中进入原检查流程。
 - 2026-09-25 后续：收到明确开始通知后，正式版本四档各 450 秒前台长测完成，29 项检查通过、无失焦，60 次采样内自动保存成功；批次 `performance-1790317200-22165` 的四张阶段起始原图已审阅。此独立完整批次关闭本机持续性能缺口，不拼接前次中断，也不替代窗口故障反馈、Windows 或用户亲测；明细仍见 W39 周志。
 
 - 同日 `menu-review-20260925-a` 已补备份 / 坏档 / 未来版本、独立持锁进程阻断与显式恢复、旧二维载入界面：55 项通过、11 张原图已审阅，合成输入与原生 / 用户亲测分列。独立亲测入口及路径见[首包亲测交付](../features/factory-foundation-and-persistence-v1.md#用户亲测交付)，本机证据齐备不替代体验确认或 Windows 验收。
+
+- D2-A / D2-B 已增加 `tools/check-factory-power.sh` 和 `tools/check-factory-discovery.sh`，模式、固定夹具目录和跨进程顺序见 [Tools](../../tools/README.md#正式工厂定向检查)。发现窗口使用加速生产的分段夹具与合成输入，不能拼成自然玩家全路径；完整统计页、自然发现循环和窗口尺寸全覆盖仍属 D3。上述 74 入口全套与四档长测发生于 D1–D2 代码变更前，适用于当时的基础工厂，不代表最新 schema 2 全量或性能通过。

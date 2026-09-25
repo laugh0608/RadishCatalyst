@@ -4,7 +4,7 @@
 
 ## 联合合同与版本边界
 
-本合同具体化已授权的发现 / 电力 / 统计联合 schema 2；D2-A 已运行普通晶体配方与封闭矿区；D2-B 沿同一形状接多配方和开拓，不迁移现有 schema 2 普通状态。基础工厂 schema 1 仍由原严格校验器处理，旧二维 schema 10 不变、不迁移。
+本合同具体化已授权的发现 / 电力 / 统计联合 schema 2；D2-A 最初只运行普通晶体配方与封闭矿区；当前 D2-B 已沿同一形状接入多配方和开拓，不迁移现有 schema 2 普通状态。基础工厂 schema 1 仍由原严格校验器处理，旧二维 schema 10 不变、不迁移。
 
 身份组合固定为 `factory_3d / 2 / factory_discovery_v1 / factory_discovery_yard_64_v1 / factory_discovery_starter_v1`。世界 ID、名称、sequence、锁、候选恢复和原子发布沿[现行合同](factory-world-state-and-save-v1.md)。未知 schema、混配规则 / 地图 / 供给以及未知配方内容必须阻断所有备份回退；损坏字段可按原合同寻找有效备份。旧 D2-A 读写器遇非初始发现内容仍会明确阻断，不能回退覆盖。
 

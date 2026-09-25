@@ -2,6 +2,8 @@
 
 D1 的正式资源制作与静态场景复核工具；不扩展旧 Web / Godot Demo，不修改游戏存档或模拟规则。
 
+电力模型现已用于正式勘探工厂，D2-A / D2-B 运行时检查另见 [Tools](../README.md#正式工厂定向检查)。本工具保留 D1 静态用途，不因后续玩法接入扩大其证明范围。
+
 ## 电力模型
 
 `node tools/factory-content/export-power-assets.mjs` 用仓库已有 Three.js 安装和自有材质 / 几何帮助函数导出两个独立模型到 `client/assets/factory/power/`。无需下载依赖；安装缺失时应先按项目约定确认安装范围，不自动获取。

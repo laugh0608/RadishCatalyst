@@ -18,6 +18,6 @@ RadishCatalyst Godot 客户端工程目录。
 
 `scenes/boot/Boot.tscn` 的启动菜单同时保留旧二维世界，并提供“工厂世界”入口。三维工厂的配置、场景、脚本与资产分别位于各自的 `factory/` 子目录；状态和文件发布见 `scripts/factory/model.gd`、`scripts/factory/save/`。
 
-工厂使用独立 `user://saves/factory/worlds/` 与 schema 1，旧二维 schema 10 及其目录保留；不自动转换。运行检查须注入两个隔离存档根，不能直接使用用户正式档。纯状态 / 存档检查已接入客户端 Godot 模式，窗口和持续负载需按专题单独执行。
+工厂使用独立 `user://saves/factory/worlds/`：默认基础工厂保留 schema 1 与预供电，另选勘探工厂使用 schema 2，支持显式电网、多配方、拾样试制与矿道开拓。旧二维 schema 10 及其目录保留；三个版本不自动转换。运行检查须注入两个隔离存档根，不能直接使用用户正式档。纯状态 / 存档检查已接入客户端 Godot 模式，窗口和持续负载需按专题单独执行。
 
-详细结构见 [Godot Project Structure](../docs/architecture/godot-project-structure.md)，当前功能与验收状态见 [Factory Foundation And Persistence V1](../docs/features/factory-foundation-and-persistence-v1.md)，状态与存档合同见 [Factory World State And Save V1](../docs/architecture/factory-world-state-and-save-v1.md)。
+详细结构见 [Godot Project Structure](../docs/architecture/godot-project-structure.md)，当前功能与验收状态见 [Current Plan](../docs/planning/current.md)及其发现生产、电力和统计专题；状态与存档合同见 [Factory World State And Save V1](../docs/architecture/factory-world-state-and-save-v1.md)和 [Factory Discovery Save V2](../docs/architecture/factory-discovery-save-v2.md)。完整统计页与自然发现路径仍待 D3。
