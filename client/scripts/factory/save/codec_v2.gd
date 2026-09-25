@@ -6,40 +6,14 @@ const Config := preload("res://data/factory/discovery_rules.gd")
 const Validator := preload("res://scripts/factory/save/statistics_validator.gd")
 
 
-static func item_map(crystal: int, catalyst := 0) -> Dictionary:
-	var result := {}
-	if crystal > 0:
-		result.crystal = crystal
-	if catalyst > 0:
-		result.catalyst = catalyst
-	return result
-
-
 static func snapshot(model: RefCounted, id: String, title: String, sequence: int) -> Dictionary:
 	var doc := V1.snapshot(model, id, title, sequence)
 	doc.save_schema_version = 2
 	doc.ruleset_id = Config.RULESET_ID
 	doc.map_id = Config.MAP_ID
-	var s: Dictionary = doc.state
-	s.bag = item_map(model.bag.crystal, model.bag.catalyst)
-	for e in s.entities:
-		match e.type:
-			"collector":
-				e.mineral = "crystal"
-				e.buffer = item_map(e.buffer)
-			"reactor":
-				e.recipe_id = "basic_catalyst"
-				e.input = item_map(e.input)
-				e.output = item_map(0, e.output)
-				e.invested = item_map(2 if e.processing else 0)
-			"storage":
-				e.items = item_map(e.crystal, e.catalyst)
-				e.erase("crystal")
-				e.erase("catalyst")
-	s.power_links = model.power_links.duplicate(true)
-	s.discovery = model.discovery.duplicate(true)
-	s.statistics = model.statistics.snapshot()
-	s.statistics_ui = model.statistics_ui.duplicate(true)
+	for key in ["power_links", "discovery", "statistics_ui"]:
+		doc.state[key] = model.get(key).duplicate(true)
+	doc.state.statistics = model.statistics.snapshot()
 	return doc
 
 
@@ -49,76 +23,32 @@ static func unpack_state(value: Variant) -> Dictionary:
 	var s: Dictionary = value.duplicate(true)
 	if not fields(s.discovery, ["surveyed", "sample_taken", "trial_completed", "passages"]) or not fields(s.discovery.passages, ["outer", "inner"]):
 		return failure("发现状态字段无效。")
-	for flag in [s.discovery.surveyed, s.discovery.sample_taken, s.discovery.trial_completed, s.discovery.passages.outer, s.discovery.passages.inner]:
+	var d: Dictionary = s.discovery
+	for flag in [d.surveyed, d.sample_taken, d.trial_completed, d.passages.outer, d.passages.inner]:
 		if not flag is bool:
 			return failure("发现状态必须是布尔值。")
-		if flag:
-			return failure("当前版本尚不能运行多配方与开拓状态。", true)
+	if (d.sample_taken and not d.surveyed) or (d.trial_completed and not d.sample_taken) or (d.passages.outer and not d.trial_completed) or (d.passages.inner and not d.passages.outer):
+		return failure("发现与矿道前置事实矛盾。")
 	if not s.power_links is Array or s.power_links.size() > 91:
 		return failure("电力连接列表超限。")
 	if not fields(s.statistics_ui, ["window_seconds", "favorites"]) or not integer(s.statistics_ui.window_seconds) or int(s.statistics_ui.window_seconds) not in [60, 300, 600] or not s.statistics_ui.favorites is Array:
 		return failure("统计偏好无效。")
 	var favorites := {}
 	for item in s.statistics_ui.favorites:
-		if item not in ["crystal", "catalyst"] or favorites.has(item):
-			return failure("收藏物料未知或重复。")
+		var known: bool = item in ["crystal", "catalyst"] or (item == "crust_sample" and d.sample_taken) or (item in ["crust_solvent", "rich_crystal"] and d.trial_completed)
+		if not known or favorites.has(item):
+			return failure("收藏物料尚未掌握或重复。")
 		favorites[item] = true
-	var bag_result := unpack_items(s.bag)
-	if not bag_result.ok:
-		return bag_result
-	s.bag = bag_result.items
-	if not s.entities is Array:
-		return failure("设备列表无效。")
-	for e in s.entities:
-		if not e is Dictionary or not e.has("type"):
-			return failure("设备无效。")
-		match e.type:
-			"collector":
-				if not e.has_all(["mineral", "buffer"]):
-					return failure("采集器字段不完整。")
-				if e.mineral != "crystal":
-					return failure("当前版本尚不能运行此矿物。", true)
-				var items := unpack_items(e.buffer)
-				if not items.ok:
-					return items
-				if items.items.catalyst != 0:
-					return failure("普通采集器含非矿物缓冲。")
-				e.buffer = items.items.crystal
-				e.erase("mineral")
-			"reactor":
-				if not e.has_all(["recipe_id", "input", "output", "invested", "processing"]):
-					return failure("反应器字段不完整。")
-				if e.recipe_id != "basic_catalyst":
-					return failure("当前版本尚不能运行此配方。", true)
-				for key in ["input", "output", "invested"]:
-					var items := unpack_items(e[key])
-					if not items.ok:
-						return items
-					if (key == "output" and items.items.crystal != 0) or (key != "output" and items.items.catalyst != 0):
-						return failure("配方缓冲物料无效。")
-					e[key] = items.items.catalyst if key == "output" else items.items.crystal
-				if not e.processing is bool or e.invested != (2 if e.processing else 0):
-					return failure("在制原投入不一致。")
-				e.erase("invested")
-				e.erase("recipe_id")
-			"storage":
-				if not e.has("items") or e.has("crystal") or e.has("catalyst"):
-					return failure("仓储字段无效。")
-				var items := unpack_items(e.items)
-				if not items.ok:
-					return items
-				e.merge(items.items)
-				e.erase("items")
+	if not Validator.items(s.bag, 200) or NewModel.Items.count(s.bag) > 200:
+		return failure("背包物品或容量无效。")
 	return {"ok": true, "state": s}
 
 
-static func unpack_items(value: Variant) -> Dictionary:
-	if not Validator.items(value, 200):
-		return failure("物料映射包含非法数量或未知物品。")
-	for item in value:
-		if item not in ["crystal", "catalyst"]:
-			return failure("当前版本尚不能运行此发现物料。", true)
-	return {"ok": true, "items": {"crystal": value.get("crystal", 0), "catalyst": value.get("catalyst", 0)}}
+static func normalize_items(items: Dictionary) -> Dictionary:
+	var result := {}
+	for key in items:
+		result[key] = int(items[key])
+	return result
 
 
 static func decode(value: Variant, expected_id: String) -> Dictionary:
@@ -152,15 +82,13 @@ static func decode(value: Variant, expected_id: String) -> Dictionary:
 	for key in ["generated", "completed", "delivered", "delivered_batch"]:
 		if not integer(s[key]):
 			return failure("生产统计必须是非负整数。")
-	if s.completed >= s.next_batch or s.delivered > s.completed or s.delivered_batch >= s.next_batch:
+	if s.completed >= s.next_batch or s.delivered_batch >= s.next_batch:
 		return failure("生产统计与批次序列不一致。")
-	if not fields(s.kits, Config.CATALOG.keys()) or not fields(s.bag, ["crystal", "catalyst"]):
+	if not fields(s.kits, Config.CATALOG.keys()):
 		return failure("构件或回收箱字段无效。")
 	for key in s.kits:
 		if not integer(s.kits[key], 0, Config.SUPPLY[key]):
 			return failure("剩余构件数量无效。")
-	if not integer(s.bag.crystal, 0, 200) or not integer(s.bag.catalyst, 0, 200) or s.bag.crystal + s.bag.catalyst > 200:
-		return failure("回收箱数量超出容量。")
 	if not fields(s.actor, ["x", "z", "angle"]) or not number(s.actor.x, -31.7, 31.7) or not number(s.actor.z, -31.7, 31.7) or not number(s.actor.angle, -PI, PI):
 		return failure("人物位置或朝向无效。")
 	if not s.entities is Array or s.entities.size() > 302:
@@ -168,8 +96,10 @@ static func decode(value: Variant, expected_id: String) -> Dictionary:
 	var model := NewModel.new()
 	var seen := {}
 	var active_batches := {}
+	var output_batches := {}
+	model.discovery = s.discovery.duplicate(true)
 	for source in s.entities:
-		var valid := validate_power_entity(source, s.next_id, s.next_batch)
+		var valid := validate_power_entity(source, s.next_id, s.next_batch, model)
 		if not valid.ok:
 			return valid
 		if seen.has(source.id):
@@ -180,25 +110,37 @@ static func decode(value: Variant, expected_id: String) -> Dictionary:
 			return failure("设备布局无效：" + placed.reason)
 		var e: Dictionary = placed.entity
 		e.merge(source.duplicate(true), true)
-		for key in ["id", "x", "z", "dir", "buffer", "input", "output", "crystal", "catalyst", "cursor", "batch", "active_batch", "output_batch", "power_node_id"]:
+		for key in ["id", "x", "z", "dir", "cursor", "batch", "active_batch", "output_batch", "power_node_id"]:
 			if e.has(key):
 				e[key] = int(e[key])
 		if e.type == "belt":
 			e.entry = Vector2i(source.entry[0], source.entry[1])
-		var batch := int(e.active_batch) if e.type == "reactor" and e.processing else 0
-		if e.type == "reactor" and e.output > 0:
-			batch = e.output_batch
-		if e.type == "belt" and e.cargo == "catalyst":
-			batch = e.batch
+		for key in ["buffer", "input", "output", "invested", "items"]:
+			if e.has(key):
+				e[key] = normalize_items(e[key])
+		if e.type == "reactor" and e.processing:
+			if active_batches.has(e.active_batch):
+				return failure("在制批次重复。")
+			active_batches[e.active_batch] = true
+		var batch := int(e.output_batch) if e.type == "reactor" and not e.output.is_empty() else int(e.batch) if e.type == "belt" else 0
 		if batch > 0:
-			if active_batches.has(batch):
-				return failure("在途或加工批次重复。")
-			active_batches[batch] = true
+			var item: String = e.output.keys()[0] if e.type == "reactor" else e.cargo
+			var amount: int = NewModel.Items.count(e.output) if e.type == "reactor" else 1
+			var limit := (3 if e.recipe_id == "rich_catalyst" else 1) if e.type == "reactor" else (3 if item == "catalyst" and model.discovery.trial_completed else 1)
+			var record: Dictionary = output_batches.get(batch, {"item": item, "count": 0, "limit": limit})
+			if record.item != item:
+				return failure("同批次混入不同产物。")
+			record.count += amount
+			record.limit = mini(record.limit, limit)
+			output_batches[batch] = record
+	for batch in output_batches:
+		if active_batches.has(batch) or output_batches[batch].count > output_batches[batch].limit:
+			return failure("批次既在制又出料，或多件输出超额。")
 	model.rebuild_indexes()
 	for key in s.kits:
 		if s.kits[key] != model.kits[key]:
 			return failure("剩余构件与在场设备不守恒。")
-	model.bag = {"crystal": int(s.bag.crystal), "catalyst": int(s.bag.catalyst)}
+	model.bag = normalize_items(s.bag)
 	model.actor.merge(s.actor, true)
 	if model.blocked_for_actor(model.actor.x, model.actor.z):
 		return failure("人物被保存在设备阻挡中。")
@@ -206,11 +148,6 @@ static func decode(value: Variant, expected_id: String) -> Dictionary:
 	model.remainder = float(s.remainder)
 	for key in ["next_id", "next_batch", "generated", "completed", "delivered", "delivered_batch"]:
 		model.set(key, int(s[key]))
-	var balance: Dictionary = model.material_balance()
-	if balance.catalyst != model.completed:
-		return failure("完成批次与现存催化剂不守恒。")
-	if balance.equivalent != model.generated:
-		return failure("存档物料不守恒。")
 	model.power_links = s.power_links.duplicate(true)
 	var last_a := 0
 	var last_b := 0
@@ -238,27 +175,72 @@ static func decode(value: Variant, expected_id: String) -> Dictionary:
 	return {"ok": true, "model": model, "document": value}
 
 
-static func validate_power_entity(e: Variant, next_id: int, next_batch: int) -> Dictionary:
-	if not e is Dictionary or not e.has("type"):
+static func validate_power_entity(e: Variant, next_id: int, next_batch: int, model: RefCounted) -> Dictionary:
+	if not e is Dictionary or not e.has("type") or not e.type is String:
 		return failure("设备对象无效。")
-	if e.type in ["power_source", "power_junction"]:
-		var extra := ["enabled"] if e.type == "power_source" else []
-		if not fields(e, ["id", "type", "x", "z", "dir"] + extra) or not integer(e.id, 1, next_id - 1) or not integer(e.x, -32, 31) or not integer(e.z, -32, 31) or not integer(e.dir, 0, 0):
-			return failure("电力设备字段无效。")
-		if e.type == "power_source" and not e.enabled is bool:
-			return failure("电源启用状态必须为布尔值。")
-		return {"ok": true}
-	var base: Dictionary = e.duplicate(true)
-	if e.type in ["collector", "reactor"]:
-		if not e.has("power_node_id") or not integer(e.power_node_id, 0, next_id - 1):
-			return failure("用电接入 ID 无效。")
-		base.erase("power_node_id")
-		var cycle: float = Config.CYCLE[e.type]
-		if not base.has("progress") or not number(base.progress, 0, cycle) or base.progress >= cycle:
-			return failure("加工进度必须有限、非负且严格小于周期。")
-		if e.type == "reactor" and not base.get("processing", false) and base.progress != 0:
-			return failure("空闲反应器仍有加工进度。")
-		# Validate fractional powered progress above; the legacy check deliberately
-		# retains its original fixed-speed epsilon bounds. Do not rewrite the state.
-		base.progress = 0.0
-	return V1.validate_entity(base, next_id, next_batch)
+	if not Config.CATALOG.has(e.type):
+		return failure("未知设备类型。", true)
+	var extra: Array = {
+		"collector": ["mineral", "buffer", "progress", "power_node_id"],
+		"reactor": ["recipe_id", "input", "output", "invested", "processing", "progress", "active_batch", "output_batch", "power_node_id"],
+		"storage": ["items"], "belt": ["cargo", "progress", "entry", "cursor", "batch"],
+		"power_source": ["enabled"], "power_junction": [],
+	}[e.type]
+	if not fields(e, ["id", "type", "x", "z", "dir"] + extra) or not integer(e.id, 1, next_id - 1) or not integer(e.x, -32, 31) or not integer(e.z, -32, 31) or not integer(e.dir, 0, 3):
+		return failure("设备字段、身份或位置无效。")
+	if e.type != "belt" and e.dir != 0:
+		return failure("本版本不支持设备旋转。")
+	if e.type == "power_source" and not e.enabled is bool:
+		return failure("电源开关必须是布尔值。")
+	if e.type in ["collector", "reactor"] and not integer(e.power_node_id, 0, next_id - 1):
+		return failure("设备电力接入无效。")
+	match e.type:
+		"collector":
+			var mineral := "crystal" if e.x < 4 else "rich_crystal"
+			if e.mineral != mineral or not bounded_items(e.buffer, {mineral: 50}) or not number(e.progress, 0, 1) or e.progress >= 1:
+				return failure("矿物、缓冲或采集进度无效。")
+		"reactor":
+			if not e.recipe_id is String or not Config.RECIPES.has(e.recipe_id):
+				return failure("未知配方。", true)
+			if not model.recipe_available(e.recipe_id) and not (e.recipe_id == "solvent_trial" and model.discovery.trial_completed):
+				return failure("配方尚未解锁。")
+			var recipe: Dictionary = Config.RECIPES[e.recipe_id]
+			if not bounded_items(e.input, recipe.input) or not bounded_items(e.output, recipe.output) or not Validator.items(e.invested, 3) or not e.processing is bool or not number(e.progress, 0, recipe.seconds) or e.progress >= recipe.seconds:
+				return failure("配方缓冲、在制或进度无效。")
+			if not integer(e.active_batch, 0, next_batch - 1) or not integer(e.output_batch, 0, next_batch - 1):
+				return failure("批次序号无效。")
+			if e.processing:
+				if not model.recipe_available(e.recipe_id) or e.active_batch == 0 or not e.output.is_empty() or normalize_items(e.invested) != recipe.input:
+					return failure("加工中批次、原投入或缓冲矛盾。")
+			elif e.progress != 0 or e.active_batch != 0 or not e.invested.is_empty():
+				return failure("空闲设备含在制状态。")
+			if not e.output.is_empty() and e.output_batch == 0:
+				return failure("产物缺少批次。")
+			# D2-A kept the last output batch on an empty reactor. It is harmless
+			# provenance, still accepted without rewriting older schema 2 worlds.
+		"storage":
+			if not Validator.items(e.items, 200) or NewModel.Items.count(e.items) > 200:
+				return failure("仓储物料或容量无效。")
+		"belt":
+			if not e.cargo is String or e.cargo not in ["", "crystal", "catalyst", "crust_solvent", "rich_crystal"]:
+				return failure("传送带物料无效，样本只能显式取放。")
+			if e.cargo in ["crystal", "rich_crystal"] and e.batch != 0:
+				return failure("原矿不能带有加工批次。")
+			if e.cargo in ["catalyst", "crust_solvent"] and not integer(e.batch, 1, next_batch - 1):
+				return failure("加工产物缺少批次。")
+			var shadow: Dictionary = e.duplicate(true)
+			if e.cargo == "rich_crystal":
+				shadow.cargo = "crystal"
+			if e.cargo == "crust_solvent":
+				shadow.cargo = "catalyst"
+			return V1.validate_entity(shadow, next_id, next_batch)
+	return {"ok": true}
+
+
+static func bounded_items(value: Variant, limits: Dictionary) -> bool:
+	if not Validator.items(value, 200):
+		return false
+	for item in value:
+		if value[item] > limits.get(item, 0):
+			return false
+	return true

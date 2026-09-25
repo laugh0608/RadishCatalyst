@@ -20,7 +20,7 @@
 
 ## 当前活跃专题
 
-- 当前设计：[Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md)。固定矿区内以制剂开路、富集资源回流生产的联合实施专题；D2-A 基础供电与记账已接入，D2-B 接多配方与开拓。
+- 当前设计：[Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md)。固定矿区内以制剂开路、富集资源回流生产的联合实施专题；D2-A 基础供电与记账已接入，D2-B 已接多配方、唯一拾样、按物品取放与两次开拓；下一步 D3。
 - 基础电力：[Factory Power And Grid V1](../features/factory-power-and-grid-v1.md)。有限功率电源、显式配电、缺电降速与停复电，已与统计 / 新世界版本提案对齐；D2-A 已接入正式模型与 Boot 新世界，本机定向状态检查与隔离窗口分项证据已具备。
 - 配套设计：[Factory Production Statistics V1](../features/factory-production-statistics-v1.md)。参考用户提供的终末地产消简报，明确库存、实际 / 理论产消、趋势与设备定位，D2-A 完成事件记账和有限桶存读，D3 接完整统计页面。
 - 已交付基线：[Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md)：P1–P3 开发机证据、亲测反馈及 Windows 待验边界。
@@ -69,4 +69,4 @@ Boot / 存档 / 锁证据先经离线核对，随后 `menu-review-20260925-a` �
 
 按 P1–P3 合同，本机玩家路径、跨进程恢复、故障保护、多线扩建、持续性能和亲测反馈已具备，开发机交付收口。Windows 目标硬件未定，平台最终验收保持未完成；不把本机反馈扩写为逐项人工验证或全平台通过。
 
-D2-A 已实现独立 schema 2、显式电图、20Hz 供需 / 停复电及有限记账，具体字段和阶段支持范围见[联合存档合同](../architecture/factory-discovery-save-v2.md)。105 项定向状态检查和旧版本回归通过；普通线正式 Boot、独立进程恢复及缺电 / 增容已有分项证据，断接 / 回收补验通过，完整失败记录进入 W39 周志。下一步 D2-B 接多配方 / 开拓，D3–D4 完整统计页、玩家全路径与亲测；不重复四档长测，不把 D2-A 当作联合包玩法完成。D1 工具见 [Factory Content Authoring](../../tools/factory-content/README.md)，本轮失败、修正和证据见 [W39 周志](../devlogs/2026-W39.md)。
+D2-A 已实现独立 schema 2、显式电图、20Hz 供需 / 停复电及有限记账，具体字段和阶段支持范围见[联合存档合同](../architecture/factory-discovery-save-v2.md)。105 项定向状态检查和旧版本回归通过；普通线正式 Boot、独立进程恢复及缺电 / 增容已有分项证据，断接 / 回收补验通过，完整失败记录进入 W39 周志。D2-B 已实现多配方、近身取放、唯一拾样 / 试制、两次开路与多件出料；118 项状态、2 项独立进程半批检查通过，正式 Boot 修正后写入 112 项 / 独立恢复 37 项通过。下一步 D3–D4 完整统计页、自然玩家全路径与亲测；不重复四档长测，不把 D2-A 当作联合包玩法完成。D1 工具见 [Factory Content Authoring](../../tools/factory-content/README.md)，本轮失败、修正和证据见 [W39 周志](../devlogs/2026-W39.md)。

@@ -221,7 +221,7 @@ func overload_path() -> void:
 	await driver.click(world.hud.buttons.pause)
 	await select(1)
 	await driver.click(world.hud.buttons.salvage)
-	driver.expect(world.model.bag.crystal >= 4, "harvested material recovered, no injected inputs")
+	driver.expect(world.model.bag.get("crystal", 0) >= 4, "harvested material recovered, no injected inputs")
 	await place("collector", -20, -1)
 	if not driver.failures.is_empty():
 		return
@@ -235,8 +235,12 @@ func overload_path() -> void:
 		await place("reactor", cell.x, cell.y)
 		var id: int = world.ui.selected
 		reactors.append(id)
-		await driver.click(world.hud.buttons.deposit)
-		driver.expect(world.model.by_id(id).input == 2, "real recovered crystals feed load")
+		world.actor.x = cell.x - 1.0
+		world.actor.z = cell.y + 0.5
+		await driver.click(world.hud.buttons.discovery)
+		await dialog_click(world.discovery_panel.buttons.crystal_put_all, false)
+		await dialog_click(world.discovery_panel.get_ok_button())
+		driver.expect(world.model.by_id(id).input == {"crystal": 2}, "real recovered crystals feed load")
 		await connect_nodes(junction, id)
 	await driver.click(world.hud.buttons.pause)
 	if not await active(1):
@@ -294,7 +298,7 @@ func branch_path(junction: int, reactors: Array) -> void:
 	driver.expect(Codec.decode(Codec.snapshot(world.model, world.store.world_id, world.store.world_name, 1), world.store.world_id).ok, "edited network and history save valid")
 
 
-func dialog_click(button: Button) -> void:
+func dialog_click(button: Button, closes := true) -> void:
 	# Native mouse hover belongs to the OS window manager. Use explicit keyboard
 	# focus and normal Enter input; do not mistake push_input for an OS cursor move.
 	button.grab_focus()
@@ -306,7 +310,8 @@ func dialog_click(button: Button) -> void:
 		button.get_window().push_input(event, true)
 		await process_frame
 	await driver.settle()
-	driver.expect(not world.power_dialog.visible, "keyboard dialog input closes confirmation")
+	if closes:
+		driver.expect(not button.get_window().visible, "keyboard dialog input closes confirmation")
 
 
 func dialog_shot(name: String) -> void:

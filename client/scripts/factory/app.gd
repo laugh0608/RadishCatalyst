@@ -43,6 +43,7 @@ var sample_enabled := false
 var last_frame_usec := 0
 var production_clock := ActiveClock.new()
 var engine_active_seconds := 0.0
+var discovery_panel := preload("res://scripts/factory/discovery_panel.gd").new()
 var power_dialog := ConfirmationDialog.new()
 var power_choices := OptionButton.new()
 var power_description := Label.new()
@@ -74,6 +75,8 @@ func _ready() -> void:
 	view.draw(model, actor, ui)
 	_build_save_dialogs()
 	_build_power_dialog()
+	discovery_panel.theme = hud.theme
+	add_child(discovery_panel)
 	if not candidate.is_empty():
 		var accepted: Dictionary = store.accept(candidate)
 		if not accepted.ok:
@@ -99,7 +102,7 @@ func _process(delta: float) -> void:
 	last_frame_usec = frame_usec
 	_capture_active_time(frame_usec)
 	var dt := delta
-	if focused and not failure_dialog.visible and not unsaved_dialog.visible and not power_dialog.visible:
+	if focused and not failure_dialog.visible and not unsaved_dialog.visible and not power_dialog.visible and not discovery_panel.visible:
 		if not ui.paused:
 			var before := Time.get_ticks_usec()
 			engine_active_seconds += delta
@@ -153,7 +156,7 @@ func _focus_gained() -> void:
 
 
 func _producing() -> bool:
-	return initialized and focused and not ui.paused and not failure_dialog.visible and not unsaved_dialog.visible and not power_dialog.visible
+	return initialized and focused and not ui.paused and not failure_dialog.visible and not unsaved_dialog.visible and not power_dialog.visible and not discovery_panel.visible
 
 
 func _capture_active_time(now_usec: int = -1) -> void:
@@ -272,7 +275,7 @@ func _action(name: String, value: Variant) -> void:
 				var result := model.salvage(ui.selected)
 				if result.ok:
 					ui.selected = -1
-					hud.announce("已回收%s、%d 晶体、%d 催化剂。" % [Model.CATALOG[result.type].name, result.items.crystal, result.items.catalyst])
+					hud.announce("已回收%s及货物：%s" % [Model.CATALOG[result.type].name, preload("res://scripts/factory/items.gd").describe(result.items)] if model.has_method("power_state") else "已回收%s、%d 晶体、%d 催化剂。" % [Model.CATALOG[result.type].name, result.items.crystal, result.items.catalyst])
 				elif result.get("needs_confirmation", false):
 					pending_salvage = ui.selected
 					pending_connections = result.connections
@@ -281,6 +284,7 @@ func _action(name: String, value: Variant) -> void:
 					power_dialog.popup_centered(Vector2i(560, 200))
 				else:
 					hud.announce(result.reason, true)
+			"discovery": discovery_panel.show_for(model, ui.selected)
 			"deposit":
 				var result := model.deposit(ui.selected)
 				hud.announce("已投入 %d 件回收物品。" % result.amount if result.ok else result.reason, not result.ok)
@@ -299,7 +303,7 @@ func _preview(cell: Vector2i) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not initialized or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible:
+	if not initialized or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible or discovery_panel.visible:
 		return
 	if event is InputEventKey:
 		if not event.pressed:
@@ -381,7 +385,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if not event is InputEventKey or not event.pressed or event.echo or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible:
+	if not event is InputEventKey or not event.pressed or event.echo or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible or discovery_panel.visible:
 		return
 	if event.physical_keycode == KEY_ESCAPE:
 		_cancel()

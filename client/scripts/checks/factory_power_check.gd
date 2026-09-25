@@ -89,7 +89,7 @@ func run() -> void:
 	close(m.by_id(2).progress, progress, "blackout preserves half batch")
 	close(m.statistics.totals.used_kj, energy, "blackout no energy")
 	expect(m.next_batch == batch, "blackout no batch allocation")
-	expect(m.by_id(1).buffer < 50, "passive output transport remains available")
+	expect(Model.Items.count(m.by_id(1).buffer) < 50, "passive output transport remains available")
 	m.set_source_enabled(13, true)
 	m.advance(1)
 	expect(m.by_id(2).progress != progress or m.next_batch > batch, "power resumes original work")
@@ -116,7 +116,7 @@ func run() -> void:
 	reject(future, "future schema", true)
 	var bad := saved.duplicate(true)
 	bad.state.discovery.passages.outer = true
-	reject(bad, "D2-B content explicitly blocked", true)
+	reject(bad, "passage prerequisites rejected")
 	for mutation in ["duplicate_link", "fractional_item", "bad_reference", "overlap_bucket", "nan_energy", "unknown_field", "bad_investment", "bad_energy"]:
 		bad = saved.duplicate(true)
 		match mutation:
@@ -153,7 +153,7 @@ func _test_distribution() -> void:
 	m.connect_power(source.id, node.id)
 	for cell in [Vector2i(-23, -3), Vector2i(-20, 1), Vector2i(-15, -3), Vector2i(-16, 1)]:
 		var e: Dictionary = m.place("reactor", cell).entity
-		e.input = 2 # Arithmetic fixture: independent from save/material tests.
+		e.input = {"crystal": 2} # Arithmetic fixture: independent from save/material tests.
 		expect(m.connect_power(node.id, e.id).ok, "overload consumer connection")
 	m.advance(0.05)
 	for e in m.entities:
@@ -253,15 +253,15 @@ func _test_stalls_and_cancel() -> void:
 	m.advance(8)
 	expect(m.by_id(2).processing and m.statistics.totals.consumed.is_empty(), "starting batch only reserves inputs")
 	var energy: float = m.statistics.totals.used_kj
-	var amount: int = m.by_id(2).input + 2
-	expect(m.salvage(2).ok and m.bag.crystal == amount, "in-flight salvage returns original inputs")
+	var amount: int = Model.Items.count(m.by_id(2).input) + 2
+	expect(m.salvage(2).ok and m.bag.get("crystal", 0) == amount, "in-flight salvage returns original inputs")
 	close(m.statistics.totals.used_kj, energy, "cancel does not refund used energy")
 	expect(m.statistics.totals.consumed.is_empty() and m.statistics.totals.produced.get("catalyst", 0) == 0, "cancel invents neither consumption nor output")
 	expect(Codec.decode(doc(m), ID).ok, "canceled work with spent energy persists")
 	var before := doc(m)
 	expect(not m.disconnect_power(13, 3).ok and doc(m) == before, "missing link removal zero mutation")
 	m.advance(610, 13000)
-	expect(m.by_id(1).buffer == 50, "real buffer reaches backpressure")
+	expect(Model.Items.count(m.by_id(1).buffer) == 50, "real buffer reaches backpressure")
 	close(m.power_state().request_kw, 0, "full buffer consumes no power")
 	expect(Codec.decode(doc(m), ID).ok, "nonzero truncated production history persists")
 	var n := Model.new()
@@ -269,13 +269,13 @@ func _test_stalls_and_cancel() -> void:
 	var e: Dictionary = n.place("reactor", Vector2i(-17, -3)).entity
 	n.connect_power(source.id, e.id)
 	n.set_source_enabled(source.id, false)
-	e.input = 2 # Synthetic work-readiness fixture.
+	e.input = {"crystal": 2} # Synthetic work-readiness fixture.
 	var batch: int = n.next_batch
 	n.advance(0.05)
-	expect(e.input == 2 and not e.processing and e.progress == 0 and n.next_batch == batch, "blackout with ready inputs never opens batch")
+	expect(e.input == {"crystal": 2} and not e.processing and e.progress == 0 and n.next_batch == batch, "blackout with ready inputs never opens batch")
 	n.set_source_enabled(source.id, true)
 	n.advance(0.05)
-	expect(e.processing and e.input == 0 and e.progress > 0, "fully off grid self-starts after switch on")
+	expect(e.processing and e.input.is_empty() and e.progress > 0, "fully off grid self-starts after switch on")
 	var power: Dictionary = n.power_state()
 	n.entities.reverse()
 	n.rebuild_indexes()

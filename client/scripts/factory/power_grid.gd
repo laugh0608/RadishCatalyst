@@ -110,9 +110,9 @@ func allocate(model: RefCounted, dt: float) -> Dictionary:
 				result.available_kw += Rules.SOURCE_KW
 		if not Rules.POWER.has(e.type):
 			continue
-		var workable: bool = e.buffer < 50 if e.type == "collector" else e.processing or (e.input >= 2 and e.output == 0)
-		var work: float = minf(dt, maxf(0, Rules.CYCLE[e.type] - e.progress)) if workable else 0.0
-		var demand: float = Rules.POWER[e.type] * work / dt
+		var spec: Dictionary = model.work_spec(e)
+		var work: float = minf(dt, maxf(0, spec.seconds - e.progress)) if spec.ready else 0.0
+		var demand: float = spec.kw * work / dt
 		var network: int = membership.get(e.power_node_id, -1)
 		result.devices[e.id] = {"request_kw": demand, "supplied_kw": 0.0, "fraction": 0.0, "network": network, "work": work}
 		result.request_kw += demand

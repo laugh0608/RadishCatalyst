@@ -22,6 +22,11 @@ var limbs: Array[Node3D] = []
 var grid := Node3D.new()
 var ghost := Node3D.new()
 var selection := Node3D.new()
+var barriers := Node3D.new()
+var terrain_key := ""
+var sample: Node3D
+var rich_mat := Parts.material("bb8be8", 0.32, 0.24)
+var solvent_mat := Parts.material("91d970", 0.3, 0.3)
 var wiring := Node3D.new()
 var wiring_key := ""
 var last_revision := -1
@@ -65,12 +70,17 @@ func _ready() -> void:
 			if not assets[type] is PackedScene:
 				resource_error = "缺少电力模型：" + type
 				return
+		add_child(barriers)
 		_build_mineral_barriers()
 	var sites: Array[Vector2i] = world_model.ore_sites() if world_model != null else Model.Rules.ore_sites()
 	for cell in sites:
 		var ore: Node3D = assets.ore.instantiate()
 		add_child(ore)
 		ore.position = Vector3(cell.x + 8, 0, cell.y + 1)
+		if world_model != null and world_model.has_method("power_state") and cell.x > 4:
+			ore.scale = Vector3(1, 1.7, 1)
+			for part in ore.find_children("*", "MeshInstance3D", true, false):
+				part.material_override = rich_mat
 	# Imported transparent glass is decorative, as in the Web production yard.
 	_disable_transparent_shadows(self)
 	engineer = assets.engineer.instantiate()
@@ -334,6 +344,8 @@ func draw(model: RefCounted, actor: Dictionary, ui: Dictionary) -> void:
 	body.position.y = absf(sin(actor.walk * 7)) * 0.035 if actor.moving else 0
 	grid.visible = ui.build
 	_sync_wiring(model, ui)
+	if model.has_method("power_state") and terrain_key != str(model.discovery):
+		_build_mineral_barriers()
 	var valid: bool = not ui.tool.is_empty() and model.placement(ui.tool, ui.cell, actor).ok
 	var next_ghost := str([ui.tool, ui.cell, ui.dir, valid, ui.stroke])
 	if next_ghost != ghost_key:
@@ -373,7 +385,7 @@ func _sync_production(model: RefCounted) -> void:
 		if e.type == "belt":
 			v.cargo.visible = not e.cargo.is_empty()
 			if v.cargo.visible:
-				v.cargo_mesh.material_override = crystal_mat if e.cargo == "crystal" else catalyst_mat
+				v.cargo_mesh.material_override = {"crystal": crystal_mat, "catalyst": catalyst_mat, "crust_solvent": solvent_mat, "rich_crystal": rich_mat}[e.cargo]
 				var p := travel_position(e.entry, e.dir, e.progress)
 				v.cargo.position = Vector3(p.x, 0.53, p.y)
 				v.cargo.rotation.y = model.time * 0.4
@@ -383,22 +395,45 @@ func _sync_production(model: RefCounted) -> void:
 			v.lamp_mat = status_materials[f.kind]
 			v.lamp.material_override = v.lamp_mat
 			var progress := 0.0
-			match e.type:
-				"reactor": progress = e.progress / 10.0 if e.processing else (1.0 if e.output > 0 else 0.0)
-				"collector": progress = e.buffer / 50.0
-				"storage": progress = (e.crystal + e.catalyst) / 200.0
+			if model.has_method("power_state"):
+				match e.type:
+					"reactor": progress = e.progress / model.DiscoveryRules.RECIPES[e.recipe_id].seconds if e.processing else (1.0 if not e.output.is_empty() else 0.0)
+					"collector": progress = model.Items.count(e.buffer) / 50.0
+					"storage": progress = model.Items.count(e.items) / 200.0
+			else:
+				match e.type:
+					"reactor": progress = e.progress / 10.0 if e.processing else (1.0 if e.output > 0 else 0.0)
+					"collector": progress = e.buffer / 50.0
+					"storage": progress = (e.crystal + e.catalyst) / 200.0
 			v.bar.scale.x = maxf(0.001, progress)
 			v.bar.position.x = -(1 - progress) * def.w * 0.4
 
 
 func _build_mineral_barriers() -> void:
-	# Imported ore clusters express actual blocking cells, not an invisible wall.
+	clear_node(barriers)
+	terrain_key = str(world_model.discovery)
+	# Imported ore clusters follow the same permanent passage facts as collision.
 	for start_x in [4, 20]:
 		for z in range(-32, 32, 2):
+			if z in [-2, 0] and world_model.discovery.passages["outer" if start_x == 4 else "inner"]:
+				continue
 			for x in [start_x, start_x + 2]:
 				var shell: Node3D = assets.ore.instantiate()
-				add_child(shell)
+				barriers.add_child(shell)
 				shell.position = Vector3(x + 8, 0, z + 1)
+
+	if not world_model.discovery.sample_taken:
+		sample = assets.ore.instantiate()
+		barriers.add_child(sample)
+		sample.scale = Vector3.ONE * 0.3
+		sample.position = Vector3(2.5 + 7 * 0.3, 0.04, 2.5)
+		var label := Label3D.new()
+		label.text = "矿壳样本 · 调查 / 拾取"
+		label.font_size = 40
+		label.pixel_size = 0.014
+		label.position = Vector3(2.5, 1.0, 2.5)
+		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		barriers.add_child(label)
 
 
 func _wire(a: Vector2, b: Vector2, material: Material) -> void:

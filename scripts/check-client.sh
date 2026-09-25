@@ -219,6 +219,7 @@ run_godot_checked "slice-save-catalog" --script "${client_root}/scripts/checks/s
 run_godot_checked "factory-state" --script "${client_root}/scripts/checks/factory_state_check.gd" --no-header
 run_godot_checked "factory-save" --script "${client_root}/scripts/checks/factory_save_check.gd" --no-header
 run_godot_checked "factory-power" --script "${client_root}/scripts/checks/factory_power_check.gd" --no-header
+run_godot_checked "factory-discovery" --script "${client_root}/scripts/checks/factory_discovery_check.gd" --no-header
 run_godot_checked "factory-clock" --script "${client_root}/scripts/checks/factory_clock_check.gd" --no-header
 run_godot_checked "factory-view-state" --script "${client_root}/scripts/checks/factory_view_state_check.gd" --no-header
 run_godot_checked "onboarding-hint-runtime" --script "${client_root}/scripts/checks/onboarding_hint_runtime_check.gd" --no-header

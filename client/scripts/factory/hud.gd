@@ -3,6 +3,8 @@ extends Control
 signal action(name: String, value: Variant)
 
 const Model := preload("res://scripts/factory/model.gd")
+const DiscoveryPanel := preload("res://scripts/factory/discovery_panel.gd")
+const Items := preload("res://scripts/factory/items.gd")
 const DIRECTIONS := ["东 →", "南 ↓", "西 ←", "北 ↑"]
 var buttons := {}
 var world_slot := Control.new()
@@ -138,6 +140,7 @@ func _build_world_panels() -> void:
 	mission.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	mission_stack.add_child(mission)
 	_button(mission_stack, "mission", "收起目标")
+	_button(mission_stack, "discovery", "工艺、物料与矿道")
 	inspector = _panel(world_slot)
 	inspector.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	inspector.offset_left = -286
@@ -273,17 +276,21 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, focused: bool
 		var valid: Dictionary = model.placement(ui.tool, ui.cell, actor)
 		placement_reason.text = "可放置" if valid.ok else valid.reason
 		buttons.place.disabled = not valid.ok
-	bag.text = "回收箱：晶体 %d / 催化剂 %d" % [model.bag.crystal, model.bag.catalyst]
+	bag.text = "背包：" + Items.describe(model.bag) if model.has_method("power_state") else "回收箱：晶体 %d / 催化剂 %d" % [model.bag.crystal, model.bag.catalyst]
+	buttons.discovery.visible = model.has_method("power_state")
 	coordinates.text = "X %.1f / Z %.1f" % [actor.x, actor.z]
 	var e: Dictionary = model.by_id(ui.selected)
 	inspector.visible = not e.is_empty()
 	if not e.is_empty():
 		var info := ""
-		match e.type:
-			"collector": info = "晶体缓冲 %d / 50\n采集速度 1 个 / 秒\n金色出口位于右侧" % e.buffer
-			"reactor": info = "晶体输入 %d / 2\n催化剂输出 %d / 1\n%s\n左进右出，接口在前排" % [e.input, e.output, "加工 %.1f / 10 秒" % e.progress if e.processing else "每批 2 晶体 → 1 催化剂"]
-			"storage": info = "晶体 %d · 催化剂 %d\n容量 %d / 200\n青色入口位于左侧" % [e.crystal, e.catalyst, e.crystal + e.catalyst]
-			"belt": info = "方向 %s\n带上物品：%s\n速度 1 格 / 秒" % [DIRECTIONS[e.dir], {"": "空", "crystal": "晶体", "catalyst": "催化剂"}[e.cargo]]
+		if model.has_method("power_state"):
+			info = DiscoveryPanel.describe_entity(e)
+		else:
+			match e.type:
+				"collector": info = "晶体缓冲 %d / 50\n采集速度 1 个 / 秒\n金色出口位于右侧" % e.buffer
+				"reactor": info = "晶体输入 %d / 2\n催化剂输出 %d / 1\n%s\n左进右出，接口在前排" % [e.input, e.output, "加工 %.1f / 10 秒" % e.progress if e.processing else "每批 2 晶体 → 1 催化剂"]
+				"storage": info = "晶体 %d · 催化剂 %d\n容量 %d / 200\n青色入口位于左侧" % [e.crystal, e.catalyst, e.crystal + e.catalyst]
+				"belt": info = "方向 %s\n带上物品：%s\n速度 1 格 / 秒" % [DIRECTIONS[e.dir], {"": "空", "crystal": "晶体", "catalyst": "催化剂"}[e.cargo]]
 		details.text = "%s\n%s\n\n%s" % [Model.CATALOG[e.type].name, model.feedback(e).label, info]
 		var powered: bool = model.has_method("power_state")
 		buttons.power_connect.visible = powered and e.type in ["power_source", "power_junction"]
@@ -297,13 +304,13 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, focused: bool
 			elif e.type == "power_source":
 				details.text += "\n实际输出 %.1f kW" % model.power_state().sources[e.id]
 		buttons.rotate_selected.visible = e.type == "belt"
-		buttons.deposit.visible = e.type in ["collector", "reactor", "storage"]
-		buttons.deposit.disabled = model.bag.crystal + model.bag.catalyst == 0
+		buttons.deposit.visible = not powered and e.type in ["collector", "reactor", "storage"]
+		buttons.deposit.disabled = Items.count(model.bag) == 0
 	var text := "建立产线\n晶体 → 催化剂\n\n采集器覆盖青色矿点。金色出口接带，送入青色入口；反应器每批消耗 2 晶体，加工 10 秒。"
 	if model.delivered > 0:
 		text = "继续扩建\n已有 %d 件催化剂入仓\n\n走到其他青色矿点建立第二条产线。保存后可从启动菜单继续这个世界。" % model.delivered
 	if model.has_method("power_state"):
 		var power: Dictionary = model.power_state()
-		text = "首线接电\n晶体 → 催化剂\n\n放置电源，选中后接线。节点之间 ≤12 格，设备接入 ≤6 格。\n\n可用容量 %.0f kW\n当前请求 %.1f kW\n实际供用 %.1f kW\n分网缺口 %.1f kW\n累计用电 %.2f kJ\n\n带与仓无需电力。\n矿区开拓后续开放。" % [power.available_kw, power.request_kw, power.supplied_kw, power.deficit_kw, model.statistics.totals.used_kj]
+		text = "首线接电\n晶体 → 催化剂\n\n放置电源，选中后接线。节点之间 ≤12 格，设备接入 ≤6 格。\n\n可用容量 %.0f kW\n当前请求 %.1f kW\n实际供用 %.1f kW\n分网缺口 %.1f kW\n累计用电 %.2f kJ\n\n带与仓无需电力。\n在「工艺、物料与矿道」调查样本、取放材料与开路。" % [power.available_kw, power.request_kw, power.supplied_kw, power.deficit_kw, model.statistics.totals.used_kj]
 	mission.text = text if ui.mission else text.split("\n")[0]
 	buttons.mission.text = "收起目标" if ui.mission else "展开目标"

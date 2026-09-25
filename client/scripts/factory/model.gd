@@ -376,11 +376,9 @@ func _logistics(dt: float) -> void:
 			if not contenders.has(next.id):
 				contenders[next.id] = []
 			contenders[next.id].append(b)
-		elif sink_accepts(next, b, b.cargo):
-			if next.type == "reactor":
-				next.input += 1
-			else:
-				next[b.cargo] += 1
+		elif _sink_accepts(next, b, b.cargo):
+			_receive_item(next, b.cargo)
+			if next.type == "storage":
 				_record_delivery(b.cargo)
 				if b.cargo == "catalyst":
 					delivered += 1
@@ -406,11 +404,7 @@ func _logistics(dt: float) -> void:
 		winner.batch = 0
 		winner.progress = 0.0
 	for e in entities:
-		var item := ""
-		if e.type == "collector" and e.buffer > 0:
-			item = "crystal"
-		if e.type == "reactor" and e.output > 0:
-			item = "catalyst"
+		var item := _output_item(e)
 		if item.is_empty():
 			continue
 		var p := port(e, "output")
@@ -421,10 +415,33 @@ func _logistics(dt: float) -> void:
 		b.batch = e.get("output_batch", 0) if e.type == "reactor" else 0
 		b.progress = 0.0
 		b.entry = Vector2i(-1, 0)
-		if e.type == "collector":
-			e.buffer -= 1
-		else:
-			e.output -= 1
+		_take_output(e, item)
+
+
+func _sink_accepts(e: Dictionary, source: Dictionary, item: String) -> bool:
+	return sink_accepts(e, source, item)
+
+
+func _receive_item(e: Dictionary, item: String) -> void:
+	if e.type == "reactor":
+		e.input += 1
+	else:
+		e[item] += 1
+
+
+func _output_item(e: Dictionary) -> String:
+	if e.type == "collector" and e.buffer > 0:
+		return "crystal"
+	if e.type == "reactor" and e.output > 0:
+		return "catalyst"
+	return ""
+
+
+func _take_output(e: Dictionary, _item: String) -> void:
+	if e.type == "collector":
+		e.buffer -= 1
+	else:
+		e.output -= 1
 
 
 func _record_delivery(_item: String) -> void:
@@ -459,7 +476,7 @@ func belt_blocked(b: Dictionary) -> bool:
 		return true
 	if next.type == "belt":
 		return not next.cargo.is_empty() or not accepts_belt(next, direction)
-	return not sink_accepts(next, b, b.cargo)
+	return not _sink_accepts(next, b, b.cargo)
 
 
 func feedback(e: Dictionary) -> Dictionary:

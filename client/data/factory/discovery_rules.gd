@@ -14,6 +14,16 @@ const CATALOG := {
 	"power_junction": {"name": "配电节点", "w": 1, "d": 1},
 }
 const ITEMS := ["crystal", "catalyst", "crust_sample", "crust_solvent", "rich_crystal"]
+const NAMES := {"crystal": "晶体", "catalyst": "催化剂", "crust_sample": "矿壳样本", "crust_solvent": "解壳剂", "rich_crystal": "富集晶体"}
+const WEIGHTS := {"crystal": 1, "catalyst": 2, "crust_sample": 0, "crust_solvent": 4, "rich_crystal": 6}
+const RECIPES := {
+	"basic_catalyst": {"name": "基础催化剂", "input": {"crystal": 2}, "output": {"catalyst": 1}, "seconds": 10.0, "kw": 40.0},
+	"solvent_trial": {"name": "矿壳试制", "input": {"crust_sample": 1, "catalyst": 2}, "output": {"crust_solvent": 1}, "seconds": 10.0, "kw": 40.0},
+	"crust_solvent": {"name": "解壳剂", "input": {"catalyst": 2}, "output": {"crust_solvent": 1}, "seconds": 8.0, "kw": 60.0},
+	"rich_catalyst": {"name": "富集催化剂", "input": {"rich_crystal": 1}, "output": {"catalyst": 3}, "seconds": 12.0, "kw": 80.0},
+}
+const SAMPLE := Vector2(2.5, 2.5)
+const PASSAGES := {"outer": {"x": 4, "cost": 4}, "inner": {"x": 20, "cost": 8}}
 const SOURCE_KW := 120.0
 const NODE_RANGE := 12.0
 const CONSUMER_RANGE := 6.0

@@ -42,7 +42,7 @@ func _ready() -> void:
 	notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	layout.add_child(notice)
 	world_type.add_item("基础工厂 · 原预供电规则")
-	world_type.add_item("勘探工厂 · 电力首线（开拓内容后续开放）")
+	world_type.add_item("勘探工厂 · 供电、试制与矿道开拓")
 	layout.add_child(world_type)
 	title_input.placeholder_text = "新工厂名称（最多 48 字）"
 	title_input.max_length = 48
