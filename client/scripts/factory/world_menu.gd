@@ -13,6 +13,7 @@ var create_button := Button.new()
 var continue_button := Button.new()
 var recover_button := Button.new()
 var selected := -1
+var world_type := OptionButton.new()
 
 
 func _ready() -> void:
@@ -40,6 +41,9 @@ func _ready() -> void:
 	layout.add_child(list)
 	notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	layout.add_child(notice)
+	world_type.add_item("基础工厂 · 原预供电规则")
+	world_type.add_item("勘探工厂 · 电力首线（开拓内容后续开放）")
+	layout.add_child(world_type)
 	title_input.placeholder_text = "新工厂名称（最多 48 字）"
 	title_input.max_length = 48
 	layout.add_child(title_input)
@@ -74,7 +78,7 @@ func _selection() -> void:
 
 func _create() -> void:
 	var store := Store.new(save_root)
-	var result := store.create(title_input.text)
+	var result := store.create(title_input.text, Store.Codec.V2.Config.SUPPLY_ID if world_type.selected == 1 else Store.Codec.Rules.NORMAL_SUPPLY)
 	if not result.ok:
 		notice.text = result.reason
 		return

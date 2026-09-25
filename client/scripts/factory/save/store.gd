@@ -64,6 +64,7 @@ func list_worlds() -> Array[Dictionary]:
 		var entry := {"id": id, "name": id, "ok": candidate.ok, "status": ""}
 		if candidate.ok:
 			entry.name = candidate.document.name
+			entry.name += " · 勘探工厂" if candidate.document.save_schema_version == 2 else " · 基础工厂"
 			entry.status = "可继续" if candidate.source.ends_with("/autosave.json") else "可从备份恢复"
 		else:
 			entry.status = candidate.reason
@@ -228,7 +229,7 @@ func create(title: String, supply: String = Codec.Rules.NORMAL_SUPPLY) -> Dictio
 func _create_locked(title: String, supply: String) -> Dictionary:
 	if list_worlds().size() >= 30:
 		return _error("首包最多保留 30 个工厂世界。")
-	if not Codec.Rules.SUPPLIES.has(supply):
+	if not Codec.Rules.SUPPLIES.has(supply) and supply != Codec.V2.Config.SUPPLY_ID:
 		return _error("未知供给版本。")
 	var id := Crypto.new().generate_random_bytes(16).hex_encode()
 	if DirAccess.make_dir_absolute(root.path_join(id)) != OK:
@@ -240,7 +241,7 @@ func _create_locked(title: String, supply: String) -> Dictionary:
 	sequence = 0
 	expected_main_hash = ""
 	loaded = true
-	var model := Codec.Model.new(supply)
+	var model: RefCounted = Codec.V2.NewModel.new() if supply == Codec.V2.Config.SUPPLY_ID else Codec.Model.new(supply)
 	result = save(model)
 	if not result.ok:
 		release()

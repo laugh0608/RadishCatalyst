@@ -30,7 +30,7 @@ var unsaved_dialog := ConfirmationDialog.new()
 var original_content_size := Vector2i.ZERO
 var original_min_size := Vector2i.ZERO
 var ui := {"build": true, "tool": "", "cell": Vector2i(-6, 0), "dir": 0, "selected": -1,
-	"paused": false, "stroke": Array([], TYPE_VECTOR2I, "", null), "mission": true}
+	"power_from": 0, "power_hover": 0, "paused": false, "stroke": Array([], TYPE_VECTOR2I, "", null), "mission": true}
 var keys := {}
 var pointer := false
 var pointer_start := Vector2.ZERO
@@ -43,6 +43,11 @@ var sample_enabled := false
 var last_frame_usec := 0
 var production_clock := ActiveClock.new()
 var engine_active_seconds := 0.0
+var power_dialog := ConfirmationDialog.new()
+var power_choices := OptionButton.new()
+var power_description := Label.new()
+var pending_salvage := -1
+var pending_connections: Array = []
 var save_samples: Array[Dictionary] = []
 
 
@@ -54,6 +59,7 @@ func _ready() -> void:
 	get_tree().auto_accept_quit = false
 	get_window().content_scale_size = Vector2i(1440, 900)
 	get_window().min_size = Vector2i(1100, 720)
+	view.world_model = model
 	add_child(hud)
 	hud.subviewport.add_child(view)
 	if not view.prepared:
@@ -67,6 +73,7 @@ func _ready() -> void:
 	_refresh()
 	view.draw(model, actor, ui)
 	_build_save_dialogs()
+	_build_power_dialog()
 	if not candidate.is_empty():
 		var accepted: Dictionary = store.accept(candidate)
 		if not accepted.ok:
@@ -92,7 +99,7 @@ func _process(delta: float) -> void:
 	last_frame_usec = frame_usec
 	_capture_active_time(frame_usec)
 	var dt := delta
-	if focused and not failure_dialog.visible and not unsaved_dialog.visible:
+	if focused and not failure_dialog.visible and not unsaved_dialog.visible and not power_dialog.visible:
 		if not ui.paused:
 			var before := Time.get_ticks_usec()
 			engine_active_seconds += delta
@@ -146,7 +153,7 @@ func _focus_gained() -> void:
 
 
 func _producing() -> bool:
-	return initialized and focused and not ui.paused and not failure_dialog.visible and not unsaved_dialog.visible
+	return initialized and focused and not ui.paused and not failure_dialog.visible and not unsaved_dialog.visible and not power_dialog.visible
 
 
 func _capture_active_time(now_usec: int = -1) -> void:
@@ -173,6 +180,8 @@ func _refresh() -> void:
 func _stop_pointer() -> void:
 	pointer = false
 	ui.stroke.clear()
+	ui.power_from = 0
+	ui.power_hover = 0
 
 
 func _choose(type: String) -> void:
@@ -180,7 +189,9 @@ func _choose(type: String) -> void:
 	ui.build = true
 	ui.tool = type
 	ui.selected = -1
-	ui.cell = Model.REFERENCE[type]
+	ui.cell = Model.REFERENCE.get(type, Vector2i(-12, -5))
+	if type == "collector" and model.has_method("power_state"):
+		ui.cell = Vector2i(-20, -1)
 	actor.target = null
 	hud.announce("按住拖动铺带，松开确认；R 转向，Esc 取消。" if type == "belt" else "移动鼠标选择落位，点击放置；也可在下方 X / Z 精确调整。")
 
@@ -202,7 +213,10 @@ func _commit() -> void:
 
 
 func _cancel() -> void:
-	if pointer:
+	if ui.power_from != 0:
+		_stop_pointer()
+		hud.announce("已取消接线。")
+	elif pointer:
 		_stop_pointer()
 		hud.announce("已取消本次拖动铺带。")
 	elif not ui.tool.is_empty():
@@ -224,10 +238,21 @@ func _turn() -> void:
 
 
 func _action(name: String, value: Variant) -> void:
-	if name in ["collector", "reactor", "storage", "belt"]:
+	if name in ["collector", "reactor", "storage", "belt", "power_source", "power_junction"]:
 		_choose(name)
 	else:
 		match name:
+			"power_connect":
+				_stop_pointer()
+				ui.tool = ""
+				ui.power_from = ui.selected
+				hud.announce("点击目标节点 / 用电设备接线；Esc 或右键取消。")
+			"power_toggle":
+				var e := model.by_id(ui.selected)
+				if e.get("type", "") == "power_source":
+					var result: Dictionary = model.set_source_enabled(e.id, not e.enabled)
+					hud.announce("电源状态已更新。" if result.ok else result.reason, not result.ok)
+			"power_disconnect": _show_power_connections()
 			"build":
 				_stop_pointer()
 				ui.build = not ui.build
@@ -248,6 +273,12 @@ func _action(name: String, value: Variant) -> void:
 				if result.ok:
 					ui.selected = -1
 					hud.announce("已回收%s、%d 晶体、%d 催化剂。" % [Model.CATALOG[result.type].name, result.items.crystal, result.items.catalyst])
+				elif result.get("needs_confirmation", false):
+					pending_salvage = ui.selected
+					pending_connections = result.connections
+					power_choices.hide()
+					power_description.text = result.reason + "\n连接（节点 → 节点 / 设备 ID）：" + str(result.connections)
+					power_dialog.popup_centered(Vector2i(560, 200))
 				else:
 					hud.announce(result.reason, true)
 			"deposit":
@@ -268,13 +299,16 @@ func _preview(cell: Vector2i) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not initialized or failure_dialog.visible or unsaved_dialog.visible:
+	if not initialized or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible:
 		return
 	if event is InputEventKey:
 		if not event.pressed:
 			keys.erase(event.physical_keycode)
 		return
 	if not event is InputEventMouse:
+		return
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+		_cancel()
 		return
 	var screen = hud.world_point(event.position)
 	if screen == null:
@@ -286,6 +320,17 @@ func _input(event: InputEvent) -> void:
 	if point == null:
 		return
 	var cell := Vector2i(floori(point.x), floori(point.z))
+	if ui.power_from != 0:
+		var hit := view.hit(screen)
+		ui.power_hover = hit if hit != -1 else model.entity_at(cell).get("id", 0)
+		var valid: Dictionary = Model.success() if ui.power_hover == 0 else model.Grid.connection(model, ui.power_from, ui.power_hover)
+		if ui.power_hover != 0:
+			hud.announce("距离 %.1f 格 · 点击接线" % valid.distance if valid.ok else valid.reason, not valid.ok)
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			var result: Dictionary = model.connect_power(ui.power_from, ui.power_hover)
+			hud.announce("已连接。可继续选择目标；Esc 结束。" if result.ok else result.reason, not result.ok)
+		_refresh()
+		return
 	if event is InputEventMouseMotion:
 		if not ui.tool.is_empty():
 			ui.cell = cell
@@ -336,7 +381,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if not event is InputEventKey or not event.pressed or event.echo or failure_dialog.visible or unsaved_dialog.visible:
+	if not event is InputEventKey or not event.pressed or event.echo or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible:
 		return
 	if event.physical_keycode == KEY_ESCAPE:
 		_cancel()
@@ -450,3 +495,47 @@ func _exit_tree() -> void:
 	get_window().content_scale_size = original_content_size
 	get_window().min_size = original_min_size
 	get_tree().auto_accept_quit = true
+
+
+func _build_power_dialog() -> void:
+	power_dialog.title = "电力连接"
+	power_dialog.ok_button_text = "确认"
+	power_dialog.cancel_button_text = "取消"
+	add_child(power_dialog)
+	var content := VBoxContainer.new()
+	content.add_theme_constant_override("separation", 16)
+	power_dialog.add_child(content)
+	power_description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	power_description.custom_minimum_size = Vector2(520, 60)
+	content.add_child(power_description)
+	power_choices.custom_minimum_size = Vector2(450, 40)
+	content.add_child(power_choices)
+	power_dialog.confirmed.connect(func():
+		var result: Dictionary
+		if pending_salvage != -1:
+			# Revalidate the displayed connection set before destructive confirmation.
+			if model.connections(pending_salvage) != pending_connections:
+				hud.announce("连接已变化，请重新确认回收。", true)
+				return
+			result = model.call("salvage", pending_salvage, true)
+			if result.ok:
+				ui.selected = -1
+		else:
+			var pair: Array = pending_connections[power_choices.selected]
+			result = model.disconnect_power(pair[0], pair[1])
+		hud.announce("连接已更新。" if result.ok else result.reason, not result.ok)
+		_refresh())
+
+
+func _show_power_connections() -> void:
+	pending_salvage = -1
+	pending_connections = model.connections(ui.selected)
+	if pending_connections.is_empty():
+		return
+	_stop_pointer()
+	power_choices.clear()
+	for pair in pending_connections:
+		power_choices.add_item("节点 #%d — 节点 / 设备 #%d" % pair)
+	power_choices.show()
+	power_description.text = "选择要断开的连接。设备保留，停电不退还已用电量。"
+	power_dialog.popup_centered(Vector2i(560, 220))

@@ -4,7 +4,8 @@ extends RefCounted
 const STEP := 0.05
 const DIRS := [Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(0, -1)]
 const Rules := preload("res://data/factory/rules.gd")
-const CATALOG := Rules.CATALOG
+const DiscoveryRules := preload("res://data/factory/discovery_rules.gd")
+const CATALOG := DiscoveryRules.CATALOG
 const REFERENCE := {
 	"collector": Vector2i(-8, -1), "reactor": Vector2i(-1, -2),
 	"storage": Vector2i(6, -1), "belt": Vector2i(-6, 0),
@@ -86,15 +87,19 @@ static func port(e: Dictionary, role: String) -> Dictionary:
 	return {"x": e.x + offset.x, "z": e.z + offset.y, "dx": -1 if role == "input" else 1, "dz": 0}
 
 
+func ore_sites() -> Array[Vector2i]:
+	return Rules.ore_sites()
+
+
 func placement(type: String, cell: Vector2i, actor: Variant = null) -> Dictionary:
-	if not CATALOG.has(type):
+	if not CATALOG.has(type) or not kits.has(type):
 		return failure("请选择有效构件和格位")
 	if kits[type] < 1:
 		return failure("构件已用完；可拆回已有构件重新放置")
 	var def: Dictionary = CATALOG[type]
 	if cell.x < Rules.MIN_CELL or cell.x + def.w > Rules.MAX_CELL or cell.y < Rules.MIN_CELL or cell.y + def.d > Rules.MAX_CELL:
 		return failure("超出可建造厂坪")
-	if type == "collector" and cell not in Rules.ore_sites():
+	if type == "collector" and cell not in ore_sites():
 		return failure("采集器需要完整覆盖青色晶体矿点")
 	for x in range(cell.x, cell.x + def.w):
 		for z in range(cell.y, cell.y + def.d):
@@ -197,6 +202,8 @@ static func contents(e: Dictionary) -> Dictionary:
 		"collector": return {"crystal": e.buffer, "catalyst": 0}
 		"reactor": return {"crystal": e.input + (2 if e.processing else 0), "catalyst": e.output}
 		"storage": return {"crystal": e.crystal, "catalyst": e.catalyst}
+	if e.type != "belt":
+		return {"crystal": 0, "catalyst": 0}
 	return {"crystal": 1 if e.cargo == "crystal" else 0, "catalyst": 1 if e.cargo == "catalyst" else 0}
 
 
@@ -340,6 +347,10 @@ func _step(dt: float) -> void:
 					e.active_batch = 0
 					e.processing = false
 					e.progress = 0.0
+	_logistics(dt)
+
+
+func _logistics(dt: float) -> void:
 	var map := grid_index()
 	var belts: Array[Dictionary] = []
 	var occupied := {}
@@ -370,6 +381,7 @@ func _step(dt: float) -> void:
 				next.input += 1
 			else:
 				next[b.cargo] += 1
+				_record_delivery(b.cargo)
 				if b.cargo == "catalyst":
 					delivered += 1
 					delivered_batch = maxi(delivered_batch, b.get("batch", 0))
@@ -413,6 +425,10 @@ func _step(dt: float) -> void:
 			e.buffer -= 1
 		else:
 			e.output -= 1
+
+
+func _record_delivery(_item: String) -> void:
+	pass
 
 
 func input_connected(reactor: Dictionary) -> bool:

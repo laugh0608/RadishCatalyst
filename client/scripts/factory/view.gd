@@ -22,6 +22,8 @@ var limbs: Array[Node3D] = []
 var grid := Node3D.new()
 var ghost := Node3D.new()
 var selection := Node3D.new()
+var wiring := Node3D.new()
+var wiring_key := ""
 var last_revision := -1
 var visual_revision := -1
 var visual_time := -1.0
@@ -57,7 +59,15 @@ func _ready() -> void:
 	add_child(yard)
 	yard.scale = Vector3(64.0 / 20.0, 1, 64.0 / 13.0)
 	yard.position.z = -0.5 * yard.scale.z
-	for cell in Model.Rules.ore_sites():
+	if world_model != null and world_model.has_method("power_state"):
+		for type in ["power_source", "power_junction"]:
+			assets[type] = load(ASSET_ROOT + "power/" + type.replace("_", "-") + ".glb")
+			if not assets[type] is PackedScene:
+				resource_error = "缺少电力模型：" + type
+				return
+		_build_mineral_barriers()
+	var sites: Array[Vector2i] = world_model.ore_sites() if world_model != null else Model.Rules.ore_sites()
+	for cell in sites:
 		var ore: Node3D = assets.ore.instantiate()
 		add_child(ore)
 		ore.position = Vector3(cell.x + 8, 0, cell.y + 1)
@@ -77,7 +87,7 @@ func _ready() -> void:
 	camera.far = 120
 	get_viewport().size_changed.connect(sync_camera)
 	sync_camera()
-	for node in [grid, ghost, selection]:
+	for node in [grid, ghost, selection, wiring]:
 		add_child(node)
 	var grid_mat := Parts.material("89958a", 0, 1)
 	for x in range(-32, 33):
@@ -323,6 +333,7 @@ func draw(model: RefCounted, actor: Dictionary, ui: Dictionary) -> void:
 		limbs[i].rotation.x = gait * (1 if i < 2 else -1) * (1 if i % 2 == 0 else -1)
 	body.position.y = absf(sin(actor.walk * 7)) * 0.035 if actor.moving else 0
 	grid.visible = ui.build
+	_sync_wiring(model, ui)
 	var valid: bool = not ui.tool.is_empty() and model.placement(ui.tool, ui.cell, actor).ok
 	var next_ghost := str([ui.tool, ui.cell, ui.dir, valid, ui.stroke])
 	if next_ghost != ghost_key:
@@ -378,3 +389,44 @@ func _sync_production(model: RefCounted) -> void:
 				"storage": progress = (e.crystal + e.catalyst) / 200.0
 			v.bar.scale.x = maxf(0.001, progress)
 			v.bar.position.x = -(1 - progress) * def.w * 0.4
+
+
+func _build_mineral_barriers() -> void:
+	# Imported ore clusters express actual blocking cells, not an invisible wall.
+	for start_x in [4, 20]:
+		for z in range(-32, 32, 2):
+			for x in [start_x, start_x + 2]:
+				var shell: Node3D = assets.ore.instantiate()
+				add_child(shell)
+				shell.position = Vector3(x + 8, 0, z + 1)
+
+
+func _wire(a: Vector2, b: Vector2, material: Material) -> void:
+	var from := Vector3(a.x, 0.18, a.y)
+	var to := Vector3(b.x, 0.18, b.y)
+	var mesh := _overlay_box(wiring, (from + to) / 2, Vector3(0.055, 0.025, from.distance_to(to)), material)
+	mesh.look_at(to, Vector3.UP)
+
+
+func _sync_wiring(model: RefCounted, ui: Dictionary) -> void:
+	if not model.has_method("power_state"):
+		return
+	var key := str([model.revision, ui.get("power_from", 0), ui.get("power_hover", 0), ui.selected])
+	if key == wiring_key:
+		return
+	wiring_key = key
+	clear_node(wiring)
+	if ui.get("power_from", 0) == 0 and ui.selected == -1:
+		return
+	var pairs: Array = model.power_links.duplicate(true)
+	for e in model.entities:
+		if e.get("power_node_id", 0) != 0:
+			pairs.append([e.power_node_id, e.id])
+	for pair in pairs:
+		_wire(model.Grid.center(model.by_id(pair[0])), model.Grid.center(model.by_id(pair[1])), select_mat)
+	if ui.get("power_from", 0) != 0 and ui.get("power_hover", 0) != 0 and ui.power_from != ui.power_hover:
+		var a: Dictionary = model.by_id(ui.power_from)
+		var b: Dictionary = model.by_id(ui.power_hover)
+		if not a.is_empty() and not b.is_empty():
+			var valid: Dictionary = model.Grid.connection(model, a.id, b.id)
+			_wire(model.Grid.center(a), model.Grid.center(b), valid_mat if valid.ok else invalid_mat)

@@ -148,6 +148,9 @@ func _build_world_panels() -> void:
 	details.custom_minimum_size.x = 234
 	details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	detail_stack.add_child(details)
+	_button(detail_stack, "power_connect", "从此节点接线")
+	_button(detail_stack, "power_toggle", "启用 / 关闭电源")
+	_button(detail_stack, "power_disconnect", "选择连接并断开")
 	_button(detail_stack, "deposit", "投入回收物品")
 	_button(detail_stack, "rotate_selected", "旋转传送带 R")
 	_button(detail_stack, "salvage", "拆回构件和全部货物")
@@ -188,7 +191,7 @@ func _build_footer(parent: Node) -> void:
 	_button(first, "return", "保存并返回")
 	tool_row.add_theme_constant_override("separation", 10)
 	rows.add_child(tool_row)
-	for type in ["collector", "reactor", "storage", "belt"]:
+	for type in ["collector", "reactor", "storage", "belt", "power_source", "power_junction"]:
 		_button(tool_row, type, Model.CATALOG[type].name)
 
 	rows.add_child(placement_row)
@@ -256,7 +259,10 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, focused: bool
 	buttons.build.text = "建造中 B" if ui.build else "进入建造 B"
 	tool_row.visible = ui.build
 	placement_row.visible = not ui.tool.is_empty()
-	for type in ["collector", "reactor", "storage", "belt"]:
+	for type in ["collector", "reactor", "storage", "belt", "power_source", "power_junction"]:
+		buttons[type].visible = model.kits.has(type)
+		if not model.kits.has(type):
+			continue
 		buttons[type].text = "%s  %d" % [Model.CATALOG[type].name, model.kits[type]]
 		buttons[type].modulate = Color("eac178" if ui.tool == type else "ffffff")
 	if not ui.tool.is_empty():
@@ -279,11 +285,25 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, focused: bool
 			"storage": info = "晶体 %d · 催化剂 %d\n容量 %d / 200\n青色入口位于左侧" % [e.crystal, e.catalyst, e.crystal + e.catalyst]
 			"belt": info = "方向 %s\n带上物品：%s\n速度 1 格 / 秒" % [DIRECTIONS[e.dir], {"": "空", "crystal": "晶体", "catalyst": "催化剂"}[e.cargo]]
 		details.text = "%s\n%s\n\n%s" % [Model.CATALOG[e.type].name, model.feedback(e).label, info]
+		var powered: bool = model.has_method("power_state")
+		buttons.power_connect.visible = powered and e.type in ["power_source", "power_junction"]
+		buttons.power_toggle.visible = powered and e.type == "power_source"
+		buttons.power_disconnect.visible = powered and not model.connections(e.id).is_empty() if powered else false
+		if powered:
+			if e.type in ["collector", "reactor"]:
+				var status: Dictionary = model.feedback(e)
+				var device: Dictionary = model.power_state().devices[e.id]
+				details.text += "\n\n生产条件：%s\n供电：%s\n请求 / 分配 %.1f / %.1f kW\n接入节点 #%d" % [status.production, status.power, device.request_kw, device.supplied_kw, e.power_node_id]
+			elif e.type == "power_source":
+				details.text += "\n实际输出 %.1f kW" % model.power_state().sources[e.id]
 		buttons.rotate_selected.visible = e.type == "belt"
-		buttons.deposit.visible = e.type != "belt"
+		buttons.deposit.visible = e.type in ["collector", "reactor", "storage"]
 		buttons.deposit.disabled = model.bag.crystal + model.bag.catalyst == 0
 	var text := "建立产线\n晶体 → 催化剂\n\n采集器覆盖青色矿点。金色出口接带，送入青色入口；反应器每批消耗 2 晶体，加工 10 秒。"
 	if model.delivered > 0:
 		text = "继续扩建\n已有 %d 件催化剂入仓\n\n走到其他青色矿点建立第二条产线。保存后可从启动菜单继续这个世界。" % model.delivered
+	if model.has_method("power_state"):
+		var power: Dictionary = model.power_state()
+		text = "首线接电\n晶体 → 催化剂\n\n放置电源，选中后接线。节点之间 ≤12 格，设备接入 ≤6 格。\n\n可用容量 %.0f kW\n当前请求 %.1f kW\n实际供用 %.1f kW\n分网缺口 %.1f kW\n累计用电 %.2f kJ\n\n带与仓无需电力。\n矿区开拓后续开放。" % [power.available_kw, power.request_kw, power.supplied_kw, power.deficit_kw, model.statistics.totals.used_kj]
 	mission.text = text if ui.mission else text.split("\n")[0]
 	buttons.mission.text = "收起目标" if ui.mission else "展开目标"

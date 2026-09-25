@@ -1,11 +1,11 @@
 # Current Plan
 
-更新时间：2026-09-25（发现、电力与统计联合包 D1 已完成）
+更新时间：2026-09-25（联合包 D2-A 基础供电已实现）
 
 ## 当前阶段
 
 ```text
-正式三维工厂首包开发机交付收口 · Windows 验收待办 · 发现、电力与统计联合包 D1 已完成
+正式三维工厂首包开发机交付收口 · Windows 验收待办 · 发现、电力与统计联合包 D2-A 基础供电已实现
 ```
 
 方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为产品真相源：化工生产经营为核心，探索提供资源、空间和长期目的。既有二维切片、schema 10 和历史验证保留，旧整改 S0 暂缓。
@@ -16,13 +16,13 @@
 
 正式基础 `978d6250` 已实现 Boot 工厂入口、64×64 / 25 矿点、多设备物流、相机跟随、独立 schema 1、保存恢复与单写入锁。9 月 9 日修正活动计时和失败退出；9 月 12 日省去未变生产状态的重复渲染提交，状态灯共享同形网格和只读材质。产品默认 Metal / Forward+、VSync、4× MSAA、实际像素、生产规则和存档格式未改。
 
-9 月 25 日本机完整工程证据及亲测反馈具备，开发机首包交付收口；Windows / 目标硬件最终验收保持独立待办。萝卜SAMA随后同意开始下一包设计，并在联合提案形成后要求“提交工作区更改，然后继续推进”，按已列明范围进入 D1–D4 实施；本轮完成 D1 静态资产与场景验证，未切换正式玩法或存档版本。
+9 月 25 日本机完整工程证据及亲测反馈具备，开发机首包交付收口；Windows / 目标硬件最终验收保持独立待办。萝卜SAMA随后同意开始下一包设计，并在联合提案形成后要求“提交工作区更改，然后继续推进”，按已列明范围进入 D1–D4 实施；D1 静态资产完成后，本轮按明确授权接入 D2-A 新世界 schema 2 与普通线真实供电；已有世界规则 / 版本不变。
 
 ## 当前活跃专题
 
-- 当前设计：[Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md)。固定矿区内以制剂开路、富集资源回流生产的联合实施专题；D1 场景与资产技术复核完成，下一步 D2-A。
-- 基础电力：[Factory Power And Grid V1](../features/factory-power-and-grid-v1.md)。有限功率电源、显式配电、缺电降速与停复电，已与统计 / 新世界版本提案对齐；随联合包推进，正式电力模拟尚未接入。
-- 配套设计：[Factory Production Statistics V1](../features/factory-production-statistics-v1.md)。参考用户提供的终末地产消简报，明确库存、实际 / 理论产消、趋势与设备定位，并与基础电力联合定义指标和采样口径。
+- 当前设计：[Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md)。固定矿区内以制剂开路、富集资源回流生产的联合实施专题；D2-A 基础供电与记账已接入，D2-B 接多配方与开拓。
+- 基础电力：[Factory Power And Grid V1](../features/factory-power-and-grid-v1.md)。有限功率电源、显式配电、缺电降速与停复电，已与统计 / 新世界版本提案对齐；D2-A 已接入正式模型与 Boot 新世界，本机定向状态检查与隔离窗口分项证据已具备。
+- 配套设计：[Factory Production Statistics V1](../features/factory-production-statistics-v1.md)。参考用户提供的终末地产消简报，明确库存、实际 / 理论产消、趋势与设备定位，D2-A 完成事件记账和有限桶存读，D3 接完整统计页面。
 - 已交付基线：[Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md)：P1–P3 开发机证据、亲测反馈及 Windows 待验边界。
 - [Factory World State And Save V1](../architecture/factory-world-state-and-save-v1.md)：目录 / 入口、状态权威、独立存档、锁、保存失败、时钟及视图同步。
 - [Godot Demo](../features/godot-first-production-line-demo-v1.md) 和 [Web 产线](../features/web-first-production-line-v1.md) 保留作参照；[路线评估](../architecture/production-client-technology-assessment-v1.md) 保留决策依据。
@@ -30,7 +30,7 @@
 ## 当前边界
 
 - 保留已认可的造型、50° 视角、配色、光照、接口箭头、拖铺与真实弯道；精细美术另包推进。
-- 当前只有采集器、反应器、终端仓和固体带；预供电、预发构件用于基础验证，不混入旧切片电力 / 仓储规则。
+- 基础工厂 schema 1 保留原四类构件与预供电；新建勘探工厂 schema 2 增加两套 120 kW 封装电源、12 节点，显式连接并真实分配功率。当前只运行普通晶体配方，矿区仍封闭。
 - 普通世界与工程 100 台 / 1,000 带负载明确区分；工程夹具不出现在普通新建选项中。
 - 工厂与旧世界入口、状态和存档隔离，不自动转换或删除 schema 10。
 - 除本包封装电源与配电节点外，未解冻其他新设备、经济解锁、液气、战斗、多人、随机地图、多星球、离线收益、量产美术、分发和发布。
@@ -69,4 +69,4 @@ Boot / 存档 / 锁证据先经离线核对，随后 `menu-review-20260925-a` �
 
 按 P1–P3 合同，本机玩家路径、跨进程恢复、故障保护、多线扩建、持续性能和亲测反馈已具备，开发机交付收口。Windows 目标硬件未定，平台最终验收保持未完成；不把本机反馈扩写为逐项人工验证或全平台通过。
 
-下一步 D2-A：先具体化联合新世界字段与版本检查夹具，再实现电图、20Hz 供需 / 停复电及统计记账；按风险验证普通晶体线和存读。随后 D2-B 接多配方 / 开拓，D3–D4 完整路径与亲测；不再重复请求已授权范围的实施确认。D1 工具见 [Factory Content Authoring](../../tools/factory-content/README.md)，本轮失败、修正和证据见 [W39 周志](../devlogs/2026-W39.md)。
+D2-A 已实现独立 schema 2、显式电图、20Hz 供需 / 停复电及有限记账，具体字段和阶段支持范围见[联合存档合同](../architecture/factory-discovery-save-v2.md)。105 项定向状态检查和旧版本回归通过；普通线正式 Boot、独立进程恢复及缺电 / 增容已有分项证据，断接 / 回收补验通过，完整失败记录进入 W39 周志。下一步 D2-B 接多配方 / 开拓，D3–D4 完整统计页、玩家全路径与亲测；不重复四档长测，不把 D2-A 当作联合包玩法完成。D1 工具见 [Factory Content Authoring](../../tools/factory-content/README.md)，本轮失败、修正和证据见 [W39 周志](../devlogs/2026-W39.md)。

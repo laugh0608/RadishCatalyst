@@ -4,7 +4,7 @@
 
 ## 当前任务
 
-先读 [Current Plan](current.md)、[Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md)、[Factory Power And Grid V1](../features/factory-power-and-grid-v1.md) 和 [Factory Production Statistics V1](../features/factory-production-statistics-v1.md)，涉及兼容时再读[现行存档合同](../architecture/factory-world-state-and-save-v1.md)。正式三维工厂 P1–P3 开发机交付收口，亲测反馈“没啥问题”；Windows / 目标平台最终验收仍待完成。发现、基础电力与统计提案已对齐。萝卜SAMA已要求提交并继续，按联合范围进入实施；D1 静态场景与资产技术复核完成，下一步 D2-A。
+先读 [Current Plan](current.md)、[Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md)、[Factory Power And Grid V1](../features/factory-power-and-grid-v1.md) 和 [Factory Production Statistics V1](../features/factory-production-statistics-v1.md)，涉及兼容时再读[现行存档合同](../architecture/factory-world-state-and-save-v1.md)。正式三维工厂 P1–P3 开发机交付收口，亲测反馈“没啥问题”；Windows / 目标平台最终验收仍待完成。发现、基础电力与统计提案已对齐。萝卜SAMA已要求提交并继续，按联合范围进入实施；D2-A 已实现新世界电力与有限统计记账；普通线、半批恢复、缺电 / 增容及断接 / 回收已有分项正式 Boot 证据。D2-B 接多配方与开拓，D3 接完整统计页面。
 
 9 月 25 日经萝卜SAMA明确通知重新开始，正式 Godot 完成四档各 450 秒，共 `1800.015679s`，29 项检查通过、无失焦或错误。帧 p95 为 `8.726 / 8.562 / 8.808 / 9.696ms`，60 次采样内自动保存全部成功；四张原图已审阅。本次独立完整运行不拼接此前中断样本，详细证据见 [W39 周志](../devlogs/2026-W39.md)。
 
@@ -27,8 +27,9 @@
 四档长测、本机完整 Shell 回归及已通过的原生保存 / 重进证据均可复用，不再重复启动长测。
 
 1. **D1 已完成**：两个自有电力 GLB、矿道三阶段预览与静态布局检查；591 项几何 / 预算断言、修正后 24 项窗口断言通过，6 张原图已审阅。预览不等于实际生产 / 开路、人物碰撞或美术亲测定稿，见 [制作与复核入口](../../tools/factory-content/README.md)。
-2. **接续 D2-A**：具体化联合 schema 2 字段 / 版本夹具，实现显式电图、20Hz 基础供电与统计记账，先核对普通晶体线、缺电 / 停复电、半批保存和旧版本保护。两套 120 kW 电源 / 12 节点与发现循环共同交付；已有世界不迁移。D2-B 再接多配方与开拓，D3–D4 走完整路径和亲测。
-3. **保持平台与历史问题边界**：Windows / PowerShell、目标硬件仍待验。历史慢绘制和诊断标记开销未归因；若以后真实慢帧复现，再复用第二版分析器。
+2. **D2-A 实现与定向复核**：联合 schema 2 字段、显式电图、20Hz 比例分配、停复电与物料 / 电量记账已实现；105 项状态检查通过，旧工厂对照 / 存档 / 规模及旧二维定向回归通过。新格式与 D2-A 支持边界见[联合存档合同](../architecture/factory-discovery-save-v2.md)。正式 Boot 普通线、停复电、半批恢复、缺电 / 增容分项证据及检查脚本失败均见 W39 周志，不把中断批次记为全通过。
+3. **接续 D2-B**：多配方、按物品取放、试制、样本唯一性、开路及多件出料；D3 再做完整统计页与发现全路径。schema 1 / 旧二维 schema 10 不迁移，已支持的 schema 2 普通状态继续保持兼容。
+4. **保持平台与历史问题边界**：Windows / PowerShell、目标硬件仍待验。历史慢绘制和诊断标记开销未归因；若以后真实慢帧复现，再复用第二版分析器。
 
 ## 当前暂缓
 
@@ -37,7 +38,7 @@
 
 ## 当前设计依据
 
-“从发现到掌握”的产品体验目标见 [Discovery And Industrial Reproduction](../design/discovery-and-industrial-reproduction.md)。当前联合方案已获继续推进授权，D1 技术复核完成；正式电力、统计与发现循环仍需 D2–D4 实现和验证。
+“从发现到掌握”的产品体验目标见 [Discovery And Industrial Reproduction](../design/discovery-and-industrial-reproduction.md)。当前联合方案已获继续推进授权，D1 技术复核完成；基础电力和有限记账已进入运行分支；多配方 / 开拓、完整统计页面及发现循环仍需 D2-B–D4 实现和验证。
 
 ## 入口与验证
 
