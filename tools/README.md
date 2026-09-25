@@ -19,6 +19,8 @@
 
 本轮像素处理入口为 `normalize_pipe_visual_study.py`、`normalize_industrial_volume_study.py`、`normalize_raised_pipe_modules.py`，均依赖已有零依赖归一基础库、固定源图及 SHA-256 校验。它们会写入对应 `client/assets/sprites/visual_studies/`，不能把“打开样板”误作重新归一素材；没有对应忽略目录源图的机器不可复跑。日志 / 隔离存档在 `tools/runtime-intake/`，原图 / 截图在 `assets/art-intake/`，具体子目录由专题约定。
 
+正式工厂 D1 模型导出、布局检查与静态预览见 [Factory Content Authoring](factory-content/README.md)。该入口不改旧 Demo 或正式生产规则，开窗前仍须告知。
+
 ## 像素归一管线（零依赖）
 
 - `normalize_pixel_asset.py`：像素素材归一基础库与 CLI（仅 Python 标准库）。能力：整数块降采样（块内逐通道中位数）、近黑底去背（边界泛洪 + 封闭孔判定）、限定调色板量化（median cut 上限 + 标准锚点吸附）、地面 128x128 宏块（4x4 个 32px tile）、横版多对象切分、明度基线匹配、2x2 拼贴与接缝比率自查。机械口径见 `docs/reference/pixel-art-and-grid-standard.md`。

@@ -4,7 +4,7 @@
 
 ## 当前任务
 
-先读 [Current Plan](current.md)、[Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md)、[Factory Power And Grid V1](../features/factory-power-and-grid-v1.md) 和 [Factory Production Statistics V1](../features/factory-production-statistics-v1.md)，涉及兼容时再读[现行存档合同](../architecture/factory-world-state-and-save-v1.md)。正式三维工厂 P1–P3 开发机交付收口，亲测反馈“没啥问题”；Windows / 目标平台最终验收仍待完成。发现、基础电力与统计提案已对齐。当前等待联合范围确认后实施，首个动手包为 D1 场景与资产验证。
+先读 [Current Plan](current.md)、[Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md)、[Factory Power And Grid V1](../features/factory-power-and-grid-v1.md) 和 [Factory Production Statistics V1](../features/factory-production-statistics-v1.md)，涉及兼容时再读[现行存档合同](../architecture/factory-world-state-and-save-v1.md)。正式三维工厂 P1–P3 开发机交付收口，亲测反馈“没啥问题”；Windows / 目标平台最终验收仍待完成。发现、基础电力与统计提案已对齐。萝卜SAMA已要求提交并继续，按联合范围进入实施；D1 静态场景与资产技术复核完成，下一步 D2-A。
 
 9 月 25 日经萝卜SAMA明确通知重新开始，正式 Godot 完成四档各 450 秒，共 `1800.015679s`，29 项检查通过、无失焦或错误。帧 p95 为 `8.726 / 8.562 / 8.808 / 9.696ms`，60 次采样内自动保存全部成功；四张原图已审阅。本次独立完整运行不拼接此前中断样本，详细证据见 [W39 周志](../devlogs/2026-W39.md)。
 
@@ -26,18 +26,18 @@
 
 四档长测、本机完整 Shell 回归及已通过的原生保存 / 重进证据均可复用，不再重复启动长测。
 
-1. **确认联合提案**：基础电力建议两套 120 kW 封装电源 / 12 节点，显式接线、按比例降速，带与仓不耗电；与发现循环、统计记账共同使用新世界 schema 2。确认这些参数、两个自有电力模型及版本范围，已有基础工厂不迁移。
-2. **确认后从 D1 开始**：审阅电源 / 节点与矿道场景、接线反馈和跨矿道构件预算；随后 D2-A 先做基础供电 / 统计记账，D2-B 接多配方与开拓，D3–D4 走完整路径和亲测。数学推演只核对设计公式，不替代客户端或窗口验证。
+1. **D1 已完成**：两个自有电力 GLB、矿道三阶段预览与静态布局检查；591 项几何 / 预算断言、修正后 24 项窗口断言通过，6 张原图已审阅。预览不等于实际生产 / 开路、人物碰撞或美术亲测定稿，见 [制作与复核入口](../../tools/factory-content/README.md)。
+2. **接续 D2-A**：具体化联合 schema 2 字段 / 版本夹具，实现显式电图、20Hz 基础供电与统计记账，先核对普通晶体线、缺电 / 停复电、半批保存和旧版本保护。两套 120 kW 电源 / 12 节点与发现循环共同交付；已有世界不迁移。D2-B 再接多配方与开拓，D3–D4 走完整路径和亲测。
 3. **保持平台与历史问题边界**：Windows / PowerShell、目标硬件仍待验。历史慢绘制和诊断标记开销未归因；若以后真实慢帧复现，再复用第二版分析器。
 
 ## 当前暂缓
 
-- 已认可画面与操作保持；精细美术、新设备、经济解锁、液气、多人、随机地图和战斗未解冻，不转换 / 删除 schema 10 旧档。
+- 已认可画面与操作保持；精细美术、本包之外的新设备、经济解锁、液气、多人、随机地图和战斗未解冻，不转换 / 删除 schema 10 旧档。
 - 不推进 1,000 台 / 10,000 带扩展档；本轮未安装依赖、重建引擎、打包、发布或推送。
 
 ## 当前设计依据
 
-“从发现到掌握”的产品体验目标见 [Discovery And Industrial Reproduction](../design/discovery-and-industrial-reproduction.md)。当前具体方案已进入发现与生产专题，仍不代表已获实施授权或完成玩法验证。
+“从发现到掌握”的产品体验目标见 [Discovery And Industrial Reproduction](../design/discovery-and-industrial-reproduction.md)。当前联合方案已获继续推进授权，D1 技术复核完成；正式电力、统计与发现循环仍需 D2–D4 实现和验证。
 
 ## 入口与验证
 
