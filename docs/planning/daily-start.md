@@ -4,7 +4,7 @@
 
 ## 当前任务
 
-先读 [Current Plan](current.md)、[Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md) 和 [Factory World State And Save V1](../architecture/factory-world-state-and-save-v1.md)。继续收口正式三维工厂 P1–P3；本机四档持续性能已通过，剩余界面证据也已补齐，下一步交付亲测，首包尚未整体验收。
+先读 [Current Plan](current.md) 和 [Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md)，涉及兼容时再读[现行存档合同](../architecture/factory-world-state-and-save-v1.md)。正式三维工厂 P1–P3 开发机交付收口，亲测反馈“没啥问题”；Windows / 目标平台最终验收仍待完成。发现循环提案已整理；按萝卜SAMA补充要求，下一步先补基础电力设计，联合确认机制及版本边界后实施。
 
 9 月 25 日经萝卜SAMA明确通知重新开始，正式 Godot 完成四档各 450 秒，共 `1800.015679s`，29 项检查通过、无失焦或错误。帧 p95 为 `8.726 / 8.562 / 8.808 / 9.696ms`，60 次采样内自动保存全部成功；四张原图已审阅。本次独立完整运行不拼接此前中断样本，详细证据见 [W39 周志](../devlogs/2026-W39.md)。
 
@@ -26,8 +26,8 @@
 
 四档长测、本机完整 Shell 回归及已通过的原生保存 / 重进证据均可复用，不再重复启动长测。
 
-1. **交付普通世界亲测**：入口 `tools/runtime-intake/review-worlds/factory-foundation-v1/playtest-20260925/start.sh` 已准备，使用正式 Boot 和双隔离存档根。亲测普通新建、两线建设、载货 / 半批保存返回、关闭后同入口重启继续；入口不会删除已有世界或注入输入。具体路径见[首包亲测交付](../features/factory-foundation-and-persistence-v1.md#用户亲测交付)，尚未代替萝卜SAMA执行亲测。
-2. **依据反馈决定修正**：优先处理操作理解、恢复结果和可感知卡顿；本机工程验收已有证据，不无条件重复长测、全套检查或追加新玩法。确认体验后再决定首包收口和后续设计。
+1. **先补基础电力设计并联合审阅**：覆盖发电自举、输配电、供需负荷、停复电与存档，明确电力先行或合包顺序；再确认制剂开路、两段矿道、富集回流及必要配方 / 取放交互；新“勘探工厂”使用独立地图 / 规则与 schema 2，已有基础工厂不迁移。详见[功能专题](../features/factory-discovery-and-production-v1.md)，均为待确认提案。
+2. **确认后从 D1 开始**：先审阅现有导入资产能否清楚表达矿壳 / 样本 / 富集矿及通道前后态，电力范围与实施顺序确认后再冻结新版本字段并实现完整路径；当前未改客户端、未开窗。首包已有亲测世界和通过证据继续保留。
 3. **保持平台与历史问题边界**：Windows / PowerShell、目标硬件仍待验。历史慢绘制和诊断标记开销未归因；若以后真实慢帧复现，再复用第二版分析器。
 
 ## 当前暂缓
@@ -35,9 +35,9 @@
 - 已认可画面与操作保持；精细美术、新设备、经济解锁、液气、多人、随机地图和战斗未解冻，不转换 / 删除 schema 10 旧档。
 - 不推进 1,000 台 / 10,000 带扩展档；本轮未安装依赖、重建引擎、打包、发布或推送。
 
-## 首包后的设计入口
+## 当前设计依据
 
-“从发现到掌握”的产品体验目标已入档。首包收口后，优先讨论探索发现如何经由试制与稳定量产改变玩家能力，见 [Discovery And Industrial Reproduction](../design/discovery-and-industrial-reproduction.md)；设计建议不等于已获实施授权的功能包。
+“从发现到掌握”的产品体验目标见 [Discovery And Industrial Reproduction](../design/discovery-and-industrial-reproduction.md)。当前具体方案已进入发现与生产专题，仍不代表已获实施授权或完成玩法验证。
 
 ## 入口与验证
 
