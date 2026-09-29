@@ -11,12 +11,12 @@ case "$mode" in
   state)
     "$godot_bin" --headless --path "$repo_root/client" --script res://scripts/checks/factory_statistics_check.gd --no-header --log-file "$log_root/state.log"
     ;;
-  write|read)
+  write|read|ui)
     if [ "$#" -lt 2 ]; then echo 'Window checks require an explicit batch name' >&2; exit 2; fi
-    if [ "$mode" = read ]; then set -- --read; else set --; fi
+    if [ "$mode" = read ]; then set -- --read; elif [ "$mode" = ui ]; then set -- --ui-only; else set --; fi
     "$godot_bin" --path "$repo_root/client" --script res://scripts/checks/factory_statistics_boot_check.gd --no-header --log-file "$log_root/$mode.log" -- "--batch=$batch" "$@"
     ;;
-  *) echo 'Usage: sh tools/check-factory-statistics.sh [state|write|read] [batch]' >&2; exit 2 ;;
+  *) echo 'Usage: sh tools/check-factory-statistics.sh [state|ui|write|read] [batch]' >&2; exit 2 ;;
 esac
 if rg '^(SCRIPT ERROR|ERROR:)' "$log_root/$mode.log" | rg -v 'Condition "ret != noErr"' >/dev/null; then
   echo "Statistics $mode check reported errors: $log_root/$mode.log" >&2

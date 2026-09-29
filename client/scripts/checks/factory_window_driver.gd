@@ -4,6 +4,8 @@ var world: Control
 var failures: Array[String] = []
 var assertions := 0
 var shot_root := ""
+# Optional gate for resumable functional checks; continuous performance checks leave it unset.
+var input_ready: Callable
 
 
 func expect(condition: bool, label: String) -> void:
@@ -20,15 +22,27 @@ func settle(frames := 5) -> void:
 
 
 func click(button: Button) -> void:
+	if input_ready.is_valid():
+		await input_ready.call()
+		await settle()
 	expect(button.is_visible_in_tree() and not button.disabled, "button: " + button.text)
+	var presses := [0]
+	var observed := func(): presses[0] += 1
+	if input_ready.is_valid():
+		button.pressed.connect(observed)
 	var at := button.get_global_rect().get_center()
 	await motion(at)
 	await mouse(at, true)
 	await mouse(at, false)
 	await settle()
+	if input_ready.is_valid() and is_instance_valid(button):
+		button.pressed.disconnect(observed)
+		expect(presses[0] == 1, "exactly one button activation: " + button.text)
 
 
 func motion(at: Vector2, held := false) -> void:
+	if input_ready.is_valid():
+		await input_ready.call()
 	var event := InputEventMouseMotion.new()
 	event.position = at
 	event.button_mask = MOUSE_BUTTON_MASK_LEFT if held else 0
@@ -37,6 +51,8 @@ func motion(at: Vector2, held := false) -> void:
 
 
 func mouse(at: Vector2, pressed: bool) -> void:
+	if pressed and input_ready.is_valid():
+		await input_ready.call()
 	var event := InputEventMouseButton.new()
 	event.position = at
 	event.button_index = MOUSE_BUTTON_LEFT
@@ -48,6 +64,8 @@ func mouse(at: Vector2, pressed: bool) -> void:
 
 func key(code: int, held: Variant = null) -> void:
 	for pressed in ([true, false] if held == null else [held]):
+		if pressed and input_ready.is_valid():
+			await input_ready.call()
 		var event := InputEventKey.new()
 		event.physical_keycode = code
 		event.keycode = code
@@ -80,6 +98,8 @@ func drag(cells: Array) -> void:
 
 
 func shot(name: String) -> void:
+	if input_ready.is_valid():
+		await input_ready.call()
 	await settle()
 	var picture := get_viewport().get_texture().get_image()
 	expect(picture.save_png(shot_root.path_join(name + ".png")) == OK, "screenshot " + name)

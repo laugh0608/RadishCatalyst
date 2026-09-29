@@ -34,11 +34,12 @@
 | `sh tools/check-factory-discovery.sh process-read [batch]` | 先完成 state，再用独立进程核对多件半批与后续轨迹 |
 | `sh tools/check-factory-discovery.sh write/read <batch>` | 先完成 state，再用同一唯一 batch 串行执行 `write`、`read`，覆盖正式 Boot 分项交互与恢复 |
 | `sh tools/check-factory-statistics.sh state [batch]` | 统计查询、窗口、库存 / 理论口径、恢复与页面挂载定向检查 |
-| `sh tools/check-factory-statistics.sh write/read <batch>` | 新 batch 从空勘探世界按真实活动时间生产、步行与开路，复核统计 / 窗口；read 独立 Boot 恢复 |
+| `sh tools/check-factory-statistics.sh ui <batch>` | 新隔离世界短窗口复核统计按钮与 Escape，先于完整路径执行 |
+| `sh tools/check-factory-statistics.sh write/read <batch>` | 新 batch 从空勘探世界按真实活动时间生产、步行与开路，复核统计 / 窗口；read 独立 Boot 恢复后继续断料 / 修复趋势验证 |
 
 发现检查的 `[batch]` 只控制状态日志位置；当前状态脚本将夹具 / JSON 结果固定写到 `tools/runtime-intake/check-runs/factory-discovery-v1/d2-b-20260925/`，process-read 与窗口 write 都从此取输入。复跑 state 会更新该固定目录，需先保留要审计的旧证据；窗口批次另用唯一名称，read 读取 write 的 manifest。窗口夹具由加速模型生产并准备布局 / 人物位置，不能作为自然玩家全路径。`check-client` 的 Godot 模式已登记 power / discovery / statistics 状态检查，不自动覆盖这些跨进程或窗口模式。
 
-统计窗口 write 使用 HUD 精确放置按钮、合法接线命令、稳定 ID 选择、合成 WASD 与原生面板 Enter，不预填材料、传送人物、直接解锁或加速时间。失焦立即失败且不抢焦点；同名 batch 不用于重建自然路径，失败批次须保留。read 仅用于已完成 write 的批次。它是自动工程路径，不替代用户亲测或首次阅读 / 建线时长。
+统计窗口 write 使用 HUD 精确放置按钮、合法接线命令、稳定 ID 选择、合成 WASD 与原生面板 Enter，不预填材料、传送人物、直接解锁或加速时间。普通功能路径失焦时停止输入、等待手动切回，在同一进程 / 世界继续并记录失焦区间；不抢焦点，连续性能检查仍失焦即中断。同名 batch 不用于重建自然路径，失败批次须保留。read 仅用于已完成 write 的批次：通过键盘 Enter 进入工厂菜单，先冻结首帧核对完整快照，再在真实恢复世界分别观察正常供料、拆带断料、重建修复各 60 秒，最后保存并记录 `read-final.json`。因此 read 成功后不能以同一最终存档再次比较原 write 快照；若需复跑，使用新 write 批次，失败证据单独保留。它是自动工程路径，不替代用户亲测或首次阅读 / 建线时长。
 
 ## 像素归一管线（零依赖）
 

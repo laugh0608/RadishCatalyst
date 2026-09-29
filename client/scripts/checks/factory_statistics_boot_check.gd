@@ -15,6 +15,11 @@ var started := 0
 var stages: Array = []
 var held_keys: Array = []
 var ids := {}
+var focus_pauses: Array = []
+var focus_pause := {}
+var foreground_seconds := 0.0
+var last_observed_usec := 0
+var ui_only := false
 
 
 func _init() -> void:
@@ -27,11 +32,15 @@ func run() -> void:
 		if arg.begins_with("--batch="):
 			batch = arg.trim_prefix("--batch=")
 		read_mode = read_mode or arg == "--read"
+		ui_only = ui_only or arg == "--ui-only"
 	assert(batch.is_valid_filename() and not ".." in batch)
 	var repo := SliceCheckPaths.repository_root()
 	run_root = repo.path_join("tools/runtime-intake/check-runs/factory-statistics-v1").path_join(batch)
 	DirAccess.make_dir_recursive_absolute(run_root)
 	driver = Driver.new()
+	driver.input_ready = wait_for_focus
+	started = Time.get_ticks_usec()
+	last_observed_usec = started
 	driver.shot_root = repo.path_join("assets/art-intake/2026-09-29-factory-statistics-preview").path_join(batch)
 	DirAccess.make_dir_recursive_absolute(driver.shot_root)
 	root.add_child(driver)
@@ -41,14 +50,24 @@ func run() -> void:
 	root.add_child(boot)
 	root.mode = Window.MODE_WINDOWED
 	root.size = Vector2i(1440, 900)
-	create_timer(1200).timeout.connect(func(): driver.expect(false, "natural path timeout"); finish())
+	root.close_requested.connect(func(): driver.expect(false, "window_closed: stopped by user"); finish())
 	await driver.settle(20)
-	await driver.click(boot.startup_menu.get_node("ContentRoot/MenuButtons/FactoryButton"))
+	var factory_button: Button = boot.startup_menu.get_node("ContentRoot/MenuButtons/FactoryButton")
+	if read_mode:
+		await press(factory_button)
+	else:
+		await driver.click(factory_button)
+	if boot.factory_menu == null:
+		driver.expect(false, "factory menu opens before world selection")
+		finish()
+		return
 	if read_mode:
 		boot.factory_menu.list.select(0)
 		boot.factory_menu.list.item_selected.emit(0)
 		boot.factory_menu.continue_button.pressed.emit()
-		boot.factory_world._set_paused(true)
+		# Freeze the restored session before its first simulation frame; retain saved remainder.
+		boot.factory_world.ui.paused = true
+		boot.factory_world.production_clock.start(Time.get_ticks_usec(), false)
 	else:
 		boot.factory_menu.world_type.select(1)
 		boot.factory_menu.title_input.text = "D3 自然生产路径"
@@ -60,7 +79,6 @@ func run() -> void:
 		finish()
 		return
 	await driver.settle(20)
-	started = Time.get_ticks_usec()
 	if read_mode:
 		await restore_check()
 		finish()
@@ -72,6 +90,14 @@ func run() -> void:
 	check_failures()
 	await driver.shot("01-empty-statistics")
 	await driver.click(world.statistics_panel.buttons.close)
+	if ui_only:
+		for i in 3:
+			await driver.click(world.hud.buttons.statistics)
+			driver.expect(world.statistics_panel.visible, "repeat statistics open")
+			await driver.key(KEY_ESCAPE)
+			driver.expect(not world.statistics_panel.visible, "escape closes overlay")
+		finish()
+		return
 	# Construction uses the same HUD precision fields and placement actions as a player.
 	await place("collector", -20, -1, "collector")
 	await place("reactor", -13, -2, "basic")
@@ -80,9 +106,9 @@ func run() -> void:
 	await belts(-10, -7, 0, 0)
 	await place("power_source", -20, -6, "source")
 	await place("power_junction", -13, -5, "node")
-	connect_devices("source", "node")
-	connect_devices("source", "collector")
-	connect_devices("node", "basic")
+	await connect_devices("source", "node")
+	await connect_devices("source", "collector")
+	await connect_devices("node", "basic")
 	stage("first-line", "empty-world construction and explicit connections")
 	await walk(Vector2(2.3, 3.5))
 	await panel(-1)
@@ -103,8 +129,8 @@ func run() -> void:
 	await place("storage", 0, -1, "warehouse")
 	await belts(-3, -1, 0, 0)
 	await place("power_junction", -6, -5, "solvent_node")
-	connect_devices("node", "solvent_node")
-	connect_devices("solvent_node", "solvent")
+	await connect_devices("node", "solvent_node")
+	await connect_devices("solvent_node", "solvent")
 	await walk(Vector2(-5.0, 2.0))
 	await panel(ids.solvent)
 	await recipe("solvent_trial")
@@ -139,14 +165,14 @@ func run() -> void:
 	# Connect the rich line to the first source before measuring capacity shortage.
 	await place("power_junction", 2, -1, "passage_node")
 	await place("power_junction", 9, -1, "inner_node")
-	connect_devices("solvent_node", "passage_node")
-	connect_devices("passage_node", "inner_node")
+	await connect_devices("solvent_node", "passage_node")
+	await connect_devices("passage_node", "inner_node")
 	await place("collector", 10, -1, "rich_collector")
 	await place("reactor", 14, -2, "rich")
 	await place("power_junction", 14, -5, "rich_node")
-	connect_devices("inner_node", "rich_node")
-	connect_devices("inner_node", "rich_collector")
-	connect_devices("rich_node", "rich")
+	await connect_devices("inner_node", "rich_node")
+	await connect_devices("inner_node", "rich_collector")
+	await connect_devices("rich_node", "rich")
 	await belts(12, 13, 0, 0)
 	await walk(Vector2(8.6, 3.0))
 	await walk(Vector2(15.0, 3.0))
@@ -158,9 +184,9 @@ func run() -> void:
 	await place("storage", 14, 11, "inner_warehouse")
 	await place("power_junction", 14, 4, "mid_node")
 	await place("power_junction", 12, 9, "lower_node")
-	connect_devices("rich_node", "mid_node")
-	connect_devices("mid_node", "lower_node")
-	connect_devices("lower_node", "inner_solvent")
+	await connect_devices("rich_node", "mid_node")
+	await connect_devices("mid_node", "lower_node")
+	await connect_devices("lower_node", "inner_solvent")
 	await place("belt", 17, 0)
 	await place("belt", 18, 0, "", 1)
 	for z in range(1, 8):
@@ -180,6 +206,8 @@ func run() -> void:
 	await press(world.discovery_panel.get_ok_button())
 	await wait_for(func(): return world.model.statistics.totals.produced.get("rich_crystal", 0) > 0, 30, "new resource really produced")
 	await driver.click(world.hud.buttons.statistics)
+	world.statistics_panel.window_choice.select(0)
+	world.statistics_panel.window_choice.item_selected.emit(0)
 	world.statistics_panel.page.select(1)
 	world.statistics_panel.refresh()
 	await active(60, "single-source bottleneck observation")
@@ -189,7 +217,7 @@ func run() -> void:
 	write_json("bottleneck-before.json", before)
 	await driver.click(world.statistics_panel.buttons.close)
 	await place("power_source", 10, -6, "second_source")
-	connect_devices("second_source", "rich_node")
+	await connect_devices("second_source", "rich_node")
 	await driver.click(world.hud.buttons.statistics)
 	await active(60, "expanded supply observation")
 	var after := Query.electricity(world.model, 60)
@@ -227,6 +255,7 @@ func run() -> void:
 
 
 func place(type: String, x: int, z: int, name := "", dir := 0) -> void:
+	await wait_for_focus()
 	world._action(type, null)
 	world.hud.cell_x.value = x
 	world.hud.cell_z.value = z
@@ -249,6 +278,7 @@ func belts(low: int, high: int, z: int, dir: int) -> void:
 
 
 func connect_devices(a: String, b: String) -> void:
+	await wait_for_focus()
 	# Same authoritative command used by the wiring click; no graph/state injection.
 	var result: Dictionary = world.model.connect_power(ids[a], ids[b])
 	driver.expect(result.ok, "explicit wiring " + a + " → " + b + ": " + result.get("reason", ""))
@@ -260,9 +290,9 @@ func walk(to: Vector2) -> void:
 	var owner := root.gui_get_focus_owner()
 	if owner:
 		owner.release_focus()
-	var until := Time.get_ticks_usec() + 20000000
+	var until: float = world.production_clock.active_usec + 20000000
 	while Vector2(world.actor.x, world.actor.z).distance_to(to) > 0.22:
-		check_focus()
+		await wait_for_focus()
 		var delta := to - Vector2(world.actor.x, world.actor.z)
 		var angle := deg_to_rad(world.view.yaw)
 		var input := Vector2(delta.x * cos(angle) - delta.y * sin(angle), delta.x * sin(angle) + delta.y * cos(angle))
@@ -279,7 +309,7 @@ func walk(to: Vector2) -> void:
 				push_key(code, true)
 		held_keys = desired
 		await process_frame
-		if Time.get_ticks_usec() > until:
+		if world.production_clock.active_usec > until:
 			driver.expect(false, "walking blocked at %s toward %s" % [Vector2(world.actor.x, world.actor.z), to])
 			finish()
 			return
@@ -298,6 +328,7 @@ func push_key(code: int, pressed: bool) -> void:
 
 
 func panel(id: int) -> void:
+	await wait_for_focus()
 	world.ui.selected = id # Stable ID selection; location/proximity remains natural walking.
 	world._refresh()
 	await driver.settle()
@@ -306,6 +337,7 @@ func panel(id: int) -> void:
 
 
 func press(control: Button) -> void:
+	await wait_for_focus(control.get_window())
 	driver.expect(control.is_visible_in_tree() and not control.disabled and control.get_window().has_focus(), "native command available " + control.text)
 	check_failures()
 	control.grab_focus()
@@ -320,6 +352,7 @@ func press(control: Button) -> void:
 
 
 func recipe(id: String) -> void:
+	await wait_for_focus(world.discovery_panel)
 	var index: int = world.discovery_panel.recipe_ids.find(id)
 	driver.expect(index >= 0, "recipe known " + id)
 	check_failures()
@@ -330,11 +363,11 @@ func recipe(id: String) -> void:
 
 
 func wait_for(condition: Callable, timeout: float, reason: String) -> void:
-	var start := Time.get_ticks_usec()
+	var start: int = world.production_clock.active_usec
 	while not condition.call():
-		check_focus()
+		await wait_for_focus()
 		await process_frame
-		if (Time.get_ticks_usec() - start) / 1000000.0 > timeout:
+		if (world.production_clock.active_usec - start) / 1000000.0 > timeout:
 			driver.expect(false, "waiting timed out: " + reason)
 			finish()
 			return
@@ -346,10 +379,39 @@ func active(seconds: float, reason: String) -> void:
 	await wait_for(func(): return world.model.time >= until, seconds + 20, reason)
 
 
-func check_focus() -> void:
-	if not root.has_focus():
-		driver.expect(false, "focus_lost: stop without refocusing")
+func wait_for_focus(window: Window = null) -> void:
+	var target: Window = root if window == null else window
+	while not target.has_focus() and not finished:
+		await process_frame
+
+
+func _process(_delta: float) -> bool:
+	if driver == null or finished or last_observed_usec == 0:
+		return false
+	var now := Time.get_ticks_usec()
+	var window: Window = world.discovery_panel if is_instance_valid(world) and world.discovery_panel.visible else root
+	if window.has_focus():
+		foreground_seconds += (now - last_observed_usec) / 1000000.0
+		if not focus_pause.is_empty():
+			focus_pause.end_elapsed_seconds = (now - started) / 1000000.0
+			focus_pause.duration_seconds = focus_pause.end_elapsed_seconds - focus_pause.start_elapsed_seconds
+			focus_pauses.append(focus_pause)
+			print("D3 focus resumed: ", focus_pause)
+			focus_pause = {}
+			write_json("focus-pauses.json", focus_pauses)
+	else:
+		if focus_pause.is_empty():
+			focus_pause = {"start_elapsed_seconds": (now - started) / 1000000.0}
+			print("D3 waiting for user focus; same world retained")
+			write_json("focus-wait.json", focus_pause)
+			for code in held_keys:
+				push_key(code, false)
+			held_keys.clear()
+	last_observed_usec = now
+	if foreground_seconds > 1200:
+		driver.expect(false, "functional foreground budget exceeded")
 		finish()
+	return false
 
 
 func check_failures() -> void:
@@ -358,12 +420,13 @@ func check_failures() -> void:
 
 
 func stage(name: String, reason: String) -> void:
-	stages.append({"stage": name, "reason": reason, "elapsed_seconds": (Time.get_ticks_usec() - started) / 1000000.0, "simulation_seconds": world.model.time, "active_seconds": world.production_clock.active_usec / 1000000.0})
+	stages.append({"stage": name, "reason": reason, "elapsed_seconds": (Time.get_ticks_usec() - started) / 1000000.0, "simulation_seconds": world.model.time, "active_seconds": world.production_clock.active_usec / 1000000.0, "foreground_seconds": foreground_seconds, "focus_pauses": focus_pauses.duplicate(true)})
 	write_json("stages.json", stages)
 	print("D3 stage: ", stages.back())
 
 
 func native_shot(name: String) -> void:
+	await wait_for_focus(world.discovery_panel)
 	await driver.settle()
 	world.discovery_panel.get_texture().get_image().save_png(driver.shot_root.path_join(name + ".png"))
 
@@ -430,12 +493,54 @@ func restore_check() -> void:
 	var actual := Codec.snapshot(world.model, world.store.world_id, world.store.world_name, expected.sequence)
 	driver.expect(Check.equivalent(actual, expected), "independent Boot restores complete saved state")
 	driver.expect(world.model.discovery.passages.inner and world.model.discovery.passages.outer, "independent Boot restores permanent openings")
-	driver.expect(world.model.statistics_ui == expected.state.statistics_ui, "independent Boot restores statistics preferences")
+	driver.expect(Check.equivalent(world.model.statistics_ui, expected.state.statistics_ui), "independent Boot restores statistics preferences")
 	driver.expect(world.model.statistics.totals.consumed.crust_solvent == 12, "independent Boot retains exactly twelve opening consumption")
 	await driver.click(world.hud.buttons.statistics)
 	await driver.shot("12-restored-statistics")
 	await driver.click(world.statistics_panel.buttons.close)
+	await material_recovery_check()
 	await driver.click(world.hud.buttons.return)
+
+
+func material_recovery_check() -> void:
+	# Continue the restored real world; temporarily remove one feeding belt through player commands.
+	var reactor: Dictionary = world.model.entity_at(Vector2i(10, 10))
+	var belt: Dictionary = world.model.entity_at(Vector2i(9, 12))
+	driver.expect(reactor.get("recipe_id", "") == "crust_solvent" and belt.get("type", "") == "belt", "restored rich-fed line available for material diagnosis")
+	check_failures()
+	await driver.click(world.hud.buttons.pause)
+	await driver.click(world.hud.buttons.statistics)
+	world.statistics_panel.selected_item = "crust_solvent"
+	world.statistics_panel.refresh()
+	await active(60, "material baseline after independent restore")
+	var baseline := Query.materials(world.model, 60)
+	await driver.shot("13-material-normal")
+	await driver.click(world.statistics_panel.buttons.close)
+	world.ui.selected = belt.id
+	world._action("salvage", null)
+	driver.expect(world.model.entity_at(Vector2i(9, 12)).is_empty(), "feeding belt removed by salvage command")
+	await driver.click(world.hud.buttons.statistics)
+	await active(60, "material starvation after removing feeding belt")
+	var starved := Query.materials(world.model, 60)
+	driver.expect(world.model.feedback(reactor).production == "缺少配方原料", "current device identifies actual starvation")
+	driver.expect(starved.rows.crust_solvent.produced < baseline.rows.crust_solvent.produced, "material chart captures reduced production")
+	await driver.shot("14-material-starved")
+	var device: Button = world.statistics_panel.buttons["device_%d" % reactor.id]
+	(world.statistics_panel.body.get_parent() as ScrollContainer).ensure_control_visible(device)
+	await driver.settle()
+	await driver.click(device)
+	driver.expect(world.ui.selected == reactor.id and not world.statistics_panel.visible, "diagnosis row locates starved reactor")
+	await place("belt", 9, 12)
+	await driver.click(world.hud.buttons.statistics)
+	await active(60, "material recovery after reconnecting feeding belt")
+	var recovered := Query.materials(world.model, 60)
+	driver.expect(recovered.rows.crust_solvent.produced > starved.rows.crust_solvent.produced, "real material output recovers after repair")
+	await driver.shot("15-material-recovered")
+	write_json("material-recovery.json", {"baseline": baseline, "starved": starved, "recovered": recovered})
+	await driver.click(world.statistics_panel.buttons.close)
+	await driver.click(world.hud.buttons.pause)
+	await driver.click(world.hud.buttons.save)
+	write_json("read-final.json", Codec.snapshot(world.model, world.store.world_id, world.store.world_name, world.store.sequence))
 
 
 func write_json(name: String, value: Variant) -> void:
@@ -447,7 +552,7 @@ func finish() -> void:
 	if finished:
 		return
 	finished = true
-	write_json("read-result.json" if read_mode else "write-result.json", {"assertions": driver.assertions, "failures": driver.failures, "stages": stages,
+	write_json("read-result.json" if read_mode else "write-result.json", {"assertions": driver.assertions, "failures": driver.failures, "stages": stages, "foreground_seconds": foreground_seconds, "focus_pauses": focus_pauses, "pending_focus_pause": focus_pause,
 		"input": "Boot synthetic mouse; build HUD precision fields/button signal; legal wiring commands; stable-ID selection; native buttons synthetic Enter; walking synthetic WASD; no inventory/unlock/actor-position injection or accelerated time"})
 	print("D3 Boot: %d assertions, %d failures" % [driver.assertions, driver.failures.size()])
 	quit(0 if driver.failures.is_empty() else 1)
