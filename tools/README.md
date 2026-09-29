@@ -33,6 +33,7 @@
 | `sh tools/check-factory-discovery.sh state [batch]` | 无窗口四配方、样本 / 开路、事务和兼容检查，生成分段夹具 |
 | `sh tools/check-factory-discovery.sh process-read [batch]` | 先完成 state，再用独立进程核对多件半批与后续轨迹 |
 | `sh tools/check-factory-discovery.sh write/read <batch>` | 先完成 state，再用同一唯一 batch 串行执行 `write`、`read`，覆盖正式 Boot 分项交互与恢复 |
+| `sh tools/check-factory-statistics-performance.sh prepare/window <batch> <absolute-source-snapshot>` | 显式 runtime-intake 内 schema 2 来源；prepare 无窗口补满 600 秒历史，window 从相同准备状态分别测关闭 / 物料 / 电力各 45 秒。窗口准备页手动开始；独立双根、唯一 batch、原预算、失焦即停；仅普通供给对照，不算首档规模或持续验收 |
 | `sh tools/check-factory-statistics.sh state [batch]` | 统计查询、窗口、库存 / 理论口径、恢复与页面挂载定向检查 |
 | `sh tools/check-factory-statistics.sh ui <batch>` | 新隔离世界短窗口复核统计按钮与 Escape，先于完整路径执行 |
 | `sh tools/check-factory-statistics.sh write/read <batch>` | 新 batch 从空勘探世界按真实活动时间生产、步行与开路，复核统计 / 窗口；read 独立 Boot 恢复后继续断料 / 修复趋势验证 |
