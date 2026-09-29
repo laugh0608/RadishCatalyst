@@ -127,6 +127,7 @@ func _build_header(parent: Node) -> void:
 	subtitle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	subtitle.add_theme_color_override("font_color", Color("a8bdb0"))
 	row.add_child(totals)
+	_button(row, "statistics", "生产统计")
 	_button(row, "pause", "暂停")
 
 
@@ -278,6 +279,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, focused: bool
 		buttons.place.disabled = not valid.ok
 	bag.text = "背包：" + Items.describe(model.bag) if model.has_method("power_state") else "回收箱：晶体 %d / 催化剂 %d" % [model.bag.crystal, model.bag.catalyst]
 	buttons.discovery.visible = model.has_method("power_state")
+	buttons.statistics.visible = model.has_method("power_state")
 	coordinates.text = "X %.1f / Z %.1f" % [actor.x, actor.z]
 	var e: Dictionary = model.by_id(ui.selected)
 	inspector.visible = not e.is_empty()
@@ -311,6 +313,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, focused: bool
 		text = "继续扩建\n已有 %d 件催化剂入仓\n\n走到其他青色矿点建立第二条产线。保存后可从启动菜单继续这个世界。" % model.delivered
 	if model.has_method("power_state"):
 		var power: Dictionary = model.power_state()
-		text = "首线接电\n晶体 → 催化剂\n\n放置电源，选中后接线。节点之间 ≤12 格，设备接入 ≤6 格。\n\n可用容量 %.0f kW\n当前请求 %.1f kW\n实际供用 %.1f kW\n分网缺口 %.1f kW\n累计用电 %.2f kJ\n\n带与仓无需电力。\n在「工艺、物料与矿道」调查样本、取放材料与开路。" % [power.available_kw, power.request_kw, power.supplied_kw, power.deficit_kw, model.statistics.totals.used_kj]
+		text = preload("res://scripts/factory/discovery_guidance.gd").text(model)
+		text += "\n\n供用 %.1f / 请求 %.1f kW\n分网缺口 %.1f kW" % [power.supplied_kw, power.request_kw, power.deficit_kw]
 	mission.text = text if ui.mission else text.split("\n")[0]
 	buttons.mission.text = "收起目标" if ui.mission else "展开目标"

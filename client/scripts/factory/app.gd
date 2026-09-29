@@ -43,6 +43,7 @@ var sample_enabled := false
 var last_frame_usec := 0
 var production_clock := ActiveClock.new()
 var engine_active_seconds := 0.0
+var statistics_panel := preload("res://scripts/factory/statistics_panel.gd").new()
 var discovery_panel := preload("res://scripts/factory/discovery_panel.gd").new()
 var power_dialog := ConfirmationDialog.new()
 var power_choices := OptionButton.new()
@@ -77,6 +78,10 @@ func _ready() -> void:
 	_build_power_dialog()
 	discovery_panel.theme = hud.theme
 	add_child(discovery_panel)
+	statistics_panel.theme = hud.theme
+	add_child(statistics_panel)
+	statistics_panel.locate_requested.connect(_locate_statistics_device)
+	statistics_panel.pause_requested.connect(func(): _set_paused(not ui.paused))
 	if not candidate.is_empty():
 		var accepted: Dictionary = store.accept(candidate)
 		if not accepted.ok:
@@ -109,7 +114,10 @@ func _process(delta: float) -> void:
 			model.advance(0, 8)
 			if sample_enabled:
 				simulation_samples.append((Time.get_ticks_usec() - before) / 1000.0)
-			_movement(minf(dt, 0.06))
+			if not statistics_panel.visible:
+				_movement(minf(dt, 0.06))
+			else:
+				actor.moving = false
 		else:
 			actor.moving = false
 	else:
@@ -121,6 +129,8 @@ func _process(delta: float) -> void:
 	if ui_elapsed >= 0.12:
 		_refresh()
 		ui_elapsed = 0
+	if statistics_panel.visible:
+		statistics_panel.status.text = "  已暂停" if ui.paused else "  失焦暂停" if not focused else "  生产继续运行"
 	view.draw(model, actor, ui)
 
 
@@ -131,6 +141,7 @@ func _movement(dt: float) -> void:
 	var angle := deg_to_rad(view.yaw)
 	var direction := Vector2(input.x * cos(angle) + input.y * sin(angle), -input.x * sin(angle) + input.y * cos(angle))
 	if input != Vector2.ZERO:
+		view.inspection_target = null
 		actor.target = null
 	elif actor.target != null:
 		direction = actor.target - Vector2(actor.x, actor.z)
@@ -284,6 +295,11 @@ func _action(name: String, value: Variant) -> void:
 					power_dialog.popup_centered(Vector2i(560, 200))
 				else:
 					hud.announce(result.reason, true)
+			"statistics":
+				_stop_pointer()
+				keys.clear()
+				actor.target = null
+				statistics_panel.show_for(model)
 			"discovery": discovery_panel.show_for(model, ui.selected)
 			"deposit":
 				var result := model.deposit(ui.selected)
@@ -303,7 +319,7 @@ func _preview(cell: Vector2i) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not initialized or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible or discovery_panel.visible:
+	if not initialized or statistics_panel.visible or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible or discovery_panel.visible:
 		return
 	if event is InputEventKey:
 		if not event.pressed:
@@ -380,12 +396,13 @@ func _input(event: InputEvent) -> void:
 					var e := model.entity_at(cell)
 					ui.selected = id if id != -1 else e.get("id", -1)
 					if ui.selected == -1:
+						view.inspection_target = null
 						actor.target = Vector2(point.x, point.z)
 		_refresh()
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if not event is InputEventKey or not event.pressed or event.echo or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible or discovery_panel.visible:
+	if not event is InputEventKey or not event.pressed or event.echo or statistics_panel.visible or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible or discovery_panel.visible:
 		return
 	if event.physical_keycode == KEY_ESCAPE:
 		_cancel()
@@ -543,3 +560,20 @@ func _show_power_connections() -> void:
 	power_choices.show()
 	power_description.text = "选择要断开的连接。设备保留，停电不退还已用电量。"
 	power_dialog.popup_centered(Vector2i(560, 220))
+
+
+func _locate_statistics_device(id: int) -> void:
+	var entity := model.by_id(id)
+	if entity.is_empty():
+		hud.announce("设备已经拆除。", true)
+		return
+	_stop_pointer()
+	keys.clear()
+	actor.target = null
+	ui.tool = ""
+	ui.selected = id
+	var center: Vector2 = model.Grid.center(entity)
+	view.inspection_target = Vector3(center.x, 0.25, center.y)
+	statistics_panel.hide()
+	_refresh()
+	hud.announce("已定位设备 #%d；人物未移动，行走后恢复跟随。" % id)

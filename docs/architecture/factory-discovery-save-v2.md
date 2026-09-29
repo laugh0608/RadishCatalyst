@@ -1,6 +1,6 @@
 # Factory Discovery Save V2
 
-更新时间：2026-09-25
+更新时间：2026-09-29
 
 ## 联合合同与版本边界
 
@@ -21,7 +21,7 @@
 | state.discovery | `surveyed/sample_taken/trial_completed/passages`；passages 为 `outer/inner` 布尔映射。sample_taken 必须 surveyed，trial_completed 必须 sample_taken，outer 必须试制完成，inner 必须 outer；样本全世界持有量加研究消耗严格等于取得次数（0 / 1） |
 | state.statistics | `ticks/totals/buckets/current`；ticks 为已推进 20Hz 步数，time 与 ticks×0.05 差不超过 1e-6 秒；totals 为累计记账，buckets 最近至多 600 个完整秒，current 为 0–19 步未完成桶 |
 | 记账记录 | `produced/consumed/acquired/delivered` 为已知物品计数映射；`installed_kj/available_kj/requested_kj/supplied_kj/used_kj/deficit_kj` 为有限非负数；桶另有 `start_tick/ticks` |
-| state.statistics_ui | `window_seconds/favorites`；窗口仅 60/300/600，收藏仅已掌握物品且不重复；D3 再接页面 |
+| state.statistics_ui | `window_seconds/favorites`；窗口仅 60/300/600，收藏仅已掌握物品且不重复；D3 页面已接入 |
 
 全字段严格校验，JSON 数量不接受分数、布尔冒充数字或非有限数。实体上限 302，稳定序号上限 2^53−1，活动积压上限 3600 秒。图、网络编号、满足率、当前分配、库存分解及理论速率为派生数据，不保存。
 
@@ -47,4 +47,4 @@ D2-A 定向夹具覆盖连接失败零变更、循环 / 并网 / 分网、多源
 - 在制批次唯一，不能同时出现在输出或在途。同一产物批次可以分布在输出和多条带；普通 / 制剂上限 1，富集催化剂上限 3。已全部进入背包 / 仓储的历史批次不保留无限日志；批次数量、产物统计与持有量共同校验。D2-A 空输出留下的旧 output_batch 继续接受，非空输出必须有合法批次。
 - 取放、配方切换及取消使用人物到足印最近点的距离 ≤2 格，并检查与该点之间不经过封闭地形；仓与背包总容量各 200，取 / 放全部按双方容量截断。样本只能手动进入仓或试制输入，不能上带。调查遇满包可留下调查事实，但样本仍在地面；其他拒绝命令保持零变更。
 - 开路要求人物在入口西侧，与四格入口段距离 ≤2 格，西侧接近线不穿封闭格；库存、前置和未开启全部通过才提交。地形、人物碰撞、建设和电线超覆盖检查均读同一 passages 事实。开启不自动供电。
-- 最大瞬时负荷上界按 8×20 + 16×80 = 1440kW 校验；取消已消耗的电量保留。D2-B 定向验证包括自然采矿原料生成、自动串联制剂、样本各位置、事务拒绝、多件出料独立进程恢复及保留 D2-A 档兼容。完整玩家路径和统计页仍属 D3。
+- 最大瞬时负荷上界按 8×20 + 16×80 = 1440kW 校验；取消已消耗的电量保留。D2-B 定向验证包括自然采矿原料生成、自动串联制剂、样本各位置、事务拒绝、多件出料独立进程恢复及保留 D2-A 档兼容。D3 统计页复用以上合同，筛选 / 排序仅存会话，库存 / 理论能力仍为派生数据；完整自然路径验证仍待补齐。

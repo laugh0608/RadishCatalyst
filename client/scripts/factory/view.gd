@@ -9,6 +9,7 @@ var prepared := false
 var camera := Camera3D.new()
 var sun := DirectionalLight3D.new()
 var environment := Environment.new()
+var inspection_target: Variant = null
 var target := Vector3(0, 0.25, 0.3)
 var world_model: RefCounted
 var yaw := 25.0
@@ -22,7 +23,7 @@ var limbs: Array[Node3D] = []
 var grid := Node3D.new()
 var ghost := Node3D.new()
 var selection := Node3D.new()
-var barriers := Node3D.new()
+var barriers: Node3D
 var terrain_key := ""
 var sample: Node3D
 var rich_mat := Parts.material("bb8be8", 0.32, 0.24)
@@ -70,6 +71,7 @@ func _ready() -> void:
 			if not assets[type] is PackedScene:
 				resource_error = "缺少电力模型：" + type
 				return
+		barriers = Node3D.new()
 		add_child(barriers)
 		_build_mineral_barriers()
 	var sites: Array[Vector2i] = world_model.ore_sites() if world_model != null else Model.Rules.ore_sites()
@@ -330,7 +332,7 @@ func draw(model: RefCounted, actor: Dictionary, ui: Dictionary) -> void:
 	if world_model != model:
 		invalidate()
 	world_model = model
-	var follow := Vector3(actor.x, 0.25, actor.z - 4.0)
+	var follow: Vector3 = inspection_target if inspection_target != null else Vector3(actor.x, 0.25, actor.z - 4.0)
 	if target.distance_squared_to(follow) > 0.0001:
 		target = follow
 		sync_camera()
