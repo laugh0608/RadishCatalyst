@@ -19,7 +19,7 @@
 
 本轮像素处理入口为 `normalize_pipe_visual_study.py`、`normalize_industrial_volume_study.py`、`normalize_raised_pipe_modules.py`，均依赖已有零依赖归一基础库、固定源图及 SHA-256 校验。它们会写入对应 `client/assets/sprites/visual_studies/`，不能把“打开样板”误作重新归一素材；没有对应忽略目录源图的机器不可复跑。日志 / 隔离存档在 `tools/runtime-intake/`，原图 / 截图在 `assets/art-intake/`，具体子目录由专题约定。
 
-正式工厂 D1 模型导出、布局检查与静态预览见 [Factory Content Authoring](factory-content/README.md)。该入口不改旧 Demo 或正式生产规则，开窗前仍须告知。
+正式工厂 D1 模型导出、布局检查与静态预览见 [Factory Content Authoring](factory-content/README.md)。独立低投入交互样板使用 `bash tools/factory-content/refinement-demo.sh`；两件自有模型导出和 `check-refinement.gd` 定向检查也见该文。样板通过双根隔离 Boot 挂载、内存运行，不接入正式新世界菜单或保存规则；不支持上述四个入口的 `--verify` 约定，开窗前仍须告知。
 
 ## 正式工厂定向检查
 

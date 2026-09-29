@@ -8,6 +8,8 @@
 
 身份组合固定为 `factory_3d / 2 / factory_discovery_v1 / factory_discovery_yard_64_v1 / factory_discovery_starter_v1`。世界 ID、名称、sequence、锁、候选恢复和原子发布沿[现行合同](factory-world-state-and-save-v1.md)。未知 schema、混配规则 / 地图 / 供给以及未知配方内容必须阻断所有备份回退；损坏字段可按原合同寻找有效备份。旧 D2-A 读写器遇非初始发现内容仍会明确阻断，不能回退覆盖。
 
+9 月 29 日新增的[交互样板](../features/factory-refinement-demo-v1.md)虽继承勘探模型，但不经过 Store / codec，自动连接仅为样板内存派生状态。正式 schema 2 的 `power_links` 与 `power_node_id` 仍按下文显式连接语义保存；范围供电接入需另定规则身份 / 版本策略，不能静默重解释现有存档。
+
 ## 权威字段
 
 | 位置 | 字段与约束 |

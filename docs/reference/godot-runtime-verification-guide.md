@@ -157,7 +157,7 @@ await super._run() # 仅在派生诊断脚本中进入原检查流程。
 - 呈现回调抵达时间、drawable 的实际呈现时间和命令完成时间分别记录；先核对时钟基准，再关联对象。Surface ID、Drawable ID、队列 ID 或合成 seed 不因数值重合就视为同一身份；无标识等待事件不能据时间先后证明回收因果。已验证方法及反例见 [Metal 呈现诊断记录](factory-metal-presentation-review-20260912.md)。
 - 隔离诊断构建按源码 / 补丁清单、revision 和二进制 SHA-256 关联样本；相同版本字符串不能证明二进制相同。分析器须显式覆盖该版新增事件，旧事件检查通过不代表新分段已验证。成对区间与 fence / command 生命周期先校验再计时，指针复用不跨生命周期关联；信号编码请求不等于 GPU 完成，延迟回调不强归相邻绘制帧，嵌套跨度不重复累加。
 - 第二版固定源码的捕获在删除 RenderingServer 后、删除 DisplayServer / RenderingDevice 前 flush；捕获末尾仍存活的 fence 单列为未观察到析构，不据此伪造 free 或宣称完整释放验证通过。捕获内销毁后继续使用、未销毁就复用地址仍失败。drawable 数值编号 0 不能单独判定空获取，应同时核对该版记录的 texture 与实际调用语义。
-- `check-client` 默认只做静态检查；Shell / PowerShell 的 Godot 路径已纳入工厂 `state` / `save` / `clock` / `view_state` / `power` / `discovery`，不因此覆盖全部跨进程、规模、原生窗口或持续性能模式。具体执行范围以脚本与当批日志为准。
+- `check-client` 默认只做静态检查；Shell / PowerShell 的 Godot 路径已纳入工厂 `state` / `save` / `clock` / `view_state` / `power` / `discovery` / `statistics`，不因此覆盖全部跨进程、规模、原生窗口或持续性能模式。具体执行范围以脚本与当批日志为准。
 - 操作存读使用同一唯一 batch 的两个独立进程；同一进程销毁再建 Boot 只作为较窄的恢复证据。旧世界入口 / schema 回归继续独立执行。
 - 2026-09-09 已补单调时钟、准备 / 采样中断和规模定向证据；窗口计时、原生保存返回 / 重进及后台长测已有通过记录，前台性能仍待诊断与完整重跑。时钟一致性按同一已处理帧边界比较墙钟与“推进 + 余量变化”；原始帧、模拟步和保存记录分别保留，注入故障 / 保存与正常自动保存须区分。批次事实见 [W37 周志](../devlogs/2026-W37.md)。
 
