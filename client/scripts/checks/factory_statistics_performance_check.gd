@@ -113,6 +113,13 @@ func load_phase(label: String) -> bool:
 	return not interrupted and driver.failures.is_empty()
 
 
+func _delivery_count() -> int:
+	var count := 0
+	for amount in world.model.statistics.totals.delivered.values():
+		count += int(amount)
+	return count
+
+
 func write_json(name: String, data: Variant) -> void:
 	var file := FileAccess.open(run_root.path_join(name), FileAccess.WRITE)
 	file.store_string(JSON.stringify(data, "\t", false, true))
@@ -130,5 +137,6 @@ func finish() -> void:
 	report.preparation = "600 simulated seconds before sampling; all 600 history buckets retained; foreground phases run at real time"
 	report.prepare_only = prepare_only
 	report.phase_seconds = duration
+	report.delivery_metric = "All materials actually delivered into storage; schema 2 authoritative statistics.totals.delivered"
 	report.input = "Formal Boot menu signals; statistics action and page selection; camera fixed; no manual playtest claim"
 	write_json("result.json", report)

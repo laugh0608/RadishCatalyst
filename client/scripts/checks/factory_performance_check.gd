@@ -145,7 +145,7 @@ func _phase(label: String, maximized: bool, zoom: float) -> bool:
 	var focus_lost := 0.0
 	var max_backlog := 0.0
 	var draw_calls: Array[float] = []
-	var delivered_before: int = world.model.delivered
+	var delivered_before: int = _delivery_count()
 	var started_simulation: float = world.model.time
 	var started_remainder: float = world.model.remainder
 	var started_engine: float = world.engine_active_seconds
@@ -172,7 +172,7 @@ func _phase(label: String, maximized: bool, zoom: float) -> bool:
 		var minute := int(active) / 60
 		if minute != last_progress_second:
 			last_progress_second = minute
-			print("Factory sustained progress: %s %.0f/%.0f active seconds; delivered=%d backlog=%.4f" % [label, active, duration, world.model.delivered, world.model.remainder])
+			print("Factory sustained progress: %s %.0f/%.0f active seconds; delivered=%d backlog=%.4f" % [label, active, duration, _delivery_count(), world.model.remainder])
 		if (now - started) / 1000000.0 > duration + 120:
 			driver.expect(false, "foreground timeout " + label)
 			break
@@ -191,7 +191,7 @@ func _phase(label: String, maximized: bool, zoom: float) -> bool:
 	var stats := {"label": label, "active_seconds": active, "focus_lost_seconds": focus_lost,
 		"simulation_seconds": simulation_seconds, "remainder_change_seconds": remainder_change,
 		"timing_error_seconds": timing_error, "engine_seconds": world.engine_active_seconds - started_engine,
-		"delivered_during_phase": world.model.delivered - delivered_before,
+		"delivered_during_phase": _delivery_count() - delivered_before,
 		"frame_ms": summary(world.frame_samples), "simulation_ms": summary(world.simulation_samples),
 		"step_ms": summary(world.model.step_samples),
 		"draw_calls": summary(draw_calls), "max_backlog_seconds": max_backlog, "save_ms": save_ms,
@@ -208,6 +208,10 @@ func _phase(label: String, maximized: bool, zoom: float) -> bool:
 		driver.expect(stats.delivered_during_phase > 0, "actual sustained production " + label)
 	print("Factory performance phase: ", JSON.stringify(stats))
 	return driver.failures.is_empty()
+
+
+func _delivery_count() -> int:
+	return world.model.delivered
 
 
 func _interrupt(reason := "focus_unavailable") -> void:
