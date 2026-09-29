@@ -25,3 +25,13 @@ D1 的正式资源制作与静态场景复核工具；不扩展旧 Web / Godot D
 自动窗口审阅另从双根隔离的正式 Boot 新建原工厂、保存返回，再挂载同一预览控件；这段仅证明旧入口保护及预览可加载，不能把它当成新玩法从 Boot 可进入。原始脚本 / 日志 / 截图按 D1 批次保留，见 W39 周志。
 
 所有 Godot 启动和窗口检查前先告知；不循环抢焦点，关闭后不自动重开，不为静态资源安排四档长测。
+
+## 低投入交互样板
+
+`node tools/factory-content/export-refinement-assets.mjs` 用现有本地 Three.js 导出反应器、节点两件自有 GLB 到 `client/assets/factory/refinement/`，其余资产复用。不替换正式资产，不新增依赖。源与产物 hash、三角形和网格数记录在同目录 manifest。
+
+先告知 Godot 启动，再导入资源：`/Applications/Godot.app/Contents/MacOS/Godot --headless --path client --import --quit --no-header`。手工入口：`bash tools/factory-content/refinement-demo.sh`。它先启动双根隔离 Boot，再挂载独立 demo；不添加正式新世界选项，不读写玩家世界。
+
+预置采集器、电源、仓库，物料从零生产；依次放反应器、节点、铺两段带并观察首件入仓。点击设备看库存 / 进度 / 供电；右键或 Esc 取消建造，R 改带方向，WASD 移动，滚轮缩放，重置按钮重新开始。关闭后不保存。半径 6 格仅为样板参数，人物沿用现有资产；这不是完整正式新手任务、存档规则接入或美术定稿。范围及失败判据见[样板专题](../../docs/features/factory-refinement-demo-v1.md)。
+
+定向无窗口检查（同样先告知启动 Godot）：`/Applications/Godot.app/Contents/MacOS/Godot --headless --path client --script ../tools/factory-content/check-refinement.gd --no-header --log-file ../tools/runtime-intake/refinement-check.log`。覆盖自动电网边界、真实产线与关键 UI 构造 / 布局；不能代替窗口交互和用户亲测。

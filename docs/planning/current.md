@@ -8,6 +8,8 @@
 
 产品方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为准：化工生产经营为核心，探索提供资源、空间和长期目的。既有二维切片、schema 10 和历史验证保留，旧整改 S0 暂缓。
 
+本轮优先响应空世界亲测问题：已确认圆润机械 / 化工视觉方向，以低投入[交互样板](../features/factory-refinement-demo-v1.md)验证设备面板、接口、范围供电与逐步引导。样板独立，萝卜SAMA亲测反馈“感觉还行”，方向初步认可；建议下一包先接入正式设备面板与接口提示。正式电力 / 存档尚未变更，D4 完整体验仍未通过。
+
 ## 当前活跃专题
 
 - [Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md)：固定样本 → 试制 → 自动制剂 → 两次开路 → 富集资源回流；四配方、近身取放与开拓事实已实现，D3 空世界两次开路与富集回流路径已通过。
