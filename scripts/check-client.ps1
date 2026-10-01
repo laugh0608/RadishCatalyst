@@ -508,6 +508,22 @@ if ($runGodotChecks) {
             }
         },
         @{
+            Name = "slice playtest remediation package 4B"
+            Script = "check-client-slice-playtest-remediation-package4b.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "slice playtest remediation package 4C"
+            Script = "check-client-slice-playtest-remediation-package4c.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
             Name = "slice save schema"
             Script = "check-client-slice-save-schema.ps1"
             Parameters = @{
@@ -526,6 +542,14 @@ if ($runGodotChecks) {
         @{
             Name = "slice save catalog"
             Script = "check-client-slice-save-catalog.ps1"
+            Parameters = @{
+                RepoRoot = $RepoRoot
+                GodotExe = $GodotExe
+            }
+        },
+        @{
+            Name = "factory state and save"
+            Script = "check-client-factory-foundation.ps1"
             Parameters = @{
                 RepoRoot = $RepoRoot
                 GodotExe = $GodotExe

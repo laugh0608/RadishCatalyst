@@ -3,12 +3,17 @@ extends Node
 const GAME_ROOT_SCENE := "res://scenes/game/GameRoot.tscn"
 const SLICE_BASE_SCENE := "res://scenes/slice/SliceWorld.tscn"
 const STARTUP_MENU_SCENE := "res://scenes/ui/StartupMenu.tscn"
+const FACTORY_SCENE := preload("res://scenes/factory/FactoryWorld.tscn")
+const FACTORY_MENU := preload("res://scripts/factory/world_menu.gd")
 
 var data_registry: DataRegistry
 var slice_save_catalog := SliceSaveCatalog.new()
 var slice_save_service: SliceSaveService
 var slice_world: SliceWorld
 var startup_menu: StartupMenu
+var factory_save_root := "user://saves/factory/worlds"
+var factory_menu: Control
+var factory_world: Control
 
 
 func _ready() -> void:
@@ -51,6 +56,40 @@ func _show_startup_menu(notice: String = "") -> void:
 	startup_menu.world_created.connect(_on_startup_world_created)
 	startup_menu.world_load_requested.connect(_on_startup_world_load_requested)
 	startup_menu.quit_requested.connect(_on_startup_quit_requested)
+	startup_menu.factory_requested.connect(_show_factory_menu)
+
+
+func _show_factory_menu() -> void:
+	if startup_menu != null:
+		startup_menu.queue_free()
+		startup_menu = null
+	factory_menu = FACTORY_MENU.new()
+	factory_menu.save_root = factory_save_root
+	factory_menu.back_requested.connect(func():
+		factory_menu.queue_free()
+		factory_menu = null
+		_show_startup_menu())
+	factory_menu.world_ready.connect(_start_factory)
+	add_child(factory_menu)
+
+
+func _start_factory(store: RefCounted, model: RefCounted, candidate: Dictionary) -> void:
+	factory_menu.hide()
+	factory_world = FACTORY_SCENE.instantiate()
+	factory_world.store = store
+	factory_world.model = model
+	factory_world.candidate = candidate
+	factory_world.return_requested.connect(func():
+		factory_world.queue_free()
+		factory_world = null
+		factory_menu.show()
+		factory_menu.refresh())
+	factory_world.load_failed.connect(func(reason: String):
+		factory_world.queue_free()
+		factory_world = null
+		factory_menu.show()
+		factory_menu.notice.text = reason)
+	add_child(factory_world)
 
 
 func _on_startup_world_created(world_id: String) -> void:

@@ -2,6 +2,46 @@
 
 项目辅助脚本目录，用于数据处理、构建、导出、检查和自动化任务。
 
+## 局部视觉研究与产线试玩
+
+`visual-studies/` 保存独立 Demo；正式 Godot 客户端仍在 `client/`。启动命令均从仓库根执行，范围和证据见专题，开窗前遵守告知要求。
+
+| 入口 | 用途与合同 |
+| --- | --- |
+| `sh tools/run-web-topdown-3d-demo.sh` | 本机 `4318`：`/play/` 为[首条三维产线](../docs/features/web-first-production-line-v1.md)，`/` 为[七机视觉样场](../docs/design/web-topdown-3d-demo-v1.md)；已有 Node 与局部锁定 Three.js，无游戏存档 |
+| `sh tools/run-web-style-demo.sh` | 本机 `4317`：[手绘 / 像素 Canvas 对照](../docs/design/web-style-comparison-demo-v1.md)，只需已有 Node |
+| `sh tools/run-topdown-3d-demo.sh` | [独立 Godot 3D](../docs/design/topdown-3d-comparison-demo-v1.md)，不借用正式 Boot |
+| `sh tools/run-pipe-visual-study.sh` | [透明管道样板](../docs/design/transparent-pipe-module-visual-validation-v1.md)，正式 Boot 隔离世界 |
+| `sh tools/run-industrial-volume-study.sh` | [像素体积样板](../docs/design/industrial-volume-visual-study-v1.md)，正式 Boot 隔离世界 |
+| `sh tools/run-raised-pipe-modules.sh` | [架空管道模块](../docs/design/raised-pipe-module-visual-validation-v1.md)，正式 Boot 隔离世界 |
+
+四个 Godot 入口均支持 `--verify`；使用已安装 Godot，允许 `GODOT_EXE` 指定路径。Web 仅监听 loopback；若服务已经运行，直接访问，不重复启动或重装依赖。三维 Demo 内的 `npm test` 只覆盖原样场，完整产线定向检查命令见产线专题。
+
+本轮像素处理入口为 `normalize_pipe_visual_study.py`、`normalize_industrial_volume_study.py`、`normalize_raised_pipe_modules.py`，均依赖已有零依赖归一基础库、固定源图及 SHA-256 校验。它们会写入对应 `client/assets/sprites/visual_studies/`，不能把“打开样板”误作重新归一素材；没有对应忽略目录源图的机器不可复跑。日志 / 隔离存档在 `tools/runtime-intake/`，原图 / 截图在 `assets/art-intake/`，具体子目录由专题约定。
+
+正式工厂 D1 模型导出、布局检查与静态预览见 [Factory Content Authoring](factory-content/README.md)。独立低投入交互样板使用 `bash tools/factory-content/refinement-demo.sh`；两件自有模型导出和 `check-refinement.gd` 定向检查也见该文。样板通过双根隔离 Boot 挂载、内存运行，不接入正式新世界菜单或保存规则；不支持上述四个入口的 `--verify` 约定，开窗前仍须告知。
+
+## 正式工厂定向检查
+
+以下均使用已安装 Godot，启动前先告知；存档与日志仅写忽略的运行检查目录。完整隔离要求见 [Godot Runtime Verification Guide](../docs/reference/godot-runtime-verification-guide.md)，实际覆盖由脚本及当批日志确认。
+
+| 入口 | 模式与用途 |
+| --- | --- |
+| `sh tools/check-factory-foundation.sh <mode>` | 基础工厂状态 / 保存 / 规模与 Boot；各模式、前置和窗口边界见运行时指南 |
+| `sh tools/check-factory-power.sh state [batch]` | 无窗口电图、能量守恒、半批存读及版本保护 |
+| `sh tools/check-factory-power.sh write/read <batch>` | 同一唯一 batch、两个独立进程的普通线窗口写入 / 恢复；实际执行时分别使用 `write` 或 `read` |
+| `sh tools/check-factory-discovery.sh state [batch]` | 无窗口四配方、样本 / 开路、事务和兼容检查，生成分段夹具 |
+| `sh tools/check-factory-discovery.sh process-read [batch]` | 先完成 state，再用独立进程核对多件半批与后续轨迹 |
+| `sh tools/check-factory-discovery.sh write/read <batch>` | 先完成 state，再用同一唯一 batch 串行执行 `write`、`read`，覆盖正式 Boot 分项交互与恢复 |
+| `sh tools/check-factory-statistics-performance.sh prepare/window <batch> <absolute-source-snapshot>` | 显式 runtime-intake 内 schema 2 来源；prepare 无窗口补满 600 秒历史，window 从相同准备状态分别测关闭 / 物料 / 电力各 45 秒。窗口准备页手动开始；独立双根、唯一 batch、原预算、失焦即停；仅普通供给对照，不算首档规模或持续验收 |
+| `sh tools/check-factory-statistics.sh state [batch]` | 统计查询、窗口、库存 / 理论口径、恢复与页面挂载定向检查 |
+| `sh tools/check-factory-statistics.sh ui <batch>` | 新隔离世界短窗口复核统计按钮与 Escape，先于完整路径执行 |
+| `sh tools/check-factory-statistics.sh write/read <batch>` | 新 batch 从空勘探世界按真实活动时间生产、步行与开路，复核统计 / 窗口；read 独立 Boot 恢复后继续断料 / 修复趋势验证 |
+
+发现检查的 `[batch]` 只控制状态日志位置；当前状态脚本将夹具 / JSON 结果固定写到 `tools/runtime-intake/check-runs/factory-discovery-v1/d2-b-20260925/`，process-read 与窗口 write 都从此取输入。复跑 state 会更新该固定目录，需先保留要审计的旧证据；窗口批次另用唯一名称，read 读取 write 的 manifest。窗口夹具由加速模型生产并准备布局 / 人物位置，不能作为自然玩家全路径。`check-client` 的 Godot 模式已登记 power / discovery / statistics 状态检查，不自动覆盖这些跨进程或窗口模式。
+
+统计窗口 write 使用 HUD 精确放置按钮、合法接线命令、稳定 ID 选择、合成 WASD 与原生面板 Enter，不预填材料、传送人物、直接解锁或加速时间。普通功能路径失焦时停止输入、等待手动切回，在同一进程 / 世界继续并记录失焦区间；不抢焦点，连续性能检查仍失焦即中断。同名 batch 不用于重建自然路径，失败批次须保留。read 仅用于已完成 write 的批次：通过键盘 Enter 进入工厂菜单，先冻结首帧核对完整快照，再在真实恢复世界分别观察正常供料、拆带断料、重建修复各 60 秒，最后保存并记录 `read-final.json`。因此 read 成功后不能以同一最终存档再次比较原 write 快照；若需复跑，使用新 write 批次，失败证据单独保留。它是自动工程路径，不替代用户亲测或首次阅读 / 建线时长。
+
 ## 像素归一管线（零依赖）
 
 - `normalize_pixel_asset.py`：像素素材归一基础库与 CLI（仅 Python 标准库）。能力：整数块降采样（块内逐通道中位数）、近黑底去背（边界泛洪 + 封闭孔判定）、限定调色板量化（median cut 上限 + 标准锚点吸附）、地面 128x128 宏块（4x4 个 32px tile）、横版多对象切分、明度基线匹配、2x2 拼贴与接缝比率自查。机械口径见 `docs/reference/pixel-art-and-grid-standard.md`。

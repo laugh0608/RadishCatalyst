@@ -65,6 +65,7 @@ var _context_is_dimmed := false
 	$CombatActionPanel/DodgeSlot/DodgeAction
 )
 @onready var character_panel: SliceCharacterPanel = $SliceCharacterPanel
+@onready var build_mode_button: Button = $BuildModeButton
 
 
 func setup(world: Node, player: SlicePlayer) -> void:
@@ -80,10 +81,20 @@ func setup(world: Node, player: SlicePlayer) -> void:
 	world.first_journey.changed.connect(_refresh_state)
 	minimap.setup(world, player)
 	character_panel.setup(world)
+	build_mode_button.pressed.connect(_on_build_mode_button_pressed)
+	world.build_mode_changed.connect(_refresh_state)
 	_refresh_state()
 
 
+func _on_build_mode_button_pressed() -> void:
+	_world.toggle_build_mode()
+	build_mode_button.release_focus()
+
+
 func _refresh_state(_changed_value = null) -> void:
+	build_mode_button.text = (
+		"退出建造" if _world.is_build_mode_active() else "进入建造"
+	)
 	crystal_label.text = "%d/%d" % [
 		_world.pocket.count(SliceWorld.ITEM_CRYSTAL),
 		_world.pocket.profile().item_capacity(SliceWorld.ITEM_CRYSTAL),

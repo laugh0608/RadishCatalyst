@@ -1,0 +1,23 @@
+{
+  "purpose": "Isolated refinement demo; no production asset replacement",
+  "files": {
+    "reactor.glb": {
+      "bytes": 854564,
+      "sha256": "a68457fb4497220e38f0db5b02f21250a467fc8b5d7e45820be94783740b63d9",
+      "meshes": 7,
+      "triangles": 8832
+    },
+    "power-junction.glb": {
+      "bytes": 265056,
+      "sha256": "16c246dd25dce3ba9ba1fe6afcec7777ab0ce476d4e33434dd205ca4985e9703",
+      "meshes": 5,
+      "triangles": 2712
+    }
+  },
+  "sources": {
+    "tools/factory-content/export-refinement-assets.mjs": "11bc7a12e2f341a4618b60886de8b3f0afcd5b4316815f02472fb03b297d2671",
+    "tools/visual-studies/web-topdown-3d/parts.mjs": "f64a97ee97fc4f3f3e3ae6af6dda725113a4745075b2501f6deadad8c74b0bb1",
+    "tools/visual-studies/web-topdown-3d/factory.mjs": "9342712d393eb888b601195b31db3db8e99c8ae00a0e6e388842b9d3078eceb9",
+    "tools/visual-studies/web-topdown-3d/node_modules/three/package.json": "1d5c438acdc1fe5a52fb8ede2e417afd91fec91d22275c40f7b739591b24e4df"
+  }
+}

@@ -51,6 +51,15 @@ script = ExtResource("1_hud_script")
 
 [node name="SliceCharacterPanel" parent="." instance=ExtResource("13_character_panel")]
 
+[node name="BuildModeButton" type="Button" parent="."]
+offset_left = 18.0
+offset_top = 146.0
+offset_right = 154.0
+offset_bottom = 190.0
+theme = ExtResource("2_ui_theme")
+theme_override_font_sizes/font_size = 18
+text = "进入建造"
+
 [node name="LeftStatusPanel" type="Panel" parent="."]
 offset_left = 18.0
 offset_top = 18.0

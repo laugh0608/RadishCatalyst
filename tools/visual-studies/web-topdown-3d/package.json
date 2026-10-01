@@ -1,0 +1,13 @@
+{
+  "name": "radishcatalyst-web-topdown-study",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.mjs",
+    "test": "node --test verify.mjs"
+  },
+  "dependencies": {
+    "three": "0.185.1"
+  }
+}

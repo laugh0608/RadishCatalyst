@@ -15,6 +15,18 @@ const PROCESSING_OVERLAY_TEXTURES := [
 	preload("res://assets/sprites/slice/reactor_processing_pulse_b.png"),
 ]
 const PROCESSING_OVERLAY_TEXTURE_LOCAL_ANCHOR := Vector2(48, 28)
+const BLOCKED_WARNING_COOLDOWN := 1.25
+const COLOR_DARK := Color(0.055, 0.08, 0.08, 0.76)
+const COLOR_CYAN := Color(0.337, 0.784, 0.769, 1.0)
+const COLOR_AMBER := Color(0.878, 0.643, 0.235, 1.0)
+const COLOR_WARNING := Color(0.78, 0.314, 0.247, 1.0)
+const FEEDBACK_SEGMENT_POSITIONS := [
+	Vector2(-12, -68),
+	Vector2(0, -72),
+	Vector2(12, -68),
+]
+
+signal feedback_event_played(event_id: StringName)
 
 var input_inventory := Inventory.new(
 	SliceInventoryProfiles.device_reactor_input()
@@ -24,6 +36,15 @@ var output_inventory := Inventory.new(
 )
 var processing := false
 var production_progress := 0.0
+var _feedback_state := &""
+var _feedback_time := 0.0
+var _pulse_remaining := 0.0
+var _blocked_warning_cooldown := 0.0
+var _audio_play_count := 0
+
+
+func _ready() -> void:
+	_ensure_feedback_nodes()
 
 
 func logistics_endpoints() -> Array[SliceLogisticsEndpoint]:
@@ -48,8 +69,14 @@ func logistics_endpoints() -> Array[SliceLogisticsEndpoint]:
 	return result
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_feedback_time += delta
+	_pulse_remaining = maxf(0.0, _pulse_remaining - delta)
+	_blocked_warning_cooldown = maxf(
+		0.0, _blocked_warning_cooldown - delta
+	)
 	_refresh_processing_visual()
+	refresh_feedback()
 
 
 func can_start_batch() -> bool:
@@ -138,6 +165,46 @@ func operation_status_text(output_can_extract: bool) -> String:
 	return "就绪"
 
 
+func refresh_feedback() -> void:
+	_ensure_feedback_nodes()
+	var next_state := SliceDeviceFeedbackState.reactor_state(
+		powered,
+		processing,
+		not output_inventory.is_empty()
+	)
+	var event_id := SliceDeviceFeedbackState.reactor_edge_event(
+		_feedback_state, next_state
+	)
+	if _feedback_state != next_state:
+		_feedback_state = next_state
+		_feedback_time = 0.0
+		if (
+			event_id != SliceDeviceFeedbackState.EVENT_REACTOR_BLOCKED
+			or _blocked_warning_cooldown <= 0.0
+		):
+			_play_feedback(event_id)
+	_refresh_feedback_frame()
+
+
+func feedback_state() -> StringName:
+	return _feedback_state
+
+
+func feedback_active_segment_count() -> int:
+	match _feedback_state:
+		SliceDeviceFeedbackState.REACTOR_IDLE:
+			return 1
+		SliceDeviceFeedbackState.REACTOR_PROCESSING:
+			return 3
+		SliceDeviceFeedbackState.REACTOR_BLOCKED:
+			return 2
+	return 0
+
+
+func feedback_audio_play_count() -> int:
+	return _audio_play_count
+
+
 func _accept_logistics_input(item_id: String) -> int:
 	if item_id != INPUT_ITEM_ID:
 		return 0
@@ -223,9 +290,150 @@ func _refresh_processing_visual() -> void:
 	sprite.position = (
 		texture_origin + PROCESSING_OVERLAY_TEXTURE_LOCAL_ANCHOR
 	)
-	sprite.visible = processing
-	if not processing:
+	sprite.visible = processing and powered
+	if not sprite.visible:
 		return
 	var frame := int(floor(production_progress * 4.0)) % 2
 	sprite.texture = PROCESSING_OVERLAY_TEXTURES[frame]
-	sprite.modulate = Color.WHITE if powered else Color(0.55, 0.6, 0.62, 1.0)
+	sprite.modulate = Color.WHITE
+
+
+func _refresh_feedback_frame() -> void:
+	var segments := _feedback_segments()
+	if segments.size() != FEEDBACK_SEGMENT_POSITIONS.size():
+		return
+	for segment in segments:
+		segment.color = COLOR_DARK
+	var disconnect_mark := get_node_or_null(
+		"FeedbackVisual/DisconnectMark"
+	) as Polygon2D
+	var blocked_mark := get_node_or_null(
+		"FeedbackVisual/BlockedMark"
+	) as Polygon2D
+	if disconnect_mark != null:
+		disconnect_mark.visible = false
+	if blocked_mark != null:
+		blocked_mark.visible = false
+	match _feedback_state:
+		SliceDeviceFeedbackState.REACTOR_UNPOWERED:
+			if disconnect_mark != null:
+				disconnect_mark.visible = true
+				disconnect_mark.color = COLOR_WARNING * 0.56
+		SliceDeviceFeedbackState.REACTOR_IDLE:
+			segments[1].color = COLOR_CYAN * 0.72
+		SliceDeviceFeedbackState.REACTOR_PROCESSING:
+			var active_index := int(floor(_feedback_time * 4.0)) % 3
+			for index in range(segments.size()):
+				segments[index].color = COLOR_CYAN * (
+					1.0 if index == active_index else 0.42
+				)
+		SliceDeviceFeedbackState.REACTOR_BLOCKED:
+			var warning_on := fmod(_feedback_time, 0.64) < 0.32
+			segments[0].color = COLOR_WARNING * (
+				1.0 if warning_on else 0.36
+			)
+			segments[2].color = COLOR_AMBER * (
+				0.42 if warning_on else 1.0
+			)
+			if blocked_mark != null:
+				blocked_mark.visible = true
+				blocked_mark.color = COLOR_WARNING
+	_refresh_transition_pulse()
+
+
+func _refresh_transition_pulse() -> void:
+	var pulse := get_node_or_null(
+		"FeedbackVisual/TransitionPulse"
+	) as Line2D
+	if pulse == null:
+		return
+	pulse.visible = _pulse_remaining > 0.0
+	if not pulse.visible:
+		return
+	var progress := 1.0 - _pulse_remaining / 0.34
+	pulse.scale = Vector2.ONE * lerpf(0.84, 1.08, progress)
+	pulse.modulate = Color(1.0, 1.0, 1.0, 1.0 - progress)
+
+
+func _play_feedback(event_id: StringName) -> void:
+	if event_id.is_empty():
+		return
+	var player := get_node_or_null("FeedbackAudio") as AudioStreamPlayer2D
+	var stream := SliceFeedbackAudio.stream_for(event_id)
+	if player == null or stream == null:
+		return
+	player.stream = stream
+	player.play()
+	_audio_play_count += 1
+	_pulse_remaining = 0.34
+	_refresh_transition_pulse()
+	if event_id == SliceDeviceFeedbackState.EVENT_REACTOR_BLOCKED:
+		_blocked_warning_cooldown = BLOCKED_WARNING_COOLDOWN
+	feedback_event_played.emit(event_id)
+
+
+func _ensure_feedback_nodes() -> void:
+	if get_node_or_null("FeedbackVisual") != null:
+		return
+	var visual := Node2D.new()
+	visual.name = "FeedbackVisual"
+	visual.z_index = 6
+	add_child(visual)
+	for index in range(FEEDBACK_SEGMENT_POSITIONS.size()):
+		var segment := Polygon2D.new()
+		segment.name = "Segment%d" % (index + 1)
+		segment.polygon = PackedVector2Array([
+			Vector2(-4, -2), Vector2(4, -2),
+			Vector2(4, 2), Vector2(-4, 2),
+		])
+		segment.position = FEEDBACK_SEGMENT_POSITIONS[index]
+		segment.color = COLOR_DARK
+		visual.add_child(segment)
+	var disconnect_mark := Polygon2D.new()
+	disconnect_mark.name = "DisconnectMark"
+	disconnect_mark.position = Vector2(-27, -55)
+	disconnect_mark.polygon = PackedVector2Array([
+		Vector2(-2, -7), Vector2(4, -7), Vector2(0, -1),
+		Vector2(5, -1), Vector2(-4, 8), Vector2(-1, 2),
+		Vector2(-6, 2),
+	])
+	visual.add_child(disconnect_mark)
+	var blocked_mark := Polygon2D.new()
+	blocked_mark.name = "BlockedMark"
+	blocked_mark.position = Vector2(27, -55)
+	blocked_mark.polygon = PackedVector2Array([
+		Vector2(-6, -7), Vector2(-2, -7), Vector2(-2, 7),
+		Vector2(-6, 7), Vector2(-6, -7), Vector2(2, -7),
+		Vector2(6, -7), Vector2(6, 7), Vector2(2, 7),
+		Vector2(2, -7),
+	])
+	visual.add_child(blocked_mark)
+	var pulse := Line2D.new()
+	pulse.name = "TransitionPulse"
+	pulse.width = 2.0
+	pulse.default_color = COLOR_CYAN
+	pulse.closed = true
+	pulse.antialiased = false
+	pulse.points = PackedVector2Array([
+		Vector2(-42, -84), Vector2(42, -84),
+		Vector2(48, -3), Vector2(-48, -3),
+	])
+	pulse.visible = false
+	visual.add_child(pulse)
+	var player := AudioStreamPlayer2D.new()
+	player.name = "FeedbackAudio"
+	player.bus = &"SFX"
+	player.position = Vector2(0, -44)
+	player.max_distance = 640.0
+	add_child(player)
+
+
+func _feedback_segments() -> Array[Polygon2D]:
+	var result: Array[Polygon2D] = []
+	for index in range(FEEDBACK_SEGMENT_POSITIONS.size()):
+		var segment := get_node_or_null(
+			"FeedbackVisual/Segment%d" % (index + 1)
+		) as Polygon2D
+		if segment != null:
+			result.append(segment)
+	return result

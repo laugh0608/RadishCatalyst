@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-08-26
+更新时间：2026-09-25
 
 ## 用途
 
@@ -25,13 +25,19 @@
 
 ## 当前状态
 
-当前活跃阶段专题：[试玩反馈整改 V1](slice-playtest-remediation-v1.md)——2026-08-16 连续试玩反馈、参考 UI 审阅与源码玩家体验审计已完成；现阶段先整改既有 Demo，不进入下一能力专题，陌生玩家盲测继续冻结。
+首次亲测后新增[低投入交互样板](factory-refinement-demo-v1.md)：圆润机械 / 化工方向已确认，独立验证设备面板、接口、范围供电与逐步引导。样板不改变正式电力 / 存档合同，待用户复核后决定接入。
+
+当前设计专题为 [Factory Discovery And Production V1](factory-discovery-and-production-v1.md)：固定矿区的样本试制、制剂量产、开路与富集生产回流；联合范围已获继续推进授权，D1 资产复核与 D2-A / D2-B 状态、供电、多配方及开拓已接入，正式 Boot 隔离分项证据具备。配套 [Factory Production Statistics V1](factory-production-statistics-v1.md) 承接用户提供的产消简报参考，定义物料库存、实际 / 理论速率、趋势和设备定位；[Factory Power And Grid V1](factory-power-and-grid-v1.md) 已补齐有限供能、连接、负荷和停复电提案，三者按 D1–D4 接入同一个新世界版本，D3 统计页与发现 HUD 已接入，空世界完整自然工程路径与独立恢复已补验，D4 用户体验和性能仍待收口，不把自动路径当作用户亲测。
+
+[Factory Foundation And Persistence V1](factory-foundation-and-persistence-v1.md) 的 P1–P3 开发机交付已收口：四档长测与剩余界面证据齐备，萝卜SAMA亲测反馈无明显问题；Windows / 目标硬件仍待验。现行实现边界见该专题及[工厂状态与存档合同](../architecture/factory-world-state-and-save-v1.md)。[Godot Demo](godot-first-production-line-demo-v1.md)、[Web 产线](web-first-production-line-v1.md) 和既有 [Factory Building Experience Validation V1](factory-building-experience-validation-v1.md) 保留为参照；产品方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为准。
+
+原[试玩反馈整改 V1](slice-playtest-remediation-v1.md)与 S0 暂缓，陌生玩家盲测继续冻结；既有整改成果和历史证据保留。
 
 功能基线专题：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)——`delivered / 120`、正式 UI、远程武器、破损核心和首程地图均已接通；既有自动与人工证据继续承担回归基线，但不再代表当前体验已经通过阶段验收。
 
 最新收口子专题：[Slice Visual Hierarchy And Color Separation V1](slice-visual-hierarchy-and-color-separation-v1.md) 与 [Slice Game UI Visual Finalization V1](slice-game-ui-visual-finalization-v1.md)——世界设备、HUD、制造 / 背包、设备、核心与系统界面均已完成正式入口和人工定稿。
 
-整改包 0—3 与 4A 已完成：空间 / 保存合同、主流程阻断、制造 / 装备闭环、库存 / 设备直接操纵、共享设置、HUD 安全区和上下文电力叠层均已通过正式入口。当前按 [Slice HUD And Device Feedback V1](slice-hud-and-device-feedback-v1.md) 进入 4B，只做核心与反应器代表状态及一次性反馈；代表路径通过前不扩全部设备。
+整改包 0—4 已完成：空间 / 保存合同、主流程阻断、制造 / 装备闭环、库存 / 设备直接操纵、共享设置、HUD 安全区、上下文电力叠层，以及核心、反应器、采集器、储物箱和中继的权威派生反馈均已通过正式入口。[Slice HUD And Device Feedback V1](slice-hud-and-device-feedback-v1.md) 已收口；这些结果继续承担实现与回归基线，不代表当前生产体验已经验证。
 
 最新人工通过子专题：[Slice Category Inventory And Powered Storage V1](slice-category-inventory-and-powered-storage-v1.md) 与 [Slice World Device Family Integration V1](slice-world-device-family-integration-v1.md)——联合 schema 8、设备家族、实体物流、真实二值供电线和双档迁移闸门已收口；[Slice Unified Device Operation Panels V1](slice-unified-device-operation-panels-v1.md) 核心仓库包 2 的视觉与行为也已随 UI 定稿收口。
 

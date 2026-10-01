@@ -1,0 +1,369 @@
+{
+  "purpose": "visual-study-only",
+  "source": "assets/art-intake/2026-09-06-pipe-modules/pipe-modules-source-v2.png",
+  "source_sha256": "7d5d5ad143ffdd41a9495fa73ce236bde8fb9de9aaffbbfea2b893fb4f0fb361",
+  "tile_size": 32,
+  "content_width": 10,
+  "source_anchors": {
+    "horizontal": {
+      "x": [
+        [
+          0,
+          122
+        ],
+        [
+          3,
+          237
+        ],
+        [
+          29,
+          433
+        ],
+        [
+          32,
+          543
+        ]
+      ],
+      "y": [
+        [
+          6,
+          242
+        ],
+        [
+          8,
+          266
+        ],
+        [
+          11,
+          321
+        ],
+        [
+          21,
+          402
+        ],
+        [
+          24,
+          438
+        ],
+        [
+          26,
+          463
+        ]
+      ]
+    },
+    "vertical": {
+      "x": [
+        [
+          6,
+          809
+        ],
+        [
+          8,
+          832
+        ],
+        [
+          11,
+          872
+        ],
+        [
+          21,
+          958
+        ],
+        [
+          24,
+          1003
+        ],
+        [
+          26,
+          1024
+        ]
+      ],
+      "y": [
+        [
+          0,
+          151
+        ],
+        [
+          3,
+          254
+        ],
+        [
+          29,
+          436
+        ],
+        [
+          32,
+          544
+        ]
+      ]
+    },
+    "elbow_left_down": {
+      "x": [
+        [
+          0,
+          122
+        ],
+        [
+          3,
+          237
+        ],
+        [
+          8,
+          319
+        ],
+        [
+          11,
+          386
+        ],
+        [
+          21,
+          444
+        ],
+        [
+          24,
+          504
+        ],
+        [
+          26,
+          525
+        ]
+      ],
+      "y": [
+        [
+          6,
+          714
+        ],
+        [
+          8,
+          736
+        ],
+        [
+          11,
+          795
+        ],
+        [
+          21,
+          864
+        ],
+        [
+          24,
+          914
+        ],
+        [
+          29,
+          964
+        ],
+        [
+          32,
+          1097
+        ]
+      ]
+    },
+    "port_right": {
+      "x": [
+        [
+          0,
+          735
+        ],
+        [
+          9,
+          835
+        ],
+        [
+          13,
+          884
+        ],
+        [
+          29,
+          1035
+        ],
+        [
+          32,
+          1134
+        ]
+      ],
+      "y": [
+        [
+          0,
+          733
+        ],
+        [
+          7,
+          815
+        ],
+        [
+          11,
+          873
+        ],
+        [
+          21,
+          947
+        ],
+        [
+          26,
+          1009
+        ],
+        [
+          32,
+          1064
+        ]
+      ]
+    }
+  },
+  "palette": [
+    [
+      46,
+      65,
+      69
+    ],
+    [
+      74,
+      97,
+      101
+    ],
+    [
+      88,
+      112,
+      132
+    ],
+    [
+      100,
+      129,
+      148
+    ],
+    [
+      100,
+      134,
+      176
+    ],
+    [
+      124,
+      149,
+      168
+    ],
+    [
+      130,
+      158,
+      188
+    ],
+    [
+      131,
+      169,
+      215
+    ],
+    [
+      138,
+      160,
+      181
+    ],
+    [
+      150,
+      169,
+      188
+    ],
+    [
+      150,
+      177,
+      206
+    ],
+    [
+      157,
+      177,
+      195
+    ],
+    [
+      160,
+      189,
+      219
+    ],
+    [
+      175,
+      207,
+      242
+    ],
+    [
+      193,
+      218,
+      243
+    ]
+  ],
+  "normalization": "piecewise source-block medians, checker removal, shared palette, sampled cuff edge alignment",
+  "checks": {
+    "horizontal_repeat_edge": true,
+    "vertical_repeat_edge": true,
+    "elbow_horizontal_edge": true,
+    "elbow_vertical_edge": true,
+    "port_horizontal_edge": true,
+    "binary_alpha": true,
+    "32px_frames": true,
+    "hollow_straight_centers": true,
+    "10px_content_width": true,
+    "body_art_has_coverage": true
+  },
+  "assets": {
+    "horizontal.png": {
+      "sha256": "84607ebd36add39fbce322a735e5ce809182d7b23479395e5276569fac42235d",
+      "size": [
+        32,
+        32
+      ],
+      "opaque_pixels": 400
+    },
+    "horizontal_content_mask.png": {
+      "sha256": "e1708a3479f702fa11806b87c7bfc5dd3ba198b61cb1fbcdf9f1bb2d89f83723",
+      "size": [
+        32,
+        32
+      ],
+      "opaque_pixels": 320
+    },
+    "vertical.png": {
+      "sha256": "74ea3425d2224d7e2db57826d4838760d275430102ae796099f20262e72e2a25",
+      "size": [
+        32,
+        32
+      ],
+      "opaque_pixels": 408
+    },
+    "vertical_content_mask.png": {
+      "sha256": "5310c40d63ded80192ea0ae04b8575494a8950f832244163244aaba4b25f729d",
+      "size": [
+        32,
+        32
+      ],
+      "opaque_pixels": 320
+    },
+    "elbow_left_down.png": {
+      "sha256": "32617cc95b0d7c876a97d5eabbd2b432178214f42a1931e97dcc9845c91bf8a9",
+      "size": [
+        32,
+        32
+      ],
+      "opaque_pixels": 336
+    },
+    "elbow_left_down_content_mask.png": {
+      "sha256": "cc0e4350ca2f649ac21b27ddf2db1d307aa2f2ac552c96423041337ff8a03863",
+      "size": [
+        32,
+        32
+      ],
+      "opaque_pixels": 287
+    },
+    "port_right.png": {
+      "sha256": "04ed7fe8bf7978fe28dcacdcc3a00110a637e82aee1ee034d8769772e2f2435c",
+      "size": [
+        32,
+        32
+      ],
+      "opaque_pixels": 625
+    },
+    "port_right_content_mask.png": {
+      "sha256": "e55030297fe6887448a7cf9de41aa5b4487c2f577c96b44dc3f47a353b98895f",
+      "size": [
+        32,
+        32
+      ],
+      "opaque_pixels": 190
+    }
+  }
+}

@@ -1,6 +1,6 @@
 # Godot Runtime Verification Guide (For AI Agents)
 
-更新时间：2026-08-11
+更新时间：2026-09-29
 
 ## 用途与定位
 
@@ -11,6 +11,13 @@
 - 定位：玩家可见目标以**实机截图与运行时路径复核为主证据**，`check-client` 静态检查只兜底；本方法就是产出主证据的机械化手段。
 - 约束：启动 Godot 属 `CLAUDE.md` 中"需要先告知用户再执行"的操作，跑之前先在回复中告知萝卜SAMA。
 - 平台：macOS 下 Godot 可执行文件为 `/Applications/Godot.app/Contents/MacOS/Godot`；以下记为 `$GODOT`。
+
+## 焦点与用户桌面
+
+- 有窗口验证不得循环调用 `grab_focus()`、强制置顶或在失焦后自动切回。萝卜SAMA切换窗口时停止采样或中断检查，不能抢占桌面来凑前台时长。
+- 普通功能流程可在失焦时停止输入并等待萝卜SAMA手动切回，再继续同一进程、同一世界；游戏自身失焦暂停不变。记录实际经过、活动时间与失焦区间，功能等待超时不计失焦时间。不能用设置 focused=true、后台加速或重新载入夹具冒充自然继续。D3 统计路径按 2026-09-29 授权采用此规则；其他检查不自动改变。
+- 连续前台性能采样仍在失焦时中断，不将功能路径允许暂停解释为性能采样允许拼接。
+- 用户关闭测试窗口后不自动重开；需要连续前台占用的长测，应在用户方便的时段另行安排。中断结果保持未完成，不能把后台时间或短测拼成连续前台通过。
 
 ## 核心机制
 
@@ -32,10 +39,10 @@ repo_root="$PWD"
 1. **先导入**（新增素材 / 场景 / 脚本后必做，否则资源缺失）：
    `"$GODOT" --headless --path client --import --quit --no-header`
 2. **纯逻辑断言**用 `--headless` 跑（快）；**需要截图**的用有窗口跑。
-3. 输出重定向到日志文件，过滤真实错误（macOS 有 `noErr` / 证书类噪声）：
-   `grep -E "passed|SCRIPT ERROR|ERROR:" log | grep -v noErr | grep -v certificate`
+3. 将输出写入日志，核对退出码并定位真实错误；仅排除已确认的 macOS `ret != noErr` 噪声：
+   `rg '^(SCRIPT ERROR|ERROR:)' log | rg -v 'Condition "ret != noErr"'`
 4. 一次性检查脚本放仓库内忽略提交的 `tools/runtime-intake/YYYY-MM-DD-<topic>/`；形成稳定通用回归价值后，再迁入正式 `scripts/` 或客户端检查入口。
-5. 自动检查、临时验证和人工复测存档一律放在仓库内忽略提交的 `tools/runtime-intake/`，不得写入 `/tmp`、系统临时目录或工作区外：自动运行使用 `check-runs/<topic>/`，稳定人工档使用 `review-worlds/current/` 或 `review-worlds/<topic>/`，专题正式入口也可继续使用同批次 `save-root/`。开跑前可清理自己的隔离目录，但通过后不得删除最终主档 / 备份档；纯破坏性 / 迁移失败测试使用独立子目录并可清理，任何测试都不得覆盖生产版 `user://saves/slice/`。
+5. 自动检查、临时验证和人工复测存档一律放在仓库内忽略提交的 `tools/runtime-intake/`，不得写入 `/tmp`、系统临时目录或工作区外：自动运行使用 `check-runs/<topic>/`，稳定人工档使用 `review-worlds/current/` 或 `review-worlds/<topic>/`，专题正式入口也可继续使用同批次 `save-root/`。开跑前可清理自己的隔离目录，但通过后不得删除最终主档 / 备份档；纯破坏性 / 迁移失败测试使用独立子目录并可清理，任何测试都不得覆盖生产版 `user://saves/slice/` 或 `user://saves/factory/`。
 6. 截图落到 git 忽略的 `assets/art-intake/<日期>-<主题>-preview/`，供人工 / 视觉复核，结论记入当周周志。多图可以用 `./scripts/create-screenshot-contact-sheet.sh <output.png> <inputs...>` 生成带编号联系表辅助导航，但视觉结论必须按任务风险审阅足够的原生尺寸截图；联系表不能替代文字、材质、构图和整体观感判断。
 
 ## 脚本骨架模板
@@ -102,7 +109,7 @@ func _screenshot(file_name: String) -> void:
 - **输入模拟**：`Input.action_press("move_up")` → 若干 `await physics_frame` → `Input.action_release(...)`，走真实物理与动画路径。**用完必须 release**，Input 状态跨段残留。
 - **传送 + 真实交互结合**：跨图赶路可以直接设 `player.position`（省时），但被验证的机制本身（交互、碰撞、放置）必须走真实路径。
 - **位置里程碑而非定帧计时**：断言"走到某处"用位置条件 + 帧数上限兜底；固定帧数在高刷新率下失真（W29 经验）。
-- **显式 delta 驱动时间逻辑**：验证计时产出类逻辑时直接调 `world._tick_production(INTERVAL)` 传显式 delta，确定性且不用真等墙钟；墙钟等待既慢又受帧率干扰。
+- **模型时间与运行时钟分别验证**：显式传入时间可以定向验证配方、守恒与状态推进，但不能证明实际主循环没有丢失活动时间。持续验证需同时记录单调墙钟、暂停 / 失焦时段、模型已推进时间与待处理余量；不得用加速模型检查替代真实持续生产。
 - **存档闭环**：同脚本内 `boot.free()` → 再实例化新 `Boot` 走"载入存档"，可验证读档还原；要更严格的进程隔离就分两次 godot 调用（存档进程 + 读档进程），断言中间落盘 JSON。
 - **人工复核存档**：自动链可以在启动时删除自己上一次的隔离目录，结束时必须停在最有复核价值的通过状态并保留存档。若一个包需要人工检查多个互斥状态，为每个状态使用独立隔离目录；报告目录、载入后预期状态和是否保留备份档。
 - **截图时机**：状态就位后 `await process_frame` 两次再抓 `root.get_texture().get_image()`；相机跟随玩家时把玩家挪到构图点即可控制取景。
@@ -115,12 +122,51 @@ func _screenshot(file_name: String) -> void:
 3. **物理查询上下文**：`direct_space_state.intersect_shape` 在 `_physics_process` 上下文调用安全；别在树外或构造期调。
 4. **`--headless` 无渲染**：截不了图；只在纯逻辑断言时用它提速。
 5. **测试脚本类型转换**：`Array[Vector2i]` 等 typed array 的比较/转换在脚本里容易 parse error，逐元素断言更稳。
-6. **噪声过滤**：macOS 日志里 `noErr`、证书行不是错误；只认 `SCRIPT ERROR` / `ERROR:` 与自己的失败输出。
-7. **信号驱动的按钮**：`button.pressed.emit()` 等价于点击且无需坐标；比合成鼠标事件可靠。
+6. **噪声过滤**：当前 macOS `Condition "ret != noErr"` 已确认是系统证书查询噪声；不要据此忽略所有证书相关错误。其余 `SCRIPT ERROR` / `ERROR:` 与检查失败均须核对。
+7. **信号驱动的按钮**：`button.pressed.emit()` 可以验证信号后的业务连接，但不覆盖鼠标命中、遮挡、焦点和禁用状态；与真实输入及用户亲测分别记录。
 
 ## 断言与产物规范
 
-- 失败收集进数组、最后统一 `push_error` 并 `quit(1)`；调用侧看 exit code 判定，不靠肉眼扫日志。
+- 失败收集进数组、最后统一 `push_error` 并 `quit(1)`；调用侧同时核对退出码与 `SCRIPT ERROR` / `ERROR:` 日志，因为脚本解析失败可能返回 0。只精确排除已确认的平台噪声，不忽略真实错误。
 - 每包验证的断言数、截图文件名、结论写入当周周志；截图目录不入库（`art-intake` 已忽略），复核图（放大对比等）用完即删。
 - 自动化产生多张截图时保留原图；联系表用于快速定位，最终判断按风险直接检查必要原图，不设置单会话图片张数上限。
-- Bash 调用侧记得设超时（本仓库经验：单次带窗口运行 < 60 秒，卡住通常是脚本没 `quit()`）。
+- 调用侧按场景设置超时；普通窗口检查保持短时，真实生产 / 长测明确时长、进度和取消路径。长测不能因用户失焦而自动抢回窗口，不能将超时或中断写成通过。
+
+## 正式三维工厂验证路由
+
+工厂已接入同一 Boot，旧示例的 `SliceSaveCatalog` 注入不足以隔离全部存档；还须在加入场景树前设置 `boot.factory_save_root`。基础工厂使用 `factory-foundation-v1` 的 `check-runs/` / `review-worlds/`，操作与截图规则见[首包专题](../features/factory-foundation-and-persistence-v1.md)；勘探工厂的电力与发现检查分别归入 `factory-power-v1` / `factory-discovery-v1`，同样隔离两个根，具体批次与原图见 W39 周志。
+
+临时前台诊断若需要“点击开始”准备页，复用 `client/scripts/checks/factory_diagnostic_gate.gd`，不要复制窗口初始化代码：
+
+```gdscript
+var gate := preload("res://scripts/checks/factory_diagnostic_gate.gd")
+if not await gate.wait_for_start(self, "异星催化 · 诊断准备", "本次负载、时长与取消条件"):
+	quit(1)
+	return
+await super._run() # 仅在派生诊断脚本中进入原检查流程。
+```
+
+准备页保持最大化，不同时写入小窗口尺寸；仅在准备页使用自适应铺满，结束时恢复原内容比例与关闭策略。显示按钮前检查原生窗口、实际渲染图像和控件布局已同步，并跨渲染帧确认尺寸稳定；尺寸同步上限 5 秒，按钮开放后等待点击上限 180 秒，均为失败上限而非固定显示延时。关闭、超时或 headless 调用返回 false，调用方必须终止诊断；共用准备页不自动进入正式 Boot。`ViewportTexture.get_size()` 带有拉伸变换，不能替代 `get_image().get_size()` 的实际像素证据。准备页验证不算正式 Boot、工厂画面或性能验收；正式检查仍按原有路径与预算执行。
+
+- `tools/check-factory-foundation.sh` 的 `state` / `clock` / `view-state` / `interruption` / `process` / `legacy` / `scale` / `scale-process` / `scale-merge` 为无窗口检查；`boot` / `operation-write` / `operation-read` / `performance` / `sustained` 会开窗口。`clock` 使用隔离 Boot 与真实停顿，焦点和弹窗按钮信号注入单列；`interruption` 检查准备 / 采样中断，不算性能通过。各模式单独运行，Godot 可由既有 `GODOT_EXE` 指定，不自动安装。
+- `performance` / `sustained` 依赖 `scale` 生成的满载快照；后者另外用正式命令生成空物料工程线再真实生产。负载供给必须明确标记，不能进入普通新世界选项。
+- 完整与中断采样均保留帧记录、逐帧模拟耗时、模拟步、保存耗时及采样分辨率；中断原因单列 `focus_lost` / `window_closed` / `focus_unavailable`。旧批次缺失的字段不能据新格式补猜；中断记录不计作完整性能通过。
+- 正式检查中的逐帧模拟耗时只围绕 `model.advance`，不代表整帧 CPU 或 GPU。额外视口 CPU / GPU 与节点处理计时来自单列的一次性诊断；GPU 全零读数记为不可用，分位数不能直接相加或相减来推算未测开销。临时同步开 / 关对照须保留设置、恢复过程和中断边界，不改写正式验收结果。
+- `--gpu-profile` 与 `viewport_set_measure_render_time` 是不同层级的诊断开销：分项采样须与关闭分项的同状态段对照，预算结论回到无额外 GPU 时间戳的正式帧采样。GPU / CPU 原始时间戳单位应结合当前引擎实现和实际读数核对，不能凭接口名称猜单位；本机 Godot GPU 原始值按纳秒、CPU 按微秒处理。本次固定构建的 [Metal 时间戳实现](https://github.com/godotengine/godot/blob/5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88/drivers/metal/rendering_device_driver_metal.cpp) 清零查询结果，与本机内置接口不可用现象一致；不代表 Metal 本身无法测量。使用 Instruments 的原生 GPU 轨迹与该接口分开记录，并单列采样干扰时段。
+- Instruments `Metal System Trace` 即使附加单个 PID，也可能含共享 GPU / 显示事件；分析先按目标 PID 筛选，再对并行通道与层级重叠区间求并集，不能简单累加。记录轨迹自身起止时间并对应生产段，区分采集与后续整理开销；drawable 等待可与 GPU 执行重叠，不能用分位数相减解释等待原因。
+- 呈现回调抵达时间、drawable 的实际呈现时间和命令完成时间分别记录；先核对时钟基准，再关联对象。Surface ID、Drawable ID、队列 ID 或合成 seed 不因数值重合就视为同一身份；无标识等待事件不能据时间先后证明回收因果。已验证方法及反例见 [Metal 呈现诊断记录](factory-metal-presentation-review-20260912.md)。
+- 隔离诊断构建按源码 / 补丁清单、revision 和二进制 SHA-256 关联样本；相同版本字符串不能证明二进制相同。分析器须显式覆盖该版新增事件，旧事件检查通过不代表新分段已验证。成对区间与 fence / command 生命周期先校验再计时，指针复用不跨生命周期关联；信号编码请求不等于 GPU 完成，延迟回调不强归相邻绘制帧，嵌套跨度不重复累加。
+- 第二版固定源码的捕获在删除 RenderingServer 后、删除 DisplayServer / RenderingDevice 前 flush；捕获末尾仍存活的 fence 单列为未观察到析构，不据此伪造 free 或宣称完整释放验证通过。捕获内销毁后继续使用、未销毁就复用地址仍失败。drawable 数值编号 0 不能单独判定空获取，应同时核对该版记录的 texture 与实际调用语义。
+- `check-client` 默认只做静态检查；Shell / PowerShell 的 Godot 路径已纳入工厂 `state` / `save` / `clock` / `view_state` / `power` / `discovery` / `statistics`，不因此覆盖全部跨进程、规模、原生窗口或持续性能模式。具体执行范围以脚本与当批日志为准。
+- 操作存读使用同一唯一 batch 的两个独立进程；同一进程销毁再建 Boot 只作为较窄的恢复证据。旧世界入口 / schema 回归继续独立执行。
+- 2026-09-09 已补单调时钟、准备 / 采样中断和规模定向证据；窗口计时、原生保存返回 / 重进及后台长测已有通过记录，前台性能仍待诊断与完整重跑。时钟一致性按同一已处理帧边界比较墙钟与“推进 + 余量变化”；原始帧、模拟步和保存记录分别保留，注入故障 / 保存与正常自动保存须区分。批次事实见 [W37 周志](../devlogs/2026-W37.md)。
+
+- 2026-09-12 系统关闭保存与独立 Boot 重进已补 17 / 15 项证据。内置 Metal GPU 时间接口仍不可用，但已取得有效原生 Metal 轨迹并完成时钟 / 对象与源码审计；60 FPS 对照未改善，原配置短测仍超预算。准备页修正、生产视图回归与原图已分别验证；9 月 13 日原诊断方案获授权，源码和 SCons 已落盘；预检缺少的三项依赖已补充授权并隔离安装，两版隔离构建及第一版多批次对照已完成，CPU 获取 / 编码 / 提交顺序已验证，但基线波动仍未收口。9 月 25 日第二版离线分析与首轮窗口配对已完成，本次快绘制样本未复现历史持续慢帧，标记开销与性能根因仍待确认；详见 W37 / [W39 周志](../devlogs/2026-W39.md)和呈现诊断记录。
+
+- 2026-09-25 接续：正式版本原配置短测通过，四档长测首档 `focus_lost` 后停止，完成档位为 0；完整 Shell Godot 套件首次沙箱执行遇到 FreeType 字体错误，入口正确失败，经授权在主机按同一隔离流程重跑 74 个入口（含导入）全部通过。保留两次日志，不新增字体错误忽略项，也不把主机无窗口通过当成四档长测或 Windows 验收；证据见 [W39 周志](../devlogs/2026-W39.md)。
+
+- 2026-09-25 后续：收到明确开始通知后，正式版本四档各 450 秒前台长测完成，29 项检查通过、无失焦，60 次采样内自动保存成功；批次 `performance-1790317200-22165` 的四张阶段起始原图已审阅。此独立完整批次关闭本机持续性能缺口，不拼接前次中断，也不替代窗口故障反馈、Windows 或用户亲测；明细仍见 W39 周志。
+
+- 同日 `menu-review-20260925-a` 已补备份 / 坏档 / 未来版本、独立持锁进程阻断与显式恢复、旧二维载入界面：55 项通过、11 张原图已审阅，合成输入与原生 / 用户亲测分列。独立亲测入口及路径见[首包亲测交付](../features/factory-foundation-and-persistence-v1.md#用户亲测交付)，本机证据齐备不替代体验确认或 Windows 验收。
+
+- D2-A / D2-B 已增加 `tools/check-factory-power.sh` 和 `tools/check-factory-discovery.sh`，模式、固定夹具目录和跨进程顺序见 [Tools](../../tools/README.md#正式工厂定向检查)。发现窗口使用加速生产的分段夹具与合成输入，不能拼成自然玩家全路径；完整统计页、自然发现循环和窗口尺寸全覆盖仍属 D3。上述 74 入口全套与四档长测发生于 D1–D2 代码变更前，适用于当时的基础工厂，不代表最新 schema 2 全量或性能通过。

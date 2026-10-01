@@ -45,6 +45,7 @@
 ## Core Documents
 
 - [Project Definition](product/project-definition.md)
+- [Production-Centered Direction](product/production-centered-direction.md)
 - [Creative Development Brief](product/creative-development-brief.md)
 - [Reference Positioning](product/reference-positioning.md)
 - [Player Wiki And Official Tools](product/player-wiki-and-official-tools.md)
@@ -67,6 +68,7 @@
 
 - [Design Documents](design/README.md)
 - [Core Gameplay Loop](design/core-gameplay-loop.md)
+- [Discovery And Industrial Reproduction](design/discovery-and-industrial-reproduction.md)
 - [Character Progression And Equipment](design/character-progression-and-equipment.md)
 - [Combat And Interaction Prototype](design/combat-and-interaction-prototype.md)
 - [Development Retest Baselines](design/development-retest-baselines.md)

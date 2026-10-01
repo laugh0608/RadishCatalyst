@@ -31,7 +31,11 @@ func _physics_process(delta: float) -> void:
 		"move_left", "move_right", "move_up", "move_down"
 	)
 	_refresh_aim_direction()
-	if _dodge_remaining > 0.0:
+	var building: bool = world != null and world.is_build_mode_active()
+	if building:
+		cancel_dodge()
+		velocity = movement_input * MOVE_SPEED
+	elif _dodge_remaining > 0.0:
 		_dodge_remaining = maxf(0.0, _dodge_remaining - delta)
 		velocity = _dodge_velocity
 	else:

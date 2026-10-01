@@ -9,9 +9,17 @@ RadishCatalyst Godot 客户端工程目录。
 - `data/`：静态配置数据，例如物品、配方、建筑、敌人、区域、天气和任务。
 - `scenes/`：Godot 场景文件。
 - `scripts/`：GDScript 代码，按状态、系统、角色、地图、基地、存档和 UI 拆分。
-- `assets/`：客户端运行所需的图像、瓦片、图标、音频和 shader。
+- `assets/`：客户端运行所需的图像、瓦片、图标、音频、shader 与导入模型；工厂模型位于 `assets/factory/`。
 - `ui/`：可复用 UI 资源或主题文件。
 - `save/`：存档 schema、迁移脚本和本地存档相关资源。
 - `tests/`：后续 Godot 侧测试或验证入口。
 
-详细分层规则见 `docs/architecture/godot-project-structure.md`。
+## 正式入口与工厂边界
+
+`scenes/boot/Boot.tscn` 的启动菜单同时保留旧二维世界，并提供“工厂世界”入口。三维工厂的配置、场景、脚本与资产分别位于各自的 `factory/` 子目录；状态和文件发布见 `scripts/factory/model.gd`、`scripts/factory/save/`。
+
+工厂使用独立 `user://saves/factory/worlds/`：默认基础工厂保留 schema 1 与预供电，另选勘探工厂使用 schema 2，支持显式电网、多配方、拾样试制与矿道开拓。旧二维 schema 10 及其目录保留；三个版本不自动转换。运行检查须注入两个隔离存档根，不能直接使用用户正式档。纯状态 / 存档检查已接入客户端 Godot 模式，窗口和持续负载需按专题单独执行。
+
+详细结构见 [Godot Project Structure](../docs/architecture/godot-project-structure.md)，当前功能与验收状态见 [Current Plan](../docs/planning/current.md)及其发现生产、电力和统计专题；状态与存档合同见 [Factory World State And Save V1](../docs/architecture/factory-world-state-and-save-v1.md)和 [Factory Discovery Save V2](../docs/architecture/factory-discovery-save-v2.md)。D3 已接入只读统计页和发现 HUD；统计不暂停生产，定位不移动人物。空世界两次开路、富集回流与独立恢复已补齐工程验证；普通供给统计性能短对照通过，完整玩家体验与规模验收仍待完成，见 [W40 周志](../docs/devlogs/2026-W40.md)。
+
+`client/scripts/prototypes/factory_refinement/` 与 `assets/factory/refinement/` 承载[低投入交互样板](../docs/features/factory-refinement-demo-v1.md)：通过工具启动双根隔离 Boot 后挂载，复用真实生产模型但仅在内存派生范围供电。它不是正式工厂菜单选项，不接入 Store / codec；设备面板、范围供电与六步引导尚未替换正式玩法，启动方式见 [Factory Content](../tools/factory-content/README.md)。

@@ -774,6 +774,64 @@ func _check_world_placement_path() -> void:
 		Vector2(0, -56),
 		"placed collector sprite is bottom-centered on the footprint edge"
 	)
+	var upper_sprite_point := _first_opaque_upper_point(collector_sprite)
+	_expect_equal(
+		upper_sprite_point.y < placed_collector.global_position.y - 64.0,
+		true,
+		"collector selection probe is above its occupied ground footprint"
+	)
+	_expect_equal(
+		world._input_router._visible_instance_at(
+			world, upper_sprite_point
+		),
+		placed_collector,
+		"build pointer selects the visible machine body above its footprint"
+	)
+	var occupied_point := collector.block_center(
+		collector_cell, SliceWorld.TILE_SIZE, 0
+	)
+	_expect_equal(
+		world._input_router._occupied_instance_at(world, occupied_point),
+		placed_collector,
+		"occupied-cell fallback selects the facility above supporting floor"
+	)
+	world.enter_build_mode()
+	var player_x_before := world.player.position.x
+	Input.action_press("move_right")
+	world.player._physics_process(0.05)
+	Input.action_release("move_right")
+	_expect_equal(
+		world.player.position.x > player_x_before,
+		true,
+		"build mode preserves ordinary player movement"
+	)
+	var select_click := InputEventMouseButton.new()
+	select_click.button_index = MOUSE_BUTTON_LEFT
+	select_click.pressed = true
+	select_click.position = (
+		world.get_viewport().get_canvas_transform() * upper_sprite_point
+	)
+	_expect_equal(
+		world._input_router._handle_building_selection(
+			world, select_click, true
+		),
+		false,
+		"blocking UI prevents build-mode machine selection"
+	)
+	_expect_equal(
+		world._input_router._handle_building_selection(
+			world, select_click, false
+		),
+		true,
+		"idle build-mode click opens the existing machine panel"
+	)
+	_expect_equal(
+		world._building_action_panel.target_instance(),
+		placed_collector,
+		"upper machine-body click opens the matching operation target"
+	)
+	world.close_building_actions()
+	world.exit_build_mode()
 	_expect_equal(
 		(placed_collector.get_node("PowerIndicator") as Polygon2D).position,
 		Vector2(36, -12),
@@ -858,6 +916,18 @@ func _expect_equal(actual, expected, context: String) -> void:
 	failures.append(
 		"%s: expected %s, got %s" % [context, str(expected), str(actual)]
 	)
+
+
+func _first_opaque_upper_point(sprite: Sprite2D) -> Vector2:
+	var image := sprite.texture.get_image()
+	var size := image.get_size()
+	for y in range(int(size.y * 0.5)):
+		for x in range(size.x):
+			if image.get_pixel(x, y).a > 0.0:
+				return sprite.to_global(
+					Vector2(x + 0.5, y + 0.5) - Vector2(size) * 0.5
+				)
+	return sprite.global_position
 
 
 func _cleanup_save_dir() -> void:

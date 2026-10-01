@@ -1,0 +1,55 @@
+{
+  "source": "Repository-authored D1 power candidates; offline Three.js export",
+  "files": {
+    "power-source.glb": {
+      "bytes": 259852,
+      "sha256": "61bef73f65cd3ec27883ccf8e9224ef3b6fe933c550f2deafceb137448e9fa84",
+      "footprint": [
+        3,
+        3
+      ],
+      "bounds": {
+        "min": [
+          -1.399999976158142,
+          2.6822091214739885e-9,
+          -1.399999976158142
+        ],
+        "max": [
+          1.399999976158142,
+          2.1700000762939453,
+          1.399999976158142
+        ]
+      },
+      "meshes": 8,
+      "triangles": 2628
+    },
+    "power-junction.glb": {
+      "bytes": 59672,
+      "sha256": "a9917134cc272cfb2096ad9532dc9c30483e043f799edddaa4eb9c2eda2dbed1",
+      "footprint": [
+        1,
+        1
+      ],
+      "bounds": {
+        "min": [
+          -0.44999998807907104,
+          2.6822091214739885e-9,
+          -0.4300000071525574
+        ],
+        "max": [
+          0.44999998807907104,
+          2.4549999237060547,
+          0.4300000071525574
+        ]
+      },
+      "meshes": 6,
+      "triangles": 564
+    }
+  },
+  "sources": {
+    "tools/factory-content/export-power-assets.mjs": "6dfe178e408238a695c249b658d50dd8f8c530f324e26826f5c8ed1632b2ec9d",
+    "tools/visual-studies/web-topdown-3d/parts.mjs": "f64a97ee97fc4f3f3e3ae6af6dda725113a4745075b2501f6deadad8c74b0bb1",
+    "tools/visual-studies/web-topdown-3d/factory.mjs": "9342712d393eb888b601195b31db3db8e99c8ae00a0e6e388842b9d3078eceb9",
+    "tools/visual-studies/web-topdown-3d/node_modules/three/package.json": "1d5c438acdc1fe5a52fb8ede2e417afd91fec91d22275c40f7b739591b24e4df"
+  }
+}

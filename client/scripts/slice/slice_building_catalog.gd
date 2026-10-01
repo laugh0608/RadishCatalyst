@@ -114,7 +114,7 @@ static func find(building_id: String) -> SliceBuildingDefinition:
 					SliceBuildingDefinition.SURFACE_INDUSTRIAL_FLOOR,
 					true,
 					false,
-					"",
+					"res://scenes/slice/SlicePowerRelay.tscn",
 					["res://assets/sprites/slice/power_relay.png"],
 					Vector2(0, -22),
 					Rect2(),

@@ -10,6 +10,7 @@ func _init() -> void:
 
 func _execute() -> void:
 	_check_storage_port_rotation()
+	_check_storage_docking_visuals()
 	_check_collector_output_transfer()
 	_check_placement_port_feedback()
 	_check_straight_storage_transfer()
@@ -30,6 +31,108 @@ func _execute() -> void:
 	for failure in failures:
 		push_error(failure)
 	quit(1)
+
+
+func _check_storage_docking_visuals() -> void:
+	var storage := _make_storage(
+		"building-storage-docking", Vector2i(10, 10), 0
+	)
+	var output_belt := _make_conveyor(
+		"building-storage-output", Vector2i(12, 11), 1
+	)
+	var grid := SliceLogisticsGrid.new()
+	grid.rebuild([storage, output_belt])
+	var sprite := storage.get_node("Sprite") as Sprite2D
+	var output_patch := sprite.get_node_or_null(
+		"OutputDockingPatch"
+	) as Sprite2D
+	_expect_equal(
+		output_patch != null and output_patch.visible,
+		true,
+		"correct active storage output derives its docking patch"
+	)
+	_expect_equal(
+		output_patch.position,
+		SliceStorage.OUTPUT_DOCKING_POSITION,
+		"storage output patch uses its measured short-port anchor"
+	)
+	_expect_equal(
+		output_patch.texture.get_size(),
+		SliceStorage.DOCKING_PATCH_SIZE,
+		"storage reuses the reviewed twelve-by-twenty-four docking patch"
+	)
+	_expect_equal(
+		output_patch.texture.resource_path.ends_with(
+			"docking_right_connected_patch.png"
+		),
+		true,
+		"storage output shares the semantic right docking resource"
+	)
+	_expect_equal(
+		output_patch.z_index,
+		0,
+		"storage docking patch stays on the device sorting plane"
+	)
+	_expect_equal(
+		sprite.get_node_or_null("InputDockingPatch"),
+		null,
+		"inactive storage input does not invent a connection"
+	)
+
+	storage.set_mode(SliceStorage.MODE_TRANSFER)
+	var wrong_input_belt := _make_conveyor(
+		"building-storage-input-wrong", Vector2i(9, 11), 0
+	)
+	grid.rebuild([storage, wrong_input_belt])
+	_expect_equal(
+		output_patch.visible,
+		false,
+		"mode switch clears the formerly active output patch"
+	)
+	_expect_equal(
+		sprite.get_node_or_null("InputDockingPatch"),
+		null,
+		"wrong-way input belt does not create a docking patch"
+	)
+
+	var input_belt := _make_conveyor(
+		"building-storage-input", Vector2i(9, 11), 1
+	)
+	grid.rebuild([storage, input_belt])
+	var input_patch := sprite.get_node_or_null(
+		"InputDockingPatch"
+	) as Sprite2D
+	_expect_equal(
+		input_patch != null and input_patch.visible,
+		true,
+		"correct active storage input derives its docking patch"
+	)
+	_expect_equal(
+		input_patch.position,
+		SliceStorage.INPUT_DOCKING_POSITION,
+		"storage input patch uses its measured short-port anchor"
+	)
+	_expect_equal(
+		input_patch.texture.resource_path.ends_with(
+			"docking_left_connected_patch.png"
+		),
+		true,
+		"storage input shares the semantic left docking resource"
+	)
+
+	grid.rebuild([storage])
+	_expect_equal(
+		input_patch.visible,
+		false,
+		"disconnect clears the storage docking patch"
+	)
+	grid.rebuild([storage, input_belt], storage.instance_id)
+	_expect_equal(
+		input_patch.visible,
+		false,
+		"adjustment exclusion keeps the storage docking patch cleared"
+	)
+	_free_instances([storage, output_belt, wrong_input_belt, input_belt])
 
 
 func _check_storage_port_rotation() -> void:
