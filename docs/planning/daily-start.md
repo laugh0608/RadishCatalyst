@@ -1,16 +1,18 @@
 # Daily Start
 
-更新时间：2026-10-05（范围自动供电与拾取交接）
+更新时间：2026-10-05（首程引导与附件日程）
 
 ## 启动读取
 
-先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[范围供电与拾取](../features/factory-range-power-and-pickup-v1.md)及 [W41 周志](../devlogs/2026-W41.md)。按任务补读[设备交互](../features/factory-device-interaction-v1.md)、[发现生产](../features/factory-discovery-and-production-v1.md)、[基础电力](../features/factory-power-and-grid-v1.md)及[生产统计](../features/factory-production-statistics-v1.md)。版本与升级读 [schema 3](../architecture/factory-discovery-save-v3.md)，字段读 [schema 2](../architecture/factory-discovery-save-v2.md)，文件协议读[共用保存合同](../architecture/factory-world-state-and-save-v1.md)。
+先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[首程引导](../features/factory-first-journey-guidance-v1.md)、[范围供电与拾取](../features/factory-range-power-and-pickup-v1.md)及 [W41 周志](../devlogs/2026-W41.md)。按任务补读[设备交互](../features/factory-device-interaction-v1.md)、[发现生产](../features/factory-discovery-and-production-v1.md)、[基础电力](../features/factory-power-and-grid-v1.md)及[生产统计](../features/factory-production-statistics-v1.md)。版本与升级读 [schema 3](../architecture/factory-discovery-save-v3.md)，字段读 [schema 2](../architecture/factory-discovery-save-v2.md)，文件协议读[共用保存合同](../architecture/factory-world-state-and-save-v1.md)。
 
 ## 当前交接
 
+- 正式首程目标、材料数量、下一步按钮和全流程回查已接入；状态 95 项、schema 3 空世界完整循环 249 项与独立恢复 22 项通过。原图、输入方式及失败重验见 W41；玩家是否能理解并独立完成仍待亲测。
+
 - 10 月 5 日正式设备摘要、近身取放 / 配方、双世界模型预览、物流接口与 6 / 12 格电力范围已接入。亲测明确否定悬浮端口文字后已移除，选中只留接口小箭头；历史窗口与恢复证据见 W41。
 - 最新亲测指出范围内仍不工作及样本无法直接拾取；萝卜SAMA明确选择范围自动供电。现行节点 12 格、设备 6 格自动连接，保留有限供能与矿壳阻挡；新勘探世界 schema 3，旧 schema 2 从菜单确认升级并保留独立原档。
-- 样本远处仅外形与小图标，靠近显示名称与 F；可点击地面走近拾取，也可近身点击提示 / 按 F。萝卜SAMA随后反馈“没啥问题了”，本轮自动供电与拾取整改亲测通过；工程路径及失败记录见 W41，完整发现循环另验。
+- 样本远处仅外形与小图标，靠近显示名称与 F；可点击地面走近拾取，也可近身点击提示 / 按 F。萝卜SAMA随后反馈“没啥问题了”，本轮自动供电与拾取整改亲测通过；工程路径及失败记录见 W41；完整 schema 3 循环现已由首程包补验。
 - 基础工厂 P1–P3 开发机交付收口；D1、D2-A、D2-B 已完成，Windows / 目标硬件仍待验。
 - 9 月 29 日已实现 D3 物料 / 电力统计页、完整秒趋势、库存分解、实际 / 理论产消、收藏 / 筛选 / 排序、设备定位与发现阶段 HUD。沿用已有统计与偏好字段，不新增 schema。
 - 定向统计 29、电力 104、发现 118、跨进程半批 2、基础存档 44、时钟 28、视图 15、旧二维存档 161 项通过。时钟沙箱字体失败与主机通过分列；完整本机 Godot 全套未重跑。
@@ -22,14 +24,14 @@
 
 ## 下一步
 
-1. **设计并接入正式首程引导**：本轮整改已亲测通过；下一包先明确逐步目标、实际操作入口、完成事实与卡住时的恢复方式，再覆盖首线、拾样、试制、量产、两次开路及富集回流。提示可关闭、可回查，允许先探索或先建线。
-2. **补当前版本完整路径**：从空 schema 3 勘探世界验证自动供电下的完整发现循环、停复电与保存重进；旧 schema 2 的完整证据不自动等同当前版本通过。
+1. **亲测正式首程引导**：按[首程专题](../features/factory-first-journey-guidance-v1.md)从空勘探世界确认短目标、实际操作入口与卡住后的恢复是否清楚；支持先拾样 / 先建线，不新增存档字段。
+2. **按已安排日程设计传送带附件**：首程反馈处理后进入分流 / 汇合共同调度设计，再明确准入口物品与数量控制语义；当前未开始附件实现。完整 schema 3 路径已有独立工程证据，不例行重跑。
 3. **保持已确认范围**：6 / 12 格、矿壳阻挡、多网选择、有限容量及原档备份保持；先沿用低投入资产，专用图标与精细美术另列。引导完成后再复核首次游玩体验与 D4 剩余项。
 4. **保留输入证据边界**：本包已修正嵌入式面板合成鼠标路由并通过真实控件命中断言；Boot 首屏使用合成 Enter，首屏鼠标驱动偶发未命中及独立样板自动点击不记为已修复。
 
 ## 后续顺序与保留待办
 
-1. **按自动供电操作补完整引导**：最终回正式空世界复测拾样、试制、两次开路与富集回流；本次短路径不覆盖完整发现循环。保持低投入美术，暂不扩展人物 / 全套资产。
+1. **传送带附件已列入日程**：首程与当前版本完整循环复核后，按[附件路线](factory-conveyor-accessories-roadmap.md)推进分流器 / 汇合器，再做物品准入口，最后组合验收。先明确调度、堵塞、公平性、数量语义及存读边界，不在本轮引导中夹带设备实现。
 2. **依据普通对照结果决定后续规模验证**：`d4-window-20260929-c` 的完整 600 桶、同状态关闭 / 物料 / 电力各 45 秒已通过，30 项、无失焦；帧 p95 8.757 / 9.004 / 8.850ms，采样内三次自动保存成功且尖峰保留。此项无需例行重跑。schema 2 的 100 台 / 1,000 带仍需先确认工程供给设计；不能将普通负载短测当作首档或持续验收。入口与亲测清单见[统计专题](../features/factory-production-statistics-v1.md#d4-普通供给对照与亲测准备)。
 3. **保留独立待办**：Windows / PowerShell、目标硬件验收及物料图标仍待完成。不复用历史四档成绩冒充最新联合版本通过，不自动解冻玩法。
 

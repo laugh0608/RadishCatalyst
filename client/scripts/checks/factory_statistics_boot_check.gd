@@ -111,6 +111,11 @@ func run() -> void:
 			driver.expect(not world.statistics_panel.visible, "escape closes overlay")
 		finish()
 		return
+	await full_journey()
+	finish()
+
+
+func full_journey() -> void:
 	# Construction uses the same HUD precision fields and placement actions as a player.
 	await place("collector", -20, -1, "collector")
 	await place("reactor", -13, -2, "basic")
@@ -122,7 +127,7 @@ func run() -> void:
 	await connect_devices("source", "node")
 	await connect_devices("source", "collector")
 	await connect_devices("node", "basic")
-	stage("first-line", "empty-world construction and explicit connections")
+	stage("first-line", "empty-world construction and established power network")
 	await walk(Vector2(2.3, 3.5))
 	await panel(-1)
 	await press(world.discovery_panel.buttons.sample)
@@ -264,7 +269,6 @@ func run() -> void:
 	write_json("expected.json", Codec.snapshot(world.model, world.store.world_id, world.store.world_name, world.store.sequence))
 	await driver.click(world.hud.buttons.return)
 	driver.expect(boot.factory_world == null, "saved return releases world")
-	finish()
 
 
 func place(type: String, x: int, z: int, name := "", dir := 0) -> void:

@@ -360,7 +360,7 @@ func open_device() -> void:
 func native_click(button: Button) -> void:
 	var window: Window = button.get_window()
 	await wait_for_focus(window)
-	if button != world.discovery_panel.get_ok_button():
+	if world.discovery_panel.scroll.is_ancestor_of(button):
 		world.discovery_panel.scroll.ensure_control_visible(button)
 	await driver.settle()
 	driver.expect(button.is_visible_in_tree() and not button.disabled, "native mouse button available: " + button.text)

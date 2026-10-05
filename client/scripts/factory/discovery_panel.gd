@@ -3,6 +3,7 @@ extends AcceptDialog
 const Rules := preload("res://data/factory/discovery_rules.gd")
 const Items := preload("res://scripts/factory/items.gd")
 const DeviceSummary := preload("res://scripts/factory/device_summary.gd")
+const Guidance := preload("res://scripts/factory/discovery_guidance.gd")
 var model: RefCounted
 var selected := -1
 var summary := Label.new()
@@ -18,6 +19,7 @@ var discovery_content := VBoxContainer.new()
 var scroll := ScrollContainer.new()
 var item_labels := {}
 var device_only := false
+var guide_overview := Label.new()
 
 
 func _ready() -> void:
@@ -45,6 +47,8 @@ func _ready() -> void:
 	button(discovery_row, "sample", "拾取唯一样本", func(): apply(model.survey_sample(true)))
 	button(discovery_row, "outer", "外矿道：用 4 份", func(): apply(model.open_passage("outer")))
 	button(discovery_row, "inner", "内矿道：用 8 份", func(): apply(model.open_passage("inner")))
+	guide_overview.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	discovery_content.add_child(guide_overview)
 	device_summary.compact = false
 	content.add_child(device_summary)
 	content.add_child(inventory)
@@ -109,6 +113,7 @@ func apply(result: Dictionary) -> void:
 
 func refresh() -> void:
 	var d: Dictionary = model.discovery
+	guide_overview.text = Guidance.overview(model)
 	var stage := "前往外矿道 (2, 2) 调查碎片。" if not d.surveyed else "拾样后用 1 样本 + 2 催化剂试制；需要接电。" if not d.trial_completed else "解壳剂可永久处理矿壳；富集晶体一批产 3 件催化剂。"
 	summary.text = "%s\n外矿道：%s　内矿道：%s\n背包 %d / 200：%s" % [stage, "已打通" if d.passages.outer else "未打通", "已打通" if d.passages.inner else "未打通", Items.count(model.bag), Items.describe(model.bag)]
 	buttons.sample.disabled = d.sample_taken

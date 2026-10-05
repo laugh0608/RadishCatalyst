@@ -7,6 +7,7 @@ const Model := preload("res://scripts/factory/model.gd")
 const View := preload("res://scripts/factory/view.gd")
 const Hud := preload("res://scripts/factory/hud.gd")
 const ActiveClock := preload("res://scripts/factory/active_clock.gd")
+const Guidance := preload("res://scripts/factory/discovery_guidance.gd")
 const MOVE_KEYS := {
 	KEY_A: Vector2(-1, 0), KEY_LEFT: Vector2(-1, 0),
 	KEY_D: Vector2(1, 0), KEY_RIGHT: Vector2(1, 0),
@@ -274,6 +275,7 @@ func _action(name: String, value: Variant) -> void:
 		_choose(name)
 	else:
 		match name:
+			"guide_action": _guide_action()
 			"sample": _pick_sample()
 			"power_connect":
 				_stop_pointer()
@@ -632,3 +634,29 @@ func _locate_statistics_device(id: int) -> void:
 	statistics_panel.hide()
 	_refresh()
 	hud.announce("已定位设备 #%d；人物未移动，行走后恢复跟随。" % id)
+
+
+func _guide_action() -> void:
+	if not model.has_method("power_state"):
+		return
+	# Re-evaluate at activation: production or removal may have changed the next step.
+	var step := Guidance.current(model)
+	match step.action:
+		"build":
+			_choose(step.tool)
+			if step.has("cell"):
+				ui.cell = step.cell
+		"device":
+			_locate_statistics_device(step.target_id)
+			var e := model.by_id(step.target_id)
+			if e.type in ["collector", "reactor", "storage"] and model.near_entity(e):
+				_action("device", null)
+		"location":
+			_stop_pointer()
+			keys.clear()
+			actor.target = null
+			ui.tool = ""
+			ui.selected = -1
+			view.inspection_target = Vector3(step.point.x, 0.25, step.point.y)
+		"statistics", "discovery": _action(step.action, null)
+	hud.announce(step.next)

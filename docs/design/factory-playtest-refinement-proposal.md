@@ -4,7 +4,7 @@
 
 状态：2026-09-29 萝卜SAMA已确认圆润、机械结构与化工质感方向，验证阶段控制投入，记录决策并制作小 demo。设备面板、接口、范围供电与逐步引导方向已接受；本轮执行范围见[交互样板 V1](../features/factory-refinement-demo-v1.md)。以下全量建议不等于全部进入本轮，正式存档版本与地图平衡仍待后续接入设计。
 
-接续：2026-10-05 萝卜SAMA明确确认正式范围自动供电，已按[范围供电与拾取](../features/factory-range-power-and-pickup-v1.md)与 [schema 3](../architecture/factory-discovery-save-v3.md)实施；下文保留最初提案与当时未决项，当前合同以接续专题为准。
+接续：2026-10-05 萝卜SAMA明确确认正式范围自动供电，已按[范围供电与拾取](../features/factory-range-power-and-pickup-v1.md)与 [schema 3](../architecture/factory-discovery-save-v3.md)实施；其后按[首程引导](../features/factory-first-journey-guidance-v1.md)补齐逐步目标、入口与回查，并登记[传送带附件日程](../planning/factory-conveyor-accessories-roadmap.md)。下文保留最初提案与当时未决项，当前合同以接续专题为准。
 
 ## 玩家问题与本轮目标
 

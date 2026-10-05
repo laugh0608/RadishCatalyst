@@ -382,6 +382,13 @@ func survey_sample(pickup := false) -> Dictionary:
 	return success()
 
 
+func near_passage(id: String) -> bool:
+	var rule: Dictionary = DiscoveryRules.PASSAGES[id]
+	var point := Vector2(actor.x, actor.z)
+	var target := Vector2(rule.x - 0.001, clampf(point.y, -1.999, 1.999))
+	return point.x < rule.x and point.distance_to(target) <= 2 and Grid.line_open(point, target, discovery.passages)
+
+
 func open_passage(id: String) -> Dictionary:
 	if not DiscoveryRules.PASSAGES.has(id):
 		return failure("矿道不存在")
@@ -390,9 +397,7 @@ func open_passage(id: String) -> Dictionary:
 	if id == "inner" and not discovery.passages.outer:
 		return failure("请先打通外矿道")
 	var rule: Dictionary = DiscoveryRules.PASSAGES[id]
-	var point := Vector2(actor.x, actor.z)
-	var target := Vector2(rule.x - 0.001, clampf(point.y, -1.999, 1.999))
-	if point.x >= rule.x or point.distance_to(target) > 2 or not Grid.line_open(point, target, discovery.passages):
+	if not near_passage(id):
 		return failure("请靠近矿道西侧入口两格内使用")
 	if not discovery.trial_completed or bag.get("crust_solvent", 0) < rule.cost:
 		return failure("背包需要 %d 份解壳剂" % rule.cost)

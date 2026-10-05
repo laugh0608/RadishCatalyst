@@ -6,6 +6,7 @@ const Model := preload("res://scripts/factory/model.gd")
 const DeviceSummary := preload("res://scripts/factory/device_summary.gd")
 const Items := preload("res://scripts/factory/items.gd")
 const PowerRange := preload("res://scripts/factory/power_range.gd")
+const Guidance := preload("res://scripts/factory/discovery_guidance.gd")
 const DIRECTIONS := ["东 →", "南 ↓", "西 ←", "北 ↑"]
 var buttons := {}
 var world_slot := Control.new()
@@ -146,6 +147,7 @@ func _build_world_panels() -> void:
 	mission.custom_minimum_size.x = 198
 	mission.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	mission_stack.add_child(mission)
+	_button(mission_stack, "guide_action", "开始首条产线")
 	_button(mission_stack, "mission", "收起目标")
 	_button(mission_stack, "discovery", "工艺、物料与矿道")
 	inspector = _panel(world_slot)
@@ -352,8 +354,10 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, focused: bool
 	if model.delivered > 0:
 		text = "继续扩建\n已有 %d 件催化剂入仓\n\n走到其他青色矿点建立第二条产线。保存后可从启动菜单继续这个世界。" % model.delivered
 	if model.has_method("power_state"):
-		var power: Dictionary = model.power_state()
-		text = preload("res://scripts/factory/discovery_guidance.gd").text(model)
-		text += "\n\n供用 %.1f / 请求 %.1f kW\n分网缺口 %.1f kW" % [power.supplied_kw, power.request_kw, power.deficit_kw]
+		var step := Guidance.current(model)
+		text = Guidance.describe(step)
+		buttons.guide_action.text = step.action_label
+		buttons.guide_action.tooltip_text = step.next
+	buttons.guide_action.visible = powered and ui.mission
 	mission.text = text if ui.mission else text.split("\n")[0]
 	buttons.mission.text = "收起目标" if ui.mission else "展开目标"

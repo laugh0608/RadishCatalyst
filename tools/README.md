@@ -40,12 +40,14 @@
 | `sh tools/check-factory-device-interaction.sh state [batch]` | 设备状态展示、近身操作、端口与物流、接线范围 / 遮挡 / 无状态变更、旧工厂边界；已登记 Shell / PowerShell 默认 Godot 检查 |
 | `sh tools/check-factory-device-interaction.sh preview <batch>` | Boot 默认基础工厂及勘探工厂的三类设备预览、放置 / 取消、选中 / 近景与铺带；勘探另验电源 / 节点接线范围、非法位置、最小窗口和矿壳遮挡，要求新 batch |
 | `sh tools/check-factory-device-interaction.sh write/read <batch>` | 新双根隔离空世界，合成鼠标放置 / 拖铺 / 选中 / 嵌入式面板操作、自然生产、窗口布局及半批独立 Boot 恢复；write 拒绝已有 batch，read 会继续生产并保存，只运行一次 |
+| `sh tools/check-factory-first-journey.sh state [batch]` | 首程引导由事实派生、先拾样 / 先建线、材料位置、供电 / 回压、替代路线、目标拆除、独立解码与只读不变；已登记 Shell / PowerShell 默认 Godot 检查 |
+| `sh tools/check-factory-first-journey.sh write/read <batch>` | 正式新 schema 3 空世界首程卡 / 回查 / 最小窗口、完整自然生产与两次开路、富集回流、停复电 / 增容及独立 Boot 全快照恢复；新 write 批次、同批 read 仅一次 |
 | `sh tools/check-factory-range-power.sh state [batch]` | schema 3 自动图、确定改接、遮挡、供能、样本唯一性、严格解码、升级原档保留及 IO 失败；已登记默认 Godot 检查 |
 | `sh tools/check-factory-range-power.sh write/read <batch>` | 新自动世界鼠标建线与自然生产、停复电、远近样本 / F 拾取；另用声明的旧布局夹具检查菜单升级和地面点击拾取。read 独立恢复新世界完整快照及半批；要求新 write 批次、同批 read 仅一次 |
 
 范围供电窗口走真实正式创建 / 升级菜单；创建使用聚焦 Enter，恢复时列表 / 按钮信号用于首帧冻结核对。模型、HUD、升级弹窗与地面图标走路由合成鼠标，人物 WASD 行走，近身 F 拾取。新世界不注入物料 / 位置或加速；旧布局夹具仅承担迁移验证，不冒充自然建线。截图 / 世界在 `factory-range-power-v1` 与对应 `factory-range-power-preview` 忽略目录。
 
-历史 `power` / `discovery` / `statistics` 窗口脚本保留 schema 2 回归语义：通过隔离 Store 准备旧世界，再由 Boot 的世界装配入口加载，不走会升级版本的继续按钮；这不是当前菜单验收。实际菜单、新世界 schema 3 与升级由范围供电窗口负责。历史世界的完整发现循环证据不自动扩展为 schema 3 已完整重跑。
+历史 `power` / `discovery` / `statistics` 窗口脚本保留 schema 2 回归语义：通过隔离 Store 准备旧世界，再由 Boot 的世界装配入口加载，不走会升级版本的继续按钮；这不是当前菜单验收。实际菜单、新世界 schema 3 与升级由范围供电窗口负责。历史世界的完整发现循环证据不自动扩展为 schema 3 已完整重跑；当前完整路径由 `first-journey` 专项承担。
 
 设备交互窗口复用统计路径的失焦等待与真实行走驱动。Boot 首屏使用聚焦后的合成 Enter；部分初始设备使用既有精确放置字段 / 按钮信号，接线与停复电使用权威命令，配方下拉选项由驱动选中；这些准备与控件 / 场地命中测试分别记录，不代替用户亲测。面板通过父视口路由合成鼠标事件，检查按钮在窗口内可见且仅激活一次；不将它称为系统鼠标或原生独立窗口证据。无物料 / 解锁 / 人物位置注入或生产加速；启动前告知，用户关闭即停止。
 
@@ -54,6 +56,8 @@
 发现检查的 `[batch]` 只控制状态日志位置；当前状态脚本将夹具 / JSON 结果固定写到 `tools/runtime-intake/check-runs/factory-discovery-v1/d2-b-20260925/`，process-read 与窗口 write 都从此取输入。复跑 state 会更新该固定目录，需先保留要审计的旧证据；窗口批次另用唯一名称，read 读取 write 的 manifest。窗口夹具由加速模型生产并准备布局 / 人物位置，不能作为自然玩家全路径。`check-client` 的 Godot 模式已登记 power / discovery / statistics 状态检查，不自动覆盖这些跨进程或窗口模式。
 
 统计窗口 write 使用 HUD 精确放置按钮、合法接线命令、稳定 ID 选择、合成 WASD 与原生面板 Enter，不预填材料、传送人物、直接解锁或加速时间。普通功能路径失焦时停止输入、等待手动切回，在同一进程 / 世界继续并记录失焦区间；不抢焦点，连续性能检查仍失焦即中断。同名 batch 不用于重建自然路径，失败批次须保留。read 仅用于已完成 write 的批次：通过键盘 Enter 进入工厂菜单，先冻结首帧核对完整快照，再在真实恢复世界分别观察正常供料、拆带断料、重建修复各 60 秒，最后保存并记录 `read-final.json`。因此 read 成功后不能以同一最终存档再次比较原 write 快照；若需复跑，使用新 write 批次，失败证据单独保留。它是自动工程路径，不替代用户亲测或首次阅读 / 建线时长。
+
+首程窗口复用已有完整路径：建造使用 HUD 精确字段 / 动作，操作使用聚焦 Enter，人物 WASD 行走，统计与新增引导入口使用合成鼠标；焦点注入明确登记。自动供电连接只检查实际图，不发送旧接线命令。全程不注入物料、解锁、人物位置或加速时间。恢复通过列表 / 按钮信号首帧冻结核对。日志 / 世界在 `factory-first-journey-v1`，截图在 `2026-10-05-factory-first-journey-preview`；合成路径不当作首次游玩时长。
 
 ## 像素归一管线（零依赖）
 

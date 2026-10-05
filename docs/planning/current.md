@@ -1,6 +1,6 @@
 # Current Plan
 
-更新时间：2026-10-05（范围自动供电与地面拾取整改）
+更新时间：2026-10-05（首程引导与传送带附件日程）
 
 ## 当前阶段
 
@@ -8,11 +8,13 @@
 
 产品方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为准：化工生产经营为核心，探索提供资源、空间和长期目的。既有二维切片、schema 10 和历史验证保留，旧整改 S0 暂缓。
 
-本轮优先响应空世界亲测问题：正式设备面板、预览与无文字端口提示已接入。范围自动供电、旧勘探世界显式升级及地面样本拾取完成后，萝卜SAMA反馈“没啥问题了”，记为本轮整改亲测通过。下一步按现行操作补完整引导并复核 schema 3 发现循环；D4 完整体验仍未通过。
+本轮优先响应空世界亲测问题：正式设备面板、预览与无文字端口提示已接入。范围自动供电、旧勘探世界显式升级及地面样本拾取完成后，萝卜SAMA反馈“没啥问题了”，记为本轮整改亲测通过。首程引导、当前 schema 3 完整自然循环及独立恢复已取得工程证据；亲测引导并处理反馈后进入[传送带附件日程](factory-conveyor-accessories-roadmap.md)，按分流 / 汇合、准入口、组合交付排序。D4 完整体验仍未通过。
 
 ## 当前活跃专题
 
-- [Factory Range Power And Pickup V1](../features/factory-range-power-and-pickup-v1.md)：正式自动接电、直接拾样及旧世界升级；定向工程验证与本轮玩家亲测通过，完整 schema 3 发现循环待补。
+- [Factory First Journey Guidance V1](../features/factory-first-journey-guidance-v1.md)：短目标、真实数量、下一步入口和全部步骤回查；由既有事实重建，不新增教程存档；状态 95、完整 Boot 249、独立恢复 22 项通过，用户首程体验待复核。
+
+- [Factory Range Power And Pickup V1](../features/factory-range-power-and-pickup-v1.md)：正式自动接电、直接拾样及旧世界升级；定向工程验证与本轮玩家亲测通过；当前 schema 3 完整循环由首程专题补齐。
 - [Factory Device Interaction V1](../features/factory-device-interaction-v1.md)：实时摘要、近身取放 / 配方、双世界预览、无悬浮文字端口及 6 / 12 格范围；工程证据保留，修正版观感待复核。
 - [Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md)：固定样本 → 试制 → 自动制剂 → 两次开路 → 富集资源回流；四配方、近身取放与开拓事实已实现，D3 空世界两次开路与富集回流路径已通过。
 - [Factory Power And Grid V1](../features/factory-power-and-grid-v1.md)：两套 120 kW 电源、12 节点、20Hz 比例分配、缺电降速与停复电；旧显式图合同保留，现行连接方式由范围供电专题补充。

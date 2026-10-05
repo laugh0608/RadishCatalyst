@@ -31,9 +31,24 @@ func click(button: Button) -> void:
 	if input_ready.is_valid():
 		button.pressed.connect(observed)
 	var at := button.get_global_rect().get_center()
-	await motion(at)
-	await mouse(at, true)
-	await mouse(at, false)
+	# Keep a click in one dispatch, as in the verified native-dialog helper, so desktop
+	# pointer events cannot interleave with the synthetic motion/down/up gesture.
+	var window := button.get_window()
+	var viewport: Viewport = window.get_parent().get_viewport() if window.is_embedded() else window
+	if window.is_embedded():
+		at += Vector2(window.position)
+	var movement := InputEventMouseMotion.new()
+	movement.position = at
+	movement.window_id = window.get_window_id()
+	viewport.push_input(movement, true)
+	for down in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.position = at
+		event.window_id = window.get_window_id()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.button_mask = MOUSE_BUTTON_MASK_LEFT if down else 0
+		event.pressed = down
+		viewport.push_input(event, true)
 	await settle()
 	if input_ready.is_valid() and is_instance_valid(button):
 		button.pressed.disconnect(observed)
