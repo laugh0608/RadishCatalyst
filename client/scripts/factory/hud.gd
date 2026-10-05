@@ -3,7 +3,7 @@ extends Control
 signal action(name: String, value: Variant)
 
 const Model := preload("res://scripts/factory/model.gd")
-const DiscoveryPanel := preload("res://scripts/factory/discovery_panel.gd")
+const DeviceSummary := preload("res://scripts/factory/device_summary.gd")
 const Items := preload("res://scripts/factory/items.gd")
 const DIRECTIONS := ["东 →", "南 ↓", "西 ←", "北 ↑"]
 var buttons := {}
@@ -19,6 +19,9 @@ var notice := Label.new()
 var bag := Label.new()
 var coordinates := Label.new()
 var details := Label.new()
+var device_summary := DeviceSummary.new()
+var inspector_scroll := ScrollContainer.new()
+var inspector_selection := -1
 var placement_reason := Label.new()
 var tool_row := HBoxContainer.new()
 var placement_row := HBoxContainer.new()
@@ -144,14 +147,22 @@ func _build_world_panels() -> void:
 	_button(mission_stack, "discovery", "工艺、物料与矿道")
 	inspector = _panel(world_slot)
 	inspector.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	inspector.offset_left = -286
+	inspector.anchor_bottom = 1.0
+	inspector.offset_left = -350
 	inspector.offset_right = -20
 	inspector.offset_top = 22
+	inspector.offset_bottom = -72
+	inspector_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	inspector.add_child(inspector_scroll)
 	var detail_stack := VBoxContainer.new()
-	inspector.add_child(detail_stack)
+	detail_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	detail_stack.add_theme_constant_override("separation", 8)
+	inspector_scroll.add_child(detail_stack)
 	details.custom_minimum_size.x = 234
 	details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	detail_stack.add_child(details)
+	detail_stack.add_child(device_summary)
+	_button(detail_stack, "device", "取放 / 配方…（暂停生产）")
 	_button(detail_stack, "power_connect", "从此节点接线")
 	_button(detail_stack, "power_toggle", "启用 / 关闭电源")
 	_button(detail_stack, "power_disconnect", "选择连接并断开")
@@ -283,10 +294,22 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, focused: bool
 	coordinates.text = "X %.1f / Z %.1f" % [actor.x, actor.z]
 	var e: Dictionary = model.by_id(ui.selected)
 	inspector.visible = not e.is_empty()
+	var powered: bool = model.has_method("power_state")
+	# Preserve the compact foundation inspector; discovery devices have a scrollable summary.
+	inspector.anchor_bottom = 1.0 if powered else 0.0
+	inspector.offset_bottom = -72 if powered else 22
+	inspector.offset_left = -350 if powered else -286
+	inspector_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO if powered else ScrollContainer.SCROLL_MODE_DISABLED
+	if inspector_selection != ui.selected:
+		inspector_scroll.scroll_vertical = 0
+		inspector_selection = ui.selected
+	details.visible = not powered
+	device_summary.visible = powered and not e.is_empty()
+	buttons.device.visible = powered and e.get("type", "") in ["collector", "reactor", "storage"]
 	if not e.is_empty():
 		var info := ""
-		if model.has_method("power_state"):
-			info = DiscoveryPanel.describe_entity(e)
+		if powered:
+			device_summary.refresh(model, e)
 		else:
 			match e.type:
 				"collector": info = "晶体缓冲 %d / 50\n采集速度 1 个 / 秒\n金色出口位于右侧" % e.buffer
@@ -294,17 +317,9 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, focused: bool
 				"storage": info = "晶体 %d · 催化剂 %d\n容量 %d / 200\n青色入口位于左侧" % [e.crystal, e.catalyst, e.crystal + e.catalyst]
 				"belt": info = "方向 %s\n带上物品：%s\n速度 1 格 / 秒" % [DIRECTIONS[e.dir], {"": "空", "crystal": "晶体", "catalyst": "催化剂"}[e.cargo]]
 		details.text = "%s\n%s\n\n%s" % [Model.CATALOG[e.type].name, model.feedback(e).label, info]
-		var powered: bool = model.has_method("power_state")
 		buttons.power_connect.visible = powered and e.type in ["power_source", "power_junction"]
 		buttons.power_toggle.visible = powered and e.type == "power_source"
 		buttons.power_disconnect.visible = powered and not model.connections(e.id).is_empty() if powered else false
-		if powered:
-			if e.type in ["collector", "reactor"]:
-				var status: Dictionary = model.feedback(e)
-				var device: Dictionary = model.power_state().devices[e.id]
-				details.text += "\n\n生产条件：%s\n供电：%s\n请求 / 分配 %.1f / %.1f kW\n接入节点 #%d" % [status.production, status.power, device.request_kw, device.supplied_kw, e.power_node_id]
-			elif e.type == "power_source":
-				details.text += "\n实际输出 %.1f kW" % model.power_state().sources[e.id]
 		buttons.rotate_selected.visible = e.type == "belt"
 		buttons.deposit.visible = not powered and e.type in ["collector", "reactor", "storage"]
 		buttons.deposit.disabled = Items.count(model.bag) == 0

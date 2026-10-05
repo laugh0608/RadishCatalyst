@@ -1,13 +1,14 @@
 # Daily Start
 
-更新时间：2026-09-29（日终交接；明日 2026-09-30）
+更新时间：2026-10-05（设备面板与接口首包交接）
 
 ## 启动读取
 
-先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[发现生产](../features/factory-discovery-and-production-v1.md)、[基础电力](../features/factory-power-and-grid-v1.md)、[生产统计](../features/factory-production-statistics-v1.md)、[联合 schema 2 合同](../architecture/factory-discovery-save-v2.md)及 [W40 周志](../devlogs/2026-W40.md)。涉及文件协议或旧世界保护时同时核对[基础 schema 1 与共用保存合同](../architecture/factory-world-state-and-save-v1.md)。
+先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[设备交互](../features/factory-device-interaction-v1.md)及 [W41 周志](../devlogs/2026-W41.md)。按当前任务补读[发现生产](../features/factory-discovery-and-production-v1.md)、[基础电力](../features/factory-power-and-grid-v1.md)、[生产统计](../features/factory-production-statistics-v1.md)及[联合 schema 2 合同](../architecture/factory-discovery-save-v2.md)。涉及文件协议或旧世界保护时同时核对[基础 schema 1 与共用保存合同](../architecture/factory-world-state-and-save-v1.md)。D3 / D4 前序证据见 [W40](../devlogs/2026-W40.md)。
 
 ## 当前交接
 
+- 10 月 5 日正式设备面板与接口首包已实现：实时设备摘要、暂停式取放 / 配方、模型预览、真实物流接入格与方向提示；不改变显式电网、近身权限或保存形状。最终状态 43、窗口写入 178、独立读档 20 项通过，最小窗口与关键状态原图已审阅；详细回归及失败原因见 W41。
 - 基础工厂 P1–P3 开发机交付收口；D1、D2-A、D2-B 已完成，Windows / 目标硬件仍待验。
 - 9 月 29 日已实现 D3 物料 / 电力统计页、完整秒趋势、库存分解、实际 / 理论产消、收藏 / 筛选 / 排序、设备定位与发现阶段 HUD。沿用已有统计与偏好字段，不新增 schema。
 - 定向统计 29、电力 104、发现 118、跨进程半批 2、基础存档 44、时钟 28、视图 15、旧二维存档 161 项通过。时钟沙箱字体失败与主机通过分列；完整本机 Godot 全套未重跑。
@@ -17,12 +18,12 @@
 
 首次空世界亲测已收到五项明确问题，见[亲测整改讨论稿](../design/factory-playtest-refinement-proposal.md)。下列原验收顺序应以这些真实阻塞为先；已确认低投入、圆润机械化工方向，已产出[独立交互样板](../features/factory-refinement-demo-v1.md)，萝卜SAMA反馈“感觉还行”，记录为方向初步认可；不能将其扩展成正式首程全部通过。
 
-## 明日事项（2026-09-30）
+## 下一步
 
-1. **确定正式交互首包范围**：读取[样板专题](../features/factory-refinement-demo-v1.md)及现行发现 / 电力 / 保存合同，把设备面板与接口接入设计写清楚；不直接搬入独立 demo 的临时操作边界。
-2. **优先推进设备面板**：勘探工厂显示输入、配方、进度、输出及缺料 / 缺电 / 回压，接入原有取放与配方操作；沿用权威命令、近身权限和操作暂停合同，不更改存档形状。
-3. **接入建造与拖铺接口提示**：与真实端口共用定义，验证放置前可规划、铺带可对准、选中后可诊断；排查样板自动点击未命中，不凭初步认可跳过点选 / 布局复核。
-4. **按本包风险验收**：最小状态 / 静态检查，加正式 Boot 双根隔离的设备操作和窗口路径；启动 Godot 前告知，不例行重跑长测。明日优先完成首包，不承诺一天完成全部整改。
+1. **复核首包玩家体验**：请萝卜SAMA在正式勘探工厂检查“放置前看懂接口 → 选中解释缺料 / 缺电 / 回压 → 近身取放或接带恢复生产”。自动合成输入和原图审阅不代替亲测，不据此宣布 D4 通过。
+2. **确认范围供电设计**：明确覆盖参数、网络重选、封闭矿道、普通供给和平衡，以及既有 schema 2 世界的版本策略；经确认再实施，不直接移植样板 6 格自动接线。
+3. **按最终操作补完整引导**：覆盖拾样、试制、常规量产、两次开路和富集回流，再从空世界复测；先保持低投入资产，专用图标与精细美术另列。
+4. **保留输入证据边界**：本包已修正嵌入式面板合成鼠标路由并通过真实控件命中断言；Boot 首屏使用合成 Enter，首屏鼠标驱动偶发未命中及独立样板自动点击不记为已修复。
 
 ## 后续顺序与保留待办
 

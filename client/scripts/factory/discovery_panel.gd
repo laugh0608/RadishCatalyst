@@ -2,6 +2,7 @@ extends AcceptDialog
 
 const Rules := preload("res://data/factory/discovery_rules.gd")
 const Items := preload("res://scripts/factory/items.gd")
+const DeviceSummary := preload("res://scripts/factory/device_summary.gd")
 var model: RefCounted
 var selected := -1
 var summary := Label.new()
@@ -12,26 +13,40 @@ var recipe_ids: Array[String] = []
 var rows := {}
 var recipe_row := HBoxContainer.new()
 var buttons := {}
+var device_summary := DeviceSummary.new()
+var discovery_content := VBoxContainer.new()
+var scroll := ScrollContainer.new()
+var item_labels := {}
+var device_only := false
 
 
 func _ready() -> void:
 	title = "工艺、物料与矿道"
 	ok_button_text = "返回工厂"
 	exclusive = true
+	var layout := VBoxContainer.new()
+	layout.add_theme_constant_override("separation", 10)
+	add_child(layout)
+	scroll.custom_minimum_size = Vector2(740, 420)
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	layout.add_child(scroll)
 	var content := VBoxContainer.new()
-	content.custom_minimum_size = Vector2(700, 0)
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_theme_constant_override("separation", 10)
-	add_child(content)
+	scroll.add_child(content)
 	for label in [summary, inventory, result_label]:
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		label.custom_minimum_size.x = 700
-	content.add_child(summary)
+	content.add_child(discovery_content)
+	discovery_content.add_child(summary)
 	var discovery_row := HBoxContainer.new()
-	content.add_child(discovery_row)
+	discovery_content.add_child(discovery_row)
 	button(discovery_row, "survey", "调查样本", func(): apply(model.survey_sample()))
 	button(discovery_row, "sample", "拾取唯一样本", func(): apply(model.survey_sample(true)))
 	button(discovery_row, "outer", "外矿道：用 4 份", func(): apply(model.open_passage("outer")))
 	button(discovery_row, "inner", "内矿道：用 8 份", func(): apply(model.open_passage("inner")))
+	device_summary.compact = false
+	content.add_child(device_summary)
 	content.add_child(inventory)
 	content.add_child(recipe_row)
 	recipe.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -46,11 +61,14 @@ func _ready() -> void:
 		rows[item] = row
 		var label := Label.new()
 		label.text = Rules.NAMES[item]
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(label)
+		item_labels[item] = label
 		for option in [["take_one", "取 1", false, false], ["take_all", "取全部", false, true], ["put_one", "放 1", true, false], ["put_all", "放全部", true, true]]:
 			button(row, item + "_" + option[0], option[1], func(): apply(model.transfer(selected, item, option[2], option[3])))
-	content.add_child(result_label)
+	result_label.custom_minimum_size = Vector2(740, 40)
+	layout.add_child(result_label)
 
 
 func button(parent: Node, id: String, text: String, callback: Callable) -> void:
@@ -62,15 +80,30 @@ func button(parent: Node, id: String, text: String, callback: Callable) -> void:
 
 
 func show_for(world: RefCounted, id: int) -> void:
+	_open(world, id, false)
+
+
+func show_device(world: RefCounted, id: int) -> void:
+	_open(world, id, true)
+
+
+func _open(world: RefCounted, id: int, only_device: bool) -> void:
 	model = world
 	selected = id
-	result_label.text = "取放、切配方与取消需在设备两格内；开路需靠近西侧入口，成功永久打通。"
+	device_only = only_device
+	discovery_content.visible = not device_only
+	var e: Dictionary = model.by_id(selected)
+	title = "%s #%d · 设备操作" % [Rules.CATALOG[e.type].name, e.id] if device_only and not e.is_empty() else "工艺、物料与矿道"
+	result_label.text = "操作期间生产暂停；关闭后恢复原暂停状态。全部 = 当前可转移数量。"
+	result_label.remove_theme_color_override("font_color")
+	scroll.scroll_vertical = 0
 	refresh()
-	popup_centered(Vector2i(740, 660))
+	popup_centered(Vector2i(780, 660))
 
 
 func apply(result: Dictionary) -> void:
 	result_label.text = ("已转移 %d 件。" % result.amount if result.has("amount") else "操作完成。") if result.ok else result.reason
+	result_label.add_theme_color_override("font_color", Color("77d8c6" if result.ok else "efab86"))
 	refresh()
 
 
@@ -82,9 +115,10 @@ func refresh() -> void:
 	buttons.outer.disabled = d.passages.outer
 	buttons.inner.disabled = d.passages.inner
 	var e: Dictionary = model.by_id(selected)
+	device_summary.refresh(model, e)
 	inventory.text = "先在场景选中设备，可查看并按物品取放。"
 	if not e.is_empty():
-		inventory.text = "%s #%d · %s\n%s" % [Rules.CATALOG[e.type].name, e.id, "近身可操作" if model.near_entity(e) else "请靠近至两格内", describe_entity(e)]
+		inventory.text = "%s\n背包 %d / 200：%s" % ["近身可操作" if model.near_entity(e) else "远程查看：请关闭面板，走到设备两格内且位于同一可达区域。", Items.count(model.bag), Items.describe(model.bag)]
 	recipe_row.visible = e.get("type", "") == "reactor"
 	recipe.clear()
 	recipe_ids.clear()
@@ -97,14 +131,13 @@ func refresh() -> void:
 				recipe.select(recipe_ids.size() - 1)
 	for item in rows:
 		rows[item].visible = e.get("type", "") in ["collector", "reactor", "storage"] and (item in ["crystal", "catalyst"] or (item == "crust_sample" and d.sample_taken) or d.trial_completed)
-
-
-static func describe_entity(e: Dictionary) -> String:
-	match e.type:
-		"collector": return "%s缓冲：%s / 50" % [Rules.NAMES[e.mineral], Items.describe(e.buffer)]
-		"reactor":
-			var r: Dictionary = Rules.RECIPES[e.recipe_id]
-			return "%s：%s → %s\n输入：%s\n输出：%s\n在制：%s · %.1f / %.0f 秒" % [r.name, Items.describe(r.input), Items.describe(r.output), Items.describe(e.input), Items.describe(e.output), Items.describe(e.invested), e.progress, r.seconds]
-		"storage": return "仓储 %d / 200：%s" % [Items.count(e.items), Items.describe(e.items)]
-		"belt": return "带上物品：%s" % Rules.NAMES.get(e.cargo, "空")
-	return ""
+		if rows[item].visible:
+			var contents := Items.contents(e)
+			# In-process inputs cannot be taken directly; cancellation returns the full batch.
+			var stored := int(contents.get(item, 0)) - int(e.get("invested", {}).get(item, 0))
+			item_labels[item].text = "%s · 设备 %d / 背包 %d" % [Rules.NAMES[item], stored, int(model.bag.get(item, 0))]
+		for action in ["take_one", "take_all", "put_one", "put_all"]:
+			buttons[item + "_" + action].disabled = not model.near_entity(e)
+			buttons[item + "_" + action].tooltip_text = "需位于设备两格内且同一可达区域" if not model.near_entity(e) else "由当前库存、配方与容量决定实际数量"
+	buttons.recipe.disabled = not model.near_entity(e)
+	buttons.cancel_batch.disabled = not model.near_entity(e) or not e.get("processing", false)

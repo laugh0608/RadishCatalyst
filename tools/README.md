@@ -37,6 +37,10 @@
 | `sh tools/check-factory-statistics.sh state [batch]` | 统计查询、窗口、库存 / 理论口径、恢复与页面挂载定向检查 |
 | `sh tools/check-factory-statistics.sh ui <batch>` | 新隔离世界短窗口复核统计按钮与 Escape，先于完整路径执行 |
 | `sh tools/check-factory-statistics.sh write/read <batch>` | 新 batch 从空勘探世界按真实活动时间生产、步行与开路，复核统计 / 窗口；read 独立 Boot 恢复后继续断料 / 修复趋势验证 |
+| `sh tools/check-factory-device-interaction.sh state [batch]` | 设备状态展示、近身操作、端口位置与真实物流、旧工厂边界；已登记 Shell / PowerShell 默认 Godot 检查 |
+| `sh tools/check-factory-device-interaction.sh write/read <batch>` | 新双根隔离空世界，合成鼠标放置 / 拖铺 / 选中 / 嵌入式面板操作、自然生产、窗口布局及半批独立 Boot 恢复；write 拒绝已有 batch，read 会继续生产并保存，只运行一次 |
+
+设备交互窗口复用统计路径的失焦等待与真实行走驱动。Boot 首屏使用聚焦后的合成 Enter；部分初始设备使用既有精确放置字段 / 按钮信号，接线与停复电使用权威命令，配方下拉选项由驱动选中；这些准备与控件 / 场地命中测试分别记录，不代替用户亲测。面板通过父视口路由合成鼠标事件，检查按钮在窗口内可见且仅激活一次；不将它称为系统鼠标或原生独立窗口证据。无物料 / 解锁 / 人物位置注入或生产加速；启动前告知，用户关闭即停止。
 
 发现检查的 `[batch]` 只控制状态日志位置；当前状态脚本将夹具 / JSON 结果固定写到 `tools/runtime-intake/check-runs/factory-discovery-v1/d2-b-20260925/`，process-read 与窗口 write 都从此取输入。复跑 state 会更新该固定目录，需先保留要审计的旧证据；窗口批次另用唯一名称，read 读取 write 的 manifest。窗口夹具由加速模型生产并准备布局 / 人物位置，不能作为自然玩家全路径。`check-client` 的 Godot 模式已登记 power / discovery / statistics 状态检查，不自动覆盖这些跨进程或窗口模式。
 

@@ -78,6 +78,7 @@ func _ready() -> void:
 	_build_power_dialog()
 	discovery_panel.theme = hud.theme
 	add_child(discovery_panel)
+	discovery_panel.visibility_changed.connect(_capture_active_time)
 	statistics_panel.theme = hud.theme
 	add_child(statistics_panel)
 	statistics_panel.locate_requested.connect(_locate_statistics_device)
@@ -300,7 +301,15 @@ func _action(name: String, value: Variant) -> void:
 				keys.clear()
 				actor.target = null
 				statistics_panel.show_for(model)
-			"discovery": discovery_panel.show_for(model, ui.selected)
+			"discovery", "device":
+				_stop_pointer()
+				keys.clear()
+				actor.target = null
+				if name == "device":
+					discovery_panel.show_device(model, ui.selected)
+				else:
+					discovery_panel.show_for(model, ui.selected)
+				_capture_active_time()
 			"deposit":
 				var result := model.deposit(ui.selected)
 				hud.announce("已投入 %d 件回收物品。" % result.amount if result.ok else result.reason, not result.ok)

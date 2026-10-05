@@ -23,6 +23,14 @@ var limbs: Array[Node3D] = []
 var grid := Node3D.new()
 var ghost := Node3D.new()
 var selection := Node3D.new()
+var port_hints := Node3D.new()
+var port_key := ""
+var port_labels: Array[Label3D] = []
+var build_model := Node3D.new()
+var build_model_type := ""
+var device_affordances := true
+var input_hint_mat := Parts.material("73ddd0")
+var output_hint_mat := Parts.material("f0c16b")
 var barriers: Node3D
 var terrain_key := ""
 var sample: Node3D
@@ -99,7 +107,7 @@ func _ready() -> void:
 	camera.far = 120
 	get_viewport().size_changed.connect(sync_camera)
 	sync_camera()
-	for node in [grid, ghost, selection, wiring]:
+	for node in [grid, ghost, selection, wiring, port_hints, build_model]:
 		add_child(node)
 	var grid_mat := Parts.material("89958a", 0, 1)
 	for x in range(-32, 33):
@@ -167,6 +175,8 @@ func sync_camera() -> void:
 	camera.position = target + Vector3(sin(angle) * cos(pitch), sin(pitch), cos(angle) * cos(pitch)) * 40
 	camera.look_at(target)
 	camera.size = maxf(21, 31 / (viewport_size.x / viewport_size.y)) / zoom
+	for label in port_labels:
+		label.pixel_size = 0.014 * camera.size / 21.0
 
 
 func ground(screen: Vector2) -> Variant:
@@ -268,6 +278,9 @@ func invalidate() -> void:
 	visual_time = -1.0
 	ghost_key = ""
 	selection_key = ""
+	port_key = ""
+	build_model_type = ""
+	clear_node(build_model)
 
 
 func _build(e: Dictionary, mask: int) -> Dictionary:
@@ -346,6 +359,7 @@ func draw(model: RefCounted, actor: Dictionary, ui: Dictionary) -> void:
 	body.position.y = absf(sin(actor.walk * 7)) * 0.035 if actor.moving else 0
 	grid.visible = ui.build
 	_sync_wiring(model, ui)
+	_sync_device_affordances(model, ui)
 	if model.has_method("power_state") and terrain_key != str(model.discovery):
 		_build_mineral_barriers()
 	var valid: bool = not ui.tool.is_empty() and model.placement(ui.tool, ui.cell, actor).ok
@@ -378,6 +392,69 @@ func draw(model: RefCounted, actor: Dictionary, ui: Dictionary) -> void:
 	visual_revision = model.revision
 	visual_time = model.time
 	_sync_production(model)
+
+
+func _sync_device_affordances(model: RefCounted, ui: Dictionary) -> void:
+	var enabled := device_affordances and model.has_method("power_state")
+	port_hints.visible = enabled
+	build_model.visible = enabled and not ui.tool.is_empty() and ui.tool != "belt"
+	if not enabled:
+		return
+	if build_model.visible:
+		if build_model_type != ui.tool:
+			clear_node(build_model)
+			build_model_type = ui.tool
+			var asset: Node3D = assets[ui.tool].instantiate()
+			build_model.add_child(asset)
+			for mesh in asset.find_children("*", "MeshInstance3D", true, false):
+				mesh.transparency = 0.45
+				mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var shape: Dictionary = Model.CATALOG[ui.tool]
+		build_model.position = Vector3(ui.cell.x + shape.w * 0.5, 0.06, ui.cell.y + shape.d * 0.5)
+	var key := str([model.revision, ui.tool, ui.cell, ui.selected])
+	if key == port_key:
+		return
+	port_key = key
+	port_labels.clear()
+	clear_node(port_hints)
+	for e in model.entities:
+		var shape: Dictionary = Model.CATALOG[e.type]
+		var center := Vector2(e.x + shape.w * 0.5, e.z + shape.d * 0.5)
+		if e.id == ui.selected or (not ui.tool.is_empty() and center.distance_to(Vector2(ui.cell)) <= 9):
+			_port_hint(model, e)
+	if not ui.tool.is_empty():
+		_port_hint(model, {"type": ui.tool, "x": ui.cell.x, "z": ui.cell.y})
+
+
+func _port_hint(model: RefCounted, e: Dictionary) -> void:
+	for role in ["input", "output"]:
+		var port := Model.port(e, role)
+		if port.is_empty():
+			continue
+		var cell := Vector2i(port.x + port.dx, port.z + port.dz)
+		var hint := Node3D.new()
+		# Metadata permits checking displayed cells against the actual logistics contract.
+		hint.set_meta("cell", cell)
+		hint.set_meta("role", role)
+		hint.set_meta("entity_id", e.get("id", -1))
+		port_hints.add_child(hint)
+		hint.position.y = 0.55 if not model.entity_at(cell).is_empty() else 0.02
+		var mat := input_hint_mat if role == "input" else output_hint_mat
+		footprint(hint, cell, {"w": 1, "d": 1}, mat)
+		arrow(hint, cell, 0, mat)
+		var label := Label3D.new()
+		label.text = "输入 →" if role == "input" else "输出 →"
+		label.font = preload("res://assets/fonts/NotoSansSC-wght.ttf")
+		label.font_size = 48
+		# Orthographic camera zoom otherwise shrinks short functional labels into unreadable dots.
+		label.pixel_size = 0.014 * camera.size / 21.0
+		label.outline_size = 5
+		label.modulate = mat.albedo_color
+		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		label.no_depth_test = true
+		hint.add_child(label)
+		port_labels.append(label)
+		label.position = Vector3(cell.x + 0.5, 0.85, cell.y + 0.5)
 
 
 func _sync_production(model: RefCounted) -> void:
