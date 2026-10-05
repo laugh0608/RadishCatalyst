@@ -134,11 +134,11 @@ func panel(id := -1) -> void:
 	world.ui.selected = id # Targeted command UI, selection covered by foundation checks.
 	world._refresh()
 	await driver.settle()
-	await driver.click(world.hud.buttons.discovery)
-	driver.expect(world.discovery_panel.visible, "open real discovery panel")
+	world._action("device" if id > 0 else "discovery", null)
+	driver.expect(world.discovery_panel.visible, "open selected device or process review")
 	await driver.settle(10)
-	driver.expect(world.discovery_panel.size.y <= 700 and world.discovery_panel.size.x <= 800, "panel fits ordinary window")
-	var rect: Rect2 = world.discovery_panel.get_ok_button().get_global_rect()
+	driver.expect(root.get_visible_rect().encloses(world.discovery_panel.frame.get_global_rect()), "panel fits ordinary window")
+	var rect: Rect2 = world.discovery_panel.buttons.close.get_global_rect()
 	driver.expect(Rect2(Vector2.ZERO, Vector2(world.discovery_panel.size)).encloses(rect), "return button inside visible native viewport")
 
 
@@ -161,7 +161,7 @@ func press(button: Button) -> void:
 
 func panel_shot(name: String) -> void:
 	await driver.settle()
-	var picture: Image = world.discovery_panel.get_texture().get_image()
+	var picture: Image = world.discovery_panel.get_viewport().get_texture().get_image()
 	driver.expect(picture.save_png(driver.shot_root.path_join(name + ".png")) == OK, "native panel screenshot " + name)
 
 
@@ -181,7 +181,7 @@ func trial() -> void:
 	await press(world.discovery_panel.buttons.crust_sample_put_one)
 	await press(world.discovery_panel.buttons.catalyst_put_all)
 	driver.expect(world.model.by_id(2).input == {"crust_sample": 1, "catalyst": 2}, "explicit trial material buttons")
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	await driver.click(world.hud.buttons.pause)
 	if not await active(10.15):
 		return
@@ -191,7 +191,7 @@ func trial() -> void:
 	await panel(2)
 	driver.expect("crust_solvent" in world.discovery_panel.recipe_ids and "rich_catalyst" in world.discovery_panel.recipe_ids, "new recipes visible after real completion")
 	await panel_shot("03-trial-unlocks")
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 
 
 func passage(id: String, prefix: String) -> void:
@@ -200,7 +200,7 @@ func passage(id: String, prefix: String) -> void:
 	await panel_shot(prefix + "-opening-command")
 	await press(world.discovery_panel.buttons[id])
 	driver.expect(world.model.discovery.passages[id], "explicit passage button debits and opens " + id)
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	world.actor.target = Vector2(8.5 if id == "outer" else 24.5, 0.5)
 	await driver.click(world.hud.buttons.pause)
 	if not await active(2.2):
@@ -216,7 +216,7 @@ func rich() -> void:
 	await driver.shot("06-rich-partial-output")
 	await panel(16)
 	await panel_shot("06-rich-output-inventory")
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	await driver.click(world.hud.buttons.pause)
 	if not await active(2.2):
 		return
@@ -251,4 +251,4 @@ func sample_path() -> void:
 	await press(world.discovery_panel.buttons.sample)
 	driver.expect(world.model.bag.get("crust_sample", 0) == 1 and world.model.discovery.sample_taken, "explicit pickup obtains unique sample")
 	await panel_shot("00-sample-acquired")
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)

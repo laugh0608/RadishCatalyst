@@ -1,12 +1,14 @@
 # Daily Start
 
-更新时间：2026-10-05（首程引导与附件日程）
+更新时间：2026-10-05（统一设备交互整改）
 
 ## 启动读取
 
-先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[首程引导](../features/factory-first-journey-guidance-v1.md)、[范围供电与拾取](../features/factory-range-power-and-pickup-v1.md)及 [W41 周志](../devlogs/2026-W41.md)。按任务补读[设备交互](../features/factory-device-interaction-v1.md)、[发现生产](../features/factory-discovery-and-production-v1.md)、[基础电力](../features/factory-power-and-grid-v1.md)及[生产统计](../features/factory-production-statistics-v1.md)。版本与升级读 [schema 3](../architecture/factory-discovery-save-v3.md)，字段读 [schema 2](../architecture/factory-discovery-save-v2.md)，文件协议读[共用保存合同](../architecture/factory-world-state-and-save-v1.md)。
+先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[设备交互](../features/factory-device-interaction-v1.md)、[首程引导](../features/factory-first-journey-guidance-v1.md)、[范围供电与拾取](../features/factory-range-power-and-pickup-v1.md)及 [W41 周志](../devlogs/2026-W41.md)。按任务补读[设备交互](../features/factory-device-interaction-v1.md)、[发现生产](../features/factory-discovery-and-production-v1.md)、[基础电力](../features/factory-power-and-grid-v1.md)及[生产统计](../features/factory-production-statistics-v1.md)。版本与升级读 [schema 3](../architecture/factory-discovery-save-v3.md)，字段读 [schema 2](../architecture/factory-discovery-save-v2.md)，文件协议读[共用保存合同](../architecture/factory-world-state-and-save-v1.md)。
 
 ## 当前交接
+
+- 最新亲测要求统一中央与右侧设备详情、面板打开保持产线运行，并改为走近点击或视角中心高亮后 F 打开。设备专题已按此更新；本轮不改变存档字段、生产、电网、配方与供给规则。
 
 - 正式首程目标、材料数量、下一步按钮和全流程回查已接入；状态 95 项、schema 3 空世界完整循环 249 项与独立恢复 22 项通过。原图、输入方式及失败重验见 W41；玩家是否能理解并独立完成仍待亲测。
 
@@ -24,7 +26,7 @@
 
 ## 下一步
 
-1. **亲测正式首程引导**：按[首程专题](../features/factory-first-journey-guidance-v1.md)从空勘探世界确认短目标、实际操作入口与卡住后的恢复是否清楚；支持先拾样 / 先建线，不新增存档字段。
+1. **先复核统一设备面板，再亲测正式首程引导**：确认近身点击 / 中心 F、面板内生产和动态信息，以及关闭后的输入恢复；按[首程专题](../features/factory-first-journey-guidance-v1.md)从空勘探世界确认短目标、实际操作入口与卡住后的恢复是否清楚；支持先拾样 / 先建线，不新增存档字段。
 2. **按已安排日程设计传送带附件**：首程反馈处理后进入分流 / 汇合共同调度设计，再明确准入口物品与数量控制语义；当前未开始附件实现。完整 schema 3 路径已有独立工程证据，不例行重跑。
 3. **保持已确认范围**：6 / 12 格、矿壳阻挡、多网选择、有限容量及原档备份保持；先沿用低投入资产，专用图标与精细美术另列。引导完成后再复核首次游玩体验与 D4 剩余项。
 4. **保留输入证据边界**：本包已修正嵌入式面板合成鼠标路由并通过真实控件命中断言；Boot 首屏使用合成 Enter，首屏鼠标驱动偶发未命中及独立样板自动点击不记为已修复。

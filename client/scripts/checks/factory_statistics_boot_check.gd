@@ -131,14 +131,14 @@ func full_journey() -> void:
 	await walk(Vector2(2.3, 3.5))
 	await panel(-1)
 	await press(world.discovery_panel.buttons.sample)
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	driver.expect(world.model.discovery.sample_taken, "sample obtained by actual proximity")
 	await driver.shot("02-sample-guidance")
 	await wait_for(func(): return world.model.by_id(ids.warehouse).items.get("catalyst", 0) >= 2, 70, "ordinary catalyst preparation")
 	await walk(Vector2(-5.0, 3.0))
 	await panel(ids.warehouse)
 	await press(world.discovery_panel.buttons.catalyst_take_all)
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	# Remove the terminal through the existing action; goods stay in the bag.
 	world.ui.selected = ids.warehouse
 	world._action("salvage", null)
@@ -156,7 +156,7 @@ func full_journey() -> void:
 	if world.model.by_id(ids.solvent).input.get("catalyst", 0) < 2 and world.model.bag.get("catalyst", 0) > 0:
 		await press(world.discovery_panel.buttons.catalyst_put_all)
 	await native_shot("03-trial")
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	await wait_for(func(): return world.model.discovery.trial_completed, 45, "real-time trial")
 	stage("trial", "one unique sample consumed; continuous recipes unlocked")
 	await wait_for(func(): return world.model.by_id(ids.solvent).output.is_empty(), 10, "trial product leaves on belt")
@@ -166,17 +166,17 @@ func full_journey() -> void:
 	await recipe("crust_solvent")
 	if world.model.bag.get("catalyst", 0) > 0:
 		await press(world.discovery_panel.buttons.catalyst_put_all)
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	await statistics_checks()
 	await wait_for(func(): return world.model.by_id(ids.warehouse).items.get("crust_solvent", 0) >= 4, 150, "automatic solvent production for first opening")
 	await walk(Vector2(1.0, 2.0))
 	await panel(ids.warehouse)
 	await press(world.discovery_panel.buttons.crust_solvent_take_all)
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	await walk(Vector2(2.7, 0.3))
 	await panel(-1)
 	await press(world.discovery_panel.buttons.outer)
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	await walk(Vector2(8.6, 0.3))
 	stage("outer", "four real solvent units spent; actual collision traversal")
 	await driver.shot("07-outer-open")
@@ -197,7 +197,7 @@ func full_journey() -> void:
 	await walk(Vector2(15.0, 2.0))
 	await panel(ids.rich)
 	await recipe("rich_catalyst")
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	await place("reactor", 10, 10, "inner_solvent")
 	await place("storage", 14, 11, "inner_warehouse")
 	await place("power_junction", 14, 4, "mid_node")
@@ -221,7 +221,7 @@ func full_journey() -> void:
 	await walk(Vector2(14.0, 9.0))
 	await panel(ids.inner_solvent)
 	await recipe("crust_solvent")
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	await wait_for(func(): return world.model.statistics.totals.produced.get("rich_crystal", 0) > 0, 30, "new resource really produced")
 	await driver.click(world.hud.buttons.statistics)
 	world.statistics_panel.window_choice.select(0)
@@ -252,14 +252,14 @@ func full_journey() -> void:
 	await walk(Vector2(15.0, 9.8))
 	await panel(ids.inner_warehouse)
 	await press(world.discovery_panel.buttons.crust_solvent_take_all)
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	await walk(Vector2(16.0, 9.0))
 	await walk(Vector2(16.0, 2.2))
 	await walk(Vector2(19.0, 2.2))
 	await walk(Vector2(19.0, 0.4))
 	await panel(-1)
 	await press(world.discovery_panel.buttons.inner)
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	await walk(Vector2(24.6, 0.4))
 	driver.expect(world.model.discovery.passages.inner, "second permanent opening")
 	stage("inner", "eight rich-fed solvent spent; actual second crossing")
@@ -349,8 +349,8 @@ func panel(id: int) -> void:
 	world.ui.selected = id # Stable ID selection; location/proximity remains natural walking.
 	world._refresh()
 	await driver.settle()
-	await driver.click(world.hud.buttons.discovery)
-	driver.expect(world.discovery_panel.visible, "native process panel opens")
+	world._action("device" if id > 0 else "discovery", null)
+	driver.expect(world.discovery_panel.visible, "selected device or process panel opens after proximity check")
 
 
 func press(control: Button) -> void:
@@ -369,7 +369,7 @@ func press(control: Button) -> void:
 
 
 func recipe(id: String) -> void:
-	await wait_for_focus(world.discovery_panel)
+	await wait_for_focus(world.discovery_panel.get_window())
 	var index: int = world.discovery_panel.recipe_ids.find(id)
 	driver.expect(index >= 0, "recipe known " + id)
 	check_failures()
@@ -406,7 +406,7 @@ func _process(_delta: float) -> bool:
 	if driver == null or finished or last_observed_usec == 0:
 		return false
 	var now := Time.get_ticks_usec()
-	var window: Window = world.discovery_panel if is_instance_valid(world) and world.discovery_panel.visible else root
+	var window: Window = world.discovery_panel.get_window() if is_instance_valid(world) and world.discovery_panel.visible else root
 	if window.has_focus():
 		foreground_seconds += (now - last_observed_usec) / 1000000.0
 		if not focus_pause.is_empty():
@@ -443,9 +443,9 @@ func stage(name: String, reason: String) -> void:
 
 
 func native_shot(name: String) -> void:
-	await wait_for_focus(world.discovery_panel)
+	await wait_for_focus(world.discovery_panel.get_window())
 	await driver.settle()
-	world.discovery_panel.get_texture().get_image().save_png(driver.shot_root.path_join(name + ".png"))
+	world.discovery_panel.get_viewport().get_texture().get_image().save_png(driver.shot_root.path_join(name + ".png"))
 
 
 func statistics_checks() -> void:

@@ -37,9 +37,9 @@
 | `sh tools/check-factory-statistics.sh state [batch]` | 统计查询、窗口、库存 / 理论口径、恢复与页面挂载定向检查 |
 | `sh tools/check-factory-statistics.sh ui <batch>` | 新隔离世界短窗口复核统计按钮与 Escape，先于完整路径执行 |
 | `sh tools/check-factory-statistics.sh write/read <batch>` | 新 batch 从空勘探世界按真实活动时间生产、步行与开路，复核统计 / 窗口；read 独立 Boot 恢复后继续断料 / 修复趋势验证 |
-| `sh tools/check-factory-device-interaction.sh state [batch]` | 设备状态展示、近身操作、端口与物流、接线范围 / 遮挡 / 无状态变更、旧工厂边界；已登记 Shell / PowerShell 默认 Godot 检查 |
+| `sh tools/check-factory-device-interaction.sh state [batch]` | 统一设备面板、执行时库存、近身 / 中心 F 目标、配方候选保持、端口与物流、接线范围 / 遮挡 / 无状态变更、旧工厂边界；已登记 Shell / PowerShell 默认 Godot 检查 |
 | `sh tools/check-factory-device-interaction.sh preview <batch>` | Boot 默认基础工厂及勘探工厂的三类设备预览、放置 / 取消、选中 / 近景与铺带；勘探另验电源 / 节点接线范围、非法位置、最小窗口和矿壳遮挡，要求新 batch |
-| `sh tools/check-factory-device-interaction.sh write/read <batch>` | 新双根隔离空世界，合成鼠标放置 / 拖铺 / 选中 / 嵌入式面板操作、自然生产、窗口布局及半批独立 Boot 恢复；write 拒绝已有 batch，read 会继续生产并保存，只运行一次 |
+| `sh tools/check-factory-device-interaction.sh write/read <batch>` | 新双根隔离空世界，合成鼠标拖铺 / 近身点击、中心高亮后 F、统一面板内自然生产与实时库存、暂停 / 输入隔离、各类设备与窗口布局及半批独立 Boot 恢复；write 拒绝已有 batch，read 会继续生产并保存，只运行一次 |
 | `sh tools/check-factory-first-journey.sh state [batch]` | 首程引导由事实派生、先拾样 / 先建线、材料位置、供电 / 回压、替代路线、目标拆除、独立解码与只读不变；已登记 Shell / PowerShell 默认 Godot 检查 |
 | `sh tools/check-factory-first-journey.sh write/read <batch>` | 正式新 schema 3 空世界首程卡 / 回查 / 最小窗口、完整自然生产与两次开路、富集回流、停复电 / 增容及独立 Boot 全快照恢复；新 write 批次、同批 read 仅一次 |
 | `sh tools/check-factory-range-power.sh state [batch]` | schema 3 自动图、确定改接、遮挡、供能、样本唯一性、严格解码、升级原档保留及 IO 失败；已登记默认 Godot 检查 |

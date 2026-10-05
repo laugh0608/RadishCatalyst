@@ -208,6 +208,9 @@ func hit(screen: Vector2) -> int:
 	var ground_point = ground(screen)
 	if ground_point == null or world_model == null:
 		return -1
+	# Commands may request a focus target before the next draw synchronizes new entities.
+	if last_revision != world_model.revision:
+		_rebuild(world_model)
 	var candidates := {}
 	# Tall machines project toward the camera, bounded by maximum model height.
 	for x in range(floori(ground_point.x) - 5, floori(ground_point.x) + 6):
@@ -395,11 +398,12 @@ func draw(model: RefCounted, actor: Dictionary, ui: Dictionary) -> void:
 			_overlay_box(ghost, Vector3(ui.cell.x + def.w * 0.5, 0.065, ui.cell.y + def.d * 0.5), Vector3(def.w, 0.035, def.d), mat)
 			if ui.tool == "belt":
 				arrow(ghost, ui.cell, ui.dir, mat)
-	var next_selection := str([ui.selected, model.revision])
+	var selected_id: int = ui.get("focus_device", -1) if ui.get("focus_device", -1) != -1 else ui.selected
+	var next_selection := str([selected_id, model.revision])
 	if next_selection != selection_key:
 		clear_node(selection)
 		selection_key = next_selection
-		var e: Dictionary = model.by_id(ui.selected)
+		var e: Dictionary = model.by_id(selected_id)
 		if not e.is_empty():
 			footprint(selection, Vector2i(e.x, e.z), Model.CATALOG[e.type], select_mat)
 	# 生产视觉只在固定步或建造 / 投入命令改变状态后更新；人物、相机与预览仍逐帧处理。

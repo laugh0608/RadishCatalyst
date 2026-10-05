@@ -3,7 +3,6 @@ extends Control
 signal action(name: String, value: Variant)
 
 const Model := preload("res://scripts/factory/model.gd")
-const DeviceSummary := preload("res://scripts/factory/device_summary.gd")
 const Items := preload("res://scripts/factory/items.gd")
 const PowerRange := preload("res://scripts/factory/power_range.gd")
 const Guidance := preload("res://scripts/factory/discovery_guidance.gd")
@@ -21,9 +20,7 @@ var notice := Label.new()
 var bag := Label.new()
 var coordinates := Label.new()
 var details := Label.new()
-var device_summary := DeviceSummary.new()
 var inspector_scroll := ScrollContainer.new()
-var inspector_selection := -1
 var placement_reason := Label.new()
 var tool_row := HBoxContainer.new()
 var placement_row := HBoxContainer.new()
@@ -33,6 +30,8 @@ var cell_x := SpinBox.new()
 var cell_z := SpinBox.new()
 var help_panel: PanelContainer
 var sample_button: Button
+var interaction_button: Button
+var center_mark := Label.new()
 
 
 func _ready() -> void:
@@ -166,11 +165,6 @@ func _build_world_panels() -> void:
 	details.custom_minimum_size.x = 234
 	details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	detail_stack.add_child(details)
-	detail_stack.add_child(device_summary)
-	_button(detail_stack, "device", "取放 / 配方…（暂停生产）")
-	_button(detail_stack, "power_connect", "从此节点接线")
-	_button(detail_stack, "power_toggle", "启用 / 关闭电源")
-	_button(detail_stack, "power_disconnect", "选择连接并断开")
 	_button(detail_stack, "deposit", "投入回收物品")
 	_button(detail_stack, "rotate_selected", "旋转传送带 R")
 	_button(detail_stack, "salvage", "拆回构件和全部货物")
@@ -194,6 +188,18 @@ func _build_world_panels() -> void:
 	help_panel.hide()
 	sample_button = _button(world_slot, "sample", "矿壳样本 · F 拾取")
 	sample_button.hide()
+	interaction_button = _button(world_slot, "interact", "F  查看设备")
+	interaction_button.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	interaction_button.offset_top = -64
+	interaction_button.offset_bottom = -18
+	interaction_button.hide()
+	center_mark.text = "＋"
+	center_mark.add_theme_font_size_override("font_size", 22)
+	center_mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	world_slot.add_child(center_mark)
+	center_mark.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	center_mark.position -= Vector2(11, 15)
+	center_mark.hide()
 
 
 func _build_footer(parent: Node) -> void:
@@ -269,7 +275,7 @@ func viewport_to_screen(point: Vector2) -> Vector2:
 func world_point(screen: Vector2) -> Variant:
 	if not world_image.get_global_rect().has_point(screen):
 		return null
-	for panel in [mission_panel, inspector, help_panel, sample_button, world_slot.get_node("CameraPanel")]:
+	for panel in [mission_panel, inspector, help_panel, sample_button, interaction_button, world_slot.get_node("CameraPanel")]:
 		if panel.visible and panel.get_global_rect().has_point(screen):
 			return null
 	return (screen - world_image.global_position) * Vector2(subviewport.size) / world_image.size
@@ -277,7 +283,7 @@ func world_point(screen: Vector2) -> Variant:
 
 func sync_sample(view: Node3D, model: RefCounted, ui: Dictionary) -> void:
 	sample_button.visible = model.has_method("near_sample") and not model.discovery.sample_taken \
-		and model.near_sample() and ui.tool.is_empty() and ui.get("power_from", 0) == 0
+		and model.near_sample() and not ui.get("blocked", false) and ui.get("focus_device", -1) == -1 and ui.tool.is_empty() and ui.get("power_from", 0) == 0
 	if not sample_button.visible:
 		return
 	var at := viewport_to_screen(view.sample_screen()) - world_slot.global_position
@@ -320,36 +326,31 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, focused: bool
 	buttons.statistics.visible = model.has_method("power_state")
 	coordinates.text = "X %.1f / Z %.1f" % [actor.x, actor.z]
 	var e: Dictionary = model.by_id(ui.selected)
-	inspector.visible = not e.is_empty()
 	var powered: bool = model.has_method("power_state")
-	# Preserve the compact foundation inspector; discovery devices have a scrollable summary.
-	inspector.anchor_bottom = 1.0 if powered else 0.0
-	inspector.offset_bottom = -72 if powered else 22
-	inspector.offset_left = -350 if powered else -286
-	inspector_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO if powered else ScrollContainer.SCROLL_MODE_DISABLED
-	if inspector_selection != ui.selected:
-		inspector_scroll.scroll_vertical = 0
-		inspector_selection = ui.selected
-	details.visible = not powered
-	device_summary.visible = powered and not e.is_empty()
-	buttons.device.visible = powered and e.get("type", "") in ["collector", "reactor", "storage"]
-	if not e.is_empty():
+	inspector.visible = not powered and not e.is_empty()
+	inspector.anchor_bottom = 0.0
+	inspector.offset_bottom = 22
+	inspector.offset_left = -286
+	inspector_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	if not powered and not e.is_empty():
 		var info := ""
-		if powered:
-			device_summary.refresh(model, e)
-		else:
-			match e.type:
-				"collector": info = "晶体缓冲 %d / 50\n采集速度 1 个 / 秒\n金色出口位于右侧" % e.buffer
-				"reactor": info = "晶体输入 %d / 2\n催化剂输出 %d / 1\n%s\n左进右出，接口在前排" % [e.input, e.output, "加工 %.1f / 10 秒" % e.progress if e.processing else "每批 2 晶体 → 1 催化剂"]
-				"storage": info = "晶体 %d · 催化剂 %d\n容量 %d / 200\n青色入口位于左侧" % [e.crystal, e.catalyst, e.crystal + e.catalyst]
-				"belt": info = "方向 %s\n带上物品：%s\n速度 1 格 / 秒" % [DIRECTIONS[e.dir], {"": "空", "crystal": "晶体", "catalyst": "催化剂"}[e.cargo]]
+		match e.type:
+			"collector": info = "晶体缓冲 %d / 50\n采集速度 1 个 / 秒\n金色出口位于右侧" % e.buffer
+			"reactor": info = "晶体输入 %d / 2\n催化剂输出 %d / 1\n%s\n左进右出，接口在前排" % [e.input, e.output, "加工 %.1f / 10 秒" % e.progress if e.processing else "每批 2 晶体 → 1 催化剂"]
+			"storage": info = "晶体 %d · 催化剂 %d\n容量 %d / 200\n青色入口位于左侧" % [e.crystal, e.catalyst, e.crystal + e.catalyst]
+			"belt": info = "方向 %s\n带上物品：%s\n速度 1 格 / 秒" % [DIRECTIONS[e.dir], {"": "空", "crystal": "晶体", "catalyst": "催化剂"}[e.cargo]]
 		details.text = "%s\n%s\n\n%s" % [Model.CATALOG[e.type].name, model.feedback(e).label, info]
-		buttons.power_connect.visible = powered and not model.automatic_power and e.type in ["power_source", "power_junction"]
-		buttons.power_toggle.visible = powered and e.type == "power_source"
-		buttons.power_disconnect.visible = not model.automatic_power and not model.connections(e.id).is_empty() if powered else false
 		buttons.rotate_selected.visible = e.type == "belt"
-		buttons.deposit.visible = not powered and e.type in ["collector", "reactor", "storage"]
+		buttons.deposit.visible = e.type in ["collector", "reactor", "storage"]
 		buttons.deposit.disabled = Items.count(model.bag) == 0
+	var target: Dictionary = model.by_id(ui.get("focus_device", -1))
+	interaction_button.visible = powered and not ui.get("blocked", false) and not target.is_empty()
+	center_mark.visible = powered and not ui.get("blocked", false) and ui.tool.is_empty()
+	if interaction_button.visible:
+		interaction_button.text = ("F  查看 %s" if ui.focus_ready else "靠近后交互 · %s") % Model.CATALOG[target.type].name
+		interaction_button.position.x = (world_slot.size.x - interaction_button.size.x) * 0.5
+		interaction_button.disabled = not ui.focus_ready
+	center_mark.add_theme_color_override("font_color", Color("77d8c6" if ui.get("focus_ready", false) else "91a39a"))
 	var text := "建立产线\n晶体 → 催化剂\n\n采集器覆盖青色矿点。金色出口接带，送入青色入口；反应器每批消耗 2 晶体，加工 10 秒。"
 	if model.delivered > 0:
 		text = "继续扩建\n已有 %d 件催化剂入仓\n\n走到其他青色矿点建立第二条产线。保存后可从启动菜单继续这个世界。" % model.delivered

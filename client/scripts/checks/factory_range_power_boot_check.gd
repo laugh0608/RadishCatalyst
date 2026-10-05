@@ -46,7 +46,7 @@ func _first_line() -> void:
 		if finished:
 			return
 	driver.expect(world.model.power_links.size() == 1 and world.model.by_id(ids.reactor).power_node_id != 0, "mouse placements automatically connect source, node and consumer")
-	driver.expect(not world.hud.buttons.power_connect.visible and "自动接电" in world.hud.power_help.text, "automatic world explains coverage and hides manual wire controls")
+	driver.expect(not world.hud.buttons.has("power_connect") and "自动接电" in world.hud.power_help.text, "automatic world explains coverage and hides manual wire controls")
 	await driver.shot("05-node-automatically-connected")
 	await driver.click(world.hud.buttons.belt)
 	await driver.drag([Vector2i(-18, 0), Vector2i(-17, 0), Vector2i(-16, 0), Vector2i(-15, 0), Vector2i(-14, 0)])
@@ -61,16 +61,13 @@ func _first_line() -> void:
 	await select_device("reactor")
 	await driver.shot("06-natural-automatic-production")
 	await wait_for(func(): return world.model.by_id(ids.reactor).processing and world.model.by_id(ids.reactor).progress > 1, 15, "natural partial batch for blackout")
-	await select_device("source")
-	await driver.click(world.hud.buttons.power_toggle)
+	await _source_toggle()
 	var progress: float = world.model.by_id(ids.reactor).progress
 	await active(0.7, "automatic network blackout")
 	driver.expect(world.model.by_id(ids.reactor).progress == progress, "turning off source holds actual batch")
-	await select_device("reactor")
-	driver.expect("无启用电源" in world.hud.device_summary.power.text, "connected but unpowered network explains its cause")
+	driver.expect("无启用电源" in world.model.feedback(world.model.by_id(ids.reactor)).power, "connected but unpowered network explains its cause")
 	await driver.shot("07-automatic-network-blackout")
-	await select_device("source")
-	await driver.click(world.hud.buttons.power_toggle)
+	await _source_toggle()
 	await active(0.3, "automatic network resumes")
 	await driver.click(world.hud.buttons.pause)
 	await select_device("reactor")
@@ -205,3 +202,16 @@ func finish() -> void:
 		"input": "Boot/create/upgrade entry: focused synthetic Enter; restore selection/continue: list/button signals for first-frame snapshot. Models, HUD, upgrade dialog and ground icon: routed synthetic mouse; walking: WASD; near pickup: F. New world uses natural production without wiring, stock/actor injection or time acceleration. Legacy upgrade separately uses a declared prepared disconnected layout."})
 	print("Range power Boot: %d assertions, %d failures" % [driver.assertions, driver.failures.size()])
 	quit(0 if driver.failures.is_empty() else 1)
+
+
+func _source_toggle() -> void:
+	await walk(Vector2(-21, 3))
+	await walk(Vector2(-21, -3))
+	await walk(Vector2(-21, -2))
+	await walk(Vector2(-19, -2))
+	await select_device("source")
+	await native_click(world.discovery_panel.buttons.power_toggle)
+	await native_click(world.discovery_panel.buttons.close)
+	await walk(Vector2(-21, -3))
+	await walk(Vector2(-21, 3))
+	await walk(Vector2(-12, 4))

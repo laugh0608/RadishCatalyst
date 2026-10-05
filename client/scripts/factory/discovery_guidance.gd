@@ -132,7 +132,7 @@ static func _trial_material(model: RefCounted, e: Dictionary) -> Dictionary:
 		if model.bag.get(item, 0) > 0:
 			return _device(e, "输入还缺 %d %s；走近从背包放入。" % [needed, Rules.NAMES[item]])
 		return _stock(model, item, "试制还缺 %d %s；" % [needed, Rules.NAMES[item]])
-	return _device(e, "原料齐全；保持供电，关闭操作面板后开始加工。")
+	return _device(e, "原料齐全；保持供电，面板内也能观察加工进度。")
 
 
 static func _stock(model: RefCounted, item: String, prefix: String) -> Dictionary:

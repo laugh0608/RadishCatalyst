@@ -1,6 +1,7 @@
 extends SceneTree
 
 const PowerCheck := preload("res://scripts/checks/factory_power_check.gd")
+const Target := preload("res://scripts/factory/interaction_target.gd")
 const Summary := preload("res://scripts/factory/device_summary.gd")
 const DevicePanel := preload("res://scripts/factory/discovery_panel.gd")
 const Hud := preload("res://scripts/factory/hud.gd")
@@ -64,14 +65,16 @@ func run() -> void:
 	root.add_child(panel)
 	model.actor.x = 0
 	model.actor.z = 5
-	panel.show_device(model, reactor.id)
-	expect(panel.device_only and not panel.discovery_content.visible, "selected-device entry isolates device actions")
-	expect(panel.buttons.catalyst_take_all.disabled and "远程查看" in panel.inventory.text, "remote viewer sees explicit proximity restriction")
+	expect(not panel.show_device(model, reactor.id) and not panel.visible, "remote selection cannot open device operations")
+	expect(not Target.resolve(model, reactor.id).ready, "distant center target requires approach")
 	before = snapshot(model)
 	var rejected: Dictionary = model.transfer(reactor.id, "catalyst", false, true)
 	expect(not rejected.ok and snapshot(model) == before, "authority still rejects remote transfer without mutation")
 	model.actor.x = -14
 	model.actor.z = -1
+	expect(panel.show_device(model, reactor.id), "nearby device opens unified operations")
+	expect(panel.device_only and not panel.discovery_content.visible, "device entry excludes general process actions")
+	expect(Target.resolve(model, reactor.id).kind == "device" and Target.resolve(model, reactor.id).ready, "near center target enables F")
 	panel.refresh()
 	expect(not panel.buttons.catalyst_take_all.disabled, "nearby transfer enabled")
 	panel.buttons.catalyst_take_all.pressed.emit()
@@ -93,6 +96,8 @@ func run() -> void:
 	model.actor.z = -1
 	panel.refresh()
 	panel.recipe.select(panel.recipe_ids.find("solvent_trial"))
+	panel.refresh()
+	expect(panel.recipe_ids[panel.recipe.selected] == "solvent_trial", "live refresh preserves uncommitted recipe choice")
 	panel.buttons.recipe.pressed.emit()
 	expect(reactor.recipe_id == "solvent_trial" and panel.device_summary.values.process.text.begins_with("矿壳试制"), "recipe command and visible recipe update together")
 	panel.buttons.crust_sample_put_one.pressed.emit()
@@ -109,6 +114,7 @@ func run() -> void:
 	var restored := Codec.decode(JSON.parse_string(JSON.stringify(saved, "", false, true)), PowerCheck.ID)
 	expect(restored.ok and saved.save_schema_version == 2, "device operations remain inside existing schema 2 contract")
 	_capacity(panel)
+	_target_and_liveness(panel)
 	summary.queue_free()
 	panel.queue_free()
 	await process_frame
@@ -117,7 +123,7 @@ func run() -> void:
 	quit(0 if failures.is_empty() else 1)
 
 
-func _capacity(panel: AcceptDialog) -> void:
+func _capacity(panel: Control) -> void:
 	# Synthetic full inventories test presentation and rejection only, not natural progression.
 	var model := PowerCheck.line()
 	var warehouse: Dictionary = model.by_id(3)
@@ -157,6 +163,8 @@ func _views(model: RefCounted) -> void:
 		displayed[hint.get_meta("role")] = hint.get_meta("cell")
 	expect(displayed == {"input": Vector2i(-14, 7), "output": Vector2i(-10, 7)}, "preview marks outside docking cells, not occupied footprint")
 	var placed: Dictionary = model.place("reactor", ui.cell).entity
+	view.hit(view.project(Vector3(placed.x + 1.5, 1.1, placed.z + 1.5)))
+	expect(view.models.has(placed.id), "same-frame hit synchronizes newly placed model before reading its geometry")
 	model.place("belt", displayed.input, 0)
 	model.place("belt", displayed.output, 0)
 	expect(model._sink_accepts(placed, model.entity_at(displayed.input), "crystal"), "input preview cell actually accepts eastbound material")
@@ -181,10 +189,10 @@ func _views(model: RefCounted) -> void:
 	model.advance(0.05)
 	view.draw(model, model.actor, ui)
 	expect(view.port_hints.get_child(0).get_instance_id() == node_id, "simulation ticks do not rebuild port cues")
-	expect(hud.device_summary.visible and hud.buttons.device.visible, "selected production device exposes summary and operations")
+	expect(not hud.inspector.visible and not hud.buttons.has("device"), "discovery device has no duplicate inspector or old operation entry")
 	ui.selected = 3
 	hud.refresh(model, model.actor, ui, true)
-	expect(hud.device_summary.cards.input.visible and not hud.device_summary.cards.output.visible, "terminal inventory has no false output")
+	expect(not hud.inspector.visible, "storage also uses unified panel only")
 	ui.tool = "belt"
 	ui.cell = Vector2i(-14, 0)
 	view.draw(model, model.actor, ui)
@@ -198,7 +206,7 @@ func _views(model: RefCounted) -> void:
 	ui.selected = old.id
 	hud.refresh(legacy, legacy.actor, ui, true)
 	await process_frame
-	expect(hud.details.visible and not hud.device_summary.visible and not hud.buttons.device.visible, "foundation keeps original inspector and operations")
+	expect(hud.details.visible and hud.inspector.visible, "foundation keeps original inspector and operations")
 	view.queue_free()
 	await process_frame
 	await _foundation_preview(hud, legacy, ui)
@@ -346,3 +354,28 @@ func _ground_sample() -> void:
 	expect(not hud.sample_button.visible and not view.hit_sample(view.sample_screen()) and not is_instance_valid(view.sample_icon), "pickup removes icon, name and ground hit target")
 	hud.queue_free()
 	await process_frame
+
+
+func _target_and_liveness(panel: Control) -> void:
+	# Explicit state fixtures isolate UI timing, priority and execution-time revalidation.
+	var model := PowerCheck.line()
+	model.actor.x = 2.5
+	model.actor.z = 3.5
+	expect(Target.resolve(model, -1).kind == "sample", "nearby sample remains F fallback")
+	var e: Dictionary = model.place("storage", Vector2i(0, 2)).entity
+	expect(Target.resolve(model, e.id).kind == "device", "near center device wins over sample")
+	panel.show_device(model, e.id)
+	e.items = {"crystal": 2}
+	panel.refresh()
+	expect("可取 2" in panel.item_labels.crystal.text, "device quantities reflect current authoritative inventory")
+	e.items.crystal = 1
+	panel.buttons.crystal_take_all.pressed.emit()
+	expect(model.bag.get("crystal", 0) == 1 and "已转移 1 件" in panel.result_label.text, "take all uses execution inventory rather than last rendered count")
+	model.actor.x = -25
+	panel.refresh()
+	expect(not panel.visible, "loss of proximity closes device panel")
+	model.actor.x = 2.5
+	panel.show_device(model, e.id)
+	model.salvage(e.id)
+	panel.refresh()
+	expect(not panel.visible, "removed target closes device panel")

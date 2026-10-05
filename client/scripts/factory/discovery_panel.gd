@@ -1,78 +1,152 @@
-extends AcceptDialog
+extends Control
 
+signal device_action(name: String, id: int)
+signal closed
 const Rules := preload("res://data/factory/discovery_rules.gd")
 const Items := preload("res://scripts/factory/items.gd")
 const DeviceSummary := preload("res://scripts/factory/device_summary.gd")
 const Guidance := preload("res://scripts/factory/discovery_guidance.gd")
 var model: RefCounted
 var selected := -1
+var device_only := false
+var frame := PanelContainer.new()
+var heading := Label.new()
+var runtime := Label.new()
 var summary := Label.new()
 var inventory := Label.new()
 var result_label := Label.new()
 var recipe := OptionButton.new()
 var recipe_ids: Array[String] = []
+var recipe_key := ""
 var rows := {}
+var bag_rows := {}
+var bag_labels := {}
 var recipe_row := HBoxContainer.new()
 var buttons := {}
 var device_summary := DeviceSummary.new()
 var discovery_content := VBoxContainer.new()
+var device_content := VBoxContainer.new()
+var bag_content := VBoxContainer.new()
+var actions := HBoxContainer.new()
 var scroll := ScrollContainer.new()
 var item_labels := {}
-var device_only := false
 var guide_overview := Label.new()
+var elapsed := 0.0
 
 
 func _ready() -> void:
-	title = "工艺、物料与矿道"
-	ok_button_text = "返回工厂"
-	exclusive = true
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	mouse_filter = Control.MOUSE_FILTER_STOP
+	var shade := ColorRect.new()
+	shade.color = Color(0.015, 0.035, 0.035, 0.4)
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(shade)
+	add_child(frame)
+	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	frame.offset_left = 64
+	frame.offset_right = -64
+	frame.offset_top = 64
+	frame.offset_bottom = -64
+	frame.add_theme_stylebox_override("panel", _style("142928", 20))
 	var layout := VBoxContainer.new()
-	layout.add_theme_constant_override("separation", 10)
-	add_child(layout)
-	scroll.custom_minimum_size = Vector2(740, 420)
+	layout.add_theme_constant_override("separation", 16)
+	frame.add_child(layout)
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 16)
+	layout.add_child(header)
+	heading.add_theme_font_size_override("font_size", 24)
+	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(heading)
+	header.add_child(runtime)
+	button(header, "pause", "暂停", func(): device_action.emit("pause", selected))
+	button(header, "close", "关闭  ×  Esc", close_panel)
+	var body := HBoxContainer.new()
+	body.add_theme_constant_override("separation", 24)
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	layout.add_child(body)
+	bag_content.custom_minimum_size.x = 260
+	bag_content.add_theme_constant_override("separation", 10)
+	body.add_child(bag_content)
+	bag_content.add_child(inventory)
+	inventory.add_theme_font_size_override("font_size", 20)
+	for item in Rules.ITEMS:
+		var slot := PanelContainer.new()
+		slot.add_theme_stylebox_override("panel", _style("253d3b", 10))
+		bag_content.add_child(slot)
+		bag_rows[item] = slot
+		var stack := VBoxContainer.new()
+		slot.add_child(stack)
+		var count := Label.new()
+		stack.add_child(count)
+		bag_labels[item] = count
+		var put := HBoxContainer.new()
+		stack.add_child(put)
+		button(put, item + "_put_one", "放入 1  →", func(): apply(model.transfer(selected, item, true, false)))
+		button(put, item + "_put_all", "放入全部  →", func(): apply(model.transfer(selected, item, true, true)))
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	layout.add_child(scroll)
+	body.add_child(scroll)
 	var content := VBoxContainer.new()
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	content.add_theme_constant_override("separation", 10)
+	content.add_theme_constant_override("separation", 14)
 	scroll.add_child(content)
-	for label in [summary, inventory, result_label]:
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(discovery_content)
+	discovery_content.add_theme_constant_override("separation", 16)
 	discovery_content.add_child(summary)
 	var discovery_row := HBoxContainer.new()
 	discovery_content.add_child(discovery_row)
 	button(discovery_row, "survey", "调查样本", func(): apply(model.survey_sample()))
-	button(discovery_row, "sample", "拾取唯一样本", func(): apply(model.survey_sample(true)))
+	button(discovery_row, "sample", "拾取样本", func(): apply(model.survey_sample(true)))
 	button(discovery_row, "outer", "外矿道：用 4 份", func(): apply(model.open_passage("outer")))
 	button(discovery_row, "inner", "内矿道：用 8 份", func(): apply(model.open_passage("inner")))
-	guide_overview.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	discovery_content.add_child(guide_overview)
+	guide_overview.add_theme_font_size_override("font_size", 18)
+	content.add_child(device_content)
+	device_content.add_theme_constant_override("separation", 16)
 	device_summary.compact = false
-	content.add_child(device_summary)
-	content.add_child(inventory)
-	content.add_child(recipe_row)
+	device_content.add_child(device_summary)
+	device_summary.heading.hide()
+	device_content.add_child(recipe_row)
+	recipe_row.add_theme_constant_override("separation", 8)
 	recipe.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	recipe_row.add_child(recipe)
 	button(recipe_row, "recipe", "切换配方", func():
 		if recipe.selected >= 0:
 			apply(model.change_recipe(selected, recipe_ids[recipe.selected])))
-	button(recipe_row, "cancel_batch", "取消在制并返料", func(): apply(model.cancel_batch(selected)))
+	button(recipe_row, "cancel_batch", "取消本批并返料", func(): apply(model.cancel_batch(selected)))
 	for item in Rules.ITEMS:
 		var row := HBoxContainer.new()
-		content.add_child(row)
+		row.add_theme_constant_override("separation", 8)
+		device_content.add_child(row)
 		rows[item] = row
 		var label := Label.new()
-		label.text = Rules.NAMES[item]
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		row.add_child(label)
 		item_labels[item] = label
-		for option in [["take_one", "取 1", false, false], ["take_all", "取全部", false, true], ["put_one", "放 1", true, false], ["put_all", "放全部", true, true]]:
-			button(row, item + "_" + option[0], option[1], func(): apply(model.transfer(selected, item, option[2], option[3])))
-	result_label.custom_minimum_size = Vector2(740, 40)
+		button(row, item + "_take_one", "←  取出 1", func(): apply(model.transfer(selected, item, false, false)))
+		button(row, item + "_take_all", "←  取出全部", func(): apply(model.transfer(selected, item, false, true)))
+	device_content.add_child(actions)
+	actions.add_theme_constant_override("separation", 8)
+	for option in [["power_toggle", "启用 / 关闭电源"], ["power_connect", "从此节点接线"], ["power_disconnect", "选择连接并断开"], ["rotate_selected", "旋转传送带"], ["salvage", "回收设备与物料"]]:
+		button(actions, option[0], option[1], func(): device_action.emit(option[0], selected))
+	for label in [summary, inventory, result_label, guide_overview]:
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	result_label.custom_minimum_size.y = 44
 	layout.add_child(result_label)
+	hide()
+
+
+static func _style(color: String, padding: int) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(color)
+	style.border_color = Color("607b70")
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(6)
+	for side in ["left", "right", "top", "bottom"]:
+		style.set("content_margin_" + side, padding)
+	return style
 
 
 func button(parent: Node, id: String, text: String, callback: Callable) -> void:
@@ -83,26 +157,62 @@ func button(parent: Node, id: String, text: String, callback: Callable) -> void:
 	buttons[id] = control
 
 
-func show_for(world: RefCounted, id: int) -> void:
-	_open(world, id, false)
+func show_for(world: RefCounted) -> void:
+	_open(world, -1, false)
 
 
-func show_device(world: RefCounted, id: int) -> void:
+func show_device(world: RefCounted, id: int) -> bool:
+	var e: Dictionary = world.by_id(id)
+	if e.is_empty() or not world.near_entity(e):
+		return false
 	_open(world, id, true)
+	return true
 
 
 func _open(world: RefCounted, id: int, only_device: bool) -> void:
 	model = world
 	selected = id
 	device_only = only_device
+	recipe_key = ""
 	discovery_content.visible = not device_only
-	var e: Dictionary = model.by_id(selected)
-	title = "%s #%d · 设备操作" % [Rules.CATALOG[e.type].name, e.id] if device_only and not e.is_empty() else "工艺、物料与矿道"
-	result_label.text = "操作期间生产暂停；关闭后恢复原暂停状态。全部 = 当前可转移数量。"
+	device_content.visible = device_only
+	result_label.text = "产线继续运行；全部 = 执行时可转移数量。在制材料需取消本批后返还。" if device_only else "工艺回查期间生产暂停；关闭后保持原暂停偏好。"
 	result_label.remove_theme_color_override("font_color")
 	scroll.scroll_vertical = 0
+	show()
 	refresh()
-	popup_centered(Vector2i(780, 660))
+	buttons.close.grab_focus()
+
+
+func close_panel() -> void:
+	var owner := get_viewport().gui_get_focus_owner()
+	if owner != null and is_ancestor_of(owner):
+		owner.release_focus()
+	hide()
+	closed.emit()
+
+
+func _input(event: InputEvent) -> void:
+	if visible and event is InputEventKey and event.pressed and event.physical_keycode == KEY_ESCAPE:
+		close_panel()
+		get_viewport().set_input_as_handled()
+
+
+func _process(delta: float) -> void:
+	if not visible or model == null:
+		return
+	elapsed += delta
+	if elapsed >= 0.1:
+		refresh()
+
+
+func sync_session(paused: bool, focused: bool) -> void:
+	if not is_node_ready():
+		return
+	buttons.pause.visible = device_only
+	buttons.pause.text = "继续" if paused else "暂停"
+	runtime.text = "失焦暂停" if not focused else "已手动暂停" if paused else "生产继续运行" if device_only else "工艺回查 · 暂停"
+	runtime.add_theme_color_override("font_color", Color("77d8c6" if device_only and focused and not paused else "e2b365"))
 
 
 func apply(result: Dictionary) -> void:
@@ -112,37 +222,68 @@ func apply(result: Dictionary) -> void:
 
 
 func refresh() -> void:
+	if model == null:
+		return
+	elapsed = 0
 	var d: Dictionary = model.discovery
-	guide_overview.text = Guidance.overview(model)
-	var stage := "前往外矿道 (2, 2) 调查碎片。" if not d.surveyed else "拾样后用 1 样本 + 2 催化剂试制；需要接电。" if not d.trial_completed else "解壳剂可永久处理矿壳；富集晶体一批产 3 件催化剂。"
-	summary.text = "%s\n外矿道：%s　内矿道：%s\n背包 %d / 200：%s" % [stage, "已打通" if d.passages.outer else "未打通", "已打通" if d.passages.inner else "未打通", Items.count(model.bag), Items.describe(model.bag)]
-	buttons.sample.disabled = d.sample_taken
-	buttons.outer.disabled = d.passages.outer
-	buttons.inner.disabled = d.passages.inner
 	var e: Dictionary = model.by_id(selected)
-	device_summary.refresh(model, e)
-	inventory.text = "先在场景选中设备，可查看并按物品取放。"
-	if not e.is_empty():
-		inventory.text = "%s\n背包 %d / 200：%s" % ["近身可操作" if model.near_entity(e) else "远程查看：请关闭面板，走到设备两格内且位于同一可达区域。", Items.count(model.bag), Items.describe(model.bag)]
-	recipe_row.visible = e.get("type", "") == "reactor"
-	recipe.clear()
-	recipe_ids.clear()
+	if device_only and (e.is_empty() or not model.near_entity(e)):
+		close_panel()
+		return
+	heading.text = "%s  #%d" % [Rules.CATALOG[e.type].name, e.id] if device_only else "工艺、物料与矿道"
+	inventory.text = "背包  %d / 200" % Items.count(model.bag)
+	guide_overview.text = Guidance.overview(model)
+	summary.text = "外矿道：%s　内矿道：%s\n试制掌握量产方法；携带解壳剂在矿道西侧使用。" % ["已打通" if d.passages.outer else "未打通", "已打通" if d.passages.inner else "未打通"]
+	buttons.sample.disabled = d.sample_taken or not model.near_sample() or Items.count(model.bag) >= 200
+	buttons.outer.disabled = d.passages.outer or not model.near_passage("outer") or model.bag.get("crust_solvent", 0) < 4 or not d.trial_completed
+	buttons.inner.disabled = d.passages.inner or not d.passages.outer or not model.near_passage("inner") or model.bag.get("crust_solvent", 0) < 8 or not d.trial_completed
+	var stores_items: bool = device_only and e.type in ["collector", "reactor", "storage"]
+	bag_content.visible = not device_only or stores_items
+	if device_only:
+		device_summary.refresh(model, e)
+	recipe_row.visible = device_only and e.type == "reactor"
+	if recipe_row.visible:
+		_sync_recipes(e)
+		buttons.recipe.disabled = e.processing or not e.input.is_empty() or not e.output.is_empty()
+		buttons.recipe.tooltip_text = "切换前须结束本批，并取空输入和输出。"
+		buttons.cancel_batch.disabled = not e.processing
+	var contents := Items.contents(e) if stores_items else {}
+	for item in Rules.ITEMS:
+		var known: bool = item in ["crystal", "catalyst"] or (item == "crust_sample" and d.sample_taken) or d.trial_completed
+		var available: int = contents.get(item, 0) - e.get("invested", {}).get(item, 0)
+		bag_rows[item].visible = known
+		bag_labels[item].text = "%s   ×%d" % [Rules.NAMES[item], model.bag.get(item, 0)]
+		for action in ["put_one", "put_all"]:
+			buttons[item + "_" + action].visible = stores_items
+			buttons[item + "_" + action].disabled = not stores_items or model.bag.get(item, 0) == 0 or model.input_room(e, item, true) <= 0
+		rows[item].visible = stores_items and known and (available > 0 or (e.type == "reactor" and (item in Rules.RECIPES[e.recipe_id].input or item in Rules.RECIPES[e.recipe_id].output)))
+		item_labels[item].text = "%s · 可取 %d" % [Rules.NAMES[item], available]
+		for action in ["take_one", "take_all"]:
+			buttons[item + "_" + action].disabled = available <= 0 or Items.count(model.bag) >= 200
+	if not device_only:
+		return
+	buttons.power_toggle.visible = e.type == "power_source"
+	buttons.power_toggle.text = "关闭电源" if e.get("enabled", false) else "启用电源"
+	buttons.power_connect.visible = not model.automatic_power and model.Grid.is_node(e)
+	buttons.power_disconnect.visible = not model.automatic_power and not model.connections(e.id).is_empty()
+	buttons.rotate_selected.visible = e.type == "belt"
+	buttons.salvage.text = "回收传送带与货物" if e.type == "belt" else "回收设备与物料"
+
+
+func _sync_recipes(e: Dictionary) -> void:
+	var available: Array[String] = []
 	for id in Rules.RECIPES:
 		if model.recipe_available(id):
-			recipe_ids.append(id)
-			var r: Dictionary = Rules.RECIPES[id]
-			recipe.add_item("%s · %.0fs / %.0fkW" % [r.name, r.seconds, r.kw])
-			if e.get("recipe_id", "") == id:
-				recipe.select(recipe_ids.size() - 1)
-	for item in rows:
-		rows[item].visible = e.get("type", "") in ["collector", "reactor", "storage"] and (item in ["crystal", "catalyst"] or (item == "crust_sample" and d.sample_taken) or d.trial_completed)
-		if rows[item].visible:
-			var contents := Items.contents(e)
-			# In-process inputs cannot be taken directly; cancellation returns the full batch.
-			var stored := int(contents.get(item, 0)) - int(e.get("invested", {}).get(item, 0))
-			item_labels[item].text = "%s · 设备 %d / 背包 %d" % [Rules.NAMES[item], stored, int(model.bag.get(item, 0))]
-		for action in ["take_one", "take_all", "put_one", "put_all"]:
-			buttons[item + "_" + action].disabled = not model.near_entity(e)
-			buttons[item + "_" + action].tooltip_text = "需位于设备两格内且同一可达区域" if not model.near_entity(e) else "由当前库存、配方与容量决定实际数量"
-	buttons.recipe.disabled = not model.near_entity(e)
-	buttons.cancel_batch.disabled = not model.near_entity(e) or not e.get("processing", false)
+			available.append(id)
+	var key := str([available, e.recipe_id])
+	if key == recipe_key:
+		return
+	# Production refresh must not overwrite a player's uncommitted menu choice.
+	recipe_key = key
+	recipe_ids = available
+	recipe.clear()
+	for id in recipe_ids:
+		var r: Dictionary = Rules.RECIPES[id]
+		recipe.add_item("%s · %.0fs / %.0fkW" % [r.name, r.seconds, r.kw])
+		if e.recipe_id == id:
+			recipe.select(recipe_ids.find(id))

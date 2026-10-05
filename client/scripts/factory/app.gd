@@ -7,6 +7,7 @@ const Model := preload("res://scripts/factory/model.gd")
 const View := preload("res://scripts/factory/view.gd")
 const Hud := preload("res://scripts/factory/hud.gd")
 const ActiveClock := preload("res://scripts/factory/active_clock.gd")
+const InteractionTarget := preload("res://scripts/factory/interaction_target.gd")
 const Guidance := preload("res://scripts/factory/discovery_guidance.gd")
 const MOVE_KEYS := {
 	KEY_A: Vector2(-1, 0), KEY_LEFT: Vector2(-1, 0),
@@ -31,6 +32,7 @@ var unsaved_dialog := ConfirmationDialog.new()
 var original_content_size := Vector2i.ZERO
 var original_min_size := Vector2i.ZERO
 var ui := {"build": true, "tool": "", "cell": Vector2i(-6, 0), "dir": 0, "selected": -1,
+	"focus_device": -1, "focus_ready": false, "blocked": false, "interaction_kind": "",
 	"power_from": 0, "power_hover": 0, "paused": false, "stroke": Array([], TYPE_VECTOR2I, "", null), "mission": true}
 var keys := {}
 var pointer := false
@@ -82,6 +84,8 @@ func _ready() -> void:
 	discovery_panel.theme = hud.theme
 	add_child(discovery_panel)
 	discovery_panel.visibility_changed.connect(_capture_active_time)
+	discovery_panel.device_action.connect(_device_action)
+	discovery_panel.closed.connect(_refresh)
 	statistics_panel.theme = hud.theme
 	add_child(statistics_panel)
 	statistics_panel.locate_requested.connect(_locate_statistics_device)
@@ -113,17 +117,14 @@ func _process(delta: float) -> void:
 	last_frame_usec = frame_usec
 	_capture_active_time(frame_usec)
 	var dt := delta
-	if focused and not failure_dialog.visible and not unsaved_dialog.visible and not power_dialog.visible and not discovery_panel.visible:
-		if not ui.paused:
-			var before := Time.get_ticks_usec()
-			engine_active_seconds += delta
-			model.advance(0, 8)
-			if sample_enabled:
-				simulation_samples.append((Time.get_ticks_usec() - before) / 1000.0)
-			if not statistics_panel.visible:
-				_movement(minf(dt, 0.06))
-			else:
-				actor.moving = false
+	if _producing():
+		var before := Time.get_ticks_usec()
+		engine_active_seconds += delta
+		model.advance(0, 8)
+		if sample_enabled:
+			simulation_samples.append((Time.get_ticks_usec() - before) / 1000.0)
+		if not statistics_panel.visible and not discovery_panel.visible:
+			_movement(minf(dt, 0.06))
 		else:
 			actor.moving = false
 	else:
@@ -179,7 +180,7 @@ func _focus_gained() -> void:
 
 
 func _producing() -> bool:
-	return initialized and focused and not ui.paused and not failure_dialog.visible and not unsaved_dialog.visible and not power_dialog.visible and not discovery_panel.visible
+	return initialized and focused and not ui.paused and not failure_dialog.visible and not unsaved_dialog.visible and not power_dialog.visible and not (discovery_panel.visible and not discovery_panel.device_only)
 
 
 func _capture_active_time(now_usec: int = -1) -> void:
@@ -200,6 +201,12 @@ func _set_paused(paused: bool) -> void:
 
 
 func _refresh() -> void:
+	ui.blocked = discovery_panel.visible or statistics_panel.visible or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible
+	var target := _interaction_target()
+	ui.focus_device = target.get("id", -1) if target.get("kind", "") == "device" else -1
+	ui.focus_ready = target.get("ready", false)
+	ui.interaction_kind = target.get("kind", "")
+	discovery_panel.sync_session(ui.paused, focused)
 	hud.refresh(model, actor, ui, focused)
 
 
@@ -277,6 +284,7 @@ func _action(name: String, value: Variant) -> void:
 		match name:
 			"guide_action": _guide_action()
 			"sample": _pick_sample()
+			"interact": _interact()
 			"power_connect":
 				_stop_pointer()
 				ui.tool = ""
@@ -321,14 +329,12 @@ func _action(name: String, value: Variant) -> void:
 				keys.clear()
 				actor.target = null
 				statistics_panel.show_for(model)
-			"discovery", "device":
+			"device": _open_device(ui.selected)
+			"discovery":
 				_stop_pointer()
 				keys.clear()
 				actor.target = null
-				if name == "device":
-					discovery_panel.show_device(model, ui.selected)
-				else:
-					discovery_panel.show_for(model, ui.selected)
+				discovery_panel.show_for(model)
 				_capture_active_time()
 			"deposit":
 				var result := model.deposit(ui.selected)
@@ -339,6 +345,55 @@ func _action(name: String, value: Variant) -> void:
 			"zoom_in": view.zoom = minf(1.5, view.zoom + 0.1)
 	view.sync_camera()
 	_refresh()
+
+
+func _interaction_target() -> Dictionary:
+	if not initialized or not model.has_method("power_state") or ui.blocked or not ui.tool.is_empty() or ui.power_from != 0:
+		return {}
+	return InteractionTarget.resolve(model, view.hit(Vector2(hud.subviewport.size) * 0.5))
+
+
+func _interact() -> void:
+	var target := _interaction_target()
+	if target.get("kind", "") == "device":
+		_open_device(target.id)
+	elif target.get("kind", "") == "sample":
+		_pick_sample()
+	_refresh()
+
+
+func _open_device(id: int) -> void:
+	var e := model.by_id(id)
+	if e.is_empty():
+		return
+	ui.selected = id
+	if not model.near_entity(e):
+		hud.announce("%s #%d：请走近设备后点击，或对准视角中心按 F。" % [Model.CATALOG[e.type].name, id])
+		return
+	_stop_pointer()
+	ui.tool = ""
+	keys.clear()
+	actor.target = null
+	actor.moving = false
+	discovery_panel.show_device(model, id)
+	_capture_active_time()
+
+
+func _device_action(name: String, id: int) -> void:
+	var e := model.by_id(id)
+	if e.is_empty() or not model.near_entity(e):
+		discovery_panel.close_panel()
+		hud.announce("设备已不可交互，请重新走近。", true)
+		return
+	ui.selected = id
+	if name == "power_connect":
+		discovery_panel.close_panel()
+	_action(name, null)
+	if discovery_panel.visible:
+		if name in ["power_toggle", "rotate_selected", "salvage"] and not power_dialog.visible:
+			discovery_panel.result_label.text = hud.notice.text
+			discovery_panel.result_label.add_theme_color_override("font_color", hud.notice.get_theme_color("font_color"))
+		discovery_panel.refresh()
 
 
 func _pick_sample() -> void:
@@ -450,7 +505,9 @@ func _input(event: InputEvent) -> void:
 						return
 					var e := model.entity_at(cell)
 					ui.selected = id if id != -1 else e.get("id", -1)
-					if ui.selected == -1:
+					if ui.selected != -1 and model.has_method("power_state"):
+						_open_device(ui.selected)
+					elif ui.selected == -1:
 						view.inspection_target = null
 						actor.target = Vector2(point.x, point.z)
 		_refresh()
@@ -470,7 +527,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if pointer:
 		return
 	match event.physical_keycode:
-		KEY_F: _action("sample", null)
+		KEY_F: _interact()
 		KEY_1: _action("collector", null)
 		KEY_2: _action("reactor", null)
 		KEY_3: _action("storage", null)
@@ -649,7 +706,7 @@ func _guide_action() -> void:
 		"device":
 			_locate_statistics_device(step.target_id)
 			var e := model.by_id(step.target_id)
-			if e.type in ["collector", "reactor", "storage"] and model.near_entity(e):
+			if model.near_entity(e):
 				_action("device", null)
 		"location":
 			_stop_pointer()

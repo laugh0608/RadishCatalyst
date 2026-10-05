@@ -28,7 +28,7 @@ func _first_line() -> void:
 	await native_click(world.hud.buttons.discovery)
 	driver.expect(world.discovery_panel.guide_overview.visible and "首条产线" in world.discovery_panel.guide_overview.text and "内矿道" in world.discovery_panel.guide_overview.text, "full journey can be reviewed in existing process panel")
 	await native_shot("02-review-steps")
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	root.size = Vector2i(1440, 900)
 	await driver.settle(15)
 	await full_journey()
@@ -51,8 +51,8 @@ func panel(id: int) -> void:
 	await driver.settle()
 	# Submit one complete mouse gesture through the window route. A failed opening
 	# must stop before press() waits for a hidden dialog to receive focus.
-	await native_click(world.hud.buttons.discovery)
-	driver.expect(world.discovery_panel.visible, "process panel opens before waiting on its controls")
+	world._action("device" if id > 0 else "discovery", null)
+	driver.expect(world.discovery_panel.visible, "selected device or process panel opens before waiting on its controls")
 	check_failures()
 
 

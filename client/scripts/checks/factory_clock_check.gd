@@ -135,6 +135,7 @@ func _run() -> void:
 			world.unsaved_dialog.get_ok_button().pressed.emit()
 			expect(boot.factory_world == null, "confirmed discard returns without writing")
 			expect(FileAccess.get_sha256(main_path) == main_hash, "discard preserves last committed save")
+	await _device_clock(boot)
 	boot.free()
 	var file := FileAccess.open(run_root.path_join("result.json"), FileAccess.WRITE)
 	file.store_string(JSON.stringify({"assertions": checks, "failures": failures, "observations": observations,
@@ -154,3 +155,43 @@ func _sample() -> Dictionary:
 func _frames(count: int) -> void:
 	for i in count:
 		await process_frame
+
+
+func _device_clock(boot: Node) -> void:
+	boot.factory_menu.world_type.select(1)
+	boot.factory_menu.title_input.text = "统一面板时钟检查"
+	boot.factory_menu.create_button.pressed.emit()
+	world = boot.factory_world
+	root.focus_entered.emit() # Headless lifecycle injection, not native foreground evidence.
+	var placed: Dictionary = world.model.place("storage", Vector2i(-2, 3))
+	expect(placed.ok, "device clock fixture places empty storage")
+	world.ui.selected = placed.entity.id
+	world._action("device", null)
+	expect(world.discovery_panel.visible and world._producing(), "device panel leaves active clock running")
+	# Synthetic full-bag rejection fixture, restored before any elapsed step or save.
+	world.model.bag = {"crystal": 200}
+	placed.entity.items = {"catalyst": 1}
+	world._device_action("salvage", placed.entity.id)
+	expect(world.discovery_panel.visible and "背包容量不足" in world.discovery_panel.result_label.text, "device command failure stays visible inside unified panel")
+	world.model.bag = {}
+	placed.entity.items = {}
+	var start := _sample()
+	await create_timer(0.2).timeout
+	await _frames(3)
+	expect(_sample().accounted > start.accounted + 0.15, "open panel receives actual elapsed production time")
+	root.focus_exited.emit()
+	start = _sample()
+	await create_timer(0.2).timeout
+	expect(absf(_sample().accounted - start.accounted) < 1e-9, "open device panel still pauses on focus loss")
+	root.focus_entered.emit()
+	world._set_paused(true)
+	start = _sample()
+	await create_timer(0.2).timeout
+	expect(absf(_sample().accounted - start.accounted) < 1e-9, "explicit pause dominates live device panel")
+	world.discovery_panel.close_panel()
+	expect(world.ui.paused and not world._producing(), "closing device panel preserves explicit pause")
+	world._set_paused(false)
+	world._action("discovery", null)
+	expect(not world._producing(), "global process review retains its pause contract")
+	world.discovery_panel.close_panel()
+	world._action("return", null)

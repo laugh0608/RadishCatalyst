@@ -1,6 +1,6 @@
 extends VBoxContainer
 
-## Read-only presentation shared by the live inspector and paused operation window.
+## Read-only live device presentation inside the unified operation panel.
 const Rules := preload("res://data/factory/discovery_rules.gd")
 const Model := preload("res://scripts/factory/model.gd")
 const Items := preload("res://scripts/factory/items.gd")

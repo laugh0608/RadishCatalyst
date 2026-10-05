@@ -181,7 +181,7 @@ func _power_previews() -> void:
 	await driver.world_click(Vector2i(-17, -3))
 	ids.node = world.ui.selected
 	driver.expect(world.model.by_id(ids.node).get("type", "") == "power_junction" and world.view.power_range.visible, "placed selected node retains its range")
-	driver.expect(world.model.automatic_power and not world.hud.buttons.power_connect.visible and world.model.by_id(ids.reactor).power_node_id != 0, "node placement automatically powers covered devices without wiring controls")
+	driver.expect(world.model.automatic_power and not world.hud.buttons.has("power_connect") and world.model.by_id(ids.reactor).power_node_id != 0, "node placement automatically powers covered devices without wiring controls")
 	await driver.shot("discovery-power-range-connected")
 	await driver.key(KEY_ESCAPE)
 	driver.expect(not world.view.power_range.visible and world.model.power_links.size() == 1, "leaving selection clears guidance while retaining automatic network")
@@ -217,123 +217,155 @@ func _power_previews() -> void:
 
 
 func _first_line() -> void:
-	driver.expect(world.model.entities.is_empty() and world.model.bag.is_empty(), "new world has no devices or injected material")
-	# Collect the guaranteed sample through the existing native discovery controls.
+	driver.expect(world.model.entities.is_empty() and world.model.bag.is_empty(), "new world has no injected devices or material")
 	await walk(Vector2(2.5, 3.5))
-	await driver.click(world.hud.buttons.discovery)
-	await native_click(world.discovery_panel.buttons.sample)
-	if finished:
-		return
-	driver.expect(world.model.discovery.sample_taken, "real proximity sample operation remains available")
-	await native_click(world.discovery_panel.get_ok_button())
+	await driver.key(KEY_F)
+	driver.expect(world.model.discovery.sample_taken, "F retains direct sample interaction when no device is targeted")
+	await native_click(world.hud.buttons.discovery)
+	var frozen: float = world.model.time
+	await create_timer(0.4).timeout
+	driver.expect(world.model.time == frozen and not world._producing(), "general process review retains pause contract")
+	await native_click(world.discovery_panel.buttons.close)
 	if ui_only:
-		for i in 3:
-			await driver.click(world.hud.buttons.discovery)
-			await native_click(world.discovery_panel.get_ok_button())
 		return
 	await walk(Vector2(-12, 4))
-	await driver.click(world.hud.buttons.mission)
-	# Camera orientation is test preparation; actor movement and production stay natural.
-	world.view.yaw = 0
+	await native_click(world.hud.buttons.mission)
+	world.view.yaw = 0 # Camera setup only; all travel below uses the real movement path.
 	world.view.sync_camera()
-	await driver.click(world.hud.buttons.pause)
+	await native_click(world.hud.buttons.pause)
 	await place("collector", -20, -1, "collector")
 	await place("power_source", -20, -6, "source")
 	await place("power_junction", -13, -5, "node")
-	await driver.click(world.hud.buttons.reactor)
-	await driver.motion(driver.cell_screen(Vector2i(-13, -2)))
-	await driver.settle()
-	driver.expect(world.view.build_model.visible and world.model.entities.size() == 3, "imported preview does not create an entity")
-	await driver.shot("01-reactor-before-placement")
-	ids.reactor = world.model.next_id
-	await driver.world_click(Vector2i(-13, -2))
-	driver.expect(world.model.by_id(ids.reactor).get("type", "") == "reactor", "mouse places reactor at preview footprint")
-	check_failures()
+	await place("reactor", -13, -2, "reactor")
 	await place("storage", -6, -1, "warehouse")
-	await driver.click(world.hud.buttons.belt)
+	await native_click(world.hud.buttons.belt)
 	await driver.drag([Vector2i(-18, 0), Vector2i(-17, 0), Vector2i(-16, 0), Vector2i(-15, 0), Vector2i(-14, 0)])
-	driver.expect(world.model.entity_at(Vector2i(-14, 0)).get("type", "") == "belt", "real drag reaches displayed input dock")
-	await driver.shot("02-drag-input-docks")
 	await driver.key(KEY_ESCAPE)
 	await select_device("reactor")
-	driver.expect("还需" in world.hud.device_summary.production.text and "待机" in world.hud.device_summary.power.text, "live inspector distinguishes missing material from automatic connected power")
-	await open_device()
-	driver.expect(world.discovery_panel.buttons.crystal_put_one.disabled, "remote operation cannot bypass proximity")
-	await native_shot("03-remote-device-actions")
-	await native_click(world.discovery_panel.get_ok_button())
-	await driver.click(world.hud.buttons.pause)
-	await wait_for(func(): return world.model.by_id(ids.reactor).processing, 25, "real first batch begins")
-	await driver.shot("04-live-production")
-	world.model.set_source_enabled(ids.source, false)
-	await active(1, "blackout observation")
-	await driver.shot("05-power-off")
-	driver.expect("无启用电源" in world.hud.device_summary.power.text, "live panel explains blackout")
-	world.model.set_source_enabled(ids.source, true)
-	await wait_for(func(): return not world.model.by_id(ids.reactor).output.is_empty(), 20, "first output blocked without belt")
-	await driver.settle(15)
-	driver.expect("输出尚未清空" in world.hud.device_summary.production.text, "actual backpressure explanation appears")
-	await driver.shot("06-output-blocked")
+	driver.expect(not world.discovery_panel.visible and not world.hud.inspector.visible, "far click does not open operations or a duplicate inspector")
+	driver.expect("走近" in world.hud.notice.text, "far selection explains proximity")
+	await driver.shot("01-distant-selection")
+	await native_click(world.hud.buttons.pause)
 	await walk(Vector2(-12, 2.5))
 	await select_device("reactor")
-	await open_device()
-	var model: RefCounted = world.model
-	var frozen: float = model.time
+	driver.expect(world.discovery_panel.visible and world.discovery_panel.device_only, "near model click directly opens unified panel")
+	driver.expect(not world.hud.inspector.visible, "unified panel has no right-side duplicate")
+	await wait_for(func(): return world.model.by_id(ids.reactor).processing, 25, "first batch starts with panel open")
+	var progress: float = world.model.by_id(ids.reactor).progress
 	var actor_at := Vector2(world.actor.x, world.actor.z)
-	await create_timer(0.7).timeout
-	driver.expect(model.time == frozen and not world._producing(), "operation window pauses production")
+	var count: int = world.model.entities.size()
+	await driver.key(KEY_D, true)
+	await driver.key(KEY_1)
+	await active(1.2, "device panel keeps production and logistics running")
+	await driver.key(KEY_D, false)
+	driver.expect(world.model.by_id(ids.reactor).progress > progress and world._producing(), "open panel advances real batch progress")
+	driver.expect(Vector2(world.actor.x, world.actor.z) == actor_at and world.keys.is_empty() and world.model.entities.size() == count and world.ui.tool.is_empty(), "panel absorbs movement and construction shortcuts")
+	driver.expect(absf(world.discovery_panel.device_summary.progress.value - world.model.by_id(ids.reactor).progress * 10) < 3, "display tracks live batch progress")
+	await native_shot("02-live-reactor")
+	await _layout_checks()
+	await native_click(world.discovery_panel.buttons.pause)
+	frozen = world.model.time
+	await create_timer(0.5).timeout
+	driver.expect(world.ui.paused and world.model.time == frozen, "manual pause still stops production inside device panel")
+	await driver.key(KEY_ESCAPE)
+	driver.expect(not world.discovery_panel.visible and world.ui.paused, "Escape closes without changing pause preference")
+	await native_click(world.hud.buttons.pause)
+	# The follow camera points ahead of the real actor; its actual ray supplies the F target.
+	await driver.settle(20)
+	driver.expect(world.ui.focus_device == ids.reactor and world.ui.focus_ready, "screen center highlights the nearby reactor")
+	await driver.shot("03-center-highlight")
+	await driver.key(KEY_F)
+	driver.expect(world.discovery_panel.visible and world.discovery_panel.selected == ids.reactor, "F opens the same device highlighted at screen center")
+	check_failures()
+	if finished:
+		return
+	await wait_for(func(): return not world.model.by_id(ids.reactor).output.is_empty(), 20, "real output blocks without outgoing belt")
+	await driver.settle(20)
+	driver.expect("输出尚未清空" in world.discovery_panel.device_summary.production.text, "live panel explains real output backpressure")
+	await native_shot("04-output-blocked")
 	await native_click(world.discovery_panel.buttons.catalyst_take_all)
-	driver.expect(model.bag.get("catalyst", 0) == 1 and model.by_id(ids.reactor).output.is_empty(), "native mouse withdraws actual output")
-	await native_click(world.discovery_panel.buttons.crystal_take_all)
-	driver.expect(model.by_id(ids.reactor).input.is_empty(), "native mouse empties input buffer")
-	await native_click(world.discovery_panel.buttons.crystal_put_one)
-	driver.expect(model.by_id(ids.reactor).input.get("crystal", 0) == 1, "put one transfers precisely one")
-	await native_click(world.discovery_panel.buttons.crystal_put_all)
-	driver.expect(model.by_id(ids.reactor).input.get("crystal", 0) == 2, "put all respects recipe input limit")
-	await native_shot("07-near-device-actions")
-	await native_click(world.discovery_panel.get_ok_button())
-	driver.expect(Vector2(world.actor.x, world.actor.z) == actor_at and world.keys.is_empty(), "closing operations does not resume stale movement")
-	await active(1.0, "production resumes after operation window")
-	await open_device()
-	var balance: int = model.material_balance().equivalent
-	await native_click(world.discovery_panel.buttons.cancel_batch)
-	driver.expect(not model.by_id(ids.reactor).processing and model.material_balance().equivalent == balance, "native cancel returns full invested material")
-	await native_click(world.discovery_panel.get_ok_button())
-	await driver.click(world.hud.buttons.belt)
+	driver.expect(world.model.bag.get("catalyst", 0) == 1, "live withdrawal takes actual completed product")
+	await native_click(world.discovery_panel.buttons.close)
+	await native_click(world.hud.buttons.belt)
 	await driver.drag([Vector2i(-10, 0), Vector2i(-9, 0), Vector2i(-8, 0), Vector2i(-7, 0)])
 	await driver.key(KEY_ESCAPE)
-	await wait_for(func(): return model.by_id(ids.warehouse).items.get("catalyst", 0) >= 1, 25, "repair output by dragging through actual displayed dock")
-	await driver.shot("08-repaired-natural-delivery")
+	await wait_for(func(): return world.model.by_id(ids.warehouse).items.get("catalyst", 0) >= 1, 25, "repaired output delivers naturally")
 	await walk(Vector2(-5, 2.5))
 	await select_device("warehouse")
-	await open_device()
+	await native_shot("05-storage")
+	var stored: int = world.model.by_id(ids.warehouse).items.get("catalyst", 0)
+	await wait_for(func(): return world.model.by_id(ids.warehouse).items.get("catalyst", 0) > stored, 20, "warehouse inventory rises while its panel is open")
+	await driver.settle(15)
+	driver.expect("催化剂" in world.discovery_panel.device_summary.values.input.text, "warehouse live inventory is displayed")
 	await native_click(world.discovery_panel.buttons.catalyst_take_all)
-	driver.expect(model.bag.get("catalyst", 0) >= 2, "warehouse exposes real per-material retrieval")
-	await native_click(world.discovery_panel.get_ok_button())
+	driver.expect(world.model.bag.get("catalyst", 0) >= 2, "warehouse supplies natural ingredients for trial")
+	await native_click(world.discovery_panel.buttons.close)
+	await _other_devices()
+	if finished:
+		return
 	await walk(Vector2(-12, 2.5))
 	await select_device("reactor")
-	await open_device()
-	if model.by_id(ids.reactor).processing:
+	await native_click(world.discovery_panel.buttons.pause)
+	# Manual pause is an explicit player action, used here to prepare a deterministic recipe change.
+	if world.model.by_id(ids.reactor).processing:
 		await native_click(world.discovery_panel.buttons.cancel_batch)
 	for item in ["crystal", "catalyst"]:
-		if model.Items.contents(model.by_id(ids.reactor)).get(item, 0) > 0:
+		if world.model.Items.contents(world.model.by_id(ids.reactor)).get(item, 0) > 0:
 			await native_click(world.discovery_panel.buttons[item + "_take_all"])
 	world.discovery_panel.recipe.select(world.discovery_panel.recipe_ids.find("solvent_trial"))
+	await driver.settle(25)
+	driver.expect(world.discovery_panel.recipe_ids[world.discovery_panel.recipe.selected] == "solvent_trial", "periodic refresh preserves player's pending recipe choice")
 	await native_click(world.discovery_panel.buttons.recipe)
-	driver.expect(model.by_id(ids.reactor).recipe_id == "solvent_trial", "selected device changes to known trial recipe")
+	driver.expect(world.model.by_id(ids.reactor).recipe_id == "solvent_trial", "near device accepts recipe change")
 	await native_click(world.discovery_panel.buttons.crust_sample_put_one)
 	await native_click(world.discovery_panel.buttons.catalyst_put_all)
-	await native_shot("09-trial-device-actions")
-	await native_click(world.discovery_panel.get_ok_button())
-	await active(2.0, "natural trial half batch")
-	await driver.click(world.hud.buttons.pause)
-	driver.expect(model.by_id(ids.reactor).processing and model.by_id(ids.reactor).progress > 0, "trial in-process state available for restore")
-	await _layout_checks()
-	await driver.click(world.hud.buttons.save)
-	write_json("expected.json", Codec.snapshot(model, world.store.world_id, world.store.world_name, world.store.sequence))
+	await native_click(world.discovery_panel.buttons.pause)
+	await active(2, "trial starts and progresses inside live device panel")
+	await native_click(world.discovery_panel.buttons.pause)
+	driver.expect(world.model.by_id(ids.reactor).processing and world.model.by_id(ids.reactor).progress > 0, "partial trial prepared naturally for independent restore")
+	await native_shot("10-partial-trial")
+	await native_click(world.discovery_panel.buttons.close)
+	await native_click(world.hud.buttons.save)
+	write_json("expected.json", Codec.snapshot(world.model, world.store.world_id, world.store.world_name, world.store.sequence))
 	write_json("ids.json", ids)
-	stage("write-complete", "natural first line, native device actions, output repair and partial trial saved")
-	await driver.click(world.hud.buttons.return)
+	stage("write-complete", "single live panel, near click, center F, continuous production, all device types and partial trial saved")
+	await native_click(world.hud.buttons.return)
 	driver.expect(boot.factory_world == null, "save and return exits cleanly")
+
+
+func _other_devices() -> void:
+	await walk(Vector2(-16, 3))
+	await walk(Vector2(-21, 3))
+	await walk(Vector2(-21, 2))
+	await select_device("collector")
+	driver.expect(world.discovery_panel.visible and world.discovery_panel.device_summary.cards.output.visible, "near collector shows live extraction buffer")
+	await native_shot("06-collector")
+	await native_click(world.discovery_panel.buttons.close)
+	await walk(Vector2(-21, -3))
+	await walk(Vector2(-21, -2))
+	await walk(Vector2(-19, -2))
+	await select_device("source")
+	driver.expect(world.discovery_panel.buttons.power_toggle.visible, "source action is inside unified panel")
+	await native_click(world.discovery_panel.buttons.power_toggle)
+	await active(0.5, "source disabled through live panel")
+	driver.expect(not world.model.by_id(ids.source).enabled and world.model.power_state().supplied_kw == 0, "source command immediately affects live grid")
+	await native_shot("07-source-off")
+	await native_click(world.discovery_panel.buttons.power_toggle)
+	driver.expect(world.model.by_id(ids.source).enabled, "same panel resumes source")
+	await native_click(world.discovery_panel.buttons.close)
+	await walk(Vector2(-15, -2.5))
+	await walk(Vector2(-14, -4))
+	await select_device("node")
+	driver.expect(world.discovery_panel.visible and not world.discovery_panel.buttons.power_connect.visible, "automatic node uses unified network details without manual wiring")
+	await native_shot("08-node")
+	await native_click(world.discovery_panel.buttons.close)
+	await walk(Vector2(-14, -2.5))
+	await walk(Vector2(-14, 2))
+	ids.belt = world.model.entity_at(Vector2i(-14, 0)).id
+	await select_device("belt")
+	driver.expect(world.discovery_panel.buttons.rotate_selected.visible, "belt provides its action in unified panel")
+	await native_shot("09-belt")
+	await native_click(world.discovery_panel.buttons.close)
 
 
 func select_device(name: String) -> void:
@@ -350,10 +382,9 @@ func select_device(name: String) -> void:
 
 
 func open_device() -> void:
-	world.hud.inspector_scroll.ensure_control_visible(world.hud.buttons.device)
-	await driver.settle()
-	await driver.click(world.hud.buttons.device)
-	driver.expect(world.discovery_panel.visible and world.discovery_panel.device_only, "inspector opens selected-device operations")
+	if not world.discovery_panel.visible:
+		await driver.key(KEY_F)
+	driver.expect(world.discovery_panel.visible and world.discovery_panel.device_only, "nearby device operation opens")
 	check_failures()
 
 
@@ -402,19 +433,11 @@ func _layout_checks() -> void:
 	for dimensions in [Vector2i(1100, 720), Vector2i(1440, 900)]:
 		root.size = dimensions
 		await driver.settle(25)
-		world.hud.inspector_scroll.ensure_control_visible(world.hud.buttons.device)
-		await driver.settle()
-		driver.expect(world.hud.world_slot.get_global_rect().encloses(world.hud.inspector.get_global_rect()), "inspector remains within world at " + str(dimensions))
-		await driver.shot("10-layout-%dx%d" % [dimensions.x, dimensions.y])
-		await open_device()
-		driver.expect(world.discovery_panel.size.y <= 660 and world.discovery_panel.size.x <= 800, "device window fits minimum supported desktop")
-		driver.expect(Rect2(Vector2.ZERO, Vector2(world.discovery_panel.size)).encloses(world.discovery_panel.result_label.get_global_rect()), "operation result remains visible outside inventory scrolling")
-		await native_shot("11-actions-%dx%d" % [dimensions.x, dimensions.y])
-		await native_click(world.discovery_panel.get_ok_button())
-		driver.expect(world.ui.paused and not world._producing(), "operation close preserves explicit pause")
-	await driver.click(world.hud.buttons.camera_right)
-	await driver.click(world.hud.buttons.zoom_out)
-	await driver.shot("12-rotated-ports")
+		var bounds: Rect2 = root.get_visible_rect()
+		driver.expect(bounds.encloses(world.discovery_panel.frame.get_global_rect()), "unified panel fits supported window " + str(dimensions))
+		driver.expect(world.discovery_panel.frame.get_global_rect().encloses(world.discovery_panel.result_label.get_global_rect()), "result stays visible outside scrolling")
+		driver.expect(world.discovery_panel.frame.get_global_rect().encloses(world.discovery_panel.buttons.close.get_global_rect()), "close remains reachable")
+		await native_shot("layout-%dx%d" % [dimensions.x, dimensions.y])
 
 
 func _restore() -> void:
@@ -423,13 +446,13 @@ func _restore() -> void:
 	# The final save-and-return increments the file sequence without changing the paused state.
 	var actual := Codec.snapshot(world.model, world.store.world_id, world.store.world_name, expected.sequence)
 	driver.expect(world.store.sequence >= expected.sequence, "restored file sequence retains monotonic save order")
-	driver.expect(Check.equivalent(actual, expected), "independent Boot restores full unchanged schema 2 snapshot")
+	driver.expect(Check.equivalent(actual, expected), "independent Boot restores full unchanged schema 3 snapshot")
 	await select_device("reactor")
 	await driver.shot("13-restored-partial-trial")
 	await open_device()
 	driver.expect(world.discovery_panel.device_summary.progress.value > 0 and "矿壳试制" in world.discovery_panel.device_summary.values.process.text, "restored panel shows saved recipe and partial progress")
 	await native_shot("14-restored-device-actions")
-	await native_click(world.discovery_panel.get_ok_button())
+	await native_click(world.discovery_panel.buttons.close)
 	await driver.click(world.hud.buttons.pause)
 	await wait_for(func(): return world.model.discovery.trial_completed, 15, "restored partial trial completes naturally")
 	driver.expect(world.model.statistics.totals.consumed.crust_sample == 1, "restored trial consumes unique sample once")
@@ -443,6 +466,6 @@ func finish() -> void:
 	finished = true
 	write_json("preview-result.json" if preview_only else "read-result.json" if read_mode else "write-result.json", {"assertions": driver.assertions, "failures": driver.failures, "stages": stages,
 		"foreground_seconds": foreground_seconds, "focus_pauses": focus_pauses, "pending_focus_pause": focus_pause,
-		"input": "Default foundation and explicit discovery selection; Boot/create menus: focused synthetic Enter; preview/mouse placement/cancel/selection/nearby belt: synthetic mouse and Escape; discovery approach: synthetic WASD; no state injection" if preview_only else "Boot menu: focused synthetic Enter; HUD/model selection/drag/embedded operation buttons: synthetic mouse; setup devices: existing precision fields/button signal; legal explicit wiring; recipe dropdown index chosen; walking: synthetic WASD; no injected stock/unlocks/actor position or accelerated time"})
+		"input": "Default foundation and explicit discovery selection; Boot/create menus: focused synthetic Enter; preview/mouse placement/cancel/selection/nearby belt: synthetic mouse and Escape; discovery approach: synthetic WASD; no state injection" if preview_only else "Boot menu: focused synthetic Enter; HUD/model selection/drag/live panel buttons: synthetic mouse; setup devices: precision fields/button signal; automatic wiring; recipe dropdown selected; walking: synthetic WASD; F/Escape: real input route; no injected stock/unlocks/actor position or accelerated time"})
 	print("Device interaction Boot: %d assertions, %d failures" % [driver.assertions, driver.failures.size()])
 	quit(0 if driver.failures.is_empty() else 1)
